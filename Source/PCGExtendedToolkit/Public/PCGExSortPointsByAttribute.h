@@ -46,8 +46,8 @@ public:
 	const FName NAME_OUT_POINTS = FName(TEXT("Out Points"));
 
 	/** Please add a variable description */
-	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "Default")
-	FPCGPoint StartPoint;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Default")
+	ESortDirection SortDirection;
 
 protected:
 	/** Input pins **/
