@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "PCGExPointDataSorting.h"
+#include "Sorting/PCGExPointDataSorting.h"
 #include "Containers/Array.h"
 #include "Algo/Reverse.h"
 #include "Containers/Array.h"

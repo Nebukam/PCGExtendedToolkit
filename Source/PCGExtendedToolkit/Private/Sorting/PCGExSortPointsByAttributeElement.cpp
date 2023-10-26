@@ -1,15 +1,15 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "PCGExSortPointsByAttribute.h"
+#include "Sorting\PCGExSortPointsByAttributeElement.h"
+
 #include "CoreMinimal.h"
 #include "PCGContext.h"
-#include "PCGSettings.h"
 #include "PCGPin.h"
+#include "PCGSettings.h"
 #include "Data/PCGPointData.h"
-#include "PCGExPointDataSorting.h"
 #include "Metadata/PCGMetadata.h"
-#include "Metadata/Accessors/PCGAttributeAccessorHelpers.h"
+#include "Metadata/PCGMetadataAccessor.h"
 
 UPCGExSortPointsByAttribute::UPCGExSortPointsByAttribute() {
 
@@ -42,7 +42,7 @@ void UPCGExSortPointsByAttribute::ExecuteWithContext_Implementation(UPARAM(ref) 
 		UPCGPointData* PointData = Cast<UPCGPointData>(InputTaggedData[i].Data);
 		if (PointData) {
 			UPCGMetadata* Metadata = PointData->Metadata;
-			Attribute
+			//UPCGMetadataAccessorHelpers::GetFloatAttribute()
 			//Metadata->
 			TArray<FPCGPoint>& PointList = const_cast<TArray<FPCGPoint>&>(PointData->GetPoints());			
 		}

@@ -1,6 +1,6 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-#include "PCGExPathfinding.h"
+#include "Pathfinding/PCGExPathfinding.h"
 #include "PCGContext.h"
 #include "PCGSettings.h"
 #include "PCGPin.h"

@@ -6,27 +6,18 @@
 #include "Elements/PCGExecuteBlueprint.h"
 #include "PCGPin.h"
 #include "PCGExPointDataSorting.h"
-#include "PCGExSortPoints.generated.h"
-
-UENUM(BlueprintType)
-enum class ESortDataSource : uint8
-{
-	SOURCE_DENSITY UMETA(DisplayName = "Density"),
-	SOURCE_STEEPNESS UMETA(DisplayName = "Steepness"),
-	SOURCE_POSITION UMETA(DisplayName = "Position"),
-	SOURCE_SCALE UMETA(DisplayName = "Scale"),
-};
+#include "PCGExSortPointsByAttributeElement.generated.h"
 
 /**
  *
  */
 UCLASS()
-class PCGEXTENDEDTOOLKIT_API UPCGExSortPoints : public UPCGBlueprintElement
+class PCGEXTENDEDTOOLKIT_API UPCGExSortPointsByAttribute : public UPCGBlueprintElement
 {
 	GENERATED_BODY()
 
 public:
-	UPCGExSortPoints();
+	UPCGExSortPointsByAttribute();
 	/**
 	 * Override for the default node name
 	 *
@@ -41,23 +32,22 @@ public:
 	 */
 	virtual void ExecuteWithContext_Implementation(UPARAM(ref) FPCGContext& InContext, const FPCGDataCollection& Input, FPCGDataCollection& Output);
 
+	/**
+	 * Please add a function description
+	 *
+	 * NOTE: This function is linked to BlueprintImplementableEvent: UPCGBlueprintElement::PointLoopBody
+	 */
+	virtual bool PointLoopBody_Implementation(const FPCGContext& InContext, const UPCGPointData* InData, const FPCGPoint& InPoint, FPCGPoint& OutPoint, UPCGMetadata* OutMetadata) const;
+
 public:
 
-	const FName NODE_NAME = FName(TEXT("PCGEx | SortPoints"));
+	const FName NODE_NAME = FName(TEXT("PCGEx | SortPointsByAttribute"));
 	const FName NAME_SOURCE_POINTS = FName(TEXT("In Points"));
 	const FName NAME_OUT_POINTS = FName(TEXT("Out Points"));
 
 	/** Please add a variable description */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Default")
-	ESortDataSource SortOver;
-
-	/** Please add a variable description */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Default")
 	ESortDirection SortDirection;
-
-	/** Please add a variable description */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Default")
-	ESortAxisOrder SortOrder;
 
 protected:
 	/** Input pins **/

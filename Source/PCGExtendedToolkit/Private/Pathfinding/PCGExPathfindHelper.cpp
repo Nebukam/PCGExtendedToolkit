@@ -1,9 +1,9 @@
 // PCGPathfindHelper.cpp
 
-#include "PCGExPathfindHelper.h"
+#include "Pathfinding/PCGExPathfindHelper.h"
 #include "Containers/Array.h"
 #include "Algo/Reverse.h"
-#include "PCGExPriorityQueue.h"
+#include "Pathfinding/PCGExPriorityQueue.h"
 #include "Containers/Array.h"
 #include <limits>
 

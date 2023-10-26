@@ -1,12 +1,12 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-#include "PCGExSortPoints.h"
+#include "..\..\Public\Sorting\PCGExSortPointsElement.h"
+
 #include "CoreMinimal.h"
 #include "PCGContext.h"
 #include "PCGSettings.h"
 #include "PCGPin.h"
 #include "Data/PCGPointData.h"
-#include "PCGExPointDataSorting.h"
 
 UPCGExSortPoints::UPCGExSortPoints() {
 
