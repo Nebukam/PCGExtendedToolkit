@@ -7,7 +7,7 @@
 #include "UObject/NoExportTypes.h"
 
 template <typename T>
-class PCGExPriorityQueue
+class PCGEXTENDEDTOOLKIT_API PCGExPriorityQueue
 {
 private:
     // Internal storage for the heap

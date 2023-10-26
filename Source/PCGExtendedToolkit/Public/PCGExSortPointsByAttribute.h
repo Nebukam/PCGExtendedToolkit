@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "Elements/PCGExecuteBlueprint.h"
 #include "PCGPin.h"
-#include "PCGExCollectionSorting.h"
+#include "PCGExPointDataSorting.h"
 #include "PCGExSortPointsByAttribute.generated.h"
 
 /**
@@ -51,8 +51,8 @@ public:
 
 protected:
 	/** Input pins **/
-	FPCGPinProperties InputPinPoints;
+	FPCGPinProperties InPinPoints;
 	/** Output pins **/
-	FPCGPinProperties OutputPinPoints;
+	FPCGPinProperties OutPinPoints;
 
 };

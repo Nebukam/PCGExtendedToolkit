@@ -2,24 +2,30 @@
 
 
 #include "PCGExSortPointsByAttribute.h"
+#include "CoreMinimal.h"
 #include "PCGContext.h"
 #include "PCGSettings.h"
 #include "PCGPin.h"
+#include "Data/PCGPointData.h"
+#include "PCGExPointDataSorting.h"
+#include "Metadata/PCGMetadata.h"
+#include "Metadata/Accessors/PCGAttributeAccessorHelpers.h"
 
 UPCGExSortPointsByAttribute::UPCGExSortPointsByAttribute() {
 
+	bExposeToLibrary = true;
 	bHasDefaultInPin = false;
 	bHasDefaultOutPin = false;
 
 	// NODE INPUTS
 	// Source points
-	InputPinPoints = FPCGPinProperties(NAME_SOURCE_POINTS, EPCGDataType::Point);
-	CustomInputPins.Add(InputPinPoints);
+	InPinPoints = FPCGPinProperties(NAME_SOURCE_POINTS, EPCGDataType::Point);
+	CustomInputPins.Add(InPinPoints);
 
 	//NODE OUTPUTS
 	//Out points
-	OutputPinPoints = FPCGPinProperties(NAME_OUT_POINTS, EPCGDataType::Point);
-	CustomOutputPins.Add(OutputPinPoints);
+	OutPinPoints = FPCGPinProperties(NAME_OUT_POINTS, EPCGDataType::Point);
+	CustomOutputPins.Add(OutPinPoints);
 
 }
 
@@ -29,15 +35,24 @@ UPCGExSortPointsByAttribute::UPCGExSortPointsByAttribute() {
  * NOTE: This function is linked to BlueprintNativeEvent: UPCGBlueprintElement::ExecuteWithContext
  */
 void UPCGExSortPointsByAttribute::ExecuteWithContext_Implementation(UPARAM(ref) FPCGContext& InContext, const FPCGDataCollection& Input, FPCGDataCollection& Output) {
+
+	TArray<FPCGTaggedData> InputTaggedData = Input.GetInputsByPin(InPinPoints.Label);
+
+	for (int i = 0; i < InputTaggedData.Num(); i++) {
+		UPCGPointData* PointData = Cast<UPCGPointData>(InputTaggedData[i].Data);
+		if (PointData) {
+			UPCGMetadata* Metadata = PointData->Metadata;
+			Attribute
+			//Metadata->
+			TArray<FPCGPoint>& PointList = const_cast<TArray<FPCGPoint>&>(PointData->GetPoints());			
+		}
+	}
+
 	Output = Input;
 }
 
-/**
- * Please add a function description
- *
- * NOTE: This function is linked to BlueprintImplementableEvent: UPCGBlueprintElement::PointLoopBody
- */
-bool UPCGExSortPointsByAttribute::PointLoopBody_Implementation(const FPCGContext& InContext, const UPCGPointData* InData, const FPCGPoint& InPoint, FPCGPoint& OutPoint, UPCGMetadata* OutMetadata) const {
-	OutPoint = InPoint;
+bool UPCGExSortPointsByAttribute::PointLoopBody_Implementation(const FPCGContext& InContext,
+	const UPCGPointData* InData, const FPCGPoint& InPoint, FPCGPoint& OutPoint, UPCGMetadata* OutMetadata) const
+{
 	return true;
 }

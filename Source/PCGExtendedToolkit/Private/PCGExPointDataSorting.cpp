@@ -1,15 +1,15 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "PCGExCollectionSorting.h"
+#include "PCGExPointDataSorting.h"
 #include "Containers/Array.h"
 #include "Algo/Reverse.h"
 #include "Containers/Array.h"
 #include <limits>
-
-void UPCGExCollectionSorting::SortByDensity(UPARAM(ref) TArray<FPCGPoint>& PathPoints, ESortDirection Direction)
+/*
+void UPCGExPointDataSorting::SortByDensity(UPARAM(ref) TArray<FPCGPoint>& PathPoints, ESortDirection Direction)
 {
-    /*
+    
     // Create nodes for the start and end points
     FGraphNode StartNode = { StartPoint.Transform.GetLocation(), {} };
     FGraphNode EndNode = { EndPoint.Transform.GetLocation(), {} };
@@ -29,20 +29,21 @@ void UPCGExCollectionSorting::SortByDensity(UPARAM(ref) TArray<FPCGPoint>& PathP
     }
 
     return Path;
-    */
+    
 }
 
-void UPCGExCollectionSorting::SortByPosition(UPARAM(ref) TArray<FPCGPoint>& PathPoints, ESortDirection Direction, ESortAxisOrder AxisOrder)
+void UPCGExPointDataSorting::SortByPosition(UPARAM(ref) TArray<FPCGPoint>& PathPoints, ESortDirection Direction, ESortAxisOrder AxisOrder)
 {
     
 }
 
-void UPCGExCollectionSorting::SortByScale(UPARAM(ref) TArray<FPCGPoint>& PathPoints, ESortDirection Direction, ESortAxisOrder AxisOrder)
+void UPCGExPointDataSorting::SortByScale(UPARAM(ref) TArray<FPCGPoint>& PathPoints, ESortDirection Direction, ESortAxisOrder AxisOrder)
 {
 
 }
 
-void UPCGExCollectionSorting::SortByRotation(UPARAM(ref) TArray<FPCGPoint>& PathPoints, ESortDirection Direction, ESortAxisOrder AxisOrder)
+void UPCGExPointDataSorting::SortByRotation(UPARAM(ref) TArray<FPCGPoint>& PathPoints, ESortDirection Direction, ESortAxisOrder AxisOrder)
 {
 
 }
+*/

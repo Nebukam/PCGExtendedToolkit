@@ -7,26 +7,27 @@
 
 UPCGExPathfinding::UPCGExPathfinding() {
 	
+	bExposeToLibrary = true;
 	bHasDefaultInPin = false;
 	bHasDefaultOutPin = false;
 
 	// NODE INPUTS
 	// Source points
-	InputPinPoints = FPCGPinProperties(NAME_SOURCE_POINTS, EPCGDataType::Point);
-	CustomInputPins.Add(InputPinPoints);
+	InPinPoints = FPCGPinProperties(NAME_SOURCE_POINTS, EPCGDataType::Point);
+	CustomInputPins.Add(InPinPoints);
 
 	// Start point
-	InputPinStartPoint = FPCGPinProperties(NAME_START_POINT, EPCGDataType::Point, false, false);
-	CustomInputPins.Add(InputPinStartPoint);
+	InPinStartPoint = FPCGPinProperties(NAME_START_POINT, EPCGDataType::Point, false, false);
+	CustomInputPins.Add(InPinStartPoint);
 
 	// End point
-	InputPinEndPoint = FPCGPinProperties(NAME_END_POINT, EPCGDataType::Point, false, false);
-	CustomInputPins.Add(InputPinEndPoint);
+	InPinEndPoint = FPCGPinProperties(NAME_END_POINT, EPCGDataType::Point, false, false);
+	CustomInputPins.Add(InPinEndPoint);
 
 	//NODE OUTPUTS
 	//Out points
-	OutputPinPoints = FPCGPinProperties(NAME_OUT_POINTS, EPCGDataType::Point);
-	CustomOutputPins.Add(OutputPinPoints);
+	OutPinPoints = FPCGPinProperties(NAME_OUT_POINTS, EPCGDataType::Point);
+	CustomOutputPins.Add(OutPinPoints);
 
 }
 

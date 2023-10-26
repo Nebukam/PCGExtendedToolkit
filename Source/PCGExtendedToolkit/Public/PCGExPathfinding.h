@@ -56,10 +56,10 @@ public:
 
 protected:
 	/** Input pins **/
-	FPCGPinProperties InputPinPoints;
-	FPCGPinProperties InputPinStartPoint;
-	FPCGPinProperties InputPinEndPoint;
+	FPCGPinProperties InPinPoints;
+	FPCGPinProperties InPinStartPoint;
+	FPCGPinProperties InPinEndPoint;
 	/** Output pins **/
-	FPCGPinProperties OutputPinPoints;
+	FPCGPinProperties OutPinPoints;
 
 };
