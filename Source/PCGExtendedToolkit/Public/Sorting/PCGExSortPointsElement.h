@@ -21,12 +21,12 @@ enum class ESortDataSource : uint8
  *
  */
 UCLASS()
-class PCGEXTENDEDTOOLKIT_API UPCGExSortPoints : public UPCGBlueprintElement
+class PCGEXTENDEDTOOLKIT_API UPCGExSortPointsElement : public UPCGBlueprintElement
 {
 	GENERATED_BODY()
 
 public:
-	UPCGExSortPoints();
+	UPCGExSortPointsElement();
 	/**
 	 * Override for the default node name
 	 *

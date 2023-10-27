@@ -8,7 +8,7 @@
 #include "PCGPin.h"
 #include "Data/PCGPointData.h"
 
-UPCGExSortPoints::UPCGExSortPoints() {
+UPCGExSortPointsElement::UPCGExSortPointsElement() {
 
 	bExposeToLibrary = true;
 	bHasDefaultInPin = false;
@@ -31,7 +31,7 @@ UPCGExSortPoints::UPCGExSortPoints() {
  *
  * NOTE: This function is linked to BlueprintNativeEvent: UPCGBlueprintElement::ExecuteWithContext
  */
-void UPCGExSortPoints::ExecuteWithContext_Implementation(UPARAM(ref) FPCGContext& InContext, const FPCGDataCollection& Input, FPCGDataCollection& Output) {
+void UPCGExSortPointsElement::ExecuteWithContext_Implementation(UPARAM(ref) FPCGContext& InContext, const FPCGDataCollection& Input, FPCGDataCollection& Output) {
 
 	TArray<FPCGTaggedData> InputTaggedData = Input.GetInputsByPin(InPinPoints.Label);
 

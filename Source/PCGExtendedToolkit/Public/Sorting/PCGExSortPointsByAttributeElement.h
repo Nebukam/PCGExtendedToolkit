@@ -12,12 +12,12 @@
  *
  */
 UCLASS()
-class PCGEXTENDEDTOOLKIT_API UPCGExSortPointsByAttribute : public UPCGBlueprintElement
+class PCGEXTENDEDTOOLKIT_API UPCGExSortPointsByAttributeElement : public UPCGBlueprintElement
 {
 	GENERATED_BODY()
 
 public:
-	UPCGExSortPointsByAttribute();
+	UPCGExSortPointsByAttributeElement();
 	/**
 	 * Override for the default node name
 	 *

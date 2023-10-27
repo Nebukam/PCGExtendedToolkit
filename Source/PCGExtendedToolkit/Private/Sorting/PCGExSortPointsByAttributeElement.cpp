@@ -11,7 +11,7 @@
 #include "Metadata/PCGMetadata.h"
 #include "Metadata/PCGMetadataAccessor.h"
 
-UPCGExSortPointsByAttribute::UPCGExSortPointsByAttribute() {
+UPCGExSortPointsByAttributeElement::UPCGExSortPointsByAttributeElement() {
 
 	bExposeToLibrary = true;
 	bHasDefaultInPin = false;
@@ -34,7 +34,7 @@ UPCGExSortPointsByAttribute::UPCGExSortPointsByAttribute() {
  *
  * NOTE: This function is linked to BlueprintNativeEvent: UPCGBlueprintElement::ExecuteWithContext
  */
-void UPCGExSortPointsByAttribute::ExecuteWithContext_Implementation(UPARAM(ref) FPCGContext& InContext, const FPCGDataCollection& Input, FPCGDataCollection& Output) {
+void UPCGExSortPointsByAttributeElement::ExecuteWithContext_Implementation(UPARAM(ref) FPCGContext& InContext, const FPCGDataCollection& Input, FPCGDataCollection& Output) {
 
 	TArray<FPCGTaggedData> InputTaggedData = Input.GetInputsByPin(InPinPoints.Label);
 
@@ -51,7 +51,7 @@ void UPCGExSortPointsByAttribute::ExecuteWithContext_Implementation(UPARAM(ref) 
 	Output = Input;
 }
 
-bool UPCGExSortPointsByAttribute::PointLoopBody_Implementation(const FPCGContext& InContext,
+bool UPCGExSortPointsByAttributeElement::PointLoopBody_Implementation(const FPCGContext& InContext,
 	const UPCGPointData* InData, const FPCGPoint& InPoint, FPCGPoint& OutPoint, UPCGMetadata* OutMetadata) const
 {
 	return true;
