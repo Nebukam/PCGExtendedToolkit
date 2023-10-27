@@ -86,15 +86,15 @@ bool FPCGExSortPointsElement::ExecuteInternal(FPCGContext* Context) const
 		OutputData->InitializeFromData(SourcePointData);
 		Outputs.Add_GetRef(Source).Data = OutputData;
 
+		TArray<FPCGPoint>& OutPoints = OutputData->GetMutablePoints();
+		
 		// Copy input to output
-		FPCGAsync::AsyncPointProcessing(Context, SourcePointData->GetPoints(), OutputData->GetMutablePoints(),
+		FPCGAsync::AsyncPointProcessing(Context, SourcePointData->GetPoints(), OutPoints,
 			[OutputData](const FPCGPoint& SourcePoint, FPCGPoint& OutPoint) {
 				OutPoint = SourcePoint;
 				return true;
 			}
 		);
-
-		TArray<FPCGPoint>& OutPoints = OutputData->GetMutablePoints();
 
 		switch (Settings->SortOver)
 		{
