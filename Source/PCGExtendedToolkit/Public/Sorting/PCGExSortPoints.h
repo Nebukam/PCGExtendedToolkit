@@ -4,18 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "PCGSettings.h"
+#include "PCGPoint.h"
 #include "Elements/PCGPointProcessingElementBase.h"
 #include "PCGExPointDataSorting.h"
 #include "PCGExSortPoints.generated.h"
-
-UENUM(BlueprintType)
-enum class ESortDataSource : uint8
-{
-	SOURCE_DENSITY UMETA(DisplayName = "Density"),
-	SOURCE_STEEPNESS UMETA(DisplayName = "Steepness"),
-	SOURCE_POSITION UMETA(DisplayName = "Position"),
-	SOURCE_SCALE UMETA(DisplayName = "Scale"),
-};
 
 namespace PCGExSortPoints
 {
@@ -50,15 +42,15 @@ public:
 
 	/** The point property to sample and drive the sort */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Default")
-	ESortDataSource SortOver = ESortDataSource::SOURCE_DENSITY;
+	EPCGPointProperties SortOver = EPCGPointProperties::Density;
 
 	/** Controls the order in which points will be ordered */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Default")
-	ESortDirection SortDirection = ESortDirection::ASCENDING;
+	ESortDirection SortDirection = ESortDirection::Ascending;
 
 	/** Sub-sorting order, used only for vector properties. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Default")
-	ESortAxisOrder SortOrder = ESortAxisOrder::AXIS_X_Y_Z;
+	ESortAxisOrder SortOrder = ESortAxisOrder::Axis_X_Y_Z;
 	
 };
 

@@ -7,7 +7,29 @@
 #include "Data/PCGPointData.h"
 #include "PCGContext.h"
 #include "PCGPin.h"
+#include "PCGPoint.h"
 
+#define ATTRIBUTE_CHECK(_ATT) \
+if (Settings->SortDirection == ESortDirection::Ascending) OutPoints.Sort(SortBy##_ATT##_Asc()); else OutPoints.Sort(SortBy##_ATT##_Dsc());
+
+#define SWITCH_ORDER_CASE(_ATT, _ENUM, _A, _B, _C, _ORDER) \
+case ESortAxisOrder::Axis_##_ENUM##: OutPoints.Sort(SortBy##_ATT##_##_A##_B##_C##_##_ORDER()); break;\
+
+#define SWITCH_ORDER_3(_ATT, _A, _B, _C, _SUFFIX) \
+SWITCH_ORDER_CASE(_TYPE, X_Y_Z, _A, _B, _C, _ORDER) \
+SWITCH_ORDER_CASE(_TYPE, X_Z_Y, _A, _C, _B, _ORDER) \
+SWITCH_ORDER_CASE(_TYPE, Y_X_Z, _B, _A, _C, _ORDER) \
+SWITCH_ORDER_CASE(_TYPE, Y_Z_X, _B, _C, _A, _ORDER) \
+SWITCH_ORDER_CASE(_TYPE, Z_X_Y, _C, _A, _B, _ORDER) \
+SWITCH_ORDER_CASE(_TYPE, Z_Y_X, _C, _B, _A, _ORDER)
+
+#define AXIS_CHECK_BASE(_ATT, _ORDER) \
+switch (Settings->SortOrder){\
+SWITCH_ORDER_3(_ATT, X, Y, Z, _ORDER) \
+case ESortAxisOrder::Axis_Length: OutPoints.Sort(SortBy##_ATT##Length_##_ORDER()); break;\
+default: break;}
+#define AXIS_CHECK(_ATT) \
+if (Settings->SortDirection == ESortDirection::Ascending) { AXIS_CHECK_BASE(_ATT, Asc) } else { AXIS_CHECK_BASE(_ATT, Dsc) }
 #define LOCTEXT_NAMESPACE "PCGExSortPointsElement"
 
 namespace PCGExSortPoints
@@ -25,10 +47,12 @@ FText UPCGExSortPointsSettings::GetNodeTooltipText() const
 TArray<FPCGPinProperties> UPCGExSortPointsSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	FPCGPinProperties& PinPropertySource = PinProperties.Emplace_GetRef(PCGExSortPoints::SourceLabel, EPCGDataType::Point);
+	FPCGPinProperties& PinPropertySource = PinProperties.Emplace_GetRef(PCGExSortPoints::SourceLabel,
+	                                                                    EPCGDataType::Point);
 
 #if WITH_EDITOR
-	PinPropertySource.Tooltip = LOCTEXT("PCGSourcePinTooltip", "The order of the point in data will be changed, allowing to effectively rely on indices to perform index-bound operations, such as spline generation.");
+	PinPropertySource.Tooltip = LOCTEXT("PCGSourcePinTooltip",
+	                                    "The order of the point in data will be changed, allowing to effectively rely on indices to perform index-bound operations, such as spline generation.");
 #endif // WITH_EDITOR
 
 	return PinProperties;
@@ -37,12 +61,14 @@ TArray<FPCGPinProperties> UPCGExSortPointsSettings::InputPinProperties() const
 TArray<FPCGPinProperties> UPCGExSortPointsSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	FPCGPinProperties& PinPropertyOutput = PinProperties.Emplace_GetRef(PCGPinConstants::DefaultOutputLabel, EPCGDataType::Point);
+	FPCGPinProperties& PinPropertyOutput = PinProperties.Emplace_GetRef(PCGPinConstants::DefaultOutputLabel,
+	                                                                    EPCGDataType::Point);
 
 #if WITH_EDITOR
-	PinPropertyOutput.Tooltip = LOCTEXT("PCGOutputPinTooltip", "The source points will be sorted according to specified options.");
+	PinPropertyOutput.Tooltip = LOCTEXT("PCGOutputPinTooltip",
+	                                    "The source points will be sorted according to specified options.");
 #endif // WITH_EDITOR
-	
+
 	return PinProperties;
 }
 
@@ -62,7 +88,7 @@ bool FPCGExSortPointsElement::ExecuteInternal(FPCGContext* Context) const
 	TArray<FPCGTaggedData>& Outputs = Context->OutputData.TaggedData;
 
 	// first find the total Input bounds which will determine the size of each cell
-	for (const FPCGTaggedData& Source : Sources) 
+	for (const FPCGTaggedData& Source : Sources)
 	{
 		// add the point bounds to the input cell
 
@@ -77,8 +103,9 @@ bool FPCGExSortPointsElement::ExecuteInternal(FPCGContext* Context) const
 		const UPCGPointData* SourcePointData = SourceData->ToPointData(Context);
 		if (!SourcePointData)
 		{
-			PCGE_LOG(Error, GraphAndLog, LOCTEXT("CannotConvertToPointData", "Cannot convert input Spatial data to Point data"));
-			continue;			
+			PCGE_LOG(Error, GraphAndLog,
+			         LOCTEXT("CannotConvertToPointData", "Cannot convert input Spatial data to Point data"));
+			continue;
 		}
 
 		// Initialize output dataset
@@ -87,60 +114,53 @@ bool FPCGExSortPointsElement::ExecuteInternal(FPCGContext* Context) const
 		Outputs.Add_GetRef(Source).Data = OutputData;
 
 		TArray<FPCGPoint>& OutPoints = OutputData->GetMutablePoints();
+
+		FPCGPoint pt;
+		pt.Transform.GetLocation()
 		
 		// Copy input to output
-		FPCGAsync::AsyncPointProcessing(Context, SourcePointData->GetPoints(), OutPoints,
-			[OutputData](const FPCGPoint& SourcePoint, FPCGPoint& OutPoint) {
+		FPCGAsync::AsyncPointProcessing(
+			Context, SourcePointData->GetPoints(), OutPoints,
+			[OutputData](const FPCGPoint& SourcePoint, FPCGPoint& OutPoint)
+			{
 				OutPoint = SourcePoint;
 				return true;
 			}
 		);
 
-		switch (Settings->SortOver)
-		{
-		case ESortDataSource::SOURCE_DENSITY:
-			if (Settings->SortDirection == ESortDirection::ASCENDING) OutPoints.Sort(SortByDensity_ASC());
-			else OutPoints.Sort(SortByDensity_DSC());
+		switch (Settings->SortOver) {
+		case EPCGPointProperties::Density:
+			ATTRIBUTE_CHECK(Density)
 			break;
-		case ESortDataSource::SOURCE_STEEPNESS:
-			if (Settings->SortDirection == ESortDirection::ASCENDING) OutPoints.Sort(SortBySteepness_ASC());
-			else OutPoints.Sort(SortBySteepness_DSC());
+		case EPCGPointProperties::BoundsMin:
 			break;
-		case ESortDataSource::SOURCE_POSITION:
-			if (Settings->SortDirection == ESortDirection::ASCENDING) {
-				switch (Settings->SortOrder)
-				{
-				case ESortAxisOrder::AXIS_X_Y_Z: OutPoints.Sort(SortByPosition_XYZ_ASC()); break;
-				case ESortAxisOrder::AXIS_Y_X_Z: OutPoints.Sort(SortByPosition_XYZ_ASC()); break;
-				case ESortAxisOrder::AXIS_Z_X_Y: OutPoints.Sort(SortByPosition_XYZ_ASC()); break;
-				case ESortAxisOrder::AXIS_X_Z_Y: OutPoints.Sort(SortByPosition_XYZ_ASC()); break;
-				case ESortAxisOrder::AXIS_Y_Z_X: OutPoints.Sort(SortByPosition_XYZ_ASC()); break;
-				case ESortAxisOrder::AXIS_Z_Y_X: OutPoints.Sort(SortByPosition_XYZ_ASC()); break;
-				case ESortAxisOrder::AXIS_LENGTH:OutPoints.Sort(SortByPositionLength_ASC());break;
-				default:break;
-				}
-			}
-			else {
-				switch (Settings->SortOrder)
-				{
-				case ESortAxisOrder::AXIS_X_Y_Z: OutPoints.Sort(SortByPosition_XYZ_DSC()); break;
-				case ESortAxisOrder::AXIS_Y_X_Z: OutPoints.Sort(SortByPosition_XYZ_DSC()); break;
-				case ESortAxisOrder::AXIS_Z_X_Y: OutPoints.Sort(SortByPosition_XYZ_DSC()); break;
-				case ESortAxisOrder::AXIS_X_Z_Y: OutPoints.Sort(SortByPosition_XYZ_DSC()); break;
-				case ESortAxisOrder::AXIS_Y_Z_X: OutPoints.Sort(SortByPosition_XYZ_DSC()); break;
-				case ESortAxisOrder::AXIS_Z_Y_X: OutPoints.Sort(SortByPosition_XYZ_DSC()); break;
-				case ESortAxisOrder::AXIS_LENGTH:OutPoints.Sort(SortByPositionLength_DSC());break;
-				default:break;
-				}
-			}
+		case EPCGPointProperties::BoundsMax:
 			break;
-		case ESortDataSource::SOURCE_SCALE:
+		case EPCGPointProperties::Extents:
 			break;
-		default:
+		case EPCGPointProperties::Color:
 			break;
+		case EPCGPointProperties::Position:
+			AXIS_CHECK(Position)
+			break;
+		case EPCGPointProperties::Rotation:
+			break;
+		case EPCGPointProperties::Scale:
+			AXIS_CHECK(Scale)
+			break;
+		case EPCGPointProperties::Transform:
+			AXIS_CHECK(Position)
+			break;
+		case EPCGPointProperties::Steepness:
+			ATTRIBUTE_CHECK(Steepness)
+			break;
+		case EPCGPointProperties::LocalCenter:
+			break;
+		case EPCGPointProperties::Seed:
+			ATTRIBUTE_CHECK(Seed)
+			break;
+		default: ;
 		}
-		
-		
 	}
 
 	return true;
