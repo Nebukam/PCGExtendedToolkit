@@ -1,16 +1,19 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
+/*
+ * This is a dummy class to create new simple PCG nodes
+ */
 
-#include "PCGExSortPoints.h"
+#include "PCGExDummy.h"
 #include "Data/PCGSpatialData.h"
 #include "Helpers/PCGAsync.h"
 #include "Data/PCGPointData.h"
 #include "PCGContext.h"
 #include "PCGPin.h"
 
-#define LOCTEXT_NAMESPACE "PCGExSortPointsElement"
+#define LOCTEXT_NAMESPACE "PCGExDummyElement"
 
-namespace PCGExSortPoints
+namespace PCGExDummy
 {
 	const FName SourceLabel = TEXT("Source");
 	const FName TargetLabel = TEXT("Target");
@@ -18,17 +21,17 @@ namespace PCGExSortPoints
 }
 
 #if WITH_EDITOR
-FText UPCGExSortPointsSettings::GetNodeTooltipText() const
+FText UPCGExDummySettings::GetNodeTooltipText() const
 {
 	return LOCTEXT("PCGDistanceTooltip", "Calculates and appends a signed 'Distance' attribute to the source data. For each of the source points, a distance attribute will be calculated between it and the nearest target point.");
 }
 #endif // WITH_EDITOR
 
-TArray<FPCGPinProperties> UPCGExSortPointsSettings::InputPinProperties() const
+TArray<FPCGPinProperties> UPCGExDummySettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	FPCGPinProperties& PinPropertySource = PinProperties.Emplace_GetRef(PCGExSortPoints::SourceLabel, EPCGDataType::Point);
-	FPCGPinProperties& PinPropertyTarget = PinProperties.Emplace_GetRef(PCGExSortPoints::TargetLabel, EPCGDataType::Point);
+	FPCGPinProperties& PinPropertySource = PinProperties.Emplace_GetRef(PCGExDummy::SourceLabel, EPCGDataType::Point);
+	FPCGPinProperties& PinPropertyTarget = PinProperties.Emplace_GetRef(PCGExDummy::TargetLabel, EPCGDataType::Point);
 
 #if WITH_EDITOR
 	PinPropertySource.Tooltip = LOCTEXT("PCGSourcePinTooltip", "For each of the source points, a distance attribute will be calculated between it and the nearest target point.");
@@ -38,7 +41,7 @@ TArray<FPCGPinProperties> UPCGExSortPointsSettings::InputPinProperties() const
 	return PinProperties;
 }
 
-TArray<FPCGPinProperties> UPCGExSortPointsSettings::OutputPinProperties() const
+TArray<FPCGPinProperties> UPCGExDummySettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
 	FPCGPinProperties& PinPropertyOutput = PinProperties.Emplace_GetRef(PCGPinConstants::DefaultOutputLabel, EPCGDataType::Point);
@@ -50,16 +53,16 @@ TArray<FPCGPinProperties> UPCGExSortPointsSettings::OutputPinProperties() const
 	return PinProperties;
 }
 
-FPCGElementPtr UPCGExSortPointsSettings::CreateElement() const
+FPCGElementPtr UPCGExDummySettings::CreateElement() const
 {
-	return MakeShared<FPCGExSortPointsElement>();
+	return MakeShared<FPCGExDummyElement>();
 }
 
-bool FPCGExSortPointsElement::ExecuteInternal(FPCGContext* Context) const
+bool FPCGExDummyElement::ExecuteInternal(FPCGContext* Context) const
 {
-	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExSortPointsElement::Execute);
+	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExDummyElement::Execute);
 
-	const UPCGExSortPointsSettings* Settings = Context->GetInputSettings<UPCGExSortPointsSettings>();
+	const UPCGExDummySettings* Settings = Context->GetInputSettings<UPCGExDummySettings>();
 	check(Settings);
 
 	const FName AttributeName = Settings->AttributeName;
@@ -67,8 +70,8 @@ bool FPCGExSortPointsElement::ExecuteInternal(FPCGContext* Context) const
 	const bool bOutputDistanceVector = Settings->bOutputDistanceVector;
 	const double MaximumDistance = Settings->MaximumDistance;
 
-	TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(PCGExSortPoints::SourceLabel);
-	TArray<FPCGTaggedData> Targets = Context->InputData.GetInputsByPin(PCGExSortPoints::TargetLabel);
+	TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(PCGExDummy::SourceLabel);
+	TArray<FPCGTaggedData> Targets = Context->InputData.GetInputsByPin(PCGExDummy::TargetLabel);
 	TArray<FPCGTaggedData>& Outputs = Context->OutputData.TaggedData;
 
 	TArray<const UPCGPointData*> TargetPointDatas;

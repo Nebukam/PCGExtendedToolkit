@@ -5,12 +5,21 @@
 #include "CoreMinimal.h"
 #include "PCGSettings.h"
 #include "Elements/PCGPointProcessingElementBase.h"
+#include "PCGExPointDataSorting.h"
 #include "PCGExSortPoints.generated.h"
+
+UENUM(BlueprintType)
+enum class ESortDataSource : uint8
+{
+	SOURCE_DENSITY UMETA(DisplayName = "Density"),
+	SOURCE_STEEPNESS UMETA(DisplayName = "Steepness"),
+	SOURCE_POSITION UMETA(DisplayName = "Position"),
+	SOURCE_SCALE UMETA(DisplayName = "Scale"),
+};
 
 namespace PCGExSortPoints
 {
-	extern const FName SourceLabel;
-	extern const FName TargetLabel;
+	extern const FName SourceLabel;	
 }
 
 /**
@@ -39,22 +48,18 @@ protected:
 
 public:
 
-	/** The name of the attribute to store on the point.Use 'None' to disable */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FName AttributeName = TEXT("Distance");
+	/** The point property to sample and drive the sort */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Default")
+	ESortDataSource SortOver = ESortDataSource::SOURCE_DENSITY;
 
-	/** Controls whether the attribute will be a scalar or a vector */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	bool bOutputDistanceVector = false;
+	/** Controls the order in which points will be ordered */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Default")
+	ESortDirection SortDirection = ESortDirection::ASCENDING;
 
-	/** If true, will also set the density to be 0 - 1 based on MaximumDistance */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	bool bSetDensity = false;
-
-	/** A maximum distance to search, which is used as an optimization */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (ClampMin = "1", PCG_Overridable))
-	double MaximumDistance = 20000.0;
-
+	/** Sub-sorting order, used only for vector properties. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Default")
+	ESortAxisOrder SortOrder = ESortAxisOrder::AXIS_X_Y_Z;
+	
 };
 
 class FPCGExSortPointsElement : public FPCGPointProcessingElementBase
