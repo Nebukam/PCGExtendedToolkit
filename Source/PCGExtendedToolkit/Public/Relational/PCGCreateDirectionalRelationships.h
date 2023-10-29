@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGSettings.h"
-#include "Relational\DataTypes.h"
+#include "RelationalDataTypes.h"
 #include "Elements/PCGPointProcessingElementBase.h"
 #include "PCGCreateDirectionalRelationships.generated.h"
 
@@ -49,7 +49,7 @@ protected:
 	
 	/** Slots to store a directional relationship. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FDirectionalRelationSlotListSettings Slots = {};
+	FDRSlotListSettings Slots = {};
 
 	/** The name of the attribute to read point index from (or write index to) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))

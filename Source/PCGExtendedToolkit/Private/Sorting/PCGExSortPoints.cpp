@@ -8,7 +8,7 @@
 #include "PCGContext.h"
 #include "PCGPin.h"
 #include "PCGPoint.h"
-#include "PCGExCommon.h"
+#include "PCGContext.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSortPointsElement"
 
@@ -94,10 +94,14 @@ bool FPCGExSortPointsElement::ExecuteInternal(FPCGContext* Context) const
 		Outputs.Add_GetRef(Source).Data = OutputData;
 
 		TArray<FPCGPoint>& OutPoints = OutputData->GetMutablePoints();
-		PCGEX_SIMPLE_COPY_POINTS(SourcePointData->GetPoints(), OutPoints)
+		FPCGAsync::AsyncPointProcessing(Context, SourcePointData->GetPoints(), OutPoints,[](const FPCGPoint& InPoint, FPCGPoint& OutPoint)
+		{
+			OutPoint = InPoint;
+			return true;
+		});
 
-		PCGExPointDataSorting::Sort(OutPoints,Settings->SortOver, Settings->SortDirection, Settings->SortOrder);
-		
+
+		PCGExPointDataSorting::Sort(OutPoints, Settings->SortOver, Settings->SortDirection, Settings->SortOrder);
 	}
 
 	return true;

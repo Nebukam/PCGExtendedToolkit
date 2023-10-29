@@ -7,8 +7,9 @@
 #include "PCGExWriteIndex.h"
 #include "Data/PCGSpatialData.h"
 #include "Data/PCGPointData.h"
+#include "Helpers/PCGAsync.h"
 #include "PCGPin.h"
-#include "PCGExCommon.h"
+#include "PCGContext.h"
 
 #define LOCTEXT_NAMESPACE "PCGExWriteIndexElement"
 
@@ -102,14 +103,19 @@ bool FPCGExWriteIndexElement::ExecuteInternal(FPCGContext* Context) const
 
 		TArray<FPCGPoint>& OutPoints = OutputData->GetMutablePoints();
 
-		PCGEX_SIMPLE_COPY_POINTS(SourcePointData->GetPoints(), OutPoints);
-
 		int64 Index = 0;
 		
-		PCGEX_COPY_POINTS(SourcePointData->GetPoints(), OutPoints, {
-		                  OutputData->Metadata->InitializeOnSet(OutPoint.MetadataEntry);
-		                  IndexAttribute->SetValue(OutPoint.MetadataEntry, Index++);
-		                  }, OutputData, IndexAttribute, &Index)
+		auto CopyAndAssignIndex = [OutputData, IndexAttribute, &Index](const FPCGPoint& InPoint, FPCGPoint& OutPoint)
+		{
+			OutPoint = InPoint;
+			OutputData->Metadata->InitializeOnSet(OutPoint.MetadataEntry);
+			IndexAttribute->SetValue(OutPoint.MetadataEntry, Index++);
+			return true;
+		};
+		
+		FPCGAsync::AsyncPointProcessing(Context, SourcePointData->GetPoints(), OutPoints, CopyAndAssignIndex);
+
+		
 	}
 
 	return true;

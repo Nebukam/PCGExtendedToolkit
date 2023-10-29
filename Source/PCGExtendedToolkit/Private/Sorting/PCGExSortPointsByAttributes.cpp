@@ -2,13 +2,13 @@
 
 
 #include "Sorting/PCGExSortPointsByAttributes.h"
+#include "PCGExAttributesUtils.h"
 #include "Data/PCGSpatialData.h"
 #include "Helpers/PCGAsync.h"
 #include "Data/PCGPointData.h"
 #include "PCGContext.h"
 #include "PCGPin.h"
 #include "PCGPoint.h"
-#include "PCGExCommon.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSortPointsByAttributesElement"
 
@@ -17,7 +17,17 @@ namespace PCGExSortPointsByAttributes
 	const FName SourceLabel = TEXT("Source");
 }
 
+UPCGExSortPointsByAttributesSettings::UPCGExSortPointsByAttributesSettings()
+{
+	AttributesNames.Reserve(Attributes.Num());
+	for(const FAttributeSortingInfos& AttInfos : Attributes)
+	{
+		AttributesNames.Add(AttInfos.AttributeName);
+	}
+}
+
 #if WITH_EDITOR
+
 FText UPCGExSortPointsByAttributesSettings::GetNodeTooltipText() const
 {
 	return LOCTEXT("PCGExSortPointsByAttributesTooltip", "Sort the source points according to specific rules.");
@@ -57,6 +67,11 @@ FPCGElementPtr UPCGExSortPointsByAttributesSettings::CreateElement() const
 	return MakeShared<FPCGExSortPointsByAttributesElement>();
 }
 
+TArray<FName>& UPCGExSortPointsByAttributesSettings::GetAttributesNames() const
+{
+	return AttributesNames;
+}
+
 bool FPCGExSortPointsByAttributesElement::ExecuteInternal(FPCGContext* Context) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExSortPointsByAttributesElement::Execute);
@@ -66,12 +81,15 @@ bool FPCGExSortPointsByAttributesElement::ExecuteInternal(FPCGContext* Context) 
 
 	TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(PCGExSortPointsByAttributes::SourceLabel);
 	TArray<FPCGTaggedData>& Outputs = Context->OutputData.TaggedData;
+	
+	const TArray<FAttributeSortingInfos>& OriginalAttributesSettings = Settings->Attributes;
 
-	// first find the total Input bounds which will determine the size of each cell
+	TArray<FName> SortableAttributeNames = Settings->GetAttributesNames();	
+	TArray<FPCGExAttributeProxy> SortableAttributeFound;
+	TArray<FPCGExAttributeProxy> SortableAttributeMissing;
+
 	for (const FPCGTaggedData& Source : Sources)
 	{
-		// add the point bounds to the input cell
-
 		const UPCGSpatialData* SourceData = Cast<UPCGSpatialData>(Source.Data);
 
 		if (!SourceData)
@@ -88,16 +106,43 @@ bool FPCGExSortPointsByAttributesElement::ExecuteInternal(FPCGContext* Context) 
 			continue;
 		}
 
+		AttributeHelpers::GetAttributesProxies(SourcePointData->Metadata, SortableAttributeNames, SortableAttributeFound, SortableAttributeMissing);
+
+
+		if(SortableAttributeFound.Num() <= 0)
+		{
+			PCGE_LOG(Error, GraphAndLog,
+					 LOCTEXT("CouldNotFindSortableAttributes", "Could not find any valid (existing) sortable attributes."));
+			continue;
+		}else if(SortableAttributeMissing.Num() > 0)
+		{
+			PCGE_LOG(Warning, GraphAndLog,
+					 LOCTEXT("MissingAttributes", "Could not find any valid (existing) sortable attributes."));
+		}
+		
+		// First, create a cache of valid attribute settings
+		TArray<FAttributeSortingInfos> AttributesSettings;
+		AttributesSettings.Reserve(OriginalAttributesSettings.Num());
+		for (const FAttributeSortingInfos& Infos : OriginalAttributesSettings)
+		{
+			if (!SourcePointData->Metadata->HasAttribute(Infos.AttributeName)) { continue; }
+			FPCGMetadataAttributeBase BaseAtt =SourcePointData->Metadata->GetAttributes()  
+			AttributesSettings.Add(Infos);
+		}
+
 		// Initialize output dataset
 		UPCGPointData* OutputData = NewObject<UPCGPointData>();
 		OutputData->InitializeFromData(SourcePointData);
 		Outputs.Add_GetRef(Source).Data = OutputData;
 
 		TArray<FPCGPoint>& OutPoints = OutputData->GetMutablePoints();
-		PCGEX_SIMPLE_COPY_POINTS(SourcePointData->GetPoints(), OutPoints)
+		FPCGAsync::AsyncPointProcessing(Context, SourcePointData->GetPoints(), OutPoints, [](const FPCGPoint& InPoint, FPCGPoint& OutPoint)
+		{
+			OutPoint = InPoint;
+			return true;
+		});
 
-		PCGExPointDataSorting::Sort(OutPoints,Settings->SortOver, Settings->SortDirection, Settings->SortOrder);
-		
+		PCGExPointDataSorting::Sort(OutPoints, Settings->SortOver, Settings->SortDirection, Settings->SortOrder);
 	}
 
 	return true;

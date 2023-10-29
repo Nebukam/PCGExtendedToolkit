@@ -158,6 +158,12 @@ public:
 	PCGEX_SORTFUNC_3(FColor, R, G, B)
 	PCGEX_SORTFUNC_SIMPLE_PAIR(FVector, Length, SquaredLength())
 
+	template <typename T>
+	static bool CompareAsc(const T& A, const T& B) { return A < B; }
+
+	template <typename T>
+	static bool CompareDsc(const T& A, const T& B) { return A > B; }
+
 	static void Sort(TArray<FPCGPoint>& Points, EPCGPointProperties SortOver,
 	                 ESortDirection SortDirection, ESortAxisOrder SortOrder)
 	{
@@ -202,12 +208,36 @@ public:
 		default: break;
 		}
 	}
-	
+
+	static bool IsSortable(const EPCGMetadataTypes& Type)
+	{
+		switch (Type)
+		{
+		case EPCGMetadataTypes::Unknown:
+		case EPCGMetadataTypes::Float:
+		case EPCGMetadataTypes::Double:
+		case EPCGMetadataTypes::Integer32:
+		case EPCGMetadataTypes::Integer64:
+		case EPCGMetadataTypes::Vector2:
+		case EPCGMetadataTypes::Vector:
+		case EPCGMetadataTypes::Vector4:
+		case EPCGMetadataTypes::Quaternion:
+		case EPCGMetadataTypes::Transform:
+		case EPCGMetadataTypes::String:
+		case EPCGMetadataTypes::Boolean:
+		case EPCGMetadataTypes::Rotator:
+		case EPCGMetadataTypes::Name:
+		case EPCGMetadataTypes::Count:
+		default: return true;
+		}
+	}
+
 	static void SortByAttribute(TArray<FPCGPoint>& Points, EPCGPointProperties SortOver,
-					 ESortDirection SortDirection, ESortAxisOrder SortOrder)
+	                            ESortDirection SortDirection, ESortAxisOrder SortOrder)
 	{
 		EPCGMetadataTypes Type = EPCGMetadataTypes::Boolean;
-		switch (Type) {
+		switch (Type)
+		{
 		case EPCGMetadataTypes::Float:
 			break;
 		case EPCGMetadataTypes::Double:
@@ -267,11 +297,11 @@ public:
 
 protected:
 	template <typename T>
-	static bool SortByAttribute(T param) {
+	static bool SortByAttribute(T param)
+	{
 		// Function code here
 		// You can use 'param' as a placeholder for the data type you specify when calling the function.
 	}
-	
 };
 
 #pragma region Undef macros

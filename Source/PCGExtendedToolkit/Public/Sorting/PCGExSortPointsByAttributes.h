@@ -9,6 +9,22 @@
 #include "PCGExPointDataSorting.h"
 #include "PCGExSortPointsByAttributes.generated.h"
 
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FAttributeSortingInfos
+{
+	GENERATED_BODY()
+
+public:
+	/** Name of the attribute to compare */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	FName AttributeName = "AttributeName";
+
+	/** Sub-sorting order, used only for multi-field attributes (FVector, FRotator etc). */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	ESortAxisOrder SortOrder = ESortAxisOrder::Axis_X_Y_Z;
+
+};
+
 namespace PCGExSortPointsByAttributes
 {
 	extern const FName SourceLabel;	
@@ -23,6 +39,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSortPointsByAttributesSettings : public UPCGS
 	GENERATED_BODY()
 
 public:
+	UPCGExSortPointsByAttributesSettings();
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	virtual FName GetDefaultNodeName() const override { return FName(TEXT("SortPointsByAttributes")); }
@@ -51,6 +68,15 @@ public:
 	/** Sub-sorting order, used only for multi-field attributes (FVector, FRotator etc). */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	ESortAxisOrder SortOrder = ESortAxisOrder::Axis_X_Y_Z;
+
+	/** Ordered list of attribute to check to define sorting order. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	TArray<FAttributeSortingInfos> Attributes = {};
+
+	TArray<FName>& GetAttributesNames() const;
+	
+private:
+	TArray<FName>& AttributesNames;
 	
 };
 

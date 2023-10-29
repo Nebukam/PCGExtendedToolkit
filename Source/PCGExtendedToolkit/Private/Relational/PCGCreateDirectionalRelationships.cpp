@@ -1,11 +1,12 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "Relational\PCGCreateDirectionalRelationships.h"
-#include "Relational\DataTypes.h"
+#include "Relational\RelationalDataTypes.h"
+#include "Helpers/PCGAsync.h"
 #include "Data/PCGSpatialData.h"
 #include "Data/PCGPointData.h"
+#include "PCGContext.h"
 #include "PCGPin.h"
-#include "PCGExCommon.h"
 
 #define LOCTEXT_NAMESPACE "PCGDirectionalRelationships"
 
@@ -61,7 +62,7 @@ bool FPCGDirectionalRelationships::ExecuteInternal(FPCGContext* Context) const
 	const UPCGDirectionalRelationships* Settings = Context->GetInputSettings<UPCGDirectionalRelationships>();
 	check(Settings);
 
-	const FDirectionalRelationSlotListSettings SlotsSettings = Settings->Slots;
+	const FDRSlotListSettings& SlotsSettings = Settings->Slots;
 	const float ExtentLength = Settings->CheckExtent;
 	const FName IndexAttributeName = Settings->IndexAttributeName;
 
@@ -86,42 +87,39 @@ bool FPCGDirectionalRelationships::ExecuteInternal(FPCGContext* Context) const
 			continue;
 		}
 
+		bool bUseLocalIndex = !SourcePointData->Metadata->HasAttribute(IndexAttributeName);
+		if (bUseLocalIndex)
+		{
+			PCGE_LOG(Warning, GraphAndLog,
+					 LOCTEXT("InvalidIndexAttribute", "Could not find a valid index attribute, creating one on the fly."
+					 ));
+			
+		}
+		
 		// Initialize output dataset
 		UPCGPointData* OutputData = NewObject<UPCGPointData>();
 		OutputData->InitializeFromData(SourcePointData);
 		Outputs.Add_GetRef(Source).Data = OutputData;
-
-		bool bIndexAttributeExists = OutputData->Metadata->HasAttribute(IndexAttributeName);
-		FPCGMetadataAttribute<int64>* IndexAttribute = OutputData->Metadata->FindOrCreateAttribute<int64>(
+		
+		FPCGMetadataAttribute<int64>* IndexAttribute = IndexAttribute = OutputData->Metadata->FindOrCreateAttribute<int64>(
 			IndexAttributeName, -1, false);
 
-		TArray<const FPCGMetadataAttribute<FDirectionalRelationData>*> SlotAttributes =
-			DataTypeHelpers::FindOrCreateAttributes(SlotsSettings, OutputData);
+		TArray<FPCGMetadataAttribute<FDRData>*> SlotAttributes =
+			RelationalDataTypeHelpers::FindOrCreateAttributes(SlotsSettings, OutputData);
 
 		TArray<FPCGPoint>& OutPoints = OutputData->GetMutablePoints();
 
-		//TODO: Check if an "INDEX" attribute is provided
-
-		if (bIndexAttributeExists)
+		// Copy points and initialize index if needed
+		int64 Index = 0;
+		auto CopyAndAssignIndex = [OutputData, IndexAttribute, &Index, &bUseLocalIndex](const FPCGPoint& InPoint, FPCGPoint& OutPoint)
 		{
-			PCGEX_COPY_POINTS(SourcePointData->GetPoints(), OutPoints, {
-			                  OutputData->Metadata->InitializeOnSet(OutPoint.MetadataEntry);
-			                  }, OutputData)
-		}
-		else
-		{
-			PCGE_LOG(Warning, GraphAndLog,
-			         LOCTEXT("InvalidIndexAttribute", "Could not find a valid index attribute, creating one on the fly."
-			         ));
-			int64 Index = 0;
-			PCGEX_COPY_POINTS(SourcePointData->GetPoints(), OutPoints, {
-			                  OutputData->Metadata->InitializeOnSet(OutPoint.MetadataEntry);
-			                  //TODO: Set index attribute
-			                  IndexAttribute->SetValue(OutPoint.MetadataEntry, Index);
-			                  Index++;
-			                  }, OutputData, &Index, IndexAttribute)
-		}
-
+			OutPoint = InPoint;
+			OutputData->Metadata->InitializeOnSet(OutPoint.MetadataEntry);
+			if(bUseLocalIndex){ IndexAttribute->SetValue(OutPoint.MetadataEntry, Index++); }
+			return true;
+		};
+			
+		FPCGAsync::AsyncPointProcessing(Context, SourcePointData->GetPoints(), OutPoints, CopyAndAssignIndex);
 
 		// Get octree after copy
 		const UPCGPointData::PointOctree& Octree = OutputData->GetOctree();
@@ -132,7 +130,7 @@ bool FPCGDirectionalRelationships::ExecuteInternal(FPCGContext* Context) const
 		CandidatesSlots.Reserve(SlotsSettings.Num());
 		for (int i = 0; i < SlotsSettings.Num(); i++)
 		{
-			FDirectionalRelationSlotSettings SSett = SlotsSettings[i];
+			const FDRSlotSettings& SSett = SlotsSettings.Slots[i];
 			FPCGMetadataAttribute<int64>* SlotAttribute = OutputData->Metadata->FindOrCreateAttribute<int64>(
 			SSett.AttributeName, -1, false);
 			
@@ -141,7 +139,7 @@ bool FPCGDirectionalRelationships::ExecuteInternal(FPCGContext* Context) const
 			CandidatesSlots.Add(Candidates);
 		}
 
-		TArray<FDirectionalRelationSlotSettings> Slots = SlotsSettings.Slots;
+		TArray<FDRSlotSettings> Slots = SlotsSettings.Slots;
 		FPCGPoint NullNode = FPCGPoint{};
 		FPCGPoint& CurrentNode = NullNode;
 		FPCGPoint& BestCandidate = NullNode;
@@ -155,7 +153,7 @@ bool FPCGDirectionalRelationships::ExecuteInternal(FPCGContext* Context) const
 
 			for (int i = 0; i < Slots.Num(); i++)
 			{
-				FDirectionalRelationSlotSettings CurrentSettings = Slots[i];
+				FDRSlotSettings CurrentSettings = Slots[i];
 				FSlotCandidateData CurrentSlotData = CandidatesSlots[i];
 				//TODO: For each slot settings, update & compare against the matching Candidate data in CandidatesSlots
 			}
@@ -170,7 +168,7 @@ bool FPCGDirectionalRelationships::ExecuteInternal(FPCGContext* Context) const
 
 			for (int i = 0; i < Slots.Num(); i++)
 			{
-				FDirectionalRelationSlotSettings CurrentSettings = Slots[i];
+				FDRSlotSettings CurrentSettings = Slots[i];
 				FSlotCandidateData CurrentSlotData = CandidatesSlots[i];
 				// TODO: "Apply" CandidatesSlots data into attributes.
 			}
