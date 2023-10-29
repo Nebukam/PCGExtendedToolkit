@@ -120,6 +120,7 @@ struct PCGEXTENDEDTOOLKIT_API FSlotCandidateData
 	GENERATED_BODY()
 
 public:
+	FPCGMetadataAttribute<int64>* Attribute = nullptr;
 	int64 Index = -1;
 	float MinDistance = TNumericLimits<float>::Max();
 

@@ -63,6 +63,7 @@ bool FPCGDirectionalRelationships::ExecuteInternal(FPCGContext* Context) const
 
 	const FDirectionalRelationSlotListSettings SlotsSettings = Settings->Slots;
 	const float ExtentLength = Settings->CheckExtent;
+	const FName IndexAttributeName = Settings->IndexAttributeName;
 
 	TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(PCGDirectionalRelationships::SourceLabel);
 	TArray<FPCGTaggedData>& Outputs = Context->OutputData.TaggedData;
@@ -70,7 +71,7 @@ bool FPCGDirectionalRelationships::ExecuteInternal(FPCGContext* Context) const
 	for (const FPCGTaggedData& Source : Sources)
 	{
 		const UPCGSpatialData* SourceData = Cast<UPCGSpatialData>(Source.Data);
-		
+
 		if (!SourceData)
 		{
 			PCGE_LOG(Error, GraphAndLog, LOCTEXT("InvalidInputData", "Invalid input data"));
@@ -90,28 +91,37 @@ bool FPCGDirectionalRelationships::ExecuteInternal(FPCGContext* Context) const
 		OutputData->InitializeFromData(SourcePointData);
 		Outputs.Add_GetRef(Source).Data = OutputData;
 
+		bool bIndexAttributeExists = OutputData->Metadata->HasAttribute(IndexAttributeName);
+		FPCGMetadataAttribute<int64>* IndexAttribute = OutputData->Metadata->FindOrCreateAttribute<int64>(
+			IndexAttributeName, -1, false);
+
 		TArray<const FPCGMetadataAttribute<FDirectionalRelationData>*> SlotAttributes =
 			DataTypeHelpers::FindOrCreateAttributes(SlotsSettings, OutputData);
 
 		TArray<FPCGPoint>& OutPoints = OutputData->GetMutablePoints();
 
-		bool bIndexAttributeExists = false;
 		//TODO: Check if an "INDEX" attribute is provided
 
-		if(bIndexAttributeExists)
+		if (bIndexAttributeExists)
 		{
 			PCGEX_COPY_POINTS(SourcePointData->GetPoints(), OutPoints, {
-							  OutputData->Metadata->InitializeOnSet(OutPoint.MetadataEntry);
-							  }, OutputData)	
-		}else
+			                  OutputData->Metadata->InitializeOnSet(OutPoint.MetadataEntry);
+			                  }, OutputData)
+		}
+		else
 		{
+			PCGE_LOG(Warning, GraphAndLog,
+			         LOCTEXT("InvalidIndexAttribute", "Could not find a valid index attribute, creating one on the fly."
+			         ));
 			int64 Index = 0;
 			PCGEX_COPY_POINTS(SourcePointData->GetPoints(), OutPoints, {
-							  OutputData->Metadata->InitializeOnSet(OutPoint.MetadataEntry);
-				//TODO: Set index attribute
-							  }, OutputData)
+			                  OutputData->Metadata->InitializeOnSet(OutPoint.MetadataEntry);
+			                  //TODO: Set index attribute
+			                  IndexAttribute->SetValue(OutPoint.MetadataEntry, Index);
+			                  Index++;
+			                  }, OutputData, &Index, IndexAttribute)
 		}
-		
+
 
 		// Get octree after copy
 		const UPCGPointData::PointOctree& Octree = OutputData->GetOctree();
@@ -122,39 +132,48 @@ bool FPCGDirectionalRelationships::ExecuteInternal(FPCGContext* Context) const
 		CandidatesSlots.Reserve(SlotsSettings.Num());
 		for (int i = 0; i < SlotsSettings.Num(); i++)
 		{
-			FSlotCandidateData Candidates = FSlotCandidateData{};
+			FDirectionalRelationSlotSettings SSett = SlotsSettings[i];
+			FPCGMetadataAttribute<int64>* SlotAttribute = OutputData->Metadata->FindOrCreateAttribute<int64>(
+			SSett.AttributeName, -1, false);
+			
+			FSlotCandidateData Candidates = FSlotCandidateData{SlotAttribute};
+			
 			CandidatesSlots.Add(Candidates);
 		}
 
+		TArray<FDirectionalRelationSlotSettings> Slots = SlotsSettings.Slots;
 		FPCGPoint NullNode = FPCGPoint{};
 		FPCGPoint& CurrentNode = NullNode;
 		FPCGPoint& BestCandidate = NullNode;
 		FVector Origin;
 
-		auto ProcessNeighbor = [&SlotsSettings, &CurrentNode, &Origin, &CandidatesSlots](const FPCGPointRef& TargetPointRef)
+		auto ProcessNeighbor = [&Slots, &SlotsSettings, &CurrentNode, &Origin, &CandidatesSlots](
+			const FPCGPointRef& TargetPointRef)
 		{
 			// If the source pointer and target pointer are the same, ignore distance to the exact same point
 			if (&CurrentNode == TargetPointRef.Point) { return; }
-			
-			TArray<FDirectionalRelationSlotSettings> Slots = SlotsSettings.Slots;
 
-			for(int i = 0; i < Slots.Num(); i++)
+			for (int i = 0; i < Slots.Num(); i++)
 			{
 				FDirectionalRelationSlotSettings CurrentSettings = Slots[i];
 				FSlotCandidateData CurrentSlotData = CandidatesSlots[i];
 				//TODO: For each slot settings, update & compare against the matching Candidate data in CandidatesSlots
 			}
-			
 		};
 
-		auto InnerLoop = [OutputData, Octree, &Origin, BaseExtent, &NullNode, &CurrentNode, &CandidatesSlots,
+		auto InnerLoop = [&Slots, OutputData, Octree, &Origin, BaseExtent, &NullNode, &CurrentNode, &CandidatesSlots,
 				ProcessNeighbor](int32 Index, FPCGPoint& Point)
 		{
 			CurrentNode = Point;
 			FBoxCenterAndExtent BCE = FBoxCenterAndExtent{Point.Transform.GetLocation(), BaseExtent};
 			Octree.FindElementsWithBoundsTest(BCE, ProcessNeighbor);
 
-			// TODO: "Apply" CandidatesSlots data into attributes.
+			for (int i = 0; i < Slots.Num(); i++)
+			{
+				FDirectionalRelationSlotSettings CurrentSettings = Slots[i];
+				FSlotCandidateData CurrentSlotData = CandidatesSlots[i];
+				// TODO: "Apply" CandidatesSlots data into attributes.
+			}
 			
 			return true;
 		};

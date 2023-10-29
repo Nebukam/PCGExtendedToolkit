@@ -50,6 +50,10 @@ protected:
 	/** Slots to store a directional relationship. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FDirectionalRelationSlotListSettings Slots = {};
+
+	/** The name of the attribute to read point index from (or write index to) */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	FName IndexAttributeName = TEXT("Index");
 	
 };
 
