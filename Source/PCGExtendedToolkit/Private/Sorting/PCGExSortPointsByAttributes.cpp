@@ -1,7 +1,7 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Sorting/PCGExSortPoints.h"
+#include "Sorting/PCGExSortPointsByAttributes.h"
 #include "Data/PCGSpatialData.h"
 #include "Helpers/PCGAsync.h"
 #include "Data/PCGPointData.h"
@@ -10,24 +10,24 @@
 #include "PCGPoint.h"
 #include "PCGExCommon.h"
 
-#define LOCTEXT_NAMESPACE "PCGExSortPointsElement"
+#define LOCTEXT_NAMESPACE "PCGExSortPointsByAttributesElement"
 
-namespace PCGExSortPoints
+namespace PCGExSortPointsByAttributes
 {
 	const FName SourceLabel = TEXT("Source");
 }
 
 #if WITH_EDITOR
-FText UPCGExSortPointsSettings::GetNodeTooltipText() const
+FText UPCGExSortPointsByAttributesSettings::GetNodeTooltipText() const
 {
-	return LOCTEXT("PCGExSortPointsTooltip", "Sort the source points according to specific rules.");
+	return LOCTEXT("PCGExSortPointsByAttributesTooltip", "Sort the source points according to specific rules.");
 }
 #endif // WITH_EDITOR
 
-TArray<FPCGPinProperties> UPCGExSortPointsSettings::InputPinProperties() const
+TArray<FPCGPinProperties> UPCGExSortPointsByAttributesSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	FPCGPinProperties& PinPropertySource = PinProperties.Emplace_GetRef(PCGExSortPoints::SourceLabel,
+	FPCGPinProperties& PinPropertySource = PinProperties.Emplace_GetRef(PCGExSortPointsByAttributes::SourceLabel,
 	                                                                    EPCGDataType::Point);
 
 #if WITH_EDITOR
@@ -38,7 +38,7 @@ TArray<FPCGPinProperties> UPCGExSortPointsSettings::InputPinProperties() const
 	return PinProperties;
 }
 
-TArray<FPCGPinProperties> UPCGExSortPointsSettings::OutputPinProperties() const
+TArray<FPCGPinProperties> UPCGExSortPointsByAttributesSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
 	FPCGPinProperties& PinPropertyOutput = PinProperties.Emplace_GetRef(PCGPinConstants::DefaultOutputLabel,
@@ -52,19 +52,19 @@ TArray<FPCGPinProperties> UPCGExSortPointsSettings::OutputPinProperties() const
 	return PinProperties;
 }
 
-FPCGElementPtr UPCGExSortPointsSettings::CreateElement() const
+FPCGElementPtr UPCGExSortPointsByAttributesSettings::CreateElement() const
 {
-	return MakeShared<FPCGExSortPointsElement>();
+	return MakeShared<FPCGExSortPointsByAttributesElement>();
 }
 
-bool FPCGExSortPointsElement::ExecuteInternal(FPCGContext* Context) const
+bool FPCGExSortPointsByAttributesElement::ExecuteInternal(FPCGContext* Context) const
 {
-	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExSortPointsElement::Execute);
+	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExSortPointsByAttributesElement::Execute);
 
-	const UPCGExSortPointsSettings* Settings = Context->GetInputSettings<UPCGExSortPointsSettings>();
+	const UPCGExSortPointsByAttributesSettings* Settings = Context->GetInputSettings<UPCGExSortPointsByAttributesSettings>();
 	check(Settings);
 
-	TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(PCGExSortPoints::SourceLabel);
+	TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(PCGExSortPointsByAttributes::SourceLabel);
 	TArray<FPCGTaggedData>& Outputs = Context->OutputData.TaggedData;
 
 	// first find the total Input bounds which will determine the size of each cell

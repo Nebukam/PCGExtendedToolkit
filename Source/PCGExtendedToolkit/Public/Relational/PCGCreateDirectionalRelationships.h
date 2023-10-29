@@ -4,29 +4,28 @@
 
 #include "CoreMinimal.h"
 #include "PCGSettings.h"
-#include "PCGPoint.h"
+#include "Relational\DataTypes.h"
 #include "Elements/PCGPointProcessingElementBase.h"
-#include "PCGExPointDataSorting.h"
-#include "PCGExSortPoints.generated.h"
+#include "PCGCreateDirectionalRelationships.generated.h"
 
-namespace PCGExSortPoints
+namespace PCGExWriteIndex
 {
-	extern const FName SourceLabel;	
+	extern const FName SourceLabel;
 }
 
 /**
  * Calculates the distance between two points (inherently a n*n operation)
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural))
-class PCGEXTENDEDTOOLKIT_API UPCGExSortPointsSettings : public UPCGSettings
+class PCGEXTENDEDTOOLKIT_API UPCGDirectionalRelationships : public UPCGSettings
 {
 	GENERATED_BODY()
 
 public:
 	//~Begin UPCGSettings interface
-#if WITH_EDITOR
-	virtual FName GetDefaultNodeName() const override { return FName(TEXT("SortPoints")); }
-	virtual FText GetDefaultNodeTitle() const override { return NSLOCTEXT("PCGExSortPoints", "NodeTitle", "Sort Points"); }
+	#if WITH_EDITOR
+	virtual FName GetDefaultNodeName() const override { return FName(TEXT("CreateDirRel")); }
+	virtual FText GetDefaultNodeTitle() const override { return NSLOCTEXT("PCGDirectionalRelationships", "NodeTitle", "Compute Directional Relationship"); }
 	virtual FText GetNodeTooltipText() const override;
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Spatial; }
 #endif
@@ -38,23 +37,23 @@ protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings interface
 
-public:
+	public:
 
-	/** The point property to sample and drive the sort. */
+	/** Sampling radius */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	EPCGPointProperties SortOver = EPCGPointProperties::Density;
-
-	/** Controls the order in which points will be ordered. */
+	float CheckExtent = 10000.0f;
+	
+	/** Whether the point transform affects the sampling direction */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	ESortDirection SortDirection = ESortDirection::Ascending;
-
-	/** Sub-sorting order, used only for multi-field attributes (FVector, FRotator etc). */
+	bool bTransformAffectDirection = false;
+	
+	/** Slots to store a directional relationship. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	ESortAxisOrder SortOrder = ESortAxisOrder::Axis_X_Y_Z;
+	FDirectionalRelationSlotListSettings Slots = {};
 	
 };
 
-class FPCGExSortPointsElement : public FPCGPointProcessingElementBase
+class FPCGDirectionalRelationships : public FPCGPointProcessingElementBase
 {
 protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;

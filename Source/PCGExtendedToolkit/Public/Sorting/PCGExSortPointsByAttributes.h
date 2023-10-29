@@ -7,9 +7,9 @@
 #include "PCGPoint.h"
 #include "Elements/PCGPointProcessingElementBase.h"
 #include "PCGExPointDataSorting.h"
-#include "PCGExSortPoints.generated.h"
+#include "PCGExSortPointsByAttributes.generated.h"
 
-namespace PCGExSortPoints
+namespace PCGExSortPointsByAttributes
 {
 	extern const FName SourceLabel;	
 }
@@ -18,15 +18,15 @@ namespace PCGExSortPoints
  * Calculates the distance between two points (inherently a n*n operation)
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural))
-class PCGEXTENDEDTOOLKIT_API UPCGExSortPointsSettings : public UPCGSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExSortPointsByAttributesSettings : public UPCGSettings
 {
 	GENERATED_BODY()
 
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	virtual FName GetDefaultNodeName() const override { return FName(TEXT("SortPoints")); }
-	virtual FText GetDefaultNodeTitle() const override { return NSLOCTEXT("PCGExSortPoints", "NodeTitle", "Sort Points"); }
+	virtual FName GetDefaultNodeName() const override { return FName(TEXT("SortPointsByAttributes")); }
+	virtual FText GetDefaultNodeTitle() const override { return NSLOCTEXT("PCGExSortPointsByAttributes", "NodeTitle", "Sort Points by Attributes"); }
 	virtual FText GetNodeTooltipText() const override;
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Spatial; }
 #endif
@@ -54,7 +54,7 @@ public:
 	
 };
 
-class FPCGExSortPointsElement : public FPCGPointProcessingElementBase
+class FPCGExSortPointsByAttributesElement : public FPCGPointProcessingElementBase
 {
 protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
