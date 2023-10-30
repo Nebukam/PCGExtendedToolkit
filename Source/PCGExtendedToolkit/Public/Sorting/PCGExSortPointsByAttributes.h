@@ -38,17 +38,9 @@ protected:
 
 public:
 
-	/** The point property to sample and drive the sort. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	EPCGPointProperties SortOver = EPCGPointProperties::Density;
-
 	/** Controls the order in which points will be ordered. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	ESortDirection SortDirection = ESortDirection::Ascending;
-
-	/** Sub-sorting order, used only for multi-field attributes (FVector, FRotator etc). */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	ESortAxisOrder SortOrder = ESortAxisOrder::Axis_X_Y_Z;
 
 	/** Ordered list of attribute to check to define sorting order. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
@@ -57,8 +49,8 @@ public:
 protected:
 	bool TryGetDetails(const FName Name, FPCGExSortAttributeDetails& OutDetails) const;	
 
-	TArray<const FName> UniqueAttributeNames;
-	TMap<const FName, const FPCGExSortAttributeDetails> UniqueAttributeDetails;
+	TArray<FName> UniqueAttributeNames;
+	TMap<FName, const FPCGExSortAttributeDetails> UniqueAttributeDetails;
 
 private:
 	friend class FPCGExSortPointsByAttributesElement;

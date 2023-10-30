@@ -92,10 +92,10 @@ bool FPCGExSortPointsByAttributesElement::ExecuteInternal(FPCGContext* Context) 
 
 	const TArray<FPCGExSortAttributeDetails>& OriginalAttributes = Settings->Attributes;
 
-	const TArray<const FName> UniqueAttributeNames = Settings->UniqueAttributeNames;
-	TArray<const FPCGExAttributeProxy> SortableAttributes;
-	TArray<const FName> MissingAttributesNames;
-	TArray<const FPCGExSortAttributeDetails> PerAttributeDetails;
+	const TArray<FName> UniqueAttributeNames = Settings->UniqueAttributeNames;
+	TArray<FPCGExAttributeProxy> SortableAttributes;
+	TArray<FName> MissingAttributesNames;
+	TArray<FPCGExSortAttributeDetails> PerAttributeDetails;
 	PerAttributeDetails.Reserve(UniqueAttributeNames.Num());
 
 	for (const FPCGTaggedData& Source : Sources)
@@ -140,16 +140,15 @@ bool FPCGExSortPointsByAttributesElement::ExecuteInternal(FPCGContext* Context) 
 
 		if (MissingAttributesNames.Num() > 0)
 		{
-			FString JoinedNames = FString::Join(MissingAttributesNames, TEXT(", "));
 			PCGE_LOG(Warning, GraphAndLog,
-			         LOCTEXT("MissingAttributes", "Some attributes are missing and won't be processed: %s"));
+			         LOCTEXT("MissingAttributes", "Some attributes are missing and won't be processed."));
 		}
 
 		for (int i = 0; i < SortableAttributes.Num(); i++)
 		{
 			FPCGExAttributeProxy Proxy = SortableAttributes[i];
 			FPCGExSortAttributeDetails Details;
-			if (Settings->TryGetDetails(Proxy.Name, Details))
+			if (Settings->TryGetDetails(Proxy.Attribute->Name, Details))
 			{
 				PerAttributeDetails.Add(Details);
 			}
