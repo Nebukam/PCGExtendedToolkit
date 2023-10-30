@@ -6,33 +6,14 @@
 #include "PCGSettings.h"
 #include "PCGPoint.h"
 #include "Elements/PCGPointProcessingElementBase.h"
-#include "PCGExPointDataSorting.h"
+#include "PCGExPointSortHelpers.h"
 #include "PCGExSortPointsByAttributes.generated.h"
-
-USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FAttributeSortingInfos
-{
-	GENERATED_BODY()
-
-public:
-	/** Name of the attribute to compare */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-	FName AttributeName = "AttributeName";
-
-	/** Sub-sorting order, used only for multi-field attributes (FVector, FRotator etc). */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-	ESortAxisOrder SortOrder = ESortAxisOrder::Axis_X_Y_Z;
-
-};
 
 namespace PCGExSortPointsByAttributes
 {
 	extern const FName SourceLabel;	
 }
 
-/**
- * Calculates the distance between two points (inherently a n*n operation)
- */
 UCLASS(BlueprintType, ClassGroup = (Procedural))
 class PCGEXTENDEDTOOLKIT_API UPCGExSortPointsByAttributesSettings : public UPCGSettings
 {
@@ -71,12 +52,16 @@ public:
 
 	/** Ordered list of attribute to check to define sorting order. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	TArray<FAttributeSortingInfos> Attributes = {};
+	TArray<FPCGExSortAttributeDetails> Attributes = {};
 
-	TArray<FName>& GetAttributesNames() const;
-	
+protected:
+	bool TryGetDetails(const FName Name, FPCGExSortAttributeDetails& OutDetails) const;	
+
+	TArray<const FName> UniqueAttributeNames;
+	TMap<const FName, const FPCGExSortAttributeDetails> UniqueAttributeDetails;
+
 private:
-	TArray<FName>& AttributesNames;
+	friend class FPCGExSortPointsByAttributesElement;
 	
 };
 

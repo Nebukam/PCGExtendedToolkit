@@ -17,24 +17,33 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeProxy
 public:
 	EPCGMetadataTypes Type = EPCGMetadataTypes::Unknown;
 	FPCGMetadataAttributeBase* Attribute = nullptr;
-	const FName& Name = FName{};
+	FName Name = NAME_None;
 
 	bool IsValid() const { return Attribute == nullptr ? false : true; }
 
 	template <typename T>
-	FPCGMetadataAttribute<T>* GetTypedAttribute(TObjectPtr<UPCGMetadata> Metadata)
+	FPCGMetadataAttribute<T>* GetTypedAttribute()
 	{
 		if (Attribute == nullptr) { return nullptr; }
-		FPCGMetadataAttribute<T>* TypedAttribute = Cast<FPCGMetadataAttribute<T>*>(Attribute);
+		FPCGMetadataAttribute<T>* TypedAttribute = static_cast<FPCGMetadataAttribute<T>*>(Attribute);
 		return TypedAttribute;
 	}
+
+	template <typename T>
+	T GetValue(PCGMetadataValueKey ValueKey) const
+	{
+		if (Attribute == nullptr) { return T{}; }
+		FPCGMetadataAttribute<T>* TypedAttribute = static_cast<FPCGMetadataAttribute<T>*>(Attribute);
+		return TypedAttribute->GetValue(ValueKey);
+	}
+	
 };
 
 class PCGEXTENDEDTOOLKIT_API AttributeHelpers
 {
 public:
 	
-	static void GetAttributesProxies(const TObjectPtr<UPCGMetadata> Metadata, const TArray<FName>& InNames, TArray<FPCGExAttributeProxy>& OutFound, TArray<FName>& OutMissing)
+	static void GetAttributesProxies(const TObjectPtr<UPCGMetadata> Metadata, const TArray<const FName>& InNames, TArray<const FPCGExAttributeProxy>& OutFound, TArray<const FName>& OutMissing)
 	{
 		OutFound.Reset();
 		OutMissing.Reset();

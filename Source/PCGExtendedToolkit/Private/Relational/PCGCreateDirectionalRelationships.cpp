@@ -127,8 +127,8 @@ bool FPCGDirectionalRelationships::ExecuteInternal(FPCGContext* Context) const
 
 		// Init candidates data struct
 		TArray<FSlotCandidateData> CandidatesSlots;
-		CandidatesSlots.Reserve(SlotsSettings.Num());
-		for (int i = 0; i < SlotsSettings.Num(); i++)
+		CandidatesSlots.Reserve(SlotsSettings.Slots.Num());
+		for (int i = 0; i < SlotsSettings.Slots.Num(); i++)
 		{
 			const FDRSlotSettings& SSett = SlotsSettings.Slots[i];
 			FPCGMetadataAttribute<int64>* SlotAttribute = OutputData->Metadata->FindOrCreateAttribute<int64>(

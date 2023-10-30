@@ -2,6 +2,7 @@
 
 
 #include "Sorting/PCGExSortPointsByAttributes.h"
+#include "Sorting/PCGExPointSortHelpers.h"
 #include "PCGExAttributesUtils.h"
 #include "Data/PCGSpatialData.h"
 #include "Helpers/PCGAsync.h"
@@ -19,10 +20,14 @@ namespace PCGExSortPointsByAttributes
 
 UPCGExSortPointsByAttributesSettings::UPCGExSortPointsByAttributesSettings()
 {
-	AttributesNames.Reserve(Attributes.Num());
-	for(const FAttributeSortingInfos& AttInfos : Attributes)
+	UniqueAttributeNames.Reserve(Attributes.Num());
+	for (const FPCGExSortAttributeDetails& AttInfos : Attributes)
 	{
-		AttributesNames.Add(AttInfos.AttributeName);
+		int Index = UniqueAttributeNames.AddUnique(AttInfos.AttributeName);
+		if (Index != -1)
+		{
+			UniqueAttributeDetails.Add(AttInfos.AttributeName, AttInfos);
+		}
 	}
 }
 
@@ -67,9 +72,12 @@ FPCGElementPtr UPCGExSortPointsByAttributesSettings::CreateElement() const
 	return MakeShared<FPCGExSortPointsByAttributesElement>();
 }
 
-TArray<FName>& UPCGExSortPointsByAttributesSettings::GetAttributesNames() const
+bool UPCGExSortPointsByAttributesSettings::TryGetDetails(const FName Name, FPCGExSortAttributeDetails& OutDetails) const
 {
-	return AttributesNames;
+	const FPCGExSortAttributeDetails* Found = UniqueAttributeDetails.Find(Name);
+	if (Found == nullptr) { return false; }
+	OutDetails = *Found;
+	return true;
 }
 
 bool FPCGExSortPointsByAttributesElement::ExecuteInternal(FPCGContext* Context) const
@@ -81,15 +89,21 @@ bool FPCGExSortPointsByAttributesElement::ExecuteInternal(FPCGContext* Context) 
 
 	TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(PCGExSortPointsByAttributes::SourceLabel);
 	TArray<FPCGTaggedData>& Outputs = Context->OutputData.TaggedData;
-	
-	const TArray<FAttributeSortingInfos>& OriginalAttributesSettings = Settings->Attributes;
 
-	TArray<FName> SortableAttributeNames = Settings->GetAttributesNames();	
-	TArray<FPCGExAttributeProxy> SortableAttributeFound;
-	TArray<FPCGExAttributeProxy> SortableAttributeMissing;
+	const TArray<FPCGExSortAttributeDetails>& OriginalAttributes = Settings->Attributes;
+
+	const TArray<const FName> UniqueAttributeNames = Settings->UniqueAttributeNames;
+	TArray<const FPCGExAttributeProxy> SortableAttributes;
+	TArray<const FName> MissingAttributesNames;
+	TArray<const FPCGExSortAttributeDetails> PerAttributeDetails;
+	PerAttributeDetails.Reserve(UniqueAttributeNames.Num());
 
 	for (const FPCGTaggedData& Source : Sources)
 	{
+		SortableAttributes.Reset();
+		MissingAttributesNames.Reset();
+		PerAttributeDetails.Reset();
+
 		const UPCGSpatialData* SourceData = Cast<UPCGSpatialData>(Source.Data);
 
 		if (!SourceData)
@@ -106,30 +120,46 @@ bool FPCGExSortPointsByAttributesElement::ExecuteInternal(FPCGContext* Context) 
 			continue;
 		}
 
-		AttributeHelpers::GetAttributesProxies(SourcePointData->Metadata, SortableAttributeNames, SortableAttributeFound, SortableAttributeMissing);
+		AttributeHelpers::GetAttributesProxies(SourcePointData->Metadata, UniqueAttributeNames, SortableAttributes, MissingAttributesNames);
 
+		for (int i = 0; i < SortableAttributes.Num(); i++)
+		{
+			if (!PCGExPointSortHelpers::IsSortable(SortableAttributes[i].Type))
+			{
+				SortableAttributes.RemoveAt(i);
+				i--;
+			}
+		}
 
-		if(SortableAttributeFound.Num() <= 0)
+		if (SortableAttributes.Num() <= 0)
 		{
 			PCGE_LOG(Error, GraphAndLog,
-					 LOCTEXT("CouldNotFindSortableAttributes", "Could not find any valid (existing) sortable attributes."));
+			         LOCTEXT("CouldNotFindSortableAttributes", "Could not find any existing or sortable attributes."));
 			continue;
-		}else if(SortableAttributeMissing.Num() > 0)
-		{
-			PCGE_LOG(Warning, GraphAndLog,
-					 LOCTEXT("MissingAttributes", "Could not find any valid (existing) sortable attributes."));
-		}
-		
-		// First, create a cache of valid attribute settings
-		TArray<FAttributeSortingInfos> AttributesSettings;
-		AttributesSettings.Reserve(OriginalAttributesSettings.Num());
-		for (const FAttributeSortingInfos& Infos : OriginalAttributesSettings)
-		{
-			if (!SourcePointData->Metadata->HasAttribute(Infos.AttributeName)) { continue; }
-			FPCGMetadataAttributeBase BaseAtt =SourcePointData->Metadata->GetAttributes()  
-			AttributesSettings.Add(Infos);
 		}
 
+		if (MissingAttributesNames.Num() > 0)
+		{
+			FString JoinedNames = FString::Join(MissingAttributesNames, TEXT(", "));
+			PCGE_LOG(Warning, GraphAndLog,
+			         LOCTEXT("MissingAttributes", "Some attributes are missing and won't be processed: %s"));
+		}
+
+		for (int i = 0; i < SortableAttributes.Num(); i++)
+		{
+			FPCGExAttributeProxy Proxy = SortableAttributes[i];
+			FPCGExSortAttributeDetails Details;
+			if (Settings->TryGetDetails(Proxy.Name, Details))
+			{
+				PerAttributeDetails.Add(Details);
+			}
+			else
+			{
+				SortableAttributes.RemoveAt(i);
+				i--;
+			}
+		}
+		
 		// Initialize output dataset
 		UPCGPointData* OutputData = NewObject<UPCGPointData>();
 		OutputData->InitializeFromData(SourcePointData);
@@ -142,7 +172,7 @@ bool FPCGExSortPointsByAttributesElement::ExecuteInternal(FPCGContext* Context) 
 			return true;
 		});
 
-		PCGExPointDataSorting::Sort(OutPoints, Settings->SortOver, Settings->SortDirection, Settings->SortOrder);
+		PCGExPointSortHelpers::Sort(OutPoints, SortableAttributes, PerAttributeDetails, Settings->SortDirection);
 	}
 
 	return true;

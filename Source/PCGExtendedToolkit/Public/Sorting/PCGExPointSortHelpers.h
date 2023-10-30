@@ -3,9 +3,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExAttributesUtils.h"
 #include "PCGPoint.h"
 #include "Metadata/PCGMetadataTypesConstantStruct.h"
-#include "PCGExPointDataSorting.generated.h"
+#include "PCGExPointSortHelpers.generated.h"
 
 #pragma region Macros
 
@@ -121,6 +122,44 @@ PCGEX_PREDICATE_3_FIELDS(FRotator, _NAME, Roll, Pitch, Yaw, _ACCESSOR) \
 PCGEX_PREDICATE_FIELD_PAIR(_NAME##Length, _LENGTH_ACCESSOR);
 #pragma endregion
 
+#pragma region Attribute sorting macros
+
+#define PCGEX_ATT_DECLARE(_TYPE) \
+const FPCGMetadataAttribute<_TYPE>* Attribute_##_TYPE = static_cast<FPCGMetadataAttribute<_TYPE>*>(Proxy.Attribute);
+
+#define PCGEX_ATT_COMPARE(_TYPE, _ORDER) \
+Result = Compare##_ORDER(Attribute_##_TYPE->GetValue(PtA.MetadataEntry), Attribute_##_TYPE->GetValue(PtB.MetadataEntry)); \
+
+#define PCGEX_ATT_COMPARE_SWITCH(_ORDER) \
+FPCGExSortAttributeDetails CurrentDetail = PerAttributeDetails[i];\
+const FPCGExAttributeProxy Proxy = SortableAttributes[i];\
+int Result = 0; \
+switch (Proxy.Type){ \
+case EPCGMetadataTypes::Float:	PCGEX_ATT_COMPARE_INLINE(float, _ORDER)	break; \
+case EPCGMetadataTypes::Double:	PCGEX_ATT_COMPARE_INLINE(double, _ORDER)	break; \
+case EPCGMetadataTypes::Integer32:	PCGEX_ATT_COMPARE_INLINE(int32, _ORDER)	break; \
+case EPCGMetadataTypes::Integer64:	PCGEX_ATT_COMPARE_INLINE(int64, _ORDER)	break; \
+case EPCGMetadataTypes::Vector2:	break;\
+case EPCGMetadataTypes::Vector: 	break;\
+case EPCGMetadataTypes::Vector4: 	break;\
+case EPCGMetadataTypes::Quaternion:	break;\
+case EPCGMetadataTypes::Transform:	break;\
+case EPCGMetadataTypes::String:	PCGEX_ATT_COMPARE_INLINE(FString, Asc) break;\
+case EPCGMetadataTypes::Boolean:	break;\
+case EPCGMetadataTypes::Rotator:	break;\
+case EPCGMetadataTypes::Name:	PCGEX_ATT_COMPARE_INLINE(FName, _ORDER)	break;\
+case EPCGMetadataTypes::Count:	break;\
+case EPCGMetadataTypes::Unknown:	break;\
+default: ; \
+} \
+if(Result == 0){ continue; } \
+return Result < 0; \
+
+#define PCGEX_ATT_COMPARE_INLINE(_TYPE, _ORDER) \
+{ PCGEX_ATT_DECLARE(_TYPE) PCGEX_ATT_COMPARE(_TYPE, _ORDER) } \
+
+#pragma endregion
+
 #pragma endregion
 
 UENUM(BlueprintType)
@@ -142,13 +181,28 @@ enum class ESortAxisOrder : uint8
 	Axis_Length UMETA(DisplayName = "Vector length"),
 };
 
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExSortAttributeDetails
+{
+	GENERATED_BODY()
+
+public:
+	/** Name of the attribute to compare */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	FName AttributeName = "AttributeName";
+
+	/** Sub-sorting order, used only for multi-field attributes (FVector, FRotator etc). */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	ESortAxisOrder SortOrder = ESortAxisOrder::Axis_X_Y_Z;
+};
+
 /*
 * Reminder:
 * Return true if A should come before B in the sorted order.
 * Return false if A should come after B.
 */
 
-class PCGEXTENDEDTOOLKIT_API PCGExPointDataSorting
+class PCGEXTENDEDTOOLKIT_API PCGExPointSortHelpers
 {
 public:
 	typedef bool (*t_compare)(const FVector& VA, const FVector& VB);
@@ -159,10 +213,10 @@ public:
 	PCGEX_SORTFUNC_SIMPLE_PAIR(FVector, Length, SquaredLength())
 
 	template <typename T>
-	static bool CompareAsc(const T& A, const T& B) { return A < B; }
+	static int CompareAsc(const T& A, const T& B) { return A < B ? -1 : A == B ? 0 : 1; }
 
 	template <typename T>
-	static bool CompareDsc(const T& A, const T& B) { return A > B; }
+	static int CompareDsc(const T& A, const T& B) { return A > B ? -1 : A == B ? 0 : 1; }
 
 	static void Sort(TArray<FPCGPoint>& Points, EPCGPointProperties SortOver,
 	                 ESortDirection SortDirection, ESortAxisOrder SortOrder)
@@ -232,10 +286,95 @@ public:
 		}
 	}
 
-	static void SortByAttribute(TArray<FPCGPoint>& Points, EPCGPointProperties SortOver,
-	                            ESortDirection SortDirection, ESortAxisOrder SortOrder)
+	static void Sort(TArray<FPCGPoint>& Points, TArray<const FPCGExAttributeProxy>& SortableAttributes, TArray<const FPCGExSortAttributeDetails>& PerAttributeDetails, ESortDirection SortDirection)
 	{
-		EPCGMetadataTypes Type = EPCGMetadataTypes::Boolean;
+		if (SortDirection == ESortDirection::Ascending)
+		{
+			//TODO: Cache static_cast with an array per type?
+			// This would mean one typed TArray per enum member, with nullptr
+			// i.e
+			// If attribute list is [float, float, string]
+			// <float>[ att, att, nulltpr ]
+			// <string>[ nullptr, att, att ]
+			// as to re-use the loop index.
+			// This makes for long code yet performance may improve?
+
+			Points.Sort([&SortableAttributes, &PerAttributeDetails](const FPCGPoint& PtA, const FPCGPoint& PtB)
+			{
+				// -1 = return true early
+				// 0 = move to next attribute
+				// +1 = return false early
+				int MaxIterations = PerAttributeDetails.Num();
+				for (int i = 0; i < MaxIterations; i++)
+				{
+					FPCGExSortAttributeDetails CurrentDetail = PerAttributeDetails[i];
+					const FPCGExAttributeProxy Proxy = SortableAttributes[i];
+					int Result = 0;
+
+					switch (Proxy.Type)
+					{
+					case EPCGMetadataTypes::Float:
+						PCGEX_ATT_COMPARE_INLINE(float, Asc)
+						break;
+					case EPCGMetadataTypes::Double:
+						PCGEX_ATT_COMPARE_INLINE(double, Asc)
+						break;
+					case EPCGMetadataTypes::Integer32:
+						PCGEX_ATT_COMPARE_INLINE(int32, Asc)
+						break;
+					case EPCGMetadataTypes::Integer64:
+						PCGEX_ATT_COMPARE_INLINE(int64, Asc)
+						break;
+					case EPCGMetadataTypes::Vector2:
+						break;
+					case EPCGMetadataTypes::Vector:
+						break;
+					case EPCGMetadataTypes::Vector4:
+						break;
+					case EPCGMetadataTypes::Quaternion:
+						break;
+					case EPCGMetadataTypes::Transform:
+						break;
+					case EPCGMetadataTypes::String:
+						PCGEX_ATT_COMPARE_INLINE(FString, Asc)
+						break;
+					case EPCGMetadataTypes::Boolean:
+						break;
+					case EPCGMetadataTypes::Rotator:
+						break;
+					case EPCGMetadataTypes::Name:
+						PCGEX_ATT_COMPARE_INLINE(FName, Asc)
+						break;
+					case EPCGMetadataTypes::Count:
+						break;
+					case EPCGMetadataTypes::Unknown:
+						break;
+					default: ;
+					}
+
+					if (Result == 0) { continue; }
+					return Result < 0;
+				}
+
+				return false;
+			});
+		}
+		else
+		{
+			Points.Sort([&SortableAttributes, &PerAttributeDetails](const FPCGPoint& PtA, const FPCGPoint& PtB)
+			{
+				int MaxIterations = PerAttributeDetails.Num();
+				for (int i = 0; i < MaxIterations; i++)
+				{
+					PCGEX_ATT_COMPARE_SWITCH(Dsc)
+				}
+
+				return false;
+			});
+		}
+
+		EPCGMetadataTypes Type = EPCGMetadataTypes::Unknown;
+
 		switch (Type)
 		{
 		case EPCGMetadataTypes::Float:
@@ -295,13 +434,6 @@ public:
 	*/
 #pragma endregion
 
-protected:
-	template <typename T>
-	static bool SortByAttribute(T param)
-	{
-		// Function code here
-		// You can use 'param' as a placeholder for the data type you specify when calling the function.
-	}
 };
 
 #pragma region Undef macros

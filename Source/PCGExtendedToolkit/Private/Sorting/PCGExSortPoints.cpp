@@ -101,7 +101,7 @@ bool FPCGExSortPointsElement::ExecuteInternal(FPCGContext* Context) const
 		});
 
 
-		PCGExPointDataSorting::Sort(OutPoints, Settings->SortOver, Settings->SortDirection, Settings->SortOrder);
+		PCGExPointSortHelpers::Sort(OutPoints, Settings->SortOver, Settings->SortDirection, Settings->SortOrder);
 	}
 
 	return true;

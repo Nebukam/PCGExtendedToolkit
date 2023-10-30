@@ -6,7 +6,7 @@
 #include "PCGSettings.h"
 #include "PCGPoint.h"
 #include "Elements/PCGPointProcessingElementBase.h"
-#include "PCGExPointDataSorting.h"
+#include "PCGExPointSortHelpers.h"
 #include "PCGExSortPoints.generated.h"
 
 namespace PCGExSortPoints
@@ -51,6 +51,9 @@ public:
 	/** Sub-sorting order, used only for multi-field attributes (FVector, FRotator etc). */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	ESortAxisOrder SortOrder = ESortAxisOrder::Axis_X_Y_Z;
+	
+private:
+	friend class FPCGExSortPointsElement;
 	
 };
 
