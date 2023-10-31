@@ -119,6 +119,12 @@ public:
 	template <typename T>
 	static int CompareDsc(const T& A, const T& B, const float Tolerance = 0.00001f) { return A > B ? -1 : A == B ? 0 : 1; }
 
+	template <typename T>
+	static int CompareLooseAsc(const T& A, const T& B, const float Tolerance = 0.00001f) { return FMath::IsNearlyEqual(A, B, Tolerance) ? 0 : A < B ? -1 : 1; }
+
+	template <typename T>
+	static int CompareLooseDsc(const T& A, const T& B, const float Tolerance = 0.00001f) { return FMath::IsNearlyEqual(A, B, Tolerance) ? 0 : A > B ? -1 : 1; }
+
 	static int CompareFName(const FName& A, const FName& B, const float Tolerance = -1.0f) { return CompareAsc(A.ToString(), B.ToString()); }
 
 	static int CompareFNameAsc(const FName& A, const FName& B, const float Tolerance = -1.0f) { return CompareFName(A, B); }
@@ -152,9 +158,9 @@ public:
 	[__VA_ARGS__](const FPCGPoint &PtA, const FPCGPoint &PtB)
 
 #define PCGEX_SORT_COMPARE(_DIR, _TYPE, _ACCESSOR)\
-Points.Sort( PCGEX_SORT_LAMBDA_IN(Tolerance) { return Compare##_DIR(PtA._ACCESSOR, PtB._ACCESSOR, Tolerance) < 0; });
+Points.Sort( PCGEX_SORT_LAMBDA_IN(Tolerance) { return CompareLoose##_DIR(PtA._ACCESSOR, PtB._ACCESSOR, Tolerance) < 0; });
 #define PCGEX_SORT_COMPARE_TYPED(_DIR, _TYPE, _ACCESSOR, _COMPONENTS)\
-Points.Sort( PCGEX_SORT_LAMBDA_IN(Tolerance) { return Compare_##_TYPE##_COMPONENTS##_DIR(PtA._ACCESSOR, PtB._ACCESSOR) < 0; });
+Points.Sort( PCGEX_SORT_LAMBDA_IN(Tolerance) { return Compare_##_TYPE##_COMPONENTS##_DIR(PtA._ACCESSOR, PtB._ACCESSOR, Tolerance) < 0; });
 #define PCGEX_SORT_COMPARE_2_FIELDS(_DIR, _TYPE, _A, _B, _ACCESSOR)\
 switch(SortOrder){\
 case ESortAxisOrder::Axis_X_Y_Z: case ESortAxisOrder::Axis_X_Z_Y: case ESortAxisOrder::Axis_Z_X_Y: PCGEX_SORT_COMPARE_TYPED(_DIR, _TYPE, _ACCESSOR, _A##_B) break; \
