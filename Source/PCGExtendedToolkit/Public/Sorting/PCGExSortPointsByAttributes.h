@@ -20,7 +20,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSortPointsByAttributesSettings : public UPCGS
 	GENERATED_BODY()
 
 public:
-	UPCGExSortPointsByAttributesSettings();
+	
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	virtual FName GetDefaultNodeName() const override { return FName(TEXT("SortPointsByAttributes")); }
@@ -44,14 +44,8 @@ public:
 
 	/** Ordered list of attribute to check to define sorting order. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	TArray<FPCGExSortAttributeDetails> Attributes = {};
-
-protected:
-	bool TryGetDetails(const FName Name, FPCGExSortAttributeDetails& OutDetails) const;	
-
-	TArray<FName> UniqueAttributeNames;
-	TMap<FName, const FPCGExSortAttributeDetails> UniqueAttributeDetails;
-
+	TArray<FPCGExSortAttributeDetails> SortOver = {};
+	
 private:
 	friend class FPCGExSortPointsByAttributesElement;
 	
@@ -61,4 +55,6 @@ class FPCGExSortPointsByAttributesElement : public FPCGPointProcessingElementBas
 {
 protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
+	static bool TryGetDetails(const FName Name, TMap<FName, FPCGExSortAttributeDetails>& InMap, FPCGExSortAttributeDetails& OutDetails);
+	static void BuildUniqueAttributeList(const TArray<FPCGExSortAttributeDetails>& SettingsDetails, TArray<FName>& OutUniqueNames, TMap<FName, FPCGExSortAttributeDetails>& OutUniqueDetails);
 };

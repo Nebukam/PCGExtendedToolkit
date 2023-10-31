@@ -269,21 +269,37 @@ PCGEX_ATT_MAP_FETCH(_ENUM, _TYPE) \
 Result = _FUNC##_DIR(Attribute##_ENUM->GetValue(PtA.MetadataEntry), Attribute##_ENUM->GetValue(PtB.MetadataEntry)); \
 break;
 
-#define PCGEX_ATT_COMPARE_2_FIELDS(_ENUM, _TYPE, _DIR, ...) \
+#define PCGEX_ATT_COMPARE_ROW(_ENUM, _TYPE, _DIR, _FUNC, ...) \
+Result = Compare_##_FUNC##_DIR(Attribute##_ENUM->GetValue(PtA.MetadataEntry), Attribute##_ENUM->GetValue(PtB.MetadataEntry)); \
+		
+#define PCGEX_ATT_COMPARE_2_FIELDS(_ENUM, _TYPE, _A, _B, _DIR, ...) \
 case EPCGMetadataTypes::_ENUM: \
 PCGEX_ATT_MAP_FETCH(_ENUM, _TYPE) \
+switch(SortOrder){\
+case ESortAxisOrder::Axis_X_Y_Z: case ESortAxisOrder::Axis_X_Z_Y: case ESortAxisOrder::Axis_Z_X_Y: PCGEX_ATT_COMPARE_ROW(_ENUM, _TYPE, _DIR, _TYPE##_A##_B) break; \
+case ESortAxisOrder::Axis_Y_X_Z: case ESortAxisOrder::Axis_Y_Z_X: case ESortAxisOrder::Axis_Z_Y_X: PCGEX_ATT_COMPARE_ROW(_ENUM, _TYPE, _DIR, _TYPE##_B##_A) break; \
+}\
 break;
-
-#define PCGEX_ATT_COMPARE_3_FIELDS(_ENUM, _TYPE, _DIR, ...) \
+		
+#define PCGEX_ATT_COMPARE_3_FIELDS(_ENUM, _TYPE, _A, _B, _C, _DIR, ...) \
 case EPCGMetadataTypes::_ENUM: \
 PCGEX_ATT_MAP_FETCH(_ENUM, _TYPE) \
+switch(SortOrder){\
+case ESortAxisOrder::Axis_X_Y_Z: PCGEX_ATT_COMPARE_ROW(_ENUM, _TYPE, _DIR, _TYPE##_A##_B##_C) break; \
+case ESortAxisOrder::Axis_X_Z_Y: PCGEX_ATT_COMPARE_ROW(_ENUM, _TYPE, _DIR, _TYPE##_A##_C##_B) break; \
+case ESortAxisOrder::Axis_Y_X_Z: PCGEX_ATT_COMPARE_ROW(_ENUM, _TYPE, _DIR, _TYPE##_B##_A##_C) break; \
+case ESortAxisOrder::Axis_Y_Z_X: PCGEX_ATT_COMPARE_ROW(_ENUM, _TYPE, _DIR, _TYPE##_B##_C##_A) break; \
+case ESortAxisOrder::Axis_Z_X_Y: PCGEX_ATT_COMPARE_ROW(_ENUM, _TYPE, _DIR, _TYPE##_C##_A##_B) break; \
+case ESortAxisOrder::Axis_Z_Y_X: PCGEX_ATT_COMPARE_ROW(_ENUM, _TYPE, _DIR, _TYPE##_C##_B##_A) break; \
+}\
 break;
 
 #define COMPARE_LOOP_BODY(_DIR)\
 for (int i = 0; i < MaxIterations; i++) { \
-FPCGExSortAttributeDetails CurrentDetail = PerAttributeDetails[i]; \
+FPCGExSortAttributeDetails Details = PerAttributeDetails[i]; \
 const FPCGExAttributeProxy Proxy = SortableAttributes[i]; \
 int Result = 0; \
+ESortAxisOrder SortOrder = Details.SortOrder;\
 switch(Proxy.Type){ \
 PCGEX_FOREACH_SUPPORTEDTYPES_SINGLE_SAFE(PCGEX_ATT_COMPARE_SINGLE, _DIR) \
 PCGEX_ATT_COMPARE_SINGLE_CUSTOM(Name, FName, _DIR, CompareFName) \

@@ -95,13 +95,13 @@ public:
 			int Index = OutNames.Find(Name);
 			if (Index != -1)
 			{
-				OutMissing.Add(Name);
-			}
-			else
-			{
 				FPCGMetadataAttributeBase* BaseAtt = Metadata->GetMutableAttribute(Name);
 				FPCGExAttributeProxy NewProxy =FPCGExAttributeProxy{OutTypes[Index], BaseAtt};
 				OutFound.Add(NewProxy);
+			}
+			else
+			{
+				OutMissing.Add(Name);
 			}
 		}
 	}
