@@ -67,8 +67,9 @@ bool FPCGExWriteIndexElement::ExecuteInternal(FPCGContext* Context) const
 
 	const FName AttributeName = Settings->AttributeName;
 
-	if (AttributeName == NAME_None)
+	if (AttributeName.IsNone() || AttributeName.ToString().IsEmpty() )
 	{
+		PCGE_LOG(Warning, GraphAndLog, LOCTEXT("NameEmpty", "Name cannot be \"None\" nor empty."));
 		return true; // Skip execution
 	}
 
@@ -88,8 +89,7 @@ bool FPCGExWriteIndexElement::ExecuteInternal(FPCGContext* Context) const
 		const UPCGPointData* SourcePointData = SourceData->ToPointData(Context);
 		if (!SourcePointData)
 		{
-			PCGE_LOG(Error, GraphAndLog,
-			         LOCTEXT("CannotConvertToPointData", "Cannot convert input Spatial data to Point data"));
+			PCGE_LOG(Error, GraphAndLog, LOCTEXT("CannotConvertToPointData", "Cannot convert input Spatial data to Point data"));
 			continue;
 		}
 

@@ -51,6 +51,9 @@ public:
 	/** Sub-sorting order, used only for multi-field attributes (FVector, FRotator etc). */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	ESortAxisOrder SortOrder = ESortAxisOrder::Axis_X_Y_Z;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	float Tolerance = 0.0001f;
 	
 private:
 	friend class FPCGExSortPointsElement;

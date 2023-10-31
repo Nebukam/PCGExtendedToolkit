@@ -42,7 +42,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	ESortDirection SortDirection = ESortDirection::Ascending;
 
-	/** Ordered list of attribute to check to define sorting order. */
+	/** Ordered list of attribute to check to sort over. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	TArray<FPCGExSortAttributeDetails> SortOver = {};
 	

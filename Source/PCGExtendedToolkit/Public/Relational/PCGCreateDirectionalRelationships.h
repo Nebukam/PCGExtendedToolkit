@@ -53,7 +53,7 @@ protected:
 
 	/** The name of the attribute to read point index from (or write index to) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FName IndexAttributeName = TEXT("Index");
+	FName IndexAttributeName = TEXT("CurrentIndex");
 
 private:
 	friend class FPCGDirectionalRelationships;

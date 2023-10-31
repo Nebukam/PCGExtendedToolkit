@@ -24,7 +24,7 @@ enum class ESortAxisOrder : uint8
 	Axis_Y_Z_X UMETA(DisplayName = "Y → Z → X"),
 	Axis_Z_X_Y UMETA(DisplayName = "Z → X → Y"),
 	Axis_Z_Y_X UMETA(DisplayName = "Z → Y → X"),
-	Axis_Length UMETA(DisplayName = "Vector length"),
+	//Axis_Length UMETA(DisplayName = "Vector length"),
 };
 
 USTRUCT(BlueprintType)
@@ -36,6 +36,9 @@ public:
 	/** Name of the attribute to compare */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	FName AttributeName = "AttributeName";
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	float Tolerance = 0.0001f;
 
 	/** Sub-sorting order, used only for multi-field attributes (FVector, FRotator etc). */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
@@ -57,19 +60,19 @@ public:
 
 	// Single Fields
 #define PCGEX_COMPARE_SINGLE(_TYPE, _NAME, _ACCESSOR, _COMP, _DIR) \
-	static int Compare_##_TYPE##_NAME##_DIR(const _TYPE& A, const _TYPE& B)	{\
+	static int Compare_##_TYPE##_NAME##_DIR(const _TYPE& A, const _TYPE& B, const float Tolerance = 0.00001f)	{\
 	float VA = A._ACCESSOR, VB = B._ACCESSOR; \
-	return VA _COMP VB ? -1 : FMath::IsNearlyEqual(VA, VB) ? 0 : 1;	}
+	return FMath::IsNearlyEqual(VA, VB, Tolerance) ? 0 : VA _COMP VB ? -1 : 1;	}
 #define PCGEX_COMPARE_PAIR(_TYPE, _NAME, _ACCESSOR) \
 	PCGEX_COMPARE_SINGLE(_TYPE, _NAME, _ACCESSOR, <, Asc) \
 	PCGEX_COMPARE_SINGLE(_TYPE, _NAME, _ACCESSOR, >, Dsc)
 #define PCGEX_RETURN_NON_ZERO if(Result != 0){return Result;}
 #define PCGEX_COMPARE_FIELD_ROW(_A, _COMP) \
-	Result = V1._A _COMP V2._A ? -1 : FMath::IsNearlyEqual(V1._A, V2._A) ? 0 : 1;
+	Result = FMath::IsNearlyEqual(V1._A, V2._A, Tolerance) ? 0 : V1._A _COMP V2._A ? -1 : 1;
 	// 2 Fields
 
 #define PCGEX_COMPARE_2_FIELDS_BASE(_TYPE, _A, _B, _COMP, _DIR) \
-	static int Compare_##_TYPE##_A##_B##_DIR(const _TYPE& V1, const _TYPE& V2) \
+	static int Compare_##_TYPE##_A##_B##_DIR(const _TYPE& V1, const _TYPE& V2, const float Tolerance = 0.00001f) \
 	{ \
 	int PCGEX_COMPARE_FIELD_ROW(_A, _COMP) PCGEX_RETURN_NON_ZERO\
 	PCGEX_COMPARE_FIELD_ROW(_B, _COMP) \
@@ -84,7 +87,7 @@ public:
 	// 3 Fields
 
 #define PCGEX_COMPARE_3_FIELDS_BASE(_TYPE, _A, _B, _C, _COMP, _DIR, ...) \
-	static int Compare_##_TYPE##_A##_B##_C##_DIR(const _TYPE& V1, const _TYPE& V2) \
+	static int Compare_##_TYPE##_A##_B##_C##_DIR(const _TYPE& V1, const _TYPE& V2, const float Tolerance = 0.00001f) \
 	{ \
 	int PCGEX_COMPARE_FIELD_ROW(_A, _COMP) PCGEX_RETURN_NON_ZERO\
 	PCGEX_COMPARE_FIELD_ROW(_B, _COMP) PCGEX_RETURN_NON_ZERO\
@@ -111,15 +114,15 @@ public:
 	PCGEX_COMPARE_PAIR(FVector, Length, SquaredLength())
 
 	template <typename T>
-	static int CompareAsc(const T& A, const T& B) { return A < B ? -1 : A == B ? 0 : 1; }
+	static int CompareAsc(const T& A, const T& B, const float Tolerance = 0.00001f) { return A < B ? -1 : A == B ? 0 : 1; }
 
 	template <typename T>
-	static int CompareDsc(const T& A, const T& B) { return A > B ? -1 : A == B ? 0 : 1; }
+	static int CompareDsc(const T& A, const T& B, const float Tolerance = 0.00001f) { return A > B ? -1 : A == B ? 0 : 1; }
 
-	static int CompareFName(const FName& A, const FName& B) { return CompareAsc(A.ToString(), B.ToString()); }
+	static int CompareFName(const FName& A, const FName& B, const float Tolerance = -1.0f) { return CompareAsc(A.ToString(), B.ToString()); }
 
-	static int CompareFNameAsc(const FName& A, const FName& B) { return CompareFName(A, B); }
-	static int CompareFNameDsc(const FName& A, const FName& B) { return CompareFName(A, B) * -1; }
+	static int CompareFNameAsc(const FName& A, const FName& B, const float Tolerance = -1.0f) { return CompareFName(A, B); }
+	static int CompareFNameDsc(const FName& A, const FName& B, const float Tolerance = -1.0f) { return CompareFName(A, B) * -1; }
 
 
 #pragma region Undef Compare Macros
@@ -141,7 +144,7 @@ public:
 #pragma region SORT BY SINGLE PROPERTY
 
 	static void Sort(TArray<FPCGPoint>& Points, EPCGPointProperties SortOver,
-	                 ESortDirection SortDirection, ESortAxisOrder SortOrder)
+	                 ESortDirection SortDirection, ESortAxisOrder SortOrder, float Tolerance = 0.00001f)
 	{
 #pragma region Sort lambdas
 
@@ -149,9 +152,9 @@ public:
 	[__VA_ARGS__](const FPCGPoint &PtA, const FPCGPoint &PtB)
 
 #define PCGEX_SORT_COMPARE(_DIR, _TYPE, _ACCESSOR)\
-Points.Sort( PCGEX_SORT_LAMBDA_IN() { return Compare##_DIR(PtA._ACCESSOR, PtB._ACCESSOR) < 0; });
+Points.Sort( PCGEX_SORT_LAMBDA_IN(Tolerance) { return Compare##_DIR(PtA._ACCESSOR, PtB._ACCESSOR, Tolerance) < 0; });
 #define PCGEX_SORT_COMPARE_TYPED(_DIR, _TYPE, _ACCESSOR, _COMPONENTS)\
-Points.Sort( PCGEX_SORT_LAMBDA_IN() { return Compare_##_TYPE##_COMPONENTS##_DIR(PtA._ACCESSOR, PtB._ACCESSOR) < 0; });
+Points.Sort( PCGEX_SORT_LAMBDA_IN(Tolerance) { return Compare_##_TYPE##_COMPONENTS##_DIR(PtA._ACCESSOR, PtB._ACCESSOR) < 0; });
 #define PCGEX_SORT_COMPARE_2_FIELDS(_DIR, _TYPE, _A, _B, _ACCESSOR)\
 switch(SortOrder){\
 case ESortAxisOrder::Axis_X_Y_Z: case ESortAxisOrder::Axis_X_Z_Y: case ESortAxisOrder::Axis_Z_X_Y: PCGEX_SORT_COMPARE_TYPED(_DIR, _TYPE, _ACCESSOR, _A##_B) break; \
@@ -234,9 +237,11 @@ else { MACRO(Dsc, __VA_ARGS__) }
 
 #pragma region SORT BY ATTRIBUTES
 
-	static bool IsSortable(const EPCGMetadataTypes& Type)
+	static bool IsSortable(const FPCGExAttributeProxy Proxy)
 	{
-		if (Type == EPCGMetadataTypes::Unknown) { return false; }
+		if (Proxy.Type == EPCGMetadataTypes::Unknown) { return false; }
+		if (Proxy.Attribute->Name == "Index" &&
+			Proxy.Type == EPCGMetadataTypes::Integer32) { return false; }
 		return true;
 	}
 
@@ -249,29 +254,28 @@ TMap<int, FPCGMetadataAttribute<_TYPE>*> Map##_ENUM; \
 // Map##_ENUM.Reserve(SortableAttributes.Num());
 
 #define PCGEX_MEMBER_ATT(_ENUM, _TYPE, ...) \
-FPCGMetadataAttribute<_TYPE>* Attribute##_ENUM = nullptr;
+FPCGMetadataAttribute<_TYPE>* A##_ENUM = nullptr;
 #define PCGEX_ATT_MAP_CAPTURE(_ENUM, _TYPE, ...) &Map##_ENUM,
 #define PCGEX_ATT_MAP_PUSH(_ENUM, _TYPE, ...) \
 case EPCGMetadataTypes::_ENUM : \
-Attribute##_ENUM = static_cast<FPCGMetadataAttribute<_TYPE>*>(Proxy.Attribute); \
-check(Attribute##_ENUM) \
-Map##_ENUM.Add(i, Attribute##_ENUM); \
+A##_ENUM = static_cast<FPCGMetadataAttribute<_TYPE>*>(Proxy.Attribute); \
+check(A##_ENUM) \
+Map##_ENUM.Add(i, A##_ENUM); \
 break;
-#define PCGEX_ATT_MAP_FETCH(_ENUM, _TYPE, ...) Attribute##_ENUM = Map##_ENUM[i];
+#define PCGEX_ATT_MAP_FETCH(_ENUM, _TYPE, ...) A##_ENUM = Map##_ENUM[i];
 #define PCGEX_ATT_COMPARE_SINGLE(_ENUM, _TYPE, _DIR, ...) \
 case EPCGMetadataTypes::_ENUM: \
 PCGEX_ATT_MAP_FETCH(_ENUM, _TYPE) \
-Result = Compare##_DIR(Attribute##_ENUM->GetValue(PtA.MetadataEntry), Attribute##_ENUM->GetValue(PtB.MetadataEntry)); \
+Result = Compare##_DIR(A##_ENUM->GetValue(PtA.MetadataEntry), A##_ENUM->GetValue(PtB.MetadataEntry), Tolerance); \
 break;
 #define PCGEX_ATT_COMPARE_SINGLE_CUSTOM(_ENUM, _TYPE, _DIR, _FUNC, ...) \
 case EPCGMetadataTypes::_ENUM: \
 PCGEX_ATT_MAP_FETCH(_ENUM, _TYPE) \
-Result = _FUNC##_DIR(Attribute##_ENUM->GetValue(PtA.MetadataEntry), Attribute##_ENUM->GetValue(PtB.MetadataEntry)); \
+Result = _FUNC##_DIR(A##_ENUM->GetValue(PtA.MetadataEntry), A##_ENUM->GetValue(PtB.MetadataEntry), Tolerance); \
 break;
 
 #define PCGEX_ATT_COMPARE_ROW(_ENUM, _TYPE, _DIR, _FUNC, ...) \
-Result = Compare_##_FUNC##_DIR(Attribute##_ENUM->GetValue(PtA.MetadataEntry), Attribute##_ENUM->GetValue(PtB.MetadataEntry)); \
-		
+Result = Compare_##_FUNC##_DIR(A##_ENUM->GetValue(PtA.MetadataEntry), A##_ENUM->GetValue(PtB.MetadataEntry), Tolerance);
 #define PCGEX_ATT_COMPARE_2_FIELDS(_ENUM, _TYPE, _A, _B, _DIR, ...) \
 case EPCGMetadataTypes::_ENUM: \
 PCGEX_ATT_MAP_FETCH(_ENUM, _TYPE) \
@@ -280,7 +284,7 @@ case ESortAxisOrder::Axis_X_Y_Z: case ESortAxisOrder::Axis_X_Z_Y: case ESortAxis
 case ESortAxisOrder::Axis_Y_X_Z: case ESortAxisOrder::Axis_Y_Z_X: case ESortAxisOrder::Axis_Z_Y_X: PCGEX_ATT_COMPARE_ROW(_ENUM, _TYPE, _DIR, _TYPE##_B##_A) break; \
 }\
 break;
-		
+
 #define PCGEX_ATT_COMPARE_3_FIELDS(_ENUM, _TYPE, _A, _B, _C, _DIR, ...) \
 case EPCGMetadataTypes::_ENUM: \
 PCGEX_ATT_MAP_FETCH(_ENUM, _TYPE) \
@@ -300,6 +304,7 @@ FPCGExSortAttributeDetails Details = PerAttributeDetails[i]; \
 const FPCGExAttributeProxy Proxy = SortableAttributes[i]; \
 int Result = 0; \
 ESortAxisOrder SortOrder = Details.SortOrder;\
+float Tolerance = Details.Tolerance;\
 switch(Proxy.Type){ \
 PCGEX_FOREACH_SUPPORTEDTYPES_SINGLE_SAFE(PCGEX_ATT_COMPARE_SINGLE, _DIR) \
 PCGEX_ATT_COMPARE_SINGLE_CUSTOM(Name, FName, _DIR, CompareFName) \
@@ -353,6 +358,19 @@ return Result < 0; \
 
 #pragma region Undef macros
 
+#undef PCGEX_MEMBER_MAP
+#undef PCGEX_MEMBER_ATT
+#undef PCGEX_ATT_MAP_CAPTURE
+#undef PCGEX_ATT_MAP_PUSH
+#undef PCGEX_ATT_MAP_FETCH
+#undef PCGEX_ATT_COMPARE_SINGLE
+#undef PCGEX_ATT_COMPARE_SINGLE_CUSTOM
+#undef PCGEX_ATT_COMPARE_ROW
+#undef PCGEX_ATT_COMPARE_2_FIELDS
+#undef PCGEX_ATT_COMPARE_3_FIELDS
+#undef COMPARE_LOOP_BODY
+		
 #pragma endregion
+		
 	}
 };

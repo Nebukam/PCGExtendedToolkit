@@ -80,6 +80,12 @@ bool FPCGExSortPointsByAttributesElement::ExecuteInternal(FPCGContext* Context) 
 	TArray<FPCGExSortAttributeDetails> PerAttributeDetails;
 	PerAttributeDetails.Reserve(UniqueNames.Num());
 
+	if (UniqueNames.IsEmpty())
+	{
+		PCGE_LOG(Warning, GraphAndLog, LOCTEXT("Empty", "No attributes to sort over."));
+		return true; // Skip execution
+	}
+	
 	for (const FPCGTaggedData& Source : Sources)
 	{
 		ExistingAttributes.Reset();
@@ -97,8 +103,7 @@ bool FPCGExSortPointsByAttributesElement::ExecuteInternal(FPCGContext* Context) 
 		const UPCGPointData* SourcePointData = SourceData->ToPointData(Context);
 		if (!SourcePointData)
 		{
-			PCGE_LOG(Error, GraphAndLog,
-			         LOCTEXT("CannotConvertToPointData", "Cannot convert input Spatial data to Point data"));
+			PCGE_LOG(Error, GraphAndLog, LOCTEXT("CannotConvertToPointData", "Cannot convert input Spatial data to Point data"));
 			continue;
 		}
 
@@ -108,7 +113,8 @@ bool FPCGExSortPointsByAttributesElement::ExecuteInternal(FPCGContext* Context) 
 		{
 			FPCGExAttributeProxy Proxy = ExistingAttributes[i];
 			FPCGExSortAttributeDetails Details;
-			if (!PCGExPointSortHelpers::IsSortable(ExistingAttributes[i].Type) ||
+			
+			if (!PCGExPointSortHelpers::IsSortable(Proxy) ||
 				TryGetDetails(Proxy.Attribute->Name, DetailsMap, Details))
 			{
 				PerAttributeDetails.Add(Details);
@@ -122,7 +128,7 @@ bool FPCGExSortPointsByAttributesElement::ExecuteInternal(FPCGContext* Context) 
 
 		if (ExistingAttributes.Num() <= 0)
 		{
-			PCGE_LOG(Error, GraphAndLog, LOCTEXT("CouldNotFindSortableAttributes", "Could not find any existing or sortable attributes."));
+			PCGE_LOG(Error, GraphAndLog, LOCTEXT("CouldNotFindSortableAttributes", "Could not find any existing or sortable attributes. Note: \"Index\" is reserved and may not be sorted over."));
 			continue;
 		}
 
