@@ -4,7 +4,7 @@
  * This is a dummy class to create new simple PCG nodes
  */
 
-#include "PCGExWriteIndex.h"
+#include "Misc/PCGExWriteIndex.h"
 #include "Data/PCGSpatialData.h"
 #include "Data/PCGPointData.h"
 #include "Helpers/PCGAsync.h"
@@ -86,34 +86,34 @@ bool FPCGExWriteIndexElement::ExecuteInternal(FPCGContext* Context) const
 			continue;
 		}
 
-		const UPCGPointData* SourcePointData = SourceData->ToPointData(Context);
-		if (!SourcePointData)
+		const UPCGPointData* InPointData = SourceData->ToPointData(Context);
+		if (!InPointData)
 		{
 			PCGE_LOG(Error, GraphAndLog, LOCTEXT("CannotConvertToPointData", "Cannot convert input Spatial data to Point data"));
 			continue;
 		}
 
 		// Initialize output dataset
-		UPCGPointData* OutputData = NewObject<UPCGPointData>();
-		OutputData->InitializeFromData(SourcePointData);
-		Outputs.Add_GetRef(Source).Data = OutputData;
+		UPCGPointData* OutPointData = NewObject<UPCGPointData>();
+		OutPointData->InitializeFromData(InPointData);
+		Outputs.Add_GetRef(Source).Data = OutPointData;
 
-		FPCGMetadataAttribute<int64>* IndexAttribute = OutputData->Metadata->FindOrCreateAttribute<int64>(
+		FPCGMetadataAttribute<int64>* IndexAttribute = OutPointData->Metadata->FindOrCreateAttribute<int64>(
 			AttributeName, -1, false);
 
-		TArray<FPCGPoint>& OutPoints = OutputData->GetMutablePoints();
+		TArray<FPCGPoint>& OutPoints = OutPointData->GetMutablePoints();
 
 		int64 Index = 0;
 		
-		auto CopyAndAssignIndex = [OutputData, IndexAttribute, &Index](const FPCGPoint& InPoint, FPCGPoint& OutPoint)
+		auto CopyAndAssignIndex = [OutPointData, IndexAttribute, &Index](const FPCGPoint& InPoint, FPCGPoint& OutPoint)
 		{
 			OutPoint = InPoint;
-			OutputData->Metadata->InitializeOnSet(OutPoint.MetadataEntry);
+			OutPointData->Metadata->InitializeOnSet(OutPoint.MetadataEntry);
 			IndexAttribute->SetValue(OutPoint.MetadataEntry, Index++);
 			return true;
 		};
 		
-		FPCGAsync::AsyncPointProcessing(Context, SourcePointData->GetPoints(), OutPoints, CopyAndAssignIndex);
+		FPCGAsync::AsyncPointProcessing(Context, InPointData->GetPoints(), OutPoints, CopyAndAssignIndex);
 
 		
 	}

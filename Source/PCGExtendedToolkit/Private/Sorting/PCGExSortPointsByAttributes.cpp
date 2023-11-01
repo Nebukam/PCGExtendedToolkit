@@ -134,7 +134,8 @@ bool FPCGExSortPointsByAttributesElement::ExecuteInternal(FPCGContext* Context) 
 
 		if (MissingNames.Num() > 0)
 		{
-			PCGE_LOG(Warning, GraphAndLog, LOCTEXT("MissingAttributes", "Some attributes are missing and won't be processed."));
+			TArray<FString> StringMissingNames; StringMissingNames.Reserve(MissingNames.Num());for(const FName N : MissingNames ){StringMissingNames.Add(N.ToString());}
+			PCGE_LOG(Warning, GraphAndLog, FText::Format(LOCTEXT("MissingAttributes", "Some attributes are missing and won't be processed : {0}"), FText::FromString(FString::Join(StringMissingNames, TEXT(", ")))));
 		}
 		
 		// Initialize output dataset
