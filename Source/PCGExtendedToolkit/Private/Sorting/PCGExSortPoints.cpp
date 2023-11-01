@@ -1,7 +1,7 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Sorting/PCGExSortPointsByAttributes.h"
+#include "Sorting/PCGExSortPoints.h"
 #include "Data/PCGSpatialData.h"
 #include "Helpers/PCGAsync.h"
 #include "Data/PCGPointData.h"
@@ -104,10 +104,9 @@ bool FPCGExSortPointsByAttributesElement::ExecuteInternal(FPCGContext* Context) 
 
 		SortSelectors.Reset();
 		Accessors.Reset();
-		for (FPCGExSortSettings SelectorSettings : DesiredSelectorSettings)
+		for (const FPCGExSortSettings& SelectorSettings : DesiredSelectorSettings)
 		{
-			FPCGExSortSelector Selector = SelectorSettings.CopyAndFixLast(InPointData);
-			if (Selector.IsValid())
+			if (FPCGExSortSelector Selector = MakeSelectorFromSettings(SelectorSettings, InPointData); Selector.IsValid())
 			{
 				SortSelectors.Add(Selector);
 				Accessors.Add(PCGAttributeAccessorHelpers::CreateConstAccessor(InPointData, Selector.Selector));
@@ -147,44 +146,55 @@ bool FPCGExSortPointsByAttributesElement::ExecuteInternal(FPCGContext* Context) 
 			for (int i = 0; i < SortSelectors.Num(); i++)
 			{
 				CurrentSelector = &SortSelectors[i];
-				if (CurrentSelector->Selector.GetSelection() == EPCGAttributePropertySelection::PointProperty)
+				EPCGAttributePropertySelection Sel = CurrentSelector->Selector.GetSelection();
+				switch (Sel)
 				{
-#define PCGED_COMPARE_PROPERTY(_ACCESSOR)\
+				case EPCGAttributePropertySelection::Attribute:
+#define PCGEX_COMPARE_PROPERTY(_ACCESSOR)\
 					Result = UPCGExCompare::Compare(A._ACCESSOR, B._ACCESSOR, CurrentSelector->Tolerance, CurrentSelector->SortComponent);
 
 					// Compare
 					switch (CurrentSelector->Selector.GetPointProperty())
 					{
-					case EPCGPointProperties::Density: PCGED_COMPARE_PROPERTY(Density)
+					case EPCGPointProperties::Density: PCGEX_COMPARE_PROPERTY(Density)
 						break;
-					case EPCGPointProperties::BoundsMin: PCGED_COMPARE_PROPERTY(BoundsMin)
+					case EPCGPointProperties::BoundsMin: PCGEX_COMPARE_PROPERTY(BoundsMin)
 						break;
-					case EPCGPointProperties::BoundsMax: PCGED_COMPARE_PROPERTY(BoundsMax)
+					case EPCGPointProperties::BoundsMax: PCGEX_COMPARE_PROPERTY(BoundsMax)
 						break;
-					case EPCGPointProperties::Extents: PCGED_COMPARE_PROPERTY(GetExtents())
+					case EPCGPointProperties::Extents: PCGEX_COMPARE_PROPERTY(GetExtents())
 						break;
-					case EPCGPointProperties::Color: PCGED_COMPARE_PROPERTY(Color)
+					case EPCGPointProperties::Color: PCGEX_COMPARE_PROPERTY(Color)
 						break;
-					case EPCGPointProperties::Position: PCGED_COMPARE_PROPERTY(Transform.GetLocation())
+					case EPCGPointProperties::Position: PCGEX_COMPARE_PROPERTY(Transform.GetLocation())
 						break;
-					case EPCGPointProperties::Rotation: PCGED_COMPARE_PROPERTY(Transform.Rotator())
+					case EPCGPointProperties::Rotation: PCGEX_COMPARE_PROPERTY(Transform.Rotator())
 						break;
-					case EPCGPointProperties::Scale: PCGED_COMPARE_PROPERTY(Transform.GetScale3D())
+					case EPCGPointProperties::Scale: PCGEX_COMPARE_PROPERTY(Transform.GetScale3D())
 						break;
-					case EPCGPointProperties::Transform: PCGED_COMPARE_PROPERTY(Transform)
+					case EPCGPointProperties::Transform: PCGEX_COMPARE_PROPERTY(Transform)
 						break;
-					case EPCGPointProperties::Steepness: PCGED_COMPARE_PROPERTY(Steepness)
+					case EPCGPointProperties::Steepness: PCGEX_COMPARE_PROPERTY(Steepness)
 						break;
-					case EPCGPointProperties::LocalCenter: PCGED_COMPARE_PROPERTY(GetLocalCenter())
+					case EPCGPointProperties::LocalCenter: PCGEX_COMPARE_PROPERTY(GetLocalCenter())
 						break;
-					case EPCGPointProperties::Seed: PCGED_COMPARE_PROPERTY(Seed)
+					case EPCGPointProperties::Seed: PCGEX_COMPARE_PROPERTY(Seed)
 						break;
 					default: ;
 					}
-				}
-				else
-				{
+					break;
+				case EPCGAttributePropertySelection::PointProperty:
 					Result = PCGMetadataAttribute::CallbackWithRightType(Accessors[i]->GetUnderlyingType(), CompareAttribute, A, B);
+					break;
+				case EPCGAttributePropertySelection::ExtraProperty:
+					switch (CurrentSelector->Selector.GetExtraProperty())
+					{
+					case EPCGExtraProperties::Index: PCGEX_COMPARE_PROPERTY(MetadataEntry)
+						break;
+					default: ;
+					}
+					break;
+				default: ;
 				}
 
 				if (Result != 0) { break; }
@@ -195,5 +205,7 @@ bool FPCGExSortPointsByAttributesElement::ExecuteInternal(FPCGContext* Context) 
 
 	return true;
 }
+
+#undef PCGEX_COMPARE_PROPERTY
 
 #undef LOCTEXT_NAMESPACE

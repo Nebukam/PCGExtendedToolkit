@@ -53,6 +53,9 @@ public:
 	FPCGAttributePropertyInputSelector InBucketIdentifier;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	FPCGAttributePropertyInputSelector InBucketSelector;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGAttributePropertyOutputSelector OutBucketIdentifier;
 	
 	/** The name of the attribute to read unique identifier from. Note that floating point attribute types will be rounded. */
