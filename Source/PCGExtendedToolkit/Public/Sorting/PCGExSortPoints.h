@@ -49,10 +49,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSortSelector : public FPCGExSortSettings
 public:
 	FPCGMetadataAttributeBase* Attribute = nullptr;
 
-	bool IsValid() const
+	bool IsValid(const UPCGPointData* PointData) const
 	{
 		const EPCGAttributePropertySelection Sel = Selector.GetSelection();
-		if (Sel == EPCGAttributePropertySelection::Attribute && Attribute == nullptr) { return false; }
+		if (Sel == EPCGAttributePropertySelection::Attribute && (Attribute == nullptr || !PointData->Metadata->HasAttribute(Selector.GetName()))) { return false; }
 		return Selector.IsValid();
 	}
 };
@@ -66,8 +66,8 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSortPointsByAttributesSettings : public UPCGS
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	virtual FName GetDefaultNodeName() const override { return FName(TEXT("SortPointsByAttributes")); }
-	virtual FText GetDefaultNodeTitle() const override { return NSLOCTEXT("PCGExSortPointsByAttributes", "NodeTitle", "Sort Points by Attributes"); }
+	virtual FName GetDefaultNodeName() const override { return FName(TEXT("PCGExSortPoints")); }
+	virtual FText GetDefaultNodeTitle() const override { return NSLOCTEXT("PCGExSortPoints", "NodeTitle", "Sort Points"); }
 	virtual FText GetNodeTooltipText() const override;
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Spatial; }
 #endif
