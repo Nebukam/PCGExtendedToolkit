@@ -42,9 +42,9 @@ protected:
 
 public:
 
-	/** The name of the attribute to store on the point. Use 'None' to disable */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FName AttributeName = TEXT("CurrentIndex");
+	/** The name of the attribute to write its index to.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	FPCGAttributePropertyOutputNoSourceSelector OutSelector;
 	
 };
 

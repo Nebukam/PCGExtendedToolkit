@@ -63,9 +63,10 @@ bool FPCGExBucketEntryElement::ExecuteInternal(FPCGContext* Context) const
 	const UPCGExSplitByAttribute* Settings = Context->GetInputSettings<UPCGExSplitByAttribute>();
 	check(Settings);
 
-	const FName AttributeName = Settings->AttributeName;
-	const FName AttributeWrite = Settings->AttributeWrite;
+	const FName InBucketAttributeName = Settings->BucketIdentifierAttributeName;
+	const FName OutBucketAttributeName = Settings->OutBucketIdentifierAttributeName;
 	const int64 FilterSize = Settings->FilterSize;
+	const bool bWriteOutputBucketIdentifier = Settings->bWriteOutputBucketIdentifier;
 	const double FilterSize_d = static_cast<double>(FilterSize);
 	const double Upscale = Settings->Upscale;
 
@@ -93,15 +94,15 @@ bool FPCGExBucketEntryElement::ExecuteInternal(FPCGContext* Context) const
 			continue;
 		}
 
-		const bool bAttributeExists = SourcePointData->Metadata->HasAttribute(AttributeName);
+		const bool bAttributeExists = SourcePointData->Metadata->HasAttribute(InBucketAttributeName);
 		if (!bAttributeExists)
 		{
-			PCGE_LOG(Error, GraphAndLog, FText::Format(LOCTEXT("AttributeDoesNotExists", "Attribute '{0}' does not exist in source '{1}'"), FText::FromString(AttributeName.ToString()), FText::FromString(Source.Data->GetClass()->GetName())));
+			PCGE_LOG(Error, GraphAndLog, FText::Format(LOCTEXT("AttributeDoesNotExists", "Attribute '{0}' does not exist in source '{1}'"), FText::FromString(InBucketAttributeName.ToString()), FText::FromString(Source.Data->GetClass()->GetName())));
 			continue;
 		}
 
 		EPCGMetadataTypes AttributeType = EPCGMetadataTypes::Unknown;
-		if (AttributeHelpers::TryGetAttributeType(SourcePointData->Metadata, AttributeName, AttributeType))
+		if (AttributeHelpers::TryGetAttributeType(SourcePointData->Metadata, InBucketAttributeName, AttributeType))
 		{
 			EPCGExTypeCategory AttributeCategory = AttributeHelpers::GetCategory(AttributeType);
 
@@ -109,13 +110,13 @@ bool FPCGExBucketEntryElement::ExecuteInternal(FPCGContext* Context) const
 				AttributeCategory == EPCGExTypeCategory::Complex ||
 				AttributeCategory == EPCGExTypeCategory::Composite)
 			{
-				PCGE_LOG(Error, GraphAndLog, FText::Format(LOCTEXT("AttributeUnusable", "Attribute '{0}' type in source '{0}' cannot be used."), FText::FromString(AttributeName.ToString()), FText::FromString(Source.Data->GetClass()->GetName())));
+				PCGE_LOG(Error, GraphAndLog, FText::Format(LOCTEXT("AttributeUnusable", "Attribute '{0}' type in source '{0}' cannot be used."), FText::FromString(InBucketAttributeName.ToString()), FText::FromString(Source.Data->GetClass()->GetName())));
 				continue;
 			}
 		}
 		else
 		{
-			PCGE_LOG(Error, GraphAndLog, FText::Format(LOCTEXT("AttributeDoesNotExists", "Attribute '{0}' does not exist in source data data '{1}'"), FText::FromString(AttributeName.ToString()), FText::FromString(Source.Data->GetClass()->GetName())));
+			PCGE_LOG(Error, GraphAndLog, FText::Format(LOCTEXT("AttributeDoesNotExists", "Attribute '{0}' does not exist in source data data '{1}'"), FText::FromString(InBucketAttributeName.ToString()), FText::FromString(Source.Data->GetClass()->GetName())));
 			continue;
 		}
 
@@ -129,7 +130,7 @@ bool FPCGExBucketEntryElement::ExecuteInternal(FPCGContext* Context) const
 		const TArray<FPCGPoint> InPoints = InPointData->GetPoints();
 
 		EPCGMetadataTypes AttributeType = EPCGMetadataTypes::Unknown;
-		AttributeHelpers::TryGetAttributeType(InPointData->Metadata, AttributeName, AttributeType);
+		AttributeHelpers::TryGetAttributeType(InPointData->Metadata, InBucketAttributeName, AttributeType);
 		EPCGExTypeCategory AttributeCategory = AttributeHelpers::GetCategory(AttributeType);
 
 		// Prepare bucket processing data
@@ -146,14 +147,14 @@ bool FPCGExBucketEntryElement::ExecuteInternal(FPCGContext* Context) const
 		UPCGPointData* CachedPointData = NewObject<UPCGPointData>();
 		CachedPointData->InitializeFromData(InPointData);
 		TArray<FPCGPoint> CachedPoints = CachedPointData->GetMutablePoints();
-		FPCGMetadataAttribute<int32>* BucketAttribute = CachedPointData->Metadata->FindOrCreateAttribute<int32>(AttributeWrite, -1, false, true, true);
+		FPCGMetadataAttribute<int32>* BucketAttribute = CachedPointData->Metadata->FindOrCreateAttribute<int32>(OutBucketAttributeName, -1, false, true, true);
 
 
 #pragma region Find buckets macros
 
 		// Sets up typed attribute and expects the _BODY to compute a BucketID value based on numeric AttributeValue.
 #define PCGEX_FINDBUCKET_NUM(_TYPE, _BODY, ...) \
-		FPCGMetadataAttribute<_TYPE>* SampledAttribute_##_TYPE = CachedPointData->Metadata->FindOrCreateAttribute<_TYPE>(AttributeName);\
+		FPCGMetadataAttribute<_TYPE>* SampledAttribute_##_TYPE = CachedPointData->Metadata->FindOrCreateAttribute<_TYPE>(InBucketAttributeName);\
 		auto FindBuckets_##_TYPE = [&BucketEntries, &NumericBucketsMap, BucketAttribute, Upscale, FilterSize_d, &SampledAttribute_##_TYPE](const FPCGPoint& SourcePoint, FPCGPoint& OutPoint)	{ \
 			OutPoint = SourcePoint; int32 BucketID = -1; \
 			_TYPE AttributeValue = SampledAttribute_##_TYPE->GetValue(OutPoint.MetadataEntry);\
@@ -164,7 +165,7 @@ bool FPCGExBucketEntryElement::ExecuteInternal(FPCGContext* Context) const
 
 		// Sets up typed attribute and expects the _BODY to compute a BucketID value based on string AttributeValue.
 #define PCGEX_FINDBUCKET_STR(_TYPE, _BODY, ...) \
-		FPCGMetadataAttribute<_TYPE>* SampledAttribute_##_TYPE = CachedPointData->Metadata->FindOrCreateAttribute<_TYPE>(AttributeName);\
+		FPCGMetadataAttribute<_TYPE>* SampledAttribute_##_TYPE = CachedPointData->Metadata->FindOrCreateAttribute<_TYPE>(InBucketAttributeName);\
 		auto FindBuckets_##_TYPE = [&BucketEntries, &StringBucketsMap, BucketAttribute, Upscale, FilterSize_d, &SampledAttribute_##_TYPE](const FPCGPoint& SourcePoint, FPCGPoint& OutPoint)	{ \
 		OutPoint = SourcePoint; \
 		_TYPE AttributeValue = SampledAttribute_##_TYPE->GetValue(OutPoint.MetadataEntry);\
@@ -175,7 +176,7 @@ bool FPCGExBucketEntryElement::ExecuteInternal(FPCGContext* Context) const
 
 		// Wraps up BucketID assignation
 #define PCGEX_FINDBUCKET_BODY_IDDEF\
-		const double Filtered = Upscaled - (FGenericPlatformMath::Fmod(Upscaled, FilterSize_d)) / FilterSize_d; \
+		const double Filtered = (Upscaled - FGenericPlatformMath::Fmod(Upscaled, FilterSize_d)) / FilterSize_d; \
 		BucketID = static_cast<int>(Filtered);
 
 		// Static cast to double * upscale

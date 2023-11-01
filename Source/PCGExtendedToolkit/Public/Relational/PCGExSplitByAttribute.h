@@ -18,9 +18,8 @@ namespace PCGExBucketEntry
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExBucketEntry
 {
-
 public:
-	int ID = -1;	
+	int ID = -1;
 };
 
 /**
@@ -51,7 +50,14 @@ public:
 
 	/** The name of the attribute to read unique identifier from. Note that floating point attribute types will be rounded. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FName AttributeName = TEXT("GroupID");
+	FPCGAttributePropertyInputSelector InBucketIdentifier;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	FPCGAttributePropertyOutputSelector OutBucketIdentifier;
+	
+	/** The name of the attribute to read unique identifier from. Note that floating point attribute types will be rounded. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	FName BucketIdentifierAttributeName = TEXT("GroupID");
 
 	/** Tolerance to use when evaluating uniqueness of numerical attributes. 1 = 1:1 relationship; 2+ will 'group' values using a modulo operation. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
@@ -63,19 +69,21 @@ public:
 
 	/** The name of the attribute to write the unique group ID into. This is used for caching bucket index.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable), AdvancedDisplay)
-	FName AttributeWrite = TEXT("PCGExUniqueBucketID");
+	FName OutBucketIdentifierAttributeName = TEXT("PCGExUniqueBucketID");
 
+	/** Whether to keep the bucket identifier (int64) property on the output buckets. Useful for debugging.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable), AdvancedDisplay)
+	bool bWriteOutputBucketIdentifier = false;
+	
 };
 
 class FPCGExBucketEntryElement : public FPCGPointProcessingElementBase
 {
-
 public:
-	template<typename T>
-	static int ProcessBucket(T BucketID, TArray<FPCGExBucketEntry>& BucketEntries, TMap<T, int32>& StringBucketsMap);
-	
+
 protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
-	
-	
+
+	template <typename T>
+	static int ProcessBucket(T BucketID, TArray<FPCGExBucketEntry>& BucketEntries, TMap<T, int32>& StringBucketsMap);
 };

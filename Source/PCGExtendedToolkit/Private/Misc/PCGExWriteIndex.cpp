@@ -10,6 +10,9 @@
 #include "Helpers/PCGAsync.h"
 #include "PCGPin.h"
 #include "PCGContext.h"
+#include "Metadata/Accessors/PCGAttributeAccessorHelpers.h"
+#include "Metadata/Accessors/PCGAttributeAccessorKeys.h"
+#include "Elements/Metadata/PCGMetadataElementCommon.h"
 
 #define LOCTEXT_NAMESPACE "PCGExWriteIndexElement"
 
@@ -62,19 +65,23 @@ bool FPCGExWriteIndexElement::ExecuteInternal(FPCGContext* Context) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExWriteIndexElement::Execute);
 
+
 	const UPCGExWriteIndexSettings* Settings = Context->GetInputSettings<UPCGExWriteIndexSettings>();
 	check(Settings);
 
-	const FName AttributeName = Settings->AttributeName;
-
-	if (AttributeName.IsNone() || AttributeName.ToString().IsEmpty() )
-	{
-		PCGE_LOG(Warning, GraphAndLog, LOCTEXT("NameEmpty", "Name cannot be \"None\" nor empty."));
-		return true; // Skip execution
-	}
-
 	TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(PCGExWriteIndex::SourceLabel);
 	TArray<FPCGTaggedData>& Outputs = Context->OutputData.TaggedData;
+
+	FPCGAttributePropertyOutputNoSourceSelector OutSelector = Settings->OutSelector;
+	const EPCGAttributePropertySelection Sel = OutSelector.GetSelection();
+
+	if (!OutSelector.IsValid())
+	{
+		PCGE_LOG(Error, GraphAndLog, LOCTEXT("InvalidOutput", "Output is invalid."));
+		return true;
+	}
+
+	const FName AttributeName = OutSelector.GetName();
 
 	for (const FPCGTaggedData& Source : Sources)
 	{
@@ -98,11 +105,12 @@ bool FPCGExWriteIndexElement::ExecuteInternal(FPCGContext* Context) const
 		OutPointData->InitializeFromData(InPointData);
 		Outputs.Add_GetRef(Source).Data = OutPointData;
 
-		FPCGMetadataAttribute<int64>* IndexAttribute = OutPointData->Metadata->FindOrCreateAttribute<int64>(
-			AttributeName, -1, false);
+		FPCGMetadataAttribute<int64>* IndexAttribute = PCGMetadataElementCommon::ClearOrCreateAttribute<int64>(OutPointData->Metadata, AttributeName, -1);
+
+		//TUniquePtr<const IPCGAttributeAccessor> Accessor = PCGAttributeAccessorHelpers::CreateConstAccessor(OutPointData, OutSelector);
+		//TUniquePtr<const IPCGAttributeAccessorKeys> Keys = PCGAttributeAccessorHelpers::CreateConstKeys(OutPointData, OutSelector);
 
 		TArray<FPCGPoint>& OutPoints = OutPointData->GetMutablePoints();
-
 		int64 Index = 0;
 		
 		auto CopyAndAssignIndex = [OutPointData, IndexAttribute, &Index](const FPCGPoint& InPoint, FPCGPoint& OutPoint)
@@ -115,7 +123,27 @@ bool FPCGExWriteIndexElement::ExecuteInternal(FPCGContext* Context) const
 		
 		FPCGAsync::AsyncPointProcessing(Context, InPointData->GetPoints(), OutPoints, CopyAndAssignIndex);
 
-		
+		/*
+		auto DoOperation = [&Accessor, &Keys, &IndexAttribute](auto DummyValue) -> bool
+		{
+			using AttributeType = decltype(DummyValue);
+			AttributeType OutputValue{};
+			
+			bool bSuccess = PCGMetadataElementCommon::ApplyOnAccessor<AttributeType>(*Keys, *Accessor, [&IndexAttribute](const AttributeType& InValue, int32 Index)
+			{
+				IndexAttribute->SetValue(Index, static_cast<int64>(Index));
+			});
+
+			return bSuccess;
+		};
+
+		if (!PCGMetadataAttribute::CallbackWithRightType(PCG::Private::MetadataTypes<int64>::Id, DoOperation))
+		{
+			PCGE_LOG(Error, GraphAndLog, FText::Format(LOCTEXT("OperationFailed", "Could not create attribute '{0}'"), FText::FromName(AttributeName)));
+			return true;
+		}
+		*/
+
 	}
 
 	return true;

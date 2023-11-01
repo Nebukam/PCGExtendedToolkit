@@ -2,15 +2,15 @@
 
 
 #include "Sorting/PCGExSortPointsByAttributes.h"
-#include "Sorting/PCGExPointSortHelpers.h"
-#include "PCGExAttributesUtils.h"
 #include "Data/PCGSpatialData.h"
 #include "Helpers/PCGAsync.h"
 #include "Data/PCGPointData.h"
 #include "PCGContext.h"
 #include "PCGPin.h"
 #include "PCGPoint.h"
-#include "Elements/SMInstance/SMInstanceElementDetailsInterface.h"
+#include "Metadata/Accessors/IPCGAttributeAccessor.h"
+#include "Metadata/Accessors/PCGAttributeAccessorHelpers.h"
+#include "Sorting/PCGExCompare.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSortPointsByAttributesElement"
 
@@ -70,111 +70,129 @@ bool FPCGExSortPointsByAttributesElement::ExecuteInternal(FPCGContext* Context) 
 	TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(PCGExSortPointsByAttributes::SourceLabel);
 	TArray<FPCGTaggedData>& Outputs = Context->OutputData.TaggedData;
 
-	const TArray<FPCGExSortAttributeDetails>& OriginalAttributes = Settings->SortOver;
+	const TArray<FPCGExSortSettings>& DesiredSelectorSettings = Settings->SortOver;
+	TArray<FPCGExSortSettings> FixedDesiredAttributeSelectors;
+	FixedDesiredAttributeSelectors.Reserve(DesiredSelectorSettings.Num());
 
-	TArray<FName> UniqueNames, MissingNames;
-	TMap<FName, FPCGExSortAttributeDetails> DetailsMap;
-	BuildUniqueAttributeList(OriginalAttributes, UniqueNames, DetailsMap);
-	
-	TArray<FPCGExAttributeProxy> ExistingAttributes;
-	TArray<FPCGExSortAttributeDetails> PerAttributeDetails;
-	PerAttributeDetails.Reserve(UniqueNames.Num());
-
-	if (UniqueNames.IsEmpty())
+	if (DesiredSelectorSettings.IsEmpty())
 	{
-		PCGE_LOG(Warning, GraphAndLog, LOCTEXT("Empty", "No attributes to sort over."));
+		PCGE_LOG(Error, GraphAndLog, LOCTEXT("Empty", "No attributes to sort over."));
 		return true; // Skip execution
 	}
-	
+
+	TArray<FPCGExSortSelector> SortSelectors;
+	TArray<TUniquePtr<const IPCGAttributeAccessor>> Accessors;
+	SortSelectors.Reserve(DesiredSelectorSettings.Num());
+	Accessors.Reserve(DesiredSelectorSettings.Num());
+
 	for (const FPCGTaggedData& Source : Sources)
 	{
-		ExistingAttributes.Reset();
-		MissingNames.Reset();
-		PerAttributeDetails.Reset();
+		const UPCGSpatialData* InSpatialData = Cast<UPCGSpatialData>(Source.Data);
 
-		const UPCGSpatialData* SourceData = Cast<UPCGSpatialData>(Source.Data);
-
-		if (!SourceData)
+		if (!InSpatialData)
 		{
 			PCGE_LOG(Error, GraphAndLog, LOCTEXT("InvalidInputData", "Invalid input data"));
 			continue;
 		}
 
-		const UPCGPointData* SourcePointData = SourceData->ToPointData(Context);
-		if (!SourcePointData)
+		const UPCGPointData* InPointData = InSpatialData->ToPointData(Context);
+		if (!InPointData)
 		{
 			PCGE_LOG(Error, GraphAndLog, LOCTEXT("CannotConvertToPointData", "Cannot convert input Spatial data to Point data"));
 			continue;
 		}
 
-		AttributeHelpers::GetAttributesProxies(SourcePointData->Metadata, UniqueNames, ExistingAttributes, MissingNames);
-
-		for (int i = 0; i < ExistingAttributes.Num(); i++)
+		SortSelectors.Reset();
+		Accessors.Reset();
+		for (FPCGExSortSettings SelectorSettings : DesiredSelectorSettings)
 		{
-			FPCGExAttributeProxy Proxy = ExistingAttributes[i];
-			FPCGExSortAttributeDetails Details;
-			
-			if (!PCGExPointSortHelpers::IsSortable(Proxy) ||
-				TryGetDetails(Proxy.Attribute->Name, DetailsMap, Details))
+			FPCGExSortSelector Selector = SelectorSettings.CopyAndFixLast(InPointData);
+			if (Selector.IsValid())
 			{
-				PerAttributeDetails.Add(Details);
-			}
-			else
-			{
-				ExistingAttributes.RemoveAt(i);
-				i--;
+				SortSelectors.Add(Selector);
+				Accessors.Add(PCGAttributeAccessorHelpers::CreateConstAccessor(InPointData, Selector.Selector));
 			}
 		}
 
-		if (ExistingAttributes.Num() <= 0)
+		if (SortSelectors.Num() <= 0)
 		{
-			PCGE_LOG(Error, GraphAndLog, LOCTEXT("CouldNotFindSortableAttributes", "Could not find any existing or sortable attributes. Note: \"Index\" is reserved and may not be sorted over."));
+			PCGE_LOG(Warning, GraphAndLog, LOCTEXT("InvalidSortSettings", "Invalid sort settings."));
 			continue;
 		}
 
-		if (MissingNames.Num() > 0)
-		{
-			TArray<FString> StringMissingNames; StringMissingNames.Reserve(MissingNames.Num());for(const FName N : MissingNames ){StringMissingNames.Add(N.ToString());}
-			PCGE_LOG(Warning, GraphAndLog, FText::Format(LOCTEXT("MissingAttributes", "Some attributes are missing and won't be processed : {0}"), FText::FromString(FString::Join(StringMissingNames, TEXT(", ")))));
-		}
-		
 		// Initialize output dataset
 		UPCGPointData* OutputData = NewObject<UPCGPointData>();
-		OutputData->InitializeFromData(SourcePointData);
+		OutputData->InitializeFromData(InPointData);
 		Outputs.Add_GetRef(Source).Data = OutputData;
 
 		TArray<FPCGPoint>& OutPoints = OutputData->GetMutablePoints();
-		FPCGAsync::AsyncPointProcessing(Context, SourcePointData->GetPoints(), OutPoints, [](const FPCGPoint& InPoint, FPCGPoint& OutPoint)
+		FPCGAsync::AsyncPointProcessing(Context, InPointData->GetPoints(), OutPoints, [](const FPCGPoint& InPoint, FPCGPoint& OutPoint)
 		{
 			OutPoint = InPoint;
 			return true;
 		});
 
-		PCGExPointSortHelpers::Sort(OutPoints, ExistingAttributes, PerAttributeDetails, Settings->SortDirection);
-	}
+		FPCGExSortSelector* CurrentSelector = nullptr;
 
-	return true;
-}
-
-void FPCGExSortPointsByAttributesElement::BuildUniqueAttributeList(const TArray<FPCGExSortAttributeDetails>& SettingsDetails, TArray<FName>& OutUniqueNames, TMap<FName, FPCGExSortAttributeDetails>& OutUniqueDetails)
-{	
-	OutUniqueNames.Reset();
-	OutUniqueDetails.Reset();
-	for (const FPCGExSortAttributeDetails& AttInfos : SettingsDetails)
-	{
-		int Index = OutUniqueNames.AddUnique(AttInfos.AttributeName);
-		if (Index != -1)
+		auto CompareAttribute = [&CurrentSelector](auto DummyValue, const FPCGPoint& A, const FPCGPoint& B) -> int
 		{
-			OutUniqueDetails.Add(AttInfos.AttributeName, AttInfos);
-		}
-	}
-}
+			using T = decltype(DummyValue);
+			FPCGMetadataAttribute<T>* Attribute = static_cast<FPCGMetadataAttribute<T>*>(CurrentSelector->Attribute);
+			return UPCGExCompare::Compare(Attribute->GetValue(A.MetadataEntry), Attribute->GetValue(B.MetadataEntry), CurrentSelector->Tolerance, CurrentSelector->SortComponent);
+		};
 
-bool FPCGExSortPointsByAttributesElement::TryGetDetails(const FName Name, TMap<FName, FPCGExSortAttributeDetails>& InMap, FPCGExSortAttributeDetails& OutDetails)
-{
-	const FPCGExSortAttributeDetails* Found = InMap.Find(Name);
-	if (Found == nullptr) { return false; }
-	OutDetails = *Found;
+		OutPoints.Sort([CompareAttribute, &SortSelectors, &Accessors, &CurrentSelector](const FPCGPoint& A, const FPCGPoint& B)
+		{
+			int Result = 0;
+			for (int i = 0; i < SortSelectors.Num(); i++)
+			{
+				CurrentSelector = &SortSelectors[i];
+				if (CurrentSelector->Selector.GetSelection() == EPCGAttributePropertySelection::PointProperty)
+				{
+#define PCGED_COMPARE_PROPERTY(_ACCESSOR)\
+					Result = UPCGExCompare::Compare(A._ACCESSOR, B._ACCESSOR, CurrentSelector->Tolerance, CurrentSelector->SortComponent);
+
+					// Compare
+					switch (CurrentSelector->Selector.GetPointProperty())
+					{
+					case EPCGPointProperties::Density: PCGED_COMPARE_PROPERTY(Density)
+						break;
+					case EPCGPointProperties::BoundsMin: PCGED_COMPARE_PROPERTY(BoundsMin)
+						break;
+					case EPCGPointProperties::BoundsMax: PCGED_COMPARE_PROPERTY(BoundsMax)
+						break;
+					case EPCGPointProperties::Extents: PCGED_COMPARE_PROPERTY(GetExtents())
+						break;
+					case EPCGPointProperties::Color: PCGED_COMPARE_PROPERTY(Color)
+						break;
+					case EPCGPointProperties::Position: PCGED_COMPARE_PROPERTY(Transform.GetLocation())
+						break;
+					case EPCGPointProperties::Rotation: PCGED_COMPARE_PROPERTY(Transform.Rotator())
+						break;
+					case EPCGPointProperties::Scale: PCGED_COMPARE_PROPERTY(Transform.GetScale3D())
+						break;
+					case EPCGPointProperties::Transform: PCGED_COMPARE_PROPERTY(Transform)
+						break;
+					case EPCGPointProperties::Steepness: PCGED_COMPARE_PROPERTY(Steepness)
+						break;
+					case EPCGPointProperties::LocalCenter: PCGED_COMPARE_PROPERTY(GetLocalCenter())
+						break;
+					case EPCGPointProperties::Seed: PCGED_COMPARE_PROPERTY(Seed)
+						break;
+					default: ;
+					}
+				}
+				else
+				{
+					Result = PCGMetadataAttribute::CallbackWithRightType(Accessors[i]->GetUnderlyingType(), CompareAttribute, A, B);
+				}
+
+				if (Result != 0) { break; }
+			}
+			return Result <= 0;
+		});
+	}
+
 	return true;
 }
 
