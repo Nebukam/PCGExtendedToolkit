@@ -5,6 +5,7 @@
  */
 
 #include "CoreMinimal.h"
+#include "PCGExCommon.h"
 #include "Data/PCGSpatialData.h"
 #include "PCGSettings.h"
 #include "Elements/PCGPointProcessingElementBase.h"
@@ -20,6 +21,49 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBucketEntry
 {
 public:
 	int ID = -1;
+};
+
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExBucketSettings : public FPCGExSelectorSettingsBase
+{
+	GENERATED_BODY()
+
+	FPCGExBucketSettings(): FPCGExSelectorSettingsBase()
+	{
+	}
+
+	FPCGExBucketSettings(const FPCGExBucketSettings& Other): FPCGExSelectorSettingsBase(Other)
+	{
+		FilterSize = Other.FilterSize;
+		Upscale = Other.Upscale;
+	}
+
+public:
+	/** Filter Size. Higher values means fewer, larger groups. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	double FilterSize = 1.0;
+
+	/** Upscale multiplier, applied before filtering. Handy to deal with floating point values. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	double Upscale = 1.0;
+
+};
+
+USTRUCT()
+struct PCGEXTENDEDTOOLKIT_API FPCGExBucketProcessingData
+{
+	GENERATED_BODY()
+
+public:
+	FPCGContext* Context = nullptr;
+	FPCGTaggedData* Source = nullptr;
+	const UPCGPointData* InPointData = nullptr;
+
+	const FPCGExBucketSettings* Settings = nullptr;
+
+	TMap<int64, UPCGPointData*>* Buckets = nullptr;
+
+	TArray<FPCGPoint>* TempPoints = nullptr;
 };
 
 /**
@@ -48,36 +92,10 @@ protected:
 
 public:
 
-	/** The name of the attribute to read unique identifier from. Note that floating point attribute types will be rounded. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FPCGAttributePropertyInputSelector InBucketIdentifier;
+	/** Settings */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ShowOnlyInnerProperties))
+	FPCGExBucketSettings BucketSettings;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FPCGAttributePropertyInputSelector InBucketSelector;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FPCGAttributePropertyOutputSelector OutBucketIdentifier;
-	
-	/** The name of the attribute to read unique identifier from. Note that floating point attribute types will be rounded. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FName BucketIdentifierAttributeName = TEXT("GroupID");
-
-	/** Tolerance to use when evaluating uniqueness of numerical attributes. 1 = 1:1 relationship; 2+ will 'group' values using a modulo operation. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	int32 FilterSize = 1;
-
-	/** Upscale value to multiply sampled values by. Since sampled values are rounded to ints, it can sometimes be useful to capture differences in floating point values.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	double Upscale = 1.0f;
-
-	/** The name of the attribute to write the unique group ID into. This is used for caching bucket index.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable), AdvancedDisplay)
-	FName OutBucketIdentifierAttributeName = TEXT("PCGExUniqueBucketID");
-
-	/** Whether to keep the bucket identifier (int64) property on the output buckets. Useful for debugging.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable), AdvancedDisplay)
-	bool bWriteOutputBucketIdentifier = false;
-	
 };
 
 class FPCGExBucketEntryElement : public FPCGPointProcessingElementBase
@@ -87,6 +105,11 @@ public:
 protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 
+private:
 	template <typename T>
-	static int ProcessBucket(T BucketID, TArray<FPCGExBucketEntry>& BucketEntries, TMap<T, int32>& StringBucketsMap);
+	static void DistributePoint(const FPCGPoint& Point, const T& InValue, FPCGExBucketProcessingData* Data);
+
+	static void AsyncPointAttributeProcessing(FPCGExBucketProcessingData* Data);
+	static void AsyncPointPropertyProcessing(FPCGExBucketProcessingData* Data);
+	static void AsyncPointExtraPropertyProcessing(FPCGExBucketProcessingData* Data);
 };

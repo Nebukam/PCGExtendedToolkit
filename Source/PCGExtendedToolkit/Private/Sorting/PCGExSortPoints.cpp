@@ -73,6 +73,7 @@ bool FPCGExSortPointsByAttributesElement::ExecuteInternal(FPCGContext* Context) 
 	TArray<FPCGTaggedData>& Outputs = Context->OutputData.TaggedData;
 
 	const TArray<FPCGExSortSettings>& DesiredSelectorSettings = Settings->SortOver;
+	ESortDirection SortDirection = Settings->SortDirection;
 	TArray<FPCGExSortSettings> FixedDesiredAttributeSelectors;
 	FixedDesiredAttributeSelectors.Reserve(DesiredSelectorSettings.Num());
 
@@ -82,10 +83,10 @@ bool FPCGExSortPointsByAttributesElement::ExecuteInternal(FPCGContext* Context) 
 		return true; // Skip execution
 	}
 
-	TArray<FPCGExSortSelector> SortSelectors;
+	TArray<FPCGExSortSettings> SortSelectorSettings;
 	TArray<TUniquePtr<const IPCGAttributeAccessor>> Accessors;
 	TArray<TUniquePtr<const IPCGAttributeAccessorKeys>> Keys;
-	SortSelectors.Reserve(DesiredSelectorSettings.Num());
+	SortSelectorSettings.Reserve(DesiredSelectorSettings.Num());
 	Accessors.Reserve(DesiredSelectorSettings.Num());
 
 	for (const FPCGTaggedData& Source : Sources)
@@ -105,14 +106,15 @@ bool FPCGExSortPointsByAttributesElement::ExecuteInternal(FPCGContext* Context) 
 			continue;
 		}
 
-		SortSelectors.Reset();
+		SortSelectorSettings.Reset();
 		Accessors.Reset();
+		Keys.Reset();
 
 		for (const FPCGExSortSettings& SelectorSettings : DesiredSelectorSettings)
 		{
-			FPCGExSortSelector Selector = MakeSelectorFromSettings(SelectorSettings, InPointData);
+			FPCGExSortSettings Selector = FPCGExSortSettings(SelectorSettings);
 
-			if (!Selector.IsValid(InPointData)) { continue; }
+			if (!Selector.CopyAndFixLast(InPointData)) { continue; }
 
 			if (Selector.Selector.GetSelection() == EPCGAttributePropertySelection::Attribute)
 			{
@@ -120,22 +122,25 @@ bool FPCGExSortPointsByAttributesElement::ExecuteInternal(FPCGContext* Context) 
 				//TUniquePtr<const IPCGAttributeAccessorKeys> Key = PCGAttributeAccessorHelpers::CreateConstKeys(InPointData, Selector.Selector);
 
 				Accessors.Add(PCGAttributeAccessorHelpers::CreateConstAccessor(InPointData, Selector.Selector));
-                				
+				Keys.Add(PCGAttributeAccessorHelpers::CreateConstKeys(InPointData, Selector.Selector));
+
 				if (!Accessors.Last().IsValid())
 				{
 					Accessors.Pop();
+					Keys.Pop();
 					continue;
 				}
-
-			}else
+			}
+			else
 			{
 				Accessors.Add(nullptr);
+				Keys.Add(nullptr);
 			}
 
-			SortSelectors.Add(Selector);
+			SortSelectorSettings.Add(Selector);
 		}
 
-		if (SortSelectors.Num() <= 0)
+		if (SortSelectorSettings.Num() <= 0)
 		{
 			PCGE_LOG(Warning, GraphAndLog, LOCTEXT("InvalidSortSettings", "Invalid sort settings. Make sure attributes exist."));
 			continue;
@@ -155,65 +160,41 @@ bool FPCGExSortPointsByAttributesElement::ExecuteInternal(FPCGContext* Context) 
 		});
 
 
-		auto Compare = [](auto DummyValue, const FPCGExSortSelector* CurrentSelector, const FPCGPoint& PtA, const FPCGPoint& PtB) -> int
+		auto Compare = [](auto DummyValue, const FPCGExSortSettings* CurrentSettings, const FPCGPoint& PtA, const FPCGPoint& PtB, const int32 Index) -> int
 		{
 			using T = decltype(DummyValue);
-			FPCGMetadataAttribute<T>* Attribute = static_cast<FPCGMetadataAttribute<T>*>(CurrentSelector->Attribute);
-			return UPCGExCompare::Compare(Attribute->GetValue(PtA.MetadataEntry), Attribute->GetValue(PtB.MetadataEntry), CurrentSelector->Tolerance, CurrentSelector->SortComponent);
+			FPCGMetadataAttribute<T>* Attribute = FPCGExCommon::GetTypedAttribute<T>(CurrentSettings);
+			return FPCGExCompare::Compare(Attribute->GetValue(PtA.MetadataEntry), Attribute->GetValue(PtB.MetadataEntry), CurrentSettings->Tolerance, CurrentSettings->ComponentSelection);
 		};
 
-		OutPoints.Sort([&SortSelectors, &Accessors, Compare](const FPCGPoint& A, const FPCGPoint& B)
+		OutPoints.Sort([&SortSelectorSettings, &Accessors, &Keys, &SortDirection, Compare](const FPCGPoint& A, const FPCGPoint& B)
 		{
-			int Result = 0;
-			for (int i = 0; i < SortSelectors.Num(); i++)
-			{
-				const FPCGExSortSelector* CurrentSelector = &SortSelectors[i];
+#define PCGEX_COMPARE_PROPERTY_CASE(_ENUM, _ACCESSOR) \
+case _ENUM : Result = FPCGExCompare::Compare(A._ACCESSOR, B._ACCESSOR, CurrentSettings->Tolerance, CurrentSettings->ComponentSelection); break;
 
-				EPCGAttributePropertySelection Sel = CurrentSelector->Selector.GetSelection();
+			int Result = 0;
+			for (int i = 0; i < SortSelectorSettings.Num(); i++)
+			{
+				const FPCGExSortSettings* CurrentSettings = &SortSelectorSettings[i];
+
+				EPCGAttributePropertySelection Sel = CurrentSettings->Selector.GetSelection();
 				switch (Sel)
 				{
 				case EPCGAttributePropertySelection::Attribute:
-					Result = PCGMetadataAttribute::CallbackWithRightType(Accessors[i]->GetUnderlyingType(), Compare, CurrentSelector, A, B);
+					Result = PCGMetadataAttribute::CallbackWithRightType(Accessors[i]->GetUnderlyingType(), Compare, CurrentSettings, A, B, i);
 					break;
 				case EPCGAttributePropertySelection::PointProperty:
-#define PCGEX_COMPARE_PROPERTY(_ACCESSOR)\
-					Result = UPCGExCompare::Compare(A._ACCESSOR, B._ACCESSOR, CurrentSelector->Tolerance, CurrentSelector->SortComponent);
-
-					// Compare
-					switch (CurrentSelector->Selector.GetPointProperty())
+					// Compare properties
+					switch (CurrentSettings->Selector.GetPointProperty())
 					{
-					case EPCGPointProperties::Density: PCGEX_COMPARE_PROPERTY(Density)
-						break;
-					case EPCGPointProperties::BoundsMin: PCGEX_COMPARE_PROPERTY(BoundsMin)
-						break;
-					case EPCGPointProperties::BoundsMax: PCGEX_COMPARE_PROPERTY(BoundsMax)
-						break;
-					case EPCGPointProperties::Extents: PCGEX_COMPARE_PROPERTY(GetExtents())
-						break;
-					case EPCGPointProperties::Color: PCGEX_COMPARE_PROPERTY(Color)
-						break;
-					case EPCGPointProperties::Position: PCGEX_COMPARE_PROPERTY(Transform.GetLocation())
-						break;
-					case EPCGPointProperties::Rotation: PCGEX_COMPARE_PROPERTY(Transform.Rotator())
-						break;
-					case EPCGPointProperties::Scale: PCGEX_COMPARE_PROPERTY(Transform.GetScale3D())
-						break;
-					case EPCGPointProperties::Transform: PCGEX_COMPARE_PROPERTY(Transform)
-						break;
-					case EPCGPointProperties::Steepness: PCGEX_COMPARE_PROPERTY(Steepness)
-						break;
-					case EPCGPointProperties::LocalCenter: PCGEX_COMPARE_PROPERTY(GetLocalCenter())
-						break;
-					case EPCGPointProperties::Seed: PCGEX_COMPARE_PROPERTY(Seed)
-						break;
+					PCGEX_FOREACH_POINTPROPERTY(PCGEX_COMPARE_PROPERTY_CASE)
 					default: ;
 					}
 					break;
 				case EPCGAttributePropertySelection::ExtraProperty:
-					switch (CurrentSelector->Selector.GetExtraProperty())
+					switch (CurrentSettings->Selector.GetExtraProperty())
 					{
-					case EPCGExtraProperties::Index: PCGEX_COMPARE_PROPERTY(MetadataEntry)
-						break;
+					PCGEX_FOREACH_POINTEXTRAPROPERTY(PCGEX_COMPARE_PROPERTY_CASE)
 					default: ;
 					}
 					break;
@@ -222,6 +203,8 @@ bool FPCGExSortPointsByAttributesElement::ExecuteInternal(FPCGContext* Context) 
 
 				if (Result != 0) { break; }
 			}
+
+			if (SortDirection == ESortDirection::Ascending) { Result *= -1; }
 			return Result <= 0;
 		});
 	}
@@ -230,5 +213,6 @@ bool FPCGExSortPointsByAttributesElement::ExecuteInternal(FPCGContext* Context) 
 }
 
 #undef PCGEX_COMPARE_PROPERTY
+#undef PCGEX_COMPARE_PROPERTY_CASE
 
 #undef LOCTEXT_NAMESPACE

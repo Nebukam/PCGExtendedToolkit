@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExCommon.h"
 #include "PCGExCompare.h"
 #include "PCGSettings.h"
 #include "PCGPoint.h"
@@ -23,40 +24,25 @@ enum class ESortDirection : uint8
 };
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExSortSettings
+struct PCGEXTENDEDTOOLKIT_API FPCGExSortSettings : public FPCGExSelectorSettingsBase
 {
 	GENERATED_BODY()
 
-public:
-	/** Name of the attribute to compare */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FPCGAttributePropertyInputSelector Selector;
+	FPCGExSortSettings(): FPCGExSelectorSettingsBase()
+	{
+	}
 
+	template <typename T>
+	FPCGExSortSettings(const FPCGExSortSettings& Other): FPCGExSelectorSettingsBase(Other)
+	{
+		Tolerance = Other.Tolerance;
+	}
+
+public:
 	/** Equality tolerance. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	float Tolerance = 0.0001f;
-
-	/** Sub-sorting order, used only for multi-field attributes (FVector, FRotator etc). */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	ESortComponent SortComponent = ESortComponent::XYZ;
 };
-
-USTRUCT()
-struct PCGEXTENDEDTOOLKIT_API FPCGExSortSelector : public FPCGExSortSettings
-{
-	GENERATED_BODY()
-
-public:
-	FPCGMetadataAttributeBase* Attribute = nullptr;
-
-	bool IsValid(const UPCGPointData* PointData) const
-	{
-		const EPCGAttributePropertySelection Sel = Selector.GetSelection();
-		if (Sel == EPCGAttributePropertySelection::Attribute && (Attribute == nullptr || !PointData->Metadata->HasAttribute(Selector.GetName()))) { return false; }
-		return Selector.IsValid();
-	}
-};
-
 
 UCLASS(BlueprintType, ClassGroup = (Procedural))
 class PCGEXTENDEDTOOLKIT_API UPCGExSortPointsByAttributesSettings : public UPCGSettings
@@ -94,18 +80,12 @@ private:
 
 class FPCGExSortPointsByAttributesElement : public FPCGPointProcessingElementBase
 {
-	static FPCGExSortSelector MakeSelectorFromSettings(const FPCGExSortSettings& Settings, const UPCGPointData* InData)
-	{
-		const FPCGAttributePropertyInputSelector FixedSelector = Settings.Selector.CopyAndFixLast(InData);
-		FPCGMetadataAttributeBase* Attribute = FixedSelector.IsValid() ? InData->Metadata->GetMutableAttribute(FixedSelector.GetName()) : nullptr;
-		return FPCGExSortSelector{
-			FixedSelector,
-			Settings.Tolerance,
-			Settings.SortComponent,
-			Attribute
-		};
-	}
-
 protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
+
+	template <typename T>
+	static int Compare(const T& A, const T& B, const FPCGExSortSettings& Settings)
+	{
+		return FPCGExCompare::Compare(A, B, Settings.Tolerance, Settings.ComponentSelection);
+	}
 };

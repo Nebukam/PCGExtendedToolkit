@@ -6,7 +6,6 @@
 #include "Data/PCGPointData.h"
 #include "PCGContext.h"
 #include "PCGPin.h"
-#include "PCGExAttributesUtils.h"
 #include "RelationalDataTypes.generated.h"
 
 USTRUCT(BlueprintType)
