@@ -69,8 +69,8 @@ class PCGEXTENDEDTOOLKIT_API UPCGExPartitionByValuesSettings : public UPCGSettin
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	virtual FName GetDefaultNodeName() const override { return FName(TEXT("GroupByValues")); }
-	virtual FText GetDefaultNodeTitle() const override { return NSLOCTEXT("GroupByValues", "NodeTitle", "Group by Values"); }
+	virtual FName GetDefaultNodeName() const override { return FName(TEXT("PartitonByValues")); }
+	virtual FText GetDefaultNodeTitle() const override { return NSLOCTEXT("PartitonByValues", "NodeTitle", "Partiton by Values"); }
 	virtual FText GetNodeTooltipText() const override;
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Spatial; }
 #endif
