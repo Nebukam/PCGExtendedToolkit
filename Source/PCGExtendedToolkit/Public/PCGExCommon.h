@@ -9,6 +9,7 @@
 #include "PCGExCommon.generated.h"
 
 #define PCGEX_FOREACH_POINTPROPERTY(MACRO)\
+MACRO(EPCGPointProperties::Density, Density) \
 MACRO(EPCGPointProperties::BoundsMin, BoundsMin) \
 MACRO(EPCGPointProperties::BoundsMax, BoundsMax) \
 MACRO(EPCGPointProperties::Extents, GetExtents()) \
