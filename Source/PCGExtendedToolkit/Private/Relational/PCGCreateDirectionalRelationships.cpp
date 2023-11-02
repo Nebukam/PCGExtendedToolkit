@@ -1,7 +1,7 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "Relational\PCGCreateDirectionalRelationships.h"
-#include "Relational\RelationalDataTypes.h"
+#include "..\..\Public\Relational\PCGRelationalDataTypes.h"
 #include "Helpers/PCGAsync.h"
 #include "Data/PCGSpatialData.h"
 #include "Data/PCGPointData.h"

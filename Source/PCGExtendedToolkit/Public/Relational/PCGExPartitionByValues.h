@@ -9,30 +9,23 @@
 #include "Data/PCGSpatialData.h"
 #include "PCGSettings.h"
 #include "Elements/PCGPointProcessingElementBase.h"
-#include "PCGExSplitByAttribute.generated.h"
+#include "PCGExPartitionByValues.generated.h"
 
-namespace PCGExBucketEntry
+namespace PCGExPartitionByValues
 {
 	extern const FName SourceLabel;
-	extern const FName TargetLabel;
 }
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExBucketEntry
-{
-public:
-	int ID = -1;
-};
-
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExBucketSettings : public FPCGExSelectorSettingsBase
+struct PCGEXTENDEDTOOLKIT_API FPCGExPartitioningRules : public FPCGExSelectorSettingsBase
 {
 	GENERATED_BODY()
 
-	FPCGExBucketSettings(): FPCGExSelectorSettingsBase()
+	FPCGExPartitioningRules(): FPCGExSelectorSettingsBase()
 	{
 	}
 
-	FPCGExBucketSettings(const FPCGExBucketSettings& Other): FPCGExSelectorSettingsBase(Other)
+	FPCGExPartitioningRules(const FPCGExPartitioningRules& Other): FPCGExSelectorSettingsBase(Other)
 	{
 		FilterSize = Other.FilterSize;
 		Upscale = Other.Upscale;
@@ -46,39 +39,38 @@ public:
 	/** Upscale multiplier, applied before filtering. Handy to deal with floating point values. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	double Upscale = 1.0;
-
 };
 
 USTRUCT()
-struct PCGEXTENDEDTOOLKIT_API FPCGExBucketProcessingData
+struct PCGEXTENDEDTOOLKIT_API FPCGExProcessingData
 {
 	GENERATED_BODY()
 
 public:
 	FPCGContext* Context = nullptr;
 	FPCGTaggedData* Source = nullptr;
-	const UPCGPointData* InPointData = nullptr;
+	const UPCGPointData** InPointData = nullptr;
 
-	const FPCGExBucketSettings* Settings = nullptr;
+	const FPCGExPartitioningRules* Rules = nullptr;
 
-	TMap<int64, UPCGPointData*>* Buckets = nullptr;
+	TMap<int64, UPCGPointData*>* Partitions = nullptr;
 
-	TArray<FPCGPoint>* TempPoints = nullptr;
+	TArray<FPCGPoint>* PointsBuffer = nullptr;
 };
 
 /**
  * Calculates the distance between two points (inherently a n*n operation)
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural))
-class PCGEXTENDEDTOOLKIT_API UPCGExSplitByAttribute : public UPCGSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExPartitionByValuesSettings : public UPCGSettings
 {
 	GENERATED_BODY()
 
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	virtual FName GetDefaultNodeName() const override { return FName(TEXT("SplitByAttribute")); }
-	virtual FText GetDefaultNodeTitle() const override { return NSLOCTEXT("SplitByAttribute", "NodeTitle", "Split by Attribute"); }
+	virtual FName GetDefaultNodeName() const override { return FName(TEXT("GroupByValues")); }
+	virtual FText GetDefaultNodeTitle() const override { return NSLOCTEXT("GroupByValues", "NodeTitle", "Group by Values"); }
 	virtual FText GetNodeTooltipText() const override;
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Spatial; }
 #endif
@@ -91,14 +83,12 @@ protected:
 	//~End UPCGSettings interface
 
 public:
-
-	/** Settings */
+	/** Rules */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExBucketSettings BucketSettings;
-
+	FPCGExPartitioningRules PartitioningRules;
 };
 
-class FPCGExBucketEntryElement : public FPCGPointProcessingElementBase
+class FPCGExPartitionByValuesElement : public FPCGPointProcessingElementBase
 {
 public:
 
@@ -107,9 +97,9 @@ protected:
 
 private:
 	template <typename T>
-	static void DistributePoint(const FPCGPoint& Point, const T& InValue, FPCGExBucketProcessingData* Data);
+	static void DistributePoint(const FPCGPoint& Point, const T& InValue, FPCGExProcessingData* Data);
 
-	static void AsyncPointAttributeProcessing(FPCGExBucketProcessingData* Data);
-	static void AsyncPointPropertyProcessing(FPCGExBucketProcessingData* Data);
-	static void AsyncPointExtraPropertyProcessing(FPCGExBucketProcessingData* Data);
+	static void AsyncPointAttributeProcessing(FPCGExProcessingData* Data);
+	static void AsyncPointPropertyProcessing(FPCGExProcessingData* Data);
+	static void AsyncPointExtraPropertyProcessing(FPCGExProcessingData* Data);
 };

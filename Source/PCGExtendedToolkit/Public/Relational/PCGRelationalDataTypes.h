@@ -6,7 +6,7 @@
 #include "Data/PCGPointData.h"
 #include "PCGContext.h"
 #include "PCGPin.h"
-#include "RelationalDataTypes.generated.h"
+#include "PCGRelationalDataTypes.generated.h"
 
 USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FDRSlotSettings

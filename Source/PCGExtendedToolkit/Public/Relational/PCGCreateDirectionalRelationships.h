@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGSettings.h"
-#include "RelationalDataTypes.h"
+#include "PCGRelationalDataTypes.h"
 #include "Elements/PCGPointProcessingElementBase.h"
 #include "PCGCreateDirectionalRelationships.generated.h"
 

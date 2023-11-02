@@ -1,17 +1,17 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Rules.
 
 #pragma once
 
 #include "CoreMinimal.h"
 #include "PCGExCommon.h"
 
-class PCGEXTENDEDTOOLKIT_API UPCGExFilter
+class PCGEXTENDEDTOOLKIT_API FPCGExFilter
 {
 public:
 	////////////////
 
 	template <typename T, typename dummy = void>
-	static int64 Filter(const T& InValue, const FPCGExBucketSettings& Settings)
+	static int64 Filter(const T& InValue, const FPCGExPartitioningRules& Settings)
 	{
 		const double Upscaled = static_cast<double>(InValue) * Settings.Upscale;
 		const double Filtered = (Upscaled - FGenericPlatformMath::Fmod(Upscaled, Settings.FilterSize)) / Settings.FilterSize;
@@ -19,26 +19,26 @@ public:
 	}
 
 	template <typename dummy = void>
-	static int64 Filter(const FVector2D& InValue, const FPCGExBucketSettings& Settings)
+	static int64 Filter(const FVector2D& InValue, const FPCGExPartitioningRules& Settings)
 	{
 		int64 Result = 0;
 		switch (Settings.ComponentSelection)
 		{
-		case EComponentSelection::X:
+		case EPCGExComponentSelection::X:
 			Result = Filter(InValue.X, Settings);
 			break;
-		case EComponentSelection::Y:
-		case EComponentSelection::Z:
-		case EComponentSelection::W:
+		case EPCGExComponentSelection::Y:
+		case EPCGExComponentSelection::Z:
+		case EPCGExComponentSelection::W:
 			Result = Filter(InValue.Y, Settings);
 			break;
-		case EComponentSelection::XYZ:
-		case EComponentSelection::XZY:
-		case EComponentSelection::ZXY:
-		case EComponentSelection::YXZ:
-		case EComponentSelection::YZX:
-		case EComponentSelection::ZYX:
-		case EComponentSelection::Length:
+		case EPCGExComponentSelection::XYZ:
+		case EPCGExComponentSelection::XZY:
+		case EPCGExComponentSelection::ZXY:
+		case EPCGExComponentSelection::YXZ:
+		case EPCGExComponentSelection::YZX:
+		case EPCGExComponentSelection::ZYX:
+		case EPCGExComponentSelection::Length:
 			Result = Filter(InValue.SquaredLength(), Settings);
 			break;
 		default: ;
@@ -47,28 +47,28 @@ public:
 	}
 
 	template <typename dummy = void>
-	static int64 Filter(const FVector& InValue, const FPCGExBucketSettings& Settings)
+	static int64 Filter(const FVector& InValue, const FPCGExPartitioningRules& Settings)
 	{
 		int64 Result = 0;
 		switch (Settings.ComponentSelection)
 		{
-		case EComponentSelection::X:
+		case EPCGExComponentSelection::X:
 			Result = Filter(InValue.X, Settings);
 			break;
-		case EComponentSelection::Y:
+		case EPCGExComponentSelection::Y:
 			Result = Filter(InValue.Y, Settings);
 			break;
-		case EComponentSelection::Z:
-		case EComponentSelection::W:
+		case EPCGExComponentSelection::Z:
+		case EPCGExComponentSelection::W:
 			Result = Filter(InValue.Z, Settings);
 			break;
-		case EComponentSelection::XYZ:
-		case EComponentSelection::XZY:
-		case EComponentSelection::YXZ:
-		case EComponentSelection::YZX:
-		case EComponentSelection::ZXY:
-		case EComponentSelection::ZYX:
-		case EComponentSelection::Length:
+		case EPCGExComponentSelection::XYZ:
+		case EPCGExComponentSelection::XZY:
+		case EPCGExComponentSelection::YXZ:
+		case EPCGExComponentSelection::YZX:
+		case EPCGExComponentSelection::ZXY:
+		case EPCGExComponentSelection::ZYX:
+		case EPCGExComponentSelection::Length:
 			Result = Filter(InValue.SquaredLength(), Settings);
 			break;
 		default: ;
@@ -77,9 +77,9 @@ public:
 	}
 
 	template <typename dummy = void>
-	static int64 Filter(const FVector4& InValue, const FPCGExBucketSettings& Settings)
+	static int64 Filter(const FVector4& InValue, const FPCGExPartitioningRules& Settings)
 	{
-		if (Settings.ComponentSelection == EComponentSelection::W)
+		if (Settings.ComponentSelection == EPCGExComponentSelection::W)
 		{
 			return Filter(InValue.W, Settings);
 		}
@@ -87,31 +87,31 @@ public:
 	}
 
 	template <typename dummy = void>
-	static int64 Filter(const FRotator& InValue, const FPCGExBucketSettings& Settings)
+	static int64 Filter(const FRotator& InValue, const FPCGExPartitioningRules& Settings)
 	{
 		return Filter(FVector{InValue.Euler()}, Settings);
 	}
 
 	template <typename dummy = void>
-	static int64 Filter(const FQuat& InValue, const FPCGExBucketSettings& Settings)
+	static int64 Filter(const FQuat& InValue, const FPCGExPartitioningRules& Settings)
 	{
 		return Filter(FVector{InValue.Euler()}, Settings);
 	}
 
 	template <typename dummy = void>
-	static int64 Filter(const FTransform& InValue, const FPCGExBucketSettings& Settings)
+	static int64 Filter(const FTransform& InValue, const FPCGExPartitioningRules& Settings)
 	{
 		return Filter(InValue.GetLocation(), Settings);
 	}
 
 	template <typename dummy = void>
-	static int64 Filter(const FString& InValue, const FPCGExBucketSettings& Settings)
+	static int64 Filter(const FString& InValue, const FPCGExPartitioningRules& Settings)
 	{
 		return GetTypeHash(InValue);
 	}
 
 	template <typename dummy = void>
-	static int64 Filter(const FName& InValue, const FPCGExBucketSettings& Settings)
+	static int64 Filter(const FName& InValue, const FPCGExPartitioningRules& Settings)
 	{
 		return Filter(InValue.ToString(), Settings);
 	}

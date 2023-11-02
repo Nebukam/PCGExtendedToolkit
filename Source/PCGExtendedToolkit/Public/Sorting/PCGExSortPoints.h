@@ -11,29 +11,29 @@
 #include "Elements/PCGPointProcessingElementBase.h"
 #include "PCGExSortPoints.generated.h"
 
-namespace PCGExSortPointsByAttributes
+namespace PCGExSortPoints
 {
 	extern const FName SourceLabel;
 }
 
 UENUM(BlueprintType)
-enum class ESortDirection : uint8
+enum class EPCGExSortDirection : uint8
 {
 	Ascending UMETA(DisplayName = "Ascending"),
 	Descending UMETA(DisplayName = "Descending")
 };
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExSortSettings : public FPCGExSelectorSettingsBase
+struct PCGEXTENDEDTOOLKIT_API FPCGExSortRule : public FPCGExSelectorSettingsBase
 {
 	GENERATED_BODY()
 
-	FPCGExSortSettings(): FPCGExSelectorSettingsBase()
+	FPCGExSortRule(): FPCGExSelectorSettingsBase()
 	{
 	}
 
 	template <typename T>
-	FPCGExSortSettings(const FPCGExSortSettings& Other): FPCGExSelectorSettingsBase(Other)
+	FPCGExSortRule(const FPCGExSortRule& Other): FPCGExSelectorSettingsBase(Other)
 	{
 		Tolerance = Other.Tolerance;
 	}
@@ -45,7 +45,7 @@ public:
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural))
-class PCGEXTENDEDTOOLKIT_API UPCGExSortPointsByAttributesSettings : public UPCGSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExSortPointsSettings : public UPCGSettings
 {
 	GENERATED_BODY()
 
@@ -68,23 +68,23 @@ protected:
 public:
 	/** Controls the order in which points will be ordered. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	ESortDirection SortDirection = ESortDirection::Ascending;
+	EPCGExSortDirection SortDirection = EPCGExSortDirection::Ascending;
 
 	/** Ordered list of attribute to check to sort over. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	TArray<FPCGExSortSettings> SortOver = {};
+	TArray<FPCGExSortRule> Rules = {};
 
 private:
-	friend class FPCGExSortPointsByAttributesElement;
+	friend class FPCGExSortPointsElement;
 };
 
-class FPCGExSortPointsByAttributesElement : public FPCGPointProcessingElementBase
+class FPCGExSortPointsElement : public FPCGPointProcessingElementBase
 {
 protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 
 	template <typename T>
-	static int Compare(const T& A, const T& B, const FPCGExSortSettings& Settings)
+	static int Compare(const T& A, const T& B, const FPCGExSortRule& Settings)
 	{
 		return FPCGExCompare::Compare(A, B, Settings.Tolerance, Settings.ComponentSelection);
 	}

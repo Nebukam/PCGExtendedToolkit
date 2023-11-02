@@ -1,4 +1,4 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Rules.
 
 #pragma once
 
@@ -25,7 +25,7 @@ MACRO(EPCGPointProperties::Seed, Seed) \
 MACRO(EPCGExtraProperties::Index, MetadataEntry) \
 
 UENUM(BlueprintType)
-enum class EComponentSelection : uint8
+enum class EPCGExComponentSelection : uint8
 {
 	X UMETA(DisplayName = "X"),
 	Y UMETA(DisplayName = "Y (→x)"),
@@ -63,7 +63,7 @@ public:
 
 	/** Sub-sorting order, used only for multi-field attributes (FVector, FRotator etc). */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	EComponentSelection ComponentSelection = EComponentSelection::XYZ;
+	EPCGExComponentSelection ComponentSelection = EPCGExComponentSelection::XYZ;
 
 	/* Can hold a reference to the attribute pointer, if prepared like so */
 	FPCGMetadataAttributeBase* Attribute = nullptr;
