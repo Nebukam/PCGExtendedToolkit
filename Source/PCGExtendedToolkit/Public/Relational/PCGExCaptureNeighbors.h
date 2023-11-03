@@ -4,28 +4,29 @@
 
 #include "CoreMinimal.h"
 #include "PCGSettings.h"
-#include "PCGRelationalDataTypes.h"
+#include "PCGExRelationalData.h"
 #include "Elements/PCGPointProcessingElementBase.h"
-#include "PCGCreateDirectionalRelationships.generated.h"
+#include "PCGExCaptureNeighbors.generated.h"
 
 namespace PCGExWriteIndex
 {
 	extern const FName SourceLabel;
+	extern const FName RelationalLabel;
 }
 
 /**
  * Calculates the distance between two points (inherently a n*n operation)
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural))
-class PCGEXTENDEDTOOLKIT_API UPCGDirectionalRelationships : public UPCGSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExCaptureNeighbors : public UPCGSettings
 {
 	GENERATED_BODY()
 
 public:
 	//~Begin UPCGSettings interface
 	#if WITH_EDITOR
-	virtual FName GetDefaultNodeName() const override { return FName(TEXT("CreateDirRel")); }
-	virtual FText GetDefaultNodeTitle() const override { return NSLOCTEXT("PCGDirectionalRelationships", "NodeTitle", "Compute Directional Relationship"); }
+	virtual FName GetDefaultNodeName() const override { return FName(TEXT("CaptureNeighbors")); }
+	virtual FText GetDefaultNodeTitle() const override { return NSLOCTEXT("PCGExCaptureNeighbors", "NodeTitle", "Capture Neighbors"); }
 	virtual FText GetNodeTooltipText() const override;
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Spatial; }
 #endif
@@ -47,20 +48,20 @@ protected:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bTransformAffectDirection = false;
 	
-	/** Slots to store a directional relationship. */
+	/** Directions to store a directional relationship. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FDRSlotListSettings Slots = {};
+	FPCGExRelationsDefinition Slots = {};
 
 	/** The name of the attribute to read point index from (or write index to) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FName IndexAttributeName = TEXT("CurrentIndex");
 
 private:
-	friend class FPCGDirectionalRelationships;
+	friend class FPCGExCaptureNeighborsElement;
 	
 };
 
-class FPCGDirectionalRelationships : public FPCGPointProcessingElementBase
+class FPCGExCaptureNeighborsElement : public FPCGPointProcessingElementBase
 {
 protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;

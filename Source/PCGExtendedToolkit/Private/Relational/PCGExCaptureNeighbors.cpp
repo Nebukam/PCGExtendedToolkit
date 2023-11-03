@@ -1,46 +1,50 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
-#include "Relational\PCGCreateDirectionalRelationships.h"
-#include "..\..\Public\Relational\PCGRelationalDataTypes.h"
+#include "Relational/PCGExCaptureNeighbors.h"
+
+#include "Relational/PCGExRelationalData.h"
 #include "Helpers/PCGAsync.h"
 #include "Data/PCGSpatialData.h"
 #include "Data/PCGPointData.h"
 #include "PCGContext.h"
 #include "PCGPin.h"
 
-#define LOCTEXT_NAMESPACE "PCGDirectionalRelationships"
+#define LOCTEXT_NAMESPACE "PCGExCaptureNeighbors"
 
-namespace PCGDirectionalRelationships
+namespace PCGExCaptureNeighbors
 {
 	const FName SourceLabel = TEXT("Source");
+	const FName RelationalLabel = TEXT("RelationalParams");
 }
 
 #if WITH_EDITOR
-FText UPCGDirectionalRelationships::GetNodeTooltipText() const
+FText UPCGExCaptureNeighbors::GetNodeTooltipText() const
 {
 	return LOCTEXT("PCGDirectionalRelationshipsTooltip", "Write the current point index to an attribute.");
 }
 #endif // WITH_EDITOR
 
-TArray<FPCGPinProperties> UPCGDirectionalRelationships::InputPinProperties() const
+TArray<FPCGPinProperties> UPCGExCaptureNeighbors::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	FPCGPinProperties& PinPropertySource = PinProperties.Emplace_GetRef(PCGDirectionalRelationships::SourceLabel,
-	                                                                    EPCGDataType::Point);
+	
+	FPCGPinProperties& PinPropertySource = PinProperties.Emplace_GetRef(PCGExCaptureNeighbors::SourceLabel, EPCGDataType::Point);
 
+	FPCGPinProperties& PinPropertyParams = PinProperties.Emplace_GetRef(PCGExCaptureNeighbors::RelationalLabel, EPCGDataType::Param, false, false);
+	
 #if WITH_EDITOR
-	PinPropertySource.Tooltip = LOCTEXT("PCGExSourcePinTooltip",
-	                                    "For each of the source points, their index position in the data will be written to an attribute.");
+	PinPropertySource.Tooltip = LOCTEXT("PCGExSourcePinTooltip", "For each of the source points, their index position in the data will be written to an attribute.");
+
+	PinPropertyParams.Tooltip = LOCTEXT("PCGExRelationalParamsPinTooltip", "Relational Params.");
 #endif // WITH_EDITOR
 
 	return PinProperties;
 }
 
-TArray<FPCGPinProperties> UPCGDirectionalRelationships::OutputPinProperties() const
+TArray<FPCGPinProperties> UPCGExCaptureNeighbors::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	FPCGPinProperties& PinPropertyOutput = PinProperties.Emplace_GetRef(PCGPinConstants::DefaultOutputLabel,
-	                                                                    EPCGDataType::Point);
+	FPCGPinProperties& PinPropertyOutput = PinProperties.Emplace_GetRef(PCGPinConstants::DefaultOutputLabel, EPCGDataType::Point);
 
 #if WITH_EDITOR
 	PinPropertyOutput.Tooltip = LOCTEXT("PCGExOutputPinTooltip",
@@ -50,23 +54,25 @@ TArray<FPCGPinProperties> UPCGDirectionalRelationships::OutputPinProperties() co
 	return PinProperties;
 }
 
-FPCGElementPtr UPCGDirectionalRelationships::CreateElement() const
+FPCGElementPtr UPCGExCaptureNeighbors::CreateElement() const
 {
-	return MakeShared<FPCGDirectionalRelationships>();
+	return MakeShared<FPCGExCaptureNeighborsElement>();
 }
 
-bool FPCGDirectionalRelationships::ExecuteInternal(FPCGContext* Context) const
+bool FPCGExCaptureNeighborsElement::ExecuteInternal(FPCGContext* Context) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGDirectionalRelationships::Execute);
 
-	const UPCGDirectionalRelationships* Settings = Context->GetInputSettings<UPCGDirectionalRelationships>();
+	return true;
+	/*
+	const UPCGExCaptureNeighbors* Settings = Context->GetInputSettings<UPCGExCaptureNeighbors>();
 	check(Settings);
 
-	const FDRSlotListSettings& SlotsSettings = Settings->Slots;
+	const FPCGExRelationsDefinition& SlotsSettings = Settings->Slots;
 	const float ExtentLength = Settings->CheckExtent;
 	const FName IndexAttributeName = Settings->IndexAttributeName;
 
-	TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(PCGDirectionalRelationships::SourceLabel);
+	TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(PCGExCaptureNeighbors::SourceLabel);
 	TArray<FPCGTaggedData>& Outputs = Context->OutputData.TaggedData;
 
 	for (const FPCGTaggedData& Source : Sources)
@@ -104,7 +110,7 @@ bool FPCGDirectionalRelationships::ExecuteInternal(FPCGContext* Context) const
 		FPCGMetadataAttribute<int64>* IndexAttribute = IndexAttribute = OutputData->Metadata->FindOrCreateAttribute<int64>(
 			IndexAttributeName, -1, false);
 
-		TArray<FPCGMetadataAttribute<FDRData>*> SlotAttributes =
+		TArray<FPCGMetadataAttribute<FPCGExDirectionalSamplingData>*> SlotAttributes =
 			RelationalDataTypeHelpers::FindOrCreateAttributes(SlotsSettings, OutputData);
 
 		TArray<FPCGPoint>& OutPoints = OutputData->GetMutablePoints();
@@ -126,20 +132,20 @@ bool FPCGDirectionalRelationships::ExecuteInternal(FPCGContext* Context) const
 		const FVector BaseExtent = FVector{ExtentLength, ExtentLength, ExtentLength};
 
 		// Init candidates data struct
-		TArray<FSlotCandidateData> CandidatesSlots;
-		CandidatesSlots.Reserve(SlotsSettings.Slots.Num());
-		for (int i = 0; i < SlotsSettings.Slots.Num(); i++)
+		TArray<FPCGExRelationCandidateData> CandidatesSlots;
+		CandidatesSlots.Reserve(SlotsSettings.Directions.Num());
+		for (int i = 0; i < SlotsSettings.Directions.Num(); i++)
 		{
-			const FDRSlotSettings& SSett = SlotsSettings.Slots[i];
+			const FPCGExSamplingDirection& SSett = SlotsSettings.Directions[i];
 			FPCGMetadataAttribute<int64>* SlotAttribute = OutputData->Metadata->FindOrCreateAttribute<int64>(
 			SSett.AttributeName, -1, false);
 			
-			FSlotCandidateData Candidates = FSlotCandidateData{SlotAttribute};
+			FPCGExRelationCandidateData Candidates = FPCGExRelationCandidateData{SlotAttribute};
 			
 			CandidatesSlots.Add(Candidates);
 		}
 
-		TArray<FDRSlotSettings> Slots = SlotsSettings.Slots;
+		TArray<FPCGExSamplingDirection> Slots = SlotsSettings.Directions;
 		FPCGPoint NullNode = FPCGPoint{};
 		FPCGPoint& CurrentNode = NullNode;
 		FPCGPoint& BestCandidate = NullNode;
@@ -153,8 +159,8 @@ bool FPCGDirectionalRelationships::ExecuteInternal(FPCGContext* Context) const
 
 			for (int i = 0; i < Slots.Num(); i++)
 			{
-				FDRSlotSettings CurrentSettings = Slots[i];
-				FSlotCandidateData CurrentSlotData = CandidatesSlots[i];
+				FPCGExSamplingDirection CurrentSettings = Slots[i];
+				FPCGExRelationCandidateData CurrentSlotData = CandidatesSlots[i];
 				//TODO: For each slot settings, update & compare against the matching Candidate data in CandidatesSlots
 			}
 		};
@@ -168,8 +174,8 @@ bool FPCGDirectionalRelationships::ExecuteInternal(FPCGContext* Context) const
 
 			for (int i = 0; i < Slots.Num(); i++)
 			{
-				FDRSlotSettings CurrentSettings = Slots[i];
-				FSlotCandidateData CurrentSlotData = CandidatesSlots[i];
+				FPCGExSamplingDirection CurrentSettings = Slots[i];
+				FPCGExRelationCandidateData CurrentSlotData = CandidatesSlots[i];
 				// TODO: "Apply" CandidatesSlots data into attributes.
 			}
 			
@@ -180,6 +186,7 @@ bool FPCGDirectionalRelationships::ExecuteInternal(FPCGContext* Context) const
 	}
 
 	return true;
+	*/
 }
 
 #undef LOCTEXT_NAMESPACE
