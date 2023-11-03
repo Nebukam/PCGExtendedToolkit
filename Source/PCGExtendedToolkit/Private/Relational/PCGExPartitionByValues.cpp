@@ -115,6 +115,13 @@ bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* Context) const
 	FPCGExProcessingData ProcessingData = FPCGExProcessingData{};
 	ProcessingData.Context = Context;
 	ProcessingData.Partitions = &Partitions;
+	if(Settings->bWriteKeyToAttribute)
+	{
+		TMap<int64, FPCGMetadataAttribute<int64>*> KeyAttributes;
+		ProcessingData.OutAttributes = &KeyAttributes;
+		ProcessingData.bWriteKeyToAttribute = true;
+		ProcessingData.AttributeName = Settings->KeyAttributeName;
+	}
 
 	// Create a temp data holder to pre-process points and cache values		
 	UPCGPointData* PointsBuffer = NewObject<UPCGPointData>();
@@ -162,6 +169,7 @@ void FPCGExPartitionByValuesElement::DistributePoint(const FPCGPoint& Point, con
 	const int64 Key = FPCGExFilter::Filter(InValue, *Data->Rules);
 	UPCGPointData** PartitionPtr = Data->Partitions->Find(Key);
 	UPCGPointData* Partition;
+	FPCGMetadataAttribute<int64>* KeyAttribute;
 
 	if (PartitionPtr == nullptr)
 	{
@@ -174,11 +182,24 @@ void FPCGExPartitionByValuesElement::DistributePoint(const FPCGPoint& Point, con
 		Outputs.Add_GetRef(*Data->Source).Data = Partition;
 
 		Data->Partitions->Add(Key, Partition);
+
+		if(Data->bWriteKeyToAttribute)
+		{
+			KeyAttribute = PCGMetadataElementCommon::ClearOrCreateAttribute<int64>(Partition->Metadata, Data->AttributeName, 0);
+			Data->OutAttributes->Add(Key, KeyAttribute);
+			KeyAttribute->SetValue(Point.MetadataEntry, Key);
+		}
+		
 	}
 	else
 	{
 		// An existing partition already covers that key.
 		Partition = *PartitionPtr;
+		if(Data->bWriteKeyToAttribute)
+		{
+			KeyAttribute = *Data->OutAttributes->Find(Key);
+			KeyAttribute->SetValue(Point.MetadataEntry, Key);
+		}
 	}
 
 	Partition->GetMutablePoints().Add(Point);

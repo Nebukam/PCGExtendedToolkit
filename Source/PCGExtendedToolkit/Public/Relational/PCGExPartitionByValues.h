@@ -54,8 +54,13 @@ public:
 	const FPCGExPartitioningRules* Rules = nullptr;
 
 	TMap<int64, UPCGPointData*>* Partitions = nullptr;
-
+	
 	TArray<FPCGPoint>* PointsBuffer = nullptr;
+
+	bool bWriteKeyToAttribute = false;
+	FName AttributeName = NAME_None;
+	TMap<int64, FPCGMetadataAttribute<int64>*>* OutAttributes = nullptr;
+	
 };
 
 /**
@@ -86,6 +91,14 @@ public:
 	/** Rules */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ShowOnlyInnerProperties))
 	FPCGExPartitioningRules PartitioningRules;
+
+	/** Whether to write the partition Key to an attribute. Useful for debugging. Note: They key is not the index, but instead the filtered value used to distribute into partitions. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, AdvancedDisplay))
+	bool bWriteKeyToAttribute;
+
+	/** Name of the int64 attribute to write the partition Key to. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, AdvancedDisplay))
+	FName KeyAttributeName;
 };
 
 class FPCGExPartitionByValuesElement : public FPCGPointProcessingElementBase
