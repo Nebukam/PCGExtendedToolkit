@@ -6,7 +6,6 @@
 #include "PCGExCommon.h"
 #include "PCGExCompare.h"
 #include "PCGSettings.h"
-#include "PCGPoint.h"
 #include "Data/PCGPointData.h"
 #include "Elements/PCGPointProcessingElementBase.h"
 #include "PCGExSortPoints.generated.h"

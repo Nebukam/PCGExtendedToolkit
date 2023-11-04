@@ -59,7 +59,7 @@ bool FPCGExPathfindingElement::ExecuteInternal(FPCGContext* Context) const
 			continue;
 		}
 
-		FPCGMetadataAttribute<FPCGExRelationAttributeData>* RelationAttribute = FindRelationalAttribute<FPCGExRelationAttributeData>(RelationalData, InPointData);
+		FPCGMetadataAttribute<FPCGExRelationData>* RelationAttribute = FindRelationalAttribute<FPCGExRelationData>(RelationalData, InPointData);
 		if (!RelationAttribute)
 		{
 			PCGE_LOG(Error, GraphAndLog, LOCTEXT("CannotFindRelationalAttribute", "Cannot find relational data. Make sure to compute it first (i.e CaptureNeighbors)."));

@@ -5,54 +5,73 @@
 
 #include "PCGExCommon.h"
 #include "Data/PCGPointData.h"
-#include "Metadata/Accessors/IPCGAttributeAccessor.h"
-#include "Metadata/Accessors/PCGAttributeAccessorHelpers.h"
+//#include "Metadata/Accessors/IPCGAttributeAccessor.h"
+//#include "Metadata/Accessors/PCGAttributeAccessorHelpers.h"
 
 UPCGExRelationalData::UPCGExRelationalData(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 }
 
+/**
+ * 
+ * @param PointData 
+ * @return 
+ */
 bool UPCGExRelationalData::IsDataReady(UPCGPointData* PointData)
 {
 	// Whether the data has metadata matching this RelationalData block or not
 	return true;
 }
 
-const TArray<FPCGExRelationalSlot>& UPCGExRelationalData::GetConstSlots()
+/**
+ * 
+ * @return 
+ */
+const TArray<FPCGExRelationDefinition>& UPCGExRelationalData::GetConstSlots()
 {
-	return Slots;
+	return RelationSlots;
 }
 
-void UPCGExRelationalData::InitializeLocalDefinition(const FPCGExRelationsDefinition& Definition)
+/**
+ * 
+ * @param Definition 
+ */
+void UPCGExRelationalData::InitializeFromSettings(const FPCGExRelationsDefinition& Definition)
 {
 	GreatestStaticMaxDistance = 0.0;
 	bHasVariableMaxDistance = false;
-	Slots.Reset(Definition.Slots.Num());
-	for (const FPCGExRelationalSlot& Slot : Definition.Slots)
+	RelationSlots.Reset(Definition.RelationSlots.Num());
+	for (const FPCGExRelationDefinition& Slot : Definition.RelationSlots)
 	{
 		if (!Slot.bEnabled) { continue; }
-		Slots.Add(Slot);
-		if (Slot.bModulateDistance) { bHasVariableMaxDistance = true; }
+		RelationSlots.Add(Slot);
+		if (Slot.bApplyAttributeModifier) { bHasVariableMaxDistance = true; }
 		GreatestStaticMaxDistance = FMath::Max(GreatestStaticMaxDistance, Slot.Direction.MaxDistance);
 	}
 }
 
-bool UPCGExRelationalData::PrepareModifiers(const UPCGPointData* PointData, TArray<FPCGExSelectorSettingsBase>& OutModifiers) const
+/**
+ * 
+ * @param PointData 
+ * @param OutSelectors 
+ * @return 
+ */
+bool UPCGExRelationalData::PrepareSelectors(const UPCGPointData* PointData, TArray<FPCGExSamplingModifier>& OutSelectors) const
 {
-	OutModifiers.Reset();
+	OutSelectors.Reset();
 
 	int NumInvalid = 0;
-	for (int i = 0; i < Slots.Num(); i++)
+	for (int i = 0; i < RelationSlots.Num(); i++)
 	{
-		const FPCGExRelationalSlot& Slot = Slots[i];
+		const FPCGExRelationDefinition& Slot = RelationSlots[i];
 		bool bValid = false;
 
-		OutModifiers.Add(FPCGExSelectorSettingsBase(Slot.ModulationAttribute));
+		OutSelectors.Add(FPCGExSamplingModifier(Slot.AttributeModifier));
 
-		if (Slot.bModulateDistance)
+		if (Slot.bApplyAttributeModifier)
 		{
-			FPCGExSelectorSettingsBase* Selector = &OutModifiers[i];
+			FPCGExSamplingModifier* Selector = &OutSelectors[i];
 			Selector->CopyAndFixLast(PointData);
 			if (Selector->IsValid(PointData)) { bValid = true; }
 		}
@@ -60,10 +79,18 @@ bool UPCGExRelationalData::PrepareModifiers(const UPCGPointData* PointData, TArr
 		if (!bValid) { NumInvalid++; }
 	}
 
-	return NumInvalid < Slots.Num();
+	return NumInvalid < RelationSlots.Num();
 }
 
-double UPCGExRelationalData::InitializeCandidatesForPoint(TArray<FPCGExSamplingCandidateData>& Candidates, const FPCGPoint& Point, bool bUseModifiers, TArray<FPCGExSelectorSettingsBase>& Modifiers) const
+/**
+ * 
+ * @param Candidates 
+ * @param Point 
+ * @param bUseModifiers 
+ * @param Modifiers 
+ * @return 
+ */
+double UPCGExRelationalData::PrepareCandidatesForPoint(TArray<FPCGExRelationCandidate>& Candidates, const FPCGPoint& Point, bool bUseModifiers, TArray<FPCGExSamplingModifier>& Modifiers) const
 {
 	Candidates.Reset();
 
@@ -71,11 +98,11 @@ double UPCGExRelationalData::InitializeCandidatesForPoint(TArray<FPCGExSamplingC
 	{
 		double GreatestMaxDistance = GreatestStaticMaxDistance;
 
-		for (int i = 0; i < Slots.Num(); i++)
+		for (int i = 0; i < RelationSlots.Num(); i++)
 		{
-			const FPCGExRelationalSlot& Slot = Slots[i];
-			const FPCGExSelectorSettingsBase* Modifier = &Modifiers[i];
-			FPCGExSamplingCandidateData Candidate = FPCGExSamplingCandidateData(Point, Slot);
+			const FPCGExRelationDefinition& Slot = RelationSlots[i];
+			const FPCGExSamplingModifier* Modifier = &Modifiers[i];
+			FPCGExRelationCandidate Candidate = FPCGExRelationCandidate(Point, Slot);
 
 			double Scale = 1.0;
 
@@ -122,9 +149,9 @@ double UPCGExRelationalData::InitializeCandidatesForPoint(TArray<FPCGExSamplingC
 	}
 	else
 	{
-		for (const FPCGExRelationalSlot& Slot : Slots)
+		for (const FPCGExRelationDefinition& Slot : RelationSlots)
 		{
-			FPCGExSamplingCandidateData Candidate = FPCGExSamplingCandidateData(Point, Slot);
+			FPCGExRelationCandidate Candidate = FPCGExRelationCandidate(Point, Slot);
 			Candidates.Add(Candidate);
 		}
 

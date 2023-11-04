@@ -1,6 +1,6 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
-#include "Relational/PCGExCaptureNeighbors.h"
+#include "Relational/PCGExFindRelations.h"
 
 #include "Relational/PCGExRelationalData.h"
 #include "Helpers/PCGAsync.h"
@@ -10,44 +10,42 @@
 #include "PCGPin.h"
 #include "DrawDebugHelpers.h"
 #include "Editor.h"
-#include "PCGExCommon.h"
-#include "UnrealEd.h"
 
-#define LOCTEXT_NAMESPACE "PCGExCaptureNeighbors"
+#define LOCTEXT_NAMESPACE "PCGExFindRelations"
 
 #if WITH_EDITOR
-FText UPCGExCaptureNeighborsSettings::GetNodeTooltipText() const
+FText UPCGExFindRelationsSettings::GetNodeTooltipText() const
 {
 	return LOCTEXT("PCGDirectionalRelationshipsTooltip", "Write the current point index to an attribute.");
 }
 #endif // WITH_EDITOR
 
-TArray<FPCGPinProperties> UPCGExCaptureNeighborsSettings::InputPinProperties() const
+TArray<FPCGPinProperties> UPCGExFindRelationsSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 	return PinProperties;
 }
 
-FPCGElementPtr UPCGExCaptureNeighborsSettings::CreateElement() const
+FPCGElementPtr UPCGExFindRelationsSettings::CreateElement() const
 {
-	return MakeShared<FPCGExCaptureNeighborsElement>();
+	return MakeShared<FPCGExFindRelationsElement>();
 }
 
-bool FPCGExCaptureNeighborsElement::ExecuteInternal(FPCGContext* Context) const
+bool FPCGExFindRelationsElement::ExecuteInternal(FPCGContext* Context) const
 {
-	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExCaptureNeighborsElement::Execute);
+	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExFindRelationsElement::Execute);
 
 	const UPCGExRelationalData* RelationalData = GetFirstRelationalData(Context);
 	if (!RelationalData) { return true; }
 
-	const UPCGExCaptureNeighborsSettings* Settings = Context->GetInputSettings<UPCGExCaptureNeighborsSettings>();
+	const UPCGExFindRelationsSettings* Settings = Context->GetInputSettings<UPCGExFindRelationsSettings>();
 	check(Settings);
 
 	TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(PCGExRelational::SourceLabel);
 	TArray<FPCGTaggedData>& Outputs = Context->OutputData.TaggedData;
 
-	TArray<FPCGExSelectorSettingsBase> Modifiers;
-	TArray<FPCGExSamplingCandidateData> Candidates;
+	TArray<FPCGExSamplingModifier> Modifiers;
+	TArray<FPCGExRelationCandidate> Candidates;
 	TMap<int64, int32> Indices;
 
 	for (const FPCGTaggedData& Source : Sources)
@@ -76,23 +74,22 @@ bool FPCGExCaptureNeighborsElement::ExecuteInternal(FPCGContext* Context) const
 		UPCGPointData* OutPointData = NewObject<UPCGPointData>();
 		OutPointData->InitializeFromData(InPointData);
 		Outputs.Add_GetRef(Source).Data = OutPointData;
+		
 		const TArray<FPCGPoint>& InPoints = InPointData->GetPoints();
 
-		FPCGMetadataAttribute<FPCGExRelationAttributeData>* RelationalAttribute = PrepareData<FPCGExRelationAttributeData>(RelationalData, OutPointData);
+		FPCGMetadataAttribute<FPCGExRelationData>* RelationalAttribute = PrepareData<FPCGExRelationData>(RelationalData, OutPointData);
 		const UPCGPointData::PointOctree& Octree = InPointData->GetOctree();
 
 		int32 CurrentIndex = 0;
 		FPCGPoint* CurrentPoint = nullptr;
 
-		Candidates.Reserve(RelationalData->Slots.Num());
-		bool bUseModifiers = RelationalData->PrepareModifiers(InPointData, Modifiers);
+		Candidates.Reserve(RelationalData->RelationSlots.Num());
+		bool bUseModifiers = RelationalData->PrepareSelectors(InPointData, Modifiers);
 
 		Indices.Empty(InPoints.Num());
 		for (int i = 0; i < InPoints.Num(); i++) { Indices.Add(InPoints[i].MetadataEntry, i); }
 
-		double LocalMaxDistance = -1;
-
-		auto ProcessSingleNeighbor = [&CurrentPoint, &Candidates, &LocalMaxDistance, &Indices](
+		auto ProcessSingleNeighbor = [&CurrentPoint, &Candidates, &Indices](
 			const FPCGPointRef& OtherPointRef)
 		{
 			// Skip "self"
@@ -100,10 +97,10 @@ bool FPCGExCaptureNeighborsElement::ExecuteInternal(FPCGContext* Context) const
 
 			if (CurrentPoint == OtherPointRef.Point) { return; }
 
-			int64 Key = OtherPoint->MetadataEntry;
+			const int64 Key = OtherPoint->MetadataEntry;
 			// Loop over slots inside the Octree sampling
 			// Still expensive, but greatly reduce the number of iteration vs sampling the octree each slot.
-			for (FPCGExSamplingCandidateData& CandidateData : Candidates)
+			for (FPCGExRelationCandidate& CandidateData : Candidates)
 			{
 				if (CandidateData.ProcessPoint(OtherPoint))
 				{
@@ -114,20 +111,18 @@ bool FPCGExCaptureNeighborsElement::ExecuteInternal(FPCGContext* Context) const
 		};
 
 		TArray<FPCGPoint>& OutPoints = OutPointData->GetMutablePoints();
-		FPCGAsync::AsyncPointProcessing(Context, InPoints, OutPoints, [&Candidates, &Modifiers, &CurrentIndex, &CurrentPoint, &RelationalData, &LocalMaxDistance, &Octree, &OutPointData, &ProcessSingleNeighbor, RelationalAttribute, &bUseModifiers](const FPCGPoint& InPoint, FPCGPoint& OutPoint)
+		FPCGAsync::AsyncPointProcessing(Context, InPoints, OutPoints, [&Candidates, &Modifiers, &CurrentIndex, &CurrentPoint, &RelationalData, &Octree, &OutPointData, &ProcessSingleNeighbor, RelationalAttribute, &bUseModifiers](const FPCGPoint& InPoint, FPCGPoint& OutPoint)
 		{
-			double GreatestMaxDistance = RelationalData->GreatestStaticMaxDistance;
-
 			OutPoint = InPoint;
 			CurrentPoint = &OutPoint;
 
 			OutPointData->Metadata->InitializeOnSet(OutPoint.MetadataEntry);
-			const double MaxDistance = RelationalData->InitializeCandidatesForPoint(Candidates, OutPoint, bUseModifiers, Modifiers);
+			const double MaxDistance = RelationalData->PrepareCandidatesForPoint(Candidates, OutPoint, bUseModifiers, Modifiers);
 
 			const FBoxCenterAndExtent Box = FBoxCenterAndExtent(OutPoint.Transform.GetLocation(), FVector(MaxDistance));
 			Octree.FindElementsWithBoundsTest(Box, ProcessSingleNeighbor);
 
-			const FPCGExRelationAttributeData Data = FPCGExRelationAttributeData(CurrentIndex, &Candidates);
+			const FPCGExRelationData Data = FPCGExRelationData(CurrentIndex, &Candidates);
 			RelationalAttribute->SetValue(OutPoint.MetadataEntry, Data);
 
 			CurrentIndex++;
@@ -142,22 +137,20 @@ bool FPCGExCaptureNeighborsElement::ExecuteInternal(FPCGContext* Context) const
 #if WITH_EDITOR
 		if (Settings->bDebug)
 		{
-			// In a function or method where you want to get the viewport world:
-			UWorld* W = GEditor->GetEditorWorldContext().World();
-
-			if (W)
+			if (UWorld* EditorWorld = GEditor->GetEditorWorldContext().World())
 			{
 				int ValueKey = 0;
 				for (const FPCGPoint& Point : OutPoints)
 				{
-					FPCGExRelationAttributeData Data = RelationalAttribute->GetValue(ValueKey); //Point.MetadataEntry is offset at this point, which is annoying and weird.
-					for (int i = 0; i < Data.Indices.Num(); i++)
+					FPCGExRelationData Data = RelationalAttribute->GetValue(ValueKey); //Point.MetadataEntry is offset at this point, which is annoying and weird.
+					for (int i = 0; i < Data.Details.Num(); i++)
 					{
-						const int64 NeighborIndex = Data.Indices[i];
+						const int64 NeighborIndex = Data.Details[i].Index;
 						if (NeighborIndex == -1) { continue; }
+						
 						FVector Start = Point.Transform.GetLocation();
 						FVector End = FMath::Lerp(Start, OutPoints[NeighborIndex].Transform.GetLocation(), 0.4);
-						DrawDebugLine(W, Start, End, RelationalData->Slots[i].DebugColor, false, 10.0f, 0, 2);
+						DrawDebugLine(EditorWorld, Start, End, RelationalData->RelationSlots[i].DebugColor, false, 10.0f, 0, 2);
 					}
 					ValueKey++;
 				}

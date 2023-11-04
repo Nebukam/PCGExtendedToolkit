@@ -10,8 +10,8 @@
 #include "Helpers/PCGAsync.h"
 #include "PCGPin.h"
 #include "PCGContext.h"
-#include "Metadata/Accessors/PCGAttributeAccessorHelpers.h"
-#include "Metadata/Accessors/PCGAttributeAccessorKeys.h"
+//#include "Metadata/Accessors/PCGAttributeAccessorHelpers.h"
+//#include "Metadata/Accessors/PCGAttributeAccessorKeys.h"
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
 
 #define LOCTEXT_NAMESPACE "PCGExWriteIndexElement"
@@ -70,8 +70,7 @@ bool FPCGExWriteIndexElement::ExecuteInternal(FPCGContext* Context) const
 	TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(PCGExWriteIndex::SourceLabel);
 	TArray<FPCGTaggedData>& Outputs = Context->OutputData.TaggedData;
 
-	FPCGAttributePropertyOutputNoSourceSelector OutSelector = Settings->OutSelector;
-	const EPCGAttributePropertySelection Sel = OutSelector.GetSelection();
+	const FPCGAttributePropertyOutputNoSourceSelector OutSelector = Settings->OutSelector;
 
 	if (!OutSelector.IsValid())
 	{

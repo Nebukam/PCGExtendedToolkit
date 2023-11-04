@@ -5,16 +5,16 @@
 
 ## PCGEx Nodes
 ### Sorting
-> Nodes that sort points, to get better control over order-bound elements such as spline generation.
+Nodes that sort points, to get better control over order-bound elements such as spline generation.
 
 ###  Relational
-> Nodes that create and manipulate relationships between points
+Nodes that create and manipulate relationships between points
 
 ### Pathfinding
-> Nodes that leverage relational data to create paths
+Nodes that leverage relational data to create paths
 
 ### Misc
-> Node that didn't fit in any category.
+Nodes that didn't fit in any category.
 
 ## Getting Started
 * [Installation](docs/Installation.md)

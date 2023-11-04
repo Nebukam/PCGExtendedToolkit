@@ -3,7 +3,6 @@
 #include "Relational/PCGExRelationalSettings.h"
 
 #include "Relational/PCGExRelationalData.h"
-#include "Helpers/PCGAsync.h"
 #include "Data/PCGSpatialData.h"
 #include "Data/PCGPointData.h"
 #include "PCGContext.h"
@@ -53,29 +52,48 @@ TArray<FPCGPinProperties> UPCGExRelationalSettingsBase::OutputPinProperties() co
 	return PinProperties;
 }
 
+/**
+ * 
+ * @tparam T 
+ * @param RelationalData 
+ * @param PointData 
+ * @return 
+ */
 template <RelationalDataStruct T>
 FPCGMetadataAttribute<T>* FPCGExRelationalProcessingElementBase::PrepareData(const UPCGExRelationalData* RelationalData, UPCGPointData* PointData)
 {
-	int NumSlot = RelationalData->Slots.Num(); //Number of slots
+	const int NumSlot = RelationalData->RelationSlots.Num();
 
-	FPCGExRelationAttributeData Default = {};
-	Default.Indices.Reserve(NumSlot);
+	FPCGExRelationData Default = {};
+	Default.Details.Reserve(NumSlot);
 	for (int i = 0; i < NumSlot; i++)
 	{
-		Default.Indices.Add(-1);
+		Default.Details.Add(FPCGExRelationDetails{});
 	}
 
 	FPCGMetadataAttribute<T>* Attribute = PointData->Metadata->FindOrCreateAttribute(RelationalData->RelationalIdentifier, Default, false, true, true);
 	return Attribute;
 }
 
+/**
+ * 
+ * @tparam T 
+ * @param RelationalData 
+ * @param PointData 
+ * @return 
+ */
 template <RelationalDataStruct T>
 FPCGMetadataAttribute<T>* FPCGExRelationalProcessingElementBase::FindRelationalAttribute(const UPCGExRelationalData* RelationalData, const UPCGPointData* PointData)
 {
 	return PointData->Metadata->GetMutableTypedAttribute<T>(RelationalData->RelationalIdentifier);
 }
 
-const UPCGExRelationalData* FPCGExRelationalProcessingElementBase::GetFirstRelationalData(FPCGContext* Context) const
+/**
+ * 
+ * @param Context 
+ * @return 
+ */
+const UPCGExRelationalData* FPCGExRelationalProcessingElementBase::GetFirstRelationalData(const FPCGContext* Context) const
 {
 	TArray<FPCGTaggedData> RelationalDataSources = Context->InputData.GetInputsByPin(PCGExRelational::SourceRelationalLabel);
 	if (RelationalDataSources.Num() <= 0)

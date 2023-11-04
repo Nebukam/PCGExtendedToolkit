@@ -42,7 +42,7 @@ private:
 class FPCGExRelationalProcessingElementBase : public FPCGPointProcessingElementBase
 {
 public:
-	const UPCGExRelationalData* GetFirstRelationalData(FPCGContext* Context) const;
+	const UPCGExRelationalData* GetFirstRelationalData(const FPCGContext* Context) const;
 
 protected:
 	// Prepare an UPCGPointData to be used with the provided RelationalData

@@ -52,7 +52,7 @@ bool FPCGExRelationalParamsElement::ExecuteInternal(FPCGContext* Context) const
 
 	OutRelationalData->RelationalIdentifier = Settings->RelationalIdentifier;
 	OutRelationalData->bMarkMutualRelations = Settings->bMarkMutualRelations;
-	OutRelationalData->InitializeLocalDefinition(Settings->Slots);
+	OutRelationalData->InitializeFromSettings(Settings->Slots);
 	
 	FPCGDataCollection Collection;
 	FPCGTaggedData& TaggedData = Collection.TaggedData.Emplace_GetRef();
