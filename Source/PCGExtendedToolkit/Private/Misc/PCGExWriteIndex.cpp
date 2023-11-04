@@ -35,8 +35,7 @@ TArray<FPCGPinProperties> UPCGExWriteIndexSettings::InputPinProperties() const
 	                                                                    EPCGDataType::Point);
 
 #if WITH_EDITOR
-	PinPropertySource.Tooltip = LOCTEXT("PCGExSourcePinTooltip",
-	                                    "For each of the source points, their index position in the data will be written to an attribute.");
+	PinPropertySource.Tooltip = LOCTEXT("PCGExSourcePinTooltip", "For each of the source points, their index position in the data will be written to an attribute.");
 #endif // WITH_EDITOR
 
 	return PinProperties;
@@ -49,8 +48,7 @@ TArray<FPCGPinProperties> UPCGExWriteIndexSettings::OutputPinProperties() const
 	                                                                    EPCGDataType::Point);
 
 #if WITH_EDITOR
-	PinPropertyOutput.Tooltip = LOCTEXT("PCGExOutputPinTooltip",
-	                                    "The source points will be output with the newly added attribute.");
+	PinPropertyOutput.Tooltip = LOCTEXT("PCGExOutputPinTooltip", "The source points will be output with the newly added attribute.");
 #endif // WITH_EDITOR
 
 	return PinProperties;

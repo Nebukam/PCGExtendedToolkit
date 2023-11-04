@@ -48,6 +48,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSelectorSettingsBase
 
 	FPCGExSelectorSettingsBase()
 	{
+		bFixed = false;
 	}
 
 	FPCGExSelectorSettingsBase(const FPCGExSelectorSettingsBase& Other)
@@ -55,8 +56,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSelectorSettingsBase
 		Selector = Other.Selector;
 		ComponentSelection = Other.ComponentSelection;
 		Attribute = Other.Attribute;
+		bFixed = false;
 	}
-
+	
 public:
 	/** Name of the attribute to compare */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
@@ -65,10 +67,13 @@ public:
 	/** Sub-sorting order, used only for multi-field attributes (FVector, FRotator etc). */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExComponentSelection ComponentSelection = EPCGExComponentSelection::XYZ;
-
+	
 	/* Can hold a reference to the attribute pointer, if prepared like so */
 	FPCGMetadataAttributeBase* Attribute = nullptr;
 
+	/* Whether CopyAndFixLast has been called*/
+	bool bFixed = false;
+	
 	bool IsValid(const UPCGPointData* PointData) const
 	{
 		const EPCGAttributePropertySelection Sel = Selector.GetSelection();
@@ -86,6 +91,7 @@ public:
 
 	bool CopyAndFixLast(const UPCGPointData* InData)
 	{
+		bFixed = true;
 		Selector = Selector.CopyAndFixLast(InData);
 		if (Selector.GetSelection() == EPCGAttributePropertySelection::Attribute)
 		{

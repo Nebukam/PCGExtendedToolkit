@@ -93,12 +93,12 @@ public:
 	FPCGExPartitioningRules PartitioningRules;
 
 	/** Whether to write the partition Key to an attribute. Useful for debugging. Note: They key is not the index, but instead the filtered value used to distribute into partitions. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, AdvancedDisplay))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bWriteKeyToAttribute;
 
 	/** Name of the int64 attribute to write the partition Key to. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, AdvancedDisplay))
-	FName KeyAttributeName;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bWriteKeyToAttribute", EditConditionHides))
+	FName KeyAttributeName = "PartitionID";
 };
 
 class FPCGExPartitionByValuesElement : public FPCGPointProcessingElementBase

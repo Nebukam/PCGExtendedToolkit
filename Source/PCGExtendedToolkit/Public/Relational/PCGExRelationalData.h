@@ -3,11 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExCommon.h"
 #include "PCGParamData.h"
 #include "PCGExRelationalData.generated.h"
 
 class UPCGPointData;
-// A sampling direction/cone/volume that can be shared across things
+
 USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExSamplingDirection
 {
@@ -58,14 +59,25 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta=(ShowOnlyInnerProperties))
 	FPCGExSamplingDirection Direction;
 
-	/** Whether to apply point transform to the sampling direction. */
+	/** Whether to apply point rotation to the sampling direction. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-	bool bComposeWithPointTransform = true;
+	bool bApplyPointRotation = true;
+
+	/** What kind of distance modulation */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	bool bModulateDistance = false;
+
+	/** Name of the attribute to compare */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bModulateDistance", EditConditionHides))
+	FPCGExSelectorSettingsBase ModulationAttribute;
+
+	/** Whether this slot is enabled or not. Handy to do trial-and-error without adding/deleting array elements. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta=(AdvancedDisplay))
+	bool bEnabled = true;
 
 	/** Debug color. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta=(AdvancedDisplay))
 	FColor DebugColor = FColor::Red;
-	
 };
 
 USTRUCT()
@@ -82,7 +94,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSamplingCandidateData : public FPCGExSamplin
 		Origin(Other.Origin),
 		Index(Other.Index),
 		IndexedDistance(Other.IndexedDistance),
-		IndexedDot(Other.IndexedDot)
+		IndexedDot(Other.IndexedDot),
+		DistanceScale(Other.DistanceScale)
 	{
 	}
 
@@ -99,7 +112,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSamplingCandidateData : public FPCGExSamplin
 		const FTransform PtTransform = Point.Transform;
 		Origin = PtTransform.GetLocation();
 
-		if (Slot.bComposeWithPointTransform)
+		if (Slot.bApplyPointRotation)
 		{
 			Direction = PtTransform.Rotator().RotateVector(Direction);
 			Direction.Normalize();
@@ -111,9 +124,13 @@ public:
 	int32 Index = -1;
 	double IndexedDistance = TNumericLimits<double>::Max();
 	double IndexedDot = -1;
+	double DistanceScale = 1.0;
+
+	double GetScaledDistance() { return MaxDistance * DistanceScale; }
 
 	bool ProcessPoint(const FPCGPoint* Point)
 	{
+		const double LocalMaxDistance = MaxDistance * DistanceScale;
 		const FVector PtPosition = Point->Transform.GetLocation();
 		const FVector DirToPt = (PtPosition - Origin).GetSafeNormal();
 
@@ -123,7 +140,7 @@ public:
 		if (SquaredDistance > IndexedDistance) { return false; }
 
 		// Is distance inside threshold?
-		if (SquaredDistance >= (MaxDistance * MaxDistance)) { return false; }
+		if (SquaredDistance >= (LocalMaxDistance * LocalMaxDistance)) { return false; }
 
 		const double Dot = Direction.Dot(DirToPt);
 
@@ -153,12 +170,12 @@ public:
 	/** List of slot settings. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(TitleProperty="{AttributeName}"))
 	TArray<FPCGExRelationalSlot> Slots = {
-		FPCGExRelationalSlot{"Forward", FPCGExSamplingDirection{FVector::ForwardVector}, true, FColor(255, 0, 0)},
-		FPCGExRelationalSlot{"Backward", FPCGExSamplingDirection{FVector::BackwardVector}, true, FColor(200, 0, 0)},
-		FPCGExRelationalSlot{"Right", FPCGExSamplingDirection{FVector::RightVector}, true, FColor(0, 255, 0)},
-		FPCGExRelationalSlot{"Left", FPCGExSamplingDirection{FVector::LeftVector}, true, FColor(0, 200, 0)},
-		FPCGExRelationalSlot{"Up", FPCGExSamplingDirection{FVector::UpVector}, true, FColor(0, 0, 255)},
-		FPCGExRelationalSlot{"Down", FPCGExSamplingDirection{FVector::DownVector}, true, FColor(0, 0, 200)}
+		FPCGExRelationalSlot{"Forward", FPCGExSamplingDirection{FVector::ForwardVector}, true, false, FPCGExSelectorSettingsBase{}, true, FColor(255, 0, 0)},
+		FPCGExRelationalSlot{"Backward", FPCGExSamplingDirection{FVector::BackwardVector}, true, false, FPCGExSelectorSettingsBase{}, true, FColor(200, 0, 0)},
+		FPCGExRelationalSlot{"Right", FPCGExSamplingDirection{FVector::RightVector}, true, false, FPCGExSelectorSettingsBase{}, true, FColor(0, 255, 0)},
+		FPCGExRelationalSlot{"Left", FPCGExSamplingDirection{FVector::LeftVector}, true, false, FPCGExSelectorSettingsBase{}, true, FColor(0, 200, 0)},
+		FPCGExRelationalSlot{"Up", FPCGExSamplingDirection{FVector::UpVector}, true, false, FPCGExSelectorSettingsBase{}, true, FColor(0, 0, 255)},
+		FPCGExRelationalSlot{"Down", FPCGExSamplingDirection{FVector::DownVector}, true, false, FPCGExSelectorSettingsBase{}, true, FColor(0, 0, 200)}
 	};
 };
 
@@ -172,25 +189,42 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExRelationAttributeData
 	{
 		Indices.Empty();
 	}
-
-	FPCGExRelationAttributeData(const TArray<FPCGExSamplingCandidateData>* Candidates)
+	
+	FPCGExRelationAttributeData(int64 InIndex, const TArray<FPCGExSamplingCandidateData>* Candidates)
 	{
 		Indices.Empty();
 		for (const FPCGExSamplingCandidateData& Candidate : *Candidates)
 		{
 			Indices.Add(Candidate.Index);
 		}
+		Index = InIndex;
 	}
 
 public:
 	TArray<int64> Indices;
+	TSet<int64> Mutual;
 	int64 NumRelations = 0;
+	int64 Index = -1;
 
 	friend FArchive& operator<<(FArchive& Ar, FPCGExRelationAttributeData& SlotAttData)
 	{
 		// Implement serialization and deserialization here
 		//Ar << SlotAttData.Index;		
 		return Ar;
+	}
+
+	void MarkMutual(int64 MutualIndex) { Mutual.Add(MutualIndex); }
+
+	/* Note: this assume that "Other" is already known to have mutual connection with this one.*/
+	bool MarkMutuals(FPCGExRelationAttributeData* Other)
+	{
+		if (Indices.Contains(Other->Index))
+		{
+			MarkMutual(Other->Index);
+			Other->MarkMutual(Index);
+			return true;
+		}
+		return false;
 	}
 
 	bool operator==(const FPCGExRelationAttributeData& Other) const
@@ -277,7 +311,43 @@ public:
 	TArray<FPCGExRelationalSlot> Slots;
 
 	UPROPERTY(BlueprintReadOnly)
-	double GreatestMaxDistance = 0.0;
+	double GreatestStaticMaxDistance = 0.0;
+
+	UPROPERTY(BlueprintReadOnly)
+	bool bMarkMutualRelations = true;
+
+	UPROPERTY(BlueprintReadOnly)
+	bool bHasVariableMaxDistance = false;
 
 	void InitializeLocalDefinition(const FPCGExRelationsDefinition& Definition);
+	bool PrepareModifiers(const UPCGPointData* PointData, TArray<FPCGExSelectorSettingsBase>& OutModifiers) const;
+	double InitializeCandidatesForPoint(TArray<FPCGExSamplingCandidateData>& Candidates, const FPCGPoint& Point, bool bUseModifiers, TArray<FPCGExSelectorSettingsBase>& Modifiers) const;
+
+public:
+	template <typename T, typename dummy = void>
+	static double GetScaleFactor(const T& Value) { return static_cast<double>(Value); }
+
+	template <typename dummy = void>
+	static double GetScaleFactor(const FVector2D& Value) { return Value.Length(); }
+
+	template <typename dummy = void>
+	static double GetScaleFactor(const FVector& Value) { return Value.Length(); }
+
+	template <typename dummy = void>
+	static double GetScaleFactor(const FVector4& Value) { return FVector(Value).Length(); }
+
+	template <typename dummy = void>
+	static double GetScaleFactor(const FRotator& Value) { return 1.0; }
+
+	template <typename dummy = void>
+	static double GetScaleFactor(const FQuat& Value) { return 1.0; }
+
+	template <typename dummy = void>
+	static double GetScaleFactor(const FName& Value) { return 1.0; }
+
+	template <typename dummy = void>
+	static double GetScaleFactor(const FString& Value) { return 1.0; }
+
+	template <typename dummy = void>
+	static double GetScaleFactor(const FTransform& Value) { return 1.0; }
 };

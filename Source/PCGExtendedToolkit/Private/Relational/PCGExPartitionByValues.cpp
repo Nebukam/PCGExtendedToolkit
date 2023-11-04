@@ -220,6 +220,7 @@ void FPCGExPartitionByValuesElement::AsyncPointAttributeProcessing(FPCGExProcess
 		return true;
 	};
 
+	//TODO: Use attribute->GetTypeID() on copy/fix setting instead of creating an accessor just to get the underlying type
 	const UPCGPointData* InPointData = *Data->InPointData;
 	const TUniquePtr<const IPCGAttributeAccessor> Accessor = PCGAttributeAccessorHelpers::CreateConstAccessor(InPointData, Data->Rules->Selector);
 

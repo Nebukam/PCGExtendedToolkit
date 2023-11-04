@@ -10,6 +10,7 @@
 #include "PCGPin.h"
 #include "DrawDebugHelpers.h"
 #include "Editor.h"
+#include "PCGExCommon.h"
 #include "UnrealEd.h"
 
 #define LOCTEXT_NAMESPACE "PCGExCaptureNeighbors"
@@ -45,6 +46,7 @@ bool FPCGExCaptureNeighborsElement::ExecuteInternal(FPCGContext* Context) const
 	TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(PCGExRelational::SourceLabel);
 	TArray<FPCGTaggedData>& Outputs = Context->OutputData.TaggedData;
 
+	TArray<FPCGExSelectorSettingsBase> Modifiers;
 	TArray<FPCGExSamplingCandidateData> Candidates;
 	TMap<int64, int32> Indices;
 
@@ -65,6 +67,11 @@ bool FPCGExCaptureNeighborsElement::ExecuteInternal(FPCGContext* Context) const
 			continue;
 		}
 
+		if (InPointData->Metadata->HasAttribute(RelationalData->RelationalIdentifier))
+		{
+			PCGE_LOG(Warning, GraphAndLog, FText::Format(LOCTEXT("RelationalAttributeAlreadyExists", "Relational attribute '{0}' already exists in source '{1}, it will be overwritten.'"), FText::FromName(RelationalData->RelationalIdentifier),FText::FromString(Source.Data->GetClass()->GetName())));
+		}
+
 		// Initialize output dataset
 		UPCGPointData* OutPointData = NewObject<UPCGPointData>();
 		OutPointData->InitializeFromData(InPointData);
@@ -78,11 +85,14 @@ bool FPCGExCaptureNeighborsElement::ExecuteInternal(FPCGContext* Context) const
 		FPCGPoint* CurrentPoint = nullptr;
 
 		Candidates.Reserve(RelationalData->Slots.Num());
+		bool bUseModifiers = RelationalData->PrepareModifiers(InPointData, Modifiers);
 
 		Indices.Empty(InPoints.Num());
 		for (int i = 0; i < InPoints.Num(); i++) { Indices.Add(InPoints[i].MetadataEntry, i); }
 
-		auto ProcessSingleNeighbor = [&RelationalData, &CurrentPoint, &Candidates, &CurrentIndex, &Indices](
+		double LocalMaxDistance = -1;
+
+		auto ProcessSingleNeighbor = [&CurrentPoint, &Candidates, &LocalMaxDistance, &Indices](
 			const FPCGPointRef& OtherPointRef)
 		{
 			// Skip "self"
@@ -104,25 +114,30 @@ bool FPCGExCaptureNeighborsElement::ExecuteInternal(FPCGContext* Context) const
 		};
 
 		TArray<FPCGPoint>& OutPoints = OutPointData->GetMutablePoints();
-		FPCGAsync::AsyncPointProcessing(Context, InPoints, OutPoints, [&Candidates, &CurrentIndex, &CurrentPoint, &RelationalData, &InPointData, &Octree, &OutPointData, &ProcessSingleNeighbor, RelationalAttribute](const FPCGPoint& InPoint, FPCGPoint& OutPoint)
+		FPCGAsync::AsyncPointProcessing(Context, InPoints, OutPoints, [&Candidates, &Modifiers, &CurrentIndex, &CurrentPoint, &RelationalData, &LocalMaxDistance, &Octree, &OutPointData, &ProcessSingleNeighbor, RelationalAttribute, &bUseModifiers](const FPCGPoint& InPoint, FPCGPoint& OutPoint)
 		{
+			double GreatestMaxDistance = RelationalData->GreatestStaticMaxDistance;
+
 			OutPoint = InPoint;
 			CurrentPoint = &OutPoint;
 
 			OutPointData->Metadata->InitializeOnSet(OutPoint.MetadataEntry);
+			const double MaxDistance = RelationalData->InitializeCandidatesForPoint(Candidates, OutPoint, bUseModifiers, Modifiers);
 
-			Candidates.Reset();
-			for (const FPCGExRelationalSlot& Slot : RelationalData->Slots) { Candidates.Add(FPCGExSamplingCandidateData(OutPoint, Slot)); }
-
-			FBoxCenterAndExtent Box = FBoxCenterAndExtent(OutPoint.Transform.GetLocation(), FVector(RelationalData->GreatestMaxDistance));
+			const FBoxCenterAndExtent Box = FBoxCenterAndExtent(OutPoint.Transform.GetLocation(), FVector(MaxDistance));
 			Octree.FindElementsWithBoundsTest(Box, ProcessSingleNeighbor);
 
-			const FPCGExRelationAttributeData Data = FPCGExRelationAttributeData(&Candidates);
+			const FPCGExRelationAttributeData Data = FPCGExRelationAttributeData(CurrentIndex, &Candidates);
 			RelationalAttribute->SetValue(OutPoint.MetadataEntry, Data);
 
 			CurrentIndex++;
 			return true;
 		});
+
+		if (RelationalData->bMarkMutualRelations)
+		{
+			//TODO -- Will require to build an accessor to access the value as Ref
+		}
 
 #if WITH_EDITOR
 		if (Settings->bDebug)
@@ -132,21 +147,19 @@ bool FPCGExCaptureNeighborsElement::ExecuteInternal(FPCGContext* Context) const
 
 			if (W)
 			{
-				int indexxx = 0;
-				FColor LineColor = FColor(255, 0, 0); // Color of the line (red in this example)
+				int ValueKey = 0;
 				for (const FPCGPoint& Point : OutPoints)
 				{
-					FPCGExRelationAttributeData Data = RelationalAttribute->GetValue(indexxx); //Point.MetadataEntry is offset at this point, which is annoying and weird.
+					FPCGExRelationAttributeData Data = RelationalAttribute->GetValue(ValueKey); //Point.MetadataEntry is offset at this point, which is annoying and weird.
 					for (int i = 0; i < Data.Indices.Num(); i++)
 					{
 						const int64 NeighborIndex = Data.Indices[i];
 						if (NeighborIndex == -1) { continue; }
 						FVector Start = Point.Transform.GetLocation();
-						FVector End = OutPoints[NeighborIndex].Transform.GetLocation();
-						FVector Center = FMath::Lerp(Start, End, 0.4);
-						DrawDebugLine(W, Start, Center, RelationalData->Slots[i].DebugColor, false, 10.0f, 0, 2);
+						FVector End = FMath::Lerp(Start, OutPoints[NeighborIndex].Transform.GetLocation(), 0.4);
+						DrawDebugLine(W, Start, End, RelationalData->Slots[i].DebugColor, false, 10.0f, 0, 2);
 					}
-					indexxx++;
+					ValueKey++;
 				}
 			}
 		}
