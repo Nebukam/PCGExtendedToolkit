@@ -8,185 +8,153 @@
 #include "Data/PCGPointData.h"
 #include "PCGContext.h"
 #include "PCGPin.h"
+#include "DrawDebugHelpers.h"
+#include "Editor.h"
+#include "UnrealEd.h"
 
 #define LOCTEXT_NAMESPACE "PCGExCaptureNeighbors"
 
-namespace PCGExCaptureNeighbors
-{
-	const FName SourceLabel = TEXT("Source");
-	const FName RelationalLabel = TEXT("RelationalParams");
-}
-
 #if WITH_EDITOR
-FText UPCGExCaptureNeighbors::GetNodeTooltipText() const
+FText UPCGExCaptureNeighborsSettings::GetNodeTooltipText() const
 {
 	return LOCTEXT("PCGDirectionalRelationshipsTooltip", "Write the current point index to an attribute.");
 }
 #endif // WITH_EDITOR
 
-TArray<FPCGPinProperties> UPCGExCaptureNeighbors::InputPinProperties() const
+TArray<FPCGPinProperties> UPCGExCaptureNeighborsSettings::InputPinProperties() const
 {
-	TArray<FPCGPinProperties> PinProperties;
-	
-	FPCGPinProperties& PinPropertySource = PinProperties.Emplace_GetRef(PCGExCaptureNeighbors::SourceLabel, EPCGDataType::Point);
-
-	FPCGPinProperties& PinPropertyParams = PinProperties.Emplace_GetRef(PCGExCaptureNeighbors::RelationalLabel, EPCGDataType::Param, false, false);
-	
-#if WITH_EDITOR
-	PinPropertySource.Tooltip = LOCTEXT("PCGExSourcePinTooltip", "For each of the source points, their index position in the data will be written to an attribute.");
-
-	PinPropertyParams.Tooltip = LOCTEXT("PCGExRelationalParamsPinTooltip", "Relational Params.");
-#endif // WITH_EDITOR
-
+	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 	return PinProperties;
 }
 
-TArray<FPCGPinProperties> UPCGExCaptureNeighbors::OutputPinProperties() const
-{
-	TArray<FPCGPinProperties> PinProperties;
-	FPCGPinProperties& PinPropertyOutput = PinProperties.Emplace_GetRef(PCGPinConstants::DefaultOutputLabel, EPCGDataType::Point);
-
-#if WITH_EDITOR
-	PinPropertyOutput.Tooltip = LOCTEXT("PCGExOutputPinTooltip",
-	                                    "The source points will be output with the newly added attribute.");
-#endif // WITH_EDITOR
-
-	return PinProperties;
-}
-
-FPCGElementPtr UPCGExCaptureNeighbors::CreateElement() const
+FPCGElementPtr UPCGExCaptureNeighborsSettings::CreateElement() const
 {
 	return MakeShared<FPCGExCaptureNeighborsElement>();
 }
 
 bool FPCGExCaptureNeighborsElement::ExecuteInternal(FPCGContext* Context) const
 {
-	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGDirectionalRelationships::Execute);
+	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExCaptureNeighborsElement::Execute);
 
-	return true;
-	/*
-	const UPCGExCaptureNeighbors* Settings = Context->GetInputSettings<UPCGExCaptureNeighbors>();
+	const UPCGExRelationalData* RelationalData = GetFirstRelationalData(Context);
+	if (!RelationalData) { return true; }
+
+	const UPCGExCaptureNeighborsSettings* Settings = Context->GetInputSettings<UPCGExCaptureNeighborsSettings>();
 	check(Settings);
 
-	const FPCGExRelationsDefinition& SlotsSettings = Settings->Slots;
-	const float ExtentLength = Settings->CheckExtent;
-	const FName IndexAttributeName = Settings->IndexAttributeName;
-
-	TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(PCGExCaptureNeighbors::SourceLabel);
+	TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(PCGExRelational::SourceLabel);
 	TArray<FPCGTaggedData>& Outputs = Context->OutputData.TaggedData;
+
+	TArray<FPCGExSamplingCandidateData> Candidates;
+	TMap<int64, int32> Indices;
 
 	for (const FPCGTaggedData& Source : Sources)
 	{
-		const UPCGSpatialData* SourceData = Cast<UPCGSpatialData>(Source.Data);
+		const UPCGSpatialData* InSpatialData = Cast<UPCGSpatialData>(Source.Data);
 
-		if (!SourceData)
+		if (!InSpatialData)
 		{
 			PCGE_LOG(Error, GraphAndLog, LOCTEXT("InvalidInputData", "Invalid input data"));
 			continue;
 		}
 
-		const UPCGPointData* SourcePointData = SourceData->ToPointData(Context);
-		if (!SourcePointData)
+		const UPCGPointData* InPointData = InSpatialData->ToPointData(Context);
+		if (!InPointData)
 		{
-			PCGE_LOG(Error, GraphAndLog,
-			         LOCTEXT("CannotConvertToPointData", "Cannot convert input Spatial data to Point data"));
+			PCGE_LOG(Error, GraphAndLog, LOCTEXT("CannotConvertToPointData", "Cannot convert input Spatial data to Point data"));
 			continue;
 		}
 
-		bool bUseLocalIndex = !SourcePointData->Metadata->HasAttribute(IndexAttributeName);
-		if (bUseLocalIndex)
-		{
-			PCGE_LOG(Warning, GraphAndLog,
-					 LOCTEXT("InvalidIndexAttribute", "Could not find a valid index attribute, creating one on the fly."
-					 ));
-			
-		}
-		
 		// Initialize output dataset
-		UPCGPointData* OutputData = NewObject<UPCGPointData>();
-		OutputData->InitializeFromData(SourcePointData);
-		Outputs.Add_GetRef(Source).Data = OutputData;
-		
-		FPCGMetadataAttribute<int64>* IndexAttribute = IndexAttribute = OutputData->Metadata->FindOrCreateAttribute<int64>(
-			IndexAttributeName, -1, false);
+		UPCGPointData* OutPointData = NewObject<UPCGPointData>();
+		OutPointData->InitializeFromData(InPointData);
+		Outputs.Add_GetRef(Source).Data = OutPointData;
+		const TArray<FPCGPoint>& InPoints = InPointData->GetPoints();
 
-		TArray<FPCGMetadataAttribute<FPCGExDirectionalSamplingData>*> SlotAttributes =
-			RelationalDataTypeHelpers::FindOrCreateAttributes(SlotsSettings, OutputData);
+		FPCGMetadataAttribute<FPCGExRelationAttributeData>* RelationalAttribute = PrepareData<FPCGExRelationAttributeData>(RelationalData, OutPointData);
+		const UPCGPointData::PointOctree& Octree = InPointData->GetOctree();
 
-		TArray<FPCGPoint>& OutPoints = OutputData->GetMutablePoints();
+		int32 CurrentIndex = 0;
+		FPCGPoint* CurrentPoint = nullptr;
 
-		// Copy points and initialize index if needed
-		int64 Index = 0;
-		auto CopyAndAssignIndex = [OutputData, IndexAttribute, &Index, &bUseLocalIndex](const FPCGPoint& InPoint, FPCGPoint& OutPoint)
+		Candidates.Reserve(RelationalData->Slots.Num());
+
+		Indices.Empty(InPoints.Num());
+		for (int i = 0; i < InPoints.Num(); i++) { Indices.Add(InPoints[i].MetadataEntry, i); }
+
+		auto ProcessSingleNeighbor = [&RelationalData, &CurrentPoint, &Candidates, &CurrentIndex, &Indices](
+			const FPCGPointRef& OtherPointRef)
+		{
+			// Skip "self"
+			const FPCGPoint* OtherPoint = OtherPointRef.Point;
+
+			if (CurrentPoint == OtherPointRef.Point) { return; }
+
+			int64 Key = OtherPoint->MetadataEntry;
+			// Loop over slots inside the Octree sampling
+			// Still expensive, but greatly reduce the number of iteration vs sampling the octree each slot.
+			for (FPCGExSamplingCandidateData& CandidateData : Candidates)
+			{
+				if (CandidateData.ProcessPoint(OtherPoint))
+				{
+					//TODO: Is there a more memory-efficient way to retrieve the index?
+					CandidateData.Index = *Indices.Find(Key);
+				}
+			}
+		};
+
+		TArray<FPCGPoint>& OutPoints = OutPointData->GetMutablePoints();
+		FPCGAsync::AsyncPointProcessing(Context, InPoints, OutPoints, [&Candidates, &CurrentIndex, &CurrentPoint, &RelationalData, &InPointData, &Octree, &OutPointData, &ProcessSingleNeighbor, RelationalAttribute](const FPCGPoint& InPoint, FPCGPoint& OutPoint)
 		{
 			OutPoint = InPoint;
-			OutputData->Metadata->InitializeOnSet(OutPoint.MetadataEntry);
-			if(bUseLocalIndex){ IndexAttribute->SetValue(OutPoint.MetadataEntry, Index++); }
+			CurrentPoint = &OutPoint;
+
+			OutPointData->Metadata->InitializeOnSet(OutPoint.MetadataEntry);
+
+			Candidates.Reset();
+			for (const FPCGExRelationalSlot& Slot : RelationalData->Slots) { Candidates.Add(FPCGExSamplingCandidateData(OutPoint, Slot)); }
+
+			FBoxCenterAndExtent Box = FBoxCenterAndExtent(OutPoint.Transform.GetLocation(), FVector(RelationalData->GreatestMaxDistance));
+			Octree.FindElementsWithBoundsTest(Box, ProcessSingleNeighbor);
+
+			const FPCGExRelationAttributeData Data = FPCGExRelationAttributeData(&Candidates);
+			RelationalAttribute->SetValue(OutPoint.MetadataEntry, Data);
+
+			CurrentIndex++;
 			return true;
-		};
-			
-		FPCGAsync::AsyncPointProcessing(Context, SourcePointData->GetPoints(), OutPoints, CopyAndAssignIndex);
+		});
 
-		// Get octree after copy
-		const UPCGPointData::PointOctree& Octree = OutputData->GetOctree();
-		const FVector BaseExtent = FVector{ExtentLength, ExtentLength, ExtentLength};
-
-		// Init candidates data struct
-		TArray<FPCGExRelationCandidateData> CandidatesSlots;
-		CandidatesSlots.Reserve(SlotsSettings.Directions.Num());
-		for (int i = 0; i < SlotsSettings.Directions.Num(); i++)
+#if WITH_EDITOR
+		if (Settings->bDebug)
 		{
-			const FPCGExSamplingDirection& SSett = SlotsSettings.Directions[i];
-			FPCGMetadataAttribute<int64>* SlotAttribute = OutputData->Metadata->FindOrCreateAttribute<int64>(
-			SSett.AttributeName, -1, false);
-			
-			FPCGExRelationCandidateData Candidates = FPCGExRelationCandidateData{SlotAttribute};
-			
-			CandidatesSlots.Add(Candidates);
+			// In a function or method where you want to get the viewport world:
+			UWorld* W = GEditor->GetEditorWorldContext().World();
+
+			if (W)
+			{
+				int indexxx = 0;
+				FColor LineColor = FColor(255, 0, 0); // Color of the line (red in this example)
+				for (const FPCGPoint& Point : OutPoints)
+				{
+					FPCGExRelationAttributeData Data = RelationalAttribute->GetValue(indexxx); //Point.MetadataEntry is offset at this point, which is annoying and weird.
+					for (int i = 0; i < Data.Indices.Num(); i++)
+					{
+						const int64 NeighborIndex = Data.Indices[i];
+						if (NeighborIndex == -1) { continue; }
+						FVector Start = Point.Transform.GetLocation();
+						FVector End = OutPoints[NeighborIndex].Transform.GetLocation();
+						FVector Center = FMath::Lerp(Start, End, 0.4);
+						DrawDebugLine(W, Start, Center, RelationalData->Slots[i].DebugColor, false, 10.0f, 0, 2);
+					}
+					indexxx++;
+				}
+			}
 		}
-
-		TArray<FPCGExSamplingDirection> Slots = SlotsSettings.Directions;
-		FPCGPoint NullNode = FPCGPoint{};
-		FPCGPoint& CurrentNode = NullNode;
-		FPCGPoint& BestCandidate = NullNode;
-		FVector Origin;
-
-		auto ProcessNeighbor = [&Slots, &SlotsSettings, &CurrentNode, &Origin, &CandidatesSlots](
-			const FPCGPointRef& TargetPointRef)
-		{
-			// If the source pointer and target pointer are the same, ignore distance to the exact same point
-			if (&CurrentNode == TargetPointRef.Point) { return; }
-
-			for (int i = 0; i < Slots.Num(); i++)
-			{
-				FPCGExSamplingDirection CurrentSettings = Slots[i];
-				FPCGExRelationCandidateData CurrentSlotData = CandidatesSlots[i];
-				//TODO: For each slot settings, update & compare against the matching Candidate data in CandidatesSlots
-			}
-		};
-
-		auto InnerLoop = [&Slots, OutputData, Octree, &Origin, BaseExtent, &NullNode, &CurrentNode, &CandidatesSlots,
-				ProcessNeighbor](int32 Index, FPCGPoint& Point)
-		{
-			CurrentNode = Point;
-			FBoxCenterAndExtent BCE = FBoxCenterAndExtent{Point.Transform.GetLocation(), BaseExtent};
-			Octree.FindElementsWithBoundsTest(BCE, ProcessNeighbor);
-
-			for (int i = 0; i < Slots.Num(); i++)
-			{
-				FPCGExSamplingDirection CurrentSettings = Slots[i];
-				FPCGExRelationCandidateData CurrentSlotData = CandidatesSlots[i];
-				// TODO: "Apply" CandidatesSlots data into attributes.
-			}
-			
-			return true;
-		};
-
-		FPCGAsync::AsyncPointProcessing(Context, static_cast<int32>(OutPoints.Num()), OutPoints, InnerLoop);
+#endif
 	}
 
+
 	return true;
-	*/
 }
 
 #undef LOCTEXT_NAMESPACE

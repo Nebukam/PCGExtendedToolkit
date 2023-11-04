@@ -3,63 +3,44 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Elements/PCGExecuteBlueprint.h"
-#include "PCGPin.h"
+#include "PCGSettings.h"
+#include "Relational/PCGExRelationalData.h"
+#include "Relational/PCGExRelationalSettings.h"
+#include "Elements/PCGPointProcessingElementBase.h"
 #include "PCGExPathfinding.generated.h"
 
 /**
- * 
+ * Calculates the distance between two points (inherently a n*n operation)
  */
-UCLASS()
-class PCGEXTENDEDTOOLKIT_API UPCGExPathfinding : public UPCGBlueprintElement
+UCLASS(BlueprintType, ClassGroup = (Procedural))
+class PCGEXTENDEDTOOLKIT_API UPCGExPathfindingSettings : public UPCGExRelationalSettingsBase
 {
 	GENERATED_BODY()
 
 public:
-	UPCGExPathfinding();
-	/**
-	 * Override for the default node name
-	 *
-	 * NOTE: This function is linked to BlueprintNativeEvent: UPCGBlueprintElement::NodeTitleOverride
-	 */
-	virtual FName NodeTitleOverride_Implementation() const { return NODE_NAME; }
+	//~Begin UPCGSettings interface
+	#if WITH_EDITOR
+	virtual FName GetDefaultNodeName() const override { return FName(TEXT("Pathfinding")); }
+	virtual FText GetDefaultNodeTitle() const override { return NSLOCTEXT("PCGExPathfinding", "NodeTitle", "Pathfinding"); }
+	virtual FText GetNodeTooltipText() const override;
+#endif
 
-	/**
-	 * ~End UObject interface
-	 *
-	 * NOTE: This function is linked to BlueprintNativeEvent: UPCGBlueprintElement::ExecuteWithContext
-	 */
-	virtual void ExecuteWithContext_Implementation(UPARAM(ref) FPCGContext& InContext, const FPCGDataCollection& Input, FPCGDataCollection& Output);
-
-	/**
-	 * Please add a function description
-	 *
-	 * NOTE: This function is linked to BlueprintImplementableEvent: UPCGBlueprintElement::PointLoopBody
-	 */
-	virtual bool PointLoopBody_Implementation(const FPCGContext& InContext, const UPCGPointData* InData, const FPCGPoint& InPoint, FPCGPoint& OutPoint, UPCGMetadata* OutMetadata) const;
-
-public:
-
-	const FName NODE_NAME = FName(TEXT("PCGEx | Pathfinding"));
-	const FName NAME_SOURCE_POINTS = FName(TEXT("In Points"));
-	const FName NAME_START_POINT = FName(TEXT("Start"));
-	const FName NAME_END_POINT = FName(TEXT("End"));
-	const FName NAME_OUT_POINTS = FName(TEXT("Out Points"));
-
-	/** Please add a variable description */
-	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "Default")
-	FPCGPoint StartPoint;
-
-	/** Please add a variable description */
-	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "Default")
-	FPCGPoint EndPoint;
+	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 
 protected:
-	/** Input pins **/
-	FPCGPinProperties InPinPoints;
-	FPCGPinProperties InPinStartPoint;
-	FPCGPinProperties InPinEndPoint;
-	/** Output pins **/
-	FPCGPinProperties OutPinPoints;
+	virtual FPCGElementPtr CreateElement() const override;
+	//~End UPCGSettings interface
 
+	public:
+
+
+private:
+	friend class FPCGExPathfindingElement;
+	
+};
+
+class FPCGExPathfindingElement : public FPCGExRelationalProcessingElementBase
+{
+protected:
+	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };

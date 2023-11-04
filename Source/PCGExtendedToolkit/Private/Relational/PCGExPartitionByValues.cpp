@@ -138,7 +138,6 @@ bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* Context) const
 
 		const UPCGPointData* InPointData = *ProcessingData.InPointData;
 		const TArray<FPCGPoint> InPoints = InPointData->GetPoints();
-		const EPCGAttributePropertySelection Selection = ProcessingData.Rules->Selector.GetSelection();
 
 		// Create a temp data holder to pre-process points and cache values.		
 		// UPCGPointData* TempPointData = NewObject<UPCGPointData>();
@@ -146,7 +145,7 @@ bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* Context) const
 		// ProcessingData.PointsBuffer = &TempPointData->GetMutablePoints();
 
 		// Branch out sampling behavior based on selection
-		switch (Selection)
+		switch (ProcessingData.Rules->Selector.GetSelection())
 		{
 		case EPCGAttributePropertySelection::Attribute:
 			AsyncPointAttributeProcessing(&ProcessingData);

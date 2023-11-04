@@ -28,6 +28,7 @@ public class PCGExtendedToolkit : ModuleRules
                 "Engine",
 				"PCG",
                 "PCGGeometryScriptInterop",
+                "UnrealEd"
             }
 			);
 			

@@ -4,11 +4,8 @@
 
 #include "PCGComponent.h"
 #include "PCGSubsystem.h"
-#include "Elements/PCGMergeElement.h"
 #include "GameFramework/Actor.h"
 #include "UObject/Package.h"
-
-#include UE_INLINE_GENERATED_CPP_BY_NAME(PCGExRelationalParams)
 
 #define LOCTEXT_NAMESPACE "PCGExRelationalParamsElement"
 
@@ -23,6 +20,12 @@ FText UPCGExRelationalParams::GetNodeTooltipText() const
 FPCGElementPtr UPCGExRelationalParams::CreateElement() const
 {
 	return MakeShared<FPCGExRelationalParamsElement>();
+}
+
+TArray<FPCGPinProperties> UPCGExRelationalParams::InputPinProperties() const
+{
+	TArray<FPCGPinProperties> NoInput;
+	return NoInput;
 }
 
 TArray<FPCGPinProperties> UPCGExRelationalParams::OutputPinProperties() const
@@ -46,7 +49,10 @@ bool FPCGExRelationalParamsElement::ExecuteInternal(FPCGContext* Context) const
 
 	TArray<FPCGTaggedData>& Outputs = Context->OutputData.TaggedData;
 	UPCGExRelationalData* OutRelationalData = NewObject<UPCGExRelationalData>();
+
+	OutRelationalData->RelationalIdentifier = Settings->RelationalIdentifier;
 	OutRelationalData->InitializeLocalDefinition(Settings->Slots);
+
 	
 	FPCGDataCollection Collection;
 	FPCGTaggedData& TaggedData = Collection.TaggedData.Emplace_GetRef();

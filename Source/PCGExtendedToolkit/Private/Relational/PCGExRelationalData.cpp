@@ -21,28 +21,13 @@ const TArray<FPCGExRelationalSlot>& UPCGExRelationalData::GetConstSlots()
 	return Slots;
 }
 
-FPCGMetadataAttribute<FPCGExRelationAttributeData>* UPCGExRelationalData::PrepareData(UPCGPointData* PointData)
+void UPCGExRelationalData::InitializeLocalDefinition(const FPCGExRelationsDefinition& Definition)
 {
-	
-	int NumSlot = Slots.Num(); //Number of slots
-
-	FPCGExRelationAttributeData Default = {};
-	Default.Indices.Reserve(NumSlot);
-	for (int i = 0; i < NumSlot; i++)
-	{
-		Default.Indices.Add(-1);
-	}
-
-	FPCGMetadataAttribute<FPCGExRelationAttributeData>* Attribute = PointData->Metadata->FindOrCreateAttribute(RelationalIdentifier, Default, false, true, true);
-	return Attribute;
-	
-}
-
-void UPCGExRelationalData::InitializeLocalDefinition(FPCGExRelationsDefinition Definition)
-{
+	GreatestMaxDistance = 0.0;
 	Slots.Reset();
-	for (FPCGExRelationalSlot Slot : Definition.Slots)
+	for (const FPCGExRelationalSlot& Slot : Definition.Slots)
 	{
 		Slots.Add(Slot);
+		GreatestMaxDistance = FMath::Max(GreatestMaxDistance, Slot.Direction.MaxDistance);
 	}
 }

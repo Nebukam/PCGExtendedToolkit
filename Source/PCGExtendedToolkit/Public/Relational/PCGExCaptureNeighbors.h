@@ -5,20 +5,15 @@
 #include "CoreMinimal.h"
 #include "PCGSettings.h"
 #include "PCGExRelationalData.h"
+#include "PCGExRelationalSettings.h"
 #include "Elements/PCGPointProcessingElementBase.h"
 #include "PCGExCaptureNeighbors.generated.h"
-
-namespace PCGExWriteIndex
-{
-	extern const FName SourceLabel;
-	extern const FName RelationalLabel;
-}
 
 /**
  * Calculates the distance between two points (inherently a n*n operation)
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural))
-class PCGEXTENDEDTOOLKIT_API UPCGExCaptureNeighbors : public UPCGSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExCaptureNeighborsSettings : public UPCGExRelationalSettingsBase
 {
 	GENERATED_BODY()
 
@@ -28,11 +23,9 @@ public:
 	virtual FName GetDefaultNodeName() const override { return FName(TEXT("CaptureNeighbors")); }
 	virtual FText GetDefaultNodeTitle() const override { return NSLOCTEXT("PCGExCaptureNeighbors", "NodeTitle", "Capture Neighbors"); }
 	virtual FText GetNodeTooltipText() const override;
-	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Spatial; }
 #endif
 
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
-	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
@@ -40,28 +33,13 @@ protected:
 
 	public:
 
-	/** Sampling radius */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	float CheckExtent = 10000.0f;
-	
-	/** Whether the point transform affects the sampling direction */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	bool bTransformAffectDirection = false;
-	
-	/** Directions to store a directional relationship. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FPCGExRelationsDefinition Slots = {};
-
-	/** The name of the attribute to read point index from (or write index to) */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FName IndexAttributeName = TEXT("CurrentIndex");
 
 private:
 	friend class FPCGExCaptureNeighborsElement;
 	
 };
 
-class FPCGExCaptureNeighborsElement : public FPCGPointProcessingElementBase
+class FPCGExCaptureNeighborsElement : public FPCGExRelationalProcessingElementBase
 {
 protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
