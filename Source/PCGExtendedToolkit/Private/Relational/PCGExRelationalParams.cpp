@@ -31,7 +31,7 @@ TArray<FPCGPinProperties> UPCGExRelationalParams::InputPinProperties() const
 TArray<FPCGPinProperties> UPCGExRelationalParams::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	FPCGPinProperties& PinPropertyOutput = PinProperties.Emplace_GetRef(PCGPinConstants::DefaultOutputLabel, EPCGDataType::Param);
+	FPCGPinProperties& PinPropertyOutput = PinProperties.Emplace_GetRef(PCGPinConstants::DefaultOutputLabel, EPCGDataType::Param, false, false);
 
 #if WITH_EDITOR
 	PinPropertyOutput.Tooltip = LOCTEXT("PCGOutputPinTooltip", "Outputs Directional Sampling parameters to be used with other nodes.");
@@ -53,12 +53,10 @@ bool FPCGExRelationalParamsElement::ExecuteInternal(FPCGContext* Context) const
 	OutRelationalData->RelationalIdentifier = Settings->RelationalIdentifier;
 	OutRelationalData->bMarkMutualRelations = Settings->bMarkMutualRelations;
 	OutRelationalData->InitializeFromSettings(Settings->Slots);
-	
-	FPCGDataCollection Collection;
-	FPCGTaggedData& TaggedData = Collection.TaggedData.Emplace_GetRef();
-	TaggedData.Data = OutRelationalData;
-	
-	Outputs.Add_GetRef(TaggedData);
+		
+	FPCGTaggedData& Output = Outputs.Emplace_GetRef();
+	Output.Data = OutRelationalData;
+	//Output.bPinlessData = true;
 	
 	return true;
 }

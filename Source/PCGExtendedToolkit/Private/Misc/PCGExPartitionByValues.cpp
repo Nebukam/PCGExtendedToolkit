@@ -4,7 +4,7 @@
  * This is a dummy class to create new simple PCG nodes
  */
 
-#include "..\..\Public\Relational\PCGExPartitionByValues.h"
+#include "Misc/PCGExPartitionByValues.h"
 #include "GenericPlatform/GenericPlatformMath.h"
 #include "Data/PCGSpatialData.h"
 #include "Helpers/PCGAsync.h"

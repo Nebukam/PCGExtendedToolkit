@@ -6,13 +6,13 @@
 #include "Relational/PCGExRelationalData.h"
 #include "Relational/PCGExRelationalSettings.h"
 #include "Elements/PCGPointProcessingElementBase.h"
-#include "PCGExPathfinding.generated.h"
+#include "PCGExFindPaths.generated.h"
 
 /**
  * Calculates the distance between two points (inherently a n*n operation)
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural))
-class PCGEXTENDEDTOOLKIT_API UPCGExPathfindingSettings : public UPCGExRelationalSettingsBase
+class PCGEXTENDEDTOOLKIT_API UPCGExFindPathsSettings : public UPCGExRelationalSettingsBase
 {
 	GENERATED_BODY()
 
@@ -20,7 +20,7 @@ public:
 	//~Begin UPCGSettings interface
 	#if WITH_EDITOR
 	virtual FName GetDefaultNodeName() const override { return FName(TEXT("Pathfinding")); }
-	virtual FText GetDefaultNodeTitle() const override { return NSLOCTEXT("PCGExPathfinding", "NodeTitle", "Pathfinding"); }
+	virtual FText GetDefaultNodeTitle() const override { return NSLOCTEXT("PCGExFindPaths", "NodeTitle", "Pathfinding"); }
 	virtual FText GetNodeTooltipText() const override;
 #endif
 
@@ -34,11 +34,11 @@ protected:
 
 
 private:
-	friend class FPCGExPathfindingElement;
+	friend class FPCGExFindPathsElement;
 	
 };
 
-class FPCGExPathfindingElement : public FPCGExRelationalProcessingElementBase
+class FPCGExFindPathsElement : public FPCGExRelationalProcessingElementBase
 {
 protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;

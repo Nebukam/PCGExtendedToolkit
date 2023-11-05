@@ -107,6 +107,16 @@ public:
 	double IndexedDot = -1.0;
 	double IndexedDistance = TNumericLimits<double>::Max();
 
+	FORCEINLINE friend FArchive& operator<<(FArchive& Ar, FPCGExRelationDetails& Details)
+	{
+		
+		Ar << Details.Index;
+		Ar << Details.IndexedDot;
+		Ar << Details.IndexedDistance;
+
+		return Ar;
+	}
+
 	bool operator==(const FPCGExRelationDetails& Other) const
 	{
 		return Index == Other.Index && IndexedDot == Other.IndexedDot && IndexedDistance == Other.IndexedDistance;
@@ -246,6 +256,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExRelationData
 	}
 
 public:
+	
 	TArray<FPCGExRelationDetails> Details;
 	int64 NumRelations = 0;
 	int64 Index = -1;
@@ -253,10 +264,36 @@ public:
 	FPCGExRelationDetails operator [](int I) const { return Details[I]; }
 	FPCGExRelationDetails& operator [](int I) { return Details[I]; }
 
-	friend FArchive& operator<<(FArchive& Ar, FPCGExRelationData& SlotAttData)
+	friend FArchive& operator<<(FArchive& Ar, FPCGExRelationData& Data)
 	{
-		// Implement serialization and deserialization here
-		//Ar << SlotAttData.Index;		
+
+		Ar << Data.NumRelations;
+		Ar << Data.Index;
+		
+		if (Ar.IsSaving())
+		{	
+			int32 NumDetails = Data.Details.Num();
+			Ar << NumDetails;
+
+			for (FPCGExRelationDetails& Detail : Data.Details)
+			{
+				Ar << Detail;
+			}
+		}
+		else if (Ar.IsLoading()) // Check if deserializing
+		{
+			int32 NumDetails = 0;
+			Ar << NumDetails;
+
+			Data.Details.Empty(NumDetails);
+
+			for (int32 i = 0; i < NumDetails; i++)
+			{
+				FPCGExRelationDetails& Detail = Data.Details.Emplace_GetRef();
+				Ar << Detail;
+			}
+		}
+
 		return Ar;
 	}
 
@@ -322,13 +359,15 @@ concept RelationalDataStruct = std::is_base_of_v<FPCGExRelationData, T>;
  * 
  */
 UCLASS()
-class PCGEXTENDEDTOOLKIT_API UPCGExRelationalData : public UPCGParamData
+class PCGEXTENDEDTOOLKIT_API UPCGExRelationalData : public UPCGPointData
 {
 	GENERATED_BODY()
 
 public:
 	UPCGExRelationalData(const FObjectInitializer& ObjectInitializer);
 
+	virtual EPCGDataType GetDataType() const override { return EPCGDataType::Param; }
+	
 	// Checks whether the data have the matching attribute
 	bool IsDataReady(UPCGPointData* PointData);
 	const TArray<FPCGExRelationDefinition>& GetConstSlots();
