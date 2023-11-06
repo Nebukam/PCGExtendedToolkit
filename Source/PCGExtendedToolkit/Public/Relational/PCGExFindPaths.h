@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Relational/PCGExRelationalData.h"
-#include "Relational/PCGExRelationalSettings.h"
+#include "PCGExRelationalSettingsBase.h"
 #include "Elements/PCGPointProcessingElementBase.h"
 #include "PCGExFindPaths.generated.h"
 

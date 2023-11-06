@@ -1,7 +1,7 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Relational/PCGExRelationalData.h"
+#include "Data/PCGExRelationalData.h"
 
 #include "PCGExCommon.h"
 #include "Data/PCGPointData.h"
@@ -11,6 +11,8 @@
 UPCGExRelationalData::UPCGExRelationalData(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	LocalRelations.Empty();
+	Relations = LocalRelations;
 }
 
 /**
@@ -25,61 +27,33 @@ bool UPCGExRelationalData::IsDataReady(UPCGPointData* PointData)
 }
 
 /**
- * 
- * @return 
+ * Initialize as new from Params
+ * @param InParams 
+ * @param InRelationalData 
  */
-const TArray<FPCGExRelationDefinition>& UPCGExRelationalData::GetConstSlots()
+void UPCGExRelationalData::Initialize(UPCGExRelationalParamsData** InParams)
 {
-	return RelationSlots;
+
+	Parent = nullptr;
+	Params = *InParams;
+	
+	LocalRelations.Empty();
+	Relations = LocalRelations;
+	
 }
 
 /**
- * 
- * @param Definition 
+ * Initialize this from another RelationalData
+ * @param InRelationalData 
  */
-void UPCGExRelationalData::InitializeFromSettings(const FPCGExRelationsDefinition& Definition)
+void UPCGExRelationalData::Initialize(UPCGExRelationalData** InRelationalData)
 {
-	GreatestStaticMaxDistance = 0.0;
-	bHasVariableMaxDistance = false;
-	RelationSlots.Reset(Definition.RelationSlots.Num());
-	for (const FPCGExRelationDefinition& Slot : Definition.RelationSlots)
-	{
-		if (!Slot.bEnabled) { continue; }
-		RelationSlots.Add(Slot);
-		if (Slot.bApplyAttributeModifier) { bHasVariableMaxDistance = true; }
-		GreatestStaticMaxDistance = FMath::Max(GreatestStaticMaxDistance, Slot.Direction.MaxDistance);
-	}
-}
 
-/**
- * 
- * @param PointData 
- * @param OutSelectors 
- * @return 
- */
-bool UPCGExRelationalData::PrepareSelectors(const UPCGPointData* PointData, TArray<FPCGExSamplingModifier>& OutSelectors) const
-{
-	OutSelectors.Reset();
-
-	int NumInvalid = 0;
-	for (int i = 0; i < RelationSlots.Num(); i++)
-	{
-		const FPCGExRelationDefinition& Slot = RelationSlots[i];
-		bool bValid = false;
-
-		OutSelectors.Add(FPCGExSamplingModifier(Slot.AttributeModifier));
-
-		if (Slot.bApplyAttributeModifier)
-		{
-			FPCGExSamplingModifier* Selector = &OutSelectors[i];
-			Selector->CopyAndFixLast(PointData);
-			if (Selector->IsValid(PointData)) { bValid = true; }
-		}
-
-		if (!bValid) { NumInvalid++; }
-	}
-
-	return NumInvalid < RelationSlots.Num();
+	Parent = *InRelationalData;
+	Params = Parent->Params;
+	
+	Relations = Parent->Relations;
+	
 }
 
 /**
@@ -158,3 +132,4 @@ double UPCGExRelationalData::PrepareCandidatesForPoint(TArray<FPCGExRelationCand
 		return GreatestStaticMaxDistance;
 	}
 }
+

@@ -4,14 +4,17 @@
 
 #include "CoreMinimal.h"
 #include "PCGSettings.h"
-#include "PCGExRelationalData.h"
+#include "Data/PCGExRelationalData.h"
 #include "Elements/PCGPointProcessingElementBase.h"
-#include "PCGExRelationalSettings.generated.h"
+#include "PCGExRelationalSettingsBase.generated.h"
 
 namespace PCGExRelational
 {
 	extern const FName SourceLabel;
-	extern const FName SourceRelationalLabel;
+	extern const FName SourceRelationalParamsLabel;
+	extern const FName SourceRelationalDataLabel;
+	extern const FName OutputPointsLabel;
+	extern const FName OutputRelationalDataLabel;
 }
 
 /**
@@ -21,6 +24,12 @@ UCLASS(BlueprintType, ClassGroup = (Procedural))
 class PCGEXTENDEDTOOLKIT_API UPCGExRelationalSettingsBase : public UPCGSettings
 {
 	GENERATED_BODY()
+
+public:
+	//~Begin UPCGExRelationalSettingsBase interface
+	virtual bool GetRequiresRelationalParams() const { return true; }
+	virtual bool GetRequiresRelationalData() const { return false; }
+	//~End UPCGExRelationalSettingsBase interface
 
 public:
 	//~Begin UPCGSettings interface
@@ -37,23 +46,23 @@ public:
 
 private:
 	friend class FPCGExRelationalProcessingElementBase;
+	friend class UPCGExRelationalData;
 };
 
 class FPCGExRelationalProcessingElementBase : public FPCGPointProcessingElementBase
 {
 public:
-	const UPCGExRelationalData* GetFirstRelationalData(const FPCGContext* Context) const;
+	const bool CheckRelationalParams(const FPCGContext* Context) const;
+	UPCGExRelationalParamsData* GetRelationalParams(const FPCGContext* Context) const;
 
 protected:
-	// Prepare an UPCGPointData to be used with the provided RelationalData
-	template <RelationalDataStruct T>
-	static FPCGMetadataAttribute<T>* PrepareData(const UPCGExRelationalData* RelationalData, UPCGPointData* PointData);
+	virtual bool ExecuteInternal(FPCGContext* Context) const override;
+	template<typename T>
+	const T* GetSettings(FPCGContext* Context) const;
+	bool TryGetRelationalData(const FPCGContext* Context, const UPCGExRelationalParamsData* InParams, const UPCGPointData* PointData, const UPCGExRelationalData*& OutRelationalData) const;
+	bool TryGetRelationalData(const FPCGContext* Context, const UPCGPointData* PointData, const UPCGExRelationalData*& OutRelationalData) const;
+	const UPCGExRelationalData* CreateRelationalData(FPCGContext* Context, const UPCGPointData* PointData) const;
 	
-	// Attempts to find the attribute allowing access to per-point relational data
-	template <RelationalDataStruct T>
-	static FPCGMetadataAttribute<T>* FindRelationalAttribute(const UPCGExRelationalData* RelationalData, const UPCGPointData* PointData);
-
 private:
 	friend class UPCGExRelationalData;
-	
 };

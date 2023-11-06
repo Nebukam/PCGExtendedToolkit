@@ -3,98 +3,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGElement.h"
 #include "PCGExCommon.h"
 #include "PCGParamData.h"
+#include "Data/PCGExRelationalParamsData.h"
 #include "PCGExRelationalData.generated.h"
 
 class UPCGPointData;
-
-
-USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExSamplingModifier : public FPCGExSelectorSettingsBase
-{
-	GENERATED_BODY()
-
-	FPCGExSamplingModifier(): FPCGExSelectorSettingsBase()
-	{
-	}
-
-	FPCGExSamplingModifier(const FPCGExSamplingModifier& Other): FPCGExSelectorSettingsBase(Other)
-	{
-	}
-};
-
-USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExRelationDirection
-{
-	GENERATED_BODY()
-
-	FPCGExRelationDirection()
-	{
-	}
-
-	FPCGExRelationDirection(const FVector& Dir)
-	{
-		Direction = Dir;
-	}
-
-	FPCGExRelationDirection(const FPCGExRelationDirection& Other):
-		Direction(Other.Direction),
-		DotTolerance(Other.DotTolerance),
-		MaxDistance(Other.MaxDistance)
-	{
-	}
-
-public:
-	/** Slot 'look-at' direction. Used along with DotTolerance. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-	FVector Direction = FVector::UpVector;
-
-	/** Tolerance threshold. Used along with the direction of the slot when looking for the closest candidate. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-	double DotTolerance = 0.707f; // 45deg
-
-	/** Maximum sampling distance. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-	double MaxDistance = 1000.0f;
-};
-
-// An editable relation slot
-USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExRelationDefinition
-{
-	GENERATED_BODY()
-
-public:
-	/** Name of the attribute to write neighbor index to. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-	FName AttributeName = NAME_None;
-
-	/** Relation direction in space. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta=(ShowOnlyInnerProperties))
-	FPCGExRelationDirection Direction;
-
-	/** Whether the orientation of the direction is relative to the point or not. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-	bool bRelativeOrientation = true;
-
-	/** Is the distance modified by local attributes */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-	bool bApplyAttributeModifier = false;
-
-	/** Which local attribute is used to factor the distance */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bApplyAttributeModifier", EditConditionHides))
-	FPCGExSamplingModifier AttributeModifier;
-
-	/** Whether this slot is enabled or not. Handy to do trial-and-error without adding/deleting array elements. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta=(AdvancedDisplay))
-	bool bEnabled = true;
-
-	/** Debug color. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta=(AdvancedDisplay))
-	FColor DebugColor = FColor::Red;
-};
-
 
 // Detail stored in a attribute array
 USTRUCT()
@@ -109,7 +24,6 @@ public:
 
 	FORCEINLINE friend FArchive& operator<<(FArchive& Ar, FPCGExRelationDetails& Details)
 	{
-		
 		Ar << Details.Index;
 		Ar << Details.IndexedDot;
 		Ar << Details.IndexedDistance;
@@ -208,25 +122,6 @@ public:
 	}
 };
 
-// A setting group to be consumed by a PCGExRelationalData
-USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExRelationsDefinition
-{
-	GENERATED_BODY()
-
-public:
-	/** List of slot settings. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(TitleProperty="{AttributeName}"))
-	TArray<FPCGExRelationDefinition> RelationSlots = {
-		FPCGExRelationDefinition{"Forward", FPCGExRelationDirection{FVector::ForwardVector}, true, false, FPCGExSamplingModifier{}, true, FColor(255, 0, 0)},
-		FPCGExRelationDefinition{"Backward", FPCGExRelationDirection{FVector::BackwardVector}, true, false, FPCGExSamplingModifier{}, true, FColor(200, 0, 0)},
-		FPCGExRelationDefinition{"Right", FPCGExRelationDirection{FVector::RightVector}, true, false, FPCGExSamplingModifier{}, true, FColor(0, 255, 0)},
-		FPCGExRelationDefinition{"Left", FPCGExRelationDirection{FVector::LeftVector}, true, false, FPCGExSamplingModifier{}, true, FColor(0, 200, 0)},
-		FPCGExRelationDefinition{"Up", FPCGExRelationDirection{FVector::UpVector}, true, false, FPCGExSamplingModifier{}, true, FColor(0, 0, 255)},
-		FPCGExRelationDefinition{"Down", FPCGExRelationDirection{FVector::DownVector}, true, false, FPCGExSamplingModifier{}, true, FColor(0, 0, 200)}
-	};
-};
-
 // A temp data structure to be used during octree processing
 USTRUCT()
 struct PCGEXTENDEDTOOLKIT_API FPCGExRelationData
@@ -256,7 +151,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExRelationData
 	}
 
 public:
-	
 	TArray<FPCGExRelationDetails> Details;
 	int64 NumRelations = 0;
 	int64 Index = -1;
@@ -266,33 +160,9 @@ public:
 
 	friend FArchive& operator<<(FArchive& Ar, FPCGExRelationData& Data)
 	{
-
 		Ar << Data.NumRelations;
 		Ar << Data.Index;
-		
-		if (Ar.IsSaving())
-		{	
-			int32 NumDetails = Data.Details.Num();
-			Ar << NumDetails;
-
-			for (FPCGExRelationDetails& Detail : Data.Details)
-			{
-				Ar << Detail;
-			}
-		}
-		else if (Ar.IsLoading()) // Check if deserializing
-		{
-			int32 NumDetails = 0;
-			Ar << NumDetails;
-
-			Data.Details.Empty(NumDetails);
-
-			for (int32 i = 0; i < NumDetails; i++)
-			{
-				FPCGExRelationDetails& Detail = Data.Details.Emplace_GetRef();
-				Ar << Detail;
-			}
-		}
+		Ar << Data.Details;
 
 		return Ar;
 	}
@@ -367,33 +237,38 @@ public:
 	UPCGExRelationalData(const FObjectInitializer& ObjectInitializer);
 
 	virtual EPCGDataType GetDataType() const override { return EPCGDataType::Param; }
-	
+
 	// Checks whether the data have the matching attribute
 	bool IsDataReady(UPCGPointData* PointData);
-	const TArray<FPCGExRelationDefinition>& GetConstSlots();
 
 public:
 	UPROPERTY(BlueprintReadOnly)
-	FName RelationalIdentifier;
+	UPCGExRelationalParamsData* Params = nullptr;
 
-	UPROPERTY(BlueprintReadOnly)
-	FPCGExRelationsDefinition RelationsDefinition;
+	void Initialize(UPCGExRelationalParamsData** InParams);
+	void Initialize(UPCGExRelationalData** InRelationalData);
 
-	UPROPERTY(BlueprintReadOnly)
-	TArray<FPCGExRelationDefinition> RelationSlots;
+	uint64 GetBoundUID() const { return Parent ? Parent->GetBoundUID() : BoundUID; }
+	void SetBoundUID(uint64 UID)
+	{
+#if WITH_EDITOR
+		if(BoundUID != -1){ UE_LOG(LogTemp, Error, TEXT("RelationalData BoundUID overwritten; this is likely unwanted.")); }
+#endif // WITH_EDITOR
+		BoundUID = UID;
+	}
 
-	UPROPERTY(BlueprintReadOnly)
-	double GreatestStaticMaxDistance = 0.0;
+	TArray<FPCGExRelationData>& GetRelations(){ return Relations; }
 
-	UPROPERTY(BlueprintReadOnly)
-	bool bMarkMutualRelations = true;
-
-	UPROPERTY(BlueprintReadOnly)
-	bool bHasVariableMaxDistance = false;
-
-	void InitializeFromSettings(const FPCGExRelationsDefinition& Definition);
-	bool PrepareSelectors(const UPCGPointData* PointData, TArray<FPCGExSamplingModifier>& OutSelectors) const;
 	double PrepareCandidatesForPoint(TArray<FPCGExRelationCandidate>& Candidates, const FPCGPoint& Point, bool bUseModifiers, TArray<FPCGExSamplingModifier>& Modifiers) const;
+
+protected:
+	UPROPERTY(Transient)
+	uint64 BoundUID = -1;
+
+	UPCGExRelationalData* Parent = nullptr;
+
+	TArray<FPCGExRelationData> LocalRelations;
+	TArray<FPCGExRelationData>& Relations;
 
 public:
 	template <typename T, typename dummy = void>

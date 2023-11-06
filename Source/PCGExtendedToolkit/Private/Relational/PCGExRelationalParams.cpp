@@ -52,11 +52,11 @@ bool FPCGExRelationalParamsElement::ExecuteInternal(FPCGContext* Context) const
 
 	OutRelationalData->RelationalIdentifier = Settings->RelationalIdentifier;
 	OutRelationalData->bMarkMutualRelations = Settings->bMarkMutualRelations;
-	OutRelationalData->InitializeFromSettings(Settings->Slots);
+	OutRelationalData->Initialize(Settings->RelationalIdentifier, Settings->Slots);
 		
 	FPCGTaggedData& Output = Outputs.Emplace_GetRef();
 	Output.Data = OutRelationalData;
-	//Output.bPinlessData = true;
+	Output.bPinlessData = true;
 	
 	return true;
 }

@@ -12,6 +12,7 @@
 #include "PCGContext.h"
 //#include "Metadata/Accessors/PCGAttributeAccessorHelpers.h"
 //#include "Metadata/Accessors/PCGAttributeAccessorKeys.h"
+#include "PCGExCommon.h"
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
 
 #define LOCTEXT_NAMESPACE "PCGExWriteIndexElement"
@@ -68,7 +69,6 @@ bool FPCGExWriteIndexElement::ExecuteInternal(FPCGContext* Context) const
 	check(Settings);
 
 	TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(PCGExWriteIndex::SourceLabel);
-	TArray<FPCGTaggedData>& Outputs = Context->OutputData.TaggedData;
 
 	const FPCGAttributePropertyOutputNoSourceSelector OutSelector = Settings->OutSelector;
 
@@ -79,70 +79,30 @@ bool FPCGExWriteIndexElement::ExecuteInternal(FPCGContext* Context) const
 	}
 
 	const FName AttributeName = OutSelector.GetName();
+	FPCGMetadataAttribute<int64>* IndexAttribute = nullptr;
 
-	for (const FPCGTaggedData& Source : Sources)
+	auto OnDataCopyBegin = [&IndexAttribute, AttributeName](const int32 Index, const int32 PointCount, FPCGExPointDataPair& Pair)
 	{
-		const UPCGSpatialData* SourceData = Cast<UPCGSpatialData>(Source.Data);
-
-		if (!SourceData)
-		{
-			PCGE_LOG(Error, GraphAndLog, LOCTEXT("InvalidInputData", "Invalid input data"));
-			continue;
-		}
-
-		const UPCGPointData* InPointData = SourceData->ToPointData(Context);
-		if (!InPointData)
-		{
-			PCGE_LOG(Error, GraphAndLog, LOCTEXT("CannotConvertToPointData", "Cannot convert input Spatial data to Point data"));
-			continue;
-		}
-
-		// Initialize output dataset
-		UPCGPointData* OutPointData = NewObject<UPCGPointData>();
-		OutPointData->InitializeFromData(InPointData);
-		Outputs.Add_GetRef(Source).Data = OutPointData;
-
-		FPCGMetadataAttribute<int64>* IndexAttribute = PCGMetadataElementCommon::ClearOrCreateAttribute<int64>(OutPointData->Metadata, AttributeName, -1);
-
-		//TUniquePtr<const IPCGAttributeAccessor> Accessor = PCGAttributeAccessorHelpers::CreateConstAccessor(OutPointData, OutSelector);
-		//TUniquePtr<const IPCGAttributeAccessorKeys> Keys = PCGAttributeAccessorHelpers::CreateConstKeys(OutPointData, OutSelector);
-
-		TArray<FPCGPoint>& OutPoints = OutPointData->GetMutablePoints();
-		int64 Index = 0;
+		IndexAttribute = PCGMetadataElementCommon::ClearOrCreateAttribute<int64>(Pair.OutputPointData->Metadata, AttributeName, -1);
+		return true;
+	};
 		
-		auto CopyAndAssignIndex = [OutPointData, IndexAttribute, &Index](const FPCGPoint& InPoint, FPCGPoint& OutPoint)
-		{
-			OutPoint = InPoint;
-			OutPointData->Metadata->InitializeOnSet(OutPoint.MetadataEntry);
-			IndexAttribute->SetValue(OutPoint.MetadataEntry, Index++);
-			return true;
-		};
+	auto OnPointCopied = [IndexAttribute](const int32 Index, const FPCGPoint& InPoint, FPCGPoint& OutPoint, FPCGExPointDataPair& Pair)
+	{
+		Pair.OutputPointData->Metadata->InitializeOnSet(OutPoint.MetadataEntry);
+		IndexAttribute->SetValue(OutPoint.MetadataEntry, Index);
+	};
+
+	auto OnDataCopyEnd = [](const int32 Index, FPCGExPointDataPair& Pair){};
 		
-		FPCGAsync::AsyncPointProcessing(Context, InPointData->GetPoints(), OutPoints, CopyAndAssignIndex);
+	TArray<FPCGExPointDataPair> Pairs;
+	FPCGExCommon::ForwardSourcePoints(Context, Sources, Pairs, OnDataCopyBegin, OnPointCopied, OnDataCopyEnd);
 
-		/*
-		auto DoOperation = [&Accessor, &Keys, &IndexAttribute](auto DummyValue) -> bool
-		{
-			using AttributeType = decltype(DummyValue);
-			AttributeType OutputValue{};
-			
-			bool bSuccess = PCGMetadataElementCommon::ApplyOnAccessor<AttributeType>(*Keys, *Accessor, [&IndexAttribute](const AttributeType& InValue, int32 Index)
-			{
-				IndexAttribute->SetValue(Index, static_cast<int64>(Index));
-			});
-
-			return bSuccess;
-		};
-
-		if (!PCGMetadataAttribute::CallbackWithRightType(PCG::Private::MetadataTypes<int64>::Id, DoOperation))
-		{
-			PCGE_LOG(Error, GraphAndLog, FText::Format(LOCTEXT("OperationFailed", "Could not create attribute '{0}'"), FText::FromName(AttributeName)));
-			return true;
-		}
-		*/
-
+	if (Pairs.Num() != Sources.Num())
+	{
+		PCGE_LOG(Warning, GraphAndLog, LOCTEXT("InvalidOutput", "Some inputs were not PointData and have been omitted."));
 	}
-
+	
 	return true;
 }
 

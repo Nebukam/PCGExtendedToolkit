@@ -6,7 +6,7 @@
 #include "PCGContext.h"
 #include "PCGSettings.h"
 #include "PCGPin.h"
-#include "Relational/PCGExRelationalData.h"
+#include "Data/PCGExRelationalData.h"
 #include "PCGExRelationalParams.generated.h"
 
 /** Builds a PCGExDirectionalData to be consumed by other nodes */

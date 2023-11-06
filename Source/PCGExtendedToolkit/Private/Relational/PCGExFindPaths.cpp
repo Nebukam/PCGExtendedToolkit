@@ -33,7 +33,7 @@ bool FPCGExFindPathsElement::ExecuteInternal(FPCGContext* Context) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExFindPathsElement::Execute);
 
-	const UPCGExRelationalData* RelationalData = GetFirstRelationalData(Context);
+	const UPCGExRelationalData* RelationalData = GetRelationalParams(Context);
 	if (!RelationalData) { return true; }
 
 	const UPCGExFindPathsSettings* Settings = Context->GetInputSettings<UPCGExFindPathsSettings>();
@@ -59,7 +59,7 @@ bool FPCGExFindPathsElement::ExecuteInternal(FPCGContext* Context) const
 			continue;
 		}
 
-		FPCGMetadataAttribute<FPCGExRelationData>* RelationAttribute = FindRelationalAttribute<FPCGExRelationData>(RelationalData, InPointData);
+		FPCGMetadataAttribute<FPCGExRelationData>* RelationAttribute = FindRelationalAttribute_UNSUPPORTED<FPCGExRelationData>(RelationalData, InPointData);
 		if (!RelationAttribute)
 		{
 			PCGE_LOG(Error, GraphAndLog, LOCTEXT("CannotFindRelationalAttribute", "Cannot find relational data. Make sure to compute it first (i.e CaptureNeighbors)."));
