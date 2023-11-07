@@ -42,7 +42,7 @@ public:
 };
 
 USTRUCT()
-struct PCGEXTENDEDTOOLKIT_API FPCGExProcessingData
+struct PCGEXTENDEDTOOLKIT_API FPCGExRelationalProcessingData
 {
 	GENERATED_BODY()
 
@@ -110,9 +110,9 @@ protected:
 
 private:
 	template <typename T>
-	static void DistributePoint(const FPCGPoint& Point, const T& InValue, FPCGExProcessingData* Data);
+	static void DistributePoint(const FPCGPoint& Point, const T& InValue, FPCGExRelationalProcessingData* Data);
 
-	static void AsyncPointAttributeProcessing(FPCGExProcessingData* Data);
-	static void AsyncPointPropertyProcessing(FPCGExProcessingData* Data);
-	static void AsyncPointExtraPropertyProcessing(FPCGExProcessingData* Data);
+	static void AsyncPointAttributeProcessing(FPCGExRelationalProcessingData* Data);
+	static void AsyncPointPropertyProcessing(FPCGExRelationalProcessingData* Data);
+	static void AsyncPointExtraPropertyProcessing(FPCGExRelationalProcessingData* Data);
 };

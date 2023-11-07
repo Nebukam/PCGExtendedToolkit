@@ -3,11 +3,9 @@
 #include "Relational/PCGExFindRelations.h"
 
 #include "Data/PCGExRelationalData.h"
-#include "Helpers/PCGAsync.h"
 #include "Data/PCGSpatialData.h"
 #include "Data/PCGPointData.h"
 #include "PCGContext.h"
-#include "PCGPin.h"
 #include "DrawDebugHelpers.h"
 #include "Editor.h"
 #include "Data/PCGExRelationalDataHelpers.h"
@@ -33,147 +31,115 @@ bool FPCGExFindRelationsElement::ExecuteInternal(FPCGContext* Context) const
 	const UPCGExFindRelationsSettings* Settings = Context->GetInputSettings<UPCGExFindRelationsSettings>();
 	check(Settings);
 
-	TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(PCGExRelational::SourceLabel);
-	TArray<FPCGTaggedData>& Outputs = Context->OutputData.TaggedData;
-
-	UPCGExRelationalParamsData* Params = GetRelationalParams(Context);
-	if (!Params) { return true; }
-
-	TArray<FPCGExPointDataPair> PointDatas;
-	FPCGExRelationalPair CurrentRelationalPair = FPCGExRelationalPair{};
-	bool bUseModifiers = false;
-
-	PCGExFindRelations::FPCGExProcessingData Data = PCGExFindRelations::FPCGExProcessingData{};
-	Data.Params = Params;
+	TArray<FPCGTaggedData> SourcePoints = Context->InputData.GetInputsByPin(PCGExRelational::SourceLabel);
+	TArray<FPCGTaggedData> SourceParams = Context->InputData.GetInputsByPin(PCGExRelational::SourceRelationalParamsLabel);
 	
-	auto OnDataWillBeginCopy = [Context, &Params, &CurrentRelationalPair, &bUseModifiers, &Data](const int32 Index, const int32 PointCount, FPCGExPointDataPair& Pair)
+	FPCGExPointIOMap<FPCGExIndexedPointDataIO> IOMap = FPCGExPointIOMap<FPCGExIndexedPointDataIO>(Context, SourcePoints, true);
+		
+	IOMap.ForEachPair(Context, [&Context](FPCGExIndexedPointDataIO* PointDataIO, const int32)
 	{
-		// Create matching relation data output here
-		CurrentRelationalPair.Capture(Pair);
-		FPCGExRelationalDataHelpers::CreateRelationalDataOutput(Context, Params, CurrentRelationalPair);
+		PointDataIO->ForwardPointsIndexed(Context, [](FPCGPoint& Point, const int32 Index){});
 
-		const UPCGPointData::PointOctree& Octree = Pair.SourcePointData->GetOctree();
+		//ProcessParams(); -> Need to process for each param
+
+		//Then flush indices
+		// but we don't want to maintain a shit load of indice map in memory, we can afford to process them one after another
+	});
+
+	FPCGExRelationalIOMap RelationalIOMap = FPCGExRelationalIOMap(Context, IOMap); //This is specific to a given param
+	
+	auto OnDataCopyBegin = [](FPCGExPointDataIO& PointIO, const int32 PointCount, const int32 IOIndex)
+	{
+		return true;
+	};
+
+	auto OnPointCopied = [](FPCGPoint& OutPoint, FPCGExPointDataIO& PointIO, const int32 PointIndex)
+	{
+		
+	};
+
+	auto OnDataCopyEnd = [](FPCGExPointDataIO& PointIO, const int32 IOIndex)
+	{
+
+	};
+
+	TArray<FPCGExPointDataIO> Pairs;
+	FPCGExCommon::ForwardSourcePoints(Context, SourcePoints, Pairs, OnDataCopyBegin, OnPointCopied, OnDataCopyEnd);
+
+	IOMap.OutputTo();
+	
+	return true;
+}
+
+void ProcessParams(FPCGContext* Context, UPCGExRelationalParamsData* Params)
+{
+const UPCGExFindRelationsSettings* Settings = Context->GetInputSettings<UPCGExFindRelationsSettings>();
+	check(Settings);
+
+	TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(PCGExRelational::SourceLabel);
+
+	FPCGExRelationalPair CurrentRelationalPair = FPCGExRelationalPair{};
+	FPCGExProcessingData Data = FPCGExProcessingData{};
+	Data.RelationalPair = &CurrentRelationalPair;
+	Data.Params = Params;
+
+	auto OnDataCopyBegin = [Context, &Data](FPCGExPointDataIO& PointIO, const int32 PointCount, const int32 IOIndex)
+	{
+		Data.RelationalPair->Capture(PointIO);
+		FPCGExRelationalDataHelpers::CreateRelationalDataOutput(Context, Data.Params, *Data.RelationalPair);
+
+		const UPCGPointData::PointOctree& Octree = PointIO.In->GetOctree();
 		Data.Octree = const_cast<UPCGPointData::PointOctree*>(&Octree);
-		Data.RelationalData = CurrentRelationalPair.RelationalData;
 		Data.GetIndices().Empty(PointCount);
 
-		CurrentRelationalPair.RelationalData->GetRelations().Reserve(PointCount);
-		bUseModifiers = Params->PrepareSelectors(Pair.SourcePointData, Data.GetModifiers());
+		Data.RelationalPair->RelationalData->GetRelations().Reserve(PointCount);
+		Data.bUseModifiers = Data.Params->PrepareSelectors(PointIO.In, Data.GetModifiers());
 
 		return true;
 	};
 
 	FPCGPoint CurrentPoint;
-	
-	auto ProcessSingleNeighbor = [&CurrentPoint, &Data](
-			const FPCGPointRef& OtherPointRef)
+
+	auto ProcessPointNeighbor = [&CurrentPoint, &Data](const FPCGPointRef& OtherPointRef)
 	{
-		// Skip "self"
 		const FPCGPoint* OtherPoint = OtherPointRef.Point;
+		const int32 Index = Data.GetIndex(OtherPoint->MetadataEntry);
 
-		if (CurrentPoint == OtherPointRef.Point) { return; }
+		if (Index == Data.CurrentIndex) { return; } // Skip self
 
-		const int64 Key = OtherPoint->MetadataEntry;
-		// Loop over slots inside the Octree sampling
-		// Still expensive, but greatly reduce the number of iteration vs sampling the octree each slot.
 		for (FPCGExRelationCandidate& CandidateData : Data.GetCandidates())
 		{
-			if (CandidateData.ProcessPoint(OtherPoint))
-			{
-				//TODO: Is there a more memory-efficient way to retrieve the index?
-				CandidateData.Index = *(Data.GetIndices().Find(Key));
-			}
+			if (CandidateData.ProcessPoint(OtherPoint)) { CandidateData.Index = Index; }
 		}
 	};
-	
-	auto OnPointCopied = [&Params, &CurrentRelationalPair, &Candidates, &bUseModifiers, &Modifiers, &Data](const int32 Index, const FPCGPoint& InPoint, FPCGPoint& OutPoint, FPCGExPointDataPair& Pair)
+
+	auto OnPointCopied = [&Data](FPCGPoint& OutPoint, FPCGExPointDataIO& PointIO, const int32 PointIndex)
 	{
-		CurrentRelationalPair.RelationalData->PrepareCandidatesForPoint(Candidates, InPoint, bUseModifiers, Modifiers);
-		Data.Indices.Add(InPoint.MetadataEntry, Index);
-		
+		Data.GetIndices().Add(OutPoint.MetadataEntry, PointIndex);
+	};
+
+	auto FindAndProcessNeighbors = [&Data, &ProcessPointNeighbor](int32 ReadIndex, int32 WriteIndex)
+	{
+		Data.CurrentIndex = ReadIndex;
+
+		FPCGPoint InPoint = Data.RelationalPair->InPoints->GetPoint(ReadIndex),
+		          OutPoint = Data.RelationalPair->OutPoints->GetPoint(ReadIndex);
+
+		const double MaxDistance = FPCGExRelationalDataHelpers::PrepareCandidatesForPoint(InPoint, Data);
+
 		const FBoxCenterAndExtent Box = FBoxCenterAndExtent(OutPoint.Transform.GetLocation(), FVector(MaxDistance));
-		Data.Octree->FindElementsWithBoundsTest(Box, ProcessSingleNeighbor);
+		Data.Octree->FindElementsWithBoundsTest(Box, ProcessPointNeighbor);
 
-		FPCGExRelationData& Data = CurrentRelationalPair.RelationalData->GetRelations().Emplace_GetRef(Index, &Candidates);
+		Data.RelationalPair->RelationalData->GetRelations().Emplace_GetRef(ReadIndex, &Data.GetCandidates());
 	};
 
-	auto OnPointsCopied = [](const int32 Index, FPCGExPointDataPair& Pair)
+	auto OnDataCopyEnd = [&Context, &Data, &FindAndProcessNeighbors, &Settings](FPCGExPointDataIO& PointIO, const int32 IOIndex)
 	{
-	};
+		FPCGExCommon::AsyncForLoop(Context, PointIO.In->GetPoints().Num(), FindAndProcessNeighbors);
 
-	TArray<FPCGExPointDataPair> Pairs;
-	FPCGExCommon::ForwardSourcePoints(Context, Sources, Pairs, OnDataWillBeginCopy, OnPointCopied, OnPointsCopied);
-
-////////////////
-	
-	TArray<FPCGExSamplingModifier> Modifiers;
-	TArray<FPCGExRelationCandidate> Candidates;
-	TMap<int64, int32> Indices;
-
-	for (const FPCGTaggedData& Source : Sources)
-	{
-		// Initialize output dataset
-		UPCGPointData* OutPointData = NewObject<UPCGPointData>();
-		OutPointData->InitializeFromData(InPointData);
-		Outputs.Add_GetRef(Source).Data = OutPointData;
-
-		const TArray<FPCGPoint>& InPoints = InPointData->GetPoints();
-
-		FPCGMetadataAttribute<FPCGExRelationData>* RelationalAttribute = PrepareDataAttributes_UNSUPPORTED<FPCGExRelationData>(RelationalData, OutPointData);
-		const UPCGPointData::PointOctree& Octree = InPointData->GetOctree();
-
-		int32 CurrentIndex = 0;
-		FPCGPoint* CurrentPoint = nullptr;
-
-		Candidates.Reserve(RelationalData->RelationSlots.Num());
-		bool bUseModifiers = RelationalData->PrepareSelectors(InPointData, Modifiers);
-
-		Indices.Empty(InPoints.Num());
-		for (int i = 0; i < InPoints.Num(); i++) { Indices.Add(InPoints[i].MetadataEntry, i); }
-
-		auto ProcessSingleNeighbor = [&CurrentPoint, &Candidates, &Indices](
-			const FPCGPointRef& OtherPointRef)
+		if (Data.Params->bMarkMutualRelations)
 		{
-			// Skip "self"
-			const FPCGPoint* OtherPoint = OtherPointRef.Point;
-
-			if (CurrentPoint == OtherPointRef.Point) { return; }
-
-			const int64 Key = OtherPoint->MetadataEntry;
-			// Loop over slots inside the Octree sampling
-			// Still expensive, but greatly reduce the number of iteration vs sampling the octree each slot.
-			for (FPCGExRelationCandidate& CandidateData : Candidates)
-			{
-				if (CandidateData.ProcessPoint(OtherPoint))
-				{
-					//TODO: Is there a more memory-efficient way to retrieve the index?
-					CandidateData.Index = *Indices.Find(Key);
-				}
-			}
-		};
-
-		TArray<FPCGPoint>& OutPoints = OutPointData->GetMutablePoints();
-		FPCGAsync::AsyncPointProcessing(Context, InPoints, OutPoints, [&Candidates, &Modifiers, &CurrentIndex, &CurrentPoint, &RelationalData, &Octree, &OutPointData, &ProcessSingleNeighbor, RelationalAttribute, &bUseModifiers](const FPCGPoint& InPoint, FPCGPoint& OutPoint)
-		{
-			OutPoint = InPoint;
-			CurrentPoint = &OutPoint;
-
-			OutPointData->Metadata->InitializeOnSet(OutPoint.MetadataEntry);
-			const double MaxDistance = RelationalData->PrepareCandidatesForPoint(Candidates, OutPoint, bUseModifiers, Modifiers);
-
-			const FBoxCenterAndExtent Box = FBoxCenterAndExtent(OutPoint.Transform.GetLocation(), FVector(MaxDistance));
-			Octree.FindElementsWithBoundsTest(Box, ProcessSingleNeighbor);
-
-			const FPCGExRelationData Data = FPCGExRelationData(CurrentIndex, &Candidates);
-			RelationalAttribute->SetValue(OutPoint.MetadataEntry, Data);
-
-			CurrentIndex++;
-			return true;
-		});
-
-		if (RelationalData->bMarkMutualRelations)
-		{
-			//TODO -- Will require to build an accessor to access the value as Ref
+			//TODO
 		}
 
 #if WITH_EDITOR
@@ -181,28 +147,30 @@ bool FPCGExFindRelationsElement::ExecuteInternal(FPCGContext* Context) const
 		{
 			if (UWorld* EditorWorld = GEditor->GetEditorWorldContext().World())
 			{
-				int ValueKey = 0;
-				for (const FPCGPoint& Point : OutPoints)
+				FPCGExCommon::AsyncForLoop(Context, PointIO.In->GetPoints().Num(), [&Data, &EditorWorld](int32 ReadIndex, int32)
 				{
-					FPCGExRelationData Data = RelationalAttribute->GetValue(ValueKey); //Point.MetadataEntry is offset at this point, which is annoying and weird.
-					for (int i = 0; i < Data.Details.Num(); i++)
+					FPCGPoint PtA = Data.RelationalPair->InPoints->GetPoint(ReadIndex);
+					const FPCGExRelationData& PointData = *Data.RelationalPair->RelationalData->GetRelation(ReadIndex);
+					int32 SlotIndex = -1;
+					for (const FPCGExRelationDetails& Details : PointData.Details)
 					{
-						const int64 NeighborIndex = Data.Details[i].Index;
-						if (NeighborIndex == -1) { continue; }
+						SlotIndex++;
+						if (Details.Index == -1) { continue; }
 
-						FVector Start = Point.Transform.GetLocation();
-						FVector End = FMath::Lerp(Start, OutPoints[NeighborIndex].Transform.GetLocation(), 0.4);
-						DrawDebugLine(EditorWorld, Start, End, RelationalData->RelationSlots[i].DebugColor, false, 10.0f, 0, 2);
+						FPCGPoint PtB = Data.RelationalPair->InPoints->GetPoint(Details.Index);
+						FVector Start = PtA.Transform.GetLocation();
+						FVector End = FMath::Lerp(Start, PtB.Transform.GetLocation(), 0.4);
+						DrawDebugLine(EditorWorld, Start, End, Data.Params->RelationSlots[SlotIndex].DebugColor, false, 10.0f, 0, 2);
 					}
-					ValueKey++;
-				}
+				});
 			}
 		}
 #endif
-	}
+	};
 
-
-	return true;
+	TArray<FPCGExPointDataIO> Pairs;
+	FPCGExCommon::ForwardSourcePoints(Context, Sources, Pairs, OnDataCopyBegin, OnPointCopied, OnDataCopyEnd);
+	
 }
 
 #undef LOCTEXT_NAMESPACE

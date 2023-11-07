@@ -89,7 +89,9 @@ bool FPCGExRelationalProcessingElementBase::ExecuteInternal(FPCGContext* Context
 	*/
 }
 
-void FPCGExRelationalProcessingElementBase::ExecuteForEachParamsInput(FPCGContext* Context, const TFunction<void(const UPCGExRelationalParamsData*)>& ParamsFunc)
+void FPCGExRelationalProcessingElementBase::ExecuteForEachParamsInput(
+	FPCGContext* Context,
+	const TFunction<void(FPCGContext*, UPCGExRelationalParamsData*)>& PerParamsFunc)
 {
 	TArray<FPCGTaggedData> ParamSources = Context->InputData.GetInputsByPin(PCGExRelational::SourceRelationalParamsLabel);
 	TArray<UPCGExRelationalParamsData*> Params;
@@ -100,10 +102,12 @@ void FPCGExRelationalProcessingElementBase::ExecuteForEachParamsInput(FPCGContex
 		return;
 	}
 
-	for (const UPCGExRelationalParamsData* ParamsData : Params) { ParamsFunc(ParamsData); }
+	for (const UPCGExRelationalParamsData* ParamsData : Params) { PerParamsFunc(Context, ParamsData); }
 }
 
-void FPCGExRelationalProcessingElementBase::ExecuteForEachRelationalPairsInput(FPCGContext* Context, const TFunction<void(const UPCGExRelationalParamsData*)>& ParamsFunc)
+void FPCGExRelationalProcessingElementBase::ExecuteForEachRelationalPairsInput(
+	FPCGContext* Context,
+	const TFunction<void(FPCGContext*, UPCGExRelationalParamsData*)>& PerParamsFunc)
 {
 	TArray<FPCGTaggedData> PointSources = Context->InputData.GetInputsByPin(PCGExRelational::SourceLabel);
 	TArray<FPCGTaggedData> RelationalSources = Context->InputData.GetInputsByPin(PCGExRelational::SourceRelationalDataLabel);
@@ -111,60 +115,10 @@ void FPCGExRelationalProcessingElementBase::ExecuteForEachRelationalPairsInput(F
 	FPCGExDataMapping DataMapping = FPCGExDataMapping{};
 	FPCGExRelationalDataHelpers::BuildRelationalMapping(RelationalSources, PointSources, DataMapping);
 
-	for (const UPCGExRelationalParamsData* ParamsData : Params)
+	for (UPCGExRelationalParamsData* ParamsData : Params)
 	{
-		ParamsFunc(ParamsData);
+		PerParamsFunc(Context, ParamsData);
 	}
-}
-
-void FPCGExRelationalProcessingElementBase::ExecuteForEachPairs(FPCGContext* Context, const TFunction<void(const UPCGExRelationalParamsData*)>& ParamsFunc)
-{
-	TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(PCGExRelational::SourceRelationalParamsLabel);
-	TArray<UPCGExRelationalParamsData*> Params;
-
-	if (!FPCGExRelationalDataHelpers::FindRelationalParams(Sources, Params))
-	{
-		PCGE_LOG(Error, GraphAndLog, LOCTEXT("NoParams", "No RelationalParams found."));
-		return;
-	}
-
-	for (const UPCGExRelationalParamsData* ParamsData : Params) { ParamsFunc(ParamsData); }
-}
-
-/**
- * 
- * @tparam T 
- * @param RelationalData 
- * @param PointData 
- * @return 
- */
-template <RelationalDataStruct T>
-FPCGMetadataAttribute<T>* FPCGExRelationalProcessingElementBase::PrepareDataAttributes_UNSUPPORTED(const UPCGExRelationalData* RelationalData, UPCGPointData* PointData)
-{
-	const int NumSlot = RelationalData->Params->RelationSlots.Num();
-
-	FPCGExRelationData Default = {};
-	Default.Details.Reserve(NumSlot);
-	for (int i = 0; i < NumSlot; i++)
-	{
-		Default.Details.Add(FPCGExRelationDetails{});
-	}
-
-	FPCGMetadataAttribute<T>* Attribute = PointData->Metadata->FindOrCreateAttribute(RelationalData->Params->RelationalIdentifier, Default, false, true, true);
-	return Attribute;
-}
-
-/**
- * 
- * @tparam T 
- * @param RelationalData 
- * @param PointData 
- * @return 
- */
-template <RelationalDataStruct T>
-FPCGMetadataAttribute<T>* FPCGExRelationalProcessingElementBase::FindRelationalAttribute_UNSUPPORTED(const UPCGExRelationalData* RelationalData, const UPCGPointData* PointData)
-{
-	return PointData->Metadata->GetMutableTypedAttribute<T>(RelationalData->Params->RelationalIdentifier);
 }
 
 /**
@@ -202,80 +156,5 @@ UPCGExRelationalParamsData* FPCGExRelationalProcessingElementBase::GetRelational
 	if(!Params){return nullptr;}
 	return const_cast<UPCGExRelationalParamsData*>(Params);
 }
-
-template <typename T>
-const T* FPCGExRelationalProcessingElementBase::GetSettings(FPCGContext* Context) const
-{
-	const T* Settings = Context->GetInputSettings<T>();
-	check(Settings);
-
-	return Settings;
-}
-
-/**
- * Attempts to find matching relational data with specific params
- * @param PointData 
- * @param OutRelationalData 
- * @return 
- */
-bool FPCGExRelationalProcessingElementBase::TryGetRelationalData(const FPCGContext* Context, const UPCGExRelationalParamsData* InParams, const UPCGPointData* PointData, const UPCGExRelationalData*& OutRelationalData) const
-{
-	TArray<FPCGTaggedData> RelationalDatasSources = Context->InputData.GetInputsByPin(PCGExRelational::SourceRelationalDataLabel);
-	for (const FPCGTaggedData& Source : RelationalDatasSources)
-	{
-		const UPCGExRelationalData* InRelationalData = Cast<UPCGExRelationalData>(Source.Data);
-		// TODO: Find a more secure way to bind data
-		if (InRelationalData->Params == InParams && PointData->Metadata->HasAttribute(InParams->RelationalIdentifier))
-		{
-			OutRelationalData = InRelationalData;
-			return true;
-		}
-	}
-	return false;
-}
-
-/**
- * Attempts to find matching relational data
- * @param PointData 
- * @param OutRelationalData 
- * @return 
- */
-bool FPCGExRelationalProcessingElementBase::TryGetRelationalData(const FPCGContext* Context, const UPCGPointData* PointData, const UPCGExRelationalData*& OutRelationalData) const
-{
-	TArray<FPCGTaggedData> RelationalDatasSources = Context->InputData.GetInputsByPin(PCGExRelational::SourceRelationalDataLabel);
-	for (const FPCGTaggedData& Source : RelationalDatasSources)
-	{
-		const UPCGExRelationalData* InRelationalData = Cast<UPCGExRelationalData>(Source.Data);
-		// TODO: Find a more secure way to bind data
-		if (PointData->Metadata->HasAttribute(InRelationalData->Params->RelationalIdentifier))
-		{
-			OutRelationalData = InRelationalData;
-			return true;
-		}
-	}
-	return false;
-}
-
-/**
- * Create a new relational data in context outputs for the provided PointData
- * This requires GetRequiresRelationalParams to return true
- * @param Context 
- * @param PointData 
- * @return 
- */
-const UPCGExRelationalData* FPCGExRelationalProcessingElementBase::CreateRelationalData(FPCGContext* Context, const UPCGPointData* PointData) const
-{
-	const FPCGExRelationalProcessingElementBase* Settings = Context->GetInputSettings<FPCGExRelationalProcessingElementBase>();
-	check(Settings);
-
-	const UPCGExRelationalData* RelationalData = GetRelationalParams(Context);
-
-	TArray<FPCGTaggedData>& Outputs = Context->OutputData.TaggedData;
-	UPCGExRelationalData* NewRelationalDataData = NewObject<UPCGExRelationalData>();
-	Outputs.Emplace_GetRef().Data = NewRelationalDataData;
-
-	return NewRelationalDataData;
-}
-
 
 #undef LOCTEXT_NAMESPACE

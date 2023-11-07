@@ -81,21 +81,21 @@ bool FPCGExWriteIndexElement::ExecuteInternal(FPCGContext* Context) const
 	const FName AttributeName = OutSelector.GetName();
 	FPCGMetadataAttribute<int64>* IndexAttribute = nullptr;
 
-	auto OnDataCopyBegin = [&IndexAttribute, AttributeName](const int32 Index, const int32 PointCount, FPCGExPointDataPair& Pair)
+	auto OnDataCopyBegin = [&IndexAttribute, AttributeName](FPCGExPointDataIO& IO, const int32 PointCount, const int32 IOIndex)
 	{
-		IndexAttribute = PCGMetadataElementCommon::ClearOrCreateAttribute<int64>(Pair.OutputPointData->Metadata, AttributeName, -1);
+		IndexAttribute = PCGMetadataElementCommon::ClearOrCreateAttribute<int64>(IO.Out->Metadata, AttributeName, -1);
 		return true;
 	};
 		
-	auto OnPointCopied = [IndexAttribute](const int32 Index, const FPCGPoint& InPoint, FPCGPoint& OutPoint, FPCGExPointDataPair& Pair)
+	auto OnPointCopied = [IndexAttribute](FPCGPoint& OutPoint, FPCGExPointDataIO& IO, const int32 PointIndex)
 	{
-		Pair.OutputPointData->Metadata->InitializeOnSet(OutPoint.MetadataEntry);
-		IndexAttribute->SetValue(OutPoint.MetadataEntry, Index);
+		IO.Out->Metadata->InitializeOnSet(OutPoint.MetadataEntry);
+		IndexAttribute->SetValue(OutPoint.MetadataEntry, PointIndex);
 	};
 
-	auto OnDataCopyEnd = [](const int32 Index, FPCGExPointDataPair& Pair){};
+	auto OnDataCopyEnd = [](FPCGExPointDataIO& IO, const int32 IOIndex){};
 		
-	TArray<FPCGExPointDataPair> Pairs;
+	TArray<FPCGExPointDataIO> Pairs;
 	FPCGExCommon::ForwardSourcePoints(Context, Sources, Pairs, OnDataCopyBegin, OnPointCopied, OnDataCopyEnd);
 
 	if (Pairs.Num() != Sources.Num())

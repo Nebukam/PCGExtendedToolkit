@@ -57,12 +57,9 @@ public:
 
 protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
-	template<typename T>
-	const T* GetSettings(FPCGContext* Context) const;
-	bool TryGetRelationalData(const FPCGContext* Context, const UPCGExRelationalParamsData* InParams, const UPCGPointData* PointData, const UPCGExRelationalData*& OutRelationalData) const;
-	bool TryGetRelationalData(const FPCGContext* Context, const UPCGPointData* PointData, const UPCGExRelationalData*& OutRelationalData) const;
-	const UPCGExRelationalData* CreateRelationalData(FPCGContext* Context, const UPCGPointData* PointData) const;
-	
+	void ExecuteForEachParamsInput(FPCGContext* Context, const TFunction<void(FPCGContext*, UPCGExRelationalParamsData*)>& PerParamsFunc);
+	void ExecuteForEachRelationalPairsInput(FPCGContext* Context, const TFunction<void(FPCGContext*, UPCGExRelationalParamsData*)>& PerParamsFunc);
+
 private:
 	friend class UPCGExRelationalData;
 };

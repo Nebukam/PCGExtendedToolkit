@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Relational/PCGExRelationalData.h"
+#include "Data/PCGExRelationalData.h"
 #include "PCGExRelationalSettingsBase.h"
 #include "Elements/PCGPointProcessingElementBase.h"
 #include "PCGExFindPaths.generated.h"

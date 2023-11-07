@@ -13,7 +13,7 @@
 UCLASS(BlueprintType, ClassGroup = (Procedural))
 
 
-class PCGEXTENDEDTOOLKIT_API UPCGExRelationalParams : public UPCGSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExRelationalParamsSettings : public UPCGSettings
 {
 	GENERATED_BODY()
 

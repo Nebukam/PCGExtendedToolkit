@@ -112,7 +112,7 @@ bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* Context) const
 	}
 
 	TMap<int64, UPCGPointData*> Partitions;
-	FPCGExProcessingData ProcessingData = FPCGExProcessingData{};
+	FPCGExRelationalProcessingData ProcessingData = FPCGExRelationalProcessingData{};
 	ProcessingData.Context = Context;
 	ProcessingData.Partitions = &Partitions;
 	if(Settings->bWriteKeyToAttribute)
@@ -163,7 +163,7 @@ bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* Context) const
 }
 
 template <typename T>
-void FPCGExPartitionByValuesElement::DistributePoint(const FPCGPoint& Point, const T& InValue, FPCGExProcessingData* Data)
+void FPCGExPartitionByValuesElement::DistributePoint(const FPCGPoint& Point, const T& InValue, FPCGExRelationalProcessingData* Data)
 {
 	const int64 Key = FPCGExFilter::Filter(InValue, *Data->Rules);
 	UPCGPointData** PartitionPtr = Data->Partitions->Find(Key);
@@ -204,7 +204,7 @@ void FPCGExPartitionByValuesElement::DistributePoint(const FPCGPoint& Point, con
 	Partition->GetMutablePoints().Add(Point);
 }
 
-void FPCGExPartitionByValuesElement::AsyncPointAttributeProcessing(FPCGExProcessingData* Data)
+void FPCGExPartitionByValuesElement::AsyncPointAttributeProcessing(FPCGExRelationalProcessingData* Data)
 {
 	auto ProcessPoints = [&Data](auto DummyValue)
 	{
@@ -234,7 +234,7 @@ FPCGAsync::AsyncPointProcessing(Data->Context, InPointData->GetPoints(), *Data->
 
 #define PCGEX_COMPARE_PROPERTY_CASE(_ENUM, _ACCESSOR) case _ENUM : PCGEX_PROPERTY_CASE(_ACCESSOR) break;
 
-void FPCGExPartitionByValuesElement::AsyncPointPropertyProcessing(FPCGExProcessingData* Data)
+void FPCGExPartitionByValuesElement::AsyncPointPropertyProcessing(FPCGExRelationalProcessingData* Data)
 {
 	const UPCGPointData* InPointData = *Data->InPointData;\
 	switch (Data->Rules->Selector.GetPointProperty())
@@ -244,7 +244,7 @@ void FPCGExPartitionByValuesElement::AsyncPointPropertyProcessing(FPCGExProcessi
 	}
 }
 
-void FPCGExPartitionByValuesElement::AsyncPointExtraPropertyProcessing(FPCGExProcessingData* Data)
+void FPCGExPartitionByValuesElement::AsyncPointExtraPropertyProcessing(FPCGExRelationalProcessingData* Data)
 {
 	const UPCGPointData* InPointData = *Data->InPointData;\
 	switch (Data->Rules->Selector.GetExtraProperty())

@@ -1,6 +1,6 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
-#include "Relational/PCGExRelationalParams.h"
+#include "..\..\Public\Relational\PCGExRelationalParams.h"
 
 #include "PCGComponent.h"
 #include "PCGSubsystem.h"
@@ -10,25 +10,25 @@
 #define LOCTEXT_NAMESPACE "PCGExRelationalParamsElement"
 
 #if WITH_EDITOR
-FText UPCGExRelationalParams::GetNodeTooltipText() const
+FText UPCGExRelationalParamsSettings::GetNodeTooltipText() const
 {
 	return LOCTEXT("DataFromActorTooltip", "Builds a collection of PCG-compatible data from the selected actors.");
 }
 
 #endif
 
-FPCGElementPtr UPCGExRelationalParams::CreateElement() const
+FPCGElementPtr UPCGExRelationalParamsSettings::CreateElement() const
 {
 	return MakeShared<FPCGExRelationalParamsElement>();
 }
 
-TArray<FPCGPinProperties> UPCGExRelationalParams::InputPinProperties() const
+TArray<FPCGPinProperties> UPCGExRelationalParamsSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> NoInput;
 	return NoInput;
 }
 
-TArray<FPCGPinProperties> UPCGExRelationalParams::OutputPinProperties() const
+TArray<FPCGPinProperties> UPCGExRelationalParamsSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
 	FPCGPinProperties& PinPropertyOutput = PinProperties.Emplace_GetRef(PCGPinConstants::DefaultOutputLabel, EPCGDataType::Param, false, false);
@@ -44,18 +44,18 @@ bool FPCGExRelationalParamsElement::ExecuteInternal(FPCGContext* Context) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExRelationalParamsElement::Execute);
 
-	const UPCGExRelationalParams* Settings = Context->GetInputSettings<UPCGExRelationalParams>();
+	const UPCGExRelationalParamsSettings* Settings = Context->GetInputSettings<UPCGExRelationalParamsSettings>();
 	check(Settings);
 
 	TArray<FPCGTaggedData>& Outputs = Context->OutputData.TaggedData;
-	UPCGExRelationalData* OutRelationalData = NewObject<UPCGExRelationalData>();
+	UPCGExRelationalParamsData* OutRelationalParamsData = NewObject<UPCGExRelationalParamsData>();
 
-	OutRelationalData->RelationalIdentifier = Settings->RelationalIdentifier;
-	OutRelationalData->bMarkMutualRelations = Settings->bMarkMutualRelations;
-	OutRelationalData->Initialize(Settings->RelationalIdentifier, Settings->Slots);
+	OutRelationalParamsData->RelationalIdentifier = Settings->RelationalIdentifier;
+	OutRelationalParamsData->bMarkMutualRelations = Settings->bMarkMutualRelations;
+	OutRelationalParamsData->Initialize(Settings->RelationalIdentifier, Settings->Slots);
 		
 	FPCGTaggedData& Output = Outputs.Emplace_GetRef();
-	Output.Data = OutRelationalData;
+	Output.Data = OutRelationalParamsData;
 	Output.bPinlessData = true;
 	
 	return true;

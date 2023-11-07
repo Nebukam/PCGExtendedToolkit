@@ -8,36 +8,6 @@
 #include "Elements/PCGPointProcessingElementBase.h"
 #include "PCGExFindRelations.generated.h"
 
-namespace PCGExFindRelations
-{
-	USTRUCT()
-	struct PCGEXTENDEDTOOLKIT_API FPCGExProcessingData
-	{
-		GENERATED_BODY()
-
-		FPCGExProcessingData()
-		{
-			Indices.Empty();
-			Modifiers.Empty();
-			Candidates.Empty();
-		}
-
-	public:
-		UPCGExRelationalParamsData* Params = nullptr;
-		UPCGExRelationalData* RelationalData = nullptr;
-		UPCGPointData::PointOctree* Octree = nullptr;
-	protected:
-		TMap<int64, int32> Indices;
-		TArray<FPCGExSamplingModifier> Modifiers;
-		TArray<FPCGExRelationCandidate> Candidates;
-
-	public:
-		TMap<int64, int32>& GetIndices() { return Indices; }
-		TArray<FPCGExSamplingModifier>& GetModifiers() { return Modifiers; }
-		TArray<FPCGExRelationCandidate>& GetCandidates() { return Candidates; }
-	};
-}
-
 /**
  * Calculates the distance between two points (inherently a n*n operation)
  */

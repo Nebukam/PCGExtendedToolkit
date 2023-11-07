@@ -249,15 +249,17 @@ public:
 	void Initialize(UPCGExRelationalData** InRelationalData);
 
 	uint64 GetBoundUID() const { return Parent ? Parent->GetBoundUID() : BoundUID; }
-	void SetBoundUID(uint64 UID)
+
+	void SetBoundUID(uint64 NewBoundUID)
 	{
 #if WITH_EDITOR
-		if(BoundUID != -1){ UE_LOG(LogTemp, Error, TEXT("RelationalData BoundUID overwritten; this is likely unwanted.")); }
+		if (BoundUID != -1) { UE_LOG(LogTemp, Error, TEXT("RelationalData BoundUID overwritten; this is likely unwanted.")); }
 #endif // WITH_EDITOR
-		BoundUID = UID;
+		BoundUID = NewBoundUID;
 	}
 
-	TArray<FPCGExRelationData>& GetRelations(){ return Relations; }
+	TArray<FPCGExRelationData>& GetRelations() { return *Relations; }
+	const FPCGExRelationData* GetRelation(int32 Index) const { return &(*Relations)[Index]; }
 
 	double PrepareCandidatesForPoint(TArray<FPCGExRelationCandidate>& Candidates, const FPCGPoint& Point, bool bUseModifiers, TArray<FPCGExSamplingModifier>& Modifiers) const;
 
@@ -268,33 +270,5 @@ protected:
 	UPCGExRelationalData* Parent = nullptr;
 
 	TArray<FPCGExRelationData> LocalRelations;
-	TArray<FPCGExRelationData>& Relations;
-
-public:
-	template <typename T, typename dummy = void>
-	static double GetScaleFactor(const T& Value) { return static_cast<double>(Value); }
-
-	template <typename dummy = void>
-	static double GetScaleFactor(const FVector2D& Value) { return Value.Length(); }
-
-	template <typename dummy = void>
-	static double GetScaleFactor(const FVector& Value) { return Value.Length(); }
-
-	template <typename dummy = void>
-	static double GetScaleFactor(const FVector4& Value) { return FVector(Value).Length(); }
-
-	template <typename dummy = void>
-	static double GetScaleFactor(const FRotator& Value) { return 1.0; }
-
-	template <typename dummy = void>
-	static double GetScaleFactor(const FQuat& Value) { return 1.0; }
-
-	template <typename dummy = void>
-	static double GetScaleFactor(const FName& Value) { return 1.0; }
-
-	template <typename dummy = void>
-	static double GetScaleFactor(const FString& Value) { return 1.0; }
-
-	template <typename dummy = void>
-	static double GetScaleFactor(const FTransform& Value) { return 1.0; }
+	TArray<FPCGExRelationData>* Relations;
 };
