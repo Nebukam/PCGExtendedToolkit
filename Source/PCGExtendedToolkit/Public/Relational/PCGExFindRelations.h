@@ -3,8 +3,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Data/PCGExRelationalData.h"
-#include "PCGExRelationalSettingsBase.h"
+#include "PCGExRelationsHelpers.h"
+#include "PCGExRelationsParamsProcessor.h"
+#include "Data/PCGPointData.h"
 #include "Elements/PCGPointProcessingElementBase.h"
 #include "PCGExFindRelations.generated.h"
 
@@ -12,15 +13,9 @@
  * Calculates the distance between two points (inherently a n*n operation)
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural))
-class PCGEXTENDEDTOOLKIT_API UPCGExFindRelationsSettings : public UPCGExRelationalSettingsBase
+class PCGEXTENDEDTOOLKIT_API UPCGExFindRelationsSettings : public UPCGExRelationsProcessorSettings
 {
 	GENERATED_BODY()
-
-public:
-	//~Begin UPCGExRelationalSettingsBase interface
-	virtual bool GetRequiresRelationalParams() const override { return true; };
-	virtual bool GetRequiresRelationalData() const override { return false; };
-	//~End UPCGExRelationalSettingsBase interface
 
 public:
 	//~Begin UPCGSettings interface
@@ -29,8 +24,6 @@ public:
 	virtual FText GetDefaultNodeTitle() const override { return NSLOCTEXT("PCGExFindRelations", "NodeTitle", "Find Relations"); }
 	virtual FText GetNodeTooltipText() const override;
 #endif
-
-	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
@@ -43,7 +36,7 @@ private:
 	friend class FPCGExFindRelationsElement;
 };
 
-class FPCGExFindRelationsElement : public FPCGExRelationalProcessingElementBase
+class FPCGExFindRelationsElement : public FPCGExRelationsProcessorElement
 {
 protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;

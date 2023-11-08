@@ -13,7 +13,7 @@
 #include "PCGPin.h"
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
 #include "Metadata/Accessors/PCGAttributeAccessorHelpers.h"
-#include "Relational/PCGExFilter.h"
+#include "Misc/PCGExFilter.h"
 
 #define LOCTEXT_NAMESPACE "PCGExDummyElement"
 

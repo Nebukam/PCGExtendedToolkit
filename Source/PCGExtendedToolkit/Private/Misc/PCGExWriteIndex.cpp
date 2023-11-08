@@ -7,7 +7,6 @@
 #include "Misc/PCGExWriteIndex.h"
 #include "Data/PCGSpatialData.h"
 #include "Data/PCGPointData.h"
-#include "Helpers/PCGAsync.h"
 #include "PCGPin.h"
 #include "PCGContext.h"
 //#include "Metadata/Accessors/PCGAttributeAccessorHelpers.h"
@@ -68,8 +67,6 @@ bool FPCGExWriteIndexElement::ExecuteInternal(FPCGContext* Context) const
 	const UPCGExWriteIndexSettings* Settings = Context->GetInputSettings<UPCGExWriteIndexSettings>();
 	check(Settings);
 
-	TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(PCGExWriteIndex::SourceLabel);
-
 	const FPCGAttributePropertyOutputNoSourceSelector OutSelector = Settings->OutSelector;
 
 	if (!OutSelector.IsValid())
@@ -79,29 +76,19 @@ bool FPCGExWriteIndexElement::ExecuteInternal(FPCGContext* Context) const
 	}
 
 	const FName AttributeName = OutSelector.GetName();
-	FPCGMetadataAttribute<int64>* IndexAttribute = nullptr;
 
-	auto OnDataCopyBegin = [&IndexAttribute, AttributeName](FPCGExPointDataIO& IO, const int32 PointCount, const int32 IOIndex)
+	FPCGExPointIOMap<FPCGExPointDataIO> IOMap = FPCGExPointIOMap<FPCGExPointDataIO>(Context, PCGExWriteIndex::SourceLabel, true);
+	IOMap.ForEach(Context, [&Context, &AttributeName](FPCGExPointDataIO* IO, const int32)
 	{
-		IndexAttribute = PCGMetadataElementCommon::ClearOrCreateAttribute<int64>(IO.Out->Metadata, AttributeName, -1);
-		return true;
-	};
-		
-	auto OnPointCopied = [IndexAttribute](FPCGPoint& OutPoint, FPCGExPointDataIO& IO, const int32 PointIndex)
-	{
-		IO.Out->Metadata->InitializeOnSet(OutPoint.MetadataEntry);
-		IndexAttribute->SetValue(OutPoint.MetadataEntry, PointIndex);
-	};
+		FPCGMetadataAttribute<int64>* IndexAttribute = PCGMetadataElementCommon::ClearOrCreateAttribute<int64>(IO->Out->Metadata, AttributeName, -1);
+		IO->ForwardPoints(Context, [&IO, &IndexAttribute](FPCGPoint& Point, const int32 Index)
+		{
+			IO->Out->Metadata->InitializeOnSet(Point.MetadataEntry);
+			IndexAttribute->SetValue(Point.MetadataEntry, Index);
+		});
+	});
 
-	auto OnDataCopyEnd = [](FPCGExPointDataIO& IO, const int32 IOIndex){};
-		
-	TArray<FPCGExPointDataIO> Pairs;
-	FPCGExCommon::ForwardSourcePoints(Context, Sources, Pairs, OnDataCopyBegin, OnPointCopied, OnDataCopyEnd);
-
-	if (Pairs.Num() != Sources.Num())
-	{
-		PCGE_LOG(Warning, GraphAndLog, LOCTEXT("InvalidOutput", "Some inputs were not PointData and have been omitted."));
-	}
+	IOMap.OutputTo(Context);
 	
 	return true;
 }
