@@ -55,7 +55,6 @@ bool FPCGExFindRelationsElement::ExecuteInternal(FPCGContext* Context) const
 
 			auto ProcessPoint = [&Data](int32 ReadIndex, int32 WriteIndex)
 			{
-
 				FPCGPoint InPoint = Data.IO->In->GetPoint(ReadIndex),
 				          OutPoint = Data.IO->Out->GetPoint(ReadIndex);
 
@@ -78,8 +77,7 @@ bool FPCGExFindRelationsElement::ExecuteInternal(FPCGContext* Context) const
 				const FBoxCenterAndExtent Box = FBoxCenterAndExtent(OutPoint.Transform.GetLocation(), FVector(MaxDistance));
 				Data.Octree->FindElementsWithBoundsTest(Box, ProcessPointNeighbor);
 
-				Data.OutputTo(InPoint, Candidates);
-				
+				Data.OutputTo(OutPoint.MetadataEntry, Candidates);
 			};
 
 			const int32 NumIterations = Data.IO->In->GetPoints().Num();
@@ -95,18 +93,21 @@ bool FPCGExFindRelationsElement::ExecuteInternal(FPCGContext* Context) const
 			{
 				if (UWorld* EditorWorld = GEditor->GetEditorWorldContext().World())
 				{
-					FPCGExCommon::ParallelForLoop(Context, NumIterations, [&Data, &EditorWorld](int32 ReadIndex, int32)
+					FPCGExCommon::AsyncForLoop(Context, NumIterations, [&Data, &EditorWorld](int32 ReadIndex, int32)
 					{
-						FPCGPoint PtA = Data.IO->In->GetPoint(ReadIndex);
+
+						//UE_LOG(LogTemp, Warning, TEXT("-- %d"), ReadIndex);
+						FPCGPoint PtA = Data.IO->Out->GetPoint(ReadIndex);
+						FVector Start = PtA.Transform.GetLocation();
 						for (const PCGExRelational::FSocket& Socket : Data.Params->GetSocketMapping()->Sockets)
 						{
-							PCGExRelational::FSocketData SocketData = Socket.GetSocketData(PtA.MetadataEntry);
+							PCGExRelational::FSocketData SocketData = Socket.GetSocketData(ReadIndex);
+							//UE_LOG(LogTemp, Warning, TEXT("   %d --> %lld"), ReadIndex, SocketData.Index);
 							if (SocketData.Index == -1) { continue; }
 
-							FPCGPoint PtB = Data.IO->In->GetPoint(SocketData.Index);
-							FVector Start = PtA.Transform.GetLocation();
+							FPCGPoint PtB = Data.IO->Out->GetPoint(SocketData.Index);
 							FVector End = FMath::Lerp(Start, PtB.Transform.GetLocation(), 0.4);
-							DrawDebugLine(EditorWorld, Start, End, Socket.Descriptor->DebugColor, false, 10.0f, 0, 2);
+							DrawDebugLine(EditorWorld, Start, End, Socket.Descriptor.DebugColor, false, 10.0f, 0, 2);
 						}
 					});
 				}

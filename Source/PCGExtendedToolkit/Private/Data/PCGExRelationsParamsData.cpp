@@ -30,6 +30,8 @@ bool UPCGExRelationsParamsData::HasMatchingRelationsData(UPCGPointData* PointDat
 
 void UPCGExRelationsParamsData::InitializeSockets(TArray<FPCGExSocketDescriptor>& InSockets)
 {
+	
+	SocketMapping = PCGExRelational::FSocketMapping{};	
 	SocketMapping.Initialize(RelationIdentifier, InSockets);
 
 	GreatestStaticMaxDistance = 0.0;

@@ -81,9 +81,8 @@ bool FPCGExWriteIndexElement::ExecuteInternal(FPCGContext* Context) const
 	IOMap.ForEach(Context, [&Context, &AttributeName](FPCGExPointDataIO* IO, const int32)
 	{
 		FPCGMetadataAttribute<int64>* IndexAttribute = PCGMetadataElementCommon::ClearOrCreateAttribute<int64>(IO->Out->Metadata, AttributeName, -1);
-		IO->ForwardPoints(Context, [&IO, &IndexAttribute](FPCGPoint& Point, const int32 Index)
+		IO->ForwardPoints(Context, [&IO, &IndexAttribute](FPCGPoint& Point, const int32 Index, const FPCGPoint& OtherPoint)
 		{
-			IO->Out->Metadata->InitializeOnSet(Point.MetadataEntry);
 			IndexAttribute->SetValue(Point.MetadataEntry, Index);
 		});
 	});

@@ -14,7 +14,6 @@ namespace PCGExRelational
 {
 	struct PCGEXTENDEDTOOLKIT_API FParamsInputs
 	{
-		
 		FParamsInputs()
 		{
 			Params.Empty();
@@ -71,28 +70,27 @@ namespace PCGExRelational
 	/** Per-socket temp data structure for processing only*/
 	struct PCGEXTENDEDTOOLKIT_API FSocketCandidate : FPCGExSocketDirection
 	{
-		
 		FSocketCandidate()
 		{
 		}
 
 		void PrepareForPoint(const FSocket& InSocket, const FPCGPoint& Point)
 		{
-			Direction = InSocket.Descriptor->Direction.Direction;
-			DotTolerance = InSocket.Descriptor->Direction.DotTolerance;
-			MaxDistance = InSocket.Descriptor->Direction.MaxDistance;
+			Direction = InSocket.Descriptor.Direction.Direction;
+			DotTolerance = InSocket.Descriptor.Direction.DotTolerance;
+			MaxDistance = InSocket.Descriptor.Direction.MaxDistance;
 
 			const FTransform PtTransform = Point.Transform;
 			Origin = PtTransform.GetLocation();
 
-			if (InSocket.Descriptor->bRelativeOrientation)
+			if (InSocket.Descriptor.bRelativeOrientation)
 			{
 				Direction = PtTransform.Rotator().RotateVector(Direction);
 				Direction.Normalize();
 			}
 		}
 
-	public:		
+	public:
 		FVector Origin = FVector::Zero();
 		int32 Index = -1;
 		double IndexedDistance = TNumericLimits<double>::Max();
@@ -112,6 +110,7 @@ namespace PCGExRelational
 			// Is distance smaller than last registered one?
 			if (SquaredDistance > IndexedDistance) { return false; }
 
+			//UE_LOG(LogTemp, Warning, TEXT("Dist %f / %f "), SquaredDistance, LocalMaxDistance * LocalMaxDistance)
 			// Is distance inside threshold?
 			if (SquaredDistance >= (LocalMaxDistance * LocalMaxDistance)) { return false; }
 
@@ -140,10 +139,8 @@ namespace PCGExRelational
 
 	struct PCGEXTENDEDTOOLKIT_API FPointProcessingData
 	{
-		
 		FPointProcessingData()
 		{
-			
 		}
 
 	public:
@@ -152,13 +149,13 @@ namespace PCGExRelational
 		UPCGPointData::PointOctree* Octree = nullptr;
 		int32 CurrentIndex = -1;
 
-		void OutputTo(FPCGPoint& Point, TArray<FSocketCandidate>& Candidates)
+		void OutputTo(int64 Key, TArray<FSocketCandidate>& Candidates)
 		{
 			for (int i = 0; i < Candidates.Num(); i++)
 			{
 				const FSocket* Socket = &(Params->GetSocketMapping()->Sockets[i]);
-				IO->Out->Metadata->InitializeOnSet(Point.MetadataEntry);
-				Socket->SetValue(Point.MetadataEntry, Candidates[i].ToSocketData());
+				FSocketData OutData = Candidates[i].ToSocketData();
+				Socket->SetValue(Key, OutData);
 			}
 		}
 
@@ -198,21 +195,25 @@ namespace PCGExRelational
 		 */
 		static double PrepareCandidatesForPoint(const FPCGPoint& Point, FPointProcessingData& Data, TArray<FSocketCandidate>& Candidates)
 		{
-			Candidates.Empty();
+			const int32 NumSockets = Data.Params->GetSocketMapping()->NumSockets;
+			Candidates.Empty(NumSockets);
 
 			double MaxDistance = Data.Params->GreatestStaticMaxDistance;
 			if (Data.Params->bHasVariableMaxDistance) { MaxDistance = 0.0; }
 
-			
-			for (const PCGExRelational::FSocket& Socket : Data.Params->GetSocketMapping()->Sockets)
+
+			const TArray<FSocket>& Sockets = Data.Params->GetSocketMapping()->GetSockets();
+			const TArray<FModifier>& Modifiers = Data.Params->GetSocketMapping()->GetModifiers();
+
+			for (int i = 0; i < NumSockets; i++)
 			{
+				const PCGExRelational::FSocket& Socket = Sockets[i];
+				const PCGExRelational::FModifier& Modifier = Modifiers[i];
+
 				FSocketCandidate& NewCandidate = Candidates.Emplace_GetRef();
 				NewCandidate.PrepareForPoint(Socket, Point);
 
-				if (Socket.ScaleModifier)
-				{
-					if (Socket.ScaleModifier->bValid) { NewCandidate.DistanceScale = Socket.ScaleModifier->GetScale(Point); }
-				}
+				if (Modifier.bValid) { NewCandidate.DistanceScale = Modifier.GetScale(Point); }
 
 				MaxDistance = FMath::Max(MaxDistance, NewCandidate.GetScaledDistance());
 			}

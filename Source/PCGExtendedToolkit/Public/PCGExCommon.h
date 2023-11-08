@@ -92,7 +92,6 @@ public:
 
 	bool CopyAndFixLast(const UPCGPointData* InData)
 	{
-		// Selector pointer is valid but points to shit
 		bFixed = true;
 		Selector = Selector.CopyAndFixLast(InData);
 		if (Selector.GetSelection() == EPCGAttributePropertySelection::Attribute)
@@ -124,9 +123,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointDataIO
 	GENERATED_BODY()
 
 public:
-	FPCGTaggedData* Source = nullptr; // Source struct
+	FPCGTaggedData Source; // Source struct
 	UPCGPointData* In = nullptr; // Input PointData
-	FPCGTaggedData* Output = nullptr; // Source struct
+	FPCGTaggedData Output; // Source struct
 	UPCGPointData* Out = nullptr; // Output PointData
 
 	/**
@@ -137,9 +136,9 @@ public:
 	 */
 	bool InitializeOut(FPCGContext* Context, bool bForwardOnly = true)
 	{
-		if (bForwardOnly && (!In || !Source)) { return false; }
+		if (bForwardOnly && !In) { return false; }
 		Out = NewObject<UPCGPointData>();
-		if (In && Source) { Out->InitializeFromData(In); }
+		if (In) { Out->InitializeFromData(In); }
 		return true;
 	}
 
@@ -151,21 +150,24 @@ public:
 	void OutputTo(FPCGContext* Context, bool bEmplace = false)
 	{
 		if (!Out) { return; }
-		if (Source && !bEmplace) { Output = &(Context->OutputData.TaggedData.Add_GetRef(*Source)); }
-		else if(bEmplace){ Output = &(Context->OutputData.TaggedData.Emplace_GetRef()); }
 
-		if(!Output)
+		if (!bEmplace)
 		{
-			UE_LOG(LogTemp, Error, TEXT("FPCGExPointDataIO::OutputTo => bEmplace=false but there is no source!"));
-			return;
+			FPCGTaggedData& OutputRef = Context->OutputData.TaggedData.Add_GetRef(Source);
+			OutputRef.Data = Out;
+			Output = OutputRef;
 		}
-		
-		Output->Data = Out;
+		else
+		{
+			FPCGTaggedData& OutputRef = Context->OutputData.TaggedData.Emplace_GetRef();
+			OutputRef.Data = Out;
+			Output = OutputRef;
+		}
 	}
 
 	/**
 	 * Copy In.Points to Out.Points
-	 * @param Context 
+	 * @param Context
 	 * @return 
 	 */
 	bool ForwardPoints(FPCGContext* Context)
@@ -173,9 +175,10 @@ public:
 		if (!Out || !In) { return false; }
 
 		TArray<FPCGPoint>& OutPoints = Out->GetMutablePoints();
-		auto CopyPoint = [](const FPCGPoint& InPoint, FPCGPoint& OutPoint)
+		auto CopyPoint = [this](const FPCGPoint& InPoint, FPCGPoint& OutPoint)
 		{
 			OutPoint = InPoint;
+			Out->Metadata->InitializeOnSet(OutPoint.MetadataEntry);
 			return true;
 		};
 
@@ -186,10 +189,10 @@ public:
 	/**
 	 * Copy In.Points to Out.Points with a callback after each copy
 	 * @param Context 
-	 * @param PointFunc 
+	 * @param PointFunc
 	 * @return 
 	 */
-	bool ForwardPoints(FPCGContext* Context, const TFunction<void(FPCGPoint&, const int32)>& PointFunc)
+	bool ForwardPoints(FPCGContext* Context, const TFunction<void(FPCGPoint&, const int32, const FPCGPoint&)>& PointFunc)
 	{
 		if (!Out || !In) { return false; }
 
@@ -198,7 +201,8 @@ public:
 		auto CopyPoint = [&PointIndex, &PointFunc, this](const FPCGPoint& InPoint, FPCGPoint& OutPoint)
 		{
 			OutPoint = InPoint;
-			PointFunc(OutPoint, PointIndex);
+			Out->Metadata->InitializeOnSet(OutPoint.MetadataEntry);
+			PointFunc(OutPoint, PointIndex, InPoint);
 			PointIndex++;
 			return true;
 		};
@@ -210,12 +214,9 @@ public:
 
 	~FPCGExPointDataIO()
 	{
-		Source = nullptr;
 		In = nullptr;
-		Output = nullptr;
 		Out = nullptr;
 	}
-	
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExIndexedPointDataIO : public FPCGExPointDataIO
@@ -227,7 +228,7 @@ public:
 	{
 		Indices.Empty();
 	}
-	
+
 	/**
 	 * Copy In.Points to Out.Points and build the Indices map
 	 * @param Context 
@@ -235,9 +236,9 @@ public:
 	 */
 	bool ForwardPointsIndexed(FPCGContext* Context)
 	{
-		return ForwardPoints(Context, [this](FPCGPoint& Point, const int32 Index)
+		return ForwardPoints(Context, [this](FPCGPoint& Point, const int32 Index, const FPCGPoint& Other)
 		{
-			Indices.Add(Point.MetadataEntry, Index);
+			Indices.Add(Other.MetadataEntry, Index);
 		});
 	}
 
@@ -249,9 +250,9 @@ public:
 	 */
 	bool ForwardPointsIndexed(FPCGContext* Context, const TFunction<void(FPCGPoint&, const int32)>& PointFunc)
 	{
-		return ForwardPoints(Context, [&PointFunc, this](FPCGPoint& Point, const int32 Index)
+		return ForwardPoints(Context, [&PointFunc, this](FPCGPoint& Point, const int32 Index, const FPCGPoint& Other)
 		{
-			Indices.Add(Point.MetadataEntry, Index);
+			Indices.Add(Other.MetadataEntry, Index);
 			PointFunc(Point, Index);
 		});
 	}
@@ -262,7 +263,6 @@ public:
 	{
 		Indices.Empty();
 	}
-	
 };
 
 template <typename T>
@@ -286,7 +286,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointIOMap
 
 public:
 	TArray<T> Pairs;
-	
+
 	/**
 	 * Initialize from Sources
 	 * @param Context 
@@ -304,7 +304,7 @@ public:
 			if (!PointData) { continue; }
 			T& PIOPair = Pairs.Emplace_GetRef();
 
-			PIOPair.Source = &Source;
+			PIOPair.Source = Source;
 			PIOPair.In = const_cast<UPCGPointData*>(SpatialData->ToPointData(Context));
 
 			if (bInitializeOutput) { PIOPair.InitializeOut(Context, true); }
@@ -330,7 +330,7 @@ public:
 			BodyLoop(PIOPair, i);
 		}
 	}
-	
+
 	~FPCGExPointIOMap()
 	{
 		Pairs.Empty();
@@ -451,10 +451,11 @@ public:
 
 			FPCGExPointDataIO& IO = OutIOPairs.Emplace_GetRef();
 			IO.In = const_cast<UPCGPointData*>(InPointData);
+			IO.Source = Source;
+
 			IO.Out = NewObject<UPCGPointData>();
 			IO.Out->InitializeFromData(IO.In);
-			IO.Output = &Outputs.Add_GetRef(Source);
-			IO.Output->Data = IO.Out;
+			IO.OutputTo(Context);
 
 			const bool bContinue = OnDataCopyBegin(IO, IO.In->GetPoints().Num(), IOIndex);
 
@@ -510,10 +511,11 @@ public:
 
 			FPCGExPointDataIO& IO = OutIOPairs.Emplace_GetRef();
 			IO.In = const_cast<UPCGPointData*>(InPointData);
+			IO.Source = Source;
 			IO.Out = NewObject<UPCGPointData>();
 			IO.Out->InitializeFromData(IO.In);
-			IO.Output = &Outputs.Add_GetRef(Source);
-			IO.Output->Data = IO.Out;
+
+			IO.OutputTo(Context);
 
 			const bool bContinue = OnDataCopyBegin(IO, IO.In->GetPoints().Num(), IOIndex);
 
@@ -573,9 +575,9 @@ public:
 
 			FPCGExPointDataIO& IO = OutIOPairs.Emplace_GetRef();
 			IO.In = const_cast<UPCGPointData*>(InPointData);
+			IO.Source = Source;
 			IO.Out = IO.In;
-			IO.Output = &Outputs.Add_GetRef(Source);
-			IO.Output->Data = IO.Out;
+			IO.OutputTo(Context);
 
 			const int32 NumIterations = IO.In->GetPoints().Num();
 			const bool bContinue = OnForwardBegin(IO, NumIterations, IOIndex);

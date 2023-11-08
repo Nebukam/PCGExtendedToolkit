@@ -135,6 +135,8 @@ namespace PCGExRelational
 		{
 			return FVector4(Index, IndexedDot, IndexedDistance, 0.0);
 		}
+
+		
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FModifier
@@ -142,34 +144,35 @@ namespace PCGExRelational
 	public:
 		bool bEnabled = false;
 		bool bValid = false;
-		FPCGExSocketModifierDescriptor* Descriptor = nullptr;
+		FPCGExSocketModifierDescriptor Descriptor;
 		FPCGAttributePropertyInputSelector Selector;
 
 		/**
 		 * Build and validate a property/attribute accessor for the selected
 		 * @param PointData 
 		 */
-		void PrepareForPoints(const UPCGPointData* PointData)
+		void PrepareForPointData(const UPCGPointData* PointData)
 		{
-			if (!bEnabled || !Descriptor)
+			if (!bEnabled)
 			{
 				bValid = false;
 				return;
 			}
 
-			bValid = Descriptor->CopyAndFixLast(PointData);
+			bValid = Descriptor.CopyAndFixLast(PointData);
+			Selector = Descriptor.Selector;
 		}
 
-		double GetScale(const FPCGPoint& Point)
+		double GetScale(const FPCGPoint& Point) const
 		{
 			if (!bValid || !bEnabled) { return 1.0; }
 
 			switch (Selector.GetSelection())
 			{
 			case EPCGAttributePropertySelection::Attribute:
-				return PCGMetadataAttribute::CallbackWithRightType(Descriptor->Attribute->GetTypeId(), [this, &Point]<typename T>(T DummyValue) -> double
+				return PCGMetadataAttribute::CallbackWithRightType(Descriptor.Attribute->GetTypeId(), [this, &Point]<typename T>(T DummyValue) -> double
 				{
-					FPCGMetadataAttribute<T>* Attribute = static_cast<FPCGMetadataAttribute<T>*>(Descriptor->Attribute);
+					FPCGMetadataAttribute<T>* Attribute = static_cast<FPCGMetadataAttribute<T>*>(Descriptor.Attribute);
 					return GetScaleFactor(Attribute->GetValue(Point.MetadataEntry));
 				});
 #define PCGEX_SCALE_BY_ACCESSOR(_ENUM, _ACCESSOR) case _ENUM: return GetScaleFactor(Point._ACCESSOR);
@@ -223,14 +226,14 @@ namespace PCGExRelational
 	public:
 		~FModifier()
 		{
-			Descriptor = nullptr;
+			//Descriptor = nullptr;
 		}
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FSocket
 	{
 	public:
-		FPCGExSocketDescriptor* Descriptor = nullptr;
+		FPCGExSocketDescriptor Descriptor;
 		FName AttributeName = NAME_None;
 		FPCGMetadataAttribute<FVector4>* SocketDataAttribute = nullptr;
 		FModifier* ScaleModifier = nullptr;
@@ -243,7 +246,7 @@ namespace PCGExRelational
 		void PrepareForPointData(UPCGPointData* PointData)
 		{
 			SocketDataAttribute = PointData->Metadata->FindOrCreateAttribute<FVector4>(AttributeName, FVector4(-1.0, 0.0, 0.0, 0.0), false, true, true);
-			ScaleModifier->PrepareForPoints(PointData);
+			//ScaleModifier->PrepareForPointData(PointData);
 		}
 
 		/**
@@ -254,8 +257,7 @@ namespace PCGExRelational
 		 * @return 
 		 */
 		FVector4 GetValue(const int64 Key) const { return SocketDataAttribute->GetValue(Key); }
-		void SetValue(const int64 Key, const FVector4& Value) const { SocketDataAttribute->SetValue(Key, Value); }
-
+		void SetValue(const int64 Key, const FSocketData& Value) const { SocketDataAttribute->SetValue(Key, FVector4(Value)); }
 		FSocketData GetSocketData(const int64 Key) const { return SocketDataAttribute->GetValue(Key); }
 
 		/**
@@ -275,7 +277,7 @@ namespace PCGExRelational
 	public:
 		~FSocket()
 		{
-			Descriptor = nullptr;
+			//Descriptor = nullptr;
 			SocketDataAttribute = nullptr;
 			ScaleModifier = nullptr;
 		}
@@ -292,6 +294,7 @@ namespace PCGExRelational
 		TArray<FSocket> Sockets;
 		TArray<FModifier> Modifiers;
 		TMap<FName, FSocket*> SocketMap;
+		int32 NumSockets = 0;
 
 		void Initialize(FName Identifier, TArray<FPCGExSocketDescriptor>& InSockets)
 		{
@@ -304,13 +307,13 @@ namespace PCGExRelational
 
 				FModifier& NewModifier = Modifiers.Emplace_GetRef();
 				NewModifier.bEnabled = Descriptor.bApplyAttributeModifier;
-				NewModifier.Descriptor = &Descriptor.AttributeModifier;
+				NewModifier.Descriptor = Descriptor.AttributeModifier;
 
 				FSocket& NewSocket = Sockets.Emplace_GetRef();
-				NewSocket.Descriptor = &Descriptor;
+				NewSocket.Descriptor = Descriptor;
 				NewSocket.AttributeName = *(PCGExName + Slash + BaseIdentifierStr + Slash + Descriptor.AttributeName.ToString()); // PCGEx/RelationIdentifier/SocketName
-				NewSocket.ScaleModifier = &NewModifier;
 				SocketMap.Add(Descriptor.AttributeName, &NewSocket);
+				NumSockets++;
 			}
 		}
 
@@ -321,11 +324,15 @@ namespace PCGExRelational
 		 */
 		void PrepareForPointData(UPCGPointData* PointData)
 		{
-			for (FSocket& Socket : Sockets) { Socket.PrepareForPointData(PointData); }
+			for(int i = 0; i < Sockets.Num(); i++)
+			{
+				Sockets[i].PrepareForPointData(PointData);
+				Modifiers[i].PrepareForPointData(PointData);
+			}
 		}
 
-		TArray<FSocket>& GetSockets() { return Sockets; }
-		TArray<FModifier>& GetModifiers() { return Modifiers; }
+		const TArray<FSocket>& GetSockets() const { return Sockets; }
+		const TArray<FModifier>& GetModifiers() const { return Modifiers; }
 
 		void Reset()
 		{
@@ -333,7 +340,7 @@ namespace PCGExRelational
 			Modifiers.Empty();
 			SocketMap.Empty();
 		}
-		
+
 	public:
 		~FSocketMapping()
 		{
@@ -372,7 +379,7 @@ public:
 	bool bHasVariableMaxDistance = false;
 
 protected:
-	PCGExRelational::FSocketMapping SocketMapping = PCGExRelational::FSocketMapping{};
+	PCGExRelational::FSocketMapping SocketMapping;
 
 public:
 	const PCGExRelational::FSocketMapping* GetSocketMapping() const { return &SocketMapping; }
