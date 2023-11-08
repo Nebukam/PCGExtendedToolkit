@@ -170,7 +170,7 @@ public:
 	 * @param Context
 	 * @return 
 	 */
-	bool ForwardPoints(FPCGContext* Context)
+	bool ForwardPoints(FPCGContext* Context) const
 	{
 		if (!Out || !In) { return false; }
 
@@ -192,7 +192,7 @@ public:
 	 * @param PointFunc
 	 * @return 
 	 */
-	bool ForwardPoints(FPCGContext* Context, const TFunction<void(FPCGPoint&, const int32, const FPCGPoint&)>& PointFunc)
+	bool ForwardPoints(FPCGContext* Context, const TFunction<void(FPCGPoint&, const int32, const FPCGPoint&)>& PointFunc) const
 	{
 		if (!Out || !In) { return false; }
 
@@ -283,7 +283,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointIOMap
 	{
 		Initialize(Context, Sources, bInitializeOutput);
 	}
-
+	
 public:
 	TArray<T> Pairs;
 
@@ -310,6 +310,8 @@ public:
 			if (bInitializeOutput) { PIOPair.InitializeOut(Context, true); }
 		}
 	}
+
+	bool IsEmpty() { return Pairs.IsEmpty(); }
 
 	/**
 	 * Write valid outputs to Context' tagged data
@@ -390,17 +392,20 @@ public:
 	 * @param ChunkSize Size of the chunks to cut the input data with
 	 * @return 
 	 */
-	template <typename LoopBodyFunc>
+	template <typename InitializeFunc, typename LoopBodyFunc>
 	static bool ParallelForLoop(
 		FPCGContext* Context,
 		const int32 NumIterations,
-		LoopBodyFunc&& LoopBody,
+		TFunction<void()>& Initialize,
+		TFunction<void(int32)>& LoopBody,
 		const int32 ChunkSize = 32)
 	{
-		auto Initialize = []()
+		auto InnerBodyLoop = [&LoopBody](int32 ReadIndex, int32 WriteIndex)
 		{
+			LoopBody(ReadIndex);
+			return true;
 		};
-		return FPCGAsync::AsyncProcessingOneToOneEx(&(Context->AsyncState), NumIterations, Initialize, LoopBody, true, ChunkSize);
+		return FPCGAsync::AsyncProcessingOneToOneEx(&(Context->AsyncState), NumIterations, Initialize, InnerBodyLoop, true, ChunkSize);
 	}
 
 	/**
@@ -412,12 +417,12 @@ public:
 	static void AsyncForLoop(
 		FPCGContext* Context,
 		const int32 NumIterations,
-		const TFunction<void(int32, int32)>& LoopBody)
+		const TFunction<void(int32)>& LoopBody)
 	{
 		TArray<FPCGPoint> DummyPointsOut;
 		FPCGAsync::AsyncPointProcessing(Context, NumIterations, DummyPointsOut, [&LoopBody](int32 Index, FPCGPoint&)
 		{
-			LoopBody(Index, Index);
+			LoopBody(Index);
 			return false;
 		});
 	}
@@ -591,14 +596,14 @@ public:
 
 			int PointIndex = 0;
 			const TArray<FPCGPoint>& OutPoints = IO.Out->GetPoints();
-			auto InternalPointFunc = [&PointIndex, &IO, &OnPointFunc, &OutPoints](const int32 ReadIndex, const int32 WriteIndex)
+			auto InternalPointFunc = [&PointIndex, &IO, &OnPointFunc, &OutPoints](const int32 ReadIndex)
 			{
 				OnPointFunc(OutPoints[ReadIndex], IO, PointIndex);
 				PointIndex++;
 				return true;
 			};
 
-			ParallelForLoop(Context, NumIterations, InternalPointFunc, ChunkSize);
+			AsyncForLoop(Context, NumIterations, InternalPointFunc);
 
 			OnForwardEnd(IO, IOIndex);
 			IOIndex++;

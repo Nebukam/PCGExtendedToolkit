@@ -3,6 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGContext.h"
+#include "PCGExRelationsHelpers.h"
 #include "PCGSettings.h"
 #include "Elements/PCGPointProcessingElementBase.h"
 #include "PCGExRelationsParamsProcessor.generated.h"
@@ -11,7 +13,7 @@ class UPCGExRelationsParamsData;
 
 namespace PCGExRelational
 {
-	extern const FName SourceLabel;
+	extern const FName SourcePointsLabel;
 	extern const FName SourceRelationalParamsLabel;
 	extern const FName OutputPointsLabel;
 }
@@ -42,15 +44,59 @@ private:
 	friend class UPCGExRelationsData;
 };
 
+class FPCGExRelationsProcessorContext : public FPCGContext
+{
+	friend class FPCGExRelationsProcessorElement;
+
+public:
+	PCGExRelational::FParamsInputs Params;
+	FPCGExPointIOMap<FPCGExIndexedPointDataIO> Points;
+
+	int32 GetCurrentParamsIndex() const { return CurrentParamsIndex; };
+	UPCGExRelationsParamsData* GetCurrentParams() { return Params.Params[CurrentParamsIndex]; }
+
+	bool AdvanceParams(bool bResetPointsIndex = true)
+	{
+		CurrentParamsIndex++;
+		if (Params.Params.IsValidIndex(CurrentParamsIndex))
+		{
+			if (bResetPointsIndex) { CurrentPointsIndex = -1; }
+			return true;
+		}
+		return false;
+	}
+
+	int32 GetCurrentPointsIndex() const { return CurrentPointsIndex; };
+	FPCGExIndexedPointDataIO* GetCurrentPointsIO() { return &Points.Pairs[CurrentPointsIndex]; }
+
+	bool AdvancePointsIO()
+	{
+		CurrentPointsIndex++;
+		if (Points.Pairs.IsValidIndex(CurrentParamsIndex)) { return true; }
+		return false;
+	}
+
+	void Reset()
+	{
+		CurrentParamsIndex = -1;
+		CurrentParamsIndex = -1;
+	}
+
+protected:
+	int32 CurrentParamsIndex = -1;
+	int32 CurrentPointsIndex = -1;
+	virtual bool InitializePointsOutput() const { return true; }
+	
+};
+
 class FPCGExRelationsProcessorElement : public FPCGPointProcessingElementBase
 {
 public:
-	const bool CheckRelationalParams(const FPCGContext* Context) const;
-	UPCGExRelationsParamsData* GetRelationalParams(const FPCGContext* Context) const;
+	virtual FPCGContext* Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node) override;
+	virtual bool IsCacheable(const UPCGSettings* InSettings) const override { return false; }
 
 protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
-	void ExecuteForEachParamsInput(FPCGContext* Context, const TFunction<void(FPCGContext*, UPCGExRelationsParamsData*)>& PerParamsFunc);
 
 private:
 	friend class UPCGExRelationsData;

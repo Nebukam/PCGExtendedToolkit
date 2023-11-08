@@ -38,7 +38,7 @@ bool FPCGExFindRelationsElement::ExecuteInternal(FPCGContext* Context) const
 		return true;
 	}
 
-	FPCGExPointIOMap<FPCGExIndexedPointDataIO> IOMap = FPCGExPointIOMap<FPCGExIndexedPointDataIO>(Context, PCGExRelational::SourceLabel, true);
+	FPCGExPointIOMap<FPCGExIndexedPointDataIO> IOMap = FPCGExPointIOMap<FPCGExIndexedPointDataIO>(Context, PCGExRelational::SourcePointsLabel, true);
 
 	IOMap.ForEach(Context, [&Context, &Settings, &ParamsInputs](FPCGExIndexedPointDataIO* IO, const int32)
 	{
@@ -53,14 +53,14 @@ bool FPCGExFindRelationsElement::ExecuteInternal(FPCGContext* Context) const
 			Data.Params = Params;
 			Params->PrepareForPointData(Data.IO->Out);
 
-			auto ProcessPoint = [&Data](int32 ReadIndex, int32 WriteIndex)
+			auto ProcessPoint = [&Data](int32 ReadIndex)
 			{
 				FPCGPoint InPoint = Data.IO->In->GetPoint(ReadIndex),
 				          OutPoint = Data.IO->Out->GetPoint(ReadIndex);
 
 				TArray<PCGExRelational::FSocketCandidate> Candidates;
 				const double MaxDistance = PCGExRelational::Helpers::PrepareCandidatesForPoint(InPoint, Data, Candidates);
-				
+
 				auto ProcessPointNeighbor = [&ReadIndex, &Data, &Candidates](const FPCGPointRef& OtherPointRef)
 				{
 					const FPCGPoint* OtherPoint = OtherPointRef.Point;
@@ -93,9 +93,8 @@ bool FPCGExFindRelationsElement::ExecuteInternal(FPCGContext* Context) const
 			{
 				if (UWorld* EditorWorld = GEditor->GetEditorWorldContext().World())
 				{
-					FPCGExCommon::AsyncForLoop(Context, NumIterations, [&Data, &EditorWorld](int32 ReadIndex, int32)
+					FPCGExCommon::AsyncForLoop(Context, NumIterations, [&Data, &EditorWorld](int32 ReadIndex)
 					{
-
 						//UE_LOG(LogTemp, Warning, TEXT("-- %d"), ReadIndex);
 						FPCGPoint PtA = Data.IO->Out->GetPoint(ReadIndex);
 						FVector Start = PtA.Transform.GetLocation();

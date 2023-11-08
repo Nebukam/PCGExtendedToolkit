@@ -1,7 +1,7 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Sorting/PCGExSortPoints.h"
+#include "Misc/PCGExSortPoints.h"
 #include "Data/PCGSpatialData.h"
 #include "Helpers/PCGAsync.h"
 #include "Data/PCGPointData.h"
@@ -12,7 +12,7 @@
 #include "Metadata/Accessors/PCGAttributeAccessorKeys.h"
 #include "Metadata/Accessors/PCGAttributeAccessorHelpers.h"
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
-#include "Sorting/PCGExCompare.h"
+#include "Misc/PCGExCompare.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSortPointsByAttributesElement"
 

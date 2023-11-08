@@ -61,6 +61,8 @@ namespace PCGExRelational
 			}
 		}
 
+		bool IsEmpty() { return Params.IsEmpty(); }
+
 		~FParamsInputs()
 		{
 			Params.Empty();

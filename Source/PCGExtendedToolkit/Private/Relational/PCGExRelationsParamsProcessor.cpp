@@ -12,7 +12,7 @@
 
 namespace PCGExRelational
 {
-	const FName SourceLabel = TEXT("Source");
+	const FName SourcePointsLabel = TEXT("Source");
 	const FName SourceRelationalParamsLabel = TEXT("RelationalParams");
 	const FName OutputPointsLabel = TEXT("Points");
 }
@@ -29,7 +29,7 @@ TArray<FPCGPinProperties> UPCGExRelationsProcessorSettings::InputPinProperties()
 {
 	TArray<FPCGPinProperties> PinProperties;
 
-	FPCGPinProperties& PinPropertySource = PinProperties.Emplace_GetRef(PCGExRelational::SourceLabel, EPCGDataType::Point);
+	FPCGPinProperties& PinPropertySource = PinProperties.Emplace_GetRef(PCGExRelational::SourcePointsLabel, EPCGDataType::Point);
 	FPCGPinProperties& PinPropertyParams = PinProperties.Emplace_GetRef(PCGExRelational::SourceRelationalParamsLabel, EPCGDataType::Param, false, false);
 
 #if WITH_EDITOR
@@ -50,6 +50,23 @@ TArray<FPCGPinProperties> UPCGExRelationsProcessorSettings::OutputPinProperties(
 #endif // WITH_EDITOR
 
 	return PinProperties;
+}
+
+FPCGContext* FPCGExRelationsProcessorElement::Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node)
+{
+	FPCGExRelationsProcessorContext* Context = new FPCGExRelationsProcessorContext();
+	
+	Context->InputData = InputData;
+	Context->SourceComponent = SourceComponent;
+	Context->Node = Node;
+
+	TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(PCGExRelational::SourceRelationalParamsLabel);
+	Context->Params.Initialize(Context, Sources);
+
+	Sources = Context->InputData.GetInputsByPin(PCGExRelational::SourcePointsLabel);
+	Context->Points.Initialize(Context, Sources, Context->InitializePointsOutput());
+	
+	return Context;
 }
 
 #pragma endregion

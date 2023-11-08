@@ -126,17 +126,37 @@ namespace PCGExRelational
 		double IndexedDot = -1.0;
 		double IndexedDistance = TNumericLimits<double>::Max();
 
-		bool operator==(const FSocketData& Other) const
-		{
-			return Index == Other.Index && IndexedDot == Other.IndexedDot && IndexedDistance == Other.IndexedDistance;
-		}
-
 		operator FVector4() const
 		{
 			return FVector4(Index, IndexedDot, IndexedDistance, 0.0);
 		}
 
-		
+		friend FArchive& operator<<(FArchive& Ar, FSocketData& Data)
+		{
+			Ar << Data.Index;
+			Ar << Data.IndexedDot;
+			Ar << Data.IndexedDistance;
+			return Ar;
+		}
+
+		FSocketData operator+(const FSocketData& Other) const { return FSocketData{}; }
+
+		FSocketData operator-(const FSocketData& Other) const { return FSocketData{}; }
+
+		FSocketData operator*(const FSocketData& Scalar) const { return FSocketData{}; }
+
+		FSocketData operator*(float Scalar) const { return FSocketData{}; }
+
+		FSocketData operator/(const FSocketData& Scalar) const { return FSocketData{}; }
+
+		bool operator==(const FSocketData& Other) const
+		{
+			return Index == Other.Index && IndexedDot == Other.IndexedDot && IndexedDistance == Other.IndexedDistance;
+		}
+
+		bool operator!=(const FSocketData& Other) const { return !(*this == Other); }
+
+		bool operator<(const FSocketData& Other) const { return false; }
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FModifier
@@ -256,8 +276,8 @@ namespace PCGExRelational
 		 * @param Key
 		 * @return 
 		 */
-		FVector4 GetValue(const int64 Key) const { return SocketDataAttribute->GetValue(Key); }
-		void SetValue(const int64 Key, const FSocketData& Value) const { SocketDataAttribute->SetValue(Key, FVector4(Value)); }
+		FSocketData GetValue(const int64 Key) const { return SocketDataAttribute->GetValue(Key); }
+		void SetValue(const int64 Key, const FSocketData& Value) const { SocketDataAttribute->SetValue(Key, Value); }
 		FSocketData GetSocketData(const int64 Key) const { return SocketDataAttribute->GetValue(Key); }
 
 		/**
@@ -324,7 +344,7 @@ namespace PCGExRelational
 		 */
 		void PrepareForPointData(UPCGPointData* PointData)
 		{
-			for(int i = 0; i < Sockets.Num(); i++)
+			for (int i = 0; i < Sockets.Num(); i++)
 			{
 				Sockets[i].PrepareForPointData(PointData);
 				Modifiers[i].PrepareForPointData(PointData);
