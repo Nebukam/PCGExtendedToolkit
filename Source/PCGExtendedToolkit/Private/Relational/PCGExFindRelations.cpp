@@ -37,10 +37,9 @@ bool FPCGExFindRelationsElement::ExecuteInternal(FPCGContext* InContext) const
 
 	const UPCGExFindRelationsSettings* Settings = Context->GetInputSettings<UPCGExFindRelationsSettings>();
 	check(Settings);
-	
+
 	if (Context->IsCurrentOperation(Setup))
 	{
-		
 		if (Context->Params.IsEmpty())
 		{
 			PCGE_LOG(Error, GraphAndLog, LOCTEXT("MissingParams", "Missing Input Params."));
@@ -52,21 +51,26 @@ bool FPCGExFindRelationsElement::ExecuteInternal(FPCGContext* InContext) const
 			PCGE_LOG(Error, GraphAndLog, LOCTEXT("MissingPoints", "Missing Input Points."));
 			return true;
 		}
-		
+
 		Context->SetOperation(ReadyForNextPoints);
 	}
 
 	if (Context->IsCurrentOperation(ReadyForNextPoints))
 	{
+		if (Context->CurrentIO)
+		{
+			//Cleanup current IO, indices won't be needed anymore.
+			Context->CurrentIO->IndicesMap.Empty();
+		}
+
 		if (!Context->AdvancePointsIO(true))
 		{
 			Context->SetOperation(Done); //No more points
 		}
 		else
 		{
-			//TODO: Cleanup previous IO!
 			Context->CurrentIO->ForwardPointsIndexed(Context);
-			Context->Octree = const_cast<UPCGPointData::PointOctree*>(&(Context->CurrentIO->In->GetOctree()));
+			Context->Octree = const_cast<UPCGPointData::PointOctree*>(&(Context->CurrentIO->In->GetOctree())); // Not sure this really saves perf
 			Context->SetOperation(ReadyForNextParams);
 		}
 	}
@@ -75,7 +79,7 @@ bool FPCGExFindRelationsElement::ExecuteInternal(FPCGContext* InContext) const
 	{
 		FPCGPoint InPoint = Context->CurrentIO->In->GetPoint(ReadIndex),
 		          OutPoint = Context->CurrentIO->Out->GetPoint(ReadIndex);
-		
+
 		TArray<PCGExRelational::FSocketCandidate> Candidates;
 		const double MaxDistance = PCGExRelational::Helpers::PrepareCandidatesForPoint(InPoint, Context->CurrentParams, Candidates);
 
@@ -95,8 +99,8 @@ bool FPCGExFindRelationsElement::ExecuteInternal(FPCGContext* InContext) const
 		const FBoxCenterAndExtent Box = FBoxCenterAndExtent(OutPoint.Transform.GetLocation(), FVector(MaxDistance));
 		Context->Octree->FindElementsWithBoundsTest(Box, ProcessPointNeighbor);
 
-		UE_LOG(LogTemp, Warning, TEXT("           Processed Point %d"), ReadIndex);
-		
+		//UE_LOG(LogTemp, Warning, TEXT("           Processed Point %d"), ReadIndex);
+
 		//Write results
 		int64 Key = OutPoint.MetadataEntry;
 		for (int i = 0; i < Candidates.Num(); i++)
@@ -110,6 +114,8 @@ bool FPCGExFindRelationsElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsCurrentOperation(ReadyForNextParams))
 	{
+		if (Context->CurrentParams && Settings->bDebug) { DrawRelationsDebug(Context); }
+
 		if (!Context->AdvanceParams())
 		{
 			Context->SetOperation(ReadyForNextPoints);
@@ -129,7 +135,7 @@ bool FPCGExFindRelationsElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsCurrentOperation(ProcessingParams) || bProcessingAllowed)
 	{
-		bool bProcessingDone = FPCGExCommon::ParallelForLoop(Context, Context->CurrentIO->NumPoints, Initialize, ProcessPoint);
+		bool bProcessingDone = PCGEx::Common::ParallelForLoop(Context, Context->CurrentIO->NumPoints, Initialize, ProcessPoint);
 
 		if (bProcessingDone)
 		{
@@ -139,13 +145,6 @@ bool FPCGExFindRelationsElement::ExecuteInternal(FPCGContext* InContext) const
 			{
 				//TODO, requires additional states & steps.
 			}
-
-			if (Settings->bDebug) { DrawRelationsDebug(Context); }
-			return false;
-		}
-		else
-		{
-			return false;
 		}
 	}
 
@@ -171,15 +170,16 @@ void FPCGExFindRelationsElement::DrawRelationsDebug(FPCGExFindRelationsContext* 
 #if WITH_EDITOR
 	if (UWorld* EditorWorld = GEditor->GetEditorWorldContext().World())
 	{
-		FPCGExCommon::AsyncForLoop(Context, Context->CurrentIO->NumPoints, [&Context, &EditorWorld](int32 ReadIndex)
+		Context->CurrentParams->PrepareForPointData(Context->CurrentIO->Out);
+		PCGEx::Common::AsyncForLoop(Context, Context->CurrentIO->NumPoints, [&Context, &EditorWorld](int32 ReadIndex)
 		{
-			//UE_LOG(LogTemp, Warning, TEXT("-- %d"), ReadIndex);
 			FPCGPoint PtA = Context->CurrentIO->Out->GetPoint(ReadIndex);
+			int64 Key = PtA.MetadataEntry;
+
 			FVector Start = PtA.Transform.GetLocation();
 			for (const PCGExRelational::FSocket& Socket : Context->CurrentParams->GetSocketMapping()->Sockets)
 			{
-				PCGExRelational::FSocketData SocketData = Socket.GetSocketData(ReadIndex);
-				//UE_LOG(LogTemp, Warning, TEXT("   %d --> %lld"), ReadIndex, SocketData.Index);
+				PCGExRelational::FSocketData SocketData = Socket.GetSocketData(Key);
 				if (SocketData.Index == -1) { continue; }
 
 				FPCGPoint PtB = Context->CurrentIO->Out->GetPoint(SocketData.Index);

@@ -147,7 +147,7 @@ namespace PCGExRelational
 
 	public:
 		UPCGExRelationsParamsData* Params = nullptr;
-		FPCGExIndexedPointDataIO* IO = nullptr;
+		PCGEx::FIndexedPointIO* IO = nullptr;
 		UPCGPointData::PointOctree* Octree = nullptr;
 		int32 CurrentIndex = -1;
 

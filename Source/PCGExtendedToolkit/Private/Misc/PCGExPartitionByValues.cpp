@@ -94,7 +94,7 @@ bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* Context) const
 		}
 
 		FPCGExPartitioningRules Rules = FPCGExPartitioningRules(BaseRules);
-		if (!Rules.CopyAndFixLast(InPointData))
+		if (!Rules.Validate(InPointData))
 		{
 			PCGE_LOG(Warning, GraphAndLog, FText::Format(LOCTEXT("AttributeDoesNotExists", "Attribute '{0}' does not exist in source '{1}'"), FText::FromString(Rules.ToString()),FText::FromString(Source.Data->GetClass()->GetName())));
 			continue;
@@ -209,11 +209,11 @@ void FPCGExPartitionByValuesElement::AsyncPointAttributeProcessing(FPCGExRelatio
 	auto ProcessPoints = [&Data](auto DummyValue)
 	{
 		using T = decltype(DummyValue);
-		FPCGMetadataAttribute<T>* Attribute = FPCGExCommon::GetTypedAttribute<T>(Data->Rules);
+		FPCGMetadataAttribute<T>* Attribute = static_cast<FPCGMetadataAttribute<T>*>(Data->Rules->Attribute);
 		const UPCGPointData* InPointData = *Data->InPointData;
 		FPCGAsync::AsyncPointProcessing(Data->Context, InPointData->GetPoints(), *Data->PointsBuffer, [&DummyValue, &Data, &Attribute](const FPCGPoint& InPoint, FPCGPoint& OutPoint)
 		{
-			DistributePoint(InPoint, Attribute->GetValue(InPoint.MetadataEntry), Data);
+			DistributePoint(InPoint, Attribute->GetValueFromItemKey(InPoint.MetadataEntry), Data);
 			return false;
 		});
 

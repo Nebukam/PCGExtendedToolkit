@@ -50,7 +50,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExRelationsProcessorContext : public FPCGConte
 
 public:
 	PCGExRelational::FParamsInputs Params;
-	FPCGExPointIOMap<FPCGExIndexedPointDataIO> Points;
+	PCGEx::FPointIOGroup<PCGEx::FIndexedPointIO> Points;
 
 	int32 GetCurrentParamsIndex() const { return CurrentParamsIndex; };
 	UPCGExRelationsParamsData* CurrentParams = nullptr;
@@ -61,7 +61,7 @@ public:
 		CurrentParamsIndex++;
 		if (Params.Params.IsValidIndex(CurrentParamsIndex))
 		{
-			UE_LOG(LogTemp, Warning, TEXT("AdvanceParams to %d"), CurrentParamsIndex);
+			//UE_LOG(LogTemp, Warning, TEXT("AdvanceParams to %d"), CurrentParamsIndex);
 			CurrentParams = Params.Params[CurrentParamsIndex];
 			return true;
 		}
@@ -71,7 +71,7 @@ public:
 	}
 
 	int32 GetCurrentPointsIndex() const { return CurrentPointsIndex; };
-	FPCGExIndexedPointDataIO* CurrentIO = nullptr;
+	PCGEx::FIndexedPointIO* CurrentIO = nullptr;
 
 	bool AdvancePointsIO(bool bResetParamsIndex = false)
 	{
@@ -79,7 +79,7 @@ public:
 		CurrentPointsIndex++;
 		if (Points.Pairs.IsValidIndex(CurrentPointsIndex))
 		{
-			UE_LOG(LogTemp, Warning, TEXT("AdvancePointsIO to %d"), CurrentPointsIndex);
+			//UE_LOG(LogTemp, Warning, TEXT("AdvancePointsIO to %d"), CurrentPointsIndex);
 			CurrentIO = &(Points.Pairs[CurrentPointsIndex]);
 			return true;
 		}
@@ -94,7 +94,7 @@ public:
 	{
 		int32 PreviousOperation = CurrentOperation;
 		CurrentOperation = OperationId;
-		UE_LOG(LogTemp, Warning, TEXT("SetOperation = %d (was:%d)"), CurrentOperation, PreviousOperation);
+		//UE_LOG(LogTemp, Warning, TEXT("SetOperation = %d (was:%d)"), CurrentOperation, PreviousOperation);
 	}
 
 	void Reset()
@@ -108,7 +108,7 @@ protected:
 	int32 CurrentOperation = -1;
 	int32 CurrentParamsIndex = -1;
 	int32 CurrentPointsIndex = -1;
-	virtual bool InitializePointsOutput() const { return true; }
+	virtual PCGEx::EInitOutput GetPointOutputInitMode() const { return PCGEx::EInitOutput::EmptyOutput; }
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExRelationsProcessorElement : public FPCGPointProcessingElementBase
@@ -131,7 +131,7 @@ protected:
 		Context->Params.Initialize(Context, Sources);
 
 		Sources = Context->InputData.GetInputsByPin(PCGExRelational::SourcePointsLabel);
-		Context->Points.Initialize(Context, Sources, Context->InitializePointsOutput());
+		Context->Points.Initialize(Context, Sources, Context->GetPointOutputInitMode());
 
 		return Context;
 	}

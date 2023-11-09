@@ -63,7 +63,7 @@ T* FPCGExRelationsParamsBuilderElement::BuildParams(FPCGContext* Context) const
 	const UPCGExRelationsParamsBuilderSettings* Settings = Context->GetInputSettings<UPCGExRelationsParamsBuilderSettings>();
 	check(Settings);
 
-	if (Settings->RelationIdentifier.IsNone() || !FPCGExCommon::IsValidName(Settings->RelationIdentifier.ToString()))
+	if (Settings->RelationIdentifier.IsNone() || !PCGEx::Common::IsValidName(Settings->RelationIdentifier.ToString()))
 	{
 		PCGE_LOG(Error, GraphAndLog, LOCTEXT("UnamedOutput", "Output name is invalid; Cannot be 'None' and can only contain the following special characters:[ ],[_],[-],[/]"));
 		return nullptr;

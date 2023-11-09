@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExCommon.h"
+#include "..\PCGExCommon.h"
 
 #define PCGEX_COMPARE_1(FIELD) \
 Result = Compare(A.FIELD, B.FIELD, Tolerance, Comp); \
@@ -17,9 +17,7 @@ PCGEX_COMPARE_1(FIELD_C)
 
 class PCGEXTENDEDTOOLKIT_API FPCGExCompare
 {
-	
 public:
-	
 	template <typename T, typename dummy = void>
 	static int Compare(const T& A, const T& B, const double Tolerance = 0.0001f, EPCGExComponentSelection Comp = EPCGExComponentSelection::X)
 	{
@@ -150,7 +148,6 @@ public:
 	{
 		return Compare(A.GetLocation(), B.GetLocation(), Tolerance, Comp);
 	}
-	
 };
 
 #undef PCGEX_COMPARE_1

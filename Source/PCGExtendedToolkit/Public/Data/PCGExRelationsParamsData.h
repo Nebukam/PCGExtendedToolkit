@@ -49,15 +49,15 @@ public:
 
 // Editable Property/Attribute selector
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExSocketModifierDescriptor : public FPCGExSelectorSettingsBase
+struct PCGEXTENDEDTOOLKIT_API FPCGExSocketModifierDescriptor : public FPCGExInputSelectorSettingsBase
 {
 	GENERATED_BODY()
 
-	FPCGExSocketModifierDescriptor(): FPCGExSelectorSettingsBase()
+	FPCGExSocketModifierDescriptor(): FPCGExInputSelectorSettingsBase()
 	{
 	}
 
-	FPCGExSocketModifierDescriptor(const FPCGExSocketModifierDescriptor& Other): FPCGExSelectorSettingsBase(Other)
+	FPCGExSocketModifierDescriptor(const FPCGExSocketModifierDescriptor& Other): FPCGExInputSelectorSettingsBase(Other)
 	{
 	}
 };
@@ -179,7 +179,7 @@ namespace PCGExRelational
 				return;
 			}
 
-			bValid = Descriptor.CopyAndFixLast(PointData);
+			bValid = Descriptor.Validate(PointData);
 			Selector = Descriptor.Selector;
 		}
 
@@ -193,7 +193,7 @@ namespace PCGExRelational
 				return PCGMetadataAttribute::CallbackWithRightType(Descriptor.Attribute->GetTypeId(), [this, &Point]<typename T>(T DummyValue) -> double
 				{
 					FPCGMetadataAttribute<T>* Attribute = static_cast<FPCGMetadataAttribute<T>*>(Descriptor.Attribute);
-					return GetScaleFactor(Attribute->GetValue(Point.MetadataEntry));
+					return GetScaleFactor(Attribute->GetValueFromItemKey(Point.MetadataEntry));
 				});
 #define PCGEX_SCALE_BY_ACCESSOR(_ENUM, _ACCESSOR) case _ENUM: return GetScaleFactor(Point._ACCESSOR);
 			case EPCGAttributePropertySelection::PointProperty:
@@ -273,12 +273,12 @@ namespace PCGExRelational
 		 * Return the socket details stored as FVector4
 		 * X = Index, Y, Z and W are reserved for later use.
 		 * This is mostly to circumvent the fact that we can't have custom FPCGMetadataAttribute<T> outside of a list of primitive types.
-		 * @param Key
+		 * @param MetadataEntry
 		 * @return 
 		 */
-		FSocketData GetValue(const int64 Key) const { return SocketDataAttribute->GetValue(Key); }
-		void SetValue(const int64 Key, const FSocketData& Value) const { SocketDataAttribute->SetValue(Key, Value); }
-		FSocketData GetSocketData(const int64 Key) const { return SocketDataAttribute->GetValue(Key); }
+		FSocketData GetValue(const PCGMetadataEntryKey MetadataEntry) const { return SocketDataAttribute->GetValueFromItemKey(MetadataEntry); }
+		void SetValue(const PCGMetadataEntryKey MetadataEntry, const FSocketData& Value) const { SocketDataAttribute->SetValue(MetadataEntry, Value); }
+		FSocketData GetSocketData(const PCGMetadataEntryKey MetadataEntry) const { return SocketDataAttribute->GetValueFromItemKey(MetadataEntry); }
 
 		/**
 		 * Returns the point pluggued in this socket for a given Origin

@@ -22,16 +22,16 @@ enum class EPCGExSortDirection : uint8
 };
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExSortRule : public FPCGExSelectorSettingsBase
+struct PCGEXTENDEDTOOLKIT_API FPCGExSortRule : public FPCGExInputSelectorSettingsBase
 {
 	GENERATED_BODY()
 
-	FPCGExSortRule(): FPCGExSelectorSettingsBase()
+	FPCGExSortRule(): FPCGExInputSelectorSettingsBase()
 	{
 	}
 
 	template <typename T>
-	FPCGExSortRule(const FPCGExSortRule& Other): FPCGExSelectorSettingsBase(Other)
+	FPCGExSortRule(const FPCGExSortRule& Other): FPCGExInputSelectorSettingsBase(Other)
 	{
 		Tolerance = Other.Tolerance;
 	}
@@ -80,6 +80,7 @@ class PCGEXTENDEDTOOLKIT_API FPCGExSortPointsElement : public FPCGPointProcessin
 {
 protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
+	static bool BuildRulesForPoints(const UPCGPointData* InData, const TArray<FPCGExSortRule>& DesiredRules, TArray<FPCGExSortRule>& OutRules);
 
 	template <typename T>
 	static int Compare(const T& A, const T& B, const FPCGExSortRule& Settings)

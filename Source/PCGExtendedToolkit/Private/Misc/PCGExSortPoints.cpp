@@ -2,15 +2,11 @@
 
 
 #include "Misc/PCGExSortPoints.h"
-#include "Data/PCGSpatialData.h"
-#include "Helpers/PCGAsync.h"
 #include "Data/PCGPointData.h"
 #include "PCGContext.h"
 #include "PCGPin.h"
 #include "PCGPoint.h"
 #include "Metadata/Accessors/IPCGAttributeAccessor.h"
-#include "Metadata/Accessors/PCGAttributeAccessorKeys.h"
-#include "Metadata/Accessors/PCGAttributeAccessorHelpers.h"
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
 #include "Misc/PCGExCompare.h"
 
@@ -23,6 +19,8 @@ namespace PCGExSortPoints
 
 #if WITH_EDITOR
 
+#pragma region UPCGSettings interface
+
 FText UPCGExSortPointsSettings::GetNodeTooltipText() const
 {
 	return LOCTEXT("PCGExSortPointsByAttributesTooltip", "Sort the source points according to specific rules.");
@@ -32,12 +30,10 @@ FText UPCGExSortPointsSettings::GetNodeTooltipText() const
 TArray<FPCGPinProperties> UPCGExSortPointsSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	FPCGPinProperties& PinPropertySource = PinProperties.Emplace_GetRef(PCGExSortPoints::SourceLabel,
-	                                                                    EPCGDataType::Point);
+	FPCGPinProperties& PinPropertySource = PinProperties.Emplace_GetRef(PCGExSortPoints::SourceLabel, EPCGDataType::Point);
 
 #if WITH_EDITOR
-	PinPropertySource.Tooltip = LOCTEXT("PCGSourcePinTooltip",
-	                                    "The order of the point in data will be changed, allowing to effectively rely on indices to perform index-bound operations, such as spline generation.");
+	PinPropertySource.Tooltip = LOCTEXT("PCGSourcePinTooltip", "The order of the point in data will be changed, allowing to effectively rely on indices to perform index-bound operations, such as spline generation.");
 #endif // WITH_EDITOR
 
 	return PinProperties;
@@ -46,16 +42,16 @@ TArray<FPCGPinProperties> UPCGExSortPointsSettings::InputPinProperties() const
 TArray<FPCGPinProperties> UPCGExSortPointsSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	FPCGPinProperties& PinPropertyOutput = PinProperties.Emplace_GetRef(PCGPinConstants::DefaultOutputLabel,
-	                                                                    EPCGDataType::Point);
+	FPCGPinProperties& PinPropertyOutput = PinProperties.Emplace_GetRef(PCGPinConstants::DefaultOutputLabel, EPCGDataType::Point);
 
 #if WITH_EDITOR
-	PinPropertyOutput.Tooltip = LOCTEXT("PCGOutputPinTooltip",
-	                                    "The source points will be sorted according to specified options.");
+	PinPropertyOutput.Tooltip = LOCTEXT("PCGOutputPinTooltip", "The source points will be sorted according to specified options.");
 #endif // WITH_EDITOR
 
 	return PinProperties;
 }
+
+#pragma endregion
 
 FPCGElementPtr UPCGExSortPointsSettings::CreateElement() const
 {
@@ -69,125 +65,65 @@ bool FPCGExSortPointsElement::ExecuteInternal(FPCGContext* Context) const
 	const UPCGExSortPointsSettings* Settings = Context->GetInputSettings<UPCGExSortPointsSettings>();
 	check(Settings);
 
-	TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(PCGExSortPoints::SourceLabel);
-	TArray<FPCGTaggedData>& Outputs = Context->OutputData.TaggedData;
-
 	const TArray<FPCGExSortRule>& DesiredRules = Settings->Rules;
-	EPCGExSortDirection SortDirection = Settings->SortDirection;
 
 	if (DesiredRules.IsEmpty())
 	{
-		PCGE_LOG(Error, GraphAndLog, LOCTEXT("Empty", "No attributes to sort over."));
-		return true; // Skip execution
+		PCGE_LOG(Error, GraphAndLog, LOCTEXT("NoSortParams", "No attributes to sort over."));
+		return true;
 	}
 
+	PCGEx::FPointIOGroup<PCGEx::FPointIO> Points = PCGEx::FPointIOGroup<PCGEx::FPointIO>(Context, PCGExSortPoints::SourceLabel, PCGEx::EInitOutput::DuplicateInput);
+
+	if (Points.IsEmpty())
+	{
+		PCGE_LOG(Error, GraphAndLog, LOCTEXT("InvalidInputData", "Invalid or empty input data"));
+		return true;
+	}
+
+	//
+
+	EPCGExSortDirection SortDirection = Settings->SortDirection;
 	TArray<FPCGExSortRule> Rules;
 
-	TArray<TUniquePtr<const IPCGAttributeAccessor>> Accessors;
-	TArray<TUniquePtr<const IPCGAttributeAccessorKeys>> Keys;
-	Rules.Reserve(DesiredRules.Num());
-	Accessors.Reserve(DesiredRules.Num());
-
-	for (const FPCGTaggedData& Source : Sources)
+	Points.ForEach(Context, [&Context, &DesiredRules, &Rules, &SortDirection, this](PCGEx::FPointIO* POI, const int32)
 	{
-		const UPCGSpatialData* InSpatialData = Cast<UPCGSpatialData>(Source.Data);
-
-		if (!InSpatialData)
-		{
-			PCGE_LOG(Error, GraphAndLog, LOCTEXT("InvalidInputData", "Invalid input data"));
-			continue;
-		}
-
-		const UPCGPointData* InPointData = InSpatialData->ToPointData(Context);
-		if (!InPointData)
-		{
-			PCGE_LOG(Error, GraphAndLog, LOCTEXT("CannotConvertToPointData", "Cannot convert input Spatial data to Point data"));
-			continue;
-		}
-
-		Rules.Reset();
-		Accessors.Reset();
-		Keys.Reset();
-
-		for (const FPCGExSortRule& DesiredRule : DesiredRules)
-		{
-			FPCGExSortRule Rule = FPCGExSortRule(DesiredRule);
-
-			if (!Rule.CopyAndFixLast(InPointData)) { continue; }
-
-			if (Rule.Selector.GetSelection() == EPCGAttributePropertySelection::Attribute)
-			{
-				//TUniquePtr<const IPCGAttributeAccessor> Accessor = PCGAttributeAccessorHelpers::CreateConstAccessor(InPointData, Selector.Selector);
-				//TUniquePtr<const IPCGAttributeAccessorKeys> Key = PCGAttributeAccessorHelpers::CreateConstKeys(InPointData, Selector.Selector);
-
-				Accessors.Add(PCGAttributeAccessorHelpers::CreateConstAccessor(InPointData, Rule.Selector));
-				Keys.Add(PCGAttributeAccessorHelpers::CreateConstKeys(InPointData, Rule.Selector));
-
-				if (!Accessors.Last().IsValid())
-				{
-					Accessors.Pop();
-					Keys.Pop();
-					continue;
-				}
-			}
-			else
-			{
-				Accessors.Add(nullptr);
-				Keys.Add(nullptr);
-			}
-
-			Rules.Add(Rule);
-		}
-
-		if (Rules.Num() <= 0)
+		//POI->ForwardPoints(Context);
+		if (!BuildRulesForPoints(POI->Out, DesiredRules, Rules))
 		{
 			PCGE_LOG(Warning, GraphAndLog, LOCTEXT("InvalidSortSettings", "Invalid sort settings. Make sure attributes exist."));
-			continue;
+			return;
 		}
 
-		// Initialize output dataset
-		UPCGPointData* OutputData = NewObject<UPCGPointData>();
-		OutputData->InitializeFromData(InPointData);
-		Outputs.Add_GetRef(Source).Data = OutputData;
-
-		// Copy original points
-		TArray<FPCGPoint>& OutPoints = OutputData->GetMutablePoints();
-		FPCGAsync::AsyncPointProcessing(Context, InPointData->GetPoints(), OutPoints, [](const FPCGPoint& InPoint, FPCGPoint& OutPoint)
-		{
-			OutPoint = InPoint;
-			return true;
-		});
-
-		auto Compare = [](auto DummyValue, const FPCGExSortRule* Rule, const FPCGPoint& PtA, const FPCGPoint& PtB, const int32 Index) -> int
+		auto Compare = [](auto DummyValue, const FPCGExSortRule* Rule, const FPCGPoint& PtA, const FPCGPoint& PtB) -> int
 		{
 			using T = decltype(DummyValue);
-			FPCGMetadataAttribute<T>* Attribute = FPCGExCommon::GetTypedAttribute<T>(Rule);
-			return FPCGExCompare::Compare(Attribute->GetValue(PtA.MetadataEntry), Attribute->GetValue(PtB.MetadataEntry), Rule->Tolerance, Rule->ComponentSelection);
+			FPCGMetadataAttribute<T>* Attribute = static_cast<FPCGMetadataAttribute<T>*>(Rule->Attribute);
+			return FPCGExCompare::Compare(Attribute->GetValueFromItemKey(PtA.MetadataEntry), Attribute->GetValueFromItemKey(PtB.MetadataEntry), Rule->Tolerance, Rule->ComponentSelection);
 		};
 
-		OutPoints.Sort([&Rules, &Accessors, &SortDirection, Compare](const FPCGPoint& A, const FPCGPoint& B)
+		POI->Out->GetMutablePoints().Sort([&Rules, &SortDirection, Compare](const FPCGPoint& A, const FPCGPoint& B)
 		{
 #define PCGEX_COMPARE_PROPERTY_CASE(_ENUM, _ACCESSOR) \
-case _ENUM : Result = FPCGExCompare::Compare(A._ACCESSOR, B._ACCESSOR, CurrentRule->Tolerance, CurrentRule->ComponentSelection); break;
+case _ENUM : Result = FPCGExCompare::Compare(A._ACCESSOR, B._ACCESSOR, Rule.Tolerance, Rule.ComponentSelection); break;
 
 			int Result = 0;
-			for (int i = 0; i < Rules.Num(); i++)
+			for (const FPCGExSortRule& Rule : Rules)
 			{
-				const FPCGExSortRule* CurrentRule = &Rules[i];
-				switch (CurrentRule->Selector.GetSelection())
+				switch (Rule.Selector.GetSelection())
 				{
 				case EPCGAttributePropertySelection::Attribute:
-					Result = PCGMetadataAttribute::CallbackWithRightType(Accessors[i]->GetUnderlyingType(), Compare, CurrentRule, A, B, i);
+					Result = PCGMetadataAttribute::CallbackWithRightType(Rule.UnderlyingType, Compare, &Rule, A, B);
 					break;
 				case EPCGAttributePropertySelection::PointProperty:
-					switch (CurrentRule->Selector.GetPointProperty())
+					switch (Rule.Selector.GetPointProperty())
 					{
 					PCGEX_FOREACH_POINTPROPERTY(PCGEX_COMPARE_PROPERTY_CASE)
 					default: ;
 					}
 					break;
 				case EPCGAttributePropertySelection::ExtraProperty:
-					switch (CurrentRule->Selector.GetExtraProperty())
+					switch (Rule.Selector.GetExtraProperty())
 					{
 					PCGEX_FOREACH_POINTEXTRAPROPERTY(PCGEX_COMPARE_PROPERTY_CASE)
 					default: ;
@@ -199,12 +135,27 @@ case _ENUM : Result = FPCGExCompare::Compare(A._ACCESSOR, B._ACCESSOR, CurrentRu
 				if (Result != 0) { break; }
 			}
 
-			if (SortDirection == EPCGExSortDirection::Ascending) { Result *= -1; }
+			if (SortDirection == EPCGExSortDirection::Descending) { Result *= -1; }
 			return Result <= 0;
 		});
+	});
+
+	Points.OutputTo(Context);
+	
+	return true;
+}
+
+bool FPCGExSortPointsElement::BuildRulesForPoints(const UPCGPointData* InData, const TArray<FPCGExSortRule>& DesiredRules, TArray<FPCGExSortRule>& OutRules)
+{
+	OutRules.Empty(DesiredRules.Num());
+
+	for (const FPCGExSortRule& DesiredRule : DesiredRules)
+	{
+		FPCGExSortRule& Rule = OutRules.Emplace_GetRef(DesiredRule);
+		if (!Rule.Validate(InData)) { OutRules.Pop(); }
 	}
 
-	return true;
+	return !OutRules.IsEmpty();
 }
 
 #undef PCGEX_COMPARE_PROPERTY

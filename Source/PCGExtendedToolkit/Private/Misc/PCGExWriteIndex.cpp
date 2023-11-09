@@ -77,8 +77,8 @@ bool FPCGExWriteIndexElement::ExecuteInternal(FPCGContext* Context) const
 
 	const FName AttributeName = OutSelector.GetName();
 
-	FPCGExPointIOMap<FPCGExPointDataIO> IOMap = FPCGExPointIOMap<FPCGExPointDataIO>(Context, PCGExWriteIndex::SourceLabel, true);
-	IOMap.ForEach(Context, [&Context, &AttributeName](FPCGExPointDataIO* IO, const int32)
+	PCGEx::FPointIOGroup<PCGEx::FPointIO> IOMap = PCGEx::FPointIOGroup<PCGEx::FPointIO>(Context, PCGExWriteIndex::SourceLabel, PCGEx::EInitOutput::EmptyOutput);
+	IOMap.ForEach(Context, [&Context, &AttributeName](PCGEx::FPointIO* IO, const int32)
 	{
 		FPCGMetadataAttribute<int64>* IndexAttribute = PCGMetadataElementCommon::ClearOrCreateAttribute<int64>(IO->Out->Metadata, AttributeName, -1);
 		IO->ForwardPoints(Context, [&IO, &IndexAttribute](FPCGPoint& Point, const int32 Index, const FPCGPoint& OtherPoint)

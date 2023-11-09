@@ -17,15 +17,15 @@ namespace PCGExPartitionByValues
 }
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExPartitioningRules : public FPCGExSelectorSettingsBase
+struct PCGEXTENDEDTOOLKIT_API FPCGExPartitioningRules : public FPCGExInputSelectorSettingsBase
 {
 	GENERATED_BODY()
 
-	FPCGExPartitioningRules(): FPCGExSelectorSettingsBase()
+	FPCGExPartitioningRules(): FPCGExInputSelectorSettingsBase()
 	{
 	}
 
-	FPCGExPartitioningRules(const FPCGExPartitioningRules& Other): FPCGExSelectorSettingsBase(Other)
+	FPCGExPartitioningRules(const FPCGExPartitioningRules& Other): FPCGExInputSelectorSettingsBase(Other)
 	{
 		FilterSize = Other.FilterSize;
 		Upscale = Other.Upscale;

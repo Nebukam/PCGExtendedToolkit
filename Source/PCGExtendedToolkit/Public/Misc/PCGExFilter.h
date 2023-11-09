@@ -8,7 +8,6 @@
 class PCGEXTENDEDTOOLKIT_API FPCGExFilter
 {
 public:
-	////////////////
 
 	template <typename T, typename dummy = void>
 	static int64 Filter(const T& InValue, const FPCGExPartitioningRules& Settings)
