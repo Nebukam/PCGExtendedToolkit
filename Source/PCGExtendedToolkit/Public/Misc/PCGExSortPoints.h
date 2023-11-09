@@ -76,7 +76,7 @@ private:
 	friend class FPCGExSortPointsElement;
 };
 
-class FPCGExSortPointsElement : public FPCGPointProcessingElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExSortPointsElement : public FPCGPointProcessingElementBase
 {
 protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;

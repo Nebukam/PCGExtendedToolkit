@@ -101,7 +101,7 @@ public:
 	FName KeyAttributeName = "PartitionID";
 };
 
-class FPCGExPartitionByValuesElement : public FPCGPointProcessingElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExPartitionByValuesElement : public FPCGPointProcessingElementBase
 {
 public:
 

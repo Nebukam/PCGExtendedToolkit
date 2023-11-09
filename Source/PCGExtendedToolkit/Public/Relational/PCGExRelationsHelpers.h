@@ -195,17 +195,17 @@ namespace PCGExRelational
 		 * @param Data 
 		 * @return 
 		 */
-		static double PrepareCandidatesForPoint(const FPCGPoint& Point, FPointProcessingData& Data, TArray<FSocketCandidate>& Candidates)
+		static double PrepareCandidatesForPoint(const FPCGPoint& Point, UPCGExRelationsParamsData* Params, TArray<FSocketCandidate>& Candidates)
 		{
-			const int32 NumSockets = Data.Params->GetSocketMapping()->NumSockets;
+			const int32 NumSockets = Params->GetSocketMapping()->NumSockets;
 			Candidates.Empty(NumSockets);
 
-			double MaxDistance = Data.Params->GreatestStaticMaxDistance;
-			if (Data.Params->bHasVariableMaxDistance) { MaxDistance = 0.0; }
+			double MaxDistance = Params->GreatestStaticMaxDistance;
+			if (Params->bHasVariableMaxDistance) { MaxDistance = 0.0; }
 
 
-			const TArray<FSocket>& Sockets = Data.Params->GetSocketMapping()->GetSockets();
-			const TArray<FModifier>& Modifiers = Data.Params->GetSocketMapping()->GetModifiers();
+			const TArray<FSocket>& Sockets = Params->GetSocketMapping()->GetSockets();
+			const TArray<FModifier>& Modifiers = Params->GetSocketMapping()->GetModifiers();
 
 			for (int i = 0; i < NumSockets; i++)
 			{

@@ -30,7 +30,7 @@ TArray<FPCGPinProperties> UPCGExRelationsProcessorSettings::InputPinProperties()
 	TArray<FPCGPinProperties> PinProperties;
 
 	FPCGPinProperties& PinPropertySource = PinProperties.Emplace_GetRef(PCGExRelational::SourcePointsLabel, EPCGDataType::Point);
-	FPCGPinProperties& PinPropertyParams = PinProperties.Emplace_GetRef(PCGExRelational::SourceRelationalParamsLabel, EPCGDataType::Param, false, false);
+	FPCGPinProperties& PinPropertyParams = PinProperties.Emplace_GetRef(PCGExRelational::SourceRelationalParamsLabel, EPCGDataType::Param);
 
 #if WITH_EDITOR
 	PinPropertySource.Tooltip = LOCTEXT("PCGExSourcePinTooltip", "For each of the source points, their index position in the data will be written to an attribute.");
@@ -54,18 +54,7 @@ TArray<FPCGPinProperties> UPCGExRelationsProcessorSettings::OutputPinProperties(
 
 FPCGContext* FPCGExRelationsProcessorElement::Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node)
 {
-	FPCGExRelationsProcessorContext* Context = new FPCGExRelationsProcessorContext();
-	
-	Context->InputData = InputData;
-	Context->SourceComponent = SourceComponent;
-	Context->Node = Node;
-
-	TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(PCGExRelational::SourceRelationalParamsLabel);
-	Context->Params.Initialize(Context, Sources);
-
-	Sources = Context->InputData.GetInputsByPin(PCGExRelational::SourcePointsLabel);
-	Context->Points.Initialize(Context, Sources, Context->InitializePointsOutput());
-	
+	FPCGExRelationsProcessorContext* Context = InitializeRelationsContext<FPCGExRelationsProcessorContext>(InputData, SourceComponent, Node);		
 	return Context;
 }
 

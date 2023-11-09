@@ -48,7 +48,7 @@ public:
 	
 };
 
-class FPCGExWriteIndexElement : public FPCGPointProcessingElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExWriteIndexElement : public FPCGPointProcessingElementBase
 {
 protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;

@@ -127,6 +127,7 @@ public:
 	UPCGPointData* In = nullptr; // Input PointData
 	FPCGTaggedData Output; // Source struct
 	UPCGPointData* Out = nullptr; // Output PointData
+	int32 NumPoints = -1;
 
 	/**
 	 * 
@@ -283,7 +284,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointIOMap
 	{
 		Initialize(Context, Sources, bInitializeOutput);
 	}
-	
+
 public:
 	TArray<T> Pairs;
 
@@ -306,6 +307,7 @@ public:
 
 			PIOPair.Source = Source;
 			PIOPair.In = const_cast<UPCGPointData*>(SpatialData->ToPointData(Context));
+			PIOPair.NumPoints = PIOPair.In->GetPoints().Num();
 
 			if (bInitializeOutput) { PIOPair.InitializeOut(Context, true); }
 		}
@@ -392,12 +394,11 @@ public:
 	 * @param ChunkSize Size of the chunks to cut the input data with
 	 * @return 
 	 */
-	template <typename InitializeFunc, typename LoopBodyFunc>
 	static bool ParallelForLoop(
 		FPCGContext* Context,
 		const int32 NumIterations,
-		TFunction<void()>& Initialize,
-		TFunction<void(int32)>& LoopBody,
+		TFunction<void()>&& Initialize,
+		TFunction<void(int32)>&& LoopBody,
 		const int32 ChunkSize = 32)
 	{
 		auto InnerBodyLoop = [&LoopBody](int32 ReadIndex, int32 WriteIndex)
@@ -609,4 +610,42 @@ public:
 			IOIndex++;
 		}
 	}
+
+	/**
+	 * 
+	 * @param Name 
+	 * @return 
+	 */
+	static bool IsValidName(const FString& Name)
+	{
+		// A valid name is alphanumeric with some special characters allowed.
+		static const FString AllowedSpecialCharacters = TEXT(" _-/");
+
+		for (int32 i = 0; i < Name.Len(); ++i)
+		{
+			if (FChar::IsAlpha(Name[i]) || FChar::IsDigit(Name[i]))
+			{
+				continue;
+			}
+
+			bool bAllowedSpecialCharacterFound = false;
+
+			for (int32 j = 0; j < AllowedSpecialCharacters.Len(); ++j)
+			{
+				if (Name[i] == AllowedSpecialCharacters[j])
+				{
+					bAllowedSpecialCharacterFound = true;
+					break;
+				}
+			}
+
+			if (!bAllowedSpecialCharacterFound)
+			{
+				return false;
+			}
+		}
+
+		return true;
+	}
+	
 };

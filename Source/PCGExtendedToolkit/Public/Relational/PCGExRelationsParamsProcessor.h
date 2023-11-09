@@ -44,7 +44,7 @@ private:
 	friend class UPCGExRelationsData;
 };
 
-class FPCGExRelationsProcessorContext : public FPCGContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExRelationsProcessorContext : public FPCGContext
 {
 	friend class FPCGExRelationsProcessorElement;
 
@@ -53,49 +53,89 @@ public:
 	FPCGExPointIOMap<FPCGExIndexedPointDataIO> Points;
 
 	int32 GetCurrentParamsIndex() const { return CurrentParamsIndex; };
-	UPCGExRelationsParamsData* GetCurrentParams() { return Params.Params[CurrentParamsIndex]; }
+	UPCGExRelationsParamsData* CurrentParams = nullptr;
 
-	bool AdvanceParams(bool bResetPointsIndex = true)
+	bool AdvanceParams(bool bResetPointsIndex = false)
 	{
+		if (bResetPointsIndex) { CurrentPointsIndex = -1; }
 		CurrentParamsIndex++;
 		if (Params.Params.IsValidIndex(CurrentParamsIndex))
 		{
-			if (bResetPointsIndex) { CurrentPointsIndex = -1; }
+			UE_LOG(LogTemp, Warning, TEXT("AdvanceParams to %d"), CurrentParamsIndex);
+			CurrentParams = Params.Params[CurrentParamsIndex];
 			return true;
 		}
+
+		CurrentParams = nullptr;
 		return false;
 	}
 
 	int32 GetCurrentPointsIndex() const { return CurrentPointsIndex; };
-	FPCGExIndexedPointDataIO* GetCurrentPointsIO() { return &Points.Pairs[CurrentPointsIndex]; }
+	FPCGExIndexedPointDataIO* CurrentIO = nullptr;
 
-	bool AdvancePointsIO()
+	bool AdvancePointsIO(bool bResetParamsIndex = false)
 	{
+		if (bResetParamsIndex) { CurrentParamsIndex = -1; }
 		CurrentPointsIndex++;
-		if (Points.Pairs.IsValidIndex(CurrentParamsIndex)) { return true; }
+		if (Points.Pairs.IsValidIndex(CurrentPointsIndex))
+		{
+			UE_LOG(LogTemp, Warning, TEXT("AdvancePointsIO to %d"), CurrentPointsIndex);
+			CurrentIO = &(Points.Pairs[CurrentPointsIndex]);
+			return true;
+		}
+		CurrentIO = nullptr;
 		return false;
+	}
+
+	int32 GetOperation() const { return CurrentOperation; }
+	bool IsCurrentOperation(int32 OperationId) const { return CurrentOperation == OperationId; }
+
+	void SetOperation(int32 OperationId)
+	{
+		int32 PreviousOperation = CurrentOperation;
+		CurrentOperation = OperationId;
+		UE_LOG(LogTemp, Warning, TEXT("SetOperation = %d (was:%d)"), CurrentOperation, PreviousOperation);
 	}
 
 	void Reset()
 	{
+		CurrentOperation = -1;
 		CurrentParamsIndex = -1;
 		CurrentParamsIndex = -1;
 	}
 
 protected:
+	int32 CurrentOperation = -1;
 	int32 CurrentParamsIndex = -1;
 	int32 CurrentPointsIndex = -1;
 	virtual bool InitializePointsOutput() const { return true; }
-	
 };
 
-class FPCGExRelationsProcessorElement : public FPCGPointProcessingElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExRelationsProcessorElement : public FPCGPointProcessingElementBase
 {
 public:
 	virtual FPCGContext* Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node) override;
 	virtual bool IsCacheable(const UPCGSettings* InSettings) const override { return false; }
 
 protected:
+	template <typename T>
+	T* InitializeRelationsContext(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node) const
+	{
+		T* Context = new T();
+
+		Context->InputData = InputData;
+		Context->SourceComponent = SourceComponent;
+		Context->Node = Node;
+
+		TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(PCGExRelational::SourceRelationalParamsLabel);
+		Context->Params.Initialize(Context, Sources);
+
+		Sources = Context->InputData.GetInputsByPin(PCGExRelational::SourcePointsLabel);
+		Context->Points.Initialize(Context, Sources, Context->InitializePointsOutput());
+
+		return Context;
+	}
+
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 
 private:
