@@ -15,7 +15,9 @@ class PCGEXTENDEDTOOLKIT_API UPCGExRelationsParamsBuilderSettings : public UPCGS
 {
 	GENERATED_BODY()
 
-	UPCGExRelationsParamsBuilderSettings(const FObjectInitializer& ObjectInitializer);
+	UPCGExRelationsParamsBuilderSettings(
+		const FObjectInitializer& ObjectInitializer);
+
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
@@ -26,17 +28,16 @@ public:
 #endif
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
-protected:
 
+protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
 
 public:
-	
 	/** Attribute name to store relation data to. Note that since it uses a custom data type, it won't show up in editor.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FName RelationIdentifier = "RelationIdentifier";
-	
+
 	/** Whether to mark mutual relations. Additional performance cost. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bMarkMutualRelations = true;
@@ -47,13 +48,12 @@ public:
 
 protected:
 	virtual void InitDefaultSockets();
-	
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExRelationsParamsBuilderElement : public FSimplePCGElement
 {
 protected:
-	template<typename T>
+	template <typename T>
 	T* BuildParams(FPCGContext* Context) const;
-	virtual bool ExecuteInternal(FPCGContext* Context) const override;	
+	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };

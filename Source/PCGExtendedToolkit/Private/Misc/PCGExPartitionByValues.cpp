@@ -7,13 +7,11 @@
 #include "Misc/PCGExPartitionByValues.h"
 #include "GenericPlatform/GenericPlatformMath.h"
 #include "Data/PCGSpatialData.h"
-#include "Helpers/PCGAsync.h"
 #include "Data/PCGPointData.h"
 #include "PCGContext.h"
-#include "PCGPin.h"
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
-#include "Metadata/Accessors/PCGAttributeAccessorHelpers.h"
 #include "Misc/PCGExFilter.h"
+#include <mutex>
 
 #define LOCTEXT_NAMESPACE "PCGExDummyElement"
 
@@ -25,234 +23,237 @@ namespace PCGExPartitionByValues
 #if WITH_EDITOR
 FText UPCGExPartitionByValuesSettings::GetNodeTooltipText() const
 {
-	return LOCTEXT("PCGExSplitByAttribute", "Outputs separate buckets of points based on an attribute' value. Each bucket is named after a unique attribute value.");
+	return LOCTEXT("PCGExSplitByAttribute", "Outputs separate buckets of points based on an attribute' value. Each bucket is named after a unique attribute value. Note that it is recommended to use a MERGE before.");
 }
 #endif // WITH_EDITOR
 
-TArray<FPCGPinProperties> UPCGExPartitionByValuesSettings::InputPinProperties() const
+FPCGElementPtr UPCGExPartitionByValuesSettings::CreateElement() const { return MakeShared<FPCGExPartitionByValuesElement>(); }
+
+PCGEx::EIOInit UPCGExPartitionByValuesSettings::GetPointOutputInitMode() const { return PCGEx::EIOInit::NoOutput; }
+
+FPCGContext* FPCGExPartitionByValuesElement::Initialize(
+	const FPCGDataCollection& InputData,
+	TWeakObjectPtr<UPCGComponent> SourceComponent,
+	const UPCGNode* Node)
 {
-	TArray<FPCGPinProperties> PinProperties;
-	FPCGPinProperties& PinPropertySource = PinProperties.Emplace_GetRef(PCGExPartitionByValues::SourceLabel, EPCGDataType::Point);
-
-#if WITH_EDITOR
-	PinPropertySource.Tooltip = LOCTEXT("PCGSourcePinTooltip", "Input data to split into separate buckets. Note that input data will not be merged, which can lead to duplicate groups; if this is not desirable, merge the input beforehand.");
-#endif // WITH_EDITOR
-
-	return PinProperties;
+	FPCGExSplitByValuesContext* Context = new FPCGExSplitByValuesContext();
+	InitializeContext(Context, InputData, SourceComponent, Node);
+	return Context;
 }
 
-TArray<FPCGPinProperties> UPCGExPartitionByValuesSettings::OutputPinProperties() const
+void FPCGExPartitionByValuesElement::InitializeContext(
+	FPCGExPointsProcessorContext* InContext,
+	const FPCGDataCollection& InputData,
+	TWeakObjectPtr<UPCGComponent> SourceComponent,
+	const UPCGNode* Node) const
 {
-	TArray<FPCGPinProperties> PinProperties;
-	FPCGPinProperties& PinPropertyOutput = PinProperties.Emplace_GetRef(PCGPinConstants::DefaultOutputLabel, EPCGDataType::Point);
+	FPCGExPointsProcessorElementBase::InitializeContext(InContext, InputData, SourceComponent, Node);
+	FPCGExSplitByValuesContext* Context = static_cast<FPCGExSplitByValuesContext*>(InContext);
 
-#if WITH_EDITOR
-	PinPropertyOutput.Tooltip = LOCTEXT("PCGOutputPinTooltip", "Outputs multiple point buckets for each input data.");
-#endif // WITH_EDITOR
+	const UPCGExPartitionByValuesSettings* Settings = InContext->GetInputSettings<UPCGExPartitionByValuesSettings>();
+	check(Settings);
 
-	return PinProperties;
+	Context->PartitionKeyName = Settings->KeyAttributeName;
+	Context->bWritePartitionKey = Settings->bWriteKeyToAttribute;
+	Context->PartitionsMap.Empty();
+	Context->PartitionRule = Settings->PartitioningRules;
+
+	// ...
 }
 
-FPCGElementPtr UPCGExPartitionByValuesSettings::CreateElement() const
-{
-	return MakeShared<FPCGExPartitionByValuesElement>();
-}
 
-bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* Context) const
+bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* InContext) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExBucketEntryElement::Execute);
 
-	const UPCGExPartitionByValuesSettings* Settings = Context->GetInputSettings<UPCGExPartitionByValuesSettings>();
-	check(Settings);
+	FPCGExSplitByValuesContext* Context = static_cast<FPCGExSplitByValuesContext*>(InContext);
 
-	const FPCGExPartitioningRules BaseRules = Settings->PartitioningRules;
-
-	TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(PCGExPartitionByValues::SourceLabel);
-
-	TArray<int> InSources;
-	TArray<const UPCGPointData*> PerSourcePointData;
-	TArray<FPCGExPartitioningRules> PerSourceRules;
-	PerSourcePointData.Reserve(Sources.Num());
-
-	// Safety checks...
-	for (int i = 0; i < Sources.Num(); i++)
+	if (Context->IsCurrentOperation(PCGEx::EOperation::Setup))
 	{
-		const FPCGTaggedData& Source = Sources[i];
-		const UPCGSpatialData* InSpatialData = Cast<UPCGSpatialData>(Source.Data);
-
-		if (!InSpatialData)
+		if (Context->Points.IsEmpty())
 		{
-			PCGE_LOG(Error, GraphAndLog, FText::Format(LOCTEXT("TargetMustBeSpatial", "Source must be Spatial data, found '{0}'"), FText::FromString(Source.Data->GetClass()->GetName())));
-			continue;
+			PCGE_LOG(Error, GraphAndLog, LOCTEXT("MissingPoints", "Missing Input Points."));
+			return true;
 		}
 
-		const UPCGPointData* InPointData = InSpatialData->ToPointData(Context);
-		if (!InPointData)
+		const UPCGExPartitionByValuesSettings* Settings = Context->GetInputSettings<UPCGExPartitionByValuesSettings>();
+		check(Settings);
+
+		if (Settings->bWriteKeyToAttribute && !PCGEx::Common::IsValidName(Settings->KeyAttributeName))
 		{
-			PCGE_LOG(Error, GraphAndLog, FText::Format(LOCTEXT("CannotConvertToPoint", "Cannot source '{0}' into Point data"), FText::FromString(Source.Data->GetClass()->GetName())));
-			continue;
+			PCGE_LOG(Error, GraphAndLog, LOCTEXT("MalformedAttributeName", "Output Attribute name is invalid."));
+			return true;
 		}
 
-		FPCGExPartitioningRules Rules = FPCGExPartitioningRules(BaseRules);
-		if (!Rules.Validate(InPointData))
-		{
-			PCGE_LOG(Warning, GraphAndLog, FText::Format(LOCTEXT("AttributeDoesNotExists", "Attribute '{0}' does not exist in source '{1}'"), FText::FromString(Rules.ToString()),FText::FromString(Source.Data->GetClass()->GetName())));
-			continue;
-		}
-
-		PerSourcePointData.Add(InPointData);
-		PerSourceRules.Add(Rules);
-		InSources.Add(i);
+		Context->SetOperation(PCGEx::EOperation::ReadyForNextPoints);
 	}
 
-	if (InSources.IsEmpty())
+	auto ProcessAttribute = [&Context](int32 ReadIndex)
 	{
-		PCGE_LOG(Warning, GraphAndLog, LOCTEXT("NoData", "Current inputs contains no partitionable data."));
+		FPCGPoint InPoint = Context->CurrentIO->In->GetPoint(ReadIndex);
+		auto ProcessPoints = [&Context, &InPoint](auto DummyValue)
+		{
+			using T = decltype(DummyValue);
+			if (T OutValue = T{}; Context->PartitionRule.TryGetValue(InPoint.MetadataEntry, OutValue))
+			{
+				DistributePoint(Context, InPoint, OutValue);
+			};
+		};
+		PCGMetadataAttribute::CallbackWithRightType(Context->PartitionRule.UnderlyingType, ProcessPoints);
+	};
+
+#define PCGEX_COMPARE__CASE(_ENUM, _ACCESSOR) case _ENUM : DistributePoint(Context, InPoint, InPoint._ACCESSOR); break;
+
+	auto ProcessPointProperty = [&Context](int32 ReadIndex)
+	{
+		FPCGPoint InPoint = Context->CurrentIO->In->GetPoint(ReadIndex);
+		switch (Context->PartitionRule.Selector.GetPointProperty())
+		{
+		PCGEX_FOREACH_POINTPROPERTY(PCGEX_COMPARE__CASE)
+		default: ;
+		}
+	};
+
+	auto ProcessPointExtraProperty = [&Context](int32 ReadIndex)
+	{
+		FPCGPoint InPoint = Context->CurrentIO->In->GetPoint(ReadIndex);
+
+		switch (Context->PartitionRule.Selector.GetExtraProperty())
+		{
+		PCGEX_FOREACH_POINTEXTRAPROPERTY(PCGEX_COMPARE__CASE)
+		default: ;
+		}
+	};
+
+	bool bProcessingAllowed = false;
+	if (Context->IsCurrentOperation(PCGEx::EOperation::ReadyForNextPoints))
+	{
+		if (!Context->AdvancePointsIO())
+		{
+			Context->SetOperation(PCGEx::EOperation::Done); //No more points
+		}
+		else
+		{
+			if (!Context->PartitionRule.Validate(Context->CurrentIO->In))
+			{
+				PCGE_LOG(Warning, GraphAndLog, LOCTEXT("MissingAttribute", "Some inputs are missing the reference partition attribute, they will be omitted."));
+				return false;
+			}
+
+			Context->Selection = Context->PartitionRule.Selector.GetSelection();
+			bProcessingAllowed = true;
+		}
+	}
+
+	auto Initialize = [&Context]()
+	{
+		Context->SetOperation(PCGEx::EOperation::ProcessingPoints);
+	};
+
+	if (true) // Async op
+	{
+		if (Context->IsCurrentOperation(PCGEx::EOperation::ProcessingPoints) || bProcessingAllowed)
+		{
+			Context->SetOperation(PCGEx::EOperation::ProcessingPoints);
+			switch (Context->Selection)
+			{
+			case EPCGAttributePropertySelection::Attribute:
+				PCGEx::Common::AsyncForLoop(Context, Context->CurrentIO->NumPoints, ProcessAttribute);
+				break;
+			case EPCGAttributePropertySelection::PointProperty:
+				PCGEx::Common::AsyncForLoop(Context, Context->CurrentIO->NumPoints, ProcessPointProperty);
+				break;
+			case EPCGAttributePropertySelection::ExtraProperty:
+				PCGEx::Common::AsyncForLoop(Context, Context->CurrentIO->NumPoints, ProcessPointExtraProperty);
+				break;
+			default: ;
+			}
+			Context->SetOperation(PCGEx::EOperation::ReadyForNextPoints);
+		}
+	}
+	else // Multithreaded (uncomment mutex!!)
+	{
+		if (Context->IsCurrentOperation(PCGEx::EOperation::ProcessingPoints) || bProcessingAllowed)
+		{
+			bool bProcessingDone = false;
+			switch (Context->Selection)
+			{
+			case EPCGAttributePropertySelection::Attribute:
+				bProcessingDone = PCGEx::Common::ParallelForLoop(Context, Context->CurrentIO->NumPoints, Initialize, ProcessAttribute);
+				break;
+			case EPCGAttributePropertySelection::PointProperty:
+				bProcessingDone = PCGEx::Common::ParallelForLoop(Context, Context->CurrentIO->NumPoints, Initialize, ProcessPointProperty);
+				break;
+			case EPCGAttributePropertySelection::ExtraProperty:
+				bProcessingDone = PCGEx::Common::ParallelForLoop(Context, Context->CurrentIO->NumPoints, Initialize, ProcessPointExtraProperty);
+				break;
+			default: ;
+			}
+			if (bProcessingDone) { Context->SetOperation(PCGEx::EOperation::ReadyForNextPoints); }
+		}
+	}
+
+
+	if (Context->IsCurrentOperation(PCGEx::EOperation::Done))
+	{
+		Context->Partitions.OutputTo(Context, true);
 		return true;
 	}
 
-	TMap<int64, UPCGPointData*> Partitions;
-	FPCGExRelationalProcessingData ProcessingData = FPCGExRelationalProcessingData{};
-	ProcessingData.Context = Context;
-	ProcessingData.Partitions = &Partitions;
-	if(Settings->bWriteKeyToAttribute)
-	{
-		TMap<int64, FPCGMetadataAttribute<int64>*> KeyAttributes;
-		ProcessingData.OutAttributes = &KeyAttributes;
-		ProcessingData.bWriteKeyToAttribute = true;
-		ProcessingData.AttributeName = Settings->KeyAttributeName;
-	}
-
-	// Create a temp data holder to pre-process points and cache values		
-	UPCGPointData* PointsBuffer = NewObject<UPCGPointData>();
-	ProcessingData.PointsBuffer = &PointsBuffer->GetMutablePoints();
-
-	for (int i = 0; i < PerSourcePointData.Num(); i++)
-	{
-		// Reset buckets
-		Partitions.Reset();
-
-		ProcessingData.Source = &Sources[InSources[i]];
-		ProcessingData.InPointData = &PerSourcePointData[i];
-		ProcessingData.Rules = &PerSourceRules[i];
-
-		const UPCGPointData* InPointData = *ProcessingData.InPointData;
-		const TArray<FPCGPoint> InPoints = InPointData->GetPoints();
-
-		// Create a temp data holder to pre-process points and cache values.		
-		// UPCGPointData* TempPointData = NewObject<UPCGPointData>();
-		// TempPointData->InitializeFromData(ProcessingData.InPointData);
-		// ProcessingData.PointsBuffer = &TempPointData->GetMutablePoints();
-
-		// Branch out sampling behavior based on selection
-		switch (ProcessingData.Rules->Selector.GetSelection())
-		{
-		case EPCGAttributePropertySelection::Attribute:
-			AsyncPointAttributeProcessing(&ProcessingData);
-			break;
-		case EPCGAttributePropertySelection::PointProperty:
-			AsyncPointPropertyProcessing(&ProcessingData);
-			break;
-		case EPCGAttributePropertySelection::ExtraProperty:
-			AsyncPointPropertyProcessing(&ProcessingData);
-			break;
-		}
-	}
-
-	return true;
+	return false;
 }
 
 template <typename T>
-void FPCGExPartitionByValuesElement::DistributePoint(const FPCGPoint& Point, const T& InValue, FPCGExRelationalProcessingData* Data)
+void FPCGExPartitionByValuesElement::DistributePoint(
+	FPCGExSplitByValuesContext* Context,
+	FPCGPoint& Point,
+	const T& InValue)
 {
-	const int64 Key = FPCGExFilter::Filter(InValue, *Data->Rules);
-	UPCGPointData** PartitionPtr = Data->Partitions->Find(Key);
-	UPCGPointData* Partition;
-	FPCGMetadataAttribute<int64>* KeyAttribute;
+	const int64 Key = FPCGExFilter::Filter(InValue, Context->PartitionRule);
+	PCGEx::FPointIO* Partition = nullptr;
 
-	if (PartitionPtr == nullptr)
 	{
-		// No partition exists with the filtered key, create one. 
-		Partition = NewObject<UPCGPointData>();
-		const UPCGPointData* InPointData = *Data->InPointData;
-		Partition->InitializeFromData(InPointData);
+		//std::shared_lock<std::shared_mutex> Lock(Context->PartitionMutex); //Lock for read
+		PCGEx::FPointIO** PartitionPtr = Context->PartitionsMap.Find(Key);
+		if (PartitionPtr) { Partition = *PartitionPtr; }
+	}
 
-		TArray<FPCGTaggedData>& Outputs = Data->Context->OutputData.TaggedData;
-		Outputs.Add_GetRef(*Data->Source).Data = Partition;
 
-		Data->Partitions->Add(Key, Partition);
+	FPCGMetadataAttribute<int64>** KeyAttributePtr = nullptr;
+	FPCGMetadataAttribute<int64>* KeyAttribute = nullptr;
 
-		if(Data->bWriteKeyToAttribute)
+	if (!Partition)
+	{
+		//std::unique_lock<std::shared_mutex> Lock(Context->PartitionMutex); //Lock for write
+
+		Partition = &(Context->Partitions.Emplace_GetRef(*Context->CurrentIO, PCGEx::EIOInit::NewOutput));
+		Context->PartitionsMap.Add(Key, Partition);
+
+		if (Context->bWritePartitionKey)
 		{
-			KeyAttribute = PCGMetadataElementCommon::ClearOrCreateAttribute<int64>(Partition->Metadata, Data->AttributeName, 0);
-			Data->OutAttributes->Add(Key, KeyAttribute);
-			KeyAttribute->SetValue(Point.MetadataEntry, Key);
+			KeyAttribute = PCGMetadataElementCommon::ClearOrCreateAttribute<int64>(Partition->Out->Metadata, Context->PartitionKeyName, 0);
+			if (KeyAttribute) { Context->KeyAttributeMap.Add(Key, KeyAttribute); } //Cache attribute for this partition
 		}
-		
 	}
 	else
 	{
-		// An existing partition already covers that key.
-		Partition = *PartitionPtr;
-		if(Data->bWriteKeyToAttribute)
+		if (Context->bWritePartitionKey)
 		{
-			KeyAttribute = *Data->OutAttributes->Find(Key);
-			KeyAttribute->SetValue(Point.MetadataEntry, Key);
+			//std::shared_lock<std::shared_mutex> Lock(Context->PartitionMutex); //Lock for read
+			KeyAttributePtr = Context->KeyAttributeMap.Find(Key);
+			KeyAttribute = KeyAttributePtr ? *KeyAttributePtr : nullptr;
 		}
 	}
 
-	Partition->GetMutablePoints().Add(Point);
-}
+	Partition->Out->GetMutablePoints().Add(Point);
 
-void FPCGExPartitionByValuesElement::AsyncPointAttributeProcessing(FPCGExRelationalProcessingData* Data)
-{
-	auto ProcessPoints = [&Data](auto DummyValue)
+	if (KeyAttribute)
 	{
-		using T = decltype(DummyValue);
-		FPCGMetadataAttribute<T>* Attribute = static_cast<FPCGMetadataAttribute<T>*>(Data->Rules->Attribute);
-		const UPCGPointData* InPointData = *Data->InPointData;
-		FPCGAsync::AsyncPointProcessing(Data->Context, InPointData->GetPoints(), *Data->PointsBuffer, [&DummyValue, &Data, &Attribute](const FPCGPoint& InPoint, FPCGPoint& OutPoint)
-		{
-			DistributePoint(InPoint, Attribute->GetValueFromItemKey(InPoint.MetadataEntry), Data);
-			return false;
-		});
-
-		return true;
-	};
-
-	//TODO: Use attribute->GetTypeID() on copy/fix setting instead of creating an accessor just to get the underlying type
-	const UPCGPointData* InPointData = *Data->InPointData;
-	const TUniquePtr<const IPCGAttributeAccessor> Accessor = PCGAttributeAccessorHelpers::CreateConstAccessor(InPointData, Data->Rules->Selector);
-
-	EPCGMetadataTypes Type = static_cast<EPCGMetadataTypes>(Accessor->GetUnderlyingType());
-	PCGMetadataAttribute::CallbackWithRightType(static_cast<int16>(Type), ProcessPoints);
-}
-
-#define PCGEX_PROPERTY_CASE(_ACCESSOR)\
-FPCGAsync::AsyncPointProcessing(Data->Context, InPointData->GetPoints(), *Data->PointsBuffer, [&Data](const FPCGPoint& InPoint, FPCGPoint& OutPoint)\
-{ DistributePoint(InPoint, InPoint._ACCESSOR, Data); return false; });
-
-#define PCGEX_COMPARE_PROPERTY_CASE(_ENUM, _ACCESSOR) case _ENUM : PCGEX_PROPERTY_CASE(_ACCESSOR) break;
-
-void FPCGExPartitionByValuesElement::AsyncPointPropertyProcessing(FPCGExRelationalProcessingData* Data)
-{
-	const UPCGPointData* InPointData = *Data->InPointData;\
-	switch (Data->Rules->Selector.GetPointProperty())
-	{
-	PCGEX_FOREACH_POINTPROPERTY(PCGEX_COMPARE_PROPERTY_CASE)
-	default: ;
+		Partition->Out->Metadata->InitializeOnSet(Point.MetadataEntry);
+		KeyAttribute->SetValue(Point.MetadataEntry, Key);
 	}
 }
 
-void FPCGExPartitionByValuesElement::AsyncPointExtraPropertyProcessing(FPCGExRelationalProcessingData* Data)
-{
-	const UPCGPointData* InPointData = *Data->InPointData;\
-	switch (Data->Rules->Selector.GetExtraProperty())
-	{
-	PCGEX_FOREACH_POINTEXTRAPROPERTY(PCGEX_COMPARE_PROPERTY_CASE)
-	default: ;
-	}
-}
 
 #undef LOCTEXT_NAMESPACE
 #undef PCGEX_PROPERTY_CASE

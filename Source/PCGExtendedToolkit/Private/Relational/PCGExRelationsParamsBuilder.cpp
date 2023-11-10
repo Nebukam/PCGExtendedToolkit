@@ -11,7 +11,8 @@
 #define LOCTEXT_NAMESPACE "PCGExRelationalParamsBuilderElementBase"
 
 #if WITH_EDITOR
-UPCGExRelationsParamsBuilderSettings::UPCGExRelationsParamsBuilderSettings(const FObjectInitializer& ObjectInitializer)
+UPCGExRelationsParamsBuilderSettings::UPCGExRelationsParamsBuilderSettings(
+	const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 	if (Sockets.IsEmpty()) { UPCGExRelationsParamsBuilderSettings::InitDefaultSockets(); }
@@ -58,7 +59,8 @@ TArray<FPCGPinProperties> UPCGExRelationsParamsBuilderSettings::OutputPinPropert
 }
 
 template <typename T>
-T* FPCGExRelationsParamsBuilderElement::BuildParams(FPCGContext* Context) const
+T* FPCGExRelationsParamsBuilderElement::BuildParams(
+	FPCGContext* Context) const
 {
 	const UPCGExRelationsParamsBuilderSettings* Settings = Context->GetInputSettings<UPCGExRelationsParamsBuilderSettings>();
 	check(Settings);
@@ -68,7 +70,7 @@ T* FPCGExRelationsParamsBuilderElement::BuildParams(FPCGContext* Context) const
 		PCGE_LOG(Error, GraphAndLog, LOCTEXT("UnamedOutput", "Output name is invalid; Cannot be 'None' and can only contain the following special characters:[ ],[_],[-],[/]"));
 		return nullptr;
 	}
-	
+
 	TArray<FPCGTaggedData>& Outputs = Context->OutputData.TaggedData;
 	T* OutParams = NewObject<T>();
 
@@ -83,7 +85,8 @@ T* FPCGExRelationsParamsBuilderElement::BuildParams(FPCGContext* Context) const
 	return OutParams;
 }
 
-bool FPCGExRelationsParamsBuilderElement::ExecuteInternal(FPCGContext* Context) const
+bool FPCGExRelationsParamsBuilderElement::ExecuteInternal(
+	FPCGContext* Context) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExRelationsParamsBuilderElement::Execute);
 	BuildParams<UPCGExRelationsParamsData>(Context);

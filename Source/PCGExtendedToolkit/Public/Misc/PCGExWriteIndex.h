@@ -7,20 +7,15 @@
  */
 
 #include "CoreMinimal.h"
-#include "PCGSettings.h"
+#include "PCGExPointsProcessor.h"
 #include "Elements/PCGPointProcessingElementBase.h"
 #include "PCGExWriteIndex.generated.h"
-
-namespace PCGExWriteIndex
-{
-	extern const FName SourceLabel;
-}
 
 /**
  * Calculates the distance between two points (inherently a n*n operation)
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural))
-class PCGEXTENDEDTOOLKIT_API UPCGExWriteIndexSettings : public UPCGSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExWriteIndexSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -30,25 +25,19 @@ public:
 	virtual FName GetDefaultNodeName() const override { return FName(TEXT("WriteIndex")); }
 	virtual FText GetDefaultNodeTitle() const override { return NSLOCTEXT("PCGExWriteIndex", "NodeTitle", "Write Index"); }
 	virtual FText GetNodeTooltipText() const override;
-	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Spatial; }
 #endif
-
-	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
-	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings interface
 
 public:
-
 	/** The name of the attribute to write its index to.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	FPCGAttributePropertyOutputNoSourceSelector OutSelector;
-	
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExWriteIndexElement : public FPCGPointProcessingElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExWriteIndexElement : public FPCGExPointsProcessorElementBase
 {
 protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;

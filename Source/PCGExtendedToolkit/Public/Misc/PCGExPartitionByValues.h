@@ -4,28 +4,27 @@
  * This is a dummy class to create new simple PCG nodes
  */
 
+#include <shared_mutex>
+
 #include "CoreMinimal.h"
 #include "PCGExCommon.h"
+#include "PCGExPointsProcessor.h"
 #include "Data/PCGSpatialData.h"
 #include "PCGSettings.h"
 #include "Elements/PCGPointProcessingElementBase.h"
+#include "Relational/PCGExRelationsParamsProcessor.h"
 #include "PCGExPartitionByValues.generated.h"
 
-namespace PCGExPartitionByValues
-{
-	extern const FName SourceLabel;
-}
-
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExPartitioningRules : public FPCGExInputSelectorSettingsBase
+struct PCGEXTENDEDTOOLKIT_API FPCGExPartitionRule : public FPCGExInputSelector
 {
 	GENERATED_BODY()
 
-	FPCGExPartitioningRules(): FPCGExInputSelectorSettingsBase()
+	FPCGExPartitionRule(): FPCGExInputSelector()
 	{
 	}
 
-	FPCGExPartitioningRules(const FPCGExPartitioningRules& Other): FPCGExInputSelectorSettingsBase(Other)
+	FPCGExPartitionRule(const FPCGExPartitionRule& Other): FPCGExInputSelector(Other)
 	{
 		FilterSize = Other.FilterSize;
 		Upscale = Other.Upscale;
@@ -51,23 +50,22 @@ public:
 	FPCGTaggedData* Source = nullptr;
 	const UPCGPointData** InPointData = nullptr;
 
-	const FPCGExPartitioningRules* Rules = nullptr;
+	const FPCGExPartitionRule* Rules = nullptr;
 
 	TMap<int64, UPCGPointData*>* Partitions = nullptr;
-	
+
 	TArray<FPCGPoint>* PointsBuffer = nullptr;
 
 	bool bWriteKeyToAttribute = false;
 	FName AttributeName = NAME_None;
 	TMap<int64, FPCGMetadataAttribute<int64>*>* OutAttributes = nullptr;
-	
 };
 
 /**
  * Calculates the distance between two points (inherently a n*n operation)
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural))
-class PCGEXTENDEDTOOLKIT_API UPCGExPartitionByValuesSettings : public UPCGSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExPartitionByValuesSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -77,23 +75,21 @@ public:
 	virtual FName GetDefaultNodeName() const override { return FName(TEXT("PartitonByValues")); }
 	virtual FText GetDefaultNodeTitle() const override { return NSLOCTEXT("PartitonByValues", "NodeTitle", "Partiton by Values"); }
 	virtual FText GetNodeTooltipText() const override;
-	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Spatial; }
 #endif
-
-	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
-	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings interface
 
+	virtual PCGEx::EIOInit GetPointOutputInitMode() const override;
+	
 public:
 	/** Rules */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExPartitioningRules PartitioningRules;
+	FPCGExPartitionRule PartitioningRules;
 
 	/** Whether to write the partition Key to an attribute. Useful for debugging. Note: They key is not the index, but instead the filtered value used to distribute into partitions. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (InlineEditConditionToggle, PCG_Overridable))
 	bool bWriteKeyToAttribute;
 
 	/** Name of the int64 attribute to write the partition Key to. */
@@ -101,16 +97,42 @@ public:
 	FName KeyAttributeName = "PartitionID";
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExPartitionByValuesElement : public FPCGPointProcessingElementBase
+struct PCGEXTENDEDTOOLKIT_API FPCGExSplitByValuesContext : public FPCGExPointsProcessorContext
+{
+	friend class FPCGExPartitionByValuesElement;
+
+public:
+	TMap<int64, PCGEx::FPointIO*> PartitionsMap;
+	TMap<int64, FPCGMetadataAttribute<int64>*> KeyAttributeMap;
+	PCGEx::FPointIOGroup Partitions;
+	FPCGExPartitionRule PartitionRule;
+	EPCGAttributePropertySelection Selection;
+	FPCGMetadataAttribute<int64>* CurrentOutAttribute = nullptr;
+	FName PartitionKeyName;
+	bool bWritePartitionKey = false;
+	std::shared_mutex PartitionMutex;
+	
+};
+
+class PCGEXTENDEDTOOLKIT_API FPCGExPartitionByValuesElement : public FPCGExPointsProcessorElementBase
 {
 public:
+	virtual FPCGContext* Initialize(
+		const FPCGDataCollection& InputData,
+		TWeakObjectPtr<UPCGComponent> SourceComponent,
+		const UPCGNode* Node) override;
 
 protected:
+	virtual void InitializeContext(
+		FPCGExPointsProcessorContext* InContext,
+		const FPCGDataCollection& InputData,
+		TWeakObjectPtr<UPCGComponent> SourceComponent,
+		const UPCGNode* Node) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 
 private:
 	template <typename T>
-	static void DistributePoint(const FPCGPoint& Point, const T& InValue, FPCGExRelationalProcessingData* Data);
+	static void DistributePoint(FPCGExSplitByValuesContext* Context, FPCGPoint& Point, const T& InValue);
 
 	static void AsyncPointAttributeProcessing(FPCGExRelationalProcessingData* Data);
 	static void AsyncPointPropertyProcessing(FPCGExRelationalProcessingData* Data);

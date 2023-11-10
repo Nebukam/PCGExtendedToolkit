@@ -8,6 +8,7 @@
 #include "DrawDebugHelpers.h"
 #include "Editor.h"
 #include "Relational/PCGExRelationsHelpers.h"
+#include <mutex>
 
 #define LOCTEXT_NAMESPACE "PCGExFindRelations"
 
@@ -23,22 +24,35 @@ FPCGElementPtr UPCGExFindRelationsSettings::CreateElement() const
 	return MakeShared<FPCGExFindRelationsElement>();
 }
 
-FPCGContext* FPCGExFindRelationsElement::Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node)
+FPCGContext* FPCGExFindRelationsElement::Initialize(
+	const FPCGDataCollection& InputData,
+	TWeakObjectPtr<UPCGComponent> SourceComponent,
+	const UPCGNode* Node)
 {
-	FPCGExFindRelationsContext* Context = InitializeRelationsContext<FPCGExFindRelationsContext>(InputData, SourceComponent, Node);
+	FPCGExFindRelationsContext* Context = new FPCGExFindRelationsContext();
+	InitializeContext(Context, InputData, SourceComponent, Node);
 	return Context;
 }
 
-bool FPCGExFindRelationsElement::ExecuteInternal(FPCGContext* InContext) const
+void FPCGExFindRelationsElement::InitializeContext(
+	FPCGExPointsProcessorContext* InContext,
+	const FPCGDataCollection& InputData,
+	TWeakObjectPtr<UPCGComponent> SourceComponent,
+	const UPCGNode* Node) const
+{
+	FPCGExRelationsProcessorElement::InitializeContext(InContext, InputData, SourceComponent, Node);
+	FPCGExFindRelationsContext* Context = static_cast<FPCGExFindRelationsContext*>(InContext);
+	// ...
+}
+
+bool FPCGExFindRelationsElement::ExecuteInternal(
+	FPCGContext* InContext) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExFindRelationsElement::Execute);
 
 	FPCGExFindRelationsContext* Context = static_cast<FPCGExFindRelationsContext*>(InContext);
 
-	const UPCGExFindRelationsSettings* Settings = Context->GetInputSettings<UPCGExFindRelationsSettings>();
-	check(Settings);
-
-	if (Context->IsCurrentOperation(Setup))
+	if (Context->IsCurrentOperation(PCGEx::EOperation::Setup))
 	{
 		if (Context->Params.IsEmpty())
 		{
@@ -52,10 +66,10 @@ bool FPCGExFindRelationsElement::ExecuteInternal(FPCGContext* InContext) const
 			return true;
 		}
 
-		Context->SetOperation(ReadyForNextPoints);
+		Context->SetOperation(PCGEx::EOperation::ReadyForNextPoints);
 	}
 
-	if (Context->IsCurrentOperation(ReadyForNextPoints))
+	if (Context->IsCurrentOperation(PCGEx::EOperation::ReadyForNextPoints))
 	{
 		if (Context->CurrentIO)
 		{
@@ -65,17 +79,18 @@ bool FPCGExFindRelationsElement::ExecuteInternal(FPCGContext* InContext) const
 
 		if (!Context->AdvancePointsIO(true))
 		{
-			Context->SetOperation(Done); //No more points
+			Context->SetOperation(PCGEx::EOperation::Done); //No more points
 		}
 		else
 		{
-			Context->CurrentIO->ForwardPointsIndexed(Context);
+			Context->CurrentIO->ForwardPoints(Context, true);
 			Context->Octree = const_cast<UPCGPointData::PointOctree*>(&(Context->CurrentIO->In->GetOctree())); // Not sure this really saves perf
-			Context->SetOperation(ReadyForNextParams);
+			Context->SetOperation(PCGEx::EOperation::ReadyForNextParams);
 		}
 	}
 
-	auto ProcessPoint = [&Context](int32 ReadIndex)
+	auto ProcessPoint = [&Context](
+		int32 ReadIndex)
 	{
 		FPCGPoint InPoint = Context->CurrentIO->In->GetPoint(ReadIndex),
 		          OutPoint = Context->CurrentIO->Out->GetPoint(ReadIndex);
@@ -112,34 +127,39 @@ bool FPCGExFindRelationsElement::ExecuteInternal(FPCGContext* InContext) const
 
 	bool bProcessingAllowed = false;
 
-	if (Context->IsCurrentOperation(ReadyForNextParams))
+	if (Context->IsCurrentOperation(PCGEx::EOperation::ReadyForNextParams))
 	{
+#if WITH_EDITOR
+		const UPCGExFindRelationsSettings* Settings = Context->GetInputSettings<UPCGExFindRelationsSettings>();
+		check(Settings);
+		
 		if (Context->CurrentParams && Settings->bDebug) { DrawRelationsDebug(Context); }
+#endif
 
 		if (!Context->AdvanceParams())
 		{
-			Context->SetOperation(ReadyForNextPoints);
+			Context->SetOperation(PCGEx::EOperation::ReadyForNextPoints);
 			return false;
 		}
 		else
 		{
-			Context->CurrentParams->PrepareForPointData(Context->CurrentIO->Out);
 			bProcessingAllowed = true;
 		}
 	}
 
 	auto Initialize = [&Context]()
 	{
-		Context->SetOperation(ProcessingParams);
+		Context->CurrentParams->PrepareForPointData(Context->CurrentIO->Out);
+		Context->SetOperation(PCGEx::EOperation::ProcessingParams);
 	};
 
-	if (Context->IsCurrentOperation(ProcessingParams) || bProcessingAllowed)
+	if (Context->IsCurrentOperation(PCGEx::EOperation::ProcessingParams) || bProcessingAllowed)
 	{
 		bool bProcessingDone = PCGEx::Common::ParallelForLoop(Context, Context->CurrentIO->NumPoints, Initialize, ProcessPoint);
 
 		if (bProcessingDone)
 		{
-			Context->SetOperation(ReadyForNextParams);
+			Context->SetOperation(PCGEx::EOperation::ReadyForNextParams);
 
 			if (Context->CurrentParams->bMarkMutualRelations)
 			{
@@ -148,7 +168,7 @@ bool FPCGExFindRelationsElement::ExecuteInternal(FPCGContext* InContext) const
 		}
 	}
 
-	if (Context->IsCurrentOperation(Done))
+	if (Context->IsCurrentOperation(PCGEx::EOperation::Done))
 	{
 		Context->Points.OutputTo(Context);
 		return true;
@@ -171,7 +191,8 @@ void FPCGExFindRelationsElement::DrawRelationsDebug(FPCGExFindRelationsContext* 
 	if (UWorld* EditorWorld = GEditor->GetEditorWorldContext().World())
 	{
 		Context->CurrentParams->PrepareForPointData(Context->CurrentIO->Out);
-		PCGEx::Common::AsyncForLoop(Context, Context->CurrentIO->NumPoints, [&Context, &EditorWorld](int32 ReadIndex)
+		auto DrawDebug = [&Context, &EditorWorld](
+			int32 ReadIndex)
 		{
 			FPCGPoint PtA = Context->CurrentIO->Out->GetPoint(ReadIndex);
 			int64 Key = PtA.MetadataEntry;
@@ -186,7 +207,9 @@ void FPCGExFindRelationsElement::DrawRelationsDebug(FPCGExFindRelationsContext* 
 				FVector End = FMath::Lerp(Start, PtB.Transform.GetLocation(), 0.4);
 				DrawDebugLine(EditorWorld, Start, End, Socket.Descriptor.DebugColor, false, 10.0f, 0, 2);
 			}
-		});
+		};
+
+		PCGEx::Common::AsyncForLoop(Context, Context->CurrentIO->NumPoints, DrawDebug);
 	}
 #endif
 }

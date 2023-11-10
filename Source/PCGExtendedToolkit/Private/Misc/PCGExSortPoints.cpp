@@ -27,40 +27,23 @@ FText UPCGExSortPointsSettings::GetNodeTooltipText() const
 }
 #endif // WITH_EDITOR
 
-TArray<FPCGPinProperties> UPCGExSortPointsSettings::InputPinProperties() const
-{
-	TArray<FPCGPinProperties> PinProperties;
-	FPCGPinProperties& PinPropertySource = PinProperties.Emplace_GetRef(PCGExSortPoints::SourceLabel, EPCGDataType::Point);
-
-#if WITH_EDITOR
-	PinPropertySource.Tooltip = LOCTEXT("PCGSourcePinTooltip", "The order of the point in data will be changed, allowing to effectively rely on indices to perform index-bound operations, such as spline generation.");
-#endif // WITH_EDITOR
-
-	return PinProperties;
-}
-
-TArray<FPCGPinProperties> UPCGExSortPointsSettings::OutputPinProperties() const
-{
-	TArray<FPCGPinProperties> PinProperties;
-	FPCGPinProperties& PinPropertyOutput = PinProperties.Emplace_GetRef(PCGPinConstants::DefaultOutputLabel, EPCGDataType::Point);
-
-#if WITH_EDITOR
-	PinPropertyOutput.Tooltip = LOCTEXT("PCGOutputPinTooltip", "The source points will be sorted according to specified options.");
-#endif // WITH_EDITOR
-
-	return PinProperties;
-}
-
 #pragma endregion
 
-FPCGElementPtr UPCGExSortPointsSettings::CreateElement() const
-{
-	return MakeShared<FPCGExSortPointsElement>();
-}
+FPCGElementPtr UPCGExSortPointsSettings::CreateElement() const { return MakeShared<FPCGExSortPointsElement>(); }
 
-bool FPCGExSortPointsElement::ExecuteInternal(FPCGContext* Context) const
+PCGEx::EIOInit UPCGExSortPointsSettings::GetPointOutputInitMode() const { return PCGEx::EIOInit::DuplicateInput; }
+
+bool FPCGExSortPointsElement::ExecuteInternal(FPCGContext* InContext) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExSortPointsByAttributesElement::Execute);
+
+	FPCGExPointsProcessorContext* Context = static_cast<FPCGExPointsProcessorContext*>(InContext);
+
+	if (!Context->IsValid())
+	{
+		PCGE_LOG(Error, GraphAndLog, LOCTEXT("InvalidContext", "Inputs are missing or invalid."));
+		return true;
+	}
 
 	const UPCGExSortPointsSettings* Settings = Context->GetInputSettings<UPCGExSortPointsSettings>();
 	check(Settings);
@@ -73,20 +56,12 @@ bool FPCGExSortPointsElement::ExecuteInternal(FPCGContext* Context) const
 		return true;
 	}
 
-	PCGEx::FPointIOGroup<PCGEx::FPointIO> Points = PCGEx::FPointIOGroup<PCGEx::FPointIO>(Context, PCGExSortPoints::SourceLabel, PCGEx::EInitOutput::DuplicateInput);
-
-	if (Points.IsEmpty())
-	{
-		PCGE_LOG(Error, GraphAndLog, LOCTEXT("InvalidInputData", "Invalid or empty input data"));
-		return true;
-	}
-
 	//
 
 	EPCGExSortDirection SortDirection = Settings->SortDirection;
 	TArray<FPCGExSortRule> Rules;
 
-	Points.ForEach(Context, [&Context, &DesiredRules, &Rules, &SortDirection, this](PCGEx::FPointIO* POI, const int32)
+	auto ProcessPair = [&Context, &DesiredRules, &Rules, &SortDirection, this](PCGEx::FPointIO* POI, const int32)
 	{
 		//POI->ForwardPoints(Context);
 		if (!BuildRulesForPoints(POI->Out, DesiredRules, Rules))
@@ -102,50 +77,56 @@ bool FPCGExSortPointsElement::ExecuteInternal(FPCGContext* Context) const
 			return FPCGExCompare::Compare(Attribute->GetValueFromItemKey(PtA.MetadataEntry), Attribute->GetValueFromItemKey(PtB.MetadataEntry), Rule->Tolerance, Rule->ComponentSelection);
 		};
 
-		POI->Out->GetMutablePoints().Sort([&Rules, &SortDirection, Compare](const FPCGPoint& A, const FPCGPoint& B)
-		{
+		POI->Out->GetMutablePoints().Sort(
+			[&Rules, &SortDirection, Compare](
+			const FPCGPoint& A, const FPCGPoint& B)
+			{
 #define PCGEX_COMPARE_PROPERTY_CASE(_ENUM, _ACCESSOR) \
 case _ENUM : Result = FPCGExCompare::Compare(A._ACCESSOR, B._ACCESSOR, Rule.Tolerance, Rule.ComponentSelection); break;
 
-			int Result = 0;
-			for (const FPCGExSortRule& Rule : Rules)
-			{
-				switch (Rule.Selector.GetSelection())
+				int Result = 0;
+				for (const FPCGExSortRule& Rule : Rules)
 				{
-				case EPCGAttributePropertySelection::Attribute:
-					Result = PCGMetadataAttribute::CallbackWithRightType(Rule.UnderlyingType, Compare, &Rule, A, B);
-					break;
-				case EPCGAttributePropertySelection::PointProperty:
-					switch (Rule.Selector.GetPointProperty())
+					switch (Rule.Selector.GetSelection())
 					{
-					PCGEX_FOREACH_POINTPROPERTY(PCGEX_COMPARE_PROPERTY_CASE)
+					case EPCGAttributePropertySelection::Attribute:
+						Result = PCGMetadataAttribute::CallbackWithRightType(Rule.UnderlyingType, Compare, &Rule, A, B);
+						break;
+					case EPCGAttributePropertySelection::PointProperty:
+						switch (Rule.Selector.GetPointProperty())
+						{
+						PCGEX_FOREACH_POINTPROPERTY(PCGEX_COMPARE_PROPERTY_CASE)
+						default: ;
+						}
+						break;
+					case EPCGAttributePropertySelection::ExtraProperty:
+						switch (Rule.Selector.GetExtraProperty())
+						{
+						PCGEX_FOREACH_POINTEXTRAPROPERTY(PCGEX_COMPARE_PROPERTY_CASE)
+						default: ;
+						}
+						break;
 					default: ;
 					}
-					break;
-				case EPCGAttributePropertySelection::ExtraProperty:
-					switch (Rule.Selector.GetExtraProperty())
-					{
-					PCGEX_FOREACH_POINTEXTRAPROPERTY(PCGEX_COMPARE_PROPERTY_CASE)
-					default: ;
-					}
-					break;
-				default: ;
+
+					if (Result != 0) { break; }
 				}
 
-				if (Result != 0) { break; }
-			}
+				if (SortDirection == EPCGExSortDirection::Descending) { Result *= -1; }
+				return Result <= 0;
+			});
+	};
 
-			if (SortDirection == EPCGExSortDirection::Descending) { Result *= -1; }
-			return Result <= 0;
-		});
-	});
+	Context->Points.ForEach(Context, ProcessPair);
+	Context->Points.OutputTo(Context);
 
-	Points.OutputTo(Context);
-	
 	return true;
 }
 
-bool FPCGExSortPointsElement::BuildRulesForPoints(const UPCGPointData* InData, const TArray<FPCGExSortRule>& DesiredRules, TArray<FPCGExSortRule>& OutRules)
+bool FPCGExSortPointsElement::BuildRulesForPoints(
+	const UPCGPointData* InData,
+	const TArray<FPCGExSortRule>& DesiredRules,
+	TArray<FPCGExSortRule>& OutRules)
 {
 	OutRules.Empty(DesiredRules.Num());
 

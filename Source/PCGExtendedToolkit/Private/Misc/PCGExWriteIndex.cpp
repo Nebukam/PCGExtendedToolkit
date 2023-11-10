@@ -16,53 +16,23 @@
 
 #define LOCTEXT_NAMESPACE "PCGExWriteIndexElement"
 
-namespace PCGExWriteIndex
-{
-	const FName SourceLabel = TEXT("Source");
-}
-
 #if WITH_EDITOR
-FText UPCGExWriteIndexSettings::GetNodeTooltipText() const
-{
-	return LOCTEXT("PCGExWriteIndexTooltip", "Write the current point index to an attribute.");
-}
+FText UPCGExWriteIndexSettings::GetNodeTooltipText() const { return LOCTEXT("PCGExWriteIndexTooltip", "Write the current point index to an attribute."); }
 #endif // WITH_EDITOR
 
-TArray<FPCGPinProperties> UPCGExWriteIndexSettings::InputPinProperties() const
-{
-	TArray<FPCGPinProperties> PinProperties;
-	FPCGPinProperties& PinPropertySource = PinProperties.Emplace_GetRef(PCGExWriteIndex::SourceLabel,
-	                                                                    EPCGDataType::Point);
+FPCGElementPtr UPCGExWriteIndexSettings::CreateElement() const { return MakeShared<FPCGExWriteIndexElement>(); }
 
-#if WITH_EDITOR
-	PinPropertySource.Tooltip = LOCTEXT("PCGExSourcePinTooltip", "For each of the source points, their index position in the data will be written to an attribute.");
-#endif // WITH_EDITOR
-
-	return PinProperties;
-}
-
-TArray<FPCGPinProperties> UPCGExWriteIndexSettings::OutputPinProperties() const
-{
-	TArray<FPCGPinProperties> PinProperties;
-	FPCGPinProperties& PinPropertyOutput = PinProperties.Emplace_GetRef(PCGPinConstants::DefaultOutputLabel,
-	                                                                    EPCGDataType::Point);
-
-#if WITH_EDITOR
-	PinPropertyOutput.Tooltip = LOCTEXT("PCGExOutputPinTooltip", "The source points will be output with the newly added attribute.");
-#endif // WITH_EDITOR
-
-	return PinProperties;
-}
-
-FPCGElementPtr UPCGExWriteIndexSettings::CreateElement() const
-{
-	return MakeShared<FPCGExWriteIndexElement>();
-}
-
-bool FPCGExWriteIndexElement::ExecuteInternal(FPCGContext* Context) const
+bool FPCGExWriteIndexElement::ExecuteInternal(FPCGContext* InContext) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExWriteIndexElement::Execute);
 
+	FPCGExPointsProcessorContext* Context = static_cast<FPCGExPointsProcessorContext*>(InContext);
+
+	if (!Context->IsValid())
+	{
+		PCGE_LOG(Error, GraphAndLog, LOCTEXT("InvalidContext", "Inputs are missing or invalid."));
+		return true;
+	}
 
 	const UPCGExWriteIndexSettings* Settings = Context->GetInputSettings<UPCGExWriteIndexSettings>();
 	check(Settings);
@@ -77,18 +47,20 @@ bool FPCGExWriteIndexElement::ExecuteInternal(FPCGContext* Context) const
 
 	const FName AttributeName = OutSelector.GetName();
 
-	PCGEx::FPointIOGroup<PCGEx::FPointIO> IOMap = PCGEx::FPointIOGroup<PCGEx::FPointIO>(Context, PCGExWriteIndex::SourceLabel, PCGEx::EInitOutput::EmptyOutput);
-	IOMap.ForEach(Context, [&Context, &AttributeName](PCGEx::FPointIO* IO, const int32)
+	auto ProcessPair = [&Context, &AttributeName](PCGEx::FPointIO* IO, const int32)
 	{
 		FPCGMetadataAttribute<int64>* IndexAttribute = PCGMetadataElementCommon::ClearOrCreateAttribute<int64>(IO->Out->Metadata, AttributeName, -1);
-		IO->ForwardPoints(Context, [&IO, &IndexAttribute](FPCGPoint& Point, const int32 Index, const FPCGPoint& OtherPoint)
+		auto ProcessPoint = [&IO, &IndexAttribute](FPCGPoint& Point, const int32 Index, const FPCGPoint& OtherPoint)
 		{
-			IndexAttribute->SetValue(Point.MetadataEntry, Index);
-		});
-	});
+			IndexAttribute->SetValue(Index, Index);
+		};
 
-	IOMap.OutputTo(Context);
-	
+		IO->ForwardPoints(Context, ProcessPoint);
+	};
+
+	Context->Points.ForEach(Context, ProcessPair);
+	Context->Points.OutputTo(Context);
+
 	return true;
 }
 

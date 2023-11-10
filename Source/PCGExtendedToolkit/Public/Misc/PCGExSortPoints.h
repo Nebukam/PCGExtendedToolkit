@@ -5,14 +5,10 @@
 #include "CoreMinimal.h"
 #include "PCGExCommon.h"
 #include "PCGExCompare.h"
+#include "PCGExPointsProcessor.h"
 #include "PCGSettings.h"
 #include "Elements/PCGPointProcessingElementBase.h"
 #include "PCGExSortPoints.generated.h"
-
-namespace PCGExSortPoints
-{
-	extern const FName SourceLabel;
-}
 
 UENUM(BlueprintType)
 enum class EPCGExSortDirection : uint8
@@ -22,16 +18,16 @@ enum class EPCGExSortDirection : uint8
 };
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExSortRule : public FPCGExInputSelectorSettingsBase
+struct PCGEXTENDEDTOOLKIT_API FPCGExSortRule : public FPCGExInputSelector
 {
 	GENERATED_BODY()
 
-	FPCGExSortRule(): FPCGExInputSelectorSettingsBase()
+	FPCGExSortRule(): FPCGExInputSelector()
 	{
 	}
 
 	template <typename T>
-	FPCGExSortRule(const FPCGExSortRule& Other): FPCGExInputSelectorSettingsBase(Other)
+	FPCGExSortRule(const FPCGExSortRule& Other): FPCGExInputSelector(Other)
 	{
 		Tolerance = Other.Tolerance;
 	}
@@ -43,7 +39,7 @@ public:
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural))
-class PCGEXTENDEDTOOLKIT_API UPCGExSortPointsSettings : public UPCGSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExSortPointsSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -53,15 +49,13 @@ public:
 	virtual FName GetDefaultNodeName() const override { return FName(TEXT("PCGExSortPoints")); }
 	virtual FText GetDefaultNodeTitle() const override { return NSLOCTEXT("PCGExSortPoints", "NodeTitle", "Sort Points"); }
 	virtual FText GetNodeTooltipText() const override;
-	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Spatial; }
 #endif
-
-	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
-	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings interface
+
+	virtual PCGEx::EIOInit GetPointOutputInitMode() const override;
 
 public:
 	/** Controls the order in which points will be ordered. */
@@ -70,17 +64,21 @@ public:
 
 	/** Ordered list of attribute to check to sort over. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	TArray<FPCGExSortRule> Rules = {};
+	TArray<FPCGExSortRule> Rules = {FPCGExSortRule{}};
 
 private:
 	friend class FPCGExSortPointsElement;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExSortPointsElement : public FPCGPointProcessingElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExSortPointsElement : public FPCGExPointsProcessorElementBase
 {
 protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
-	static bool BuildRulesForPoints(const UPCGPointData* InData, const TArray<FPCGExSortRule>& DesiredRules, TArray<FPCGExSortRule>& OutRules);
+
+	static bool BuildRulesForPoints(
+		const UPCGPointData* InData,
+		const TArray<FPCGExSortRule>& DesiredRules,
+		TArray<FPCGExSortRule>& OutRules);
 
 	template <typename T>
 	static int Compare(const T& A, const T& B, const FPCGExSortRule& Settings)

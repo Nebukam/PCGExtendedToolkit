@@ -50,9 +50,7 @@ namespace PCGExRelational
 			}
 		}
 
-		void ForEach(
-			FPCGContext* Context,
-			const TFunction<void(UPCGExRelationsParamsData*, const int32)>& BodyLoop)
+		void ForEach(FPCGContext* Context, const TFunction<void(UPCGExRelationsParamsData*, const int32)>& BodyLoop)
 		{
 			for (int i = 0; i < Params.Num(); i++)
 			{
@@ -147,7 +145,7 @@ namespace PCGExRelational
 
 	public:
 		UPCGExRelationsParamsData* Params = nullptr;
-		PCGEx::FIndexedPointIO* IO = nullptr;
+		PCGEx::FPointIO* IO = nullptr;
 		UPCGPointData::PointOctree* Octree = nullptr;
 		int32 CurrentIndex = -1;
 
@@ -173,7 +171,9 @@ namespace PCGExRelational
 	class PCGEXTENDEDTOOLKIT_API Helpers
 	{
 	public:
-		static bool FindRelationalParams(TArray<FPCGTaggedData>& Sources, TArray<UPCGExRelationsParamsData*>& OutParams)
+		static bool FindRelationalParams(
+			TArray<FPCGTaggedData>& Sources,
+			TArray<UPCGExRelationsParamsData*>& OutParams)
 		{
 			OutParams.Empty();
 			bool bFoundAny = false;
@@ -195,7 +195,10 @@ namespace PCGExRelational
 		 * @param Data 
 		 * @return 
 		 */
-		static double PrepareCandidatesForPoint(const FPCGPoint& Point, UPCGExRelationsParamsData* Params, TArray<FSocketCandidate>& Candidates)
+		static double PrepareCandidatesForPoint(
+			const FPCGPoint& Point,
+			UPCGExRelationsParamsData* Params,
+			TArray<FSocketCandidate>& Candidates)
 		{
 			const int32 NumSockets = Params->GetSocketMapping()->NumSockets;
 			Candidates.Empty(NumSockets);
@@ -231,7 +234,11 @@ namespace PCGExRelational
 		 * @param CandidateFunc 
 		 * @return 
 		 */
-		static double PrepareCandidatesForPoint(const FPCGPoint& Point, FPointProcessingData& Data, TArray<FSocketCandidate>& Candidates, TFunction<void(FSocketCandidate& Candidate)> CandidateFunc)
+		static double PrepareCandidatesForPoint(
+			const FPCGPoint& Point,
+			FPointProcessingData& Data,
+			TArray<FSocketCandidate>& Candidates,
+			TFunction<void(FSocketCandidate& Candidate)> CandidateFunc)
 		{
 			Candidates.Empty();
 

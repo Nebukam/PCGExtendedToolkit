@@ -5,8 +5,8 @@
 #include "PCGSettings.h"
 #include "PCGPin.h"
 
-UPCGExPathfinding::UPCGExPathfinding() {
-	
+UPCGExPathfinding::UPCGExPathfinding()
+{
 	bExposeToLibrary = true;
 	bHasDefaultInPin = false;
 	bHasDefaultOutPin = false;
@@ -28,7 +28,6 @@ UPCGExPathfinding::UPCGExPathfinding() {
 	//Out points
 	OutPinPoints = FPCGPinProperties(NAME_OUT_POINTS, EPCGDataType::Point);
 	CustomOutputPins.Add(OutPinPoints);
-
 }
 
 /**
@@ -36,7 +35,11 @@ UPCGExPathfinding::UPCGExPathfinding() {
  *
  * NOTE: This function is linked to BlueprintNativeEvent: UPCGBlueprintElement::ExecuteWithContext
  */
-void UPCGExPathfinding::ExecuteWithContext_Implementation(UPARAM(ref) FPCGContext& InContext, const FPCGDataCollection& Input, FPCGDataCollection& Output) {
+void UPCGExPathfinding::ExecuteWithContext_Implementation(
+	UPARAM(ref) FPCGContext& InContext,
+	const FPCGDataCollection& Input,
+	FPCGDataCollection& Output)
+{
 	Output = Input;
 }
 
@@ -45,7 +48,13 @@ void UPCGExPathfinding::ExecuteWithContext_Implementation(UPARAM(ref) FPCGContex
  *
  * NOTE: This function is linked to BlueprintImplementableEvent: UPCGBlueprintElement::PointLoopBody
  */
-bool UPCGExPathfinding::PointLoopBody_Implementation(const FPCGContext& InContext, const UPCGPointData* InData, const FPCGPoint& InPoint, FPCGPoint& OutPoint, UPCGMetadata* OutMetadata) const {
+bool UPCGExPathfinding::PointLoopBody_Implementation(
+	const FPCGContext& InContext,
+	const UPCGPointData* InData,
+	const FPCGPoint& InPoint,
+	FPCGPoint& OutPoint,
+	UPCGMetadata* OutMetadata) const
+{
 	OutPoint = InPoint;
 	return true;
 }

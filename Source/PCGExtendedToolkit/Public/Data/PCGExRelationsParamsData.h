@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "PCGExCommon.h"
 #include "PCGParamData.h"
+#include "Math/UnrealMathUtility.h"
 #include "PCGExRelationsParamsData.generated.h"
 
 class UPCGExRelationsParamsBuilderSettings;
@@ -24,7 +25,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSocketDirection
 		Direction = Dir;
 	}
 
-	FPCGExSocketDirection(const FPCGExSocketDirection& Other):
+	FPCGExSocketDirection(
+		const FPCGExSocketDirection& Other):
 		Direction(Other.Direction),
 		DotTolerance(Other.DotTolerance),
 		MaxDistance(Other.MaxDistance)
@@ -36,9 +38,12 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	FVector Direction = FVector::UpVector;
 
-	/** Tolerance threshold. Used along with the direction of the slot when looking for the closest candidate. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-	double DotTolerance = 0.707f; // 45deg
+	/** Cone threshold. Used along with the direction of the slot when looking for the closest candidate. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta=(Units="Degrees"))
+	double Cone = 45.0; // 0.707f dot
+
+	UPROPERTY(BlueprintReadOnly)
+	double DotTolerance = 0.707;
 
 	/** Maximum sampling distance. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
@@ -49,15 +54,16 @@ public:
 
 // Editable Property/Attribute selector
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExSocketModifierDescriptor : public FPCGExInputSelectorSettingsBase
+struct PCGEXTENDEDTOOLKIT_API FPCGExSocketModifierDescriptor : public FPCGExInputSelector
 {
 	GENERATED_BODY()
 
-	FPCGExSocketModifierDescriptor(): FPCGExInputSelectorSettingsBase()
+	FPCGExSocketModifierDescriptor(): FPCGExInputSelector()
 	{
 	}
 
-	FPCGExSocketModifierDescriptor(const FPCGExSocketModifierDescriptor& Other): FPCGExInputSelectorSettingsBase(Other)
+	FPCGExSocketModifierDescriptor(
+		const FPCGExSocketModifierDescriptor& Other): FPCGExInputSelector(Other)
 	{
 	}
 };
@@ -82,7 +88,7 @@ public:
 	bool bRelativeOrientation = true;
 
 	/** Is the distance modified by local attributes */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta=(InlineEditConditionToggle))
 	bool bApplyAttributeModifier = false;
 
 	/** Which local attribute is used to factor the distance */
@@ -190,11 +196,15 @@ namespace PCGExRelational
 			switch (Selector.GetSelection())
 			{
 			case EPCGAttributePropertySelection::Attribute:
-				return PCGMetadataAttribute::CallbackWithRightType(Descriptor.Attribute->GetTypeId(), [this, &Point]<typename T>(T DummyValue) -> double
-				{
-					FPCGMetadataAttribute<T>* Attribute = static_cast<FPCGMetadataAttribute<T>*>(Descriptor.Attribute);
-					return GetScaleFactor(Attribute->GetValueFromItemKey(Point.MetadataEntry));
-				});
+				return PCGMetadataAttribute::CallbackWithRightType
+					(
+						Descriptor.Attribute->GetTypeId(),
+						[this, &Point]<typename T>(
+						T DummyValue) -> double
+						{
+							FPCGMetadataAttribute<T>* Attribute = static_cast<FPCGMetadataAttribute<T>*>(Descriptor.Attribute);
+							return GetScaleFactor(Attribute->GetValueFromItemKey(Point.MetadataEntry));
+						});
 #define PCGEX_SCALE_BY_ACCESSOR(_ENUM, _ACCESSOR) case _ENUM: return GetScaleFactor(Point._ACCESSOR);
 			case EPCGAttributePropertySelection::PointProperty:
 				switch (Selector.GetPointProperty())
@@ -276,9 +286,20 @@ namespace PCGExRelational
 		 * @param MetadataEntry
 		 * @return 
 		 */
-		FSocketData GetValue(const PCGMetadataEntryKey MetadataEntry) const { return SocketDataAttribute->GetValueFromItemKey(MetadataEntry); }
-		void SetValue(const PCGMetadataEntryKey MetadataEntry, const FSocketData& Value) const { SocketDataAttribute->SetValue(MetadataEntry, Value); }
-		FSocketData GetSocketData(const PCGMetadataEntryKey MetadataEntry) const { return SocketDataAttribute->GetValueFromItemKey(MetadataEntry); }
+		FSocketData GetValue(const PCGMetadataEntryKey MetadataEntry) const
+		{
+			return SocketDataAttribute->GetValueFromItemKey(MetadataEntry);
+		}
+
+		void SetValue(const PCGMetadataEntryKey MetadataEntry, const FSocketData& Value) const
+		{
+			SocketDataAttribute->SetValue(MetadataEntry, Value);
+		}
+
+		FSocketData GetSocketData(const PCGMetadataEntryKey MetadataEntry) const
+		{
+			return SocketDataAttribute->GetValueFromItemKey(MetadataEntry);
+		}
 
 		/**
 		 * Returns the point pluggued in this socket for a given Origin
@@ -324,6 +345,9 @@ namespace PCGExRelational
 			for (FPCGExSocketDescriptor& Descriptor : InSockets)
 			{
 				if (!Descriptor.bEnabled) { continue; }
+
+				// Convert degrees to dot product
+				Descriptor.Direction.DotTolerance = FMath::Cos(Descriptor.Direction.Cone * (PI / 180.0));
 
 				FModifier& NewModifier = Modifiers.Emplace_GetRef();
 				NewModifier.bEnabled = Descriptor.bApplyAttributeModifier;
@@ -383,7 +407,8 @@ public:
 	virtual EPCGDataType GetDataType() const override { return EPCGDataType::Param; }
 
 	// Checks whether the data have the matching attribute
-	bool HasMatchingRelationsData(UPCGPointData* PointData);
+	bool HasMatchingRelationsData(
+		UPCGPointData* PointData);
 
 public:
 	UPROPERTY(BlueprintReadOnly)

@@ -29,17 +29,24 @@ public:
 	 *
 	 * NOTE: This function is linked to BlueprintNativeEvent: UPCGBlueprintElement::ExecuteWithContext
 	 */
-	virtual void ExecuteWithContext_Implementation(UPARAM(ref) FPCGContext& InContext, const FPCGDataCollection& Input, FPCGDataCollection& Output);
+	virtual void ExecuteWithContext_Implementation(
+		UPARAM(ref) FPCGContext& InContext,
+		const FPCGDataCollection& Input,
+		FPCGDataCollection& Output);
 
 	/**
 	 * Please add a function description
 	 *
 	 * NOTE: This function is linked to BlueprintImplementableEvent: UPCGBlueprintElement::PointLoopBody
 	 */
-	virtual bool PointLoopBody_Implementation(const FPCGContext& InContext, const UPCGPointData* InData, const FPCGPoint& InPoint, FPCGPoint& OutPoint, UPCGMetadata* OutMetadata) const;
+	virtual bool PointLoopBody_Implementation(
+		const FPCGContext& InContext,
+		const UPCGPointData* InData,
+		const FPCGPoint& InPoint,
+		FPCGPoint& OutPoint,
+		UPCGMetadata* OutMetadata) const;
 
 public:
-
 	const FName NODE_NAME = FName(TEXT("PCGEx | Pathfinding"));
 	const FName NAME_SOURCE_POINTS = FName(TEXT("In Points"));
 	const FName NAME_START_POINT = FName(TEXT("Start"));
@@ -61,5 +68,4 @@ protected:
 	FPCGPinProperties InPinEndPoint;
 	/** Output pins **/
 	FPCGPinProperties OutPinPoints;
-
 };
