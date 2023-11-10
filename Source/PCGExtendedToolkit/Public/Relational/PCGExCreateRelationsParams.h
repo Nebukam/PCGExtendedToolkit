@@ -8,15 +8,15 @@
 #include "PCGSettings.h"
 #include "PCGPin.h"
 #include "Data/PCGExRelationsParamsData.h"
-#include "PCGExRelationsParamsBuilder.generated.h"
+#include "PCGExCreateRelationsParams.generated.h"
 
 /** Outputs a single RelationalParam to be consumed by other nodes */
 UCLASS(BlueprintType, ClassGroup = (Procedural))
-class PCGEXTENDEDTOOLKIT_API UPCGExRelationsParamsBuilderSettings : public UPCGSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExCreateRelationsParamsSettings : public UPCGSettings
 {
 	GENERATED_BODY()
 
-	UPCGExRelationsParamsBuilderSettings(const FObjectInitializer& ObjectInitializer);
+	UPCGExCreateRelationsParamsSettings(const FObjectInitializer& ObjectInitializer);
 
 public:
 	//~Begin UPCGSettings interface
@@ -38,19 +38,23 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FName RelationIdentifier = "RelationIdentifier";
 
-	/** Whether to mark mutual relations. Additional performance cost. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	bool bMarkMutualRelations = true;
-
 	/** Attribute name to store relation data to. Note that since it uses a custom data type, it won't show up in editor.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(TitleProperty="{AttributeName}"))
 	TArray<FPCGExSocketDescriptor> Sockets;
 
+	/** Attribute name to store relation data to. Note that since it uses a custom data type, it won't show up in editor.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(InlineEditConditionToggle))
+	bool bApplyGlobalOverrides = false;
+	
+	/** Override individual socket properties */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="bApplyGlobalOverrides"))
+	FPCGExSocketGlobalOverrides GlobalOverrides;
+	
 protected:
 	virtual void InitDefaultSockets();
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExRelationsParamsBuilderElement : public FSimplePCGElement
+class PCGEXTENDEDTOOLKIT_API FPCGExCreateRelationsParamsElement : public FSimplePCGElement
 {
 protected:
 	template <typename T>

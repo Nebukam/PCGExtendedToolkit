@@ -9,7 +9,7 @@
 #include "Data/PCGSpatialData.h"
 #include "PCGSettings.h"
 #include "Elements/PCGPointProcessingElementBase.h"
-#include "Relational/PCGExRelationsParamsProcessor.h"
+#include "Relational/PCGExRelationsProcessor.h"
 #include <shared_mutex>
 #include "PCGExPartitionByValues.generated.h"
 
@@ -36,27 +36,6 @@ public:
 	/** Upscale multiplier, applied before filtering. Handy to deal with floating point values. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	double Upscale = 1.0;
-};
-
-USTRUCT()
-struct PCGEXTENDEDTOOLKIT_API FPCGExRelationalProcessingData
-{
-	GENERATED_BODY()
-
-public:
-	FPCGContext* Context = nullptr;
-	FPCGTaggedData* Source = nullptr;
-	const UPCGPointData** InPointData = nullptr;
-
-	const FPCGExPartitionRule* Rules = nullptr;
-
-	TMap<int64, UPCGPointData*>* Partitions = nullptr;
-
-	TArray<FPCGPoint>* PointsBuffer = nullptr;
-
-	bool bWriteKeyToAttribute = false;
-	FName AttributeName = NAME_None;
-	TMap<int64, FPCGMetadataAttribute<int64>*>* OutAttributes = nullptr;
 };
 
 /**
@@ -131,8 +110,4 @@ protected:
 private:
 	template <typename T>
 	static void DistributePoint(FPCGExSplitByValuesContext* Context, FPCGPoint& Point, const T& InValue);
-
-	static void AsyncPointAttributeProcessing(FPCGExRelationalProcessingData* Data);
-	static void AsyncPointPropertyProcessing(FPCGExRelationalProcessingData* Data);
-	static void AsyncPointExtraPropertyProcessing(FPCGExRelationalProcessingData* Data);
 };

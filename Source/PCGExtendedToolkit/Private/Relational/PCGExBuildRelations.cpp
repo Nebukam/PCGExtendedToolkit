@@ -1,7 +1,7 @@
 ﻿// Copyright Timothé Lapetite 2023
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Relational/PCGExFindRelations.h"
+#include "Relational/PCGExBuildRelations.h"
 
 #include "Data/PCGSpatialData.h"
 #include "Data/PCGPointData.h"
@@ -11,49 +11,49 @@
 #include "Relational/PCGExRelationsHelpers.h"
 #include <mutex>
 
-#define LOCTEXT_NAMESPACE "PCGExFindRelations"
+#define LOCTEXT_NAMESPACE "PCGExBuildRelations"
 
 #if WITH_EDITOR
-FText UPCGExFindRelationsSettings::GetNodeTooltipText() const
+FText UPCGExBuildRelationsSettings::GetNodeTooltipText() const
 {
 	return LOCTEXT("PCGDirectionalRelationshipsTooltip", "Write the current point index to an attribute.");
 }
 #endif // WITH_EDITOR
 
-int32 UPCGExFindRelationsSettings::GetPreferredChunkSize() const { return 32; }
+int32 UPCGExBuildRelationsSettings::GetPreferredChunkSize() const { return 32; }
 
-FPCGElementPtr UPCGExFindRelationsSettings::CreateElement() const
+FPCGElementPtr UPCGExBuildRelationsSettings::CreateElement() const
 {
-	return MakeShared<FPCGExFindRelationsElement>();
+	return MakeShared<FPCGExBuildRelationsElement>();
 }
 
-FPCGContext* FPCGExFindRelationsElement::Initialize(
+FPCGContext* FPCGExBuildRelationsElement::Initialize(
 	const FPCGDataCollection& InputData,
 	TWeakObjectPtr<UPCGComponent> SourceComponent,
 	const UPCGNode* Node)
 {
-	FPCGExFindRelationsContext* Context = new FPCGExFindRelationsContext();
+	FPCGExBuildRelationsContext* Context = new FPCGExBuildRelationsContext();
 	InitializeContext(Context, InputData, SourceComponent, Node);
 	return Context;
 }
 
-void FPCGExFindRelationsElement::InitializeContext(
+void FPCGExBuildRelationsElement::InitializeContext(
 	FPCGExPointsProcessorContext* InContext,
 	const FPCGDataCollection& InputData,
 	TWeakObjectPtr<UPCGComponent> SourceComponent,
 	const UPCGNode* Node) const
 {
 	FPCGExRelationsProcessorElement::InitializeContext(InContext, InputData, SourceComponent, Node);
-	FPCGExFindRelationsContext* Context = static_cast<FPCGExFindRelationsContext*>(InContext);
+	FPCGExBuildRelationsContext* Context = static_cast<FPCGExBuildRelationsContext*>(InContext);
 	// ...
 }
 
-bool FPCGExFindRelationsElement::ExecuteInternal(
+bool FPCGExBuildRelationsElement::ExecuteInternal(
 	FPCGContext* InContext) const
 {
-	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExFindRelationsElement::Execute);
+	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExBuildRelationsElement::Execute);
 
-	FPCGExFindRelationsContext* Context = static_cast<FPCGExFindRelationsContext*>(InContext);
+	FPCGExBuildRelationsContext* Context = static_cast<FPCGExBuildRelationsContext*>(InContext);
 
 	if (Context->IsCurrentOperation(PCGEx::EOperation::Setup))
 	{
@@ -70,6 +70,19 @@ bool FPCGExFindRelationsElement::ExecuteInternal(
 		}
 
 		Context->SetOperation(PCGEx::EOperation::ReadyForNextPoints);
+
+#if WITH_EDITOR
+		const UPCGExBuildRelationsSettings* Settings = Context->GetInputSettings<UPCGExBuildRelationsSettings>();
+		check(Settings);
+
+		if (Settings->bDebug)
+		{
+			if (UWorld* EditorWorld = GEditor->GetEditorWorldContext().World())
+			{
+				FlushPersistentDebugLines(EditorWorld);
+			}
+		}
+#endif
 	}
 
 	if (Context->IsCurrentOperation(PCGEx::EOperation::ReadyForNextPoints))
@@ -133,7 +146,7 @@ bool FPCGExFindRelationsElement::ExecuteInternal(
 	if (Context->IsCurrentOperation(PCGEx::EOperation::ReadyForNextParams))
 	{
 #if WITH_EDITOR
-		const UPCGExFindRelationsSettings* Settings = Context->GetInputSettings<UPCGExFindRelationsSettings>();
+		const UPCGExBuildRelationsSettings* Settings = Context->GetInputSettings<UPCGExBuildRelationsSettings>();
 		check(Settings);
 
 		if (Context->CurrentParams && Settings->bDebug) { DrawRelationsDebug(Context); }
@@ -161,11 +174,6 @@ bool FPCGExFindRelationsElement::ExecuteInternal(
 		if (PCGEx::Common::ParallelForLoop(Context, Context->CurrentIO->NumPoints, Initialize, ProcessPoint, Context->ChunkSize))
 		{
 			Context->SetOperation(PCGEx::EOperation::ReadyForNextParams);
-
-			if (Context->CurrentParams->bMarkMutualRelations)
-			{
-				//TODO, requires additional states & steps.
-			}
 		}
 	}
 
@@ -178,11 +186,12 @@ bool FPCGExFindRelationsElement::ExecuteInternal(
 	return false;
 }
 
-void FPCGExFindRelationsElement::DrawRelationsDebug(FPCGExFindRelationsContext* Context) const
-{
 #if WITH_EDITOR
+void FPCGExBuildRelationsElement::DrawRelationsDebug(FPCGExBuildRelationsContext* Context) const
+{
 	if (UWorld* EditorWorld = GEditor->GetEditorWorldContext().World())
 	{
+		FlushPersistentDebugLines(EditorWorld);
 		Context->CurrentParams->PrepareForPointData(Context->CurrentIO->Out);
 		auto DrawDebug = [&Context, &EditorWorld](
 			int32 ReadIndex)
@@ -198,13 +207,13 @@ void FPCGExFindRelationsElement::DrawRelationsDebug(FPCGExFindRelationsContext* 
 
 				FPCGPoint PtB = Context->CurrentIO->Out->GetPoint(SocketData.Index);
 				FVector End = FMath::Lerp(Start, PtB.Transform.GetLocation(), 0.4);
-				DrawDebugLine(EditorWorld, Start, End, Socket.Descriptor.DebugColor, false, 10.0f, 0, 2);
+				DrawDebugDirectionalArrow(EditorWorld, Start, End, 2.0f, Socket.Descriptor.DebugColor, true, -1, 0, 2);
 			}
 		};
 
 		PCGEx::Common::AsyncForLoop(Context, Context->CurrentIO->NumPoints, DrawDebug);
 	}
-#endif
 }
+#endif
 
 #undef LOCTEXT_NAMESPACE

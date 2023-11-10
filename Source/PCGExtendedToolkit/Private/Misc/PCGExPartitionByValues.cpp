@@ -211,12 +211,9 @@ void FPCGExPartitionByValuesElement::DistributePoint(
 
 	{
 		//std::shared_lock<std::shared_mutex> Lock(Context->PartitionMutex); //Lock for read
-		PCGEx::FPointIO** PartitionPtr = Context->PartitionsMap.Find(Key);
-		if (PartitionPtr) { Partition = *PartitionPtr; }
+		if (PCGEx::FPointIO** PartitionPtr = Context->PartitionsMap.Find(Key)) { Partition = *PartitionPtr; }
 	}
 
-
-	FPCGMetadataAttribute<int64>** KeyAttributePtr = nullptr;
 	FPCGMetadataAttribute<int64>* KeyAttribute = nullptr;
 
 	if (!Partition)
@@ -237,7 +234,7 @@ void FPCGExPartitionByValuesElement::DistributePoint(
 		if (Context->bWritePartitionKey)
 		{
 			//std::shared_lock<std::shared_mutex> Lock(Context->PartitionMutex); //Lock for read
-			KeyAttributePtr = Context->KeyAttributeMap.Find(Key);
+			FPCGMetadataAttribute<int64>** KeyAttributePtr = Context->KeyAttributeMap.Find(Key);
 			KeyAttribute = KeyAttributePtr ? *KeyAttributePtr : nullptr;
 		}
 	}

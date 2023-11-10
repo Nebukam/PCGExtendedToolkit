@@ -27,7 +27,7 @@ UPCGExPointsProcessorSettings::UPCGExPointsProcessorSettings(
 
 FText UPCGExPointsProcessorSettings::GetNodeTooltipText() const
 {
-	return LOCTEXT("PCGDirectionalRelationshipsTooltip", "Write the current point index to an attribute.");
+	return LOCTEXT("PCGExPointsProcessorTooltip", "Write the current point index to an attribute.");
 }
 #endif // WITH_EDITOR
 
@@ -38,7 +38,7 @@ TArray<FPCGPinProperties> UPCGExPointsProcessorSettings::InputPinProperties() co
 	FPCGPinProperties& PinPropertySource = PinProperties.Emplace_GetRef(PCGEx::SourcePointsLabel, EPCGDataType::Point);
 
 #if WITH_EDITOR
-	PinPropertySource.Tooltip = LOCTEXT("PCGExSourcePinTooltip", "For each of the source points, their index position in the data will be written to an attribute.");
+	PinPropertySource.Tooltip = LOCTEXT("PCGExSourcePointsPinTooltip", "For each of the source points, their index position in the data will be written to an attribute.");
 #endif // WITH_EDITOR
 
 	return PinProperties;

@@ -1,7 +1,7 @@
 ﻿// Copyright Timothé Lapetite 2023
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Relational/PCGExRelationsParamsBuilder.h"
+#include "Relational/PCGExCreateRelationsParams.h"
 
 #include "PCGComponent.h"
 #include "PCGSubsystem.h"
@@ -12,14 +12,14 @@
 #define LOCTEXT_NAMESPACE "PCGExRelationalParamsBuilderElementBase"
 
 #if WITH_EDITOR
-UPCGExRelationsParamsBuilderSettings::UPCGExRelationsParamsBuilderSettings(
+UPCGExCreateRelationsParamsSettings::UPCGExCreateRelationsParamsSettings(
 	const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	if (Sockets.IsEmpty()) { UPCGExRelationsParamsBuilderSettings::InitDefaultSockets(); }
+	if (Sockets.IsEmpty()) { UPCGExCreateRelationsParamsSettings::InitDefaultSockets(); }
 }
 
-void UPCGExRelationsParamsBuilderSettings::InitDefaultSockets()
+void UPCGExCreateRelationsParamsSettings::InitDefaultSockets()
 {
 	Sockets.Add(FPCGExSocketDescriptor{"Forward", FPCGExSocketDirection{FVector::ForwardVector}, true, false, FPCGExSocketModifierDescriptor{}, true, FColor(255, 0, 0)});
 	Sockets.Add(FPCGExSocketDescriptor{"Backward", FPCGExSocketDirection{FVector::BackwardVector}, true, false, FPCGExSocketModifierDescriptor{}, true, FColor(200, 0, 0)});
@@ -29,25 +29,25 @@ void UPCGExRelationsParamsBuilderSettings::InitDefaultSockets()
 	Sockets.Add(FPCGExSocketDescriptor{"Down", FPCGExSocketDirection{FVector::DownVector}, true, false, FPCGExSocketModifierDescriptor{}, true, FColor(0, 0, 200)});
 }
 
-FText UPCGExRelationsParamsBuilderSettings::GetNodeTooltipText() const
+FText UPCGExCreateRelationsParamsSettings::GetNodeTooltipText() const
 {
 	return LOCTEXT("DataFromActorTooltip", "Builds a collection of PCG-compatible data from the selected actors.");
 }
 
 #endif
 
-FPCGElementPtr UPCGExRelationsParamsBuilderSettings::CreateElement() const
+FPCGElementPtr UPCGExCreateRelationsParamsSettings::CreateElement() const
 {
-	return MakeShared<FPCGExRelationsParamsBuilderElement>();
+	return MakeShared<FPCGExCreateRelationsParamsElement>();
 }
 
-TArray<FPCGPinProperties> UPCGExRelationsParamsBuilderSettings::InputPinProperties() const
+TArray<FPCGPinProperties> UPCGExCreateRelationsParamsSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> NoInput;
 	return NoInput;
 }
 
-TArray<FPCGPinProperties> UPCGExRelationsParamsBuilderSettings::OutputPinProperties() const
+TArray<FPCGPinProperties> UPCGExCreateRelationsParamsSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
 	FPCGPinProperties& PinPropertyOutput = PinProperties.Emplace_GetRef(PCGPinConstants::DefaultOutputLabel, EPCGDataType::Param, false, false);
@@ -60,10 +60,10 @@ TArray<FPCGPinProperties> UPCGExRelationsParamsBuilderSettings::OutputPinPropert
 }
 
 template <typename T>
-T* FPCGExRelationsParamsBuilderElement::BuildParams(
+T* FPCGExCreateRelationsParamsElement::BuildParams(
 	FPCGContext* Context) const
 {
-	const UPCGExRelationsParamsBuilderSettings* Settings = Context->GetInputSettings<UPCGExRelationsParamsBuilderSettings>();
+	const UPCGExCreateRelationsParamsSettings* Settings = Context->GetInputSettings<UPCGExCreateRelationsParamsSettings>();
 	check(Settings);
 
 	if (Settings->RelationIdentifier.IsNone() || !PCGEx::Common::IsValidName(Settings->RelationIdentifier.ToString()))
@@ -74,10 +74,12 @@ T* FPCGExRelationsParamsBuilderElement::BuildParams(
 
 	TArray<FPCGTaggedData>& Outputs = Context->OutputData.TaggedData;
 	T* OutParams = NewObject<T>();
-
+		
 	OutParams->RelationIdentifier = Settings->RelationIdentifier;
-	OutParams->bMarkMutualRelations = Settings->bMarkMutualRelations;
-	OutParams->InitializeSockets(const_cast<TArray<FPCGExSocketDescriptor>&>(Settings->Sockets));
+	OutParams->InitializeSockets(
+		const_cast<TArray<FPCGExSocketDescriptor>&>(Settings->Sockets),
+		Settings->bApplyGlobalOverrides,
+		const_cast<FPCGExSocketGlobalOverrides&>(Settings->GlobalOverrides));
 
 	FPCGTaggedData& Output = Outputs.Emplace_GetRef();
 	Output.Data = OutParams;
@@ -86,10 +88,10 @@ T* FPCGExRelationsParamsBuilderElement::BuildParams(
 	return OutParams;
 }
 
-bool FPCGExRelationsParamsBuilderElement::ExecuteInternal(
+bool FPCGExCreateRelationsParamsElement::ExecuteInternal(
 	FPCGContext* Context) const
 {
-	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExRelationsParamsBuilderElement::Execute);
+	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExCreateRelationsParamsElement::Execute);
 	BuildParams<UPCGExRelationsParamsData>(Context);
 	return true;
 }

@@ -348,7 +348,7 @@ namespace PCGEx
 		{
 			return Emplace_GetRef(IO.Source, IO.In, InitOut);
 		}
-		
+
 		FPointIO& Emplace_GetRef(
 			const FPCGTaggedData& Source, UPCGPointData* In,
 			const EIOInit InitOut = EIOInit::NoOutput)
@@ -460,13 +460,12 @@ namespace PCGEx
 			const TFunction<void(int32)>& LoopBody)
 		{
 			TArray<FPCGPoint> DummyPointsOut;
-			FPCGAsync::AsyncPointProcessing
-				(
-					Context, NumIterations, DummyPointsOut, [&LoopBody](int32 Index, FPCGPoint&)
-					{
-						LoopBody(Index);
-						return false;
-					});
+			FPCGAsync::AsyncPointProcessing(
+				Context, NumIterations, DummyPointsOut, [&LoopBody](int32 Index, FPCGPoint&)
+				{
+					LoopBody(Index);
+					return false;
+				});
 		}
 
 		/**

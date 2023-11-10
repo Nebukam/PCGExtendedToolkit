@@ -57,8 +57,6 @@ public:
 protected:
 	virtual int32 GetPreferredChunkSize() const;
 
-private:
-	friend class UPCGExRelationsData;
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : public FPCGContext
@@ -97,6 +95,4 @@ protected:
 	virtual void InitializeContext(FPCGExPointsProcessorContext* InContext, const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node) const;
 	//virtual bool ExecuteInternal(FPCGContext* Context) const override;
 
-private:
-	friend class UPCGExRelationsData;
 };

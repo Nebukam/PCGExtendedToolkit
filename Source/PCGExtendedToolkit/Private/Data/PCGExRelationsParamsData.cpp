@@ -13,26 +13,25 @@ UPCGExRelationsParamsData::UPCGExRelationsParamsData(const FObjectInitializer& O
 {
 }
 
-/**
- * 
- * @param PointData 
- * @return 
- */
 bool UPCGExRelationsParamsData::HasMatchingRelationsData(UPCGPointData* PointData)
 {
 	// Whether the data has metadata matching this RelationalData block or not
 	for (const PCGExRelational::FSocket Socket : SocketMapping.Sockets)
 	{
-		if (!PointData->Metadata->HasAttribute(Socket.AttributeName)) { return false; }
+		if (!PointData->Metadata->HasAttribute(Socket.GetName())) { return false; }
 	}
 	return true;
 }
 
 void UPCGExRelationsParamsData::InitializeSockets(
-	TArray<FPCGExSocketDescriptor>& InSockets)
+	TArray<FPCGExSocketDescriptor>& InSockets,
+	const bool bApplyOverrides,
+	FPCGExSocketGlobalOverrides& Overrides)
 {
 	SocketMapping = PCGExRelational::FSocketMapping{};
-	SocketMapping.Initialize(RelationIdentifier, InSockets);
+
+	if (bApplyOverrides) { SocketMapping.InitializeWithOverrides(RelationIdentifier, InSockets, Overrides); }
+	else { SocketMapping.Initialize(RelationIdentifier, InSockets); }
 
 	GreatestStaticMaxDistance = 0.0;
 	bHasVariableMaxDistance = false;
@@ -45,12 +44,7 @@ void UPCGExRelationsParamsData::InitializeSockets(
 	}
 }
 
-/**
- * Prepare socket mapping for working with a given PointData object.
- * @param PointData 
- */
-void UPCGExRelationsParamsData::PrepareForPointData(
-	UPCGPointData* PointData)
+void UPCGExRelationsParamsData::PrepareForPointData(UPCGPointData* PointData)
 {
 	SocketMapping.PrepareForPointData(PointData);
 }

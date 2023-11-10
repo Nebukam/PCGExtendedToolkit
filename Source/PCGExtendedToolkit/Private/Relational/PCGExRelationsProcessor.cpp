@@ -1,7 +1,7 @@
 ﻿// Copyright Timothé Lapetite 2023
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Relational/PCGExRelationsParamsProcessor.h"
+#include "..\..\Public\Relational\PCGExRelationsProcessor.h"
 
 #include "PCGContext.h"
 #include "PCGPin.h"
@@ -20,7 +20,7 @@ namespace PCGExRelational
 
 FText UPCGExRelationsProcessorSettings::GetNodeTooltipText() const
 {
-	return LOCTEXT("PCGExRelationsParamsProcessorTooltip", "Write the current point index to an attribute.");
+	return LOCTEXT("PCGExRelationsProcessorTooltip", "Write the current point index to an attribute.");
 }
 #endif // WITH_EDITOR
 
@@ -30,7 +30,7 @@ TArray<FPCGPinProperties> UPCGExRelationsProcessorSettings::InputPinProperties()
 	FPCGPinProperties& PinPropertyParams = PinProperties.Emplace_GetRef(PCGExRelational::SourceRelationalParamsLabel, EPCGDataType::Param);
 
 #if WITH_EDITOR
-	PinPropertyParams.Tooltip = LOCTEXT("PCGExRelationsParamsPinTooltip", "Relations Params.");
+	PinPropertyParams.Tooltip = LOCTEXT("PCGExSourceRelationalParamsPinTooltip", "Relations Params.");
 #endif // WITH_EDITOR
 
 	return PinProperties;

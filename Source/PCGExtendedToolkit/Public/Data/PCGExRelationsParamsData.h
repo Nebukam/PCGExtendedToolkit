@@ -9,7 +9,7 @@
 #include "Math/UnrealMathUtility.h"
 #include "PCGExRelationsParamsData.generated.h"
 
-class UPCGExRelationsParamsBuilderSettings;
+class UPCGExCreateRelationsParamsSettings;
 class UPCGPointData;
 
 USTRUCT(BlueprintType)
@@ -84,7 +84,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta=(ShowOnlyInnerProperties))
 	FPCGExSocketDirection Direction;
 
-	/** Whether the orientation of the direction is relative to the point or not. */
+	/** Whether the orientation of the direction is relative to the point transform or not. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	bool bRelativeOrientation = true;
 
@@ -104,6 +104,54 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta=(AdvancedDisplay))
 	FColor DebugColor = FColor::Red;
 };
+
+
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExSocketGlobalOverrides
+{
+	GENERATED_BODY()
+
+public:
+	/** Override all socket orientation. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
+	bool bOverrideRelativeOrientation = false;
+
+	/** Whether the orientation of the direction is relative to the point transform or not. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bOverrideRelativeOrientation"))
+	bool bRelativeOrientation = false;
+
+
+	/** Override all socket cone. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
+	bool bOverrideCone = false;
+
+	/** Cone threshold. Used along with the direction of the slot when looking for the closest candidate. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bOverrideCone"))
+	double Cone = 45.0; // 0.707f dot
+
+
+	/** Override all socket distance. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
+	bool bOverrideMaxDistance = false;
+
+	/** Maximum sampling distance. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bOverrideMaxDistance"))
+	double MaxDistance = 1000.0f;
+
+
+	/** Override all socket Modifiers. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
+	bool bOverrideAttributeModifier = false;
+
+	/** Is the distance modified by local attributes */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bOverrideAttributeModifier", InlineEditConditionToggle))
+	bool bApplyAttributeModifier = false;
+
+	/** Which local attribute is used to factor the distance */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bOverrideAttributeModifier"))
+	FPCGExSocketModifierDescriptor AttributeModifier;
+};
+
 
 #pragma endregion
 
@@ -263,12 +311,16 @@ namespace PCGExRelational
 
 	struct PCGEXTENDEDTOOLKIT_API FSocket
 	{
-	public:
+		friend struct FSocketMapping;
 		FPCGExSocketDescriptor Descriptor;
-		FName AttributeName = NAME_None;
 		FPCGMetadataAttribute<FVector4>* SocketDataAttribute = nullptr;
 		FModifier* ScaleModifier = nullptr;
 
+	protected:
+		FName AttributeName = NAME_None;
+
+	public:
+		FName GetName() const { return AttributeName; }
 		/**
 		 * Find or create the attribute matching this socket on a given PointData object,
 		 * as well as prepare the scape modifier for that same object.
@@ -341,8 +393,6 @@ namespace PCGExRelational
 		void Initialize(FName Identifier, TArray<FPCGExSocketDescriptor>& InSockets)
 		{
 			Reset();
-			const FString PCGExName = TEXT("PCGEx");
-			const FString BaseIdentifierStr = Identifier.ToString(), Dash = TEXT("__"), Slash = TEXT("/");
 			for (FPCGExSocketDescriptor& Descriptor : InSockets)
 			{
 				if (!Descriptor.bEnabled) { continue; }
@@ -356,10 +406,54 @@ namespace PCGExRelational
 
 				FSocket& NewSocket = Sockets.Emplace_GetRef();
 				NewSocket.Descriptor = Descriptor;
-				NewSocket.AttributeName = *(PCGExName + Slash + BaseIdentifierStr + Slash + Descriptor.AttributeName.ToString()); // PCGEx/RelationIdentifier/SocketName
+				NewSocket.AttributeName = GetSocketName(Identifier, Descriptor.AttributeName);
 				SocketMap.Add(Descriptor.AttributeName, &NewSocket);
 				NumSockets++;
 			}
+		}
+
+		void InitializeWithOverrides(FName Identifier, TArray<FPCGExSocketDescriptor>& InSockets, FPCGExSocketGlobalOverrides& Overrides)
+		{
+			Reset();
+			const FString PCGExName = TEXT("PCGEx");
+			for (FPCGExSocketDescriptor& Descriptor : InSockets)
+			{
+				if (!Descriptor.bEnabled) { continue; }
+
+				FModifier& NewModifier = Modifiers.Emplace_GetRef();
+				NewModifier.bEnabled = Overrides.bOverrideAttributeModifier ? Overrides.bApplyAttributeModifier : Descriptor.bApplyAttributeModifier;
+				NewModifier.Descriptor = Overrides.bOverrideAttributeModifier ? Overrides.AttributeModifier : Descriptor.AttributeModifier;
+
+				FSocket& NewSocket = Sockets.Emplace_GetRef();
+				NewSocket.Descriptor = Descriptor;
+
+				if (Overrides.bOverrideRelativeOrientation)
+				{
+					NewSocket.Descriptor.bRelativeOrientation = Overrides.bRelativeOrientation;
+				}
+
+				if (Overrides.bOverrideCone)
+				{
+					NewSocket.Descriptor.Direction.Cone = Overrides.Cone;
+				}
+
+				if (Overrides.bOverrideMaxDistance)
+				{
+					NewSocket.Descriptor.Direction.MaxDistance = Overrides.MaxDistance;
+				}
+
+				NewSocket.Descriptor.Direction.DotTolerance = FMath::Cos(Descriptor.Direction.Cone * (PI / 180.0));
+
+				NewSocket.AttributeName = GetSocketName(Identifier, Descriptor.AttributeName);
+				SocketMap.Add(Descriptor.AttributeName, &NewSocket);
+				NumSockets++;
+			}
+		}
+
+		static FName GetSocketName(FName ParamsIdentifier, FName SocketIdentifier)
+		{
+			const FString Separator = TEXT("/");
+			return *(TEXT("PCGEx") + Separator + ParamsIdentifier.ToString() + Separator + SocketIdentifier.ToString()); // PCGEx/ParamsIdentifier/SocketIdentifier
 		}
 
 		/**
@@ -407,9 +501,12 @@ public:
 
 	virtual EPCGDataType GetDataType() const override { return EPCGDataType::Param; }
 
-	// Checks whether the data have the matching attribute
-	bool HasMatchingRelationsData(
-		UPCGPointData* PointData);
+	/**
+	 * 
+	 * @param PointData 
+	 * @return 
+	 */
+	bool HasMatchingRelationsData(UPCGPointData* PointData);
 
 public:
 	UPROPERTY(BlueprintReadOnly)
@@ -417,9 +514,6 @@ public:
 
 	UPROPERTY(BlueprintReadOnly)
 	double GreatestStaticMaxDistance = 0.0;
-
-	UPROPERTY(BlueprintReadOnly)
-	bool bMarkMutualRelations = true;
 
 	UPROPERTY(BlueprintReadOnly)
 	bool bHasVariableMaxDistance = false;
@@ -432,14 +526,18 @@ public:
 
 	/**
 	 * Initialize this data object from a list of socket descriptors
-	 * @param InSockets 
+	 * @param InSockets
+	 * @param bApplyOverrides
+	 * @param Overrides 
 	 */
-	virtual void InitializeSockets(TArray<FPCGExSocketDescriptor>& InSockets);
+	virtual void InitializeSockets(
+		TArray<FPCGExSocketDescriptor>& InSockets,
+		const bool bApplyOverrides,
+		FPCGExSocketGlobalOverrides& Overrides);
 
 	/**
-	 * Mute internal socket mapping to read from a given PointData object
+	 * Prepare socket mapping for working with a given PointData object.
 	 * @param PointData 
-	 * @return 
 	 */
 	void PrepareForPointData(UPCGPointData* PointData);
 };
