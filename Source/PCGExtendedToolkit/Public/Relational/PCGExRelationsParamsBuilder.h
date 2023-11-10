@@ -1,4 +1,5 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Copyright Timothé Lapetite 2023
+// Released under the MIT license https://opensource.org/license/MIT/
 
 #pragma once
 
@@ -15,8 +16,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExRelationsParamsBuilderSettings : public UPCGS
 {
 	GENERATED_BODY()
 
-	UPCGExRelationsParamsBuilderSettings(
-		const FObjectInitializer& ObjectInitializer);
+	UPCGExRelationsParamsBuilderSettings(const FObjectInitializer& ObjectInitializer);
 
 public:
 	//~Begin UPCGSettings interface

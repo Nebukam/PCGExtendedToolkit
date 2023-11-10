@@ -1,12 +1,11 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Copyright Timothé Lapetite 2023
+// Released under the MIT license https://opensource.org/license/MIT/
 
 
 #include "Misc/PCGExSortPoints.h"
 #include "Data/PCGPointData.h"
 #include "PCGContext.h"
-#include "PCGPin.h"
 #include "PCGPoint.h"
-#include "Metadata/Accessors/IPCGAttributeAccessor.h"
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
 #include "Misc/PCGExCompare.h"
 

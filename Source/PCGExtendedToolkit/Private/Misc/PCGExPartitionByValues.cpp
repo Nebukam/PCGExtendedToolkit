@@ -1,8 +1,5 @@
-﻿// Fill out your copyright notice in the Description page of Project Rules.
-
-/*
- * This is a dummy class to create new simple PCG nodes
- */
+﻿// Copyright Timothé Lapetite 2023
+// Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Misc/PCGExPartitionByValues.h"
 #include "GenericPlatform/GenericPlatformMath.h"

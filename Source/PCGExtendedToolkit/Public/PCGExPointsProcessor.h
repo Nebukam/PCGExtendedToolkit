@@ -23,7 +23,6 @@ namespace PCGEx
 		ProcessingParams   = 3 UMETA(DisplayName = "Processing params"),
 		Done               = 77 UMETA(DisplayName = "Done")
 	};
-	
 }
 
 /**
@@ -35,6 +34,8 @@ class PCGEXTENDEDTOOLKIT_API UPCGExPointsProcessorSettings : public UPCGSettings
 	GENERATED_BODY()
 
 public:
+	UPCGExPointsProcessorSettings(const FObjectInitializer& ObjectInitializer);
+
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	virtual FName GetDefaultNodeName() const override { return FName(TEXT("PointsProcessorSettings")); }
@@ -48,6 +49,13 @@ public:
 	//~End UPCGSettings interface
 
 	virtual PCGEx::EIOInit GetPointOutputInitMode() const;
+
+	/** Multithread chunk size, when supported.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (AdvancedDisplay))
+	int32 ChunkSize = 0;
+
+protected:
+	virtual int32 GetPreferredChunkSize() const;
 
 private:
 	friend class UPCGExRelationsData;
@@ -71,6 +79,8 @@ public:
 	virtual void SetOperation(int32 OperationId);
 	virtual void Reset();
 	virtual bool IsValid();
+
+	int32 ChunkSize = 0;
 
 protected:
 	int32 CurrentOperation = -1;

@@ -1,4 +1,5 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Copyright Timothé Lapetite 2023
+// Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Relational/PCGExFindRelations.h"
 
@@ -18,6 +19,8 @@ FText UPCGExFindRelationsSettings::GetNodeTooltipText() const
 	return LOCTEXT("PCGDirectionalRelationshipsTooltip", "Write the current point index to an attribute.");
 }
 #endif // WITH_EDITOR
+
+int32 UPCGExFindRelationsSettings::GetPreferredChunkSize() const { return 32; }
 
 FPCGElementPtr UPCGExFindRelationsSettings::CreateElement() const
 {
@@ -132,7 +135,7 @@ bool FPCGExFindRelationsElement::ExecuteInternal(
 #if WITH_EDITOR
 		const UPCGExFindRelationsSettings* Settings = Context->GetInputSettings<UPCGExFindRelationsSettings>();
 		check(Settings);
-		
+
 		if (Context->CurrentParams && Settings->bDebug) { DrawRelationsDebug(Context); }
 #endif
 
@@ -155,9 +158,7 @@ bool FPCGExFindRelationsElement::ExecuteInternal(
 
 	if (Context->IsCurrentOperation(PCGEx::EOperation::ProcessingParams) || bProcessingAllowed)
 	{
-		bool bProcessingDone = PCGEx::Common::ParallelForLoop(Context, Context->CurrentIO->NumPoints, Initialize, ProcessPoint);
-
-		if (bProcessingDone)
+		if (PCGEx::Common::ParallelForLoop(Context, Context->CurrentIO->NumPoints, Initialize, ProcessPoint, Context->ChunkSize))
 		{
 			Context->SetOperation(PCGEx::EOperation::ReadyForNextParams);
 
@@ -173,14 +174,6 @@ bool FPCGExFindRelationsElement::ExecuteInternal(
 		Context->Points.OutputTo(Context);
 		return true;
 	}
-
-	/*
-	auto OnDataCopyBegin = [](FPCGExPointDataIO& PointIO, const int32 PointCount, const int32 IOIndex)	{		return true;	};
-	auto OnPointCopied = [](FPCGPoint& OutPoint, FPCGExPointDataIO& PointIO, const int32 PointIndex)	{	};
-	auto OnDataCopyEnd = [](FPCGExPointDataIO& PointIO, const int32 IOIndex)	{	};
-	TArray<FPCGExPointDataIO> Pairs;
-	FPCGExCommon::ForwardCopySourcePoints(Context, SourcePoints, Pairs, OnDataCopyBegin, OnPointCopied, OnDataCopyEnd);
-	*/
 
 	return false;
 }

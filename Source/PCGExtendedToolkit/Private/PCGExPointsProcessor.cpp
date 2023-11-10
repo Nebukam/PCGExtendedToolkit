@@ -1,4 +1,5 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Copyright Timothé Lapetite 2023
+// Released under the MIT license https://opensource.org/license/MIT/
 
 #include "PCGExPointsProcessor.h"
 
@@ -16,6 +17,13 @@ namespace PCGEx
 }
 
 #if WITH_EDITOR
+
+UPCGExPointsProcessorSettings::UPCGExPointsProcessorSettings(
+	const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
+{
+	if (ChunkSize <= 0) { ChunkSize = UPCGExPointsProcessorSettings::GetPreferredChunkSize(); }
+}
 
 FText UPCGExPointsProcessorSettings::GetNodeTooltipText() const
 {
@@ -49,6 +57,8 @@ TArray<FPCGPinProperties> UPCGExPointsProcessorSettings::OutputPinProperties() c
 }
 
 PCGEx::EIOInit UPCGExPointsProcessorSettings::GetPointOutputInitMode() const { return PCGEx::EIOInit::NewOutput; }
+
+int32 UPCGExPointsProcessorSettings::GetPreferredChunkSize() const { return 256; }
 
 bool FPCGExPointsProcessorContext::AdvancePointsIO()
 {
@@ -93,9 +103,11 @@ void FPCGExPointsProcessorElementBase::InitializeContext(
 	InContext->InputData = InputData;
 	InContext->SourceComponent = SourceComponent;
 	InContext->Node = Node;
-
+	
 	const UPCGExPointsProcessorSettings* Settings = InContext->GetInputSettings<UPCGExPointsProcessorSettings>();
 	check(Settings);
+
+	InContext->ChunkSize = Settings->ChunkSize;
 
 	TArray<FPCGTaggedData> Sources = InContext->InputData.GetInputsByPin(PCGEx::SourcePointsLabel);
 	InContext->Points.Initialize(InContext, Sources, Settings->GetPointOutputInitMode());

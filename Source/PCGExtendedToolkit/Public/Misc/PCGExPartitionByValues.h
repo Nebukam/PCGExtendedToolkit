@@ -1,10 +1,7 @@
-﻿#pragma once
+﻿// Copyright Timothé Lapetite 2023
+// Released under the MIT license https://opensource.org/license/MIT/
 
-/*
- * This is a dummy class to create new simple PCG nodes
- */
-
-#include <shared_mutex>
+#pragma once
 
 #include "CoreMinimal.h"
 #include "PCGExCommon.h"
@@ -13,6 +10,7 @@
 #include "PCGSettings.h"
 #include "Elements/PCGPointProcessingElementBase.h"
 #include "Relational/PCGExRelationsParamsProcessor.h"
+#include <shared_mutex>
 #include "PCGExPartitionByValues.generated.h"
 
 USTRUCT(BlueprintType)

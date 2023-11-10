@@ -1,16 +1,10 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
-
-/*
- * This is a dummy class to create new simple PCG nodes
- */
+﻿// Copyright Timothé Lapetite 2023
+// Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Misc/PCGExWriteIndex.h"
 #include "Data/PCGSpatialData.h"
 #include "Data/PCGPointData.h"
-#include "PCGPin.h"
 #include "PCGContext.h"
-//#include "Metadata/Accessors/PCGAttributeAccessorHelpers.h"
-//#include "Metadata/Accessors/PCGAttributeAccessorKeys.h"
 #include "PCGExCommon.h"
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
 
