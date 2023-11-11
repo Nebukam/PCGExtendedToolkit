@@ -51,7 +51,7 @@ public:
 	virtual PCGEx::EIOInit GetPointOutputInitMode() const;
 
 	/** Multithread chunk size, when supported.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (AdvancedDisplay))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, AdvancedDisplay)
 	int32 ChunkSize = 0;
 
 protected:

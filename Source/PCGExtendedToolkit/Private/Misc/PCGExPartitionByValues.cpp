@@ -183,7 +183,6 @@ void FPCGExPartitionByValuesElement::DistributePoint(
 	}
 
 	Partition->Out->GetMutablePoints().Add(Point);
-
 	if (KeyAttribute)
 	{
 		Partition->Out->Metadata->InitializeOnSet(Point.MetadataEntry);

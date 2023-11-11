@@ -93,7 +93,7 @@ public:
 	bool bWriteKeyToAttribute;
 
 	/** Name of the int64 attribute to write the partition Key to. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bWriteKeyToAttribute", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bWriteKeyToAttribute"))
 	FName KeyAttributeName = "PartitionID";
 };
 

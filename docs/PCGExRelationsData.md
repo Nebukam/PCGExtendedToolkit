@@ -1,15 +1,12 @@
-# Relations Params
+# Relations Data ![Data](https://img.shields.io/badge/Data-cc9b1f)
 
-## What is it useful for?
-This node contains a single "relational model". It defines a list of relation *slots*, that each represent a direction in which a connection may exist. 
+A new data type that stores relation params definition; and act as data model to read/write relations in relational nodes.
 
->It is mandatory to work with the **Relational** nodes. 
+Due to current PCG limitations around datatypes, relation socket data is stored as an *FVector4*:  
 
-## How to use
-Each slot represent a direction in space that can be world-based, or relative to the point it processes. By default, Relational Params contains 6 slots: *Up*, *Down*, *Left*, *Right*, *Forward* and *Backward*; meaning it samples relations like a 3D grid.
-
-If you wanted relations to be sampled like a 2D grid, you could remove *Up* & *Down* entries; or create completely custom ones.
-
->Each slot is limited by a DotTolerance params, which effectively defines a mathematical cone in which points are considered for a relationship. **By design, this means relation definitions can overlap, resulting in the same points being referenced by multiple slot at once.**  
->
->*It's also worth noting that relation are unilateral: one point may not know another one is related to it.*
+| Component 	| Data 	|
+|-----------	|--------	|
+| X           	| Index of the point this socket is connected to       	|
+| Y          	| Type of connection ( 0 = unknown, 1 = One-way, 2 = Shared)       	|
+| Z          	| *Reserved*       	|
+| W          	| *Reserved*       	|
