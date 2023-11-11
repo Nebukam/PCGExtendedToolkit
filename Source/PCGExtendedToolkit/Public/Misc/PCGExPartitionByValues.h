@@ -10,19 +10,20 @@
 #include "PCGSettings.h"
 #include "Elements/PCGPointProcessingElementBase.h"
 #include "Relational/PCGExRelationsProcessor.h"
+#include "PCGExLocalAttributeHelpers.h"
 #include <shared_mutex>
 #include "PCGExPartitionByValues.generated.h"
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExPartitionRule : public FPCGExInputSelector
+struct PCGEXTENDEDTOOLKIT_API FPCGExPartitionRule : public FPCGExInputSelectorWithSingleComponent
 {
 	GENERATED_BODY()
 
-	FPCGExPartitionRule(): FPCGExInputSelector()
+	FPCGExPartitionRule(): FPCGExInputSelectorWithSingleComponent()
 	{
 	}
 
-	FPCGExPartitionRule(const FPCGExPartitionRule& Other): FPCGExInputSelector(Other)
+	FPCGExPartitionRule(const FPCGExPartitionRule& Other): FPCGExInputSelectorWithSingleComponent(Other)
 	{
 		FilterSize = Other.FilterSize;
 		Upscale = Other.Upscale;
@@ -37,6 +38,28 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	double Upscale = 1.0;
 };
+
+namespace PCGExPartition
+{
+	struct PCGEXTENDEDTOOLKIT_API FRule : public PCGEx::FLocalSingleComponentInput
+	{
+		FRule()
+		{
+		}
+
+		FRule(const FPCGExPartitionRule& Rule):
+			FLocalSingleComponentInput(Rule.ComponentSelection, Rule.Direction),
+			FilterSize(Rule.FilterSize),
+			Upscale(Rule.Upscale)
+		{
+			Descriptor = static_cast<FPCGExInputSelector>(Rule);
+		}
+
+	public:
+		double FilterSize = 1.0;
+		double Upscale = 1.0;
+	};
+}
 
 /**
  * Calculates the distance between two points (inherently a n*n operation)
@@ -59,7 +82,7 @@ protected:
 	//~End UPCGSettings interface
 
 	virtual PCGEx::EIOInit GetPointOutputInitMode() const override;
-	
+
 public:
 	/** Rules */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ShowOnlyInnerProperties))
@@ -82,13 +105,12 @@ public:
 	TMap<int64, PCGEx::FPointIO*> PartitionsMap;
 	TMap<int64, FPCGMetadataAttribute<int64>*> KeyAttributeMap;
 	PCGEx::FPointIOGroup Partitions;
-	FPCGExPartitionRule PartitionRule;
+	PCGExPartition::FRule PartitionRule;
 	EPCGAttributePropertySelection Selection;
 	FPCGMetadataAttribute<int64>* CurrentOutAttribute = nullptr;
 	FName PartitionKeyName;
 	bool bWritePartitionKey = false;
 	std::shared_mutex PartitionMutex;
-	
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExPartitionByValuesElement : public FPCGExPointsProcessorElementBase
@@ -108,6 +130,6 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 
 private:
-	template <typename T>
-	static void DistributePoint(FPCGExSplitByValuesContext* Context, FPCGPoint& Point, const T& InValue);
+	static void DistributePoint(FPCGExSplitByValuesContext* Context, FPCGPoint& Point, const double InValue);
+	static int64 Filter(const double InValue, const PCGExPartition::FRule& Rule);
 };

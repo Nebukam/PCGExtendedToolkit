@@ -13,6 +13,21 @@
 #include "Metadata/Accessors/PCGAttributeAccessorHelpers.h"
 #include "PCGExCommon.generated.h"
 
+#define PCGEX_FOREACH_SUPPORTEDTYPES(MACRO) \
+MACRO(bool, Boolean)       \
+MACRO(int32, Integer32)      \
+MACRO(int64, Integer64)      \
+MACRO(float, Float)      \
+MACRO(double, Double)     \
+MACRO(FVector2D, Vector2D)  \
+MACRO(FVector, Vector)    \
+MACRO(FVector4, Vector4)   \
+MACRO(FQuat, Quaternion)      \
+MACRO(FRotator, Rotator)   \
+MACRO(FTransform, Transform) \
+MACRO(FString, String)    \
+MACRO(FName, Name)
+
 #define PCGEX_FOREACH_POINTPROPERTY(MACRO)\
 MACRO(EPCGPointProperties::Density, Density) \
 MACRO(EPCGPointProperties::BoundsMin, BoundsMin) \
@@ -32,18 +47,40 @@ MACRO(EPCGExtraProperties::Index, MetadataEntry)
 UENUM(BlueprintType)
 enum class EPCGExComponentSelection : uint8
 {
-	X UMETA(DisplayName = "X"),
-	Y UMETA(DisplayName = "Y (→x)"),
-	Z UMETA(DisplayName = "Z (→y)"),
-	W UMETA(DisplayName = "W (→z)"),
-	XYZ UMETA(DisplayName = "X→Y→Z"),
-	XZY UMETA(DisplayName = "X→Z→Y"),
-	YXZ UMETA(DisplayName = "Y→X→Z"),
-	YZX UMETA(DisplayName = "Y→Z→X"),
-	ZXY UMETA(DisplayName = "Z→X→Y"),
-	ZYX UMETA(DisplayName = "Z→Y→X"),
-	Length UMETA(DisplayName = "Length"),
+	X UMETA(DisplayName = "X", ToolTip="X/Roll component if it exist, raw value otherwise."),
+	Y UMETA(DisplayName = "Y (→x)", ToolTip="Y/Pitch component if it exist, fallback to previous value otherwise."),
+	Z UMETA(DisplayName = "Z (→y)", ToolTip="Z/Yaw component if it exist, fallback to previous value otherwise."),
+	W UMETA(DisplayName = "W (→z)", ToolTip="W component if it exist, fallback to previous value otherwise."),
+	XYZ UMETA(DisplayName = "X→Y→Z", ToolTip="X, then Y, then Z. Mostly for comparisons, fallback to X/Roll otherwise"),
+	XZY UMETA(DisplayName = "X→Z→Y", ToolTip="X, then Z, then Y. Mostly for comparisons, fallback to X/Roll otherwise"),
+	YXZ UMETA(DisplayName = "Y→X→Z", ToolTip="Y, then X, then Z. Mostly for comparisons, fallback to Y/Pitch otherwise"),
+	YZX UMETA(DisplayName = "Y→Z→X", ToolTip="Y, then Z, then X. Mostly for comparisons, fallback to Y/Pitch otherwise"),
+	ZXY UMETA(DisplayName = "Z→X→Y", ToolTip="Z, then X, then Y. Mostly for comparisons, fallback to Z/Yaw otherwise"),
+	ZYX UMETA(DisplayName = "Z→Y→X", ToolTip="Z, then Y, then Z. Mostly for comparisons, fallback to Z/Yaw otherwise"),
+	Length UMETA(DisplayName = "Length", ToolTip="Length if vector, raw value otherwise."),
 };
+
+UENUM(BlueprintType)
+enum class EPCGExSingleComponentSelection : uint8
+{
+	X UMETA(DisplayName = "X/Roll", ToolTip="X/Roll component if it exist, raw value otherwise."),
+	Y UMETA(DisplayName = "Y/Pitch", ToolTip="Y/Pitch component if it exist, fallback to previous value otherwise."),
+	Z UMETA(DisplayName = "Z/Yaw", ToolTip="Z/Yaw component if it exist, fallback to previous value otherwise."),
+	W UMETA(DisplayName = "W", ToolTip="W component if it exist, fallback to previous value otherwise."),
+	Length UMETA(DisplayName = "Length", ToolTip="Length if vector, raw value otherwise."),
+};
+
+UENUM(BlueprintType)
+enum class EPCGExDirectionSelection : uint8
+{
+	Forward UMETA(DisplayName = "Forward", ToolTip="Forward from Transform/FQuat/Rotator, or raw vector."),
+	Backward UMETA(DisplayName = "Backward", ToolTip="Backward from Transform/FQuat/Rotator, or raw vector."),
+	Right UMETA(DisplayName = "Right", ToolTip="Right from Transform/FQuat/Rotator, or raw vector."),
+	Left UMETA(DisplayName = "Left", ToolTip="Left from Transform/FQuat/Rotator, or raw vector."),
+	Up UMETA(DisplayName = "Up", ToolTip="Up from Transform/FQuat/Rotator, or raw vector."),
+	Down UMETA(DisplayName = "Down", ToolTip="Down from Transform/FQuat/Rotator, or raw vector."),
+};
+
 
 USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExInputSelector
@@ -58,7 +95,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExInputSelector
 	FPCGExInputSelector(const FPCGExInputSelector& Other)
 	{
 		Selector = Other.Selector;
-		ComponentSelection = Other.ComponentSelection;
 		Attribute = Other.Attribute;
 		bFixed = false;
 	}
@@ -67,10 +103,6 @@ public:
 	/** Name of the attribute to compare */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGAttributePropertyInputSelector Selector;
-
-	/** Sub-sorting order, used only for multi-field attributes (FVector, FRotator etc). */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	EPCGExComponentSelection ComponentSelection = EPCGExComponentSelection::XYZ;
 
 	/* Can hold a reference to the attribute pointer, if prepared like so */
 	FPCGMetadataAttributeBase* Attribute = nullptr;
@@ -137,6 +169,59 @@ public:
 	~FPCGExInputSelector()
 	{
 		Attribute = nullptr;
+	}
+};
+
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExInputSelectorWithComponent : public FPCGExInputSelector
+{
+	GENERATED_BODY()
+
+	FPCGExInputSelectorWithComponent(): FPCGExInputSelector()
+	{
+	}
+
+	FPCGExInputSelectorWithComponent(const FPCGExInputSelectorWithComponent& Other): FPCGExInputSelector(Other)
+	{
+		ComponentSelection = Other.ComponentSelection;
+	}
+
+public:
+	/** Sub-sorting order, used only for multi-field attributes (FVector, FRotator etc). */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	EPCGExComponentSelection ComponentSelection = EPCGExComponentSelection::XYZ;
+
+	~FPCGExInputSelectorWithComponent()
+	{
+	}
+};
+
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExInputSelectorWithSingleComponent : public FPCGExInputSelector
+{
+	GENERATED_BODY()
+
+	FPCGExInputSelectorWithSingleComponent(): FPCGExInputSelector()
+	{
+	}
+
+	FPCGExInputSelectorWithSingleComponent(const FPCGExInputSelectorWithSingleComponent& Other): FPCGExInputSelector(Other)
+	{
+		ComponentSelection = Other.ComponentSelection;
+		Direction = Other.Direction;
+	}
+
+public:
+	/** Single component selection */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	EPCGExSingleComponentSelection ComponentSelection = EPCGExSingleComponentSelection::X;
+
+	/** Direction to sample on relevant data types (FQuat are transformed to a direction first, from which the single component is selected) */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	EPCGExDirectionSelection Direction = EPCGExDirectionSelection::Forward;
+
+	~FPCGExInputSelectorWithSingleComponent()
+	{
 	}
 };
 

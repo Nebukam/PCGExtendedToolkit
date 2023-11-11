@@ -10,7 +10,7 @@ class PCGEXTENDEDTOOLKIT_API FPCGExFilter
 {
 public:
 	template <typename T, typename dummy = void>
-	static int64 Filter(const T& InValue, const FPCGExPartitionRule& Settings)
+	static int64 Filter(const T& InValue, const PCGExPartition::FRule& Settings)
 	{
 		const double Upscaled = static_cast<double>(InValue) * Settings.Upscale;
 		const double Filtered = (Upscaled - FGenericPlatformMath::Fmod(Upscaled, Settings.FilterSize)) / Settings.FilterSize;
@@ -18,10 +18,10 @@ public:
 	}
 
 	template <typename dummy = void>
-	static int64 Filter(const FVector2D& InValue, const FPCGExPartitionRule& Settings)
+	static int64 Filter(const FVector2D& InValue, const PCGExPartition::FRule& Settings)
 	{
 		int64 Result = 0;
-		switch (Settings.ComponentSelection)
+		switch (Settings.Component)
 		{
 		case EPCGExComponentSelection::X:
 			Result = Filter(InValue.X, Settings);
@@ -46,10 +46,10 @@ public:
 	}
 
 	template <typename dummy = void>
-	static int64 Filter(const FVector& InValue, const FPCGExPartitionRule& Settings)
+	static int64 Filter(const FVector& InValue, const PCGExPartition::FRule& Settings)
 	{
 		int64 Result = 0;
-		switch (Settings.ComponentSelection)
+		switch (Settings.Component)
 		{
 		case EPCGExComponentSelection::X:
 			Result = Filter(InValue.X, Settings);
@@ -76,9 +76,9 @@ public:
 	}
 
 	template <typename dummy = void>
-	static int64 Filter(const FVector4& InValue, const FPCGExPartitionRule& Settings)
+	static int64 Filter(const FVector4& InValue, const PCGExPartition::FRule& Settings)
 	{
-		if (Settings.ComponentSelection == EPCGExComponentSelection::W)
+		if (Settings.Component == EPCGExComponentSelection::W)
 		{
 			return Filter(InValue.W, Settings);
 		}
@@ -86,31 +86,31 @@ public:
 	}
 
 	template <typename dummy = void>
-	static int64 Filter(const FRotator& InValue, const FPCGExPartitionRule& Settings)
+	static int64 Filter(const FRotator& InValue, const PCGExPartition::FRule& Settings)
 	{
 		return Filter(FVector{InValue.Euler()}, Settings);
 	}
 
 	template <typename dummy = void>
-	static int64 Filter(const FQuat& InValue, const FPCGExPartitionRule& Settings)
+	static int64 Filter(const FQuat& InValue, const PCGExPartition::FRule& Settings)
 	{
 		return Filter(FVector{InValue.Euler()}, Settings);
 	}
 
 	template <typename dummy = void>
-	static int64 Filter(const FTransform& InValue, const FPCGExPartitionRule& Settings)
+	static int64 Filter(const FTransform& InValue, const PCGExPartition::FRule& Settings)
 	{
 		return Filter(InValue.GetLocation(), Settings);
 	}
 
 	template <typename dummy = void>
-	static int64 Filter(const FString& InValue, const FPCGExPartitionRule& Settings)
+	static int64 Filter(const FString& InValue, const PCGExPartition::FRule& Settings)
 	{
 		return GetTypeHash(InValue);
 	}
 
 	template <typename dummy = void>
-	static int64 Filter(const FName& InValue, const FPCGExPartitionRule& Settings)
+	static int64 Filter(const FName& InValue, const PCGExPartition::FRule& Settings)
 	{
 		return Filter(InValue.ToString(), Settings);
 	}

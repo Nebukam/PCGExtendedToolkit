@@ -138,36 +138,6 @@ namespace PCGExRelational
 		}
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FPointProcessingData
-	{
-		FPointProcessingData()
-		{
-		}
-
-	public:
-		UPCGExRelationsParamsData* Params = nullptr;
-		PCGEx::FPointIO* IO = nullptr;
-		UPCGPointData::PointOctree* Octree = nullptr;
-		int32 CurrentIndex = -1;
-
-		void OutputTo(int64 Key, TArray<FSocketCandidate>& Candidates)
-		{
-			for (int i = 0; i < Candidates.Num(); i++)
-			{
-				const FSocket* Socket = &(Params->GetSocketMapping()->Sockets[i]);
-				FSocketData OutData = Candidates[i].ToSocketData();
-				Socket->SetValue(Key, OutData);
-			}
-		}
-
-		~FPointProcessingData()
-		{
-			Params = nullptr;
-			IO = nullptr;
-			Octree = nullptr;
-		}
-	};
-
 	// Detail stored in a attribute array
 	class PCGEXTENDEDTOOLKIT_API Helpers
 	{
@@ -219,7 +189,7 @@ namespace PCGExRelational
 				FSocketCandidate& NewCandidate = Candidates.Emplace_GetRef();
 				NewCandidate.PrepareForPoint(Socket, Point);
 
-				if (Modifier.bValid) { NewCandidate.DistanceScale = Modifier.GetScale(Point); }
+				if (Modifier.bValid) { NewCandidate.DistanceScale = Modifier.GetValue(Point); }
 
 				MaxDistance = FMath::Max(MaxDistance, NewCandidate.GetScaledDistance());
 			}
@@ -227,40 +197,5 @@ namespace PCGExRelational
 			return MaxDistance;
 		}
 
-		/**
-		 * Prepare a list of SocketCandidate data to be used for the duration of a PointData processing.
-		 * Assumes that the Params have been properly set-up before.
-		 * @param Point 
-		 * @param Data 
-		 * @param CandidateFunc 
-		 * @return 
-		 */
-		static double PrepareCandidatesForPoint(
-			const FPCGPoint& Point,
-			FPointProcessingData& Data,
-			TArray<FSocketCandidate>& Candidates,
-			TFunction<void(FSocketCandidate& Candidate)> CandidateFunc)
-		{
-			Candidates.Empty();
-
-			double MaxDistance = Data.Params->GreatestStaticMaxDistance;
-			if (Data.Params->bHasVariableMaxDistance) { MaxDistance = 0.0; }
-
-			for (const PCGExRelational::FSocket& Socket : Data.Params->GetSocketMapping()->Sockets)
-			{
-				FSocketCandidate& NewCandidate = Candidates.Emplace_GetRef();
-				NewCandidate.PrepareForPoint(Socket, Point);
-
-				if (Socket.ScaleModifier)
-				{
-					if (Socket.ScaleModifier->bValid) { NewCandidate.DistanceScale = Socket.ScaleModifier->GetScale(Point); }
-				}
-
-				CandidateFunc(NewCandidate);
-				MaxDistance = FMath::Max(MaxDistance, NewCandidate.GetScaledDistance());
-			}
-
-			return MaxDistance;
-		}
 	};
 }

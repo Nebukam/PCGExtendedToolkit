@@ -21,12 +21,23 @@ UPCGExCreateRelationsParamsSettings::UPCGExCreateRelationsParamsSettings(
 
 void UPCGExCreateRelationsParamsSettings::InitDefaultSockets()
 {
-	Sockets.Add(FPCGExSocketDescriptor{"Forward", FPCGExSocketDirection{FVector::ForwardVector}, true, false, FPCGExSocketModifierDescriptor{}, true, FColor(255, 0, 0)});
-	Sockets.Add(FPCGExSocketDescriptor{"Backward", FPCGExSocketDirection{FVector::BackwardVector}, true, false, FPCGExSocketModifierDescriptor{}, true, FColor(200, 0, 0)});
-	Sockets.Add(FPCGExSocketDescriptor{"Right", FPCGExSocketDirection{FVector::RightVector}, true, false, FPCGExSocketModifierDescriptor{}, true, FColor(0, 255, 0)});
-	Sockets.Add(FPCGExSocketDescriptor{"Left", FPCGExSocketDirection{FVector::LeftVector}, true, false, FPCGExSocketModifierDescriptor{}, true, FColor(0, 200, 0)});
-	Sockets.Add(FPCGExSocketDescriptor{"Up", FPCGExSocketDirection{FVector::UpVector}, true, false, FPCGExSocketModifierDescriptor{}, true, FColor(0, 0, 255)});
-	Sockets.Add(FPCGExSocketDescriptor{"Down", FPCGExSocketDirection{FVector::DownVector}, true, false, FPCGExSocketModifierDescriptor{}, true, FColor(0, 0, 200)});
+	FPCGExSocketDescriptor& Socket = Sockets.Emplace_GetRef("Forward", FPCGExSocketDirection{FVector::ForwardVector});
+	Socket.DebugColor = FColor(255, 0, 0);
+
+	Socket = Sockets.Emplace_GetRef("Backward", FPCGExSocketDirection{FVector::BackwardVector});
+	Socket.DebugColor = FColor(200, 0, 0);
+
+	Socket = Sockets.Emplace_GetRef("Right", FPCGExSocketDirection{FVector::RightVector});
+	Socket.DebugColor = FColor(0, 255, 0);
+
+	Socket = Sockets.Emplace_GetRef("Left", FPCGExSocketDirection{FVector::LeftVector});
+	Socket.DebugColor = FColor(0, 200, 0);
+
+	Socket = Sockets.Emplace_GetRef("Up", FPCGExSocketDirection{FVector::UpVector});
+	Socket.DebugColor = FColor(0, 0, 255);
+
+	Socket = Sockets.Emplace_GetRef("Down", FPCGExSocketDirection{FVector::DownVector});
+	Socket.DebugColor = FColor(0, 0, 200);
 }
 
 FText UPCGExCreateRelationsParamsSettings::GetNodeTooltipText() const
@@ -74,7 +85,7 @@ T* FPCGExCreateRelationsParamsElement::BuildParams(
 
 	TArray<FPCGTaggedData>& Outputs = Context->OutputData.TaggedData;
 	T* OutParams = NewObject<T>();
-		
+
 	OutParams->RelationIdentifier = Settings->RelationIdentifier;
 	OutParams->InitializeSockets(
 		const_cast<TArray<FPCGExSocketDescriptor>&>(Settings->Sockets),

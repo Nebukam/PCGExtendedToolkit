@@ -7,7 +7,6 @@
 #include "Data/PCGPointData.h"
 #include "PCGContext.h"
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
-#include "Misc/PCGExFilter.h"
 #include <mutex>
 
 #define LOCTEXT_NAMESPACE "PCGExDummyElement"
@@ -53,7 +52,7 @@ void FPCGExPartitionByValuesElement::InitializeContext(
 	Context->PartitionKeyName = Settings->KeyAttributeName;
 	Context->bWritePartitionKey = Settings->bWriteKeyToAttribute;
 	Context->PartitionsMap.Empty();
-	Context->PartitionRule = Settings->PartitioningRules;
+	Context->PartitionRule = PCGExPartition::FRule(Settings->PartitioningRules);
 
 	// ...
 }
@@ -85,41 +84,10 @@ bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* InContext) con
 		Context->SetOperation(PCGEx::EOperation::ReadyForNextPoints);
 	}
 
-	auto ProcessAttribute = [&Context](int32 ReadIndex)
+	auto ProcessPoint = [&Context](int32 ReadIndex)
 	{
 		FPCGPoint InPoint = Context->CurrentIO->In->GetPoint(ReadIndex);
-		auto ProcessPoints = [&Context, &InPoint](auto DummyValue)
-		{
-			using T = decltype(DummyValue);
-			if (T OutValue = T{}; Context->PartitionRule.TryGetValue(InPoint.MetadataEntry, OutValue))
-			{
-				DistributePoint(Context, InPoint, OutValue);
-			};
-		};
-		PCGMetadataAttribute::CallbackWithRightType(Context->PartitionRule.UnderlyingType, ProcessPoints);
-	};
-
-#define PCGEX_COMPARE__CASE(_ENUM, _ACCESSOR) case _ENUM : DistributePoint(Context, InPoint, InPoint._ACCESSOR); break;
-
-	auto ProcessPointProperty = [&Context](int32 ReadIndex)
-	{
-		FPCGPoint InPoint = Context->CurrentIO->In->GetPoint(ReadIndex);
-		switch (Context->PartitionRule.Selector.GetPointProperty())
-		{
-		PCGEX_FOREACH_POINTPROPERTY(PCGEX_COMPARE__CASE)
-		default: ;
-		}
-	};
-
-	auto ProcessPointExtraProperty = [&Context](int32 ReadIndex)
-	{
-		FPCGPoint InPoint = Context->CurrentIO->In->GetPoint(ReadIndex);
-
-		switch (Context->PartitionRule.Selector.GetExtraProperty())
-		{
-		PCGEX_FOREACH_POINTEXTRAPROPERTY(PCGEX_COMPARE__CASE)
-		default: ;
-		}
+		DistributePoint(Context, InPoint, Context->PartitionRule.GetValue(InPoint));
 	};
 
 	bool bProcessingAllowed = false;
@@ -131,13 +99,12 @@ bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* InContext) con
 		}
 		else
 		{
-			if (!Context->PartitionRule.Validate(Context->CurrentIO->In))
+			if (!Context->PartitionRule.PrepareForPointData(Context->CurrentIO->In))
 			{
 				PCGE_LOG(Warning, GraphAndLog, LOCTEXT("MissingAttribute", "Some inputs are missing the reference partition attribute, they will be omitted."));
 				return false;
 			}
 
-			Context->Selection = Context->PartitionRule.Selector.GetSelection();
 			bProcessingAllowed = true;
 		}
 	}
@@ -152,19 +119,7 @@ bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* InContext) con
 		if (Context->IsCurrentOperation(PCGEx::EOperation::ProcessingPoints) || bProcessingAllowed)
 		{
 			Context->SetOperation(PCGEx::EOperation::ProcessingPoints);
-			switch (Context->Selection)
-			{
-			case EPCGAttributePropertySelection::Attribute:
-				PCGEx::Common::AsyncForLoop(Context, Context->CurrentIO->NumPoints, ProcessAttribute);
-				break;
-			case EPCGAttributePropertySelection::PointProperty:
-				PCGEx::Common::AsyncForLoop(Context, Context->CurrentIO->NumPoints, ProcessPointProperty);
-				break;
-			case EPCGAttributePropertySelection::ExtraProperty:
-				PCGEx::Common::AsyncForLoop(Context, Context->CurrentIO->NumPoints, ProcessPointExtraProperty);
-				break;
-			default: ;
-			}
+			PCGEx::Common::AsyncForLoop(Context, Context->CurrentIO->NumPoints, ProcessPoint);
 			Context->SetOperation(PCGEx::EOperation::ReadyForNextPoints);
 		}
 	}
@@ -172,21 +127,10 @@ bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* InContext) con
 	{
 		if (Context->IsCurrentOperation(PCGEx::EOperation::ProcessingPoints) || bProcessingAllowed)
 		{
-			bool bProcessingDone = false;
-			switch (Context->Selection)
+			if (PCGEx::Common::ParallelForLoop(Context, Context->CurrentIO->NumPoints, Initialize, ProcessPoint))
 			{
-			case EPCGAttributePropertySelection::Attribute:
-				bProcessingDone = PCGEx::Common::ParallelForLoop(Context, Context->CurrentIO->NumPoints, Initialize, ProcessAttribute);
-				break;
-			case EPCGAttributePropertySelection::PointProperty:
-				bProcessingDone = PCGEx::Common::ParallelForLoop(Context, Context->CurrentIO->NumPoints, Initialize, ProcessPointProperty);
-				break;
-			case EPCGAttributePropertySelection::ExtraProperty:
-				bProcessingDone = PCGEx::Common::ParallelForLoop(Context, Context->CurrentIO->NumPoints, Initialize, ProcessPointExtraProperty);
-				break;
-			default: ;
+				Context->SetOperation(PCGEx::EOperation::ReadyForNextPoints);
 			}
-			if (bProcessingDone) { Context->SetOperation(PCGEx::EOperation::ReadyForNextPoints); }
 		}
 	}
 
@@ -200,13 +144,12 @@ bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* InContext) con
 	return false;
 }
 
-template <typename T>
 void FPCGExPartitionByValuesElement::DistributePoint(
 	FPCGExSplitByValuesContext* Context,
 	FPCGPoint& Point,
-	const T& InValue)
+	const double InValue)
 {
-	const int64 Key = FPCGExFilter::Filter(InValue, Context->PartitionRule);
+	const int64 Key = Filter(InValue, Context->PartitionRule);
 	PCGEx::FPointIO* Partition = nullptr;
 
 	{
@@ -246,6 +189,13 @@ void FPCGExPartitionByValuesElement::DistributePoint(
 		Partition->Out->Metadata->InitializeOnSet(Point.MetadataEntry);
 		KeyAttribute->SetValue(Point.MetadataEntry, Key);
 	}
+}
+
+int64 FPCGExPartitionByValuesElement::Filter(const double InValue, const PCGExPartition::FRule& Rule)
+{
+	const double Upscaled = static_cast<double>(InValue) * Rule.Upscale;
+	const double Filtered = (Upscaled - FGenericPlatformMath::Fmod(Upscaled, Rule.FilterSize)) / Rule.FilterSize;
+	return static_cast<int64>(Filtered);
 }
 
 
