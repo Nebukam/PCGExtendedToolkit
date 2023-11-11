@@ -8,7 +8,6 @@
 #include "PCGExPointsProcessor.h"
 #include "PCGExRelationsHelpers.h"
 #include "PCGSettings.h"
-#include "PCGExPointsProcessor.h"
 #include "PCGExRelationsProcessor.generated.h"
 
 class UPCGExRelationsParamsData;

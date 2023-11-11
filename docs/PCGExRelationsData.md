@@ -1,4 +1,4 @@
-# Relational Params
+# Relations Params
 
 ## What is it useful for?
 This node contains a single "relational model". It defines a list of relation *slots*, that each represent a direction in which a connection may exist. 

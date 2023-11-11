@@ -23,21 +23,21 @@ public:
 		int64 Result = 0;
 		switch (Settings.Component)
 		{
-		case EPCGExComponentSelection::X:
+		case EPCGExOrderedFieldSelection::X:
 			Result = Filter(InValue.X, Settings);
 			break;
-		case EPCGExComponentSelection::Y:
-		case EPCGExComponentSelection::Z:
-		case EPCGExComponentSelection::W:
+		case EPCGExOrderedFieldSelection::Y:
+		case EPCGExOrderedFieldSelection::Z:
+		case EPCGExOrderedFieldSelection::W:
 			Result = Filter(InValue.Y, Settings);
 			break;
-		case EPCGExComponentSelection::XYZ:
-		case EPCGExComponentSelection::XZY:
-		case EPCGExComponentSelection::ZXY:
-		case EPCGExComponentSelection::YXZ:
-		case EPCGExComponentSelection::YZX:
-		case EPCGExComponentSelection::ZYX:
-		case EPCGExComponentSelection::Length:
+		case EPCGExOrderedFieldSelection::XYZ:
+		case EPCGExOrderedFieldSelection::XZY:
+		case EPCGExOrderedFieldSelection::ZXY:
+		case EPCGExOrderedFieldSelection::YXZ:
+		case EPCGExOrderedFieldSelection::YZX:
+		case EPCGExOrderedFieldSelection::ZYX:
+		case EPCGExOrderedFieldSelection::Length:
 			Result = Filter(InValue.SquaredLength(), Settings);
 			break;
 		default: ;
@@ -51,23 +51,23 @@ public:
 		int64 Result = 0;
 		switch (Settings.Component)
 		{
-		case EPCGExComponentSelection::X:
+		case EPCGExOrderedFieldSelection::X:
 			Result = Filter(InValue.X, Settings);
 			break;
-		case EPCGExComponentSelection::Y:
+		case EPCGExOrderedFieldSelection::Y:
 			Result = Filter(InValue.Y, Settings);
 			break;
-		case EPCGExComponentSelection::Z:
-		case EPCGExComponentSelection::W:
+		case EPCGExOrderedFieldSelection::Z:
+		case EPCGExOrderedFieldSelection::W:
 			Result = Filter(InValue.Z, Settings);
 			break;
-		case EPCGExComponentSelection::XYZ:
-		case EPCGExComponentSelection::XZY:
-		case EPCGExComponentSelection::YXZ:
-		case EPCGExComponentSelection::YZX:
-		case EPCGExComponentSelection::ZXY:
-		case EPCGExComponentSelection::ZYX:
-		case EPCGExComponentSelection::Length:
+		case EPCGExOrderedFieldSelection::XYZ:
+		case EPCGExOrderedFieldSelection::XZY:
+		case EPCGExOrderedFieldSelection::YXZ:
+		case EPCGExOrderedFieldSelection::YZX:
+		case EPCGExOrderedFieldSelection::ZXY:
+		case EPCGExOrderedFieldSelection::ZYX:
+		case EPCGExOrderedFieldSelection::Length:
 			Result = Filter(InValue.SquaredLength(), Settings);
 			break;
 		default: ;
@@ -78,7 +78,7 @@ public:
 	template <typename dummy = void>
 	static int64 Filter(const FVector4& InValue, const PCGExPartition::FRule& Settings)
 	{
-		if (Settings.Component == EPCGExComponentSelection::W)
+		if (Settings.Component == EPCGExOrderedFieldSelection::W)
 		{
 			return Filter(InValue.W, Settings);
 		}

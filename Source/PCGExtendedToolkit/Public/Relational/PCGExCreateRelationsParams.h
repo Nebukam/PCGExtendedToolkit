@@ -39,17 +39,17 @@ public:
 	FName RelationIdentifier = "RelationIdentifier";
 
 	/** Attribute name to store relation data to. Note that since it uses a custom data type, it won't show up in editor.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(TitleProperty="{AttributeName}"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(TitleProperty="{SocketName}"))
 	TArray<FPCGExSocketDescriptor> Sockets;
 
 	/** Attribute name to store relation data to. Note that since it uses a custom data type, it won't show up in editor.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(InlineEditConditionToggle))
 	bool bApplyGlobalOverrides = false;
-	
+
 	/** Override individual socket properties */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="bApplyGlobalOverrides"))
 	FPCGExSocketGlobalOverrides GlobalOverrides;
-	
+
 protected:
 	virtual void InitDefaultSockets();
 };

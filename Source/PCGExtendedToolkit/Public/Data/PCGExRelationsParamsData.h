@@ -10,6 +10,11 @@
 #include "PCGExLocalAttributeHelpers.h"
 #include "PCGExRelationsParamsData.generated.h"
 
+namespace PCGExRelational
+{
+	struct FModifier;
+}
+
 class UPCGExCreateRelationsParamsSettings;
 class UPCGPointData;
 
@@ -54,34 +59,43 @@ public:
 
 #pragma region Descriptors
 
-// Editable Property/Attribute selector
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExSocketModifierDescriptor : public FPCGExInputSelectorWithComponent
+struct PCGEXTENDEDTOOLKIT_API FPCGExSocketModifierDescriptor : public FPCGExInputSelectorWithSingleField
 {
 	GENERATED_BODY()
 
-	FPCGExSocketModifierDescriptor(): FPCGExInputSelectorWithComponent()
+	FPCGExSocketModifierDescriptor(): FPCGExInputSelectorWithSingleField()
 	{
 	}
 
 	FPCGExSocketModifierDescriptor(
-		const FPCGExSocketModifierDescriptor& Other): FPCGExInputSelectorWithComponent(Other)
+		const FPCGExSocketModifierDescriptor& Other): FPCGExInputSelectorWithSingleField(Other)
 	{
 	}
 };
 
-// Editable relation slot
 USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExSocketDescriptor
 {
 	GENERATED_BODY()
+
+	FPCGExSocketDescriptor()
+	{
+	}
+
+	FPCGExSocketDescriptor(FName InName, FVector InDirection, FColor InDebugColor):
+		SocketName(InName),
+		DebugColor(InDebugColor)
+	{
+		Direction.Direction = InDirection;
+	}
 
 public:
 	/** Name of the attribute to write neighbor index to. */
 	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere)
 	FName SocketName = NAME_None;
 
-	/** Relation direction in space. */
+	/** Socket spatial definition */
 	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta=(ShowOnlyInnerProperties))
 	FPCGExSocketDirection Direction;
 
@@ -89,31 +103,30 @@ public:
 	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere)
 	bool bRelativeOrientation = true;
 
-	/** Is the direction vector read from local attributes */
+	/** If true, the direction vector of the socket will be read from a local attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(InlineEditConditionToggle))
 	bool bDirectionVectorFromAttribute = false;
 
-	/** Local attribute from which the direction will be read. Must be a FVectorN otherwise will lead to bad results. */
+	/** Local attribute to override the direction vector with */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bDirectionVectorFromAttribute", ShowOnlyInnerProperties))
-	FPCGExInputSelector AttributeDirectionVector;
+	FPCGExInputSelectorWithDirection AttributeDirectionVector;
 
-	/** Is the distance modified by local attributes */
+	/** If enabled, multiplies the max sampling distance of this socket by the value of a local attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(InlineEditConditionToggle))
 	bool bApplyAttributeModifier = false;
 
-	/** Which local attribute is used to factor the distance */
+	/** Local attribute to multiply the max distance by.  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bApplyAttributeModifier", ShowOnlyInnerProperties))
 	FPCGExSocketModifierDescriptor AttributeModifier;
 
-	/** Whether this slot is enabled or not. Handy to do trial-and-error without adding/deleting array elements. */
+	/** Enable/disable this socket. Disabled sockets are omitted during processing. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, AdvancedDisplay)
 	bool bEnabled = true;
 
-	/** Debug color. */
+	/** Debug color for arrows. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, AdvancedDisplay)
 	FColor DebugColor = FColor::Red;
 };
-
 
 USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExSocketGlobalOverrides
@@ -125,7 +138,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bOverrideRelativeOrientation = false;
 
-	/** Whether the orientation of the direction is relative to the point transform or not. */
+	/** If true, the direction vector will be affected by the point' world rotation. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bOverrideRelativeOrientation"))
 	bool bRelativeOrientation = false;
 
@@ -173,7 +186,6 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bOverrideAttributeModifier"))
 	FPCGExSocketModifierDescriptor AttributeModifier;
 };
-
 
 #pragma endregion
 
@@ -238,16 +250,42 @@ namespace PCGExRelational
 
 	struct PCGEXTENDEDTOOLKIT_API FModifier : public PCGEx::FLocalSingleComponentInput
 	{
-		
+		FModifier(): PCGEx::FLocalSingleComponentInput()
+		{
+		}
+
+		FModifier(FPCGExSocketDescriptor& InDescriptor): PCGEx::FLocalSingleComponentInput()
+		{
+			Descriptor = InDescriptor.AttributeModifier;
+			bEnabled = InDescriptor.bApplyAttributeModifier;
+		}
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FLocalDirection : public PCGEx::FLocalDirectionInput
 	{
-	
+		FLocalDirection(): PCGEx::FLocalDirectionInput()
+		{
+		}
+
+		FLocalDirection(FPCGExSocketDescriptor& InDescriptor): PCGEx::FLocalDirectionInput()
+		{
+			Descriptor = static_cast<FPCGExInputSelector>(InDescriptor.AttributeDirectionVector);
+			bEnabled = InDescriptor.bDirectionVectorFromAttribute;
+		}
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FSocket
 	{
+		FSocket()
+		{
+		}
+
+		FSocket(FPCGExSocketDescriptor& InDescriptor)
+		{
+			Descriptor = InDescriptor;
+			Descriptor.Direction.DotTolerance = FMath::Cos(Descriptor.Direction.Cone * (PI / 180.0)); //Degrees to dot product
+		}
+
 		friend struct FSocketMapping;
 		FPCGExSocketDescriptor Descriptor;
 		FPCGMetadataAttribute<FVector4>* SocketDataAttribute = nullptr;
@@ -330,19 +368,9 @@ namespace PCGExRelational
 			{
 				if (!Descriptor.bEnabled) { continue; }
 
-				// Convert degrees to dot product
-				Descriptor.Direction.DotTolerance = FMath::Cos(Descriptor.Direction.Cone * (PI / 180.0));
-
-				FModifier& NewModifier = Modifiers.Emplace_GetRef();
-				NewModifier.bEnabled = Descriptor.bApplyAttributeModifier;
-				NewModifier.Descriptor = Descriptor.AttributeModifier;
-
-				FLocalDirection& NewLocalDirection = LocalDirections.Emplace_GetRef();
-				NewLocalDirection.bEnabled = Descriptor.bDirectionVectorFromAttribute;
-				NewLocalDirection.Descriptor = Descriptor.AttributeDirectionVector;
-
-				FSocket& NewSocket = Sockets.Emplace_GetRef();
-				NewSocket.Descriptor = Descriptor;
+				FModifier& NewModifier = Modifiers.Emplace_GetRef(Descriptor);
+				FLocalDirection& NewLocalDirection = LocalDirections.Emplace_GetRef(Descriptor);
+				FSocket& NewSocket = Sockets.Emplace_GetRef(Descriptor);
 				NewSocket.AttributeName = GetSocketName(Identifier, Descriptor.SocketName);
 				NumSockets++;
 			}
@@ -356,16 +384,15 @@ namespace PCGExRelational
 			{
 				if (!Descriptor.bEnabled) { continue; }
 
-				FModifier& NewModifier = Modifiers.Emplace_GetRef();
+				FModifier& NewModifier = Modifiers.Emplace_GetRef(Descriptor);
 				NewModifier.bEnabled = Overrides.bOverrideAttributeModifier ? Overrides.bApplyAttributeModifier : Descriptor.bApplyAttributeModifier;
 				NewModifier.Descriptor = Overrides.bOverrideAttributeModifier ? Overrides.AttributeModifier : Descriptor.AttributeModifier;
 
-				FLocalDirection& NewLocalDirection = LocalDirections.Emplace_GetRef();
+				FLocalDirection& NewLocalDirection = LocalDirections.Emplace_GetRef(Descriptor);
 				NewLocalDirection.bEnabled = Overrides.bOverrideDirectionVectorFromAttribute ? Overrides.bDirectionVectorFromAttribute : Descriptor.bDirectionVectorFromAttribute;
 				NewLocalDirection.Descriptor = Overrides.bOverrideDirectionVectorFromAttribute ? Overrides.AttributeDirectionVector : Descriptor.AttributeDirectionVector;
 
-				FSocket& NewSocket = Sockets.Emplace_GetRef();
-				NewSocket.Descriptor = Descriptor;
+				FSocket& NewSocket = Sockets.Emplace_GetRef(Descriptor);
 
 				if (Overrides.bOverrideRelativeOrientation)
 				{

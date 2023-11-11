@@ -73,7 +73,7 @@ bool FPCGExSortPointsElement::ExecuteInternal(FPCGContext* InContext) const
 		{
 			using T = decltype(DummyValue);
 			FPCGMetadataAttribute<T>* Attribute = static_cast<FPCGMetadataAttribute<T>*>(Rule->Attribute);
-			return FPCGExCompare::Compare(Attribute->GetValueFromItemKey(PtA.MetadataEntry), Attribute->GetValueFromItemKey(PtB.MetadataEntry), Rule->Tolerance, Rule->ComponentSelection);
+			return FPCGExCompare::Compare(Attribute->GetValueFromItemKey(PtA.MetadataEntry), Attribute->GetValueFromItemKey(PtB.MetadataEntry), Rule->Tolerance, Rule->FieldSelection);
 		};
 
 		POI->Out->GetMutablePoints().Sort(
@@ -81,7 +81,7 @@ bool FPCGExSortPointsElement::ExecuteInternal(FPCGContext* InContext) const
 			const FPCGPoint& A, const FPCGPoint& B)
 			{
 #define PCGEX_COMPARE_PROPERTY_CASE(_ENUM, _ACCESSOR) \
-case _ENUM : Result = FPCGExCompare::Compare(A._ACCESSOR, B._ACCESSOR, Rule.Tolerance, Rule.ComponentSelection); break;
+case _ENUM : Result = FPCGExCompare::Compare(A._ACCESSOR, B._ACCESSOR, Rule.Tolerance, Rule.FieldSelection); break;
 
 				int Result = 0;
 				for (const FPCGExSortRule& Rule : Rules)

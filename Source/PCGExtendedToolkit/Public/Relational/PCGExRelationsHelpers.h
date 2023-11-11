@@ -5,7 +5,6 @@
 
 #include "CoreMinimal.h"
 #include "PCGContext.h"
-#include "PCGExCommon.h"
 #include "Data/PCGExRelationsParamsData.h"
 //#include "PCGExRelationsHelpers.generated.h"
 
@@ -162,8 +161,7 @@ namespace PCGExRelational
 		/**
 		 * Prepare a list of SocketCandidate data to be used for the duration of a PointData processing.
 		 * Assumes that the Params have been properly set-up before.
-		 * @param Point 
-		 * @param Data 
+		 * @param Point
 		 * @return 
 		 */
 		static double PrepareCandidatesForPoint(

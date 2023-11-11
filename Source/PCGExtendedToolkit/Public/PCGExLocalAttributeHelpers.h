@@ -195,22 +195,20 @@ template <typename dummy = void> _TYPE GetValueInternal(FName Value) const { ret
 
 	struct PCGEXTENDEDTOOLKIT_API FLocalSingleComponentInput : public FLocalAttributeInput<double>
 	{
-
 		FLocalSingleComponentInput()
 		{
-			
 		}
 
 		FLocalSingleComponentInput(
-			EPCGExSingleComponentSelection InComponent,
+			EPCGExSingleFieldSelection InFieldSelection,
 			EPCGExDirectionSelection InDirection)
 		{
-			Component = InComponent;
+			FieldSelection = InFieldSelection;
 			Direction = InDirection;
 		}
-		
+
 	public:
-		EPCGExSingleComponentSelection Component = EPCGExSingleComponentSelection::X;
+		EPCGExSingleFieldSelection FieldSelection = EPCGExSingleFieldSelection::X;
 		EPCGExDirectionSelection Direction = EPCGExDirectionSelection::Forward;
 
 	protected:
@@ -231,16 +229,16 @@ template <typename dummy = void> _TYPE GetValueInternal(FName Value) const { ret
 		template <typename dummy = void>
 		double GetValueInternal(FVector2D Value) const
 		{
-			switch (Component)
+			switch (FieldSelection)
 			{
 			default:
-			case EPCGExSingleComponentSelection::X:
+			case EPCGExSingleFieldSelection::X:
 				return Value.X;
-			case EPCGExSingleComponentSelection::Y:
-			case EPCGExSingleComponentSelection::Z:
-			case EPCGExSingleComponentSelection::W:
+			case EPCGExSingleFieldSelection::Y:
+			case EPCGExSingleFieldSelection::Z:
+			case EPCGExSingleFieldSelection::W:
 				return Value.Y;
-			case EPCGExSingleComponentSelection::Length:
+			case EPCGExSingleFieldSelection::Length:
 				return Value.Length();
 			}
 		}
@@ -248,17 +246,17 @@ template <typename dummy = void> _TYPE GetValueInternal(FName Value) const { ret
 		template <typename dummy = void>
 		double GetValueInternal(FVector Value) const
 		{
-			switch (Component)
+			switch (FieldSelection)
 			{
 			default:
-			case EPCGExSingleComponentSelection::X:
+			case EPCGExSingleFieldSelection::X:
 				return Value.X;
-			case EPCGExSingleComponentSelection::Y:
+			case EPCGExSingleFieldSelection::Y:
 				return Value.Y;
-			case EPCGExSingleComponentSelection::Z:
-			case EPCGExSingleComponentSelection::W:
+			case EPCGExSingleFieldSelection::Z:
+			case EPCGExSingleFieldSelection::W:
 				return Value.Z;
-			case EPCGExSingleComponentSelection::Length:
+			case EPCGExSingleFieldSelection::Length:
 				return Value.Length();
 			}
 		}
@@ -266,18 +264,18 @@ template <typename dummy = void> _TYPE GetValueInternal(FName Value) const { ret
 		template <typename dummy = void>
 		double GetValueInternal(FVector4 Value) const
 		{
-			switch (Component)
+			switch (FieldSelection)
 			{
 			default:
-			case EPCGExSingleComponentSelection::X:
+			case EPCGExSingleFieldSelection::X:
 				return Value.X;
-			case EPCGExSingleComponentSelection::Y:
+			case EPCGExSingleFieldSelection::Y:
 				return Value.Y;
-			case EPCGExSingleComponentSelection::Z:
+			case EPCGExSingleFieldSelection::Z:
 				return Value.Z;
-			case EPCGExSingleComponentSelection::W:
+			case EPCGExSingleFieldSelection::W:
 				return Value.W;
-			case EPCGExSingleComponentSelection::Length:
+			case EPCGExSingleFieldSelection::Length:
 				return FVector(Value).Length();
 			}
 		}
@@ -305,7 +303,6 @@ template <typename dummy = void> _TYPE GetValueInternal(FName Value) const { ret
 	{
 		FLocalDirectionInput()
 		{
-			
 		}
 
 		FLocalDirectionInput(
@@ -313,7 +310,7 @@ template <typename dummy = void> _TYPE GetValueInternal(FName Value) const { ret
 		{
 			Direction = InDirection;
 		}
-		
+
 	public:
 		EPCGExDirectionSelection Direction = EPCGExDirectionSelection::Forward;
 

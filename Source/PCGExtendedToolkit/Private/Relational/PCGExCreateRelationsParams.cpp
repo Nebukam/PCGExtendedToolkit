@@ -21,23 +21,12 @@ UPCGExCreateRelationsParamsSettings::UPCGExCreateRelationsParamsSettings(
 
 void UPCGExCreateRelationsParamsSettings::InitDefaultSockets()
 {
-	FPCGExSocketDescriptor& Socket = Sockets.Emplace_GetRef("Forward", FPCGExSocketDirection{FVector::ForwardVector});
-	Socket.DebugColor = FColor(255, 0, 0);
-
-	Socket = Sockets.Emplace_GetRef("Backward", FPCGExSocketDirection{FVector::BackwardVector});
-	Socket.DebugColor = FColor(200, 0, 0);
-
-	Socket = Sockets.Emplace_GetRef("Right", FPCGExSocketDirection{FVector::RightVector});
-	Socket.DebugColor = FColor(0, 255, 0);
-
-	Socket = Sockets.Emplace_GetRef("Left", FPCGExSocketDirection{FVector::LeftVector});
-	Socket.DebugColor = FColor(0, 200, 0);
-
-	Socket = Sockets.Emplace_GetRef("Up", FPCGExSocketDirection{FVector::UpVector});
-	Socket.DebugColor = FColor(0, 0, 255);
-
-	Socket = Sockets.Emplace_GetRef("Down", FPCGExSocketDirection{FVector::DownVector});
-	Socket.DebugColor = FColor(0, 0, 200);
+	Sockets.Add(FPCGExSocketDescriptor("Forward", FVector::ForwardVector, FColor(255, 0, 0)));
+	Sockets.Add(FPCGExSocketDescriptor("Backward", FVector::BackwardVector, FColor(200, 0, 0)));
+	Sockets.Add(FPCGExSocketDescriptor("Right", FVector::RightVector, FColor(0, 255, 0)));
+	Sockets.Add(FPCGExSocketDescriptor("Left", FVector::LeftVector,  FColor(0, 200, 0)));
+	Sockets.Add(FPCGExSocketDescriptor("Up", FVector::UpVector,  FColor(0, 0, 255)));
+	Sockets.Add(FPCGExSocketDescriptor("Down", FVector::DownVector, FColor(0, 0, 200)));
 }
 
 FText UPCGExCreateRelationsParamsSettings::GetNodeTooltipText() const
@@ -85,7 +74,7 @@ T* FPCGExCreateRelationsParamsElement::BuildParams(
 
 	TArray<FPCGTaggedData>& Outputs = Context->OutputData.TaggedData;
 	T* OutParams = NewObject<T>();
-
+		
 	OutParams->RelationIdentifier = Settings->RelationIdentifier;
 	OutParams->InitializeSockets(
 		const_cast<TArray<FPCGExSocketDescriptor>&>(Settings->Sockets),

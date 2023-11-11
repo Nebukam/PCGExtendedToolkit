@@ -3,13 +3,13 @@
 1. [Readme](Readme.md)
 1. [Installation](docs/Installation.md)
 1. Nodes
-    - Sorting
+    - Misc
         - [Sort Points](docs/PCGExSortPoints.md)
     - Relational
         - [Partition by Values](docs/PCGExPartitionByValues.md)
-        - [Relational Params](docs/PCGExRelationalParams.md)
-        - [Find Relations](docs/PCGExFindRelations.md)
+        - [Relations Params](docs/PCGExRelationsParams.md)
+        - [Build Relations](docs/PCGExBuildRelations.md)
         - [Find Paths](docs/PCGExFindPaths.md)
 1. Data Types
-    - [Relational Data](docs/PCGExRelationalData.md)
+    - [Relations Data](docs/PCGExRelationsData.md)
 1. [Frequently Asked Questions](docs/FAQ.md)

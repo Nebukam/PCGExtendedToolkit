@@ -45,7 +45,7 @@ MACRO(EPCGPointProperties::Seed, Seed)
 MACRO(EPCGExtraProperties::Index, MetadataEntry)
 
 UENUM(BlueprintType)
-enum class EPCGExComponentSelection : uint8
+enum class EPCGExOrderedFieldSelection : uint8
 {
 	X UMETA(DisplayName = "X", ToolTip="X/Roll component if it exist, raw value otherwise."),
 	Y UMETA(DisplayName = "Y (→x)", ToolTip="Y/Pitch component if it exist, fallback to previous value otherwise."),
@@ -61,7 +61,7 @@ enum class EPCGExComponentSelection : uint8
 };
 
 UENUM(BlueprintType)
-enum class EPCGExSingleComponentSelection : uint8
+enum class EPCGExSingleFieldSelection : uint8
 {
 	X UMETA(DisplayName = "X/Roll", ToolTip="X/Roll component if it exist, raw value otherwise."),
 	Y UMETA(DisplayName = "Y/Pitch", ToolTip="Y/Pitch component if it exist, fallback to previous value otherwise."),
@@ -89,29 +89,31 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExInputSelector
 
 	FPCGExInputSelector()
 	{
-		bFixed = false;
+		bValidatedAtLeastOnce = false;
 	}
 
 	FPCGExInputSelector(const FPCGExInputSelector& Other)
 	{
 		Selector = Other.Selector;
 		Attribute = Other.Attribute;
-		bFixed = false;
+		bValidatedAtLeastOnce = false;
 	}
 
 public:
-	/** Name of the attribute to compare */
+	/** Point Attribute or $Property */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGAttributePropertyInputSelector Selector;
 
-	/* Can hold a reference to the attribute pointer, if prepared like so */
 	FPCGMetadataAttributeBase* Attribute = nullptr;
-
-	/* Whether CopyAndFixLast has been called*/
-	bool bFixed = false;
-
+	bool bValidatedAtLeastOnce = false;
 	int16 UnderlyingType = 0;
 
+	/**
+	 * Check if the current selector can currently read from a given UPCGPointData.
+	 * Requires Validate() to be called first.
+	 * @param PointData 
+	 * @return 
+	 */
 	bool IsValid(const UPCGPointData* PointData) const
 	{
 		const EPCGAttributePropertySelection Sel = Selector.GetSelection();
@@ -119,6 +121,14 @@ public:
 		return Selector.IsValid();
 	}
 
+	/**
+	 * Try to read typed value from the cached attribute, if it exists.
+	 * Use Validate() to temporarily cache attribute for a given UPCGPointData
+	 * @tparam T 
+	 * @param MetadataEntry 
+	 * @param OutValue 
+	 * @return 
+	 */
 	template <typename T>
 	bool TryGetValue(PCGMetadataEntryKey MetadataEntry, T& OutValue)
 	{
@@ -127,6 +137,11 @@ public:
 		return true;
 	}
 
+	/**
+	 * 
+	 * @tparam T 
+	 * @return 
+	 */
 	template <typename T>
 	FPCGMetadataAttribute<T>* GetTypedAttribute()
 	{
@@ -134,9 +149,14 @@ public:
 		return static_cast<FPCGMetadataAttribute<T>*>(Attribute);
 	}
 
+	/**
+	 * Validate & cache the current selector for a given UPCGPointData
+	 * @param InData 
+	 * @return 
+	 */
 	bool Validate(const UPCGPointData* InData)
 	{
-		bFixed = true;
+		bValidatedAtLeastOnce = true;
 		Selector = Selector.CopyAndFixLast(InData);
 		if (Selector.GetSelection() == EPCGAttributePropertySelection::Attribute)
 		{
@@ -161,10 +181,7 @@ public:
 		}
 	}
 
-	FString ToString() const
-	{
-		return Selector.GetName().ToString();
-	}
+	FString ToString() const { return Selector.GetName().ToString(); }
 
 	~FPCGExInputSelector()
 	{
@@ -173,54 +190,81 @@ public:
 };
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExInputSelectorWithComponent : public FPCGExInputSelector
+struct PCGEXTENDEDTOOLKIT_API FPCGExInputSelectorWithField : public FPCGExInputSelector
 {
 	GENERATED_BODY()
 
-	FPCGExInputSelectorWithComponent(): FPCGExInputSelector()
+	FPCGExInputSelectorWithField(): FPCGExInputSelector()
 	{
 	}
 
-	FPCGExInputSelectorWithComponent(const FPCGExInputSelectorWithComponent& Other): FPCGExInputSelector(Other)
+	FPCGExInputSelectorWithField(const FPCGExInputSelectorWithField& Other)
+		: FPCGExInputSelector(Other)
 	{
-		ComponentSelection = Other.ComponentSelection;
+		FieldSelection = Other.FieldSelection;
 	}
 
 public:
-	/** Sub-sorting order, used only for multi-field attributes (FVector, FRotator etc). */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	EPCGExComponentSelection ComponentSelection = EPCGExComponentSelection::XYZ;
+	/** Sub-component order, used only for multi-field attributes (FVector, FRotator etc). */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayAfter="Selector"))
+	EPCGExOrderedFieldSelection FieldSelection = EPCGExOrderedFieldSelection::XYZ;
 
-	~FPCGExInputSelectorWithComponent()
+	~FPCGExInputSelectorWithField()
 	{
 	}
 };
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExInputSelectorWithSingleComponent : public FPCGExInputSelector
+struct PCGEXTENDEDTOOLKIT_API FPCGExInputSelectorWithDirection : public FPCGExInputSelector
 {
 	GENERATED_BODY()
 
-	FPCGExInputSelectorWithSingleComponent(): FPCGExInputSelector()
+	FPCGExInputSelectorWithDirection(): FPCGExInputSelector()
 	{
 	}
 
-	FPCGExInputSelectorWithSingleComponent(const FPCGExInputSelectorWithSingleComponent& Other): FPCGExInputSelector(Other)
+	FPCGExInputSelectorWithDirection(const FPCGExInputSelectorWithDirection& Other)
+		: FPCGExInputSelector(Other)
 	{
-		ComponentSelection = Other.ComponentSelection;
 		Direction = Other.Direction;
 	}
 
 public:
-	/** Single component selection */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	EPCGExSingleComponentSelection ComponentSelection = EPCGExSingleComponentSelection::X;
-
-	/** Direction to sample on relevant data types (FQuat are transformed to a direction first, from which the single component is selected) */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	/** Sub-component order, used only for multi-field attributes (FVector, FRotator etc). */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayAfter="Selector"))
 	EPCGExDirectionSelection Direction = EPCGExDirectionSelection::Forward;
 
-	~FPCGExInputSelectorWithSingleComponent()
+	~FPCGExInputSelectorWithDirection()
+	{
+	}
+};
+
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExInputSelectorWithSingleField : public FPCGExInputSelector
+{
+	GENERATED_BODY()
+
+	FPCGExInputSelectorWithSingleField(): FPCGExInputSelector()
+	{
+	}
+
+	FPCGExInputSelectorWithSingleField(const FPCGExInputSelectorWithSingleField& Other)
+		: FPCGExInputSelector(Other)
+	{
+		FieldSelection = Other.FieldSelection;
+		Direction = Other.Direction;
+	}
+
+public:
+	/** Single field selection */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayAfter="Selector"))
+	EPCGExSingleFieldSelection FieldSelection = EPCGExSingleFieldSelection::X;
+
+	/** Direction to sample on relevant data types (FQuat are transformed to a direction first, from which the single component is selected) */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayAfter="Selector"))
+	EPCGExDirectionSelection Direction = EPCGExDirectionSelection::Forward;
+
+	~FPCGExInputSelectorWithSingleField()
 	{
 	}
 };

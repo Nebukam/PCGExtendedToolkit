@@ -15,15 +15,15 @@
 #include "PCGExPartitionByValues.generated.h"
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExPartitionRule : public FPCGExInputSelectorWithSingleComponent
+struct PCGEXTENDEDTOOLKIT_API FPCGExPartitionRule : public FPCGExInputSelectorWithSingleField
 {
 	GENERATED_BODY()
 
-	FPCGExPartitionRule(): FPCGExInputSelectorWithSingleComponent()
+	FPCGExPartitionRule(): FPCGExInputSelectorWithSingleField()
 	{
 	}
 
-	FPCGExPartitionRule(const FPCGExPartitionRule& Other): FPCGExInputSelectorWithSingleComponent(Other)
+	FPCGExPartitionRule(const FPCGExPartitionRule& Other): FPCGExInputSelectorWithSingleField(Other)
 	{
 		FilterSize = Other.FilterSize;
 		Upscale = Other.Upscale;
@@ -48,7 +48,7 @@ namespace PCGExPartition
 		}
 
 		FRule(const FPCGExPartitionRule& Rule):
-			FLocalSingleComponentInput(Rule.ComponentSelection, Rule.Direction),
+			FLocalSingleComponentInput(Rule.FieldSelection, Rule.Direction),
 			FilterSize(Rule.FilterSize),
 			Upscale(Rule.Upscale)
 		{

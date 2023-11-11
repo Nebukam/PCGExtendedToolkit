@@ -1,4 +1,4 @@
-# Find Relations
+# Build Relations
 
 ## What is it useful for?
 This node processes points and cache their neighbors based on specific [Relational Params](docs/PCGExRelationalParams.md), in order to be easily processed by other relational nodes without having to recompute relations each time.
