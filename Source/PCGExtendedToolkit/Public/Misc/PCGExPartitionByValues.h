@@ -107,11 +107,9 @@ public:
 
 	TArray<PCGExPartition::FRule> Rules;
 	TMap<UPCGExPointIO*, PCGExPartition::FRule*> RuleMap;
-	FPCGExPartitionRuleDescriptor PartitionSettings;
 	
 	UPCGExPointIOGroup* Partitions;
 	FPCGExPartitionRuleDescriptor PartitionRule;
-	EPCGAttributePropertySelection Selection;
 	FName PartitionKeyName;
 	bool bWritePartitionKey = false;
 

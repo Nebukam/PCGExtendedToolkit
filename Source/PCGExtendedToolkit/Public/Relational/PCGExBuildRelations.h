@@ -24,13 +24,13 @@ public:
 	virtual FText GetDefaultNodeTitle() const override { return NSLOCTEXT("PCGExBuildRelations", "NodeTitle", "Build Relations"); }
 	virtual FText GetNodeTooltipText() const override;
 #endif
-
+	
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings interface
 
 	virtual int32 GetPreferredChunkSize() const override;
-	
+		
 	virtual PCGEx::EIOInit GetPointOutputInitMode() const override;
 
 public:

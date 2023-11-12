@@ -143,10 +143,7 @@ bool FPCGExBuildRelationsElement::ExecuteInternal(
 	if (Context->IsCurrentOperation(PCGEx::EOperation::ReadyForNextParams))
 	{
 #if WITH_EDITOR
-		const UPCGExBuildRelationsSettings* Settings = Context->GetInputSettings<UPCGExBuildRelationsSettings>();
-		check(Settings);
-
-		if (Context->CurrentParams && Settings->bDebug) { DrawRelationsDebug(Context); }
+		DrawRelationsDebug(Context);
 #endif
 
 		if (!Context->AdvanceParams())
@@ -172,12 +169,6 @@ bool FPCGExBuildRelationsElement::ExecuteInternal(
 		{
 			Context->SetOperation(PCGEx::EOperation::ReadyForNextParams);
 		}
-		/*
-		if (PCGEx::Common::ParallelForLoop(Context, Context->CurrentIO->NumPoints, Initialize, ProcessPoint, Context->ChunkSize))
-		{
-			Context->SetOperation(PCGEx::EOperation::ReadyForNextParams);
-		}
-		*/
 	}
 
 	if (Context->IsCurrentOperation(PCGEx::EOperation::Done))
@@ -192,11 +183,14 @@ bool FPCGExBuildRelationsElement::ExecuteInternal(
 #if WITH_EDITOR
 void FPCGExBuildRelationsElement::DrawRelationsDebug(FPCGExBuildRelationsContext* Context) const
 {
+
+	const UPCGExBuildRelationsSettings* Settings = Context->GetInputSettings<UPCGExBuildRelationsSettings>();
+
+	if (!Context->CurrentParams || !Context->CurrentIO || !Settings->bDebug) { return; }
+	
 	if (UWorld* EditorWorld = GEditor->GetEditorWorldContext().World())
 	{
-		FlushPersistentDebugLines(EditorWorld);
-		Context->CurrentParams->PrepareForPointData(Context->CurrentIO->Out);
-		auto DrawDebug = [&Context, &EditorWorld](int32 ReadIndex)
+		auto DrawDebug = [&Context, &Settings, &EditorWorld](int32 ReadIndex)
 		{
 			FPCGPoint PtA = Context->CurrentIO->Out->GetPoint(ReadIndex);
 			int64 Key = PtA.MetadataEntry;
@@ -209,7 +203,7 @@ void FPCGExBuildRelationsElement::DrawRelationsDebug(FPCGExBuildRelationsContext
 
 				FPCGPoint PtB = Context->CurrentIO->Out->GetPoint(SocketData.Index);
 				FVector End = FMath::Lerp(Start, PtB.Transform.GetLocation(), 0.4);
-				DrawDebugDirectionalArrow(EditorWorld, Start, End, 2.0f, Socket.Descriptor.DebugColor, true, -1, 0, 2);
+				DrawDebugDirectionalArrow(EditorWorld, Start, End, 2.0f, Socket.Descriptor.DebugColor, false, Settings->DebugDrawLifetime, 0, 2);
 			}
 		};
 

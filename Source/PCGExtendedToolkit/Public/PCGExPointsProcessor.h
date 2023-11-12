@@ -52,6 +52,10 @@ public:
 	virtual PCGEx::EIOInit GetPointOutputInitMode() const;
 
 	/** Multithread chunk size, when supported.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, AdvancedDisplay, meta=(Units="Seconds"))
+	double DebugDrawLifetime = 10.0f;
+	
+	/** Multithread chunk size, when supported.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, AdvancedDisplay)
 	int32 ChunkSize = 0;
 

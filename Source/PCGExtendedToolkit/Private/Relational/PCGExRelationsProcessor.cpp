@@ -42,7 +42,6 @@ bool FPCGExRelationsProcessorContext::AdvanceParams(bool bResetPointsIndex)
 	CurrentParamsIndex++;
 	if (Params.Params.IsValidIndex(CurrentParamsIndex))
 	{
-		//UE_LOG(LogTemp, Warning, TEXT("AdvanceParams to %d"), CurrentParamsIndex);
 		CurrentParams = Params.Params[CurrentParamsIndex];
 		return true;
 	}
@@ -87,7 +86,7 @@ void FPCGExRelationsProcessorElement::InitializeContext(
 	FPCGExPointsProcessorElementBase::InitializeContext(InContext, InputData, SourceComponent, Node);
 
 	FPCGExRelationsProcessorContext* Context = static_cast<FPCGExRelationsProcessorContext*>(InContext);
-		
+
 	TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(PCGExRelational::SourceRelationalParamsLabel);
 	Context->Params.Initialize(InContext, Sources);
 }
