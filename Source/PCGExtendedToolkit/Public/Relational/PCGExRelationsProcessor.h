@@ -28,9 +28,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExRelationsProcessorSettings : public UPCGExPoi
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	virtual FName GetDefaultNodeName() const override { return FName(TEXT("RelationsProcessorSettings")); }
-	virtual FText GetDefaultNodeTitle() const override { return NSLOCTEXT("PCGExRelationsProcessorSettings", "NodeTitle", "Relations Processor Settings"); }
-	virtual FText GetNodeTooltipText() const override;
+	PCGEX_NODE_INFOS(RelationsProcessorSettings, "Relations Processor Settings", "TOOLTIP_TEXT");
 #endif
 
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;

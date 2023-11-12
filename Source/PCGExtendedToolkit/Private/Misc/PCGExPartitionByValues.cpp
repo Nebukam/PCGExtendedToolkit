@@ -15,13 +15,6 @@ namespace PCGExPartitionByValues
 	const FName SourceLabel = TEXT("Source");
 }
 
-#if WITH_EDITOR
-FText UPCGExPartitionByValuesSettings::GetNodeTooltipText() const
-{
-	return LOCTEXT("PCGExSplitByAttribute", "Outputs separate buckets of points based on an attribute' value. Each bucket is named after a unique attribute value. Note that it is recommended to use a MERGE before.");
-}
-#endif // WITH_EDITOR
-
 FPCGElementPtr UPCGExPartitionByValuesSettings::CreateElement() const { return MakeShared<FPCGExPartitionByValuesElement>(); }
 
 PCGEx::EIOInit UPCGExPartitionByValuesSettings::GetPointOutputInitMode() const { return PCGEx::EIOInit::NoOutput; }

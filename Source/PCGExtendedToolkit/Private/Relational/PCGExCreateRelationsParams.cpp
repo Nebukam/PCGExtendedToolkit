@@ -11,7 +11,6 @@
 
 #define LOCTEXT_NAMESPACE "PCGExRelationalParamsBuilderElementBase"
 
-#if WITH_EDITOR
 UPCGExCreateRelationsParamsSettings::UPCGExCreateRelationsParamsSettings(
 	const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -21,20 +20,18 @@ UPCGExCreateRelationsParamsSettings::UPCGExCreateRelationsParamsSettings(
 
 void UPCGExCreateRelationsParamsSettings::InitDefaultSockets()
 {
-	Sockets.Add(FPCGExSocketDescriptor("Forward", FVector::ForwardVector, FColor(255, 0, 0)));
-	Sockets.Add(FPCGExSocketDescriptor("Backward", FVector::BackwardVector, FColor(200, 0, 0)));
-	Sockets.Add(FPCGExSocketDescriptor("Right", FVector::RightVector, FColor(0, 255, 0)));
-	Sockets.Add(FPCGExSocketDescriptor("Left", FVector::LeftVector,  FColor(0, 200, 0)));
-	Sockets.Add(FPCGExSocketDescriptor("Up", FVector::UpVector,  FColor(0, 0, 255)));
-	Sockets.Add(FPCGExSocketDescriptor("Down", FVector::DownVector, FColor(0, 0, 200)));
+	Sockets.Add(FPCGExSocketDescriptor("Forward", FVector::ForwardVector, "Backward", FColor(255, 0, 0)));
+	Sockets.Add(FPCGExSocketDescriptor("Backward", FVector::BackwardVector, "Forward", FColor(200, 0, 0)));
+	Sockets.Add(FPCGExSocketDescriptor("Right", FVector::RightVector, "Left", FColor(0, 255, 0)));
+	Sockets.Add(FPCGExSocketDescriptor("Left", FVector::LeftVector, "Right", FColor(0, 200, 0)));
+	Sockets.Add(FPCGExSocketDescriptor("Up", FVector::UpVector, "Down", FColor(0, 0, 255)));
+	Sockets.Add(FPCGExSocketDescriptor("Down", FVector::DownVector, "Up", FColor(0, 0, 200)));
 }
 
-FText UPCGExCreateRelationsParamsSettings::GetNodeTooltipText() const
+const TArray<FPCGExSocketDescriptor>& UPCGExCreateRelationsParamsSettings::GetSockets() const
 {
-	return LOCTEXT("DataFromActorTooltip", "Builds a collection of PCG-compatible data from the selected actors.");
+	return Sockets;
 }
-
-#endif
 
 FPCGElementPtr UPCGExCreateRelationsParamsSettings::CreateElement() const
 {
@@ -74,10 +71,10 @@ T* FPCGExCreateRelationsParamsElement::BuildParams(
 
 	TArray<FPCGTaggedData>& Outputs = Context->OutputData.TaggedData;
 	T* OutParams = NewObject<T>();
-		
+
 	OutParams->RelationIdentifier = Settings->RelationIdentifier;
 	OutParams->InitializeSockets(
-		const_cast<TArray<FPCGExSocketDescriptor>&>(Settings->Sockets),
+		const_cast<TArray<FPCGExSocketDescriptor>&>(Settings->GetSockets()),
 		Settings->bApplyGlobalOverrides,
 		const_cast<FPCGExSocketGlobalOverrides&>(Settings->GlobalOverrides));
 

@@ -1,12 +1,8 @@
 ﻿// Copyright Timothé Lapetite 2023
 // Released under the MIT license https://opensource.org/license/MIT/
 
-
 #include "Data/PCGExRelationsParamsData.h"
-#include "PCGExCommon.h"
 #include "Data/PCGPointData.h"
-//#include "Metadata/Accessors/IPCGAttributeAccessor.h"
-//#include "Metadata/Accessors/PCGAttributeAccessorHelpers.h"
 
 UPCGExRelationsParamsData::UPCGExRelationsParamsData(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)

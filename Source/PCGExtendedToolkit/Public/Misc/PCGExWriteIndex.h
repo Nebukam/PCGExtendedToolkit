@@ -15,7 +15,7 @@
 /**
  * Calculates the distance between two points (inherently a n*n operation)
  */
-UCLASS(BlueprintType, ClassGroup = (Procedural))
+UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
 class PCGEXTENDEDTOOLKIT_API UPCGExWriteIndexSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
@@ -23,9 +23,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExWriteIndexSettings : public UPCGExPointsProce
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	virtual FName GetDefaultNodeName() const override { return FName(TEXT("WriteIndex")); }
-	virtual FText GetDefaultNodeTitle() const override { return NSLOCTEXT("PCGExWriteIndex", "NodeTitle", "Write Index"); }
-	virtual FText GetNodeTooltipText() const override;
+	PCGEX_NODE_INFOS(WriteIndex, "Write Index", "Write the current point index to an attribute.");
 #endif
 
 	virtual PCGEx::EIOInit GetPointOutputInitMode() const override;

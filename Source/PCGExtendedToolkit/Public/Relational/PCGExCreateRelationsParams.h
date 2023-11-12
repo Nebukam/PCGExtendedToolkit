@@ -11,7 +11,7 @@
 #include "PCGExCreateRelationsParams.generated.h"
 
 /** Outputs a single RelationalParam to be consumed by other nodes */
-UCLASS(BlueprintType, ClassGroup = (Procedural))
+UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Relational|Params")
 class PCGEXTENDEDTOOLKIT_API UPCGExCreateRelationsParamsSettings : public UPCGSettings
 {
 	GENERATED_BODY()
@@ -21,9 +21,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExCreateRelationsParamsSettings : public UPCGSe
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	virtual FName GetDefaultNodeName() const override { return FName(TEXT("RelationalParams")); }
-	virtual FText GetDefaultNodeTitle() const override { return NSLOCTEXT("PCGExRelationalParams", "NodeTitle", "Relational Params"); }
-	virtual FText GetNodeTooltipText() const override;
+	PCGEX_NODE_INFOS(RelationalParams, "Relational Params", "Builds a collection of PCG-compatible data from the selected actors.");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Param; }
 #endif
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
@@ -34,22 +32,24 @@ protected:
 	//~End UPCGSettings
 
 public:
-	/** Attribute name to store relation data to. Note that since it uses a custom data type, it won't show up in editor.*/
+	/** Attribute name to store relation data to. Used as prefix.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FName RelationIdentifier = "RelationIdentifier";
 
-	/** Attribute name to store relation data to. Note that since it uses a custom data type, it won't show up in editor.*/
+	/** Relation sockets model.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(TitleProperty="{SocketName}"))
 	TArray<FPCGExSocketDescriptor> Sockets;
 
-	/** Attribute name to store relation data to. Note that since it uses a custom data type, it won't show up in editor.*/
+	/** Overrides individual socket values with a global one.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(InlineEditConditionToggle))
 	bool bApplyGlobalOverrides = false;
 
-	/** Override individual socket properties */
+	/** Individual socket properties overrides */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="bApplyGlobalOverrides"))
 	FPCGExSocketGlobalOverrides GlobalOverrides;
 
+	const TArray<FPCGExSocketDescriptor>& GetSockets() const;
+	
 protected:
 	virtual void InitDefaultSockets();
 };

@@ -1,6 +1,7 @@
 ﻿// Copyright Timothé Lapetite 2023
 // Released under the MIT license https://opensource.org/license/MIT/
 
+
 #pragma once
 
 #include "CoreMinimal.h"
@@ -15,6 +16,14 @@
 #include <mutex>
 #include <shared_mutex>
 #include "PCGExCommon.generated.h"
+
+//virtual FName GetDefaultNodeName() const override { return FName(TEXT(#_SHORTNAME)); } \
+//virtual FText GetDefaultNodeTitle() const override { return NSLOCTEXT("PCGEx" #_SHORTNAME, "NodeTitle", "PCGEx | " _NAME); }
+
+#define PCGEX_NODE_INFOS(_SHORTNAME, _NAME, _TOOLTIP)\
+virtual FName GetDefaultNodeName() const override { return FName(TEXT(#_SHORTNAME)); } \
+virtual FText GetDefaultNodeTitle() const override { return NSLOCTEXT("PCGEx" #_SHORTNAME, "NodeTitle", "PCGEx | " _NAME);} \
+virtual FText GetNodeTooltipText() const override{ return NSLOCTEXT("PCGEx" #_SHORTNAME "Tooltip", "NodeTooltip", _TOOLTIP); }
 
 #define PCGEX_FOREACH_SUPPORTEDTYPES(MACRO) \
 MACRO(bool, Boolean)       \

@@ -16,14 +16,6 @@ namespace PCGExRelational
 	const FName SourceRelationalParamsLabel = TEXT("RelationalParams");
 }
 
-#if WITH_EDITOR
-
-FText UPCGExRelationsProcessorSettings::GetNodeTooltipText() const
-{
-	return LOCTEXT("PCGExRelationsProcessorTooltip", "Write the current point index to an attribute.");
-}
-#endif // WITH_EDITOR
-
 TArray<FPCGPinProperties> UPCGExRelationsProcessorSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();

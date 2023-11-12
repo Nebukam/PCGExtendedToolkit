@@ -10,10 +10,6 @@
 
 #define LOCTEXT_NAMESPACE "PCGExWriteIndexElement"
 
-#if WITH_EDITOR
-FText UPCGExWriteIndexSettings::GetNodeTooltipText() const { return LOCTEXT("PCGExWriteIndexTooltip", "Write the current point index to an attribute."); }
-#endif // WITH_EDITOR
-
 PCGEx::EIOInit UPCGExWriteIndexSettings::GetPointOutputInitMode() const { return PCGEx::EIOInit::DuplicateInput; }
 
 FPCGElementPtr UPCGExWriteIndexSettings::CreateElement() const { return MakeShared<FPCGExWriteIndexElement>(); }

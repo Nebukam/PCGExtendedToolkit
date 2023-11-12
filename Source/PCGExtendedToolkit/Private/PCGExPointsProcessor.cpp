@@ -16,20 +16,12 @@ namespace PCGEx
 	const FName OutputPointsLabel = TEXT("Points");
 }
 
-#if WITH_EDITOR
-
 UPCGExPointsProcessorSettings::UPCGExPointsProcessorSettings(
 	const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 	if (ChunkSize <= 0) { ChunkSize = UPCGExPointsProcessorSettings::GetPreferredChunkSize(); }
 }
-
-FText UPCGExPointsProcessorSettings::GetNodeTooltipText() const
-{
-	return LOCTEXT("PCGExPointsProcessorTooltip", "Write the current point index to an attribute.");
-}
-#endif // WITH_EDITOR
 
 TArray<FPCGPinProperties> UPCGExPointsProcessorSettings::InputPinProperties() const
 {

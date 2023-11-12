@@ -12,7 +12,7 @@
 /**
  * Calculates the distance between two points (inherently a n*n operation)
  */
-UCLASS(BlueprintType, ClassGroup = (Procedural))
+UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Relational")
 class PCGEXTENDEDTOOLKIT_API UPCGExDeleteRelationsSettings : public UPCGExRelationsProcessorSettings
 {
 	GENERATED_BODY()
@@ -20,9 +20,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExDeleteRelationsSettings : public UPCGExRelati
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	virtual FName GetDefaultNodeName() const override { return FName(TEXT("DeleteRelations")); }
-	virtual FText GetDefaultNodeTitle() const override { return NSLOCTEXT("PCGExDeleteRelations", "NodeTitle", "Delete Relations"); }
-	virtual FText GetNodeTooltipText() const override;
+	PCGEX_NODE_INFOS(DeleteRelations, "Delete Relations", "Delete data associated with given Relations Params.");
 #endif
 
 protected:

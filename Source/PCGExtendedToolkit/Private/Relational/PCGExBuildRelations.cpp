@@ -12,13 +12,6 @@
 
 #define LOCTEXT_NAMESPACE "PCGExBuildRelations"
 
-#if WITH_EDITOR
-FText UPCGExBuildRelationsSettings::GetNodeTooltipText() const
-{
-	return LOCTEXT("PCGDirectionalRelationshipsTooltip", "Write the current point index to an attribute.");
-}
-#endif // WITH_EDITOR
-
 int32 UPCGExBuildRelationsSettings::GetPreferredChunkSize() const { return 32; }
 
 PCGEx::EIOInit UPCGExBuildRelationsSettings::GetPointOutputInitMode() const{ return PCGEx::EIOInit::DuplicateInput; }
@@ -45,7 +38,7 @@ void FPCGExBuildRelationsElement::InitializeContext(
 	const UPCGNode* Node) const
 {
 	FPCGExRelationsProcessorElement::InitializeContext(InContext, InputData, SourceComponent, Node);
-	FPCGExBuildRelationsContext* Context = static_cast<FPCGExBuildRelationsContext*>(InContext);
+	//FPCGExBuildRelationsContext* Context = static_cast<FPCGExBuildRelationsContext*>(InContext);
 	// ...
 }
 
@@ -134,7 +127,7 @@ bool FPCGExBuildRelationsElement::ExecuteInternal(
 		for (int i = 0; i < Candidates.Num(); i++)
 		{
 			const PCGExRelational::FSocket* Socket = &(Context->CurrentParams->GetSocketMapping()->Sockets[i]);
-			Socket->SetValue(Key, Candidates[i].ToSocketData());
+			Socket->SetData(Key, Candidates[i].ToSocketMetadata());
 		}
 	};
 
@@ -198,10 +191,10 @@ void FPCGExBuildRelationsElement::DrawRelationsDebug(FPCGExBuildRelationsContext
 			FVector Start = PtA.Transform.GetLocation();
 			for (const PCGExRelational::FSocket& Socket : Context->CurrentParams->GetSocketMapping()->Sockets)
 			{
-				PCGExRelational::FSocketData SocketData = Socket.GetSocketData(Key);
-				if (SocketData.Index == -1) { continue; }
+				PCGExRelational::FSocketMetadata SocketMetadata = Socket.GetSocketMetadata(Key);
+				if (SocketMetadata.Index == -1) { continue; }
 
-				FPCGPoint PtB = Context->CurrentIO->Out->GetPoint(SocketData.Index);
+				FPCGPoint PtB = Context->CurrentIO->Out->GetPoint(SocketMetadata.Index);
 				FVector End = FMath::Lerp(Start, PtB.Transform.GetLocation(), 0.4);
 				DrawDebugDirectionalArrow(EditorWorld, Start, End, 2.0f, Socket.Descriptor.DebugColor, false, Settings->DebugDrawLifetime, 0, 2);
 			}

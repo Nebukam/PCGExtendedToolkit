@@ -12,7 +12,7 @@
 /**
  * Calculates the distance between two points (inherently a n*n operation)
  */
-UCLASS(BlueprintType, ClassGroup = (Procedural))
+UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Relational")
 class PCGEXTENDEDTOOLKIT_API UPCGExMarkMutualRelationsSettings : public UPCGExRelationsProcessorSettings
 {
 	GENERATED_BODY()
@@ -20,9 +20,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExMarkMutualRelationsSettings : public UPCGExRe
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	virtual FName GetDefaultNodeName() const override { return FName(TEXT("MarkMutualRelations")); }
-	virtual FText GetDefaultNodeTitle() const override { return NSLOCTEXT("PCGExMarkMutualRelations", "NodeTitle", "Mark Mutual Relations"); }
-	virtual FText GetNodeTooltipText() const override;
+	PCGEX_NODE_INFOS(MarkMutualRelations, "Mark Mutual Relations", "Marks which relations are mutual in the socket.Y slot");
 #endif
 
 protected:

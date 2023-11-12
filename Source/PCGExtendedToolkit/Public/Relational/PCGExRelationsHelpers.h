@@ -131,9 +131,9 @@ namespace PCGExRelational
 			return true;
 		}
 
-		FSocketData ToSocketData() const
+		FSocketMetadata ToSocketMetadata() const
 		{
-			return FSocketData{Index, IndexedDot, IndexedDistance};
+			return FSocketMetadata{Index, IndexedDot, IndexedDistance};
 		}
 	};
 
@@ -141,23 +141,6 @@ namespace PCGExRelational
 	class PCGEXTENDEDTOOLKIT_API Helpers
 	{
 	public:
-		static bool FindRelationalParams(
-			TArray<FPCGTaggedData>& Sources,
-			TArray<UPCGExRelationsParamsData*>& OutParams)
-		{
-			OutParams.Empty();
-			bool bFoundAny = false;
-			for (const FPCGTaggedData& TaggedData : Sources)
-			{
-				UPCGExRelationsParamsData* Params = Cast<UPCGExRelationsParamsData>(TaggedData.Data);
-				if (!Params) { continue; }
-				OutParams.Add(Params);
-				bFoundAny = true;
-			}
-
-			return bFoundAny;
-		}
-
 		/**
 		 * Prepare a list of SocketCandidate data to be used for the duration of a PointData processing.
 		 * Assumes that the Params have been properly set-up before.
@@ -195,5 +178,38 @@ namespace PCGExRelational
 			return MaxDistance;
 		}
 
+		/**
+		 * Assume the relation already is neither None nor Unique, since another socket has been found.
+		 * @param StartSocket 
+		 * @param EndSocket 
+		 * @return 
+		 */
+		static EPCGExRelationType GetRelationType(const FSocket& StartSocket, const FSocket& EndSocket)
+		{
+			if (StartSocket.MatchingSockets.Contains(EndSocket.SocketIndex))
+			{
+				if (EndSocket.MatchingSockets.Contains(StartSocket.SocketIndex))
+				{
+					return EPCGExRelationType::Complete;
+				}
+				else
+				{
+					return EPCGExRelationType::Match;
+				}
+			}
+			else
+			{
+				if (StartSocket.SocketIndex == EndSocket.SocketIndex)
+				{
+					// We check for mirror AFTER checking for shared/match, since Mirror can be considered a legal match by design
+					// in which case we don't want to flag this as Mirrored.
+					return EPCGExRelationType::Mirror;
+				}
+				else
+				{
+					return EPCGExRelationType::Shared;
+				}
+			}
+		}
 	};
 }

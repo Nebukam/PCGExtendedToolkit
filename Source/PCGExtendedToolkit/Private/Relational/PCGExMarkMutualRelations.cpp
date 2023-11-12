@@ -9,16 +9,8 @@
 #include "DrawDebugHelpers.h"
 #include "Editor.h"
 #include "Relational/PCGExRelationsHelpers.h"
-#include <mutex>
 
 #define LOCTEXT_NAMESPACE "PCGExMarkMutualRelations"
-
-#if WITH_EDITOR
-FText UPCGExMarkMutualRelationsSettings::GetNodeTooltipText() const
-{
-	return LOCTEXT("PCGExMarkMutualRelationsTooltip", "Process existing relations to find and mark shared (mutual) connections.");
-}
-#endif // WITH_EDITOR
 
 int32 UPCGExMarkMutualRelationsSettings::GetPreferredChunkSize() const { return 32; }
 
@@ -44,7 +36,7 @@ void FPCGExMarkMutualRelationsElement::InitializeContext(
 	const UPCGNode* Node) const
 {
 	FPCGExRelationsProcessorElement::InitializeContext(InContext, InputData, SourceComponent, Node);
-	FPCGExMarkMutualRelationsContext* Context = static_cast<FPCGExMarkMutualRelationsContext*>(InContext);
+	//FPCGExMarkMutualRelationsContext* Context = static_cast<FPCGExMarkMutualRelationsContext*>(InContext);
 	// ...
 }
 
@@ -120,7 +112,7 @@ bool FPCGExMarkMutualRelationsElement::ExecuteInternal(
 		for (int i = 0; i < Candidates.Num(); i++)
 		{
 			const PCGExRelational::FSocket* Socket = &(Context->CurrentParams->GetSocketMapping()->Sockets[i]);
-			Socket->SetValue(Key, Candidates[i].ToSocketData());
+			Socket->SetData(Key, Candidates[i].ToSocketMetadata());
 		}
 	};
 
@@ -185,10 +177,10 @@ void FPCGExMarkMutualRelationsElement::DrawRelationsDebug(FPCGExMarkMutualRelati
 			FVector Start = PtA.Transform.GetLocation();
 			for (const PCGExRelational::FSocket& Socket : Context->CurrentParams->GetSocketMapping()->Sockets)
 			{
-				PCGExRelational::FSocketData SocketData = Socket.GetSocketData(Key);
-				if (SocketData.Index == -1) { continue; }
+				PCGExRelational::FSocketMetadata SocketMetadata = Socket.GetSocketMetadata(Key);
+				if (SocketMetadata.Index == -1) { continue; }
 
-				FPCGPoint PtB = Context->CurrentIO->Out->GetPoint(SocketData.Index);
+				FPCGPoint PtB = Context->CurrentIO->Out->GetPoint(SocketMetadata.Index);
 				FVector End = FMath::Lerp(Start, PtB.Transform.GetLocation(), 0.4);
 				DrawDebugLine(EditorWorld, Start, End, Socket.Descriptor.DebugColor, false, 10.0f, 0, 2);
 			}

@@ -10,13 +10,19 @@
 #include "PCGExLocalAttributeHelpers.h"
 #include "PCGExRelationsParamsData.generated.h"
 
-namespace PCGExRelational
-{
-	struct FModifier;
-}
-
 class UPCGExCreateRelationsParamsSettings;
 class UPCGPointData;
+
+UENUM(BlueprintType)
+enum class EPCGExRelationType : uint8
+{
+	None     = 0 UMETA(DisplayName = "None", Tooltip="No relation."),
+	Unique   = 1 UMETA(DisplayName = "Unique", Tooltip="Unique relation."),
+	Shared   = 2 UMETA(DisplayName = "Shared", Tooltip="Shared relation, both sockets are connected; but do not match."),
+	Match    = 3 UMETA(DisplayName = "Match", Tooltip="Shared relation, considered a match by the primary socket owner; but does not match on the other."),
+	Complete = 4 UMETA(DisplayName = "Complete", Tooltip="Shared, matching relation on both sockets."),
+	Mirror   = 5 UMETA(DisplayName = "Mirrored relation", Tooltip="Mirrored relation, connected sockets are the same on both points."),
+};
 
 USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExSocketDirection
@@ -83,11 +89,12 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSocketDescriptor
 	{
 	}
 
-	FPCGExSocketDescriptor(FName InName, FVector InDirection, FColor InDebugColor):
+	FPCGExSocketDescriptor(FName InName, FVector InDirection, FName InMatchingSlot, FColor InDebugColor):
 		SocketName(InName),
 		DebugColor(InDebugColor)
 	{
 		Direction.Direction = InDirection;
+		MatchingSlots.Add(InMatchingSlot);
 	}
 
 public:
@@ -106,6 +113,14 @@ public:
 	/** If true, the direction vector of the socket will be read from a local attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(InlineEditConditionToggle))
 	bool bDirectionVectorFromAttribute = false;
+
+	/** Sibling slots names that are to be considered as a match. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	TArray<FName> MatchingSlots;
+
+	/** Inject this slot as a match to slots referenced in the Matching Slots list. Useful to save time */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	bool bMirrorMatchingSockets = true;
 
 	/** Local attribute to override the direction vector with */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bDirectionVectorFromAttribute", ShowOnlyInnerProperties))
@@ -192,26 +207,27 @@ public:
 namespace PCGExRelational
 {
 	// Per-socket infos, will end up as FVector4 value
-	struct PCGEXTENDEDTOOLKIT_API FSocketData
+	struct PCGEXTENDEDTOOLKIT_API FSocketMetadata
 	{
-		FSocketData()
+		FSocketMetadata()
 		{
 		}
 
-		FSocketData(int64 InIndex, double InIndexedDot, double InIndexedDistance)
+		FSocketMetadata(int64 InIndex, double InIndexedDot, double InIndexedDistance)
 		{
 			Index = InIndex;
 			IndexedDot = InIndexedDot;
 			IndexedDistance = InIndexedDistance;
 		}
 
-		FSocketData(const FVector4& InVector)
+		FSocketMetadata(const FVector4& InVector)
 			: Index(InVector.X), IndexedDot(InVector.Y), IndexedDistance(InVector.Z) //, W(InVector.W)
 		{
 		}
 
 	public:
 		int64 Index = -1;
+		EPCGExRelationType RelationType = EPCGExRelationType::None;
 		double IndexedDot = -1.0;
 		double IndexedDistance = TNumericLimits<double>::Max();
 
@@ -220,32 +236,32 @@ namespace PCGExRelational
 			return FVector4(Index, IndexedDot, IndexedDistance, 0.0);
 		}
 
-		friend FArchive& operator<<(FArchive& Ar, FSocketData& Data)
+		friend FArchive& operator<<(FArchive& Ar, FSocketMetadata& SocketMetadata)
 		{
-			Ar << Data.Index;
-			Ar << Data.IndexedDot;
-			Ar << Data.IndexedDistance;
+			Ar << SocketMetadata.Index;
+			Ar << SocketMetadata.IndexedDot;
+			Ar << SocketMetadata.IndexedDistance;
 			return Ar;
 		}
 
-		FSocketData operator+(const FSocketData& Other) const { return FSocketData{}; }
+		FSocketMetadata operator+(const FSocketMetadata& Other) const { return FSocketMetadata{}; }
 
-		FSocketData operator-(const FSocketData& Other) const { return FSocketData{}; }
+		FSocketMetadata operator-(const FSocketMetadata& Other) const { return FSocketMetadata{}; }
 
-		FSocketData operator*(const FSocketData& Scalar) const { return FSocketData{}; }
+		FSocketMetadata operator*(const FSocketMetadata& Scalar) const { return FSocketMetadata{}; }
 
-		FSocketData operator*(float Scalar) const { return FSocketData{}; }
+		FSocketMetadata operator*(float Scalar) const { return FSocketMetadata{}; }
 
-		FSocketData operator/(const FSocketData& Scalar) const { return FSocketData{}; }
+		FSocketMetadata operator/(const FSocketMetadata& Scalar) const { return FSocketMetadata{}; }
 
-		bool operator==(const FSocketData& Other) const
+		bool operator==(const FSocketMetadata& Other) const
 		{
 			return Index == Other.Index && IndexedDot == Other.IndexedDot && IndexedDistance == Other.IndexedDistance;
 		}
 
-		bool operator!=(const FSocketData& Other) const { return !(*this == Other); }
+		bool operator!=(const FSocketMetadata& Other) const { return !(*this == Other); }
 
-		bool operator<(const FSocketData& Other) const { return false; }
+		bool operator<(const FSocketMetadata& Other) const { return false; }
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FModifier : public PCGEx::FLocalSingleComponentInput
@@ -254,9 +270,9 @@ namespace PCGExRelational
 		{
 		}
 
-		FModifier(FPCGExSocketDescriptor& InDescriptor): PCGEx::FLocalSingleComponentInput()
+		FModifier(const FPCGExSocketDescriptor& InDescriptor): PCGEx::FLocalSingleComponentInput()
 		{
-			Descriptor = InDescriptor.AttributeModifier;
+			Descriptor = static_cast<FPCGExInputSelector>(InDescriptor.AttributeModifier);
 			bEnabled = InDescriptor.bApplyAttributeModifier;
 		}
 	};
@@ -267,7 +283,7 @@ namespace PCGExRelational
 		{
 		}
 
-		FLocalDirection(FPCGExSocketDescriptor& InDescriptor): PCGEx::FLocalDirectionInput()
+		FLocalDirection(const FPCGExSocketDescriptor& InDescriptor): PCGEx::FLocalDirectionInput()
 		{
 			Descriptor = static_cast<FPCGExInputSelector>(InDescriptor.AttributeDirectionVector);
 			bEnabled = InDescriptor.bDirectionVectorFromAttribute;
@@ -278,9 +294,10 @@ namespace PCGExRelational
 	{
 		FSocket()
 		{
+			MatchingSockets.Empty();
 		}
 
-		FSocket(FPCGExSocketDescriptor& InDescriptor)
+		FSocket(const FPCGExSocketDescriptor& InDescriptor): FSocket()
 		{
 			Descriptor = InDescriptor;
 			Descriptor.Direction.DotTolerance = FMath::Cos(Descriptor.Direction.Cone * (PI / 180.0)); //Degrees to dot product
@@ -289,6 +306,8 @@ namespace PCGExRelational
 		friend struct FSocketMapping;
 		FPCGExSocketDescriptor Descriptor;
 		FPCGMetadataAttribute<FVector4>* SocketDataAttribute = nullptr;
+		int32 SocketIndex = -1;
+		TSet<int32> MatchingSockets;
 
 	protected:
 		FName AttributeName = NAME_None;
@@ -300,7 +319,7 @@ namespace PCGExRelational
 		 * as well as prepare the scape modifier for that same object.
 		 * @param PointData 
 		 */
-		void PrepareForPointData(UPCGPointData* PointData)
+		void PrepareForPointData(const UPCGPointData* PointData)
 		{
 			SocketDataAttribute = PointData->Metadata->FindOrCreateAttribute<FVector4>(AttributeName, FVector4(-1.0, 0.0, 0.0, 0.0), false, true, true);
 		}
@@ -312,17 +331,17 @@ namespace PCGExRelational
 		 * @param MetadataEntry
 		 * @return 
 		 */
-		FSocketData GetValue(const PCGMetadataEntryKey MetadataEntry) const
+		FSocketMetadata GetData(const PCGMetadataEntryKey MetadataEntry) const
 		{
 			return SocketDataAttribute->GetValueFromItemKey(MetadataEntry);
 		}
 
-		void SetValue(const PCGMetadataEntryKey MetadataEntry, const FSocketData& Value) const
+		void SetData(const PCGMetadataEntryKey MetadataEntry, const FSocketMetadata& SocketMetadata) const
 		{
-			SocketDataAttribute->SetValue(MetadataEntry, Value);
+			SocketDataAttribute->SetValue(MetadataEntry, SocketMetadata);
 		}
 
-		FSocketData GetSocketData(const PCGMetadataEntryKey MetadataEntry) const
+		FSocketMetadata GetSocketMetadata(const PCGMetadataEntryKey MetadataEntry) const
 		{
 			return SocketDataAttribute->GetValueFromItemKey(MetadataEntry);
 		}
@@ -335,7 +354,7 @@ namespace PCGExRelational
 		 */
 		const FPCGPoint* GetSocketContent(const FPCGPoint& Origin, const TArray<FPCGPoint>& Points) const
 		{
-			const FVector4 Details = GetValue(Origin.MetadataEntry);
+			const FVector4 Details = GetData(Origin.MetadataEntry);
 			const int32 Index = FMath::RoundToInt32(Details.X);
 			if (Index < 0) { return nullptr; }
 			return &Points[Index];
@@ -345,6 +364,7 @@ namespace PCGExRelational
 		~FSocket()
 		{
 			SocketDataAttribute = nullptr;
+			MatchingSockets.Empty();
 		}
 	};
 
@@ -359,6 +379,7 @@ namespace PCGExRelational
 		TArray<FSocket> Sockets;
 		TArray<FModifier> Modifiers;
 		TArray<FLocalDirection> LocalDirections;
+		TMap<FName, int32> NameToIndexMap;
 		int32 NumSockets = 0;
 
 		void Initialize(FName Identifier, TArray<FPCGExSocketDescriptor>& InSockets)
@@ -370,13 +391,18 @@ namespace PCGExRelational
 
 				FModifier& NewModifier = Modifiers.Emplace_GetRef(Descriptor);
 				FLocalDirection& NewLocalDirection = LocalDirections.Emplace_GetRef(Descriptor);
+
 				FSocket& NewSocket = Sockets.Emplace_GetRef(Descriptor);
+				NewSocket.SocketIndex = NumSockets;
+				NameToIndexMap.Add(NewSocket.GetName(), NewSocket.SocketIndex);
 				NewSocket.AttributeName = GetSocketName(Identifier, Descriptor.SocketName);
 				NumSockets++;
 			}
+
+			PostProcessSockets(Identifier);
 		}
 
-		void InitializeWithOverrides(FName Identifier, TArray<FPCGExSocketDescriptor>& InSockets, FPCGExSocketGlobalOverrides& Overrides)
+		void InitializeWithOverrides(FName Identifier, TArray<FPCGExSocketDescriptor>& InSockets, const FPCGExSocketGlobalOverrides& Overrides)
 		{
 			Reset();
 			const FString PCGExName = TEXT("PCGEx");
@@ -386,13 +412,16 @@ namespace PCGExRelational
 
 				FModifier& NewModifier = Modifiers.Emplace_GetRef(Descriptor);
 				NewModifier.bEnabled = Overrides.bOverrideAttributeModifier ? Overrides.bApplyAttributeModifier : Descriptor.bApplyAttributeModifier;
-				NewModifier.Descriptor = Overrides.bOverrideAttributeModifier ? Overrides.AttributeModifier : Descriptor.AttributeModifier;
+				NewModifier.Descriptor = static_cast<FPCGExInputSelector>(Overrides.bOverrideAttributeModifier ? Overrides.AttributeModifier : Descriptor.AttributeModifier);
 
 				FLocalDirection& NewLocalDirection = LocalDirections.Emplace_GetRef(Descriptor);
 				NewLocalDirection.bEnabled = Overrides.bOverrideDirectionVectorFromAttribute ? Overrides.bDirectionVectorFromAttribute : Descriptor.bDirectionVectorFromAttribute;
 				NewLocalDirection.Descriptor = Overrides.bOverrideDirectionVectorFromAttribute ? Overrides.AttributeDirectionVector : Descriptor.AttributeDirectionVector;
 
 				FSocket& NewSocket = Sockets.Emplace_GetRef(Descriptor);
+				NewSocket.AttributeName = GetSocketName(Identifier, Descriptor.SocketName);
+				NewSocket.SocketIndex = NumSockets;
+				NameToIndexMap.Add(NewSocket.GetName(), NewSocket.SocketIndex);
 
 				if (Overrides.bOverrideRelativeOrientation)
 				{
@@ -411,9 +440,10 @@ namespace PCGExRelational
 
 				NewSocket.Descriptor.Direction.DotTolerance = FMath::Cos(Descriptor.Direction.Cone * (PI / 180.0));
 
-				NewSocket.AttributeName = GetSocketName(Identifier, Descriptor.SocketName);
 				NumSockets++;
 			}
+
+			PostProcessSockets(Identifier);
 		}
 
 		static FName GetSocketName(FName ParamsIdentifier, FName SocketIdentifier)
@@ -427,7 +457,7 @@ namespace PCGExRelational
 		 * Each socket will cache Attribute & accessors
 		 * @param PointData 
 		 */
-		void PrepareForPointData(UPCGPointData* PointData)
+		void PrepareForPointData(const UPCGPointData* PointData)
 		{
 			for (int i = 0; i < Sockets.Num(); i++)
 			{
@@ -447,6 +477,27 @@ namespace PCGExRelational
 			LocalDirections.Empty();
 		}
 
+	private:
+		/**
+		 * Build matching set
+		 */
+		void PostProcessSockets(FName ParamsIdentifier)
+		{
+			for (FSocket& Socket : Sockets)
+			{
+				for (FName MatchingSocketName : Socket.Descriptor.MatchingSlots)
+				{
+					FName OtherSocketName = GetSocketName(ParamsIdentifier, MatchingSocketName);
+					int32* Index = NameToIndexMap.Find(OtherSocketName);
+					if (Index)
+					{
+						Socket.MatchingSockets.Add(*Index);
+						if (Socket.Descriptor.bMirrorMatchingSockets) { Sockets[*Index].MatchingSockets.Add(Socket.SocketIndex); }
+					}
+				}
+			}
+		}
+
 	public:
 		~FSocketMapping()
 		{
@@ -458,7 +509,7 @@ namespace PCGExRelational
 /**
  * 
  */
-UCLASS(BlueprintType, ClassGroup = (Procedural))
+UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
 class PCGEXTENDEDTOOLKIT_API UPCGExRelationsParamsData : public UPCGPointData
 {
 	GENERATED_BODY()

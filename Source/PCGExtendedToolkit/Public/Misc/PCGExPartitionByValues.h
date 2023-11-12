@@ -64,7 +64,7 @@ namespace PCGExPartition
 /**
  * Calculates the distance between two points (inherently a n*n operation)
  */
-UCLASS(BlueprintType, ClassGroup = (Procedural))
+UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
 class PCGEXTENDEDTOOLKIT_API UPCGExPartitionByValuesSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
@@ -72,9 +72,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExPartitionByValuesSettings : public UPCGExPoin
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	virtual FName GetDefaultNodeName() const override { return FName(TEXT("PartitonByValues")); }
-	virtual FText GetDefaultNodeTitle() const override { return NSLOCTEXT("PartitonByValues", "NodeTitle", "Partiton by Values"); }
-	virtual FText GetNodeTooltipText() const override;
+	PCGEX_NODE_INFOS(PartitonByValues, "Partiton by Values", "Outputs separate buckets of points based on an attribute' value. Each bucket is named after a unique attribute value. Note that it is recommended to use a MERGE before.");
 #endif
 
 protected:

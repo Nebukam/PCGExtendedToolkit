@@ -12,7 +12,7 @@
 /**
  * Calculates the distance between two points (inherently a n*n operation)
  */
-UCLASS(BlueprintType, ClassGroup = (Procedural))
+UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Relational")
 class PCGEXTENDEDTOOLKIT_API UPCGExBuildRelationsSettings : public UPCGExRelationsProcessorSettings
 {
 	GENERATED_BODY()
@@ -20,21 +20,16 @@ class PCGEXTENDEDTOOLKIT_API UPCGExBuildRelationsSettings : public UPCGExRelatio
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	virtual FName GetDefaultNodeName() const override { return FName(TEXT("BuildRelations")); }
-	virtual FText GetDefaultNodeTitle() const override { return NSLOCTEXT("PCGExBuildRelations", "NodeTitle", "Build Relations"); }
-	virtual FText GetNodeTooltipText() const override;
+	PCGEX_NODE_INFOS(BuildRelations, "Build Relations", "Write relation data to an attribute for each connected Relational Params. `Build Relations` uses the socket information as is.");
 #endif
-	
+
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings interface
 
 	virtual int32 GetPreferredChunkSize() const override;
-		
+
 	virtual PCGEx::EIOInit GetPointOutputInitMode() const override;
-
-public:
-
 
 private:
 	friend class FPCGExBuildRelationsElement;
@@ -67,5 +62,4 @@ protected:
 #if WITH_EDITOR
 	virtual void DrawRelationsDebug(FPCGExBuildRelationsContext* Context) const;
 #endif
-	
 };

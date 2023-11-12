@@ -16,18 +16,6 @@ namespace PCGExSortPoints
 	const FName SourceLabel = TEXT("Source");
 }
 
-#if WITH_EDITOR
-
-#pragma region UPCGSettings interface
-
-FText UPCGExSortPointsSettings::GetNodeTooltipText() const
-{
-	return LOCTEXT("PCGExSortPointsByAttributesTooltip", "Sort the source points according to specific rules.");
-}
-#endif // WITH_EDITOR
-
-#pragma endregion
-
 FPCGElementPtr UPCGExSortPointsSettings::CreateElement() const { return MakeShared<FPCGExSortPointsElement>(); }
 
 PCGEx::EIOInit UPCGExSortPointsSettings::GetPointOutputInitMode() const { return PCGEx::EIOInit::DuplicateInput; }

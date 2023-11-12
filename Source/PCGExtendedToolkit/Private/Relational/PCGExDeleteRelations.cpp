@@ -9,16 +9,8 @@
 #include "DrawDebugHelpers.h"
 #include "Editor.h"
 #include "Relational/PCGExRelationsHelpers.h"
-#include <mutex>
 
 #define LOCTEXT_NAMESPACE "PCGExDeleteRelations"
-
-#if WITH_EDITOR
-FText UPCGExDeleteRelationsSettings::GetNodeTooltipText() const
-{
-	return LOCTEXT("PCGExDeleteRelationsTooltip", "Delete data associated with select Relations Params.");
-}
-#endif // WITH_EDITOR
 
 int32 UPCGExDeleteRelationsSettings::GetPreferredChunkSize() const { return 32; }
 
@@ -46,7 +38,7 @@ void FPCGExDeleteRelationsElement::InitializeContext(
 	const UPCGNode* Node) const
 {
 	FPCGExRelationsProcessorElement::InitializeContext(InContext, InputData, SourceComponent, Node);
-	FPCGExDeleteRelationsContext* Context = static_cast<FPCGExDeleteRelationsContext*>(InContext);
+	//FPCGExDeleteRelationsContext* Context = static_cast<FPCGExDeleteRelationsContext*>(InContext);
 	// ...
 }
 
@@ -82,6 +74,8 @@ bool FPCGExDeleteRelationsElement::ExecuteInternal(
 			Context->Params.ForEach(Context, DeleteSockets);
 		});
 
+	Context->Points->OutputTo(Context);
+	
 	return true;
 }
 

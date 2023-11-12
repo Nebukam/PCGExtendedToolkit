@@ -39,7 +39,7 @@ public:
 	float Tolerance = 0.0001f;
 };
 
-UCLASS(BlueprintType, ClassGroup = (Procedural))
+UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
 class PCGEXTENDEDTOOLKIT_API UPCGExSortPointsSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
@@ -47,9 +47,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSortPointsSettings : public UPCGExPointsProce
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	virtual FName GetDefaultNodeName() const override { return FName(TEXT("PCGExSortPoints")); }
-	virtual FText GetDefaultNodeTitle() const override { return NSLOCTEXT("PCGExSortPoints", "NodeTitle", "Sort Points"); }
-	virtual FText GetNodeTooltipText() const override;
+	PCGEX_NODE_INFOS(SortPoints, "Sort Points", "Sort the source points according to specific rules.");
 #endif
 
 protected:

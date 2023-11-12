@@ -1,4 +1,5 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Copyright Timothé Lapetite 2023
+// Released under the MIT license https://opensource.org/license/MIT/
 
 #pragma once
 
@@ -39,9 +40,7 @@ public:
 
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	virtual FName GetDefaultNodeName() const override { return FName(TEXT("PointsProcessorSettings")); }
-	virtual FText GetDefaultNodeTitle() const override { return NSLOCTEXT("PCGExPointsProcessorSettings", "NodeTitle", "Points Processor Settings"); }
-	virtual FText GetNodeTooltipText() const override;
+	PCGEX_NODE_INFOS(PointsProcessorSettings, "Points Processor Settings", "TOOLTIP_TEXT");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Spatial; }
 #endif
 
