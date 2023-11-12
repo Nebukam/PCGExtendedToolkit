@@ -60,7 +60,7 @@ bool FPCGExSortPointsElement::ExecuteInternal(FPCGContext* InContext) const
 	EPCGExSortDirection SortDirection = Settings->SortDirection;
 	TArray<FPCGExSortRule> Rules;
 
-	auto ProcessPair = [&Context, &DesiredRules, &Rules, &SortDirection, this](PCGEx::FPointIO* POI, const int32)
+	auto ProcessPair = [&Context, &DesiredRules, &Rules, &SortDirection, this](UPCGExPointIO* POI, const int32)
 	{
 		//POI->ForwardPoints(Context);
 		if (!BuildRulesForPoints(POI->Out, DesiredRules, Rules))
@@ -116,8 +116,8 @@ case _ENUM : Result = FPCGExCompare::Compare(A._ACCESSOR, B._ACCESSOR, Rule.Tole
 			});
 	};
 
-	Context->Points.ForEach(Context, ProcessPair);
-	Context->Points.OutputTo(Context);
+	Context->Points->ForEach(ProcessPair);
+	Context->Points->OutputTo(Context);
 
 	return true;
 }

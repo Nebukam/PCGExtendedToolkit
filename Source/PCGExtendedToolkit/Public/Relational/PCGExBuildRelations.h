@@ -30,6 +30,8 @@ protected:
 	//~End UPCGSettings interface
 
 	virtual int32 GetPreferredChunkSize() const override;
+	
+	virtual PCGEx::EIOInit GetPointOutputInitMode() const override;
 
 public:
 

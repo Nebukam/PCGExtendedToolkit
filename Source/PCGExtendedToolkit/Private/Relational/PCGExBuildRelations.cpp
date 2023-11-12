@@ -9,7 +9,6 @@
 #include "DrawDebugHelpers.h"
 #include "Editor.h"
 #include "Relational/PCGExRelationsHelpers.h"
-#include <mutex>
 
 #define LOCTEXT_NAMESPACE "PCGExBuildRelations"
 
@@ -21,6 +20,8 @@ FText UPCGExBuildRelationsSettings::GetNodeTooltipText() const
 #endif // WITH_EDITOR
 
 int32 UPCGExBuildRelationsSettings::GetPreferredChunkSize() const { return 32; }
+
+PCGEx::EIOInit UPCGExBuildRelationsSettings::GetPointOutputInitMode() const{ return PCGEx::EIOInit::DuplicateInput; }
 
 FPCGElementPtr UPCGExBuildRelationsSettings::CreateElement() const
 {
@@ -63,7 +64,7 @@ bool FPCGExBuildRelationsElement::ExecuteInternal(
 			return true;
 		}
 
-		if (Context->Points.IsEmpty())
+		if (Context->Points->IsEmpty())
 		{
 			PCGE_LOG(Error, GraphAndLog, LOCTEXT("MissingPoints", "Missing Input Points."));
 			return true;
@@ -77,7 +78,7 @@ bool FPCGExBuildRelationsElement::ExecuteInternal(
 
 		if (Settings->bDebug)
 		{
-			if (UWorld* EditorWorld = GEditor->GetEditorWorldContext().World())
+			if (const UWorld* EditorWorld = GEditor->GetEditorWorldContext().World())
 			{
 				FlushPersistentDebugLines(EditorWorld);
 			}
@@ -90,7 +91,7 @@ bool FPCGExBuildRelationsElement::ExecuteInternal(
 		if (Context->CurrentIO)
 		{
 			//Cleanup current IO, indices won't be needed anymore.
-			Context->CurrentIO->IndicesMap.Empty();
+			Context->CurrentIO->Flush();
 		}
 
 		if (!Context->AdvancePointsIO(true))
@@ -99,25 +100,23 @@ bool FPCGExBuildRelationsElement::ExecuteInternal(
 		}
 		else
 		{
-			Context->CurrentIO->ForwardPoints(Context, true);
-			Context->Octree = const_cast<UPCGPointData::PointOctree*>(&(Context->CurrentIO->In->GetOctree())); // Not sure this really saves perf
+			Context->CurrentIO->BuildMetadataEntriesAndIndices();
+			Context->Octree = const_cast<UPCGPointData::PointOctree*>(&(Context->CurrentIO->Out->GetOctree())); // Not sure this really saves perf
 			Context->SetOperation(PCGEx::EOperation::ReadyForNextParams);
 		}
 	}
 
 	auto ProcessPoint = [&Context](
-		int32 ReadIndex)
+		const FPCGPoint& Point, int32 ReadIndex, UPCGExPointIO* IO)
 	{
-		FPCGPoint InPoint = Context->CurrentIO->In->GetPoint(ReadIndex),
-		          OutPoint = Context->CurrentIO->Out->GetPoint(ReadIndex);
 
 		TArray<PCGExRelational::FSocketCandidate> Candidates;
-		const double MaxDistance = PCGExRelational::Helpers::PrepareCandidatesForPoint(InPoint, Context->CurrentParams, Candidates);
+		const double MaxDistance = PCGExRelational::Helpers::PrepareCandidatesForPoint(Point, Context->CurrentParams, Candidates);
 
-		auto ProcessPointNeighbor = [&Context, &ReadIndex, &Candidates](const FPCGPointRef& OtherPointRef)
+		auto ProcessPointNeighbor = [&ReadIndex, &Candidates, &IO](const FPCGPointRef& OtherPointRef)
 		{
 			const FPCGPoint* OtherPoint = OtherPointRef.Point;
-			const int32 Index = Context->CurrentIO->GetIndex(OtherPoint->MetadataEntry);
+			const int32 Index = IO->GetIndex(OtherPoint->MetadataEntry);
 
 			if (Index == ReadIndex) { return; }
 
@@ -127,13 +126,11 @@ bool FPCGExBuildRelationsElement::ExecuteInternal(
 			}
 		};
 
-		const FBoxCenterAndExtent Box = FBoxCenterAndExtent(OutPoint.Transform.GetLocation(), FVector(MaxDistance));
+		const FBoxCenterAndExtent Box = FBoxCenterAndExtent(Point.Transform.GetLocation(), FVector(MaxDistance));
 		Context->Octree->FindElementsWithBoundsTest(Box, ProcessPointNeighbor);
 
-		//UE_LOG(LogTemp, Warning, TEXT("           Processed Point %d"), ReadIndex);
-
 		//Write results
-		int64 Key = OutPoint.MetadataEntry;
+		PCGMetadataEntryKey Key = Point.MetadataEntry;
 		for (int i = 0; i < Candidates.Num(); i++)
 		{
 			const PCGExRelational::FSocket* Socket = &(Context->CurrentParams->GetSocketMapping()->Sockets[i]);
@@ -163,23 +160,29 @@ bool FPCGExBuildRelationsElement::ExecuteInternal(
 		}
 	}
 
-	auto Initialize = [&Context]()
+	auto Initialize = [&Context](UPCGExPointIO* IO)
 	{
-		Context->CurrentParams->PrepareForPointData(Context->CurrentIO->Out);
+		Context->CurrentParams->PrepareForPointData(IO->Out);
 		Context->SetOperation(PCGEx::EOperation::ProcessingParams);
 	};
 
 	if (Context->IsCurrentOperation(PCGEx::EOperation::ProcessingParams) || bProcessingAllowed)
 	{
+		if(Context->CurrentIO->OutputParallelProcessing(Context, Initialize, ProcessPoint, Context->ChunkSize))
+		{
+			Context->SetOperation(PCGEx::EOperation::ReadyForNextParams);
+		}
+		/*
 		if (PCGEx::Common::ParallelForLoop(Context, Context->CurrentIO->NumPoints, Initialize, ProcessPoint, Context->ChunkSize))
 		{
 			Context->SetOperation(PCGEx::EOperation::ReadyForNextParams);
 		}
+		*/
 	}
 
 	if (Context->IsCurrentOperation(PCGEx::EOperation::Done))
 	{
-		Context->Points.OutputTo(Context);
+		Context->Points->OutputTo(Context);
 		return true;
 	}
 
@@ -193,8 +196,7 @@ void FPCGExBuildRelationsElement::DrawRelationsDebug(FPCGExBuildRelationsContext
 	{
 		FlushPersistentDebugLines(EditorWorld);
 		Context->CurrentParams->PrepareForPointData(Context->CurrentIO->Out);
-		auto DrawDebug = [&Context, &EditorWorld](
-			int32 ReadIndex)
+		auto DrawDebug = [&Context, &EditorWorld](int32 ReadIndex)
 		{
 			FPCGPoint PtA = Context->CurrentIO->Out->GetPoint(ReadIndex);
 			int64 Key = PtA.MetadataEntry;
@@ -211,7 +213,8 @@ void FPCGExBuildRelationsElement::DrawRelationsDebug(FPCGExBuildRelationsContext
 			}
 		};
 
-		PCGEx::Common::AsyncForLoop(Context, Context->CurrentIO->NumPoints, DrawDebug);
+		//PCGEx::Common::AsyncForLoop(Context, Context->CurrentIO->NumPoints, DrawDebug);
+		for (int i = 0; i < Context->CurrentIO->NumPoints; i++) { DrawDebug(i); }
 	}
 }
 #endif

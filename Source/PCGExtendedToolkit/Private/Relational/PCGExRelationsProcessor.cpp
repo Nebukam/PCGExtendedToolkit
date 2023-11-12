@@ -87,6 +87,7 @@ void FPCGExRelationsProcessorElement::InitializeContext(
 	FPCGExPointsProcessorElementBase::InitializeContext(InContext, InputData, SourceComponent, Node);
 
 	FPCGExRelationsProcessorContext* Context = static_cast<FPCGExRelationsProcessorContext*>(InContext);
+		
 	TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(PCGExRelational::SourceRelationalParamsLabel);
 	Context->Params.Initialize(InContext, Sources);
 }

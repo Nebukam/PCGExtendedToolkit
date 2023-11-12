@@ -51,9 +51,9 @@ namespace PCGEx
 					{
 						using AttributeType = decltype(DummyValue);
 						FPCGMetadataAttribute<AttributeType>* Attribute = static_cast<FPCGMetadataAttribute<AttributeType>*>(Descriptor.Attribute);
-						return GetValueInternal(Attribute->GetValueFromItemKey(Point.MetadataEntry));
+						return Convert(Attribute->GetValueFromItemKey(Point.MetadataEntry));
 					});
-#define PCGEX_GET_BY_ACCESSOR(_ENUM, _ACCESSOR) case _ENUM: return GetValueInternal(Point._ACCESSOR);
+#define PCGEX_GET_BY_ACCESSOR(_ENUM, _ACCESSOR) case _ENUM: return Convert(Point._ACCESSOR);
 			case EPCGAttributePropertySelection::PointProperty:
 				switch (Selector.GetPointProperty())
 				{
@@ -76,35 +76,10 @@ namespace PCGEx
 		virtual bool ValidateInternal() const { return true; }
 		virtual T GetDefaultValue() const = 0;
 
-		template <typename InV, typename dummy = void>
-		T GetValueInternal(InV Value) const { return GetDefaultValue(); };
-
-		static double ConvertStringToDouble(const FString& StringToConvert)
-		{
-			const TCHAR* CharArray = *StringToConvert;
-			const double Result = FCString::Atod(CharArray);
-			return FMath::IsNaN(Result) ? 0 : Result;
-		}
-
-		FVector GetDirection(FQuat Quat, EPCGExDirectionSelection Dir) const
-		{
-			switch (Dir)
-			{
-			default:
-			case EPCGExDirectionSelection::Forward:
-				return Quat.GetForwardVector();
-			case EPCGExDirectionSelection::Backward:
-				return Quat.GetForwardVector() * -1;
-			case EPCGExDirectionSelection::Right:
-				return Quat.GetRightVector();
-			case EPCGExDirectionSelection::Left:
-				return Quat.GetRightVector() * -1;
-			case EPCGExDirectionSelection::Up:
-				return Quat.GetUpVector();
-			case EPCGExDirectionSelection::Down:
-				return Quat.GetUpVector() * -1;
-			}
-		}
+#define  PCGEX_PRINT_VIRTUAL(_TYPE, _NAME) virtual T Convert(const _TYPE Value) const = 0;\
+		
+		PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_PRINT_VIRTUAL)
+		
 	};
 
 
@@ -112,19 +87,19 @@ namespace PCGEx
 struct PCGEXTENDEDTOOLKIT_API FLocal ## _NAME ## Input : public FLocalAttributeInput<_TYPE>	{\
 protected: \
 virtual _TYPE GetDefaultValue() const { return 0; }\
-template <typename dummy = void> _TYPE GetValueInternal(int32 Value) const { return Value; } \
-template <typename dummy = void> _TYPE GetValueInternal(int64 Value) const { return static_cast<_TYPE>(Value); }\
-template <typename dummy = void> _TYPE GetValueInternal(float Value) const { return static_cast<_TYPE>(Value); }\
-template <typename dummy = void> _TYPE GetValueInternal(double Value) const { return static_cast<_TYPE>(Value); }\
-template <typename dummy = void> _TYPE GetValueInternal(FVector2D Value) const { return static_cast<_TYPE>(Value.Length()); }\
-template <typename dummy = void> _TYPE GetValueInternal(FVector Value) const { return static_cast<_TYPE>(Value.Length()); }\
-template <typename dummy = void> _TYPE GetValueInternal(FVector4 Value) const { return static_cast<_TYPE>(FVector(Value).Length()); }\
-template <typename dummy = void> _TYPE GetValueInternal(FQuat Value) const { return static_cast<_TYPE>(Value.GetForwardVector().Length()); }\
-template <typename dummy = void> _TYPE GetValueInternal(FTransform Value) const { return static_cast<_TYPE>(Value.GetLocation().Length()); }\
-template <typename dummy = void> _TYPE GetValueInternal(bool Value) const { return static_cast<_TYPE>(Value); }\
-template <typename dummy = void> _TYPE GetValueInternal(FRotator Value) const { return static_cast<_TYPE>(Value.Euler().Length()); }\
-template <typename dummy = void> _TYPE GetValueInternal(FString Value) const { return static_cast<_TYPE>(GetTypeHash(Value)); }\
-template <typename dummy = void> _TYPE GetValueInternal(FName Value) const { return static_cast<_TYPE>(GetTypeHash(Value)); }\
+virtual _TYPE Convert(const int32 Value) const override { return static_cast<_TYPE>(Value); } \
+virtual _TYPE Convert(const int64 Value) const override { return static_cast<_TYPE>(Value); }\
+virtual _TYPE Convert(const float Value) const override { return static_cast<_TYPE>(Value); }\
+virtual _TYPE Convert(const double Value) const override { return static_cast<_TYPE>(Value); }\
+virtual _TYPE Convert(const FVector2D Value) const override { return static_cast<_TYPE>(Value.Length()); }\
+virtual _TYPE Convert(const FVector Value) const override { return static_cast<_TYPE>(Value.Length()); }\
+virtual _TYPE Convert(const FVector4 Value) const override { return static_cast<_TYPE>(FVector(Value).Length()); }\
+virtual _TYPE Convert(const FQuat Value) const override { return static_cast<_TYPE>(Value.GetForwardVector().Length()); }\
+virtual _TYPE Convert(const FTransform Value) const override { return static_cast<_TYPE>(Value.GetLocation().Length()); }\
+virtual _TYPE Convert(const bool Value) const override { return static_cast<_TYPE>(Value); }\
+virtual _TYPE Convert(const FRotator Value) const override { return static_cast<_TYPE>(Value.Euler().Length()); }\
+virtual _TYPE Convert(const FString Value) const override { return static_cast<_TYPE>(GetTypeHash(Value)); }\
+virtual _TYPE Convert(const FName Value) const override { return static_cast<_TYPE>(GetTypeHash(Value)); }\
 };
 
 	PCGEX_SINGLE(Integer32, int32)
@@ -143,17 +118,17 @@ template <typename dummy = void> _TYPE GetValueInternal(FName Value) const { ret
 struct PCGEXTENDEDTOOLKIT_API FLocal ## _NAME ## Input : public FLocalAttributeInput<_TYPE>	{\
 protected: \
 virtual _TYPE GetDefaultValue() const { return _TYPE(0); }\
-template <typename dummy = void> _TYPE GetValueInternal(int32 Value) const { return _TYPE(Value); } \
-template <typename dummy = void> _TYPE GetValueInternal(int64 Value) const { return _TYPE(Value); }\
-template <typename dummy = void> _TYPE GetValueInternal(float Value) const { return _TYPE(Value); }\
-template <typename dummy = void> _TYPE GetValueInternal(double Value) const { return _TYPE(Value); }\
-template <typename dummy = void> _TYPE GetValueInternal(FVector2D Value) const VECTOR2D \
-template <typename dummy = void> _TYPE GetValueInternal(FVector Value) const { return _TYPE(Value); }\
-template <typename dummy = void> _TYPE GetValueInternal(FVector4 Value) const { return _TYPE(Value); }\
-template <typename dummy = void> _TYPE GetValueInternal(FQuat Value) const { return _TYPE(Value.GetForwardVector()); }\
-template <typename dummy = void> _TYPE GetValueInternal(FTransform Value) const { return _TYPE(Value.GetLocation()); }\
-template <typename dummy = void> _TYPE GetValueInternal(bool Value) const { return _TYPE(Value); }\
-template <typename dummy = void> _TYPE GetValueInternal(FRotator Value) const { return _TYPE(Value.Vector()); }\
+virtual _TYPE Convert(const int32 Value) const override { return _TYPE(Value); } \
+virtual _TYPE Convert(const int64 Value) const override { return _TYPE(Value); }\
+virtual _TYPE Convert(const float Value) const override { return _TYPE(Value); }\
+virtual _TYPE Convert(const double Value) const override { return _TYPE(Value); }\
+virtual _TYPE Convert(const FVector2D Value) const VECTOR2D \
+virtual _TYPE Convert(const FVector Value) const override { return _TYPE(Value); }\
+virtual _TYPE Convert(const FVector4 Value) const override { return _TYPE(Value); }\
+virtual _TYPE Convert(const FQuat Value) const override { return _TYPE(Value.GetForwardVector()); }\
+virtual _TYPE Convert(const FTransform Value) const override { return _TYPE(Value.GetLocation()); }\
+virtual _TYPE Convert(const bool Value) const override { return _TYPE(Value); }\
+virtual _TYPE Convert(const FRotator Value) const override { return _TYPE(Value.Vector()); }\
 };
 
 	PCGEX_VECTOR_CAST(Vector2, FVector2D, { return Value;})
@@ -168,19 +143,19 @@ template <typename dummy = void> _TYPE GetValueInternal(FRotator Value) const { 
 struct PCGEXTENDEDTOOLKIT_API FLocal ## _NAME ## Input : public FLocalAttributeInput<_TYPE>	{\
 protected: \
 virtual _TYPE GetDefaultValue() const { return _TYPE(""); }\
-template <typename dummy = void> _TYPE GetValueInternal(int32 Value) const { return _TYPE(FString::FromInt(Value)); } \
-template <typename dummy = void> _TYPE GetValueInternal(int64 Value) const { return _TYPE(FString::FromInt(Value)); }\
-template <typename dummy = void> _TYPE GetValueInternal(float Value) const { return _TYPE(FString::SanitizeFloat(Value)); }\
-template <typename dummy = void> _TYPE GetValueInternal(double Value) const { return _TYPE(""); }\
-template <typename dummy = void> _TYPE GetValueInternal(FVector2D Value) const { return _TYPE(Value.ToString()); } \
-template <typename dummy = void> _TYPE GetValueInternal(FVector Value) const { return _TYPE(Value.ToString()); }\
-template <typename dummy = void> _TYPE GetValueInternal(FVector4 Value) const { return _TYPE(Value.ToString()); }\
-template <typename dummy = void> _TYPE GetValueInternal(FQuat Value) const { return _TYPE(Value.ToString()); }\
-template <typename dummy = void> _TYPE GetValueInternal(FTransform Value) const { return _TYPE(Value.ToString()); }\
-template <typename dummy = void> _TYPE GetValueInternal(bool Value) const { return _TYPE(FString::FromInt(Value)); }\
-template <typename dummy = void> _TYPE GetValueInternal(FRotator Value) const { return _TYPE(Value.ToString()); }\
-template <typename dummy = void> _TYPE GetValueInternal(FString Value) const { return _TYPE(Value); }\
-template <typename dummy = void> _TYPE GetValueInternal(FName Value) const { return _TYPE(Value.ToString()); }\
+virtual _TYPE Convert(const int32 Value) const override { return _TYPE(FString::FromInt(Value)); } \
+virtual _TYPE Convert(const int64 Value) const override { return _TYPE(FString::FromInt(Value)); }\
+virtual _TYPE Convert(const float Value) const override { return _TYPE(FString::SanitizeFloat(Value)); }\
+virtual _TYPE Convert(const double Value) const override { return _TYPE(""); }\
+virtual _TYPE Convert(const FVector2D Value) const override { return _TYPE(Value.ToString()); } \
+virtual _TYPE Convert(const FVector Value) const override { return _TYPE(Value.ToString()); }\
+virtual _TYPE Convert(const FVector4 Value) const override { return _TYPE(Value.ToString()); }\
+virtual _TYPE Convert(const FQuat Value) const override { return _TYPE(Value.ToString()); }\
+virtual _TYPE Convert(const FTransform Value) const override { return _TYPE(Value.ToString()); }\
+virtual _TYPE Convert(const bool Value) const override { return _TYPE(FString::FromInt(Value)); }\
+virtual _TYPE Convert(const FRotator Value) const override { return _TYPE(Value.ToString()); }\
+virtual _TYPE Convert(const FString Value) const override { return _TYPE(Value); }\
+virtual _TYPE Convert(const FName Value) const override { return _TYPE(Value.ToString()); }\
 };
 
 	PCGEX_LITERAL_CAST(String, FString)
@@ -212,22 +187,13 @@ template <typename dummy = void> _TYPE GetValueInternal(FName Value) const { ret
 		EPCGExDirectionSelection Direction = EPCGExDirectionSelection::Forward;
 
 	protected:
-		virtual double GetDefaultValue() const { return 0; }
+		virtual double GetDefaultValue() const override { return 0; }
 
-		template <typename dummy = void>
-		double GetValueInternal(int32 Value) const { return Value; }
-
-		template <typename dummy = void>
-		double GetValueInternal(int64 Value) const { return static_cast<double>(Value); }
-
-		template <typename dummy = void>
-		double GetValueInternal(float Value) const { return static_cast<double>(Value); }
-
-		template <typename dummy = void>
-		double GetValueInternal(double Value) const { return static_cast<double>(Value); }
-
-		template <typename dummy = void>
-		double GetValueInternal(FVector2D Value) const
+		virtual double Convert(const int32 Value) const override { return static_cast<double>(Value); }
+		virtual double Convert(const int64 Value) const override { return static_cast<double>(Value); }
+		virtual double Convert(const float Value) const override { return static_cast<double>(Value); }
+		virtual double Convert(const double Value) const override { return static_cast<double>(Value); }
+		virtual double Convert(const FVector2D Value) const override
 		{
 			switch (FieldSelection)
 			{
@@ -243,8 +209,7 @@ template <typename dummy = void> _TYPE GetValueInternal(FName Value) const { ret
 			}
 		}
 
-		template <typename dummy = void>
-		double GetValueInternal(FVector Value) const
+		virtual double Convert(const FVector Value) const override
 		{
 			switch (FieldSelection)
 			{
@@ -261,8 +226,7 @@ template <typename dummy = void> _TYPE GetValueInternal(FName Value) const { ret
 			}
 		}
 
-		template <typename dummy = void>
-		double GetValueInternal(FVector4 Value) const
+		virtual double Convert(const FVector4 Value) const override
 		{
 			switch (FieldSelection)
 			{
@@ -280,23 +244,13 @@ template <typename dummy = void> _TYPE GetValueInternal(FName Value) const { ret
 			}
 		}
 
-		template <typename dummy = void>
-		double GetValueInternal(FQuat Value) const { return GetValueInternal(GetDirection(Value, Direction)); }
-
-		template <typename dummy = void>
-		double GetValueInternal(FTransform Value) const { return GetValueInternal(Value.GetLocation()); }
-
-		template <typename dummy = void>
-		double GetValueInternal(bool Value) const { return static_cast<double>(Value); }
-
-		template <typename dummy = void>
-		double GetValueInternal(FRotator Value) const { return GetValueInternal(Value.Vector()); }
-
-		template <typename dummy = void>
-		double GetValueInternal(FString Value) const { return ConvertStringToDouble(Value); }
-
-		template <typename dummy = void>
-		double GetValueInternal(FName Value) const { return ConvertStringToDouble(Value.ToString()); }
+		virtual double Convert(const FQuat Value) const override { return Convert(Common::GetDirection(Value, Direction)); }
+		virtual double Convert(const FTransform Value) const override { return Convert(Value.GetLocation()); }
+		virtual double Convert(const bool Value) const override { return static_cast<double>(Value); }
+		virtual double Convert(const FRotator Value) const override { return Convert(Value.Vector()); }
+		virtual double Convert(const FString Value) const override { return Common::ConvertStringToDouble(Value); }
+		virtual double Convert(const FName Value) const override { return Common::ConvertStringToDouble(Value.ToString()); }
+		
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FLocalDirectionInput : public FLocalAttributeInput<FVector>
@@ -315,25 +269,22 @@ template <typename dummy = void> _TYPE GetValueInternal(FName Value) const { ret
 		EPCGExDirectionSelection Direction = EPCGExDirectionSelection::Forward;
 
 	protected:
-		virtual FVector GetDefaultValue() const { return FVector::ZeroVector; }
+		virtual FVector GetDefaultValue() const override { return FVector::ZeroVector; }
 
-		template <typename dummy = void>
-		FVector GetValueInternal(FVector2D Value) const { return FVector(Value.X, Value.Y, 0); }
-
-		template <typename dummy = void>
-		FVector GetValueInternal(FVector Value) const { return Value; }
-
-		template <typename dummy = void>
-		FVector GetValueInternal(FVector4 Value) const { return FVector(Value); }
-
-		template <typename dummy = void>
-		FVector GetValueInternal(FQuat Value) const { return GetDirection(Value, Direction); }
-
-		template <typename dummy = void>
-		FVector GetValueInternal(FTransform Value) const { return GetDirection(Value.GetRotation(), Direction); }
-
-		template <typename dummy = void>
-		FVector GetValueInternal(FRotator Value) const { return Value.Vector(); }
+		virtual FVector Convert(const bool Value) const override { return GetDefaultValue(); }
+		virtual FVector Convert(const int32 Value) const override { return GetDefaultValue(); }
+		virtual FVector Convert(const int64 Value) const override { return GetDefaultValue(); }
+		virtual FVector Convert(const float Value) const override { return GetDefaultValue(); }
+		virtual FVector Convert(const double Value) const override { return GetDefaultValue(); }		
+		virtual FVector Convert(const FVector2D Value) const override { return FVector(Value.X, Value.Y, 0); }
+		virtual FVector Convert(const FVector Value) const override { return Value; }
+		virtual FVector Convert(const FVector4 Value) const override { return FVector(Value); }
+		virtual FVector Convert(const FQuat Value) const override { return Common::GetDirection(Value, Direction); }
+		virtual FVector Convert(const FTransform Value) const override { return Common::GetDirection(Value.GetRotation(), Direction); }
+		virtual FVector Convert(const FRotator Value) const override { return Value.Vector(); }
+		virtual FVector Convert(const FString Value) const override { return GetDefaultValue(); }
+		virtual FVector Convert(const FName Value) const override { return GetDefaultValue(); }
+		
 	};
 
 #pragma endregion

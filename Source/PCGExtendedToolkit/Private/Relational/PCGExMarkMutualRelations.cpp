@@ -63,7 +63,7 @@ bool FPCGExMarkMutualRelationsElement::ExecuteInternal(
 			return true;
 		}
 
-		if (Context->Points.IsEmpty())
+		if (Context->Points->IsEmpty())
 		{
 			PCGE_LOG(Error, GraphAndLog, LOCTEXT("MissingPoints", "Missing Input Points."));
 			return true;
@@ -86,7 +86,7 @@ bool FPCGExMarkMutualRelationsElement::ExecuteInternal(
 		}
 		else
 		{
-			Context->CurrentIO->ForwardPoints(Context, true);
+			//Context->CurrentIO->ForwardPoints(Context, true);
 			Context->SetOperation(PCGEx::EOperation::ReadyForNextParams);
 		}
 	}
@@ -114,8 +114,6 @@ bool FPCGExMarkMutualRelationsElement::ExecuteInternal(
 		};
 
 		const FBoxCenterAndExtent Box = FBoxCenterAndExtent(OutPoint.Transform.GetLocation(), FVector(MaxDistance));
-
-		//UE_LOG(LogTemp, Warning, TEXT("           Processed Point %d"), ReadIndex);
 
 		//Write results
 		int64 Key = OutPoint.MetadataEntry;
@@ -165,7 +163,7 @@ bool FPCGExMarkMutualRelationsElement::ExecuteInternal(
 
 	if (Context->IsCurrentOperation(PCGEx::EOperation::Done))
 	{
-		Context->Points.OutputTo(Context);
+		Context->Points->OutputTo(Context);
 		return true;
 	}
 

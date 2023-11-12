@@ -63,20 +63,20 @@ bool FPCGExDeleteRelationsElement::ExecuteInternal(
 		return true;
 	}
 
-	if (Context->Points.IsEmpty())
+	if (Context->Points->IsEmpty())
 	{
 		PCGE_LOG(Error, GraphAndLog, LOCTEXT("MissingPoints", "Missing Input Points."));
 		return true;
 	}
 
-	Context->Points.ForEach(
-		Context, [&Context](PCGEx::FPointIO* PointIO, int32)
+	Context->Points->ForEach(
+		[&Context](UPCGExPointIO* PointIO, int32)
 		{
 			auto DeleteSockets = [&PointIO](UPCGExRelationsParamsData* Params, int32)
 			{
-				for(const PCGExRelational::FSocket& Socket : Params->GetSocketMapping()->Sockets)
+				for (const PCGExRelational::FSocket& Socket : Params->GetSocketMapping()->Sockets)
 				{
-					PointIO->Out->Metadata->DeleteAttribute(Socket.GetName());		
+					PointIO->Out->Metadata->DeleteAttribute(Socket.GetName());
 				}
 			};
 			Context->Params.ForEach(Context, DeleteSockets);

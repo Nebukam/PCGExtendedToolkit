@@ -6,6 +6,7 @@
 #include "PCGContext.h"
 #include "PCGExCommon.h"
 #include "PCGSettings.h"
+#include "Data/PCGExPointIO.h"
 #include "Elements/PCGPointProcessingElementBase.h"
 #include "PCGExPointsProcessor.generated.h"
 
@@ -56,7 +57,6 @@ public:
 
 protected:
 	virtual int32 GetPreferredChunkSize() const;
-
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : public FPCGContext
@@ -64,19 +64,23 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : public FPCGContext
 	friend class FPCGExPointsProcessorElementBase;
 
 public:
-	PCGEx::FPointIOGroup Points;
+	UPCGExPointIOGroup* Points = nullptr;
 
 	int32 GetCurrentPointsIndex() const { return CurrentPointsIndex; };
-	PCGEx::FPointIO* CurrentIO = nullptr;
+	UPCGExPointIO* CurrentIO = nullptr;
 
 	bool AdvancePointsIO();
 
 	int32 GetOperation() const { return CurrentOperation; }
 	bool IsCurrentOperation(int32 OperationId) const { return CurrentOperation == OperationId; }
+	bool IsDone() { return CurrentOperation == PCGEx::EOperation::Done; }
 
 	virtual void SetOperation(int32 OperationId);
 	virtual void Reset();
 	virtual bool IsValid();
+
+	virtual bool ValidatePointDataInput(UPCGPointData* PointData);
+	virtual void PostInitPointDataInput(UPCGExPointIO* PointData);
 
 	int32 ChunkSize = 0;
 
@@ -94,5 +98,4 @@ public:
 protected:
 	virtual void InitializeContext(FPCGExPointsProcessorContext* InContext, const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node) const;
 	//virtual bool ExecuteInternal(FPCGContext* Context) const override;
-
 };

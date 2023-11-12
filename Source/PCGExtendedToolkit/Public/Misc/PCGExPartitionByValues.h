@@ -15,15 +15,15 @@
 #include "PCGExPartitionByValues.generated.h"
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExPartitionRule : public FPCGExInputSelectorWithSingleField
+struct PCGEXTENDEDTOOLKIT_API FPCGExPartitionRuleDescriptor : public FPCGExInputSelectorWithSingleField
 {
 	GENERATED_BODY()
 
-	FPCGExPartitionRule(): FPCGExInputSelectorWithSingleField()
+	FPCGExPartitionRuleDescriptor(): FPCGExInputSelectorWithSingleField()
 	{
 	}
 
-	FPCGExPartitionRule(const FPCGExPartitionRule& Other): FPCGExInputSelectorWithSingleField(Other)
+	FPCGExPartitionRuleDescriptor(const FPCGExPartitionRuleDescriptor& Other): FPCGExInputSelectorWithSingleField(Other)
 	{
 		FilterSize = Other.FilterSize;
 		Upscale = Other.Upscale;
@@ -47,12 +47,12 @@ namespace PCGExPartition
 		{
 		}
 
-		FRule(const FPCGExPartitionRule& Rule):
-			FLocalSingleComponentInput(Rule.FieldSelection, Rule.Direction),
-			FilterSize(Rule.FilterSize),
-			Upscale(Rule.Upscale)
+		FRule(FPCGExPartitionRuleDescriptor InRule):
+			FLocalSingleComponentInput(InRule.FieldSelection, InRule.Direction),
+			FilterSize(InRule.FilterSize),
+			Upscale(InRule.Upscale)
 		{
-			Descriptor = static_cast<FPCGExInputSelector>(Rule);
+			Descriptor = static_cast<FPCGExInputSelector>(InRule);
 		}
 
 	public:
@@ -86,7 +86,7 @@ protected:
 public:
 	/** Rules */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExPartitionRule PartitioningRules;
+	FPCGExPartitionRuleDescriptor PartitioningRules;
 
 	/** Whether to write the partition Key to an attribute. Useful for debugging. Note: They key is not the index, but instead the filtered value used to distribute into partitions. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (InlineEditConditionToggle, PCG_Overridable))
@@ -102,15 +102,25 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSplitByValuesContext : public FPCGExPointsPr
 	friend class FPCGExPartitionByValuesElement;
 
 public:
-	TMap<int64, PCGEx::FPointIO*> PartitionsMap;
+	TMap<int64, UPCGExPointIO*> PartitionsMap;
 	TMap<int64, FPCGMetadataAttribute<int64>*> KeyAttributeMap;
-	PCGEx::FPointIOGroup Partitions;
-	PCGExPartition::FRule PartitionRule;
+
+	TArray<PCGExPartition::FRule> Rules;
+	TMap<UPCGExPointIO*, PCGExPartition::FRule*> RuleMap;
+	FPCGExPartitionRuleDescriptor PartitionSettings;
+	
+	UPCGExPointIOGroup* Partitions;
+	FPCGExPartitionRuleDescriptor PartitionRule;
 	EPCGAttributePropertySelection Selection;
-	FPCGMetadataAttribute<int64>* CurrentOutAttribute = nullptr;
 	FName PartitionKeyName;
 	bool bWritePartitionKey = false;
-	std::shared_mutex PartitionMutex;
+
+	mutable FRWLock RulesLock;
+	mutable FRWLock PartitionsLock;
+	mutable FRWLock PointsLock;
+
+	bool ValidatePointDataInput(UPCGPointData* PointData) override;
+	
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExPartitionByValuesElement : public FPCGExPointsProcessorElementBase
@@ -130,6 +140,6 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 
 private:
-	static void DistributePoint(FPCGExSplitByValuesContext* Context, FPCGPoint& Point, const double InValue);
+	static void DistributePoint(FPCGExSplitByValuesContext* Context, UPCGExPointIO* IO, const FPCGPoint& Point, const double InValue);
 	static int64 Filter(const double InValue, const PCGExPartition::FRule& Rule);
 };

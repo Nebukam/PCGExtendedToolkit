@@ -28,6 +28,8 @@ public:
 	virtual FText GetNodeTooltipText() const override;
 #endif
 
+	virtual PCGEx::EIOInit GetPointOutputInitMode() const override;
+
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings interface
@@ -35,11 +37,27 @@ protected:
 public:
 	/** The name of the attribute to write its index to.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
-	FPCGAttributePropertyOutputNoSourceSelector OutSelector;
+	FName OutputAttributeName;
+};
+
+struct PCGEXTENDEDTOOLKIT_API FPCGExSortPointsContext : public FPCGExPointsProcessorContext
+{
+	friend class FPCGExWriteIndexElement;
+
+public:
+	mutable FRWLock MapLock;
+	FName OutName = NAME_None;
+	TMap<UPCGExPointIO*, FPCGMetadataAttribute<int64>*> AttributeMap;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExWriteIndexElement : public FPCGExPointsProcessorElementBase
 {
+public:
+	virtual FPCGContext* Initialize(
+		const FPCGDataCollection& InputData,
+		TWeakObjectPtr<UPCGComponent> SourceComponent,
+		const UPCGNode* Node) override;
+
 protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };

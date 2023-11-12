@@ -14,48 +14,83 @@
 FText UPCGExWriteIndexSettings::GetNodeTooltipText() const { return LOCTEXT("PCGExWriteIndexTooltip", "Write the current point index to an attribute."); }
 #endif // WITH_EDITOR
 
+PCGEx::EIOInit UPCGExWriteIndexSettings::GetPointOutputInitMode() const { return PCGEx::EIOInit::DuplicateInput; }
+
 FPCGElementPtr UPCGExWriteIndexSettings::CreateElement() const { return MakeShared<FPCGExWriteIndexElement>(); }
+
+FPCGContext* FPCGExWriteIndexElement::Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node)
+{
+	FPCGExSortPointsContext* Context = new FPCGExSortPointsContext();
+	InitializeContext(Context, InputData, SourceComponent, Node);
+	return Context;
+}
+
 
 bool FPCGExWriteIndexElement::ExecuteInternal(FPCGContext* InContext) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExWriteIndexElement::Execute);
 
-	FPCGExPointsProcessorContext* Context = static_cast<FPCGExPointsProcessorContext*>(InContext);
+	FPCGExSortPointsContext* Context = static_cast<FPCGExSortPointsContext*>(InContext);
 
-	if (!Context->IsValid())
+	if (Context->IsCurrentOperation(PCGEx::EOperation::Setup))
 	{
-		PCGE_LOG(Error, GraphAndLog, LOCTEXT("InvalidContext", "Inputs are missing or invalid."));
-		return true;
-	}
-
-	const UPCGExWriteIndexSettings* Settings = Context->GetInputSettings<UPCGExWriteIndexSettings>();
-	check(Settings);
-
-	const FPCGAttributePropertyOutputNoSourceSelector OutSelector = Settings->OutSelector;
-
-	if (!OutSelector.IsValid())
-	{
-		PCGE_LOG(Error, GraphAndLog, LOCTEXT("InvalidOutput", "Output is invalid."));
-		return true;
-	}
-
-	const FName AttributeName = OutSelector.GetName();
-
-	auto ProcessPair = [&Context, &AttributeName](PCGEx::FPointIO* IO, const int32)
-	{
-		FPCGMetadataAttribute<int64>* IndexAttribute = PCGMetadataElementCommon::ClearOrCreateAttribute<int64>(IO->Out->Metadata, AttributeName, -1);
-		auto ProcessPoint = [&IO, &IndexAttribute](FPCGPoint& Point, const int32 Index, const FPCGPoint& OtherPoint)
+		if (!Context->IsValid())
 		{
-			IndexAttribute->SetValue(Index, Index);
-		};
+			PCGE_LOG(Error, GraphAndLog, LOCTEXT("InvalidContext", "Inputs are missing or invalid."));
+			return true;
+		}
 
-		IO->ForwardPoints(Context, ProcessPoint);
+		const UPCGExWriteIndexSettings* Settings = Context->GetInputSettings<UPCGExWriteIndexSettings>();
+		check(Settings);
+
+		FName OutName = Settings->OutputAttributeName;
+		if (!PCGEx::Common::IsValidName(OutName))
+		{
+			PCGE_LOG(Error, GraphAndLog, LOCTEXT("InvalidName", "Output name is invalid."));
+			return true;
+		}
+
+		Context->OutName = Settings->OutputAttributeName;
+		Context->SetOperation(PCGEx::EOperation::ReadyForNextPoints);
+	}
+
+	bool bProcessingAllowed = false;
+	if (Context->IsCurrentOperation(PCGEx::EOperation::ReadyForNextPoints))
+	{
+		// Start processing all the things
+		bProcessingAllowed = true;
+	}
+
+	auto InitializeForIO = [&Context](UPCGExPointIO* IO)
+	{
+		FWriteScopeLock ScopeLock(Context->MapLock);
+		IO->BuildMetadataEntries();
+		FPCGMetadataAttribute<int64>* IndexAttribute = IO->Out->Metadata->FindOrCreateAttribute<int64>(Context->OutName, -1, false, true, true);
+		Context->AttributeMap.Add(IO, IndexAttribute);
+		Context->SetOperation(PCGEx::EOperation::ProcessingPoints);
 	};
 
-	Context->Points.ForEach(Context, ProcessPair);
-	Context->Points.OutputTo(Context);
+	auto ProcessPoint = [&Context](const FPCGPoint& Point, const int32 Index, UPCGExPointIO* IO)
+	{
+		FPCGMetadataAttribute<int64>* IndexAttribute = *(Context->AttributeMap.Find(IO));
+		IndexAttribute->SetValue(Point.MetadataEntry, Index);
+	};
 
-	return true;
+	if (Context->IsCurrentOperation(PCGEx::EOperation::ProcessingPoints) || bProcessingAllowed)
+	{
+		if (Context->Points->OutputsParallelProcessing(Context, InitializeForIO, ProcessPoint, Context->ChunkSize))
+		{
+			Context->SetOperation(PCGEx::EOperation::Done);
+		}
+	}
+
+	if (Context->IsDone())
+	{
+		Context->Points->OutputTo(Context);
+		return true;
+	}
+
+	return false;
 }
 
 #undef LOCTEXT_NAMESPACE

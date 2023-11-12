@@ -63,9 +63,9 @@ int32 UPCGExPointsProcessorSettings::GetPreferredChunkSize() const { return 256;
 bool FPCGExPointsProcessorContext::AdvancePointsIO()
 {
 	CurrentPointsIndex++;
-	if (Points.Pairs.IsValidIndex(CurrentPointsIndex))
+	if (Points->Pairs.IsValidIndex(CurrentPointsIndex))
 	{
-		CurrentIO = &(Points.Pairs[CurrentPointsIndex]);
+		CurrentIO = Points->Pairs[CurrentPointsIndex];
 		return true;
 	}
 	CurrentIO = nullptr;
@@ -80,7 +80,13 @@ void FPCGExPointsProcessorContext::SetOperation(int32 OperationId)
 
 void FPCGExPointsProcessorContext::Reset() { CurrentOperation = -1; }
 
-bool FPCGExPointsProcessorContext::IsValid() { return !Points.IsEmpty(); }
+bool FPCGExPointsProcessorContext::IsValid() { return !Points->IsEmpty(); }
+
+bool FPCGExPointsProcessorContext::ValidatePointDataInput(UPCGPointData* PointData) { return true; }
+
+void FPCGExPointsProcessorContext::PostInitPointDataInput(UPCGExPointIO* PointData)
+{
+}
 
 #pragma endregion
 
@@ -103,14 +109,20 @@ void FPCGExPointsProcessorElementBase::InitializeContext(
 	InContext->InputData = InputData;
 	InContext->SourceComponent = SourceComponent;
 	InContext->Node = Node;
-	
+
 	const UPCGExPointsProcessorSettings* Settings = InContext->GetInputSettings<UPCGExPointsProcessorSettings>();
 	check(Settings);
 
 	InContext->ChunkSize = Settings->ChunkSize;
 
+	InContext->Points = NewObject<UPCGExPointIOGroup>();
 	TArray<FPCGTaggedData> Sources = InContext->InputData.GetInputsByPin(PCGEx::SourcePointsLabel);
-	InContext->Points.Initialize(InContext, Sources, Settings->GetPointOutputInitMode());
+	InContext->Points->Initialize(
+		InContext,
+		Sources,
+		Settings->GetPointOutputInitMode(),
+		[&InContext](UPCGPointData* Data) { return InContext->ValidatePointDataInput(Data); },
+		[&InContext](UPCGExPointIO* IO) { return InContext->PostInitPointDataInput(IO); });
 }
 
 #undef LOCTEXT_NAMESPACE

@@ -11,6 +11,9 @@
 #include "Metadata/PCGMetadataAttribute.h"
 #include "Metadata/Accessors/IPCGAttributeAccessor.h"
 #include "Metadata/Accessors/PCGAttributeAccessorHelpers.h"
+#include "HAL/CriticalSection.h"
+#include <mutex>
+#include <shared_mutex>
 #include "PCGExCommon.generated.h"
 
 #define PCGEX_FOREACH_SUPPORTEDTYPES(MACRO) \
@@ -278,247 +281,6 @@ namespace PCGEx
 		DuplicateInput UMETA(DisplayName = "Duplicate Input Object"),
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FPointIO
-	{
-		FPointIO()
-		{
-			IndicesMap.Empty();
-		}
-
-	public:
-		FPCGTaggedData Source;       // Source struct
-		UPCGPointData* In = nullptr; // Input PointData
-
-		FPCGTaggedData Output;        // Source structS
-		UPCGPointData* Out = nullptr; // Output PointData
-
-		int32 NumPoints = -1;
-
-		TMap<PCGMetadataEntryKey, int32> IndicesMap; //MetadataEntry::Index, based on Input points (output MetadataEntry will be offset)
-
-		/**
-		 * 
-		 * @param InitOut Only initialize output if there is an existing input
-		 * @return 
-		 */
-		bool InitializeOut(EIOInit InitOut = EIOInit::NoOutput)
-		{
-			switch (InitOut)
-			{
-			case EIOInit::NoOutput:
-				return false;
-			case EIOInit::NewOutput:
-				Out = NewObject<UPCGPointData>();
-				if (In) { Out->InitializeFromData(In); }
-				return true;
-			case EIOInit::DuplicateInput:
-				if (In)
-				{
-					Out = Cast<UPCGPointData>(In->DuplicateData(true));
-				}
-				else
-				{
-					UE_LOG(LogTemp, Error, TEXT("Initialize::Duplicate, but no Input."));
-				}
-				return true;
-			default: return false;
-			}
-		}
-
-		int32 GetIndex(const PCGMetadataEntryKey Key) { return *(IndicesMap.Find(Key)); }
-
-		/**
-		 * Write valid outputs to Context' tagged data
-		 * @param Context 
-		 * @param bEmplace if false (default), will try to use the source first
-		 */
-		bool OutputTo(FPCGContext* Context, bool bEmplace = false)
-		{
-			if (!Out) { return false; }
-
-			if (!bEmplace)
-			{
-				if (!In)
-				{
-					UE_LOG(LogTemp, Error, TEXT("OutputTo, bEmplace==false but no Input."));
-					return false;
-				}
-
-				FPCGTaggedData& OutputRef = Context->OutputData.TaggedData.Add_GetRef(Source);
-				OutputRef.Data = Out;
-				Output = OutputRef;
-			}
-			else
-			{
-				FPCGTaggedData& OutputRef = Context->OutputData.TaggedData.Emplace_GetRef();
-				OutputRef.Data = Out;
-				Output = OutputRef;
-			}
-			return true;
-		}
-
-		/**
-		 * Copy In.Points to Out.Points
-		 * @param Context
-		 * @param bWriteIndices
-		 * @param bInitializeOnSet True if you intend on modifying attributes, otherwise false.
-		 * @return 
-		 */
-		bool ForwardPoints(FPCGContext* Context, bool bWriteIndices = false, bool bInitializeOnSet = true)
-		{
-			if (!Out || !In) { return false; }
-
-			int32 PointIndex = 0;
-			TArray<FPCGPoint>& OutPoints = Out->GetMutablePoints();
-
-			auto CopyPoint = [&PointIndex, &bWriteIndices, &bInitializeOnSet, this](const FPCGPoint& InPoint, FPCGPoint& OutPoint)
-			{
-				OutPoint = InPoint;
-				if (bWriteIndices) { IndicesMap.Add(InPoint.MetadataEntry, PointIndex); }
-				if (bInitializeOnSet) { Out->Metadata->InitializeOnSet(OutPoint.MetadataEntry, InPoint.MetadataEntry, In->Metadata); }
-				PointIndex++;
-				return true;
-			};
-
-			FPCGAsync::AsyncPointProcessing(Context, In->GetPoints(), OutPoints, CopyPoint);
-			return true;
-		}
-
-		/**
-		 * Copy In.Points to Out.Points with a callback after each copy
-		 * @param Context 
-		 * @param PointFunc
-		 * @param bWriteIndices
-		 * @param bInitializeOnSet True if you intend on modifying attributes, otherwise false.
-		 * @return 
-		 */
-		bool ForwardPoints(
-			FPCGContext* Context,
-			const TFunction<void(FPCGPoint&, const int32, const FPCGPoint&)>& PointFunc,
-			bool bWriteIndices = false, bool bInitializeOnSet = true)
-		{
-			if (!Out || !In) { return false; }
-
-			int32 PointIndex = 0;
-			TArray<FPCGPoint>& OutPoints = Out->GetMutablePoints();
-			auto CopyPoint = [&PointIndex, &bWriteIndices, &bInitializeOnSet, &PointFunc, this](const FPCGPoint& InPoint, FPCGPoint& OutPoint)
-			{
-				OutPoint = InPoint;
-				if (bWriteIndices) { IndicesMap.Add(InPoint.MetadataEntry, PointIndex); }
-				if (bInitializeOnSet) { Out->Metadata->InitializeOnSet(OutPoint.MetadataEntry, InPoint.MetadataEntry, In->Metadata); }
-				PointFunc(OutPoint, PointIndex, InPoint);
-				PointIndex++;
-				return true;
-			};
-
-			FPCGAsync::AsyncPointProcessing(Context, In->GetPoints(), OutPoints, CopyPoint);
-
-			return true;
-		}
-
-		~FPointIO()
-		{
-			IndicesMap.Empty();
-			In = nullptr;
-			Out = nullptr;
-		}
-	};
-
-	struct PCGEXTENDEDTOOLKIT_API FPointIOGroup
-	{
-		FPointIOGroup()
-		{
-			Pairs.Empty();
-		}
-
-		FPointIOGroup(
-			FPCGContext* Context, FName InputLabel,
-			EIOInit InitOut = EIOInit::NoOutput): FPointIOGroup()
-		{
-			TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(InputLabel);
-			Initialize(Context, Sources, InitOut);
-		}
-
-		FPointIOGroup(
-			FPCGContext* Context, TArray<FPCGTaggedData>& Sources,
-			EIOInit InitOut = EIOInit::NoOutput): FPointIOGroup()
-		{
-			Initialize(Context, Sources, InitOut);
-		}
-
-	public:
-		TArray<FPointIO> Pairs;
-
-		/**
-		 * Initialize from Sources
-		 * @param Context 
-		 * @param Sources 
-		 * @param InitOut 
-		 */
-		void Initialize(
-			FPCGContext* Context, TArray<FPCGTaggedData>& Sources,
-			EIOInit InitOut = EIOInit::NoOutput)
-		{
-			Pairs.Empty(Sources.Num());
-			for (FPCGTaggedData& Source : Sources)
-			{
-				const UPCGSpatialData* SpatialData = Cast<UPCGSpatialData>(Source.Data);
-				if (!SpatialData) { continue; }
-				const UPCGPointData* PointData = SpatialData->ToPointData(Context);
-				if (!PointData) { continue; }
-
-				Emplace_GetRef(Source, const_cast<UPCGPointData*>(SpatialData->ToPointData(Context)), InitOut);
-			}
-		}
-
-		FPointIO& Emplace_GetRef(
-			FPointIO& IO,
-			const EIOInit InitOut = EIOInit::NoOutput)
-		{
-			return Emplace_GetRef(IO.Source, IO.In, InitOut);
-		}
-
-		FPointIO& Emplace_GetRef(
-			const FPCGTaggedData& Source, UPCGPointData* In,
-			const EIOInit InitOut = EIOInit::NoOutput)
-		{
-			FPointIO& Pair = Pairs.Emplace_GetRef();
-
-			Pair.Source = Source;
-			Pair.In = In;
-			Pair.NumPoints = Pair.In->GetPoints().Num();
-
-			Pair.InitializeOut(InitOut);
-			return Pair;
-		}
-
-		bool IsEmpty() { return Pairs.IsEmpty(); }
-
-		/**
-		 * Write valid outputs to Context' tagged data
-		 * @param Context
-		 * @param bEmplace Emplace will create a new entry no matter if a Source is set, otherwise will match the In.Source. 
-		 */
-		void OutputTo(FPCGContext* Context, bool bEmplace = false)
-		{
-			for (FPointIO& Pair : Pairs) { Pair.OutputTo(Context, bEmplace); }
-		}
-
-		void ForEach(FPCGContext* Context, const TFunction<void(FPointIO*, const int32)>& BodyLoop)
-		{
-			for (int i = 0; i < Pairs.Num(); i++)
-			{
-				FPointIO* PIOPair = &Pairs[i];
-				BodyLoop(PIOPair, i);
-			}
-		}
-
-		~FPointIOGroup()
-		{
-			Pairs.Empty();
-		}
-	};
-
 	class Common
 	{
 	public:
@@ -597,198 +359,36 @@ namespace PCGEx
 				});
 		}
 
-		/**
-		 * For each UPCGPointData found in sources, creates a copy.
-		 * @param Context 
-		 * @param Sources 
-		 * @param OutIOPairs 
-		 * @param OnDataCopyBegin 
-		 * @param OnDataCopyEnd 
-		 */
-		[[deprecated("Use FPointIO::ForwardPoint instead; which manages MetadaEntryKeys")]]
-		static void ForwardCopySourcePoints
-			(
-			FPCGContext* Context,
-			TArray<FPCGTaggedData>& Sources,
-			TArray<FPointIO>& OutIOPairs,
-			const TFunction<bool(FPointIO&, const int32, const int32)>& OnDataCopyBegin,
-			const TFunction<void(FPointIO&, const int32)>& OnDataCopyEnd)
-		{
-			OutIOPairs.Empty();
-
-			TArray<FPCGTaggedData>& Outputs = Context->OutputData.TaggedData;
-			int32 IOIndex = 0;
-
-			for (FPCGTaggedData& Source : Sources)
-			{
-				const UPCGSpatialData* SourceData = Cast<UPCGSpatialData>(Source.Data);
-				if (!SourceData) { continue; }
-				const UPCGPointData* InPointData = SourceData->ToPointData(Context);
-				if (!InPointData) { continue; }
-
-				FPointIO& IO = OutIOPairs.Emplace_GetRef();
-				IO.In = const_cast<UPCGPointData*>(InPointData);
-				IO.Source = Source;
-
-				IO.Out = NewObject<UPCGPointData>();
-				IO.Out->InitializeFromData(IO.In);
-				IO.OutputTo(Context);
-
-				const bool bContinue = OnDataCopyBegin(IO, IO.In->GetPoints().Num(), IOIndex);
-
-				if (!bContinue)
-				{
-					OutIOPairs.Pop();
-					Outputs.Pop();
-					continue;
-				}
-
-				TArray<FPCGPoint>& OutPoints = IO.Out->GetMutablePoints();
-				auto CopyPoint = [](const FPCGPoint& InPoint, FPCGPoint& OutPoint)
-				{
-					OutPoint = InPoint;
-					return true;
-				};
-
-				FPCGAsync::AsyncPointProcessing(Context, InPointData->GetPoints(), OutPoints, CopyPoint);
-
-				OnDataCopyEnd(IO, IOIndex);
-				IOIndex++;
-			}
-		}
-
-		/**
-		 * For each UPCGPointData found in sources, creates a copy.
-		 * @param Context 
-		 * @param Sources 
-		 * @param OutIOPairs 
-		 * @param OnDataCopyBegin 
-		 * @param OnPointCopied 
-		 * @param OnDataCopyEnd 
-		 */
-		[[deprecated("Use FPointIO::ForwardPoint instead; which manages MetadaEntryKeys")]]
-		static void ForwardCopySourcePoints
-			(
-			FPCGContext* Context,
-			TArray<FPCGTaggedData>& Sources,
-			TArray<FPointIO>& OutIOPairs,
-			const TFunction<bool(FPointIO&, const int32, const int32)>& OnDataCopyBegin,
-			const TFunction<void(FPCGPoint&, FPointIO&, const int32)>& OnPointCopied,
-			const TFunction<void(FPointIO&, const int32)>& OnDataCopyEnd)
-		{
-			OutIOPairs.Empty();
-
-			TArray<FPCGTaggedData>& Outputs = Context->OutputData.TaggedData;
-			int32 IOIndex = 0;
-
-			for (FPCGTaggedData& Source : Sources)
-			{
-				const UPCGSpatialData* SourceData = Cast<UPCGSpatialData>(Source.Data);
-				if (!SourceData) { continue; }
-				const UPCGPointData* InPointData = SourceData->ToPointData(Context);
-				if (!InPointData) { continue; }
-
-				FPointIO& IO = OutIOPairs.Emplace_GetRef();
-				IO.In = const_cast<UPCGPointData*>(InPointData);
-				IO.Source = Source;
-				IO.Out = NewObject<UPCGPointData>();
-				IO.Out->InitializeFromData(IO.In);
-
-				IO.OutputTo(Context);
-
-				const bool bContinue = OnDataCopyBegin(IO, IO.In->GetPoints().Num(), IOIndex);
-
-				if (!bContinue)
-				{
-					OutIOPairs.Pop();
-					Outputs.Pop();
-					continue;
-				}
-
-				int PointIndex = 0;
-				TArray<FPCGPoint>& OutPoints = IO.Out->GetMutablePoints();
-				auto CopyPoint = [&PointIndex, &IO, &OnPointCopied](const FPCGPoint& InPoint, FPCGPoint& OutPoint)
-				{
-					OutPoint = InPoint;
-					OnPointCopied(OutPoint, IO, PointIndex);
-					PointIndex++;
-					return true;
-				};
-
-				FPCGAsync::AsyncPointProcessing(Context, InPointData->GetPoints(), OutPoints, CopyPoint);
-
-				OnDataCopyEnd(IO, IOIndex);
-				IOIndex++;
-			}
-		}
-
-		/**
-		 * For each UPCGPointData found in sources, creates a copy.
-		 * @param Context 
-		 * @param Sources 
-		 * @param OutIOPairs 
-		 * @param OnForwardBegin 
-		 * @param OnPointFunc 
-		 * @param OnForwardEnd 
-		 */
-		[[deprecated("Use FPointIO::ForwardPoint instead; which manages MetadaEntryKeys")]]
-		static void ForwardSourcePoints
-			(
-			FPCGContext* Context,
-			TArray<FPCGTaggedData>& Sources,
-			TArray<FPointIO>& OutIOPairs,
-			const TFunction<bool(FPointIO&, const int32, const int32)>& OnForwardBegin,
-			const TFunction<void(const FPCGPoint&, FPointIO&, const int32)>& OnPointFunc,
-			const TFunction<void(FPointIO&, const int32)>& OnForwardEnd,
-			int32 ChunkSize = 32)
-		{
-			OutIOPairs.Empty();
-
-			TArray<FPCGTaggedData>& Outputs = Context->OutputData.TaggedData;
-			int32 IOIndex = 0;
-
-			for (FPCGTaggedData& Source : Sources)
-			{
-				const UPCGSpatialData* SourceData = Cast<UPCGSpatialData>(Source.Data);
-				if (!SourceData) { continue; }
-				const UPCGPointData* InPointData = SourceData->ToPointData(Context);
-				if (!InPointData) { continue; }
-
-				FPointIO& IO = OutIOPairs.Emplace_GetRef();
-				IO.In = const_cast<UPCGPointData*>(InPointData);
-				IO.Source = Source;
-				IO.Out = IO.In;
-				IO.OutputTo(Context);
-
-				const int32 NumIterations = IO.In->GetPoints().Num();
-				const bool bContinue = OnForwardBegin(IO, NumIterations, IOIndex);
-
-				if (!bContinue)
-				{
-					OutIOPairs.Pop();
-					Outputs.Pop();
-					continue;
-				}
-
-				int PointIndex = 0;
-				const TArray<FPCGPoint>& OutPoints = IO.Out->GetPoints();
-				auto InternalPointFunc = [&PointIndex, &IO, &OnPointFunc, &OutPoints](const int32 ReadIndex)
-				{
-					OnPointFunc(OutPoints[ReadIndex], IO, PointIndex);
-					PointIndex++;
-					return true;
-				};
-
-				AsyncForLoop(Context, NumIterations, InternalPointFunc);
-
-				OnForwardEnd(IO, IOIndex);
-				IOIndex++;
-			}
-		}
-
 		static bool IsValidName(const FName& Name)
 		{
 			return IsValidName(Name.ToString());
+		}
+
+		static double ConvertStringToDouble(const FString& StringToConvert)
+		{
+			const TCHAR* CharArray = *StringToConvert;
+			const double Result = FCString::Atod(CharArray);
+			return FMath::IsNaN(Result) ? 0 : Result;
+		}
+
+		static FVector GetDirection(const FQuat& Quat, const EPCGExDirectionSelection Dir)
+		{
+			switch (Dir)
+			{
+			default:
+			case EPCGExDirectionSelection::Forward:
+				return Quat.GetForwardVector();
+			case EPCGExDirectionSelection::Backward:
+				return Quat.GetForwardVector() * -1;
+			case EPCGExDirectionSelection::Right:
+				return Quat.GetRightVector();
+			case EPCGExDirectionSelection::Left:
+				return Quat.GetRightVector() * -1;
+			case EPCGExDirectionSelection::Up:
+				return Quat.GetUpVector();
+			case EPCGExDirectionSelection::Down:
+				return Quat.GetUpVector() * -1;
+			}
 		}
 
 		/**

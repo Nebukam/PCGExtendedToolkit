@@ -7,7 +7,6 @@
 #include "Data/PCGPointData.h"
 #include "PCGContext.h"
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
-#include <mutex>
 
 #define LOCTEXT_NAMESPACE "PCGExDummyElement"
 
@@ -26,6 +25,12 @@ FText UPCGExPartitionByValuesSettings::GetNodeTooltipText() const
 FPCGElementPtr UPCGExPartitionByValuesSettings::CreateElement() const { return MakeShared<FPCGExPartitionByValuesElement>(); }
 
 PCGEx::EIOInit UPCGExPartitionByValuesSettings::GetPointOutputInitMode() const { return PCGEx::EIOInit::NoOutput; }
+
+bool FPCGExSplitByValuesContext::ValidatePointDataInput(UPCGPointData* PointData)
+{
+	UPCGExPartitionByValuesSettings* Settings = const_cast<UPCGExPartitionByValuesSettings*>(GetInputSettings<UPCGExPartitionByValuesSettings>());
+	return Settings->PartitioningRules.Validate(PointData);
+}
 
 FPCGContext* FPCGExPartitionByValuesElement::Initialize(
 	const FPCGDataCollection& InputData,
@@ -49,10 +54,11 @@ void FPCGExPartitionByValuesElement::InitializeContext(
 	const UPCGExPartitionByValuesSettings* Settings = InContext->GetInputSettings<UPCGExPartitionByValuesSettings>();
 	check(Settings);
 
+	Context->Partitions = NewObject<UPCGExPointIOGroup>();
 	Context->PartitionKeyName = Settings->KeyAttributeName;
 	Context->bWritePartitionKey = Settings->bWriteKeyToAttribute;
 	Context->PartitionsMap.Empty();
-	Context->PartitionRule = PCGExPartition::FRule(Settings->PartitioningRules);
+	Context->PartitionRule = Settings->PartitioningRules;
 
 	// ...
 }
@@ -66,7 +72,7 @@ bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* InContext) con
 
 	if (Context->IsCurrentOperation(PCGEx::EOperation::Setup))
 	{
-		if (Context->Points.IsEmpty())
+		if (Context->Points->IsEmpty())
 		{
 			PCGE_LOG(Error, GraphAndLog, LOCTEXT("MissingPoints", "Missing Input Points."));
 			return true;
@@ -84,60 +90,42 @@ bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* InContext) con
 		Context->SetOperation(PCGEx::EOperation::ReadyForNextPoints);
 	}
 
-	auto ProcessPoint = [&Context](int32 ReadIndex)
-	{
-		FPCGPoint InPoint = Context->CurrentIO->In->GetPoint(ReadIndex);
-		DistributePoint(Context, InPoint, Context->PartitionRule.GetValue(InPoint));
-	};
+	////
 
 	bool bProcessingAllowed = false;
 	if (Context->IsCurrentOperation(PCGEx::EOperation::ReadyForNextPoints))
 	{
-		if (!Context->AdvancePointsIO())
-		{
-			Context->SetOperation(PCGEx::EOperation::Done); //No more points
-		}
-		else
-		{
-			if (!Context->PartitionRule.PrepareForPointData(Context->CurrentIO->In))
-			{
-				PCGE_LOG(Warning, GraphAndLog, LOCTEXT("MissingAttribute", "Some inputs are missing the reference partition attribute, they will be omitted."));
-				return false;
-			}
-
-			bProcessingAllowed = true;
-		}
+		// Start processing all the things
+		bProcessingAllowed = true;
 	}
 
-	auto Initialize = [&Context]()
+	auto InitializeForIO = [&Context](UPCGExPointIO* IO)
 	{
+		FWriteScopeLock ScopeLock(Context->RulesLock);
+
+		PCGExPartition::FRule& IORule = Context->Rules.Emplace_GetRef(Context->PartitionSettings);
+		IORule.PrepareForPointData(IO->In);
+		Context->RuleMap.Add(IO, &IORule);
 		Context->SetOperation(PCGEx::EOperation::ProcessingPoints);
 	};
 
-	if (true) // Async op
+	auto ProcessPoint = [&Context](const FPCGPoint& Point, const int32 Index, UPCGExPointIO* IO)
 	{
-		if (Context->IsCurrentOperation(PCGEx::EOperation::ProcessingPoints) || bProcessingAllowed)
-		{
-			Context->SetOperation(PCGEx::EOperation::ProcessingPoints);
-			PCGEx::Common::AsyncForLoop(Context, Context->CurrentIO->NumPoints, ProcessPoint);
-			Context->SetOperation(PCGEx::EOperation::ReadyForNextPoints);
-		}
-	}
-	else // Multithreaded (uncomment mutex!!)
+		FReadScopeLock ScopeLock(Context->RulesLock);
+		DistributePoint(Context, IO, Point, (*(Context->RuleMap.Find(IO)))->GetValue(Point));
+	};
+
+	if (Context->IsCurrentOperation(PCGEx::EOperation::ProcessingPoints) || bProcessingAllowed)
 	{
-		if (Context->IsCurrentOperation(PCGEx::EOperation::ProcessingPoints) || bProcessingAllowed)
+		if (Context->Points->InputsParallelProcessing(Context, InitializeForIO, ProcessPoint, Context->ChunkSize))
 		{
-			if (PCGEx::Common::ParallelForLoop(Context, Context->CurrentIO->NumPoints, Initialize, ProcessPoint))
-			{
-				Context->SetOperation(PCGEx::EOperation::ReadyForNextPoints);
-			}
+			Context->SetOperation(PCGEx::EOperation::Done);
 		}
 	}
 
-
-	if (Context->IsCurrentOperation(PCGEx::EOperation::Done))
+	if (Context->IsDone())
 	{
-		Context->Partitions.OutputTo(Context, true);
+		Context->Partitions->OutputTo(Context, true);
 		return true;
 	}
 
@@ -146,24 +134,24 @@ bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* InContext) con
 
 void FPCGExPartitionByValuesElement::DistributePoint(
 	FPCGExSplitByValuesContext* Context,
-	FPCGPoint& Point,
+	UPCGExPointIO* IO,
+	const FPCGPoint& Point,
 	const double InValue)
 {
 	const int64 Key = Filter(InValue, Context->PartitionRule);
-	PCGEx::FPointIO* Partition = nullptr;
+	UPCGExPointIO* Partition = nullptr;
 
 	{
-		//std::shared_lock<std::shared_mutex> Lock(Context->PartitionMutex); //Lock for read
-		if (PCGEx::FPointIO** PartitionPtr = Context->PartitionsMap.Find(Key)) { Partition = *PartitionPtr; }
+		FReadScopeLock ScopeLock(Context->PartitionsLock);
+		if (UPCGExPointIO** PartitionPtr = Context->PartitionsMap.Find(Key)) { Partition = *PartitionPtr; }
 	}
 
 	FPCGMetadataAttribute<int64>* KeyAttribute = nullptr;
 
 	if (!Partition)
 	{
-		//std::unique_lock<std::shared_mutex> Lock(Context->PartitionMutex); //Lock for write
-
-		Partition = &(Context->Partitions.Emplace_GetRef(*Context->CurrentIO, PCGEx::EIOInit::NewOutput));
+		FWriteScopeLock ScopeLock(Context->PartitionsLock);
+		Partition = Context->Partitions->Emplace_GetRef(*IO, PCGEx::EIOInit::NewOutput);
 		Context->PartitionsMap.Add(Key, Partition);
 
 		if (Context->bWritePartitionKey)
@@ -176,17 +164,20 @@ void FPCGExPartitionByValuesElement::DistributePoint(
 	{
 		if (Context->bWritePartitionKey)
 		{
-			//std::shared_lock<std::shared_mutex> Lock(Context->PartitionMutex); //Lock for read
+			FReadScopeLock ScopeLock(Context->PartitionsLock);
 			FPCGMetadataAttribute<int64>** KeyAttributePtr = Context->KeyAttributeMap.Find(Key);
 			KeyAttribute = KeyAttributePtr ? *KeyAttributePtr : nullptr;
 		}
 	}
 
-	Partition->Out->GetMutablePoints().Add(Point);
+	FWriteScopeLock ScopeLock(Context->PointsLock);
+	TArray<FPCGPoint>& Points = Partition->Out->GetMutablePoints();
+	FPCGPoint& NewPoint = Points.Add_GetRef(Point);
+
 	if (KeyAttribute)
 	{
-		Partition->Out->Metadata->InitializeOnSet(Point.MetadataEntry);
-		KeyAttribute->SetValue(Point.MetadataEntry, Key);
+		Partition->Out->Metadata->InitializeOnSet(NewPoint.MetadataEntry);
+		KeyAttribute->SetValue(NewPoint.MetadataEntry, Key);
 	}
 }
 
