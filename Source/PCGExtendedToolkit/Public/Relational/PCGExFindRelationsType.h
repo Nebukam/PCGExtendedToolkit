@@ -7,20 +7,20 @@
 #include "PCGExRelationsProcessor.h"
 #include "Data/PCGPointData.h"
 #include "Elements/PCGPointProcessingElementBase.h"
-#include "PCGExBuildRelations.generated.h"
+#include "PCGExFindRelationsType.generated.h"
 
 /**
  * Calculates the distance between two points (inherently a n*n operation)
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Relational")
-class PCGEXTENDEDTOOLKIT_API UPCGExBuildRelationsSettings : public UPCGExRelationsProcessorSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExFindRelationsTypeSettings : public UPCGExRelationsProcessorSettings
 {
 	GENERATED_BODY()
 
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(BuildRelations, "Build Relations", "Write relation data to an attribute for each connected Relational Params. `Build Relations` uses the socket information as is.");
+	PCGEX_NODE_INFOS(FindRelationsType, "Find Relations Type", "Find and writes the type of relation for each point and each socket.");
 #endif
 
 protected:
@@ -28,23 +28,22 @@ protected:
 	//~End UPCGSettings interface
 
 	virtual int32 GetPreferredChunkSize() const override;
-
 	virtual PCGEx::EIOInit GetPointOutputInitMode() const override;
 
-private:
-	friend class FPCGExBuildRelationsElement;
-};
-
-struct PCGEXTENDEDTOOLKIT_API FPCGExBuildRelationsContext : public FPCGExRelationsProcessorContext
-{
-	friend class FPCGExBuildRelationsElement;
-
 public:
-	UPCGPointData::PointOctree* Octree = nullptr;
+
+private:
+	friend class FPCGExFindRelationsTypeElement;
+};
+
+struct PCGEXTENDEDTOOLKIT_API FPCGExFindRelationsTypeContext : public FPCGExRelationsProcessorContext
+{
+	friend class FPCGExFindRelationsTypeElement;
+	
 };
 
 
-class PCGEXTENDEDTOOLKIT_API FPCGExBuildRelationsElement : public FPCGExRelationsProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExFindRelationsTypeElement : public FPCGExRelationsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

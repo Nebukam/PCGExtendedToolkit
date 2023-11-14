@@ -4,6 +4,8 @@
 #include "Data/PCGExRelationsParamsData.h"
 #include "Data/PCGPointData.h"
 
+struct FPCGExRelationsProcessorContext;
+
 UPCGExRelationsParamsData::UPCGExRelationsParamsData(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
@@ -19,7 +21,7 @@ bool UPCGExRelationsParamsData::HasMatchingRelationsData(UPCGPointData* PointDat
 	return true;
 }
 
-void UPCGExRelationsParamsData::InitializeSockets(
+void UPCGExRelationsParamsData::Initialize(
 	TArray<FPCGExSocketDescriptor>& InSockets,
 	const bool bApplyOverrides,
 	FPCGExSocketGlobalOverrides& Overrides)
@@ -38,9 +40,33 @@ void UPCGExRelationsParamsData::InitializeSockets(
 		if (Socket.bApplyAttributeModifier) { bHasVariableMaxDistance = true; }
 		GreatestStaticMaxDistance = FMath::Max(GreatestStaticMaxDistance, Socket.Direction.MaxDistance);
 	}
+
+	CachedIndexAttributeName = SocketMapping.GetCompoundName(RelationIdentifier, FName("CachedIndex"));
 }
 
-void UPCGExRelationsParamsData::PrepareForPointData(UPCGPointData* PointData)
+void UPCGExRelationsParamsData::PrepareForPointData(FPCGExRelationsProcessorContext* Context, UPCGPointData* PointData)
 {
+	Context->CachedIndex = PointData->Metadata->FindOrCreateAttribute<int64>(Context->CurrentParams->CachedIndexAttributeName,-1,false);
 	SocketMapping.PrepareForPointData(PointData);
+}
+
+void UPCGExRelationsParamsData::GetSocketsData(const PCGMetadataEntryKey MetadataEntry, TArray<PCGExRelational::FSocketMetadata>& OutMetadata) const
+{
+	OutMetadata.Reset(SocketMapping.NumSockets);
+	for (const PCGExRelational::FSocket& Socket : SocketMapping.Sockets) { OutMetadata.Add(Socket.GetData(MetadataEntry)); }
+}
+
+void UPCGExRelationsParamsData::SetSocketsData(const PCGMetadataEntryKey MetadataEntry, TArray<PCGExRelational::FSocketMetadata>& InMetadata)
+{
+	check(InMetadata.Num() == SocketMapping.NumSockets)
+	for (int i = 0; i < SocketMapping.NumSockets; i++)
+	{
+		PCGExRelational::FSocket& Socket = SocketMapping.Sockets[i];
+		Socket.SetData(MetadataEntry, InMetadata[i]);
+	}
+}
+
+void UPCGExRelationsParamsData::GetSocketsInfos(TArray<PCGExRelational::FSocketInfos>& OutInfos)
+{
+	SocketMapping.GetSocketsInfos(OutInfos);
 }

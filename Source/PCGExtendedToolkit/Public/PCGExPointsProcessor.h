@@ -18,12 +18,16 @@ namespace PCGEx
 
 	enum EOperation : int
 	{
-		Setup              = -1 UMETA(DisplayName = "Setup"),
-		ReadyForNextPoints = 0 UMETA(DisplayName = "Ready for next points"),
-		ReadyForNextParams = 1 UMETA(DisplayName = "Ready for next params"),
-		ProcessingPoints   = 2 UMETA(DisplayName = "Processing points"),
-		ProcessingParams   = 3 UMETA(DisplayName = "Processing params"),
-		Done               = 77 UMETA(DisplayName = "Done")
+		Setup UMETA(DisplayName = "Setup"),
+		ReadyForNextPoints UMETA(DisplayName = "Ready for next points"),
+		ReadyForPoints2ndPass UMETA(DisplayName = "Ready for next points - 2nd pass"),
+		ReadyForNextParams UMETA(DisplayName = "Ready for next params"),
+		ReadyForParams2ndPass UMETA(DisplayName = "Ready for next params - 2nd pass"),
+		ProcessingPoints UMETA(DisplayName = "Processing points"),
+		ProcessingPoints2ndPass UMETA(DisplayName = "Processing points - 2nd pass"),
+		ProcessingParams UMETA(DisplayName = "Processing params"),
+		ProcessingParams2ndPass UMETA(DisplayName = "Processing params - 2nd pass"),
+		Done UMETA(DisplayName = "Done")
 	};
 }
 
@@ -53,7 +57,7 @@ public:
 	/** Multithread chunk size, when supported.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, AdvancedDisplay, meta=(Units="Seconds"))
 	double DebugDrawLifetime = 10.0f;
-	
+
 	/** Multithread chunk size, when supported.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, AdvancedDisplay)
 	int32 ChunkSize = 0;
@@ -88,7 +92,7 @@ public:
 	int32 ChunkSize = 0;
 
 protected:
-	int32 CurrentOperation = -1;
+	int32 CurrentOperation = PCGEx::EOperation::Setup;
 	int32 CurrentPointsIndex = -1;
 };
 

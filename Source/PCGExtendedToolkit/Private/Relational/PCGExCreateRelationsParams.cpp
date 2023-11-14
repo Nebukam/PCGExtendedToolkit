@@ -73,7 +73,7 @@ T* FPCGExCreateRelationsParamsElement::BuildParams(
 	T* OutParams = NewObject<T>();
 
 	OutParams->RelationIdentifier = Settings->RelationIdentifier;
-	OutParams->InitializeSockets(
+	OutParams->Initialize(
 		const_cast<TArray<FPCGExSocketDescriptor>&>(Settings->GetSockets()),
 		Settings->bApplyGlobalOverrides,
 		const_cast<FPCGExSocketGlobalOverrides&>(Settings->GlobalOverrides));

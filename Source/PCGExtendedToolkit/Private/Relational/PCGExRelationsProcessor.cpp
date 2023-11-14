@@ -35,6 +35,7 @@ bool FPCGExRelationsProcessorContext::AdvanceParams(bool bResetPointsIndex)
 	if (Params.Params.IsValidIndex(CurrentParamsIndex))
 	{
 		CurrentParams = Params.Params[CurrentParamsIndex];
+		CurrentParams->GetSocketsInfos(SocketInfos);
 		return true;
 	}
 

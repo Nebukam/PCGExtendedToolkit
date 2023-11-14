@@ -1,7 +1,7 @@
 ﻿// Copyright Timothé Lapetite 2023
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Relational/PCGExBuildRelations.h"
+#include "..\..\Public\Relational\PCGExFindRelationsType.h"
 
 #include "Data/PCGSpatialData.h"
 #include "Data/PCGPointData.h"
@@ -10,44 +10,44 @@
 #include "Editor.h"
 #include "Relational/PCGExRelationsHelpers.h"
 
-#define LOCTEXT_NAMESPACE "PCGExBuildRelations"
+#define LOCTEXT_NAMESPACE "PCGExFindRelationsType"
 
-int32 UPCGExBuildRelationsSettings::GetPreferredChunkSize() const { return 32; }
+int32 UPCGExFindRelationsTypeSettings::GetPreferredChunkSize() const { return 32; }
 
-PCGEx::EIOInit UPCGExBuildRelationsSettings::GetPointOutputInitMode() const { return PCGEx::EIOInit::DuplicateInput; }
+PCGEx::EIOInit UPCGExFindRelationsTypeSettings::GetPointOutputInitMode() const { return PCGEx::EIOInit::DuplicateInput; }
 
-FPCGElementPtr UPCGExBuildRelationsSettings::CreateElement() const
+FPCGElementPtr UPCGExFindRelationsTypeSettings::CreateElement() const
 {
-	return MakeShared<FPCGExBuildRelationsElement>();
+	return MakeShared<FPCGExFindRelationsTypeElement>();
 }
 
-FPCGContext* FPCGExBuildRelationsElement::Initialize(
+FPCGContext* FPCGExFindRelationsTypeElement::Initialize(
 	const FPCGDataCollection& InputData,
 	TWeakObjectPtr<UPCGComponent> SourceComponent,
 	const UPCGNode* Node)
 {
-	FPCGExBuildRelationsContext* Context = new FPCGExBuildRelationsContext();
+	FPCGExFindRelationsTypeContext* Context = new FPCGExFindRelationsTypeContext();
 	InitializeContext(Context, InputData, SourceComponent, Node);
 	return Context;
 }
 
-void FPCGExBuildRelationsElement::InitializeContext(
+void FPCGExFindRelationsTypeElement::InitializeContext(
 	FPCGExPointsProcessorContext* InContext,
 	const FPCGDataCollection& InputData,
 	TWeakObjectPtr<UPCGComponent> SourceComponent,
 	const UPCGNode* Node) const
 {
 	FPCGExRelationsProcessorElement::InitializeContext(InContext, InputData, SourceComponent, Node);
-	//FPCGExBuildRelationsContext* Context = static_cast<FPCGExBuildRelationsContext*>(InContext);
+	//FPCGExFindRelationsTypeContext* Context = static_cast<FPCGExFindRelationsTypeContext*>(InContext);
 	// ...
 }
 
-bool FPCGExBuildRelationsElement::ExecuteInternal(
+bool FPCGExFindRelationsTypeElement::ExecuteInternal(
 	FPCGContext* InContext) const
 {
-	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExBuildRelationsElement::Execute);
+	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExFindRelationsTypeElement::Execute);
 
-	FPCGExBuildRelationsContext* Context = static_cast<FPCGExBuildRelationsContext*>(InContext);
+	FPCGExFindRelationsTypeContext* Context = static_cast<FPCGExFindRelationsTypeContext*>(InContext);
 
 	if (Context->IsCurrentOperation(PCGEx::EOperation::Setup))
 	{
@@ -68,20 +68,13 @@ bool FPCGExBuildRelationsElement::ExecuteInternal(
 
 	if (Context->IsCurrentOperation(PCGEx::EOperation::ReadyForNextPoints))
 	{
-		if (Context->CurrentIO)
-		{
-			//Cleanup current IO, indices won't be needed anymore.
-			Context->CurrentIO->Flush();
-		}
-
 		if (!Context->AdvancePointsIO(true))
 		{
 			Context->SetOperation(PCGEx::EOperation::Done); //No more points
 		}
 		else
 		{
-			Context->CurrentIO->BuildMetadataEntriesAndIndices();
-			Context->Octree = const_cast<UPCGPointData::PointOctree*>(&(Context->CurrentIO->Out->GetOctree())); // Not sure this really saves perf
+			Context->CurrentIO->BuildMetadataEntries();
 			Context->SetOperation(PCGEx::EOperation::ReadyForNextParams);
 		}
 	}
@@ -89,32 +82,28 @@ bool FPCGExBuildRelationsElement::ExecuteInternal(
 	auto ProcessPoint = [&Context](
 		const FPCGPoint& Point, int32 ReadIndex, UPCGExPointIO* IO)
 	{
-		Context->CachedIndex->SetValue(Point.MetadataEntry, ReadIndex); // Cache index
-
-		TArray<PCGExRelational::FSocketCandidate> Candidates;
-		const double MaxDistance = PCGExRelational::Helpers::PrepareCandidatesForPoint(Point, Context->CurrentParams, Candidates);
-
-		auto ProcessPointNeighbor = [&ReadIndex, &Candidates, &IO](const FPCGPointRef& OtherPointRef)
+		for (PCGExRelational::FSocketInfos& SocketInfos : Context->SocketInfos)
 		{
-			const FPCGPoint* OtherPoint = OtherPointRef.Point;
-			const int32 Index = IO->GetIndex(OtherPoint->MetadataEntry);
+			EPCGExRelationType Type = EPCGExRelationType::Unknown;
+			const int64 RelationIndex = SocketInfos.Socket->GetRelationIndex(Point.MetadataEntry);
 
-			if (Index == ReadIndex) { return; }
-
-			for (PCGExRelational::FSocketCandidate& SocketCandidate : Candidates)
+			if (RelationIndex != -1)
 			{
-				if (SocketCandidate.ProcessPoint(OtherPoint)) { SocketCandidate.Index = Index; }
+				const int32 Key = IO->Out->GetPoint(RelationIndex).MetadataEntry;
+				for (PCGExRelational::FSocketInfos& OtherSocketInfos : Context->SocketInfos)
+				{
+					if (OtherSocketInfos.Socket->GetRelationIndex(Key) == ReadIndex)
+					{
+						//TODO: Handle cases where there can be multiple sockets with a valid connection
+						Type = PCGExRelational::Helpers::GetRelationType(SocketInfos, OtherSocketInfos);
+					}
+				}
+
+				if (Type == EPCGExRelationType::Unknown) { Type = EPCGExRelationType::Unique; }
 			}
-		};
 
-		const FBoxCenterAndExtent Box = FBoxCenterAndExtent(Point.Transform.GetLocation(), FVector(MaxDistance));
-		Context->Octree->FindElementsWithBoundsTest(Box, ProcessPointNeighbor);
 
-		//Write results
-		PCGMetadataEntryKey Key = Point.MetadataEntry;
-		for (int i = 0; i < Candidates.Num(); i++)
-		{
-			Context->SocketInfos[i].Socket->SetIndex(Key, Candidates[i].Index);
+			SocketInfos.Socket->SetRelationType(Point.MetadataEntry, Type);
 		}
 	};
 

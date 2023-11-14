@@ -283,12 +283,6 @@ public:
 
 namespace PCGEx
 {
-	enum class EIOInit : uint8
-	{
-		NoOutput UMETA(DisplayName = "No Output"),
-		NewOutput UMETA(DisplayName = "Create Empty Output Object"),
-		DuplicateInput UMETA(DisplayName = "Duplicate Input Object"),
-	};
 
 	class Common
 	{
@@ -344,28 +338,6 @@ namespace PCGEx
 				return true;
 			};
 			return FPCGAsync::AsyncProcessingOneToOneEx(&(Context->AsyncState), NumIterations, Initialize, InnerBodyLoop, true, ChunkSize);
-		}
-
-		/**
-		 * 
-		 * @param Context
-		 * @param NumIterations
-		 * @param LoopBody Signature: bool(int32 ReadIndex, int32 WriteIndex).
-		 * @return 
-		 */
-		static void AsyncForLoop
-			(
-			FPCGContext* Context,
-			const int32 NumIterations,
-			const TFunction<void(int32)>& LoopBody)
-		{
-			TArray<FPCGPoint> DummyPointsOut;
-			FPCGAsync::AsyncPointProcessing(
-				Context, NumIterations, DummyPointsOut, [&LoopBody](int32 Index, FPCGPoint&)
-				{
-					LoopBody(Index);
-					return false;
-				});
 		}
 
 		static bool IsValidName(const FName& Name)

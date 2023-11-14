@@ -50,11 +50,9 @@ bool FPCGExWriteIndexElement::ExecuteInternal(FPCGContext* InContext) const
 		Context->SetOperation(PCGEx::EOperation::ReadyForNextPoints);
 	}
 
-	bool bProcessingAllowed = false;
 	if (Context->IsCurrentOperation(PCGEx::EOperation::ReadyForNextPoints))
 	{
-		// Start processing all the things
-		bProcessingAllowed = true;
+		Context->SetOperation(PCGEx::EOperation::ProcessingPoints);
 	}
 
 	auto InitializeForIO = [&Context](UPCGExPointIO* IO)
@@ -63,7 +61,6 @@ bool FPCGExWriteIndexElement::ExecuteInternal(FPCGContext* InContext) const
 		IO->BuildMetadataEntries();
 		FPCGMetadataAttribute<int64>* IndexAttribute = IO->Out->Metadata->FindOrCreateAttribute<int64>(Context->OutName, -1, false, true, true);
 		Context->AttributeMap.Add(IO, IndexAttribute);
-		Context->SetOperation(PCGEx::EOperation::ProcessingPoints);
 	};
 
 	auto ProcessPoint = [&Context](const FPCGPoint& Point, const int32 Index, UPCGExPointIO* IO)
@@ -72,7 +69,7 @@ bool FPCGExWriteIndexElement::ExecuteInternal(FPCGContext* InContext) const
 		IndexAttribute->SetValue(Point.MetadataEntry, Index);
 	};
 
-	if (Context->IsCurrentOperation(PCGEx::EOperation::ProcessingPoints) || bProcessingAllowed)
+	if (Context->IsCurrentOperation(PCGEx::EOperation::ProcessingPoints))
 	{
 		if (Context->Points->OutputsParallelProcessing(Context, InitializeForIO, ProcessPoint, Context->ChunkSize))
 		{

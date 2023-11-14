@@ -130,11 +130,7 @@ namespace PCGExRelational
 
 			return true;
 		}
-
-		FSocketMetadata ToSocketMetadata() const
-		{
-			return FSocketMetadata{Index, IndexedDot, IndexedDistance};
-		}
+		
 	};
 
 	// Detail stored in a attribute array
@@ -184,11 +180,11 @@ namespace PCGExRelational
 		 * @param EndSocket 
 		 * @return 
 		 */
-		static EPCGExRelationType GetRelationType(const FSocket& StartSocket, const FSocket& EndSocket)
+		static EPCGExRelationType GetRelationType(const FSocketInfos& StartSocket, const FSocketInfos& EndSocket)
 		{
-			if (StartSocket.MatchingSockets.Contains(EndSocket.SocketIndex))
+			if (StartSocket.Socket->MatchingSockets.Contains(EndSocket.Socket->SocketIndex))
 			{
-				if (EndSocket.MatchingSockets.Contains(StartSocket.SocketIndex))
+				if (EndSocket.Socket->MatchingSockets.Contains(StartSocket.Socket->SocketIndex))
 				{
 					return EPCGExRelationType::Complete;
 				}
@@ -199,7 +195,7 @@ namespace PCGExRelational
 			}
 			else
 			{
-				if (StartSocket.SocketIndex == EndSocket.SocketIndex)
+				if (StartSocket.Socket->SocketIndex == EndSocket.Socket->SocketIndex)
 				{
 					// We check for mirror AFTER checking for shared/match, since Mirror can be considered a legal match by design
 					// in which case we don't want to flag this as Mirrored.

@@ -70,6 +70,7 @@ bool FPCGExDeleteRelationsElement::ExecuteInternal(
 				{
 					PointIO->Out->Metadata->DeleteAttribute(Socket.GetName());
 				}
+				PointIO->Out->Metadata->DeleteAttribute(Params->CachedIndexAttributeName);
 			};
 			Context->Params.ForEach(Context, DeleteSockets);
 		});

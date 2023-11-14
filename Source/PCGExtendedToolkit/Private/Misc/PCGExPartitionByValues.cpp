@@ -85,11 +85,9 @@ bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* InContext) con
 
 	////
 
-	bool bProcessingAllowed = false;
 	if (Context->IsCurrentOperation(PCGEx::EOperation::ReadyForNextPoints))
 	{
-		// Start processing all the things
-		bProcessingAllowed = true;
+		Context->SetOperation(PCGEx::EOperation::ProcessingPoints);
 	}
 
 	auto InitializeForIO = [&Context](UPCGExPointIO* IO)
@@ -99,7 +97,6 @@ bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* InContext) con
 		PCGExPartition::FRule& IORule = Context->Rules.Emplace_GetRef(Context->PartitionRule);
 		IORule.PrepareForPointData(IO->In);
 		Context->RuleMap.Add(IO, &IORule);
-		Context->SetOperation(PCGEx::EOperation::ProcessingPoints);
 	};
 
 	auto ProcessPoint = [&Context](const FPCGPoint& Point, const int32 Index, UPCGExPointIO* IO)
@@ -108,7 +105,7 @@ bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* InContext) con
 		DistributePoint(Context, IO, Point, (*(Context->RuleMap.Find(IO)))->GetValue(Point));
 	};
 
-	if (Context->IsCurrentOperation(PCGEx::EOperation::ProcessingPoints) || bProcessingAllowed)
+	if (Context->IsCurrentOperation(PCGEx::EOperation::ProcessingPoints))
 	{
 		if (Context->Points->InputsParallelProcessing(Context, InitializeForIO, ProcessPoint, Context->ChunkSize))
 		{

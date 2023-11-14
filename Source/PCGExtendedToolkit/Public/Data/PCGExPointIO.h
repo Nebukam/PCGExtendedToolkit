@@ -7,6 +7,17 @@
 #include "UObject/Object.h"
 #include "PCGExPointIO.generated.h"
 
+namespace PCGEx
+{
+	enum class EIOInit : uint8
+	{
+		NoOutput UMETA(DisplayName = "No Output"),
+		NewOutput UMETA(DisplayName = "Create Empty Output Object"),
+		DuplicateInput UMETA(DisplayName = "Duplicate Input Object"),
+		Forward UMETA(DisplayName = "Forward Input Object")
+	};
+}
+
 /**
  * 
  */

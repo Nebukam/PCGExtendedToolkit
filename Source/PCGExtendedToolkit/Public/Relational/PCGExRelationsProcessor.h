@@ -44,13 +44,16 @@ public:
 
 	int32 GetCurrentParamsIndex() const { return CurrentParamsIndex; };
 	UPCGExRelationsParamsData* CurrentParams = nullptr;
-
+	
 	bool AdvanceParams(bool bResetPointsIndex = false);
 	bool AdvancePointsIO(bool bResetParamsIndex = false);
 
 	virtual void Reset() override;
 	virtual bool IsValid() override;
 
+	FPCGMetadataAttribute<int64>* CachedIndex;
+	TArray<PCGExRelational::FSocketInfos> SocketInfos;
+	
 protected:
 	int32 CurrentParamsIndex = -1;
 };

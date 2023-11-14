@@ -31,6 +31,9 @@ void UPCGExPointIO::InitializeOut(PCGEx::EIOInit InitOut)
 			UE_LOG(LogTemp, Error, TEXT("Initialize::Duplicate, but no Input."));
 		}
 		break;
+	case PCGEx::EIOInit::Forward:
+		Out = In;
+		break;
 	default: ;
 	}
 	if (In) { NumPoints = In->GetPoints().Num(); }
@@ -51,7 +54,11 @@ void UPCGExPointIO::BuildMetadataEntries()
 {
 	if (!bMetadataEntryDirty) { return; }
 	TArray<FPCGPoint>& Points = Out->GetMutablePoints();
-	for (FPCGPoint& Point : Points) { Out->Metadata->InitializeOnSet(Point.MetadataEntry); }
+	for (int i = 0; i < NumPoints; i++)
+	{
+		FPCGPoint& Point = Points[i];
+		Out->Metadata->InitializeOnSet(Point.MetadataEntry, In->GetPoint(i).MetadataEntry, In->Metadata);
+	}
 	bMetadataEntryDirty = false;
 	bIndicesDirty = true;
 }
@@ -66,7 +73,7 @@ void UPCGExPointIO::BuildMetadataEntriesAndIndices()
 	for (int i = 0; i < NumPoints; i++)
 	{
 		FPCGPoint& Point = Points[i];
-		Out->Metadata->InitializeOnSet(Point.MetadataEntry);
+		Out->Metadata->InitializeOnSet(Point.MetadataEntry, In->GetPoint(i).MetadataEntry, In->Metadata);
 		IndicesMap.Add(Point.MetadataEntry, i);
 	}
 	bIndicesDirty = false;
