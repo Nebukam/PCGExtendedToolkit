@@ -1,34 +1,34 @@
 ﻿// Copyright Timothé Lapetite 2023
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Misc/PCGExWriteIndex.h"
+#include "Transforms/PCGExSampleDistanceField.h"
 #include "Data/PCGSpatialData.h"
 #include "Data/PCGPointData.h"
 #include "PCGContext.h"
 #include "PCGExCommon.h"
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
 
-#define LOCTEXT_NAMESPACE "PCGExWriteIndexElement"
+#define LOCTEXT_NAMESPACE "PCGExSampleDistanceFieldElement"
 
-PCGEx::EIOInit UPCGExWriteIndexSettings::GetPointOutputInitMode() const { return PCGEx::EIOInit::DuplicateInput; }
+PCGEx::EIOInit UPCGExSampleDistanceFieldSettings::GetPointOutputInitMode() const { return PCGEx::EIOInit::DuplicateInput; }
 
-FPCGElementPtr UPCGExWriteIndexSettings::CreateElement() const { return MakeShared<FPCGExWriteIndexElement>(); }
+FPCGElementPtr UPCGExSampleDistanceFieldSettings::CreateElement() const { return MakeShared<FPCGExSampleDistanceFieldElement>(); }
 
-FPCGContext* FPCGExWriteIndexElement::Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node)
+FPCGContext* FPCGExSampleDistanceFieldElement::Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node)
 {
-	FPCGExWriteIndexContext* Context = new FPCGExWriteIndexContext();
+	FPCGExSampleDistanceFieldContext* Context = new FPCGExSampleDistanceFieldContext();
 	InitializeContext(Context, InputData, SourceComponent, Node);
 	return Context;
 }
 
 
-bool FPCGExWriteIndexElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExSampleDistanceFieldElement::ExecuteInternal(FPCGContext* InContext) const
 {
-	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExWriteIndexElement::Execute);
+	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExSampleDistanceFieldElement::Execute);
 
-	FPCGExWriteIndexContext* Context = static_cast<FPCGExWriteIndexContext*>(InContext);
+	FPCGExSampleDistanceFieldContext* Context = static_cast<FPCGExSampleDistanceFieldContext*>(InContext);
 
-	if (Context->IsSetup())
+	if (Context->IsState(PCGExMT::EState::Setup))
 	{
 		if (!Context->IsValid())
 		{
@@ -36,7 +36,7 @@ bool FPCGExWriteIndexElement::ExecuteInternal(FPCGContext* InContext) const
 			return true;
 		}
 
-		const UPCGExWriteIndexSettings* Settings = Context->GetInputSettings<UPCGExWriteIndexSettings>();
+		const UPCGExSampleDistanceFieldSettings* Settings = Context->GetInputSettings<UPCGExSampleDistanceFieldSettings>();
 		check(Settings);
 
 		FName OutName = Settings->OutputAttributeName;

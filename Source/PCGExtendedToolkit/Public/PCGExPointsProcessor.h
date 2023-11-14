@@ -11,12 +11,9 @@
 #include "Elements/PCGPointProcessingElementBase.h"
 #include "PCGExPointsProcessor.generated.h"
 
-namespace PCGEx
+namespace PCGExMT
 {
-	extern const FName SourcePointsLabel;
-	extern const FName OutputPointsLabel;
-
-	enum EOperation : int
+	enum EState : int
 	{
 		Setup UMETA(DisplayName = "Setup"),
 		ReadyForNextPoints UMETA(DisplayName = "Ready for next points"),
@@ -78,11 +75,12 @@ public:
 
 	bool AdvancePointsIO();
 
-	int32 GetOperation() const { return CurrentOperation; }
-	bool IsCurrentOperation(int32 OperationId) const { return CurrentOperation == OperationId; }
-	bool IsDone() { return CurrentOperation == PCGEx::EOperation::Done; }
+	PCGExMT::EState GetState() const { return CurrentState; }
+	bool IsState(const PCGExMT::EState OperationId) const { return CurrentState == OperationId; }
+	bool IsSetup() const { return IsState(PCGExMT::EState::Setup); }
+	bool IsDone() const { return IsState(PCGExMT::EState::Done); }
 
-	virtual void SetOperation(int32 OperationId);
+	virtual void SetState(PCGExMT::EState OperationId);
 	virtual void Reset();
 	virtual bool IsValid();
 
@@ -92,7 +90,7 @@ public:
 	int32 ChunkSize = 0;
 
 protected:
-	int32 CurrentOperation = PCGEx::EOperation::Setup;
+	PCGExMT::EState CurrentState = PCGExMT::EState::Setup;
 	int32 CurrentPointsIndex = -1;
 };
 

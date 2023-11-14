@@ -23,6 +23,10 @@ public:
 	PCGEX_NODE_INFOS(BuildRelations, "Build Relations", "Write relation data to an attribute for each connected Relational Params. `Build Relations` uses the socket information as is.");
 #endif
 
+	/** Compute relations types internally. If you don't need relation types, set it to false to save some cycles.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	bool bComputeRelationsType = true;
+	
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings interface
@@ -30,7 +34,7 @@ protected:
 	virtual int32 GetPreferredChunkSize() const override;
 
 	virtual PCGEx::EIOInit GetPointOutputInitMode() const override;
-
+	
 private:
 	friend class FPCGExBuildRelationsElement;
 };

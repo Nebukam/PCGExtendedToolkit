@@ -20,15 +20,35 @@ class PCGEXTENDEDTOOLKIT_API UPCGExDrawRelationsSettings : public UPCGExRelation
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(DrawRelations, "Draw Relations", "Draw debug relations. Warning: this node will clear persistent debug lines!");
+	PCGEX_NODE_INFOS(DrawRelations, "Draw Relations", "Draw debug relations. Toggle debug OFF (D) before disabling this node (E)! Warning: this node will clear persistent debug lines before it!");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Debug; }
+	virtual FLinearColor GetNodeTitleColor() const override { return FLinearColor(1.0f,0.0f,0.0f, 1.0f); }
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
 
+	/** Draw relation lines.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	bool bDrawRelations = true;
+
+	/** Draw only one type of relations.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(InlineEditConditionToggle))
+	bool bFilterRelations = false;
+
+	/** Draw relation lines.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="bFilterRelations"))
+	EPCGExRelationType RelationType = EPCGExRelationType::Unknown;
+	
+	/** Draw relation lines.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	bool bDrawSocketCones = false;
+	
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings interface
 
 	virtual PCGEx::EIOInit GetPointOutputInitMode() const override;
+
+	
 
 private:
 	friend class FPCGExDrawRelationsElement;

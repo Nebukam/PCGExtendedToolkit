@@ -63,7 +63,7 @@ bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* InContext) con
 
 	FPCGExSplitByValuesContext* Context = static_cast<FPCGExSplitByValuesContext*>(InContext);
 
-	if (Context->IsCurrentOperation(PCGEx::EOperation::Setup))
+	if (Context->IsSetup())
 	{
 		if (Context->Points->IsEmpty())
 		{
@@ -80,14 +80,14 @@ bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* InContext) con
 			return true;
 		}
 
-		Context->SetOperation(PCGEx::EOperation::ReadyForNextPoints);
+		Context->SetState(PCGExMT::EState::ReadyForNextPoints);
 	}
 
 	////
 
-	if (Context->IsCurrentOperation(PCGEx::EOperation::ReadyForNextPoints))
+	if (Context->IsState(PCGExMT::EState::ReadyForNextPoints))
 	{
-		Context->SetOperation(PCGEx::EOperation::ProcessingPoints);
+		Context->SetState(PCGExMT::EState::ProcessingPoints);
 	}
 
 	auto InitializeForIO = [&Context](UPCGExPointIO* IO)
@@ -105,11 +105,11 @@ bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* InContext) con
 		DistributePoint(Context, IO, Point, (*(Context->RuleMap.Find(IO)))->GetValue(Point));
 	};
 
-	if (Context->IsCurrentOperation(PCGEx::EOperation::ProcessingPoints))
+	if (Context->IsState(PCGExMT::EState::ProcessingPoints))
 	{
 		if (Context->Points->InputsParallelProcessing(Context, InitializeForIO, ProcessPoint, Context->ChunkSize))
 		{
-			Context->SetOperation(PCGEx::EOperation::Done);
+			Context->SetState(PCGExMT::EState::Done);
 		}
 	}
 

@@ -1,7 +1,7 @@
 ﻿// Copyright Timothé Lapetite 2023
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "..\..\Public\Relational\PCGExRelationsProcessor.h"
+#include "Relational/PCGExRelationsProcessor.h"
 
 #include "PCGContext.h"
 #include "PCGPin.h"
@@ -11,18 +11,26 @@
 
 #pragma region UPCGSettings interface
 
-namespace PCGExRelational
-{
-	const FName SourceRelationalParamsLabel = TEXT("RelationalParams");
-}
 
 TArray<FPCGPinProperties> UPCGExRelationsProcessorSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	FPCGPinProperties& PinPropertyParams = PinProperties.Emplace_GetRef(PCGExRelational::SourceRelationalParamsLabel, EPCGDataType::Param);
+	FPCGPinProperties& PinPropertyParams = PinProperties.Emplace_GetRef(PCGExRelational::SourceParamsLabel, EPCGDataType::Param);
 
 #if WITH_EDITOR
-	PinPropertyParams.Tooltip = LOCTEXT("PCGExSourceRelationalParamsPinTooltip", "Relations Params.");
+	PinPropertyParams.Tooltip = LOCTEXT("PCGExSourceParamsPinTooltip", "Relations Params. Data is de-duped internally.");
+#endif // WITH_EDITOR
+
+	return PinProperties;
+}
+
+TArray<FPCGPinProperties> UPCGExRelationsProcessorSettings::OutputPinProperties() const
+{
+	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
+	FPCGPinProperties& PinParamsOutput = PinProperties.Emplace_GetRef(PCGExRelational::OutputParamsLabel, EPCGDataType::Param);
+
+#if WITH_EDITOR
+	PinParamsOutput.Tooltip = LOCTEXT("PCGExOutputParamsTooltip", "Relations Params forwarding. Data is de-duped internally.");
 #endif // WITH_EDITOR
 
 	return PinProperties;
@@ -60,6 +68,86 @@ bool FPCGExRelationsProcessorContext::IsValid()
 	return FPCGExPointsProcessorContext::IsValid() && !Params.IsEmpty();
 }
 
+void FPCGExRelationsProcessorContext::ComputeRelationsType(const FPCGPoint& Point, int32 ReadIndex, UPCGExPointIO* IO)
+{
+	for (PCGExRelational::FSocketInfos& CurrentSocketInfos : SocketInfos)
+	{
+		EPCGExRelationType Type = EPCGExRelationType::Unknown;
+		const int64 RelationIndex = CurrentSocketInfos.Socket->GetRelationIndex(Point.MetadataEntry);
+
+		if (RelationIndex != -1)
+		{
+			const int32 Key = IO->Out->GetPoint(RelationIndex).MetadataEntry;
+			for (PCGExRelational::FSocketInfos& OtherSocketInfos : SocketInfos)
+			{
+				if (OtherSocketInfos.Socket->GetRelationIndex(Key) == ReadIndex)
+				{
+					//TODO: Handle cases where there can be multiple sockets with a valid connection
+					Type = PCGExRelational::Helpers::GetRelationType(CurrentSocketInfos, OtherSocketInfos);
+				}
+			}
+
+			if (Type == EPCGExRelationType::Unknown) { Type = EPCGExRelationType::Unique; }
+		}
+
+
+		CurrentSocketInfos.Socket->SetRelationType(Point.MetadataEntry, Type);
+	}
+}
+
+double FPCGExRelationsProcessorContext::PrepareSamplersForPoint(const FPCGPoint& Point, TArray<PCGExRelational::FSocketSampler>& OutSamplers)
+{
+	OutSamplers.Reset(SocketInfos.Num());
+	double MaxDistance = 0.0;
+	for (PCGExRelational::FSocketInfos& CurrentSocketInfos : SocketInfos)
+	{
+		PCGExRelational::FSocketSampler& NewSampler = OutSamplers.Emplace_GetRef();
+		NewSampler.SocketInfos = &CurrentSocketInfos;
+		PrepareSamplerForPointSocketPair(Point, NewSampler, CurrentSocketInfos);
+		MaxDistance = FMath::Max(MaxDistance, NewSampler.MaxDistance);
+	}
+	return MaxDistance;
+}
+
+void FPCGExRelationsProcessorContext::PrepareSamplerForPointSocketPair(
+	const FPCGPoint& Point,
+	PCGExRelational::FSocketSampler& Sampler,
+	PCGExRelational::FSocketInfos InSocketInfos)
+{
+	FPCGExSocketDirection BaseDirection = InSocketInfos.Socket->Descriptor.Direction;
+
+	FVector Direction = BaseDirection.Direction;
+	double DotTolerance = BaseDirection.DotTolerance;
+	double MaxDistance = BaseDirection.MaxDistance;
+
+	const FTransform PtTransform = Point.Transform;
+	Sampler.Origin = PtTransform.GetLocation();
+
+	if (InSocketInfos.Socket->Descriptor.bRelativeOrientation)
+	{
+		Direction = PtTransform.Rotator().RotateVector(Direction);
+		Direction.Normalize();
+	}
+
+	if (InSocketInfos.Modifier &&
+		InSocketInfos.Modifier->bEnabled &&
+		InSocketInfos.Modifier->bValid)
+	{
+		MaxDistance *= InSocketInfos.Modifier->GetValue(Point);
+	}
+
+	if (InSocketInfos.LocalDirection &&
+		InSocketInfos.LocalDirection->bEnabled &&
+		InSocketInfos.LocalDirection->bValid)
+	{
+		// TODO: Apply LocalDirection
+	}
+
+	Sampler.Direction = Direction;
+	Sampler.DotTolerance = DotTolerance;
+	Sampler.MaxDistance = MaxDistance;
+}
+
 FPCGContext* FPCGExRelationsProcessorElement::Initialize(
 	const FPCGDataCollection& InputData,
 	TWeakObjectPtr<UPCGComponent> SourceComponent,
@@ -80,7 +168,7 @@ void FPCGExRelationsProcessorElement::InitializeContext(
 
 	FPCGExRelationsProcessorContext* Context = static_cast<FPCGExRelationsProcessorContext*>(InContext);
 
-	TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(PCGExRelational::SourceRelationalParamsLabel);
+	TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(PCGExRelational::SourceParamsLabel);
 	Context->Params.Initialize(InContext, Sources);
 }
 

@@ -91,6 +91,13 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSocketDescriptor
 	{
 	}
 
+	FPCGExSocketDescriptor(FName InName, FVector InDirection, FColor InDebugColor):
+		SocketName(InName),
+		DebugColor(InDebugColor)
+	{
+		Direction.Direction = InDirection;
+	}
+	
 	FPCGExSocketDescriptor(FName InName, FVector InDirection, FName InMatchingSlot, FColor InDebugColor):
 		SocketName(InName),
 		DebugColor(InDebugColor)
@@ -333,11 +340,11 @@ namespace PCGExRelational
 	public:
 		void SetData(const PCGMetadataEntryKey MetadataEntry, const FSocketMetadata& SocketMetadata) const
 		{
-			SetIndex(MetadataEntry, SocketMetadata.Index);
+			SetRelationIndex(MetadataEntry, SocketMetadata.Index);
 			SetRelationType(MetadataEntry, SocketMetadata.RelationType);
 		}
 
-		void SetIndex(const PCGMetadataEntryKey MetadataEntry, int64 InIndex) const { AttributeIndex->SetValue(MetadataEntry, InIndex); }
+		void SetRelationIndex(const PCGMetadataEntryKey MetadataEntry, int64 InIndex) const { AttributeIndex->SetValue(MetadataEntry, InIndex); }
 		int64 GetRelationIndex(const PCGMetadataEntryKey MetadataEntry) const { return AttributeIndex->GetValueFromItemKey(MetadataEntry); }
 
 		void SetRelationType(const PCGMetadataEntryKey MetadataEntry, EPCGExRelationType InRelationType) const { AttributeRelationType->SetValue(MetadataEntry, static_cast<int32>(InRelationType)); }
@@ -381,15 +388,17 @@ namespace PCGExRelational
 		}
 
 	public:
+		FName Identifier = NAME_None;
 		TArray<FSocket> Sockets;
 		TArray<FModifier> Modifiers;
 		TArray<FLocalDirection> LocalDirections;
 		TMap<FName, int32> NameToIndexMap;
 		int32 NumSockets = 0;
 
-		void Initialize(FName Identifier, TArray<FPCGExSocketDescriptor>& InSockets)
+		void Initialize(FName InIdentifier, TArray<FPCGExSocketDescriptor>& InSockets)
 		{
 			Reset();
+			Identifier = InIdentifier;
 			for (FPCGExSocketDescriptor& Descriptor : InSockets)
 			{
 				if (!Descriptor.bEnabled) { continue; }
@@ -398,18 +407,19 @@ namespace PCGExRelational
 				FLocalDirection& NewLocalDirection = LocalDirections.Emplace_GetRef(Descriptor);
 
 				FSocket& NewSocket = Sockets.Emplace_GetRef(Descriptor);
+				NewSocket.AttributeNameBase = GetCompoundName(Descriptor.SocketName);
 				NewSocket.SocketIndex = NumSockets;
 				NameToIndexMap.Add(NewSocket.GetName(), NewSocket.SocketIndex);
-				NewSocket.AttributeNameBase = GetCompoundName(Identifier, Descriptor.SocketName);
 				NumSockets++;
 			}
 
-			PostProcessSockets(Identifier);
+			PostProcessSockets();
 		}
 
-		void InitializeWithOverrides(FName Identifier, TArray<FPCGExSocketDescriptor>& InSockets, const FPCGExSocketGlobalOverrides& Overrides)
+		void InitializeWithOverrides(FName InIdentifier, TArray<FPCGExSocketDescriptor>& InSockets, const FPCGExSocketGlobalOverrides& Overrides)
 		{
 			Reset();
+			Identifier = InIdentifier;
 			const FString PCGExName = TEXT("PCGEx");
 			for (FPCGExSocketDescriptor& Descriptor : InSockets)
 			{
@@ -424,7 +434,7 @@ namespace PCGExRelational
 				NewLocalDirection.Descriptor = Overrides.bOverrideDirectionVectorFromAttribute ? Overrides.AttributeDirectionVector : Descriptor.AttributeDirectionVector;
 
 				FSocket& NewSocket = Sockets.Emplace_GetRef(Descriptor);
-				NewSocket.AttributeNameBase = GetCompoundName(Identifier, Descriptor.SocketName);
+				NewSocket.AttributeNameBase = GetCompoundName(Descriptor.SocketName);
 				NewSocket.SocketIndex = NumSockets;
 				NameToIndexMap.Add(NewSocket.GetName(), NewSocket.SocketIndex);
 
@@ -448,13 +458,13 @@ namespace PCGExRelational
 				NumSockets++;
 			}
 
-			PostProcessSockets(Identifier);
+			PostProcessSockets();
 		}
 
-		static FName GetCompoundName(FName PrimaryIdentifier, FName SecondaryIdentifier)
+		FName GetCompoundName(FName SecondaryIdentifier)
 		{
 			const FString Separator = TEXT("/");
-			return *(TEXT("PCGEx") + Separator + PrimaryIdentifier.ToString() + Separator + SecondaryIdentifier.ToString()); // PCGEx/ParamsIdentifier/SocketIdentifier
+			return *(TEXT("PCGEx") + Separator + Identifier.ToString() + Separator + SecondaryIdentifier.ToString()); // PCGEx/ParamsIdentifier/SocketIdentifier
 		}
 
 		/**
@@ -498,13 +508,13 @@ namespace PCGExRelational
 		/**
 		 * Build matching set
 		 */
-		void PostProcessSockets(FName ParamsIdentifier)
+		void PostProcessSockets()
 		{
 			for (FSocket& Socket : Sockets)
 			{
 				for (const FName MatchingSocketName : Socket.Descriptor.MatchingSlots)
 				{
-					FName OtherSocketName = GetCompoundName(ParamsIdentifier, MatchingSocketName);
+					FName OtherSocketName = GetCompoundName(MatchingSocketName);
 					if (const int32* Index = NameToIndexMap.Find(OtherSocketName))
 					{
 						Socket.MatchingSockets.Add(*Index);

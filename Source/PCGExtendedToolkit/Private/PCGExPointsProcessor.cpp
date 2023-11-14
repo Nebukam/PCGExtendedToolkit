@@ -10,12 +10,6 @@
 
 #pragma region UPCGSettings interface
 
-namespace PCGEx
-{
-	const FName SourcePointsLabel = TEXT("Source");
-	const FName OutputPointsLabel = TEXT("Points");
-}
-
 UPCGExPointsProcessorSettings::UPCGExPointsProcessorSettings(
 	const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -26,11 +20,10 @@ UPCGExPointsProcessorSettings::UPCGExPointsProcessorSettings(
 TArray<FPCGPinProperties> UPCGExPointsProcessorSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-
 	FPCGPinProperties& PinPropertySource = PinProperties.Emplace_GetRef(PCGEx::SourcePointsLabel, EPCGDataType::Point);
 
 #if WITH_EDITOR
-	PinPropertySource.Tooltip = LOCTEXT("PCGExSourcePointsPinTooltip", "For each of the source points, their index position in the data will be written to an attribute.");
+	PinPropertySource.Tooltip = LOCTEXT("PCGExSourcePointsPinTooltip", "The point data to be processed.");
 #endif // WITH_EDITOR
 
 	return PinProperties;
@@ -42,7 +35,7 @@ TArray<FPCGPinProperties> UPCGExPointsProcessorSettings::OutputPinProperties() c
 	FPCGPinProperties& PinPointsOutput = PinProperties.Emplace_GetRef(PCGEx::OutputPointsLabel, EPCGDataType::Point);
 
 #if WITH_EDITOR
-	PinPointsOutput.Tooltip = LOCTEXT("PCGExOutputPointsPinTooltip", "The source points.");
+	PinPointsOutput.Tooltip = LOCTEXT("PCGExOutputPointsPinTooltip", "The processed points.");
 #endif // WITH_EDITOR
 
 	return PinProperties;
@@ -64,13 +57,13 @@ bool FPCGExPointsProcessorContext::AdvancePointsIO()
 	return false;
 }
 
-void FPCGExPointsProcessorContext::SetOperation(int32 OperationId)
+void FPCGExPointsProcessorContext::SetState(PCGExMT::EState OperationId)
 {
-	int32 PreviousOperation = CurrentOperation;
-	CurrentOperation = OperationId;
+	PCGExMT::EState PreviousOperation = CurrentState;
+	CurrentState = OperationId;
 }
 
-void FPCGExPointsProcessorContext::Reset() { CurrentOperation = -1; }
+void FPCGExPointsProcessorContext::Reset() { CurrentState = PCGExMT::EState::Setup; }
 
 bool FPCGExPointsProcessorContext::IsValid() { return !Points->IsEmpty(); }
 

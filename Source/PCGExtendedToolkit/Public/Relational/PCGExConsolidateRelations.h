@@ -61,6 +61,6 @@ protected:
 		const UPCGNode* Node) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 #if WITH_EDITOR
-	virtual void DrawRelationsDebug(FPCGExConsolidateRelationsContext* Context) const;
+	static int64 GetFixedIndex(FPCGExConsolidateRelationsContext* Context, int64 InIndex);
 #endif
 };

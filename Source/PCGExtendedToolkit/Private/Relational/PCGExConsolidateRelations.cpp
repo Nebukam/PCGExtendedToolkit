@@ -14,7 +14,7 @@
 
 int32 UPCGExConsolidateRelationsSettings::GetPreferredChunkSize() const { return 32; }
 
-PCGEx::EIOInit UPCGExConsolidateRelationsSettings::GetPointOutputInitMode() const{ return PCGEx::EIOInit::DuplicateInput; }
+PCGEx::EIOInit UPCGExConsolidateRelationsSettings::GetPointOutputInitMode() const { return PCGEx::EIOInit::DuplicateInput; }
 
 FPCGElementPtr UPCGExConsolidateRelationsSettings::CreateElement() const
 {
@@ -49,7 +49,7 @@ bool FPCGExConsolidateRelationsElement::ExecuteInternal(
 
 	FPCGExConsolidateRelationsContext* Context = static_cast<FPCGExConsolidateRelationsContext*>(InContext);
 
-	if (Context->IsCurrentOperation(PCGEx::EOperation::Setup))
+	if (Context->IsSetup())
 	{
 		if (Context->Params.IsEmpty())
 		{
@@ -63,38 +63,45 @@ bool FPCGExConsolidateRelationsElement::ExecuteInternal(
 			return true;
 		}
 
-		Context->SetOperation(PCGEx::EOperation::ReadyForNextPoints);
+		Context->SetState(PCGExMT::EState::ReadyForNextParams);
 
-#if WITH_EDITOR
-		const UPCGExConsolidateRelationsSettings* Settings = Context->GetInputSettings<UPCGExConsolidateRelationsSettings>();
-		check(Settings);
-
-		if (Settings->bDebug)
-		{
-			if (const UWorld* EditorWorld = GEditor->GetEditorWorldContext().World())
-			{
-				FlushPersistentDebugLines(EditorWorld);
-			}
-		}
-#endif
+		// For each param, loop over points twice.
+		// Params
+		//		Points -> Capture delta
+		//		Points -> Update data
 	}
-	
-	if (Context->IsCurrentOperation(PCGEx::EOperation::ReadyForNextPoints))
+
+	if (Context->IsState(PCGExMT::EState::ReadyForNextParams))
 	{
-		if (!Context->AdvancePointsIO(true))
+		if (!Context->AdvanceParams(true))
 		{
-			Context->SetOperation(PCGEx::EOperation::Done); //No more points
+			Context->SetState(PCGExMT::EState::Done); //No more params
 		}
 		else
 		{
-			Context->SetOperation(PCGEx::EOperation::ProcessingPoints);
+			Context->SetState(PCGExMT::EState::ReadyForNextPoints);
 		}
 	}
 
-	auto InitializeDelta = [&Context](UPCGExPointIO* IO)
+	if (Context->IsState(PCGExMT::EState::ReadyForNextPoints))
+	{
+		if (!Context->AdvancePointsIO(false))
+		{
+			Context->SetState(PCGExMT::EState::ReadyForNextParams); //No more points, move to next params
+		}
+		else
+		{
+			Context->SetState(PCGExMT::EState::ProcessingPoints);
+		}
+	}
+
+	// 1st Pass on points
+
+	auto InitializePointsInput = [&Context](UPCGExPointIO* IO)
 	{
 		Context->Deltas.Empty();
-		IO->BuildMetadataEntries();		
+		IO->BuildMetadataEntries();
+		Context->CurrentParams->PrepareForPointData(Context, IO->In); // Prepare to read IO->In
 	};
 
 	auto CapturePointDelta = [&Context](
@@ -102,89 +109,86 @@ bool FPCGExConsolidateRelationsElement::ExecuteInternal(
 	{
 		FWriteScopeLock ScopeLock(Context->DeltaLock);
 		Context->Deltas.Add(Context->CachedIndex->GetValueFromItemKey(Point.MetadataEntry), ReadIndex); // Cache previous
-		Context->CachedIndex->SetValue(Point.MetadataEntry, ReadIndex); // Update with current
 	};
-	
-	if (Context->IsCurrentOperation(PCGEx::EOperation::ProcessingPoints))
+
+	if (Context->IsState(PCGExMT::EState::ProcessingPoints))
 	{
-		if(Context->CurrentIO->OutputParallelProcessing(Context, InitializeDelta, CapturePointDelta, 256))
+		if (Context->CurrentIO->InputParallelProcessing(Context, InitializePointsInput, CapturePointDelta, 256))
 		{
-			Context->SetOperation(PCGEx::EOperation::ReadyForNextParams);
+			Context->SetState(PCGExMT::EState::ProcessingPoints2ndPass);
 		}
 	}
 
-	if (Context->IsCurrentOperation(PCGEx::EOperation::ReadyForNextParams))
-	{
-		if (!Context->AdvanceParams())
-		{
-			Context->SetOperation(PCGEx::EOperation::ReadyForNextPoints);
-			return false;
-		}
-		else
-		{
-			Context->SetOperation(PCGEx::EOperation::ProcessingPoints2ndPass);
-		}
-	}
-	
-	auto InitializeForParams = [&Context](UPCGExPointIO* IO)
+	// 2nd Pass on points
+
+	auto InitializePointsOutput = [&Context](UPCGExPointIO* IO)
 	{
 		Context->CurrentParams->PrepareForPointData(Context, IO->Out);
 	};
-	
+
 	auto ConsolidatePoint = [&Context](
 		const FPCGPoint& Point, int32 ReadIndex, UPCGExPointIO* IO)
 	{
-		// TODO: Rebuilding indices 
+		const int64 CachedIndex =Context->CachedIndex->GetValueFromItemKey(Point.MetadataEntry); 
+		Context->CachedIndex->SetValue(Point.MetadataEntry, ReadIndex);
+		
+		FReadScopeLock ScopeLock(Context->DeltaLock);
+
+		for (PCGExRelational::FSocketInfos& SocketInfos : Context->SocketInfos)
+		{
+			const int64 RelationIndex = SocketInfos.Socket->GetRelationIndex(Point.MetadataEntry);
+
+			if (RelationIndex == -1) { continue; } // No need to fix further
+
+			const int64 FixedRelationIndex = GetFixedIndex(Context, RelationIndex);
+			SocketInfos.Socket->SetRelationIndex(Point.MetadataEntry, FixedRelationIndex);
+
+			EPCGExRelationType Type = EPCGExRelationType::Unknown;
+			
+			if (FixedRelationIndex != -1)
+			{
+				const int32 Key = IO->Out->GetPoint(FixedRelationIndex).MetadataEntry;
+				for (PCGExRelational::FSocketInfos& OtherSocketInfos : Context->SocketInfos)
+				{
+					if (OtherSocketInfos.Socket->GetRelationIndex(Key) == CachedIndex)
+					{
+						//TODO: Handle cases where there can be multiple sockets with a valid connection
+						Type = PCGExRelational::Helpers::GetRelationType(SocketInfos, OtherSocketInfos);
+					}
+				}
+
+				if (Type == EPCGExRelationType::Unknown) { Type = EPCGExRelationType::Unique; }
+			}
+
+			SocketInfos.Socket->SetRelationType(Point.MetadataEntry, Type);
+		}
 	};
 
-	if (Context->IsCurrentOperation(PCGEx::EOperation::ProcessingPoints2ndPass))
+	if (Context->IsState(PCGExMT::EState::ProcessingPoints2ndPass))
 	{
-		if(Context->CurrentIO->OutputParallelProcessing(Context, InitializeForParams, ConsolidatePoint, Context->ChunkSize))
+		if (Context->CurrentIO->OutputParallelProcessing(Context, InitializePointsOutput, ConsolidatePoint, 256))
 		{
-			Context->SetOperation(PCGEx::EOperation::ReadyForNextParams);
+			Context->SetState(PCGExMT::EState::ReadyForNextPoints);
 		}
 	}
 
-	if (Context->IsCurrentOperation(PCGEx::EOperation::Done))
+	// Done
+
+	if (Context->IsState(PCGExMT::EState::Done))
 	{
+		Context->Deltas.Empty();
 		Context->Points->OutputTo(Context);
+		Context->Params.OutputTo(Context);
 		return true;
 	}
 
 	return false;
 }
 
-#if WITH_EDITOR
-void FPCGExConsolidateRelationsElement::DrawRelationsDebug(FPCGExConsolidateRelationsContext* Context) const
+int64 FPCGExConsolidateRelationsElement::GetFixedIndex(FPCGExConsolidateRelationsContext* Context, int64 InIndex)
 {
-
-	const UPCGExConsolidateRelationsSettings* Settings = Context->GetInputSettings<UPCGExConsolidateRelationsSettings>();
-
-	if (!Context->CurrentParams || !Context->CurrentIO || !Settings->bDebug) { return; }
-	
-	if (UWorld* EditorWorld = GEditor->GetEditorWorldContext().World())
-	{
-		auto DrawDebug = [&Context, &Settings, &EditorWorld](int32 ReadIndex)
-		{
-			FPCGPoint PtA = Context->CurrentIO->Out->GetPoint(ReadIndex);
-			int64 Key = PtA.MetadataEntry;
-
-			FVector Start = PtA.Transform.GetLocation();
-			for (const PCGExRelational::FSocket& Socket : Context->CurrentParams->GetSocketMapping()->Sockets)
-			{
-				PCGExRelational::FSocketMetadata SocketMetadata = Socket.GetData(Key);
-				if (SocketMetadata.Index == -1) { continue; }
-
-				FPCGPoint PtB = Context->CurrentIO->Out->GetPoint(SocketMetadata.Index);
-				FVector End = FMath::Lerp(Start, PtB.Transform.GetLocation(), 0.4);
-				DrawDebugDirectionalArrow(EditorWorld, Start, End, 2.0f, Socket.Descriptor.DebugColor, false, Settings->DebugDrawLifetime, 0, 2);
-			}
-		};
-
-		//PCGEx::Common::AsyncForLoop(Context, Context->CurrentIO->NumPoints, DrawDebug);
-		for (int i = 0; i < Context->CurrentIO->NumPoints; i++) { DrawDebug(i); }
-	}
+	if (const int64* FixedRelationIndexPtr = Context->Deltas.Find(InIndex)) { return *FixedRelationIndexPtr; }
+	return -1;
 }
-#endif
 
 #undef LOCTEXT_NAMESPACE

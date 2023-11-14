@@ -76,6 +76,7 @@ bool FPCGExDeleteRelationsElement::ExecuteInternal(
 		});
 
 	Context->Points->OutputTo(Context);
+	Context->Params.OutputTo(Context);
 	
 	return true;
 }

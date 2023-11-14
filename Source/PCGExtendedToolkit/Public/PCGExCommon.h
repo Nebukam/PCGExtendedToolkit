@@ -15,6 +15,8 @@
 #include "HAL/CriticalSection.h"
 #include <mutex>
 #include <shared_mutex>
+
+#include "PCGComponent.h"
 #include "PCGExCommon.generated.h"
 
 //virtual FName GetDefaultNodeName() const override { return FName(TEXT(#_SHORTNAME)); } \
@@ -284,9 +286,19 @@ public:
 namespace PCGEx
 {
 
+	const FName SourcePointsLabel = TEXT("InPoints");
+	const FName OutputPointsLabel = TEXT("OutPoints");
+	
 	class Common
 	{
 	public:
+		
+		static UWorld* GetWorld(const FPCGContext* Context)
+		{
+			check(Context->SourceComponent.IsValid());
+			return Context->SourceComponent->GetWorld();
+		}
+		
 		static bool ForEachPointData(
 			FPCGContext* Context,
 			TArray<FPCGTaggedData>& Sources,

@@ -41,7 +41,7 @@ void UPCGExRelationsParamsData::Initialize(
 		GreatestStaticMaxDistance = FMath::Max(GreatestStaticMaxDistance, Socket.Direction.MaxDistance);
 	}
 
-	CachedIndexAttributeName = SocketMapping.GetCompoundName(RelationIdentifier, FName("CachedIndex"));
+	CachedIndexAttributeName = SocketMapping.GetCompoundName(FName("CachedIndex"));
 }
 
 void UPCGExRelationsParamsData::PrepareForPointData(FPCGExRelationsProcessorContext* Context, UPCGPointData* PointData)

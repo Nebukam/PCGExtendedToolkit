@@ -39,9 +39,7 @@ private:
 struct PCGEXTENDEDTOOLKIT_API FPCGExFindRelationsTypeContext : public FPCGExRelationsProcessorContext
 {
 	friend class FPCGExFindRelationsTypeElement;
-	
 };
-
 
 class PCGEXTENDEDTOOLKIT_API FPCGExFindRelationsTypeElement : public FPCGExRelationsProcessorElement
 {

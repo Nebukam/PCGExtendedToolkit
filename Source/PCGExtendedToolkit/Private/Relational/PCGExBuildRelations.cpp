@@ -49,7 +49,10 @@ bool FPCGExBuildRelationsElement::ExecuteInternal(
 
 	FPCGExBuildRelationsContext* Context = static_cast<FPCGExBuildRelationsContext*>(InContext);
 
-	if (Context->IsCurrentOperation(PCGEx::EOperation::Setup))
+	const UPCGExBuildRelationsSettings* Settings = Context->GetInputSettings<UPCGExBuildRelationsSettings>();
+	check(Settings);
+
+	if (Context->IsSetup())
 	{
 		if (Context->Params.IsEmpty())
 		{
@@ -63,10 +66,12 @@ bool FPCGExBuildRelationsElement::ExecuteInternal(
 			return true;
 		}
 
-		Context->SetOperation(PCGEx::EOperation::ReadyForNextPoints);
+		Context->SetState(PCGExMT::EState::ReadyForNextPoints);
 	}
 
-	if (Context->IsCurrentOperation(PCGEx::EOperation::ReadyForNextPoints))
+	// Prep point for param loops
+	
+	if (Context->IsState(PCGExMT::EState::ReadyForNextPoints))
 	{
 		if (Context->CurrentIO)
 		{
@@ -76,34 +81,36 @@ bool FPCGExBuildRelationsElement::ExecuteInternal(
 
 		if (!Context->AdvancePointsIO(true))
 		{
-			Context->SetOperation(PCGEx::EOperation::Done); //No more points
+			Context->SetState(PCGExMT::EState::Done); //No more points
 		}
 		else
 		{
 			Context->CurrentIO->BuildMetadataEntriesAndIndices();
 			Context->Octree = const_cast<UPCGPointData::PointOctree*>(&(Context->CurrentIO->Out->GetOctree())); // Not sure this really saves perf
-			Context->SetOperation(PCGEx::EOperation::ReadyForNextParams);
+			Context->SetState(PCGExMT::EState::ReadyForNextParams);
 		}
 	}
 
+	// Process params for current points
+	
 	auto ProcessPoint = [&Context](
 		const FPCGPoint& Point, int32 ReadIndex, UPCGExPointIO* IO)
 	{
 		Context->CachedIndex->SetValue(Point.MetadataEntry, ReadIndex); // Cache index
 
-		TArray<PCGExRelational::FSocketCandidate> Candidates;
-		const double MaxDistance = PCGExRelational::Helpers::PrepareCandidatesForPoint(Point, Context->CurrentParams, Candidates);
+		TArray<PCGExRelational::FSocketSampler> Samplers;
+		const double MaxDistance = Context->PrepareSamplersForPoint(Point, Samplers);
 
-		auto ProcessPointNeighbor = [&ReadIndex, &Candidates, &IO](const FPCGPointRef& OtherPointRef)
+		auto ProcessPointNeighbor = [&ReadIndex, &Samplers, &IO](const FPCGPointRef& OtherPointRef)
 		{
 			const FPCGPoint* OtherPoint = OtherPointRef.Point;
 			const int32 Index = IO->GetIndex(OtherPoint->MetadataEntry);
 
 			if (Index == ReadIndex) { return; }
 
-			for (PCGExRelational::FSocketCandidate& SocketCandidate : Candidates)
+			for (PCGExRelational::FSocketSampler& SocketSampler : Samplers)
 			{
-				if (SocketCandidate.ProcessPoint(OtherPoint)) { SocketCandidate.Index = Index; }
+				if (SocketSampler.ProcessPoint(OtherPoint)) { SocketSampler.Index = Index; }
 			}
 		};
 
@@ -111,23 +118,23 @@ bool FPCGExBuildRelationsElement::ExecuteInternal(
 		Context->Octree->FindElementsWithBoundsTest(Box, ProcessPointNeighbor);
 
 		//Write results
-		PCGMetadataEntryKey Key = Point.MetadataEntry;
-		for (int i = 0; i < Candidates.Num(); i++)
+		const PCGMetadataEntryKey Key = Point.MetadataEntry;
+		for (int i = 0; i < Samplers.Num(); i++)
 		{
-			Context->SocketInfos[i].Socket->SetIndex(Key, Candidates[i].Index);
+			Context->SocketInfos[i].Socket->SetRelationIndex(Key, Samplers[i].Index);
 		}
 	};
 
-	if (Context->IsCurrentOperation(PCGEx::EOperation::ReadyForNextParams))
+	if (Context->IsState(PCGExMT::EState::ReadyForNextParams))
 	{
 		if (!Context->AdvanceParams())
 		{
-			Context->SetOperation(PCGEx::EOperation::ReadyForNextPoints);
+			Context->SetState(PCGExMT::EState::ReadyForNextPoints);
 			return false;
 		}
 		else
 		{
-			Context->SetOperation(PCGEx::EOperation::ProcessingParams);
+			Context->SetState(PCGExMT::EState::ProcessingParams);
 		}
 	}
 
@@ -136,17 +143,45 @@ bool FPCGExBuildRelationsElement::ExecuteInternal(
 		Context->CurrentParams->PrepareForPointData(Context, IO->Out);
 	};
 
-	if (Context->IsCurrentOperation(PCGEx::EOperation::ProcessingParams))
+	if (Context->IsState(PCGExMT::EState::ProcessingParams))
 	{
 		if (Context->CurrentIO->OutputParallelProcessing(Context, Initialize, ProcessPoint, Context->ChunkSize))
 		{
-			Context->SetOperation(PCGEx::EOperation::ReadyForNextParams);
+			if (Settings->bComputeRelationsType)
+			{
+				Context->SetState(PCGExMT::EState::ProcessingParams2ndPass);
+			}
+			else
+			{
+				Context->SetState(PCGExMT::EState::ReadyForNextParams);
+			}
 		}
 	}
 
-	if (Context->IsCurrentOperation(PCGEx::EOperation::Done))
+	// Process params again for relation types
+
+	auto InitializeForRelations = [&Context](UPCGExPointIO* IO)
+	{
+	};
+
+	auto ProcessPointForRelations = [&Context](
+		const FPCGPoint& Point, int32 ReadIndex, UPCGExPointIO* IO)
+	{
+		Context->ComputeRelationsType(Point, ReadIndex, IO);
+	};
+	
+	if (Context->IsState(PCGExMT::EState::ProcessingParams2ndPass))
+	{
+		if (Context->CurrentIO->OutputParallelProcessing(Context, InitializeForRelations, ProcessPointForRelations, Context->ChunkSize))
+		{
+			Context->SetState(PCGExMT::EState::ReadyForNextParams);
+		}
+	}
+
+	if (Context->IsState(PCGExMT::EState::Done))
 	{
 		Context->Points->OutputTo(Context);
+		Context->Params.OutputTo(Context);
 		return true;
 	}
 

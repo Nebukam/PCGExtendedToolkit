@@ -159,12 +159,14 @@ bool UPCGExPointIO::OutputTo(FPCGContext* Context, bool bEmplace)
 
 		FPCGTaggedData& OutputRef = Context->OutputData.TaggedData.Add_GetRef(Source);
 		OutputRef.Data = Out;
+		OutputRef.Pin = PCGEx::OutputPointsLabel;
 		Output = OutputRef;
 	}
 	else
 	{
 		FPCGTaggedData& OutputRef = Context->OutputData.TaggedData.Emplace_GetRef();
 		OutputRef.Data = Out;
+		OutputRef.Pin = PCGEx::OutputPointsLabel;
 		Output = OutputRef;
 	}
 	return true;

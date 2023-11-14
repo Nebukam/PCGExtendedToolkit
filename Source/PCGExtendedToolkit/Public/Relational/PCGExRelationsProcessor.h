@@ -7,14 +7,62 @@
 #include "PCGContext.h"
 #include "PCGExPointsProcessor.h"
 #include "PCGExRelationsHelpers.h"
-#include "PCGSettings.h"
 #include "PCGExRelationsProcessor.generated.h"
 
 class UPCGExRelationsParamsData;
 
 namespace PCGExRelational
 {
-	extern const FName SourceRelationalParamsLabel;
+	/** Per-socket temp data structure for processing only*/
+	struct PCGEXTENDEDTOOLKIT_API FSocketSampler : FPCGExSocketDirection
+	{
+		FSocketSampler()
+		{
+		}
+
+	public:
+		FSocketInfos* SocketInfos = nullptr;
+		FVector Origin = FVector::Zero();
+		int32 Index = -1;
+		double IndexedDistance = TNumericLimits<double>::Max();
+		double IndexedDot = -1;
+
+		bool ProcessPoint(const FPCGPoint* Point)
+		{
+			const FVector PtPosition = Point->Transform.GetLocation();
+			const FVector DirToPt = (PtPosition - Origin).GetSafeNormal();
+
+			const double SquaredDistance = FVector::DistSquared(Origin, PtPosition);
+
+			// Is distance smaller than last registered one?
+			if (SquaredDistance > IndexedDistance) { return false; }
+
+			//UE_LOG(LogTemp, Warning, TEXT("Dist %f / %f "), SquaredDistance, MaxDistance * MaxDistance)
+			// Is distance inside threshold?
+			if (SquaredDistance >= (MaxDistance * MaxDistance)) { return false; }
+
+			const double Dot = Direction.Dot(DirToPt);
+
+			// Is dot within tolerance?
+			if (Dot < DotTolerance) { return false; }
+
+			if (IndexedDistance == SquaredDistance)
+			{
+				// In case of distance equality, favor candidate closer to dot == 1
+				if (Dot < IndexedDot) { return false; }
+			}
+
+			IndexedDistance = SquaredDistance;
+			IndexedDot = Dot;
+
+			return true;
+		}
+
+		~FSocketSampler()
+		{
+			SocketInfos = nullptr;
+		}
+	};
 }
 
 /**
@@ -29,22 +77,25 @@ public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(RelationsProcessorSettings, "Relations Processor Settings", "TOOLTIP_TEXT");
+	virtual FLinearColor GetNodeTitleColor() const override { return FLinearColor(80.0f / 255.0f, 241.0f / 255.0f, 168.0f / 255.0f, 1.0f); }
 #endif
 
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
+	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 	//~End UPCGSettings interface
-
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExRelationsProcessorContext : public FPCGExPointsProcessorContext
 {
 
+	friend class UPCGExRelationsProcessorSettings;
+	
 public:
 	PCGExRelational::FParamsInputs Params;
 
 	int32 GetCurrentParamsIndex() const { return CurrentParamsIndex; };
 	UPCGExRelationsParamsData* CurrentParams = nullptr;
-	
+
 	bool AdvanceParams(bool bResetPointsIndex = false);
 	bool AdvancePointsIO(bool bResetParamsIndex = false);
 
@@ -53,9 +104,13 @@ public:
 
 	FPCGMetadataAttribute<int64>* CachedIndex;
 	TArray<PCGExRelational::FSocketInfos> SocketInfos;
+
+	void ComputeRelationsType(const FPCGPoint& Point, int32 ReadIndex, UPCGExPointIO* IO);
+	double PrepareSamplersForPoint(const FPCGPoint& Point, TArray<PCGExRelational::FSocketSampler>& OutSamplers);
 	
 protected:
 	int32 CurrentParamsIndex = -1;
+	virtual void PrepareSamplerForPointSocketPair(const FPCGPoint& Point, PCGExRelational::FSocketSampler& Sampler, PCGExRelational::FSocketInfos SocketInfos);
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExRelationsProcessorElement : public FPCGExPointsProcessorElementBase

@@ -11,26 +11,84 @@
 
 #define LOCTEXT_NAMESPACE "PCGExRelationalParamsBuilderElementBase"
 
+namespace PCGExDebugColors
+{
+	constexpr uint8 Plus = 255;
+	constexpr uint8 Minus = 200;
+	constexpr FColor XPlus = FColor(Plus, 0, 0);
+	constexpr FColor XMinus = FColor(Minus, 0, 0);
+	constexpr FColor YPlus = FColor(0, Plus, 0);
+	constexpr FColor YMinus = FColor(0, Minus, 0);
+	constexpr FColor ZPlus = FColor(0, 0, Plus);
+	constexpr FColor ZMinus = FColor(0, 0, Minus);
+}
+
 UPCGExCreateRelationsParamsSettings::UPCGExCreateRelationsParamsSettings(
 	const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	if (Sockets.IsEmpty()) { UPCGExCreateRelationsParamsSettings::InitDefaultSockets(); }
+	if (CustomSockets.IsEmpty()) { UPCGExCreateRelationsParamsSettings::InitDefaultSockets(); }
+	InitSocketContent(SocketsPreset);
 }
 
 void UPCGExCreateRelationsParamsSettings::InitDefaultSockets()
 {
-	Sockets.Add(FPCGExSocketDescriptor("Forward", FVector::ForwardVector, "Backward", FColor(255, 0, 0)));
-	Sockets.Add(FPCGExSocketDescriptor("Backward", FVector::BackwardVector, "Forward", FColor(200, 0, 0)));
-	Sockets.Add(FPCGExSocketDescriptor("Right", FVector::RightVector, "Left", FColor(0, 255, 0)));
-	Sockets.Add(FPCGExSocketDescriptor("Left", FVector::LeftVector, "Right", FColor(0, 200, 0)));
-	Sockets.Add(FPCGExSocketDescriptor("Up", FVector::UpVector, "Down", FColor(0, 0, 255)));
-	Sockets.Add(FPCGExSocketDescriptor("Down", FVector::DownVector, "Up", FColor(0, 0, 200)));
+	CustomSockets.Add(FPCGExSocketDescriptor("Forward", FVector::ForwardVector, "Backward", PCGExDebugColors::XPlus));
+	CustomSockets.Add(FPCGExSocketDescriptor("Backward", FVector::BackwardVector, "Forward", PCGExDebugColors::XMinus));
+	CustomSockets.Add(FPCGExSocketDescriptor("Right", FVector::RightVector, "Left", PCGExDebugColors::YPlus));
+	CustomSockets.Add(FPCGExSocketDescriptor("Left", FVector::LeftVector, "Right", PCGExDebugColors::YMinus));
+	CustomSockets.Add(FPCGExSocketDescriptor("Up", FVector::UpVector, "Down", PCGExDebugColors::ZPlus));
+	CustomSockets.Add(FPCGExSocketDescriptor("Down", FVector::DownVector, "Up", PCGExDebugColors::ZMinus));
+}
+
+void UPCGExCreateRelationsParamsSettings::InitSocketContent(TArray<FPCGExSocketDescriptor>& OutSockets) const
+{
+	OutSockets.Empty();
+
+	const FRotator ToTheLeft = FRotator(0,45,0);
+	const FRotator ToTheRight = FRotator(0,-45,0);
+	
+	switch (RelationsModel) {
+	case EPCGExRelationsModel::Custom:
+		OutSockets.Append(CustomSockets);
+		break;
+	case EPCGExRelationsModel::Grid3D:
+		OutSockets.Add(FPCGExSocketDescriptor("Forward", FVector::ForwardVector, "Backward", PCGExDebugColors::XPlus));
+		OutSockets.Add(FPCGExSocketDescriptor("Backward", FVector::BackwardVector, "Forward", PCGExDebugColors::XMinus));
+		OutSockets.Add(FPCGExSocketDescriptor("Right", FVector::RightVector, "Left", PCGExDebugColors::YPlus));
+		OutSockets.Add(FPCGExSocketDescriptor("Left", FVector::LeftVector, "Right", PCGExDebugColors::YMinus));
+		OutSockets.Add(FPCGExSocketDescriptor("Up", FVector::UpVector, "Down", PCGExDebugColors::ZPlus));
+		OutSockets.Add(FPCGExSocketDescriptor("Down", FVector::DownVector, "Up", PCGExDebugColors::ZMinus));
+		break;
+	case EPCGExRelationsModel::GridXY:
+		OutSockets.Add(FPCGExSocketDescriptor("Forward", FVector::ForwardVector, "Backward", PCGExDebugColors::XPlus));
+		OutSockets.Add(FPCGExSocketDescriptor("Backward", FVector::BackwardVector, "Forward", PCGExDebugColors::XMinus));
+		OutSockets.Add(FPCGExSocketDescriptor("Right", FVector::RightVector, "Left", PCGExDebugColors::YPlus));
+		OutSockets.Add(FPCGExSocketDescriptor("Left", FVector::LeftVector, "Right", PCGExDebugColors::YMinus));
+		break;
+	case EPCGExRelationsModel::GridXZ:
+		OutSockets.Add(FPCGExSocketDescriptor("Forward", FVector::ForwardVector, "Backward", PCGExDebugColors::XPlus));
+		OutSockets.Add(FPCGExSocketDescriptor("Backward", FVector::BackwardVector, "Forward", PCGExDebugColors::XMinus));
+		OutSockets.Add(FPCGExSocketDescriptor("Up", FVector::UpVector, "Down", PCGExDebugColors::ZPlus));
+		OutSockets.Add(FPCGExSocketDescriptor("Down", FVector::DownVector, "Up", PCGExDebugColors::ZMinus));
+		break;
+	case EPCGExRelationsModel::GridYZ:
+		OutSockets.Add(FPCGExSocketDescriptor("Right", FVector::RightVector, "Left", PCGExDebugColors::YPlus));
+		OutSockets.Add(FPCGExSocketDescriptor("Left", FVector::LeftVector, "Right", PCGExDebugColors::YMinus));
+		OutSockets.Add(FPCGExSocketDescriptor("Up", FVector::UpVector, "Down", PCGExDebugColors::ZPlus));
+		OutSockets.Add(FPCGExSocketDescriptor("Down", FVector::DownVector, "Up", PCGExDebugColors::ZMinus));
+		break;
+	case EPCGExRelationsModel::FFork:
+		OutSockets.Add(FPCGExSocketDescriptor("Lefty", ToTheLeft.RotateVector(FVector::ForwardVector), PCGExDebugColors::XPlus));
+		OutSockets.Add(FPCGExSocketDescriptor("Righty", ToTheRight.RotateVector(FVector::ForwardVector), PCGExDebugColors::XMinus));
+		break;
+	default: ;
+	}
 }
 
 const TArray<FPCGExSocketDescriptor>& UPCGExCreateRelationsParamsSettings::GetSockets() const
 {
-	return Sockets;
+	return RelationsModel == EPCGExRelationsModel::Custom ? CustomSockets : SocketsPreset;
 }
 
 FPCGElementPtr UPCGExCreateRelationsParamsSettings::CreateElement() const
@@ -54,6 +112,21 @@ TArray<FPCGPinProperties> UPCGExCreateRelationsParamsSettings::OutputPinProperti
 #endif // WITH_EDITOR
 
 	return PinProperties;
+}
+
+void UPCGExCreateRelationsParamsSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+{
+	if (PropertyChangedEvent.Property)
+	{
+		const FName& PropertyName = PropertyChangedEvent.Property->GetFName();
+
+		if (PropertyName == GET_MEMBER_NAME_CHECKED(UPCGExCreateRelationsParamsSettings, RelationsModel))
+		{
+			InitSocketContent(SocketsPreset);
+		}
+	}
+
+	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
 
 template <typename T>

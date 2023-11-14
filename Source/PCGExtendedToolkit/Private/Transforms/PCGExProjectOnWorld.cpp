@@ -1,34 +1,34 @@
 ﻿// Copyright Timothé Lapetite 2023
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Misc/PCGExWriteIndex.h"
+#include "Transforms/PCGExProjectOnWorld.h"
 #include "Data/PCGSpatialData.h"
 #include "Data/PCGPointData.h"
 #include "PCGContext.h"
 #include "PCGExCommon.h"
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
 
-#define LOCTEXT_NAMESPACE "PCGExWriteIndexElement"
+#define LOCTEXT_NAMESPACE "PCGExProjectOnWorldElement"
 
-PCGEx::EIOInit UPCGExWriteIndexSettings::GetPointOutputInitMode() const { return PCGEx::EIOInit::DuplicateInput; }
+PCGEx::EIOInit UPCGExProjectOnWorldSettings::GetPointOutputInitMode() const { return PCGEx::EIOInit::DuplicateInput; }
 
-FPCGElementPtr UPCGExWriteIndexSettings::CreateElement() const { return MakeShared<FPCGExWriteIndexElement>(); }
+FPCGElementPtr UPCGExProjectOnWorldSettings::CreateElement() const { return MakeShared<FPCGExProjectOnWorldElement>(); }
 
-FPCGContext* FPCGExWriteIndexElement::Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node)
+FPCGContext* FPCGExProjectOnWorldElement::Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node)
 {
-	FPCGExWriteIndexContext* Context = new FPCGExWriteIndexContext();
+	FPCGExProjectOnWorldContext* Context = new FPCGExProjectOnWorldContext();
 	InitializeContext(Context, InputData, SourceComponent, Node);
 	return Context;
 }
 
 
-bool FPCGExWriteIndexElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExProjectOnWorldElement::ExecuteInternal(FPCGContext* InContext) const
 {
-	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExWriteIndexElement::Execute);
+	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExProjectOnWorldElement::Execute);
 
-	FPCGExWriteIndexContext* Context = static_cast<FPCGExWriteIndexContext*>(InContext);
+	FPCGExProjectOnWorldContext* Context = static_cast<FPCGExProjectOnWorldContext*>(InContext);
 
-	if (Context->IsSetup())
+	if (Context->IsState(PCGExMT::EState::Setup))
 	{
 		if (!Context->IsValid())
 		{
@@ -36,7 +36,7 @@ bool FPCGExWriteIndexElement::ExecuteInternal(FPCGContext* InContext) const
 			return true;
 		}
 
-		const UPCGExWriteIndexSettings* Settings = Context->GetInputSettings<UPCGExWriteIndexSettings>();
+		const UPCGExProjectOnWorldSettings* Settings = Context->GetInputSettings<UPCGExProjectOnWorldSettings>();
 		check(Settings);
 
 		FName OutName = Settings->OutputAttributeName;
