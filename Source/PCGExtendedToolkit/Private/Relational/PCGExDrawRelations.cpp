@@ -27,6 +27,12 @@ UPCGExDrawRelationsSettings::UPCGExDrawRelationsSettings(
 }
 
 #if WITH_EDITOR
+TArray<FPCGPinProperties> UPCGExDrawRelationsSettings::OutputPinProperties() const
+{
+	TArray<FPCGPinProperties> None;
+	return None;
+}
+
 void UPCGExDrawRelationsSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	if (const UWorld* EditorWorld = GEditor->GetEditorWorldContext().World()) { FlushPersistentDebugLines(EditorWorld); }

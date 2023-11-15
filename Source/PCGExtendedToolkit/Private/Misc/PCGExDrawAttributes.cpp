@@ -22,6 +22,12 @@ UPCGExDrawAttributesSettings::UPCGExDrawAttributesSettings(
 }
 
 #if WITH_EDITOR
+TArray<FPCGPinProperties> UPCGExDrawAttributesSettings::OutputPinProperties() const
+{
+	TArray<FPCGPinProperties> None;
+	return None;
+}
+
 void UPCGExDrawAttributesSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	DebugSettings.PointScale = 0.0f;

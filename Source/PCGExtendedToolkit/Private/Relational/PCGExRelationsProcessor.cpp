@@ -27,8 +27,6 @@ TArray<FPCGPinProperties> UPCGExRelationsProcessorSettings::InputPinProperties()
 TArray<FPCGPinProperties> UPCGExRelationsProcessorSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
-	if (GetType() == EPCGSettingsType::Debug) { return PinProperties; }
-
 	FPCGPinProperties& PinParamsOutput = PinProperties.Emplace_GetRef(PCGExRelational::OutputParamsLabel, EPCGDataType::Param);
 
 #if WITH_EDITOR
