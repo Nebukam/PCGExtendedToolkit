@@ -13,11 +13,17 @@
 
 #define LOCTEXT_NAMESPACE "PCGExDrawRelations"
 
-PCGEx::EIOInit UPCGExDrawRelationsSettings::GetPointOutputInitMode() const { return PCGEx::EIOInit::Forward; }
+PCGEx::EIOInit UPCGExDrawRelationsSettings::GetPointOutputInitMode() const { return PCGEx::EIOInit::NoOutput; }
 
 FPCGElementPtr UPCGExDrawRelationsSettings::CreateElement() const
 {
 	return MakeShared<FPCGExDrawRelationsElement>();
+}
+
+TArray<FPCGPinProperties> UPCGExDrawRelationsSettings::OutputPinProperties() const
+{
+	TArray<FPCGPinProperties> Empty;
+	return Empty;
 }
 
 void UPCGExDrawRelationsSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
@@ -82,6 +88,9 @@ bool FPCGExDrawRelationsElement::ExecuteInternal(
 	auto ProcessPoint = [&Context, &World, &Settings](
 		const FPCGPoint& Point, int32 ReadIndex, UPCGExPointIO* IO)
 	{
+
+		//FWriteScopeLock ScopeLock(Context->ContextLock);
+		
 		const FVector Start = Point.Transform.GetLocation();
 
 		TArray<PCGExRelational::FSocketSampler> Samplers;
@@ -183,8 +192,7 @@ bool FPCGExDrawRelationsElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExMT::EState::ProcessingParams))
 	{
-		// Debug draw is not thread-safe T_T
-		//if (Context->CurrentIO->InputParallelProcessing(Context, Initialize, ProcessPoint, Context->ChunkSize)) { Context->SetOperation(PCGEx::EOperation::ReadyForNextParams); }
+		//if (Context->CurrentIO->InputParallelProcessing(Context, Initialize, ProcessPoint, Context->ChunkSize)) { Context->SetState(PCGExMT::EState::ProcessingParams); }
 		Initialize(Context->CurrentIO);
 		for (int i = 0; i < Context->CurrentIO->NumPoints; i++) { ProcessPoint(Context->CurrentIO->Out->GetPoint(i), i, Context->CurrentIO); }
 		Context->SetState(PCGExMT::EState::ReadyForNextParams);
@@ -192,8 +200,7 @@ bool FPCGExDrawRelationsElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExMT::EState::Done))
 	{
-		Context->Points->OutputTo(Context);
-		Context->Params.OutputTo(Context);
+		//Context->OutputPointsAndParams();
 		return true;
 	}
 

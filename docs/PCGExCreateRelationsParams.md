@@ -1,4 +1,4 @@
-# Create Relations Params ![Params](https://img.shields.io/badge/Params-cc9b1f)
+# Create Relations Params ![Relational](https://img.shields.io/badge/Relational-37a573)
 
 ## What is it useful for?
 This node contains a single "relational model". It defines a list of relation *slots*, that each represent a direction in which a connection may exist. 

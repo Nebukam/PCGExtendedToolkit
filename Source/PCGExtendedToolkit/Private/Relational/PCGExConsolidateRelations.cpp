@@ -129,9 +129,9 @@ bool FPCGExConsolidateRelationsElement::ExecuteInternal(
 	auto ConsolidatePoint = [&Context](
 		const FPCGPoint& Point, int32 ReadIndex, UPCGExPointIO* IO)
 	{
-		const int64 CachedIndex =Context->CachedIndex->GetValueFromItemKey(Point.MetadataEntry); 
+		const int64 CachedIndex = Context->CachedIndex->GetValueFromItemKey(Point.MetadataEntry);
 		Context->CachedIndex->SetValue(Point.MetadataEntry, ReadIndex);
-		
+
 		FReadScopeLock ScopeLock(Context->DeltaLock);
 
 		for (PCGExRelational::FSocketInfos& SocketInfos : Context->SocketInfos)
@@ -144,7 +144,7 @@ bool FPCGExConsolidateRelationsElement::ExecuteInternal(
 			SocketInfos.Socket->SetRelationIndex(Point.MetadataEntry, FixedRelationIndex);
 
 			EPCGExRelationType Type = EPCGExRelationType::Unknown;
-			
+
 			if (FixedRelationIndex != -1)
 			{
 				const int32 Key = IO->Out->GetPoint(FixedRelationIndex).MetadataEntry;
@@ -158,6 +158,10 @@ bool FPCGExConsolidateRelationsElement::ExecuteInternal(
 				}
 
 				if (Type == EPCGExRelationType::Unknown) { Type = EPCGExRelationType::Unique; }
+			}
+			else
+			{
+				SocketInfos.Socket->SetRelationEntryKey(Point.MetadataEntry, PCGInvalidEntryKey);
 			}
 
 			SocketInfos.Socket->SetRelationType(Point.MetadataEntry, Type);
@@ -177,8 +181,7 @@ bool FPCGExConsolidateRelationsElement::ExecuteInternal(
 	if (Context->IsState(PCGExMT::EState::Done))
 	{
 		Context->Deltas.Empty();
-		Context->Points->OutputTo(Context);
-		Context->Params.OutputTo(Context);
+		Context->OutputPointsAndParams();
 		return true;
 	}
 

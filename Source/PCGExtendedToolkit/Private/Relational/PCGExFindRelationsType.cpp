@@ -113,8 +113,7 @@ bool FPCGExFindRelationsTypeElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExMT::EState::Done))
 	{
-		Context->Points->OutputTo(Context);
-		Context->Params.OutputTo(Context);
+		Context->OutputPointsAndParams();
 		return true;
 	}
 

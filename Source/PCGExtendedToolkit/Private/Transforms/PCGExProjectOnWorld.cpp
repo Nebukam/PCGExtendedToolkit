@@ -79,7 +79,7 @@ bool FPCGExProjectOnWorldElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsDone())
 	{
-		Context->Points->OutputTo(Context);
+		Context->OutputPoints();
 		return true;
 	}
 

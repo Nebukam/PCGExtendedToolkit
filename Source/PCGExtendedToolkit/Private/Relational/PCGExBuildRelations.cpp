@@ -70,7 +70,7 @@ bool FPCGExBuildRelationsElement::ExecuteInternal(
 	}
 
 	// Prep point for param loops
-	
+
 	if (Context->IsState(PCGExMT::EState::ReadyForNextPoints))
 	{
 		if (Context->CurrentIO)
@@ -92,7 +92,7 @@ bool FPCGExBuildRelationsElement::ExecuteInternal(
 	}
 
 	// Process params for current points
-	
+
 	auto ProcessPoint = [&Context](
 		const FPCGPoint& Point, int32 ReadIndex, UPCGExPointIO* IO)
 	{
@@ -110,7 +110,11 @@ bool FPCGExBuildRelationsElement::ExecuteInternal(
 
 			for (PCGExRelational::FSocketSampler& SocketSampler : Samplers)
 			{
-				if (SocketSampler.ProcessPoint(OtherPoint)) { SocketSampler.Index = Index; }
+				if (SocketSampler.ProcessPoint(OtherPoint))
+				{
+					SocketSampler.Index = Index;
+					SocketSampler.EntryKey = OtherPoint->MetadataEntry;
+				}
 			}
 		};
 
@@ -119,10 +123,7 @@ bool FPCGExBuildRelationsElement::ExecuteInternal(
 
 		//Write results
 		const PCGMetadataEntryKey Key = Point.MetadataEntry;
-		for (int i = 0; i < Samplers.Num(); i++)
-		{
-			Context->SocketInfos[i].Socket->SetRelationIndex(Key, Samplers[i].Index);
-		}
+		for (PCGExRelational::FSocketSampler Sampler : Samplers) { Sampler.OutputTo(Key); }
 	};
 
 	if (Context->IsState(PCGExMT::EState::ReadyForNextParams))
@@ -169,7 +170,7 @@ bool FPCGExBuildRelationsElement::ExecuteInternal(
 	{
 		Context->ComputeRelationsType(Point, ReadIndex, IO);
 	};
-	
+
 	if (Context->IsState(PCGExMT::EState::ProcessingParams2ndPass))
 	{
 		if (Context->CurrentIO->OutputParallelProcessing(Context, InitializeForRelations, ProcessPointForRelations, Context->ChunkSize))
@@ -180,8 +181,7 @@ bool FPCGExBuildRelationsElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExMT::EState::Done))
 	{
-		Context->Points->OutputTo(Context);
-		Context->Params.OutputTo(Context);
+		Context->OutputPointsAndParams();
 		return true;
 	}
 

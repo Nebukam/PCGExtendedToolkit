@@ -24,6 +24,7 @@ namespace PCGExRelational
 		FSocketInfos* SocketInfos = nullptr;
 		FVector Origin = FVector::Zero();
 		int32 Index = -1;
+		PCGMetadataEntryKey EntryKey = PCGInvalidEntryKey;
 		double IndexedDistance = TNumericLimits<double>::Max();
 		double IndexedDot = -1;
 
@@ -58,6 +59,12 @@ namespace PCGExRelational
 			return true;
 		}
 
+		void OutputTo(PCGMetadataEntryKey Key) const
+		{
+			SocketInfos->Socket->SetRelationIndex(Key, Index);
+			SocketInfos->Socket->SetRelationEntryKey(Key, EntryKey);
+		}
+
 		~FSocketSampler()
 		{
 			SocketInfos = nullptr;
@@ -87,9 +94,8 @@ public:
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExRelationsProcessorContext : public FPCGExPointsProcessorContext
 {
-
 	friend class UPCGExRelationsProcessorSettings;
-	
+
 public:
 	PCGExRelational::FParamsInputs Params;
 
@@ -107,7 +113,15 @@ public:
 
 	void ComputeRelationsType(const FPCGPoint& Point, int32 ReadIndex, UPCGExPointIO* IO);
 	double PrepareSamplersForPoint(const FPCGPoint& Point, TArray<PCGExRelational::FSocketSampler>& OutSamplers);
-	
+
+	void OutputParams() { Params.OutputTo(this); }
+
+	void OutputPointsAndParams()
+	{
+		OutputPoints();
+		OutputParams();
+	}
+
 protected:
 	int32 CurrentParamsIndex = -1;
 	virtual void PrepareSamplerForPointSocketPair(const FPCGPoint& Point, PCGExRelational::FSocketSampler& Sampler, PCGExRelational::FSocketInfos SocketInfos);

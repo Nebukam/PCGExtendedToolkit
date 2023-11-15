@@ -105,7 +105,7 @@ case _ENUM : Result = FPCGExCompare::Compare(A._ACCESSOR, B._ACCESSOR, Rule.Tole
 	};
 
 	Context->Points->ForEach(ProcessPair);
-	Context->Points->OutputTo(Context);
+	Context->OutputPoints();
 
 	return true;
 }

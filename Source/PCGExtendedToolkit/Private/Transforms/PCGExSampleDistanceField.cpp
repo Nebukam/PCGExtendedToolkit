@@ -79,7 +79,7 @@ bool FPCGExSampleDistanceFieldElement::ExecuteInternal(FPCGContext* InContext) c
 
 	if (Context->IsDone())
 	{
-		Context->Points->OutputTo(Context);
+		Context->OutputPoints();
 		return true;
 	}
 

@@ -68,15 +68,15 @@ bool FPCGExDeleteRelationsElement::ExecuteInternal(
 			{
 				for (const PCGExRelational::FSocket& Socket : Params->GetSocketMapping()->Sockets)
 				{
-					PointIO->Out->Metadata->DeleteAttribute(Socket.GetName());
+					//TODO: Remove individual socket attributes
+					Socket.DeleteFrom(PointIO->Out);
 				}
 				PointIO->Out->Metadata->DeleteAttribute(Params->CachedIndexAttributeName);
 			};
 			Context->Params.ForEach(Context, DeleteSockets);
 		});
 
-	Context->Points->OutputTo(Context);
-	Context->Params.OutputTo(Context);
+	Context->OutputPointsAndParams();
 	
 	return true;
 }

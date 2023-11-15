@@ -95,7 +95,7 @@ bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* InContext) con
 		FWriteScopeLock ScopeLock(Context->RulesLock);
 
 		PCGExPartition::FRule& IORule = Context->Rules.Emplace_GetRef(Context->PartitionRule);
-		IORule.PrepareForPointData(IO->In);
+		IORule.Validate(IO->In);
 		Context->RuleMap.Add(IO, &IORule);
 	};
 

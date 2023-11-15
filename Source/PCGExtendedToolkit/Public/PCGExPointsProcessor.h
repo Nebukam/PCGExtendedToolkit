@@ -7,7 +7,7 @@
 #include "PCGContext.h"
 #include "PCGExCommon.h"
 #include "PCGSettings.h"
-#include "Data/PCGExPointIO.h"
+#include "PCGExPointIO.h"
 #include "Elements/PCGPointProcessingElementBase.h"
 #include "PCGExPointsProcessor.generated.h"
 
@@ -89,9 +89,14 @@ public:
 
 	int32 ChunkSize = 0;
 
+	mutable FRWLock ContextLock;
+
+	void OutputPoints(){ Points->OutputTo(this); }
+	
 protected:
 	PCGExMT::EState CurrentState = PCGExMT::EState::Setup;
 	int32 CurrentPointsIndex = -1;
+	
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorElementBase : public FPCGPointProcessingElementBase

@@ -97,7 +97,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSocketDescriptor
 	{
 		Direction.Direction = InDirection;
 	}
-	
+
 	FPCGExSocketDescriptor(FName InName, FVector InDirection, FName InMatchingSlot, FColor InDebugColor):
 		SocketName(InName),
 		DebugColor(InDebugColor)
@@ -222,22 +222,27 @@ namespace PCGExRelational
 		{
 		}
 
-		FSocketMetadata(int64 InIndex, EPCGExRelationType InRelationType):
+		FSocketMetadata(int64 InIndex, PCGMetadataEntryKey InEntryKey, EPCGExRelationType InRelationType):
 			Index(InIndex),
+			EntryKey(InEntryKey),
 			RelationType(InRelationType)
 		{
 		}
 
 	public:
 		int64 Index = -1; // Index of the point this socket connects to
+		PCGMetadataEntryKey EntryKey = PCGInvalidEntryKey;
 		EPCGExRelationType RelationType = EPCGExRelationType::Unknown;
 
 		double IndexedDot = -1.0;
 		double IndexedDistance = TNumericLimits<double>::Max();
 
+		/*
+		 
 		friend FArchive& operator<<(FArchive& Ar, FSocketMetadata& SocketMetadata)
 		{
 			Ar << SocketMetadata.Index;
+			Ar << SocketMetadata.EntryKey;
 			Ar << SocketMetadata.RelationType;
 			Ar << SocketMetadata.IndexedDistance;
 			return Ar;
@@ -253,14 +258,16 @@ namespace PCGExRelational
 
 		FSocketMetadata operator/(const FSocketMetadata& Scalar) const { return FSocketMetadata{}; }
 
-		bool operator==(const FSocketMetadata& Other) const
-		{
-			return Index == Other.Index && RelationType == Other.RelationType;
-		}
-
 		bool operator!=(const FSocketMetadata& Other) const { return !(*this == Other); }
 
 		bool operator<(const FSocketMetadata& Other) const { return false; }
+		
+		*/
+
+		bool operator==(const FSocketMetadata& Other) const
+		{
+			return Index == Other.Index && EntryKey == Other.EntryKey && RelationType == Other.RelationType;
+		}
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FModifier : public PCGEx::FLocalSingleComponentInput
@@ -291,6 +298,7 @@ namespace PCGExRelational
 
 	const FName SocketPropertyNameIndex = FName("Index");
 	const FName SocketPropertyNameRelationType = FName("RelationType");
+	const FName SocketPropertyNameEntryKey = FName("EntryKey");
 
 	struct PCGEXTENDEDTOOLKIT_API FSocket
 	{
@@ -314,11 +322,18 @@ namespace PCGExRelational
 	protected:
 		FPCGMetadataAttribute<int64>* AttributeIndex = nullptr;
 		FPCGMetadataAttribute<int32>* AttributeRelationType = nullptr;
+		FPCGMetadataAttribute<int64>* AttributeEntryKey = nullptr;
 		FName AttributeNameBase = NAME_None;
 
 	public:
 		FName GetName() const { return AttributeNameBase; }
 
+		void DeleteFrom(UPCGPointData* PointData) const
+		{
+			PointData->Metadata->DeleteAttribute(AttributeIndex->Name);
+			PointData->Metadata->DeleteAttribute(AttributeRelationType->Name);
+			PointData->Metadata->DeleteAttribute(AttributeEntryKey->Name);
+		}
 		/**
 		 * Find or create the attribute matching this socket on a given PointData object,
 		 * as well as prepare the scape modifier for that same object.
@@ -328,6 +343,7 @@ namespace PCGExRelational
 		{
 			AttributeIndex = GetAttribute(PointData, SocketPropertyNameIndex, static_cast<int64>(-1));
 			AttributeRelationType = GetAttribute(PointData, SocketPropertyNameRelationType, static_cast<int32>(EPCGExRelationType::Unknown));
+			AttributeEntryKey = GetAttribute(PointData, SocketPropertyNameEntryKey, PCGInvalidEntryKey);
 		}
 
 	protected:
@@ -344,9 +360,15 @@ namespace PCGExRelational
 			SetRelationType(MetadataEntry, SocketMetadata.RelationType);
 		}
 
+		// Point index within the same data group.
 		void SetRelationIndex(const PCGMetadataEntryKey MetadataEntry, int64 InIndex) const { AttributeIndex->SetValue(MetadataEntry, InIndex); }
 		int64 GetRelationIndex(const PCGMetadataEntryKey MetadataEntry) const { return AttributeIndex->GetValueFromItemKey(MetadataEntry); }
 
+		// Point metadata entry key, faster than retrieving index if you only need to access attributes
+		void SetRelationEntryKey(const PCGMetadataEntryKey MetadataEntry, PCGMetadataEntryKey InEntryKey) const { AttributeEntryKey->SetValue(MetadataEntry, InEntryKey); }
+		PCGMetadataEntryKey GetRelationEntryKey(const PCGMetadataEntryKey MetadataEntry) const { return AttributeEntryKey->GetValueFromItemKey(MetadataEntry); }
+
+		// Relation type
 		void SetRelationType(const PCGMetadataEntryKey MetadataEntry, EPCGExRelationType InRelationType) const { AttributeRelationType->SetValue(MetadataEntry, static_cast<int32>(InRelationType)); }
 		EPCGExRelationType GetRelationType(const PCGMetadataEntryKey MetadataEntry) const { return static_cast<EPCGExRelationType>(AttributeRelationType->GetValueFromItemKey(MetadataEntry)); }
 
@@ -354,6 +376,7 @@ namespace PCGExRelational
 		{
 			return FSocketMetadata(
 					GetRelationIndex(MetadataEntry),
+					GetRelationEntryKey(MetadataEntry),
 					GetRelationType(MetadataEntry)
 				);
 		}
@@ -369,6 +392,7 @@ namespace PCGExRelational
 		{
 			AttributeIndex = nullptr;
 			AttributeRelationType = nullptr;
+			AttributeEntryKey = nullptr;
 			MatchingSockets.Empty();
 		}
 	};
@@ -477,8 +501,8 @@ namespace PCGExRelational
 			for (int i = 0; i < Sockets.Num(); i++)
 			{
 				Sockets[i].PrepareForPointData(PointData);
-				Modifiers[i].PrepareForPointData(PointData);
-				LocalDirections[i].PrepareForPointData(PointData);
+				Modifiers[i].Validate(PointData);
+				LocalDirections[i].Validate(PointData);
 			}
 		}
 

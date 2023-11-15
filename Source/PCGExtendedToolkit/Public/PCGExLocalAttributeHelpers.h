@@ -29,7 +29,7 @@ namespace PCGEx
 		 * Build and validate a property/attribute accessor for the selected
 		 * @param PointData 
 		 */
-		bool PrepareForPointData(const UPCGPointData* PointData)
+		bool Validate(const UPCGPointData* PointData)
 		{
 			bValid = false;
 			if (!bEnabled) { return false; }
@@ -76,17 +76,15 @@ namespace PCGEx
 		virtual bool ValidateInternal() const { return true; }
 		virtual T GetDefaultValue() const = 0;
 
-#define  PCGEX_PRINT_VIRTUAL(_TYPE, _NAME) virtual T Convert(const _TYPE Value) const = 0;\
-		
+#define  PCGEX_PRINT_VIRTUAL(_TYPE, _NAME) virtual T Convert(const _TYPE Value) const { return GetDefaultValue(); };
 		PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_PRINT_VIRTUAL)
-		
 	};
 
 
 #define PCGEX_SINGLE(_NAME, _TYPE)\
 struct PCGEXTENDEDTOOLKIT_API FLocal ## _NAME ## Input : public FLocalAttributeInput<_TYPE>	{\
 protected: \
-virtual _TYPE GetDefaultValue() const { return 0; }\
+virtual _TYPE GetDefaultValue() const override{ return 0; }\
 virtual _TYPE Convert(const int32 Value) const override { return static_cast<_TYPE>(Value); } \
 virtual _TYPE Convert(const int64 Value) const override { return static_cast<_TYPE>(Value); }\
 virtual _TYPE Convert(const float Value) const override { return static_cast<_TYPE>(Value); }\
@@ -117,7 +115,7 @@ virtual _TYPE Convert(const FName Value) const override { return static_cast<_TY
 #define PCGEX_VECTOR_CAST(_NAME, _TYPE, VECTOR2D)\
 struct PCGEXTENDEDTOOLKIT_API FLocal ## _NAME ## Input : public FLocalAttributeInput<_TYPE>	{\
 protected: \
-virtual _TYPE GetDefaultValue() const { return _TYPE(0); }\
+virtual _TYPE GetDefaultValue() const override { return _TYPE(0); }\
 virtual _TYPE Convert(const int32 Value) const override { return _TYPE(Value); } \
 virtual _TYPE Convert(const int64 Value) const override { return _TYPE(Value); }\
 virtual _TYPE Convert(const float Value) const override { return _TYPE(Value); }\
@@ -142,7 +140,7 @@ virtual _TYPE Convert(const FRotator Value) const override { return _TYPE(Value.
 #define PCGEX_LITERAL_CAST(_NAME, _TYPE)\
 struct PCGEXTENDEDTOOLKIT_API FLocal ## _NAME ## Input : public FLocalAttributeInput<_TYPE>	{\
 protected: \
-virtual _TYPE GetDefaultValue() const { return _TYPE(""); }\
+virtual _TYPE GetDefaultValue() const override { return _TYPE(""); }\
 virtual _TYPE Convert(const int32 Value) const override { return _TYPE(FString::FromInt(Value)); } \
 virtual _TYPE Convert(const int64 Value) const override { return _TYPE(FString::FromInt(Value)); }\
 virtual _TYPE Convert(const float Value) const override { return _TYPE(FString::SanitizeFloat(Value)); }\
@@ -193,6 +191,7 @@ virtual _TYPE Convert(const FName Value) const override { return _TYPE(Value.ToS
 		virtual double Convert(const int64 Value) const override { return static_cast<double>(Value); }
 		virtual double Convert(const float Value) const override { return static_cast<double>(Value); }
 		virtual double Convert(const double Value) const override { return static_cast<double>(Value); }
+
 		virtual double Convert(const FVector2D Value) const override
 		{
 			switch (FieldSelection)
@@ -250,7 +249,6 @@ virtual _TYPE Convert(const FName Value) const override { return _TYPE(Value.ToS
 		virtual double Convert(const FRotator Value) const override { return Convert(Value.Vector()); }
 		virtual double Convert(const FString Value) const override { return Common::ConvertStringToDouble(Value); }
 		virtual double Convert(const FName Value) const override { return Common::ConvertStringToDouble(Value.ToString()); }
-		
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FLocalDirectionInput : public FLocalAttributeInput<FVector>
@@ -275,7 +273,7 @@ virtual _TYPE Convert(const FName Value) const override { return _TYPE(Value.ToS
 		virtual FVector Convert(const int32 Value) const override { return GetDefaultValue(); }
 		virtual FVector Convert(const int64 Value) const override { return GetDefaultValue(); }
 		virtual FVector Convert(const float Value) const override { return GetDefaultValue(); }
-		virtual FVector Convert(const double Value) const override { return GetDefaultValue(); }		
+		virtual FVector Convert(const double Value) const override { return GetDefaultValue(); }
 		virtual FVector Convert(const FVector2D Value) const override { return FVector(Value.X, Value.Y, 0); }
 		virtual FVector Convert(const FVector Value) const override { return Value; }
 		virtual FVector Convert(const FVector4 Value) const override { return FVector(Value); }
@@ -284,7 +282,6 @@ virtual _TYPE Convert(const FName Value) const override { return _TYPE(Value.ToS
 		virtual FVector Convert(const FRotator Value) const override { return Value.Vector(); }
 		virtual FVector Convert(const FString Value) const override { return GetDefaultValue(); }
 		virtual FVector Convert(const FName Value) const override { return GetDefaultValue(); }
-		
 	};
 
 #pragma endregion
