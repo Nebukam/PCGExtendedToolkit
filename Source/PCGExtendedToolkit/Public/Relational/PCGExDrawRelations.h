@@ -18,12 +18,12 @@ class PCGEXTENDEDTOOLKIT_API UPCGExDrawRelationsSettings : public UPCGExRelation
 	GENERATED_BODY()
 
 public:
+	UPCGExDrawRelationsSettings(const FObjectInitializer& ObjectInitializer);
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(DrawRelations, "Draw Relations", "Draw debug relations. Toggle debug OFF (D) before disabling this node (E)! Warning: this node will clear persistent debug lines before it!");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Debug; }
 	virtual FLinearColor GetNodeTitleColor() const override { return FLinearColor(1.0f,0.0f,0.0f, 1.0f); }
-	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
 

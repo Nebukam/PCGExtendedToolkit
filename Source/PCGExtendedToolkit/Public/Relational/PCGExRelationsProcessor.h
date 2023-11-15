@@ -106,12 +106,11 @@ public:
 	bool AdvancePointsIO(bool bResetParamsIndex = false);
 
 	virtual void Reset() override;
-	virtual bool IsValid() override;
 
 	FPCGMetadataAttribute<int64>* CachedIndex;
 	TArray<PCGExRelational::FSocketInfos> SocketInfos;
 
-	void ComputeRelationsType(const FPCGPoint& Point, int32 ReadIndex, UPCGExPointIO* IO);
+	void ComputeRelationsType(const FPCGPoint& Point, int32 ReadIndex, const UPCGExPointIO* IO);
 	double PrepareSamplersForPoint(const FPCGPoint& Point, TArray<PCGExRelational::FSocketSampler>& OutSamplers);
 
 	void OutputParams() { Params.OutputTo(this); }
@@ -137,6 +136,7 @@ public:
 
 protected:
 	virtual PCGEx::EIOInit GetPointOutputInitMode() const { return PCGEx::EIOInit::DuplicateInput; }
+	virtual  bool Validate(FPCGContext* InContext) const override;
 	virtual void InitializeContext(
 		FPCGExPointsProcessorContext* InContext,
 		const FPCGDataCollection& InputData,

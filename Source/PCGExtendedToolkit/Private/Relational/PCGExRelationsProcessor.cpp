@@ -27,6 +27,8 @@ TArray<FPCGPinProperties> UPCGExRelationsProcessorSettings::InputPinProperties()
 TArray<FPCGPinProperties> UPCGExRelationsProcessorSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
+	if (GetType() == EPCGSettingsType::Debug) { return PinProperties; }
+
 	FPCGPinProperties& PinParamsOutput = PinProperties.Emplace_GetRef(PCGExRelational::OutputParamsLabel, EPCGDataType::Param);
 
 #if WITH_EDITOR
@@ -63,12 +65,7 @@ void FPCGExRelationsProcessorContext::Reset()
 	CurrentParamsIndex = -1;
 }
 
-bool FPCGExRelationsProcessorContext::IsValid()
-{
-	return FPCGExPointsProcessorContext::IsValid() && !Params.IsEmpty();
-}
-
-void FPCGExRelationsProcessorContext::ComputeRelationsType(const FPCGPoint& Point, int32 ReadIndex, UPCGExPointIO* IO)
+void FPCGExRelationsProcessorContext::ComputeRelationsType(const FPCGPoint& Point, const int32 ReadIndex, const UPCGExPointIO* IO)
 {
 	for (PCGExRelational::FSocketInfos& CurrentSocketInfos : SocketInfos)
 	{
@@ -114,7 +111,7 @@ void FPCGExRelationsProcessorContext::PrepareSamplerForPointSocketPair(
 	PCGExRelational::FSocketSampler& Sampler,
 	PCGExRelational::FSocketInfos InSocketInfos)
 {
-	FPCGExSocketDirection BaseDirection = InSocketInfos.Socket->Descriptor.Direction;
+	const FPCGExSocketDirection BaseDirection = InSocketInfos.Socket->Descriptor.Direction;
 
 	FVector Direction = BaseDirection.Direction;
 	double DotTolerance = BaseDirection.DotTolerance;
@@ -156,6 +153,21 @@ FPCGContext* FPCGExRelationsProcessorElement::Initialize(
 	FPCGExRelationsProcessorContext* Context = new FPCGExRelationsProcessorContext();
 	InitializeContext(Context, InputData, SourceComponent, Node);
 	return Context;
+}
+
+bool FPCGExRelationsProcessorElement::Validate(FPCGContext* InContext) const
+{
+	if (!FPCGExPointsProcessorElementBase::Validate(InContext)) { return false; }
+
+	const FPCGExRelationsProcessorContext* Context = static_cast<FPCGExRelationsProcessorContext*>(InContext);
+
+	if (Context->Params.IsEmpty())
+	{
+		PCGE_LOG(Error, GraphAndLog, LOCTEXT("MissingParams", "Missing Input Params."));
+		return false;
+	}
+
+	return true;
 }
 
 void FPCGExRelationsProcessorElement::InitializeContext(

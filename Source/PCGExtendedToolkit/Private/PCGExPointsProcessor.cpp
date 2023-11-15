@@ -32,6 +32,9 @@ TArray<FPCGPinProperties> UPCGExPointsProcessorSettings::InputPinProperties() co
 TArray<FPCGPinProperties> UPCGExPointsProcessorSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
+	
+	if (GetType() == EPCGSettingsType::Debug) { return PinProperties; }
+
 	FPCGPinProperties& PinPointsOutput = PinProperties.Emplace_GetRef(PCGEx::OutputPointsLabel, EPCGDataType::Point);
 
 #if WITH_EDITOR
@@ -65,8 +68,6 @@ void FPCGExPointsProcessorContext::SetState(PCGExMT::EState OperationId)
 
 void FPCGExPointsProcessorContext::Reset() { CurrentState = PCGExMT::EState::Setup; }
 
-bool FPCGExPointsProcessorContext::IsValid() { return !Points->IsEmpty(); }
-
 bool FPCGExPointsProcessorContext::ValidatePointDataInput(UPCGPointData* PointData) { return true; }
 
 void FPCGExPointsProcessorContext::PostInitPointDataInput(UPCGExPointIO* PointData)
@@ -83,6 +84,19 @@ FPCGContext* FPCGExPointsProcessorElementBase::Initialize(
 	FPCGExPointsProcessorContext* Context = new FPCGExPointsProcessorContext();
 	InitializeContext(Context, InputData, SourceComponent, Node);
 	return Context;
+}
+
+bool FPCGExPointsProcessorElementBase::Validate(FPCGContext* InContext) const
+{
+	const FPCGExPointsProcessorContext* Context = static_cast<FPCGExPointsProcessorContext*>(InContext);
+
+	if (Context->Points->IsEmpty())
+	{
+		PCGE_LOG(Error, GraphAndLog, LOCTEXT("MissingPoints", "Missing Input Points."));
+		return false;
+	}
+
+	return true;
 }
 
 void FPCGExPointsProcessorElementBase::InitializeContext(

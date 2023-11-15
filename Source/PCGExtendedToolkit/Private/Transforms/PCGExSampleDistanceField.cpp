@@ -21,6 +21,12 @@ FPCGContext* FPCGExSampleDistanceFieldElement::Initialize(const FPCGDataCollecti
 	return Context;
 }
 
+bool FPCGExSampleDistanceFieldElement::Validate(FPCGContext* InContext) const
+{
+	if (!FPCGExPointsProcessorElementBase::Validate(InContext)) { return false; }
+	return true;
+}
+
 
 bool FPCGExSampleDistanceFieldElement::ExecuteInternal(FPCGContext* InContext) const
 {
@@ -30,23 +36,7 @@ bool FPCGExSampleDistanceFieldElement::ExecuteInternal(FPCGContext* InContext) c
 
 	if (Context->IsState(PCGExMT::EState::Setup))
 	{
-		if (!Context->IsValid())
-		{
-			PCGE_LOG(Error, GraphAndLog, LOCTEXT("InvalidContext", "Inputs are missing or invalid."));
-			return true;
-		}
-
-		const UPCGExSampleDistanceFieldSettings* Settings = Context->GetInputSettings<UPCGExSampleDistanceFieldSettings>();
-		check(Settings);
-
-		FName OutName = Settings->OutputAttributeName;
-		if (!PCGEx::Common::IsValidName(OutName))
-		{
-			PCGE_LOG(Error, GraphAndLog, LOCTEXT("InvalidName", "Output name is invalid."));
-			return true;
-		}
-
-		Context->OutName = Settings->OutputAttributeName;
+		if (!Validate(Context)) { return true; }
 		Context->SetState(PCGExMT::EState::ReadyForNextPoints);
 	}
 

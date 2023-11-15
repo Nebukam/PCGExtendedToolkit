@@ -8,7 +8,6 @@
 #include "PCGContext.h"
 #include "DrawDebugHelpers.h"
 #include "Editor.h"
-#include "PCGComponent.h"
 #include "Relational/PCGExRelationsHelpers.h"
 
 #define LOCTEXT_NAMESPACE "PCGExDrawRelations"
@@ -20,23 +19,20 @@ FPCGElementPtr UPCGExDrawRelationsSettings::CreateElement() const
 	return MakeShared<FPCGExDrawRelationsElement>();
 }
 
-TArray<FPCGPinProperties> UPCGExDrawRelationsSettings::OutputPinProperties() const
+UPCGExDrawRelationsSettings::UPCGExDrawRelationsSettings(
+	const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
 {
-	TArray<FPCGPinProperties> Empty;
-	return Empty;
+	DebugSettings.PointScale = 0.0f;
 }
 
+#if WITH_EDITOR
 void UPCGExDrawRelationsSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
-#if  WITH_EDITOR
-
-	UWorld* EditorWorld = GEditor->GetEditorWorldContext().World();
-	if (EditorWorld) { FlushPersistentDebugLines(EditorWorld); }
-
-#endif
-
+	if (const UWorld* EditorWorld = GEditor->GetEditorWorldContext().World()) { FlushPersistentDebugLines(EditorWorld); }
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
+#endif
 
 bool FPCGExDrawRelationsElement::ExecuteInternal(
 	FPCGContext* InContext) const
@@ -54,21 +50,10 @@ bool FPCGExDrawRelationsElement::ExecuteInternal(
 
 	if (Context->IsSetup())
 	{
-		
-		if (Context->Params.IsEmpty())
-		{
-			PCGE_LOG(Warning, GraphAndLog, LOCTEXT("MissingParams", "Missing Input Params."));
-			Context->Points->OutputTo(Context);
-			return true;
-		}
-
 		FlushPersistentDebugLines(World);
 
-		if (!Settings->bDebug)
-		{
-			Context->Points->OutputTo(Context);
-			return true;
-		}
+		if (!Validate(Context)) { return true; }
+		if (!Settings->bDebug) { return true; }
 
 		Context->SetState(PCGExMT::EState::ReadyForNextPoints);
 	}
@@ -88,9 +73,8 @@ bool FPCGExDrawRelationsElement::ExecuteInternal(
 	auto ProcessPoint = [&Context, &World, &Settings](
 		const FPCGPoint& Point, int32 ReadIndex, UPCGExPointIO* IO)
 	{
-
 		//FWriteScopeLock ScopeLock(Context->ContextLock);
-		
+
 		const FVector Start = Point.Transform.GetLocation();
 
 		TArray<PCGExRelational::FSocketSampler> Samplers;
@@ -115,13 +99,13 @@ bool FPCGExDrawRelationsElement::ExecuteInternal(
 						true, -1, 0, .5f);
 				}
 			}
-			
+
 			if (Settings->bDrawRelations)
 			{
 				if (SocketMetadata.Index == -1) { continue; }
 				if (Settings->bFilterRelations && SocketMetadata.RelationType != Settings->RelationType) { continue; }
 
-				FPCGPoint PtB = IO->Out->GetPoint(SocketMetadata.Index);
+				FPCGPoint PtB = IO->In->GetPoint(SocketMetadata.Index);
 				FVector End = PtB.Transform.GetLocation();
 				float Thickness = 1.0f;
 				float ArrowSize = 0.0f;
@@ -169,7 +153,6 @@ bool FPCGExDrawRelationsElement::ExecuteInternal(
 					DrawDebugLine(World, Start, FMath::Lerp(Start, End, Lerp), SocketInfos.Socket->Descriptor.DebugColor, true, -1, 0, Thickness);
 				}
 			}
-
 		}
 	};
 
@@ -185,16 +168,16 @@ bool FPCGExDrawRelationsElement::ExecuteInternal(
 		}
 	}
 
-	auto Initialize = [&Context](UPCGExPointIO* IO)
+	auto Initialize = [&Context](const UPCGExPointIO* IO)
 	{
-		Context->CurrentParams->PrepareForPointData(Context, IO->Out);
+		Context->CurrentParams->PrepareForPointData(Context, IO->In);
 	};
 
 	if (Context->IsState(PCGExMT::EState::ProcessingParams))
 	{
 		//if (Context->CurrentIO->InputParallelProcessing(Context, Initialize, ProcessPoint, Context->ChunkSize)) { Context->SetState(PCGExMT::EState::ProcessingParams); }
 		Initialize(Context->CurrentIO);
-		for (int i = 0; i < Context->CurrentIO->NumPoints; i++) { ProcessPoint(Context->CurrentIO->Out->GetPoint(i), i, Context->CurrentIO); }
+		for (int i = 0; i < Context->CurrentIO->NumPoints; i++) { ProcessPoint(Context->CurrentIO->In->GetPoint(i), i, Context->CurrentIO); }
 		Context->SetState(PCGExMT::EState::ReadyForNextParams);
 	}
 

@@ -43,26 +43,20 @@ public:
 	FPCGExInputSelectorWithSingleField InputIndex;
 	PCGEx::FLocalInteger64Input LocalInputIndex;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (EditCondition="Type==EPCGExDebugType::Connection", EditConditionHides))
-	bool bValueIsMetadataEntry = true;
-
 	/** Draw line thickness. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	float Thickness = 1.0;
 
 	/** Draw size. What it means depends on the selected debug type. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Size")
-	double Size = 1.0;
+	double Size = 100.0;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Size", meta = (InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Size", meta = (InlineEditConditionToggle, EditCondition="Type==EPCGExDebugType::Direction"))
 	bool bSizeFromAttribute = false;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Size", meta = (EditCondition="bSizeFromAttribute"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Size", meta = (EditCondition="Type==EPCGExDebugType::Direction && bSizeFromAttribute"))
 	FPCGExInputSelectorWithSingleField DrawSizeAttributeInput;
 	PCGEx::FLocalDoubleInput LocalInputSize;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Size")
-	double DrawSizeMultiplier = 1.0;
 
 	/** Draw color. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Color")
@@ -106,14 +100,14 @@ public:
 		return bValid;
 	}
 
-	double GetSize(const FPCGPoint& Point)
+	double GetSize(const FPCGPoint& Point) const
 	{
 		double Value = Size;
-		if (LocalInputSize.bValid) { Value = LocalInputSize.GetValue(Point); }
-		return Value * DrawSizeMultiplier;
+		if (LocalInputSize.bValid) { Value = LocalInputSize.GetValue(Point) * Size; }
+		return Value;
 	}
 
-	FColor GetColor(const FPCGPoint& Point)
+	FColor GetColor(const FPCGPoint& Point) const
 	{
 		if (LocalInputColor.bValid)
 		{
@@ -126,17 +120,21 @@ public:
 		}
 	}
 
-	FVector GetDirection(const FPCGPoint& Point)
+	FVector GetDirection(const FPCGPoint& Point) const
 	{
-		return FVector::Zero();
+		FVector Direction = LocalInputDirection.bValid ? LocalInputDirection.GetValue(Point) : FVector::Zero();
+		if (bNormalizeBeforeSizing) { Direction.Normalize(); }
+		return Direction * GetSize(Point);
 	}
 
-	FVector GetTargetPosition(const FPCGPoint& Point, UPCGPointData* PointData)
+	FVector GetTargetPosition(const FPCGPoint& Point, const UPCGPointData* PointData) const
 	{
+		const int64 Index = LocalInputIndex.bValid ? LocalInputIndex.GetValue(Point) : -1;
+		if (Index != -1) { return PointData->GetPoint(Index).Transform.GetLocation(); }
 		return Point.Transform.GetLocation();
 	}
 
-	void Draw(UWorld* World, const FVector& Start, const FPCGPoint& Point, UPCGPointData* PointData)
+	void Draw(UWorld* World, const FVector& Start, const FPCGPoint& Point, const UPCGPointData* PointData)
 	{
 		switch (Type)
 		{
@@ -151,16 +149,16 @@ public:
 	}
 
 protected:
-	void DrawDirection(UWorld* World, const FVector& Start, const FPCGPoint& Point, UPCGPointData* PointData)
+	void DrawDirection(const UWorld* World, const FVector& Start, const FPCGPoint& Point, const UPCGPointData* PointData)
 	{
-		//TODO
-		FVector End = GetDirection(Point);
+		const FVector Direction = GetDirection(Point);
+		DrawDebugDirectionalArrow(World, Start, Start + Direction, Size * 0.02f, GetColor(Point), true, -1, 0, Thickness);
 	}
 
-	void DrawConnection(UWorld* World, const FVector& Start, const FPCGPoint& Point, UPCGPointData* PointData)
+	void DrawConnection(const UWorld* World, const FVector& Start, const FPCGPoint& Point, const UPCGPointData* PointData)
 	{
-		//TODO
-		FVector End = GetTargetPosition(Point, PointData);
+		const FVector End = GetTargetPosition(Point, PointData);
+		DrawDebugLine(World, Start, End, GetColor(Point), true, -1, 0, Thickness);
 	}
 };
 
@@ -174,12 +172,13 @@ class PCGEXTENDEDTOOLKIT_API UPCGExDrawAttributesSettings : public UPCGExPointsP
 	GENERATED_BODY()
 
 public:
+	UPCGExDrawAttributesSettings(const FObjectInitializer& ObjectInitializer);
+	
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(DrawAttributes, "Draw Attributes", "Draw debug relations. Toggle debug OFF (D) before disabling this node (E)! Warning: this node will clear persistent debug lines before it!");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Debug; }
 	virtual FLinearColor GetNodeTitleColor() const override { return FLinearColor(1.0f, 0.0f, 0.0f, 1.0f); }
-	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
 
@@ -203,7 +202,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExDrawAttributesContext : public FPCGExPointsP
 
 public:
 	TArray<FPCGExAttributeDebugDraw> DebugList;
-	void PrepareForPoints(UPCGPointData* PointData);
+	void PrepareForPoints(const UPCGPointData* PointData);
 };
 
 
@@ -214,6 +213,7 @@ public:
 		const FPCGDataCollection& InputData,
 		TWeakObjectPtr<UPCGComponent> SourceComponent,
 		const UPCGNode* Node) override;
+	virtual bool Validate(FPCGContext* InContext) const override;
 
 protected:
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;

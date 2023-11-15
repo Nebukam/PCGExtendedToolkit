@@ -574,7 +574,7 @@ public:
 	 * @param PointData 
 	 * @return 
 	 */
-	bool HasMatchingRelationsData(UPCGPointData* PointData);
+	bool HasMatchingRelationsData(const UPCGPointData* PointData);
 
 public:
 	UPROPERTY(BlueprintReadOnly)
@@ -610,7 +610,7 @@ public:
 	 * @param Context
 	 * @param PointData 
 	 */
-	void PrepareForPointData(FPCGExRelationsProcessorContext* Context, UPCGPointData* PointData);
+	void PrepareForPointData(FPCGExRelationsProcessorContext* Context, const UPCGPointData* PointData);
 
 	/**
 		 * Fills an array in order with each' socket metadata registered for a given point.

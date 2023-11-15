@@ -14,32 +14,29 @@
 
 PCGEx::EIOInit UPCGExDrawAttributesSettings::GetPointOutputInitMode() const { return PCGEx::EIOInit::NoOutput; }
 
+UPCGExDrawAttributesSettings::UPCGExDrawAttributesSettings(
+	const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
+{
+	DebugSettings.PointScale = 0.0f;
+}
+
+#if WITH_EDITOR
+void UPCGExDrawAttributesSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+{
+	DebugSettings.PointScale = 0.0f;
+	Super::PostEditChangeProperty(PropertyChangedEvent);
+}
+#endif
+
 FPCGElementPtr UPCGExDrawAttributesSettings::CreateElement() const
 {
 	return MakeShared<FPCGExDrawAttributesElement>();
 }
 
-TArray<FPCGPinProperties> UPCGExDrawAttributesSettings::OutputPinProperties() const
+void FPCGExDrawAttributesContext::PrepareForPoints(const UPCGPointData* PointData)
 {
-	TArray<FPCGPinProperties> Empty;
-	return Empty;
-}
-
-void UPCGExDrawAttributesSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
-{
-#if  WITH_EDITOR
-
-	UWorld* EditorWorld = GEditor->GetEditorWorldContext().World();
-	if (EditorWorld) { FlushPersistentDebugLines(EditorWorld); }
-
-#endif
-
-	Super::PostEditChangeProperty(PropertyChangedEvent);
-}
-
-void FPCGExDrawAttributesContext::PrepareForPoints(UPCGPointData* PointData)
-{
-	for (FPCGExAttributeDebugDraw DebugInfos : DebugList)
+	for (FPCGExAttributeDebugDraw& DebugInfos : DebugList)
 	{
 		DebugInfos.Validate(PointData);
 	}
@@ -53,9 +50,24 @@ FPCGContext* FPCGExDrawAttributesElement::Initialize(const FPCGDataCollection& I
 	const UPCGExDrawAttributesSettings* Settings = Context->GetInputSettings<UPCGExDrawAttributesSettings>();
 	check(Settings);
 
-	Context->DebugList = Settings->DebugList;
+	Context->DebugList.Empty();
+	Context->DebugList.Append(Settings->DebugList);
 
 	return Context;
+}
+
+bool FPCGExDrawAttributesElement::Validate(FPCGContext* InContext) const
+{
+	if (!FPCGExPointsProcessorElementBase::Validate(InContext)) { return false; }
+
+	const FPCGExDrawAttributesContext* Context = static_cast<FPCGExDrawAttributesContext*>(InContext);
+
+	if (Context->DebugList.IsEmpty())
+	{
+		PCGE_LOG(Warning, GraphAndLog, LOCTEXT("MissingDebugInfos", "Debug list is empty."));
+	}
+
+	return true;
 }
 
 bool FPCGExDrawAttributesElement::ExecuteInternal(
@@ -76,11 +88,8 @@ bool FPCGExDrawAttributesElement::ExecuteInternal(
 	{
 		FlushPersistentDebugLines(World);
 
-		if (!Settings->bDebug)
-		{
-			Context->Points->OutputTo(Context);
-			return true;
-		}
+		if (!Settings->bDebug) { return true; }
+		if (!Validate(Context)) { return true; }
 
 		Context->SetState(PCGExMT::EState::ReadyForNextPoints);
 	}
@@ -97,12 +106,17 @@ bool FPCGExDrawAttributesElement::ExecuteInternal(
 		}
 	}
 
-	auto ProcessPoint = [&Context, &World, &Settings](
+	auto ProcessPoint = [&Context, &World](
 		const FPCGPoint& Point, int32 ReadIndex, UPCGExPointIO* IO)
 	{
 		// FWriteScopeLock ScopeLock(Context->ContextLock);
 		const FVector Start = Point.Transform.GetLocation();
-		for (FPCGExAttributeDebugDraw& Drawer : Context->DebugList) { Drawer.Draw(World, Start, Point, IO->In); }
+		DrawDebugPoint(World, Start, 1.0f, FColor::White, true);
+		for (FPCGExAttributeDebugDraw& Drawer : Context->DebugList)
+		{
+			if (!Drawer.bValid) { continue; }
+			Drawer.Draw(World, Start, Point, IO->In);
+		}
 	};
 
 	auto Initialize = [&Context](UPCGExPointIO* IO)
@@ -113,8 +127,8 @@ bool FPCGExDrawAttributesElement::ExecuteInternal(
 	if (Context->IsState(PCGExMT::EState::ProcessingPoints))
 	{
 		Initialize(Context->CurrentIO);
-		for (int i = 0; i < Context->CurrentIO->NumPoints; i++) { ProcessPoint(Context->CurrentIO->Out->GetPoint(i), i, Context->CurrentIO); }
-		Context->SetState(PCGExMT::EState::ReadyForNextParams);
+		for (int i = 0; i < Context->CurrentIO->NumPoints; i++) { ProcessPoint(Context->CurrentIO->In->GetPoint(i), i, Context->CurrentIO); }
+		Context->SetState(PCGExMT::EState::ReadyForNextPoints);
 	}
 
 	if (Context->IsState(PCGExMT::EState::Done))

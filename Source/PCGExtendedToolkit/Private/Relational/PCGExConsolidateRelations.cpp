@@ -51,24 +51,8 @@ bool FPCGExConsolidateRelationsElement::ExecuteInternal(
 
 	if (Context->IsSetup())
 	{
-		if (Context->Params.IsEmpty())
-		{
-			PCGE_LOG(Error, GraphAndLog, LOCTEXT("MissingParams", "Missing Input Params."));
-			return true;
-		}
-
-		if (Context->Points->IsEmpty())
-		{
-			PCGE_LOG(Error, GraphAndLog, LOCTEXT("MissingPoints", "Missing Input Points."));
-			return true;
-		}
-
+		if (!Validate(Context)) { return true; }
 		Context->SetState(PCGExMT::EState::ReadyForNextParams);
-
-		// For each param, loop over points twice.
-		// Params
-		//		Points -> Capture delta
-		//		Points -> Update data
 	}
 
 	if (Context->IsState(PCGExMT::EState::ReadyForNextParams))
@@ -121,13 +105,13 @@ bool FPCGExConsolidateRelationsElement::ExecuteInternal(
 
 	// 2nd Pass on points
 
-	auto InitializePointsOutput = [&Context](UPCGExPointIO* IO)
+	auto InitializePointsOutput = [&Context](const UPCGExPointIO* IO)
 	{
 		Context->CurrentParams->PrepareForPointData(Context, IO->Out);
 	};
 
 	auto ConsolidatePoint = [&Context](
-		const FPCGPoint& Point, int32 ReadIndex, UPCGExPointIO* IO)
+		const FPCGPoint& Point, const int32 ReadIndex, const UPCGExPointIO* IO)
 	{
 		const int64 CachedIndex = Context->CachedIndex->GetValueFromItemKey(Point.MetadataEntry);
 		Context->CachedIndex->SetValue(Point.MetadataEntry, ReadIndex);

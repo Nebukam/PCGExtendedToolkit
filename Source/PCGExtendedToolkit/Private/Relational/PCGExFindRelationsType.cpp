@@ -4,7 +4,6 @@
 #include "..\..\Public\Relational\PCGExFindRelationsType.h"
 
 #include "Data/PCGSpatialData.h"
-#include "Data/PCGPointData.h"
 #include "PCGContext.h"
 #include "DrawDebugHelpers.h"
 #include "Editor.h"
@@ -98,7 +97,7 @@ bool FPCGExFindRelationsTypeElement::ExecuteInternal(
 		}
 	}
 
-	auto Initialize = [&Context](UPCGExPointIO* IO)
+	auto Initialize = [&Context](const UPCGExPointIO* IO)
 	{
 		Context->CurrentParams->PrepareForPointData(Context, IO->Out);
 	};

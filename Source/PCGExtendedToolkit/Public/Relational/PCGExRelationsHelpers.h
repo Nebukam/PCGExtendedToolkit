@@ -72,7 +72,7 @@ namespace PCGExRelational
 			}
 		}
 
-		void OutputTo(FPCGContext* Context)
+		void OutputTo(FPCGContext* Context) const
 		{
 			for(int i = 0; i < ParamsSources.Num(); i++)
 			{
@@ -82,7 +82,7 @@ namespace PCGExRelational
 			}
 		}
 
-		bool IsEmpty() { return Params.IsEmpty(); }
+		bool IsEmpty() const { return Params.IsEmpty(); }
 
 		~FParamsInputs()
 		{

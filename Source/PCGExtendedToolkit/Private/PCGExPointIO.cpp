@@ -93,7 +93,7 @@ int32 UPCGExPointIO::GetIndex(PCGMetadataEntryKey Key)
 template <class InitializeFunc, class ProcessElementFunc>
 bool UPCGExPointIO::OutputParallelProcessing(
 	FPCGContext* Context,
-	InitializeFunc&& Initialize,   //TFunction<void(UPCGExPointIO* PointIO)>
+	InitializeFunc&& Initialize,   //TFunction<void(const UPCGExPointIO* PointIO)>
 	ProcessElementFunc&& LoopBody, //TFunction<void(const FPCGPoint&, int32, UPCGExPointIO*)>
 	const int32 ChunkSize)
 {

@@ -11,7 +11,7 @@ UPCGExRelationsParamsData::UPCGExRelationsParamsData(const FObjectInitializer& O
 {
 }
 
-bool UPCGExRelationsParamsData::HasMatchingRelationsData(UPCGPointData* PointData)
+bool UPCGExRelationsParamsData::HasMatchingRelationsData(const UPCGPointData* PointData)
 {
 	// Whether the data has metadata matching this RelationalData block or not
 	for (const PCGExRelational::FSocket Socket : SocketMapping.Sockets)
@@ -44,7 +44,7 @@ void UPCGExRelationsParamsData::Initialize(
 	CachedIndexAttributeName = SocketMapping.GetCompoundName(FName("CachedIndex"));
 }
 
-void UPCGExRelationsParamsData::PrepareForPointData(FPCGExRelationsProcessorContext* Context, UPCGPointData* PointData)
+void UPCGExRelationsParamsData::PrepareForPointData(FPCGExRelationsProcessorContext* Context, const UPCGPointData* PointData)
 {
 	Context->CachedIndex = PointData->Metadata->FindOrCreateAttribute<int64>(Context->CurrentParams->CachedIndexAttributeName,-1,false);
 	SocketMapping.PrepareForPointData(PointData);

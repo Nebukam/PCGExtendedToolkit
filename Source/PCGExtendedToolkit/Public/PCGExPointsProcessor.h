@@ -82,7 +82,6 @@ public:
 
 	virtual void SetState(PCGExMT::EState OperationId);
 	virtual void Reset();
-	virtual bool IsValid();
 
 	virtual bool ValidatePointDataInput(UPCGPointData* PointData);
 	virtual void PostInitPointDataInput(UPCGExPointIO* PointData);
@@ -91,12 +90,11 @@ public:
 
 	mutable FRWLock ContextLock;
 
-	void OutputPoints(){ Points->OutputTo(this); }
-	
+	void OutputPoints() { Points->OutputTo(this); }
+
 protected:
 	PCGExMT::EState CurrentState = PCGExMT::EState::Setup;
 	int32 CurrentPointsIndex = -1;
-	
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorElementBase : public FPCGPointProcessingElementBase
@@ -106,6 +104,7 @@ public:
 	virtual bool IsCacheable(const UPCGSettings* InSettings) const override { return false; }
 
 protected:
+	virtual bool Validate(FPCGContext* InContext) const;
 	virtual void InitializeContext(FPCGExPointsProcessorContext* InContext, const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node) const;
 	//virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };

@@ -56,6 +56,24 @@ void FPCGExPartitionByValuesElement::InitializeContext(
 	// ...
 }
 
+bool FPCGExPartitionByValuesElement::Validate(FPCGContext* InContext) const
+{
+	if (!FPCGExPointsProcessorElementBase::Validate(InContext)) { return false; }
+
+	const FPCGExSplitByValuesContext* Context = static_cast<FPCGExSplitByValuesContext*>(InContext);
+
+	const UPCGExPartitionByValuesSettings* Settings = Context->GetInputSettings<UPCGExPartitionByValuesSettings>();
+	check(Settings);
+
+	if (Settings->bWriteKeyToAttribute && !PCGEx::Common::IsValidName(Settings->KeyAttributeName))
+	{
+		PCGE_LOG(Error, GraphAndLog, LOCTEXT("MalformedAttributeName", "Output Attribute name is invalid."));
+		return false;
+	}
+
+	return true;
+}
+
 
 bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* InContext) const
 {
@@ -65,21 +83,7 @@ bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* InContext) con
 
 	if (Context->IsSetup())
 	{
-		if (Context->Points->IsEmpty())
-		{
-			PCGE_LOG(Error, GraphAndLog, LOCTEXT("MissingPoints", "Missing Input Points."));
-			return true;
-		}
-
-		const UPCGExPartitionByValuesSettings* Settings = Context->GetInputSettings<UPCGExPartitionByValuesSettings>();
-		check(Settings);
-
-		if (Settings->bWriteKeyToAttribute && !PCGEx::Common::IsValidName(Settings->KeyAttributeName))
-		{
-			PCGE_LOG(Error, GraphAndLog, LOCTEXT("MalformedAttributeName", "Output Attribute name is invalid."));
-			return true;
-		}
-
+		if (!Validate(Context)) { return true; }
 		Context->SetState(PCGExMT::EState::ReadyForNextPoints);
 	}
 

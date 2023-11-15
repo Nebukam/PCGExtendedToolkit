@@ -21,6 +21,27 @@ FPCGContext* FPCGExWriteIndexElement::Initialize(const FPCGDataCollection& Input
 	return Context;
 }
 
+bool FPCGExWriteIndexElement::Validate(FPCGContext* InContext) const
+{
+	if (!FPCGExPointsProcessorElementBase::Validate(InContext)) { return false; }
+
+	FPCGExWriteIndexContext* Context = static_cast<FPCGExWriteIndexContext*>(InContext);
+
+	const UPCGExWriteIndexSettings* Settings = Context->GetInputSettings<UPCGExWriteIndexSettings>();
+	check(Settings);
+
+	const FName OutName = Settings->OutputAttributeName;
+	if (!PCGEx::Common::IsValidName(OutName))
+	{
+		PCGE_LOG(Error, GraphAndLog, LOCTEXT("InvalidName", "Output name is invalid."));
+		return false;
+	}
+
+	Context->OutName = Settings->OutputAttributeName;
+	return true;
+	
+}
+
 
 bool FPCGExWriteIndexElement::ExecuteInternal(FPCGContext* InContext) const
 {
@@ -30,23 +51,7 @@ bool FPCGExWriteIndexElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsSetup())
 	{
-		if (!Context->IsValid())
-		{
-			PCGE_LOG(Error, GraphAndLog, LOCTEXT("InvalidContext", "Inputs are missing or invalid."));
-			return true;
-		}
-
-		const UPCGExWriteIndexSettings* Settings = Context->GetInputSettings<UPCGExWriteIndexSettings>();
-		check(Settings);
-
-		FName OutName = Settings->OutputAttributeName;
-		if (!PCGEx::Common::IsValidName(OutName))
-		{
-			PCGE_LOG(Error, GraphAndLog, LOCTEXT("InvalidName", "Output name is invalid."));
-			return true;
-		}
-
-		Context->OutName = Settings->OutputAttributeName;
+		if (!Validate(Context)) { return true; }
 		Context->SetState(PCGExMT::EState::ReadyForNextPoints);
 	}
 
@@ -63,7 +68,7 @@ bool FPCGExWriteIndexElement::ExecuteInternal(FPCGContext* InContext) const
 		Context->AttributeMap.Add(IO, IndexAttribute);
 	};
 
-	auto ProcessPoint = [&Context](const FPCGPoint& Point, const int32 Index, UPCGExPointIO* IO)
+	auto ProcessPoint = [&Context](const FPCGPoint& Point, const int32 Index, const UPCGExPointIO* IO)
 	{
 		FPCGMetadataAttribute<int64>* IndexAttribute = *(Context->AttributeMap.Find(IO));
 		IndexAttribute->SetValue(Point.MetadataEntry, Index);

@@ -54,18 +54,7 @@ bool FPCGExBuildRelationsElement::ExecuteInternal(
 
 	if (Context->IsSetup())
 	{
-		if (Context->Params.IsEmpty())
-		{
-			PCGE_LOG(Error, GraphAndLog, LOCTEXT("MissingParams", "Missing Input Params."));
-			return true;
-		}
-
-		if (Context->Points->IsEmpty())
-		{
-			PCGE_LOG(Error, GraphAndLog, LOCTEXT("MissingPoints", "Missing Input Points."));
-			return true;
-		}
-
+		if (!Validate(Context)) { return true; }
 		Context->SetState(PCGExMT::EState::ReadyForNextPoints);
 	}
 
@@ -139,7 +128,7 @@ bool FPCGExBuildRelationsElement::ExecuteInternal(
 		}
 	}
 
-	auto Initialize = [&Context](UPCGExPointIO* IO)
+	auto Initialize = [&Context](const UPCGExPointIO* IO)
 	{
 		Context->CurrentParams->PrepareForPointData(Context, IO->Out);
 	};

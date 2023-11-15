@@ -21,6 +21,11 @@ FPCGContext* FPCGExProjectOnWorldElement::Initialize(const FPCGDataCollection& I
 	return Context;
 }
 
+bool FPCGExProjectOnWorldElement::Validate(FPCGContext* InContext) const
+{
+	if (!FPCGExPointsProcessorElementBase::Validate(InContext)) { return false; }
+	return true;
+}
 
 bool FPCGExProjectOnWorldElement::ExecuteInternal(FPCGContext* InContext) const
 {
@@ -30,23 +35,7 @@ bool FPCGExProjectOnWorldElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsState(PCGExMT::EState::Setup))
 	{
-		if (!Context->IsValid())
-		{
-			PCGE_LOG(Error, GraphAndLog, LOCTEXT("InvalidContext", "Inputs are missing or invalid."));
-			return true;
-		}
-
-		const UPCGExProjectOnWorldSettings* Settings = Context->GetInputSettings<UPCGExProjectOnWorldSettings>();
-		check(Settings);
-
-		FName OutName = Settings->OutputAttributeName;
-		if (!PCGEx::Common::IsValidName(OutName))
-		{
-			PCGE_LOG(Error, GraphAndLog, LOCTEXT("InvalidName", "Output name is invalid."));
-			return true;
-		}
-
-		Context->OutName = Settings->OutputAttributeName;
+		if (!Validate(Context)) { return true; }
 		Context->SetState(PCGExMT::EState::ReadyForNextPoints);
 	}
 
