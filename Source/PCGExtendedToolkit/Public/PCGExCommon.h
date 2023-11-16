@@ -294,7 +294,7 @@ namespace PCGEx
 	const FName SourcePointsLabel = TEXT("InPoints");
 	const FName OutputPointsLabel = TEXT("OutPoints");
 
-	const FSoftObjectPath DefaultDotOverDistanceCurve = FSoftObjectPath(TEXT("/PCGExtendedToolkit/FC_PCGEx_DotPriorityBalanced.FC_PCGEx_DotPriorityBalanced"));
+	const FSoftObjectPath DefaultDotOverDistanceCurve = FSoftObjectPath(TEXT("/PCGExtendedToolkit/FC_PCGExGraphBalance_Default.FC_PCGExGraphBalance_Default"));
 	
 	class Common
 	{
