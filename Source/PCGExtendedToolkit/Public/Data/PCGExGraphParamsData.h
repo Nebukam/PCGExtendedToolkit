@@ -41,10 +41,11 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSocketAngle
 	GENERATED_BODY()
 
 	FPCGExSocketAngle()
+		: DotOverDistance(PCGEx::DefaultDotOverDistanceCurve)
 	{
 	}
 
-	FPCGExSocketAngle(const FVector& Dir)
+	FPCGExSocketAngle(const FVector& Dir): FPCGExSocketAngle()
 	{
 		Direction = Dir;
 	}
@@ -52,8 +53,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSocketAngle
 	FPCGExSocketAngle(
 		const FPCGExSocketAngle& Other):
 		Direction(Other.Direction),
-		DotTolerance(Other.DotTolerance),
-		MaxDistance(Other.MaxDistance)
+		DotThreshold(Other.DotThreshold),
+		MaxDistance(Other.MaxDistance),
+		DotOverDistance(Other.DotOverDistance)
 	{
 	}
 
@@ -67,11 +69,23 @@ public:
 	double Angle = 45.0; // 0.707f dot
 
 	UPROPERTY(BlueprintReadOnly, meta=(UIMin=-1, UIMax=1))
-	double DotTolerance = 0.707;
+	double DotThreshold = 0.707;
 
 	/** Maximum sampling distance. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	double MaxDistance = 1000.0f;
+
+	/** The balance over distance to prioritize closer distance or better alignment. Curve X is normalized distance; Y = 0 means narrower dot wins, Y = 1 means closer distance wins */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FSoftObjectPath DotOverDistance;
+
+	UCurveFloat* DotOverDistanceCurve = nullptr;
+
+	void LoadCurve()
+	{
+		DotOverDistanceCurve = TSoftObjectPtr<UCurveFloat>(DotOverDistance).LoadSynchronous();
+	}
+	
 };
 
 #pragma region Descriptors
@@ -178,6 +192,11 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSocketGlobalOverrides
 {
 	GENERATED_BODY()
 
+	FPCGExSocketGlobalOverrides()
+		: DotOverDistance(PCGEx::DefaultDotOverDistanceCurve)
+	{
+	}
+
 public:
 	/** Override all socket orientation. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
@@ -239,6 +258,14 @@ public:
 	/** Which local attribute is used to factor the distance */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bOverrideAttributeModifier"))
 	FPCGExSocketModifierDescriptor AttributeModifier;
+
+	/** Is the distance modified by local attributes */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
+	bool bOverrideDotOverDistance = false;
+
+	/** TBD */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bOverrideDotOverDistance"))
+	FSoftObjectPath DotOverDistance;
 };
 
 #pragma endregion
@@ -300,13 +327,13 @@ namespace PCGExGraph
 		}
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FModifier : public PCGEx::FLocalSingleComponentInput
+	struct PCGEXTENDEDTOOLKIT_API FProbeDistanceModifier : public PCGEx::FLocalSingleComponentInput
 	{
-		FModifier(): PCGEx::FLocalSingleComponentInput()
+		FProbeDistanceModifier(): PCGEx::FLocalSingleComponentInput()
 		{
 		}
 
-		FModifier(const FPCGExSocketDescriptor& InDescriptor): PCGEx::FLocalSingleComponentInput()
+		FProbeDistanceModifier(const FPCGExSocketDescriptor& InDescriptor): PCGEx::FLocalSingleComponentInput()
 		{
 			Descriptor = static_cast<FPCGExInputSelector>(InDescriptor.AttributeModifier);
 			bEnabled = InDescriptor.bApplyAttributeModifier;
@@ -340,7 +367,7 @@ namespace PCGExGraph
 		FSocket(const FPCGExSocketDescriptor& InDescriptor): FSocket()
 		{
 			Descriptor = InDescriptor;
-			Descriptor.Angle.DotTolerance = FMath::Cos(Descriptor.Angle.Angle * (PI / 180.0)); //Degrees to dot product
+			Descriptor.Angle.DotThreshold = FMath::Cos(Descriptor.Angle.Angle * (PI / 180.0)); //Degrees to dot product
 		}
 
 		friend struct FSocketMapping;
@@ -363,9 +390,9 @@ namespace PCGExGraph
 
 		void DeleteFrom(const UPCGPointData* PointData) const
 		{
-			PointData->Metadata->DeleteAttribute(AttributeTargetIndex->Name);
-			PointData->Metadata->DeleteAttribute(AttributeEdgeType->Name);
-			PointData->Metadata->DeleteAttribute(AttributeTargetEntryKey->Name);
+			if (AttributeTargetIndex) { PointData->Metadata->DeleteAttribute(AttributeTargetIndex->Name); }
+			if (AttributeEdgeType) { PointData->Metadata->DeleteAttribute(AttributeEdgeType->Name); }
+			if (AttributeTargetEntryKey) { PointData->Metadata->DeleteAttribute(AttributeTargetEntryKey->Name); }
 		}
 
 		/**
@@ -379,6 +406,7 @@ namespace PCGExGraph
 			AttributeTargetIndex = GetAttribute(PointData, SocketPropertyNameIndex, true, static_cast<int64>(-1));
 			AttributeTargetEntryKey = GetAttribute(PointData, SocketPropertyNameEntryKey, true, PCGInvalidEntryKey);
 			AttributeEdgeType = GetAttribute(PointData, SocketPropertyNameEdgeType, bEnsureEdgeType, static_cast<int32>(EPCGExEdgeType::Unknown));
+			Descriptor.Angle.LoadCurve();
 		}
 
 	protected:
@@ -448,7 +476,7 @@ namespace PCGExGraph
 	struct PCGEXTENDEDTOOLKIT_API FSocketInfos
 	{
 		FSocket* Socket = nullptr;
-		FModifier* Modifier = nullptr;
+		FProbeDistanceModifier* Modifier = nullptr;
 		FLocalDirection* LocalDirection = nullptr;
 
 		bool Matches(const FSocketInfos& Other) const { return Socket->Matches(Other.Socket); }
@@ -464,7 +492,7 @@ namespace PCGExGraph
 	public:
 		FName Identifier = NAME_None;
 		TArray<FSocket> Sockets;
-		TArray<FModifier> Modifiers;
+		TArray<FProbeDistanceModifier> Modifiers;
 		TArray<FLocalDirection> LocalDirections;
 		TMap<FName, int32> NameToIndexMap;
 		int32 NumSockets = 0;
@@ -477,7 +505,7 @@ namespace PCGExGraph
 			{
 				if (!Descriptor.bEnabled) { continue; }
 
-				FModifier& NewModifier = Modifiers.Emplace_GetRef(Descriptor);
+				FProbeDistanceModifier& NewModifier = Modifiers.Emplace_GetRef(Descriptor);
 				FLocalDirection& NewLocalDirection = LocalDirections.Emplace_GetRef(Descriptor);
 
 				FSocket& NewSocket = Sockets.Emplace_GetRef(Descriptor);
@@ -499,7 +527,7 @@ namespace PCGExGraph
 			{
 				if (!Descriptor.bEnabled) { continue; }
 
-				FModifier& NewModifier = Modifiers.Emplace_GetRef(Descriptor);
+				FProbeDistanceModifier& NewModifier = Modifiers.Emplace_GetRef(Descriptor);
 				NewModifier.bEnabled = Overrides.bOverrideAttributeModifier ? Overrides.bApplyAttributeModifier : Descriptor.bApplyAttributeModifier;
 				NewModifier.Descriptor = static_cast<FPCGExInputSelector>(Overrides.bOverrideAttributeModifier ? Overrides.AttributeModifier : Descriptor.AttributeModifier);
 
@@ -516,8 +544,9 @@ namespace PCGExGraph
 				if (Overrides.bOverrideAngle) { NewSocket.Descriptor.Angle.Angle = Overrides.Angle; }
 				if (Overrides.bOverrideMaxDistance) { NewSocket.Descriptor.Angle.MaxDistance = Overrides.MaxDistance; }
 				if (Overrides.bOverrideExclusiveBehavior) { NewSocket.Descriptor.bExclusiveBehavior = Overrides.bExclusiveBehavior; }
+				if (Overrides.bOverrideDotOverDistance) { NewSocket.Descriptor.Angle.DotOverDistance = Overrides.DotOverDistance; }
 
-				NewSocket.Descriptor.Angle.DotTolerance = FMath::Cos(NewSocket.Descriptor.Angle.Angle * (PI / 180.0));
+				NewSocket.Descriptor.Angle.DotThreshold = FMath::Cos(NewSocket.Descriptor.Angle.Angle * (PI / 180.0));
 
 				NumSockets++;
 			}
@@ -548,7 +577,7 @@ namespace PCGExGraph
 		}
 
 		const TArray<FSocket>& GetSockets() const { return Sockets; }
-		const TArray<FModifier>& GetModifiers() const { return Modifiers; }
+		const TArray<FProbeDistanceModifier>& GetModifiers() const { return Modifiers; }
 
 		void GetSocketsInfos(TArray<FSocketInfos>& OutInfos)
 		{

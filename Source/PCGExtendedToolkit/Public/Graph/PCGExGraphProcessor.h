@@ -13,56 +13,120 @@ class UPCGExGraphParamsData;
 
 namespace PCGExGraph
 {
+	struct PCGEXTENDEDTOOLKIT_API FPointCandidate
+	{
+		FPointCandidate()
+		{
+		}
+
+		double Distance = 0;
+		double Dot = 0;
+
+		int32 Index = -1;
+		PCGMetadataEntryKey EntryKey = PCGInvalidEntryKey;
+	};
+
 	/** Per-socket temp data structure for processing only*/
 	struct PCGEXTENDEDTOOLKIT_API FSocketProbe : FPCGExSocketAngle
 	{
 		FSocketProbe()
 		{
+			Candidates.Empty();
 		}
 
 	public:
 		FSocketInfos* SocketInfos = nullptr;
 		FVector Origin = FVector::Zero();
-		int32 Index = -1;
-		PCGMetadataEntryKey EntryKey = PCGInvalidEntryKey;
-		double IndexedDistance = TNumericLimits<double>::Max();
-		double IndexedDot = -1;
 
-		bool ProcessPoint(const FPCGPoint* Point)
+		int32 BestIndex = -1;
+		PCGMetadataEntryKey BestEntryKey = PCGInvalidEntryKey;
+
+		TArray<FPointCandidate> Candidates;
+
+		double IndexedRating = TNumericLimits<double>::Max();
+		double IndexedDistanceRating = 0;
+		double IndexedDotRating = 0;
+		double IndexedDotWeight = 0;
+
+		double ProbedMaxDistance = 0;
+		double ProbedMinDot = TNumericLimits<double>::Max();
+
+
+		bool ProcessPoint(const FPCGPoint* Point, int32 Index)
 		{
 			const FVector PtPosition = Point->Transform.GetLocation();
-			const FVector DirToPt = (PtPosition - Origin).GetSafeNormal();
+			const double Dot = Direction.Dot((PtPosition - Origin).GetSafeNormal());
 
-			const double SquaredDistance = FVector::DistSquared(Origin, PtPosition);
+			if (Dot < DotThreshold) { return false; }
+			const double PtDistance = FVector::DistSquared(Origin, PtPosition);
 
-			// Is distance smaller than last registered one?
-			if (SquaredDistance > IndexedDistance) { return false; }
+			if (PtDistance > MaxDistance) { return false; }
 
-			//UE_LOG(LogTemp, Warning, TEXT("Dist %f / %f "), SquaredDistance, MaxDistance * MaxDistance)
-			// Is distance inside threshold?
-			if (SquaredDistance >= (MaxDistance * MaxDistance)) { return false; }
+			ProbedMaxDistance = FMath::Max(ProbedMaxDistance, PtDistance);
+			ProbedMinDot = FMath::Min(ProbedMinDot, Dot);
 
-			const double Dot = Direction.Dot(DirToPt);
+			FPointCandidate& Candidate = Candidates.Emplace_GetRef();
 
-			// Is dot within tolerance?
-			if (Dot < DotTolerance) { return false; }
+			Candidate.Dot = Dot;
+			Candidate.Distance = PtDistance;
 
-			if (IndexedDistance == SquaredDistance)
-			{
-				// In case of distance equality, favor candidate closer to dot == 1
-				if (Dot < IndexedDot) { return false; }
-			}
-
-			IndexedDistance = SquaredDistance;
-			IndexedDot = Dot;
+			Candidate.Index = Index;
+			Candidate.EntryKey = Point->MetadataEntry;
 
 			return true;
 		}
 
+		void ProcessCandidates()
+		{
+			for (const FPointCandidate& Candidate : Candidates)
+			{
+				const double DotRating = ((1 - Candidate.Dot) / (1 - ProbedMinDot));
+				const double DistanceRating = Candidate.Distance / ProbedMaxDistance;
+				const double DotWeight = FMathf::Clamp(DotOverDistanceCurve->GetFloatValue(DistanceRating), 0, 1);
+				const double Rating = (DistanceRating * (1 - DotWeight)) + (DotRating * DotWeight);
+
+				bool bBetterCandidate = false;
+				if (Rating < IndexedRating || BestIndex == -1)
+				{
+					bBetterCandidate = true;
+				}
+				else if (Rating == IndexedRating)
+				{
+					if (DotWeight > IndexedDotWeight)
+					{
+						if (DotRating < IndexedDotRating ||
+							(DotRating == IndexedDotRating && DistanceRating < IndexedDistanceRating))
+						{
+							bBetterCandidate = true;
+						}
+					}
+					else
+					{
+						if (DistanceRating < IndexedDistanceRating ||
+							(DistanceRating == IndexedRating && DotRating < IndexedDotRating))
+						{
+							bBetterCandidate = true;
+						}
+					}
+				}
+
+				if (bBetterCandidate)
+				{
+					IndexedRating = Rating;
+					IndexedDistanceRating = DistanceRating;
+					IndexedDotRating = DotRating;
+					IndexedDotWeight = DotWeight;
+
+					BestIndex = Candidate.Index;
+					BestEntryKey = Candidate.EntryKey;
+				}
+			}
+		}
+
 		void OutputTo(PCGMetadataEntryKey Key) const
 		{
-			SocketInfos->Socket->SetTargetIndex(Key, Index);
-			SocketInfos->Socket->SetTargetEntryKey(Key, EntryKey);
+			SocketInfos->Socket->SetTargetIndex(Key, BestIndex);
+			SocketInfos->Socket->SetTargetEntryKey(Key, BestEntryKey);
 		}
 
 		~FSocketProbe()
@@ -136,7 +200,7 @@ public:
 
 protected:
 	virtual PCGEx::EIOInit GetPointOutputInitMode() const { return PCGEx::EIOInit::DuplicateInput; }
-	virtual  bool Validate(FPCGContext* InContext) const override;
+	virtual bool Validate(FPCGContext* InContext) const override;
 	virtual void InitializeContext(
 		FPCGExPointsProcessorContext* InContext,
 		const FPCGDataCollection& InputData,

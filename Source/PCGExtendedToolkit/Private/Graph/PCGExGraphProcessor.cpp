@@ -36,6 +36,8 @@ TArray<FPCGPinProperties> UPCGExGraphProcessorSettings::OutputPinProperties() co
 	return PinProperties;
 }
 
+#pragma endregion
+
 bool FPCGExGraphProcessorContext::AdvanceParams(bool bResetPointsIndex)
 {
 	if (bResetPointsIndex) { CurrentPointsIndex = -1; }
@@ -109,10 +111,10 @@ void FPCGExGraphProcessorContext::PrepareProbeForPointSocketPair(
 	PCGExGraph::FSocketProbe& Probe,
 	PCGExGraph::FSocketInfos InSocketInfos)
 {
-	const FPCGExSocketAngle BaseAngle = InSocketInfos.Socket->Descriptor.Angle;
+	const FPCGExSocketAngle& BaseAngle = InSocketInfos.Socket->Descriptor.Angle;
 
 	FVector Direction = BaseAngle.Direction;
-	double DotTolerance = BaseAngle.DotTolerance;
+	double DotTolerance = BaseAngle.DotThreshold;
 	double MaxDistance = BaseAngle.MaxDistance;
 
 	const FTransform PtTransform = Point.Transform;
@@ -139,8 +141,9 @@ void FPCGExGraphProcessorContext::PrepareProbeForPointSocketPair(
 	}
 
 	Probe.Direction = Direction;
-	Probe.DotTolerance = DotTolerance;
-	Probe.MaxDistance = MaxDistance;
+	Probe.DotThreshold = DotTolerance;
+	Probe.MaxDistance = MaxDistance * MaxDistance;
+	Probe.DotOverDistanceCurve = BaseAngle.DotOverDistanceCurve;
 }
 
 FPCGContext* FPCGExGraphProcessorElement::Initialize(
@@ -182,6 +185,6 @@ void FPCGExGraphProcessorElement::InitializeContext(
 	Context->Params.Initialize(InContext, Sources);
 }
 
-#pragma endregion
+
 
 #undef LOCTEXT_NAMESPACE

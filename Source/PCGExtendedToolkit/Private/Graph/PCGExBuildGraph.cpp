@@ -89,30 +89,26 @@ bool FPCGExBuildGraphElement::ExecuteInternal(
 
 		TArray<PCGExGraph::FSocketProbe> Probes;
 		const double MaxDistance = Context->PrepareProbesForPoint(Point, Probes);
+		PCGExGraph::FPointCandidate Candidate;
 
-		auto ProcessPointNeighbor = [&ReadIndex, &Probes, &IO](const FPCGPointRef& OtherPointRef)
+		auto ProcessPointNeighbor = [&ReadIndex, &Probes, &IO, &Candidate](const FPCGPointRef& OtherPointRef)
 		{
 			const FPCGPoint* OtherPoint = OtherPointRef.Point;
 			const int32 Index = IO->GetIndex(OtherPoint->MetadataEntry);
 
 			if (Index == ReadIndex) { return; }
-
-			for (PCGExGraph::FSocketProbe& Probe : Probes)
-			{
-				if (Probe.ProcessPoint(OtherPoint))
-				{
-					Probe.Index = Index;
-					Probe.EntryKey = OtherPoint->MetadataEntry;
-				}
-			}
+			for (PCGExGraph::FSocketProbe& Probe : Probes) { Probe.ProcessPoint(OtherPoint, Index); }
 		};
 
 		const FBoxCenterAndExtent Box = FBoxCenterAndExtent(Point.Transform.GetLocation(), FVector(MaxDistance));
 		Context->Octree->FindElementsWithBoundsTest(Box, ProcessPointNeighbor);
 
-		//Write results
 		const PCGMetadataEntryKey Key = Point.MetadataEntry;
-		for (PCGExGraph::FSocketProbe Sampler : Probes) { Sampler.OutputTo(Key); }
+		for (PCGExGraph::FSocketProbe& Probe : Probes)
+		{
+			Probe.ProcessCandidates();
+			Probe.OutputTo(Key);
+		}
 	};
 
 	if (Context->IsState(PCGExMT::EState::ReadyForNextGraph))
