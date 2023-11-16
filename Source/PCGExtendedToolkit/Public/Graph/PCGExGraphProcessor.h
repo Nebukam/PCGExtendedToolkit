@@ -48,8 +48,10 @@ namespace PCGExGraph
 		double IndexedDotRating = 0;
 		double IndexedDotWeight = 0;
 
-		double ProbedMaxDistance = 0;
-		double ProbedMinDot = TNumericLimits<double>::Max();
+		double ProbedDistanceMax = 0;
+		double ProbedDistanceMin = TNumericLimits<double>::Max();
+		double ProbedDotMax = 0;
+		double ProbedDotMin = TNumericLimits<double>::Max();
 
 
 		bool ProcessPoint(const FPCGPoint* Point, int32 Index)
@@ -62,8 +64,10 @@ namespace PCGExGraph
 
 			if (PtDistance > MaxDistance) { return false; }
 
-			ProbedMaxDistance = FMath::Max(ProbedMaxDistance, PtDistance);
-			ProbedMinDot = FMath::Min(ProbedMinDot, Dot);
+			ProbedDistanceMin = FMath::Min(ProbedDistanceMin, PtDistance);
+			ProbedDistanceMax = FMath::Max(ProbedDistanceMax, PtDistance);
+			ProbedDotMin = FMath::Min(ProbedDotMin, Dot);
+			ProbedDotMax = FMath::Max(ProbedDotMax, Dot);
 
 			FPointCandidate& Candidate = Candidates.Emplace_GetRef();
 
@@ -80,10 +84,10 @@ namespace PCGExGraph
 		{
 			for (const FPointCandidate& Candidate : Candidates)
 			{
-				const double DotRating = ((1 - Candidate.Dot) / (1 - ProbedMinDot));
-				const double DistanceRating = Candidate.Distance / ProbedMaxDistance;
+				const double DotRating = 1-PCGEx::Common::Remap(Candidate.Dot, ProbedDotMin, ProbedDotMax);
+				const double DistanceRating = PCGEx::Common::Remap(Candidate.Distance, ProbedDistanceMin, ProbedDistanceMax);
 				const double DotWeight = FMathf::Clamp(DotOverDistanceCurve->GetFloatValue(DistanceRating), 0, 1);
-				const double Rating = (DistanceRating * (1 - DotWeight)) + (DotRating * DotWeight);
+				const double Rating = (DotRating * DotWeight) + (DistanceRating * (1 - DotWeight));
 
 				bool bBetterCandidate = false;
 				if (Rating < IndexedRating || BestIndex == -1)

@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <iostream>
+
 #include "CoreMinimal.h"
 #include "PCGContext.h"
 #include "Data/PCGPointData.h"
@@ -424,6 +426,11 @@ namespace PCGEx
 			}
 
 			return true;
+		}
+
+		// Remap function
+		static double Remap(const double Value, const double Min, const double Max, const double NewMin = 0, const double NewMax = 1) {
+			return NewMin + ((Value - Min) / (Max - Min)) * (NewMax - NewMin);
 		}
 
 	};
