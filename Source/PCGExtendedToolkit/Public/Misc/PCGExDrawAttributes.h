@@ -5,8 +5,8 @@
 
 #include "CoreMinimal.h"
 #include "Data/PCGPointData.h"
-#include "Relational/PCGExRelationsProcessor.h"
-#include "Relational/PCGExRelationsHelpers.h"
+#include "Graph/PCGExGraphProcessor.h"
+#include "Graph/PCGExGraphHelpers.h"
 #include "PCGExDrawAttributes.generated.h"
 
 UENUM(BlueprintType)
@@ -177,7 +177,7 @@ protected:
 /**
  * Calculates the distance between two points (inherently a n*n operation)
  */
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Relational")
+UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
 class PCGEXTENDEDTOOLKIT_API UPCGExDrawAttributesSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
@@ -187,7 +187,7 @@ public:
 
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(DrawAttributes, "Draw Attributes", "Draw debug relations. Toggle debug OFF (D) before disabling this node (E)! Warning: this node will clear persistent debug lines before it!");
+	PCGEX_NODE_INFOS(DrawAttributes, "Draw Attributes", "Draw debug attributes. Toggle debug OFF (D) before disabling this node (E)! Warning: this node will clear persistent debug lines before it!");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Debug; }
 	virtual FLinearColor GetNodeTitleColor() const override { return FLinearColor(1.0f, 0.0f, 0.0f, 1.0f); }
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;

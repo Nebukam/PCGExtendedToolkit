@@ -4,23 +4,23 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExRelationsProcessor.h"
+#include "PCGExGraphProcessor.h"
 #include "Data/PCGPointData.h"
 #include "Elements/PCGPointProcessingElementBase.h"
-#include "PCGExDeleteRelations.generated.h"
+#include "PCGExDeleteGraph.generated.h"
 
 /**
  * Calculates the distance between two points (inherently a n*n operation)
  */
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Relational")
-class PCGEXTENDEDTOOLKIT_API UPCGExDeleteRelationsSettings : public UPCGExRelationsProcessorSettings
+UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
+class PCGEXTENDEDTOOLKIT_API UPCGExDeleteGraphSettings : public UPCGExGraphProcessorSettings
 {
 	GENERATED_BODY()
 
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(DeleteRelations, "Delete Relations", "Delete data associated with given Relations Params.");
+	PCGEX_NODE_INFOS(DeleteGraph, "Delete Graph", "Delete data associated with given Graph Params.");
 #endif
 
 protected:
@@ -34,16 +34,16 @@ public:
 
 
 private:
-	friend class FPCGExDeleteRelationsElement;
+	friend class FPCGExDeleteGraphElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExDeleteRelationsContext : public FPCGExRelationsProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExDeleteGraphContext : public FPCGExGraphProcessorContext
 {
-	friend class FPCGExDeleteRelationsElement;
+	friend class FPCGExDeleteGraphElement;
 };
 
 
-class PCGEXTENDEDTOOLKIT_API FPCGExDeleteRelationsElement : public FPCGExRelationsProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExDeleteGraphElement : public FPCGExGraphProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

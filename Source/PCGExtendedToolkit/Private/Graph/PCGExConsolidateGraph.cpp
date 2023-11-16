@@ -1,61 +1,61 @@
 ﻿// Copyright Timothé Lapetite 2023
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Relational/PCGExConsolidateRelations.h"
+#include "Graph/PCGExConsolidateGraph.h"
 
 #include "Data/PCGSpatialData.h"
 #include "Data/PCGPointData.h"
 #include "PCGContext.h"
 #include "DrawDebugHelpers.h"
 #include "Editor.h"
-#include "Relational/PCGExRelationsHelpers.h"
+#include "Graph/PCGExGraphHelpers.h"
 
-#define LOCTEXT_NAMESPACE "PCGExConsolidateRelations"
+#define LOCTEXT_NAMESPACE "PCGExConsolidateGraph"
 
-int32 UPCGExConsolidateRelationsSettings::GetPreferredChunkSize() const { return 32; }
+int32 UPCGExConsolidateGraphSettings::GetPreferredChunkSize() const { return 32; }
 
-PCGEx::EIOInit UPCGExConsolidateRelationsSettings::GetPointOutputInitMode() const { return PCGEx::EIOInit::DuplicateInput; }
+PCGEx::EIOInit UPCGExConsolidateGraphSettings::GetPointOutputInitMode() const { return PCGEx::EIOInit::DuplicateInput; }
 
-FPCGElementPtr UPCGExConsolidateRelationsSettings::CreateElement() const
+FPCGElementPtr UPCGExConsolidateGraphSettings::CreateElement() const
 {
-	return MakeShared<FPCGExConsolidateRelationsElement>();
+	return MakeShared<FPCGExConsolidateGraphElement>();
 }
 
-FPCGContext* FPCGExConsolidateRelationsElement::Initialize(
+FPCGContext* FPCGExConsolidateGraphElement::Initialize(
 	const FPCGDataCollection& InputData,
 	TWeakObjectPtr<UPCGComponent> SourceComponent,
 	const UPCGNode* Node)
 {
-	FPCGExConsolidateRelationsContext* Context = new FPCGExConsolidateRelationsContext();
+	FPCGExConsolidateGraphContext* Context = new FPCGExConsolidateGraphContext();
 	InitializeContext(Context, InputData, SourceComponent, Node);
 	return Context;
 }
 
-void FPCGExConsolidateRelationsElement::InitializeContext(
+void FPCGExConsolidateGraphElement::InitializeContext(
 	FPCGExPointsProcessorContext* InContext,
 	const FPCGDataCollection& InputData,
 	TWeakObjectPtr<UPCGComponent> SourceComponent,
 	const UPCGNode* Node) const
 {
-	FPCGExRelationsProcessorElement::InitializeContext(InContext, InputData, SourceComponent, Node);
-	//FPCGExConsolidateRelationsContext* Context = static_cast<FPCGExConsolidateRelationsContext*>(InContext);
+	FPCGExGraphProcessorElement::InitializeContext(InContext, InputData, SourceComponent, Node);
+	//FPCGExConsolidateGraphContext* Context = static_cast<FPCGExConsolidateGraphContext*>(InContext);
 	// ...
 }
 
-bool FPCGExConsolidateRelationsElement::ExecuteInternal(
+bool FPCGExConsolidateGraphElement::ExecuteInternal(
 	FPCGContext* InContext) const
 {
-	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExConsolidateRelationsElement::Execute);
+	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExConsolidateGraphElement::Execute);
 
-	FPCGExConsolidateRelationsContext* Context = static_cast<FPCGExConsolidateRelationsContext*>(InContext);
+	FPCGExConsolidateGraphContext* Context = static_cast<FPCGExConsolidateGraphContext*>(InContext);
 
 	if (Context->IsSetup())
 	{
 		if (!Validate(Context)) { return true; }
-		Context->SetState(PCGExMT::EState::ReadyForNextParams);
+		Context->SetState(PCGExMT::EState::ReadyForNextGraph);
 	}
 
-	if (Context->IsState(PCGExMT::EState::ReadyForNextParams))
+	if (Context->IsState(PCGExMT::EState::ReadyForNextGraph))
 	{
 		if (!Context->AdvanceParams(true))
 		{
@@ -71,7 +71,7 @@ bool FPCGExConsolidateRelationsElement::ExecuteInternal(
 	{
 		if (!Context->AdvancePointsIO(false))
 		{
-			Context->SetState(PCGExMT::EState::ReadyForNextParams); //No more points, move to next params
+			Context->SetState(PCGExMT::EState::ReadyForNextGraph); //No more points, move to next params
 		}
 		else
 		{
@@ -85,7 +85,7 @@ bool FPCGExConsolidateRelationsElement::ExecuteInternal(
 	{
 		Context->Deltas.Empty();
 		IO->BuildMetadataEntries();
-		Context->CurrentParams->PrepareForPointData(Context, IO->In); // Prepare to read IO->In
+		Context->CurrentParams->PrepareForPointData(Context, IO->In, false); // Prepare to read IO->In
 	};
 
 	auto CapturePointDelta = [&Context](
@@ -107,7 +107,7 @@ bool FPCGExConsolidateRelationsElement::ExecuteInternal(
 
 	auto InitializePointsOutput = [&Context](const UPCGExPointIO* IO)
 	{
-		Context->CurrentParams->PrepareForPointData(Context, IO->Out);
+		Context->CurrentParams->PrepareForPointData(Context, IO->Out, false);
 	};
 
 	auto ConsolidatePoint = [&Context](
@@ -118,37 +118,37 @@ bool FPCGExConsolidateRelationsElement::ExecuteInternal(
 
 		FReadScopeLock ScopeLock(Context->DeltaLock);
 
-		for (PCGExRelational::FSocketInfos& SocketInfos : Context->SocketInfos)
+		for (PCGExGraph::FSocketInfos& SocketInfos : Context->SocketInfos)
 		{
-			const int64 RelationIndex = SocketInfos.Socket->GetRelationIndex(Point.MetadataEntry);
+			const int64 RelationIndex = SocketInfos.Socket->GetTargetIndex(Point.MetadataEntry);
 
 			if (RelationIndex == -1) { continue; } // No need to fix further
 
 			const int64 FixedRelationIndex = GetFixedIndex(Context, RelationIndex);
-			SocketInfos.Socket->SetRelationIndex(Point.MetadataEntry, FixedRelationIndex);
+			SocketInfos.Socket->SetTargetIndex(Point.MetadataEntry, FixedRelationIndex);
 
-			EPCGExRelationType Type = EPCGExRelationType::Unknown;
+			EPCGExEdgeType Type = EPCGExEdgeType::Unknown;
 
 			if (FixedRelationIndex != -1)
 			{
 				const int32 Key = IO->Out->GetPoint(FixedRelationIndex).MetadataEntry;
-				for (PCGExRelational::FSocketInfos& OtherSocketInfos : Context->SocketInfos)
+				for (PCGExGraph::FSocketInfos& OtherSocketInfos : Context->SocketInfos)
 				{
-					if (OtherSocketInfos.Socket->GetRelationIndex(Key) == CachedIndex)
+					if (OtherSocketInfos.Socket->GetTargetIndex(Key) == CachedIndex)
 					{
 						//TODO: Handle cases where there can be multiple sockets with a valid connection
-						Type = PCGExRelational::Helpers::GetRelationType(SocketInfos, OtherSocketInfos);
+						Type = PCGExGraph::Helpers::GetEdgeType(SocketInfos, OtherSocketInfos);
 					}
 				}
 
-				if (Type == EPCGExRelationType::Unknown) { Type = EPCGExRelationType::Unique; }
+				if (Type == EPCGExEdgeType::Unknown) { Type = EPCGExEdgeType::Unique; }
 			}
 			else
 			{
-				SocketInfos.Socket->SetRelationEntryKey(Point.MetadataEntry, PCGInvalidEntryKey);
+				SocketInfos.Socket->SetTargetEntryKey(Point.MetadataEntry, PCGInvalidEntryKey);
 			}
 
-			SocketInfos.Socket->SetRelationType(Point.MetadataEntry, Type);
+			SocketInfos.Socket->SetEdgeType(Point.MetadataEntry, Type);
 		}
 	};
 
@@ -172,7 +172,7 @@ bool FPCGExConsolidateRelationsElement::ExecuteInternal(
 	return false;
 }
 
-int64 FPCGExConsolidateRelationsElement::GetFixedIndex(FPCGExConsolidateRelationsContext* Context, int64 InIndex)
+int64 FPCGExConsolidateGraphElement::GetFixedIndex(FPCGExConsolidateGraphContext* Context, int64 InIndex)
 {
 	if (const int64* FixedRelationIndexPtr = Context->Deltas.Find(InIndex)) { return *FixedRelationIndexPtr; }
 	return -1;

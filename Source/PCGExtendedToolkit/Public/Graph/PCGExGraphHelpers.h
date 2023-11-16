@@ -5,17 +5,17 @@
 
 #include "CoreMinimal.h"
 #include "PCGContext.h"
-#include "PCGExRelationsProcessor.h"
-#include "PCGExRelationsProcessor.h"
-#include "Data/PCGExRelationsParamsData.h"
-//#include "PCGExRelationsHelpers.generated.h"
+#include "PCGExGraphProcessor.h"
+#include "PCGExGraphProcessor.h"
+#include "Data/PCGExGraphParamsData.h"
+//#include "PCGExGraphHelpers.generated.h"
 
 class UPCGPointData;
 
-namespace PCGExRelational
+namespace PCGExGraph
 {
 
-	const FName SourceParamsLabel = TEXT("RelationalParams");
+	const FName SourceParamsLabel = TEXT("GraphParams");
 	const FName OutputParamsLabel = TEXT("→");
 
 	struct PCGEXTENDEDTOOLKIT_API FParamsInputs
@@ -38,7 +38,7 @@ namespace PCGExRelational
 		}
 
 	public:
-		TArray<UPCGExRelationsParamsData*> Params;
+		TArray<UPCGExGraphParamsData*> Params;
 		TArray<FPCGTaggedData> ParamsSources;
 
 		/**
@@ -53,21 +53,21 @@ namespace PCGExRelational
 			TSet<uint64> UniqueParams;
 			for (FPCGTaggedData& Source : Sources)
 			{
-				const UPCGExRelationsParamsData* ParamsData = Cast<UPCGExRelationsParamsData>(Source.Data);
+				const UPCGExGraphParamsData* ParamsData = Cast<UPCGExGraphParamsData>(Source.Data);
 				if (!ParamsData) { continue; }
 				if(UniqueParams.Contains(ParamsData->UID)){continue;}
 				UniqueParams.Add(ParamsData->UID);
-				Params.Add(const_cast<UPCGExRelationsParamsData*>(ParamsData));
+				Params.Add(const_cast<UPCGExGraphParamsData*>(ParamsData));
 				ParamsSources.Add(Source);
 			}
 			UniqueParams.Empty();
 		}
 
-		void ForEach(FPCGContext* Context, const TFunction<void(UPCGExRelationsParamsData*, const int32)>& BodyLoop)
+		void ForEach(FPCGContext* Context, const TFunction<void(UPCGExGraphParamsData*, const int32)>& BodyLoop)
 		{
 			for (int i = 0; i < Params.Num(); i++)
 			{
-				UPCGExRelationsParamsData* ParamsData = Params[i];
+				UPCGExGraphParamsData* ParamsData = Params[i];
 				BodyLoop(ParamsData, i);
 			}
 		}
@@ -77,7 +77,7 @@ namespace PCGExRelational
 			for(int i = 0; i < ParamsSources.Num(); i++)
 			{
 				FPCGTaggedData& OutputRef = Context->OutputData.TaggedData.Add_GetRef(ParamsSources[i]);
-				OutputRef.Pin = PCGExRelational::OutputParamsLabel;
+				OutputRef.Pin = PCGExGraph::OutputParamsLabel;
 				OutputRef.Data = Params[i];
 			}
 		}
@@ -97,22 +97,22 @@ namespace PCGExRelational
 	public:
 
 		/**
-		 * Assume the relation already is neither None nor Unique, since another socket has been found.
+		 * Assume the edge already is neither None nor Unique, since another socket has been found.
 		 * @param StartSocket 
 		 * @param EndSocket 
 		 * @return 
 		 */
-		static EPCGExRelationType GetRelationType(const FSocketInfos& StartSocket, const FSocketInfos& EndSocket)
+		static EPCGExEdgeType GetEdgeType(const FSocketInfos& StartSocket, const FSocketInfos& EndSocket)
 		{
-			if (StartSocket.Socket->MatchingSockets.Contains(EndSocket.Socket->SocketIndex))
+			if (StartSocket.Matches(EndSocket))
 			{
-				if (EndSocket.Socket->MatchingSockets.Contains(StartSocket.Socket->SocketIndex))
+				if (EndSocket.Matches(StartSocket))
 				{
-					return EPCGExRelationType::Complete;
+					return EPCGExEdgeType::Complete;
 				}
 				else
 				{
-					return EPCGExRelationType::Match;
+					return EPCGExEdgeType::Match;
 				}
 			}
 			else
@@ -121,11 +121,11 @@ namespace PCGExRelational
 				{
 					// We check for mirror AFTER checking for shared/match, since Mirror can be considered a legal match by design
 					// in which case we don't want to flag this as Mirrored.
-					return EPCGExRelationType::Mirror;
+					return EPCGExEdgeType::Mirror;
 				}
 				else
 				{
-					return EPCGExRelationType::Shared;
+					return EPCGExEdgeType::Shared;
 				}
 			}
 		}

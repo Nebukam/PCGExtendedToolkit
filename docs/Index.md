@@ -7,17 +7,17 @@
         - [Sort Points](PCGExSortPoints.md)
         - [Partition by Values](PCGExPartitionByValues.md)
         - [Write Index](PCGExWriteIndex.md)
-    - Relational
-        - [Create Relations Params](PCGExCreateRelationsParams.md)
-        - [Build Relations](PCGExBuildRelations.md)
-        - [Find Relations Type](PCGExFindRelationsType.md)
+    - Graph
+        - [Create Graph Params](PCGExCreateGraphParams.md)
+        - [Build Graph](PCGExBuildGraph.md)
+        - [Find Graph Type](PCGExFindEdgesType.md)
         - [Find Paths](PCGExFindPaths.md)
         - //
-        - [Draw Relations](PCGExDrawRelations.md)
-        - [Delete Relations](PCGExDeleteRelations.md)
+        - [Draw Graph](PCGExDrawGraph.md)
+        - [Delete Graph](PCGExDeleteGraph.md)
     - Transforms
         - [Project on World](PCGExProjectOnWorld.md)
         - [Sample Distance Field](PCGExSampleDistanceField.md)
 1. Data Types
-    - [Relations Data](PCGExRelationsData.md)
+    - [Graph Data](PCGExGraphData.md)
 1. [Frequently Asked Questions](FAQ.md)

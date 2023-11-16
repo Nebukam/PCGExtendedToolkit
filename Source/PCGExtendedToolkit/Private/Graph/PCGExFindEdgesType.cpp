@@ -1,52 +1,52 @@
 ﻿// Copyright Timothé Lapetite 2023
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "..\..\Public\Relational\PCGExFindRelationsType.h"
+#include "Graph/PCGExFindEdgesType.h"
 
 #include "Data/PCGSpatialData.h"
 #include "PCGContext.h"
 #include "DrawDebugHelpers.h"
 #include "Editor.h"
-#include "Relational/PCGExRelationsHelpers.h"
+#include "Graph/PCGExGraphHelpers.h"
 
-#define LOCTEXT_NAMESPACE "PCGExFindRelationsType"
+#define LOCTEXT_NAMESPACE "PCGExFindEdgesType"
 
-int32 UPCGExFindRelationsTypeSettings::GetPreferredChunkSize() const { return 32; }
+int32 UPCGExFindEdgesTypeSettings::GetPreferredChunkSize() const { return 32; }
 
-PCGEx::EIOInit UPCGExFindRelationsTypeSettings::GetPointOutputInitMode() const { return PCGEx::EIOInit::DuplicateInput; }
+PCGEx::EIOInit UPCGExFindEdgesTypeSettings::GetPointOutputInitMode() const { return PCGEx::EIOInit::DuplicateInput; }
 
-FPCGElementPtr UPCGExFindRelationsTypeSettings::CreateElement() const
+FPCGElementPtr UPCGExFindEdgesTypeSettings::CreateElement() const
 {
-	return MakeShared<FPCGExFindRelationsTypeElement>();
+	return MakeShared<FPCGExFindEdgesTypeElement>();
 }
 
-FPCGContext* FPCGExFindRelationsTypeElement::Initialize(
+FPCGContext* FPCGExFindEdgesTypeElement::Initialize(
 	const FPCGDataCollection& InputData,
 	TWeakObjectPtr<UPCGComponent> SourceComponent,
 	const UPCGNode* Node)
 {
-	FPCGExFindRelationsTypeContext* Context = new FPCGExFindRelationsTypeContext();
+	FPCGExFindEdgesTypeContext* Context = new FPCGExFindEdgesTypeContext();
 	InitializeContext(Context, InputData, SourceComponent, Node);
 	return Context;
 }
 
-void FPCGExFindRelationsTypeElement::InitializeContext(
+void FPCGExFindEdgesTypeElement::InitializeContext(
 	FPCGExPointsProcessorContext* InContext,
 	const FPCGDataCollection& InputData,
 	TWeakObjectPtr<UPCGComponent> SourceComponent,
 	const UPCGNode* Node) const
 {
-	FPCGExRelationsProcessorElement::InitializeContext(InContext, InputData, SourceComponent, Node);
-	//FPCGExFindRelationsTypeContext* Context = static_cast<FPCGExFindRelationsTypeContext*>(InContext);
+	FPCGExGraphProcessorElement::InitializeContext(InContext, InputData, SourceComponent, Node);
+	//FPCGExFindEdgesTypeContext* Context = static_cast<FPCGExFindEdgesTypeContext*>(InContext);
 	// ...
 }
 
-bool FPCGExFindRelationsTypeElement::ExecuteInternal(
+bool FPCGExFindEdgesTypeElement::ExecuteInternal(
 	FPCGContext* InContext) const
 {
-	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExFindRelationsTypeElement::Execute);
+	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExFindEdgesTypeElement::Execute);
 
-	FPCGExFindRelationsTypeContext* Context = static_cast<FPCGExFindRelationsTypeContext*>(InContext);
+	FPCGExFindEdgesTypeContext* Context = static_cast<FPCGExFindEdgesTypeContext*>(InContext);
 
 	if (Context->IsSetup())
 	{
@@ -74,17 +74,17 @@ bool FPCGExFindRelationsTypeElement::ExecuteInternal(
 		else
 		{
 			Context->CurrentIO->BuildMetadataEntries();
-			Context->SetState(PCGExMT::EState::ReadyForNextParams);
+			Context->SetState(PCGExMT::EState::ReadyForNextGraph);
 		}
 	}
 
 	auto ProcessPoint = [&Context](
 		const FPCGPoint& Point, int32 ReadIndex, UPCGExPointIO* IO)
 	{
-		Context->ComputeRelationsType(Point, ReadIndex, IO);
+		Context->ComputeEdgeType(Point, ReadIndex, IO);
 	};
 
-	if (Context->IsState(PCGExMT::EState::ReadyForNextParams))
+	if (Context->IsState(PCGExMT::EState::ReadyForNextGraph))
 	{
 		if (!Context->AdvanceParams())
 		{
@@ -93,20 +93,20 @@ bool FPCGExFindRelationsTypeElement::ExecuteInternal(
 		}
 		else
 		{
-			Context->SetState(PCGExMT::EState::ProcessingParams);
+			Context->SetState(PCGExMT::EState::ProcessingGraph);
 		}
 	}
 
 	auto Initialize = [&Context](const UPCGExPointIO* IO)
 	{
-		Context->CurrentParams->PrepareForPointData(Context, IO->Out);
+		Context->CurrentParams->PrepareForPointData(Context, IO->Out, true);
 	};
 
-	if (Context->IsState(PCGExMT::EState::ProcessingParams))
+	if (Context->IsState(PCGExMT::EState::ProcessingGraph))
 	{
 		if (Context->CurrentIO->OutputParallelProcessing(Context, Initialize, ProcessPoint, Context->ChunkSize))
 		{
-			Context->SetState(PCGExMT::EState::ReadyForNextParams);
+			Context->SetState(PCGExMT::EState::ReadyForNextGraph);
 		}
 	}
 

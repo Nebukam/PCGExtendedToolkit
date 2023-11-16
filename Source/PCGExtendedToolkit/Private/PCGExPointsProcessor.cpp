@@ -6,7 +6,7 @@
 #include "PCGContext.h"
 #include "PCGPin.h"
 
-#define LOCTEXT_NAMESPACE "PCGExRelationalSettings"
+#define LOCTEXT_NAMESPACE "PCGExGraphSettings"
 
 #pragma region UPCGSettings interface
 

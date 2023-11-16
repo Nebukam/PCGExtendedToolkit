@@ -17,6 +17,7 @@
 #include <shared_mutex>
 
 #include "PCGComponent.h"
+#include "AssetRegistry/AssetRegistryModule.h"
 #include "PCGExCommon.generated.h"
 
 //virtual FName GetDefaultNodeName() const override { return FName(TEXT(#_SHORTNAME)); } \
@@ -57,6 +58,8 @@ MACRO(EPCGPointProperties::LocalCenter, GetLocalCenter()) \
 MACRO(EPCGPointProperties::Seed, Seed)
 #define PCGEX_FOREACH_POINTEXTRAPROPERTY(MACRO)\
 MACRO(EPCGExtraProperties::Index, MetadataEntry)
+
+class FAssetRegistryModule;
 
 UENUM(BlueprintType)
 enum class EPCGExOrderedFieldSelection : uint8
@@ -420,5 +423,6 @@ namespace PCGEx
 
 			return true;
 		}
+
 	};
 }

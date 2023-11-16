@@ -1,56 +1,61 @@
 ﻿// Copyright Timothé Lapetite 2023
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Relational/PCGExDrawRelations.h"
+#include "Graph/PCGExDrawGraph.h"
 
 #include "Data/PCGSpatialData.h"
 #include "Data/PCGPointData.h"
 #include "PCGContext.h"
 #include "DrawDebugHelpers.h"
 #include "Editor.h"
-#include "Relational/PCGExRelationsHelpers.h"
+#include "PCGExtendedToolkit.h"
+#include "Graph/PCGExGraphHelpers.h"
 
-#define LOCTEXT_NAMESPACE "PCGExDrawRelations"
+#define LOCTEXT_NAMESPACE "PCGExDrawGraph"
 
-PCGEx::EIOInit UPCGExDrawRelationsSettings::GetPointOutputInitMode() const { return PCGEx::EIOInit::NoOutput; }
+PCGEx::EIOInit UPCGExDrawGraphSettings::GetPointOutputInitMode() const { return PCGEx::EIOInit::NoOutput; }
 
-FPCGElementPtr UPCGExDrawRelationsSettings::CreateElement() const
+FPCGElementPtr UPCGExDrawGraphSettings::CreateElement() const
 {
-	return MakeShared<FPCGExDrawRelationsElement>();
+	return MakeShared<FPCGExDrawGraphElement>();
 }
 
-UPCGExDrawRelationsSettings::UPCGExDrawRelationsSettings(
+UPCGExDrawGraphSettings::UPCGExDrawGraphSettings(
 	const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 	DebugSettings.PointScale = 0.0f;
+	//DebugSettings.PointMesh = FPCGExtendedToolkitModule::Get ? FPCGExtendedToolkitModule::Get->DebugMeshFrustrum : nullptr;
 }
 
 #if WITH_EDITOR
-TArray<FPCGPinProperties> UPCGExDrawRelationsSettings::OutputPinProperties() const
+TArray<FPCGPinProperties> UPCGExDrawGraphSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> None;
 	return None;
 }
 
-void UPCGExDrawRelationsSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+void UPCGExDrawGraphSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	if (const UWorld* EditorWorld = GEditor->GetEditorWorldContext().World()) { FlushPersistentDebugLines(EditorWorld); }
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
 #endif
 
-bool FPCGExDrawRelationsElement::ExecuteInternal(
+bool FPCGExDrawGraphElement::ExecuteInternal(
 	FPCGContext* InContext) const
 {
-	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExDrawRelationsElement::Execute);
+	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExDrawGraphElement::Execute);
 
 #if  WITH_EDITOR
 
-	FPCGExRelationsProcessorContext* Context = static_cast<FPCGExRelationsProcessorContext*>(InContext);
+	FPCGExGraphProcessorContext* Context = static_cast<FPCGExGraphProcessorContext*>(InContext);
 
-	const UPCGExDrawRelationsSettings* Settings = Context->GetInputSettings<UPCGExDrawRelationsSettings>();
+	UPCGExDrawGraphSettings* Settings = const_cast<UPCGExDrawGraphSettings*>(Context->GetInputSettings<UPCGExDrawGraphSettings>());
 	check(Settings);
+
+	//Settings->DebugSettings.PointMesh = FPCGExtendedToolkitModule::Get->DebugMeshFrustrum;
+	// Get the path of the static mesh
 
 	UWorld* World = PCGEx::Common::GetWorld(Context);
 
@@ -72,7 +77,7 @@ bool FPCGExDrawRelationsElement::ExecuteInternal(
 		}
 		else
 		{
-			Context->SetState(PCGExMT::EState::ReadyForNextParams);
+			Context->SetState(PCGExMT::EState::ReadyForNextGraph);
 		}
 	}
 
@@ -83,33 +88,33 @@ bool FPCGExDrawRelationsElement::ExecuteInternal(
 
 		const FVector Start = Point.Transform.GetLocation();
 
-		TArray<PCGExRelational::FSocketSampler> Samplers;
-		if (Settings->bDrawSocketCones) { Context->PrepareSamplersForPoint(Point, Samplers); }
+		TArray<PCGExGraph::FSocketProbe> Probes;
+		if (Settings->bDrawSocketCones) { Context->PrepareProbesForPoint(Point, Probes); }
 
-		for (const PCGExRelational::FSocketInfos& SocketInfos : Context->SocketInfos)
+		for (const PCGExGraph::FSocketInfos& SocketInfos : Context->SocketInfos)
 		{
-			const PCGExRelational::FSocketMetadata SocketMetadata = SocketInfos.Socket->GetData(Point.MetadataEntry);
+			const PCGExGraph::FSocketMetadata SocketMetadata = SocketInfos.Socket->GetData(Point.MetadataEntry);
 
 			if (Settings->bDrawSocketCones)
 			{
-				for (PCGExRelational::FSocketSampler Sampler : Samplers)
+				for (PCGExGraph::FSocketProbe Probe : Probes)
 				{
-					double AngleWidth = FMath::Acos(FMath::Max(-1.0, FMath::Min(1.0, Sampler.DotTolerance)));
+					double AngleWidth = FMath::Acos(FMath::Max(-1.0, FMath::Min(1.0, Probe.DotTolerance)));
 					DrawDebugCone(
 						World,
-						Sampler.Origin,
-						Sampler.Direction,
-						Sampler.MaxDistance,
+						Probe.Origin,
+						Probe.Direction,
+						Probe.MaxDistance,
 						AngleWidth, AngleWidth, 12,
-						Sampler.SocketInfos->Socket->Descriptor.DebugColor,
+						Probe.SocketInfos->Socket->Descriptor.DebugColor,
 						true, -1, 0, .5f);
 				}
 			}
 
-			if (Settings->bDrawRelations)
+			if (Settings->bDrawGraph)
 			{
 				if (SocketMetadata.Index == -1) { continue; }
-				if (Settings->bFilterRelations && SocketMetadata.RelationType != Settings->RelationType) { continue; }
+				if (Settings->bFilterEdges && SocketMetadata.EdgeType != Settings->EdgeType) { continue; }
 
 				FPCGPoint PtB = IO->In->GetPoint(SocketMetadata.Index);
 				FVector End = PtB.Transform.GetLocation();
@@ -117,30 +122,30 @@ bool FPCGExDrawRelationsElement::ExecuteInternal(
 				float ArrowSize = 0.0f;
 				float Lerp = 1.0f;
 
-				switch (SocketMetadata.RelationType)
+				switch (SocketMetadata.EdgeType)
 				{
-				case EPCGExRelationType::Unknown:
+				case EPCGExEdgeType::Unknown:
 					Lerp = 0.8f;
 					Thickness = 0.5f;
 					ArrowSize = 1.0f;
 					break;
-				case EPCGExRelationType::Unique:
+				case EPCGExEdgeType::Unique:
 					Lerp = 0.8f;
 					ArrowSize = 1.0f;
 					break;
-				case EPCGExRelationType::Shared:
+				case EPCGExEdgeType::Shared:
 					Lerp = 0.4f;
 					ArrowSize = 2.0f;
 					break;
-				case EPCGExRelationType::Match:
+				case EPCGExEdgeType::Match:
 					Lerp = 0.5f;
 					Thickness = 2.0f;
 					break;
-				case EPCGExRelationType::Complete:
+				case EPCGExEdgeType::Complete:
 					Lerp = 0.5f;
 					Thickness = 2.0f;
 					break;
-				case EPCGExRelationType::Mirror:
+				case EPCGExEdgeType::Mirror:
 					ArrowSize = 2.0f;
 					Lerp = 0.5f;
 					break;
@@ -162,7 +167,7 @@ bool FPCGExDrawRelationsElement::ExecuteInternal(
 		}
 	};
 
-	if (Context->IsState(PCGExMT::EState::ReadyForNextParams))
+	if (Context->IsState(PCGExMT::EState::ReadyForNextGraph))
 	{
 		if (!Context->AdvanceParams())
 		{
@@ -170,21 +175,21 @@ bool FPCGExDrawRelationsElement::ExecuteInternal(
 		}
 		else
 		{
-			Context->SetState(PCGExMT::EState::ProcessingParams);
+			Context->SetState(PCGExMT::EState::ProcessingGraph);
 		}
 	}
 
 	auto Initialize = [&Context](const UPCGExPointIO* IO)
 	{
-		Context->CurrentParams->PrepareForPointData(Context, IO->In);
+		Context->CurrentParams->PrepareForPointData(Context, IO->In, false);
 	};
 
-	if (Context->IsState(PCGExMT::EState::ProcessingParams))
+	if (Context->IsState(PCGExMT::EState::ProcessingGraph))
 	{
 		//if (Context->CurrentIO->InputParallelProcessing(Context, Initialize, ProcessPoint, Context->ChunkSize)) { Context->SetState(PCGExMT::EState::ProcessingParams); }
 		Initialize(Context->CurrentIO);
 		for (int i = 0; i < Context->CurrentIO->NumPoints; i++) { ProcessPoint(Context->CurrentIO->In->GetPoint(i), i, Context->CurrentIO); }
-		Context->SetState(PCGExMT::EState::ReadyForNextParams);
+		Context->SetState(PCGExMT::EState::ReadyForNextGraph);
 	}
 
 	if (Context->IsState(PCGExMT::EState::Done))

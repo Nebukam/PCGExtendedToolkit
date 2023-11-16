@@ -18,18 +18,18 @@ namespace PCGExMT
 		Setup UMETA(DisplayName = "Setup"),
 		ReadyForNextPoints UMETA(DisplayName = "Ready for next points"),
 		ReadyForPoints2ndPass UMETA(DisplayName = "Ready for next points - 2nd pass"),
-		ReadyForNextParams UMETA(DisplayName = "Ready for next params"),
-		ReadyForParams2ndPass UMETA(DisplayName = "Ready for next params - 2nd pass"),
+		ReadyForNextGraph UMETA(DisplayName = "Ready for next params"),
+		ReadyForGraph2ndPass UMETA(DisplayName = "Ready for next params - 2nd pass"),
 		ProcessingPoints UMETA(DisplayName = "Processing points"),
 		ProcessingPoints2ndPass UMETA(DisplayName = "Processing points - 2nd pass"),
-		ProcessingParams UMETA(DisplayName = "Processing params"),
-		ProcessingParams2ndPass UMETA(DisplayName = "Processing params - 2nd pass"),
+		ProcessingGraph UMETA(DisplayName = "Processing params"),
+		ProcessingGraph2ndPass UMETA(DisplayName = "Processing params - 2nd pass"),
 		Done UMETA(DisplayName = "Done")
 	};
 }
 
 /**
- * A Base node to process a set of point using RelationalParams.
+ * A Base node to process a set of point using GraphParams.
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural))
 class PCGEXTENDEDTOOLKIT_API UPCGExPointsProcessorSettings : public UPCGSettings

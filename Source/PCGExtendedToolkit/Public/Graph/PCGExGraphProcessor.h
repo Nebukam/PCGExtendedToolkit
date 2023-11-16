@@ -6,17 +6,17 @@
 #include "CoreMinimal.h"
 #include "PCGContext.h"
 #include "PCGExPointsProcessor.h"
-#include "PCGExRelationsHelpers.h"
-#include "PCGExRelationsProcessor.generated.h"
+#include "PCGExGraphHelpers.h"
+#include "PCGExGraphProcessor.generated.h"
 
-class UPCGExRelationsParamsData;
+class UPCGExGraphParamsData;
 
-namespace PCGExRelational
+namespace PCGExGraph
 {
 	/** Per-socket temp data structure for processing only*/
-	struct PCGEXTENDEDTOOLKIT_API FSocketSampler : FPCGExSocketDirection
+	struct PCGEXTENDEDTOOLKIT_API FSocketProbe : FPCGExSocketAngle
 	{
-		FSocketSampler()
+		FSocketProbe()
 		{
 		}
 
@@ -61,11 +61,11 @@ namespace PCGExRelational
 
 		void OutputTo(PCGMetadataEntryKey Key) const
 		{
-			SocketInfos->Socket->SetRelationIndex(Key, Index);
-			SocketInfos->Socket->SetRelationEntryKey(Key, EntryKey);
+			SocketInfos->Socket->SetTargetIndex(Key, Index);
+			SocketInfos->Socket->SetTargetEntryKey(Key, EntryKey);
 		}
 
-		~FSocketSampler()
+		~FSocketProbe()
 		{
 			SocketInfos = nullptr;
 		}
@@ -73,17 +73,17 @@ namespace PCGExRelational
 }
 
 /**
- * A Base node to process a set of point using RelationalParams.
+ * A Base node to process a set of point using GraphParams.
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural))
-class PCGEXTENDEDTOOLKIT_API UPCGExRelationsProcessorSettings : public UPCGExPointsProcessorSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExGraphProcessorSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(RelationsProcessorSettings, "Relations Processor Settings", "TOOLTIP_TEXT");
+	PCGEX_NODE_INFOS(GraphProcessorSettings, "Graph Processor Settings", "TOOLTIP_TEXT");
 	virtual FLinearColor GetNodeTitleColor() const override { return FLinearColor(80.0f / 255.0f, 241.0f / 255.0f, 168.0f / 255.0f, 1.0f); }
 #endif
 
@@ -92,15 +92,15 @@ public:
 	//~End UPCGSettings interface
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExRelationsProcessorContext : public FPCGExPointsProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExGraphProcessorContext : public FPCGExPointsProcessorContext
 {
-	friend class UPCGExRelationsProcessorSettings;
+	friend class UPCGExGraphProcessorSettings;
 
 public:
-	PCGExRelational::FParamsInputs Params;
+	PCGExGraph::FParamsInputs Params;
 
 	int32 GetCurrentParamsIndex() const { return CurrentParamsIndex; };
-	UPCGExRelationsParamsData* CurrentParams = nullptr;
+	UPCGExGraphParamsData* CurrentParams = nullptr;
 
 	bool AdvanceParams(bool bResetPointsIndex = false);
 	bool AdvancePointsIO(bool bResetParamsIndex = false);
@@ -108,10 +108,10 @@ public:
 	virtual void Reset() override;
 
 	FPCGMetadataAttribute<int64>* CachedIndex;
-	TArray<PCGExRelational::FSocketInfos> SocketInfos;
+	TArray<PCGExGraph::FSocketInfos> SocketInfos;
 
-	void ComputeRelationsType(const FPCGPoint& Point, int32 ReadIndex, const UPCGExPointIO* IO);
-	double PrepareSamplersForPoint(const FPCGPoint& Point, TArray<PCGExRelational::FSocketSampler>& OutSamplers);
+	void ComputeEdgeType(const FPCGPoint& Point, int32 ReadIndex, const UPCGExPointIO* IO);
+	double PrepareProbesForPoint(const FPCGPoint& Point, TArray<PCGExGraph::FSocketProbe>& OutProbes);
 
 	void OutputParams() { Params.OutputTo(this); }
 
@@ -123,10 +123,10 @@ public:
 
 protected:
 	int32 CurrentParamsIndex = -1;
-	virtual void PrepareSamplerForPointSocketPair(const FPCGPoint& Point, PCGExRelational::FSocketSampler& Sampler, PCGExRelational::FSocketInfos SocketInfos);
+	virtual void PrepareProbeForPointSocketPair(const FPCGPoint& Point, PCGExGraph::FSocketProbe& Probe, PCGExGraph::FSocketInfos SocketInfos);
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExRelationsProcessorElement : public FPCGExPointsProcessorElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExGraphProcessorElement : public FPCGExPointsProcessorElementBase
 {
 public:
 	virtual FPCGContext* Initialize(

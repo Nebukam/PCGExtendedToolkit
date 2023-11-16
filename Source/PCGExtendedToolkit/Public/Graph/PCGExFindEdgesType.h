@@ -4,23 +4,23 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExRelationsProcessor.h"
+#include "PCGExGraphProcessor.h"
 #include "Data/PCGPointData.h"
 #include "Elements/PCGPointProcessingElementBase.h"
-#include "PCGExConsolidateRelations.generated.h"
+#include "PCGExFindEdgesType.generated.h"
 
 /**
  * Calculates the distance between two points (inherently a n*n operation)
  */
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Relational")
-class PCGEXTENDEDTOOLKIT_API UPCGExConsolidateRelationsSettings : public UPCGExRelationsProcessorSettings
+UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
+class PCGEXTENDEDTOOLKIT_API UPCGExFindEdgesTypeSettings : public UPCGExGraphProcessorSettings
 {
 	GENERATED_BODY()
 
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(ConsolidateRelations, "Consolidate Relations", "Repairs and consolidate relations indices after points have been removed post relations-building.");
+	PCGEX_NODE_INFOS(FindEdgesType, "Find Edges Type", "Find and writes the type of edge for each point and each socket.");
 #endif
 
 protected:
@@ -28,24 +28,20 @@ protected:
 	//~End UPCGSettings interface
 
 	virtual int32 GetPreferredChunkSize() const override;
-
 	virtual PCGEx::EIOInit GetPointOutputInitMode() const override;
 
-private:
-	friend class FPCGExConsolidateRelationsElement;
-};
-
-struct PCGEXTENDEDTOOLKIT_API FPCGExConsolidateRelationsContext : public FPCGExRelationsProcessorContext
-{
-	friend class FPCGExConsolidateRelationsElement;
-
 public:
-	TMap<int64, int64> Deltas;
-	mutable FRWLock DeltaLock;
+
+private:
+	friend class FPCGExFindEdgesTypeElement;
 };
 
+struct PCGEXTENDEDTOOLKIT_API FPCGExFindEdgesTypeContext : public FPCGExGraphProcessorContext
+{
+	friend class FPCGExFindEdgesTypeElement;
+};
 
-class PCGEXTENDEDTOOLKIT_API FPCGExConsolidateRelationsElement : public FPCGExRelationsProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExFindEdgesTypeElement : public FPCGExGraphProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -60,7 +56,4 @@ protected:
 		TWeakObjectPtr<UPCGComponent> SourceComponent,
 		const UPCGNode* Node) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
-#if WITH_EDITOR
-	static int64 GetFixedIndex(FPCGExConsolidateRelationsContext* Context, int64 InIndex);
-#endif
 };

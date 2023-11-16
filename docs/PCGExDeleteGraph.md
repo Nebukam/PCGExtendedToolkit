@@ -1,4 +1,4 @@
-# Delete Relations ![Relational](https://img.shields.io/badge/Relational-37a573)
+# Delete Graph ![Graph](https://img.shields.io/badge/Graph-37a573)
 
 ## What is it useful for?
 This node deletes relational data attributes associated with given inputs.  

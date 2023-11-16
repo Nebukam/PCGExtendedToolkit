@@ -25,6 +25,8 @@ public class PCGExtendedToolkit : ModuleRules
 			{
                 "Core",
                 "CoreUObject",
+                "StaticMeshDescription",
+                "MeshDescription",
                 "Engine",
 				"PCG",
                 "PCGGeometryScriptInterop",
@@ -36,12 +38,6 @@ public class PCGExtendedToolkit : ModuleRules
 		PrivateDependencyModuleNames.AddRange(
 			new string[]
 			{
-				"CoreUObject",
-				"Engine",
-				"Slate",
-				"SlateCore",
-                "PCG",
-                "PCGGeometryScriptInterop",
             }
 			);
 		

@@ -9,7 +9,7 @@
 #include "Data/PCGSpatialData.h"
 #include "PCGSettings.h"
 #include "Elements/PCGPointProcessingElementBase.h"
-#include "Relational/PCGExRelationsProcessor.h"
+#include "Graph/PCGExGraphProcessor.h"
 #include "PCGExLocalAttributeHelpers.h"
 #include <shared_mutex>
 #include "PCGExPartitionByValues.generated.h"

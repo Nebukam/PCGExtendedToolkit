@@ -1,12 +1,12 @@
-# Create Relations Params ![Relational](https://img.shields.io/badge/Relational-37a573)
+# Create Graph Params ![Graph](https://img.shields.io/badge/Graph-37a573)
 
 ## What is it useful for?
 This node contains a single "relational model". It defines a list of relation *slots*, that each represent a direction in which a connection may exist. 
 
->It is mandatory to work with the **Relational** nodes. 
+>It is mandatory to work with the **Graph** nodes. 
 
 ## How to use
-Each slot represent a direction in space that can be world-based, or relative to the point it processes. By default, Relational Params contains 6 slots: *Up*, *Down*, *Left*, *Right*, *Forward* and *Backward*; meaning it samples relations like a 3D grid.
+Each slot represent a direction in space that can be world-based, or relative to the point it processes. By default, Graph Params contains 6 slots: *Up*, *Down*, *Left*, *Right*, *Forward* and *Backward*; meaning it samples relations like a 3D grid.
 
 If you wanted relations to be sampled like a 2D grid, you could remove *Up* & *Down* entries; or create completely custom ones.
  
