@@ -11,6 +11,27 @@
 #include "Elements/PCGPointProcessingElementBase.h"
 #include "PCGExPointsProcessor.generated.h"
 
+#define PCGEX_OUT_ATTRIBUTE(_NAME, _TYPE)\
+bool bWrite##_NAME = false;\
+FName OutName##_NAME = NAME_None;\
+FPCGMetadataAttribute<_TYPE>* OutAttribute##_NAME = nullptr;
+#define PCGEX_FORWARD_ATTRIBUTE(_NAME, _TOGGLE, _SETTING_NAME)\
+Context->bWrite##_NAME = Settings->_TOGGLE;\
+Context->OutName##_NAME = Settings->_SETTING_NAME;
+
+#define PCGEX_CHECK_OUTNAME(_NAME)\
+if(Context->bWrite##_NAME && !PCGEx::Common::IsValidName(Context->OutName##_NAME))\
+{ PCGE_LOG(Warning, GraphAndLog, LOCTEXT("InvalidName", "Invalid output attribute name " #_NAME ));\
+Context->bWrite##_NAME = false; }
+
+#define PCGEX_SET_OUT_ATTRIBUTE(_NAME, _KEY, _VALUE)\
+if (Context->OutAttribute##_NAME) { Context->OutAttribute##_NAME->SetValue(_KEY, _VALUE); }
+
+#define PCGEX_INIT_ATTRIBUTE_OUT(_NAME, _TYPE)\
+Context->OutAttribute##_NAME = PCGEx::Common::TryGetAttribute<_TYPE>(IO->Out, Context->OutName##_NAME, Context->bWrite##_NAME);
+#define PCGEX_INIT_ATTRIBUTE_IN(_NAME, _TYPE)\
+Context->OutAttribute##_NAME = PCGEx::Common::TryGetAttribute<_TYPE>(IO->In, Context->OutName##_NAME, Context->bWrite##_NAME);
+
 namespace PCGExMT
 {
 	enum EState : int
@@ -34,18 +55,20 @@ namespace PCGExMT
 		{
 		}
 
-		FTaskInfos(int32 InIndex, int32 InAttempt = 0):
-			Index(InIndex), Attempt(InAttempt)
+		FTaskInfos(int32 InIndex, PCGMetadataEntryKey InKey, int32 InAttempt = 0):
+			Index(InIndex), Key(InKey), Attempt(InAttempt)
 		{
 		}
 
-		FTaskInfos(const FTaskInfos& Other, bool bIncrement = false):
-			Index(Other.Index), Attempt(Other.Attempt)
+		FTaskInfos(const FTaskInfos& Other):
+			Index(Other.Index), Key(Other.Key), Attempt(Other.Attempt)
 		{
-			if (bIncrement) { Attempt++; }
 		}
+
+		FTaskInfos GetRetry() const { return FTaskInfos(Index, Key, Attempt + 1); }
 
 		int32 Index = -1;
+		PCGMetadataEntryKey Key = PCGInvalidEntryKey;
 		int32 Attempt = 0;
 	};
 }
@@ -116,9 +139,9 @@ protected:
 	int32 CurrentPointsIndex = -1;
 
 	template <typename T>
-	void ScheduleTask(const int32 Index, const int32 Attempt = 0)
+	void ScheduleTask(const int32 Index, const PCGMetadataEntryKey Key, const int32 Attempt = 0)
 	{
-		FAsyncTask<T>* AsyncTask = new FAsyncTask<T>(this, CurrentIO, PCGExMT::FTaskInfos(Index, Attempt));
+		FAsyncTask<T>* AsyncTask = new FAsyncTask<T>(this, CurrentIO, PCGExMT::FTaskInfos(Index, Key, Attempt));
 		AsyncTask->StartBackgroundTask();
 	}
 
@@ -128,7 +151,6 @@ protected:
 		FAsyncTask<T>* AsyncTask = new FAsyncTask<T>(this, CurrentIO, Infos);
 		AsyncTask->StartBackgroundTask();
 	}
-
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorElementBase : public FPCGPointProcessingElementBase
@@ -152,7 +174,7 @@ namespace PCGExAsync
 
 		FPointTask(
 			FPCGExPointsProcessorContext* InContext, UPCGExPointIO* InPointData, PCGExMT::FTaskInfos InInfos) :
-			Context(InContext), PointData(InPointData), Infos(InInfos)
+			TaskContext(InContext), PointData(InPointData), Infos(InInfos)
 		{
 		}
 
@@ -161,17 +183,19 @@ namespace PCGExAsync
 			RETURN_QUICK_DECLARE_CYCLE_STAT(FAsyncPointTask, STATGROUP_ThreadPoolAsyncTasks);
 		}
 
-		void DoWork() { ExecuteTask(); };
+		void DoWork()
+		{
+			FPCGExPointsProcessorContext* InContext = TaskContext;
+			if (InContext->SourceComponent.IsValid() && !InContext->SourceComponent.IsStale(true, true)) { ExecuteTask(InContext); }
+		};
 
 		void PostDoWork() { delete this; }
 
-		virtual void ExecuteTask() = 0;
+		virtual void ExecuteTask(FPCGExPointsProcessorContext* InContext) = 0;
 
-		FPCGExPointsProcessorContext* Context;
+		FPCGExPointsProcessorContext* TaskContext;
 		UPCGExPointIO* PointData;
 		PCGExMT::FTaskInfos Infos;
-
-		PCGExMT::FTaskInfos RetryInfos() const { return PCGExMT::FTaskInfos(Infos.Index, Infos.Attempt + 1); }
 
 		FPCGPoint GetInPoint() const { return PointData->In->GetPoint(Infos.Index); }
 		FPCGPoint GetOutPoint() const { return PointData->Out->GetPoint(Infos.Index); }

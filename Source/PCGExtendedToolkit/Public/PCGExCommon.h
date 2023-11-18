@@ -318,33 +318,13 @@ namespace PCGEx
 			return Context->SourceComponent->GetWorld();
 		}
 
-		static bool ForEachPointData(
-			FPCGContext* Context,
-			TArray<FPCGTaggedData>& Sources,
-			const TFunction<void(const FPCGTaggedData& Source, const UPCGPointData* PointData)>& PerPointDataFunc)
+		template <typename T>
+	static FPCGMetadataAttribute<T>* TryGetAttribute(UPCGSpatialData* InData, FName Name, bool bEnabled, T defaultValue = T{})
 		{
-			bool bSkippedInvalidData = false;
-			for (const FPCGTaggedData& Source : Sources)
-			{
-				const UPCGSpatialData* AsSpatialData = Cast<UPCGSpatialData>(Source.Data);
-				if (!AsSpatialData)
-				{
-					bSkippedInvalidData = true;
-					continue;
-				}
-
-				const UPCGPointData* AsPointData = AsSpatialData->ToPointData(Context);
-				if (!AsPointData)
-				{
-					bSkippedInvalidData = true;
-					continue;
-				}
-
-				PerPointDataFunc(Source, AsPointData);
-			}
-			return bSkippedInvalidData;
+			if (!bEnabled || !PCGEx::Common::IsValidName(Name)) { return nullptr; }
+			return InData->Metadata->FindOrCreateAttribute<T>(Name, defaultValue);
 		}
-
+		
 		/**
 		 * 
 		 * @tparam LoopBodyFunc 

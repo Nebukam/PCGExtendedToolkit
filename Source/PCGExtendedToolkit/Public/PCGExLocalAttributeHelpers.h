@@ -41,7 +41,7 @@ namespace PCGEx
 			bValid = false;
 			if (!bEnabled) { return false; }
 			if (Descriptor.Validate(PointData)) { bValid = ValidateInternal(); }
-			else if(Descriptor.GetSelection() == EPCGAttributePropertySelection::Attribute)
+			else if (Descriptor.GetSelection() == EPCGAttributePropertySelection::Attribute)
 			{
 				PointData->Metadata->FindOrCreateAttribute<T>(Descriptor.GetName(), GetDefaultValue());
 				if (Descriptor.Validate(PointData)) { bValid = ValidateInternal(); }

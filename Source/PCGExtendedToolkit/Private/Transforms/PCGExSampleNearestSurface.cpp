@@ -25,20 +25,13 @@ void FPCGExSampleDistanceFieldContext::ProcessSweepMiss(const PCGExAsync::FSweep
 		return;
 	}
 
-	ScheduleTask<PCGExAsync::FSweepSphereTask>(Task->RetryInfos());
+	ScheduleTask<PCGExAsync::FSweepSphereTask>(Task->Infos.GetRetry());
 }
 
 void FPCGExSampleDistanceFieldContext::WrapSweepTask(const PCGExAsync::FSweepSphereTask* Task, bool bSuccess)
 {
 	FWriteScopeLock ScopeLock(ContextLock);
 	NumSweepComplete++;
-	// Write or else
-
-	if (bSuccess)
-	{
-		//DrawDebugLine(Task->Context->World, Task->HitResult.Location, Task->HitResult.ImpactPoint, FColor::Blue, true, -1, 0, 0.5);
-		//DrawDebugPoint(Task->Context->World, Task->HitResult.ImpactPoint, 2, FColor::Green, true);
-	}
 }
 
 FPCGContext* FPCGExSampleDistanceFieldElement::Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node)
@@ -54,12 +47,23 @@ FPCGContext* FPCGExSampleDistanceFieldElement::Initialize(const FPCGDataCollecti
 	Context->CollisionChannel = Settings->CollisionChannel;
 	Context->bIgnoreSelf = Settings->bIgnoreSelf;
 
+	PCGEX_FORWARD_ATTRIBUTE(Location, bWriteLocation, Location)
+	PCGEX_FORWARD_ATTRIBUTE(Direction, bWriteDirection, Direction)
+	PCGEX_FORWARD_ATTRIBUTE(Normal, bWriteNormal, Normal)
+	PCGEX_FORWARD_ATTRIBUTE(Distance, bWriteDistance, Distance)
+
 	return Context;
 }
 
 bool FPCGExSampleDistanceFieldElement::Validate(FPCGContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElementBase::Validate(InContext)) { return false; }
+
+	FPCGExSampleDistanceFieldContext* Context = static_cast<FPCGExSampleDistanceFieldContext*>(InContext);
+	PCGEX_CHECK_OUTNAME(Location)
+	PCGEX_CHECK_OUTNAME(Direction)
+	PCGEX_CHECK_OUTNAME(Normal)
+	PCGEX_CHECK_OUTNAME(Distance)
 	return true;
 }
 
@@ -91,12 +95,15 @@ bool FPCGExSampleDistanceFieldElement::ExecuteInternal(FPCGContext* InContext) c
 	{
 		Context->NumSweepComplete = 0;
 		IO->BuildMetadataEntries();
-		//Context->HitLocationAttribute = IO->Out->Metadata->FindOrCreateAttribute<FVector>(Context->OutName, FVector::ZeroVector, false, true, true);
+		PCGEX_INIT_ATTRIBUTE_OUT(Location, FVector)
+		PCGEX_INIT_ATTRIBUTE_OUT(Direction, FVector)
+		PCGEX_INIT_ATTRIBUTE_OUT(Normal, FVector)
+		PCGEX_INIT_ATTRIBUTE_OUT(Distance, double)
 	};
 
 	auto ProcessPoint = [&Context, this](const FPCGPoint& Point, const int32 Index, UPCGExPointIO* IO)
 	{
-		Context->ScheduleTask<PCGExAsync::FSweepSphereTask>(Index);
+		Context->ScheduleTask<PCGExAsync::FSweepSphereTask>(Index, Point.MetadataEntry);
 	};
 
 	if (Context->IsState(PCGExMT::EState::ProcessingPoints))
