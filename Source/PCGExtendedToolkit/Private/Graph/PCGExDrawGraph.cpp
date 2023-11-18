@@ -57,11 +57,9 @@ bool FPCGExDrawGraphElement::ExecuteInternal(
 	//Settings->DebugSettings.PointMesh = FPCGExtendedToolkitModule::Get->DebugMeshFrustrum;
 	// Get the path of the static mesh
 
-	UWorld* World = PCGEx::Common::GetWorld(Context);
-
 	if (Context->IsSetup())
 	{
-		FlushPersistentDebugLines(World);
+		FlushPersistentDebugLines(Context->World);
 
 		if (!Validate(Context)) { return true; }
 		if (!Settings->bDebug) { return true; }
@@ -81,7 +79,7 @@ bool FPCGExDrawGraphElement::ExecuteInternal(
 		}
 	}
 
-	auto ProcessPoint = [&Context, &World, &Settings](
+	auto ProcessPoint = [&Context, &Settings](
 		const FPCGPoint& Point, int32 ReadIndex, UPCGExPointIO* IO)
 	{
 		//FWriteScopeLock ScopeLock(Context->ContextLock);
@@ -101,7 +99,7 @@ bool FPCGExDrawGraphElement::ExecuteInternal(
 				{
 					double AngleWidth = FMath::Acos(FMath::Max(-1.0, FMath::Min(1.0, Probe.DotThreshold)));
 					DrawDebugCone(
-						World,
+						Context->World,
 						Probe.Origin,
 						Probe.Direction,
 						FMath::Sqrt(Probe.MaxDistance),
@@ -157,11 +155,11 @@ bool FPCGExDrawGraphElement::ExecuteInternal(
 
 				if (ArrowSize > 0.0f)
 				{
-					DrawDebugDirectionalArrow(World, Start, FMath::Lerp(Start, End, Lerp), 3.0f, SocketInfos.Socket->Descriptor.DebugColor, true, -1, 0, Thickness);
+					DrawDebugDirectionalArrow(Context->World, Start, FMath::Lerp(Start, End, Lerp), 3.0f, SocketInfos.Socket->Descriptor.DebugColor, true, -1, 0, Thickness);
 				}
 				else
 				{
-					DrawDebugLine(World, Start, FMath::Lerp(Start, End, Lerp), SocketInfos.Socket->Descriptor.DebugColor, true, -1, 0, Thickness);
+					DrawDebugLine(Context->World, Start, FMath::Lerp(Start, End, Lerp), SocketInfos.Socket->Descriptor.DebugColor, true, -1, 0, Thickness);
 				}
 			}
 		}

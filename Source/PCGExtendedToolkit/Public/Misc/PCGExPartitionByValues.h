@@ -15,15 +15,15 @@
 #include "PCGExPartitionByValues.generated.h"
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExPartitionRuleDescriptor : public FPCGExInputSelectorWithSingleField
+struct PCGEXTENDEDTOOLKIT_API FPCGExPartitionRuleDescriptor : public FPCGExInputDescriptorWithSingleField
 {
 	GENERATED_BODY()
 
-	FPCGExPartitionRuleDescriptor(): FPCGExInputSelectorWithSingleField()
+	FPCGExPartitionRuleDescriptor(): FPCGExInputDescriptorWithSingleField()
 	{
 	}
 
-	FPCGExPartitionRuleDescriptor(const FPCGExPartitionRuleDescriptor& Other): FPCGExInputSelectorWithSingleField(Other)
+	FPCGExPartitionRuleDescriptor(const FPCGExPartitionRuleDescriptor& Other): FPCGExInputDescriptorWithSingleField(Other)
 	{
 		FilterSize = Other.FilterSize;
 		Upscale = Other.Upscale;
@@ -52,7 +52,7 @@ namespace PCGExPartition
 			FilterSize(InRule.FilterSize),
 			Upscale(InRule.Upscale)
 		{
-			Descriptor = static_cast<FPCGExInputSelector>(InRule);
+			Descriptor = static_cast<FPCGExInputDescriptor>(InRule);
 		}
 
 	public:
@@ -92,7 +92,7 @@ public:
 
 	/** Name of the int64 attribute to write the partition Key to. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bWriteKeyToAttribute"))
-	FName KeyAttributeName = "PartitionID";
+	FName KeyAttributeName = "PartitionKey";
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExSplitByValuesContext : public FPCGExPointsProcessorContext

@@ -106,6 +106,9 @@ void FPCGExPointsProcessorElementBase::InitializeContext(
 	InContext->SourceComponent = SourceComponent;
 	InContext->Node = Node;
 
+	check(SourceComponent.IsValid());
+	InContext->World = SourceComponent->GetWorld();
+
 	const UPCGExPointsProcessorSettings* Settings = InContext->GetInputSettings<UPCGExPointsProcessorSettings>();
 	check(Settings);
 

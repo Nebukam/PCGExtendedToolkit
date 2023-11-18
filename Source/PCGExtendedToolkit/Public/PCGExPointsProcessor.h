@@ -24,7 +24,29 @@ namespace PCGExMT
 		ProcessingPoints2ndPass UMETA(DisplayName = "Processing points - 2nd pass"),
 		ProcessingGraph UMETA(DisplayName = "Processing params"),
 		ProcessingGraph2ndPass UMETA(DisplayName = "Processing params - 2nd pass"),
+		WaitingOnAsyncTasks UMETA(DisplayName = "Waiting on async tasks"),
 		Done UMETA(DisplayName = "Done")
+	};
+
+	struct FTaskInfos
+	{
+		FTaskInfos()
+		{
+		}
+
+		FTaskInfos(int32 InIndex, int32 InAttempt = 0):
+			Index(InIndex), Attempt(InAttempt)
+		{
+		}
+
+		FTaskInfos(const FTaskInfos& Other, bool bIncrement = false):
+			Index(Other.Index), Attempt(Other.Attempt)
+		{
+			if (bIncrement) { Attempt++; }
+		}
+
+		int32 Index = -1;
+		int32 Attempt = 0;
 	};
 }
 
@@ -52,10 +74,6 @@ public:
 	virtual PCGEx::EIOInit GetPointOutputInitMode() const;
 
 	/** Multithread chunk size, when supported.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, AdvancedDisplay, meta=(Units="Seconds"))
-	double DebugDrawLifetime = 10.0f;
-
-	/** Multithread chunk size, when supported.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, AdvancedDisplay)
 	int32 ChunkSize = 0;
 
@@ -74,6 +92,7 @@ public:
 	UPCGExPointIO* CurrentIO = nullptr;
 
 	bool AdvancePointsIO();
+	UWorld* World = nullptr;
 
 	PCGExMT::EState GetState() const { return CurrentState; }
 	bool IsState(const PCGExMT::EState OperationId) const { return CurrentState == OperationId; }
@@ -95,6 +114,21 @@ public:
 protected:
 	PCGExMT::EState CurrentState = PCGExMT::EState::Setup;
 	int32 CurrentPointsIndex = -1;
+
+	template <typename T>
+	void ScheduleTask(const int32 Index, const int32 Attempt = 0)
+	{
+		FAsyncTask<T>* AsyncTask = new FAsyncTask<T>(this, CurrentIO, PCGExMT::FTaskInfos(Index, Attempt));
+		AsyncTask->StartBackgroundTask();
+	}
+
+	template <typename T>
+	void ScheduleTask(const PCGExMT::FTaskInfos Infos)
+	{
+		FAsyncTask<T>* AsyncTask = new FAsyncTask<T>(this, CurrentIO, Infos);
+		AsyncTask->StartBackgroundTask();
+	}
+
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorElementBase : public FPCGPointProcessingElementBase
@@ -108,3 +142,38 @@ protected:
 	virtual void InitializeContext(FPCGExPointsProcessorContext* InContext, const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node) const;
 	//virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
+
+namespace PCGExAsync
+{
+	class FPointTask : public FNonAbandonableTask
+	{
+	public:
+		virtual ~FPointTask() = default;
+
+		FPointTask(
+			FPCGExPointsProcessorContext* InContext, UPCGExPointIO* InPointData, PCGExMT::FTaskInfos InInfos) :
+			Context(InContext), PointData(InPointData), Infos(InInfos)
+		{
+		}
+
+		FORCEINLINE TStatId GetStatId() const
+		{
+			RETURN_QUICK_DECLARE_CYCLE_STAT(FAsyncPointTask, STATGROUP_ThreadPoolAsyncTasks);
+		}
+
+		void DoWork() { ExecuteTask(); };
+
+		void PostDoWork() { delete this; }
+
+		virtual void ExecuteTask() = 0;
+
+		FPCGExPointsProcessorContext* Context;
+		UPCGExPointIO* PointData;
+		PCGExMT::FTaskInfos Infos;
+
+		PCGExMT::FTaskInfos RetryInfos() const { return PCGExMT::FTaskInfos(Infos.Index, Infos.Attempt + 1); }
+
+		FPCGPoint GetInPoint() const { return PointData->In->GetPoint(Infos.Index); }
+		FPCGPoint GetOutPoint() const { return PointData->Out->GetPoint(Infos.Index); }
+	};
+}

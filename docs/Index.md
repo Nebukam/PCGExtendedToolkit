@@ -1,6 +1,6 @@
 # Index
 
-1. [Readme](Readme.md)
+1. [Readme](../Readme.md)
 1. [Installation](Installation.md)
 1. Nodes
     - Misc
@@ -17,7 +17,7 @@
         - [Delete Graph](PCGExDeleteGraph.md)
     - Transforms
         - [Project on World](PCGExProjectOnWorld.md)
-        - [Sample Distance Field](PCGExSampleDistanceField.md)
+        - [Sample Nearest Surface](PCGExSampleNearestSurface.md)
 1. Data Types
     - [Graph Data](PCGExGraphData.md)
 1. [Frequently Asked Questions](FAQ.md)

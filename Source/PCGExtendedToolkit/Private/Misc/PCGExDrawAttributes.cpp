@@ -88,11 +88,9 @@ bool FPCGExDrawAttributesElement::ExecuteInternal(
 	const UPCGExDrawAttributesSettings* Settings = Context->GetInputSettings<UPCGExDrawAttributesSettings>();
 	check(Settings);
 
-	UWorld* World = PCGEx::Common::GetWorld(Context);
-
 	if (Context->IsSetup())
 	{
-		FlushPersistentDebugLines(World);
+		FlushPersistentDebugLines(Context->World);
 
 		if (!Settings->bDebug) { return true; }
 		if (!Validate(Context)) { return true; }
@@ -112,16 +110,16 @@ bool FPCGExDrawAttributesElement::ExecuteInternal(
 		}
 	}
 
-	auto ProcessPoint = [&Context, &World](
+	auto ProcessPoint = [&Context](
 		const FPCGPoint& Point, int32 ReadIndex, UPCGExPointIO* IO)
 	{
 		// FWriteScopeLock ScopeLock(Context->ContextLock);
 		const FVector Start = Point.Transform.GetLocation();
-		DrawDebugPoint(World, Start, 1.0f, FColor::White, true);
+		DrawDebugPoint(Context->World, Start, 1.0f, FColor::White, true);
 		for (FPCGExAttributeDebugDraw& Drawer : Context->DebugList)
 		{
 			if (!Drawer.bValid) { continue; }
-			Drawer.Draw(World, Start, Point, IO->In);
+			Drawer.Draw(Context->World, Start, Point, IO->In);
 		}
 	};
 

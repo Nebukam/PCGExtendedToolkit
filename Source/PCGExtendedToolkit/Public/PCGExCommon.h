@@ -102,59 +102,33 @@ enum class EPCGExDirectionSelection : uint8
 
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExInputSelector
+struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeDescriptorBase
 {
 	GENERATED_BODY()
 
-	FPCGExInputSelector()
+	FPCGExAttributeDescriptorBase()
 	{
 		bValidatedAtLeastOnce = false;
 	}
 
-	FPCGExInputSelector(const FPCGExInputSelector& Other)
+	FPCGExAttributeDescriptorBase(const FPCGExAttributeDescriptorBase& Other): FPCGExAttributeDescriptorBase()
 	{
-		Selector = Other.Selector;
+		InternalSelector = Other.InternalSelector;
 		Attribute = Other.Attribute;
-		bValidatedAtLeastOnce = false;
 	}
 
 public:
+	virtual ~FPCGExAttributeDescriptorBase()
+	{
+		Attribute = nullptr;
+	};
+
 	/** Point Attribute or $Property */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FPCGAttributePropertyInputSelector Selector;
+	FPCGAttributePropertySelector InternalSelector;
 
 	FPCGMetadataAttributeBase* Attribute = nullptr;
 	bool bValidatedAtLeastOnce = false;
 	int16 UnderlyingType = 0;
-
-	/**
-	 * Check if the current selector can currently read from a given UPCGPointData.
-	 * Requires Validate() to be called first.
-	 * @param PointData 
-	 * @return 
-	 */
-	bool IsValid(const UPCGPointData* PointData) const
-	{
-		const EPCGAttributePropertySelection Sel = Selector.GetSelection();
-		if (Sel == EPCGAttributePropertySelection::Attribute && (Attribute == nullptr || !PointData->Metadata->HasAttribute(Selector.GetName()))) { return false; }
-		return Selector.IsValid();
-	}
-
-	/**
-	 * Try to read typed value from the cached attribute, if it exists.
-	 * Use Validate() to temporarily cache attribute for a given UPCGPointData
-	 * @tparam T 
-	 * @param MetadataEntry 
-	 * @param OutValue 
-	 * @return 
-	 */
-	template <typename T>
-	bool TryGetValue(PCGMetadataEntryKey MetadataEntry, T& OutValue)
-	{
-		if (Attribute == nullptr) { return false; }
-		OutValue = static_cast<FPCGMetadataAttribute<T>*>(Attribute)->GetValueFromItemKey(MetadataEntry);
-		return true;
-	}
 
 	/**
 	 * 
@@ -168,6 +142,13 @@ public:
 		return static_cast<FPCGMetadataAttribute<T>*>(Attribute);
 	}
 
+protected:
+	virtual bool ValidateInternal(const UPCGPointData* InData) { return false; }
+
+public:
+	EPCGAttributePropertySelection GetSelection() const { return InternalSelector.GetSelection(); }
+	FName GetName() const { return InternalSelector.GetName(); }
+
 	/**
 	 * Validate & cache the current selector for a given UPCGPointData
 	 * @param InData 
@@ -176,74 +157,101 @@ public:
 	bool Validate(const UPCGPointData* InData)
 	{
 		bValidatedAtLeastOnce = true;
-		Selector = Selector.CopyAndFixLast(InData);
-		if (Selector.GetSelection() == EPCGAttributePropertySelection::Attribute)
+		if (!ValidateInternal(InData))
 		{
-			Attribute = Selector.IsValid() ? InData->Metadata->GetMutableAttribute(Selector.GetName()) : nullptr;
+			Attribute = nullptr;
+			return false;
+		}
+
+		if (GetSelection() == EPCGAttributePropertySelection::Attribute)
+		{
+			Attribute = InternalSelector.IsValid() ? InData->Metadata->GetMutableAttribute(GetName()) : nullptr;
 			if (Attribute)
 			{
-				const TUniquePtr<const IPCGAttributeAccessor> Accessor = PCGAttributeAccessorHelpers::CreateConstAccessor(InData, Selector);
+				const TUniquePtr<const IPCGAttributeAccessor> Accessor = PCGAttributeAccessorHelpers::CreateConstAccessor(InData, InternalSelector);
 				UnderlyingType = Accessor->GetUnderlyingType();
 				//if (!Accessor.IsValid()) { Attribute = nullptr; }
 			}
 			return Attribute != nullptr;
 		}
-		else
+		else if (InternalSelector.IsValid())
 		{
-			const bool bTempIsValid = Selector.IsValid();
-			if (bTempIsValid)
-			{
-				const TUniquePtr<const IPCGAttributeAccessor> Accessor = PCGAttributeAccessorHelpers::CreateConstAccessor(InData, Selector);
-				UnderlyingType = Accessor->GetUnderlyingType();
-			}
-			return bTempIsValid;
+			const TUniquePtr<const IPCGAttributeAccessor> Accessor = PCGAttributeAccessorHelpers::CreateConstAccessor(InData, InternalSelector);
+			UnderlyingType = Accessor->GetUnderlyingType();
+			return true;
 		}
+		return false;
 	}
 
-	FString ToString() const { return Selector.GetName().ToString(); }
 
-	~FPCGExInputSelector()
+	FString ToString() const { return GetName().ToString(); }
+};
+
+#pragma region Input Descriptors
+
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExInputDescriptor : public FPCGExAttributeDescriptorBase
+{
+	GENERATED_BODY()
+
+	FPCGExInputDescriptor(): FPCGExAttributeDescriptorBase()
 	{
-		Attribute = nullptr;
+	}
+
+	FPCGExInputDescriptor(const FPCGExInputDescriptor& Other): FPCGExAttributeDescriptorBase(Other)
+	{
+		Selector = Other.Selector;
+	}
+
+public:
+	/** Point Attribute or $Property */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	FPCGAttributePropertyInputSelector Selector;
+
+	virtual bool ValidateInternal(const UPCGPointData* InData) override
+	{
+		Selector = Selector.CopyAndFixLast(InData);
+		InternalSelector = static_cast<FPCGAttributePropertySelector>(Selector);
+		return true;
 	}
 };
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExInputSelectorWithField : public FPCGExInputSelector
+struct PCGEXTENDEDTOOLKIT_API FPCGExInputDescriptorWithOrderField : public FPCGExInputDescriptor
 {
 	GENERATED_BODY()
 
-	FPCGExInputSelectorWithField(): FPCGExInputSelector()
+	FPCGExInputDescriptorWithOrderField(): FPCGExInputDescriptor()
 	{
 	}
 
-	FPCGExInputSelectorWithField(const FPCGExInputSelectorWithField& Other)
-		: FPCGExInputSelector(Other)
+	FPCGExInputDescriptorWithOrderField(const FPCGExInputDescriptorWithOrderField& Other)
+		: FPCGExInputDescriptor(Other)
 	{
-		FieldSelection = Other.FieldSelection;
+		OrderFieldSelection = Other.OrderFieldSelection;
 	}
 
 public:
 	/** Sub-component order, used only for multi-field attributes (FVector, FRotator etc). */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayAfter="Selector"))
-	EPCGExOrderedFieldSelection FieldSelection = EPCGExOrderedFieldSelection::XYZ;
+	EPCGExOrderedFieldSelection OrderFieldSelection = EPCGExOrderedFieldSelection::XYZ;
 
-	~FPCGExInputSelectorWithField()
+	~FPCGExInputDescriptorWithOrderField()
 	{
 	}
 };
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExInputSelectorWithDirection : public FPCGExInputSelector
+struct PCGEXTENDEDTOOLKIT_API FPCGExInputDescriptorWithDirection : public FPCGExInputDescriptor
 {
 	GENERATED_BODY()
 
-	FPCGExInputSelectorWithDirection(): FPCGExInputSelector()
+	FPCGExInputDescriptorWithDirection(): FPCGExInputDescriptor()
 	{
 	}
 
-	FPCGExInputSelectorWithDirection(const FPCGExInputSelectorWithDirection& Other)
-		: FPCGExInputSelector(Other)
+	FPCGExInputDescriptorWithDirection(const FPCGExInputDescriptorWithDirection& Other)
+		: FPCGExInputDescriptor(Other)
 	{
 		Direction = Other.Direction;
 	}
@@ -253,22 +261,22 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayAfter="Selector"))
 	EPCGExDirectionSelection Direction = EPCGExDirectionSelection::Forward;
 
-	~FPCGExInputSelectorWithDirection()
+	~FPCGExInputDescriptorWithDirection()
 	{
 	}
 };
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExInputSelectorWithSingleField : public FPCGExInputSelector
+struct PCGEXTENDEDTOOLKIT_API FPCGExInputDescriptorWithSingleField : public FPCGExInputDescriptor
 {
 	GENERATED_BODY()
 
-	FPCGExInputSelectorWithSingleField(): FPCGExInputSelector()
+	FPCGExInputDescriptorWithSingleField(): FPCGExInputDescriptor()
 	{
 	}
 
-	FPCGExInputSelectorWithSingleField(const FPCGExInputSelectorWithSingleField& Other)
-		: FPCGExInputSelector(Other)
+	FPCGExInputDescriptorWithSingleField(const FPCGExInputDescriptorWithSingleField& Other)
+		: FPCGExInputDescriptor(Other)
 	{
 		FieldSelection = Other.FieldSelection;
 		Direction = Other.Direction;
@@ -283,29 +291,33 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayAfter="Selector"))
 	EPCGExDirectionSelection Direction = EPCGExDirectionSelection::Forward;
 
-	~FPCGExInputSelectorWithSingleField()
+	~FPCGExInputDescriptorWithSingleField()
 	{
 	}
 };
 
+#pragma endregion
+
+#pragma region Output Descriptors
+
+#pragma endregion
+
 namespace PCGEx
 {
-
 	const FName SourcePointsLabel = TEXT("InPoints");
 	const FName OutputPointsLabel = TEXT("OutPoints");
 
 	const FSoftObjectPath DefaultDotOverDistanceCurve = FSoftObjectPath(TEXT("/PCGExtendedToolkit/FC_PCGExGraphBalance_Default.FC_PCGExGraphBalance_Default"));
-	
+
 	class Common
 	{
 	public:
-		
 		static UWorld* GetWorld(const FPCGContext* Context)
 		{
 			check(Context->SourceComponent.IsValid());
 			return Context->SourceComponent->GetWorld();
 		}
-		
+
 		static bool ForEachPointData(
 			FPCGContext* Context,
 			TArray<FPCGTaggedData>& Sources,
@@ -429,9 +441,9 @@ namespace PCGEx
 		}
 
 		// Remap function
-		static double Remap(const double Value, const double Min, const double Max, const double NewMin = 0, const double NewMax = 1) {
+		static double Remap(const double Value, const double Min, const double Max, const double NewMin = 0, const double NewMax = 1)
+		{
 			return NewMin + ((Value - Min) / (Max - Min)) * (NewMax - NewMin);
 		}
-
 	};
 }

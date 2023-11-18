@@ -14,16 +14,15 @@ namespace PCGEx
 #pragma region Local Attribute Inputs
 
 	template <typename T>
-	struct PCGEXTENDEDTOOLKIT_API FLocalAttributeInput
+	struct PCGEXTENDEDTOOLKIT_API FAttributeHandle
 	{
 	public:
-		virtual ~FLocalAttributeInput() = default;
+		virtual ~FAttributeHandle() = default;
 
 		bool bEnabled = true;
 		bool bValid = false;
 
-		FPCGExInputSelector Descriptor;
-		FPCGAttributePropertyInputSelector Selector;
+		FPCGExAttributeDescriptorBase Descriptor;
 
 		/**
 		 * Build and validate a property/attribute accessor for the selected
@@ -34,7 +33,19 @@ namespace PCGEx
 			bValid = false;
 			if (!bEnabled) { return false; }
 			if (Descriptor.Validate(PointData)) { bValid = ValidateInternal(); }
-			Selector = Descriptor.Selector;
+			return bValid;
+		}
+
+		bool ValidateOrCreate(const UPCGPointData* PointData)
+		{
+			bValid = false;
+			if (!bEnabled) { return false; }
+			if (Descriptor.Validate(PointData)) { bValid = ValidateInternal(); }
+			else if(Descriptor.GetSelection() == EPCGAttributePropertySelection::Attribute)
+			{
+				PointData->Metadata->FindOrCreateAttribute<T>(Descriptor.GetName(), GetDefaultValue());
+				if (Descriptor.Validate(PointData)) { bValid = ValidateInternal(); }
+			}
 			return bValid;
 		}
 
@@ -42,11 +53,11 @@ namespace PCGEx
 		{
 			if (!bValid || !bEnabled) { return GetDefaultValue(); }
 
-			switch (Selector.GetSelection())
+			switch (Descriptor.GetSelection())
 			{
 			case EPCGAttributePropertySelection::Attribute:
 				return PCGMetadataAttribute::CallbackWithRightType(
-					Descriptor.Attribute->GetTypeId(),
+					Descriptor.UnderlyingType,
 					[this, &Point](auto DummyValue) -> T
 					{
 						using AttributeType = decltype(DummyValue);
@@ -55,13 +66,13 @@ namespace PCGEx
 					});
 #define PCGEX_GET_BY_ACCESSOR(_ENUM, _ACCESSOR) case _ENUM: return Convert(Point._ACCESSOR);
 			case EPCGAttributePropertySelection::PointProperty:
-				switch (Selector.GetPointProperty())
+				switch (Descriptor.InternalSelector.GetPointProperty())
 				{
 				PCGEX_FOREACH_POINTPROPERTY(PCGEX_GET_BY_ACCESSOR)
 				}
 				break;
 			case EPCGAttributePropertySelection::ExtraProperty:
-				switch (Selector.GetExtraProperty())
+				switch (Descriptor.InternalSelector.GetExtraProperty())
 				{
 				PCGEX_FOREACH_POINTEXTRAPROPERTY(PCGEX_GET_BY_ACCESSOR)
 				}
@@ -70,6 +81,36 @@ namespace PCGEx
 
 			return GetDefaultValue();
 #undef PCGEX_GET_BY_ACCESSOR
+		}
+
+		template <typename T>
+		bool SetValue(const FPCGPoint& Point, T Value) const
+		{
+			if (!bValid || !bEnabled) { return false; }
+
+			switch (Descriptor.GetSelection())
+			{
+			case EPCGAttributePropertySelection::Attribute:
+				FPCGMetadataAttribute<T>* Attribute = static_cast<FPCGMetadataAttribute<T>*>(Descriptor.Attribute);
+				if (Attribute) { Attribute.SetValue(Point.MetadataEntry, Value); }
+				else { return false; }
+#define PCGEX_SET_BY_ACCESSOR(_ENUM, _ACCESSOR) case _ENUM: Point._ACCESSOR = Value;
+			case EPCGAttributePropertySelection::PointProperty:
+				switch (Descriptor.InternalSelector.GetPointProperty())
+				{
+				PCGEX_FOREACH_POINTPROPERTY(PCGEX_SET_BY_ACCESSOR)
+				}
+				break;
+			case EPCGAttributePropertySelection::ExtraProperty:
+				switch (Descriptor.InternalSelector.GetExtraProperty())
+				{
+				PCGEX_FOREACH_POINTEXTRAPROPERTY(PCGEX_SET_BY_ACCESSOR)
+				}
+				break;
+			}
+
+			return true;
+#undef PCGEX_SET_BY_ACCESSOR
 		}
 
 	protected:
@@ -82,7 +123,7 @@ namespace PCGEx
 
 
 #define PCGEX_SINGLE(_NAME, _TYPE)\
-struct PCGEXTENDEDTOOLKIT_API FLocal ## _NAME ## Input : public FLocalAttributeInput<_TYPE>	{\
+struct PCGEXTENDEDTOOLKIT_API FLocal ## _NAME ## Input : public FAttributeHandle<_TYPE>	{\
 protected: \
 virtual _TYPE GetDefaultValue() const override{ return 0; }\
 virtual _TYPE Convert(const int32 Value) const override { return static_cast<_TYPE>(Value); } \
@@ -113,7 +154,7 @@ virtual _TYPE Convert(const FName Value) const override { return static_cast<_TY
 #undef PCGEX_SINGLE
 
 #define PCGEX_VECTOR_CAST(_NAME, _TYPE, VECTOR2D)\
-struct PCGEXTENDEDTOOLKIT_API FLocal ## _NAME ## Input : public FLocalAttributeInput<_TYPE>	{\
+struct PCGEXTENDEDTOOLKIT_API FLocal ## _NAME ## Input : public FAttributeHandle<_TYPE>	{\
 protected: \
 virtual _TYPE GetDefaultValue() const override { return _TYPE(0); }\
 virtual _TYPE Convert(const int32 Value) const override { return _TYPE(Value); } \
@@ -138,7 +179,7 @@ virtual _TYPE Convert(const FRotator Value) const override { return _TYPE(Value.
 #undef PCGEX_VECTOR_CAST
 
 #define PCGEX_LITERAL_CAST(_NAME, _TYPE)\
-struct PCGEXTENDEDTOOLKIT_API FLocal ## _NAME ## Input : public FLocalAttributeInput<_TYPE>	{\
+struct PCGEXTENDEDTOOLKIT_API FLocal ## _NAME ## Input : public FAttributeHandle<_TYPE>	{\
 protected: \
 virtual _TYPE GetDefaultValue() const override { return _TYPE(""); }\
 virtual _TYPE Convert(const int32 Value) const override { return _TYPE(FString::FromInt(Value)); } \
@@ -166,7 +207,7 @@ virtual _TYPE Convert(const FName Value) const override { return _TYPE(Value.ToS
 
 #pragma region Local Attribute Component Reader
 
-	struct PCGEXTENDEDTOOLKIT_API FLocalSingleComponentInput : public FLocalAttributeInput<double>
+	struct PCGEXTENDEDTOOLKIT_API FLocalSingleComponentInput : public FAttributeHandle<double>
 	{
 		FLocalSingleComponentInput()
 		{
@@ -251,7 +292,7 @@ virtual _TYPE Convert(const FName Value) const override { return _TYPE(Value.ToS
 		virtual double Convert(const FName Value) const override { return Common::ConvertStringToDouble(Value.ToString()); }
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FLocalDirectionInput : public FLocalAttributeInput<FVector>
+	struct PCGEXTENDEDTOOLKIT_API FLocalDirectionInput : public FAttributeHandle<FVector>
 	{
 		FLocalDirectionInput()
 		{

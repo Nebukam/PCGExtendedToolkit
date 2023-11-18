@@ -19,16 +19,16 @@ enum class EPCGExSortDirection : uint8
 };
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExSortRule : public FPCGExInputSelectorWithField
+struct PCGEXTENDEDTOOLKIT_API FPCGExSortRule : public FPCGExInputDescriptorWithOrderField
 {
 	GENERATED_BODY()
 
-	FPCGExSortRule(): FPCGExInputSelectorWithField()
+	FPCGExSortRule(): FPCGExInputDescriptorWithOrderField()
 	{
 	}
 
 	template <typename T>
-	FPCGExSortRule(const FPCGExSortRule& Other): FPCGExInputSelectorWithField(Other)
+	FPCGExSortRule(const FPCGExSortRule& Other): FPCGExInputDescriptorWithOrderField(Other)
 	{
 		Tolerance = Other.Tolerance;
 	}
@@ -82,6 +82,6 @@ protected:
 	template <typename T>
 	static int Compare(const T& A, const T& B, const FPCGExSortRule& Settings)
 	{
-		return FPCGExCompare::Compare(A, B, Settings.Tolerance, Settings.FieldSelection);
+		return FPCGExCompare::Compare(A, B, Settings.Tolerance, Settings.OrderFieldSelection);
 	}
 };

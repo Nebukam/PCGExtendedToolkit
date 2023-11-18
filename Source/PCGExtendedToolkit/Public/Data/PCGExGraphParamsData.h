@@ -91,16 +91,16 @@ public:
 #pragma region Descriptors
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExSocketModifierDescriptor : public FPCGExInputSelectorWithSingleField
+struct PCGEXTENDEDTOOLKIT_API FPCGExSocketModifierDescriptor : public FPCGExInputDescriptorWithSingleField
 {
 	GENERATED_BODY()
 
-	FPCGExSocketModifierDescriptor(): FPCGExInputSelectorWithSingleField()
+	FPCGExSocketModifierDescriptor(): FPCGExInputDescriptorWithSingleField()
 	{
 	}
 
 	FPCGExSocketModifierDescriptor(
-		const FPCGExSocketModifierDescriptor& Other): FPCGExInputSelectorWithSingleField(Other)
+		const FPCGExSocketModifierDescriptor& Other): FPCGExInputDescriptorWithSingleField(Other)
 	{
 	}
 };
@@ -168,7 +168,7 @@ public:
 
 	/** Local attribute to override the direction vector with */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bDirectionVectorFromAttribute", ShowOnlyInnerProperties))
-	FPCGExInputSelectorWithDirection AttributeDirectionVector;
+	FPCGExInputDescriptorWithDirection AttributeDirectionVector;
 
 	/** If enabled, multiplies the max sampling distance of this socket by the value of a local attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(InlineEditConditionToggle))
@@ -244,7 +244,7 @@ public:
 
 	/** Local attribute from which the direction will be read. Must be a FVectorN otherwise will lead to bad results. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bOverrideDirectionVectorFromAttribute", ShowOnlyInnerProperties))
-	FPCGExInputSelector AttributeDirectionVector;
+	FPCGExInputDescriptor AttributeDirectionVector;
 
 
 	/** Override all socket Modifiers. */
@@ -335,7 +335,7 @@ namespace PCGExGraph
 
 		FProbeDistanceModifier(const FPCGExSocketDescriptor& InDescriptor): PCGEx::FLocalSingleComponentInput()
 		{
-			Descriptor = static_cast<FPCGExInputSelector>(InDescriptor.AttributeModifier);
+			Descriptor = static_cast<FPCGExInputDescriptor>(InDescriptor.AttributeModifier);
 			bEnabled = InDescriptor.bApplyAttributeModifier;
 		}
 	};
@@ -348,7 +348,7 @@ namespace PCGExGraph
 
 		FLocalDirection(const FPCGExSocketDescriptor& InDescriptor): PCGEx::FLocalDirectionInput()
 		{
-			Descriptor = static_cast<FPCGExInputSelector>(InDescriptor.AttributeDirectionVector);
+			Descriptor = static_cast<FPCGExInputDescriptor>(InDescriptor.AttributeDirectionVector);
 			bEnabled = InDescriptor.bDirectionVectorFromAttribute;
 		}
 	};
@@ -529,7 +529,7 @@ namespace PCGExGraph
 
 				FProbeDistanceModifier& NewModifier = Modifiers.Emplace_GetRef(Descriptor);
 				NewModifier.bEnabled = Overrides.bOverrideAttributeModifier ? Overrides.bApplyAttributeModifier : Descriptor.bApplyAttributeModifier;
-				NewModifier.Descriptor = static_cast<FPCGExInputSelector>(Overrides.bOverrideAttributeModifier ? Overrides.AttributeModifier : Descriptor.AttributeModifier);
+				NewModifier.Descriptor = static_cast<FPCGExInputDescriptor>(Overrides.bOverrideAttributeModifier ? Overrides.AttributeModifier : Descriptor.AttributeModifier);
 
 				FLocalDirection& NewLocalDirection = LocalDirections.Emplace_GetRef(Descriptor);
 				NewLocalDirection.bEnabled = Overrides.bOverrideDirectionVectorFromAttribute ? Overrides.bDirectionVectorFromAttribute : Descriptor.bDirectionVectorFromAttribute;

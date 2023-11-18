@@ -32,7 +32,7 @@ public:
 
 	/** Attribute to sample direction from */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (EditCondition="Type==EPCGExDebugType::Direction", EditConditionHides, ShowOnlyInnerProperties))
-	FPCGExInputSelectorWithDirection Direction;
+	FPCGExInputDescriptorWithDirection Direction;
 	PCGEx::FLocalDirectionInput DirectionInput;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (EditCondition="Type==EPCGExDebugType::Direction", EditConditionHides))
@@ -40,7 +40,7 @@ public:
 
 	/** Attribute to sample index from */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (EditCondition="Type==EPCGExDebugType::Connection", EditConditionHides, ShowOnlyInnerProperties))
-	FPCGExInputSelectorWithSingleField Index;
+	FPCGExInputDescriptorWithSingleField Index;
 	PCGEx::FLocalSingleComponentInput IndexInput;
 
 	/** Draw line thickness. */
@@ -55,7 +55,7 @@ public:
 	bool bSizeFromAttribute = false;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Size", meta = (EditCondition="bSizeFromAttribute"))
-	FPCGExInputSelectorWithSingleField SizeAttribute;
+	FPCGExInputDescriptorWithSingleField SizeAttribute;
 	PCGEx::FLocalSingleComponentInput SizeAttributeInput;
 
 	/** Draw color. */
@@ -66,7 +66,7 @@ public:
 	bool bColorFromAttribute = false;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Color", meta = (EditCondition="bColorFromAttribute"))
-	FPCGExInputSelector ColorAttribute;
+	FPCGExInputDescriptor ColorAttribute;
 	PCGEx::FLocalVectorInput ColorAttributeInput;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Color", meta = (EditCondition="bColorFromAttribute"))
