@@ -10,20 +10,20 @@
 #include "CoreMinimal.h"
 #include "PCGExPointsProcessor.h"
 #include "Elements/PCGPointProcessingElementBase.h"
-#include "PCGExTransform.generated.h"
+#include "PCGExProject.generated.h"
 
 /**
  * Calculates the distance between two points (inherently a n*n operation)
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class PCGEXTENDEDTOOLKIT_API UPCGExTransformSettings : public UPCGExPointsProcessorSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExProjectSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(Transform, "Transform", "Use local attributes to transform points");
+	PCGEX_NODE_INFOS(Project, "Project", "Use local attributes to Project & Transform points");
 #endif
 
 	virtual PCGEx::EIOInit GetPointOutputInitMode() const override;
@@ -79,9 +79,9 @@ public:
 	int32 NumMaxAttempts = 256;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExTransformContext : public FPCGExPointsProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExProjectContext : public FPCGExPointsProcessorContext
 {
-	friend class FPCGExTransformElement;
+	friend class FPCGExProjectElement;
 
 public:
 	FName OutName = NAME_None;
@@ -97,7 +97,7 @@ public:
 
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExTransformElement : public FPCGExPointsProcessorElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExProjectElement : public FPCGExPointsProcessorElementBase
 {
 public:
 	virtual FPCGContext* Initialize(

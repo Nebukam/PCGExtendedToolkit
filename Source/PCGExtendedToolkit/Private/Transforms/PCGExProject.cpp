@@ -1,23 +1,23 @@
 ﻿// Copyright Timothé Lapetite 2023
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Transforms/PCGExTransform.h"
+#include "Transforms/PCGExProject.h"
 #include "Data/PCGSpatialData.h"
 #include "PCGContext.h"
 #include "PCGExCommon.h"
 
-#define LOCTEXT_NAMESPACE "PCGExTransformElement"
+#define LOCTEXT_NAMESPACE "PCGExProjectElement"
 
-PCGEx::EIOInit UPCGExTransformSettings::GetPointOutputInitMode() const { return PCGEx::EIOInit::DuplicateInput; }
+PCGEx::EIOInit UPCGExProjectSettings::GetPointOutputInitMode() const { return PCGEx::EIOInit::DuplicateInput; }
 
-FPCGElementPtr UPCGExTransformSettings::CreateElement() const { return MakeShared<FPCGExTransformElement>(); }
+FPCGElementPtr UPCGExProjectSettings::CreateElement() const { return MakeShared<FPCGExProjectElement>(); }
 
-FPCGContext* FPCGExTransformElement::Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node)
+FPCGContext* FPCGExProjectElement::Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node)
 {
-	FPCGExTransformContext* Context = new FPCGExTransformContext();
+	FPCGExProjectContext* Context = new FPCGExProjectContext();
 	InitializeContext(Context, InputData, SourceComponent, Node);
 
-	const UPCGExTransformSettings* Settings = Context->GetInputSettings<UPCGExTransformSettings>();
+	const UPCGExProjectSettings* Settings = Context->GetInputSettings<UPCGExProjectSettings>();
 	check(Settings);
 
 	Context->AttemptStepSize = FMath::Max(Settings->MaxDistance / static_cast<double>(Settings->NumMaxAttempts), Settings->MinStepSize);
@@ -28,17 +28,17 @@ FPCGContext* FPCGExTransformElement::Initialize(const FPCGDataCollection& InputD
 	return Context;
 }
 
-bool FPCGExTransformElement::Validate(FPCGContext* InContext) const
+bool FPCGExProjectElement::Validate(FPCGContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElementBase::Validate(InContext)) { return false; }
 	return true;
 }
 
-bool FPCGExTransformElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExProjectElement::ExecuteInternal(FPCGContext* InContext) const
 {
-	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExTransformElement::Execute);
+	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExProjectElement::Execute);
 
-	FPCGExTransformContext* Context = static_cast<FPCGExTransformContext*>(InContext);
+	FPCGExProjectContext* Context = static_cast<FPCGExProjectContext*>(InContext);
 
 	if (Context->IsState(PCGExMT::EState::Setup))
 	{
