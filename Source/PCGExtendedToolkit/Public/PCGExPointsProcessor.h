@@ -186,7 +186,7 @@ namespace PCGExAsync
 		void DoWork()
 		{
 			FPCGExPointsProcessorContext* InContext = TaskContext;
-			if (InContext->SourceComponent.IsValid() && !InContext->SourceComponent.IsStale(true, true)) { ExecuteTask(InContext); }
+			if (InContext->SourceComponent.IsValid() && !InContext->SourceComponent.IsStale(true, true) && InContext->Points) { ExecuteTask(InContext); }
 		};
 
 		void PostDoWork() { delete this; }

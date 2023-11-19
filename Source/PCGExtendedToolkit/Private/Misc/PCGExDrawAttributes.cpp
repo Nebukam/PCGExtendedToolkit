@@ -57,7 +57,12 @@ FPCGContext* FPCGExDrawAttributesElement::Initialize(const FPCGDataCollection& I
 	check(Settings);
 
 	Context->DebugList.Empty();
-	Context->DebugList.Append(Settings->DebugList);
+	for (const FPCGExAttributeDebugDrawDescriptor& Descriptor : Settings->DebugList)
+	{
+		if (!Descriptor.bEnabled) { continue; }
+		FPCGExAttributeDebugDraw& Drawer = Context->DebugList.Emplace_GetRef();
+		Drawer.Descriptor = &(const_cast<FPCGExAttributeDebugDrawDescriptor&>(Descriptor));
+	}
 
 	return Context;
 }

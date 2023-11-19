@@ -8,13 +8,14 @@
  */
 
 #include "CoreMinimal.h"
+#include "PCGExLocalAttributeHelpers.h"
 #include "PCGExPointsProcessor.h"
 #include "Elements/PCGPointProcessingElementBase.h"
-#include "PCGExSampleNearestSurface.generated.h"
+#include "PCGExSampleSurfaceGuided.generated.h"
 
 namespace PCGExAsync
 {
-	class FSweepSphereTask;
+	class FTraceTask;
 }
 
 
@@ -23,14 +24,14 @@ namespace PCGExAsync
  * This way we can multithread the various calculations instead of mixing everything along with async/game thread collision
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class PCGEXTENDEDTOOLKIT_API UPCGExSampleNearestSurfaceSettings : public UPCGExPointsProcessorSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExSampleSurfaceGuidedSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(SampleNearestSurface, "Sample Nearest Surface", "Find the closest point on the nearest collidable surface.");
+	PCGEX_NODE_INFOS(SampleSurfaceGuided, "Sample Surface Guided", "Find the collision point on the nearest collidable surface in a given direction.");
 #endif
 
 	virtual PCGEx::EIOInit GetPointOutputInitMode() const override;
@@ -41,21 +42,28 @@ protected:
 
 public:
 	/** TBD */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(ShowOnlyInnerProperties, FullyExpand=true))
+	FPCGExInputDescriptorWithDirection Direction;
+
+	/** TBD */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	double Size = 1000;
+
+	/** TBD */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(InlineEditConditionToggle))
+	bool bUseLocalSize = false;
+
+	/** TBD */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="bUseLocalSize", ShowOnlyInnerProperties, FullyExpand=true))
+	FPCGExInputDescriptorWithSingleField LocalSize;
+
+	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(InlineEditConditionToggle))
 	bool bWriteLocation = false;
 
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(EditCondition="bWriteLocation"))
-	FName Location = FName("NearestSurfaceLocation");
-
-	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(InlineEditConditionToggle))
-	bool bWriteDirection = false;
-
-	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(EditCondition="bWriteDirection"))
-	FName Direction = FName("DirectionToNearestSurface");
-
+	FName Location = FName("GuidedSurfaceLocation");
 
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(InlineEditConditionToggle))
@@ -63,7 +71,7 @@ public:
 
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(EditCondition="bWriteNormal"))
-	FName Normal = FName("NearestSurfaceNormal");
+	FName Normal = FName("GuidedSurfaceNormal");
 
 
 	/** TBD */
@@ -72,12 +80,7 @@ public:
 
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(EditCondition="bWriteDistance"))
-	FName Distance = FName("NearestSurfaceDistance");
-
-
-	/** Maximum distance to check for closest surface.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision & Metrics")
-	double MaxDistance = 1000;
+	FName Distance = FName("GuidedSurfaceDistance");
 
 	/** Collision channel to check against */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision & Metrics")
@@ -86,39 +89,31 @@ public:
 	/** Ignore this graph' PCG content */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision & Metrics")
 	bool bIgnoreSelf = true;
-
-	/** StepSize can't get smaller than this.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision & Metrics")
-	double MinStepSize = 1;
-
-	/** Maximum number of attempts per point. Each attempt increases probing radius by (MaxDistance/NumMaxAttempts)*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision & Metrics")
-	int32 NumMaxAttempts = 256;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestSurfaceContext : public FPCGExPointsProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExSampleSurfaceGuidedContext : public FPCGExPointsProcessorContext
 {
-	friend class FPCGExSampleNearestSurfaceElement;
+	friend class FPCGExSampleSurfaceGuidedElement;
 
 public:
-	int32 NumMaxAttempts = 100;
-	double AttemptStepSize = 0;
 	TEnumAsByte<ECollisionChannel> CollisionChannel;
 	bool bIgnoreSelf = true;
 
+	double Size;
+	bool bUseLocalSize = false;
+	PCGEx::FLocalSingleComponentInput LocalSize;
+	PCGEx::FLocalDirectionInput Direction;
+
 	PCGEX_OUT_ATTRIBUTE(Location, FVector)
-	PCGEX_OUT_ATTRIBUTE(Direction, FVector)
 	PCGEX_OUT_ATTRIBUTE(Normal, FVector)
 	PCGEX_OUT_ATTRIBUTE(Distance, double)
 
-	int64 NumSweepComplete = 0;
+	int64 NumTraceComplete = 0;
 
-	void ProcessSweepHit(const PCGExAsync::FSweepSphereTask* Task);
-	void ProcessSweepMiss(const PCGExAsync::FSweepSphereTask* Task);
-	void WrapSweepTask(const PCGExAsync::FSweepSphereTask* Task, bool bSuccess);
+	void WrapTraceTask(const PCGExAsync::FTraceTask* Task, bool bSuccess);
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestSurfaceElement : public FPCGExPointsProcessorElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExSampleSurfaceGuidedElement : public FPCGExPointsProcessorElementBase
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -134,41 +129,37 @@ protected:
 namespace PCGExAsync
 {
 	// Define the background task class
-	class FSweepSphereTask : public FPointTask
+	class FTraceTask : public FPointTask
 	{
 	public:
-		FSweepSphereTask(FPCGExPointsProcessorContext* InContext, UPCGExPointIO* InPointData, PCGExMT::FTaskInfos InInfos) :
+		FTraceTask(FPCGExPointsProcessorContext* InContext, UPCGExPointIO* InPointData, PCGExMT::FTaskInfos InInfos) :
 			FPointTask(InContext, InPointData, InInfos)
 		{
 		}
 
 		virtual void ExecuteTask(FPCGExPointsProcessorContext* InContext) override
 		{
-			FPCGExSampleNearestSurfaceContext* Context = static_cast<FPCGExSampleNearestSurfaceContext*>(InContext);
+			FPCGExSampleSurfaceGuidedContext* Context = static_cast<FPCGExSampleSurfaceGuidedContext*>(InContext);
 			FPCGPoint InPoint = GetInPoint();
 			FVector Origin = InPoint.Transform.GetLocation();
 
 			FCollisionQueryParams CollisionParams;
 			if (Context->bIgnoreSelf) { CollisionParams.AddIgnoredActor(InContext->SourceComponent->GetOwner()); }
 
-			FCollisionShape CollisionShape = FCollisionShape::MakeSphere(0.001 + Context->AttemptStepSize * static_cast<float>(Infos.Attempt));
-
-
-			// TODO: We could optimize the max number of retries more elegantly by checking further first, then half distance
-			
 			if (!InContext->Points) { return; }
-			if (InContext->World->SweepSingleByChannel(HitResult, Origin, Origin + (FVector::UpVector * 0.001), FQuat::Identity, Context->CollisionChannel, CollisionShape, CollisionParams))
+
+			double Size = Context->bUseLocalSize ? Context->LocalSize.GetValue(InPoint) : Context->Size;
+			if (InContext->World->LineTraceSingleByChannel(HitResult, Origin, Origin + (Context->Direction.GetValue(InPoint) * Size), Context->CollisionChannel, CollisionParams))
 			{
 				PCGEX_SET_OUT_ATTRIBUTE(Location, Infos.Key, HitResult.ImpactPoint)
 				PCGEX_SET_OUT_ATTRIBUTE(Normal, Infos.Key, HitResult.Normal)
-				PCGEX_SET_OUT_ATTRIBUTE(Direction, Infos.Key, (HitResult.ImpactPoint - Origin).GetSafeNormal())
 				PCGEX_SET_OUT_ATTRIBUTE(Distance, Infos.Key, FVector::Distance(HitResult.ImpactPoint, Origin))
 
-				Context->ProcessSweepHit(this);
+				Context->WrapTraceTask(this, true);
 			}
 			else
 			{
-				Context->ProcessSweepMiss(this);
+				Context->WrapTraceTask(this, false);
 			}
 		}
 

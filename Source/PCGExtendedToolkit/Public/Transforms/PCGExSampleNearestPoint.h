@@ -10,7 +10,7 @@
 #include "CoreMinimal.h"
 #include "PCGExPointsProcessor.h"
 #include "Elements/PCGPointProcessingElementBase.h"
-#include "PCGExSampleNearestSurface.generated.h"
+#include "PCGExSampleNearestPoint.generated.h"
 
 namespace PCGExAsync
 {
@@ -23,14 +23,14 @@ namespace PCGExAsync
  * This way we can multithread the various calculations instead of mixing everything along with async/game thread collision
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class PCGEXTENDEDTOOLKIT_API UPCGExSampleNearestSurfaceSettings : public UPCGExPointsProcessorSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExSampleNearestPointSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(SampleNearestSurface, "Sample Nearest Surface", "Find the closest point on the nearest collidable surface.");
+	PCGEX_NODE_INFOS(SampleNearestPoint, "Sample Nearest Point", "Find the closest point on the nearest collidable surface.");
 #endif
 
 	virtual PCGEx::EIOInit GetPointOutputInitMode() const override;
@@ -96,9 +96,9 @@ public:
 	int32 NumMaxAttempts = 256;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestSurfaceContext : public FPCGExPointsProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestPointContext : public FPCGExPointsProcessorContext
 {
-	friend class FPCGExSampleNearestSurfaceElement;
+	friend class FPCGExSampleNearestPointElement;
 
 public:
 	int32 NumMaxAttempts = 100;
@@ -118,7 +118,7 @@ public:
 	void WrapSweepTask(const PCGExAsync::FSweepSphereTask* Task, bool bSuccess);
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestSurfaceElement : public FPCGExPointsProcessorElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestPointElement : public FPCGExPointsProcessorElementBase
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -130,49 +130,3 @@ public:
 protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
-
-namespace PCGExAsync
-{
-	// Define the background task class
-	class FSweepSphereTask : public FPointTask
-	{
-	public:
-		FSweepSphereTask(FPCGExPointsProcessorContext* InContext, UPCGExPointIO* InPointData, PCGExMT::FTaskInfos InInfos) :
-			FPointTask(InContext, InPointData, InInfos)
-		{
-		}
-
-		virtual void ExecuteTask(FPCGExPointsProcessorContext* InContext) override
-		{
-			FPCGExSampleNearestSurfaceContext* Context = static_cast<FPCGExSampleNearestSurfaceContext*>(InContext);
-			FPCGPoint InPoint = GetInPoint();
-			FVector Origin = InPoint.Transform.GetLocation();
-
-			FCollisionQueryParams CollisionParams;
-			if (Context->bIgnoreSelf) { CollisionParams.AddIgnoredActor(InContext->SourceComponent->GetOwner()); }
-
-			FCollisionShape CollisionShape = FCollisionShape::MakeSphere(0.001 + Context->AttemptStepSize * static_cast<float>(Infos.Attempt));
-
-
-			// TODO: We could optimize the max number of retries more elegantly by checking further first, then half distance
-			
-			if (!InContext->Points) { return; }
-			if (InContext->World->SweepSingleByChannel(HitResult, Origin, Origin + (FVector::UpVector * 0.001), FQuat::Identity, Context->CollisionChannel, CollisionShape, CollisionParams))
-			{
-				PCGEX_SET_OUT_ATTRIBUTE(Location, Infos.Key, HitResult.ImpactPoint)
-				PCGEX_SET_OUT_ATTRIBUTE(Normal, Infos.Key, HitResult.Normal)
-				PCGEX_SET_OUT_ATTRIBUTE(Direction, Infos.Key, (HitResult.ImpactPoint - Origin).GetSafeNormal())
-				PCGEX_SET_OUT_ATTRIBUTE(Distance, Infos.Key, FVector::Distance(HitResult.ImpactPoint, Origin))
-
-				Context->ProcessSweepHit(this);
-			}
-			else
-			{
-				Context->ProcessSweepMiss(this);
-			}
-		}
-
-	public:
-		FHitResult HitResult;
-	};
-}

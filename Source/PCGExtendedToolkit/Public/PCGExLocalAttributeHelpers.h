@@ -22,8 +22,8 @@ namespace PCGEx
 		bool bEnabled = true;
 		bool bValid = false;
 
-		FPCGExAttributeDescriptorBase Descriptor;
-
+		FPCGExInputDescriptor Descriptor;
+		
 		/**
 		 * Build and validate a property/attribute accessor for the selected
 		 * @param PointData 
@@ -66,13 +66,13 @@ namespace PCGEx
 					});
 #define PCGEX_GET_BY_ACCESSOR(_ENUM, _ACCESSOR) case _ENUM: return Convert(Point._ACCESSOR);
 			case EPCGAttributePropertySelection::PointProperty:
-				switch (Descriptor.InternalSelector.GetPointProperty())
+				switch (Descriptor.Selector.GetPointProperty())
 				{
 				PCGEX_FOREACH_POINTPROPERTY(PCGEX_GET_BY_ACCESSOR)
 				}
 				break;
 			case EPCGAttributePropertySelection::ExtraProperty:
-				switch (Descriptor.InternalSelector.GetExtraProperty())
+				switch (Descriptor.Selector.GetExtraProperty())
 				{
 				PCGEX_FOREACH_POINTEXTRAPROPERTY(PCGEX_GET_BY_ACCESSOR)
 				}
@@ -96,13 +96,13 @@ namespace PCGEx
 				else { return false; }
 #define PCGEX_SET_BY_ACCESSOR(_ENUM, _ACCESSOR) case _ENUM: Point._ACCESSOR = Value;
 			case EPCGAttributePropertySelection::PointProperty:
-				switch (Descriptor.InternalSelector.GetPointProperty())
+				switch (Descriptor.Selector.GetPointProperty())
 				{
 				PCGEX_FOREACH_POINTPROPERTY(PCGEX_SET_BY_ACCESSOR)
 				}
 				break;
 			case EPCGAttributePropertySelection::ExtraProperty:
-				switch (Descriptor.InternalSelector.GetExtraProperty())
+				switch (Descriptor.Selector.GetExtraProperty())
 				{
 				PCGEX_FOREACH_POINTEXTRAPROPERTY(PCGEX_SET_BY_ACCESSOR)
 				}
@@ -225,6 +225,13 @@ virtual _TYPE Convert(const FName Value) const override { return _TYPE(Value.ToS
 		EPCGExSingleFieldSelection FieldSelection = EPCGExSingleFieldSelection::X;
 		EPCGExDirectionSelection Direction = EPCGExDirectionSelection::Forward;
 
+		void Capture(const FPCGExInputDescriptorWithSingleField& InDescriptor)
+		{
+			Descriptor = InDescriptor;
+			FieldSelection = InDescriptor.FieldSelection;
+			Direction = InDescriptor.Direction;
+		}
+		
 	protected:
 		virtual double GetDefaultValue() const override { return 0; }
 
@@ -307,6 +314,12 @@ virtual _TYPE Convert(const FName Value) const override { return _TYPE(Value.ToS
 	public:
 		EPCGExDirectionSelection Direction = EPCGExDirectionSelection::Forward;
 
+		void Capture(const FPCGExInputDescriptorWithDirection& InDescriptor)
+		{
+			Descriptor = InDescriptor;
+			Direction = InDescriptor.Direction;
+		}
+		
 	protected:
 		virtual FVector GetDefaultValue() const override { return FVector::ZeroVector; }
 

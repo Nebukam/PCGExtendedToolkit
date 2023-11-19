@@ -16,8 +16,9 @@
         - [Draw Graph](PCGExDrawGraph.md)
         - [Delete Graph](PCGExDeleteGraph.md)
     - Transforms
-        - [Project on World](PCGExProjectOnWorld.md)
+        - [Project](PCGExProject.md)
         - [Sample Nearest Surface](PCGExSampleNearestSurface.md)
+        - [Sample Surface Guided](PCGExSampleSurfaceGuided.md)
 1. Data Types
     - [Graph Data](PCGExGraphData.md)
 1. [Frequently Asked Questions](FAQ.md)

@@ -1,23 +1,23 @@
 ﻿// Copyright Timothé Lapetite 2023
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "..\..\Public\Transforms\PCGExSampleNearestSurface.h"
+#include "..\..\Public\Transforms\PCGExSampleNearestPoint.h"
 #include "Data/PCGSpatialData.h"
 #include "PCGContext.h"
 #include "PCGExCommon.h"
 
-#define LOCTEXT_NAMESPACE "PCGExSampleNearestSurfaceElement"
+#define LOCTEXT_NAMESPACE "PCGExSampleNearestPointElement"
 
-PCGEx::EIOInit UPCGExSampleNearestSurfaceSettings::GetPointOutputInitMode() const { return PCGEx::EIOInit::DuplicateInput; }
+PCGEx::EIOInit UPCGExSampleNearestPointSettings::GetPointOutputInitMode() const { return PCGEx::EIOInit::DuplicateInput; }
 
-FPCGElementPtr UPCGExSampleNearestSurfaceSettings::CreateElement() const { return MakeShared<FPCGExSampleNearestSurfaceElement>(); }
+FPCGElementPtr UPCGExSampleNearestPointSettings::CreateElement() const { return MakeShared<FPCGExSampleNearestPointElement>(); }
 
-void FPCGExSampleNearestSurfaceContext::ProcessSweepHit(const PCGExAsync::FSweepSphereTask* Task)
+void FPCGExSampleNearestPointContext::ProcessSweepHit(const PCGExAsync::FSweepSphereTask* Task)
 {
 	WrapSweepTask(Task, true);
 }
 
-void FPCGExSampleNearestSurfaceContext::ProcessSweepMiss(const PCGExAsync::FSweepSphereTask* Task)
+void FPCGExSampleNearestPointContext::ProcessSweepMiss(const PCGExAsync::FSweepSphereTask* Task)
 {
 	if (Task->Infos.Attempt > NumMaxAttempts)
 	{
@@ -28,18 +28,18 @@ void FPCGExSampleNearestSurfaceContext::ProcessSweepMiss(const PCGExAsync::FSwee
 	ScheduleTask<PCGExAsync::FSweepSphereTask>(Task->Infos.GetRetry());
 }
 
-void FPCGExSampleNearestSurfaceContext::WrapSweepTask(const PCGExAsync::FSweepSphereTask* Task, bool bSuccess)
+void FPCGExSampleNearestPointContext::WrapSweepTask(const PCGExAsync::FSweepSphereTask* Task, bool bSuccess)
 {
 	FWriteScopeLock ScopeLock(ContextLock);
 	NumSweepComplete++;
 }
 
-FPCGContext* FPCGExSampleNearestSurfaceElement::Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node)
+FPCGContext* FPCGExSampleNearestPointElement::Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node)
 {
-	FPCGExSampleNearestSurfaceContext* Context = new FPCGExSampleNearestSurfaceContext();
+	FPCGExSampleNearestPointContext* Context = new FPCGExSampleNearestPointContext();
 	InitializeContext(Context, InputData, SourceComponent, Node);
 
-	const UPCGExSampleNearestSurfaceSettings* Settings = Context->GetInputSettings<UPCGExSampleNearestSurfaceSettings>();
+	const UPCGExSampleNearestPointSettings* Settings = Context->GetInputSettings<UPCGExSampleNearestPointSettings>();
 	check(Settings);
 
 	Context->AttemptStepSize = FMath::Max(Settings->MaxDistance / static_cast<double>(Settings->NumMaxAttempts), Settings->MinStepSize);
@@ -55,11 +55,11 @@ FPCGContext* FPCGExSampleNearestSurfaceElement::Initialize(const FPCGDataCollect
 	return Context;
 }
 
-bool FPCGExSampleNearestSurfaceElement::Validate(FPCGContext* InContext) const
+bool FPCGExSampleNearestPointElement::Validate(FPCGContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElementBase::Validate(InContext)) { return false; }
 
-	FPCGExSampleNearestSurfaceContext* Context = static_cast<FPCGExSampleNearestSurfaceContext*>(InContext);
+	FPCGExSampleNearestPointContext* Context = static_cast<FPCGExSampleNearestPointContext*>(InContext);
 	PCGEX_CHECK_OUTNAME(Location)
 	PCGEX_CHECK_OUTNAME(Direction)
 	PCGEX_CHECK_OUTNAME(Normal)
@@ -67,11 +67,11 @@ bool FPCGExSampleNearestSurfaceElement::Validate(FPCGContext* InContext) const
 	return true;
 }
 
-bool FPCGExSampleNearestSurfaceElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) const
 {
-	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExSampleNearestSurfaceElement::Execute);
+	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExSampleNearestPointElement::Execute);
 
-	FPCGExSampleNearestSurfaceContext* Context = static_cast<FPCGExSampleNearestSurfaceContext*>(InContext);
+	FPCGExSampleNearestPointContext* Context = static_cast<FPCGExSampleNearestPointContext*>(InContext);
 
 	if (Context->IsState(PCGExMT::EState::Setup))
 	{

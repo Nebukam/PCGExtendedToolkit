@@ -100,31 +100,33 @@ enum class EPCGExDirectionSelection : uint8
 	Down UMETA(DisplayName = "Down", ToolTip="Down from Transform/FQuat/Rotator, or raw vector."),
 };
 
+#pragma region Input Descriptors
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeDescriptorBase
+struct PCGEXTENDEDTOOLKIT_API FPCGExInputDescriptor
 {
 	GENERATED_BODY()
 
-	FPCGExAttributeDescriptorBase()
+	FPCGExInputDescriptor()
 	{
 		bValidatedAtLeastOnce = false;
 	}
 
-	FPCGExAttributeDescriptorBase(const FPCGExAttributeDescriptorBase& Other): FPCGExAttributeDescriptorBase()
+	FPCGExInputDescriptor(const FPCGExInputDescriptor& Other): FPCGExInputDescriptor()
 	{
-		InternalSelector = Other.InternalSelector;
+		Selector = Other.Selector;
 		Attribute = Other.Attribute;
 	}
 
 public:
-	virtual ~FPCGExAttributeDescriptorBase()
+	virtual ~FPCGExInputDescriptor()
 	{
 		Attribute = nullptr;
 	};
 
 	/** Point Attribute or $Property */
-	FPCGAttributePropertySelector InternalSelector;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	FPCGAttributePropertyInputSelector Selector;
 
 	FPCGMetadataAttributeBase* Attribute = nullptr;
 	bool bValidatedAtLeastOnce = false;
@@ -142,12 +144,9 @@ public:
 		return static_cast<FPCGMetadataAttribute<T>*>(Attribute);
 	}
 
-protected:
-	virtual bool ValidateInternal(const UPCGPointData* InData) { return false; }
-
 public:
-	EPCGAttributePropertySelection GetSelection() const { return InternalSelector.GetSelection(); }
-	FName GetName() const { return InternalSelector.GetName(); }
+	EPCGAttributePropertySelection GetSelection() const { return Selector.GetSelection(); }
+	FName GetName() const { return Selector.GetName(); }
 
 	/**
 	 * Validate & cache the current selector for a given UPCGPointData
@@ -157,63 +156,29 @@ public:
 	bool Validate(const UPCGPointData* InData)
 	{
 		bValidatedAtLeastOnce = true;
-		if (!ValidateInternal(InData))
-		{
-			Attribute = nullptr;
-			return false;
-		}
+		Selector = Selector.CopyAndFixLast(InData);
 
 		if (GetSelection() == EPCGAttributePropertySelection::Attribute)
 		{
-			Attribute = InternalSelector.IsValid() ? InData->Metadata->GetMutableAttribute(GetName()) : nullptr;
+			Attribute = Selector.IsValid() ? InData->Metadata->GetMutableAttribute(GetName()) : nullptr;
 			if (Attribute)
 			{
-				const TUniquePtr<const IPCGAttributeAccessor> Accessor = PCGAttributeAccessorHelpers::CreateConstAccessor(InData, InternalSelector);
+				const TUniquePtr<const IPCGAttributeAccessor> Accessor = PCGAttributeAccessorHelpers::CreateConstAccessor(InData, Selector);
 				UnderlyingType = Accessor->GetUnderlyingType();
 				//if (!Accessor.IsValid()) { Attribute = nullptr; }
 			}
 			return Attribute != nullptr;
 		}
-		else if (InternalSelector.IsValid())
+		else if (Selector.IsValid())
 		{
-			const TUniquePtr<const IPCGAttributeAccessor> Accessor = PCGAttributeAccessorHelpers::CreateConstAccessor(InData, InternalSelector);
+			const TUniquePtr<const IPCGAttributeAccessor> Accessor = PCGAttributeAccessorHelpers::CreateConstAccessor(InData, Selector);
 			UnderlyingType = Accessor->GetUnderlyingType();
 			return true;
 		}
 		return false;
 	}
-
-
+	
 	FString ToString() const { return GetName().ToString(); }
-};
-
-#pragma region Input Descriptors
-
-USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExInputDescriptor : public FPCGExAttributeDescriptorBase
-{
-	GENERATED_BODY()
-
-	FPCGExInputDescriptor(): FPCGExAttributeDescriptorBase()
-	{
-	}
-
-	FPCGExInputDescriptor(const FPCGExInputDescriptor& Other): FPCGExAttributeDescriptorBase(Other)
-	{
-		Selector = Other.Selector;
-	}
-
-public:
-	/** Point Attribute or $Property */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FPCGAttributePropertyInputSelector Selector;
-
-	virtual bool ValidateInternal(const UPCGPointData* InData) override
-	{
-		Selector = Selector.CopyAndFixLast(InData);
-		InternalSelector = static_cast<FPCGAttributePropertySelector>(Selector);
-		return true;
-	}
 };
 
 USTRUCT(BlueprintType)
@@ -305,6 +270,7 @@ public:
 namespace PCGEx
 {
 	const FName SourcePointsLabel = TEXT("InPoints");
+	const FName SourceTargetPointsLabel = TEXT("InTargetPoints");
 	const FName OutputPointsLabel = TEXT("OutPoints");
 
 	const FSoftObjectPath DefaultDotOverDistanceCurve = FSoftObjectPath(TEXT("/PCGExtendedToolkit/FC_PCGExGraphBalance_Default.FC_PCGExGraphBalance_Default"));

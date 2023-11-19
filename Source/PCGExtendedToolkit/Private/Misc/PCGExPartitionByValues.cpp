@@ -49,7 +49,7 @@ void FPCGExPartitionByValuesElement::InitializeContext(
 
 	Context->Partitions = NewObject<UPCGExPointIOGroup>();
 	Context->PartitionKeyName = Settings->KeyAttributeName;
-	Context->bWritePartitionKey = Settings->bWriteKeyToAttribute;
+	Context->bWritePartitionKey = Settings->bWriteKey;
 	Context->PartitionsMap.Empty();
 	Context->PartitionRule = Settings->PartitioningRules;
 
@@ -65,7 +65,7 @@ bool FPCGExPartitionByValuesElement::Validate(FPCGContext* InContext) const
 	const UPCGExPartitionByValuesSettings* Settings = Context->GetInputSettings<UPCGExPartitionByValuesSettings>();
 	check(Settings);
 
-	if (Settings->bWriteKeyToAttribute && !PCGEx::Common::IsValidName(Settings->KeyAttributeName))
+	if (Settings->bWriteKey && !PCGEx::Common::IsValidName(Settings->KeyAttributeName))
 	{
 		PCGE_LOG(Error, GraphAndLog, LOCTEXT("MalformedAttributeName", "Output Attribute name is invalid."));
 		return false;
