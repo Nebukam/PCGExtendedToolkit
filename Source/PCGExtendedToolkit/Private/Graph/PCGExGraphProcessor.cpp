@@ -6,6 +6,7 @@
 #include "PCGContext.h"
 #include "PCGPin.h"
 #include "Graph/PCGExGraphHelpers.h"
+#include "Interfaces/IPluginManager.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
 
@@ -35,6 +36,23 @@ TArray<FPCGPinProperties> UPCGExGraphProcessorSettings::OutputPinProperties() co
 
 	return PinProperties;
 }
+/*
+bool UPCGExGraphProcessorSettings::GetPinExtraIcon(const UPCGPin* InPin, FName& OutExtraIcon, FText& OutTooltip) const
+{
+#if WITH_EDITOR
+	if (InPin->Properties.Label == PCGExGraph::SourceParamsLabel)
+	{
+		auto PCGExPlugin = IPluginManager::Get().FindPlugin(TEXT("PCGExtendedToolkit"));
+		if (PCGExPlugin.IsValid())
+		{
+			OutExtraIcon = FName(PCGExPlugin->GetBaseDir() + "/Content/Editor/Slate/Icons/PCGExGraphParams.png");
+			return true;
+		}
+	}
+#endif // WITH_EDITOR
+	return false;
+}
+*/
 
 #pragma endregion
 
@@ -184,7 +202,6 @@ void FPCGExGraphProcessorElement::InitializeContext(
 	TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(PCGExGraph::SourceParamsLabel);
 	Context->Params.Initialize(InContext, Sources);
 }
-
 
 
 #undef LOCTEXT_NAMESPACE

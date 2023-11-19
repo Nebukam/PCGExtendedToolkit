@@ -12,11 +12,48 @@
 #include "Elements/PCGPointProcessingElementBase.h"
 #include "PCGExSampleNearestPoint.generated.h"
 
-namespace PCGExAsync
+UENUM(BlueprintType)
+enum class EPCGExSampleMethod : uint8
 {
-	class FSweepSphereTask;
-}
+	TargetsWithinRange UMETA(DisplayName = "All Targets Within Range", ToolTip="TBD"),
+	AllTargets  UMETA(DisplayName = "All Targets", ToolTip="TBD"),
+	ClosestTarget UMETA(DisplayName = "Closest Target", ToolTip="TBD"),
+	FarthestTarget UMETA(DisplayName = "Farthest Target", ToolTip="TBD"),
+};
 
+UENUM(BlueprintType)
+enum class EPCGExWeightMethod : uint8
+{
+	NormalizedTargetDistance  UMETA(DisplayName = "Normalized Target Distance", ToolTip="TBD"),
+	RemappedNormalizedTargetDistance  UMETA(DisplayName = "Normalized Target Distance", ToolTip="TBD"),
+};
+
+namespace PCGExNearestPoint
+{
+	struct PCGEXTENDEDTOOLKIT_API FTargetInfos
+	{
+		FTargetInfos()
+		{
+		}
+
+		double Distance = 0;
+		double Weight = 0;
+		int32 Index = -1;
+		PCGMetadataEntryKey EntryKey = PCGInvalidEntryKey;
+	};
+
+	struct PCGEXTENDEDTOOLKIT_API FTargetsCompoundInfos
+	{
+		FTargetsCompoundInfos()
+		{
+		}
+
+		int32 NumTargets = 0;
+		double TotalWeight = 0;
+		
+	};
+	
+}
 
 /**
  * Use PCGExTransform to manipulate the outgoing attributes instead of handling everything here.
@@ -40,6 +77,16 @@ protected:
 	//~End UPCGSettings interface
 
 public:
+	/** TBD */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling")
+	EPCGExSampleMethod SampleMethod = EPCGExSampleMethod::TargetsWithinRange;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(InlineEditConditionToggle, EditCondition="SampleMethod==EPCGExSampleMethod::TargetsWithinRange"))
+	bool bUseLocalRange = false;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(EditCondition="bUseLocalRange && SampleMethod==EPCGExSampleMethod::TargetsWithinRange", EditConditionHides))
+	FPCGExInputDescriptorWithSingleField LocalRange;
+	
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(InlineEditConditionToggle))
 	bool bWriteLocation = false;
@@ -75,25 +122,10 @@ public:
 	FName Distance = FName("NearestSurfaceDistance");
 
 
-	/** Maximum distance to check for closest surface.*/
+	/** Maximum distance to check for closest surface. Input 0 to sample all target points.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision & Metrics")
 	double MaxDistance = 1000;
 
-	/** Collision channel to check against */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision & Metrics")
-	TEnumAsByte<ECollisionChannel> CollisionChannel = static_cast<ECollisionChannel>(ECC_WorldDynamic);
-
-	/** Ignore this graph' PCG content */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision & Metrics")
-	bool bIgnoreSelf = true;
-
-	/** StepSize can't get smaller than this.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision & Metrics")
-	double MinStepSize = 1;
-
-	/** Maximum number of attempts per point. Each attempt increases probing radius by (MaxDistance/NumMaxAttempts)*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision & Metrics")
-	int32 NumMaxAttempts = 256;
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestPointContext : public FPCGExPointsProcessorContext
@@ -101,21 +133,19 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestPointContext : public FPCGExPoi
 	friend class FPCGExSampleNearestPointElement;
 
 public:
-	int32 NumMaxAttempts = 100;
-	double AttemptStepSize = 0;
-	TEnumAsByte<ECollisionChannel> CollisionChannel;
-	bool bIgnoreSelf = true;
+	UPCGPointData* Targets = nullptr;
+	UPCGPointData::PointOctree* Octree = nullptr;
 
+	double MaxDistance = 1000;
+	bool bUseOctree = false;
+	int64 NumTargets = 0;
+
+	//TODO: Setup target local inputs
+	
 	PCGEX_OUT_ATTRIBUTE(Location, FVector)
 	PCGEX_OUT_ATTRIBUTE(Direction, FVector)
 	PCGEX_OUT_ATTRIBUTE(Normal, FVector)
 	PCGEX_OUT_ATTRIBUTE(Distance, double)
-
-	int64 NumSweepComplete = 0;
-
-	void ProcessSweepHit(const PCGExAsync::FSweepSphereTask* Task);
-	void ProcessSweepMiss(const PCGExAsync::FSweepSphereTask* Task);
-	void WrapSweepTask(const PCGExAsync::FSweepSphereTask* Task, bool bSuccess);
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestPointElement : public FPCGExPointsProcessorElementBase

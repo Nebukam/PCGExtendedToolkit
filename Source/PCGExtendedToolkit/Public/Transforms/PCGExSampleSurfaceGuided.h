@@ -33,7 +33,8 @@ public:
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(SampleSurfaceGuided, "Sample Surface Guided", "Find the collision point on the nearest collidable surface in a given direction.");
 #endif
-
+	
+	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual PCGEx::EIOInit GetPointOutputInitMode() const override;
 
 protected:
@@ -59,19 +60,19 @@ public:
 
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(InlineEditConditionToggle))
-	bool bWriteLocation = false;
+	bool bWriteSurfaceLocation = false;
 
 	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(EditCondition="bWriteLocation"))
-	FName Location = FName("GuidedSurfaceLocation");
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(EditCondition="bWriteSurfaceLocation"))
+	FName SurfaceLocation = FName("GuidedSurfaceLocation");
 
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(InlineEditConditionToggle))
-	bool bWriteNormal = false;
+	bool bWriteSurfaceNormal = false;
 
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(EditCondition="bWriteNormal"))
-	FName Normal = FName("GuidedSurfaceNormal");
+	FName SurfaceNormal = FName("GuidedSurfaceNormal");
 
 
 	/** TBD */
@@ -104,8 +105,8 @@ public:
 	PCGEx::FLocalSingleComponentInput LocalSize;
 	PCGEx::FLocalDirectionInput Direction;
 
-	PCGEX_OUT_ATTRIBUTE(Location, FVector)
-	PCGEX_OUT_ATTRIBUTE(Normal, FVector)
+	PCGEX_OUT_ATTRIBUTE(SurfaceLocation, FVector)
+	PCGEX_OUT_ATTRIBUTE(SurfaceNormal, FVector)
 	PCGEX_OUT_ATTRIBUTE(Distance, double)
 
 	int64 NumTraceComplete = 0;
@@ -151,8 +152,8 @@ namespace PCGExAsync
 			double Size = Context->bUseLocalSize ? Context->LocalSize.GetValue(InPoint) : Context->Size;
 			if (InContext->World->LineTraceSingleByChannel(HitResult, Origin, Origin + (Context->Direction.GetValue(InPoint) * Size), Context->CollisionChannel, CollisionParams))
 			{
-				PCGEX_SET_OUT_ATTRIBUTE(Location, Infos.Key, HitResult.ImpactPoint)
-				PCGEX_SET_OUT_ATTRIBUTE(Normal, Infos.Key, HitResult.Normal)
+				PCGEX_SET_OUT_ATTRIBUTE(SurfaceLocation, Infos.Key, HitResult.ImpactPoint)
+				PCGEX_SET_OUT_ATTRIBUTE(SurfaceNormal, Infos.Key, HitResult.Normal)
 				PCGEX_SET_OUT_ATTRIBUTE(Distance, Infos.Key, FVector::Distance(HitResult.ImpactPoint, Origin))
 
 				Context->WrapTraceTask(this, true);

@@ -27,12 +27,12 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeDebugDrawDescriptor
 	}
 
 public:
-	/** Draw line thickness. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(InlineEditConditionToggle))
+	/** Enable or disable this debug group. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	bool bEnabled = true;
 
 	/** Draw line thickness. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (EditCondition="bEnabled"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	EPCGExDebugType Type = EPCGExDebugType::Direction;
 
 	/** Attribute to sample direction from */
@@ -61,7 +61,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Size", meta = (InlineEditConditionToggle, EditCondition="Type==EPCGExDebugType::Direction"))
 	bool bSizeFromAttribute = false;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Size", meta = (EditCondition="bSizeFromAttribute"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Size", meta = (EditCondition="Type==EPCGExDebugType::Direction && bSizeFromAttribute"))
 	FPCGExInputDescriptorWithSingleField SizeAttribute;
 
 	/** Draw color. */

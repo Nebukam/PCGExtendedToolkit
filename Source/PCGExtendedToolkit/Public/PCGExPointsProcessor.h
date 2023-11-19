@@ -15,11 +15,12 @@
 bool bWrite##_NAME = false;\
 FName OutName##_NAME = NAME_None;\
 FPCGMetadataAttribute<_TYPE>* OutAttribute##_NAME = nullptr;
-#define PCGEX_FORWARD_ATTRIBUTE(_NAME, _TOGGLE, _SETTING_NAME)\
-Context->bWrite##_NAME = Settings->_TOGGLE;\
-Context->OutName##_NAME = Settings->_SETTING_NAME;
 
-#define PCGEX_CHECK_OUTNAME(_NAME)\
+#define PCGEX_FORWARD_OUT_ATTRIBUTE(_NAME)\
+Context->bWrite##_NAME = Settings->bWrite##_NAME;\
+Context->OutName##_NAME = Settings->_NAME;
+
+#define PCGEX_CHECK_OUT_ATTRIBUTE_NAME(_NAME)\
 if(Context->bWrite##_NAME && !PCGEx::Common::IsValidName(Context->OutName##_NAME))\
 { PCGE_LOG(Warning, GraphAndLog, LOCTEXT("InvalidName", "Invalid output attribute name " #_NAME ));\
 Context->bWrite##_NAME = false; }

@@ -12,28 +12,6 @@ PCGEx::EIOInit UPCGExSampleNearestPointSettings::GetPointOutputInitMode() const 
 
 FPCGElementPtr UPCGExSampleNearestPointSettings::CreateElement() const { return MakeShared<FPCGExSampleNearestPointElement>(); }
 
-void FPCGExSampleNearestPointContext::ProcessSweepHit(const PCGExAsync::FSweepSphereTask* Task)
-{
-	WrapSweepTask(Task, true);
-}
-
-void FPCGExSampleNearestPointContext::ProcessSweepMiss(const PCGExAsync::FSweepSphereTask* Task)
-{
-	if (Task->Infos.Attempt > NumMaxAttempts)
-	{
-		WrapSweepTask(Task, false);
-		return;
-	}
-
-	ScheduleTask<PCGExAsync::FSweepSphereTask>(Task->Infos.GetRetry());
-}
-
-void FPCGExSampleNearestPointContext::WrapSweepTask(const PCGExAsync::FSweepSphereTask* Task, bool bSuccess)
-{
-	FWriteScopeLock ScopeLock(ContextLock);
-	NumSweepComplete++;
-}
-
 FPCGContext* FPCGExSampleNearestPointElement::Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node)
 {
 	FPCGExSampleNearestPointContext* Context = new FPCGExSampleNearestPointContext();
@@ -42,15 +20,29 @@ FPCGContext* FPCGExSampleNearestPointElement::Initialize(const FPCGDataCollectio
 	const UPCGExSampleNearestPointSettings* Settings = Context->GetInputSettings<UPCGExSampleNearestPointSettings>();
 	check(Settings);
 
-	Context->AttemptStepSize = FMath::Max(Settings->MaxDistance / static_cast<double>(Settings->NumMaxAttempts), Settings->MinStepSize);
-	Context->NumMaxAttempts = FMath::Max(static_cast<int32>(static_cast<double>(Settings->MaxDistance) / Context->AttemptStepSize), 1);
-	Context->CollisionChannel = Settings->CollisionChannel;
-	Context->bIgnoreSelf = Settings->bIgnoreSelf;
+	TArray<FPCGTaggedData> Targets = InputData.GetInputsByPin(PCGEx::SourceTargetPointsLabel);
+	if (!Targets.IsEmpty())
+	{
+		FPCGTaggedData& Target = Targets[0];
+		const UPCGSpatialData* SpatialData = Cast<UPCGSpatialData>(Target.Data);
+		if (!SpatialData) { return nullptr; }
 
-	PCGEX_FORWARD_ATTRIBUTE(Location, bWriteLocation, Location)
-	PCGEX_FORWARD_ATTRIBUTE(Direction, bWriteDirection, Direction)
-	PCGEX_FORWARD_ATTRIBUTE(Normal, bWriteNormal, Normal)
-	PCGEX_FORWARD_ATTRIBUTE(Distance, bWriteDistance, Distance)
+		const UPCGPointData* PointData = SpatialData->ToPointData(Context);
+		if (!PointData) { return nullptr; }
+
+		Context->Targets = const_cast<UPCGPointData*>(PointData);
+		Context->NumTargets = Context->Targets->GetPoints().Num();
+
+		//TODO: Initialize target attribute readers here
+	}
+
+	Context->MaxDistance = Settings->MaxDistance;
+	Context->bUseOctree = Settings->MaxDistance <= 0;
+
+	PCGEX_FORWARD_OUT_ATTRIBUTE(Location)
+	PCGEX_FORWARD_OUT_ATTRIBUTE(Direction)
+	PCGEX_FORWARD_OUT_ATTRIBUTE(Normal)
+	PCGEX_FORWARD_OUT_ATTRIBUTE(Distance)
 
 	return Context;
 }
@@ -60,10 +52,17 @@ bool FPCGExSampleNearestPointElement::Validate(FPCGContext* InContext) const
 	if (!FPCGExPointsProcessorElementBase::Validate(InContext)) { return false; }
 
 	FPCGExSampleNearestPointContext* Context = static_cast<FPCGExSampleNearestPointContext*>(InContext);
-	PCGEX_CHECK_OUTNAME(Location)
-	PCGEX_CHECK_OUTNAME(Direction)
-	PCGEX_CHECK_OUTNAME(Normal)
-	PCGEX_CHECK_OUTNAME(Distance)
+
+	if (!Context->Targets || Context->NumTargets < 1)
+	{
+		PCGE_LOG(Error, GraphAndLog, LOCTEXT("MissingTargets", "No targets (either no input or empty dataset)"));
+		return false;
+	}
+
+	PCGEX_CHECK_OUT_ATTRIBUTE_NAME(Location)
+	PCGEX_CHECK_OUT_ATTRIBUTE_NAME(Direction)
+	PCGEX_CHECK_OUT_ATTRIBUTE_NAME(Normal)
+	PCGEX_CHECK_OUT_ATTRIBUTE_NAME(Distance)
 	return true;
 }
 
@@ -76,6 +75,8 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 	if (Context->IsState(PCGExMT::EState::Setup))
 	{
 		if (!Validate(Context)) { return true; }
+
+		Context->Octree = Context->bUseOctree ? const_cast<UPCGPointData::PointOctree*>(&(Context->CurrentIO->Out->GetOctree())) : nullptr;
 		Context->SetState(PCGExMT::EState::ReadyForNextPoints);
 	}
 
@@ -93,7 +94,6 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 
 	auto InitializeForIO = [&Context](UPCGExPointIO* IO)
 	{
-		Context->NumSweepComplete = 0;
 		IO->BuildMetadataEntries();
 		PCGEX_INIT_ATTRIBUTE_OUT(Location, FVector)
 		PCGEX_INIT_ATTRIBUTE_OUT(Direction, FVector)
@@ -101,22 +101,41 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 		PCGEX_INIT_ATTRIBUTE_OUT(Distance, double)
 	};
 
-	auto ProcessPoint = [&Context, this](const FPCGPoint& Point, const int32 Index, UPCGExPointIO* IO)
+	auto ProcessPoint = [&Context](
+		const FPCGPoint& Point, int32 ReadIndex, UPCGExPointIO* IO)
 	{
-		Context->ScheduleTask<PCGExAsync::FSweepSphereTask>(Index, Point.MetadataEntry);
+
+		
+		auto ProcessTarget = [&ReadIndex](const FPCGPoint& OtherPoint)
+		{
+			
+		};
+
+		// First: Sample all possible targets
+		if (Context->Octree)
+		{
+			const FBoxCenterAndExtent Box = FBoxCenterAndExtent(Point.Transform.GetLocation(), FVector(Context->MaxDistance));
+			Context->Octree->FindElementsWithBoundsTest(
+				Box,
+				[&ProcessTarget](const FPCGPointRef& OtherPointRef)
+				{
+					const FPCGPoint* OtherPoint = OtherPointRef.Point;
+					ProcessTarget(*OtherPoint);
+				});
+		}
+		else
+		{
+			const TArray<FPCGPoint>& Targets = Context->Targets->GetPoints();
+			for (const FPCGPoint& OtherPoint : Targets) { ProcessTarget(OtherPoint); }
+		}
+
+		// Weight targets
+		
 	};
 
 	if (Context->IsState(PCGExMT::EState::ProcessingPoints))
 	{
 		if (Context->CurrentIO->OutputParallelProcessing(Context, InitializeForIO, ProcessPoint, Context->ChunkSize))
-		{
-			Context->SetState(PCGExMT::EState::WaitingOnAsyncTasks);
-		}
-	}
-
-	if (Context->IsState(PCGExMT::EState::WaitingOnAsyncTasks))
-	{
-		if (Context->NumSweepComplete == Context->CurrentIO->NumPoints)
 		{
 			Context->SetState(PCGExMT::EState::ReadyForNextPoints);
 		}

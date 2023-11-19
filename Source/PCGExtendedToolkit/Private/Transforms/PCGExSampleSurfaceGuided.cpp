@@ -5,8 +5,21 @@
 #include "Data/PCGSpatialData.h"
 #include "PCGContext.h"
 #include "PCGExCommon.h"
+#include "PCGPin.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSampleSurfaceGuidedElement"
+
+TArray<FPCGPinProperties> UPCGExSampleSurfaceGuidedSettings::InputPinProperties() const
+{
+	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
+	FPCGPinProperties& PinPropertySourceTargets = PinProperties.Emplace_GetRef(PCGEx::SourceTargetPointsLabel, EPCGDataType::Point, false, false);
+
+#if WITH_EDITOR
+	PinPropertySourceTargets.Tooltip = LOCTEXT("PCGExSourceTargetsPointsPinTooltip", "The point data set to check against.");
+#endif // WITH_EDITOR
+
+	return PinProperties;
+}
 
 PCGEx::EIOInit UPCGExSampleSurfaceGuidedSettings::GetPointOutputInitMode() const { return PCGEx::EIOInit::DuplicateInput; }
 
@@ -35,9 +48,9 @@ FPCGContext* FPCGExSampleSurfaceGuidedElement::Initialize(const FPCGDataCollecti
 	
 	Context->Direction.Capture(Settings->Direction);
 	
-	PCGEX_FORWARD_ATTRIBUTE(Location, bWriteLocation, Location)
-	PCGEX_FORWARD_ATTRIBUTE(Normal, bWriteNormal, Normal)
-	PCGEX_FORWARD_ATTRIBUTE(Distance, bWriteDistance, Distance)
+	PCGEX_FORWARD_OUT_ATTRIBUTE(SurfaceLocation)
+	PCGEX_FORWARD_OUT_ATTRIBUTE(SurfaceNormal)
+	PCGEX_FORWARD_OUT_ATTRIBUTE(Distance)
 
 	return Context;
 }
@@ -47,9 +60,9 @@ bool FPCGExSampleSurfaceGuidedElement::Validate(FPCGContext* InContext) const
 	if (!FPCGExPointsProcessorElementBase::Validate(InContext)) { return false; }
 
 	FPCGExSampleSurfaceGuidedContext* Context = static_cast<FPCGExSampleSurfaceGuidedContext*>(InContext);
-	PCGEX_CHECK_OUTNAME(Location)
-	PCGEX_CHECK_OUTNAME(Normal)
-	PCGEX_CHECK_OUTNAME(Distance)
+	PCGEX_CHECK_OUT_ATTRIBUTE_NAME(SurfaceLocation)
+	PCGEX_CHECK_OUT_ATTRIBUTE_NAME(SurfaceNormal)
+	PCGEX_CHECK_OUT_ATTRIBUTE_NAME(Distance)
 	return true;
 }
 
@@ -82,8 +95,8 @@ bool FPCGExSampleSurfaceGuidedElement::ExecuteInternal(FPCGContext* InContext) c
 		Context->NumTraceComplete = 0;
 		Context->Direction.Validate(IO->Out);
 		IO->BuildMetadataEntries();
-		PCGEX_INIT_ATTRIBUTE_OUT(Location, FVector)
-		PCGEX_INIT_ATTRIBUTE_OUT(Normal, FVector)
+		PCGEX_INIT_ATTRIBUTE_OUT(SurfaceLocation, FVector)
+		PCGEX_INIT_ATTRIBUTE_OUT(SurfaceNormal, FVector)
 		PCGEX_INIT_ATTRIBUTE_OUT(Distance, double)
 	};
 

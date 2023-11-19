@@ -42,28 +42,28 @@ protected:
 public:
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(InlineEditConditionToggle))
-	bool bWriteLocation = false;
+	bool bWriteSurfaceLocation = false;
 
 	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(EditCondition="bWriteLocation"))
-	FName Location = FName("NearestSurfaceLocation");
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(EditCondition="bWriteSurfaceLocation"))
+	FName SurfaceLocation = FName("NearestSurfaceLocation");
+	
+	/** TBD */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(InlineEditConditionToggle))
+	bool bWriteLookAtDirection = false;
+
+	/** TBD */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(EditCondition="bWriteLookAtDirection"))
+	FName LookAtDirection = FName("NearestSurfaceLookAt");
+
 
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(InlineEditConditionToggle))
-	bool bWriteDirection = false;
+	bool bWriteSurfaceNormal = false;
 
 	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(EditCondition="bWriteDirection"))
-	FName Direction = FName("DirectionToNearestSurface");
-
-
-	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(InlineEditConditionToggle))
-	bool bWriteNormal = false;
-
-	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(EditCondition="bWriteNormal"))
-	FName Normal = FName("NearestSurfaceNormal");
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(EditCondition="bWriteSurfaceNormal"))
+	FName SurfaceNormal = FName("NearestSurfaceNormal");
 
 
 	/** TBD */
@@ -106,9 +106,9 @@ public:
 	TEnumAsByte<ECollisionChannel> CollisionChannel;
 	bool bIgnoreSelf = true;
 
-	PCGEX_OUT_ATTRIBUTE(Location, FVector)
-	PCGEX_OUT_ATTRIBUTE(Direction, FVector)
-	PCGEX_OUT_ATTRIBUTE(Normal, FVector)
+	PCGEX_OUT_ATTRIBUTE(SurfaceLocation, FVector)
+	PCGEX_OUT_ATTRIBUTE(LookAtDirection, FVector)
+	PCGEX_OUT_ATTRIBUTE(SurfaceNormal, FVector)
 	PCGEX_OUT_ATTRIBUTE(Distance, double)
 
 	int64 NumSweepComplete = 0;
@@ -159,9 +159,9 @@ namespace PCGExAsync
 			if (!InContext->Points) { return; }
 			if (InContext->World->SweepSingleByChannel(HitResult, Origin, Origin + (FVector::UpVector * 0.001), FQuat::Identity, Context->CollisionChannel, CollisionShape, CollisionParams))
 			{
-				PCGEX_SET_OUT_ATTRIBUTE(Location, Infos.Key, HitResult.ImpactPoint)
-				PCGEX_SET_OUT_ATTRIBUTE(Normal, Infos.Key, HitResult.Normal)
-				PCGEX_SET_OUT_ATTRIBUTE(Direction, Infos.Key, (HitResult.ImpactPoint - Origin).GetSafeNormal())
+				PCGEX_SET_OUT_ATTRIBUTE(SurfaceLocation, Infos.Key, HitResult.ImpactPoint)
+				PCGEX_SET_OUT_ATTRIBUTE(SurfaceNormal, Infos.Key, HitResult.Normal)
+				PCGEX_SET_OUT_ATTRIBUTE(LookAtDirection, Infos.Key, (HitResult.ImpactPoint - Origin).GetSafeNormal())
 				PCGEX_SET_OUT_ATTRIBUTE(Distance, Infos.Key, FVector::Distance(HitResult.ImpactPoint, Origin))
 
 				Context->ProcessSweepHit(this);

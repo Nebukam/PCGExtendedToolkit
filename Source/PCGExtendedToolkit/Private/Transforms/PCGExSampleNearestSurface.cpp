@@ -47,10 +47,10 @@ FPCGContext* FPCGExSampleNearestSurfaceElement::Initialize(const FPCGDataCollect
 	Context->CollisionChannel = Settings->CollisionChannel;
 	Context->bIgnoreSelf = Settings->bIgnoreSelf;
 
-	PCGEX_FORWARD_ATTRIBUTE(Location, bWriteLocation, Location)
-	PCGEX_FORWARD_ATTRIBUTE(Direction, bWriteDirection, Direction)
-	PCGEX_FORWARD_ATTRIBUTE(Normal, bWriteNormal, Normal)
-	PCGEX_FORWARD_ATTRIBUTE(Distance, bWriteDistance, Distance)
+	PCGEX_FORWARD_OUT_ATTRIBUTE(SurfaceLocation)
+	PCGEX_FORWARD_OUT_ATTRIBUTE(LookAtDirection)
+	PCGEX_FORWARD_OUT_ATTRIBUTE(SurfaceNormal)
+	PCGEX_FORWARD_OUT_ATTRIBUTE(Distance)
 
 	return Context;
 }
@@ -60,10 +60,10 @@ bool FPCGExSampleNearestSurfaceElement::Validate(FPCGContext* InContext) const
 	if (!FPCGExPointsProcessorElementBase::Validate(InContext)) { return false; }
 
 	FPCGExSampleNearestSurfaceContext* Context = static_cast<FPCGExSampleNearestSurfaceContext*>(InContext);
-	PCGEX_CHECK_OUTNAME(Location)
-	PCGEX_CHECK_OUTNAME(Direction)
-	PCGEX_CHECK_OUTNAME(Normal)
-	PCGEX_CHECK_OUTNAME(Distance)
+	PCGEX_CHECK_OUT_ATTRIBUTE_NAME(SurfaceLocation)
+	PCGEX_CHECK_OUT_ATTRIBUTE_NAME(LookAtDirection)
+	PCGEX_CHECK_OUT_ATTRIBUTE_NAME(SurfaceNormal)
+	PCGEX_CHECK_OUT_ATTRIBUTE_NAME(Distance)
 	return true;
 }
 
@@ -95,9 +95,9 @@ bool FPCGExSampleNearestSurfaceElement::ExecuteInternal(FPCGContext* InContext) 
 	{
 		Context->NumSweepComplete = 0;
 		IO->BuildMetadataEntries();
-		PCGEX_INIT_ATTRIBUTE_OUT(Location, FVector)
-		PCGEX_INIT_ATTRIBUTE_OUT(Direction, FVector)
-		PCGEX_INIT_ATTRIBUTE_OUT(Normal, FVector)
+		PCGEX_INIT_ATTRIBUTE_OUT(SurfaceLocation, FVector)
+		PCGEX_INIT_ATTRIBUTE_OUT(LookAtDirection, FVector)
+		PCGEX_INIT_ATTRIBUTE_OUT(SurfaceNormal, FVector)
 		PCGEX_INIT_ATTRIBUTE_OUT(Distance, double)
 	};
 

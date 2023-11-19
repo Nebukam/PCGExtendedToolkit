@@ -38,6 +38,7 @@ public class PCGExtendedToolkit : ModuleRules
 		PrivateDependencyModuleNames.AddRange(
 			new string[]
 			{
+				"Projects" // So that we can use the IPluginManager, required for icons
             }
 			);
 		
