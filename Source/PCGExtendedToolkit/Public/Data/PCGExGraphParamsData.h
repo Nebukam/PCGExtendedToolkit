@@ -262,7 +262,7 @@ public:
 
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bOverrideDotOverDistance"))
-	FSoftObjectPath DotOverDistance;
+	TSoftObjectPtr<UCurveFloat> DotOverDistance;
 };
 
 #pragma endregion

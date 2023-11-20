@@ -25,8 +25,8 @@ enum class EPCGExSampleMethod : uint8
 UENUM(BlueprintType)
 enum class EPCGExWeightMethod : uint8
 {
-	NormalizedTargetDistance UMETA(DisplayName = "Normalized Target Distance", ToolTip="TBD"),
-	RemappedNormalizedTargetDistance UMETA(DisplayName = "Normalized Target Distance", ToolTip="TBD"),
+	FullRange UMETA(DisplayName = "Full Range", ToolTip="Weight is sampled using the normalized distance over the full min/max range."),
+	EffectiveRange UMETA(DisplayName = "Effective Range", ToolTip="Weight is sampled using the normalized distance over the min/max of sampled points."),
 };
 
 namespace PCGExNearestPoint
@@ -38,9 +38,8 @@ namespace PCGExNearestPoint
 		}
 
 		double Distance = 0;
-		double Weight = 0;
-		int32 Index = -1;
-		PCGMetadataEntryKey EntryKey = PCGInvalidEntryKey;
+		//double Weight = 0;
+		FPCGPoint Point;
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FTargetsCompoundInfos
@@ -51,6 +50,34 @@ namespace PCGExNearestPoint
 
 		int32 NumTargets = 0;
 		double TotalWeight = 0;
+		double RangeMin = TNumericLimits<double>::Max();
+		double RangeMax = 0;
+		double RangeWidth = 0;
+
+		FTargetInfos Closest;
+		FTargetInfos Farthest;
+
+		void UpdateCompound(FTargetInfos& Infos)
+		{
+			if (Infos.Distance < RangeMin)
+			{
+				Closest = Infos;
+				RangeMin = Infos.Distance;
+			}
+
+			if (Infos.Distance > RangeMax)
+			{
+				Farthest = Infos;
+				RangeMax = Infos.Distance;
+			}
+
+			RangeWidth = RangeMax - RangeMin;
+		}
+
+		double GetRangeRatio(double Distance) const
+		{
+			return (Distance - RangeMin) / RangeWidth;
+		}
 	};
 }
 
@@ -63,11 +90,15 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSampleNearestPointSettings : public UPCGExPoi
 {
 	GENERATED_BODY()
 
+	UPCGExSampleNearestPointSettings(const FObjectInitializer& ObjectInitializer);
+
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(SampleNearestPoint, "Sample Nearest Point", "Find the closest point on the nearest collidable surface.");
 #endif
+
+	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 
 	virtual PCGEx::EIOInit GetPointOutputInitMode() const override;
 	virtual int32 GetPreferredChunkSize() const override;
@@ -87,7 +118,7 @@ public:
 
 	/** Maximum target range. Used as fallback if LocalRangeMax is enabled but missing. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(ForceInlineRow, EditCondition="SampleMethod==EPCGExSampleMethod::TargetsWithinRange"))
-	double RangeMax = 1000;
+	double RangeMax = 300;
 
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(InlineEditConditionToggle, EditCondition="SampleMethod==EPCGExSampleMethod::TargetsWithinRange"))
@@ -107,15 +138,19 @@ public:
 
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting")
+	EPCGExWeightMethod WeightMethod = EPCGExWeightMethod::FullRange;
+
+	/** TBD */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting")
 	TSoftObjectPtr<UCurveFloat> WeightOverDistance;
-	
+
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(InlineEditConditionToggle))
 	bool bWriteLocation = false;
 
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(EditCondition="bWriteLocation"))
-	FName Location = FName("NearestSurfaceLocation");
+	FName Location = FName("WeightedLocation");
 
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(InlineEditConditionToggle))
@@ -123,7 +158,7 @@ public:
 
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(EditCondition="bWriteDirection"))
-	FName Direction = FName("DirectionToNearestSurface");
+	FName Direction = FName("WeightedDirection");
 
 
 	/** TBD */
@@ -132,8 +167,11 @@ public:
 
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(EditCondition="bWriteNormal"))
-	FName Normal = FName("NearestSurfaceNormal");
+	FName Normal = FName("WeightedNormal");
 
+	/** TBD */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(EditCondition="bWriteNormal"))
+	FPCGExInputDescriptorWithDirection NormalSource;
 
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(InlineEditConditionToggle))
@@ -141,7 +179,7 @@ public:
 
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(EditCondition="bWriteDistance"))
-	FName Distance = FName("NearestSurfaceDistance");
+	FName Distance = FName("WeightedDistance");
 
 
 	/** Maximum distance to check for closest surface. Input 0 to sample all target points.*/
@@ -157,20 +195,27 @@ public:
 	UPCGPointData* Targets = nullptr;
 	UPCGPointData::PointOctree* Octree = nullptr;
 
+	TMap<PCGMetadataEntryKey, int64> TargetIndices;
+
+	EPCGExSampleMethod SampleMethod = EPCGExSampleMethod::TargetsWithinRange;
+	EPCGExWeightMethod WeightMethod = EPCGExWeightMethod::FullRange;
+
 	double RangeMin = 0;
 	double RangeMax = 1000;
 
 	bool bLocalRangeMin = false;
 	bool bLocalRangeMax = false;
-	
+
 	bool bUseOctree = false;
 	int64 NumTargets = 0;
 
 	PCGEx::FLocalSingleComponentInput RangeMinInput;
 	PCGEx::FLocalSingleComponentInput RangeMaxInput;
-	
-	UCurveFloat* WeightOverDistance = nullptr;
-	
+
+	PCGEx::FLocalDirectionInput NormalInput;
+
+	UCurveFloat* WeightCurve = nullptr;
+
 	//TODO: Setup target local inputs
 
 	PCGEX_OUT_ATTRIBUTE(Location, FVector)

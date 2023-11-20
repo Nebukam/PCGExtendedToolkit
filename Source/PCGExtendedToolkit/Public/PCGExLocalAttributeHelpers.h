@@ -49,6 +49,12 @@ namespace PCGEx
 			return bValid;
 		}
 
+		virtual T GetValueSafe(const FPCGPoint& Point, T fallback)
+		{
+			if (!bValid || !bEnabled) { return fallback; }
+			return GetValue(Point);
+		}
+		
 		virtual T GetValue(const FPCGPoint& Point) const
 		{
 			if (!bValid || !bEnabled) { return GetDefaultValue(); }

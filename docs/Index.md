@@ -4,8 +4,9 @@
 1. [Installation](Installation.md)
 1. Nodes
     - Misc
-        - [Draw Attributes](PCGExDrawAttributes.md)
         - [Sort Points](PCGExSortPoints.md)
+        - [Draw Attributes](PCGExDrawAttributes.md)
+        - [Apply Attributes](PCGExApplyAttributes.md)
         - [Partition by Values](PCGExPartitionByValues.md)
         - [Write Index](PCGExWriteIndex.md)
     - Graph

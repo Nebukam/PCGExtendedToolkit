@@ -34,7 +34,6 @@ public:
 	PCGEX_NODE_INFOS(SampleSurfaceGuided, "Sample Surface Guided", "Find the collision point on the nearest collidable surface in a given direction.");
 #endif
 	
-	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual PCGEx::EIOInit GetPointOutputInitMode() const override;
 
 protected:

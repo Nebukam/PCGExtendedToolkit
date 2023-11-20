@@ -9,18 +9,6 @@
 
 #define LOCTEXT_NAMESPACE "PCGExSampleSurfaceGuidedElement"
 
-TArray<FPCGPinProperties> UPCGExSampleSurfaceGuidedSettings::InputPinProperties() const
-{
-	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	FPCGPinProperties& PinPropertySourceTargets = PinProperties.Emplace_GetRef(PCGEx::SourceTargetPointsLabel, EPCGDataType::Point, false, false);
-
-#if WITH_EDITOR
-	PinPropertySourceTargets.Tooltip = LOCTEXT("PCGExSourceTargetsPointsPinTooltip", "The point data set to check against.");
-#endif // WITH_EDITOR
-
-	return PinProperties;
-}
-
 PCGEx::EIOInit UPCGExSampleSurfaceGuidedSettings::GetPointOutputInitMode() const { return PCGEx::EIOInit::DuplicateInput; }
 
 FPCGElementPtr UPCGExSampleSurfaceGuidedSettings::CreateElement() const { return MakeShared<FPCGExSampleSurfaceGuidedElement>(); }
