@@ -8,6 +8,7 @@
  */
 
 #include "CoreMinimal.h"
+#include "PCGExLocalAttributeHelpers.h"
 #include "PCGExPointsProcessor.h"
 #include "Elements/PCGPointProcessingElementBase.h"
 #include "PCGExSampleNearestPoint.generated.h"
@@ -16,7 +17,7 @@ UENUM(BlueprintType)
 enum class EPCGExSampleMethod : uint8
 {
 	TargetsWithinRange UMETA(DisplayName = "All Targets Within Range", ToolTip="TBD"),
-	AllTargets  UMETA(DisplayName = "All Targets", ToolTip="TBD"),
+	AllTargets UMETA(DisplayName = "All Targets", ToolTip="TBD"),
 	ClosestTarget UMETA(DisplayName = "Closest Target", ToolTip="TBD"),
 	FarthestTarget UMETA(DisplayName = "Farthest Target", ToolTip="TBD"),
 };
@@ -24,8 +25,8 @@ enum class EPCGExSampleMethod : uint8
 UENUM(BlueprintType)
 enum class EPCGExWeightMethod : uint8
 {
-	NormalizedTargetDistance  UMETA(DisplayName = "Normalized Target Distance", ToolTip="TBD"),
-	RemappedNormalizedTargetDistance  UMETA(DisplayName = "Normalized Target Distance", ToolTip="TBD"),
+	NormalizedTargetDistance UMETA(DisplayName = "Normalized Target Distance", ToolTip="TBD"),
+	RemappedNormalizedTargetDistance UMETA(DisplayName = "Normalized Target Distance", ToolTip="TBD"),
 };
 
 namespace PCGExNearestPoint
@@ -50,9 +51,7 @@ namespace PCGExNearestPoint
 
 		int32 NumTargets = 0;
 		double TotalWeight = 0;
-		
 	};
-	
 }
 
 /**
@@ -71,6 +70,7 @@ public:
 #endif
 
 	virtual PCGEx::EIOInit GetPointOutputInitMode() const override;
+	virtual int32 GetPreferredChunkSize() const override;
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
@@ -81,11 +81,33 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling")
 	EPCGExSampleMethod SampleMethod = EPCGExSampleMethod::TargetsWithinRange;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(InlineEditConditionToggle, EditCondition="SampleMethod==EPCGExSampleMethod::TargetsWithinRange"))
-	bool bUseLocalRange = false;
+	/** Minimum target range. Used as fallback if LocalRangeMin is enabled but missing. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(EditCondition="SampleMethod==EPCGExSampleMethod::TargetsWithinRange"))
+	double RangeMin = 0;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(EditCondition="bUseLocalRange && SampleMethod==EPCGExSampleMethod::TargetsWithinRange", EditConditionHides))
-	FPCGExInputDescriptorWithSingleField LocalRange;
+	/** Maximum target range. Used as fallback if LocalRangeMax is enabled but missing. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(ForceInlineRow, EditCondition="SampleMethod==EPCGExSampleMethod::TargetsWithinRange"))
+	double RangeMax = 1000;
+
+	/** TBD */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(InlineEditConditionToggle, EditCondition="SampleMethod==EPCGExSampleMethod::TargetsWithinRange"))
+	bool bUseLocalRangeMin = false;
+
+	/** TBD */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(EditCondition="bUseLocalRangeMin && SampleMethod==EPCGExSampleMethod::TargetsWithinRange", EditConditionHides))
+	FPCGExInputDescriptorWithSingleField LocalRangeMin;
+
+	/** TBD */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(InlineEditConditionToggle, EditCondition="SampleMethod==EPCGExSampleMethod::TargetsWithinRange"))
+	bool bUseLocalRangeMax = false;
+
+	/** TBD */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(EditCondition="bUseLocalRangeMax && SampleMethod==EPCGExSampleMethod::TargetsWithinRange", EditConditionHides))
+	FPCGExInputDescriptorWithSingleField LocalRangeMax;
+
+	/** TBD */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting")
+	TSoftObjectPtr<UCurveFloat> WeightOverDistance;
 	
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(InlineEditConditionToggle))
@@ -125,7 +147,6 @@ public:
 	/** Maximum distance to check for closest surface. Input 0 to sample all target points.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision & Metrics")
 	double MaxDistance = 1000;
-
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestPointContext : public FPCGExPointsProcessorContext
@@ -136,12 +157,22 @@ public:
 	UPCGPointData* Targets = nullptr;
 	UPCGPointData::PointOctree* Octree = nullptr;
 
-	double MaxDistance = 1000;
+	double RangeMin = 0;
+	double RangeMax = 1000;
+
+	bool bLocalRangeMin = false;
+	bool bLocalRangeMax = false;
+	
 	bool bUseOctree = false;
 	int64 NumTargets = 0;
 
-	//TODO: Setup target local inputs
+	PCGEx::FLocalSingleComponentInput RangeMinInput;
+	PCGEx::FLocalSingleComponentInput RangeMaxInput;
 	
+	UCurveFloat* WeightOverDistance = nullptr;
+	
+	//TODO: Setup target local inputs
+
 	PCGEX_OUT_ATTRIBUTE(Location, FVector)
 	PCGEX_OUT_ATTRIBUTE(Direction, FVector)
 	PCGEX_OUT_ATTRIBUTE(Normal, FVector)

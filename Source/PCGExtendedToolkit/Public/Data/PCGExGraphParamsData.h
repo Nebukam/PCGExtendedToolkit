@@ -77,14 +77,11 @@ public:
 
 	/** The balance over distance to prioritize closer distance or better alignment. Curve X is normalized distance; Y = 0 means narrower dot wins, Y = 1 means closer distance wins */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FSoftObjectPath DotOverDistance;
+	TSoftObjectPtr<UCurveFloat> DotOverDistance;
 
 	UCurveFloat* DotOverDistanceCurve = nullptr;
 
-	void LoadCurve()
-	{
-		DotOverDistanceCurve = TSoftObjectPtr<UCurveFloat>(DotOverDistance).LoadSynchronous();
-	}
+	void LoadCurve() { DotOverDistanceCurve = DotOverDistance.LoadSynchronous(); }
 	
 };
 

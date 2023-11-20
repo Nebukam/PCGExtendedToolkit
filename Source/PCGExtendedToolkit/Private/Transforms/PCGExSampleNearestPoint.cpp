@@ -10,6 +10,8 @@
 
 PCGEx::EIOInit UPCGExSampleNearestPointSettings::GetPointOutputInitMode() const { return PCGEx::EIOInit::DuplicateInput; }
 
+int32 UPCGExSampleNearestPointSettings::GetPreferredChunkSize() const { return 32; }
+
 FPCGElementPtr UPCGExSampleNearestPointSettings::CreateElement() const { return MakeShared<FPCGExSampleNearestPointElement>(); }
 
 FPCGContext* FPCGExSampleNearestPointElement::Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node)
@@ -25,18 +27,20 @@ FPCGContext* FPCGExSampleNearestPointElement::Initialize(const FPCGDataCollectio
 	{
 		FPCGTaggedData& Target = Targets[0];
 		const UPCGSpatialData* SpatialData = Cast<UPCGSpatialData>(Target.Data);
-		if (!SpatialData) { return nullptr; }
-
-		const UPCGPointData* PointData = SpatialData->ToPointData(Context);
-		if (!PointData) { return nullptr; }
-
-		Context->Targets = const_cast<UPCGPointData*>(PointData);
-		Context->NumTargets = Context->Targets->GetPoints().Num();
-
-		//TODO: Initialize target attribute readers here
+		if (SpatialData)
+		{
+			const UPCGPointData* PointData = SpatialData->ToPointData(Context);
+			if (PointData)
+			{
+				Context->Targets = const_cast<UPCGPointData*>(PointData);
+				Context->NumTargets = Context->Targets->GetPoints().Num();
+			}
+		}
 	}
 
-	Context->MaxDistance = Settings->MaxDistance;
+	Context->WeightOverDistance = Settings->WeightOverDistance.LoadSynchronous();
+
+	Context->RangeMin = Settings->MaxDistance;
 	Context->bUseOctree = Settings->MaxDistance <= 0;
 
 	PCGEX_FORWARD_OUT_ATTRIBUTE(Location)
@@ -52,12 +56,22 @@ bool FPCGExSampleNearestPointElement::Validate(FPCGContext* InContext) const
 	if (!FPCGExPointsProcessorElementBase::Validate(InContext)) { return false; }
 
 	FPCGExSampleNearestPointContext* Context = static_cast<FPCGExSampleNearestPointContext*>(InContext);
+	const UPCGExSampleNearestPointSettings* Settings = Context->GetInputSettings<UPCGExSampleNearestPointSettings>();
+	check(Settings);
 
 	if (!Context->Targets || Context->NumTargets < 1)
 	{
 		PCGE_LOG(Error, GraphAndLog, LOCTEXT("MissingTargets", "No targets (either no input or empty dataset)"));
 		return false;
 	}
+
+	Context->RangeMin = Settings->RangeMin;
+	Context->bLocalRangeMin = Settings->bUseLocalRangeMin;
+	Context->RangeMinInput.Capture(Settings->LocalRangeMin);
+
+	Context->RangeMax = Settings->RangeMax;
+	Context->bLocalRangeMax = Settings->bUseLocalRangeMax;
+	Context->RangeMaxInput.Capture(Settings->LocalRangeMax);
 
 	PCGEX_CHECK_OUT_ATTRIBUTE_NAME(Location)
 	PCGEX_CHECK_OUT_ATTRIBUTE_NAME(Direction)
@@ -77,6 +91,7 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 		if (!Validate(Context)) { return true; }
 
 		Context->Octree = Context->bUseOctree ? const_cast<UPCGPointData::PointOctree*>(&(Context->CurrentIO->Out->GetOctree())) : nullptr;
+
 		Context->SetState(PCGExMT::EState::ReadyForNextPoints);
 	}
 
@@ -92,9 +107,26 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 		}
 	}
 
-	auto InitializeForIO = [&Context](UPCGExPointIO* IO)
+	auto InitializeForIO = [&Context, this](UPCGExPointIO* IO)
 	{
 		IO->BuildMetadataEntries();
+
+		if (Context->bLocalRangeMin)
+		{
+			if (Context->RangeMinInput.Validate(IO->Out))
+			{
+				PCGE_LOG(Warning, GraphAndLog, LOCTEXT("InvalidLocalRangeMin", "RangeMin metadata missing"));
+			}
+		}
+
+		if (Context->bLocalRangeMax)
+		{
+			if (Context->RangeMaxInput.Validate(IO->Out))
+			{
+				PCGE_LOG(Warning, GraphAndLog, LOCTEXT("InvalidLocalRangeMax", "RangeMax metadata missing"));
+			}
+		}
+
 		PCGEX_INIT_ATTRIBUTE_OUT(Location, FVector)
 		PCGEX_INIT_ATTRIBUTE_OUT(Direction, FVector)
 		PCGEX_INIT_ATTRIBUTE_OUT(Normal, FVector)
@@ -104,17 +136,14 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 	auto ProcessPoint = [&Context](
 		const FPCGPoint& Point, int32 ReadIndex, UPCGExPointIO* IO)
 	{
-
-		
 		auto ProcessTarget = [&ReadIndex](const FPCGPoint& OtherPoint)
 		{
-			
 		};
 
 		// First: Sample all possible targets
 		if (Context->Octree)
 		{
-			const FBoxCenterAndExtent Box = FBoxCenterAndExtent(Point.Transform.GetLocation(), FVector(Context->MaxDistance));
+			const FBoxCenterAndExtent Box = FBoxCenterAndExtent(Point.Transform.GetLocation(), FVector(Context->RangeMin));
 			Context->Octree->FindElementsWithBoundsTest(
 				Box,
 				[&ProcessTarget](const FPCGPointRef& OtherPointRef)
@@ -130,7 +159,6 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 		}
 
 		// Weight targets
-		
 	};
 
 	if (Context->IsState(PCGExMT::EState::ProcessingPoints))

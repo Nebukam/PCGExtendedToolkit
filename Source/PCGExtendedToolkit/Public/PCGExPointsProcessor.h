@@ -99,7 +99,7 @@ public:
 
 	/** Multithread chunk size, when supported.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, AdvancedDisplay)
-	int32 ChunkSize = 0;
+	int32 ChunkSize = -1;
 
 protected:
 	virtual int32 GetPreferredChunkSize() const;

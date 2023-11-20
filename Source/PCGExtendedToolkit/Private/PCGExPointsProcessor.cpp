@@ -112,7 +112,7 @@ void FPCGExPointsProcessorElementBase::InitializeContext(
 	const UPCGExPointsProcessorSettings* Settings = InContext->GetInputSettings<UPCGExPointsProcessorSettings>();
 	check(Settings);
 
-	InContext->ChunkSize = Settings->ChunkSize;
+	InContext->ChunkSize = FMath::Max(Settings->ChunkSize, 1);
 
 	InContext->Points = NewObject<UPCGExPointIOGroup>();
 	TArray<FPCGTaggedData> Sources = InContext->InputData.GetInputsByPin(PCGEx::SourcePointsLabel);
