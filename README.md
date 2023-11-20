@@ -1,6 +1,6 @@
 
 
-# PCGExtendedToolkit ![BETA](https://img.shields.io/badge/BETA-ff0f0f)
+# PCG Extended Toolkit ![BETA](https://img.shields.io/badge/BETA-ff0f0f)
 
 ![PCGEx](/Resources/Icon128.png)
 
