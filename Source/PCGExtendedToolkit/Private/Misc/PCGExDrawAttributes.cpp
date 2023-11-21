@@ -19,6 +19,7 @@ UPCGExDrawAttributesSettings::UPCGExDrawAttributesSettings(
 	: Super(ObjectInitializer)
 {
 	DebugSettings.PointScale = 0.0f;
+	for (FPCGExAttributeDebugDrawDescriptor& Descriptor : DebugList) { Descriptor.HiddenDisplayName = Descriptor.GetName().ToString(); }
 }
 
 #if WITH_EDITOR
@@ -31,6 +32,8 @@ TArray<FPCGPinProperties> UPCGExDrawAttributesSettings::OutputPinProperties() co
 void UPCGExDrawAttributesSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	DebugSettings.PointScale = 0.0f;
+	for (FPCGExAttributeDebugDrawDescriptor& Descriptor : DebugList) { Descriptor.HiddenDisplayName = Descriptor.GetName().ToString(); }
+
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
 #endif

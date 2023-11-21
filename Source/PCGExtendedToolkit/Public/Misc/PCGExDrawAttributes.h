@@ -10,45 +10,42 @@
 #include "PCGExDrawAttributes.generated.h"
 
 UENUM(BlueprintType)
-enum class EPCGExDebugType : uint8
+enum class EPCGExDebugExpression : uint8
 {
 	Direction UMETA(DisplayName = "Direction", ToolTip="Attribute is treated as a Normal."),
-	Connection UMETA(DisplayName = "Connection", ToolTip="Attribute is treated as an lookup index in the same data block."),
+	ConnectionToIndex UMETA(DisplayName = "Connection (Point Index)", ToolTip="Attribute is treated as a lookup index in the same data block."),
+	ConnectionToPosition UMETA(DisplayName = "Connection (Position)", ToolTip="Attribute is treated as world space position in the same data block."),
 	Point UMETA(DisplayName = "Point", ToolTip="Attribute is treated as a world space position."),
 };
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeDebugDrawDescriptor
+struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeDebugDrawDescriptor : public FPCGExInputDescriptor
 {
 	GENERATED_BODY()
 
-	FPCGExAttributeDebugDrawDescriptor()
+	FPCGExAttributeDebugDrawDescriptor(): FPCGExInputDescriptor()
 	{
 	}
 
 public:
 	/** Enable or disable this debug group. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(DisplayPriority=-1))
 	bool bEnabled = true;
 
 	/** Draw line thickness. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
-	EPCGExDebugType Type = EPCGExDebugType::Direction;
+	EPCGExDebugExpression ExpressedAs = EPCGExDebugExpression::Direction;
 
-	/** Attribute to sample direction from */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (EditCondition="Type==EPCGExDebugType::Direction", EditConditionHides, ShowOnlyInnerProperties, FullyExpand=true))
-	FPCGExInputDescriptorWithDirection Direction;
+	/** TBD */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (DisplayName=" └─ Axis", EditCondition="ExpressedAs==EPCGExDebugExpression::Direction", EditConditionHides))
+	EPCGExAxis Axis = EPCGExAxis::Forward;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (EditCondition="Type==EPCGExDebugType::Direction", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (EditCondition="ExpressedAs==EPCGExDebugExpression::Direction", EditConditionHides))
 	bool bNormalizeBeforeSizing = true;
-	
-	/** Attribute to sample position from */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (EditCondition="Type==EPCGExDebugType::Point", EditConditionHides, ShowOnlyInnerProperties, FullyExpand=true))
-	FPCGExInputDescriptorWithDirection Point;
 
-	/** Attribute to sample index from */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (EditCondition="Type==EPCGExDebugType::Connection", EditConditionHides, ShowOnlyInnerProperties, FullyExpand=true))
-	FPCGExInputDescriptorWithSingleField Index;
+	/** TBD */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (DisplayName=" └─ Field", EditCondition="ExpressedAs==EPCGExDebugExpression::ConnectionToIndex", EditConditionHides))
+	EPCGExSingleField Field = EPCGExSingleField::X;
 
 	/** Draw line thickness. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
@@ -58,17 +55,17 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Size")
 	double Size = 100.0;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Size", meta = (InlineEditConditionToggle, EditCondition="Type==EPCGExDebugType::Direction"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Size", meta = (InlineEditConditionToggle))
 	bool bSizeFromAttribute = false;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Size", meta = (EditCondition="Type==EPCGExDebugType::Direction && bSizeFromAttribute"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Size", meta = (EditCondition="bSizeFromAttribute"))
 	FPCGExInputDescriptorWithSingleField SizeAttribute;
 
 	/** Draw color. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Color")
 	FColor Color = FColor(255, 0, 0);
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Color", meta = (InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Color", meta = (EditCondition="bEnabled", InlineEditConditionToggle))
 	bool bColorFromAttribute = false;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Color", meta = (EditCondition="bColorFromAttribute"))
@@ -76,6 +73,11 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Color", meta = (EditCondition="bColorFromAttribute"))
 	bool bColorIsLinear = true;
+
+	FString GetNestedStructDisplayText() const
+	{
+		return Selector.GetName().ToString();
+	}
 };
 
 
@@ -103,18 +105,19 @@ public:
 	{
 		bValid = false;
 
-		switch (Descriptor->Type)
+		switch (Descriptor->ExpressedAs)
 		{
-		case EPCGExDebugType::Direction:
-			VectorInput.Capture(Descriptor->Direction);
+		case EPCGExDebugExpression::Direction:
+		case EPCGExDebugExpression::Point:
+		case EPCGExDebugExpression::ConnectionToPosition:
+			VectorInput.Descriptor = *Descriptor;
+			VectorInput.Axis = Descriptor->Axis;
 			bValid = VectorInput.Validate(InData);
 			break;
-		case EPCGExDebugType::Point:
-			VectorInput.Capture(Descriptor->Point);
-			bValid = VectorInput.Validate(InData);
-			break;
-		case EPCGExDebugType::Connection:
-			IndexInput.Capture(Descriptor->Index);
+		case EPCGExDebugExpression::ConnectionToIndex:
+			IndexInput.Descriptor = *Descriptor;
+			IndexInput.Axis = Descriptor->Axis;
+			IndexInput.Field = Descriptor->Field;
 			bValid = IndexInput.Validate(InData);
 			break;
 		default: ;
@@ -127,6 +130,11 @@ public:
 
 			ColorAttributeInput.Descriptor = Descriptor->ColorAttribute;
 			ColorAttributeInput.Validate(InData);
+		}
+		else
+		{
+			SizeAttributeInput.bValid = false;
+			ColorAttributeInput.bValid = false;
 		}
 
 		return bValid;
@@ -152,63 +160,55 @@ public:
 		}
 	}
 
-	FVector GetDirection(const FPCGPoint& Point) const
+	FVector GetVector(const FPCGPoint& Point) const
 	{
-		FVector OutDirection = VectorInput.bValid ? VectorInput.GetValue(Point) : FVector::Zero();
-		if (Descriptor->bNormalizeBeforeSizing) { OutDirection.Normalize(); }
-		return OutDirection * GetSize(Point);
+		FVector OutVector = VectorInput.GetValueSafe(Point, FVector::ZeroVector);
+		if (Descriptor->ExpressedAs == EPCGExDebugExpression::Direction && Descriptor->bNormalizeBeforeSizing) { OutVector.Normalize(); }
+		return OutVector;
 	}
 
-	FVector GetPosition(const FPCGPoint& Point) const
+	FVector GetIndexedPosition(const FPCGPoint& Point, const UPCGPointData* PointData) const
 	{
-		return VectorInput.bValid ? VectorInput.GetValue(Point) : Point.Transform.GetLocation();
-	}
-
-	FVector GetTargetPosition(const FPCGPoint& Point, const UPCGPointData* PointData) const
-	{
-		const int64 OutIndex = IndexInput.bValid ? IndexInput.GetValue(Point) : -1;
+		const int64 OutIndex = IndexInput.GetValueSafe(Point, -1);
 		if (OutIndex != -1) { return PointData->GetPoint(OutIndex).Transform.GetLocation(); }
 		return Point.Transform.GetLocation();
 	}
 
 	void Draw(const UWorld* World, const FVector& Start, const FPCGPoint& Point, const UPCGPointData* PointData) const
 	{
-		switch (Descriptor->Type)
+		switch (Descriptor->ExpressedAs)
 		{
-		case EPCGExDebugType::Direction:
-			DrawDirection(World, Start, Point, PointData);
+		case EPCGExDebugExpression::Direction:
+			DrawDirection(World, Start, Point);
 			break;
-		case EPCGExDebugType::Connection:
-			DrawConnection(World, Start, Point, PointData);
+		case EPCGExDebugExpression::ConnectionToIndex:
+			DrawConnection(World, Start, Point, GetIndexedPosition(Point, PointData));
 			break;
-		case EPCGExDebugType::Point:
-			DrawPoint(World, Start, Point, PointData);
+		case EPCGExDebugExpression::ConnectionToPosition:
+			DrawConnection(World, Start, Point, GetVector(Point));
+			break;
+		case EPCGExDebugExpression::Point:
+			DrawPoint(World, Start, Point);
 			break;
 		default: ;
 		}
 	}
 
 protected:
-	bool IsDirectionAndSizeFromAttribute() const
+	void DrawDirection(const UWorld* World, const FVector& Start, const FPCGPoint& Point) const
 	{
-		return Descriptor->Type == EPCGExDebugType::Direction && Descriptor->bSizeFromAttribute;
-	}
-
-	void DrawDirection(const UWorld* World, const FVector& Start, const FPCGPoint& Point, const UPCGPointData* PointData) const
-	{
-		FVector Dir = GetDirection(Point);
+		FVector Dir = GetVector(Point) * GetSize(Point);
 		DrawDebugDirectionalArrow(World, Start, Start + Dir, Dir.Length() * 0.05f, GetColor(Point), true, -1, 0, Descriptor->Thickness);
 	}
 
-	void DrawConnection(const UWorld* World, const FVector& Start, const FPCGPoint& Point, const UPCGPointData* PointData) const
+	void DrawConnection(const UWorld* World, const FVector& Start, const FPCGPoint& Point, const FVector& End) const
 	{
-		const FVector End = GetTargetPosition(Point, PointData);
 		DrawDebugLine(World, Start, End, GetColor(Point), true, -1, 0, Descriptor->Thickness);
 	}
 
-	void DrawPoint(const UWorld* World, const FVector& Start, const FPCGPoint& Point, const UPCGPointData* PointData) const
+	void DrawPoint(const UWorld* World, const FVector& Start, const FPCGPoint& Point) const
 	{
-		const FVector End = GetPosition(Point);
+		const FVector End = GetVector(Point);
 		DrawDebugPoint(World, End, GetSize(Point), GetColor(Point), true, -1, 0);
 	}
 };
@@ -235,7 +235,7 @@ public:
 #endif
 
 	/** Attributes to draw.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(TitleProperty="{HiddenDisplayName} as {ExpressedAs}"))
 	TArray<FPCGExAttributeDebugDrawDescriptor> DebugList;
 
 protected:

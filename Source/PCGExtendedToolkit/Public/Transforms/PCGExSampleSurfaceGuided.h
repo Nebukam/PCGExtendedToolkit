@@ -33,7 +33,7 @@ public:
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(SampleSurfaceGuided, "Sample Surface Guided", "Find the collision point on the nearest collidable surface in a given direction.");
 #endif
-	
+
 	virtual PCGEx::EIOInit GetPointOutputInitMode() const override;
 
 protected:
@@ -70,7 +70,7 @@ public:
 	bool bWriteSurfaceNormal = false;
 
 	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(EditCondition="bWriteNormal"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(EditCondition="bWriteSurfaceNormal"))
 	FName SurfaceNormal = FName("GuidedSurfaceNormal");
 
 
@@ -82,9 +82,16 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(EditCondition="bWriteDistance"))
 	FName Distance = FName("GuidedSurfaceDistance");
 
-	/** Collision channel to check against */
+	/** Maximum distance to check for closest surface.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision & Metrics")
+	EPCGExCollisionFilterType CollisionType = EPCGExCollisionFilterType::Channel;
+
+	/** Collision channel to check against */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision & Metrics", meta=(EditCondition="CollisionType==EPCGExCollisionFilterType::Channel", EditConditionHides, Bitmask, BitmaskEnum="ECollisionChannel"))
 	TEnumAsByte<ECollisionChannel> CollisionChannel = static_cast<ECollisionChannel>(ECC_WorldDynamic);
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision & Metrics", meta=(EditCondition="CollisionType==EPCGExCollisionFilterType::ObjectType", EditConditionHides, Bitmask, BitmaskEnum="/Script/Engine.EObjectTypeQuery"))
+	int32 CollisionObjectType = static_cast<EObjectTypeQuery>(EObjectTypeQuery::ObjectTypeQuery1);
 
 	/** Ignore this graph' PCG content */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision & Metrics")
@@ -96,7 +103,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleSurfaceGuidedContext : public FPCGExPo
 	friend class FPCGExSampleSurfaceGuidedElement;
 
 public:
+	EPCGExCollisionFilterType CollisionType = EPCGExCollisionFilterType::Channel;
 	TEnumAsByte<ECollisionChannel> CollisionChannel;
+	int32 CollisionObjectType;
 	bool bIgnoreSelf = true;
 
 	double Size;
@@ -146,20 +155,40 @@ namespace PCGExAsync
 			FCollisionQueryParams CollisionParams;
 			if (Context->bIgnoreSelf) { CollisionParams.AddIgnoredActor(InContext->SourceComponent->GetOwner()); }
 
+			double Size = Context->bUseLocalSize ? Context->LocalSize.GetValue(InPoint) : Context->Size;
+
 			if (!InContext->Points) { return; }
 
-			double Size = Context->bUseLocalSize ? Context->LocalSize.GetValue(InPoint) : Context->Size;
-			if (InContext->World->LineTraceSingleByChannel(HitResult, Origin, Origin + (Context->Direction.GetValue(InPoint) * Size), Context->CollisionChannel, CollisionParams))
+			if (Context->CollisionType == EPCGExCollisionFilterType::Channel)
 			{
-				PCGEX_SET_OUT_ATTRIBUTE(SurfaceLocation, Infos.Key, HitResult.ImpactPoint)
-				PCGEX_SET_OUT_ATTRIBUTE(SurfaceNormal, Infos.Key, HitResult.Normal)
-				PCGEX_SET_OUT_ATTRIBUTE(Distance, Infos.Key, FVector::Distance(HitResult.ImpactPoint, Origin))
+				if (InContext->World->LineTraceSingleByChannel(HitResult, Origin, Origin + (Context->Direction.GetValue(InPoint) * Size), Context->CollisionChannel, CollisionParams))
+				{
+					PCGEX_SET_OUT_ATTRIBUTE(SurfaceLocation, Infos.Key, HitResult.ImpactPoint)
+					PCGEX_SET_OUT_ATTRIBUTE(SurfaceNormal, Infos.Key, HitResult.Normal)
+					PCGEX_SET_OUT_ATTRIBUTE(Distance, Infos.Key, FVector::Distance(HitResult.ImpactPoint, Origin))
 
-				Context->WrapTraceTask(this, true);
+					Context->WrapTraceTask(this, true);
+				}
+				else
+				{
+					Context->WrapTraceTask(this, false);
+				}
 			}
 			else
 			{
-				Context->WrapTraceTask(this, false);
+				FCollisionObjectQueryParams ObjectQueryParams = FCollisionObjectQueryParams(Context->CollisionObjectType);
+				if (InContext->World->LineTraceSingleByObjectType(HitResult, Origin, Origin + (Context->Direction.GetValue(InPoint) * Size), ObjectQueryParams, CollisionParams))
+				{
+					PCGEX_SET_OUT_ATTRIBUTE(SurfaceLocation, Infos.Key, HitResult.ImpactPoint)
+					PCGEX_SET_OUT_ATTRIBUTE(SurfaceNormal, Infos.Key, HitResult.Normal)
+					PCGEX_SET_OUT_ATTRIBUTE(Distance, Infos.Key, FVector::Distance(HitResult.ImpactPoint, Origin))
+
+					Context->WrapTraceTask(this, true);
+				}
+				else
+				{
+					Context->WrapTraceTask(this, false);
+				}
 			}
 		}
 

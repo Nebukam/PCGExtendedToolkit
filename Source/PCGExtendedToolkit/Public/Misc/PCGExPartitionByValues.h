@@ -48,7 +48,7 @@ namespace PCGExPartition
 		}
 
 		FRule(FPCGExPartitionRuleDescriptor InRule):
-			FLocalSingleComponentInput(InRule.FieldSelection, InRule.Direction),
+			FLocalSingleComponentInput(InRule.Field, InRule.Axis),
 			FilterSize(InRule.FilterSize),
 			Upscale(InRule.Upscale)
 		{

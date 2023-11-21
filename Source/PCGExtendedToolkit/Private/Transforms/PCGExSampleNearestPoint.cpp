@@ -209,16 +209,16 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 			if (Context->SampleMethod == EPCGExSampleMethod::ClosestTarget ||
 				Context->SampleMethod == EPCGExSampleMethod::FarthestTarget)
 			{
-				PCGExNearestPoint::FTargetInfos& Infos = TargetsInfos.Emplace_GetRef();
-				Infos.Point = TargetPoint; // TODO: Need to optimize this so we don't create a copy. Memory will explode.
+				PCGExNearestPoint::FTargetInfos Infos = PCGExNearestPoint::FTargetInfos();
+				Infos.Point = TargetPoint;
 				Infos.Distance = dist;
 
 				TargetsCompoundInfos.UpdateCompound(Infos);
 			}
 			else
 			{
-				PCGExNearestPoint::FTargetInfos Infos = PCGExNearestPoint::FTargetInfos();
-				Infos.Point = TargetPoint;
+				PCGExNearestPoint::FTargetInfos& Infos = TargetsInfos.Emplace_GetRef();
+				Infos.Point = TargetPoint; // TODO: Need to optimize this so we don't create a copy. Memory will explode.
 				Infos.Distance = dist;
 
 				TargetsCompoundInfos.UpdateCompound(Infos);
@@ -290,12 +290,12 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 		}
 
 
-		if(TotalWeight != 0) // Dodge NaN
+		if (TotalWeight != 0) // Dodge NaN
 		{
 			WeightedLocation /= TotalWeight;
-			WeightedDirection /= TotalWeight;	
+			WeightedDirection /= TotalWeight;
 		}
-		
+
 		WeightedDirection.Normalize();
 		WeightedNormal.Normalize();
 

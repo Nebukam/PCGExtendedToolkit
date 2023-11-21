@@ -23,7 +23,7 @@ namespace PCGEx
 		bool bValid = false;
 
 		FPCGExInputDescriptor Descriptor;
-		
+
 		/**
 		 * Build and validate a property/attribute accessor for the selected
 		 * @param PointData 
@@ -32,7 +32,7 @@ namespace PCGEx
 		{
 			bValid = false;
 			if (!bEnabled) { return false; }
-			if (Descriptor.Validate(PointData)) { bValid = ValidateInternal(); }
+			bValid = Descriptor.Validate(PointData);
 			return bValid;
 		}
 
@@ -40,21 +40,23 @@ namespace PCGEx
 		{
 			bValid = false;
 			if (!bEnabled) { return false; }
-			if (Descriptor.Validate(PointData)) { bValid = ValidateInternal(); }
-			else if (Descriptor.GetSelection() == EPCGAttributePropertySelection::Attribute)
+			bValid = Descriptor.Validate(PointData);
+
+			if (!bValid && Descriptor.GetSelection() == EPCGAttributePropertySelection::Attribute)
 			{
 				PointData->Metadata->FindOrCreateAttribute<T>(Descriptor.GetName(), GetDefaultValue());
-				if (Descriptor.Validate(PointData)) { bValid = ValidateInternal(); }
+				bValid = Descriptor.Validate(PointData);
 			}
+
 			return bValid;
 		}
 
-		virtual T GetValueSafe(const FPCGPoint& Point, T fallback)
+		virtual T GetValueSafe(const FPCGPoint& Point, T fallback) const
 		{
 			if (!bValid || !bEnabled) { return fallback; }
 			return GetValue(Point);
 		}
-		
+
 		virtual T GetValue(const FPCGPoint& Point) const
 		{
 			if (!bValid || !bEnabled) { return GetDefaultValue(); }
@@ -120,7 +122,6 @@ namespace PCGEx
 		}
 
 	protected:
-		virtual bool ValidateInternal() const { return true; }
 		virtual T GetDefaultValue() const = 0;
 
 #define  PCGEX_PRINT_VIRTUAL(_TYPE, _NAME) virtual T Convert(const _TYPE Value) const { return GetDefaultValue(); };
@@ -220,24 +221,31 @@ virtual _TYPE Convert(const FName Value) const override { return _TYPE(Value.ToS
 		}
 
 		FLocalSingleComponentInput(
-			EPCGExSingleFieldSelection InFieldSelection,
-			EPCGExDirectionSelection InDirection)
+			EPCGExSingleField InField,
+			EPCGExAxis InAxis)
 		{
-			FieldSelection = InFieldSelection;
-			Direction = InDirection;
+			Field = InField;
+			Axis = InAxis;
 		}
 
 	public:
-		EPCGExSingleFieldSelection FieldSelection = EPCGExSingleFieldSelection::X;
-		EPCGExDirectionSelection Direction = EPCGExDirectionSelection::Forward;
+		EPCGExSingleField Field = EPCGExSingleField::X;
+		EPCGExAxis Axis = EPCGExAxis::Forward;
 
 		void Capture(const FPCGExInputDescriptorWithSingleField& InDescriptor)
 		{
 			Descriptor = InDescriptor;
-			FieldSelection = InDescriptor.FieldSelection;
-			Direction = InDescriptor.Direction;
+			Field = InDescriptor.Field;
+			Axis = InDescriptor.Axis;
 		}
-		
+
+		void Capture(const FPCGExInputDescriptorGeneric& InDescriptor)
+		{
+			Descriptor = InDescriptor;
+			Field = InDescriptor.Field;
+			Axis = InDescriptor.Axis;
+		}
+
 	protected:
 		virtual double GetDefaultValue() const override { return 0; }
 
@@ -248,56 +256,56 @@ virtual _TYPE Convert(const FName Value) const override { return _TYPE(Value.ToS
 
 		virtual double Convert(const FVector2D Value) const override
 		{
-			switch (FieldSelection)
+			switch (Field)
 			{
 			default:
-			case EPCGExSingleFieldSelection::X:
+			case EPCGExSingleField::X:
 				return Value.X;
-			case EPCGExSingleFieldSelection::Y:
-			case EPCGExSingleFieldSelection::Z:
-			case EPCGExSingleFieldSelection::W:
+			case EPCGExSingleField::Y:
+			case EPCGExSingleField::Z:
+			case EPCGExSingleField::W:
 				return Value.Y;
-			case EPCGExSingleFieldSelection::Length:
+			case EPCGExSingleField::Length:
 				return Value.Length();
 			}
 		}
 
 		virtual double Convert(const FVector Value) const override
 		{
-			switch (FieldSelection)
+			switch (Field)
 			{
 			default:
-			case EPCGExSingleFieldSelection::X:
+			case EPCGExSingleField::X:
 				return Value.X;
-			case EPCGExSingleFieldSelection::Y:
+			case EPCGExSingleField::Y:
 				return Value.Y;
-			case EPCGExSingleFieldSelection::Z:
-			case EPCGExSingleFieldSelection::W:
+			case EPCGExSingleField::Z:
+			case EPCGExSingleField::W:
 				return Value.Z;
-			case EPCGExSingleFieldSelection::Length:
+			case EPCGExSingleField::Length:
 				return Value.Length();
 			}
 		}
 
 		virtual double Convert(const FVector4 Value) const override
 		{
-			switch (FieldSelection)
+			switch (Field)
 			{
 			default:
-			case EPCGExSingleFieldSelection::X:
+			case EPCGExSingleField::X:
 				return Value.X;
-			case EPCGExSingleFieldSelection::Y:
+			case EPCGExSingleField::Y:
 				return Value.Y;
-			case EPCGExSingleFieldSelection::Z:
+			case EPCGExSingleField::Z:
 				return Value.Z;
-			case EPCGExSingleFieldSelection::W:
+			case EPCGExSingleField::W:
 				return Value.W;
-			case EPCGExSingleFieldSelection::Length:
+			case EPCGExSingleField::Length:
 				return FVector(Value).Length();
 			}
 		}
 
-		virtual double Convert(const FQuat Value) const override { return Convert(Common::GetDirection(Value, Direction)); }
+		virtual double Convert(const FQuat Value) const override { return Convert(Common::GetDirection(Value, Axis)); }
 		virtual double Convert(const FTransform Value) const override { return Convert(Value.GetLocation()); }
 		virtual double Convert(const bool Value) const override { return static_cast<double>(Value); }
 		virtual double Convert(const FRotator Value) const override { return Convert(Value.Vector()); }
@@ -312,20 +320,26 @@ virtual _TYPE Convert(const FName Value) const override { return _TYPE(Value.ToS
 		}
 
 		FLocalDirectionInput(
-			EPCGExDirectionSelection InDirection)
+			EPCGExAxis InAxis)
 		{
-			Direction = InDirection;
+			Axis = InAxis;
 		}
 
 	public:
-		EPCGExDirectionSelection Direction = EPCGExDirectionSelection::Forward;
+		EPCGExAxis Axis = EPCGExAxis::Forward;
 
 		void Capture(const FPCGExInputDescriptorWithDirection& InDescriptor)
 		{
 			Descriptor = InDescriptor;
-			Direction = InDescriptor.Direction;
+			Axis = InDescriptor.Axis;
 		}
-		
+
+		void Capture(const FPCGExInputDescriptorGeneric& InDescriptor)
+		{
+			Descriptor = InDescriptor;
+			Axis = InDescriptor.Axis;
+		}
+
 	protected:
 		virtual FVector GetDefaultValue() const override { return FVector::ZeroVector; }
 
@@ -337,8 +351,8 @@ virtual _TYPE Convert(const FName Value) const override { return _TYPE(Value.ToS
 		virtual FVector Convert(const FVector2D Value) const override { return FVector(Value.X, Value.Y, 0); }
 		virtual FVector Convert(const FVector Value) const override { return Value; }
 		virtual FVector Convert(const FVector4 Value) const override { return FVector(Value); }
-		virtual FVector Convert(const FQuat Value) const override { return Common::GetDirection(Value, Direction); }
-		virtual FVector Convert(const FTransform Value) const override { return Common::GetDirection(Value.GetRotation(), Direction); }
+		virtual FVector Convert(const FQuat Value) const override { return Common::GetDirection(Value, Axis); }
+		virtual FVector Convert(const FTransform Value) const override { return Common::GetDirection(Value.GetRotation(), Axis); }
 		virtual FVector Convert(const FRotator Value) const override { return Value.Vector(); }
 		virtual FVector Convert(const FString Value) const override { return GetDefaultValue(); }
 		virtual FVector Convert(const FName Value) const override { return GetDefaultValue(); }

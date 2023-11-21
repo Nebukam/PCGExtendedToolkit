@@ -47,7 +47,7 @@ public:
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(EditCondition="bWriteSurfaceLocation"))
 	FName SurfaceLocation = FName("NearestSurfaceLocation");
-	
+
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(InlineEditConditionToggle))
 	bool bWriteLookAtDirection = false;
@@ -79,9 +79,16 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision & Metrics")
 	double MaxDistance = 1000;
 
-	/** Collision channel to check against */
+	/** Maximum distance to check for closest surface.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision & Metrics")
+	EPCGExCollisionFilterType CollisionType = EPCGExCollisionFilterType::Channel;
+
+	/** Collision channel to check against */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision & Metrics", meta=(EditCondition="CollisionType==EPCGExCollisionFilterType::Channel", EditConditionHides, Bitmask, BitmaskEnum="ECollisionChannel"))
 	TEnumAsByte<ECollisionChannel> CollisionChannel = static_cast<ECollisionChannel>(ECC_WorldDynamic);
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision & Metrics", meta=(EditCondition="CollisionType==EPCGExCollisionFilterType::ObjectType", EditConditionHides, Bitmask, BitmaskEnum="/Script/Engine.EObjectTypeQuery"))
+	int32 CollisionObjectType = static_cast<EObjectTypeQuery>(EObjectTypeQuery::ObjectTypeQuery1);
 
 	/** Ignore this graph' PCG content */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision & Metrics")
@@ -103,7 +110,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestSurfaceContext : public FPCGExP
 public:
 	int32 NumMaxAttempts = 100;
 	double AttemptStepSize = 0;
+	EPCGExCollisionFilterType CollisionType = EPCGExCollisionFilterType::Channel;
 	TEnumAsByte<ECollisionChannel> CollisionChannel;
+	int32 CollisionObjectType;
 	bool bIgnoreSelf = true;
 
 	PCGEX_OUT_ATTRIBUTE(SurfaceLocation, FVector)
@@ -155,20 +164,40 @@ namespace PCGExAsync
 
 
 			// TODO: We could optimize the max number of retries more elegantly by checking further first, then half distance
-			
-			if (!InContext->Points) { return; }
-			if (InContext->World->SweepSingleByChannel(HitResult, Origin, Origin + (FVector::UpVector * 0.001), FQuat::Identity, Context->CollisionChannel, CollisionShape, CollisionParams))
-			{
-				PCGEX_SET_OUT_ATTRIBUTE(SurfaceLocation, Infos.Key, HitResult.ImpactPoint)
-				PCGEX_SET_OUT_ATTRIBUTE(SurfaceNormal, Infos.Key, HitResult.Normal)
-				PCGEX_SET_OUT_ATTRIBUTE(LookAtDirection, Infos.Key, (HitResult.ImpactPoint - Origin).GetSafeNormal())
-				PCGEX_SET_OUT_ATTRIBUTE(Distance, Infos.Key, FVector::Distance(HitResult.ImpactPoint, Origin))
 
-				Context->ProcessSweepHit(this);
+			if (!InContext->Points) { return; }
+			if (Context->CollisionType == EPCGExCollisionFilterType::Channel)
+			{
+				if (InContext->World->SweepSingleByChannel(HitResult, Origin, Origin + (FVector::UpVector * 0.001), FQuat::Identity, Context->CollisionChannel, CollisionShape, CollisionParams))
+				{
+					PCGEX_SET_OUT_ATTRIBUTE(SurfaceLocation, Infos.Key, HitResult.ImpactPoint)
+					PCGEX_SET_OUT_ATTRIBUTE(SurfaceNormal, Infos.Key, HitResult.Normal)
+					PCGEX_SET_OUT_ATTRIBUTE(LookAtDirection, Infos.Key, (HitResult.ImpactPoint - Origin).GetSafeNormal())
+					PCGEX_SET_OUT_ATTRIBUTE(Distance, Infos.Key, FVector::Distance(HitResult.ImpactPoint, Origin))
+
+					Context->ProcessSweepHit(this);
+				}
+				else
+				{
+					Context->ProcessSweepMiss(this);
+				}
 			}
 			else
 			{
-				Context->ProcessSweepMiss(this);
+				FCollisionObjectQueryParams ObjectQueryParams = FCollisionObjectQueryParams(Context->CollisionObjectType);
+				if (InContext->World->SweepSingleByObjectType(HitResult, Origin, Origin + (FVector::UpVector * 0.001), FQuat::Identity, ObjectQueryParams, CollisionShape, CollisionParams))
+				{
+					PCGEX_SET_OUT_ATTRIBUTE(SurfaceLocation, Infos.Key, HitResult.ImpactPoint)
+					PCGEX_SET_OUT_ATTRIBUTE(SurfaceNormal, Infos.Key, HitResult.Normal)
+					PCGEX_SET_OUT_ATTRIBUTE(LookAtDirection, Infos.Key, (HitResult.ImpactPoint - Origin).GetSafeNormal())
+					PCGEX_SET_OUT_ATTRIBUTE(Distance, Infos.Key, FVector::Distance(HitResult.ImpactPoint, Origin))
+
+					Context->ProcessSweepHit(this);
+				}
+				else
+				{
+					Context->ProcessSweepMiss(this);
+				}
 			}
 		}
 

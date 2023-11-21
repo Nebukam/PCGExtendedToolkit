@@ -4,8 +4,6 @@
 
 #pragma once
 
-#include <iostream>
-
 #include "CoreMinimal.h"
 #include "PCGContext.h"
 #include "Data/PCGPointData.h"
@@ -14,12 +12,8 @@
 #include "Metadata/PCGMetadataAttribute.h"
 #include "Metadata/Accessors/IPCGAttributeAccessor.h"
 #include "Metadata/Accessors/PCGAttributeAccessorHelpers.h"
-#include "HAL/CriticalSection.h"
-#include <mutex>
-#include <shared_mutex>
-
 #include "PCGComponent.h"
-#include "AssetRegistry/AssetRegistryModule.h"
+
 #include "PCGExCommon.generated.h"
 
 //virtual FName GetDefaultNodeName() const override { return FName(TEXT(#_SHORTNAME)); } \
@@ -80,7 +74,7 @@ enum class EPCGExOrderedFieldSelection : uint8
 };
 
 UENUM(BlueprintType)
-enum class EPCGExSingleFieldSelection : uint8
+enum class EPCGExSingleField : uint8
 {
 	X UMETA(DisplayName = "X/Roll", ToolTip="X/Roll component if it exist, raw value otherwise."),
 	Y UMETA(DisplayName = "Y/Pitch", ToolTip="Y/Pitch component if it exist, fallback to previous value otherwise."),
@@ -90,15 +84,30 @@ enum class EPCGExSingleFieldSelection : uint8
 };
 
 UENUM(BlueprintType)
-enum class EPCGExDirectionSelection : uint8
+enum class EPCGExAxis : uint8
 {
-	Forward UMETA(DisplayName = "Forward", ToolTip="Forward from Transform/FQuat/Rotator, or raw vector."),
+	Forward UMETA(DisplayName = "Default (Forward)", ToolTip="Forward from Transform/FQuat/Rotator, or raw vector."),
 	Backward UMETA(DisplayName = "Backward", ToolTip="Backward from Transform/FQuat/Rotator, or raw vector."),
 	Right UMETA(DisplayName = "Right", ToolTip="Right from Transform/FQuat/Rotator, or raw vector."),
 	Left UMETA(DisplayName = "Left", ToolTip="Left from Transform/FQuat/Rotator, or raw vector."),
 	Up UMETA(DisplayName = "Up", ToolTip="Up from Transform/FQuat/Rotator, or raw vector."),
 	Down UMETA(DisplayName = "Down", ToolTip="Down from Transform/FQuat/Rotator, or raw vector."),
 };
+
+UENUM(BlueprintType)
+enum class EPCGExCollisionFilterType : uint8
+{
+	Channel UMETA(DisplayName = "Channel", ToolTip="TBD"),
+	ObjectType UMETA(DisplayName = "Object Type", ToolTip="TBD"),
+};
+
+UENUM(BlueprintType)
+enum class EPCGExSelectorType : uint8
+{
+	SingleField UMETA(DisplayName = "Single Field", ToolTip="Forward from Transform/FQuat/Rotator, or raw vector."),
+	Direction UMETA(DisplayName = "Direction", ToolTip="Backward from Transform/FQuat/Rotator, or raw vector."),
+};
+
 
 #pragma region Input Descriptors
 
@@ -124,8 +133,11 @@ public:
 		Attribute = nullptr;
 	};
 
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta = (HideInDetailPanel, Hidden, EditConditionHides, EditCondition="false"))
+	FString HiddenDisplayName;
+
 	/** Point Attribute or $Property */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayPriority=0))
 	FPCGAttributePropertyInputSelector Selector;
 
 	FPCGMetadataAttributeBase* Attribute = nullptr;
@@ -161,12 +173,14 @@ public:
 		if (GetSelection() == EPCGAttributePropertySelection::Attribute)
 		{
 			Attribute = Selector.IsValid() ? InData->Metadata->GetMutableAttribute(GetName()) : nullptr;
+
 			if (Attribute)
 			{
 				const TUniquePtr<const IPCGAttributeAccessor> Accessor = PCGAttributeAccessorHelpers::CreateConstAccessor(InData, Selector);
 				UnderlyingType = Accessor->GetUnderlyingType();
 				//if (!Accessor.IsValid()) { Attribute = nullptr; }
 			}
+
 			return Attribute != nullptr;
 		}
 		else if (Selector.IsValid())
@@ -177,31 +191,41 @@ public:
 		}
 		return false;
 	}
-	
+
 	FString ToString() const { return GetName().ToString(); }
 };
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExInputDescriptorWithOrderField : public FPCGExInputDescriptor
+struct PCGEXTENDEDTOOLKIT_API FPCGExInputDescriptorGeneric : public FPCGExInputDescriptor
 {
 	GENERATED_BODY()
 
-	FPCGExInputDescriptorWithOrderField(): FPCGExInputDescriptor()
+	FPCGExInputDescriptorGeneric(): FPCGExInputDescriptor()
 	{
 	}
 
-	FPCGExInputDescriptorWithOrderField(const FPCGExInputDescriptorWithOrderField& Other)
-		: FPCGExInputDescriptor(Other)
+	FPCGExInputDescriptorGeneric(const FPCGExInputDescriptorGeneric& Other)
+		: FPCGExInputDescriptor(Other),
+		  Type(Other.Type),
+		  Axis(Other.Axis),
+		  Field(Other.Field)
 	{
-		OrderFieldSelection = Other.OrderFieldSelection;
 	}
 
 public:
-	/** Sub-component order, used only for multi-field attributes (FVector, FRotator etc). */
+	/** How to interpret the data */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayAfter="Selector"))
-	EPCGExOrderedFieldSelection OrderFieldSelection = EPCGExOrderedFieldSelection::XYZ;
+	EPCGExSelectorType Type = EPCGExSelectorType::SingleField;
 
-	~FPCGExInputDescriptorWithOrderField()
+	/** Direction to sample on relevant data types (FQuat are transformed to a direction first, from which the single component is selected) */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (DisplayName=" └─ Axis", PCG_Overridable, DisplayAfter="Type"))
+	EPCGExAxis Axis = EPCGExAxis::Forward;
+
+	/** Single field selection */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (DisplayName=" └─ Field", PCG_Overridable, DisplayAfter="Axis", EditCondition="Type==EPCGExSelectorType::SingleField", EditConditionHides))
+	EPCGExSingleField Field = EPCGExSingleField::X;
+
+	~FPCGExInputDescriptorGeneric()
 	{
 	}
 };
@@ -216,15 +240,15 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExInputDescriptorWithDirection : public FPCGEx
 	}
 
 	FPCGExInputDescriptorWithDirection(const FPCGExInputDescriptorWithDirection& Other)
-		: FPCGExInputDescriptor(Other)
+		: FPCGExInputDescriptor(Other),
+		  Axis(Other.Axis)
 	{
-		Direction = Other.Direction;
 	}
 
 public:
 	/** Sub-component order, used only for multi-field attributes (FVector, FRotator etc). */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayAfter="Selector"))
-	EPCGExDirectionSelection Direction = EPCGExDirectionSelection::Forward;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (DisplayName=" └─ Axis", PCG_Overridable, DisplayAfter="Selector"))
+	EPCGExAxis Axis = EPCGExAxis::Forward;
 
 	~FPCGExInputDescriptorWithDirection()
 	{
@@ -241,25 +265,26 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExInputDescriptorWithSingleField : public FPCG
 	}
 
 	FPCGExInputDescriptorWithSingleField(const FPCGExInputDescriptorWithSingleField& Other)
-		: FPCGExInputDescriptor(Other)
+		: FPCGExInputDescriptor(Other),
+		  Axis(Other.Axis),
+		  Field(Other.Field)
 	{
-		FieldSelection = Other.FieldSelection;
-		Direction = Other.Direction;
 	}
 
 public:
-	/** Single field selection */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayAfter="Selector"))
-	EPCGExSingleFieldSelection FieldSelection = EPCGExSingleFieldSelection::X;
-
 	/** Direction to sample on relevant data types (FQuat are transformed to a direction first, from which the single component is selected) */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayAfter="Selector"))
-	EPCGExDirectionSelection Direction = EPCGExDirectionSelection::Forward;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (DisplayName=" └─ Axis", PCG_Overridable, DisplayAfter="Selector"))
+	EPCGExAxis Axis = EPCGExAxis::Forward;
+
+	/** Single field selection */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (DisplayName=" └─ Field", PCG_Overridable, DisplayAfter="Axis"))
+	EPCGExSingleField Field = EPCGExSingleField::X;
 
 	~FPCGExInputDescriptorWithSingleField()
 	{
 	}
 };
+
 
 #pragma endregion
 
@@ -286,12 +311,12 @@ namespace PCGEx
 		}
 
 		template <typename T>
-	static FPCGMetadataAttribute<T>* TryGetAttribute(UPCGSpatialData* InData, FName Name, bool bEnabled, T defaultValue = T{})
+		static FPCGMetadataAttribute<T>* TryGetAttribute(UPCGSpatialData* InData, FName Name, bool bEnabled, T defaultValue = T{})
 		{
 			if (!bEnabled || !PCGEx::Common::IsValidName(Name)) { return nullptr; }
 			return InData->Metadata->FindOrCreateAttribute<T>(Name, defaultValue);
 		}
-		
+
 		/**
 		 * 
 		 * @tparam LoopBodyFunc 
@@ -330,22 +355,22 @@ namespace PCGEx
 			return FMath::IsNaN(Result) ? 0 : Result;
 		}
 
-		static FVector GetDirection(const FQuat& Quat, const EPCGExDirectionSelection Dir)
+		static FVector GetDirection(const FQuat& Quat, const EPCGExAxis Dir)
 		{
 			switch (Dir)
 			{
 			default:
-			case EPCGExDirectionSelection::Forward:
+			case EPCGExAxis::Forward:
 				return Quat.GetForwardVector();
-			case EPCGExDirectionSelection::Backward:
+			case EPCGExAxis::Backward:
 				return Quat.GetForwardVector() * -1;
-			case EPCGExDirectionSelection::Right:
+			case EPCGExAxis::Right:
 				return Quat.GetRightVector();
-			case EPCGExDirectionSelection::Left:
+			case EPCGExAxis::Left:
 				return Quat.GetRightVector() * -1;
-			case EPCGExDirectionSelection::Up:
+			case EPCGExAxis::Up:
 				return Quat.GetUpVector();
-			case EPCGExDirectionSelection::Down:
+			case EPCGExAxis::Down:
 				return Quat.GetUpVector() * -1;
 			}
 		}

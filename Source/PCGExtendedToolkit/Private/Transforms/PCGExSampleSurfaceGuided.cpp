@@ -28,6 +28,8 @@ FPCGContext* FPCGExSampleSurfaceGuidedElement::Initialize(const FPCGDataCollecti
 	check(Settings);
 
 	Context->CollisionChannel = Settings->CollisionChannel;
+	Context->CollisionObjectType = Settings->CollisionObjectType;
+	
 	Context->bIgnoreSelf = Settings->bIgnoreSelf;
 
 	Context->Size = Settings->Size;

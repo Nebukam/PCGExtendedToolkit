@@ -20,6 +20,7 @@ enum class EPCGExSampleMethod : uint8
 	AllTargets UMETA(DisplayName = "All Targets", ToolTip="TBD"),
 	ClosestTarget UMETA(DisplayName = "Closest Target", ToolTip="TBD"),
 	FarthestTarget UMETA(DisplayName = "Farthest Target", ToolTip="TBD"),
+	TargetsExtents UMETA(DisplayName = "Targets Extents", ToolTip="TBD"),
 };
 
 UENUM(BlueprintType)

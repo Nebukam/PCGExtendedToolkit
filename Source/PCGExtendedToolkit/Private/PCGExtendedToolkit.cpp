@@ -5,6 +5,7 @@
 
 #include "StaticMeshAttributes.h"
 #include "AssetRegistry/AssetRegistryModule.h"
+#include "Transforms/PCGExSampleNearestSurface.h"
 
 #define LOCTEXT_NAMESPACE "FPCGExtendedToolkitModule"
 
@@ -13,6 +14,7 @@ void FPCGExtendedToolkitModule::StartupModule()
 {
 	// This code will execute after your module is loaded into memory; the exact timing is specified in the .uplugin file per-module
 	BuildDebugStaticMeshes();
+	
 }
 
 void FPCGExtendedToolkitModule::ShutdownModule()

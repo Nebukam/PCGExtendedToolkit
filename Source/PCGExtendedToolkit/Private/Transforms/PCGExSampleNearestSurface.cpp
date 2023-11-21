@@ -44,7 +44,11 @@ FPCGContext* FPCGExSampleNearestSurfaceElement::Initialize(const FPCGDataCollect
 
 	Context->AttemptStepSize = FMath::Max(Settings->MaxDistance / static_cast<double>(Settings->NumMaxAttempts), Settings->MinStepSize);
 	Context->NumMaxAttempts = FMath::Max(static_cast<int32>(static_cast<double>(Settings->MaxDistance) / Context->AttemptStepSize), 1);
+
+	Context->CollisionType = Settings->CollisionType;
 	Context->CollisionChannel = Settings->CollisionChannel;
+	Context->CollisionObjectType = Settings->CollisionObjectType;
+
 	Context->bIgnoreSelf = Settings->bIgnoreSelf;
 
 	PCGEX_FORWARD_OUT_ATTRIBUTE(SurfaceLocation)

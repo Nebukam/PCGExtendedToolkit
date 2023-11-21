@@ -18,6 +18,33 @@ enum class EPCGExSortDirection : uint8
 	Descending UMETA(DisplayName = "Descending")
 };
 
+
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExInputDescriptorWithOrderField : public FPCGExInputDescriptor
+{
+	GENERATED_BODY()
+
+	FPCGExInputDescriptorWithOrderField(): FPCGExInputDescriptor()
+	{
+	}
+
+	FPCGExInputDescriptorWithOrderField(const FPCGExInputDescriptorWithOrderField& Other)
+		: FPCGExInputDescriptor(Other)
+	{
+		OrderFieldSelection = Other.OrderFieldSelection;
+	}
+
+public:
+	/** Sub-component order, used only for multi-field attributes (FVector, FRotator etc). */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayAfter="Selector", ForceInlineRow))
+	EPCGExOrderedFieldSelection OrderFieldSelection = EPCGExOrderedFieldSelection::XYZ;
+
+	~FPCGExInputDescriptorWithOrderField()
+	{
+	}
+};
+
+
 USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExSortRule : public FPCGExInputDescriptorWithOrderField
 {

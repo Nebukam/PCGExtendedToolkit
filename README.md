@@ -7,9 +7,7 @@
 # What is it?
  The PCG Extended Toolkit is a plugin for [Unreal engine 5](https://www.unrealengine.com/en-US/) (5.3.1+) that contains a collection of **low-level PCG Graph elements** offering additional ways to manipulate and control PCG Data.
 
-While there are a bunch of misc (useful!) nodes in this toolkit, its primary goal revolves around manipulating relationships between points through graphs; and then extract more concrete informations from these networks to, for example, build splines, paths, general flow-related creative stuffs that may otherwise be really tricky to achieve.
-
-> The philosophy of this toolkit is leaning more toward Houdini' workflow, leveraging writing & reading from local attributes.
+While there are a bunch of misc (useful!) nodes in this toolkit, its primary goal revolves around manipulating relationships between points through graphs; and then extract more concrete informations from these networks to, for example, build splines, paths, general flow-related creative stuffs that may otherwise be harder to achieve.
 
 ## PCGEx Nodes
 Generally speaking, PCGEx nodes are not "magic". They aim to enhance existing features in a highly modular way, allowing content creators to achieve more without making assumptions about their specific goals. In other words, PCGEx' nodes do very little on their own.  
