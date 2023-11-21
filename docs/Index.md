@@ -6,9 +6,9 @@
     - Misc
         - [Sort Points](PCGExSortPoints.md)
         - [Draw Attributes](PCGExDrawAttributes.md)
-        - [Apply Attributes](PCGExApplyAttributes.md)
         - [Partition by Values](PCGExPartitionByValues.md)
         - [Write Index](PCGExWriteIndex.md)
+        - ~~[Operations](PCGExOperations.md)~~
     - Graph
         - [Create Graph Params](PCGExCreateGraphParams.md)
         - [Build Graph](PCGExBuildGraph.md)
@@ -18,10 +18,10 @@
         - [Draw Graph](PCGExDrawGraph.md)
         - [Delete Graph](PCGExDeleteGraph.md)
     - Transforms
-        - [Project](PCGExProject.md)
         - [Sample Nearest Point](PCGExSampleNearestPoint.md)
         - [Sample Nearest Surface](PCGExSampleNearestSurface.md)
         - [Sample Surface Guided](PCGExSampleSurfaceGuided.md)
+        - [Project](PCGExProject.md)
 1. Data Types
     - [Graph Data](PCGExGraphData.md)
 1. [Frequently Asked Questions](FAQ.md)
