@@ -147,7 +147,7 @@ bool UPCGExPointIO::InputParallelProcessing(
 
 bool UPCGExPointIO::OutputTo(FPCGContext* Context, bool bEmplace)
 {
-	if (!Out) { return false; }
+	if (!Out || Out->GetPoints().Num() == 0) { return false; }
 
 	if (!bEmplace)
 	{
@@ -159,17 +159,28 @@ bool UPCGExPointIO::OutputTo(FPCGContext* Context, bool bEmplace)
 
 		FPCGTaggedData& OutputRef = Context->OutputData.TaggedData.Add_GetRef(Source);
 		OutputRef.Data = Out;
-		OutputRef.Pin = PCGEx::OutputPointsLabel;
+		OutputRef.Pin = DefaultOutputLabel;
 		Output = OutputRef;
 	}
 	else
 	{
 		FPCGTaggedData& OutputRef = Context->OutputData.TaggedData.Emplace_GetRef();
 		OutputRef.Data = Out;
-		OutputRef.Pin = PCGEx::OutputPointsLabel;
+		OutputRef.Pin = DefaultOutputLabel;
 		Output = OutputRef;
 	}
 	return true;
+}
+
+bool UPCGExPointIO::OutputTo(FPCGContext* Context, bool bEmplace, const int64 MinPointCount, const int64 MaxPointCount)
+{
+	if (!Out) { return false; }
+
+	const int64 OutNumPoints = Out->GetPoints().Num();
+	if (MinPointCount >= 0 && OutNumPoints < MinPointCount) { return false; }
+	if (MaxPointCount >= 0 && OutNumPoints > MaxPointCount) { return false; }
+
+	return OutputTo(Context, bEmplace);
 }
 
 UPCGExPointIOGroup::UPCGExPointIOGroup()
@@ -197,7 +208,7 @@ void UPCGExPointIOGroup::Initialize(
 	for (FPCGTaggedData& Source : Sources)
 	{
 		UPCGPointData* MutablePointData = GetMutablePointData(Context, Source);
-		if (!MutablePointData) { continue; }
+		if (!MutablePointData || MutablePointData->GetPoints().Num() == 0) { continue; }
 		Emplace_GetRef(Source, MutablePointData, InitOut);
 	}
 }
@@ -212,7 +223,7 @@ void UPCGExPointIOGroup::Initialize(
 	for (FPCGTaggedData& Source : Sources)
 	{
 		UPCGPointData* MutablePointData = GetMutablePointData(Context, Source);
-		if (!MutablePointData) { continue; }
+		if (!MutablePointData || MutablePointData->GetPoints().Num() == 0) { continue; }
 		if (!ValidateFunc(MutablePointData)) { continue; }
 		UPCGExPointIO* NewPointIO = Emplace_GetRef(Source, MutablePointData, InitOut);
 		PostInitFunc(NewPointIO);
@@ -231,10 +242,11 @@ UPCGExPointIO* UPCGExPointIOGroup::Emplace_GetRef(
 	const PCGEx::EIOInit InitOut)
 {
 	//FWriteScopeLock ScopeLock(PairsLock);
-	
+
 	UPCGExPointIO* Pair = NewObject<UPCGExPointIO>();
 	Pairs.Add(Pair);
 
+	Pair->DefaultOutputLabel = DefaultOutputLabel;
 	Pair->Source = Source;
 	Pair->In = In;
 	Pair->NumPoints = Pair->In->GetPoints().Num();
@@ -250,7 +262,31 @@ UPCGExPointIO* UPCGExPointIOGroup::Emplace_GetRef(
  */
 void UPCGExPointIOGroup::OutputTo(FPCGContext* Context, bool bEmplace)
 {
-	for (UPCGExPointIO* Pair : Pairs) { Pair->OutputTo(Context, bEmplace); }
+	for (UPCGExPointIO* Pair
+	     :
+	     Pairs
+	)
+	{
+		Pair->OutputTo(Context, bEmplace);
+	}
+}
+
+/**
+ * Write valid outputs to Context' tagged data
+ * @param Context
+ * @param bEmplace Emplace will create a new entry no matter if a Source is set, otherwise will match the In.Source.
+ * @param MinPointCount
+ * @param MaxPointCount 
+ */
+void UPCGExPointIOGroup::OutputTo(FPCGContext* Context, bool bEmplace, const int64 MinPointCount, const int64 MaxPointCount)
+{
+	for (UPCGExPointIO* Pair
+	     :
+	     Pairs
+	)
+	{
+		Pair->OutputTo(Context, bEmplace, MinPointCount, MaxPointCount);
+	}
 }
 
 void UPCGExPointIOGroup::ForEach(const TFunction<void(UPCGExPointIO*, const int32)>& BodyLoop)

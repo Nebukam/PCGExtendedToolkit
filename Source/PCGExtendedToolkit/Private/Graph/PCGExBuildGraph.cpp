@@ -113,7 +113,7 @@ bool FPCGExBuildGraphElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExMT::EState::ReadyForNextGraph))
 	{
-		if (!Context->AdvanceParams())
+		if (!Context->AdvanceGraph())
 		{
 			Context->SetState(PCGExMT::EState::ReadyForNextPoints);
 			return false;
@@ -126,7 +126,7 @@ bool FPCGExBuildGraphElement::ExecuteInternal(
 
 	auto Initialize = [&Context, &Settings](const UPCGExPointIO* IO)
 	{
-		Context->CurrentParams->PrepareForPointData(Context, IO->Out, Settings->bComputeEdgeType);
+		Context->CurrentGraph->PrepareForPointData(Context, IO->Out, Settings->bComputeEdgeType);
 	};
 
 	if (Context->IsState(PCGExMT::EState::ProcessingGraph))

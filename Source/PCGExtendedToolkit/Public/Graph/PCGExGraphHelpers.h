@@ -17,6 +17,7 @@ namespace PCGExGraph
 
 	const FName SourceParamsLabel = TEXT("GraphParams");
 	const FName OutputParamsLabel = TEXT("→");
+	const FName OutputPatchesLabel = TEXT("Patches");
 
 	struct PCGEXTENDEDTOOLKIT_API FParamsInputs
 	{
@@ -91,6 +92,16 @@ namespace PCGExGraph
 		}
 	};
 
+	struct PCGEXTENDEDTOOLKIT_API FCachedSocketData
+	{
+		FCachedSocketData()
+		{
+			Neighbors.Empty();
+		}
+		int64 Index = -1;
+		TArray<FSocketMetadata> Neighbors;
+	};
+	
 	// Detail stored in a attribute array
 	class PCGEXTENDEDTOOLKIT_API Helpers
 	{

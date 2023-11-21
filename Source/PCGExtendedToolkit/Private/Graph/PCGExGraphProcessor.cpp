@@ -56,18 +56,18 @@ bool UPCGExGraphProcessorSettings::GetPinExtraIcon(const UPCGPin* InPin, FName& 
 
 #pragma endregion
 
-bool FPCGExGraphProcessorContext::AdvanceParams(bool bResetPointsIndex)
+bool FPCGExGraphProcessorContext::AdvanceGraph(bool bResetPointsIndex)
 {
 	if (bResetPointsIndex) { CurrentPointsIndex = -1; }
 	CurrentParamsIndex++;
 	if (Params.Params.IsValidIndex(CurrentParamsIndex))
 	{
-		CurrentParams = Params.Params[CurrentParamsIndex];
-		CurrentParams->GetSocketsInfos(SocketInfos);
+		CurrentGraph = Params.Params[CurrentParamsIndex];
+		CurrentGraph->GetSocketsInfos(SocketInfos);
 		return true;
 	}
 
-	CurrentParams = nullptr;
+	CurrentGraph = nullptr;
 	return false;
 }
 

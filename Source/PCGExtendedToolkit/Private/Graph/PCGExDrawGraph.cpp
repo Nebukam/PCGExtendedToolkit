@@ -112,7 +112,7 @@ bool FPCGExDrawGraphElement::ExecuteInternal(
 			if (Settings->bDrawGraph)
 			{
 				if (SocketMetadata.Index == -1) { continue; }
-				if (Settings->bFilterEdges && SocketMetadata.EdgeType != Settings->EdgeType) { continue; }
+				if (static_cast<uint8>((SocketMetadata.EdgeType & static_cast<EPCGExEdgeType>(Settings->EdgeType))) == 0) { continue; }
 
 				FPCGPoint PtB = IO->In->GetPoint(SocketMetadata.Index);
 				FVector End = PtB.Transform.GetLocation();
@@ -167,7 +167,7 @@ bool FPCGExDrawGraphElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExMT::EState::ReadyForNextGraph))
 	{
-		if (!Context->AdvanceParams())
+		if (!Context->AdvanceGraph())
 		{
 			Context->SetState(PCGExMT::EState::ReadyForNextPoints);
 		}
@@ -179,7 +179,7 @@ bool FPCGExDrawGraphElement::ExecuteInternal(
 
 	auto Initialize = [&Context](const UPCGExPointIO* IO)
 	{
-		Context->CurrentParams->PrepareForPointData(Context, IO->In, false);
+		Context->CurrentGraph->PrepareForPointData(Context, IO->In, false);
 	};
 
 	if (Context->IsState(PCGExMT::EState::ProcessingGraph))

@@ -32,13 +32,9 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	bool bDrawGraph = true;
 
-	/** Draw only one type of edge.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(InlineEditConditionToggle))
-	bool bFilterEdges = false;
-
 	/** Type of edge to draw.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="bFilterEdges"))
-	EPCGExEdgeType EdgeType = EPCGExEdgeType::Unknown;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExEdgeType"))
+	uint8 EdgeType = static_cast<uint8>(EPCGExEdgeType::Unknown);
 	
 	/** Draw socket cones lines.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)

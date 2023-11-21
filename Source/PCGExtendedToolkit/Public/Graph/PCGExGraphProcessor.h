@@ -170,9 +170,9 @@ public:
 	PCGExGraph::FParamsInputs Params;
 
 	int32 GetCurrentParamsIndex() const { return CurrentParamsIndex; };
-	UPCGExGraphParamsData* CurrentParams = nullptr;
+	UPCGExGraphParamsData* CurrentGraph = nullptr;
 
-	bool AdvanceParams(bool bResetPointsIndex = false);
+	bool AdvanceGraph(bool bResetPointsIndex = false);
 	bool AdvancePointsIO(bool bResetParamsIndex = false);
 
 	virtual void Reset() override;

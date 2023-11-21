@@ -57,7 +57,7 @@ bool FPCGExConsolidateGraphElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExMT::EState::ReadyForNextGraph))
 	{
-		if (!Context->AdvanceParams(true))
+		if (!Context->AdvanceGraph(true))
 		{
 			Context->SetState(PCGExMT::EState::Done); //No more params
 		}
@@ -85,7 +85,7 @@ bool FPCGExConsolidateGraphElement::ExecuteInternal(
 	{
 		Context->Deltas.Empty();
 		IO->BuildMetadataEntries();
-		Context->CurrentParams->PrepareForPointData(Context, IO->In, false); // Prepare to read IO->In
+		Context->CurrentGraph->PrepareForPointData(Context, IO->In, false); // Prepare to read IO->In
 	};
 
 	auto CapturePointDelta = [&Context](
@@ -107,7 +107,7 @@ bool FPCGExConsolidateGraphElement::ExecuteInternal(
 
 	auto InitializePointsOutput = [&Context](const UPCGExPointIO* IO)
 	{
-		Context->CurrentParams->PrepareForPointData(Context, IO->Out, false);
+		Context->CurrentGraph->PrepareForPointData(Context, IO->Out, false);
 	};
 
 	auto ConsolidatePoint = [&Context](
@@ -118,6 +118,9 @@ bool FPCGExConsolidateGraphElement::ExecuteInternal(
 
 		FReadScopeLock ScopeLock(Context->DeltaLock);
 
+		// BUG: Under certain conditions, complete connections are broken and indices are not
+		// consolidated properly.
+		
 		for (PCGExGraph::FSocketInfos& SocketInfos : Context->SocketInfos)
 		{
 			const int64 RelationIndex = SocketInfos.Socket->GetTargetIndex(Point.MetadataEntry);

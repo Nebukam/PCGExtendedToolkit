@@ -29,6 +29,7 @@ UPCGExCreateGraphParamsSettings::UPCGExCreateGraphParamsSettings(
 {
 	if (CustomSockets.IsEmpty()) { UPCGExCreateGraphParamsSettings::InitDefaultSockets(); }
 	InitSocketContent(PresetSockets);
+	RefreshSocketNames();
 }
 
 void UPCGExCreateGraphParamsSettings::InitDefaultSockets()
@@ -42,6 +43,17 @@ void UPCGExCreateGraphParamsSettings::InitDefaultSockets()
 	CustomSockets.Add(FPCGExSocketDescriptor("Left", FVector::LeftVector, "Right", Input, PCGExDebugColors::YMinus));
 	CustomSockets.Add(FPCGExSocketDescriptor("Up", FVector::UpVector, "Down", Output, PCGExDebugColors::ZPlus));
 	CustomSockets.Add(FPCGExSocketDescriptor("Down", FVector::DownVector, "Up", Input, PCGExDebugColors::ZMinus));
+}
+
+void UPCGExCreateGraphParamsSettings::RefreshSocketNames()
+{
+	GeneratedSocketNames.Empty();
+	TArray<FPCGExSocketDescriptor>& RefSockets = GraphModel == EPCGExGraphModel::Custom ? CustomSockets : PresetSockets;
+	for(FPCGExSocketDescriptor& Socket : RefSockets)
+	{
+		FPCGExSocketQualityOfLifeInfos& Infos = GeneratedSocketNames.Emplace_GetRef();
+		Infos.Populate(GraphIdentifier, Socket);
+	}
 }
 
 void UPCGExCreateGraphParamsSettings::InitSocketContent(TArray<FPCGExSocketDescriptor>& OutSockets) const
@@ -97,9 +109,15 @@ void UPCGExCreateGraphParamsSettings::InitSocketContent(TArray<FPCGExSocketDescr
 		OutSockets.Add(FPCGExSocketDescriptor("Up", FVector::UpVector, "Down", Output, PCGExDebugColors::ZPlus, 90));
 		OutSockets.Add(FPCGExSocketDescriptor("Down", FVector::DownVector, "Up", Input, PCGExDebugColors::ZMinus, 90));
 		break;
-	case EPCGExGraphModel::FFork:
+	case EPCGExGraphModel::VFork:
 		OutSockets.Add(FPCGExSocketDescriptor("Lefty", ToTheLeft.RotateVector(FVector::ForwardVector), EPCGExSocketType::Any, PCGExDebugColors::XPlus));
 		OutSockets.Add(FPCGExSocketDescriptor("Righty", ToTheRight.RotateVector(FVector::ForwardVector), EPCGExSocketType::Any, PCGExDebugColors::XMinus));
+		break;
+	case EPCGExGraphModel::XFork:
+		OutSockets.Add(FPCGExSocketDescriptor("InLefty", ToTheLeft.RotateVector(FVector::ForwardVector), Output, PCGExDebugColors::XPlus));
+		OutSockets.Add(FPCGExSocketDescriptor("InRighty", ToTheRight.RotateVector(FVector::ForwardVector), Output, PCGExDebugColors::YPlus));
+		OutSockets.Add(FPCGExSocketDescriptor("OutLefty", ToTheLeft.RotateVector(FVector::BackwardVector), Input, PCGExDebugColors::XMinus));
+		OutSockets.Add(FPCGExSocketDescriptor("OutRighty", ToTheRight.RotateVector(FVector::BackwardVector), Input, PCGExDebugColors::YMinus));
 		break;
 	default: ;
 	}
@@ -144,7 +162,8 @@ void UPCGExCreateGraphParamsSettings::PostEditChangeProperty(FPropertyChangedEve
 			InitSocketContent(PresetSockets);
 		}
 	}
-
+	
+	RefreshSocketNames();
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
 

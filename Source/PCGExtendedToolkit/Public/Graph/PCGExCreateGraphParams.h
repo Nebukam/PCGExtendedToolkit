@@ -21,8 +21,42 @@ enum class EPCGExGraphModel : uint8
 	TwoSidedX UMETA(DisplayName = "Two Sided - X", Tooltip="A wide front-back model, with 2 opposite sockets, over the X axis."),
 	TwoSidedY UMETA(DisplayName = "Two Sided - Y", Tooltip="A wide front-back model, with 2 opposite sockets, over the Y axis."),
 	TwoSidedZ UMETA(DisplayName = "Two Sided - Z", Tooltip="A wide front-back model, with 2 opposite sockets, over the Z axis."),
-	FFork UMETA(DisplayName = "Forward Fork", Tooltip="A fork-like model, with 2 forward sockets, lefty and righty."),
+	VFork UMETA(DisplayName = "Forward Fork", Tooltip="A fork-like model, with 2 forward sockets, lefty and righty."),
+	XFork UMETA(DisplayName = "X Fork", Tooltip="A X-like model, with 2 forward sockets, lefty and righty, and symmetrical ones.."),
 };
+
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExSocketQualityOfLifeInfos
+{
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	FString BaseName;
+	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	FString FullName;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	FString IndexAttribute;
+	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	FString EdgeTypeAttribute;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	FString EntryKeyAttribute;
+	
+	void Populate(FName Identifier, const FPCGExSocketDescriptor& Descriptor)
+	{
+		BaseName = Descriptor.SocketName.ToString();
+		const FString Separator = TEXT("/");
+		FullName = *(TEXT("PCGEx") + Separator + Identifier.ToString() + Separator + BaseName);
+		IndexAttribute = *(FullName + Separator + PCGExGraph::SocketPropertyNameIndex.ToString());
+		EdgeTypeAttribute = *(FullName + Separator + PCGExGraph::SocketPropertyNameEdgeType.ToString());
+		EntryKeyAttribute = *(FullName + Separator + PCGExGraph::SocketPropertyNameEntryKey.ToString());
+	}
+	
+};
+
 
 /** Outputs a single GraphParam to be consumed by other nodes */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
@@ -75,10 +109,15 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bApplyGlobalOverrides"))
 	FPCGExSocketGlobalOverrides GlobalOverrides;
 
+	/** An array containing the computed socket names, for easy copy-paste. */
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta=(AdvancedDisplay, TitleProperty="{BaseName}"))
+	TArray<FPCGExSocketQualityOfLifeInfos> GeneratedSocketNames;
+
 	const TArray<FPCGExSocketDescriptor>& GetSockets() const;
 	
 protected:
 	virtual void InitDefaultSockets();
+	void RefreshSocketNames();
 	void InitSocketContent(TArray<FPCGExSocketDescriptor>& OutSockets) const;
 };
 

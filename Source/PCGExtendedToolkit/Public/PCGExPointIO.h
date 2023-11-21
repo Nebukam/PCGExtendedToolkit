@@ -29,6 +29,8 @@ class PCGEXTENDEDTOOLKIT_API UPCGExPointIO : public UObject
 public:
 	UPCGExPointIO();
 
+	FName DefaultOutputLabel = PCGEx::OutputPointsLabel;
+
 	FPCGTaggedData Source;       // Source struct
 	UPCGPointData* In = nullptr; // Input PointData
 
@@ -43,7 +45,7 @@ public:
 	{
 		IndicesMap.Empty();
 	}
-	
+
 protected:
 	mutable FRWLock MapLock;
 	bool bParallelProcessing = false;
@@ -91,6 +93,7 @@ public:
 	 * @param bEmplace if false (default), will try to use the source first
 	 */
 	bool OutputTo(FPCGContext* Context, bool bEmplace = false);
+	bool OutputTo(FPCGContext* Context, bool bEmplace, int64 MinPointCount, int64 MaxPointCount);
 
 protected:
 	bool bMetadataEntryDirty = true;
@@ -110,6 +113,7 @@ public:
 	UPCGExPointIOGroup(FPCGContext* Context, FName InputLabel, PCGEx::EIOInit InitOut = PCGEx::EIOInit::NoOutput);
 	UPCGExPointIOGroup(FPCGContext* Context, TArray<FPCGTaggedData>& Sources, PCGEx::EIOInit InitOut = PCGEx::EIOInit::NoOutput);
 
+	FName DefaultOutputLabel = PCGEx::OutputPointsLabel;
 	TArray<UPCGExPointIO*> Pairs;
 
 	/**
@@ -139,6 +143,7 @@ public:
 	bool IsEmpty() const { return Pairs.IsEmpty(); }
 
 	void OutputTo(FPCGContext* Context, bool bEmplace = false);
+	void OutputTo(FPCGContext* Context, bool bEmplace, const int64 MinPointCount, const int64 MaxPointCount);
 
 	void ForEach(const TFunction<void(UPCGExPointIO*, const int32)>& BodyLoop);
 
@@ -147,7 +152,7 @@ public:
 		for (UPCGExPointIO* Pair : Pairs) { Pair->Flush(); }
 		Pairs.Empty();
 	}
-	
+
 	template <class InitializeFunc, class ProcessElementFunc>
 	bool OutputsParallelProcessing(
 		FPCGContext* Context,
@@ -164,5 +169,4 @@ protected:
 
 private:
 	UPCGPointData* GetMutablePointData(FPCGContext* Context, FPCGTaggedData& Source);
-
 };

@@ -1,7 +1,7 @@
 ﻿// Copyright Timothé Lapetite 2023
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Graph/PCGExFindEdgesType.h"
+#include "Graph/Pathfinding/PCGExEdgesToPaths.h"
 
 #include "Data/PCGSpatialData.h"
 #include "PCGContext.h"
@@ -9,44 +9,44 @@
 #include "Editor.h"
 #include "Graph/PCGExGraphHelpers.h"
 
-#define LOCTEXT_NAMESPACE "PCGExFindEdgesType"
+#define LOCTEXT_NAMESPACE "PCGExEdgesToPaths"
 
-int32 UPCGExFindEdgesTypeSettings::GetPreferredChunkSize() const { return 32; }
+int32 UPCGExEdgesToPathsSettings::GetPreferredChunkSize() const { return 32; }
 
-PCGEx::EIOInit UPCGExFindEdgesTypeSettings::GetPointOutputInitMode() const { return PCGEx::EIOInit::DuplicateInput; }
+PCGEx::EIOInit UPCGExEdgesToPathsSettings::GetPointOutputInitMode() const { return PCGEx::EIOInit::DuplicateInput; }
 
-FPCGElementPtr UPCGExFindEdgesTypeSettings::CreateElement() const
+FPCGElementPtr UPCGExEdgesToPathsSettings::CreateElement() const
 {
-	return MakeShared<FPCGExFindEdgesTypeElement>();
+	return MakeShared<FPCGExEdgesToPathsElement>();
 }
 
-FPCGContext* FPCGExFindEdgesTypeElement::Initialize(
+FPCGContext* FPCGExEdgesToPathsElement::Initialize(
 	const FPCGDataCollection& InputData,
 	TWeakObjectPtr<UPCGComponent> SourceComponent,
 	const UPCGNode* Node)
 {
-	FPCGExFindEdgesTypeContext* Context = new FPCGExFindEdgesTypeContext();
+	FPCGExEdgesToPathsContext* Context = new FPCGExEdgesToPathsContext();
 	InitializeContext(Context, InputData, SourceComponent, Node);
 	return Context;
 }
 
-void FPCGExFindEdgesTypeElement::InitializeContext(
+void FPCGExEdgesToPathsElement::InitializeContext(
 	FPCGExPointsProcessorContext* InContext,
 	const FPCGDataCollection& InputData,
 	TWeakObjectPtr<UPCGComponent> SourceComponent,
 	const UPCGNode* Node) const
 {
 	FPCGExGraphProcessorElement::InitializeContext(InContext, InputData, SourceComponent, Node);
-	//FPCGExFindEdgesTypeContext* Context = static_cast<FPCGExFindEdgesTypeContext*>(InContext);
+	//FPCGExEdgesToPathsContext* Context = static_cast<FPCGExEdgesToPathsContext*>(InContext);
 	// ...
 }
 
-bool FPCGExFindEdgesTypeElement::ExecuteInternal(
+bool FPCGExEdgesToPathsElement::ExecuteInternal(
 	FPCGContext* InContext) const
 {
-	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExFindEdgesTypeElement::Execute);
+	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExEdgesToPathsElement::Execute);
 
-	FPCGExFindEdgesTypeContext* Context = static_cast<FPCGExFindEdgesTypeContext*>(InContext);
+	FPCGExEdgesToPathsContext* Context = static_cast<FPCGExEdgesToPathsContext*>(InContext);
 
 	if (Context->IsSetup())
 	{

@@ -13,6 +13,7 @@
         - [Create Graph Params](PCGExCreateGraphParams.md)
         - [Build Graph](PCGExBuildGraph.md)
         - [Consolidate Graph](PCGExConsolidateGraph.md)
+        - [Partiton Graph Patches](PCGExPartitionGraphPatches.md)
         - [Find Edges Type](PCGExFindEdgesType.md)
         - [Find Paths](PCGExFindPaths.md)
         - [Draw Graph](PCGExDrawGraph.md)

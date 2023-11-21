@@ -15,25 +15,29 @@ class UPCGExCreateGraphParamsSettings;
 struct FPCGExGraphProcessorContext;
 class UPCGPointData;
 
-UENUM(BlueprintType)
+UENUM(BlueprintType, meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor="true"))
 enum class EPCGExSocketType : uint8
 {
 	None   = 0 UMETA(DisplayName = "None", Tooltip="This socket has no particular type."),
-	Output = 10 UMETA(DisplayName = "Output", Tooltip="This socket in an output socket. It can only connect to Input sockets."),
-	Input  = 20 UMETA(DisplayName = "Input", Tooltip="This socket in an input socket. It can only connect to Output sockets"),
-	Any    = 1 UMETA(DisplayName = "Any", Tooltip="This socket is considered both an Output and and Input."),
+	Output = 1 << 0 UMETA(DisplayName = "Output", Tooltip="This socket in an output socket. It can only connect to Input sockets."),
+	Input  = 1 << 1 UMETA(DisplayName = "Input", Tooltip="This socket in an input socket. It can only connect to Output sockets"),
+	Any    = Output | Input UMETA(DisplayName = "Any", Tooltip="This socket is considered both an Output and and Input."),
 };
 
-UENUM(BlueprintType)
+ENUM_CLASS_FLAGS(EPCGExSocketType)
+
+UENUM(BlueprintType, meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor="true"))
 enum class EPCGExEdgeType : uint8
 {
 	Unknown  = 0 UMETA(DisplayName = "Unknown", Tooltip="Unknown type."),
-	Unique   = 10 UMETA(DisplayName = "Unique", Tooltip="Unilateral edge."),
-	Shared   = 11 UMETA(DisplayName = "Shared", Tooltip="Shared edge, both sockets are connected; but do not match."),
-	Match    = 21 UMETA(DisplayName = "Match", Tooltip="Shared relation, considered a match by the primary socket owner; but does not match on the other."),
-	Complete = 22 UMETA(DisplayName = "Complete", Tooltip="Shared, matching relation on both sockets."),
-	Mirror   = 96 UMETA(DisplayName = "Mirrored relation", Tooltip="Mirrored relation, connected sockets are the same on both points."),
+	Unique   = 1 << 0 UMETA(DisplayName = "Unique", Tooltip="Unilateral edge."),
+	Shared   = 1 << 1 UMETA(DisplayName = "Shared", Tooltip="Shared edge, both sockets are connected; but do not match."),
+	Match    = 1 << 2 UMETA(DisplayName = "Match", Tooltip="Shared relation, considered a match by the primary socket owner; but does not match on the other."),
+	Complete = 1 << 3 UMETA(DisplayName = "Complete", Tooltip="Shared, matching relation on both sockets."),
+	Mirror   = 1 << 4 UMETA(DisplayName = "Mirrored relation", Tooltip="Mirrored relation, connected sockets are the same on both points."),
 };
+
+ENUM_CLASS_FLAGS(EPCGExEdgeType)
 
 USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExSocketAngle
@@ -82,7 +86,6 @@ public:
 	UCurveFloat* DotOverDistanceCurve = nullptr;
 
 	void LoadCurve() { DotOverDistanceCurve = DotOverDistance.LoadSynchronous(); }
-	
 };
 
 #pragma region Descriptors
@@ -288,9 +291,6 @@ namespace PCGExGraph
 		PCGMetadataEntryKey EntryKey = PCGInvalidEntryKey;
 		EPCGExEdgeType EdgeType = EPCGExEdgeType::Unknown;
 
-		double IndexedDot = -1.0;
-		double IndexedDistance = TNumericLimits<double>::Max();
-
 		/*
 		 
 		friend FArchive& operator<<(FArchive& Ar, FSocketMetadata& SocketMetadata)
@@ -381,7 +381,7 @@ namespace PCGExGraph
 
 	public:
 		FName GetName() const { return AttributeNameBase; }
-		EPCGExSocketType GetType() const { return Descriptor.SocketType; }
+		EPCGExSocketType GetType() const { return static_cast<EPCGExSocketType>(Descriptor.SocketType); }
 		bool IsExclusive() const { return Descriptor.bExclusiveBehavior; }
 		bool Matches(const FSocket* OtherSocket) const { return MatchingSockets.Contains(OtherSocket->SocketIndex); }
 

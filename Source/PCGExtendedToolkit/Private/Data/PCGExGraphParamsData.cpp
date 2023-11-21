@@ -46,7 +46,7 @@ void UPCGExGraphParamsData::Initialize(
 
 void UPCGExGraphParamsData::PrepareForPointData(FPCGExGraphProcessorContext* Context, const UPCGPointData* PointData, const bool bEnsureEdgeType)
 {
-	Context->CachedIndex = PointData->Metadata->FindOrCreateAttribute<int64>(Context->CurrentParams->CachedIndexAttributeName,-1,false);
+	Context->CachedIndex = PointData->Metadata->FindOrCreateAttribute<int64>(Context->CurrentGraph->CachedIndexAttributeName,-1,false);
 	SocketMapping.PrepareForPointData(PointData, bEnsureEdgeType);
 }
 
