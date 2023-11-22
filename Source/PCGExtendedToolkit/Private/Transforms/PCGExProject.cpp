@@ -67,7 +67,7 @@ bool FPCGExProjectElement::ExecuteInternal(FPCGContext* InContext) const
 
 	auto ProcessPoint = [&Context, this](const FPCGPoint& Point, const int32 Index, UPCGExPointIO* IO)
 	{
-		Context->ScheduleTask<PCGExAsync::FSweepSphereTask>(Index, Point.MetadataEntry);
+		//Context->ScheduleTask<PCGExAsync::FSweepSphereTask>(Index, Point.MetadataEntry);
 	};
 
 	if (Context->IsState(PCGExMT::EState::ProcessingPoints))

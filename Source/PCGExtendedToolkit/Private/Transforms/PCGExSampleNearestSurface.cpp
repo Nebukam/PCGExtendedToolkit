@@ -105,7 +105,7 @@ bool FPCGExSampleNearestSurfaceElement::ExecuteInternal(FPCGContext* InContext) 
 		PCGEX_INIT_ATTRIBUTE_OUT(Distance, double)
 	};
 
-	auto ProcessPoint = [&Context, this](const FPCGPoint& Point, const int32 Index, UPCGExPointIO* IO)
+	auto ProcessPoint = [&Context, this](const FPCGPoint& Point, const int32 Index, const UPCGExPointIO* IO)
 	{
 		Context->ScheduleTask<PCGExAsync::FSweepSphereTask>(Index, Point.MetadataEntry);
 	};

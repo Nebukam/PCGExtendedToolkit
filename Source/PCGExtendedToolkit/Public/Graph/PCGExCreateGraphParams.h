@@ -32,19 +32,19 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSocketQualityOfLifeInfos
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	FString BaseName;
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	FString FullName;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	FString IndexAttribute;
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	FString EdgeTypeAttribute;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	FString EntryKeyAttribute;
-	
+
 	void Populate(FName Identifier, const FPCGExSocketDescriptor& Descriptor)
 	{
 		BaseName = Descriptor.SocketName.ToString();
@@ -54,7 +54,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSocketQualityOfLifeInfos
 		EdgeTypeAttribute = *(FullName + Separator + PCGExGraph::SocketPropertyNameEdgeType.ToString());
 		EntryKeyAttribute = *(FullName + Separator + PCGExGraph::SocketPropertyNameEntryKey.ToString());
 	}
-	
 };
 
 
@@ -76,6 +75,7 @@ public:
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
@@ -92,7 +92,7 @@ public:
 	/** If true, preset will have Input & Output types instead of "Any"*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="GraphModel!=EPCGExGraphModel::Custom"))
 	bool bTypedPreset = true;
-	
+
 	/** Custom graph sockets model.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(TitleProperty="{SocketName}", EditCondition="GraphModel==EPCGExGraphModel::Custom", EditConditionHides))
 	TArray<FPCGExSocketDescriptor> CustomSockets;
@@ -100,7 +100,7 @@ public:
 	/** Preset graph sockets model. Don't bother editing this, it will be overriden in code -- instead, copy it, choose Custom model and paste.*/
 	UPROPERTY(VisibleAnywhere, Category = Settings, meta=(TitleProperty="{SocketName}", EditCondition="GraphModel!=EPCGExGraphModel::Custom", EditConditionHides))
 	TArray<FPCGExSocketDescriptor> PresetSockets;
-	
+
 	/** Overrides individual socket values with a global one.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bApplyGlobalOverrides = false;
@@ -114,7 +114,7 @@ public:
 	TArray<FPCGExSocketQualityOfLifeInfos> GeneratedSocketNames;
 
 	const TArray<FPCGExSocketDescriptor>& GetSockets() const;
-	
+
 protected:
 	virtual void InitDefaultSockets();
 	void RefreshSocketNames();

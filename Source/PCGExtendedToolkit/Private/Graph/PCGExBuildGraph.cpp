@@ -82,8 +82,7 @@ bool FPCGExBuildGraphElement::ExecuteInternal(
 
 	// Process params for current points
 
-	auto ProcessPoint = [&Context](
-		const FPCGPoint& Point, int32 ReadIndex, UPCGExPointIO* IO)
+	auto ProcessPoint = [&Context](const FPCGPoint& Point, const int32 ReadIndex, const UPCGExPointIO* IO)
 	{
 		Context->CachedIndex->SetValue(Point.MetadataEntry, ReadIndex); // Cache index
 
@@ -146,12 +145,11 @@ bool FPCGExBuildGraphElement::ExecuteInternal(
 
 	// Process params again for edges types
 
-	auto InitializeForGraph = [&Context](UPCGExPointIO* IO)
+	auto InitializeForGraph = [](UPCGExPointIO* IO)
 	{
 	};
 
-	auto ProcessPointForGraph = [&Context](
-		const FPCGPoint& Point, int32 ReadIndex, UPCGExPointIO* IO)
+	auto ProcessPointForGraph = [&Context](const FPCGPoint& Point, const int32 ReadIndex, const UPCGExPointIO* IO)
 	{
 		Context->ComputeEdgeType(Point, ReadIndex, IO);
 	};

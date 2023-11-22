@@ -8,7 +8,6 @@
 #include "PCGContext.h"
 #include "DrawDebugHelpers.h"
 #include "Editor.h"
-#include "PCGExtendedToolkit.h"
 #include "Graph/PCGExGraphHelpers.h"
 
 #define LOCTEXT_NAMESPACE "PCGExDrawGraph"
@@ -31,8 +30,9 @@ UPCGExDrawGraphSettings::UPCGExDrawGraphSettings(
 #if WITH_EDITOR
 TArray<FPCGPinProperties> UPCGExDrawGraphSettings::OutputPinProperties() const
 {
-	TArray<FPCGPinProperties> None;
-	return None;
+	TArray<FPCGPinProperties> Empty;
+	Empty.Empty();
+	return Empty;
 }
 
 void UPCGExDrawGraphSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
@@ -42,8 +42,7 @@ void UPCGExDrawGraphSettings::PostEditChangeProperty(FPropertyChangedEvent& Prop
 }
 #endif
 
-bool FPCGExDrawGraphElement::ExecuteInternal(
-	FPCGContext* InContext) const
+bool FPCGExDrawGraphElement::ExecuteInternal(FPCGContext* InContext) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExDrawGraphElement::Execute);
 
@@ -79,8 +78,7 @@ bool FPCGExDrawGraphElement::ExecuteInternal(
 		}
 	}
 
-	auto ProcessPoint = [&Context, &Settings](
-		const FPCGPoint& Point, int32 ReadIndex, UPCGExPointIO* IO)
+	auto ProcessPoint = [&Context, &Settings](const FPCGPoint& Point, const int32 ReadIndex, const UPCGExPointIO* IO)
 	{
 		//FWriteScopeLock ScopeLock(Context->ContextLock);
 

@@ -49,7 +49,7 @@ void UPCGExCreateGraphParamsSettings::RefreshSocketNames()
 {
 	GeneratedSocketNames.Empty();
 	TArray<FPCGExSocketDescriptor>& RefSockets = GraphModel == EPCGExGraphModel::Custom ? CustomSockets : PresetSockets;
-	for(FPCGExSocketDescriptor& Socket : RefSockets)
+	for (FPCGExSocketDescriptor& Socket : RefSockets)
 	{
 		FPCGExSocketQualityOfLifeInfos& Infos = GeneratedSocketNames.Emplace_GetRef();
 		Infos.Populate(GraphIdentifier, Socket);
@@ -162,7 +162,7 @@ void UPCGExCreateGraphParamsSettings::PostEditChangeProperty(FPropertyChangedEve
 			InitSocketContent(PresetSockets);
 		}
 	}
-	
+
 	RefreshSocketNames();
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }

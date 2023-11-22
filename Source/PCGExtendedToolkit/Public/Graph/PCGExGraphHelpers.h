@@ -5,8 +5,6 @@
 
 #include "CoreMinimal.h"
 #include "PCGContext.h"
-#include "PCGExGraphProcessor.h"
-#include "PCGExGraphProcessor.h"
 #include "Data/PCGExGraphParamsData.h"
 //#include "PCGExGraphHelpers.generated.h"
 
@@ -14,7 +12,6 @@ class UPCGPointData;
 
 namespace PCGExGraph
 {
-
 	const FName SourceParamsLabel = TEXT("GraphParams");
 	const FName OutputParamsLabel = TEXT("→");
 	const FName OutputPatchesLabel = TEXT("Patches");
@@ -56,7 +53,7 @@ namespace PCGExGraph
 			{
 				const UPCGExGraphParamsData* ParamsData = Cast<UPCGExGraphParamsData>(Source.Data);
 				if (!ParamsData) { continue; }
-				if(UniqueParams.Contains(ParamsData->UID)){continue;}
+				if (UniqueParams.Contains(ParamsData->UID)) { continue; }
 				UniqueParams.Add(ParamsData->UID);
 				Params.Add(const_cast<UPCGExGraphParamsData*>(ParamsData));
 				ParamsSources.Add(Source);
@@ -75,7 +72,7 @@ namespace PCGExGraph
 
 		void OutputTo(FPCGContext* Context) const
 		{
-			for(int i = 0; i < ParamsSources.Num(); i++)
+			for (int i = 0; i < ParamsSources.Num(); i++)
 			{
 				FPCGTaggedData& OutputRef = Context->OutputData.TaggedData.Add_GetRef(ParamsSources[i]);
 				OutputRef.Pin = PCGExGraph::OutputParamsLabel;
@@ -98,15 +95,15 @@ namespace PCGExGraph
 		{
 			Neighbors.Empty();
 		}
+
 		int64 Index = -1;
 		TArray<FSocketMetadata> Neighbors;
 	};
-	
+
 	// Detail stored in a attribute array
 	class PCGEXTENDEDTOOLKIT_API Helpers
 	{
 	public:
-
 		/**
 		 * Assume the edge already is neither None nor Unique, since another socket has been found.
 		 * @param StartSocket 

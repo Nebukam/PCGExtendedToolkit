@@ -3,7 +3,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExCommon.h"
 #include "PCGExPointIO.h"
 #include "Data/PCGExGraphParamsData.h"
 #include "UObject/Object.h"
@@ -33,8 +32,10 @@ public:
 	void Add(int32 Index);
 	bool Contains(const int32 Index) const;
 
-	bool OutputTo(UPCGExPointIO* OutIO);
+	bool OutputTo(const UPCGExPointIO* OutIO, int32 PatchIDOverride);
 
+	void Flush();
+	
 public:
 	~UPCGExGraphPatch()
 	{
@@ -75,9 +76,14 @@ public:
 
 	void OutputTo(FPCGContext* Context, const int64 MinPointCount, const int64 MaxPointCount);
 	void OutputTo(FPCGContext* Context);
+	
+	void Flush();
 
 public:
 	~UPCGExGraphPatchGroup()
 	{
+		IO = nullptr;
+		Graph = nullptr;
+		PatchesIO = nullptr;
 	}
 };

@@ -5,7 +5,6 @@
 
 #include "CoreMinimal.h"
 #include "PCGExGraphProcessor.h"
-#include "Data/PCGPointData.h"
 #include "Elements/PCGPointProcessingElementBase.h"
 #include "PCGExConsolidateGraph.generated.h"
 
@@ -23,6 +22,10 @@ public:
 	PCGEX_NODE_INFOS(ConsolidateGraph, "Consolidate Graph", "Repairs and consolidate graph indices after points have been removed post graph-building.");
 #endif
 
+	/** Compute edge types internally. If you don't need edge types, set it to false to save some cycles.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	bool bConsolidateEdgeType = true;
+	
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings interface
@@ -40,8 +43,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExConsolidateGraphContext : public FPCGExGraph
 	friend class FPCGExConsolidateGraphElement;
 
 public:
-	TMap<int64, int64> Deltas;
-	mutable FRWLock DeltaLock;
+	bool bConsolidateEdgeType;
+	
+	TMap<int64, int64> IndicesRemap;
+	mutable FRWLock IndicesLock;
 };
 
 
@@ -54,11 +59,6 @@ public:
 		const UPCGNode* Node) override;
 
 protected:
-	virtual void InitializeContext(
-		FPCGExPointsProcessorContext* InContext,
-		const FPCGDataCollection& InputData,
-		TWeakObjectPtr<UPCGComponent> SourceComponent,
-		const UPCGNode* Node) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 #if WITH_EDITOR
 	static int64 GetFixedIndex(FPCGExConsolidateGraphContext* Context, int64 InIndex);

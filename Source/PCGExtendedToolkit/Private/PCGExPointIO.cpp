@@ -4,8 +4,6 @@
 #include "PCGExPointIO.h"
 #include "PCGContext.h"
 
-//////////////////// Group
-
 UPCGExPointIO::UPCGExPointIO(): In(nullptr), Out(nullptr), NumPoints(-1)
 {
 	// Initialize other members as needed
@@ -84,7 +82,7 @@ void UPCGExPointIO::ClearIndices()
 	IndicesMap.Empty();
 }
 
-int32 UPCGExPointIO::GetIndex(PCGMetadataEntryKey Key)
+int32 UPCGExPointIO::GetIndex(PCGMetadataEntryKey Key) const
 {
 	FReadScopeLock ScopeLock(MapLock);
 	return *(IndicesMap.Find(Key));
@@ -103,7 +101,7 @@ bool UPCGExPointIO::OutputParallelProcessing(
 		Initialize(this);
 	};
 
-	auto InnerBodyLoop = [this, &LoopBody](int32 ReadIndex, int32 WriteIndex)
+	auto InnerBodyLoop = [this, &LoopBody](const int32 ReadIndex, const int32 WriteIndex)
 	{
 		FReadScopeLock ScopeLock(MapLock);
 		const FPCGPoint& Point = Out->GetPoint(ReadIndex);
@@ -131,7 +129,7 @@ bool UPCGExPointIO::InputParallelProcessing(
 		Initialize(this);
 	};
 
-	auto InnerBodyLoop = [this, &LoopBody](int32 ReadIndex, int32 WriteIndex)
+	auto InnerBodyLoop = [this, &LoopBody](const int32 ReadIndex, const int32 WriteIndex)
 	{
 		FReadScopeLock ScopeLock(MapLock);
 		const FPCGPoint& Point = In->GetPoint(ReadIndex);
@@ -231,7 +229,7 @@ void UPCGExPointIOGroup::Initialize(
 }
 
 UPCGExPointIO* UPCGExPointIOGroup::Emplace_GetRef(
-	UPCGExPointIO& IO,
+	const UPCGExPointIO& IO,
 	const PCGEx::EIOInit InitOut)
 {
 	return Emplace_GetRef(IO.Source, IO.In, InitOut);
@@ -298,7 +296,7 @@ void UPCGExPointIOGroup::ForEach(const TFunction<void(UPCGExPointIO*, const int3
 	}
 }
 
-UPCGPointData* UPCGExPointIOGroup::GetMutablePointData(FPCGContext* Context, FPCGTaggedData& Source)
+UPCGPointData* UPCGExPointIOGroup::GetMutablePointData(FPCGContext* Context, const FPCGTaggedData& Source)
 {
 	const UPCGSpatialData* SpatialData = Cast<UPCGSpatialData>(Source.Data);
 	if (!SpatialData) { return nullptr; }

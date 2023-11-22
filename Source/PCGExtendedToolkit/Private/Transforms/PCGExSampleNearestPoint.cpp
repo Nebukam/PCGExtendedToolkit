@@ -6,6 +6,7 @@
 #include "PCGContext.h"
 #include "PCGExCommon.h"
 #include "PCGPin.h"
+#include <algorithm>
 
 #define LOCTEXT_NAMESPACE "PCGExSampleNearestPointElement"
 
@@ -135,7 +136,11 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 	{
 		if (!Validate(Context)) { return true; }
 
-		Context->Octree = Context->bUseOctree ? const_cast<UPCGPointData::PointOctree*>(&(Context->CurrentIO->Out->GetOctree())) : nullptr;
+		Context->Octree = Context->bUseOctree ? const_cast<UPCGPointData::PointOctree*>(&(Context->Targets->GetOctree())) : nullptr;
+		const TArray<FPCGPoint>& TargetPoints = Context->Targets->GetPoints();
+		const int32 NumTargets = TargetPoints.Num();
+		Context->TargetIndices.Reserve(NumTargets);
+		for (int i = 0; i < NumTargets; i++) { Context->TargetIndices.Add(TargetPoints[i].MetadataEntry, i); }
 		Context->SetState(PCGExMT::EState::ReadyForNextPoints);
 	}
 
@@ -177,18 +182,12 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 		PCGEX_INIT_ATTRIBUTE_OUT(Distance, double)
 	};
 
-	auto ProcessPoint = [&Context](
-		const FPCGPoint& Point, int32 ReadIndex, UPCGExPointIO* IO)
+	auto ProcessPoint = [&Context](const FPCGPoint& Point, const int32 ReadIndex, const UPCGExPointIO* IO)
 	{
 		double RangeMin = FMath::Pow(Context->RangeMinInput.GetValueSafe(Point, Context->RangeMin), 2);
 		double RangeMax = FMath::Pow(Context->RangeMaxInput.GetValueSafe(Point, Context->RangeMax), 2);
 
-		if (RangeMin > RangeMax)
-		{
-			double OldMax = RangeMax;
-			RangeMax = RangeMin;
-			RangeMin = OldMax;
-		}
+		if (RangeMin > RangeMax) { std::swap(RangeMin, RangeMax); }
 
 		TArray<PCGExNearestPoint::FTargetInfos> TargetsInfos;
 		TargetsInfos.Reserve(Context->NumTargets);
@@ -209,18 +208,13 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 			if (Context->SampleMethod == EPCGExSampleMethod::ClosestTarget ||
 				Context->SampleMethod == EPCGExSampleMethod::FarthestTarget)
 			{
-				PCGExNearestPoint::FTargetInfos Infos = PCGExNearestPoint::FTargetInfos();
-				Infos.Point = TargetPoint;
-				Infos.Distance = dist;
-
-				TargetsCompoundInfos.UpdateCompound(Infos);
+				FReadScopeLock ScopeLock(Context->IndicesLock);
+				TargetsCompoundInfos.UpdateCompound(PCGExNearestPoint::FTargetInfos(*Context->TargetIndices.Find(TargetPoint.MetadataEntry), dist));
 			}
 			else
 			{
-				PCGExNearestPoint::FTargetInfos& Infos = TargetsInfos.Emplace_GetRef();
-				Infos.Point = TargetPoint; // TODO: Need to optimize this so we don't create a copy. Memory will explode.
-				Infos.Distance = dist;
-
+				FReadScopeLock ScopeLock(Context->IndicesLock);
+				const PCGExNearestPoint::FTargetInfos& Infos = TargetsInfos.Emplace_GetRef(*Context->TargetIndices.Find(TargetPoint.MetadataEntry), dist);
 				TargetsCompoundInfos.UpdateCompound(Infos);
 			}
 		};
@@ -258,37 +252,34 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 		double TotalWeight = 0;
 
 
-		if (Context->SampleMethod == EPCGExSampleMethod::ClosestTarget ||
-			Context->SampleMethod == EPCGExSampleMethod::FarthestTarget)
+		auto ProcessTargetInfos = [&Context, &Origin, &WeightedLocation, &WeightedDirection, &WeightedNormal, &TotalWeight]
+			(PCGExNearestPoint::FTargetInfos& TargetInfos, double Weight)
 		{
-			PCGExNearestPoint::FTargetInfos& TargetInfos = Context->SampleMethod == EPCGExSampleMethod::ClosestTarget ? TargetsCompoundInfos.Closest : TargetsCompoundInfos.Farthest;
-			double Weight = Context->WeightCurve->GetFloatValue(TargetsCompoundInfos.GetRangeRatio(TargetInfos.Distance));
-
-			FPCGPoint& TargetPoint = TargetInfos.Point;
-			FVector TargetLocationOffset = TargetPoint.Transform.GetLocation() - Origin;
+			const FPCGPoint TargetPoint = Context->Targets->GetPoint(TargetInfos.Index);
+			const FVector TargetLocationOffset = TargetPoint.Transform.GetLocation() - Origin;
 			WeightedLocation += (TargetLocationOffset * Weight); // Relative to origin
 			WeightedDirection += (TargetLocationOffset.GetSafeNormal()) * Weight;
 			WeightedNormal += Context->NormalInput.GetValue(TargetPoint) * Weight;
 
 			TotalWeight += Weight;
+		};
+
+		if (Context->SampleMethod == EPCGExSampleMethod::ClosestTarget ||
+			Context->SampleMethod == EPCGExSampleMethod::FarthestTarget)
+		{
+			PCGExNearestPoint::FTargetInfos& TargetInfos = Context->SampleMethod == EPCGExSampleMethod::ClosestTarget ? TargetsCompoundInfos.Closest : TargetsCompoundInfos.Farthest;
+			const double Weight = Context->WeightCurve->GetFloatValue(TargetsCompoundInfos.GetRangeRatio(TargetInfos.Distance));
+			ProcessTargetInfos(TargetInfos, Weight);
 		}
 		else
 		{
 			for (PCGExNearestPoint::FTargetInfos& TargetInfos : TargetsInfos)
 			{
-				double Weight = Context->WeightCurve->GetFloatValue(TargetsCompoundInfos.GetRangeRatio(TargetInfos.Distance));
+				const double Weight = Context->WeightCurve->GetFloatValue(TargetsCompoundInfos.GetRangeRatio(TargetInfos.Distance));
 				if (Weight == 0) { continue; }
-
-				FPCGPoint& TargetPoint = TargetInfos.Point;
-				FVector TargetLocationOffset = TargetPoint.Transform.GetLocation() - Origin;
-				WeightedLocation += (TargetLocationOffset * Weight); // Relative to origin
-				WeightedDirection += (TargetLocationOffset.GetSafeNormal()) * Weight;
-				WeightedNormal += Context->NormalInput.GetValue(TargetPoint) * Weight;
-
-				TotalWeight += Weight;
+				ProcessTargetInfos(TargetInfos, Weight);
 			}
 		}
-
 
 		if (TotalWeight != 0) // Dodge NaN
 		{
@@ -299,12 +290,11 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 		WeightedDirection.Normalize();
 		WeightedNormal.Normalize();
 
-		PCGMetadataEntryKey Key = Point.MetadataEntry;
+		const PCGMetadataEntryKey Key = Point.MetadataEntry;
 		PCGEX_SET_OUT_ATTRIBUTE(Location, Key, Origin + WeightedLocation)
 		PCGEX_SET_OUT_ATTRIBUTE(Direction, Key, WeightedDirection)
 		PCGEX_SET_OUT_ATTRIBUTE(Normal, Key, WeightedNormal)
 
-		//
 	};
 
 	if (Context->IsState(PCGExMT::EState::ProcessingPoints))
@@ -317,6 +307,7 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 
 	if (Context->IsDone())
 	{
+		Context->TargetIndices.Empty();
 		Context->OutputPoints();
 		return true;
 	}

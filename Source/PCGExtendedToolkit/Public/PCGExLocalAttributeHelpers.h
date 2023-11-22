@@ -91,7 +91,6 @@ namespace PCGEx
 #undef PCGEX_GET_BY_ACCESSOR
 		}
 
-		template <typename T>
 		bool SetValue(const FPCGPoint& Point, T Value) const
 		{
 			if (!bValid || !bEnabled) { return false; }
@@ -234,14 +233,14 @@ virtual _TYPE Convert(const FName Value) const override { return _TYPE(Value.ToS
 
 		void Capture(const FPCGExInputDescriptorWithSingleField& InDescriptor)
 		{
-			Descriptor = InDescriptor;
+			Descriptor = static_cast<FPCGExInputDescriptor>(InDescriptor);
 			Field = InDescriptor.Field;
 			Axis = InDescriptor.Axis;
 		}
 
 		void Capture(const FPCGExInputDescriptorGeneric& InDescriptor)
 		{
-			Descriptor = InDescriptor;
+			Descriptor = static_cast<FPCGExInputDescriptor>(InDescriptor);
 			Field = InDescriptor.Field;
 			Axis = InDescriptor.Axis;
 		}
@@ -330,13 +329,13 @@ virtual _TYPE Convert(const FName Value) const override { return _TYPE(Value.ToS
 
 		void Capture(const FPCGExInputDescriptorWithDirection& InDescriptor)
 		{
-			Descriptor = InDescriptor;
+			Descriptor = static_cast<FPCGExInputDescriptor>(InDescriptor);
 			Axis = InDescriptor.Axis;
 		}
 
 		void Capture(const FPCGExInputDescriptorGeneric& InDescriptor)
 		{
-			Descriptor = InDescriptor;
+			Descriptor = static_cast<FPCGExInputDescriptor>(InDescriptor);
 			Axis = InDescriptor.Axis;
 		}
 

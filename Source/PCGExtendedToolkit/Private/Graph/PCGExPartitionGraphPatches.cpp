@@ -9,7 +9,6 @@
 #include "DrawDebugHelpers.h"
 #include "Editor.h"
 #include "PCGPin.h"
-#include "Graph/PCGExGraphHelpers.h"
 #include "Graph/PCGExGraphPatch.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPartitionGraphPatches"
@@ -50,7 +49,7 @@ FPCGContext* FPCGExPartitionGraphPatchesElement::Initialize(
 	Context->MaxPatchSize = Settings->bRemoveBigPatches ? Settings->MaxPatchSize : -1;
 	Context->PatchIDAttributeName = Settings->PatchIDAttributeName;
 	Context->PatchSizeAttributeName = Settings->PatchSizeAttributeName;
-	
+
 
 	return Context;
 }
@@ -94,18 +93,13 @@ bool FPCGExPartitionGraphPatchesElement::ExecuteInternal(
 
 	// 1st Pass on points
 
-	auto InitializePointsInput = [&Context](UPCGExPointIO* IO)
+	auto InitializePointsInput = [&Context](const UPCGExPointIO* IO)
 	{
-		if (Context->Patches)
-		{
-			//TODO: Clear last patches
-		}
 		Context->PreparePatchGroup();
 		Context->CurrentGraph->PrepareForPointData(Context, IO->In, false); // Prepare to read IO->In
 	};
 
-	auto ProcessPoint = [&Context](
-		const FPCGPoint& Point, const int32 ReadIndex, const UPCGExPointIO* IO)
+	auto ProcessPoint = [&Context](const FPCGPoint& Point, const int32 ReadIndex, const UPCGExPointIO* IO)
 	{
 		if (Context->Patches->Contains(ReadIndex)) { return; } // This point has already been processed.
 		FWriteScopeLock ScopeLock(Context->ContextLock);
@@ -116,10 +110,7 @@ bool FPCGExPartitionGraphPatchesElement::ExecuteInternal(
 	{
 		if (Context->CurrentIO->InputParallelProcessing(Context, InitializePointsInput, ProcessPoint, 32))
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Found %d patches."), Context->Patches->Patches.Num());
-			for (UPCGExGraphPatch* Patch : Context->Patches->Patches)
-			{
-			}
+			//for (UPCGExGraphPatch* Patch : Context->Patches->Patches)			{			}
 			Context->SetState(PCGExMT::EState::ReadyForNextPoints);
 			Context->Patches->OutputTo(Context, Context->MinPatchSize, Context->MaxPatchSize);
 		}
@@ -129,10 +120,6 @@ bool FPCGExPartitionGraphPatchesElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExMT::EState::Done))
 	{
-		if (Context->Patches)
-		{
-			//TODO: Clear last patches
-		}
 		Context->OutputParams();
 		return true;
 	}
@@ -150,7 +137,7 @@ void FindNeighbors(FPCGExPartitionGraphPatchesContext* Context, TArray<int32>& N
 {
 	if (Neighbors.Contains(Index)) { return; }
 
-	FPCGPoint Point = Context->CurrentIO->In->GetPoint(Index);
+	const FPCGPoint Point = Context->CurrentIO->In->GetPoint(Index);
 
 	TArray<PCGExGraph::FSocketMetadata> SocketMetadatas;
 	Context->CurrentGraph->GetSocketsData(Point.MetadataEntry, SocketMetadatas);

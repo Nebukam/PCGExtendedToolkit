@@ -38,9 +38,13 @@ namespace PCGExNearestPoint
 		{
 		}
 
+		FTargetInfos(const int32 InIndex, const double InDistance):
+			Index(InIndex), Distance(InDistance)
+		{
+		}
+
+		int32 Index = -1;
 		double Distance = 0;
-		//double Weight = 0;
-		FPCGPoint Point;
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FTargetsCompoundInfos
@@ -58,7 +62,7 @@ namespace PCGExNearestPoint
 		FTargetInfos Closest;
 		FTargetInfos Farthest;
 
-		void UpdateCompound(FTargetInfos& Infos)
+		void UpdateCompound(const FTargetInfos& Infos)
 		{
 			if (Infos.Distance < RangeMin)
 			{
@@ -84,7 +88,7 @@ namespace PCGExNearestPoint
 
 /**
  * Use PCGExTransform to manipulate the outgoing attributes instead of handling everything here.
- * This way we can multithread the various calculations instead of mixing everything along with async/game thread collision
+ * This way we can multi-thread the various calculations instead of mixing everything along with async/game thread collision
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
 class PCGEXTENDEDTOOLKIT_API UPCGExSampleNearestPointSettings : public UPCGExPointsProcessorSettings
@@ -197,6 +201,7 @@ public:
 	UPCGPointData::PointOctree* Octree = nullptr;
 
 	TMap<PCGMetadataEntryKey, int64> TargetIndices;
+	mutable FRWLock IndicesLock;
 
 	EPCGExSampleMethod SampleMethod = EPCGExSampleMethod::TargetsWithinRange;
 	EPCGExWeightMethod WeightMethod = EPCGExWeightMethod::FullRange;

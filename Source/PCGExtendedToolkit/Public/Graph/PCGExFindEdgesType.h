@@ -5,7 +5,6 @@
 
 #include "CoreMinimal.h"
 #include "PCGExGraphProcessor.h"
-#include "Data/PCGPointData.h"
 #include "Elements/PCGPointProcessingElementBase.h"
 #include "PCGExFindEdgesType.generated.h"
 

@@ -78,8 +78,7 @@ bool FPCGExFindEdgesTypeElement::ExecuteInternal(
 		}
 	}
 
-	auto ProcessPoint = [&Context](
-		const FPCGPoint& Point, int32 ReadIndex, UPCGExPointIO* IO)
+	auto ProcessPoint = [&Context](const FPCGPoint& Point, const int32 ReadIndex, const UPCGExPointIO* IO)
 	{
 		Context->ComputeEdgeType(Point, ReadIndex, IO);
 	};

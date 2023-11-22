@@ -114,7 +114,12 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSocketDescriptor
 	{
 	}
 
-	FPCGExSocketDescriptor(FName InName, FVector InDirection, EPCGExSocketType InType, FColor InDebugColor, double InAngle = 45):
+	FPCGExSocketDescriptor(
+		const FName InName,
+		const FVector& InDirection,
+		const EPCGExSocketType InType,
+		const FColor InDebugColor,
+		const double InAngle = 45):
 		SocketName(InName),
 		SocketType(InType),
 		DebugColor(InDebugColor)
@@ -123,7 +128,13 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSocketDescriptor
 		Angle.Angle = InAngle;
 	}
 
-	FPCGExSocketDescriptor(FName InName, FVector InDirection, FName InMatchingSlot, EPCGExSocketType InType, FColor InDebugColor, double InAngle = 45):
+	FPCGExSocketDescriptor(
+		const FName InName,
+		const FVector& InDirection,
+		const FName InMatchingSlot,
+		const EPCGExSocketType InType,
+		const FColor InDebugColor,
+		const double InAngle = 45):
 		SocketName(InName),
 		SocketType(InType),
 		DebugColor(InDebugColor)
@@ -494,7 +505,7 @@ namespace PCGExGraph
 		TMap<FName, int32> NameToIndexMap;
 		int32 NumSockets = 0;
 
-		void Initialize(FName InIdentifier, TArray<FPCGExSocketDescriptor>& InSockets)
+		void Initialize(const FName InIdentifier, TArray<FPCGExSocketDescriptor>& InSockets)
 		{
 			Reset();
 			Identifier = InIdentifier;
@@ -551,7 +562,7 @@ namespace PCGExGraph
 			PostProcessSockets();
 		}
 
-		FName GetCompoundName(FName SecondaryIdentifier)
+		FName GetCompoundName(FName SecondaryIdentifier) const
 		{
 			const FString Separator = TEXT("/");
 			return *(TEXT("PCGEx") + Separator + Identifier.ToString() + Separator + SecondaryIdentifier.ToString()); // PCGEx/ParamsIdentifier/SocketIdentifier
@@ -675,7 +686,8 @@ public:
 	/**
 	 * Prepare socket mapping for working with a given PointData object.
 	 * @param Context
-	 * @param PointData 
+	 * @param PointData
+	 * @param bEnsureEdgeType 
 	 */
 	void PrepareForPointData(FPCGExGraphProcessorContext* Context, const UPCGPointData* PointData, const bool bEnsureEdgeType);
 

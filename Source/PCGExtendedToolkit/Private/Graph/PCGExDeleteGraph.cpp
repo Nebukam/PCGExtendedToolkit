@@ -49,7 +49,7 @@ bool FPCGExDeleteGraphElement::ExecuteInternal(
 
 	FPCGExDeleteGraphContext* Context = static_cast<FPCGExDeleteGraphContext*>(InContext);
 	if (!Validate(Context)) { return true; }
-	
+
 	Context->Points->ForEach(
 		[&Context](UPCGExPointIO* PointIO, int32)
 		{
@@ -66,7 +66,7 @@ bool FPCGExDeleteGraphElement::ExecuteInternal(
 		});
 
 	Context->OutputPointsAndParams();
-	
+
 	return true;
 }
 

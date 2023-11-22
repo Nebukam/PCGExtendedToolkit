@@ -110,12 +110,12 @@ public:
 		case EPCGExDebugExpression::Direction:
 		case EPCGExDebugExpression::Point:
 		case EPCGExDebugExpression::ConnectionToPosition:
-			VectorInput.Descriptor = *Descriptor;
+			VectorInput.Descriptor = static_cast<FPCGExInputDescriptor>(*Descriptor);
 			VectorInput.Axis = Descriptor->Axis;
 			bValid = VectorInput.Validate(InData);
 			break;
 		case EPCGExDebugExpression::ConnectionToIndex:
-			IndexInput.Descriptor = *Descriptor;
+			IndexInput.Descriptor = static_cast<FPCGExInputDescriptor>(*Descriptor);
 			IndexInput.Axis = Descriptor->Axis;
 			IndexInput.Field = Descriptor->Field;
 			bValid = IndexInput.Validate(InData);
@@ -197,7 +197,7 @@ public:
 protected:
 	void DrawDirection(const UWorld* World, const FVector& Start, const FPCGPoint& Point) const
 	{
-		FVector Dir = GetVector(Point) * GetSize(Point);
+		const FVector Dir = GetVector(Point) * GetSize(Point);
 		DrawDebugDirectionalArrow(World, Start, Start + Dir, Dir.Length() * 0.05f, GetColor(Point), true, -1, 0, Descriptor->Thickness);
 	}
 

@@ -76,16 +76,21 @@ public:
 	 * @param Key 
 	 * @return 
 	 */
-	int32 GetIndex(PCGMetadataEntryKey Key);
+	int32 GetIndex(PCGMetadataEntryKey Key) const;
 
 	template <class InitializeFunc, class ProcessElementFunc>
 	bool OutputParallelProcessing(
 		FPCGContext* Context,
 		InitializeFunc&& Initialize,
 		ProcessElementFunc&& LoopBody,
-		int32 ChunkSize = 32);
+		const int32 ChunkSize = 32);
+	
 	template <class InitializeFunc, class ProcessElementFunc>
-	bool InputParallelProcessing(FPCGContext* Context, InitializeFunc&& Initialize, ProcessElementFunc&& LoopBody, int32 ChunkSize);
+	bool InputParallelProcessing(
+		FPCGContext* Context,
+		InitializeFunc&& Initialize,
+		ProcessElementFunc&& LoopBody,
+		const int32 ChunkSize = 32);
 
 	/**
 	 * Write valid outputs to Context' tagged data
@@ -133,7 +138,7 @@ public:
 		const TFunction<void(UPCGExPointIO*)>& PostInitFunc);
 
 	UPCGExPointIO* Emplace_GetRef(
-		UPCGExPointIO& IO,
+		const UPCGExPointIO& IO,
 		const PCGEx::EIOInit InitOut = PCGEx::EIOInit::NoOutput);
 
 	UPCGExPointIO* Emplace_GetRef(
@@ -168,5 +173,5 @@ protected:
 	bool bProcessing = false;
 
 private:
-	UPCGPointData* GetMutablePointData(FPCGContext* Context, FPCGTaggedData& Source);
+	static UPCGPointData* GetMutablePointData(FPCGContext* Context, const FPCGTaggedData& Source);
 };

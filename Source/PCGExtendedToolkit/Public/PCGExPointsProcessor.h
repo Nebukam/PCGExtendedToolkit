@@ -44,6 +44,7 @@ namespace PCGExMT
 		ReadyForGraph2ndPass UMETA(DisplayName = "Ready for next params - 2nd pass"),
 		ProcessingPoints UMETA(DisplayName = "Processing points"),
 		ProcessingPoints2ndPass UMETA(DisplayName = "Processing points - 2nd pass"),
+		ProcessingPoints3rdPass UMETA(DisplayName = "Processing points - 3rd pass"),
 		ProcessingGraph UMETA(DisplayName = "Processing params"),
 		ProcessingGraph2ndPass UMETA(DisplayName = "Processing params - 2nd pass"),
 		WaitingOnAsyncTasks UMETA(DisplayName = "Waiting on async tasks"),
@@ -97,7 +98,7 @@ public:
 
 	virtual PCGEx::EIOInit GetPointOutputInitMode() const;
 
-	/** Multithread chunk size, when supported.*/
+	/** Multi thread chunk size, when supported.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, AdvancedDisplay)
 	int32 ChunkSize = -1;
 
@@ -174,7 +175,7 @@ namespace PCGExAsync
 		virtual ~FPointTask() = default;
 
 		FPointTask(
-			FPCGExPointsProcessorContext* InContext, UPCGExPointIO* InPointData, PCGExMT::FTaskInfos InInfos) :
+			FPCGExPointsProcessorContext* InContext, UPCGExPointIO* InPointData, const PCGExMT::FTaskInfos& InInfos) :
 			TaskContext(InContext), PointData(InPointData), Infos(InInfos)
 		{
 		}

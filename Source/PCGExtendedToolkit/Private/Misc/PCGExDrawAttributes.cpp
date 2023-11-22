@@ -118,8 +118,7 @@ bool FPCGExDrawAttributesElement::ExecuteInternal(
 		}
 	}
 
-	auto ProcessPoint = [&Context](
-		const FPCGPoint& Point, int32 ReadIndex, UPCGExPointIO* IO)
+	auto ProcessPoint = [&Context](const FPCGPoint& Point, const int32 ReadIndex, const UPCGExPointIO* IO)
 	{
 		// FWriteScopeLock ScopeLock(Context->ContextLock);
 		const FVector Start = Point.Transform.GetLocation();
@@ -131,7 +130,7 @@ bool FPCGExDrawAttributesElement::ExecuteInternal(
 		}
 	};
 
-	auto Initialize = [&Context](UPCGExPointIO* IO)
+	auto Initialize = [&Context](const UPCGExPointIO* IO)
 	{
 		Context->PrepareForPoints(IO->In);
 	};

@@ -44,7 +44,7 @@ bool FPCGExSortPointsElement::ExecuteInternal(FPCGContext* InContext) const
 	EPCGExSortDirection SortDirection = Settings->SortDirection;
 	TArray<FPCGExSortRule> Rules;
 
-	auto ProcessPair = [&Context, &DesiredRules, &Rules, &SortDirection, this](UPCGExPointIO* POI, const int32)
+	auto ProcessPair = [&Context, &DesiredRules, &Rules, &SortDirection, this](const UPCGExPointIO* POI, const int32)
 	{
 		//POI->ForwardPoints(Context);
 		if (!BuildRulesForPoints(POI->Out, DesiredRules, Rules))

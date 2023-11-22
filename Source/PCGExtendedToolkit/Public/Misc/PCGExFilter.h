@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExCommon.h"
+#include "PCGExPartitionByValues.h"
 
 class PCGEXTENDEDTOOLKIT_API FPCGExFilter
 {
@@ -21,7 +22,7 @@ public:
 	static int64 Filter(const FVector2D& InValue, const PCGExPartition::FRule& Settings)
 	{
 		int64 Result = 0;
-		switch (Settings.Component)
+		switch (Settings.Field)
 		{
 		case EPCGExOrderedFieldSelection::X:
 			Result = Filter(InValue.X, Settings);
@@ -49,7 +50,7 @@ public:
 	static int64 Filter(const FVector& InValue, const PCGExPartition::FRule& Settings)
 	{
 		int64 Result = 0;
-		switch (Settings.Component)
+		switch (Settings.Field)
 		{
 		case EPCGExOrderedFieldSelection::X:
 			Result = Filter(InValue.X, Settings);
@@ -78,10 +79,7 @@ public:
 	template <typename dummy = void>
 	static int64 Filter(const FVector4& InValue, const PCGExPartition::FRule& Settings)
 	{
-		if (Settings.Component == EPCGExOrderedFieldSelection::W)
-		{
-			return Filter(InValue.W, Settings);
-		}
+		if (Settings.Field == EPCGExSingleField::W) { return Filter(InValue.W, Settings); }
 		return Filter(FVector{InValue}, Settings);
 	}
 

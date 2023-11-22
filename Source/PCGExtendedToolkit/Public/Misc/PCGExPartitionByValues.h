@@ -7,11 +7,9 @@
 #include "PCGExCommon.h"
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGSpatialData.h"
-#include "PCGSettings.h"
 #include "Elements/PCGPointProcessingElementBase.h"
 #include "Graph/PCGExGraphProcessor.h"
 #include "PCGExLocalAttributeHelpers.h"
-#include <shared_mutex>
 #include "PCGExPartitionByValues.generated.h"
 
 USTRUCT(BlueprintType)
@@ -47,7 +45,7 @@ namespace PCGExPartition
 		{
 		}
 
-		FRule(FPCGExPartitionRuleDescriptor InRule):
+		FRule(const FPCGExPartitionRuleDescriptor& InRule):
 			FLocalSingleComponentInput(InRule.Field, InRule.Axis),
 			FilterSize(InRule.FilterSize),
 			Upscale(InRule.Upscale)
@@ -115,7 +113,7 @@ public:
 	mutable FRWLock PartitionsLock;
 	mutable FRWLock PointsLock;
 
-	bool ValidatePointDataInput(UPCGPointData* PointData) override;
+	virtual bool ValidatePointDataInput(UPCGPointData* PointData) override;
 	
 };
 

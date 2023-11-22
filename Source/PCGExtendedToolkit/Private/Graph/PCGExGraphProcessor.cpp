@@ -6,7 +6,6 @@
 #include "PCGContext.h"
 #include "PCGPin.h"
 #include "Graph/PCGExGraphHelpers.h"
-#include "Interfaces/IPluginManager.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
 
@@ -36,6 +35,7 @@ TArray<FPCGPinProperties> UPCGExGraphProcessorSettings::OutputPinProperties() co
 
 	return PinProperties;
 }
+
 /*
 bool UPCGExGraphProcessorSettings::GetPinExtraIcon(const UPCGPin* InPin, FName& OutExtraIcon, FText& OutTooltip) const
 {
