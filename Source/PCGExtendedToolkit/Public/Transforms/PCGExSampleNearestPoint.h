@@ -55,33 +55,36 @@ namespace PCGExNearestPoint
 
 		int32 NumTargets = 0;
 		double TotalWeight = 0;
-		double RangeMin = TNumericLimits<double>::Max();
-		double RangeMax = 0;
-		double RangeWidth = 0;
+		double SampledRangeMin = TNumericLimits<double>::Max();
+		double SampledRangeMax = 0;
+		double SampledRangeWidth = 0;
+		int32 UpdateCount = 0;
 
 		FTargetInfos Closest;
 		FTargetInfos Farthest;
 
 		void UpdateCompound(const FTargetInfos& Infos)
 		{
-			if (Infos.Distance < RangeMin)
+			UpdateCount++;
+
+			if (Infos.Distance < SampledRangeMin)
 			{
 				Closest = Infos;
-				RangeMin = Infos.Distance;
+				SampledRangeMin = Infos.Distance;
 			}
 
-			if (Infos.Distance > RangeMax)
+			if (Infos.Distance > SampledRangeMax)
 			{
 				Farthest = Infos;
-				RangeMax = Infos.Distance;
+				SampledRangeMax = Infos.Distance;
 			}
 
-			RangeWidth = RangeMax - RangeMin;
+			SampledRangeWidth = SampledRangeMax - SampledRangeMin;
 		}
 
 		double GetRangeRatio(double Distance) const
 		{
-			return (Distance - RangeMin) / RangeWidth;
+			return (Distance - SampledRangeMin) / SampledRangeWidth;
 		}
 	};
 }
@@ -198,6 +201,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestPointContext : public FPCGExPoi
 
 public:
 	UPCGPointData* Targets = nullptr;
+	UPCGPointData* TargetsCache = nullptr;
 	UPCGPointData::PointOctree* Octree = nullptr;
 
 	TMap<PCGMetadataEntryKey, int64> TargetIndices;
