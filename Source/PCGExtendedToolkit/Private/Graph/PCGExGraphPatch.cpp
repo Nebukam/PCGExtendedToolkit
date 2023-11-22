@@ -5,32 +5,32 @@
 #include "PCGContext.h"
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
 
-void UPCGExGraphPatch::Add(int32 Index)
+void UPCGExGraphPatch::Add(const uint64 Hash)
 {
 	{
-		FWriteScopeLock ScopeLock(IndicesLock);
-		Indices.Add(Index);
+		FWriteScopeLock ScopeLock(HashLock);
+		HashSet.Add(Hash);
 	}
 	{
-		FWriteScopeLock ScopeLock(Parent->MapLock);
-		Parent->PatchMap.Add(Index, this);
+		FWriteScopeLock ScopeLock(Parent->HashLock);
+		Parent->HashMap.Add(Hash, this);
 	}
 }
 
-bool UPCGExGraphPatch::Contains(const int32 Index) const
+bool UPCGExGraphPatch::Contains(const uint64 Hash) const
 {
-	FReadScopeLock ScopeLock(IndicesLock);
-	return Indices.Contains(Index);
+	FReadScopeLock ScopeLock(HashLock);
+	return HashSet.Contains(Hash);
 }
 
 bool UPCGExGraphPatch::OutputTo(const UPCGExPointIO* OutIO, int32 PatchIDOverride)
 {
 	const TArray<FPCGPoint>& InPoints = OutIO->In->GetPoints();
 	TArray<FPCGPoint>& Points = OutIO->Out->GetMutablePoints();
-	Points.Reserve(Points.Num() + Indices.Num());
+	Points.Reserve(Points.Num() + HashSet.Num());
 	PCGMetadataElementCommon::ClearOrCreateAttribute(OutIO->Out->Metadata, Parent->PatchIDAttributeName, PatchIDOverride < 0 ? PatchID : PatchIDOverride);
-	PCGMetadataElementCommon::ClearOrCreateAttribute(OutIO->Out->Metadata, Parent->PatchSizeAttributeName, Indices.Num());
-	for (const int32 Index : Indices)
+	PCGMetadataElementCommon::ClearOrCreateAttribute(OutIO->Out->Metadata, Parent->PatchSizeAttributeName, HashSet.Num());
+	for (const int32 Index : HashSet)
 	{
 		FPCGPoint& NewPoint = Points.Emplace_GetRef(InPoints[Index]);
 	}
@@ -39,33 +39,36 @@ bool UPCGExGraphPatch::OutputTo(const UPCGExPointIO* OutIO, int32 PatchIDOverrid
 
 void UPCGExGraphPatch::Flush()
 {
-	Indices.Empty();
+	HashSet.Empty();
 	IO = nullptr;
 	Parent = nullptr;
 }
 
-bool UPCGExGraphPatchGroup::Contains(const int32 Index) const
+bool UPCGExGraphPatchGroup::Contains(const uint64 Hash) const
 {
-	FReadScopeLock ScopeLock(MapLock);
-	return PatchMap.Contains(Index);
+	FReadScopeLock ScopeLock(HashLock);
+	return HashMap.Contains(Hash);
 }
 
-UPCGExGraphPatch* UPCGExGraphPatchGroup::FindPatch(int32 Index)
+UPCGExGraphPatch* UPCGExGraphPatchGroup::FindPatch(uint64 Hash)
 {
-	UPCGExGraphPatch** PatchPtr = PatchMap.Find(Index);
+	FReadScopeLock ScopeLock(HashLock);
+
+	UPCGExGraphPatch** PatchPtr = HashMap.Find(Hash);
 	if (!PatchPtr) { return nullptr; }
+
 	return *PatchPtr;
 }
 
-UPCGExGraphPatch* UPCGExGraphPatchGroup::GetOrCreatePatch(int32 Index)
+UPCGExGraphPatch* UPCGExGraphPatchGroup::GetOrCreatePatch(const uint64 Hash)
 {
 	{
-		FReadScopeLock ScopeLock(MapLock);
-		if (UPCGExGraphPatch** PatchPtr = PatchMap.Find(Index)) { return *PatchPtr; }
+		FReadScopeLock ScopeLock(HashLock);
+		if (UPCGExGraphPatch** PatchPtr = HashMap.Find(Hash)) { return *PatchPtr; }
 	}
 
 	UPCGExGraphPatch* NewPatch = CreatePatch();
-	NewPatch->Add(Index);
+	NewPatch->Add(Hash);
 	return NewPatch;
 }
 
@@ -80,32 +83,93 @@ UPCGExGraphPatch* UPCGExGraphPatchGroup::CreatePatch()
 	return NewPatch;
 }
 
-void UPCGExGraphPatchGroup::Distribute(const FPCGPoint& Point, const int32 ReadIndex, UPCGExGraphPatch* Patch)
+void UPCGExGraphPatchGroup::Distribute(const int32 InIndex, UPCGExGraphPatch* Patch)
 {
 	if (Patch)
 	{
-		if (Patch->Contains(ReadIndex))
+		if (Patch->Contains(InIndex))
 		{
 			// Exit early since this point index has already been registered in this patch.
 			return;
 		}
 
-		// Add index to active patch, if it exists
-		Patch->Add(ReadIndex);
+		// Otherwise add index to active patch
+		Patch->Add(InIndex);
 	}
 
-	TArray<PCGExGraph::FSocketMetadata> SocketMetadatas;
-	Graph->GetSocketsData(Point.MetadataEntry, SocketMetadatas);
+	TArray<PCGExGraph::FUnsignedEdge> UnsignedEdges;
+	Graph->GetEdges(InIndex, IO->In->GetPoint(InIndex).MetadataEntry, UnsignedEdges);
 
-	for (const PCGExGraph::FSocketMetadata& Data : SocketMetadatas)
+	for (const PCGExGraph::FUnsignedEdge& Edge : UnsignedEdges)
 	{
-		if (Data.Index == -1) { continue; }
-		if (static_cast<uint8>((Data.EdgeType & static_cast<EPCGExEdgeType>(CrawlEdgeTypes))) == 0) { continue; }
+		if (static_cast<uint8>((Edge.Type & static_cast<EPCGExEdgeType>(CrawlEdgeTypes))) == 0) { continue; }
 
-		const int32 PtIndex = Data.Index;
-		if (!Patch) { Patch = GetOrCreatePatch(ReadIndex); } // Point is not roaming, create a patch so we can add the next neighbor
+		if (!Patch)
+		{
+			Patch = GetOrCreatePatch(InIndex); // Overlap
 
-		Distribute(IO->In->GetPoint(Data.Index), PtIndex, Patch);
+			//TODO: Support resolve method
+			switch (ResolveRoamingMethod)
+			{
+			default:
+			case EPCGExRoamingResolveMethod::Overlap:
+				// Create patch from initial point.
+				break;
+			case EPCGExRoamingResolveMethod::Merge:
+				// Check if this is a roaming
+				break;
+			case EPCGExRoamingResolveMethod::Cutoff:
+				break;
+			}
+		}
+
+		Distribute(Edge.End, Patch);
+	}
+}
+
+template <typename T>
+void UPCGExGraphPatchGroup::DistributeEdge(const T& InEdge, UPCGExGraphPatch* Patch)
+{
+	if (Patch)
+	{
+		if (Patch->Contains(InEdge))
+		{
+			// Exit early since this edge has already been registered in this patch.
+			return;
+		}
+
+		// Otherwise add edge to active patch
+		Patch->Add(InEdge);
+	}
+
+	TArray<T> Edges;
+	Graph->GetEdges(InEdge.Start, IO->In->GetPoint(InEdge.Start).MetadataEntry, Edges);
+	Graph->GetEdges(InEdge.End, IO->In->GetPoint(InEdge.End).MetadataEntry, Edges);
+
+	for (const T& Edge : Edges)
+	{
+		if (static_cast<uint8>((Edge.Type & static_cast<EPCGExEdgeType>(CrawlEdgeTypes))) == 0) { continue; }
+
+		if (!Patch)
+		{
+			Patch = GetOrCreatePatch(InEdge); // Overlap
+
+			//TODO: Support resolve method
+			switch (ResolveRoamingMethod)
+			{
+			default:
+			case EPCGExRoamingResolveMethod::Overlap:
+				// Create patch from initial point.
+				break;
+			case EPCGExRoamingResolveMethod::Merge:
+				// Check if this is a roaming
+				break;
+			case EPCGExRoamingResolveMethod::Cutoff:
+				break;
+			}
+		}
+
+		DistributeEdge(Edge, Patch);
 	}
 }
 
@@ -124,9 +188,9 @@ void UPCGExGraphPatchGroup::OutputTo(FPCGContext* Context)
 
 void UPCGExGraphPatchGroup::Flush()
 {
-	for (UPCGExGraphPatch* Patch : Patches){Patch->Flush();}
+	for (UPCGExGraphPatch* Patch : Patches) { Patch->Flush(); }
 	Patches.Empty();
-	PatchMap.Empty();
+	HashMap.Empty();
 	IO = nullptr;
 	Graph = nullptr;
 	PatchesIO = nullptr;
@@ -138,7 +202,7 @@ void UPCGExGraphPatchGroup::OutputTo(FPCGContext* Context, const int64 MinPointC
 	int32 PatchIndex = 0;
 	for (UPCGExGraphPatch* Patch : Patches)
 	{
-		const int64 OutNumPoints = Patch->Indices.Num();
+		const int64 OutNumPoints = Patch->HashSet.Num();
 		if (MinPointCount >= 0 && OutNumPoints < MinPointCount) { continue; }
 		if (MaxPointCount >= 0 && OutNumPoints > MaxPointCount) { continue; }
 		const UPCGExPointIO* OutIO = PatchesIO->Emplace_GetRef(*IO, PCGEx::EIOInit::NewOutput);

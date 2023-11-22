@@ -32,19 +32,8 @@ FPCGContext* FPCGExPartitionByValuesElement::Initialize(
 {
 	FPCGExSplitByValuesContext* Context = new FPCGExSplitByValuesContext();
 	InitializeContext(Context, InputData, SourceComponent, Node);
-	return Context;
-}
 
-void FPCGExPartitionByValuesElement::InitializeContext(
-	FPCGExPointsProcessorContext* InContext,
-	const FPCGDataCollection& InputData,
-	TWeakObjectPtr<UPCGComponent> SourceComponent,
-	const UPCGNode* Node) const
-{
-	FPCGExPointsProcessorElementBase::InitializeContext(InContext, InputData, SourceComponent, Node);
-	FPCGExSplitByValuesContext* Context = static_cast<FPCGExSplitByValuesContext*>(InContext);
-
-	const UPCGExPartitionByValuesSettings* Settings = InContext->GetInputSettings<UPCGExPartitionByValuesSettings>();
+	const UPCGExPartitionByValuesSettings* Settings = Context->GetInputSettings<UPCGExPartitionByValuesSettings>();
 	check(Settings);
 
 	Context->Partitions = NewObject<UPCGExPointIOGroup>();
@@ -53,7 +42,7 @@ void FPCGExPartitionByValuesElement::InitializeContext(
 	Context->PartitionsMap.Empty();
 	Context->PartitionRule = Settings->PartitioningRules;
 
-	// ...
+	return Context;
 }
 
 bool FPCGExPartitionByValuesElement::Validate(FPCGContext* InContext) const
@@ -150,7 +139,7 @@ void FPCGExPartitionByValuesElement::DistributePoint(
 
 		if (Context->bWritePartitionKey)
 		{
-			KeyAttribute = PCGMetadataElementCommon::ClearOrCreateAttribute<int64>(Partition->Out->Metadata, Context->PartitionKeyName, 0);
+			KeyAttribute = Partition->Out->Metadata->FindOrCreateAttribute<int64>(Context->PartitionKeyName, 0, false);
 			if (KeyAttribute) { Context->KeyAttributeMap.Add(Key, KeyAttribute); } //Cache attribute for this partition
 		}
 	}

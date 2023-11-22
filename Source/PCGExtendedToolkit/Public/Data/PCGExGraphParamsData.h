@@ -30,7 +30,7 @@ UENUM(BlueprintType, meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor="true"))
 enum class EPCGExEdgeType : uint8
 {
 	Unknown  = 0 UMETA(DisplayName = "Unknown", Tooltip="Unknown type."),
-	Unique   = 1 << 0 UMETA(DisplayName = "Unique", Tooltip="Unilateral edge."),
+	Roaming  = 1 << 0 UMETA(DisplayName = "Roaming", Tooltip="Unidirectional edge."),
 	Shared   = 1 << 1 UMETA(DisplayName = "Shared", Tooltip="Shared edge, both sockets are connected; but do not match."),
 	Match    = 1 << 2 UMETA(DisplayName = "Match", Tooltip="Shared relation, considered a match by the primary socket owner; but does not match on the other."),
 	Complete = 1 << 3 UMETA(DisplayName = "Complete", Tooltip="Shared, matching relation on both sockets."),
@@ -38,6 +38,7 @@ enum class EPCGExEdgeType : uint8
 };
 
 ENUM_CLASS_FLAGS(EPCGExEdgeType)
+
 
 USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExSocketAngle
@@ -283,6 +284,66 @@ public:
 
 namespace PCGExGraph
 {
+	struct PCGEXTENDEDTOOLKIT_API FEdge
+	{
+		uint32 Start = 0;
+		uint32 End = 0;
+		EPCGExEdgeType Type = EPCGExEdgeType::Unknown;
+
+		FEdge()
+		{
+		}
+
+		FEdge(const int32 InStart, const int32 InEnd, const EPCGExEdgeType InType):
+			Start(InStart), End(InEnd), Type(InType)
+		{
+		}
+
+		explicit operator uint64() const
+		{
+			return (static_cast<uint64>(Start) << 32) | End;
+		}
+
+		explicit FEdge(const uint64 InValue)
+		{
+			Start = static_cast<uint32>((InValue >> 32) & 0xFFFFFFFF);
+			End = static_cast<uint32>(InValue & 0xFFFFFFFF);
+			// You might need to set a default value for Type based on your requirements.
+			Type = EPCGExEdgeType::Unknown;
+		}
+
+	};
+
+	struct PCGEXTENDEDTOOLKIT_API FUnsignedEdge : public FEdge
+	{
+		FUnsignedEdge(): FEdge()
+		{
+		}
+
+		FUnsignedEdge(const int32 InStart, const int32 InEnd, const EPCGExEdgeType InType):
+			FEdge(InStart, InEnd, InType)
+		{
+		}
+
+		bool operator==(const FUnsignedEdge& Other) const
+		{
+			return (Start ^ End) == GetTypeHash(Other);
+		}
+
+		explicit FUnsignedEdge(const uint64 InValue)
+		{
+			Start = static_cast<uint32>((InValue >> 32) & 0xFFFFFFFF);
+			End = static_cast<uint32>(InValue & 0xFFFFFFFF);
+			// You might need to set a default value for Type based on your requirements.
+			Type = EPCGExEdgeType::Unknown;
+		}
+
+		inline uint32 GetTypeHash(const FUnsignedEdge& Edge) const
+		{
+			return Edge.Start ^ Edge.End;
+		}
+	};
+
 	// Per-socket infos, will end up as FVector4 value
 	struct PCGEXTENDEDTOOLKIT_API FSocketMetadata
 	{
@@ -423,7 +484,7 @@ namespace PCGExGraph
 		{
 			if (bEnsureAttributeExists || PointData->Metadata->HasAttribute(GetSocketPropertyName(PropertyName)))
 			{
-				return PointData->Metadata->FindOrCreateAttribute<T>(GetSocketPropertyName(PropertyName), DefaultValue);
+				return PointData->Metadata->FindOrCreateAttribute<T>(GetSocketPropertyName(PropertyName), DefaultValue, false);
 			}
 
 			return nullptr;
@@ -463,6 +524,18 @@ namespace PCGExGraph
 					GetTargetEntryKey(MetadataEntry),
 					GetEdgeType(MetadataEntry)
 				);
+		}
+
+		template <typename T>
+		bool TryGetEdge(int64 Start, const PCGMetadataEntryKey MetadataEntry, T& OutEdge) const
+		{
+			const int64 End = GetTargetIndex(MetadataEntry);
+			if (End == -1) { return false; }
+			OutEdge = T(
+				Start,
+				End,
+				GetEdgeType(MetadataEntry));
+			return true;
 		}
 
 		FName GetSocketPropertyName(FName PropertyName) const
@@ -698,6 +771,15 @@ public:
 		 * @param OutMetadata 
 		 */
 	void GetSocketsData(const PCGMetadataEntryKey MetadataEntry, TArray<PCGExGraph::FSocketMetadata>& OutMetadata) const;
+
+	/**
+	 * 
+	 * @param InIndex 
+	 * @param MetadataEntry 
+	 * @param OutEdges 
+	 */
+	template <typename T>
+	void GetEdges(const int32 InIndex, const PCGMetadataEntryKey MetadataEntry, TArray<T>& OutEdges) const;
 
 	/**
 	 * Make sure InMetadata has the same length as the nu

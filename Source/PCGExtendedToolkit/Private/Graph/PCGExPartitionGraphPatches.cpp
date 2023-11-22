@@ -49,6 +49,7 @@ FPCGContext* FPCGExPartitionGraphPatchesElement::Initialize(
 	Context->MaxPatchSize = Settings->bRemoveBigPatches ? Settings->MaxPatchSize : -1;
 	Context->PatchIDAttributeName = Settings->PatchIDAttributeName;
 	Context->PatchSizeAttributeName = Settings->PatchSizeAttributeName;
+	Context->ResolveRoamingMethod = Settings->ResolveRoamingMethod;
 
 
 	return Context;
@@ -101,9 +102,8 @@ bool FPCGExPartitionGraphPatchesElement::ExecuteInternal(
 
 	auto ProcessPoint = [&Context](const FPCGPoint& Point, const int32 ReadIndex, const UPCGExPointIO* IO)
 	{
-		if (Context->Patches->Contains(ReadIndex)) { return; } // This point has already been processed.
-		FWriteScopeLock ScopeLock(Context->ContextLock);
-		Context->Patches->Distribute(Point, ReadIndex);
+		//FWriteScopeLock ScopeLock(Context->ContextLock);
+		Context->Patches->Distribute(ReadIndex);
 	};
 
 	if (Context->IsState(PCGExMT::EState::ProcessingPoints))
@@ -125,37 +125,6 @@ bool FPCGExPartitionGraphPatchesElement::ExecuteInternal(
 	}
 
 	return false;
-}
-
-/**
- * Recursively register connected neighbors
- * @param Context 
- * @param Neighbors 
- * @param Index 
- */
-void FindNeighbors(FPCGExPartitionGraphPatchesContext* Context, TArray<int32>& Neighbors, const int32 Index)
-{
-	if (Neighbors.Contains(Index)) { return; }
-
-	const FPCGPoint Point = Context->CurrentIO->In->GetPoint(Index);
-
-	TArray<PCGExGraph::FSocketMetadata> SocketMetadatas;
-	Context->CurrentGraph->GetSocketsData(Point.MetadataEntry, SocketMetadatas);
-
-	TArray<PCGExGraph::FSocketMetadata> LocalNeighbors;
-	for (const PCGExGraph::FSocketMetadata& Data : SocketMetadatas)
-	{
-		if (static_cast<uint8>((Data.EdgeType & static_cast<EPCGExEdgeType>(Context->CrawlEdgeTypes))) == 0) { continue; }
-		LocalNeighbors.AddUnique(Data);
-	}
-
-	if (LocalNeighbors.IsEmpty()) { return; }
-
-	Neighbors.AddUnique(Index); //Register current index
-	for (const PCGExGraph::FSocketMetadata& Data : LocalNeighbors)
-	{
-		FindNeighbors(Context, Neighbors, Data.Index);
-	}
 }
 
 #undef LOCTEXT_NAMESPACE

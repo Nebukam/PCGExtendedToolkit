@@ -64,7 +64,7 @@ bool FPCGExWriteIndexElement::ExecuteInternal(FPCGContext* InContext) const
 	{
 		FWriteScopeLock ScopeLock(Context->MapLock);
 		IO->BuildMetadataEntries();
-		FPCGMetadataAttribute<int64>* IndexAttribute = IO->Out->Metadata->FindOrCreateAttribute<int64>(Context->OutName, -1, false, true, true);
+		FPCGMetadataAttribute<int64>* IndexAttribute = IO->Out->Metadata->FindOrCreateAttribute<int64>(Context->OutName, -1, false);
 		Context->AttributeMap.Add(IO, IndexAttribute);
 	};
 

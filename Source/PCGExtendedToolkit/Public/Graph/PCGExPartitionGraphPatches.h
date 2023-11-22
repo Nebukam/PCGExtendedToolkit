@@ -43,7 +43,7 @@ public:
 
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bRemoveSmallPatches"))
-	int64 MinPatchSize = 5;
+	int64 MinPatchSize = 3;
 
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
@@ -60,6 +60,10 @@ public:
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FName PatchSizeAttributeName = "PatchSize";
+
+	/** Not implemented yet, always Overlap */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	EPCGExRoamingResolveMethod ResolveRoamingMethod = EPCGExRoamingResolveMethod::Overlap;
 	
 private:
 	friend class FPCGExPartitionGraphPatchesElement;
@@ -81,12 +85,15 @@ public:
 	
 	UPCGExGraphPatchGroup* Patches;
 
+	EPCGExRoamingResolveMethod ResolveRoamingMethod;
+
 	void PreparePatchGroup()
 	{
 		Patches = NewObject<UPCGExGraphPatchGroup>();
 		Patches->Graph = CurrentGraph;
 		Patches->IO = CurrentIO;
 		Patches->CrawlEdgeTypes = CrawlEdgeTypes;
+		Patches->ResolveRoamingMethod = ResolveRoamingMethod;
 		Patches->PatchIDAttributeName = PatchIDAttributeName;
 		Patches->PatchIDAttributeName = PatchIDAttributeName;
 	}

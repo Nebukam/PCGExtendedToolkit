@@ -89,7 +89,7 @@ void FPCGExGraphProcessorContext::ComputeEdgeType(const FPCGPoint& Point, const 
 	{
 		EPCGExEdgeType Type = EPCGExEdgeType::Unknown;
 		const int64 RelationIndex = CurrentSocketInfos.Socket->GetTargetIndex(Point.MetadataEntry);
-
+		
 		if (RelationIndex != -1)
 		{
 			const int32 Key = IO->Out->GetPoint(RelationIndex).MetadataEntry;
@@ -97,12 +97,11 @@ void FPCGExGraphProcessorContext::ComputeEdgeType(const FPCGPoint& Point, const 
 			{
 				if (OtherSocketInfos.Socket->GetTargetIndex(Key) == ReadIndex)
 				{
-					//TODO: Handle cases where there can be multiple sockets with a valid connection
 					Type = PCGExGraph::Helpers::GetEdgeType(CurrentSocketInfos, OtherSocketInfos);
 				}
 			}
 
-			if (Type == EPCGExEdgeType::Unknown) { Type = EPCGExEdgeType::Unique; }
+			if (Type == EPCGExEdgeType::Unknown) { Type = EPCGExEdgeType::Roaming; }
 		}
 
 

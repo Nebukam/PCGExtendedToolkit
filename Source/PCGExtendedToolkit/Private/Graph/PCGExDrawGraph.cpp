@@ -125,7 +125,7 @@ bool FPCGExDrawGraphElement::ExecuteInternal(FPCGContext* InContext) const
 					Thickness = 0.5f;
 					ArrowSize = 1.0f;
 					break;
-				case EPCGExEdgeType::Unique:
+				case EPCGExEdgeType::Roaming:
 					Lerp = 0.8f;
 					ArrowSize = 1.0f;
 					break;

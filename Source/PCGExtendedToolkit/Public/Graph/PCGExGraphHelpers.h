@@ -15,7 +15,7 @@ namespace PCGExGraph
 	const FName SourceParamsLabel = TEXT("GraphParams");
 	const FName OutputParamsLabel = TEXT("→");
 	const FName OutputPatchesLabel = TEXT("Patches");
-
+	
 	struct PCGEXTENDEDTOOLKIT_API FParamsInputs
 	{
 		FParamsInputs()

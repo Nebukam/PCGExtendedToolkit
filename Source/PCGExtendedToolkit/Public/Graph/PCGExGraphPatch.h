@@ -10,6 +10,15 @@
 
 class UPCGExGraphPatchGroup;
 
+
+UENUM(BlueprintType)
+enum class EPCGExRoamingResolveMethod : uint8
+{
+	Overlap UMETA(DisplayName = "Overlap", ToolTip="Roaming nodes with unidirectional connections will create their own overlapping patches."),
+	Merge UMETA(DisplayName = "Merge", ToolTip="Roaming patches will be merged into existing ones; thus creating less patches yet not canon ones."),
+	Cutoff UMETA(DisplayName = "Cutoff", ToolTip="Roaming patches discovery will be cut off where they would otherwise overlap."),
+};
+
 /**
  * 
  */
@@ -24,13 +33,13 @@ public:
 	UPCGExPointIO* IO = nullptr;
 	UPCGExGraphPatchGroup* Parent = nullptr;
 
-	int64 PatchID = -1;
+	int32 PatchID = -1;
 
-	TSet<int32> Indices;
-	mutable FRWLock IndicesLock;
+	TSet<uint64> HashSet;
+	mutable FRWLock HashLock;
 
-	void Add(int32 Index);
-	bool Contains(const int32 Index) const;
+	void Add(uint64 Hash);
+	bool Contains(const uint64 Hash) const;
 
 	bool OutputTo(const UPCGExPointIO* OutIO, int32 PatchIDOverride);
 
@@ -56,8 +65,8 @@ public:
 	TArray<UPCGExGraphPatch*> Patches;
 	mutable FRWLock PatchesLock;
 
-	TMap<int32, UPCGExGraphPatch*> PatchMap;
-	mutable FRWLock MapLock;
+	TMap<uint64, UPCGExGraphPatch*> HashMap;
+	mutable FRWLock HashLock;
 	EPCGExEdgeType CrawlEdgeTypes;
 
 	UPCGExGraphParamsData* Graph = nullptr;
@@ -66,13 +75,18 @@ public:
 
 	FName PatchIDAttributeName;
 	FName PatchSizeAttributeName;
-	
-	bool Contains(const int32 Index) const;
 
-	UPCGExGraphPatch* FindPatch(int32 Index);
-	UPCGExGraphPatch* GetOrCreatePatch(int32 Index);
+	EPCGExRoamingResolveMethod ResolveRoamingMethod = EPCGExRoamingResolveMethod::Overlap;
+	
+	bool Contains(const uint64 Hash) const;
+
+	UPCGExGraphPatch* FindPatch(uint64 Hash);
+	UPCGExGraphPatch* GetOrCreatePatch(uint64 Hash);
 	UPCGExGraphPatch* CreatePatch();
-	void Distribute(const FPCGPoint& Point, const int32 ReadIndex, UPCGExGraphPatch* Patch = nullptr);
+	
+	void Distribute(const int32 InIndex, UPCGExGraphPatch* Patch = nullptr);
+	template<typename T>
+	void DistributeEdge(const T& InEdge, UPCGExGraphPatch* Patch = nullptr);
 
 	void OutputTo(FPCGContext* Context, const int64 MinPointCount, const int64 MaxPointCount);
 	void OutputTo(FPCGContext* Context);

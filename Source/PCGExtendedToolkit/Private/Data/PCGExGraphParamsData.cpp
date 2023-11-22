@@ -46,7 +46,7 @@ void UPCGExGraphParamsData::Initialize(
 
 void UPCGExGraphParamsData::PrepareForPointData(FPCGExGraphProcessorContext* Context, const UPCGPointData* PointData, const bool bEnsureEdgeType)
 {
-	Context->CachedIndex = PointData->Metadata->FindOrCreateAttribute<int64>(Context->CurrentGraph->CachedIndexAttributeName,-1,false);
+	Context->CachedIndex = PointData->Metadata->FindOrCreateAttribute<int64>(Context->CurrentGraph->CachedIndexAttributeName, -1, false);
 	SocketMapping.PrepareForPointData(PointData, bEnsureEdgeType);
 }
 
@@ -54,6 +54,16 @@ void UPCGExGraphParamsData::GetSocketsData(const PCGMetadataEntryKey MetadataEnt
 {
 	OutMetadata.Reset(SocketMapping.NumSockets);
 	for (const PCGExGraph::FSocket& Socket : SocketMapping.Sockets) { OutMetadata.Add(Socket.GetData(MetadataEntry)); }
+}
+
+template<typename T>
+void UPCGExGraphParamsData::GetEdges(const int32 InIndex, const PCGMetadataEntryKey MetadataEntry, TArray<T>& OutEdges) const
+{
+	for (const PCGExGraph::FSocket& Socket : SocketMapping.Sockets)
+	{
+		T Edge;
+		if (Socket.TryGetEdge(InIndex, MetadataEntry, Edge)) { OutEdges.AddUnique(Edge); }
+	}
 }
 
 void UPCGExGraphParamsData::SetSocketsData(const PCGMetadataEntryKey MetadataEntry, TArray<PCGExGraph::FSocketMetadata>& InMetadata)
