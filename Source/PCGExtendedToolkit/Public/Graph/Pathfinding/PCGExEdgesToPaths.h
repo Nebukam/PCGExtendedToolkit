@@ -21,7 +21,7 @@ public:
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(EdgesToPaths, "Edges To Paths", "Converts graph edges to paths-like data that can be used to generate splines.");
 #endif
-
+	
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings interface
@@ -30,10 +30,10 @@ protected:
 	virtual PCGEx::EIOInit GetPointOutputInitMode() const override;
 
 public:
-	/** Type of edge to draw.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(Bitmask, BitmaskEnum="EPCGExEdgeType"))
-	EPCGExEdgeType EdgeType = EPCGExEdgeType::Complete;
-
+	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExEdgeType"))
+	uint8 EdgeType = static_cast<uint8>(EPCGExEdgeType::Complete);
+	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	bool bWriteTangents = true;
 	
@@ -50,6 +50,11 @@ private:
 struct PCGEXTENDEDTOOLKIT_API FPCGExEdgesToPathsContext : public FPCGExGraphProcessorContext
 {
 	friend class FPCGExEdgesToPathsElement;
+
+public:
+	EPCGExEdgeType EdgeType;
+	TArray<PCGExGraph::FUnsignedEdge> UniqueEdges;
+	UPCGExPointIOGroup* EdgesIO;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExEdgesToPathsElement : public FPCGExGraphProcessorElement
@@ -61,10 +66,5 @@ public:
 		const UPCGNode* Node) override;
 
 protected:
-	virtual void InitializeContext(
-		FPCGExPointsProcessorContext* InContext,
-		const FPCGDataCollection& InputData,
-		TWeakObjectPtr<UPCGComponent> SourceComponent,
-		const UPCGNode* Node) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };

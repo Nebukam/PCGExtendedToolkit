@@ -120,7 +120,7 @@ bool FPCGExPartitionGraphPatchesElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExMT::EState::Done))
 	{
-		Context->OutputParams();
+		Context->OutputGraphParams();
 		return true;
 	}
 

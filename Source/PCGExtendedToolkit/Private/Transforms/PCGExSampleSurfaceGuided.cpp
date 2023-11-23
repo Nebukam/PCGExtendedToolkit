@@ -37,8 +37,8 @@ FPCGContext* FPCGExSampleSurfaceGuidedElement::Initialize(const FPCGDataCollecti
 	
 	Context->Direction.Capture(Settings->Direction);
 	
-	PCGEX_FORWARD_OUT_ATTRIBUTE(SurfaceLocation)
-	PCGEX_FORWARD_OUT_ATTRIBUTE(SurfaceNormal)
+	PCGEX_FORWARD_OUT_ATTRIBUTE(Location)
+	PCGEX_FORWARD_OUT_ATTRIBUTE(Normal)
 	PCGEX_FORWARD_OUT_ATTRIBUTE(Distance)
 
 	return Context;
@@ -49,8 +49,8 @@ bool FPCGExSampleSurfaceGuidedElement::Validate(FPCGContext* InContext) const
 	if (!FPCGExPointsProcessorElementBase::Validate(InContext)) { return false; }
 
 	FPCGExSampleSurfaceGuidedContext* Context = static_cast<FPCGExSampleSurfaceGuidedContext*>(InContext);
-	PCGEX_CHECK_OUT_ATTRIBUTE_NAME(SurfaceLocation)
-	PCGEX_CHECK_OUT_ATTRIBUTE_NAME(SurfaceNormal)
+	PCGEX_CHECK_OUT_ATTRIBUTE_NAME(Location)
+	PCGEX_CHECK_OUT_ATTRIBUTE_NAME(Normal)
 	PCGEX_CHECK_OUT_ATTRIBUTE_NAME(Distance)
 	return true;
 }
@@ -84,8 +84,8 @@ bool FPCGExSampleSurfaceGuidedElement::ExecuteInternal(FPCGContext* InContext) c
 		Context->NumTraceComplete = 0;
 		Context->Direction.Validate(IO->Out);
 		IO->BuildMetadataEntries();
-		PCGEX_INIT_ATTRIBUTE_OUT(SurfaceLocation, FVector)
-		PCGEX_INIT_ATTRIBUTE_OUT(SurfaceNormal, FVector)
+		PCGEX_INIT_ATTRIBUTE_OUT(Location, FVector)
+		PCGEX_INIT_ATTRIBUTE_OUT(Normal, FVector)
 		PCGEX_INIT_ATTRIBUTE_OUT(Distance, double)
 	};
 

@@ -183,12 +183,12 @@ public:
 	void ComputeEdgeType(const FPCGPoint& Point, int32 ReadIndex, const UPCGExPointIO* IO);
 	double PrepareProbesForPoint(const FPCGPoint& Point, TArray<PCGExGraph::FSocketProbe>& OutProbes);
 
-	void OutputParams() { Params.OutputTo(this); }
+	void OutputGraphParams() { Params.OutputTo(this); }
 
 	void OutputPointsAndParams()
 	{
 		OutputPoints();
-		OutputParams();
+		OutputGraphParams();
 	}
 
 protected:

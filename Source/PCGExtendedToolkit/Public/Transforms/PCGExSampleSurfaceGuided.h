@@ -60,19 +60,19 @@ public:
 
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(InlineEditConditionToggle))
-	bool bWriteSurfaceLocation = false;
+	bool bWriteLocation = false;
 
 	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(EditCondition="bWriteSurfaceLocation"))
-	FName SurfaceLocation = FName("GuidedSurfaceLocation");
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(EditCondition="bWriteLocation"))
+	FName Location = FName("GuidedLocation");
 
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(InlineEditConditionToggle))
-	bool bWriteSurfaceNormal = false;
+	bool bWriteNormal = false;
 
 	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(EditCondition="bWriteSurfaceNormal"))
-	FName SurfaceNormal = FName("GuidedSurfaceNormal");
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(EditCondition="bWriteNormal"))
+	FName Normal = FName("GuidedNormal");
 
 
 	/** TBD */
@@ -81,7 +81,7 @@ public:
 
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(EditCondition="bWriteDistance"))
-	FName Distance = FName("GuidedSurfaceDistance");
+	FName Distance = FName("GuidedDistance");
 
 	/** Maximum distance to check for closest surface.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision & Metrics")
@@ -114,8 +114,8 @@ public:
 	PCGEx::FLocalSingleComponentInput LocalSize;
 	PCGEx::FLocalDirectionInput Direction;
 
-	PCGEX_OUT_ATTRIBUTE(SurfaceLocation, FVector)
-	PCGEX_OUT_ATTRIBUTE(SurfaceNormal, FVector)
+	PCGEX_OUT_ATTRIBUTE(Location, FVector)
+	PCGEX_OUT_ATTRIBUTE(Normal, FVector)
 	PCGEX_OUT_ATTRIBUTE(Distance, double)
 
 	int64 NumTraceComplete = 0;
@@ -164,8 +164,8 @@ namespace PCGExAsync
 			{
 				if (InContext->World->LineTraceSingleByChannel(HitResult, Origin, Origin + (Context->Direction.GetValue(InPoint) * Size), Context->CollisionChannel, CollisionParams))
 				{
-					PCGEX_SET_OUT_ATTRIBUTE(SurfaceLocation, Infos.Key, HitResult.ImpactPoint)
-					PCGEX_SET_OUT_ATTRIBUTE(SurfaceNormal, Infos.Key, HitResult.Normal)
+					PCGEX_SET_OUT_ATTRIBUTE(Location, Infos.Key, HitResult.ImpactPoint)
+					PCGEX_SET_OUT_ATTRIBUTE(Normal, Infos.Key, HitResult.Normal)
 					PCGEX_SET_OUT_ATTRIBUTE(Distance, Infos.Key, FVector::Distance(HitResult.ImpactPoint, Origin))
 
 					Context->WrapTraceTask(this, true);
@@ -180,8 +180,8 @@ namespace PCGExAsync
 				FCollisionObjectQueryParams ObjectQueryParams = FCollisionObjectQueryParams(Context->CollisionObjectType);
 				if (InContext->World->LineTraceSingleByObjectType(HitResult, Origin, Origin + (Context->Direction.GetValue(InPoint) * Size), ObjectQueryParams, CollisionParams))
 				{
-					PCGEX_SET_OUT_ATTRIBUTE(SurfaceLocation, Infos.Key, HitResult.ImpactPoint)
-					PCGEX_SET_OUT_ATTRIBUTE(SurfaceNormal, Infos.Key, HitResult.Normal)
+					PCGEX_SET_OUT_ATTRIBUTE(Location, Infos.Key, HitResult.ImpactPoint)
+					PCGEX_SET_OUT_ATTRIBUTE(Normal, Infos.Key, HitResult.Normal)
 					PCGEX_SET_OUT_ATTRIBUTE(Distance, Infos.Key, FVector::Distance(HitResult.ImpactPoint, Origin))
 
 					Context->WrapTraceTask(this, true);

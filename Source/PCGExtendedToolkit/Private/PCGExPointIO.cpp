@@ -242,7 +242,11 @@ UPCGExPointIO* UPCGExPointIOGroup::Emplace_GetRef(
 	//FWriteScopeLock ScopeLock(PairsLock);
 
 	UPCGExPointIO* Pair = NewObject<UPCGExPointIO>();
-	Pairs.Add(Pair);
+
+	{
+		FWriteScopeLock ScopeLock(PairsLock);
+		Pairs.Add(Pair);
+	}
 
 	Pair->DefaultOutputLabel = DefaultOutputLabel;
 	Pair->Source = Source;
