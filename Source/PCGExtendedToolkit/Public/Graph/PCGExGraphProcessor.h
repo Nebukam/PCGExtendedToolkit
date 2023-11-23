@@ -43,15 +43,15 @@ namespace PCGExGraph
 
 		TArray<FPointCandidate> Candidates;
 
-		double IndexedRating = TNumericLimits<double>::Max();
+		double IndexedRating = MAX_dbl;
 		double IndexedDistanceRating = 0;
 		double IndexedDotRating = 0;
 		double IndexedDotWeight = 0;
 
 		double ProbedDistanceMax = 0;
-		double ProbedDistanceMin = TNumericLimits<double>::Max();
+		double ProbedDistanceMin = MAX_dbl;
 		double ProbedDotMax = 0;
-		double ProbedDotMin = TNumericLimits<double>::Max();
+		double ProbedDotMin = MAX_dbl;
 
 
 		bool ProcessPoint(const FPCGPoint* Point, int32 Index)

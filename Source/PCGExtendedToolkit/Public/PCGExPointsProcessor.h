@@ -11,28 +11,6 @@
 #include "Elements/PCGPointProcessingElementBase.h"
 #include "PCGExPointsProcessor.generated.h"
 
-#define PCGEX_OUT_ATTRIBUTE(_NAME, _TYPE)\
-bool bWrite##_NAME = false;\
-FName OutName##_NAME = NAME_None;\
-FPCGMetadataAttribute<_TYPE>* OutAttribute##_NAME = nullptr;
-
-#define PCGEX_FORWARD_OUT_ATTRIBUTE(_NAME)\
-Context->bWrite##_NAME = Settings->bWrite##_NAME;\
-Context->OutName##_NAME = Settings->_NAME;
-
-#define PCGEX_CHECK_OUT_ATTRIBUTE_NAME(_NAME)\
-if(Context->bWrite##_NAME && !PCGEx::Common::IsValidName(Context->OutName##_NAME))\
-{ PCGE_LOG(Warning, GraphAndLog, LOCTEXT("InvalidName", "Invalid output attribute name " #_NAME ));\
-Context->bWrite##_NAME = false; }
-
-#define PCGEX_SET_OUT_ATTRIBUTE(_NAME, _KEY, _VALUE)\
-if (Context->OutAttribute##_NAME) { Context->OutAttribute##_NAME->SetValue(_KEY, _VALUE); }
-
-#define PCGEX_INIT_ATTRIBUTE_OUT(_NAME, _TYPE)\
-Context->OutAttribute##_NAME = PCGEx::Common::TryGetAttribute<_TYPE>(IO->Out, Context->OutName##_NAME, Context->bWrite##_NAME);
-#define PCGEX_INIT_ATTRIBUTE_IN(_NAME, _TYPE)\
-Context->OutAttribute##_NAME = PCGEx::Common::TryGetAttribute<_TYPE>(IO->In, Context->OutName##_NAME, Context->bWrite##_NAME);
-
 namespace PCGExMT
 {
 	enum EState : int

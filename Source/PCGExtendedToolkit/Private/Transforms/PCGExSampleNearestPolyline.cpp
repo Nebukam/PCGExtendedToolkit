@@ -1,34 +1,29 @@
 ﻿// Copyright Timothé Lapetite 2023
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Transforms/PCGExSampleNearestPoint.h"
+#include "Transforms/PCGExSampleNearestPolyline.h"
 #include "Data/PCGSpatialData.h"
 #include "PCGContext.h"
 #include "PCGExCommon.h"
 #include "PCGPin.h"
 #include <algorithm>
 
-#define LOCTEXT_NAMESPACE "PCGExSampleNearestPointElement"
+#define LOCTEXT_NAMESPACE "PCGExSampleNearestPolylineElement"
 
-UPCGExSampleNearestPointSettings::UPCGExSampleNearestPointSettings(
+UPCGExSampleNearestPolylineSettings::UPCGExSampleNearestPolylineSettings(
 	const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	if (NormalSource.Selector.GetName() == FName("@Last"))
-	{
-		NormalSource.Selector.Update(TEXT("$Transform"));
-	}
-
 	if (!WeightOverDistance)
 	{
 		WeightOverDistance = PCGEx::WeightDistributionLinear;
 	}
 }
 
-TArray<FPCGPinProperties> UPCGExSampleNearestPointSettings::InputPinProperties() const
+TArray<FPCGPinProperties> UPCGExSampleNearestPolylineSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	FPCGPinProperties& PinPropertySourceTargets = PinProperties.Emplace_GetRef(PCGEx::SourceTargetsLabel, EPCGDataType::Point, false, false);
+	FPCGPinProperties& PinPropertySourceTargets = PinProperties.Emplace_GetRef(PCGEx::SourceTargetsLabel, EPCGDataType::PolyLine, true, true);
 
 #if WITH_EDITOR
 	PinPropertySourceTargets.Tooltip = LOCTEXT("PCGExSourceTargetsPointsPinTooltip", "The point data set to check against.");
@@ -37,38 +32,32 @@ TArray<FPCGPinProperties> UPCGExSampleNearestPointSettings::InputPinProperties()
 	return PinProperties;
 }
 
-PCGEx::EIOInit UPCGExSampleNearestPointSettings::GetPointOutputInitMode() const { return PCGEx::EIOInit::DuplicateInput; }
+PCGEx::EIOInit UPCGExSampleNearestPolylineSettings::GetPointOutputInitMode() const { return PCGEx::EIOInit::DuplicateInput; }
 
-int32 UPCGExSampleNearestPointSettings::GetPreferredChunkSize() const { return 32; }
+int32 UPCGExSampleNearestPolylineSettings::GetPreferredChunkSize() const { return 32; }
 
-FPCGElementPtr UPCGExSampleNearestPointSettings::CreateElement() const { return MakeShared<FPCGExSampleNearestPointElement>(); }
+FPCGElementPtr UPCGExSampleNearestPolylineSettings::CreateElement() const { return MakeShared<FPCGExSampleNearestPolylineElement>(); }
 
-FPCGContext* FPCGExSampleNearestPointElement::Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node)
+FPCGContext* FPCGExSampleNearestPolylineElement::Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node)
 {
-	FPCGExSampleNearestPointContext* Context = new FPCGExSampleNearestPointContext();
+	FPCGExSampleNearestPolylineContext* Context = new FPCGExSampleNearestPolylineContext();
 	InitializeContext(Context, InputData, SourceComponent, Node);
 
-	const UPCGExSampleNearestPointSettings* Settings = Context->GetInputSettings<UPCGExSampleNearestPointSettings>();
+	const UPCGExSampleNearestPolylineSettings* Settings = Context->GetInputSettings<UPCGExSampleNearestPolylineSettings>();
 	check(Settings);
 
 	TArray<FPCGTaggedData> Targets = InputData.GetInputsByPin(PCGEx::SourceTargetsLabel);
+
 	if (!Targets.IsEmpty())
 	{
-		const FPCGTaggedData& Target = Targets[0];
-		if (const UPCGSpatialData* SpatialData = Cast<UPCGSpatialData>(Target.Data))
-		{
-			if (const UPCGPointData* PointData = SpatialData->ToPointData(Context))
-			{
-				Context->Targets = const_cast<UPCGPointData*>(PointData);
-				Context->NumTargets = Context->Targets->GetPoints().Num();
-			}
-		}
+		Context->Targets = NewObject<UPCGExPolyLineIOGroup>();
+		Context->Targets->Initialize(Targets);
 	}
 
 	Context->WeightCurve = Settings->WeightOverDistance.LoadSynchronous();
 
-	Context->RangeMin = Settings->RangeMin;
-	Context->RangeMax = Settings->RangeMax;
+	Context->RangeMin = Settings->MaxDistance;
+	Context->bUseOctree = Settings->MaxDistance <= 0;
 
 	PCGEX_FORWARD_OUT_ATTRIBUTE(Location)
 	PCGEX_FORWARD_OUT_ATTRIBUTE(LookAt)
@@ -79,15 +68,15 @@ FPCGContext* FPCGExSampleNearestPointElement::Initialize(const FPCGDataCollectio
 	return Context;
 }
 
-bool FPCGExSampleNearestPointElement::Validate(FPCGContext* InContext) const
+bool FPCGExSampleNearestPolylineElement::Validate(FPCGContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElementBase::Validate(InContext)) { return false; }
 
-	FPCGExSampleNearestPointContext* Context = static_cast<FPCGExSampleNearestPointContext*>(InContext);
-	const UPCGExSampleNearestPointSettings* Settings = Context->GetInputSettings<UPCGExSampleNearestPointSettings>();
+	FPCGExSampleNearestPolylineContext* Context = static_cast<FPCGExSampleNearestPolylineContext*>(InContext);
+	const UPCGExSampleNearestPolylineSettings* Settings = Context->GetInputSettings<UPCGExSampleNearestPolylineSettings>();
 	check(Settings);
 
-	if (!Context->Targets || Context->NumTargets < 1)
+	if (!Context->Targets || Context->Targets->IsEmpty())
 	{
 		PCGE_LOG(Error, GraphAndLog, LOCTEXT("MissingTargets", "No targets (either no input or empty dataset)"));
 		return false;
@@ -116,44 +105,22 @@ bool FPCGExSampleNearestPointElement::Validate(FPCGContext* InContext) const
 	Context->SampleMethod = Settings->SampleMethod;
 	Context->WeightMethod = Settings->WeightMethod;
 
-	if (Context->bWriteNormal)
-	{
-		Context->NormalInput.Capture(Settings->NormalSource);
-		if (!Context->NormalInput.Validate(Context->Targets))
-		{
-			PCGE_LOG(Warning, GraphAndLog, LOCTEXT("InvalidNormalSource", "Normal source is invalid."));
-		}
-	}
+	Context->NormalSource = Settings->NormalSource;
+
+	Context->NumTargets = Context->Targets->PolyLines.Num();
 
 	return true;
 }
 
-bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExSampleNearestPolylineElement::ExecuteInternal(FPCGContext* InContext) const
 {
-	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExSampleNearestPointElement::Execute);
+	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExSampleNearestPolylineElement::Execute);
 
-	FPCGExSampleNearestPointContext* Context = static_cast<FPCGExSampleNearestPointContext*>(InContext);
+	FPCGExSampleNearestPolylineContext* Context = static_cast<FPCGExSampleNearestPolylineContext*>(InContext);
 
 	if (Context->IsState(PCGExMT::EState::Setup))
 	{
 		if (!Validate(Context)) { return true; }
-
-		// Ensure targets have metadata keys.
-		Context->TargetsCache = const_cast<UPCGPointData*>(Context->Targets->DuplicateData(true)->ToPointData(Context));
-		Context->Octree = const_cast<UPCGPointData::PointOctree*>(&(Context->TargetsCache->GetOctree()));
-		TArray<FPCGPoint>& TargetPoints = Context->TargetsCache->GetMutablePoints();
-		const int32 NumTargets = TargetPoints.Num();
-		Context->TargetIndices.Reserve(NumTargets);
-
-		int32 i = 0;
-		for (FPCGPoint& Pt : TargetPoints)
-		{
-			PCGMetadataEntryKey& Key = Pt.MetadataEntry;
-			Context->TargetsCache->Metadata->InitializeOnSet(Key);
-			Context->TargetIndices.Add(Key, i);
-			i++;
-		}
-
 		Context->SetState(PCGExMT::EState::ReadyForNextPoints);
 	}
 
@@ -203,28 +170,26 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 
 		if (RangeMin > RangeMax) { std::swap(RangeMin, RangeMax); }
 
-		TArray<PCGExNearestPoint::FTargetInfos> TargetsInfos;
+		TArray<PCGExPolyLine::FSampleInfos> TargetsInfos;
 		TargetsInfos.Reserve(Context->NumTargets);
 
-		PCGExNearestPoint::FTargetsCompoundInfos TargetsCompoundInfos;
+		PCGExPolyLine::FTargetsCompoundInfos TargetsCompoundInfos;
 
 		FVector Origin = Point.Transform.GetLocation();
-		auto ProcessTarget = [&Context, &Origin, &ReadIndex, &RangeMin, &RangeMax, &TargetsInfos, &TargetsCompoundInfos](const FPCGPoint& Target)
+		auto ProcessTarget = [&Context, &Origin, &ReadIndex, &RangeMin, &RangeMax, &TargetsInfos, &TargetsCompoundInfos](const FTransform& Transform)
 		{
-			const double dist = FVector::DistSquared(Origin, Target.Transform.GetLocation());
+			const double dist = FVector::DistSquared(Origin, Transform.GetLocation());
 
 			if (RangeMax > 0 && (dist < RangeMin || dist > RangeMax)) { return; }
 
 			if (Context->SampleMethod == EPCGExSampleMethod::ClosestTarget ||
 				Context->SampleMethod == EPCGExSampleMethod::FarthestTarget)
 			{
-				FReadScopeLock ScopeLock(Context->IndicesLock);
-				TargetsCompoundInfos.UpdateCompound(PCGExNearestPoint::FTargetInfos(*Context->TargetIndices.Find(Target.MetadataEntry), dist));
+				TargetsCompoundInfos.UpdateCompound(PCGExPolyLine::FSampleInfos(Transform, dist));
 			}
 			else
 			{
-				FReadScopeLock ScopeLock(Context->IndicesLock);
-				const PCGExNearestPoint::FTargetInfos& Infos = TargetsInfos.Emplace_GetRef(*Context->TargetIndices.Find(Target.MetadataEntry), dist);
+				const PCGExPolyLine::FSampleInfos& Infos = TargetsInfos.Emplace_GetRef(Transform, dist);
 				TargetsCompoundInfos.UpdateCompound(Infos);
 			}
 		};
@@ -232,19 +197,19 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 		// First: Sample all possible targets
 		if (RangeMax > 0)
 		{
-			const FBoxCenterAndExtent Box = FBoxCenterAndExtent(Point.Transform.GetLocation(), FVector(FMath::Sqrt(RangeMax)));
-			Context->Octree->FindElementsWithBoundsTest(
-				Box,
-				[&ProcessTarget](const FPCGPointRef& TargetPointRef)
-				{
-					const FPCGPoint* TargetPoint = TargetPointRef.Point;
-					ProcessTarget(*TargetPoint);
-				});
+			for (UPCGExPolyLineIO* Line : Context->Targets->PolyLines)
+			{
+				FTransform SampledTransform;
+				if (!Line->SampleNearestTransformWithinRange(Origin, FMath::Sqrt(RangeMax), SampledTransform)) { continue; }
+				ProcessTarget(SampledTransform);
+			}
 		}
 		else
 		{
-			const TArray<FPCGPoint>& Targets = Context->TargetsCache->GetPoints();
-			for (const FPCGPoint& TargetPoint : Targets) { ProcessTarget(TargetPoint); }
+			for (UPCGExPolyLineIO* Line : Context->Targets->PolyLines)
+			{
+				ProcessTarget(Line->SampleNearestTransform(Origin));
+			}
 		}
 
 		// Compound never got updated, meaning we couldn't find target in range
@@ -267,13 +232,12 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 
 
 		auto ProcessTargetInfos = [&Context, &Origin, &WeightedLocation, &WeightedLookAt, &WeightedNormal, &TotalWeight]
-			(const PCGExNearestPoint::FTargetInfos& TargetInfos, double Weight)
+			(const PCGExPolyLine::FSampleInfos& TargetInfos, double Weight)
 		{
-			const FPCGPoint TargetPoint = Context->TargetsCache->GetPoint(TargetInfos.Index);
-			const FVector TargetLocationOffset = TargetPoint.Transform.GetLocation() - Origin;
+			const FVector TargetLocationOffset = TargetInfos.Transform.GetLocation() - Origin;
 			WeightedLocation += (TargetLocationOffset * Weight); // Relative to origin
 			WeightedLookAt += (TargetLocationOffset.GetSafeNormal()) * Weight;
-			WeightedNormal += Context->NormalInput.GetValue(TargetPoint) * Weight;
+			WeightedNormal += PCGEx::Common::GetDirection(TargetInfos.Transform.GetRotation(), Context->NormalSource) * Weight; // Use forward as default
 
 			TotalWeight += Weight;
 		};
@@ -281,13 +245,13 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 		if (Context->SampleMethod == EPCGExSampleMethod::ClosestTarget ||
 			Context->SampleMethod == EPCGExSampleMethod::FarthestTarget)
 		{
-			const PCGExNearestPoint::FTargetInfos& TargetInfos = Context->SampleMethod == EPCGExSampleMethod::ClosestTarget ? TargetsCompoundInfos.Closest : TargetsCompoundInfos.Farthest;
+			const PCGExPolyLine::FSampleInfos& TargetInfos = Context->SampleMethod == EPCGExSampleMethod::ClosestTarget ? TargetsCompoundInfos.Closest : TargetsCompoundInfos.Farthest;
 			const double Weight = Context->WeightCurve->GetFloatValue(TargetsCompoundInfos.GetRangeRatio(TargetInfos.Distance));
 			ProcessTargetInfos(TargetInfos, Weight);
 		}
 		else
 		{
-			for (PCGExNearestPoint::FTargetInfos& TargetInfos : TargetsInfos)
+			for (PCGExPolyLine::FSampleInfos& TargetInfos : TargetsInfos)
 			{
 				const double Weight = Context->WeightCurve->GetFloatValue(TargetsCompoundInfos.GetRangeRatio(TargetInfos.Distance));
 				if (Weight == 0) { continue; }
@@ -321,9 +285,7 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 
 	if (Context->IsDone())
 	{
-		Context->TargetsCache->GetMutablePoints().Empty();
-		Context->TargetsCache = nullptr;
-		Context->TargetIndices.Empty();
+		Context->Targets->Flush();
 		Context->OutputPoints();
 		return true;
 	}

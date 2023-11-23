@@ -110,7 +110,6 @@ enum class EPCGExSelectorType : uint8
 	Direction UMETA(DisplayName = "Direction", ToolTip="Backward from Transform/FQuat/Rotator, or raw vector."),
 };
 
-
 #pragma region Input Descriptors
 
 USTRUCT(BlueprintType)
@@ -297,12 +296,11 @@ public:
 namespace PCGEx
 {
 	const FName SourcePointsLabel = TEXT("InPoints");
-	const FName SourceTargetPointsLabel = TEXT("InTargetPoints");
-	const FName SourceTargetPolylinesLabel = TEXT("InTargets");
+	const FName SourceTargetsLabel = TEXT("InTargets");
 	const FName OutputPointsLabel = TEXT("OutPoints");
 
-	const FSoftObjectPath DefaultDotOverDistanceCurve = FSoftObjectPath(TEXT("/PCGExtendedToolkit/FC_PCGExGraphBalance_Default.FC_PCGExGraphBalance_Default"));
-	const FSoftObjectPath WeightDistributionLinear = FSoftObjectPath(TEXT("/PCGExtendedToolkit/FC_PCGExWeightDistribution_Linear.FC_PCGExWeightDistribution_Linear'"));
+	const FSoftObjectPath DefaultDotOverDistanceCurve = FSoftObjectPath(TEXT("/PCGExtendedToolkit/FC_PCGExGraphBalance_DistanceOnly.FC_PCGExGraphBalance_DistanceOnly"));
+	const FSoftObjectPath WeightDistributionLinear = FSoftObjectPath(TEXT("/PCGExtendedToolkit/FC_PCGExWeightDistribution_Linear.FC_PCGExWeightDistribution_Linear"));
 
 	class Common
 	{
@@ -414,37 +412,6 @@ namespace PCGEx
 
 			return true;
 		}
-
-		static const UPCGPolyLineData* GetPolyLineData(const UPCGSpatialData* InSpatialData)
-		{
-			if (!InSpatialData)
-			{
-				return nullptr;
-			}
-
-			if (const UPCGPolyLineData* LineData = Cast<const UPCGPolyLineData>(InSpatialData))
-			{
-				return LineData;
-			}
-			else if (const UPCGSplineProjectionData* SplineProjectionData = Cast<const UPCGSplineProjectionData>(InSpatialData))
-			{
-				return SplineProjectionData->GetSpline();
-			}
-			else if (const UPCGIntersectionData* Intersection = Cast<const UPCGIntersectionData>(InSpatialData))
-			{
-				if (const UPCGPolyLineData* IntersectionA = GetPolyLineData(Intersection->A))
-				{
-					return IntersectionA;
-				}
-				else if (const UPCGPolyLineData* IntersectionB = GetPolyLineData(Intersection->B))
-				{
-					return IntersectionB;
-				}
-			}
-
-			return nullptr;
-		}
-		
 	};
 
 	class Maths

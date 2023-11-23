@@ -9,6 +9,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExPointsProcessor.h"
+#include "PCGExTransform.h"
 #include "Elements/PCGPointProcessingElementBase.h"
 #include "PCGExSampleNearestSurface.generated.h"
 
@@ -42,28 +43,28 @@ protected:
 public:
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(InlineEditConditionToggle))
-	bool bWriteSurfaceLocation = false;
+	bool bWriteLocation = false;
 
 	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(EditCondition="bWriteSurfaceLocation"))
-	FName SurfaceLocation = FName("NearestSurfaceLocation");
-
-	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(InlineEditConditionToggle))
-	bool bWriteLookAtDirection = false;
-
-	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(EditCondition="bWriteLookAtDirection"))
-	FName LookAtDirection = FName("NearestSurfaceLookAt");
-
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(EditCondition="bWriteLocation"))
+	FName Location = FName("NearestLocation");
 
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(InlineEditConditionToggle))
-	bool bWriteSurfaceNormal = false;
+	bool bWriteLookAt = false;
 
 	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(EditCondition="bWriteSurfaceNormal"))
-	FName SurfaceNormal = FName("NearestSurfaceNormal");
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(EditCondition="bWriteLookAt"))
+	FName LookAt = FName("NearestLookAt");
+
+
+	/** TBD */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(InlineEditConditionToggle))
+	bool bWriteNormal = false;
+
+	/** TBD */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(EditCondition="bWriteNormal"))
+	FName Normal = FName("NearestNormal");
 
 
 	/** TBD */
@@ -72,7 +73,7 @@ public:
 
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(EditCondition="bWriteDistance"))
-	FName Distance = FName("NearestSurfaceDistance");
+	FName Distance = FName("NearestDistance");
 
 
 	/** Maximum distance to check for closest surface.*/
@@ -115,9 +116,9 @@ public:
 	int32 CollisionObjectType;
 	bool bIgnoreSelf = true;
 
-	PCGEX_OUT_ATTRIBUTE(SurfaceLocation, FVector)
-	PCGEX_OUT_ATTRIBUTE(LookAtDirection, FVector)
-	PCGEX_OUT_ATTRIBUTE(SurfaceNormal, FVector)
+	PCGEX_OUT_ATTRIBUTE(Location, FVector)
+	PCGEX_OUT_ATTRIBUTE(LookAt, FVector)
+	PCGEX_OUT_ATTRIBUTE(Normal, FVector)
 	PCGEX_OUT_ATTRIBUTE(Distance, double)
 
 	int64 NumSweepComplete = 0;
@@ -170,9 +171,9 @@ namespace PCGExAsync
 			{
 				if (InContext->World->SweepSingleByChannel(HitResult, Origin, Origin + (FVector::UpVector * 0.001), FQuat::Identity, Context->CollisionChannel, CollisionShape, CollisionParams))
 				{
-					PCGEX_SET_OUT_ATTRIBUTE(SurfaceLocation, Infos.Key, HitResult.ImpactPoint)
-					PCGEX_SET_OUT_ATTRIBUTE(SurfaceNormal, Infos.Key, HitResult.Normal)
-					PCGEX_SET_OUT_ATTRIBUTE(LookAtDirection, Infos.Key, (HitResult.ImpactPoint - Origin).GetSafeNormal())
+					PCGEX_SET_OUT_ATTRIBUTE(Location, Infos.Key, HitResult.ImpactPoint)
+					PCGEX_SET_OUT_ATTRIBUTE(Normal, Infos.Key, HitResult.Normal)
+					PCGEX_SET_OUT_ATTRIBUTE(LookAt, Infos.Key, (HitResult.ImpactPoint - Origin).GetSafeNormal())
 					PCGEX_SET_OUT_ATTRIBUTE(Distance, Infos.Key, FVector::Distance(HitResult.ImpactPoint, Origin))
 
 					Context->ProcessSweepHit(this);
@@ -187,9 +188,9 @@ namespace PCGExAsync
 				FCollisionObjectQueryParams ObjectQueryParams = FCollisionObjectQueryParams(Context->CollisionObjectType);
 				if (InContext->World->SweepSingleByObjectType(HitResult, Origin, Origin + (FVector::UpVector * 0.001), FQuat::Identity, ObjectQueryParams, CollisionShape, CollisionParams))
 				{
-					PCGEX_SET_OUT_ATTRIBUTE(SurfaceLocation, Infos.Key, HitResult.ImpactPoint)
-					PCGEX_SET_OUT_ATTRIBUTE(SurfaceNormal, Infos.Key, HitResult.Normal)
-					PCGEX_SET_OUT_ATTRIBUTE(LookAtDirection, Infos.Key, (HitResult.ImpactPoint - Origin).GetSafeNormal())
+					PCGEX_SET_OUT_ATTRIBUTE(Location, Infos.Key, HitResult.ImpactPoint)
+					PCGEX_SET_OUT_ATTRIBUTE(Normal, Infos.Key, HitResult.Normal)
+					PCGEX_SET_OUT_ATTRIBUTE(LookAt, Infos.Key, (HitResult.ImpactPoint - Origin).GetSafeNormal())
 					PCGEX_SET_OUT_ATTRIBUTE(Distance, Infos.Key, FVector::Distance(HitResult.ImpactPoint, Origin))
 
 					Context->ProcessSweepHit(this);

@@ -10,6 +10,7 @@
 #include "CoreMinimal.h"
 #include "PCGExLocalAttributeHelpers.h"
 #include "PCGExPointsProcessor.h"
+#include "PCGExTransform.h"
 #include "Elements/PCGPointProcessingElementBase.h"
 #include "PCGExSampleSurfaceGuided.generated.h"
 

@@ -24,7 +24,7 @@
         - [Sample Nearest Point](PCGExSampleNearestPoint.md)
         - [Sample Nearest Surface](PCGExSampleNearestSurface.md)
         - [Sample Surface Guided](PCGExSampleSurfaceGuided.md)
-        - [Sample Signed Distance](PCGExSampleSignedDistance.md)
+        - [Sample Nearest Polyline](PCGExSampleNearestPolyline.md)
         - [Project](PCGExProject.md)
 1. Data Types
     - [Graph Data](PCGExGraphData.md)
