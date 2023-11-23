@@ -84,8 +84,8 @@ namespace PCGExGraph
 		{
 			for (const FPointCandidate& Candidate : Candidates)
 			{
-				const double DotRating = 1-PCGEx::Common::Remap(Candidate.Dot, ProbedDotMin, ProbedDotMax);
-				const double DistanceRating = PCGEx::Common::Remap(Candidate.Distance, ProbedDistanceMin, ProbedDistanceMax);
+				const double DotRating = 1-PCGEx::Maths::Remap(Candidate.Dot, ProbedDotMin, ProbedDotMax);
+				const double DistanceRating = PCGEx::Maths::Remap(Candidate.Distance, ProbedDistanceMin, ProbedDistanceMax);
 				const double DotWeight = FMathf::Clamp(DotOverDistanceCurve->GetFloatValue(DistanceRating), 0, 1);
 				const double Rating = (DotRating * DotWeight) + (DistanceRating * (1 - DotWeight));
 
