@@ -13,6 +13,8 @@
 #include "Metadata/Accessors/IPCGAttributeAccessor.h"
 #include "Metadata/Accessors/PCGAttributeAccessorHelpers.h"
 #include "PCGComponent.h"
+#include "Data/PCGIntersectionData.h"
+#include "Data/PCGSplineData.h"
 
 #include "PCGExCommon.generated.h"
 
@@ -296,6 +298,7 @@ namespace PCGEx
 {
 	const FName SourcePointsLabel = TEXT("InPoints");
 	const FName SourceTargetPointsLabel = TEXT("InTargetPoints");
+	const FName SourceTargetPolylinesLabel = TEXT("InTargets");
 	const FName OutputPointsLabel = TEXT("OutPoints");
 
 	const FSoftObjectPath DefaultDotOverDistanceCurve = FSoftObjectPath(TEXT("/PCGExtendedToolkit/FC_PCGExGraphBalance_Default.FC_PCGExGraphBalance_Default"));
@@ -411,6 +414,37 @@ namespace PCGEx
 
 			return true;
 		}
+
+		static const UPCGPolyLineData* GetPolyLineData(const UPCGSpatialData* InSpatialData)
+		{
+			if (!InSpatialData)
+			{
+				return nullptr;
+			}
+
+			if (const UPCGPolyLineData* LineData = Cast<const UPCGPolyLineData>(InSpatialData))
+			{
+				return LineData;
+			}
+			else if (const UPCGSplineProjectionData* SplineProjectionData = Cast<const UPCGSplineProjectionData>(InSpatialData))
+			{
+				return SplineProjectionData->GetSpline();
+			}
+			else if (const UPCGIntersectionData* Intersection = Cast<const UPCGIntersectionData>(InSpatialData))
+			{
+				if (const UPCGPolyLineData* IntersectionA = GetPolyLineData(Intersection->A))
+				{
+					return IntersectionA;
+				}
+				else if (const UPCGPolyLineData* IntersectionB = GetPolyLineData(Intersection->B))
+				{
+					return IntersectionB;
+				}
+			}
+
+			return nullptr;
+		}
+		
 	};
 
 	class Maths

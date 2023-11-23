@@ -237,6 +237,7 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsState(PCGExMT::EState::ProcessingGraph2ndPass))
 	{
+		//TODO: Stabilized alternative -- parallel doesn't guarantee order, so result is non-deterministic
 		if (PCGEx::Common::ParallelForLoop(Context, Context->FusedPoints.Num(), InitializeReconcile, FusePoints, Context->ChunkSize))
 		{
 			Context->OutPoints = nullptr;
