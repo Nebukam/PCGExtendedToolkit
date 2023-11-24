@@ -3,7 +3,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExPointIO.h"
 #include "Data/PCGExGraphParamsData.h"
 #include "UObject/Object.h"
 #include "PCGExGraphPatch.generated.h"

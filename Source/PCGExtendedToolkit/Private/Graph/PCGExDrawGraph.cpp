@@ -177,7 +177,7 @@ bool FPCGExDrawGraphElement::ExecuteInternal(FPCGContext* InContext) const
 
 	auto Initialize = [&Context](const UPCGExPointIO* IO)
 	{
-		Context->CurrentGraph->PrepareForPointData(Context, IO->In, false);
+		Context->CurrentGraph->PrepareForPointData(IO->In, false);
 	};
 
 	if (Context->IsState(PCGExMT::EState::ProcessingGraph))

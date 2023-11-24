@@ -3,16 +3,13 @@
 
 #pragma once
 
-/*
- * This is a dummy class to create new simple PCG nodes
- */
-
 #include "CoreMinimal.h"
+#include "PCGExCommon.h"
 #include "PCGExLocalAttributeHelpers.h"
 #include "PCGExPointsProcessor.h"
 #include "PCGExPolyLineIO.h"
 #include "PCGExTransform.h"
-#include "Elements/PCGPointProcessingElementBase.h"
+
 #include "PCGExSampleNearestPolyline.generated.h"
 
 namespace PCGExPolyLine
@@ -165,7 +162,7 @@ public:
 
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(EditCondition="bWriteNormal"))
-	EPCGExAxis NormalSource;
+	EPCGExAxis NormalSource = EPCGExAxis::Forward;
 
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(InlineEditConditionToggle))
@@ -203,7 +200,7 @@ public:
 	EPCGExWeightMethod WeightMethod = EPCGExWeightMethod::FullRange;
 
 	EPCGExAxis NormalSource;
-	
+
 	double RangeMin = 0;
 	double RangeMax = 1000;
 

@@ -30,17 +30,6 @@ FPCGContext* FPCGExFindEdgesTypeElement::Initialize(
 	return Context;
 }
 
-void FPCGExFindEdgesTypeElement::InitializeContext(
-	FPCGExPointsProcessorContext* InContext,
-	const FPCGDataCollection& InputData,
-	TWeakObjectPtr<UPCGComponent> SourceComponent,
-	const UPCGNode* Node) const
-{
-	FPCGExGraphProcessorElement::InitializeContext(InContext, InputData, SourceComponent, Node);
-	//FPCGExFindEdgesTypeContext* Context = static_cast<FPCGExFindEdgesTypeContext*>(InContext);
-	// ...
-}
-
 bool FPCGExFindEdgesTypeElement::ExecuteInternal(
 	FPCGContext* InContext) const
 {
@@ -98,7 +87,7 @@ bool FPCGExFindEdgesTypeElement::ExecuteInternal(
 
 	auto Initialize = [&Context](const UPCGExPointIO* IO)
 	{
-		Context->CurrentGraph->PrepareForPointData(Context, IO->Out, true);
+		Context->CurrentGraph->PrepareForPointData(IO->Out, true);
 	};
 
 	if (Context->IsState(PCGExMT::EState::ProcessingGraph))

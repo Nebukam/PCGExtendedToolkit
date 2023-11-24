@@ -31,17 +31,6 @@ FPCGContext* FPCGExDeleteGraphElement::Initialize(
 	return Context;
 }
 
-void FPCGExDeleteGraphElement::InitializeContext(
-	FPCGExPointsProcessorContext* InContext,
-	const FPCGDataCollection& InputData,
-	TWeakObjectPtr<UPCGComponent> SourceComponent,
-	const UPCGNode* Node) const
-{
-	FPCGExGraphProcessorElement::InitializeContext(InContext, InputData, SourceComponent, Node);
-	//FPCGExDeleteGraphContext* Context = static_cast<FPCGExDeleteGraphContext*>(InContext);
-	// ...
-}
-
 bool FPCGExDeleteGraphElement::ExecuteInternal(
 	FPCGContext* InContext) const
 {

@@ -2,7 +2,9 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "PCGExPolyLineIO.h"
-#include "PCGContext.h"
+#include "PCGExCommon.h"
+#include "Data/PCGIntersectionData.h"
+#include "Data/PCGSplineData.h"
 
 UPCGExPolyLineIO::UPCGExPolyLineIO(): In(nullptr)
 {
@@ -62,7 +64,7 @@ UPCGExPolyLineIOGroup::UPCGExPolyLineIOGroup()
 {
 }
 
-UPCGExPolyLineIOGroup::UPCGExPolyLineIOGroup(FPCGContext* Context, FName InputLabel)
+UPCGExPolyLineIOGroup::UPCGExPolyLineIOGroup(const FPCGContext* Context, FName InputLabel)
 	: UPCGExPolyLineIOGroup::UPCGExPolyLineIOGroup()
 {
 	TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(InputLabel);

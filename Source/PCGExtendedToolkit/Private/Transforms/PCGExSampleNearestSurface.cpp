@@ -1,9 +1,7 @@
 ﻿// Copyright Timothé Lapetite 2023
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "..\..\Public\Transforms\PCGExSampleNearestSurface.h"
-#include "Data/PCGSpatialData.h"
-#include "PCGContext.h"
+#include "Transforms/PCGExSampleNearestSurface.h"
 #include "PCGExCommon.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSampleNearestSurfaceElement"

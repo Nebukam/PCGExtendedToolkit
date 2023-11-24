@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExCommon.h"
+#include "Data/PCGPolyLineData.h"
 #include "UObject/Object.h"
 #include "PCGExPolyLineIO.generated.h"
 
@@ -37,7 +38,6 @@ namespace PCGExPolyLine
 			const FVector Point = FMath::ClosestPointOnSegment(Location, Start, End);
 			return PolyLine->GetTransformAtDistance(Segment, FVector::Distance(Start, Point));
 		}
-		
 	};
 }
 
@@ -94,7 +94,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExPolyLineIOGroup : public UObject
 
 public:
 	UPCGExPolyLineIOGroup();
-	UPCGExPolyLineIOGroup(FPCGContext* Context, FName InputLabel);
+	UPCGExPolyLineIOGroup(const FPCGContext* Context, FName InputLabel);
 	UPCGExPolyLineIOGroup(TArray<FPCGTaggedData>& Sources);
 
 	TArray<UPCGExPolyLineIO*> PolyLines;
@@ -118,7 +118,7 @@ public:
 
 	bool SampleNearestTransform(const FVector& Location, FTransform& OutTransform);
 	bool SampleNearestTransformWithinRange(const FVector& Location, const double Range, FTransform& OutTransform);
-	
+
 	void Flush()
 	{
 		for (UPCGExPolyLineIO* Line : PolyLines) { Line->Flush(); }

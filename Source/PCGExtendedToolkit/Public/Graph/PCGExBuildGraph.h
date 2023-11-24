@@ -7,6 +7,7 @@
 #include "PCGExGraphProcessor.h"
 #include "Data/PCGPointData.h"
 #include "Elements/PCGPointProcessingElementBase.h"
+
 #include "PCGExBuildGraph.generated.h"
 
 /**
@@ -26,7 +27,7 @@ public:
 	/** Compute edge types internally. If you don't need edge types, set it to false to save some cycles.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	bool bComputeEdgeType = true;
-	
+
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings interface
@@ -34,7 +35,7 @@ protected:
 	virtual int32 GetPreferredChunkSize() const override;
 
 	virtual PCGEx::EIOInit GetPointOutputInitMode() const override;
-	
+
 private:
 	friend class FPCGExBuildGraphElement;
 };
@@ -57,10 +58,5 @@ public:
 		const UPCGNode* Node) override;
 
 protected:
-	virtual void InitializeContext(
-		FPCGExPointsProcessorContext* InContext,
-		const FPCGDataCollection& InputData,
-		TWeakObjectPtr<UPCGComponent> SourceComponent,
-		const UPCGNode* Node) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };

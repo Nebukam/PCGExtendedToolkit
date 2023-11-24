@@ -3,9 +3,7 @@
 
 #pragma once
 
-/*
- * This is a dummy class to create new simple PCG nodes
- */
+
 
 #include "CoreMinimal.h"
 #include "PCGExPointsProcessor.h"

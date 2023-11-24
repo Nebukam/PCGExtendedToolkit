@@ -2,6 +2,7 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Transforms/PCGExSampleNearestPoint.h"
+
 #include "Data/PCGSpatialData.h"
 #include "PCGContext.h"
 #include "PCGExCommon.h"

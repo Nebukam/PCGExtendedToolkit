@@ -5,16 +5,20 @@
 #pragma once
 
 #include "CoreMinimal.h"
+
 #include "PCGContext.h"
+
+#include "Data/PCGSpatialData.h"
 #include "Data/PCGPointData.h"
+
 #include "Helpers/PCGAsync.h"
+
 #include "Metadata/PCGAttributePropertySelector.h"
 #include "Metadata/PCGMetadataAttribute.h"
 #include "Metadata/Accessors/IPCGAttributeAccessor.h"
 #include "Metadata/Accessors/PCGAttributeAccessorHelpers.h"
+
 #include "PCGComponent.h"
-#include "Data/PCGIntersectionData.h"
-#include "Data/PCGSplineData.h"
 
 #include "PCGExCommon.generated.h"
 

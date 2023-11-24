@@ -97,7 +97,7 @@ bool FPCGExPartitionGraphPatchesElement::ExecuteInternal(
 	auto InitializePointsInput = [&Context](const UPCGExPointIO* IO)
 	{
 		Context->PreparePatchGroup();
-		Context->CurrentGraph->PrepareForPointData(Context, IO->In, false); // Prepare to read IO->In
+		Context->PrepareCurrentGraphForPoints(IO->In, false); // Prepare to read IO->In
 	};
 
 	auto ProcessPoint = [&Context](const FPCGPoint& Point, const int32 ReadIndex, const UPCGExPointIO* IO)

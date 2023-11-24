@@ -51,10 +51,5 @@ public:
 		const UPCGNode* Node) override;
 
 protected:
-	virtual void InitializeContext(
-		FPCGExPointsProcessorContext* InContext,
-		const FPCGDataCollection& InputData,
-		TWeakObjectPtr<UPCGComponent> SourceComponent,
-		const UPCGNode* Node) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };

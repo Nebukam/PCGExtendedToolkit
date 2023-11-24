@@ -3,15 +3,12 @@
 
 #pragma once
 
-/*
- * This is a dummy class to create new simple PCG nodes
- */
-
 #include "CoreMinimal.h"
+#include "PCGExCommon.h"
 #include "PCGExLocalAttributeHelpers.h"
 #include "PCGExPointsProcessor.h"
 #include "PCGExTransform.h"
-#include "Elements/PCGPointProcessingElementBase.h"
+
 #include "PCGExSampleNearestPoint.generated.h"
 
 namespace PCGExNearestPoint
@@ -184,7 +181,6 @@ public:
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(EditCondition="bWriteSignedDistance"))
 	EPCGExAxis SignedDistanceAxis = EPCGExAxis::Forward;
-	
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestPointContext : public FPCGExPointsProcessorContext

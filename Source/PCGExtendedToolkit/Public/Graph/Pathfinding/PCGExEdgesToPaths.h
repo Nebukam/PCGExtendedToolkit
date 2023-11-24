@@ -4,8 +4,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Data/PCGPointData.h"
 #include "Graph/PCGExGraphProcessor.h"
+
 #include "PCGExEdgesToPaths.generated.h"
 
 /**
@@ -21,7 +21,7 @@ public:
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(EdgesToPaths, "Edges To Paths", "Converts graph edges to paths-like data that can be used to generate splines.");
 #endif
-	
+
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings interface
@@ -30,19 +30,15 @@ protected:
 	virtual PCGEx::EIOInit GetPointOutputInitMode() const override;
 
 public:
-	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExEdgeType"))
 	uint8 EdgeType = static_cast<uint8>(EPCGExEdgeType::Complete);
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	bool bWriteTangents = true;
-	
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="bWriteTangents"))
-	FName ArriveTangentAttribute = "ArriveTangent";
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="bWriteTangents"))
-	FName LeaveTangentAttribute = "LeaveTangent";
-		
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="bWriteTangents", ShowOnlyInnerProperties))
+	FPCGExTangentParams TangentParams;
+
 private:
 	friend class FPCGExEdgesToPathsElement;
 };
@@ -55,6 +51,9 @@ public:
 	EPCGExEdgeType EdgeType;
 	TArray<PCGExGraph::FUnsignedEdge> UniqueEdges;
 	UPCGExPointIOGroup* EdgesIO;
+
+	bool bWriteTangents;
+	FPCGExTangentParams TangentParams;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExEdgesToPathsElement : public FPCGExGraphProcessorElement

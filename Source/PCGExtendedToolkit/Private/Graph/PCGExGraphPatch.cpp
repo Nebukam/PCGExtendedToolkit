@@ -2,6 +2,7 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Graph/PCGExGraphPatch.h"
+
 #include "PCGContext.h"
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
 

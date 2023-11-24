@@ -5,9 +5,7 @@
 
 #include "Data/PCGSpatialData.h"
 #include "PCGContext.h"
-#include "DrawDebugHelpers.h"
 #include "Editor.h"
-#include "Graph/PCGExGraphHelpers.h"
 
 #define LOCTEXT_NAMESPACE "PCGExEdgesToPaths"
 
@@ -32,6 +30,8 @@ FPCGContext* FPCGExEdgesToPathsElement::Initialize(
 	check(Settings);
 
 	Context->EdgeType = static_cast<EPCGExEdgeType>(Settings->EdgeType);
+	Context->bWriteTangents = Settings->bWriteTangents;
+	Context->TangentParams = Settings->TangentParams;
 
 	return Context;
 }
@@ -100,7 +100,7 @@ bool FPCGExEdgesToPathsElement::ExecuteInternal(
 
 	auto Initialize = [&Context](const UPCGExPointIO* IO)
 	{
-		Context->CurrentGraph->PrepareForPointData(Context, IO->In, true);
+		Context->CurrentGraph->PrepareForPointData(IO->In, true);
 	};
 
 	if (Context->IsState(PCGExMT::EState::ProcessingGraph))
@@ -119,10 +119,20 @@ bool FPCGExEdgesToPathsElement::ExecuteInternal(
 		FPCGPoint& Start = IO->Out->GetMutablePoints().Emplace_GetRef(IO->In->GetPoint(UEdge.Start));
 		FPCGPoint& End = IO->Out->GetMutablePoints().Emplace_GetRef(IO->In->GetPoint(UEdge.End));
 
-		IO->Out->Metadata->InitializeOnSet(Start.MetadataEntry);
-		IO->Out->Metadata->InitializeOnSet(End.MetadataEntry);
+		if(Context->bWriteTangents)
+		{
+			IO->Out->Metadata->InitializeOnSet(Start.MetadataEntry);
+			IO->Out->Metadata->InitializeOnSet(End.MetadataEntry);
+			
+			FVector StartIn = Start.Transform.GetRotation().GetForwardVector();
+			FVector StartOut = StartIn*-1;
+			FVector EndIn = End.Transform.GetRotation().GetForwardVector();
+			FVector EndOut = EndIn*-1;
 
-		// TODO: Compute arrive/leave tangent
+			Context->TangentParams.CreateAttributes(IO->Out, Start, End,
+				StartIn, StartOut, EndIn, EndOut);
+			
+		}
 	};
 
 	auto InitializeAsync = [&Context]()

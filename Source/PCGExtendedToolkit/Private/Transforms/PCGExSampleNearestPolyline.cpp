@@ -2,8 +2,7 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Transforms/PCGExSampleNearestPolyline.h"
-#include "Data/PCGSpatialData.h"
-#include "PCGContext.h"
+
 #include "PCGExCommon.h"
 #include "PCGPin.h"
 #include <algorithm>

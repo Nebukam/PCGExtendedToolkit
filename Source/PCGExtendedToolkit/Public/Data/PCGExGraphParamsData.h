@@ -6,14 +6,14 @@
 #include "CoreMinimal.h"
 #include "PCGExCommon.h"
 #include "PCGParamData.h"
+#include "Graph/PCGExGraph.h"
 #include "Math/UnrealMathUtility.h"
 #include "PCGExLocalAttributeHelpers.h"
-#include "Graph/PCGExGraphProcessor.h"
+
 #include "PCGExGraphParamsData.generated.h"
 
-class UPCGExCreateGraphParamsSettings;
-struct FPCGExGraphProcessorContext;
 class UPCGPointData;
+
 
 UENUM(BlueprintType, meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor="true"))
 enum class EPCGExSocketType : uint8
@@ -38,7 +38,6 @@ enum class EPCGExEdgeType : uint8
 };
 
 ENUM_CLASS_FLAGS(EPCGExEdgeType)
-
 
 USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExSocketAngle
@@ -284,6 +283,8 @@ public:
 
 namespace PCGExGraph
 {
+
+	
 	struct PCGEXTENDEDTOOLKIT_API FEdge
 	{
 		uint32 Start = 0;
@@ -299,6 +300,11 @@ namespace PCGExGraph
 		{
 		}
 
+		bool operator==(const FEdge& Other) const
+		{
+			return Start == Other.Start && End == Other.End;
+		}
+
 		explicit operator uint64() const
 		{
 			return (static_cast<uint64>(Start) << 32) | End;
@@ -311,7 +317,6 @@ namespace PCGExGraph
 			// You might need to set a default value for Type based on your requirements.
 			Type = EPCGExEdgeType::Unknown;
 		}
-
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FUnsignedEdge : public FEdge
@@ -327,7 +332,7 @@ namespace PCGExGraph
 
 		bool operator==(const FUnsignedEdge& Other) const
 		{
-			return (Start ^ End) == GetTypeHash(Other);
+			return (Start == Other.Start && End == Other.End) || (Start == Other.End && End == Other.Start);
 		}
 
 		explicit FUnsignedEdge(const uint64 InValue)
@@ -762,7 +767,7 @@ public:
 	 * @param PointData
 	 * @param bEnsureEdgeType 
 	 */
-	void PrepareForPointData(FPCGExGraphProcessorContext* Context, const UPCGPointData* PointData, const bool bEnsureEdgeType);
+	void PrepareForPointData(const UPCGPointData* PointData, const bool bEnsureEdgeType);
 
 	/**
 		 * Fills an array in order with each' socket metadata registered for a given point.

@@ -79,7 +79,7 @@ bool FPCGExConsolidateGraphElement::ExecuteInternal(
 	{
 		Context->IndicesRemap.Empty(IO->NumPoints);
 		IO->BuildMetadataEntries();
-		Context->CurrentGraph->PrepareForPointData(Context, IO->Out, true); // Prepare to read IO->Out
+		Context->CurrentGraph->PrepareForPointData(IO->Out, true); // Prepare to read IO->Out
 	};
 
 	auto ProcessPoint = [&Context](const FPCGPoint& Point, const int32 ReadIndex, const UPCGExPointIO* IO)

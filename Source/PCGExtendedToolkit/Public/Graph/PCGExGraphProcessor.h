@@ -6,13 +6,86 @@
 #include "CoreMinimal.h"
 #include "PCGContext.h"
 #include "PCGExPointsProcessor.h"
-#include "PCGExGraphHelpers.h"
-#include "PCGExGraphProcessor.generated.h"
+#include "PCGExGraph.h"
+#include "Data/PCGExGraphParamsData.h"
 
-class UPCGExGraphParamsData;
+#include "PCGExGraphProcessor.generated.h"
 
 namespace PCGExGraph
 {
+	struct PCGEXTENDEDTOOLKIT_API FGraphInputs
+	{
+		FGraphInputs()
+		{
+			Params.Empty();
+			ParamsSources.Empty();
+		}
+
+		FGraphInputs(FPCGContext* Context, FName InputLabel): FGraphInputs()
+		{
+			TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(InputLabel);
+			Initialize(Context, Sources);
+		}
+
+		FGraphInputs(FPCGContext* Context, TArray<FPCGTaggedData>& Sources): FGraphInputs()
+		{
+			Initialize(Context, Sources);
+		}
+
+	public:
+		TArray<UPCGExGraphParamsData*> Params;
+		TArray<FPCGTaggedData> ParamsSources;
+
+		/**
+		 * Initialize from Sources
+		 * @param Context 
+		 * @param Sources 
+		 * @param bInitializeOutput 
+		 */
+		void Initialize(FPCGContext* Context, TArray<FPCGTaggedData>& Sources, bool bInitializeOutput = false)
+		{
+			Params.Empty(Sources.Num());
+			TSet<uint64> UniqueParams;
+			for (FPCGTaggedData& Source : Sources)
+			{
+				const UPCGExGraphParamsData* GraphData = Cast<UPCGExGraphParamsData>(Source.Data);
+				if (!GraphData) { continue; }
+				if (UniqueParams.Contains(GraphData->UID)) { continue; }
+				UniqueParams.Add(GraphData->UID);
+				Params.Add(const_cast<UPCGExGraphParamsData*>(GraphData));
+				ParamsSources.Add(Source);
+			}
+			UniqueParams.Empty();
+		}
+
+		void ForEach(FPCGContext* Context, const TFunction<void(UPCGExGraphParamsData*, const int32)>& BodyLoop)
+		{
+			for (int i = 0; i < Params.Num(); i++)
+			{
+				UPCGExGraphParamsData* ParamsData = Params[i];
+				BodyLoop(ParamsData, i);
+			}
+		}
+
+		void OutputTo(FPCGContext* Context) const
+		{
+			for (int i = 0; i < ParamsSources.Num(); i++)
+			{
+				FPCGTaggedData& OutputRef = Context->OutputData.TaggedData.Add_GetRef(ParamsSources[i]);
+				OutputRef.Pin = PCGExGraph::OutputParamsLabel;
+				OutputRef.Data = Params[i];
+			}
+		}
+
+		bool IsEmpty() const { return Params.IsEmpty(); }
+
+		~FGraphInputs()
+		{
+			Params.Empty();
+			ParamsSources.Empty();
+		}
+	};
+
 	struct PCGEXTENDEDTOOLKIT_API FPointCandidate
 	{
 		FPointCandidate()
@@ -84,7 +157,7 @@ namespace PCGExGraph
 		{
 			for (const FPointCandidate& Candidate : Candidates)
 			{
-				const double DotRating = 1-PCGEx::Maths::Remap(Candidate.Dot, ProbedDotMin, ProbedDotMax);
+				const double DotRating = 1 - PCGEx::Maths::Remap(Candidate.Dot, ProbedDotMin, ProbedDotMax);
 				const double DistanceRating = PCGEx::Maths::Remap(Candidate.Distance, ProbedDistanceMin, ProbedDistanceMax);
 				const double DotWeight = FMathf::Clamp(DotOverDistanceCurve->GetFloatValue(DistanceRating), 0, 1);
 				const double Rating = (DotRating * DotWeight) + (DistanceRating * (1 - DotWeight));
@@ -138,7 +211,10 @@ namespace PCGExGraph
 			SocketInfos = nullptr;
 		}
 	};
+		
 }
+
+class UPCGExGraphParamsData;
 
 /**
  * A Base node to process a set of point using GraphParams.
@@ -167,7 +243,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGraphProcessorContext : public FPCGExPointsP
 	friend class UPCGExGraphProcessorSettings;
 
 public:
-	PCGExGraph::FParamsInputs Params;
+	PCGExGraph::FGraphInputs Params;
 
 	int32 GetCurrentParamsIndex() const { return CurrentParamsIndex; };
 	UPCGExGraphParamsData* CurrentGraph = nullptr;
@@ -179,12 +255,14 @@ public:
 
 	FPCGMetadataAttribute<int64>* CachedIndex;
 	TArray<PCGExGraph::FSocketInfos> SocketInfos;
-
+	
 	void ComputeEdgeType(const FPCGPoint& Point, int32 ReadIndex, const UPCGExPointIO* IO);
 	double PrepareProbesForPoint(const FPCGPoint& Point, TArray<PCGExGraph::FSocketProbe>& OutProbes);
 
+	void PrepareCurrentGraphForPoints(const UPCGPointData* InData, bool bEnsureEdgeType);
+	
 	void OutputGraphParams() { Params.OutputTo(this); }
-
+	
 	void OutputPointsAndParams()
 	{
 		OutputPoints();

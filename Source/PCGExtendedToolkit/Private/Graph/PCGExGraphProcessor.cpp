@@ -2,9 +2,9 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Graph/PCGExGraphProcessor.h"
-
 #include "PCGContext.h"
 #include "PCGPin.h"
+#include "Data/PCGExGraphParamsData.h"
 #include "Graph/PCGExGraphHelpers.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
@@ -121,6 +121,12 @@ double FPCGExGraphProcessorContext::PrepareProbesForPoint(const FPCGPoint& Point
 		MaxDistance = FMath::Max(MaxDistance, NewProbe.MaxDistance);
 	}
 	return MaxDistance;
+}
+
+void FPCGExGraphProcessorContext::PrepareCurrentGraphForPoints(const UPCGPointData* InData, bool bEnsureEdgeType)
+{
+	CachedIndex = InData->Metadata->FindOrCreateAttribute<int64>(CurrentGraph->CachedIndexAttributeName, -1, false);
+	CurrentGraph->PrepareForPointData(InData, bEnsureEdgeType);
 }
 
 void FPCGExGraphProcessorContext::PrepareProbeForPointSocketPair(

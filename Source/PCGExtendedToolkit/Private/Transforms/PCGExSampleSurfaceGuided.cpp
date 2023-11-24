@@ -2,8 +2,6 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Transforms/PCGExSampleSurfaceGuided.h"
-#include "Data/PCGSpatialData.h"
-#include "PCGContext.h"
 #include "PCGExCommon.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSampleSurfaceGuidedElement"
@@ -89,7 +87,7 @@ bool FPCGExSampleSurfaceGuidedElement::ExecuteInternal(FPCGContext* InContext) c
 		PCGEX_INIT_ATTRIBUTE_OUT(Distance, double)
 	};
 
-	auto ProcessPoint = [&Context, this](const FPCGPoint& Point, const int32 Index, UPCGExPointIO* IO)
+	auto ProcessPoint = [&Context, this](const FPCGPoint& Point, const int32 Index, const UPCGExPointIO* IO)
 	{
 		Context->ScheduleTask<PCGExAsync::FTraceTask>(Index, Point.MetadataEntry);
 	};

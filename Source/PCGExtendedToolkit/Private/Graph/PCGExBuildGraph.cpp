@@ -8,7 +8,6 @@
 #include "PCGContext.h"
 #include "DrawDebugHelpers.h"
 #include "Editor.h"
-#include "Graph/PCGExGraphHelpers.h"
 
 #define LOCTEXT_NAMESPACE "PCGExBuildGraph"
 
@@ -29,17 +28,6 @@ FPCGContext* FPCGExBuildGraphElement::Initialize(
 	FPCGExBuildGraphContext* Context = new FPCGExBuildGraphContext();
 	InitializeContext(Context, InputData, SourceComponent, Node);
 	return Context;
-}
-
-void FPCGExBuildGraphElement::InitializeContext(
-	FPCGExPointsProcessorContext* InContext,
-	const FPCGDataCollection& InputData,
-	TWeakObjectPtr<UPCGComponent> SourceComponent,
-	const UPCGNode* Node) const
-{
-	FPCGExGraphProcessorElement::InitializeContext(InContext, InputData, SourceComponent, Node);
-	//FPCGExBuildGraphContext* Context = static_cast<FPCGExBuildGraphContext*>(InContext);
-	// ...
 }
 
 bool FPCGExBuildGraphElement::ExecuteInternal(
@@ -125,7 +113,7 @@ bool FPCGExBuildGraphElement::ExecuteInternal(
 
 	auto Initialize = [&Context, &Settings](const UPCGExPointIO* IO)
 	{
-		Context->CurrentGraph->PrepareForPointData(Context, IO->Out, Settings->bComputeEdgeType);
+		Context->CurrentGraph->PrepareForPointData(IO->Out, Settings->bComputeEdgeType);
 	};
 
 	if (Context->IsState(PCGExMT::EState::ProcessingGraph))

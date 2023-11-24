@@ -3,14 +3,11 @@
 
 #pragma once
 
-/*
- * This is a dummy class to create new simple PCG nodes
- */
-
 #include "CoreMinimal.h"
+#include "PCGExCommon.h"
 #include "PCGExPointsProcessor.h"
 #include "PCGExTransform.h"
-#include "Elements/PCGPointProcessingElementBase.h"
+
 #include "PCGExSampleNearestSurface.generated.h"
 
 namespace PCGExAsync

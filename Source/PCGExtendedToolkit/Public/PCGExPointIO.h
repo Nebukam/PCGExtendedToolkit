@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "PCGExCommon.h"
 #include "UObject/Object.h"
+
 #include "PCGExPointIO.generated.h"
 
 namespace PCGEx
@@ -84,7 +85,7 @@ public:
 		InitializeFunc&& Initialize,
 		ProcessElementFunc&& LoopBody,
 		const int32 ChunkSize = 32);
-	
+
 	template <class InitializeFunc, class ProcessElementFunc>
 	bool InputParallelProcessing(
 		FPCGContext* Context,
@@ -165,7 +166,11 @@ public:
 		ProcessElementFunc&& LoopBody,
 		int32 ChunkSize = 32);
 	template <class InitializeFunc, class ProcessElementFunc>
-	bool InputsParallelProcessing(FPCGContext* Context, InitializeFunc&& Initialize, ProcessElementFunc&& LoopBody, int32 ChunkSize);
+	bool InputsParallelProcessing(
+		FPCGContext* Context,
+		InitializeFunc&& Initialize,
+		ProcessElementFunc&& LoopBody,
+		int32 ChunkSize = 32);
 
 protected:
 	mutable FRWLock PairsLock;
