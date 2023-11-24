@@ -31,10 +31,7 @@ void UPCGExDrawAttributesSettings::PostEditChangeProperty(FPropertyChangedEvent&
 }
 #endif
 
-FPCGElementPtr UPCGExDrawAttributesSettings::CreateElement() const
-{
-	return MakeShared<FPCGExDrawAttributesElement>();
-}
+FPCGElementPtr UPCGExDrawAttributesSettings::CreateElement() const { return MakeShared<FPCGExDrawAttributesElement>(); }
 
 void FPCGExDrawAttributesContext::PrepareForPoints(const UPCGPointData* PointData)
 {
@@ -77,8 +74,7 @@ bool FPCGExDrawAttributesElement::Validate(FPCGContext* InContext) const
 	return true;
 }
 
-bool FPCGExDrawAttributesElement::ExecuteInternal(
-	FPCGContext* InContext) const
+bool FPCGExDrawAttributesElement::ExecuteInternal(FPCGContext* InContext) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExDrawAttributesElement::Execute);
 
@@ -91,10 +87,13 @@ bool FPCGExDrawAttributesElement::ExecuteInternal(
 
 	if (Context->IsSetup())
 	{
-		FlushPersistentDebugLines(Context->World);
-
 		if (!Settings->bDebug) { return true; }
 		if (!Validate(Context)) { return true; }
+		if (!PCGExDebug::NotifyExecute(InContext))
+		{
+			PCGE_LOG(Error, GraphAndLog, LOCTEXT("MissingDebugManager", "Could not find a PCGEx Debug Manager node in your graph."));
+			return true;
+		}
 
 		Context->SetState(PCGExMT::EState::ReadyForNextPoints);
 	}

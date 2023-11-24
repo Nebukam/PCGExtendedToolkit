@@ -80,7 +80,7 @@ bool FPCGExOperationsElement::ExecuteInternal(
 
 	if (Context->IsSetup())
 	{
-		FlushPersistentDebugLines(Context->World);
+		//FlushPersistentDebugLines(Context->World);
 
 		if (!Settings->bDebug) { return true; }
 		if (!Validate(Context)) { return true; }

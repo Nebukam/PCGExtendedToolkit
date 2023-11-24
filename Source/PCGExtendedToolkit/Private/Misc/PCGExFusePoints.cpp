@@ -93,6 +93,7 @@ FPCGContext* FPCGExFusePointsElement::Initialize(
 	const UPCGExFusePointsSettings* Settings = Context->GetInputSettings<UPCGExFusePointsSettings>();
 	check(Settings);
 
+	Context->bDeterministic = Settings->bDeterministic;
 	Context->FuseMethod = Settings->FuseMethod;
 	Context->Radius = FMath::Pow(Settings->Radius, 2);
 	Context->bComponentWiseRadius = Settings->bComponentWiseRadius;
@@ -123,6 +124,7 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 		}
 		else
 		{
+			Context->CurrentIndex = 0;
 			Context->SetState(PCGExMT::EState::ProcessingPoints);
 		}
 	}
@@ -181,7 +183,24 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsState(PCGExMT::EState::ProcessingPoints))
 	{
-		if (Context->CurrentIO->InputParallelProcessing(Context, Initialize, ProcessPoint, Context->ChunkSize))
+		if (Context->bDeterministic)
+		{
+			if (Context->CurrentIndex == 0) { Initialize(Context->CurrentIO); }
+			const int64 NumIterations = FMath::Min(Context->ChunkSize, Context->CurrentIO->NumPoints - Context->CurrentIndex);
+			if (NumIterations <= 0)
+			{
+				Context->SetState(PCGExMT::EState::ProcessingGraph2ndPass);
+			}
+			else
+			{
+				for (int i = 0; i < NumIterations; i++)
+				{
+					ProcessPoint(Context->CurrentIO->In->GetPoint(Context->CurrentIndex), Context->CurrentIndex, Context->CurrentIO);
+					Context->CurrentIndex++;
+				}
+			}
+		}
+		else if (Context->CurrentIO->InputParallelProcessing(Context, Initialize, ProcessPoint, Context->ChunkSize))
 		{
 			Context->SetState(PCGExMT::EState::ProcessingGraph2ndPass);
 		}
@@ -234,7 +253,6 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsState(PCGExMT::EState::ProcessingGraph2ndPass))
 	{
-		//TODO: Stabilized alternative -- parallel doesn't guarantee order, so result is non-deterministic
 		if (PCGExMT::ParallelForLoop(Context, Context->FusedPoints.Num(), InitializeReconcile, FusePoints, Context->ChunkSize))
 		{
 			Context->OutPoints = nullptr;

@@ -98,7 +98,6 @@ bool FPCGExPartitionGraphPatchesElement::ExecuteInternal(
 
 	auto ProcessPoint = [&](const FPCGPoint& Point, const int32 ReadIndex, const UPCGExPointIO* PointIO)
 	{
-		//FWriteScopeLock ScopeLock(Context->ContextLock);
 		Context->Patches->Distribute(ReadIndex);
 	};
 
@@ -106,7 +105,6 @@ bool FPCGExPartitionGraphPatchesElement::ExecuteInternal(
 	{
 		if (Context->CurrentIO->InputParallelProcessing(Context, InitializePointsInput, ProcessPoint, 32))
 		{
-			//for (UPCGExGraphPatch* Patch : Context->Patches->Patches)			{			}
 			Context->SetState(PCGExMT::EState::ReadyForNextPoints);
 			Context->Patches->OutputTo(Context, Context->MinPatchSize, Context->MaxPatchSize);
 		}

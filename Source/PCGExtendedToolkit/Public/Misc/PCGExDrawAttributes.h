@@ -4,8 +4,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "IPCGExDebug.h"
 
-#include "PCGExPointsProcessor.h"
+#include "PCGExDebugManager.h"
 #include "Data/PCGExAttributeHelpers.h"
 
 #include "PCGExDrawAttributes.generated.h"
@@ -219,7 +220,7 @@ protected:
  * Calculates the distance between two points (inherently a n*n operation)
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
-class PCGEXTENDEDTOOLKIT_API UPCGExDrawAttributesSettings : public UPCGExPointsProcessorSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExDrawAttributesSettings : public UPCGExPointsProcessorSettings, public IPCGExDebug
 {
 	GENERATED_BODY()
 
@@ -230,7 +231,7 @@ public:
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(DrawAttributes, "Draw Attributes", "Draw debug attributes. Toggle debug OFF (D) before disabling this node (E)! Warning: this node will clear persistent debug lines before it!");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Debug; }
-	virtual FLinearColor GetNodeTitleColor() const override { return FLinearColor(1.0f, 0.0f, 0.0f, 1.0f); }
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorDebug; }
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
@@ -243,6 +244,12 @@ protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings interface
 
+	//~Begin IPCGExDebug interface
+public:
+	virtual bool IsDebugEnabled() const override { return bEnabled && bDebug; }
+	//~End IPCGExDebug interface
+
+protected:
 	virtual PCGExIO::EInitMode GetPointOutputInitMode() const override;
 
 private:

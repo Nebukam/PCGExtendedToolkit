@@ -41,7 +41,6 @@ public:
 	FPCGContext* TaskContext;
 	UPCGExPointIO* PointData;
 	PCGExMT::FTaskInfos Infos;
-
 };
 
 /**

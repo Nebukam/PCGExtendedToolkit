@@ -30,7 +30,7 @@ TArray<FPCGPinProperties> UPCGExDrawGraphSettings::OutputPinProperties() const
 
 void UPCGExDrawGraphSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
-	if (const UWorld* EditorWorld = GEditor->GetEditorWorldContext().World()) { FlushPersistentDebugLines(EditorWorld); }
+	//if (const UWorld* EditorWorld = GEditor->GetEditorWorldContext().World()) { FlushPersistentDebugLines(EditorWorld); }
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
 #endif
@@ -51,11 +51,14 @@ bool FPCGExDrawGraphElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsSetup())
 	{
-		FlushPersistentDebugLines(Context->World);
-
 		if (!Validate(Context)) { return true; }
 		if (!Settings->bDebug) { return true; }
-
+		if (!PCGExDebug::NotifyExecute(InContext))
+		{
+			PCGE_LOG(Error, GraphAndLog, LOCTEXT("MissingDebugManager", "Could not find a PCGEx Debug Manager node in your graph."));
+			return true;
+		}
+		
 		Context->SetState(PCGExMT::EState::ReadyForNextPoints);
 	}
 
