@@ -110,7 +110,11 @@ public:
 
 	int64 NumTraceComplete = 0;
 
-	void WrapTraceTask(const FPointTask* Task, bool bSuccess);
+	void WrapTraceTask(const FPointTask* Task, bool bSuccess)
+	{
+		FWriteScopeLock ScopeLock(ContextLock);
+		NumTraceComplete++;
+	}
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExSampleSurfaceGuidedElement : public FPCGExPointsProcessorElementBase
@@ -138,7 +142,7 @@ public:
 	virtual void ExecuteTask(FPCGContext* InContext) override
 	{
 		FPCGExSampleSurfaceGuidedContext* Context = static_cast<FPCGExSampleSurfaceGuidedContext*>(InContext);
-		FPCGPoint InPoint = GetInPoint();
+		FPCGPoint InPoint = PointData->In->GetPoint(Infos.Index);
 		FVector Origin = InPoint.Transform.GetLocation();
 
 		FCollisionQueryParams CollisionParams;

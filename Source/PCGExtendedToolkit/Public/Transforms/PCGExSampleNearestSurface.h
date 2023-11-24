@@ -142,7 +142,7 @@ public:
 	virtual void ExecuteTask(FPCGContext* InContext) override
 	{
 		FPCGExSampleNearestSurfaceContext* Context = static_cast<FPCGExSampleNearestSurfaceContext*>(InContext);
-		FPCGPoint InPoint = GetInPoint();
+		FPCGPoint InPoint = PointData->In->GetPoint(Infos.Index);
 		FVector Origin = InPoint.Transform.GetLocation();
 
 		FCollisionQueryParams CollisionParams;

@@ -42,8 +42,6 @@ public:
 	UPCGExPointIO* PointData;
 	PCGExMT::FTaskInfos Infos;
 
-	FPCGPoint GetInPoint() const { return PointData->In->GetPoint(Infos.Index); }
-	FPCGPoint GetOutPoint() const { return PointData->Out->GetPoint(Infos.Index); }
 };
 
 /**

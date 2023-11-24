@@ -9,12 +9,6 @@ PCGExIO::EInitMode UPCGExSampleSurfaceGuidedSettings::GetPointOutputInitMode() c
 
 FPCGElementPtr UPCGExSampleSurfaceGuidedSettings::CreateElement() const { return MakeShared<FPCGExSampleSurfaceGuidedElement>(); }
 
-void FPCGExSampleSurfaceGuidedContext::WrapTraceTask(const FPointTask* Task, bool bSuccess)
-{
-	FWriteScopeLock ScopeLock(ContextLock);
-	NumTraceComplete++;
-}
-
 FPCGContext* FPCGExSampleSurfaceGuidedElement::Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node)
 {
 	FPCGExSampleSurfaceGuidedContext* Context = new FPCGExSampleSurfaceGuidedContext();
@@ -76,7 +70,7 @@ bool FPCGExSampleSurfaceGuidedElement::ExecuteInternal(FPCGContext* InContext) c
 		}
 	}
 
-	auto Initialize = [&](UPCGExPointIO* PointIO)
+	auto Initialize = [&]() //UPCGExPointIO* PointIO
 	{
 		UPCGExPointIO* PointIO = Context->CurrentIO;
 		Context->NumTraceComplete = 0;
@@ -88,24 +82,25 @@ bool FPCGExSampleSurfaceGuidedElement::ExecuteInternal(FPCGContext* InContext) c
 		PCGEX_INIT_ATTRIBUTE_OUT(Distance, double)
 	};
 
-	auto ProcessPoint = [&](const FPCGPoint& Point, const int32 Index, UPCGExPointIO* PointIO)
+	// auto ProcessPoint = [&](const FPCGPoint& Point, const int32 Index, UPCGExPointIO* PointIO) { Context->ScheduleTask<FTraceTask>(Index, Point.MetadataEntry); };
+
+	auto ProcessPoint = [&](int32 Index)
 	{
-		Context->ScheduleTask<FTraceTask>(Index, Point.MetadataEntry);
+		Context->ScheduleTask<FTraceTask>(Index, Context->CurrentIO->Out->GetPoint(Index).MetadataEntry);
 	};
 
 	if (Context->IsState(PCGExMT::EState::ProcessingPoints))
 	{
-		/*
-		if (PCGExMT::ParallelForLoop(Context, Context->CurrentIO->NumPoints, Initialize, [&](int32 Index) { ProcessPoint(Context->CurrentIO->Out->GetPoint(Index), Index, Context->CurrentIO); }, Context->ChunkSize))
+		if (PCGExMT::ParallelForLoop(Context, Context->CurrentIO->NumPoints, Initialize, ProcessPoint, Context->ChunkSize))
 		{
 			Context->SetState(PCGExMT::EState::WaitingOnAsyncTasks);
-			Context->World->AsyncOverlapByProfile()
 		}
-		*/
+		/*
 		if (Context->CurrentIO->OutputParallelProcessing(Context, Initialize, ProcessPoint, Context->ChunkSize))
 		{
 			Context->SetState(PCGExMT::EState::WaitingOnAsyncTasks);
 		}
+		*/
 	}
 
 	if (Context->IsState(PCGExMT::EState::WaitingOnAsyncTasks))

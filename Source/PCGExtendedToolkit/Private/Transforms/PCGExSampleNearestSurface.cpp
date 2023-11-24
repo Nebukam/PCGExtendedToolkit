@@ -16,6 +16,7 @@ void FPCGExSampleNearestSurfaceContext::WrapSweepTask(const FPointTask* Task, bo
 		if (Task->Infos.Attempt < NumMaxAttempts)
 		{
 			ScheduleTask<FSweepSphereTask>(Task->Infos.GetRetry());
+			return;
 		}
 	}
 	FWriteScopeLock ScopeLock(ContextLock);
@@ -94,14 +95,12 @@ bool FPCGExSampleNearestSurfaceElement::ExecuteInternal(FPCGContext* InContext) 
 		PCGEX_INIT_ATTRIBUTE_OUT(Distance, double)
 	};
 
-	auto ProcessPoint = [&](const FPCGPoint& Point, const int32 Index, const UPCGExPointIO* PointIO)
-	{
-		//Context->ScheduleTask<FSweepSphereTask>(Index, Point.MetadataEntry);
-	};
+	//auto ProcessPoint = [&](const FPCGPoint& Point, const int32 Index, const UPCGExPointIO* PointIO) { Context->ScheduleTask<FSweepSphereTask>(Index, Point.MetadataEntry); };
+	auto ProcessPoint = [&](int32 Index) { Context->ScheduleTask<FSweepSphereTask>(Index, Context->CurrentIO->Out->GetPoint(Index).MetadataEntry); };
 
 	if (Context->IsState(PCGExMT::EState::ProcessingPoints))
 	{
-		if (PCGExMT::ParallelForLoop(Context, Context->CurrentIO->NumPoints, Initialize, [&](int32 Index) { ProcessPoint(Context->CurrentIO->Out->GetPoint(Index), Index, Context->CurrentIO); }, Context->ChunkSize))
+		if (PCGExMT::ParallelForLoop(Context, Context->CurrentIO->NumPoints, Initialize, ProcessPoint, Context->ChunkSize))
 		{
 			Context->SetState(PCGExMT::EState::WaitingOnAsyncTasks);
 		}
