@@ -4,16 +4,16 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExCommon.h"
-#include "PCGExLocalAttributeHelpers.h"
+
 #include "PCGExPointsProcessor.h"
-#include "PCGExPolyLineIO.h"
 #include "PCGExTransform.h"
+#include "Data/PCGExPolyLineIO.h"
 
 #include "PCGExSampleNearestPolyline.generated.h"
 
 namespace PCGExPolyLine
 {
+
 	struct PCGEXTENDEDTOOLKIT_API FSampleInfos
 	{
 		FSampleInfos()
@@ -37,7 +37,7 @@ namespace PCGExPolyLine
 
 		int32 NumTargets = 0;
 		double TotalWeight = 0;
-		double SampledRangeMin = MAX_dbl;
+		double SampledRangeMin = DBL_MAX; 
 		double SampledRangeMax = 0;
 		double SampledRangeWidth = 0;
 		int32 UpdateCount = 0;
@@ -69,8 +69,8 @@ namespace PCGExPolyLine
 			return (Distance - SampledRangeMin) / SampledRangeWidth;
 		}
 	};
+	
 }
-
 
 /**
  * Use PCGExTransform to manipulate the outgoing attributes instead of handling everything here.
@@ -91,7 +91,7 @@ public:
 
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 
-	virtual PCGEx::EIOInit GetPointOutputInitMode() const override;
+	virtual PCGExIO::EInitMode GetPointOutputInitMode() const override;
 	virtual int32 GetPreferredChunkSize() const override;
 
 protected:
@@ -231,6 +231,7 @@ public:
 		const FPCGDataCollection& InputData,
 		TWeakObjectPtr<UPCGComponent> SourceComponent,
 		const UPCGNode* Node) override;
+
 	virtual bool Validate(FPCGContext* InContext) const override;
 
 protected:

@@ -2,15 +2,10 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Misc/PCGExWriteIndex.h"
-#include "Data/PCGSpatialData.h"
-#include "Data/PCGPointData.h"
-#include "PCGContext.h"
-#include "PCGExCommon.h"
-#include "Elements/Metadata/PCGMetadataElementCommon.h"
 
 #define LOCTEXT_NAMESPACE "PCGExWriteIndexElement"
 
-PCGEx::EIOInit UPCGExWriteIndexSettings::GetPointOutputInitMode() const { return PCGEx::EIOInit::DuplicateInput; }
+PCGExIO::EInitMode UPCGExWriteIndexSettings::GetPointOutputInitMode() const { return PCGExIO::EInitMode::DuplicateInput; }
 
 FPCGElementPtr UPCGExWriteIndexSettings::CreateElement() const { return MakeShared<FPCGExWriteIndexElement>(); }
 
@@ -31,7 +26,7 @@ bool FPCGExWriteIndexElement::Validate(FPCGContext* InContext) const
 	check(Settings);
 
 	const FName OutName = Settings->OutputAttributeName;
-	if (!PCGEx::Common::IsValidName(OutName))
+	if (!PCGEx::IsValidName(OutName))
 	{
 		PCGE_LOG(Error, GraphAndLog, LOCTEXT("InvalidName", "Output name is invalid."));
 		return false;
@@ -60,17 +55,17 @@ bool FPCGExWriteIndexElement::ExecuteInternal(FPCGContext* InContext) const
 		Context->SetState(PCGExMT::EState::ProcessingPoints);
 	}
 
-	auto InitializeForIO = [&Context](UPCGExPointIO* IO)
+	auto InitializeForIO = [&](UPCGExPointIO* PointIO)
 	{
 		FWriteScopeLock ScopeLock(Context->MapLock);
-		IO->BuildMetadataEntries();
-		FPCGMetadataAttribute<int64>* IndexAttribute = IO->Out->Metadata->FindOrCreateAttribute<int64>(Context->OutName, -1, false);
-		Context->AttributeMap.Add(IO, IndexAttribute);
+		PointIO->BuildMetadataEntries();
+		FPCGMetadataAttribute<int64>* IndexAttribute = PointIO->Out->Metadata->FindOrCreateAttribute<int64>(Context->OutName, -1, false);
+		Context->AttributeMap.Add(PointIO, IndexAttribute);
 	};
 
-	auto ProcessPoint = [&Context](const FPCGPoint& Point, const int32 Index, const UPCGExPointIO* IO)
+	auto ProcessPoint = [&](const FPCGPoint& Point, const int32 Index, const UPCGExPointIO* PointIO)
 	{
-		FPCGMetadataAttribute<int64>* IndexAttribute = *(Context->AttributeMap.Find(IO));
+		FPCGMetadataAttribute<int64>* IndexAttribute = *(Context->AttributeMap.Find(PointIO));
 		IndexAttribute->SetValue(Point.MetadataEntry, Index);
 	};
 

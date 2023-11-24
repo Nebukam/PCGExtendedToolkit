@@ -3,14 +3,17 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExCommon.h"
 #include "UObject/Object.h"
+
+#include "Data/PCGPointData.h"
+
+#include "PCGEx.h"
 
 #include "PCGExPointIO.generated.h"
 
-namespace PCGEx
+namespace PCGExIO
 {
-	enum class EIOInit : uint8
+	enum class EInitMode : uint8
 	{
 		NoOutput UMETA(DisplayName = "No Output"),
 		NewOutput UMETA(DisplayName = "Create Empty Output Object"),
@@ -42,14 +45,10 @@ public:
 
 	TMap<PCGMetadataEntryKey, int32> IndicesMap; //MetadataEntry::Index, based on Input points (output MetadataEntry will be offset)
 
-	void Flush()
-	{
-		IndicesMap.Empty();
-	}
+	void Flush() { IndicesMap.Empty(); }
 
 protected:
 	mutable FRWLock MapLock;
-	bool bParallelProcessing = false;
 
 public:
 	~UPCGExPointIO()
@@ -64,7 +63,7 @@ public:
 	 * @param InitOut Only initialize output if there is an existing input
 	 * @return 
 	 */
-	void InitializeOut(PCGEx::EIOInit InitOut = PCGEx::EIOInit::NoOutput);
+	void InitializeOut(PCGExIO::EInitMode InitOut = PCGExIO::EInitMode::NoOutput);
 
 	void BuildIndices();
 	void BuildMetadataEntries();
@@ -116,8 +115,8 @@ class PCGEXTENDEDTOOLKIT_API UPCGExPointIOGroup : public UObject
 
 public:
 	UPCGExPointIOGroup();
-	UPCGExPointIOGroup(FPCGContext* Context, FName InputLabel, PCGEx::EIOInit InitOut = PCGEx::EIOInit::NoOutput);
-	UPCGExPointIOGroup(FPCGContext* Context, TArray<FPCGTaggedData>& Sources, PCGEx::EIOInit InitOut = PCGEx::EIOInit::NoOutput);
+	UPCGExPointIOGroup(FPCGContext* Context, FName InputLabel, PCGExIO::EInitMode InitOut = PCGExIO::EInitMode::NoOutput);
+	UPCGExPointIOGroup(FPCGContext* Context, TArray<FPCGTaggedData>& Sources, PCGExIO::EInitMode InitOut = PCGExIO::EInitMode::NoOutput);
 
 	FName DefaultOutputLabel = PCGEx::OutputPointsLabel;
 	TArray<UPCGExPointIO*> Pairs;
@@ -130,21 +129,21 @@ public:
 	 */
 	void Initialize(
 		FPCGContext* Context, TArray<FPCGTaggedData>& Sources,
-		PCGEx::EIOInit InitOut = PCGEx::EIOInit::NoOutput);
+		PCGExIO::EInitMode InitOut = PCGExIO::EInitMode::NoOutput);
 
 	void Initialize(
 		FPCGContext* Context, TArray<FPCGTaggedData>& Sources,
-		PCGEx::EIOInit InitOut,
+		PCGExIO::EInitMode InitOut,
 		const TFunction<bool(UPCGPointData*)>& ValidateFunc,
 		const TFunction<void(UPCGExPointIO*)>& PostInitFunc);
 
 	UPCGExPointIO* Emplace_GetRef(
-		const UPCGExPointIO& IO,
-		const PCGEx::EIOInit InitOut = PCGEx::EIOInit::NoOutput);
+		const UPCGExPointIO& PointIO,
+		const PCGExIO::EInitMode InitOut = PCGExIO::EInitMode::NoOutput);
 
 	UPCGExPointIO* Emplace_GetRef(
 		const FPCGTaggedData& Source, UPCGPointData* In,
-		const PCGEx::EIOInit InitOut = PCGEx::EIOInit::NoOutput);
+		const PCGExIO::EInitMode InitOut = PCGExIO::EInitMode::NoOutput);
 
 	bool IsEmpty() const { return Pairs.IsEmpty(); }
 
@@ -165,6 +164,7 @@ public:
 		InitializeFunc&& Initialize,
 		ProcessElementFunc&& LoopBody,
 		int32 ChunkSize = 32);
+
 	template <class InitializeFunc, class ProcessElementFunc>
 	bool InputsParallelProcessing(
 		FPCGContext* Context,
@@ -177,6 +177,14 @@ protected:
 	TArray<bool> PairProcessingStatuses;
 	bool bProcessing = false;
 
-private:
-	static UPCGPointData* GetMutablePointData(FPCGContext* Context, const FPCGTaggedData& Source);
+	static UPCGPointData* GetMutablePointData(FPCGContext* Context, const FPCGTaggedData& Source)
+	{
+		const UPCGSpatialData* SpatialData = Cast<UPCGSpatialData>(Source.Data);
+		if (!SpatialData) { return nullptr; }
+
+		const UPCGPointData* PointData = SpatialData->ToPointData(Context);
+		if (!PointData) { return nullptr; }
+
+		return const_cast<UPCGPointData*>(PointData);
+	}
 };

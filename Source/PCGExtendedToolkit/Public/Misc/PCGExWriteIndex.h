@@ -3,11 +3,10 @@
 
 #pragma once
 
-
-
 #include "CoreMinimal.h"
+
 #include "PCGExPointsProcessor.h"
-#include "Elements/PCGPointProcessingElementBase.h"
+
 #include "PCGExWriteIndex.generated.h"
 
 /**
@@ -24,7 +23,7 @@ public:
 	PCGEX_NODE_INFOS(WriteIndex, "Write Index", "Write the current point index to an attribute.");
 #endif
 
-	virtual PCGEx::EIOInit GetPointOutputInitMode() const override;
+	virtual PCGExIO::EInitMode GetPointOutputInitMode() const override;
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;

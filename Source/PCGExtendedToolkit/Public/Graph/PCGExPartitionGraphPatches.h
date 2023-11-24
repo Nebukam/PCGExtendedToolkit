@@ -4,9 +4,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExGraphPatch.h"
+
 #include "PCGExGraphProcessor.h"
-#include "Elements/PCGPointProcessingElementBase.h"
+#include "PCGExGraphPatch.h"
+
 #include "PCGExPartitionGraphPatches.generated.h"
 
 /**
@@ -30,7 +31,7 @@ protected:
 
 	virtual int32 GetPreferredChunkSize() const override;
 
-	virtual PCGEx::EIOInit GetPointOutputInitMode() const override;
+	virtual PCGExIO::EInitMode GetPointOutputInitMode() const override;
 
 public:
 	/** Edge types to crawl to create a patch */
@@ -91,7 +92,7 @@ public:
 	{
 		Patches = NewObject<UPCGExGraphPatchGroup>();
 		Patches->Graph = CurrentGraph;
-		Patches->IO = CurrentIO;
+		Patches->PointIO = CurrentIO;
 		Patches->CrawlEdgeTypes = CrawlEdgeTypes;
 		Patches->ResolveRoamingMethod = ResolveRoamingMethod;
 		Patches->PatchIDAttributeName = PatchIDAttributeName;

@@ -11,17 +11,8 @@
 class FPCGExtendedToolkitModule : public IModuleInterface
 {
 public:
-	static UStaticMesh* DebugMeshFrustrum;
-		
 	/** IModuleInterface implementation */
 	virtual void StartupModule() override;
 	virtual void ShutdownModule() override;
-
-protected:
-	void BuildDebugStaticMeshes();
-	template <class BuilderFunc>
-	static UStaticMesh* CreateVirtualStaticMesh(FName MeshName, BuilderFunc&& BuildDescription);
-
-	void BuildFrustrum(FMeshDescription& MeshDescription);
 
 };

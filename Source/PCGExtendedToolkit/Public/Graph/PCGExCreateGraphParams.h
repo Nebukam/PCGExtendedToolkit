@@ -4,10 +4,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGContext.h"
-#include "PCGSettings.h"
-#include "PCGPin.h"
+
 #include "Data/PCGExGraphParamsData.h"
+
 #include "PCGExCreateGraphParams.generated.h"
 
 UENUM(BlueprintType)
@@ -55,7 +54,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSocketQualityOfLifeInfos
 		EntryKeyAttribute = *(FullName + Separator + PCGExGraph::SocketPropertyNameEntryKey.ToString());
 	}
 };
-
 
 /** Outputs a single GraphParam to be consumed by other nodes */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")

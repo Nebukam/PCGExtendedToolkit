@@ -3,18 +3,11 @@
 
 #include "Graph/PCGExConsolidateGraph.h"
 
-#include "Data/PCGSpatialData.h"
-#include "Data/PCGPointData.h"
-#include "PCGContext.h"
-#include "DrawDebugHelpers.h"
-#include "Editor.h"
-#include "Graph/PCGExGraphHelpers.h"
-
 #define LOCTEXT_NAMESPACE "PCGExConsolidateGraph"
 
 int32 UPCGExConsolidateGraphSettings::GetPreferredChunkSize() const { return 32; }
 
-PCGEx::EIOInit UPCGExConsolidateGraphSettings::GetPointOutputInitMode() const { return PCGEx::EIOInit::DuplicateInput; }
+PCGExIO::EInitMode UPCGExConsolidateGraphSettings::GetPointOutputInitMode() const { return PCGExIO::EInitMode::DuplicateInput; }
 
 FPCGElementPtr UPCGExConsolidateGraphSettings::CreateElement() const
 {
@@ -75,14 +68,14 @@ bool FPCGExConsolidateGraphElement::ExecuteInternal(
 
 	// 1st Pass on points
 
-	auto InitializePointsFirstPass = [&Context](UPCGExPointIO* IO)
+	auto InitializePointsFirstPass = [&](UPCGExPointIO* PointIO)
 	{
-		Context->IndicesRemap.Empty(IO->NumPoints);
-		IO->BuildMetadataEntries();
-		Context->CurrentGraph->PrepareForPointData(IO->Out, true); // Prepare to read IO->Out
+		Context->IndicesRemap.Empty(PointIO->NumPoints);
+		PointIO->BuildMetadataEntries();
+		Context->PrepareCurrentGraphForPoints(PointIO->Out, true); // Prepare to read PointIO->Out
 	};
 
-	auto ProcessPoint = [&Context](const FPCGPoint& Point, const int32 ReadIndex, const UPCGExPointIO* IO)
+	auto ProcessPoint = [&](const FPCGPoint& Point, const int32 ReadIndex, const UPCGExPointIO* PointIO)
 	{
 		FWriteScopeLock ScopeLock(Context->IndicesLock);
 		const int64 Key = Point.MetadataEntry;
@@ -101,12 +94,12 @@ bool FPCGExConsolidateGraphElement::ExecuteInternal(
 
 	// 2nd Pass on points - Swap indices with updated ones
 
-	auto InitializeNone = [](const UPCGExPointIO* IO)
+	auto InitializeNone = [](const UPCGExPointIO* PointIO)
 	{
 		// Dummy lambda
 	};
 
-	auto ConsolidatePoint = [&Context](const FPCGPoint& Point, const int32 ReadIndex, const UPCGExPointIO* IO)
+	auto ConsolidatePoint = [&](const FPCGPoint& Point, const int32 ReadIndex, const UPCGExPointIO* PointIO)
 	{
 		FReadScopeLock ScopeLock(Context->IndicesLock);
 
@@ -120,7 +113,7 @@ bool FPCGExConsolidateGraphElement::ExecuteInternal(
 			const PCGMetadataEntryKey Key = Point.MetadataEntry;
 			PCGMetadataEntryKey NewEntryKey = PCGInvalidEntryKey;
 
-			if (NewRelationIndex != -1) { NewEntryKey = IO->Out->GetPoint(NewRelationIndex).MetadataEntry; }
+			if (NewRelationIndex != -1) { NewEntryKey = PointIO->Out->GetPoint(NewRelationIndex).MetadataEntry; }
 			else { SocketInfos.Socket->SetEdgeType(Key, EPCGExEdgeType::Unknown); }
 
 			SocketInfos.Socket->SetTargetIndex(Key, NewRelationIndex);
@@ -138,9 +131,9 @@ bool FPCGExConsolidateGraphElement::ExecuteInternal(
 
 	// Optional 3rd Pass on points - Recompute edges type
 
-	auto ConsolidateEdgesType = [&Context](const FPCGPoint& Point, const int32 ReadIndex, const UPCGExPointIO* IO)
+	auto ConsolidateEdgesType = [&](const FPCGPoint& Point, const int32 ReadIndex, const UPCGExPointIO* PointIO)
 	{
-		Context->ComputeEdgeType(Point, ReadIndex, IO);
+		Context->ComputeEdgeType(Point, ReadIndex, PointIO);
 	};
 
 	if (Context->IsState(PCGExMT::EState::ProcessingPoints3rdPass))

@@ -3,17 +3,11 @@
 
 #include "Graph/PCGExBuildGraph.h"
 
-#include "Data/PCGSpatialData.h"
-#include "Data/PCGPointData.h"
-#include "PCGContext.h"
-#include "DrawDebugHelpers.h"
-#include "Editor.h"
-
 #define LOCTEXT_NAMESPACE "PCGExBuildGraph"
 
 int32 UPCGExBuildGraphSettings::GetPreferredChunkSize() const { return 32; }
 
-PCGEx::EIOInit UPCGExBuildGraphSettings::GetPointOutputInitMode() const { return PCGEx::EIOInit::DuplicateInput; }
+PCGExIO::EInitMode UPCGExBuildGraphSettings::GetPointOutputInitMode() const { return PCGExIO::EInitMode::DuplicateInput; }
 
 FPCGElementPtr UPCGExBuildGraphSettings::CreateElement() const
 {
@@ -52,7 +46,7 @@ bool FPCGExBuildGraphElement::ExecuteInternal(
 	{
 		if (Context->CurrentIO)
 		{
-			//Cleanup current IO, indices won't be needed anymore.
+			//Cleanup current PointIO, indices won't be needed anymore.
 			Context->CurrentIO->Flush();
 		}
 
@@ -70,7 +64,7 @@ bool FPCGExBuildGraphElement::ExecuteInternal(
 
 	// Process params for current points
 
-	auto ProcessPoint = [&Context](const FPCGPoint& Point, const int32 ReadIndex, const UPCGExPointIO* IO)
+	auto ProcessPoint = [&](const FPCGPoint& Point, const int32 ReadIndex, const UPCGExPointIO* PointIO)
 	{
 		Context->CachedIndex->SetValue(Point.MetadataEntry, ReadIndex); // Cache index
 
@@ -78,10 +72,10 @@ bool FPCGExBuildGraphElement::ExecuteInternal(
 		const double MaxDistance = Context->PrepareProbesForPoint(Point, Probes);
 		PCGExGraph::FPointCandidate Candidate;
 
-		auto ProcessPointNeighbor = [&ReadIndex, &Probes, &IO, &Candidate](const FPCGPointRef& OtherPointRef)
+		auto ProcessPointNeighbor = [&](const FPCGPointRef& OtherPointRef)
 		{
 			const FPCGPoint* OtherPoint = OtherPointRef.Point;
-			const int32 Index = IO->GetIndex(OtherPoint->MetadataEntry);
+			const int32 Index = PointIO->GetIndex(OtherPoint->MetadataEntry);
 
 			if (Index == ReadIndex) { return; }
 			for (PCGExGraph::FSocketProbe& Probe : Probes) { Probe.ProcessPoint(OtherPoint, Index); }
@@ -111,9 +105,9 @@ bool FPCGExBuildGraphElement::ExecuteInternal(
 		}
 	}
 
-	auto Initialize = [&Context, &Settings](const UPCGExPointIO* IO)
+	auto Initialize = [&](const UPCGExPointIO* PointIO)
 	{
-		Context->CurrentGraph->PrepareForPointData(IO->Out, Settings->bComputeEdgeType);
+		Context->PrepareCurrentGraphForPoints(PointIO->Out, Settings->bComputeEdgeType);
 	};
 
 	if (Context->IsState(PCGExMT::EState::ProcessingGraph))
@@ -133,13 +127,13 @@ bool FPCGExBuildGraphElement::ExecuteInternal(
 
 	// Process params again for edges types
 
-	auto InitializeForGraph = [](UPCGExPointIO* IO)
+	auto InitializeForGraph = [](UPCGExPointIO* PointIO)
 	{
 	};
 
-	auto ProcessPointForGraph = [&Context](const FPCGPoint& Point, const int32 ReadIndex, const UPCGExPointIO* IO)
+	auto ProcessPointForGraph = [&](const FPCGPoint& Point, const int32 ReadIndex, const UPCGExPointIO* PointIO)
 	{
-		Context->ComputeEdgeType(Point, ReadIndex, IO);
+		Context->ComputeEdgeType(Point, ReadIndex, PointIO);
 	};
 
 	if (Context->IsState(PCGExMT::EState::ProcessingGraph2ndPass))

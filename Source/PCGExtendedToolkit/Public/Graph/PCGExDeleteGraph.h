@@ -4,8 +4,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
+
 #include "PCGExGraphProcessor.h"
-#include "Elements/PCGPointProcessingElementBase.h"
+
 #include "PCGExDeleteGraph.generated.h"
 
 /**
@@ -24,7 +25,7 @@ public:
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
-	virtual PCGEx::EIOInit GetPointOutputInitMode() const override;
+	virtual PCGExIO::EInitMode GetPointOutputInitMode() const override;
 	//~End UPCGSettings interface
 
 	virtual int32 GetPreferredChunkSize() const override;

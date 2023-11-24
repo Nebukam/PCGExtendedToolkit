@@ -3,16 +3,9 @@
 
 #include "Graph/PCGExDrawGraph.h"
 
-#include "Data/PCGSpatialData.h"
-#include "Data/PCGPointData.h"
-#include "PCGContext.h"
-#include "DrawDebugHelpers.h"
-#include "Editor.h"
-#include "Graph/PCGExGraphHelpers.h"
-
 #define LOCTEXT_NAMESPACE "PCGExDrawGraph"
 
-PCGEx::EIOInit UPCGExDrawGraphSettings::GetPointOutputInitMode() const { return PCGEx::EIOInit::NoOutput; }
+PCGExIO::EInitMode UPCGExDrawGraphSettings::GetPointOutputInitMode() const { return PCGExIO::EInitMode::NoOutput; }
 
 FPCGElementPtr UPCGExDrawGraphSettings::CreateElement() const
 {
@@ -78,7 +71,7 @@ bool FPCGExDrawGraphElement::ExecuteInternal(FPCGContext* InContext) const
 		}
 	}
 
-	auto ProcessPoint = [&Context, &Settings](const FPCGPoint& Point, const int32 ReadIndex, const UPCGExPointIO* IO)
+	auto ProcessPoint = [&](const FPCGPoint& Point, const int32 ReadIndex, const UPCGExPointIO* PointIO)
 	{
 		//FWriteScopeLock ScopeLock(Context->ContextLock);
 
@@ -112,7 +105,7 @@ bool FPCGExDrawGraphElement::ExecuteInternal(FPCGContext* InContext) const
 				if (SocketMetadata.Index == -1) { continue; }
 				if (static_cast<uint8>((SocketMetadata.EdgeType & static_cast<EPCGExEdgeType>(Settings->EdgeType))) == 0) { continue; }
 
-				FPCGPoint PtB = IO->In->GetPoint(SocketMetadata.Index);
+				FPCGPoint PtB = PointIO->In->GetPoint(SocketMetadata.Index);
 				FVector End = PtB.Transform.GetLocation();
 				float Thickness = 1.0f;
 				float ArrowSize = 0.0f;
@@ -175,9 +168,9 @@ bool FPCGExDrawGraphElement::ExecuteInternal(FPCGContext* InContext) const
 		}
 	}
 
-	auto Initialize = [&Context](const UPCGExPointIO* IO)
+	auto Initialize = [&](const UPCGExPointIO* PointIO)
 	{
-		Context->CurrentGraph->PrepareForPointData(IO->In, false);
+		Context->PrepareCurrentGraphForPoints(PointIO->In, false);
 	};
 
 	if (Context->IsState(PCGExMT::EState::ProcessingGraph))

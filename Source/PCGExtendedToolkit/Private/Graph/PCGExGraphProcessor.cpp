@@ -2,8 +2,9 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Graph/PCGExGraphProcessor.h"
-#include "PCGContext.h"
+
 #include "PCGPin.h"
+
 #include "Data/PCGExGraphParamsData.h"
 #include "Graph/PCGExGraphHelpers.h"
 
@@ -83,7 +84,7 @@ void FPCGExGraphProcessorContext::Reset()
 	CurrentParamsIndex = -1;
 }
 
-void FPCGExGraphProcessorContext::ComputeEdgeType(const FPCGPoint& Point, const int32 ReadIndex, const UPCGExPointIO* IO)
+void FPCGExGraphProcessorContext::ComputeEdgeType(const FPCGPoint& Point, const int32 ReadIndex, const UPCGExPointIO* PointIO)
 {
 	for (PCGExGraph::FSocketInfos& CurrentSocketInfos : SocketInfos)
 	{
@@ -92,7 +93,7 @@ void FPCGExGraphProcessorContext::ComputeEdgeType(const FPCGPoint& Point, const 
 		
 		if (RelationIndex != -1)
 		{
-			const int32 Key = IO->Out->GetPoint(RelationIndex).MetadataEntry;
+			const int32 Key = PointIO->Out->GetPoint(RelationIndex).MetadataEntry;
 			for (PCGExGraph::FSocketInfos& OtherSocketInfos : SocketInfos)
 			{
 				if (OtherSocketInfos.Socket->GetTargetIndex(Key) == ReadIndex)

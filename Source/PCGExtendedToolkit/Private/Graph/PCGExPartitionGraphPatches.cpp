@@ -3,19 +3,15 @@
 
 #include "Graph/PCGExPartitionGraphPatches.h"
 
-#include "Data/PCGSpatialData.h"
-#include "Data/PCGPointData.h"
-#include "PCGContext.h"
-#include "DrawDebugHelpers.h"
-#include "Editor.h"
 #include "PCGPin.h"
+
 #include "Graph/PCGExGraphPatch.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPartitionGraphPatches"
 
 int32 UPCGExPartitionGraphPatchesSettings::GetPreferredChunkSize() const { return 32; }
 
-PCGEx::EIOInit UPCGExPartitionGraphPatchesSettings::GetPointOutputInitMode() const { return PCGEx::EIOInit::NoOutput; }
+PCGExIO::EInitMode UPCGExPartitionGraphPatchesSettings::GetPointOutputInitMode() const { return PCGExIO::EInitMode::NoOutput; }
 
 TArray<FPCGPinProperties> UPCGExPartitionGraphPatchesSettings::InputPinProperties() const
 {
@@ -94,13 +90,13 @@ bool FPCGExPartitionGraphPatchesElement::ExecuteInternal(
 
 	// 1st Pass on points
 
-	auto InitializePointsInput = [&Context](const UPCGExPointIO* IO)
+	auto InitializePointsInput = [&](const UPCGExPointIO* PointIO)
 	{
 		Context->PreparePatchGroup();
-		Context->PrepareCurrentGraphForPoints(IO->In, false); // Prepare to read IO->In
+		Context->PrepareCurrentGraphForPoints(PointIO->In, false); // Prepare to read PointIO->In
 	};
 
-	auto ProcessPoint = [&Context](const FPCGPoint& Point, const int32 ReadIndex, const UPCGExPointIO* IO)
+	auto ProcessPoint = [&](const FPCGPoint& Point, const int32 ReadIndex, const UPCGExPointIO* PointIO)
 	{
 		//FWriteScopeLock ScopeLock(Context->ContextLock);
 		Context->Patches->Distribute(ReadIndex);

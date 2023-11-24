@@ -3,9 +3,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExCommon.h"
 #include "Data/PCGPolyLineData.h"
 #include "UObject/Object.h"
+
 #include "PCGExPolyLineIO.generated.h"
 
 namespace PCGExPolyLine

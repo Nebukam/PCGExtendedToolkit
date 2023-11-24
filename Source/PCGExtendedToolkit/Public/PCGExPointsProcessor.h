@@ -4,54 +4,47 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGContext.h"
-#include "PCGExCommon.h"
-#include "PCGSettings.h"
-#include "PCGExPointIO.h"
 #include "Elements/PCGPointProcessingElementBase.h"
+
+#include "PCGEx.h"
+#include "PCGExMT.h"
+#include "Data/PCGExPointIO.h"
+
 #include "PCGExPointsProcessor.generated.h"
 
-namespace PCGExMT
+class PCGEXTENDEDTOOLKIT_API FPointTask : public FNonAbandonableTask
 {
-	enum EState : int
+public:
+	virtual ~FPointTask() = default;
+
+	FPointTask(
+		FPCGContext* InContext, UPCGExPointIO* InPointData, const PCGExMT::FTaskInfos& InInfos) :
+		TaskContext(InContext), PointData(InPointData), Infos(InInfos)
 	{
-		Setup UMETA(DisplayName = "Setup"),
-		ReadyForNextPoints UMETA(DisplayName = "Ready for next points"),
-		ReadyForPoints2ndPass UMETA(DisplayName = "Ready for next points - 2nd pass"),
-		ReadyForNextGraph UMETA(DisplayName = "Ready for next params"),
-		ReadyForGraph2ndPass UMETA(DisplayName = "Ready for next params - 2nd pass"),
-		ProcessingPoints UMETA(DisplayName = "Processing points"),
-		ProcessingPoints2ndPass UMETA(DisplayName = "Processing points - 2nd pass"),
-		ProcessingPoints3rdPass UMETA(DisplayName = "Processing points - 3rd pass"),
-		ProcessingGraph UMETA(DisplayName = "Processing params"),
-		ProcessingGraph2ndPass UMETA(DisplayName = "Processing params - 2nd pass"),
-		WaitingOnAsyncTasks UMETA(DisplayName = "Waiting on async tasks"),
-		Done UMETA(DisplayName = "Done")
+	}
+
+	FORCEINLINE TStatId GetStatId() const
+	{
+		RETURN_QUICK_DECLARE_CYCLE_STAT(FAsyncPointTask, STATGROUP_ThreadPoolAsyncTasks);
+	}
+
+	void DoWork()
+	{
+		FPCGContext* InContext = TaskContext;
+		if (InContext->SourceComponent.IsValid() && !InContext->SourceComponent.IsStale(true, true)) { ExecuteTask(InContext); }
 	};
 
-	struct FTaskInfos
-	{
-		FTaskInfos()
-		{
-		}
+	void PostDoWork() { delete this; }
 
-		FTaskInfos(int32 InIndex, PCGMetadataEntryKey InKey, int32 InAttempt = 0):
-			Index(InIndex), Key(InKey), Attempt(InAttempt)
-		{
-		}
+	virtual void ExecuteTask(FPCGContext* InContext) = 0;
 
-		FTaskInfos(const FTaskInfos& Other):
-			Index(Other.Index), Key(Other.Key), Attempt(Other.Attempt)
-		{
-		}
+	FPCGContext* TaskContext;
+	UPCGExPointIO* PointData;
+	PCGExMT::FTaskInfos Infos;
 
-		FTaskInfos GetRetry() const { return FTaskInfos(Index, Key, Attempt + 1); }
-
-		int32 Index = -1;
-		PCGMetadataEntryKey Key = PCGInvalidEntryKey;
-		int32 Attempt = 0;
-	};
-}
+	FPCGPoint GetInPoint() const { return PointData->In->GetPoint(Infos.Index); }
+	FPCGPoint GetOutPoint() const { return PointData->Out->GetPoint(Infos.Index); }
+};
 
 /**
  * A Base node to process a set of point using GraphParams.
@@ -74,7 +67,7 @@ public:
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 	//~End UPCGSettings interface
 
-	virtual PCGEx::EIOInit GetPointOutputInitMode() const;
+	virtual PCGExIO::EInitMode GetPointOutputInitMode() const;
 
 	/** Multi thread chunk size, when supported.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, AdvancedDisplay)
@@ -144,40 +137,3 @@ protected:
 	virtual void InitializeContext(FPCGExPointsProcessorContext* InContext, const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node) const;
 	//virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
-
-namespace PCGExAsync
-{
-	class FPointTask : public FNonAbandonableTask
-	{
-	public:
-		virtual ~FPointTask() = default;
-
-		FPointTask(
-			FPCGExPointsProcessorContext* InContext, UPCGExPointIO* InPointData, const PCGExMT::FTaskInfos& InInfos) :
-			TaskContext(InContext), PointData(InPointData), Infos(InInfos)
-		{
-		}
-
-		FORCEINLINE TStatId GetStatId() const
-		{
-			RETURN_QUICK_DECLARE_CYCLE_STAT(FAsyncPointTask, STATGROUP_ThreadPoolAsyncTasks);
-		}
-
-		void DoWork()
-		{
-			FPCGExPointsProcessorContext* InContext = TaskContext;
-			if (InContext->SourceComponent.IsValid() && !InContext->SourceComponent.IsStale(true, true) && InContext->Points) { ExecuteTask(InContext); }
-		};
-
-		void PostDoWork() { delete this; }
-
-		virtual void ExecuteTask(FPCGExPointsProcessorContext* InContext) = 0;
-
-		FPCGExPointsProcessorContext* TaskContext;
-		UPCGExPointIO* PointData;
-		PCGExMT::FTaskInfos Infos;
-
-		FPCGPoint GetInPoint() const { return PointData->In->GetPoint(Infos.Index); }
-		FPCGPoint GetOutPoint() const { return PointData->Out->GetPoint(Infos.Index); }
-	};
-}

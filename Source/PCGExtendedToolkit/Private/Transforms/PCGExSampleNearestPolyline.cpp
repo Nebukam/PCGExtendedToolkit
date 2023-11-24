@@ -3,9 +3,7 @@
 
 #include "Transforms/PCGExSampleNearestPolyline.h"
 
-#include "PCGExCommon.h"
 #include "PCGPin.h"
-#include <algorithm>
 
 #define LOCTEXT_NAMESPACE "PCGExSampleNearestPolylineElement"
 
@@ -31,7 +29,7 @@ TArray<FPCGPinProperties> UPCGExSampleNearestPolylineSettings::InputPinPropertie
 	return PinProperties;
 }
 
-PCGEx::EIOInit UPCGExSampleNearestPolylineSettings::GetPointOutputInitMode() const { return PCGEx::EIOInit::DuplicateInput; }
+PCGExIO::EInitMode UPCGExSampleNearestPolylineSettings::GetPointOutputInitMode() const { return PCGExIO::EInitMode::DuplicateInput; }
 
 int32 UPCGExSampleNearestPolylineSettings::GetPreferredChunkSize() const { return 32; }
 
@@ -135,13 +133,13 @@ bool FPCGExSampleNearestPolylineElement::ExecuteInternal(FPCGContext* InContext)
 		}
 	}
 
-	auto InitializeForIO = [&Context, this](UPCGExPointIO* IO)
+	auto Initialize = [&](UPCGExPointIO* PointIO)
 	{
-		IO->BuildMetadataEntries();
+		PointIO->BuildMetadataEntries();
 
 		if (Context->bLocalRangeMin)
 		{
-			if (Context->RangeMinInput.Validate(IO->Out))
+			if (Context->RangeMinInput.Validate(PointIO->Out))
 			{
 				PCGE_LOG(Warning, GraphAndLog, LOCTEXT("InvalidLocalRangeMin", "RangeMin metadata missing"));
 			}
@@ -149,7 +147,7 @@ bool FPCGExSampleNearestPolylineElement::ExecuteInternal(FPCGContext* InContext)
 
 		if (Context->bLocalRangeMax)
 		{
-			if (Context->RangeMaxInput.Validate(IO->Out))
+			if (Context->RangeMaxInput.Validate(PointIO->Out))
 			{
 				PCGE_LOG(Warning, GraphAndLog, LOCTEXT("InvalidLocalRangeMax", "RangeMax metadata missing"));
 			}
@@ -162,7 +160,7 @@ bool FPCGExSampleNearestPolylineElement::ExecuteInternal(FPCGContext* InContext)
 		PCGEX_INIT_ATTRIBUTE_OUT(SignedDistance, double)
 	};
 
-	auto ProcessPoint = [&Context](const FPCGPoint& Point, const int32 ReadIndex, const UPCGExPointIO* IO)
+	auto ProcessPoint = [&](const FPCGPoint& Point, const int32 ReadIndex, const UPCGExPointIO* PointIO)
 	{
 		double RangeMin = FMath::Pow(Context->RangeMinInput.GetValueSafe(Point, Context->RangeMin), 2);
 		double RangeMax = FMath::Pow(Context->RangeMaxInput.GetValueSafe(Point, Context->RangeMax), 2);
@@ -175,7 +173,7 @@ bool FPCGExSampleNearestPolylineElement::ExecuteInternal(FPCGContext* InContext)
 		PCGExPolyLine::FTargetsCompoundInfos TargetsCompoundInfos;
 
 		FVector Origin = Point.Transform.GetLocation();
-		auto ProcessTarget = [&Context, &Origin, &ReadIndex, &RangeMin, &RangeMax, &TargetsInfos, &TargetsCompoundInfos](const FTransform& Transform)
+		auto ProcessTarget = [&](const FTransform& Transform)
 		{
 			const double dist = FVector::DistSquared(Origin, Transform.GetLocation());
 
@@ -230,13 +228,13 @@ bool FPCGExSampleNearestPolylineElement::ExecuteInternal(FPCGContext* InContext)
 		double TotalWeight = 0;
 
 
-		auto ProcessTargetInfos = [&Context, &Origin, &WeightedLocation, &WeightedLookAt, &WeightedNormal, &TotalWeight]
+		auto ProcessTargetInfos = [&]
 			(const PCGExPolyLine::FSampleInfos& TargetInfos, double Weight)
 		{
 			const FVector TargetLocationOffset = TargetInfos.Transform.GetLocation() - Origin;
 			WeightedLocation += (TargetLocationOffset * Weight); // Relative to origin
 			WeightedLookAt += (TargetLocationOffset.GetSafeNormal()) * Weight;
-			WeightedNormal += PCGEx::Common::GetDirection(TargetInfos.Transform.GetRotation(), Context->NormalSource) * Weight; // Use forward as default
+			WeightedNormal += PCGEx::GetDirection(TargetInfos.Transform.GetRotation(), Context->NormalSource) * Weight; // Use forward as default
 
 			TotalWeight += Weight;
 		};
@@ -276,7 +274,7 @@ bool FPCGExSampleNearestPolylineElement::ExecuteInternal(FPCGContext* InContext)
 
 	if (Context->IsState(PCGExMT::EState::ProcessingPoints))
 	{
-		if (Context->CurrentIO->OutputParallelProcessing(Context, InitializeForIO, ProcessPoint, Context->ChunkSize))
+		if (Context->CurrentIO->OutputParallelProcessing(Context, Initialize, ProcessPoint, Context->ChunkSize))
 		{
 			Context->SetState(PCGExMT::EState::ReadyForNextPoints);
 		}

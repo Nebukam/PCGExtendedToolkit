@@ -4,8 +4,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
+
 #include "PCGExGraphProcessor.h"
-#include "Elements/PCGPointProcessingElementBase.h"
+
 #include "PCGExDrawGraph.generated.h"
 
 /**
@@ -43,7 +44,7 @@ protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings interface
 
-	virtual PCGEx::EIOInit GetPointOutputInitMode() const override;
+	virtual PCGExIO::EInitMode GetPointOutputInitMode() const override;
 
 	
 

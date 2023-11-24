@@ -4,16 +4,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExCommon.h"
-#include "PCGParamData.h"
-#include "Graph/PCGExGraph.h"
 #include "Math/UnrealMathUtility.h"
-#include "PCGExLocalAttributeHelpers.h"
+
+#include "PCGExAttributeHelpers.h"
+#include "Graph/PCGExGraph.h"
 
 #include "PCGExGraphParamsData.generated.h"
 
 class UPCGPointData;
-
 
 UENUM(BlueprintType, meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor="true"))
 enum class EPCGExSocketType : uint8
@@ -26,18 +24,7 @@ enum class EPCGExSocketType : uint8
 
 ENUM_CLASS_FLAGS(EPCGExSocketType)
 
-UENUM(BlueprintType, meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor="true"))
-enum class EPCGExEdgeType : uint8
-{
-	Unknown  = 0 UMETA(DisplayName = "Unknown", Tooltip="Unknown type."),
-	Roaming  = 1 << 0 UMETA(DisplayName = "Roaming", Tooltip="Unidirectional edge."),
-	Shared   = 1 << 1 UMETA(DisplayName = "Shared", Tooltip="Shared edge, both sockets are connected; but do not match."),
-	Match    = 1 << 2 UMETA(DisplayName = "Match", Tooltip="Shared relation, considered a match by the primary socket owner; but does not match on the other."),
-	Complete = 1 << 3 UMETA(DisplayName = "Complete", Tooltip="Shared, matching relation on both sockets."),
-	Mirror   = 1 << 4 UMETA(DisplayName = "Mirrored relation", Tooltip="Mirrored relation, connected sockets are the same on both points."),
-};
-
-ENUM_CLASS_FLAGS(EPCGExEdgeType)
+#pragma region Descriptors
 
 USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExSocketAngle
@@ -88,22 +75,6 @@ public:
 	void LoadCurve() { DotOverDistanceCurve = DotOverDistance.LoadSynchronous(); }
 };
 
-#pragma region Descriptors
-
-USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExSocketModifierDescriptor : public FPCGExInputDescriptorWithSingleField
-{
-	GENERATED_BODY()
-
-	FPCGExSocketModifierDescriptor(): FPCGExInputDescriptorWithSingleField()
-	{
-	}
-
-	FPCGExSocketModifierDescriptor(
-		const FPCGExSocketModifierDescriptor& Other): FPCGExInputDescriptorWithSingleField(Other)
-	{
-	}
-};
 
 USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExSocketDescriptor
@@ -187,7 +158,7 @@ public:
 
 	/** Local attribute to multiply the max distance by.  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bApplyAttributeModifier", ShowOnlyInnerProperties))
-	FPCGExSocketModifierDescriptor AttributeModifier;
+	FPCGExInputDescriptorWithSingleField AttributeModifier;
 
 	/** Enable/disable this socket. Disabled sockets are omitted during processing. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, AdvancedDisplay)
@@ -268,7 +239,7 @@ public:
 
 	/** Which local attribute is used to factor the distance */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bOverrideAttributeModifier"))
-	FPCGExSocketModifierDescriptor AttributeModifier;
+	FPCGExInputDescriptorWithSingleField AttributeModifier;
 
 	/** Is the distance modified by local attributes */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
@@ -283,72 +254,7 @@ public:
 
 namespace PCGExGraph
 {
-
 	
-	struct PCGEXTENDEDTOOLKIT_API FEdge
-	{
-		uint32 Start = 0;
-		uint32 End = 0;
-		EPCGExEdgeType Type = EPCGExEdgeType::Unknown;
-
-		FEdge()
-		{
-		}
-
-		FEdge(const int32 InStart, const int32 InEnd, const EPCGExEdgeType InType):
-			Start(InStart), End(InEnd), Type(InType)
-		{
-		}
-
-		bool operator==(const FEdge& Other) const
-		{
-			return Start == Other.Start && End == Other.End;
-		}
-
-		explicit operator uint64() const
-		{
-			return (static_cast<uint64>(Start) << 32) | End;
-		}
-
-		explicit FEdge(const uint64 InValue)
-		{
-			Start = static_cast<uint32>((InValue >> 32) & 0xFFFFFFFF);
-			End = static_cast<uint32>(InValue & 0xFFFFFFFF);
-			// You might need to set a default value for Type based on your requirements.
-			Type = EPCGExEdgeType::Unknown;
-		}
-	};
-
-	struct PCGEXTENDEDTOOLKIT_API FUnsignedEdge : public FEdge
-	{
-		FUnsignedEdge(): FEdge()
-		{
-		}
-
-		FUnsignedEdge(const int32 InStart, const int32 InEnd, const EPCGExEdgeType InType):
-			FEdge(InStart, InEnd, InType)
-		{
-		}
-
-		bool operator==(const FUnsignedEdge& Other) const
-		{
-			return (Start == Other.Start && End == Other.End) || (Start == Other.End && End == Other.Start);
-		}
-
-		explicit FUnsignedEdge(const uint64 InValue)
-		{
-			Start = static_cast<uint32>((InValue >> 32) & 0xFFFFFFFF);
-			End = static_cast<uint32>(InValue & 0xFFFFFFFF);
-			// You might need to set a default value for Type based on your requirements.
-			Type = EPCGExEdgeType::Unknown;
-		}
-
-		inline uint32 GetTypeHash(const FUnsignedEdge& Edge) const
-		{
-			return Edge.Start ^ Edge.End;
-		}
-	};
-
 	// Per-socket infos, will end up as FVector4 value
 	struct PCGEXTENDEDTOOLKIT_API FSocketMetadata
 	{
@@ -710,8 +616,8 @@ namespace PCGExGraph
 			Reset();
 		}
 	};
+	
 }
-
 /**
  * 
  */

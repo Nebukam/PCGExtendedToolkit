@@ -2,15 +2,14 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Transforms/PCGExSampleSurfaceGuided.h"
-#include "PCGExCommon.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSampleSurfaceGuidedElement"
 
-PCGEx::EIOInit UPCGExSampleSurfaceGuidedSettings::GetPointOutputInitMode() const { return PCGEx::EIOInit::DuplicateInput; }
+PCGExIO::EInitMode UPCGExSampleSurfaceGuidedSettings::GetPointOutputInitMode() const { return PCGExIO::EInitMode::DuplicateInput; }
 
 FPCGElementPtr UPCGExSampleSurfaceGuidedSettings::CreateElement() const { return MakeShared<FPCGExSampleSurfaceGuidedElement>(); }
 
-void FPCGExSampleSurfaceGuidedContext::WrapTraceTask(const PCGExAsync::FTraceTask* Task, bool bSuccess)
+void FPCGExSampleSurfaceGuidedContext::WrapTraceTask(const FPointTask* Task, bool bSuccess)
 {
 	FWriteScopeLock ScopeLock(ContextLock);
 	NumTraceComplete++;
@@ -26,15 +25,15 @@ FPCGContext* FPCGExSampleSurfaceGuidedElement::Initialize(const FPCGDataCollecti
 
 	Context->CollisionChannel = Settings->CollisionChannel;
 	Context->CollisionObjectType = Settings->CollisionObjectType;
-	
+
 	Context->bIgnoreSelf = Settings->bIgnoreSelf;
 
 	Context->Size = Settings->Size;
 	Context->bUseLocalSize = Settings->bUseLocalSize;
 	Context->LocalSize.Capture(Settings->LocalSize);
-	
+
 	Context->Direction.Capture(Settings->Direction);
-	
+
 	PCGEX_FORWARD_OUT_ATTRIBUTE(Location)
 	PCGEX_FORWARD_OUT_ATTRIBUTE(Normal)
 	PCGEX_FORWARD_OUT_ATTRIBUTE(Distance)
@@ -77,24 +76,33 @@ bool FPCGExSampleSurfaceGuidedElement::ExecuteInternal(FPCGContext* InContext) c
 		}
 	}
 
-	auto InitializeForIO = [&Context](UPCGExPointIO* IO)
+	auto Initialize = [&](UPCGExPointIO* PointIO)
 	{
+		UPCGExPointIO* PointIO = Context->CurrentIO;
 		Context->NumTraceComplete = 0;
-		Context->Direction.Validate(IO->Out);
-		IO->BuildMetadataEntries();
+		Context->Direction.Validate(PointIO->Out);
+		PointIO->BuildMetadataEntries();
+
 		PCGEX_INIT_ATTRIBUTE_OUT(Location, FVector)
 		PCGEX_INIT_ATTRIBUTE_OUT(Normal, FVector)
 		PCGEX_INIT_ATTRIBUTE_OUT(Distance, double)
 	};
 
-	auto ProcessPoint = [&Context, this](const FPCGPoint& Point, const int32 Index, const UPCGExPointIO* IO)
+	auto ProcessPoint = [&](const FPCGPoint& Point, const int32 Index, UPCGExPointIO* PointIO)
 	{
-		Context->ScheduleTask<PCGExAsync::FTraceTask>(Index, Point.MetadataEntry);
+		Context->ScheduleTask<FTraceTask>(Index, Point.MetadataEntry);
 	};
 
 	if (Context->IsState(PCGExMT::EState::ProcessingPoints))
 	{
-		if (Context->CurrentIO->OutputParallelProcessing(Context, InitializeForIO, ProcessPoint, Context->ChunkSize))
+		/*
+		if (PCGExMT::ParallelForLoop(Context, Context->CurrentIO->NumPoints, Initialize, [&](int32 Index) { ProcessPoint(Context->CurrentIO->Out->GetPoint(Index), Index, Context->CurrentIO); }, Context->ChunkSize))
+		{
+			Context->SetState(PCGExMT::EState::WaitingOnAsyncTasks);
+			Context->World->AsyncOverlapByProfile()
+		}
+		*/
+		if (Context->CurrentIO->OutputParallelProcessing(Context, Initialize, ProcessPoint, Context->ChunkSize))
 		{
 			Context->SetState(PCGExMT::EState::WaitingOnAsyncTasks);
 		}

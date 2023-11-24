@@ -3,16 +3,9 @@
 
 #include "Misc/PCGExDrawAttributes.h"
 
-#include "Data/PCGSpatialData.h"
-#include "Data/PCGPointData.h"
-#include "PCGContext.h"
-#include "DrawDebugHelpers.h"
-#include "Editor.h"
-#include "PCGComponent.h"
-
 #define LOCTEXT_NAMESPACE "PCGExDrawAttributes"
 
-PCGEx::EIOInit UPCGExDrawAttributesSettings::GetPointOutputInitMode() const { return PCGEx::EIOInit::NoOutput; }
+PCGExIO::EInitMode UPCGExDrawAttributesSettings::GetPointOutputInitMode() const { return PCGExIO::EInitMode::NoOutput; }
 
 UPCGExDrawAttributesSettings::UPCGExDrawAttributesSettings(
 	const FObjectInitializer& ObjectInitializer)
@@ -118,7 +111,7 @@ bool FPCGExDrawAttributesElement::ExecuteInternal(
 		}
 	}
 
-	auto ProcessPoint = [&Context](const FPCGPoint& Point, const int32 ReadIndex, const UPCGExPointIO* IO)
+	auto ProcessPoint = [&](const FPCGPoint& Point, const int32 ReadIndex, const UPCGExPointIO* PointIO)
 	{
 		// FWriteScopeLock ScopeLock(Context->ContextLock);
 		const FVector Start = Point.Transform.GetLocation();
@@ -126,13 +119,13 @@ bool FPCGExDrawAttributesElement::ExecuteInternal(
 		for (FPCGExAttributeDebugDraw& Drawer : Context->DebugList)
 		{
 			if (!Drawer.bValid) { continue; }
-			Drawer.Draw(Context->World, Start, Point, IO->In);
+			Drawer.Draw(Context->World, Start, Point, PointIO->In);
 		}
 	};
 
-	auto Initialize = [&Context](const UPCGExPointIO* IO)
+	auto Initialize = [&](const UPCGExPointIO* PointIO)
 	{
-		Context->PrepareForPoints(IO->In);
+		Context->PrepareForPoints(PointIO->In);
 	};
 
 	if (Context->IsState(PCGExMT::EState::ProcessingPoints))

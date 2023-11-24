@@ -4,9 +4,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Data/PCGPointData.h"
-#include "Graph/PCGExGraphProcessor.h"
-#include "Graph/PCGExGraphHelpers.h"
+
+#include "PCGExPointsProcessor.h"
+#include "Data/PCGExAttributeHelpers.h"
+
 #include "PCGExDrawAttributes.generated.h"
 
 UENUM(BlueprintType)
@@ -242,7 +243,7 @@ protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings interface
 
-	virtual PCGEx::EIOInit GetPointOutputInitMode() const override;
+	virtual PCGExIO::EInitMode GetPointOutputInitMode() const override;
 
 private:
 	friend class FPCGExDrawAttributesElement;

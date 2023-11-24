@@ -1,8 +1,9 @@
 ﻿// Copyright Timothé Lapetite 2023
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "PCGExPolyLineIO.h"
-#include "PCGExCommon.h"
+#include "Data/PCGExPolyLineIO.h"
+
+#include "PCGContext.h"
 #include "Data/PCGIntersectionData.h"
 #include "Data/PCGSplineData.h"
 
@@ -16,7 +17,7 @@ PCGExPolyLine::FSegment* UPCGExPolyLineIO::NearestSegment(const FVector& Locatio
 	if (bCacheDirty) { BuildCache(); }
 	FReadScopeLock ScopeLock(SegmentLock);
 	PCGExPolyLine::FSegment* NearestSegment = nullptr;
-	double MinDistanceSquared = MAX_dbl;
+	double MinDistanceSquared = DBL_MAX;
 	for (PCGExPolyLine::FSegment& Segment : Segments)
 	{
 		FVector ClosestPoint = Segment.NearestLocation(Location);
@@ -104,9 +105,9 @@ void UPCGExPolyLineIOGroup::Initialize(
 	}
 }
 
-UPCGExPolyLineIO* UPCGExPolyLineIOGroup::Emplace_GetRef(const UPCGExPolyLineIO& IO)
+UPCGExPolyLineIO* UPCGExPolyLineIOGroup::Emplace_GetRef(const UPCGExPolyLineIO& PointIO)
 {
-	return Emplace_GetRef(IO.Source, IO.In);
+	return Emplace_GetRef(PointIO.Source, PointIO.In);
 }
 
 UPCGExPolyLineIO* UPCGExPolyLineIOGroup::Emplace_GetRef(const FPCGTaggedData& Source, UPCGPolyLineData* In)
@@ -125,7 +126,7 @@ UPCGExPolyLineIO* UPCGExPolyLineIOGroup::Emplace_GetRef(const FPCGTaggedData& So
 
 bool UPCGExPolyLineIOGroup::SampleNearestTransform(const FVector& Location, FTransform& OutTransform)
 {
-	double MinDistance = MAX_dbl;
+	double MinDistance = DBL_MAX;
 	bool bFound = false;
 	for (UPCGExPolyLineIO* Line : PolyLines)
 	{
@@ -143,7 +144,7 @@ bool UPCGExPolyLineIOGroup::SampleNearestTransform(const FVector& Location, FTra
 
 bool UPCGExPolyLineIOGroup::SampleNearestTransformWithinRange(const FVector& Location, const double Range, FTransform& OutTransform)
 {
-	double MinDistance = MAX_dbl;
+	double MinDistance = DBL_MAX;
 	bool bFound = false;
 	for (UPCGExPolyLineIO* Line : PolyLines)
 	{

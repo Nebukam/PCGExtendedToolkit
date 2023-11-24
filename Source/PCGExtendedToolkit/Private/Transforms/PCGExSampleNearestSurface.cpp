@@ -2,32 +2,22 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Transforms/PCGExSampleNearestSurface.h"
-#include "PCGExCommon.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSampleNearestSurfaceElement"
 
-PCGEx::EIOInit UPCGExSampleNearestSurfaceSettings::GetPointOutputInitMode() const { return PCGEx::EIOInit::DuplicateInput; }
+PCGExIO::EInitMode UPCGExSampleNearestSurfaceSettings::GetPointOutputInitMode() const { return PCGExIO::EInitMode::DuplicateInput; }
 
 FPCGElementPtr UPCGExSampleNearestSurfaceSettings::CreateElement() const { return MakeShared<FPCGExSampleNearestSurfaceElement>(); }
 
-void FPCGExSampleNearestSurfaceContext::ProcessSweepHit(const PCGExAsync::FSweepSphereTask* Task)
+void FPCGExSampleNearestSurfaceContext::WrapSweepTask(const FPointTask* Task, bool bSuccess)
 {
-	WrapSweepTask(Task, true);
-}
-
-void FPCGExSampleNearestSurfaceContext::ProcessSweepMiss(const PCGExAsync::FSweepSphereTask* Task)
-{
-	if (Task->Infos.Attempt > NumMaxAttempts)
+	if (!bSuccess)
 	{
-		WrapSweepTask(Task, false);
-		return;
+		if (Task->Infos.Attempt < NumMaxAttempts)
+		{
+			ScheduleTask<FSweepSphereTask>(Task->Infos.GetRetry());
+		}
 	}
-
-	ScheduleTask<PCGExAsync::FSweepSphereTask>(Task->Infos.GetRetry());
-}
-
-void FPCGExSampleNearestSurfaceContext::WrapSweepTask(const PCGExAsync::FSweepSphereTask* Task, bool bSuccess)
-{
 	FWriteScopeLock ScopeLock(ContextLock);
 	NumSweepComplete++;
 }
@@ -93,27 +83,34 @@ bool FPCGExSampleNearestSurfaceElement::ExecuteInternal(FPCGContext* InContext) 
 		}
 	}
 
-	auto InitializeForIO = [&Context](UPCGExPointIO* IO)
+	auto Initialize = [&]() //UPCGExPointIO* PointIO
 	{
+		UPCGExPointIO* PointIO = Context->CurrentIO;
 		Context->NumSweepComplete = 0;
-		IO->BuildMetadataEntries();
+		PointIO->BuildMetadataEntries();
 		PCGEX_INIT_ATTRIBUTE_OUT(Location, FVector)
 		PCGEX_INIT_ATTRIBUTE_OUT(LookAt, FVector)
 		PCGEX_INIT_ATTRIBUTE_OUT(Normal, FVector)
 		PCGEX_INIT_ATTRIBUTE_OUT(Distance, double)
 	};
 
-	auto ProcessPoint = [&Context, this](const FPCGPoint& Point, const int32 Index, const UPCGExPointIO* IO)
+	auto ProcessPoint = [&](const FPCGPoint& Point, const int32 Index, const UPCGExPointIO* PointIO)
 	{
-		Context->ScheduleTask<PCGExAsync::FSweepSphereTask>(Index, Point.MetadataEntry);
+		//Context->ScheduleTask<FSweepSphereTask>(Index, Point.MetadataEntry);
 	};
 
 	if (Context->IsState(PCGExMT::EState::ProcessingPoints))
 	{
-		if (Context->CurrentIO->OutputParallelProcessing(Context, InitializeForIO, ProcessPoint, Context->ChunkSize))
+		if (PCGExMT::ParallelForLoop(Context, Context->CurrentIO->NumPoints, Initialize, [&](int32 Index) { ProcessPoint(Context->CurrentIO->Out->GetPoint(Index), Index, Context->CurrentIO); }, Context->ChunkSize))
 		{
 			Context->SetState(PCGExMT::EState::WaitingOnAsyncTasks);
 		}
+		/*
+		if (Context->CurrentIO->OutputParallelProcessing(Context, Initialize, ProcessPoint, Context->ChunkSize))
+		{
+			Context->SetState(PCGExMT::EState::WaitingOnAsyncTasks);
+		}
+		*/
 	}
 
 	if (Context->IsState(PCGExMT::EState::WaitingOnAsyncTasks))

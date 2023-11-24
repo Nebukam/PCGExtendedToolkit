@@ -2,13 +2,10 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Transforms/PCGExProject.h"
-#include "Data/PCGSpatialData.h"
-#include "PCGContext.h"
-#include "PCGExCommon.h"
 
 #define LOCTEXT_NAMESPACE "PCGExProjectElement"
 
-PCGEx::EIOInit UPCGExProjectSettings::GetPointOutputInitMode() const { return PCGEx::EIOInit::DuplicateInput; }
+PCGExIO::EInitMode UPCGExProjectSettings::GetPointOutputInitMode() const { return PCGExIO::EInitMode::DuplicateInput; }
 
 FPCGElementPtr UPCGExProjectSettings::CreateElement() const { return MakeShared<FPCGExProjectElement>(); }
 
@@ -58,16 +55,16 @@ bool FPCGExProjectElement::ExecuteInternal(FPCGContext* InContext) const
 		}
 	}
 
-	auto InitializeForIO = [&Context](UPCGExPointIO* IO)
+	auto InitializeForIO = [&](UPCGExPointIO* PointIO)
 	{
 		Context->NumSweepComplete = 0;
-		IO->BuildMetadataEntries();
-		//Context->HitLocationAttribute = IO->Out->Metadata->FindOrCreateAttribute<FVector>(Context->OutName, FVector::ZeroVector, false, true, true);
+		PointIO->BuildMetadataEntries();
+		//Context->HitLocationAttribute = PointIO->Out->Metadata->FindOrCreateAttribute<FVector>(Context->OutName, FVector::ZeroVector, false, true, true);
 	};
 
-	auto ProcessPoint = [&Context, this](const FPCGPoint& Point, const int32 Index, UPCGExPointIO* IO)
+	auto ProcessPoint = [&](const FPCGPoint& Point, const int32 Index, UPCGExPointIO* PointIO)
 	{
-		//Context->ScheduleTask<PCGExAsync::FSweepSphereTask>(Index, Point.MetadataEntry);
+		//Context->ScheduleTask<FSweepSphereTask>(Index, Point.MetadataEntry);
 	};
 
 	if (Context->IsState(PCGExMT::EState::ProcessingPoints))

@@ -2,13 +2,8 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Misc/PCGExPartitionByValues.h"
-#include "GenericPlatform/GenericPlatformMath.h"
-#include "Data/PCGSpatialData.h"
-#include "Data/PCGPointData.h"
-#include "PCGContext.h"
-#include "Elements/Metadata/PCGMetadataElementCommon.h"
 
-#define LOCTEXT_NAMESPACE "PCGExDummyElement"
+#define LOCTEXT_NAMESPACE "PCGExPartitionByValues"
 
 namespace PCGExPartitionByValues
 {
@@ -17,7 +12,7 @@ namespace PCGExPartitionByValues
 
 FPCGElementPtr UPCGExPartitionByValuesSettings::CreateElement() const { return MakeShared<FPCGExPartitionByValuesElement>(); }
 
-PCGEx::EIOInit UPCGExPartitionByValuesSettings::GetPointOutputInitMode() const { return PCGEx::EIOInit::NoOutput; }
+PCGExIO::EInitMode UPCGExPartitionByValuesSettings::GetPointOutputInitMode() const { return PCGExIO::EInitMode::NoOutput; }
 
 bool FPCGExSplitByValuesContext::ValidatePointDataInput(UPCGPointData* PointData)
 {
@@ -54,7 +49,7 @@ bool FPCGExPartitionByValuesElement::Validate(FPCGContext* InContext) const
 	const UPCGExPartitionByValuesSettings* Settings = Context->GetInputSettings<UPCGExPartitionByValuesSettings>();
 	check(Settings);
 
-	if (Settings->bWriteKey && !PCGEx::Common::IsValidName(Settings->KeyAttributeName))
+	if (Settings->bWriteKey && !PCGEx::IsValidName(Settings->KeyAttributeName))
 	{
 		PCGE_LOG(Error, GraphAndLog, LOCTEXT("MalformedAttributeName", "Output Attribute name is invalid."));
 		return false;
@@ -83,19 +78,19 @@ bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* InContext) con
 		Context->SetState(PCGExMT::EState::ProcessingPoints);
 	}
 
-	auto InitializeForIO = [&Context](UPCGExPointIO* IO)
+	auto InitializeForIO = [&](UPCGExPointIO* PointIO)
 	{
 		FWriteScopeLock ScopeLock(Context->RulesLock);
 
 		PCGExPartition::FRule& IORule = Context->Rules.Emplace_GetRef(Context->PartitionRule);
-		IORule.Validate(IO->In);
-		Context->RuleMap.Add(IO, &IORule);
+		IORule.Validate(PointIO->In);
+		Context->RuleMap.Add(PointIO, &IORule);
 	};
 
-	auto ProcessPoint = [&Context](const FPCGPoint& Point, const int32 Index, UPCGExPointIO* IO)
+	auto ProcessPoint = [&](const FPCGPoint& Point, const int32 Index, UPCGExPointIO* PointIO)
 	{
 		FReadScopeLock ScopeLock(Context->RulesLock);
-		DistributePoint(Context, IO, Point, (*(Context->RuleMap.Find(IO)))->GetValue(Point));
+		DistributePoint(Context, PointIO, Point, (*(Context->RuleMap.Find(PointIO)))->GetValue(Point));
 	};
 
 	if (Context->IsState(PCGExMT::EState::ProcessingPoints))
@@ -117,7 +112,7 @@ bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* InContext) con
 
 void FPCGExPartitionByValuesElement::DistributePoint(
 	FPCGExSplitByValuesContext* Context,
-	UPCGExPointIO* IO,
+	UPCGExPointIO* PointIO,
 	const FPCGPoint& Point,
 	const double InValue)
 {
@@ -134,7 +129,7 @@ void FPCGExPartitionByValuesElement::DistributePoint(
 	if (!Partition)
 	{
 		FWriteScopeLock ScopeLock(Context->PartitionsLock);
-		Partition = Context->Partitions->Emplace_GetRef(*IO, PCGEx::EIOInit::NewOutput);
+		Partition = Context->Partitions->Emplace_GetRef(*PointIO, PCGExIO::EInitMode::NewOutput);
 		Context->PartitionsMap.Add(Key, Partition);
 
 		if (Context->bWritePartitionKey)

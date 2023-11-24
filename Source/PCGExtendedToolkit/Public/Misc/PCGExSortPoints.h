@@ -4,10 +4,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExCommon.h"
+
 #include "PCGExCompare.h"
 #include "PCGExPointsProcessor.h"
-#include "Elements/PCGPointProcessingElementBase.h"
+#include "Data/PCGExAttributeHelpers.h"
+
 #include "PCGExSortPoints.generated.h"
 
 UENUM(BlueprintType)
@@ -80,7 +81,7 @@ protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings interface
 
-	virtual PCGEx::EIOInit GetPointOutputInitMode() const override;
+	virtual PCGExIO::EInitMode GetPointOutputInitMode() const override;
 
 public:
 	/** Controls the order in which points will be ordered. */

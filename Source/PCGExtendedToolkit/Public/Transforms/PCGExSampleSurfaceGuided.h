@@ -4,18 +4,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExCommon.h"
-#include "PCGExLocalAttributeHelpers.h"
+
 #include "PCGExPointsProcessor.h"
 #include "PCGExTransform.h"
 
 #include "PCGExSampleSurfaceGuided.generated.h"
-
-namespace PCGExAsync
-{
-	class FTraceTask;
-}
-
 
 /**
  * Use PCGExTransform to manipulate the outgoing attributes instead of handling everything here.
@@ -32,7 +25,7 @@ public:
 	PCGEX_NODE_INFOS(SampleSurfaceGuided, "Sample Surface Guided", "Find the collision point on the nearest collidable surface in a given direction.");
 #endif
 
-	virtual PCGEx::EIOInit GetPointOutputInitMode() const override;
+	virtual PCGExIO::EInitMode GetPointOutputInitMode() const override;
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
@@ -117,7 +110,7 @@ public:
 
 	int64 NumTraceComplete = 0;
 
-	void WrapTraceTask(const PCGExAsync::FTraceTask* Task, bool bSuccess);
+	void WrapTraceTask(const FPointTask* Task, bool bSuccess);
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExSampleSurfaceGuidedElement : public FPCGExPointsProcessorElementBase
@@ -133,64 +126,61 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-namespace PCGExAsync
+// Define the background task class
+class PCGEXTENDEDTOOLKIT_API FTraceTask : public FPointTask
 {
-	// Define the background task class
-	class FTraceTask : public FPointTask
+public:
+	FTraceTask(FPCGExPointsProcessorContext* InContext, UPCGExPointIO* InPointData, PCGExMT::FTaskInfos InInfos) :
+		FPointTask(InContext, InPointData, InInfos)
 	{
-	public:
-		FTraceTask(FPCGExPointsProcessorContext* InContext, UPCGExPointIO* InPointData, PCGExMT::FTaskInfos InInfos) :
-			FPointTask(InContext, InPointData, InInfos)
+	}
+
+	virtual void ExecuteTask(FPCGContext* InContext) override
+	{
+		FPCGExSampleSurfaceGuidedContext* Context = static_cast<FPCGExSampleSurfaceGuidedContext*>(InContext);
+		FPCGPoint InPoint = GetInPoint();
+		FVector Origin = InPoint.Transform.GetLocation();
+
+		FCollisionQueryParams CollisionParams;
+		if (Context->bIgnoreSelf) { CollisionParams.AddIgnoredActor(InContext->SourceComponent->GetOwner()); }
+
+		double Size = Context->bUseLocalSize ? Context->LocalSize.GetValue(InPoint) : Context->Size;
+
+		if (!Context->Points) { return; }
+
+		if (Context->CollisionType == EPCGExCollisionFilterType::Channel)
 		{
-		}
-
-		virtual void ExecuteTask(FPCGExPointsProcessorContext* InContext) override
-		{
-			FPCGExSampleSurfaceGuidedContext* Context = static_cast<FPCGExSampleSurfaceGuidedContext*>(InContext);
-			FPCGPoint InPoint = GetInPoint();
-			FVector Origin = InPoint.Transform.GetLocation();
-
-			FCollisionQueryParams CollisionParams;
-			if (Context->bIgnoreSelf) { CollisionParams.AddIgnoredActor(InContext->SourceComponent->GetOwner()); }
-
-			double Size = Context->bUseLocalSize ? Context->LocalSize.GetValue(InPoint) : Context->Size;
-
-			if (!InContext->Points) { return; }
-
-			if (Context->CollisionType == EPCGExCollisionFilterType::Channel)
+			if (Context->World->LineTraceSingleByChannel(HitResult, Origin, Origin + (Context->Direction.GetValue(InPoint) * Size), Context->CollisionChannel, CollisionParams))
 			{
-				if (InContext->World->LineTraceSingleByChannel(HitResult, Origin, Origin + (Context->Direction.GetValue(InPoint) * Size), Context->CollisionChannel, CollisionParams))
-				{
-					PCGEX_SET_OUT_ATTRIBUTE(Location, Infos.Key, HitResult.ImpactPoint)
-					PCGEX_SET_OUT_ATTRIBUTE(Normal, Infos.Key, HitResult.Normal)
-					PCGEX_SET_OUT_ATTRIBUTE(Distance, Infos.Key, FVector::Distance(HitResult.ImpactPoint, Origin))
+				PCGEX_SET_OUT_ATTRIBUTE(Location, Infos.Key, HitResult.ImpactPoint)
+				PCGEX_SET_OUT_ATTRIBUTE(Normal, Infos.Key, HitResult.Normal)
+				PCGEX_SET_OUT_ATTRIBUTE(Distance, Infos.Key, FVector::Distance(HitResult.ImpactPoint, Origin))
 
-					Context->WrapTraceTask(this, true);
-				}
-				else
-				{
-					Context->WrapTraceTask(this, false);
-				}
+				Context->WrapTraceTask(this, true);
 			}
 			else
 			{
-				FCollisionObjectQueryParams ObjectQueryParams = FCollisionObjectQueryParams(Context->CollisionObjectType);
-				if (InContext->World->LineTraceSingleByObjectType(HitResult, Origin, Origin + (Context->Direction.GetValue(InPoint) * Size), ObjectQueryParams, CollisionParams))
-				{
-					PCGEX_SET_OUT_ATTRIBUTE(Location, Infos.Key, HitResult.ImpactPoint)
-					PCGEX_SET_OUT_ATTRIBUTE(Normal, Infos.Key, HitResult.Normal)
-					PCGEX_SET_OUT_ATTRIBUTE(Distance, Infos.Key, FVector::Distance(HitResult.ImpactPoint, Origin))
-
-					Context->WrapTraceTask(this, true);
-				}
-				else
-				{
-					Context->WrapTraceTask(this, false);
-				}
+				Context->WrapTraceTask(this, false);
 			}
 		}
+		else
+		{
+			FCollisionObjectQueryParams ObjectQueryParams = FCollisionObjectQueryParams(Context->CollisionObjectType);
+			if (Context->World->LineTraceSingleByObjectType(HitResult, Origin, Origin + (Context->Direction.GetValue(InPoint) * Size), ObjectQueryParams, CollisionParams))
+			{
+				PCGEX_SET_OUT_ATTRIBUTE(Location, Infos.Key, HitResult.ImpactPoint)
+				PCGEX_SET_OUT_ATTRIBUTE(Normal, Infos.Key, HitResult.Normal)
+				PCGEX_SET_OUT_ATTRIBUTE(Distance, Infos.Key, FVector::Distance(HitResult.ImpactPoint, Origin))
 
-	public:
-		FHitResult HitResult;
-	};
-}
+				Context->WrapTraceTask(this, true);
+			}
+			else
+			{
+				Context->WrapTraceTask(this, false);
+			}
+		}
+	}
+
+public:
+	FHitResult HitResult;
+};

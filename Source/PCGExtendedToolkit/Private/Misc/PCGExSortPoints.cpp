@@ -3,10 +3,7 @@
 
 
 #include "Misc/PCGExSortPoints.h"
-#include "Data/PCGPointData.h"
-#include "PCGContext.h"
-#include "PCGPoint.h"
-#include "Elements/Metadata/PCGMetadataElementCommon.h"
+
 #include "Misc/PCGExCompare.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSortPointsByAttributesElement"
@@ -18,7 +15,7 @@ namespace PCGExSortPoints
 
 FPCGElementPtr UPCGExSortPointsSettings::CreateElement() const { return MakeShared<FPCGExSortPointsElement>(); }
 
-PCGEx::EIOInit UPCGExSortPointsSettings::GetPointOutputInitMode() const { return PCGEx::EIOInit::DuplicateInput; }
+PCGExIO::EInitMode UPCGExSortPointsSettings::GetPointOutputInitMode() const { return PCGExIO::EInitMode::DuplicateInput; }
 
 bool FPCGExSortPointsElement::ExecuteInternal(FPCGContext* InContext) const
 {
@@ -44,7 +41,7 @@ bool FPCGExSortPointsElement::ExecuteInternal(FPCGContext* InContext) const
 	EPCGExSortDirection SortDirection = Settings->SortDirection;
 	TArray<FPCGExSortRule> Rules;
 
-	auto ProcessPair = [&Context, &DesiredRules, &Rules, &SortDirection, this](const UPCGExPointIO* POI, const int32)
+	auto ProcessPair = [&](const UPCGExPointIO* POI, const int32)
 	{
 		//POI->ForwardPoints(Context);
 		if (!BuildRulesForPoints(POI->Out, DesiredRules, Rules))

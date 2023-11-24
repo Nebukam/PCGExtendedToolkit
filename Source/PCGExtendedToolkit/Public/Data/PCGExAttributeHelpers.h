@@ -4,13 +4,203 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExCommon.h"
 #include "Data/PCGPointData.h"
 #include "Metadata/PCGAttributePropertySelector.h"
-//#include "PCGExLocalAttributeReader.generated.h"
+#include "Metadata/Accessors/IPCGAttributeAccessor.h"
+#include "Metadata/Accessors/PCGAttributeAccessorHelpers.h"
+
+#include "PCGEx.h"
+#include "PCGExMath.h"
+
+#include "PCGExAttributeHelpers.generated.h"
+
+#pragma region Input Descriptors
+
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExInputDescriptor
+{
+	GENERATED_BODY()
+
+	FPCGExInputDescriptor()
+	{
+		bValidatedAtLeastOnce = false;
+	}
+
+	FPCGExInputDescriptor(const FPCGExInputDescriptor& Other): FPCGExInputDescriptor()
+	{
+		Selector = Other.Selector;
+		Attribute = Other.Attribute;
+	}
+
+public:
+	virtual ~FPCGExInputDescriptor()
+	{
+		Attribute = nullptr;
+	};
+
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta = (HideInDetailPanel, Hidden, EditConditionHides, EditCondition="false"))
+	FString HiddenDisplayName;
+
+	/** Point Attribute or $Property */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayPriority=0))
+	FPCGAttributePropertyInputSelector Selector;
+
+	FPCGMetadataAttributeBase* Attribute = nullptr;
+	bool bValidatedAtLeastOnce = false;
+	int16 UnderlyingType = 0;
+
+	/**
+	 * 
+	 * @tparam T 
+	 * @return 
+	 */
+	template <typename T>
+	FPCGMetadataAttribute<T>* GetTypedAttribute()
+	{
+		if (Attribute == nullptr) { return nullptr; }
+		return static_cast<FPCGMetadataAttribute<T>*>(Attribute);
+	}
+
+public:
+	EPCGAttributePropertySelection GetSelection() const { return Selector.GetSelection(); }
+	FName GetName() const { return Selector.GetName(); }
+
+	/**
+	 * Validate & cache the current selector for a given UPCGPointData
+	 * @param InData 
+	 * @return 
+	 */
+	bool Validate(const UPCGPointData* InData)
+	{
+		bValidatedAtLeastOnce = true;
+		Selector = Selector.CopyAndFixLast(InData);
+
+		if (GetSelection() == EPCGAttributePropertySelection::Attribute)
+		{
+			Attribute = Selector.IsValid() ? InData->Metadata->GetMutableAttribute(GetName()) : nullptr;
+
+			if (Attribute)
+			{
+				const TUniquePtr<const IPCGAttributeAccessor> Accessor = PCGAttributeAccessorHelpers::CreateConstAccessor(InData, Selector);
+				UnderlyingType = Accessor->GetUnderlyingType();
+				//if (!Accessor.IsValid()) { Attribute = nullptr; }
+			}
+
+			return Attribute != nullptr;
+		}
+		else if (Selector.IsValid())
+		{
+			const TUniquePtr<const IPCGAttributeAccessor> Accessor = PCGAttributeAccessorHelpers::CreateConstAccessor(InData, Selector);
+			UnderlyingType = Accessor->GetUnderlyingType();
+			return true;
+		}
+		return false;
+	}
+
+	FString ToString() const { return GetName().ToString(); }
+};
+
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExInputDescriptorGeneric : public FPCGExInputDescriptor
+{
+	GENERATED_BODY()
+
+	FPCGExInputDescriptorGeneric(): FPCGExInputDescriptor()
+	{
+	}
+
+	FPCGExInputDescriptorGeneric(const FPCGExInputDescriptorGeneric& Other)
+		: FPCGExInputDescriptor(Other),
+		  Type(Other.Type),
+		  Axis(Other.Axis),
+		  Field(Other.Field)
+	{
+	}
+
+public:
+	/** How to interpret the data */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayAfter="Selector"))
+	EPCGExSelectorType Type = EPCGExSelectorType::SingleField;
+
+	/** Direction to sample on relevant data types (FQuat are transformed to a direction first, from which the single component is selected) */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (DisplayName=" └─ Axis", PCG_Overridable, DisplayAfter="Type"))
+	EPCGExAxis Axis = EPCGExAxis::Forward;
+
+	/** Single field selection */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (DisplayName=" └─ Field", PCG_Overridable, DisplayAfter="Axis", EditCondition="Type==EPCGExSelectorType::SingleField", EditConditionHides))
+	EPCGExSingleField Field = EPCGExSingleField::X;
+
+	~FPCGExInputDescriptorGeneric()
+	{
+	}
+};
+
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExInputDescriptorWithDirection : public FPCGExInputDescriptor
+{
+	GENERATED_BODY()
+
+	FPCGExInputDescriptorWithDirection(): FPCGExInputDescriptor()
+	{
+	}
+
+	FPCGExInputDescriptorWithDirection(const FPCGExInputDescriptorWithDirection& Other)
+		: FPCGExInputDescriptor(Other),
+		  Axis(Other.Axis)
+	{
+	}
+
+public:
+	/** Sub-component order, used only for multi-field attributes (FVector, FRotator etc). */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (DisplayName=" └─ Axis", PCG_Overridable, DisplayAfter="Selector"))
+	EPCGExAxis Axis = EPCGExAxis::Forward;
+
+	~FPCGExInputDescriptorWithDirection()
+	{
+	}
+};
+
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExInputDescriptorWithSingleField : public FPCGExInputDescriptor
+{
+	GENERATED_BODY()
+
+	FPCGExInputDescriptorWithSingleField(): FPCGExInputDescriptor()
+	{
+	}
+
+	FPCGExInputDescriptorWithSingleField(const FPCGExInputDescriptorWithSingleField& Other)
+		: FPCGExInputDescriptor(Other),
+		  Axis(Other.Axis),
+		  Field(Other.Field)
+	{
+	}
+
+public:
+	/** Direction to sample on relevant data types (FQuat are transformed to a direction first, from which the single component is selected) */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (DisplayName=" └─ Axis", PCG_Overridable, DisplayAfter="Selector"))
+	EPCGExAxis Axis = EPCGExAxis::Forward;
+
+	/** Single field selection */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (DisplayName=" └─ Field", PCG_Overridable, DisplayAfter="Axis"))
+	EPCGExSingleField Field = EPCGExSingleField::X;
+
+	~FPCGExInputDescriptorWithSingleField()
+	{
+	}
+};
+
+#pragma endregion
 
 namespace PCGEx
 {
+	template <typename T>
+	static FPCGMetadataAttribute<T>* TryGetAttribute(UPCGSpatialData* InData, FName Name, bool bEnabled, T defaultValue = T{})
+	{
+		if (!bEnabled || !PCGEx::IsValidName(Name)) { return nullptr; }
+		return InData->Metadata->FindOrCreateAttribute<T>(Name, defaultValue);
+	}
+
 #pragma region Local Attribute Inputs
 
 	template <typename T>
@@ -66,7 +256,7 @@ namespace PCGEx
 			case EPCGAttributePropertySelection::Attribute:
 				return PCGMetadataAttribute::CallbackWithRightType(
 					Descriptor.UnderlyingType,
-					[this, &Point](auto DummyValue) -> T
+					[&](auto DummyValue) -> T
 					{
 						using AttributeType = decltype(DummyValue);
 						FPCGMetadataAttribute<AttributeType>* Attribute = static_cast<FPCGMetadataAttribute<AttributeType>*>(Descriptor.Attribute);
@@ -304,12 +494,12 @@ virtual _TYPE Convert(const FName Value) const override { return _TYPE(Value.ToS
 			}
 		}
 
-		virtual double Convert(const FQuat Value) const override { return Convert(Common::GetDirection(Value, Axis)); }
+		virtual double Convert(const FQuat Value) const override { return Convert(GetDirection(Value, Axis)); }
 		virtual double Convert(const FTransform Value) const override { return Convert(Value.GetLocation()); }
 		virtual double Convert(const bool Value) const override { return static_cast<double>(Value); }
 		virtual double Convert(const FRotator Value) const override { return Convert(Value.Vector()); }
-		virtual double Convert(const FString Value) const override { return Common::ConvertStringToDouble(Value); }
-		virtual double Convert(const FName Value) const override { return Common::ConvertStringToDouble(Value.ToString()); }
+		virtual double Convert(const FString Value) const override { return PCGExMath::ConvertStringToDouble(Value); }
+		virtual double Convert(const FName Value) const override { return PCGExMath::ConvertStringToDouble(Value.ToString()); }
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FLocalDirectionInput : public FAttributeHandle<FVector>
@@ -350,8 +540,8 @@ virtual _TYPE Convert(const FName Value) const override { return _TYPE(Value.ToS
 		virtual FVector Convert(const FVector2D Value) const override { return FVector(Value.X, Value.Y, 0); }
 		virtual FVector Convert(const FVector Value) const override { return Value; }
 		virtual FVector Convert(const FVector4 Value) const override { return FVector(Value); }
-		virtual FVector Convert(const FQuat Value) const override { return Common::GetDirection(Value, Axis); }
-		virtual FVector Convert(const FTransform Value) const override { return Common::GetDirection(Value.GetRotation(), Axis); }
+		virtual FVector Convert(const FQuat Value) const override { return PCGEx::GetDirection(Value, Axis); }
+		virtual FVector Convert(const FTransform Value) const override { return PCGEx::GetDirection(Value.GetRotation(), Axis); }
 		virtual FVector Convert(const FRotator Value) const override { return Value.Vector(); }
 		virtual FVector Convert(const FString Value) const override { return GetDefaultValue(); }
 		virtual FVector Convert(const FName Value) const override { return GetDefaultValue(); }

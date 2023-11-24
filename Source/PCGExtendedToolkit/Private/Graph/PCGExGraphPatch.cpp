@@ -3,8 +3,12 @@
 
 #include "Graph/PCGExGraphPatch.h"
 
-#include "PCGContext.h"
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
+
+#include "Data/PCGExPointIO.h"
+#include "Data/PCGExGraphParamsData.h"
+
+#include "Graph/PCGExGraph.h"
 
 void UPCGExGraphPatch::Add(const uint64 Hash)
 {
@@ -41,7 +45,7 @@ bool UPCGExGraphPatch::OutputTo(const UPCGExPointIO* OutIO, int32 PatchIDOverrid
 void UPCGExGraphPatch::Flush()
 {
 	HashSet.Empty();
-	IO = nullptr;
+	PointIO = nullptr;
 	Parent = nullptr;
 }
 
@@ -79,7 +83,7 @@ UPCGExGraphPatch* UPCGExGraphPatchGroup::CreatePatch()
 	UPCGExGraphPatch* NewPatch = NewObject<UPCGExGraphPatch>();
 	Patches.Add(NewPatch);
 	NewPatch->Parent = this;
-	NewPatch->IO = IO;
+	NewPatch->PointIO = PointIO;
 	NewPatch->PatchID = Patches.Num() - 1;
 	return NewPatch;
 }
@@ -99,7 +103,7 @@ void UPCGExGraphPatchGroup::Distribute(const int32 InIndex, UPCGExGraphPatch* Pa
 	}
 
 	TArray<PCGExGraph::FUnsignedEdge> UnsignedEdges;
-	Graph->GetEdges(InIndex, IO->In->GetPoint(InIndex).MetadataEntry, UnsignedEdges);
+	Graph->GetEdges(InIndex, PointIO->In->GetPoint(InIndex).MetadataEntry, UnsignedEdges);
 
 	for (const PCGExGraph::FUnsignedEdge& Edge : UnsignedEdges)
 	{
@@ -144,8 +148,8 @@ void UPCGExGraphPatchGroup::DistributeEdge(const T& InEdge, UPCGExGraphPatch* Pa
 	}
 
 	TArray<T> Edges;
-	Graph->GetEdges(InEdge.Start, IO->In->GetPoint(InEdge.Start).MetadataEntry, Edges);
-	Graph->GetEdges(InEdge.End, IO->In->GetPoint(InEdge.End).MetadataEntry, Edges);
+	Graph->GetEdges(InEdge.Start, PointIO->In->GetPoint(InEdge.Start).MetadataEntry, Edges);
+	Graph->GetEdges(InEdge.End, PointIO->In->GetPoint(InEdge.End).MetadataEntry, Edges);
 
 	for (const T& Edge : Edges)
 	{
@@ -179,7 +183,7 @@ void UPCGExGraphPatchGroup::OutputTo(FPCGContext* Context)
 	PatchesIO = NewObject<UPCGExPointIOGroup>();
 	for (UPCGExGraphPatch* Patch : Patches)
 	{
-		const UPCGExPointIO* OutIO = PatchesIO->Emplace_GetRef(*IO, PCGEx::EIOInit::NewOutput);
+		const UPCGExPointIO* OutIO = PatchesIO->Emplace_GetRef(*PointIO, PCGExIO::EInitMode::NewOutput);
 		Patch->OutputTo(OutIO, -1);
 	}
 	PatchesIO->OutputTo(Context);
@@ -192,7 +196,7 @@ void UPCGExGraphPatchGroup::Flush()
 	for (UPCGExGraphPatch* Patch : Patches) { Patch->Flush(); }
 	Patches.Empty();
 	HashMap.Empty();
-	IO = nullptr;
+	PointIO = nullptr;
 	Graph = nullptr;
 	PatchesIO = nullptr;
 }
@@ -206,7 +210,7 @@ void UPCGExGraphPatchGroup::OutputTo(FPCGContext* Context, const int64 MinPointC
 		const int64 OutNumPoints = Patch->HashSet.Num();
 		if (MinPointCount >= 0 && OutNumPoints < MinPointCount) { continue; }
 		if (MaxPointCount >= 0 && OutNumPoints > MaxPointCount) { continue; }
-		const UPCGExPointIO* OutIO = PatchesIO->Emplace_GetRef(*IO, PCGEx::EIOInit::NewOutput);
+		const UPCGExPointIO* OutIO = PatchesIO->Emplace_GetRef(*PointIO, PCGExIO::EInitMode::NewOutput);
 		Patch->OutputTo(OutIO, PatchIndex);
 		PatchIndex++;
 	}

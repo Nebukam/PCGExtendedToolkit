@@ -3,17 +3,11 @@
 
 #include "Graph/PCGExFindEdgesType.h"
 
-#include "Data/PCGSpatialData.h"
-#include "PCGContext.h"
-#include "DrawDebugHelpers.h"
-#include "Editor.h"
-#include "Graph/PCGExGraphHelpers.h"
-
 #define LOCTEXT_NAMESPACE "PCGExFindEdgesType"
 
 int32 UPCGExFindEdgesTypeSettings::GetPreferredChunkSize() const { return 32; }
 
-PCGEx::EIOInit UPCGExFindEdgesTypeSettings::GetPointOutputInitMode() const { return PCGEx::EIOInit::DuplicateInput; }
+PCGExIO::EInitMode UPCGExFindEdgesTypeSettings::GetPointOutputInitMode() const { return PCGExIO::EInitMode::DuplicateInput; }
 
 FPCGElementPtr UPCGExFindEdgesTypeSettings::CreateElement() const
 {
@@ -67,9 +61,9 @@ bool FPCGExFindEdgesTypeElement::ExecuteInternal(
 		}
 	}
 
-	auto ProcessPoint = [&Context](const FPCGPoint& Point, const int32 ReadIndex, const UPCGExPointIO* IO)
+	auto ProcessPoint = [&Context](const FPCGPoint& Point, const int32 ReadIndex, const UPCGExPointIO* PointIO)
 	{
-		Context->ComputeEdgeType(Point, ReadIndex, IO);
+		Context->ComputeEdgeType(Point, ReadIndex, PointIO);
 	};
 
 	if (Context->IsState(PCGExMT::EState::ReadyForNextGraph))
@@ -85,9 +79,9 @@ bool FPCGExFindEdgesTypeElement::ExecuteInternal(
 		}
 	}
 
-	auto Initialize = [&Context](const UPCGExPointIO* IO)
+	auto Initialize = [&](const UPCGExPointIO* PointIO)
 	{
-		Context->CurrentGraph->PrepareForPointData(IO->Out, true);
+		Context->PrepareCurrentGraphForPoints(PointIO->Out, true);
 	};
 
 	if (Context->IsState(PCGExMT::EState::ProcessingGraph))

@@ -4,15 +4,15 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGContext.h"
+
 #include "PCGExPointsProcessor.h"
-#include "PCGExGraph.h"
 #include "Data/PCGExGraphParamsData.h"
 
 #include "PCGExGraphProcessor.generated.h"
 
 namespace PCGExGraph
 {
+	
 	struct PCGEXTENDEDTOOLKIT_API FGraphInputs
 	{
 		FGraphInputs()
@@ -116,15 +116,15 @@ namespace PCGExGraph
 
 		TArray<FPointCandidate> Candidates;
 
-		double IndexedRating = MAX_dbl;
+		double IndexedRating = DBL_MAX;
 		double IndexedDistanceRating = 0;
 		double IndexedDotRating = 0;
 		double IndexedDotWeight = 0;
 
 		double ProbedDistanceMax = 0;
-		double ProbedDistanceMin = MAX_dbl;
+		double ProbedDistanceMin = DBL_MAX;
 		double ProbedDotMax = 0;
-		double ProbedDotMin = MAX_dbl;
+		double ProbedDotMin = DBL_MAX;
 
 
 		bool ProcessPoint(const FPCGPoint* Point, int32 Index)
@@ -157,8 +157,8 @@ namespace PCGExGraph
 		{
 			for (const FPointCandidate& Candidate : Candidates)
 			{
-				const double DotRating = 1 - PCGEx::Maths::Remap(Candidate.Dot, ProbedDotMin, ProbedDotMax);
-				const double DistanceRating = PCGEx::Maths::Remap(Candidate.Distance, ProbedDistanceMin, ProbedDistanceMax);
+				const double DotRating = 1 - PCGExMath::Remap(Candidate.Dot, ProbedDotMin, ProbedDotMax);
+				const double DistanceRating = PCGExMath::Remap(Candidate.Distance, ProbedDistanceMin, ProbedDistanceMax);
 				const double DotWeight = FMathf::Clamp(DotOverDistanceCurve->GetFloatValue(DistanceRating), 0, 1);
 				const double Rating = (DotRating * DotWeight) + (DistanceRating * (1 - DotWeight));
 
@@ -256,7 +256,7 @@ public:
 	FPCGMetadataAttribute<int64>* CachedIndex;
 	TArray<PCGExGraph::FSocketInfos> SocketInfos;
 	
-	void ComputeEdgeType(const FPCGPoint& Point, int32 ReadIndex, const UPCGExPointIO* IO);
+	void ComputeEdgeType(const FPCGPoint& Point, int32 ReadIndex, const UPCGExPointIO* PointIO);
 	double PrepareProbesForPoint(const FPCGPoint& Point, TArray<PCGExGraph::FSocketProbe>& OutProbes);
 
 	void PrepareCurrentGraphForPoints(const UPCGPointData* InData, bool bEnsureEdgeType);
@@ -283,7 +283,7 @@ public:
 		const UPCGNode* Node) override;
 
 protected:
-	virtual PCGEx::EIOInit GetPointOutputInitMode() const { return PCGEx::EIOInit::DuplicateInput; }
+	virtual PCGExIO::EInitMode GetPointOutputInitMode() const { return PCGExIO::EInitMode::DuplicateInput; }
 	virtual bool Validate(FPCGContext* InContext) const override;
 	virtual void InitializeContext(
 		FPCGExPointsProcessorContext* InContext,

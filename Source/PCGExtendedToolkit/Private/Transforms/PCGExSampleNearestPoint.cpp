@@ -3,11 +3,7 @@
 
 #include "Transforms/PCGExSampleNearestPoint.h"
 
-#include "Data/PCGSpatialData.h"
-#include "PCGContext.h"
-#include "PCGExCommon.h"
 #include "PCGPin.h"
-#include <algorithm>
 
 #define LOCTEXT_NAMESPACE "PCGExSampleNearestPointElement"
 
@@ -38,7 +34,7 @@ TArray<FPCGPinProperties> UPCGExSampleNearestPointSettings::InputPinProperties()
 	return PinProperties;
 }
 
-PCGEx::EIOInit UPCGExSampleNearestPointSettings::GetPointOutputInitMode() const { return PCGEx::EIOInit::DuplicateInput; }
+PCGExIO::EInitMode UPCGExSampleNearestPointSettings::GetPointOutputInitMode() const { return PCGExIO::EInitMode::DuplicateInput; }
 
 int32 UPCGExSampleNearestPointSettings::GetPreferredChunkSize() const { return 32; }
 
@@ -170,13 +166,13 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 		}
 	}
 
-	auto InitializeForIO = [&Context, this](UPCGExPointIO* IO)
+	auto InitializeForIO = [&](UPCGExPointIO* PointIO)
 	{
-		IO->BuildMetadataEntries();
+		PointIO->BuildMetadataEntries();
 
 		if (Context->bLocalRangeMin)
 		{
-			if (Context->RangeMinInput.Validate(IO->Out))
+			if (Context->RangeMinInput.Validate(PointIO->Out))
 			{
 				PCGE_LOG(Warning, GraphAndLog, LOCTEXT("InvalidLocalRangeMin", "RangeMin metadata missing"));
 			}
@@ -184,7 +180,7 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 
 		if (Context->bLocalRangeMax)
 		{
-			if (Context->RangeMaxInput.Validate(IO->Out))
+			if (Context->RangeMaxInput.Validate(PointIO->Out))
 			{
 				PCGE_LOG(Warning, GraphAndLog, LOCTEXT("InvalidLocalRangeMax", "RangeMax metadata missing"));
 			}
@@ -197,7 +193,7 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 		PCGEX_INIT_ATTRIBUTE_OUT(SignedDistance, double)
 	};
 
-	auto ProcessPoint = [&Context](const FPCGPoint& Point, const int32 ReadIndex, const UPCGExPointIO* IO)
+	auto ProcessPoint = [&](const FPCGPoint& Point, const int32 ReadIndex, const UPCGExPointIO* PointIO)
 	{
 		double RangeMin = FMath::Pow(Context->RangeMinInput.GetValueSafe(Point, Context->RangeMin), 2);
 		double RangeMax = FMath::Pow(Context->RangeMaxInput.GetValueSafe(Point, Context->RangeMax), 2);
@@ -210,7 +206,7 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 		PCGExNearestPoint::FTargetsCompoundInfos TargetsCompoundInfos;
 
 		FVector Origin = Point.Transform.GetLocation();
-		auto ProcessTarget = [&Context, &Origin, &ReadIndex, &RangeMin, &RangeMax, &TargetsInfos, &TargetsCompoundInfos](const FPCGPoint& Target)
+		auto ProcessTarget = [&](const FPCGPoint& Target)
 		{
 			const double dist = FVector::DistSquared(Origin, Target.Transform.GetLocation());
 
@@ -267,7 +263,7 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 		double TotalWeight = 0;
 
 
-		auto ProcessTargetInfos = [&Context, &Origin, &WeightedLocation, &WeightedLookAt, &WeightedNormal, &TotalWeight]
+		auto ProcessTargetInfos = [&]
 			(const PCGExNearestPoint::FTargetInfos& TargetInfos, double Weight)
 		{
 			const FPCGPoint TargetPoint = Context->TargetsCache->GetPoint(TargetInfos.Index);

@@ -3,13 +3,9 @@
 
 #include "Graph/PCGExCreateGraphParams.h"
 
-#include "PCGComponent.h"
-#include "PCGSubsystem.h"
-#include "GameFramework/Actor.h"
-#include "UObject/Package.h"
-#include "Data/PCGExGraphParamsData.h"
+#include "PCGPin.h"
 
-#define LOCTEXT_NAMESPACE "PCGExGraphParamsBuilderElementBase"
+#define LOCTEXT_NAMESPACE "PCGExCreateGraphParams"
 
 namespace PCGExDebugColors
 {
@@ -174,7 +170,7 @@ T* FPCGExCreateGraphParamsElement::BuildParams(
 	const UPCGExCreateGraphParamsSettings* Settings = Context->GetInputSettings<UPCGExCreateGraphParamsSettings>();
 	check(Settings);
 
-	if (Settings->GraphIdentifier.IsNone() || !PCGEx::Common::IsValidName(Settings->GraphIdentifier.ToString()))
+	if (Settings->GraphIdentifier.IsNone() || !PCGEx::IsValidName(Settings->GraphIdentifier.ToString()))
 	{
 		PCGE_LOG(Error, GraphAndLog, LOCTEXT("UnamedOutput", "Output name is invalid; Cannot be 'None' and can only contain the following special characters:[ ],[_],[-],[/]"));
 		return nullptr;

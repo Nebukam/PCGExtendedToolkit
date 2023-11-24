@@ -1,25 +1,26 @@
 ﻿// Copyright Timothé Lapetite 2023
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "PCGExPointIO.h"
-#include "PCGContext.h"
+#include "Data/PCGExPointIO.h"
+
+#include "Helpers/PCGAsync.h"
 
 UPCGExPointIO::UPCGExPointIO(): In(nullptr), Out(nullptr), NumPoints(-1)
 {
 	// Initialize other members as needed
 }
 
-void UPCGExPointIO::InitializeOut(PCGEx::EIOInit InitOut)
+void UPCGExPointIO::InitializeOut(PCGExIO::EInitMode InitOut)
 {
 	switch (InitOut)
 	{
-	case PCGEx::EIOInit::NoOutput:
+	case PCGExIO::EInitMode::NoOutput:
 		break;
-	case PCGEx::EIOInit::NewOutput:
+	case PCGExIO::EInitMode::NewOutput:
 		Out = NewObject<UPCGPointData>();
 		if (In) { Out->InitializeFromData(In); }
 		break;
-	case PCGEx::EIOInit::DuplicateInput:
+	case PCGExIO::EInitMode::DuplicateInput:
 		if (In)
 		{
 			Out = Cast<UPCGPointData>(In->DuplicateData(true));
@@ -29,7 +30,7 @@ void UPCGExPointIO::InitializeOut(PCGEx::EIOInit InitOut)
 			UE_LOG(LogTemp, Error, TEXT("Initialize::Duplicate, but no Input."));
 		}
 		break;
-	case PCGEx::EIOInit::Forward:
+	case PCGExIO::EInitMode::Forward:
 		Out = In;
 		break;
 	default: ;
@@ -91,17 +92,16 @@ int32 UPCGExPointIO::GetIndex(PCGMetadataEntryKey Key) const
 template <class InitializeFunc, class ProcessElementFunc>
 bool UPCGExPointIO::OutputParallelProcessing(
 	FPCGContext* Context,
-	InitializeFunc&& Initialize,   //TFunction<void(const UPCGExPointIO* PointIO)>
-	ProcessElementFunc&& LoopBody, //TFunction<void(const FPCGPoint&, int32, UPCGExPointIO*)>
+	InitializeFunc&& Initialize,
+	ProcessElementFunc&& LoopBody,
 	const int32 ChunkSize)
 {
-	auto InnerInitialize = [this, &Initialize]()
+	auto InnerInitialize = [&]()
 	{
-		bParallelProcessing = true;
 		Initialize(this);
 	};
 
-	auto InnerBodyLoop = [this, &LoopBody](const int32 ReadIndex, const int32 WriteIndex)
+	auto InnerBodyLoop = [&](const int32 ReadIndex, const int32 WriteIndex)
 	{
 		FReadScopeLock ScopeLock(MapLock);
 		const FPCGPoint& Point = Out->GetPoint(ReadIndex);
@@ -110,26 +110,23 @@ bool UPCGExPointIO::OutputParallelProcessing(
 		return true;
 	};
 
-	const bool bProcessingDone = FPCGAsync::AsyncProcessingOneToOneEx(&(Context->AsyncState), NumPoints, InnerInitialize, InnerBodyLoop, true, ChunkSize);
+	return FPCGAsync::AsyncProcessingOneToOneEx(&(Context->AsyncState), NumPoints, InnerInitialize, InnerBodyLoop, true, ChunkSize);
 
-	if (bProcessingDone) { bParallelProcessing = false; }
-	return bProcessingDone;
 }
 
 template <class InitializeFunc, class ProcessElementFunc>
 bool UPCGExPointIO::InputParallelProcessing(
 	FPCGContext* Context,
-	InitializeFunc&& Initialize,   //TFunction<void(UPCGExPointIO* PointIO)>
-	ProcessElementFunc&& LoopBody, //TFunction<void(const FPCGPoint&, int32, UPCGExPointIO*)>
+	InitializeFunc&& Initialize,
+	ProcessElementFunc&& LoopBody,
 	const int32 ChunkSize)
 {
-	auto InnerInitialize = [this, &Initialize]()
+	auto InnerInitialize = [&]()
 	{
-		bParallelProcessing = true;
 		Initialize(this);
 	};
 
-	auto InnerBodyLoop = [this, &LoopBody](const int32 ReadIndex, const int32 WriteIndex)
+	auto InnerBodyLoop = [&](const int32 ReadIndex, const int32 WriteIndex)
 	{
 		FReadScopeLock ScopeLock(MapLock);
 		const FPCGPoint& Point = In->GetPoint(ReadIndex);
@@ -137,10 +134,8 @@ bool UPCGExPointIO::InputParallelProcessing(
 		return true;
 	};
 
-	const bool bProcessingDone = FPCGAsync::AsyncProcessingOneToOneEx(&(Context->AsyncState), NumPoints, InnerInitialize, InnerBodyLoop, true, ChunkSize);
-
-	if (bProcessingDone) { bParallelProcessing = false; }
-	return bProcessingDone;
+	return FPCGAsync::AsyncProcessingOneToOneEx(&(Context->AsyncState), NumPoints, InnerInitialize, InnerBodyLoop, true, ChunkSize);
+	
 }
 
 bool UPCGExPointIO::OutputTo(FPCGContext* Context, bool bEmplace)
@@ -185,14 +180,14 @@ UPCGExPointIOGroup::UPCGExPointIOGroup()
 {
 }
 
-UPCGExPointIOGroup::UPCGExPointIOGroup(FPCGContext* Context, FName InputLabel, PCGEx::EIOInit InitOut)
+UPCGExPointIOGroup::UPCGExPointIOGroup(FPCGContext* Context, FName InputLabel, PCGExIO::EInitMode InitOut)
 	: UPCGExPointIOGroup::UPCGExPointIOGroup()
 {
 	TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(InputLabel);
 	Initialize(Context, Sources, InitOut);
 }
 
-UPCGExPointIOGroup::UPCGExPointIOGroup(FPCGContext* Context, TArray<FPCGTaggedData>& Sources, PCGEx::EIOInit InitOut)
+UPCGExPointIOGroup::UPCGExPointIOGroup(FPCGContext* Context, TArray<FPCGTaggedData>& Sources, PCGExIO::EInitMode InitOut)
 	: UPCGExPointIOGroup::UPCGExPointIOGroup()
 {
 	Initialize(Context, Sources, InitOut);
@@ -200,7 +195,7 @@ UPCGExPointIOGroup::UPCGExPointIOGroup(FPCGContext* Context, TArray<FPCGTaggedDa
 
 void UPCGExPointIOGroup::Initialize(
 	FPCGContext* Context, TArray<FPCGTaggedData>& Sources,
-	PCGEx::EIOInit InitOut)
+	PCGExIO::EInitMode InitOut)
 {
 	Pairs.Empty(Sources.Num());
 	for (FPCGTaggedData& Source : Sources)
@@ -213,7 +208,7 @@ void UPCGExPointIOGroup::Initialize(
 
 void UPCGExPointIOGroup::Initialize(
 	FPCGContext* Context, TArray<FPCGTaggedData>& Sources,
-	PCGEx::EIOInit InitOut,
+	PCGExIO::EInitMode InitOut,
 	const TFunction<bool(UPCGPointData*)>& ValidateFunc,
 	const TFunction<void(UPCGExPointIO*)>& PostInitFunc)
 {
@@ -229,15 +224,15 @@ void UPCGExPointIOGroup::Initialize(
 }
 
 UPCGExPointIO* UPCGExPointIOGroup::Emplace_GetRef(
-	const UPCGExPointIO& IO,
-	const PCGEx::EIOInit InitOut)
+	const UPCGExPointIO& PointIO,
+	const PCGExIO::EInitMode InitOut)
 {
-	return Emplace_GetRef(IO.Source, IO.In, InitOut);
+	return Emplace_GetRef(PointIO.Source, PointIO.In, InitOut);
 }
 
 UPCGExPointIO* UPCGExPointIOGroup::Emplace_GetRef(
 	const FPCGTaggedData& Source, UPCGPointData* In,
-	const PCGEx::EIOInit InitOut)
+	const PCGExIO::EInitMode InitOut)
 {
 	//FWriteScopeLock ScopeLock(PairsLock);
 
@@ -300,22 +295,11 @@ void UPCGExPointIOGroup::ForEach(const TFunction<void(UPCGExPointIO*, const int3
 	}
 }
 
-UPCGPointData* UPCGExPointIOGroup::GetMutablePointData(FPCGContext* Context, const FPCGTaggedData& Source)
-{
-	const UPCGSpatialData* SpatialData = Cast<UPCGSpatialData>(Source.Data);
-	if (!SpatialData) { return nullptr; }
-
-	const UPCGPointData* PointData = SpatialData->ToPointData(Context);
-	if (!PointData) { return nullptr; }
-
-	return const_cast<UPCGPointData*>(PointData);
-}
-
 template <typename InitializeFunc, typename ProcessElementFunc>
 bool UPCGExPointIOGroup::OutputsParallelProcessing(
 	FPCGContext* Context,
-	InitializeFunc&& Initialize,   //TFunction<void(UPCGExPointIO*)>
-	ProcessElementFunc&& LoopBody, //TFunction<void(const FPCGPoint&, int32, UPCGExPointIO*)>
+	InitializeFunc&& Initialize,
+	ProcessElementFunc&& LoopBody,
 	int32 ChunkSize)
 {
 	const int32 NumPairs = Pairs.Num();
@@ -354,8 +338,8 @@ bool UPCGExPointIOGroup::OutputsParallelProcessing(
 template <typename InitializeFunc, typename ProcessElementFunc>
 bool UPCGExPointIOGroup::InputsParallelProcessing(
 	FPCGContext* Context,
-	InitializeFunc&& Initialize,   //TFunction<void(UPCGExPointIO*)>
-	ProcessElementFunc&& LoopBody, //TFunction<void(const FPCGPoint&, int32, UPCGExPointIO*)>
+	InitializeFunc&& Initialize,
+	ProcessElementFunc&& LoopBody,
 	int32 ChunkSize)
 {
 	const int32 NumPairs = Pairs.Num();

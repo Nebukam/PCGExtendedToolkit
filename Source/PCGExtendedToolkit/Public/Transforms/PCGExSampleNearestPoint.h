@@ -4,8 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExCommon.h"
-#include "PCGExLocalAttributeHelpers.h"
+
 #include "PCGExPointsProcessor.h"
 #include "PCGExTransform.h"
 
@@ -36,7 +35,7 @@ namespace PCGExNearestPoint
 
 		int32 NumTargets = 0;
 		double TotalWeight = 0;
-		double SampledRangeMin = MAX_dbl;
+		double SampledRangeMin = DBL_MAX;
 		double SampledRangeMax = 0;
 		double SampledRangeWidth = 0;
 		int32 UpdateCount = 0;
@@ -89,7 +88,7 @@ public:
 
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 
-	virtual PCGEx::EIOInit GetPointOutputInitMode() const override;
+	virtual PCGExIO::EInitMode GetPointOutputInitMode() const override;
 	virtual int32 GetPreferredChunkSize() const override;
 
 protected:

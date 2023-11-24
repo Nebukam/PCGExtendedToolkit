@@ -4,9 +4,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
+
 #include "PCGExGraphProcessor.h"
-#include "Data/PCGPointData.h"
-#include "Elements/PCGPointProcessingElementBase.h"
 
 #include "PCGExBuildGraph.generated.h"
 
@@ -34,7 +33,7 @@ protected:
 
 	virtual int32 GetPreferredChunkSize() const override;
 
-	virtual PCGEx::EIOInit GetPointOutputInitMode() const override;
+	virtual PCGExIO::EInitMode GetPointOutputInitMode() const override;
 
 private:
 	friend class FPCGExBuildGraphElement;

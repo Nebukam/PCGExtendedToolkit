@@ -4,13 +4,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
+
 #include "Graph/PCGExGraphProcessor.h"
+#include "Graph/PCGExGraph.h"
 
 #include "PCGExEdgesToPaths.generated.h"
 
-/**
- * Calculates the distance between two points (inherently a n*n operation)
- */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
 class PCGEXTENDEDTOOLKIT_API UPCGExEdgesToPathsSettings : public UPCGExGraphProcessorSettings
 {
@@ -27,7 +26,7 @@ protected:
 	//~End UPCGSettings interface
 
 	virtual int32 GetPreferredChunkSize() const override;
-	virtual PCGEx::EIOInit GetPointOutputInitMode() const override;
+	virtual PCGExIO::EInitMode GetPointOutputInitMode() const override;
 
 public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExEdgeType"))

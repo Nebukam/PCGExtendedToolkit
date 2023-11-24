@@ -3,8 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Data/PCGExGraphParamsData.h"
 #include "UObject/Object.h"
+
 #include "PCGExGraphPatch.generated.h"
 
 class UPCGExGraphPatchGroup;
@@ -29,7 +29,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExGraphPatch : public UObject
 public:
 	//UPCGExGraphPatch();
 
-	UPCGExPointIO* IO = nullptr;
+	UPCGExPointIO* PointIO = nullptr;
 	UPCGExGraphPatchGroup* Parent = nullptr;
 
 	int32 PatchID = -1;
@@ -47,7 +47,7 @@ public:
 public:
 	~UPCGExGraphPatch()
 	{
-		IO = nullptr;
+		PointIO = nullptr;
 		Parent = nullptr;
 	}
 };
@@ -69,7 +69,7 @@ public:
 	EPCGExEdgeType CrawlEdgeTypes;
 
 	UPCGExGraphParamsData* Graph = nullptr;
-	UPCGExPointIO* IO = nullptr;
+	UPCGExPointIO* PointIO = nullptr;
 	UPCGExPointIOGroup* PatchesIO = nullptr;
 
 	FName PatchIDAttributeName;
@@ -95,7 +95,7 @@ public:
 public:
 	~UPCGExGraphPatchGroup()
 	{
-		IO = nullptr;
+		PointIO = nullptr;
 		Graph = nullptr;
 		PatchesIO = nullptr;
 	}

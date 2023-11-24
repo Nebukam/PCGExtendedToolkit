@@ -4,7 +4,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "..\PCGExCommon.h"
+
+#include "PCGEx.h"
 
 #define PCGEX_COMPARE_1(FIELD) \
 Result = Compare(A.FIELD, B.FIELD, Tolerance, Comp); \

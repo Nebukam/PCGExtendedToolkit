@@ -4,12 +4,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExCommon.h"
-#include "PCGExPointsProcessor.h"
-#include "Data/PCGSpatialData.h"
-#include "Elements/PCGPointProcessingElementBase.h"
+
 #include "Graph/PCGExGraphProcessor.h"
-#include "PCGExLocalAttributeHelpers.h"
+
 #include "PCGExPartitionByValues.generated.h"
 
 USTRUCT(BlueprintType)
@@ -77,7 +74,7 @@ protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings interface
 
-	virtual PCGEx::EIOInit GetPointOutputInitMode() const override;
+	virtual PCGExIO::EInitMode GetPointOutputInitMode() const override;
 
 public:
 	/** Rules */
@@ -130,6 +127,6 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 
 private:
-	static void DistributePoint(FPCGExSplitByValuesContext* Context, UPCGExPointIO* IO, const FPCGPoint& Point, const double InValue);
+	static void DistributePoint(FPCGExSplitByValuesContext* Context, UPCGExPointIO* PointIO, const FPCGPoint& Point, const double InValue);
 	static int64 Filter(const double InValue, const PCGExPartition::FRule& Rule);
 };

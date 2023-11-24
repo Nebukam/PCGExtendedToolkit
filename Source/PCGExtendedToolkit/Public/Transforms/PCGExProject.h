@@ -3,11 +3,11 @@
 
 #pragma once
 
-
-
 #include "CoreMinimal.h"
+
 #include "PCGExPointsProcessor.h"
-#include "Elements/PCGPointProcessingElementBase.h"
+#include "Data/PCGExAttributeHelpers.h"
+
 #include "PCGExProject.generated.h"
 
 /**
@@ -24,7 +24,7 @@ public:
 	PCGEX_NODE_INFOS(Project, "Project", "Use local attributes to Project & Transform points");
 #endif
 
-	virtual PCGEx::EIOInit GetPointOutputInitMode() const override;
+	virtual PCGExIO::EInitMode GetPointOutputInitMode() const override;
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;

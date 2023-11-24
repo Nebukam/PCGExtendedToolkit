@@ -4,17 +4,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExCommon.h"
+
 #include "PCGExPointsProcessor.h"
 #include "PCGExTransform.h"
 
 #include "PCGExSampleNearestSurface.generated.h"
-
-namespace PCGExAsync
-{
-	class FSweepSphereTask;
-}
-
 
 /**
  * Use PCGExTransform to manipulate the outgoing attributes instead of handling everything here.
@@ -31,7 +25,7 @@ public:
 	PCGEX_NODE_INFOS(SampleNearestSurface, "Sample Nearest Surface", "Find the closest point on the nearest collidable surface.");
 #endif
 
-	virtual PCGEx::EIOInit GetPointOutputInitMode() const override;
+	virtual PCGExIO::EInitMode GetPointOutputInitMode() const override;
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
@@ -120,9 +114,7 @@ public:
 
 	int64 NumSweepComplete = 0;
 
-	void ProcessSweepHit(const PCGExAsync::FSweepSphereTask* Task);
-	void ProcessSweepMiss(const PCGExAsync::FSweepSphereTask* Task);
-	void WrapSweepTask(const PCGExAsync::FSweepSphereTask* Task, bool bSuccess);
+	void WrapSweepTask(const FPointTask* Task, bool bSuccess);
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestSurfaceElement : public FPCGExPointsProcessorElementBase
@@ -138,68 +130,65 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-namespace PCGExAsync
+// Define the background task class
+class PCGEXTENDEDTOOLKIT_API FSweepSphereTask : public FPointTask
 {
-	// Define the background task class
-	class FSweepSphereTask : public FPointTask
+public:
+	FSweepSphereTask(FPCGContext* InContext, UPCGExPointIO* InPointData, PCGExMT::FTaskInfos InInfos) :
+		FPointTask(InContext, InPointData, InInfos)
 	{
-	public:
-		FSweepSphereTask(FPCGExPointsProcessorContext* InContext, UPCGExPointIO* InPointData, PCGExMT::FTaskInfos InInfos) :
-			FPointTask(InContext, InPointData, InInfos)
+	}
+
+	virtual void ExecuteTask(FPCGContext* InContext) override
+	{
+		FPCGExSampleNearestSurfaceContext* Context = static_cast<FPCGExSampleNearestSurfaceContext*>(InContext);
+		FPCGPoint InPoint = GetInPoint();
+		FVector Origin = InPoint.Transform.GetLocation();
+
+		FCollisionQueryParams CollisionParams;
+		if (Context->bIgnoreSelf) { CollisionParams.AddIgnoredActor(InContext->SourceComponent->GetOwner()); }
+
+		FCollisionShape CollisionShape = FCollisionShape::MakeSphere(0.001 + Context->AttemptStepSize * static_cast<float>(Infos.Attempt));
+
+
+		// TODO: We could optimize the max number of retries more elegantly by checking further first, then half distance
+
+		if (!Context->Points) { return; }
+		if (Context->CollisionType == EPCGExCollisionFilterType::Channel)
 		{
-		}
-
-		virtual void ExecuteTask(FPCGExPointsProcessorContext* InContext) override
-		{
-			FPCGExSampleNearestSurfaceContext* Context = static_cast<FPCGExSampleNearestSurfaceContext*>(InContext);
-			FPCGPoint InPoint = GetInPoint();
-			FVector Origin = InPoint.Transform.GetLocation();
-
-			FCollisionQueryParams CollisionParams;
-			if (Context->bIgnoreSelf) { CollisionParams.AddIgnoredActor(InContext->SourceComponent->GetOwner()); }
-
-			FCollisionShape CollisionShape = FCollisionShape::MakeSphere(0.001 + Context->AttemptStepSize * static_cast<float>(Infos.Attempt));
-
-
-			// TODO: We could optimize the max number of retries more elegantly by checking further first, then half distance
-
-			if (!InContext->Points) { return; }
-			if (Context->CollisionType == EPCGExCollisionFilterType::Channel)
+			if (Context->World->SweepSingleByChannel(HitResult, Origin, Origin + (FVector::UpVector * 0.001), FQuat::Identity, Context->CollisionChannel, CollisionShape, CollisionParams))
 			{
-				if (InContext->World->SweepSingleByChannel(HitResult, Origin, Origin + (FVector::UpVector * 0.001), FQuat::Identity, Context->CollisionChannel, CollisionShape, CollisionParams))
-				{
-					PCGEX_SET_OUT_ATTRIBUTE(Location, Infos.Key, HitResult.ImpactPoint)
-					PCGEX_SET_OUT_ATTRIBUTE(Normal, Infos.Key, HitResult.Normal)
-					PCGEX_SET_OUT_ATTRIBUTE(LookAt, Infos.Key, (HitResult.ImpactPoint - Origin).GetSafeNormal())
-					PCGEX_SET_OUT_ATTRIBUTE(Distance, Infos.Key, FVector::Distance(HitResult.ImpactPoint, Origin))
+				PCGEX_SET_OUT_ATTRIBUTE(Location, Infos.Key, HitResult.ImpactPoint)
+				PCGEX_SET_OUT_ATTRIBUTE(Normal, Infos.Key, HitResult.Normal)
+				PCGEX_SET_OUT_ATTRIBUTE(LookAt, Infos.Key, (HitResult.ImpactPoint - Origin).GetSafeNormal())
+				PCGEX_SET_OUT_ATTRIBUTE(Distance, Infos.Key, FVector::Distance(HitResult.ImpactPoint, Origin))
 
-					Context->ProcessSweepHit(this);
-				}
-				else
-				{
-					Context->ProcessSweepMiss(this);
-				}
+				Context->WrapSweepTask(this, true);
 			}
 			else
 			{
-				FCollisionObjectQueryParams ObjectQueryParams = FCollisionObjectQueryParams(Context->CollisionObjectType);
-				if (InContext->World->SweepSingleByObjectType(HitResult, Origin, Origin + (FVector::UpVector * 0.001), FQuat::Identity, ObjectQueryParams, CollisionShape, CollisionParams))
-				{
-					PCGEX_SET_OUT_ATTRIBUTE(Location, Infos.Key, HitResult.ImpactPoint)
-					PCGEX_SET_OUT_ATTRIBUTE(Normal, Infos.Key, HitResult.Normal)
-					PCGEX_SET_OUT_ATTRIBUTE(LookAt, Infos.Key, (HitResult.ImpactPoint - Origin).GetSafeNormal())
-					PCGEX_SET_OUT_ATTRIBUTE(Distance, Infos.Key, FVector::Distance(HitResult.ImpactPoint, Origin))
-
-					Context->ProcessSweepHit(this);
-				}
-				else
-				{
-					Context->ProcessSweepMiss(this);
-				}
+				Context->WrapSweepTask(this, false);
 			}
 		}
+		else
+		{
+			FCollisionObjectQueryParams ObjectQueryParams = FCollisionObjectQueryParams(Context->CollisionObjectType);
+			if (Context->World->SweepSingleByObjectType(HitResult, Origin, Origin + (FVector::UpVector * 0.001), FQuat::Identity, ObjectQueryParams, CollisionShape, CollisionParams))
+			{
+				PCGEX_SET_OUT_ATTRIBUTE(Location, Infos.Key, HitResult.ImpactPoint)
+				PCGEX_SET_OUT_ATTRIBUTE(Normal, Infos.Key, HitResult.Normal)
+				PCGEX_SET_OUT_ATTRIBUTE(LookAt, Infos.Key, (HitResult.ImpactPoint - Origin).GetSafeNormal())
+				PCGEX_SET_OUT_ATTRIBUTE(Distance, Infos.Key, FVector::Distance(HitResult.ImpactPoint, Origin))
 
-	public:
-		FHitResult HitResult;
-	};
-}
+				Context->WrapSweepTask(this, true);
+			}
+			else
+			{
+				Context->WrapSweepTask(this, false);
+			}
+		}
+	}
+
+public:
+	FHitResult HitResult;
+};

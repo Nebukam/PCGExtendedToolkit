@@ -3,7 +3,6 @@
 
 #include "PCGExPointsProcessor.h"
 
-#include "PCGContext.h"
 #include "PCGPin.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
@@ -41,7 +40,7 @@ TArray<FPCGPinProperties> UPCGExPointsProcessorSettings::OutputPinProperties() c
 	return PinProperties;
 }
 
-PCGEx::EIOInit UPCGExPointsProcessorSettings::GetPointOutputInitMode() const { return PCGEx::EIOInit::NewOutput; }
+PCGExIO::EInitMode UPCGExPointsProcessorSettings::GetPointOutputInitMode() const { return PCGExIO::EInitMode::NewOutput; }
 
 int32 UPCGExPointsProcessorSettings::GetPreferredChunkSize() const { return 256; }
 
@@ -121,7 +120,7 @@ void FPCGExPointsProcessorElementBase::InitializeContext(
 		Sources,
 		Settings->GetPointOutputInitMode(),
 		[&InContext](UPCGPointData* Data) { return InContext->ValidatePointDataInput(Data); },
-		[&InContext](UPCGExPointIO* IO) { return InContext->PostInitPointDataInput(IO); });
+		[&InContext](UPCGExPointIO* PointIO) { return InContext->PostInitPointDataInput(PointIO); });
 }
 
 #undef LOCTEXT_NAMESPACE

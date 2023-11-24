@@ -2,9 +2,6 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Misc/PCGExFusePoints.h"
-#include "Data/PCGSpatialData.h"
-#include "PCGContext.h"
-#include "PCGExCommon.h"
 
 #define LOCTEXT_NAMESPACE "PCGExFusePointsElement"
 
@@ -47,16 +44,16 @@ MACRO(Seed, Seed)
 #define PCGEX_FUSE_FUSE(_TYPE, _NAME, _ACCESSOR, ...)\
 	switch (Context->_NAME##FuseMethod){\
 	case EPCGExFuseMethod::Average: Out##_NAME += Point._ACCESSOR; break;\
-	case EPCGExFuseMethod::Min: PCGEx::Maths::CWMin(Out##_NAME, Point._ACCESSOR); break;\
-	case EPCGExFuseMethod::Max: PCGEx::Maths::CWMax(Out##_NAME, Point._ACCESSOR); break;\
-	case EPCGExFuseMethod::Weight: PCGEx::Maths::Lerp(Out##_NAME, Point._ACCESSOR, Weight); break;\
+	case EPCGExFuseMethod::Min: PCGExMath::CWMin(Out##_NAME, Point._ACCESSOR); break;\
+	case EPCGExFuseMethod::Max: PCGExMath::CWMax(Out##_NAME, Point._ACCESSOR); break;\
+	case EPCGExFuseMethod::Weight: PCGExMath::Lerp(Out##_NAME, Point._ACCESSOR, Weight); break;\
 }
 
 #define PCGEX_FUSE_POST(_TYPE, _NAME, _ACCESSOR, ...)\
-if(Context->_NAME##FuseMethod == EPCGExFuseMethod::Average){ PCGEx::Maths::CWDivide(Out##_NAME, AverageDivider); }
+if(Context->_NAME##FuseMethod == EPCGExFuseMethod::Average){ PCGExMath::CWDivide(Out##_NAME, AverageDivider); }
 //else if(Context->_NAME##FuseMethod == EPCGExFuseMethod::Skip){ Out##_NAME = RootPoint._ACCESSOR; }
 
-PCGEx::EIOInit UPCGExFusePointsSettings::GetPointOutputInitMode() const { return PCGEx::EIOInit::NewOutput; }
+PCGExIO::EInitMode UPCGExFusePointsSettings::GetPointOutputInitMode() const { return PCGExIO::EInitMode::NewOutput; }
 
 UPCGExFusePointsSettings::UPCGExFusePointsSettings(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -130,12 +127,12 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 		}
 	}
 
-	auto Initialize = [&Context](const UPCGExPointIO* IO)
+	auto Initialize = [&](const UPCGExPointIO* PointIO)
 	{
-		Context->FusedPoints.Reset(IO->NumPoints);
+		Context->FusedPoints.Reset(PointIO->NumPoints);
 	};
 
-	auto ProcessPoint = [&Context](const FPCGPoint& Point, const int32 Index, const UPCGExPointIO* IO)
+	auto ProcessPoint = [&](const FPCGPoint& Point, const int32 Index, const UPCGExPointIO* PointIO)
 	{
 		const FVector PtPosition = Point.Transform.GetLocation();
 		double Distance = 0;
@@ -191,12 +188,12 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 	}
 
 
-	auto InitializeReconcile = [&Context]()
+	auto InitializeReconcile = [&]()
 	{
 		Context->OutPoints = &Context->CurrentIO->Out->GetMutablePoints();
 	};
 
-	auto FusePoints = [&Context](int32 ReadIndex)
+	auto FusePoints = [&](int32 ReadIndex)
 	{
 		FPCGPoint NewPoint;
 		Context->CurrentIO->Out->Metadata->InitializeOnSet(NewPoint.MetadataEntry);
@@ -238,7 +235,7 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 	if (Context->IsState(PCGExMT::EState::ProcessingGraph2ndPass))
 	{
 		//TODO: Stabilized alternative -- parallel doesn't guarantee order, so result is non-deterministic
-		if (PCGEx::Common::ParallelForLoop(Context, Context->FusedPoints.Num(), InitializeReconcile, FusePoints, Context->ChunkSize))
+		if (PCGExMT::ParallelForLoop(Context, Context->FusedPoints.Num(), InitializeReconcile, FusePoints, Context->ChunkSize))
 		{
 			Context->OutPoints = nullptr;
 			Context->SetState(PCGExMT::EState::ReadyForNextPoints);
