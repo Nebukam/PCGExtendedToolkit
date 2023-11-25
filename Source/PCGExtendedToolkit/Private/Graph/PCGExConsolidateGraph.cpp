@@ -77,7 +77,7 @@ bool FPCGExConsolidateGraphElement::ExecuteInternal(
 
 	auto ProcessPoint = [&](const FPCGPoint& Point, const int32 ReadIndex, const UPCGExPointIO* PointIO)
 	{
-		FWriteScopeLock ScopeLock(Context->IndicesLock);
+		FWriteScopeLock WriteLock(Context->IndicesLock);
 		const int64 Key = Point.MetadataEntry;
 		const int64 CachedIndex = Context->CachedIndex->GetValueFromItemKey(Key);
 		Context->IndicesRemap.Add(CachedIndex, ReadIndex); // Store previous
@@ -86,7 +86,7 @@ bool FPCGExConsolidateGraphElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExMT::EState::ProcessingPoints))
 	{
-		if (Context->CurrentIO->OutputParallelProcessing(Context, InitializePointsFirstPass, ProcessPoint, Context->ChunkSize))
+		if (Context->CurrentIO->OutputParallelProcessing(Context, InitializePointsFirstPass, ProcessPoint, Context->ChunkSize, !Context->bDoAsyncProcessing))
 		{
 			Context->SetState(PCGExMT::EState::ProcessingPoints2ndPass);
 		}
@@ -101,7 +101,7 @@ bool FPCGExConsolidateGraphElement::ExecuteInternal(
 
 	auto ConsolidatePoint = [&](const FPCGPoint& Point, const int32 ReadIndex, const UPCGExPointIO* PointIO)
 	{
-		FReadScopeLock ScopeLock(Context->IndicesLock);
+		FReadScopeLock ReadLock(Context->IndicesLock);
 
 		for (const PCGExGraph::FSocketInfos& SocketInfos : Context->SocketInfos)
 		{
@@ -123,7 +123,7 @@ bool FPCGExConsolidateGraphElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExMT::EState::ProcessingPoints2ndPass))
 	{
-		if (Context->CurrentIO->OutputParallelProcessing(Context, InitializeNone, ConsolidatePoint, Context->ChunkSize))
+		if (Context->CurrentIO->OutputParallelProcessing(Context, InitializeNone, ConsolidatePoint, Context->ChunkSize, !Context->bDoAsyncProcessing))
 		{
 			Context->SetState(Context->bConsolidateEdgeType ? PCGExMT::EState::ProcessingPoints3rdPass : PCGExMT::EState::ReadyForNextPoints);
 		}
@@ -138,7 +138,7 @@ bool FPCGExConsolidateGraphElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExMT::EState::ProcessingPoints3rdPass))
 	{
-		if (Context->CurrentIO->OutputParallelProcessing(Context, InitializeNone, ConsolidateEdgesType, Context->ChunkSize))
+		if (Context->CurrentIO->OutputParallelProcessing(Context, InitializeNone, ConsolidateEdgesType, Context->ChunkSize, !Context->bDoAsyncProcessing))
 		{
 			Context->SetState(PCGExMT::EState::ReadyForNextPoints);
 		}

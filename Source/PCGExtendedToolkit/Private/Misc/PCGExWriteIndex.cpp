@@ -57,7 +57,7 @@ bool FPCGExWriteIndexElement::ExecuteInternal(FPCGContext* InContext) const
 
 	auto InitializeForIO = [&](UPCGExPointIO* PointIO)
 	{
-		FWriteScopeLock ScopeLock(Context->MapLock);
+		FWriteScopeLock WriteLock(Context->MapLock);
 		PointIO->BuildMetadataEntries();
 		FPCGMetadataAttribute<int64>* IndexAttribute = PointIO->Out->Metadata->FindOrCreateAttribute<int64>(Context->OutName, -1, false);
 		Context->AttributeMap.Add(PointIO, IndexAttribute);

@@ -65,6 +65,7 @@ bool FPCGExEdgesToPathsElement::ExecuteInternal(
 		}
 		else
 		{
+			Context->TangentParams.PrepareForData(Context->CurrentIO->In);
 			Context->SetState(PCGExMT::EState::ReadyForNextGraph);
 		}
 	}
@@ -73,11 +74,21 @@ bool FPCGExEdgesToPathsElement::ExecuteInternal(
 	{
 		TArray<PCGExGraph::FUnsignedEdge> UnsignedEdges;
 		Context->CurrentGraph->GetEdges(ReadIndex, Point.MetadataEntry, UnsignedEdges);
-		FWriteScopeLock ScopeLock(Context->ContextLock);
+
 		for (const PCGExGraph::FUnsignedEdge& UEdge : UnsignedEdges)
 		{
-			if (static_cast<uint8>((UEdge.Type & static_cast<EPCGExEdgeType>(Context->EdgeType))) == 0) { continue; }
-			Context->UniqueEdges.AddUnique(UEdge); // Looks terrible but ended up performing better than a map
+			{
+				FReadScopeLock ReadLock(Context->EdgeLock);
+
+				if (static_cast<uint8>((UEdge.Type & static_cast<EPCGExEdgeType>(Context->EdgeType))) == 0 ||
+					Context->UniqueEdges.Contains(UEdge.GetUnsignedHash())) { continue; }
+			}
+
+			{
+				FWriteScopeLock WriteLock(Context->EdgeLock);
+				Context->UniqueEdges.Add(UEdge.GetUnsignedHash());
+				Context->Edges.Add(UEdge);
+			}
 		}
 	};
 
@@ -101,7 +112,7 @@ bool FPCGExEdgesToPathsElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExMT::EState::ProcessingGraph))
 	{
-		if (Context->CurrentIO->InputParallelProcessing(Context, Initialize, ProcessPointInGraph, Context->ChunkSize))
+		if (Context->CurrentIO->InputParallelProcessing(Context, Initialize, ProcessPointInGraph, Context->ChunkSize, !Context->bDoAsyncProcessing))
 		{
 			Context->SetState(PCGExMT::EState::ReadyForNextGraph);
 		}
@@ -110,44 +121,35 @@ bool FPCGExEdgesToPathsElement::ExecuteInternal(
 	auto ProcessEdge = [&](const int32 Index)
 	{
 		//const UPCGExPointIO* PointIO = Context->EdgesIO->Emplace_GetRef(*Context->CurrentIO, PCGExIO::EInitMode::NewOutput);
-		const PCGExGraph::FUnsignedEdge& UEdge = Context->UniqueEdges[Index];
+		const PCGExGraph::FUnsignedEdge& UEdge = Context->Edges[Index];
 
 		UPCGPointData* Out = NewObject<UPCGPointData>();
 		Out->InitializeFromData(Context->CurrentIO->In);
-				
+
 		FPCGPoint& Start = Out->GetMutablePoints().Emplace_GetRef(Context->CurrentIO->In->GetPoint(UEdge.Start));
 		FPCGPoint& End = Out->GetMutablePoints().Emplace_GetRef(Context->CurrentIO->In->GetPoint(UEdge.End));
 
-		if(Context->bWriteTangents)
+		if (Context->bWriteTangents)
 		{
 			Out->Metadata->InitializeOnSet(Start.MetadataEntry);
 			Out->Metadata->InitializeOnSet(End.MetadataEntry);
-			
-			FVector StartIn = Start.Transform.GetRotation().GetForwardVector();
-			FVector StartOut = StartIn*-1;
-			FVector EndIn = End.Transform.GetRotation().GetForwardVector();
-			FVector EndOut = EndIn*-1;
 
-			Context->TangentParams.CreateAttributes(Out, Start, End,
-				StartIn, StartOut, EndIn, EndOut);
-			
+			Context->TangentParams.ComputeTangents(Out, Start, End);
 		}
 
-		FWriteScopeLock ScopeLock(Context->ContextLock);
+		FWriteScopeLock WriteLock(Context->ContextLock);
 		FPCGTaggedData& OutputRef = Context->OutputData.TaggedData.Emplace_GetRef();
 		OutputRef.Data = Out;
 		OutputRef.Pin = Context->EdgesIO->DefaultOutputLabel;
-		
 	};
 
 	auto InitializeAsync = [&]()
 	{
-		
 	};
 
 	if (Context->IsState(PCGExMT::EState::WaitingOnAsyncTasks))
 	{
-		if (PCGExMT::ParallelForLoop(Context, Context->UniqueEdges.Num(), InitializeAsync, ProcessEdge, Context->ChunkSize))
+		if (PCGExMT::ParallelForLoop(Context, Context->Edges.Num(), InitializeAsync, ProcessEdge, Context->ChunkSize, !Context->bDoAsyncProcessing))
 		{
 			Context->SetState(PCGExMT::EState::ReadyForNextPoints);
 		}
@@ -156,6 +158,7 @@ bool FPCGExEdgesToPathsElement::ExecuteInternal(
 	if (Context->IsState(PCGExMT::EState::Done))
 	{
 		Context->UniqueEdges.Empty();
+		Context->Edges.Empty();
 		Context->EdgesIO->OutputTo(Context);
 		Context->OutputGraphParams();
 		return true;

@@ -218,12 +218,12 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 			if (Context->SampleMethod == EPCGExSampleMethod::ClosestTarget ||
 				Context->SampleMethod == EPCGExSampleMethod::FarthestTarget)
 			{
-				FReadScopeLock ScopeLock(Context->IndicesLock);
+				FReadScopeLock ReadLock(Context->IndicesLock);
 				TargetsCompoundInfos.UpdateCompound(PCGExNearestPoint::FTargetInfos(*Context->TargetIndices.Find(Target.MetadataEntry), dist));
 			}
 			else
 			{
-				FReadScopeLock ScopeLock(Context->IndicesLock);
+				FReadScopeLock ReadLock(Context->IndicesLock);
 				const PCGExNearestPoint::FTargetInfos& Infos = TargetsInfos.Emplace_GetRef(*Context->TargetIndices.Find(Target.MetadataEntry), dist);
 				TargetsCompoundInfos.UpdateCompound(Infos);
 			}
@@ -314,7 +314,7 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 
 	if (Context->IsState(PCGExMT::EState::ProcessingPoints))
 	{
-		if (Context->CurrentIO->OutputParallelProcessing(Context, InitializeForIO, ProcessPoint, Context->ChunkSize))
+		if (Context->CurrentIO->OutputParallelProcessing(Context, InitializeForIO, ProcessPoint, Context->ChunkSize, !Context->bDoAsyncProcessing))
 		{
 			Context->SetState(PCGExMT::EState::ReadyForNextPoints);
 		}

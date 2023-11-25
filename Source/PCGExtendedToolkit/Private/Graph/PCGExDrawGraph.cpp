@@ -76,7 +76,7 @@ bool FPCGExDrawGraphElement::ExecuteInternal(FPCGContext* InContext) const
 
 	auto ProcessPoint = [&](const FPCGPoint& Point, const int32 ReadIndex, const UPCGExPointIO* PointIO)
 	{
-		//FWriteScopeLock ScopeLock(Context->ContextLock);
+		//FWriteScopeLock WriteLock(Context->ContextLock);
 
 		const FVector Start = Point.Transform.GetLocation();
 

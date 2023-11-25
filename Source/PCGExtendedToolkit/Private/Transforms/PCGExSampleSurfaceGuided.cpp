@@ -27,6 +27,7 @@ FPCGContext* FPCGExSampleSurfaceGuidedElement::Initialize(const FPCGDataCollecti
 	Context->Size = Settings->Size;
 	Context->bUseLocalSize = Settings->bUseLocalSize;
 	Context->LocalSize.Capture(Settings->LocalSize);
+	Context->bProjectFailToSize = Context->bProjectFailToSize;
 
 	Context->Direction.Capture(Settings->Direction);
 
@@ -91,12 +92,13 @@ bool FPCGExSampleSurfaceGuidedElement::ExecuteInternal(FPCGContext* InContext) c
 
 	auto ProcessPoint = [&](int32 Index)
 	{
-		Context->ScheduleTask<FTraceTask>(Index, Context->CurrentIO->Out->GetPoint(Index).MetadataEntry);
+		FAsyncTask<FTraceTask>* Task = Context->CreateTask<FTraceTask>(Index, Context->CurrentIO->Out->GetPoint(Index).MetadataEntry);
+		Task->StartBackgroundTask();
 	};
 
 	if (Context->IsState(PCGExMT::EState::ProcessingPoints))
 	{
-		if (PCGExMT::ParallelForLoop(Context, Context->CurrentIO->NumPoints, Initialize, ProcessPoint, Context->ChunkSize))
+		if (PCGExMT::ParallelForLoop(Context, Context->CurrentIO->NumPoints, Initialize, ProcessPoint, Context->ChunkSize, !Context->bDoAsyncProcessing))
 		{
 			Context->SetState(PCGExMT::EState::WaitingOnAsyncTasks);
 		}

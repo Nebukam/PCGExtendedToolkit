@@ -86,7 +86,7 @@ bool FPCGExFindEdgesTypeElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExMT::EState::ProcessingGraph))
 	{
-		if (Context->CurrentIO->OutputParallelProcessing(Context, Initialize, ProcessPoint, Context->ChunkSize))
+		if (Context->CurrentIO->OutputParallelProcessing(Context, Initialize, ProcessPoint, Context->ChunkSize, !Context->bDoAsyncProcessing))
 		{
 			Context->SetState(PCGExMT::EState::ReadyForNextGraph);
 		}

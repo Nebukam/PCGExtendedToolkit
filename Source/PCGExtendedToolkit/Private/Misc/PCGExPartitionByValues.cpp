@@ -80,7 +80,7 @@ bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* InContext) con
 
 	auto InitializeForIO = [&](UPCGExPointIO* PointIO)
 	{
-		FWriteScopeLock ScopeLock(Context->RulesLock);
+		FWriteScopeLock WriteLock(Context->RulesLock);
 
 		PCGExPartition::FRule& IORule = Context->Rules.Emplace_GetRef(Context->PartitionRule);
 		IORule.Validate(PointIO->In);
@@ -89,13 +89,13 @@ bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* InContext) con
 
 	auto ProcessPoint = [&](const FPCGPoint& Point, const int32 Index, UPCGExPointIO* PointIO)
 	{
-		FReadScopeLock ScopeLock(Context->RulesLock);
+		FReadScopeLock ReadLock(Context->RulesLock);
 		DistributePoint(Context, PointIO, Point, (*(Context->RuleMap.Find(PointIO)))->GetValue(Point));
 	};
 
 	if (Context->IsState(PCGExMT::EState::ProcessingPoints))
 	{
-		if (Context->Points->InputsParallelProcessing(Context, InitializeForIO, ProcessPoint, Context->ChunkSize))
+		if (Context->Points->InputsParallelProcessing(Context, InitializeForIO, ProcessPoint, Context->ChunkSize, Context->bDoAsyncProcessing))
 		{
 			Context->SetState(PCGExMT::EState::Done);
 		}
@@ -120,7 +120,7 @@ void FPCGExPartitionByValuesElement::DistributePoint(
 	UPCGExPointIO* Partition = nullptr;
 
 	{
-		FReadScopeLock ScopeLock(Context->PartitionsLock);
+		FReadScopeLock ReadLock(Context->PartitionsLock);
 		if (UPCGExPointIO** PartitionPtr = Context->PartitionsMap.Find(Key)) { Partition = *PartitionPtr; }
 	}
 
@@ -128,7 +128,7 @@ void FPCGExPartitionByValuesElement::DistributePoint(
 
 	if (!Partition)
 	{
-		FWriteScopeLock ScopeLock(Context->PartitionsLock);
+		FWriteScopeLock WriteLock(Context->PartitionsLock);
 		Partition = Context->Partitions->Emplace_GetRef(*PointIO, PCGExIO::EInitMode::NewOutput);
 		Context->PartitionsMap.Add(Key, Partition);
 
@@ -142,13 +142,13 @@ void FPCGExPartitionByValuesElement::DistributePoint(
 	{
 		if (Context->bWritePartitionKey)
 		{
-			FReadScopeLock ScopeLock(Context->PartitionsLock);
+			FReadScopeLock ReadLock(Context->PartitionsLock);
 			FPCGMetadataAttribute<int64>** KeyAttributePtr = Context->KeyAttributeMap.Find(Key);
 			KeyAttribute = KeyAttributePtr ? *KeyAttributePtr : nullptr;
 		}
 	}
 
-	FWriteScopeLock ScopeLock(Context->PointsLock);
+	FWriteScopeLock WriteLock(Context->PointsLock);
 	TArray<FPCGPoint>& Points = Partition->Out->GetMutablePoints();
 	FPCGPoint& NewPoint = Points.Add_GetRef(Point);
 

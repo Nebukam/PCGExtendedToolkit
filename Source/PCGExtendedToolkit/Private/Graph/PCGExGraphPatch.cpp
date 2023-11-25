@@ -13,18 +13,18 @@
 void UPCGExGraphPatch::Add(const uint64 Hash)
 {
 	{
-		FWriteScopeLock ScopeLock(HashLock);
+		FWriteScopeLock WriteLock(HashLock);
 		HashSet.Add(Hash);
 	}
 	{
-		FWriteScopeLock ScopeLock(Parent->HashLock);
+		FWriteScopeLock WriteLock(Parent->HashLock);
 		Parent->HashMap.Add(Hash, this);
 	}
 }
 
 bool UPCGExGraphPatch::Contains(const uint64 Hash) const
 {
-	FReadScopeLock ScopeLock(HashLock);
+	FReadScopeLock ReadLock(HashLock);
 	return HashSet.Contains(Hash);
 }
 
@@ -51,13 +51,13 @@ void UPCGExGraphPatch::Flush()
 
 bool UPCGExGraphPatchGroup::Contains(const uint64 Hash) const
 {
-	FReadScopeLock ScopeLock(HashLock);
+	FReadScopeLock ReadLock(HashLock);
 	return HashMap.Contains(Hash);
 }
 
 UPCGExGraphPatch* UPCGExGraphPatchGroup::FindPatch(uint64 Hash)
 {
-	FReadScopeLock ScopeLock(HashLock);
+	FReadScopeLock ReadLock(HashLock);
 
 	UPCGExGraphPatch** PatchPtr = HashMap.Find(Hash);
 	if (!PatchPtr) { return nullptr; }
@@ -68,7 +68,7 @@ UPCGExGraphPatch* UPCGExGraphPatchGroup::FindPatch(uint64 Hash)
 UPCGExGraphPatch* UPCGExGraphPatchGroup::GetOrCreatePatch(const uint64 Hash)
 {
 	{
-		FReadScopeLock ScopeLock(HashLock);
+		FReadScopeLock ReadLock(HashLock);
 		if (UPCGExGraphPatch** PatchPtr = HashMap.Find(Hash)) { return *PatchPtr; }
 	}
 
@@ -79,7 +79,7 @@ UPCGExGraphPatch* UPCGExGraphPatchGroup::GetOrCreatePatch(const uint64 Hash)
 
 UPCGExGraphPatch* UPCGExGraphPatchGroup::CreatePatch()
 {
-	FWriteScopeLock ScopeLock(PatchesLock);
+	FWriteScopeLock WriteLock(PatchesLock);
 	UPCGExGraphPatch* NewPatch = NewObject<UPCGExGraphPatch>();
 	Patches.Add(NewPatch);
 	NewPatch->Parent = this;
@@ -105,9 +105,9 @@ void UPCGExGraphPatchGroup::Distribute(const int32 InIndex, UPCGExGraphPatch* Pa
 	TArray<PCGExGraph::FUnsignedEdge> UnsignedEdges;
 	Graph->GetEdges(InIndex, PointIO->In->GetPoint(InIndex).MetadataEntry, UnsignedEdges);
 
-	for (const PCGExGraph::FUnsignedEdge& Edge : UnsignedEdges)
+	for (const PCGExGraph::FUnsignedEdge& UEdge : UnsignedEdges)
 	{
-		if (static_cast<uint8>((Edge.Type & static_cast<EPCGExEdgeType>(CrawlEdgeTypes))) == 0) { continue; }
+		if (static_cast<uint8>((UEdge.Type & static_cast<EPCGExEdgeType>(CrawlEdgeTypes))) == 0) { continue; }
 
 		if (!Patch)
 		{
@@ -128,7 +128,7 @@ void UPCGExGraphPatchGroup::Distribute(const int32 InIndex, UPCGExGraphPatch* Pa
 			}
 		}
 
-		Distribute(Edge.End, Patch);
+		Distribute(UEdge.End, Patch);
 	}
 }
 

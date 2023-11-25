@@ -66,8 +66,12 @@ public:
 
 	virtual PCGExIO::EInitMode GetPointOutputInitMode() const;
 
+	/** Forces execution on main thread.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Multithreading")
+	bool bDoAsyncProcessing = false;
+
 	/** Multi thread chunk size, when supported.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, AdvancedDisplay)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Multithreading")
 	int32 ChunkSize = -1;
 
 protected:
@@ -99,6 +103,7 @@ public:
 	virtual void PostInitPointDataInput(UPCGExPointIO* PointData);
 
 	int32 ChunkSize = 0;
+	bool bDoAsyncProcessing = true;
 
 	mutable FRWLock ContextLock;
 
@@ -109,17 +114,11 @@ protected:
 	int32 CurrentPointsIndex = -1;
 
 	template <typename T>
-	void ScheduleTask(const int32 Index, const PCGMetadataEntryKey Key, const int32 Attempt = 0)
+	FAsyncTask<T>* CreateTask(const int32 Index, const PCGMetadataEntryKey Key, const int32 Attempt = 0)
 	{
 		FAsyncTask<T>* AsyncTask = new FAsyncTask<T>(this, CurrentIO, PCGExMT::FTaskInfos(Index, Key, Attempt));
-		AsyncTask->StartBackgroundTask();
-	}
-
-	template <typename T>
-	void ScheduleTask(const PCGExMT::FTaskInfos Infos)
-	{
-		FAsyncTask<T>* AsyncTask = new FAsyncTask<T>(this, CurrentIO, Infos);
-		AsyncTask->StartBackgroundTask();
+		//AsyncTask->StartBackgroundTask();
+		return AsyncTask;
 	}
 };
 

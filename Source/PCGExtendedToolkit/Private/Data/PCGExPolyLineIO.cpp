@@ -15,7 +15,7 @@ UPCGExPolyLineIO::UPCGExPolyLineIO(): In(nullptr)
 PCGExPolyLine::FSegment* UPCGExPolyLineIO::NearestSegment(const FVector& Location)
 {
 	if (bCacheDirty) { BuildCache(); }
-	FReadScopeLock ScopeLock(SegmentLock);
+	FReadScopeLock ReadLock(SegmentLock);
 	PCGExPolyLine::FSegment* NearestSegment = nullptr;
 	double MinDistanceSquared = DBL_MAX;
 	for (PCGExPolyLine::FSegment& Segment : Segments)
@@ -34,7 +34,7 @@ PCGExPolyLine::FSegment* UPCGExPolyLineIO::NearestSegment(const FVector& Locatio
 PCGExPolyLine::FSegment* UPCGExPolyLineIO::NearestSegment(const FVector& Location, const double Range)
 {
 	if (bCacheDirty) { BuildCache(); }
-	FReadScopeLock ScopeLock(SegmentLock);
+	FReadScopeLock ReadLock(SegmentLock);
 	PCGExPolyLine::FSegment* NearestSegment = nullptr;
 	double MinDistanceSquared = DBL_MAX;
 	for (PCGExPolyLine::FSegment& Segment : Segments)
@@ -72,7 +72,7 @@ void UPCGExPolyLineIO::BuildCache()
 {
 	if (!bCacheDirty) { return; }
 
-	FWriteScopeLock ScopeLock(SegmentLock);
+	FWriteScopeLock WriteLock(SegmentLock);
 	const int32 NumSegments = In->GetNumSegments();
 	Segments.Reset(NumSegments);
 	for (int S = 0; S < NumSegments; S++)
@@ -135,7 +135,7 @@ UPCGExPolyLineIO* UPCGExPolyLineIOGroup::Emplace_GetRef(const UPCGExPolyLineIO& 
 
 UPCGExPolyLineIO* UPCGExPolyLineIOGroup::Emplace_GetRef(const FPCGTaggedData& Source, UPCGPolyLineData* In)
 {
-	//FWriteScopeLock ScopeLock(PairsLock);
+	//FWriteScopeLock WriteLock(PairsLock);
 
 	UPCGExPolyLineIO* Line = NewObject<UPCGExPolyLineIO>();
 	PolyLines.Add(Line);

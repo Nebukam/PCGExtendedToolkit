@@ -56,6 +56,7 @@ namespace PCGExMT
 	 * @param Initialize Called once when the processing starts
 	 * @param LoopBody Signature: bool(int32 ReadIndex, int32 WriteIndex).
 	 * @param ChunkSize Size of the chunks to cut the input data with
+	 * @param bForceSync
 	 * @return 
 	 */
 	static bool ParallelForLoop
@@ -64,8 +65,16 @@ namespace PCGExMT
 		const int32 NumIterations,
 		TFunction<void()>&& Initialize,
 		TFunction<void(int32)>&& LoopBody,
-		const int32 ChunkSize = 32)
+		const int32 ChunkSize = 32,
+		bool bForceSync = false)
 	{
+		if (bForceSync)
+		{
+			Initialize();
+			for (int i = 0; i < NumIterations; i++) { LoopBody(i); }
+			return true;
+		}
+
 		auto InnerBodyLoop = [&](int32 ReadIndex, int32 WriteIndex)
 		{
 			LoopBody(ReadIndex);
@@ -73,5 +82,4 @@ namespace PCGExMT
 		};
 		return FPCGAsync::AsyncProcessingOneToOneEx(&(Context->AsyncState), NumIterations, Initialize, InnerBodyLoop, true, ChunkSize);
 	}
-	
 }

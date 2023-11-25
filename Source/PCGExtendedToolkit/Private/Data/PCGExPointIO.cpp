@@ -42,7 +42,7 @@ void UPCGExPointIO::BuildIndices()
 {
 	if (bMetadataEntryDirty) { BuildMetadataEntries(); }
 	if (!bIndicesDirty) { return; }
-	FWriteScopeLock ScopeLock(MapLock);
+	FWriteScopeLock WriteLock(MapLock);
 	const TArray<FPCGPoint>& Points = Out->GetPoints();
 	IndicesMap.Empty(NumPoints);
 	for (int i = 0; i < NumPoints; i++) { IndicesMap.Add(Points[i].MetadataEntry, i); }
@@ -66,7 +66,7 @@ void UPCGExPointIO::BuildMetadataEntriesAndIndices()
 {
 	if (bMetadataEntryDirty) { BuildMetadataEntries(); }
 	if (!bIndicesDirty) { return; }
-	FWriteScopeLock ScopeLock(MapLock);
+	FWriteScopeLock WriteLock(MapLock);
 	TArray<FPCGPoint>& Points = Out->GetMutablePoints();
 	IndicesMap.Empty(NumPoints);
 	for (int i = 0; i < NumPoints; i++)
@@ -85,7 +85,7 @@ void UPCGExPointIO::ClearIndices()
 
 int32 UPCGExPointIO::GetIndex(PCGMetadataEntryKey Key) const
 {
-	FReadScopeLock ScopeLock(MapLock);
+	FReadScopeLock ReadLock(MapLock);
 	return *(IndicesMap.Find(Key));
 }
 
@@ -94,8 +94,21 @@ bool UPCGExPointIO::OutputParallelProcessing(
 	FPCGContext* Context,
 	InitializeFunc&& Initialize,
 	ProcessElementFunc&& LoopBody,
-	const int32 ChunkSize)
+	const int32 ChunkSize,
+	const bool bForceSync)
 {
+	if (bForceSync)
+	{
+		Initialize(this);
+		const int32 NumIterations = Out->GetPoints().Num();
+		for (int i = 0; i < NumIterations; i++)
+		{
+			const FPCGPoint& Point = Out->GetPoint(i);
+			LoopBody(Point, i, this);
+		}
+		return true;
+	}
+
 	auto InnerInitialize = [&]()
 	{
 		Initialize(this);
@@ -103,15 +116,15 @@ bool UPCGExPointIO::OutputParallelProcessing(
 
 	auto InnerBodyLoop = [&](const int32 ReadIndex, const int32 WriteIndex)
 	{
-		FReadScopeLock ScopeLock(MapLock);
+		FReadScopeLock ReadLock(MapLock);
 		const FPCGPoint& Point = Out->GetPoint(ReadIndex);
-		if (bIndicesDirty) { LoopBody(Point, ReadIndex, this); }
-		else { LoopBody(Point, *(IndicesMap.Find(Point.MetadataEntry)), this); }
+		LoopBody(Point, ReadIndex, this); 
+		//if (bIndicesDirty) { LoopBody(Point, ReadIndex, this); }
+		//else { LoopBody(Point, *(IndicesMap.Find(Point.MetadataEntry)), this); }
 		return true;
 	};
 
 	return FPCGAsync::AsyncProcessingOneToOneEx(&(Context->AsyncState), NumPoints, InnerInitialize, InnerBodyLoop, true, ChunkSize);
-
 }
 
 template <class InitializeFunc, class ProcessElementFunc>
@@ -119,8 +132,22 @@ bool UPCGExPointIO::InputParallelProcessing(
 	FPCGContext* Context,
 	InitializeFunc&& Initialize,
 	ProcessElementFunc&& LoopBody,
-	const int32 ChunkSize)
+	const int32 ChunkSize,
+	bool bForceSync)
 {
+
+	if (bForceSync)
+	{
+		Initialize(this);
+		const int32 NumIterations = In->GetPoints().Num();
+		for (int i = 0; i < NumIterations; i++)
+		{
+			const FPCGPoint& Point = In->GetPoint(i);
+			LoopBody(Point, i, this);
+		}
+		return true;
+	}
+	
 	auto InnerInitialize = [&]()
 	{
 		Initialize(this);
@@ -128,14 +155,13 @@ bool UPCGExPointIO::InputParallelProcessing(
 
 	auto InnerBodyLoop = [&](const int32 ReadIndex, const int32 WriteIndex)
 	{
-		FReadScopeLock ScopeLock(MapLock);
+		FReadScopeLock ReadLock(MapLock);
 		const FPCGPoint& Point = In->GetPoint(ReadIndex);
 		LoopBody(Point, ReadIndex, this);
 		return true;
 	};
 
 	return FPCGAsync::AsyncProcessingOneToOneEx(&(Context->AsyncState), NumPoints, InnerInitialize, InnerBodyLoop, true, ChunkSize);
-	
 }
 
 bool UPCGExPointIO::OutputTo(FPCGContext* Context, bool bEmplace)
@@ -234,12 +260,12 @@ UPCGExPointIO* UPCGExPointIOGroup::Emplace_GetRef(
 	const FPCGTaggedData& Source, UPCGPointData* In,
 	const PCGExIO::EInitMode InitOut)
 {
-	//FWriteScopeLock ScopeLock(PairsLock);
+	//FWriteScopeLock WriteLock(PairsLock);
 
 	UPCGExPointIO* Pair = NewObject<UPCGExPointIO>();
 
 	{
-		FWriteScopeLock ScopeLock(PairsLock);
+		FWriteScopeLock WriteLock(PairsLock);
 		Pairs.Add(Pair);
 	}
 
@@ -300,7 +326,8 @@ bool UPCGExPointIOGroup::OutputsParallelProcessing(
 	FPCGContext* Context,
 	InitializeFunc&& Initialize,
 	ProcessElementFunc&& LoopBody,
-	int32 ChunkSize)
+	int32 ChunkSize,
+	bool bForceSync)
 {
 	const int32 NumPairs = Pairs.Num();
 
@@ -318,7 +345,7 @@ bool UPCGExPointIOGroup::OutputsParallelProcessing(
 		bool bState = PairProcessingStatuses[i];
 		if (!bState)
 		{
-			bState = Pairs[i]->OutputParallelProcessing(Context, Initialize, LoopBody, ChunkSize);
+			bState = Pairs[i]->OutputParallelProcessing(Context, Initialize, LoopBody, ChunkSize, bForceSync);
 			if (bState) { PairProcessingStatuses[i] = bState; }
 		}
 		if (bState) { NumPairsDone++; }
@@ -340,7 +367,8 @@ bool UPCGExPointIOGroup::InputsParallelProcessing(
 	FPCGContext* Context,
 	InitializeFunc&& Initialize,
 	ProcessElementFunc&& LoopBody,
-	int32 ChunkSize)
+	int32 ChunkSize,
+	bool bForceSync)
 {
 	const int32 NumPairs = Pairs.Num();
 
@@ -358,7 +386,7 @@ bool UPCGExPointIOGroup::InputsParallelProcessing(
 		bool bState = PairProcessingStatuses[i];
 		if (!bState)
 		{
-			bState = Pairs[i]->InputParallelProcessing(Context, Initialize, LoopBody, ChunkSize);
+			bState = Pairs[i]->InputParallelProcessing(Context, Initialize, LoopBody, ChunkSize, bForceSync);
 			if (bState) { PairProcessingStatuses[i] = bState; }
 		}
 		if (bState) { NumPairsDone++; }

@@ -48,9 +48,12 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgesToPathsContext : public FPCGExGraphProc
 
 public:
 	EPCGExEdgeType EdgeType;
-	TArray<PCGExGraph::FUnsignedEdge> UniqueEdges;
+	TSet<uint64> UniqueEdges;
+	TArray<PCGExGraph::FUnsignedEdge> Edges;
 	UPCGExPointIOGroup* EdgesIO;
 
+	mutable FRWLock EdgeLock;
+	
 	bool bWriteTangents;
 	FPCGExTangentParams TangentParams;
 };

@@ -13,15 +13,7 @@ FPCGElementPtr UPCGExSampleNearestSurfaceSettings::CreateElement() const { retur
 
 void FPCGExSampleNearestSurfaceContext::WrapSweepTask(const FPointTask* Task, bool bSuccess)
 {
-	if (!bSuccess)
-	{
-		if (Task->Infos.Attempt < NumMaxAttempts)
-		{
-			ScheduleTask<FSweepSphereTask>(Task->Infos.GetRetry());
-			return;
-		}
-	}
-	FWriteScopeLock ScopeLock(ContextLock);
+	FWriteScopeLock WriteLock(ContextLock);
 	NumSweepComplete++;
 }
 
@@ -35,7 +27,8 @@ FPCGContext* FPCGExSampleNearestSurfaceElement::Initialize(const FPCGDataCollect
 
 	Context->AttemptStepSize = FMath::Max(Settings->MaxDistance / static_cast<double>(Settings->NumMaxAttempts), Settings->MinStepSize);
 	Context->NumMaxAttempts = FMath::Max(static_cast<int32>(static_cast<double>(Settings->MaxDistance) / Context->AttemptStepSize), 1);
-
+	Context->RangeMax = Settings->MaxDistance;
+	
 	Context->CollisionType = Settings->CollisionType;
 	Context->CollisionChannel = Settings->CollisionChannel;
 	Context->CollisionObjectType = Settings->CollisionObjectType;
@@ -100,21 +93,19 @@ bool FPCGExSampleNearestSurfaceElement::ExecuteInternal(FPCGContext* InContext) 
 		PCGEX_INIT_ATTRIBUTE_OUT(Distance, double)
 	};
 
-	//auto ProcessPoint = [&](const FPCGPoint& Point, const int32 Index, const UPCGExPointIO* PointIO) { Context->ScheduleTask<FSweepSphereTask>(Index, Point.MetadataEntry); };
-	auto ProcessPoint = [&](int32 Index) { Context->ScheduleTask<FSweepSphereTask>(Index, Context->CurrentIO->Out->GetPoint(Index).MetadataEntry); };
+	auto ProcessPoint = [&](int32 Index)
+	{
+		FAsyncTask<FSweepSphereTask>* Task = Context->CreateTask<FSweepSphereTask>(Index, Context->CurrentIO->Out->GetPoint(Index).MetadataEntry);
+		Task->GetTask().RangeMax = Context->RangeMax; //TODO: Localize range
+		Task->StartBackgroundTask();
+	};
 
 	if (Context->IsState(PCGExMT::EState::ProcessingPoints))
 	{
-		if (PCGExMT::ParallelForLoop(Context, Context->CurrentIO->NumPoints, Initialize, ProcessPoint, Context->ChunkSize))
+		if (PCGExMT::ParallelForLoop(Context, Context->CurrentIO->NumPoints, Initialize, ProcessPoint, Context->ChunkSize, !Context->bDoAsyncProcessing))
 		{
 			Context->SetState(PCGExMT::EState::WaitingOnAsyncTasks);
 		}
-		/*
-		if (Context->CurrentIO->OutputParallelProcessing(Context, Initialize, ProcessPoint, Context->ChunkSize))
-		{
-			Context->SetState(PCGExMT::EState::WaitingOnAsyncTasks);
-		}
-		*/
 	}
 
 	if (Context->IsState(PCGExMT::EState::WaitingOnAsyncTasks))

@@ -103,7 +103,7 @@ bool FPCGExPartitionGraphPatchesElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExMT::EState::ProcessingPoints))
 	{
-		if (Context->CurrentIO->InputParallelProcessing(Context, InitializePointsInput, ProcessPoint, 32))
+		if (Context->CurrentIO->InputParallelProcessing(Context, InitializePointsInput, ProcessPoint, Context->ChunkSize, !Context->bDoAsyncProcessing))
 		{
 			Context->SetState(PCGExMT::EState::ReadyForNextPoints);
 			Context->Patches->OutputTo(Context, Context->MinPatchSize, Context->MaxPatchSize);

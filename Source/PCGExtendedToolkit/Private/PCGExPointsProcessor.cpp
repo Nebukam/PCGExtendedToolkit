@@ -104,15 +104,16 @@ void FPCGExPointsProcessorElementBase::InitializeContext(
 	InContext->InputData = InputData;
 	InContext->SourceComponent = SourceComponent;
 	InContext->Node = Node;
-
+	
 	check(SourceComponent.IsValid());
 	InContext->World = SourceComponent->GetWorld();
 
 	const UPCGExPointsProcessorSettings* Settings = InContext->GetInputSettings<UPCGExPointsProcessorSettings>();
 	check(Settings);
-
+	
+	InContext->bDoAsyncProcessing = Settings->bDoAsyncProcessing;
 	InContext->ChunkSize = FMath::Max(Settings->ChunkSize, 1);
-
+	
 	InContext->Points = NewObject<UPCGExPointIOGroup>();
 	TArray<FPCGTaggedData> Sources = InContext->InputData.GetInputsByPin(PCGEx::SourcePointsLabel);
 	InContext->Points->Initialize(

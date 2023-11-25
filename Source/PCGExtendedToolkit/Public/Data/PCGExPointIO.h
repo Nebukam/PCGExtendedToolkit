@@ -83,14 +83,16 @@ public:
 		FPCGContext* Context,
 		InitializeFunc&& Initialize,
 		ProcessElementFunc&& LoopBody,
-		const int32 ChunkSize = 32);
+		const int32 ChunkSize = 32,
+		bool bForceSync = false);
 
 	template <class InitializeFunc, class ProcessElementFunc>
 	bool InputParallelProcessing(
 		FPCGContext* Context,
 		InitializeFunc&& Initialize,
 		ProcessElementFunc&& LoopBody,
-		const int32 ChunkSize = 32);
+		const int32 ChunkSize = 32,
+		bool bForceSync = false);
 
 	/**
 	 * Write valid outputs to Context' tagged data
@@ -163,14 +165,16 @@ public:
 		FPCGContext* Context,
 		InitializeFunc&& Initialize,
 		ProcessElementFunc&& LoopBody,
-		int32 ChunkSize = 32);
+		int32 ChunkSize = 32,
+		bool bForceSync = false);
 
 	template <class InitializeFunc, class ProcessElementFunc>
 	bool InputsParallelProcessing(
 		FPCGContext* Context,
 		InitializeFunc&& Initialize,
 		ProcessElementFunc&& LoopBody,
-		int32 ChunkSize = 32);
+		int32 ChunkSize = 32,
+		bool bForceSync = false);
 
 protected:
 	mutable FRWLock PairsLock;

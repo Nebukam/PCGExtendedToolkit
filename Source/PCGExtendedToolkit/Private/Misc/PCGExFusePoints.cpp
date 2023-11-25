@@ -141,7 +141,7 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 		PCGExFuse::FFusedPoint* FuseTarget = nullptr;
 
 		{
-			FReadScopeLock ScopeLock(Context->PointsLock);
+			FReadScopeLock ReadLock(Context->PointsLock);
 			if (Context->bComponentWiseRadius)
 			{
 				for (PCGExFuse::FFusedPoint& FusedPoint : Context->FusedPoints)
@@ -170,7 +170,7 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 			}
 		}
 
-		FWriteScopeLock ScopeLock(Context->PointsLock);
+		FWriteScopeLock WriteLock(Context->PointsLock);
 		if (!FuseTarget)
 		{
 			FuseTarget = &Context->FusedPoints.Emplace_GetRef();
@@ -218,7 +218,7 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 		Context->CurrentIO->Out->Metadata->InitializeOnSet(NewPoint.MetadataEntry);
 
 		{
-			FReadScopeLock ScopeLock(Context->PointsLock);
+			FReadScopeLock ReadLock(Context->PointsLock);
 			PCGExFuse::FFusedPoint& FusedPointData = Context->FusedPoints[ReadIndex];
 			int32 NumFused = static_cast<double>(FusedPointData.Fused.Num());
 			double AverageDivider = static_cast<double>(NumFused);
@@ -246,7 +246,7 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 			NewPoint.SetExtents(OutExtents);
 		}
 		{
-			FWriteScopeLock ScopeLock(Context->PointsLock);
+			FWriteScopeLock WriteLock(Context->PointsLock);
 			Context->OutPoints->Add(NewPoint);
 		}
 	};

@@ -53,10 +53,14 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(InlineEditConditionToggle))
 	bool bWriteSuccess = false;
 
+	/** If the trace fails, use the end of the trace as a hit, but will still be marked as fail. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(InlineEditConditionToggle))
+	bool bProjectFailToSize = false;
+	
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(EditCondition="bWriteSuccess"))
 	FName Success = FName("SuccessfullySampled");
-	
+
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(InlineEditConditionToggle))
 	bool bWriteLocation = false;
@@ -108,6 +112,7 @@ public:
 	int32 CollisionObjectType;
 	bool bIgnoreSelf = true;
 
+	bool bProjectFailToSize;
 	double Size;
 	bool bUseLocalSize = false;
 	PCGEx::FLocalSingleComponentInput LocalSize;
@@ -159,46 +164,44 @@ public:
 		if (Context->bIgnoreSelf) { CollisionParams.AddIgnoredActor(InContext->SourceComponent->GetOwner()); }
 
 		double Size = Context->bUseLocalSize ? Context->LocalSize.GetValue(InPoint) : Context->Size;
-
+		FVector Trace = Context->Direction.GetValue(InPoint) * Size;
+		FVector End = Origin + Trace;
+		
 		if (!Context->Points) { return; }
+
+		bool bSuccess = false;
+		auto ProcessTraceResult = [&]()
+		{
+			PCGEX_SET_OUT_ATTRIBUTE(Location, Infos.Key, HitResult.ImpactPoint)
+			PCGEX_SET_OUT_ATTRIBUTE(Normal, Infos.Key, HitResult.Normal)
+			PCGEX_SET_OUT_ATTRIBUTE(Distance, Infos.Key, FVector::Distance(HitResult.ImpactPoint, Origin))
+		};
 
 		if (Context->CollisionType == EPCGExCollisionFilterType::Channel)
 		{
-			if (Context->World->LineTraceSingleByChannel(HitResult, Origin, Origin + (Context->Direction.GetValue(InPoint) * Size), Context->CollisionChannel, CollisionParams))
+			if (Context->World->LineTraceSingleByChannel(HitResult, Origin, End, Context->CollisionChannel, CollisionParams))
 			{
-				PCGEX_SET_OUT_ATTRIBUTE(Success, Infos.Key, true)
-				PCGEX_SET_OUT_ATTRIBUTE(Location, Infos.Key, HitResult.ImpactPoint)
-				PCGEX_SET_OUT_ATTRIBUTE(Normal, Infos.Key, HitResult.Normal)
-				PCGEX_SET_OUT_ATTRIBUTE(Distance, Infos.Key, FVector::Distance(HitResult.ImpactPoint, Origin))
-
-				Context->WrapTraceTask(this, true);
-			}
-			else
-			{
-				PCGEX_SET_OUT_ATTRIBUTE(Success, Infos.Key, false)
-				
-				Context->WrapTraceTask(this, false);
+				ProcessTraceResult();
 			}
 		}
 		else
 		{
 			FCollisionObjectQueryParams ObjectQueryParams = FCollisionObjectQueryParams(Context->CollisionObjectType);
-			if (Context->World->LineTraceSingleByObjectType(HitResult, Origin, Origin + (Context->Direction.GetValue(InPoint) * Size), ObjectQueryParams, CollisionParams))
+			if (Context->World->LineTraceSingleByObjectType(HitResult, Origin, End, ObjectQueryParams, CollisionParams))
 			{
-				PCGEX_SET_OUT_ATTRIBUTE(Success, Infos.Key, true)
-				PCGEX_SET_OUT_ATTRIBUTE(Location, Infos.Key, HitResult.ImpactPoint)
-				PCGEX_SET_OUT_ATTRIBUTE(Normal, Infos.Key, HitResult.Normal)
-				PCGEX_SET_OUT_ATTRIBUTE(Distance, Infos.Key, FVector::Distance(HitResult.ImpactPoint, Origin))
-
-				Context->WrapTraceTask(this, true);
-			}
-			else
-			{
-				PCGEX_SET_OUT_ATTRIBUTE(Success, Infos.Key, false)
-				
-				Context->WrapTraceTask(this, false);
+				ProcessTraceResult();
 			}
 		}
+
+		if(Context->bProjectFailToSize)
+		{
+			PCGEX_SET_OUT_ATTRIBUTE(Location, Infos.Key, End)
+			PCGEX_SET_OUT_ATTRIBUTE(Normal, Infos.Key, Trace.GetSafeNormal()*-1)
+			PCGEX_SET_OUT_ATTRIBUTE(Distance, Infos.Key, Size)
+		}
+		
+		PCGEX_SET_OUT_ATTRIBUTE(Success, Infos.Key, bSuccess)
+		Context->WrapTraceTask(this, bSuccess);
 	}
 
 public:

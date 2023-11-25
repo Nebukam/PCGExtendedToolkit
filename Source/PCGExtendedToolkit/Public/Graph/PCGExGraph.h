@@ -23,11 +23,10 @@ ENUM_CLASS_FLAGS(EPCGExEdgeType)
 
 namespace PCGExGraph
 {
-
 	const FName SourceParamsLabel = TEXT("GraphParams");
 	const FName OutputParamsLabel = TEXT("→");
 	const FName OutputPatchesLabel = TEXT("Patches");
-	
+
 	struct PCGEXTENDEDTOOLKIT_API FEdge
 	{
 		uint32 Start = 0;
@@ -75,7 +74,7 @@ namespace PCGExGraph
 
 		bool operator==(const FUnsignedEdge& Other) const
 		{
-			return (Start == Other.Start && End == Other.End) || (Start == Other.End && End == Other.Start);
+			return GetUnsignedHash() == Other.GetUnsignedHash();
 		}
 
 		explicit FUnsignedEdge(const uint64 InValue)
@@ -86,9 +85,11 @@ namespace PCGExGraph
 			Type = EPCGExEdgeType::Unknown;
 		}
 
-		inline uint32 GetTypeHash(const FUnsignedEdge& Edge) const
+		uint64 GetUnsignedHash() const
 		{
-			return Edge.Start ^ Edge.End;
+			return Start > End ?
+				       (static_cast<uint64>(Start) << 32) | End :
+				       (static_cast<uint64>(End) << 32) | Start;
 		}
 	};
 }
@@ -98,8 +99,20 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExTangentParams
 {
 	GENERATED_BODY()
 
+	FPCGExTangentParams()
+	{
+		ArriveDirection.Selector.Update("$Transform");
+		ArriveDirection.Axis = EPCGExAxis::Forward;
+		LeaveDirection.Selector.Update("$Transform");
+		LeaveDirection.Axis = EPCGExAxis::Forward;
+	}
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Arrive Tangent")
 	FName ArriveTangentAttribute = "ArriveTangent";
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Arrive Tangent")
+	FPCGExInputDescriptorWithDirection ArriveDirection;
+	PCGEx::FLocalDirectionInput LocalArriveDirection;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Arrive Tangent", meta=(InlineEditConditionToggle))
 	bool bUseLocalArriveIn = true;
@@ -122,6 +135,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExTangentParams
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Leave Tangent")
 	FName LeaveTangentAttribute = "LeaveTangent";
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Leave Tangent")
+	FPCGExInputDescriptorWithDirection LeaveDirection;
+	PCGEx::FLocalDirectionInput LocalLeaveDirection;
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Leave Tangent", meta=(InlineEditConditionToggle))
 	bool bUseLocalLeaveIn = true;
 
@@ -141,6 +158,13 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExTangentParams
 
 	void PrepareForData(const UPCGPointData* InData)
 	{
+		
+		LocalArriveDirection.Capture(ArriveDirection);
+		LocalArriveDirection.Validate(InData);
+
+		LocalLeaveDirection.Capture(LeaveDirection);
+		LocalLeaveDirection.Validate(InData);
+
 		if (bUseLocalArriveIn)
 		{
 			LocalArriveInScale.bEnabled = true;
@@ -174,15 +198,17 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExTangentParams
 		else { LocalLeaveOutScale.bEnabled = false; }
 	}
 
-	void CreateAttributes(
+	void ComputeTangents(
 		const UPCGPointData* InData,
 		const FPCGPoint& Start,
-		const FPCGPoint& End,
-		FVector& StartIn,
-		FVector& StartOut,
-		FVector& EndIn,
-		FVector& EndOut)
+		const FPCGPoint& End) const
 	{
+
+		FVector StartIn = LocalArriveDirection.GetValue(Start);
+		FVector StartOut = StartIn * -1;
+		FVector EndIn = LocalLeaveDirection.GetValue(End);
+		FVector EndOut = EndIn * -1;
+		
 		FPCGMetadataAttribute<FVector>* ArriveTangent = InData->Metadata->FindOrCreateAttribute<FVector>(ArriveTangentAttribute, FVector::ZeroVector);
 		FPCGMetadataAttribute<FVector>* LeaveTangent = InData->Metadata->FindOrCreateAttribute<FVector>(LeaveTangentAttribute, FVector::ZeroVector);
 
