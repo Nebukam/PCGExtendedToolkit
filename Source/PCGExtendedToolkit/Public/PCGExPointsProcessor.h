@@ -8,9 +8,12 @@
 
 #include "PCGEx.h"
 #include "PCGExMT.h"
+#include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExPointIO.h"
 
 #include "PCGExPointsProcessor.generated.h"
+
+struct FPCGExPointsProcessorContext;
 
 class PCGEXTENDEDTOOLKIT_API FPointTask : public FNonAbandonableTask
 {
@@ -51,6 +54,9 @@ class PCGEXTENDEDTOOLKIT_API UPCGExPointsProcessorSettings : public UPCGSettings
 {
 	GENERATED_BODY()
 
+	friend struct FPCGExPointsProcessorContext;
+	friend class FPCGExPointsProcessorElementBase;
+
 public:
 	UPCGExPointsProcessorSettings(const FObjectInitializer& ObjectInitializer);
 
@@ -75,7 +81,21 @@ public:
 	int32 ChunkSize = -1;
 
 protected:
+	TMap<FName, PCGEx::FPinAttributeInfos> AttributesMap;
 	virtual int32 GetPreferredChunkSize() const;
+
+	PCGEx::FPinAttributeInfos* GetPinAttributeInfos(FName Name)
+	{
+		PCGEx::FPinAttributeInfos* Infos = AttributesMap.Find(Name);
+		if (!Infos)
+		{
+			AttributesMap.Add(Name, PCGEx::FPinAttributeInfos());
+			Infos = AttributesMap.Find(Name);
+			Infos->PinLabel = Name;
+		}
+
+		return Infos;
+	}
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : public FPCGContext

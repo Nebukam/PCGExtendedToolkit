@@ -104,16 +104,16 @@ void FPCGExPointsProcessorElementBase::InitializeContext(
 	InContext->InputData = InputData;
 	InContext->SourceComponent = SourceComponent;
 	InContext->Node = Node;
-	
+
 	check(SourceComponent.IsValid());
 	InContext->World = SourceComponent->GetWorld();
 
 	const UPCGExPointsProcessorSettings* Settings = InContext->GetInputSettings<UPCGExPointsProcessorSettings>();
 	check(Settings);
-	
+
 	InContext->bDoAsyncProcessing = Settings->bDoAsyncProcessing;
 	InContext->ChunkSize = FMath::Max(Settings->ChunkSize, 1);
-	
+
 	InContext->Points = NewObject<UPCGExPointIOGroup>();
 	TArray<FPCGTaggedData> Sources = InContext->InputData.GetInputsByPin(PCGEx::SourcePointsLabel);
 	InContext->Points->Initialize(
@@ -122,6 +122,11 @@ void FPCGExPointsProcessorElementBase::InitializeContext(
 		Settings->GetPointOutputInitMode(),
 		[&InContext](UPCGPointData* Data) { return InContext->ValidatePointDataInput(Data); },
 		[&InContext](UPCGExPointIO* PointIO) { return InContext->PostInitPointDataInput(PointIO); });
+
+	UPCGExPointsProcessorSettings* MutableSettings = const_cast<UPCGExPointsProcessorSettings*>(Settings);
+	PCGEx::FPinAttributeInfos* SourceInfos = MutableSettings->GetPinAttributeInfos(PCGEx::SourcePointsLabel);
+	SourceInfos->Reset();
+	for (const UPCGExPointIO* PointIO : InContext->Points->Pairs) { SourceInfos->Discover(PointIO->In); }
 }
 
 #undef LOCTEXT_NAMESPACE

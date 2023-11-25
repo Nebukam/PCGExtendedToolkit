@@ -17,7 +17,7 @@
 #pragma region Input Descriptors
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExInputDescriptor
+struct PCGEXTENDEDTOOLKIT_API FPCGExInputDescriptor // : public FPCGAttributePropertySelector
 {
 	GENERATED_BODY()
 
@@ -28,7 +28,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExInputDescriptor
 
 	FPCGExInputDescriptor(const FPCGExInputDescriptor& Other): FPCGExInputDescriptor()
 	{
-		Selector = Other.Selector;
+		//Selector = Other.Selector;
 		Attribute = Other.Attribute;
 	}
 
@@ -194,6 +194,49 @@ public:
 
 namespace PCGEx
 {
+	struct PCGEXTENDEDTOOLKIT_API FAttributeInfos
+	{
+		FName Name = NAME_None;
+		EPCGMetadataTypes UnderlyingType = EPCGMetadataTypes::Unknown;
+
+		FName GetDisplayName() const
+		{
+			return FName(FString(Name.ToString() + FString::Printf(TEXT("( %d )"), UnderlyingType)));
+		}
+
+		bool operator==(const FAttributeInfos& Other) const
+		{
+			return Name == Other.Name;
+		}
+	};
+
+	struct PCGEXTENDEDTOOLKIT_API FPinAttributeInfos
+	{
+		FPinAttributeInfos()
+		{
+			Reset();
+		}
+
+		FName PinLabel;
+		TArray<FAttributeInfos> Attributes;
+
+		void Reset() { Attributes.Empty(); }
+		void Append(FAttributeInfos Infos) { Attributes.AddUnique(Infos); }
+
+		void Discover(const UPCGPointData* InData)
+		{
+			TArray<FName> Names;
+			TArray<EPCGMetadataTypes> Types;
+			InData->Metadata->GetAttributes(Names, Types);
+			for (int i = 0; i < Names.Num(); i++) { Append(FAttributeInfos(Names[i], Types[i])); }
+		}
+
+		void PushToDescriptor(FPCGExInputDescriptor& Descriptor)
+		{
+			//Descriptor.Selector.
+		}
+	};
+
 	template <typename T>
 	static FPCGMetadataAttribute<T>* TryGetAttribute(UPCGSpatialData* InData, FName Name, bool bEnabled, T defaultValue = T{})
 	{
