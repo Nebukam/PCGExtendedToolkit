@@ -13,7 +13,6 @@
 
 namespace PCGExPolyLine
 {
-
 	struct PCGEXTENDEDTOOLKIT_API FSampleInfos
 	{
 		FSampleInfos()
@@ -37,7 +36,7 @@ namespace PCGExPolyLine
 
 		int32 NumTargets = 0;
 		double TotalWeight = 0;
-		double SampledRangeMin = DBL_MAX; 
+		double SampledRangeMin = DBL_MAX;
 		double SampledRangeMax = 0;
 		double SampledRangeWidth = 0;
 		int32 UpdateCount = 0;
@@ -68,8 +67,10 @@ namespace PCGExPolyLine
 		{
 			return (Distance - SampledRangeMin) / SampledRangeWidth;
 		}
+
+		bool IsValid() { return UpdateCount > 0; }
+		
 	};
-	
 }
 
 /**
@@ -134,6 +135,14 @@ public:
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting")
 	TSoftObjectPtr<UCurveFloat> WeightOverDistance;
+
+	/** TBD */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(InlineEditConditionToggle))
+	bool bWriteSuccess = false;
+
+	/** TBD */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(EditCondition="bWriteSuccess"))
+	FName Success = FName("SuccessfullySampled");
 
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(InlineEditConditionToggle))
@@ -217,6 +226,7 @@ public:
 
 	//TODO: Setup target local inputs
 
+	PCGEX_OUT_ATTRIBUTE(Success, bool)
 	PCGEX_OUT_ATTRIBUTE(Location, FVector)
 	PCGEX_OUT_ATTRIBUTE(LookAt, FVector)
 	PCGEX_OUT_ATTRIBUTE(Normal, FVector)

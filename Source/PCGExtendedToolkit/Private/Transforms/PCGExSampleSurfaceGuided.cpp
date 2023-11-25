@@ -7,6 +7,8 @@
 
 PCGExIO::EInitMode UPCGExSampleSurfaceGuidedSettings::GetPointOutputInitMode() const { return PCGExIO::EInitMode::DuplicateInput; }
 
+int32 UPCGExSampleSurfaceGuidedSettings::GetPreferredChunkSize() const { return 32; }
+
 FPCGElementPtr UPCGExSampleSurfaceGuidedSettings::CreateElement() const { return MakeShared<FPCGExSampleSurfaceGuidedElement>(); }
 
 FPCGContext* FPCGExSampleSurfaceGuidedElement::Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node)
@@ -28,6 +30,7 @@ FPCGContext* FPCGExSampleSurfaceGuidedElement::Initialize(const FPCGDataCollecti
 
 	Context->Direction.Capture(Settings->Direction);
 
+	PCGEX_FORWARD_OUT_ATTRIBUTE(Success)
 	PCGEX_FORWARD_OUT_ATTRIBUTE(Location)
 	PCGEX_FORWARD_OUT_ATTRIBUTE(Normal)
 	PCGEX_FORWARD_OUT_ATTRIBUTE(Distance)
@@ -40,6 +43,7 @@ bool FPCGExSampleSurfaceGuidedElement::Validate(FPCGContext* InContext) const
 	if (!FPCGExPointsProcessorElementBase::Validate(InContext)) { return false; }
 
 	FPCGExSampleSurfaceGuidedContext* Context = static_cast<FPCGExSampleSurfaceGuidedContext*>(InContext);
+	PCGEX_CHECK_OUT_ATTRIBUTE_NAME(Success)
 	PCGEX_CHECK_OUT_ATTRIBUTE_NAME(Location)
 	PCGEX_CHECK_OUT_ATTRIBUTE_NAME(Normal)
 	PCGEX_CHECK_OUT_ATTRIBUTE_NAME(Distance)
@@ -77,6 +81,7 @@ bool FPCGExSampleSurfaceGuidedElement::ExecuteInternal(FPCGContext* InContext) c
 		Context->Direction.Validate(PointIO->Out);
 		PointIO->BuildMetadataEntries();
 
+		PCGEX_INIT_ATTRIBUTE_OUT(Success, bool)
 		PCGEX_INIT_ATTRIBUTE_OUT(Location, FVector)
 		PCGEX_INIT_ATTRIBUTE_OUT(Normal, FVector)
 		PCGEX_INIT_ATTRIBUTE_OUT(Distance, double)

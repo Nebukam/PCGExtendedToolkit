@@ -26,12 +26,21 @@ public:
 #endif
 
 	virtual PCGExIO::EInitMode GetPointOutputInitMode() const override;
+	virtual int32 GetPreferredChunkSize() const override;
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings interface
 
 public:
+	/** TBD */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(InlineEditConditionToggle))
+	bool bWriteSuccess = false;
+
+	/** TBD */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(EditCondition="bWriteSuccess"))
+	FName Success = FName("SuccessfullySampled");
+
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(InlineEditConditionToggle))
 	bool bWriteLocation = false;
@@ -107,6 +116,7 @@ public:
 	int32 CollisionObjectType;
 	bool bIgnoreSelf = true;
 
+	PCGEX_OUT_ATTRIBUTE(Success, bool)
 	PCGEX_OUT_ATTRIBUTE(Location, FVector)
 	PCGEX_OUT_ATTRIBUTE(LookAt, FVector)
 	PCGEX_OUT_ATTRIBUTE(Normal, FVector)
@@ -151,6 +161,8 @@ public:
 		FCollisionShape CollisionShape = FCollisionShape::MakeSphere(0.001 + Context->AttemptStepSize * static_cast<float>(Infos.Attempt));
 
 
+		//TODO: OverlapMultiByObjectType THEN FindClosestPointOnCollision
+
 		// TODO: We could optimize the max number of retries more elegantly by checking further first, then half distance
 
 		if (!Context->Points) { return; }
@@ -158,6 +170,7 @@ public:
 		{
 			if (Context->World->SweepSingleByChannel(HitResult, Origin, Origin + (FVector::UpVector * 0.001), FQuat::Identity, Context->CollisionChannel, CollisionShape, CollisionParams))
 			{
+				PCGEX_SET_OUT_ATTRIBUTE(Success, Infos.Key, true)
 				PCGEX_SET_OUT_ATTRIBUTE(Location, Infos.Key, HitResult.ImpactPoint)
 				PCGEX_SET_OUT_ATTRIBUTE(Normal, Infos.Key, HitResult.Normal)
 				PCGEX_SET_OUT_ATTRIBUTE(LookAt, Infos.Key, (HitResult.ImpactPoint - Origin).GetSafeNormal())
@@ -167,6 +180,8 @@ public:
 			}
 			else
 			{
+				PCGEX_SET_OUT_ATTRIBUTE(Success, Infos.Key, false)
+				
 				Context->WrapSweepTask(this, false);
 			}
 		}
@@ -175,6 +190,7 @@ public:
 			FCollisionObjectQueryParams ObjectQueryParams = FCollisionObjectQueryParams(Context->CollisionObjectType);
 			if (Context->World->SweepSingleByObjectType(HitResult, Origin, Origin + (FVector::UpVector * 0.001), FQuat::Identity, ObjectQueryParams, CollisionShape, CollisionParams))
 			{
+				PCGEX_SET_OUT_ATTRIBUTE(Success, Infos.Key, true)
 				PCGEX_SET_OUT_ATTRIBUTE(Location, Infos.Key, HitResult.ImpactPoint)
 				PCGEX_SET_OUT_ATTRIBUTE(Normal, Infos.Key, HitResult.Normal)
 				PCGEX_SET_OUT_ATTRIBUTE(LookAt, Infos.Key, (HitResult.ImpactPoint - Origin).GetSafeNormal())
@@ -184,6 +200,8 @@ public:
 			}
 			else
 			{
+				PCGEX_SET_OUT_ATTRIBUTE(Success, Infos.Key, false)
+				
 				Context->WrapSweepTask(this, false);
 			}
 		}

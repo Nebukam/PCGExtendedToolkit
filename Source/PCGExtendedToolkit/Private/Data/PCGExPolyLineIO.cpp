@@ -31,6 +31,26 @@ PCGExPolyLine::FSegment* UPCGExPolyLineIO::NearestSegment(const FVector& Locatio
 	return NearestSegment;
 }
 
+PCGExPolyLine::FSegment* UPCGExPolyLineIO::NearestSegment(const FVector& Location, const double Range)
+{
+	if (bCacheDirty) { BuildCache(); }
+	FReadScopeLock ScopeLock(SegmentLock);
+	PCGExPolyLine::FSegment* NearestSegment = nullptr;
+	double MinDistanceSquared = DBL_MAX;
+	for (PCGExPolyLine::FSegment& Segment : Segments)
+	{
+		if (!Segment.Bounds.ExpandBy(Range).IsInside(Location)) { continue; }
+		FVector ClosestPoint = Segment.NearestLocation(Location);
+		const double DistanceSquared = FVector::DistSquared(Location, ClosestPoint);
+		if (DistanceSquared < MinDistanceSquared)
+		{
+			MinDistanceSquared = DistanceSquared;
+			NearestSegment = &Segment;
+		}
+	}
+	return NearestSegment;
+}
+
 FTransform UPCGExPolyLineIO::SampleNearestTransform(const FVector& Location)
 {
 	if (bCacheDirty) { BuildCache(); }
@@ -38,10 +58,13 @@ FTransform UPCGExPolyLineIO::SampleNearestTransform(const FVector& Location)
 	return Segment->NearestTransform(Location);
 }
 
-bool UPCGExPolyLineIO::SampleNearestTransformWithinRange(const FVector& Location, const double Range, FTransform& OutTransform)
+bool UPCGExPolyLineIO::SampleNearestTransform(const FVector& Location, const double Range, FTransform& OutTransform)
 {
 	if (!Bounds.ExpandBy(Range).IsInside(Location)) { return false; }
-	OutTransform = SampleNearestTransform(Location);
+	if (bCacheDirty) { BuildCache(); }
+	const PCGExPolyLine::FSegment* Segment = NearestSegment(Location, Range);
+	if (!Segment) { return false; }
+	OutTransform = Segment->NearestTransform(Location);
 	return true;
 }
 
@@ -149,7 +172,7 @@ bool UPCGExPolyLineIOGroup::SampleNearestTransformWithinRange(const FVector& Loc
 	for (UPCGExPolyLineIO* Line : PolyLines)
 	{
 		FTransform Transform;
-		if (!Line->SampleNearestTransformWithinRange(Location, Range, Transform)) { continue; }
+		if (!Line->SampleNearestTransform(Location, Range, Transform)) { continue; }
 		if (const double SqrDist = FVector::DistSquared(Location, Transform.GetLocation());
 			SqrDist < MinDistance)
 		{

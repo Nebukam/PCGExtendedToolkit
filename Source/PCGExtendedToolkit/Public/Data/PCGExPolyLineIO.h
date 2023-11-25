@@ -38,6 +38,7 @@ namespace PCGExPolyLine
 			const FVector Point = FMath::ClosestPointOnSegment(Location, Start, End);
 			return PolyLine->GetTransformAtDistance(Segment, FVector::Distance(Start, Point));
 		}
+		
 	};
 }
 
@@ -70,8 +71,9 @@ protected:
 
 public:
 	PCGExPolyLine::FSegment* NearestSegment(const FVector& Location);
+	PCGExPolyLine::FSegment* NearestSegment(const FVector& Location, const double Range);
 	FTransform SampleNearestTransform(const FVector& Location);
-	bool SampleNearestTransformWithinRange(const FVector& Location, const double Range, FTransform& OutTransform);
+	bool SampleNearestTransform(const FVector& Location, const double Range, FTransform& OutTransform);
 
 	~UPCGExPolyLineIO()
 	{

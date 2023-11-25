@@ -109,26 +109,35 @@ bool FPCGExEdgesToPathsElement::ExecuteInternal(
 
 	auto ProcessEdge = [&](const int32 Index)
 	{
-		const UPCGExPointIO* PointIO = Context->EdgesIO->Emplace_GetRef(*Context->CurrentIO, PCGExIO::EInitMode::NewOutput);
+		//const UPCGExPointIO* PointIO = Context->EdgesIO->Emplace_GetRef(*Context->CurrentIO, PCGExIO::EInitMode::NewOutput);
 		const PCGExGraph::FUnsignedEdge& UEdge = Context->UniqueEdges[Index];
 
-		FPCGPoint& Start = PointIO->Out->GetMutablePoints().Emplace_GetRef(PointIO->In->GetPoint(UEdge.Start));
-		FPCGPoint& End = PointIO->Out->GetMutablePoints().Emplace_GetRef(PointIO->In->GetPoint(UEdge.End));
+		UPCGPointData* Out = NewObject<UPCGPointData>();
+		Out->InitializeFromData(Context->CurrentIO->In);
+				
+		FPCGPoint& Start = Out->GetMutablePoints().Emplace_GetRef(Context->CurrentIO->In->GetPoint(UEdge.Start));
+		FPCGPoint& End = Out->GetMutablePoints().Emplace_GetRef(Context->CurrentIO->In->GetPoint(UEdge.End));
 
 		if(Context->bWriteTangents)
 		{
-			PointIO->Out->Metadata->InitializeOnSet(Start.MetadataEntry);
-			PointIO->Out->Metadata->InitializeOnSet(End.MetadataEntry);
+			Out->Metadata->InitializeOnSet(Start.MetadataEntry);
+			Out->Metadata->InitializeOnSet(End.MetadataEntry);
 			
 			FVector StartIn = Start.Transform.GetRotation().GetForwardVector();
 			FVector StartOut = StartIn*-1;
 			FVector EndIn = End.Transform.GetRotation().GetForwardVector();
 			FVector EndOut = EndIn*-1;
 
-			Context->TangentParams.CreateAttributes(PointIO->Out, Start, End,
+			Context->TangentParams.CreateAttributes(Out, Start, End,
 				StartIn, StartOut, EndIn, EndOut);
 			
 		}
+
+		FWriteScopeLock ScopeLock(Context->ContextLock);
+		FPCGTaggedData& OutputRef = Context->OutputData.TaggedData.Emplace_GetRef();
+		OutputRef.Data = Out;
+		OutputRef.Pin = Context->EdgesIO->DefaultOutputLabel;
+		
 	};
 
 	auto InitializeAsync = [&]()

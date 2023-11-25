@@ -7,6 +7,8 @@
 
 PCGExIO::EInitMode UPCGExSampleNearestSurfaceSettings::GetPointOutputInitMode() const { return PCGExIO::EInitMode::DuplicateInput; }
 
+int32 UPCGExSampleNearestSurfaceSettings::GetPreferredChunkSize() const { return 32; }
+
 FPCGElementPtr UPCGExSampleNearestSurfaceSettings::CreateElement() const { return MakeShared<FPCGExSampleNearestSurfaceElement>(); }
 
 void FPCGExSampleNearestSurfaceContext::WrapSweepTask(const FPointTask* Task, bool bSuccess)
@@ -40,6 +42,7 @@ FPCGContext* FPCGExSampleNearestSurfaceElement::Initialize(const FPCGDataCollect
 
 	Context->bIgnoreSelf = Settings->bIgnoreSelf;
 
+	PCGEX_FORWARD_OUT_ATTRIBUTE(Success)
 	PCGEX_FORWARD_OUT_ATTRIBUTE(Location)
 	PCGEX_FORWARD_OUT_ATTRIBUTE(LookAt)
 	PCGEX_FORWARD_OUT_ATTRIBUTE(Normal)
@@ -53,6 +56,7 @@ bool FPCGExSampleNearestSurfaceElement::Validate(FPCGContext* InContext) const
 	if (!FPCGExPointsProcessorElementBase::Validate(InContext)) { return false; }
 
 	FPCGExSampleNearestSurfaceContext* Context = static_cast<FPCGExSampleNearestSurfaceContext*>(InContext);
+	PCGEX_CHECK_OUT_ATTRIBUTE_NAME(Success)
 	PCGEX_CHECK_OUT_ATTRIBUTE_NAME(Location)
 	PCGEX_CHECK_OUT_ATTRIBUTE_NAME(LookAt)
 	PCGEX_CHECK_OUT_ATTRIBUTE_NAME(Normal)
@@ -89,6 +93,7 @@ bool FPCGExSampleNearestSurfaceElement::ExecuteInternal(FPCGContext* InContext) 
 		UPCGExPointIO* PointIO = Context->CurrentIO;
 		Context->NumSweepComplete = 0;
 		PointIO->BuildMetadataEntries();
+		PCGEX_INIT_ATTRIBUTE_OUT(Success, bool)
 		PCGEX_INIT_ATTRIBUTE_OUT(Location, FVector)
 		PCGEX_INIT_ATTRIBUTE_OUT(LookAt, FVector)
 		PCGEX_INIT_ATTRIBUTE_OUT(Normal, FVector)

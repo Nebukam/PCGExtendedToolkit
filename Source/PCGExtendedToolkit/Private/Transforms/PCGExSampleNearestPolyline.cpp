@@ -56,6 +56,7 @@ FPCGContext* FPCGExSampleNearestPolylineElement::Initialize(const FPCGDataCollec
 	Context->RangeMin = Settings->MaxDistance;
 	Context->bUseOctree = Settings->MaxDistance <= 0;
 
+	PCGEX_FORWARD_OUT_ATTRIBUTE(Success)
 	PCGEX_FORWARD_OUT_ATTRIBUTE(Location)
 	PCGEX_FORWARD_OUT_ATTRIBUTE(LookAt)
 	PCGEX_FORWARD_OUT_ATTRIBUTE(Normal)
@@ -85,6 +86,7 @@ bool FPCGExSampleNearestPolylineElement::Validate(FPCGContext* InContext) const
 		return false;
 	}
 
+	PCGEX_CHECK_OUT_ATTRIBUTE_NAME(Success)
 	PCGEX_CHECK_OUT_ATTRIBUTE_NAME(Location)
 	PCGEX_CHECK_OUT_ATTRIBUTE_NAME(LookAt)
 	PCGEX_CHECK_OUT_ATTRIBUTE_NAME(Normal)
@@ -153,6 +155,7 @@ bool FPCGExSampleNearestPolylineElement::ExecuteInternal(FPCGContext* InContext)
 			}
 		}
 
+		PCGEX_INIT_ATTRIBUTE_OUT(Success, bool)
 		PCGEX_INIT_ATTRIBUTE_OUT(Location, FVector)
 		PCGEX_INIT_ATTRIBUTE_OUT(LookAt, FVector)
 		PCGEX_INIT_ATTRIBUTE_OUT(Normal, FVector)
@@ -197,7 +200,7 @@ bool FPCGExSampleNearestPolylineElement::ExecuteInternal(FPCGContext* InContext)
 			for (UPCGExPolyLineIO* Line : Context->Targets->PolyLines)
 			{
 				FTransform SampledTransform;
-				if (!Line->SampleNearestTransformWithinRange(Origin, FMath::Sqrt(RangeMax), SampledTransform)) { continue; }
+				if (!Line->SampleNearestTransform(Origin, FMath::Sqrt(RangeMax), SampledTransform)) { continue; }
 				ProcessTarget(SampledTransform);
 			}
 		}
@@ -266,6 +269,7 @@ bool FPCGExSampleNearestPolylineElement::ExecuteInternal(FPCGContext* InContext)
 		WeightedNormal.Normalize();
 
 		const PCGMetadataEntryKey Key = Point.MetadataEntry;
+		PCGEX_SET_OUT_ATTRIBUTE(Success, Key, TargetsCompoundInfos.IsValid())
 		PCGEX_SET_OUT_ATTRIBUTE(Location, Key, Origin + WeightedLocation)
 		PCGEX_SET_OUT_ATTRIBUTE(LookAt, Key, WeightedLookAt)
 		PCGEX_SET_OUT_ATTRIBUTE(Normal, Key, WeightedNormal)
