@@ -5,36 +5,10 @@
 
 #include "Data/PCGExAttributeHelpers.h"
 
-FPCGExAttributePropertyInputSelector FPCGExAttributePropertyInputSelector::CopyAndFixLastEx(const UPCGData* InData) const
-{
-	if (Selection == EPCGAttributePropertySelection::Attribute)
-	{
-		// For each case, append extra names to the newly created selector.
-		if (AttributeName == PCGMetadataAttributeConstants::LastAttributeName && InData && InData->HasCachedLastSelector())
-		{
-			FPCGExAttributePropertyInputSelector Selector = InData->GetCachedLastSelector();
-			Selector.ExtraNames.Append(ExtraNames);
-			return Selector;
-		}
-		else if (AttributeName == PCGMetadataAttributeConstants::LastCreatedAttributeName && InData)
-		{
-			if (const UPCGMetadata* Metadata = PCGMetadataHelpers::GetConstMetadata(InData))
-			{
-				FPCGExAttributePropertyInputSelector Selector;
-				Selector.SetAttributeName(Metadata->GetLatestAttributeNameOrNone());
-				Selector.ExtraNames.Append(ExtraNames);
-				return Selector;
-			}
-		}
-	}
-
-	return *this;
-}
-
 bool FPCGExInputDescriptor::Validate(const UPCGPointData* InData)
 {
 	bValidatedAtLeastOnce = true;
-	Selector = Selector.CopyAndFixLastEx(InData);
+	Selector = Selector.CopyAndFixLast(InData);
 
 	if (GetSelection() == EPCGAttributePropertySelection::Attribute)
 	{
@@ -68,11 +42,25 @@ void PCGEx::FPinAttributeInfos::Discover(const UPCGPointData* InData)
 
 void PCGEx::FPinAttributeInfos::PushToDescriptor(FPCGExInputDescriptor& Descriptor, bool bReset) const
 {
-	TArray<FString>& ExtraNames = Descriptor.GetMutableSelector().GetExtraNames();
+	TArray<FString>& ExtraNames = const_cast<TArray<FString>&>(Descriptor.GetMutableSelector().GetExtraNames());
 	if (bReset) { ExtraNames.Empty(); }
 
 	for (const FAttributeInfos& Infos : Attributes)
 	{
 		ExtraNames.AddUnique(Infos.GetDisplayName());
 	}
+}
+
+void PCGEx::FLocalSingleComponentInput::Capture(const FPCGExInputDescriptorWithSingleField& InDescriptor)
+{
+	Descriptor = static_cast<FPCGExInputDescriptor>(InDescriptor);
+	Field = InDescriptor.Field;
+	Axis = InDescriptor.Axis;
+}
+
+void PCGEx::FLocalSingleComponentInput::Capture(const FPCGExInputDescriptorGeneric& InDescriptor)
+{
+	Descriptor = static_cast<FPCGExInputDescriptor>(InDescriptor);
+	Field = InDescriptor.Field;
+	Axis = InDescriptor.Axis;
 }

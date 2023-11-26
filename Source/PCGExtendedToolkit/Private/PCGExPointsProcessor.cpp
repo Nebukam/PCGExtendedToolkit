@@ -44,6 +44,19 @@ PCGExIO::EInitMode UPCGExPointsProcessorSettings::GetPointOutputInitMode() const
 
 int32 UPCGExPointsProcessorSettings::GetPreferredChunkSize() const { return 256; }
 
+PCGEx::FPinAttributeInfos* UPCGExPointsProcessorSettings::GetInputAttributeInfos(FName PinLabel)
+{
+	PCGEx::FPinAttributeInfos* Infos = AttributesMap.Find(PinLabel);
+	if (!Infos)
+	{
+		AttributesMap.Add(PinLabel, PCGEx::FPinAttributeInfos());
+		Infos = AttributesMap.Find(PinLabel);
+		Infos->PinLabel = PinLabel;
+	}
+
+	return Infos;
+}
+
 bool FPCGExPointsProcessorContext::AdvancePointsIO()
 {
 	CurrentPointsIndex++;
@@ -123,10 +136,10 @@ void FPCGExPointsProcessorElementBase::InitializeContext(
 		[&InContext](UPCGPointData* Data) { return InContext->ValidatePointDataInput(Data); },
 		[&InContext](UPCGExPointIO* PointIO) { return InContext->PostInitPointDataInput(PointIO); });
 
-	UPCGExPointsProcessorSettings* MutableSettings = const_cast<UPCGExPointsProcessorSettings*>(Settings);
-	PCGEx::FPinAttributeInfos* SourceInfos = MutableSettings->GetPinAttributeInfos(PCGEx::SourcePointsLabel);
-	SourceInfos->Reset();
-	for (const UPCGExPointIO* PointIO : InContext->Points->Pairs) { SourceInfos->Discover(PointIO->In); }
+//	UPCGExPointsProcessorSettings* MutableSettings = const_cast<UPCGExPointsProcessorSettings*>(Settings);
+//	PCGEx::FPinAttributeInfos* SourceInfos = MutableSettings->GetInputAttributeInfos(PCGEx::SourcePointsLabel);
+//	SourceInfos->Reset();
+//	for (const UPCGExPointIO* PointIO : InContext->Points->Pairs) { SourceInfos->Discover(PointIO->In); }
 }
 
 #undef LOCTEXT_NAMESPACE

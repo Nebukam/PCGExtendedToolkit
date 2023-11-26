@@ -17,30 +17,6 @@
 #pragma region Input Descriptors
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExAttributePropertyInputSelector : public FPCGAttributePropertyInputSelector
-{
-	GENERATED_BODY()
-
-	FPCGExAttributePropertyInputSelector(): FPCGAttributePropertyInputSelector()
-	{
-	}
-
-	FPCGExAttributePropertyInputSelector(const FPCGAttributePropertyInputSelector& Other)
-		: FPCGAttributePropertyInputSelector(Other)
-	{
-		Selection = Other.GetSelection();
-		AttributeName = Other.GetAttributeName();
-		PointProperty = Other.GetPointProperty();
-		ExtraProperty = Other.GetExtraProperty();
-		ExtraNames.Append(Other.GetExtraNames());
-	}
-
-	FPCGExAttributePropertyInputSelector CopyAndFixLastEx(const UPCGData* InData) const;
-
-	TArray<FString>& GetExtraNames() { return ExtraNames; }
-};
-
-USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExInputDescriptor
 {
 	GENERATED_BODY()
@@ -68,7 +44,7 @@ public:
 
 	/** Point Attribute or $Property */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayPriority=0))
-	FPCGExAttributePropertyInputSelector Selector;
+	FPCGAttributePropertyInputSelector Selector;
 
 	FPCGMetadataAttributeBase* Attribute = nullptr;
 	bool bValidatedAtLeastOnce = false;
@@ -86,7 +62,7 @@ public:
 		return static_cast<FPCGMetadataAttribute<T>*>(Attribute);
 	}
 
-	FPCGExAttributePropertyInputSelector& GetMutableSelector() { return Selector; }
+	FPCGAttributePropertyInputSelector& GetMutableSelector() { return Selector; }
 
 public:
 	EPCGAttributePropertySelection GetSelection() const { return Selector.GetSelection(); }
@@ -449,19 +425,9 @@ virtual _TYPE Convert(const FName Value) const override { return _TYPE(Value.ToS
 		EPCGExSingleField Field = EPCGExSingleField::X;
 		EPCGExAxis Axis = EPCGExAxis::Forward;
 
-		void Capture(const FPCGExInputDescriptorWithSingleField& InDescriptor)
-		{
-			Descriptor = static_cast<FPCGExInputDescriptor>(InDescriptor);
-			Field = InDescriptor.Field;
-			Axis = InDescriptor.Axis;
-		}
-
-		void Capture(const FPCGExInputDescriptorGeneric& InDescriptor)
-		{
-			Descriptor = static_cast<FPCGExInputDescriptor>(InDescriptor);
-			Field = InDescriptor.Field;
-			Axis = InDescriptor.Axis;
-		}
+		void Capture(const FPCGExInputDescriptorWithSingleField& InDescriptor);
+		void Capture(const FPCGExInputDescriptorGeneric& InDescriptor);
+		
 
 	protected:
 		virtual double GetDefaultValue() const override { return 0; }

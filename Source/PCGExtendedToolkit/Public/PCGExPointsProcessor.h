@@ -84,25 +84,10 @@ protected:
 	TMap<FName, PCGEx::FPinAttributeInfos> AttributesMap;
 	virtual int32 GetPreferredChunkSize() const;
 
-	PCGEx::FPinAttributeInfos* GetPinAttributeInfos(FName Name)
-	{
-		PCGEx::FPinAttributeInfos* Infos = AttributesMap.Find(Name);
-		if (!Infos)
-		{
-			AttributesMap.Add(Name, PCGEx::FPinAttributeInfos());
-			Infos = AttributesMap.Find(Name);
-			Infos->PinLabel = Name;
-		}
-
-		return Infos;
-	}
-
-	const PCGEx::FPinAttributeInfos* GetPinAttributeInfos(FName Name) const
-	{
-		return AttributesMap.Find(Name);
-	}
-	
-	
+	[[deprecated]]
+	PCGEx::FPinAttributeInfos* GetInputAttributeInfos(FName PinLabel);
+	[[deprecated]]
+	const PCGEx::FPinAttributeInfos* GetInputAttributeInfos(const FName PinLabel) const { return AttributesMap.Find(PinLabel); }
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : public FPCGContext

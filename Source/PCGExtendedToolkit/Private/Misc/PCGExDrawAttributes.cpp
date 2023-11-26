@@ -26,7 +26,6 @@ void UPCGExDrawAttributesSettings::PostEditChangeProperty(FPropertyChangedEvent&
 {
 	DebugSettings.PointScale = 0.0f;
 	for (FPCGExAttributeDebugDrawDescriptor& Descriptor : DebugList) { Descriptor.HiddenDisplayName = Descriptor.GetName().ToString(); }
-
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
 #endif
@@ -49,13 +48,13 @@ FPCGContext* FPCGExDrawAttributesElement::Initialize(const FPCGDataCollection& I
 	const UPCGExDrawAttributesSettings* Settings = Context->GetInputSettings<UPCGExDrawAttributesSettings>();
 	check(Settings);
 
-	const PCGEx::FPinAttributeInfos* ExtraAttributes = Settings->GetPinAttributeInfos(PCGEx::SourcePointsLabel);
+	//const PCGEx::FPinAttributeInfos* ExtraAttributes = Settings->GetInputAttributeInfos(PCGEx::SourcePointsLabel);
 
 	Context->DebugList.Empty();
 	for (const FPCGExAttributeDebugDrawDescriptor& Descriptor : Settings->DebugList)
 	{
 		FPCGExAttributeDebugDrawDescriptor& MutableDescriptor = (const_cast<FPCGExAttributeDebugDrawDescriptor&>(Descriptor));
-		if (ExtraAttributes) { ExtraAttributes->PushToDescriptor(MutableDescriptor); }
+		//if (ExtraAttributes) { ExtraAttributes->PushToDescriptor(MutableDescriptor); }
 
 		if (!Descriptor.bEnabled) { continue; }
 
