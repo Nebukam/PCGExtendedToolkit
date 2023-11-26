@@ -14,12 +14,6 @@ FPCGElementPtr UPCGExPartitionByValuesSettings::CreateElement() const { return M
 
 PCGExIO::EInitMode UPCGExPartitionByValuesSettings::GetPointOutputInitMode() const { return PCGExIO::EInitMode::NoOutput; }
 
-bool FPCGExSplitByValuesContext::ValidatePointDataInput(UPCGPointData* PointData)
-{
-	UPCGExPartitionByValuesSettings* Settings = const_cast<UPCGExPartitionByValuesSettings*>(GetInputSettings<UPCGExPartitionByValuesSettings>());
-	return Settings->PartitioningRules.Validate(PointData);
-}
-
 FPCGContext* FPCGExPartitionByValuesElement::Initialize(
 	const FPCGDataCollection& InputData,
 	TWeakObjectPtr<UPCGComponent> SourceComponent,
@@ -31,33 +25,20 @@ FPCGContext* FPCGExPartitionByValuesElement::Initialize(
 	const UPCGExPartitionByValuesSettings* Settings = Context->GetInputSettings<UPCGExPartitionByValuesSettings>();
 	check(Settings);
 
-	Context->Partitions = NewObject<UPCGExPointIOGroup>();
-	Context->PartitionKeyName = Settings->KeyAttributeName;
-	Context->bWritePartitionKey = Settings->bWriteKey;
-	Context->PartitionsMap.Empty();
-	Context->PartitionRule = Settings->PartitioningRules;
+	for (const FPCGExPartitionRuleDescriptor& Descriptor : Settings->PartitionRules)
+	{
+		FPCGExPartitionRuleDescriptor& DescriptorCopy = Context->RulesDescriptors.Add_GetRef(Descriptor);
+		if (Descriptor.bWriteKey && !PCGEx::IsValidName(Descriptor.KeyAttributeName))
+		{
+			PCGE_LOG(Warning, GraphAndLog, LOCTEXT("MalformedAttributeName", "Key Partition name %s is invalid."));
+			DescriptorCopy.bWriteKey = false;
+		}
+	}
+
+	Context->Depth = Context->RulesDescriptors.Num();
 
 	return Context;
 }
-
-bool FPCGExPartitionByValuesElement::Validate(FPCGContext* InContext) const
-{
-	if (!FPCGExPointsProcessorElementBase::Validate(InContext)) { return false; }
-
-	const FPCGExSplitByValuesContext* Context = static_cast<FPCGExSplitByValuesContext*>(InContext);
-
-	const UPCGExPartitionByValuesSettings* Settings = Context->GetInputSettings<UPCGExPartitionByValuesSettings>();
-	check(Settings);
-
-	if (Settings->bWriteKey && !PCGEx::IsValidName(Settings->KeyAttributeName))
-	{
-		PCGE_LOG(Error, GraphAndLog, LOCTEXT("MalformedAttributeName", "Output Attribute name is invalid."));
-		return false;
-	}
-
-	return true;
-}
-
 
 bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* InContext) const
 {
@@ -75,98 +56,102 @@ bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* InContext) con
 
 	if (Context->IsState(PCGExMT::EState::ReadyForNextPoints))
 	{
-		Context->SetState(PCGExMT::EState::ProcessingPoints);
+		if (!Context->AdvancePointsIO())
+		{
+			Context->SetState(PCGExMT::EState::Done);
+		}
+		else
+		{
+			Context->SetState(PCGExMT::EState::ProcessingPoints);
+		}
 	}
 
-	auto InitializeForIO = [&](UPCGExPointIO* PointIO)
+	auto Initialize = [&](const UPCGExPointIO* PointIO)
 	{
 		FWriteScopeLock WriteLock(Context->RulesLock);
+		Context->Rules.Empty();
 
-		PCGExPartition::FRule& IORule = Context->Rules.Emplace_GetRef(Context->PartitionRule);
-		IORule.Validate(PointIO->In);
-		Context->RuleMap.Add(PointIO, &IORule);
+		for (FPCGExPartitionRuleDescriptor& Descriptor : Context->RulesDescriptors)
+		{
+			PCGExPartition::FRule& NewRule = Context->Rules.Emplace_GetRef(Descriptor);
+			if (!NewRule.Validate(PointIO->In))
+			{
+				PCGE_LOG(Warning, GraphAndLog, LOCTEXT("MalformedRule", "Rule %s invalid on input %s."));
+				Context->Rules.Pop();
+			}
+		}
 	};
 
-	auto ProcessPoint = [&](const FPCGPoint& Point, const int32 Index, UPCGExPointIO* PointIO)
+	auto ProcessPoint = [&](const FPCGPoint& Point, const int32 Index, const UPCGExPointIO* PointIO)
 	{
-		FReadScopeLock ReadLock(Context->RulesLock);
-		DistributePoint(Context, PointIO, Point, (*(Context->RuleMap.Find(PointIO)))->GetValue(Point));
+		TArray<int64> KeyValues;
+		FWriteScopeLock ReadLock(Context->RulesLock);
+
+		PCGExPartition::FLayer* Layer = &Context->RootLayer;
+		int32 CurrentDepth = 1;
+
+		for (PCGExPartition::FRule& Rule : Context->Rules)
+		{
+			const int64 KeyValue = Rule.Filter(Point);
+			const bool bLastDepth = Context->Depth == CurrentDepth;
+
+			KeyValues.Add(KeyValue);
+
+			Layer = Layer->GetLayer(KeyValue, PointIO->In, Context->LayerBuffer);
+
+
+			if (bLastDepth)
+			{
+				if (!Layer->PointData)
+				{
+					Layer->PointData = NewObject<UPCGPointData>();
+					Layer->PointData->InitializeFromData(PointIO->In);
+
+					FPCGTaggedData& OutputRef = Context->OutputData.TaggedData.Emplace_GetRef();
+					OutputRef.Data = Layer->PointData;
+					OutputRef.Pin = PCGEx::OutputPointsLabel;
+				}
+
+				FPCGPoint* PointPtr = nullptr;
+
+				FPCGPoint& PointCopy = Layer->PointData->GetMutablePoints().Add_GetRef(Point);
+				PointPtr = &PointCopy;
+
+				Layer->PointData->Metadata->InitializeOnSet(PointPtr->MetadataEntry);
+				int32 SubIndex = 0;
+				for (int i = 0; i < Context->Depth; i++)
+				{
+					if (const PCGExPartition::FRule& WRule = Context->Rules[i];
+						WRule.RuleDescriptor->bWriteKey)
+					{
+						FPCGMetadataAttribute<int64>* KeyAttribute = Layer->PointData->Metadata->FindOrCreateAttribute<int64>(WRule.RuleDescriptor->KeyAttributeName, 0, false);
+						KeyAttribute->SetValue(PointPtr->MetadataEntry, KeyValues[i]);
+						SubIndex++;
+					}
+				}
+			}
+
+			CurrentDepth++;
+		}
+
+		KeyValues.Empty();
 	};
 
 	if (Context->IsState(PCGExMT::EState::ProcessingPoints))
 	{
-		if (Context->MainPoints->InputsParallelProcessing(Context, InitializeForIO, ProcessPoint, Context->ChunkSize, Context->bDoAsyncProcessing))
+		if (Context->CurrentIO->InputParallelProcessing(Context, Initialize, ProcessPoint, Context->ChunkSize, !Context->bDoAsyncProcessing))
 		{
-			Context->SetState(PCGExMT::EState::Done);
+			Context->SetState(PCGExMT::EState::ReadyForNextPoints);
 		}
 	}
 
 	if (Context->IsDone())
 	{
-		Context->Partitions->OutputTo(Context, true);
+		Context->LayerBuffer.Empty();
 		return true;
 	}
 
 	return false;
 }
 
-void FPCGExPartitionByValuesElement::DistributePoint(
-	FPCGExSplitByValuesContext* Context,
-	UPCGExPointIO* PointIO,
-	const FPCGPoint& Point,
-	const double InValue)
-{
-	const int64 Key = Filter(InValue, Context->PartitionRule);
-	UPCGExPointIO* Partition = nullptr;
-
-	{
-		FReadScopeLock ReadLock(Context->PartitionsLock);
-		if (UPCGExPointIO** PartitionPtr = Context->PartitionsMap.Find(Key)) { Partition = *PartitionPtr; }
-	}
-
-	FPCGMetadataAttribute<int64>* KeyAttribute = nullptr;
-
-	if (!Partition)
-	{
-		FWriteScopeLock WriteLock(Context->PartitionsLock);
-		Partition = Context->Partitions->Emplace_GetRef(*PointIO, PCGExIO::EInitMode::NewOutput);
-		Context->PartitionsMap.Add(Key, Partition);
-
-		if (Context->bWritePartitionKey)
-		{
-			KeyAttribute = Partition->Out->Metadata->FindOrCreateAttribute<int64>(Context->PartitionKeyName, 0, false);
-			if (KeyAttribute) { Context->KeyAttributeMap.Add(Key, KeyAttribute); } //Cache attribute for this partition
-		}
-	}
-	else
-	{
-		if (Context->bWritePartitionKey)
-		{
-			FReadScopeLock ReadLock(Context->PartitionsLock);
-			FPCGMetadataAttribute<int64>** KeyAttributePtr = Context->KeyAttributeMap.Find(Key);
-			KeyAttribute = KeyAttributePtr ? *KeyAttributePtr : nullptr;
-		}
-	}
-
-	FWriteScopeLock WriteLock(Context->PointsLock);
-	TArray<FPCGPoint>& Points = Partition->Out->GetMutablePoints();
-	FPCGPoint& NewPoint = Points.Add_GetRef(Point);
-
-	if (KeyAttribute)
-	{
-		Partition->Out->Metadata->InitializeOnSet(NewPoint.MetadataEntry);
-		KeyAttribute->SetValue(NewPoint.MetadataEntry, Key);
-	}
-}
-
-int64 FPCGExPartitionByValuesElement::Filter(const double InValue, const PCGExPartition::FRule& Rule)
-{
-	const double Upscaled = static_cast<double>(InValue) * Rule.Upscale;
-	const double Filtered = (Upscaled - FGenericPlatformMath::Fmod(Upscaled, Rule.FilterSize)) / Rule.FilterSize;
-	return static_cast<int64>(Filtered);
-}
-
-
 #undef LOCTEXT_NAMESPACE
-#undef PCGEX_PROPERTY_CASE
-#undef PCGEX_COMPARE_PROPERTY_CASE

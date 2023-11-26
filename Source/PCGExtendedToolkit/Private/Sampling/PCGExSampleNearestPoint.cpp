@@ -269,7 +269,7 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 		auto ProcessTargetInfos = [&]
 			(const PCGExNearestPoint::FTargetInfos& TargetInfos, double Weight)
 		{
-			const FPCGPoint TargetPoint = Context->TargetsCache->GetPoint(TargetInfos.Index);
+			const FPCGPoint& TargetPoint = Context->TargetsCache->GetPoints()[TargetInfos.Index];
 			const FVector TargetLocationOffset = TargetPoint.Transform.GetLocation() - Origin;
 			WeightedLocation += (TargetLocationOffset * Weight); // Relative to origin
 			WeightedLookAt += (TargetLocationOffset.GetSafeNormal()) * Weight;

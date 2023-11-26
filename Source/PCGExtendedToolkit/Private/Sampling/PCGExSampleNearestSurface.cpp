@@ -95,7 +95,7 @@ bool FPCGExSampleNearestSurfaceElement::ExecuteInternal(FPCGContext* InContext) 
 
 	auto ProcessPoint = [&](int32 Index)
 	{
-		FAsyncTask<FSweepSphereTask>* Task = Context->CreateTask<FSweepSphereTask>(Index, Context->CurrentIO->Out->GetPoint(Index).MetadataEntry);
+		FAsyncTask<FSweepSphereTask>* Task = Context->CreateTask<FSweepSphereTask>(Index, Context->CurrentIO->Out->GetPoints()[Index].MetadataEntry);
 		Task->GetTask().RangeMax = Context->RangeMax; //TODO: Localize range
 		Task->StartBackgroundTask();
 	};

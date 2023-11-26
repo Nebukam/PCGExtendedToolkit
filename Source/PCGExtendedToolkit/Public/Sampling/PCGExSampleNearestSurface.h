@@ -156,8 +156,8 @@ public:
 	virtual void ExecuteTask(FPCGContext* InContext) override
 	{
 		FPCGExSampleNearestSurfaceContext* Context = static_cast<FPCGExSampleNearestSurfaceContext*>(InContext);
-		FPCGPoint InPoint = PointData->In->GetPoint(Infos.Index);
-		FVector Origin = InPoint.Transform.GetLocation();
+		const FPCGPoint& InPoint = PointData->In->GetPoints()[Infos.Index];
+		const FVector Origin = InPoint.Transform.GetLocation();
 
 		FCollisionQueryParams CollisionParams;
 		if (Context->bIgnoreSelf) { CollisionParams.AddIgnoredActor(InContext->SourceComponent->GetOwner()); }

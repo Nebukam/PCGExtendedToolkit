@@ -117,7 +117,7 @@ bool FPCGExOperationsElement::ExecuteInternal(
 	if (Context->IsState(PCGExMT::EState::ProcessingPoints))
 	{
 		Initialize(Context->CurrentIO);
-		for (int i = 0; i < Context->CurrentIO->NumPoints; i++) { ProcessPoint(Context->CurrentIO->In->GetPoint(i), i, Context->CurrentIO); }
+		for (int i = 0; i < Context->CurrentIO->NumPoints; i++) { ProcessPoint(Context->CurrentIO->In->GetPoints()[i], i, Context->CurrentIO); }
 		Context->SetState(PCGExMT::EState::ReadyForNextPoints);
 	}
 

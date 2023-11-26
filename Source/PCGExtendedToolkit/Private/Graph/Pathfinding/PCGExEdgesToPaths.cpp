@@ -106,14 +106,16 @@ bool FPCGExEdgesToPathsElement::ExecuteInternal(
 
 	auto ProcessEdge = [&](const int32 Index)
 	{
+		FWriteScopeLock WriteLock(Context->EdgeLock);
+		
 		//const UPCGExPointIO* PointIO = Context->EdgesIO->Emplace_GetRef(*Context->CurrentIO, PCGExIO::EInitMode::NewOutput);
 		const PCGExGraph::FUnsignedEdge& UEdge = Context->Edges[Index];
 
 		UPCGPointData* Out = NewObject<UPCGPointData>();
 		Out->InitializeFromData(Context->CurrentIO->In);
 
-		FPCGPoint& Start = Out->GetMutablePoints().Emplace_GetRef(Context->CurrentIO->In->GetPoint(UEdge.Start));
-		FPCGPoint& End = Out->GetMutablePoints().Emplace_GetRef(Context->CurrentIO->In->GetPoint(UEdge.End));
+		FPCGPoint& Start = Out->GetMutablePoints().Emplace_GetRef(Context->CurrentIO->In->GetPoints()[UEdge.Start]);
+		FPCGPoint& End = Out->GetMutablePoints().Emplace_GetRef(Context->CurrentIO->In->GetPoints()[UEdge.End]);
 
 		if (Context->bWriteTangents)
 		{
@@ -123,7 +125,6 @@ bool FPCGExEdgesToPathsElement::ExecuteInternal(
 			Context->TangentParams.ComputeTangents(Out, Start, End);
 		}
 
-		FWriteScopeLock WriteLock(Context->ContextLock);
 		FPCGTaggedData& OutputRef = Context->OutputData.TaggedData.Emplace_GetRef();
 		OutputRef.Data = Out;
 		OutputRef.Pin = PCGExGraph::OutputPathsLabel;
@@ -145,7 +146,7 @@ bool FPCGExEdgesToPathsElement::ExecuteInternal(
 	{
 		Context->UniqueEdges.Empty();
 		Context->Edges.Empty();
-		Context->OutputGraphParams();
+		//Context->OutputGraphParams();
 		return true;
 	}
 

@@ -14,17 +14,26 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPartitionRuleDescriptor : public FPCGExInput
 {
 	GENERATED_BODY()
 
-	FPCGExPartitionRuleDescriptor(): FPCGExInputDescriptorWithSingleField()
+	FPCGExPartitionRuleDescriptor()
+		: FPCGExInputDescriptorWithSingleField()
 	{
 	}
 
-	FPCGExPartitionRuleDescriptor(const FPCGExPartitionRuleDescriptor& Other): FPCGExInputDescriptorWithSingleField(Other)
+	FPCGExPartitionRuleDescriptor(const FPCGExPartitionRuleDescriptor& Other)
+		: FPCGExInputDescriptorWithSingleField(Other),
+		  bEnabled(Other.bEnabled),
+		  FilterSize(Other.FilterSize),
+		  Upscale(Other.Upscale),
+		  bWriteKey(Other.bWriteKey),
+		  KeyAttributeName(Other.KeyAttributeName)
 	{
-		FilterSize = Other.FilterSize;
-		Upscale = Other.Upscale;
 	}
 
 public:
+	/** Enable or disable this partition. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(DisplayPriority=-1))
+	bool bEnabled = true;
+
 	/** Filter Size. Higher values means fewer, larger groups. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	double FilterSize = 1.0;
@@ -32,6 +41,14 @@ public:
 	/** Upscale multiplier, applied before filtering. Handy to deal with floating point values. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	double Upscale = 1.0;
+
+	/** Whether to write the partition Key to an attribute. Useful for debugging. Note: They key is not the index, but instead the filtered value used to distribute into partitions. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
+	bool bWriteKey;
+
+	/** Name of the int64 attribute to write the partition Key to. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bWriteKey"))
+	FName KeyAttributeName = "PartitionKey";
 };
 
 namespace PCGExPartition
@@ -42,35 +59,56 @@ namespace PCGExPartition
 		{
 		}
 
-		FRule(const FPCGExPartitionRuleDescriptor& InRule):
+		FRule(FPCGExPartitionRuleDescriptor& InRule):
 			FLocalSingleComponentInput(InRule.Field, InRule.Axis),
 			FilterSize(InRule.FilterSize),
 			Upscale(InRule.Upscale)
 		{
 			Descriptor = static_cast<FPCGExInputDescriptor>(InRule);
+			RuleDescriptor = &InRule;
 		}
 
 	public:
+		FPCGExPartitionRuleDescriptor* RuleDescriptor;
 		double FilterSize = 1.0;
 		double Upscale = 1.0;
-	};
 
-	struct PCGEXTENDEDTOOLKIT_API FKPartition
-	{
-
-		FKPartition()
+		int64 Filter(const FPCGPoint& Point) const
 		{
-			KPartitions.Empty();
+			const double Upscaled = static_cast<double>(GetValue(Point)) * Upscale;
+			const double Filtered = (Upscaled - FMath::Fmod(Upscaled, FilterSize)) / FilterSize;
+			return static_cast<int64>(Filtered);
 		}
 
-		TMap<double, FKPartition> KPartitions;
-		UPCGExPointIO* PointIO = nullptr;
-
-		
-		
+		void WriteKey(PCGMetadataEntryKey Key, int64 Value)
+		{
+		}
 	};
-	
+
+	struct FLayer;
+
+	struct PCGEXTENDEDTOOLKIT_API FLayer
+	{
+		TMap<int64, FLayer*> SubLayers;
+		UPCGPointData* PointData = nullptr;
+
+		FLayer* GetLayer(int64 Key, UPCGPointData* InData, TArray<PCGExPartition::FLayer>& Array)
+		{
+			FLayer** LayerPtr = SubLayers.Find(Key);
+			if (!LayerPtr)
+			{
+				FLayer* Layer = &Array.Emplace_GetRef();
+				SubLayers.Add(Key, Layer);
+				return Layer;
+			}
+			else
+			{
+				return *LayerPtr;
+			}
+		}
+	};
 }
+
 
 /**
  * Calculates the distance between two points (inherently a n*n operation)
@@ -95,15 +133,7 @@ protected:
 public:
 	/** Rules */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ShowOnlyInnerProperties, FullyExpand=true))
-	FPCGExPartitionRuleDescriptor PartitioningRules;
-
-	/** Whether to write the partition Key to an attribute. Useful for debugging. Note: They key is not the index, but instead the filtered value used to distribute into partitions. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
-	bool bWriteKey;
-
-	/** Name of the int64 attribute to write the partition Key to. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bWriteKey"))
-	FName KeyAttributeName = "PartitionKey";
+	TArray<FPCGExPartitionRuleDescriptor> PartitionRules;
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExSplitByValuesContext : public FPCGExPointsProcessorContext
@@ -111,25 +141,14 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSplitByValuesContext : public FPCGExPointsPr
 	friend class FPCGExPartitionByValuesElement;
 
 public:
-	TMap<int64, UPCGExPointIO*> PartitionsMap;
-	TMap<int64, FPCGMetadataAttribute<int64>*> KeyAttributeMap;
-
+	int32 Depth = 0;
+	TArray<FPCGExPartitionRuleDescriptor> RulesDescriptors;
+	TArray<PCGExPartition::FLayer> LayerBuffer;
 	TArray<PCGExPartition::FRule> Rules;
-	TMap<UPCGExPointIO*, PCGExPartition::FRule*> RuleMap;
 
-	PCGExPartition::FKPartition RootPartition;	
-	UPCGExPointIOGroup* Partitions;
-	
-	FPCGExPartitionRuleDescriptor PartitionRule;
-	FName PartitionKeyName;
-	bool bWritePartitionKey = false;
+	PCGExPartition::FLayer RootLayer;
 
 	mutable FRWLock RulesLock;
-	mutable FRWLock PartitionsLock;
-	mutable FRWLock PointsLock;
-
-	virtual bool ValidatePointDataInput(UPCGPointData* PointData) override;
-	
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExPartitionByValuesElement : public FPCGExPointsProcessorElementBase
@@ -141,10 +160,5 @@ public:
 		const UPCGNode* Node) override;
 
 protected:
-	virtual bool Validate(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
-
-private:
-	static void DistributePoint(FPCGExSplitByValuesContext* Context, UPCGExPointIO* PointIO, const FPCGPoint& Point, const double InValue);
-	static int64 Filter(const double InValue, const PCGExPartition::FRule& Rule);
 };

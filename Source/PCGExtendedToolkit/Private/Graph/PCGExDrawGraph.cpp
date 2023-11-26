@@ -58,7 +58,7 @@ bool FPCGExDrawGraphElement::ExecuteInternal(FPCGContext* InContext) const
 			PCGE_LOG(Error, GraphAndLog, LOCTEXT("MissingDebugManager", "Could not find a PCGEx Debug Manager node in your graph."));
 			return true;
 		}
-		
+
 		Context->SetState(PCGExMT::EState::ReadyForNextPoints);
 	}
 
@@ -108,7 +108,7 @@ bool FPCGExDrawGraphElement::ExecuteInternal(FPCGContext* InContext) const
 				if (SocketMetadata.Index == -1) { continue; }
 				if (static_cast<uint8>((SocketMetadata.EdgeType & static_cast<EPCGExEdgeType>(Settings->EdgeType))) == 0) { continue; }
 
-				FPCGPoint PtB = PointIO->In->GetPoint(SocketMetadata.Index);
+				FPCGPoint PtB = PointIO->In->GetPoints()[SocketMetadata.Index];
 				FVector End = PtB.Transform.GetLocation();
 				float Thickness = 1.0f;
 				float ArrowSize = 0.0f;
@@ -180,7 +180,7 @@ bool FPCGExDrawGraphElement::ExecuteInternal(FPCGContext* InContext) const
 	{
 		//if (Context->CurrentIO->InputParallelProcessing(Context, Initialize, ProcessPoint, Context->ChunkSize)) { Context->SetState(PCGExMT::EState::ProcessingParams); }
 		Initialize(Context->CurrentIO);
-		for (int i = 0; i < Context->CurrentIO->NumPoints; i++) { ProcessPoint(Context->CurrentIO->In->GetPoint(i), i, Context->CurrentIO); }
+		for (int i = 0; i < Context->CurrentIO->NumPoints; i++) { ProcessPoint(Context->CurrentIO->In->GetPoints()[i], i, Context->CurrentIO); }
 		Context->SetState(PCGExMT::EState::ReadyForNextGraph);
 	}
 

@@ -113,7 +113,7 @@ bool FPCGExConsolidateGraphElement::ExecuteInternal(
 			const PCGMetadataEntryKey Key = Point.MetadataEntry;
 			PCGMetadataEntryKey NewEntryKey = PCGInvalidEntryKey;
 
-			if (NewRelationIndex != -1) { NewEntryKey = PointIO->Out->GetPoint(NewRelationIndex).MetadataEntry; }
+			if (NewRelationIndex != -1) { NewEntryKey = PointIO->Out->GetPoints()[NewRelationIndex].MetadataEntry; }
 			else { SocketInfos.Socket->SetEdgeType(Key, EPCGExEdgeType::Unknown); }
 
 			SocketInfos.Socket->SetTargetIndex(Key, NewRelationIndex);

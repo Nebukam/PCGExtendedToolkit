@@ -103,7 +103,7 @@ void UPCGExGraphPatchGroup::Distribute(const int32 InIndex, UPCGExGraphPatch* Pa
 	}
 
 	TArray<PCGExGraph::FUnsignedEdge> UnsignedEdges;
-	Graph->GetEdges(InIndex, PointIO->In->GetPoint(InIndex).MetadataEntry, UnsignedEdges);
+	Graph->GetEdges(InIndex, PointIO->In->GetPoints()[InIndex].MetadataEntry, UnsignedEdges);
 
 	for (const PCGExGraph::FUnsignedEdge& UEdge : UnsignedEdges)
 	{
@@ -148,8 +148,8 @@ void UPCGExGraphPatchGroup::DistributeEdge(const T& InEdge, UPCGExGraphPatch* Pa
 	}
 
 	TArray<T> Edges;
-	Graph->GetEdges(InEdge.Start, PointIO->In->GetPoint(InEdge.Start).MetadataEntry, Edges);
-	Graph->GetEdges(InEdge.End, PointIO->In->GetPoint(InEdge.End).MetadataEntry, Edges);
+	Graph->GetEdges(InEdge.Start, PointIO->In->GetPoints()[InEdge.Start].MetadataEntry, Edges);
+	Graph->GetEdges(InEdge.End, PointIO->In->GetPoints()[InEdge.End].MetadataEntry, Edges);
 
 	for (const T& Edge : Edges)
 	{

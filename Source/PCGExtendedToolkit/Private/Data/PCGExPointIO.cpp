@@ -56,7 +56,7 @@ void UPCGExPointIO::BuildMetadataEntries()
 	for (int i = 0; i < NumPoints; i++)
 	{
 		FPCGPoint& Point = Points[i];
-		Out->Metadata->InitializeOnSet(Point.MetadataEntry, In->GetPoint(i).MetadataEntry, In->Metadata);
+		Out->Metadata->InitializeOnSet(Point.MetadataEntry, In->GetPoints()[i].MetadataEntry, In->Metadata);
 	}
 	bMetadataEntryDirty = false;
 	bIndicesDirty = true;
@@ -72,7 +72,7 @@ void UPCGExPointIO::BuildMetadataEntriesAndIndices()
 	for (int i = 0; i < NumPoints; i++)
 	{
 		FPCGPoint& Point = Points[i];
-		Out->Metadata->InitializeOnSet(Point.MetadataEntry, In->GetPoint(i).MetadataEntry, In->Metadata);
+		Out->Metadata->InitializeOnSet(Point.MetadataEntry, In->GetPoints()[i].MetadataEntry, In->Metadata);
 		IndicesMap.Add(Point.MetadataEntry, i);
 	}
 	bIndicesDirty = false;
@@ -103,7 +103,7 @@ bool UPCGExPointIO::OutputParallelProcessing(
 		const int32 NumIterations = Out->GetPoints().Num();
 		for (int i = 0; i < NumIterations; i++)
 		{
-			const FPCGPoint& Point = Out->GetPoint(i);
+			const FPCGPoint& Point = Out->GetPoints()[i];
 			LoopBody(Point, i, this);
 		}
 		return true;
@@ -155,7 +155,7 @@ bool UPCGExPointIO::InputParallelProcessing(
 	auto InnerBodyLoop = [&](const int32 ReadIndex, const int32 WriteIndex)
 	{
 		FReadScopeLock ReadLock(MapLock);
-		const FPCGPoint& Point = In->GetPoint(ReadIndex);
+		const FPCGPoint& Point = In->GetPoints()[ReadIndex];
 		LoopBody(Point, ReadIndex, this);
 		return true;
 	};

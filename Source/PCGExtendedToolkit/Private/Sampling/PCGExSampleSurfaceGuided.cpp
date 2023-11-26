@@ -92,7 +92,7 @@ bool FPCGExSampleSurfaceGuidedElement::ExecuteInternal(FPCGContext* InContext) c
 
 	auto ProcessPoint = [&](int32 Index)
 	{
-		FAsyncTask<FTraceTask>* Task = Context->CreateTask<FTraceTask>(Index, Context->CurrentIO->Out->GetPoint(Index).MetadataEntry);
+		FAsyncTask<FTraceTask>* Task = Context->CreateTask<FTraceTask>(Index, Context->CurrentIO->Out->GetPoints()[Index].MetadataEntry);
 		Task->StartBackgroundTask();
 	};
 

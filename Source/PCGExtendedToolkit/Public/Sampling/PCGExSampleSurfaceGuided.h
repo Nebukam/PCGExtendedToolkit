@@ -157,24 +157,26 @@ public:
 	virtual void ExecuteTask(FPCGContext* InContext) override
 	{
 		FPCGExSampleSurfaceGuidedContext* Context = static_cast<FPCGExSampleSurfaceGuidedContext*>(InContext);
-		FPCGPoint InPoint = PointData->In->GetPoint(Infos.Index);
-		FVector Origin = InPoint.Transform.GetLocation();
+		const FPCGPoint& InPoint = PointData->In->GetPoints()[Infos.Index];
+		const FVector Origin = InPoint.Transform.GetLocation();
 
 		FCollisionQueryParams CollisionParams;
 		if (Context->bIgnoreSelf) { CollisionParams.AddIgnoredActor(InContext->SourceComponent->GetOwner()); }
 
-		double Size = Context->bUseLocalSize ? Context->LocalSize.GetValue(InPoint) : Context->Size;
-		FVector Trace = Context->Direction.GetValue(InPoint) * Size;
-		FVector End = Origin + Trace;
+		const double Size = Context->bUseLocalSize ? Context->LocalSize.GetValue(InPoint) : Context->Size;
+		const FVector Trace = Context->Direction.GetValue(InPoint) * Size;
+		const FVector End = Origin + Trace;
 		
 		if (!Context->MainPoints) { return; }
 
 		bool bSuccess = false;
+		
 		auto ProcessTraceResult = [&]()
 		{
 			PCGEX_SET_OUT_ATTRIBUTE(Location, Infos.Key, HitResult.ImpactPoint)
 			PCGEX_SET_OUT_ATTRIBUTE(Normal, Infos.Key, HitResult.Normal)
 			PCGEX_SET_OUT_ATTRIBUTE(Distance, Infos.Key, FVector::Distance(HitResult.ImpactPoint, Origin))
+			bSuccess = true;
 		};
 
 		if (Context->CollisionType == EPCGExCollisionFilterType::Channel)

@@ -172,7 +172,7 @@ public:
 	FVector GetIndexedPosition(const FPCGPoint& Point, const UPCGPointData* PointData) const
 	{
 		const int64 OutIndex = IndexInput.GetValueSafe(Point, -1);
-		if (OutIndex != -1) { return PointData->GetPoint(OutIndex).Transform.GetLocation(); }
+		if (OutIndex != -1) { return PointData->GetPoints()[OutIndex].Transform.GetLocation(); }
 		return Point.Transform.GetLocation();
 	}
 
