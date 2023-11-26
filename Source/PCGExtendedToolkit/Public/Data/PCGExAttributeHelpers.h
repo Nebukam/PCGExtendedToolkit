@@ -17,7 +17,58 @@
 #pragma region Input Descriptors
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExInputDescriptor // : public FPCGAttributePropertySelector
+struct PCGEXTENDEDTOOLKIT_API FPCGExAttributePropertyInputSelector : public FPCGAttributePropertyInputSelector
+{
+	GENERATED_BODY()
+
+	FPCGExAttributePropertyInputSelector(): FPCGAttributePropertyInputSelector()
+	{
+	}
+
+	FPCGExAttributePropertyInputSelector(const FPCGAttributePropertyInputSelector& Other)
+		: FPCGAttributePropertyInputSelector(Other)
+	{
+		Selection = Other.GetSelection();
+		AttributeName = Other.GetAttributeName();
+		PointProperty = Other.GetPointProperty();
+		ExtraProperty = Other.GetExtraProperty();
+		ExtraNames.Append(Other.GetExtraNames());
+	}
+
+	FPCGExAttributePropertyInputSelector CopyAndFixLastEx(const UPCGData* InData) const
+	{
+		if (Selection == EPCGAttributePropertySelection::Attribute)
+		{
+			// For each case, append extra names to the newly created selector.
+			if (AttributeName == PCGMetadataAttributeConstants::LastAttributeName && InData && InData->HasCachedLastSelector())
+			{
+				FPCGExAttributePropertyInputSelector Selector = InData->GetCachedLastSelector();
+				Selector.ExtraNames.Append(ExtraNames);
+				return Selector;
+			}
+			else if (AttributeName == PCGMetadataAttributeConstants::LastCreatedAttributeName && InData)
+			{
+				if (const UPCGMetadata* Metadata = PCGMetadataHelpers::GetConstMetadata(InData))
+				{
+					FPCGExAttributePropertyInputSelector Selector;
+					Selector.SetAttributeName(Metadata->GetLatestAttributeNameOrNone());
+					Selector.ExtraNames.Append(ExtraNames);
+					return Selector;
+				}
+			}
+		}
+
+		return *this;
+	}
+
+	TArray<FString>& GetExtraNames()
+	{
+		return ExtraNames;
+	}
+};
+
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExInputDescriptor
 {
 	GENERATED_BODY()
 
@@ -26,9 +77,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExInputDescriptor // : public FPCGAttributePro
 		bValidatedAtLeastOnce = false;
 	}
 
-	FPCGExInputDescriptor(const FPCGExInputDescriptor& Other): FPCGExInputDescriptor()
+	FPCGExInputDescriptor(const FPCGExInputDescriptor& Other)
+		: FPCGExInputDescriptor()
 	{
-		//Selector = Other.Selector;
+		Selector = Other.Selector;
 		Attribute = Other.Attribute;
 	}
 
@@ -43,7 +95,7 @@ public:
 
 	/** Point Attribute or $Property */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayPriority=0))
-	FPCGAttributePropertyInputSelector Selector;
+	FPCGExAttributePropertyInputSelector Selector;
 
 	FPCGMetadataAttributeBase* Attribute = nullptr;
 	bool bValidatedAtLeastOnce = false;
@@ -61,6 +113,8 @@ public:
 		return static_cast<FPCGMetadataAttribute<T>*>(Attribute);
 	}
 
+	FPCGExAttributePropertyInputSelector& GetMutableSelector() { return Selector; }
+
 public:
 	EPCGAttributePropertySelection GetSelection() const { return Selector.GetSelection(); }
 	FName GetName() const { return Selector.GetName(); }
@@ -73,7 +127,7 @@ public:
 	bool Validate(const UPCGPointData* InData)
 	{
 		bValidatedAtLeastOnce = true;
-		Selector = Selector.CopyAndFixLast(InData);
+		Selector = Selector.CopyAndFixLastEx(InData);
 
 		if (GetSelection() == EPCGAttributePropertySelection::Attribute)
 		{
@@ -105,7 +159,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExInputDescriptorGeneric : public FPCGExInputD
 {
 	GENERATED_BODY()
 
-	FPCGExInputDescriptorGeneric(): FPCGExInputDescriptor()
+	FPCGExInputDescriptorGeneric()
+		: FPCGExInputDescriptor()
 	{
 	}
 
@@ -140,7 +195,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExInputDescriptorWithDirection : public FPCGEx
 {
 	GENERATED_BODY()
 
-	FPCGExInputDescriptorWithDirection(): FPCGExInputDescriptor()
+	FPCGExInputDescriptorWithDirection()
+		: FPCGExInputDescriptor()
 	{
 	}
 
@@ -199,9 +255,9 @@ namespace PCGEx
 		FName Name = NAME_None;
 		EPCGMetadataTypes UnderlyingType = EPCGMetadataTypes::Unknown;
 
-		FName GetDisplayName() const
+		FString GetDisplayName() const
 		{
-			return FName(FString(Name.ToString() + FString::Printf(TEXT("( %d )"), UnderlyingType)));
+			return FString(Name.ToString() + FString::Printf(TEXT("( %d )"), UnderlyingType));
 		}
 
 		bool operator==(const FAttributeInfos& Other) const
@@ -231,9 +287,15 @@ namespace PCGEx
 			for (int i = 0; i < Names.Num(); i++) { Append(FAttributeInfos(Names[i], Types[i])); }
 		}
 
-		void PushToDescriptor(FPCGExInputDescriptor& Descriptor)
+		void PushToDescriptor(FPCGExInputDescriptor& Descriptor, bool bReset = true) const
 		{
-			//Descriptor.Selector.
+			TArray<FString>& ExtraNames = Descriptor.GetMutableSelector().GetExtraNames();
+			if (bReset) { ExtraNames.Empty(); }
+
+			for (const FAttributeInfos& Infos : Attributes)
+			{
+				ExtraNames.AddUnique(Infos.GetDisplayName());
+			}
 		}
 	};
 

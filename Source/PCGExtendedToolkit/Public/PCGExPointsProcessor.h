@@ -96,6 +96,13 @@ protected:
 
 		return Infos;
 	}
+
+	const PCGEx::FPinAttributeInfos* GetPinAttributeInfos(FName Name) const
+	{
+		return AttributesMap.Find(Name);
+	}
+	
+	
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : public FPCGContext

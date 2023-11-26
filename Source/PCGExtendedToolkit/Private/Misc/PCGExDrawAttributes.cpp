@@ -49,12 +49,18 @@ FPCGContext* FPCGExDrawAttributesElement::Initialize(const FPCGDataCollection& I
 	const UPCGExDrawAttributesSettings* Settings = Context->GetInputSettings<UPCGExDrawAttributesSettings>();
 	check(Settings);
 
+	const PCGEx::FPinAttributeInfos* ExtraAttributes = Settings->GetPinAttributeInfos(PCGEx::SourcePointsLabel);
+
 	Context->DebugList.Empty();
 	for (const FPCGExAttributeDebugDrawDescriptor& Descriptor : Settings->DebugList)
 	{
+		FPCGExAttributeDebugDrawDescriptor& MutableDescriptor = (const_cast<FPCGExAttributeDebugDrawDescriptor&>(Descriptor));
+		if (ExtraAttributes) { ExtraAttributes->PushToDescriptor(MutableDescriptor); }
+
 		if (!Descriptor.bEnabled) { continue; }
+
 		FPCGExAttributeDebugDraw& Drawer = Context->DebugList.Emplace_GetRef();
-		Drawer.Descriptor = &(const_cast<FPCGExAttributeDebugDrawDescriptor&>(Descriptor));
+		Drawer.Descriptor = &MutableDescriptor;
 	}
 
 	return Context;
