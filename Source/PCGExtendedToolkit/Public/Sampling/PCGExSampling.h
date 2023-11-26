@@ -3,9 +3,7 @@
 
 #pragma once
 
-#include "Data/PCGExAttributeHelpers.h"
-
-#include "PCGExTransform.generated.h"
+#include "PCGExSampling.generated.h"
 
 #define PCGEX_OUT_ATTRIBUTE(_NAME, _TYPE)\
 bool bWrite##_NAME = false;\

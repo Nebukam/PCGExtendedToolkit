@@ -20,7 +20,7 @@
         - [Find Paths](PCGExFindPaths.md)
         - [Draw Graph](PCGExDrawGraph.md)
         - [Delete Graph](PCGExDeleteGraph.md)
-    - Transforms
+    - Data Sampling
         - [Sample Nearest Point](PCGExSampleNearestPoint.md)
         - [Sample Nearest Surface](PCGExSampleNearestSurface.md)
         - [Sample Surface Guided](PCGExSampleSurfaceGuided.md)

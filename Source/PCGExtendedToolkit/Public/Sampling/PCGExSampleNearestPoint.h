@@ -6,25 +6,24 @@
 #include "CoreMinimal.h"
 
 #include "PCGExPointsProcessor.h"
-#include "PCGExTransform.h"
-#include "Data/PCGExPolyLineIO.h"
+#include "PCGExSampling.h"
 
-#include "PCGExSampleNearestPolyline.generated.h"
+#include "PCGExSampleNearestPoint.generated.h"
 
-namespace PCGExPolyLine
+namespace PCGExNearestPoint
 {
-	struct PCGEXTENDEDTOOLKIT_API FSampleInfos
+	struct PCGEXTENDEDTOOLKIT_API FTargetInfos
 	{
-		FSampleInfos()
+		FTargetInfos()
 		{
 		}
 
-		FSampleInfos(const FTransform& InTransform, const double InDistance):
-			Transform(InTransform), Distance(InDistance)
+		FTargetInfos(const int32 InIndex, const double InDistance):
+			Index(InIndex), Distance(InDistance)
 		{
 		}
 
-		FTransform Transform;
+		int32 Index = -1;
 		double Distance = 0;
 	};
 
@@ -41,10 +40,10 @@ namespace PCGExPolyLine
 		double SampledRangeWidth = 0;
 		int32 UpdateCount = 0;
 
-		FSampleInfos Closest;
-		FSampleInfos Farthest;
+		FTargetInfos Closest;
+		FTargetInfos Farthest;
 
-		void UpdateCompound(const FSampleInfos& Infos)
+		void UpdateCompound(const FTargetInfos& Infos)
 		{
 			UpdateCount++;
 
@@ -69,7 +68,6 @@ namespace PCGExPolyLine
 		}
 
 		bool IsValid() { return UpdateCount > 0; }
-		
 	};
 }
 
@@ -78,16 +76,16 @@ namespace PCGExPolyLine
  * This way we can multi-thread the various calculations instead of mixing everything along with async/game thread collision
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class PCGEXTENDEDTOOLKIT_API UPCGExSampleNearestPolylineSettings : public UPCGExPointsProcessorSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExSampleNearestPointSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
-	UPCGExSampleNearestPolylineSettings(const FObjectInitializer& ObjectInitializer);
+	UPCGExSampleNearestPointSettings(const FObjectInitializer& ObjectInitializer);
 
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(SampleNearestPolyline, "Sample Nearest Polyline", "Find the closest transform on nearest polylines.");
+	PCGEX_NODE_INFOS(SampleNearestPoint, "Sample Nearest Point", "Find the closest point on the nearest collidable surface.");
 #endif
 
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
@@ -105,27 +103,27 @@ public:
 	EPCGExSampleMethod SampleMethod = EPCGExSampleMethod::WithinRange;
 
 	/** Minimum target range. Used as fallback if LocalRangeMin is enabled but missing. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(EditCondition="SampleMethod==EPCGExSampleMethod::WithinRange"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling")
 	double RangeMin = 0;
 
 	/** Maximum target range. Used as fallback if LocalRangeMax is enabled but missing. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(ForceInlineRow, EditCondition="SampleMethod==EPCGExSampleMethod::WithinRange"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling")
 	double RangeMax = 300;
 
 	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(InlineEditConditionToggle, EditCondition="SampleMethod==EPCGExSampleMethod::WithinRange"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(InlineEditConditionToggle))
 	bool bUseLocalRangeMin = false;
 
 	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(EditCondition="bUseLocalRangeMin && SampleMethod==EPCGExSampleMethod::WithinRange", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(EditCondition="bUseLocalRangeMin", EditConditionHides))
 	FPCGExInputDescriptorWithSingleField LocalRangeMin;
 
 	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(InlineEditConditionToggle, EditCondition="SampleMethod==EPCGExSampleMethod::WithinRange"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(InlineEditConditionToggle))
 	bool bUseLocalRangeMax = false;
 
 	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(EditCondition="bUseLocalRangeMax && SampleMethod==EPCGExSampleMethod::WithinRange", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(EditCondition="bUseLocalRangeMax", EditConditionHides))
 	FPCGExInputDescriptorWithSingleField LocalRangeMax;
 
 	/** TBD */
@@ -171,7 +169,7 @@ public:
 
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(EditCondition="bWriteNormal"))
-	EPCGExAxis NormalSource = EPCGExAxis::Forward;
+	FPCGExInputDescriptorWithDirection NormalSource;
 
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(InlineEditConditionToggle))
@@ -192,23 +190,22 @@ public:
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(EditCondition="bWriteSignedDistance"))
 	EPCGExAxis SignedDistanceAxis = EPCGExAxis::Forward;
-
-	/** Maximum distance to check for closest surface. Input 0 to sample all target points.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision & Metrics")
-	double MaxDistance = 1000;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestPolylineContext : public FPCGExPointsProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestPointContext : public FPCGExPointsProcessorContext
 {
-	friend class FPCGExSampleNearestPolylineElement;
+	friend class FPCGExSampleNearestPointElement;
 
 public:
-	UPCGExPolyLineIOGroup* Targets = nullptr;
+	UPCGPointData* Targets = nullptr;
+	UPCGPointData* TargetsCache = nullptr;
+	UPCGPointData::PointOctree* Octree = nullptr;
+
+	TMap<PCGMetadataEntryKey, int64> TargetIndices;
+	mutable FRWLock IndicesLock;
 
 	EPCGExSampleMethod SampleMethod = EPCGExSampleMethod::WithinRange;
 	EPCGExWeightMethod WeightMethod = EPCGExWeightMethod::FullRange;
-
-	EPCGExAxis NormalSource;
 
 	double RangeMin = 0;
 	double RangeMax = 1000;
@@ -216,11 +213,12 @@ public:
 	bool bLocalRangeMin = false;
 	bool bLocalRangeMax = false;
 
-	bool bUseOctree = false;
 	int64 NumTargets = 0;
 
 	PCGEx::FLocalSingleComponentInput RangeMinInput;
 	PCGEx::FLocalSingleComponentInput RangeMaxInput;
+
+	PCGEx::FLocalDirectionInput NormalInput;
 
 	UCurveFloat* WeightCurve = nullptr;
 
@@ -234,14 +232,13 @@ public:
 	PCGEX_OUT_ATTRIBUTE(SignedDistance, double)
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestPolylineElement : public FPCGExPointsProcessorElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestPointElement : public FPCGExPointsProcessorElementBase
 {
 public:
 	virtual FPCGContext* Initialize(
 		const FPCGDataCollection& InputData,
 		TWeakObjectPtr<UPCGComponent> SourceComponent,
 		const UPCGNode* Node) override;
-
 	virtual bool Validate(FPCGContext* InContext) const override;
 
 protected:

@@ -35,36 +35,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributePropertyInputSelector : public FPCG
 		ExtraNames.Append(Other.GetExtraNames());
 	}
 
-	FPCGExAttributePropertyInputSelector CopyAndFixLastEx(const UPCGData* InData) const
-	{
-		if (Selection == EPCGAttributePropertySelection::Attribute)
-		{
-			// For each case, append extra names to the newly created selector.
-			if (AttributeName == PCGMetadataAttributeConstants::LastAttributeName && InData && InData->HasCachedLastSelector())
-			{
-				FPCGExAttributePropertyInputSelector Selector = InData->GetCachedLastSelector();
-				Selector.ExtraNames.Append(ExtraNames);
-				return Selector;
-			}
-			else if (AttributeName == PCGMetadataAttributeConstants::LastCreatedAttributeName && InData)
-			{
-				if (const UPCGMetadata* Metadata = PCGMetadataHelpers::GetConstMetadata(InData))
-				{
-					FPCGExAttributePropertyInputSelector Selector;
-					Selector.SetAttributeName(Metadata->GetLatestAttributeNameOrNone());
-					Selector.ExtraNames.Append(ExtraNames);
-					return Selector;
-				}
-			}
-		}
+	FPCGExAttributePropertyInputSelector CopyAndFixLastEx(const UPCGData* InData) const;
 
-		return *this;
-	}
-
-	TArray<FString>& GetExtraNames()
-	{
-		return ExtraNames;
-	}
+	TArray<FString>& GetExtraNames() { return ExtraNames; }
 };
 
 USTRUCT(BlueprintType)
@@ -124,33 +97,7 @@ public:
 	 * @param InData 
 	 * @return 
 	 */
-	bool Validate(const UPCGPointData* InData)
-	{
-		bValidatedAtLeastOnce = true;
-		Selector = Selector.CopyAndFixLastEx(InData);
-
-		if (GetSelection() == EPCGAttributePropertySelection::Attribute)
-		{
-			Attribute = Selector.IsValid() ? InData->Metadata->GetMutableAttribute(GetName()) : nullptr;
-
-			if (Attribute)
-			{
-				const TUniquePtr<const IPCGAttributeAccessor> Accessor = PCGAttributeAccessorHelpers::CreateConstAccessor(InData, Selector);
-				UnderlyingType = Accessor->GetUnderlyingType();
-				//if (!Accessor.IsValid()) { Attribute = nullptr; }
-			}
-
-			return Attribute != nullptr;
-		}
-		else if (Selector.IsValid())
-		{
-			const TUniquePtr<const IPCGAttributeAccessor> Accessor = PCGAttributeAccessorHelpers::CreateConstAccessor(InData, Selector);
-			UnderlyingType = Accessor->GetUnderlyingType();
-			return true;
-		}
-		return false;
-	}
-
+	bool Validate(const UPCGPointData* InData);
 	FString ToString() const { return GetName().ToString(); }
 };
 
@@ -255,15 +202,8 @@ namespace PCGEx
 		FName Name = NAME_None;
 		EPCGMetadataTypes UnderlyingType = EPCGMetadataTypes::Unknown;
 
-		FString GetDisplayName() const
-		{
-			return FString(Name.ToString() + FString::Printf(TEXT("( %d )"), UnderlyingType));
-		}
-
-		bool operator==(const FAttributeInfos& Other) const
-		{
-			return Name == Other.Name;
-		}
+		FString GetDisplayName() const { return FString(Name.ToString() + FString::Printf(TEXT("( %d )"), UnderlyingType)); }
+		bool operator==(const FAttributeInfos& Other) const { return Name == Other.Name; }
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FPinAttributeInfos
@@ -278,25 +218,8 @@ namespace PCGEx
 
 		void Reset() { Attributes.Empty(); }
 		void Append(FAttributeInfos Infos) { Attributes.AddUnique(Infos); }
-
-		void Discover(const UPCGPointData* InData)
-		{
-			TArray<FName> Names;
-			TArray<EPCGMetadataTypes> Types;
-			InData->Metadata->GetAttributes(Names, Types);
-			for (int i = 0; i < Names.Num(); i++) { Append(FAttributeInfos(Names[i], Types[i])); }
-		}
-
-		void PushToDescriptor(FPCGExInputDescriptor& Descriptor, bool bReset = true) const
-		{
-			TArray<FString>& ExtraNames = Descriptor.GetMutableSelector().GetExtraNames();
-			if (bReset) { ExtraNames.Empty(); }
-
-			for (const FAttributeInfos& Infos : Attributes)
-			{
-				ExtraNames.AddUnique(Infos.GetDisplayName());
-			}
-		}
+		void Discover(const UPCGPointData* InData);
+		void PushToDescriptor(FPCGExInputDescriptor& Descriptor, bool bReset = true) const;
 	};
 
 	template <typename T>

@@ -6,23 +6,23 @@
 #include "CoreMinimal.h"
 
 #include "PCGExPointsProcessor.h"
-#include "PCGExTransform.h"
+#include "PCGExSampling.h"
 
-#include "PCGExSampleSurfaceGuided.generated.h"
+#include "PCGExSampleNearestSurface.generated.h"
 
 /**
- * Use PCGExTransform to manipulate the outgoing attributes instead of handling everything here.
+ * Use PCGExSampling to manipulate the outgoing attributes instead of handling everything here.
  * This way we can multi-thread the various calculations instead of mixing everything along with async/game thread collision
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class PCGEXTENDEDTOOLKIT_API UPCGExSampleSurfaceGuidedSettings : public UPCGExPointsProcessorSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExSampleNearestSurfaceSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(SampleSurfaceGuided, "Sample Surface Guided", "Find the collision point on the nearest collidable surface in a given direction.");
+	PCGEX_NODE_INFOS(SampleNearestSurface, "Sample Nearest Surface", "Find the closest point on the nearest collidable surface.");
 #endif
 
 	virtual PCGExIO::EInitMode GetPointOutputInitMode() const override;
@@ -34,29 +34,9 @@ protected:
 
 public:
 	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(ShowOnlyInnerProperties, FullyExpand=true))
-	FPCGExInputDescriptorWithDirection Direction;
-
-	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
-	double Size = 1000;
-
-	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(InlineEditConditionToggle))
-	bool bUseLocalSize = false;
-
-	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="bUseLocalSize", ShowOnlyInnerProperties, FullyExpand=true))
-	FPCGExInputDescriptorWithSingleField LocalSize;
-
-	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(InlineEditConditionToggle))
 	bool bWriteSuccess = false;
 
-	/** If the trace fails, use the end of the trace as a hit, but will still be marked as fail. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(InlineEditConditionToggle))
-	bool bProjectFailToSize = false;
-	
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(EditCondition="bWriteSuccess"))
 	FName Success = FName("SuccessfullySampled");
@@ -67,7 +47,16 @@ public:
 
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(EditCondition="bWriteLocation"))
-	FName Location = FName("GuidedLocation");
+	FName Location = FName("NearestLocation");
+
+	/** TBD */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(InlineEditConditionToggle))
+	bool bWriteLookAt = false;
+
+	/** TBD */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(EditCondition="bWriteLookAt"))
+	FName LookAt = FName("NearestLookAt");
+
 
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(InlineEditConditionToggle))
@@ -75,7 +64,7 @@ public:
 
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(EditCondition="bWriteNormal"))
-	FName Normal = FName("GuidedNormal");
+	FName Normal = FName("NearestNormal");
 
 
 	/** TBD */
@@ -84,7 +73,12 @@ public:
 
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(EditCondition="bWriteDistance"))
-	FName Distance = FName("GuidedDistance");
+	FName Distance = FName("NearestDistance");
+
+
+	/** Maximum distance to check for closest surface.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision & Metrics")
+	double MaxDistance = 1000;
 
 	/** Maximum distance to check for closest surface.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision & Metrics")
@@ -100,39 +94,41 @@ public:
 	/** Ignore this graph' PCG content */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision & Metrics")
 	bool bIgnoreSelf = true;
+
+	/** StepSize can't get smaller than this.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision & Metrics")
+	double MinStepSize = 1;
+
+	/** Maximum number of attempts per point. Each attempt increases probing radius by (MaxDistance/NumMaxAttempts)*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision & Metrics")
+	int32 NumMaxAttempts = 256;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExSampleSurfaceGuidedContext : public FPCGExPointsProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestSurfaceContext : public FPCGExPointsProcessorContext
 {
-	friend class FPCGExSampleSurfaceGuidedElement;
+	friend class FPCGExSampleNearestSurfaceElement;
 
 public:
+	double RangeMax = 1000;
+	int32 NumMaxAttempts = 100;
+	double AttemptStepSize = 0;
 	EPCGExCollisionFilterType CollisionType = EPCGExCollisionFilterType::Channel;
 	TEnumAsByte<ECollisionChannel> CollisionChannel;
 	int32 CollisionObjectType;
 	bool bIgnoreSelf = true;
 
-	bool bProjectFailToSize;
-	double Size;
-	bool bUseLocalSize = false;
-	PCGEx::FLocalSingleComponentInput LocalSize;
-	PCGEx::FLocalDirectionInput Direction;
-
 	PCGEX_OUT_ATTRIBUTE(Success, bool)
 	PCGEX_OUT_ATTRIBUTE(Location, FVector)
+	PCGEX_OUT_ATTRIBUTE(LookAt, FVector)
 	PCGEX_OUT_ATTRIBUTE(Normal, FVector)
 	PCGEX_OUT_ATTRIBUTE(Distance, double)
 
-	int64 NumTraceComplete = 0;
+	int64 NumSweepComplete = 0;
 
-	void WrapTraceTask(const FPointTask* Task, bool bSuccess)
-	{
-		FWriteScopeLock ScopeLock(ContextLock);
-		NumTraceComplete++;
-	}
+	void WrapSweepTask(const FPointTask* Task, bool bSuccess);
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExSampleSurfaceGuidedElement : public FPCGExPointsProcessorElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestSurfaceElement : public FPCGExPointsProcessorElementBase
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -146,64 +142,85 @@ protected:
 };
 
 // Define the background task class
-class PCGEXTENDEDTOOLKIT_API FTraceTask : public FPointTask
+class PCGEXTENDEDTOOLKIT_API FSweepSphereTask : public FPointTask
 {
 public:
-	FTraceTask(FPCGExPointsProcessorContext* InContext, UPCGExPointIO* InPointData, PCGExMT::FTaskInfos InInfos) :
+
+	double RangeMax = 1000;
+	
+	FSweepSphereTask(FPCGContext* InContext, UPCGExPointIO* InPointData, PCGExMT::FTaskInfos InInfos) :
 		FPointTask(InContext, InPointData, InInfos)
 	{
 	}
 
 	virtual void ExecuteTask(FPCGContext* InContext) override
 	{
-		FPCGExSampleSurfaceGuidedContext* Context = static_cast<FPCGExSampleSurfaceGuidedContext*>(InContext);
+		FPCGExSampleNearestSurfaceContext* Context = static_cast<FPCGExSampleNearestSurfaceContext*>(InContext);
 		FPCGPoint InPoint = PointData->In->GetPoint(Infos.Index);
 		FVector Origin = InPoint.Transform.GetLocation();
 
 		FCollisionQueryParams CollisionParams;
 		if (Context->bIgnoreSelf) { CollisionParams.AddIgnoredActor(InContext->SourceComponent->GetOwner()); }
 
-		double Size = Context->bUseLocalSize ? Context->LocalSize.GetValue(InPoint) : Context->Size;
-		FVector Trace = Context->Direction.GetValue(InPoint) * Size;
-		FVector End = Origin + Trace;
-		
+		FCollisionShape CollisionShape = FCollisionShape::MakeSphere(RangeMax);
+
 		if (!Context->Points) { return; }
 
+		FVector HitLocation;
 		bool bSuccess = false;
-		auto ProcessTraceResult = [&]()
+		TArray<FOverlapResult> OutOverlaps;
+
+		auto ProcessOverlapResults = [&]()
 		{
-			PCGEX_SET_OUT_ATTRIBUTE(Location, Infos.Key, HitResult.ImpactPoint)
-			PCGEX_SET_OUT_ATTRIBUTE(Normal, Infos.Key, HitResult.Normal)
-			PCGEX_SET_OUT_ATTRIBUTE(Distance, Infos.Key, FVector::Distance(HitResult.ImpactPoint, Origin))
+			float MinDist = MAX_FLT;
+			for (const FOverlapResult& Overlap : OutOverlaps)
+			{
+				if (!Overlap.bBlockingHit) { continue; }
+				FVector OutClosestLocation;
+				const float Distance = Overlap.Component->GetClosestPointOnCollision(Origin, OutClosestLocation);
+				if (Distance < 0) { continue; }
+				if (Distance == 0)
+				{
+					// Fallback for complex collisions?
+					continue;
+				}
+				if (Distance < MinDist)
+				{
+					MinDist = Distance;
+					HitLocation = OutClosestLocation;
+					bSuccess = true;
+				}
+			}
+
+			if (bSuccess)
+			{
+				const FVector Direction = (HitLocation - Origin).GetSafeNormal();
+				PCGEX_SET_OUT_ATTRIBUTE(Location, Infos.Key, HitLocation)
+				PCGEX_SET_OUT_ATTRIBUTE(Normal, Infos.Key, Direction*-1) // TODO: expose "precise normal" in which case we line trace to location
+				PCGEX_SET_OUT_ATTRIBUTE(LookAt, Infos.Key, Direction)
+				PCGEX_SET_OUT_ATTRIBUTE(Distance, Infos.Key, MinDist)
+			}
 		};
+
 
 		if (Context->CollisionType == EPCGExCollisionFilterType::Channel)
 		{
-			if (Context->World->LineTraceSingleByChannel(HitResult, Origin, End, Context->CollisionChannel, CollisionParams))
+			if (Context->World->OverlapMultiByChannel(OutOverlaps, Origin, FQuat::Identity, Context->CollisionChannel, CollisionShape, CollisionParams))
 			{
-				ProcessTraceResult();
+				ProcessOverlapResults();
 			}
 		}
 		else
 		{
-			FCollisionObjectQueryParams ObjectQueryParams = FCollisionObjectQueryParams(Context->CollisionObjectType);
-			if (Context->World->LineTraceSingleByObjectType(HitResult, Origin, End, ObjectQueryParams, CollisionParams))
+			if (FCollisionObjectQueryParams ObjectQueryParams = FCollisionObjectQueryParams(Context->CollisionObjectType);
+				Context->World->OverlapMultiByObjectType(OutOverlaps, Origin, FQuat::Identity, ObjectQueryParams, CollisionShape, CollisionParams))
 			{
-				ProcessTraceResult();
+				ProcessOverlapResults();
 			}
 		}
 
-		if(Context->bProjectFailToSize)
-		{
-			PCGEX_SET_OUT_ATTRIBUTE(Location, Infos.Key, End)
-			PCGEX_SET_OUT_ATTRIBUTE(Normal, Infos.Key, Trace.GetSafeNormal()*-1)
-			PCGEX_SET_OUT_ATTRIBUTE(Distance, Infos.Key, Size)
-		}
-		
 		PCGEX_SET_OUT_ATTRIBUTE(Success, Infos.Key, bSuccess)
-		Context->WrapTraceTask(this, bSuccess);
+		Context->WrapSweepTask(this, bSuccess);
 	}
 
-public:
-	FHitResult HitResult;
 };

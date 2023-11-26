@@ -1,7 +1,7 @@
 ﻿// Copyright Timothé Lapetite 2023
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Transforms/PCGExSampleNearestSurface.h"
+#include "Sampling/PCGExSampleNearestSurface.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSampleNearestSurfaceElement"
 
