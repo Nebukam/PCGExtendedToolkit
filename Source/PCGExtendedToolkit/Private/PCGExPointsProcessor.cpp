@@ -19,7 +19,7 @@ UPCGExPointsProcessorSettings::UPCGExPointsProcessorSettings(
 TArray<FPCGPinProperties> UPCGExPointsProcessorSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	FPCGPinProperties& PinPropertySource = PinProperties.Emplace_GetRef(PCGEx::SourcePointsLabel, EPCGDataType::Point);
+	FPCGPinProperties& PinPropertySource = PinProperties.Emplace_GetRef(GetMainPointsInputLabel(), EPCGDataType::Point);
 
 #if WITH_EDITOR
 	PinPropertySource.Tooltip = LOCTEXT("PCGExSourcePointsPinTooltip", "The point data to be processed.");
@@ -31,7 +31,7 @@ TArray<FPCGPinProperties> UPCGExPointsProcessorSettings::InputPinProperties() co
 TArray<FPCGPinProperties> UPCGExPointsProcessorSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	FPCGPinProperties& PinPointsOutput = PinProperties.Emplace_GetRef(PCGEx::OutputPointsLabel, EPCGDataType::Point);
+	FPCGPinProperties& PinPointsOutput = PinProperties.Emplace_GetRef(GetMainPointsOutputLabel(), EPCGDataType::Point);
 
 #if WITH_EDITOR
 	PinPointsOutput.Tooltip = LOCTEXT("PCGExOutputPointsPinTooltip", "The processed points.");
@@ -39,6 +39,9 @@ TArray<FPCGPinProperties> UPCGExPointsProcessorSettings::OutputPinProperties() c
 
 	return PinProperties;
 }
+
+FName UPCGExPointsProcessorSettings::GetMainPointsOutputLabel() const { return PCGEx::OutputPointsLabel; }
+FName UPCGExPointsProcessorSettings::GetMainPointsInputLabel() const { return PCGEx::SourcePointsLabel; }
 
 PCGExIO::EInitMode UPCGExPointsProcessorSettings::GetPointOutputInitMode() const { return PCGExIO::EInitMode::NewOutput; }
 
@@ -60,9 +63,9 @@ PCGEx::FPinAttributeInfos* UPCGExPointsProcessorSettings::GetInputAttributeInfos
 bool FPCGExPointsProcessorContext::AdvancePointsIO()
 {
 	CurrentPointsIndex++;
-	if (Points->Pairs.IsValidIndex(CurrentPointsIndex))
+	if (MainPoints->Pairs.IsValidIndex(CurrentPointsIndex))
 	{
-		CurrentIO = Points->Pairs[CurrentPointsIndex];
+		CurrentIO = MainPoints->Pairs[CurrentPointsIndex];
 		return true;
 	}
 	CurrentIO = nullptr;
@@ -99,7 +102,7 @@ bool FPCGExPointsProcessorElementBase::Validate(FPCGContext* InContext) const
 {
 	const FPCGExPointsProcessorContext* Context = static_cast<FPCGExPointsProcessorContext*>(InContext);
 
-	if (Context->Points->IsEmpty())
+	if (Context->MainPoints->IsEmpty())
 	{
 		PCGE_LOG(Error, GraphAndLog, LOCTEXT("MissingPoints", "Missing Input Points."));
 		return false;
@@ -127,19 +130,21 @@ void FPCGExPointsProcessorElementBase::InitializeContext(
 	InContext->bDoAsyncProcessing = Settings->bDoAsyncProcessing;
 	InContext->ChunkSize = FMath::Max(Settings->ChunkSize, 1);
 
-	InContext->Points = NewObject<UPCGExPointIOGroup>();
-	TArray<FPCGTaggedData> Sources = InContext->InputData.GetInputsByPin(PCGEx::SourcePointsLabel);
-	InContext->Points->Initialize(
+	InContext->MainPoints = NewObject<UPCGExPointIOGroup>();
+	InContext->MainPoints->DefaultOutputLabel = Settings->GetMainPointsOutputLabel();
+
+	TArray<FPCGTaggedData> Sources = InContext->InputData.GetInputsByPin(Settings->GetMainPointsInputLabel());
+	InContext->MainPoints->Initialize(
 		InContext,
 		Sources,
 		Settings->GetPointOutputInitMode(),
 		[&InContext](UPCGPointData* Data) { return InContext->ValidatePointDataInput(Data); },
 		[&InContext](UPCGExPointIO* PointIO) { return InContext->PostInitPointDataInput(PointIO); });
 
-//	UPCGExPointsProcessorSettings* MutableSettings = const_cast<UPCGExPointsProcessorSettings*>(Settings);
-//	PCGEx::FPinAttributeInfos* SourceInfos = MutableSettings->GetInputAttributeInfos(PCGEx::SourcePointsLabel);
-//	SourceInfos->Reset();
-//	for (const UPCGExPointIO* PointIO : InContext->Points->Pairs) { SourceInfos->Discover(PointIO->In); }
+	//	UPCGExPointsProcessorSettings* MutableSettings = const_cast<UPCGExPointsProcessorSettings*>(Settings);
+	//	PCGEx::FPinAttributeInfos* SourceInfos = MutableSettings->GetInputAttributeInfos(Settings->GetMainPointsInputLabel());
+	//	SourceInfos->Reset();
+	//	for (const UPCGExPointIO* PointIO : InContext->Points->Pairs) { SourceInfos->Discover(PointIO->In); }
 }
 
 #undef LOCTEXT_NAMESPACE

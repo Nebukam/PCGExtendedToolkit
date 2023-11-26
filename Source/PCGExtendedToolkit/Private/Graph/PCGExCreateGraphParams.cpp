@@ -124,10 +124,7 @@ const TArray<FPCGExSocketDescriptor>& UPCGExCreateGraphParamsSettings::GetSocket
 	return GraphModel == EPCGExGraphModel::Custom ? CustomSockets : PresetSockets;
 }
 
-FPCGElementPtr UPCGExCreateGraphParamsSettings::CreateElement() const
-{
-	return MakeShared<FPCGExCreateGraphParamsElement>();
-}
+FPCGElementPtr UPCGExCreateGraphParamsSettings::CreateElement() const { return MakeShared<FPCGExCreateGraphParamsElement>(); }
 
 TArray<FPCGPinProperties> UPCGExCreateGraphParamsSettings::InputPinProperties() const
 {

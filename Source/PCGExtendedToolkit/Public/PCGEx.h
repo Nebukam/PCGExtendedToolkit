@@ -101,12 +101,13 @@ enum class EPCGExSelectorType : uint8
 
 namespace PCGEx
 {
-	const FName SourcePointsLabel = TEXT("InPoints");
+	const FName SourcePointsLabel = TEXT("In");
 	const FName SourceTargetsLabel = TEXT("InTargets");
-	const FName OutputPointsLabel = TEXT("OutPoints");
+	const FName OutputPointsLabel = TEXT("Out");
 
 	constexpr FLinearColor NodeColorDebug = FLinearColor(1.0f, 0.0f, 0.0f, 1.0f);
-	constexpr FLinearColor NodeColorGraph = FLinearColor(80.0f / 255.0f, 241.0f / 255.0f, 168.0f / 255.0f, 1.0f);;
+	constexpr FLinearColor NodeColorGraph = FLinearColor(80.0f / 255.0f, 241.0f / 255.0f, 168.0f / 255.0f, 1.0f);
+	constexpr FLinearColor NodeColorPathfinding = FLinearColor(1.0f, 1.0f, 168.0f / 255.0f, 1.0f);
 	
 	const FSoftObjectPath DefaultDotOverDistanceCurve = FSoftObjectPath(TEXT("/PCGExtendedToolkit/FC_PCGExGraphBalance_DistanceOnly.FC_PCGExGraphBalance_DistanceOnly"));
 	const FSoftObjectPath WeightDistributionLinear = FSoftObjectPath(TEXT("/PCGExtendedToolkit/FC_PCGExWeightDistribution_Linear.FC_PCGExWeightDistribution_Linear"));

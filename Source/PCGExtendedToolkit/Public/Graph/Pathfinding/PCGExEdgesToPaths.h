@@ -4,14 +4,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
-
-#include "Graph/PCGExGraphProcessor.h"
-#include "Graph/PCGExGraph.h"
-
+#include "PCGExPathfindingProcessor.h"
 #include "PCGExEdgesToPaths.generated.h"
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
-class PCGEXTENDEDTOOLKIT_API UPCGExEdgesToPathsSettings : public UPCGExGraphProcessorSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExEdgesToPathsSettings : public UPCGExPathfindingProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -25,8 +22,11 @@ protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings interface
 
+public:
 	virtual int32 GetPreferredChunkSize() const override;
 	virtual PCGExIO::EInitMode GetPointOutputInitMode() const override;
+	virtual bool GetRequiresSeeds() const override;
+	virtual bool GetRequiresGoals() const override;
 
 public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExEdgeType"))
@@ -42,7 +42,7 @@ private:
 	friend class FPCGExEdgesToPathsElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExEdgesToPathsContext : public FPCGExGraphProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExEdgesToPathsContext : public FPCGExPathfindingProcessorContext
 {
 	friend class FPCGExEdgesToPathsElement;
 
@@ -50,15 +50,14 @@ public:
 	EPCGExEdgeType EdgeType;
 	TSet<uint64> UniqueEdges;
 	TArray<PCGExGraph::FUnsignedEdge> Edges;
-	UPCGExPointIOGroup* EdgesIO;
 
 	mutable FRWLock EdgeLock;
-	
+
 	bool bWriteTangents;
 	FPCGExTangentParams TangentParams;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExEdgesToPathsElement : public FPCGExGraphProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExEdgesToPathsElement : public FPCGExPathfindingProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

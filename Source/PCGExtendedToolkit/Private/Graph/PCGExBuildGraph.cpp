@@ -6,13 +6,9 @@
 #define LOCTEXT_NAMESPACE "PCGExBuildGraph"
 
 int32 UPCGExBuildGraphSettings::GetPreferredChunkSize() const { return 32; }
-
 PCGExIO::EInitMode UPCGExBuildGraphSettings::GetPointOutputInitMode() const { return PCGExIO::EInitMode::DuplicateInput; }
-
-FPCGElementPtr UPCGExBuildGraphSettings::CreateElement() const
-{
-	return MakeShared<FPCGExBuildGraphElement>();
-}
+FPCGElementPtr UPCGExBuildGraphSettings::CreateElement() const { return MakeShared<FPCGExBuildGraphElement>(); }
+FName UPCGExBuildGraphSettings::GetMainPointsInputLabel() const { return PCGEx::SourcePointsLabel; }
 
 FPCGContext* FPCGExBuildGraphElement::Initialize(
 	const FPCGDataCollection& InputData,

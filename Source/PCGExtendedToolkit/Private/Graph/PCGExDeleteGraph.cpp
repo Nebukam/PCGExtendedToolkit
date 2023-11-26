@@ -7,10 +7,14 @@
 
 int32 UPCGExDeleteGraphSettings::GetPreferredChunkSize() const { return 32; }
 
-FPCGElementPtr UPCGExDeleteGraphSettings::CreateElement() const
+TArray<FPCGPinProperties> UPCGExDeleteGraphSettings::OutputPinProperties() const
 {
-	return MakeShared<FPCGExDeleteGraphElement>();
+	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
+	PinProperties.Pop();
+	return  PinProperties;
 }
+
+FPCGElementPtr UPCGExDeleteGraphSettings::CreateElement() const { return MakeShared<FPCGExDeleteGraphElement>(); }
 
 PCGExIO::EInitMode UPCGExDeleteGraphSettings::GetPointOutputInitMode() const { return PCGExIO::EInitMode::DuplicateInput; }
 
@@ -32,7 +36,7 @@ bool FPCGExDeleteGraphElement::ExecuteInternal(
 	FPCGExDeleteGraphContext* Context = static_cast<FPCGExDeleteGraphContext*>(InContext);
 	if (!Validate(Context)) { return true; }
 
-	Context->Points->ForEach(
+	Context->MainPoints->ForEach(
 		[&](UPCGExPointIO* PointIO, int32)
 		{
 			auto DeleteSockets = [&](const UPCGExGraphParamsData* Params, int32)

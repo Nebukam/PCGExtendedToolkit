@@ -23,9 +23,17 @@ ENUM_CLASS_FLAGS(EPCGExEdgeType)
 
 namespace PCGExGraph
 {
-	const FName SourceParamsLabel = TEXT("GraphParams");
-	const FName OutputParamsLabel = TEXT("→");
-	const FName OutputPatchesLabel = TEXT("Patches");
+	const FName SourceParamsLabel = TEXT("Graph");
+	const FName OutputParamsLabel = TEXT("➜");
+	
+	const FName SourceGraphsLabel = TEXT("In");
+	const FName OutputGraphsLabel = TEXT("Out");
+	
+	const FName OutputPatchesLabel = TEXT("Out");
+	
+	const FName SourceSeedsLabel = TEXT("Seeds");
+	const FName SourceGoalsLabel = TEXT("Goals");
+	const FName OutputPathsLabel = TEXT("Paths");
 
 	struct PCGEXTENDEDTOOLKIT_API FEdge
 	{

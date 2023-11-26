@@ -6,13 +6,11 @@
 #define LOCTEXT_NAMESPACE "PCGExEdgesToPaths"
 
 int32 UPCGExEdgesToPathsSettings::GetPreferredChunkSize() const { return 32; }
-
 PCGExIO::EInitMode UPCGExEdgesToPathsSettings::GetPointOutputInitMode() const { return PCGExIO::EInitMode::NoOutput; }
+bool UPCGExEdgesToPathsSettings::GetRequiresSeeds() const { return false; }
+bool UPCGExEdgesToPathsSettings::GetRequiresGoals() const { return false; }
 
-FPCGElementPtr UPCGExEdgesToPathsSettings::CreateElement() const
-{
-	return MakeShared<FPCGExEdgesToPathsElement>();
-}
+FPCGElementPtr UPCGExEdgesToPathsSettings::CreateElement() const { return MakeShared<FPCGExEdgesToPathsElement>(); }
 
 FPCGContext* FPCGExEdgesToPathsElement::Initialize(
 	const FPCGDataCollection& InputData,
@@ -41,19 +39,7 @@ bool FPCGExEdgesToPathsElement::ExecuteInternal(
 
 	if (Context->IsSetup())
 	{
-		if (Context->Params.IsEmpty())
-		{
-			PCGE_LOG(Error, GraphAndLog, LOCTEXT("MissingParams", "Missing Input Params."));
-			return true;
-		}
-
-		if (Context->Points->IsEmpty())
-		{
-			PCGE_LOG(Error, GraphAndLog, LOCTEXT("MissingPoints", "Missing Input Points."));
-			return true;
-		}
-
-		Context->EdgesIO = NewObject<UPCGExPointIOGroup>();
+		if (!Validate(Context)) { return true; }
 		Context->SetState(PCGExMT::EState::ReadyForNextPoints);
 	}
 
@@ -140,7 +126,7 @@ bool FPCGExEdgesToPathsElement::ExecuteInternal(
 		FWriteScopeLock WriteLock(Context->ContextLock);
 		FPCGTaggedData& OutputRef = Context->OutputData.TaggedData.Emplace_GetRef();
 		OutputRef.Data = Out;
-		OutputRef.Pin = Context->EdgesIO->DefaultOutputLabel;
+		OutputRef.Pin = PCGExGraph::OutputPathsLabel;
 	};
 
 	auto InitializeAsync = [&]()
@@ -159,7 +145,6 @@ bool FPCGExEdgesToPathsElement::ExecuteInternal(
 	{
 		Context->UniqueEdges.Empty();
 		Context->Edges.Empty();
-		Context->EdgesIO->OutputTo(Context);
 		Context->OutputGraphParams();
 		return true;
 	}

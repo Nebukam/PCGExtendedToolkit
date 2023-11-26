@@ -43,7 +43,7 @@ enum class EPCGExFuseMethod : uint8
 
 namespace PCGExFuse
 {
-	struct FFusedPoint
+	struct PCGEXTENDEDTOOLKIT_API FFusedPoint
 	{
 		int32 MainIndex = -1;
 		FVector Position = FVector::ZeroVector;

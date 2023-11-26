@@ -31,6 +31,7 @@ protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings interface
 
+	virtual FName GetMainPointsInputLabel() const override;
 	virtual int32 GetPreferredChunkSize() const override;
 
 	virtual PCGExIO::EInitMode GetPointOutputInitMode() const override;

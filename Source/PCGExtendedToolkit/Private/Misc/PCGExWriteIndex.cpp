@@ -71,7 +71,7 @@ bool FPCGExWriteIndexElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsState(PCGExMT::EState::ProcessingPoints))
 	{
-		if (Context->Points->OutputsParallelProcessing(Context, InitializeForIO, ProcessPoint, Context->ChunkSize))
+		if (Context->MainPoints->OutputsParallelProcessing(Context, InitializeForIO, ProcessPoint, Context->ChunkSize))
 		{
 			Context->SetState(PCGExMT::EState::Done);
 		}

@@ -95,7 +95,7 @@ bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* InContext) con
 
 	if (Context->IsState(PCGExMT::EState::ProcessingPoints))
 	{
-		if (Context->Points->InputsParallelProcessing(Context, InitializeForIO, ProcessPoint, Context->ChunkSize, Context->bDoAsyncProcessing))
+		if (Context->MainPoints->InputsParallelProcessing(Context, InitializeForIO, ProcessPoint, Context->ChunkSize, Context->bDoAsyncProcessing))
 		{
 			Context->SetState(PCGExMT::EState::Done);
 		}

@@ -117,8 +117,8 @@ bool UPCGExPointIO::OutputParallelProcessing(
 	auto InnerBodyLoop = [&](const int32 ReadIndex, const int32 WriteIndex)
 	{
 		FReadScopeLock ReadLock(MapLock);
-		const FPCGPoint& Point = Out->GetPoint(ReadIndex);
-		LoopBody(Point, ReadIndex, this); 
+		const FPCGPoint& Point = Out->GetPoints()[ReadIndex];
+		LoopBody(Point, ReadIndex, this);
 		//if (bIndicesDirty) { LoopBody(Point, ReadIndex, this); }
 		//else { LoopBody(Point, *(IndicesMap.Find(Point.MetadataEntry)), this); }
 		return true;
@@ -135,19 +135,18 @@ bool UPCGExPointIO::InputParallelProcessing(
 	const int32 ChunkSize,
 	bool bForceSync)
 {
-
 	if (bForceSync)
 	{
 		Initialize(this);
 		const int32 NumIterations = In->GetPoints().Num();
 		for (int i = 0; i < NumIterations; i++)
 		{
-			const FPCGPoint& Point = In->GetPoint(i);
+			const FPCGPoint& Point = In->GetPoints()[i];
 			LoopBody(Point, i, this);
 		}
 		return true;
 	}
-	
+
 	auto InnerInitialize = [&]()
 	{
 		Initialize(this);
@@ -283,12 +282,9 @@ UPCGExPointIO* UPCGExPointIOGroup::Emplace_GetRef(
  * @param Context
  * @param bEmplace Emplace will create a new entry no matter if a Source is set, otherwise will match the In.Source. 
  */
-void UPCGExPointIOGroup::OutputTo(FPCGContext* Context, bool bEmplace)
+void UPCGExPointIOGroup::OutputTo(FPCGContext* Context, const bool bEmplace)
 {
-	for (UPCGExPointIO* Pair
-	     :
-	     Pairs
-	)
+	for (UPCGExPointIO* Pair : Pairs)
 	{
 		Pair->OutputTo(Context, bEmplace);
 	}
@@ -303,10 +299,7 @@ void UPCGExPointIOGroup::OutputTo(FPCGContext* Context, bool bEmplace)
  */
 void UPCGExPointIOGroup::OutputTo(FPCGContext* Context, bool bEmplace, const int64 MinPointCount, const int64 MaxPointCount)
 {
-	for (UPCGExPointIO* Pair
-	     :
-	     Pairs
-	)
+	for (UPCGExPointIO* Pair : Pairs)
 	{
 		Pair->OutputTo(Context, bEmplace, MinPointCount, MaxPointCount);
 	}

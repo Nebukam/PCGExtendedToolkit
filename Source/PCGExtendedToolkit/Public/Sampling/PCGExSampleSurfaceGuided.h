@@ -167,7 +167,7 @@ public:
 		FVector Trace = Context->Direction.GetValue(InPoint) * Size;
 		FVector End = Origin + Trace;
 		
-		if (!Context->Points) { return; }
+		if (!Context->MainPoints) { return; }
 
 		bool bSuccess = false;
 		auto ProcessTraceResult = [&]()

@@ -4,7 +4,7 @@
 #include "Data/PCGExGraphParamsData.h"
 #include "Data/PCGPointData.h"
 
-struct FPCGExGraphProcessorContext;
+struct PCGEXTENDEDTOOLKIT_API FPCGExGraphProcessorContext;
 
 UPCGExGraphParamsData::UPCGExGraphParamsData(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)

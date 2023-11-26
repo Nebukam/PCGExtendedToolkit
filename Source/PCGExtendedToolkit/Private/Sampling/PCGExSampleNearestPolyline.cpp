@@ -135,8 +135,9 @@ bool FPCGExSampleNearestPolylineElement::ExecuteInternal(FPCGContext* InContext)
 		}
 	}
 
-	auto Initialize = [&](UPCGExPointIO* PointIO)
+	auto Initialize = [&]()
 	{
+		UPCGExPointIO* PointIO = Context->CurrentIO;
 		PointIO->BuildMetadataEntries();
 
 		if (Context->bLocalRangeMin)
@@ -163,8 +164,11 @@ bool FPCGExSampleNearestPolylineElement::ExecuteInternal(FPCGContext* InContext)
 		PCGEX_INIT_ATTRIBUTE_OUT(SignedDistance, double)
 	};
 
-	auto ProcessPoint = [&](const FPCGPoint& Point, const int32 ReadIndex, const UPCGExPointIO* PointIO)
+	auto ProcessPoint = [&](const int32 ReadIndex)
 	{
+		
+		const FPCGPoint& Point = Context->CurrentIO->Out->GetMutablePoints()[ReadIndex];
+		
 		double RangeMin = FMath::Pow(Context->RangeMinInput.GetValueSafe(Point, Context->RangeMin), 2);
 		double RangeMax = FMath::Pow(Context->RangeMaxInput.GetValueSafe(Point, Context->RangeMax), 2);
 
@@ -278,7 +282,7 @@ bool FPCGExSampleNearestPolylineElement::ExecuteInternal(FPCGContext* InContext)
 
 	if (Context->IsState(PCGExMT::EState::ProcessingPoints))
 	{
-		if (Context->CurrentIO->OutputParallelProcessing(Context, Initialize, ProcessPoint, Context->ChunkSize, !Context->bDoAsyncProcessing))
+		if (PCGExMT::ParallelForLoop(Context, Context->CurrentIO->NumPoints, Initialize, ProcessPoint, Context->ChunkSize, !Context->bDoAsyncProcessing))
 		{
 			Context->SetState(PCGExMT::EState::ReadyForNextPoints);
 		}

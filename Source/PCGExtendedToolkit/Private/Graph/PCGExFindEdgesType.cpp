@@ -39,7 +39,7 @@ bool FPCGExFindEdgesTypeElement::ExecuteInternal(
 			return true;
 		}
 
-		if (Context->Points->IsEmpty())
+		if (Context->MainPoints->IsEmpty())
 		{
 			PCGE_LOG(Error, GraphAndLog, LOCTEXT("MissingPoints", "Missing Input Points."));
 			return true;

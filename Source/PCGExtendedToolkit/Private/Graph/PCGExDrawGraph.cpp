@@ -51,8 +51,8 @@ bool FPCGExDrawGraphElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsSetup())
 	{
-		if (!Validate(Context)) { return true; }
 		if (!Settings->bDebug) { return true; }
+		if (!Validate(Context)) { return true; }
 		if (!PCGExDebug::NotifyExecute(InContext))
 		{
 			PCGE_LOG(Error, GraphAndLog, LOCTEXT("MissingDebugManager", "Could not find a PCGEx Debug Manager node in your graph."));

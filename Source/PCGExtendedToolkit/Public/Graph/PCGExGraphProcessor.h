@@ -233,9 +233,11 @@ public:
 
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
-
-	//virtual  bool GetPinExtraIcon(const UPCGPin* InPin, FName& OutExtraIcon, FText& OutTooltip) const override;
 	//~End UPCGSettings interface
+	
+	virtual FName GetMainPointsInputLabel() const override;
+	virtual FName GetMainPointsOutputLabel() const override;
+	
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExGraphProcessorContext : public FPCGExPointsProcessorContext
@@ -283,7 +285,6 @@ public:
 		const UPCGNode* Node) override;
 
 protected:
-	virtual PCGExIO::EInitMode GetPointOutputInitMode() const { return PCGExIO::EInitMode::DuplicateInput; }
 	virtual bool Validate(FPCGContext* InContext) const override;
 	virtual void InitializeContext(
 		FPCGExPointsProcessorContext* InContext,

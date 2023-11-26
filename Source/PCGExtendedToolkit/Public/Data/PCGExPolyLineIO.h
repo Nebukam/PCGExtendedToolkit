@@ -10,7 +10,7 @@
 
 namespace PCGExPolyLine
 {
-	struct FSegment
+	struct PCGEXTENDEDTOOLKIT_API FSegment
 	{
 		UPCGPolyLineData* PolyLine;
 		int32 Segment = -1;

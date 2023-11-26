@@ -6,6 +6,7 @@
 #include "PCGPin.h"
 
 #include "Data/PCGExGraphParamsData.h"
+#include "Graph/PCGExGraph.h"
 #include "Graph/PCGExGraphHelpers.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
@@ -37,23 +38,8 @@ TArray<FPCGPinProperties> UPCGExGraphProcessorSettings::OutputPinProperties() co
 	return PinProperties;
 }
 
-/*
-bool UPCGExGraphProcessorSettings::GetPinExtraIcon(const UPCGPin* InPin, FName& OutExtraIcon, FText& OutTooltip) const
-{
-#if WITH_EDITOR
-	if (InPin->Properties.Label == PCGExGraph::SourceParamsLabel)
-	{
-		auto PCGExPlugin = IPluginManager::Get().FindPlugin(TEXT("PCGExtendedToolkit"));
-		if (PCGExPlugin.IsValid())
-		{
-			OutExtraIcon = FName(PCGExPlugin->GetBaseDir() + "/Content/Editor/Slate/Icons/PCGExGraphParams.png");
-			return true;
-		}
-	}
-#endif // WITH_EDITOR
-	return false;
-}
-*/
+FName UPCGExGraphProcessorSettings::GetMainPointsInputLabel() const { return PCGExGraph::SourceGraphsLabel; }
+FName UPCGExGraphProcessorSettings::GetMainPointsOutputLabel() const { return PCGExGraph::OutputGraphsLabel; }
 
 #pragma endregion
 
@@ -90,7 +76,7 @@ void FPCGExGraphProcessorContext::ComputeEdgeType(const FPCGPoint& Point, const 
 	{
 		EPCGExEdgeType Type = EPCGExEdgeType::Unknown;
 		const int64 RelationIndex = CurrentSocketInfos.Socket->GetTargetIndex(Point.MetadataEntry);
-		
+
 		if (RelationIndex != -1)
 		{
 			const int32 Key = PointIO->Out->GetPoint(RelationIndex).MetadataEntry;

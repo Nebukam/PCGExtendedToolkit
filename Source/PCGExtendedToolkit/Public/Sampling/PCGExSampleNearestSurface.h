@@ -164,7 +164,7 @@ public:
 
 		FCollisionShape CollisionShape = FCollisionShape::MakeSphere(RangeMax);
 
-		if (!Context->Points) { return; }
+		if (!Context->MainPoints) { return; }
 
 		FVector HitLocation;
 		bool bSuccess = false;

@@ -4,8 +4,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Elements/PCGPointProcessingElementBase.h"
 
+#include "Elements/PCGPointProcessingElementBase.h"
 #include "PCGEx.h"
 #include "PCGExMT.h"
 #include "Data/PCGExAttributeHelpers.h"
@@ -70,6 +70,8 @@ public:
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 	//~End UPCGSettings interface
 
+	virtual FName GetMainPointsOutputLabel() const;
+	virtual FName GetMainPointsInputLabel() const;
 	virtual PCGExIO::EInitMode GetPointOutputInitMode() const;
 
 	/** Forces execution on main thread.*/
@@ -86,6 +88,7 @@ protected:
 
 	[[deprecated]]
 	PCGEx::FPinAttributeInfos* GetInputAttributeInfos(FName PinLabel);
+
 	[[deprecated]]
 	const PCGEx::FPinAttributeInfos* GetInputAttributeInfos(const FName PinLabel) const { return AttributesMap.Find(PinLabel); }
 };
@@ -95,7 +98,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : public FPCGContext
 	friend class FPCGExPointsProcessorElementBase;
 
 public:
-	UPCGExPointIOGroup* Points = nullptr;
+	UPCGExPointIOGroup* MainPoints = nullptr;
 
 	int32 GetCurrentPointsIndex() const { return CurrentPointsIndex; };
 	UPCGExPointIO* CurrentIO = nullptr;
@@ -119,7 +122,7 @@ public:
 
 	mutable FRWLock ContextLock;
 
-	void OutputPoints() { Points->OutputTo(this); }
+	void OutputPoints() { MainPoints->OutputTo(this); }
 
 protected:
 	PCGExMT::EState CurrentState = PCGExMT::EState::Setup;

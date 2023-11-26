@@ -25,7 +25,7 @@ namespace PCGExMT
 		Done UMETA(DisplayName = "Done")
 	};
 
-	struct FTaskInfos
+	struct PCGEXTENDEDTOOLKIT_API FTaskInfos
 	{
 		FTaskInfos()
 		{

@@ -54,6 +54,22 @@ namespace PCGExPartition
 		double FilterSize = 1.0;
 		double Upscale = 1.0;
 	};
+
+	struct PCGEXTENDEDTOOLKIT_API FKPartition
+	{
+
+		FKPartition()
+		{
+			KPartitions.Empty();
+		}
+
+		TMap<double, FKPartition> KPartitions;
+		UPCGExPointIO* PointIO = nullptr;
+
+		
+		
+	};
+	
 }
 
 /**
@@ -100,8 +116,10 @@ public:
 
 	TArray<PCGExPartition::FRule> Rules;
 	TMap<UPCGExPointIO*, PCGExPartition::FRule*> RuleMap;
-	
+
+	PCGExPartition::FKPartition RootPartition;	
 	UPCGExPointIOGroup* Partitions;
+	
 	FPCGExPartitionRuleDescriptor PartitionRule;
 	FName PartitionKeyName;
 	bool bWritePartitionKey = false;
