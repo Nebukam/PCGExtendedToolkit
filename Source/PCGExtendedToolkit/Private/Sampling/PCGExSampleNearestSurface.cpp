@@ -81,9 +81,8 @@ bool FPCGExSampleNearestSurfaceElement::ExecuteInternal(FPCGContext* InContext) 
 		}
 	}
 
-	auto Initialize = [&]() //UPCGExPointIO* PointIO
+	auto Initialize = [&](UPCGExPointIO* PointIO) //UPCGExPointIO* PointIO
 	{
-		UPCGExPointIO* PointIO = Context->CurrentIO;
 		Context->NumSweepComplete = 0;
 		PointIO->BuildMetadataEntries();
 		PCGEX_INIT_ATTRIBUTE_OUT(Success, bool)
@@ -93,16 +92,16 @@ bool FPCGExSampleNearestSurfaceElement::ExecuteInternal(FPCGContext* InContext) 
 		PCGEX_INIT_ATTRIBUTE_OUT(Distance, double)
 	};
 
-	auto ProcessPoint = [&](int32 Index)
+	auto ProcessPoint = [&](int32 PointIndex, const UPCGExPointIO* PointIO)
 	{
-		FAsyncTask<FSweepSphereTask>* Task = Context->CreateTask<FSweepSphereTask>(Index, Context->CurrentIO->Out->GetPoints()[Index].MetadataEntry);
+		FAsyncTask<FSweepSphereTask>* Task = Context->CreateTask<FSweepSphereTask>(PointIndex, PointIO->GetOutPoint(PointIndex).MetadataEntry);
 		Task->GetTask().RangeMax = Context->RangeMax; //TODO: Localize range
 		Task->StartBackgroundTask();
 	};
 
 	if (Context->IsState(PCGExMT::EState::ProcessingPoints))
 	{
-		if (PCGExMT::ParallelForLoop(Context, Context->CurrentIO->NumPoints, Initialize, ProcessPoint, Context->ChunkSize, !Context->bDoAsyncProcessing))
+		if (Context->AsyncProcessingCurrentPoints(Initialize, ProcessPoint))
 		{
 			Context->SetState(PCGExMT::EState::WaitingOnAsyncTasks);
 		}
@@ -110,7 +109,7 @@ bool FPCGExSampleNearestSurfaceElement::ExecuteInternal(FPCGContext* InContext) 
 
 	if (Context->IsState(PCGExMT::EState::WaitingOnAsyncTasks))
 	{
-		if (Context->NumSweepComplete == Context->CurrentIO->NumPoints)
+		if (Context->NumSweepComplete == Context->CurrentIO->NumInPoints)
 		{
 			Context->SetState(PCGExMT::EState::ReadyForNextPoints);
 		}

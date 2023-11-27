@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 
-#include "PCGExDebugManager.h"
+#include "PCGExPointsProcessor.h"
 #include "Data/PCGExAttributeHelpers.h"
 
 #include "PCGExFusePoints.generated.h"
@@ -64,19 +64,26 @@ namespace PCGExFuse
 			MaxDistance = FMath::Max(MaxDistance, Distance);
 		}
 	};
+
+	struct PCGEXTENDEDTOOLKIT_API FAttribute
+	{
+		FPCGMetadataAttributeBase* Attribute = nullptr;
+		EPCGExFuseMethod FuseMethod = EPCGExFuseMethod::Average;
+		FPCGExInputDescriptorGeneric Descriptor;
+	};
 }
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExInputDescriptorWithFuseMethod : public FPCGExInputDescriptor
+struct PCGEXTENDEDTOOLKIT_API FPCGExInputDescriptorWithFuseMethod : public FPCGExInputDescriptorGeneric
 {
 	GENERATED_BODY()
 
-	FPCGExInputDescriptorWithFuseMethod(): FPCGExInputDescriptor()
+	FPCGExInputDescriptorWithFuseMethod(): FPCGExInputDescriptorGeneric()
 	{
 	}
 
 	FPCGExInputDescriptorWithFuseMethod(const FPCGExInputDescriptorWithFuseMethod& Other)
-		: FPCGExInputDescriptor(Other),
+		: FPCGExInputDescriptorGeneric(Other),
 		  FuseMethod(Other.FuseMethod)
 	{
 	}
@@ -98,13 +105,13 @@ class PCGEXTENDEDTOOLKIT_API UPCGExFusePointsSettings : public UPCGExPointsProce
 	GENERATED_BODY()
 
 	UPCGExFusePointsSettings(const FObjectInitializer& ObjectInitializer);
-	void RefreshFuseMethodHiddenNames();
 
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(FusePoints, "Fuse Points", "Fuse points based on distance.");
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+	void RefreshFuseMethodHiddenNames();
 #endif
 
 protected:
@@ -117,7 +124,7 @@ public:
 	/** Deterministic fusing is not multi-threaded, hence will run MUCH MORE slowly. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bDeterministic = false;
-	
+
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExFuseMethod FuseMethod = EPCGExFuseMethod::Average;
@@ -214,10 +221,14 @@ public:
 
 	TArray<PCGExFuse::FFusedPoint> FusedPoints;
 	TArray<FPCGPoint>* OutPoints;
+	TArray<PCGExFuse::FAttribute> Attributes;
 
 	PCGEX_FUSE_FOREACH_POINTPROPERTYNAME(PCGEX_FUSE_CONTEXT)
 
 	mutable FRWLock PointsLock;
+
+	void PrepareForPoints(const UPCGExPointIO* InData);
+	
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExFusePointsElement : public FPCGExPointsProcessorElementBase

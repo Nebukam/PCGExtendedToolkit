@@ -144,6 +144,7 @@ TArray<FPCGPinProperties> UPCGExCreateGraphParamsSettings::OutputPinProperties()
 	return PinProperties;
 }
 
+#if WITH_EDITOR 
 void UPCGExCreateGraphParamsSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	if (PropertyChangedEvent.Property)
@@ -159,6 +160,7 @@ void UPCGExCreateGraphParamsSettings::PostEditChangeProperty(FPropertyChangedEve
 	RefreshSocketNames();
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
+#endif // WITH_EDITOR
 
 template <typename T>
 T* FPCGExCreateGraphParamsElement::BuildParams(

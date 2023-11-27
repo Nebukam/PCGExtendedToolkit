@@ -6,7 +6,7 @@
 #include "CoreMinimal.h"
 
 #include "PCGExCompare.h"
-#include "PCGExDebugManager.h"
+#include "PCGExPointsProcessor.h"
 #include "Data/PCGExAttributeHelpers.h"
 
 #include "PCGExSortPoints.generated.h"

@@ -9,7 +9,9 @@
         - [Fuse Points](PCGExFusePoints.md)
         - [Draw Attributes](PCGExDrawAttributes.md)
         - [Partition by Values](PCGExPartitionByValues.md)
+        - [Fuse Points](PCGExFusePoints.md)
         - [Write Index](PCGExWriteIndex.md)
+        - [Write Tangents](PCGExWriteTangents.md)
         - ~~[Operations](PCGExOperations.md)~~
     - Graph
         - [Create Graph Params](PCGExCreateGraphParams.md)
@@ -20,6 +22,9 @@
         - [Find Paths](PCGExFindPaths.md)
         - [Draw Graph](PCGExDrawGraph.md)
         - [Delete Graph](PCGExDeleteGraph.md)
+        - Pathfinding
+            - [Edges to Paths](PCGExEdgesToPaths.md)
+
     - Data Sampling
         - [Sample Nearest Point](PCGExSampleNearestPoint.md)
         - [Sample Nearest Surface](PCGExSampleNearestSurface.md)

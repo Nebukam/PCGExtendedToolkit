@@ -75,9 +75,8 @@ bool FPCGExSampleSurfaceGuidedElement::ExecuteInternal(FPCGContext* InContext) c
 		}
 	}
 
-	auto Initialize = [&]() //UPCGExPointIO* PointIO
+	auto Initialize = [&](UPCGExPointIO* PointIO) //UPCGExPointIO* PointIO
 	{
-		UPCGExPointIO* PointIO = Context->CurrentIO;
 		Context->NumTraceComplete = 0;
 		Context->Direction.Validate(PointIO->Out);
 		PointIO->BuildMetadataEntries();
@@ -90,15 +89,15 @@ bool FPCGExSampleSurfaceGuidedElement::ExecuteInternal(FPCGContext* InContext) c
 
 	// auto ProcessPoint = [&](const FPCGPoint& Point, const int32 Index, UPCGExPointIO* PointIO) { Context->ScheduleTask<FTraceTask>(Index, Point.MetadataEntry); };
 
-	auto ProcessPoint = [&](int32 Index)
+	auto ProcessPoint = [&](const int32 PointIndex, const UPCGExPointIO* PointIO)
 	{
-		FAsyncTask<FTraceTask>* Task = Context->CreateTask<FTraceTask>(Index, Context->CurrentIO->Out->GetPoints()[Index].MetadataEntry);
+		FAsyncTask<FTraceTask>* Task = Context->CreateTask<FTraceTask>(PointIndex, PointIO->GetOutPoint(PointIndex).MetadataEntry);
 		Task->StartBackgroundTask();
 	};
 
 	if (Context->IsState(PCGExMT::EState::ProcessingPoints))
 	{
-		if (PCGExMT::ParallelForLoop(Context, Context->CurrentIO->NumPoints, Initialize, ProcessPoint, Context->ChunkSize, !Context->bDoAsyncProcessing))
+		if (Context->AsyncProcessingCurrentPoints(Initialize, ProcessPoint))
 		{
 			Context->SetState(PCGExMT::EState::WaitingOnAsyncTasks);
 		}
@@ -112,7 +111,7 @@ bool FPCGExSampleSurfaceGuidedElement::ExecuteInternal(FPCGContext* InContext) c
 
 	if (Context->IsState(PCGExMT::EState::WaitingOnAsyncTasks))
 	{
-		if (Context->NumTraceComplete == Context->CurrentIO->NumPoints)
+		if (Context->NumTraceComplete == Context->CurrentIO->NumInPoints)
 		{
 			Context->SetState(PCGExMT::EState::ReadyForNextPoints);
 		}

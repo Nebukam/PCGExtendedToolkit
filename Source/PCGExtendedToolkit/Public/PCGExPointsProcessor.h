@@ -124,7 +124,14 @@ public:
 
 	void OutputPoints() { MainPoints->OutputTo(this); }
 
+	bool AsyncProcessingMainPoints(TFunction<void(UPCGExPointIO*)>&& Initialize, TFunction<void(int32, UPCGExPointIO*)>&& LoopBody);
+	bool AsyncProcessingCurrentPoints(TFunction<void(UPCGExPointIO*)>&& Initialize, TFunction<void(const int32, const UPCGExPointIO*)>&& LoopBody);
+	bool AsyncProcessingCurrentPoints(TFunction<void(const int32, const UPCGExPointIO*)>&& LoopBody);
+
 protected:
+	bool bProcessingMainPoints = false;
+	TArray<bool> MainPointsPairProcessingStatuses;
+
 	PCGExMT::EState CurrentState = PCGExMT::EState::Setup;
 	int32 CurrentPointsIndex = -1;
 

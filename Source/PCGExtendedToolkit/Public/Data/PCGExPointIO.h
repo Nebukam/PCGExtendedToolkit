@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
-
+#include "PCGPoint.h"
 #include "Data/PCGPointData.h"
 
 #include "PCGEx.h"
@@ -41,9 +41,16 @@ public:
 	FPCGTaggedData Output;        // Source structS
 	UPCGPointData* Out = nullptr; // Output PointData
 
-	int32 NumPoints = -1;
+	int32 NumInPoints = -1;
 
 	TMap<PCGMetadataEntryKey, int32> IndicesMap; //MetadataEntry::Index, based on Input points (output MetadataEntry will be offset)
+
+	const FPCGPoint& GetInPoint(const int32 Index) const { return In->GetPoints()[Index]; }
+	const FPCGPoint& GetOutPoint(const int32 Index) const { return Out->GetPoints()[Index]; }
+	FPCGPoint& GetMutablePoint(const int32 Index) const { return Out->GetMutablePoints()[Index]; }
+
+	const FPCGPoint* TryGetInPoint(const int32 Index) const { return In->GetPoints().IsValidIndex(Index) ? &In->GetPoints()[Index] : nullptr; }
+	const FPCGPoint* TryGetOutPoint(const int32 Index) const { return Out->GetPoints().IsValidIndex(Index) ? &Out->GetPoints()[Index] : nullptr; }
 
 	void Flush() { IndicesMap.Empty(); }
 
@@ -77,22 +84,6 @@ public:
 	 * @return 
 	 */
 	int32 GetIndex(PCGMetadataEntryKey Key) const;
-
-	template <class InitializeFunc, class ProcessElementFunc>
-	bool OutputParallelProcessing(
-		FPCGContext* Context,
-		InitializeFunc&& Initialize,
-		ProcessElementFunc&& LoopBody,
-		const int32 ChunkSize = 32,
-		bool bForceSync = false);
-
-	template <class InitializeFunc, class ProcessElementFunc>
-	bool InputParallelProcessing(
-		FPCGContext* Context,
-		InitializeFunc&& Initialize,
-		ProcessElementFunc&& LoopBody,
-		const int32 ChunkSize = 32,
-		bool bForceSync = false);
 
 	/**
 	 * Write valid outputs to Context' tagged data
@@ -159,22 +150,6 @@ public:
 		for (UPCGExPointIO* Pair : Pairs) { Pair->Flush(); }
 		Pairs.Empty();
 	}
-
-	template <class InitializeFunc, class ProcessElementFunc>
-	bool OutputsParallelProcessing(
-		FPCGContext* Context,
-		InitializeFunc&& Initialize,
-		ProcessElementFunc&& LoopBody,
-		int32 ChunkSize = 32,
-		bool bForceSync = false);
-
-	template <class InitializeFunc, class ProcessElementFunc>
-	bool InputsParallelProcessing(
-		FPCGContext* Context,
-		InitializeFunc&& Initialize,
-		ProcessElementFunc&& LoopBody,
-		int32 ChunkSize = 32,
-		bool bForceSync = false);
 
 protected:
 	mutable FRWLock PairsLock;

@@ -61,13 +61,14 @@ UPCGExFusePointsSettings::UPCGExFusePointsSettings(const FObjectInitializer& Obj
 	RefreshFuseMethodHiddenNames();
 }
 
+#if WITH_EDITOR
 void UPCGExFusePointsSettings::RefreshFuseMethodHiddenNames()
 {
 	if (!FuseMethodOverrides.IsEmpty())
 	{
 		for (FPCGExInputDescriptorWithFuseMethod& Descriptor : FuseMethodOverrides)
 		{
-			Descriptor.HiddenDisplayName = Descriptor.Selector.GetName().ToString();
+			Descriptor.HiddenDisplayName = Descriptor.GetDisplayName();
 		}
 
 		PCGEX_FUSE_FOREACH_POINTPROPERTYNAME(PCGEX_FUSE_UPDATE)
@@ -79,8 +80,41 @@ void UPCGExFusePointsSettings::PostEditChangeProperty(FPropertyChangedEvent& Pro
 	RefreshFuseMethodHiddenNames();
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
+#endif
 
 FPCGElementPtr UPCGExFusePointsSettings::CreateElement() const { return MakeShared<FPCGExFusePointsElement>(); }
+
+void FPCGExFusePointsContext::PrepareForPoints(const UPCGExPointIO* InData)
+{
+	TArray<FName> Names;
+	TArray<EPCGMetadataTypes> Types;
+	InData->In->Metadata->GetAttributes(Names, Types);
+
+	Attributes.Reset(Names.Num());
+
+	const UPCGExFusePointsSettings* Settings = GetInputSettings<UPCGExFusePointsSettings>();
+	check(Settings);
+
+	TMap<FName, EPCGExFuseMethod> DesiredMethods;
+	for (const FPCGExInputDescriptorWithFuseMethod& Descriptor : Settings->FuseMethodOverrides)
+	{
+		FPCGAttributePropertyInputSelector Selector = Descriptor.Selector.CopyAndFixLast(InData->In);
+		if (Selector.GetSelection() == EPCGAttributePropertySelection::Attribute &&
+			Selector.IsValid())
+		{
+			DesiredMethods.Add(Selector.GetAttributeName(), Descriptor.FuseMethod);
+		}
+	}
+
+	for (FName Name : Names)
+	{
+		PCGExFuse::FAttribute& Attribute = Attributes.Emplace_GetRef();
+		Attribute.Attribute = InData->Out->Metadata->GetMutableAttribute(Name);
+		Attribute.FuseMethod = FuseMethod;
+
+		if (EPCGExFuseMethod* FMethod = DesiredMethods.Find(Name)) { Attribute.FuseMethod = *FMethod; }
+	}
+}
 
 FPCGContext* FPCGExFusePointsElement::Initialize(
 	const FPCGDataCollection& InputData,
@@ -129,13 +163,15 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 		}
 	}
 
-	auto Initialize = [&](const UPCGExPointIO* PointIO)
+	auto Initialize = [&](UPCGExPointIO* PointIO)
 	{
-		Context->FusedPoints.Reset(PointIO->NumPoints);
+		Context->FusedPoints.Reset(PointIO->NumInPoints);
+		Context->PrepareForPoints(PointIO);
 	};
 
-	auto ProcessPoint = [&](const FPCGPoint& Point, const int32 Index, const UPCGExPointIO* PointIO)
+	auto ProcessPoint = [&](const int32 PointIndex, const UPCGExPointIO* PointIO)
 	{
+		const FPCGPoint& Point = PointIO->GetInPoint(PointIndex);
 		const FVector PtPosition = Point.Transform.GetLocation();
 		double Distance = 0;
 		PCGExFuse::FFusedPoint* FuseTarget = nullptr;
@@ -174,11 +210,11 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 		if (!FuseTarget)
 		{
 			FuseTarget = &Context->FusedPoints.Emplace_GetRef();
-			FuseTarget->MainIndex = Index;
+			FuseTarget->MainIndex = PointIndex;
 			FuseTarget->Position = PtPosition;
 		}
 
-		FuseTarget->Add(Index, Distance);
+		FuseTarget->Add(PointIndex, Distance);
 	};
 
 	if (Context->IsState(PCGExMT::EState::ProcessingPoints))
@@ -186,7 +222,7 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 		if (Context->bDeterministic)
 		{
 			if (Context->CurrentIndex == 0) { Initialize(Context->CurrentIO); }
-			const int64 NumIterations = FMath::Min(Context->ChunkSize, Context->CurrentIO->NumPoints - Context->CurrentIndex);
+			const int64 NumIterations = FMath::Min(Context->ChunkSize, Context->CurrentIO->NumInPoints - Context->CurrentIndex);
 			if (NumIterations <= 0)
 			{
 				Context->SetState(PCGExMT::EState::ProcessingGraph2ndPass);
@@ -195,14 +231,14 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 			{
 				for (int i = 0; i < NumIterations; i++)
 				{
-					ProcessPoint(Context->CurrentIO->In->GetPoint(Context->CurrentIndex), Context->CurrentIndex, Context->CurrentIO);
+					ProcessPoint(Context->CurrentIndex, Context->CurrentIO);
 					Context->CurrentIndex++;
 				}
 			}
 		}
-		else if (Context->CurrentIO->InputParallelProcessing(Context, Initialize, ProcessPoint, Context->ChunkSize))
+		else if (Context->AsyncProcessingCurrentPoints(Initialize, ProcessPoint))
 		{
-			Context->SetState(PCGExMT::EState::ProcessingGraph2ndPass);
+			Context->SetState(PCGExMT::EState::ReadyForNextPoints);
 		}
 	}
 

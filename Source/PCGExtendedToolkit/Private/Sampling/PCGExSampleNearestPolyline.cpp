@@ -135,9 +135,9 @@ bool FPCGExSampleNearestPolylineElement::ExecuteInternal(FPCGContext* InContext)
 		}
 	}
 
-	auto Initialize = [&]()
+	auto Initialize = [&](UPCGExPointIO* PointIO)
 	{
-		UPCGExPointIO* PointIO = Context->CurrentIO;
+		
 		PointIO->BuildMetadataEntries();
 
 		if (Context->bLocalRangeMin)
@@ -164,10 +164,10 @@ bool FPCGExSampleNearestPolylineElement::ExecuteInternal(FPCGContext* InContext)
 		PCGEX_INIT_ATTRIBUTE_OUT(SignedDistance, double)
 	};
 
-	auto ProcessPoint = [&](const int32 ReadIndex)
+	auto ProcessPoint = [&](const int32 PointIndex, const UPCGExPointIO* PointIO)
 	{
 		
-		const FPCGPoint& Point = Context->CurrentIO->Out->GetMutablePoints()[ReadIndex];
+		const FPCGPoint& Point = PointIO->GetOutPoint(PointIndex);
 		
 		double RangeMin = FMath::Pow(Context->RangeMinInput.GetValueSafe(Point, Context->RangeMin), 2);
 		double RangeMax = FMath::Pow(Context->RangeMaxInput.GetValueSafe(Point, Context->RangeMax), 2);
@@ -277,12 +277,13 @@ bool FPCGExSampleNearestPolylineElement::ExecuteInternal(FPCGContext* InContext)
 		PCGEX_SET_OUT_ATTRIBUTE(Location, Key, Origin + WeightedLocation)
 		PCGEX_SET_OUT_ATTRIBUTE(LookAt, Key, WeightedLookAt)
 		PCGEX_SET_OUT_ATTRIBUTE(Normal, Key, WeightedNormal)
+		PCGEX_SET_OUT_ATTRIBUTE(Distance, Key, WeightedLocation.Length())
 		//PCGEX_SET_OUT_ATTRIBUTE(SignedDistance, Key, WeightedNormal)
 	};
 
 	if (Context->IsState(PCGExMT::EState::ProcessingPoints))
 	{
-		if (PCGExMT::ParallelForLoop(Context, Context->CurrentIO->NumPoints, Initialize, ProcessPoint, Context->ChunkSize, !Context->bDoAsyncProcessing))
+		if (Context->AsyncProcessingCurrentPoints(Initialize, ProcessPoint))
 		{
 			Context->SetState(PCGExMT::EState::ReadyForNextPoints);
 		}

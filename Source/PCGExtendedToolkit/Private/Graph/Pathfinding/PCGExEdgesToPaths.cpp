@@ -24,9 +24,6 @@ FPCGContext* FPCGExEdgesToPathsElement::Initialize(
 	check(Settings);
 
 	Context->EdgeType = static_cast<EPCGExEdgeType>(Settings->EdgeType);
-	Context->bWriteTangents = Settings->bWriteTangents;
-	Context->TangentParams = Settings->TangentParams;
-
 	return Context;
 }
 
@@ -51,15 +48,15 @@ bool FPCGExEdgesToPathsElement::ExecuteInternal(
 		}
 		else
 		{
-			Context->TangentParams.PrepareForData(Context->CurrentIO->In);
 			Context->SetState(PCGExMT::EState::ReadyForNextGraph);
 		}
 	}
 
-	auto ProcessPointInGraph = [&](const FPCGPoint& Point, const int32 ReadIndex, const UPCGExPointIO* PointIO)
+	auto ProcessPoint = [&](const int32 PointIndex, const UPCGExPointIO* PointIO)
 	{
+		const FPCGPoint& Point = PointIO->GetInPoint(PointIndex);
 		TArray<PCGExGraph::FUnsignedEdge> UnsignedEdges;
-		Context->CurrentGraph->GetEdges(ReadIndex, Point.MetadataEntry, UnsignedEdges);
+		Context->CurrentGraph->GetEdges(PointIndex, Point.MetadataEntry, UnsignedEdges);
 
 		for (const PCGExGraph::FUnsignedEdge& UEdge : UnsignedEdges)
 		{
@@ -98,7 +95,7 @@ bool FPCGExEdgesToPathsElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExMT::EState::ProcessingGraph))
 	{
-		if (Context->CurrentIO->InputParallelProcessing(Context, Initialize, ProcessPointInGraph, Context->ChunkSize, !Context->bDoAsyncProcessing))
+		if (Context->AsyncProcessingCurrentPoints(Initialize, ProcessPoint))
 		{
 			Context->SetState(PCGExMT::EState::ReadyForNextGraph);
 		}
@@ -107,7 +104,7 @@ bool FPCGExEdgesToPathsElement::ExecuteInternal(
 	auto ProcessEdge = [&](const int32 Index)
 	{
 		FWriteScopeLock WriteLock(Context->EdgeLock);
-		
+
 		//const UPCGExPointIO* PointIO = Context->EdgesIO->Emplace_GetRef(*Context->CurrentIO, PCGExIO::EInitMode::NewOutput);
 		const PCGExGraph::FUnsignedEdge& UEdge = Context->Edges[Index];
 
@@ -117,26 +114,14 @@ bool FPCGExEdgesToPathsElement::ExecuteInternal(
 		FPCGPoint& Start = Out->GetMutablePoints().Emplace_GetRef(Context->CurrentIO->In->GetPoints()[UEdge.Start]);
 		FPCGPoint& End = Out->GetMutablePoints().Emplace_GetRef(Context->CurrentIO->In->GetPoints()[UEdge.End]);
 
-		if (Context->bWriteTangents)
-		{
-			Out->Metadata->InitializeOnSet(Start.MetadataEntry);
-			Out->Metadata->InitializeOnSet(End.MetadataEntry);
-
-			Context->TangentParams.ComputeTangents(Out, Start, End);
-		}
-
 		FPCGTaggedData& OutputRef = Context->OutputData.TaggedData.Emplace_GetRef();
 		OutputRef.Data = Out;
 		OutputRef.Pin = PCGExGraph::OutputPathsLabel;
 	};
 
-	auto InitializeAsync = [&]()
-	{
-	};
-
 	if (Context->IsState(PCGExMT::EState::WaitingOnAsyncTasks))
 	{
-		if (PCGExMT::ParallelForLoop(Context, Context->Edges.Num(), InitializeAsync, ProcessEdge, Context->ChunkSize, !Context->bDoAsyncProcessing))
+		if (PCGExMT::ParallelForLoop(Context, Context->Edges.Num(), ProcessEdge, Context->ChunkSize, !Context->bDoAsyncProcessing))
 		{
 			Context->SetState(PCGExMT::EState::ReadyForNextPoints);
 		}

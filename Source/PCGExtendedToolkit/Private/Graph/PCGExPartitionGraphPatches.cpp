@@ -96,14 +96,14 @@ bool FPCGExPartitionGraphPatchesElement::ExecuteInternal(
 		Context->PrepareCurrentGraphForPoints(PointIO->In, false); // Prepare to read PointIO->In
 	};
 
-	auto ProcessPoint = [&](const FPCGPoint& Point, const int32 ReadIndex, const UPCGExPointIO* PointIO)
+	auto ProcessPoint = [&](const int32 PointIndex, const UPCGExPointIO* PointIO)
 	{
-		Context->Patches->Distribute(ReadIndex);
+		Context->Patches->Distribute(PointIndex);
 	};
 
 	if (Context->IsState(PCGExMT::EState::ProcessingPoints))
 	{
-		if (Context->CurrentIO->InputParallelProcessing(Context, InitializePointsInput, ProcessPoint, Context->ChunkSize, !Context->bDoAsyncProcessing))
+		if (Context->AsyncProcessingCurrentPoints(InitializePointsInput, ProcessPoint))
 		{
 			Context->SetState(PCGExMT::EState::ReadyForNextPoints);
 			Context->Patches->OutputTo(Context, Context->MinPatchSize, Context->MaxPatchSize);

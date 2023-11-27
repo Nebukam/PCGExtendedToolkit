@@ -1,4 +1,4 @@
-# Sample Nearest Polyline ![Transforms](https://img.shields.io/badge/Transforms-1d6c3d)
+# Sample Nearest Polyline ![Sampling](https://img.shields.io/badge/Sampling-1d6c3d)
 
 ## What is it useful for?
 

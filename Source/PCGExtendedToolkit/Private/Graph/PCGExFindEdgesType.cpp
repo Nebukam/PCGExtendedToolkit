@@ -61,9 +61,9 @@ bool FPCGExFindEdgesTypeElement::ExecuteInternal(
 		}
 	}
 
-	auto ProcessPoint = [&Context](const FPCGPoint& Point, const int32 ReadIndex, const UPCGExPointIO* PointIO)
+	auto ProcessPoint = [&Context](const int32 PointIndex, const UPCGExPointIO* PointIO)
 	{
-		Context->ComputeEdgeType(Point, ReadIndex, PointIO);
+		Context->ComputeEdgeType(PointIO->GetOutPoint(PointIndex), PointIndex, PointIO);
 	};
 
 	if (Context->IsState(PCGExMT::EState::ReadyForNextGraph))
@@ -86,7 +86,7 @@ bool FPCGExFindEdgesTypeElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExMT::EState::ProcessingGraph))
 	{
-		if (Context->CurrentIO->OutputParallelProcessing(Context, Initialize, ProcessPoint, Context->ChunkSize, !Context->bDoAsyncProcessing))
+		if (Context->AsyncProcessingCurrentPoints(Initialize, ProcessPoint))
 		{
 			Context->SetState(PCGExMT::EState::ReadyForNextGraph);
 		}

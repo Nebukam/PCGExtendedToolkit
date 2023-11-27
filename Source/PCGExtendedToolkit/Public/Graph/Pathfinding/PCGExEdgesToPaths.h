@@ -32,12 +32,6 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExEdgeType"))
 	uint8 EdgeType = static_cast<uint8>(EPCGExEdgeType::Complete);
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
-	bool bWriteTangents = true;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="bWriteTangents", ShowOnlyInnerProperties))
-	FPCGExTangentParams TangentParams;
-
 private:
 	friend class FPCGExEdgesToPathsElement;
 };
@@ -52,9 +46,7 @@ public:
 	TArray<PCGExGraph::FUnsignedEdge> Edges;
 
 	mutable FRWLock EdgeLock;
-
-	bool bWriteTangents;
-	FPCGExTangentParams TangentParams;
+	
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExEdgesToPathsElement : public FPCGExPathfindingProcessorElement

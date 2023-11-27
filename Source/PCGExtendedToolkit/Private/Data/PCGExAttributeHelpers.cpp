@@ -5,6 +5,10 @@
 
 #include "Data/PCGExAttributeHelpers.h"
 
+#if WITH_EDITOR
+FString FPCGExInputDescriptor::GetDisplayName() const { return GetName().ToString(); }
+#endif
+
 bool FPCGExInputDescriptor::Validate(const UPCGPointData* InData)
 {
 	bValidatedAtLeastOnce = true;

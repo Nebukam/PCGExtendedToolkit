@@ -20,7 +20,6 @@ UPCGExDrawGraphSettings::UPCGExDrawGraphSettings(
 	//DebugSettings.PointMesh = FPCGExtendedToolkitModule::Get ? FPCGExtendedToolkitModule::Get->DebugMeshFrustrum : nullptr;
 }
 
-#if WITH_EDITOR
 TArray<FPCGPinProperties> UPCGExDrawGraphSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> Empty;
@@ -28,6 +27,7 @@ TArray<FPCGPinProperties> UPCGExDrawGraphSettings::OutputPinProperties() const
 	return Empty;
 }
 
+#if WITH_EDITOR
 void UPCGExDrawGraphSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	//if (const UWorld* EditorWorld = GEditor->GetEditorWorldContext().World()) { FlushPersistentDebugLines(EditorWorld); }
@@ -180,7 +180,7 @@ bool FPCGExDrawGraphElement::ExecuteInternal(FPCGContext* InContext) const
 	{
 		//if (Context->CurrentIO->InputParallelProcessing(Context, Initialize, ProcessPoint, Context->ChunkSize)) { Context->SetState(PCGExMT::EState::ProcessingParams); }
 		Initialize(Context->CurrentIO);
-		for (int i = 0; i < Context->CurrentIO->NumPoints; i++) { ProcessPoint(Context->CurrentIO->In->GetPoints()[i], i, Context->CurrentIO); }
+		for (int i = 0; i < Context->CurrentIO->NumInPoints; i++) { ProcessPoint(Context->CurrentIO->GetInPoint(i), i, Context->CurrentIO); }
 		Context->SetState(PCGExMT::EState::ReadyForNextGraph);
 	}
 

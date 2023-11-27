@@ -70,23 +70,23 @@ bool FPCGExConsolidateGraphElement::ExecuteInternal(
 
 	auto InitializePointsFirstPass = [&](UPCGExPointIO* PointIO)
 	{
-		Context->IndicesRemap.Empty(PointIO->NumPoints);
+		Context->IndicesRemap.Empty(PointIO->NumInPoints);
 		PointIO->BuildMetadataEntries();
 		Context->PrepareCurrentGraphForPoints(PointIO->Out, true); // Prepare to read PointIO->Out
 	};
 
-	auto ProcessPoint = [&](const FPCGPoint& Point, const int32 ReadIndex, const UPCGExPointIO* PointIO)
+	auto ProcessPoint = [&](const int32 PointIndex, const UPCGExPointIO* PointIO)
 	{
 		FWriteScopeLock WriteLock(Context->IndicesLock);
-		const int64 Key = Point.MetadataEntry;
+		const int64 Key = PointIO->GetOutPoint(PointIndex).MetadataEntry;
 		const int64 CachedIndex = Context->CachedIndex->GetValueFromItemKey(Key);
-		Context->IndicesRemap.Add(CachedIndex, ReadIndex); // Store previous
-		Context->CachedIndex->SetValue(Key, ReadIndex);    // Update cached value with fresh one
+		Context->IndicesRemap.Add(CachedIndex, PointIndex); // Store previous
+		Context->CachedIndex->SetValue(Key, PointIndex);    // Update cached value with fresh one
 	};
 
 	if (Context->IsState(PCGExMT::EState::ProcessingPoints))
 	{
-		if (Context->CurrentIO->OutputParallelProcessing(Context, InitializePointsFirstPass, ProcessPoint, Context->ChunkSize, !Context->bDoAsyncProcessing))
+		if (Context->AsyncProcessingCurrentPoints(InitializePointsFirstPass, ProcessPoint))
 		{
 			Context->SetState(PCGExMT::EState::ProcessingPoints2ndPass);
 		}
@@ -94,15 +94,10 @@ bool FPCGExConsolidateGraphElement::ExecuteInternal(
 
 	// 2nd Pass on points - Swap indices with updated ones
 
-	auto InitializeNone = [](const UPCGExPointIO* PointIO)
-	{
-		// Dummy lambda
-	};
-
-	auto ConsolidatePoint = [&](const FPCGPoint& Point, const int32 ReadIndex, const UPCGExPointIO* PointIO)
+	auto ConsolidatePoint = [&](const int32 PointIndex, const UPCGExPointIO* PointIO)
 	{
 		FReadScopeLock ReadLock(Context->IndicesLock);
-
+		const FPCGPoint& Point = PointIO->GetOutPoint(PointIndex);
 		for (const PCGExGraph::FSocketInfos& SocketInfos : Context->SocketInfos)
 		{
 			const int64 OldRelationIndex = SocketInfos.Socket->GetTargetIndex(Point.MetadataEntry);
@@ -113,7 +108,7 @@ bool FPCGExConsolidateGraphElement::ExecuteInternal(
 			const PCGMetadataEntryKey Key = Point.MetadataEntry;
 			PCGMetadataEntryKey NewEntryKey = PCGInvalidEntryKey;
 
-			if (NewRelationIndex != -1) { NewEntryKey = PointIO->Out->GetPoints()[NewRelationIndex].MetadataEntry; }
+			if (NewRelationIndex != -1) { NewEntryKey = PointIO->GetOutPoint(NewRelationIndex).MetadataEntry; }
 			else { SocketInfos.Socket->SetEdgeType(Key, EPCGExEdgeType::Unknown); }
 
 			SocketInfos.Socket->SetTargetIndex(Key, NewRelationIndex);
@@ -123,7 +118,7 @@ bool FPCGExConsolidateGraphElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExMT::EState::ProcessingPoints2ndPass))
 	{
-		if (Context->CurrentIO->OutputParallelProcessing(Context, InitializeNone, ConsolidatePoint, Context->ChunkSize, !Context->bDoAsyncProcessing))
+		if (Context->AsyncProcessingCurrentPoints(ConsolidatePoint))
 		{
 			Context->SetState(Context->bConsolidateEdgeType ? PCGExMT::EState::ProcessingPoints3rdPass : PCGExMT::EState::ReadyForNextPoints);
 		}
@@ -131,14 +126,14 @@ bool FPCGExConsolidateGraphElement::ExecuteInternal(
 
 	// Optional 3rd Pass on points - Recompute edges type
 
-	auto ConsolidateEdgesType = [&](const FPCGPoint& Point, const int32 ReadIndex, const UPCGExPointIO* PointIO)
+	auto ConsolidateEdgesType = [&](const int32 PointIndex, const UPCGExPointIO* PointIO)
 	{
-		Context->ComputeEdgeType(Point, ReadIndex, PointIO);
+		Context->ComputeEdgeType(PointIO->GetOutPoint(PointIndex), PointIndex, PointIO);
 	};
 
 	if (Context->IsState(PCGExMT::EState::ProcessingPoints3rdPass))
 	{
-		if (Context->CurrentIO->OutputParallelProcessing(Context, InitializeNone, ConsolidateEdgesType, Context->ChunkSize, !Context->bDoAsyncProcessing))
+		if (Context->AsyncProcessingCurrentPoints(ConsolidateEdgesType))
 		{
 			Context->SetState(PCGExMT::EState::ReadyForNextPoints);
 		}

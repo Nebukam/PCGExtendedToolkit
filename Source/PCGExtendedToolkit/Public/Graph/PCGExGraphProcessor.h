@@ -12,7 +12,6 @@
 
 namespace PCGExGraph
 {
-	
 	struct PCGEXTENDEDTOOLKIT_API FGraphInputs
 	{
 		FGraphInputs()
@@ -92,8 +91,8 @@ namespace PCGExGraph
 		{
 		}
 
-		double Distance = 0;
-		double Dot = 0;
+		double Distance = DBL_MAX;
+		double Dot = -1;
 
 		int32 Index = -1;
 		PCGMetadataEntryKey EntryKey = PCGInvalidEntryKey;
@@ -111,10 +110,8 @@ namespace PCGExGraph
 		FSocketInfos* SocketInfos = nullptr;
 		FVector Origin = FVector::Zero();
 
-		int32 BestIndex = -1;
-		PCGMetadataEntryKey BestEntryKey = PCGInvalidEntryKey;
-
 		TArray<FPointCandidate> Candidates;
+		FPointCandidate BestCandidate;
 
 		double IndexedRating = DBL_MAX;
 		double IndexedDistanceRating = 0;
@@ -127,15 +124,15 @@ namespace PCGExGraph
 		double ProbedDotMin = DBL_MAX;
 
 
-		bool ProcessPoint(const FPCGPoint* Point, int32 Index)
+		bool ProcessPointComplex(const FPCGPoint* Point, const int32 Index)
 		{
 			const FVector PtPosition = Point->Transform.GetLocation();
-			const double Dot = Direction.Dot((PtPosition - Origin).GetSafeNormal());
 
-			if (Dot < DotThreshold) { return false; }
 			const double PtDistance = FVector::DistSquared(Origin, PtPosition);
-
 			if (PtDistance > MaxDistance) { return false; }
+
+			const double Dot = Direction.Dot((PtPosition - Origin).GetSafeNormal());
+			if (Dot < DotThreshold) { return false; }
 
 			ProbedDistanceMin = FMath::Min(ProbedDistanceMin, PtDistance);
 			ProbedDistanceMax = FMath::Max(ProbedDistanceMax, PtDistance);
@@ -153,6 +150,27 @@ namespace PCGExGraph
 			return true;
 		}
 
+		bool ProcessPointSimple(const FPCGPoint* Point, const int32 Index)
+		{
+			const FVector PtPosition = Point->Transform.GetLocation();
+			const double PtDistance = FVector::DistSquared(Origin, PtPosition);
+			
+			if (PtDistance > MaxDistance) { return false; }
+			if (PtDistance > BestCandidate.Distance) { return false; }
+
+			const double Dot = Direction.Dot((PtPosition - Origin).GetSafeNormal());
+			
+			if (Dot < DotThreshold) { return false; }
+
+			BestCandidate.Dot = Dot;
+			BestCandidate.Distance = PtDistance;
+
+			BestCandidate.Index = Index;
+			BestCandidate.EntryKey = Point->MetadataEntry;
+
+			return true;
+		}
+
 		void ProcessCandidates()
 		{
 			for (const FPointCandidate& Candidate : Candidates)
@@ -163,7 +181,7 @@ namespace PCGExGraph
 				const double Rating = (DotRating * DotWeight) + (DistanceRating * (1 - DotWeight));
 
 				bool bBetterCandidate = false;
-				if (Rating < IndexedRating || BestIndex == -1)
+				if (Rating < IndexedRating || BestCandidate.Index == -1)
 				{
 					bBetterCandidate = true;
 				}
@@ -194,16 +212,16 @@ namespace PCGExGraph
 					IndexedDotRating = DotRating;
 					IndexedDotWeight = DotWeight;
 
-					BestIndex = Candidate.Index;
-					BestEntryKey = Candidate.EntryKey;
+					BestCandidate.Index = Candidate.Index;
+					BestCandidate.EntryKey = Candidate.EntryKey;
 				}
 			}
 		}
 
 		void OutputTo(PCGMetadataEntryKey Key) const
 		{
-			SocketInfos->Socket->SetTargetIndex(Key, BestIndex);
-			SocketInfos->Socket->SetTargetEntryKey(Key, BestEntryKey);
+			SocketInfos->Socket->SetTargetIndex(Key, BestCandidate.Index);
+			SocketInfos->Socket->SetTargetEntryKey(Key, BestCandidate.EntryKey);
 		}
 
 		~FSocketProbe()
@@ -211,7 +229,6 @@ namespace PCGExGraph
 			SocketInfos = nullptr;
 		}
 	};
-		
 }
 
 class UPCGExGraphParamsData;
@@ -234,10 +251,9 @@ public:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 	//~End UPCGSettings interface
-	
+
 	virtual FName GetMainPointsInputLabel() const override;
 	virtual FName GetMainPointsOutputLabel() const override;
-	
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExGraphProcessorContext : public FPCGExPointsProcessorContext
@@ -257,14 +273,14 @@ public:
 
 	FPCGMetadataAttribute<int64>* CachedIndex;
 	TArray<PCGExGraph::FSocketInfos> SocketInfos;
-	
+
 	void ComputeEdgeType(const FPCGPoint& Point, int32 ReadIndex, const UPCGExPointIO* PointIO);
 	double PrepareProbesForPoint(const FPCGPoint& Point, TArray<PCGExGraph::FSocketProbe>& OutProbes);
 
 	void PrepareCurrentGraphForPoints(const UPCGPointData* InData, bool bEnsureEdgeType);
-	
+
 	void OutputGraphParams() { Params.OutputTo(this); }
-	
+
 	void OutputPointsAndParams()
 	{
 		OutputPoints();

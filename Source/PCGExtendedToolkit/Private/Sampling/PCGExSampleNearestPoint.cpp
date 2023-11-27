@@ -3,6 +3,7 @@
 
 #include "Sampling/PCGExSampleNearestPoint.h"
 
+#include "PCGExPointsProcessor.h"
 #include "PCGPin.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSampleNearestPointElement"
@@ -168,7 +169,7 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 		}
 	}
 
-	auto InitializeForIO = [&](UPCGExPointIO* PointIO)
+	auto Initialize = [&](UPCGExPointIO* PointIO)
 	{
 		PointIO->BuildMetadataEntries();
 
@@ -196,8 +197,10 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 		PCGEX_INIT_ATTRIBUTE_OUT(SignedDistance, double)
 	};
 
-	auto ProcessPoint = [&](const FPCGPoint& Point, const int32 ReadIndex, const UPCGExPointIO* PointIO)
+	auto ProcessPoint = [&](const int32 ReadIndex, const UPCGExPointIO* PointIO)
 	{
+		const FPCGPoint& Point = PointIO->GetOutPoint(ReadIndex);
+
 		double RangeMin = FMath::Pow(Context->RangeMinInput.GetValueSafe(Point, Context->RangeMin), 2);
 		double RangeMax = FMath::Pow(Context->RangeMaxInput.GetValueSafe(Point, Context->RangeMax), 2);
 
@@ -309,12 +312,13 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 		PCGEX_SET_OUT_ATTRIBUTE(Location, Key, Origin + WeightedLocation)
 		PCGEX_SET_OUT_ATTRIBUTE(LookAt, Key, WeightedLookAt)
 		PCGEX_SET_OUT_ATTRIBUTE(Normal, Key, WeightedNormal)
+		PCGEX_SET_OUT_ATTRIBUTE(Distance, Key, WeightedLocation.Length())
 		//PCGEX_SET_OUT_ATTRIBUTE(SignedDistance, Key, WeightedNormal)
 	};
 
 	if (Context->IsState(PCGExMT::EState::ProcessingPoints))
 	{
-		if (Context->CurrentIO->OutputParallelProcessing(Context, InitializeForIO, ProcessPoint, Context->ChunkSize, !Context->bDoAsyncProcessing))
+		if (Context->AsyncProcessingCurrentPoints(Initialize, ProcessPoint))
 		{
 			Context->SetState(PCGExMT::EState::ReadyForNextPoints);
 		}

@@ -6,7 +6,7 @@
 #include "CoreMinimal.h"
 #include "IPCGExDebug.h"
 
-#include "PCGExDebugManager.h"
+#include "PCGExPointsProcessor.h"
 #include "Data/PCGExAttributeHelpers.h"
 
 #include "PCGExDrawAttributes.generated.h"
@@ -29,7 +29,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeDebugDrawDescriptor : public FPCGEx
 	{
 	}
 
-public:
+#if WITH_EDITOR
+	virtual FString GetDisplayName() const override;
+#endif
+	
 	/** Enable or disable this debug group. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(DisplayPriority=-1))
 	bool bEnabled = true;
@@ -232,10 +235,11 @@ public:
 	PCGEX_NODE_INFOS(DrawAttributes, "Draw Attributes", "Draw debug attributes. Toggle debug OFF (D) before disabling this node (E)! Warning: this node will clear persistent debug lines before it!");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Debug; }
 	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorDebug; }
-	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
 
+	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
+	
 	/** Attributes to draw.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(TitleProperty="{HiddenDisplayName} as {ExpressedAs}"))
 	TArray<FPCGExAttributeDebugDrawDescriptor> DebugList;

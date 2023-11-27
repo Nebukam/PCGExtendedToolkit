@@ -82,4 +82,27 @@ namespace PCGExMT
 		};
 		return FPCGAsync::AsyncProcessingOneToOneEx(&(Context->AsyncState), NumIterations, Initialize, InnerBodyLoop, true, ChunkSize);
 	}
+
+	static bool ParallelForLoop
+		(
+		FPCGContext* Context,
+		const int32 NumIterations,
+		TFunction<void(int32)>&& LoopBody,
+		const int32 ChunkSize = 32,
+		bool bForceSync = false)
+	{
+		if (bForceSync)
+		{
+			for (int i = 0; i < NumIterations; i++) { LoopBody(i); }
+			return true;
+		}
+
+		auto InnerBodyLoop = [&](int32 ReadIndex, int32 WriteIndex)
+		{
+			LoopBody(ReadIndex);
+			return true;
+		};
+		return FPCGAsync::AsyncProcessingOneToOneEx(&(Context->AsyncState), NumIterations, [](){}, InnerBodyLoop, true, ChunkSize);
+	}
+	
 }

@@ -22,8 +22,9 @@ public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(PartitionGraphPatches, "Partition Graph Patches", "Create partitions from interconnected points");
-	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 #endif
+
+virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;

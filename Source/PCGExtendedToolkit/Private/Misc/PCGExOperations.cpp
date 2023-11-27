@@ -14,11 +14,13 @@ UPCGExOperationsSettings::UPCGExOperationsSettings(
 	DebugSettings.PointScale = 0.0f;
 }
 
+#if WITH_EDITOR
 void UPCGExOperationsSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	DebugSettings.PointScale = 0.0f;
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
+#endif
 
 FPCGElementPtr UPCGExOperationsSettings::CreateElement() const
 {
@@ -117,7 +119,7 @@ bool FPCGExOperationsElement::ExecuteInternal(
 	if (Context->IsState(PCGExMT::EState::ProcessingPoints))
 	{
 		Initialize(Context->CurrentIO);
-		for (int i = 0; i < Context->CurrentIO->NumPoints; i++) { ProcessPoint(Context->CurrentIO->In->GetPoints()[i], i, Context->CurrentIO); }
+		for (int i = 0; i < Context->CurrentIO->NumInPoints; i++) { ProcessPoint(Context->CurrentIO->GetInPoint(i), i, Context->CurrentIO); }
 		Context->SetState(PCGExMT::EState::ReadyForNextPoints);
 	}
 

@@ -68,11 +68,10 @@ public:
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(GraphParams, "Graph Params", "Builds a collection of PCG-compatible data from the selected actors.");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Param; }
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;	
 #endif
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
-	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
-
-	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;	
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;

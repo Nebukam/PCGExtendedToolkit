@@ -5,8 +5,7 @@
 
 #include "CoreMinimal.h"
 
-#include "PCGExDebugManager.h"
-
+#include "PCGExPointsProcessor.h"
 #include "PCGExWriteIndex.generated.h"
 
 /**

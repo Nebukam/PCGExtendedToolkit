@@ -26,6 +26,10 @@ public:
 	/** Compute edge types internally. If you don't need edge types, set it to false to save some cycles.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	bool bComputeEdgeType = true;
+	
+	/** Simple mode ignores candidates weighting and always favors the closest one.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	bool bSimpleMode = true;
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
@@ -46,6 +50,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBuildGraphContext : public FPCGExGraphProces
 
 public:
 	UPCGPointData::PointOctree* Octree = nullptr;
+	bool bComputeEdgeType = true;
+	bool bSimpleMode = true;
 };
 
 

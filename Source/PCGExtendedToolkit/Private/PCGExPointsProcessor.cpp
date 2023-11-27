@@ -88,6 +88,86 @@ void FPCGExPointsProcessorContext::PostInitPointDataInput(UPCGExPointIO* PointDa
 
 #pragma endregion
 
+bool FPCGExPointsProcessorContext::AsyncProcessingMainPoints(
+	TFunction<void(UPCGExPointIO*)>&& Initialize,
+	TFunction<void(int32, UPCGExPointIO*)>&& LoopBody)
+{
+	const int32 NumPairs = MainPoints->Pairs.Num();
+
+	if (!bProcessingMainPoints)
+	{
+		bProcessingMainPoints = true;
+		MainPointsPairProcessingStatuses.Empty(NumPairs);
+		for (int i = 0; i < NumPairs; i++) { MainPointsPairProcessingStatuses.Add(false); }
+	}
+
+	int32 NumPairsDone = 0;
+
+	for (int i = 0; i < NumPairs; i++)
+	{
+		bool bState = MainPointsPairProcessingStatuses[i];
+		if (!bState)
+		{
+			//bState = Pairs[i]->InputParallelProcessing(Context, Initialize, LoopBody, ChunkSize, bForceSync);
+			bState = PCGExMT::ParallelForLoop(
+				this, MainPoints->Pairs[i]->NumInPoints,
+				[&]() { Initialize(MainPoints->Pairs[i]); },
+				[&](int32 Index) { LoopBody(Index, MainPoints->Pairs[i]); }, ChunkSize, !bDoAsyncProcessing);
+			if (bState) { MainPointsPairProcessingStatuses[i] = bState; }
+		}
+		if (bState) { NumPairsDone++; }
+	}
+
+	if (NumPairs == NumPairsDone)
+	{
+		bProcessingMainPoints = false;
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+bool FPCGExPointsProcessorContext::AsyncProcessingCurrentPoints(
+	TFunction<void(UPCGExPointIO*)>&& Initialize,
+	TFunction<void(const int32, const UPCGExPointIO*)>&& LoopBody)
+{
+	if (!bDoAsyncProcessing)
+	{
+		Initialize(CurrentIO);
+		for (int i = 0; i < CurrentIO->NumInPoints; i++) { LoopBody(i, CurrentIO); }
+		return true;
+	};
+	return FPCGAsync::AsyncProcessingOneToOneEx(
+		&AsyncState, CurrentIO->NumInPoints,
+		[&]() { Initialize(CurrentIO); },
+		[&](int32 ReadIndex, int32 WriteIndex)
+		{
+			LoopBody(ReadIndex, CurrentIO);
+			return true;
+		}, true, ChunkSize);
+}
+
+bool FPCGExPointsProcessorContext::AsyncProcessingCurrentPoints(TFunction<void(const int32, const UPCGExPointIO*)>&& LoopBody)
+{
+	if (!bDoAsyncProcessing)
+	{
+		for (int i = 0; i < CurrentIO->NumInPoints; i++) { LoopBody(i, CurrentIO); }
+		return true;
+	};
+	return FPCGAsync::AsyncProcessingOneToOneEx(
+		&AsyncState, CurrentIO->NumInPoints,
+		[&]()
+		{
+		},
+		[&](int32 ReadIndex, int32 WriteIndex)
+		{
+			LoopBody(ReadIndex, CurrentIO);
+			return true;
+		}, true, ChunkSize);
+}
+
 FPCGContext* FPCGExPointsProcessorElementBase::Initialize(
 	const FPCGDataCollection& InputData,
 	TWeakObjectPtr<UPCGComponent> SourceComponent,

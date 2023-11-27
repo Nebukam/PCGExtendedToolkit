@@ -1,4 +1,4 @@
-# Project ![Transforms](https://img.shields.io/badge/Transforms-1d6c3d)
+# Project ![Sampling](https://img.shields.io/badge/Sampling-1d6c3d)
 
 ## What is it useful for?
 Project is a boilerplate for translation & rotation operation to fit a point on a surface defined by normal and a position.

@@ -7,12 +7,19 @@
 
 PCGExIO::EInitMode UPCGExDrawAttributesSettings::GetPointOutputInitMode() const { return PCGExIO::EInitMode::NoOutput; }
 
+#if WITH_EDITOR
+FString FPCGExAttributeDebugDrawDescriptor::GetDisplayName() const
+{
+	if (bEnabled) { return FPCGExInputDescriptor::GetDisplayName(); }
+	else { return "(Disabled) " + FPCGExInputDescriptor::GetDisplayName(); }
+}
+#endif
+
 UPCGExDrawAttributesSettings::UPCGExDrawAttributesSettings(
 	const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 	DebugSettings.PointScale = 0.0f;
-	for (FPCGExAttributeDebugDrawDescriptor& Descriptor : DebugList) { Descriptor.HiddenDisplayName = Descriptor.GetName().ToString(); }
 }
 
 #if WITH_EDITOR
@@ -25,7 +32,7 @@ TArray<FPCGPinProperties> UPCGExDrawAttributesSettings::OutputPinProperties() co
 void UPCGExDrawAttributesSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	DebugSettings.PointScale = 0.0f;
-	for (FPCGExAttributeDebugDrawDescriptor& Descriptor : DebugList) { Descriptor.HiddenDisplayName = Descriptor.GetName().ToString(); }
+	for (FPCGExAttributeDebugDrawDescriptor& Descriptor : DebugList) { Descriptor.HiddenDisplayName = Descriptor.GetDisplayName(); }
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
 #endif
@@ -135,7 +142,7 @@ bool FPCGExDrawAttributesElement::ExecuteInternal(FPCGContext* InContext) const
 	if (Context->IsState(PCGExMT::EState::ProcessingPoints))
 	{
 		Initialize(Context->CurrentIO);
-		for (int i = 0; i < Context->CurrentIO->NumPoints; i++) { ProcessPoint(Context->CurrentIO->In->GetPoint(i), i, Context->CurrentIO); }
+		for (int i = 0; i < Context->CurrentIO->NumInPoints; i++) { ProcessPoint(Context->CurrentIO->In->GetPoint(i), i, Context->CurrentIO); }
 		Context->SetState(PCGExMT::EState::ReadyForNextPoints);
 	}
 

@@ -67,7 +67,9 @@ public:
 public:
 	EPCGAttributePropertySelection GetSelection() const { return Selector.GetSelection(); }
 	FName GetName() const { return Selector.GetName(); }
-
+#if WITH_EDITOR
+	virtual FString GetDisplayName() const;
+#endif
 	/**
 	 * Validate & cache the current selector for a given UPCGPointData
 	 * @param InData 
