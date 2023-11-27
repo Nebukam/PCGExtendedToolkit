@@ -9,6 +9,73 @@
 #include "Graph/PCGExGraph.h"
 #include "PCGExWriteTangents.generated.h"
 
+namespace PCGExTangents
+{
+	struct PCGEXTENDEDTOOLKIT_API FPair
+	{
+		FVector Leave;
+		FVector Arrive;
+	};
+}
+
+UENUM(BlueprintType)
+enum class EPCGExCurvePointMode : uint8
+{
+	Individual UMETA(DisplayName = "Individual", ToolTip="Tangents are computed in isolation of each other, according to set params"),
+	Relational UMETA(DisplayName = "Relational", ToolTip="Tangents are computed in isolation of each other first, then smoothed with neighbors."),
+};
+
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExSingleTangentParams
+{
+	GENERATED_BODY()
+
+	FPCGExSingleTangentParams()
+	{
+		Direction.Selector.Update("$Transform");
+		Direction.Axis = EPCGExAxis::Forward;
+	}
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	FName TangentName = "ArriveTangent";
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	FPCGExInputDescriptorWithDirection Direction;
+	PCGEx::FLocalDirectionInput DirectionGetter;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(InlineEditConditionToggle))
+	bool bUseLocalScale = false;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="bUseLocalScale"))
+	FPCGExInputDescriptorWithSingleField LocalScale;
+	PCGEx::FLocalSingleComponentInput ScaleGetter;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	double DefaultScale = 10;
+
+	FPCGMetadataAttribute<FVector>* Attribute = nullptr;
+
+	void PrepareForData(const UPCGPointData* InData)
+	{
+		DirectionGetter.Capture(Direction);
+		DirectionGetter.Validate(InData);
+
+		if (bUseLocalScale)
+		{
+			ScaleGetter.bEnabled = true;
+			ScaleGetter.Capture(LocalScale);
+			ScaleGetter.Validate(InData);
+		}
+		else { ScaleGetter.bEnabled = false; }
+		Attribute = InData->Metadata->FindOrCreateAttribute<FVector>(TangentName, FVector::ZeroVector);
+	}
+
+	FVector GetDirection(const FPCGPoint& Point) const { return DirectionGetter.GetValue(Point); }
+	FVector GetTangent(const FPCGPoint& Point) const { return DirectionGetter.GetValue(Point) * ScaleGetter.GetValueSafe(Point, DefaultScale); }
+
+	void SetValue(const FPCGPoint& Point, const FVector& InValue) const { Attribute->SetValue(Point.MetadataEntry, InValue); }
+};
+
 
 USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExTangentParams
@@ -17,114 +84,85 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExTangentParams
 
 	FPCGExTangentParams()
 	{
-		ArriveDirection.Selector.Update("$Transform");
-		ArriveDirection.Axis = EPCGExAxis::Backward;
-		LeaveDirection.Selector.Update("$Transform");
-		LeaveDirection.Axis = EPCGExAxis::Forward;
+		Arrive.TangentName = "ArriveTangent";
+		Leave.TangentName = "LeaveTangent";
 	}
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
-	bool bSmoothTangents = true;
+	FPCGExSingleTangentParams Arrive;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Arrive Tangent")
-	FName ArriveTangentName = "ArriveTangent";
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Arrive Tangent")
-	FPCGExInputDescriptorWithDirection ArriveDirection;
-	PCGEx::FLocalDirectionInput LocalArriveDirection;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Arrive Tangent", meta=(InlineEditConditionToggle))
-	bool bUseLocalArrive = true;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Arrive Tangent", meta=(EditCondition="bUseLocalArrive"))
-	FPCGExInputDescriptorWithSingleField ArriveScale;
-	PCGEx::FLocalSingleComponentInput LocalArriveScale;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Arrive Tangent")
-	double DefaultArriveScale = 10;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Leave Tangent")
-	FName LeaveTangentName = "LeaveTangent";
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Leave Tangent")
-	FPCGExInputDescriptorWithDirection LeaveDirection;
-	PCGEx::FLocalDirectionInput LocalLeaveDirection;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Leave Tangent", meta=(InlineEditConditionToggle))
-	bool bUseLocalLeave = true;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Leave Tangent", meta=(EditCondition="bUseLocalLeave"))
-	FPCGExInputDescriptorWithSingleField LeaveScale;
-	PCGEx::FLocalSingleComponentInput LocalLeaveScale;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Leave Tangent")
-	double DefaultLeaveScale = 10;
-
-	FPCGMetadataAttribute<FVector>* ArriveTangentAttribute = nullptr;
-	FPCGMetadataAttribute<FVector>* LeaveTangentAttribute = nullptr;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (DisplayName="Leave == Arrive"))
+	bool bLeaveCopyArrive = true;
+	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	FPCGExSingleTangentParams Leave;
 
 	void PrepareForData(const UPCGExPointIO* PointIO)
 	{
 		const UPCGPointData* InData = PointIO->Out;
-
-		LocalArriveDirection.Capture(ArriveDirection);
-		LocalArriveDirection.Validate(InData);
-
-		LocalLeaveDirection.Capture(LeaveDirection);
-		LocalLeaveDirection.Validate(InData);
-
-		if (bUseLocalArrive)
-		{
-			LocalArriveScale.bEnabled = true;
-			LocalArriveScale.Capture(ArriveScale);
-			LocalArriveScale.Validate(InData);
-		}
-		else { LocalArriveScale.bEnabled = false; }
-
-		if (bUseLocalLeave)
-		{
-			LocalLeaveScale.bEnabled = true;
-			LocalLeaveScale.Capture(LeaveScale);
-			LocalLeaveScale.Validate(InData);
-		}
-		else { LocalLeaveScale.bEnabled = false; }
-
-		ArriveTangentAttribute = PointIO->Out->Metadata->FindOrCreateAttribute<FVector>(ArriveTangentName, FVector::ZeroVector);
-		LeaveTangentAttribute = PointIO->Out->Metadata->FindOrCreateAttribute<FVector>(LeaveTangentName, FVector::ZeroVector);
-		
+		Arrive.PrepareForData(InData);
+		Leave.PrepareForData(InData);
 	}
 
-	void ComputeTangentsFromData(
+	void ComputePointTangents(
 		const int64 Index,
-		const UPCGExPointIO* PointIO) const
+		const UPCGExPointIO* PointIO,
+		TMap<int64, PCGExTangents::FPair>* Cache = nullptr) const
 	{
 		const FPCGPoint& Current = PointIO->GetOutPoint(Index);
+		const FVector ArriveTangent = Arrive.GetTangent(Current);
+		const FVector LeaveTangent = bLeaveCopyArrive ? ArriveTangent : Leave.GetTangent(Current);
 
-		FVector LeaveTangent = LocalLeaveDirection.GetValue(Current);
-		FVector ArriveTangent;
+		Leave.SetValue(Current, LeaveTangent);
+		Arrive.SetValue(Current, ArriveTangent);
 
-		ScaleLeave(Current, LeaveTangent);
+		if (Cache) { Cache->Emplace(Index, PCGExTangents::FPair(LeaveTangent, ArriveTangent)); }
+	}
 
-		if (const FPCGPoint* Next = PointIO->TryGetOutPoint(Index + 1))
+	void ComputeRelationalTangents(
+		const int64 Index,
+		const UPCGExPointIO* PointIO,
+		TMap<int64, PCGExTangents::FPair>* Cache) const
+	{
+		// Note: ComputePointTangents should have been called on all points prior to using this method
+		const FPCGPoint* PrevPtr = PointIO->TryGetOutPoint(Index - 1);
+		const FPCGPoint& Current = PointIO->GetOutPoint(Index);
+		const FPCGPoint* NextPtr = PointIO->TryGetOutPoint(Index + 1);
+
+
+		const FVector Origin = Current.Transform.GetLocation();
+
+		if (PrevPtr)
 		{
-			ArriveTangent = LocalArriveDirection.GetValue(*Next);
-			ScaleArrive(*Next, ArriveTangent);
-			ArriveTangentAttribute->SetValue(Next->MetadataEntry, ArriveTangent);
+			const FPCGPoint& Prev = *PrevPtr;
+			const FVector OriginTangent = Cache->Find(Index)->Arrive;
+			const FVector NewTangent = ComputeRelational(
+				Origin, OriginTangent,
+				Prev.Transform.GetLocation(),
+				Cache->Find(Index - 1)->Leave);
+
+			Arrive.SetValue(Current, NewTangent);
 		}
 
-		LeaveTangentAttribute->SetValue(Current.MetadataEntry, LeaveTangent);
-
-		if (Index == 0)
+		if (NextPtr)
 		{
-			// Is first point, need to take care of the arrive
-			ArriveTangent = LocalArriveDirection.GetValue(Current);
-			ScaleArrive(Current, ArriveTangent);
-			ArriveTangentAttribute->SetValue(Current.MetadataEntry, ArriveTangent);
+			const FPCGPoint& Next = *NextPtr;
+			const FVector OriginTangent = Cache->Find(Index)->Leave;
+			const FVector NewTangent = ComputeRelational(
+				Origin, OriginTangent,
+				Next.Transform.GetLocation(),
+				Cache->Find(Index + 1)->Arrive);
+
+			Leave.SetValue(Current, NewTangent);
 		}
 	}
 
-	void ScaleArrive(const FPCGPoint& Point, FVector& Tangent) const { Tangent *= LocalArriveScale.GetValueSafe(Point, DefaultArriveScale); }
-	void ScaleLeave(const FPCGPoint& Point, FVector& Tangent) const { Tangent *= LocalLeaveScale.GetValueSafe(Point, DefaultLeaveScale); }
+protected:
+	static FVector ComputeRelational(const FVector& Origin, const FVector& OriginTangent, const FVector& Other, const FVector& OtherTangent)
+	{
+		const FVector Lerped = FMath::Lerp(Origin + OriginTangent, Other + OtherTangent, 0.5);
+		return Lerped - Origin;
+	}
 };
 
 /**
@@ -148,7 +186,10 @@ protected:
 	//~End UPCGSettings interface
 
 public:
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(ShowOnlyInnerProperties))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	EPCGExCurvePointMode CurveMode = EPCGExCurvePointMode::Individual;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(FullyExpand=true))
 	FPCGExTangentParams TangentParams;
 };
 
@@ -158,7 +199,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExWriteTangentsContext : public FPCGExPointsPr
 
 public:
 	mutable FRWLock MapLock;
+	TMap<int64, PCGExTangents::FPair> TangentCache;
 	FPCGExTangentParams TangentParams;
+	EPCGExCurvePointMode CurvePointMode;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExWriteTangentsElement : public FPCGExPointsProcessorElementBase
@@ -168,7 +211,6 @@ public:
 		const FPCGDataCollection& InputData,
 		TWeakObjectPtr<UPCGComponent> SourceComponent,
 		const UPCGNode* Node) override;
-	virtual bool Validate(FPCGContext* InContext) const override;
 
 protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;

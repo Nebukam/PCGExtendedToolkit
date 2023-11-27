@@ -31,6 +31,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	bool bSimpleMode = true;
 
+	/** If true, will move the origin on the point extent. Otherwise, the origin is the point location.*/
+	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	//bool bMoveSocketOriginOnPointExtent = false;
+	
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings interface
@@ -52,6 +56,7 @@ public:
 	UPCGPointData::PointOctree* Octree = nullptr;
 	bool bComputeEdgeType = true;
 	bool bSimpleMode = true;
+	bool bMoveSocketOriginOnPointExtent = false;
 };
 
 

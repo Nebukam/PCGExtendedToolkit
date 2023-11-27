@@ -113,5 +113,21 @@ namespace PCGExMath
 		InBase.Pitch = InBase.Pitch / Divider;
 		InBase.Roll = InBase.Roll / Divider;
 	}
+
+	static FBox ConeBox(const FVector& Center, const FVector& ConeDirection, double Size)
+	{
+		FVector Dir = ConeDirection.GetSafeNormal();
+		const FVector U = FVector::CrossProduct(Dir, Dir + FVector(0.1)).GetSafeNormal();
+		const FVector V = FVector::CrossProduct(Dir, Dir + FVector(-0.1)).GetSafeNormal();
+		
+		FBox Box = FBoxCenterAndExtent(Center, FVector(0.0001)).GetBox();
+		Box += Center + Dir * Size;
+		Box += Center + U * Size;
+		Box += Center + V * Size;
+
+		//UE_LOG(LogTemp, Warning, TEXT("Box Min X:%f, Y:%f, Z:%f | Max X:%f, Y:%f, Z:%f"), Box.Min.X, Box.Min.Y, Box.Min.Z, Box.Max.X, Box.Max.Y, Box.Max.Z);
+
+		return Box;
+	}
 	
 }

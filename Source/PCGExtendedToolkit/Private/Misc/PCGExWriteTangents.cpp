@@ -13,20 +13,12 @@ FPCGContext* FPCGExWriteTangentsElement::Initialize(const FPCGDataCollection& In
 {
 	FPCGExWriteTangentsContext* Context = new FPCGExWriteTangentsContext();
 	InitializeContext(Context, InputData, SourceComponent, Node);
-	return Context;
-}
-
-bool FPCGExWriteTangentsElement::Validate(FPCGContext* InContext) const
-{
-	if (!FPCGExPointsProcessorElementBase::Validate(InContext)) { return false; }
-
-	FPCGExWriteTangentsContext* Context = static_cast<FPCGExWriteTangentsContext*>(InContext);
-
 	const UPCGExWriteTangentsSettings* Settings = Context->GetInputSettings<UPCGExWriteTangentsSettings>();
 	check(Settings);
 
 	Context->TangentParams = Settings->TangentParams;
-	return true;
+	Context->CurvePointMode = Settings->CurveMode;
+	return Context;
 }
 
 
@@ -57,17 +49,53 @@ bool FPCGExWriteTangentsElement::ExecuteInternal(FPCGContext* InContext) const
 	auto Initialize = [&](UPCGExPointIO* PointIO)
 	{
 		PointIO->BuildMetadataEntries();
+
+		if (Context->CurvePointMode == EPCGExCurvePointMode::Relational)
+		{
+			Context->TangentCache.Empty();
+			Context->TangentCache.Reserve(PointIO->NumInPoints);
+		}
+
 		Context->TangentParams.PrepareForData(PointIO);
 	};
 
 	auto ProcessPoint = [&](const int32 Index, const UPCGExPointIO* PointIO)
 	{
-		Context->TangentParams.ComputeTangentsFromData(Index, PointIO);
+		if (Context->CurvePointMode == EPCGExCurvePointMode::Relational)
+		{
+			FWriteScopeLock WriteLock(Context->MapLock);
+			Context->TangentParams.ComputePointTangents(Index, PointIO, &Context->TangentCache);
+		}
+		else
+		{
+			Context->TangentParams.ComputePointTangents(Index, PointIO);
+		}
+	};
+
+	auto ProcessRelationalTangents = [&](const int32 Index, const UPCGExPointIO* PointIO)
+	{
+		FReadScopeLock ReadLock(Context->MapLock);
+		Context->TangentParams.ComputeRelationalTangents(Index, PointIO, &Context->TangentCache);
 	};
 
 	if (Context->IsState(PCGExMT::EState::ProcessingPoints))
 	{
-		if (Context->AsyncProcessingMainPoints(Initialize, ProcessPoint))
+		if (Context->AsyncProcessingCurrentPoints(Initialize, ProcessPoint))
+		{
+			if (Context->CurvePointMode == EPCGExCurvePointMode::Relational)
+			{
+				Context->SetState(PCGExMT::EState::ProcessingPoints2ndPass);
+			}
+			else
+			{
+				Context->SetState(PCGExMT::EState::ReadyForNextPoints);
+			}
+		}
+	}
+
+	if (Context->IsState(PCGExMT::EState::ProcessingPoints2ndPass))
+	{
+		if (Context->AsyncProcessingCurrentPoints(ProcessRelationalTangents))
 		{
 			Context->SetState(PCGExMT::EState::ReadyForNextPoints);
 		}
@@ -75,6 +103,7 @@ bool FPCGExWriteTangentsElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsDone())
 	{
+		Context->TangentCache.Empty();
 		Context->OutputPoints();
 		return true;
 	}

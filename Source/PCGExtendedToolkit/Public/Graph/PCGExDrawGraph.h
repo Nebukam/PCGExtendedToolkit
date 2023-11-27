@@ -51,6 +51,10 @@ public:
 	/** Draw socket cones lines.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	bool bDrawSocketCones = false;
+	
+	/** Draw socket loose bounds.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	bool bDrawSocketBox = false;
 
 private:
 	friend class FPCGExDrawGraphElement;

@@ -76,7 +76,7 @@ public:
 
 	/** Forces execution on main thread.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Multithreading")
-	bool bDoAsyncProcessing = false;
+	bool bDoAsyncProcessing = true;
 
 	/** Multi thread chunk size, when supported.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Multithreading")

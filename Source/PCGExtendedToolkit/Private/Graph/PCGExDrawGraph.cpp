@@ -92,12 +92,27 @@ bool FPCGExDrawGraphElement::ExecuteInternal(FPCGContext* InContext) const
 				for (PCGExGraph::FSocketProbe Probe : Probes)
 				{
 					double AngleWidth = FMath::Acos(FMath::Max(-1.0, FMath::Min(1.0, Probe.DotThreshold)));
+
 					DrawDebugCone(
 						Context->World,
 						Probe.Origin,
 						Probe.Direction,
 						FMath::Sqrt(Probe.MaxDistance),
 						AngleWidth, AngleWidth, 12,
+						Probe.SocketInfos->Socket->Descriptor.DebugColor,
+						true, -1, 0, .5f);
+				}
+			}
+
+			if (Settings->bDrawSocketBox)
+			{
+				for (PCGExGraph::FSocketProbe Probe : Probes)
+				{
+					double AngleWidth = FMath::Acos(FMath::Max(-1.0, FMath::Min(1.0, Probe.DotThreshold)));
+					DrawDebugBox(
+						Context->World,
+						Probe.LooseBounds.GetCenter(),
+						Probe.LooseBounds.GetExtent(),
 						Probe.SocketInfos->Socket->Descriptor.DebugColor,
 						true, -1, 0, .5f);
 				}

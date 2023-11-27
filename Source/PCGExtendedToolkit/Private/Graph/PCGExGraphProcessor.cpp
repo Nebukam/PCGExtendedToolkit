@@ -105,7 +105,7 @@ double FPCGExGraphProcessorContext::PrepareProbesForPoint(const FPCGPoint& Point
 		PCGExGraph::FSocketProbe& NewProbe = OutProbes.Emplace_GetRef();
 		NewProbe.SocketInfos = &CurrentSocketInfos;
 		PrepareProbeForPointSocketPair(Point, NewProbe, CurrentSocketInfos);
-		MaxDistance = FMath::Max(MaxDistance, NewProbe.MaxDistance);
+		MaxDistance = FMath::Max(MaxDistance, FMath::Sqrt(NewProbe.MaxDistance));
 	}
 	return MaxDistance;
 }
@@ -133,8 +133,9 @@ void FPCGExGraphProcessorContext::PrepareProbeForPointSocketPair(
 	if (InSocketInfos.Socket->Descriptor.bRelativeOrientation)
 	{
 		Direction = PtTransform.Rotator().RotateVector(Direction);
-		Direction.Normalize();
 	}
+
+	Direction.Normalize();
 
 	if (InSocketInfos.Modifier &&
 		InSocketInfos.Modifier->bEnabled &&
@@ -149,6 +150,18 @@ void FPCGExGraphProcessorContext::PrepareProbeForPointSocketPair(
 	{
 		// TODO: Apply LocalDirection
 	}
+
+	//TODO: Offset origin by extent?
+
+	if (DotTolerance >= 0)
+	{
+		Probe.LooseBounds = PCGExMath::ConeBox(Probe.Origin, Direction, MaxDistance);
+	}
+	else
+	{
+		Probe.LooseBounds = FBoxCenterAndExtent(Probe.Origin, FVector(MaxDistance)).GetBox();
+	}
+
 
 	Probe.Direction = Direction;
 	Probe.DotThreshold = DotTolerance;

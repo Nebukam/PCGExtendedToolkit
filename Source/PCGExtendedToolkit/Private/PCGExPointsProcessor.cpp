@@ -181,7 +181,7 @@ FPCGContext* FPCGExPointsProcessorElementBase::Initialize(
 bool FPCGExPointsProcessorElementBase::Validate(FPCGContext* InContext) const
 {
 	const FPCGExPointsProcessorContext* Context = static_cast<FPCGExPointsProcessorContext*>(InContext);
-
+	
 	if (Context->MainPoints->IsEmpty())
 	{
 		PCGE_LOG(Error, GraphAndLog, LOCTEXT("MissingPoints", "Missing Input Points."));
