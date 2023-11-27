@@ -62,7 +62,7 @@ bool FPCGExWriteTangentsElement::ExecuteInternal(FPCGContext* InContext) const
 
 	auto ProcessPoint = [&](const int32 Index, const UPCGExPointIO* PointIO)
 	{
-		Context->TangentParams.ComputeTangents(Index, PointIO);
+		Context->TangentParams.ComputeTangentsFromData(Index, PointIO);
 	};
 
 	if (Context->IsState(PCGExMT::EState::ProcessingPoints))

@@ -60,8 +60,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExTangentParams
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Leave Tangent")
 	double DefaultLeaveScale = 10;
 
-	FPCGMetadataAttribute<FVector>* ArriveTangentAttribute;
-	FPCGMetadataAttribute<FVector>* LeaveTangentAttribute;
+	FPCGMetadataAttribute<FVector>* ArriveTangentAttribute = nullptr;
+	FPCGMetadataAttribute<FVector>* LeaveTangentAttribute = nullptr;
 
 	void PrepareForData(const UPCGExPointIO* PointIO)
 	{
@@ -94,7 +94,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExTangentParams
 		
 	}
 
-	void ComputeTangents(
+	void ComputeTangentsFromData(
 		const int64 Index,
 		const UPCGExPointIO* PointIO) const
 	{
