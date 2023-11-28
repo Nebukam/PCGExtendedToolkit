@@ -19,13 +19,14 @@ namespace PCGExPolyLine
 		{
 		}
 
-		FSampleInfos(const FTransform& InTransform, const double InDistance):
-			Transform(InTransform), Distance(InDistance)
+		FSampleInfos(const FTransform& InTransform, const double InDistance, const double InTime):
+			Transform(InTransform), Distance(InDistance), Time(InTime)
 		{
 		}
 
 		FTransform Transform;
 		double Distance = 0;
+		double Time = 0;
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FTargetsCompoundInfos
@@ -160,7 +161,6 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(EditCondition="bWriteLookAt"))
 	FName LookAt = FName("WeightedLookAt");
 
-
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(InlineEditConditionToggle))
 	bool bWriteNormal = false;
@@ -170,7 +170,7 @@ public:
 	FName Normal = FName("WeightedNormal");
 
 	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(EditCondition="bWriteNormal"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(DisplayName=" └─ Source", EditCondition="bWriteNormal"))
 	EPCGExAxis NormalSource = EPCGExAxis::Forward;
 
 	/** TBD */
@@ -190,12 +190,34 @@ public:
 	FName SignedDistance = FName("WeightedSignedDistance");
 
 	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(EditCondition="bWriteSignedDistance"))
-	EPCGExAxis SignedDistanceAxis = EPCGExAxis::Forward;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(DisplayName=" └─ Axis", EditCondition="bWriteSignedDistance"))
+	EPCGExAxis SignAxis = EPCGExAxis::Forward;
 
-	/** Maximum distance to check for closest surface. Input 0 to sample all target points.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision & Metrics")
-	double MaxDistance = 1000;
+	/** TBD */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(InlineEditConditionToggle))
+	bool bWriteAngle = false;
+
+	/** TBD */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(EditCondition="bWriteAngle"))
+	FName Angle = FName("WeightedAngle");
+
+	/** TBD */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(DisplayName=" └─ Axis", EditCondition="bWriteAngle"))
+	EPCGExAxis AngleAxis = EPCGExAxis::Forward;
+
+	/** TBD */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(DisplayName=" └─ Range", EditCondition="bWriteAngle"))
+	EPCGExAngleRange AngleRange = EPCGExAngleRange::PIRadians;
+	
+	/** TBD */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(InlineEditConditionToggle))
+	bool bWriteTime = false;
+
+	/** TBD */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(EditCondition="bWriteTime"))
+	FName Time = FName("WeightedTime");
+	
+	
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestPolylineContext : public FPCGExPointsProcessorContext
@@ -216,7 +238,6 @@ public:
 	bool bLocalRangeMin = false;
 	bool bLocalRangeMax = false;
 
-	bool bUseOctree = false;
 	int64 NumTargets = 0;
 
 	PCGEx::FLocalSingleComponentInput RangeMinInput;
@@ -232,6 +253,14 @@ public:
 	PCGEX_OUT_ATTRIBUTE(Normal, FVector)
 	PCGEX_OUT_ATTRIBUTE(Distance, double)
 	PCGEX_OUT_ATTRIBUTE(SignedDistance, double)
+	EPCGExAxis SignAxis;
+	
+	PCGEX_OUT_ATTRIBUTE(Angle, double)
+	EPCGExAxis AngleAxis;
+	EPCGExAngleRange AngleRange;
+	
+	PCGEX_OUT_ATTRIBUTE(Time, double)
+	
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestPolylineElement : public FPCGExPointsProcessorElementBase

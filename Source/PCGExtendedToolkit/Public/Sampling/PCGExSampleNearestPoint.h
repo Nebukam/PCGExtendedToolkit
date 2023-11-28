@@ -168,7 +168,7 @@ public:
 	FName Normal = FName("WeightedNormal");
 
 	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(EditCondition="bWriteNormal"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(DisplayName=" └─ Source", EditCondition="bWriteNormal"))
 	FPCGExInputDescriptorWithDirection NormalSource;
 
 	/** TBD */
@@ -188,8 +188,25 @@ public:
 	FName SignedDistance = FName("WeightedSignedDistance");
 
 	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(EditCondition="bWriteSignedDistance"))
-	EPCGExAxis SignedDistanceAxis = EPCGExAxis::Forward;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(DisplayName=" └─ Axis", EditCondition="bWriteSignedDistance"))
+	EPCGExAxis SignAxis = EPCGExAxis::Forward;
+
+	/** TBD */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(InlineEditConditionToggle))
+	bool bWriteAngle = false;
+	
+	/** TBD */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(EditCondition="bWriteAngle"))
+	FName Angle = FName("WeightedAngle");
+
+	/** TBD */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(DisplayName=" └─ Axis", EditCondition="bWriteAngle"))
+	EPCGExAxis AngleAxis = EPCGExAxis::Forward;
+
+	/** TBD */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(DisplayName=" └─ Range", EditCondition="bWriteAngle"))
+	EPCGExAngleRange AngleRange = EPCGExAngleRange::PIRadians;
+	
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestPointContext : public FPCGExPointsProcessorContext
@@ -229,7 +246,13 @@ public:
 	PCGEX_OUT_ATTRIBUTE(LookAt, FVector)
 	PCGEX_OUT_ATTRIBUTE(Normal, FVector)
 	PCGEX_OUT_ATTRIBUTE(Distance, double)
+	
 	PCGEX_OUT_ATTRIBUTE(SignedDistance, double)
+	EPCGExAxis SignAxis;
+	
+	PCGEX_OUT_ATTRIBUTE(Angle, double)
+	EPCGExAxis AngleAxis;
+	EPCGExAngleRange AngleRange;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestPointElement : public FPCGExPointsProcessorElementBase

@@ -158,15 +158,13 @@ namespace PCGExGraph
 		{
 			const FVector PtPosition = Point->Transform.GetLocation();
 
-			if (LooseBounds.IsInside(PtPosition)) { return false; }
+			if (!LooseBounds.IsInside(PtPosition)) { return false; }
 
 			const double PtDistance = FVector::DistSquared(Origin, PtPosition);
-
 			if (PtDistance > MaxDistance) { return false; }
 			if (PtDistance > BestCandidate.Distance) { return false; }
 
 			const double Dot = Direction.Dot((PtPosition - Origin).GetSafeNormal());
-
 			if (Dot < DotThreshold) { return false; }
 
 			BestCandidate.Dot = Dot;

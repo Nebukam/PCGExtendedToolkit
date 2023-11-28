@@ -44,11 +44,7 @@ bool FPCGExSortPointsElement::ExecuteInternal(FPCGContext* InContext) const
 	auto ProcessPair = [&](const UPCGExPointIO* POI, const int32)
 	{
 		//POI->ForwardPoints(Context);
-		if (!BuildRulesForPoints(POI->Out, DesiredRules, Rules))
-		{
-			PCGE_LOG(Warning, GraphAndLog, LOCTEXT("InvalidSortSettings", "Invalid sort settings. Make sure attributes exist."));
-			return;
-		}
+		if (!BuildRulesForPoints(POI->Out, DesiredRules, Rules)) { return; }
 
 		auto Compare = [](auto DummyValue, const FPCGExSortRule* Rule, const FPCGPoint& PtA, const FPCGPoint& PtB) -> int
 		{

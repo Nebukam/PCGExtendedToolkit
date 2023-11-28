@@ -8,20 +8,19 @@
 
 namespace PCGExMath
 {
-
 	static double ConvertStringToDouble(const FString& StringToConvert)
 	{
 		const TCHAR* CharArray = *StringToConvert;
 		const double Result = FCString::Atod(CharArray);
 		return FMath::IsNaN(Result) ? 0 : Result;
 	}
-	
+
 	// Remap function
 	static double Remap(const double InBase, const double InMin, const double InMax, const double OutMin = 0, const double OutMax = 1)
 	{
 		return OutMin + ((InBase - InMin) / (InMax - InMin)) * (OutMax - OutMin);
 	}
-	
+
 	// MIN
 
 	template <typename T, typename dummy = void>
@@ -114,12 +113,26 @@ namespace PCGExMath
 		InBase.Roll = InBase.Roll / Divider;
 	}
 
+	template <typename T>
+	static int SignPlus(const T& InValue)
+	{
+		int sign = FMath::Sign(InValue);
+		return sign == 0 ? 1 : sign;
+	}
+
+	template <typename T>
+	static int SignMinus(const T& InValue)
+	{
+		int sign = FMath::Sign(InValue);
+		return sign == 0 ? -1 : sign;
+	}
+
 	static FBox ConeBox(const FVector& Center, const FVector& ConeDirection, double Size)
 	{
 		FVector Dir = ConeDirection.GetSafeNormal();
 		const FVector U = FVector::CrossProduct(Dir, Dir + FVector(0.1)).GetSafeNormal();
 		const FVector V = FVector::CrossProduct(Dir, Dir + FVector(-0.1)).GetSafeNormal();
-		
+
 		FBox Box = FBoxCenterAndExtent(Center, FVector(0.0001)).GetBox();
 		Box += Center + Dir * Size;
 		Box += Center + U * Size;

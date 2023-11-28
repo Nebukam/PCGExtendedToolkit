@@ -51,20 +51,23 @@ PCGExPolyLine::FSegment* UPCGExPolyLineIO::NearestSegment(const FVector& Locatio
 	return NearestSegment;
 }
 
-FTransform UPCGExPolyLineIO::SampleNearestTransform(const FVector& Location)
+FTransform UPCGExPolyLineIO::SampleNearestTransform(const FVector& Location, double& OutTime)
 {
 	if (bCacheDirty) { BuildCache(); }
 	const PCGExPolyLine::FSegment* Segment = NearestSegment(Location);
-	return Segment->NearestTransform(Location);
+	FTransform OutTransform = Segment->NearestTransform(Location);
+	OutTime = Segment->GetAccumulatedLengthAt(OutTransform.GetLocation()) / TotalLength;
+	return OutTransform;
 }
 
-bool UPCGExPolyLineIO::SampleNearestTransform(const FVector& Location, const double Range, FTransform& OutTransform)
+bool UPCGExPolyLineIO::SampleNearestTransform(const FVector& Location, const double Range, FTransform& OutTransform, double& OutTime)
 {
 	if (!Bounds.ExpandBy(Range).IsInside(Location)) { return false; }
 	if (bCacheDirty) { BuildCache(); }
 	const PCGExPolyLine::FSegment* Segment = NearestSegment(Location, Range);
 	if (!Segment) { return false; }
 	OutTransform = Segment->NearestTransform(Location);
+	OutTime = Segment->GetAccumulatedLengthAt(OutTransform.GetLocation()) / TotalLength;
 	return true;
 }
 
@@ -74,13 +77,17 @@ void UPCGExPolyLineIO::BuildCache()
 
 	FWriteScopeLock WriteLock(SegmentLock);
 	const int32 NumSegments = In->GetNumSegments();
+	TotalLength = 0;
 	Segments.Reset(NumSegments);
 	for (int S = 0; S < NumSegments; S++)
 	{
-		const PCGExPolyLine::FSegment& LOD = Segments.Emplace_GetRef(In, S);
+		PCGExPolyLine::FSegment& LOD = Segments.Emplace_GetRef(In, S);
+		LOD.AccumulatedLength = TotalLength;
+		TotalLength += LOD.Length;
 		Bounds += LOD.Bounds;
 	}
 
+	TotalClosedLength = TotalLength + FVector::Distance(Segments[0].Start, Segments.Last().End);
 	bCacheDirty = false;
 }
 
@@ -147,13 +154,13 @@ UPCGExPolyLineIO* UPCGExPolyLineIOGroup::Emplace_GetRef(const FPCGTaggedData& So
 	return Line;
 }
 
-bool UPCGExPolyLineIOGroup::SampleNearestTransform(const FVector& Location, FTransform& OutTransform)
+bool UPCGExPolyLineIOGroup::SampleNearestTransform(const FVector& Location, FTransform& OutTransform, double& OutTime)
 {
 	double MinDistance = DBL_MAX;
 	bool bFound = false;
 	for (UPCGExPolyLineIO* Line : PolyLines)
 	{
-		FTransform Transform = Line->SampleNearestTransform(Location);
+		FTransform Transform = Line->SampleNearestTransform(Location, OutTime);
 		if (const double SqrDist = FVector::DistSquared(Location, Transform.GetLocation());
 			SqrDist < MinDistance)
 		{
@@ -165,14 +172,14 @@ bool UPCGExPolyLineIOGroup::SampleNearestTransform(const FVector& Location, FTra
 	return bFound;
 }
 
-bool UPCGExPolyLineIOGroup::SampleNearestTransformWithinRange(const FVector& Location, const double Range, FTransform& OutTransform)
+bool UPCGExPolyLineIOGroup::SampleNearestTransformWithinRange(const FVector& Location, const double Range, FTransform& OutTransform, double& OutTime)
 {
 	double MinDistance = DBL_MAX;
 	bool bFound = false;
 	for (UPCGExPolyLineIO* Line : PolyLines)
 	{
 		FTransform Transform;
-		if (!Line->SampleNearestTransform(Location, Range, Transform)) { continue; }
+		if (!Line->SampleNearestTransform(Location, Range, Transform, OutTime)) { continue; }
 		if (const double SqrDist = FVector::DistSquared(Location, Transform.GetLocation());
 			SqrDist < MinDistance)
 		{

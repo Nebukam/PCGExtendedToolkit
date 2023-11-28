@@ -74,6 +74,7 @@ FPCGContext* FPCGExSampleNearestPointElement::Initialize(const FPCGDataCollectio
 	PCGEX_FORWARD_OUT_ATTRIBUTE(Normal)
 	PCGEX_FORWARD_OUT_ATTRIBUTE(Distance)
 	PCGEX_FORWARD_OUT_ATTRIBUTE(SignedDistance)
+	PCGEX_FORWARD_OUT_ATTRIBUTE(Angle)
 
 	return Context;
 }
@@ -104,6 +105,11 @@ bool FPCGExSampleNearestPointElement::Validate(FPCGContext* InContext) const
 	PCGEX_CHECK_OUT_ATTRIBUTE_NAME(Normal)
 	PCGEX_CHECK_OUT_ATTRIBUTE_NAME(Distance)
 	PCGEX_CHECK_OUT_ATTRIBUTE_NAME(SignedDistance)
+	Context->SignAxis = Settings->SignAxis;
+	
+	PCGEX_CHECK_OUT_ATTRIBUTE_NAME(Angle)
+	Context->AngleAxis = Settings->AngleAxis;
+	Context->AngleRange = Settings->AngleRange;
 
 	Context->RangeMin = Settings->RangeMin;
 	Context->bLocalRangeMin = Settings->bUseLocalRangeMin;
@@ -195,6 +201,7 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 		PCGEX_INIT_ATTRIBUTE_OUT(Normal, FVector)
 		PCGEX_INIT_ATTRIBUTE_OUT(Distance, double)
 		PCGEX_INIT_ATTRIBUTE_OUT(SignedDistance, double)
+		PCGEX_INIT_ATTRIBUTE_OUT(Angle, double)
 	};
 
 	auto ProcessPoint = [&](const int32 ReadIndex, const UPCGExPointIO* PointIO)
@@ -265,7 +272,8 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 		FVector WeightedLocation = FVector::Zero();
 		FVector WeightedLookAt = FVector::Zero();
 		FVector WeightedNormal = FVector::Zero();
-		double WeightedDistance = 0;
+		FVector WeightedSignAxis = FVector::Zero();
+		FVector WeightedAngleAxis = FVector::Zero();
 		double TotalWeight = 0;
 
 
@@ -277,6 +285,8 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 			WeightedLocation += (TargetLocationOffset * Weight); // Relative to origin
 			WeightedLookAt += (TargetLocationOffset.GetSafeNormal()) * Weight;
 			WeightedNormal += Context->NormalInput.GetValue(TargetPoint) * Weight;
+			WeightedSignAxis += PCGEx::GetDirection(TargetPoint.Transform.GetRotation(), Context->SignAxis) * Weight;
+			WeightedAngleAxis += PCGEx::GetDirection(TargetPoint.Transform.GetRotation(), Context->AngleAxis) * Weight;
 
 			TotalWeight += Weight;
 		};
@@ -307,13 +317,22 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 		WeightedLookAt.Normalize();
 		WeightedNormal.Normalize();
 
+		const double WeightedDistance = WeightedLocation.Length();
+
+		double OutAngle = 0;
+		if (Context->bWriteAngle)
+		{
+			PCGExSampling::GetAngle(Context->AngleRange, WeightedAngleAxis, WeightedLookAt, OutAngle);
+		}
+
 		const PCGMetadataEntryKey Key = Point.MetadataEntry;
 		PCGEX_SET_OUT_ATTRIBUTE(Success, Key, TargetsCompoundInfos.IsValid())
 		PCGEX_SET_OUT_ATTRIBUTE(Location, Key, Origin + WeightedLocation)
 		PCGEX_SET_OUT_ATTRIBUTE(LookAt, Key, WeightedLookAt)
 		PCGEX_SET_OUT_ATTRIBUTE(Normal, Key, WeightedNormal)
-		PCGEX_SET_OUT_ATTRIBUTE(Distance, Key, WeightedLocation.Length())
-		//PCGEX_SET_OUT_ATTRIBUTE(SignedDistance, Key, WeightedNormal)
+		PCGEX_SET_OUT_ATTRIBUTE(Distance, Key, WeightedDistance)
+		PCGEX_SET_OUT_ATTRIBUTE(SignedDistance, Key, FMath::Sign(WeightedSignAxis.Dot(WeightedLookAt)) * WeightedDistance)
+		PCGEX_SET_OUT_ATTRIBUTE(Angle, Key, OutAngle)
 	};
 
 	if (Context->IsState(PCGExMT::EState::ProcessingPoints))

@@ -16,6 +16,7 @@ namespace PCGExPolyLine
 		int32 Segment = -1;
 		FVector Start;
 		FVector End;
+		double AccumulatedLength;
 		double Length;
 		FBox Bounds;
 
@@ -38,6 +39,11 @@ namespace PCGExPolyLine
 			const FVector Point = FMath::ClosestPointOnSegment(Location, Start, End);
 			return PolyLine->GetTransformAtDistance(Segment, FVector::Distance(Start, Point));
 		}
+
+		double GetAccumulatedLengthAt(const FVector& Location) const
+		{
+			return  AccumulatedLength + FVector::Distance(Start, Location);
+		}
 		
 	};
 }
@@ -58,7 +64,9 @@ public:
 	FPCGTaggedData Source;          // Source struct
 	UPCGPolyLineData* In = nullptr; // Input PointData
 	FBox Bounds;
-
+	double TotalLength;
+	double TotalClosedLength;
+	
 	void Flush()
 	{
 		Segments.Empty();
@@ -72,8 +80,8 @@ protected:
 public:
 	PCGExPolyLine::FSegment* NearestSegment(const FVector& Location);
 	PCGExPolyLine::FSegment* NearestSegment(const FVector& Location, const double Range);
-	FTransform SampleNearestTransform(const FVector& Location);
-	bool SampleNearestTransform(const FVector& Location, const double Range, FTransform& OutTransform);
+	FTransform SampleNearestTransform(const FVector& Location, double& OutTime);
+	bool SampleNearestTransform(const FVector& Location, const double Range, FTransform& OutTransform, double& OutTime);
 
 	~UPCGExPolyLineIO()
 	{
@@ -118,8 +126,8 @@ public:
 
 	bool IsEmpty() const { return PolyLines.IsEmpty(); }
 
-	bool SampleNearestTransform(const FVector& Location, FTransform& OutTransform);
-	bool SampleNearestTransformWithinRange(const FVector& Location, const double Range, FTransform& OutTransform);
+	bool SampleNearestTransform(const FVector& Location, FTransform& OutTransform, double& OutTime);
+	bool SampleNearestTransformWithinRange(const FVector& Location, const double Range, FTransform& OutTransform, double& OutTime);
 
 	void Flush()
 	{

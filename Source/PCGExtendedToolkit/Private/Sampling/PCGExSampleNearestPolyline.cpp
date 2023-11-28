@@ -53,8 +53,8 @@ FPCGContext* FPCGExSampleNearestPolylineElement::Initialize(const FPCGDataCollec
 
 	Context->WeightCurve = Settings->WeightOverDistance.LoadSynchronous();
 
-	Context->RangeMin = Settings->MaxDistance;
-	Context->bUseOctree = Settings->MaxDistance <= 0;
+	Context->RangeMin = Settings->RangeMin;
+	Context->RangeMax = Settings->RangeMax;
 
 	PCGEX_FORWARD_OUT_ATTRIBUTE(Success)
 	PCGEX_FORWARD_OUT_ATTRIBUTE(Location)
@@ -62,6 +62,8 @@ FPCGContext* FPCGExSampleNearestPolylineElement::Initialize(const FPCGDataCollec
 	PCGEX_FORWARD_OUT_ATTRIBUTE(Normal)
 	PCGEX_FORWARD_OUT_ATTRIBUTE(Distance)
 	PCGEX_FORWARD_OUT_ATTRIBUTE(SignedDistance)
+	PCGEX_FORWARD_OUT_ATTRIBUTE(Angle)
+	PCGEX_FORWARD_OUT_ATTRIBUTE(Time)
 
 	return Context;
 }
@@ -92,6 +94,13 @@ bool FPCGExSampleNearestPolylineElement::Validate(FPCGContext* InContext) const
 	PCGEX_CHECK_OUT_ATTRIBUTE_NAME(Normal)
 	PCGEX_CHECK_OUT_ATTRIBUTE_NAME(Distance)
 	PCGEX_CHECK_OUT_ATTRIBUTE_NAME(SignedDistance)
+	Context->SignAxis = Settings->SignAxis;
+	
+	PCGEX_CHECK_OUT_ATTRIBUTE_NAME(Angle)
+	Context->AngleAxis = Settings->AngleAxis;
+	Context->AngleRange = Settings->AngleRange;
+	
+	PCGEX_CHECK_OUT_ATTRIBUTE_NAME(Time)
 
 	Context->RangeMin = Settings->RangeMin;
 	Context->bLocalRangeMin = Settings->bUseLocalRangeMin;
@@ -137,7 +146,6 @@ bool FPCGExSampleNearestPolylineElement::ExecuteInternal(FPCGContext* InContext)
 
 	auto Initialize = [&](UPCGExPointIO* PointIO)
 	{
-		
 		PointIO->BuildMetadataEntries();
 
 		if (Context->bLocalRangeMin)
@@ -162,13 +170,14 @@ bool FPCGExSampleNearestPolylineElement::ExecuteInternal(FPCGContext* InContext)
 		PCGEX_INIT_ATTRIBUTE_OUT(Normal, FVector)
 		PCGEX_INIT_ATTRIBUTE_OUT(Distance, double)
 		PCGEX_INIT_ATTRIBUTE_OUT(SignedDistance, double)
+		PCGEX_INIT_ATTRIBUTE_OUT(Angle, double)
+		PCGEX_INIT_ATTRIBUTE_OUT(Time, double)
 	};
 
 	auto ProcessPoint = [&](const int32 PointIndex, const UPCGExPointIO* PointIO)
 	{
-		
 		const FPCGPoint& Point = PointIO->GetOutPoint(PointIndex);
-		
+
 		double RangeMin = FMath::Pow(Context->RangeMinInput.GetValueSafe(Point, Context->RangeMin), 2);
 		double RangeMax = FMath::Pow(Context->RangeMaxInput.GetValueSafe(Point, Context->RangeMax), 2);
 
@@ -180,7 +189,7 @@ bool FPCGExSampleNearestPolylineElement::ExecuteInternal(FPCGContext* InContext)
 		PCGExPolyLine::FTargetsCompoundInfos TargetsCompoundInfos;
 
 		FVector Origin = Point.Transform.GetLocation();
-		auto ProcessTarget = [&](const FTransform& Transform)
+		auto ProcessTarget = [&](const FTransform& Transform, const double& Time)
 		{
 			const double dist = FVector::DistSquared(Origin, Transform.GetLocation());
 
@@ -189,11 +198,11 @@ bool FPCGExSampleNearestPolylineElement::ExecuteInternal(FPCGContext* InContext)
 			if (Context->SampleMethod == EPCGExSampleMethod::ClosestTarget ||
 				Context->SampleMethod == EPCGExSampleMethod::FarthestTarget)
 			{
-				TargetsCompoundInfos.UpdateCompound(PCGExPolyLine::FSampleInfos(Transform, dist));
+				TargetsCompoundInfos.UpdateCompound(PCGExPolyLine::FSampleInfos(Transform, dist, Time));
 			}
 			else
 			{
-				const PCGExPolyLine::FSampleInfos& Infos = TargetsInfos.Emplace_GetRef(Transform, dist);
+				const PCGExPolyLine::FSampleInfos& Infos = TargetsInfos.Emplace_GetRef(Transform, dist, Time);
 				TargetsCompoundInfos.UpdateCompound(Infos);
 			}
 		};
@@ -204,15 +213,17 @@ bool FPCGExSampleNearestPolylineElement::ExecuteInternal(FPCGContext* InContext)
 			for (UPCGExPolyLineIO* Line : Context->Targets->PolyLines)
 			{
 				FTransform SampledTransform;
-				if (!Line->SampleNearestTransform(Origin, FMath::Sqrt(RangeMax), SampledTransform)) { continue; }
-				ProcessTarget(SampledTransform);
+				double Time;
+				if (!Line->SampleNearestTransform(Origin, FMath::Sqrt(RangeMax), SampledTransform, Time)) { continue; }
+				ProcessTarget(SampledTransform, Time);
 			}
 		}
 		else
 		{
 			for (UPCGExPolyLineIO* Line : Context->Targets->PolyLines)
 			{
-				ProcessTarget(Line->SampleNearestTransform(Origin));
+				double Time;
+				ProcessTarget(Line->SampleNearestTransform(Origin, Time), Time);
 			}
 		}
 
@@ -231,18 +242,22 @@ bool FPCGExSampleNearestPolylineElement::ExecuteInternal(FPCGContext* InContext)
 		FVector WeightedLocation = FVector::Zero();
 		FVector WeightedLookAt = FVector::Zero();
 		FVector WeightedNormal = FVector::Zero();
-		double WeightedDistance = 0;
+		FVector WeightedSignAxis = FVector::Zero();
+		FVector WeightedAngleAxis = FVector::Zero();
+		double WeightedTime = 0;
 		double TotalWeight = 0;
 
 
-		auto ProcessTargetInfos = [&]
-			(const PCGExPolyLine::FSampleInfos& TargetInfos, double Weight)
+		auto ProcessTargetInfos = [&](const PCGExPolyLine::FSampleInfos& TargetInfos, const double Weight)
 		{
 			const FVector TargetLocationOffset = TargetInfos.Transform.GetLocation() - Origin;
+			const FQuat Quat = TargetInfos.Transform.GetRotation();
 			WeightedLocation += (TargetLocationOffset * Weight); // Relative to origin
 			WeightedLookAt += (TargetLocationOffset.GetSafeNormal()) * Weight;
-			WeightedNormal += PCGEx::GetDirection(TargetInfos.Transform.GetRotation(), Context->NormalSource) * Weight; // Use forward as default
-
+			WeightedNormal += PCGEx::GetDirection(Quat, Context->NormalSource) * Weight; // Use forward as default
+			WeightedSignAxis += PCGEx::GetDirection(Quat, Context->SignAxis) * Weight;
+			WeightedAngleAxis += PCGEx::GetDirection(Quat, Context->AngleAxis) * Weight;
+			WeightedTime += TargetInfos.Time * Weight;
 			TotalWeight += Weight;
 		};
 
@@ -272,13 +287,23 @@ bool FPCGExSampleNearestPolylineElement::ExecuteInternal(FPCGContext* InContext)
 		WeightedLookAt.Normalize();
 		WeightedNormal.Normalize();
 
+		const double WeightedDistance = WeightedLocation.Length();
+
+		double OutAngle = 0;
+		if (Context->bWriteAngle)
+		{
+			PCGExSampling::GetAngle(Context->AngleRange, WeightedAngleAxis, WeightedLookAt, OutAngle);
+		}
+
 		const PCGMetadataEntryKey Key = Point.MetadataEntry;
 		PCGEX_SET_OUT_ATTRIBUTE(Success, Key, TargetsCompoundInfos.IsValid())
 		PCGEX_SET_OUT_ATTRIBUTE(Location, Key, Origin + WeightedLocation)
 		PCGEX_SET_OUT_ATTRIBUTE(LookAt, Key, WeightedLookAt)
 		PCGEX_SET_OUT_ATTRIBUTE(Normal, Key, WeightedNormal)
-		PCGEX_SET_OUT_ATTRIBUTE(Distance, Key, WeightedLocation.Length())
-		//PCGEX_SET_OUT_ATTRIBUTE(SignedDistance, Key, WeightedNormal)
+		PCGEX_SET_OUT_ATTRIBUTE(Distance, Key, WeightedDistance)
+		PCGEX_SET_OUT_ATTRIBUTE(SignedDistance, Key, FMath::Sign(WeightedSignAxis.Dot(WeightedLookAt)) * WeightedDistance)
+		PCGEX_SET_OUT_ATTRIBUTE(Angle, Key, OutAngle)
+		PCGEX_SET_OUT_ATTRIBUTE(Time, Key, WeightedTime)
 	};
 
 	if (Context->IsState(PCGExMT::EState::ProcessingPoints))

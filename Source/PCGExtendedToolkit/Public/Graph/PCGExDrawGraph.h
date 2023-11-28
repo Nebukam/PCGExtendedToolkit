@@ -46,7 +46,7 @@ public:
 
 	/** Type of edge to draw.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExEdgeType"))
-	uint8 EdgeType = static_cast<uint8>(EPCGExEdgeType::Unknown);
+	uint8 EdgeType = static_cast<uint8>(EPCGExEdgeType::Complete);
 
 	/** Draw socket cones lines.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
