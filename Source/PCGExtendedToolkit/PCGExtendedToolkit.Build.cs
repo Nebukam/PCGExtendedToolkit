@@ -25,6 +25,7 @@ public class PCGExtendedToolkit : ModuleRules
 			{
                 "Core",
                 "CoreUObject",
+                "NavigationSystem",
                 "StaticMeshDescription",
                 "MeshDescription",
                 "Engine",
@@ -38,7 +39,8 @@ public class PCGExtendedToolkit : ModuleRules
 		PrivateDependencyModuleNames.AddRange(
 			new string[]
 			{
-				"Projects" // So that we can use the IPluginManager, required for icons
+				"Projects", // So that we can use the IPluginManager, required for icons
+                "DetailCustomizations"
             }
 			);
 		
@@ -48,5 +50,6 @@ public class PCGExtendedToolkit : ModuleRules
 			{
 			}
 			);
+		
 	}
 }

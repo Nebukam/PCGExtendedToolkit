@@ -71,10 +71,6 @@ namespace PCGExNearestPoint
 	};
 }
 
-/**
- * Use PCGExTransform to manipulate the outgoing attributes instead of handling everything here.
- * This way we can multi-thread the various calculations instead of mixing everything along with async/game thread collision
- */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
 class PCGEXTENDEDTOOLKIT_API UPCGExSampleNearestPointSettings : public UPCGExPointsProcessorSettings
 {

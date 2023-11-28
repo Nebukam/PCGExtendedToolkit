@@ -70,8 +70,8 @@ public:
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 	//~End UPCGSettings interface
 
-	virtual FName GetMainPointsOutputLabel() const;
 	virtual FName GetMainPointsInputLabel() const;
+	virtual FName GetMainPointsOutputLabel() const;	
 	virtual PCGExIO::EInitMode GetPointOutputInitMode() const;
 
 	/** Forces execution on main thread.*/
