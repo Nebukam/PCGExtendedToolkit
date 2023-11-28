@@ -104,8 +104,8 @@ double FPCGExGraphProcessorContext::PrepareProbesForPoint(const FPCGPoint& Point
 	{
 		PCGExGraph::FSocketProbe& NewProbe = OutProbes.Emplace_GetRef();
 		NewProbe.SocketInfos = &CurrentSocketInfos;
-		PrepareProbeForPointSocketPair(Point, NewProbe, CurrentSocketInfos);
-		MaxDistance = FMath::Max(MaxDistance, FMath::Sqrt(NewProbe.MaxDistance));
+		const double Dist = PrepareProbeForPointSocketPair(Point, NewProbe, CurrentSocketInfos);
+		MaxDistance = FMath::Max(MaxDistance, Dist);
 	}
 	return MaxDistance;
 }
@@ -116,7 +116,7 @@ void FPCGExGraphProcessorContext::PrepareCurrentGraphForPoints(const UPCGPointDa
 	CurrentGraph->PrepareForPointData(InData, bEnsureEdgeType);
 }
 
-void FPCGExGraphProcessorContext::PrepareProbeForPointSocketPair(
+double FPCGExGraphProcessorContext::PrepareProbeForPointSocketPair(
 	const FPCGPoint& Point,
 	PCGExGraph::FSocketProbe& Probe,
 	PCGExGraph::FSocketInfos InSocketInfos)
@@ -128,7 +128,7 @@ void FPCGExGraphProcessorContext::PrepareProbeForPointSocketPair(
 	double MaxDistance = BaseAngle.MaxDistance;
 
 	const FTransform PtTransform = Point.Transform;
-	Probe.Origin = PtTransform.GetLocation();
+	FVector Origin = PtTransform.GetLocation();
 
 	if (InSocketInfos.Socket->Descriptor.bRelativeOrientation)
 	{
@@ -153,20 +153,39 @@ void FPCGExGraphProcessorContext::PrepareProbeForPointSocketPair(
 
 	//TODO: Offset origin by extent?
 
-	if (DotTolerance >= 0)
-	{
-		Probe.LooseBounds = PCGExMath::ConeBox(Probe.Origin, Direction, MaxDistance);
-	}
-	else
-	{
-		Probe.LooseBounds = FBoxCenterAndExtent(Probe.Origin, FVector(MaxDistance)).GetBox();
-	}
-
-
 	Probe.Direction = Direction;
 	Probe.DotThreshold = DotTolerance;
 	Probe.MaxDistance = MaxDistance * MaxDistance;
 	Probe.DotOverDistanceCurve = BaseAngle.DotOverDistanceCurve;
+
+	Direction.Normalize();
+	FVector Offset = FVector::ZeroVector;
+	switch (InSocketInfos.Socket->Descriptor.OffsetOrigin)
+	{
+	default:
+	case EPCGExExtension::None:
+		break;
+	case EPCGExExtension::Extents:
+		Offset = Direction * Point.GetExtents();
+		Origin += Offset;
+		break;
+	case EPCGExExtension::Scale:
+		Offset = Direction * Point.Transform.GetScale3D();
+		Origin += Offset;
+		break;
+	case EPCGExExtension::ScaledExtents:
+		Offset = Direction * Point.GetScaledExtents();
+		Origin += Offset;
+		break;
+	}
+
+	Probe.Origin = Origin;
+	MaxDistance += Offset.Length();
+
+	if (DotTolerance >= 0) { Probe.LooseBounds = PCGExMath::ConeBox(Probe.Origin, Direction, MaxDistance); }
+	else { Probe.LooseBounds = FBoxCenterAndExtent(Probe.Origin, FVector(MaxDistance)).GetBox(); }
+
+	return MaxDistance;
 }
 
 FPCGContext* FPCGExGraphProcessorElement::Initialize(

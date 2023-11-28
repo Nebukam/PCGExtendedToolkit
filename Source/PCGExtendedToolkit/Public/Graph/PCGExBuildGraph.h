@@ -30,10 +30,6 @@ public:
 	/** Simple mode ignores candidates weighting and always favors the closest one.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	bool bSimpleMode = true;
-
-	/** If true, will move the origin on the point extent. Otherwise, the origin is the point location.*/
-	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
-	//bool bMoveSocketOriginOnPointExtent = false;
 	
 protected:
 	virtual FPCGElementPtr CreateElement() const override;

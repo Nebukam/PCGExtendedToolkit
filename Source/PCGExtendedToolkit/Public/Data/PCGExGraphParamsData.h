@@ -160,6 +160,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bApplyAttributeModifier", ShowOnlyInnerProperties))
 	FPCGExInputDescriptorWithSingleField AttributeModifier;
 
+	/** Offset socket origin  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	EPCGExExtension OffsetOrigin = EPCGExExtension::None;
+
 	/** Enable/disable this socket. Disabled sockets are omitted during processing. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, AdvancedDisplay)
 	bool bEnabled = true;
@@ -248,13 +252,20 @@ public:
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bOverrideDotOverDistance"))
 	TSoftObjectPtr<UCurveFloat> DotOverDistance;
+
+	/** Offset socket origin */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
+	bool bOverrideOffsetOrigin = false;
+
+	/** Offset socket origin  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bOverrideOffsetOrigin"))
+	EPCGExExtension OffsetOrigin = EPCGExExtension::None;
 };
 
 #pragma endregion
 
 namespace PCGExGraph
 {
-	
 	// Per-socket infos, will end up as FVector4 value
 	struct PCGEXTENDEDTOOLKIT_API FSocketMetadata
 	{
@@ -273,33 +284,6 @@ namespace PCGExGraph
 		int64 Index = -1; // Index of the point this socket connects to
 		PCGMetadataEntryKey EntryKey = PCGInvalidEntryKey;
 		EPCGExEdgeType EdgeType = EPCGExEdgeType::Unknown;
-
-		/*
-		 
-		friend FArchive& operator<<(FArchive& Ar, FSocketMetadata& SocketMetadata)
-		{
-			Ar << SocketMetadata.Index;
-			Ar << SocketMetadata.EntryKey;
-			Ar << SocketMetadata.EdgeType;
-			Ar << SocketMetadata.IndexedDistance;
-			return Ar;
-		}
-
-		FSocketMetadata operator+(const FSocketMetadata& Other) const { return FSocketMetadata{}; }
-
-		FSocketMetadata operator-(const FSocketMetadata& Other) const { return FSocketMetadata{}; }
-
-		FSocketMetadata operator*(const FSocketMetadata& Scalar) const { return FSocketMetadata{}; }
-
-		FSocketMetadata operator*(float Scalar) const { return FSocketMetadata{}; }
-
-		FSocketMetadata operator/(const FSocketMetadata& Scalar) const { return FSocketMetadata{}; }
-
-		bool operator!=(const FSocketMetadata& Other) const { return !(*this == Other); }
-
-		bool operator<(const FSocketMetadata& Other) const { return false; }
-		
-		*/
 
 		bool operator==(const FSocketMetadata& Other) const
 		{
@@ -537,6 +521,7 @@ namespace PCGExGraph
 				if (Overrides.bOverrideMaxDistance) { NewSocket.Descriptor.Angle.MaxDistance = Overrides.MaxDistance; }
 				if (Overrides.bOverrideExclusiveBehavior) { NewSocket.Descriptor.bExclusiveBehavior = Overrides.bExclusiveBehavior; }
 				if (Overrides.bOverrideDotOverDistance) { NewSocket.Descriptor.Angle.DotOverDistance = Overrides.DotOverDistance; }
+				if (Overrides.bOverrideOffsetOrigin) { NewSocket.Descriptor.OffsetOrigin = Overrides.OffsetOrigin; }
 
 				NewSocket.Descriptor.Angle.DotThreshold = FMath::Cos(NewSocket.Descriptor.Angle.Angle * (PI / 180.0));
 
@@ -616,8 +601,8 @@ namespace PCGExGraph
 			Reset();
 		}
 	};
-	
 }
+
 /**
  * 
  */

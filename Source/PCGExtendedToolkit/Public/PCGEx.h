@@ -86,6 +86,15 @@ enum class EPCGExAxis : uint8
 };
 
 UENUM(BlueprintType)
+enum class EPCGExExtension : uint8
+{
+	None UMETA(DisplayName = "None", ToolTip="No Extension"),
+	Extents UMETA(DisplayName = "Extents", ToolTip="Extents"),
+	Scale UMETA(DisplayName = "Scale", ToolTip="Scale"),
+	ScaledExtents UMETA(DisplayName = "Scaled Extents", ToolTip="Scaled extents"),
+};
+
+UENUM(BlueprintType)
 enum class EPCGExCollisionFilterType : uint8
 {
 	Channel UMETA(DisplayName = "Channel", ToolTip="TBD"),
