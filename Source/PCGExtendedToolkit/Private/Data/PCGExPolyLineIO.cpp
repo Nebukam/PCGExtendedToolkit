@@ -17,7 +17,7 @@ PCGExPolyLine::FSegment* UPCGExPolyLineIO::NearestSegment(const FVector& Locatio
 	if (bCacheDirty) { BuildCache(); }
 	FReadScopeLock ReadLock(SegmentLock);
 	PCGExPolyLine::FSegment* NearestSegment = nullptr;
-	double MinDistanceSquared = DBL_MAX;
+	double MinDistanceSquared = TNumericLimits<double>::Max();
 	for (PCGExPolyLine::FSegment& Segment : Segments)
 	{
 		FVector ClosestPoint = Segment.NearestLocation(Location);
@@ -36,7 +36,7 @@ PCGExPolyLine::FSegment* UPCGExPolyLineIO::NearestSegment(const FVector& Locatio
 	if (bCacheDirty) { BuildCache(); }
 	FReadScopeLock ReadLock(SegmentLock);
 	PCGExPolyLine::FSegment* NearestSegment = nullptr;
-	double MinDistanceSquared = DBL_MAX;
+	double MinDistanceSquared = TNumericLimits<double>::Max();
 	for (PCGExPolyLine::FSegment& Segment : Segments)
 	{
 		if (!Segment.Bounds.ExpandBy(Range).IsInside(Location)) { continue; }
@@ -156,7 +156,7 @@ UPCGExPolyLineIO* UPCGExPolyLineIOGroup::Emplace_GetRef(const FPCGTaggedData& So
 
 bool UPCGExPolyLineIOGroup::SampleNearestTransform(const FVector& Location, FTransform& OutTransform, double& OutTime)
 {
-	double MinDistance = DBL_MAX;
+	double MinDistance = TNumericLimits<double>::Max();
 	bool bFound = false;
 	for (UPCGExPolyLineIO* Line : PolyLines)
 	{
@@ -174,7 +174,7 @@ bool UPCGExPolyLineIOGroup::SampleNearestTransform(const FVector& Location, FTra
 
 bool UPCGExPolyLineIOGroup::SampleNearestTransformWithinRange(const FVector& Location, const double Range, FTransform& OutTransform, double& OutTime)
 {
-	double MinDistance = DBL_MAX;
+	double MinDistance = TNumericLimits<double>::Max();
 	bool bFound = false;
 	for (UPCGExPolyLineIO* Line : PolyLines)
 	{

@@ -35,7 +35,7 @@ namespace PCGExNearestPoint
 
 		int32 NumTargets = 0;
 		double TotalWeight = 0;
-		double SampledRangeMin = DBL_MAX;
+		double SampledRangeMin = TNumericLimits<double>::Max();
 		double SampledRangeMax = 0;
 		double SampledRangeWidth = 0;
 		int32 UpdateCount = 0;

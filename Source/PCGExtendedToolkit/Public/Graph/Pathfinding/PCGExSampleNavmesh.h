@@ -16,6 +16,13 @@ namespace PCGExNavmesh
 {
 }
 
+UENUM(BlueprintType)
+enum class EPCGExPathfindingMode : uint8
+{
+	Regular UMETA(DisplayName = "Regular", ToolTip="TBD"),
+	Hierarchical UMETA(DisplayName = "HIerarchical", ToolTip="TBD"),
+};
+
 /**
  * Use PCGExTransform to manipulate the outgoing attributes instead of handling everything here.
  * This way we can multi-thread the various calculations instead of mixing everything along with async/game thread collision
@@ -55,9 +62,15 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	bool bAddGoalToPath = true;
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	bool bRequireNaviguableEndLocation = true;
+	
 	/** Fuse points by distance */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	double FuseDistance = 10;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	EPCGExPathfindingMode PathfindingMode = EPCGExPathfindingMode::Regular;
 	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	FNavAgentProperties NavAgentProperties;
@@ -82,6 +95,8 @@ public:
 	bool bAddGoalToPath = true;
 	FNavAgentProperties NavAgentProperties;
 	ANavigationData* NavData = nullptr;
+	bool bRequireNaviguableEndLocation = true;
+	EPCGExPathfindingMode PathfindingMode;
 	double FuseDistance = 10;
 };
 

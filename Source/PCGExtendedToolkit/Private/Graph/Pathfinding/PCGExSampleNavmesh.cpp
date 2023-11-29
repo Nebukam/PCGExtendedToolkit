@@ -84,6 +84,8 @@ FPCGContext* FPCGExSampleNavmeshElement::Initialize(const FPCGDataCollection& In
 	Context->bAddSeedToPath = Settings->bAddSeedToPath;
 	Context->bAddGoalToPath = Settings->bAddGoalToPath;
 	Context->FuseDistance = Settings->FuseDistance * Settings->FuseDistance;
+	Context->bRequireNaviguableEndLocation = Settings->bRequireNaviguableEndLocation;
+	Context->PathfindingMode = Settings->PathfindingMode;
 
 	return Context;
 }
@@ -172,9 +174,17 @@ void FNavmeshPathTask::ExecuteTask()
 		const FVector EndLocation = EndPoint.Transform.GetLocation();
 
 		// Find the path
-		const FPathFindingQuery PathFindingQuery = FPathFindingQuery(Context->World, *Context->NavData, StartLocation, EndLocation);
-		const FPathFindingResult Result = NavSys->FindPathSync(Context->NavAgentProperties, PathFindingQuery);
-		//UNavigationPath* NavPath = NavSys->FindPathToLocationSynchronously(Context->World, StartLocation, EndLocation, Context->NavAgentProperties);
+		FPathFindingQuery PathFindingQuery = FPathFindingQuery(
+			Context->World, *Context->NavData,
+			StartLocation, EndLocation, 0, 0,
+			TNumericLimits<FVector::FReal>::Max(),
+			Context->bRequireNaviguableEndLocation);
+
+		PathFindingQuery.NavAgentProperties = Context->NavAgentProperties;
+
+		const FPathFindingResult Result = NavSys->FindPathSync(
+			Context->NavAgentProperties, PathFindingQuery,
+			Context->PathfindingMode == EPCGExPathfindingMode::Regular ? EPathFindingMode::Type::Regular : EPathFindingMode::Type::Hierarchical);
 
 		if (!IsTaskValid()) { return; }
 
@@ -223,7 +233,6 @@ void FNavmeshPathTask::ExecuteTask()
 					Point.Transform = DesiredTransform;
 				}
 			}
-
 
 			bSuccess = true;
 		}

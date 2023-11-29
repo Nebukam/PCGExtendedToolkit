@@ -90,7 +90,7 @@ namespace PCGExGraph
 		{
 		}
 
-		double Distance = DBL_MAX;
+		double Distance = TNumericLimits<double>::Max();
 		double Dot = -1;
 
 		int32 Index = -1;
@@ -114,15 +114,15 @@ namespace PCGExGraph
 
 		FBox LooseBounds;
 
-		double IndexedRating = DBL_MAX;
+		double IndexedRating = TNumericLimits<double>::Max();
 		double IndexedDistanceRating = 0;
 		double IndexedDotRating = 0;
 		double IndexedDotWeight = 0;
 
 		double ProbedDistanceMax = 0;
-		double ProbedDistanceMin = DBL_MAX;
+		double ProbedDistanceMin = TNumericLimits<double>::Max();
 		double ProbedDotMax = 0;
-		double ProbedDotMin = DBL_MAX;
+		double ProbedDotMin = TNumericLimits<double>::Max();
 
 
 		bool ProcessPointComplex(const FPCGPoint* Point, const int32 Index)
