@@ -23,14 +23,13 @@ public:
 	PCGEX_NODE_INFOS(DeleteGraph, "Delete Graph", "Delete data associated with given Graph Params.");
 #endif
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
-	
+
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	virtual PCGExIO::EInitMode GetPointOutputInitMode() const override;
 	//~End UPCGSettings interface
-	
-	virtual int32 GetPreferredChunkSize() const override;
 
+	virtual int32 GetPreferredChunkSize() const override;
 
 private:
 	friend class FPCGExDeleteGraphElement;

@@ -4,8 +4,8 @@
 #include "Graph/Pathfinding/PCGExSampleNavmesh.h"
 
 #include "NavigationSystem.h"
+
 #include "PCGExPointsProcessor.h"
-#include "PCGPin.h"
 #include "Graph/PCGExGraph.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSampleNavmeshElement"
@@ -63,12 +63,28 @@ FPCGContext* FPCGExSampleNavmeshElement::Initialize(const FPCGDataCollection& In
 	const UPCGExSampleNavmeshSettings* Settings = Context->GetInputSettings<UPCGExSampleNavmeshSettings>();
 	check(Settings);
 
-	Context->GoalsPoints = NewObject<UPCGExPointIOGroup>();
-	TArray<FPCGTaggedData> Goals = Context->InputData.GetInputsByPin(PCGExGraph::SourceGoalsLabel);
-	Context->GoalsPoints->Initialize(Context, Goals, PCGExIO::EInitMode::NoOutput);
+	if (TArray<FPCGTaggedData> Goals = Context->InputData.GetInputsByPin(PCGExGraph::SourceGoalsLabel);
+		Goals.Num() > 0)
+	{
+		const FPCGTaggedData& GoalsSource = Goals[0];
+		Context->GoalsPoints = PCGExIO::TryGetPointIO(Context, GoalsSource);
+	}
 
+	if (!Settings->NavData)
+	{
+		if (const UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(Context->World))
+		{
+			ANavigationData* NavData = NavSys->GetDefaultNavDataInstance();
+			Context->NavData = NavData;
+		}
+	}
+
+	Context->OutputPaths = NewObject<UPCGExPointIOGroup>();
 	Context->NavAgentProperties = Settings->NavAgentProperties;
-	
+	Context->bAddSeedToPath = Settings->bAddSeedToPath;
+	Context->bAddGoalToPath = Settings->bAddGoalToPath;
+	Context->FuseDistance = Settings->FuseDistance * Settings->FuseDistance;
+
 	return Context;
 }
 
@@ -80,9 +96,15 @@ bool FPCGExSampleNavmeshElement::Validate(FPCGContext* InContext) const
 	const UPCGExSampleNavmeshSettings* Settings = InContext->GetInputSettings<UPCGExSampleNavmeshSettings>();
 	check(Settings);
 
-	if (Context->GoalsPoints->IsEmpty())
+	if (!Context->GoalsPoints || Context->GoalsPoints->In->GetPoints().Num() == 0)
 	{
 		PCGE_LOG(Error, GraphAndLog, LOCTEXT("MissingGoals", "Missing Input Goals."));
+		return false;
+	}
+
+	if (!Context->NavData)
+	{
+		PCGE_LOG(Error, GraphAndLog, LOCTEXT("NoNavData", "Missing Nav Data"));
 		return false;
 	}
 
@@ -94,29 +116,120 @@ bool FPCGExSampleNavmeshElement::ExecuteInternal(FPCGContext* InContext) const
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExSampleNavmeshElement::Execute);
 
 	FPCGExSampleNavmeshContext* Context = static_cast<FPCGExSampleNavmeshContext*>(InContext);
-	
+
+	if (Context->IsState(PCGExMT::EState::Setup))
+	{
+		if (!Validate(Context)) { return true; }
+		Context->AdvancePointsIO();
+		Context->SetState(PCGExMT::EState::ProcessingPoints);
+	}
+
+	auto ProcessPoint = [&](const int32 PointIndex, const UPCGExPointIO* PointIO)
+	{
+		FAsyncTask<FNavmeshPathTask>* AsyncTask = Context->CreateTask<FNavmeshPathTask>(PointIndex, PointIO->GetInPoint(PointIndex).MetadataEntry);
+		FNavmeshPathTask& Task = AsyncTask->GetTask();
+		Task.GoalIndex = FMath::Wrap(PointIndex, 0, Context->GoalsPoints->NumInPoints - 1);
+		Task.PathPoints = Context->OutputPaths->Emplace_GetRef()->Out;
+
+		Context->StartTask(AsyncTask);
+	};
+
+	if (Context->IsState(PCGExMT::EState::ProcessingPoints))
+	{
+		if (Context->AsyncProcessingCurrentPoints(ProcessPoint))
+		{
+			Context->SetState(PCGExMT::EState::WaitingOnAsyncWork);
+		}
+	}
+
+	if (Context->IsState(PCGExMT::EState::WaitingOnAsyncWork))
+	{
+		if (Context->IsAsyncWorkComplete())
+		{
+			Context->OutputPaths->OutputTo(Context, true);
+			return true;
+		}
+	}
+
+	return false;
+}
+
+void FNavmeshPathTask::ExecuteTask()
+{
+	FPCGExSampleNavmeshContext* Context = static_cast<FPCGExSampleNavmeshContext*>(TaskContext);
+
+	if (!IsTaskValid()) { return; }
+
+	FWriteScopeLock WriteLock(Context->ContextLock);
+
+	bool bSuccess = false;
+
 	if (UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(Context->World))
 	{
-		/*
+		const FPCGPoint& StartPoint = PointData->GetInPoint(Infos.Index);
+		const FPCGPoint& EndPoint = Context->GoalsPoints->GetInPoint(GoalIndex);
+		const FVector StartLocation = StartPoint.Transform.GetLocation();
+		const FVector EndLocation = EndPoint.Transform.GetLocation();
+
 		// Find the path
-		UNavigationPath* NavPath = NavSys->FindPathToLocationSynchronously(Context->World, StartLocation, TargetLocation, Context->NavAgentProperties);
-		
-		if (NavPath && NavPath->PathPoints.Num() > 1)
+		const FPathFindingQuery PathFindingQuery = FPathFindingQuery(Context->World, *Context->NavData, StartLocation, EndLocation);
+		const FPathFindingResult Result = NavSys->FindPathSync(Context->NavAgentProperties, PathFindingQuery);
+		//UNavigationPath* NavPath = NavSys->FindPathToLocationSynchronously(Context->World, StartLocation, EndLocation, Context->NavAgentProperties);
+
+		if (!IsTaskValid()) { return; }
+
+		if (Result.Result == ENavigationQueryResult::Type::Success)
 		{
-			// The path is available, do something with it
-			for (FVector PathPoint : NavPath->PathPoints)
+			TArray<FPCGPoint>& MutablePoints = PathPoints->GetMutablePoints();
+
+			if (Context->bAddSeedToPath) { MutablePoints.Emplace_GetRef().Transform.SetLocation(StartLocation); }
+			for (TArray<FNavPathPoint>& Points = Result.Path->GetPathPoints(); FNavPathPoint PathPoint : Points)
 			{
-				// Process each point in the path
+				MutablePoints.Emplace_GetRef().Transform.SetLocation(PathPoint.Location);
 			}
+			if (Context->bAddGoalToPath) { MutablePoints.Emplace_GetRef().Transform.SetLocation(EndLocation); }
+
+			int32 NumPts = MutablePoints.Num() - 1;
+			for (int i = 0; i <= NumPts; i++)
+			{
+				FPCGPoint& Point = MutablePoints[i];
+				FVector CurrentLocation = Point.Transform.GetLocation();
+
+				if (i > 0 && i < NumPts - 1)
+				{
+					FPCGPoint& PrevPoint = MutablePoints[i - 1];
+					if (FVector::DistSquared(CurrentLocation, PrevPoint.Transform.GetLocation()) < Context->FuseDistance)
+					{
+						// Fuse
+						MutablePoints.RemoveAt(i);
+						i--;
+						NumPts--;
+						continue;
+					}
+				}
+
+				if (i < NumPts)
+				{
+					FPCGPoint& NextPoint = MutablePoints[i + 1];
+					FRotator DesiredRotation = FRotationMatrix::MakeFromX(CurrentLocation - NextPoint.Transform.GetLocation()).Rotator();
+					FTransform DesiredTransform = FTransform(DesiredRotation, CurrentLocation);
+					Point.Transform = DesiredTransform;
+				}
+				else
+				{
+					FPCGPoint& PrevPoint = MutablePoints[i - 1];
+					FRotator DesiredRotation = FRotationMatrix::MakeFromX(PrevPoint.Transform.GetLocation() - CurrentLocation).Rotator();
+					FTransform DesiredTransform = FTransform(DesiredRotation, CurrentLocation);
+					Point.Transform = DesiredTransform;
+				}
+			}
+
+
+			bSuccess = true;
 		}
-		else
-		{
-			// Pathfinding failed
-		}
-		*/
 	}
-	
-	return true;
+
+	ExecutionComplete(bSuccess);
 }
 
 #undef LOCTEXT_NAMESPACE

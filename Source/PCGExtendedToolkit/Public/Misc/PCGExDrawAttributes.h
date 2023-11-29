@@ -18,6 +18,7 @@ enum class EPCGExDebugExpression : uint8
 	ConnectionToIndex UMETA(DisplayName = "Connection (Point Index)", ToolTip="Attribute is treated as a lookup index in the same data block."),
 	ConnectionToPosition UMETA(DisplayName = "Connection (Position)", ToolTip="Attribute is treated as world space position in the same data block."),
 	Point UMETA(DisplayName = "Point", ToolTip="Attribute is treated as a world space position."),
+	Label UMETA(DisplayName = "Label", ToolTip="Displays attribute values as string"),
 };
 
 USTRUCT(BlueprintType)
@@ -32,7 +33,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeDebugDrawDescriptor : public FPCGEx
 #if WITH_EDITOR
 	virtual FString GetDisplayName() const override;
 #endif
-	
+
 	/** Enable or disable this debug group. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(DisplayPriority=-1))
 	bool bEnabled = true;
@@ -103,119 +104,27 @@ public:
 	PCGEx::FLocalSingleComponentInput IndexInput;
 	PCGEx::FLocalSingleComponentInput SizeAttributeInput;
 	PCGEx::FLocalVectorInput ColorAttributeInput;
+	PCGEx::FLocalToDebugString TextInput;
 
 	bool bValid = false;
 
-	bool Validate(const UPCGPointData* InData)
-	{
-		bValid = false;
+	bool Validate(const UPCGPointData* InData);
 
-		switch (Descriptor->ExpressedAs)
-		{
-		case EPCGExDebugExpression::Direction:
-		case EPCGExDebugExpression::Point:
-		case EPCGExDebugExpression::ConnectionToPosition:
-			VectorInput.Descriptor = static_cast<FPCGExInputDescriptor>(*Descriptor);
-			VectorInput.Axis = Descriptor->Axis;
-			bValid = VectorInput.Validate(InData);
-			break;
-		case EPCGExDebugExpression::ConnectionToIndex:
-			IndexInput.Descriptor = static_cast<FPCGExInputDescriptor>(*Descriptor);
-			IndexInput.Axis = Descriptor->Axis;
-			IndexInput.Field = Descriptor->Field;
-			bValid = IndexInput.Validate(InData);
-			break;
-		default: ;
-		}
+	double GetSize(const FPCGPoint& Point) const;
+	FColor GetColor(const FPCGPoint& Point) const;
+	FVector GetVector(const FPCGPoint& Point) const;
+	FVector GetIndexedPosition(const FPCGPoint& Point, const UPCGPointData* PointData) const;
 
-		if (bValid)
-		{
-			SizeAttributeInput.Capture(Descriptor->SizeAttribute);
-			SizeAttributeInput.Validate(InData);
-
-			ColorAttributeInput.Descriptor = Descriptor->ColorAttribute;
-			ColorAttributeInput.Validate(InData);
-		}
-		else
-		{
-			SizeAttributeInput.bValid = false;
-			ColorAttributeInput.bValid = false;
-		}
-
-		return bValid;
-	}
-
-	double GetSize(const FPCGPoint& Point) const
-	{
-		double Value = Descriptor->Size;
-		if (Descriptor->bSizeFromAttribute && SizeAttributeInput.bValid) { Value = SizeAttributeInput.GetValue(Point) * Descriptor->Size; }
-		return Value;
-	}
-
-	FColor GetColor(const FPCGPoint& Point) const
-	{
-		if (Descriptor->bColorFromAttribute && ColorAttributeInput.bValid)
-		{
-			const FVector Value = ColorAttributeInput.GetValue(Point);
-			return Descriptor->bColorIsLinear ? FColor(Value.X * 255.0f, Value.Y * 255.0f, Value.Z * 255.0f) : FColor(Value.X, Value.Y, Value.Z);
-		}
-		else
-		{
-			return Descriptor->Color;
-		}
-	}
-
-	FVector GetVector(const FPCGPoint& Point) const
-	{
-		FVector OutVector = VectorInput.GetValueSafe(Point, FVector::ZeroVector);
-		if (Descriptor->ExpressedAs == EPCGExDebugExpression::Direction && Descriptor->bNormalizeBeforeSizing) { OutVector.Normalize(); }
-		return OutVector;
-	}
-
-	FVector GetIndexedPosition(const FPCGPoint& Point, const UPCGPointData* PointData) const
-	{
-		const int64 OutIndex = IndexInput.GetValueSafe(Point, -1);
-		if (OutIndex != -1) { return PointData->GetPoints()[OutIndex].Transform.GetLocation(); }
-		return Point.Transform.GetLocation();
-	}
-
-	void Draw(const UWorld* World, const FVector& Start, const FPCGPoint& Point, const UPCGPointData* PointData) const
-	{
-		switch (Descriptor->ExpressedAs)
-		{
-		case EPCGExDebugExpression::Direction:
-			DrawDirection(World, Start, Point);
-			break;
-		case EPCGExDebugExpression::ConnectionToIndex:
-			DrawConnection(World, Start, Point, GetIndexedPosition(Point, PointData));
-			break;
-		case EPCGExDebugExpression::ConnectionToPosition:
-			DrawConnection(World, Start, Point, GetVector(Point));
-			break;
-		case EPCGExDebugExpression::Point:
-			DrawPoint(World, Start, Point);
-			break;
-		default: ;
-		}
-	}
+	void Draw(const UWorld* World, const FVector& Start, const FPCGPoint& Point, const UPCGPointData* PointData) const;
 
 protected:
-	void DrawDirection(const UWorld* World, const FVector& Start, const FPCGPoint& Point) const
-	{
-		const FVector Dir = GetVector(Point) * GetSize(Point);
-		DrawDebugDirectionalArrow(World, Start, Start + Dir, Dir.Length() * 0.05f, GetColor(Point), true, -1, 0, Descriptor->Thickness);
-	}
+	void DrawDirection(const UWorld* World, const FVector& Start, const FPCGPoint& Point) const;
+	void DrawConnection(const UWorld* World, const FVector& Start, const FPCGPoint& Point, const FVector& End) const;
+	void DrawPoint(const UWorld* World, const FVector& Start, const FPCGPoint& Point) const;
+	void DrawLabel(const UWorld* World, const FVector& Start, const FPCGPoint& Point) const;
 
-	void DrawConnection(const UWorld* World, const FVector& Start, const FPCGPoint& Point, const FVector& End) const
-	{
-		DrawDebugLine(World, Start, End, GetColor(Point), true, -1, 0, Descriptor->Thickness);
-	}
-
-	void DrawPoint(const UWorld* World, const FVector& Start, const FPCGPoint& Point) const
-	{
-		const FVector End = GetVector(Point);
-		DrawDebugPoint(World, End, GetSize(Point), GetColor(Point), true, -1, 0);
-	}
+	template <typename T, typename dummy = void>
+	FString AsString(const T& InValue) { return InValue.ToString(); }
 };
 
 
@@ -239,7 +148,7 @@ public:
 #endif
 
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
-	
+
 	/** Attributes to draw.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(TitleProperty="{HiddenDisplayName} as {ExpressedAs}"))
 	TArray<FPCGExAttributeDebugDrawDescriptor> DebugList;

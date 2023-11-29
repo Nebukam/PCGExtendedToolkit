@@ -123,7 +123,7 @@ bool FPCGExDrawGraphElement::ExecuteInternal(FPCGContext* InContext) const
 				if (SocketMetadata.Index == -1) { continue; }
 				if (static_cast<uint8>((SocketMetadata.EdgeType & static_cast<EPCGExEdgeType>(Settings->EdgeType))) == 0) { continue; }
 
-				FPCGPoint PtB = PointIO->In->GetPoints()[SocketMetadata.Index];
+				FPCGPoint PtB = PointIO->GetInPoint(SocketMetadata.Index);
 				FVector End = PtB.Transform.GetLocation();
 				float Thickness = 1.0f;
 				float ArrowSize = 0.0f;

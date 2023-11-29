@@ -77,7 +77,6 @@ bool FPCGExSampleSurfaceGuidedElement::ExecuteInternal(FPCGContext* InContext) c
 
 	auto Initialize = [&](UPCGExPointIO* PointIO) //UPCGExPointIO* PointIO
 	{
-		Context->NumTraceComplete = 0;
 		Context->Direction.Validate(PointIO->Out);
 		PointIO->BuildMetadataEntries();
 
@@ -87,31 +86,22 @@ bool FPCGExSampleSurfaceGuidedElement::ExecuteInternal(FPCGContext* InContext) c
 		PCGEX_INIT_ATTRIBUTE_OUT(Distance, double)
 	};
 
-	// auto ProcessPoint = [&](const FPCGPoint& Point, const int32 Index, UPCGExPointIO* PointIO) { Context->ScheduleTask<FTraceTask>(Index, Point.MetadataEntry); };
-
 	auto ProcessPoint = [&](const int32 PointIndex, const UPCGExPointIO* PointIO)
 	{
-		FAsyncTask<FTraceTask>* Task = Context->CreateTask<FTraceTask>(PointIndex, PointIO->GetOutPoint(PointIndex).MetadataEntry);
-		Task->StartBackgroundTask();
+		Context->CreateAndStartTask<FTraceTask>(PointIndex, PointIO->GetOutPoint(PointIndex).MetadataEntry);
 	};
 
 	if (Context->IsState(PCGExMT::EState::ProcessingPoints))
 	{
 		if (Context->AsyncProcessingCurrentPoints(Initialize, ProcessPoint))
 		{
-			Context->SetState(PCGExMT::EState::WaitingOnAsyncTasks);
+			Context->SetState(PCGExMT::EState::WaitingOnAsyncWork);
 		}
-		/*
-		if (Context->CurrentIO->OutputParallelProcessing(Context, Initialize, ProcessPoint, Context->ChunkSize))
-		{
-			Context->SetState(PCGExMT::EState::WaitingOnAsyncTasks);
-		}
-		*/
 	}
 
-	if (Context->IsState(PCGExMT::EState::WaitingOnAsyncTasks))
+	if (Context->IsState(PCGExMT::EState::WaitingOnAsyncWork))
 	{
-		if (Context->NumTraceComplete == Context->CurrentIO->NumInPoints)
+		if (Context->IsAsyncWorkComplete())
 		{
 			Context->SetState(PCGExMT::EState::ReadyForNextPoints);
 		}
@@ -124,6 +114,58 @@ bool FPCGExSampleSurfaceGuidedElement::ExecuteInternal(FPCGContext* InContext) c
 	}
 
 	return false;
+}
+
+void FTraceTask::ExecuteTask()
+{
+	const FPCGExSampleSurfaceGuidedContext* Context = static_cast<FPCGExSampleSurfaceGuidedContext*>(TaskContext);
+	const FPCGPoint& InPoint = PointData->GetInPoint(Infos.Index);
+	const FVector Origin = InPoint.Transform.GetLocation();
+
+	FCollisionQueryParams CollisionParams;
+	if (Context->bIgnoreSelf) { CollisionParams.AddIgnoredActor(TaskContext->SourceComponent->GetOwner()); }
+
+	const double Size = Context->bUseLocalSize ? Context->LocalSize.GetValue(InPoint) : Context->Size;
+	const FVector Trace = Context->Direction.GetValue(InPoint) * Size;
+	const FVector End = Origin + Trace;
+		
+	if (!IsTaskValid()) { return; }
+
+	bool bSuccess = false;
+		
+	auto ProcessTraceResult = [&]()
+	{
+		PCGEX_SET_OUT_ATTRIBUTE(Location, Infos.Key, HitResult.ImpactPoint)
+		PCGEX_SET_OUT_ATTRIBUTE(Normal, Infos.Key, HitResult.Normal)
+		PCGEX_SET_OUT_ATTRIBUTE(Distance, Infos.Key, FVector::Distance(HitResult.ImpactPoint, Origin))
+		bSuccess = true;
+	};
+
+	if (Context->CollisionType == EPCGExCollisionFilterType::Channel)
+	{
+		if (Context->World->LineTraceSingleByChannel(HitResult, Origin, End, Context->CollisionChannel, CollisionParams))
+		{
+			ProcessTraceResult();
+		}
+	}
+	else
+	{
+		const FCollisionObjectQueryParams ObjectQueryParams = FCollisionObjectQueryParams(Context->CollisionObjectType);
+		if (Context->World->LineTraceSingleByObjectType(HitResult, Origin, End, ObjectQueryParams, CollisionParams))
+		{
+			ProcessTraceResult();
+		}
+	}
+
+	if(Context->bProjectFailToSize)
+	{
+		PCGEX_SET_OUT_ATTRIBUTE(Location, Infos.Key, End)
+		PCGEX_SET_OUT_ATTRIBUTE(Normal, Infos.Key, Trace.GetSafeNormal()*-1)
+		PCGEX_SET_OUT_ATTRIBUTE(Distance, Infos.Key, Size)
+	}
+		
+	PCGEX_SET_OUT_ATTRIBUTE(Success, Infos.Key, bSuccess)
+	ExecutionComplete(bSuccess);
 }
 
 #undef LOCTEXT_NAMESPACE

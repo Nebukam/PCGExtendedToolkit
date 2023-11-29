@@ -123,9 +123,6 @@ public:
 	PCGEX_OUT_ATTRIBUTE(Normal, FVector)
 	PCGEX_OUT_ATTRIBUTE(Distance, double)
 
-	int64 NumSweepComplete = 0;
-
-	void WrapSweepTask(const FPointTask* Task, bool bSuccess);
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestSurfaceElement : public FPCGExPointsProcessorElementBase
@@ -148,79 +145,11 @@ public:
 
 	double RangeMax = 1000;
 	
-	FSweepSphereTask(FPCGContext* InContext, UPCGExPointIO* InPointData, PCGExMT::FTaskInfos InInfos) :
+	FSweepSphereTask(FPCGExPointsProcessorContext* InContext, UPCGExPointIO* InPointData, const PCGExMT::FTaskInfos& InInfos) :
 		FPointTask(InContext, InPointData, InInfos)
 	{
 	}
 
-	virtual void ExecuteTask(FPCGContext* InContext) override
-	{
-		FPCGExSampleNearestSurfaceContext* Context = static_cast<FPCGExSampleNearestSurfaceContext*>(InContext);
-		const FPCGPoint& InPoint = PointData->In->GetPoints()[Infos.Index];
-		const FVector Origin = InPoint.Transform.GetLocation();
-
-		FCollisionQueryParams CollisionParams;
-		if (Context->bIgnoreSelf) { CollisionParams.AddIgnoredActor(InContext->SourceComponent->GetOwner()); }
-
-		FCollisionShape CollisionShape = FCollisionShape::MakeSphere(RangeMax);
-
-		if (!Context->MainPoints) { return; }
-
-		FVector HitLocation;
-		bool bSuccess = false;
-		TArray<FOverlapResult> OutOverlaps;
-
-		auto ProcessOverlapResults = [&]()
-		{
-			float MinDist = MAX_FLT;
-			for (const FOverlapResult& Overlap : OutOverlaps)
-			{
-				if (!Overlap.bBlockingHit) { continue; }
-				FVector OutClosestLocation;
-				const float Distance = Overlap.Component->GetClosestPointOnCollision(Origin, OutClosestLocation);
-				if (Distance < 0) { continue; }
-				if (Distance == 0)
-				{
-					// Fallback for complex collisions?
-					continue;
-				}
-				if (Distance < MinDist)
-				{
-					MinDist = Distance;
-					HitLocation = OutClosestLocation;
-					bSuccess = true;
-				}
-			}
-
-			if (bSuccess)
-			{
-				const FVector Direction = (HitLocation - Origin).GetSafeNormal();
-				PCGEX_SET_OUT_ATTRIBUTE(Location, Infos.Key, HitLocation)
-				PCGEX_SET_OUT_ATTRIBUTE(Normal, Infos.Key, Direction*-1) // TODO: expose "precise normal" in which case we line trace to location
-				PCGEX_SET_OUT_ATTRIBUTE(LookAt, Infos.Key, Direction)
-				PCGEX_SET_OUT_ATTRIBUTE(Distance, Infos.Key, MinDist)
-			}
-		};
-
-
-		if (Context->CollisionType == EPCGExCollisionFilterType::Channel)
-		{
-			if (Context->World->OverlapMultiByChannel(OutOverlaps, Origin, FQuat::Identity, Context->CollisionChannel, CollisionShape, CollisionParams))
-			{
-				ProcessOverlapResults();
-			}
-		}
-		else
-		{
-			if (FCollisionObjectQueryParams ObjectQueryParams = FCollisionObjectQueryParams(Context->CollisionObjectType);
-				Context->World->OverlapMultiByObjectType(OutOverlaps, Origin, FQuat::Identity, ObjectQueryParams, CollisionShape, CollisionParams))
-			{
-				ProcessOverlapResults();
-			}
-		}
-
-		PCGEX_SET_OUT_ATTRIBUTE(Success, Infos.Key, bSuccess)
-		Context->WrapSweepTask(this, bSuccess);
-	}
+	virtual void ExecuteTask() override;
 
 };

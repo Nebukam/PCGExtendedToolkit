@@ -429,7 +429,6 @@ virtual _TYPE Convert(const FName Value) const override { return _TYPE(Value.ToS
 
 		void Capture(const FPCGExInputDescriptorWithSingleField& InDescriptor);
 		void Capture(const FPCGExInputDescriptorGeneric& InDescriptor);
-		
 
 	protected:
 		virtual double GetDefaultValue() const override { return 0; }
@@ -541,6 +540,32 @@ virtual _TYPE Convert(const FName Value) const override { return _TYPE(Value.ToS
 		virtual FVector Convert(const FRotator Value) const override { return Value.Vector(); }
 		virtual FVector Convert(const FString Value) const override { return GetDefaultValue(); }
 		virtual FVector Convert(const FName Value) const override { return GetDefaultValue(); }
+	};
+
+	struct PCGEXTENDEDTOOLKIT_API FLocalToDebugString : public FAttributeHandle<FString>
+	{
+		FLocalToDebugString()
+		{
+		}
+
+	public:
+
+	protected:
+		virtual FString GetDefaultValue() const override { return ""; }
+
+		virtual FString Convert(const bool Value) const override { return FString::Printf(TEXT("%s"), Value ? TEXT("true") : TEXT("false")); }
+		virtual FString Convert(const int32 Value) const override { return FString::Printf(TEXT("%d"), Value); }
+		virtual FString Convert(const int64 Value) const override { return FString::Printf(TEXT("%lld"), Value); }
+		virtual FString Convert(const float Value) const override { return FString::Printf(TEXT("%f"), Value); }
+		virtual FString Convert(const double Value) const override { return FString::Printf(TEXT("%lf"), Value); }
+		virtual FString Convert(const FVector2D Value) const override { return FString::Printf(TEXT("%s"), *Value.ToString()); }
+		virtual FString Convert(const FVector Value) const override { return FString::Printf(TEXT("%s"), *Value.ToString()); }
+		virtual FString Convert(const FVector4 Value) const override { return FString::Printf(TEXT("%s"), *Value.ToString()); }
+		virtual FString Convert(const FQuat Value) const override { return FString::Printf(TEXT("%s"), *Value.ToString()); }
+		virtual FString Convert(const FTransform Value) const override { return FString::Printf(TEXT("%s"), *Value.ToString()); }
+		virtual FString Convert(const FRotator Value) const override { return FString::Printf(TEXT("%s"), *Value.ToString()); }
+		virtual FString Convert(const FString Value) const override { return FString::Printf(TEXT("%s"), *Value); }
+		virtual FString Convert(const FName Value) const override { return FString::Printf(TEXT("%s"), *Value.ToString()); }
 	};
 
 #pragma endregion

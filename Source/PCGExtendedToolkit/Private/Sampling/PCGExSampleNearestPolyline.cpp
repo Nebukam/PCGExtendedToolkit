@@ -3,8 +3,6 @@
 
 #include "Sampling/PCGExSampleNearestPolyline.h"
 
-#include "PCGPin.h"
-
 #define LOCTEXT_NAMESPACE "PCGExSampleNearestPolylineElement"
 
 UPCGExSampleNearestPolylineSettings::UPCGExSampleNearestPolylineSettings(

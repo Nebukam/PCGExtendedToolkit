@@ -11,7 +11,6 @@
         - [Partition by Values](PCGExPartitionByValues.md)
         - [Fuse Points](PCGExFusePoints.md)
         - [Write Index](PCGExWriteIndex.md)
-        - [Write Tangents](PCGExWriteTangents.md)
         - ~~[Operations](PCGExOperations.md)~~
     - Graph
         - [Create Graph Params](PCGExCreateGraphParams.md)
@@ -24,7 +23,9 @@
         - [Delete Graph](PCGExDeleteGraph.md)
         - Pathfinding
             - [Edges to Paths](PCGExEdgesToPaths.md)
-
+    - Splines
+        - [Write Tangents](PCGExWriteTangents.md)
+        - [Auto Tangents](PCGExAutoTangents.md)
     - Data Sampling
         - [Sample Nearest Point](PCGExSampleNearestPoint.md)
         - [Sample Nearest Surface](PCGExSampleNearestSurface.md)

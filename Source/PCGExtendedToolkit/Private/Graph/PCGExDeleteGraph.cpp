@@ -11,7 +11,7 @@ TArray<FPCGPinProperties> UPCGExDeleteGraphSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
 	PinProperties.Pop();
-	return  PinProperties;
+	return PinProperties;
 }
 
 FPCGElementPtr UPCGExDeleteGraphSettings::CreateElement() const { return MakeShared<FPCGExDeleteGraphElement>(); }

@@ -121,10 +121,6 @@ protected:
 	virtual PCGExIO::EInitMode GetPointOutputInitMode() const override;
 
 public:
-	/** Deterministic fusing is not multi-threaded, hence will run MUCH MORE slowly. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	bool bDeterministic = false;
-
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExFuseMethod FuseMethod = EPCGExFuseMethod::Average;
@@ -212,7 +208,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFusePointsContext : public FPCGExPointsProce
 	friend class FPCGExFusePointsElement;
 
 public:
-	bool bDeterministic;
 	int32 CurrentIndex = 0;
 	EPCGExFuseMethod FuseMethod;
 	double Radius;

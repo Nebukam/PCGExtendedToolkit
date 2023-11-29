@@ -45,8 +45,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingProcessorContext : public FPCGExG
 
 public:
 	UPCGExPointIOGroup* PathsPoints = nullptr;
-	UPCGExPointIOGroup* SeedsPoints = nullptr;
-	UPCGExPointIOGroup* GoalsPoints = nullptr;
+	UPCGExPointIO* SeedsPoints = nullptr;
+	UPCGExPointIO* GoalsPoints = nullptr;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExPathfindingProcessorElement : public FPCGExGraphProcessorElement

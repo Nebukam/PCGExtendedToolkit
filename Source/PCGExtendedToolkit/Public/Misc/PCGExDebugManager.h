@@ -56,7 +56,11 @@ public:
 			CurrentPingCount = 0;
 		}
 
-		if (CurrentPingCount == 0) { FlushPersistentDebugLines(PCGEx::GetWorld(Context)); }
+		if (CurrentPingCount == 0)
+		{
+			FlushPersistentDebugLines(PCGEx::GetWorld(Context));
+			FlushDebugStrings(PCGEx::GetWorld(Context));
+		}
 		CurrentPingCount++;
 		if (CurrentPingCount >= DebugNodeCount) { CurrentPingCount = 0; }
 #endif
@@ -68,6 +72,7 @@ public:
 		DebugNodeCount = 0;
 		CurrentPingCount = 0;
 		FlushPersistentDebugLines(PCGEx::GetWorld(Context));
+		FlushDebugStrings(PCGEx::GetWorld(Context));
 #endif
 	}
 

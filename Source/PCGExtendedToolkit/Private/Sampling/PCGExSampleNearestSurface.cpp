@@ -11,12 +11,6 @@ int32 UPCGExSampleNearestSurfaceSettings::GetPreferredChunkSize() const { return
 
 FPCGElementPtr UPCGExSampleNearestSurfaceSettings::CreateElement() const { return MakeShared<FPCGExSampleNearestSurfaceElement>(); }
 
-void FPCGExSampleNearestSurfaceContext::WrapSweepTask(const FPointTask* Task, bool bSuccess)
-{
-	FWriteScopeLock WriteLock(ContextLock);
-	NumSweepComplete++;
-}
-
 FPCGContext* FPCGExSampleNearestSurfaceElement::Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node)
 {
 	FPCGExSampleNearestSurfaceContext* Context = new FPCGExSampleNearestSurfaceContext();
@@ -28,7 +22,7 @@ FPCGContext* FPCGExSampleNearestSurfaceElement::Initialize(const FPCGDataCollect
 	Context->AttemptStepSize = FMath::Max(Settings->MaxDistance / static_cast<double>(Settings->NumMaxAttempts), Settings->MinStepSize);
 	Context->NumMaxAttempts = FMath::Max(static_cast<int32>(static_cast<double>(Settings->MaxDistance) / Context->AttemptStepSize), 1);
 	Context->RangeMax = Settings->MaxDistance;
-	
+
 	Context->CollisionType = Settings->CollisionType;
 	Context->CollisionChannel = Settings->CollisionChannel;
 	Context->CollisionObjectType = Settings->CollisionObjectType;
@@ -83,7 +77,6 @@ bool FPCGExSampleNearestSurfaceElement::ExecuteInternal(FPCGContext* InContext) 
 
 	auto Initialize = [&](UPCGExPointIO* PointIO) //UPCGExPointIO* PointIO
 	{
-		Context->NumSweepComplete = 0;
 		PointIO->BuildMetadataEntries();
 		PCGEX_INIT_ATTRIBUTE_OUT(Success, bool)
 		PCGEX_INIT_ATTRIBUTE_OUT(Location, FVector)
@@ -96,20 +89,20 @@ bool FPCGExSampleNearestSurfaceElement::ExecuteInternal(FPCGContext* InContext) 
 	{
 		FAsyncTask<FSweepSphereTask>* Task = Context->CreateTask<FSweepSphereTask>(PointIndex, PointIO->GetOutPoint(PointIndex).MetadataEntry);
 		Task->GetTask().RangeMax = Context->RangeMax; //TODO: Localize range
-		Task->StartBackgroundTask();
+		Context->StartTask(Task);
 	};
 
 	if (Context->IsState(PCGExMT::EState::ProcessingPoints))
 	{
 		if (Context->AsyncProcessingCurrentPoints(Initialize, ProcessPoint))
 		{
-			Context->SetState(PCGExMT::EState::WaitingOnAsyncTasks);
+			Context->SetState(PCGExMT::EState::WaitingOnAsyncWork);
 		}
 	}
 
-	if (Context->IsState(PCGExMT::EState::WaitingOnAsyncTasks))
+	if (Context->IsState(PCGExMT::EState::WaitingOnAsyncWork))
 	{
-		if (Context->NumSweepComplete == Context->CurrentIO->NumInPoints)
+		if (Context->IsAsyncWorkComplete())
 		{
 			Context->SetState(PCGExMT::EState::ReadyForNextPoints);
 		}
@@ -122,6 +115,76 @@ bool FPCGExSampleNearestSurfaceElement::ExecuteInternal(FPCGContext* InContext) 
 	}
 
 	return false;
+}
+
+void FSweepSphereTask::ExecuteTask()
+{
+	const FPCGExSampleNearestSurfaceContext* Context = static_cast<FPCGExSampleNearestSurfaceContext*>(TaskContext);
+	const FPCGPoint& InPoint = PointData->GetInPoint(Infos.Index);
+	const FVector Origin = InPoint.Transform.GetLocation();
+
+	FCollisionQueryParams CollisionParams;
+	if (Context->bIgnoreSelf) { CollisionParams.AddIgnoredActor(TaskContext->SourceComponent->GetOwner()); }
+
+	const FCollisionShape CollisionShape = FCollisionShape::MakeSphere(RangeMax);
+
+	if (!IsTaskValid()) { return; }
+
+	FVector HitLocation;
+	bool bSuccess = false;
+	TArray<FOverlapResult> OutOverlaps;
+
+	auto ProcessOverlapResults = [&]()
+	{
+		float MinDist = MAX_FLT;
+		for (const FOverlapResult& Overlap : OutOverlaps)
+		{
+			if (!Overlap.bBlockingHit) { continue; }
+			FVector OutClosestLocation;
+			const float Distance = Overlap.Component->GetClosestPointOnCollision(Origin, OutClosestLocation);
+			if (Distance < 0) { continue; }
+			if (Distance == 0)
+			{
+				// Fallback for complex collisions?
+				continue;
+			}
+			if (Distance < MinDist)
+			{
+				MinDist = Distance;
+				HitLocation = OutClosestLocation;
+				bSuccess = true;
+			}
+		}
+
+		if (bSuccess)
+		{
+			const FVector Direction = (HitLocation - Origin).GetSafeNormal();
+			PCGEX_SET_OUT_ATTRIBUTE(Location, Infos.Key, HitLocation)
+			PCGEX_SET_OUT_ATTRIBUTE(Normal, Infos.Key, Direction*-1) // TODO: expose "precise normal" in which case we line trace to location
+			PCGEX_SET_OUT_ATTRIBUTE(LookAt, Infos.Key, Direction)
+			PCGEX_SET_OUT_ATTRIBUTE(Distance, Infos.Key, MinDist)
+		}
+	};
+
+
+	if (Context->CollisionType == EPCGExCollisionFilterType::Channel)
+	{
+		if (Context->World->OverlapMultiByChannel(OutOverlaps, Origin, FQuat::Identity, Context->CollisionChannel, CollisionShape, CollisionParams))
+		{
+			ProcessOverlapResults();
+		}
+	}
+	else
+	{
+		if (FCollisionObjectQueryParams ObjectQueryParams = FCollisionObjectQueryParams(Context->CollisionObjectType);
+			Context->World->OverlapMultiByObjectType(OutOverlaps, Origin, FQuat::Identity, ObjectQueryParams, CollisionShape, CollisionParams))
+		{
+			ProcessOverlapResults();
+		}
+	}
+
+	PCGEX_SET_OUT_ATTRIBUTE(Success, Infos.Key, bSuccess)
+	ExecutionComplete(bSuccess);
 }
 
 #undef LOCTEXT_NAMESPACE

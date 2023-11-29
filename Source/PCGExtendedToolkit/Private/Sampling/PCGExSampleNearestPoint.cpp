@@ -4,7 +4,6 @@
 #include "Sampling/PCGExSampleNearestPoint.h"
 
 #include "PCGExPointsProcessor.h"
-#include "PCGPin.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSampleNearestPointElement"
 

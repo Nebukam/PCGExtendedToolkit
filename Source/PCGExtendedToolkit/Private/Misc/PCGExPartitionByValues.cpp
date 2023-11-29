@@ -157,16 +157,9 @@ bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* InContext) con
 
 		if (!Layer->Points)
 		{
-
 			FWriteScopeLock WriteLock(Context->ContextLock);
-			
-			Layer->PointData = NewObject<UPCGPointData>();
-			Layer->PointData->InitializeFromData(PointIO->In);
 
-			FPCGTaggedData& OutputRef = Context->OutputData.TaggedData.Emplace_GetRef();
-			OutputRef.Data = Layer->PointData;
-			OutputRef.Pin = PCGEx::OutputPointsLabel;
-
+			Layer->PointData = PointIO->NewEmptyOutput(Context, PCGEx::OutputPointsLabel);
 			Layer->Points = &Layer->PointData->GetMutablePoints();
 		}
 

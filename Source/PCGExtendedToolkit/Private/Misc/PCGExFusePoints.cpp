@@ -127,7 +127,6 @@ FPCGContext* FPCGExFusePointsElement::Initialize(
 	const UPCGExFusePointsSettings* Settings = Context->GetInputSettings<UPCGExFusePointsSettings>();
 	check(Settings);
 
-	Context->bDeterministic = Settings->bDeterministic;
 	Context->FuseMethod = Settings->FuseMethod;
 	Context->Radius = FMath::Pow(Settings->Radius, 2);
 	Context->bComponentWiseRadius = Settings->bComponentWiseRadius;
@@ -219,26 +218,9 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsState(PCGExMT::EState::ProcessingPoints))
 	{
-		if (Context->bDeterministic)
+		if (Context->AsyncProcessingCurrentPoints(Initialize, ProcessPoint))
 		{
-			if (Context->CurrentIndex == 0) { Initialize(Context->CurrentIO); }
-			const int64 NumIterations = FMath::Min(Context->ChunkSize, Context->CurrentIO->NumInPoints - Context->CurrentIndex);
-			if (NumIterations <= 0)
-			{
-				Context->SetState(PCGExMT::EState::ProcessingGraph2ndPass);
-			}
-			else
-			{
-				for (int i = 0; i < NumIterations; i++)
-				{
-					ProcessPoint(Context->CurrentIndex, Context->CurrentIO);
-					Context->CurrentIndex++;
-				}
-			}
-		}
-		else if (Context->AsyncProcessingCurrentPoints(Initialize, ProcessPoint))
-		{
-			Context->SetState(PCGExMT::EState::ReadyForNextPoints);
+			Context->SetState(PCGExMT::EState::ProcessingGraph2ndPass);
 		}
 	}
 
@@ -251,8 +233,7 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 	auto FusePoints = [&](int32 ReadIndex)
 	{
 		FPCGPoint NewPoint;
-		Context->CurrentIO->Out->Metadata->InitializeOnSet(NewPoint.MetadataEntry);
-
+		
 		{
 			FReadScopeLock ReadLock(Context->PointsLock);
 			PCGExFuse::FFusedPoint& FusedPointData = Context->FusedPoints[ReadIndex];
@@ -260,6 +241,7 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 			double AverageDivider = static_cast<double>(NumFused);
 
 			FPCGPoint RootPoint = Context->CurrentIO->In->GetPoint((FusedPointData.MainIndex));
+			Context->CurrentIO->Out->Metadata->InitializeOnSet(NewPoint.MetadataEntry, RootPoint.MetadataEntry, Context->CurrentIO->In->Metadata);
 
 			FTransform& OutTransform = NewPoint.Transform;
 			PCGEX_FUSE_FOREACH_POINTPROPERTY(PCGEX_FUSE_DECLARE)

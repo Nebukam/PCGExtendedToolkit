@@ -3,8 +3,6 @@
 
 #include "Graph/PCGExGraphProcessor.h"
 
-#include "PCGPin.h"
-
 #include "Data/PCGExGraphParamsData.h"
 #include "Graph/PCGExGraph.h"
 #include "Graph/PCGExGraphHelpers.h"

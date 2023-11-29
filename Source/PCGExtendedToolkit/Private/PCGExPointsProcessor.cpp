@@ -168,6 +168,25 @@ bool FPCGExPointsProcessorContext::AsyncProcessingCurrentPoints(TFunction<void(c
 		}, true, ChunkSize);
 }
 
+void FPCGExPointsProcessorContext::ResetAsyncWork()
+{
+	NumAsyncTaskStarted = 0;
+	NumAsyncTaskCompleted = 0;
+}
+
+void FPCGExPointsProcessorContext::OnAsyncTaskExecutionComplete(FPointTask* AsyncTask, bool bSuccess)
+{
+	FWriteScopeLock WriteLock(AsyncUpdateLock);
+	NumAsyncTaskCompleted++;
+}
+
+bool FPCGExPointsProcessorContext::IsAsyncWorkComplete()
+{
+	FReadScopeLock ReadLock(AsyncCreateLock);
+	FReadScopeLock OtherReadLock(AsyncUpdateLock);
+	return NumAsyncTaskStarted == NumAsyncTaskCompleted;
+}
+
 FPCGContext* FPCGExPointsProcessorElementBase::Initialize(
 	const FPCGDataCollection& InputData,
 	TWeakObjectPtr<UPCGComponent> SourceComponent,
@@ -181,7 +200,7 @@ FPCGContext* FPCGExPointsProcessorElementBase::Initialize(
 bool FPCGExPointsProcessorElementBase::Validate(FPCGContext* InContext) const
 {
 	const FPCGExPointsProcessorContext* Context = static_cast<FPCGExPointsProcessorContext*>(InContext);
-	
+
 	if (Context->MainPoints->IsEmpty())
 	{
 		PCGE_LOG(Error, GraphAndLog, LOCTEXT("MissingPoints", "Missing Input Points."));

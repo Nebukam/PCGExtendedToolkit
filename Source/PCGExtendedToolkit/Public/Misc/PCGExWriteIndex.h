@@ -31,7 +31,7 @@ protected:
 public:
 	/** The name of the attribute to write its index to.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
-	FName OutputAttributeName;
+	FName OutputAttributeName = "CurrentIndex";
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExWriteIndexContext : public FPCGExPointsProcessorContext

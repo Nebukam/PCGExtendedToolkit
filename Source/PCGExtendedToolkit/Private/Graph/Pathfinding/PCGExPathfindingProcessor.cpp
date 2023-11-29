@@ -3,8 +3,6 @@
 
 #include "Graph/Pathfinding/PCGExPathfindingProcessor.h"
 
-#include "PCGPin.h"
-
 #define LOCTEXT_NAMESPACE "PCGExPathfindingSettings"
 
 #pragma region UPCGSettings interface
@@ -69,13 +67,13 @@ bool FPCGExPathfindingProcessorElement::Validate(FPCGContext* InContext) const
 	const UPCGExPathfindingProcessorSettings* Settings = InContext->GetInputSettings<UPCGExPathfindingProcessorSettings>();
 	check(Settings);
 
-	if (Settings->GetRequiresSeeds() && Context->SeedsPoints->IsEmpty())
+	if (Settings->GetRequiresSeeds() && !Context->SeedsPoints)
 	{
 		PCGE_LOG(Error, GraphAndLog, LOCTEXT("MissingSeeds", "Missing Input Seeds."));
 		return false;
 	}
 
-	if (Settings->GetRequiresGoals() && Context->GoalsPoints->IsEmpty())
+	if (Settings->GetRequiresGoals() && !Context->GoalsPoints)
 	{
 		PCGE_LOG(Error, GraphAndLog, LOCTEXT("MissingGoals", "Missing Input Goals."));
 		return false;
@@ -100,16 +98,22 @@ void FPCGExPathfindingProcessorElement::InitializeContext(
 
 	if (Settings->GetRequiresSeeds())
 	{
-		Context->SeedsPoints = NewObject<UPCGExPointIOGroup>();
-		TArray<FPCGTaggedData> Seeds = InContext->InputData.GetInputsByPin(PCGExGraph::SourceSeedsLabel);
-		Context->SeedsPoints->Initialize(InContext, Seeds, PCGExIO::EInitMode::NoOutput);
+		if (TArray<FPCGTaggedData> Seeds = InContext->InputData.GetInputsByPin(PCGExGraph::SourceSeedsLabel);
+			Seeds.Num() > 0)
+		{
+			const FPCGTaggedData& SeedsSource = Seeds[0];
+			Context->SeedsPoints = PCGExIO::TryGetPointIO(Context, SeedsSource);
+		}
 	}
 
 	if (Settings->GetRequiresGoals())
 	{
-		Context->GoalsPoints = NewObject<UPCGExPointIOGroup>();
-		TArray<FPCGTaggedData> Goals = InContext->InputData.GetInputsByPin(PCGExGraph::SourceGoalsLabel);
-		Context->GoalsPoints->Initialize(InContext, Goals, PCGExIO::EInitMode::NoOutput);
+		if (TArray<FPCGTaggedData> Goals = InContext->InputData.GetInputsByPin(PCGExGraph::SourceGoalsLabel);
+			Goals.Num() > 0)
+		{
+			const FPCGTaggedData& GoalsSource = Goals[0];
+			Context->GoalsPoints = PCGExIO::TryGetPointIO(Context, GoalsSource);
+		}
 	}
 }
 

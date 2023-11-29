@@ -18,13 +18,6 @@ namespace PCGExTangents
 	};
 }
 
-UENUM(BlueprintType)
-enum class EPCGExCurvePointMode : uint8
-{
-	Individual UMETA(DisplayName = "Individual", ToolTip="Tangents are computed in isolation of each other, according to set params"),
-	Relational UMETA(DisplayName = "Relational", ToolTip="Tangents are computed in isolation of each other first, then smoothed with neighbors."),
-};
-
 USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExSingleTangentParams
 {
@@ -33,7 +26,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSingleTangentParams
 	FPCGExSingleTangentParams()
 	{
 		Direction.Selector.Update("$Transform");
-		Direction.Axis = EPCGExAxis::Forward;
+		Direction.Axis = EPCGExAxis::Backward;
 	}
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
@@ -186,9 +179,6 @@ protected:
 	//~End UPCGSettings interface
 
 public:
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
-	EPCGExCurvePointMode CurveMode = EPCGExCurvePointMode::Individual;
-
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(FullyExpand=true))
 	FPCGExTangentParams TangentParams;
 };
@@ -201,7 +191,6 @@ public:
 	mutable FRWLock MapLock;
 	TMap<int64, PCGExTangents::FPair> TangentCache;
 	FPCGExTangentParams TangentParams;
-	EPCGExCurvePointMode CurvePointMode;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExWriteTangentsElement : public FPCGExPointsProcessorElementBase

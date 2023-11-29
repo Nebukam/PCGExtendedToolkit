@@ -79,7 +79,7 @@ bool FPCGExEdgesToPathsElement::ExecuteInternal(
 	{
 		if (!Context->AdvanceGraph())
 		{
-			Context->SetState(PCGExMT::EState::WaitingOnAsyncTasks);
+			Context->SetState(PCGExMT::EState::WaitingOnAsyncWork);
 			return false;
 		}
 		else
@@ -103,23 +103,20 @@ bool FPCGExEdgesToPathsElement::ExecuteInternal(
 
 	auto ProcessEdge = [&](const int32 Index)
 	{
-		FWriteScopeLock WriteLock(Context->EdgeLock);
-
-		//const UPCGExPointIO* PointIO = Context->EdgesIO->Emplace_GetRef(*Context->CurrentIO, PCGExIO::EInitMode::NewOutput);
 		const PCGExGraph::FUnsignedEdge& UEdge = Context->Edges[Index];
+		UPCGPointData* Out = nullptr;
 
-		UPCGPointData* Out = NewObject<UPCGPointData>();
-		Out->InitializeFromData(Context->CurrentIO->In);
+		{
+			FWriteScopeLock WriteScopeLock(Context->EdgeLock);
+			Out = Context->CurrentIO->NewEmptyOutput(Context, PCGExGraph::OutputPathsLabel);
+		}
 
-		FPCGPoint& Start = Out->GetMutablePoints().Emplace_GetRef(Context->CurrentIO->In->GetPoints()[UEdge.Start]);
-		FPCGPoint& End = Out->GetMutablePoints().Emplace_GetRef(Context->CurrentIO->In->GetPoints()[UEdge.End]);
-
-		FPCGTaggedData& OutputRef = Context->OutputData.TaggedData.Emplace_GetRef();
-		OutputRef.Data = Out;
-		OutputRef.Pin = PCGExGraph::OutputPathsLabel;
+		TArray<FPCGPoint>& MutablePoints = Out->GetMutablePoints();
+		FPCGPoint& Start = MutablePoints.Emplace_GetRef(Context->CurrentIO->GetInPoint(UEdge.Start));
+		FPCGPoint& End = MutablePoints.Emplace_GetRef(Context->CurrentIO->GetInPoint(UEdge.End));
 	};
 
-	if (Context->IsState(PCGExMT::EState::WaitingOnAsyncTasks))
+	if (Context->IsState(PCGExMT::EState::WaitingOnAsyncWork))
 	{
 		if (PCGExMT::ParallelForLoop(Context, Context->Edges.Num(), ProcessEdge, Context->ChunkSize, !Context->bDoAsyncProcessing))
 		{

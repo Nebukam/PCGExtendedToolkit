@@ -11,6 +11,17 @@ UPCGExPointIO::UPCGExPointIO(): In(nullptr), Out(nullptr), NumInPoints(-1)
 	// Initialize other members as needed
 }
 
+UPCGPointData* UPCGExPointIO::NewEmptyOutput() const
+{
+	return PCGExIO::NewEmptyOutput(In);
+}
+
+UPCGPointData* UPCGExPointIO::NewEmptyOutput(FPCGContext* Context, FName PinLabel) const
+{
+	UPCGPointData* OutData = PCGExIO::NewEmptyOutput(Context, PinLabel.IsNone() ? DefaultOutputLabel : PinLabel, In);
+	return OutData;
+}
+
 void UPCGExPointIO::InitializeOut(PCGExIO::EInitMode InitOut)
 {
 	switch (InitOut)
@@ -152,7 +163,7 @@ void UPCGExPointIOGroup::Initialize(
 	Pairs.Empty(Sources.Num());
 	for (FPCGTaggedData& Source : Sources)
 	{
-		UPCGPointData* MutablePointData = GetMutablePointData(Context, Source);
+		UPCGPointData* MutablePointData = PCGExIO::GetMutablePointData(Context, Source);
 		if (!MutablePointData || MutablePointData->GetPoints().Num() == 0) { continue; }
 		Emplace_GetRef(Source, MutablePointData, InitOut);
 	}
@@ -167,7 +178,7 @@ void UPCGExPointIOGroup::Initialize(
 	Pairs.Empty(Sources.Num());
 	for (FPCGTaggedData& Source : Sources)
 	{
-		UPCGPointData* MutablePointData = GetMutablePointData(Context, Source);
+		UPCGPointData* MutablePointData = PCGExIO::GetMutablePointData(Context, Source);
 		if (!MutablePointData || MutablePointData->GetPoints().Num() == 0) { continue; }
 		if (!ValidateFunc(MutablePointData)) { continue; }
 		UPCGExPointIO* NewPointIO = Emplace_GetRef(Source, MutablePointData, InitOut);
@@ -186,21 +197,25 @@ UPCGExPointIO* UPCGExPointIOGroup::Emplace_GetRef(
 	const FPCGTaggedData& Source, UPCGPointData* In,
 	const PCGExIO::EInitMode InitOut)
 {
-	//FWriteScopeLock WriteLock(PairsLock);
-
-	UPCGExPointIO* Pair = NewObject<UPCGExPointIO>();
+	UPCGExPointIO* Pair = PCGExIO::CreateNewPointIO(Source, In, DefaultOutputLabel, InitOut);
 
 	{
 		FWriteScopeLock WriteLock(PairsLock);
 		Pairs.Add(Pair);
 	}
 
-	Pair->DefaultOutputLabel = DefaultOutputLabel;
-	Pair->Source = Source;
-	Pair->In = In;
-	Pair->NumInPoints = Pair->In->GetPoints().Num();
+	return Pair;
+}
 
-	Pair->InitializeOut(InitOut);
+UPCGExPointIO* UPCGExPointIOGroup::Emplace_GetRef(const PCGExIO::EInitMode InitOut)
+{
+	UPCGExPointIO* Pair = PCGExIO::CreateNewPointIO(DefaultOutputLabel, InitOut);
+
+	{
+		FWriteScopeLock WriteLock(PairsLock);
+		Pairs.Add(Pair);
+	}
+
 	return Pair;
 }
 

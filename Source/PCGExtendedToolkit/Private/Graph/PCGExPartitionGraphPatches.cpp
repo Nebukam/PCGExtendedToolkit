@@ -3,8 +3,6 @@
 
 #include "Graph/PCGExPartitionGraphPatches.h"
 
-#include "PCGPin.h"
-
 #include "Graph/PCGExGraphPatch.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPartitionGraphPatches"

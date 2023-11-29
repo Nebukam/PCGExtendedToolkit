@@ -123,13 +123,6 @@ public:
 	PCGEX_OUT_ATTRIBUTE(Normal, FVector)
 	PCGEX_OUT_ATTRIBUTE(Distance, double)
 
-	int64 NumTraceComplete = 0;
-
-	void WrapTraceTask(const FPointTask* Task, bool bSuccess)
-	{
-		FWriteScopeLock ScopeLock(ContextLock);
-		NumTraceComplete++;
-	}
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExSampleSurfaceGuidedElement : public FPCGExPointsProcessorElementBase
@@ -149,62 +142,12 @@ protected:
 class PCGEXTENDEDTOOLKIT_API FTraceTask : public FPointTask
 {
 public:
-	FTraceTask(FPCGExPointsProcessorContext* InContext, UPCGExPointIO* InPointData, PCGExMT::FTaskInfos InInfos) :
+	FTraceTask(FPCGExPointsProcessorContext* InContext, UPCGExPointIO* InPointData, const PCGExMT::FTaskInfos& InInfos) :
 		FPointTask(InContext, InPointData, InInfos)
 	{
 	}
 
-	virtual void ExecuteTask(FPCGContext* InContext) override
-	{
-		FPCGExSampleSurfaceGuidedContext* Context = static_cast<FPCGExSampleSurfaceGuidedContext*>(InContext);
-		const FPCGPoint& InPoint = PointData->In->GetPoints()[Infos.Index];
-		const FVector Origin = InPoint.Transform.GetLocation();
-
-		FCollisionQueryParams CollisionParams;
-		if (Context->bIgnoreSelf) { CollisionParams.AddIgnoredActor(InContext->SourceComponent->GetOwner()); }
-
-		const double Size = Context->bUseLocalSize ? Context->LocalSize.GetValue(InPoint) : Context->Size;
-		const FVector Trace = Context->Direction.GetValue(InPoint) * Size;
-		const FVector End = Origin + Trace;
-		
-		if (!Context->MainPoints) { return; }
-
-		bool bSuccess = false;
-		
-		auto ProcessTraceResult = [&]()
-		{
-			PCGEX_SET_OUT_ATTRIBUTE(Location, Infos.Key, HitResult.ImpactPoint)
-			PCGEX_SET_OUT_ATTRIBUTE(Normal, Infos.Key, HitResult.Normal)
-			PCGEX_SET_OUT_ATTRIBUTE(Distance, Infos.Key, FVector::Distance(HitResult.ImpactPoint, Origin))
-			bSuccess = true;
-		};
-
-		if (Context->CollisionType == EPCGExCollisionFilterType::Channel)
-		{
-			if (Context->World->LineTraceSingleByChannel(HitResult, Origin, End, Context->CollisionChannel, CollisionParams))
-			{
-				ProcessTraceResult();
-			}
-		}
-		else
-		{
-			FCollisionObjectQueryParams ObjectQueryParams = FCollisionObjectQueryParams(Context->CollisionObjectType);
-			if (Context->World->LineTraceSingleByObjectType(HitResult, Origin, End, ObjectQueryParams, CollisionParams))
-			{
-				ProcessTraceResult();
-			}
-		}
-
-		if(Context->bProjectFailToSize)
-		{
-			PCGEX_SET_OUT_ATTRIBUTE(Location, Infos.Key, End)
-			PCGEX_SET_OUT_ATTRIBUTE(Normal, Infos.Key, Trace.GetSafeNormal()*-1)
-			PCGEX_SET_OUT_ATTRIBUTE(Distance, Infos.Key, Size)
-		}
-		
-		PCGEX_SET_OUT_ATTRIBUTE(Success, Infos.Key, bSuccess)
-		Context->WrapTraceTask(this, bSuccess);
-	}
+	virtual void ExecuteTask() override;
 
 public:
 	FHitResult HitResult;

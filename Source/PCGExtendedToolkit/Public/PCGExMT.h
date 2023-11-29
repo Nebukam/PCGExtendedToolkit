@@ -21,7 +21,7 @@ namespace PCGExMT
 		ProcessingPoints3rdPass UMETA(DisplayName = "Processing points - 3rd pass"),
 		ProcessingGraph UMETA(DisplayName = "Processing params"),
 		ProcessingGraph2ndPass UMETA(DisplayName = "Processing params - 2nd pass"),
-		WaitingOnAsyncTasks UMETA(DisplayName = "Waiting on async tasks"),
+		WaitingOnAsyncWork UMETA(DisplayName = "Waiting on async tasks"),
 		Done UMETA(DisplayName = "Done")
 	};
 

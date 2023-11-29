@@ -1,7 +1,7 @@
 ﻿// Copyright Timothé Lapetite 2023
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Misc/PCGExWriteTangents.h"
+#include "Splines/PCGExWriteTangents.h"
 
 #define LOCTEXT_NAMESPACE "PCGExWriteTangentsElement"
 
@@ -17,7 +17,6 @@ FPCGContext* FPCGExWriteTangentsElement::Initialize(const FPCGDataCollection& In
 	check(Settings);
 
 	Context->TangentParams = Settings->TangentParams;
-	Context->CurvePointMode = Settings->CurveMode;
 	return Context;
 }
 
@@ -49,53 +48,17 @@ bool FPCGExWriteTangentsElement::ExecuteInternal(FPCGContext* InContext) const
 	auto Initialize = [&](UPCGExPointIO* PointIO)
 	{
 		PointIO->BuildMetadataEntries();
-
-		if (Context->CurvePointMode == EPCGExCurvePointMode::Relational)
-		{
-			Context->TangentCache.Empty();
-			Context->TangentCache.Reserve(PointIO->NumInPoints);
-		}
-
 		Context->TangentParams.PrepareForData(PointIO);
 	};
 
 	auto ProcessPoint = [&](const int32 Index, const UPCGExPointIO* PointIO)
 	{
-		if (Context->CurvePointMode == EPCGExCurvePointMode::Relational)
-		{
-			FWriteScopeLock WriteLock(Context->MapLock);
-			Context->TangentParams.ComputePointTangents(Index, PointIO, &Context->TangentCache);
-		}
-		else
-		{
-			Context->TangentParams.ComputePointTangents(Index, PointIO);
-		}
-	};
-
-	auto ProcessRelationalTangents = [&](const int32 Index, const UPCGExPointIO* PointIO)
-	{
-		FReadScopeLock ReadLock(Context->MapLock);
-		Context->TangentParams.ComputeRelationalTangents(Index, PointIO, &Context->TangentCache);
+		Context->TangentParams.ComputePointTangents(Index, PointIO);
 	};
 
 	if (Context->IsState(PCGExMT::EState::ProcessingPoints))
 	{
 		if (Context->AsyncProcessingCurrentPoints(Initialize, ProcessPoint))
-		{
-			if (Context->CurvePointMode == EPCGExCurvePointMode::Relational)
-			{
-				Context->SetState(PCGExMT::EState::ProcessingPoints2ndPass);
-			}
-			else
-			{
-				Context->SetState(PCGExMT::EState::ReadyForNextPoints);
-			}
-		}
-	}
-
-	if (Context->IsState(PCGExMT::EState::ProcessingPoints2ndPass))
-	{
-		if (Context->AsyncProcessingCurrentPoints(ProcessRelationalTangents))
 		{
 			Context->SetState(PCGExMT::EState::ReadyForNextPoints);
 		}

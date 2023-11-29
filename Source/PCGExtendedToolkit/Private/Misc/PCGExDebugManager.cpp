@@ -1,7 +1,7 @@
 ﻿// Copyright Timothé Lapetite 2023
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "..\..\Public\Misc\PCGExDebugManager.h"
+#include "Misc/PCGExDebugManager.h"
 
 #include "IPCGExDebug.h"
 #include "PCGGraph.h"
