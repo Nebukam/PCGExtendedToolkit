@@ -55,16 +55,6 @@ void UPCGExGraphParamsData::GetSocketsData(const PCGMetadataEntryKey MetadataEnt
 	for (const PCGExGraph::FSocket& Socket : SocketMapping.Sockets) { OutMetadata.Add(Socket.GetData(MetadataEntry)); }
 }
 
-template <typename T>
-void UPCGExGraphParamsData::GetEdges(const int32 InIndex, const PCGMetadataEntryKey MetadataEntry, TArray<T>& OutEdges) const
-{
-	for (const PCGExGraph::FSocket& Socket : SocketMapping.Sockets)
-	{
-		T Edge;
-		if (Socket.TryGetEdge(InIndex, MetadataEntry, Edge)) { OutEdges.AddUnique(Edge); }
-	}
-}
-
 void UPCGExGraphParamsData::SetSocketsData(const PCGMetadataEntryKey MetadataEntry, TArray<PCGExGraph::FSocketMetadata>& InMetadata)
 {
 	check(InMetadata.Num() == SocketMapping.NumSockets)

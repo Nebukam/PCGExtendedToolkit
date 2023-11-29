@@ -675,7 +675,14 @@ public:
 	 * @param OutEdges 
 	 */
 	template <typename T>
-	void GetEdges(const int32 InIndex, const PCGMetadataEntryKey MetadataEntry, TArray<T>& OutEdges) const;
+	void GetEdges(const int32 InIndex, const PCGMetadataEntryKey MetadataEntry, TArray<T>& OutEdges) const
+	{
+		for (const PCGExGraph::FSocket& Socket : SocketMapping.Sockets)
+		{
+			T Edge;
+			if (Socket.TryGetEdge(InIndex, MetadataEntry, Edge)) { OutEdges.AddUnique(Edge); }
+		}
+	}
 
 	/**
 	 * Make sure InMetadata has the same length as the nu
