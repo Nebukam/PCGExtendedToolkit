@@ -102,7 +102,9 @@ namespace PCGExMT
 			LoopBody(ReadIndex);
 			return true;
 		};
-		return FPCGAsync::AsyncProcessingOneToOneEx(&(Context->AsyncState), NumIterations, [](){}, InnerBodyLoop, true, ChunkSize);
+		return FPCGAsync::AsyncProcessingOneToOneEx(
+			&(Context->AsyncState), NumIterations, []()
+			{
+			}, InnerBodyLoop, true, ChunkSize);
 	}
-	
 }

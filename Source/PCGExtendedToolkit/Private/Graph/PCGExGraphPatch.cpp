@@ -107,7 +107,7 @@ void UPCGExGraphPatchGroup::Distribute(const int32 InIndex, UPCGExGraphPatch* Pa
 
 	for (const PCGExGraph::FUnsignedEdge& UEdge : UnsignedEdges)
 	{
-		if (static_cast<uint8>((UEdge.Type & static_cast<EPCGExEdgeType>(CrawlEdgeTypes))) == 0) { continue; }
+		if (static_cast<uint8>((UEdge.Type & CrawlEdgeTypes)) == 0) { continue; }
 
 		if (!Patch)
 		{
@@ -153,7 +153,7 @@ void UPCGExGraphPatchGroup::DistributeEdge(const T& InEdge, UPCGExGraphPatch* Pa
 
 	for (const T& Edge : Edges)
 	{
-		if (static_cast<uint8>((Edge.Type & static_cast<EPCGExEdgeType>(CrawlEdgeTypes))) == 0) { continue; }
+		if (static_cast<uint8>((Edge.Type & CrawlEdgeTypes)) == 0) { continue; }
 
 		if (!Patch)
 		{

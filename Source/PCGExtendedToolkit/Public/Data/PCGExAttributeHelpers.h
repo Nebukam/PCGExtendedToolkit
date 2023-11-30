@@ -111,7 +111,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (DisplayName=" └─ Field", PCG_Overridable, DisplayAfter="Axis", EditCondition="Type==EPCGExSelectorType::SingleField", EditConditionHides))
 	EPCGExSingleField Field = EPCGExSingleField::X;
 
-	~FPCGExInputDescriptorGeneric()
+	virtual ~FPCGExInputDescriptorGeneric() override
 	{
 	}
 };
@@ -137,7 +137,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (DisplayName=" └─ Axis", PCG_Overridable, DisplayAfter="Selector"))
 	EPCGExAxis Axis = EPCGExAxis::Forward;
 
-	~FPCGExInputDescriptorWithDirection()
+	virtual ~FPCGExInputDescriptorWithDirection() override
 	{
 	}
 };
@@ -167,7 +167,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (DisplayName=" └─ Field", PCG_Overridable, DisplayAfter="Axis"))
 	EPCGExSingleField Field = EPCGExSingleField::X;
 
-	~FPCGExInputDescriptorWithSingleField()
+	virtual ~FPCGExInputDescriptorWithSingleField() override
 	{
 	}
 };
@@ -434,10 +434,10 @@ virtual _TYPE Convert(const FName Value) const override { return _TYPE(Value.ToS
 	protected:
 		virtual double GetDefaultValue() const override { return 0; }
 
-		virtual double Convert(const int32 Value) const override { return static_cast<double>(Value); }
+		virtual double Convert(const int32 Value) const override { return Value; }
 		virtual double Convert(const int64 Value) const override { return static_cast<double>(Value); }
-		virtual double Convert(const float Value) const override { return static_cast<double>(Value); }
-		virtual double Convert(const double Value) const override { return static_cast<double>(Value); }
+		virtual double Convert(const float Value) const override { return Value; }
+		virtual double Convert(const double Value) const override { return Value; }
 
 		virtual double Convert(const FVector2D Value) const override
 		{
@@ -492,7 +492,7 @@ virtual _TYPE Convert(const FName Value) const override { return _TYPE(Value.ToS
 
 		virtual double Convert(const FQuat Value) const override { return Convert(GetDirection(Value, Axis)); }
 		virtual double Convert(const FTransform Value) const override { return Convert(Value.GetLocation()); }
-		virtual double Convert(const bool Value) const override { return static_cast<double>(Value); }
+		virtual double Convert(const bool Value) const override { return Value; }
 		virtual double Convert(const FRotator Value) const override { return Convert(Value.Vector()); }
 		virtual double Convert(const FString Value) const override { return PCGExMath::ConvertStringToDouble(Value); }
 		virtual double Convert(const FName Value) const override { return PCGExMath::ConvertStringToDouble(Value.ToString()); }
@@ -536,8 +536,8 @@ virtual _TYPE Convert(const FName Value) const override { return _TYPE(Value.ToS
 		virtual FVector Convert(const FVector2D Value) const override { return FVector(Value.X, Value.Y, 0); }
 		virtual FVector Convert(const FVector Value) const override { return Value; }
 		virtual FVector Convert(const FVector4 Value) const override { return FVector(Value); }
-		virtual FVector Convert(const FQuat Value) const override { return PCGEx::GetDirection(Value, Axis); }
-		virtual FVector Convert(const FTransform Value) const override { return PCGEx::GetDirection(Value.GetRotation(), Axis); }
+		virtual FVector Convert(const FQuat Value) const override { return GetDirection(Value, Axis); }
+		virtual FVector Convert(const FTransform Value) const override { return GetDirection(Value.GetRotation(), Axis); }
 		virtual FVector Convert(const FRotator Value) const override { return Value.Vector(); }
 		virtual FVector Convert(const FString Value) const override { return GetDefaultValue(); }
 		virtual FVector Convert(const FName Value) const override { return GetDefaultValue(); }

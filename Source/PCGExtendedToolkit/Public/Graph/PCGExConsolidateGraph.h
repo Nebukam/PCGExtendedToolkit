@@ -26,7 +26,7 @@ public:
 	/** Compute edge types internally. If you don't need edge types, set it to false to save some cycles.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	bool bConsolidateEdgeType = true;
-	
+
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings interface
@@ -45,7 +45,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExConsolidateGraphContext : public FPCGExGraph
 
 public:
 	bool bConsolidateEdgeType;
-	
+
 	TMap<int64, int64> IndicesRemap;
 	mutable FRWLock IndicesLock;
 };

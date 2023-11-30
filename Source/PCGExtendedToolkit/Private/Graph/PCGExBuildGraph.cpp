@@ -69,10 +69,7 @@ bool FPCGExBuildGraphElement::ExecuteInternal(
 			Context->SetState(PCGExMT::EState::ReadyForNextPoints);
 			return false;
 		}
-		else
-		{
-			Context->SetState(PCGExMT::EState::ProcessingGraph);
-		}
+		Context->SetState(PCGExMT::EState::ProcessingGraph);
 	}
 
 	// Process params for current points

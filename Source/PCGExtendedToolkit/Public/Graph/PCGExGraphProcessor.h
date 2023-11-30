@@ -70,7 +70,7 @@ namespace PCGExGraph
 			for (int i = 0; i < ParamsSources.Num(); i++)
 			{
 				FPCGTaggedData& OutputRef = Context->OutputData.TaggedData.Add_GetRef(ParamsSources[i]);
-				OutputRef.Pin = PCGExGraph::OutputParamsLabel;
+				OutputRef.Pin = OutputParamsLabel;
 				OutputRef.Data = Params[i];
 			}
 		}
@@ -130,7 +130,7 @@ namespace PCGExGraph
 			const FVector PtPosition = Point->Transform.GetLocation();
 
 			if (!LooseBounds.IsInside(PtPosition)) { return false; }
-			
+
 			const double PtDistance = FVector::DistSquared(Origin, PtPosition);
 			if (PtDistance > MaxDistance) { return false; }
 

@@ -36,7 +36,7 @@ namespace PCGExMath
 
 	template <typename dummy = void>
 	static void CWMin(bool& InBase, const bool& Other) { InBase = !Other ? false : InBase; }
-	
+
 	template <typename dummy = void>
 	static void CWMin(FVector2D& InBase, const FVector2D& Other)
 	{
@@ -68,7 +68,7 @@ namespace PCGExMath
 		InBase.Roll = FMath::Min(InBase.Roll, Other.Roll);
 		InBase.Yaw = FMath::Min(InBase.Yaw, Other.Yaw);
 	}
-	
+
 	template <typename dummy = void>
 	static void CWMin(FQuat& InBase, const FQuat& Other)
 	{
@@ -108,7 +108,7 @@ namespace PCGExMath
 
 	template <typename dummy = void>
 	static void CWMax(bool& InBase, const bool& Other) { InBase = Other ? true : InBase; }
-	
+
 	template <typename dummy = void>
 	static void CWMax(FVector2D& InBase, const FVector2D& Other)
 	{
@@ -140,7 +140,7 @@ namespace PCGExMath
 		InBase.Roll = FMath::Max(InBase.Roll, Other.Roll);
 		InBase.Yaw = FMath::Max(InBase.Yaw, Other.Yaw);
 	}
-	
+
 	template <typename dummy = void>
 	static void CWMax(FQuat& InBase, const FQuat& Other)
 	{
@@ -162,7 +162,7 @@ namespace PCGExMath
 		InBase.SetRotation(Rot);
 		InBase.SetScale3D(Scale);
 	}
-	
+
 	template <typename dummy = void>
 	static void CWMax(FName& InBase, const FName& Other) { InBase = Other; }
 

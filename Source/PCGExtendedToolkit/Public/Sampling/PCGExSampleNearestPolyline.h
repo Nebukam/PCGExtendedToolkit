@@ -70,7 +70,6 @@ namespace PCGExPolyLine
 		}
 
 		bool IsValid() { return UpdateCount > 0; }
-		
 	};
 }
 
@@ -208,7 +207,7 @@ public:
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(DisplayName=" └─ Range", EditCondition="bWriteAngle"))
 	EPCGExAngleRange AngleRange = EPCGExAngleRange::PIRadians;
-	
+
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(InlineEditConditionToggle))
 	bool bWriteTime = false;
@@ -216,8 +215,6 @@ public:
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(EditCondition="bWriteTime"))
 	FName Time = FName("WeightedTime");
-	
-	
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestPolylineContext : public FPCGExPointsProcessorContext
@@ -254,13 +251,12 @@ public:
 	PCGEX_OUT_ATTRIBUTE(Distance, double)
 	PCGEX_OUT_ATTRIBUTE(SignedDistance, double)
 	EPCGExAxis SignAxis;
-	
+
 	PCGEX_OUT_ATTRIBUTE(Angle, double)
 	EPCGExAxis AngleAxis;
 	EPCGExAngleRange AngleRange;
-	
+
 	PCGEX_OUT_ATTRIBUTE(Time, double)
-	
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestPolylineElement : public FPCGExPointsProcessorElementBase

@@ -24,7 +24,7 @@ public:
 	PCGEX_NODE_INFOS(PartitionGraphPatches, "Partition Graph Patches", "Create partitions from interconnected points");
 #endif
 
-virtual TArray<FPCGPinProperties> InputPinProperties() const override;
+	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
@@ -66,7 +66,7 @@ public:
 	/** Not implemented yet, always Overlap */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExRoamingResolveMethod ResolveRoamingMethod = EPCGExRoamingResolveMethod::Overlap;
-	
+
 private:
 	friend class FPCGExPartitionGraphPatchesElement;
 };
@@ -81,10 +81,10 @@ public:
 	int64 MinPatchSize;
 	bool bRemoveBigPatches;
 	int64 MaxPatchSize;
-	
+
 	FName PatchIDAttributeName;
 	FName PatchSizeAttributeName;
-	
+
 	UPCGExGraphPatchGroup* Patches;
 
 	EPCGExRoamingResolveMethod ResolveRoamingMethod;
@@ -99,7 +99,6 @@ public:
 		Patches->PatchIDAttributeName = PatchIDAttributeName;
 		Patches->PatchIDAttributeName = PatchIDAttributeName;
 	}
-	
 };
 
 
@@ -113,6 +112,4 @@ public:
 
 protected:
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
-
 };
-

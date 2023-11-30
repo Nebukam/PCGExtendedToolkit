@@ -63,7 +63,7 @@ bool FPCGExEdgesToPathsElement::ExecuteInternal(
 			{
 				FReadScopeLock ReadLock(Context->EdgeLock);
 
-				if (static_cast<uint8>((UEdge.Type & static_cast<EPCGExEdgeType>(Context->EdgeType))) == 0 ||
+				if (static_cast<uint8>((UEdge.Type & Context->EdgeType)) == 0 ||
 					Context->UniqueEdges.Contains(UEdge.GetUnsignedHash())) { continue; }
 			}
 
@@ -82,10 +82,7 @@ bool FPCGExEdgesToPathsElement::ExecuteInternal(
 			Context->SetState(PCGExMT::EState::WaitingOnAsyncWork);
 			return false;
 		}
-		else
-		{
-			Context->SetState(PCGExMT::EState::ProcessingGraph);
-		}
+		Context->SetState(PCGExMT::EState::ProcessingGraph);
 	}
 
 	auto Initialize = [&](const UPCGExPointIO* PointIO)

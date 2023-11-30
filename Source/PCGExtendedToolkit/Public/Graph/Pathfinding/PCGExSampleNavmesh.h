@@ -44,10 +44,11 @@ public:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings interface
-		
+
 public:
 	virtual PCGExIO::EInitMode GetPointOutputInitMode() const override;
 	virtual int32 GetPreferredChunkSize() const override;
@@ -56,11 +57,10 @@ public:
 	virtual FName GetMainPointsOutputLabel() const override;
 
 public:
-
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(FullyExpand=true))
 	FPCGExPathfindingGoalPickingSettings GoalPicking;
-	
+
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	bool bAddSeedToPath = true;
@@ -71,21 +71,20 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	bool bRequireNaviguableEndLocation = true;
-	
+
 	/** Fuse points by distance */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	double FuseDistance = 10;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	EPCGExPathfindingMode PathfindingMode = EPCGExPathfindingMode::Regular;
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	FNavAgentProperties NavAgentProperties;
-	
+
 	/** If left empty, will attempt to fetch the default nav data instance.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	ANavigationData* NavData = nullptr;
-
 };
 
 
@@ -130,7 +129,6 @@ public:
 
 	int32 GoalIndex = -1;
 	UPCGPointData* PathPoints;
-	
+
 	virtual void ExecuteTask() override;
-	
 };

@@ -112,7 +112,7 @@ protected:
 	int32 CurrentPointsIndex = -1;
 
 	int32 CurrentChunkIndex = -1;
-	
+
 	int32 NumAsyncTaskStarted = 0;
 	int32 NumAsyncTaskCompleted = 0;
 

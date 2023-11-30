@@ -49,7 +49,7 @@ FPCGContext* FPCGExDebugElement::Initialize(
 }
 
 bool FPCGExDebugElement::ExecuteInternal(FPCGContext* Context) const
-{	
+{
 #if WITH_EDITOR
 
 	const int32 DebugNodeCount = PCGExDebug::GetActiveDebugNodeCount(Context);

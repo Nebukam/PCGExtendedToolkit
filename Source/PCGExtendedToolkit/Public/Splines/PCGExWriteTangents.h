@@ -86,7 +86,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExTangentParams
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (DisplayName="Leave == Arrive"))
 	bool bLeaveCopyArrive = true;
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	FPCGExSingleTangentParams Leave;
 

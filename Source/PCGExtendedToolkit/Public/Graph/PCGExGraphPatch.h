@@ -43,9 +43,9 @@ public:
 	bool OutputTo(const UPCGExPointIO* OutIO, int32 PatchIDOverride);
 
 	void Flush();
-	
+
 public:
-	~UPCGExGraphPatch()
+	virtual ~UPCGExGraphPatch() override
 	{
 		PointIO = nullptr;
 		Parent = nullptr;
@@ -76,24 +76,24 @@ public:
 	FName PatchSizeAttributeName;
 
 	EPCGExRoamingResolveMethod ResolveRoamingMethod = EPCGExRoamingResolveMethod::Overlap;
-	
+
 	bool Contains(const uint64 Hash) const;
 
 	UPCGExGraphPatch* FindPatch(uint64 Hash);
 	UPCGExGraphPatch* GetOrCreatePatch(uint64 Hash);
 	UPCGExGraphPatch* CreatePatch();
-	
+
 	void Distribute(const int32 InIndex, UPCGExGraphPatch* Patch = nullptr);
-	template<typename T>
+	template <typename T>
 	void DistributeEdge(const T& InEdge, UPCGExGraphPatch* Patch = nullptr);
 
 	void OutputTo(FPCGContext* Context, const int64 MinPointCount, const int64 MaxPointCount);
 	void OutputTo(FPCGContext* Context);
-	
+
 	void Flush();
 
 public:
-	~UPCGExGraphPatchGroup()
+	virtual ~UPCGExGraphPatchGroup() override
 	{
 		PointIO = nullptr;
 		Graph = nullptr;

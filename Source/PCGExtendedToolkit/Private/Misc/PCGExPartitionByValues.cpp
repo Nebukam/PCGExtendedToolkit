@@ -14,7 +14,7 @@ namespace PCGExPartitionByValues
 FString FPCGExPartitionRuleDescriptor::GetDisplayName() const
 {
 	if (bEnabled) { return FPCGExInputDescriptorWithSingleField::GetDisplayName(); }
-	else { return "(Disabled) " + FPCGExInputDescriptorWithSingleField::GetDisplayName(); }
+	return "(Disabled) " + FPCGExInputDescriptorWithSingleField::GetDisplayName();
 }
 
 void UPCGExPartitionByValuesSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)

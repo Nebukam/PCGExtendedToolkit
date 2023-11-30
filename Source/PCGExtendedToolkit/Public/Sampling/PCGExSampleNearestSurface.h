@@ -86,10 +86,10 @@ public:
 
 	/** Collision channel to check against */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision & Metrics", meta=(EditCondition="CollisionType==EPCGExCollisionFilterType::Channel", EditConditionHides, Bitmask, BitmaskEnum="/Script/Engine.ECollisionChannel"))
-	TEnumAsByte<ECollisionChannel> CollisionChannel = static_cast<ECollisionChannel>(ECC_WorldDynamic);
+	TEnumAsByte<ECollisionChannel> CollisionChannel = ECC_WorldDynamic;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision & Metrics", meta=(EditCondition="CollisionType==EPCGExCollisionFilterType::ObjectType", EditConditionHides, Bitmask, BitmaskEnum="/Script/Engine.EObjectTypeQuery"))
-	int32 CollisionObjectType = static_cast<EObjectTypeQuery>(EObjectTypeQuery::ObjectTypeQuery1);
+	int32 CollisionObjectType = ObjectTypeQuery1;
 
 	/** Ignore this graph' PCG content */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision & Metrics")
@@ -122,7 +122,6 @@ public:
 	PCGEX_OUT_ATTRIBUTE(LookAt, FVector)
 	PCGEX_OUT_ATTRIBUTE(Normal, FVector)
 	PCGEX_OUT_ATTRIBUTE(Distance, double)
-
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestSurfaceElement : public FPCGExPointsProcessorElementBase
@@ -142,14 +141,12 @@ protected:
 class PCGEXTENDEDTOOLKIT_API FSweepSphereTask : public FPointTask
 {
 public:
-
 	double RangeMax = 1000;
-	
+
 	FSweepSphereTask(FPCGExPointsProcessorContext* InContext, UPCGExPointIO* InPointData, const PCGExMT::FTaskInfos& InInfos) :
 		FPointTask(InContext, InPointData, InInfos)
 	{
 	}
 
 	virtual void ExecuteTask() override;
-
 };

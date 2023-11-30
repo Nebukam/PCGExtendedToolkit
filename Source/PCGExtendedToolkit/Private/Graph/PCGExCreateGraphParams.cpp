@@ -144,7 +144,7 @@ TArray<FPCGPinProperties> UPCGExCreateGraphParamsSettings::OutputPinProperties()
 	return PinProperties;
 }
 
-#if WITH_EDITOR 
+#if WITH_EDITOR
 void UPCGExCreateGraphParamsSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	if (PropertyChangedEvent.Property)

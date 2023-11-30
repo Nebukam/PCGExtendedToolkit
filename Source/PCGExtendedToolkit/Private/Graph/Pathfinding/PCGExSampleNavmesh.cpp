@@ -206,7 +206,7 @@ void FNavmeshPathTask::ExecuteTask()
 		// Find the path
 		FPathFindingQuery PathFindingQuery = FPathFindingQuery(
 			Context->World, *Context->NavData,
-			StartLocation, EndLocation, 0, 0,
+			StartLocation, EndLocation, nullptr, nullptr,
 			TNumericLimits<FVector::FReal>::Max(),
 			Context->bRequireNaviguableEndLocation);
 
@@ -257,12 +257,11 @@ void FNavmeshPathTask::ExecuteTask()
 
 				for (int i = 0; i <= NumPts; i++)
 				{
-					double Lerp = (i+Context->bAddSeedToPath)/NumPts;
+					double Lerp = (i + Context->bAddSeedToPath) / NumPts;
 					FPCGPoint& Point = MutablePoints.Emplace_GetRef();
 					Point.Seed = StartPoint.Seed;
 
-					
-					
+
 					FVector CurrentLocation = PathLocations[i];
 
 					if (i < NumPts)

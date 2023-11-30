@@ -27,7 +27,7 @@ namespace PCGExPolyLine
 			Length = InData->GetSegmentLength(Segment);
 			Start = InData->GetLocationAtDistance(Segment, 0);
 			End = InData->GetLocationAtDistance(Segment, Length);
-			Bounds = FBox(EForceInit::ForceInit);
+			Bounds = FBox(ForceInit);
 			Bounds += Start;
 			Bounds += End;
 		}
@@ -42,9 +42,8 @@ namespace PCGExPolyLine
 
 		double GetAccumulatedLengthAt(const FVector& Location) const
 		{
-			return  AccumulatedLength + FVector::Distance(Start, Location);
+			return AccumulatedLength + FVector::Distance(Start, Location);
 		}
-		
 	};
 }
 
@@ -66,7 +65,7 @@ public:
 	FBox Bounds;
 	double TotalLength;
 	double TotalClosedLength;
-	
+
 	void Flush()
 	{
 		Segments.Empty();
@@ -83,7 +82,7 @@ public:
 	FTransform SampleNearestTransform(const FVector& Location, double& OutTime);
 	bool SampleNearestTransform(const FVector& Location, const double Range, FTransform& OutTransform, double& OutTime);
 
-	~UPCGExPolyLineIO()
+	virtual ~UPCGExPolyLineIO() override
 	{
 		Segments.Empty();
 		In = nullptr;

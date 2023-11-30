@@ -33,7 +33,6 @@ public:
 	virtual PCGExIO::EInitMode GetPointOutputInitMode() const override;
 	virtual bool GetRequiresSeeds() const;
 	virtual bool GetRequiresGoals() const;
-	
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingProcessorContext : public FPCGExGraphProcessorContext
@@ -47,10 +46,9 @@ public:
 
 	PCGEx::FLocalDoubleInput GoalIndexInput;
 	EPCGExPathfindingGoalPickMethod GoalPickMethod;
-	
+
 protected:
 	int64 GetGoalIndex(const FPCGPoint& Seed, int64 SeedIndex);
-	
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExPathfindingProcessorElement : public FPCGExGraphProcessorElement

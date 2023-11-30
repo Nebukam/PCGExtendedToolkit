@@ -222,7 +222,7 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 			FReadScopeLock ReadLock(Context->PointsLock);
 			PCGExFuse::FFusedPoint& FusedPointData = Context->FusedPoints[ReadIndex];
 			int32 NumFused = static_cast<double>(FusedPointData.Fused.Num());
-			double AverageDivider = static_cast<double>(NumFused);
+			double AverageDivider = NumFused;
 
 			FPCGPoint RootPoint = Context->CurrentIO->In->GetPoint((FusedPointData.MainIndex));
 			Context->CurrentIO->Out->Metadata->InitializeOnSet(NewPoint.MetadataEntry, RootPoint.MetadataEntry, Context->CurrentIO->In->Metadata);
@@ -257,7 +257,7 @@ case EPCGExFuseMethod::Min: Context->InputAttributeMap.OutputCWMin<_TYPE>(Identi
 case EPCGExFuseMethod::Max: Context->InputAttributeMap.OutputCWMax<_TYPE>(Identity.Name, Point.MetadataEntry, NewPoint.MetadataEntry); break;\
 case EPCGExFuseMethod::Weight: Context->InputAttributeMap.OutputLerp<_TYPE>(Identity.Name, NewPoint.MetadataEntry, Point.MetadataEntry, NewPoint.MetadataEntry, Weight); break;\
 } break;
-						PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_FUSE_ATT)
+					PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_FUSE_ATT)
 #undef PCGEX_FUSE_ATT
 					}
 				}

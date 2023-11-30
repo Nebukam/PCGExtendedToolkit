@@ -107,7 +107,9 @@ bool FPCGExOperationsElement::ExecuteInternal(
 		DrawDebugPoint(Context->World, Start, 1.0f, FColor::White, true);
 		for (const PCGEx::FOperation& Operation : Context->Operations)
 		{
-			if (!Operation.bValid) { continue; }
+			if (!Operation.bValid)
+			{
+			}
 		}
 	};
 

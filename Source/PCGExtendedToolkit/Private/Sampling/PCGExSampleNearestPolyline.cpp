@@ -93,11 +93,11 @@ bool FPCGExSampleNearestPolylineElement::Validate(FPCGContext* InContext) const
 	PCGEX_CHECK_OUT_ATTRIBUTE_NAME(Distance)
 	PCGEX_CHECK_OUT_ATTRIBUTE_NAME(SignedDistance)
 	Context->SignAxis = Settings->SignAxis;
-	
+
 	PCGEX_CHECK_OUT_ATTRIBUTE_NAME(Angle)
 	Context->AngleAxis = Settings->AngleAxis;
 	Context->AngleRange = Settings->AngleRange;
-	
+
 	PCGEX_CHECK_OUT_ATTRIBUTE_NAME(Time)
 
 	Context->RangeMin = Settings->RangeMin;

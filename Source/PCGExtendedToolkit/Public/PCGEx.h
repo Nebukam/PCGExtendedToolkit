@@ -144,7 +144,7 @@ namespace PCGEx
 	constexpr FLinearColor NodeColorGraph = FLinearColor(80.0f / 255.0f, 241.0f / 255.0f, 168.0f / 255.0f, 1.0f);
 	constexpr FLinearColor NodeColorPathfinding = FLinearColor(1.0f, 1.0f, 168.0f / 255.0f, 1.0f);
 	constexpr FLinearColor NodeColorWhite = FLinearColor(1.0f, 1.0f, 1.0f, 1.0f);
-	
+
 	const FSoftObjectPath DefaultDotOverDistanceCurve = FSoftObjectPath(TEXT("/PCGExtendedToolkit/FC_PCGExGraphBalance_DistanceOnly.FC_PCGExGraphBalance_DistanceOnly"));
 	const FSoftObjectPath WeightDistributionLinear = FSoftObjectPath(TEXT("/PCGExtendedToolkit/FC_PCGExWeightDistribution_Linear.FC_PCGExWeightDistribution_Linear"));
 
@@ -154,7 +154,7 @@ namespace PCGEx
 		return Context->SourceComponent->GetWorld();
 	}
 
-	template<typename T>
+	template <typename T>
 	static void SanitizeIndex(T& Index, const T& Limit, const EPCGExIndexSafety Method)
 	{
 		switch (Method)
@@ -191,5 +191,4 @@ namespace PCGEx
 			return Quat.GetUpVector() * -1;
 		}
 	}
-
 }

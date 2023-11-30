@@ -293,11 +293,11 @@ namespace PCGExGraph
 
 	struct PCGEXTENDEDTOOLKIT_API FProbeDistanceModifier : public PCGEx::FLocalSingleFieldGetter
 	{
-		FProbeDistanceModifier(): PCGEx::FLocalSingleFieldGetter()
+		FProbeDistanceModifier(): FLocalSingleFieldGetter()
 		{
 		}
 
-		FProbeDistanceModifier(const FPCGExSocketDescriptor& InDescriptor): PCGEx::FLocalSingleFieldGetter()
+		FProbeDistanceModifier(const FPCGExSocketDescriptor& InDescriptor): FLocalSingleFieldGetter()
 		{
 			Descriptor = static_cast<FPCGExInputDescriptor>(InDescriptor.AttributeModifier);
 			bEnabled = InDescriptor.bApplyAttributeModifier;
@@ -306,11 +306,11 @@ namespace PCGExGraph
 
 	struct PCGEXTENDEDTOOLKIT_API FLocalDirection : public PCGEx::FLocalDirectionGetter
 	{
-		FLocalDirection(): PCGEx::FLocalDirectionGetter()
+		FLocalDirection(): FLocalDirectionGetter()
 		{
 		}
 
-		FLocalDirection(const FPCGExSocketDescriptor& InDescriptor): PCGEx::FLocalDirectionGetter()
+		FLocalDirection(const FPCGExSocketDescriptor& InDescriptor): FLocalDirectionGetter()
 		{
 			Descriptor = static_cast<FPCGExInputDescriptor>(InDescriptor.AttributeDirectionVector);
 			bEnabled = InDescriptor.bDirectionVectorFromAttribute;
@@ -348,7 +348,7 @@ namespace PCGExGraph
 
 	public:
 		FName GetName() const { return AttributeNameBase; }
-		EPCGExSocketType GetType() const { return static_cast<EPCGExSocketType>(Descriptor.SocketType); }
+		EPCGExSocketType GetType() const { return Descriptor.SocketType; }
 		bool IsExclusive() const { return Descriptor.bExclusiveBehavior; }
 		bool Matches(const FSocket* OtherSocket) const { return MatchingSockets.Contains(OtherSocket->SocketIndex); }
 

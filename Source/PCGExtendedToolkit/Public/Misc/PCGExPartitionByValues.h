@@ -84,7 +84,7 @@ public:
 			FReadScopeLock ReadLock(LayersLock);
 			LayerPtr = SubLayers.Find(Key);
 		}
-		
+
 		if (!LayerPtr)
 		{
 			FWriteScopeLock WriteLock(LayersLock);
@@ -92,10 +92,7 @@ public:
 			SubLayers.Add(Key, Layer);
 			return Layer;
 		}
-		else
-		{
-			return *LayerPtr;
-		}
+		return *LayerPtr;
 	}
 
 	FPCGPoint& NewPoint(const FPCGPoint& Point) const
@@ -139,7 +136,7 @@ namespace PCGExPartition
 
 		int64 Filter(const FPCGPoint& Point) const
 		{
-			const double Upscaled = static_cast<double>(GetValue(Point)) * Upscale + Offset;
+			const double Upscaled = GetValue(Point) * Upscale + Offset;
 			const double Filtered = (Upscaled - FMath::Fmod(Upscaled, FilterSize)) / FilterSize;
 			return static_cast<int64>(Filtered);
 		}

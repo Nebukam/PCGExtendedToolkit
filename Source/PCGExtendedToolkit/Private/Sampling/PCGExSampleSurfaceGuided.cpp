@@ -128,11 +128,11 @@ void FTraceTask::ExecuteTask()
 	const double Size = Context->bUseLocalSize ? Context->SizeGetter.GetValue(InPoint) : Context->Size;
 	const FVector Trace = Context->DirectionGetter.GetValue(InPoint) * Size;
 	const FVector End = Origin + Trace;
-		
+
 	if (!IsTaskValid()) { return; }
 
 	bool bSuccess = false;
-		
+
 	auto ProcessTraceResult = [&]()
 	{
 		PCGEX_SET_OUT_ATTRIBUTE(Location, Infos.Key, HitResult.ImpactPoint)
@@ -157,13 +157,13 @@ void FTraceTask::ExecuteTask()
 		}
 	}
 
-	if(Context->bProjectFailToSize)
+	if (Context->bProjectFailToSize)
 	{
 		PCGEX_SET_OUT_ATTRIBUTE(Location, Infos.Key, End)
 		PCGEX_SET_OUT_ATTRIBUTE(Normal, Infos.Key, Trace.GetSafeNormal()*-1)
 		PCGEX_SET_OUT_ATTRIBUTE(Distance, Infos.Key, Size)
 	}
-		
+
 	PCGEX_SET_OUT_ATTRIBUTE(Success, Infos.Key, bSuccess)
 	ExecutionComplete(bSuccess);
 }

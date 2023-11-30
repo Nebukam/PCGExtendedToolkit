@@ -93,7 +93,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (DisplayName="Fuse Method", PCG_Overridable, DisplayAfter="Selector"))
 	EPCGExFuseMethod FuseMethod = EPCGExFuseMethod::Average;
 
-	~FPCGExInputDescriptorWithFuseMethod()
+	virtual ~FPCGExInputDescriptorWithFuseMethod() override
 	{
 	}
 };
@@ -215,7 +215,7 @@ public:
 	FVector Radiuses;
 
 	PCGEx::FAttributeMap InputAttributeMap;
-	
+
 	TArray<PCGExFuse::FFusedPoint> FusedPoints;
 	TArray<FPCGPoint>* OutPoints;
 	TArray<PCGExFuse::FAttribute> Attributes;
@@ -225,7 +225,6 @@ public:
 	mutable FRWLock PointsLock;
 
 	void PrepareForPoints(const UPCGExPointIO* InData);
-	
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExFusePointsElement : public FPCGExPointsProcessorElementBase

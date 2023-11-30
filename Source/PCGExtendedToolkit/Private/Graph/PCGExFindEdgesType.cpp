@@ -73,10 +73,7 @@ bool FPCGExFindEdgesTypeElement::ExecuteInternal(
 			Context->SetState(PCGExMT::EState::ReadyForNextPoints);
 			return false;
 		}
-		else
-		{
-			Context->SetState(PCGExMT::EState::ProcessingGraph);
-		}
+		Context->SetState(PCGExMT::EState::ProcessingGraph);
 	}
 
 	auto Initialize = [&](const UPCGExPointIO* PointIO)

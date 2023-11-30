@@ -83,7 +83,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingGoalPickingSettings
 
 				Index = static_cast<int32>(PCGExMath::Remap(
 					FMath::PerlinNoise3D(PCGExMath::CWWrap(Seed.Transform.GetLocation() * 0.001, FVector(-1), FVector(1))),
-					-1, 1, 0, static_cast<double>(MaxGoalIndex)));
+					-1, 1, 0, MaxGoalIndex));
 				break;
 			case EPCGExPathfindingGoalPickMethod::MultipleLocalAttribute:
 				break;
@@ -125,7 +125,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingGoalPickingSettings
 	void PrintDisplayNames()
 	{
 		Attribute.PrintDisplayName();
-		for (FPCGExInputDescriptorWithSingleField& Descriptor : Attributes) { Descriptor.PrintDisplayName(); };
+		for (FPCGExInputDescriptorWithSingleField& Descriptor : Attributes) { Descriptor.PrintDisplayName(); }
 	}
 };
 

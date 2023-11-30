@@ -56,7 +56,7 @@ public:
 	/** If the trace fails, use the end of the trace as a hit, but will still be marked as fail. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(InlineEditConditionToggle))
 	bool bProjectFailToSize = false;
-	
+
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(EditCondition="bWriteSuccess"))
 	FName Success = FName("SuccessfullySampled");
@@ -92,10 +92,10 @@ public:
 
 	/** Collision channel to check against */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision & Metrics", meta=(EditCondition="CollisionType==EPCGExCollisionFilterType::Channel", EditConditionHides, Bitmask, BitmaskEnum="/Script/Engine.ECollisionChannel"))
-	TEnumAsByte<ECollisionChannel> CollisionChannel = static_cast<ECollisionChannel>(ECC_WorldDynamic);
+	TEnumAsByte<ECollisionChannel> CollisionChannel = ECC_WorldDynamic;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision & Metrics", meta=(EditCondition="CollisionType==EPCGExCollisionFilterType::ObjectType", EditConditionHides, Bitmask, BitmaskEnum="/Script/Engine.EObjectTypeQuery"))
-	int32 CollisionObjectType = static_cast<EObjectTypeQuery>(EObjectTypeQuery::ObjectTypeQuery1);
+	int32 CollisionObjectType = ObjectTypeQuery1;
 
 	/** Ignore this graph' PCG content */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision & Metrics")
@@ -122,7 +122,6 @@ public:
 	PCGEX_OUT_ATTRIBUTE(Location, FVector)
 	PCGEX_OUT_ATTRIBUTE(Normal, FVector)
 	PCGEX_OUT_ATTRIBUTE(Distance, double)
-
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExSampleSurfaceGuidedElement : public FPCGExPointsProcessorElementBase

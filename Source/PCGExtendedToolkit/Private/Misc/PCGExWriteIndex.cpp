@@ -34,7 +34,6 @@ bool FPCGExWriteIndexElement::Validate(FPCGContext* InContext) const
 
 	Context->OutName = Settings->OutputAttributeName;
 	return true;
-	
 }
 
 
@@ -72,7 +71,7 @@ bool FPCGExWriteIndexElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsState(PCGExMT::EState::ProcessingPoints))
 	{
-		if(Context->AsyncProcessingMainPoints(InitializeForIO, ProcessPoint))
+		if (Context->AsyncProcessingMainPoints(InitializeForIO, ProcessPoint))
 		{
 			Context->SetState(PCGExMT::EState::Done);
 		}

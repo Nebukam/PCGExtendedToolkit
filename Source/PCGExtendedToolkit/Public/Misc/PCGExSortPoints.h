@@ -39,7 +39,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayAfter="Selector", ForceInlineRow))
 	EPCGExOrderedFieldSelection OrderFieldSelection = EPCGExOrderedFieldSelection::XYZ;
 
-	~FPCGExInputDescriptorWithOrderField()
+	virtual ~FPCGExInputDescriptorWithOrderField() override
 	{
 	}
 };

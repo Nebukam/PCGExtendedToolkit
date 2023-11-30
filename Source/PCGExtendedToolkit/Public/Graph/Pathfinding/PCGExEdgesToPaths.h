@@ -46,7 +46,6 @@ public:
 	TArray<PCGExGraph::FUnsignedEdge> Edges;
 
 	mutable FRWLock EdgeLock;
-	
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExEdgesToPathsElement : public FPCGExPathfindingProcessorElement

@@ -9,7 +9,6 @@ class UPCGPointData;
 
 namespace PCGExGraph
 {
-	
 	struct PCGEXTENDEDTOOLKIT_API FCachedSocketData
 	{
 		FCachedSocketData()
@@ -39,25 +38,15 @@ namespace PCGExGraph
 				{
 					return EPCGExEdgeType::Complete;
 				}
-				else
-				{
-					return EPCGExEdgeType::Match;
-				}
+				return EPCGExEdgeType::Match;
 			}
-			else
+			if (StartSocket.Socket->SocketIndex == EndSocket.Socket->SocketIndex)
 			{
-				if (StartSocket.Socket->SocketIndex == EndSocket.Socket->SocketIndex)
-				{
-					// We check for mirror AFTER checking for shared/match, since Mirror can be considered a legal match by design
-					// in which case we don't want to flag this as Mirrored.
-					return EPCGExEdgeType::Mirror;
-				}
-				else
-				{
-					return EPCGExEdgeType::Shared;
-				}
+				// We check for mirror AFTER checking for shared/match, since Mirror can be considered a legal match by design
+				// in which case we don't want to flag this as Mirrored.
+				return EPCGExEdgeType::Mirror;
 			}
+			return EPCGExEdgeType::Shared;
 		}
 	};
 }
-

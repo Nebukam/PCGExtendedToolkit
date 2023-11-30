@@ -59,11 +59,11 @@ namespace PCGExDebug
 			const_cast<IPCGExDebugManager*>(DebugNodeManager)->PingFrom(Context, MutableOriginator);
 		}
 
-		if(ManagerCount > 1)
+		if (ManagerCount > 1)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("There are multiple PCGExManager in your graph -- this can cause unexpected behaviors."))	
+			UE_LOG(LogTemp, Warning, TEXT("There are multiple PCGExManager in your graph -- this can cause unexpected behaviors."))
 		}
-				
+
 		return ManagerCount > 0;
 	}
 

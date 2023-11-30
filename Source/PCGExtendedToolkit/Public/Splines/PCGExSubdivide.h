@@ -64,7 +64,6 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	EPCGExSubdivideBlendMode SubdivideBlend = EPCGExSubdivideBlendMode::InheritStart;
-
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExSubdivideContext : public FPCGExPointsProcessorContext
@@ -77,11 +76,10 @@ public:
 	int32 Count;
 	bool bFlagSubPoints;
 	EPCGExSubdivideBlendMode SubdivideBlend;
-	
+
 	FName FlagName;
 	FPCGMetadataAttribute<bool>* FlagAttribute = nullptr;
 	PCGEx::FAttributeMap InputAttributeMap;
-	
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExSubdivideElement : public FPCGExPointsProcessorElementBase

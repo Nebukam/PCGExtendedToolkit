@@ -9,7 +9,7 @@
 
 UPCGExPolyLineIO::UPCGExPolyLineIO(): In(nullptr)
 {
-	Bounds = FBox(EForceInit::ForceInit);
+	Bounds = FBox(ForceInit);
 }
 
 PCGExPolyLine::FSegment* UPCGExPolyLineIO::NearestSegment(const FVector& Location)
@@ -96,14 +96,14 @@ UPCGExPolyLineIOGroup::UPCGExPolyLineIOGroup()
 }
 
 UPCGExPolyLineIOGroup::UPCGExPolyLineIOGroup(const FPCGContext* Context, FName InputLabel)
-	: UPCGExPolyLineIOGroup::UPCGExPolyLineIOGroup()
+	: UPCGExPolyLineIOGroup()
 {
 	TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(InputLabel);
 	Initialize(Sources);
 }
 
 UPCGExPolyLineIOGroup::UPCGExPolyLineIOGroup(TArray<FPCGTaggedData>& Sources)
-	: UPCGExPolyLineIOGroup::UPCGExPolyLineIOGroup()
+	: UPCGExPolyLineIOGroup()
 {
 	Initialize(Sources);
 }
@@ -199,17 +199,17 @@ UPCGPolyLineData* UPCGExPolyLineIOGroup::GetMutablePolyLineData(const UPCGSpatia
 	{
 		return const_cast<UPCGPolyLineData*>(LineData);
 	}
-	else if (const UPCGSplineProjectionData* SplineProjectionData = Cast<const UPCGSplineProjectionData>(InSpatialData))
+	if (const UPCGSplineProjectionData* SplineProjectionData = Cast<const UPCGSplineProjectionData>(InSpatialData))
 	{
 		return const_cast<UPCGSplineData*>(SplineProjectionData->GetSpline());
 	}
-	else if (const UPCGIntersectionData* Intersection = Cast<const UPCGIntersectionData>(InSpatialData))
+	if (const UPCGIntersectionData* Intersection = Cast<const UPCGIntersectionData>(InSpatialData))
 	{
 		if (const UPCGPolyLineData* IntersectionA = GetMutablePolyLineData(Intersection->A))
 		{
 			return const_cast<UPCGPolyLineData*>(IntersectionA);
 		}
-		else if (const UPCGPolyLineData* IntersectionB = GetMutablePolyLineData(Intersection->B))
+		if (const UPCGPolyLineData* IntersectionB = GetMutablePolyLineData(Intersection->B))
 		{
 			return const_cast<UPCGPolyLineData*>(IntersectionB);
 		}

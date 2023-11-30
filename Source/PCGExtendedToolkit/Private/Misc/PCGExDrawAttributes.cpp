@@ -11,7 +11,7 @@ PCGExIO::EInitMode UPCGExDrawAttributesSettings::GetPointOutputInitMode() const 
 FString FPCGExAttributeDebugDrawDescriptor::GetDisplayName() const
 {
 	if (bEnabled) { return FPCGExInputDescriptor::GetDisplayName(); }
-	else { return "(Disabled) " + FPCGExInputDescriptor::GetDisplayName(); }
+	return "(Disabled) " + FPCGExInputDescriptor::GetDisplayName();
 }
 #endif
 
@@ -72,10 +72,7 @@ FColor FPCGExAttributeDebugDraw::GetColor(const FPCGPoint& Point) const
 		const FVector Value = ColorGetter.GetValue(Point);
 		return Descriptor->bColorIsLinear ? FColor(Value.X * 255.0f, Value.Y * 255.0f, Value.Z * 255.0f) : FColor(Value.X, Value.Y, Value.Z);
 	}
-	else
-	{
-		return Descriptor->Color;
-	}
+	return Descriptor->Color;
 }
 
 FVector FPCGExAttributeDebugDraw::GetVector(const FPCGPoint& Point) const
@@ -134,7 +131,7 @@ void FPCGExAttributeDebugDraw::DrawPoint(const UWorld* World, const FVector& Sta
 void FPCGExAttributeDebugDraw::DrawLabel(const UWorld* World, const FVector& Start, const FPCGPoint& Point) const
 {
 	FString Text = TextGetter.GetValueSafe(Point, ".");
-	DrawDebugString(World, Start, *Text, NULL, GetColor(Point), 99999.0f, false, GetSize(Point));
+	DrawDebugString(World, Start, *Text, nullptr, GetColor(Point), 99999.0f, false, GetSize(Point));
 }
 
 UPCGExDrawAttributesSettings::UPCGExDrawAttributesSettings(

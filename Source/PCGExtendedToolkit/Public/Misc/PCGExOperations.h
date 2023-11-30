@@ -65,15 +65,12 @@ public:
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (DisplayName="Output", EditCondition="OutputTo==EPCGExOperationOutput::OutputToCustom", ShowOnlyInnerProperties, FullyExpand=true))
 	FPCGExInputDescriptorGeneric CustomOutput;
-	
-		
 };
 
 namespace PCGEx
 {
 	struct PCGEXTENDEDTOOLKIT_API FOperation
 	{
-
 		FOperation()
 		{
 			Descriptor = nullptr;
@@ -82,7 +79,7 @@ namespace PCGEx
 	public:
 		FPCGExOperationDescriptor* Descriptor;
 
-		PCGEx::FLocalDirectionGetter VectorInput;
+		FLocalDirectionGetter VectorInput;
 
 		bool bValid = false;
 

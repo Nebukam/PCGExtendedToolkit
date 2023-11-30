@@ -27,7 +27,7 @@ public:
 	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorDebug; }
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
-virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
+	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
@@ -51,7 +51,7 @@ public:
 	/** Draw socket cones lines.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	bool bDrawSocketCones = false;
-	
+
 	/** Draw socket loose bounds.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	bool bDrawSocketBox = false;

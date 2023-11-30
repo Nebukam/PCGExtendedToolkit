@@ -68,7 +68,7 @@ protected:
 	mutable FRWLock PointsLock;
 
 public:
-	~UPCGExPointIO()
+	virtual ~UPCGExPointIO() override
 	{
 		IndicesMap.Empty();
 		In = nullptr;

@@ -60,7 +60,6 @@ public:
 	FPCGMetadataAttribute<FVector>* LeaveAttribute = nullptr;
 	EPCGExAutoTangentScaleMode ScaleMode;
 	double Scale = 1;
-	
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExAutoTangentsElement : public FPCGExPointsProcessorElementBase

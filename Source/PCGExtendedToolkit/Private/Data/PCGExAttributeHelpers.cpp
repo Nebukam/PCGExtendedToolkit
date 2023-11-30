@@ -29,7 +29,7 @@ bool FPCGExInputDescriptor::Validate(const UPCGPointData* InData)
 
 		return Attribute != nullptr;
 	}
-	else if (Selector.IsValid())
+	if (Selector.IsValid())
 	{
 		const TUniquePtr<const IPCGAttributeAccessor> Accessor = PCGAttributeAccessorHelpers::CreateConstAccessor(InData, Selector);
 		UnderlyingType = Accessor->GetUnderlyingType();

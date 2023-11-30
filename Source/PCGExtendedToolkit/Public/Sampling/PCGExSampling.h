@@ -62,7 +62,7 @@ namespace PCGExSampling
 		const FVector N2 = B.GetSafeNormal();
 
 		const double MainDot = N1.Dot(N2);
-		
+
 		switch (Mode)
 		{
 		case EPCGExAngleRange::URadians: // 0 .. 3.14
@@ -72,12 +72,13 @@ namespace PCGExSampling
 			OutAngle = FMath::Acos(MainDot) * FMath::Sign(MainDot);
 			break;
 		case EPCGExAngleRange::TAURadians: // 0 .. 6.28
-			if(FVector::CrossProduct(N1, N2).Z < 0)
+			if (FVector::CrossProduct(N1, N2).Z < 0)
 			{
-				OutAngle = (PI*2) - FMath::Atan2(FVector::CrossProduct(N1, N2).Size(), MainDot);
-			}else
+				OutAngle = (PI * 2) - FMath::Atan2(FVector::CrossProduct(N1, N2).Size(), MainDot);
+			}
+			else
 			{
-				OutAngle = FMath::Atan2(FVector::CrossProduct(N1, N2).Size(), MainDot);	
+				OutAngle = FMath::Atan2(FVector::CrossProduct(N1, N2).Size(), MainDot);
 			}
 			break;
 		case EPCGExAngleRange::UDegrees: // 0 .. 180
@@ -87,12 +88,13 @@ namespace PCGExSampling
 			OutAngle = FMath::RadiansToDegrees(FMath::Acos(MainDot)) * FMath::Sign(MainDot);
 			break;
 		case EPCGExAngleRange::TAUDegrees: // 0 .. 360
-			if(FVector::CrossProduct(N1, N2).Z < 0)
+			if (FVector::CrossProduct(N1, N2).Z < 0)
 			{
 				OutAngle = 360 - FMath::RadiansToDegrees(FMath::Atan2(FVector::CrossProduct(N1, N2).Size(), MainDot));
-			}else
+			}
+			else
 			{
-				OutAngle = FMath::RadiansToDegrees(FMath::Atan2(FVector::CrossProduct(N1, N2).Size(), MainDot));	
+				OutAngle = FMath::RadiansToDegrees(FMath::Atan2(FVector::CrossProduct(N1, N2).Size(), MainDot));
 			}
 			break;
 		default: ;

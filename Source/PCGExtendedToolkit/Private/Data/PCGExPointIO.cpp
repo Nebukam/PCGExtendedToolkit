@@ -176,14 +176,14 @@ UPCGExPointIOGroup::UPCGExPointIOGroup()
 }
 
 UPCGExPointIOGroup::UPCGExPointIOGroup(FPCGContext* Context, FName InputLabel, PCGExIO::EInitMode InitOut)
-	: UPCGExPointIOGroup::UPCGExPointIOGroup()
+	: UPCGExPointIOGroup()
 {
 	TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(InputLabel);
 	Initialize(Context, Sources, InitOut);
 }
 
 UPCGExPointIOGroup::UPCGExPointIOGroup(FPCGContext* Context, TArray<FPCGTaggedData>& Sources, PCGExIO::EInitMode InitOut)
-	: UPCGExPointIOGroup::UPCGExPointIOGroup()
+	: UPCGExPointIOGroup()
 {
 	Initialize(Context, Sources, InitOut);
 }
@@ -229,7 +229,7 @@ UPCGExPointIO* UPCGExPointIOGroup::Emplace_GetRef(
 	const FPCGTaggedData& Source, UPCGPointData* In,
 	const PCGExIO::EInitMode InitOut)
 {
-	UPCGExPointIO* Pair = PCGExIO::CreateNewPointIO(Source, In, DefaultOutputLabel, InitOut);
+	UPCGExPointIO* Pair = CreateNewPointIO(Source, In, DefaultOutputLabel, InitOut);
 
 	{
 		FWriteScopeLock WriteLock(PairsLock);
@@ -241,7 +241,7 @@ UPCGExPointIO* UPCGExPointIOGroup::Emplace_GetRef(
 
 UPCGExPointIO* UPCGExPointIOGroup::Emplace_GetRef(const PCGExIO::EInitMode InitOut)
 {
-	UPCGExPointIO* Pair = PCGExIO::CreateNewPointIO(DefaultOutputLabel, InitOut);
+	UPCGExPointIO* Pair = CreateNewPointIO(DefaultOutputLabel, InitOut);
 
 	{
 		FWriteScopeLock WriteLock(PairsLock);
