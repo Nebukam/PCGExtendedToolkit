@@ -90,8 +90,9 @@ FPCGContext* FPCGExSampleNavmeshElement::Initialize(const FPCGDataCollection& In
 	Context->NavAgentProperties = Settings->NavAgentProperties;
 	Context->bAddSeedToPath = Settings->bAddSeedToPath;
 	Context->bAddGoalToPath = Settings->bAddGoalToPath;
+	Context->LerpMode = Settings->LerpMode;
 	Context->FuseDistance = Settings->FuseDistance * Settings->FuseDistance;
-	Context->bRequireNaviguableEndLocation = Settings->bRequireNaviguableEndLocation;
+	Context->bRequireNavigableEndLocation = Settings->bRequireNaviguableEndLocation;
 	Context->PathfindingMode = Settings->PathfindingMode;
 
 	return Context;
@@ -147,7 +148,7 @@ bool FPCGExSampleNavmeshElement::ExecuteInternal(FPCGContext* InContext) const
 				FAsyncTask<FNavmeshPathTask>* AsyncTask = Context->CreateTask<FNavmeshPathTask>(PointIndex, PointIO->GetInPoint(PointIndex).MetadataEntry);
 				FNavmeshPathTask& Task = AsyncTask->GetTask();
 				Task.GoalIndex = Goal;
-				Task.PathPoints = Context->OutputPaths->Emplace_GetRef()->Out;
+				Task.PathPoints = Context->OutputPaths->Emplace_GetRef(PointIO->In, PCGExIO::EInitMode::NewOutput);
 
 				Context->StartTask(AsyncTask);
 			}
@@ -160,7 +161,7 @@ bool FPCGExSampleNavmeshElement::ExecuteInternal(FPCGContext* InContext) const
 			FAsyncTask<FNavmeshPathTask>* AsyncTask = Context->CreateTask<FNavmeshPathTask>(PointIndex, PointIO->GetInPoint(PointIndex).MetadataEntry);
 			FNavmeshPathTask& Task = AsyncTask->GetTask();
 			Task.GoalIndex = GoalIndex;
-			Task.PathPoints = Context->OutputPaths->Emplace_GetRef()->Out;
+			Task.PathPoints = Context->OutputPaths->Emplace_GetRef(PointIO->In, PCGExIO::EInitMode::NewOutput);
 
 			Context->StartTask(AsyncTask);
 		}
@@ -208,7 +209,7 @@ void FNavmeshPathTask::ExecuteTask()
 			Context->World, *Context->NavData,
 			StartLocation, EndLocation, nullptr, nullptr,
 			TNumericLimits<FVector::FReal>::Max(),
-			Context->bRequireNaviguableEndLocation);
+			Context->bRequireNavigableEndLocation);
 
 		PathFindingQuery.NavAgentProperties = Context->NavAgentProperties;
 
@@ -228,20 +229,25 @@ void FNavmeshPathTask::ExecuteTask()
 			for (FNavPathPoint PathPoint : Points) { PathLocations.Add(PathPoint.Location); }
 			if (Context->bAddGoalToPath) { PathLocations.Add(EndLocation); }
 
+			double PathLength = 0;
 			int32 NumPts = PathLocations.Num() - 1;
 			for (int i = 0; i <= NumPts; i++)
 			{
+				double Dist = 0;
 				FVector CurrentLocation = PathLocations[i];
-				if (i > 0 && i < NumPts - 1)
+				if (i > 0)
 				{
-					if (FVector::DistSquared(CurrentLocation, PathLocations[i - 1]) < Context->FuseDistance)
+					Dist = FVector::DistSquared(CurrentLocation, PathLocations[i - 1]);
+					if (i < NumPts && Dist < Context->FuseDistance)
 					{
 						// Fuse
 						PathLocations.RemoveAt(i);
 						i--;
 						NumPts--;
+						continue;
 					}
 				}
+				PathLength += Dist;
 			}
 
 
@@ -252,30 +258,44 @@ void FNavmeshPathTask::ExecuteTask()
 			}
 			else
 			{
-				TArray<FPCGPoint>& MutablePoints = PathPoints->GetMutablePoints();
-				MutablePoints.Reserve(PathLocations.Num());
-
+				FVector PrevPos = FVector::ZeroVector;
+				double CurrentPathLength = 0;
+				bool bDistanceBasedLerp = Context->LerpMode == EPCGExPointLerpMode::Distance;
 				for (int i = 0; i <= NumPts; i++)
 				{
-					double Lerp = (i + Context->bAddSeedToPath) / NumPts;
-					FPCGPoint& Point = MutablePoints.Emplace_GetRef();
-					Point.Seed = StartPoint.Seed;
-
+					double Lerp = static_cast<double>(i) / static_cast<double>(NumPts);
+					FPCGPoint& Point = PathPoints->NewPoint(StartPoint);
+					//Point.Seed = StartPoint.Seed;
 
 					FVector CurrentLocation = PathLocations[i];
 
-					if (i < NumPts)
+					if (i > 0)
 					{
-						FRotator DesiredRotation = FRotationMatrix::MakeFromX(CurrentLocation - PathLocations[i + 1]).Rotator();
-						FTransform DesiredTransform = FTransform(DesiredRotation, CurrentLocation);
-						Point.Transform = DesiredTransform;
+						if (bDistanceBasedLerp)
+						{
+							CurrentPathLength += FVector::DistSquared(CurrentLocation, PrevPos);
+							Lerp = CurrentPathLength / PathLength;
+						}
+
+						PCGExMath::Lerp(StartPoint, EndPoint, Point, Lerp);
+						//Context->InputAttributeMap.SetLerp(StartPoint.MetadataEntry, EndPoint.MetadataEntry, Point.MetadataEntry, Lerp);
+						
 					}
-					else if (i >= 1)
+
+					Point.Transform.SetLocation(CurrentLocation);
+					
+					if (i < NumPts) // Next point
 					{
-						FRotator DesiredRotation = FRotationMatrix::MakeFromX(PathLocations[i - 1] - CurrentLocation).Rotator();
-						FTransform DesiredTransform = FTransform(DesiredRotation, CurrentLocation);
-						Point.Transform = DesiredTransform;
+						FQuat DesiredRotation = FRotationMatrix::MakeFromX(CurrentLocation - PathLocations[i + 1]).ToQuat();
+						Point.Transform.SetRotation(DesiredRotation);
 					}
+					else if (i >= 1) // Last point
+					{
+						FQuat DesiredRotation = FRotationMatrix::MakeFromX(PathLocations[i - 1] - CurrentLocation).ToQuat();
+						Point.Transform.SetRotation(DesiredRotation);
+					}
+
+					PrevPos = CurrentLocation;
 				}
 
 				bSuccess = true;

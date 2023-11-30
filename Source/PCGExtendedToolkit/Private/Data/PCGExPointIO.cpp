@@ -239,6 +239,21 @@ UPCGExPointIO* UPCGExPointIOGroup::Emplace_GetRef(
 	return Pair;
 }
 
+UPCGExPointIO* UPCGExPointIOGroup::Emplace_GetRef(
+	UPCGPointData* In,
+	const PCGExIO::EInitMode InitOut)
+{
+	const FPCGTaggedData TaggedData;
+	UPCGExPointIO* Pair = CreateNewPointIO(TaggedData, In, DefaultOutputLabel, InitOut);
+
+	{
+		FWriteScopeLock WriteLock(PairsLock);
+		Pairs.Add(Pair);
+	}
+
+	return Pair;
+}
+
 UPCGExPointIO* UPCGExPointIOGroup::Emplace_GetRef(const PCGExIO::EInitMode InitOut)
 {
 	UPCGExPointIO* Pair = CreateNewPointIO(DefaultOutputLabel, InitOut);

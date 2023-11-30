@@ -209,7 +209,7 @@ bool FPCGExDrawAttributesElement::ExecuteInternal(FPCGContext* InContext) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExDrawAttributesElement::Execute);
 
-#if  WITH_EDITOR
+#if WITH_EDITOR
 
 	FPCGExDrawAttributesContext* Context = static_cast<FPCGExDrawAttributesContext*>(InContext);
 
@@ -271,11 +271,11 @@ bool FPCGExDrawAttributesElement::ExecuteInternal(FPCGContext* InContext) const
 		return true;
 	}
 
+	return false;
+
 #elif
 	return  true;
 #endif
-
-	return false;
 }
 
 #undef LOCTEXT_NAMESPACE

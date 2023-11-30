@@ -147,6 +147,7 @@ public:
 	UPCGExPointIO* Emplace_GetRef(
 		const FPCGTaggedData& Source, UPCGPointData* In,
 		const PCGExIO::EInitMode InitOut = PCGExIO::EInitMode::NoOutput);
+	UPCGExPointIO* Emplace_GetRef(UPCGPointData* In, PCGExIO::EInitMode InitOut= PCGExIO::EInitMode::NoOutput);
 
 	UPCGExPointIO* Emplace_GetRef(PCGExIO::EInitMode InitOut = PCGExIO::EInitMode::NewOutput);
 

@@ -37,10 +37,13 @@ class PCGEXTENDEDTOOLKIT_API IPCGExDebugManager
 	GENERATED_BODY()
 
 public:
+#if WITH_EDITOR
 	virtual void PingFrom(const FPCGContext* Context, IPCGExDebug* DebugNode) = 0;
 	virtual void ResetPing(const FPCGContext* Context) = 0;
+#endif
 };
 
+#if WITH_EDITOR
 namespace PCGExDebug
 {
 	static bool NotifyExecute(const FPCGContext* Context)
@@ -61,7 +64,11 @@ namespace PCGExDebug
 
 		if (ManagerCount > 1)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("There are multiple PCGExManager in your graph -- this can cause unexpected behaviors."))
+			UE_LOG(LogTemp, Warning, TEXT("There are multiple PCGEx DebugManager in your graph -- this can cause unexpected behaviors."))
+		}
+		else if (ManagerCount == 0)
+		{
+			UE_LOG(LogTemp, Error, TEXT("There is no PCGEx DebugManager in your graph -- add one to make sure PCGEx Debug node can work."))
 		}
 
 		return ManagerCount > 0;
@@ -82,3 +89,4 @@ namespace PCGExDebug
 		return DebugNodeCount;
 	}
 }
+#endif

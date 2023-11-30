@@ -18,6 +18,13 @@ namespace PCGExNavmesh
 }
 
 UENUM(BlueprintType)
+enum class EPCGExPointLerpMode : uint8
+{
+	Distance UMETA(DisplayName = "Distance-based", ToolTip="TBD"),
+	Index UMETA(DisplayName = "Index-based", ToolTip="TBD"),
+};
+
+UENUM(BlueprintType)
 enum class EPCGExPathfindingMode : uint8
 {
 	Regular UMETA(DisplayName = "Regular", ToolTip="TBD"),
@@ -69,6 +76,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	bool bAddGoalToPath = true;
 
+	/** TBD */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	EPCGExPointLerpMode LerpMode = EPCGExPointLerpMode::Index;
+	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	bool bRequireNaviguableEndLocation = true;
 
@@ -98,9 +109,10 @@ public:
 	UPCGExPointIOGroup* OutputPaths = nullptr;
 	bool bAddSeedToPath = true;
 	bool bAddGoalToPath = true;
+	EPCGExPointLerpMode LerpMode;
 	FNavAgentProperties NavAgentProperties;
 	ANavigationData* NavData = nullptr;
-	bool bRequireNaviguableEndLocation = true;
+	bool bRequireNavigableEndLocation = true;
 	EPCGExPathfindingMode PathfindingMode;
 	double FuseDistance = 10;
 };
@@ -128,7 +140,7 @@ public:
 	}
 
 	int32 GoalIndex = -1;
-	UPCGPointData* PathPoints;
+	UPCGExPointIO* PathPoints;
 
 	virtual void ExecuteTask() override;
 };

@@ -37,10 +37,11 @@ void UPCGExDrawGraphSettings::PostEditChangeProperty(FPropertyChangedEvent& Prop
 
 bool FPCGExDrawGraphElement::ExecuteInternal(FPCGContext* InContext) const
 {
+	
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExDrawGraphElement::Execute);
 
-#if  WITH_EDITOR
-
+#if WITH_EDITOR
+	
 	FPCGExGraphProcessorContext* Context = static_cast<FPCGExGraphProcessorContext*>(InContext);
 
 	UPCGExDrawGraphSettings* Settings = const_cast<UPCGExDrawGraphSettings*>(Context->GetInputSettings<UPCGExDrawGraphSettings>());
@@ -53,12 +54,13 @@ bool FPCGExDrawGraphElement::ExecuteInternal(FPCGContext* InContext) const
 	{
 		if (!Settings->bDebug) { return true; }
 		if (!Validate(Context)) { return true; }
+
 		if (!PCGExDebug::NotifyExecute(InContext))
 		{
 			PCGE_LOG(Error, GraphAndLog, LOCTEXT("MissingDebugManager", "Could not find a PCGEx Debug Manager node in your graph."));
 			return true;
 		}
-
+				
 		Context->SetState(PCGExMT::EState::ReadyForNextPoints);
 	}
 
@@ -205,11 +207,12 @@ bool FPCGExDrawGraphElement::ExecuteInternal(FPCGContext* InContext) const
 		return true;
 	}
 
+	return false;
+	
 #elif
 	return  true;
 #endif
-
-	return false;
+	
 }
 
 #undef LOCTEXT_NAMESPACE

@@ -81,41 +81,27 @@ bool FPCGExSubdivideElement::ExecuteInternal(FPCGContext* InContext) const
 		{
 			for (int i = 0; i < NumSubdivisions; i++)
 			{
-				double Lerp = (StartOffset + StepSize * i) / Distance;
+				const double Lerp = (StartOffset + StepSize * i) / Distance;
+
 				FPCGPoint& NewPoint = PointIO->NewPoint(StartPoint);
 				if (Context->bFlagSubPoints) { Context->FlagAttribute->SetValue(NewPoint.MetadataEntry, true); }
 
-#define PCGEX_SUBDIV_LERP(_NAME) NewPoint._NAME = PCGExMath::Lerp(StartPoint._NAME, EndPtr->_NAME, Lerp);
-				PCGEX_FOREACH_GETSET_POINTPROPERTY(PCGEX_SUBDIV_LERP)
-#undef PCGEX_SUBDIV_LERP
+				PCGExMath::Lerp(StartPoint, *EndPtr, NewPoint, Lerp);
 
-				for (const PCGEx::FAttributeIdentity& Identity : Context->InputAttributeMap.Identities)
-				{
-					switch (Identity.UnderlyingType)
-					{
-#define PCGEX_SUBDIVATT_LERP(_TYPE, _NAME)  case EPCGMetadataTypes::_NAME: Context->InputAttributeMap.OutputLerp<_TYPE>(Identity.Name, StartPoint.MetadataEntry, EndPtr->MetadataEntry, NewPoint.MetadataEntry, Lerp); break;
-					PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_SUBDIVATT_LERP)
-#undef PCGEX_SUBDIVATT_LERP
-					}
-				}
+				Context->InputAttributeMap.SetLerp(
+					StartPoint.MetadataEntry,
+					EndPtr->MetadataEntry,
+					NewPoint.MetadataEntry,
+					Lerp);
 			}
 		}
-		if (Context->SubdivideBlend == EPCGExSubdivideBlendMode::InheritStart)
+		else
 		{
+			const FPCGPoint& RefPoint = Context->SubdivideBlend == EPCGExSubdivideBlendMode::InheritStart ? StartPoint : *EndPtr;
 			for (int i = 0; i < NumSubdivisions; i++)
 			{
 				double Lerp = (StartOffset + StepSize * i) / Distance;
-				FPCGPoint& NewPoint = PointIO->NewPoint(StartPoint);
-				NewPoint.Transform.SetLocation(FMath::Lerp(StartPos, EndPos, Lerp));
-				if (Context->bFlagSubPoints) { Context->FlagAttribute->SetValue(NewPoint.MetadataEntry, true); }
-			}
-		}
-		else if (Context->SubdivideBlend == EPCGExSubdivideBlendMode::InheritEnd)
-		{
-			for (int i = 0; i < NumSubdivisions; i++)
-			{
-				double Lerp = (StartOffset + StepSize * i) / Distance;
-				FPCGPoint& NewPoint = PointIO->NewPoint(*EndPtr);
+				FPCGPoint& NewPoint = PointIO->NewPoint(RefPoint);
 				NewPoint.Transform.SetLocation(FMath::Lerp(StartPos, EndPos, Lerp));
 				if (Context->bFlagSubPoints) { Context->FlagAttribute->SetValue(NewPoint.MetadataEntry, true); }
 			}

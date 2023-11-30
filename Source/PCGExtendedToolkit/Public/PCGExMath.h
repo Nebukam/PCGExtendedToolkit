@@ -8,7 +8,7 @@
 
 namespace PCGExMath
 {
-	static double ConvertStringToDouble(const FString& StringToConvert)
+	inline static double ConvertStringToDouble(const FString& StringToConvert)
 	{
 		const TCHAR* CharArray = *StringToConvert;
 		const double Result = FCString::Atod(CharArray);
@@ -16,12 +16,12 @@ namespace PCGExMath
 	}
 
 	// Remap function
-	static double Remap(const double InBase, const double InMin, const double InMax, const double OutMin = 0, const double OutMax = 1)
+	inline static double Remap(const double InBase, const double InMin, const double InMax, const double OutMin = 0, const double OutMax = 1)
 	{
 		return FMath::Lerp(OutMin, OutMax, (InBase - InMin) / (InMax - InMin));
 	}
 
-	static FVector CWWrap(const FVector& InValue, const FVector& Min, const FVector& Max)
+	inline static FVector CWWrap(const FVector& InValue, const FVector& Min, const FVector& Max)
 	{
 		return FVector(
 			FMath::Wrap(InValue.X, Min.X, Max.X),
@@ -29,219 +29,213 @@ namespace PCGExMath
 			FMath::Wrap(InValue.Z, Min.Z, Max.Z));
 	}
 
-	// MIN
+#pragma region Component Wise MIN
 
 	template <typename T, typename dummy = void>
-	static void CWMin(T& InBase, const T& Other) { InBase = FMath::Min(InBase, Other); }
+	inline static T CWMin(const T& A, const T& B) { return FMath::Max(A, B); }
 
 	template <typename dummy = void>
-	static void CWMin(bool& InBase, const bool& Other) { InBase = !Other ? false : InBase; }
+	inline static bool CWMin(bool& A, const bool& B) { return B ? true : A; }
 
 	template <typename dummy = void>
-	static void CWMin(FVector2D& InBase, const FVector2D& Other)
+	inline static FVector2D CWMin(const FVector2D& A, const FVector2D& B)
 	{
-		InBase.X = FMath::Min(InBase.X, Other.X);
-		InBase.Y = FMath::Min(InBase.Y, Other.Y);
+		return FVector2D(
+			FMath::Min(A.X, B.X),
+			FMath::Min(A.Y, B.Y));
 	}
 
 	template <typename dummy = void>
-	static void CWMin(FVector& InBase, const FVector& Other)
+	inline static FVector CWMin(const FVector& A, const FVector& B)
 	{
-		InBase.X = FMath::Min(InBase.X, Other.X);
-		InBase.Y = FMath::Min(InBase.Y, Other.Y);
-		InBase.Z = FMath::Min(InBase.Z, Other.Z);
+		return FVector(
+			FMath::Min(A.X, B.X),
+			FMath::Min(A.Y, B.Y),
+			FMath::Min(A.Z, B.Z));
 	}
 
 	template <typename dummy = void>
-	static void CWMin(FVector4& InBase, const FVector4& Other)
+	inline static FVector4 CWMin(const FVector4& A, const FVector4& B)
 	{
-		InBase.X = FMath::Min(InBase.X, Other.X);
-		InBase.Y = FMath::Min(InBase.Y, Other.Y);
-		InBase.Z = FMath::Min(InBase.Z, Other.Z);
-		InBase.W = FMath::Min(InBase.W, Other.W);
+		return FVector4(
+			FMath::Min(A.X, B.X),
+			FMath::Min(A.Y, B.Y),
+			FMath::Min(A.Z, B.Z),
+			FMath::Min(A.W, B.W));
 	}
 
 	template <typename dummy = void>
-	static void CWMin(FRotator& InBase, const FRotator& Other)
+	inline static FRotator CWMin(const FRotator& A, const FRotator& B)
 	{
-		InBase.Pitch = FMath::Min(InBase.Pitch, Other.Pitch);
-		InBase.Roll = FMath::Min(InBase.Roll, Other.Roll);
-		InBase.Yaw = FMath::Min(InBase.Yaw, Other.Yaw);
+		return FRotator(
+			FMath::Min(A.Pitch, B.Pitch),
+			FMath::Min(A.Yaw, B.Yaw),
+			FMath::Min(A.Roll, B.Roll));
 	}
 
 	template <typename dummy = void>
-	static void CWMin(FQuat& InBase, const FQuat& Other)
+	inline static FQuat CWMin(const FQuat& A, const FQuat& B)
 	{
-		FRotator A = InBase.Rotator();
-		CWMin(A, Other.Rotator());
-		InBase = A.Quaternion();
+		return CWMin(A.Rotator(), B.Rotator()).Quaternion();
 	}
 
 	template <typename dummy = void>
-	static void CWMin(FTransform& InBase, const FTransform& Other)
+	inline static FTransform CWMin(const FTransform& A, const FTransform& B)
 	{
-		FVector Pos = InBase.GetLocation();
-		FQuat Rot = InBase.GetRotation();
-		FVector Scale = InBase.GetScale3D();
-		CWMin(Pos, Other.GetLocation());
-		CWMin(Rot, Other.GetRotation());
-		CWMin(Scale, Other.GetScale3D());
-		InBase.SetLocation(Pos);
-		InBase.SetRotation(Rot);
-		InBase.SetScale3D(Scale);
+		return FTransform(
+			CWMin(A.GetRotation(), B.GetRotation()),
+			CWMin(A.GetLocation(), B.GetLocation()),
+			CWMin(A.GetScale3D(), B.GetScale3D()));
 	}
 
 	template <typename dummy = void>
-	static void CWMin(FName& InBase, const FName& Other)
-	{
-	}
+	inline static FName CWMin(const FName& A, const FName& B) { return A.ToString() > B.ToString() ? B : A; }
 
 	template <typename dummy = void>
-	static void CWMin(FString& InBase, const FString& Other)
-	{
-	}
+	inline static FString CWMin(const FString& A, const FString& B) { return A > B ? B : A; }
 
-	// MAX
+#pragma endregion
+
+#pragma region Component Wise MAX
 
 	template <typename T, typename dummy = void>
-	static void CWMax(T& InBase, const T& Other) { InBase = FMath::Max(InBase, Other); }
+	inline static T CWMax(const T& A, const T& B) { return FMath::Max(A, B); }
 
 	template <typename dummy = void>
-	static void CWMax(bool& InBase, const bool& Other) { InBase = Other ? true : InBase; }
+	inline static bool CWMax(bool& A, const bool& B) { return B ? true : A; }
 
 	template <typename dummy = void>
-	static void CWMax(FVector2D& InBase, const FVector2D& Other)
+	inline static FVector2D CWMax(const FVector2D& A, const FVector2D& B)
 	{
-		InBase.X = FMath::Max(InBase.X, Other.X);
-		InBase.Y = FMath::Max(InBase.Y, Other.Y);
+		return FVector2D(
+			FMath::Max(A.X, B.X),
+			FMath::Max(A.Y, B.Y));
 	}
 
 	template <typename dummy = void>
-	static void CWMax(FVector& InBase, const FVector& Other)
+	inline static FVector CWMax(const FVector& A, const FVector& B)
 	{
-		InBase.X = FMath::Max(InBase.X, Other.X);
-		InBase.Y = FMath::Max(InBase.Y, Other.Y);
-		InBase.Z = FMath::Max(InBase.Z, Other.Z);
+		return FVector(
+			FMath::Max(A.X, B.X),
+			FMath::Max(A.Y, B.Y),
+			FMath::Max(A.Z, B.Z));
 	}
 
 	template <typename dummy = void>
-	static void CWMax(FVector4& InBase, const FVector4& Other)
+	inline static FVector4 CWMax(const FVector4& A, const FVector4& B)
 	{
-		InBase.X = FMath::Max(InBase.X, Other.X);
-		InBase.Y = FMath::Max(InBase.Y, Other.Y);
-		InBase.Z = FMath::Max(InBase.Z, Other.Z);
-		InBase.W = FMath::Max(InBase.W, Other.W);
+		return FVector4(
+			FMath::Max(A.X, B.X),
+			FMath::Max(A.Y, B.Y),
+			FMath::Max(A.Z, B.Z),
+			FMath::Max(A.W, B.W));
 	}
 
 	template <typename dummy = void>
-	static void CWMax(FRotator& InBase, const FRotator& Other)
+	inline static FRotator CWMax(const FRotator& A, const FRotator& B)
 	{
-		InBase.Pitch = FMath::Max(InBase.Pitch, Other.Pitch);
-		InBase.Roll = FMath::Max(InBase.Roll, Other.Roll);
-		InBase.Yaw = FMath::Max(InBase.Yaw, Other.Yaw);
+		return FRotator(
+			FMath::Max(A.Pitch, B.Pitch),
+			FMath::Max(A.Yaw, B.Yaw),
+			FMath::Max(A.Roll, B.Roll));
 	}
 
 	template <typename dummy = void>
-	static void CWMax(FQuat& InBase, const FQuat& Other)
+	inline static FQuat CWMax(const FQuat& A, const FQuat& B)
 	{
-		FRotator A = InBase.Rotator();
-		CWMax(A, Other.Rotator());
-		InBase = A.Quaternion();
+		return CWMax(A.Rotator(), B.Rotator()).Quaternion();
 	}
 
 	template <typename dummy = void>
-	static void CWMax(FTransform& InBase, const FTransform& Other)
+	inline static FTransform CWMax(const FTransform& A, const FTransform& B)
 	{
-		FVector Pos = InBase.GetLocation();
-		FQuat Rot = InBase.GetRotation();
-		FVector Scale = InBase.GetScale3D();
-		CWMax(Pos, Other.GetLocation());
-		CWMax(Rot, Other.GetRotation());
-		CWMax(Scale, Other.GetScale3D());
-		InBase.SetLocation(Pos);
-		InBase.SetRotation(Rot);
-		InBase.SetScale3D(Scale);
+		return FTransform(
+			CWMax(A.GetRotation(), B.GetRotation()),
+			CWMax(A.GetLocation(), B.GetLocation()),
+			CWMax(A.GetScale3D(), B.GetScale3D()));
 	}
 
 	template <typename dummy = void>
-	static void CWMax(FName& InBase, const FName& Other) { InBase = Other; }
+	inline static FName CWMax(const FName& A, const FName& B) { return A.ToString() > B.ToString() ? A : B; }
 
 	template <typename dummy = void>
-	static void CWMax(FString& InBase, const FString& Other) { InBase = Other; }
+	inline static FString CWMax(const FString& A, const FString& B) { return A > B ? A : B; }
 
-	// Lerp
+#pragma endregion
+
+#pragma region Lerp
 
 	template <typename T, typename dummy = void>
-	static void LerpTo(T& From, const T& To, const double Alpha) { From = FMath::Lerp(From, To, Alpha); }
+	inline static T Lerp(const T& A, const T& B, const double Alpha) { return FMath::Lerp(A, B, Alpha); }
 
 	template <typename dummy = void>
-	static void LerpTo(FTransform& From, const FTransform& To, const double Alpha)
+	inline static FTransform Lerp(const FTransform& A, const FTransform& B, const double Alpha)
 	{
-		From.SetLocation(FMath::Lerp(From.GetLocation(), To.GetLocation(), Alpha));
-		From.SetRotation(FQuat::Slerp(From.GetRotation(), To.GetRotation(), Alpha));
-		From.SetScale3D(FMath::Lerp(From.GetScale3D(), To.GetScale3D(), Alpha));
+		return FTransform(
+			Lerp(A.GetRotation(), B.GetRotation(), Alpha),
+			Lerp(A.GetLocation(), B.GetLocation(), Alpha),
+			Lerp(A.GetScale3D(), B.GetScale3D(), Alpha));
 	}
 
 	template <typename dummy = void>
-	static void LerpTo(FName& From, const FName& To, const double Alpha)
-	{
-	}
+	inline static FQuat Lerp(const FQuat& A, const FQuat& B, const double Alpha) { return FQuat::Slerp(A, B, Alpha); }
 
 	template <typename dummy = void>
-	static void LerpTo(FString& From, const FString& To, const double Alpha)
-	{
-	}
+	inline static FName Lerp(const FName& A, const FName& B, const double Alpha) { return Alpha > 0.5 ? B : A; }
 
 	template <typename dummy = void>
-	static void LerpTo(FQuat& From, const FQuat& To, const double Alpha)
+	inline static FString Lerp(const FString& A, const FString& B, const double Alpha) { return Alpha > 0.5 ? B : A; }
+
+	inline static void Lerp(const FPCGPoint& A, const FPCGPoint& B, FPCGPoint& Out, const double Alpha)
 	{
-		From = FQuat::Slerp(From, To, Alpha);
+#define PCGEX_POINT_PROPERTY_LERP(_NAME) Out._NAME = Lerp(A._NAME, B._NAME, Alpha);
+		PCGEX_FOREACH_GETSET_POINTPROPERTY(PCGEX_POINT_PROPERTY_LERP)
+#undef PCGEX_POINT_PROPERTY_LERP
 	}
+
+#pragma endregion
+
+#pragma region ADD
 
 	template <typename T, typename dummy = void>
-	static T Lerp(const T& From, const T& To, const double Alpha) { return FMath::Lerp(From, To, Alpha); }
+	inline static T Add(const T& A, const T& B) { return A + B; }
 
 	template <typename dummy = void>
-	static FTransform Lerp(const FTransform& From, const FTransform& To, const double Alpha)
-	{
-		FTransform Result = From;
-		Result.SetLocation(FMath::Lerp(From.GetLocation(), To.GetLocation(), Alpha));
-		Result.SetRotation(FQuat::Slerp(From.GetRotation(), To.GetRotation(), Alpha));
-		Result.SetScale3D(FMath::Lerp(From.GetScale3D(), To.GetScale3D(), Alpha));
-		return Result;
-	}
+	inline static FName Add(const FName& A, const FName& B) { return A; }
 
 	template <typename dummy = void>
-	static FQuat Lerp(const FQuat& From, const FQuat& To, const double Alpha) { return FQuat::Slerp(From, To, Alpha); }
+	inline static FString Add(const FString& A, const FString& B) { return A; }
 
 	template <typename dummy = void>
-	static FName Lerp(const FName& From, const FName& To, const double Alpha) { return Alpha > 0.5 ? To : From; }
+	inline static bool Add(const bool& A, const bool& B) { return B ? true : A; }
 
-	template <typename dummy = void>
-	static FString Lerp(const FString& From, const FString& To, const double Alpha) { return Alpha > 0.5 ? To : From; }
+#pragma endregion
 
-	// Divide
+#pragma region Component Wise DIV
 
 	template <typename T, typename dummy = void>
-	static void CWDivide(T& InBase, const double Divider) { InBase /= Divider; }
+	inline static T CWDivide(const T& A, const double Divider) { return A / Divider; }
 
 	template <typename dummy = void>
-	static void CWDivide(FRotator& InBase, const double Divider)
+	inline static FRotator CWDivide(const FRotator& A, const double Divider)
 	{
-		InBase.Yaw = InBase.Yaw / Divider;
-		InBase.Pitch = InBase.Pitch / Divider;
-		InBase.Roll = InBase.Roll / Divider;
+		return FRotator(
+			A.Pitch / Divider,
+			A.Yaw / Divider,
+			A.Roll / Divider);
 	}
+
+#pragma endregion
 
 	template <typename T>
-	static int SignPlus(const T& InValue)
+	inline static int SignPlus(const T& InValue)
 	{
 		int sign = FMath::Sign(InValue);
 		return sign == 0 ? 1 : sign;
 	}
 
 	template <typename T>
-	static int SignMinus(const T& InValue)
+	inline static int SignMinus(const T& InValue)
 	{
 		int sign = FMath::Sign(InValue);
 		return sign == 0 ? -1 : sign;
@@ -262,18 +256,4 @@ namespace PCGExMath
 
 		return Box;
 	}
-
-	////
-
-	template <typename T, typename dummy = void>
-	static T Add(const T& InBase, const T& Other) { return InBase + Other; }
-
-	template <typename dummy = void>
-	static FName Add(const FName& InBase, const FName& Other) { return InBase; }
-
-	template <typename dummy = void>
-	static FString Add(const FString& InBase, const FString& Other) { return InBase; }
-
-	template <typename dummy = void>
-	static bool Add(const bool& InBase, const bool& Other) { return Other ? true : InBase; }
 }

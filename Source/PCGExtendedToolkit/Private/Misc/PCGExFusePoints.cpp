@@ -159,35 +159,34 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 		double Distance = 0;
 		PCGExFuse::FFusedPoint* FuseTarget = nullptr;
 
+		Context->PointsLock.ReadLock();
+		if (Context->bComponentWiseRadius)
 		{
-			FReadScopeLock ReadLock(Context->PointsLock);
-			if (Context->bComponentWiseRadius)
+			for (PCGExFuse::FFusedPoint& FusedPoint : Context->FusedPoints)
 			{
-				for (PCGExFuse::FFusedPoint& FusedPoint : Context->FusedPoints)
-				{
-					if (abs(PtPosition.X - FusedPoint.Position.X) <= Context->Radiuses.X &&
-						abs(PtPosition.Y - FusedPoint.Position.Y) <= Context->Radiuses.Y &&
-						abs(PtPosition.Z - FusedPoint.Position.Z) <= Context->Radiuses.Z)
-					{
-						Distance = FVector::DistSquared(FusedPoint.Position, PtPosition);
-						FuseTarget = &FusedPoint;
-						break;
-					}
-				}
-			}
-			else
-			{
-				for (PCGExFuse::FFusedPoint& FusedPoint : Context->FusedPoints)
+				if (abs(PtPosition.X - FusedPoint.Position.X) <= Context->Radiuses.X &&
+					abs(PtPosition.Y - FusedPoint.Position.Y) <= Context->Radiuses.Y &&
+					abs(PtPosition.Z - FusedPoint.Position.Z) <= Context->Radiuses.Z)
 				{
 					Distance = FVector::DistSquared(FusedPoint.Position, PtPosition);
-					if (Distance < Context->Radius)
-					{
-						FuseTarget = &FusedPoint;
-						break;
-					}
+					FuseTarget = &FusedPoint;
+					break;
 				}
 			}
 		}
+		else
+		{
+			for (PCGExFuse::FFusedPoint& FusedPoint : Context->FusedPoints)
+			{
+				Distance = FVector::DistSquared(FusedPoint.Position, PtPosition);
+				if (Distance < Context->Radius)
+				{
+					FuseTarget = &FusedPoint;
+					break;
+				}
+			}
+		}
+		Context->PointsLock.ReadUnlock();
 
 		FWriteScopeLock WriteLock(Context->PointsLock);
 		if (!FuseTarget)
@@ -239,9 +238,9 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 
 #define PCGEX_FUSE_FUSE(_TYPE, _NAME, _ACCESSOR, ...) switch (Context->_NAME##FuseMethod){\
 case EPCGExFuseMethod::Average: Out##_NAME += Point._ACCESSOR; break;\
-case EPCGExFuseMethod::Min: PCGExMath::CWMin(Out##_NAME, Point._ACCESSOR); break;\
-case EPCGExFuseMethod::Max: PCGExMath::CWMax(Out##_NAME, Point._ACCESSOR); break;\
-case EPCGExFuseMethod::Weight: PCGExMath::LerpTo(Out##_NAME, Point._ACCESSOR, Weight); break;\
+case EPCGExFuseMethod::Min: Out##_NAME = PCGExMath::CWMin(Out##_NAME, Point._ACCESSOR); break;\
+case EPCGExFuseMethod::Max: Out##_NAME = PCGExMath::CWMax(Out##_NAME, Point._ACCESSOR); break;\
+case EPCGExFuseMethod::Weight: Out##_NAME = PCGExMath::Lerp(Out##_NAME, Point._ACCESSOR, Weight); break;\
 }
 				PCGEX_FUSE_FOREACH_POINTPROPERTY(PCGEX_FUSE_FUSE)
 #undef PCGEX_FUSE_FUSE
@@ -252,10 +251,10 @@ case EPCGExFuseMethod::Weight: PCGExMath::LerpTo(Out##_NAME, Point._ACCESSOR, We
 					switch (Identity.UnderlyingType)
 					{
 #define PCGEX_FUSE_ATT(_TYPE, _NAME) case EPCGMetadataTypes::_NAME: switch (AttributeFuseMethod){\
-case EPCGExFuseMethod::Average: Context->InputAttributeMap.Accumulate<_TYPE>(Identity.Name, Point.MetadataEntry, NewPoint.MetadataEntry); break;\
-case EPCGExFuseMethod::Min: Context->InputAttributeMap.OutputCWMin<_TYPE>(Identity.Name, Point.MetadataEntry, NewPoint.MetadataEntry); break;\
-case EPCGExFuseMethod::Max: Context->InputAttributeMap.OutputCWMax<_TYPE>(Identity.Name, Point.MetadataEntry, NewPoint.MetadataEntry); break;\
-case EPCGExFuseMethod::Weight: Context->InputAttributeMap.OutputLerp<_TYPE>(Identity.Name, NewPoint.MetadataEntry, Point.MetadataEntry, NewPoint.MetadataEntry, Weight); break;\
+case EPCGExFuseMethod::Average: Context->InputAttributeMap.SetAdd<_TYPE>(Identity.Name, Point.MetadataEntry, NewPoint.MetadataEntry); break;\
+case EPCGExFuseMethod::Min: Context->InputAttributeMap.SetCWMin<_TYPE>(Identity.Name, Point.MetadataEntry, NewPoint.MetadataEntry); break;\
+case EPCGExFuseMethod::Max: Context->InputAttributeMap.SetCWMax<_TYPE>(Identity.Name, Point.MetadataEntry, NewPoint.MetadataEntry); break;\
+case EPCGExFuseMethod::Weight: Context->InputAttributeMap.SetLerp<_TYPE>(Identity.Name, NewPoint.MetadataEntry, Point.MetadataEntry, NewPoint.MetadataEntry, Weight); break;\
 } break;
 					PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_FUSE_ATT)
 #undef PCGEX_FUSE_ATT

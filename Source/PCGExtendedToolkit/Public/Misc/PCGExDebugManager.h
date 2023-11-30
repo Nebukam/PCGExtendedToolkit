@@ -45,9 +45,9 @@ public:
 	int32 DebugNodeCount = 0;
 	int32 CurrentPingCount = 0;
 
+#if WITH_EDITOR
 	virtual void PingFrom(const FPCGContext* Context, IPCGExDebug* DebugNode) override
 	{
-#if WITH_EDITOR
 		const int32 CurrentDebugNodeCount = PCGExDebug::GetActiveDebugNodeCount(Context);
 		if (CurrentDebugNodeCount != DebugNodeCount)
 		{
@@ -63,18 +63,16 @@ public:
 		}
 		CurrentPingCount++;
 		if (CurrentPingCount >= DebugNodeCount) { CurrentPingCount = 0; }
-#endif
 	}
-
+	
 	virtual void ResetPing(const FPCGContext* Context) override
 	{
-#if WITH_EDITOR
 		DebugNodeCount = 0;
 		CurrentPingCount = 0;
 		FlushPersistentDebugLines(PCGEx::GetWorld(Context));
 		FlushDebugStrings(PCGEx::GetWorld(Context));
-#endif
 	}
+#endif
 
 	//~End IPCGExDebugManager interface
 };

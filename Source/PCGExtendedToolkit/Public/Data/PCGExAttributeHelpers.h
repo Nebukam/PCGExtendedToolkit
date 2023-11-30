@@ -581,37 +581,8 @@ virtual _TYPE Convert(const FName Value) const override { return _TYPE(Value.ToS
 		TArray<FAttributeIdentity> Identities;
 		TMap<FName, FPCGMetadataAttributeBase*> Attributes;
 
-		void PrepareForPoints(UPCGPointData* InData)
-		{
-			NumAttributes = InData->Metadata->GetAttributeCount();
-
-			TArray<FName> Names;
-			TArray<EPCGMetadataTypes> Types;
-
-			Identities.Reset(NumAttributes);
-			Attributes.Empty(NumAttributes);
-
-			InData->Metadata->GetAttributes(Names, Types);
-			for (int i = 0; i < NumAttributes; i++)
-			{
-				FAttributeIdentity& Identity = Identities.Emplace_GetRef(Names[i], Types[i]);
-				Attributes.Add(Identity.Name, InData->Metadata->GetMutableAttribute(Identity.Name));
-			}
-		}
-
-		void PrepareForPoints(const FAttributeMap& From, const UPCGPointData* OutData)
-		{
-			NumAttributes = From.NumAttributes;
-			Identities.Reset(NumAttributes);
-			Identities.Append(From.Identities);
-
-			Attributes.Empty(NumAttributes);
-
-			for (const FAttributeIdentity& Identity : From.Identities)
-			{
-				Attributes.Add(Identity.Name, OutData->Metadata->CopyAttribute(*From.Attributes.Find(Identity.Name), Identity.Name, true, false, false));
-			}
-		}
+		void PrepareForPoints(UPCGPointData* InData);
+		void PrepareForPoints(const FAttributeMap& From, const UPCGPointData* OutData);
 
 		// Getters
 
@@ -632,30 +603,23 @@ virtual _TYPE Convert(const FName Value) const override { return _TYPE(Value.ToS
 		}
 
 		template <typename T>
-		void LerpTo(const FName Name, T& From, const PCGMetadataEntryKey& Key, double Alpha)
+		T CWMin(const FName Name, T& From, const PCGMetadataEntryKey& Key, double Alpha)
 		{
 			PCGEX_ATTRIBUTE
-			PCGExMath::LerpTo(From, Attribute->GetValueFromItemKey(Key), Alpha);
+			return PCGExMath::CWMin(From, Attribute->GetValueFromItemKey(Key));
 		}
 
 		template <typename T>
-		void CWMin(const FName Name, T& From, const PCGMetadataEntryKey& Key, double Alpha)
+		T CWMax(const FName Name, T& From, const PCGMetadataEntryKey& Key, double Alpha)
 		{
 			PCGEX_ATTRIBUTE
-			PCGExMath::CWMin(From, Attribute->GetValueFromItemKey(Key));
-		}
-
-		template <typename T>
-		void CWMax(const FName Name, T& From, const PCGMetadataEntryKey& Key, double Alpha)
-		{
-			PCGEX_ATTRIBUTE
-			PCGExMath::CWMax(From, Attribute->GetValueFromItemKey(Key));
+			return PCGExMath::CWMax(From, Attribute->GetValueFromItemKey(Key));
 		}
 
 		// Operations
 
 		template <typename T>
-		void OutputLerp(
+		void SetLerp(
 			const FName Name,
 			const PCGMetadataEntryKey& FromKey,
 			const PCGMetadataEntryKey& ToKey,
@@ -672,31 +636,31 @@ virtual _TYPE Convert(const FName Value) const override { return _TYPE(Value.ToS
 		}
 
 		template <typename T>
-		void OutputCWMin(
+		void SetCWMin(
 			const FName Name,
 			const PCGMetadataEntryKey& Key,
 			const PCGMetadataEntryKey& OutKey)
 		{
 			PCGEX_ATTRIBUTE
-			T Value = Attribute->GetValueFromItemKey(Key);
-			PCGExMath::CWMin(Value, Attribute->GetValueFromItemKey(OutKey));
-			Attribute->SetValue(OutKey, Value);
+			Attribute->SetValue(
+				OutKey,
+				PCGExMath::CWMin(Attribute->GetValueFromItemKey(Key), Attribute->GetValueFromItemKey(OutKey)));
 		}
 
 		template <typename T>
-		void OutputCWMax(
+		void SetCWMax(
 			const FName Name,
 			const PCGMetadataEntryKey& Key,
 			const PCGMetadataEntryKey& OutKey)
 		{
 			PCGEX_ATTRIBUTE
-			T Value = Attribute->GetValueFromItemKey(Key);
-			PCGExMath::CWMax(Value, Attribute->GetValueFromItemKey(OutKey));
-			Attribute->SetValue(OutKey, Value);
+			Attribute->SetValue(
+				OutKey,
+				PCGExMath::CWMax(Attribute->GetValueFromItemKey(Key), Attribute->GetValueFromItemKey(OutKey)));
 		}
 
 		template <typename T>
-		void Accumulate(
+		void SetAdd(
 			const FName Name,
 			const PCGMetadataEntryKey& FromKey,
 			const PCGMetadataEntryKey& OutKey)
@@ -705,6 +669,23 @@ virtual _TYPE Convert(const FName Value) const override { return _TYPE(Value.ToS
 			Attribute->SetValue(
 				OutKey, PCGExMath::Add(
 					Attribute->GetValueFromItemKey(OutKey), Attribute->GetValueFromItemKey(FromKey)));
+		}
+
+		void SetLerp(
+			const PCGMetadataEntryKey& FromKey,
+			const PCGMetadataEntryKey& ToKey,
+			const PCGMetadataEntryKey& OutKey,
+			const double Alpha)
+		{
+			for (const FAttributeIdentity& Identity : Identities)
+			{
+				switch (Identity.UnderlyingType)
+				{
+#define PCGEX_LERPATT(_TYPE, _NAME)  case EPCGMetadataTypes::_NAME: SetLerp<_TYPE>(Identity.Name, FromKey, ToKey, OutKey, Alpha); break;
+				PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_LERPATT)
+#undef PCGEX_LERPATT
+				}
+			}
 		}
 	};
 }

@@ -23,9 +23,11 @@
         - [Delete Graph](PCGExDeleteGraph.md)
         - Pathfinding
             - [Edges to Paths](PCGExEdgesToPaths.md)
+            - [Sample Navmesh](PCGExSampleNavmesh.md)
     - Splines
         - [Write Tangents](PCGExWriteTangents.md)
         - [Auto Tangents](PCGExAutoTangents.md)
+        - [Subdivide](PCGExSubdivide.md)
     - Data Sampling
         - [Sample Nearest Point](PCGExSampleNearestPoint.md)
         - [Sample Nearest Surface](PCGExSampleNearestSurface.md)
