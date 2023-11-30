@@ -49,7 +49,7 @@ FPCGContext* FPCGExDebugElement::Initialize(
 }
 
 bool FPCGExDebugElement::ExecuteInternal(FPCGContext* Context) const
-{
+{	
 #if WITH_EDITOR
 
 	const int32 DebugNodeCount = PCGExDebug::GetActiveDebugNodeCount(Context);
@@ -60,7 +60,7 @@ bool FPCGExDebugElement::ExecuteInternal(FPCGContext* Context) const
 	UPCGExDebugSettings* MutableSettings = const_cast<UPCGExDebugSettings*>(Settings);
 	if (MutableSettings->DebugNodeCount != DebugNodeCount && DebugNodeCount == 0)
 	{
-		// This ensure we flush undesirable (deprcated) debug lines
+		// This ensure we flush undesirable (deprecated) debug lines
 		MutableSettings->ResetPing(Context);
 	}
 	else

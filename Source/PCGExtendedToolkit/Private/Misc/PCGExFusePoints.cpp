@@ -15,8 +15,6 @@ MACRO(Scale) \
 MACRO(Steepness) \
 MACRO(Seed)
 
-#define PCGEX_FUSE_TRANSFERT(_NAME) Context->_NAME##FuseMethod = Settings->bOverride##_NAME ? Context->_NAME##FuseMethod : Settings->FuseMethod;
-
 // TYPE, NAME, ACCESSOR
 #define PCGEX_FUSE_FOREACH_POINTPROPERTY(MACRO)\
 MACRO(float, Density, Density, 0) \
@@ -36,22 +34,6 @@ MACRO(Steepness, Steepness) \
 MACRO(Seed, Seed)
 
 #define PCGEX_FUSE_IGNORE(...) // Ignore
-#define PCGEX_FUSE_DECLARE(_TYPE, _NAME, _ACCESSOR, _DEFAULT_VALUE, ...) _TYPE Out##_NAME = Context->_NAME##FuseMethod == EPCGExFuseMethod::Skip ? RootPoint._ACCESSOR : _DEFAULT_VALUE;
-#define PCGEX_FUSE_ASSIGN(_NAME, _ACCESSOR, ...) NewPoint._ACCESSOR = Out##_NAME;
-
-#define PCGEX_FUSE_UPDATE(_NAME) if(!bOverride##_NAME){_NAME##FuseMethod = FuseMethod;}
-
-#define PCGEX_FUSE_FUSE(_TYPE, _NAME, _ACCESSOR, ...)\
-	switch (Context->_NAME##FuseMethod){\
-	case EPCGExFuseMethod::Average: Out##_NAME += Point._ACCESSOR; break;\
-	case EPCGExFuseMethod::Min: PCGExMath::CWMin(Out##_NAME, Point._ACCESSOR); break;\
-	case EPCGExFuseMethod::Max: PCGExMath::CWMax(Out##_NAME, Point._ACCESSOR); break;\
-	case EPCGExFuseMethod::Weight: PCGExMath::Lerp(Out##_NAME, Point._ACCESSOR, Weight); break;\
-}
-
-#define PCGEX_FUSE_POST(_TYPE, _NAME, _ACCESSOR, ...)\
-if(Context->_NAME##FuseMethod == EPCGExFuseMethod::Average){ PCGExMath::CWDivide(Out##_NAME, AverageDivider); }
-//else if(Context->_NAME##FuseMethod == EPCGExFuseMethod::Skip){ Out##_NAME = RootPoint._ACCESSOR; }
 
 PCGExIO::EInitMode UPCGExFusePointsSettings::GetPointOutputInitMode() const { return PCGExIO::EInitMode::NewOutput; }
 
@@ -66,12 +48,11 @@ void UPCGExFusePointsSettings::RefreshFuseMethodHiddenNames()
 {
 	if (!FuseMethodOverrides.IsEmpty())
 	{
-		for (FPCGExInputDescriptorWithFuseMethod& Descriptor : FuseMethodOverrides)
-		{
-			Descriptor.HiddenDisplayName = Descriptor.GetDisplayName();
-		}
+		for (FPCGExInputDescriptorWithFuseMethod& Descriptor : FuseMethodOverrides) { Descriptor.PrintDisplayName(); }
 
+#define PCGEX_FUSE_UPDATE(_NAME) if(!bOverride##_NAME){_NAME##FuseMethod = FuseMethod;}
 		PCGEX_FUSE_FOREACH_POINTPROPERTYNAME(PCGEX_FUSE_UPDATE)
+#undef PCGEX_FUSE_UPDATE
 	}
 }
 
@@ -132,7 +113,9 @@ FPCGContext* FPCGExFusePointsElement::Initialize(
 	Context->bComponentWiseRadius = Settings->bComponentWiseRadius;
 	Context->Radiuses = Settings->Radiuses;
 
+#define PCGEX_FUSE_TRANSFERT(_NAME) Context->_NAME##FuseMethod = Settings->bOverride##_NAME ? Context->_NAME##FuseMethod : Settings->FuseMethod;
 	PCGEX_FUSE_FOREACH_POINTPROPERTYNAME(PCGEX_FUSE_TRANSFERT)
+#undef PCGEX_FUSE_TRANSFERT
 
 	return Context;
 }
@@ -166,6 +149,7 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 	{
 		Context->FusedPoints.Reset(PointIO->NumInPoints);
 		Context->PrepareForPoints(PointIO);
+		Context->InputAttributeMap.PrepareForPoints(PointIO->Out);
 	};
 
 	auto ProcessPoint = [&](const int32 PointIndex, const UPCGExPointIO* PointIO)
@@ -233,7 +217,7 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 	auto FusePoints = [&](int32 ReadIndex)
 	{
 		FPCGPoint NewPoint;
-		
+
 		{
 			FReadScopeLock ReadLock(Context->PointsLock);
 			PCGExFuse::FFusedPoint& FusedPointData = Context->FusedPoints[ReadIndex];
@@ -244,23 +228,54 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 			Context->CurrentIO->Out->Metadata->InitializeOnSet(NewPoint.MetadataEntry, RootPoint.MetadataEntry, Context->CurrentIO->In->Metadata);
 
 			FTransform& OutTransform = NewPoint.Transform;
+#define PCGEX_FUSE_DECLARE(_TYPE, _NAME, _ACCESSOR, _DEFAULT_VALUE, ...) _TYPE Out##_NAME = Context->_NAME##FuseMethod == EPCGExFuseMethod::Skip ? RootPoint._ACCESSOR : _DEFAULT_VALUE;
 			PCGEX_FUSE_FOREACH_POINTPROPERTY(PCGEX_FUSE_DECLARE)
+#undef PCGEX_FUSE_DECLARE
 
 			for (int i = 0; i < NumFused; i++)
 			{
 				const double Weight = 1 - (FusedPointData.Distances[i] / FusedPointData.MaxDistance);
 				FPCGPoint Point = Context->CurrentIO->In->GetPoint(FusedPointData.Fused[i]);
 
+#define PCGEX_FUSE_FUSE(_TYPE, _NAME, _ACCESSOR, ...) switch (Context->_NAME##FuseMethod){\
+case EPCGExFuseMethod::Average: Out##_NAME += Point._ACCESSOR; break;\
+case EPCGExFuseMethod::Min: PCGExMath::CWMin(Out##_NAME, Point._ACCESSOR); break;\
+case EPCGExFuseMethod::Max: PCGExMath::CWMax(Out##_NAME, Point._ACCESSOR); break;\
+case EPCGExFuseMethod::Weight: PCGExMath::LerpTo(Out##_NAME, Point._ACCESSOR, Weight); break;\
+}
 				PCGEX_FUSE_FOREACH_POINTPROPERTY(PCGEX_FUSE_FUSE)
+#undef PCGEX_FUSE_FUSE
+
+				for (const PCGEx::FAttributeIdentity& Identity : Context->InputAttributeMap.Identities)
+				{
+					EPCGExFuseMethod AttributeFuseMethod = Context->FuseMethod;
+					switch (Identity.UnderlyingType)
+					{
+#define PCGEX_FUSE_ATT(_TYPE, _NAME) case EPCGMetadataTypes::_NAME: switch (AttributeFuseMethod){\
+case EPCGExFuseMethod::Average: Context->InputAttributeMap.Accumulate<_TYPE>(Identity.Name, Point.MetadataEntry, NewPoint.MetadataEntry); break;\
+case EPCGExFuseMethod::Min: Context->InputAttributeMap.OutputCWMin<_TYPE>(Identity.Name, Point.MetadataEntry, NewPoint.MetadataEntry); break;\
+case EPCGExFuseMethod::Max: Context->InputAttributeMap.OutputCWMax<_TYPE>(Identity.Name, Point.MetadataEntry, NewPoint.MetadataEntry); break;\
+case EPCGExFuseMethod::Weight: Context->InputAttributeMap.OutputLerp<_TYPE>(Identity.Name, NewPoint.MetadataEntry, Point.MetadataEntry, NewPoint.MetadataEntry, Weight); break;\
+} break;
+						PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_FUSE_ATT)
+#undef PCGEX_FUSE_ATT
+					}
+				}
 			}
 
+#define PCGEX_FUSE_POST(_TYPE, _NAME, _ACCESSOR, ...)\
+if(Context->_NAME##FuseMethod == EPCGExFuseMethod::Average){ PCGExMath::CWDivide(Out##_NAME, AverageDivider); }
 			PCGEX_FUSE_FOREACH_POINTPROPERTY(PCGEX_FUSE_POST)
+#undef PCGEX_FUSE_POST
 
 			OutTransform.SetLocation(OutPosition);
 			OutTransform.SetRotation(OutRotation.Quaternion());
 			OutTransform.SetScale3D(OutScale);
 
+#define PCGEX_FUSE_ASSIGN(_NAME, _ACCESSOR, ...) NewPoint._ACCESSOR = Out##_NAME;
 			PCGEX_FUSE_FOREACH_POINTPROPERTY_ASSIGN(PCGEX_FUSE_ASSIGN)
+#undef PCGEX_FUSE_ASSIGN
+
 			NewPoint.SetExtents(OutExtents);
 		}
 		{
@@ -288,32 +303,8 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 	return false;
 }
 
-
-#define PCGEX_FUSE_TRANSFERT(_NAME) Context->_NAME##FuseMethod = Settings->bOverride##_NAME ? Context->_NAME##FuseMethod : Settings->FuseMethod;
-
-// TYPE, NAME, ACCESSOR
-#define PCGEX_FUSE_FOREACH_POINTPROPERTY(MACRO)\
-MACRO(float, Density, Density, 0) \
-MACRO(FVector, Extents, GetExtents(), FVector::Zero()) \
-MACRO(FVector4, Color, Color, FVector4::Zero()) \
-MACRO(FVector, Position, Transform.GetLocation(), FVector::Zero()) \
-MACRO(FRotator, Rotation, Transform.Rotator(), FRotator::ZeroRotator)\
-MACRO(FVector, Scale, Transform.GetScale3D(), FVector::Zero()) \
-MACRO(float, Steepness, Steepness, 0) \
-MACRO(int32, Seed, Seed, 0)
-
-#define PCGEX_FUSE_FOREACH_POINTPROPERTY_ASSIGN(MACRO)\
-MACRO(Density, Density) \
-MACRO(Color, Color) \
-MACRO(Transform, Transform) \
-MACRO(Steepness, Steepness) \
-MACRO(Seed, Seed)
-
+#undef PCGEX_FUSE_FOREACH_POINTPROPERTY
+#undef PCGEX_FUSE_FOREACH_POINTPROPERTY_ASSIGN
 #undef PCGEX_FUSE_IGNORE
-#undef PCGEX_FUSE_DECLARE
-#undef PCGEX_FUSE_ASSIGN
-#undef PCGEX_FUSE_UPDATE
-#undef PCGEX_FUSE_FUSE
-#undef PCGEX_FUSE_POST
 
 #undef LOCTEXT_NAMESPACE

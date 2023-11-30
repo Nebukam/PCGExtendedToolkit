@@ -54,11 +54,18 @@ public:
 
 	void Flush() { IndicesMap.Empty(); }
 
+	void InitPoint(FPCGPoint& Point, PCGMetadataEntryKey FromKey) const;
+	void InitPoint(FPCGPoint& Point, const FPCGPoint& FromPoint) const;
+	FPCGPoint& NewPoint(const FPCGPoint& FromPoint) const;
+	void AddPoint(FPCGPoint& Point, bool bInit) const;
+	void AddPoint(FPCGPoint& Point, const FPCGPoint& FromPoint) const;
+
 	UPCGPointData* NewEmptyOutput() const;
 	UPCGPointData* NewEmptyOutput(FPCGContext* Context, FName PinLabel = NAME_None) const;
 
 protected:
 	mutable FRWLock MapLock;
+	mutable FRWLock PointsLock;
 
 public:
 	~UPCGExPointIO()
@@ -140,7 +147,7 @@ public:
 	UPCGExPointIO* Emplace_GetRef(
 		const FPCGTaggedData& Source, UPCGPointData* In,
 		const PCGExIO::EInitMode InitOut = PCGExIO::EInitMode::NoOutput);
-	
+
 	UPCGExPointIO* Emplace_GetRef(PCGExIO::EInitMode InitOut = PCGExIO::EInitMode::NewOutput);
 
 	bool IsEmpty() const { return Pairs.IsEmpty(); }

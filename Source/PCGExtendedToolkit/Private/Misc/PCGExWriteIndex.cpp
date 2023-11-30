@@ -26,7 +26,7 @@ bool FPCGExWriteIndexElement::Validate(FPCGContext* InContext) const
 	check(Settings);
 
 	const FName OutName = Settings->OutputAttributeName;
-	if (!PCGEx::IsValidName(OutName))
+	if (!FPCGMetadataAttributeBase::IsValidName(OutName))
 	{
 		PCGE_LOG(Error, GraphAndLog, LOCTEXT("InvalidName", "Output name is invalid."));
 		return false;

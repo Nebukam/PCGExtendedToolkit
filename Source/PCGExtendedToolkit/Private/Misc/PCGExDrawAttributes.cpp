@@ -24,35 +24,35 @@ bool FPCGExAttributeDebugDraw::Validate(const UPCGPointData* InData)
 	case EPCGExDebugExpression::Direction:
 	case EPCGExDebugExpression::Point:
 	case EPCGExDebugExpression::ConnectionToPosition:
-		VectorInput.Descriptor = static_cast<FPCGExInputDescriptor>(*Descriptor);
-		VectorInput.Axis = Descriptor->Axis;
-		bValid = VectorInput.Validate(InData);
+		VectorGetter.Descriptor = static_cast<FPCGExInputDescriptor>(*Descriptor);
+		VectorGetter.Axis = Descriptor->Axis;
+		bValid = VectorGetter.Validate(InData);
 		break;
 	case EPCGExDebugExpression::ConnectionToIndex:
-		IndexInput.Descriptor = static_cast<FPCGExInputDescriptor>(*Descriptor);
-		IndexInput.Axis = Descriptor->Axis;
-		IndexInput.Field = Descriptor->Field;
-		bValid = IndexInput.Validate(InData);
+		IndexGetter.Descriptor = static_cast<FPCGExInputDescriptor>(*Descriptor);
+		IndexGetter.Axis = Descriptor->Axis;
+		IndexGetter.Field = Descriptor->Field;
+		bValid = IndexGetter.Validate(InData);
 		break;
 	case EPCGExDebugExpression::Label:
-		TextInput.Descriptor = static_cast<FPCGExInputDescriptor>(*Descriptor);
-		bValid = TextInput.Validate(InData);
+		TextGetter.Descriptor = static_cast<FPCGExInputDescriptor>(*Descriptor);
+		bValid = TextGetter.Validate(InData);
 		break;
 	default: ;
 	}
 
 	if (bValid)
 	{
-		SizeAttributeInput.Capture(Descriptor->SizeAttribute);
-		SizeAttributeInput.Validate(InData);
+		SizeGetter.Capture(Descriptor->SizeAttribute);
+		SizeGetter.Validate(InData);
 
-		ColorAttributeInput.Descriptor = Descriptor->ColorAttribute;
-		ColorAttributeInput.Validate(InData);
+		ColorGetter.Descriptor = Descriptor->ColorAttribute;
+		ColorGetter.Validate(InData);
 	}
 	else
 	{
-		SizeAttributeInput.bValid = false;
-		ColorAttributeInput.bValid = false;
+		SizeGetter.bValid = false;
+		ColorGetter.bValid = false;
 	}
 
 	return bValid;
@@ -61,15 +61,15 @@ bool FPCGExAttributeDebugDraw::Validate(const UPCGPointData* InData)
 double FPCGExAttributeDebugDraw::GetSize(const FPCGPoint& Point) const
 {
 	double Value = Descriptor->Size;
-	if (Descriptor->bSizeFromAttribute && SizeAttributeInput.bValid) { Value = SizeAttributeInput.GetValue(Point) * Descriptor->Size; }
+	if (Descriptor->bSizeFromAttribute && SizeGetter.bValid) { Value = SizeGetter.GetValue(Point) * Descriptor->Size; }
 	return Value;
 }
 
 FColor FPCGExAttributeDebugDraw::GetColor(const FPCGPoint& Point) const
 {
-	if (Descriptor->bColorFromAttribute && ColorAttributeInput.bValid)
+	if (Descriptor->bColorFromAttribute && ColorGetter.bValid)
 	{
-		const FVector Value = ColorAttributeInput.GetValue(Point);
+		const FVector Value = ColorGetter.GetValue(Point);
 		return Descriptor->bColorIsLinear ? FColor(Value.X * 255.0f, Value.Y * 255.0f, Value.Z * 255.0f) : FColor(Value.X, Value.Y, Value.Z);
 	}
 	else
@@ -80,14 +80,14 @@ FColor FPCGExAttributeDebugDraw::GetColor(const FPCGPoint& Point) const
 
 FVector FPCGExAttributeDebugDraw::GetVector(const FPCGPoint& Point) const
 {
-	FVector OutVector = VectorInput.GetValueSafe(Point, FVector::ZeroVector);
+	FVector OutVector = VectorGetter.GetValueSafe(Point, FVector::ZeroVector);
 	if (Descriptor->ExpressedAs == EPCGExDebugExpression::Direction && Descriptor->bNormalizeBeforeSizing) { OutVector.Normalize(); }
 	return OutVector;
 }
 
 FVector FPCGExAttributeDebugDraw::GetIndexedPosition(const FPCGPoint& Point, const UPCGPointData* PointData) const
 {
-	const int64 OutIndex = IndexInput.GetValueSafe(Point, -1);
+	const int64 OutIndex = IndexGetter.GetValueSafe(Point, -1);
 	if (OutIndex != -1) { return PointData->GetPoints()[OutIndex].Transform.GetLocation(); }
 	return Point.Transform.GetLocation();
 }
@@ -133,7 +133,7 @@ void FPCGExAttributeDebugDraw::DrawPoint(const UWorld* World, const FVector& Sta
 
 void FPCGExAttributeDebugDraw::DrawLabel(const UWorld* World, const FVector& Start, const FPCGPoint& Point) const
 {
-	FString Text = TextInput.GetValueSafe(Point, ".");
+	FString Text = TextGetter.GetValueSafe(Point, ".");
 	DrawDebugString(World, Start, *Text, NULL, GetColor(Point), 99999.0f, false, GetSize(Point));
 }
 
@@ -154,7 +154,7 @@ TArray<FPCGPinProperties> UPCGExDrawAttributesSettings::OutputPinProperties() co
 void UPCGExDrawAttributesSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	DebugSettings.PointScale = 0.0f;
-	for (FPCGExAttributeDebugDrawDescriptor& Descriptor : DebugList) { Descriptor.HiddenDisplayName = Descriptor.GetDisplayName(); }
+	for (FPCGExAttributeDebugDrawDescriptor& Descriptor : DebugList) { Descriptor.PrintDisplayName(); }
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
 #endif

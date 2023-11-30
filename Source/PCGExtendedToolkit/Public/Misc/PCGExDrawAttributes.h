@@ -100,11 +100,11 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeDebugDraw
 public:
 	FPCGExAttributeDebugDrawDescriptor* Descriptor;
 
-	PCGEx::FLocalDirectionInput VectorInput;
-	PCGEx::FLocalSingleComponentInput IndexInput;
-	PCGEx::FLocalSingleComponentInput SizeAttributeInput;
-	PCGEx::FLocalVectorInput ColorAttributeInput;
-	PCGEx::FLocalToDebugString TextInput;
+	PCGEx::FLocalDirectionGetter VectorGetter;
+	PCGEx::FLocalSingleFieldGetter IndexGetter;
+	PCGEx::FLocalSingleFieldGetter SizeGetter;
+	PCGEx::FLocalVectorInput ColorGetter;
+	PCGEx::FLocalToStringGetter TextGetter;
 
 	bool bValid = false;
 

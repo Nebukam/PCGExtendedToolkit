@@ -52,7 +52,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPartitionRuleDescriptor : public FPCGExInput
 
 	/** Whether to write the partition Key to an attribute. Useful for debugging. Note: They key is not the index, but instead the filtered value used to distribute into partitions. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
-	bool bWriteKey;
+	bool bWriteKey = false;
 
 	/** Name of the int64 attribute to write the partition Key to. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bWriteKey"))
@@ -117,10 +117,10 @@ public:
 
 namespace PCGExPartition
 {
-	struct PCGEXTENDEDTOOLKIT_API FRule : public PCGEx::FLocalSingleComponentInput
+	struct PCGEXTENDEDTOOLKIT_API FRule : public PCGEx::FLocalSingleFieldGetter
 	{
 		FRule(FPCGExPartitionRuleDescriptor& InRule):
-			FLocalSingleComponentInput(InRule.Field, InRule.Axis),
+			FLocalSingleFieldGetter(InRule.Field, InRule.Axis),
 			FilterSize(InRule.FilterSize),
 			Upscale(InRule.Upscale),
 			Offset(InRule.Offset)

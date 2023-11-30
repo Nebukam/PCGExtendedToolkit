@@ -18,7 +18,15 @@ namespace PCGExMath
 	// Remap function
 	static double Remap(const double InBase, const double InMin, const double InMax, const double OutMin = 0, const double OutMax = 1)
 	{
-		return OutMin + ((InBase - InMin) / (InMax - InMin)) * (OutMax - OutMin);
+		return FMath::Lerp(OutMin, OutMax, (InBase - InMin) / (InMax - InMin));
+	}
+
+	static FVector CWWrap(const FVector& InValue, const FVector& Min, const FVector& Max)
+	{
+		return FVector(
+			FMath::Wrap(InValue.X, Min.X, Max.X),
+			FMath::Wrap(InValue.Y, Min.Y, Max.Y),
+			FMath::Wrap(InValue.Z, Min.Z, Max.Z));
 	}
 
 	// MIN
@@ -26,6 +34,9 @@ namespace PCGExMath
 	template <typename T, typename dummy = void>
 	static void CWMin(T& InBase, const T& Other) { InBase = FMath::Min(InBase, Other); }
 
+	template <typename dummy = void>
+	static void CWMin(bool& InBase, const bool& Other) { InBase = !Other ? false : InBase; }
+	
 	template <typename dummy = void>
 	static void CWMin(FVector2D& InBase, const FVector2D& Other)
 	{
@@ -57,12 +68,47 @@ namespace PCGExMath
 		InBase.Roll = FMath::Min(InBase.Roll, Other.Roll);
 		InBase.Yaw = FMath::Min(InBase.Yaw, Other.Yaw);
 	}
+	
+	template <typename dummy = void>
+	static void CWMin(FQuat& InBase, const FQuat& Other)
+	{
+		FRotator A = InBase.Rotator();
+		CWMin(A, Other.Rotator());
+		InBase = A.Quaternion();
+	}
+
+	template <typename dummy = void>
+	static void CWMin(FTransform& InBase, const FTransform& Other)
+	{
+		FVector Pos = InBase.GetLocation();
+		FQuat Rot = InBase.GetRotation();
+		FVector Scale = InBase.GetScale3D();
+		CWMin(Pos, Other.GetLocation());
+		CWMin(Rot, Other.GetRotation());
+		CWMin(Scale, Other.GetScale3D());
+		InBase.SetLocation(Pos);
+		InBase.SetRotation(Rot);
+		InBase.SetScale3D(Scale);
+	}
+
+	template <typename dummy = void>
+	static void CWMin(FName& InBase, const FName& Other)
+	{
+	}
+
+	template <typename dummy = void>
+	static void CWMin(FString& InBase, const FString& Other)
+	{
+	}
 
 	// MAX
 
 	template <typename T, typename dummy = void>
 	static void CWMax(T& InBase, const T& Other) { InBase = FMath::Max(InBase, Other); }
 
+	template <typename dummy = void>
+	static void CWMax(bool& InBase, const bool& Other) { InBase = Other ? true : InBase; }
+	
 	template <typename dummy = void>
 	static void CWMax(FVector2D& InBase, const FVector2D& Other)
 	{
@@ -94,11 +140,85 @@ namespace PCGExMath
 		InBase.Roll = FMath::Max(InBase.Roll, Other.Roll);
 		InBase.Yaw = FMath::Max(InBase.Yaw, Other.Yaw);
 	}
+	
+	template <typename dummy = void>
+	static void CWMax(FQuat& InBase, const FQuat& Other)
+	{
+		FRotator A = InBase.Rotator();
+		CWMax(A, Other.Rotator());
+		InBase = A.Quaternion();
+	}
+
+	template <typename dummy = void>
+	static void CWMax(FTransform& InBase, const FTransform& Other)
+	{
+		FVector Pos = InBase.GetLocation();
+		FQuat Rot = InBase.GetRotation();
+		FVector Scale = InBase.GetScale3D();
+		CWMax(Pos, Other.GetLocation());
+		CWMax(Rot, Other.GetRotation());
+		CWMax(Scale, Other.GetScale3D());
+		InBase.SetLocation(Pos);
+		InBase.SetRotation(Rot);
+		InBase.SetScale3D(Scale);
+	}
+	
+	template <typename dummy = void>
+	static void CWMax(FName& InBase, const FName& Other) { InBase = Other; }
+
+	template <typename dummy = void>
+	static void CWMax(FString& InBase, const FString& Other) { InBase = Other; }
 
 	// Lerp
 
 	template <typename T, typename dummy = void>
-	static void Lerp(T& InBase, const T& Other, const double Alpha) { InBase = FMath::Lerp(InBase, Other, Alpha); }
+	static void LerpTo(T& From, const T& To, const double Alpha) { From = FMath::Lerp(From, To, Alpha); }
+
+	template <typename dummy = void>
+	static void LerpTo(FTransform& From, const FTransform& To, const double Alpha)
+	{
+		From.SetLocation(FMath::Lerp(From.GetLocation(), To.GetLocation(), Alpha));
+		From.SetRotation(FQuat::Slerp(From.GetRotation(), To.GetRotation(), Alpha));
+		From.SetScale3D(FMath::Lerp(From.GetScale3D(), To.GetScale3D(), Alpha));
+	}
+
+	template <typename dummy = void>
+	static void LerpTo(FName& From, const FName& To, const double Alpha)
+	{
+	}
+
+	template <typename dummy = void>
+	static void LerpTo(FString& From, const FString& To, const double Alpha)
+	{
+	}
+
+	template <typename dummy = void>
+	static void LerpTo(FQuat& From, const FQuat& To, const double Alpha)
+	{
+		From = FQuat::Slerp(From, To, Alpha);
+	}
+
+	template <typename T, typename dummy = void>
+	static T Lerp(const T& From, const T& To, const double Alpha) { return FMath::Lerp(From, To, Alpha); }
+
+	template <typename dummy = void>
+	static FTransform Lerp(const FTransform& From, const FTransform& To, const double Alpha)
+	{
+		FTransform Result = From;
+		Result.SetLocation(FMath::Lerp(From.GetLocation(), To.GetLocation(), Alpha));
+		Result.SetRotation(FQuat::Slerp(From.GetRotation(), To.GetRotation(), Alpha));
+		Result.SetScale3D(FMath::Lerp(From.GetScale3D(), To.GetScale3D(), Alpha));
+		return Result;
+	}
+
+	template <typename dummy = void>
+	static FQuat Lerp(const FQuat& From, const FQuat& To, const double Alpha) { return FQuat::Slerp(From, To, Alpha); }
+
+	template <typename dummy = void>
+	static FName Lerp(const FName& From, const FName& To, const double Alpha) { return Alpha > 0.5 ? To : From; }
+
+	template <typename dummy = void>
+	static FString Lerp(const FString& From, const FString& To, const double Alpha) { return Alpha > 0.5 ? To : From; }
 
 	// Divide
 
@@ -142,5 +262,18 @@ namespace PCGExMath
 
 		return Box;
 	}
-	
+
+	////
+
+	template <typename T, typename dummy = void>
+	static T Add(const T& InBase, const T& Other) { return InBase + Other; }
+
+	template <typename dummy = void>
+	static FName Add(const FName& InBase, const FName& Other) { return InBase; }
+
+	template <typename dummy = void>
+	static FString Add(const FString& InBase, const FString& Other) { return InBase; }
+
+	template <typename dummy = void>
+	static bool Add(const bool& InBase, const bool& Other) { return Other ? true : InBase; }
 }

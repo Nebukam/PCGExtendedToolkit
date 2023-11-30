@@ -34,14 +34,14 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSingleTangentParams
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	FPCGExInputDescriptorWithDirection Direction;
-	PCGEx::FLocalDirectionInput DirectionGetter;
+	PCGEx::FLocalDirectionGetter DirectionGetter;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(InlineEditConditionToggle))
 	bool bUseLocalScale = false;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="bUseLocalScale"))
 	FPCGExInputDescriptorWithSingleField LocalScale;
-	PCGEx::FLocalSingleComponentInput ScaleGetter;
+	PCGEx::FLocalSingleFieldGetter ScaleGetter;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	double DefaultScale = 10;

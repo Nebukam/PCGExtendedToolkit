@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 #include "NavigationPath.h"
 #include "NavigationSystem.h"
+#include "PCGExPathfinding.h"
 
 #include "PCGExPointsProcessor.h"
 #include "Graph/PCGExGraph.h"
@@ -42,18 +43,24 @@ public:
 
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+protected:
+	virtual FPCGElementPtr CreateElement() const override;
+	//~End UPCGSettings interface
+		
+public:
 	virtual PCGExIO::EInitMode GetPointOutputInitMode() const override;
 	virtual int32 GetPreferredChunkSize() const override;
 
 	virtual FName GetMainPointsInputLabel() const override;
 	virtual FName GetMainPointsOutputLabel() const override;
 
-protected:
-	virtual FPCGElementPtr CreateElement() const override;
-	//~End UPCGSettings interface
-
 public:
 
+	/** TBD */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(FullyExpand=true))
+	FPCGExPathfindingGoalPickingSettings GoalPicking;
+	
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	bool bAddSeedToPath = true;
@@ -79,8 +86,6 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	ANavigationData* NavData = nullptr;
 
-	
-	
 };
 
 
@@ -89,6 +94,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNavmeshContext : public FPCGExPointsPr
 	friend class FPCGExSampleNavmeshElement;
 
 public:
+	FPCGExPathfindingGoalPickingSettings GoalPicking;
 	UPCGExPointIO* GoalsPoints = nullptr;
 	UPCGExPointIOGroup* OutputPaths = nullptr;
 	bool bAddSeedToPath = true;

@@ -169,7 +169,7 @@ T* FPCGExCreateGraphParamsElement::BuildParams(
 	const UPCGExCreateGraphParamsSettings* Settings = Context->GetInputSettings<UPCGExCreateGraphParamsSettings>();
 	check(Settings);
 
-	if (Settings->GraphIdentifier.IsNone() || !PCGEx::IsValidName(Settings->GraphIdentifier.ToString()))
+	if (Settings->GraphIdentifier.IsNone() || !FPCGMetadataAttributeBase::IsValidName(Settings->GraphIdentifier.ToString()))
 	{
 		PCGE_LOG(Error, GraphAndLog, LOCTEXT("UnamedOutput", "Output name is invalid; Cannot be 'None' and can only contain the following special characters:[ ],[_],[-],[/]"));
 		return nullptr;

@@ -21,7 +21,7 @@ MACRO(int32, Integer32)      \
 MACRO(int64, Integer64)      \
 MACRO(float, Float)      \
 MACRO(double, Double)     \
-MACRO(FVector2D, Vector2D)  \
+MACRO(FVector2D, Vector2)  \
 MACRO(FVector, Vector)    \
 MACRO(FVector4, Vector4)   \
 MACRO(FQuat, Quaternion)      \
@@ -30,6 +30,10 @@ MACRO(FTransform, Transform) \
 MACRO(FString, String)    \
 MACRO(FName, Name)
 
+/**
+ * Enum, Point.[Getter]
+ * @param MACRO 
+ */
 #define PCGEX_FOREACH_POINTPROPERTY(MACRO)\
 MACRO(EPCGPointProperties::Density, Density) \
 MACRO(EPCGPointProperties::BoundsMin, BoundsMin) \
@@ -43,6 +47,20 @@ MACRO(EPCGPointProperties::Transform, Transform) \
 MACRO(EPCGPointProperties::Steepness, Steepness) \
 MACRO(EPCGPointProperties::LocalCenter, GetLocalCenter()) \
 MACRO(EPCGPointProperties::Seed, Seed)
+
+/**
+ * Name
+ * @param MACRO 
+ */
+#define PCGEX_FOREACH_GETSET_POINTPROPERTY(MACRO)\
+MACRO(Density) \
+MACRO(BoundsMin) \
+MACRO(BoundsMax) \
+MACRO(Color) \
+MACRO(Transform) \
+MACRO(Steepness) \
+MACRO(Seed)
+
 #define PCGEX_FOREACH_POINTEXTRAPROPERTY(MACRO)\
 MACRO(EPCGExtraProperties::Index, MetadataEntry)
 
@@ -95,6 +113,14 @@ enum class EPCGExExtension : uint8
 };
 
 UENUM(BlueprintType)
+enum class EPCGExIndexSafety : uint8
+{
+	Ignore UMETA(DisplayName = "Ignore", Tooltip="Out of bounds indices are ignored."),
+	Wrap UMETA(DisplayName = "Wrap", Tooltip="Out of bounds indices are wrapped."),
+	Clamp UMETA(DisplayName = "Clamp", Tooltip="Out of bounds indices are clamped."),
+};
+
+UENUM(BlueprintType)
 enum class EPCGExCollisionFilterType : uint8
 {
 	Channel UMETA(DisplayName = "Channel", ToolTip="TBD"),
@@ -128,6 +154,24 @@ namespace PCGEx
 		return Context->SourceComponent->GetWorld();
 	}
 
+	template<typename T>
+	static void SanitizeIndex(T& Index, const T& Limit, const EPCGExIndexSafety Method)
+	{
+		switch (Method)
+		{
+		case EPCGExIndexSafety::Ignore:
+			if (Index < 0 || Index > Limit) { Index = -1; }
+			break;
+		case EPCGExIndexSafety::Wrap:
+			Index = FMath::Wrap(Index, 0, Limit);
+			break;
+		case EPCGExIndexSafety::Clamp:
+			Index = FMath::Clamp(Index, 0, Limit);
+			break;
+		default: ;
+		}
+	}
+
 	static FVector GetDirection(const FQuat& Quat, const EPCGExAxis Dir)
 	{
 		switch (Dir)
@@ -148,45 +192,4 @@ namespace PCGEx
 		}
 	}
 
-	/**
-	 * 
-	 * @param Name 
-	 * @return 
-	 */
-	static bool IsValidName(const FString& Name)
-	{
-		// A valid name is alphanumeric with some special characters allowed.
-		static const FString AllowedSpecialCharacters = TEXT(" _-/");
-
-		for (int32 i = 0; i < Name.Len(); ++i)
-		{
-			if (FChar::IsAlpha(Name[i]) || FChar::IsDigit(Name[i]))
-			{
-				continue;
-			}
-
-			bool bAllowedSpecialCharacterFound = false;
-
-			for (int32 j = 0; j < AllowedSpecialCharacters.Len(); ++j)
-			{
-				if (Name[i] == AllowedSpecialCharacters[j])
-				{
-					bAllowedSpecialCharacterFound = true;
-					break;
-				}
-			}
-
-			if (!bAllowedSpecialCharacterFound)
-			{
-				return false;
-			}
-		}
-
-		return true;
-	}
-
-	static bool IsValidName(const FName& Name)
-	{
-		return IsValidName(Name.ToString());
-	}
 }

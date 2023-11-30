@@ -112,11 +112,11 @@ bool FPCGExSampleNearestPointElement::Validate(FPCGContext* InContext) const
 
 	Context->RangeMin = Settings->RangeMin;
 	Context->bLocalRangeMin = Settings->bUseLocalRangeMin;
-	Context->RangeMinInput.Capture(Settings->LocalRangeMin);
+	Context->RangeMinGetter.Capture(Settings->LocalRangeMin);
 
 	Context->RangeMax = Settings->RangeMax;
 	Context->bLocalRangeMax = Settings->bUseLocalRangeMax;
-	Context->RangeMaxInput.Capture(Settings->LocalRangeMax);
+	Context->RangeMaxGetter.Capture(Settings->LocalRangeMax);
 
 	Context->SampleMethod = Settings->SampleMethod;
 	Context->WeightMethod = Settings->WeightMethod;
@@ -180,7 +180,7 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 
 		if (Context->bLocalRangeMin)
 		{
-			if (Context->RangeMinInput.Validate(PointIO->Out))
+			if (Context->RangeMinGetter.Validate(PointIO->Out))
 			{
 				PCGE_LOG(Warning, GraphAndLog, LOCTEXT("InvalidLocalRangeMin", "RangeMin metadata missing"));
 			}
@@ -188,7 +188,7 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 
 		if (Context->bLocalRangeMax)
 		{
-			if (Context->RangeMaxInput.Validate(PointIO->Out))
+			if (Context->RangeMaxGetter.Validate(PointIO->Out))
 			{
 				PCGE_LOG(Warning, GraphAndLog, LOCTEXT("InvalidLocalRangeMax", "RangeMax metadata missing"));
 			}
@@ -207,8 +207,8 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 	{
 		const FPCGPoint& Point = PointIO->GetOutPoint(ReadIndex);
 
-		double RangeMin = FMath::Pow(Context->RangeMinInput.GetValueSafe(Point, Context->RangeMin), 2);
-		double RangeMax = FMath::Pow(Context->RangeMaxInput.GetValueSafe(Point, Context->RangeMax), 2);
+		double RangeMin = FMath::Pow(Context->RangeMinGetter.GetValueSafe(Point, Context->RangeMin), 2);
+		double RangeMax = FMath::Pow(Context->RangeMaxGetter.GetValueSafe(Point, Context->RangeMax), 2);
 
 		if (RangeMin > RangeMax) { std::swap(RangeMin, RangeMax); }
 

@@ -19,7 +19,7 @@ FString FPCGExPartitionRuleDescriptor::GetDisplayName() const
 
 void UPCGExPartitionByValuesSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
-	for (FPCGExPartitionRuleDescriptor& Descriptor : PartitionRules) { Descriptor.HiddenDisplayName = Descriptor.GetDisplayName(); }
+	for (FPCGExPartitionRuleDescriptor& Descriptor : PartitionRules) { Descriptor.PrintDisplayName(); }
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
 
@@ -80,7 +80,7 @@ FPCGContext* FPCGExPartitionByValuesElement::Initialize(
 	{
 		if (!Descriptor.bEnabled) { continue; }
 		FPCGExPartitionRuleDescriptor& DescriptorCopy = Context->RulesDescriptors.Add_GetRef(Descriptor);
-		if (Descriptor.bWriteKey && !PCGEx::IsValidName(Descriptor.KeyAttributeName))
+		if (Descriptor.bWriteKey && !FPCGMetadataAttributeBase::IsValidName(Descriptor.KeyAttributeName))
 		{
 			PCGE_LOG(Warning, GraphAndLog, LOCTEXT("MalformedAttributeName", "Key Partition name %s is invalid."));
 			DescriptorCopy.bWriteKey = false;

@@ -11,6 +11,38 @@ UPCGExPointIO::UPCGExPointIO(): In(nullptr), Out(nullptr), NumInPoints(-1)
 	// Initialize other members as needed
 }
 
+void UPCGExPointIO::InitPoint(FPCGPoint& Point, PCGMetadataEntryKey FromKey) const
+{
+	Out->Metadata->InitializeOnSet(Point.MetadataEntry, FromKey, In->Metadata);
+}
+
+void UPCGExPointIO::InitPoint(FPCGPoint& Point, const FPCGPoint& FromPoint) const
+{
+	Out->Metadata->InitializeOnSet(Point.MetadataEntry, FromPoint.MetadataEntry, In->Metadata);
+}
+
+FPCGPoint& UPCGExPointIO::NewPoint(const FPCGPoint& FromPoint) const
+{
+	FWriteScopeLock WriteLock(PointsLock);
+	FPCGPoint& Pt = Out->GetMutablePoints().Add_GetRef(FromPoint);
+	InitPoint(Pt, FromPoint);
+	return Pt;
+}
+
+void UPCGExPointIO::AddPoint(FPCGPoint& Point, bool bInit = true) const
+{
+	FWriteScopeLock WriteLock(PointsLock);
+	Out->GetMutablePoints().Add(Point);
+	if (bInit) { Out->Metadata->InitializeOnSet(Point.MetadataEntry); }
+}
+
+void UPCGExPointIO::AddPoint(FPCGPoint& Point, const FPCGPoint& FromPoint) const
+{
+	FWriteScopeLock WriteLock(PointsLock);
+	Out->GetMutablePoints().Add(Point);
+	InitPoint(Point, FromPoint);
+}
+
 UPCGPointData* UPCGExPointIO::NewEmptyOutput() const
 {
 	return PCGExIO::NewEmptyOutput(In);

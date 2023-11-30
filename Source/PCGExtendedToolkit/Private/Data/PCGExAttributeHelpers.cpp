@@ -7,6 +7,8 @@
 
 #if WITH_EDITOR
 FString FPCGExInputDescriptor::GetDisplayName() const { return GetName().ToString(); }
+
+void FPCGExInputDescriptor::PrintDisplayName() { HiddenDisplayName = GetDisplayName(); }
 #endif
 
 bool FPCGExInputDescriptor::Validate(const UPCGPointData* InData)
@@ -41,7 +43,7 @@ void PCGEx::FPinAttributeInfos::Discover(const UPCGPointData* InData)
 	TArray<FName> Names;
 	TArray<EPCGMetadataTypes> Types;
 	InData->Metadata->GetAttributes(Names, Types);
-	for (int i = 0; i < Names.Num(); i++) { Append(FAttributeInfos(Names[i], Types[i])); }
+	for (int i = 0; i < Names.Num(); i++) { Append(FAttributeIdentity(Names[i], Types[i])); }
 }
 
 void PCGEx::FPinAttributeInfos::PushToDescriptor(FPCGExInputDescriptor& Descriptor, bool bReset) const
@@ -49,20 +51,20 @@ void PCGEx::FPinAttributeInfos::PushToDescriptor(FPCGExInputDescriptor& Descript
 	TArray<FString>& ExtraNames = const_cast<TArray<FString>&>(Descriptor.GetMutableSelector().GetExtraNames());
 	if (bReset) { ExtraNames.Empty(); }
 
-	for (const FAttributeInfos& Infos : Attributes)
+	for (const FAttributeIdentity& Infos : Attributes)
 	{
 		ExtraNames.AddUnique(Infos.GetDisplayName());
 	}
 }
 
-void PCGEx::FLocalSingleComponentInput::Capture(const FPCGExInputDescriptorWithSingleField& InDescriptor)
+void PCGEx::FLocalSingleFieldGetter::Capture(const FPCGExInputDescriptorWithSingleField& InDescriptor)
 {
 	Descriptor = static_cast<FPCGExInputDescriptor>(InDescriptor);
 	Field = InDescriptor.Field;
 	Axis = InDescriptor.Axis;
 }
 
-void PCGEx::FLocalSingleComponentInput::Capture(const FPCGExInputDescriptorGeneric& InDescriptor)
+void PCGEx::FLocalSingleFieldGetter::Capture(const FPCGExInputDescriptorGeneric& InDescriptor)
 {
 	Descriptor = static_cast<FPCGExInputDescriptor>(InDescriptor);
 	Field = InDescriptor.Field;

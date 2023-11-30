@@ -4,14 +4,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExPathfinding.h"
 
 #include "Graph/PCGExGraphProcessor.h"
 
 #include "PCGExPathfindingProcessor.generated.h"
-
-namespace PCGExPathfinding
-{
-}
 
 class UPCGExPathfindingParamsData;
 
@@ -47,6 +44,13 @@ public:
 	UPCGExPointIOGroup* PathsPoints = nullptr;
 	UPCGExPointIO* SeedsPoints = nullptr;
 	UPCGExPointIO* GoalsPoints = nullptr;
+
+	PCGEx::FLocalDoubleInput GoalIndexInput;
+	EPCGExPathfindingGoalPickMethod GoalPickMethod;
+	
+protected:
+	int64 GetGoalIndex(const FPCGPoint& Seed, int64 SeedIndex);
+	
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExPathfindingProcessorElement : public FPCGExGraphProcessorElement

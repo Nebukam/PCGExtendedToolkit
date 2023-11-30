@@ -91,7 +91,7 @@ public:
 	EPCGExCollisionFilterType CollisionType = EPCGExCollisionFilterType::Channel;
 
 	/** Collision channel to check against */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision & Metrics", meta=(EditCondition="CollisionType==EPCGExCollisionFilterType::Channel", EditConditionHides, Bitmask, BitmaskEnum="ECollisionChannel"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision & Metrics", meta=(EditCondition="CollisionType==EPCGExCollisionFilterType::Channel", EditConditionHides, Bitmask, BitmaskEnum="/Script/Engine.ECollisionChannel"))
 	TEnumAsByte<ECollisionChannel> CollisionChannel = static_cast<ECollisionChannel>(ECC_WorldDynamic);
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision & Metrics", meta=(EditCondition="CollisionType==EPCGExCollisionFilterType::ObjectType", EditConditionHides, Bitmask, BitmaskEnum="/Script/Engine.EObjectTypeQuery"))
@@ -115,8 +115,8 @@ public:
 	bool bProjectFailToSize;
 	double Size;
 	bool bUseLocalSize = false;
-	PCGEx::FLocalSingleComponentInput LocalSize;
-	PCGEx::FLocalDirectionInput Direction;
+	PCGEx::FLocalSingleFieldGetter SizeGetter;
+	PCGEx::FLocalDirectionGetter DirectionGetter;
 
 	PCGEX_OUT_ATTRIBUTE(Success, bool)
 	PCGEX_OUT_ATTRIBUTE(Location, FVector)

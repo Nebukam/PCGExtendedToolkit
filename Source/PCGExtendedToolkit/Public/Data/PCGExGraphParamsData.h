@@ -291,26 +291,26 @@ namespace PCGExGraph
 		}
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FProbeDistanceModifier : public PCGEx::FLocalSingleComponentInput
+	struct PCGEXTENDEDTOOLKIT_API FProbeDistanceModifier : public PCGEx::FLocalSingleFieldGetter
 	{
-		FProbeDistanceModifier(): PCGEx::FLocalSingleComponentInput()
+		FProbeDistanceModifier(): PCGEx::FLocalSingleFieldGetter()
 		{
 		}
 
-		FProbeDistanceModifier(const FPCGExSocketDescriptor& InDescriptor): PCGEx::FLocalSingleComponentInput()
+		FProbeDistanceModifier(const FPCGExSocketDescriptor& InDescriptor): PCGEx::FLocalSingleFieldGetter()
 		{
 			Descriptor = static_cast<FPCGExInputDescriptor>(InDescriptor.AttributeModifier);
 			bEnabled = InDescriptor.bApplyAttributeModifier;
 		}
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FLocalDirection : public PCGEx::FLocalDirectionInput
+	struct PCGEXTENDEDTOOLKIT_API FLocalDirection : public PCGEx::FLocalDirectionGetter
 	{
-		FLocalDirection(): PCGEx::FLocalDirectionInput()
+		FLocalDirection(): PCGEx::FLocalDirectionGetter()
 		{
 		}
 
-		FLocalDirection(const FPCGExSocketDescriptor& InDescriptor): PCGEx::FLocalDirectionInput()
+		FLocalDirection(const FPCGExSocketDescriptor& InDescriptor): PCGEx::FLocalDirectionGetter()
 		{
 			Descriptor = static_cast<FPCGExInputDescriptor>(InDescriptor.AttributeDirectionVector);
 			bEnabled = InDescriptor.bDirectionVectorFromAttribute;

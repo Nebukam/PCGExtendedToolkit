@@ -26,10 +26,10 @@ FPCGContext* FPCGExSampleSurfaceGuidedElement::Initialize(const FPCGDataCollecti
 
 	Context->Size = Settings->Size;
 	Context->bUseLocalSize = Settings->bUseLocalSize;
-	Context->LocalSize.Capture(Settings->LocalSize);
+	Context->SizeGetter.Capture(Settings->LocalSize);
 	Context->bProjectFailToSize = Context->bProjectFailToSize;
 
-	Context->Direction.Capture(Settings->Direction);
+	Context->DirectionGetter.Capture(Settings->Direction);
 
 	PCGEX_FORWARD_OUT_ATTRIBUTE(Success)
 	PCGEX_FORWARD_OUT_ATTRIBUTE(Location)
@@ -77,7 +77,7 @@ bool FPCGExSampleSurfaceGuidedElement::ExecuteInternal(FPCGContext* InContext) c
 
 	auto Initialize = [&](UPCGExPointIO* PointIO) //UPCGExPointIO* PointIO
 	{
-		Context->Direction.Validate(PointIO->Out);
+		Context->DirectionGetter.Validate(PointIO->Out);
 		PointIO->BuildMetadataEntries();
 
 		PCGEX_INIT_ATTRIBUTE_OUT(Success, bool)
@@ -125,8 +125,8 @@ void FTraceTask::ExecuteTask()
 	FCollisionQueryParams CollisionParams;
 	if (Context->bIgnoreSelf) { CollisionParams.AddIgnoredActor(TaskContext->SourceComponent->GetOwner()); }
 
-	const double Size = Context->bUseLocalSize ? Context->LocalSize.GetValue(InPoint) : Context->Size;
-	const FVector Trace = Context->Direction.GetValue(InPoint) * Size;
+	const double Size = Context->bUseLocalSize ? Context->SizeGetter.GetValue(InPoint) : Context->Size;
+	const FVector Trace = Context->DirectionGetter.GetValue(InPoint) * Size;
 	const FVector End = Origin + Trace;
 		
 	if (!IsTaskValid()) { return; }

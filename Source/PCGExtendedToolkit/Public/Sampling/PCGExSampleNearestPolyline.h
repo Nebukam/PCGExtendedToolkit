@@ -240,8 +240,8 @@ public:
 
 	int64 NumTargets = 0;
 
-	PCGEx::FLocalSingleComponentInput RangeMinInput;
-	PCGEx::FLocalSingleComponentInput RangeMaxInput;
+	PCGEx::FLocalSingleFieldGetter RangeMinGetter;
+	PCGEx::FLocalSingleFieldGetter RangeMaxGetter;
 
 	UCurveFloat* WeightCurve = nullptr;
 

@@ -40,8 +40,7 @@ namespace PCGExGraph
 
 	const FName OutputPatchesLabel = TEXT("Out");
 
-	const FName SourceSeedsLabel = TEXT("Seeds");
-	const FName SourceGoalsLabel = TEXT("Goals");
+	const FName SourcePathsLabel = TEXT("Paths");
 	const FName OutputPathsLabel = TEXT("Paths");
 
 	struct PCGEXTENDEDTOOLKIT_API FEdge

@@ -69,6 +69,7 @@ public:
 	FName GetName() const { return Selector.GetName(); }
 #if WITH_EDITOR
 	virtual FString GetDisplayName() const;
+	void PrintDisplayName();
 #endif
 	/**
 	 * Validate & cache the current selector for a given UPCGPointData
@@ -175,13 +176,13 @@ public:
 
 namespace PCGEx
 {
-	struct PCGEXTENDEDTOOLKIT_API FAttributeInfos
+	struct PCGEXTENDEDTOOLKIT_API FAttributeIdentity
 	{
 		FName Name = NAME_None;
 		EPCGMetadataTypes UnderlyingType = EPCGMetadataTypes::Unknown;
 
 		FString GetDisplayName() const { return FString(Name.ToString() + FString::Printf(TEXT("( %d )"), UnderlyingType)); }
-		bool operator==(const FAttributeInfos& Other) const { return Name == Other.Name; }
+		bool operator==(const FAttributeIdentity& Other) const { return Name == Other.Name; }
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FPinAttributeInfos
@@ -192,10 +193,10 @@ namespace PCGEx
 		}
 
 		FName PinLabel;
-		TArray<FAttributeInfos> Attributes;
+		TArray<FAttributeIdentity> Attributes;
 
 		void Reset() { Attributes.Empty(); }
-		void Append(FAttributeInfos Infos) { Attributes.AddUnique(Infos); }
+		void Append(FAttributeIdentity Infos) { Attributes.AddUnique(Infos); }
 		void Discover(const UPCGPointData* InData);
 		void PushToDescriptor(FPCGExInputDescriptor& Descriptor, bool bReset = true) const;
 	};
@@ -203,17 +204,17 @@ namespace PCGEx
 	template <typename T>
 	static FPCGMetadataAttribute<T>* TryGetAttribute(UPCGSpatialData* InData, FName Name, bool bEnabled, T defaultValue = T{})
 	{
-		if (!bEnabled || !PCGEx::IsValidName(Name)) { return nullptr; }
+		if (!bEnabled || !FPCGMetadataAttributeBase::IsValidName(Name)) { return nullptr; }
 		return InData->Metadata->FindOrCreateAttribute<T>(Name, defaultValue);
 	}
 
 #pragma region Local Attribute Inputs
 
 	template <typename T>
-	struct PCGEXTENDEDTOOLKIT_API FAttributeHandle
+	struct PCGEXTENDEDTOOLKIT_API FAttributeGetter
 	{
 	public:
-		virtual ~FAttributeHandle() = default;
+		virtual ~FAttributeGetter() = default;
 
 		bool bEnabled = true;
 		bool bValid = false;
@@ -325,7 +326,7 @@ namespace PCGEx
 
 
 #define PCGEX_SINGLE(_NAME, _TYPE)\
-struct PCGEXTENDEDTOOLKIT_API FLocal ## _NAME ## Input : public FAttributeHandle<_TYPE>	{\
+struct PCGEXTENDEDTOOLKIT_API FLocal ## _NAME ## Input : public FAttributeGetter<_TYPE>	{\
 protected: \
 virtual _TYPE GetDefaultValue() const override{ return 0; }\
 virtual _TYPE Convert(const int32 Value) const override { return static_cast<_TYPE>(Value); } \
@@ -356,7 +357,7 @@ virtual _TYPE Convert(const FName Value) const override { return static_cast<_TY
 #undef PCGEX_SINGLE
 
 #define PCGEX_VECTOR_CAST(_NAME, _TYPE, VECTOR2D)\
-struct PCGEXTENDEDTOOLKIT_API FLocal ## _NAME ## Input : public FAttributeHandle<_TYPE>	{\
+struct PCGEXTENDEDTOOLKIT_API FLocal ## _NAME ## Input : public FAttributeGetter<_TYPE>	{\
 protected: \
 virtual _TYPE GetDefaultValue() const override { return _TYPE(0); }\
 virtual _TYPE Convert(const int32 Value) const override { return _TYPE(Value); } \
@@ -381,7 +382,7 @@ virtual _TYPE Convert(const FRotator Value) const override { return _TYPE(Value.
 #undef PCGEX_VECTOR_CAST
 
 #define PCGEX_LITERAL_CAST(_NAME, _TYPE)\
-struct PCGEXTENDEDTOOLKIT_API FLocal ## _NAME ## Input : public FAttributeHandle<_TYPE>	{\
+struct PCGEXTENDEDTOOLKIT_API FLocal ## _NAME ## Input : public FAttributeGetter<_TYPE>	{\
 protected: \
 virtual _TYPE GetDefaultValue() const override { return _TYPE(""); }\
 virtual _TYPE Convert(const int32 Value) const override { return _TYPE(FString::FromInt(Value)); } \
@@ -409,13 +410,13 @@ virtual _TYPE Convert(const FName Value) const override { return _TYPE(Value.ToS
 
 #pragma region Local Attribute Component Reader
 
-	struct PCGEXTENDEDTOOLKIT_API FLocalSingleComponentInput : public FAttributeHandle<double>
+	struct PCGEXTENDEDTOOLKIT_API FLocalSingleFieldGetter : public FAttributeGetter<double>
 	{
-		FLocalSingleComponentInput()
+		FLocalSingleFieldGetter()
 		{
 		}
 
-		FLocalSingleComponentInput(
+		FLocalSingleFieldGetter(
 			EPCGExSingleField InField,
 			EPCGExAxis InAxis)
 		{
@@ -497,13 +498,13 @@ virtual _TYPE Convert(const FName Value) const override { return _TYPE(Value.ToS
 		virtual double Convert(const FName Value) const override { return PCGExMath::ConvertStringToDouble(Value.ToString()); }
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FLocalDirectionInput : public FAttributeHandle<FVector>
+	struct PCGEXTENDEDTOOLKIT_API FLocalDirectionGetter : public FAttributeGetter<FVector>
 	{
-		FLocalDirectionInput()
+		FLocalDirectionGetter()
 		{
 		}
 
-		FLocalDirectionInput(
+		FLocalDirectionGetter(
 			EPCGExAxis InAxis)
 		{
 			Axis = InAxis;
@@ -542,9 +543,9 @@ virtual _TYPE Convert(const FName Value) const override { return _TYPE(Value.ToS
 		virtual FVector Convert(const FName Value) const override { return GetDefaultValue(); }
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FLocalToDebugString : public FAttributeHandle<FString>
+	struct PCGEXTENDEDTOOLKIT_API FLocalToStringGetter : public FAttributeGetter<FString>
 	{
-		FLocalToDebugString()
+		FLocalToStringGetter()
 		{
 		}
 
@@ -569,4 +570,143 @@ virtual _TYPE Convert(const FName Value) const override { return _TYPE(Value.ToS
 	};
 
 #pragma endregion
+
+	struct PCGEXTENDEDTOOLKIT_API FAttributeMap
+	{
+		FAttributeMap()
+		{
+		}
+
+		int32 NumAttributes = -1;
+		TArray<FAttributeIdentity> Identities;
+		TMap<FName, FPCGMetadataAttributeBase*> Attributes;
+
+		void PrepareForPoints(UPCGPointData* InData)
+		{
+			NumAttributes = InData->Metadata->GetAttributeCount();
+
+			TArray<FName> Names;
+			TArray<EPCGMetadataTypes> Types;
+
+			Identities.Reset(NumAttributes);
+			Attributes.Empty(NumAttributes);
+
+			InData->Metadata->GetAttributes(Names, Types);
+			for (int i = 0; i < NumAttributes; i++)
+			{
+				FAttributeIdentity& Identity = Identities.Emplace_GetRef(Names[i], Types[i]);
+				Attributes.Add(Identity.Name, InData->Metadata->GetMutableAttribute(Identity.Name));
+			}
+		}
+
+		void PrepareForPoints(const FAttributeMap& From, const UPCGPointData* OutData)
+		{
+			NumAttributes = From.NumAttributes;
+			Identities.Reset(NumAttributes);
+			Identities.Append(From.Identities);
+
+			Attributes.Empty(NumAttributes);
+
+			for (const FAttributeIdentity& Identity : From.Identities)
+			{
+				Attributes.Add(Identity.Name, OutData->Metadata->CopyAttribute(*From.Attributes.Find(Identity.Name), Identity.Name, true, false, false));
+			}
+		}
+
+		// Getters
+
+#define PCGEX_ATTRIBUTE FPCGMetadataAttribute<T>* Attribute = static_cast<FPCGMetadataAttribute<T>*>(*Attributes.Find(Name));
+
+		template <typename T>
+		T GetValue(const FName Name, const PCGMetadataEntryKey& Key)
+		{
+			PCGEX_ATTRIBUTE
+			return Attribute->GetValueFromItemKey(Key);
+		}
+
+		template <typename T>
+		T Lerp(const FName Name, const PCGMetadataEntryKey& A, const PCGMetadataEntryKey& B, double Alpha)
+		{
+			PCGEX_ATTRIBUTE
+			return PCGExMath::Lerp(Attribute->GetValueFromItemKey(A), Attribute->GetValueFromItemKey(B), Alpha);
+		}
+
+		template <typename T>
+		void LerpTo(const FName Name, T& From, const PCGMetadataEntryKey& Key, double Alpha)
+		{
+			PCGEX_ATTRIBUTE
+			PCGExMath::LerpTo(From, Attribute->GetValueFromItemKey(Key), Alpha);
+		}
+
+		template <typename T>
+		void CWMin(const FName Name, T& From, const PCGMetadataEntryKey& Key, double Alpha)
+		{
+			PCGEX_ATTRIBUTE
+			PCGExMath::CWMin(From, Attribute->GetValueFromItemKey(Key));
+		}
+
+		template <typename T>
+		void CWMax(const FName Name, T& From, const PCGMetadataEntryKey& Key, double Alpha)
+		{
+			PCGEX_ATTRIBUTE
+			PCGExMath::CWMax(From, Attribute->GetValueFromItemKey(Key));
+		}
+
+		// Operations
+
+		template <typename T>
+		void OutputLerp(
+			const FName Name,
+			const PCGMetadataEntryKey& FromKey,
+			const PCGMetadataEntryKey& ToKey,
+			const PCGMetadataEntryKey& OutKey,
+			double Alpha)
+		{
+			PCGEX_ATTRIBUTE
+			Attribute->SetValue(
+				OutKey,
+				PCGExMath::Lerp(
+					Attribute->GetValueFromItemKey(FromKey),
+					Attribute->GetValueFromItemKey(ToKey),
+					Alpha));
+		}
+
+		template <typename T>
+		void OutputCWMin(
+			const FName Name,
+			const PCGMetadataEntryKey& Key,
+			const PCGMetadataEntryKey& OutKey)
+		{
+			PCGEX_ATTRIBUTE
+			T Value = Attribute->GetValueFromItemKey(Key);
+			PCGExMath::CWMin(Value, Attribute->GetValueFromItemKey(OutKey));
+			Attribute->SetValue(OutKey, Value);
+		}
+
+		template <typename T>
+		void OutputCWMax(
+			const FName Name,
+			const PCGMetadataEntryKey& Key,
+			const PCGMetadataEntryKey& OutKey)
+		{
+			PCGEX_ATTRIBUTE
+			T Value = Attribute->GetValueFromItemKey(Key);
+			PCGExMath::CWMax(Value, Attribute->GetValueFromItemKey(OutKey));
+			Attribute->SetValue(OutKey, Value);
+		}
+
+		template <typename T>
+		void Accumulate(
+			const FName Name,
+			const PCGMetadataEntryKey& FromKey,
+			const PCGMetadataEntryKey& OutKey)
+		{
+			PCGEX_ATTRIBUTE
+			Attribute->SetValue(
+				OutKey, PCGExMath::Add(
+					Attribute->GetValueFromItemKey(OutKey), Attribute->GetValueFromItemKey(FromKey)));
+		}
+	};
 }
+
+#undef PCGEX_ATTRIBUTE

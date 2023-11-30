@@ -15,7 +15,7 @@ Context->bWrite##_NAME = Settings->bWrite##_NAME;\
 Context->OutName##_NAME = Settings->_NAME;
 
 #define PCGEX_CHECK_OUT_ATTRIBUTE_NAME(_NAME)\
-if(Context->bWrite##_NAME && !PCGEx::IsValidName(Context->OutName##_NAME))\
+if(Context->bWrite##_NAME && !FPCGMetadataAttributeBase::IsValidName(Context->OutName##_NAME))\
 { PCGE_LOG(Warning, GraphAndLog, LOCTEXT("InvalidName", "Invalid output attribute name " #_NAME ));\
 Context->bWrite##_NAME = false; }
 

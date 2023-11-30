@@ -133,12 +133,7 @@ bool FPCGExPointsProcessorContext::AsyncProcessingCurrentPoints(
 	TFunction<void(UPCGExPointIO*)>&& Initialize,
 	TFunction<void(const int32, const UPCGExPointIO*)>&& LoopBody)
 {
-	if (!bDoAsyncProcessing)
-	{
-		Initialize(CurrentIO);
-		for (int i = 0; i < CurrentIO->NumInPoints; i++) { LoopBody(i, CurrentIO); }
-		return true;
-	};
+	if (!bDoAsyncProcessing) { return ChunkProcessingCurrentPoints(Initialize, LoopBody); };
 	return FPCGAsync::AsyncProcessingOneToOneEx(
 		&AsyncState, CurrentIO->NumInPoints,
 		[&]() { Initialize(CurrentIO); },
@@ -151,11 +146,7 @@ bool FPCGExPointsProcessorContext::AsyncProcessingCurrentPoints(
 
 bool FPCGExPointsProcessorContext::AsyncProcessingCurrentPoints(TFunction<void(const int32, const UPCGExPointIO*)>&& LoopBody)
 {
-	if (!bDoAsyncProcessing)
-	{
-		for (int i = 0; i < CurrentIO->NumInPoints; i++) { LoopBody(i, CurrentIO); }
-		return true;
-	};
+	if (!bDoAsyncProcessing) { return ChunkProcessingCurrentPoints(LoopBody); };
 	return FPCGAsync::AsyncProcessingOneToOneEx(
 		&AsyncState, CurrentIO->NumInPoints,
 		[&]()
@@ -166,6 +157,35 @@ bool FPCGExPointsProcessorContext::AsyncProcessingCurrentPoints(TFunction<void(c
 			LoopBody(ReadIndex, CurrentIO);
 			return true;
 		}, true, ChunkSize);
+}
+
+bool FPCGExPointsProcessorContext::ChunkProcessingCurrentPoints(
+	const TFunction<void(UPCGExPointIO*)>& Initialize,
+	const TFunction<void(const int32, const UPCGExPointIO*)>& LoopBody)
+{
+	if (CurrentChunkIndex == -1)
+	{
+		Initialize(CurrentIO);
+		CurrentChunkIndex = 0;
+	}
+	return ChunkProcessingCurrentPoints(LoopBody);
+}
+
+bool FPCGExPointsProcessorContext::ChunkProcessingCurrentPoints(const TFunction<void(const int32, const UPCGExPointIO*)>& LoopBody)
+{
+	if (CurrentChunkIndex == -1) { CurrentChunkIndex = 0; }
+	const int32 NumIterations = FMath::Min(ChunkSize, CurrentIO->NumInPoints - CurrentChunkIndex);
+	if (NumIterations <= 0)
+	{
+		CurrentChunkIndex = -1;
+		return true;
+	}
+	else
+	{
+		for (int i = 0; i < NumIterations; i++) { LoopBody(CurrentChunkIndex + i, CurrentIO); }
+		CurrentChunkIndex += NumIterations;
+		return false;
+	}
 }
 
 void FPCGExPointsProcessorContext::ResetAsyncWork()

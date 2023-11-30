@@ -82,7 +82,7 @@ namespace PCGEx
 	public:
 		FPCGExOperationDescriptor* Descriptor;
 
-		PCGEx::FLocalDirectionInput VectorInput;
+		PCGEx::FLocalDirectionGetter VectorInput;
 
 		bool bValid = false;
 

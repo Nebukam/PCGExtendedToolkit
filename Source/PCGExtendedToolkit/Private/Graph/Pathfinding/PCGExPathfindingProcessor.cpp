@@ -3,6 +3,8 @@
 
 #include "Graph/Pathfinding/PCGExPathfindingProcessor.h"
 
+#include "Graph/Pathfinding/PCGExPathfinding.h"
+
 #define LOCTEXT_NAMESPACE "PCGExPathfindingSettings"
 
 #pragma region UPCGSettings interface
@@ -13,7 +15,7 @@ TArray<FPCGPinProperties> UPCGExPathfindingProcessorSettings::InputPinProperties
 
 	if (GetRequiresSeeds())
 	{
-		FPCGPinProperties& PinPropertySeeds = PinProperties.Emplace_GetRef(PCGExGraph::SourceSeedsLabel, EPCGDataType::Point, false, false);
+		FPCGPinProperties& PinPropertySeeds = PinProperties.Emplace_GetRef(PCGExPathfinding::SourceSeedsLabel, EPCGDataType::Point, false, false);
 
 #if WITH_EDITOR
 		PinPropertySeeds.Tooltip = LOCTEXT("PCGExSourceSeedsPinTooltip", "Seeds points for pathfinding.");
@@ -22,7 +24,7 @@ TArray<FPCGPinProperties> UPCGExPathfindingProcessorSettings::InputPinProperties
 
 	if (GetRequiresGoals())
 	{
-		FPCGPinProperties& PinPropertyGoals = PinProperties.Emplace_GetRef(PCGExGraph::SourceGoalsLabel, EPCGDataType::Point, false, false);
+		FPCGPinProperties& PinPropertyGoals = PinProperties.Emplace_GetRef(PCGExPathfinding::SourceGoalsLabel, EPCGDataType::Point, false, false);
 
 #if WITH_EDITOR
 		PinPropertyGoals.Tooltip = LOCTEXT("PCGExSourcGoalsPinTooltip", "Goals points for pathfinding.");
@@ -98,7 +100,7 @@ void FPCGExPathfindingProcessorElement::InitializeContext(
 
 	if (Settings->GetRequiresSeeds())
 	{
-		if (TArray<FPCGTaggedData> Seeds = InContext->InputData.GetInputsByPin(PCGExGraph::SourceSeedsLabel);
+		if (TArray<FPCGTaggedData> Seeds = InContext->InputData.GetInputsByPin(PCGExPathfinding::SourceSeedsLabel);
 			Seeds.Num() > 0)
 		{
 			const FPCGTaggedData& SeedsSource = Seeds[0];
@@ -108,7 +110,7 @@ void FPCGExPathfindingProcessorElement::InitializeContext(
 
 	if (Settings->GetRequiresGoals())
 	{
-		if (TArray<FPCGTaggedData> Goals = InContext->InputData.GetInputsByPin(PCGExGraph::SourceGoalsLabel);
+		if (TArray<FPCGTaggedData> Goals = InContext->InputData.GetInputsByPin(PCGExPathfinding::SourceGoalsLabel);
 			Goals.Num() > 0)
 		{
 			const FPCGTaggedData& GoalsSource = Goals[0];

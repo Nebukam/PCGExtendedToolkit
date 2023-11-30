@@ -214,6 +214,8 @@ public:
 	bool bComponentWiseRadius;
 	FVector Radiuses;
 
+	PCGEx::FAttributeMap InputAttributeMap;
+	
 	TArray<PCGExFuse::FFusedPoint> FusedPoints;
 	TArray<FPCGPoint>* OutPoints;
 	TArray<PCGExFuse::FAttribute> Attributes;
