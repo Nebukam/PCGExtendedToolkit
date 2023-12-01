@@ -15,21 +15,6 @@ UPCGExBuildGraphSettings::UPCGExBuildGraphSettings(
 	if (!GraphSolver) { GraphSolver = NewObject<UPCGExGraphSolver>(); }
 }
 
-TArray<FPCGPinProperties> UPCGExBuildGraphSettings::OutputPinProperties() const
-{
-	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
-	if(bComputePatches)
-	{
-		FPCGPinProperties& PinPatchesOutput = PinProperties.Emplace_GetRef(PCGExGraph::OutputPatchesLabel, EPCGDataType::Point);
-
-#if WITH_EDITOR
-		PinPatchesOutput.Tooltip = LOCTEXT("PCGExOutputPatchTooltip", "Patches");
-#endif // WITH_EDITOR
-	}
-	
-	return PinProperties;
-}
-
 FPCGElementPtr UPCGExBuildGraphSettings::CreateElement() const { return MakeShared<FPCGExBuildGraphElement>(); }
 FName UPCGExBuildGraphSettings::GetMainPointsInputLabel() const { return PCGEx::SourcePointsLabel; }
 

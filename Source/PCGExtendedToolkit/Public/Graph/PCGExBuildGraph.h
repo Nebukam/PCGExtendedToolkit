@@ -27,8 +27,6 @@ public:
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(BuildGraph, "Build Graph", "Write graph data to an attribute for each connected Graph Params. `Build Graph` uses the socket information as is.");
 #endif
-	virtual bool HasDynamicPins() const override { return true; }
-	virtual TArray<FPCGPinProperties> OutputPinProperties() const override; 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings interface
