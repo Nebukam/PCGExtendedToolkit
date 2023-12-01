@@ -247,18 +247,6 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FFuseTask : public FPointTask
-{
-public:
-	FFuseTask(FPCGExPointsProcessorContext* InContext, UPCGExPointIO* InPointData, const PCGExMT::FTaskInfos& InInfos) :
-		FPointTask(InContext, InPointData, InInfos)
-	{
-	}
-
-	virtual void ExecuteTask() override;
-};
-
-
 #undef PCGEX_FUSE_FOREACH_POINTPROPERTYNAME
 #undef PCGEX_FUSE_UPROPERTY
 #undef PCGEX_FUSE_CONTEXT
