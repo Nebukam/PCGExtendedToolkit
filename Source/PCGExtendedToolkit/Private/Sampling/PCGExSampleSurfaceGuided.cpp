@@ -65,34 +65,28 @@ bool FPCGExSampleSurfaceGuidedElement::ExecuteInternal(FPCGContext* InContext) c
 
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
-		if (!Context->AdvancePointsIO())
-		{
-			Context->SetState(PCGExMT::State_Done);
-		}
-		else
-		{
-			Context->SetState(PCGExMT::State_ProcessingPoints);
-		}
+		if (!Context->AdvancePointsIO()) { Context->Done(); }
+		else { Context->SetState(PCGExMT::State_ProcessingPoints); }
 	}
-
-	auto Initialize = [&](UPCGExPointIO* PointIO) //UPCGExPointIO* PointIO
-	{
-		Context->DirectionGetter.Validate(PointIO->Out);
-		PointIO->BuildMetadataEntries();
-
-		PCGEX_INIT_ATTRIBUTE_OUT(Success, bool)
-		PCGEX_INIT_ATTRIBUTE_OUT(Location, FVector)
-		PCGEX_INIT_ATTRIBUTE_OUT(Normal, FVector)
-		PCGEX_INIT_ATTRIBUTE_OUT(Distance, double)
-	};
-
-	auto ProcessPoint = [&](const int32 PointIndex, const UPCGExPointIO* PointIO)
-	{
-		Context->CreateAndStartTask<FTraceTask>(PointIndex, PointIO->GetOutPoint(PointIndex).MetadataEntry);
-	};
 
 	if (Context->IsState(PCGExMT::State_ProcessingPoints))
 	{
+		auto Initialize = [&](UPCGExPointIO* PointIO) //UPCGExPointIO* PointIO
+		{
+			Context->DirectionGetter.Validate(PointIO->Out);
+			PointIO->BuildMetadataEntries();
+
+			PCGEX_INIT_ATTRIBUTE_OUT(Success, bool)
+			PCGEX_INIT_ATTRIBUTE_OUT(Location, FVector)
+			PCGEX_INIT_ATTRIBUTE_OUT(Normal, FVector)
+			PCGEX_INIT_ATTRIBUTE_OUT(Distance, double)
+		};
+
+		auto ProcessPoint = [&](const int32 PointIndex, const UPCGExPointIO* PointIO)
+		{
+			Context->CreateAndStartTask<FTraceTask>(PointIndex, PointIO->GetOutPoint(PointIndex).MetadataEntry);
+		};
+
 		if (Context->AsyncProcessingCurrentPoints(Initialize, ProcessPoint))
 		{
 			Context->SetState(PCGExMT::State_WaitingOnAsyncWork);

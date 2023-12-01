@@ -44,72 +44,66 @@ bool FPCGExSubdivideElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
-		if (!Context->AdvancePointsIO())
-		{
-			Context->SetState(PCGExMT::State_Done);
-		}
-		else
-		{
-			Context->SetState(PCGExMT::State_ProcessingPoints);
-		}
+		if (!Context->AdvancePointsIO()) { Context->Done(); }
+		else { Context->SetState(PCGExMT::State_ProcessingPoints); }
 	}
-
-	auto Initialize = [&](UPCGExPointIO* PointIO)
-	{
-		if (Context->bFlagSubPoints) { Context->FlagAttribute = PointIO->Out->Metadata->FindOrCreateAttribute(Context->FlagName, false); }
-		if (Context->SubdivideBlend == EPCGExSubdivideBlendMode::Lerp) { Context->InputAttributeMap.PrepareForPoints(PointIO->In); }
-	};
-
-	auto ProcessPoint = [&](const int32 Index, const UPCGExPointIO* PointIO)
-	{
-		const FPCGPoint& StartPoint = PointIO->GetInPoint(Index);
-		const FPCGPoint* EndPtr = PointIO->TryGetInPoint(Index + 1);
-		FPCGPoint& StartCopy = PointIO->NewPoint(StartPoint);
-		if (!EndPtr) { return; }
-
-		const FVector StartPos = StartPoint.Transform.GetLocation();
-		const FVector EndPos = EndPtr->Transform.GetLocation();
-
-		const double Distance = FVector::Distance(StartPos, EndPos);
-		int32 NumSubdivisions = Context->Count;
-		if (Context->Method == EPCGExSubdivideMode::Distance) { NumSubdivisions = FMath::Floor(FVector::Distance(StartPos, EndPos) / Context->Distance); }
-
-		const double StepSize = Distance / static_cast<double>(NumSubdivisions);
-		const double StartOffset = (Distance - StepSize * NumSubdivisions) * 0.5;
-
-		if (Context->SubdivideBlend == EPCGExSubdivideBlendMode::Lerp)
-		{
-			for (int i = 0; i < NumSubdivisions; i++)
-			{
-				const double Lerp = (StartOffset + StepSize * i) / Distance;
-
-				FPCGPoint& NewPoint = PointIO->NewPoint(StartPoint);
-				if (Context->bFlagSubPoints) { Context->FlagAttribute->SetValue(NewPoint.MetadataEntry, true); }
-
-				PCGExMath::Lerp(StartPoint, *EndPtr, NewPoint, Lerp);
-
-				Context->InputAttributeMap.SetLerp(
-					StartPoint.MetadataEntry,
-					EndPtr->MetadataEntry,
-					NewPoint.MetadataEntry,
-					Lerp);
-			}
-		}
-		else
-		{
-			const FPCGPoint& RefPoint = Context->SubdivideBlend == EPCGExSubdivideBlendMode::InheritStart ? StartPoint : *EndPtr;
-			for (int i = 0; i < NumSubdivisions; i++)
-			{
-				double Lerp = (StartOffset + StepSize * i) / Distance;
-				FPCGPoint& NewPoint = PointIO->NewPoint(RefPoint);
-				NewPoint.Transform.SetLocation(FMath::Lerp(StartPos, EndPos, Lerp));
-				if (Context->bFlagSubPoints) { Context->FlagAttribute->SetValue(NewPoint.MetadataEntry, true); }
-			}
-		}
-	};
 
 	if (Context->IsState(PCGExMT::State_ProcessingPoints))
 	{
+		auto Initialize = [&](UPCGExPointIO* PointIO)
+		{
+			if (Context->bFlagSubPoints) { Context->FlagAttribute = PointIO->Out->Metadata->FindOrCreateAttribute(Context->FlagName, false); }
+			if (Context->SubdivideBlend == EPCGExSubdivideBlendMode::Lerp) { Context->InputAttributeMap.PrepareForPoints(PointIO->In); }
+		};
+
+		auto ProcessPoint = [&](const int32 Index, const UPCGExPointIO* PointIO)
+		{
+			const FPCGPoint& StartPoint = PointIO->GetInPoint(Index);
+			const FPCGPoint* EndPtr = PointIO->TryGetInPoint(Index + 1);
+			FPCGPoint& StartCopy = PointIO->NewPoint(StartPoint);
+			if (!EndPtr) { return; }
+
+			const FVector StartPos = StartPoint.Transform.GetLocation();
+			const FVector EndPos = EndPtr->Transform.GetLocation();
+
+			const double Distance = FVector::Distance(StartPos, EndPos);
+			int32 NumSubdivisions = Context->Count;
+			if (Context->Method == EPCGExSubdivideMode::Distance) { NumSubdivisions = FMath::Floor(FVector::Distance(StartPos, EndPos) / Context->Distance); }
+
+			const double StepSize = Distance / static_cast<double>(NumSubdivisions);
+			const double StartOffset = (Distance - StepSize * NumSubdivisions) * 0.5;
+
+			if (Context->SubdivideBlend == EPCGExSubdivideBlendMode::Lerp)
+			{
+				for (int i = 0; i < NumSubdivisions; i++)
+				{
+					const double Lerp = (StartOffset + StepSize * i) / Distance;
+
+					FPCGPoint& NewPoint = PointIO->NewPoint(StartPoint);
+					if (Context->bFlagSubPoints) { Context->FlagAttribute->SetValue(NewPoint.MetadataEntry, true); }
+
+					PCGExMath::Lerp(StartPoint, *EndPtr, NewPoint, Lerp);
+
+					Context->InputAttributeMap.SetLerp(
+						StartPoint.MetadataEntry,
+						EndPtr->MetadataEntry,
+						NewPoint.MetadataEntry,
+						Lerp);
+				}
+			}
+			else
+			{
+				const FPCGPoint& RefPoint = Context->SubdivideBlend == EPCGExSubdivideBlendMode::InheritStart ? StartPoint : *EndPtr;
+				for (int i = 0; i < NumSubdivisions; i++)
+				{
+					double Lerp = (StartOffset + StepSize * i) / Distance;
+					FPCGPoint& NewPoint = PointIO->NewPoint(RefPoint);
+					NewPoint.Transform.SetLocation(FMath::Lerp(StartPos, EndPos, Lerp));
+					if (Context->bFlagSubPoints) { Context->FlagAttribute->SetValue(NewPoint.MetadataEntry, true); }
+				}
+			}
+		};
+
 		if (Context->ChunkProcessingCurrentPoints(Initialize, ProcessPoint))
 		{
 			Context->SetState(PCGExMT::State_ReadyForNextPoints);

@@ -64,14 +64,8 @@ bool FPCGExPartitionGraphPatchesElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExGraph::State_ReadyForNextGraph))
 	{
-		if (!Context->AdvanceGraph(true))
-		{
-			Context->SetState(PCGExMT::State_Done); //No more params
-		}
-		else
-		{
-			Context->SetState(PCGExMT::State_ReadyForNextPoints);
-		}
+		if (!Context->AdvanceGraph(true)) { Context->Done(); }
+		else { Context->SetState(PCGExMT::State_ReadyForNextPoints); }
 	}
 
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
@@ -88,29 +82,37 @@ bool FPCGExPartitionGraphPatchesElement::ExecuteInternal(
 
 	// 1st Pass on points
 
-	auto InitializePointsInput = [&](const UPCGExPointIO* PointIO)
-	{
-		Context->PreparePatchGroup();
-		Context->PrepareCurrentGraphForPoints(PointIO->In, false); // Prepare to read PointIO->In
-	};
-
-	auto ProcessPoint = [&](const int32 PointIndex, const UPCGExPointIO* PointIO)
-	{
-		Context->Patches->Distribute(PointIndex);
-	};
 
 	if (Context->IsState(PCGExGraph::State_FindingPatch))
 	{
-		if (Context->AsyncProcessingCurrentPoints(InitializePointsInput, ProcessPoint))
+		auto Initialize = [&](const UPCGExPointIO* PointIO)
+		{
+			Context->PreparePatchGroup(); 
+			Context->PrepareCurrentGraphForPoints(PointIO->In, false); // Prepare to read PointIO->In
+		};
+
+		auto ProcessPoint = [&](const int32 PointIndex, const UPCGExPointIO* PointIO)
+		{
+			//Context->Patches->Distribute(PointIndex);
+			Context->CreateAndStartTask<FPatchTask>(PointIndex, PointIO->GetInPoint(PointIndex).MetadataEntry, 0);
+		};
+
+		if (Context->AsyncProcessingCurrentPoints(Initialize, ProcessPoint))
+		{
+			Context->SetState(PCGExMT::State_WaitingOnAsyncWork);
+			//Context->SetState(PCGExMT::State_ReadyForNextPoints);
+			//Context->Patches->OutputTo(Context, Context->MinPatchSize, Context->MaxPatchSize);
+		}
+	}
+
+	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
+	{
+		if (Context->IsAsyncWorkComplete())
 		{
 			Context->SetState(PCGExMT::State_ReadyForNextPoints);
 			Context->Patches->OutputTo(Context, Context->MinPatchSize, Context->MaxPatchSize);
 		}
 	}
-
-	// -> Go on to process individual patches for(:Context->Patches)
-
-	// Done
 
 	if (Context->IsDone())
 	{
@@ -119,6 +121,13 @@ bool FPCGExPartitionGraphPatchesElement::ExecuteInternal(
 	}
 
 	return false;
+}
+
+void FPatchTask::ExecuteTask()
+{
+	const FPCGExPartitionGraphPatchesContext* Context = static_cast<FPCGExPartitionGraphPatchesContext*>(TaskContext);
+	Context->Patches->Distribute(Infos.Index);
+	ExecutionComplete(true);
 }
 
 #undef LOCTEXT_NAMESPACE

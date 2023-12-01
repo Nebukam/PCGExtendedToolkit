@@ -83,6 +83,7 @@ public:
 	bool IsState(const PCGExMT::AsyncState OperationId) const { return CurrentState == OperationId; }
 	bool IsSetup() const { return IsState(PCGExMT::State_Setup); }
 	bool IsDone() const { return IsState(PCGExMT::State_Done); }
+	void Done() { SetState(PCGExMT::State_Done); }
 
 	virtual void SetState(PCGExMT::AsyncState OperationId);
 	virtual void Reset();

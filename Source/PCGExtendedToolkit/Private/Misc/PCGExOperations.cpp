@@ -92,7 +92,7 @@ bool FPCGExOperationsElement::ExecuteInternal(
 	{
 		if (!Context->AdvancePointsIO())
 		{
-			Context->SetState(PCGExMT::State_Done); //No more points
+			Context->Done(); //No more points
 		}
 		else
 		{

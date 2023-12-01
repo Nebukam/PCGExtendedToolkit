@@ -139,7 +139,7 @@ UPCGExDrawAttributesSettings::UPCGExDrawAttributesSettings(
 	: Super(ObjectInitializer)
 {
 	DebugSettings.PointScale = 0.0f;
-	if(DebugList.IsEmpty())
+	if (DebugList.IsEmpty())
 	{
 		FPCGExAttributeDebugDrawDescriptor& Forward = DebugList.Emplace_GetRef();
 		Forward.Selector.Update(TEXT("$transform"));
@@ -152,7 +152,7 @@ UPCGExDrawAttributesSettings::UPCGExDrawAttributesSettings(
 		Right.Axis = EPCGExAxis::Right;
 		Right.Color = FColor::Green;
 		Right.Size = 50;
-		
+
 		FPCGExAttributeDebugDrawDescriptor& Up = DebugList.Emplace_GetRef();
 		Up.Selector.Update(TEXT("$transform"));
 		Up.Axis = EPCGExAxis::Up;
@@ -251,45 +251,33 @@ bool FPCGExDrawAttributesElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
-		if (!Context->AdvancePointsIO())
-		{
-			Context->SetState(PCGExMT::State_Done); //No more points
-		}
-		else
-		{
-			Context->SetState(PCGExMT::State_ProcessingPoints);
-		}
+		if (!Context->AdvancePointsIO()) { Context->Done(); }
+		else { Context->SetState(PCGExMT::State_ProcessingPoints); }
 	}
-
-	auto ProcessPoint = [&](const FPCGPoint& Point, const int32 ReadIndex, const UPCGExPointIO* PointIO)
-	{
-		// FWriteScopeLock WriteLock(Context->ContextLock);
-		const FVector Start = Point.Transform.GetLocation();
-		DrawDebugPoint(Context->World, Start, 1.0f, FColor::White, true);
-		for (FPCGExAttributeDebugDraw& Drawer : Context->DebugList)
-		{
-			if (!Drawer.bValid) { continue; }
-			Drawer.Draw(Context->World, Start, Point, PointIO->In);
-		}
-	};
-
-	auto Initialize = [&](const UPCGExPointIO* PointIO)
-	{
-		Context->PrepareForPoints(PointIO->In);
-	};
 
 	if (Context->IsState(PCGExMT::State_ProcessingPoints))
 	{
-		Initialize(Context->CurrentIO);
-		for (int i = 0; i < Context->CurrentIO->NumInPoints; i++) { ProcessPoint(Context->CurrentIO->In->GetPoint(i), i, Context->CurrentIO); }
-		Context->SetState(PCGExMT::State_ReadyForNextPoints);
+		auto Initialize = [&](UPCGExPointIO* PointIO)
+		{
+			Context->PrepareForPoints(PointIO->In);
+		};
+
+		auto ProcessPoint = [&](const int32 PointIndex, const UPCGExPointIO* PointIO)
+		{
+			const FPCGPoint& Point = PointIO->GetInPoint(PointIndex);
+			const FVector Start = Point.Transform.GetLocation();
+			DrawDebugPoint(Context->World, Start, 1.0f, FColor::White, true);
+			for (FPCGExAttributeDebugDraw& Drawer : Context->DebugList)
+			{
+				if (!Drawer.bValid) { continue; }
+				Drawer.Draw(Context->World, Start, Point, PointIO->In);
+			}
+		};
+
+		if (Context->ChunkProcessingCurrentPoints(Initialize, ProcessPoint)) { Context->Done(); }
 	}
 
-	if (Context->IsDone())
-	{
-		//Context->OutputPoints();
-		return true;
-	}
+	if (Context->IsDone()) { return true; }
 
 	return false;
 

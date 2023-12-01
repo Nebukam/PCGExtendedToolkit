@@ -35,29 +35,23 @@ bool FPCGExWriteTangentsElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
-		if (!Context->AdvancePointsIO())
-		{
-			Context->SetState(PCGExMT::State_Done);
-		}
-		else
-		{
-			Context->SetState(PCGExMT::State_ProcessingPoints);
-		}
+		if (!Context->AdvancePointsIO()) { Context->Done(); }
+		else { Context->SetState(PCGExMT::State_ProcessingPoints); }
 	}
-
-	auto Initialize = [&](UPCGExPointIO* PointIO)
-	{
-		PointIO->BuildMetadataEntries();
-		Context->TangentParams.PrepareForData(PointIO);
-	};
-
-	auto ProcessPoint = [&](const int32 Index, const UPCGExPointIO* PointIO)
-	{
-		Context->TangentParams.ComputePointTangents(Index, PointIO);
-	};
 
 	if (Context->IsState(PCGExMT::State_ProcessingPoints))
 	{
+		auto Initialize = [&](UPCGExPointIO* PointIO)
+		{
+			PointIO->BuildMetadataEntries();
+			Context->TangentParams.PrepareForData(PointIO);
+		};
+
+		auto ProcessPoint = [&](const int32 Index, const UPCGExPointIO* PointIO)
+		{
+			Context->TangentParams.ComputePointTangents(Index, PointIO);
+		};
+
 		if (Context->AsyncProcessingCurrentPoints(Initialize, ProcessPoint))
 		{
 			Context->SetState(PCGExMT::State_ReadyForNextPoints);

@@ -10,10 +10,10 @@ void UPCGExWeightedGraphSolver::InitializeProbe(PCGExGraph::FSocketProbe& Probe)
 
 bool UPCGExWeightedGraphSolver::ProcessPoint(
 	PCGExGraph::FSocketProbe& Probe,
-	const FPCGPoint* Point,
+	const FPCGPoint& Point,
 	const int32 Index) const
 {
-	const FVector PtPosition = Point->Transform.GetLocation();
+	const FVector PtPosition = Point.Transform.GetLocation();
 
 	if (!Probe.LooseBounds.IsInside(PtPosition)) { return false; }
 
@@ -34,7 +34,7 @@ bool UPCGExWeightedGraphSolver::ProcessPoint(
 	Candidate.Distance = PtDistance;
 
 	Candidate.Index = Index;
-	Candidate.EntryKey = Point->MetadataEntry;
+	Candidate.EntryKey = Point.MetadataEntry;
 
 	return true;
 }

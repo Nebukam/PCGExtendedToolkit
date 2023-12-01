@@ -72,9 +72,9 @@ class PCGEXTENDEDTOOLKIT_API UPCGExGraphSolver : public UObject
 
 public:
 	virtual void InitializeProbe(PCGExGraph::FSocketProbe& Probe) const;
-	virtual bool ProcessPoint(PCGExGraph::FSocketProbe& Probe, const FPCGPoint* Point, const int32 Index) const;
+	virtual bool ProcessPoint(PCGExGraph::FSocketProbe& Probe, const FPCGPoint& Point, const int32 Index) const;
 	virtual void ResolveProbe(PCGExGraph::FSocketProbe& Probe) const;
 
-	virtual double PrepareProbesForPoint(TArray<PCGExGraph::FSocketInfos>& SocketInfos, const FPCGPoint& Point, TArray<PCGExGraph::FSocketProbe>& OutProbes) const;
-	virtual double PrepareProbeForPointSocketPair(const FPCGPoint& Point, PCGExGraph::FSocketProbe& Probe, PCGExGraph::FSocketInfos InSocketInfos) const;
+	virtual double PrepareProbesForPoint(const TArray<PCGExGraph::FSocketInfos>& SocketInfos, const FPCGPoint& Point, TArray<PCGExGraph::FSocketProbe>& OutProbes) const;
+	virtual double PrepareProbeForPointSocketPair(const FPCGPoint& Point, PCGExGraph::FSocketProbe& Probe, const PCGExGraph::FSocketInfos& InSocketInfos) const;
 };

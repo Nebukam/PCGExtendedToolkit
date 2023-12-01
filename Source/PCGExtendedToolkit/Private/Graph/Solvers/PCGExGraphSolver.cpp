@@ -9,10 +9,10 @@ void UPCGExGraphSolver::InitializeProbe(PCGExGraph::FSocketProbe& Probe) const
 
 bool UPCGExGraphSolver::ProcessPoint(
 	PCGExGraph::FSocketProbe& Probe,
-	const FPCGPoint* Point,
+	const FPCGPoint& Point,
 	const int32 Index) const
 {
-	const FVector PtPosition = Point->Transform.GetLocation();
+	const FVector PtPosition = Point.Transform.GetLocation();
 
 	if (!Probe.LooseBounds.IsInside(PtPosition)) { return false; }
 
@@ -27,7 +27,7 @@ bool UPCGExGraphSolver::ProcessPoint(
 	Probe.BestCandidate.Distance = PtDistance;
 
 	Probe.BestCandidate.Index = Index;
-	Probe.BestCandidate.EntryKey = Point->MetadataEntry;
+	Probe.BestCandidate.EntryKey = Point.MetadataEntry;
 
 	return true;
 }
@@ -37,17 +37,17 @@ void UPCGExGraphSolver::ResolveProbe(PCGExGraph::FSocketProbe& Probe) const
 }
 
 double UPCGExGraphSolver::PrepareProbesForPoint(
-	TArray<PCGExGraph::FSocketInfos>& SocketInfos,
+	const TArray<PCGExGraph::FSocketInfos>& SocketInfos,
 	const FPCGPoint& Point,
 	TArray<PCGExGraph::FSocketProbe>& OutProbes) const
 {
 	OutProbes.Reset(SocketInfos.Num());
 	double MaxDistance = 0.0;
-	for (PCGExGraph::FSocketInfos& CurrentSocketInfos : SocketInfos)
+	for (const PCGExGraph::FSocketInfos& CurrentSocketInfos : SocketInfos)
 	{
 		PCGExGraph::FSocketProbe& NewProbe = OutProbes.Emplace_GetRef();
 		InitializeProbe(NewProbe);
-		NewProbe.SocketInfos = &CurrentSocketInfos;
+		NewProbe.SocketInfos = const_cast<PCGExGraph::FSocketInfos*>(&CurrentSocketInfos);
 		const double Dist = PrepareProbeForPointSocketPair(Point, NewProbe, CurrentSocketInfos);
 		MaxDistance = FMath::Max(MaxDistance, Dist);
 	}
@@ -57,7 +57,7 @@ double UPCGExGraphSolver::PrepareProbesForPoint(
 double UPCGExGraphSolver::PrepareProbeForPointSocketPair(
 	const FPCGPoint& Point,
 	PCGExGraph::FSocketProbe& Probe,
-	PCGExGraph::FSocketInfos InSocketInfos) const
+	const PCGExGraph::FSocketInfos& InSocketInfos) const
 {
 	const FPCGExSocketAngle& BaseAngle = InSocketInfos.Socket->Descriptor.Angle;
 

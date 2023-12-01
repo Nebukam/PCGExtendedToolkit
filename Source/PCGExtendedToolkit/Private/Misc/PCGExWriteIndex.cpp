@@ -54,33 +54,26 @@ bool FPCGExWriteIndexElement::ExecuteInternal(FPCGContext* InContext) const
 		Context->SetState(PCGExMT::State_ProcessingPoints);
 	}
 
-	auto InitializeForIO = [&](UPCGExPointIO* PointIO)
-	{
-		FWriteScopeLock WriteLock(Context->MapLock);
-		PointIO->BuildMetadataEntries();
-		FPCGMetadataAttribute<int64>* IndexAttribute = PointIO->Out->Metadata->FindOrCreateAttribute<int64>(Context->OutName, -1, false);
-		Context->AttributeMap.Add(PointIO, IndexAttribute);
-	};
-
-	auto ProcessPoint = [&](const int32 Index, const UPCGExPointIO* PointIO)
-	{
-		const FPCGPoint& Point = PointIO->GetOutPoint(Index);
-		FPCGMetadataAttribute<int64>* IndexAttribute = *(Context->AttributeMap.Find(PointIO));
-		IndexAttribute->SetValue(Point.MetadataEntry, Index);
-	};
-
 	if (Context->IsState(PCGExMT::State_ProcessingPoints))
 	{
-		if (Context->AsyncProcessingMainPoints(InitializeForIO, ProcessPoint))
+		auto Initialize = [&](UPCGExPointIO* PointIO)
 		{
-			Context->SetState(PCGExMT::State_Done);
-		}
-		/*
-		if (Context->MainPoints->OutputsParallelProcessing(Context, InitializeForIO, ProcessPoint, Context->ChunkSize))
+			FWriteScopeLock WriteLock(Context->MapLock);
+			PointIO->BuildMetadataEntries();
+			FPCGMetadataAttribute<int64>* IndexAttribute = PointIO->Out->Metadata->FindOrCreateAttribute<int64>(Context->OutName, -1, false);
+			Context->AttributeMap.Add(PointIO, IndexAttribute);
+		};
+
+		auto ProcessPoint = [&](const int32 Index, const UPCGExPointIO* PointIO)
 		{
-			Context->SetState(PCGExMT::Done);
-		}
-		*/
+			const FPCGPoint& Point = PointIO->GetOutPoint(Index);
+			FPCGMetadataAttribute<int64>* IndexAttribute = *(Context->AttributeMap.Find(PointIO));
+			IndexAttribute->SetValue(Point.MetadataEntry, Index);
+		};
+
+
+		if (Context->AsyncProcessingMainPoints(Initialize, ProcessPoint)) { Context->Done(); }
+		
 	}
 
 	if (Context->IsDone())

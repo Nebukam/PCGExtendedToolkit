@@ -50,21 +50,13 @@ bool FPCGExFindEdgesTypeElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
-		if (!Context->AdvancePointsIO(true))
-		{
-			Context->SetState(PCGExMT::State_Done); //No more points
-		}
+		if (!Context->AdvancePointsIO(true)) { Context->Done(); }
 		else
 		{
 			Context->CurrentIO->BuildMetadataEntries();
 			Context->SetState(PCGExGraph::State_ReadyForNextGraph);
 		}
 	}
-
-	auto ProcessPoint = [&Context](const int32 PointIndex, const UPCGExPointIO* PointIO)
-	{
-		PCGExGraph::ComputeEdgeType(Context->SocketInfos, PointIO->GetOutPoint(PointIndex), PointIndex, PointIO);
-	};
 
 	if (Context->IsState(PCGExGraph::State_ReadyForNextGraph))
 	{
@@ -76,13 +68,18 @@ bool FPCGExFindEdgesTypeElement::ExecuteInternal(
 		Context->SetState(PCGExGraph::State_FindingEdgeTypes);
 	}
 
-	auto Initialize = [&](const UPCGExPointIO* PointIO)
-	{
-		Context->PrepareCurrentGraphForPoints(PointIO->Out, true);
-	};
-
 	if (Context->IsState(PCGExGraph::State_FindingEdgeTypes))
 	{
+		auto Initialize = [&](const UPCGExPointIO* PointIO)
+		{
+			Context->PrepareCurrentGraphForPoints(PointIO->Out, true);
+		};
+
+		auto ProcessPoint = [&Context](const int32 PointIndex, const UPCGExPointIO* PointIO)
+		{
+			PCGExGraph::ComputeEdgeType(Context->SocketInfos, PointIO->GetOutPoint(PointIndex), PointIndex, PointIO);
+		};
+
 		if (Context->AsyncProcessingCurrentPoints(Initialize, ProcessPoint))
 		{
 			Context->SetState(PCGExGraph::State_ReadyForNextGraph);

@@ -115,3 +115,14 @@ public:
 protected:
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
+
+class PCGEXTENDEDTOOLKIT_API FPatchTask : public FPointTask
+{
+public:
+	FPatchTask(FPCGExPointsProcessorContext* InContext, UPCGExPointIO* InPointData, const PCGExMT::FTaskInfos& InInfos) :
+		FPointTask(InContext, InPointData, InInfos)
+	{
+	}
+
+	virtual void ExecuteTask() override;
+};

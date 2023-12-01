@@ -108,78 +108,56 @@ bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* InContext) con
 
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
-		if (!Context->AdvancePointsIO())
-		{
-			Context->SetState(PCGExMT::State_Done);
-		}
-		else
-		{
-			Context->SetState(PCGExMT::State_ProcessingPoints);
-		}
+		if (!Context->AdvancePointsIO()) { Context->Done(); }
+		else { Context->SetState(PCGExMT::State_ProcessingPoints); }
 	}
-
-	auto Initialize = [&](UPCGExPointIO* PointIO)
-	{
-		if (Context->bSplitOutput) { Context->PrepareForPoints(PointIO); }
-		else { Context->PrepareForPointsWithMetadataEntries(PointIO); }
-	};
-
-	// Only write partition values
-	auto ProcessPoint = [&](const int32 PointIndex, const UPCGExPointIO* PointIO)
-	{
-		const FPCGPoint& Point = PointIO->GetOutPoint(PointIndex);
-		TArray<int64> LayerKeys;
-		UPCGExPartitionLayer* Layer = Context->RootPartitionLayer;
-
-		for (PCGExPartition::FRule& Rule : Context->Rules)
-		{
-			if (Rule.KeyAttribute)
-			{
-				Rule.KeyAttribute->SetValue(Point.MetadataEntry, Rule.Filter(Point));
-			}
-		}
-	};
-
-	// Split output
-	auto DistributePoint = [&](const int32 PointIndex, const UPCGExPointIO* PointIO)
-	{
-		const FPCGPoint& Point = PointIO->GetInPoint(PointIndex);
-
-		TArray<int64> LayerKeys;
-		UPCGExPartitionLayer* Layer = Context->RootPartitionLayer;
-
-		for (PCGExPartition::FRule& Rule : Context->Rules)
-		{
-			const int64 LayerKey = Rule.Filter(Point);
-			LayerKeys.Add(LayerKey);
-			Layer = Layer->GetLayer(LayerKey, PointIO->In);
-		}
-
-		if (!Layer->Points)
-		{
-			FWriteScopeLock WriteLock(Context->ContextLock);
-
-			Layer->PointData = PointIO->NewEmptyOutput(Context, PCGEx::OutputPointsLabel);
-			Layer->Points = &Layer->PointData->GetMutablePoints();
-		}
-
-		FPCGPoint& PointCopy = Layer->NewPoint(Point);
-		Layer->PointData->Metadata->InitializeOnSet(PointCopy.MetadataEntry);
-
-		int32 SubIndex = 0;
-		for (const PCGExPartition::FRule& Rule : Context->Rules)
-		{
-			if (Rule.KeyAttribute) { Rule.KeyAttribute->SetValue(PointCopy.MetadataEntry, LayerKeys[SubIndex]); }
-			SubIndex++;
-		}
-
-		LayerKeys.Empty();
-	};
 
 	if (Context->IsState(PCGExMT::State_ProcessingPoints))
 	{
+		auto Initialize = [&](UPCGExPointIO* PointIO)
+		{
+			if (Context->bSplitOutput) { Context->PrepareForPoints(PointIO); }
+			else { Context->PrepareForPointsWithMetadataEntries(PointIO); }
+		};
+
 		if (Context->bSplitOutput)
 		{
+			// Split output
+			auto DistributePoint = [&](const int32 PointIndex, const UPCGExPointIO* PointIO)
+			{
+				const FPCGPoint& Point = PointIO->GetInPoint(PointIndex);
+
+				TArray<int64> LayerKeys;
+				UPCGExPartitionLayer* Layer = Context->RootPartitionLayer;
+
+				for (PCGExPartition::FRule& Rule : Context->Rules)
+				{
+					const int64 LayerKey = Rule.Filter(Point);
+					LayerKeys.Add(LayerKey);
+					Layer = Layer->GetLayer(LayerKey, PointIO->In);
+				}
+
+				if (!Layer->Points)
+				{
+					FWriteScopeLock WriteLock(Context->ContextLock);
+
+					Layer->PointData = PointIO->NewEmptyOutput(Context, PCGEx::OutputPointsLabel);
+					Layer->Points = &Layer->PointData->GetMutablePoints();
+				}
+
+				FPCGPoint& PointCopy = Layer->NewPoint(Point);
+				Layer->PointData->Metadata->InitializeOnSet(PointCopy.MetadataEntry);
+
+				int32 SubIndex = 0;
+				for (const PCGExPartition::FRule& Rule : Context->Rules)
+				{
+					if (Rule.KeyAttribute) { Rule.KeyAttribute->SetValue(PointCopy.MetadataEntry, LayerKeys[SubIndex]); }
+					SubIndex++;
+				}
+
+				LayerKeys.Empty();
+			};
+			
 			if (Context->AsyncProcessingCurrentPoints(Initialize, DistributePoint))
 			{
 				Context->SetState(PCGExMT::State_ReadyForNextPoints);
@@ -187,6 +165,22 @@ bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* InContext) con
 		}
 		else
 		{
+			// Only write partition values
+			auto ProcessPoint = [&](const int32 PointIndex, const UPCGExPointIO* PointIO)
+			{
+				const FPCGPoint& Point = PointIO->GetOutPoint(PointIndex);
+				TArray<int64> LayerKeys;
+				UPCGExPartitionLayer* Layer = Context->RootPartitionLayer;
+
+				for (PCGExPartition::FRule& Rule : Context->Rules)
+				{
+					if (Rule.KeyAttribute)
+					{
+						Rule.KeyAttribute->SetValue(Point.MetadataEntry, Rule.Filter(Point));
+					}
+				}
+			};
+
 			if (Context->AsyncProcessingCurrentPoints(Initialize, ProcessPoint))
 			{
 				Context->SetState(PCGExMT::State_ReadyForNextPoints);

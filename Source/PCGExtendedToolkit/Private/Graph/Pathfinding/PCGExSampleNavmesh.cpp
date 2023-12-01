@@ -140,40 +140,40 @@ bool FPCGExSampleNavmeshElement::ExecuteInternal(FPCGContext* InContext) const
 		Context->SetState(PCGExMT::State_ProcessingPoints);
 	}
 
-	auto ProcessPoint = [&](const int32 PointIndex, const UPCGExPointIO* PointIO)
+	if (Context->IsState(PCGExMT::State_ProcessingPoints))
 	{
-		if (Context->GoalPicking.IsMultiPick())
+		auto ProcessPoint = [&](const int32 PointIndex, const UPCGExPointIO* PointIO)
 		{
-			TArray<int32> GoalIndices;
-			Context->GoalPicking.GetGoalIndices(PointIO->GetInPoint(PointIndex), GoalIndices);
-			for (int32 Goal : GoalIndices)
+			if (Context->GoalPicking.IsMultiPick())
 			{
-				if (Goal < 0) { continue; }
+				TArray<int32> GoalIndices;
+				Context->GoalPicking.GetGoalIndices(PointIO->GetInPoint(PointIndex), GoalIndices);
+				for (int32 Goal : GoalIndices)
+				{
+					if (Goal < 0) { continue; }
+
+					FAsyncTask<FNavmeshPathTask>* AsyncTask = Context->CreateTask<FNavmeshPathTask>(PointIndex, PointIO->GetInPoint(PointIndex).MetadataEntry);
+					FNavmeshPathTask& Task = AsyncTask->GetTask();
+					Task.GoalIndex = Goal;
+					Task.PathPoints = Context->OutputPaths->Emplace_GetRef(PointIO->In, PCGExIO::EInitMode::NewOutput);
+
+					Context->StartTask(AsyncTask);
+				}
+			}
+			else
+			{
+				int32 GoalIndex = Context->GoalPicking.GetGoalIndex(PointIO->GetInPoint(PointIndex), PointIndex);
+				if (GoalIndex < 0) { return; }
 
 				FAsyncTask<FNavmeshPathTask>* AsyncTask = Context->CreateTask<FNavmeshPathTask>(PointIndex, PointIO->GetInPoint(PointIndex).MetadataEntry);
 				FNavmeshPathTask& Task = AsyncTask->GetTask();
-				Task.GoalIndex = Goal;
+				Task.GoalIndex = GoalIndex;
 				Task.PathPoints = Context->OutputPaths->Emplace_GetRef(PointIO->In, PCGExIO::EInitMode::NewOutput);
 
 				Context->StartTask(AsyncTask);
 			}
-		}
-		else
-		{
-			int32 GoalIndex = Context->GoalPicking.GetGoalIndex(PointIO->GetInPoint(PointIndex), PointIndex);
-			if (GoalIndex < 0) { return; }
+		};
 
-			FAsyncTask<FNavmeshPathTask>* AsyncTask = Context->CreateTask<FNavmeshPathTask>(PointIndex, PointIO->GetInPoint(PointIndex).MetadataEntry);
-			FNavmeshPathTask& Task = AsyncTask->GetTask();
-			Task.GoalIndex = GoalIndex;
-			Task.PathPoints = Context->OutputPaths->Emplace_GetRef(PointIO->In, PCGExIO::EInitMode::NewOutput);
-
-			Context->StartTask(AsyncTask);
-		}
-	};
-
-	if (Context->IsState(PCGExMT::State_ProcessingPoints))
-	{
 		if (Context->AsyncProcessingCurrentPoints(ProcessPoint))
 		{
 			Context->SetState(PCGExMT::State_WaitingOnAsyncWork);

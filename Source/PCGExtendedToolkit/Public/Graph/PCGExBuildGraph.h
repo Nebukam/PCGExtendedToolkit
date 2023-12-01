@@ -22,15 +22,16 @@ class PCGEXTENDEDTOOLKIT_API UPCGExBuildGraphSettings : public UPCGExGraphProces
 
 public:
 	UPCGExBuildGraphSettings(const FObjectInitializer& ObjectInitializer);
-	
+
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(BuildGraph, "Build Graph", "Write graph data to an attribute for each connected Graph Params. `Build Graph` uses the socket information as is.");
 #endif
+
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings interface
-	
+
 public:
 	/** Compute edge types internally. If you don't need edge types, set it to false to save some cycles.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
@@ -39,7 +40,7 @@ public:
 	/** Ignores candidates weighting pass and always favors the closest one.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced)
 	UPCGExGraphSolver* GraphSolver;
-	
+
 	virtual FName GetMainPointsInputLabel() const override;
 	virtual int32 GetPreferredChunkSize() const override;
 
@@ -52,12 +53,14 @@ private:
 struct PCGEXTENDEDTOOLKIT_API FPCGExBuildGraphContext : public FPCGExGraphProcessorContext
 {
 	friend class FPCGExBuildGraphElement;
+	friend class FProbeTask;
 
 public:
 	UPCGExGraphSolver* GraphSolver;
-	UPCGPointData::PointOctree* Octree = nullptr;
 	bool bComputeEdgeType = true;
 	bool bMoveSocketOriginOnPointExtent = false;
+
+	UPCGPointData::PointOctree* Octree = nullptr;
 };
 
 
@@ -71,4 +74,15 @@ public:
 
 protected:
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
+};
+
+class PCGEXTENDEDTOOLKIT_API FProbeTask : public FPointTask
+{
+public:
+	FProbeTask(FPCGExPointsProcessorContext* InContext, UPCGExPointIO* InPointData, const PCGExMT::FTaskInfos& InInfos) :
+		FPointTask(InContext, InPointData, InInfos)
+	{
+	}
+
+	virtual void ExecuteTask() override;
 };

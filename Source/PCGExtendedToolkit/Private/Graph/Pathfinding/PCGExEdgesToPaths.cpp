@@ -42,38 +42,9 @@ bool FPCGExEdgesToPathsElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
-		if (!Context->AdvancePointsIO(true))
-		{
-			Context->SetState(PCGExMT::State_Done); //No more points
-		}
-		else
-		{
-			Context->SetState(PCGExGraph::State_ReadyForNextGraph);
-		}
+		if (!Context->AdvancePointsIO(true)) { Context->Done(); }
+		else { Context->SetState(PCGExGraph::State_ReadyForNextGraph); }
 	}
-
-	auto ProcessPoint = [&](const int32 PointIndex, const UPCGExPointIO* PointIO)
-	{
-		const FPCGPoint& Point = PointIO->GetInPoint(PointIndex);
-		TArray<PCGExGraph::FUnsignedEdge> UnsignedEdges;
-		Context->CurrentGraph->GetEdges(PointIndex, Point.MetadataEntry, UnsignedEdges);
-
-		for (const PCGExGraph::FUnsignedEdge& UEdge : UnsignedEdges)
-		{
-			{
-				FReadScopeLock ReadLock(Context->EdgeLock);
-
-				if (static_cast<uint8>((UEdge.Type & Context->EdgeType)) == 0 ||
-					Context->UniqueEdges.Contains(UEdge.GetUnsignedHash())) { continue; }
-			}
-
-			{
-				FWriteScopeLock WriteLock(Context->EdgeLock);
-				Context->UniqueEdges.Add(UEdge.GetUnsignedHash());
-				Context->Edges.Add(UEdge);
-			}
-		}
-	};
 
 	if (Context->IsState(PCGExGraph::State_ReadyForNextGraph))
 	{
@@ -85,36 +56,60 @@ bool FPCGExEdgesToPathsElement::ExecuteInternal(
 		Context->SetState(PCGExGraph::State_ProcessingGraph);
 	}
 
-	auto Initialize = [&](const UPCGExPointIO* PointIO)
-	{
-		Context->PrepareCurrentGraphForPoints(PointIO->In, true);
-	};
-
 	if (Context->IsState(PCGExGraph::State_ProcessingGraph))
 	{
+		auto Initialize = [&](const UPCGExPointIO* PointIO)
+		{
+			Context->PrepareCurrentGraphForPoints(PointIO->In, true);
+		};
+
+		auto ProcessPoint = [&](const int32 PointIndex, const UPCGExPointIO* PointIO)
+		{
+			const FPCGPoint& Point = PointIO->GetInPoint(PointIndex);
+			TArray<PCGExGraph::FUnsignedEdge> UnsignedEdges;
+			Context->CurrentGraph->GetEdges(PointIndex, Point.MetadataEntry, UnsignedEdges);
+
+			for (const PCGExGraph::FUnsignedEdge& UEdge : UnsignedEdges)
+			{
+				{
+					FReadScopeLock ReadLock(Context->EdgeLock);
+
+					if (static_cast<uint8>((UEdge.Type & Context->EdgeType)) == 0 ||
+						Context->UniqueEdges.Contains(UEdge.GetUnsignedHash())) { continue; }
+				}
+
+				{
+					FWriteScopeLock WriteLock(Context->EdgeLock);
+					Context->UniqueEdges.Add(UEdge.GetUnsignedHash());
+					Context->Edges.Add(UEdge);
+				}
+			}
+		};
+
+
 		if (Context->AsyncProcessingCurrentPoints(Initialize, ProcessPoint))
 		{
 			Context->SetState(PCGExGraph::State_ReadyForNextGraph);
 		}
 	}
 
-	auto ProcessEdge = [&](const int32 Index)
-	{
-		const PCGExGraph::FUnsignedEdge& UEdge = Context->Edges[Index];
-		UPCGPointData* Out = nullptr;
-
-		{
-			FWriteScopeLock WriteScopeLock(Context->EdgeLock);
-			Out = Context->CurrentIO->NewEmptyOutput(Context, PCGExGraph::OutputPathsLabel);
-		}
-
-		TArray<FPCGPoint>& MutablePoints = Out->GetMutablePoints();
-		FPCGPoint& Start = MutablePoints.Emplace_GetRef(Context->CurrentIO->GetInPoint(UEdge.Start));
-		FPCGPoint& End = MutablePoints.Emplace_GetRef(Context->CurrentIO->GetInPoint(UEdge.End));
-	};
-
 	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
 	{
+		auto ProcessEdge = [&](const int32 Index)
+		{
+			const PCGExGraph::FUnsignedEdge& UEdge = Context->Edges[Index];
+			UPCGPointData* Out = nullptr;
+
+			{
+				FWriteScopeLock WriteScopeLock(Context->EdgeLock);
+				Out = Context->CurrentIO->NewEmptyOutput(Context, PCGExGraph::OutputPathsLabel);
+			}
+
+			TArray<FPCGPoint>& MutablePoints = Out->GetMutablePoints();
+			FPCGPoint& Start = MutablePoints.Emplace_GetRef(Context->CurrentIO->GetInPoint(UEdge.Start));
+			FPCGPoint& End = MutablePoints.Emplace_GetRef(Context->CurrentIO->GetInPoint(UEdge.End));
+		};
+
 		if (PCGExMT::ParallelForLoop(Context, Context->Edges.Num(), ProcessEdge, Context->ChunkSize, !Context->bDoAsyncProcessing))
 		{
 			Context->SetState(PCGExMT::State_ReadyForNextPoints);
@@ -125,7 +120,6 @@ bool FPCGExEdgesToPathsElement::ExecuteInternal(
 	{
 		Context->UniqueEdges.Empty();
 		Context->Edges.Empty();
-		//Context->OutputGraphParams();
 		return true;
 	}
 
