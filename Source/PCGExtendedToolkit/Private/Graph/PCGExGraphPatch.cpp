@@ -103,31 +103,13 @@ void UPCGExGraphPatchGroup::Distribute(const int32 InIndex, UPCGExGraphPatch* Pa
 	}
 
 	TArray<PCGExGraph::FUnsignedEdge> UnsignedEdges;
-	Graph->GetEdges(InIndex, PointIO->GetInPoint(InIndex).MetadataEntry, UnsignedEdges);
+	UnsignedEdges.Reserve(NumMaxEdges);
+	
+	Graph->GetEdges(InIndex, PointIO->GetInPoint(InIndex).MetadataEntry, UnsignedEdges, CrawlEdgeTypes);
 
 	for (const PCGExGraph::FUnsignedEdge& UEdge : UnsignedEdges)
 	{
-		if (static_cast<uint8>((UEdge.Type & CrawlEdgeTypes)) == 0) { continue; }
-
-		if (!Patch)
-		{
-			Patch = GetOrCreatePatch(InIndex); // Overlap
-
-			//TODO: Support resolve method
-			switch (ResolveRoamingMethod)
-			{
-			default:
-			case EPCGExRoamingResolveMethod::Overlap:
-				// Create patch from initial point.
-				break;
-			case EPCGExRoamingResolveMethod::Merge:
-				// Check if this is a roaming
-				break;
-			case EPCGExRoamingResolveMethod::Cutoff:
-				break;
-			}
-		}
-
+		if (!Patch) { Patch = GetOrCreatePatch(InIndex); }
 		Distribute(UEdge.End, Patch);
 	}
 }
@@ -148,32 +130,14 @@ void UPCGExGraphPatchGroup::DistributeEdge(const T& InEdge, UPCGExGraphPatch* Pa
 	}
 
 	TArray<T> Edges;
-	Graph->GetEdges(InEdge.Start, PointIO->GetInPoint(InEdge.Start).MetadataEntry, Edges);
-	Graph->GetEdges(InEdge.End, PointIO->GetInPoint(InEdge.End).MetadataEntry, Edges);
+	Edges.Reserve(NumMaxEdges);
+	
+	Graph->GetEdges(InEdge.Start, PointIO->GetInPoint(InEdge.Start).MetadataEntry, Edges, CrawlEdgeTypes);
+	Graph->GetEdges(InEdge.End, PointIO->GetInPoint(InEdge.End).MetadataEntry, Edges, CrawlEdgeTypes);
 
 	for (const T& Edge : Edges)
 	{
-		if (static_cast<uint8>((Edge.Type & CrawlEdgeTypes)) == 0) { continue; }
-
-		if (!Patch)
-		{
-			Patch = GetOrCreatePatch(InEdge); // Overlap
-
-			//TODO: Support resolve method
-			switch (ResolveRoamingMethod)
-			{
-			default:
-			case EPCGExRoamingResolveMethod::Overlap:
-				// Create patch from initial point.
-				break;
-			case EPCGExRoamingResolveMethod::Merge:
-				// Check if this is a roaming
-				break;
-			case EPCGExRoamingResolveMethod::Cutoff:
-				break;
-			}
-		}
-
+		if (!Patch) { Patch = GetOrCreatePatch(InEdge); }
 		DistributeEdge(Edge, Patch);
 	}
 }

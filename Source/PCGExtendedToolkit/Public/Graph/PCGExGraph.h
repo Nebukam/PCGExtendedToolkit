@@ -282,7 +282,6 @@ public:
 
 namespace PCGExGraph
 {
-
 	const FName SourceParamsLabel = TEXT("Graph");
 	const FName OutputParamsLabel = TEXT("➜");
 
@@ -299,12 +298,12 @@ namespace PCGExGraph
 
 	constexpr PCGExMT::AsyncState State_CachingGraphIndices = 105;
 	constexpr PCGExMT::AsyncState State_SwappingGraphIndices = 106;
-	
+
 	constexpr PCGExMT::AsyncState State_FindingEdgeTypes = 110;
 	constexpr PCGExMT::AsyncState State_FindingPatch = 120;
 	//constexpr PCGExMT::State PatchComputing = 130;
-	
-	
+
+
 #pragma region Sockets
 
 	struct PCGEXTENDEDTOOLKIT_API FSocketMetadata
@@ -470,6 +469,18 @@ namespace PCGExGraph
 				Start,
 				End,
 				GetEdgeType(MetadataEntry));
+			return true;
+		}
+
+		template <typename T>
+		bool TryGetEdge(int64 Start, const PCGMetadataEntryKey MetadataEntry, T& OutEdge, const EPCGExEdgeType& EdgeFilter) const
+		{
+			EPCGExEdgeType EdgeType = GetEdgeType(MetadataEntry);
+			if (static_cast<uint8>((EdgeType & EdgeFilter)) == 0) { return false; }
+
+			const int64 End = GetTargetIndex(MetadataEntry);
+			if (End == -1) { return false; }
+			OutEdge = T(Start, End, EdgeType);
 			return true;
 		}
 
@@ -779,5 +790,4 @@ namespace PCGExGraph
 	}
 
 #pragma endregion
-	
 }

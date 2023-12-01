@@ -94,10 +94,10 @@ public:
 	void PreparePatchGroup()
 	{
 		Patches = NewObject<UPCGExGraphPatchGroup>();
+		Patches->NumMaxEdges = CurrentGraph->GetSocketMapping()->Sockets.Num();
 		Patches->Graph = CurrentGraph;
 		Patches->PointIO = CurrentIO;
 		Patches->CrawlEdgeTypes = CrawlEdgeTypes;
-		Patches->ResolveRoamingMethod = ResolveRoamingMethod;
 		Patches->PatchIDAttributeName = PatchIDAttributeName;
 		Patches->PatchIDAttributeName = PatchIDAttributeName;
 	}

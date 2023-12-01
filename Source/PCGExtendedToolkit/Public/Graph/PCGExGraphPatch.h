@@ -64,6 +64,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExGraphPatchGroup : public UObject
 public:
 	TArray<UPCGExGraphPatch*> Patches;
 	mutable FRWLock PatchesLock;
+	int32 NumMaxEdges = 8;
 
 	TMap<uint64, UPCGExGraphPatch*> HashMap;
 	mutable FRWLock HashLock;
@@ -75,8 +76,6 @@ public:
 
 	FName PatchIDAttributeName;
 	FName PatchSizeAttributeName;
-
-	EPCGExRoamingResolveMethod ResolveRoamingMethod = EPCGExRoamingResolveMethod::Overlap;
 
 	bool Contains(const uint64 Hash) const;
 
