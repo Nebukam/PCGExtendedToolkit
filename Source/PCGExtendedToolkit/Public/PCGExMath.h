@@ -8,6 +8,51 @@
 
 namespace PCGExMath
 {
+	/**
+	 *	 Leave <---.Apex-----> Arrive (Direction)
+	 *		   . '   |    '  .  
+	 *		A----Anchor---------B
+	 */
+	struct PCGEXTENDEDTOOLKIT_API FApex
+	{
+		FApex()
+		{
+		}
+
+		FApex(const FVector& InA, const FVector& InB, const FVector& InApex)
+		{
+			Direction = (InA - InB).GetSafeNormal();
+			Anchor = FMath::ClosestPointOnSegment(InApex, InA, InB);
+
+			const double DistA = FVector::Dist(InA, Anchor);
+			const double DistB = FVector::Dist(InB, Anchor);
+			Backward = Direction * DistB;
+			Forward = Direction * (DistA * -1);
+			Alpha = DistA / (DistA + DistB);
+		}
+
+		FVector Direction;
+		FVector Anchor;
+		FVector Backward;
+		FVector Forward;
+		double Alpha = 0;
+
+		void Scale(double InScale)
+		{
+			Backward *= InScale;
+			Forward *= InScale;
+		}
+
+		void Extend(double InSize)
+		{
+			Backward += Direction * InSize;
+			Forward += Direction * -InSize;
+		}
+
+		static FApex FromA(const FVector& InA, const FVector& InApex) { return FApex(InA, InApex, InApex); }
+		static FApex FromB(const FVector& InB, const FVector& InApex) { return FApex(InApex, InB, InApex); }
+	};
+
 	inline static double ConvertStringToDouble(const FString& StringToConvert)
 	{
 		const TCHAR* CharArray = *StringToConvert;
@@ -223,6 +268,24 @@ namespace PCGExMath
 			A.Pitch / Divider,
 			A.Yaw / Divider,
 			A.Roll / Divider);
+	}
+
+	template <typename dummy = void>
+	inline static bool CWDivide(const bool& A, const double Divider) { return A; }
+
+	template <typename dummy = void>
+	inline static FName CWDivide(const FName& A, const double Divider) { return A; }
+
+	template <typename dummy = void>
+	inline static FString CWDivide(const FString& A, const double Divider) { return A; }
+
+	template <typename dummy = void>
+	inline static FTransform CWDivide(const FTransform& A, const double Divider)
+	{
+		return FTransform(
+			A.GetRotation() / Divider,
+			A.GetLocation() / Divider,
+			A.GetScale3D() / Divider);
 	}
 
 #pragma endregion

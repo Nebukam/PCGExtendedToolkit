@@ -16,6 +16,7 @@ public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(EdgesToPaths, "Edges To Paths", "Converts graph edges to paths-like data that can be used to generate splines.");
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorPathfinding; }
 #endif
 
 protected:

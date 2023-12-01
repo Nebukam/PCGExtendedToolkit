@@ -57,21 +57,21 @@ bool FPCGExSampleSurfaceGuidedElement::ExecuteInternal(FPCGContext* InContext) c
 
 	FPCGExSampleSurfaceGuidedContext* Context = static_cast<FPCGExSampleSurfaceGuidedContext*>(InContext);
 
-	if (Context->IsState(PCGExMT::EState::Setup))
+	if (Context->IsSetup())
 	{
 		if (!Validate(Context)) { return true; }
-		Context->SetState(PCGExMT::EState::ReadyForNextPoints);
+		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
-	if (Context->IsState(PCGExMT::EState::ReadyForNextPoints))
+	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
 		if (!Context->AdvancePointsIO())
 		{
-			Context->SetState(PCGExMT::EState::Done);
+			Context->SetState(PCGExMT::State_Done);
 		}
 		else
 		{
-			Context->SetState(PCGExMT::EState::ProcessingPoints);
+			Context->SetState(PCGExMT::State_ProcessingPoints);
 		}
 	}
 
@@ -91,19 +91,19 @@ bool FPCGExSampleSurfaceGuidedElement::ExecuteInternal(FPCGContext* InContext) c
 		Context->CreateAndStartTask<FTraceTask>(PointIndex, PointIO->GetOutPoint(PointIndex).MetadataEntry);
 	};
 
-	if (Context->IsState(PCGExMT::EState::ProcessingPoints))
+	if (Context->IsState(PCGExMT::State_ProcessingPoints))
 	{
 		if (Context->AsyncProcessingCurrentPoints(Initialize, ProcessPoint))
 		{
-			Context->SetState(PCGExMT::EState::WaitingOnAsyncWork);
+			Context->SetState(PCGExMT::State_WaitingOnAsyncWork);
 		}
 	}
 
-	if (Context->IsState(PCGExMT::EState::WaitingOnAsyncWork))
+	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
 	{
 		if (Context->IsAsyncWorkComplete())
 		{
-			Context->SetState(PCGExMT::EState::ReadyForNextPoints);
+			Context->SetState(PCGExMT::State_ReadyForNextPoints);
 		}
 	}
 

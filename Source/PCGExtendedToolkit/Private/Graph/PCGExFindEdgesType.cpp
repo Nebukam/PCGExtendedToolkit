@@ -45,35 +45,35 @@ bool FPCGExFindEdgesTypeElement::ExecuteInternal(
 			return true;
 		}
 
-		Context->SetState(PCGExMT::EState::ReadyForNextPoints);
+		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
-	if (Context->IsState(PCGExMT::EState::ReadyForNextPoints))
+	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
 		if (!Context->AdvancePointsIO(true))
 		{
-			Context->SetState(PCGExMT::EState::Done); //No more points
+			Context->SetState(PCGExMT::State_Done); //No more points
 		}
 		else
 		{
 			Context->CurrentIO->BuildMetadataEntries();
-			Context->SetState(PCGExMT::EState::ReadyForNextGraph);
+			Context->SetState(PCGExGraph::State_ReadyForNextGraph);
 		}
 	}
 
 	auto ProcessPoint = [&Context](const int32 PointIndex, const UPCGExPointIO* PointIO)
 	{
-		Context->ComputeEdgeType(PointIO->GetOutPoint(PointIndex), PointIndex, PointIO);
+		PCGExGraph::ComputeEdgeType(Context->SocketInfos, PointIO->GetOutPoint(PointIndex), PointIndex, PointIO);
 	};
 
-	if (Context->IsState(PCGExMT::EState::ReadyForNextGraph))
+	if (Context->IsState(PCGExGraph::State_ReadyForNextGraph))
 	{
 		if (!Context->AdvanceGraph())
 		{
-			Context->SetState(PCGExMT::EState::ReadyForNextPoints);
+			Context->SetState(PCGExMT::State_ReadyForNextPoints);
 			return false;
 		}
-		Context->SetState(PCGExMT::EState::ProcessingGraph);
+		Context->SetState(PCGExGraph::State_FindingEdgeTypes);
 	}
 
 	auto Initialize = [&](const UPCGExPointIO* PointIO)
@@ -81,15 +81,15 @@ bool FPCGExFindEdgesTypeElement::ExecuteInternal(
 		Context->PrepareCurrentGraphForPoints(PointIO->Out, true);
 	};
 
-	if (Context->IsState(PCGExMT::EState::ProcessingGraph))
+	if (Context->IsState(PCGExGraph::State_FindingEdgeTypes))
 	{
 		if (Context->AsyncProcessingCurrentPoints(Initialize, ProcessPoint))
 		{
-			Context->SetState(PCGExMT::EState::ReadyForNextGraph);
+			Context->SetState(PCGExGraph::State_ReadyForNextGraph);
 		}
 	}
 
-	if (Context->IsState(PCGExMT::EState::Done))
+	if (Context->IsDone())
 	{
 		Context->OutputPointsAndParams();
 		return true;

@@ -59,30 +59,30 @@ bool FPCGExPartitionGraphPatchesElement::ExecuteInternal(
 	if (Context->IsSetup())
 	{
 		if (!Validate(Context)) { return true; }
-		Context->SetState(PCGExMT::EState::ReadyForNextGraph);
+		Context->SetState(PCGExGraph::State_ReadyForNextGraph);
 	}
 
-	if (Context->IsState(PCGExMT::EState::ReadyForNextGraph))
+	if (Context->IsState(PCGExGraph::State_ReadyForNextGraph))
 	{
 		if (!Context->AdvanceGraph(true))
 		{
-			Context->SetState(PCGExMT::EState::Done); //No more params
+			Context->SetState(PCGExMT::State_Done); //No more params
 		}
 		else
 		{
-			Context->SetState(PCGExMT::EState::ReadyForNextPoints);
+			Context->SetState(PCGExMT::State_ReadyForNextPoints);
 		}
 	}
 
-	if (Context->IsState(PCGExMT::EState::ReadyForNextPoints))
+	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
 		if (!Context->AdvancePointsIO(false))
 		{
-			Context->SetState(PCGExMT::EState::ReadyForNextGraph); //No more points, move to next params
+			Context->SetState(PCGExGraph::State_ReadyForNextGraph); //No more points, move to next params
 		}
 		else
 		{
-			Context->SetState(PCGExMT::EState::ProcessingPoints);
+			Context->SetState(PCGExGraph::State_FindingPatch);
 		}
 	}
 
@@ -99,18 +99,20 @@ bool FPCGExPartitionGraphPatchesElement::ExecuteInternal(
 		Context->Patches->Distribute(PointIndex);
 	};
 
-	if (Context->IsState(PCGExMT::EState::ProcessingPoints))
+	if (Context->IsState(PCGExGraph::State_FindingPatch))
 	{
 		if (Context->AsyncProcessingCurrentPoints(InitializePointsInput, ProcessPoint))
 		{
-			Context->SetState(PCGExMT::EState::ReadyForNextPoints);
+			Context->SetState(PCGExMT::State_ReadyForNextPoints);
 			Context->Patches->OutputTo(Context, Context->MinPatchSize, Context->MaxPatchSize);
 		}
 	}
 
+	// -> Go on to process individual patches for(:Context->Patches)
+
 	// Done
 
-	if (Context->IsState(PCGExMT::EState::Done))
+	if (Context->IsDone())
 	{
 		Context->OutputGraphParams();
 		return true;

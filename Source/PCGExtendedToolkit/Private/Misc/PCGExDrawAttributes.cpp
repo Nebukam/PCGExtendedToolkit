@@ -139,6 +139,26 @@ UPCGExDrawAttributesSettings::UPCGExDrawAttributesSettings(
 	: Super(ObjectInitializer)
 {
 	DebugSettings.PointScale = 0.0f;
+	if(DebugList.IsEmpty())
+	{
+		FPCGExAttributeDebugDrawDescriptor& Forward = DebugList.Emplace_GetRef();
+		Forward.Selector.Update(TEXT("$transform"));
+		Forward.Axis = EPCGExAxis::Forward;
+		Forward.Color = FColor::Red;
+		Forward.Size = 50;
+
+		FPCGExAttributeDebugDrawDescriptor& Right = DebugList.Emplace_GetRef();
+		Right.Selector.Update(TEXT("$transform"));
+		Right.Axis = EPCGExAxis::Right;
+		Right.Color = FColor::Green;
+		Right.Size = 50;
+		
+		FPCGExAttributeDebugDrawDescriptor& Up = DebugList.Emplace_GetRef();
+		Up.Selector.Update(TEXT("$transform"));
+		Up.Axis = EPCGExAxis::Up;
+		Up.Color = FColor::Blue;
+		Up.Size = 50;
+	}
 }
 
 #if WITH_EDITOR
@@ -226,18 +246,18 @@ bool FPCGExDrawAttributesElement::ExecuteInternal(FPCGContext* InContext) const
 			return true;
 		}
 
-		Context->SetState(PCGExMT::EState::ReadyForNextPoints);
+		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
-	if (Context->IsState(PCGExMT::EState::ReadyForNextPoints))
+	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
 		if (!Context->AdvancePointsIO())
 		{
-			Context->SetState(PCGExMT::EState::Done); //No more points
+			Context->SetState(PCGExMT::State_Done); //No more points
 		}
 		else
 		{
-			Context->SetState(PCGExMT::EState::ProcessingPoints);
+			Context->SetState(PCGExMT::State_ProcessingPoints);
 		}
 	}
 
@@ -258,14 +278,14 @@ bool FPCGExDrawAttributesElement::ExecuteInternal(FPCGContext* InContext) const
 		Context->PrepareForPoints(PointIO->In);
 	};
 
-	if (Context->IsState(PCGExMT::EState::ProcessingPoints))
+	if (Context->IsState(PCGExMT::State_ProcessingPoints))
 	{
 		Initialize(Context->CurrentIO);
 		for (int i = 0; i < Context->CurrentIO->NumInPoints; i++) { ProcessPoint(Context->CurrentIO->In->GetPoint(i), i, Context->CurrentIO); }
-		Context->SetState(PCGExMT::EState::ReadyForNextPoints);
+		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
-	if (Context->IsState(PCGExMT::EState::Done))
+	if (Context->IsDone())
 	{
 		//Context->OutputPoints();
 		return true;

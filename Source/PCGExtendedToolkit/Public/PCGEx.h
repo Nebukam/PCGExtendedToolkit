@@ -142,7 +142,8 @@ namespace PCGEx
 
 	constexpr FLinearColor NodeColorDebug = FLinearColor(1.0f, 0.0f, 0.0f, 1.0f);
 	constexpr FLinearColor NodeColorGraph = FLinearColor(80.0f / 255.0f, 241.0f / 255.0f, 168.0f / 255.0f, 1.0f);
-	constexpr FLinearColor NodeColorPathfinding = FLinearColor(1.0f, 1.0f, 168.0f / 255.0f, 1.0f);
+	constexpr FLinearColor NodeColorPathfinding = FLinearColor(80.0f / 255.0f, 241.0f / 255.0f, 100.0f / 255.0f, 1.0f);
+	constexpr FLinearColor NodeColorSpline = FLinearColor(50.0f / 255.0f, 150.0f / 255.0f, 241.0f / 255.0f, 1.0f);
 	constexpr FLinearColor NodeColorWhite = FLinearColor(1.0f, 1.0f, 1.0f, 1.0f);
 
 	const FSoftObjectPath DefaultDotOverDistanceCurve = FSoftObjectPath(TEXT("/PCGExtendedToolkit/FC_PCGExGraphBalance_DistanceOnly.FC_PCGExGraphBalance_DistanceOnly"));
@@ -189,6 +190,66 @@ namespace PCGEx
 			return Quat.GetUpVector();
 		case EPCGExAxis::Down:
 			return Quat.GetUpVector() * -1;
+		}
+	}
+
+	static FVector GetDirection(const EPCGExAxis Dir)
+	{
+		switch (Dir)
+		{
+		default:
+		case EPCGExAxis::Forward:
+			return FVector::ForwardVector;
+		case EPCGExAxis::Backward:
+			return FVector::BackwardVector;
+		case EPCGExAxis::Right:
+			return FVector::RightVector;
+		case EPCGExAxis::Left:
+			return FVector::LeftVector;
+		case EPCGExAxis::Up:
+			return FVector::UpVector;
+		case EPCGExAxis::Down:
+			return FVector::DownVector;
+		}
+	}
+
+	static FQuat MakeDirection(const EPCGExAxis Dir, const FVector& InForward)
+	{
+		switch (Dir)
+		{
+		default:
+		case EPCGExAxis::Forward:
+			return FRotationMatrix::MakeFromX(InForward * -1).ToQuat();
+		case EPCGExAxis::Backward:
+			return FRotationMatrix::MakeFromX(InForward).ToQuat();
+		case EPCGExAxis::Right:
+			return FRotationMatrix::MakeFromY(InForward * -1).ToQuat();
+		case EPCGExAxis::Left:
+			return FRotationMatrix::MakeFromY(InForward).ToQuat();
+		case EPCGExAxis::Up:
+			return FRotationMatrix::MakeFromZ(InForward * -1).ToQuat();
+		case EPCGExAxis::Down:
+			return FRotationMatrix::MakeFromZ(InForward).ToQuat();
+		}
+	}
+
+	static FQuat MakeDirection(const EPCGExAxis Dir, const FVector& InForward, const FVector& InUp)
+	{
+		switch (Dir)
+		{
+		default:
+		case EPCGExAxis::Forward:
+			return FRotationMatrix::MakeFromXZ(InForward * -1, InUp).ToQuat();
+		case EPCGExAxis::Backward:
+			return FRotationMatrix::MakeFromXZ(InForward, InUp).ToQuat();
+		case EPCGExAxis::Right:
+			return FRotationMatrix::MakeFromYZ(InForward * -1, InUp).ToQuat();
+		case EPCGExAxis::Left:
+			return FRotationMatrix::MakeFromYZ(InForward, InUp).ToQuat();
+		case EPCGExAxis::Up:
+			return FRotationMatrix::MakeFromZY(InForward * -1, InUp).ToQuat();
+		case EPCGExAxis::Down:
+			return FRotationMatrix::MakeFromZY(InForward, InUp).ToQuat();
 		}
 	}
 }

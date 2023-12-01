@@ -72,13 +72,13 @@ bool FPCGExPointsProcessorContext::AdvancePointsIO()
 	return false;
 }
 
-void FPCGExPointsProcessorContext::SetState(PCGExMT::EState OperationId)
+void FPCGExPointsProcessorContext::SetState(PCGExMT::AsyncState OperationId)
 {
-	PCGExMT::EState PreviousOperation = CurrentState;
+	PCGExMT::AsyncState PreviousOperation = CurrentState;
 	CurrentState = OperationId;
 }
 
-void FPCGExPointsProcessorContext::Reset() { CurrentState = PCGExMT::EState::Setup; }
+void FPCGExPointsProcessorContext::Reset() { CurrentState = PCGExMT::State_Setup; }
 
 bool FPCGExPointsProcessorContext::ValidatePointDataInput(UPCGPointData* PointData) { return true; }
 

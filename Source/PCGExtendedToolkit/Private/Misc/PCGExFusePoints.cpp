@@ -97,6 +97,13 @@ void FPCGExFusePointsContext::PrepareForPoints(const UPCGExPointIO* InData)
 	}
 }
 
+EPCGExFuseMethod FPCGExFusePointsContext::GetAttributeFuseMethod(const FName AttributeName)
+{
+	const EPCGExFuseMethod* MethodPtr = AttributeFuseMethodOverrides.Find(AttributeName);
+	if (!MethodPtr) { return FuseMethod; }
+	return *MethodPtr;
+}
+
 FPCGContext* FPCGExFusePointsElement::Initialize(
 	const FPCGDataCollection& InputData,
 	TWeakObjectPtr<UPCGComponent> SourceComponent,
@@ -112,6 +119,12 @@ FPCGContext* FPCGExFusePointsElement::Initialize(
 	Context->Radius = FMath::Pow(Settings->Radius, 2);
 	Context->bComponentWiseRadius = Settings->bComponentWiseRadius;
 	Context->Radiuses = Settings->Radiuses;
+
+	Context->AttributeFuseMethodOverrides.Empty();
+	for (const FPCGExInputDescriptorWithFuseMethod& Descriptor : Settings->FuseMethodOverrides)
+	{
+		Context->AttributeFuseMethodOverrides.Add(Descriptor.Selector.GetAttributeName(), Descriptor.FuseMethod);
+	}
 
 #define PCGEX_FUSE_TRANSFERT(_NAME) Context->_NAME##FuseMethod = Settings->bOverride##_NAME ? Context->_NAME##FuseMethod : Settings->FuseMethod;
 	PCGEX_FUSE_FOREACH_POINTPROPERTYNAME(PCGEX_FUSE_TRANSFERT)
@@ -129,19 +142,19 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 	if (Context->IsSetup())
 	{
 		if (!Validate(Context)) { return true; }
-		Context->SetState(PCGExMT::EState::ReadyForNextPoints);
+		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
-	if (Context->IsState(PCGExMT::EState::ReadyForNextPoints))
+	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
 		if (!Context->AdvancePointsIO())
 		{
-			Context->SetState(PCGExMT::EState::Done);
+			Context->SetState(PCGExMT::State_Done);
 		}
 		else
 		{
 			Context->CurrentIndex = 0;
-			Context->SetState(PCGExMT::EState::ProcessingPoints);
+			Context->SetState(PCGExFuse::State_FindingRootPoints);
 		}
 	}
 
@@ -199,42 +212,38 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 		FuseTarget->Add(PointIndex, Distance);
 	};
 
-	if (Context->IsState(PCGExMT::EState::ProcessingPoints))
+	if (Context->IsState(PCGExFuse::State_FindingRootPoints))
 	{
 		if (Context->AsyncProcessingCurrentPoints(Initialize, ProcessPoint))
 		{
-			Context->SetState(PCGExMT::EState::ProcessingGraph2ndPass);
+			Context->SetState(PCGExFuse::State_MergingPoints);
 		}
 	}
 
 
-	auto InitializeReconcile = [&]()
+	auto InitializeFusing = [&]()
 	{
 		Context->OutPoints = &Context->CurrentIO->Out->GetMutablePoints();
 	};
 
-	auto FusePoints = [&](int32 ReadIndex)
+	auto FusePoint = [&](int32 ReadIndex)
 	{
-		FPCGPoint NewPoint;
+		PCGExFuse::FFusedPoint& FusedPointData = Context->FusedPoints[ReadIndex];
+		int32 NumFused = static_cast<double>(FusedPointData.Fused.Num());
+		double AverageDivider = NumFused;
 
-		{
-			FReadScopeLock ReadLock(Context->PointsLock);
-			PCGExFuse::FFusedPoint& FusedPointData = Context->FusedPoints[ReadIndex];
-			int32 NumFused = static_cast<double>(FusedPointData.Fused.Num());
-			double AverageDivider = NumFused;
+		const FPCGPoint& RootPoint = Context->CurrentIO->GetInPoint(FusedPointData.MainIndex);
+		FPCGPoint NewPoint = Context->CurrentIO->NewPoint(RootPoint);
 
-			FPCGPoint RootPoint = Context->CurrentIO->In->GetPoint((FusedPointData.MainIndex));
-			Context->CurrentIO->Out->Metadata->InitializeOnSet(NewPoint.MetadataEntry, RootPoint.MetadataEntry, Context->CurrentIO->In->Metadata);
-
-			FTransform& OutTransform = NewPoint.Transform;
+		FTransform& OutTransform = NewPoint.Transform;
 #define PCGEX_FUSE_DECLARE(_TYPE, _NAME, _ACCESSOR, _DEFAULT_VALUE, ...) _TYPE Out##_NAME = Context->_NAME##FuseMethod == EPCGExFuseMethod::Skip ? RootPoint._ACCESSOR : _DEFAULT_VALUE;
-			PCGEX_FUSE_FOREACH_POINTPROPERTY(PCGEX_FUSE_DECLARE)
+		PCGEX_FUSE_FOREACH_POINTPROPERTY(PCGEX_FUSE_DECLARE)
 #undef PCGEX_FUSE_DECLARE
 
-			for (int i = 0; i < NumFused; i++)
-			{
-				const double Weight = 1 - (FusedPointData.Distances[i] / FusedPointData.MaxDistance);
-				FPCGPoint Point = Context->CurrentIO->In->GetPoint(FusedPointData.Fused[i]);
+		for (int i = 0; i < NumFused; i++)
+		{
+			const double Weight = 1 - (FusedPointData.Distances[i] / FusedPointData.MaxDistance);
+			FPCGPoint Point = Context->CurrentIO->In->GetPoint(FusedPointData.Fused[i]);
 
 #define PCGEX_FUSE_FUSE(_TYPE, _NAME, _ACCESSOR, ...) switch (Context->_NAME##FuseMethod){\
 case EPCGExFuseMethod::Average: Out##_NAME += Point._ACCESSOR; break;\
@@ -242,53 +251,64 @@ case EPCGExFuseMethod::Min: Out##_NAME = PCGExMath::CWMin(Out##_NAME, Point._ACC
 case EPCGExFuseMethod::Max: Out##_NAME = PCGExMath::CWMax(Out##_NAME, Point._ACCESSOR); break;\
 case EPCGExFuseMethod::Weight: Out##_NAME = PCGExMath::Lerp(Out##_NAME, Point._ACCESSOR, Weight); break;\
 }
-				PCGEX_FUSE_FOREACH_POINTPROPERTY(PCGEX_FUSE_FUSE)
+			PCGEX_FUSE_FOREACH_POINTPROPERTY(PCGEX_FUSE_FUSE)
 #undef PCGEX_FUSE_FUSE
 
-				for (const PCGEx::FAttributeIdentity& Identity : Context->InputAttributeMap.Identities)
+			for (const PCGEx::FAttributeIdentity& Identity : Context->InputAttributeMap.Identities)
+			{
+				EPCGExFuseMethod AttributeFuseMethod = Context->GetAttributeFuseMethod(Identity.Name);
+				switch (Identity.UnderlyingType)
 				{
-					EPCGExFuseMethod AttributeFuseMethod = Context->FuseMethod;
-					switch (Identity.UnderlyingType)
-					{
 #define PCGEX_FUSE_ATT(_TYPE, _NAME) case EPCGMetadataTypes::_NAME: switch (AttributeFuseMethod){\
 case EPCGExFuseMethod::Average: Context->InputAttributeMap.SetAdd<_TYPE>(Identity.Name, Point.MetadataEntry, NewPoint.MetadataEntry); break;\
 case EPCGExFuseMethod::Min: Context->InputAttributeMap.SetCWMin<_TYPE>(Identity.Name, Point.MetadataEntry, NewPoint.MetadataEntry); break;\
 case EPCGExFuseMethod::Max: Context->InputAttributeMap.SetCWMax<_TYPE>(Identity.Name, Point.MetadataEntry, NewPoint.MetadataEntry); break;\
 case EPCGExFuseMethod::Weight: Context->InputAttributeMap.SetLerp<_TYPE>(Identity.Name, NewPoint.MetadataEntry, Point.MetadataEntry, NewPoint.MetadataEntry, Weight); break;\
 } break;
-					PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_FUSE_ATT)
+				PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_FUSE_ATT)
 #undef PCGEX_FUSE_ATT
-					}
 				}
 			}
+		}
+
+		if (Context->FuseMethod == EPCGExFuseMethod::Average)
+		{
+			// Average attributes
+			for (const PCGEx::FAttributeIdentity& Identity : Context->InputAttributeMap.Identities)
+			{
+				EPCGExFuseMethod AttributeFuseMethod = Context->GetAttributeFuseMethod(Identity.Name);
+				if (AttributeFuseMethod != EPCGExFuseMethod::Average) { continue; }
+				switch (Identity.UnderlyingType)
+				{
+#define PCGEX_AVG_ATT(_TYPE, _NAME) case EPCGMetadataTypes::_NAME: Context->InputAttributeMap.SetDivide<_TYPE>(Identity.Name, NewPoint.MetadataEntry, AverageDivider); break;
+				PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_AVG_ATT)
+#undef PCGEX_AVG_ATT
+				}
+			}
+		}
 
 #define PCGEX_FUSE_POST(_TYPE, _NAME, _ACCESSOR, ...)\
-if(Context->_NAME##FuseMethod == EPCGExFuseMethod::Average){ PCGExMath::CWDivide(Out##_NAME, AverageDivider); }
-			PCGEX_FUSE_FOREACH_POINTPROPERTY(PCGEX_FUSE_POST)
+if(Context->_NAME##FuseMethod == EPCGExFuseMethod::Average){ Out##_NAME = PCGExMath::CWDivide(Out##_NAME, AverageDivider); }
+		PCGEX_FUSE_FOREACH_POINTPROPERTY(PCGEX_FUSE_POST)
 #undef PCGEX_FUSE_POST
 
-			OutTransform.SetLocation(OutPosition);
-			OutTransform.SetRotation(OutRotation.Quaternion());
-			OutTransform.SetScale3D(OutScale);
+		OutTransform.SetLocation(OutPosition);
+		OutTransform.SetRotation(OutRotation.Quaternion());
+		OutTransform.SetScale3D(OutScale);
 
 #define PCGEX_FUSE_ASSIGN(_NAME, _ACCESSOR, ...) NewPoint._ACCESSOR = Out##_NAME;
-			PCGEX_FUSE_FOREACH_POINTPROPERTY_ASSIGN(PCGEX_FUSE_ASSIGN)
+		PCGEX_FUSE_FOREACH_POINTPROPERTY_ASSIGN(PCGEX_FUSE_ASSIGN)
 #undef PCGEX_FUSE_ASSIGN
 
-			NewPoint.SetExtents(OutExtents);
-		}
-		{
-			FWriteScopeLock WriteLock(Context->PointsLock);
-			Context->OutPoints->Add(NewPoint);
-		}
+		NewPoint.SetExtents(OutExtents);
 	};
 
-	if (Context->IsState(PCGExMT::EState::ProcessingGraph2ndPass))
+	if (Context->IsState(PCGExFuse::State_MergingPoints))
 	{
-		if (PCGExMT::ParallelForLoop(Context, Context->FusedPoints.Num(), InitializeReconcile, FusePoints, Context->ChunkSize))
+		if (PCGExMT::ParallelForLoop(Context, Context->FusedPoints.Num(), InitializeFusing, FusePoint, Context->ChunkSize))
 		{
 			Context->OutPoints = nullptr;
-			Context->SetState(PCGExMT::EState::ReadyForNextPoints);
+			Context->SetState(PCGExMT::State_ReadyForNextPoints);
 		}
 	}
 

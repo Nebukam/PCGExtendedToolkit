@@ -101,20 +101,20 @@ bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* InContext) con
 	if (Context->IsSetup())
 	{
 		if (!Validate(Context)) { return true; }
-		Context->SetState(PCGExMT::EState::ReadyForNextPoints);
+		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
 	////
 
-	if (Context->IsState(PCGExMT::EState::ReadyForNextPoints))
+	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
 		if (!Context->AdvancePointsIO())
 		{
-			Context->SetState(PCGExMT::EState::Done);
+			Context->SetState(PCGExMT::State_Done);
 		}
 		else
 		{
-			Context->SetState(PCGExMT::EState::ProcessingPoints);
+			Context->SetState(PCGExMT::State_ProcessingPoints);
 		}
 	}
 
@@ -176,20 +176,20 @@ bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* InContext) con
 		LayerKeys.Empty();
 	};
 
-	if (Context->IsState(PCGExMT::EState::ProcessingPoints))
+	if (Context->IsState(PCGExMT::State_ProcessingPoints))
 	{
 		if (Context->bSplitOutput)
 		{
 			if (Context->AsyncProcessingCurrentPoints(Initialize, DistributePoint))
 			{
-				Context->SetState(PCGExMT::EState::ReadyForNextPoints);
+				Context->SetState(PCGExMT::State_ReadyForNextPoints);
 			}
 		}
 		else
 		{
 			if (Context->AsyncProcessingCurrentPoints(Initialize, ProcessPoint))
 			{
-				Context->SetState(PCGExMT::EState::ReadyForNextPoints);
+				Context->SetState(PCGExMT::State_ReadyForNextPoints);
 			}
 		}
 	}

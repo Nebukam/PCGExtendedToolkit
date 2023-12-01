@@ -3,12 +3,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Data/PCGExGraphParamsData.h"
+#include "Data/PCGExPointIO.h"
 #include "UObject/Object.h"
 
 #include "PCGExGraphPatch.generated.h"
 
 class UPCGExGraphPatchGroup;
-
 
 UENUM(BlueprintType)
 enum class EPCGExRoamingResolveMethod : uint8

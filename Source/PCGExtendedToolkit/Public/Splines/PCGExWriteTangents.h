@@ -170,6 +170,7 @@ public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(WriteTangents, "Write Tangents", "Computes & writes points tangents.");
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorSpline; }
 #endif
 
 	virtual PCGExIO::EInitMode GetPointOutputInitMode() const override;

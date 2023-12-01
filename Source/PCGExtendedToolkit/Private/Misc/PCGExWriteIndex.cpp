@@ -46,12 +46,12 @@ bool FPCGExWriteIndexElement::ExecuteInternal(FPCGContext* InContext) const
 	if (Context->IsSetup())
 	{
 		if (!Validate(Context)) { return true; }
-		Context->SetState(PCGExMT::EState::ReadyForNextPoints);
+		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
-	if (Context->IsState(PCGExMT::EState::ReadyForNextPoints))
+	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
-		Context->SetState(PCGExMT::EState::ProcessingPoints);
+		Context->SetState(PCGExMT::State_ProcessingPoints);
 	}
 
 	auto InitializeForIO = [&](UPCGExPointIO* PointIO)
@@ -69,16 +69,16 @@ bool FPCGExWriteIndexElement::ExecuteInternal(FPCGContext* InContext) const
 		IndexAttribute->SetValue(Point.MetadataEntry, Index);
 	};
 
-	if (Context->IsState(PCGExMT::EState::ProcessingPoints))
+	if (Context->IsState(PCGExMT::State_ProcessingPoints))
 	{
 		if (Context->AsyncProcessingMainPoints(InitializeForIO, ProcessPoint))
 		{
-			Context->SetState(PCGExMT::EState::Done);
+			Context->SetState(PCGExMT::State_Done);
 		}
 		/*
 		if (Context->MainPoints->OutputsParallelProcessing(Context, InitializeForIO, ProcessPoint, Context->ChunkSize))
 		{
-			Context->SetState(PCGExMT::EState::Done);
+			Context->SetState(PCGExMT::Done);
 		}
 		*/
 	}

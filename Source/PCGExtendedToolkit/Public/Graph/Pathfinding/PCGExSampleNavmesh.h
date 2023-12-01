@@ -46,6 +46,7 @@ public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(SampleNavmesh, "Sample Navmesh", "Sample world navmesh.");
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorPathfinding; }
 #endif
 
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
@@ -69,6 +70,10 @@ public:
 	FPCGExPathfindingGoalPickingSettings GoalPicking;
 
 	/** TBD */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(FullyExpand=true))
+	FPCGExPathPointOrientSettings PointsOrientation;
+
+	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	bool bAddSeedToPath = true;
 
@@ -79,9 +84,9 @@ public:
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	EPCGExPointLerpMode LerpMode = EPCGExPointLerpMode::Index;
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
-	bool bRequireNaviguableEndLocation = true;
+	bool bRequireNavigableEndLocation = true;
 
 	/** Fuse points by distance */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
@@ -104,14 +109,20 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNavmeshContext : public FPCGExPointsPr
 	friend class FPCGExSampleNavmeshElement;
 
 public:
-	FPCGExPathfindingGoalPickingSettings GoalPicking;
 	UPCGExPointIO* GoalsPoints = nullptr;
 	UPCGExPointIOGroup* OutputPaths = nullptr;
+
+	FPCGExPathfindingGoalPickingSettings GoalPicking;
+	FPCGExPathPointOrientSettings PointsOrientation;
+
 	bool bAddSeedToPath = true;
 	bool bAddGoalToPath = true;
+
 	EPCGExPointLerpMode LerpMode;
 	FNavAgentProperties NavAgentProperties;
+
 	ANavigationData* NavData = nullptr;
+
 	bool bRequireNavigableEndLocation = true;
 	EPCGExPathfindingMode PathfindingMode;
 	double FuseDistance = 10;

@@ -2,6 +2,7 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Graph/PCGExDrawGraph.h"
+#include "Graph/Solvers/PCGExGraphSolver.h"
 
 #define LOCTEXT_NAMESPACE "PCGExDrawGraph"
 
@@ -17,7 +18,7 @@ UPCGExDrawGraphSettings::UPCGExDrawGraphSettings(
 	: Super(ObjectInitializer)
 {
 	DebugSettings.PointScale = 0.0f;
-	//DebugSettings.PointMesh = FPCGExtendedToolkitModule::Get ? FPCGExtendedToolkitModule::Get->DebugMeshFrustrum : nullptr;
+	GraphSolver = NewObject<UPCGExGraphSolver>();
 }
 
 TArray<FPCGPinProperties> UPCGExDrawGraphSettings::OutputPinProperties() const
@@ -61,18 +62,18 @@ bool FPCGExDrawGraphElement::ExecuteInternal(FPCGContext* InContext) const
 			return true;
 		}
 				
-		Context->SetState(PCGExMT::EState::ReadyForNextPoints);
+		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
-	if (Context->IsState(PCGExMT::EState::ReadyForNextPoints))
+	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
 		if (!Context->AdvancePointsIO(true))
 		{
-			Context->SetState(PCGExMT::EState::Done); //No more points
+			Context->SetState(PCGExMT::State_Done); //No more points
 		}
 		else
 		{
-			Context->SetState(PCGExMT::EState::ReadyForNextGraph);
+			Context->SetState(PCGExGraph::State_ReadyForNextGraph);
 		}
 	}
 
@@ -83,7 +84,7 @@ bool FPCGExDrawGraphElement::ExecuteInternal(FPCGContext* InContext) const
 		const FVector Start = Point.Transform.GetLocation();
 
 		TArray<PCGExGraph::FSocketProbe> Probes;
-		if (Settings->bDrawSocketCones) { Context->PrepareProbesForPoint(Point, Probes); }
+		if (Settings->bDrawSocketCones) { Settings->GraphSolver->PrepareProbesForPoint(Context->SocketInfos, Point, Probes); }
 
 		for (const PCGExGraph::FSocketInfos& SocketInfos : Context->SocketInfos)
 		{
@@ -93,7 +94,7 @@ bool FPCGExDrawGraphElement::ExecuteInternal(FPCGContext* InContext) const
 			{
 				for (PCGExGraph::FSocketProbe Probe : Probes)
 				{
-					double AngleWidth = FMath::Acos(FMath::Max(-1.0, FMath::Min(1.0, Probe.DotThreshold)));
+					const double AngleWidth = FMath::Acos(FMath::Max(-1.0, FMath::Min(1.0, Probe.DotThreshold)));
 
 					DrawDebugCone(
 						Context->World,
@@ -176,15 +177,15 @@ bool FPCGExDrawGraphElement::ExecuteInternal(FPCGContext* InContext) const
 		}
 	};
 
-	if (Context->IsState(PCGExMT::EState::ReadyForNextGraph))
+	if (Context->IsState(PCGExGraph::State_ReadyForNextGraph))
 	{
 		if (!Context->AdvanceGraph())
 		{
-			Context->SetState(PCGExMT::EState::ReadyForNextPoints);
+			Context->SetState(PCGExMT::State_ReadyForNextPoints);
 		}
 		else
 		{
-			Context->SetState(PCGExMT::EState::ProcessingGraph);
+			Context->SetState(PCGExGraph::State_ProcessingGraph);
 		}
 	}
 
@@ -193,15 +194,15 @@ bool FPCGExDrawGraphElement::ExecuteInternal(FPCGContext* InContext) const
 		Context->PrepareCurrentGraphForPoints(PointIO->In, false);
 	};
 
-	if (Context->IsState(PCGExMT::EState::ProcessingGraph))
+	if (Context->IsState(PCGExGraph::State_ProcessingGraph))
 	{
 		//if (Context->CurrentIO->InputParallelProcessing(Context, Initialize, ProcessPoint, Context->ChunkSize)) { Context->SetState(PCGExMT::EState::ProcessingParams); }
 		Initialize(Context->CurrentIO);
 		for (int i = 0; i < Context->CurrentIO->NumInPoints; i++) { ProcessPoint(Context->CurrentIO->GetInPoint(i), i, Context->CurrentIO); }
-		Context->SetState(PCGExMT::EState::ReadyForNextGraph);
+		Context->SetState(PCGExGraph::State_ReadyForNextGraph);
 	}
 
-	if (Context->IsState(PCGExMT::EState::Done))
+	if (Context->IsDone())
 	{
 		//Context->OutputPointsAndParams();
 		return true;

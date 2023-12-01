@@ -4,8 +4,6 @@
 #include "Graph/PCGExGraphProcessor.h"
 
 #include "Data/PCGExGraphParamsData.h"
-#include "Graph/PCGExGraph.h"
-#include "Graph/PCGExGraphHelpers.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
 
@@ -68,122 +66,10 @@ void FPCGExGraphProcessorContext::Reset()
 	CurrentParamsIndex = -1;
 }
 
-void FPCGExGraphProcessorContext::ComputeEdgeType(const FPCGPoint& Point, const int32 ReadIndex, const UPCGExPointIO* PointIO)
-{
-	for (PCGExGraph::FSocketInfos& CurrentSocketInfos : SocketInfos)
-	{
-		EPCGExEdgeType Type = EPCGExEdgeType::Unknown;
-		const int64 RelationIndex = CurrentSocketInfos.Socket->GetTargetIndex(Point.MetadataEntry);
-
-		if (RelationIndex != -1)
-		{
-			const int32 Key = PointIO->GetOutPoint(RelationIndex).MetadataEntry;
-			for (PCGExGraph::FSocketInfos& OtherSocketInfos : SocketInfos)
-			{
-				if (OtherSocketInfos.Socket->GetTargetIndex(Key) == ReadIndex)
-				{
-					Type = PCGExGraph::Helpers::GetEdgeType(CurrentSocketInfos, OtherSocketInfos);
-				}
-			}
-
-			if (Type == EPCGExEdgeType::Unknown) { Type = EPCGExEdgeType::Roaming; }
-		}
-
-
-		CurrentSocketInfos.Socket->SetEdgeType(Point.MetadataEntry, Type);
-	}
-}
-
-double FPCGExGraphProcessorContext::PrepareProbesForPoint(const FPCGPoint& Point, TArray<PCGExGraph::FSocketProbe>& OutProbes)
-{
-	OutProbes.Reset(SocketInfos.Num());
-	double MaxDistance = 0.0;
-	for (PCGExGraph::FSocketInfos& CurrentSocketInfos : SocketInfos)
-	{
-		PCGExGraph::FSocketProbe& NewProbe = OutProbes.Emplace_GetRef();
-		NewProbe.SocketInfos = &CurrentSocketInfos;
-		const double Dist = PrepareProbeForPointSocketPair(Point, NewProbe, CurrentSocketInfos);
-		MaxDistance = FMath::Max(MaxDistance, Dist);
-	}
-	return MaxDistance;
-}
-
 void FPCGExGraphProcessorContext::PrepareCurrentGraphForPoints(const UPCGPointData* InData, bool bEnsureEdgeType)
 {
 	CachedIndex = InData->Metadata->FindOrCreateAttribute<int64>(CurrentGraph->CachedIndexAttributeName, -1, false);
 	CurrentGraph->PrepareForPointData(InData, bEnsureEdgeType);
-}
-
-double FPCGExGraphProcessorContext::PrepareProbeForPointSocketPair(
-	const FPCGPoint& Point,
-	PCGExGraph::FSocketProbe& Probe,
-	PCGExGraph::FSocketInfos InSocketInfos)
-{
-	const FPCGExSocketAngle& BaseAngle = InSocketInfos.Socket->Descriptor.Angle;
-
-	FVector Direction = BaseAngle.Direction;
-	double DotTolerance = BaseAngle.DotThreshold;
-	double MaxDistance = BaseAngle.MaxDistance;
-
-	const FTransform PtTransform = Point.Transform;
-	FVector Origin = PtTransform.GetLocation();
-
-	if (InSocketInfos.Socket->Descriptor.bRelativeOrientation)
-	{
-		Direction = PtTransform.Rotator().RotateVector(Direction);
-	}
-
-	Direction.Normalize();
-
-	if (InSocketInfos.Modifier &&
-		InSocketInfos.Modifier->bEnabled &&
-		InSocketInfos.Modifier->bValid)
-	{
-		MaxDistance *= InSocketInfos.Modifier->GetValue(Point);
-	}
-
-	if (InSocketInfos.LocalDirection &&
-		InSocketInfos.LocalDirection->bEnabled &&
-		InSocketInfos.LocalDirection->bValid)
-	{
-		// TODO: Apply LocalDirection
-	}
-
-	//TODO: Offset origin by extent?
-
-	Probe.Direction = Direction;
-	Probe.DotThreshold = DotTolerance;
-	Probe.MaxDistance = MaxDistance * MaxDistance;
-	Probe.DotOverDistanceCurve = BaseAngle.DotOverDistanceCurve;
-
-	Direction.Normalize();
-	FVector Offset = FVector::ZeroVector;
-	switch (InSocketInfos.Socket->Descriptor.OffsetOrigin)
-	{
-	default:
-	case EPCGExExtension::None:
-		break;
-	case EPCGExExtension::Extents:
-		Offset = Direction * Point.GetExtents();
-		Origin += Offset;
-		break;
-	case EPCGExExtension::Scale:
-		Offset = Direction * Point.Transform.GetScale3D();
-		Origin += Offset;
-		break;
-	case EPCGExExtension::ScaledExtents:
-		Offset = Direction * Point.GetScaledExtents();
-		Origin += Offset;
-		break;
-	}
-
-	Probe.Origin = Origin;
-	MaxDistance += Offset.Length();
-
-	if (DotTolerance >= 0) { Probe.LooseBounds = PCGExMath::ConeBox(Probe.Origin, Direction, MaxDistance); }
-	else { Probe.LooseBounds = FBoxCenterAndExtent(Probe.Origin, FVector(MaxDistance)).GetBox(); }
-
-	return MaxDistance;
 }
 
 FPCGContext* FPCGExGraphProcessorElement::Initialize(

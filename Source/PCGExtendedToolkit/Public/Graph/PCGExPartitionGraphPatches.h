@@ -89,6 +89,8 @@ public:
 
 	EPCGExRoamingResolveMethod ResolveRoamingMethod;
 
+	FPCGMetadataAttribute<int64>* InCachedIndex;
+
 	void PreparePatchGroup()
 	{
 		Patches = NewObject<UPCGExGraphPatchGroup>();

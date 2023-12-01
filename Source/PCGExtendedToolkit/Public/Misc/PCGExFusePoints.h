@@ -10,7 +10,6 @@
 
 #include "PCGExFusePoints.generated.h"
 
-
 #define PCGEX_FUSE_FOREACH_POINTPROPERTYNAME(MACRO)\
 MACRO(Density) \
 MACRO(Extents) \
@@ -43,6 +42,10 @@ enum class EPCGExFuseMethod : uint8
 
 namespace PCGExFuse
 {
+
+	constexpr PCGExMT::AsyncState State_FindingRootPoints = 100;
+	constexpr PCGExMT::AsyncState State_MergingPoints = 101;
+	
 	struct PCGEXTENDEDTOOLKIT_API FFusedPoint
 	{
 		int32 MainIndex = -1;
@@ -74,16 +77,16 @@ namespace PCGExFuse
 }
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExInputDescriptorWithFuseMethod : public FPCGExInputDescriptorGeneric
+struct PCGEXTENDEDTOOLKIT_API FPCGExInputDescriptorWithFuseMethod : public FPCGExInputDescriptor
 {
 	GENERATED_BODY()
 
-	FPCGExInputDescriptorWithFuseMethod(): FPCGExInputDescriptorGeneric()
+	FPCGExInputDescriptorWithFuseMethod(): FPCGExInputDescriptor()
 	{
 	}
 
 	FPCGExInputDescriptorWithFuseMethod(const FPCGExInputDescriptorWithFuseMethod& Other)
-		: FPCGExInputDescriptorGeneric(Other),
+		: FPCGExInputDescriptor(Other),
 		  FuseMethod(Other.FuseMethod)
 	{
 	}
@@ -137,8 +140,12 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bComponentWiseRadius", EditConditionHides))
 	FVector Radiuses = FVector(10);
 
+	/** TBD */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="FuseMethod==EPCGExFuseMethod::Weight", EditConditionHides))
+	bool bUseLocalWeight = false;
+
 	/** Attribute used to read weight from, as a double. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bUseLocalWeight && FuseMethod==EPCGExFuseMethod::Weight", EditConditionHides))
 	FPCGExInputDescriptorWithSingleField WeightAttribute;
 
 #pragma region Property overrides
@@ -215,6 +222,7 @@ public:
 	FVector Radiuses;
 
 	PCGEx::FAttributeMap InputAttributeMap;
+	TMap<FName, EPCGExFuseMethod> AttributeFuseMethodOverrides;
 
 	TArray<PCGExFuse::FFusedPoint> FusedPoints;
 	TArray<FPCGPoint>* OutPoints;
@@ -225,6 +233,7 @@ public:
 	mutable FRWLock PointsLock;
 
 	void PrepareForPoints(const UPCGExPointIO* InData);
+	EPCGExFuseMethod GetAttributeFuseMethod(FName AttributeName);
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExFusePointsElement : public FPCGExPointsProcessorElementBase

@@ -85,15 +85,20 @@ FPCGContext* FPCGExSampleNavmeshElement::Initialize(const FPCGDataCollection& In
 		}
 	}
 
-	Context->GoalPicking = Settings->GoalPicking;
 	Context->OutputPaths = NewObject<UPCGExPointIOGroup>();
-	Context->NavAgentProperties = Settings->NavAgentProperties;
+
+	Context->GoalPicking = Settings->GoalPicking;
+	Context->PointsOrientation = Settings->PointsOrientation;
 	Context->bAddSeedToPath = Settings->bAddSeedToPath;
 	Context->bAddGoalToPath = Settings->bAddGoalToPath;
 	Context->LerpMode = Settings->LerpMode;
-	Context->FuseDistance = Settings->FuseDistance * Settings->FuseDistance;
-	Context->bRequireNavigableEndLocation = Settings->bRequireNaviguableEndLocation;
+
+	Context->NavAgentProperties = Settings->NavAgentProperties;
+	Context->bRequireNavigableEndLocation = Settings->bRequireNavigableEndLocation;
 	Context->PathfindingMode = Settings->PathfindingMode;
+
+	Context->FuseDistance = Settings->FuseDistance * Settings->FuseDistance;
+
 
 	return Context;
 }
@@ -127,12 +132,12 @@ bool FPCGExSampleNavmeshElement::ExecuteInternal(FPCGContext* InContext) const
 
 	FPCGExSampleNavmeshContext* Context = static_cast<FPCGExSampleNavmeshContext*>(InContext);
 
-	if (Context->IsState(PCGExMT::EState::Setup))
+	if (Context->IsSetup())
 	{
 		if (!Validate(Context)) { return true; }
 		Context->AdvancePointsIO();
 		Context->GoalPicking.PrepareForData(Context->GoalsPoints->In);
-		Context->SetState(PCGExMT::EState::ProcessingPoints);
+		Context->SetState(PCGExMT::State_ProcessingPoints);
 	}
 
 	auto ProcessPoint = [&](const int32 PointIndex, const UPCGExPointIO* PointIO)
@@ -167,15 +172,15 @@ bool FPCGExSampleNavmeshElement::ExecuteInternal(FPCGContext* InContext) const
 		}
 	};
 
-	if (Context->IsState(PCGExMT::EState::ProcessingPoints))
+	if (Context->IsState(PCGExMT::State_ProcessingPoints))
 	{
 		if (Context->AsyncProcessingCurrentPoints(ProcessPoint))
 		{
-			Context->SetState(PCGExMT::EState::WaitingOnAsyncWork);
+			Context->SetState(PCGExMT::State_WaitingOnAsyncWork);
 		}
 	}
 
-	if (Context->IsState(PCGExMT::EState::WaitingOnAsyncWork))
+	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
 	{
 		if (Context->IsAsyncWorkComplete())
 		{
@@ -279,20 +284,24 @@ void FNavmeshPathTask::ExecuteTask()
 
 						PCGExMath::Lerp(StartPoint, EndPoint, Point, Lerp);
 						//Context->InputAttributeMap.SetLerp(StartPoint.MetadataEntry, EndPoint.MetadataEntry, Point.MetadataEntry, Lerp);
-						
 					}
 
 					Point.Transform.SetLocation(CurrentLocation);
-					
-					if (i < NumPts) // Next point
+
+					if (i < NumPts)
 					{
-						FQuat DesiredRotation = FRotationMatrix::MakeFromX(CurrentLocation - PathLocations[i + 1]).ToQuat();
-						Point.Transform.SetRotation(DesiredRotation);
+						if (i == 0) // First point
+						{
+							Context->PointsOrientation.OrientNextOnly(Point.Transform, PathLocations[i + 1]);
+						}
+						else // Regular point
+						{
+							Context->PointsOrientation.Orient(Point.Transform, PathLocations[i - 1], PathLocations[i + 1]);
+						}
 					}
 					else if (i >= 1) // Last point
 					{
-						FQuat DesiredRotation = FRotationMatrix::MakeFromX(PathLocations[i - 1] - CurrentLocation).ToQuat();
-						Point.Transform.SetRotation(DesiredRotation);
+						Context->PointsOrientation.OrientPreviousOnly(Point.Transform, PathLocations[i - 1]);
 					}
 
 					PrevPos = CurrentLocation;

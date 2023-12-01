@@ -36,6 +36,7 @@ public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(Subdivide, "Subdivide", "Subdivide paths segments.");
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorSpline; }
 #endif
 
 	virtual PCGExIO::EInitMode GetPointOutputInitMode() const override;

@@ -586,33 +586,41 @@ virtual _TYPE Convert(const FName Value) const override { return _TYPE(Value.ToS
 
 		// Getters
 
-#define PCGEX_ATTRIBUTE FPCGMetadataAttribute<T>* Attribute = static_cast<FPCGMetadataAttribute<T>*>(*Attributes.Find(Name));
+#define PCGEX_ATTRIBUTE_RETURN(_RET_VALUE)\
+				FPCGMetadataAttributeBase** AttributePtr = Attributes.Find(Name);\
+				if(!AttributePtr){return _RET_VALUE;}\
+				FPCGMetadataAttribute<T>* Attribute = static_cast<FPCGMetadataAttribute<T>*>(*AttributePtr);
+
+#define PCGEX_ATTRIBUTE\
+		FPCGMetadataAttributeBase** AttributePtr = Attributes.Find(Name);\
+		if(!AttributePtr){return;}\
+		FPCGMetadataAttribute<T>* Attribute = static_cast<FPCGMetadataAttribute<T>*>(*AttributePtr);
 
 		template <typename T>
 		T GetValue(const FName Name, const PCGMetadataEntryKey& Key)
 		{
-			PCGEX_ATTRIBUTE
+			PCGEX_ATTRIBUTE_RETURN(T{});
 			return Attribute->GetValueFromItemKey(Key);
 		}
 
 		template <typename T>
 		T Lerp(const FName Name, const PCGMetadataEntryKey& A, const PCGMetadataEntryKey& B, double Alpha)
 		{
-			PCGEX_ATTRIBUTE
+			PCGEX_ATTRIBUTE_RETURN(T{})
 			return PCGExMath::Lerp(Attribute->GetValueFromItemKey(A), Attribute->GetValueFromItemKey(B), Alpha);
 		}
 
 		template <typename T>
 		T CWMin(const FName Name, T& From, const PCGMetadataEntryKey& Key, double Alpha)
 		{
-			PCGEX_ATTRIBUTE
+			PCGEX_ATTRIBUTE_RETURN(From)
 			return PCGExMath::CWMin(From, Attribute->GetValueFromItemKey(Key));
 		}
 
 		template <typename T>
 		T CWMax(const FName Name, T& From, const PCGMetadataEntryKey& Key, double Alpha)
 		{
-			PCGEX_ATTRIBUTE
+			PCGEX_ATTRIBUTE_RETURN(From)
 			return PCGExMath::CWMax(From, Attribute->GetValueFromItemKey(Key));
 		}
 
@@ -627,12 +635,23 @@ virtual _TYPE Convert(const FName Value) const override { return _TYPE(Value.ToS
 			double Alpha)
 		{
 			PCGEX_ATTRIBUTE
-			Attribute->SetValue(
-				OutKey,
-				PCGExMath::Lerp(
-					Attribute->GetValueFromItemKey(FromKey),
-					Attribute->GetValueFromItemKey(ToKey),
-					Alpha));
+			if (Attribute->AllowsInterpolation())
+			{
+				Attribute->SetValue(
+					OutKey,
+					PCGExMath::Lerp(
+						Attribute->GetValueFromItemKey(FromKey),
+						Attribute->GetValueFromItemKey(ToKey),
+						Alpha));
+			}
+			else
+			{
+				Attribute->SetValue(
+					OutKey,
+					Alpha > 0.5 ?
+						Attribute->GetValueFromItemKey(FromKey) :
+						Attribute->GetValueFromItemKey(ToKey));
+			}
 		}
 
 		template <typename T>
@@ -666,9 +685,29 @@ virtual _TYPE Convert(const FName Value) const override { return _TYPE(Value.ToS
 			const PCGMetadataEntryKey& OutKey)
 		{
 			PCGEX_ATTRIBUTE
-			Attribute->SetValue(
-				OutKey, PCGExMath::Add(
-					Attribute->GetValueFromItemKey(OutKey), Attribute->GetValueFromItemKey(FromKey)));
+			if (Attribute->AllowsInterpolation())
+			{
+				Attribute->SetValue(
+					OutKey, PCGExMath::Add(
+						Attribute->GetValueFromItemKey(OutKey), Attribute->GetValueFromItemKey(FromKey)));
+			}
+			else
+			{
+				Attribute->SetValue(OutKey, Attribute->GetValueFromItemKey(OutKey));
+			}
+		}
+
+		template <typename T>
+		void SetDivide(
+			const FName Name,
+			const PCGMetadataEntryKey& OutKey,
+			const double Divider)
+		{
+			PCGEX_ATTRIBUTE
+			if (Attribute->AllowsInterpolation())
+			{
+				Attribute->SetValue(OutKey, PCGExMath::CWDivide(Attribute->GetValueFromItemKey(OutKey), Divider));
+			}
 		}
 
 		void SetLerp(
@@ -690,4 +729,5 @@ virtual _TYPE Convert(const FName Value) const override { return _TYPE(Value.ToS
 	};
 }
 
+#undef PCGEX_ATTRIBUTE_RETURN
 #undef PCGEX_ATTRIBUTE

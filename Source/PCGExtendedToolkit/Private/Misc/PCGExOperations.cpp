@@ -85,18 +85,18 @@ bool FPCGExOperationsElement::ExecuteInternal(
 		if (!Settings->bDebug) { return true; }
 		if (!Validate(Context)) { return true; }
 
-		Context->SetState(PCGExMT::EState::ReadyForNextPoints);
+		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
-	if (Context->IsState(PCGExMT::EState::ReadyForNextPoints))
+	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
 		if (!Context->AdvancePointsIO())
 		{
-			Context->SetState(PCGExMT::EState::Done); //No more points
+			Context->SetState(PCGExMT::State_Done); //No more points
 		}
 		else
 		{
-			Context->SetState(PCGExMT::EState::ProcessingPoints);
+			Context->SetState(PCGExMT::State_ProcessingPoints);
 		}
 	}
 
@@ -118,14 +118,14 @@ bool FPCGExOperationsElement::ExecuteInternal(
 		Context->PrepareForPoints(PointIO->In);
 	};
 
-	if (Context->IsState(PCGExMT::EState::ProcessingPoints))
+	if (Context->IsState(PCGExMT::State_ProcessingPoints))
 	{
 		Initialize(Context->CurrentIO);
 		for (int i = 0; i < Context->CurrentIO->NumInPoints; i++) { ProcessPoint(Context->CurrentIO->GetInPoint(i), i, Context->CurrentIO); }
-		Context->SetState(PCGExMT::EState::ReadyForNextPoints);
+		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
-	if (Context->IsState(PCGExMT::EState::Done))
+	if (Context->IsDone())
 	{
 		//Context->OutputPoints();
 		return true;

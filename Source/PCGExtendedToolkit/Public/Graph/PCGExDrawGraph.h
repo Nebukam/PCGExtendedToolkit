@@ -10,6 +10,7 @@
 
 #include "PCGExDrawGraph.generated.h"
 
+class UPCGExGraphSolver;
 /**
  * Calculates the distance between two points (inherently a n*n operation)
  */
@@ -55,6 +56,8 @@ public:
 	/** Draw socket loose bounds.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	bool bDrawSocketBox = false;
+
+	UPCGExGraphSolver* GraphSolver;
 
 private:
 	friend class FPCGExDrawGraphElement;

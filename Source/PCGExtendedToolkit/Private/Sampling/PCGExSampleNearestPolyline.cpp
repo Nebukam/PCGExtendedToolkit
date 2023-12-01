@@ -124,21 +124,21 @@ bool FPCGExSampleNearestPolylineElement::ExecuteInternal(FPCGContext* InContext)
 
 	FPCGExSampleNearestPolylineContext* Context = static_cast<FPCGExSampleNearestPolylineContext*>(InContext);
 
-	if (Context->IsState(PCGExMT::EState::Setup))
+	if (Context->IsSetup())
 	{
 		if (!Validate(Context)) { return true; }
-		Context->SetState(PCGExMT::EState::ReadyForNextPoints);
+		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
-	if (Context->IsState(PCGExMT::EState::ReadyForNextPoints))
+	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
 		if (!Context->AdvancePointsIO())
 		{
-			Context->SetState(PCGExMT::EState::Done);
+			Context->SetState(PCGExMT::State_Done);
 		}
 		else
 		{
-			Context->SetState(PCGExMT::EState::ProcessingPoints);
+			Context->SetState(PCGExMT::State_ProcessingPoints);
 		}
 	}
 
@@ -304,11 +304,11 @@ bool FPCGExSampleNearestPolylineElement::ExecuteInternal(FPCGContext* InContext)
 		PCGEX_SET_OUT_ATTRIBUTE(Time, Key, WeightedTime)
 	};
 
-	if (Context->IsState(PCGExMT::EState::ProcessingPoints))
+	if (Context->IsState(PCGExMT::State_ProcessingPoints))
 	{
 		if (Context->AsyncProcessingCurrentPoints(Initialize, ProcessPoint))
 		{
-			Context->SetState(PCGExMT::EState::ReadyForNextPoints);
+			Context->SetState(PCGExMT::State_ReadyForNextPoints);
 		}
 	}
 

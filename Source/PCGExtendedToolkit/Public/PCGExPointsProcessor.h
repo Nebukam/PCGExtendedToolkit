@@ -79,12 +79,12 @@ public:
 	bool AdvancePointsIO();
 	UWorld* World = nullptr;
 
-	PCGExMT::EState GetState() const { return CurrentState; }
-	bool IsState(const PCGExMT::EState OperationId) const { return CurrentState == OperationId; }
-	bool IsSetup() const { return IsState(PCGExMT::EState::Setup); }
-	bool IsDone() const { return IsState(PCGExMT::EState::Done); }
+	PCGExMT::AsyncState GetState() const { return CurrentState; }
+	bool IsState(const PCGExMT::AsyncState OperationId) const { return CurrentState == OperationId; }
+	bool IsSetup() const { return IsState(PCGExMT::State_Setup); }
+	bool IsDone() const { return IsState(PCGExMT::State_Done); }
 
-	virtual void SetState(PCGExMT::EState OperationId);
+	virtual void SetState(PCGExMT::AsyncState OperationId);
 	virtual void Reset();
 
 	virtual bool ValidatePointDataInput(UPCGPointData* PointData);
@@ -108,7 +108,7 @@ protected:
 	bool bProcessingMainPoints = false;
 	TArray<bool> MainPointsPairProcessingStatuses;
 
-	PCGExMT::EState CurrentState = PCGExMT::EState::Setup;
+	PCGExMT::AsyncState CurrentState = PCGExMT::State_Setup;
 	int32 CurrentPointsIndex = -1;
 
 	int32 CurrentChunkIndex = -1;

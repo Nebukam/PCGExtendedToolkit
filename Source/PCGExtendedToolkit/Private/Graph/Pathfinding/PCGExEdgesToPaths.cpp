@@ -37,18 +37,18 @@ bool FPCGExEdgesToPathsElement::ExecuteInternal(
 	if (Context->IsSetup())
 	{
 		if (!Validate(Context)) { return true; }
-		Context->SetState(PCGExMT::EState::ReadyForNextPoints);
+		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
-	if (Context->IsState(PCGExMT::EState::ReadyForNextPoints))
+	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
 		if (!Context->AdvancePointsIO(true))
 		{
-			Context->SetState(PCGExMT::EState::Done); //No more points
+			Context->SetState(PCGExMT::State_Done); //No more points
 		}
 		else
 		{
-			Context->SetState(PCGExMT::EState::ReadyForNextGraph);
+			Context->SetState(PCGExGraph::State_ReadyForNextGraph);
 		}
 	}
 
@@ -75,14 +75,14 @@ bool FPCGExEdgesToPathsElement::ExecuteInternal(
 		}
 	};
 
-	if (Context->IsState(PCGExMT::EState::ReadyForNextGraph))
+	if (Context->IsState(PCGExGraph::State_ReadyForNextGraph))
 	{
 		if (!Context->AdvanceGraph())
 		{
-			Context->SetState(PCGExMT::EState::WaitingOnAsyncWork);
+			Context->SetState(PCGExMT::State_WaitingOnAsyncWork);
 			return false;
 		}
-		Context->SetState(PCGExMT::EState::ProcessingGraph);
+		Context->SetState(PCGExGraph::State_ProcessingGraph);
 	}
 
 	auto Initialize = [&](const UPCGExPointIO* PointIO)
@@ -90,11 +90,11 @@ bool FPCGExEdgesToPathsElement::ExecuteInternal(
 		Context->PrepareCurrentGraphForPoints(PointIO->In, true);
 	};
 
-	if (Context->IsState(PCGExMT::EState::ProcessingGraph))
+	if (Context->IsState(PCGExGraph::State_ProcessingGraph))
 	{
 		if (Context->AsyncProcessingCurrentPoints(Initialize, ProcessPoint))
 		{
-			Context->SetState(PCGExMT::EState::ReadyForNextGraph);
+			Context->SetState(PCGExGraph::State_ReadyForNextGraph);
 		}
 	}
 
@@ -113,15 +113,15 @@ bool FPCGExEdgesToPathsElement::ExecuteInternal(
 		FPCGPoint& End = MutablePoints.Emplace_GetRef(Context->CurrentIO->GetInPoint(UEdge.End));
 	};
 
-	if (Context->IsState(PCGExMT::EState::WaitingOnAsyncWork))
+	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
 	{
 		if (PCGExMT::ParallelForLoop(Context, Context->Edges.Num(), ProcessEdge, Context->ChunkSize, !Context->bDoAsyncProcessing))
 		{
-			Context->SetState(PCGExMT::EState::ReadyForNextPoints);
+			Context->SetState(PCGExMT::State_ReadyForNextPoints);
 		}
 	}
 
-	if (Context->IsState(PCGExMT::EState::Done))
+	if (Context->IsDone())
 	{
 		Context->UniqueEdges.Empty();
 		Context->Edges.Empty();

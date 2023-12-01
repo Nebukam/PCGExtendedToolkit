@@ -34,18 +34,18 @@ bool FPCGExAutoTangentsElement::ExecuteInternal(FPCGContext* InContext) const
 	if (Context->IsSetup())
 	{
 		if (!Validate(Context)) { return true; }
-		Context->SetState(PCGExMT::EState::ReadyForNextPoints);
+		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
-	if (Context->IsState(PCGExMT::EState::ReadyForNextPoints))
+	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
 		if (!Context->AdvancePointsIO())
 		{
-			Context->SetState(PCGExMT::EState::Done);
+			Context->SetState(PCGExMT::State_Done);
 		}
 		else
 		{
-			Context->SetState(PCGExMT::EState::ProcessingPoints);
+			Context->SetState(PCGExMT::State_ProcessingPoints);
 		}
 	}
 
@@ -61,40 +61,39 @@ bool FPCGExAutoTangentsElement::ExecuteInternal(FPCGContext* InContext) const
 		const FPCGPoint& MidPoint = PointIO->GetOutPoint(Index);
 		const FPCGPoint* PrevPtr = PointIO->TryGetOutPoint(Index - 1);
 		const FPCGPoint* NextPtr = PointIO->TryGetOutPoint(Index + 1);
+		PCGExMath::FApex Apex;
 
 		if (NextPtr && PrevPtr)
 		{
-			const FVector PrevPos = PrevPtr->Transform.GetLocation();
-			const FVector NextPos = NextPtr->Transform.GetLocation();
-			const FVector MidPos = MidPoint.Transform.GetLocation();
-
-			const FVector Dir = (NextPos - PrevPos).GetSafeNormal();
-			const FVector Anchor = FMath::ClosestPointOnSegment(MidPos, PrevPos, NextPos);
-
-			const FVector ArriveTangent = Dir * (FVector::Dist(PrevPos, Anchor)) * Context->Scale;
-			const FVector LeaveTangent = Dir * (FVector::Dist(NextPos, Anchor)) * Context->Scale;
-
-			Context->ArriveAttribute->SetValue(MidPoint.MetadataEntry, ArriveTangent);
-			Context->LeaveAttribute->SetValue(MidPoint.MetadataEntry, LeaveTangent);
+			Apex = PCGExMath::FApex(
+				PrevPtr->Transform.GetLocation(),
+				NextPtr->Transform.GetLocation(),
+				MidPoint.Transform.GetLocation());
 		}
 		else
 		{
-			if (NextPtr)
+			if (NextPtr) // First point
 			{
-				// First point
+				Apex = PCGExMath::FApex::FromB(NextPtr->Transform.GetLocation(), MidPoint.Transform.GetLocation());
 			}
-			else if (PrevPtr)
+			else if (PrevPtr) // Last point
 			{
-				// Last point
+				Apex = PCGExMath::FApex::FromA(PrevPtr->Transform.GetLocation(), MidPoint.Transform.GetLocation());
 			}
 		}
+
+		Apex.Scale(Context->Scale);
+
+		Context->ArriveAttribute->SetValue(MidPoint.MetadataEntry, Apex.Forward);
+		Context->LeaveAttribute->SetValue(MidPoint.MetadataEntry, Apex.Backward*-1);
+		
 	};
 
-	if (Context->IsState(PCGExMT::EState::ProcessingPoints))
+	if (Context->IsState(PCGExMT::State_ProcessingPoints))
 	{
 		if (Context->AsyncProcessingCurrentPoints(Initialize, ProcessPoint))
 		{
-			Context->SetState(PCGExMT::EState::ReadyForNextPoints);
+			Context->SetState(PCGExMT::State_ReadyForNextPoints);
 		}
 	}
 

@@ -39,30 +39,30 @@ bool FPCGExConsolidateGraphElement::ExecuteInternal(
 	if (Context->IsSetup())
 	{
 		if (!Validate(Context)) { return true; }
-		Context->SetState(PCGExMT::EState::ReadyForNextGraph);
+		Context->SetState(PCGExGraph::State_ReadyForNextGraph);
 	}
 
-	if (Context->IsState(PCGExMT::EState::ReadyForNextGraph))
+	if (Context->IsState(PCGExGraph::State_ReadyForNextGraph))
 	{
 		if (!Context->AdvanceGraph(true))
 		{
-			Context->SetState(PCGExMT::EState::Done); //No more params
+			Context->SetState(PCGExMT::State_Done); //No more params
 		}
 		else
 		{
-			Context->SetState(PCGExMT::EState::ReadyForNextPoints);
+			Context->SetState(PCGExMT::State_ReadyForNextPoints);
 		}
 	}
 
-	if (Context->IsState(PCGExMT::EState::ReadyForNextPoints))
+	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
 		if (!Context->AdvancePointsIO(false))
 		{
-			Context->SetState(PCGExMT::EState::ReadyForNextGraph); //No more points, move to next params
+			Context->SetState(PCGExGraph::State_ReadyForNextGraph); //No more points, move to next params
 		}
 		else
 		{
-			Context->SetState(PCGExMT::EState::ProcessingPoints);
+			Context->SetState(PCGExGraph::State_CachingGraphIndices);
 		}
 	}
 
@@ -84,11 +84,11 @@ bool FPCGExConsolidateGraphElement::ExecuteInternal(
 		Context->CachedIndex->SetValue(Key, PointIndex);    // Update cached value with fresh one
 	};
 
-	if (Context->IsState(PCGExMT::EState::ProcessingPoints))
+	if (Context->IsState(PCGExGraph::State_CachingGraphIndices))
 	{
 		if (Context->AsyncProcessingCurrentPoints(InitializePointsFirstPass, ProcessPoint))
 		{
-			Context->SetState(PCGExMT::EState::ProcessingPoints2ndPass);
+			Context->SetState(PCGExGraph::State_SwappingGraphIndices);
 		}
 	}
 
@@ -116,11 +116,11 @@ bool FPCGExConsolidateGraphElement::ExecuteInternal(
 		}
 	};
 
-	if (Context->IsState(PCGExMT::EState::ProcessingPoints2ndPass))
+	if (Context->IsState(PCGExGraph::State_SwappingGraphIndices))
 	{
 		if (Context->AsyncProcessingCurrentPoints(ConsolidatePoint))
 		{
-			Context->SetState(Context->bConsolidateEdgeType ? PCGExMT::EState::ProcessingPoints3rdPass : PCGExMT::EState::ReadyForNextPoints);
+			Context->SetState(Context->bConsolidateEdgeType ? PCGExGraph::State_FindingEdgeTypes : PCGExMT::State_ReadyForNextPoints);
 		}
 	}
 
@@ -128,20 +128,20 @@ bool FPCGExConsolidateGraphElement::ExecuteInternal(
 
 	auto ConsolidateEdgesType = [&](const int32 PointIndex, const UPCGExPointIO* PointIO)
 	{
-		Context->ComputeEdgeType(PointIO->GetOutPoint(PointIndex), PointIndex, PointIO);
+		PCGExGraph::ComputeEdgeType(Context->SocketInfos, PointIO->GetOutPoint(PointIndex), PointIndex, PointIO);
 	};
 
-	if (Context->IsState(PCGExMT::EState::ProcessingPoints3rdPass))
+	if (Context->IsState(PCGExGraph::State_FindingEdgeTypes))
 	{
 		if (Context->AsyncProcessingCurrentPoints(ConsolidateEdgesType))
 		{
-			Context->SetState(PCGExMT::EState::ReadyForNextPoints);
+			Context->SetState(PCGExMT::State_ReadyForNextPoints);
 		}
 	}
 
 	// Done
 
-	if (Context->IsState(PCGExMT::EState::Done))
+	if (Context->IsDone())
 	{
 		Context->IndicesRemap.Empty();
 		Context->OutputPointsAndParams();

@@ -9,21 +9,15 @@
 
 namespace PCGExMT
 {
-	enum EState : int
-	{
-		Setup UMETA(DisplayName = "Setup"),
-		ReadyForNextPoints UMETA(DisplayName = "Ready for next points"),
-		ReadyForPoints2ndPass UMETA(DisplayName = "Ready for next points - 2nd pass"),
-		ReadyForNextGraph UMETA(DisplayName = "Ready for next params"),
-		ReadyForGraph2ndPass UMETA(DisplayName = "Ready for next params - 2nd pass"),
-		ProcessingPoints UMETA(DisplayName = "Processing points"),
-		ProcessingPoints2ndPass UMETA(DisplayName = "Processing points - 2nd pass"),
-		ProcessingPoints3rdPass UMETA(DisplayName = "Processing points - 3rd pass"),
-		ProcessingGraph UMETA(DisplayName = "Processing params"),
-		ProcessingGraph2ndPass UMETA(DisplayName = "Processing params - 2nd pass"),
-		WaitingOnAsyncWork UMETA(DisplayName = "Waiting on async tasks"),
-		Done UMETA(DisplayName = "Done")
-	};
+
+	typedef int64 AsyncState;
+
+	constexpr AsyncState State_Setup = TNumericLimits<int64>::Min();
+	constexpr AsyncState State_ReadyForNextPoints = 1;
+	constexpr AsyncState State_ProcessingPoints = 2;
+	constexpr AsyncState State_WaitingOnAsyncWork = 3;
+	constexpr AsyncState State_Done = TNumericLimits<int64>::Max();
+	
 
 	struct PCGEXTENDEDTOOLKIT_API FTaskInfos
 	{

@@ -7,6 +7,29 @@
 
 int32 UPCGExBuildGraphSettings::GetPreferredChunkSize() const { return 32; }
 PCGExIO::EInitMode UPCGExBuildGraphSettings::GetPointOutputInitMode() const { return PCGExIO::EInitMode::DuplicateInput; }
+
+UPCGExBuildGraphSettings::UPCGExBuildGraphSettings(
+	const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
+{
+	if (!GraphSolver) { GraphSolver = NewObject<UPCGExGraphSolver>(); }
+}
+
+TArray<FPCGPinProperties> UPCGExBuildGraphSettings::OutputPinProperties() const
+{
+	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
+	if(bComputePatches)
+	{
+		FPCGPinProperties& PinPatchesOutput = PinProperties.Emplace_GetRef(PCGExGraph::OutputPatchesLabel, EPCGDataType::Point);
+
+#if WITH_EDITOR
+		PinPatchesOutput.Tooltip = LOCTEXT("PCGExOutputPatchTooltip", "Patches");
+#endif // WITH_EDITOR
+	}
+	
+	return PinProperties;
+}
+
 FPCGElementPtr UPCGExBuildGraphSettings::CreateElement() const { return MakeShared<FPCGExBuildGraphElement>(); }
 FName UPCGExBuildGraphSettings::GetMainPointsInputLabel() const { return PCGEx::SourcePointsLabel; }
 
@@ -22,7 +45,9 @@ FPCGContext* FPCGExBuildGraphElement::Initialize(
 	check(Settings);
 
 	Context->bComputeEdgeType = Settings->bComputeEdgeType;
-	Context->bSimpleMode = Settings->bSimpleMode;
+	Context->GraphSolver = Settings->GraphSolver;
+
+	if (!Context->GraphSolver) { Context->GraphSolver = NewObject<UPCGExGraphSolver>(); }
 
 	return Context;
 }
@@ -37,12 +62,12 @@ bool FPCGExBuildGraphElement::ExecuteInternal(
 	if (Context->IsSetup())
 	{
 		if (!Validate(Context)) { return true; }
-		Context->SetState(PCGExMT::EState::ReadyForNextPoints);
+		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
 	// Prep point for param loops
 
-	if (Context->IsState(PCGExMT::EState::ReadyForNextPoints))
+	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
 		if (Context->CurrentIO)
 		{
@@ -52,24 +77,24 @@ bool FPCGExBuildGraphElement::ExecuteInternal(
 
 		if (!Context->AdvancePointsIO(true))
 		{
-			Context->SetState(PCGExMT::EState::Done); //No more points
+			Context->SetState(PCGExMT::State_Done); //No more points
 		}
 		else
 		{
 			Context->CurrentIO->BuildMetadataEntriesAndIndices();
 			Context->Octree = const_cast<UPCGPointData::PointOctree*>(&(Context->CurrentIO->Out->GetOctree())); // Not sure this really saves perf
-			Context->SetState(PCGExMT::EState::ReadyForNextGraph);
+			Context->SetState(PCGExGraph::State_ReadyForNextGraph);
 		}
 	}
 
-	if (Context->IsState(PCGExMT::EState::ReadyForNextGraph))
+	if (Context->IsState(PCGExGraph::State_ReadyForNextGraph))
 	{
 		if (!Context->AdvanceGraph())
 		{
-			Context->SetState(PCGExMT::EState::ReadyForNextPoints);
+			Context->SetState(PCGExMT::State_ReadyForNextPoints);
 			return false;
 		}
-		Context->SetState(PCGExMT::EState::ProcessingGraph);
+		Context->SetState(State_ProbingPoints);
 	}
 
 	// Process params for current points
@@ -80,7 +105,7 @@ bool FPCGExBuildGraphElement::ExecuteInternal(
 		Context->CachedIndex->SetValue(Point.MetadataEntry, PointIndex); // Cache index
 
 		TArray<PCGExGraph::FSocketProbe> Probes;
-		const double MaxDistance = Context->PrepareProbesForPoint(Point, Probes);
+		const double MaxDistance = Context->GraphSolver->PrepareProbesForPoint(Context->SocketInfos, Point, Probes);
 
 		auto ProcessPointNeighbor = [&](const FPCGPointRef& OtherPointRef)
 		{
@@ -88,34 +113,17 @@ bool FPCGExBuildGraphElement::ExecuteInternal(
 			const int32 Index = PointIO->GetIndex(OtherPoint->MetadataEntry);
 
 			if (Index == PointIndex) { return; }
-			if (Context->bSimpleMode)
-			{
-				for (PCGExGraph::FSocketProbe& Probe : Probes) { Probe.ProcessPointSimple(OtherPoint, Index); }
-			}
-			else
-			{
-				for (PCGExGraph::FSocketProbe& Probe : Probes) { Probe.ProcessPointComplex(OtherPoint, Index); }
-			}
+			for (PCGExGraph::FSocketProbe& Probe : Probes) { Context->GraphSolver->ProcessPoint(Probe, OtherPoint, Index); }
 		};
 
 		const FBoxCenterAndExtent Box = FBoxCenterAndExtent(Point.Transform.GetLocation(), FVector(MaxDistance));
 		Context->Octree->FindElementsWithBoundsTest(Box, ProcessPointNeighbor);
 
 		const PCGMetadataEntryKey Key = Point.MetadataEntry;
-		if (Context->bSimpleMode)
+		for (PCGExGraph::FSocketProbe& Probe : Probes)
 		{
-			for (PCGExGraph::FSocketProbe& Probe : Probes)
-			{
-				Probe.OutputTo(Key);
-			}
-		}
-		else
-		{
-			for (PCGExGraph::FSocketProbe& Probe : Probes)
-			{
-				Probe.ProcessCandidates();
-				Probe.OutputTo(Key);
-			}
+			Context->GraphSolver->ResolveProbe(Probe);
+			Probe.OutputTo(Key);
 		}
 	};
 
@@ -124,30 +132,30 @@ bool FPCGExBuildGraphElement::ExecuteInternal(
 		Context->PrepareCurrentGraphForPoints(PointIO->Out, Context->bComputeEdgeType);
 	};
 
-	if (Context->IsState(PCGExMT::EState::ProcessingGraph))
+	if (Context->IsState(State_ProbingPoints))
 	{
 		if (Context->AsyncProcessingCurrentPoints(Initialize, ProcessPoint))
 		{
-			if (Context->bComputeEdgeType) { Context->SetState(PCGExMT::EState::ProcessingGraph2ndPass); }
-			else { Context->SetState(PCGExMT::EState::ReadyForNextGraph); }
+			if (Context->bComputeEdgeType) { Context->SetState(PCGExGraph::State_FindingEdgeTypes); }
+			else { Context->SetState(PCGExGraph::State_ReadyForNextGraph); }
 		}
 	}
 
 	// Process params again for edges types
 	auto ProcessPointForGraph = [&](const int32 PointIndex, const UPCGExPointIO* PointIO)
 	{
-		Context->ComputeEdgeType(PointIO->GetOutPoint(PointIndex), PointIndex, PointIO);
+		PCGExGraph::ComputeEdgeType(Context->SocketInfos, PointIO->GetOutPoint(PointIndex), PointIndex, PointIO);
 	};
 
-	if (Context->IsState(PCGExMT::EState::ProcessingGraph2ndPass))
+	if (Context->IsState(PCGExGraph::State_FindingEdgeTypes))
 	{
 		if (Context->AsyncProcessingCurrentPoints(ProcessPointForGraph))
 		{
-			Context->SetState(PCGExMT::EState::ReadyForNextGraph);
+			Context->SetState(PCGExGraph::State_ReadyForNextGraph);
 		}
 	}
 
-	if (Context->IsState(PCGExMT::EState::Done))
+	if (Context->IsDone())
 	{
 		Context->OutputPointsAndParams();
 		return true;
