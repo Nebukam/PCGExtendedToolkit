@@ -147,11 +147,12 @@ public:
 	UPCGExPointIO* Emplace_GetRef(
 		const FPCGTaggedData& Source, UPCGPointData* In,
 		const PCGExIO::EInitMode InitOut = PCGExIO::EInitMode::NoOutput);
-	UPCGExPointIO* Emplace_GetRef(UPCGPointData* In, PCGExIO::EInitMode InitOut= PCGExIO::EInitMode::NoOutput);
+	UPCGExPointIO* Emplace_GetRef(UPCGPointData* In, PCGExIO::EInitMode InitOut = PCGExIO::EInitMode::NoOutput);
 
 	UPCGExPointIO* Emplace_GetRef(PCGExIO::EInitMode InitOut = PCGExIO::EInitMode::NewOutput);
 
 	bool IsEmpty() const { return Pairs.IsEmpty(); }
+	int32 Num() const { return Pairs.Num(); }
 
 	void OutputTo(FPCGContext* Context, bool bEmplace = false);
 	void OutputTo(FPCGContext* Context, bool bEmplace, const int64 MinPointCount, const int64 MaxPointCount);

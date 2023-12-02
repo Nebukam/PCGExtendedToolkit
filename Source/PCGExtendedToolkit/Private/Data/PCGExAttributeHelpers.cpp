@@ -8,7 +8,7 @@
 #if WITH_EDITOR
 FString FPCGExInputDescriptor::GetDisplayName() const { return GetName().ToString(); }
 
-void FPCGExInputDescriptor::PrintDisplayName() { HiddenDisplayName = GetDisplayName(); }
+void FPCGExInputDescriptor::UpdateUserFacingInfos() { TitlePropertyName = GetDisplayName(); }
 #endif
 
 bool FPCGExInputDescriptor::Validate(const UPCGPointData* InData)
@@ -71,7 +71,7 @@ void PCGEx::FLocalSingleFieldGetter::Capture(const FPCGExInputDescriptorGeneric&
 	Axis = InDescriptor.Axis;
 }
 
-void PCGEx::FAttributeMap::PrepareForPoints(UPCGPointData* InData)
+void PCGEx::FAttributeMap::PrepareForPoints(const UPCGPointData* InData)
 {
 	NumAttributes = InData->Metadata->GetAttributeCount();
 
@@ -89,16 +89,8 @@ void PCGEx::FAttributeMap::PrepareForPoints(UPCGPointData* InData)
 	}
 }
 
-void PCGEx::FAttributeMap::PrepareForPoints(const FAttributeMap& From, const UPCGPointData* OutData)
+void PCGEx::FAttributeMap::Prepare(const FAttributeMap& From, const FAttributeMap& To)
 {
-	NumAttributes = From.NumAttributes;
-	Identities.Reset(NumAttributes);
-	Identities.Append(From.Identities);
-
-	Attributes.Empty(NumAttributes);
-
-	for (const FAttributeIdentity& Identity : From.Identities)
-	{
-		Attributes.Add(Identity.Name, OutData->Metadata->CopyAttribute(*From.Attributes.Find(Identity.Name), Identity.Name, true, false, false));
-	}
+	Identities.Reset(From.NumAttributes);
+	Attributes.Empty(From.NumAttributes);
 }

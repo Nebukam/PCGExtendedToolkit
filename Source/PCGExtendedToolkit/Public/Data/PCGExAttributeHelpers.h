@@ -40,7 +40,7 @@ public:
 	};
 
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta = (HideInDetailPanel, Hidden, EditConditionHides, EditCondition="false"))
-	FString HiddenDisplayName;
+	FString TitlePropertyName;
 
 	/** Point Attribute or $Property */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayPriority=0))
@@ -69,7 +69,7 @@ public:
 	FName GetName() const { return Selector.GetName(); }
 #if WITH_EDITOR
 	virtual FString GetDisplayName() const;
-	void PrintDisplayName();
+	void UpdateUserFacingInfos();
 #endif
 	/**
 	 * Validate & cache the current selector for a given UPCGPointData
@@ -581,8 +581,8 @@ virtual _TYPE Convert(const FName Value) const override { return _TYPE(Value.ToS
 		TArray<FAttributeIdentity> Identities;
 		TMap<FName, FPCGMetadataAttributeBase*> Attributes;
 
-		void PrepareForPoints(UPCGPointData* InData);
-		void PrepareForPoints(const FAttributeMap& From, const UPCGPointData* OutData);
+		void PrepareForPoints(const UPCGPointData* InData);
+		void Prepare(const FAttributeMap& From, const FAttributeMap& To);
 
 		// Getters
 
@@ -625,6 +625,16 @@ virtual _TYPE Convert(const FName Value) const override { return _TYPE(Value.ToS
 		}
 
 		// Operations
+
+		template <typename T>
+		void SetCopy(
+			const FName Name,
+			const PCGMetadataEntryKey& FromKey,
+			const PCGMetadataEntryKey& OutKey)
+		{
+			PCGEX_ATTRIBUTE
+			Attribute->SetValue(OutKey, Attribute->GetValueFromItemKey(FromKey));
+		}
 
 		template <typename T>
 		void SetLerp(
@@ -724,6 +734,21 @@ virtual _TYPE Convert(const FName Value) const override { return _TYPE(Value.ToS
 				PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_LERPATT)
 #undef PCGEX_LERPATT
 				}
+			}
+		}
+
+		void SetCopy(
+			const PCGMetadataEntryKey& FromKey,
+			const PCGMetadataEntryKey& OutKey)
+		{
+			for (const FAttributeIdentity& Identity : Identities)
+			{
+				switch (Identity.UnderlyingType)
+				{
+#define PCGEX_LERPATT(_TYPE, _NAME)  case EPCGMetadataTypes::_NAME: SetCopy<_TYPE>(Identity.Name, FromKey, OutKey); break;
+					PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_LERPATT)
+	#undef PCGEX_LERPATT
+					}
 			}
 		}
 	};

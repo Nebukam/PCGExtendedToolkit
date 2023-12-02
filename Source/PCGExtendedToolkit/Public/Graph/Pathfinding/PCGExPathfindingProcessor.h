@@ -4,12 +4,15 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExPathfinding.h"
 
+#include "PCGExPathfinding.h"
 #include "Graph/PCGExGraphProcessor.h"
 
 #include "PCGExPathfindingProcessor.generated.h"
 
+class UPCGExGoalPicker;
+class UPCGExSubPointsOrient;
+class UPCGExSubPointsDataBlend;
 class UPCGExPathfindingParamsData;
 
 /**
@@ -33,6 +36,19 @@ public:
 	virtual PCGExIO::EInitMode GetPointOutputInitMode() const override;
 	virtual bool GetRequiresSeeds() const;
 	virtual bool GetRequiresGoals() const;
+
+	/** Ignores candidates weighting pass and always favors the closest one.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced)
+	UPCGExGoalPicker* GoalPicker;
+
+	/** Ignores candidates weighting pass and always favors the closest one.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced)
+	UPCGExSubPointsOrient* Orientation;
+
+	/** TBD */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced)
+	UPCGExSubPointsDataBlend* Blending;
+	
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingProcessorContext : public FPCGExGraphProcessorContext
@@ -44,9 +60,11 @@ public:
 	UPCGExPointIO* SeedsPoints = nullptr;
 	UPCGExPointIO* GoalsPoints = nullptr;
 
-	PCGEx::FLocalDoubleInput GoalIndexInput;
-	EPCGExPathfindingGoalPickMethod GoalPickMethod;
+	UPCGExGoalPicker* GoalPicker;
+	UPCGExSubPointsOrient* Orientation;
+	UPCGExSubPointsDataBlend* Blending;
 
+	
 protected:
 	int64 GetGoalIndex(const FPCGPoint& Seed, int64 SeedIndex);
 };

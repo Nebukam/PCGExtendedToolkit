@@ -19,38 +19,40 @@ namespace PCGExMath
 		{
 		}
 
-		FApex(const FVector& InA, const FVector& InB, const FVector& InApex)
+		FApex(const FVector& Start, const FVector& End, const FVector& InApex)
 		{
-			Direction = (InA - InB).GetSafeNormal();
-			Anchor = FMath::ClosestPointOnSegment(InApex, InA, InB);
+			Direction = (Start - End).GetSafeNormal();
+			Anchor = FMath::ClosestPointOnSegment(InApex, Start, End);
 
-			const double DistA = FVector::Dist(InA, Anchor);
-			const double DistB = FVector::Dist(InB, Anchor);
-			Backward = Direction * DistB;
-			Forward = Direction * (DistA * -1);
-			Alpha = DistA / (DistA + DistB);
+			const double DistToStart = FVector::Dist(Start, Anchor);
+			const double DistToEnd = FVector::Dist(End, Anchor);
+			TowardStart = Direction * (DistToStart * -1);
+			TowardEnd = Direction * DistToEnd;
+			Alpha = DistToStart / (DistToStart + DistToEnd);
 		}
 
 		FVector Direction;
 		FVector Anchor;
-		FVector Backward;
-		FVector Forward;
+		FVector TowardStart;
+		FVector TowardEnd;
 		double Alpha = 0;
+
+		FVector GetAnchorNormal(const FVector& Location) const { return (Anchor - Location).GetSafeNormal(); }
 
 		void Scale(double InScale)
 		{
-			Backward *= InScale;
-			Forward *= InScale;
+			TowardStart *= InScale;
+			TowardEnd *= InScale;
 		}
 
 		void Extend(double InSize)
 		{
-			Backward += Direction * InSize;
-			Forward += Direction * -InSize;
+			TowardStart += Direction * InSize;
+			TowardEnd += Direction * -InSize;
 		}
 
-		static FApex FromA(const FVector& InA, const FVector& InApex) { return FApex(InA, InApex, InApex); }
-		static FApex FromB(const FVector& InB, const FVector& InApex) { return FApex(InApex, InB, InApex); }
+		static FApex FromStartOnly(const FVector& Start, const FVector& InApex) { return FApex(Start, InApex, InApex); }
+		static FApex FromEndOnly(const FVector& End, const FVector& InApex) { return FApex(InApex, End, InApex); }
 	};
 
 	inline static double ConvertStringToDouble(const FString& StringToConvert)
@@ -234,6 +236,13 @@ namespace PCGExMath
 	inline static void Lerp(const FPCGPoint& A, const FPCGPoint& B, FPCGPoint& Out, const double Alpha)
 	{
 #define PCGEX_POINT_PROPERTY_LERP(_NAME) Out._NAME = Lerp(A._NAME, B._NAME, Alpha);
+		PCGEX_FOREACH_GETSET_POINTPROPERTY(PCGEX_POINT_PROPERTY_LERP)
+#undef PCGEX_POINT_PROPERTY_LERP
+	}
+
+	inline static void Copy(const FPCGPoint& A, FPCGPoint& Out)
+	{
+#define PCGEX_POINT_PROPERTY_LERP(_NAME) Out._NAME = A._NAME;
 		PCGEX_FOREACH_GETSET_POINTPROPERTY(PCGEX_POINT_PROPERTY_LERP)
 #undef PCGEX_POINT_PROPERTY_LERP
 	}

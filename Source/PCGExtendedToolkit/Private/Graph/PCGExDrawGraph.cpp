@@ -183,7 +183,7 @@ bool FPCGExDrawGraphElement::ExecuteInternal(FPCGContext* InContext) const
 			}
 		};
 
-		if (Context->ChunkProcessingCurrentPoints(Initialize, ProcessPoint))
+		if (Context->ProcessCurrentPoints(Initialize, ProcessPoint, true))
 		{
 			Context->SetState(PCGExGraph::State_ReadyForNextGraph);
 		}

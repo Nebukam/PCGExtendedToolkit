@@ -88,7 +88,7 @@ bool FPCGExSampleNearestSurfaceElement::ExecuteInternal(FPCGContext* InContext) 
 			Context->StartTask(Task);
 		};
 
-		if (Context->AsyncProcessingCurrentPoints(Initialize, ProcessPoint))
+		if (Context->ProcessCurrentPoints(Initialize, ProcessPoint))
 		{
 			Context->SetState(PCGExMT::State_WaitingOnAsyncWork);
 		}

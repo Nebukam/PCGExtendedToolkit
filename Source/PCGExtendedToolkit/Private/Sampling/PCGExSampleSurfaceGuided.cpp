@@ -87,7 +87,7 @@ bool FPCGExSampleSurfaceGuidedElement::ExecuteInternal(FPCGContext* InContext) c
 			Context->CreateAndStartTask<FTraceTask>(PointIndex, PointIO->GetOutPoint(PointIndex).MetadataEntry);
 		};
 
-		if (Context->AsyncProcessingCurrentPoints(Initialize, ProcessPoint))
+		if (Context->ProcessCurrentPoints(Initialize, ProcessPoint))
 		{
 			Context->SetState(PCGExMT::State_WaitingOnAsyncWork);
 		}

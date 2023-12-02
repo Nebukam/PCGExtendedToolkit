@@ -7,6 +7,7 @@
 
 #include "PCGExPointsProcessor.h"
 #include "Graph/PCGExGraph.h"
+#include "Graph/Pathfinding/GoalPickers/PCGExGoalPickerRandom.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSampleNavmeshElement"
 
@@ -14,6 +15,7 @@ UPCGExSampleNavmeshSettings::UPCGExSampleNavmeshSettings(
 	const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	GoalPicker = EnsureInstruction<UPCGExGoalPickerRandom>(GoalPicker);
 }
 
 TArray<FPCGPinProperties> UPCGExSampleNavmeshSettings::InputPinProperties() const
@@ -49,7 +51,7 @@ TArray<FPCGPinProperties> UPCGExSampleNavmeshSettings::OutputPinProperties() con
 
 void UPCGExSampleNavmeshSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
-	GoalPicking.PrintDisplayNames();
+	if (GoalPicker) { GoalPicker->UpdateUserFacingInfos(); }
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
 
@@ -87,7 +89,7 @@ FPCGContext* FPCGExSampleNavmeshElement::Initialize(const FPCGDataCollection& In
 
 	Context->OutputPaths = NewObject<UPCGExPointIOGroup>();
 
-	Context->GoalPicking = Settings->GoalPicking;
+	Context->GoalPicker = Settings->EnsureInstruction<UPCGExGoalPickerRandom>(Settings->GoalPicker);
 	Context->PointsOrientation = Settings->PointsOrientation;
 	Context->bAddSeedToPath = Settings->bAddSeedToPath;
 	Context->bAddGoalToPath = Settings->bAddGoalToPath;
@@ -136,7 +138,7 @@ bool FPCGExSampleNavmeshElement::ExecuteInternal(FPCGContext* InContext) const
 	{
 		if (!Validate(Context)) { return true; }
 		Context->AdvancePointsIO();
-		Context->GoalPicking.PrepareForData(Context->GoalsPoints->In);
+		Context->GoalPicker->PrepareForData(Context->CurrentIO->In, Context->GoalsPoints->In);
 		Context->SetState(PCGExMT::State_ProcessingPoints);
 	}
 
@@ -144,17 +146,17 @@ bool FPCGExSampleNavmeshElement::ExecuteInternal(FPCGContext* InContext) const
 	{
 		auto ProcessPoint = [&](const int32 PointIndex, const UPCGExPointIO* PointIO)
 		{
-			if (Context->GoalPicking.IsMultiPick())
+			if (Context->GoalPicker->OutputMultipleGoals())
 			{
 				TArray<int32> GoalIndices;
-				Context->GoalPicking.GetGoalIndices(PointIO->GetInPoint(PointIndex), GoalIndices);
-				for (int32 Goal : GoalIndices)
+				Context->GoalPicker->GetGoalIndices(PointIO->GetInPoint(PointIndex), GoalIndices);
+				for (const int32 GoalIndex : GoalIndices)
 				{
-					if (Goal < 0) { continue; }
+					if (GoalIndex < 0) { continue; }
 
 					FAsyncTask<FNavmeshPathTask>* AsyncTask = Context->CreateTask<FNavmeshPathTask>(PointIndex, PointIO->GetInPoint(PointIndex).MetadataEntry);
 					FNavmeshPathTask& Task = AsyncTask->GetTask();
-					Task.GoalIndex = Goal;
+					Task.GoalIndex = GoalIndex;
 					Task.PathPoints = Context->OutputPaths->Emplace_GetRef(PointIO->In, PCGExIO::EInitMode::NewOutput);
 
 					Context->StartTask(AsyncTask);
@@ -162,7 +164,7 @@ bool FPCGExSampleNavmeshElement::ExecuteInternal(FPCGContext* InContext) const
 			}
 			else
 			{
-				int32 GoalIndex = Context->GoalPicking.GetGoalIndex(PointIO->GetInPoint(PointIndex), PointIndex);
+				const int32 GoalIndex = Context->GoalPicker->GetGoalIndex(PointIO->GetInPoint(PointIndex), PointIndex);
 				if (GoalIndex < 0) { return; }
 
 				FAsyncTask<FNavmeshPathTask>* AsyncTask = Context->CreateTask<FNavmeshPathTask>(PointIndex, PointIO->GetInPoint(PointIndex).MetadataEntry);
@@ -174,7 +176,7 @@ bool FPCGExSampleNavmeshElement::ExecuteInternal(FPCGContext* InContext) const
 			}
 		};
 
-		if (Context->AsyncProcessingCurrentPoints(ProcessPoint))
+		if (Context->ProcessCurrentPoints(ProcessPoint))
 		{
 			Context->SetState(PCGExMT::State_WaitingOnAsyncWork);
 		}

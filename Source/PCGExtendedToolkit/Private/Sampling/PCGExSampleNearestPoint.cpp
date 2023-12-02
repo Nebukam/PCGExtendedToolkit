@@ -331,7 +331,7 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 		};
 
 
-		if (Context->AsyncProcessingCurrentPoints(Initialize, ProcessPoint))
+		if (Context->ProcessCurrentPoints(Initialize, ProcessPoint))
 		{
 			Context->SetState(PCGExMT::State_ReadyForNextPoints);
 		}

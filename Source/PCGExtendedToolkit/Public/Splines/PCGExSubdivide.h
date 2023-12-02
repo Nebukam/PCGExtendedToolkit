@@ -7,6 +7,7 @@
 
 #include "PCGExPointsProcessor.h"
 #include "Graph/PCGExGraph.h"
+#include "Splines/SubPoints/PCGExSubPointsProcessor.h"
 #include "PCGExSubdivide.generated.h"
 
 UENUM(BlueprintType)
@@ -33,6 +34,8 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSubdivideSettings : public UPCGExPointsProces
 	GENERATED_BODY()
 
 public:
+	UPCGExSubdivideSettings(const FObjectInitializer& ObjectInitializer);
+
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(Subdivide, "Subdivide", "Subdivide paths segments.");
@@ -57,14 +60,14 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="Method==EPCGExSubdivideMode::Count", EditConditionHides))
 	int32 Count = 10;
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced)
+	UPCGExSubPointsProcessor* Blending;
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(InlineEditConditionToggle))
 	bool bFlagSubPoints = false;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="bFlagSubPoints"))
 	FName FlagName = "IsSubPoint";
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
-	EPCGExSubdivideBlendMode SubdivideBlend = EPCGExSubdivideBlendMode::InheritStart;
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExSubdivideContext : public FPCGExPointsProcessorContext
@@ -76,11 +79,13 @@ public:
 	double Distance;
 	int32 Count;
 	bool bFlagSubPoints;
-	EPCGExSubdivideBlendMode SubdivideBlend;
 
 	FName FlagName;
 	FPCGMetadataAttribute<bool>* FlagAttribute = nullptr;
+
 	PCGEx::FAttributeMap InputAttributeMap;
+
+	UPCGExSubPointsProcessor* SubPointsProcessor;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExSubdivideElement : public FPCGExPointsProcessorElementBase

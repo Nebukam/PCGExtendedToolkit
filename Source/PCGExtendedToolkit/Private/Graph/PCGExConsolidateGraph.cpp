@@ -81,7 +81,7 @@ bool FPCGExConsolidateGraphElement::ExecuteInternal(
 		};
 
 
-		if (Context->AsyncProcessingCurrentPoints(Initialize, ProcessPoint))
+		if (Context->ProcessCurrentPoints(Initialize, ProcessPoint))
 		{
 			Context->SetState(PCGExGraph::State_SwappingGraphIndices);
 		}
@@ -113,7 +113,7 @@ bool FPCGExConsolidateGraphElement::ExecuteInternal(
 			}
 		};
 
-		if (Context->AsyncProcessingCurrentPoints(ConsolidatePoint))
+		if (Context->ProcessCurrentPoints(ConsolidatePoint))
 		{
 			Context->SetState(Context->bConsolidateEdgeType ? PCGExGraph::State_FindingEdgeTypes : PCGExMT::State_ReadyForNextPoints);
 		}
@@ -128,7 +128,7 @@ bool FPCGExConsolidateGraphElement::ExecuteInternal(
 			PCGExGraph::ComputeEdgeType(Context->SocketInfos, PointIO->GetOutPoint(PointIndex), PointIndex, PointIO);
 		};
 
-		if (Context->AsyncProcessingCurrentPoints(ConsolidateEdgesType))
+		if (Context->ProcessCurrentPoints(ConsolidateEdgesType))
 		{
 			Context->SetState(PCGExMT::State_ReadyForNextPoints);
 		}

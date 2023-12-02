@@ -9,7 +9,10 @@
 #include "PCGExPathfinding.h"
 
 #include "PCGExPointsProcessor.h"
+#include "GoalPickers/PCGExGoalPicker.h"
 #include "Graph/PCGExGraph.h"
+#include "Splines/SubPoints/DataBlending/PCGExSubPointsDataBlend.h"
+#include "Splines/SubPoints/Orient/PCGExSubPointsOrient.h"
 
 #include "PCGExSampleNavmesh.generated.h"
 
@@ -65,13 +68,21 @@ public:
 	virtual FName GetMainPointsOutputLabel() const override;
 
 public:
-	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(FullyExpand=true))
-	FPCGExPathfindingGoalPickingSettings GoalPicking;
+	/** Ignores candidates weighting pass and always favors the closest one.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced)
+	UPCGExGoalPicker* GoalPicker;
 
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(FullyExpand=true))
 	FPCGExPathPointOrientSettings PointsOrientation;
+
+	/** TBD */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced)
+	UPCGExSubPointsOrient* Orientation;
+	
+	/** TBD */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced)
+	UPCGExSubPointsDataBlend* Blending;
 
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
@@ -112,7 +123,7 @@ public:
 	UPCGExPointIO* GoalsPoints = nullptr;
 	UPCGExPointIOGroup* OutputPaths = nullptr;
 
-	FPCGExPathfindingGoalPickingSettings GoalPicking;
+	UPCGExGoalPicker* GoalPicker;
 	FPCGExPathPointOrientSettings PointsOrientation;
 
 	bool bAddSeedToPath = true;

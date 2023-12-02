@@ -3,7 +3,15 @@
 
 #include "Splines/PCGExSubdivide.h"
 
+#include "Splines/SubPoints/DataBlending/PCGExSubPointsDataBlendLerp.h"
+
 #define LOCTEXT_NAMESPACE "PCGExSubdivideElement"
+
+UPCGExSubdivideSettings::UPCGExSubdivideSettings(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
+{
+	Blending = EnsureInstruction<UPCGExSubPointsDataBlendLerp>(Blending);
+}
 
 PCGExIO::EInitMode UPCGExSubdivideSettings::GetPointOutputInitMode() const { return PCGExIO::EInitMode::NewOutput; }
 
@@ -23,8 +31,9 @@ FPCGContext* FPCGExSubdivideElement::Initialize(const FPCGDataCollection& InputD
 	Context->Distance = Settings->Distance;
 	Context->Count = Settings->Count;
 	Context->bFlagSubPoints = Settings->bFlagSubPoints;
-	Context->SubdivideBlend = Settings->SubdivideBlend;
 	Context->FlagName = Settings->FlagName;
+
+	Context->SubPointsProcessor = Settings->EnsureInstruction<UPCGExSubPointsDataBlendLerp>(Settings->Blending);
 
 	return Context;
 }
@@ -52,8 +61,9 @@ bool FPCGExSubdivideElement::ExecuteInternal(FPCGContext* InContext) const
 	{
 		auto Initialize = [&](UPCGExPointIO* PointIO)
 		{
+			Context->InputAttributeMap.PrepareForPoints(PointIO->In);
 			if (Context->bFlagSubPoints) { Context->FlagAttribute = PointIO->Out->Metadata->FindOrCreateAttribute(Context->FlagName, false); }
-			if (Context->SubdivideBlend == EPCGExSubdivideBlendMode::Lerp) { Context->InputAttributeMap.PrepareForPoints(PointIO->In); }
+			Context->SubPointsProcessor->PrepareForData(PointIO, &Context->InputAttributeMap);
 		};
 
 		auto ProcessPoint = [&](const int32 Index, const UPCGExPointIO* PointIO)
@@ -65,6 +75,7 @@ bool FPCGExSubdivideElement::ExecuteInternal(FPCGContext* InContext) const
 
 			const FVector StartPos = StartPoint.Transform.GetLocation();
 			const FVector EndPos = EndPtr->Transform.GetLocation();
+			const FVector Dir = (EndPos - StartPos).GetSafeNormal();
 
 			const double Distance = FVector::Distance(StartPos, EndPos);
 			int32 NumSubdivisions = Context->Count;
@@ -73,38 +84,22 @@ bool FPCGExSubdivideElement::ExecuteInternal(FPCGContext* InContext) const
 			const double StepSize = Distance / static_cast<double>(NumSubdivisions);
 			const double StartOffset = (Distance - StepSize * NumSubdivisions) * 0.5;
 
-			if (Context->SubdivideBlend == EPCGExSubdivideBlendMode::Lerp)
+			TArray<FPCGPoint>& Points = PointIO->Out->GetMutablePoints();
+			const int32 StartIndex = Points.Num();
+
+			for (int i = 0; i < NumSubdivisions; i++)
 			{
-				for (int i = 0; i < NumSubdivisions; i++)
-				{
-					const double Lerp = (StartOffset + StepSize * i) / Distance;
+				FPCGPoint& NewPoint = PointIO->NewPoint(StartPoint);
+				if (Context->bFlagSubPoints) { Context->FlagAttribute->SetValue(NewPoint.MetadataEntry, true); }
 
-					FPCGPoint& NewPoint = PointIO->NewPoint(StartPoint);
-					if (Context->bFlagSubPoints) { Context->FlagAttribute->SetValue(NewPoint.MetadataEntry, true); }
-
-					PCGExMath::Lerp(StartPoint, *EndPtr, NewPoint, Lerp);
-
-					Context->InputAttributeMap.SetLerp(
-						StartPoint.MetadataEntry,
-						EndPtr->MetadataEntry,
-						NewPoint.MetadataEntry,
-						Lerp);
-				}
+				NewPoint.Transform.SetLocation(StartPos + Dir * (StartOffset + i * StepSize));
 			}
-			else
-			{
-				const FPCGPoint& RefPoint = Context->SubdivideBlend == EPCGExSubdivideBlendMode::InheritStart ? StartPoint : *EndPtr;
-				for (int i = 0; i < NumSubdivisions; i++)
-				{
-					double Lerp = (StartOffset + StepSize * i) / Distance;
-					FPCGPoint& NewPoint = PointIO->NewPoint(RefPoint);
-					NewPoint.Transform.SetLocation(FMath::Lerp(StartPos, EndPos, Lerp));
-					if (Context->bFlagSubPoints) { Context->FlagAttribute->SetValue(NewPoint.MetadataEntry, true); }
-				}
-			}
+
+			TArrayView<FPCGPoint> Path = MakeArrayView(Points.GetData() + StartIndex, NumSubdivisions);
+			Context->SubPointsProcessor->ProcessSubPoints(StartPoint, *EndPtr, Path, Distance);
 		};
 
-		if (Context->ChunkProcessingCurrentPoints(Initialize, ProcessPoint))
+		if (Context->ProcessCurrentPoints(Initialize, ProcessPoint, true))
 		{
 			Context->SetState(PCGExMT::State_ReadyForNextPoints);
 		}

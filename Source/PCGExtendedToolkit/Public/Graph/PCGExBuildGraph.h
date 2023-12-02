@@ -45,7 +45,7 @@ public:
 	virtual int32 GetPreferredChunkSize() const override;
 
 	virtual PCGExIO::EInitMode GetPointOutputInitMode() const override;
-
+	
 private:
 	friend class FPCGExBuildGraphElement;
 };

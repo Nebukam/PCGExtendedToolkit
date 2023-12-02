@@ -171,7 +171,7 @@ public:
 	bool bSplitOutput = true;
 
 	/** Rules */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(TitleProperty="{HiddenDisplayName}"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(TitleProperty="{TitlePropertyName}"))
 	TArray<FPCGExPartitionRuleDescriptor> PartitionRules;
 };
 

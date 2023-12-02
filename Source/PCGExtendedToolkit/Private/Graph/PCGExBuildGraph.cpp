@@ -12,7 +12,7 @@ UPCGExBuildGraphSettings::UPCGExBuildGraphSettings(
 	const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	if (!GraphSolver) { GraphSolver = NewObject<UPCGExGraphSolver>(); }
+	GraphSolver = EnsureInstruction<UPCGExGraphSolver>(GraphSolver);
 }
 
 FPCGElementPtr UPCGExBuildGraphSettings::CreateElement() const { return MakeShared<FPCGExBuildGraphElement>(); }
@@ -30,9 +30,7 @@ FPCGContext* FPCGExBuildGraphElement::Initialize(
 	check(Settings);
 
 	Context->bComputeEdgeType = Settings->bComputeEdgeType;
-	Context->GraphSolver = Settings->GraphSolver;
-
-	if (!Context->GraphSolver) { Context->GraphSolver = NewObject<UPCGExGraphSolver>(); }
+	Context->GraphSolver = Settings->EnsureInstruction<UPCGExGraphSolver>(Settings->GraphSolver);
 
 	return Context;
 }
@@ -96,7 +94,7 @@ bool FPCGExBuildGraphElement::ExecuteInternal(
 			Context->CreateAndStartTask<FProbeTask>(PointIndex, PointIO->GetInPoint(PointIndex).MetadataEntry);
 		};
 
-		if (Context->AsyncProcessingCurrentPoints(Initialize, ProcessPoint))
+		if (Context->ProcessCurrentPoints(Initialize, ProcessPoint))
 		{
 			Context->SetState(PCGExMT::State_WaitingOnAsyncWork);
 		}
@@ -119,7 +117,7 @@ bool FPCGExBuildGraphElement::ExecuteInternal(
 			PCGExGraph::ComputeEdgeType(Context->SocketInfos, PointIO->GetOutPoint(PointIndex), PointIndex, PointIO);
 		};
 
-		if (Context->AsyncProcessingCurrentPoints(ProcessPointEdgeType))
+		if (Context->ProcessCurrentPoints(ProcessPointEdgeType))
 		{
 			Context->SetState(PCGExGraph::State_ReadyForNextGraph);
 		}

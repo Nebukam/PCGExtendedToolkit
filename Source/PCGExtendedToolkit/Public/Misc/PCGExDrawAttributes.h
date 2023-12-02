@@ -150,7 +150,7 @@ public:
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 
 	/** Attributes to draw.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(TitleProperty="{HiddenDisplayName} as {ExpressedAs}"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(TitleProperty="{TitlePropertyName} as {ExpressedAs}"))
 	TArray<FPCGExAttributeDebugDrawDescriptor> DebugList;
 
 protected:

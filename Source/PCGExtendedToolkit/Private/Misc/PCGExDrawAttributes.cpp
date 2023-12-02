@@ -171,7 +171,7 @@ TArray<FPCGPinProperties> UPCGExDrawAttributesSettings::OutputPinProperties() co
 void UPCGExDrawAttributesSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	DebugSettings.PointScale = 0.0f;
-	for (FPCGExAttributeDebugDrawDescriptor& Descriptor : DebugList) { Descriptor.PrintDisplayName(); }
+	for (FPCGExAttributeDebugDrawDescriptor& Descriptor : DebugList) { Descriptor.UpdateUserFacingInfos(); }
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
 #endif
@@ -274,7 +274,10 @@ bool FPCGExDrawAttributesElement::ExecuteInternal(FPCGContext* InContext) const
 			}
 		};
 
-		if (Context->ChunkProcessingCurrentPoints(Initialize, ProcessPoint)) { Context->Done(); }
+		if (Context->ProcessCurrentPoints(Initialize, ProcessPoint, true))
+		{
+			Context->SetState(PCGExMT::State_ReadyForNextPoints);
+		}
 	}
 
 	if (Context->IsDone()) { return true; }

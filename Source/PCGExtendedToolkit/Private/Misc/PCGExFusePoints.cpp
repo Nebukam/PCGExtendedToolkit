@@ -48,7 +48,7 @@ void UPCGExFusePointsSettings::RefreshFuseMethodHiddenNames()
 {
 	if (!FuseMethodOverrides.IsEmpty())
 	{
-		for (FPCGExInputDescriptorWithFuseMethod& Descriptor : FuseMethodOverrides) { Descriptor.PrintDisplayName(); }
+		for (FPCGExInputDescriptorWithFuseMethod& Descriptor : FuseMethodOverrides) { Descriptor.UpdateUserFacingInfos(); }
 
 #define PCGEX_FUSE_UPDATE(_NAME) if(!bOverride##_NAME){_NAME##FuseMethod = FuseMethod;}
 		PCGEX_FUSE_FOREACH_POINTPROPERTYNAME(PCGEX_FUSE_UPDATE)
@@ -211,7 +211,7 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 			FuseTarget->Add(PointIndex, Distance);
 		};
 
-		if (Context->AsyncProcessingCurrentPoints(Initialize, ProcessPoint))
+		if (Context->ProcessCurrentPoints(Initialize, ProcessPoint))
 		{
 			Context->SetState(PCGExFuse::State_MergingPoints);
 		}

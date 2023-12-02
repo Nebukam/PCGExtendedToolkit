@@ -156,21 +156,22 @@ namespace PCGEx
 	}
 
 	template <typename T>
-	static void SanitizeIndex(T& Index, const T& Limit, const EPCGExIndexSafety Method)
+	static T SanitizeIndex(const T& Index, const T& Limit, const EPCGExIndexSafety Method)
 	{
 		switch (Method)
 		{
 		case EPCGExIndexSafety::Ignore:
-			if (Index < 0 || Index > Limit) { Index = -1; }
+			if (Index < 0 || Index > Limit) { return -1; }
 			break;
 		case EPCGExIndexSafety::Wrap:
-			Index = FMath::Wrap(Index, 0, Limit);
+			return FMath::Wrap(Index, 0, Limit);
 			break;
 		case EPCGExIndexSafety::Clamp:
-			Index = FMath::Clamp(Index, 0, Limit);
+			return FMath::Clamp(Index, 0, Limit);
 			break;
 		default: ;
 		}
+		return Index;
 	}
 
 	static FVector GetDirection(const FQuat& Quat, const EPCGExAxis Dir)

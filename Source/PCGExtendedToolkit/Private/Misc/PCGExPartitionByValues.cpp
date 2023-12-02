@@ -19,7 +19,7 @@ FString FPCGExPartitionRuleDescriptor::GetDisplayName() const
 
 void UPCGExPartitionByValuesSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
-	for (FPCGExPartitionRuleDescriptor& Descriptor : PartitionRules) { Descriptor.PrintDisplayName(); }
+	for (FPCGExPartitionRuleDescriptor& Descriptor : PartitionRules) { Descriptor.UpdateUserFacingInfos(); }
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
 
@@ -158,7 +158,7 @@ bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* InContext) con
 				LayerKeys.Empty();
 			};
 			
-			if (Context->AsyncProcessingCurrentPoints(Initialize, DistributePoint))
+			if (Context->ProcessCurrentPoints(Initialize, DistributePoint))
 			{
 				Context->SetState(PCGExMT::State_ReadyForNextPoints);
 			}
@@ -181,7 +181,7 @@ bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* InContext) con
 				}
 			};
 
-			if (Context->AsyncProcessingCurrentPoints(Initialize, ProcessPoint))
+			if (Context->ProcessCurrentPoints(Initialize, ProcessPoint))
 			{
 				Context->SetState(PCGExMT::State_ReadyForNextPoints);
 			}

@@ -9,7 +9,6 @@
 
 namespace PCGExMT
 {
-
 	typedef int64 AsyncState;
 
 	constexpr AsyncState State_Setup = TNumericLimits<int64>::Min();
@@ -17,7 +16,125 @@ namespace PCGExMT
 	constexpr AsyncState State_ProcessingPoints = 2;
 	constexpr AsyncState State_WaitingOnAsyncWork = 3;
 	constexpr AsyncState State_Done = TNumericLimits<int64>::Max();
-	
+
+	struct PCGEXTENDEDTOOLKIT_API FChunkedLoop
+	{
+		FChunkedLoop()
+		{
+		}
+
+		int32 NumIterations = -1;
+		int32 ChunkSize = 32;
+
+		int32 CurrentIndex = -1;
+
+		template <class InitializeFunc, class LoopBodyFunc>
+		bool Advance(InitializeFunc&& Initialize, LoopBodyFunc&& LoopBody)
+		{
+			if (CurrentIndex == -1)
+			{
+				Initialize();
+				CurrentIndex = 0;
+			}
+			return Advance(LoopBody);
+		}
+
+		template <class LoopBodyFunc>
+		bool Advance(LoopBodyFunc&& LoopBody)
+		{
+			if (CurrentIndex == -1) { CurrentIndex = 0; }
+			const int32 ChunkNumIterations = GetCurrentChunkSize();
+			if (ChunkNumIterations > 0)
+			{
+				for (int i = 0; i < ChunkNumIterations; i++) { LoopBody(CurrentIndex + i); }
+				CurrentIndex += ChunkNumIterations;
+			}
+			if (CurrentIndex >= NumIterations)
+			{
+				CurrentIndex = -1;
+				return true;
+			}
+			return false;
+		}
+
+	protected:
+		int32 GetCurrentChunkSize() const
+		{
+			return FMath::Min(ChunkSize, NumIterations - CurrentIndex);
+		}
+	};
+
+	struct PCGEXTENDEDTOOLKIT_API FAsyncChunkedLoop
+	{
+		FAsyncChunkedLoop()
+		{
+		}
+
+		FPCGContext* Context = nullptr;
+		int32 NumIterations = -1;
+		int32 ChunkSize = 32;
+		bool bAsyncEnabled = true;
+
+		int32 CurrentIndex = -1;
+
+		template <class InitializeFunc, class LoopBodyFunc>
+		bool Advance(InitializeFunc&& Initialize, LoopBodyFunc&& LoopBody)
+		{
+			if (bAsyncEnabled)
+			{
+				return FPCGAsync::AsyncProcessingOneToOneEx(
+					&(Context->AsyncState), NumIterations, Initialize, [&](int32 ReadIndex, int32 WriteIndex)
+					{
+						LoopBody(ReadIndex);
+						return true;
+					}, true, ChunkSize);
+			}
+
+			if (CurrentIndex == -1) { CurrentIndex = 0; }
+			const int32 ChunkNumIterations = GetCurrentChunkSize();
+			if (ChunkNumIterations <= 0)
+			{
+				CurrentIndex = -1;
+				return true;
+			}
+			for (int i = 0; i < ChunkNumIterations; i++) { LoopBody(CurrentIndex + i); }
+			CurrentIndex += ChunkNumIterations;
+			return false;
+		}
+
+		template <class InitializeFunc, class LoopBodyFunc>
+		bool Advance(LoopBodyFunc&& LoopBody)
+		{
+			if (bAsyncEnabled)
+			{
+				return FPCGAsync::AsyncProcessingOneToOneEx(
+					&(Context->AsyncState), NumIterations, []()
+					{
+					}, [&](int32 ReadIndex, int32 WriteIndex)
+					{
+						LoopBody(ReadIndex);
+						return true;
+					}, true, ChunkSize);
+			}
+
+			if (CurrentIndex == -1) { CurrentIndex = 0; }
+			const int32 ChunkNumIterations = GetCurrentChunkSize();
+			if (ChunkNumIterations <= 0)
+			{
+				CurrentIndex = -1;
+				return true;
+			}
+			for (int i = 0; i < ChunkNumIterations; i++) { LoopBody(CurrentIndex + i); }
+			CurrentIndex += ChunkNumIterations;
+			return false;
+		}
+
+	protected:
+		int32 GetCurrentChunkSize() const
+		{
+			return FMath::Min(ChunkSize, NumIterations - CurrentIndex);
+		}
+	};
 
 	struct PCGEXTENDEDTOOLKIT_API FTaskInfos
 	{

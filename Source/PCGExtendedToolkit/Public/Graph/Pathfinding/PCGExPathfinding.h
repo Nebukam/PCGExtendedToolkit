@@ -30,117 +30,6 @@ enum class EPCGExPathPointOrientation : uint8
 };
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingGoalPickingSettings
-{
-	GENERATED_BODY()
-
-	FPCGExPathfindingGoalPickingSettings()
-	{
-		Attributes.Empty();
-		AttributeGetters.Empty();
-	}
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
-	EPCGExPathfindingGoalPickMethod Method = EPCGExPathfindingGoalPickMethod::SeedIndex;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
-	EPCGExIndexSafety IndexSafety = EPCGExIndexSafety::Wrap;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="Method==EPCGExPathfindingGoalPickMethod::LocalAttribute", EditConditionHides))
-	FPCGExInputDescriptorWithSingleField Attribute;
-	PCGEx::FLocalSingleFieldGetter AttributeGetter;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(TitleProperty="{HiddenDisplayName}", EditCondition="Method==EPCGExPathfindingGoalPickMethod::MultipleLocalAttribute", EditConditionHides))
-	TArray<FPCGExInputDescriptorWithSingleField> Attributes;
-	TArray<PCGEx::FLocalSingleFieldGetter> AttributeGetters;
-
-	int32 MaxGoalIndex = -1;
-
-	void PrepareForData(const UPCGPointData* InData)
-	{
-		MaxGoalIndex = InData->GetPoints().Num() - 1;
-		if (Method == EPCGExPathfindingGoalPickMethod::MultipleLocalAttribute)
-		{
-			AttributeGetters.Reset(Attributes.Num());
-			for (FPCGExInputDescriptorWithSingleField& Descriptor : Attributes)
-			{
-				PCGEx::FLocalSingleFieldGetter& Getter = AttributeGetters.Emplace_GetRef();
-				Getter.Capture(Descriptor);
-				Getter.Validate(InData);
-			}
-		}
-		else if (Method == EPCGExPathfindingGoalPickMethod::LocalAttribute)
-		{
-			AttributeGetter.Capture(Attribute);
-			Attribute.Validate(InData);
-		}
-	}
-
-	int32 GetGoalIndex(const FPCGPoint& Seed, const int32 SeedIndex) const
-	{
-		int32 Index = -1;
-		if (MaxGoalIndex > -1)
-		{
-			switch (Method)
-			{
-			default:
-			case EPCGExPathfindingGoalPickMethod::SeedIndex:
-				Index = SeedIndex;
-				break;
-			case EPCGExPathfindingGoalPickMethod::LocalAttribute:
-				Index = AttributeGetter.GetValueSafe(Seed, -1);
-				break;
-			case EPCGExPathfindingGoalPickMethod::RandomPick:
-
-				Index = static_cast<int32>(PCGExMath::Remap(
-					FMath::PerlinNoise3D(PCGExMath::CWWrap(Seed.Transform.GetLocation() * 0.001, FVector(-1), FVector(1))),
-					-1, 1, 0, MaxGoalIndex));
-				break;
-			case EPCGExPathfindingGoalPickMethod::MultipleLocalAttribute:
-				break;
-			case EPCGExPathfindingGoalPickMethod::All:
-				break;
-			}
-
-			PCGEx::SanitizeIndex(Index, MaxGoalIndex, IndexSafety);
-		}
-
-		return Index;
-	}
-
-	void GetGoalIndices(const FPCGPoint& Seed, TArray<int32>& OutIndices)
-	{
-		if (Method == EPCGExPathfindingGoalPickMethod::MultipleLocalAttribute)
-		{
-			OutIndices.Reset(AttributeGetters.Num());
-			for (const PCGEx::FLocalSingleFieldGetter& Getter : AttributeGetters)
-			{
-				int32 Index = Getter.GetValueSafe(Seed, -1);
-				PCGEx::SanitizeIndex(Index, MaxGoalIndex, IndexSafety);
-				OutIndices.Add(Index);
-			}
-		}
-		else if (Method == EPCGExPathfindingGoalPickMethod::All)
-		{
-			OutIndices.Reset(MaxGoalIndex + 1);
-			for (int i = 0; i <= MaxGoalIndex; i++) { OutIndices.Add(i); }
-		}
-	}
-
-	bool IsMultiPick() const
-	{
-		return Method == EPCGExPathfindingGoalPickMethod::MultipleLocalAttribute ||
-			Method == EPCGExPathfindingGoalPickMethod::All;
-	}
-
-	void PrintDisplayNames()
-	{
-		Attribute.PrintDisplayName();
-		for (FPCGExInputDescriptorWithSingleField& Descriptor : Attributes) { Descriptor.PrintDisplayName(); }
-	}
-};
-
-USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExPathPointOrientSettings
 {
 	GENERATED_BODY()
@@ -177,7 +66,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathPointOrientSettings
 			return;
 		}
 
-		const PCGExMath::FApex Apex = PCGExMath::FApex::FromB(Next, InTransform.GetLocation());
+		const PCGExMath::FApex Apex = PCGExMath::FApex::FromEndOnly(Next, InTransform.GetLocation());
 		if (!bUseCustomUp)
 		{
 			InTransform.SetRotation(PCGEx::MakeDirection(Axis, Apex.Direction, PCGEx::GetDirection(UpAxis)));
@@ -252,7 +141,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathPointOrientSettings
 			return;
 		}
 
-		const PCGExMath::FApex Apex = PCGExMath::FApex::FromA(Previous, InTransform.GetLocation());
+		const PCGExMath::FApex Apex = PCGExMath::FApex::FromStartOnly(Previous, InTransform.GetLocation());
 		if (!bUseCustomUp)
 		{
 			InTransform.SetRotation(PCGEx::MakeDirection(Axis, Apex.Direction, PCGEx::GetDirection(UpAxis)));

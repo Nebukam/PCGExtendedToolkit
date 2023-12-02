@@ -4,7 +4,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
+
+#include "Data/PCGExPointIO.h"
 #include "Data/PCGExAttributeHelpers.h"
+#include "PCGExMT.h"
 
 #include "PCGExGraph.generated.h"
 
@@ -301,7 +304,6 @@ namespace PCGExGraph
 
 	constexpr PCGExMT::AsyncState State_FindingEdgeTypes = 110;
 	constexpr PCGExMT::AsyncState State_FindingPatch = 120;
-	//constexpr PCGExMT::State PatchComputing = 130;
 
 
 #pragma region Sockets

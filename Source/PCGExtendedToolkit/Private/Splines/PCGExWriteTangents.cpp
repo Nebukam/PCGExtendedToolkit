@@ -3,7 +3,15 @@
 
 #include "Splines/PCGExWriteTangents.h"
 
+#include "Splines/Tangents/PCGExAutoTangents.h"
+
 #define LOCTEXT_NAMESPACE "PCGExWriteTangentsElement"
+
+UPCGExWriteTangentsSettings::UPCGExWriteTangentsSettings(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
+{
+	Tangents = EnsureInstruction<UPCGExAutoTangents>(Tangents);
+}
 
 PCGExIO::EInitMode UPCGExWriteTangentsSettings::GetPointOutputInitMode() const { return PCGExIO::EInitMode::DuplicateInput; }
 
@@ -16,7 +24,9 @@ FPCGContext* FPCGExWriteTangentsElement::Initialize(const FPCGDataCollection& In
 	const UPCGExWriteTangentsSettings* Settings = Context->GetInputSettings<UPCGExWriteTangentsSettings>();
 	check(Settings);
 
-	Context->TangentParams = Settings->TangentParams;
+	Context->Tangents = Settings->EnsureInstruction<UPCGExAutoTangents>(Settings->Tangents);
+	Context->Tangents->ArriveName = Settings->ArriveName;
+	Context->Tangents->LeaveName = Settings->LeaveName;
 	return Context;
 }
 
@@ -44,15 +54,21 @@ bool FPCGExWriteTangentsElement::ExecuteInternal(FPCGContext* InContext) const
 		auto Initialize = [&](UPCGExPointIO* PointIO)
 		{
 			PointIO->BuildMetadataEntries();
-			Context->TangentParams.PrepareForData(PointIO);
+			Context->Tangents->PrepareForData(PointIO);
 		};
 
 		auto ProcessPoint = [&](const int32 Index, const UPCGExPointIO* PointIO)
 		{
-			Context->TangentParams.ComputePointTangents(Index, PointIO);
+			const FPCGPoint& Point = PointIO->GetOutPoint(Index);
+			const FPCGPoint* PrevPtr = PointIO->TryGetOutPoint(Index - 1);
+			const FPCGPoint* NextPtr = PointIO->TryGetOutPoint(Index + 1);
+
+			if (NextPtr && PrevPtr) { Context->Tangents->ProcessPoint(Index, Point, *PrevPtr, *NextPtr); }
+			else if (NextPtr) { Context->Tangents->ProcessFirstPoint(Index, Point, *NextPtr); }
+			else if (PrevPtr) { Context->Tangents->ProcessLastPoint(Index, Point, *PrevPtr); }
 		};
 
-		if (Context->AsyncProcessingCurrentPoints(Initialize, ProcessPoint))
+		if (Context->ProcessCurrentPoints(Initialize, ProcessPoint))
 		{
 			Context->SetState(PCGExMT::State_ReadyForNextPoints);
 		}
@@ -60,7 +76,6 @@ bool FPCGExWriteTangentsElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsDone())
 	{
-		Context->TangentCache.Empty();
 		Context->OutputPoints();
 		return true;
 	}

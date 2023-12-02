@@ -80,7 +80,7 @@ bool FPCGExFindEdgesTypeElement::ExecuteInternal(
 			PCGExGraph::ComputeEdgeType(Context->SocketInfos, PointIO->GetOutPoint(PointIndex), PointIndex, PointIO);
 		};
 
-		if (Context->AsyncProcessingCurrentPoints(Initialize, ProcessPoint))
+		if (Context->ProcessCurrentPoints(Initialize, ProcessPoint))
 		{
 			Context->SetState(PCGExGraph::State_ReadyForNextGraph);
 		}

@@ -72,7 +72,7 @@ bool FPCGExWriteIndexElement::ExecuteInternal(FPCGContext* InContext) const
 		};
 
 
-		if (Context->AsyncProcessingMainPoints(Initialize, ProcessPoint)) { Context->Done(); }
+		if (Context->BulkProcessMainPoints(Initialize, ProcessPoint)) { Context->Done(); }
 		
 	}
 

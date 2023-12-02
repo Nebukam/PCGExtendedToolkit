@@ -203,7 +203,7 @@ public:
 #pragma endregion
 
 	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Overrides", meta = (TitleProperty="{FuseMethod} {HiddenDisplayName}"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Overrides", meta = (TitleProperty="{FuseMethod} {TitlePropertyName}"))
 	TArray<FPCGExInputDescriptorWithFuseMethod> FuseMethodOverrides;
 
 private:
