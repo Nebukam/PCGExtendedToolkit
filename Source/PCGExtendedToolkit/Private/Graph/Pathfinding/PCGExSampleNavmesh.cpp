@@ -138,6 +138,7 @@ bool FPCGExSampleNavmeshElement::ExecuteInternal(FPCGContext* InContext) const
 	{
 		if (!Validate(Context)) { return true; }
 		Context->AdvancePointsIO();
+		//TODO : Merge goals metadata with points metadata
 		Context->GoalPicker->PrepareForData(Context->CurrentIO->In, Context->GoalsPoints->In);
 		Context->SetState(PCGExMT::State_ProcessingPoints);
 	}
@@ -257,14 +258,17 @@ void FNavmeshPathTask::ExecuteTask()
 				PathLength += Dist;
 			}
 
-
+			// TODO : Seed Indices start at 0 ... Num, Goal indices start at Num ... Goal Num >
+			// SubPoints processors use a view on indices to process, excluding start and end points.
+			// Thus, start and end don't need to be connected
+			
 			NumPts = PathLocations.Num() - 1;
 			if (NumPts <= 0)
 			{
 				bSuccess = false;
 			}
 			else
-			{
+			{				
 				FVector PrevPos = FVector::ZeroVector;
 				double CurrentPathLength = 0;
 				bool bDistanceBasedLerp = Context->LerpMode == EPCGExPointLerpMode::Distance;
