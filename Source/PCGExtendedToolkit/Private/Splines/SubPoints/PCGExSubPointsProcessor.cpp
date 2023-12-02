@@ -13,4 +13,5 @@ void UPCGExSubPointsProcessor::PrepareForData(const UPCGExPointIO* InData, PCGEx
 
 void UPCGExSubPointsProcessor::ProcessSubPoints(const FPCGPoint& StartPoint, const FPCGPoint& EndPoint, TArrayView<FPCGPoint>& SubPoints, const double PathLength) const
 {
+	
 }

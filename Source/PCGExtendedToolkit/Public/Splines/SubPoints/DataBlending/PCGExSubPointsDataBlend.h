@@ -18,9 +18,6 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSubPointsDataBlend : public UPCGExSubPointsPr
 {
 	GENERATED_BODY()
 
-protected:
-	PCGEx::FAttributeMap* AttributeMap;
-
 public:
 	virtual void PrepareForData(const UPCGExPointIO* InData, PCGEx::FAttributeMap* InAttributeMap) override;
 	virtual void ProcessSubPoints(const FPCGPoint& StartPoint, const FPCGPoint& EndPoint, TArrayView<FPCGPoint>& SubPoints, const double PathLength) const override;
