@@ -6,9 +6,11 @@
 #include "CoreMinimal.h"
 #include "PCGPoint.h"
 #include "Data/PCGExAttributeHelpers.h"
+#include "Data/Blending/PCGExMetadataBlender.h"
 #include "Splines/SubPoints/PCGExSubPointsProcessor.h"
 #include "PCGExSubPointsDataBlend.generated.h"
 
+class UPCGExMetadataBlender;
 class UPCGExPointIO;
 
 /**
@@ -19,7 +21,12 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSubPointsDataBlend : public UPCGExSubPointsPr
 {
 	GENERATED_BODY()
 
+protected:
+	TMap<FName, EPCGExMetadataBlendingOperationType> BlendingOverrides;
+	UPCGExMetadataBlender* Blender = nullptr;
+	
 public:
-	virtual void PrepareForData(const UPCGExPointIO* InData, PCGEx::FAttributeMap* InAttributeMap) override;
+	virtual EPCGExMetadataBlendingOperationType GetDefaultBlending();
+	virtual void PrepareForData(const UPCGExPointIO* InData) override;
 	virtual void ProcessSubPoints(const FPCGPoint& StartPoint, const FPCGPoint& EndPoint, TArrayView<FPCGPoint>& SubPoints, const double PathLength) const override;
 };

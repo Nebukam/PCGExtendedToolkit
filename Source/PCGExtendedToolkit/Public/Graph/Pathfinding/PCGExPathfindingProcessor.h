@@ -48,7 +48,6 @@ public:
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced)
 	UPCGExSubPointsDataBlend* Blending;
-	
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingProcessorContext : public FPCGExGraphProcessorContext
@@ -64,7 +63,6 @@ public:
 	UPCGExSubPointsOrient* Orientation;
 	UPCGExSubPointsDataBlend* Blending;
 
-	
 protected:
 	int64 GetGoalIndex(const FPCGPoint& Seed, int64 SeedIndex);
 };

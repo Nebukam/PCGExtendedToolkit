@@ -19,10 +19,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSubPointsProcessor : public UPCGExInstruction
 {
 	GENERATED_BODY()
 
-protected:
-	PCGEx::FAttributeMap* AttributeMap;
-
 public:
-	virtual void PrepareForData(const UPCGExPointIO* InData, PCGEx::FAttributeMap* InAttributeMap);
+	virtual void PrepareForData(const UPCGExPointIO* InData);
 	virtual void ProcessSubPoints(const FPCGPoint& StartPoint, const FPCGPoint& EndPoint, TArrayView<FPCGPoint>& SubPoints, const double PathLength) const;
 };

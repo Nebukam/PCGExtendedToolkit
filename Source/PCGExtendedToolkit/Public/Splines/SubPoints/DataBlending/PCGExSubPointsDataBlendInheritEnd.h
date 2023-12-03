@@ -17,5 +17,4 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSubPointsDataBlendInheritEnd : public UPCGExS
 
 public:
 	virtual void ProcessSubPoints(const FPCGPoint& StartPoint, const FPCGPoint& EndPoint, TArrayView<FPCGPoint>& SubPoints, const double PathLength) const override;
-	
 };

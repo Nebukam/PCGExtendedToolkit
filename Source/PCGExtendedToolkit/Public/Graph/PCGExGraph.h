@@ -763,12 +763,12 @@ namespace PCGExGraph
 	}
 
 	static void ComputeEdgeType(
-		const TArray<PCGExGraph::FSocketInfos>& SocketInfos,
+		const TArray<FSocketInfos>& SocketInfos,
 		const FPCGPoint& Point,
 		const int32 ReadIndex,
 		const UPCGExPointIO* PointIO)
 	{
-		for (const PCGExGraph::FSocketInfos& CurrentSocketInfos : SocketInfos)
+		for (const FSocketInfos& CurrentSocketInfos : SocketInfos)
 		{
 			EPCGExEdgeType Type = EPCGExEdgeType::Unknown;
 			const int64 RelationIndex = CurrentSocketInfos.Socket->GetTargetIndex(Point.MetadataEntry);
@@ -776,7 +776,7 @@ namespace PCGExGraph
 			if (RelationIndex != -1)
 			{
 				const int32 Key = PointIO->GetOutPoint(RelationIndex).MetadataEntry;
-				for (const PCGExGraph::FSocketInfos& OtherSocketInfos : SocketInfos)
+				for (const FSocketInfos& OtherSocketInfos : SocketInfos)
 				{
 					if (OtherSocketInfos.Socket->GetTargetIndex(Key) == ReadIndex)
 					{

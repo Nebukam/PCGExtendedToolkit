@@ -29,7 +29,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExWriteTangentsSettings : public UPCGExPointsPr
 
 public:
 	UPCGExWriteTangentsSettings(const FObjectInitializer& ObjectInitializer);
-	
+
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(WriteTangents, "Write Tangents", "Computes & writes points tangents.");
@@ -41,17 +41,16 @@ public:
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings interface
-	
+
 public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	FName ArriveName = "ArriveTangent";
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	FName LeaveName = "LeaveTangent";
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced)
 	UPCGExTangents* Tangents;
-	
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExWriteTangentsContext : public FPCGExPointsProcessorContext

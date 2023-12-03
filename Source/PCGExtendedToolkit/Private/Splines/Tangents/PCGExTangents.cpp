@@ -32,4 +32,3 @@ void UPCGExTangents::WriteTangents(const PCGMetadataEntryKey Key, const FVector&
 	ArriveAttribute->SetValue(Key, Arrive);
 	LeaveAttribute->SetValue(Key, Leave);
 }
-

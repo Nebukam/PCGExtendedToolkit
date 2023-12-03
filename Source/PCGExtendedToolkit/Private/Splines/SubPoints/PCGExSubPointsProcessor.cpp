@@ -7,12 +7,11 @@
 #include "Data/PCGExPointIO.h"
 
 
-void UPCGExSubPointsProcessor::PrepareForData(const UPCGExPointIO* InData, PCGEx::FAttributeMap* InAttributeMap)
+void UPCGExSubPointsProcessor::PrepareForData(const UPCGExPointIO* InData)
 {
-	AttributeMap = InAttributeMap;
+	
 }
 
 void UPCGExSubPointsProcessor::ProcessSubPoints(const FPCGPoint& StartPoint, const FPCGPoint& EndPoint, TArrayView<FPCGPoint>& SubPoints, const double PathLength) const
 {
-	
 }

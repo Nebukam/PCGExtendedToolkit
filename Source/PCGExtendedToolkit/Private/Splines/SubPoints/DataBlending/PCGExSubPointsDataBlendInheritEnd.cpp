@@ -4,6 +4,8 @@
 
 #include "Splines/SubPoints/DataBlending/PCGExSubPointsDataBlendInheritEnd.h"
 
+#include "Data/Blending/PCGExMetadataBlender.h"
+
 void UPCGExSubPointsDataBlendInheritEnd::ProcessSubPoints(const FPCGPoint& StartPoint, const FPCGPoint& EndPoint, TArrayView<FPCGPoint>& SubPoints, const double PathLength) const
 {
 	const int32 NumPoints = SubPoints.Num();
@@ -11,10 +13,10 @@ void UPCGExSubPointsDataBlendInheritEnd::ProcessSubPoints(const FPCGPoint& Start
 	{
 		FPCGPoint& Point = SubPoints[i];
 		const FVector Location = Point.Transform.GetLocation();
-		
+
 		PCGExMath::Copy(EndPoint, Point);
-		AttributeMap->SetCopy(EndPoint.MetadataEntry, Point.MetadataEntry);
-		
+		Blender->DoOperations(StartPoint.MetadataEntry, StartPoint.MetadataEntry, Point.MetadataEntry);
+
 		Point.Transform.SetLocation(Location); // !
 	}
 }

@@ -204,7 +204,6 @@ bool PCGEx::FBulkAsyncPointLoop::Advance(const TFunction<void(const int32, const
 UPCGExPointsProcessorSettings::UPCGExPointsProcessorSettings(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	
 }
 
 void UPCGExPointsProcessorSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)

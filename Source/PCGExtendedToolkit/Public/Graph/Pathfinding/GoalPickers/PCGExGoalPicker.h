@@ -22,7 +22,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExGoalPicker : public UPCGExInstruction
 public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	EPCGExIndexSafety IndexSafety = EPCGExIndexSafety::Wrap;
-	
+
 	virtual void PrepareForData(const UPCGPointData* InSeeds, const UPCGPointData* InGoals);
 	virtual int32 GetGoalIndex(const FPCGPoint& Seed, const int32 SeedIndex) const;
 	virtual void GetGoalIndices(const FPCGPoint& Seed, TArray<int32>& OutIndices) const;
@@ -30,5 +30,4 @@ public:
 
 protected:
 	int32 MaxGoalIndex = -1;
-	
 };

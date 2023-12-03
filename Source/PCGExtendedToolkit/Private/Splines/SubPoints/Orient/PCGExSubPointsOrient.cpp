@@ -6,12 +6,6 @@
 
 #include "Data/PCGExPointIO.h"
 
-
-void UPCGExSubPointsOrient::PrepareForData(const UPCGExPointIO* InData, PCGEx::FAttributeMap* InAttributeMap)
-{
-	Super::PrepareForData(InData, InAttributeMap);
-}
-
 void UPCGExSubPointsOrient::ProcessSubPoints(const FPCGPoint& StartPoint, const FPCGPoint& EndPoint, TArrayView<FPCGPoint>& SubPoints, const double PathLength) const
 {
 }

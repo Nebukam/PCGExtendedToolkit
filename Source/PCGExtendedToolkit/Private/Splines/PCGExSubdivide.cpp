@@ -61,9 +61,8 @@ bool FPCGExSubdivideElement::ExecuteInternal(FPCGContext* InContext) const
 	{
 		auto Initialize = [&](UPCGExPointIO* PointIO)
 		{
-			Context->InputAttributeMap.PrepareForPoints(PointIO->In);
 			if (Context->bFlagSubPoints) { Context->FlagAttribute = PointIO->Out->Metadata->FindOrCreateAttribute(Context->FlagName, false); }
-			Context->SubPointsProcessor->PrepareForData(PointIO, &Context->InputAttributeMap);
+			Context->SubPointsProcessor->PrepareForData(PointIO);
 		};
 
 		auto ProcessPoint = [&](const int32 Index, const UPCGExPointIO* PointIO)

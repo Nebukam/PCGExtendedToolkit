@@ -9,7 +9,7 @@
 #define PCGEX_DECL(_TYPE) const _TYPE A = GetValue(OperandAKey); const _TYPE B = GetValue(OperandBKey);
 #define PCGEX_SET(_BODY) Attribute->SetValue(OutputKey, _BODY);
 #define PCGEX_SAO_CLASS(_TYPE, _NAME, _SET)\
-void UPCGExSAOMax##_NAME::DoOperation(const PCGMetadataEntryKey OperandAKey, const PCGMetadataEntryKey OperandBKey, const PCGMetadataEntryKey OutputKey, const double Alpha){ PCGEX_DECL(_TYPE) PCGEX_SET(_SET) };
+void UPCGExSAOMax##_NAME::DoOperation(const PCGMetadataEntryKey OperandAKey, const PCGMetadataEntryKey OperandBKey, const PCGMetadataEntryKey OutputKey, const double Alpha) const { PCGEX_DECL(_TYPE) PCGEX_SET(_SET) };
 
 PCGEX_SAO_CLASS(bool, Boolean, FMath::Max(A, B))
 PCGEX_SAO_CLASS(int32, Integer32, FMath::Max(A, B))

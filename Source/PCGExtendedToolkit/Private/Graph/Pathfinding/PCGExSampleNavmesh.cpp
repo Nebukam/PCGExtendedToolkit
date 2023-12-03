@@ -261,14 +261,32 @@ void FNavmeshPathTask::ExecuteTask()
 			// TODO : Seed Indices start at 0 ... Num, Goal indices start at Num ... Goal Num >
 			// SubPoints processors use a view on indices to process, excluding start and end points.
 			// Thus, start and end don't need to be connected
-			
+
 			NumPts = PathLocations.Num() - 1;
 			if (NumPts <= 0)
 			{
 				bSuccess = false;
 			}
 			else
-			{				
+			{
+
+				///////
+/*
+				for (int i = 0; i < NumPts; i++)
+				{
+					double Lerp = static_cast<double>(i) / static_cast<double>(NumPts);
+					FPCGPoint& Point = PathPoints->CopyPoint(StartPoint);
+					
+				}
+				
+				TArrayView<FPCGPoint> Path = MakeArrayView(Points.GetData() + StartIndex, NumSubdivisions);
+				Context->SubPointsProcessor->ProcessSubPoints(StartPoint, *EndPtr, Path, PathLength);
+
+				// Remove start and/or end after blending
+				if (!Context->bAddSeedToPath) { PathLocations.RemoveAt(0); }
+				if (!Context->bAddGoalToPath) { PathLocations.Pop(); }
+*/				
+				////
 				FVector PrevPos = FVector::ZeroVector;
 				double CurrentPathLength = 0;
 				bool bDistanceBasedLerp = Context->LerpMode == EPCGExPointLerpMode::Distance;

@@ -35,5 +35,5 @@ void UPCGExAutoTangents::ProcessPoint(const int32 Index, const FPCGPoint& Point,
 		Point.Transform.GetLocation());
 
 	Apex.Scale(Scale);
-	WriteTangents(Point.MetadataEntry, Apex.TowardStart , Apex.TowardEnd* -1);
+	WriteTangents(Point.MetadataEntry, Apex.TowardStart, Apex.TowardEnd * -1);
 }

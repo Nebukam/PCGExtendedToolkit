@@ -14,6 +14,7 @@ UCLASS(Blueprintable, EditInlineNew, DisplayName = "Promote To Points")
 class PCGEXTENDEDTOOLKIT_API UPCGExEdgePromoteToPoint : public UPCGExEdgePromotion
 {
 	GENERATED_BODY()
+
 public:
 	virtual void PromoteEdge(const PCGExGraph::FUnsignedEdge& Edge, const FPCGPoint& StartPoint, const FPCGPoint& EndPoint) override;
 };

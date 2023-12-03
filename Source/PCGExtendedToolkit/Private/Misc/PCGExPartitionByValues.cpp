@@ -157,7 +157,7 @@ bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* InContext) con
 
 				LayerKeys.Empty();
 			};
-			
+
 			if (Context->ProcessCurrentPoints(Initialize, DistributePoint))
 			{
 				Context->SetState(PCGExMT::State_ReadyForNextPoints);

@@ -78,7 +78,7 @@ public:
 		 * @param OutMetadata 
 		 */
 	void GetSocketsData(const PCGMetadataEntryKey MetadataEntry, TArray<PCGExGraph::FSocketMetadata>& OutMetadata) const;
-	
+
 	/**
 	 * 
 	 * @param InIndex 
@@ -94,7 +94,7 @@ public:
 			if (Socket.TryGetEdge(InIndex, MetadataEntry, Edge)) { OutEdges.AddUnique(Edge); }
 		}
 	}
-	
+
 	/**
 	 * 
 	 * @param InIndex 

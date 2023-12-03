@@ -14,6 +14,7 @@ UCLASS(Blueprintable, EditInlineNew, DisplayName = "Inherit Start")
 class PCGEXTENDEDTOOLKIT_API UPCGExSubPointsDataBlendInheritStart : public UPCGExSubPointsDataBlend
 {
 	GENERATED_BODY()
+
 public:
 	virtual void ProcessSubPoints(const FPCGPoint& StartPoint, const FPCGPoint& EndPoint, TArrayView<FPCGPoint>& SubPoints, const double PathLength) const override;
 };

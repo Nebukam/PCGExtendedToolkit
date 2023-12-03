@@ -64,7 +64,7 @@ public:
 		CurrentPingCount++;
 		if (CurrentPingCount >= DebugNodeCount) { CurrentPingCount = 0; }
 	}
-	
+
 	virtual void ResetPing(const FPCGContext* Context) override
 	{
 		DebugNodeCount = 0;

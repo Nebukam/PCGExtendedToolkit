@@ -23,7 +23,7 @@ public:
 #endif
 
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
-	
+
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings interface
@@ -61,7 +61,6 @@ public:
 
 protected:
 	PCGExMT::FAsyncChunkedLoop AsyncEdgesLoop;
-	
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExPromoteEdgesElement : public FPCGExGraphProcessorElement

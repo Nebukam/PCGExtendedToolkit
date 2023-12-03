@@ -51,7 +51,7 @@ public:
 
 	FPCGMetadataAttribute<int64>* CachedIndex;
 	TArray<PCGExGraph::FSocketInfos> SocketInfos;
-	
+
 	void PrepareCurrentGraphForPoints(const UPCGPointData* InData, bool bEnsureEdgeType);
 	void OutputGraphParams() { Graphs.OutputTo(this); }
 
@@ -63,7 +63,6 @@ public:
 
 protected:
 	int32 CurrentParamsIndex = -1;
-	
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExGraphProcessorElement : public FPCGExPointsProcessorElementBase

@@ -83,8 +83,6 @@ public:
 	FName FlagName;
 	FPCGMetadataAttribute<bool>* FlagAttribute = nullptr;
 
-	PCGEx::FAttributeMap InputAttributeMap;
-
 	UPCGExSubPointsProcessor* SubPointsProcessor;
 };
 

@@ -4,7 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExSingleAttributeOperation.h"
+#include "PCGExMetadataOperation.h"
 #include "PCGExSAOAverage.generated.h"
 
 #define PCGEX_SAO_CLASS(_TYPE, _NAME)\
@@ -12,9 +12,11 @@ UCLASS(Blueprintable, EditInlineNew, HideDropdown)\
 class PCGEXTENDEDTOOLKIT_API UPCGExSAOAverage##_NAME : public UPCGExBlend##_NAME##Base{\
 GENERATED_BODY()\
 public:\
-virtual bool UseFinalize() override;\
-virtual void DoOperation(const PCGMetadataEntryKey OperandAKey, const PCGMetadataEntryKey OperandBKey, const PCGMetadataEntryKey OutputKey, const double Alpha = 0) override;\
-virtual void FinalizeOperation(PCGMetadataEntryKey OutputKey, double Alpha) override;\
+virtual bool UsePreparation() const override;\
+virtual bool UseFinalize() const override;\
+virtual void PrepareOperation(const PCGMetadataEntryKey OutputKey) const override;\
+virtual void DoOperation(const PCGMetadataEntryKey OperandAKey, const PCGMetadataEntryKey OperandBKey, const PCGMetadataEntryKey OutputKey, const double Alpha = 0) const override;\
+virtual void FinalizeOperation(const PCGMetadataEntryKey OutputKey, const double Alpha) const  override;\
 };
 
 // Note: We're not using template for a slight performance boost
@@ -43,9 +45,11 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSAOAverageBoolean : public UPCGExBlendBoolean
 	GENERATED_BODY()
 
 public:
-	virtual bool UseFinalize() override;
-	virtual void DoOperation(PCGMetadataEntryKey OperandAKey, PCGMetadataEntryKey OperandBKey, PCGMetadataEntryKey OutputKey, double Alpha = 0) override;
-	virtual void FinalizeOperation(PCGMetadataEntryKey OutputKey, double Alpha) override;
+	virtual bool UsePreparation() const override;
+	virtual bool UseFinalize() const override;
+	virtual void PrepareOperation(const PCGMetadataEntryKey OutputKey) const override;
+	virtual void DoOperation(const PCGMetadataEntryKey OperandAKey, const PCGMetadataEntryKey OperandBKey, const PCGMetadataEntryKey OutputKey, const double Alpha = 0) const override;
+	virtual void FinalizeOperation(const PCGMetadataEntryKey OutputKey, const double Alpha) const override;
 };
 
 UCLASS(Blueprintable, EditInlineNew, HideDropdown)
@@ -54,9 +58,11 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSAOAverageInteger32 : public UPCGExBlendInteg
 	GENERATED_BODY()
 
 public:
-	virtual bool UseFinalize() override;
-	virtual void DoOperation(PCGMetadataEntryKey OperandAKey, PCGMetadataEntryKey OperandBKey, PCGMetadataEntryKey OutputKey, double Alpha = 0) override;
-	virtual void FinalizeOperation(PCGMetadataEntryKey OutputKey, double Alpha) override;
+	virtual bool UsePreparation() const override;
+	virtual bool UseFinalize() const override;
+	virtual void PrepareOperation(const PCGMetadataEntryKey OutputKey) const override;
+	virtual void DoOperation(const PCGMetadataEntryKey OperandAKey, const PCGMetadataEntryKey OperandBKey, const PCGMetadataEntryKey OutputKey, const double Alpha = 0) const override;
+	virtual void FinalizeOperation(const PCGMetadataEntryKey OutputKey, const double Alpha) const override;
 };
 
 UCLASS(Blueprintable, EditInlineNew, HideDropdown)
@@ -65,9 +71,11 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSAOAverageInteger64 : public UPCGExBlendInteg
 	GENERATED_BODY()
 
 public:
-	virtual bool UseFinalize() override;
-	virtual void DoOperation(PCGMetadataEntryKey OperandAKey, PCGMetadataEntryKey OperandBKey, PCGMetadataEntryKey OutputKey, double Alpha = 0) override;
-	virtual void FinalizeOperation(PCGMetadataEntryKey OutputKey, double Alpha) override;
+	virtual bool UsePreparation() const override;
+	virtual bool UseFinalize() const override;
+	virtual void PrepareOperation(const PCGMetadataEntryKey OutputKey) const override;
+	virtual void DoOperation(const PCGMetadataEntryKey OperandAKey, const PCGMetadataEntryKey OperandBKey, const PCGMetadataEntryKey OutputKey, const double Alpha = 0) const override;
+	virtual void FinalizeOperation(const PCGMetadataEntryKey OutputKey, const double Alpha) const override;
 };
 
 UCLASS(Blueprintable, EditInlineNew, HideDropdown)
@@ -76,9 +84,11 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSAOAverageFloat : public UPCGExBlendFloatBase
 	GENERATED_BODY()
 
 public:
-	virtual bool UseFinalize() override;
-	virtual void DoOperation(PCGMetadataEntryKey OperandAKey, PCGMetadataEntryKey OperandBKey, PCGMetadataEntryKey OutputKey, double Alpha = 0) override;
-	virtual void FinalizeOperation(PCGMetadataEntryKey OutputKey, double Alpha) override;
+	virtual bool UsePreparation() const override;
+	virtual bool UseFinalize() const override;
+	virtual void PrepareOperation(const PCGMetadataEntryKey OutputKey) const override;
+	virtual void DoOperation(const PCGMetadataEntryKey OperandAKey, const PCGMetadataEntryKey OperandBKey, const PCGMetadataEntryKey OutputKey, const double Alpha = 0) const override;
+	virtual void FinalizeOperation(const PCGMetadataEntryKey OutputKey, const double Alpha) const override;
 };
 
 UCLASS(Blueprintable, EditInlineNew, HideDropdown)
@@ -87,9 +97,11 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSAOAverageDouble : public UPCGExBlendDoubleBa
 	GENERATED_BODY()
 
 public:
-	virtual bool UseFinalize() override;
-	virtual void DoOperation(PCGMetadataEntryKey OperandAKey, PCGMetadataEntryKey OperandBKey, PCGMetadataEntryKey OutputKey, double Alpha = 0) override;
-	virtual void FinalizeOperation(PCGMetadataEntryKey OutputKey, double Alpha) override;
+	virtual bool UsePreparation() const override;
+	virtual bool UseFinalize() const override;
+	virtual void PrepareOperation(const PCGMetadataEntryKey OutputKey) const override;
+	virtual void DoOperation(const PCGMetadataEntryKey OperandAKey, const PCGMetadataEntryKey OperandBKey, const PCGMetadataEntryKey OutputKey, const double Alpha = 0) const override;
+	virtual void FinalizeOperation(const PCGMetadataEntryKey OutputKey, const double Alpha) const override;
 };
 
 UCLASS(Blueprintable, EditInlineNew, HideDropdown)
@@ -98,9 +110,11 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSAOAverageVector2 : public UPCGExBlendVector2
 	GENERATED_BODY()
 
 public:
-	virtual bool UseFinalize() override;
-	virtual void DoOperation(PCGMetadataEntryKey OperandAKey, PCGMetadataEntryKey OperandBKey, PCGMetadataEntryKey OutputKey, double Alpha = 0) override;
-	virtual void FinalizeOperation(PCGMetadataEntryKey OutputKey, double Alpha) override;
+	virtual bool UsePreparation() const override;
+	virtual bool UseFinalize() const override;
+	virtual void PrepareOperation(const PCGMetadataEntryKey OutputKey) const override;
+	virtual void DoOperation(const PCGMetadataEntryKey OperandAKey, const PCGMetadataEntryKey OperandBKey, const PCGMetadataEntryKey OutputKey, const double Alpha = 0) const override;
+	virtual void FinalizeOperation(const PCGMetadataEntryKey OutputKey, const double Alpha) const override;
 };
 
 UCLASS(Blueprintable, EditInlineNew, HideDropdown)
@@ -109,9 +123,11 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSAOAverageVector : public UPCGExBlendVectorBa
 	GENERATED_BODY()
 
 public:
-	virtual bool UseFinalize() override;
-	virtual void DoOperation(PCGMetadataEntryKey OperandAKey, PCGMetadataEntryKey OperandBKey, PCGMetadataEntryKey OutputKey, double Alpha = 0) override;
-	virtual void FinalizeOperation(PCGMetadataEntryKey OutputKey, double Alpha) override;
+	virtual bool UsePreparation() const override;
+	virtual bool UseFinalize() const override;
+	virtual void PrepareOperation(const PCGMetadataEntryKey OutputKey) const override;
+	virtual void DoOperation(const PCGMetadataEntryKey OperandAKey, const PCGMetadataEntryKey OperandBKey, const PCGMetadataEntryKey OutputKey, const double Alpha = 0) const override;
+	virtual void FinalizeOperation(const PCGMetadataEntryKey OutputKey, const double Alpha) const override;
 };
 
 UCLASS(Blueprintable, EditInlineNew, HideDropdown)
@@ -120,9 +136,11 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSAOAverageVector4 : public UPCGExBlendVector4
 	GENERATED_BODY()
 
 public:
-	virtual bool UseFinalize() override;
-	virtual void DoOperation(PCGMetadataEntryKey OperandAKey, PCGMetadataEntryKey OperandBKey, PCGMetadataEntryKey OutputKey, double Alpha = 0) override;
-	virtual void FinalizeOperation(PCGMetadataEntryKey OutputKey, double Alpha) override;
+	virtual bool UsePreparation() const override;
+	virtual bool UseFinalize() const override;
+	virtual void PrepareOperation(const PCGMetadataEntryKey OutputKey) const override;
+	virtual void DoOperation(const PCGMetadataEntryKey OperandAKey, const PCGMetadataEntryKey OperandBKey, const PCGMetadataEntryKey OutputKey, const double Alpha = 0) const override;
+	virtual void FinalizeOperation(const PCGMetadataEntryKey OutputKey, const double Alpha) const override;
 };
 
 UCLASS(Blueprintable, EditInlineNew, HideDropdown)
@@ -131,9 +149,11 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSAOAverageQuaternion : public UPCGExBlendQuat
 	GENERATED_BODY()
 
 public:
-	virtual bool UseFinalize() override;
-	virtual void DoOperation(PCGMetadataEntryKey OperandAKey, PCGMetadataEntryKey OperandBKey, PCGMetadataEntryKey OutputKey, double Alpha = 0) override;
-	virtual void FinalizeOperation(PCGMetadataEntryKey OutputKey, double Alpha) override;
+	virtual bool UsePreparation() const override;
+	virtual bool UseFinalize() const override;
+	virtual void PrepareOperation(const PCGMetadataEntryKey OutputKey) const override;
+	virtual void DoOperation(const PCGMetadataEntryKey OperandAKey, const PCGMetadataEntryKey OperandBKey, const PCGMetadataEntryKey OutputKey, const double Alpha = 0) const override;
+	virtual void FinalizeOperation(const PCGMetadataEntryKey OutputKey, const double Alpha) const override;
 };
 
 UCLASS(Blueprintable, EditInlineNew, HideDropdown)
@@ -142,9 +162,11 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSAOAverageRotator : public UPCGExBlendRotator
 	GENERATED_BODY()
 
 public:
-	virtual bool UseFinalize() override;
-	virtual void DoOperation(PCGMetadataEntryKey OperandAKey, PCGMetadataEntryKey OperandBKey, PCGMetadataEntryKey OutputKey, double Alpha = 0) override;
-	virtual void FinalizeOperation(PCGMetadataEntryKey OutputKey, double Alpha) override;
+	virtual bool UsePreparation() const override;
+	virtual bool UseFinalize() const override;
+	virtual void PrepareOperation(const PCGMetadataEntryKey OutputKey) const override;
+	virtual void DoOperation(const PCGMetadataEntryKey OperandAKey, const PCGMetadataEntryKey OperandBKey, const PCGMetadataEntryKey OutputKey, const double Alpha = 0) const override;
+	virtual void FinalizeOperation(const PCGMetadataEntryKey OutputKey, const double Alpha) const override;
 };
 
 UCLASS(Blueprintable, EditInlineNew, HideDropdown)
@@ -153,9 +175,11 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSAOAverageTransform : public UPCGExBlendTrans
 	GENERATED_BODY()
 
 public:
-	virtual bool UseFinalize() override;
-	virtual void DoOperation(PCGMetadataEntryKey OperandAKey, PCGMetadataEntryKey OperandBKey, PCGMetadataEntryKey OutputKey, double Alpha = 0) override;
-	virtual void FinalizeOperation(PCGMetadataEntryKey OutputKey, double Alpha) override;
+	virtual bool UsePreparation() const override;
+	virtual bool UseFinalize() const override;
+	virtual void PrepareOperation(const PCGMetadataEntryKey OutputKey) const override;
+	virtual void DoOperation(const PCGMetadataEntryKey OperandAKey, const PCGMetadataEntryKey OperandBKey, const PCGMetadataEntryKey OutputKey, const double Alpha = 0) const override;
+	virtual void FinalizeOperation(const PCGMetadataEntryKey OutputKey, const double Alpha) const override;
 };
 
 UCLASS(Blueprintable, EditInlineNew, HideDropdown)
@@ -164,9 +188,11 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSAOAverageString : public UPCGExBlendStringBa
 	GENERATED_BODY()
 
 public:
-	virtual bool UseFinalize() override;
-	virtual void DoOperation(PCGMetadataEntryKey OperandAKey, PCGMetadataEntryKey OperandBKey, PCGMetadataEntryKey OutputKey, double Alpha = 0) override;
-	virtual void FinalizeOperation(PCGMetadataEntryKey OutputKey, double Alpha) override;
+	virtual bool UsePreparation() const override;
+	virtual bool UseFinalize() const override;
+	virtual void PrepareOperation(const PCGMetadataEntryKey OutputKey) const override;
+	virtual void DoOperation(const PCGMetadataEntryKey OperandAKey, const PCGMetadataEntryKey OperandBKey, const PCGMetadataEntryKey OutputKey, const double Alpha = 0) const override;
+	virtual void FinalizeOperation(const PCGMetadataEntryKey OutputKey, const double Alpha) const override;
 };
 
 UCLASS(Blueprintable, EditInlineNew, HideDropdown)
@@ -175,9 +201,11 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSAOAverageName : public UPCGExBlendNameBase
 	GENERATED_BODY()
 
 public:
-	virtual bool UseFinalize() override;
-	virtual void DoOperation(PCGMetadataEntryKey OperandAKey, PCGMetadataEntryKey OperandBKey, PCGMetadataEntryKey OutputKey, double Alpha = 0) override;
-	virtual void FinalizeOperation(PCGMetadataEntryKey OutputKey, double Alpha) override;
+	virtual bool UsePreparation() const override;
+	virtual bool UseFinalize() const override;
+	virtual void PrepareOperation(const PCGMetadataEntryKey OutputKey) const override;
+	virtual void DoOperation(const PCGMetadataEntryKey OperandAKey, const PCGMetadataEntryKey OperandBKey, const PCGMetadataEntryKey OutputKey, const double Alpha = 0) const override;
+	virtual void FinalizeOperation(const PCGMetadataEntryKey OutputKey, const double Alpha) const override;
 };
 
 #pragma endregion

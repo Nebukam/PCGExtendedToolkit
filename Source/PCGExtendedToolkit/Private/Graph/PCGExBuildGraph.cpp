@@ -114,7 +114,7 @@ bool FPCGExBuildGraphElement::ExecuteInternal(
 		// Process params again for edges types
 		auto ProcessPointEdgeType = [&](const int32 PointIndex, const UPCGExPointIO* PointIO)
 		{
-			PCGExGraph::ComputeEdgeType(Context->SocketInfos, PointIO->GetOutPoint(PointIndex), PointIndex, PointIO);
+			ComputeEdgeType(Context->SocketInfos, PointIO->GetOutPoint(PointIndex), PointIndex, PointIO);
 		};
 
 		if (Context->ProcessCurrentPoints(ProcessPointEdgeType))

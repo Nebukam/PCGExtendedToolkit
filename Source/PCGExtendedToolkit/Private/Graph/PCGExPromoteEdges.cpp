@@ -1,7 +1,7 @@
 ﻿// Copyright Timothé Lapetite 2023
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "..\..\Public\Graph\PCGExPromoteEdges.h"
+#include "Graph/PCGExPromoteEdges.h"
 
 #include "Graph/Promotions/PCGExEdgePromoteToPath.h"
 #include "Graph/Promotions/PCGExEdgePromoteToPoint.h"
@@ -82,7 +82,7 @@ bool FPCGExPromoteEdgesElement::ExecuteInternal(
 			UE_LOG(LogTemp, Warning, TEXT("Max Possible Outputs = %d"), MaxPossibleOutputs);
 			Context->OutputData.TaggedData.Reserve(MaxPossibleOutputs);
 		}
-		
+
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
@@ -202,7 +202,7 @@ bool FPCGExPromoteEdgesElement::ExecuteInternal(
 		Context->Edges.Empty();
 
 		UE_LOG(LogTemp, Warning, TEXT("Actual Outputs = %d"), Context->OutputData.TaggedData.Num());
-		
+
 		if (!Context->Promotion->GeneratesNewPointData())
 		{
 			Context->OutputPoints();

@@ -87,7 +87,7 @@ bool FPCGExPartitionGraphPatchesElement::ExecuteInternal(
 	{
 		auto Initialize = [&](const UPCGExPointIO* PointIO)
 		{
-			Context->PreparePatchGroup(); 
+			Context->PreparePatchGroup();
 			Context->PrepareCurrentGraphForPoints(PointIO->In, false); // Prepare to read PointIO->In
 		};
 

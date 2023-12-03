@@ -9,7 +9,7 @@
 
 namespace PCGExMT
 {
-	typedef int64 AsyncState;
+	using AsyncState = int64;
 
 	constexpr AsyncState State_Setup = TNumericLimits<int64>::Min();
 	constexpr AsyncState State_ReadyForNextPoints = 1;

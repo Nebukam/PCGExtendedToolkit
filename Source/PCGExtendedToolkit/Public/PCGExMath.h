@@ -271,7 +271,7 @@ namespace PCGExMath
 			A.GetLocation() + B.GetLocation(),
 			A.GetScale3D() / B.GetScale3D());
 	}
-	
+
 #pragma endregion
 
 #pragma region Component Wise DIV

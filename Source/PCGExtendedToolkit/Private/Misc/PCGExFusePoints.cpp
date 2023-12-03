@@ -40,69 +40,16 @@ PCGExPointIO::EInit UPCGExFusePointsSettings::GetPointOutputInitMode() const { r
 UPCGExFusePointsSettings::UPCGExFusePointsSettings(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	RefreshFuseMethodHiddenNames();
 }
 
 #if WITH_EDITOR
-void UPCGExFusePointsSettings::RefreshFuseMethodHiddenNames()
-{
-	if (!FuseMethodOverrides.IsEmpty())
-	{
-		for (FPCGExInputDescriptorWithFuseMethod& Descriptor : FuseMethodOverrides) { Descriptor.UpdateUserFacingInfos(); }
-
-#define PCGEX_FUSE_UPDATE(_NAME) if(!bOverride##_NAME){_NAME##FuseMethod = FuseMethod;}
-		PCGEX_FUSE_FOREACH_POINTPROPERTYNAME(PCGEX_FUSE_UPDATE)
-#undef PCGEX_FUSE_UPDATE
-	}
-}
-
 void UPCGExFusePointsSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
-	RefreshFuseMethodHiddenNames();
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
 #endif
 
 FPCGElementPtr UPCGExFusePointsSettings::CreateElement() const { return MakeShared<FPCGExFusePointsElement>(); }
-
-void FPCGExFusePointsContext::PrepareForPoints(const UPCGExPointIO* InData)
-{
-	TArray<FName> Names;
-	TArray<EPCGMetadataTypes> Types;
-	InData->In->Metadata->GetAttributes(Names, Types);
-
-	Attributes.Reset(Names.Num());
-
-	const UPCGExFusePointsSettings* Settings = GetInputSettings<UPCGExFusePointsSettings>();
-	check(Settings);
-
-	TMap<FName, EPCGExFuseMethod> DesiredMethods;
-	for (const FPCGExInputDescriptorWithFuseMethod& Descriptor : Settings->FuseMethodOverrides)
-	{
-		FPCGAttributePropertyInputSelector Selector = Descriptor.Selector.CopyAndFixLast(InData->In);
-		if (Selector.GetSelection() == EPCGAttributePropertySelection::Attribute &&
-			Selector.IsValid())
-		{
-			DesiredMethods.Add(Selector.GetAttributeName(), Descriptor.FuseMethod);
-		}
-	}
-
-	for (FName Name : Names)
-	{
-		PCGExFuse::FAttribute& Attribute = Attributes.Emplace_GetRef();
-		Attribute.Attribute = InData->Out->Metadata->GetMutableAttribute(Name);
-		Attribute.FuseMethod = FuseMethod;
-
-		if (EPCGExFuseMethod* FMethod = DesiredMethods.Find(Name)) { Attribute.FuseMethod = *FMethod; }
-	}
-}
-
-EPCGExFuseMethod FPCGExFusePointsContext::GetAttributeFuseMethod(const FName AttributeName)
-{
-	const EPCGExFuseMethod* MethodPtr = AttributeFuseMethodOverrides.Find(AttributeName);
-	if (!MethodPtr) { return FuseMethod; }
-	return *MethodPtr;
-}
 
 FPCGContext* FPCGExFusePointsElement::Initialize(
 	const FPCGDataCollection& InputData,
@@ -115,18 +62,15 @@ FPCGContext* FPCGExFusePointsElement::Initialize(
 	const UPCGExFusePointsSettings* Settings = Context->GetInputSettings<UPCGExFusePointsSettings>();
 	check(Settings);
 
-	Context->FuseMethod = Settings->FuseMethod;
 	Context->Radius = FMath::Pow(Settings->Radius, 2);
 	Context->bComponentWiseRadius = Settings->bComponentWiseRadius;
 	Context->Radiuses = Settings->Radiuses;
 
-	Context->AttributeFuseMethodOverrides.Empty();
-	for (const FPCGExInputDescriptorWithFuseMethod& Descriptor : Settings->FuseMethodOverrides)
-	{
-		Context->AttributeFuseMethodOverrides.Add(Descriptor.Selector.GetAttributeName(), Descriptor.FuseMethod);
-	}
+	Context->BlendingOverrides = Settings->BlendingOverrides;
+	Context->Blender = NewObject<UPCGExMetadataBlender>();
+	Context->Blender->DefaultOperation = Settings->Blending;
 
-#define PCGEX_FUSE_TRANSFERT(_NAME) Context->_NAME##FuseMethod = Settings->bOverride##_NAME ? Context->_NAME##FuseMethod : Settings->FuseMethod;
+#define PCGEX_FUSE_TRANSFERT(_NAME) Context->_NAME##Blending = Settings->bOverride##_NAME ? Context->_NAME##Blending : Settings->Blending;
 	PCGEX_FUSE_FOREACH_POINTPROPERTYNAME(PCGEX_FUSE_TRANSFERT)
 #undef PCGEX_FUSE_TRANSFERT
 
@@ -160,8 +104,7 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 		auto Initialize = [&](UPCGExPointIO* PointIO)
 		{
 			Context->FusedPoints.Reset(PointIO->NumInPoints);
-			Context->PrepareForPoints(PointIO);
-			Context->InputAttributeMap.PrepareForPoints(PointIO->Out);
+			Context->Blender->PrepareForData(PointIO->Out, Context->BlendingOverrides);
 		};
 
 		auto ProcessPoint = [&](const int32 PointIndex, const UPCGExPointIO* PointIO)
@@ -227,9 +170,11 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 
 			const FPCGPoint& RootPoint = Context->CurrentIO->GetInPoint(FusedPointData.MainIndex);
 			FPCGPoint NewPoint = Context->CurrentIO->CopyPoint(RootPoint);
+			PCGMetadataEntryKey NewPointKey = NewPoint.MetadataEntry;
+			Context->Blender->PrepareForOperations(NewPointKey);
 
 			FTransform& OutTransform = NewPoint.Transform;
-#define PCGEX_FUSE_DECLARE(_TYPE, _NAME, _ACCESSOR, _DEFAULT_VALUE, ...) _TYPE Out##_NAME = Context->_NAME##FuseMethod == EPCGExFuseMethod::Skip ? RootPoint._ACCESSOR : _DEFAULT_VALUE;
+#define PCGEX_FUSE_DECLARE(_TYPE, _NAME, _ACCESSOR, _DEFAULT_VALUE, ...) _TYPE Out##_NAME = Context->_NAME##Blending != EPCGExMetadataBlendingOperationType::Average ? RootPoint._ACCESSOR : _DEFAULT_VALUE;
 			PCGEX_FUSE_FOREACH_POINTPROPERTY(PCGEX_FUSE_DECLARE)
 #undef PCGEX_FUSE_DECLARE
 
@@ -238,50 +183,22 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 				const double Weight = 1 - (FusedPointData.Distances[i] / FusedPointData.MaxDistance);
 				FPCGPoint Point = Context->CurrentIO->GetInPoint(FusedPointData.Fused[i]);
 
-#define PCGEX_FUSE_FUSE(_TYPE, _NAME, _ACCESSOR, ...) switch (Context->_NAME##FuseMethod){\
-case EPCGExFuseMethod::Average: Out##_NAME += Point._ACCESSOR; break;\
-case EPCGExFuseMethod::Min: Out##_NAME = PCGExMath::CWMin(Out##_NAME, Point._ACCESSOR); break;\
-case EPCGExFuseMethod::Max: Out##_NAME = PCGExMath::CWMax(Out##_NAME, Point._ACCESSOR); break;\
-case EPCGExFuseMethod::Weight: Out##_NAME = PCGExMath::Lerp(Out##_NAME, Point._ACCESSOR, Weight); break;\
+#define PCGEX_FUSE_FUSE(_TYPE, _NAME, _ACCESSOR, ...) switch (Context->_NAME##Blending){\
+case EPCGExMetadataBlendingOperationType::Average: Out##_NAME += Point._ACCESSOR; break;\
+case EPCGExMetadataBlendingOperationType::Min: Out##_NAME = PCGExMath::CWMin(Out##_NAME, Point._ACCESSOR); break;\
+case EPCGExMetadataBlendingOperationType::Max: Out##_NAME = PCGExMath::CWMax(Out##_NAME, Point._ACCESSOR); break;\
+case EPCGExMetadataBlendingOperationType::Weight: Out##_NAME = PCGExMath::Lerp(Out##_NAME, Point._ACCESSOR, Weight); break;\
 }
 				PCGEX_FUSE_FOREACH_POINTPROPERTY(PCGEX_FUSE_FUSE)
 #undef PCGEX_FUSE_FUSE
 
-				for (const PCGEx::FAttributeIdentity& Identity : Context->InputAttributeMap.Identities)
-				{
-					EPCGExFuseMethod AttributeFuseMethod = Context->GetAttributeFuseMethod(Identity.Name);
-					switch (Identity.UnderlyingType)
-					{
-#define PCGEX_FUSE_ATT(_TYPE, _NAME) case EPCGMetadataTypes::_NAME: switch (AttributeFuseMethod){\
-case EPCGExFuseMethod::Average: Context->InputAttributeMap.SetAdd<_TYPE>(Identity.Name, Point.MetadataEntry, NewPoint.MetadataEntry); break;\
-case EPCGExFuseMethod::Min: Context->InputAttributeMap.SetCWMin<_TYPE>(Identity.Name, Point.MetadataEntry, NewPoint.MetadataEntry); break;\
-case EPCGExFuseMethod::Max: Context->InputAttributeMap.SetCWMax<_TYPE>(Identity.Name, Point.MetadataEntry, NewPoint.MetadataEntry); break;\
-case EPCGExFuseMethod::Weight: Context->InputAttributeMap.SetLerp<_TYPE>(Identity.Name, NewPoint.MetadataEntry, Point.MetadataEntry, NewPoint.MetadataEntry, Weight); break;\
-} break;
-					PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_FUSE_ATT)
-#undef PCGEX_FUSE_ATT
-					}
-				}
+				Context->Blender->DoOperations(NewPointKey, Point.MetadataEntry, NewPointKey, Weight);
 			}
 
-			if (Context->FuseMethod == EPCGExFuseMethod::Average)
-			{
-				// Average attributes
-				for (const PCGEx::FAttributeIdentity& Identity : Context->InputAttributeMap.Identities)
-				{
-					EPCGExFuseMethod AttributeFuseMethod = Context->GetAttributeFuseMethod(Identity.Name);
-					if (AttributeFuseMethod != EPCGExFuseMethod::Average) { continue; }
-					switch (Identity.UnderlyingType)
-					{
-#define PCGEX_AVG_ATT(_TYPE, _NAME) case EPCGMetadataTypes::_NAME: Context->InputAttributeMap.SetDivide<_TYPE>(Identity.Name, NewPoint.MetadataEntry, AverageDivider); break;
-					PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_AVG_ATT)
-#undef PCGEX_AVG_ATT
-					}
-				}
-			}
+			Context->Blender->FinalizeOperations(NewPointKey, AverageDivider);
 
 #define PCGEX_FUSE_POST(_TYPE, _NAME, _ACCESSOR, ...)\
-if(Context->_NAME##FuseMethod == EPCGExFuseMethod::Average){ Out##_NAME = PCGExMath::CWDivide(Out##_NAME, AverageDivider); }
+if(Context->_NAME##Blending == EPCGExMetadataBlendingOperationType::Average){ Out##_NAME = PCGExMath::CWDivide(Out##_NAME, AverageDivider); }
 			PCGEX_FUSE_FOREACH_POINTPROPERTY(PCGEX_FUSE_POST)
 #undef PCGEX_FUSE_POST
 
@@ -296,7 +213,10 @@ if(Context->_NAME##FuseMethod == EPCGExFuseMethod::Average){ Out##_NAME = PCGExM
 			NewPoint.SetExtents(OutExtents);
 		};
 
-		if (PCGExMT::ParallelForLoop(Context, Context->FusedPoints.Num(), [](){}, FusePoint, Context->ChunkSize))
+		if (PCGExMT::ParallelForLoop(
+			Context, Context->FusedPoints.Num(), []()
+			{
+			}, FusePoint, Context->ChunkSize))
 		{
 			Context->SetState(PCGExMT::State_ReadyForNextPoints);
 		}

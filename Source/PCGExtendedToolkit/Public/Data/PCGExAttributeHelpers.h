@@ -185,22 +185,18 @@ namespace PCGEx
 		bool operator==(const FAttributeIdentity& Other) const { return Name == Other.Name; }
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FPinAttributeInfos
+	static void GetAttributeIdentities(const UPCGPointData* InData, TArray<FAttributeIdentity>& OutIdentities)
 	{
-		FPinAttributeInfos()
+		TArray<FName> Names;
+		TArray<EPCGMetadataTypes> Types;
+		InData->Metadata->GetAttributes(Names, Types);
+		const int32 NumAttributes = Names.Num();
+		for(int i = 0; i < NumAttributes; i++)
 		{
-			Reset();
+			OutIdentities.AddUnique(FAttributeIdentity(Names[i], Types[i]));
 		}
-
-		FName PinLabel;
-		TArray<FAttributeIdentity> Attributes;
-
-		void Reset() { Attributes.Empty(); }
-		void Append(FAttributeIdentity Infos) { Attributes.AddUnique(Infos); }
-		void Discover(const UPCGPointData* InData);
-		void PushToDescriptor(FPCGExInputDescriptor& Descriptor, bool bReset = true) const;
-	};
-
+	}
+	
 	template <typename T>
 	static FPCGMetadataAttribute<T>* TryGetAttribute(UPCGSpatialData* InData, FName Name, bool bEnabled, T defaultValue = T{})
 	{
@@ -746,9 +742,9 @@ virtual _TYPE Convert(const FName Value) const override { return _TYPE(Value.ToS
 				switch (Identity.UnderlyingType)
 				{
 #define PCGEX_LERPATT(_TYPE, _NAME)  case EPCGMetadataTypes::_NAME: SetCopy<_TYPE>(Identity.Name, FromKey, OutKey); break;
-					PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_LERPATT)
-	#undef PCGEX_LERPATT
-					}
+				PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_LERPATT)
+#undef PCGEX_LERPATT
+				}
 			}
 		}
 	};

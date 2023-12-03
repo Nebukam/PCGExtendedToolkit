@@ -104,7 +104,7 @@ void UPCGExGraphPatchGroup::Distribute(const int32 InIndex, UPCGExGraphPatch* Pa
 
 	TArray<PCGExGraph::FUnsignedEdge> UnsignedEdges;
 	UnsignedEdges.Reserve(NumMaxEdges);
-	
+
 	Graph->GetEdges(InIndex, PointIO->GetInPoint(InIndex).MetadataEntry, UnsignedEdges, CrawlEdgeTypes);
 
 	for (const PCGExGraph::FUnsignedEdge& UEdge : UnsignedEdges)
@@ -131,7 +131,7 @@ void UPCGExGraphPatchGroup::DistributeEdge(const T& InEdge, UPCGExGraphPatch* Pa
 
 	TArray<T> Edges;
 	Edges.Reserve(NumMaxEdges);
-	
+
 	Graph->GetEdges(InEdge.Start, PointIO->GetInPoint(InEdge.Start).MetadataEntry, Edges, CrawlEdgeTypes);
 	Graph->GetEdges(InEdge.End, PointIO->GetInPoint(InEdge.End).MetadataEntry, Edges, CrawlEdgeTypes);
 

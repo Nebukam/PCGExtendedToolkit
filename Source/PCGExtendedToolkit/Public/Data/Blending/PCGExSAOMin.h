@@ -4,7 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExSingleAttributeOperation.h"
+#include "PCGExMetadataOperation.h"
 #include "PCGExSAOMin.generated.h"
 
 #define PCGEX_SAO_CLASS(_TYPE, _NAME)\
@@ -12,7 +12,7 @@ UCLASS(Blueprintable, EditInlineNew, HideDropdown)\
 class PCGEXTENDEDTOOLKIT_API UPCGExSAOMin##_NAME : public UPCGExBlend##_NAME##Base{\
 GENERATED_BODY()\
 public:\
-virtual void DoOperation(const PCGMetadataEntryKey OperandAKey, const PCGMetadataEntryKey OperandBKey, const PCGMetadataEntryKey OutputKey, const double Alpha = 0) override;\
+virtual void DoOperation(const PCGMetadataEntryKey OperandAKey, const PCGMetadataEntryKey OperandBKey, const PCGMetadataEntryKey OutputKey, const double Alpha = 0) const override;\
 };
 
 // Note: We're not using template for a slight performance boost
@@ -41,7 +41,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSAOMinBoolean : public UPCGExBlendBooleanBase
 	GENERATED_BODY()
 
 public:
-	virtual void DoOperation(PCGMetadataEntryKey OperandAKey, PCGMetadataEntryKey OperandBKey, PCGMetadataEntryKey OutputKey, double Alpha = 0) override;
+	virtual void DoOperation(PCGMetadataEntryKey OperandAKey, PCGMetadataEntryKey OperandBKey, PCGMetadataEntryKey OutputKey, double Alpha = 0) const override;
 };
 
 UCLASS(Blueprintable, EditInlineNew, HideDropdown)
@@ -50,7 +50,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSAOMinInteger32 : public UPCGExBlendInteger32
 	GENERATED_BODY()
 
 public:
-	virtual void DoOperation(PCGMetadataEntryKey OperandAKey, PCGMetadataEntryKey OperandBKey, PCGMetadataEntryKey OutputKey, double Alpha = 0) override;
+	virtual void DoOperation(PCGMetadataEntryKey OperandAKey, PCGMetadataEntryKey OperandBKey, PCGMetadataEntryKey OutputKey, double Alpha = 0) const override;
 };
 
 UCLASS(Blueprintable, EditInlineNew, HideDropdown)
@@ -59,7 +59,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSAOMinInteger64 : public UPCGExBlendInteger64
 	GENERATED_BODY()
 
 public:
-	virtual void DoOperation(PCGMetadataEntryKey OperandAKey, PCGMetadataEntryKey OperandBKey, PCGMetadataEntryKey OutputKey, double Alpha = 0) override;
+	virtual void DoOperation(PCGMetadataEntryKey OperandAKey, PCGMetadataEntryKey OperandBKey, PCGMetadataEntryKey OutputKey, double Alpha = 0) const override;
 };
 
 UCLASS(Blueprintable, EditInlineNew, HideDropdown)
@@ -68,7 +68,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSAOMinFloat : public UPCGExBlendFloatBase
 	GENERATED_BODY()
 
 public:
-	virtual void DoOperation(PCGMetadataEntryKey OperandAKey, PCGMetadataEntryKey OperandBKey, PCGMetadataEntryKey OutputKey, double Alpha = 0) override;
+	virtual void DoOperation(PCGMetadataEntryKey OperandAKey, PCGMetadataEntryKey OperandBKey, PCGMetadataEntryKey OutputKey, double Alpha = 0) const override;
 };
 
 UCLASS(Blueprintable, EditInlineNew, HideDropdown)
@@ -77,7 +77,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSAOMinDouble : public UPCGExBlendDoubleBase
 	GENERATED_BODY()
 
 public:
-	virtual void DoOperation(PCGMetadataEntryKey OperandAKey, PCGMetadataEntryKey OperandBKey, PCGMetadataEntryKey OutputKey, double Alpha = 0) override;
+	virtual void DoOperation(PCGMetadataEntryKey OperandAKey, PCGMetadataEntryKey OperandBKey, PCGMetadataEntryKey OutputKey, double Alpha = 0) const override;
 };
 
 UCLASS(Blueprintable, EditInlineNew, HideDropdown)
@@ -86,7 +86,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSAOMinVector2 : public UPCGExBlendVector2Base
 	GENERATED_BODY()
 
 public:
-	virtual void DoOperation(PCGMetadataEntryKey OperandAKey, PCGMetadataEntryKey OperandBKey, PCGMetadataEntryKey OutputKey, double Alpha = 0) override;
+	virtual void DoOperation(PCGMetadataEntryKey OperandAKey, PCGMetadataEntryKey OperandBKey, PCGMetadataEntryKey OutputKey, double Alpha = 0) const override;
 };
 
 UCLASS(Blueprintable, EditInlineNew, HideDropdown)
@@ -95,7 +95,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSAOMinVector : public UPCGExBlendVectorBase
 	GENERATED_BODY()
 
 public:
-	virtual void DoOperation(PCGMetadataEntryKey OperandAKey, PCGMetadataEntryKey OperandBKey, PCGMetadataEntryKey OutputKey, double Alpha = 0) override;
+	virtual void DoOperation(PCGMetadataEntryKey OperandAKey, PCGMetadataEntryKey OperandBKey, PCGMetadataEntryKey OutputKey, double Alpha = 0) const override;
 };
 
 UCLASS(Blueprintable, EditInlineNew, HideDropdown)
@@ -104,7 +104,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSAOMinVector4 : public UPCGExBlendVector4Base
 	GENERATED_BODY()
 
 public:
-	virtual void DoOperation(PCGMetadataEntryKey OperandAKey, PCGMetadataEntryKey OperandBKey, PCGMetadataEntryKey OutputKey, double Alpha = 0) override;
+	virtual void DoOperation(PCGMetadataEntryKey OperandAKey, PCGMetadataEntryKey OperandBKey, PCGMetadataEntryKey OutputKey, double Alpha = 0) const override;
 };
 
 UCLASS(Blueprintable, EditInlineNew, HideDropdown)
@@ -113,7 +113,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSAOMinQuaternion : public UPCGExBlendQuaterni
 	GENERATED_BODY()
 
 public:
-	virtual void DoOperation(PCGMetadataEntryKey OperandAKey, PCGMetadataEntryKey OperandBKey, PCGMetadataEntryKey OutputKey, double Alpha = 0) override;
+	virtual void DoOperation(PCGMetadataEntryKey OperandAKey, PCGMetadataEntryKey OperandBKey, PCGMetadataEntryKey OutputKey, double Alpha = 0) const override;
 };
 
 UCLASS(Blueprintable, EditInlineNew, HideDropdown)
@@ -122,7 +122,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSAOMinRotator : public UPCGExBlendRotatorBase
 	GENERATED_BODY()
 
 public:
-	virtual void DoOperation(PCGMetadataEntryKey OperandAKey, PCGMetadataEntryKey OperandBKey, PCGMetadataEntryKey OutputKey, double Alpha = 0) override;
+	virtual void DoOperation(PCGMetadataEntryKey OperandAKey, PCGMetadataEntryKey OperandBKey, PCGMetadataEntryKey OutputKey, double Alpha = 0) const override;
 };
 
 UCLASS(Blueprintable, EditInlineNew, HideDropdown)
@@ -131,7 +131,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSAOMinTransform : public UPCGExBlendTransform
 	GENERATED_BODY()
 
 public:
-	virtual void DoOperation(PCGMetadataEntryKey OperandAKey, PCGMetadataEntryKey OperandBKey, PCGMetadataEntryKey OutputKey, double Alpha = 0) override;
+	virtual void DoOperation(PCGMetadataEntryKey OperandAKey, PCGMetadataEntryKey OperandBKey, PCGMetadataEntryKey OutputKey, double Alpha = 0) const override;
 };
 
 UCLASS(Blueprintable, EditInlineNew, HideDropdown)
@@ -140,7 +140,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSAOMinString : public UPCGExBlendStringBase
 	GENERATED_BODY()
 
 public:
-	virtual void DoOperation(PCGMetadataEntryKey OperandAKey, PCGMetadataEntryKey OperandBKey, PCGMetadataEntryKey OutputKey, double Alpha = 0) override;
+	virtual void DoOperation(PCGMetadataEntryKey OperandAKey, PCGMetadataEntryKey OperandBKey, PCGMetadataEntryKey OutputKey, double Alpha = 0) const override;
 };
 
 UCLASS(Blueprintable, EditInlineNew, HideDropdown)
@@ -149,7 +149,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSAOMinName : public UPCGExBlendNameBase
 	GENERATED_BODY()
 
 public:
-	virtual void DoOperation(PCGMetadataEntryKey OperandAKey, PCGMetadataEntryKey OperandBKey, PCGMetadataEntryKey OutputKey, double Alpha = 0) override;
+	virtual void DoOperation(PCGMetadataEntryKey OperandAKey, PCGMetadataEntryKey OperandBKey, PCGMetadataEntryKey OutputKey, double Alpha = 0) const override;
 };
 
 #pragma endregion

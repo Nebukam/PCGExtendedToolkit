@@ -227,7 +227,7 @@ bool FPCGExDrawAttributesElement::Validate(FPCGContext* InContext) const
 		PCGE_LOG(Error, GraphAndLog, LOCTEXT("MissingDebugManager", "Could not find a PCGEx Debug Manager node in your graph."));
 		return false;
 	}
-	
+
 	return true;
 }
 

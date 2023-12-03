@@ -146,7 +146,6 @@ public:
 	}
 
 protected:
-	TMap<FName, PCGEx::FPinAttributeInfos> AttributesMap;
 	virtual int32 GetPreferredChunkSize() const;
 };
 
