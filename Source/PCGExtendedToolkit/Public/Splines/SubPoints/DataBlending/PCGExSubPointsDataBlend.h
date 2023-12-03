@@ -21,12 +21,19 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSubPointsDataBlend : public UPCGExSubPointsPr
 {
 	GENERATED_BODY()
 
-protected:
-	TMap<FName, EPCGExMetadataBlendingOperationType> BlendingOverrides;
-	UPCGExMetadataBlender* Blender = nullptr;
-	
 public:
-	virtual EPCGExMetadataBlendingOperationType GetDefaultBlending();
+	UPROPERTY()
+	TMap<FName, EPCGExDataBlendingType> BlendingOverrides;
+	
 	virtual void PrepareForData(const UPCGExPointIO* InData) override;
+	virtual void PrepareForData(const UPCGPointData* InPrimaryData, const UPCGPointData* InSecondaryData);
 	virtual void ProcessSubPoints(const FPCGPoint& StartPoint, const FPCGPoint& EndPoint, TArrayView<FPCGPoint>& SubPoints, const double PathLength) const override;
+	virtual void ProcessSubPoints(const FPCGPoint& StartPoint, const FPCGPoint& EndPoint, TArrayView<FPCGPoint>& SubPoints, const double PathLength, const UPCGExMetadataBlender* InBlender) const;
+
+	UPCGExMetadataBlender* CreateBlender(const UPCGPointData* InPrimaryData, const UPCGPointData* InSecondaryData);
+	
+protected:
+	virtual EPCGExDataBlendingType GetDefaultBlending();
+	UPCGExMetadataBlender* InternalBlender;
+	
 };

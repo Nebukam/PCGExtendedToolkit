@@ -7,25 +7,37 @@
 #include "Data/PCGExPointIO.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
 
-
-EPCGExMetadataBlendingOperationType UPCGExSubPointsDataBlend::GetDefaultBlending()
+EPCGExDataBlendingType UPCGExSubPointsDataBlend::GetDefaultBlending()
 {
-	return EPCGExMetadataBlendingOperationType::Copy;
+	return EPCGExDataBlendingType::Copy;
 }
 
 void UPCGExSubPointsDataBlend::PrepareForData(const UPCGExPointIO* InData)
 {
-	if (!Blender)
-	{
-		Blender = NewObject<UPCGExMetadataBlender>();
-		Blender->DefaultOperation = GetDefaultBlending();
-	}
-
-	Blender->PrepareForData(InData->Out, BlendingOverrides);
-	
 	Super::PrepareForData(InData);
+	if (!InternalBlender) { InternalBlender = NewObject<UPCGExMetadataBlender>(); }
+	PrepareForData(InData->Out, InData->Out);
+}
+
+void UPCGExSubPointsDataBlend::PrepareForData(const UPCGPointData* InPrimaryData, const UPCGPointData* InSecondaryData)
+{
+	InternalBlender->DefaultOperation = GetDefaultBlending();
+	InternalBlender->PrepareForData(InPrimaryData, InSecondaryData, BlendingOverrides);
 }
 
 void UPCGExSubPointsDataBlend::ProcessSubPoints(const FPCGPoint& StartPoint, const FPCGPoint& EndPoint, TArrayView<FPCGPoint>& SubPoints, const double PathLength) const
 {
+	ProcessSubPoints(StartPoint, EndPoint, SubPoints, PathLength, InternalBlender);
+}
+
+void UPCGExSubPointsDataBlend::ProcessSubPoints(const FPCGPoint& StartPoint, const FPCGPoint& EndPoint, TArrayView<FPCGPoint>& SubPoints, const double PathLength, const UPCGExMetadataBlender* InBlender) const
+{
+}
+
+UPCGExMetadataBlender* UPCGExSubPointsDataBlend::CreateBlender(const UPCGPointData* InPrimaryData, const UPCGPointData* InSecondaryData)
+{
+	UPCGExMetadataBlender* NewBlender = NewObject<UPCGExMetadataBlender>();
+	NewBlender->DefaultOperation = GetDefaultBlending();
+	NewBlender->PrepareForData(InPrimaryData, InSecondaryData, BlendingOverrides);
+	return NewBlender;
 }

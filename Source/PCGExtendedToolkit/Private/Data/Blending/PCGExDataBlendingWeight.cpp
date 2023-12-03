@@ -2,14 +2,14 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 
-#include "Data/Blending/PCGExSAOWeight.h"
+#include "Data/Blending/PCGExDataBlendingWeight.h"
 
 #include "PCGExMath.h"
 
-#define PCGEX_DECL(_TYPE) const _TYPE A = GetPrimaryValue(OperandAKey); const _TYPE B = GetSecondaryValue(OperandBKey);
-#define PCGEX_SET(_BODY) PrimaryAttribute->SetValue(OutputKey, _BODY);
+#define PCGEX_DECL(_TYPE) const _TYPE A = GetPrimaryValue(InPrimaryKey); const _TYPE B = GetSecondaryValue(InSecondaryKey);
+#define PCGEX_SET(_BODY) PrimaryAttribute->SetValue(InPrimaryOutputKey, _BODY);
 #define PCGEX_SAO_CLASS(_TYPE, _NAME, _SET)\
-void UPCGExSAOWeight##_NAME::DoOperation(const PCGMetadataEntryKey OperandAKey, const PCGMetadataEntryKey OperandBKey, const PCGMetadataEntryKey OutputKey, const double Alpha) const { PCGEX_DECL(_TYPE) PCGEX_SET(_SET) };
+void UPCGExDataBlendingWeight##_NAME::DoOperation(const PCGMetadataEntryKey InPrimaryKey, const PCGMetadataEntryKey InSecondaryKey, const PCGMetadataEntryKey InPrimaryOutputKey, const double Alpha) const { PCGEX_DECL(_TYPE) PCGEX_SET(_SET) };
 
 PCGEX_SAO_CLASS(bool, Boolean, FMath::Lerp(A, B, Alpha))
 PCGEX_SAO_CLASS(int32, Integer32, FMath::Lerp(A, B, Alpha))

@@ -6,7 +6,7 @@
 
 #include "Data/Blending/PCGExMetadataBlender.h"
 
-void UPCGExSubPointsDataBlendInheritStart::ProcessSubPoints(const FPCGPoint& StartPoint, const FPCGPoint& EndPoint, TArrayView<FPCGPoint>& SubPoints, const double PathLength) const
+void UPCGExSubPointsDataBlendInheritStart::ProcessSubPoints(const FPCGPoint& StartPoint, const FPCGPoint& EndPoint, TArrayView<FPCGPoint>& SubPoints, const double PathLength, const UPCGExMetadataBlender* InBlender) const
 {
 	const int32 NumPoints = SubPoints.Num();
 	for (int i = 0; i < NumPoints; i++)
@@ -15,7 +15,7 @@ void UPCGExSubPointsDataBlendInheritStart::ProcessSubPoints(const FPCGPoint& Sta
 		const FVector Location = Point.Transform.GetLocation();
 
 		PCGExMath::Copy(StartPoint, Point);
-		Blender->DoOperations(StartPoint.MetadataEntry, StartPoint.MetadataEntry, Point.MetadataEntry);
+		InBlender->DoOperations(StartPoint.MetadataEntry, StartPoint.MetadataEntry, Point.MetadataEntry);
 
 		Point.Transform.SetLocation(Location); // !
 	}

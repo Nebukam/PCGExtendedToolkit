@@ -19,9 +19,15 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSubPointsOrient : public UPCGExSubPointsProce
 {
 	GENERATED_BODY()
 
-protected:
-	PCGEx::FAttributeMap* AttributeMap;
-
 public:
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	EPCGExAxis Axis = EPCGExAxis::Forward;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="!bUseCustomUp", EditConditionHides))
+	EPCGExAxis UpAxis = EPCGExAxis::Up;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="bUseUpAxis", EditConditionHides))
+	bool bUseCustomUp = false;
+		
 	virtual void ProcessSubPoints(const FPCGPoint& StartPoint, const FPCGPoint& EndPoint, TArrayView<FPCGPoint>& SubPoints, const double PathLength) const override;
 };

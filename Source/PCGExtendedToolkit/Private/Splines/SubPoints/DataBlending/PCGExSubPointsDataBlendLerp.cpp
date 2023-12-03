@@ -6,12 +6,12 @@
 
 #include "Data/PCGExPointIO.h"
 
-EPCGExMetadataBlendingOperationType UPCGExSubPointsDataBlendLerp::GetDefaultBlending()
+EPCGExDataBlendingType UPCGExSubPointsDataBlendLerp::GetDefaultBlending()
 {
-	return EPCGExMetadataBlendingOperationType::Weight;
+	return EPCGExDataBlendingType::Weight;
 }
 
-void UPCGExSubPointsDataBlendLerp::ProcessSubPoints(const FPCGPoint& StartPoint, const FPCGPoint& EndPoint, TArrayView<FPCGPoint>& SubPoints, const double PathLength) const
+void UPCGExSubPointsDataBlendLerp::ProcessSubPoints(const FPCGPoint& StartPoint, const FPCGPoint& EndPoint, TArrayView<FPCGPoint>& SubPoints, const double PathLength, const UPCGExMetadataBlender* InBlender) const
 {
 	const int32 NumPoints = SubPoints.Num();
 
@@ -34,7 +34,7 @@ void UPCGExSubPointsDataBlendLerp::ProcessSubPoints(const FPCGPoint& StartPoint,
 
 			const double Lerp = Distance / TotalDistance;
 			PCGExMath::Lerp(StartPoint, EndPoint, Point, Lerp);
-			Blender->DoOperations(StartKey, EndKey, Point.MetadataEntry, Lerp);
+			InBlender->DoOperations(StartKey, EndKey, Point.MetadataEntry, Lerp);
 
 			Point.Transform.SetLocation(Location); // !
 
@@ -50,7 +50,7 @@ void UPCGExSubPointsDataBlendLerp::ProcessSubPoints(const FPCGPoint& StartPoint,
 
 			const double Lerp = (i + 1) / NumPoints;
 			PCGExMath::Lerp(StartPoint, EndPoint, Point, Lerp);
-			Blender->DoOperations(StartKey, EndKey, Point.MetadataEntry, Lerp);
+			InBlender->DoOperations(StartKey, EndKey, Point.MetadataEntry, Lerp);
 
 			Point.Transform.SetLocation(Location); // !
 		}
@@ -63,7 +63,7 @@ void UPCGExSubPointsDataBlendLerp::ProcessSubPoints(const FPCGPoint& StartPoint,
 			const FVector Location = Point.Transform.GetLocation();
 
 			PCGExMath::Lerp(StartPoint, EndPoint, Point, Alpha);
-			Blender->DoOperations(StartKey, EndKey, Point.MetadataEntry, Alpha);
+			InBlender->DoOperations(StartKey, EndKey, Point.MetadataEntry, Alpha);
 
 			Point.Transform.SetLocation(Location); // !
 		}

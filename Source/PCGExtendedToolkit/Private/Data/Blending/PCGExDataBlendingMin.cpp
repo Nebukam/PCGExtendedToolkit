@@ -2,14 +2,14 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 
-#include "Data/Blending/PCGExSAOMin.h"
+#include "Data/Blending/PCGExDataBlendingMin.h"
 
 #include "PCGExMath.h"
 
-#define PCGEX_DECL(_TYPE) const _TYPE A = GetPrimaryValue(OperandAKey); const _TYPE B = GetSecondaryValue(OperandBKey);
-#define PCGEX_SET(_BODY) PrimaryAttribute->SetValue(OutputKey, _BODY);
+#define PCGEX_DECL(_TYPE) const _TYPE A = GetPrimaryValue(InPrimaryKey); const _TYPE B = GetSecondaryValue(InSecondaryKey);
+#define PCGEX_SET(_BODY) PrimaryAttribute->SetValue(InPrimaryOutputKey, _BODY);
 #define PCGEX_SAO_CLASS(_TYPE, _NAME, _SET)\
-void UPCGExSAOMin##_NAME::DoOperation(const PCGMetadataEntryKey OperandAKey, const  PCGMetadataEntryKey OperandBKey, const PCGMetadataEntryKey OutputKey, double Alpha) const { PCGEX_DECL(_TYPE) PCGEX_SET(_SET) };
+void UPCGExDataBlendingMin##_NAME::DoOperation(const PCGMetadataEntryKey InPrimaryKey, const  PCGMetadataEntryKey InSecondaryKey, const PCGMetadataEntryKey InPrimaryOutputKey, double Alpha) const { PCGEX_DECL(_TYPE) PCGEX_SET(_SET) };
 
 PCGEX_SAO_CLASS(bool, Boolean, FMath::Min(A, B))
 PCGEX_SAO_CLASS(int32, Integer32, FMath::Min(A, B))

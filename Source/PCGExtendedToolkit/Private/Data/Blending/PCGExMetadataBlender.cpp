@@ -4,74 +4,100 @@
 #include "Data/Blending/PCGExMetadataBlender.h"
 
 #include "Data/PCGExAttributeHelpers.h"
-#include "Data/Blending/PCGExSAO.h"
+#include "Data/Blending/PCGExDataBlending.h"
 
-void UPCGExMetadataBlender::PrepareForData(const UPCGPointData* InData)
+void UPCGExMetadataBlender::PrepareForData(const UPCGPointData* InPrimaryData, const UPCGPointData* InSecondaryData)
 {
-	const TMap<FName, EPCGExMetadataBlendingOperationType> NoOverrides;
-	PrepareForData(InData, NoOverrides);
+	const TMap<FName, EPCGExDataBlendingType> NoOverrides;
+	PrepareForData(InPrimaryData, InSecondaryData ? InSecondaryData : InPrimaryData, NoOverrides);
 }
 
-void UPCGExMetadataBlender::PrepareForData(const UPCGPointData* InData, const UPCGPointData* InOtherData)
+void UPCGExMetadataBlender::PrepareForData(const UPCGPointData* InPrimaryData, const UPCGPointData* InSecondaryData, const TMap<FName, EPCGExDataBlendingType>& OperationTypeOverrides)
 {
-	const TMap<FName, EPCGExMetadataBlendingOperationType> NoOverrides;
-	TArray<PCGEx::FAttributeIdentity> Identities;
-	PCGEx::GetAttributeIdentities(InData, Identities);
+	InternalPrepareForData(InPrimaryData, InSecondaryData ? InSecondaryData : InPrimaryData, OperationTypeOverrides);
+}
 
-	TArray<PCGEx::FAttributeIdentity> OtherIdentities;
-	PCGEx::GetAttributeIdentities(InOtherData, OtherIdentities);
+UPCGExMetadataBlender* UPCGExMetadataBlender::Copy(const UPCGPointData* InPrimaryData, const UPCGPointData* InSecondaryData) const
+{
+	UPCGExMetadataBlender* Copy = NewObject<UPCGExMetadataBlender>();
+	Copy->DefaultOperation = DefaultOperation;
+	Copy->PrepareForData(InPrimaryData, InSecondaryData, BlendingOverrides);
+	return Copy;
+}
 
-	// Create missing attribute from OtherData onto InData
+void UPCGExMetadataBlender::PrepareForOperations(const PCGMetadataEntryKey InPrimaryOutputKey) const
+{
+	for (const UPCGExDataBlendingOperation* Op : AttributesToBePrepared) { Op->PrepareOperation(InPrimaryOutputKey); }
+}
+
+void UPCGExMetadataBlender::DoOperations(const PCGMetadataEntryKey InPrimaryKey, const PCGMetadataEntryKey InSecondaryKey, const PCGMetadataEntryKey InPrimaryOutputKey, const double Alpha) const
+{
+	for (const UPCGExDataBlendingOperation* Op : Attributes) { Op->DoOperation(InPrimaryKey, InSecondaryKey, InPrimaryOutputKey, Alpha); }
+}
+
+void UPCGExMetadataBlender::FinalizeOperations(const PCGMetadataEntryKey InPrimaryOutputKey, const double Alpha) const
+{
+	for (const UPCGExDataBlendingOperation* Op : AttributesToBeFinalized) { Op->FinalizeOperation(InPrimaryOutputKey, Alpha); }
+}
+
+void UPCGExMetadataBlender::ResetToDefaults(const PCGMetadataEntryKey InPrimaryOutputKey) const
+{
+	for (const UPCGExDataBlendingOperation* Op : Attributes) { Op->ResetToDefault(InPrimaryOutputKey); }
+}
+
+void UPCGExMetadataBlender::InternalPrepareForData(const UPCGPointData* InPrimaryData, const UPCGPointData* InSecondaryData, const TMap<FName, EPCGExDataBlendingType>& OperationTypeOverrides)
+{
+	for (UPCGExDataBlendingOperation* Op : Attributes) { Op->ConditionalBeginDestroy(); }
+
+	BlendingOverrides = OperationTypeOverrides;
 	
-	PrepareForData(InData, NoOverrides);
-}
-
-void UPCGExMetadataBlender::PrepareForData(const UPCGPointData* InData, const TMap<FName, EPCGExMetadataBlendingOperationType>& OperationTypeOverrides)
-{
 	TArray<PCGEx::FAttributeIdentity> Identities;
-	PCGEx::GetAttributeIdentities(InData, Identities);
-	InternalPrepareForData(InData, Identities, OperationTypeOverrides);
-}
+	TSet<FName> Mismatch;
 
-void UPCGExMetadataBlender::PrepareForOperations(const PCGMetadataEntryKey OutputKey) const
-{
-	for (const UPCGExMetadataOperation* Op : AttributesPrep) { Op->PrepareOperation(OutputKey); }
-}
+	PCGEx::GetAttributeIdentities(InPrimaryData, Identities);
 
-void UPCGExMetadataBlender::DoOperations(const PCGMetadataEntryKey OperandAKey, const PCGMetadataEntryKey OperandBKey, const PCGMetadataEntryKey OutputKey, const double Alpha) const
-{
-	for (const UPCGExMetadataOperation* Op : Attributes) { Op->DoOperation(OperandAKey, OperandBKey, OutputKey, Alpha); }
-}
+	if (InSecondaryData != InPrimaryData)
+	{
+		TArray<FName> PrimaryNames;
+		TArray<FName> SecondaryNames;
+		TMap<FName, PCGEx::FAttributeIdentity> PrimaryIdentityMap;
+		TMap<FName, PCGEx::FAttributeIdentity> SecondaryIdentityMap;
+		PCGEx::GetAttributeIdentities(InPrimaryData, PrimaryNames, PrimaryIdentityMap);
+		PCGEx::GetAttributeIdentities(InSecondaryData, SecondaryNames, SecondaryIdentityMap);
 
-void UPCGExMetadataBlender::FinalizeOperations(const PCGMetadataEntryKey OutputKey, const double Alpha) const
-{
-	for (const UPCGExMetadataOperation* Op : AttributesFinalizers) { Op->FinalizeOperation(OutputKey, Alpha); }
-}
-
-void UPCGExMetadataBlender::ResetToDefaults(const PCGMetadataEntryKey OutputKey) const
-{
-	for (const UPCGExMetadataOperation* Op : Attributes) { Op->ResetToDefault(OutputKey); }
-}
-
-void UPCGExMetadataBlender::InternalPrepareForData(const UPCGPointData* InData, const TArray<PCGEx::FAttributeIdentity>& Identities, const TMap<FName, EPCGExMetadataBlendingOperationType>& OperationTypeOverrides)
-{
-	for (UPCGExMetadataOperation* Op : Attributes) { Op->ConditionalBeginDestroy(); }
+		for (FName SecondaryName : SecondaryNames)
+		{
+			const PCGEx::FAttributeIdentity& SecondaryIdentity = *SecondaryIdentityMap.Find(SecondaryName);
+			if (const PCGEx::FAttributeIdentity* PrimaryIdentityPtr = PrimaryIdentityMap.Find(SecondaryName))
+			{
+				if (PrimaryIdentityPtr->UnderlyingType != SecondaryIdentity.UnderlyingType)
+				{
+					Mismatch.Add(SecondaryName);
+				}
+			}
+			else
+			{
+				//Operation will handle missing attribute creation.
+				Identities.Add(SecondaryIdentity);
+			}
+		}
+	}
 
 	Attributes.Empty(Identities.Num());
-	AttributesFinalizers.Empty(Identities.Num());
-	AttributesPrep.Empty(Identities.Num());
+	AttributesToBeFinalized.Empty(Identities.Num());
+	AttributesToBePrepared.Empty(Identities.Num());
 
 	for (const PCGEx::FAttributeIdentity& Identity : Identities)
 	{
-		const EPCGExMetadataBlendingOperationType* TypePtr = OperationTypeOverrides.Find(Identity.Name);
-		UPCGExMetadataOperation* Op = PCGExSAO::CreateOperation(TypePtr ? *TypePtr : DefaultOperation, Identity);
+		const EPCGExDataBlendingType* TypePtr = OperationTypeOverrides.Find(Identity.Name);
+		UPCGExDataBlendingOperation* Op = PCGExDataBlending::CreateOperation(TypePtr ? *TypePtr : DefaultOperation, Identity);
 
 		if (!Op) { continue; }
 
 		Attributes.Add(Op);
-		if (Op->UsePreparation()) { AttributesPrep.Add(Op); }
-		if (Op->UseFinalize()) { AttributesFinalizers.Add(Op); }
-		
-		Op->PrepareForData(InData); // TODO: Add support for double-initialization
+		if (Op->GetRequiresPreparation()) { AttributesToBePrepared.Add(Op); }
+		if (Op->GetRequiresFinalization()) { AttributesToBeFinalized.Add(Op); }
+
+		Op->PrepareForData(InPrimaryData, Mismatch.Contains(Identity.Name) ? InSecondaryData : InPrimaryData);
 	}
 }

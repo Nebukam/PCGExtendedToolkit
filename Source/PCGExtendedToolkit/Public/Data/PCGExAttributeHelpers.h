@@ -196,6 +196,19 @@ namespace PCGEx
 			OutIdentities.AddUnique(FAttributeIdentity(Names[i], Types[i]));
 		}
 	}
+
+	static void GetAttributeIdentities(const UPCGPointData* InData, TArray<FName>& OutNames, TMap<FName, FAttributeIdentity>& OutIdentities)
+    	{
+    		TArray<EPCGMetadataTypes> Types;
+    		InData->Metadata->GetAttributes(OutNames, Types);
+    		const int32 NumAttributes = OutNames.Num();
+    		for(int i = 0; i < NumAttributes; i++)
+    		{
+    			FName Name = OutNames[i];
+    			OutNames.Add(Name);
+    			OutIdentities.Add(Name, FAttributeIdentity(Name, Types[i]));
+    		}
+    	}
 	
 	template <typename T>
 	static FPCGMetadataAttribute<T>* TryGetAttribute(UPCGSpatialData* InData, FName Name, bool bEnabled, T defaultValue = T{})

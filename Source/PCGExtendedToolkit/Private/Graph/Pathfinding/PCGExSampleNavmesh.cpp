@@ -148,7 +148,7 @@ bool FPCGExSampleNavmeshElement::ExecuteInternal(FPCGContext* InContext) const
 
 		Context->GoalPicker->PrepareForData(Context->CurrentIO->In, Context->GoalsPoints->In);
 		Context->Orientation->PrepareForData(Context->CurrentIO);
-		Context->Blending->PrepareForData(Context->CurrentIO); //TODO : Merge goals metadata with into seed meta
+		//Context->Blending->PrepareForData(Context->CurrentIO->In, Context->GoalsPoints->In); //TODO : Merge goals metadata with into seed meta
 
 		Context->SetState(PCGExMT::State_ProcessingPoints);
 	}
@@ -241,21 +241,22 @@ void FNavmeshPathTask::ExecuteTask()
 		{
 			TArray<FNavPathPoint>& Points = Result.Path->GetPathPoints();
 			TArray<FVector> PathLocations;
-			PathLocations.Reserve(Points.Num() + 2);
+			PathLocations.Reserve(Points.Num());
 
 			PathLocations.Add(StartLocation);
 			for (FNavPathPoint PathPoint : Points) { PathLocations.Add(PathPoint.Location); }
 			PathLocations.Add(EndLocation);
 
+			int32 FuseCountReduce = Context->bAddGoalToPath ? 2 : 1;			
 			double PathLength = 0;
-			for (int i = 0; i < PathLocations.Num(); i++)
+			for (int i = Context->bAddSeedToPath; i < PathLocations.Num(); i++)
 			{
 				double Dist = 0;
 				FVector CurrentLocation = PathLocations[i];
-				if (i > 0)
+				if (i > 0 && i < (PathLocations.Num() - FuseCountReduce))
 				{
 					Dist = FVector::DistSquared(CurrentLocation, PathLocations[i - 1]);
-					if (i < (PathLocations.Num() - 2) && Dist < Context->FuseDistance)
+					if (Dist < Context->FuseDistance)
 					{
 						// Fuse
 						PathLocations.RemoveAt(i);
@@ -277,23 +278,26 @@ void FNavmeshPathTask::ExecuteTask()
 			else
 			{
 				///////
-
-				int32 NumPts = PathLocations.Num();
-				for (int i = 0; i < NumPts; i++)
+				
+				for (FVector Location : PathLocations)
 				{
-					double Lerp = static_cast<double>(i) / static_cast<double>(NumPts);
-					FPCGPoint& Point = PathPoints->CopyPoint(i == 0 ? StartPoint : EndPoint);
+					FPCGPoint& Point = PathPoints->CopyPoint(StartPoint);
+					Point.Transform.SetLocation(Location);
 				}
 
-				TArray<FPCGPoint>& MutablePoints = PointData->Out->GetMutablePoints();
-				TArrayView<FPCGPoint> Path = MakeArrayView(MutablePoints.GetData(), NumPts);
+				TArray<FPCGPoint>& MutablePoints = PathPoints->Out->GetMutablePoints();
+				TArrayView<FPCGPoint> Path = MakeArrayView(MutablePoints.GetData(), PathLocations.Num());
 
+				UPCGExMetadataBlender* TempBlender = Context->Blending->CreateBlender(PathPoints->Out, Context->GoalsPoints->In);
+				Context->Blending->ProcessSubPoints(StartPoint, EndPoint, Path, PathLength, TempBlender);
+				TempBlender->ConditionalBeginDestroy();
+
+				// Orient post-blending
 				Context->Orientation->ProcessSubPoints(StartPoint, EndPoint, Path, PathLength);
-				Context->Blending->ProcessSubPoints(StartPoint, EndPoint, Path, PathLength);
-
+				
 				// Remove start and/or end after blending
-				if (!Context->bAddSeedToPath) { PathLocations.RemoveAt(0); }
-				if (!Context->bAddGoalToPath) { PathLocations.Pop(); }
+				if (!Context->bAddSeedToPath) { MutablePoints.RemoveAt(0); }
+				if (!Context->bAddGoalToPath) { MutablePoints.Pop(); }
 
 				bSuccess = true;
 			}

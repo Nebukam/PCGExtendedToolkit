@@ -66,11 +66,11 @@ FPCGContext* FPCGExFusePointsElement::Initialize(
 	Context->bComponentWiseRadius = Settings->bComponentWiseRadius;
 	Context->Radiuses = Settings->Radiuses;
 
-	Context->BlendingOverrides = Settings->BlendingOverrides;
+	Context->BlendingOverrides = Settings->AttributeBlendingOverrides;
 	Context->Blender = NewObject<UPCGExMetadataBlender>();
 	Context->Blender->DefaultOperation = Settings->Blending;
 
-#define PCGEX_FUSE_TRANSFERT(_NAME) Context->_NAME##Blending = Settings->bOverride##_NAME ? Context->_NAME##Blending : Settings->Blending;
+#define PCGEX_FUSE_TRANSFERT(_NAME) Context->_NAME##Blending = Settings->PropertyBlendingOverrides.bOverride##_NAME ? Settings->PropertyBlendingOverrides._NAME##Blending : Settings->Blending;
 	PCGEX_FUSE_FOREACH_POINTPROPERTYNAME(PCGEX_FUSE_TRANSFERT)
 #undef PCGEX_FUSE_TRANSFERT
 
@@ -104,7 +104,7 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 		auto Initialize = [&](UPCGExPointIO* PointIO)
 		{
 			Context->FusedPoints.Reset(PointIO->NumInPoints);
-			Context->Blender->PrepareForData(PointIO->Out, Context->BlendingOverrides);
+			Context->Blender->PrepareForData(PointIO->Out, nullptr, Context->BlendingOverrides);
 		};
 
 		auto ProcessPoint = [&](const int32 PointIndex, const UPCGExPointIO* PointIO)
@@ -174,7 +174,7 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 			Context->Blender->PrepareForOperations(NewPointKey);
 
 			FTransform& OutTransform = NewPoint.Transform;
-#define PCGEX_FUSE_DECLARE(_TYPE, _NAME, _ACCESSOR, _DEFAULT_VALUE, ...) _TYPE Out##_NAME = Context->_NAME##Blending != EPCGExMetadataBlendingOperationType::Average ? RootPoint._ACCESSOR : _DEFAULT_VALUE;
+#define PCGEX_FUSE_DECLARE(_TYPE, _NAME, _ACCESSOR, _DEFAULT_VALUE, ...) _TYPE Out##_NAME = Context->_NAME##Blending != EPCGExDataBlendingType::Average ? RootPoint._ACCESSOR : _DEFAULT_VALUE;
 			PCGEX_FUSE_FOREACH_POINTPROPERTY(PCGEX_FUSE_DECLARE)
 #undef PCGEX_FUSE_DECLARE
 
@@ -184,10 +184,10 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 				FPCGPoint Point = Context->CurrentIO->GetInPoint(FusedPointData.Fused[i]);
 
 #define PCGEX_FUSE_FUSE(_TYPE, _NAME, _ACCESSOR, ...) switch (Context->_NAME##Blending){\
-case EPCGExMetadataBlendingOperationType::Average: Out##_NAME += Point._ACCESSOR; break;\
-case EPCGExMetadataBlendingOperationType::Min: Out##_NAME = PCGExMath::CWMin(Out##_NAME, Point._ACCESSOR); break;\
-case EPCGExMetadataBlendingOperationType::Max: Out##_NAME = PCGExMath::CWMax(Out##_NAME, Point._ACCESSOR); break;\
-case EPCGExMetadataBlendingOperationType::Weight: Out##_NAME = PCGExMath::Lerp(Out##_NAME, Point._ACCESSOR, Weight); break;\
+case EPCGExDataBlendingType::Average: Out##_NAME += Point._ACCESSOR; break;\
+case EPCGExDataBlendingType::Min: Out##_NAME = PCGExMath::CWMin(Out##_NAME, Point._ACCESSOR); break;\
+case EPCGExDataBlendingType::Max: Out##_NAME = PCGExMath::CWMax(Out##_NAME, Point._ACCESSOR); break;\
+case EPCGExDataBlendingType::Weight: Out##_NAME = PCGExMath::Lerp(Out##_NAME, Point._ACCESSOR, Weight); break;\
 }
 				PCGEX_FUSE_FOREACH_POINTPROPERTY(PCGEX_FUSE_FUSE)
 #undef PCGEX_FUSE_FUSE
@@ -198,7 +198,7 @@ case EPCGExMetadataBlendingOperationType::Weight: Out##_NAME = PCGExMath::Lerp(O
 			Context->Blender->FinalizeOperations(NewPointKey, AverageDivider);
 
 #define PCGEX_FUSE_POST(_TYPE, _NAME, _ACCESSOR, ...)\
-if(Context->_NAME##Blending == EPCGExMetadataBlendingOperationType::Average){ Out##_NAME = PCGExMath::CWDivide(Out##_NAME, AverageDivider); }
+if(Context->_NAME##Blending == EPCGExDataBlendingType::Average){ Out##_NAME = PCGExMath::CWDivide(Out##_NAME, AverageDivider); }
 			PCGEX_FUSE_FOREACH_POINTPROPERTY(PCGEX_FUSE_POST)
 #undef PCGEX_FUSE_POST
 

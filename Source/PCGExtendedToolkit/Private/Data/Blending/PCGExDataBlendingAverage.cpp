@@ -2,18 +2,18 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 
-#include "Data/Blending/PCGExSAOAverage.h"
+#include "Data/Blending/PCGExDataBlendingAverage.h"
 
 #include "PCGExMath.h"
 
-#define PCGEX_DECL(_TYPE) const _TYPE A = GetPrimaryValue(OperandAKey); const _TYPE B = GetSecondaryValue(OperandBKey);
-#define PCGEX_SET(_BODY) PrimaryAttribute->SetValue(OutputKey, _BODY);
+#define PCGEX_DECL(_TYPE) const _TYPE A = GetPrimaryValue(InPrimaryKey); const _TYPE B = GetSecondaryValue(InSecondaryKey);
+#define PCGEX_SET(_BODY) PrimaryAttribute->SetValue(InPrimaryOutputKey, _BODY);
 #define PCGEX_SAO_CLASS(_TYPE, _NAME, _SET, _SET_FINAL)\
-bool UPCGExSAOAverage##_NAME::UsePreparation() const { return true; }\
-bool UPCGExSAOAverage##_NAME::UseFinalize() const { return true; }\
-void UPCGExSAOAverage##_NAME::PrepareOperation(const PCGMetadataEntryKey OutputKey) const { ResetToDefault(OutputKey); }\
-void UPCGExSAOAverage##_NAME::DoOperation(const PCGMetadataEntryKey OperandAKey, const PCGMetadataEntryKey OperandBKey, const PCGMetadataEntryKey OutputKey, const double Alpha)const { PCGEX_DECL(_TYPE) PCGEX_SET(_SET) };\
-void UPCGExSAOAverage##_NAME::FinalizeOperation(const PCGMetadataEntryKey OutputKey, double Alpha) const { const _TYPE Val = GetPrimaryValue(OutputKey); PCGEX_SET(_SET_FINAL) };
+bool UPCGExDataBlendingAverage##_NAME::GetRequiresPreparation() const { return true; }\
+bool UPCGExDataBlendingAverage##_NAME::GetRequiresFinalization() const { return true; }\
+void UPCGExDataBlendingAverage##_NAME::PrepareOperation(const PCGMetadataEntryKey InPrimaryOutputKey) const { ResetToDefault(InPrimaryOutputKey); }\
+void UPCGExDataBlendingAverage##_NAME::DoOperation(const PCGMetadataEntryKey InPrimaryKey, const PCGMetadataEntryKey InSecondaryKey, const PCGMetadataEntryKey InPrimaryOutputKey, const double Alpha)const { PCGEX_DECL(_TYPE) PCGEX_SET(_SET) };\
+void UPCGExDataBlendingAverage##_NAME::FinalizeOperation(const PCGMetadataEntryKey InPrimaryOutputKey, double Alpha) const { const _TYPE Val = GetPrimaryValue(InPrimaryOutputKey); PCGEX_SET(_SET_FINAL) };
 
 /*
 PCGEX_SAO_CLASS(bool, Boolean, A + B, Val)

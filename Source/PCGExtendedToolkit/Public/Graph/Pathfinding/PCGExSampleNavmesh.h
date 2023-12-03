@@ -21,13 +21,6 @@ namespace PCGExNavmesh
 }
 
 UENUM(BlueprintType)
-enum class EPCGExPointLerpMode : uint8
-{
-	Distance UMETA(DisplayName = "Distance-based", ToolTip="TBD"),
-	Index UMETA(DisplayName = "Index-based", ToolTip="TBD"),
-};
-
-UENUM(BlueprintType)
 enum class EPCGExPathfindingMode : uint8
 {
 	Regular UMETA(DisplayName = "Regular", ToolTip="TBD"),
@@ -90,15 +83,13 @@ public:
 
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
-	EPCGExPointLerpMode LerpMode = EPCGExPointLerpMode::Index;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	bool bRequireNavigableEndLocation = true;
 
 	/** Fuse points by distance */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	double FuseDistance = 10;
 
+	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	EPCGExPathfindingMode PathfindingMode = EPCGExPathfindingMode::Regular;
 

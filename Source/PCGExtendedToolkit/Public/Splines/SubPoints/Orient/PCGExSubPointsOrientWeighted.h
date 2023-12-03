@@ -14,4 +14,11 @@ UCLASS(Blueprintable, EditInlineNew, DisplayName = "Weighted")
 class PCGEXTENDEDTOOLKIT_API UPCGExSubPointsOrientWeighted : public UPCGExSubPointsOrient
 {
 	GENERATED_BODY()
+
+public:
+	UPROPERTY()
+	bool bInverseWeight = false;
+
+	virtual void ProcessSubPoints(const FPCGPoint& StartPoint, const FPCGPoint& EndPoint, TArrayView<FPCGPoint>& SubPoints, const double PathLength) const override;
+	
 };

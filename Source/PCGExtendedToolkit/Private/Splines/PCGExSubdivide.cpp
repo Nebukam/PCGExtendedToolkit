@@ -33,7 +33,7 @@ FPCGContext* FPCGExSubdivideElement::Initialize(const FPCGDataCollection& InputD
 	Context->bFlagSubPoints = Settings->bFlagSubPoints;
 	Context->FlagName = Settings->FlagName;
 
-	Context->SubPointsProcessor = Settings->EnsureInstruction<UPCGExSubPointsDataBlendLerp>(Settings->Blending, Context);
+	Context->Blending = Settings->EnsureInstruction<UPCGExSubPointsDataBlendLerp>(Settings->Blending, Context);
 
 	return Context;
 }
@@ -62,7 +62,7 @@ bool FPCGExSubdivideElement::ExecuteInternal(FPCGContext* InContext) const
 		auto Initialize = [&](UPCGExPointIO* PointIO)
 		{
 			if (Context->bFlagSubPoints) { Context->FlagAttribute = PointIO->Out->Metadata->FindOrCreateAttribute(Context->FlagName, false); }
-			Context->SubPointsProcessor->PrepareForData(PointIO);
+			Context->Blending->PrepareForData(PointIO);
 		};
 
 		auto ProcessPoint = [&](const int32 Index, const UPCGExPointIO* PointIO)
@@ -95,7 +95,7 @@ bool FPCGExSubdivideElement::ExecuteInternal(FPCGContext* InContext) const
 			}
 
 			TArrayView<FPCGPoint> Path = MakeArrayView(Points.GetData() + StartIndex, NumSubdivisions);
-			Context->SubPointsProcessor->ProcessSubPoints(StartPoint, *EndPtr, Path, Distance);
+			Context->Blending->ProcessSubPoints(StartPoint, *EndPtr, Path, Distance);
 		};
 
 		if (Context->ProcessCurrentPoints(Initialize, ProcessPoint, true))

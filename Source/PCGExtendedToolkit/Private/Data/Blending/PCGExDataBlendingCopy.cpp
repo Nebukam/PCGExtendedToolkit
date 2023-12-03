@@ -2,12 +2,12 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 
-#include "Data/Blending/PCGExSAOCopy.h"
+#include "Data/Blending/PCGExDataBlendingCopy.h"
 
 #include "PCGExMath.h"
 
 #define PCGEX_SAO_CLASS(_TYPE, _NAME)\
-void UPCGExSAOCopy##_NAME::DoOperation(const PCGMetadataEntryKey OperandAKey, const PCGMetadataEntryKey OperandBKey, const PCGMetadataEntryKey OutputKey, const double Alpha) const{ PrimaryAttribute->SetValue(OutputKey, GetSecondaryValue(OperandBKey)); };
+void UPCGExDataBlendingCopy##_NAME::DoOperation(const PCGMetadataEntryKey InPrimaryKey, const PCGMetadataEntryKey InSecondaryKey, const PCGMetadataEntryKey InPrimaryOutputKey, const double Alpha) const{ PrimaryAttribute->SetValue(InPrimaryOutputKey, GetSecondaryValue(InSecondaryKey)); };
 
 PCGEX_SAO_CLASS(bool, Boolean)
 PCGEX_SAO_CLASS(int32, Integer32)

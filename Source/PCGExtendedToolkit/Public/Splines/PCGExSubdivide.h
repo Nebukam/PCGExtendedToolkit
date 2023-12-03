@@ -8,6 +8,7 @@
 #include "PCGExPointsProcessor.h"
 #include "Graph/PCGExGraph.h"
 #include "Splines/SubPoints/PCGExSubPointsProcessor.h"
+#include "SubPoints/DataBlending/PCGExSubPointsDataBlend.h"
 #include "PCGExSubdivide.generated.h"
 
 UENUM(BlueprintType)
@@ -61,7 +62,7 @@ public:
 	int32 Count = 10;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced)
-	UPCGExSubPointsProcessor* Blending;
+	UPCGExSubPointsDataBlend* Blending;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(InlineEditConditionToggle))
 	bool bFlagSubPoints = false;
@@ -83,7 +84,7 @@ public:
 	FName FlagName;
 	FPCGMetadataAttribute<bool>* FlagAttribute = nullptr;
 
-	UPCGExSubPointsProcessor* SubPointsProcessor;
+	UPCGExSubPointsDataBlend* Blending;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExSubdivideElement : public FPCGExPointsProcessorElementBase

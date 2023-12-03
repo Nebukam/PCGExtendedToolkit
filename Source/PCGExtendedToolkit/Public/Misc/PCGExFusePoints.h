@@ -25,10 +25,10 @@ MACRO(Seed)
 UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Overrides", meta = (InlineEditConditionToggle))\
 bool bOverride##_NAME = false;\
 UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Overrides", meta = (EditCondition="bOverride" #_NAME))\
-EPCGExMetadataBlendingOperationType _NAME##Blending = EPCGExMetadataBlendingOperationType::Skip;
+EPCGExDataBlendingType _NAME##Blending = EPCGExDataBlendingType::Skip;
 
 #define PCGEX_FUSE_CONTEXT(_NAME)\
-EPCGExMetadataBlendingOperationType _NAME##Blending;
+EPCGExDataBlendingType _NAME##Blending;
 
 namespace PCGExFuse
 {
@@ -82,7 +82,7 @@ protected:
 public:
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	EPCGExMetadataBlendingOperationType Blending = EPCGExMetadataBlendingOperationType::Average;
+	EPCGExDataBlendingType Blending = EPCGExDataBlendingType::Average;
 
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
@@ -97,70 +97,20 @@ public:
 	FVector Radiuses = FVector(10);
 
 	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="Blending==EPCGExMetadataBlendingOperationType::Weight", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="Blending==EPCGExDataBlendingType::Weight", EditConditionHides))
 	bool bUseLocalWeight = false;
 
 	/** Attribute used to read weight from, as a double. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bUseLocalWeight && Blending==EPCGExMetadataBlendingOperationType::Weight", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bUseLocalWeight && Blending==EPCGExDataBlendingType::Weight", EditConditionHides))
 	FPCGExInputDescriptorWithSingleField WeightAttribute;
 
-#pragma region Property overrides
-
-	//PCGEX_FUSE_FOREACH_POINTPROPERTYNAME(PCGEX_FUSE_UPROPERTY)
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Overrides", meta = (InlineEditConditionToggle))
-	bool bOverrideDensity = false;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Overrides", meta = (DisplayName="Density", EditCondition="bOverrideDensity"))
-	EPCGExMetadataBlendingOperationType DensityBlending = EPCGExMetadataBlendingOperationType::Average;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Overrides", meta = (InlineEditConditionToggle))
-	bool bOverrideExtents = false;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Overrides", meta = (DisplayName="Extents", EditCondition="bOverrideExtents"))
-	EPCGExMetadataBlendingOperationType ExtentsBlending = EPCGExMetadataBlendingOperationType::Average;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Overrides", meta = (InlineEditConditionToggle))
-	bool bOverrideColor = false;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Overrides", meta = (DisplayName="Color", EditCondition="bOverrideColor"))
-	EPCGExMetadataBlendingOperationType ColorBlending = EPCGExMetadataBlendingOperationType::Average;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Overrides", meta = (InlineEditConditionToggle))
-	bool bOverridePosition = false;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Overrides", meta = (DisplayName="Position", EditCondition="bOverridePosition"))
-	EPCGExMetadataBlendingOperationType PositionBlending = EPCGExMetadataBlendingOperationType::Average;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Overrides", meta = (InlineEditConditionToggle))
-	bool bOverrideRotation = false;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Overrides", meta = (DisplayName="Rotation", EditCondition="bOverrideRotation"))
-	EPCGExMetadataBlendingOperationType RotationBlending = EPCGExMetadataBlendingOperationType::Average;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Overrides", meta = (InlineEditConditionToggle))
-	bool bOverrideScale = false;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Overrides", meta = (DisplayName="Scale", EditCondition="bOverrideScale"))
-	EPCGExMetadataBlendingOperationType ScaleBlending = EPCGExMetadataBlendingOperationType::Average;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Overrides", meta = (InlineEditConditionToggle))
-	bool bOverrideSteepness = false;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Overrides", meta = (DisplayName="Steepness", EditCondition="bOverrideSteepness"))
-	EPCGExMetadataBlendingOperationType SteepnessBlending = EPCGExMetadataBlendingOperationType::Average;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Overrides", meta = (InlineEditConditionToggle))
-	bool bOverrideSeed = false;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Overrides", meta = (DisplayName="Seed", EditCondition="bOverrideSeed"))
-	EPCGExMetadataBlendingOperationType SeedBlending = EPCGExMetadataBlendingOperationType::Average;
-
-#pragma endregion
-
 	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Overrides", meta = (TitleProperty="{Blending} {TitlePropertyName}"))
-	TMap<FName, EPCGExMetadataBlendingOperationType> BlendingOverrides;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	FPCGExPointPropertyBlendingOverrides PropertyBlendingOverrides;
+	
+	/** TBD */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (TitleProperty="{Blending} {TitlePropertyName}"))
+	TMap<FName, EPCGExDataBlendingType> AttributeBlendingOverrides;
 
 private:
 	friend class FPCGExFusePointsElement;
@@ -176,7 +126,7 @@ public:
 	bool bComponentWiseRadius;
 	FVector Radiuses;
 
-	TMap<FName, EPCGExMetadataBlendingOperationType> BlendingOverrides;
+	TMap<FName, EPCGExDataBlendingType> BlendingOverrides;
 	UPCGExMetadataBlender* Blender;
 	
 	TArray<PCGExFuse::FFusedPoint> FusedPoints;
