@@ -315,7 +315,7 @@ namespace PCGExGraph
 		{
 		}
 
-		FSocketMetadata(int64 InIndex, PCGMetadataEntryKey InEntryKey, EPCGExEdgeType InEdgeType):
+		FSocketMetadata(int32 InIndex, PCGMetadataEntryKey InEntryKey, EPCGExEdgeType InEdgeType):
 			Index(InIndex),
 			EntryKey(InEntryKey),
 			EdgeType(InEdgeType)
@@ -323,7 +323,7 @@ namespace PCGExGraph
 		}
 
 	public:
-		int64 Index = -1; // Index of the point this socket connects to
+		int32 Index = -1; // Index of the point this socket connects to
 		PCGMetadataEntryKey EntryKey = PCGInvalidEntryKey;
 		EPCGExEdgeType EdgeType = EPCGExEdgeType::Unknown;
 
@@ -383,7 +383,7 @@ namespace PCGExGraph
 		TSet<int32> MatchingSockets;
 
 	protected:
-		FPCGMetadataAttribute<int64>* AttributeTargetIndex = nullptr;
+		FPCGMetadataAttribute<int32>* AttributeTargetIndex = nullptr;
 		FPCGMetadataAttribute<int32>* AttributeEdgeType = nullptr;
 		FPCGMetadataAttribute<int64>* AttributeTargetEntryKey = nullptr;
 		FName AttributeNameBase = NAME_None;
@@ -409,7 +409,7 @@ namespace PCGExGraph
 		 */
 		void PrepareForPointData(const UPCGPointData* PointData, const bool bEnsureEdgeType)
 		{
-			AttributeTargetIndex = GetAttribute(PointData, SocketPropertyNameIndex, true, static_cast<int64>(-1));
+			AttributeTargetIndex = GetAttribute(PointData, SocketPropertyNameIndex, true, -1);
 			AttributeTargetEntryKey = GetAttribute(PointData, SocketPropertyNameEntryKey, true, PCGInvalidEntryKey);
 			AttributeEdgeType = GetAttribute(PointData, SocketPropertyNameEdgeType, bEnsureEdgeType, static_cast<int32>(EPCGExEdgeType::Unknown));
 			Descriptor.Angle.LoadCurve();
@@ -436,7 +436,7 @@ namespace PCGExGraph
 
 		// Point index within the same data group.
 		void SetTargetIndex(const PCGMetadataEntryKey MetadataEntry, int64 InIndex) const { AttributeTargetIndex->SetValue(MetadataEntry, InIndex); }
-		int64 GetTargetIndex(const PCGMetadataEntryKey MetadataEntry) const { return AttributeTargetIndex->GetValueFromItemKey(MetadataEntry); }
+		int32 GetTargetIndex(const PCGMetadataEntryKey MetadataEntry) const { return AttributeTargetIndex->GetValueFromItemKey(MetadataEntry); }
 
 		// Point metadata entry key, faster than retrieving index if you only need to access attributes
 		void SetTargetEntryKey(const PCGMetadataEntryKey MetadataEntry, PCGMetadataEntryKey InEntryKey) const { AttributeTargetEntryKey->SetValue(MetadataEntry, InEntryKey); }
@@ -464,7 +464,7 @@ namespace PCGExGraph
 		}
 
 		template <typename T>
-		bool TryGetEdge(int64 Start, const PCGMetadataEntryKey MetadataEntry, T& OutEdge) const
+		bool TryGetEdge(int32 Start, const PCGMetadataEntryKey MetadataEntry, T& OutEdge) const
 		{
 			const int64 End = GetTargetIndex(MetadataEntry);
 			if (End == -1) { return false; }
@@ -476,12 +476,12 @@ namespace PCGExGraph
 		}
 
 		template <typename T>
-		bool TryGetEdge(int64 Start, const PCGMetadataEntryKey MetadataEntry, T& OutEdge, const EPCGExEdgeType& EdgeFilter) const
+		bool TryGetEdge(int32 Start, const PCGMetadataEntryKey MetadataEntry, T& OutEdge, const EPCGExEdgeType& EdgeFilter) const
 		{
 			EPCGExEdgeType EdgeType = GetEdgeType(MetadataEntry);
 			if (static_cast<uint8>((EdgeType & EdgeFilter)) == 0) { return false; }
 
-			const int64 End = GetTargetIndex(MetadataEntry);
+			const int32 End = GetTargetIndex(MetadataEntry);
 			if (End == -1) { return false; }
 			OutEdge = T(Start, End, EdgeType);
 			return true;
