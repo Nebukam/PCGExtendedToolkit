@@ -124,7 +124,7 @@ public:
 
 	virtual FName GetMainPointsInputLabel() const;
 	virtual FName GetMainPointsOutputLabel() const;
-	virtual PCGExIO::EInitMode GetPointOutputInitMode() const;
+	virtual PCGExPointIO::EInit GetPointOutputInitMode() const;
 
 	/** Forces execution on main thread. Work is still chunked. Turning this off ensure linear order of operations, and, in most case, determinism.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Performance")
@@ -135,7 +135,15 @@ public:
 	int32 ChunkSize = -1;
 
 	template <typename T>
-	T* EnsureInstruction(UPCGExInstruction* Instruction) const { return Instruction ? static_cast<T*>(Instruction) : NewObject<T>(); }
+	static T* EnsureInstruction(UPCGExInstruction* Instruction) { return Instruction ? static_cast<T*>(Instruction) : NewObject<T>(); }
+
+	template <typename T>
+	static T* EnsureInstruction(UPCGExInstruction* Instruction, FPCGExPointsProcessorContext* InContext)
+	{
+		T* RetValue = Instruction ? static_cast<T*>(Instruction) : NewObject<T>();
+		RetValue->BindContext(InContext);
+		return RetValue;
+	}
 
 protected:
 	TMap<FName, PCGEx::FPinAttributeInfos> AttributesMap;
@@ -228,6 +236,8 @@ protected:
 
 	virtual void OnAsyncTaskExecutionComplete(FPointTask* AsyncTask, bool bSuccess);
 	virtual bool IsAsyncWorkComplete();
+
+	PCGExMT::FAsyncChunkedLoop MakeLoop() { return PCGExMT::FAsyncChunkedLoop(this, ChunkSize, bDoAsyncProcessing); }
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorElementBase : public FPCGPointProcessingElementBase

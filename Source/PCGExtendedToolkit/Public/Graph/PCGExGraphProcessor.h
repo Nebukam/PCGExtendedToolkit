@@ -39,7 +39,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGraphProcessorContext : public FPCGExPointsP
 	friend class UPCGExGraphProcessorSettings;
 
 public:
-	PCGExGraph::FGraphInputs Params;
+	PCGExGraph::FGraphInputs Graphs;
 
 	int32 GetCurrentParamsIndex() const { return CurrentParamsIndex; };
 	UPCGExGraphParamsData* CurrentGraph = nullptr;
@@ -53,7 +53,7 @@ public:
 	TArray<PCGExGraph::FSocketInfos> SocketInfos;
 	
 	void PrepareCurrentGraphForPoints(const UPCGPointData* InData, bool bEnsureEdgeType);
-	void OutputGraphParams() { Params.OutputTo(this); }
+	void OutputGraphParams() { Graphs.OutputTo(this); }
 
 	void OutputPointsAndParams()
 	{

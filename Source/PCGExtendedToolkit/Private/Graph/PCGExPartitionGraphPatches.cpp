@@ -9,7 +9,7 @@
 
 int32 UPCGExPartitionGraphPatchesSettings::GetPreferredChunkSize() const { return 32; }
 
-PCGExIO::EInitMode UPCGExPartitionGraphPatchesSettings::GetPointOutputInitMode() const { return PCGExIO::EInitMode::NoOutput; }
+PCGExPointIO::EInit UPCGExPartitionGraphPatchesSettings::GetPointOutputInitMode() const { return PCGExPointIO::EInit::NoOutput; }
 
 TArray<FPCGPinProperties> UPCGExPartitionGraphPatchesSettings::InputPinProperties() const
 {

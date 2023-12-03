@@ -21,11 +21,24 @@ void UPCGExPointIO::InitPoint(FPCGPoint& Point, const FPCGPoint& FromPoint) cons
 	Out->Metadata->InitializeOnSet(Point.MetadataEntry, FromPoint.MetadataEntry, In->Metadata);
 }
 
-FPCGPoint& UPCGExPointIO::NewPoint(const FPCGPoint& FromPoint) const
+void UPCGExPointIO::InitPoint(FPCGPoint& Point) const
+{
+	Out->Metadata->InitializeOnSet(Point.MetadataEntry);
+}
+
+FPCGPoint& UPCGExPointIO::CopyPoint(const FPCGPoint& FromPoint) const
 {
 	FWriteScopeLock WriteLock(PointsLock);
 	FPCGPoint& Pt = Out->GetMutablePoints().Add_GetRef(FromPoint);
 	InitPoint(Pt, FromPoint);
+	return Pt;
+}
+
+FPCGPoint& UPCGExPointIO::NewPoint() const
+{
+	FWriteScopeLock WriteLock(PointsLock);
+	FPCGPoint& Pt = Out->GetMutablePoints().Emplace_GetRef();
+	InitPoint(Pt);
 	return Pt;
 }
 
@@ -45,26 +58,26 @@ void UPCGExPointIO::AddPoint(FPCGPoint& Point, const FPCGPoint& FromPoint) const
 
 UPCGPointData* UPCGExPointIO::NewEmptyOutput() const
 {
-	return PCGExIO::NewEmptyOutput(In);
+	return PCGExPointIO::NewEmptyOutput(In);
 }
 
 UPCGPointData* UPCGExPointIO::NewEmptyOutput(FPCGContext* Context, FName PinLabel) const
 {
-	UPCGPointData* OutData = PCGExIO::NewEmptyOutput(Context, PinLabel.IsNone() ? DefaultOutputLabel : PinLabel, In);
+	UPCGPointData* OutData = PCGExPointIO::NewEmptyOutput(Context, PinLabel.IsNone() ? DefaultOutputLabel : PinLabel, In);
 	return OutData;
 }
 
-void UPCGExPointIO::InitializeOut(PCGExIO::EInitMode InitOut)
+void UPCGExPointIO::InitializeOut(PCGExPointIO::EInit InitOut)
 {
 	switch (InitOut)
 	{
-	case PCGExIO::EInitMode::NoOutput:
+	case PCGExPointIO::EInit::NoOutput:
 		break;
-	case PCGExIO::EInitMode::NewOutput:
+	case PCGExPointIO::EInit::NewOutput:
 		Out = NewObject<UPCGPointData>();
 		if (In) { Out->InitializeFromData(In); }
 		break;
-	case PCGExIO::EInitMode::DuplicateInput:
+	case PCGExPointIO::EInit::DuplicateInput:
 		if (In)
 		{
 			Out = Cast<UPCGPointData>(In->DuplicateData(true));
@@ -74,7 +87,7 @@ void UPCGExPointIO::InitializeOut(PCGExIO::EInitMode InitOut)
 			UE_LOG(LogTemp, Error, TEXT("Initialize::Duplicate, but no Input."));
 		}
 		break;
-	case PCGExIO::EInitMode::Forward:
+	case PCGExPointIO::EInit::Forward:
 		Out = In;
 		break;
 	default: ;
@@ -175,14 +188,14 @@ UPCGExPointIOGroup::UPCGExPointIOGroup()
 {
 }
 
-UPCGExPointIOGroup::UPCGExPointIOGroup(FPCGContext* Context, FName InputLabel, PCGExIO::EInitMode InitOut)
+UPCGExPointIOGroup::UPCGExPointIOGroup(FPCGContext* Context, FName InputLabel, PCGExPointIO::EInit InitOut)
 	: UPCGExPointIOGroup()
 {
 	TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(InputLabel);
 	Initialize(Context, Sources, InitOut);
 }
 
-UPCGExPointIOGroup::UPCGExPointIOGroup(FPCGContext* Context, TArray<FPCGTaggedData>& Sources, PCGExIO::EInitMode InitOut)
+UPCGExPointIOGroup::UPCGExPointIOGroup(FPCGContext* Context, TArray<FPCGTaggedData>& Sources, PCGExPointIO::EInit InitOut)
 	: UPCGExPointIOGroup()
 {
 	Initialize(Context, Sources, InitOut);
@@ -190,12 +203,12 @@ UPCGExPointIOGroup::UPCGExPointIOGroup(FPCGContext* Context, TArray<FPCGTaggedDa
 
 void UPCGExPointIOGroup::Initialize(
 	FPCGContext* Context, TArray<FPCGTaggedData>& Sources,
-	PCGExIO::EInitMode InitOut)
+	PCGExPointIO::EInit InitOut)
 {
 	Pairs.Empty(Sources.Num());
 	for (FPCGTaggedData& Source : Sources)
 	{
-		UPCGPointData* MutablePointData = PCGExIO::GetMutablePointData(Context, Source);
+		UPCGPointData* MutablePointData = PCGExPointIO::GetMutablePointData(Context, Source);
 		if (!MutablePointData || MutablePointData->GetPoints().Num() == 0) { continue; }
 		Emplace_GetRef(Source, MutablePointData, InitOut);
 	}
@@ -203,14 +216,14 @@ void UPCGExPointIOGroup::Initialize(
 
 void UPCGExPointIOGroup::Initialize(
 	FPCGContext* Context, TArray<FPCGTaggedData>& Sources,
-	PCGExIO::EInitMode InitOut,
+	PCGExPointIO::EInit InitOut,
 	const TFunction<bool(UPCGPointData*)>& ValidateFunc,
 	const TFunction<void(UPCGExPointIO*)>& PostInitFunc)
 {
 	Pairs.Empty(Sources.Num());
 	for (FPCGTaggedData& Source : Sources)
 	{
-		UPCGPointData* MutablePointData = PCGExIO::GetMutablePointData(Context, Source);
+		UPCGPointData* MutablePointData = PCGExPointIO::GetMutablePointData(Context, Source);
 		if (!MutablePointData || MutablePointData->GetPoints().Num() == 0) { continue; }
 		if (!ValidateFunc(MutablePointData)) { continue; }
 		UPCGExPointIO* NewPointIO = Emplace_GetRef(Source, MutablePointData, InitOut);
@@ -220,14 +233,14 @@ void UPCGExPointIOGroup::Initialize(
 
 UPCGExPointIO* UPCGExPointIOGroup::Emplace_GetRef(
 	const UPCGExPointIO& PointIO,
-	const PCGExIO::EInitMode InitOut)
+	const PCGExPointIO::EInit InitOut)
 {
 	return Emplace_GetRef(PointIO.Source, PointIO.In, InitOut);
 }
 
 UPCGExPointIO* UPCGExPointIOGroup::Emplace_GetRef(
 	const FPCGTaggedData& Source, UPCGPointData* In,
-	const PCGExIO::EInitMode InitOut)
+	const PCGExPointIO::EInit InitOut)
 {
 	UPCGExPointIO* Pair = CreateNewPointIO(Source, In, DefaultOutputLabel, InitOut);
 
@@ -241,7 +254,7 @@ UPCGExPointIO* UPCGExPointIOGroup::Emplace_GetRef(
 
 UPCGExPointIO* UPCGExPointIOGroup::Emplace_GetRef(
 	UPCGPointData* In,
-	const PCGExIO::EInitMode InitOut)
+	const PCGExPointIO::EInit InitOut)
 {
 	const FPCGTaggedData TaggedData;
 	UPCGExPointIO* Pair = CreateNewPointIO(TaggedData, In, DefaultOutputLabel, InitOut);
@@ -254,7 +267,7 @@ UPCGExPointIO* UPCGExPointIOGroup::Emplace_GetRef(
 	return Pair;
 }
 
-UPCGExPointIO* UPCGExPointIOGroup::Emplace_GetRef(const PCGExIO::EInitMode InitOut)
+UPCGExPointIO* UPCGExPointIOGroup::Emplace_GetRef(const PCGExPointIO::EInit InitOut)
 {
 	UPCGExPointIO* Pair = CreateNewPointIO(DefaultOutputLabel, InitOut);
 

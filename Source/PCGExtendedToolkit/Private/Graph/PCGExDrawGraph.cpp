@@ -6,7 +6,7 @@
 
 #define LOCTEXT_NAMESPACE "PCGExDrawGraph"
 
-PCGExIO::EInitMode UPCGExDrawGraphSettings::GetPointOutputInitMode() const { return PCGExIO::EInitMode::NoOutput; }
+PCGExPointIO::EInit UPCGExDrawGraphSettings::GetPointOutputInitMode() const { return PCGExPointIO::EInit::NoOutput; }
 
 FPCGElementPtr UPCGExDrawGraphSettings::CreateElement() const
 {
@@ -57,7 +57,7 @@ bool FPCGExDrawGraphElement::ExecuteInternal(FPCGContext* InContext) const
 			PCGE_LOG(Error, GraphAndLog, LOCTEXT("MissingDebugManager", "Could not find a PCGEx Debug Manager node in your graph."));
 			return true;
 		}
-
+		
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 

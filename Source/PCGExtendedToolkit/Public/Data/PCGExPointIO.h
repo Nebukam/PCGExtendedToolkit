@@ -1,4 +1,5 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Copyright Timothé Lapetite 2023
+// Released under the MIT license https://opensource.org/license/MIT/
 
 #pragma once
 
@@ -11,9 +12,9 @@
 
 #include "PCGExPointIO.generated.h"
 
-namespace PCGExIO
+namespace PCGExPointIO
 {
-	enum class EInitMode : uint8
+	enum class EInit : uint8
 	{
 		NoOutput UMETA(DisplayName = "No Output"),
 		NewOutput UMETA(DisplayName = "Create Empty Output Object"),
@@ -56,7 +57,9 @@ public:
 
 	void InitPoint(FPCGPoint& Point, PCGMetadataEntryKey FromKey) const;
 	void InitPoint(FPCGPoint& Point, const FPCGPoint& FromPoint) const;
-	FPCGPoint& NewPoint(const FPCGPoint& FromPoint) const;
+	void InitPoint(FPCGPoint& Point) const;
+	FPCGPoint& CopyPoint(const FPCGPoint& FromPoint) const;
+	FPCGPoint& NewPoint() const;
 	void AddPoint(FPCGPoint& Point, bool bInit) const;
 	void AddPoint(FPCGPoint& Point, const FPCGPoint& FromPoint) const;
 
@@ -80,7 +83,7 @@ public:
 	 * @param InitOut Only initialize output if there is an existing input
 	 * @return 
 	 */
-	void InitializeOut(PCGExIO::EInitMode InitOut = PCGExIO::EInitMode::NoOutput);
+	void InitializeOut(PCGExPointIO::EInit InitOut = PCGExPointIO::EInit::NoOutput);
 
 	void BuildIndices();
 	void BuildMetadataEntries();
@@ -118,8 +121,8 @@ class PCGEXTENDEDTOOLKIT_API UPCGExPointIOGroup : public UObject
 
 public:
 	UPCGExPointIOGroup();
-	UPCGExPointIOGroup(FPCGContext* Context, FName InputLabel, PCGExIO::EInitMode InitOut = PCGExIO::EInitMode::NoOutput);
-	UPCGExPointIOGroup(FPCGContext* Context, TArray<FPCGTaggedData>& Sources, PCGExIO::EInitMode InitOut = PCGExIO::EInitMode::NoOutput);
+	UPCGExPointIOGroup(FPCGContext* Context, FName InputLabel, PCGExPointIO::EInit InitOut = PCGExPointIO::EInit::NoOutput);
+	UPCGExPointIOGroup(FPCGContext* Context, TArray<FPCGTaggedData>& Sources, PCGExPointIO::EInit InitOut = PCGExPointIO::EInit::NoOutput);
 
 	FName DefaultOutputLabel = PCGEx::OutputPointsLabel;
 	TArray<UPCGExPointIO*> Pairs;
@@ -132,24 +135,24 @@ public:
 	 */
 	void Initialize(
 		FPCGContext* Context, TArray<FPCGTaggedData>& Sources,
-		PCGExIO::EInitMode InitOut = PCGExIO::EInitMode::NoOutput);
+		PCGExPointIO::EInit InitOut = PCGExPointIO::EInit::NoOutput);
 
 	void Initialize(
 		FPCGContext* Context, TArray<FPCGTaggedData>& Sources,
-		PCGExIO::EInitMode InitOut,
+		PCGExPointIO::EInit InitOut,
 		const TFunction<bool(UPCGPointData*)>& ValidateFunc,
 		const TFunction<void(UPCGExPointIO*)>& PostInitFunc);
 
 	UPCGExPointIO* Emplace_GetRef(
 		const UPCGExPointIO& PointIO,
-		const PCGExIO::EInitMode InitOut = PCGExIO::EInitMode::NoOutput);
+		const PCGExPointIO::EInit InitOut = PCGExPointIO::EInit::NoOutput);
 
 	UPCGExPointIO* Emplace_GetRef(
 		const FPCGTaggedData& Source, UPCGPointData* In,
-		const PCGExIO::EInitMode InitOut = PCGExIO::EInitMode::NoOutput);
-	UPCGExPointIO* Emplace_GetRef(UPCGPointData* In, PCGExIO::EInitMode InitOut = PCGExIO::EInitMode::NoOutput);
+		const PCGExPointIO::EInit InitOut = PCGExPointIO::EInit::NoOutput);
+	UPCGExPointIO* Emplace_GetRef(UPCGPointData* In, PCGExPointIO::EInit InitOut = PCGExPointIO::EInit::NoOutput);
 
-	UPCGExPointIO* Emplace_GetRef(PCGExIO::EInitMode InitOut = PCGExIO::EInitMode::NewOutput);
+	UPCGExPointIO* Emplace_GetRef(PCGExPointIO::EInit InitOut = PCGExPointIO::EInit::NewOutput);
 
 	bool IsEmpty() const { return Pairs.IsEmpty(); }
 	int32 Num() const { return Pairs.Num(); }
@@ -171,7 +174,7 @@ protected:
 	bool bProcessing = false;
 };
 
-namespace PCGExIO
+namespace PCGExPointIO
 {
 	static UPCGPointData* GetMutablePointData(FPCGContext* Context, const FPCGTaggedData& Source)
 	{
@@ -186,7 +189,7 @@ namespace PCGExIO
 
 	static UPCGExPointIO* CreateNewPointIO(
 		const FName OutputLabel = NAME_None,
-		const EInitMode InitOut = EInitMode::NoOutput)
+		const EInit InitOut = EInit::NoOutput)
 	{
 		UPCGExPointIO* PointIO = NewObject<UPCGExPointIO>();
 		PointIO->DefaultOutputLabel = OutputLabel;
@@ -199,7 +202,7 @@ namespace PCGExIO
 		const FPCGTaggedData& Source,
 		UPCGPointData* In,
 		const FName OutputLabel = NAME_None,
-		const EInitMode InitOut = EInitMode::NoOutput)
+		const EInit InitOut = EInit::NoOutput)
 	{
 		UPCGExPointIO* PointIO = NewObject<UPCGExPointIO>();
 		PointIO->DefaultOutputLabel = OutputLabel;
@@ -214,7 +217,7 @@ namespace PCGExIO
 		FPCGContext* Context,
 		const FPCGTaggedData& Source,
 		const FName OutputLabel = NAME_None,
-		const EInitMode InitOut = EInitMode::NoOutput)
+		const EInit InitOut = EInit::NoOutput)
 	{
 		UPCGPointData* InData = GetMutablePointData(Context, Source);
 		if (InData) { return CreateNewPointIO(Source, InData, OutputLabel, InitOut); }

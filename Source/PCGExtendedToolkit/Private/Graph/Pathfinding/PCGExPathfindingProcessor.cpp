@@ -48,7 +48,7 @@ TArray<FPCGPinProperties> UPCGExPathfindingProcessorSettings::OutputPinPropertie
 
 #pragma endregion
 
-PCGExIO::EInitMode UPCGExPathfindingProcessorSettings::GetPointOutputInitMode() const { return PCGExIO::EInitMode::NoOutput; }
+PCGExPointIO::EInit UPCGExPathfindingProcessorSettings::GetPointOutputInitMode() const { return PCGExPointIO::EInit::NoOutput; }
 bool UPCGExPathfindingProcessorSettings::GetRequiresSeeds() const { return true; }
 bool UPCGExPathfindingProcessorSettings::GetRequiresGoals() const { return true; }
 
@@ -104,7 +104,7 @@ void FPCGExPathfindingProcessorElement::InitializeContext(
 			Seeds.Num() > 0)
 		{
 			const FPCGTaggedData& SeedsSource = Seeds[0];
-			Context->SeedsPoints = PCGExIO::TryGetPointIO(Context, SeedsSource);
+			Context->SeedsPoints = PCGExPointIO::TryGetPointIO(Context, SeedsSource);
 		}
 	}
 
@@ -114,7 +114,7 @@ void FPCGExPathfindingProcessorElement::InitializeContext(
 			Goals.Num() > 0)
 		{
 			const FPCGTaggedData& GoalsSource = Goals[0];
-			Context->GoalsPoints = PCGExIO::TryGetPointIO(Context, GoalsSource);
+			Context->GoalsPoints = PCGExPointIO::TryGetPointIO(Context, GoalsSource);
 		}
 	}
 }

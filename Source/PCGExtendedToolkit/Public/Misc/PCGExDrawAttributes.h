@@ -163,7 +163,7 @@ public:
 	//~End IPCGExDebug interface
 
 protected:
-	virtual PCGExIO::EInitMode GetPointOutputInitMode() const override;
+	virtual PCGExPointIO::EInit GetPointOutputInitMode() const override;
 
 private:
 	friend class FPCGExDrawAttributesElement;

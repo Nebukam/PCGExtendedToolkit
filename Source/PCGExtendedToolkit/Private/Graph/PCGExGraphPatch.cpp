@@ -147,7 +147,7 @@ void UPCGExGraphPatchGroup::OutputTo(FPCGContext* Context)
 	PatchesIO = NewObject<UPCGExPointIOGroup>();
 	for (UPCGExGraphPatch* Patch : Patches)
 	{
-		const UPCGExPointIO* OutIO = PatchesIO->Emplace_GetRef(*PointIO, PCGExIO::EInitMode::NewOutput);
+		const UPCGExPointIO* OutIO = PatchesIO->Emplace_GetRef(*PointIO, PCGExPointIO::EInit::NewOutput);
 		Patch->OutputTo(OutIO, -1);
 	}
 	PatchesIO->OutputTo(Context);
@@ -174,7 +174,7 @@ void UPCGExGraphPatchGroup::OutputTo(FPCGContext* Context, const int64 MinPointC
 		const int64 OutNumPoints = Patch->HashSet.Num();
 		if (MinPointCount >= 0 && OutNumPoints < MinPointCount) { continue; }
 		if (MaxPointCount >= 0 && OutNumPoints > MaxPointCount) { continue; }
-		const UPCGExPointIO* OutIO = PatchesIO->Emplace_GetRef(*PointIO, PCGExIO::EInitMode::NewOutput);
+		const UPCGExPointIO* OutIO = PatchesIO->Emplace_GetRef(*PointIO, PCGExPointIO::EInit::NewOutput);
 		Patch->OutputTo(OutIO, PatchIndex);
 		PatchIndex++;
 	}

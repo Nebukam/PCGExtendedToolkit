@@ -1,4 +1,5 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Copyright Timothé Lapetite 2023
+// Released under the MIT license https://opensource.org/license/MIT/
 
 #pragma once
 
@@ -9,7 +10,7 @@
 /**
  * 
  */
-UCLASS()
+UCLASS(Blueprintable, EditInlineNew, DisplayName = "Average")
 class PCGEXTENDEDTOOLKIT_API UPCGExSubPointsOrientAverage : public UPCGExSubPointsOrient
 {
 	GENERATED_BODY()

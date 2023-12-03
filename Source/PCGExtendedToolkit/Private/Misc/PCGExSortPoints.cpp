@@ -15,7 +15,7 @@ namespace PCGExSortPoints
 
 FPCGElementPtr UPCGExSortPointsSettings::CreateElement() const { return MakeShared<FPCGExSortPointsElement>(); }
 
-PCGExIO::EInitMode UPCGExSortPointsSettings::GetPointOutputInitMode() const { return PCGExIO::EInitMode::DuplicateInput; }
+PCGExPointIO::EInit UPCGExSortPointsSettings::GetPointOutputInitMode() const { return PCGExPointIO::EInit::DuplicateInput; }
 
 bool FPCGExSortPointsElement::ExecuteInternal(FPCGContext* InContext) const
 {

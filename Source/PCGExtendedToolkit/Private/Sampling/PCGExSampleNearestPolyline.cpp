@@ -27,7 +27,7 @@ TArray<FPCGPinProperties> UPCGExSampleNearestPolylineSettings::InputPinPropertie
 	return PinProperties;
 }
 
-PCGExIO::EInitMode UPCGExSampleNearestPolylineSettings::GetPointOutputInitMode() const { return PCGExIO::EInitMode::DuplicateInput; }
+PCGExPointIO::EInit UPCGExSampleNearestPolylineSettings::GetPointOutputInitMode() const { return PCGExPointIO::EInit::DuplicateInput; }
 
 int32 UPCGExSampleNearestPolylineSettings::GetPreferredChunkSize() const { return 32; }
 

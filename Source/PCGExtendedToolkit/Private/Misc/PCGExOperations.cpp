@@ -5,7 +5,7 @@
 
 #define LOCTEXT_NAMESPACE "PCGExOperations"
 
-PCGExIO::EInitMode UPCGExOperationsSettings::GetPointOutputInitMode() const { return PCGExIO::EInitMode::NoOutput; }
+PCGExPointIO::EInit UPCGExOperationsSettings::GetPointOutputInitMode() const { return PCGExPointIO::EInit::NoOutput; }
 
 UPCGExOperationsSettings::UPCGExOperationsSettings(
 	const FObjectInitializer& ObjectInitializer)

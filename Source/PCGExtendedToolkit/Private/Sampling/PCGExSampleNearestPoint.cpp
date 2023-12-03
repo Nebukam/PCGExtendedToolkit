@@ -34,7 +34,7 @@ TArray<FPCGPinProperties> UPCGExSampleNearestPointSettings::InputPinProperties()
 	return PinProperties;
 }
 
-PCGExIO::EInitMode UPCGExSampleNearestPointSettings::GetPointOutputInitMode() const { return PCGExIO::EInitMode::DuplicateInput; }
+PCGExPointIO::EInit UPCGExSampleNearestPointSettings::GetPointOutputInitMode() const { return PCGExPointIO::EInit::DuplicateInput; }
 
 int32 UPCGExSampleNearestPointSettings::GetPreferredChunkSize() const { return 32; }
 

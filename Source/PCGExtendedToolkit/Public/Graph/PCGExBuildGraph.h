@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExDrawGraph.h"
 
 #include "PCGExGraphProcessor.h"
 #include "Solvers/PCGExGraphSolver.h"
@@ -44,8 +45,8 @@ public:
 	virtual FName GetMainPointsInputLabel() const override;
 	virtual int32 GetPreferredChunkSize() const override;
 
-	virtual PCGExIO::EInitMode GetPointOutputInitMode() const override;
-	
+	virtual PCGExPointIO::EInit GetPointOutputInitMode() const override;
+
 private:
 	friend class FPCGExBuildGraphElement;
 };

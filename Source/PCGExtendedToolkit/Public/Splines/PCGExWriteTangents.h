@@ -36,7 +36,7 @@ public:
 	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorSpline; }
 #endif
 
-	virtual PCGExIO::EInitMode GetPointOutputInitMode() const override;
+	virtual PCGExPointIO::EInit GetPointOutputInitMode() const override;
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;

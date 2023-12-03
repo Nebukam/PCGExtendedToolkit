@@ -25,7 +25,7 @@ public:
 	PCGEX_NODE_INFOS(SampleNearestSurface, "Sample Nearest Surface", "Find the closest point on the nearest collidable surface.");
 #endif
 
-	virtual PCGExIO::EInitMode GetPointOutputInitMode() const override;
+	virtual PCGExPointIO::EInit GetPointOutputInitMode() const override;
 	virtual int32 GetPreferredChunkSize() const override;
 
 protected:

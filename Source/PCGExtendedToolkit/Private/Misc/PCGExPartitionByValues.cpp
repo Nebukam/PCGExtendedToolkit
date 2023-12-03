@@ -27,9 +27,9 @@ void UPCGExPartitionByValuesSettings::PostEditChangeProperty(FPropertyChangedEve
 
 FPCGElementPtr UPCGExPartitionByValuesSettings::CreateElement() const { return MakeShared<FPCGExPartitionByValuesElement>(); }
 
-PCGExIO::EInitMode UPCGExPartitionByValuesSettings::GetPointOutputInitMode() const
+PCGExPointIO::EInit UPCGExPartitionByValuesSettings::GetPointOutputInitMode() const
 {
-	return bSplitOutput ? PCGExIO::EInitMode::NoOutput : PCGExIO::EInitMode::DuplicateInput;
+	return bSplitOutput ? PCGExPointIO::EInit::NoOutput : PCGExPointIO::EInit::DuplicateInput;
 }
 
 void FPCGExSplitByValuesContext::PrepareForPoints(const UPCGExPointIO* PointIO)

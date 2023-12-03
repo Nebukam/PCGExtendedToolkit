@@ -6,7 +6,7 @@
 #define LOCTEXT_NAMESPACE "PCGExBuildGraph"
 
 int32 UPCGExBuildGraphSettings::GetPreferredChunkSize() const { return 32; }
-PCGExIO::EInitMode UPCGExBuildGraphSettings::GetPointOutputInitMode() const { return PCGExIO::EInitMode::DuplicateInput; }
+PCGExPointIO::EInit UPCGExBuildGraphSettings::GetPointOutputInitMode() const { return PCGExPointIO::EInit::DuplicateInput; }
 
 UPCGExBuildGraphSettings::UPCGExBuildGraphSettings(
 	const FObjectInitializer& ObjectInitializer)
@@ -30,7 +30,7 @@ FPCGContext* FPCGExBuildGraphElement::Initialize(
 	check(Settings);
 
 	Context->bComputeEdgeType = Settings->bComputeEdgeType;
-	Context->GraphSolver = Settings->EnsureInstruction<UPCGExGraphSolver>(Settings->GraphSolver);
+	Context->GraphSolver = Settings->EnsureInstruction<UPCGExGraphSolver>(Settings->GraphSolver, Context);
 
 	return Context;
 }

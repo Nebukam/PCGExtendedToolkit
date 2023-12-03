@@ -13,7 +13,7 @@ UPCGExWriteTangentsSettings::UPCGExWriteTangentsSettings(const FObjectInitialize
 	Tangents = EnsureInstruction<UPCGExAutoTangents>(Tangents);
 }
 
-PCGExIO::EInitMode UPCGExWriteTangentsSettings::GetPointOutputInitMode() const { return PCGExIO::EInitMode::DuplicateInput; }
+PCGExPointIO::EInit UPCGExWriteTangentsSettings::GetPointOutputInitMode() const { return PCGExPointIO::EInit::DuplicateInput; }
 
 FPCGElementPtr UPCGExWriteTangentsSettings::CreateElement() const { return MakeShared<FPCGExWriteTangentsElement>(); }
 
@@ -24,7 +24,7 @@ FPCGContext* FPCGExWriteTangentsElement::Initialize(const FPCGDataCollection& In
 	const UPCGExWriteTangentsSettings* Settings = Context->GetInputSettings<UPCGExWriteTangentsSettings>();
 	check(Settings);
 
-	Context->Tangents = Settings->EnsureInstruction<UPCGExAutoTangents>(Settings->Tangents);
+	Context->Tangents = Settings->EnsureInstruction<UPCGExAutoTangents>(Settings->Tangents, Context);
 	Context->Tangents->ArriveName = Settings->ArriveName;
 	Context->Tangents->LeaveName = Settings->LeaveName;
 	return Context;

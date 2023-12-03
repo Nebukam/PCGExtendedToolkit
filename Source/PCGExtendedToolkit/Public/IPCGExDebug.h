@@ -43,7 +43,7 @@ public:
 #endif
 };
 
-#if WITH_EDITOR
+
 namespace PCGExDebug
 {
 	static bool NotifyExecute(const FPCGContext* Context)
@@ -89,4 +89,4 @@ namespace PCGExDebug
 		return DebugNodeCount;
 	}
 }
-#endif
+

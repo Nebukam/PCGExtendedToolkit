@@ -1,4 +1,5 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Copyright Timothé Lapetite 2023
+// Released under the MIT license https://opensource.org/license/MIT/
 
 #pragma once
 
@@ -6,6 +7,7 @@
 #include "UObject/Object.h"
 #include "PCGExInstruction.generated.h"
 
+struct FPCGExPointsProcessorContext;
 /**
  * 
  */
@@ -15,6 +17,10 @@ class PCGEXTENDEDTOOLKIT_API UPCGExInstruction : public UObject
 	GENERATED_BODY()
 
 public:
+	void BindContext(FPCGExPointsProcessorContext* InContext);
 	virtual void UpdateUserFacingInfos();
+
+protected:
+	FPCGExPointsProcessorContext* Context;
 	
 };

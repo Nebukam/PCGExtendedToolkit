@@ -1,4 +1,5 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Copyright Timothé Lapetite 2023
+// Released under the MIT license https://opensource.org/license/MIT/
 
 #pragma once
 
@@ -22,7 +23,7 @@ enum class EPCGExGoalPickRandomAmount : uint8
 /**
  * 
  */
-UCLASS(Blueprintable, EditInlineNew)
+UCLASS(Blueprintable, EditInlineNew, DisplayName = "Random")
 class PCGEXTENDEDTOOLKIT_API UPCGExGoalPickerRandom : public UPCGExGoalPicker
 {
 	GENERATED_BODY()

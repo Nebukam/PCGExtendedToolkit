@@ -35,7 +35,7 @@ MACRO(Seed, Seed)
 
 #define PCGEX_FUSE_IGNORE(...) // Ignore
 
-PCGExIO::EInitMode UPCGExFusePointsSettings::GetPointOutputInitMode() const { return PCGExIO::EInitMode::NewOutput; }
+PCGExPointIO::EInit UPCGExFusePointsSettings::GetPointOutputInitMode() const { return PCGExPointIO::EInit::NewOutput; }
 
 UPCGExFusePointsSettings::UPCGExFusePointsSettings(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -226,7 +226,7 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 			double AverageDivider = NumFused;
 
 			const FPCGPoint& RootPoint = Context->CurrentIO->GetInPoint(FusedPointData.MainIndex);
-			FPCGPoint NewPoint = Context->CurrentIO->NewPoint(RootPoint);
+			FPCGPoint NewPoint = Context->CurrentIO->CopyPoint(RootPoint);
 
 			FTransform& OutTransform = NewPoint.Transform;
 #define PCGEX_FUSE_DECLARE(_TYPE, _NAME, _ACCESSOR, _DEFAULT_VALUE, ...) _TYPE Out##_NAME = Context->_NAME##FuseMethod == EPCGExFuseMethod::Skip ? RootPoint._ACCESSOR : _DEFAULT_VALUE;

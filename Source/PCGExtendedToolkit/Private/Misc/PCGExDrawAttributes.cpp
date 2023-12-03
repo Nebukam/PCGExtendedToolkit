@@ -5,7 +5,7 @@
 
 #define LOCTEXT_NAMESPACE "PCGExDrawAttributes"
 
-PCGExIO::EInitMode UPCGExDrawAttributesSettings::GetPointOutputInitMode() const { return PCGExIO::EInitMode::NoOutput; }
+PCGExPointIO::EInit UPCGExDrawAttributesSettings::GetPointOutputInitMode() const { return PCGExPointIO::EInit::NoOutput; }
 
 #if WITH_EDITOR
 FString FPCGExAttributeDebugDrawDescriptor::GetDisplayName() const
@@ -222,6 +222,12 @@ bool FPCGExDrawAttributesElement::Validate(FPCGContext* InContext) const
 		PCGE_LOG(Warning, GraphAndLog, LOCTEXT("MissingDebugInfos", "Debug list is empty."));
 	}
 
+	if (!PCGExDebug::NotifyExecute(InContext))
+	{
+		PCGE_LOG(Error, GraphAndLog, LOCTEXT("MissingDebugManager", "Could not find a PCGEx Debug Manager node in your graph."));
+		return false;
+	}
+	
 	return true;
 }
 
@@ -240,12 +246,6 @@ bool FPCGExDrawAttributesElement::ExecuteInternal(FPCGContext* InContext) const
 	{
 		if (!Settings->bDebug) { return true; }
 		if (!Validate(Context)) { return true; }
-		if (!PCGExDebug::NotifyExecute(InContext))
-		{
-			PCGE_LOG(Error, GraphAndLog, LOCTEXT("MissingDebugManager", "Could not find a PCGEx Debug Manager node in your graph."));
-			return true;
-		}
-
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 

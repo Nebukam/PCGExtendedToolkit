@@ -61,7 +61,7 @@ protected:
 	//~End UPCGSettings interface
 
 public:
-	virtual PCGExIO::EInitMode GetPointOutputInitMode() const override;
+	virtual PCGExPointIO::EInit GetPointOutputInitMode() const override;
 	virtual int32 GetPreferredChunkSize() const override;
 
 	virtual FName GetMainPointsInputLabel() const override;

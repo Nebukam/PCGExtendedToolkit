@@ -13,7 +13,7 @@ UPCGExSubdivideSettings::UPCGExSubdivideSettings(const FObjectInitializer& Objec
 	Blending = EnsureInstruction<UPCGExSubPointsDataBlendLerp>(Blending);
 }
 
-PCGExIO::EInitMode UPCGExSubdivideSettings::GetPointOutputInitMode() const { return PCGExIO::EInitMode::NewOutput; }
+PCGExPointIO::EInit UPCGExSubdivideSettings::GetPointOutputInitMode() const { return PCGExPointIO::EInit::NewOutput; }
 
 FName UPCGExSubdivideSettings::GetMainPointsInputLabel() const { return PCGExGraph::SourcePathsLabel; }
 FName UPCGExSubdivideSettings::GetMainPointsOutputLabel() const { return PCGExGraph::OutputPathsLabel; }
@@ -33,7 +33,7 @@ FPCGContext* FPCGExSubdivideElement::Initialize(const FPCGDataCollection& InputD
 	Context->bFlagSubPoints = Settings->bFlagSubPoints;
 	Context->FlagName = Settings->FlagName;
 
-	Context->SubPointsProcessor = Settings->EnsureInstruction<UPCGExSubPointsDataBlendLerp>(Settings->Blending);
+	Context->SubPointsProcessor = Settings->EnsureInstruction<UPCGExSubPointsDataBlendLerp>(Settings->Blending, Context);
 
 	return Context;
 }
@@ -70,7 +70,7 @@ bool FPCGExSubdivideElement::ExecuteInternal(FPCGContext* InContext) const
 		{
 			const FPCGPoint& StartPoint = PointIO->GetInPoint(Index);
 			const FPCGPoint* EndPtr = PointIO->TryGetInPoint(Index + 1);
-			FPCGPoint& StartCopy = PointIO->NewPoint(StartPoint);
+			FPCGPoint& StartCopy = PointIO->CopyPoint(StartPoint);
 			if (!EndPtr) { return; }
 
 			const FVector StartPos = StartPoint.Transform.GetLocation();
@@ -89,7 +89,7 @@ bool FPCGExSubdivideElement::ExecuteInternal(FPCGContext* InContext) const
 
 			for (int i = 0; i < NumSubdivisions; i++)
 			{
-				FPCGPoint& NewPoint = PointIO->NewPoint(StartPoint);
+				FPCGPoint& NewPoint = PointIO->CopyPoint(StartPoint);
 				if (Context->bFlagSubPoints) { Context->FlagAttribute->SetValue(NewPoint.MetadataEntry, true); }
 
 				NewPoint.Transform.SetLocation(StartPos + Dir * (StartOffset + i * StepSize));

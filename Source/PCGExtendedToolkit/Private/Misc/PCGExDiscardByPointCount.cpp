@@ -7,7 +7,7 @@
 
 #define LOCTEXT_NAMESPACE "PCGExDiscardByPointCountElement"
 
-PCGExIO::EInitMode UPCGExDiscardByPointCountSettings::GetPointOutputInitMode() const { return PCGExIO::EInitMode::NoOutput; }
+PCGExPointIO::EInit UPCGExDiscardByPointCountSettings::GetPointOutputInitMode() const { return PCGExPointIO::EInit::NoOutput; }
 
 FPCGElementPtr UPCGExDiscardByPointCountSettings::CreateElement() const { return MakeShared<FPCGExDiscardByPointCountElement>(); }
 

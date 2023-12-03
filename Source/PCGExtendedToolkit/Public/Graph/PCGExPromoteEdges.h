@@ -4,52 +4,67 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExPathfindingProcessor.h"
-#include "PCGExEdgesToPaths.generated.h"
+#include "PCGExGraphProcessor.h"
+#include "Promotions/PCGExEdgePromotion.h"
+#include "PCGExPromoteEdges.generated.h"
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
-class PCGEXTENDEDTOOLKIT_API UPCGExEdgesToPathsSettings : public UPCGExPathfindingProcessorSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExPromoteEdgesSettings : public UPCGExGraphProcessorSettings
 {
 	GENERATED_BODY()
 
 public:
+	UPCGExPromoteEdgesSettings(const FObjectInitializer& ObjectInitializer);
+
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(EdgesToPaths, "Edges To Paths", "Converts graph edges to paths-like data that can be used to generate splines.");
+	PCGEX_NODE_INFOS(PromoteEdges, "Promote Edges", "Promote graph edges to points.");
 	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorPathfinding; }
 #endif
 
+	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
+	
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings interface
 
+	virtual FName GetMainPointsOutputLabel() const override;
+
 public:
 	virtual int32 GetPreferredChunkSize() const override;
-	virtual PCGExIO::EInitMode GetPointOutputInitMode() const override;
-	virtual bool GetRequiresSeeds() const override;
-	virtual bool GetRequiresGoals() const override;
+	virtual PCGExPointIO::EInit GetPointOutputInitMode() const override;
 
 public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExEdgeType"))
 	uint8 EdgeType = static_cast<uint8>(EPCGExEdgeType::Complete);
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced)
+	UPCGExEdgePromotion* Promotion;
+
 private:
-	friend class FPCGExEdgesToPathsElement;
+	friend class FPCGExPromoteEdgesElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExEdgesToPathsContext : public FPCGExPathfindingProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExPromoteEdgesContext : public FPCGExGraphProcessorContext
 {
-	friend class FPCGExEdgesToPathsElement;
+	friend class FPCGExPromoteEdgesElement;
 
 public:
 	EPCGExEdgeType EdgeType;
+	int32 MaxPossibleEdgesPerPoint = 0;
 	TSet<uint64> UniqueEdges;
 	TArray<PCGExGraph::FUnsignedEdge> Edges;
 
 	mutable FRWLock EdgeLock;
+
+	UPCGExEdgePromotion* Promotion;
+
+protected:
+	PCGExMT::FAsyncChunkedLoop AsyncEdgesLoop;
+	
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExEdgesToPathsElement : public FPCGExPathfindingProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExPromoteEdgesElement : public FPCGExGraphProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

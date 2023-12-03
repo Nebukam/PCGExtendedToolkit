@@ -263,6 +263,15 @@ namespace PCGExMath
 	template <typename dummy = void>
 	inline static bool Add(const bool& A, const bool& B) { return B ? true : A; }
 
+	template <typename dummy = void>
+	inline static FTransform Add(const FTransform& A, const FTransform& B)
+	{
+		return FTransform(
+			A.GetRotation() + B.GetRotation(),
+			A.GetLocation() + B.GetLocation(),
+			A.GetScale3D() / B.GetScale3D());
+	}
+	
 #pragma endregion
 
 #pragma region Component Wise DIV

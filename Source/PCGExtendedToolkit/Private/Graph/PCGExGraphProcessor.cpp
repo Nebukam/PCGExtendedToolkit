@@ -3,6 +3,7 @@
 
 #include "Graph/PCGExGraphProcessor.h"
 
+#include "IPCGExDebug.h"
 #include "Data/PCGExGraphParamsData.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
@@ -43,9 +44,9 @@ bool FPCGExGraphProcessorContext::AdvanceGraph(bool bResetPointsIndex)
 {
 	if (bResetPointsIndex) { CurrentPointsIndex = -1; }
 	CurrentParamsIndex++;
-	if (Params.Params.IsValidIndex(CurrentParamsIndex))
+	if (Graphs.Params.IsValidIndex(CurrentParamsIndex))
 	{
-		CurrentGraph = Params.Params[CurrentParamsIndex];
+		CurrentGraph = Graphs.Params[CurrentParamsIndex];
 		CurrentGraph->GetSocketsInfos(SocketInfos);
 		return true;
 	}
@@ -88,7 +89,7 @@ bool FPCGExGraphProcessorElement::Validate(FPCGContext* InContext) const
 
 	const FPCGExGraphProcessorContext* Context = static_cast<FPCGExGraphProcessorContext*>(InContext);
 
-	if (Context->Params.IsEmpty())
+	if (Context->Graphs.IsEmpty())
 	{
 		PCGE_LOG(Error, GraphAndLog, LOCTEXT("MissingParams", "Missing Input Params."));
 		return false;
@@ -108,7 +109,7 @@ void FPCGExGraphProcessorElement::InitializeContext(
 	FPCGExGraphProcessorContext* Context = static_cast<FPCGExGraphProcessorContext*>(InContext);
 
 	TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(PCGExGraph::SourceParamsLabel);
-	Context->Params.Initialize(InContext, Sources);
+	Context->Graphs.Initialize(InContext, Sources);
 }
 
 

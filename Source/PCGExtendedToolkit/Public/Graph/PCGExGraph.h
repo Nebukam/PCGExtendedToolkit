@@ -305,6 +305,7 @@ namespace PCGExGraph
 	constexpr PCGExMT::AsyncState State_FindingEdgeTypes = 110;
 	constexpr PCGExMT::AsyncState State_FindingPatch = 120;
 
+	constexpr PCGExMT::AsyncState State_PromotingEdges = 210;
 
 #pragma region Sockets
 

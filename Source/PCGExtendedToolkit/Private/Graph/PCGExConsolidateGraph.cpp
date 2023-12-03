@@ -7,7 +7,7 @@
 
 int32 UPCGExConsolidateGraphSettings::GetPreferredChunkSize() const { return 32; }
 
-PCGExIO::EInitMode UPCGExConsolidateGraphSettings::GetPointOutputInitMode() const { return PCGExIO::EInitMode::DuplicateInput; }
+PCGExPointIO::EInit UPCGExConsolidateGraphSettings::GetPointOutputInitMode() const { return PCGExPointIO::EInit::DuplicateInput; }
 
 FPCGElementPtr UPCGExConsolidateGraphSettings::CreateElement() const
 {

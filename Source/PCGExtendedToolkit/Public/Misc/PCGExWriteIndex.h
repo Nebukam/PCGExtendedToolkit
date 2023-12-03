@@ -22,7 +22,7 @@ public:
 	PCGEX_NODE_INFOS(WriteIndex, "Write Index", "Write the current point index to an attribute.");
 #endif
 
-	virtual PCGExIO::EInitMode GetPointOutputInitMode() const override;
+	virtual PCGExPointIO::EInit GetPointOutputInitMode() const override;
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;

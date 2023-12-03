@@ -5,7 +5,7 @@
 
 #define LOCTEXT_NAMESPACE "PCGExSampleNearestSurfaceElement"
 
-PCGExIO::EInitMode UPCGExSampleNearestSurfaceSettings::GetPointOutputInitMode() const { return PCGExIO::EInitMode::DuplicateInput; }
+PCGExPointIO::EInit UPCGExSampleNearestSurfaceSettings::GetPointOutputInitMode() const { return PCGExPointIO::EInit::DuplicateInput; }
 
 int32 UPCGExSampleNearestSurfaceSettings::GetPreferredChunkSize() const { return 32; }
 

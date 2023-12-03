@@ -55,7 +55,7 @@ void UPCGExSampleNavmeshSettings::PostEditChangeProperty(FPropertyChangedEvent& 
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
 
-PCGExIO::EInitMode UPCGExSampleNavmeshSettings::GetPointOutputInitMode() const { return PCGExIO::EInitMode::NoOutput; }
+PCGExPointIO::EInit UPCGExSampleNavmeshSettings::GetPointOutputInitMode() const { return PCGExPointIO::EInit::NoOutput; }
 int32 UPCGExSampleNavmeshSettings::GetPreferredChunkSize() const { return 32; }
 
 FName UPCGExSampleNavmeshSettings::GetMainPointsInputLabel() const { return PCGExPathfinding::SourceSeedsLabel; }
@@ -75,7 +75,7 @@ FPCGContext* FPCGExSampleNavmeshElement::Initialize(const FPCGDataCollection& In
 		Goals.Num() > 0)
 	{
 		const FPCGTaggedData& GoalsSource = Goals[0];
-		Context->GoalsPoints = PCGExIO::TryGetPointIO(Context, GoalsSource);
+		Context->GoalsPoints = PCGExPointIO::TryGetPointIO(Context, GoalsSource);
 	}
 
 	if (!Settings->NavData)
@@ -89,7 +89,7 @@ FPCGContext* FPCGExSampleNavmeshElement::Initialize(const FPCGDataCollection& In
 
 	Context->OutputPaths = NewObject<UPCGExPointIOGroup>();
 
-	Context->GoalPicker = Settings->EnsureInstruction<UPCGExGoalPickerRandom>(Settings->GoalPicker);
+	Context->GoalPicker = Settings->EnsureInstruction<UPCGExGoalPickerRandom>(Settings->GoalPicker, Context);
 	Context->PointsOrientation = Settings->PointsOrientation;
 	Context->bAddSeedToPath = Settings->bAddSeedToPath;
 	Context->bAddGoalToPath = Settings->bAddGoalToPath;
@@ -158,7 +158,7 @@ bool FPCGExSampleNavmeshElement::ExecuteInternal(FPCGContext* InContext) const
 					FAsyncTask<FNavmeshPathTask>* AsyncTask = Context->CreateTask<FNavmeshPathTask>(PointIndex, PointIO->GetInPoint(PointIndex).MetadataEntry);
 					FNavmeshPathTask& Task = AsyncTask->GetTask();
 					Task.GoalIndex = GoalIndex;
-					Task.PathPoints = Context->OutputPaths->Emplace_GetRef(PointIO->In, PCGExIO::EInitMode::NewOutput);
+					Task.PathPoints = Context->OutputPaths->Emplace_GetRef(PointIO->In, PCGExPointIO::EInit::NewOutput);
 
 					Context->StartTask(AsyncTask);
 				}
@@ -171,7 +171,7 @@ bool FPCGExSampleNavmeshElement::ExecuteInternal(FPCGContext* InContext) const
 				FAsyncTask<FNavmeshPathTask>* AsyncTask = Context->CreateTask<FNavmeshPathTask>(PointIndex, PointIO->GetInPoint(PointIndex).MetadataEntry);
 				FNavmeshPathTask& Task = AsyncTask->GetTask();
 				Task.GoalIndex = GoalIndex;
-				Task.PathPoints = Context->OutputPaths->Emplace_GetRef(PointIO->In, PCGExIO::EInitMode::NewOutput);
+				Task.PathPoints = Context->OutputPaths->Emplace_GetRef(PointIO->In, PCGExPointIO::EInit::NewOutput);
 
 				Context->StartTask(AsyncTask);
 			}
@@ -275,7 +275,7 @@ void FNavmeshPathTask::ExecuteTask()
 				for (int i = 0; i <= NumPts; i++)
 				{
 					double Lerp = static_cast<double>(i) / static_cast<double>(NumPts);
-					FPCGPoint& Point = PathPoints->NewPoint(StartPoint);
+					FPCGPoint& Point = PathPoints->CopyPoint(StartPoint);
 					//Point.Seed = StartPoint.Seed;
 
 					FVector CurrentLocation = PathLocations[i];

@@ -5,7 +5,7 @@
 
 #define LOCTEXT_NAMESPACE "PCGExWriteIndexElement"
 
-PCGExIO::EInitMode UPCGExWriteIndexSettings::GetPointOutputInitMode() const { return PCGExIO::EInitMode::DuplicateInput; }
+PCGExPointIO::EInit UPCGExWriteIndexSettings::GetPointOutputInitMode() const { return PCGExPointIO::EInit::DuplicateInput; }
 
 FPCGElementPtr UPCGExWriteIndexSettings::CreateElement() const { return MakeShared<FPCGExWriteIndexElement>(); }
 

@@ -70,10 +70,15 @@ namespace PCGExMT
 		{
 		}
 
+		FAsyncChunkedLoop(FPCGContext* InContext, int32 InChunkSize, bool InEnabled):
+			Context(InContext), ChunkSize(InChunkSize), bAsyncEnabled(InEnabled)
+		{
+		}
+
 		FPCGContext* Context = nullptr;
-		int32 NumIterations = -1;
 		int32 ChunkSize = 32;
 		bool bAsyncEnabled = true;
+		int32 NumIterations = -1;
 
 		int32 CurrentIndex = -1;
 
@@ -102,7 +107,7 @@ namespace PCGExMT
 			return false;
 		}
 
-		template <class InitializeFunc, class LoopBodyFunc>
+		template <class LoopBodyFunc>
 		bool Advance(LoopBodyFunc&& LoopBody)
 		{
 			if (bAsyncEnabled)

@@ -5,7 +5,7 @@
 
 #define LOCTEXT_NAMESPACE "PCGExSampleSurfaceGuidedElement"
 
-PCGExIO::EInitMode UPCGExSampleSurfaceGuidedSettings::GetPointOutputInitMode() const { return PCGExIO::EInitMode::DuplicateInput; }
+PCGExPointIO::EInit UPCGExSampleSurfaceGuidedSettings::GetPointOutputInitMode() const { return PCGExPointIO::EInit::DuplicateInput; }
 
 int32 UPCGExSampleSurfaceGuidedSettings::GetPreferredChunkSize() const { return 32; }
 
