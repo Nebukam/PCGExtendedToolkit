@@ -8,6 +8,8 @@
 #include "PCGExPointsProcessor.h"
 #include "Graph/PCGExGraph.h"
 #include "Graph/Pathfinding/GoalPickers/PCGExGoalPickerRandom.h"
+#include "Splines/SubPoints/DataBlending/PCGExSubPointsDataBlendLerp.h"
+#include "Splines/SubPoints/Orient/PCGExSubPointsOrientAverage.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSampleNavmeshElement"
 
@@ -16,6 +18,8 @@ UPCGExSampleNavmeshSettings::UPCGExSampleNavmeshSettings(
 	: Super(ObjectInitializer)
 {
 	GoalPicker = EnsureInstruction<UPCGExGoalPickerRandom>(GoalPicker);
+	Orientation = EnsureInstruction<UPCGExSubPointsOrientAverage>(Orientation);
+	Blending = EnsureInstruction<UPCGExSubPointsDataBlendLerp>(Blending);
 }
 
 TArray<FPCGPinProperties> UPCGExSampleNavmeshSettings::InputPinProperties() const
@@ -52,6 +56,8 @@ TArray<FPCGPinProperties> UPCGExSampleNavmeshSettings::OutputPinProperties() con
 void UPCGExSampleNavmeshSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	if (GoalPicker) { GoalPicker->UpdateUserFacingInfos(); }
+	if (Orientation) { Orientation->UpdateUserFacingInfos(); }
+	if (Blending) { Blending->UpdateUserFacingInfos(); }
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
 
@@ -90,10 +96,11 @@ FPCGContext* FPCGExSampleNavmeshElement::Initialize(const FPCGDataCollection& In
 	Context->OutputPaths = NewObject<UPCGExPointIOGroup>();
 
 	Context->GoalPicker = Settings->EnsureInstruction<UPCGExGoalPickerRandom>(Settings->GoalPicker, Context);
-	Context->PointsOrientation = Settings->PointsOrientation;
+	Context->Orientation = Settings->EnsureInstruction<UPCGExSubPointsOrientAverage>(Settings->Orientation, Context);
+	Context->Blending = Settings->EnsureInstruction<UPCGExSubPointsDataBlendLerp>(Settings->Blending, Context);
+
 	Context->bAddSeedToPath = Settings->bAddSeedToPath;
 	Context->bAddGoalToPath = Settings->bAddGoalToPath;
-	Context->LerpMode = Settings->LerpMode;
 
 	Context->NavAgentProperties = Settings->NavAgentProperties;
 	Context->bRequireNavigableEndLocation = Settings->bRequireNavigableEndLocation;
@@ -138,8 +145,11 @@ bool FPCGExSampleNavmeshElement::ExecuteInternal(FPCGContext* InContext) const
 	{
 		if (!Validate(Context)) { return true; }
 		Context->AdvancePointsIO();
-		//TODO : Merge goals metadata with points metadata
+
 		Context->GoalPicker->PrepareForData(Context->CurrentIO->In, Context->GoalsPoints->In);
+		Context->Orientation->PrepareForData(Context->CurrentIO);
+		Context->Blending->PrepareForData(Context->CurrentIO); //TODO : Merge goals metadata with into seed meta
+
 		Context->SetState(PCGExMT::State_ProcessingPoints);
 	}
 
@@ -231,27 +241,25 @@ void FNavmeshPathTask::ExecuteTask()
 		{
 			TArray<FNavPathPoint>& Points = Result.Path->GetPathPoints();
 			TArray<FVector> PathLocations;
-			PathLocations.Reserve(Points.Num() + Context->bAddSeedToPath + Context->bAddGoalToPath);
+			PathLocations.Reserve(Points.Num() + 2);
 
-			if (Context->bAddSeedToPath) { PathLocations.Add(StartLocation); }
+			PathLocations.Add(StartLocation);
 			for (FNavPathPoint PathPoint : Points) { PathLocations.Add(PathPoint.Location); }
-			if (Context->bAddGoalToPath) { PathLocations.Add(EndLocation); }
+			PathLocations.Add(EndLocation);
 
 			double PathLength = 0;
-			int32 NumPts = PathLocations.Num() - 1;
-			for (int i = 0; i <= NumPts; i++)
+			for (int i = 0; i < PathLocations.Num(); i++)
 			{
 				double Dist = 0;
 				FVector CurrentLocation = PathLocations[i];
 				if (i > 0)
 				{
 					Dist = FVector::DistSquared(CurrentLocation, PathLocations[i - 1]);
-					if (i < NumPts && Dist < Context->FuseDistance)
+					if (i < (PathLocations.Num() - 2) && Dist < Context->FuseDistance)
 					{
 						// Fuse
 						PathLocations.RemoveAt(i);
 						i--;
-						NumPts--;
 						continue;
 					}
 				}
@@ -262,74 +270,30 @@ void FNavmeshPathTask::ExecuteTask()
 			// SubPoints processors use a view on indices to process, excluding start and end points.
 			// Thus, start and end don't need to be connected
 
-			NumPts = PathLocations.Num() - 1;
-			if (NumPts <= 0)
+			if (PathLocations.Num() <= 2) // include start and end
 			{
 				bSuccess = false;
 			}
 			else
 			{
-
 				///////
-/*
+
+				int32 NumPts = PathLocations.Num();
 				for (int i = 0; i < NumPts; i++)
 				{
 					double Lerp = static_cast<double>(i) / static_cast<double>(NumPts);
-					FPCGPoint& Point = PathPoints->CopyPoint(StartPoint);
-					
+					FPCGPoint& Point = PathPoints->CopyPoint(i == 0 ? StartPoint : EndPoint);
 				}
-				
-				TArrayView<FPCGPoint> Path = MakeArrayView(Points.GetData() + StartIndex, NumSubdivisions);
-				Context->SubPointsProcessor->ProcessSubPoints(StartPoint, *EndPtr, Path, PathLength);
+
+				TArray<FPCGPoint>& MutablePoints = PointData->Out->GetMutablePoints();
+				TArrayView<FPCGPoint> Path = MakeArrayView(MutablePoints.GetData(), NumPts);
+
+				Context->Orientation->ProcessSubPoints(StartPoint, EndPoint, Path, PathLength);
+				Context->Blending->ProcessSubPoints(StartPoint, EndPoint, Path, PathLength);
 
 				// Remove start and/or end after blending
 				if (!Context->bAddSeedToPath) { PathLocations.RemoveAt(0); }
 				if (!Context->bAddGoalToPath) { PathLocations.Pop(); }
-*/				
-				////
-				FVector PrevPos = FVector::ZeroVector;
-				double CurrentPathLength = 0;
-				bool bDistanceBasedLerp = Context->LerpMode == EPCGExPointLerpMode::Distance;
-				for (int i = 0; i <= NumPts; i++)
-				{
-					double Lerp = static_cast<double>(i) / static_cast<double>(NumPts);
-					FPCGPoint& Point = PathPoints->CopyPoint(StartPoint);
-					//Point.Seed = StartPoint.Seed;
-
-					FVector CurrentLocation = PathLocations[i];
-
-					if (i > 0)
-					{
-						if (bDistanceBasedLerp)
-						{
-							CurrentPathLength += FVector::DistSquared(CurrentLocation, PrevPos);
-							Lerp = CurrentPathLength / PathLength;
-						}
-
-						PCGExMath::Lerp(StartPoint, EndPoint, Point, Lerp);
-						//Context->InputAttributeMap.SetLerp(StartPoint.MetadataEntry, EndPoint.MetadataEntry, Point.MetadataEntry, Lerp);
-					}
-
-					Point.Transform.SetLocation(CurrentLocation);
-
-					if (i < NumPts)
-					{
-						if (i == 0) // First point
-						{
-							Context->PointsOrientation.OrientNextOnly(Point.Transform, PathLocations[i + 1]);
-						}
-						else // Regular point
-						{
-							Context->PointsOrientation.Orient(Point.Transform, PathLocations[i - 1], PathLocations[i + 1]);
-						}
-					}
-					else if (i >= 1) // Last point
-					{
-						Context->PointsOrientation.OrientPreviousOnly(Point.Transform, PathLocations[i - 1]);
-					}
-
-					PrevPos = CurrentLocation;
-				}
 
 				bSuccess = true;
 			}

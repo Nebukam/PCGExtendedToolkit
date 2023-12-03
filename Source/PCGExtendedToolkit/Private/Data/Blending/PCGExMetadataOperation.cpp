@@ -5,7 +5,16 @@
 
 void UPCGExMetadataOperation::PrepareForData(const UPCGPointData* InData)
 {
-	BaseAttribute = InData->Metadata->GetMutableAttribute(AttributeName);
+	PrimaryBaseAttribute = InData->Metadata->GetMutableAttribute(AttributeName);
+	SecondaryBaseAttribute = PrimaryBaseAttribute;
+	StrongTypeAttributes();
+}
+
+void UPCGExMetadataOperation::PrepareForData(const UPCGPointData* InData, const UPCGPointData* InOtherData)
+{
+	PrimaryBaseAttribute = InData->Metadata->GetMutableAttribute(AttributeName);
+	SecondaryBaseAttribute = InOtherData->Metadata->GetMutableAttribute(AttributeName);
+	StrongTypeAttributes();
 }
 
 bool UPCGExMetadataOperation::UseFinalize() const { return false; }
@@ -28,9 +37,17 @@ void UPCGExMetadataOperation::ResetToDefault(const PCGMetadataEntryKey OutputKey
 }
 
 #define PCGEX_SAO_PREPAREDATA(_TYPE, _NAME)\
-void UPCGExBlend##_NAME##Base::ResetToDefault(PCGMetadataEntryKey OutputKey) const { if(Attribute->HasNonDefaultValue(OutputKey)){Attribute->SetValue(OutputKey, Attribute->GetValue(PCGDefaultValueKey));} }\
-void UPCGExBlend##_NAME##Base::PrepareForData(const UPCGPointData* InData) {Super::PrepareForData(InData);	Attribute = static_cast<FPCGMetadataAttribute<_TYPE>*>(BaseAttribute); }\
-_TYPE UPCGExBlend##_NAME##Base::GetValue(const PCGMetadataAttributeKey& Key) const { return Attribute->GetValueFromItemKey(Key); };
+void UPCGExBlend##_NAME##Base::ResetToDefault(PCGMetadataEntryKey OutputKey) const { if(PrimaryBaseAttribute->HasNonDefaultValue(OutputKey)){PrimaryAttribute->SetValue(OutputKey, PrimaryAttribute->GetValue(PCGDefaultValueKey));} }\
+void UPCGExBlend##_NAME##Base::StrongTypeAttributes() {\
+PrimaryAttribute = static_cast<FPCGMetadataAttribute<_TYPE>*>(PrimaryBaseAttribute);\
+SecondaryAttribute = static_cast<FPCGMetadataAttribute<_TYPE>*>(SecondaryBaseAttribute); }\
+_TYPE UPCGExBlend##_NAME##Base::GetPrimaryValue(const PCGMetadataAttributeKey& Key) const { return PrimaryAttribute->GetValueFromItemKey(Key); };\
+_TYPE UPCGExBlend##_NAME##Base::GetSecondaryValue(const PCGMetadataAttributeKey& Key) const { return SecondaryAttribute->GetValueFromItemKey(Key); };
+
+void UPCGExMetadataOperation::StrongTypeAttributes()
+{
+}
+
 PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_SAO_PREPAREDATA)
 
 #undef PCGEX_SAO_PREPAREDATA

@@ -7,7 +7,7 @@
 #include "PCGExMath.h"
 
 #define PCGEX_SAO_CLASS(_TYPE, _NAME)\
-void UPCGExSAOCopy##_NAME::DoOperation(const PCGMetadataEntryKey OperandAKey, const PCGMetadataEntryKey OperandBKey, const PCGMetadataEntryKey OutputKey, const double Alpha) const{ Attribute->SetValue(OutputKey, GetValue(OperandBKey)); };
+void UPCGExSAOCopy##_NAME::DoOperation(const PCGMetadataEntryKey OperandAKey, const PCGMetadataEntryKey OperandBKey, const PCGMetadataEntryKey OutputKey, const double Alpha) const{ PrimaryAttribute->SetValue(OutputKey, GetSecondaryValue(OperandBKey)); };
 
 PCGEX_SAO_CLASS(bool, Boolean)
 PCGEX_SAO_CLASS(int32, Integer32)

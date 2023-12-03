@@ -73,10 +73,6 @@ public:
 	UPCGExGoalPicker* GoalPicker;
 
 	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(FullyExpand=true))
-	FPCGExPathPointOrientSettings PointsOrientation;
-
-	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced)
 	UPCGExSubPointsOrient* Orientation;
 
@@ -124,12 +120,12 @@ public:
 	UPCGExPointIOGroup* OutputPaths = nullptr;
 
 	UPCGExGoalPicker* GoalPicker;
-	FPCGExPathPointOrientSettings PointsOrientation;
+	UPCGExSubPointsOrient* Orientation;
+	UPCGExSubPointsDataBlend* Blending;
 
 	bool bAddSeedToPath = true;
 	bool bAddGoalToPath = true;
 
-	EPCGExPointLerpMode LerpMode;
 	FNavAgentProperties NavAgentProperties;
 
 	ANavigationData* NavData = nullptr;

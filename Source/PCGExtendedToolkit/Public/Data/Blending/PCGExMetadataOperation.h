@@ -12,8 +12,10 @@
 #include "PCGExMetadataOperation.generated.h"
 
 #define PCGEX_FORCE_INLINE_GETTER_DECL(_TYPE)\
-FPCGMetadataAttribute<_TYPE>* Attribute;\
-inline virtual _TYPE GetValue(const PCGMetadataAttributeKey& Key) const;
+FPCGMetadataAttribute<_TYPE>* PrimaryAttribute;\
+FPCGMetadataAttribute<_TYPE>* SecondaryAttribute;\
+inline virtual _TYPE GetPrimaryValue(const PCGMetadataAttributeKey& Key) const;\
+inline virtual _TYPE GetSecondaryValue(const PCGMetadataAttributeKey& Key) const;
 
 #define PCGEX_SAO_CLASS(_TYPE, _NAME) \
 UCLASS(Blueprintable, EditInlineNew, HideDropdown) \
@@ -21,8 +23,8 @@ class PCGEXTENDEDTOOLKIT_API UPCGExBlend##_NAME##Base : public UPCGExMetadataOpe
 GENERATED_BODY()\
 public:	\
 virtual void ResetToDefault(PCGMetadataEntryKey OutputKey) const override;\
-virtual void PrepareForData(const UPCGPointData* InData) const override;\
-protected:	PCGEX_FORCE_INLINE_GETTER_DECL(_TYPE) };
+protected:	PCGEX_FORCE_INLINE_GETTER_DECL(_TYPE) \
+virtual void StrongTypeAttributes() override;};
 
 /**
  * 
@@ -37,6 +39,7 @@ public:
 	FName GetAttributeName() const { return AttributeName; }
 
 	virtual void PrepareForData(const UPCGPointData* InData);
+	virtual void PrepareForData(const UPCGPointData* InData, const UPCGPointData* InOtherData);
 
 	virtual bool UsePreparation() const;
 	virtual bool UseFinalize() const;
@@ -48,7 +51,9 @@ public:
 
 protected:
 	FName AttributeName = NAME_None;
-	FPCGMetadataAttributeBase* BaseAttribute;
+	FPCGMetadataAttributeBase* PrimaryBaseAttribute;
+	FPCGMetadataAttributeBase* SecondaryBaseAttribute;
+	virtual void StrongTypeAttributes();
 };
 
 /*
@@ -76,10 +81,10 @@ class PCGEXTENDEDTOOLKIT_API UPCGExBlendBooleanBase : public UPCGExMetadataOpera
 
 public:
 	virtual void ResetToDefault(PCGMetadataEntryKey OutputKey) const override;
-	virtual void PrepareForData(const UPCGPointData* InData) override;
 
 protected:
 	PCGEX_FORCE_INLINE_GETTER_DECL(bool)
+	virtual void StrongTypeAttributes() override;
 };
 
 UCLASS(Blueprintable, EditInlineNew, HideDropdown)
@@ -89,10 +94,10 @@ class PCGEXTENDEDTOOLKIT_API UPCGExBlendInteger32Base : public UPCGExMetadataOpe
 
 public:
 	virtual void ResetToDefault(PCGMetadataEntryKey OutputKey) const override;
-	virtual void PrepareForData(const UPCGPointData* InData) override;
 
 protected:
 	PCGEX_FORCE_INLINE_GETTER_DECL(int32)
+	virtual void StrongTypeAttributes() override;
 };
 
 UCLASS(Blueprintable, EditInlineNew, HideDropdown)
@@ -102,10 +107,10 @@ class PCGEXTENDEDTOOLKIT_API UPCGExBlendInteger64Base : public UPCGExMetadataOpe
 
 public:
 	virtual void ResetToDefault(PCGMetadataEntryKey OutputKey) const override;
-	virtual void PrepareForData(const UPCGPointData* InData) override;
 
 protected:
 	PCGEX_FORCE_INLINE_GETTER_DECL(int64)
+	virtual void StrongTypeAttributes() override;
 };
 
 UCLASS(Blueprintable, EditInlineNew, HideDropdown)
@@ -115,10 +120,10 @@ class PCGEXTENDEDTOOLKIT_API UPCGExBlendFloatBase : public UPCGExMetadataOperati
 
 public:
 	virtual void ResetToDefault(PCGMetadataEntryKey OutputKey) const override;
-	virtual void PrepareForData(const UPCGPointData* InData) override;
 
 protected:
 	PCGEX_FORCE_INLINE_GETTER_DECL(float)
+	virtual void StrongTypeAttributes() override;
 };
 
 UCLASS(Blueprintable, EditInlineNew, HideDropdown)
@@ -128,10 +133,10 @@ class PCGEXTENDEDTOOLKIT_API UPCGExBlendDoubleBase : public UPCGExMetadataOperat
 
 public:
 	virtual void ResetToDefault(PCGMetadataEntryKey OutputKey) const override;
-	virtual void PrepareForData(const UPCGPointData* InData) override;
 
 protected:
 	PCGEX_FORCE_INLINE_GETTER_DECL(double)
+	virtual void StrongTypeAttributes() override;
 };
 
 UCLASS(Blueprintable, EditInlineNew, HideDropdown)
@@ -141,10 +146,10 @@ class PCGEXTENDEDTOOLKIT_API UPCGExBlendVector2Base : public UPCGExMetadataOpera
 
 public:
 	virtual void ResetToDefault(PCGMetadataEntryKey OutputKey) const override;
-	virtual void PrepareForData(const UPCGPointData* InData) override;
 
 protected:
 	PCGEX_FORCE_INLINE_GETTER_DECL(FVector2D)
+	virtual void StrongTypeAttributes() override;
 };
 
 UCLASS(Blueprintable, EditInlineNew, HideDropdown)
@@ -154,10 +159,10 @@ class PCGEXTENDEDTOOLKIT_API UPCGExBlendVectorBase : public UPCGExMetadataOperat
 
 public:
 	virtual void ResetToDefault(PCGMetadataEntryKey OutputKey) const override;
-	virtual void PrepareForData(const UPCGPointData* InData) override;
 
 protected:
 	PCGEX_FORCE_INLINE_GETTER_DECL(FVector)
+	virtual void StrongTypeAttributes() override;
 };
 
 UCLASS(Blueprintable, EditInlineNew, HideDropdown)
@@ -167,10 +172,10 @@ class PCGEXTENDEDTOOLKIT_API UPCGExBlendVector4Base : public UPCGExMetadataOpera
 
 public:
 	virtual void ResetToDefault(PCGMetadataEntryKey OutputKey) const override;
-	virtual void PrepareForData(const UPCGPointData* InData) override;
 
 protected:
 	PCGEX_FORCE_INLINE_GETTER_DECL(FVector4)
+	virtual void StrongTypeAttributes() override;
 };
 
 UCLASS(Blueprintable, EditInlineNew, HideDropdown)
@@ -180,10 +185,10 @@ class PCGEXTENDEDTOOLKIT_API UPCGExBlendQuaternionBase : public UPCGExMetadataOp
 
 public:
 	virtual void ResetToDefault(PCGMetadataEntryKey OutputKey) const override;
-	virtual void PrepareForData(const UPCGPointData* InData) override;
 
 protected:
 	PCGEX_FORCE_INLINE_GETTER_DECL(FQuat)
+	virtual void StrongTypeAttributes() override;
 };
 
 UCLASS(Blueprintable, EditInlineNew, HideDropdown)
@@ -193,10 +198,10 @@ class PCGEXTENDEDTOOLKIT_API UPCGExBlendRotatorBase : public UPCGExMetadataOpera
 
 public:
 	virtual void ResetToDefault(PCGMetadataEntryKey OutputKey) const override;
-	virtual void PrepareForData(const UPCGPointData* InData) override;
 
 protected:
 	PCGEX_FORCE_INLINE_GETTER_DECL(FRotator)
+	virtual void StrongTypeAttributes() override;
 };
 
 UCLASS(Blueprintable, EditInlineNew, HideDropdown)
@@ -206,10 +211,10 @@ class PCGEXTENDEDTOOLKIT_API UPCGExBlendTransformBase : public UPCGExMetadataOpe
 
 public:
 	virtual void ResetToDefault(PCGMetadataEntryKey OutputKey) const override;
-	virtual void PrepareForData(const UPCGPointData* InData) override;
 
 protected:
 	PCGEX_FORCE_INLINE_GETTER_DECL(FTransform)
+	virtual void StrongTypeAttributes() override;
 };
 
 UCLASS(Blueprintable, EditInlineNew, HideDropdown)
@@ -219,10 +224,10 @@ class PCGEXTENDEDTOOLKIT_API UPCGExBlendStringBase : public UPCGExMetadataOperat
 
 public:
 	virtual void ResetToDefault(PCGMetadataEntryKey OutputKey) const override;
-	virtual void PrepareForData(const UPCGPointData* InData) override;
 
 protected:
 	PCGEX_FORCE_INLINE_GETTER_DECL(FString)
+	virtual void StrongTypeAttributes() override;
 };
 
 UCLASS(Blueprintable, EditInlineNew, HideDropdown)
@@ -232,10 +237,10 @@ class PCGEXTENDEDTOOLKIT_API UPCGExBlendNameBase : public UPCGExMetadataOperatio
 
 public:
 	virtual void ResetToDefault(PCGMetadataEntryKey OutputKey) const override;
-	virtual void PrepareForData(const UPCGPointData* InData) override;
 
 protected:
 	PCGEX_FORCE_INLINE_GETTER_DECL(FName)
+	virtual void StrongTypeAttributes() override;
 };
 
 #pragma endregion

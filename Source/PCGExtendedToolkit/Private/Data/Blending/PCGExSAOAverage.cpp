@@ -6,14 +6,14 @@
 
 #include "PCGExMath.h"
 
-#define PCGEX_DECL(_TYPE) const _TYPE A = GetValue(OperandAKey); const _TYPE B = GetValue(OperandBKey);
-#define PCGEX_SET(_BODY) Attribute->SetValue(OutputKey, _BODY);
+#define PCGEX_DECL(_TYPE) const _TYPE A = GetPrimaryValue(OperandAKey); const _TYPE B = GetSecondaryValue(OperandBKey);
+#define PCGEX_SET(_BODY) PrimaryAttribute->SetValue(OutputKey, _BODY);
 #define PCGEX_SAO_CLASS(_TYPE, _NAME, _SET, _SET_FINAL)\
 bool UPCGExSAOAverage##_NAME::UsePreparation() const { return true; }\
 bool UPCGExSAOAverage##_NAME::UseFinalize() const { return true; }\
 void UPCGExSAOAverage##_NAME::PrepareOperation(const PCGMetadataEntryKey OutputKey) const { ResetToDefault(OutputKey); }\
 void UPCGExSAOAverage##_NAME::DoOperation(const PCGMetadataEntryKey OperandAKey, const PCGMetadataEntryKey OperandBKey, const PCGMetadataEntryKey OutputKey, const double Alpha)const { PCGEX_DECL(_TYPE) PCGEX_SET(_SET) };\
-void UPCGExSAOAverage##_NAME::FinalizeOperation(const PCGMetadataEntryKey OutputKey, double Alpha) const { const _TYPE Val = GetValue(OutputKey); PCGEX_SET(_SET_FINAL) };
+void UPCGExSAOAverage##_NAME::FinalizeOperation(const PCGMetadataEntryKey OutputKey, double Alpha) const { const _TYPE Val = GetPrimaryValue(OutputKey); PCGEX_SET(_SET_FINAL) };
 
 /*
 PCGEX_SAO_CLASS(bool, Boolean, A + B, Val)

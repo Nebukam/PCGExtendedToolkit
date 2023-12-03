@@ -6,8 +6,8 @@
 
 #include "PCGExMath.h"
 
-#define PCGEX_DECL(_TYPE) const _TYPE A = GetValue(OperandAKey); const _TYPE B = GetValue(OperandBKey);
-#define PCGEX_SET(_BODY) Attribute->SetValue(OutputKey, _BODY);
+#define PCGEX_DECL(_TYPE) const _TYPE A = GetPrimaryValue(OperandAKey); const _TYPE B = GetSecondaryValue(OperandBKey);
+#define PCGEX_SET(_BODY) PrimaryAttribute->SetValue(OutputKey, _BODY);
 #define PCGEX_SAO_CLASS(_TYPE, _NAME, _SET)\
 void UPCGExSAOMax##_NAME::DoOperation(const PCGMetadataEntryKey OperandAKey, const PCGMetadataEntryKey OperandBKey, const PCGMetadataEntryKey OutputKey, const double Alpha) const { PCGEX_DECL(_TYPE) PCGEX_SET(_SET) };
 
