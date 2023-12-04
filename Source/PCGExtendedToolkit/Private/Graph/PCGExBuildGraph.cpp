@@ -94,18 +94,15 @@ bool FPCGExBuildGraphElement::ExecuteInternal(
 			Context->CreateAndStartTask<FProbeTask>(PointIndex, PointIO->GetInPoint(PointIndex).MetadataEntry);
 		};
 
-		if (Context->ProcessCurrentPoints(Initialize, ProcessPoint))
-		{
-			Context->SetState(PCGExMT::State_WaitingOnAsyncWork);
-		}
+		if (Context->ProcessCurrentPoints(Initialize, ProcessPoint)) { Context->StartAsyncWait(); }
 	}
 
 	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
 	{
 		if (Context->IsAsyncWorkComplete())
 		{
-			if (Context->bComputeEdgeType) { Context->SetState(PCGExGraph::State_FindingEdgeTypes); }
-			else { Context->SetState(PCGExGraph::State_ReadyForNextGraph); }
+			if (Context->bComputeEdgeType) { Context->StopAsyncWait(PCGExGraph::State_FindingEdgeTypes); }
+			else { Context->StopAsyncWait(PCGExGraph::State_ReadyForNextGraph); }
 		}
 	}
 

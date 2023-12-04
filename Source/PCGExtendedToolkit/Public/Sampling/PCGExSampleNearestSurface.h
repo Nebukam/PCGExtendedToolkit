@@ -1,4 +1,5 @@
 ﻿// Copyright Timothé Lapetite 2023
+
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #pragma once
@@ -93,7 +94,7 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision & Metrics", meta=(EditCondition="CollisionType==EPCGExCollisionFilterType::Profile", EditConditionHides))
 	FName ProfileName = NAME_None;
-	
+
 	/** Ignore this graph' PCG content */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision & Metrics")
 	bool bIgnoreSelf = true;

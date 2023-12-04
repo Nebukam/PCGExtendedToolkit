@@ -180,10 +180,7 @@ bool FPCGExSampleNavmeshElement::ExecuteInternal(FPCGContext* InContext) const
 			}
 		};
 
-		if (Context->ProcessCurrentPoints(ProcessPoint))
-		{
-			Context->SetState(PCGExMT::State_WaitingOnAsyncWork);
-		}
+		if (Context->ProcessCurrentPoints(ProcessPoint)) { Context->StartAsyncWait(); }
 	}
 
 	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
@@ -255,7 +252,7 @@ void FNavmeshPathTask::ExecuteTask()
 						continue;
 					}
 				}
-				
+
 				PathHelper.Add(CurrentLocation);
 			}
 

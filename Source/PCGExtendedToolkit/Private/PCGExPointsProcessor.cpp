@@ -288,6 +288,7 @@ bool FPCGExPointsProcessorContext::ProcessCurrentPoints(TFunction<void(const int
 
 void FPCGExPointsProcessorContext::ResetAsyncWork()
 {
+	//AsyncState.bIsRunningAsyncCall = false;
 	NumAsyncTaskStarted = 0;
 	NumAsyncTaskCompleted = 0;
 }

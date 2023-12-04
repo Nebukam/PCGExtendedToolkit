@@ -87,17 +87,14 @@ bool FPCGExSampleSurfaceGuidedElement::ExecuteInternal(FPCGContext* InContext) c
 			Context->CreateAndStartTask<FTraceTask>(PointIndex, PointIO->GetOutPoint(PointIndex).MetadataEntry);
 		};
 
-		if (Context->ProcessCurrentPoints(Initialize, ProcessPoint))
-		{
-			Context->SetState(PCGExMT::State_WaitingOnAsyncWork);
-		}
+		if (Context->ProcessCurrentPoints(Initialize, ProcessPoint)) { Context->StartAsyncWait(); }
 	}
 
 	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
 	{
 		if (Context->IsAsyncWorkComplete())
 		{
-			Context->SetState(PCGExMT::State_ReadyForNextPoints);
+			Context->StopAsyncWait(PCGExMT::State_ReadyForNextPoints);
 		}
 	}
 
@@ -158,6 +155,8 @@ void FTraceTask::ExecuteTask()
 		break;
 	default: ;
 	}
+
+	if (!IsTaskValid()) { return; }
 
 	if (Context->bProjectFailToSize)
 	{

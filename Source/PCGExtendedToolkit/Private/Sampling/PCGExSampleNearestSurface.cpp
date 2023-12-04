@@ -89,10 +89,7 @@ bool FPCGExSampleNearestSurfaceElement::ExecuteInternal(FPCGContext* InContext) 
 			Context->StartTask(Task);
 		};
 
-		if (Context->ProcessCurrentPoints(Initialize, ProcessPoint))
-		{
-			Context->SetState(PCGExMT::State_WaitingOnAsyncWork);
-		}
+		if (Context->ProcessCurrentPoints(Initialize, ProcessPoint)) { Context->StartAsyncWait(); }
 	}
 
 	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
@@ -154,6 +151,7 @@ void FSweepSphereTask::ExecuteTask()
 
 		if (bSuccess)
 		{
+			if (!IsTaskValid()) { return; }
 			const FVector Direction = (HitLocation - Origin).GetSafeNormal();
 			PCGEX_SET_OUT_ATTRIBUTE(Location, Infos.Key, HitLocation)
 			PCGEX_SET_OUT_ATTRIBUTE(Normal, Infos.Key, Direction*-1) // TODO: expose "precise normal" in which case we line trace to location
@@ -185,6 +183,7 @@ void FSweepSphereTask::ExecuteTask()
 	default: ;
 	}
 
+	if (!IsTaskValid()) { return; }
 	PCGEX_SET_OUT_ATTRIBUTE(Success, Infos.Key, bSuccess)
 	ExecutionComplete(bSuccess);
 }

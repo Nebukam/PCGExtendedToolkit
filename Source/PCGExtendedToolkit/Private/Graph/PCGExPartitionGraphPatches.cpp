@@ -93,23 +93,17 @@ bool FPCGExPartitionGraphPatchesElement::ExecuteInternal(
 
 		auto ProcessPoint = [&](const int32 PointIndex, const UPCGExPointIO* PointIO)
 		{
-			//Context->Patches->Distribute(PointIndex);
 			Context->CreateAndStartTask<FPatchTask>(PointIndex, PointIO->GetInPoint(PointIndex).MetadataEntry, 0);
 		};
 
-		if (Context->ProcessCurrentPoints(Initialize, ProcessPoint))
-		{
-			Context->SetState(PCGExMT::State_WaitingOnAsyncWork);
-			//Context->SetState(PCGExMT::State_ReadyForNextPoints);
-			//Context->Patches->OutputTo(Context, Context->MinPatchSize, Context->MaxPatchSize);
-		}
+		if (Context->ProcessCurrentPoints(Initialize, ProcessPoint)) { Context->StartAsyncWait(); }
 	}
 
 	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
 	{
 		if (Context->IsAsyncWorkComplete())
 		{
-			Context->SetState(PCGExMT::State_ReadyForNextPoints);
+			Context->StopAsyncWait(PCGExMT::State_ReadyForNextPoints);
 			Context->Patches->OutputTo(Context, Context->MinPatchSize, Context->MaxPatchSize);
 		}
 	}

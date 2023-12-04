@@ -169,6 +169,17 @@ public:
 	bool IsSetup() const { return IsState(PCGExMT::State_Setup); }
 	bool IsDone() const { return IsState(PCGExMT::State_Done); }
 	void Done() { SetState(PCGExMT::State_Done); }
+	void StartAsyncWait()
+	{
+		SetState(PCGExMT::State_WaitingOnAsyncWork);
+		//AsyncState.bIsRunningAsyncCall = true;
+	}
+
+	void StopAsyncWait(PCGExMT::AsyncState NextState)
+	{
+		ResetAsyncWork();
+		SetState(NextState);
+	}
 
 	virtual void SetState(PCGExMT::AsyncState OperationId);
 	virtual void Reset();
@@ -286,9 +297,8 @@ public:
 protected:
 	bool IsTaskValid() const
 	{
-		if (!TaskContext ||
-			!TaskContext->SourceComponent.IsValid() ||
-			TaskContext->SourceComponent.IsStale(true, true) ||
+		if (!TaskContext || 
+			(TaskContext->SourceComponent == nullptr || !TaskContext->SourceComponent.IsValid() || TaskContext->SourceComponent.IsStale(true, true)) ||
 			TaskContext->NumAsyncTaskStarted == 0)
 		{
 			return false;
