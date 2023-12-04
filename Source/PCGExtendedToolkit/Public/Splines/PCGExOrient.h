@@ -7,24 +7,23 @@
 #include "PCGExPathProcessor.h"
 
 #include "PCGExPointsProcessor.h"
-#include "Graph/PCGExGraph.h"
-#include "Tangents/PCGExTangents.h"
-#include "PCGExWriteTangents.generated.h"
+#include "SubPoints/Orient/PCGExSubPointsOrient.h"
+#include "PCGExOrient.generated.h"
 
 /**
  * Calculates the distance between two points (inherently a n*n operation)
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class PCGEXTENDEDTOOLKIT_API UPCGExWriteTangentsSettings : public UPCGExPathProcessorSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExOrientSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()
 
 public:
-	UPCGExWriteTangentsSettings(const FObjectInitializer& ObjectInitializer);
+	UPCGExOrientSettings(const FObjectInitializer& ObjectInitializer);
 
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(WriteTangents, "Write Tangents", "Computes & writes points tangents.");
+	PCGEX_NODE_INFOS(Orient, "Orient", "Orient paths segments.");
 #endif
 
 protected:
@@ -32,25 +31,19 @@ protected:
 	//~End UPCGSettings interface
 
 public:
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
-	FName ArriveName = "ArriveTangent";
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
-	FName LeaveName = "LeaveTangent";
-
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced)
-	UPCGExTangents* Tangents;
+	UPCGExSubPointsOrient* Orientation;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExWriteTangentsContext : public FPCGExPathProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExOrientContext : public FPCGExPathProcessorContext
 {
-	friend class FPCGExWriteTangentsElement;
+	friend class FPCGExOrientElement;
 
 public:
-	UPCGExTangents* Tangents;
+	UPCGExSubPointsOrient* Orientation;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExWriteTangentsElement : public FPCGExPathProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExOrientElement : public FPCGExPathProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -60,4 +53,16 @@ public:
 
 protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
+};
+
+class PCGEXTENDEDTOOLKIT_API FOrientTask : public FPointTask
+{
+public:
+	FOrientTask(FPCGExPointsProcessorContext* InContext, UPCGExPointIO* InPointData, const PCGExMT::FTaskInfos& InInfos) :
+		FPointTask(InContext, InPointData, InInfos)
+	{
+	}
+
+	virtual void ExecuteTask() override;
+
 };

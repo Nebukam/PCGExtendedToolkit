@@ -13,8 +13,6 @@ UPCGExWriteTangentsSettings::UPCGExWriteTangentsSettings(const FObjectInitialize
 	Tangents = EnsureInstruction<UPCGExAutoTangents>(Tangents);
 }
 
-PCGExPointIO::EInit UPCGExWriteTangentsSettings::GetPointOutputInitMode() const { return PCGExPointIO::EInit::DuplicateInput; }
-
 FPCGElementPtr UPCGExWriteTangentsSettings::CreateElement() const { return MakeShared<FPCGExWriteTangentsElement>(); }
 
 FPCGContext* FPCGExWriteTangentsElement::Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node)

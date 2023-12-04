@@ -9,9 +9,15 @@
 
 void UPCGExSubPointsProcessor::PrepareForData(const UPCGExPointIO* InData)
 {
-	
 }
 
-void UPCGExSubPointsProcessor::ProcessSubPoints(const FPCGPoint& StartPoint, const FPCGPoint& EndPoint, TArrayView<FPCGPoint>& SubPoints, const double PathLength) const
+void UPCGExSubPointsProcessor::ProcessPoints(UPCGPointData* InData) const
+{
+	TArray<FPCGPoint>& Points = InData->GetMutablePoints();
+	TArrayView<FPCGPoint> Path = MakeArrayView(Points.GetData(), Points.Num());
+	ProcessSubPoints(Points[0], Points.Last(), Path, PCGExMath::FPathInfos());
+}
+
+void UPCGExSubPointsProcessor::ProcessSubPoints(const FPCGPoint& StartPoint, const FPCGPoint& EndPoint, TArrayView<FPCGPoint>& SubPoints, const PCGExMath::FPathInfos& PathInfos) const
 {
 }

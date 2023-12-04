@@ -15,9 +15,6 @@ UPCGExSubdivideSettings::UPCGExSubdivideSettings(const FObjectInitializer& Objec
 
 PCGExPointIO::EInit UPCGExSubdivideSettings::GetPointOutputInitMode() const { return PCGExPointIO::EInit::NewOutput; }
 
-FName UPCGExSubdivideSettings::GetMainPointsInputLabel() const { return PCGExGraph::SourcePathsLabel; }
-FName UPCGExSubdivideSettings::GetMainPointsOutputLabel() const { return PCGExGraph::OutputPathsLabel; }
-
 FPCGElementPtr UPCGExSubdivideSettings::CreateElement() const { return MakeShared<FPCGExSubdivideElement>(); }
 
 FPCGContext* FPCGExSubdivideElement::Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node)
@@ -83,19 +80,24 @@ bool FPCGExSubdivideElement::ExecuteInternal(FPCGContext* InContext) const
 			const double StepSize = Distance / static_cast<double>(NumSubdivisions);
 			const double StartOffset = (Distance - StepSize * NumSubdivisions) * 0.5;
 
-			TArray<FPCGPoint>& Points = PointIO->Out->GetMutablePoints();
-			const int32 StartIndex = Points.Num();
-
+			TArray<FPCGPoint>& MutablePoints = PointIO->Out->GetMutablePoints();
+			const int32 ViewOffset = MutablePoints.Num();
+			
+			PCGExMath::FPathInfos PathInfos = PCGExMath::FPathInfos(StartPos);
+			
 			for (int i = 0; i < NumSubdivisions; i++)
 			{
 				FPCGPoint& NewPoint = PointIO->CopyPoint(StartPoint);
 				if (Context->bFlagSubPoints) { Context->FlagAttribute->SetValue(NewPoint.MetadataEntry, true); }
 
-				NewPoint.Transform.SetLocation(StartPos + Dir * (StartOffset + i * StepSize));
+				FVector SubLocation = StartPos + Dir * (StartOffset + i * StepSize);
+				PathInfos.Add(SubLocation);
+				
+				NewPoint.Transform.SetLocation(SubLocation);
 			}
 
-			TArrayView<FPCGPoint> Path = MakeArrayView(Points.GetData() + StartIndex, NumSubdivisions);
-			Context->Blending->ProcessSubPoints(StartPoint, *EndPtr, Path, Distance);
+			TArrayView<FPCGPoint> Path = MakeArrayView(MutablePoints.GetData() + ViewOffset, NumSubdivisions);
+			Context->Blending->ProcessSubPoints(StartPoint, *EndPtr, Path, PathInfos);
 		};
 
 		if (Context->ProcessCurrentPoints(Initialize, ProcessPoint, true))

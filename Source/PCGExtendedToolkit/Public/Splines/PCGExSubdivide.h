@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExPathProcessor.h"
 
 #include "PCGExPointsProcessor.h"
 #include "Graph/PCGExGraph.h"
@@ -30,7 +31,7 @@ enum class EPCGExSubdivideBlendMode : uint8
  * Calculates the distance between two points (inherently a n*n operation)
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class PCGEXTENDEDTOOLKIT_API UPCGExSubdivideSettings : public UPCGExPointsProcessorSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExSubdivideSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -40,12 +41,9 @@ public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(Subdivide, "Subdivide", "Subdivide paths segments.");
-	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorSpline; }
 #endif
 
 	virtual PCGExPointIO::EInit GetPointOutputInitMode() const override;
-	virtual FName GetMainPointsInputLabel() const override;
-	virtual FName GetMainPointsOutputLabel() const override;
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
@@ -71,7 +69,7 @@ public:
 	FName FlagName = "IsSubPoint";
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExSubdivideContext : public FPCGExPointsProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExSubdivideContext : public FPCGExPathProcessorContext
 {
 	friend class FPCGExSubdivideElement;
 
@@ -87,7 +85,7 @@ public:
 	UPCGExSubPointsDataBlend* Blending;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExSubdivideElement : public FPCGExPointsProcessorElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExSubdivideElement : public FPCGExPathProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

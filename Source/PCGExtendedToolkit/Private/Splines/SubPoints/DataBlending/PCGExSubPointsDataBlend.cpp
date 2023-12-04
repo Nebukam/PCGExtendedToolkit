@@ -25,12 +25,12 @@ void UPCGExSubPointsDataBlend::PrepareForData(const UPCGPointData* InPrimaryData
 	InternalBlender->PrepareForData(InPrimaryData, InSecondaryData, BlendingOverrides);
 }
 
-void UPCGExSubPointsDataBlend::ProcessSubPoints(const FPCGPoint& StartPoint, const FPCGPoint& EndPoint, TArrayView<FPCGPoint>& SubPoints, const double PathLength) const
+void UPCGExSubPointsDataBlend::ProcessSubPoints(const FPCGPoint& StartPoint, const FPCGPoint& EndPoint, TArrayView<FPCGPoint>& SubPoints, const PCGExMath::FPathInfos& PathInfos) const
 {
-	ProcessSubPoints(StartPoint, EndPoint, SubPoints, PathLength, InternalBlender);
+	BlendSubPoints(StartPoint, EndPoint, SubPoints, PathInfos, InternalBlender);
 }
 
-void UPCGExSubPointsDataBlend::ProcessSubPoints(const FPCGPoint& StartPoint, const FPCGPoint& EndPoint, TArrayView<FPCGPoint>& SubPoints, const double PathLength, const UPCGExMetadataBlender* InBlender) const
+void UPCGExSubPointsDataBlend::BlendSubPoints(const FPCGPoint& StartPoint, const FPCGPoint& EndPoint, TArrayView<FPCGPoint>& SubPoints, const PCGExMath::FPathInfos& PathInfos, const UPCGExMetadataBlender* InBlender) const
 {
 }
 

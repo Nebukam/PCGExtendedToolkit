@@ -11,28 +11,29 @@ EPCGExDataBlendingType UPCGExSubPointsDataBlendLerp::GetDefaultBlending()
 	return EPCGExDataBlendingType::Weight;
 }
 
-void UPCGExSubPointsDataBlendLerp::ProcessSubPoints(const FPCGPoint& StartPoint, const FPCGPoint& EndPoint, TArrayView<FPCGPoint>& SubPoints, const double PathLength, const UPCGExMetadataBlender* InBlender) const
+void UPCGExSubPointsDataBlendLerp::BlendSubPoints(const FPCGPoint& StartPoint, const FPCGPoint& EndPoint, TArrayView<FPCGPoint>& SubPoints, const PCGExMath::FPathInfos& PathInfos, const UPCGExMetadataBlender* InBlender) const
 {
 	const int32 NumPoints = SubPoints.Num();
 
 	const PCGMetadataEntryKey StartKey = StartPoint.MetadataEntry;
 	const PCGMetadataAttributeKey EndKey = EndPoint.MetadataEntry;
 
-	if (LerpBase == EPCGExPathLerpBase::Distance)
+	EPCGExPathLerpBase SafeLerpBase = LerpBase;
+	if (LerpBase == EPCGExPathLerpBase::Distance && !PathInfos.IsValid()) { SafeLerpBase = EPCGExPathLerpBase::Index; }
+
+	if (SafeLerpBase == EPCGExPathLerpBase::Distance)
 	{
 		FVector PreviousLocation = StartPoint.Transform.GetLocation();
-
-		const double TotalDistance = FVector::DistSquared(PreviousLocation, EndPoint.Transform.GetLocation());
-		double Distance = 0;
+		PCGExMath::FPathInfos CurrentPathInfos = PCGExMath::FPathInfos(PreviousLocation);
 
 		for (int i = 0; i < NumPoints; i++)
 		{
 			FPCGPoint& Point = SubPoints[i];
 
 			const FVector Location = Point.Transform.GetLocation();
-			Distance += FVector::DistSquared(Location, PreviousLocation);
+			CurrentPathInfos.Add(Location);
 
-			const double Lerp = Distance / TotalDistance;
+			const double Lerp = PathInfos.GetTime(CurrentPathInfos.Length);
 			PCGExMath::Lerp(StartPoint, EndPoint, Point, Lerp);
 			InBlender->DoOperations(StartKey, EndKey, Point.MetadataEntry, Lerp);
 
@@ -41,7 +42,7 @@ void UPCGExSubPointsDataBlendLerp::ProcessSubPoints(const FPCGPoint& StartPoint,
 			PreviousLocation = Location;
 		}
 	}
-	else if (LerpBase == EPCGExPathLerpBase::Index)
+	else if (SafeLerpBase == EPCGExPathLerpBase::Index)
 	{
 		for (int i = 0; i < NumPoints; i++)
 		{
@@ -55,7 +56,7 @@ void UPCGExSubPointsDataBlendLerp::ProcessSubPoints(const FPCGPoint& StartPoint,
 			Point.Transform.SetLocation(Location); // !
 		}
 	}
-	else if (LerpBase == EPCGExPathLerpBase::Fixed)
+	else if (SafeLerpBase == EPCGExPathLerpBase::Fixed)
 	{
 		for (int i = 0; i < NumPoints; i++)
 		{

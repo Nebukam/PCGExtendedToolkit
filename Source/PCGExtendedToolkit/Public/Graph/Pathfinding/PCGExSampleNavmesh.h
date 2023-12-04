@@ -67,10 +67,6 @@ public:
 
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced)
-	UPCGExSubPointsOrient* Orientation;
-
-	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced)
 	UPCGExSubPointsDataBlend* Blending;
 
 	/** TBD */
@@ -111,7 +107,6 @@ public:
 	UPCGExPointIOGroup* OutputPaths = nullptr;
 
 	UPCGExGoalPicker* GoalPicker;
-	UPCGExSubPointsOrient* Orientation;
 	UPCGExSubPointsDataBlend* Blending;
 
 	bool bAddSeedToPath = true;

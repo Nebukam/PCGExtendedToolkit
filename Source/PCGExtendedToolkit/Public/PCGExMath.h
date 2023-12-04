@@ -55,6 +55,36 @@ namespace PCGExMath
 		static FApex FromEndOnly(const FVector& End, const FVector& InApex) { return FApex(InApex, End, InApex); }
 	};
 
+	struct PCGEXTENDEDTOOLKIT_API FPathInfos
+	{
+		FPathInfos()
+		{
+		}
+
+		FPathInfos(const FVector& InStart)
+		{
+			Start = InStart;
+			Last = InStart;
+			Length = 0;
+		}
+
+		FVector Start = FVector::ZeroVector;
+		FVector Last = FVector::ZeroVector;
+		double Length = -1;
+
+		double Add(const FVector& Location)
+		{
+			Length += DistToLast(Location);
+			Last = Location;
+			return Length;
+		}
+
+		inline bool IsValid() const { return Length >= 0; }
+		inline double GetTime(const double Distance) const { return Distance / Length; }
+		inline double DistToLast(const FVector& Location) const { return FVector::DistSquared(Last, Location); }
+		inline bool IsLastWithinRange(const FVector& Location, const double Range) const { return DistToLast(Location) < Range; }
+	};
+
 	inline static double ConvertStringToDouble(const FString& StringToConvert)
 	{
 		const TCHAR* CharArray = *StringToConvert;

@@ -5,7 +5,6 @@
 
 #include "CoreMinimal.h"
 #include "PCGPoint.h"
-#include "Data/PCGExAttributeHelpers.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
 #include "Splines/SubPoints/PCGExSubPointsProcessor.h"
 #include "PCGExSubPointsDataBlend.generated.h"
@@ -22,18 +21,17 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSubPointsDataBlend : public UPCGExSubPointsPr
 	GENERATED_BODY()
 
 public:
-	UPROPERTY()
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	TMap<FName, EPCGExDataBlendingType> BlendingOverrides;
-	
+
 	virtual void PrepareForData(const UPCGExPointIO* InData) override;
 	virtual void PrepareForData(const UPCGPointData* InPrimaryData, const UPCGPointData* InSecondaryData);
-	virtual void ProcessSubPoints(const FPCGPoint& StartPoint, const FPCGPoint& EndPoint, TArrayView<FPCGPoint>& SubPoints, const double PathLength) const override;
-	virtual void ProcessSubPoints(const FPCGPoint& StartPoint, const FPCGPoint& EndPoint, TArrayView<FPCGPoint>& SubPoints, const double PathLength, const UPCGExMetadataBlender* InBlender) const;
+	virtual void ProcessSubPoints(const FPCGPoint& StartPoint, const FPCGPoint& EndPoint, TArrayView<FPCGPoint>& SubPoints, const PCGExMath::FPathInfos& PathInfos) const override;
+	virtual void BlendSubPoints(const FPCGPoint& StartPoint, const FPCGPoint& EndPoint, TArrayView<FPCGPoint>& SubPoints, const PCGExMath::FPathInfos& PathInfos, const UPCGExMetadataBlender* InBlender) const;
 
 	UPCGExMetadataBlender* CreateBlender(const UPCGPointData* InPrimaryData, const UPCGPointData* InSecondaryData);
-	
+
 protected:
 	virtual EPCGExDataBlendingType GetDefaultBlending();
 	UPCGExMetadataBlender* InternalBlender;
-	
 };

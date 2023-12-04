@@ -18,7 +18,6 @@ UPCGExSampleNavmeshSettings::UPCGExSampleNavmeshSettings(
 	: Super(ObjectInitializer)
 {
 	GoalPicker = EnsureInstruction<UPCGExGoalPickerRandom>(GoalPicker);
-	Orientation = EnsureInstruction<UPCGExSubPointsOrientAverage>(Orientation);
 	Blending = EnsureInstruction<UPCGExSubPointsDataBlendLerp>(Blending);
 }
 
@@ -56,7 +55,6 @@ TArray<FPCGPinProperties> UPCGExSampleNavmeshSettings::OutputPinProperties() con
 void UPCGExSampleNavmeshSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	if (GoalPicker) { GoalPicker->UpdateUserFacingInfos(); }
-	if (Orientation) { Orientation->UpdateUserFacingInfos(); }
 	if (Blending) { Blending->UpdateUserFacingInfos(); }
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
@@ -96,7 +94,6 @@ FPCGContext* FPCGExSampleNavmeshElement::Initialize(const FPCGDataCollection& In
 	Context->OutputPaths = NewObject<UPCGExPointIOGroup>();
 
 	Context->GoalPicker = Settings->EnsureInstruction<UPCGExGoalPickerRandom>(Settings->GoalPicker, Context);
-	Context->Orientation = Settings->EnsureInstruction<UPCGExSubPointsOrientAverage>(Settings->Orientation, Context);
 	Context->Blending = Settings->EnsureInstruction<UPCGExSubPointsDataBlendLerp>(Settings->Blending, Context);
 
 	Context->bAddSeedToPath = Settings->bAddSeedToPath;
@@ -145,11 +142,7 @@ bool FPCGExSampleNavmeshElement::ExecuteInternal(FPCGContext* InContext) const
 	{
 		if (!Validate(Context)) { return true; }
 		Context->AdvancePointsIO();
-
 		Context->GoalPicker->PrepareForData(Context->CurrentIO->In, Context->GoalsPoints->In);
-		Context->Orientation->PrepareForData(Context->CurrentIO);
-		//Context->Blending->PrepareForData(Context->CurrentIO->In, Context->GoalsPoints->In); //TODO : Merge goals metadata with into seed meta
-
 		Context->SetState(PCGExMT::State_ProcessingPoints);
 	}
 
@@ -247,16 +240,14 @@ void FNavmeshPathTask::ExecuteTask()
 			for (FNavPathPoint PathPoint : Points) { PathLocations.Add(PathPoint.Location); }
 			PathLocations.Add(EndLocation);
 
-			int32 FuseCountReduce = Context->bAddGoalToPath ? 2 : 1;			
-			double PathLength = 0;
+			PCGExMath::FPathInfos PathHelper = PCGExMath::FPathInfos(StartLocation);
+			int32 FuseCountReduce = Context->bAddGoalToPath ? 2 : 1;
 			for (int i = Context->bAddSeedToPath; i < PathLocations.Num(); i++)
 			{
-				double Dist = 0;
 				FVector CurrentLocation = PathLocations[i];
 				if (i > 0 && i < (PathLocations.Num() - FuseCountReduce))
 				{
-					Dist = FVector::DistSquared(CurrentLocation, PathLocations[i - 1]);
-					if (Dist < Context->FuseDistance)
+					if (PathHelper.IsLastWithinRange(CurrentLocation, Context->FuseDistance))
 					{
 						// Fuse
 						PathLocations.RemoveAt(i);
@@ -264,7 +255,8 @@ void FNavmeshPathTask::ExecuteTask()
 						continue;
 					}
 				}
-				PathLength += Dist;
+				
+				PathHelper.Add(CurrentLocation);
 			}
 
 			// TODO : Seed Indices start at 0 ... Num, Goal indices start at Num ... Goal Num >
@@ -278,7 +270,7 @@ void FNavmeshPathTask::ExecuteTask()
 			else
 			{
 				///////
-				
+
 				for (FVector Location : PathLocations)
 				{
 					FPCGPoint& Point = PathPoints->CopyPoint(StartPoint);
@@ -289,12 +281,9 @@ void FNavmeshPathTask::ExecuteTask()
 				TArrayView<FPCGPoint> Path = MakeArrayView(MutablePoints.GetData(), PathLocations.Num());
 
 				UPCGExMetadataBlender* TempBlender = Context->Blending->CreateBlender(PathPoints->Out, Context->GoalsPoints->In);
-				Context->Blending->ProcessSubPoints(StartPoint, EndPoint, Path, PathLength, TempBlender);
+				Context->Blending->BlendSubPoints(StartPoint, EndPoint, Path, PathHelper, TempBlender);
 				TempBlender->ConditionalBeginDestroy();
 
-				// Orient post-blending
-				Context->Orientation->ProcessSubPoints(StartPoint, EndPoint, Path, PathLength);
-				
 				// Remove start and/or end after blending
 				if (!Context->bAddSeedToPath) { MutablePoints.RemoveAt(0); }
 				if (!Context->bAddGoalToPath) { MutablePoints.Pop(); }

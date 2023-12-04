@@ -6,7 +6,7 @@
 
 #include "Data/Blending/PCGExMetadataBlender.h"
 
-void UPCGExSubPointsDataBlendInheritEnd::ProcessSubPoints(const FPCGPoint& StartPoint, const FPCGPoint& EndPoint, TArrayView<FPCGPoint>& SubPoints, const double PathLength, const UPCGExMetadataBlender* InBlender) const
+void UPCGExSubPointsDataBlendInheritEnd::BlendSubPoints(const FPCGPoint& StartPoint, const FPCGPoint& EndPoint, TArrayView<FPCGPoint>& SubPoints, const PCGExMath::FPathInfos& PathInfos, const UPCGExMetadataBlender* InBlender) const
 {
 	const int32 NumPoints = SubPoints.Num();
 	for (int i = 0; i < NumPoints; i++)

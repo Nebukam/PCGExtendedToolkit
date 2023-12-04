@@ -31,6 +31,10 @@ protected:
 public:
 	/** The name of the attribute to write its index to.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	bool bOutputNormalizedIndex = false;
+	
+	/** The name of the attribute to write its index to.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	FName OutputAttributeName = "CurrentIndex";
 };
 
@@ -40,8 +44,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExWriteIndexContext : public FPCGExPointsProce
 
 public:
 	mutable FRWLock MapLock;
+	bool bOutputNormalizedIndex;
 	FName OutName = NAME_None;
 	TMap<UPCGExPointIO*, FPCGMetadataAttribute<int64>*> AttributeMap;
+	TMap<UPCGExPointIO*, FPCGMetadataAttribute<double>*> NormalizedAttributeMap;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExWriteIndexElement : public FPCGExPointsProcessorElementBase
