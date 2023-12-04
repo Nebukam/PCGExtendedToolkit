@@ -435,7 +435,7 @@ namespace PCGExGraph
 		}
 
 		// Point index within the same data group.
-		void SetTargetIndex(const PCGMetadataEntryKey MetadataEntry, int64 InIndex) const { AttributeTargetIndex->SetValue(MetadataEntry, InIndex); }
+		void SetTargetIndex(const PCGMetadataEntryKey MetadataEntry, int32 InIndex) const { AttributeTargetIndex->SetValue(MetadataEntry, InIndex); }
 		int32 GetTargetIndex(const PCGMetadataEntryKey MetadataEntry) const { return AttributeTargetIndex->GetValueFromItemKey(MetadataEntry); }
 
 		// Point metadata entry key, faster than retrieving index if you only need to access attributes

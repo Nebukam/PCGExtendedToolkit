@@ -271,7 +271,7 @@ public:
 
 	void ExecutionComplete(bool bSuccess)
 	{
-		if (!IsTaskValid()) { return; }
+		if (!this || !IsTaskValid()) { return; }
 		TaskContext->OnAsyncTaskExecutionComplete(this, bSuccess);
 	}
 

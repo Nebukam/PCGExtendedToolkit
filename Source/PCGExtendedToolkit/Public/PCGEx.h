@@ -125,6 +125,7 @@ enum class EPCGExCollisionFilterType : uint8
 {
 	Channel UMETA(DisplayName = "Channel", ToolTip="TBD"),
 	ObjectType UMETA(DisplayName = "Object Type", ToolTip="TBD"),
+	Profile UMETA(DisplayName = "Profile", ToolTip="TBD"),
 };
 
 UENUM(BlueprintType)

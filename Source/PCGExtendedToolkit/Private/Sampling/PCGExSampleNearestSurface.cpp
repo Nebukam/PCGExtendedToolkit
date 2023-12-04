@@ -26,6 +26,7 @@ FPCGContext* FPCGExSampleNearestSurfaceElement::Initialize(const FPCGDataCollect
 	Context->CollisionType = Settings->CollisionType;
 	Context->CollisionChannel = Settings->CollisionChannel;
 	Context->CollisionObjectType = Settings->CollisionObjectType;
+	Context->ProfileName = Settings->ProfileName;
 
 	Context->bIgnoreSelf = Settings->bIgnoreSelf;
 
@@ -118,6 +119,7 @@ void FSweepSphereTask::ExecuteTask()
 	const FVector Origin = InPoint.Transform.GetLocation();
 
 	FCollisionQueryParams CollisionParams;
+	CollisionParams.bTraceComplex = false;
 	if (Context->bIgnoreSelf) { CollisionParams.AddIgnoredActor(TaskContext->SourceComponent->GetOwner()); }
 
 	const FCollisionShape CollisionShape = FCollisionShape::MakeSphere(RangeMax);
@@ -160,21 +162,27 @@ void FSweepSphereTask::ExecuteTask()
 		}
 	};
 
-
-	if (Context->CollisionType == EPCGExCollisionFilterType::Channel)
+	switch (Context->CollisionType)
 	{
+	case EPCGExCollisionFilterType::Channel:
 		if (Context->World->OverlapMultiByChannel(OutOverlaps, Origin, FQuat::Identity, Context->CollisionChannel, CollisionShape, CollisionParams))
 		{
 			ProcessOverlapResults();
 		}
-	}
-	else
-	{
-		if (FCollisionObjectQueryParams ObjectQueryParams = FCollisionObjectQueryParams(Context->CollisionObjectType);
-			Context->World->OverlapMultiByObjectType(OutOverlaps, Origin, FQuat::Identity, ObjectQueryParams, CollisionShape, CollisionParams))
+		break;
+	case EPCGExCollisionFilterType::ObjectType:
+		if (Context->World->OverlapMultiByObjectType(OutOverlaps, Origin, FQuat::Identity, FCollisionObjectQueryParams(Context->CollisionObjectType), CollisionShape, CollisionParams))
 		{
 			ProcessOverlapResults();
 		}
+		break;
+	case EPCGExCollisionFilterType::Profile:
+		if (Context->World->OverlapMultiByProfile(OutOverlaps, Origin, FQuat::Identity, Context->ProfileName, CollisionShape, CollisionParams))
+		{
+			ProcessOverlapResults();
+		}
+		break;
+	default: ;
 	}
 
 	PCGEX_SET_OUT_ATTRIBUTE(Success, Infos.Key, bSuccess)

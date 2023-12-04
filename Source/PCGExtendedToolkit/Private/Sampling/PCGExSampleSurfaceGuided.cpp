@@ -21,6 +21,7 @@ FPCGContext* FPCGExSampleSurfaceGuidedElement::Initialize(const FPCGDataCollecti
 
 	Context->CollisionChannel = Settings->CollisionChannel;
 	Context->CollisionObjectType = Settings->CollisionObjectType;
+	Context->ProfileName = Settings->ProfileName;
 
 	Context->bIgnoreSelf = Settings->bIgnoreSelf;
 
@@ -30,7 +31,6 @@ FPCGContext* FPCGExSampleSurfaceGuidedElement::Initialize(const FPCGDataCollecti
 	Context->bProjectFailToSize = Context->bProjectFailToSize;
 
 	Context->DirectionGetter.Capture(Settings->Direction);
-
 	PCGEX_FORWARD_OUT_ATTRIBUTE(Success)
 	PCGEX_FORWARD_OUT_ATTRIBUTE(Location)
 	PCGEX_FORWARD_OUT_ATTRIBUTE(Normal)
@@ -117,6 +117,7 @@ void FTraceTask::ExecuteTask()
 	const FVector Origin = InPoint.Transform.GetLocation();
 
 	FCollisionQueryParams CollisionParams;
+	CollisionParams.bTraceComplex = true;
 	if (Context->bIgnoreSelf) { CollisionParams.AddIgnoredActor(TaskContext->SourceComponent->GetOwner()); }
 
 	const double Size = Context->bUseLocalSize ? Context->SizeGetter.GetValue(InPoint) : Context->Size;
@@ -135,20 +136,27 @@ void FTraceTask::ExecuteTask()
 		bSuccess = true;
 	};
 
-	if (Context->CollisionType == EPCGExCollisionFilterType::Channel)
+	switch (Context->CollisionType)
 	{
+	case EPCGExCollisionFilterType::Channel:
 		if (Context->World->LineTraceSingleByChannel(HitResult, Origin, End, Context->CollisionChannel, CollisionParams))
 		{
 			ProcessTraceResult();
 		}
-	}
-	else
-	{
-		const FCollisionObjectQueryParams ObjectQueryParams = FCollisionObjectQueryParams(Context->CollisionObjectType);
-		if (Context->World->LineTraceSingleByObjectType(HitResult, Origin, End, ObjectQueryParams, CollisionParams))
+		break;
+	case EPCGExCollisionFilterType::ObjectType:
+		if (Context->World->LineTraceSingleByObjectType(HitResult, Origin, End, FCollisionObjectQueryParams(Context->CollisionObjectType), CollisionParams))
 		{
 			ProcessTraceResult();
 		}
+		break;
+	case EPCGExCollisionFilterType::Profile:
+		if (Context->World->LineTraceSingleByProfile(HitResult, Origin, End, Context->ProfileName, CollisionParams))
+		{
+			ProcessTraceResult();
+		}
+		break;
+	default: ;
 	}
 
 	if (Context->bProjectFailToSize)
