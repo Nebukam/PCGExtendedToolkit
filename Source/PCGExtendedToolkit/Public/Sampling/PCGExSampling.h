@@ -101,3 +101,23 @@ namespace PCGExSampling
 		}
 	}
 }
+
+class PCGEXTENDEDTOOLKIT_API FPCGExCollisionTask : public FPCGExAsyncTask
+{
+public:
+	virtual ~FPCGExCollisionTask() = default;
+
+	FPCGExCollisionTask(
+		UPCGExAsyncTaskManager* InManager, const PCGExMT::FTaskInfos& InInfos) :
+	FPCGExAsyncTask(InManager, InInfos)
+	{
+	}
+
+	TArray<AActor*>* IgnoredActors;
+	double RangeMax = 1000;
+	EPCGExCollisionFilterType CollisionType = EPCGExCollisionFilterType::Channel;
+	TEnumAsByte<ECollisionChannel> CollisionChannel = ECC_WorldDynamic;
+	FName ProfileName = NAME_None;
+	int32 CollisionObjectType = ObjectTypeQuery1;
+
+};

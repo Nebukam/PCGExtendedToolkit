@@ -91,7 +91,10 @@ bool FPCGExBuildGraphElement::ExecuteInternal(
 
 		auto ProcessPoint = [&](const int32 PointIndex, const UPCGExPointIO* PointIO)
 		{
-			Context->CreateAndStartTask<FProbeTask>(PointIndex, PointIO->GetInPoint(PointIndex).MetadataEntry);
+			FAsyncTask<FProbeTask>* AsyncTask = Context->GetAsyncManager()->CreateTask<FProbeTask>(PointIndex, PointIO->GetInPoint(PointIndex).MetadataEntry);
+			FProbeTask& Task = AsyncTask->GetTask();
+			Task.PointIO = Context->CurrentIO;
+			Context->GetAsyncManager()->StartTask(AsyncTask);
 		};
 
 		if (Context->ProcessCurrentPoints(Initialize, ProcessPoint)) { Context->StartAsyncWait(); }
@@ -131,10 +134,12 @@ bool FPCGExBuildGraphElement::ExecuteInternal(
 
 void FProbeTask::ExecuteTask()
 {
-	const FPCGExBuildGraphContext* Context = static_cast<FPCGExBuildGraphContext*>(TaskContext);
+	if (!IsTaskValid()) { return; }
+	
+	const FPCGExBuildGraphContext* Context = Manager->GetContext<FPCGExBuildGraphContext>();
 
-	const FPCGPoint& Point = PointData->GetOutPoint(Infos.Index);
-	Context->CachedIndex->SetValue(Point.MetadataEntry, Infos.Index); // Cache index
+	const FPCGPoint& Point = PointIO->GetOutPoint(TaskInfos.Index);
+	Context->CachedIndex->SetValue(Point.MetadataEntry, TaskInfos.Index); // Cache index
 
 	TArray<PCGExGraph::FSocketProbe> Probes;
 	const double MaxDistance = Context->GraphSolver->PrepareProbesForPoint(Context->SocketInfos, Point, Probes);
@@ -151,9 +156,9 @@ void FProbeTask::ExecuteTask()
 		});
 	*/
 
-	// This looks bad, smells bad, feels bad, but for some reason it's ~100-200 times faster than using the Octree.
+	// This looks bad, but for some reason it's MUCH faster than using the Octree.
 	const FBox BBox = Box.GetBox();
-	const TArray<FPCGPoint>& InPoints = PointData->In->GetPoints();
+	const TArray<FPCGPoint>& InPoints = PointIO->In->GetPoints();
 	for (int i = 0; i < InPoints.Num(); i++)
 	{
 		if (const FPCGPoint& Pt = InPoints[i];
@@ -163,6 +168,8 @@ void FProbeTask::ExecuteTask()
 		}
 	}
 
+	if (!IsTaskValid()) { return; }
+	
 	const PCGMetadataEntryKey Key = Point.MetadataEntry;
 	for (PCGExGraph::FSocketProbe& Probe : Probes)
 	{

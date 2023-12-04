@@ -135,11 +135,11 @@ protected:
 };
 
 // Define the background task class
-class PCGEXTENDEDTOOLKIT_API FNavmeshPathTask : public FPointTask
+class PCGEXTENDEDTOOLKIT_API FNavmeshPathTask : public FPCGExAsyncTask
 {
 public:
-	FNavmeshPathTask(FPCGExPointsProcessorContext* InContext, UPCGExPointIO* InPointData, const PCGExMT::FTaskInfos& InInfos) :
-		FPointTask(InContext, InPointData, InInfos)
+	FNavmeshPathTask(UPCGExAsyncTaskManager* InManager, const PCGExMT::FTaskInfos& InInfos) :
+		FPCGExAsyncTask(InManager, InInfos)
 	{
 	}
 

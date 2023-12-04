@@ -114,14 +114,15 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestSurfaceContext : public FPCGExP
 
 public:
 	double RangeMax = 1000;
-	int32 NumMaxAttempts = 100;
-	double AttemptStepSize = 0;
+
 	EPCGExCollisionFilterType CollisionType = EPCGExCollisionFilterType::Channel;
 	TEnumAsByte<ECollisionChannel> CollisionChannel;
 	FName ProfileName;
 	int32 CollisionObjectType;
-	bool bIgnoreSelf = true;
 
+	bool bIgnoreSelf = true;	
+	TArray<AActor*> IgnoredActors;
+	
 	PCGEX_OUT_ATTRIBUTE(Success, bool)
 	PCGEX_OUT_ATTRIBUTE(Location, FVector)
 	PCGEX_OUT_ATTRIBUTE(LookAt, FVector)
@@ -143,13 +144,12 @@ protected:
 };
 
 // Define the background task class
-class PCGEXTENDEDTOOLKIT_API FSweepSphereTask : public FPointTask
+class PCGEXTENDEDTOOLKIT_API FSweepSphereTask : public FPCGExCollisionTask
 {
 public:
-	double RangeMax = 1000;
 
-	FSweepSphereTask(FPCGExPointsProcessorContext* InContext, UPCGExPointIO* InPointData, const PCGExMT::FTaskInfos& InInfos) :
-		FPointTask(InContext, InPointData, InInfos)
+	FSweepSphereTask(UPCGExAsyncTaskManager* InManager, const PCGExMT::FTaskInfos& InInfos) :
+		FPCGExCollisionTask(InManager, InInfos)
 	{
 	}
 

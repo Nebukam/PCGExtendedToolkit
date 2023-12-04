@@ -150,6 +150,16 @@ bool FPCGExSampleNavmeshElement::ExecuteInternal(FPCGContext* InContext) const
 	{
 		auto ProcessPoint = [&](const int32 PointIndex, const UPCGExPointIO* PointIO)
 		{
+			auto NavMeshTask = [&](int32 InGoalIndex)
+			{
+				FAsyncTask<FNavmeshPathTask>* AsyncTask = Context->GetAsyncManager()->CreateTask<FNavmeshPathTask>(PointIndex, PointIO->GetInPoint(PointIndex).MetadataEntry);
+				FNavmeshPathTask& Task = AsyncTask->GetTask();
+				Task.PointIO = Context->CurrentIO;
+				Task.GoalIndex = InGoalIndex;
+				Task.PathPoints = Context->OutputPaths->Emplace_GetRef(PointIO->In, PCGExPointIO::EInit::NewOutput);
+				Context->GetAsyncManager()->StartTask(AsyncTask);
+			};
+
 			if (Context->GoalPicker->OutputMultipleGoals())
 			{
 				TArray<int32> GoalIndices;
@@ -157,26 +167,14 @@ bool FPCGExSampleNavmeshElement::ExecuteInternal(FPCGContext* InContext) const
 				for (const int32 GoalIndex : GoalIndices)
 				{
 					if (GoalIndex < 0) { continue; }
-
-					FAsyncTask<FNavmeshPathTask>* AsyncTask = Context->CreateTask<FNavmeshPathTask>(PointIndex, PointIO->GetInPoint(PointIndex).MetadataEntry);
-					FNavmeshPathTask& Task = AsyncTask->GetTask();
-					Task.GoalIndex = GoalIndex;
-					Task.PathPoints = Context->OutputPaths->Emplace_GetRef(PointIO->In, PCGExPointIO::EInit::NewOutput);
-
-					Context->StartTask(AsyncTask);
+					NavMeshTask(GoalIndex);
 				}
 			}
 			else
 			{
 				const int32 GoalIndex = Context->GoalPicker->GetGoalIndex(PointIO->GetInPoint(PointIndex), PointIndex);
 				if (GoalIndex < 0) { return; }
-
-				FAsyncTask<FNavmeshPathTask>* AsyncTask = Context->CreateTask<FNavmeshPathTask>(PointIndex, PointIO->GetInPoint(PointIndex).MetadataEntry);
-				FNavmeshPathTask& Task = AsyncTask->GetTask();
-				Task.GoalIndex = GoalIndex;
-				Task.PathPoints = Context->OutputPaths->Emplace_GetRef(PointIO->In, PCGExPointIO::EInit::NewOutput);
-
-				Context->StartTask(AsyncTask);
+				NavMeshTask(GoalIndex);
 			}
 		};
 
@@ -185,11 +183,13 @@ bool FPCGExSampleNavmeshElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
 	{
-		if (Context->IsAsyncWorkComplete())
-		{
-			Context->OutputPaths->OutputTo(Context, true);
-			return true;
-		}
+		if (Context->IsAsyncWorkComplete()) { Context->StopAsyncWait(PCGExMT::State_Done); }
+	}
+
+	if (Context->IsDone())
+	{
+		Context->OutputPaths->OutputTo(Context, true);
+		return true;
 	}
 
 	return false;
@@ -197,24 +197,23 @@ bool FPCGExSampleNavmeshElement::ExecuteInternal(FPCGContext* InContext) const
 
 void FNavmeshPathTask::ExecuteTask()
 {
-	FPCGExSampleNavmeshContext* Context = static_cast<FPCGExSampleNavmeshContext*>(TaskContext);
-
 	if (!IsTaskValid()) { return; }
 
-	FWriteScopeLock WriteLock(Context->ContextLock);
+	FWriteScopeLock WriteLock(Manager->AsyncWorkLock);
+	FPCGExSampleNavmeshContext* Context = Manager->GetContext<FPCGExSampleNavmeshContext>();
 
 	bool bSuccess = false;
 
-	if (UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(Context->World))
+	if (UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(World))
 	{
-		const FPCGPoint& StartPoint = PointData->GetInPoint(Infos.Index);
+		const FPCGPoint& StartPoint = PointIO->GetInPoint(TaskInfos.Index);
 		const FPCGPoint& EndPoint = Context->GoalsPoints->GetInPoint(GoalIndex);
 		const FVector StartLocation = StartPoint.Transform.GetLocation();
 		const FVector EndLocation = EndPoint.Transform.GetLocation();
 
 		// Find the path
 		FPathFindingQuery PathFindingQuery = FPathFindingQuery(
-			Context->World, *Context->NavData,
+			World, *Context->NavData,
 			StartLocation, EndLocation, nullptr, nullptr,
 			TNumericLimits<FVector::FReal>::Max(),
 			Context->bRequireNavigableEndLocation);

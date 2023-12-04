@@ -255,6 +255,16 @@ bool FPCGExPointsProcessorContext::AdvancePointsIO()
 	return false;
 }
 
+void FPCGExPointsProcessorContext::Done()
+{
+	SetState(PCGExMT::State_Done);
+	if(AsyncManager)
+	{
+		AsyncManager->ConditionalBeginDestroy();
+		AsyncManager = nullptr;
+	}
+}
+
 void FPCGExPointsProcessorContext::SetState(PCGExMT::AsyncState OperationId)
 {
 	PCGExMT::AsyncState PreviousOperation = CurrentState;
@@ -286,25 +296,19 @@ bool FPCGExPointsProcessorContext::ProcessCurrentPoints(TFunction<void(const int
 	return bForceSync ? ChunkedPointLoop.Advance(std::move(LoopBody)) : AsyncPointLoop.Advance(std::move(LoopBody));
 }
 
-void FPCGExPointsProcessorContext::ResetAsyncWork()
+UPCGExAsyncTaskManager* FPCGExPointsProcessorContext::GetAsyncManager()
 {
-	//AsyncState.bIsRunningAsyncCall = false;
-	NumAsyncTaskStarted = 0;
-	NumAsyncTaskCompleted = 0;
+	if(!AsyncManager)
+	{
+		FWriteScopeLock WriteLock(ContextLock);
+		AsyncManager = NewObject<UPCGExAsyncTaskManager>();
+		AsyncManager->Context = this;
+	}
+	return AsyncManager;
 }
 
-void FPCGExPointsProcessorContext::OnAsyncTaskExecutionComplete(FPointTask* AsyncTask, bool bSuccess)
-{
-	FWriteScopeLock WriteLock(AsyncUpdateLock);
-	NumAsyncTaskCompleted++;
-}
-
-bool FPCGExPointsProcessorContext::IsAsyncWorkComplete()
-{
-	FReadScopeLock ReadLock(AsyncCreateLock);
-	FReadScopeLock OtherReadLock(AsyncUpdateLock);
-	return NumAsyncTaskStarted == NumAsyncTaskCompleted;
-}
+void FPCGExPointsProcessorContext::ResetAsyncWork() { if (AsyncManager) { AsyncManager->Reset(); } }
+bool FPCGExPointsProcessorContext::IsAsyncWorkComplete() { return AsyncManager ? AsyncManager->IsAsyncWorkComplete() : true; }
 
 FPCGContext* FPCGExPointsProcessorElementBase::Initialize(
 	const FPCGDataCollection& InputData,

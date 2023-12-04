@@ -77,11 +77,11 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FProbeTask : public FPointTask
+class PCGEXTENDEDTOOLKIT_API FProbeTask : public FPCGExAsyncTask
 {
 public:
-	FProbeTask(FPCGExPointsProcessorContext* InContext, UPCGExPointIO* InPointData, const PCGExMT::FTaskInfos& InInfos) :
-		FPointTask(InContext, InPointData, InInfos)
+	FProbeTask(UPCGExAsyncTaskManager* InManager, const PCGExMT::FTaskInfos& InInfos) :
+		FPCGExAsyncTask(InManager, InInfos)
 	{
 	}
 

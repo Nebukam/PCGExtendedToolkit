@@ -19,8 +19,6 @@ FPCGContext* FPCGExSampleNearestSurfaceElement::Initialize(const FPCGDataCollect
 	const UPCGExSampleNearestSurfaceSettings* Settings = Context->GetInputSettings<UPCGExSampleNearestSurfaceSettings>();
 	check(Settings);
 
-	Context->AttemptStepSize = FMath::Max(Settings->MaxDistance / static_cast<double>(Settings->NumMaxAttempts), Settings->MinStepSize);
-	Context->NumMaxAttempts = FMath::Max(static_cast<int32>(static_cast<double>(Settings->MaxDistance) / Context->AttemptStepSize), 1);
 	Context->RangeMax = Settings->MaxDistance;
 
 	Context->CollisionType = Settings->CollisionType;
@@ -61,6 +59,7 @@ bool FPCGExSampleNearestSurfaceElement::ExecuteInternal(FPCGContext* InContext) 
 	if (Context->IsSetup())
 	{
 		if (!Validate(Context)) { return true; }
+		if (Context->bIgnoreSelf) { Context->IgnoredActors.Add(Context->SourceComponent->GetOwner()); }
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
@@ -84,9 +83,11 @@ bool FPCGExSampleNearestSurfaceElement::ExecuteInternal(FPCGContext* InContext) 
 
 		auto ProcessPoint = [&](int32 PointIndex, const UPCGExPointIO* PointIO)
 		{
-			FAsyncTask<FSweepSphereTask>* Task = Context->CreateTask<FSweepSphereTask>(PointIndex, PointIO->GetOutPoint(PointIndex).MetadataEntry);
-			Task->GetTask().RangeMax = Context->RangeMax; //TODO: Localize range
-			Context->StartTask(Task);
+			FAsyncTask<FSweepSphereTask>* AsyncTask = Context->GetAsyncManager()->CreateTask<FSweepSphereTask>(PointIndex, PointIO->GetOutPoint(PointIndex).MetadataEntry);
+			FSweepSphereTask& Task = AsyncTask->GetTask();
+			Task.RangeMax = Context->RangeMax; //TODO: Localize range
+			Task.PointIO = Context->CurrentIO;
+			Context->GetAsyncManager()->StartTask(AsyncTask);
 		};
 
 		if (Context->ProcessCurrentPoints(Initialize, ProcessPoint)) { Context->StartAsyncWait(); }
@@ -94,10 +95,7 @@ bool FPCGExSampleNearestSurfaceElement::ExecuteInternal(FPCGContext* InContext) 
 
 	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
 	{
-		if (Context->IsAsyncWorkComplete())
-		{
-			Context->SetState(PCGExMT::State_ReadyForNextPoints);
-		}
+		if (Context->IsAsyncWorkComplete()) { Context->StopAsyncWait(PCGExMT::State_ReadyForNextPoints); }
 	}
 
 	if (Context->IsDone())
@@ -111,17 +109,17 @@ bool FPCGExSampleNearestSurfaceElement::ExecuteInternal(FPCGContext* InContext) 
 
 void FSweepSphereTask::ExecuteTask()
 {
-	const FPCGExSampleNearestSurfaceContext* Context = static_cast<FPCGExSampleNearestSurfaceContext*>(TaskContext);
-	const FPCGPoint& InPoint = PointData->GetInPoint(Infos.Index);
+	if (!IsTaskValid()) { return; }
+
+	const FPCGExSampleNearestSurfaceContext* Context = Manager->GetContext<FPCGExSampleNearestSurfaceContext>();
+	const FPCGPoint& InPoint = PointIO->GetInPoint(TaskInfos.Index);
 	const FVector Origin = InPoint.Transform.GetLocation();
 
 	FCollisionQueryParams CollisionParams;
 	CollisionParams.bTraceComplex = false;
-	if (Context->bIgnoreSelf) { CollisionParams.AddIgnoredActor(TaskContext->SourceComponent->GetOwner()); }
+	CollisionParams.AddIgnoredActors(Context->IgnoredActors);
 
 	const FCollisionShape CollisionShape = FCollisionShape::MakeSphere(RangeMax);
-
-	if (!IsTaskValid()) { return; }
 
 	FVector HitLocation;
 	bool bSuccess = false;
@@ -153,12 +151,14 @@ void FSweepSphereTask::ExecuteTask()
 		{
 			if (!IsTaskValid()) { return; }
 			const FVector Direction = (HitLocation - Origin).GetSafeNormal();
-			PCGEX_SET_OUT_ATTRIBUTE(Location, Infos.Key, HitLocation)
-			PCGEX_SET_OUT_ATTRIBUTE(Normal, Infos.Key, Direction*-1) // TODO: expose "precise normal" in which case we line trace to location
-			PCGEX_SET_OUT_ATTRIBUTE(LookAt, Infos.Key, Direction)
-			PCGEX_SET_OUT_ATTRIBUTE(Distance, Infos.Key, MinDist)
+			PCGEX_SET_OUT_ATTRIBUTE(Location, TaskInfos.Key, HitLocation)
+			PCGEX_SET_OUT_ATTRIBUTE(Normal, TaskInfos.Key, Direction*-1) // TODO: expose "precise normal" in which case we line trace to location
+			PCGEX_SET_OUT_ATTRIBUTE(LookAt, TaskInfos.Key, Direction)
+			PCGEX_SET_OUT_ATTRIBUTE(Distance, TaskInfos.Key, MinDist)
 		}
 	};
+
+	if (!IsTaskValid()) { return; }
 
 	switch (Context->CollisionType)
 	{
@@ -184,7 +184,7 @@ void FSweepSphereTask::ExecuteTask()
 	}
 
 	if (!IsTaskValid()) { return; }
-	PCGEX_SET_OUT_ATTRIBUTE(Success, Infos.Key, bSuccess)
+	PCGEX_SET_OUT_ATTRIBUTE(Success, TaskInfos.Key, bSuccess)
 	ExecutionComplete(bSuccess);
 }
 

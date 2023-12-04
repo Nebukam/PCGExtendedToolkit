@@ -55,11 +55,11 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FOrientTask : public FPointTask
+class PCGEXTENDEDTOOLKIT_API FOrientTask : public FPCGExAsyncTask
 {
 public:
-	FOrientTask(FPCGExPointsProcessorContext* InContext, UPCGExPointIO* InPointData, const PCGExMT::FTaskInfos& InInfos) :
-		FPointTask(InContext, InPointData, InInfos)
+	FOrientTask(UPCGExAsyncTaskManager* InManager, const PCGExMT::FTaskInfos& InInfos) :
+		FPCGExAsyncTask(InManager, InInfos)
 	{
 	}
 

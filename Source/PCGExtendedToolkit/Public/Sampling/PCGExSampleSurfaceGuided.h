@@ -99,7 +99,7 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision & Metrics", meta=(EditCondition="CollisionType==EPCGExCollisionFilterType::Profile", EditConditionHides))
 	FName ProfileName = NAME_None;
-	
+
 	/** Ignore this graph' PCG content */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision & Metrics")
 	bool bIgnoreSelf = true;
@@ -114,7 +114,9 @@ public:
 	TEnumAsByte<ECollisionChannel> CollisionChannel;
 	int32 CollisionObjectType;
 	FName ProfileName;
+	
 	bool bIgnoreSelf = true;
+	TArray<AActor*> IgnoredActors;
 
 	bool bProjectFailToSize;
 	double Size;
@@ -141,16 +143,14 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FTraceTask : public FPointTask
+class PCGEXTENDEDTOOLKIT_API FTraceTask : public FPCGExCollisionTask
 {
 public:
-	FTraceTask(FPCGExPointsProcessorContext* InContext, UPCGExPointIO* InPointData, const PCGExMT::FTaskInfos& InInfos) :
-		FPointTask(InContext, InPointData, InInfos)
+	FTraceTask(UPCGExAsyncTaskManager* InManager, const PCGExMT::FTaskInfos& InInfos) :
+		FPCGExCollisionTask(InManager, InInfos)
 	{
 	}
 
 	virtual void ExecuteTask() override;
 
-public:
-	FHitResult HitResult;
 };

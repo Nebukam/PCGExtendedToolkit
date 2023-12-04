@@ -15,7 +15,6 @@
 #include "PCGExPointsProcessor.generated.h"
 
 struct FPCGExPointsProcessorContext;
-class FPointTask;
 
 namespace PCGEx
 {
@@ -152,7 +151,6 @@ protected:
 struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : public FPCGContext
 {
 	friend class FPCGExPointsProcessorElementBase;
-	friend class FPointTask;
 
 public:
 	mutable FRWLock ContextLock;
@@ -168,14 +166,11 @@ public:
 	bool IsState(const PCGExMT::AsyncState OperationId) const { return CurrentState == OperationId; }
 	bool IsSetup() const { return IsState(PCGExMT::State_Setup); }
 	bool IsDone() const { return IsState(PCGExMT::State_Done); }
-	void Done() { SetState(PCGExMT::State_Done); }
-	void StartAsyncWait()
-	{
-		SetState(PCGExMT::State_WaitingOnAsyncWork);
-		//AsyncState.bIsRunningAsyncCall = true;
-	}
+	void Done();
 
-	void StopAsyncWait(PCGExMT::AsyncState NextState)
+	UPCGExAsyncTaskManager* GetAsyncManager();
+	void StartAsyncWait() { SetState(PCGExMT::State_WaitingOnAsyncWork); }
+	void StopAsyncWait(const PCGExMT::AsyncState NextState)
 	{
 		ResetAsyncWork();
 		SetState(NextState);
@@ -210,6 +205,8 @@ protected:
 	mutable FRWLock AsyncCreateLock;
 	mutable FRWLock AsyncUpdateLock;
 
+	UPCGExAsyncTaskManager* AsyncManager = nullptr;
+
 	PCGEx::FPointLoop ChunkedPointLoop;
 	PCGEx::FAsyncPointLoop AsyncPointLoop;
 	PCGEx::FBulkAsyncPointLoop BulkAsyncPointLoop;
@@ -217,34 +214,7 @@ protected:
 	PCGExMT::AsyncState CurrentState = PCGExMT::State_Setup;
 	int32 CurrentPointsIndex = -1;
 
-	int32 NumAsyncTaskStarted = 0;
-	int32 NumAsyncTaskCompleted = 0;
-
 	virtual void ResetAsyncWork();
-
-	template <typename T>
-	FAsyncTask<T>* CreateTask(const int32 Index, const PCGMetadataEntryKey Key, const int32 Attempt = 0)
-	{
-		FAsyncTask<T>* AsyncTask = new FAsyncTask<T>(this, CurrentIO, PCGExMT::FTaskInfos(Index, Key, Attempt));
-		return AsyncTask;
-	}
-
-	template <typename T>
-	void CreateAndStartTask(const int32 Index, const PCGMetadataEntryKey Key, const int32 Attempt = 0)
-	{
-		FAsyncTask<T>* AsyncTask = new FAsyncTask<T>(this, CurrentIO, PCGExMT::FTaskInfos(Index, Key, Attempt));
-		StartTask(AsyncTask);
-	}
-
-	template <typename T>
-	void StartTask(FAsyncTask<T>* AsyncTask)
-	{
-		FWriteScopeLock WriteLock(AsyncCreateLock);
-		NumAsyncTaskStarted++;
-		AsyncTask->StartBackgroundTask();
-	}
-
-	virtual void OnAsyncTaskExecutionComplete(FPointTask* AsyncTask, bool bSuccess);
 	virtual bool IsAsyncWorkComplete();
 
 	PCGExMT::FAsyncChunkedLoop MakeLoop() { return PCGExMT::FAsyncChunkedLoop(this, ChunkSize, bDoAsyncProcessing); }
@@ -260,50 +230,4 @@ protected:
 	virtual bool Validate(FPCGContext* InContext) const;
 	virtual void InitializeContext(FPCGExPointsProcessorContext* InContext, const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node) const;
 	//virtual bool ExecuteInternal(FPCGContext* Context) const override;
-};
-
-class PCGEXTENDEDTOOLKIT_API FPointTask : public FNonAbandonableTask
-{
-public:
-	virtual ~FPointTask() = default;
-
-	FPointTask(
-		FPCGExPointsProcessorContext* InContext, UPCGExPointIO* InPointData, const PCGExMT::FTaskInfos& InInfos) :
-		TaskContext(InContext), PointData(InPointData), Infos(InInfos)
-	{
-	}
-
-	FORCEINLINE TStatId GetStatId() const
-	{
-		RETURN_QUICK_DECLARE_CYCLE_STAT(FAsyncPointTask, STATGROUP_ThreadPoolAsyncTasks);
-	}
-
-	void DoWork() { if (IsTaskValid()) { ExecuteTask(); } }
-
-	void ExecutionComplete(bool bSuccess)
-	{
-		if (!this || !IsTaskValid()) { return; }
-		TaskContext->OnAsyncTaskExecutionComplete(this, bSuccess);
-	}
-
-	void PostDoWork() { delete this; }
-
-	virtual void ExecuteTask() = 0;
-
-	FPCGExPointsProcessorContext* TaskContext;
-	UPCGExPointIO* PointData;
-	PCGExMT::FTaskInfos Infos;
-
-protected:
-	bool IsTaskValid() const
-	{
-		if (!TaskContext || 
-			(TaskContext->SourceComponent == nullptr || !TaskContext->SourceComponent.IsValid() || TaskContext->SourceComponent.IsStale(true, true)) ||
-			TaskContext->NumAsyncTaskStarted == 0)
-		{
-			return false;
-		}
-
-		return true;
-	}
 };
