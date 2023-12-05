@@ -38,7 +38,7 @@ namespace PCGExActorSelector
 		switch (InSettings.ActorSelection)
 		{
 		case EPCGExActorSelection::ByTag:
-			return[ActorSelectionTag = InSettings.ActorSelectionTag, &InFoundActors, bMultiSelect, &BoundsCheck, &SelfIgnoreCheck](AActor* Actor) -> bool
+			return [ActorSelectionTag = InSettings.ActorSelectionTag, &InFoundActors, bMultiSelect, &BoundsCheck, &SelfIgnoreCheck](AActor* Actor) -> bool
 			{
 				if (Actor && Actor->ActorHasTag(ActorSelectionTag) && BoundsCheck(Actor) && SelfIgnoreCheck(Actor))
 				{
@@ -50,7 +50,7 @@ namespace PCGExActorSelector
 			};
 
 		case EPCGExActorSelection::ByClass:
-			return[ActorSelectionClass = InSettings.ActorSelectionClass, &InFoundActors, bMultiSelect, &BoundsCheck, &SelfIgnoreCheck](AActor* Actor) -> bool
+			return [ActorSelectionClass = InSettings.ActorSelectionClass, &InFoundActors, bMultiSelect, &BoundsCheck, &SelfIgnoreCheck](AActor* Actor) -> bool
 			{
 				if (Actor && Actor->IsA(ActorSelectionClass) && BoundsCheck(Actor) && SelfIgnoreCheck(Actor))
 				{
@@ -97,7 +97,7 @@ namespace PCGExActorSelector
 
 		// We pass FoundActor ref, that will be captured by the FilteringFunction
 		// It will modify the FoundActor pointer to the found actor, if found.
-		TFunction<bool(AActor*)> FilteringFunction = PCGExActorSelector::GetFilteringFunction(Settings, BoundsCheck, SelfIgnoreCheck, FoundActors);
+		TFunction<bool(AActor*)> FilteringFunction = GetFilteringFunction(Settings, BoundsCheck, SelfIgnoreCheck, FoundActors);
 
 		// In case of iterating over all actors in the world, call our filtering function and get out.
 		if (Settings.ActorFilter == EPCGExActorFilter::AllWorldActors)
@@ -136,21 +136,21 @@ namespace PCGExActorSelector
 			break;
 
 		case EPCGExActorFilter::Root:
-		{
-			AActor* Current = Self;
-			while (Current != nullptr)
 			{
-				AActor* Parent = Current->GetParentActor();
-				if (Parent == nullptr)
+				AActor* Current = Self;
+				while (Current != nullptr)
 				{
-					ActorsToCheck.Add(Current);
-					break;
+					AActor* Parent = Current->GetParentActor();
+					if (Parent == nullptr)
+					{
+						ActorsToCheck.Add(Current);
+						break;
+					}
+					Current = Parent;
 				}
-				Current = Parent;
-			}
 
-			break;
-		}
+				break;
+			}
 
 		default:
 			break;
@@ -219,7 +219,7 @@ bool FPCGExActorSelectionKey::IsMatching(const AActor* InActor, const UPCGCompon
 	{
 		return false;
 	}
-	
+
 	// If we filter something else than all world actors, matching depends on the component.
 	// Re-use the same mecanism than Get Actor Data, which should be cheap since we don't look for all actors in the world.
 	if (ActorFilter != EPCGExActorFilter::AllWorldActors)
@@ -261,10 +261,10 @@ bool FPCGExActorSelectionKey::operator==(const FPCGExActorSelectionKey& InOther)
 	case EPCGExActorSelection::ByName:
 		return true;
 	default:
-	{
-		checkNoEntry();
-		return true;
-	}
+		{
+			checkNoEntry();
+			return true;
+		}
 	}
 }
 
@@ -287,12 +287,12 @@ FText FPCGExActorSelectorSettings::GetTaskNameSuffix() const
 		{
 			return (ActorSelectionClass.Get() ? ActorSelectionClass->GetDisplayNameText() : FText::FromName(NAME_None));
 		}
-		else if (ActorSelection == EPCGExActorSelection::ByTag)
+		if (ActorSelection == EPCGExActorSelection::ByTag)
 		{
 			return FText::FromName(ActorSelectionTag);
 		}
 	}
-	else if(const UEnum* EnumPtr = StaticEnum<EPCGExActorFilter>())
+	else if (const UEnum* EnumPtr = StaticEnum<EPCGExActorFilter>())
 	{
 		return EnumPtr->GetDisplayNameTextByValue(static_cast<__underlying_type(EPCGExActorFilter)>(ActorFilter));
 	}

@@ -80,7 +80,7 @@ public:
 		const FPCGDataCollection& InputData,
 		TWeakObjectPtr<UPCGComponent> SourceComponent,
 		const UPCGNode* Node) override;
-	
+
 protected:
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };

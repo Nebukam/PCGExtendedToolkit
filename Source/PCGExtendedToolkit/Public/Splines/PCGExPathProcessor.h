@@ -30,7 +30,6 @@ public:
 	virtual FName GetMainPointsInputLabel() const override;
 	virtual FName GetMainPointsOutputLabel() const override;
 	//~End UPCGSettings interface
-
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExPathProcessorContext : public FPCGExPointsProcessorContext
@@ -45,5 +44,4 @@ public:
 		const FPCGDataCollection& InputData,
 		TWeakObjectPtr<UPCGComponent> SourceComponent,
 		const UPCGNode* Node) override;
-
 };

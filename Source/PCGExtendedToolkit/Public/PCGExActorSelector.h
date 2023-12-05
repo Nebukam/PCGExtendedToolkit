@@ -113,7 +113,7 @@ struct FPCGExActorSelectorSettings
 	UPROPERTY(Transient, meta = (EditCondition = false, EditConditionHides))
 	bool bShowSelectMultiple = true;
 
-#if WITH_EDITOR	
+#if WITH_EDITOR
 	FText GetTaskNameSuffix() const;
 	FName GetTaskName(const FText& Prefix) const;
 #endif

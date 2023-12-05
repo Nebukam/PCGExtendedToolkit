@@ -89,9 +89,9 @@ bool FPCGExSubdivideElement::ExecuteInternal(FPCGContext* InContext) const
 
 			TArray<FPCGPoint>& MutablePoints = PointIO->Out->GetMutablePoints();
 			const int32 ViewOffset = MutablePoints.Num();
-			
+
 			PCGExMath::FPathInfos PathInfos = PCGExMath::FPathInfos(StartPos);
-			
+
 			for (int i = 0; i < NumSubdivisions; i++)
 			{
 				FPCGPoint& NewPoint = PointIO->CopyPoint(StartPoint);
@@ -99,7 +99,7 @@ bool FPCGExSubdivideElement::ExecuteInternal(FPCGContext* InContext) const
 
 				FVector SubLocation = StartPos + Dir * (StartOffset + i * StepSize);
 				PathInfos.Add(SubLocation);
-				
+
 				NewPoint.Transform.SetLocation(SubLocation);
 			}
 

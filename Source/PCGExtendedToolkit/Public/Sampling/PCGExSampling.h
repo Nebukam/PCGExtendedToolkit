@@ -108,11 +108,10 @@ namespace PCGExSampling
 class PCGEXTENDEDTOOLKIT_API FPCGExCollisionTask : public FPCGExAsyncTask
 {
 public:
-	virtual ~FPCGExCollisionTask() = default;
+	virtual ~FPCGExCollisionTask() override = default;
 
 	FPCGExCollisionTask(UPCGExAsyncTaskManager* InManager, const PCGExMT::FTaskInfos& InInfos, UPCGExPointIO* InPointIO) :
 		FPCGExAsyncTask(InManager, InInfos, InPointIO)
 	{
 	}
-
 };

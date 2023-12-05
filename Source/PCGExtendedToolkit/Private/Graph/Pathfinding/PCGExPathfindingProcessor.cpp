@@ -134,7 +134,6 @@ void FPCGExPathfindingProcessorElement::InitializeContext(
 
 	Context->bAddSeedToPath = Settings->bAddSeedToPath;
 	Context->bAddGoalToPath = Settings->bAddGoalToPath;
-	
 }
 
 

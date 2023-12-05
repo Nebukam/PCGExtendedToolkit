@@ -79,10 +79,10 @@ namespace PCGExMath
 			return Length;
 		}
 
-		inline bool IsValid() const { return Length >= 0; }
-		inline double GetTime(const double Distance) const { return Distance / Length; }
-		inline double DistToLast(const FVector& Location) const { return FVector::DistSquared(Last, Location); }
-		inline bool IsLastWithinRange(const FVector& Location, const double Range) const { return DistToLast(Location) < Range; }
+		bool IsValid() const { return Length > 0; }
+		double GetTime(const double Distance) const { return (!Distance || !Length) ? 0 : Distance / Length; }
+		double DistToLast(const FVector& Location) const { return FVector::DistSquared(Last, Location); }
+		bool IsLastWithinRange(const FVector& Location, const double Range) const { return DistToLast(Location) < Range; }
 	};
 
 	inline static double ConvertStringToDouble(const FString& StringToConvert)

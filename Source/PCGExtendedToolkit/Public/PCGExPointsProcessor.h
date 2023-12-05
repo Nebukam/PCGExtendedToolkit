@@ -171,6 +171,7 @@ public:
 
 	UPCGExAsyncTaskManager* GetAsyncManager();
 	void StartAsyncWait() { SetState(PCGExMT::State_WaitingOnAsyncWork); }
+
 	void StopAsyncWait(const PCGExMT::AsyncState NextState)
 	{
 		ResetAsyncWork();

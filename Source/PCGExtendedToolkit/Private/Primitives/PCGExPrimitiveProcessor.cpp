@@ -8,7 +8,6 @@
 UPCGExPrimitiveProcessorSettings::UPCGExPrimitiveProcessorSettings(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	
 }
 
 PCGExPointIO::EInit UPCGExPrimitiveProcessorSettings::GetPointOutputInitMode() const { return PCGExPointIO::EInit::NoOutput; }

@@ -274,9 +274,9 @@ bool FNavmeshPathTask::ExecuteTask()
 				TArrayView<FPCGPoint> Path = MakeArrayView(MutablePoints.GetData(), PathLocations.Num());
 
 				UPCGExMetadataBlender* TempBlender = Context->Blending->CreateBlender(PathPoints->Out, Context->GoalsPoints->In);
-				
+
 				Context->Blending->BlendSubPoints(StartPoint, EndPoint, Path, PathHelper, TempBlender);
-				
+
 				TempBlender->Flush();
 
 				// Remove start and/or end after blending

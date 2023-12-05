@@ -52,7 +52,7 @@ void UPCGExMetadataBlender::Flush()
 		Op->Flush();
 		Op->ConditionalBeginDestroy();
 	}
-	
+
 	BlendingOverrides.Empty();
 	Attributes.Empty();
 	AttributesToBePrepared.Empty();
@@ -67,14 +67,13 @@ void UPCGExMetadataBlender::BeginDestroy()
 
 void UPCGExMetadataBlender::InternalPrepareForData(const UPCGPointData* InPrimaryData, const UPCGPointData* InSecondaryData, const TMap<FName, EPCGExDataBlendingType>& OperationTypeOverrides)
 {
-	
 	Flush();
 	BlendingOverrides = OperationTypeOverrides;
 
 	TArray<PCGEx::FAttributeIdentity> Identities;
 	TSet<FName> Mismatch;
 
-	PCGEx::GetAttributeIdentities(InPrimaryData, Identities);
+	GetAttributeIdentities(InPrimaryData, Identities);
 
 	if (InSecondaryData != InPrimaryData)
 	{
@@ -82,8 +81,8 @@ void UPCGExMetadataBlender::InternalPrepareForData(const UPCGPointData* InPrimar
 		TArray<FName> SecondaryNames;
 		TMap<FName, PCGEx::FAttributeIdentity> PrimaryIdentityMap;
 		TMap<FName, PCGEx::FAttributeIdentity> SecondaryIdentityMap;
-		PCGEx::GetAttributeIdentities(InPrimaryData, PrimaryNames, PrimaryIdentityMap);
-		PCGEx::GetAttributeIdentities(InSecondaryData, SecondaryNames, SecondaryIdentityMap);
+		GetAttributeIdentities(InPrimaryData, PrimaryNames, PrimaryIdentityMap);
+		GetAttributeIdentities(InSecondaryData, SecondaryNames, SecondaryIdentityMap);
 
 		for (FName SecondaryName : SecondaryNames)
 		{

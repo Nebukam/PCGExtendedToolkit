@@ -32,7 +32,7 @@ public:
 	double Alpha = 0.5;
 
 	virtual void BlendSubPoints(const FPCGPoint& StartPoint, const FPCGPoint& EndPoint, TArrayView<FPCGPoint>& SubPoints, const PCGExMath::FPathInfos& PathInfos, const UPCGExMetadataBlender* InBlender) const override;
-	
+
 protected:
 	virtual EPCGExDataBlendingType GetDefaultBlending() override;
 };

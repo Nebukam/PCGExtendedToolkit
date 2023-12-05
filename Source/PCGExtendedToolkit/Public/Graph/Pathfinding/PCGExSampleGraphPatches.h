@@ -36,7 +36,6 @@ protected:
 	//~End UPCGSettings interface
 
 public:
-
 };
 
 

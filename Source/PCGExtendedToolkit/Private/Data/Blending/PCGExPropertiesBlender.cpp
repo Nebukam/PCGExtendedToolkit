@@ -102,15 +102,15 @@ void PCGExDataBlending::FPropertiesBlender::BlendSingle(const FPCGPoint& A, cons
 
 void PCGExDataBlending::FPropertiesBlender::CompleteBlending(FPCGPoint& Target)
 {
-	if (bAverageDensity) { Target.Density = PCGExDataBlending::DivFloat(Target.Density, NumBlends); }
-	if (bAverageBoundsMin) { Target.BoundsMin = PCGExDataBlending::DivVector(Target.BoundsMin, NumBlends); }
-	if (bAverageBoundsMax) { Target.BoundsMax = PCGExDataBlending::DivVector(Target.BoundsMax, NumBlends); }
-	if (bAverageColor) { Target.Color = PCGExDataBlending::DivVector4(Target.Color, NumBlends); }
-	if (bAveragePosition) { Target.Transform.SetLocation(PCGExDataBlending::DivVector(Target.Transform.GetLocation(), NumBlends)); }
-	if (bAverageRotation) { Target.Transform.SetRotation(PCGExDataBlending::DivQuaternion(Target.Transform.GetRotation(), NumBlends)); }
-	if (bAverageScale) { Target.Transform.SetScale3D(PCGExDataBlending::DivVector(Target.Transform.GetScale3D(), NumBlends)); }
-	if (bAverageSteepness) { Target.Steepness = PCGExDataBlending::DivFloat(Target.Steepness, NumBlends); }
-	if (bAverageSeed) { Target.Seed = PCGExDataBlending::DivInteger32(Target.Seed, NumBlends); }
+	if (bAverageDensity) { Target.Density = DivFloat(Target.Density, NumBlends); }
+	if (bAverageBoundsMin) { Target.BoundsMin = DivVector(Target.BoundsMin, NumBlends); }
+	if (bAverageBoundsMax) { Target.BoundsMax = DivVector(Target.BoundsMax, NumBlends); }
+	if (bAverageColor) { Target.Color = DivVector4(Target.Color, NumBlends); }
+	if (bAveragePosition) { Target.Transform.SetLocation(DivVector(Target.Transform.GetLocation(), NumBlends)); }
+	if (bAverageRotation) { Target.Transform.SetRotation(DivQuaternion(Target.Transform.GetRotation(), NumBlends)); }
+	if (bAverageScale) { Target.Transform.SetScale3D(DivVector(Target.Transform.GetScale3D(), NumBlends)); }
+	if (bAverageSteepness) { Target.Steepness = DivFloat(Target.Steepness, NumBlends); }
+	if (bAverageSeed) { Target.Seed = DivInteger32(Target.Seed, NumBlends); }
 	NumBlends = 1;
 }
 

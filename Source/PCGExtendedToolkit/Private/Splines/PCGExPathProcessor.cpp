@@ -10,7 +10,6 @@
 UPCGExPathProcessorSettings::UPCGExPathProcessorSettings(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	
 }
 
 PCGExPointIO::EInit UPCGExPathProcessorSettings::GetPointOutputInitMode() const { return PCGExPointIO::EInit::DuplicateInput; }

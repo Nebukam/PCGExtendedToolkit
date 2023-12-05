@@ -71,7 +71,6 @@ bool FPCGExDrawGraphElement::ExecuteInternal(FPCGContext* InContext) const
 		}
 
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
-		
 	}
 
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))

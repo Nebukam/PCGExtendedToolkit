@@ -1,7 +1,7 @@
 ﻿// Copyright Timothé Lapetite 2023
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "..\..\..\Public\Data\Blending\PCGExDataBlendingOperation.h"
+#include "Data/Blending/PCGExDataBlendingOperation.h"
 
 void UPCGExDataBlendingOperation::PrepareForData(const UPCGPointData* InPrimaryData, const UPCGPointData* InSecondaryData)
 {
@@ -13,7 +13,7 @@ void UPCGExDataBlendingOperation::PrepareForData(const UPCGPointData* InPrimaryD
 		PrimaryBaseAttribute = InPrimaryData->Metadata->CopyAttribute(SecondaryBaseAttribute, AttributeName, false, false, false);
 	}
 
-	bInterpolationAllowed = PrimaryBaseAttribute->AllowsInterpolation() && !SecondaryBaseAttribute->AllowsInterpolation(); 
+	bInterpolationAllowed = PrimaryBaseAttribute->AllowsInterpolation() && !SecondaryBaseAttribute->AllowsInterpolation();
 	StrongTypeAttributes();
 }
 
@@ -38,7 +38,6 @@ void UPCGExDataBlendingOperation::ResetToDefault(const PCGMetadataEntryKey InPri
 
 void UPCGExDataBlendingOperation::StrongTypeAttributes()
 {
-	
 }
 
 void UPCGExDataBlendingOperation::Flush()

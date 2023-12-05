@@ -152,7 +152,6 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 
 			if (PropertiesBlender.bRequiresPrepare) { PropertiesBlender.CompleteBlending(NewPoint); }
 			Context->MetadataBlender->CompleteBlending(NewPointKey, AverageDivider);
-			
 		};
 
 		if (PCGExMT::ParallelForLoop(

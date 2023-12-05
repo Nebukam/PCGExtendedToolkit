@@ -191,25 +191,25 @@ namespace PCGEx
 		TArray<EPCGMetadataTypes> Types;
 		InData->Metadata->GetAttributes(Names, Types);
 		const int32 NumAttributes = Names.Num();
-		for(int i = 0; i < NumAttributes; i++)
+		for (int i = 0; i < NumAttributes; i++)
 		{
 			OutIdentities.AddUnique(FAttributeIdentity(Names[i], Types[i]));
 		}
 	}
 
 	static void GetAttributeIdentities(const UPCGPointData* InData, TArray<FName>& OutNames, TMap<FName, FAttributeIdentity>& OutIdentities)
-    	{
-    		TArray<EPCGMetadataTypes> Types;
-    		InData->Metadata->GetAttributes(OutNames, Types);
-    		const int32 NumAttributes = OutNames.Num();
-    		for(int i = 0; i < NumAttributes; i++)
-    		{
-    			FName Name = OutNames[i];
-    			OutNames.Add(Name);
-    			OutIdentities.Add(Name, FAttributeIdentity(Name, Types[i]));
-    		}
-    	}
-	
+	{
+		TArray<EPCGMetadataTypes> Types;
+		InData->Metadata->GetAttributes(OutNames, Types);
+		const int32 NumAttributes = OutNames.Num();
+		for (int i = 0; i < NumAttributes; i++)
+		{
+			FName Name = OutNames[i];
+			OutNames.Add(Name);
+			OutIdentities.Add(Name, FAttributeIdentity(Name, Types[i]));
+		}
+	}
+
 	template <typename T>
 	static FPCGMetadataAttribute<T>* TryGetAttribute(UPCGSpatialData* InData, FName Name, bool bEnabled, T defaultValue = T{})
 	{
@@ -579,7 +579,6 @@ virtual _TYPE Convert(const FName Value) const override { return _TYPE(Value.ToS
 	};
 
 #pragma endregion
-
 }
 
 #undef PCGEX_ATTRIBUTE_RETURN

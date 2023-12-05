@@ -115,90 +115,90 @@ bool FSamplePatchPathTask::ExecuteTask()
 	//FWriteScopeLock WriteLock(Context->ContextLock);
 
 	bool bSuccess = false;
-/*
-	if (UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(Context->World))
-	{
-		const FPCGPoint& StartPoint = PointIO->GetInPoint(TaskInfos.Index);
-		const FPCGPoint& EndPoint = Context->GoalsPoints->GetInPoint(GoalIndex);
-		const FVector StartLocation = StartPoint.Transform.GetLocation();
-		const FVector EndLocation = EndPoint.Transform.GetLocation();
-
-		// Find the path
-		FPathFindingQuery PathFindingQuery = FPathFindingQuery(
-			Context->World, *Context->NavData,
-			StartLocation, EndLocation, nullptr, nullptr,
-			TNumericLimits<FVector::FReal>::Max(),
-			Context->bRequireNavigableEndLocation);
-
-		PathFindingQuery.NavAgentProperties = Context->NavAgentProperties;
-
-		const FPathFindingResult Result = NavSys->FindPathSync(
-			Context->NavAgentProperties, PathFindingQuery,
-			Context->PathfindingMode == EPCGExPathfindingMode::Regular ? EPathFindingMode::Type::Regular : EPathFindingMode::Type::Hierarchical);
-
-		if (!CanContinue()) { return false; }
-
-		if (Result.Result == ENavigationQueryResult::Type::Success)
+	/*
+		if (UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(Context->World))
 		{
-			TArray<FNavPathPoint>& Points = Result.Path->GetPathPoints();
-			TArray<FVector> PathLocations;
-			PathLocations.Reserve(Points.Num());
-
-			PathLocations.Add(StartLocation);
-			for (FNavPathPoint PathPoint : Points) { PathLocations.Add(PathPoint.Location); }
-			PathLocations.Add(EndLocation);
-
-			PCGExMath::FPathInfos PathHelper = PCGExMath::FPathInfos(StartLocation);
-			int32 FuseCountReduce = Context->bAddGoalToPath ? 2 : 1;
-			for (int i = Context->bAddSeedToPath; i < PathLocations.Num(); i++)
+			const FPCGPoint& StartPoint = PointIO->GetInPoint(TaskInfos.Index);
+			const FPCGPoint& EndPoint = Context->GoalsPoints->GetInPoint(GoalIndex);
+			const FVector StartLocation = StartPoint.Transform.GetLocation();
+			const FVector EndLocation = EndPoint.Transform.GetLocation();
+	
+			// Find the path
+			FPathFindingQuery PathFindingQuery = FPathFindingQuery(
+				Context->World, *Context->NavData,
+				StartLocation, EndLocation, nullptr, nullptr,
+				TNumericLimits<FVector::FReal>::Max(),
+				Context->bRequireNavigableEndLocation);
+	
+			PathFindingQuery.NavAgentProperties = Context->NavAgentProperties;
+	
+			const FPathFindingResult Result = NavSys->FindPathSync(
+				Context->NavAgentProperties, PathFindingQuery,
+				Context->PathfindingMode == EPCGExPathfindingMode::Regular ? EPathFindingMode::Type::Regular : EPathFindingMode::Type::Hierarchical);
+	
+			if (!CanContinue()) { return false; }
+	
+			if (Result.Result == ENavigationQueryResult::Type::Success)
 			{
-				FVector CurrentLocation = PathLocations[i];
-				if (i > 0 && i < (PathLocations.Num() - FuseCountReduce))
+				TArray<FNavPathPoint>& Points = Result.Path->GetPathPoints();
+				TArray<FVector> PathLocations;
+				PathLocations.Reserve(Points.Num());
+	
+				PathLocations.Add(StartLocation);
+				for (FNavPathPoint PathPoint : Points) { PathLocations.Add(PathPoint.Location); }
+				PathLocations.Add(EndLocation);
+	
+				PCGExMath::FPathInfos PathHelper = PCGExMath::FPathInfos(StartLocation);
+				int32 FuseCountReduce = Context->bAddGoalToPath ? 2 : 1;
+				for (int i = Context->bAddSeedToPath; i < PathLocations.Num(); i++)
 				{
-					if (PathHelper.IsLastWithinRange(CurrentLocation, Context->FuseDistance))
+					FVector CurrentLocation = PathLocations[i];
+					if (i > 0 && i < (PathLocations.Num() - FuseCountReduce))
 					{
-						// Fuse
-						PathLocations.RemoveAt(i);
-						i--;
-						continue;
+						if (PathHelper.IsLastWithinRange(CurrentLocation, Context->FuseDistance))
+						{
+							// Fuse
+							PathLocations.RemoveAt(i);
+							i--;
+							continue;
+						}
 					}
+	
+					PathHelper.Add(CurrentLocation);
 				}
-
-				PathHelper.Add(CurrentLocation);
-			}
-
-			if (PathLocations.Num() <= 2) // include start and end
-			{
-				bSuccess = false;
-			}
-			else
-			{
-				///////
-
-				for (FVector Location : PathLocations)
+	
+				if (PathLocations.Num() <= 2) // include start and end
 				{
-					FPCGPoint& Point = PathPoints->CopyPoint(StartPoint);
-					Point.Transform.SetLocation(Location);
+					bSuccess = false;
 				}
-
-				TArray<FPCGPoint>& MutablePoints = PathPoints->Out->GetMutablePoints();
-				TArrayView<FPCGPoint> Path = MakeArrayView(MutablePoints.GetData(), PathLocations.Num());
-
-				UPCGExMetadataBlender* TempBlender = Context->Blending->CreateBlender(PathPoints->Out, Context->GoalsPoints->In);
-				
-				Context->Blending->BlendSubPoints(StartPoint, EndPoint, Path, PathHelper, TempBlender);
-				
-				TempBlender->Flush();
-
-				// Remove start and/or end after blending
-				if (!Context->bAddSeedToPath) { MutablePoints.RemoveAt(0); }
-				if (!Context->bAddGoalToPath) { MutablePoints.Pop(); }
-
-				bSuccess = true;
+				else
+				{
+					///////
+	
+					for (FVector Location : PathLocations)
+					{
+						FPCGPoint& Point = PathPoints->CopyPoint(StartPoint);
+						Point.Transform.SetLocation(Location);
+					}
+	
+					TArray<FPCGPoint>& MutablePoints = PathPoints->Out->GetMutablePoints();
+					TArrayView<FPCGPoint> Path = MakeArrayView(MutablePoints.GetData(), PathLocations.Num());
+	
+					UPCGExMetadataBlender* TempBlender = Context->Blending->CreateBlender(PathPoints->Out, Context->GoalsPoints->In);
+					
+					Context->Blending->BlendSubPoints(StartPoint, EndPoint, Path, PathHelper, TempBlender);
+					
+					TempBlender->Flush();
+	
+					// Remove start and/or end after blending
+					if (!Context->bAddSeedToPath) { MutablePoints.RemoveAt(0); }
+					if (!Context->bAddGoalToPath) { MutablePoints.Pop(); }
+	
+					bSuccess = true;
+				}
 			}
 		}
-	}
-*/
+	*/
 	return bSuccess;
 }
 

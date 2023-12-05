@@ -50,16 +50,13 @@ public:
 	virtual void FinalizeOperation(const PCGMetadataEntryKey InPrimaryOutputKey, double Alpha) const;
 	virtual void ResetToDefault(const PCGMetadataEntryKey InPrimaryOutputKey) const;
 	virtual void Flush();
-	
+
 protected:
 	bool bInterpolationAllowed = true;
 	FName AttributeName = NAME_None;
 	FPCGMetadataAttributeBase* PrimaryBaseAttribute;
 	FPCGMetadataAttributeBase* SecondaryBaseAttribute;
 	virtual void StrongTypeAttributes();
-
-	
-	
 };
 
 /*

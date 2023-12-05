@@ -22,14 +22,13 @@ public:
 	virtual PCGExPointIO::EInit GetPointOutputInitMode() const override;
 
 	//~Begin UPCGSettings interface
-	#if WITH_EDITOR
+#if WITH_EDITOR
 	PCGEX_NODE_INFOS(PrimitiveProcessor, "PrimitiveProcessor", "Processes paths segments.");
 	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorPrimitives; }
 #endif
 
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	//~End UPCGSettings interface
-
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExPrimitiveProcessorContext : public FPCGExPointsProcessorContext
@@ -44,5 +43,4 @@ public:
 		const FPCGDataCollection& InputData,
 		TWeakObjectPtr<UPCGComponent> SourceComponent,
 		const UPCGNode* Node) override;
-
 };

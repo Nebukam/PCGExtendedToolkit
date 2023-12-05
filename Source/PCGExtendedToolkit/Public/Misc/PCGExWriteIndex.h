@@ -32,7 +32,7 @@ public:
 	/** The name of the attribute to write its index to.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	bool bOutputNormalizedIndex = false;
-	
+
 	/** The name of the attribute to write its index to.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	FName OutputAttributeName = "CurrentIndex";
