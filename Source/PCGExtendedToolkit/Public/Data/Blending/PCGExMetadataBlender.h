@@ -91,9 +91,9 @@ public:
 
 	UPCGExMetadataBlender* Copy(const UPCGPointData* InPrimaryData, const UPCGPointData* InSecondaryData) const;
 	
-	void PrepareForOperations(PCGMetadataEntryKey InPrimaryOutputKey) const;
-	void DoOperations(const PCGMetadataEntryKey InPrimaryKey, const PCGMetadataEntryKey InSecondaryKey, const PCGMetadataEntryKey InPrimaryOutputKey, const double Alpha = 0) const;
-	void FinalizeOperations(PCGMetadataEntryKey InPrimaryOutputKey, double Alpha) const;
+	void PrepareForBlending(PCGMetadataEntryKey InPrimaryOutputKey) const;
+	void Blend(const PCGMetadataEntryKey InPrimaryKey, const PCGMetadataEntryKey InSecondaryKey, const PCGMetadataEntryKey InPrimaryOutputKey, const double Alpha = 0) const;
+	void CompleteBlending(PCGMetadataEntryKey InPrimaryOutputKey, double Alpha) const;
 	void ResetToDefaults(PCGMetadataEntryKey InPrimaryOutputKey) const;
 	void Flush();
 
@@ -103,7 +103,7 @@ protected:
 	TMap<FName, EPCGExDataBlendingType> BlendingOverrides;
 	TArray<UPCGExDataBlendingOperation*> Attributes;
 	TArray<UPCGExDataBlendingOperation*> AttributesToBePrepared;
-	TArray<UPCGExDataBlendingOperation*> AttributesToBeFinalized;
+	TArray<UPCGExDataBlendingOperation*> AttributesToBeCompleted;
 	void InternalPrepareForData(
 		const UPCGPointData* InPrimaryData,
 		const UPCGPointData* InSecondaryData,

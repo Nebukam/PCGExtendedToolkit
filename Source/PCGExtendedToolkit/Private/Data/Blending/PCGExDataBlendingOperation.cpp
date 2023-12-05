@@ -13,6 +13,7 @@ void UPCGExDataBlendingOperation::PrepareForData(const UPCGPointData* InPrimaryD
 		PrimaryBaseAttribute = InPrimaryData->Metadata->CopyAttribute(SecondaryBaseAttribute, AttributeName, false, false, false);
 	}
 
+	bInterpolationAllowed = PrimaryBaseAttribute->AllowsInterpolation() && !SecondaryBaseAttribute->AllowsInterpolation(); 
 	StrongTypeAttributes();
 }
 

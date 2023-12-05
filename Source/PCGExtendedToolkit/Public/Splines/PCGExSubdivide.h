@@ -51,7 +51,7 @@ protected:
 
 public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
-	EPCGExSubdivideMode Method = EPCGExSubdivideMode::Distance;
+	EPCGExSubdivideMode SubdivideMethod = EPCGExSubdivideMode::Distance;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="Method==EPCGExSubdivideMode::Distance", EditConditionHides))
 	double Distance = 10;

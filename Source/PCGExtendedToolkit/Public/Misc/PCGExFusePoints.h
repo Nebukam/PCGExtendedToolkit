@@ -8,6 +8,7 @@
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGExAttributeHelpers.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
+#include "Data/Blending/PCGExPropertiesBlender.h"
 
 #include "PCGExFusePoints.generated.h"
 
@@ -56,7 +57,6 @@ namespace PCGExFuse
 			MaxDistance = FMath::Max(MaxDistance, Distance);
 		}
 	};
-
 }
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
@@ -104,13 +104,8 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bUseLocalWeight && Blending==EPCGExDataBlendingType::Weight", EditConditionHides))
 	FPCGExInputDescriptorWithSingleField WeightAttribute;
 
-	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
-	FPCGExPointPropertyBlendingOverrides PropertyBlendingOverrides;
-	
-	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (TitleProperty="{Blending} {TitlePropertyName}"))
-	TMap<FName, EPCGExDataBlendingType> AttributeBlendingOverrides;
+	FPCGExBlendingSettings BlendingSettings;
 
 private:
 	friend class FPCGExFusePointsElement;
@@ -123,16 +118,14 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFusePointsContext : public FPCGExPointsProce
 public:
 	int32 CurrentIndex = 0;
 
-	TMap<FName, EPCGExDataBlendingType> BlendingOverrides;
-	UPCGExMetadataBlender* Blender;
-	
+	TMap<FName, EPCGExDataBlendingType> AttributesBlendingOverrides;
+	UPCGExMetadataBlender* MetadataBlender;
+	PCGExDataBlending::FPropertiesBlender PropertyBlender;
+
 	TArray<PCGExFuse::FFusedPoint> FusedPoints;
 	TArray<FPCGPoint>* OutPoints;
-	
-	PCGEX_FUSE_FOREACH_POINTPROPERTYNAME(PCGEX_FUSE_CONTEXT)
 
 	mutable FRWLock PointsLock;
-
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExFusePointsElement : public FPCGExPointsProcessorElementBase

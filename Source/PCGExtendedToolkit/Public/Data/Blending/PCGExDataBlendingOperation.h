@@ -31,7 +31,7 @@ PCGEX_SAO_BODY(_TYPE, _NAME)};
 /**
  * 
  */
-UCLASS(Blueprintable, EditInlineNew, HideDropdown)
+UCLASS(Blueprintable, EditInlineNew, HideDropdown, Abstract)
 class PCGEXTENDEDTOOLKIT_API UPCGExDataBlendingOperation : public UPCGExInstruction
 {
 	GENERATED_BODY()
@@ -52,10 +52,14 @@ public:
 	virtual void Flush();
 	
 protected:
+	bool bInterpolationAllowed = true;
 	FName AttributeName = NAME_None;
 	FPCGMetadataAttributeBase* PrimaryBaseAttribute;
 	FPCGMetadataAttributeBase* SecondaryBaseAttribute;
 	virtual void StrongTypeAttributes();
+
+	
+	
 };
 
 /*

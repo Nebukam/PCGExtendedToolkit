@@ -143,6 +143,7 @@ bool FPCGExSampleNavmeshElement::ExecuteInternal(FPCGContext* InContext) const
 		if (!Validate(Context)) { return true; }
 		Context->AdvancePointsIO();
 		Context->GoalPicker->PrepareForData(Context->CurrentIO->In, Context->GoalsPoints->In);
+		Context->Blending->PrepareForData(Context->CurrentIO->In, Context->GoalsPoints->In);
 		Context->SetState(PCGExMT::State_ProcessingPoints);
 	}
 

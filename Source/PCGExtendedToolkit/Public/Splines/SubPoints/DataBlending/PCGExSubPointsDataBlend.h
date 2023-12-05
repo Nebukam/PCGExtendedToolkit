@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 #include "PCGPoint.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
+#include "Data/Blending/PCGExPropertiesBlender.h"
 #include "Splines/SubPoints/PCGExSubPointsProcessor.h"
 #include "PCGExSubPointsDataBlend.generated.h"
 
@@ -21,8 +22,8 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSubPointsDataBlend : public UPCGExSubPointsPr
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
-	TMap<FName, EPCGExDataBlendingType> BlendingOverrides;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(ShowOnlyInnerProperties))
+	FPCGExBlendingSettings BlendingSettings;
 
 	virtual void PrepareForData(const UPCGExPointIO* InData) override;
 	virtual void PrepareForData(const UPCGPointData* InPrimaryData, const UPCGPointData* InSecondaryData);
@@ -36,4 +37,5 @@ public:
 protected:
 	virtual EPCGExDataBlendingType GetDefaultBlending();
 	UPCGExMetadataBlender* InternalBlender;
+	PCGExDataBlending::FPropertiesBlender PropertiesBlender;
 };

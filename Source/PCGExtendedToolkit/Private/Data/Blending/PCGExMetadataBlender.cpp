@@ -25,19 +25,19 @@ UPCGExMetadataBlender* UPCGExMetadataBlender::Copy(const UPCGPointData* InPrimar
 	return Copy;
 }
 
-void UPCGExMetadataBlender::PrepareForOperations(const PCGMetadataEntryKey InPrimaryOutputKey) const
+void UPCGExMetadataBlender::PrepareForBlending(const PCGMetadataEntryKey InPrimaryOutputKey) const
 {
 	for (const UPCGExDataBlendingOperation* Op : AttributesToBePrepared) { Op->PrepareOperation(InPrimaryOutputKey); }
 }
 
-void UPCGExMetadataBlender::DoOperations(const PCGMetadataEntryKey InPrimaryKey, const PCGMetadataEntryKey InSecondaryKey, const PCGMetadataEntryKey InPrimaryOutputKey, const double Alpha) const
+void UPCGExMetadataBlender::Blend(const PCGMetadataEntryKey InPrimaryKey, const PCGMetadataEntryKey InSecondaryKey, const PCGMetadataEntryKey InPrimaryOutputKey, const double Alpha) const
 {
 	for (const UPCGExDataBlendingOperation* Op : Attributes) { Op->DoOperation(InPrimaryKey, InSecondaryKey, InPrimaryOutputKey, Alpha); }
 }
 
-void UPCGExMetadataBlender::FinalizeOperations(const PCGMetadataEntryKey InPrimaryOutputKey, const double Alpha) const
+void UPCGExMetadataBlender::CompleteBlending(const PCGMetadataEntryKey InPrimaryOutputKey, const double Alpha) const
 {
-	for (const UPCGExDataBlendingOperation* Op : AttributesToBeFinalized) { Op->FinalizeOperation(InPrimaryOutputKey, Alpha); }
+	for (const UPCGExDataBlendingOperation* Op : AttributesToBeCompleted) { Op->FinalizeOperation(InPrimaryOutputKey, Alpha); }
 }
 
 void UPCGExMetadataBlender::ResetToDefaults(const PCGMetadataEntryKey InPrimaryOutputKey) const
@@ -56,7 +56,7 @@ void UPCGExMetadataBlender::Flush()
 	BlendingOverrides.Empty();
 	Attributes.Empty();
 	AttributesToBePrepared.Empty();
-	AttributesToBeFinalized.Empty();
+	AttributesToBeCompleted.Empty();
 }
 
 void UPCGExMetadataBlender::BeginDestroy()
@@ -104,7 +104,7 @@ void UPCGExMetadataBlender::InternalPrepareForData(const UPCGPointData* InPrimar
 	}
 
 	Attributes.Empty(Identities.Num());
-	AttributesToBeFinalized.Empty(Identities.Num());
+	AttributesToBeCompleted.Empty(Identities.Num());
 	AttributesToBePrepared.Empty(Identities.Num());
 
 	for (const PCGEx::FAttributeIdentity& Identity : Identities)
@@ -116,7 +116,7 @@ void UPCGExMetadataBlender::InternalPrepareForData(const UPCGPointData* InPrimar
 
 		Attributes.Add(Op);
 		if (Op->GetRequiresPreparation()) { AttributesToBePrepared.Add(Op); }
-		if (Op->GetRequiresFinalization()) { AttributesToBeFinalized.Add(Op); }
+		if (Op->GetRequiresFinalization()) { AttributesToBeCompleted.Add(Op); }
 
 		Op->PrepareForData(InPrimaryData, Mismatch.Contains(Identity.Name) ? InSecondaryData : InPrimaryData);
 	}

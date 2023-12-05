@@ -51,27 +51,3 @@ void PCGEx::FLocalSingleFieldGetter::Capture(const FPCGExInputDescriptorGeneric&
 	Field = InDescriptor.Field;
 	Axis = InDescriptor.Axis;
 }
-
-void PCGEx::FAttributeMap::PrepareForPoints(const UPCGPointData* InData)
-{
-	NumAttributes = InData->Metadata->GetAttributeCount();
-
-	TArray<FName> Names;
-	TArray<EPCGMetadataTypes> Types;
-
-	Identities.Reset(NumAttributes);
-	Attributes.Empty(NumAttributes);
-
-	InData->Metadata->GetAttributes(Names, Types);
-	for (int i = 0; i < NumAttributes; i++)
-	{
-		FAttributeIdentity& Identity = Identities.Emplace_GetRef(Names[i], Types[i]);
-		Attributes.Add(Identity.Name, InData->Metadata->GetMutableAttribute(Identity.Name));
-	}
-}
-
-void PCGEx::FAttributeMap::Prepare(const FAttributeMap& From, const FAttributeMap& To)
-{
-	Identities.Reset(From.NumAttributes);
-	Attributes.Empty(From.NumAttributes);
-}

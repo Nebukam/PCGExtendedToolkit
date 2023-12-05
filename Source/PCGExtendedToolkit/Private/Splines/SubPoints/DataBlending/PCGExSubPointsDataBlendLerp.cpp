@@ -18,10 +18,12 @@ void UPCGExSubPointsDataBlendLerp::BlendSubPoints(const FPCGPoint& StartPoint, c
 	const PCGMetadataEntryKey StartKey = StartPoint.MetadataEntry;
 	const PCGMetadataAttributeKey EndKey = EndPoint.MetadataEntry;
 
-	EPCGExPathLerpBase SafeLerpBase = LerpBase;
-	if (LerpBase == EPCGExPathLerpBase::Distance && !PathInfos.IsValid()) { SafeLerpBase = EPCGExPathLerpBase::Index; }
+	PCGExDataBlending::FPropertiesBlender LocalPropertiesBlender = PCGExDataBlending::FPropertiesBlender(PropertiesBlender);
 
-	if (SafeLerpBase == EPCGExPathLerpBase::Distance)
+	EPCGExPathBlendOver SafeBlendOver = BlendOver;
+	if (BlendOver == EPCGExPathBlendOver::Distance && !PathInfos.IsValid()) { SafeBlendOver = EPCGExPathBlendOver::Index; }
+
+	if (SafeBlendOver == EPCGExPathBlendOver::Distance)
 	{
 		FVector PreviousLocation = StartPoint.Transform.GetLocation();
 		PCGExMath::FPathInfos CurrentPathInfos = PCGExMath::FPathInfos(PreviousLocation);
@@ -34,37 +36,39 @@ void UPCGExSubPointsDataBlendLerp::BlendSubPoints(const FPCGPoint& StartPoint, c
 			CurrentPathInfos.Add(Location);
 
 			const double Lerp = PathInfos.GetTime(CurrentPathInfos.Length);
-			PCGExMath::Lerp(StartPoint, EndPoint, Point, Lerp);
-			InBlender->DoOperations(StartKey, EndKey, Point.MetadataEntry, Lerp);
+
+			LocalPropertiesBlender.BlendSingle(StartPoint, EndPoint, Point, Lerp);
+			InBlender->Blend(StartKey, EndKey, Point.MetadataEntry, Lerp);
 
 			Point.Transform.SetLocation(Location); // !
 
 			PreviousLocation = Location;
 		}
 	}
-	else if (SafeLerpBase == EPCGExPathLerpBase::Index)
+	else if (SafeBlendOver == EPCGExPathBlendOver::Index)
 	{
 		for (int i = 0; i < NumPoints; i++)
 		{
 			FPCGPoint& Point = SubPoints[i];
 			const FVector Location = Point.Transform.GetLocation();
 
-			const double Lerp = (i + 1) / NumPoints;
-			PCGExMath::Lerp(StartPoint, EndPoint, Point, Lerp);
-			InBlender->DoOperations(StartKey, EndKey, Point.MetadataEntry, Lerp);
+			const double Lerp = static_cast<double>(i + 1) / static_cast<double>(NumPoints);
+
+			LocalPropertiesBlender.BlendSingle(StartPoint, EndPoint, Point, Lerp);
+			InBlender->Blend(StartKey, EndKey, Point.MetadataEntry, Lerp);
 
 			Point.Transform.SetLocation(Location); // !
 		}
 	}
-	else if (SafeLerpBase == EPCGExPathLerpBase::Fixed)
+	else if (SafeBlendOver == EPCGExPathBlendOver::Fixed)
 	{
 		for (int i = 0; i < NumPoints; i++)
 		{
 			FPCGPoint& Point = SubPoints[i];
 			const FVector Location = Point.Transform.GetLocation();
 
-			PCGExMath::Lerp(StartPoint, EndPoint, Point, Alpha);
-			InBlender->DoOperations(StartKey, EndKey, Point.MetadataEntry, Alpha);
+			LocalPropertiesBlender.BlendSingle(StartPoint, EndPoint, Point, Alpha);
+			InBlender->Blend(StartKey, EndKey, Point.MetadataEntry, Alpha);
 
 			Point.Transform.SetLocation(Location); // !
 		}

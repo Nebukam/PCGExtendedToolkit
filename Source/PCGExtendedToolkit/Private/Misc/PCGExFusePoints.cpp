@@ -5,36 +5,6 @@
 
 #define LOCTEXT_NAMESPACE "PCGExFusePointsElement"
 
-#define PCGEX_FUSE_FOREACH_POINTPROPERTYNAME(MACRO)\
-MACRO(Density) \
-MACRO(Extents) \
-MACRO(Color) \
-MACRO(Position) \
-MACRO(Rotation)\
-MACRO(Scale) \
-MACRO(Steepness) \
-MACRO(Seed)
-
-// TYPE, NAME, ACCESSOR
-#define PCGEX_FUSE_FOREACH_POINTPROPERTY(MACRO)\
-MACRO(float, Density, Density, 0) \
-MACRO(FVector, Extents, GetExtents(), FVector::Zero()) \
-MACRO(FVector4, Color, Color, FVector4::Zero()) \
-MACRO(FVector, Position, Transform.GetLocation(), FVector::Zero()) \
-MACRO(FRotator, Rotation, Transform.Rotator(), FRotator::ZeroRotator)\
-MACRO(FVector, Scale, Transform.GetScale3D(), FVector::Zero()) \
-MACRO(float, Steepness, Steepness, 0) \
-MACRO(int32, Seed, Seed, 0)
-
-#define PCGEX_FUSE_FOREACH_POINTPROPERTY_ASSIGN(MACRO)\
-MACRO(Density, Density) \
-MACRO(Color, Color) \
-MACRO(Transform, Transform) \
-MACRO(Steepness, Steepness) \
-MACRO(Seed, Seed)
-
-#define PCGEX_FUSE_IGNORE(...) // Ignore
-
 PCGExPointIO::EInit UPCGExFusePointsSettings::GetPointOutputInitMode() const { return PCGExPointIO::EInit::NewOutput; }
 
 UPCGExFusePointsSettings::UPCGExFusePointsSettings(const FObjectInitializer& ObjectInitializer)
@@ -62,13 +32,9 @@ FPCGContext* FPCGExFusePointsElement::Initialize(
 	const UPCGExFusePointsSettings* Settings = Context->GetInputSettings<UPCGExFusePointsSettings>();
 	check(Settings);
 
-	Context->BlendingOverrides = Settings->AttributeBlendingOverrides;
-	Context->Blender = NewObject<UPCGExMetadataBlender>();
-	Context->Blender->DefaultOperation = Settings->Blending;
-
-#define PCGEX_FUSE_TRANSFERT(_NAME) Context->_NAME##Blending = Settings->PropertyBlendingOverrides.bOverride##_NAME ? Settings->PropertyBlendingOverrides._NAME##Blending : Settings->Blending;
-	PCGEX_FUSE_FOREACH_POINTPROPERTYNAME(PCGEX_FUSE_TRANSFERT)
-#undef PCGEX_FUSE_TRANSFERT
+	Context->AttributesBlendingOverrides = Settings->BlendingSettings.AttributesOverrides;
+	Context->MetadataBlender = NewObject<UPCGExMetadataBlender>();
+	Context->MetadataBlender->DefaultOperation = Settings->BlendingSettings.DefaultBlending;
 
 	return Context;
 }
@@ -80,10 +46,11 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 	FPCGExFusePointsContext* Context = static_cast<FPCGExFusePointsContext*>(InContext);
 	const UPCGExFusePointsSettings* Settings = Context->GetInputSettings<UPCGExFusePointsSettings>();
 	check(Settings);
-	
+
 	if (Context->IsSetup())
 	{
 		if (!Validate(Context)) { return true; }
+		Context->PropertyBlender.Init(Settings->BlendingSettings);
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
@@ -99,11 +66,10 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsState(PCGExFuse::State_FindingRootPoints))
 	{
-		
 		auto Initialize = [&](UPCGExPointIO* PointIO)
 		{
 			Context->FusedPoints.Reset(PointIO->NumInPoints);
-			Context->Blender->PrepareForData(PointIO->Out, nullptr, Context->BlendingOverrides);
+			Context->MetadataBlender->PrepareForData(PointIO->Out, nullptr, Context->AttributesBlendingOverrides);
 		};
 
 		auto ProcessPoint = [&](const int32 PointIndex, const UPCGExPointIO* PointIO)
@@ -170,46 +136,23 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 			const FPCGPoint& RootPoint = Context->CurrentIO->GetInPoint(FusedPointData.MainIndex);
 			FPCGPoint NewPoint = Context->CurrentIO->CopyPoint(RootPoint);
 			PCGMetadataEntryKey NewPointKey = NewPoint.MetadataEntry;
-			Context->Blender->PrepareForOperations(NewPointKey);
+			Context->MetadataBlender->PrepareForBlending(NewPointKey);
 
-			FTransform& OutTransform = NewPoint.Transform;
-#define PCGEX_FUSE_DECLARE(_TYPE, _NAME, _ACCESSOR, _DEFAULT_VALUE, ...) _TYPE Out##_NAME = Context->_NAME##Blending != EPCGExDataBlendingType::Average ? RootPoint._ACCESSOR : _DEFAULT_VALUE;
-			PCGEX_FUSE_FOREACH_POINTPROPERTY(PCGEX_FUSE_DECLARE)
-#undef PCGEX_FUSE_DECLARE
+			PCGExDataBlending::FPropertiesBlender PropertiesBlender = PCGExDataBlending::FPropertiesBlender(Context->PropertyBlender);
+
+			if (PropertiesBlender.bRequiresPrepare) { PropertiesBlender.PrepareBlending(NewPoint, RootPoint); }
 
 			for (int i = 0; i < NumFused; i++)
 			{
 				const double Weight = 1 - (FusedPointData.Distances[i] / FusedPointData.MaxDistance);
 				FPCGPoint Point = Context->CurrentIO->GetInPoint(FusedPointData.Fused[i]);
-
-#define PCGEX_FUSE_FUSE(_TYPE, _NAME, _ACCESSOR, ...) switch (Context->_NAME##Blending){\
-case EPCGExDataBlendingType::Average: Out##_NAME += Point._ACCESSOR; break;\
-case EPCGExDataBlendingType::Min: Out##_NAME = PCGExMath::CWMin(Out##_NAME, Point._ACCESSOR); break;\
-case EPCGExDataBlendingType::Max: Out##_NAME = PCGExMath::CWMax(Out##_NAME, Point._ACCESSOR); break;\
-case EPCGExDataBlendingType::Weight: Out##_NAME = PCGExMath::Lerp(Out##_NAME, Point._ACCESSOR, Weight); break;\
-}
-				PCGEX_FUSE_FOREACH_POINTPROPERTY(PCGEX_FUSE_FUSE)
-#undef PCGEX_FUSE_FUSE
-
-				Context->Blender->DoOperations(NewPointKey, Point.MetadataEntry, NewPointKey, Weight);
+				PropertiesBlender.Blend(NewPoint, Point, NewPoint, Weight);
+				Context->MetadataBlender->Blend(NewPointKey, Point.MetadataEntry, NewPointKey, Weight);
 			}
 
-			Context->Blender->FinalizeOperations(NewPointKey, AverageDivider);
-
-#define PCGEX_FUSE_POST(_TYPE, _NAME, _ACCESSOR, ...)\
-if(Context->_NAME##Blending == EPCGExDataBlendingType::Average){ Out##_NAME = PCGExMath::CWDivide(Out##_NAME, AverageDivider); }
-			PCGEX_FUSE_FOREACH_POINTPROPERTY(PCGEX_FUSE_POST)
-#undef PCGEX_FUSE_POST
-
-			OutTransform.SetLocation(OutPosition);
-			OutTransform.SetRotation(OutRotation.Quaternion());
-			OutTransform.SetScale3D(OutScale);
-
-#define PCGEX_FUSE_ASSIGN(_NAME, _ACCESSOR, ...) NewPoint._ACCESSOR = Out##_NAME;
-			PCGEX_FUSE_FOREACH_POINTPROPERTY_ASSIGN(PCGEX_FUSE_ASSIGN)
-#undef PCGEX_FUSE_ASSIGN
-
-			NewPoint.SetExtents(OutExtents);
+			if (PropertiesBlender.bRequiresPrepare) { PropertiesBlender.CompleteBlending(NewPoint); }
+			Context->MetadataBlender->CompleteBlending(NewPointKey, AverageDivider);
+			
 		};
 
 		if (PCGExMT::ParallelForLoop(
@@ -230,9 +173,5 @@ if(Context->_NAME##Blending == EPCGExDataBlendingType::Average){ Out##_NAME = PC
 
 	return false;
 }
-
-#undef PCGEX_FUSE_FOREACH_POINTPROPERTY
-#undef PCGEX_FUSE_FOREACH_POINTPROPERTY_ASSIGN
-#undef PCGEX_FUSE_IGNORE
 
 #undef LOCTEXT_NAMESPACE

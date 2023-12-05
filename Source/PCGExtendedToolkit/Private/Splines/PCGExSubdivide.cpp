@@ -24,7 +24,7 @@ FPCGContext* FPCGExSubdivideElement::Initialize(const FPCGDataCollection& InputD
 	const UPCGExSubdivideSettings* Settings = Context->GetInputSettings<UPCGExSubdivideSettings>();
 	check(Settings);
 
-	Context->Method = Settings->Method;
+	Context->Method = Settings->SubdivideMethod;
 	Context->Distance = Settings->Distance;
 	Context->Count = Settings->Count;
 	Context->bFlagSubPoints = Settings->bFlagSubPoints;
