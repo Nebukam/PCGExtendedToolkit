@@ -13,6 +13,13 @@ UPCGExSubdivideSettings::UPCGExSubdivideSettings(const FObjectInitializer& Objec
 	Blending = EnsureInstruction<UPCGExSubPointsDataBlendLerp>(Blending);
 }
 
+void UPCGExSubdivideSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+{
+	Blending = EnsureInstruction<UPCGExSubPointsDataBlendLerp>(Blending);
+	if (Blending) { Blending->UpdateUserFacingInfos(); }
+	Super::PostEditChangeProperty(PropertyChangedEvent);
+}
+
 PCGExPointIO::EInit UPCGExSubdivideSettings::GetPointOutputInitMode() const { return PCGExPointIO::EInit::NewOutput; }
 
 FPCGElementPtr UPCGExSubdivideSettings::CreateElement() const { return MakeShared<FPCGExSubdivideElement>(); }

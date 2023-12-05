@@ -15,6 +15,13 @@ UPCGExBuildGraphSettings::UPCGExBuildGraphSettings(
 	GraphSolver = EnsureInstruction<UPCGExGraphSolver>(GraphSolver);
 }
 
+void UPCGExBuildGraphSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+{
+	GraphSolver = EnsureInstruction<UPCGExGraphSolver>(GraphSolver);
+	if (GraphSolver) { GraphSolver->UpdateUserFacingInfos(); }
+	Super::PostEditChangeProperty(PropertyChangedEvent);
+}
+
 FPCGElementPtr UPCGExBuildGraphSettings::CreateElement() const { return MakeShared<FPCGExBuildGraphElement>(); }
 FName UPCGExBuildGraphSettings::GetMainPointsInputLabel() const { return PCGEx::SourcePointsLabel; }
 

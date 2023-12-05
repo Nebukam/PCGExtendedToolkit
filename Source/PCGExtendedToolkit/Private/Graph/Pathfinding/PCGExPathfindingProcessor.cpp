@@ -4,6 +4,10 @@
 #include "Graph/Pathfinding/PCGExPathfindingProcessor.h"
 
 #include "Graph/Pathfinding/PCGExPathfinding.h"
+#include "Graph/Pathfinding/GoalPickers/PCGExGoalPicker.h"
+#include "Graph/Pathfinding/GoalPickers/PCGExGoalPickerRandom.h"
+#include "Splines/SubPoints/DataBlending/PCGExSubPointsDataBlend.h"
+#include "Splines/SubPoints/DataBlending/PCGExSubPointsDataBlendLerp.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPathfindingSettings"
 
@@ -47,6 +51,13 @@ TArray<FPCGPinProperties> UPCGExPathfindingProcessorSettings::OutputPinPropertie
 }
 
 #pragma endregion
+
+void UPCGExPathfindingProcessorSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+{
+	if (GoalPicker) { GoalPicker->UpdateUserFacingInfos(); }
+	if (Blending) { Blending->UpdateUserFacingInfos(); }
+	Super::PostEditChangeProperty(PropertyChangedEvent);
+}
 
 PCGExPointIO::EInit UPCGExPathfindingProcessorSettings::GetPointOutputInitMode() const { return PCGExPointIO::EInit::NoOutput; }
 bool UPCGExPathfindingProcessorSettings::GetRequiresSeeds() const { return true; }
@@ -96,8 +107,6 @@ void FPCGExPathfindingProcessorElement::InitializeContext(
 	const UPCGExPathfindingProcessorSettings* Settings = InContext->GetInputSettings<UPCGExPathfindingProcessorSettings>();
 	check(Settings);
 
-	Context->PathsPoints = NewObject<UPCGExPointIOGroup>();
-
 	if (Settings->GetRequiresSeeds())
 	{
 		if (TArray<FPCGTaggedData> Seeds = InContext->InputData.GetInputsByPin(PCGExPathfinding::SourceSeedsLabel);
@@ -117,6 +126,15 @@ void FPCGExPathfindingProcessorElement::InitializeContext(
 			Context->GoalsPoints = PCGExPointIO::TryGetPointIO(Context, GoalsSource);
 		}
 	}
+
+	Context->OutputPaths = NewObject<UPCGExPointIOGroup>();
+
+	Context->GoalPicker = Settings->EnsureInstruction<UPCGExGoalPickerRandom>(Settings->GoalPicker, Context);
+	Context->Blending = Settings->EnsureInstruction<UPCGExSubPointsDataBlendLerp>(Settings->Blending, Context);
+
+	Context->bAddSeedToPath = Settings->bAddSeedToPath;
+	Context->bAddGoalToPath = Settings->bAddGoalToPath;
+	
 }
 
 

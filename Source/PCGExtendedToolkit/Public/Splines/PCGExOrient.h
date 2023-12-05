@@ -23,9 +23,11 @@ public:
 
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(Orient, "Orient", "Orient paths segments.");
+	PCGEX_NODE_INFOS(Orient, "Orient", "Orient paths points");
 #endif
 
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+	
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings interface

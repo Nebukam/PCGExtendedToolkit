@@ -99,7 +99,6 @@ public:
 
 	virtual void BeginDestroy() override;
 	
-protected:
 	TMap<FName, EPCGExDataBlendingType> BlendingOverrides;
 	TArray<UPCGExDataBlendingOperation*> Attributes;
 	TArray<UPCGExDataBlendingOperation*> AttributesToBePrepared;

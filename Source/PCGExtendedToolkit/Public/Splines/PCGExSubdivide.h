@@ -43,6 +43,7 @@ public:
 	PCGEX_NODE_INFOS(Subdivide, "Subdivide", "Subdivide paths segments.");
 #endif
 
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	virtual PCGExPointIO::EInit GetPointOutputInitMode() const override;
 
 protected:

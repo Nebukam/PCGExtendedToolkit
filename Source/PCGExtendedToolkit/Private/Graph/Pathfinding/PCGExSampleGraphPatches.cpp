@@ -1,7 +1,7 @@
 ﻿// Copyright Timothé Lapetite 2023
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Graph/Pathfinding/PCGExSampleNavmesh.h"
+#include "Graph/Pathfinding/PCGExSampleGraphPatches.h"
 
 #include "NavigationSystem.h"
 
@@ -11,9 +11,9 @@
 #include "Splines/SubPoints/DataBlending/PCGExSubPointsDataBlendLerp.h"
 #include "Splines/SubPoints/Orient/PCGExSubPointsOrientAverage.h"
 
-#define LOCTEXT_NAMESPACE "PCGExSampleNavmeshElement"
+#define LOCTEXT_NAMESPACE "PCGExSampleGraphPatchesElement"
 
-UPCGExSampleNavmeshSettings::UPCGExSampleNavmeshSettings(
+UPCGExSampleGraphPatchesSettings::UPCGExSampleGraphPatchesSettings(
 	const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
@@ -21,124 +21,35 @@ UPCGExSampleNavmeshSettings::UPCGExSampleNavmeshSettings(
 	Blending = EnsureInstruction<UPCGExSubPointsDataBlendLerp>(Blending);
 }
 
-TArray<FPCGPinProperties> UPCGExSampleNavmeshSettings::InputPinProperties() const
+FPCGElementPtr UPCGExSampleGraphPatchesSettings::CreateElement() const { return MakeShared<FPCGExSampleGraphPatchesElement>(); }
+
+FPCGContext* FPCGExSampleGraphPatchesElement::Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node)
 {
-	TArray<FPCGPinProperties> PinProperties;
-
-	FPCGPinProperties& PinPropertySeeds = PinProperties.Emplace_GetRef(PCGExPathfinding::SourceSeedsLabel, EPCGDataType::Point, false, false);
-
-#if WITH_EDITOR
-	PinPropertySeeds.Tooltip = LOCTEXT("PCGExSourceSeedsPinTooltip", "Seeds points for pathfinding.");
-#endif // WITH_EDITOR
-
-	FPCGPinProperties& PinPropertyGoals = PinProperties.Emplace_GetRef(PCGExPathfinding::SourceGoalsLabel, EPCGDataType::Point, false, false);
-
-#if WITH_EDITOR
-	PinPropertyGoals.Tooltip = LOCTEXT("PCGExSourcGoalsPinTooltip", "Goals points for pathfinding.");
-#endif // WITH_EDITOR
-
-	return PinProperties;
-}
-
-TArray<FPCGPinProperties> UPCGExSampleNavmeshSettings::OutputPinProperties() const
-{
-	TArray<FPCGPinProperties> PinProperties;
-	FPCGPinProperties& PinPathsOutput = PinProperties.Emplace_GetRef(PCGExGraph::OutputPathsLabel, EPCGDataType::Point);
-
-#if WITH_EDITOR
-	PinPathsOutput.Tooltip = LOCTEXT("PCGExOutputPathsTooltip", "Paths output.");
-#endif // WITH_EDITOR
-
-	return PinProperties;
-}
-
-void UPCGExSampleNavmeshSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
-{
-	GoalPicker = EnsureInstruction<UPCGExGoalPickerRandom>(GoalPicker);
-	Blending = EnsureInstruction<UPCGExSubPointsDataBlendLerp>(Blending);
-	if (GoalPicker) { GoalPicker->UpdateUserFacingInfos(); }
-	if (Blending) { Blending->UpdateUserFacingInfos(); }
-	Super::PostEditChangeProperty(PropertyChangedEvent);
-}
-
-PCGExPointIO::EInit UPCGExSampleNavmeshSettings::GetPointOutputInitMode() const { return PCGExPointIO::EInit::NoOutput; }
-int32 UPCGExSampleNavmeshSettings::GetPreferredChunkSize() const { return 32; }
-
-FName UPCGExSampleNavmeshSettings::GetMainPointsInputLabel() const { return PCGExPathfinding::SourceSeedsLabel; }
-FName UPCGExSampleNavmeshSettings::GetMainPointsOutputLabel() const { return PCGExGraph::OutputGraphsLabel; }
-
-FPCGElementPtr UPCGExSampleNavmeshSettings::CreateElement() const { return MakeShared<FPCGExSampleNavmeshElement>(); }
-
-FPCGContext* FPCGExSampleNavmeshElement::Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node)
-{
-	FPCGExSampleNavmeshContext* Context = new FPCGExSampleNavmeshContext();
+	FPCGExSampleGraphPatchesContext* Context = new FPCGExSampleGraphPatchesContext();
 	InitializeContext(Context, InputData, SourceComponent, Node);
 
-	const UPCGExSampleNavmeshSettings* Settings = Context->GetInputSettings<UPCGExSampleNavmeshSettings>();
+	const UPCGExSampleGraphPatchesSettings* Settings = Context->GetInputSettings<UPCGExSampleGraphPatchesSettings>();
 	check(Settings);
-
-	if (TArray<FPCGTaggedData> Goals = Context->InputData.GetInputsByPin(PCGExPathfinding::SourceGoalsLabel);
-		Goals.Num() > 0)
-	{
-		const FPCGTaggedData& GoalsSource = Goals[0];
-		Context->GoalsPoints = PCGExPointIO::TryGetPointIO(Context, GoalsSource);
-	}
-
-	if (!Settings->NavData)
-	{
-		if (const UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(Context->World))
-		{
-			ANavigationData* NavData = NavSys->GetDefaultNavDataInstance();
-			Context->NavData = NavData;
-		}
-	}
-
-	Context->OutputPaths = NewObject<UPCGExPointIOGroup>();
-
-	Context->GoalPicker = Settings->EnsureInstruction<UPCGExGoalPickerRandom>(Settings->GoalPicker, Context);
-	Context->Blending = Settings->EnsureInstruction<UPCGExSubPointsDataBlendLerp>(Settings->Blending, Context);
-
-	Context->bAddSeedToPath = Settings->bAddSeedToPath;
-	Context->bAddGoalToPath = Settings->bAddGoalToPath;
-
-	Context->NavAgentProperties = Settings->NavAgentProperties;
-	Context->bRequireNavigableEndLocation = Settings->bRequireNavigableEndLocation;
-	Context->PathfindingMode = Settings->PathfindingMode;
-
-	Context->FuseDistance = Settings->FuseDistance * Settings->FuseDistance;
-
 
 	return Context;
 }
 
-bool FPCGExSampleNavmeshElement::Validate(FPCGContext* InContext) const
+bool FPCGExSampleGraphPatchesElement::Validate(FPCGContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElementBase::Validate(InContext)) { return false; }
 
-	const FPCGExSampleNavmeshContext* Context = static_cast<FPCGExSampleNavmeshContext*>(InContext);
-	const UPCGExSampleNavmeshSettings* Settings = InContext->GetInputSettings<UPCGExSampleNavmeshSettings>();
+	const FPCGExSampleGraphPatchesContext* Context = static_cast<FPCGExSampleGraphPatchesContext*>(InContext);
+	const UPCGExSampleGraphPatchesSettings* Settings = InContext->GetInputSettings<UPCGExSampleGraphPatchesSettings>();
 	check(Settings);
-
-	if (!Context->GoalsPoints || Context->GoalsPoints->In->GetPoints().Num() == 0)
-	{
-		PCGE_LOG(Error, GraphAndLog, LOCTEXT("MissingGoals", "Missing Input Goals."));
-		return false;
-	}
-
-	if (!Context->NavData)
-	{
-		PCGE_LOG(Error, GraphAndLog, LOCTEXT("NoNavData", "Missing Nav Data"));
-		return false;
-	}
 
 	return true;
 }
 
-bool FPCGExSampleNavmeshElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExSampleGraphPatchesElement::ExecuteInternal(FPCGContext* InContext) const
 {
-	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExSampleNavmeshElement::Execute);
+	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExSampleGraphPatchesElement::Execute);
 
-	FPCGExSampleNavmeshContext* Context = static_cast<FPCGExSampleNavmeshContext*>(InContext);
+	FPCGExSampleGraphPatchesContext* Context = static_cast<FPCGExSampleGraphPatchesContext*>(InContext);
 
 	if (Context->IsSetup())
 	{
@@ -156,7 +67,7 @@ bool FPCGExSampleNavmeshElement::ExecuteInternal(FPCGContext* InContext) const
 			auto NavMeshTask = [&](int32 InGoalIndex)
 			{
 				UPCGExPointIO* PathPoints = Context->OutputPaths->Emplace_GetRef(PointIO->In, PCGExPointIO::EInit::NewOutput);
-				Context->GetAsyncManager()->StartTask<FNavmeshPathTask>(
+				Context->GetAsyncManager()->StartTask<FSamplePatchPathTask>(
 					PointIndex, PointIO->GetInPoint(PointIndex).MetadataEntry, Context->CurrentIO,
 					InGoalIndex, PathPoints);
 			};
@@ -196,15 +107,15 @@ bool FPCGExSampleNavmeshElement::ExecuteInternal(FPCGContext* InContext) const
 	return false;
 }
 
-bool FNavmeshPathTask::ExecuteTask()
+bool FSamplePatchPathTask::ExecuteTask()
 {
 	if (!CanContinue()) { return false; }
 
-	FPCGExSampleNavmeshContext* Context = Manager->GetContext<FPCGExSampleNavmeshContext>();
+	FPCGExSampleGraphPatchesContext* Context = Manager->GetContext<FPCGExSampleGraphPatchesContext>();
 	//FWriteScopeLock WriteLock(Context->ContextLock);
 
 	bool bSuccess = false;
-
+/*
 	if (UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(Context->World))
 	{
 		const FPCGPoint& StartPoint = PointIO->GetInPoint(TaskInfos.Index);
@@ -223,7 +134,7 @@ bool FNavmeshPathTask::ExecuteTask()
 
 		const FPathFindingResult Result = NavSys->FindPathSync(
 			Context->NavAgentProperties, PathFindingQuery,
-			Context->PathfindingMode == EPCGExNavmeshPathfindingMode::Regular ? EPathFindingMode::Type::Regular : EPathFindingMode::Type::Hierarchical);
+			Context->PathfindingMode == EPCGExPathfindingMode::Regular ? EPathFindingMode::Type::Regular : EPathFindingMode::Type::Hierarchical);
 
 		if (!CanContinue()) { return false; }
 
@@ -287,7 +198,7 @@ bool FNavmeshPathTask::ExecuteTask()
 			}
 		}
 	}
-
+*/
 	return bSuccess;
 }
 

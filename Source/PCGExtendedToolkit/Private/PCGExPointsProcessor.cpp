@@ -326,6 +326,8 @@ bool FPCGExPointsProcessorElementBase::Validate(FPCGContext* InContext) const
 {
 	const FPCGExPointsProcessorContext* Context = static_cast<FPCGExPointsProcessorContext*>(InContext);
 
+	if (Context->InputData.GetInputs().IsEmpty()) { return false; } //Get rid of errors and warning when there is no input
+
 	if (Context->MainPoints->IsEmpty())
 	{
 		PCGE_LOG(Error, GraphAndLog, LOCTEXT("MissingPoints", "Missing Input Points."));
@@ -366,7 +368,6 @@ void FPCGExPointsProcessorElementBase::InitializeContext(
 		InContext, Sources, Settings->GetPointOutputInitMode(),
 		[&InContext](UPCGPointData* Data) { return InContext->ValidatePointDataInput(Data); },
 		[&InContext](UPCGExPointIO* PointIO) { return InContext->PostInitPointDataInput(PointIO); });
-
 }
 
 #undef LOCTEXT_NAMESPACE

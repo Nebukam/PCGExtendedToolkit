@@ -13,6 +13,13 @@ UPCGExOrientSettings::UPCGExOrientSettings(const FObjectInitializer& ObjectIniti
 	Orientation = EnsureInstruction<UPCGExSubPointsOrientAverage>(Orientation);
 }
 
+void UPCGExOrientSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+{
+	Orientation = EnsureInstruction<UPCGExSubPointsOrientAverage>(Orientation);
+	if (Orientation) { Orientation->UpdateUserFacingInfos(); }
+	Super::PostEditChangeProperty(PropertyChangedEvent);
+}
+
 FPCGElementPtr UPCGExOrientSettings::CreateElement() const { return MakeShared<FPCGExOrientElement>(); }
 
 FPCGContext* FPCGExOrientElement::Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node)
@@ -47,7 +54,7 @@ bool FPCGExOrientElement::ExecuteInternal(FPCGContext* InContext) const
 			Context->Orientation->PrepareForData(PointIO);
 			Context->Orientation->ProcessPoints(PointIO->Out);
 		});
-	
+
 	Context->OutputPoints();
 	return true;
 }

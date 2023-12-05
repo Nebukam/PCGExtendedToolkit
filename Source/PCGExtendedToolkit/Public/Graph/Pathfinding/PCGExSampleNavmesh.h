@@ -16,12 +16,9 @@
 
 #include "PCGExSampleNavmesh.generated.h"
 
-namespace PCGExNavmesh
-{
-}
 
 UENUM(BlueprintType)
-enum class EPCGExPathfindingMode : uint8
+enum class EPCGExNavmeshPathfindingMode : uint8
 {
 	Regular UMETA(DisplayName = "Regular", ToolTip="TBD"),
 	Hierarchical UMETA(DisplayName = "HIerarchical", ToolTip="TBD"),
@@ -41,7 +38,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSampleNavmeshSettings : public UPCGExPointsPr
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(SampleNavmesh, "Sample Navmesh", "Sample world navmesh.");
+	PCGEX_NODE_INFOS(SampleNavmesh, "Sample Navmesh", "Extract paths from navmesh.");
 	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorPathfinding; }
 #endif
 
@@ -87,7 +84,7 @@ public:
 
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
-	EPCGExPathfindingMode PathfindingMode = EPCGExPathfindingMode::Regular;
+	EPCGExNavmeshPathfindingMode PathfindingMode = EPCGExNavmeshPathfindingMode::Regular;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	FNavAgentProperties NavAgentProperties;
@@ -117,7 +114,7 @@ public:
 	ANavigationData* NavData = nullptr;
 
 	bool bRequireNavigableEndLocation = true;
-	EPCGExPathfindingMode PathfindingMode;
+	EPCGExNavmeshPathfindingMode PathfindingMode;
 	double FuseDistance = 10;
 };
 

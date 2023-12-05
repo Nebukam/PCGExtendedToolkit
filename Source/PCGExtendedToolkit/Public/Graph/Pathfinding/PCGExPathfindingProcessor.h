@@ -33,6 +33,8 @@ public:
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 	//~End UPCGSettings interface
 
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+
 	virtual PCGExPointIO::EInit GetPointOutputInitMode() const override;
 	virtual bool GetRequiresSeeds() const;
 	virtual bool GetRequiresGoals() const;
@@ -41,13 +43,18 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced)
 	UPCGExGoalPicker* GoalPicker;
 
-	/** Ignores candidates weighting pass and always favors the closest one.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced)
-	UPCGExSubPointsOrient* Orientation;
-
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced)
 	UPCGExSubPointsDataBlend* Blending;
+	
+	/** TBD */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	bool bAddSeedToPath = true;
+
+	/** TBD */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	bool bAddGoalToPath = true;
+	
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingProcessorContext : public FPCGExGraphProcessorContext
@@ -55,13 +62,15 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingProcessorContext : public FPCGExG
 	friend class UPCGExPathfindingProcessorSettings;
 
 public:
-	UPCGExPointIOGroup* PathsPoints = nullptr;
 	UPCGExPointIO* SeedsPoints = nullptr;
 	UPCGExPointIO* GoalsPoints = nullptr;
+	UPCGExPointIOGroup* OutputPaths = nullptr;
 
 	UPCGExGoalPicker* GoalPicker;
-	UPCGExSubPointsOrient* Orientation;
 	UPCGExSubPointsDataBlend* Blending;
+
+	bool bAddSeedToPath = true;
+	bool bAddGoalToPath = true;
 
 protected:
 	int64 GetGoalIndex(const FPCGPoint& Seed, int64 SeedIndex);

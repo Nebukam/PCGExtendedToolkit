@@ -57,14 +57,30 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	bool bDrawSocketBox = false;
 
-	UPCGExGraphSolver* GraphSolver;
-
 private:
 	friend class FPCGExDrawGraphElement;
 };
 
+struct PCGEXTENDEDTOOLKIT_API FPCGExDrawGraphContext : public FPCGExGraphProcessorContext
+{
+	friend class FPCGExBuildGraphElement;
+	friend class FProbeTask;
+
+public:
+	UPCGExGraphSolver* GraphSolver = nullptr;
+	bool bMoveSocketOriginOnPointExtent = false;
+
+	UPCGPointData::PointOctree* Octree = nullptr;
+};
+
 class PCGEXTENDEDTOOLKIT_API FPCGExDrawGraphElement : public FPCGExGraphProcessorElement
 {
+public:
+	virtual FPCGContext* Initialize(
+		const FPCGDataCollection& InputData,
+		TWeakObjectPtr<UPCGComponent> SourceComponent,
+		const UPCGNode* Node) override;
+	
 protected:
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };

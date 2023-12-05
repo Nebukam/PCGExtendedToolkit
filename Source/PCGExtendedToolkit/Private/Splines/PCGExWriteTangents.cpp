@@ -13,6 +13,13 @@ UPCGExWriteTangentsSettings::UPCGExWriteTangentsSettings(const FObjectInitialize
 	Tangents = EnsureInstruction<UPCGExAutoTangents>(Tangents);
 }
 
+void UPCGExWriteTangentsSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+{
+	Tangents = EnsureInstruction<UPCGExAutoTangents>(Tangents);
+	if (Tangents) { Tangents->UpdateUserFacingInfos(); }
+	Super::PostEditChangeProperty(PropertyChangedEvent);
+}
+
 FPCGElementPtr UPCGExWriteTangentsSettings::CreateElement() const { return MakeShared<FPCGExWriteTangentsElement>(); }
 
 FPCGContext* FPCGExWriteTangentsElement::Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node)

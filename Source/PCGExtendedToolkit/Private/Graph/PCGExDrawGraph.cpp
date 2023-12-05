@@ -18,7 +18,6 @@ UPCGExDrawGraphSettings::UPCGExDrawGraphSettings(
 	: Super(ObjectInitializer)
 {
 	DebugSettings.PointScale = 0.0f;
-	GraphSolver = NewObject<UPCGExGraphSolver>();
 }
 
 TArray<FPCGPinProperties> UPCGExDrawGraphSettings::OutputPinProperties() const
@@ -36,13 +35,26 @@ void UPCGExDrawGraphSettings::PostEditChangeProperty(FPropertyChangedEvent& Prop
 }
 #endif
 
+FPCGContext* FPCGExDrawGraphElement::Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node)
+{
+	FPCGExDrawGraphContext* Context = new FPCGExDrawGraphContext();
+	InitializeContext(Context, InputData, SourceComponent, Node);
+
+	const UPCGExDrawGraphSettings* Settings = Context->GetInputSettings<UPCGExDrawGraphSettings>();
+	check(Settings);
+
+	Context->GraphSolver = Settings->EnsureInstruction<UPCGExGraphSolver>(nullptr, Context);
+
+	return Context;
+}
+
 bool FPCGExDrawGraphElement::ExecuteInternal(FPCGContext* InContext) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExDrawGraphElement::Execute);
 
 #if WITH_EDITOR
 
-	FPCGExGraphProcessorContext* Context = static_cast<FPCGExGraphProcessorContext*>(InContext);
+	FPCGExDrawGraphContext* Context = static_cast<FPCGExDrawGraphContext*>(InContext);
 
 	UPCGExDrawGraphSettings* Settings = const_cast<UPCGExDrawGraphSettings*>(Context->GetInputSettings<UPCGExDrawGraphSettings>());
 	check(Settings);
@@ -59,6 +71,7 @@ bool FPCGExDrawGraphElement::ExecuteInternal(FPCGContext* InContext) const
 		}
 
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
+		
 	}
 
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
@@ -92,13 +105,13 @@ bool FPCGExDrawGraphElement::ExecuteInternal(FPCGContext* InContext) const
 			const FVector Start = Point.Transform.GetLocation();
 
 			TArray<PCGExGraph::FSocketProbe> Probes;
-			if (Settings->bDrawSocketCones || Settings->bDrawSocketBox) { Settings->GraphSolver->PrepareProbesForPoint(Context->SocketInfos, Point, Probes); }
+			if ((Settings->bDrawSocketCones || Settings->bDrawSocketBox) && Context->GraphSolver) { Context->GraphSolver->PrepareProbesForPoint(Context->SocketInfos, Point, Probes); }
 
 			for (const PCGExGraph::FSocketInfos& SocketInfos : Context->SocketInfos)
 			{
 				const PCGExGraph::FSocketMetadata SocketMetadata = SocketInfos.Socket->GetData(Point.MetadataEntry);
 
-				if (Settings->bDrawSocketCones)
+				if (Settings->bDrawSocketCones && Context->GraphSolver)
 				{
 					for (PCGExGraph::FSocketProbe Probe : Probes)
 					{
@@ -114,7 +127,7 @@ bool FPCGExDrawGraphElement::ExecuteInternal(FPCGContext* InContext) const
 					}
 				}
 
-				if (Settings->bDrawSocketBox)
+				if (Settings->bDrawSocketBox && Context->GraphSolver)
 				{
 					for (PCGExGraph::FSocketProbe Probe : Probes)
 					{
