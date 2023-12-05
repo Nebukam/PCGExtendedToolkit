@@ -5,6 +5,7 @@
 
 #define LOCTEXT_NAMESPACE "PCGExSampleNearestSurfaceElement"
 
+
 PCGExPointIO::EInit UPCGExSampleNearestSurfaceSettings::GetPointOutputInitMode() const { return PCGExPointIO::EInit::DuplicateInput; }
 
 int32 UPCGExSampleNearestSurfaceSettings::GetPreferredChunkSize() const { return 32; }
@@ -60,6 +61,18 @@ bool FPCGExSampleNearestSurfaceElement::ExecuteInternal(FPCGContext* InContext) 
 	{
 		if (!Validate(Context)) { return true; }
 		if (Context->bIgnoreSelf) { Context->IgnoredActors.Add(Context->SourceComponent->GetOwner()); }
+
+		const UPCGExSampleNearestSurfaceSettings* Settings = Context->GetInputSettings<UPCGExSampleNearestSurfaceSettings>();
+		check(Settings);
+
+		if (Settings->bIgnoreActors)
+		{
+			const TFunction<bool(const AActor*)> BoundsCheck = [](const AActor*) -> bool { return true; };
+			const TFunction<bool(const AActor*)> SelfIgnoreCheck = [](const AActor*) -> bool { return true; };
+			const TArray<AActor*> IgnoredActors = PCGExActorSelector::FindActors(Settings->IgnoredActorSelector, Context->SourceComponent.Get(), BoundsCheck, SelfIgnoreCheck);
+			Context->IgnoredActors.Append(IgnoredActors);
+		}
+
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
@@ -83,11 +96,7 @@ bool FPCGExSampleNearestSurfaceElement::ExecuteInternal(FPCGContext* InContext) 
 
 		auto ProcessPoint = [&](int32 PointIndex, const UPCGExPointIO* PointIO)
 		{
-			FAsyncTask<FSweepSphereTask>* AsyncTask = Context->GetAsyncManager()->CreateTask<FSweepSphereTask>(PointIndex, PointIO->GetOutPoint(PointIndex).MetadataEntry);
-			FSweepSphereTask& Task = AsyncTask->GetTask();
-			Task.RangeMax = Context->RangeMax; //TODO: Localize range
-			Task.PointIO = Context->CurrentIO;
-			Context->GetAsyncManager()->StartTask(AsyncTask);
+			Context->GetAsyncManager()->StartTask<FSweepSphereTask>(PointIndex, PointIO->GetOutPoint(PointIndex).MetadataEntry, Context->CurrentIO);
 		};
 
 		if (Context->ProcessCurrentPoints(Initialize, ProcessPoint)) { Context->StartAsyncWait(); }
@@ -107,9 +116,9 @@ bool FPCGExSampleNearestSurfaceElement::ExecuteInternal(FPCGContext* InContext) 
 	return false;
 }
 
-void FSweepSphereTask::ExecuteTask()
+bool FSweepSphereTask::ExecuteTask()
 {
-	if (!IsTaskValid()) { return; }
+	if (!CanContinue()) { return false; }
 
 	const FPCGExSampleNearestSurfaceContext* Context = Manager->GetContext<FPCGExSampleNearestSurfaceContext>();
 	const FPCGPoint& InPoint = PointIO->GetInPoint(TaskInfos.Index);
@@ -119,7 +128,7 @@ void FSweepSphereTask::ExecuteTask()
 	CollisionParams.bTraceComplex = false;
 	CollisionParams.AddIgnoredActors(Context->IgnoredActors);
 
-	const FCollisionShape CollisionShape = FCollisionShape::MakeSphere(RangeMax);
+	const FCollisionShape CollisionShape = FCollisionShape::MakeSphere(Context->RangeMax);
 
 	FVector HitLocation;
 	bool bSuccess = false;
@@ -149,7 +158,7 @@ void FSweepSphereTask::ExecuteTask()
 
 		if (bSuccess)
 		{
-			if (!IsTaskValid()) { return; }
+			if (!CanContinue()) { return; }
 			const FVector Direction = (HitLocation - Origin).GetSafeNormal();
 			PCGEX_SET_OUT_ATTRIBUTE(Location, TaskInfos.Key, HitLocation)
 			PCGEX_SET_OUT_ATTRIBUTE(Normal, TaskInfos.Key, Direction*-1) // TODO: expose "precise normal" in which case we line trace to location
@@ -158,7 +167,7 @@ void FSweepSphereTask::ExecuteTask()
 		}
 	};
 
-	if (!IsTaskValid()) { return; }
+	if (!CanContinue()) { return false; }
 
 	switch (Context->CollisionType)
 	{
@@ -183,9 +192,9 @@ void FSweepSphereTask::ExecuteTask()
 	default: ;
 	}
 
-	if (!IsTaskValid()) { return; }
+	if (!CanContinue()) { return false; }
 	PCGEX_SET_OUT_ATTRIBUTE(Success, TaskInfos.Key, bSuccess)
-	ExecutionComplete(bSuccess);
+	return bSuccess;
 }
 
 #undef LOCTEXT_NAMESPACE

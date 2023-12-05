@@ -41,3 +41,15 @@ UPCGExMetadataBlender* UPCGExSubPointsDataBlend::CreateBlender(const UPCGPointDa
 	NewBlender->PrepareForData(InPrimaryData, InSecondaryData, BlendingOverrides);
 	return NewBlender;
 }
+
+void UPCGExSubPointsDataBlend::BeginDestroy()
+{
+	if (InternalBlender)
+	{
+		InternalBlender->Flush();
+		InternalBlender->ConditionalBeginDestroy();
+	}
+
+	InternalBlender = nullptr;
+	Super::BeginDestroy();
+}

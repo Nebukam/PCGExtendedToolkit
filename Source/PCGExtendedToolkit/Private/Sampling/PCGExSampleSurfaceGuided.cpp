@@ -2,6 +2,7 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Sampling/PCGExSampleSurfaceGuided.h"
+#include "Elements/PCGActorSelector.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSampleSurfaceGuidedElement"
 
@@ -61,6 +62,17 @@ bool FPCGExSampleSurfaceGuidedElement::ExecuteInternal(FPCGContext* InContext) c
 	{
 		if (!Validate(Context)) { return true; }
 		if (Context->bIgnoreSelf) { Context->IgnoredActors.Add(Context->SourceComponent->GetOwner()); }
+		const UPCGExSampleSurfaceGuidedSettings* Settings = Context->GetInputSettings<UPCGExSampleSurfaceGuidedSettings>();
+		check(Settings);
+
+		if (Settings->bIgnoreActors)
+		{
+			const TFunction<bool(const AActor*)> BoundsCheck = [](const AActor*) -> bool { return true; };
+			const TFunction<bool(const AActor*)> SelfIgnoreCheck = [](const AActor*) -> bool { return true; };
+			const TArray<AActor*> IgnoredActors = PCGExActorSelector::FindActors(Settings->IgnoredActorSelector, Context->SourceComponent.Get(), BoundsCheck, SelfIgnoreCheck);
+			Context->IgnoredActors.Append(IgnoredActors);
+		}
+
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
@@ -85,10 +97,7 @@ bool FPCGExSampleSurfaceGuidedElement::ExecuteInternal(FPCGContext* InContext) c
 
 		auto ProcessPoint = [&](const int32 PointIndex, const UPCGExPointIO* PointIO)
 		{
-			FAsyncTask<FTraceTask>* AsyncTask = Context->GetAsyncManager()->CreateTask<FTraceTask>(PointIndex, PointIO->GetOutPoint(PointIndex).MetadataEntry);
-			FTraceTask& Task = AsyncTask->GetTask();
-			Task.PointIO = Context->CurrentIO;
-			Context->GetAsyncManager()->StartTask(AsyncTask);
+			Context->GetAsyncManager()->StartTask<FTraceTask>(PointIndex, PointIO->GetOutPoint(PointIndex).MetadataEntry, Context->CurrentIO);
 		};
 
 		if (Context->ProcessCurrentPoints(Initialize, ProcessPoint)) { Context->StartAsyncWait(); }
@@ -108,9 +117,9 @@ bool FPCGExSampleSurfaceGuidedElement::ExecuteInternal(FPCGContext* InContext) c
 	return false;
 }
 
-void FTraceTask::ExecuteTask()
+bool FTraceTask::ExecuteTask()
 {
-	if (!IsTaskValid()) { return; }
+	if (!CanContinue()) { return false; }
 
 	const FPCGExSampleSurfaceGuidedContext* Context = Manager->GetContext<FPCGExSampleSurfaceGuidedContext>();
 	const FPCGPoint& InPoint = PointIO->GetInPoint(TaskInfos.Index);
@@ -135,7 +144,7 @@ void FTraceTask::ExecuteTask()
 		bSuccess = true;
 	};
 
-	if (!IsTaskValid()) { return; }
+	if (!CanContinue()) { return false; }
 
 	switch (Context->CollisionType)
 	{
@@ -160,7 +169,7 @@ void FTraceTask::ExecuteTask()
 	default: ;
 	}
 
-	if (!IsTaskValid()) { return; }
+	if (!CanContinue()) { return false; }
 
 	if (Context->bProjectFailToSize)
 	{
@@ -170,7 +179,7 @@ void FTraceTask::ExecuteTask()
 	}
 
 	PCGEX_SET_OUT_ATTRIBUTE(Success, TaskInfos.Key, bSuccess)
-	ExecutionComplete(bSuccess);
+	return bSuccess;
 }
 
 #undef LOCTEXT_NAMESPACE

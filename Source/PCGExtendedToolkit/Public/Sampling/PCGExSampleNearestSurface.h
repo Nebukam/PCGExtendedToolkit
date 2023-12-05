@@ -5,11 +5,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExActorSelector.h"
 
 #include "PCGExPointsProcessor.h"
 #include "PCGExSampling.h"
 
 #include "PCGExSampleNearestSurface.generated.h"
+
 
 /**
  * Use PCGExSampling to manipulate the outgoing attributes instead of handling everything here.
@@ -106,6 +108,12 @@ public:
 	/** Maximum number of attempts per point. Each attempt increases probing radius by (MaxDistance/NumMaxAttempts)*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision & Metrics")
 	int32 NumMaxAttempts = 256;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision & Metrics", meta=(InlineEditConditionToggle))
+	bool bIgnoreActors = false;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision & Metrics", meta=(EditCondition="bIgnoreActors"))
+	FPCGExActorSelectorSettings IgnoredActorSelector;
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestSurfaceContext : public FPCGExPointsProcessorContext
@@ -120,9 +128,9 @@ public:
 	FName ProfileName;
 	int32 CollisionObjectType;
 
-	bool bIgnoreSelf = true;	
+	bool bIgnoreSelf = true;
 	TArray<AActor*> IgnoredActors;
-	
+
 	PCGEX_OUT_ATTRIBUTE(Success, bool)
 	PCGEX_OUT_ATTRIBUTE(Location, FVector)
 	PCGEX_OUT_ATTRIBUTE(LookAt, FVector)
@@ -147,11 +155,10 @@ protected:
 class PCGEXTENDEDTOOLKIT_API FSweepSphereTask : public FPCGExCollisionTask
 {
 public:
-
-	FSweepSphereTask(UPCGExAsyncTaskManager* InManager, const PCGExMT::FTaskInfos& InInfos) :
-		FPCGExCollisionTask(InManager, InInfos)
+	FSweepSphereTask(UPCGExAsyncTaskManager* InManager, const PCGExMT::FTaskInfos& InInfos, UPCGExPointIO* InPointIO) :
+		FPCGExCollisionTask(InManager, InInfos, InPointIO)
 	{
 	}
 
-	virtual void ExecuteTask() override;
+	virtual bool ExecuteTask() override;
 };

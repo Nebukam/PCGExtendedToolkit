@@ -152,12 +152,10 @@ bool FPCGExSampleNavmeshElement::ExecuteInternal(FPCGContext* InContext) const
 		{
 			auto NavMeshTask = [&](int32 InGoalIndex)
 			{
-				FAsyncTask<FNavmeshPathTask>* AsyncTask = Context->GetAsyncManager()->CreateTask<FNavmeshPathTask>(PointIndex, PointIO->GetInPoint(PointIndex).MetadataEntry);
-				FNavmeshPathTask& Task = AsyncTask->GetTask();
-				Task.PointIO = Context->CurrentIO;
-				Task.GoalIndex = InGoalIndex;
-				Task.PathPoints = Context->OutputPaths->Emplace_GetRef(PointIO->In, PCGExPointIO::EInit::NewOutput);
-				Context->GetAsyncManager()->StartTask(AsyncTask);
+				UPCGExPointIO* PathPoints = Context->OutputPaths->Emplace_GetRef(PointIO->In, PCGExPointIO::EInit::NewOutput);
+				Context->GetAsyncManager()->StartTask<FNavmeshPathTask>(
+					PointIndex, PointIO->GetInPoint(PointIndex).MetadataEntry, Context->CurrentIO,
+					InGoalIndex, PathPoints);
 			};
 
 			if (Context->GoalPicker->OutputMultipleGoals())
@@ -195,16 +193,16 @@ bool FPCGExSampleNavmeshElement::ExecuteInternal(FPCGContext* InContext) const
 	return false;
 }
 
-void FNavmeshPathTask::ExecuteTask()
+bool FNavmeshPathTask::ExecuteTask()
 {
-	if (!IsTaskValid()) { return; }
+	if (!CanContinue()) { return false; }
 
-	FWriteScopeLock WriteLock(Manager->AsyncWorkLock);
 	FPCGExSampleNavmeshContext* Context = Manager->GetContext<FPCGExSampleNavmeshContext>();
+	//FWriteScopeLock WriteLock(Context->ContextLock);
 
 	bool bSuccess = false;
 
-	if (UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(World))
+	if (UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(Context->World))
 	{
 		const FPCGPoint& StartPoint = PointIO->GetInPoint(TaskInfos.Index);
 		const FPCGPoint& EndPoint = Context->GoalsPoints->GetInPoint(GoalIndex);
@@ -213,7 +211,7 @@ void FNavmeshPathTask::ExecuteTask()
 
 		// Find the path
 		FPathFindingQuery PathFindingQuery = FPathFindingQuery(
-			World, *Context->NavData,
+			Context->World, *Context->NavData,
 			StartLocation, EndLocation, nullptr, nullptr,
 			TNumericLimits<FVector::FReal>::Max(),
 			Context->bRequireNavigableEndLocation);
@@ -224,7 +222,7 @@ void FNavmeshPathTask::ExecuteTask()
 			Context->NavAgentProperties, PathFindingQuery,
 			Context->PathfindingMode == EPCGExPathfindingMode::Regular ? EPathFindingMode::Type::Regular : EPathFindingMode::Type::Hierarchical);
 
-		if (!IsTaskValid()) { return; }
+		if (!CanContinue()) { return false; }
 
 		if (Result.Result == ENavigationQueryResult::Type::Success)
 		{
@@ -255,10 +253,6 @@ void FNavmeshPathTask::ExecuteTask()
 				PathHelper.Add(CurrentLocation);
 			}
 
-			// TODO : Seed Indices start at 0 ... Num, Goal indices start at Num ... Goal Num >
-			// SubPoints processors use a view on indices to process, excluding start and end points.
-			// Thus, start and end don't need to be connected
-
 			if (PathLocations.Num() <= 2) // include start and end
 			{
 				bSuccess = false;
@@ -277,8 +271,10 @@ void FNavmeshPathTask::ExecuteTask()
 				TArrayView<FPCGPoint> Path = MakeArrayView(MutablePoints.GetData(), PathLocations.Num());
 
 				UPCGExMetadataBlender* TempBlender = Context->Blending->CreateBlender(PathPoints->Out, Context->GoalsPoints->In);
+				
 				Context->Blending->BlendSubPoints(StartPoint, EndPoint, Path, PathHelper, TempBlender);
-				TempBlender->ConditionalBeginDestroy();
+				
+				TempBlender->Flush();
 
 				// Remove start and/or end after blending
 				if (!Context->bAddSeedToPath) { MutablePoints.RemoveAt(0); }
@@ -289,7 +285,7 @@ void FNavmeshPathTask::ExecuteTask()
 		}
 	}
 
-	ExecutionComplete(bSuccess);
+	return bSuccess;
 }
 
 #undef LOCTEXT_NAMESPACE

@@ -4,11 +4,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExActorSelector.h"
 
 #include "PCGExPointsProcessor.h"
 #include "PCGExSampling.h"
 
 #include "PCGExSampleSurfaceGuided.generated.h"
+
 
 /**
  * Use PCGExSampling to manipulate the outgoing attributes instead of handling everything here.
@@ -103,6 +105,12 @@ public:
 	/** Ignore this graph' PCG content */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision & Metrics")
 	bool bIgnoreSelf = true;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision & Metrics", meta=(InlineEditConditionToggle))
+	bool bIgnoreActors = false;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision & Metrics", meta=(EditCondition="bIgnoreActors"))
+	FPCGExActorSelectorSettings IgnoredActorSelector;
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExSampleSurfaceGuidedContext : public FPCGExPointsProcessorContext
@@ -114,7 +122,7 @@ public:
 	TEnumAsByte<ECollisionChannel> CollisionChannel;
 	int32 CollisionObjectType;
 	FName ProfileName;
-	
+
 	bool bIgnoreSelf = true;
 	TArray<AActor*> IgnoredActors;
 
@@ -146,11 +154,10 @@ protected:
 class PCGEXTENDEDTOOLKIT_API FTraceTask : public FPCGExCollisionTask
 {
 public:
-	FTraceTask(UPCGExAsyncTaskManager* InManager, const PCGExMT::FTaskInfos& InInfos) :
-		FPCGExCollisionTask(InManager, InInfos)
+	FTraceTask(UPCGExAsyncTaskManager* InManager, const PCGExMT::FTaskInfos& InInfos, UPCGExPointIO* InPointIO) :
+		FPCGExCollisionTask(InManager, InInfos, InPointIO)
 	{
 	}
 
-	virtual void ExecuteTask() override;
-
+	virtual bool ExecuteTask() override;
 };

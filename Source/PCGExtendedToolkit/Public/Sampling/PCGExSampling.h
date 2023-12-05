@@ -56,6 +56,9 @@ enum class EPCGExAngleRange : uint8
 
 namespace PCGExSampling
 {
+	const FName SourceIgnoreActorsLabel = TEXT("InIgnoreActors");
+	const FName OutputSampledActorsLabel = TEXT("OutSampledActors");
+
 	static void GetAngle(const EPCGExAngleRange Mode, const FVector& A, const FVector& B, double& OutAngle)
 	{
 		const FVector N1 = A.GetSafeNormal();
@@ -107,17 +110,9 @@ class PCGEXTENDEDTOOLKIT_API FPCGExCollisionTask : public FPCGExAsyncTask
 public:
 	virtual ~FPCGExCollisionTask() = default;
 
-	FPCGExCollisionTask(
-		UPCGExAsyncTaskManager* InManager, const PCGExMT::FTaskInfos& InInfos) :
-	FPCGExAsyncTask(InManager, InInfos)
+	FPCGExCollisionTask(UPCGExAsyncTaskManager* InManager, const PCGExMT::FTaskInfos& InInfos, UPCGExPointIO* InPointIO) :
+		FPCGExAsyncTask(InManager, InInfos, InPointIO)
 	{
 	}
-
-	TArray<AActor*>* IgnoredActors;
-	double RangeMax = 1000;
-	EPCGExCollisionFilterType CollisionType = EPCGExCollisionFilterType::Channel;
-	TEnumAsByte<ECollisionChannel> CollisionChannel = ECC_WorldDynamic;
-	FName ProfileName = NAME_None;
-	int32 CollisionObjectType = ObjectTypeQuery1;
 
 };

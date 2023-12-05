@@ -119,10 +119,10 @@ protected:
 class PCGEXTENDEDTOOLKIT_API FPatchTask : public FPCGExAsyncTask
 {
 public:
-	FPatchTask(UPCGExAsyncTaskManager* InManager, const PCGExMT::FTaskInfos& InInfos) :
-		FPCGExAsyncTask(InManager, InInfos)
+	FPatchTask(UPCGExAsyncTaskManager* InManager, const PCGExMT::FTaskInfos& InInfos, UPCGExPointIO* InPointIO) :
+		FPCGExAsyncTask(InManager, InInfos, InPointIO)
 	{
 	}
 
-	virtual void ExecuteTask() override;
+	virtual bool ExecuteTask() override;
 };

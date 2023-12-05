@@ -6,23 +6,25 @@
 
 void UPCGExAsyncTaskManager::OnAsyncTaskExecutionComplete(FPCGExAsyncTask* AsyncTask, bool bSuccess)
 {
-	if (!IsValid()) { return; }
-	FWriteScopeLock WriteLock(AsyncUpdateLock);
-	NumAsyncTaskCompleted++;
+	//if (!IsValid()) { return; }
+	FWriteScopeLock WriteLock(ManagerLock);
+	NumCompleted++;
 }
 
-bool UPCGExAsyncTaskManager::IsAsyncWorkComplete()
+bool UPCGExAsyncTaskManager::IsAsyncWorkComplete() const
 {
-	FReadScopeLock ReadLock(AsyncCreateLock);
-	FReadScopeLock OtherReadLock(AsyncUpdateLock);
-	return NumAsyncTaskStarted == NumAsyncTaskCompleted;
+	FReadScopeLock ReadLock(ManagerLock);
+	//UE_LOG(LogTemp, Warning, TEXT(" %d / %d"), NumCompleted, NumStarted);
+	return NumCompleted == NumStarted;
 }
 
-bool UPCGExAsyncTaskManager::IsValid()
+bool UPCGExAsyncTaskManager::IsValid() const
 {
 	if (!Context ||
-		(Context->SourceComponent == nullptr || !Context->SourceComponent.IsValid() || Context->SourceComponent.IsStale(true, true)) ||
-		NumAsyncTaskStarted == 0)
+		Context->SourceComponent == nullptr ||
+		!Context->SourceComponent.IsValid() ||
+		Context->SourceComponent.IsStale(true, true) ||
+		NumStarted == 0)
 	{
 		return false;
 	}

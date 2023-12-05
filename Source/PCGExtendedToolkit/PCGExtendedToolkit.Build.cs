@@ -40,7 +40,8 @@ public class PCGExtendedToolkit : ModuleRules
 			new string[]
 			{
 				"Projects", // So that we can use the IPluginManager, required for icons
-                "DetailCustomizations"
+                "DetailCustomizations",
+                "PCG"
             }
 			);
 		

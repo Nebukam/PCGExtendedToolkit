@@ -23,9 +23,14 @@ void UPCGExPartitionByValuesSettings::PostEditChangeProperty(FPropertyChangedEve
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
 
+bool UPCGExPartitionByValuesSettings::GetMainPointsInputAcceptMultipleData() const { return false; }
+
 #endif
 
-FPCGElementPtr UPCGExPartitionByValuesSettings::CreateElement() const { return MakeShared<FPCGExPartitionByValuesElement>(); }
+FPCGElementPtr UPCGExPartitionByValuesSettings::CreateElement() const
+{
+	return MakeShared<FPCGExPartitionByValuesElement>();
+}
 
 PCGExPointIO::EInit UPCGExPartitionByValuesSettings::GetPointOutputInitMode() const
 {

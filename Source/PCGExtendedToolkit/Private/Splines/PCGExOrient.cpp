@@ -52,8 +52,9 @@ bool FPCGExOrientElement::ExecuteInternal(FPCGContext* InContext) const
 	return true;
 }
 
-void FOrientTask::ExecuteTask()
+bool FOrientTask::ExecuteTask()
 {
+	return true;
 }
 
 #undef LOCTEXT_NAMESPACE

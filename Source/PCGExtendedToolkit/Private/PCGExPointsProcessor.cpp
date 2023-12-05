@@ -215,7 +215,8 @@ void UPCGExPointsProcessorSettings::PostEditChangeProperty(FPropertyChangedEvent
 TArray<FPCGPinProperties> UPCGExPointsProcessorSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	FPCGPinProperties& PinPropertySource = PinProperties.Emplace_GetRef(GetMainPointsInputLabel(), EPCGDataType::Point);
+	bool bAcceptMultiple = GetMainPointsInputAcceptMultipleData();
+	FPCGPinProperties& PinPropertySource = PinProperties.Emplace_GetRef(GetMainPointsInputLabel(), EPCGDataType::Point, bAcceptMultiple, bAcceptMultiple);
 
 #if WITH_EDITOR
 	PinPropertySource.Tooltip = LOCTEXT("PCGExSourcePointsPinTooltip", "The point data to be processed.");
@@ -239,6 +240,8 @@ TArray<FPCGPinProperties> UPCGExPointsProcessorSettings::OutputPinProperties() c
 FName UPCGExPointsProcessorSettings::GetMainPointsOutputLabel() const { return PCGEx::OutputPointsLabel; }
 FName UPCGExPointsProcessorSettings::GetMainPointsInputLabel() const { return PCGEx::SourcePointsLabel; }
 
+bool UPCGExPointsProcessorSettings::GetMainPointsInputAcceptMultipleData() const { return true; }
+
 PCGExPointIO::EInit UPCGExPointsProcessorSettings::GetPointOutputInitMode() const { return PCGExPointIO::EInit::NewOutput; }
 
 int32 UPCGExPointsProcessorSettings::GetPreferredChunkSize() const { return 256; }
@@ -258,7 +261,7 @@ bool FPCGExPointsProcessorContext::AdvancePointsIO()
 void FPCGExPointsProcessorContext::Done()
 {
 	SetState(PCGExMT::State_Done);
-	if(AsyncManager)
+	if (AsyncManager)
 	{
 		AsyncManager->ConditionalBeginDestroy();
 		AsyncManager = nullptr;
@@ -298,7 +301,7 @@ bool FPCGExPointsProcessorContext::ProcessCurrentPoints(TFunction<void(const int
 
 UPCGExAsyncTaskManager* FPCGExPointsProcessorContext::GetAsyncManager()
 {
-	if(!AsyncManager)
+	if (!AsyncManager)
 	{
 		FWriteScopeLock WriteLock(ContextLock);
 		AsyncManager = NewObject<UPCGExAsyncTaskManager>();
@@ -348,7 +351,7 @@ void FPCGExPointsProcessorElementBase::InitializeContext(
 
 	const UPCGExPointsProcessorSettings* Settings = InContext->GetInputSettings<UPCGExPointsProcessorSettings>();
 	check(Settings);
-
+	
 	InContext->bDoAsyncProcessing = Settings->bDoAsyncProcessing;
 	InContext->ChunkSize = FMath::Max(Settings->ChunkSize, 1);
 

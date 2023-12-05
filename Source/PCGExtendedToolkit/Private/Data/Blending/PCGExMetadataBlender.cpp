@@ -45,12 +45,32 @@ void UPCGExMetadataBlender::ResetToDefaults(const PCGMetadataEntryKey InPrimaryO
 	for (const UPCGExDataBlendingOperation* Op : Attributes) { Op->ResetToDefault(InPrimaryOutputKey); }
 }
 
+void UPCGExMetadataBlender::Flush()
+{
+	for (UPCGExDataBlendingOperation* Op : Attributes)
+	{
+		Op->Flush();
+		Op->ConditionalBeginDestroy();
+	}
+	
+	BlendingOverrides.Empty();
+	Attributes.Empty();
+	AttributesToBePrepared.Empty();
+	AttributesToBeFinalized.Empty();
+}
+
+void UPCGExMetadataBlender::BeginDestroy()
+{
+	Flush();
+	UObject::BeginDestroy();
+}
+
 void UPCGExMetadataBlender::InternalPrepareForData(const UPCGPointData* InPrimaryData, const UPCGPointData* InSecondaryData, const TMap<FName, EPCGExDataBlendingType>& OperationTypeOverrides)
 {
-	for (UPCGExDataBlendingOperation* Op : Attributes) { Op->ConditionalBeginDestroy(); }
+	Flush();
 
 	BlendingOverrides = OperationTypeOverrides;
-	
+
 	TArray<PCGEx::FAttributeIdentity> Identities;
 	TSet<FName> Mismatch;
 

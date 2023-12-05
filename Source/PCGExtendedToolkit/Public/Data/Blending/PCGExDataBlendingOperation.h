@@ -19,7 +19,8 @@ virtual void StrongTypeAttributes() override;\
 FPCGMetadataAttribute<_TYPE>* PrimaryAttribute;\
 FPCGMetadataAttribute<_TYPE>* SecondaryAttribute;\
 inline virtual _TYPE GetPrimaryValue(const PCGMetadataAttributeKey& Key) const;\
-inline virtual _TYPE GetSecondaryValue(const PCGMetadataAttributeKey& Key) const;
+inline virtual _TYPE GetSecondaryValue(const PCGMetadataAttributeKey& Key) const;\
+virtual void Flush() override;
 
 #define PCGEX_SAO_CLASS(_TYPE, _NAME) \
 UCLASS(Blueprintable, EditInlineNew, HideDropdown) \
@@ -48,7 +49,8 @@ public:
 	virtual void DoOperation(const PCGMetadataEntryKey InPrimaryKey, const PCGMetadataEntryKey InSecondaryKey, const PCGMetadataEntryKey InPrimaryOutputKey, const double Alpha = 0) const;
 	virtual void FinalizeOperation(const PCGMetadataEntryKey InPrimaryOutputKey, double Alpha) const;
 	virtual void ResetToDefault(const PCGMetadataEntryKey InPrimaryOutputKey) const;
-
+	virtual void Flush();
+	
 protected:
 	FName AttributeName = NAME_None;
 	FPCGMetadataAttributeBase* PrimaryBaseAttribute;

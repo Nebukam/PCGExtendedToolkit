@@ -138,13 +138,16 @@ protected:
 class PCGEXTENDEDTOOLKIT_API FNavmeshPathTask : public FPCGExAsyncTask
 {
 public:
-	FNavmeshPathTask(UPCGExAsyncTaskManager* InManager, const PCGExMT::FTaskInfos& InInfos) :
-		FPCGExAsyncTask(InManager, InInfos)
+	FNavmeshPathTask(
+		UPCGExAsyncTaskManager* InManager, const PCGExMT::FTaskInfos& InInfos, UPCGExPointIO* InPointIO,
+		int32 InGoalIndex, UPCGExPointIO* InPathPoints) :
+		FPCGExAsyncTask(InManager, InInfos, InPointIO),
+		GoalIndex(InGoalIndex), PathPoints(InPathPoints)
 	{
 	}
 
 	int32 GoalIndex = -1;
 	UPCGExPointIO* PathPoints;
 
-	virtual void ExecuteTask() override;
+	virtual bool ExecuteTask() override;
 };

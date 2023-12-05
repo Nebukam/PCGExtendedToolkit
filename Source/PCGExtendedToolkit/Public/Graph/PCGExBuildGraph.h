@@ -80,10 +80,10 @@ protected:
 class PCGEXTENDEDTOOLKIT_API FProbeTask : public FPCGExAsyncTask
 {
 public:
-	FProbeTask(UPCGExAsyncTaskManager* InManager, const PCGExMT::FTaskInfos& InInfos) :
-		FPCGExAsyncTask(InManager, InInfos)
+	FProbeTask(UPCGExAsyncTaskManager* InManager, const PCGExMT::FTaskInfos& InInfos, UPCGExPointIO* InPointIO) :
+		FPCGExAsyncTask(InManager, InInfos, InPointIO)
 	{
 	}
 
-	virtual void ExecuteTask() override;
+	virtual bool ExecuteTask() override;
 };

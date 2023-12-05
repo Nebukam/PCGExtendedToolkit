@@ -58,11 +58,11 @@ protected:
 class PCGEXTENDEDTOOLKIT_API FOrientTask : public FPCGExAsyncTask
 {
 public:
-	FOrientTask(UPCGExAsyncTaskManager* InManager, const PCGExMT::FTaskInfos& InInfos) :
-		FPCGExAsyncTask(InManager, InInfos)
+	FOrientTask(UPCGExAsyncTaskManager* InManager, const PCGExMT::FTaskInfos& InInfos, UPCGExPointIO* InPointIO) :
+		FPCGExAsyncTask(InManager, InInfos, InPointIO)
 	{
 	}
 
-	virtual void ExecuteTask() override;
+	virtual bool ExecuteTask() override;
 
 };

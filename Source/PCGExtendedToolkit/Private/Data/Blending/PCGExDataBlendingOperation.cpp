@@ -40,13 +40,20 @@ void UPCGExDataBlendingOperation::StrongTypeAttributes()
 	
 }
 
+void UPCGExDataBlendingOperation::Flush()
+{
+	PrimaryBaseAttribute = nullptr;
+	SecondaryBaseAttribute = nullptr;
+}
+
 #define PCGEX_SAO_PREPAREDATA(_TYPE, _NAME)\
 void UPCGExBlend##_NAME##Base::ResetToDefault(PCGMetadataEntryKey InPrimaryOutputKey) const { if(PrimaryBaseAttribute->HasNonDefaultValue(InPrimaryOutputKey)){PrimaryAttribute->SetValue(InPrimaryOutputKey, PrimaryAttribute->GetValue(PCGDefaultValueKey));} }\
 void UPCGExBlend##_NAME##Base::StrongTypeAttributes() {\
 PrimaryAttribute = static_cast<FPCGMetadataAttribute<_TYPE>*>(PrimaryBaseAttribute);\
 SecondaryAttribute = static_cast<FPCGMetadataAttribute<_TYPE>*>(SecondaryBaseAttribute); }\
 _TYPE UPCGExBlend##_NAME##Base::GetPrimaryValue(const PCGMetadataAttributeKey& Key) const { return PrimaryAttribute->GetValueFromItemKey(Key); };\
-_TYPE UPCGExBlend##_NAME##Base::GetSecondaryValue(const PCGMetadataAttributeKey& Key) const { return SecondaryAttribute->GetValueFromItemKey(Key); };
+_TYPE UPCGExBlend##_NAME##Base::GetSecondaryValue(const PCGMetadataAttributeKey& Key) const { return SecondaryAttribute->GetValueFromItemKey(Key); };\
+void UPCGExBlend##_NAME##Base::Flush(){Super::Flush(); PrimaryAttribute = nullptr; SecondaryAttribute = nullptr;}
 
 PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_SAO_PREPAREDATA)
 

@@ -31,6 +31,8 @@ public:
 
 	UPCGExMetadataBlender* CreateBlender(const UPCGPointData* InPrimaryData, const UPCGPointData* InSecondaryData);
 
+	virtual void BeginDestroy() override;
+	
 protected:
 	virtual EPCGExDataBlendingType GetDefaultBlending();
 	UPCGExMetadataBlender* InternalBlender;

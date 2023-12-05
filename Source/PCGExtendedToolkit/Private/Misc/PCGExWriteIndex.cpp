@@ -94,6 +94,7 @@ bool FPCGExWriteIndexElement::ExecuteInternal(FPCGContext* InContext) const
 			{
 				const FPCGPoint& Point = PointIO->GetOutPoint(Index);
 				FPCGMetadataAttribute<int64>* IndexAttribute = *(Context->AttributeMap.Find(PointIO));
+				check(IndexAttribute);
 				IndexAttribute->SetValue(Point.MetadataEntry, Index);
 			};
 

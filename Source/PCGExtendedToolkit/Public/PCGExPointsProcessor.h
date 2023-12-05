@@ -122,6 +122,7 @@ public:
 	//~End UPCGSettings interface
 
 	virtual FName GetMainPointsInputLabel() const;
+	virtual bool GetMainPointsInputAcceptMultipleData() const;
 	virtual FName GetMainPointsOutputLabel() const;
 	virtual PCGExPointIO::EInit GetPointOutputInitMode() const;
 
@@ -202,9 +203,6 @@ public:
 	}
 
 protected:
-	mutable FRWLock AsyncCreateLock;
-	mutable FRWLock AsyncUpdateLock;
-
 	UPCGExAsyncTaskManager* AsyncManager = nullptr;
 
 	PCGEx::FPointLoop ChunkedPointLoop;

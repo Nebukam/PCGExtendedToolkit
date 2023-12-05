@@ -73,11 +73,11 @@ class PCGEXTENDEDTOOLKIT_API UPCGExMetadataBlender : public UObject
 
 public:
 	EPCGExDataBlendingType DefaultOperation = EPCGExDataBlendingType::Copy;
-
+	
 	void PrepareForData(
 		const UPCGPointData* InPrimaryData,
 		const UPCGPointData* InSecondaryData = nullptr);
-
+	
 	/**
 	 * 
 	 * @param InPrimaryData 
@@ -95,6 +95,9 @@ public:
 	void DoOperations(const PCGMetadataEntryKey InPrimaryKey, const PCGMetadataEntryKey InSecondaryKey, const PCGMetadataEntryKey InPrimaryOutputKey, const double Alpha = 0) const;
 	void FinalizeOperations(PCGMetadataEntryKey InPrimaryOutputKey, double Alpha) const;
 	void ResetToDefaults(PCGMetadataEntryKey InPrimaryOutputKey) const;
+	void Flush();
+
+	virtual void BeginDestroy() override;
 	
 protected:
 	TMap<FName, EPCGExDataBlendingType> BlendingOverrides;

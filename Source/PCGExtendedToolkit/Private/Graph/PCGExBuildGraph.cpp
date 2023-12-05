@@ -91,10 +91,7 @@ bool FPCGExBuildGraphElement::ExecuteInternal(
 
 		auto ProcessPoint = [&](const int32 PointIndex, const UPCGExPointIO* PointIO)
 		{
-			FAsyncTask<FProbeTask>* AsyncTask = Context->GetAsyncManager()->CreateTask<FProbeTask>(PointIndex, PointIO->GetInPoint(PointIndex).MetadataEntry);
-			FProbeTask& Task = AsyncTask->GetTask();
-			Task.PointIO = Context->CurrentIO;
-			Context->GetAsyncManager()->StartTask(AsyncTask);
+			Context->GetAsyncManager()->StartTask<FProbeTask>(PointIndex, PointIO->GetInPoint(PointIndex).MetadataEntry, Context->CurrentIO);			
 		};
 
 		if (Context->ProcessCurrentPoints(Initialize, ProcessPoint)) { Context->StartAsyncWait(); }
@@ -132,10 +129,10 @@ bool FPCGExBuildGraphElement::ExecuteInternal(
 	return false;
 }
 
-void FProbeTask::ExecuteTask()
+bool FProbeTask::ExecuteTask()
 {
-	if (!IsTaskValid()) { return; }
-	
+	if (!CanContinue()) { return false; }
+
 	const FPCGExBuildGraphContext* Context = Manager->GetContext<FPCGExBuildGraphContext>();
 
 	const FPCGPoint& Point = PointIO->GetOutPoint(TaskInfos.Index);
@@ -168,7 +165,7 @@ void FProbeTask::ExecuteTask()
 		}
 	}
 
-	if (!IsTaskValid()) { return; }
+	if (!CanContinue()) { return false; }
 	
 	const PCGMetadataEntryKey Key = Point.MetadataEntry;
 	for (PCGExGraph::FSocketProbe& Probe : Probes)
@@ -177,7 +174,7 @@ void FProbeTask::ExecuteTask()
 		Probe.OutputTo(Key);
 	}
 
-	ExecutionComplete(true);
+	return true;
 }
 
 #undef LOCTEXT_NAMESPACE

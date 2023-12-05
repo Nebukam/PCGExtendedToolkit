@@ -93,7 +93,7 @@ bool FPCGExPartitionGraphPatchesElement::ExecuteInternal(
 
 		auto ProcessPoint = [&](const int32 PointIndex, const UPCGExPointIO* PointIO)
 		{
-			Context->GetAsyncManager()->CreateAndStartTask<FPatchTask>(PointIndex, PointIO->GetInPoint(PointIndex).MetadataEntry);
+			Context->GetAsyncManager()->StartTask<FPatchTask>(PointIndex, PointIO->GetInPoint(PointIndex).MetadataEntry, nullptr);
 		};
 
 		if (Context->ProcessCurrentPoints(Initialize, ProcessPoint)) { Context->StartAsyncWait(); }
@@ -117,11 +117,11 @@ bool FPCGExPartitionGraphPatchesElement::ExecuteInternal(
 	return false;
 }
 
-void FPatchTask::ExecuteTask()
+bool FPatchTask::ExecuteTask()
 {
 	const FPCGExPartitionGraphPatchesContext* Context = Manager->GetContext<FPCGExPartitionGraphPatchesContext>();
 	Context->Patches->Distribute(TaskInfos.Index);
-	ExecutionComplete(true);
+	return true;
 }
 
 #undef LOCTEXT_NAMESPACE
