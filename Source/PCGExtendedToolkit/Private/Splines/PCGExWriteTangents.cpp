@@ -22,9 +22,12 @@ FPCGContext* FPCGExWriteTangentsElement::Initialize(const FPCGDataCollection& In
 	const UPCGExWriteTangentsSettings* Settings = Context->GetInputSettings<UPCGExWriteTangentsSettings>();
 	check(Settings);
 
-	Context->Tangents = Settings->EnsureInstruction<UPCGExAutoTangents>(Settings->Tangents, Context);
-	Context->Tangents->ArriveName = Settings->ArriveName;
-	Context->Tangents->LeaveName = Settings->LeaveName;
+	UPCGExAutoTangents* Tangents = Settings->EnsureInstruction<UPCGExAutoTangents>(Settings->Tangents, Context);
+	Tangents->ArriveName = Settings->ArriveName;
+	Tangents->LeaveName = Settings->LeaveName;
+
+	Context->Tangents = Tangents;
+
 	return Context;
 }
 

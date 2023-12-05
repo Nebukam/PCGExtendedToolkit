@@ -29,7 +29,6 @@ FPCGContext* FPCGExBuildGraphElement::Initialize(
 	const UPCGExBuildGraphSettings* Settings = Context->GetInputSettings<UPCGExBuildGraphSettings>();
 	check(Settings);
 
-	Context->bComputeEdgeType = Settings->bComputeEdgeType;
 	Context->GraphSolver = Settings->EnsureInstruction<UPCGExGraphSolver>(Settings->GraphSolver, Context);
 
 	return Context;
@@ -86,12 +85,12 @@ bool FPCGExBuildGraphElement::ExecuteInternal(
 	{
 		auto Initialize = [&](const UPCGExPointIO* PointIO)
 		{
-			Context->PrepareCurrentGraphForPoints(PointIO->Out, Context->bComputeEdgeType);
+			Context->PrepareCurrentGraphForPoints(PointIO->Out, true);
 		};
 
 		auto ProcessPoint = [&](const int32 PointIndex, const UPCGExPointIO* PointIO)
 		{
-			Context->GetAsyncManager()->StartTask<FProbeTask>(PointIndex, PointIO->GetInPoint(PointIndex).MetadataEntry, Context->CurrentIO);			
+			Context->GetAsyncManager()->StartTask<FProbeTask>(PointIndex, PointIO->GetInPoint(PointIndex).MetadataEntry, Context->CurrentIO);
 		};
 
 		if (Context->ProcessCurrentPoints(Initialize, ProcessPoint)) { Context->StartAsyncWait(); }
@@ -99,11 +98,7 @@ bool FPCGExBuildGraphElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
 	{
-		if (Context->IsAsyncWorkComplete())
-		{
-			if (Context->bComputeEdgeType) { Context->StopAsyncWait(PCGExGraph::State_FindingEdgeTypes); }
-			else { Context->StopAsyncWait(PCGExGraph::State_ReadyForNextGraph); }
-		}
+		if (Context->IsAsyncWorkComplete()) { Context->StopAsyncWait(PCGExGraph::State_FindingEdgeTypes); }
 	}
 
 	if (Context->IsState(PCGExGraph::State_FindingEdgeTypes))
@@ -114,10 +109,7 @@ bool FPCGExBuildGraphElement::ExecuteInternal(
 			ComputeEdgeType(Context->SocketInfos, PointIO->GetOutPoint(PointIndex), PointIndex, PointIO);
 		};
 
-		if (Context->ProcessCurrentPoints(ProcessPointEdgeType))
-		{
-			Context->SetState(PCGExGraph::State_ReadyForNextGraph);
-		}
+		if (Context->ProcessCurrentPoints(ProcessPointEdgeType)) { Context->SetState(PCGExGraph::State_ReadyForNextGraph); }
 	}
 
 	if (Context->IsDone())
@@ -166,7 +158,7 @@ bool FProbeTask::ExecuteTask()
 	}
 
 	if (!CanContinue()) { return false; }
-	
+
 	const PCGMetadataEntryKey Key = Point.MetadataEntry;
 	for (PCGExGraph::FSocketProbe& Probe : Probes)
 	{

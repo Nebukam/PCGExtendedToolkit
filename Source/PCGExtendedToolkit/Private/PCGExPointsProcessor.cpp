@@ -208,7 +208,6 @@ UPCGExPointsProcessorSettings::UPCGExPointsProcessorSettings(const FObjectInitia
 
 void UPCGExPointsProcessorSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
-	if (ChunkSize <= 0) { ChunkSize = UPCGExPointsProcessorSettings::GetPreferredChunkSize(); }
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
 
@@ -351,9 +350,9 @@ void FPCGExPointsProcessorElementBase::InitializeContext(
 
 	const UPCGExPointsProcessorSettings* Settings = InContext->GetInputSettings<UPCGExPointsProcessorSettings>();
 	check(Settings);
-	
+
 	InContext->bDoAsyncProcessing = Settings->bDoAsyncProcessing;
-	InContext->ChunkSize = FMath::Max(Settings->ChunkSize, 1);
+	InContext->ChunkSize = FMath::Max((Settings->ChunkSize <= 0 ? Settings->GetPreferredChunkSize() : Settings->ChunkSize), 1);
 
 	InContext->ChunkedPointLoop = InContext->MakePointLoop<PCGEx::FPointLoop>();
 	InContext->AsyncPointLoop = InContext->MakePointLoop<PCGEx::FAsyncPointLoop>();
@@ -364,16 +363,10 @@ void FPCGExPointsProcessorElementBase::InitializeContext(
 
 	TArray<FPCGTaggedData> Sources = InContext->InputData.GetInputsByPin(Settings->GetMainPointsInputLabel());
 	InContext->MainPoints->Initialize(
-		InContext,
-		Sources,
-		Settings->GetPointOutputInitMode(),
+		InContext, Sources, Settings->GetPointOutputInitMode(),
 		[&InContext](UPCGPointData* Data) { return InContext->ValidatePointDataInput(Data); },
 		[&InContext](UPCGExPointIO* PointIO) { return InContext->PostInitPointDataInput(PointIO); });
 
-	//	UPCGExPointsProcessorSettings* MutableSettings = const_cast<UPCGExPointsProcessorSettings*>(Settings);
-	//	PCGEx::FPinAttributeInfos* SourceInfos = MutableSettings->GetInputAttributeInfos(Settings->GetMainPointsInputLabel());
-	//	SourceInfos->Reset();
-	//	for (const UPCGExPointIO* PointIO : InContext->Points->Pairs) { SourceInfos->Discover(PointIO->In); }
 }
 
 #undef LOCTEXT_NAMESPACE

@@ -34,10 +34,6 @@ protected:
 	//~End UPCGSettings interface
 
 public:
-	/** Compute edge types internally. If you don't need edge types, set it to false to save some cycles.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
-	bool bComputeEdgeType = true;
-
 	/** Ignores candidates weighting pass and always favors the closest one.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced)
 	UPCGExGraphSolver* GraphSolver;
@@ -58,7 +54,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBuildGraphContext : public FPCGExGraphProces
 
 public:
 	UPCGExGraphSolver* GraphSolver;
-	bool bComputeEdgeType = true;
 	bool bMoveSocketOriginOnPointExtent = false;
 
 	UPCGPointData::PointOctree* Octree = nullptr;

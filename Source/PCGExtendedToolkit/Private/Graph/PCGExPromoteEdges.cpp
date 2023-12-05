@@ -59,7 +59,7 @@ bool FPCGExPromoteEdgesElement::ExecuteInternal(
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExEdgesToPathsElement::Execute);
 
 	FPCGExPromoteEdgesContext* Context = static_cast<FPCGExPromoteEdgesContext*>(InContext);
-
+	
 	if (Context->IsSetup())
 	{
 		if (!Validate(Context)) { return true; }

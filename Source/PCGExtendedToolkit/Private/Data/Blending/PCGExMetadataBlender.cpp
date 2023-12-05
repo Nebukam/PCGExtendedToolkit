@@ -67,8 +67,8 @@ void UPCGExMetadataBlender::BeginDestroy()
 
 void UPCGExMetadataBlender::InternalPrepareForData(const UPCGPointData* InPrimaryData, const UPCGPointData* InSecondaryData, const TMap<FName, EPCGExDataBlendingType>& OperationTypeOverrides)
 {
+	
 	Flush();
-
 	BlendingOverrides = OperationTypeOverrides;
 
 	TArray<PCGEx::FAttributeIdentity> Identities;

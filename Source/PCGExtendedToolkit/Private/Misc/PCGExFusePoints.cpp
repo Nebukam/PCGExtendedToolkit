@@ -62,10 +62,6 @@ FPCGContext* FPCGExFusePointsElement::Initialize(
 	const UPCGExFusePointsSettings* Settings = Context->GetInputSettings<UPCGExFusePointsSettings>();
 	check(Settings);
 
-	Context->Radius = FMath::Pow(Settings->Radius, 2);
-	Context->bComponentWiseRadius = Settings->bComponentWiseRadius;
-	Context->Radiuses = Settings->Radiuses;
-
 	Context->BlendingOverrides = Settings->AttributeBlendingOverrides;
 	Context->Blender = NewObject<UPCGExMetadataBlender>();
 	Context->Blender->DefaultOperation = Settings->Blending;
@@ -82,7 +78,9 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExFusePointsElement::Execute);
 
 	FPCGExFusePointsContext* Context = static_cast<FPCGExFusePointsContext*>(InContext);
-
+	const UPCGExFusePointsSettings* Settings = Context->GetInputSettings<UPCGExFusePointsSettings>();
+	check(Settings);
+	
 	if (Context->IsSetup())
 	{
 		if (!Validate(Context)) { return true; }
@@ -101,6 +99,7 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsState(PCGExFuse::State_FindingRootPoints))
 	{
+		
 		auto Initialize = [&](UPCGExPointIO* PointIO)
 		{
 			Context->FusedPoints.Reset(PointIO->NumInPoints);
@@ -115,13 +114,13 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 			PCGExFuse::FFusedPoint* FuseTarget = nullptr;
 
 			Context->PointsLock.ReadLock();
-			if (Context->bComponentWiseRadius)
+			if (Settings->bComponentWiseRadius)
 			{
 				for (PCGExFuse::FFusedPoint& FusedPoint : Context->FusedPoints)
 				{
-					if (abs(PtPosition.X - FusedPoint.Position.X) <= Context->Radiuses.X &&
-						abs(PtPosition.Y - FusedPoint.Position.Y) <= Context->Radiuses.Y &&
-						abs(PtPosition.Z - FusedPoint.Position.Z) <= Context->Radiuses.Z)
+					if (abs(PtPosition.X - FusedPoint.Position.X) <= Settings->Radiuses.X &&
+						abs(PtPosition.Y - FusedPoint.Position.Y) <= Settings->Radiuses.Y &&
+						abs(PtPosition.Z - FusedPoint.Position.Z) <= Settings->Radiuses.Z)
 					{
 						Distance = FVector::DistSquared(FusedPoint.Position, PtPosition);
 						FuseTarget = &FusedPoint;
@@ -134,7 +133,7 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 				for (PCGExFuse::FFusedPoint& FusedPoint : Context->FusedPoints)
 				{
 					Distance = FVector::DistSquared(FusedPoint.Position, PtPosition);
-					if (Distance < Context->Radius)
+					if (Distance < (Settings->Radius * Settings->Radius))
 					{
 						FuseTarget = &FusedPoint;
 						break;

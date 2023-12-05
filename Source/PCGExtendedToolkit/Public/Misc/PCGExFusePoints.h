@@ -122,9 +122,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFusePointsContext : public FPCGExPointsProce
 
 public:
 	int32 CurrentIndex = 0;
-	double Radius;
-	bool bComponentWiseRadius;
-	FVector Radiuses;
 
 	TMap<FName, EPCGExDataBlendingType> BlendingOverrides;
 	UPCGExMetadataBlender* Blender;

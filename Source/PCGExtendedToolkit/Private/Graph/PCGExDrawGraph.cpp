@@ -92,7 +92,7 @@ bool FPCGExDrawGraphElement::ExecuteInternal(FPCGContext* InContext) const
 			const FVector Start = Point.Transform.GetLocation();
 
 			TArray<PCGExGraph::FSocketProbe> Probes;
-			if (Settings->bDrawSocketCones) { Settings->GraphSolver->PrepareProbesForPoint(Context->SocketInfos, Point, Probes); }
+			if (Settings->bDrawSocketCones || Settings->bDrawSocketBox) { Settings->GraphSolver->PrepareProbesForPoint(Context->SocketInfos, Point, Probes); }
 
 			for (const PCGExGraph::FSocketInfos& SocketInfos : Context->SocketInfos)
 			{
