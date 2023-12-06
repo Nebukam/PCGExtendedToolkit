@@ -10,7 +10,7 @@
 #include "PCGExMT.h"
 #include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExPointIO.h"
-#include "PCGExInstruction.h"
+#include "PCGExOperation.h"
 
 #include "PCGExPointsProcessor.generated.h"
 
@@ -135,10 +135,10 @@ public:
 	int32 ChunkSize = -1;
 
 	template <typename T>
-	static T* EnsureInstruction(UPCGExInstruction* Instruction) { return Instruction ? static_cast<T*>(Instruction) : NewObject<T>(); }
+	static T* EnsureInstruction(UPCGExOperation* Instruction) { return Instruction ? static_cast<T*>(Instruction) : NewObject<T>(); }
 
 	template <typename T>
-	static T* EnsureInstruction(UPCGExInstruction* Instruction, FPCGExPointsProcessorContext* InContext)
+	static T* EnsureInstruction(UPCGExOperation* Instruction, FPCGExPointsProcessorContext* InContext)
 	{
 		T* RetValue = Instruction ? static_cast<T*>(Instruction) : NewObject<T>();
 		RetValue->BindContext(InContext);

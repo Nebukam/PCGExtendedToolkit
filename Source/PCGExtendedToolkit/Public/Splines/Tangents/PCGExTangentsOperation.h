@@ -5,16 +5,16 @@
 
 #include "CoreMinimal.h"
 #include "PCGPoint.h"
-#include "PCGExInstruction.h"
+#include "PCGExOperation.h"
 #include "Metadata/PCGMetadataAttributeTpl.h"
-#include "PCGExTangents.generated.h"
+#include "PCGExTangentsOperation.generated.h"
 
 class UPCGExPointIO;
 /**
  * 
  */
-UCLASS(Blueprintable, EditInlineNew)
-class PCGEXTENDEDTOOLKIT_API UPCGExTangents : public UPCGExInstruction
+UCLASS(Blueprintable, EditInlineNew, HideDropdown)
+class PCGEXTENDEDTOOLKIT_API UPCGExTangentsOperation : public UPCGExOperation
 {
 	GENERATED_BODY()
 

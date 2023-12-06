@@ -4,14 +4,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExSubPointsOrient.h"
+#include "PCGExSubPointsOrientOperation.h"
 #include "PCGExSubPointsOrientWeighted.generated.h"
 
 /**
  * 
  */
 UCLASS(Blueprintable, EditInlineNew, DisplayName = "Weighted")
-class PCGEXTENDEDTOOLKIT_API UPCGExSubPointsOrientWeighted : public UPCGExSubPointsOrient
+class PCGEXTENDEDTOOLKIT_API UPCGExSubPointsOrientWeighted : public UPCGExSubPointsOrientOperation
 {
 	GENERATED_BODY()
 

@@ -11,8 +11,8 @@
 #include "PCGExPathfindingProcessor.generated.h"
 
 class UPCGExGoalPicker;
-class UPCGExSubPointsOrient;
-class UPCGExSubPointsDataBlend;
+class UPCGExSubPointsOrientOperation;
+class UPCGExSubPointsBlendOperation;
 class UPCGExPathfindingParamsData;
 
 /**
@@ -45,7 +45,7 @@ public:
 
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced)
-	UPCGExSubPointsDataBlend* Blending;
+	UPCGExSubPointsBlendOperation* Blending;
 
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
@@ -66,7 +66,7 @@ public:
 	UPCGExPointIOGroup* OutputPaths = nullptr;
 
 	UPCGExGoalPicker* GoalPicker;
-	UPCGExSubPointsDataBlend* Blending;
+	UPCGExSubPointsBlendOperation* Blending;
 
 	bool bAddSeedToPath = true;
 	bool bAddGoalToPath = true;

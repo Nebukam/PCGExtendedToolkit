@@ -8,7 +8,7 @@
 #include "PCGExPointsProcessor.h"
 #include "Graph/PCGExGraph.h"
 #include "Graph/Pathfinding/GoalPickers/PCGExGoalPickerRandom.h"
-#include "Splines/SubPoints/DataBlending/PCGExSubPointsDataBlendLerp.h"
+#include "Splines/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
 #include "Splines/SubPoints/Orient/PCGExSubPointsOrientAverage.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSampleGraphPatchesElement"
@@ -18,7 +18,7 @@ UPCGExSampleGraphPatchesSettings::UPCGExSampleGraphPatchesSettings(
 	: Super(ObjectInitializer)
 {
 	GoalPicker = EnsureInstruction<UPCGExGoalPickerRandom>(GoalPicker);
-	Blending = EnsureInstruction<UPCGExSubPointsDataBlendLerp>(Blending);
+	Blending = EnsureInstruction<UPCGExSubPointsBlendInterpolate>(Blending);
 }
 
 FPCGElementPtr UPCGExSampleGraphPatchesSettings::CreateElement() const { return MakeShared<FPCGExSampleGraphPatchesElement>(); }
@@ -60,6 +60,11 @@ bool FPCGExSampleGraphPatchesElement::ExecuteInternal(FPCGContext* InContext) co
 		Context->SetState(PCGExMT::State_ProcessingPoints);
 	}
 
+// For each SEED
+	// For each PATCH
+		// For each GRAPH -> Merge 
+		
+	
 	if (Context->IsState(PCGExMT::State_ProcessingPoints))
 	{
 		auto ProcessPoint = [&](const int32 PointIndex, const UPCGExPointIO* PointIO)

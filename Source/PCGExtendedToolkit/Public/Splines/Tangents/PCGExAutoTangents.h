@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExMath.h"
-#include "PCGExTangents.h"
+#include "PCGExTangentsOperation.h"
 #include "Metadata/PCGMetadataAttributeTpl.h"
 #include "PCGExAutoTangents.generated.h"
 
@@ -13,7 +13,7 @@
  * 
  */
 UCLASS(Blueprintable, EditInlineNew)
-class PCGEXTENDEDTOOLKIT_API UPCGExAutoTangents : public UPCGExTangents
+class PCGEXTENDEDTOOLKIT_API UPCGExAutoTangents : public UPCGExTangentsOperation
 {
 	GENERATED_BODY()
 

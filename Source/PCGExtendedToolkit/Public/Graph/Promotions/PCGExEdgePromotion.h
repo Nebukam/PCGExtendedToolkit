@@ -4,7 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExInstruction.h"
+#include "PCGExOperation.h"
 #include "Graph/PCGExGraph.h"
 #include "PCGExEdgePromotion.generated.h"
 
@@ -12,7 +12,7 @@
  * 
  */
 UCLASS(Blueprintable, EditInlineNew, HideDropdown)
-class PCGEXTENDEDTOOLKIT_API UPCGExEdgePromotion : public UPCGExInstruction
+class PCGEXTENDEDTOOLKIT_API UPCGExEdgePromotion : public UPCGExOperation
 {
 	GENERATED_BODY()
 

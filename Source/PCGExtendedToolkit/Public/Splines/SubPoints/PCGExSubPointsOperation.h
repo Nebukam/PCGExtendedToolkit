@@ -6,16 +6,16 @@
 #include "CoreMinimal.h"
 #include "PCGPoint.h"
 #include "Data/PCGExAttributeHelpers.h"
-#include "PCGExInstruction.h"
-#include "PCGExSubPointsProcessor.generated.h"
+#include "PCGExOperation.h"
+#include "PCGExSubPointsOperation.generated.h"
 
 class UPCGExPointIO;
 
 /**
  * 
  */
-UCLASS(Blueprintable, EditInlineNew)
-class PCGEXTENDEDTOOLKIT_API UPCGExSubPointsProcessor : public UPCGExInstruction
+UCLASS(Blueprintable, EditInlineNew, HideDropdown)
+class PCGEXTENDEDTOOLKIT_API UPCGExSubPointsOperation : public UPCGExOperation
 {
 	GENERATED_BODY()
 

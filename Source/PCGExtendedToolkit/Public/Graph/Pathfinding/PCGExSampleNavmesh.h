@@ -11,8 +11,8 @@
 #include "PCGExPointsProcessor.h"
 #include "GoalPickers/PCGExGoalPicker.h"
 #include "Graph/PCGExGraph.h"
-#include "Splines/SubPoints/DataBlending/PCGExSubPointsDataBlend.h"
-#include "Splines/SubPoints/Orient/PCGExSubPointsOrient.h"
+#include "Splines/SubPoints/DataBlending/PCGExSubPointsBlendOperation.h"
+#include "Splines/SubPoints/Orient/PCGExSubPointsOrientOperation.h"
 
 #include "PCGExSampleNavmesh.generated.h"
 
@@ -64,7 +64,7 @@ public:
 
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced)
-	UPCGExSubPointsDataBlend* Blending;
+	UPCGExSubPointsBlendOperation* Blending;
 
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
@@ -104,7 +104,7 @@ public:
 	UPCGExPointIOGroup* OutputPaths = nullptr;
 
 	UPCGExGoalPicker* GoalPicker;
-	UPCGExSubPointsDataBlend* Blending;
+	UPCGExSubPointsBlendOperation* Blending;
 
 	bool bAddSeedToPath = true;
 	bool bAddGoalToPath = true;

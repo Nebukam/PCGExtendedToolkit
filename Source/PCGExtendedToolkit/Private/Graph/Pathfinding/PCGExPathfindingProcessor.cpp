@@ -6,8 +6,8 @@
 #include "Graph/Pathfinding/PCGExPathfinding.h"
 #include "Graph/Pathfinding/GoalPickers/PCGExGoalPicker.h"
 #include "Graph/Pathfinding/GoalPickers/PCGExGoalPickerRandom.h"
-#include "Splines/SubPoints/DataBlending/PCGExSubPointsDataBlend.h"
-#include "Splines/SubPoints/DataBlending/PCGExSubPointsDataBlendLerp.h"
+#include "Splines/SubPoints/DataBlending/PCGExSubPointsBlendOperation.h"
+#include "Splines/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPathfindingSettings"
 
@@ -130,7 +130,7 @@ void FPCGExPathfindingProcessorElement::InitializeContext(
 	Context->OutputPaths = NewObject<UPCGExPointIOGroup>();
 
 	Context->GoalPicker = Settings->EnsureInstruction<UPCGExGoalPickerRandom>(Settings->GoalPicker, Context);
-	Context->Blending = Settings->EnsureInstruction<UPCGExSubPointsDataBlendLerp>(Settings->Blending, Context);
+	Context->Blending = Settings->EnsureInstruction<UPCGExSubPointsBlendInterpolate>(Settings->Blending, Context);
 
 	Context->bAddSeedToPath = Settings->bAddSeedToPath;
 	Context->bAddGoalToPath = Settings->bAddGoalToPath;

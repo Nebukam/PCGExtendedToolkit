@@ -7,7 +7,7 @@
 #include "PCGEx.h"
 #include "PCGExOperation.h"
 #include "UObject/Object.h"
-#include "PCGExGoalPicker.generated.h"
+#include "PCGExHeuristicOperation.generated.h"
 
 struct FPCGPoint;
 class UPCGPointData;
@@ -15,7 +15,7 @@ class UPCGPointData;
  * 
  */
 UCLASS(Blueprintable, EditInlineNew, DisplayName = "Default")
-class PCGEXTENDEDTOOLKIT_API UPCGExGoalPicker : public UPCGExOperation
+class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicOperation : public UPCGExOperation
 {
 	GENERATED_BODY()
 

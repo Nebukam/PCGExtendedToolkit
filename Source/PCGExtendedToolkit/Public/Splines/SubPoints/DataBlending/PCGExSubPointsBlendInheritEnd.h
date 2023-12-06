@@ -4,14 +4,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExSubPointsDataBlend.h"
-#include "PCGExSubPointsDataBlendInheritEnd.generated.h"
+#include "PCGExSubPointsBlendOperation.h"
+#include "PCGExSubPointsBlendInheritEnd.generated.h"
 
 /**
  * 
  */
 UCLASS(Blueprintable, EditInlineNew, DisplayName = "Inherit End")
-class PCGEXTENDEDTOOLKIT_API UPCGExSubPointsDataBlendInheritEnd : public UPCGExSubPointsDataBlend
+class PCGEXTENDEDTOOLKIT_API UPCGExSubPointsBlendInheritEnd : public UPCGExSubPointsBlendOperation
 {
 	GENERATED_BODY()
 

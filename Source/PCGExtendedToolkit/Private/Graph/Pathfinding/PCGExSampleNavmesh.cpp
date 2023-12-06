@@ -8,7 +8,7 @@
 #include "PCGExPointsProcessor.h"
 #include "Graph/PCGExGraph.h"
 #include "Graph/Pathfinding/GoalPickers/PCGExGoalPickerRandom.h"
-#include "Splines/SubPoints/DataBlending/PCGExSubPointsDataBlendLerp.h"
+#include "Splines/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
 #include "Splines/SubPoints/Orient/PCGExSubPointsOrientAverage.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSampleNavmeshElement"
@@ -18,7 +18,7 @@ UPCGExSampleNavmeshSettings::UPCGExSampleNavmeshSettings(
 	: Super(ObjectInitializer)
 {
 	GoalPicker = EnsureInstruction<UPCGExGoalPickerRandom>(GoalPicker);
-	Blending = EnsureInstruction<UPCGExSubPointsDataBlendLerp>(Blending);
+	Blending = EnsureInstruction<UPCGExSubPointsBlendInterpolate>(Blending);
 }
 
 TArray<FPCGPinProperties> UPCGExSampleNavmeshSettings::InputPinProperties() const
@@ -55,7 +55,7 @@ TArray<FPCGPinProperties> UPCGExSampleNavmeshSettings::OutputPinProperties() con
 void UPCGExSampleNavmeshSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	GoalPicker = EnsureInstruction<UPCGExGoalPickerRandom>(GoalPicker);
-	Blending = EnsureInstruction<UPCGExSubPointsDataBlendLerp>(Blending);
+	Blending = EnsureInstruction<UPCGExSubPointsBlendInterpolate>(Blending);
 	if (GoalPicker) { GoalPicker->UpdateUserFacingInfos(); }
 	if (Blending) { Blending->UpdateUserFacingInfos(); }
 	Super::PostEditChangeProperty(PropertyChangedEvent);
@@ -96,7 +96,7 @@ FPCGContext* FPCGExSampleNavmeshElement::Initialize(const FPCGDataCollection& In
 	Context->OutputPaths = NewObject<UPCGExPointIOGroup>();
 
 	Context->GoalPicker = Settings->EnsureInstruction<UPCGExGoalPickerRandom>(Settings->GoalPicker, Context);
-	Context->Blending = Settings->EnsureInstruction<UPCGExSubPointsDataBlendLerp>(Settings->Blending, Context);
+	Context->Blending = Settings->EnsureInstruction<UPCGExSubPointsBlendInterpolate>(Settings->Blending, Context);
 
 	Context->bAddSeedToPath = Settings->bAddSeedToPath;
 	Context->bAddGoalToPath = Settings->bAddGoalToPath;

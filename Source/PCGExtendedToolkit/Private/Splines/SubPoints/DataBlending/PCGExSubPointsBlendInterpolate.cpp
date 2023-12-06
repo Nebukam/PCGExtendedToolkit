@@ -2,16 +2,16 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 
-#include "Splines/SubPoints/DataBlending/PCGExSubPointsDataBlendLerp.h"
+#include "Splines/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
 
 #include "Data/PCGExPointIO.h"
 
-EPCGExDataBlendingType UPCGExSubPointsDataBlendLerp::GetDefaultBlending()
+EPCGExDataBlendingType UPCGExSubPointsBlendInterpolate::GetDefaultBlending()
 {
 	return EPCGExDataBlendingType::Weight;
 }
 
-void UPCGExSubPointsDataBlendLerp::BlendSubPoints(const FPCGPoint& StartPoint, const FPCGPoint& EndPoint, TArrayView<FPCGPoint>& SubPoints, const PCGExMath::FPathInfos& PathInfos, const UPCGExMetadataBlender* InBlender) const
+void UPCGExSubPointsBlendInterpolate::BlendSubPoints(const FPCGPoint& StartPoint, const FPCGPoint& EndPoint, TArrayView<FPCGPoint>& SubPoints, const PCGExMath::FPathInfos& PathInfos, const UPCGExMetadataBlender* InBlender) const
 {
 	const int32 NumPoints = SubPoints.Num();
 

@@ -7,8 +7,8 @@
 #include "PCGPoint.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
 #include "Data/Blending/PCGExPropertiesBlender.h"
-#include "Splines/SubPoints/PCGExSubPointsProcessor.h"
-#include "PCGExSubPointsDataBlend.generated.h"
+#include "Splines/SubPoints/PCGExSubPointsOperation.h"
+#include "PCGExSubPointsBlendOperation.generated.h"
 
 class UPCGExMetadataBlender;
 class UPCGExPointIO;
@@ -17,7 +17,7 @@ class UPCGExPointIO;
  * 
  */
 UCLASS(Blueprintable, EditInlineNew, HideDropdown)
-class PCGEXTENDEDTOOLKIT_API UPCGExSubPointsDataBlend : public UPCGExSubPointsProcessor
+class PCGEXTENDEDTOOLKIT_API UPCGExSubPointsBlendOperation : public UPCGExSubPointsOperation
 {
 	GENERATED_BODY()
 

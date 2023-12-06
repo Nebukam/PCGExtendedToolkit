@@ -4,7 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExTangents.h"
+#include "PCGExTangentsOperation.h"
 #include "Data/PCGExAttributeHelpers.h"
 #include "PCGExCustomTangents.generated.h"
 
@@ -55,7 +55,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSingleTangentParams
  * 
  */
 UCLASS(Blueprintable, EditInlineNew)
-class PCGEXTENDEDTOOLKIT_API UPCGExCustomTangents : public UPCGExTangents
+class PCGEXTENDEDTOOLKIT_API UPCGExCustomTangents : public UPCGExTangentsOperation
 {
 	GENERATED_BODY()
 

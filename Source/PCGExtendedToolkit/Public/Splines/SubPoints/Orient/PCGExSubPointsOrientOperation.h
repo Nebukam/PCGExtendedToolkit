@@ -6,8 +6,8 @@
 #include "CoreMinimal.h"
 #include "PCGPoint.h"
 #include "Data/PCGExAttributeHelpers.h"
-#include "Splines/SubPoints/PCGExSubPointsProcessor.h"
-#include "PCGExSubPointsOrient.generated.h"
+#include "Splines/SubPoints/PCGExSubPointsOperation.h"
+#include "PCGExSubPointsOrientOperation.generated.h"
 
 class UPCGExPointIO;
 
@@ -15,7 +15,7 @@ class UPCGExPointIO;
  * 
  */
 UCLASS(Blueprintable, EditInlineNew, HideDropdown)
-class PCGEXTENDEDTOOLKIT_API UPCGExSubPointsOrient : public UPCGExSubPointsProcessor
+class PCGEXTENDEDTOOLKIT_API UPCGExSubPointsOrientOperation : public UPCGExSubPointsOperation
 {
 	GENERATED_BODY()
 

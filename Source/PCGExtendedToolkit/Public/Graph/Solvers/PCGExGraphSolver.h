@@ -4,7 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExInstruction.h"
+#include "PCGExOperation.h"
 #include "Data/PCGExGraphParamsData.h"
 #include "UObject/Object.h"
 
@@ -69,7 +69,7 @@ namespace PCGExGraph
  * 
  */
 UCLASS(Blueprintable, EditInlineNew, DisplayName = "Simple Solver")
-class PCGEXTENDEDTOOLKIT_API UPCGExGraphSolver : public UPCGExInstruction
+class PCGEXTENDEDTOOLKIT_API UPCGExGraphSolver : public UPCGExOperation
 {
 	GENERATED_BODY()
 

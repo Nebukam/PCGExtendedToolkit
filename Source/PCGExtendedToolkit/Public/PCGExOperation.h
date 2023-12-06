@@ -5,14 +5,14 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
-#include "PCGExInstruction.generated.h"
+#include "PCGExOperation.generated.h"
 
 struct FPCGExPointsProcessorContext;
 /**
  * 
  */
 UCLASS(Blueprintable, EditInlineNew)
-class PCGEXTENDEDTOOLKIT_API UPCGExInstruction : public UObject
+class PCGEXTENDEDTOOLKIT_API UPCGExOperation : public UObject
 {
 	GENERATED_BODY()
 

@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGEx.h"
-#include "PCGExInstruction.h"
+#include "PCGExOperation.h"
 #include "Data/PCGPointData.h"
 #include "Metadata/PCGMetadataAttribute.h"
 #include "Metadata/PCGMetadataCommon.h"
@@ -32,7 +32,7 @@ PCGEX_SAO_BODY(_TYPE, _NAME)};
  * 
  */
 UCLASS(Blueprintable, EditInlineNew, HideDropdown, Abstract)
-class PCGEXTENDEDTOOLKIT_API UPCGExDataBlendingOperation : public UPCGExInstruction
+class PCGEXTENDEDTOOLKIT_API UPCGExDataBlendingOperation : public UPCGExOperation
 {
 	GENERATED_BODY()
 

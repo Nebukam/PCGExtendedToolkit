@@ -2,18 +2,18 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 
-#include "Splines/SubPoints/Orient/PCGExSubPointsOrient.h"
+#include "Splines/SubPoints/Orient/PCGExSubPointsOrientOperation.h"
 
 #include "Data/PCGExPointIO.h"
 
-void UPCGExSubPointsOrient::PrepareForData(const UPCGExPointIO* InData)
+void UPCGExSubPointsOrientOperation::PrepareForData(const UPCGExPointIO* InData)
 {
 	Super::PrepareForData(InData);
 	//AxisGetter.Capture(Axis);
 	//AxisGetter.Validate(InData->Out);
 }
 
-void UPCGExSubPointsOrient::ProcessSubPoints(const FPCGPoint& StartPoint, const FPCGPoint& EndPoint, TArrayView<FPCGPoint>& SubPoints, const PCGExMath::FPathInfos& PathInfos) const
+void UPCGExSubPointsOrientOperation::ProcessSubPoints(const FPCGPoint& StartPoint, const FPCGPoint& EndPoint, TArrayView<FPCGPoint>& SubPoints, const PCGExMath::FPathInfos& PathInfos) const
 {
 	const int32 NumPointsMinusOne = SubPoints.Num() - 1;
 	Orient(SubPoints[0], StartPoint, SubPoints[1]);
@@ -21,6 +21,6 @@ void UPCGExSubPointsOrient::ProcessSubPoints(const FPCGPoint& StartPoint, const 
 	Orient(SubPoints.Last(), SubPoints[NumPointsMinusOne - 1], EndPoint);
 }
 
-void UPCGExSubPointsOrient::Orient(FPCGPoint& Point, const FPCGPoint& PreviousPoint, const FPCGPoint& NextPoint) const
+void UPCGExSubPointsOrientOperation::Orient(FPCGPoint& Point, const FPCGPoint& PreviousPoint, const FPCGPoint& NextPoint) const
 {
 }

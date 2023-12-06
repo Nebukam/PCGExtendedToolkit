@@ -2,11 +2,11 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 
-#include "Splines/SubPoints/DataBlending/PCGExSubPointsDataBlendInheritEnd.h"
+#include "Splines/SubPoints/DataBlending/PCGExSubPointsBlendInheritEnd.h"
 
 #include "Data/Blending/PCGExMetadataBlender.h"
 
-void UPCGExSubPointsDataBlendInheritEnd::BlendSubPoints(const FPCGPoint& StartPoint, const FPCGPoint& EndPoint, TArrayView<FPCGPoint>& SubPoints, const PCGExMath::FPathInfos& PathInfos, const UPCGExMetadataBlender* InBlender) const
+void UPCGExSubPointsBlendInheritEnd::BlendSubPoints(const FPCGPoint& StartPoint, const FPCGPoint& EndPoint, TArrayView<FPCGPoint>& SubPoints, const PCGExMath::FPathInfos& PathInfos, const UPCGExMetadataBlender* InBlender) const
 {
 	PCGExDataBlending::FPropertiesBlender LocalPropertiesBlender = PCGExDataBlending::FPropertiesBlender(PropertiesBlender);
 	const int32 NumPoints = SubPoints.Num();

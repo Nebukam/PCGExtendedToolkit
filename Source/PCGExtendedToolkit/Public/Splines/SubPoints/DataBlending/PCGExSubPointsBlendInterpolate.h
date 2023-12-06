@@ -4,9 +4,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExSubPointsDataBlend.h"
+#include "PCGExSubPointsBlendOperation.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
-#include "PCGExSubPointsDataBlendLerp.generated.h"
+#include "PCGExSubPointsBlendInterpolate.generated.h"
 
 UENUM(BlueprintType)
 enum class EPCGExPathBlendOver : uint8
@@ -20,7 +20,7 @@ enum class EPCGExPathBlendOver : uint8
  * 
  */
 UCLASS(Blueprintable, EditInlineNew, DisplayName = "Interpolate")
-class PCGEXTENDEDTOOLKIT_API UPCGExSubPointsDataBlendLerp : public UPCGExSubPointsDataBlend
+class PCGEXTENDEDTOOLKIT_API UPCGExSubPointsBlendInterpolate : public UPCGExSubPointsBlendOperation
 {
 	GENERATED_BODY()
 

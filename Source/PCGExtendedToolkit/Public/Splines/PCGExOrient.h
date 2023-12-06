@@ -7,7 +7,7 @@
 #include "PCGExPathProcessor.h"
 
 #include "PCGExPointsProcessor.h"
-#include "SubPoints/Orient/PCGExSubPointsOrient.h"
+#include "SubPoints/Orient/PCGExSubPointsOrientOperation.h"
 #include "PCGExOrient.generated.h"
 
 /**
@@ -34,7 +34,7 @@ protected:
 
 public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced)
-	UPCGExSubPointsOrient* Orientation;
+	UPCGExSubPointsOrientOperation* Orientation;
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExOrientContext : public FPCGExPathProcessorContext
@@ -42,7 +42,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExOrientContext : public FPCGExPathProcessorCo
 	friend class FPCGExOrientElement;
 
 public:
-	UPCGExSubPointsOrient* Orientation;
+	UPCGExSubPointsOrientOperation* Orientation;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExOrientElement : public FPCGExPathProcessorElement

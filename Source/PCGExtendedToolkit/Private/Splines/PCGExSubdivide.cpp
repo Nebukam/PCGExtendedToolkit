@@ -3,19 +3,19 @@
 
 #include "Splines/PCGExSubdivide.h"
 
-#include "Splines/SubPoints/DataBlending/PCGExSubPointsDataBlendLerp.h"
+#include "Splines/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSubdivideElement"
 
 UPCGExSubdivideSettings::UPCGExSubdivideSettings(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	Blending = EnsureInstruction<UPCGExSubPointsDataBlendLerp>(Blending);
+	Blending = EnsureInstruction<UPCGExSubPointsBlendInterpolate>(Blending);
 }
 
 void UPCGExSubdivideSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
-	Blending = EnsureInstruction<UPCGExSubPointsDataBlendLerp>(Blending);
+	Blending = EnsureInstruction<UPCGExSubPointsBlendInterpolate>(Blending);
 	if (Blending) { Blending->UpdateUserFacingInfos(); }
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
@@ -37,7 +37,7 @@ FPCGContext* FPCGExSubdivideElement::Initialize(const FPCGDataCollection& InputD
 	Context->bFlagSubPoints = Settings->bFlagSubPoints;
 	Context->FlagName = Settings->FlagName;
 
-	Context->Blending = Settings->EnsureInstruction<UPCGExSubPointsDataBlendLerp>(Settings->Blending, Context);
+	Context->Blending = Settings->EnsureInstruction<UPCGExSubPointsBlendInterpolate>(Settings->Blending, Context);
 
 	return Context;
 }

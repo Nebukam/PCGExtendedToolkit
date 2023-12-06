@@ -4,7 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExSubPointsOrient.h"
+#include "PCGExSubPointsOrientOperation.h"
 #include "PCGExSubPointsOrientLookAt.generated.h"
 
 UENUM(BlueprintType)
@@ -19,7 +19,7 @@ enum class EPCGExOrientLookAt : uint8
  * 
  */
 UCLASS(Blueprintable, EditInlineNew, DisplayName = "Look At")
-class PCGEXTENDEDTOOLKIT_API UPCGExSubPointsOrientLookAt : public UPCGExSubPointsOrient
+class PCGEXTENDEDTOOLKIT_API UPCGExSubPointsOrientLookAt : public UPCGExSubPointsOrientOperation
 {
 	GENERATED_BODY()
 

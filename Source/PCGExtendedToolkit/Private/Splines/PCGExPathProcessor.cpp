@@ -3,7 +3,7 @@
 
 #include "Splines/PCGExPathProcessor.h"
 
-#include "Splines/SubPoints/DataBlending/PCGExSubPointsDataBlendLerp.h"
+#include "Splines/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPathProcessorElement"
 

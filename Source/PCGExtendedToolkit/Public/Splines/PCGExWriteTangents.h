@@ -8,7 +8,7 @@
 
 #include "PCGExPointsProcessor.h"
 #include "Graph/PCGExGraph.h"
-#include "Tangents/PCGExTangents.h"
+#include "Tangents/PCGExTangentsOperation.h"
 #include "PCGExWriteTangents.generated.h"
 
 /**
@@ -41,7 +41,7 @@ public:
 	FName LeaveName = "LeaveTangent";
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced)
-	UPCGExTangents* Tangents;
+	UPCGExTangentsOperation* Tangents;
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExWriteTangentsContext : public FPCGExPathProcessorContext
@@ -49,7 +49,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExWriteTangentsContext : public FPCGExPathProc
 	friend class FPCGExWriteTangentsElement;
 
 public:
-	UPCGExTangents* Tangents;
+	UPCGExTangentsOperation* Tangents;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExWriteTangentsElement : public FPCGExPathProcessorElement

@@ -10,7 +10,7 @@
 #include "PCGExPointsProcessor.h"
 #include "GoalPickers/PCGExGoalPicker.h"
 #include "Graph/PCGExGraph.h"
-#include "Splines/SubPoints/DataBlending/PCGExSubPointsDataBlend.h"
+#include "Splines/SubPoints/DataBlending/PCGExSubPointsBlendOperation.h"
 
 #include "PCGExSampleGraphPatches.generated.h"
 
@@ -48,7 +48,7 @@ public:
 	UPCGExPointIOGroup* OutputPaths = nullptr;
 
 	UPCGExGoalPicker* GoalPicker;
-	UPCGExSubPointsDataBlend* Blending;
+	UPCGExSubPointsBlendOperation* Blending;
 
 	bool bAddSeedToPath = true;
 	bool bAddGoalToPath = true;
