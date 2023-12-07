@@ -235,6 +235,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExAsyncTaskManager : public UObject
 public:
 	mutable FRWLock ManagerLock;
 	FPCGContext* Context;
+	bool bStopped = false;
 
 	template <typename T, typename... Args>
 	void StartTask(int32 Index, PCGMetadataAttributeKey Key, UPCGExPointIO* InPointsIO, Args... args)
@@ -263,7 +264,7 @@ protected:
 	int32 NumStarted = 0;
 	int32 NumCompleted = 0;
 
-	bool IsValid() const;
+	inline bool IsValid() const;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExAsyncTask : public FNonAbandonableTask
@@ -271,6 +272,10 @@ class PCGEXTENDEDTOOLKIT_API FPCGExAsyncTask : public FNonAbandonableTask
 public:
 	virtual ~FPCGExAsyncTask() = default;
 
+
+#define PCGEX_ASYNC_LIFE_CHECK_RET  if (!CanContinue()) { return; }// if (Context->bDeleted) { return false; }
+#define PCGEX_ASYNC_LIFE_CHECK  if (!CanContinue()) { return false; }// if (Context->bDeleted) { return false; }
+	
 	FPCGExAsyncTask(
 		UPCGExAsyncTaskManager* InManager, const PCGExMT::FTaskInfos& InInfos, UPCGExPointIO* InPointIO) :
 		Manager(InManager), TaskInfos(InInfos), PointIO(InPointIO)
@@ -284,6 +289,7 @@ public:
 
 	void DoWork()
 	{
+		if (Manager->bStopped) { return; }
 		Manager->OnAsyncTaskExecutionComplete(this, ExecuteTask());
 	}
 

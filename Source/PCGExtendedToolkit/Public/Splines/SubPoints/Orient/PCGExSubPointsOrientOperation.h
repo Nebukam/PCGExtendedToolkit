@@ -26,7 +26,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	EPCGExAxis UpAxis = EPCGExAxis::Up;
 
-	virtual void PrepareForData(const UPCGExPointIO* InData) override;
+	virtual void PrepareForData(UPCGExPointIO* InData) override;
 	virtual void ProcessSubPoints(const FPCGPoint& StartPoint, const FPCGPoint& EndPoint, TArrayView<FPCGPoint>& SubPoints, const PCGExMath::FPathInfos& PathInfos) const override;
 	inline virtual void Orient(FPCGPoint& Point, const FPCGPoint& PreviousPoint, const FPCGPoint& NextPoint) const;
 };

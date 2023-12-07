@@ -63,12 +63,12 @@ void PCGExDataBlending::FPropertiesBlender::Blend(const FPCGPoint& A, const FPCG
 #define PCGEX_BLEND_PROPDECL(_TYPE, _NAME, _FUNC, _ACCESSOR)\
 	_TYPE Target##_NAME = Target._ACCESSOR;\
 	switch (_NAME##Blending) {\
-	case EPCGExDataBlendingType::None:		Target##_NAME = PCGExDataBlending::NoBlend##_FUNC(A._ACCESSOR, B._ACCESSOR, Alpha); break;\
-	case EPCGExDataBlendingType::Average:	Target##_NAME = PCGExDataBlending::Add##_FUNC(A._ACCESSOR, B._ACCESSOR, Alpha);break;\
-	case EPCGExDataBlendingType::Weight:	Target##_NAME = PCGExDataBlending::Lerp##_FUNC(A._ACCESSOR, B._ACCESSOR, Alpha);break;\
-	case EPCGExDataBlendingType::Min:		Target##_NAME = PCGExDataBlending::Min##_FUNC(A._ACCESSOR, B._ACCESSOR, Alpha);break;\
-	case EPCGExDataBlendingType::Max:		Target##_NAME = PCGExDataBlending::Max##_FUNC(A._ACCESSOR, B._ACCESSOR, Alpha);break;\
-	case EPCGExDataBlendingType::Copy:		Target##_NAME = PCGExDataBlending::Copy##_FUNC(A._ACCESSOR, B._ACCESSOR, Alpha);break;}
+	case EPCGExDataBlendingType::None:		Target##_NAME = PCGExDataBlending::NoBlend(A._ACCESSOR, B._ACCESSOR, Alpha); break;\
+	case EPCGExDataBlendingType::Average:	Target##_NAME = PCGExDataBlending::Add(A._ACCESSOR, B._ACCESSOR, Alpha);break;\
+	case EPCGExDataBlendingType::Weight:	Target##_NAME = PCGExDataBlending::Lerp(A._ACCESSOR, B._ACCESSOR, Alpha);break;\
+	case EPCGExDataBlendingType::Min:		Target##_NAME = PCGExDataBlending::Min(A._ACCESSOR, B._ACCESSOR, Alpha);break;\
+	case EPCGExDataBlendingType::Max:		Target##_NAME = PCGExDataBlending::Max(A._ACCESSOR, B._ACCESSOR, Alpha);break;\
+	case EPCGExDataBlendingType::Copy:		Target##_NAME = PCGExDataBlending::Copy(A._ACCESSOR, B._ACCESSOR, Alpha);break;}
 
 	PCGEX_FOREACH_BLENDINIT_POINTPROPERTY(PCGEX_BLEND_PROPDECL)
 #undef PCGEX_BLEND_PROPDECL

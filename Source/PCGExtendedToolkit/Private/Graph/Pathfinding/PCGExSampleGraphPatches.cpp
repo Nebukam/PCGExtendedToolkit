@@ -95,7 +95,7 @@ bool FPCGExSampleGraphPatchesElement::ExecuteInternal(FPCGContext* InContext) co
 			}
 		};
 
-		if (Context->ProcessCurrentPoints(ProcessPoint)) { Context->StartAsyncWait(); }
+		if (Context->ProcessCurrentPoints(ProcessPoint)) { Context->StartAsyncWait(PCGExMT::State_WaitingOnAsyncWork); }
 	}
 
 	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
@@ -114,9 +114,9 @@ bool FPCGExSampleGraphPatchesElement::ExecuteInternal(FPCGContext* InContext) co
 
 bool FSamplePatchPathTask::ExecuteTask()
 {
-	if (!CanContinue()) { return false; }
 
 	FPCGExSampleGraphPatchesContext* Context = Manager->GetContext<FPCGExSampleGraphPatchesContext>();
+	PCGEX_ASYNC_LIFE_CHECK
 	//FWriteScopeLock WriteLock(Context->ContextLock);
 
 	bool bSuccess = false;

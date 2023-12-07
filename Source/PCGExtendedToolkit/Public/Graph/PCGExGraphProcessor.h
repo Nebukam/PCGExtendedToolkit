@@ -36,6 +36,7 @@ public:
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExGraphProcessorContext : public FPCGExPointsProcessorContext
 {
+	
 	friend class UPCGExGraphProcessorSettings;
 
 public:
@@ -49,13 +50,13 @@ public:
 
 	virtual void Reset() override;
 
-	FPCGMetadataAttribute<int64>* CachedIndex;
+	FPCGMetadataAttribute<int32>* CachedIndex;
 	TArray<PCGExGraph::FSocketInfos> SocketInfos;
 
 	void PrepareCurrentGraphForPoints(const UPCGPointData* InData, bool bEnsureEdgeType);
 	void OutputGraphParams() { Graphs.OutputTo(this); }
 
-	void OutputPointsAndParams()
+	void OutputPointsAndGraphParams()
 	{
 		OutputPoints();
 		OutputGraphParams();

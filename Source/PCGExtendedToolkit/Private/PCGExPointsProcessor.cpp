@@ -245,6 +245,16 @@ PCGExPointIO::EInit UPCGExPointsProcessorSettings::GetPointOutputInitMode() cons
 
 int32 UPCGExPointsProcessorSettings::GetPreferredChunkSize() const { return 256; }
 
+FPCGExPointsProcessorContext::~FPCGExPointsProcessorContext()
+{
+	if (AsyncManager)
+	{
+		AsyncManager->bStopped = true;
+		AsyncManager->ConditionalBeginDestroy();
+	}
+	bDeleted = true;
+}
+
 bool FPCGExPointsProcessorContext::AdvancePointsIO()
 {
 	CurrentPointsIndex++;

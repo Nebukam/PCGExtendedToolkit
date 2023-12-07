@@ -36,12 +36,16 @@ public:
 
 	int32 PatchID = -1;
 
-	TSet<uint64> HashSet;
+	TSet<int32> IndicesSet;
+	TSet<uint64> EdgesHashSet;
 	mutable FRWLock HashLock;
 
-	void Add(uint64 Hash);
-	bool Contains(const uint64 Hash) const;
+	void Add(int32 InIndex);
+	bool Contains(const int32 InIndex) const;
 
+	void AddEdge(uint64 InEdgeHash);
+	bool ContainsEdge(const uint64 InEdgeHash) const;
+	
 	bool OutputTo(const UPCGExPointIO* OutIO, int32 PatchIDOverride);
 
 	void Flush();
@@ -67,17 +71,17 @@ public:
 	mutable FRWLock PatchesLock;
 	int32 NumMaxEdges = 8;
 
-	TMap<uint64, UPCGExGraphPatch*> HashMap;
+	TMap<uint64, UPCGExGraphPatch*> IndicesMap;
 	mutable FRWLock HashLock;
 	EPCGExEdgeType CrawlEdgeTypes;
 
-	UPCGExGraphParamsData* Graph = nullptr;
+	UPCGExGraphParamsData* CurrentGraph = nullptr;
 	UPCGExPointIO* PointIO = nullptr;
 	UPCGExPointIOGroup* PatchesIO = nullptr;
 
 	FName PatchIDAttributeName;
 	FName PatchSizeAttributeName;
-
+		
 	bool Contains(const uint64 Hash) const;
 
 	UPCGExGraphPatch* FindPatch(uint64 Hash);
@@ -85,10 +89,8 @@ public:
 	UPCGExGraphPatch* CreatePatch();
 
 	void Distribute(const int32 InIndex, UPCGExGraphPatch* Patch = nullptr);
-	template <typename T>
-	void DistributeEdge(const T& InEdge, UPCGExGraphPatch* Patch = nullptr);
 
-	void OutputTo(FPCGContext* Context, const int64 MinPointCount, const int64 MaxPointCount);
+	void OutputTo(FPCGContext* Context, const int64 MinPointCount, const int64 MaxPointCount, const uint32 PUID);
 	void OutputTo(FPCGContext* Context);
 
 	void Flush();
@@ -97,7 +99,7 @@ public:
 	virtual ~UPCGExGraphPatchGroup() override
 	{
 		PointIO = nullptr;
-		Graph = nullptr;
+		CurrentGraph = nullptr;
 		PatchesIO = nullptr;
 	}
 };

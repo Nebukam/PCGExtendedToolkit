@@ -6,7 +6,7 @@
 
 #include "Data/PCGExPointIO.h"
 
-void UPCGExSubPointsOrientOperation::PrepareForData(const UPCGExPointIO* InData)
+void UPCGExSubPointsOrientOperation::PrepareForData(UPCGExPointIO* InData)
 {
 	Super::PrepareForData(InData);
 	//AxisGetter.Capture(Axis);

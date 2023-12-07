@@ -5,6 +5,8 @@
 
 #include "PCGComponent.h"
 #include "PCGContext.h"
+#include "Metadata/PCGMetadata.h"
+#include "Metadata/PCGMetadataAttributeTpl.h"
 
 #include "PCGEx.generated.h"
 
@@ -254,5 +256,22 @@ namespace PCGEx
 		case EPCGExAxis::Down:
 			return FRotationMatrix::MakeFromZY(InForward, InUp).ToQuat();
 		}
+	}
+
+	template <typename T>
+	static FPCGMetadataAttribute<T>* CreateMark(UPCGMetadata* Metadata, FName MarkID, T MarkValue)
+	{
+		FPCGMetadataAttribute<T>* Mark = Metadata->FindOrCreateAttribute<T>(MarkID, MarkValue, false, true, true);
+		Mark->ClearEntries();
+		Mark->SetDefaultValue(MarkValue);
+		return Mark;
+	}
+
+	template <typename T>
+	static void Swap(TArray<T>& Array, int32 FirstIndex, int32 SecondIndex)
+	{
+		T* Ptr1 = &Array[FirstIndex];
+		T* Ptr2 = &Array[SecondIndex];
+		std::swap(*Ptr1, *Ptr2);
 	}
 }

@@ -38,7 +38,7 @@ void UPCGExGraphParamsData::Initialize(
 	{
 		if (!Socket.bEnabled) { continue; }
 		if (Socket.bApplyAttributeModifier) { bHasVariableMaxDistance = true; }
-		GreatestStaticMaxDistance = FMath::Max(GreatestStaticMaxDistance, Socket.Angle.MaxDistance);
+		GreatestStaticMaxDistance = FMath::Max(GreatestStaticMaxDistance, Socket.Bounds.MaxDistance);
 	}
 
 	CachedIndexAttributeName = SocketMapping.GetCompoundName(FName("CachedIndex"));

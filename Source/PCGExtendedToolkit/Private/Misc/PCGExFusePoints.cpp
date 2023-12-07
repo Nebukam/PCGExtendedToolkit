@@ -33,8 +33,8 @@ FPCGContext* FPCGExFusePointsElement::Initialize(
 	check(Settings);
 
 	Context->AttributesBlendingOverrides = Settings->BlendingSettings.AttributesOverrides;
-	Context->MetadataBlender = NewObject<UPCGExMetadataBlender>();
-	Context->MetadataBlender->DefaultOperation = Settings->BlendingSettings.DefaultBlending;
+	Context->FMetadataBlender = NewObject<FMetadataBlender>();
+	Context->FMetadataBlender->DefaultOperation = Settings->BlendingSettings.DefaultBlending;
 
 	return Context;
 }
@@ -69,7 +69,7 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 		auto Initialize = [&](UPCGExPointIO* PointIO)
 		{
 			Context->FusedPoints.Reset(PointIO->NumInPoints);
-			Context->MetadataBlender->PrepareForData(PointIO->Out, nullptr, Context->AttributesBlendingOverrides);
+			Context->FMetadataBlender->PrepareForData(PointIO->Out, nullptr, Context->AttributesBlendingOverrides);
 		};
 
 		auto ProcessPoint = [&](const int32 PointIndex, const UPCGExPointIO* PointIO)
@@ -136,7 +136,7 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 			const FPCGPoint& RootPoint = Context->CurrentIO->GetInPoint(FusedPointData.MainIndex);
 			FPCGPoint NewPoint = Context->CurrentIO->CopyPoint(RootPoint);
 			PCGMetadataEntryKey NewPointKey = NewPoint.MetadataEntry;
-			Context->MetadataBlender->PrepareForBlending(NewPointKey);
+			Context->FMetadataBlender->PrepareForBlending(NewPointKey);
 
 			PCGExDataBlending::FPropertiesBlender PropertiesBlender = PCGExDataBlending::FPropertiesBlender(Context->PropertyBlender);
 
@@ -147,11 +147,11 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 				const double Weight = 1 - (FusedPointData.Distances[i] / FusedPointData.MaxDistance);
 				FPCGPoint Point = Context->CurrentIO->GetInPoint(FusedPointData.Fused[i]);
 				PropertiesBlender.Blend(NewPoint, Point, NewPoint, Weight);
-				Context->MetadataBlender->Blend(NewPointKey, Point.MetadataEntry, NewPointKey, Weight);
+				Context->FMetadataBlender->Blend(NewPointKey, Point.MetadataEntry, NewPointKey, Weight);
 			}
 
 			if (PropertiesBlender.bRequiresPrepare) { PropertiesBlender.CompleteBlending(NewPoint); }
-			Context->MetadataBlender->CompleteBlending(NewPointKey, AverageDivider);
+			Context->FMetadataBlender->CompleteBlending(NewPointKey, AverageDivider);
 		};
 
 		if (PCGExMT::ParallelForLoop(

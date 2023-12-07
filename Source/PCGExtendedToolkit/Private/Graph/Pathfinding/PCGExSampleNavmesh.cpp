@@ -179,7 +179,7 @@ bool FPCGExSampleNavmeshElement::ExecuteInternal(FPCGContext* InContext) const
 			}
 		};
 
-		if (Context->ProcessCurrentPoints(ProcessPoint)) { Context->StartAsyncWait(); }
+		if (Context->ProcessCurrentPoints(ProcessPoint)) { Context->StartAsyncWait(PCGExMT::State_WaitingOnAsyncWork); }
 	}
 
 	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
@@ -198,9 +198,10 @@ bool FPCGExSampleNavmeshElement::ExecuteInternal(FPCGContext* InContext) const
 
 bool FNavmeshPathTask::ExecuteTask()
 {
-	if (!CanContinue()) { return false; }
-
+	
 	FPCGExSampleNavmeshContext* Context = Manager->GetContext<FPCGExSampleNavmeshContext>();
+	PCGEX_ASYNC_LIFE_CHECK
+	
 	//FWriteScopeLock WriteLock(Context->ContextLock);
 
 	bool bSuccess = false;
@@ -273,7 +274,7 @@ bool FNavmeshPathTask::ExecuteTask()
 				TArray<FPCGPoint>& MutablePoints = PathPoints->Out->GetMutablePoints();
 				TArrayView<FPCGPoint> Path = MakeArrayView(MutablePoints.GetData(), PathLocations.Num());
 
-				UPCGExMetadataBlender* TempBlender = Context->Blending->CreateBlender(PathPoints->Out, Context->GoalsPoints->In);
+				FMetadataBlender* TempBlender = Context->Blending->CreateBlender(PathPoints->Out, Context->GoalsPoints->In);
 
 				Context->Blending->BlendSubPoints(StartPoint, EndPoint, Path, PathHelper, TempBlender);
 

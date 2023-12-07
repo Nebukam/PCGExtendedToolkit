@@ -11,7 +11,7 @@ EPCGExDataBlendingType UPCGExSubPointsBlendInterpolate::GetDefaultBlending()
 	return EPCGExDataBlendingType::Weight;
 }
 
-void UPCGExSubPointsBlendInterpolate::BlendSubPoints(const FPCGPoint& StartPoint, const FPCGPoint& EndPoint, TArrayView<FPCGPoint>& SubPoints, const PCGExMath::FPathInfos& PathInfos, const UPCGExMetadataBlender* InBlender) const
+void UPCGExSubPointsBlendInterpolate::BlendSubPoints(const FPCGPoint& StartPoint, const FPCGPoint& EndPoint, TArrayView<FPCGPoint>& SubPoints, const PCGExMath::FPathInfos& PathInfos, const PCGExDataBlending::FMetadataBlender* InBlender) const
 {
 	const int32 NumPoints = SubPoints.Num();
 

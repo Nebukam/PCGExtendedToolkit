@@ -51,13 +51,14 @@ private:
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExBuildGraphContext : public FPCGExGraphProcessorContext
 {
+
 	friend class FPCGExBuildGraphElement;
 	friend class FProbeTask;
 
 public:
 	UPCGExGraphSolver* GraphSolver;
 	bool bMoveSocketOriginOnPointExtent = false;
-
+	
 	UPCGPointData::PointOctree* Octree = nullptr;
 };
 

@@ -100,7 +100,7 @@ bool FPCGExSampleSurfaceGuidedElement::ExecuteInternal(FPCGContext* InContext) c
 			Context->GetAsyncManager()->StartTask<FTraceTask>(PointIndex, PointIO->GetOutPoint(PointIndex).MetadataEntry, Context->CurrentIO);
 		};
 
-		if (Context->ProcessCurrentPoints(Initialize, ProcessPoint)) { Context->StartAsyncWait(); }
+		if (Context->ProcessCurrentPoints(Initialize, ProcessPoint)) { Context->StartAsyncWait(PCGExMT::State_WaitingOnAsyncWork); }
 	}
 
 	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
@@ -119,9 +119,10 @@ bool FPCGExSampleSurfaceGuidedElement::ExecuteInternal(FPCGContext* InContext) c
 
 bool FTraceTask::ExecuteTask()
 {
-	if (!CanContinue()) { return false; }
-
+	
 	const FPCGExSampleSurfaceGuidedContext* Context = Manager->GetContext<FPCGExSampleSurfaceGuidedContext>();
+	PCGEX_ASYNC_LIFE_CHECK
+	
 	const FPCGPoint& InPoint = PointIO->GetInPoint(TaskInfos.Index);
 	const FVector Origin = InPoint.Transform.GetLocation();
 
@@ -144,7 +145,7 @@ bool FTraceTask::ExecuteTask()
 		bSuccess = true;
 	};
 
-	if (!CanContinue()) { return false; }
+	PCGEX_ASYNC_LIFE_CHECK
 
 	switch (Context->CollisionType)
 	{
@@ -169,8 +170,7 @@ bool FTraceTask::ExecuteTask()
 	default: ;
 	}
 
-	if (!CanContinue()) { return false; }
-
+	PCGEX_ASYNC_LIFE_CHECK
 	if (Context->bProjectFailToSize)
 	{
 		PCGEX_SET_OUT_ATTRIBUTE(Location, TaskInfos.Key, End)

@@ -7,8 +7,8 @@
 
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGExAttributeHelpers.h"
-#include "Data/Blending/PCGExMetadataBlender.h"
 #include "Data/Blending/PCGExPropertiesBlender.h"
+#include "Data/Blending/PCGExMetadataBlender.h"
 
 #include "PCGExFusePoints.generated.h"
 
@@ -119,7 +119,7 @@ public:
 	int32 CurrentIndex = 0;
 
 	TMap<FName, EPCGExDataBlendingType> AttributesBlendingOverrides;
-	UPCGExMetadataBlender* MetadataBlender;
+	PCGExDataBlending::FMetadataBlender* FMetadataBlender;
 	PCGExDataBlending::FPropertiesBlender PropertyBlender;
 
 	TArray<PCGExFuse::FFusedPoint> FusedPoints;

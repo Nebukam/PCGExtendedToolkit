@@ -69,7 +69,7 @@ void FPCGExGraphProcessorContext::Reset()
 
 void FPCGExGraphProcessorContext::PrepareCurrentGraphForPoints(const UPCGPointData* InData, bool bEnsureEdgeType)
 {
-	CachedIndex = InData->Metadata->FindOrCreateAttribute<int64>(CurrentGraph->CachedIndexAttributeName, -1, false);
+	CachedIndex = InData->Metadata->FindOrCreateAttribute<int32>(CurrentGraph->CachedIndexAttributeName, -1, false);
 	CurrentGraph->PrepareForPointData(InData, bEnsureEdgeType);
 }
 

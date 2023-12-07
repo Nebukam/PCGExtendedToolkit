@@ -75,7 +75,7 @@ bool FPCGExConsolidateGraphElement::ExecuteInternal(
 		{
 			FWriteScopeLock WriteLock(Context->IndicesLock);
 			const int64 Key = PointIO->GetOutPoint(PointIndex).MetadataEntry;
-			const int64 CachedIndex = Context->CachedIndex->GetValueFromItemKey(Key);
+			const int32 CachedIndex = Context->CachedIndex->GetValueFromItemKey(Key);
 			Context->IndicesRemap.Add(CachedIndex, PointIndex); // Store previous
 			Context->CachedIndex->SetValue(Key, PointIndex);    // Update cached value with fresh one
 		};
@@ -139,7 +139,7 @@ bool FPCGExConsolidateGraphElement::ExecuteInternal(
 	if (Context->IsDone())
 	{
 		Context->IndicesRemap.Empty();
-		Context->OutputPointsAndParams();
+		Context->OutputPointsAndGraphParams();
 		return true;
 	}
 

@@ -6,7 +6,6 @@
 
 void UPCGExAsyncTaskManager::OnAsyncTaskExecutionComplete(FPCGExAsyncTask* AsyncTask, bool bSuccess)
 {
-	//if (!IsValid()) { return; }
 	FWriteScopeLock WriteLock(ManagerLock);
 	NumCompleted++;
 }

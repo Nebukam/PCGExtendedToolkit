@@ -151,8 +151,13 @@ protected:
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : public FPCGContext
 {
+
 	friend class FPCGExPointsProcessorElementBase;
 
+	virtual ~FPCGExPointsProcessorContext() override;
+
+	bool bDeleted = false;
+	
 public:
 	mutable FRWLock ContextLock;
 	UPCGExPointIOGroup* MainPoints = nullptr;
@@ -170,7 +175,7 @@ public:
 	void Done();
 
 	UPCGExAsyncTaskManager* GetAsyncManager();
-	void StartAsyncWait() { SetState(PCGExMT::State_WaitingOnAsyncWork); }
+	void StartAsyncWait(PCGExMT::AsyncState WaitState) { SetState(WaitState); }
 
 	void StopAsyncWait(const PCGExMT::AsyncState NextState)
 	{

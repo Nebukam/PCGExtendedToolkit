@@ -60,7 +60,7 @@ double UPCGExGraphSolver::PrepareProbeForPointSocketPair(
 	PCGExGraph::FSocketProbe& Probe,
 	const PCGExGraph::FSocketInfos& InSocketInfos) const
 {
-	const FPCGExSocketAngle& BaseAngle = InSocketInfos.Socket->Descriptor.Angle;
+	const FPCGExSocketBounds& BaseAngle = InSocketInfos.Socket->Descriptor.Bounds;
 
 	FVector Direction = BaseAngle.Direction;
 	double DotTolerance = BaseAngle.DotThreshold;

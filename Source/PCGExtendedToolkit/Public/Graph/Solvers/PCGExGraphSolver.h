@@ -26,7 +26,7 @@ namespace PCGExGraph
 	};
 
 	/** Per-socket temp data structure for processing only*/
-	struct PCGEXTENDEDTOOLKIT_API FSocketProbe : FPCGExSocketAngle
+	struct PCGEXTENDEDTOOLKIT_API FSocketProbe : FPCGExSocketBounds
 	{
 		FSocketProbe()
 		{

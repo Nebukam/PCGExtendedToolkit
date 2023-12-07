@@ -3,10 +3,9 @@
 
 
 #include "Splines/SubPoints/DataBlending/PCGExSubPointsBlendInheritEnd.h"
-
 #include "Data/Blending/PCGExMetadataBlender.h"
 
-void UPCGExSubPointsBlendInheritEnd::BlendSubPoints(const FPCGPoint& StartPoint, const FPCGPoint& EndPoint, TArrayView<FPCGPoint>& SubPoints, const PCGExMath::FPathInfos& PathInfos, const UPCGExMetadataBlender* InBlender) const
+void UPCGExSubPointsBlendInheritEnd::BlendSubPoints(const FPCGPoint& StartPoint, const FPCGPoint& EndPoint, TArrayView<FPCGPoint>& SubPoints, const PCGExMath::FPathInfos& PathInfos, const PCGExDataBlending::FMetadataBlender* InBlender) const
 {
 	PCGExDataBlending::FPropertiesBlender LocalPropertiesBlender = PCGExDataBlending::FPropertiesBlender(PropertiesBlender);
 	const int32 NumPoints = SubPoints.Num();

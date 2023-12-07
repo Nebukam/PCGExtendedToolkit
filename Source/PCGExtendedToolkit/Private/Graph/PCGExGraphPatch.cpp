@@ -10,32 +10,54 @@
 
 #include "Graph/PCGExGraph.h"
 
-void UPCGExGraphPatch::Add(const uint64 Hash)
+void UPCGExGraphPatch::Add(int32 InIndex)
 {
 	{
+		FReadScopeLock ReadLock(HashLock);
+		if (IndicesSet.Contains(InIndex)) { return; }
+	}
+
+	{
 		FWriteScopeLock WriteLock(HashLock);
-		HashSet.Add(Hash);
+		IndicesSet.Add(InIndex);
 	}
 	{
 		FWriteScopeLock WriteLock(Parent->HashLock);
-		Parent->HashMap.Add(Hash, this);
+		Parent->IndicesMap.Add(InIndex, this);
 	}
 }
 
-bool UPCGExGraphPatch::Contains(const uint64 Hash) const
+bool UPCGExGraphPatch::Contains(const int32 InIndex) const
 {
 	FReadScopeLock ReadLock(HashLock);
-	return HashSet.Contains(Hash);
+	return IndicesSet.Contains(InIndex);
+}
+
+void UPCGExGraphPatch::AddEdge(uint64 InEdgeHash)
+{
+	PCGExGraph::FEdge Edge = static_cast<PCGExGraph::FEdge>(InEdgeHash);
+	Add(Edge.Start);
+	Add(Edge.End);
+	{
+		FWriteScopeLock WriteLock(HashLock);
+		EdgesHashSet.Add(InEdgeHash);
+	}
+}
+
+bool UPCGExGraphPatch::ContainsEdge(const uint64 InEdgeHash) const
+{
+	FReadScopeLock ReadLock(HashLock);
+	return EdgesHashSet.Contains(InEdgeHash);
 }
 
 bool UPCGExGraphPatch::OutputTo(const UPCGExPointIO* OutIO, int32 PatchIDOverride)
 {
 	const TArray<FPCGPoint>& InPoints = OutIO->In->GetPoints();
 	TArray<FPCGPoint>& Points = OutIO->Out->GetMutablePoints();
-	Points.Reserve(Points.Num() + HashSet.Num());
+	Points.Reserve(Points.Num() + IndicesSet.Num());
 	PCGMetadataElementCommon::ClearOrCreateAttribute(OutIO->Out->Metadata, Parent->PatchIDAttributeName, PatchIDOverride < 0 ? PatchID : PatchIDOverride);
-	PCGMetadataElementCommon::ClearOrCreateAttribute(OutIO->Out->Metadata, Parent->PatchSizeAttributeName, HashSet.Num());
-	for (const int32 Index : HashSet)
+	PCGMetadataElementCommon::ClearOrCreateAttribute(OutIO->Out->Metadata, Parent->PatchSizeAttributeName, IndicesSet.Num());
+	for (const int32 Index : IndicesSet)
 	{
 		FPCGPoint& NewPoint = Points.Emplace_GetRef(InPoints[Index]);
 	}
@@ -44,7 +66,7 @@ bool UPCGExGraphPatch::OutputTo(const UPCGExPointIO* OutIO, int32 PatchIDOverrid
 
 void UPCGExGraphPatch::Flush()
 {
-	HashSet.Empty();
+	IndicesSet.Empty();
 	PointIO = nullptr;
 	Parent = nullptr;
 }
@@ -52,14 +74,14 @@ void UPCGExGraphPatch::Flush()
 bool UPCGExGraphPatchGroup::Contains(const uint64 Hash) const
 {
 	FReadScopeLock ReadLock(HashLock);
-	return HashMap.Contains(Hash);
+	return IndicesMap.Contains(Hash);
 }
 
 UPCGExGraphPatch* UPCGExGraphPatchGroup::FindPatch(uint64 Hash)
 {
 	FReadScopeLock ReadLock(HashLock);
 
-	UPCGExGraphPatch** PatchPtr = HashMap.Find(Hash);
+	UPCGExGraphPatch** PatchPtr = IndicesMap.Find(Hash);
 	if (!PatchPtr) { return nullptr; }
 
 	return *PatchPtr;
@@ -69,7 +91,7 @@ UPCGExGraphPatch* UPCGExGraphPatchGroup::GetOrCreatePatch(const uint64 Hash)
 {
 	{
 		FReadScopeLock ReadLock(HashLock);
-		if (UPCGExGraphPatch** PatchPtr = HashMap.Find(Hash)) { return *PatchPtr; }
+		if (UPCGExGraphPatch** PatchPtr = IndicesMap.Find(Hash)) { return *PatchPtr; }
 	}
 
 	UPCGExGraphPatch* NewPatch = CreatePatch();
@@ -105,40 +127,13 @@ void UPCGExGraphPatchGroup::Distribute(const int32 InIndex, UPCGExGraphPatch* Pa
 	TArray<PCGExGraph::FUnsignedEdge> UnsignedEdges;
 	UnsignedEdges.Reserve(NumMaxEdges);
 
-	Graph->GetEdges(InIndex, PointIO->GetInPoint(InIndex).MetadataEntry, UnsignedEdges, CrawlEdgeTypes);
+	CurrentGraph->GetEdges(InIndex, PointIO->GetInPoint(InIndex).MetadataEntry, UnsignedEdges, CrawlEdgeTypes);
 
 	for (const PCGExGraph::FUnsignedEdge& UEdge : UnsignedEdges)
 	{
 		if (!Patch) { Patch = GetOrCreatePatch(InIndex); }
 		Distribute(UEdge.End, Patch);
-	}
-}
-
-template <typename T>
-void UPCGExGraphPatchGroup::DistributeEdge(const T& InEdge, UPCGExGraphPatch* Patch)
-{
-	if (Patch)
-	{
-		if (Patch->Contains(InEdge))
-		{
-			// Exit early since this edge has already been registered in this patch.
-			return;
-		}
-
-		// Otherwise add edge to active patch
-		Patch->Add(InEdge);
-	}
-
-	TArray<T> Edges;
-	Edges.Reserve(NumMaxEdges);
-
-	Graph->GetEdges(InEdge.Start, PointIO->GetInPoint(InEdge.Start).MetadataEntry, Edges, CrawlEdgeTypes);
-	Graph->GetEdges(InEdge.End, PointIO->GetInPoint(InEdge.End).MetadataEntry, Edges, CrawlEdgeTypes);
-
-	for (const T& Edge : Edges)
-	{
-		if (!Patch) { Patch = GetOrCreatePatch(InEdge); }
-		DistributeEdge(Edge, Patch);
+		Patch->AddEdge(UEdge.GetUnsignedHash());
 	}
 }
 
@@ -157,24 +152,30 @@ void UPCGExGraphPatchGroup::OutputTo(FPCGContext* Context)
 
 void UPCGExGraphPatchGroup::Flush()
 {
-	for (UPCGExGraphPatch* Patch : Patches) { Patch->Flush(); }
+	for (UPCGExGraphPatch* Patch : Patches)
+	{
+		Patch->Flush();
+		Patch->ConditionalBeginDestroy();
+	}
+	
 	Patches.Empty();
-	HashMap.Empty();
+	IndicesMap.Empty();
 	PointIO = nullptr;
-	Graph = nullptr;
+	CurrentGraph = nullptr;
 	PatchesIO = nullptr;
 }
 
-void UPCGExGraphPatchGroup::OutputTo(FPCGContext* Context, const int64 MinPointCount, const int64 MaxPointCount)
+void UPCGExGraphPatchGroup::OutputTo(FPCGContext* Context, const int64 MinPointCount, const int64 MaxPointCount, const uint32 PUID)
 {
 	PatchesIO = NewObject<UPCGExPointIOGroup>();
 	int32 PatchIndex = 0;
 	for (UPCGExGraphPatch* Patch : Patches)
 	{
-		const int64 OutNumPoints = Patch->HashSet.Num();
+		const int64 OutNumPoints = Patch->IndicesSet.Num();
 		if (MinPointCount >= 0 && OutNumPoints < MinPointCount) { continue; }
 		if (MaxPointCount >= 0 && OutNumPoints > MaxPointCount) { continue; }
 		const UPCGExPointIO* OutIO = PatchesIO->Emplace_GetRef(*PointIO, PCGExPointIO::EInit::NewOutput);
+		OutIO->Out->Metadata->CreateAttribute<int32>(PCGExGraph::PUIDAttributeName, PUID, false, true);
 		Patch->OutputTo(OutIO, PatchIndex);
 		PatchIndex++;
 	}

@@ -164,7 +164,11 @@ public:
 
 	void Flush()
 	{
-		for (UPCGExPointIO* Pair : Pairs) { Pair->Flush(); }
+		for (UPCGExPointIO* Pair : Pairs)
+		{
+			Pair->Flush();
+			Pair->ConditionalBeginDestroy();
+		}
 		Pairs.Empty();
 	}
 

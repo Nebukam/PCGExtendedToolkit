@@ -12,15 +12,15 @@ EPCGExDataBlendingType UPCGExSubPointsBlendOperation::GetDefaultBlending()
 	return EPCGExDataBlendingType::Copy;
 }
 
-void UPCGExSubPointsBlendOperation::PrepareForData(const UPCGExPointIO* InData)
+void UPCGExSubPointsBlendOperation::PrepareForData(UPCGExPointIO* InData)
 {
 	Super::PrepareForData(InData);
 	PrepareForData(InData->Out, InData->Out);
 }
 
-void UPCGExSubPointsBlendOperation::PrepareForData(const UPCGPointData* InPrimaryData, const UPCGPointData* InSecondaryData)
+void UPCGExSubPointsBlendOperation::PrepareForData(UPCGPointData* InPrimaryData, const UPCGPointData* InSecondaryData)
 {
-	if (!InternalBlender) { InternalBlender = NewObject<UPCGExMetadataBlender>(); }
+	if (!InternalBlender) { InternalBlender = NewObject<PCGExDataBlending::FMetadataBlender>(); }
 	InternalBlender->DefaultOperation = GetDefaultBlending();
 	InternalBlender->PrepareForData(InPrimaryData, InSecondaryData, BlendingSettings.AttributesOverrides);
 	PropertiesBlender.Init(BlendingSettings);
@@ -31,13 +31,13 @@ void UPCGExSubPointsBlendOperation::ProcessSubPoints(const FPCGPoint& StartPoint
 	BlendSubPoints(StartPoint, EndPoint, SubPoints, PathInfos, InternalBlender);
 }
 
-void UPCGExSubPointsBlendOperation::BlendSubPoints(const FPCGPoint& StartPoint, const FPCGPoint& EndPoint, TArrayView<FPCGPoint>& SubPoints, const PCGExMath::FPathInfos& PathInfos, const UPCGExMetadataBlender* InBlender) const
+void UPCGExSubPointsBlendOperation::BlendSubPoints(const FPCGPoint& StartPoint, const FPCGPoint& EndPoint, TArrayView<FPCGPoint>& SubPoints, const PCGExMath::FPathInfos& PathInfos, const PCGExDataBlending::FMetadataBlender* InBlender) const
 {
 }
 
-UPCGExMetadataBlender* UPCGExSubPointsBlendOperation::CreateBlender(const UPCGPointData* InPrimaryData, const UPCGPointData* InSecondaryData)
+PCGExDataBlending::FMetadataBlender* UPCGExSubPointsBlendOperation::CreateBlender(UPCGPointData* InPrimaryData, const UPCGPointData* InSecondaryData)
 {
-	UPCGExMetadataBlender* NewBlender = NewObject<UPCGExMetadataBlender>();
+	PCGExDataBlending::FMetadataBlender* NewBlender = NewObject<PCGExDataBlending::FMetadataBlender>();
 	NewBlender->DefaultOperation = GetDefaultBlending();
 	NewBlender->PrepareForData(InPrimaryData, InSecondaryData, BlendingSettings.AttributesOverrides);
 	return NewBlender;
@@ -45,7 +45,7 @@ UPCGExMetadataBlender* UPCGExSubPointsBlendOperation::CreateBlender(const UPCGPo
 
 void UPCGExSubPointsBlendOperation::BeginDestroy()
 {
-	if (InternalBlender) { InternalBlender->Flush(); }
+	if (InternalBlender) { delete InternalBlender; }
 	InternalBlender = nullptr;
 	Super::BeginDestroy();
 }

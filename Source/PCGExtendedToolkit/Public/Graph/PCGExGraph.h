@@ -47,22 +47,22 @@ ENUM_CLASS_FLAGS(EPCGExSocketType)
 #pragma region Descriptors
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExSocketAngle
+struct PCGEXTENDEDTOOLKIT_API FPCGExSocketBounds
 {
 	GENERATED_BODY()
 
-	FPCGExSocketAngle()
+	FPCGExSocketBounds()
 		: DotOverDistance(PCGEx::DefaultDotOverDistanceCurve)
 	{
 	}
 
-	FPCGExSocketAngle(const FVector& Dir): FPCGExSocketAngle()
+	FPCGExSocketBounds(const FVector& Dir): FPCGExSocketBounds()
 	{
 		Direction = Dir;
 	}
 
-	FPCGExSocketAngle(
-		const FPCGExSocketAngle& Other):
+	FPCGExSocketBounds(
+		const FPCGExSocketBounds& Other):
 		Direction(Other.Direction),
 		DotThreshold(Other.DotThreshold),
 		MaxDistance(Other.MaxDistance),
@@ -114,8 +114,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSocketDescriptor
 		SocketType(InType),
 		DebugColor(InDebugColor)
 	{
-		Angle.Direction = InDirection;
-		Angle.Angle = InAngle;
+		Bounds.Direction = InDirection;
+		Bounds.Angle = InAngle;
 	}
 
 	FPCGExSocketDescriptor(
@@ -129,8 +129,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSocketDescriptor
 		SocketType(InType),
 		DebugColor(InDebugColor)
 	{
-		Angle.Direction = InDirection;
-		Angle.Angle = InAngle;
+		Bounds.Direction = InDirection;
+		Bounds.Angle = InAngle;
 		MatchingSlots.Add(InMatchingSlot);
 	}
 
@@ -149,7 +149,7 @@ public:
 
 	/** Socket spatial definition */
 	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta=(ShowOnlyInnerProperties))
-	FPCGExSocketAngle Angle;
+	FPCGExSocketBounds Bounds;
 
 	/** Whether the orientation of the direction is relative to the point transform or not. */
 	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere)
@@ -291,10 +291,13 @@ namespace PCGExGraph
 	const FName SourceGraphsLabel = TEXT("In");
 	const FName OutputGraphsLabel = TEXT("Out");
 
-	const FName OutputPatchesLabel = TEXT("Out");
+	const FName SourcePatchesLabel = TEXT("Edges");
+	const FName OutputPatchesLabel = TEXT("Edges");
 
 	const FName SourcePathsLabel = TEXT("Paths");
 	const FName OutputPathsLabel = TEXT("Paths");
+
+	const FName PUIDAttributeName = TEXT("__PCGEx/PUID_");
 
 	constexpr PCGExMT::AsyncState State_ReadyForNextGraph = 100;
 	constexpr PCGExMT::AsyncState State_ProcessingGraph = 101;
@@ -303,9 +306,16 @@ namespace PCGExGraph
 	constexpr PCGExMT::AsyncState State_SwappingGraphIndices = 106;
 
 	constexpr PCGExMT::AsyncState State_FindingEdgeTypes = 110;
+
 	constexpr PCGExMT::AsyncState State_FindingPatch = 120;
+	constexpr PCGExMT::AsyncState State_WaitingOnFindingPatch = 121;
+	constexpr PCGExMT::AsyncState State_MergingPatch = 130;
+	constexpr PCGExMT::AsyncState State_WaitingOnMergingPatch = 131;
+	constexpr PCGExMT::AsyncState State_WritingPatch = 140;
+	constexpr PCGExMT::AsyncState State_WaitingOnWritingPatch = 141;
 
 	constexpr PCGExMT::AsyncState State_PromotingEdges = 210;
+
 
 #pragma region Sockets
 
@@ -373,7 +383,7 @@ namespace PCGExGraph
 		FSocket(const FPCGExSocketDescriptor& InDescriptor): FSocket()
 		{
 			Descriptor = InDescriptor;
-			Descriptor.Angle.DotThreshold = FMath::Cos(Descriptor.Angle.Angle * (PI / 180.0)); //Degrees to dot product
+			Descriptor.Bounds.DotThreshold = FMath::Cos(Descriptor.Bounds.Angle * (PI / 180.0)); //Degrees to dot product
 		}
 
 		friend struct FSocketMapping;
@@ -412,7 +422,7 @@ namespace PCGExGraph
 			AttributeTargetIndex = GetAttribute(PointData, SocketPropertyNameIndex, true, -1);
 			AttributeTargetEntryKey = GetAttribute(PointData, SocketPropertyNameEntryKey, true, PCGInvalidEntryKey);
 			AttributeEdgeType = GetAttribute(PointData, SocketPropertyNameEdgeType, bEnsureEdgeType, static_cast<int32>(EPCGExEdgeType::Unknown));
-			Descriptor.Angle.LoadCurve();
+			Descriptor.Bounds.LoadCurve();
 		}
 
 	protected:
@@ -571,13 +581,13 @@ namespace PCGExGraph
 				NameToIndexMap.Add(NewSocket.GetName(), NewSocket.SocketIndex);
 
 				if (Overrides.bOverrideRelativeOrientation) { NewSocket.Descriptor.bRelativeOrientation = Overrides.bRelativeOrientation; }
-				if (Overrides.bOverrideAngle) { NewSocket.Descriptor.Angle.Angle = Overrides.Angle; }
-				if (Overrides.bOverrideMaxDistance) { NewSocket.Descriptor.Angle.MaxDistance = Overrides.MaxDistance; }
+				if (Overrides.bOverrideAngle) { NewSocket.Descriptor.Bounds.Angle = Overrides.Angle; }
+				if (Overrides.bOverrideMaxDistance) { NewSocket.Descriptor.Bounds.MaxDistance = Overrides.MaxDistance; }
 				if (Overrides.bOverrideExclusiveBehavior) { NewSocket.Descriptor.bExclusiveBehavior = Overrides.bExclusiveBehavior; }
-				if (Overrides.bOverrideDotOverDistance) { NewSocket.Descriptor.Angle.DotOverDistance = Overrides.DotOverDistance; }
+				if (Overrides.bOverrideDotOverDistance) { NewSocket.Descriptor.Bounds.DotOverDistance = Overrides.DotOverDistance; }
 				if (Overrides.bOverrideOffsetOrigin) { NewSocket.Descriptor.OffsetOrigin = Overrides.OffsetOrigin; }
 
-				NewSocket.Descriptor.Angle.DotThreshold = FMath::Cos(NewSocket.Descriptor.Angle.Angle * (PI / 180.0));
+				NewSocket.Descriptor.Bounds.DotThreshold = FMath::Cos(NewSocket.Descriptor.Bounds.Angle * (PI / 180.0));
 
 				NumSockets++;
 			}
@@ -682,14 +692,13 @@ namespace PCGExGraph
 
 		explicit operator uint64() const
 		{
-			return (static_cast<uint64>(Start) << 32) | End;
+			return static_cast<uint64>(Start) | (static_cast<uint64>(End) << 32);
 		}
 
 		explicit FEdge(const uint64 InValue)
 		{
-			Start = static_cast<uint32>((InValue >> 32) & 0xFFFFFFFF);
-			End = static_cast<uint32>(InValue & 0xFFFFFFFF);
-			// You might need to set a default value for Type based on your requirements.
+			Start = static_cast<uint32>(InValue & 0xFFFFFFFF);
+			End = static_cast<uint32>((InValue >> 32) & 0xFFFFFFFF);
 			Type = EPCGExEdgeType::Unknown;
 		}
 	};
@@ -712,17 +721,16 @@ namespace PCGExGraph
 
 		explicit FUnsignedEdge(const uint64 InValue)
 		{
-			Start = static_cast<uint32>((InValue >> 32) & 0xFFFFFFFF);
-			End = static_cast<uint32>(InValue & 0xFFFFFFFF);
-			// You might need to set a default value for Type based on your requirements.
+			Start = static_cast<uint32>(InValue & 0xFFFFFFFF);
+			End = static_cast<uint32>((InValue >> 32) & 0xFFFFFFFF);
 			Type = EPCGExEdgeType::Unknown;
 		}
 
 		uint64 GetUnsignedHash() const
 		{
 			return Start > End ?
-				       (static_cast<uint64>(Start) << 32) | End :
-				       (static_cast<uint64>(End) << 32) | Start;
+				       static_cast<uint64>(Start) | (static_cast<uint64>(End) << 32) :
+				       static_cast<uint64>(End) | (static_cast<uint64>(Start) << 32);
 		}
 	};
 

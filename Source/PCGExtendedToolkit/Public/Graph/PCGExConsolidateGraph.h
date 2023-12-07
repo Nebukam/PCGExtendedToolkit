@@ -41,6 +41,7 @@ private:
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExConsolidateGraphContext : public FPCGExGraphProcessorContext
 {
+	
 	friend class FPCGExConsolidateGraphElement;
 
 public:
