@@ -9,12 +9,15 @@
 #include "Splines/SubPoints/PCGExSubPointsOperation.h"
 #include "PCGExSubPointsBlendOperation.generated.h"
 
+namespace PCGExData
+{
+	class FPointIO;
+}
+
 namespace PCGExDataBlending
 {
 	class FMetadataBlender;
 }
-
-class UPCGExPointIO;
 
 /**
  * 
@@ -28,14 +31,25 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(ShowOnlyInnerProperties))
 	FPCGExBlendingSettings BlendingSettings;
 
-	virtual void PrepareForData(UPCGExPointIO* InData) override;
+	virtual void PrepareForData(PCGExData::FPointIO* InData) override;
 	virtual void PrepareForData(UPCGPointData* InPrimaryData, const UPCGPointData* InSecondaryData);
-	virtual void ProcessSubPoints(const FPCGPoint& StartPoint, const FPCGPoint& EndPoint, TArrayView<FPCGPoint>& SubPoints, const PCGExMath::FPathInfos& PathInfos) const override;
-	virtual void BlendSubPoints(const FPCGPoint& StartPoint, const FPCGPoint& EndPoint, TArrayView<FPCGPoint>& SubPoints, const PCGExMath::FPathInfos& PathInfos, const PCGExDataBlending::FMetadataBlender* InBlender) const;
 
-	PCGExDataBlending::FMetadataBlender* CreateBlender(UPCGPointData* InPrimaryData, const UPCGPointData* InSecondaryData);
+	virtual void ProcessSubPoints(
+		const PCGEx::FPointRef& Start,
+		const PCGEx::FPointRef& End,
+		TArrayView<FPCGPoint>& SubPoints,
+		const PCGExMath::FPathInfos& PathInfos) const override;
+
+	virtual void BlendSubPoints(
+		const PCGEx::FPointRef& StartPoint,
+		const PCGEx::FPointRef& EndPoint,
+		TArrayView<FPCGPoint>& SubPoints,
+		const PCGExMath::FPathInfos& PathInfos,
+		const PCGExDataBlending::FMetadataBlender* InBlender) const;
 
 	virtual void BeginDestroy() override;
+
+	PCGExDataBlending::FMetadataBlender* CreateBlender(UPCGPointData* InPrimaryData, const UPCGPointData* InSecondaryData);
 
 protected:
 	virtual EPCGExDataBlendingType GetDefaultBlending();

@@ -34,7 +34,7 @@ TArray<FPCGPinProperties> UPCGExSampleNearestPointSettings::InputPinProperties()
 	return PinProperties;
 }
 
-PCGExPointIO::EInit UPCGExSampleNearestPointSettings::GetPointOutputInitMode() const { return PCGExPointIO::EInit::DuplicateInput; }
+PCGExData::EInit UPCGExSampleNearestPointSettings::GetPointOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
 int32 UPCGExSampleNearestPointSettings::GetPreferredChunkSize() const { return 32; }
 
@@ -170,13 +170,13 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 
 	if (Context->IsState(PCGExMT::State_ProcessingPoints))
 	{
-		auto Initialize = [&](UPCGExPointIO* PointIO)
+		auto Initialize = [&](PCGExData::FPointIO* PointIO)
 		{
 			PointIO->BuildMetadataEntries();
 
 			if (Context->bLocalRangeMin)
 			{
-				if (Context->RangeMinGetter.Validate(PointIO->Out))
+				if (Context->RangeMinGetter.Validate(PointIO->GetIn()))
 				{
 					PCGE_LOG(Warning, GraphAndLog, LOCTEXT("InvalidLocalRangeMin", "RangeMin metadata missing"));
 				}
@@ -184,7 +184,7 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 
 			if (Context->bLocalRangeMax)
 			{
-				if (Context->RangeMaxGetter.Validate(PointIO->Out))
+				if (Context->RangeMaxGetter.Validate(PointIO->GetIn()))
 				{
 					PCGE_LOG(Warning, GraphAndLog, LOCTEXT("InvalidLocalRangeMax", "RangeMax metadata missing"));
 				}
@@ -199,7 +199,7 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 			PCGEX_INIT_ATTRIBUTE_OUT(Angle, double)
 		};
 
-		auto ProcessPoint = [&](const int32 ReadIndex, const UPCGExPointIO* PointIO)
+		auto ProcessPoint = [&](const int32 ReadIndex, const PCGExData::FPointIO* PointIO)
 		{
 			const FPCGPoint& Point = PointIO->GetOutPoint(ReadIndex);
 

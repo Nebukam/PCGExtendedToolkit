@@ -55,23 +55,23 @@ bool FPCGExSampleGraphPatchesElement::ExecuteInternal(FPCGContext* InContext) co
 	{
 		if (!Validate(Context)) { return true; }
 		Context->AdvancePointsIO();
-		Context->GoalPicker->PrepareForData(Context->CurrentIO->In, Context->GoalsPoints->In);
-		Context->Blending->PrepareForData(Context->CurrentIO->In, Context->GoalsPoints->In);
+		Context->GoalPicker->PrepareForData(Context->GetCurrentIn(), Context->GoalsPoints->GetIn());
+		//Context->Blending->PrepareForData(Context->GetCurrentIn(), Context->GoalsPoints->GetIn());
 		Context->SetState(PCGExMT::State_ProcessingPoints);
 	}
 
-// For each SEED
+	// For each SEED
 	// For each PATCH
-		// For each GRAPH -> Merge 
-		
-	
+	// For each GRAPH -> Merge 
+
+
 	if (Context->IsState(PCGExMT::State_ProcessingPoints))
 	{
-		auto ProcessPoint = [&](const int32 PointIndex, const UPCGExPointIO* PointIO)
+		auto ProcessPoint = [&](const int32 PointIndex, const PCGExData::FPointIO* PointIO)
 		{
 			auto NavMeshTask = [&](int32 InGoalIndex)
 			{
-				UPCGExPointIO* PathPoints = Context->OutputPaths->Emplace_GetRef(PointIO->In, PCGExPointIO::EInit::NewOutput);
+				PCGExData::FPointIO* PathPoints = Context->OutputPaths->Emplace_GetRef(PointIO->GetIn(), PCGExData::EInit::NewOutput);
 				Context->GetAsyncManager()->StartTask<FSamplePatchPathTask>(
 					PointIndex, PointIO->GetInPoint(PointIndex).MetadataEntry, Context->CurrentIO,
 					InGoalIndex, PathPoints);
@@ -114,7 +114,6 @@ bool FPCGExSampleGraphPatchesElement::ExecuteInternal(FPCGContext* InContext) co
 
 bool FSamplePatchPathTask::ExecuteTask()
 {
-
 	FPCGExSampleGraphPatchesContext* Context = Manager->GetContext<FPCGExSampleGraphPatchesContext>();
 	PCGEX_ASYNC_LIFE_CHECK
 	//FWriteScopeLock WriteLock(Context->ContextLock);

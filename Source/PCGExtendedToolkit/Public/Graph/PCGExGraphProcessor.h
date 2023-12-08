@@ -36,7 +36,6 @@ public:
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExGraphProcessorContext : public FPCGExPointsProcessorContext
 {
-	
 	friend class UPCGExGraphProcessorSettings;
 
 public:

@@ -61,12 +61,11 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPartitionRuleDescriptor : public FPCGExInput
 
 class UPCGExPartitionLayer;
 
-UCLASS(BlueprintType)
-class PCGEXTENDEDTOOLKIT_API UPCGExPartitionLayer : public UObject
+class PCGEXTENDEDTOOLKIT_API UPCGExPartitionLayer
 {
-	GENERATED_BODY()
-
 public:
+	~UPCGExPartitionLayer();
+
 	TMap<int64, UPCGExPartitionLayer*> SubLayers;
 	UPCGPointData* PointData = nullptr;
 	TArray<FPCGPoint>* Points = nullptr;;
@@ -76,7 +75,7 @@ protected:
 	mutable FRWLock PointLock;
 
 public:
-	UPCGExPartitionLayer* GetLayer(int64 Key, UPCGPointData* InData)
+	UPCGExPartitionLayer* GetLayer(int64 Key)
 	{
 		UPCGExPartitionLayer** LayerPtr;
 
@@ -88,7 +87,7 @@ public:
 		if (!LayerPtr)
 		{
 			FWriteScopeLock WriteLock(LayersLock);
-			UPCGExPartitionLayer* Layer = NewObject<UPCGExPartitionLayer>();
+			UPCGExPartitionLayer* Layer = new UPCGExPartitionLayer();
 			SubLayers.Add(Key, Layer);
 			return Layer;
 		}
@@ -99,16 +98,6 @@ public:
 	{
 		FWriteScopeLock WriteLock(PointLock);
 		return Points->Add_GetRef(Point);
-	}
-
-	void Flush()
-	{
-		TArray<int64> Keys;
-		SubLayers.GetKeys(Keys);
-		for (const int64 Key : Keys) { (*SubLayers.Find(Key))->Flush(); }
-		SubLayers.Empty();
-		PointData = nullptr;
-		Points = nullptr;
 	}
 };
 
@@ -165,7 +154,7 @@ protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings interface
 
-	virtual PCGExPointIO::EInit GetPointOutputInitMode() const override;
+	virtual PCGExData::EInit GetPointOutputInitMode() const override;
 
 public:
 	/** If false, will only write partition identifier values instead of splitting partitions into new point datasets. */
@@ -181,7 +170,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSplitByValuesContext : public FPCGExPointsPr
 {
 	friend class FPCGExPartitionByValuesElement;
 
-public:
+	~FPCGExSplitByValuesContext();
+
 	TArray<FPCGExPartitionRuleDescriptor> RulesDescriptors;
 	TArray<PCGExPartition::FRule> Rules;
 	mutable FRWLock RulesLock;
@@ -189,8 +179,8 @@ public:
 	bool bSplitOutput = true;
 	UPCGExPartitionLayer* RootPartitionLayer;
 
-	void PrepareForPoints(const UPCGExPointIO* PointIO);
-	void PrepareForPointsWithMetadataEntries(UPCGExPointIO* PointIO);
+	void PrepareForPoints(const PCGExData::FPointIO* PointIO);
+	void PrepareForPointsWithMetadataEntries(PCGExData::FPointIO* PointIO);
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExPartitionByValuesElement : public FPCGExPointsProcessorElementBase

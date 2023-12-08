@@ -4,21 +4,28 @@
 #pragma once
 
 #include "PCGContext.h"
-#include "Data/PCGExPointIO.h"
+#include "Data/PCGExPointsIO.h"
 #include "Helpers/PCGAsync.h"
 #include "Metadata/PCGMetadataCommon.h"
-
-#include "PCGExMT.generated.h"
 
 namespace PCGExMT
 {
 	using AsyncState = int64;
 
-	constexpr AsyncState State_Setup = TNumericLimits<int64>::Min();
-	constexpr AsyncState State_ReadyForNextPoints = 1;
-	constexpr AsyncState State_ProcessingPoints = 2;
-	constexpr AsyncState State_WaitingOnAsyncWork = 3;
-	constexpr AsyncState State_Done = TNumericLimits<int64>::Max();
+	struct AsyncStateCounter
+	{
+		static AsyncState Unique()
+		{
+			static AsyncState counter = 0;
+			return counter++;
+		}
+	};
+
+	const AsyncState State_Setup = AsyncStateCounter::Unique();
+	const AsyncState State_ReadyForNextPoints = AsyncStateCounter::Unique();
+	const AsyncState State_ProcessingPoints = AsyncStateCounter::Unique();
+	const AsyncState State_WaitingOnAsyncWork = AsyncStateCounter::Unique();
+	const AsyncState State_Done = AsyncStateCounter::Unique();
 
 	struct PCGEXTENDEDTOOLKIT_API FChunkedLoop
 	{
@@ -67,13 +74,13 @@ namespace PCGExMT
 		}
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FAsyncChunkedLoop
+	struct PCGEXTENDEDTOOLKIT_API FAsyncParallelLoop
 	{
-		FAsyncChunkedLoop()
+		FAsyncParallelLoop()
 		{
 		}
 
-		FAsyncChunkedLoop(FPCGContext* InContext, int32 InChunkSize, bool InEnabled):
+		FAsyncParallelLoop(FPCGContext* InContext, int32 InChunkSize, bool InEnabled):
 			Context(InContext), ChunkSize(InChunkSize), bAsyncEnabled(InEnabled)
 		{
 		}
@@ -225,20 +232,19 @@ namespace PCGExMT
 	}
 }
 
-UCLASS(Blueprintable, EditInlineNew)
-class PCGEXTENDEDTOOLKIT_API UPCGExAsyncTaskManager : public UObject
+class PCGEXTENDEDTOOLKIT_API UPCGExAsyncTaskManager
 {
-	GENERATED_BODY()
-
 	friend class FPCGExAsyncTask;
 
 public:
+	~UPCGExAsyncTaskManager();
+
 	mutable FRWLock ManagerLock;
 	FPCGContext* Context;
 	bool bStopped = false;
 
 	template <typename T, typename... Args>
-	void StartTask(int32 Index, PCGMetadataAttributeKey Key, UPCGExPointIO* InPointsIO, Args... args)
+	void StartTask(int32 Index, PCGMetadataAttributeKey Key, PCGExData::FPointIO* InPointsIO, Args... args)
 	{
 		{
 			FWriteScopeLock WriteLock(ManagerLock);
@@ -275,9 +281,9 @@ public:
 
 #define PCGEX_ASYNC_LIFE_CHECK_RET  if (!CanContinue()) { return; }// if (Context->bDeleted) { return false; }
 #define PCGEX_ASYNC_LIFE_CHECK  if (!CanContinue()) { return false; }// if (Context->bDeleted) { return false; }
-	
+
 	FPCGExAsyncTask(
-		UPCGExAsyncTaskManager* InManager, const PCGExMT::FTaskInfos& InInfos, UPCGExPointIO* InPointIO) :
+		UPCGExAsyncTaskManager* InManager, const PCGExMT::FTaskInfos& InInfos, PCGExData::FPointIO* InPointIO) :
 		Manager(InManager), TaskInfos(InInfos), PointIO(InPointIO)
 	{
 	}
@@ -297,7 +303,7 @@ public:
 
 	UPCGExAsyncTaskManager* Manager = nullptr;
 	PCGExMT::FTaskInfos TaskInfos;
-	UPCGExPointIO* PointIO = nullptr;
+	PCGExData::FPointIO* PointIO = nullptr;
 	bool bDropped = false;
 
 protected:

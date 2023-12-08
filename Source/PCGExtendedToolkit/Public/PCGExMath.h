@@ -63,14 +63,19 @@ namespace PCGExMath
 
 		FPathInfos(const FVector& InStart)
 		{
-			Start = InStart;
-			Last = InStart;
-			Length = 0;
+			Reset(InStart);
 		}
 
 		FVector Start = FVector::ZeroVector;
 		FVector Last = FVector::ZeroVector;
 		double Length = -1;
+
+		void Reset(const FVector& InStart)
+		{
+			Start = InStart;
+			Last = InStart;
+			Length = 0;
+		}
 
 		double Add(const FVector& Location)
 		{

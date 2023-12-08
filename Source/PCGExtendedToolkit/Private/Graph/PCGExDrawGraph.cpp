@@ -6,7 +6,7 @@
 
 #define LOCTEXT_NAMESPACE "PCGExDrawGraph"
 
-PCGExPointIO::EInit UPCGExDrawGraphSettings::GetPointOutputInitMode() const { return PCGExPointIO::EInit::NoOutput; }
+PCGExData::EInit UPCGExDrawGraphSettings::GetPointOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 
 FPCGElementPtr UPCGExDrawGraphSettings::CreateElement() const
 {
@@ -93,12 +93,12 @@ bool FPCGExDrawGraphElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsState(PCGExGraph::State_ProcessingGraph))
 	{
-		auto Initialize = [&](const UPCGExPointIO* PointIO)
+		auto Initialize = [&](const PCGExData::FPointIO* PointIO)
 		{
-			Context->PrepareCurrentGraphForPoints(PointIO->In, false);
+			Context->PrepareCurrentGraphForPoints(PointIO->GetIn(), false);
 		};
 
-		auto ProcessPoint = [&](const int32 PointIndex, const UPCGExPointIO* PointIO)
+		auto ProcessPoint = [&](const int32 PointIndex, const PCGExData::FPointIO* PointIO)
 		{
 			const FPCGPoint& Point = PointIO->GetInPoint(PointIndex);
 			const FVector Start = Point.Transform.GetLocation();

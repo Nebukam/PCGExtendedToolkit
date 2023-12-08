@@ -4,6 +4,10 @@
 
 #include "PCGExMT.h"
 
+UPCGExAsyncTaskManager::~UPCGExAsyncTaskManager()
+{
+}
+
 void UPCGExAsyncTaskManager::OnAsyncTaskExecutionComplete(FPCGExAsyncTask* AsyncTask, bool bSuccess)
 {
 	FWriteScopeLock WriteLock(ManagerLock);

@@ -32,7 +32,7 @@ protected:
 
 	virtual int32 GetPreferredChunkSize() const override;
 
-	virtual PCGExPointIO::EInit GetPointOutputInitMode() const override;
+	virtual PCGExData::EInit GetPointOutputInitMode() const override;
 
 public:
 	/** Edge types to crawl to create a patch */
@@ -73,24 +73,24 @@ private:
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExFindEdgePatchesContext : public FPCGExGraphProcessorContext
 {
-	
 	friend class FPCGExFindEdgePatchesElement;
 
-public:
+	virtual ~FPCGExFindEdgePatchesContext() override;
+
 	EPCGExEdgeType CrawlEdgeTypes;
 	bool bRemoveSmallPatches;
 	int32 MinPatchSize;
 	bool bRemoveBigPatches;
 	int32 MaxPatchSize;
-	
-	UPCGExPointIOGroup* PatchesIO;
+
+	PCGExData::FPointIOGroup* PatchesIO;
 	int32 PatchUIndex = 0;
-	
+
 	FName PatchIDAttributeName;
 	FName PatchSizeAttributeName;
 	FName PointUIDAttributeName;
 
-	UPCGExGraphPatchGroup* Patches;
+	FPCGExGraphPatchGroup* Patches;
 
 	EPCGExRoamingResolveMethod ResolveRoamingMethod;
 
@@ -98,7 +98,7 @@ public:
 
 	void PreparePatchGroup()
 	{
-		Patches = NewObject<UPCGExGraphPatchGroup>();
+		Patches = new FPCGExGraphPatchGroup();
 		Patches->CrawlEdgeTypes = CrawlEdgeTypes;
 		Patches->PatchIDAttributeName = PatchIDAttributeName;
 		Patches->PatchIDAttributeName = PatchIDAttributeName;
@@ -120,6 +120,7 @@ public:
 		const FPCGDataCollection& InputData,
 		TWeakObjectPtr<UPCGComponent> SourceComponent,
 		const UPCGNode* Node) override;
+
 protected:
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 	virtual bool Validate(FPCGContext* InContext) const override;
@@ -128,7 +129,7 @@ protected:
 class PCGEXTENDEDTOOLKIT_API FDistributeToPatchTask : public FPCGExAsyncTask
 {
 public:
-	FDistributeToPatchTask(UPCGExAsyncTaskManager* InManager, const PCGExMT::FTaskInfos& InInfos, UPCGExPointIO* InPointIO) :
+	FDistributeToPatchTask(UPCGExAsyncTaskManager* InManager, const PCGExMT::FTaskInfos& InInfos, PCGExData::FPointIO* InPointIO) :
 		FPCGExAsyncTask(InManager, InInfos, InPointIO)
 	{
 	}
@@ -139,7 +140,7 @@ public:
 class PCGEXTENDEDTOOLKIT_API FConsolidatePatchesTask : public FPCGExAsyncTask
 {
 public:
-	FConsolidatePatchesTask(UPCGExAsyncTaskManager* InManager, const PCGExMT::FTaskInfos& InInfos, UPCGExPointIO* InPointIO) :
+	FConsolidatePatchesTask(UPCGExAsyncTaskManager* InManager, const PCGExMT::FTaskInfos& InInfos, PCGExData::FPointIO* InPointIO) :
 		FPCGExAsyncTask(InManager, InInfos, InPointIO)
 	{
 	}
@@ -150,14 +151,14 @@ public:
 class PCGEXTENDEDTOOLKIT_API FWritePatchesTask : public FPCGExAsyncTask
 {
 public:
-	FWritePatchesTask(UPCGExAsyncTaskManager* InManager, const PCGExMT::FTaskInfos& InInfos, UPCGExPointIO* InPointIO,
-	                        UPCGExGraphPatch* InPatch, UPCGPointData* InPatchData) :
+	FWritePatchesTask(UPCGExAsyncTaskManager* InManager, const PCGExMT::FTaskInfos& InInfos, PCGExData::FPointIO* InPointIO,
+	                  FPCGExGraphPatch* InPatch, UPCGPointData* InPatchData) :
 		FPCGExAsyncTask(InManager, InInfos, InPointIO),
 		Patch(InPatch), PatchData(InPatchData)
 	{
 	}
 
-	UPCGExGraphPatch* Patch;
+	FPCGExGraphPatch* Patch;
 	UPCGPointData* PatchData;
 
 	virtual bool ExecuteTask() override;

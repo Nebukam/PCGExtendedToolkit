@@ -4,26 +4,26 @@
 
 #include "Splines/SubPoints/Orient/PCGExSubPointsOrientLookAt.h"
 
-void UPCGExSubPointsOrientLookAt::ProcessSubPoints(const FPCGPoint& StartPoint, const FPCGPoint& EndPoint, TArrayView<FPCGPoint>& SubPoints, const PCGExMath::FPathInfos& PathInfos) const
+void UPCGExSubPointsOrientLookAt::ProcessSubPoints(const PCGEx::FPointRef& Start, const PCGEx::FPointRef& End, TArrayView<FPCGPoint>& SubPoints, const PCGExMath::FPathInfos& PathInfos) const
 {
 	const int32 NumPointsMinusOne = SubPoints.Num() - 1;
 
 	switch (LookAt)
 	{
 	case EPCGExOrientLookAt::NextPoint:
-		LookAtNext(SubPoints[0], StartPoint, SubPoints[1]);
+		LookAtNext(SubPoints[0], *Start.Point, SubPoints[1]);
 		for (int i = 1; i < NumPointsMinusOne; i++) { LookAtNext(SubPoints[i], SubPoints[i - 1], SubPoints[i + 1]); }
-		LookAtNext(SubPoints.Last(), SubPoints[NumPointsMinusOne - 1], EndPoint);
+		LookAtNext(SubPoints.Last(), SubPoints[NumPointsMinusOne - 1], *End.Point);
 		break;
 	case EPCGExOrientLookAt::PreviousPoint:
-		LookAtPrev(SubPoints[0], StartPoint, SubPoints[1]);
+		LookAtPrev(SubPoints[0], *Start.Point, SubPoints[1]);
 		for (int i = 1; i < NumPointsMinusOne; i++) { LookAtPrev(SubPoints[i], SubPoints[i - 1], SubPoints[i + 1]); }
-		LookAtPrev(SubPoints.Last(), SubPoints[NumPointsMinusOne - 1], EndPoint);
+		LookAtPrev(SubPoints.Last(), SubPoints[NumPointsMinusOne - 1], *End.Point);
 		break;
 	case EPCGExOrientLookAt::Attribute:
-		LookAtAttribute(SubPoints[0], StartPoint, SubPoints[1]);
+		LookAtAttribute(SubPoints[0], *Start.Point, SubPoints[1]);
 		for (int i = 1; i < NumPointsMinusOne; i++) { LookAtAttribute(SubPoints[i], SubPoints[i - 1], SubPoints[i + 1]); }
-		LookAtAttribute(SubPoints.Last(), SubPoints[NumPointsMinusOne - 1], EndPoint);
+		LookAtAttribute(SubPoints.Last(), SubPoints[NumPointsMinusOne - 1], *End.Point);
 		break;
 	}
 }

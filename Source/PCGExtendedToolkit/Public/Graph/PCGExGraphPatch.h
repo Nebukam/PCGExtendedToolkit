@@ -5,12 +5,12 @@
 
 #include "CoreMinimal.h"
 #include "Data/PCGExGraphParamsData.h"
-#include "Data/PCGExPointIO.h"
+#include "..\Data\PCGExPointsIO.h"
 #include "UObject/Object.h"
 
 #include "PCGExGraphPatch.generated.h"
 
-class UPCGExGraphPatchGroup;
+class FPCGExGraphPatchGroup;
 
 UENUM(BlueprintType)
 enum class EPCGExRoamingResolveMethod : uint8
@@ -23,16 +23,13 @@ enum class EPCGExRoamingResolveMethod : uint8
 /**
  * 
  */
-UCLASS()
-class PCGEXTENDEDTOOLKIT_API UPCGExGraphPatch : public UObject
+class PCGEXTENDEDTOOLKIT_API FPCGExGraphPatch
 {
-	GENERATED_BODY()
-
 public:
-	//UPCGExGraphPatch();
+	~FPCGExGraphPatch();
 
-	UPCGExPointIO* PointIO = nullptr;
-	UPCGExGraphPatchGroup* Parent = nullptr;
+	PCGExData::FPointIO* PointIO = nullptr;
+	FPCGExGraphPatchGroup* Parent = nullptr;
 
 	int32 PatchID = -1;
 
@@ -45,61 +42,38 @@ public:
 
 	void AddEdge(uint64 InEdgeHash);
 	bool ContainsEdge(const uint64 InEdgeHash) const;
-	
-	bool OutputTo(const UPCGExPointIO* OutIO, int32 PatchIDOverride);
 
-	void Flush();
-
-public:
-	virtual ~UPCGExGraphPatch() override
-	{
-		PointIO = nullptr;
-		Parent = nullptr;
-	}
+	bool OutputTo(PCGExData::FPointIO* OutIO, int32 PatchIDOverride);
 };
 
-/**
- * 
- */
-UCLASS()
-class PCGEXTENDEDTOOLKIT_API UPCGExGraphPatchGroup : public UObject
+class PCGEXTENDEDTOOLKIT_API FPCGExGraphPatchGroup
 {
-	GENERATED_BODY()
-
 public:
-	TArray<UPCGExGraphPatch*> Patches;
+	~FPCGExGraphPatchGroup();
+
+	TArray<FPCGExGraphPatch*> Patches;
 	mutable FRWLock PatchesLock;
 	int32 NumMaxEdges = 8;
 
-	TMap<uint64, UPCGExGraphPatch*> IndicesMap;
+	TMap<uint64, FPCGExGraphPatch*> IndicesMap;
 	mutable FRWLock HashLock;
 	EPCGExEdgeType CrawlEdgeTypes;
 
 	UPCGExGraphParamsData* CurrentGraph = nullptr;
-	UPCGExPointIO* PointIO = nullptr;
-	UPCGExPointIOGroup* PatchesIO = nullptr;
+	PCGExData::FPointIO* PointIO = nullptr;
+	PCGExData::FPointIOGroup* PatchesIO = nullptr;
 
 	FName PatchIDAttributeName;
 	FName PatchSizeAttributeName;
-		
+
 	bool Contains(const uint64 Hash) const;
 
-	UPCGExGraphPatch* FindPatch(uint64 Hash);
-	UPCGExGraphPatch* GetOrCreatePatch(uint64 Hash);
-	UPCGExGraphPatch* CreatePatch();
+	FPCGExGraphPatch* FindPatch(uint64 Hash);
+	FPCGExGraphPatch* GetOrCreatePatch(uint64 Hash);
+	FPCGExGraphPatch* CreatePatch();
 
-	void Distribute(const int32 InIndex, UPCGExGraphPatch* Patch = nullptr);
+	void Distribute(const int32 InIndex, FPCGExGraphPatch* Patch = nullptr);
 
 	void OutputTo(FPCGContext* Context, const int64 MinPointCount, const int64 MaxPointCount, const uint32 PUID);
 	void OutputTo(FPCGContext* Context);
-
-	void Flush();
-
-public:
-	virtual ~UPCGExGraphPatchGroup() override
-	{
-		PointIO = nullptr;
-		CurrentGraph = nullptr;
-		PatchesIO = nullptr;
-	}
 };

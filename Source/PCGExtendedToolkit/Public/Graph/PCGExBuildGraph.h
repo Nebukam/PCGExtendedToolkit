@@ -11,7 +11,7 @@
 
 #include "PCGExBuildGraph.generated.h"
 
-constexpr PCGExMT::AsyncState State_ProbingPoints = 200;
+const PCGExMT::AsyncState State_ProbingPoints = PCGExMT::AsyncStateCounter::Unique();
 
 /**
  * Calculates the distance between two points (inherently a n*n operation)
@@ -43,7 +43,7 @@ public:
 	virtual FName GetMainPointsInputLabel() const override;
 	virtual int32 GetPreferredChunkSize() const override;
 
-	virtual PCGExPointIO::EInit GetPointOutputInitMode() const override;
+	virtual PCGExData::EInit GetPointOutputInitMode() const override;
 
 private:
 	friend class FPCGExBuildGraphElement;
@@ -51,14 +51,13 @@ private:
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExBuildGraphContext : public FPCGExGraphProcessorContext
 {
-
 	friend class FPCGExBuildGraphElement;
 	friend class FProbeTask;
 
 public:
 	UPCGExGraphSolver* GraphSolver;
 	bool bMoveSocketOriginOnPointExtent = false;
-	
+
 	UPCGPointData::PointOctree* Octree = nullptr;
 };
 
@@ -78,7 +77,7 @@ protected:
 class PCGEXTENDEDTOOLKIT_API FProbeTask : public FPCGExAsyncTask
 {
 public:
-	FProbeTask(UPCGExAsyncTaskManager* InManager, const PCGExMT::FTaskInfos& InInfos, UPCGExPointIO* InPointIO) :
+	FProbeTask(UPCGExAsyncTaskManager* InManager, const PCGExMT::FTaskInfos& InInfos, PCGExData::FPointIO* InPointIO) :
 		FPCGExAsyncTask(InManager, InInfos, InPointIO)
 	{
 	}

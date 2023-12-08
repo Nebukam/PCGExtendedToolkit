@@ -6,7 +6,7 @@
 #define LOCTEXT_NAMESPACE "PCGExSampleNearestSurfaceElement"
 
 
-PCGExPointIO::EInit UPCGExSampleNearestSurfaceSettings::GetPointOutputInitMode() const { return PCGExPointIO::EInit::DuplicateInput; }
+PCGExData::EInit UPCGExSampleNearestSurfaceSettings::GetPointOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
 int32 UPCGExSampleNearestSurfaceSettings::GetPreferredChunkSize() const { return 32; }
 
@@ -84,7 +84,7 @@ bool FPCGExSampleNearestSurfaceElement::ExecuteInternal(FPCGContext* InContext) 
 
 	if (Context->IsState(PCGExMT::State_ProcessingPoints))
 	{
-		auto Initialize = [&](UPCGExPointIO* PointIO) //UPCGExPointIO* PointIO
+		auto Initialize = [&](PCGExData::FPointIO* PointIO) //UPCGExPointIO* PointIO
 		{
 			PointIO->BuildMetadataEntries();
 			PCGEX_INIT_ATTRIBUTE_OUT(Success, bool)
@@ -94,7 +94,7 @@ bool FPCGExSampleNearestSurfaceElement::ExecuteInternal(FPCGContext* InContext) 
 			PCGEX_INIT_ATTRIBUTE_OUT(Distance, double)
 		};
 
-		auto ProcessPoint = [&](int32 PointIndex, const UPCGExPointIO* PointIO)
+		auto ProcessPoint = [&](int32 PointIndex, const PCGExData::FPointIO* PointIO)
 		{
 			Context->GetAsyncManager()->StartTask<FSweepSphereTask>(PointIndex, PointIO->GetOutPoint(PointIndex).MetadataEntry, Context->CurrentIO);
 		};
@@ -118,10 +118,9 @@ bool FPCGExSampleNearestSurfaceElement::ExecuteInternal(FPCGContext* InContext) 
 
 bool FSweepSphereTask::ExecuteTask()
 {
-	
 	const FPCGExSampleNearestSurfaceContext* Context = Manager->GetContext<FPCGExSampleNearestSurfaceContext>();
 	PCGEX_ASYNC_LIFE_CHECK
-	
+
 	const FPCGPoint& InPoint = PointIO->GetInPoint(TaskInfos.Index);
 	const FVector Origin = InPoint.Transform.GetLocation();
 

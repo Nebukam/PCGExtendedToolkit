@@ -4,18 +4,30 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "NavigationPath.h"
-#include "NavigationSystem.h"
-#include "PCGExPathfinding.h"
-
 #include "PCGExPointsProcessor.h"
-#include "GoalPickers/PCGExGoalPicker.h"
-#include "Graph/PCGExGraph.h"
-#include "Splines/SubPoints/DataBlending/PCGExSubPointsBlendOperation.h"
-#include "Splines/SubPoints/Orient/PCGExSubPointsOrientOperation.h"
-
 #include "PCGExSampleNavmesh.generated.h"
 
+class UPCGExSubPointsBlendOperation;
+class UPCGExGoalPicker;
+
+namespace PCGExSampleNavmesh
+{
+	const PCGExMT::AsyncState State_Pathfinding = PCGExMT::AsyncStateCounter::Unique();
+	const PCGExMT::AsyncState State_PathBlending = PCGExMT::AsyncStateCounter::Unique();
+
+	struct PCGEXTENDEDTOOLKIT_API FPath
+	{
+		FPath(PCGExData::FPointIO* InPathPoints, int32 InSeedIndex, int32 InGoalIndex):
+			PathPoints(InPathPoints), SeedIndex(InSeedIndex), GoalIndex(InGoalIndex)
+		{
+		}
+
+		PCGExMath::FPathInfos Infos;
+		PCGExData::FPointIO* PathPoints = nullptr;
+		int32 SeedIndex = -1;
+		int32 GoalIndex = -1;
+	};
+}
 
 UENUM(BlueprintType)
 enum class EPCGExNavmeshPathfindingMode : uint8
@@ -51,7 +63,7 @@ protected:
 	//~End UPCGSettings interface
 
 public:
-	virtual PCGExPointIO::EInit GetPointOutputInitMode() const override;
+	virtual PCGExData::EInit GetPointOutputInitMode() const override;
 	virtual int32 GetPreferredChunkSize() const override;
 
 	virtual FName GetMainPointsInputLabel() const override;
@@ -99,15 +111,18 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNavmeshContext : public FPCGExPointsPr
 {
 	friend class FPCGExSampleNavmeshElement;
 
-public:
-	UPCGExPointIO* GoalsPoints = nullptr;
-	UPCGExPointIOGroup* OutputPaths = nullptr;
+	virtual ~FPCGExSampleNavmeshContext() override;
 
-	UPCGExGoalPicker* GoalPicker;
-	UPCGExSubPointsBlendOperation* Blending;
+	PCGExData::FPointIO* GoalsPoints = nullptr;
+	PCGExData::FPointIOGroup* OutputPaths = nullptr;
+
+	UPCGExGoalPicker* GoalPicker = nullptr;
+	UPCGExSubPointsBlendOperation* Blending = nullptr;
 
 	bool bAddSeedToPath = true;
 	bool bAddGoalToPath = true;
+
+	TArray<PCGExSampleNavmesh::FPath> PathBuffer;
 
 	FNavAgentProperties NavAgentProperties;
 
@@ -136,15 +151,14 @@ class PCGEXTENDEDTOOLKIT_API FNavmeshPathTask : public FPCGExAsyncTask
 {
 public:
 	FNavmeshPathTask(
-		UPCGExAsyncTaskManager* InManager, const PCGExMT::FTaskInfos& InInfos, UPCGExPointIO* InPointIO,
-		int32 InGoalIndex, UPCGExPointIO* InPathPoints) :
+		UPCGExAsyncTaskManager* InManager, const PCGExMT::FTaskInfos& InInfos, PCGExData::FPointIO* InPointIO,
+		PCGExSampleNavmesh::FPath* InPath) :
 		FPCGExAsyncTask(InManager, InInfos, InPointIO),
-		GoalIndex(InGoalIndex), PathPoints(InPathPoints)
+		Path(InPath)
 	{
 	}
 
-	int32 GoalIndex = -1;
-	UPCGExPointIO* PathPoints;
+	PCGExSampleNavmesh::FPath* Path;
 
 	virtual bool ExecuteTask() override;
 };

@@ -5,18 +5,31 @@
 #include "Splines/SubPoints/DataBlending/PCGExSubPointsBlendInheritEnd.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
 
-void UPCGExSubPointsBlendInheritEnd::BlendSubPoints(const FPCGPoint& StartPoint, const FPCGPoint& EndPoint, TArrayView<FPCGPoint>& SubPoints, const PCGExMath::FPathInfos& PathInfos, const PCGExDataBlending::FMetadataBlender* InBlender) const
+void UPCGExSubPointsBlendInheritEnd::BlendSubPoints(
+	const PCGEx::FPointRef& StartPoint,
+	const PCGEx::FPointRef& EndPoint,
+	TArrayView<FPCGPoint>& SubPoints,
+	const PCGExMath::FPathInfos& PathInfos,
+	const PCGExDataBlending::FMetadataBlender* InBlender) const
 {
-	PCGExDataBlending::FPropertiesBlender LocalPropertiesBlender = PCGExDataBlending::FPropertiesBlender(PropertiesBlender);
 	const int32 NumPoints = SubPoints.Num();
-	for (int i = 0; i < NumPoints; i++)
+	PCGExDataBlending::FPropertiesBlender LocalPropertiesBlender = PCGExDataBlending::FPropertiesBlender(PropertiesBlender);
+
+	TArray<double> Alphas;
+	TArray<FVector> Locations;
+
+	Alphas.Reserve(NumPoints);
+	Locations.Reserve(NumPoints);
+
+	for (const FPCGPoint& Point : SubPoints)
 	{
-		FPCGPoint& Point = SubPoints[i];
-		const FVector Location = Point.Transform.GetLocation();
-
-		LocalPropertiesBlender.BlendSingle(StartPoint, EndPoint, Point, 1);
-		InBlender->Blend(StartPoint.MetadataEntry, StartPoint.MetadataEntry, Point.MetadataEntry);
-
-		Point.Transform.SetLocation(Location); // !
+		Locations.Add(Point.Transform.GetLocation());
+		Alphas.Add(1);
 	}
+
+	LocalPropertiesBlender.BlendRangeOnce(*StartPoint.Point, *EndPoint.Point, SubPoints, Alphas);
+	InBlender->BlendRangeOnce(StartPoint.Index, EndPoint.Index, StartPoint.Index, NumPoints, Alphas);
+
+	// Restore pre-blend position
+	for (int i = 0; i < NumPoints; i++) { SubPoints[i].Transform.SetLocation(Locations[i]); }
 }

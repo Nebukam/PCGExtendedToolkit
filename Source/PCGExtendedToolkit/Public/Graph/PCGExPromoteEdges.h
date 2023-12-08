@@ -32,7 +32,7 @@ protected:
 
 public:
 	virtual int32 GetPreferredChunkSize() const override;
-	virtual PCGExPointIO::EInit GetPointOutputInitMode() const override;
+	virtual PCGExData::EInit GetPointOutputInitMode() const override;
 
 public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExEdgeType"))
@@ -58,9 +58,6 @@ public:
 	mutable FRWLock EdgeLock;
 
 	UPCGExEdgePromotion* Promotion;
-
-protected:
-	PCGExMT::FAsyncChunkedLoop AsyncEdgesLoop;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExPromoteEdgesElement : public FPCGExGraphProcessorElement

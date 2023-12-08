@@ -1,7 +1,7 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "..\..\..\Public\Data\Blending\PCGExMetadataBlender.h"
+#include "Data/Blending/PCGExMetadataBlender.h"
 
 #include "Data/PCGExAttributeHelpers.h"
 #include "Data/Blending/PCGExDataBlending.h"
@@ -13,6 +13,21 @@ namespace PCGExDataBlending
 		Flush();
 	}
 
+	FMetadataBlender::FMetadataBlender()
+		: FMetadataBlender(EPCGExDataBlendingType::Copy)
+	{
+	}
+
+	FMetadataBlender::FMetadataBlender(const EPCGExDataBlendingType InDefaultBlending)
+	{
+		DefaultOperation = InDefaultBlending;
+	}
+
+	FMetadataBlender::FMetadataBlender(const FMetadataBlender* ReferenceBlender)
+	{
+		DefaultOperation = ReferenceBlender->DefaultOperation;
+	}
+
 	void FMetadataBlender::PrepareForData(UPCGPointData* InPrimaryData, const UPCGPointData* InSecondaryData)
 	{
 		const TMap<FName, EPCGExDataBlendingType> NoOverrides;
@@ -21,13 +36,22 @@ namespace PCGExDataBlending
 
 	void FMetadataBlender::PrepareForData(UPCGPointData* InPrimaryData, const UPCGPointData* InSecondaryData, const TMap<FName, EPCGExDataBlendingType>& OperationTypeOverrides)
 	{
-		InternalPrepareForData(InPrimaryData, InSecondaryData ? InSecondaryData : InPrimaryData, OperationTypeOverrides);
+		PrepareForData(InPrimaryData, InSecondaryData ? InSecondaryData : InPrimaryData, nullptr, nullptr, OperationTypeOverrides);
+	}
+
+	void FMetadataBlender::PrepareForData(
+		UPCGPointData* InPrimaryData,
+		const UPCGPointData* InSecondaryData,
+		FPCGAttributeAccessorKeysPoints* InPrimaryKeys,
+		FPCGAttributeAccessorKeysPoints* InSecondaryKeys,
+		const TMap<FName, EPCGExDataBlendingType>& OperationTypeOverrides)
+	{
+		InternalPrepareForData(InPrimaryData, InSecondaryData ? InSecondaryData : InPrimaryData, InPrimaryKeys, InSecondaryKeys, OperationTypeOverrides);
 	}
 
 	FMetadataBlender* FMetadataBlender::Copy(UPCGPointData* InPrimaryData, const UPCGPointData* InSecondaryData) const
 	{
-		FMetadataBlender* Copy = NewObject<FMetadataBlender>();
-		Copy->DefaultOperation = DefaultOperation;
+		FMetadataBlender* Copy = new FMetadataBlender(this);
 		Copy->PrepareForData(InPrimaryData, InSecondaryData, BlendingOverrides);
 		return Copy;
 	}
@@ -47,6 +71,28 @@ namespace PCGExDataBlending
 		for (const FDataBlendingOperationBase* Op : AttributesToBeCompleted) { Op->FinalizeOperation(WriteIndex, Alpha); }
 	}
 
+	void FMetadataBlender::PrepareRangeForBlending(const int32 StartIndex, const int32 Count) const
+	{
+		for (const FDataBlendingOperationBase* Op : AttributesToBePrepared) { Op->PrepareRangeOperation(StartIndex, Count); }
+	}
+
+	void FMetadataBlender::BlendRange(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, const int32 StartIndex, const int32 Count, const TArrayView<double>& Alphas) const
+	{
+		for (const FDataBlendingOperationBase* Op : Attributes) { Op->DoRangeOperation(PrimaryReadIndex, SecondaryReadIndex, StartIndex, Count, Alphas); }
+	}
+
+	void FMetadataBlender::CompleteRangeBlending(const int32 StartIndex, const int32 Count, const TArrayView<double>& Alphas) const
+	{
+		for (const FDataBlendingOperationBase* Op : AttributesToBePrepared) { Op->FinalizeRangeOperation(StartIndex, Count, Alphas); }
+	}
+
+	void FMetadataBlender::BlendRangeOnce(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, const int32 StartIndex, const int32 Count, const TArrayView<double>& Alphas) const
+	{
+		PrepareRangeForBlending(StartIndex, Count);
+		BlendRange(PrimaryReadIndex, SecondaryReadIndex, StartIndex, Count, Alphas);
+		CompleteRangeBlending(StartIndex, Count, Alphas);
+	}
+
 	void FMetadataBlender::ResetToDefaults(const int32 WriteIndex) const
 	{
 		for (const FDataBlendingOperationBase* Op : Attributes) { Op->ResetToDefault(WriteIndex); }
@@ -63,19 +109,24 @@ namespace PCGExDataBlending
 
 		if (PrimaryKeys == SecondaryKeys)
 		{
-			if (PrimaryKeys) { delete PrimaryKeys; }
+			if (PrimaryKeys && bOwnsPrimaryKeys) { delete PrimaryKeys; }
 		}
 		else
 		{
-			if (PrimaryKeys) { delete PrimaryKeys; }
-			if (SecondaryKeys) { delete SecondaryKeys; }
+			if (PrimaryKeys && bOwnsPrimaryKeys) { delete PrimaryKeys; }
+			if (SecondaryKeys && bOwnsSecondaryKeys) { delete SecondaryKeys; }
 		}
 
 		PrimaryKeys = nullptr;
 		SecondaryKeys = nullptr;
 	}
 
-	void FMetadataBlender::InternalPrepareForData(UPCGPointData* InPrimaryData, const UPCGPointData* InSecondaryData, const TMap<FName, EPCGExDataBlendingType>& OperationTypeOverrides)
+	void FMetadataBlender::InternalPrepareForData(
+		UPCGPointData* InPrimaryData,
+		const UPCGPointData* InSecondaryData,
+		FPCGAttributeAccessorKeysPoints* InPrimaryKeys,
+		FPCGAttributeAccessorKeysPoints* InSecondaryKeys,
+		const TMap<FName, EPCGExDataBlendingType>& OperationTypeOverrides)
 	{
 		Flush();
 		BlendingOverrides = OperationTypeOverrides;
@@ -116,22 +167,41 @@ namespace PCGExDataBlending
 		AttributesToBeCompleted.Empty(Identities.Num());
 		AttributesToBePrepared.Empty(Identities.Num());
 
-		const TArrayView<FPCGPoint> View(InPrimaryData->GetMutablePoints());
-		PrimaryKeys = new FPCGAttributeAccessorKeysPoints(View);
+		if (!InPrimaryKeys)
+		{
+			const TArrayView<FPCGPoint> View(InPrimaryData->GetMutablePoints());
+			PrimaryKeys = new FPCGAttributeAccessorKeysPoints(View);
+			bOwnsPrimaryKeys = true;
+		}
+		else
+		{
+			PrimaryKeys = InPrimaryKeys;
+			bOwnsPrimaryKeys = false;
+		}
 
 		if (InPrimaryData != InSecondaryData)
 		{
-			SecondaryKeys = new FPCGAttributeAccessorKeysPoints(InSecondaryData->GetPoints());
+			if (!InSecondaryKeys)
+			{
+				SecondaryKeys = new FPCGAttributeAccessorKeysPoints(InSecondaryData->GetPoints());
+				bOwnsSecondaryKeys = true;
+			}
+			else
+			{
+				SecondaryKeys = InSecondaryKeys;
+				bOwnsSecondaryKeys = false;
+			}
 		}
 		else
 		{
 			SecondaryKeys = PrimaryKeys;
+			bOwnsSecondaryKeys = bOwnsPrimaryKeys;
 		}
 
 		for (const PCGEx::FAttributeIdentity& Identity : Identities)
 		{
 			const EPCGExDataBlendingType* TypePtr = OperationTypeOverrides.Find(Identity.Name);
-			FDataBlendingOperationBase* Op = PCGExDataBlending::CreateOperation(TypePtr ? *TypePtr : DefaultOperation, Identity);
+			FDataBlendingOperationBase* Op = CreateOperation(TypePtr ? *TypePtr : DefaultOperation, Identity);
 
 			if (!Op) { continue; }
 

@@ -4,12 +4,13 @@
 
 #include "Splines/Tangents/PCGExTangentsOperation.h"
 
-#include "Data/PCGExPointIO.h"
+#include "..\..\..\Public\Data\PCGExPointsIO.h"
 
-void UPCGExTangentsOperation::PrepareForData(const UPCGExPointIO* InPath)
+void UPCGExTangentsOperation::PrepareForData(PCGExData::FPointIO* InPath)
 {
-	ArriveAttribute = InPath->Out->Metadata->FindOrCreateAttribute(ArriveName, FVector::ZeroVector);
-	LeaveAttribute = InPath->Out->Metadata->FindOrCreateAttribute(LeaveName, FVector::ZeroVector);
+	UPCGMetadata* Metadata = InPath->GetOut()->Metadata;
+	ArriveAttribute = Metadata->FindOrCreateAttribute(ArriveName, FVector::ZeroVector);
+	LeaveAttribute = Metadata->FindOrCreateAttribute(LeaveName, FVector::ZeroVector);
 }
 
 void UPCGExTangentsOperation::ProcessFirstPoint(const int32 Index, const FPCGPoint& Point, const FPCGPoint& NextPoint) const

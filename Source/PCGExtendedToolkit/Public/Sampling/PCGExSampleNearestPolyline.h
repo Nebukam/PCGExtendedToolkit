@@ -92,7 +92,7 @@ public:
 
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 
-	virtual PCGExPointIO::EInit GetPointOutputInitMode() const override;
+	virtual PCGExData::EInit GetPointOutputInitMode() const override;
 	virtual int32 GetPreferredChunkSize() const override;
 
 protected:
@@ -221,8 +221,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestPolylineContext : public FPCGEx
 {
 	friend class FPCGExSampleNearestPolylineElement;
 
-public:
-	UPCGExPolyLineIOGroup* Targets = nullptr;
+	~FPCGExSampleNearestPolylineContext();
+
+	PCGExData::FPolyLineIOGroup* Targets = nullptr;
 
 	EPCGExSampleMethod SampleMethod = EPCGExSampleMethod::WithinRange;
 	EPCGExWeightMethod WeightMethod = EPCGExWeightMethod::FullRange;

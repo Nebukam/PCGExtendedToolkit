@@ -17,6 +17,16 @@ FString FPCGExPartitionRuleDescriptor::GetDisplayName() const
 	return "(Disabled) " + FPCGExInputDescriptorWithSingleField::GetDisplayName();
 }
 
+UPCGExPartitionLayer::~UPCGExPartitionLayer()
+{
+	TArray<int64> Keys;
+	SubLayers.GetKeys(Keys);
+	for (const int64 Key : Keys) { delete *SubLayers.Find(Key); }
+	SubLayers.Empty();
+	PointData = nullptr;
+	Points = nullptr;
+}
+
 void UPCGExPartitionByValuesSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	for (FPCGExPartitionRuleDescriptor& Descriptor : PartitionRules) { Descriptor.UpdateUserFacingInfos(); }
@@ -32,12 +42,17 @@ FPCGElementPtr UPCGExPartitionByValuesSettings::CreateElement() const
 	return MakeShared<FPCGExPartitionByValuesElement>();
 }
 
-PCGExPointIO::EInit UPCGExPartitionByValuesSettings::GetPointOutputInitMode() const
+PCGExData::EInit UPCGExPartitionByValuesSettings::GetPointOutputInitMode() const
 {
-	return bSplitOutput ? PCGExPointIO::EInit::NoOutput : PCGExPointIO::EInit::DuplicateInput;
+	return bSplitOutput ? PCGExData::EInit::NoOutput : PCGExData::EInit::DuplicateInput;
 }
 
-void FPCGExSplitByValuesContext::PrepareForPoints(const UPCGExPointIO* PointIO)
+FPCGExSplitByValuesContext::~FPCGExSplitByValuesContext()
+{
+	if (RootPartitionLayer) { delete RootPartitionLayer; }
+}
+
+void FPCGExSplitByValuesContext::PrepareForPoints(const PCGExData::FPointIO* PointIO)
 {
 	FWriteScopeLock WriteLock(RulesLock);
 
@@ -46,7 +61,7 @@ void FPCGExSplitByValuesContext::PrepareForPoints(const UPCGExPointIO* PointIO)
 	for (FPCGExPartitionRuleDescriptor& Descriptor : RulesDescriptors)
 	{
 		PCGExPartition::FRule& NewRule = Rules.Emplace_GetRef(Descriptor);
-		if (!NewRule.Validate(PointIO->In))
+		if (!NewRule.Validate(PointIO->GetIn()))
 		{
 			//PCGE_LOG(Warning, GraphAndLog, LOCTEXT("MalformedRule", "Rule %s invalid on input %s."));
 			Rules.Pop();
@@ -55,7 +70,7 @@ void FPCGExSplitByValuesContext::PrepareForPoints(const UPCGExPointIO* PointIO)
 
 		if (Descriptor.bWriteKey)
 		{
-			NewRule.KeyAttribute = PointIO->Out->Metadata->FindOrCreateAttribute<int64>(Descriptor.KeyAttributeName, 0, false, true);
+			NewRule.KeyAttribute = PointIO->GetOut()->Metadata->FindOrCreateAttribute<int64>(Descriptor.KeyAttributeName, 0, false, true);
 		}
 		else
 		{
@@ -64,7 +79,7 @@ void FPCGExSplitByValuesContext::PrepareForPoints(const UPCGExPointIO* PointIO)
 	}
 }
 
-void FPCGExSplitByValuesContext::PrepareForPointsWithMetadataEntries(UPCGExPointIO* PointIO)
+void FPCGExSplitByValuesContext::PrepareForPointsWithMetadataEntries(PCGExData::FPointIO* PointIO)
 {
 	PointIO->BuildMetadataEntries();
 	PrepareForPoints(PointIO);
@@ -93,7 +108,7 @@ FPCGContext* FPCGExPartitionByValuesElement::Initialize(
 	}
 
 	Context->bSplitOutput = Settings->bSplitOutput;
-	Context->RootPartitionLayer = NewObject<UPCGExPartitionLayer>();
+	Context->RootPartitionLayer = new UPCGExPartitionLayer();
 	return Context;
 }
 
@@ -119,7 +134,7 @@ bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* InContext) con
 
 	if (Context->IsState(PCGExMT::State_ProcessingPoints))
 	{
-		auto Initialize = [&](UPCGExPointIO* PointIO)
+		auto Initialize = [&](PCGExData::FPointIO* PointIO)
 		{
 			if (Context->bSplitOutput) { Context->PrepareForPoints(PointIO); }
 			else { Context->PrepareForPointsWithMetadataEntries(PointIO); }
@@ -128,7 +143,7 @@ bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* InContext) con
 		if (Context->bSplitOutput)
 		{
 			// Split output
-			auto DistributePoint = [&](const int32 PointIndex, const UPCGExPointIO* PointIO)
+			auto DistributePoint = [&](const int32 PointIndex, const PCGExData::FPointIO* PointIO)
 			{
 				const FPCGPoint& Point = PointIO->GetInPoint(PointIndex);
 
@@ -139,7 +154,7 @@ bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* InContext) con
 				{
 					const int64 LayerKey = Rule.Filter(Point);
 					LayerKeys.Add(LayerKey);
-					Layer = Layer->GetLayer(LayerKey, PointIO->In);
+					Layer = Layer->GetLayer(LayerKey);
 				}
 
 				if (!Layer->Points)
@@ -171,7 +186,7 @@ bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* InContext) con
 		else
 		{
 			// Only write partition values
-			auto ProcessPoint = [&](const int32 PointIndex, const UPCGExPointIO* PointIO)
+			auto ProcessPoint = [&](const int32 PointIndex, const PCGExData::FPointIO* PointIO)
 			{
 				const FPCGPoint& Point = PointIO->GetOutPoint(PointIndex);
 				TArray<int64> LayerKeys;
@@ -196,7 +211,6 @@ bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* InContext) con
 	if (Context->IsDone())
 	{
 		if (!Context->bSplitOutput) { Context->MainPoints->OutputTo(Context); }
-		Context->RootPartitionLayer->Flush();
 		return true;
 	}
 

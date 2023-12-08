@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExDataBlending.h"
+#include "Data/PCGExData.h"
 
 namespace PCGExDataBlending
 {
@@ -15,76 +16,43 @@ namespace PCGExDataBlending
 		virtual bool GetRequiresPreparation() const override { return true; }
 		virtual bool GetRequiresFinalization() const override { return true; }
 
-		virtual void PrepareOperation(const int32 WriteIndex) const override { this->ResetToDefault(WriteIndex); }
-
-		virtual void DoOperation(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, const PCGMetadataEntryKey WriteIndex, const double Alpha = 0) const override
-		{
-			const T A = this->PrimaryAccessor->Get(PrimaryReadIndex);
-			const T B = this->SecondaryAccessor->Get(SecondaryReadIndex);
-			this->PrimaryAccessor->SetValue(this->bInterpolationAllowed ? PCGExDataBlending::Add(A, B) : A, WriteIndex);
-		}
-
-		virtual void FinalizeOperation(const int32 WriteIndex, double Alpha) const override
-		{
-			const T A = this->PrimaryAccessor->Get(WriteIndex);
-			this->PrimaryAccessor->SetValue(this->bInterpolationAllowed ? PCGExDataBlending::Div(A, Alpha) : A);
-		}
+		virtual void SinglePrepare(T& A) const override { A = this->PrimaryAccessor->GetDefaultValue(); }
+		virtual T SingleOperation(T A, T B, double Alpha) const override { return PCGExDataBlending::Add(A, B); }
+		virtual void SingleFinalize(T& A, double Alpha) const override { A = PCGExDataBlending::Div(A, Alpha); }
 	};
 
 	template <typename T>
 	class PCGEXTENDEDTOOLKIT_API FDataBlendingCopy final : public FDataBlendingOperation<T>
 	{
 	public:
-		virtual void DoOperation(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, const PCGMetadataEntryKey WriteIndex, const double Alpha = 0) const override
-		{
-			this->PrimaryAccessor->SetValue(WriteIndex, this->SecondaryAccessor->Get(SecondaryReadIndex));
-		}
+		virtual T SingleOperation(T A, T B, double Alpha) const override { return B; }
 	};
 
 	template <typename T>
 	class PCGEXTENDEDTOOLKIT_API FDataBlendingMax final : public FDataBlendingOperation<T>
 	{
 	public:
-		virtual void DoOperation(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, const PCGMetadataEntryKey WriteIndex, const double Alpha = 0) const override
-		{
-			const T A = this->PrimaryAccessor->Get(PrimaryReadIndex);
-			const T B = this->SecondaryAccessor->Get(SecondaryReadIndex);
-			this->PrimaryAccessor->SetValue(this->bInterpolationAllowed ? PCGExDataBlending::Max(A, B) : A, WriteIndex);
-		}
+		virtual T SingleOperation(T A, T B, double Alpha) const override { return PCGExDataBlending::Max(A, B); }
 	};
 
 	template <typename T>
 	class PCGEXTENDEDTOOLKIT_API FDataBlendingMin final : public FDataBlendingOperation<T>
 	{
 	public:
-		virtual void DoOperation(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, const PCGMetadataEntryKey WriteIndex, const double Alpha = 0) const override
-		{
-			const T A = this->PrimaryAccessor->Get(PrimaryReadIndex);
-			const T B = this->SecondaryAccessor->Get(SecondaryReadIndex);
-			this->PrimaryAccessor->SetValue(this->bInterpolationAllowed ? PCGExDataBlending::Min(A, B) : A, WriteIndex);
-		}
+		virtual T SingleOperation(T A, T B, double Alpha) const override { return PCGExDataBlending::Min(A, B); }
 	};
 
 	template <typename T>
 	class PCGEXTENDEDTOOLKIT_API FDataBlendingWeight final : public FDataBlendingOperation<T>
 	{
 	public:
-		virtual void DoOperation(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, const PCGMetadataEntryKey WriteIndex, const double Alpha = 0) const override
-		{
-			const T A = this->PrimaryAccessor->Get(PrimaryReadIndex);
-			const T B = this->SecondaryAccessor->Get(SecondaryReadIndex);
-			this->PrimaryAccessor->SetValue(this->bInterpolationAllowed ? PCGExDataBlending::Lerp(A, B, Alpha) : A, WriteIndex);
-		}
+		virtual T SingleOperation(T A, T B, double Alpha) const override { return PCGExDataBlending::Lerp(A, B, Alpha); }
 	};
 
 	template <typename T>
 	class PCGEXTENDEDTOOLKIT_API FDataBlendingNone final : public FDataBlendingOperation<T>
 	{
 	public:
-		virtual void DoOperation(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, const PCGMetadataEntryKey WriteIndex, const double Alpha = 0) const override
-		{
-			const T B = this->SecondaryAccessor->Get(SecondaryReadIndex);
-			this->PrimaryAccessor->SetValue(B, WriteIndex);
-		}
+		virtual T SingleOperation(T A, T B, double Alpha) const override { return B; }
 	};
 }

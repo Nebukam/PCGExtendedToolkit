@@ -69,7 +69,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="!bMirror"))
 	FPCGExSingleTangentParams Leave;
 
-	virtual void PrepareForData(const UPCGExPointIO* InPath) override;
+	virtual void PrepareForData(PCGExData::FPointIO* InPath) override;
 	virtual void ProcessFirstPoint(const int32 Index, const FPCGPoint& Point, const FPCGPoint& NextPoint) const override;
 	virtual void ProcessLastPoint(const int32 Index, const FPCGPoint& Point, const FPCGPoint& PreviousPoint) const override;
 	virtual void ProcessPoint(const int32 Index, const FPCGPoint& Point, const FPCGPoint& PreviousPoint, const FPCGPoint& NextPoint) const override;

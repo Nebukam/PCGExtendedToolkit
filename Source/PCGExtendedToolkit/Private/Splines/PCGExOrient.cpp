@@ -49,10 +49,10 @@ bool FPCGExOrientElement::ExecuteInternal(FPCGContext* InContext) const
 	}
 
 	Context->MainPoints->ForEach(
-		[&](UPCGExPointIO* PointIO, int32)
+		[&](PCGExData::FPointIO* PointIO, int32)
 		{
 			Context->Orientation->PrepareForData(PointIO);
-			Context->Orientation->ProcessPoints(PointIO->Out);
+			Context->Orientation->ProcessPoints(PointIO->GetOut());
 		});
 
 	Context->OutputPoints();

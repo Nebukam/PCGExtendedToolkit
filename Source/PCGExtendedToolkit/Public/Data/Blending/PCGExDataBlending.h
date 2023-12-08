@@ -101,6 +101,279 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBlendingSettings
 
 namespace PCGExDataBlending
 {
+	template <typename T>
+	class PCGEXTENDEDTOOLKIT_API FAttributeAccessorBase
+	{
+	protected:
+		FPCGMetadataAttribute<T>* Attribute = nullptr;
+		int32 NumEntries = -1;
+		TUniquePtr<FPCGAttributeAccessor<T>> Accessor;
+		FPCGAttributeAccessorKeysPoints* InternalKeys = nullptr;
+		IPCGAttributeAccessorKeys* Keys = nullptr;
+
+		void Flush()
+		{
+			if (Accessor) { Accessor.Reset(); }
+			if (InternalKeys) { delete InternalKeys; }
+			Keys = nullptr;
+			Attribute = nullptr;
+		}
+
+	public:
+		FAttributeAccessorBase(const UPCGPointData* InData, FPCGMetadataAttributeBase* InAttribute, FPCGAttributeAccessorKeysPoints* InKeys)
+		{
+			Flush();
+			Attribute = static_cast<FPCGMetadataAttribute<T>*>(InAttribute);
+			Accessor = MakeUnique<FPCGAttributeAccessor<T>>(Attribute, InData->Metadata);
+			NumEntries = InKeys->GetNum();
+			Keys = InKeys;
+		}
+
+		T GetDefaultValue() { return Attribute->GetValue(PCGInvalidEntryKey); }
+
+		int32 GetNum() const { return NumEntries; }
+
+		virtual T Get(const int32 Index)
+		{
+			if (T OutValue; Get(OutValue, Index)) { return OutValue; }
+			return GetDefaultValue();
+		}
+
+		bool Get(T& OutValue, int32 Index) const
+		{
+			TArrayView<T> Temp(&OutValue, 1);
+			return GetRange(TArrayView<T>(&OutValue, 1), Index);
+		}
+
+		bool GetRange(TArrayView<T> OutValues, int32 Index) const { return Accessor->GetRange(OutValues, Index, *Keys, EPCGAttributeAccessorFlags::StrictType); }
+
+		bool GetRange(TArray<T>& OutValues, int32 Index = 0, int32 Count = -1) const
+		{
+			if (Count == -1) { Count = NumEntries - Index; }
+			OutValues.SetNumUninitialized(Count, true);
+			TArrayView<T> View(OutValues);
+			return GetRange(View, Index);
+		}
+
+		bool Set(const T& InValue, int32 Index) { return SetRange(TArrayView<const T>(&InValue, 1), Index); }
+
+		bool SetRange(TArrayView<const T> InValues, int32 Index) { return Accessor->SetRange(InValues, Index, *Keys, EPCGAttributeAccessorFlags::StrictType); }
+
+		bool SetRange(TArray<T>& InValues, int32 Index = 0)
+		{
+			TArrayView<T> View(InValues);
+			return SetRange(View, Index);
+		}
+
+		virtual ~FAttributeAccessorBase()
+		{
+			Flush();
+		}
+	};
+
+	template <typename T>
+	class PCGEXTENDEDTOOLKIT_API FAttributeAccessor : public FAttributeAccessorBase<T>
+	{
+	public:
+		FAttributeAccessor(const UPCGPointData* InData, FPCGMetadataAttributeBase* InAttribute, FPCGAttributeAccessorKeysPoints* InKeys)
+			: FAttributeAccessorBase<T>(InData, InAttribute, InKeys)
+		{
+		}
+
+		FAttributeAccessor(UPCGPointData* InData, FPCGMetadataAttributeBase* InAttribute): FAttributeAccessorBase<T>()
+		{
+			this->Flush();
+			this->Attribute = static_cast<FPCGMetadataAttribute<T>*>(InAttribute);
+			this->Accessor = MakeUnique<FPCGAttributeAccessor<T>>(this->Attribute, InData->Metadata);
+
+			const TArrayView<FPCGPoint> View(InData->GetMutablePoints());
+			this->InternalKeys = new FPCGAttributeAccessorKeysPoints(View);
+
+			this->NumEntries = this->InternalKeys->GetNum();
+			this->Keys = this->InternalKeys;
+		}
+	};
+
+	template <typename T>
+	class PCGEXTENDEDTOOLKIT_API FConstAttributeAccessor : public FAttributeAccessorBase<T>
+	{
+	public:
+		FConstAttributeAccessor(const UPCGPointData* InData, FPCGMetadataAttributeBase* InAttribute, FPCGAttributeAccessorKeysPoints* InKeys)
+			: FAttributeAccessorBase<T>(InData, InAttribute, InKeys)
+		{
+		}
+
+		FConstAttributeAccessor(const UPCGPointData* InData, FPCGMetadataAttributeBase* InAttribute): FAttributeAccessorBase<T>()
+		{
+			this->Flush();
+			this->Attribute = static_cast<FPCGMetadataAttribute<T>*>(InAttribute);
+			this->Accessor = MakeUnique<FPCGAttributeAccessor<T>>(this->Attribute, InData->Metadata);
+
+			this->InternalKeys = new FPCGAttributeAccessorKeysPoints(InData->GetPoints());
+
+			this->NumEntries = this->InternalKeys->GetNum();
+			this->Keys = this->InternalKeys;
+		}
+	};
+
+	/**
+	 * 
+	 */
+	class PCGEXTENDEDTOOLKIT_API FDataBlendingOperationBase
+	{
+	public:
+		virtual ~FDataBlendingOperationBase();
+
+		void SetAttributeName(FName InName) { AttributeName = InName; }
+		FName GetAttributeName() const { return AttributeName; }
+
+		virtual void PrepareForData(UPCGPointData* InPrimaryData, const UPCGPointData* InSecondaryData, FPCGAttributeAccessorKeysPoints* InPrimaryKeys, FPCGAttributeAccessorKeysPoints* InSecondaryKeys);
+
+		virtual bool GetRequiresPreparation() const;
+		virtual bool GetRequiresFinalization() const;
+
+		virtual void PrepareOperation(const int32 WriteIndex) const;
+		virtual void DoOperation(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, const int32 WriteIndex, const double Alpha = 0) const;
+		virtual void FinalizeOperation(const int32 WriteIndex, double Alpha) const;
+
+		virtual void PrepareRangeOperation(const int32 StartIndex, const int32 Count) const = 0;
+		virtual void DoRangeOperation(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, const int32 StartIndex, const int32 Count, const TArrayView<double>& Alphas) const = 0;
+		virtual void FinalizeRangeOperation(const int32 StartIndex, const int32 Count, const TArrayView<double>& Alphas) const = 0;
+
+		virtual void ResetToDefault(int32 WriteIndex) const;
+		virtual void ResetRangeToDefault(int32 StartIndex, int32 Count) const;
+
+	protected:
+		bool bInterpolationAllowed = true;
+		FName AttributeName = NAME_None;
+		FPCGMetadataAttributeBase* PrimaryBaseAttribute = nullptr;
+		FPCGMetadataAttributeBase* SecondaryBaseAttribute = nullptr;
+	};
+
+	template <typename T>
+	class PCGEXTENDEDTOOLKIT_API FDataBlendingOperation : public FDataBlendingOperationBase
+	{
+	public:
+		virtual ~FDataBlendingOperation() override
+		{
+			if (PrimaryAccessor) { delete PrimaryAccessor; }
+			if (SecondaryAccessor) { delete SecondaryAccessor; }
+		}
+
+		virtual void PrepareForData(
+			UPCGPointData* InPrimaryData,
+			const UPCGPointData* InSecondaryData,
+			FPCGAttributeAccessorKeysPoints* InPrimaryKeys,
+			FPCGAttributeAccessorKeysPoints* InSecondaryKeys) override
+		{
+			FDataBlendingOperationBase::PrepareForData(InPrimaryData, InSecondaryData, InPrimaryKeys, InSecondaryKeys);
+
+			if (PrimaryAccessor)
+			{
+				if (SecondaryAccessor == PrimaryAccessor) { SecondaryAccessor = nullptr; }
+				delete PrimaryAccessor;
+			}
+			PrimaryAccessor = new FAttributeAccessor<T>(InPrimaryData, PrimaryBaseAttribute, InPrimaryKeys);
+
+			//TODO: Reuse first dataset if ==
+			if (SecondaryAccessor) { delete SecondaryAccessor; }
+			SecondaryAccessor = new FConstAttributeAccessor<T>(InSecondaryData, SecondaryBaseAttribute, InSecondaryKeys);
+		}
+
+#define PCGEX_TEMP_VALUES TArray<T> Values; Values.SetNum(Count); TArrayView<T> View(Values);
+
+		virtual void PrepareRangeOperation(const int32 StartIndex, const int32 Count) const override
+		{
+			PCGEX_TEMP_VALUES
+			PrimaryAccessor->GetRange(View, StartIndex);
+			PrepareValuesRangeOperation(View, StartIndex);
+		}
+
+		virtual void DoRangeOperation(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, const int32 StartIndex, const int32 Count, const TArrayView<double>& Alphas) const override
+		{
+			PCGEX_TEMP_VALUES
+			DoValuesRangeOperation(PrimaryReadIndex, SecondaryReadIndex, View, StartIndex, Alphas);
+		}
+
+		virtual void FinalizeRangeOperation(const int32 StartIndex, const int32 Count, const TArrayView<double>& Alphas) const override
+		{
+			PCGEX_TEMP_VALUES
+			PrimaryAccessor->GetRange(View, StartIndex);
+			FinalizeValuesRangeOperation(View, StartIndex, Alphas);
+		}
+
+#undef PCGEX_TEMP_VALUES
+
+		virtual void PrepareValuesRangeOperation(TArrayView<T>& Values, const int32 StartIndex) const
+		{
+			for (int i = 0; i < Values.Num(); i++) { SinglePrepare(Values[i]); }
+			PrimaryAccessor->SetRange(Values, StartIndex);
+		}
+
+		virtual void DoValuesRangeOperation(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, TArrayView<T>& Values, const int32 StartIndex, const TArrayView<double>& Alphas) const
+		{
+			if (bInterpolationAllowed)
+			{
+				const T A = PrimaryAccessor->Get(PrimaryReadIndex);
+				const T B = SecondaryAccessor->Get(PrimaryReadIndex);
+				for (int i = 0; i < Values.Num(); i++) { Values[i] = SingleOperation(A, B, Alphas[i]); }
+				PrimaryAccessor->SetRange(Values, StartIndex);
+			}
+			else
+			{
+				const T A = PrimaryAccessor->Get(PrimaryReadIndex);
+				for (int i = 0; i < Values.Num(); i++) { Values[i] = A; }
+				PrimaryAccessor->SetRange(Values, StartIndex);
+			}
+		}
+
+		virtual void FinalizeValuesRangeOperation(TArrayView<T>& Values, const int32 StartIndex, const TArrayView<double>& Alphas) const
+		{
+			if (bInterpolationAllowed)
+			{
+				for (int i = 0; i < Values.Num(); i++) { SingleFinalize(Values[i], Alphas[i]); }
+				PrimaryAccessor->SetRange(Values, StartIndex);
+			}
+		}
+
+		virtual void SinglePrepare(T& A) const
+		{
+		};
+
+		virtual T SingleOperation(T A, T B, double Alpha) const = 0;
+
+		virtual void SingleFinalize(T& A, double Alpha) const
+		{
+		};
+
+		virtual void ResetToDefault(int32 WriteIndex) const override { ResetRangeToDefault(WriteIndex, 1); }
+
+		virtual void ResetRangeToDefault(int32 StartIndex, int32 Count) const override
+		{
+			TArray<T> Defaults;
+			Defaults.SetNum(Count);
+			const T DefaultValue = PrimaryAccessor->GetDefaultValue();
+			for (int i = 0; i < Count; i++) { Defaults[i] = DefaultValue; }
+			PrimaryAccessor->SetRange(Defaults, StartIndex);
+		}
+
+		virtual T GetPrimaryValue(const int32 Index) const
+		{
+			if (T OutValue; PrimaryAccessor->Get(OutValue, Index)) { return OutValue; }
+			return PrimaryAccessor->GetDefaultValue();
+		}
+
+		virtual T GetSecondaryValue(const int32 Index) const
+		{
+			if (T OutValue; SecondaryAccessor->Get(OutValue, Index)) { return OutValue; }
+			return SecondaryAccessor->GetDefaultValue();
+		}
+
+	protected:
+		FAttributeAccessorBase<T>* PrimaryAccessor = nullptr;
+		FAttributeAccessorBase<T>* SecondaryAccessor = nullptr;
+	};
+
 #pragma region Add
 
 	template <typename T, typename dummy = void>
@@ -266,10 +539,10 @@ namespace PCGExDataBlending
 	}
 
 	template <typename dummy = void>
-	inline static FString LerpString(const FString& A, const FString& B, const double& Alpha = 0) { return Alpha > 0.5 ? B : A; }
+	inline static FString Lerp(const FString& A, const FString& B, const double& Alpha = 0) { return Alpha > 0.5 ? B : A; }
 
 	template <typename dummy = void>
-	inline static FName LerpName(const FName& A, const FName& B, const double& Alpha = 0) { return Alpha > 0.5 ? B : A; }
+	inline static FName Lerp(const FName& A, const FName& B, const double& Alpha = 0) { return Alpha > 0.5 ? B : A; }
 
 #pragma endregion
 
@@ -320,161 +593,4 @@ namespace PCGExDataBlending
 	inline static T NoBlend(const T& A, const T& B, const double& Alpha = 0) { return A; }
 
 #pragma endregion
-
-	template <typename T>
-	class PCGEXTENDEDTOOLKIT_API FAttributeAccessor
-	{
-		FPCGMetadataAttribute<T>* Attribute = nullptr;
-		int32 NumEntries = -1;
-		TUniquePtr<FPCGAttributeAccessor<T>> Accessor;
-		FPCGAttributeAccessorKeysPoints* InternalKeys = nullptr;
-		FPCGAttributeAccessorKeysPoints* Keys = nullptr;
-
-		FAttributeAccessor()
-		{
-		}
-
-		FAttributeAccessor(UPCGPointData* InData, FPCGMetadataAttributeBase* InAttribute)
-		{
-			Init(InData, InAttribute);
-		}
-
-		FAttributeAccessor(UPCGPointData* InData, FPCGMetadataAttributeBase* InAttribute, FPCGAttributeAccessorKeysPoints* InKeys)
-		{
-			Init(InData, InAttribute, InKeys);
-		}
-
-		void Init(UPCGPointData* InData, FPCGMetadataAttributeBase* InAttribute)
-		{
-			Flush();
-			Attribute = static_cast<FPCGMetadataAttribute<T>*>(InAttribute);
-			Accessor = MakeUnique<FPCGAttributeAccessor<T>>(Attribute, InData->Metadata);
-
-			const TArrayView<FPCGPoint> View(InData->GetMutablePoints());
-			NumEntries = View.Num();
-			InternalKeys = new FPCGAttributeAccessorKeysPoints(View);
-
-			Keys = InternalKeys;
-		}
-
-		void Init(UPCGPointData* InData, FPCGMetadataAttributeBase* InAttribute, FPCGAttributeAccessorKeysPoints* InKeys)
-		{
-			Flush();
-			Attribute = static_cast<FPCGMetadataAttribute<T>*>(InAttribute);
-			Accessor = MakeUnique<FPCGAttributeAccessor<T>>(Attribute, InData->Metadata);
-			NumEntries = InKeys->GetNum();
-			Keys = InKeys;
-		}
-
-		T Get(const int32 Index)
-		{
-			if (T OutValue; Get(OutValue, Index)) { return OutValue; }
-			return Attribute->DefaultValue;
-		}
-
-		bool Get(T& OutValue, int32 Index) const { return Accessor->Get(OutValue, Index, Keys, EPCGAttributeAccessorFlags::StrictType); }
-
-		bool GetRange(TArrayView<T> OutValues, int32 Index) const { return Accessor->GetRange(OutValues, Index, Keys, EPCGAttributeAccessorFlags::StrictType); }
-
-		bool GetRange(TArray<T>& OutValues, int32 Index = 0, int32 Count = -1) const
-		{
-			if (Count == -1) { Count = NumEntries - Index; }
-			OutValues.SetNumUninitialized(Count, true);
-			TArrayView<T> View(OutValues);
-			return GetRange(View, Index);
-		}
-
-		bool Set(const T& InValue, int32 Index) { return Accessor->Set(InValue, Index, Keys, EPCGAttributeAccessorFlags::StrictType); }
-
-		bool SetRange(TArrayView<const T> InValues, int32 Index) { return Accessor->SetRange(InValues, Index, Keys, EPCGAttributeAccessorFlags::StrictType); }
-
-		bool SetRange(TArray<T>& InValues, int32 Index = 0) const
-		{
-			TArrayView<T> View(InValues);
-			return SetRange(View, Index);
-		}
-
-		~FAttributeAccessor()
-		{
-			Flush();
-		}
-
-	protected:
-		void Flush()
-		{
-			if (Accessor) { Accessor.Reset(); }
-			if (InternalKeys) { delete InternalKeys; }
-			Keys = nullptr;
-			Attribute = nullptr;
-		}
-	};
-
-	/**
-	 * 
-	 */
-	class PCGEXTENDEDTOOLKIT_API FDataBlendingOperationBase
-	{
-	public:
-		virtual ~FDataBlendingOperationBase();
-
-		void SetAttributeName(FName InName) { AttributeName = InName; }
-		FName GetAttributeName() const { return AttributeName; }
-
-		virtual void PrepareForData(const UPCGPointData* InPrimaryData, const UPCGPointData* InSecondaryData, FPCGAttributeAccessorKeysPoints* InPrimaryKeys, FPCGAttributeAccessorKeysPoints* InSecondaryKeys);
-
-		virtual bool GetRequiresPreparation() const;
-		virtual bool GetRequiresFinalization() const;
-
-		virtual void PrepareOperation(const int32 WriteIndex) const;
-		virtual void DoOperation(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, const PCGMetadataEntryKey WriteIndex, const double Alpha = 0) const;
-		virtual void FinalizeOperation(const int32 WriteIndex, double Alpha) const;
-		virtual void ResetToDefault(int32 WriteIndex) const;
-
-	protected:
-		bool bInterpolationAllowed = true;
-		FName AttributeName = NAME_None;
-		FPCGMetadataAttributeBase* PrimaryBaseAttribute = nullptr;
-		FPCGMetadataAttributeBase* SecondaryBaseAttribute = nullptr;
-	};
-
-	template <typename T>
-	class PCGEXTENDEDTOOLKIT_API FDataBlendingOperation : public FDataBlendingOperationBase
-	{
-	public:
-		virtual ~FDataBlendingOperation() override
-		{
-			if (PrimaryAccessor) { delete PrimaryAccessor; }
-			if (SecondaryAccessor) { delete SecondaryAccessor; }
-		}
-
-		virtual void PrepareForData(const UPCGPointData* InPrimaryData, const UPCGPointData* InSecondaryData, FPCGAttributeAccessorKeysPoints* InPrimaryKeys, FPCGAttributeAccessorKeysPoints* InSecondaryKeys) override
-		{
-			FDataBlendingOperationBase::PrepareForData(InPrimaryData, InSecondaryData, InPrimaryKeys, InSecondaryKeys);
-
-			if (PrimaryAccessor) { delete PrimaryAccessor; }
-			PrimaryAccessor = new FAttributeAccessor<T>(InPrimaryData, static_cast<FPCGMetadataAttribute<T>*>(PrimaryBaseAttribute), InPrimaryKeys);
-
-			//TODO: Reuse first dataset
-			if (SecondaryAccessor) { delete SecondaryAccessor; }
-			SecondaryAccessor = new FAttributeAccessor<T>(InSecondaryData, static_cast<FPCGMetadataAttribute<T>*>(SecondaryBaseAttribute), InSecondaryKeys);
-		}
-
-		virtual void ResetToDefault(int32 WriteIndex) const override { PrimaryAccessor.Set(PrimaryAccessor->Attribute->DefaultValue, WriteIndex); }
-
-		virtual T GetPrimaryValue(const int32 Index) const
-		{
-			if (T OutValue; PrimaryAccessor.Get(OutValue, Index)) { return OutValue; }
-			return PrimaryAccessor->Attribute->DefaultValue;
-		}
-
-		virtual T GetSecondaryValue(const int32 Index) const
-		{
-			if (T OutValue; SecondaryAccessor.Get(OutValue, Index)) { return OutValue; }
-			return SecondaryAccessor->Attribute->DefaultValue;
-		}
-
-	protected:
-		FAttributeAccessor<T>* PrimaryAccessor = nullptr;
-		FAttributeAccessor<T>* SecondaryAccessor = nullptr;
-	};
 }

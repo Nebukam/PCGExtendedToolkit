@@ -9,6 +9,11 @@
 #include "PCGExOperation.h"
 #include "PCGExSubPointsOperation.generated.h"
 
+namespace PCGExData
+{
+	class FPointIO;
+}
+
 class UPCGExPointIO;
 
 /**
@@ -20,7 +25,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSubPointsOperation : public UPCGExOperation
 	GENERATED_BODY()
 
 public:
-	virtual void PrepareForData(UPCGExPointIO* InData);
+	virtual void PrepareForData(PCGExData::FPointIO* InData);
 	virtual void ProcessPoints(UPCGPointData* InData) const;
-	virtual void ProcessSubPoints(const FPCGPoint& StartPoint, const FPCGPoint& EndPoint, TArrayView<FPCGPoint>& SubPoints, const PCGExMath::FPathInfos& PathInfos) const;
+	virtual void ProcessSubPoints(const PCGEx::FPointRef& Start, const PCGEx::FPointRef& End, TArrayView<FPCGPoint>& SubPoints, const PCGExMath::FPathInfos& PathInfos) const;
 };

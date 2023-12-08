@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 
-#include "Data/PCGExPointIO.h"
+#include "..\Data\PCGExPointsIO.h"
 #include "Data/PCGExAttributeHelpers.h"
 #include "PCGExMT.h"
 
@@ -299,22 +299,22 @@ namespace PCGExGraph
 
 	const FName PUIDAttributeName = TEXT("__PCGEx/PUID_");
 
-	constexpr PCGExMT::AsyncState State_ReadyForNextGraph = 100;
-	constexpr PCGExMT::AsyncState State_ProcessingGraph = 101;
+	const PCGExMT::AsyncState State_ReadyForNextGraph = PCGExMT::AsyncStateCounter::Unique();
+	const PCGExMT::AsyncState State_ProcessingGraph = PCGExMT::AsyncStateCounter::Unique();
 
-	constexpr PCGExMT::AsyncState State_CachingGraphIndices = 105;
-	constexpr PCGExMT::AsyncState State_SwappingGraphIndices = 106;
+	const PCGExMT::AsyncState State_CachingGraphIndices = PCGExMT::AsyncStateCounter::Unique();
+	const PCGExMT::AsyncState State_SwappingGraphIndices = PCGExMT::AsyncStateCounter::Unique();
 
-	constexpr PCGExMT::AsyncState State_FindingEdgeTypes = 110;
+	const PCGExMT::AsyncState State_FindingEdgeTypes = PCGExMT::AsyncStateCounter::Unique();
 
-	constexpr PCGExMT::AsyncState State_FindingPatch = 120;
-	constexpr PCGExMT::AsyncState State_WaitingOnFindingPatch = 121;
-	constexpr PCGExMT::AsyncState State_MergingPatch = 130;
-	constexpr PCGExMT::AsyncState State_WaitingOnMergingPatch = 131;
-	constexpr PCGExMT::AsyncState State_WritingPatch = 140;
-	constexpr PCGExMT::AsyncState State_WaitingOnWritingPatch = 141;
+	const PCGExMT::AsyncState State_FindingPatch = PCGExMT::AsyncStateCounter::Unique();
+	const PCGExMT::AsyncState State_WaitingOnFindingPatch = PCGExMT::AsyncStateCounter::Unique();
+	const PCGExMT::AsyncState State_MergingPatch = PCGExMT::AsyncStateCounter::Unique();
+	const PCGExMT::AsyncState State_WaitingOnMergingPatch = PCGExMT::AsyncStateCounter::Unique();
+	const PCGExMT::AsyncState State_WritingPatch = PCGExMT::AsyncStateCounter::Unique();
+	const PCGExMT::AsyncState State_WaitingOnWritingPatch = PCGExMT::AsyncStateCounter::Unique();
 
-	constexpr PCGExMT::AsyncState State_PromotingEdges = 210;
+	const PCGExMT::AsyncState State_PromotingEdges = PCGExMT::AsyncStateCounter::Unique();
 
 
 #pragma region Sockets
@@ -774,7 +774,7 @@ namespace PCGExGraph
 		const TArray<FSocketInfos>& SocketInfos,
 		const FPCGPoint& Point,
 		const int32 ReadIndex,
-		const UPCGExPointIO* PointIO)
+		const PCGExData::FPointIO* PointIO)
 	{
 		for (const FSocketInfos& CurrentSocketInfos : SocketInfos)
 		{

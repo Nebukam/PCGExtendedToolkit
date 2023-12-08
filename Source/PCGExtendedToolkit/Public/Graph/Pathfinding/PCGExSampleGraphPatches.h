@@ -44,8 +44,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleGraphPatchesContext : public FPCGExPat
 	friend class FPCGExSampleGraphPatchesElement;
 
 public:
-	UPCGExPointIO* GoalsPoints = nullptr;
-	UPCGExPointIOGroup* OutputPaths = nullptr;
+	PCGExData::FPointIO* GoalsPoints = nullptr;
+	PCGExData::FPointIOGroup* OutputPaths = nullptr;
 
 	UPCGExGoalPicker* GoalPicker;
 	UPCGExSubPointsBlendOperation* Blending;
@@ -72,15 +72,15 @@ class PCGEXTENDEDTOOLKIT_API FSamplePatchPathTask : public FPCGExAsyncTask
 {
 public:
 	FSamplePatchPathTask(
-		UPCGExAsyncTaskManager* InManager, const PCGExMT::FTaskInfos& InInfos, UPCGExPointIO* InPointIO,
-		int32 InGoalIndex, UPCGExPointIO* InPathPoints) :
+		UPCGExAsyncTaskManager* InManager, const PCGExMT::FTaskInfos& InInfos, PCGExData::FPointIO* InPointIO,
+		int32 InGoalIndex, PCGExData::FPointIO* InPathPoints) :
 		FPCGExAsyncTask(InManager, InInfos, InPointIO),
 		GoalIndex(InGoalIndex), PathPoints(InPathPoints)
 	{
 	}
 
 	int32 GoalIndex = -1;
-	UPCGExPointIO* PathPoints;
+	PCGExData::FPointIO* PathPoints;
 
 	virtual bool ExecuteTask() override;
 };

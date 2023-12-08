@@ -33,8 +33,8 @@ EPCGExDataBlendingType _NAME##Blending;
 
 namespace PCGExFuse
 {
-	constexpr PCGExMT::AsyncState State_FindingRootPoints = 100;
-	constexpr PCGExMT::AsyncState State_MergingPoints = 101;
+	const PCGExMT::AsyncState State_FindingRootPoints = PCGExMT::AsyncStateCounter::Unique();
+	const PCGExMT::AsyncState State_MergingPoints = PCGExMT::AsyncStateCounter::Unique();
 
 	struct PCGEXTENDEDTOOLKIT_API FFusedPoint
 	{
@@ -77,7 +77,7 @@ protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings interface
 
-	virtual PCGExPointIO::EInit GetPointOutputInitMode() const override;
+	virtual PCGExData::EInit GetPointOutputInitMode() const override;
 
 public:
 	/** TBD */
@@ -119,8 +119,8 @@ public:
 	int32 CurrentIndex = 0;
 
 	TMap<FName, EPCGExDataBlendingType> AttributesBlendingOverrides;
-	PCGExDataBlending::FMetadataBlender* FMetadataBlender;
-	PCGExDataBlending::FPropertiesBlender PropertyBlender;
+	TUniquePtr<PCGExDataBlending::FMetadataBlender> MetadataBlender;
+	TUniquePtr<PCGExDataBlending::FPropertiesBlender> PropertyBlender;
 
 	TArray<PCGExFuse::FFusedPoint> FusedPoints;
 	TArray<FPCGPoint>* OutPoints;

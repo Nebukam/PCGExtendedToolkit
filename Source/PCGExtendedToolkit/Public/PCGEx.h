@@ -5,6 +5,7 @@
 
 #include "PCGComponent.h"
 #include "PCGContext.h"
+#include "Data/PCGPointData.h"
 #include "Metadata/PCGMetadata.h"
 #include "Metadata/PCGMetadataAttributeTpl.h"
 
@@ -17,20 +18,20 @@ virtual FName GetDefaultNodeName() const override { return FName(TEXT(#_SHORTNAM
 virtual FText GetDefaultNodeTitle() const override { return NSLOCTEXT("PCGEx" #_SHORTNAME, "NodeTitle", "PCGEx | " _NAME);} \
 virtual FText GetNodeTooltipText() const override{ return NSLOCTEXT("PCGEx" #_SHORTNAME "Tooltip", "NodeTooltip", _TOOLTIP); }
 
-#define PCGEX_FOREACH_SUPPORTEDTYPES(MACRO) \
-MACRO(bool, Boolean)       \
-MACRO(int32, Integer32)      \
-MACRO(int64, Integer64)      \
-MACRO(float, Float)      \
-MACRO(double, Double)     \
-MACRO(FVector2D, Vector2)  \
-MACRO(FVector, Vector)    \
-MACRO(FVector4, Vector4)   \
-MACRO(FQuat, Quaternion)      \
-MACRO(FRotator, Rotator)   \
-MACRO(FTransform, Transform) \
-MACRO(FString, String)    \
-MACRO(FName, Name)
+#define PCGEX_FOREACH_SUPPORTEDTYPES(MACRO, ...) \
+MACRO(bool, Boolean, __VA_ARGS__)       \
+MACRO(int32, Integer32, __VA_ARGS__)      \
+MACRO(int64, Integer64, __VA_ARGS__)      \
+MACRO(float, Float, __VA_ARGS__)      \
+MACRO(double, Double, __VA_ARGS__)     \
+MACRO(FVector2D, Vector2, __VA_ARGS__)  \
+MACRO(FVector, Vector, __VA_ARGS__)    \
+MACRO(FVector4, Vector4, __VA_ARGS__)   \
+MACRO(FQuat, Quaternion, __VA_ARGS__)      \
+MACRO(FRotator, Rotator, __VA_ARGS__)   \
+MACRO(FTransform, Transform, __VA_ARGS__) \
+MACRO(FString, String, __VA_ARGS__)    \
+MACRO(FName, Name, __VA_ARGS__)
 
 /**
  * Enum, Point.[Getter]
@@ -152,6 +153,17 @@ namespace PCGEx
 
 	const FSoftObjectPath DefaultDotOverDistanceCurve = FSoftObjectPath(TEXT("/PCGExtendedToolkit/FC_PCGExGraphBalance_DistanceOnly.FC_PCGExGraphBalance_DistanceOnly"));
 	const FSoftObjectPath WeightDistributionLinear = FSoftObjectPath(TEXT("/PCGExtendedToolkit/FC_PCGExWeightDistribution_Linear.FC_PCGExWeightDistribution_Linear"));
+
+	struct PCGEXTENDEDTOOLKIT_API FPointRef
+	{
+		FPointRef(const FPCGPoint& InPoint, const int32 InIndex):
+			Point(&InPoint), Index(InIndex)
+		{
+		}
+
+		const FPCGPoint* Point;
+		const int32 Index;
+	};
 
 	static UWorld* GetWorld(const FPCGContext* Context)
 	{

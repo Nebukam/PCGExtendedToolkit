@@ -6,7 +6,7 @@
 
 #define LOCTEXT_NAMESPACE "PCGExSampleSurfaceGuidedElement"
 
-PCGExPointIO::EInit UPCGExSampleSurfaceGuidedSettings::GetPointOutputInitMode() const { return PCGExPointIO::EInit::DuplicateInput; }
+PCGExData::EInit UPCGExSampleSurfaceGuidedSettings::GetPointOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
 int32 UPCGExSampleSurfaceGuidedSettings::GetPreferredChunkSize() const { return 32; }
 
@@ -84,9 +84,9 @@ bool FPCGExSampleSurfaceGuidedElement::ExecuteInternal(FPCGContext* InContext) c
 
 	if (Context->IsState(PCGExMT::State_ProcessingPoints))
 	{
-		auto Initialize = [&](UPCGExPointIO* PointIO) //UPCGExPointIO* PointIO
+		auto Initialize = [&](PCGExData::FPointIO* PointIO) //UPCGExPointIO* PointIO
 		{
-			Context->DirectionGetter.Validate(PointIO->Out);
+			Context->DirectionGetter.Validate(PointIO->GetOut());
 			PointIO->BuildMetadataEntries();
 
 			PCGEX_INIT_ATTRIBUTE_OUT(Success, bool)
@@ -95,7 +95,7 @@ bool FPCGExSampleSurfaceGuidedElement::ExecuteInternal(FPCGContext* InContext) c
 			PCGEX_INIT_ATTRIBUTE_OUT(Distance, double)
 		};
 
-		auto ProcessPoint = [&](const int32 PointIndex, const UPCGExPointIO* PointIO)
+		auto ProcessPoint = [&](const int32 PointIndex, const PCGExData::FPointIO* PointIO)
 		{
 			Context->GetAsyncManager()->StartTask<FTraceTask>(PointIndex, PointIO->GetOutPoint(PointIndex).MetadataEntry, Context->CurrentIO);
 		};
@@ -119,10 +119,9 @@ bool FPCGExSampleSurfaceGuidedElement::ExecuteInternal(FPCGContext* InContext) c
 
 bool FTraceTask::ExecuteTask()
 {
-	
 	const FPCGExSampleSurfaceGuidedContext* Context = Manager->GetContext<FPCGExSampleSurfaceGuidedContext>();
 	PCGEX_ASYNC_LIFE_CHECK
-	
+
 	const FPCGPoint& InPoint = PointIO->GetInPoint(TaskInfos.Index);
 	const FVector Origin = InPoint.Transform.GetLocation();
 

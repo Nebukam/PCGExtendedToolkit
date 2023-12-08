@@ -4,10 +4,10 @@
 
 #include "Splines/SubPoints/PCGExSubPointsOperation.h"
 
-#include "Data/PCGExPointIO.h"
+#include "..\..\..\Public\Data\PCGExPointsIO.h"
 
 
-void UPCGExSubPointsOperation::PrepareForData(UPCGExPointIO* InData)
+void UPCGExSubPointsOperation::PrepareForData(PCGExData::FPointIO* InData)
 {
 }
 
@@ -15,9 +15,11 @@ void UPCGExSubPointsOperation::ProcessPoints(UPCGPointData* InData) const
 {
 	TArray<FPCGPoint>& Points = InData->GetMutablePoints();
 	TArrayView<FPCGPoint> Path = MakeArrayView(Points.GetData(), Points.Num());
-	ProcessSubPoints(Points[0], Points.Last(), Path, PCGExMath::FPathInfos());
+	const PCGEx::FPointRef StartPoint = PCGEx::FPointRef(Points[0], 0);
+	const PCGEx::FPointRef EndPoint = PCGEx::FPointRef(Points.Last(), Points.Num() - 1);
+	ProcessSubPoints(StartPoint, EndPoint, Path, PCGExMath::FPathInfos());
 }
 
-void UPCGExSubPointsOperation::ProcessSubPoints(const FPCGPoint& StartPoint, const FPCGPoint& EndPoint, TArrayView<FPCGPoint>& SubPoints, const PCGExMath::FPathInfos& PathInfos) const
+void UPCGExSubPointsOperation::ProcessSubPoints(const PCGEx::FPointRef& Start, const PCGEx::FPointRef& End, TArrayView<FPCGPoint>& SubPoints, const PCGExMath::FPathInfos& PathInfos) const
 {
 }

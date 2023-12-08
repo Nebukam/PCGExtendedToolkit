@@ -7,9 +7,9 @@
 
 #include "PCGExPointsProcessor.h"
 #include "Graph/PCGExGraph.h"
+#include "Graph/Pathfinding/PCGExPathfinding.h"
 #include "Graph/Pathfinding/GoalPickers/PCGExGoalPickerRandom.h"
 #include "Splines/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
-#include "Splines/SubPoints/Orient/PCGExSubPointsOrientAverage.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSampleNavmeshElement"
 
@@ -61,11 +61,17 @@ void UPCGExSampleNavmeshSettings::PostEditChangeProperty(FPropertyChangedEvent& 
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
 
-PCGExPointIO::EInit UPCGExSampleNavmeshSettings::GetPointOutputInitMode() const { return PCGExPointIO::EInit::NoOutput; }
+PCGExData::EInit UPCGExSampleNavmeshSettings::GetPointOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 int32 UPCGExSampleNavmeshSettings::GetPreferredChunkSize() const { return 32; }
 
 FName UPCGExSampleNavmeshSettings::GetMainPointsInputLabel() const { return PCGExPathfinding::SourceSeedsLabel; }
-FName UPCGExSampleNavmeshSettings::GetMainPointsOutputLabel() const { return PCGExGraph::OutputGraphsLabel; }
+FName UPCGExSampleNavmeshSettings::GetMainPointsOutputLabel() const { return PCGExGraph::OutputPathsLabel; }
+
+FPCGExSampleNavmeshContext::~FPCGExSampleNavmeshContext()
+{
+	if (GoalsPoints) { delete GoalsPoints; }
+	if (OutputPaths) { delete OutputPaths; }
+}
 
 FPCGElementPtr UPCGExSampleNavmeshSettings::CreateElement() const { return MakeShared<FPCGExSampleNavmeshElement>(); }
 
@@ -81,7 +87,7 @@ FPCGContext* FPCGExSampleNavmeshElement::Initialize(const FPCGDataCollection& In
 		Goals.Num() > 0)
 	{
 		const FPCGTaggedData& GoalsSource = Goals[0];
-		Context->GoalsPoints = PCGExPointIO::TryGetPointIO(Context, GoalsSource);
+		Context->GoalsPoints = PCGExData::GetPointIO(Context, GoalsSource);
 	}
 
 	if (!Settings->NavData)
@@ -93,7 +99,7 @@ FPCGContext* FPCGExSampleNavmeshElement::Initialize(const FPCGDataCollection& In
 		}
 	}
 
-	Context->OutputPaths = NewObject<UPCGExPointIOGroup>();
+	Context->OutputPaths = new PCGExData::FPointIOGroup();
 
 	Context->GoalPicker = Settings->EnsureInstruction<UPCGExGoalPickerRandom>(Settings->GoalPicker, Context);
 	Context->Blending = Settings->EnsureInstruction<UPCGExSubPointsBlendInterpolate>(Settings->Blending, Context);
@@ -107,7 +113,6 @@ FPCGContext* FPCGExSampleNavmeshElement::Initialize(const FPCGDataCollection& In
 
 	Context->FuseDistance = Settings->FuseDistance * Settings->FuseDistance;
 
-
 	return Context;
 }
 
@@ -119,7 +124,7 @@ bool FPCGExSampleNavmeshElement::Validate(FPCGContext* InContext) const
 	const UPCGExSampleNavmeshSettings* Settings = InContext->GetInputSettings<UPCGExSampleNavmeshSettings>();
 	check(Settings);
 
-	if (!Context->GoalsPoints || Context->GoalsPoints->In->GetPoints().Num() == 0)
+	if (!Context->GoalsPoints || Context->GoalsPoints->GetNum() == 0)
 	{
 		PCGE_LOG(Error, GraphAndLog, LOCTEXT("MissingGoals", "Missing Input Goals."));
 		return false;
@@ -144,21 +149,21 @@ bool FPCGExSampleNavmeshElement::ExecuteInternal(FPCGContext* InContext) const
 	{
 		if (!Validate(Context)) { return true; }
 		Context->AdvancePointsIO();
-		Context->GoalPicker->PrepareForData(Context->CurrentIO->In, Context->GoalsPoints->In);
-		Context->Blending->PrepareForData(Context->CurrentIO->In, Context->GoalsPoints->In);
+		Context->GoalPicker->PrepareForData(Context->CurrentIO->GetIn(), Context->GoalsPoints->GetIn());
+		//Context->Blending->PrepareForData(Context->CurrentIO->GetIn(), Context->GoalsPoints->GetIn());
+		//TODO: Cannot prepare blending from const In. Must have Out ready first.
 		Context->SetState(PCGExMT::State_ProcessingPoints);
 	}
 
 	if (Context->IsState(PCGExMT::State_ProcessingPoints))
 	{
-		auto ProcessPoint = [&](const int32 PointIndex, const UPCGExPointIO* PointIO)
+		auto ProcessSeed = [&](const int32 PointIndex, const PCGExData::FPointIO* PointIO)
 		{
 			auto NavMeshTask = [&](int32 InGoalIndex)
 			{
-				UPCGExPointIO* PathPoints = Context->OutputPaths->Emplace_GetRef(PointIO->In, PCGExPointIO::EInit::NewOutput);
-				Context->GetAsyncManager()->StartTask<FNavmeshPathTask>(
-					PointIndex, PointIO->GetInPoint(PointIndex).MetadataEntry, Context->CurrentIO,
-					InGoalIndex, PathPoints);
+				PCGExData::FPointIO* PathPoints = Context->OutputPaths->Emplace_GetRef(PointIO->GetIn(), PCGExData::EInit::NewOutput);
+				PCGExSampleNavmesh::FPath* PathObject = &Context->PathBuffer.Emplace_GetRef(PathPoints, PointIndex, InGoalIndex);
+				Context->GetAsyncManager()->StartTask<FNavmeshPathTask>(PointIndex, PointIO->GetInPoint(PointIndex).MetadataEntry, Context->CurrentIO, PathObject);
 			};
 
 			if (Context->GoalPicker->OutputMultipleGoals())
@@ -179,12 +184,39 @@ bool FPCGExSampleNavmeshElement::ExecuteInternal(FPCGContext* InContext) const
 			}
 		};
 
-		if (Context->ProcessCurrentPoints(ProcessPoint)) { Context->StartAsyncWait(PCGExMT::State_WaitingOnAsyncWork); }
+		if (Context->ProcessCurrentPoints(ProcessSeed)) { Context->StartAsyncWait(PCGExSampleNavmesh::State_Pathfinding); }
 	}
 
-	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
+	if (Context->IsState(PCGExSampleNavmesh::State_Pathfinding))
 	{
-		if (Context->IsAsyncWorkComplete()) { Context->StopAsyncWait(PCGExMT::State_Done); }
+		if (Context->IsAsyncWorkComplete()) { Context->StopAsyncWait(PCGExSampleNavmesh::State_PathBlending); }
+	}
+
+	if (Context->IsState(PCGExSampleNavmesh::State_PathBlending))
+	{
+		auto ProcessPath = [&](const int32 Index)
+		{
+			const PCGExSampleNavmesh::FPath Path = Context->PathBuffer[Index];
+
+			TArray<FPCGPoint>& MutablePoints = Path.PathPoints->GetOut()->GetMutablePoints();
+			TArrayView<FPCGPoint> View(MutablePoints);
+
+			PCGExDataBlending::FMetadataBlender* TempBlender = Context->Blending->CreateBlender(
+				Path.PathPoints->GetOut(),
+				Context->GoalsPoints->GetIn());
+
+			Context->Blending->BlendSubPoints(
+				PCGEx::FPointRef(MutablePoints[0], 0),
+				PCGEx::FPointRef(MutablePoints.Last(), MutablePoints.Num() - 1),
+				View, Path.Infos, TempBlender);
+
+			TempBlender->Flush();
+
+			if (!Context->bAddSeedToPath) { MutablePoints.RemoveAt(0); }
+			if (!Context->bAddGoalToPath) { MutablePoints.Pop(); }
+		};
+
+		if (Context->Process(ProcessPath, Context->PathBuffer.Num())) { Context->StopAsyncWait(PCGExMT::State_Done); }
 	}
 
 	if (Context->IsDone())
@@ -198,10 +230,9 @@ bool FPCGExSampleNavmeshElement::ExecuteInternal(FPCGContext* InContext) const
 
 bool FNavmeshPathTask::ExecuteTask()
 {
-	
 	FPCGExSampleNavmeshContext* Context = Manager->GetContext<FPCGExSampleNavmeshContext>();
 	PCGEX_ASYNC_LIFE_CHECK
-	
+
 	//FWriteScopeLock WriteLock(Context->ContextLock);
 
 	bool bSuccess = false;
@@ -209,7 +240,7 @@ bool FNavmeshPathTask::ExecuteTask()
 	if (UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(Context->World))
 	{
 		const FPCGPoint& StartPoint = PointIO->GetInPoint(TaskInfos.Index);
-		const FPCGPoint& EndPoint = Context->GoalsPoints->GetInPoint(GoalIndex);
+		const FPCGPoint& EndPoint = Context->GoalsPoints->GetInPoint(Path->GoalIndex);
 		const FVector StartLocation = StartPoint.Transform.GetLocation();
 		const FVector EndLocation = EndPoint.Transform.GetLocation();
 
@@ -265,24 +296,19 @@ bool FNavmeshPathTask::ExecuteTask()
 			{
 				///////
 
-				for (FVector Location : PathLocations)
+				TArray<FPCGPoint>& MutablePoints = Path->PathPoints->GetOut()->GetMutablePoints();
+				MutablePoints.Reserve(PathLocations.Num());
+
+				for (int i = 0; i < PathLocations.Num(); i++)
 				{
-					FPCGPoint& Point = PathPoints->CopyPoint(StartPoint);
+					FVector Location = PathLocations[i];
+
+					if (i == 0) { Path->Infos.Reset(Location); }
+					else { Path->Infos.Add(Location); }
+
+					FPCGPoint& Point = MutablePoints.Emplace_GetRef(StartPoint);
 					Point.Transform.SetLocation(Location);
 				}
-
-				TArray<FPCGPoint>& MutablePoints = PathPoints->Out->GetMutablePoints();
-				TArrayView<FPCGPoint> Path = MakeArrayView(MutablePoints.GetData(), PathLocations.Num());
-
-				FMetadataBlender* TempBlender = Context->Blending->CreateBlender(PathPoints->Out, Context->GoalsPoints->In);
-
-				Context->Blending->BlendSubPoints(StartPoint, EndPoint, Path, PathHelper, TempBlender);
-
-				TempBlender->Flush();
-
-				// Remove start and/or end after blending
-				if (!Context->bAddSeedToPath) { MutablePoints.RemoveAt(0); }
-				if (!Context->bAddGoalToPath) { MutablePoints.Pop(); }
 
 				bSuccess = true;
 			}

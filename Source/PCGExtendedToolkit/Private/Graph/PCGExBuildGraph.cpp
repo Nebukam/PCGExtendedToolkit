@@ -6,7 +6,7 @@
 #define LOCTEXT_NAMESPACE "PCGExBuildGraph"
 
 int32 UPCGExBuildGraphSettings::GetPreferredChunkSize() const { return 32; }
-PCGExPointIO::EInit UPCGExBuildGraphSettings::GetPointOutputInitMode() const { return PCGExPointIO::EInit::DuplicateInput; }
+PCGExData::EInit UPCGExBuildGraphSettings::GetPointOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
 UPCGExBuildGraphSettings::UPCGExBuildGraphSettings(
 	const FObjectInitializer& ObjectInitializer)
@@ -57,19 +57,14 @@ bool FPCGExBuildGraphElement::ExecuteInternal(
 	// Prep point for param loops
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
-		if (Context->CurrentIO)
-		{
-			//Cleanup current PointIO, indices won't be needed anymore.
-			Context->CurrentIO->Flush();
-		}
-
 		if (!Context->AdvancePointsIO(true))
 		{
 			Context->Done(); //No more points
 		}
 		else
 		{
-			//Context->CurrentIO->BuildMetadataEntriesAndIndices(); // Required to retrieve index when using the Octree
+			Context->CurrentIO->Cleanup();
+			Context->CurrentIO->GetInKeys();
 			Context->CurrentIO->BuildMetadataEntries();
 			Context->SetState(PCGExGraph::State_ReadyForNextGraph);
 		}
@@ -90,16 +85,15 @@ bool FPCGExBuildGraphElement::ExecuteInternal(
 
 	if (Context->IsState(State_ProbingPoints))
 	{
-		auto Initialize = [&](const UPCGExPointIO* PointIO)
+		auto Initialize = [&](PCGExData::FPointIO* PointIO)
 		{
-			Context->PrepareCurrentGraphForPoints(PointIO->Out, true);
+			Context->PrepareCurrentGraphForPoints(PointIO->GetOut(), true);
 		};
 
-		auto ProcessPoint = [&](const int32 PointIndex, const UPCGExPointIO* PointIO)
+		auto ProcessPoint = [&](const int32 PointIndex, const PCGExData::FPointIO* PointIO)
 		{
-
 			//TODO : Use async to compute results but DO NOT WRITE ON ATTRIBUTES
-			
+
 			//Context->GetAsyncManager()->StartTask<FProbeTask>(PointIndex, PointIO->GetInPoint(PointIndex).MetadataEntry, Context->CurrentIO);
 
 			const FPCGPoint& Point = PointIO->GetOutPoint(PointIndex);
@@ -113,7 +107,7 @@ bool FPCGExBuildGraphElement::ExecuteInternal(
 			//TODO : This is what needs to be async.
 			// This looks bad, but for some reason it's MUCH faster than using the Octree.
 			const FBox BBox = Box.GetBox();
-			const TArray<FPCGPoint>& InPoints = PointIO->In->GetPoints();
+			const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
 			for (int i = 0; i < InPoints.Num(); i++)
 			{
 				if (const FPCGPoint& Pt = InPoints[i];
@@ -129,7 +123,6 @@ bool FPCGExBuildGraphElement::ExecuteInternal(
 				Context->GraphSolver->ResolveProbe(Probe);
 				Probe.OutputTo(Key);
 			}
-			
 		};
 
 		if (Context->ProcessCurrentPoints(Initialize, ProcessPoint)) { Context->StartAsyncWait(PCGExMT::State_WaitingOnAsyncWork); }
@@ -143,7 +136,7 @@ bool FPCGExBuildGraphElement::ExecuteInternal(
 	if (Context->IsState(PCGExGraph::State_FindingEdgeTypes))
 	{
 		// Process params again for edges types
-		auto ProcessPointEdgeType = [&](const int32 PointIndex, const UPCGExPointIO* PointIO)
+		auto ProcessPointEdgeType = [&](const int32 PointIndex, const PCGExData::FPointIO* PointIO)
 		{
 			ComputeEdgeType(Context->SocketInfos, PointIO->GetOutPoint(PointIndex), PointIndex, PointIO);
 		};
@@ -162,7 +155,6 @@ bool FPCGExBuildGraphElement::ExecuteInternal(
 
 bool FProbeTask::ExecuteTask()
 {
-
 	const FPCGExBuildGraphContext* Context = Manager->GetContext<FPCGExBuildGraphContext>();
 	PCGEX_ASYNC_LIFE_CHECK
 
@@ -176,7 +168,7 @@ bool FProbeTask::ExecuteTask()
 
 	// This looks bad, but for some reason it's MUCH faster than using the Octree.
 	const FBox BBox = Box.GetBox();
-	const TArray<FPCGPoint>& InPoints = PointIO->In->GetPoints();
+	const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
 	for (int i = 0; i < InPoints.Num(); i++)
 	{
 		if (const FPCGPoint& Pt = InPoints[i];

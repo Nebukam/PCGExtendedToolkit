@@ -4,20 +4,20 @@
 
 #include "Splines/SubPoints/Orient/PCGExSubPointsOrientWeighted.h"
 
-void UPCGExSubPointsOrientWeighted::ProcessSubPoints(const FPCGPoint& StartPoint, const FPCGPoint& EndPoint, TArrayView<FPCGPoint>& SubPoints, const PCGExMath::FPathInfos& PathInfos) const
+void UPCGExSubPointsOrientWeighted::ProcessSubPoints(const PCGEx::FPointRef& Start, const PCGEx::FPointRef& End, TArrayView<FPCGPoint>& SubPoints, const PCGExMath::FPathInfos& PathInfos) const
 {
 	const int32 NumPointsMinusOne = SubPoints.Num() - 1;
 	if (bInverseWeight)
 	{
-		Orient(SubPoints[0], StartPoint, SubPoints[1]);
+		Orient(SubPoints[0], *Start.Point, SubPoints[1]);
 		for (int i = 1; i < NumPointsMinusOne; i++) { Orient(SubPoints[i], SubPoints[i - 1], SubPoints[i + 1]); }
-		Orient(SubPoints.Last(), SubPoints[NumPointsMinusOne - 1], EndPoint);
+		Orient(SubPoints.Last(), SubPoints[NumPointsMinusOne - 1], *End.Point);
 	}
 	else
 	{
-		OrientInvertedWeight(SubPoints[0], StartPoint, SubPoints[1]);
+		OrientInvertedWeight(SubPoints[0], *Start.Point, SubPoints[1]);
 		for (int i = 1; i < NumPointsMinusOne; i++) { OrientInvertedWeight(SubPoints[i], SubPoints[i - 1], SubPoints[i + 1]); }
-		OrientInvertedWeight(SubPoints.Last(), SubPoints[NumPointsMinusOne - 1], EndPoint);
+		OrientInvertedWeight(SubPoints.Last(), SubPoints[NumPointsMinusOne - 1], *End.Point);
 	}
 }
 

@@ -34,7 +34,7 @@ protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings interface
 
-	virtual PCGExPointIO::EInit GetPointOutputInitMode() const override;
+	virtual PCGExData::EInit GetPointOutputInitMode() const override;
 
 public:
 	//~Begin IPCGExDebug interface
@@ -63,7 +63,6 @@ private:
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExDrawGraphContext : public FPCGExGraphProcessorContext
 {
-
 	friend class FPCGExBuildGraphElement;
 	friend class FProbeTask;
 

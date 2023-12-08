@@ -329,7 +329,7 @@ namespace PCGEx
 	protected:
 		virtual T GetDefaultValue() const = 0;
 
-#define  PCGEX_PRINT_VIRTUAL(_TYPE, _NAME) virtual T Convert(const _TYPE Value) const { return GetDefaultValue(); };
+#define  PCGEX_PRINT_VIRTUAL(_TYPE, _NAME, ...) virtual T Convert(const _TYPE Value) const { return GetDefaultValue(); };
 		PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_PRINT_VIRTUAL)
 	};
 

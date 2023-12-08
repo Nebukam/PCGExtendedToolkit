@@ -5,7 +5,7 @@
 #include "Splines/Tangents/PCGExAutoTangents.h"
 
 #include "PCGExMath.h"
-#include "Data/PCGExPointIO.h"
+#include "..\..\..\Public\Data\PCGExPointsIO.h"
 
 void UPCGExAutoTangents::ProcessFirstPoint(const int32 Index, const FPCGPoint& Point, const FPCGPoint& NextPoint) const
 {

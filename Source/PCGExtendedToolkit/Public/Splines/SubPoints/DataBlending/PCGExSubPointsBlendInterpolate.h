@@ -5,7 +5,8 @@
 
 #include "CoreMinimal.h"
 #include "PCGExSubPointsBlendOperation.h"
-#include "..\..\..\Data\Blending\PCGExMetadataBlender.h"
+#include "Data/Blending/PCGExMetadataBlender.h"
+
 #include "PCGExSubPointsBlendInterpolate.generated.h"
 
 UENUM(BlueprintType)
@@ -31,7 +32,12 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="BlendOver==EPCGExPathLerpBase::Fixed", EditConditionHides))
 	double Alpha = 0.5;
 
-	virtual void BlendSubPoints(const FPCGPoint& StartPoint, const FPCGPoint& EndPoint, TArrayView<FPCGPoint>& SubPoints, const PCGExMath::FPathInfos& PathInfos, const PCGExDataBlending::FMetadataBlender* InBlender) const override;
+	virtual void BlendSubPoints(
+		const PCGEx::FPointRef& StartPoint,
+		const PCGEx::FPointRef& EndPoint,
+		TArrayView<FPCGPoint>& SubPoints,
+		const PCGExMath::FPathInfos& PathInfos,
+		const PCGExDataBlending::FMetadataBlender* InBlender) const override;
 
 protected:
 	virtual EPCGExDataBlendingType GetDefaultBlending() override;

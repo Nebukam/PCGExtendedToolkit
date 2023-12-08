@@ -9,7 +9,7 @@
 
 #include "PCGEx.h"
 #include "PCGExMT.h"
-#include "Data/PCGExPointIO.h"
+#include "..\Data\PCGExPointsIO.h"
 
 #include "PCGExDebugManager.generated.h"
 

@@ -12,6 +12,11 @@
 #include "SubPoints/DataBlending/PCGExSubPointsBlendOperation.h"
 #include "PCGExSubdivide.generated.h"
 
+namespace PCGExSubdivide
+{
+	const PCGExMT::AsyncState State_BlendingPoints = PCGExMT::AsyncStateCounter::Unique();
+}
+
 UENUM(BlueprintType)
 enum class EPCGExSubdivideMode : uint8
 {
@@ -44,7 +49,7 @@ public:
 #endif
 
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
-	virtual PCGExPointIO::EInit GetPointOutputInitMode() const override;
+	virtual PCGExData::EInit GetPointOutputInitMode() const override;
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
@@ -82,6 +87,9 @@ public:
 
 	FName FlagName;
 	FPCGMetadataAttribute<bool>* FlagAttribute = nullptr;
+
+	TArray<int32> Milestones;
+	TArray<PCGExMath::FPathInfos> MilestonesPathInfos;
 
 	UPCGExSubPointsBlendOperation* Blending;
 };

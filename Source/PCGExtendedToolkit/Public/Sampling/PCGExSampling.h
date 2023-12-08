@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "PCGExMT.h"
 #include "PCGExSampling.generated.h"
 
 #define PCGEX_OUT_ATTRIBUTE(_NAME, _TYPE)\
@@ -23,9 +24,9 @@ Context->bWrite##_NAME = false; }
 if (Context->OutAttribute##_NAME) { Context->OutAttribute##_NAME->SetValue(_KEY, _VALUE); }
 
 #define PCGEX_INIT_ATTRIBUTE_OUT(_NAME, _TYPE)\
-Context->OutAttribute##_NAME = PCGEx::TryGetAttribute<_TYPE>(PointIO->Out, Context->OutName##_NAME, Context->bWrite##_NAME);
+Context->OutAttribute##_NAME = PCGEx::TryGetAttribute<_TYPE>(PointIO->GetOut(), Context->OutName##_NAME, Context->bWrite##_NAME);
 #define PCGEX_INIT_ATTRIBUTE_IN(_NAME, _TYPE)\
-Context->OutAttribute##_NAME = PCGEx::TryGetAttribute<_TYPE>(PointIO->In, Context->OutName##_NAME, Context->bWrite##_NAME);
+Context->OutAttribute##_NAME = PCGEx::TryGetAttribute<_TYPE>(PointIO->GetIn(), Context->OutName##_NAME, Context->bWrite##_NAME);
 
 UENUM(BlueprintType)
 enum class EPCGExSampleMethod : uint8
@@ -110,7 +111,7 @@ class PCGEXTENDEDTOOLKIT_API FPCGExCollisionTask : public FPCGExAsyncTask
 public:
 	virtual ~FPCGExCollisionTask() override = default;
 
-	FPCGExCollisionTask(UPCGExAsyncTaskManager* InManager, const PCGExMT::FTaskInfos& InInfos, UPCGExPointIO* InPointIO) :
+	FPCGExCollisionTask(UPCGExAsyncTaskManager* InManager, const PCGExMT::FTaskInfos& InInfos, PCGExData::FPointIO* InPointIO) :
 		FPCGExAsyncTask(InManager, InInfos, InPointIO)
 	{
 	}

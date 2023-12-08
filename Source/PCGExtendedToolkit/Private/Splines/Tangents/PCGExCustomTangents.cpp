@@ -4,13 +4,13 @@
 
 #include "Splines/Tangents/PCGExCustomTangents.h"
 
-#include "Data/PCGExPointIO.h"
+#include "..\..\..\Public\Data\PCGExPointsIO.h"
 
-void UPCGExCustomTangents::PrepareForData(const UPCGExPointIO* InPath)
+void UPCGExCustomTangents::PrepareForData(PCGExData::FPointIO* InPath)
 {
 	Super::PrepareForData(InPath);
-	Arrive.PrepareForData(InPath->Out);
-	Leave.PrepareForData(InPath->Out);
+	Arrive.PrepareForData(InPath->GetOut());
+	Leave.PrepareForData(InPath->GetOut());
 }
 
 void UPCGExCustomTangents::ProcessFirstPoint(const int32 Index, const FPCGPoint& Point, const FPCGPoint& NextPoint) const
