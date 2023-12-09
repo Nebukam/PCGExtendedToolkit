@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 
-#include "..\Data\PCGExPointsIO.h"
+#include "..\Data\PCGExPointIO.h"
 #include "Data/PCGExAttributeHelpers.h"
 #include "PCGExMT.h"
 

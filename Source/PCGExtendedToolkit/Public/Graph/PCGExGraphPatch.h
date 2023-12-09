@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "Data/PCGExGraphParamsData.h"
-#include "..\Data\PCGExPointsIO.h"
+#include "..\Data\PCGExPointIO.h"
 #include "UObject/Object.h"
 
 #include "PCGExGraphPatch.generated.h"

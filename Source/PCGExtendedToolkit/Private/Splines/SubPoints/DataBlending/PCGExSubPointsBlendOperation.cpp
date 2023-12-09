@@ -4,7 +4,7 @@
 
 #include "Splines/SubPoints/DataBlending/PCGExSubPointsBlendOperation.h"
 
-#include "Data/PCGExPointsIO.h"
+#include "..\..\..\..\Public\Data\PCGExPointIO.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
 
 EPCGExDataBlendingType UPCGExSubPointsBlendOperation::GetDefaultBlending()

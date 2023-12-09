@@ -133,7 +133,7 @@ bool FPCGExFindEdgePatchesElement::ExecuteInternal(
 
 		auto ProcessPoint = [&](const int32 PointIndex, const FPCGExPointIO& PointIO)
 		{
-			Context->GetAsyncManager()->StartTask<FDistributeToPatchTask>(PointIndex, PointIO.GetInPoint(PointIndex).MetadataEntry, nullptr);
+			Context->GetAsyncManager()->Start<FDistributeToPatchTask>(PointIndex, PointIO.GetInPoint(PointIndex).MetadataEntry, nullptr);
 		};
 
 		if (Context->ProcessCurrentPoints(Initialize, ProcessPoint)) { Context->SetAsyncState(PCGExGraph::State_WaitingOnFindingPatch); }
@@ -178,7 +178,7 @@ bool FPCGExFindEdgePatchesElement::ExecuteInternal(
 			// Mark point data
 			PCGEx::CreateMark(Context->CurrentIO->GetOut()->Metadata, PCGExGraph::PUIDAttributeName, PUID);
 
-			Context->GetAsyncManager()->StartTask<FWritePatchesTask>(Context->PatchUIndex, -1, Context->CurrentIO, Patch, PatchData);
+			Context->GetAsyncManager()->Start<FWritePatchesTask>(Context->PatchUIndex, -1, Context->CurrentIO, Patch, PatchData);
 
 			Context->PatchUIndex++;
 		}
@@ -207,7 +207,7 @@ bool FPCGExFindEdgePatchesElement::ExecuteInternal(
 bool FDistributeToPatchTask::ExecuteTask()
 {
 	const FPCGExFindEdgePatchesContext* Context = Manager->GetContext<FPCGExFindEdgePatchesContext>();
-	PCGEX_ASYNC_LIFE_CHECK
+	PCGEX_ASYNC_CHECKPOINT
 
 	Context->Patches->Distribute(TaskInfos.Index);
 
@@ -216,7 +216,7 @@ bool FDistributeToPatchTask::ExecuteTask()
 
 bool FConsolidatePatchesTask::ExecuteTask()
 {
-	if (!CanContinue()) { return false; }
+	PCGEX_ASYNC_CHECKPOINT
 
 	// TODO : Check if multiple patches overlap, and merge them
 	return true;
@@ -225,7 +225,7 @@ bool FConsolidatePatchesTask::ExecuteTask()
 bool FWritePatchesTask::ExecuteTask()
 {
 	FPCGExFindEdgePatchesContext* Context = Manager->GetContext<FPCGExFindEdgePatchesContext>();
-	PCGEX_ASYNC_LIFE_CHECK
+	PCGEX_ASYNC_CHECKPOINT
 
 	const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
 	TArray<FPCGPoint>& MutablePoints = PatchData->GetMutablePoints();
@@ -242,7 +242,7 @@ bool FWritePatchesTask::ExecuteTask()
 
 	for (const uint64 Hash : Patch->IndicesSet)
 	{
-		PCGEX_ASYNC_LIFE_CHECK
+		PCGEX_ASYNC_CHECKPOINT
 
 		FPCGPoint& NewPoint = MutablePoints.Emplace_GetRef();
 		PatchData->Metadata->InitializeOnSet(NewPoint.MetadataEntry);

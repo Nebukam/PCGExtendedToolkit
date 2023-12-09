@@ -248,7 +248,7 @@ int32 UPCGExPointsProcessorSettings::GetPreferredChunkSize() const { return 256;
 
 FPCGExPointsProcessorContext::~FPCGExPointsProcessorContext()
 {
-	delete AsyncManager; 
+	delete AsyncManager;
 	delete MainPoints;
 	CurrentIO = nullptr;
 	World = nullptr;
@@ -271,9 +271,9 @@ void FPCGExPointsProcessorContext::Done()
 	SetState(PCGExMT::State_Done);
 }
 
-void FPCGExPointsProcessorContext::SetState(PCGExMT::AsyncState OperationId)
+void FPCGExPointsProcessorContext::SetState(PCGExMT::AsyncState OperationId, bool bResetAsyncWork)
 {
-	ResetAsyncWork();
+	if (bResetAsyncWork) { ResetAsyncWork(); }
 	PCGExMT::AsyncState PreviousOperation = CurrentState;
 	CurrentState = OperationId;
 }
@@ -303,12 +303,12 @@ bool FPCGExPointsProcessorContext::ProcessCurrentPoints(TFunction<void(const int
 	return bForceSync ? ChunkedPointLoop.Advance(std::move(LoopBody)) : AsyncPointLoop.Advance(std::move(LoopBody));
 }
 
-UPCGExAsyncTaskManager* FPCGExPointsProcessorContext::GetAsyncManager()
+FPCGExAsyncManager* FPCGExPointsProcessorContext::GetAsyncManager()
 {
 	if (!AsyncManager)
 	{
 		FWriteScopeLock WriteLock(ContextLock);
-		AsyncManager = new UPCGExAsyncTaskManager();
+		AsyncManager = new FPCGExAsyncManager();
 		AsyncManager->Context = this;
 	}
 	return AsyncManager;

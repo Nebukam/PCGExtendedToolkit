@@ -126,34 +126,34 @@ protected:
 	virtual bool Validate(FPCGContext* InContext) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FDistributeToPatchTask : public FPCGExAsyncTask
+class PCGEXTENDEDTOOLKIT_API FDistributeToPatchTask : public FPCGExNonAbandonableTask
 {
 public:
-	FDistributeToPatchTask(UPCGExAsyncTaskManager* InManager, const PCGExMT::FTaskInfos& InInfos, FPCGExPointIO* InPointIO) :
-		FPCGExAsyncTask(InManager, InInfos, InPointIO)
+	FDistributeToPatchTask(FPCGExAsyncManager* InManager, const PCGExMT::FTaskInfos& InInfos, FPCGExPointIO* InPointIO) :
+		FPCGExNonAbandonableTask(InManager, InInfos, InPointIO)
 	{
 	}
 
 	virtual bool ExecuteTask() override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FConsolidatePatchesTask : public FPCGExAsyncTask
+class PCGEXTENDEDTOOLKIT_API FConsolidatePatchesTask : public FPCGExNonAbandonableTask
 {
 public:
-	FConsolidatePatchesTask(UPCGExAsyncTaskManager* InManager, const PCGExMT::FTaskInfos& InInfos, FPCGExPointIO* InPointIO) :
-		FPCGExAsyncTask(InManager, InInfos, InPointIO)
+	FConsolidatePatchesTask(FPCGExAsyncManager* InManager, const PCGExMT::FTaskInfos& InInfos, FPCGExPointIO* InPointIO) :
+		FPCGExNonAbandonableTask(InManager, InInfos, InPointIO)
 	{
 	}
 
 	virtual bool ExecuteTask() override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FWritePatchesTask : public FPCGExAsyncTask
+class PCGEXTENDEDTOOLKIT_API FWritePatchesTask : public FPCGExNonAbandonableTask
 {
 public:
-	FWritePatchesTask(UPCGExAsyncTaskManager* InManager, const PCGExMT::FTaskInfos& InInfos, FPCGExPointIO* InPointIO,
+	FWritePatchesTask(FPCGExAsyncManager* InManager, const PCGExMT::FTaskInfos& InInfos, FPCGExPointIO* InPointIO,
 	                  FPCGExGraphPatch* InPatch, UPCGPointData* InPatchData) :
-		FPCGExAsyncTask(InManager, InInfos, InPointIO),
+		FPCGExNonAbandonableTask(InManager, InInfos, InPointIO),
 		Patch(InPatch), PatchData(InPatchData)
 	{
 	}

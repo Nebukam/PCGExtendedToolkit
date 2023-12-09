@@ -156,7 +156,7 @@ bool FPCGExBuildGraphElement::ExecuteInternal(
 bool FProbeTask::ExecuteTask()
 {
 	const FPCGExBuildGraphContext* Context = Manager->GetContext<FPCGExBuildGraphContext>();
-	PCGEX_ASYNC_LIFE_CHECK
+	PCGEX_ASYNC_CHECKPOINT
 
 	const FPCGPoint& Point = PointIO->GetOutPoint(TaskInfos.Index);
 	Context->CachedIndex->SetValue(Point.MetadataEntry, TaskInfos.Index); // Cache index
@@ -181,7 +181,7 @@ bool FProbeTask::ExecuteTask()
 	const PCGMetadataEntryKey Key = Point.MetadataEntry;
 	for (PCGExGraph::FSocketProbe& Probe : Probes)
 	{
-		PCGEX_ASYNC_LIFE_CHECK
+		PCGEX_ASYNC_CHECKPOINT
 		Context->GraphSolver->ResolveProbe(Probe);
 		Probe.OutputTo(Key);
 	}

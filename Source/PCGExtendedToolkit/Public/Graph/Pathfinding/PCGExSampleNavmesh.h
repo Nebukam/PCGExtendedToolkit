@@ -13,7 +13,7 @@ class UPCGExGoalPicker;
 namespace PCGExSampleNavmesh
 {
 	const PCGExMT::AsyncState State_Pathfinding = PCGExMT::AsyncStateCounter::Unique();
-	const PCGExMT::AsyncState State_PathBlending = PCGExMT::AsyncStateCounter::Unique();
+	const PCGExMT::AsyncState State_WaitingPathfinding = PCGExMT::AsyncStateCounter::Unique();
 
 	struct PCGEXTENDEDTOOLKIT_API FPath
 	{
@@ -28,15 +28,9 @@ namespace PCGExSampleNavmesh
 			Positions.Empty();
 		}
 
-		void Add(FVector Location)
-		{
-			if (Positions.IsEmpty()) { Infos.Reset(Location); }
-			else { Infos.Add(Location); }
-			Positions.Emplace_GetRef(Location);
-		}
-
 		TArray<FVector> Positions;
 		PCGExMath::FPathInfos Infos;
+		FPCGExPointIO* PathPoints = nullptr;
 
 		int32 SeedIndex = -1;
 		FVector Start;
@@ -130,7 +124,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNavmeshContext : public FPCGExPointsPr
 	mutable FRWLock BufferLock;
 
 	virtual ~FPCGExSampleNavmeshContext() override;
-
+	
 	FPCGExPointIO* GoalsPoints = nullptr;
 	FPCGExPointIOGroup* OutputPaths = nullptr;
 
@@ -165,13 +159,13 @@ protected:
 };
 
 // Define the background task class
-class PCGEXTENDEDTOOLKIT_API FNavmeshPathTask : public FPCGExAsyncTask
+class PCGEXTENDEDTOOLKIT_API FNavmeshPathTask : public FPCGExNonAbandonableTask
 {
 public:
 	FNavmeshPathTask(
-		UPCGExAsyncTaskManager* InManager, const PCGExMT::FTaskInfos& InInfos, FPCGExPointIO* InPointIO,
+		FPCGExAsyncManager* InManager, const PCGExMT::FTaskInfos& InInfos, FPCGExPointIO* InPointIO,
 		PCGExSampleNavmesh::FPath* InPath) :
-		FPCGExAsyncTask(InManager, InInfos, InPointIO),
+		FPCGExNonAbandonableTask(InManager, InInfos, InPointIO),
 		Path(InPath)
 	{
 	}

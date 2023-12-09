@@ -86,8 +86,8 @@ public:
 	const FPCGPoint& GetOutPoint(const int32 Index) const { return Out->GetPoints()[Index]; }
 	FPCGPoint& GetMutablePoint(const int32 Index) const { return Out->GetMutablePoints()[Index]; }
 
-	const FPCGPoint* TryGetInPoint(const int32 Index) const { return In->GetPoints().IsValidIndex(Index) ? &In->GetPoints()[Index] : nullptr; }
-	const FPCGPoint* TryGetOutPoint(const int32 Index) const { return Out->GetPoints().IsValidIndex(Index) ? &Out->GetPoints()[Index] : nullptr; }
+	const FPCGPoint* TryGetInPoint(const int32 Index) const { return In && In->GetPoints().IsValidIndex(Index) ? &In->GetPoints()[Index] : nullptr; }
+	const FPCGPoint* TryGetOutPoint(const int32 Index) const { return Out && Out->GetPoints().IsValidIndex(Index) ? &Out->GetPoints()[Index] : nullptr; }
 
 	void InitPoint(FPCGPoint& Point, PCGMetadataEntryKey FromKey) const;
 	void InitPoint(FPCGPoint& Point, const FPCGPoint& FromPoint) const;

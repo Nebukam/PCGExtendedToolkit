@@ -106,11 +106,11 @@ namespace PCGExSampling
 	}
 }
 
-class PCGEXTENDEDTOOLKIT_API FPCGExCollisionTask : public FPCGExAsyncTask
+class PCGEXTENDEDTOOLKIT_API FPCGExCollisionTask : public FPCGExNonAbandonableTask
 {
 public:
-	FPCGExCollisionTask(UPCGExAsyncTaskManager* InManager, const PCGExMT::FTaskInfos& InInfos, FPCGExPointIO* InPointIO) :
-		FPCGExAsyncTask(InManager, InInfos, InPointIO)
+	FPCGExCollisionTask(FPCGExAsyncManager* InManager, const PCGExMT::FTaskInfos& InInfos, FPCGExPointIO* InPointIO) :
+		FPCGExNonAbandonableTask(InManager, InInfos, InPointIO)
 	{
 	}
 };

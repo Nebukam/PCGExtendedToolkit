@@ -68,13 +68,13 @@ protected:
 };
 
 // Define the background task class
-class PCGEXTENDEDTOOLKIT_API FSamplePatchPathTask : public FPCGExAsyncTask
+class PCGEXTENDEDTOOLKIT_API FSamplePatchPathTask : public FPCGExNonAbandonableTask
 {
 public:
 	FSamplePatchPathTask(
-		UPCGExAsyncTaskManager* InManager, const PCGExMT::FTaskInfos& InInfos, FPCGExPointIO* InPointIO,
+		FPCGExAsyncManager* InManager, const PCGExMT::FTaskInfos& InInfos, FPCGExPointIO* InPointIO,
 		int32 InGoalIndex, FPCGExPointIO* InPathPoints) :
-		FPCGExAsyncTask(InManager, InInfos, InPointIO),
+		FPCGExNonAbandonableTask(InManager, InInfos, InPointIO),
 		GoalIndex(InGoalIndex), PathPoints(InPathPoints)
 	{
 	}

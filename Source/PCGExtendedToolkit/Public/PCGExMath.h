@@ -79,6 +79,11 @@ namespace PCGExMath
 
 		double Add(const FVector& Location)
 		{
+			if (Length == -1)
+			{
+				Reset(Location);
+				return 0;
+			}
 			Length += DistToLast(Location);
 			Last = Location;
 			return Length;

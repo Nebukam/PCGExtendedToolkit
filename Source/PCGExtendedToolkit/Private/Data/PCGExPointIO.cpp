@@ -1,7 +1,7 @@
 ﻿// Copyright Timothé Lapetite 2023
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Data/PCGExPointsIO.h"
+#include "..\..\Public\Data\PCGExPointIO.h"
 
 #include "PCGExMT.h"
 #include "Metadata/Accessors/PCGAttributeAccessorKeys.h"

@@ -9,7 +9,7 @@
 #include "PCGEx.h"
 #include "PCGExMT.h"
 #include "Data/PCGExAttributeHelpers.h"
-#include "Data\PCGExPointsIO.h"
+#include "Data\PCGExPointIO.h"
 #include "PCGExOperation.h"
 
 #include "PCGExPointsProcessor.generated.h"
@@ -174,10 +174,10 @@ public:
 	bool IsDone() const { return IsState(PCGExMT::State_Done); }
 	void Done();
 
-	UPCGExAsyncTaskManager* GetAsyncManager();
-	void SetAsyncState(PCGExMT::AsyncState WaitState) { SetState(WaitState); }
+	FPCGExAsyncManager* GetAsyncManager();
+	void SetAsyncState(PCGExMT::AsyncState WaitState) { SetState(WaitState, false); }
 
-	virtual void SetState(PCGExMT::AsyncState OperationId);
+	virtual void SetState(PCGExMT::AsyncState OperationId, bool bResetAsyncWork = true);
 	virtual void Reset();
 
 	virtual bool ValidatePointDataInput(UPCGPointData* PointData);
@@ -220,7 +220,7 @@ public:
 
 protected:
 	PCGExMT::FAsyncParallelLoop AsyncLoop;
-	UPCGExAsyncTaskManager* AsyncManager = nullptr;
+	FPCGExAsyncManager* AsyncManager = nullptr;
 
 	PCGEx::FPointLoop ChunkedPointLoop;
 	PCGEx::FAsyncPointLoop AsyncPointLoop;

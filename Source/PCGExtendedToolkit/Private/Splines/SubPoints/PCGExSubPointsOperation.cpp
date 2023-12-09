@@ -4,7 +4,7 @@
 
 #include "Splines/SubPoints/PCGExSubPointsOperation.h"
 
-#include "..\..\..\Public\Data\PCGExPointsIO.h"
+#include "..\..\..\Public\Data\PCGExPointIO.h"
 
 
 void UPCGExSubPointsOperation::PrepareForData(FPCGExPointIO& InData, FPCGAttributeAccessorKeysPoints* InPrimaryKeys)

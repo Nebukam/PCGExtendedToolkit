@@ -4,7 +4,7 @@
 
 #include "Splines/Tangents/PCGExTangentsOperation.h"
 
-#include "..\..\..\Public\Data\PCGExPointsIO.h"
+#include "..\..\..\Public\Data\PCGExPointIO.h"
 
 void UPCGExTangentsOperation::PrepareForData(FPCGExPointIO& InPath)
 {

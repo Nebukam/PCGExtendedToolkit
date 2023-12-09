@@ -72,7 +72,7 @@ bool FPCGExSampleGraphPatchesElement::ExecuteInternal(FPCGContext* InContext) co
 			auto NavMeshTask = [&](int32 InGoalIndex)
 			{
 				FPCGExPointIO& PathPoints = Context->OutputPaths->Emplace_GetRef(PointIO.GetIn(), PCGExPointIO::EInit::NewOutput);
-				Context->GetAsyncManager()->StartTask<FSamplePatchPathTask>(
+				Context->GetAsyncManager()->Start<FSamplePatchPathTask>(
 					PointIndex, PointIO.GetInPoint(PointIndex).MetadataEntry, Context->CurrentIO,
 					InGoalIndex, &PathPoints);
 			};
@@ -115,7 +115,7 @@ bool FPCGExSampleGraphPatchesElement::ExecuteInternal(FPCGContext* InContext) co
 bool FSamplePatchPathTask::ExecuteTask()
 {
 	FPCGExSampleGraphPatchesContext* Context = Manager->GetContext<FPCGExSampleGraphPatchesContext>();
-	PCGEX_ASYNC_LIFE_CHECK
+	PCGEX_ASYNC_CHECKPOINT
 	//FWriteScopeLock WriteLock(Context->ContextLock);
 
 	bool bSuccess = false;

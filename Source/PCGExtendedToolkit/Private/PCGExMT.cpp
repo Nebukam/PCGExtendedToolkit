@@ -4,26 +4,26 @@
 
 #include "PCGExMT.h"
 
-UPCGExAsyncTaskManager::~UPCGExAsyncTaskManager()
+FPCGExAsyncManager::~FPCGExAsyncManager()
 {
 	bStopped = true;
 	Reset();
 }
 
-void UPCGExAsyncTaskManager::OnAsyncTaskExecutionComplete(FPCGExAsyncTask* AsyncTask, bool bSuccess)
+void FPCGExAsyncManager::OnAsyncTaskExecutionComplete(FPCGExNonAbandonableTask* AsyncTask, bool bSuccess)
 {
 	if (bFlushing) { return; }
 	FWriteScopeLock WriteLock(ManagerLock);
 	NumCompleted++;
 }
 
-bool UPCGExAsyncTaskManager::IsAsyncWorkComplete() const
+bool FPCGExAsyncManager::IsAsyncWorkComplete() const
 {
 	FReadScopeLock ReadLock(ManagerLock);
 	return NumCompleted == NumStarted;
 }
 
-void UPCGExAsyncTaskManager::Reset()
+void FPCGExAsyncManager::Reset()
 {
 	FWriteScopeLock WriteLock(ManagerLock);
 
@@ -38,18 +38,4 @@ void UPCGExAsyncTaskManager::Reset()
 	QueuedTasks.Empty();
 	NumStarted = 0;
 	NumCompleted = 0;
-}
-
-bool UPCGExAsyncTaskManager::IsValid() const
-{
-	if (!Context ||
-		Context->SourceComponent == nullptr ||
-		!Context->SourceComponent.IsValid() ||
-		Context->SourceComponent.IsStale(true, true) ||
-		NumStarted == 0)
-	{
-		return false;
-	}
-
-	return true;
 }

@@ -4,7 +4,7 @@
 
 #include "Splines/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
 
-#include "..\..\..\..\Public\Data\PCGExPointsIO.h"
+#include "..\..\..\..\Public\Data\PCGExPointIO.h"
 
 EPCGExDataBlendingType UPCGExSubPointsBlendInterpolate::GetDefaultBlending()
 {

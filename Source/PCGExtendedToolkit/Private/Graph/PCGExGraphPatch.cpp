@@ -5,7 +5,7 @@
 
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
 
-#include "..\..\Public\Data\PCGExPointsIO.h"
+#include "..\..\Public\Data\PCGExPointIO.h"
 #include "Data/PCGExGraphParamsData.h"
 
 #include "Graph/PCGExGraph.h"

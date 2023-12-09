@@ -74,11 +74,11 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FProbeTask : public FPCGExAsyncTask
+class PCGEXTENDEDTOOLKIT_API FProbeTask : public FPCGExNonAbandonableTask
 {
 public:
-	FProbeTask(UPCGExAsyncTaskManager* InManager, const PCGExMT::FTaskInfos& InInfos, FPCGExPointIO* InPointIO) :
-		FPCGExAsyncTask(InManager, InInfos, InPointIO)
+	FProbeTask(FPCGExAsyncManager* InManager, const PCGExMT::FTaskInfos& InInfos, FPCGExPointIO* InPointIO) :
+		FPCGExNonAbandonableTask(InManager, InInfos, InPointIO)
 	{
 	}
 

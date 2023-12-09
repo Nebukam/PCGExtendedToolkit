@@ -96,7 +96,7 @@ bool FPCGExSampleNearestSurfaceElement::ExecuteInternal(FPCGContext* InContext) 
 
 		auto ProcessPoint = [&](int32 PointIndex, const FPCGExPointIO& PointIO)
 		{
-			Context->GetAsyncManager()->StartTask<FSweepSphereTask>(PointIndex, PointIO.GetOutPoint(PointIndex).MetadataEntry, Context->CurrentIO);
+			Context->GetAsyncManager()->Start<FSweepSphereTask>(PointIndex, PointIO.GetOutPoint(PointIndex).MetadataEntry, Context->CurrentIO);
 		};
 
 		if (Context->ProcessCurrentPoints(Initialize, ProcessPoint)) { Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork); }
@@ -119,7 +119,7 @@ bool FPCGExSampleNearestSurfaceElement::ExecuteInternal(FPCGContext* InContext) 
 bool FSweepSphereTask::ExecuteTask()
 {
 	const FPCGExSampleNearestSurfaceContext* Context = Manager->GetContext<FPCGExSampleNearestSurfaceContext>();
-	PCGEX_ASYNC_LIFE_CHECK
+	PCGEX_ASYNC_CHECKPOINT
 
 	const FPCGPoint& InPoint = PointIO->GetInPoint(TaskInfos.Index);
 	const FVector Origin = InPoint.Transform.GetLocation();
@@ -158,7 +158,7 @@ bool FSweepSphereTask::ExecuteTask()
 
 		if (bSuccess)
 		{
-			PCGEX_ASYNC_LIFE_CHECK_RET
+			PCGEX_ASYNC_CHECKPOINT_VOID
 			const FVector Direction = (HitLocation - Origin).GetSafeNormal();
 			PCGEX_SET_OUT_ATTRIBUTE(Location, TaskInfos.Key, HitLocation)
 			PCGEX_SET_OUT_ATTRIBUTE(Normal, TaskInfos.Key, Direction*-1) // TODO: expose "precise normal" in which case we line trace to location
@@ -167,7 +167,7 @@ bool FSweepSphereTask::ExecuteTask()
 		}
 	};
 
-	PCGEX_ASYNC_LIFE_CHECK
+	PCGEX_ASYNC_CHECKPOINT
 
 	switch (Context->CollisionType)
 	{
@@ -192,7 +192,7 @@ bool FSweepSphereTask::ExecuteTask()
 	default: ;
 	}
 
-	PCGEX_ASYNC_LIFE_CHECK
+	PCGEX_ASYNC_CHECKPOINT
 	PCGEX_SET_OUT_ATTRIBUTE(Success, TaskInfos.Key, bSuccess)
 	return bSuccess;
 }
