@@ -187,6 +187,7 @@ namespace PCGEx
 
 	static void GetAttributeIdentities(const UPCGPointData* InData, TArray<FAttributeIdentity>& OutIdentities)
 	{
+		if (!InData->Metadata) { return; }
 		TArray<FName> Names;
 		TArray<EPCGMetadataTypes> Types;
 		InData->Metadata->GetAttributes(Names, Types);
@@ -199,6 +200,7 @@ namespace PCGEx
 
 	static void GetAttributeIdentities(const UPCGPointData* InData, TArray<FName>& OutNames, TMap<FName, FAttributeIdentity>& OutIdentities)
 	{
+		if (!InData->Metadata) { return; }
 		TArray<EPCGMetadataTypes> Types;
 		InData->Metadata->GetAttributes(OutNames, Types);
 		const int32 NumAttributes = OutNames.Num();
@@ -213,6 +215,7 @@ namespace PCGEx
 	template <typename T>
 	static FPCGMetadataAttribute<T>* TryGetAttribute(UPCGSpatialData* InData, FName Name, bool bEnabled, T defaultValue = T{})
 	{
+		if (!InData->Metadata) { return nullptr; }
 		if (!bEnabled || !FPCGMetadataAttributeBase::IsValidName(Name)) { return nullptr; }
 		return InData->Metadata->FindOrCreateAttribute<T>(Name, defaultValue);
 	}

@@ -33,7 +33,7 @@ protected:
 
 	virtual int32 GetPreferredChunkSize() const override;
 
-	virtual PCGExData::EInit GetPointOutputInitMode() const override;
+	virtual PCGExPointIO::EInit GetPointOutputInitMode() const override;
 
 private:
 	friend class FPCGExConsolidateGraphElement;

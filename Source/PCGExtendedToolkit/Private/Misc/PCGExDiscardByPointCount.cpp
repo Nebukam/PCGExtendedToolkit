@@ -7,7 +7,7 @@
 
 #define LOCTEXT_NAMESPACE "PCGExDiscardByPointCountElement"
 
-PCGExData::EInit UPCGExDiscardByPointCountSettings::GetPointOutputInitMode() const { return PCGExData::EInit::NoOutput; }
+PCGExPointIO::EInit UPCGExDiscardByPointCountSettings::GetPointOutputInitMode() const { return PCGExPointIO::EInit::NoOutput; }
 
 FPCGElementPtr UPCGExDiscardByPointCountSettings::CreateElement() const { return MakeShared<FPCGExDiscardByPointCountElement>(); }
 
@@ -25,13 +25,13 @@ bool FPCGExDiscardByPointCountElement::ExecuteInternal(FPCGContext* InContext) c
 	const UPCGExDiscardByPointCountSettings* Settings = InContext->GetInputSettings<UPCGExDiscardByPointCountSettings>();
 	check(Settings);
 
-	auto ProcessInput = [&](PCGExData::FPointIO* PointIO, int32)
+	auto ProcessInput = [&](FPCGExPointIO& PointIO, int32)
 	{
-		if (Settings->OutsidePointCountFilter(PointIO->GetNum())) { return; }
+		if (Settings->OutsidePointCountFilter(PointIO.GetNum())) { return; }
 
-		FPCGTaggedData& OutputRef = Context->OutputData.TaggedData.Add_GetRef(PointIO->Source);
-		OutputRef.Data = PointIO->GetIn();
-		OutputRef.Pin = PointIO->DefaultOutputLabel;
+		FPCGTaggedData& OutputRef = Context->OutputData.TaggedData.Add_GetRef(PointIO.Source);
+		OutputRef.Data = PointIO.GetIn();
+		OutputRef.Pin = PointIO.DefaultOutputLabel;
 	};
 
 	Context->MainPoints->ForEach(ProcessInput);

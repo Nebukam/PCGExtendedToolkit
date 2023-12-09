@@ -114,7 +114,7 @@ namespace PCGExDataBlending
 		void Flush()
 		{
 			if (Accessor) { Accessor.Reset(); }
-			if (InternalKeys) { delete InternalKeys; }
+			delete InternalKeys;
 			Keys = nullptr;
 			Attribute = nullptr;
 		}
@@ -256,8 +256,8 @@ namespace PCGExDataBlending
 	public:
 		virtual ~FDataBlendingOperation() override
 		{
-			if (PrimaryAccessor) { delete PrimaryAccessor; }
-			if (SecondaryAccessor) { delete SecondaryAccessor; }
+			delete PrimaryAccessor;
+			delete SecondaryAccessor;
 		}
 
 		virtual void PrepareForData(
@@ -271,12 +271,13 @@ namespace PCGExDataBlending
 			if (PrimaryAccessor)
 			{
 				if (SecondaryAccessor == PrimaryAccessor) { SecondaryAccessor = nullptr; }
-				delete PrimaryAccessor;
 			}
+			
+			delete PrimaryAccessor;
 			PrimaryAccessor = new FAttributeAccessor<T>(InPrimaryData, PrimaryBaseAttribute, InPrimaryKeys);
 
 			//TODO: Reuse first dataset if ==
-			if (SecondaryAccessor) { delete SecondaryAccessor; }
+			delete SecondaryAccessor;
 			SecondaryAccessor = new FConstAttributeAccessor<T>(InSecondaryData, SecondaryBaseAttribute, InSecondaryKeys);
 		}
 

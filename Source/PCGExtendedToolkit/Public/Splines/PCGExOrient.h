@@ -60,7 +60,7 @@ protected:
 class PCGEXTENDEDTOOLKIT_API FOrientTask : public FPCGExAsyncTask
 {
 public:
-	FOrientTask(UPCGExAsyncTaskManager* InManager, const PCGExMT::FTaskInfos& InInfos, PCGExData::FPointIO* InPointIO) :
+	FOrientTask(UPCGExAsyncTaskManager* InManager, const PCGExMT::FTaskInfos& InInfos, FPCGExPointIO* InPointIO) :
 		FPCGExAsyncTask(InManager, InInfos, InPointIO)
 	{
 	}

@@ -18,7 +18,7 @@ class UPCGExPathfindingParamsData;
 /**
  * A Base node to process a set of point using GraphParams.
  */
-UCLASS(BlueprintType, ClassGroup = (Procedural))
+UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural))
 class PCGEXTENDEDTOOLKIT_API UPCGExPathfindingProcessorSettings : public UPCGExGraphProcessorSettings
 {
 	GENERATED_BODY()
@@ -35,7 +35,7 @@ public:
 
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 
-	virtual PCGExData::EInit GetPointOutputInitMode() const override;
+	virtual PCGExPointIO::EInit GetPointOutputInitMode() const override;
 	virtual bool GetRequiresSeeds() const;
 	virtual bool GetRequiresGoals() const;
 
@@ -62,9 +62,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingProcessorContext : public FPCGExG
 
 	virtual ~FPCGExPathfindingProcessorContext() override;
 
-	PCGExData::FPointIO* SeedsPoints = nullptr;
-	PCGExData::FPointIO* GoalsPoints = nullptr;
-	PCGExData::FPointIOGroup* OutputPaths = nullptr;
+	FPCGExPointIO* SeedsPoints = nullptr;
+	FPCGExPointIO* GoalsPoints = nullptr;
+	FPCGExPointIOGroup* OutputPaths = nullptr;
 
 	UPCGExGoalPicker* GoalPicker;
 	UPCGExSubPointsBlendOperation* Blending;

@@ -12,14 +12,14 @@
 /**
  * Calculates the distance between two points (inherently a n*n operation)
  */
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
+UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
 class PCGEXTENDEDTOOLKIT_API UPCGExDynamicPrimitiveProcessorSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
 public:
 	UPCGExDynamicPrimitiveProcessorSettings(const FObjectInitializer& ObjectInitializer);
-	virtual PCGExData::EInit GetPointOutputInitMode() const override;
+	virtual PCGExPointIO::EInit GetPointOutputInitMode() const override;
 
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR

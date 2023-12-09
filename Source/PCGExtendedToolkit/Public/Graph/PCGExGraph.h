@@ -774,7 +774,7 @@ namespace PCGExGraph
 		const TArray<FSocketInfos>& SocketInfos,
 		const FPCGPoint& Point,
 		const int32 ReadIndex,
-		const PCGExData::FPointIO* PointIO)
+		const FPCGExPointIO& PointIO)
 	{
 		for (const FSocketInfos& CurrentSocketInfos : SocketInfos)
 		{
@@ -783,7 +783,7 @@ namespace PCGExGraph
 
 			if (RelationIndex != -1)
 			{
-				const int32 Key = PointIO->GetOutPoint(RelationIndex).MetadataEntry;
+				const int32 Key = PointIO.GetOutPoint(RelationIndex).MetadataEntry;
 				for (const FSocketInfos& OtherSocketInfos : SocketInfos)
 				{
 					if (OtherSocketInfos.Socket->GetTargetIndex(Key) == ReadIndex)

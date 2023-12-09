@@ -32,7 +32,7 @@ protected:
 
 	virtual int32 GetPreferredChunkSize() const override;
 
-	virtual PCGExData::EInit GetPointOutputInitMode() const override;
+	virtual PCGExPointIO::EInit GetPointOutputInitMode() const override;
 
 public:
 	/** Edge types to crawl to create a patch */
@@ -83,7 +83,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFindEdgePatchesContext : public FPCGExGraphP
 	bool bRemoveBigPatches;
 	int32 MaxPatchSize;
 
-	PCGExData::FPointIOGroup* PatchesIO;
+	FPCGExPointIOGroup* PatchesIO;
 	int32 PatchUIndex = 0;
 
 	FName PatchIDAttributeName;
@@ -129,7 +129,7 @@ protected:
 class PCGEXTENDEDTOOLKIT_API FDistributeToPatchTask : public FPCGExAsyncTask
 {
 public:
-	FDistributeToPatchTask(UPCGExAsyncTaskManager* InManager, const PCGExMT::FTaskInfos& InInfos, PCGExData::FPointIO* InPointIO) :
+	FDistributeToPatchTask(UPCGExAsyncTaskManager* InManager, const PCGExMT::FTaskInfos& InInfos, FPCGExPointIO* InPointIO) :
 		FPCGExAsyncTask(InManager, InInfos, InPointIO)
 	{
 	}
@@ -140,7 +140,7 @@ public:
 class PCGEXTENDEDTOOLKIT_API FConsolidatePatchesTask : public FPCGExAsyncTask
 {
 public:
-	FConsolidatePatchesTask(UPCGExAsyncTaskManager* InManager, const PCGExMT::FTaskInfos& InInfos, PCGExData::FPointIO* InPointIO) :
+	FConsolidatePatchesTask(UPCGExAsyncTaskManager* InManager, const PCGExMT::FTaskInfos& InInfos, FPCGExPointIO* InPointIO) :
 		FPCGExAsyncTask(InManager, InInfos, InPointIO)
 	{
 	}
@@ -151,7 +151,7 @@ public:
 class PCGEXTENDEDTOOLKIT_API FWritePatchesTask : public FPCGExAsyncTask
 {
 public:
-	FWritePatchesTask(UPCGExAsyncTaskManager* InManager, const PCGExMT::FTaskInfos& InInfos, PCGExData::FPointIO* InPointIO,
+	FWritePatchesTask(UPCGExAsyncTaskManager* InManager, const PCGExMT::FTaskInfos& InInfos, FPCGExPointIO* InPointIO,
 	                  FPCGExGraphPatch* InPatch, UPCGPointData* InPatchData) :
 		FPCGExAsyncTask(InManager, InInfos, InPointIO),
 		Patch(InPatch), PatchData(InPatchData)

@@ -116,7 +116,7 @@ protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings interface
 
-	virtual PCGExData::EInit GetPointOutputInitMode() const override;
+	virtual PCGExPointIO::EInit GetPointOutputInitMode() const override;
 
 private:
 	friend class FPCGExOperationsElement;

@@ -7,7 +7,7 @@
 #include "..\..\..\Public\Data\PCGExPointsIO.h"
 
 
-void UPCGExSubPointsOperation::PrepareForData(PCGExData::FPointIO* InData)
+void UPCGExSubPointsOperation::PrepareForData(FPCGExPointIO& InData, FPCGAttributeAccessorKeysPoints* InPrimaryKeys)
 {
 }
 
@@ -23,3 +23,12 @@ void UPCGExSubPointsOperation::ProcessPoints(UPCGPointData* InData) const
 void UPCGExSubPointsOperation::ProcessSubPoints(const PCGEx::FPointRef& Start, const PCGEx::FPointRef& End, TArrayView<FPCGPoint>& SubPoints, const PCGExMath::FPathInfos& PathInfos) const
 {
 }
+
+void UPCGExSubPointsOperation::ProcessSubPoints(TArrayView<FPCGPoint>& SubPoints, const PCGExMath::FPathInfos& PathInfos) const
+{
+	const FPCGPoint& Start = SubPoints[0];
+	const int32 LastIndex = SubPoints.Num()-1;
+	const FPCGPoint& End = SubPoints[LastIndex];
+	ProcessSubPoints(PCGEx::FPointRef(Start, 0), PCGEx::FPointRef(End, LastIndex), SubPoints, PathInfos);
+}
+

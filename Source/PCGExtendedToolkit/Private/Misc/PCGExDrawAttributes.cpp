@@ -5,7 +5,7 @@
 
 #define LOCTEXT_NAMESPACE "PCGExDrawAttributes"
 
-PCGExData::EInit UPCGExDrawAttributesSettings::GetPointOutputInitMode() const { return PCGExData::EInit::NoOutput; }
+PCGExPointIO::EInit UPCGExDrawAttributesSettings::GetPointOutputInitMode() const { return PCGExPointIO::EInit::NoOutput; }
 
 #if WITH_EDITOR
 FString FPCGExAttributeDebugDrawDescriptor::GetDisplayName() const
@@ -257,20 +257,20 @@ bool FPCGExDrawAttributesElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsState(PCGExMT::State_ProcessingPoints))
 	{
-		auto Initialize = [&](PCGExData::FPointIO* PointIO)
+		auto Initialize = [&](FPCGExPointIO& PointIO)
 		{
-			Context->PrepareForPoints(PointIO->GetIn());
+			Context->PrepareForPoints(PointIO.GetIn());
 		};
 
-		auto ProcessPoint = [&](const int32 PointIndex, const PCGExData::FPointIO* PointIO)
+		auto ProcessPoint = [&](const int32 PointIndex, const FPCGExPointIO& PointIO)
 		{
-			const FPCGPoint& Point = PointIO->GetInPoint(PointIndex);
+			const FPCGPoint& Point = PointIO.GetInPoint(PointIndex);
 			const FVector Start = Point.Transform.GetLocation();
 			DrawDebugPoint(Context->World, Start, 1.0f, FColor::White, true);
 			for (FPCGExAttributeDebugDraw& Drawer : Context->DebugList)
 			{
 				if (!Drawer.bValid) { continue; }
-				Drawer.Draw(Context->World, Start, Point, PointIO->GetIn());
+				Drawer.Draw(Context->World, Start, Point, PointIO.GetIn());
 			}
 		};
 

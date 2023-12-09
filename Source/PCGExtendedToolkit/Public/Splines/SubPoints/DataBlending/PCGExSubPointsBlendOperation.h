@@ -9,11 +9,6 @@
 #include "Splines/SubPoints/PCGExSubPointsOperation.h"
 #include "PCGExSubPointsBlendOperation.generated.h"
 
-namespace PCGExData
-{
-	class FPointIO;
-}
-
 namespace PCGExDataBlending
 {
 	class FMetadataBlender;
@@ -31,14 +26,27 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(ShowOnlyInnerProperties))
 	FPCGExBlendingSettings BlendingSettings;
 
-	virtual void PrepareForData(PCGExData::FPointIO* InData) override;
-	virtual void PrepareForData(UPCGPointData* InPrimaryData, const UPCGPointData* InSecondaryData);
+	virtual void PrepareForData(FPCGExPointIO& InData, FPCGAttributeAccessorKeysPoints* InPrimaryKeys = nullptr) override;
+	virtual void PrepareForData(
+		UPCGPointData* InPrimaryData,
+		const UPCGPointData* InSecondaryData,
+		FPCGAttributeAccessorKeysPoints* InPrimaryKeys = nullptr,
+		FPCGAttributeAccessorKeysPoints* InSecondaryKeys = nullptr);
 
 	virtual void ProcessSubPoints(
 		const PCGEx::FPointRef& Start,
 		const PCGEx::FPointRef& End,
 		TArrayView<FPCGPoint>& SubPoints,
 		const PCGExMath::FPathInfos& PathInfos) const override;
+
+	virtual void ProcessSubPoints(
+		TArrayView<FPCGPoint>& SubPoints,
+		const PCGExMath::FPathInfos& PathInfos) const override;
+
+	virtual void ProcessSubPoints(
+		TArrayView<FPCGPoint>& SubPoints,
+		const PCGExMath::FPathInfos& PathInfos,
+		const PCGExDataBlending::FMetadataBlender* InBlender) const;
 
 	virtual void BlendSubPoints(
 		const PCGEx::FPointRef& StartPoint,
@@ -47,9 +55,19 @@ public:
 		const PCGExMath::FPathInfos& PathInfos,
 		const PCGExDataBlending::FMetadataBlender* InBlender) const;
 
+	virtual void BlendSubPoints(
+		TArrayView<FPCGPoint>& SubPoints,
+		const PCGExMath::FPathInfos& PathInfos,
+		const PCGExDataBlending::FMetadataBlender* InBlender) const;
+
+
 	virtual void BeginDestroy() override;
 
-	PCGExDataBlending::FMetadataBlender* CreateBlender(UPCGPointData* InPrimaryData, const UPCGPointData* InSecondaryData);
+	PCGExDataBlending::FMetadataBlender* CreateBlender(
+		UPCGPointData* InPrimaryData,
+		const UPCGPointData* InSecondaryData,
+		FPCGAttributeAccessorKeysPoints* InPrimaryKeys = nullptr,
+		FPCGAttributeAccessorKeysPoints* InSecondaryKeys = nullptr);
 
 protected:
 	virtual EPCGExDataBlendingType GetDefaultBlending();

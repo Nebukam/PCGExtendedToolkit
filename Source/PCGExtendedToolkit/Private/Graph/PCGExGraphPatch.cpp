@@ -58,10 +58,10 @@ bool FPCGExGraphPatch::ContainsEdge(const uint64 InEdgeHash) const
 	return EdgesHashSet.Contains(InEdgeHash);
 }
 
-bool FPCGExGraphPatch::OutputTo(PCGExData::FPointIO* OutIO, int32 PatchIDOverride)
+bool FPCGExGraphPatch::OutputTo(const FPCGExPointIO& OutIO, int32 PatchIDOverride)
 {
-	const TArray<FPCGPoint>& InPoints = OutIO->GetIn()->GetPoints();
-	UPCGPointData* OutData = OutIO->GetOut();
+	const TArray<FPCGPoint>& InPoints = OutIO.GetIn()->GetPoints();
+	UPCGPointData* OutData = OutIO.GetOut();
 	TArray<FPCGPoint>& Points = OutData->GetMutablePoints();
 
 	Points.Reserve(Points.Num() + IndicesSet.Num());
@@ -142,10 +142,10 @@ void FPCGExGraphPatchGroup::Distribute(const int32 InIndex, FPCGExGraphPatch* Pa
 
 void FPCGExGraphPatchGroup::OutputTo(FPCGContext* Context)
 {
-	PatchesIO = new PCGExData::FPointIOGroup();
+	PatchesIO = new FPCGExPointIOGroup();
 	for (FPCGExGraphPatch* Patch : Patches)
 	{
-		PCGExData::FPointIO* OutIO = PatchesIO->Emplace_GetRef(*PointIO, PCGExData::EInit::NewOutput);
+		FPCGExPointIO& OutIO = PatchesIO->Emplace_GetRef(*PointIO, PCGExPointIO::EInit::NewOutput);
 		Patch->OutputTo(OutIO, -1);
 	}
 	PatchesIO->OutputTo(Context);
@@ -165,15 +165,15 @@ FPCGExGraphPatchGroup::~FPCGExGraphPatchGroup()
 
 void FPCGExGraphPatchGroup::OutputTo(FPCGContext* Context, const int64 MinPointCount, const int64 MaxPointCount, const uint32 PUID)
 {
-	PatchesIO = new PCGExData::FPointIOGroup();
+	PatchesIO = new FPCGExPointIOGroup();
 	int32 PatchIndex = 0;
 	for (FPCGExGraphPatch* Patch : Patches)
 	{
 		const int64 OutNumPoints = Patch->IndicesSet.Num();
 		if (MinPointCount >= 0 && OutNumPoints < MinPointCount) { continue; }
 		if (MaxPointCount >= 0 && OutNumPoints > MaxPointCount) { continue; }
-		PCGExData::FPointIO* OutIO = PatchesIO->Emplace_GetRef(*PointIO, PCGExData::EInit::NewOutput);
-		OutIO->GetOut()->Metadata->CreateAttribute<int32>(PCGExGraph::PUIDAttributeName, PUID, false, true);
+		FPCGExPointIO& OutIO = PatchesIO->Emplace_GetRef(*PointIO, PCGExPointIO::EInit::NewOutput);
+		OutIO.GetOut()->Metadata->CreateAttribute<int32>(PCGExGraph::PUIDAttributeName, PUID, false, true);
 		Patch->OutputTo(OutIO, PatchIndex);
 		PatchIndex++;
 	}

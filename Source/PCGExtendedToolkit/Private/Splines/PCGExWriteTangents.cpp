@@ -59,17 +59,17 @@ bool FPCGExWriteTangentsElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsState(PCGExMT::State_ProcessingPoints))
 	{
-		auto Initialize = [&](PCGExData::FPointIO* PointIO)
+		auto Initialize = [&](FPCGExPointIO& PointIO)
 		{
-			PointIO->BuildMetadataEntries();
+			PointIO.BuildMetadataEntries();
 			Context->Tangents->PrepareForData(PointIO);
 		};
 
-		auto ProcessPoint = [&](const int32 Index, const PCGExData::FPointIO* PointIO)
+		auto ProcessPoint = [&](const int32 Index, const FPCGExPointIO& PointIO)
 		{
-			const FPCGPoint& Point = PointIO->GetOutPoint(Index);
-			const FPCGPoint* PrevPtr = PointIO->TryGetOutPoint(Index - 1);
-			const FPCGPoint* NextPtr = PointIO->TryGetOutPoint(Index + 1);
+			const FPCGPoint& Point = PointIO.GetOutPoint(Index);
+			const FPCGPoint* PrevPtr = PointIO.TryGetOutPoint(Index - 1);
+			const FPCGPoint* NextPtr = PointIO.TryGetOutPoint(Index + 1);
 
 			if (NextPtr && PrevPtr) { Context->Tangents->ProcessPoint(Index, Point, *PrevPtr, *NextPtr); }
 			else if (NextPtr) { Context->Tangents->ProcessFirstPoint(Index, Point, *NextPtr); }

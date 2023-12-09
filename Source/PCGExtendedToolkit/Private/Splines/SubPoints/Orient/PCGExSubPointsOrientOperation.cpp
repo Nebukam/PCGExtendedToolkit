@@ -6,11 +6,9 @@
 
 #include "..\..\..\..\Public\Data\PCGExPointsIO.h"
 
-void UPCGExSubPointsOrientOperation::PrepareForData(PCGExData::FPointIO* InData)
+void UPCGExSubPointsOrientOperation::PrepareForData(FPCGExPointIO& InData, FPCGAttributeAccessorKeysPoints* InPrimaryKeys)
 {
-	Super::PrepareForData(InData);
-	//AxisGetter.Capture(Axis);
-	//AxisGetter.Validate(InData->Out);
+	Super::PrepareForData(InData, InPrimaryKeys);
 }
 
 void UPCGExSubPointsOrientOperation::ProcessSubPoints(const PCGEx::FPointRef& Start, const PCGEx::FPointRef& End, TArrayView<FPCGPoint>& SubPoints, const PCGExMath::FPathInfos& PathInfos) const

@@ -15,7 +15,7 @@ namespace PCGExSortPoints
 
 FPCGElementPtr UPCGExSortPointsSettings::CreateElement() const { return MakeShared<FPCGExSortPointsElement>(); }
 
-PCGExData::EInit UPCGExSortPointsSettings::GetPointOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
+PCGExPointIO::EInit UPCGExSortPointsSettings::GetPointOutputInitMode() const { return PCGExPointIO::EInit::DuplicateInput; }
 
 bool FPCGExSortPointsElement::ExecuteInternal(FPCGContext* InContext) const
 {
@@ -41,10 +41,10 @@ bool FPCGExSortPointsElement::ExecuteInternal(FPCGContext* InContext) const
 	EPCGExSortDirection SortDirection = Settings->SortDirection;
 	TArray<FPCGExSortRule> Rules;
 
-	auto ProcessPair = [&](PCGExData::FPointIO* POI, const int32)
+	auto ProcessPair = [&](FPCGExPointIO& POI, const int32)
 	{
 		//POI->ForwardPoints(Context);
-		if (!BuildRulesForPoints(POI->GetOut(), DesiredRules, Rules)) { return; }
+		if (!BuildRulesForPoints(POI.GetOut(), DesiredRules, Rules)) { return; }
 
 		auto Compare = [](auto DummyValue, const FPCGExSortRule* Rule, const FPCGPoint& PtA, const FPCGPoint& PtB) -> int
 		{
@@ -53,7 +53,7 @@ bool FPCGExSortPointsElement::ExecuteInternal(FPCGContext* InContext) const
 			return FPCGExCompare::Compare(Attribute->GetValueFromItemKey(PtA.MetadataEntry), Attribute->GetValueFromItemKey(PtB.MetadataEntry), Rule->Tolerance, Rule->OrderFieldSelection);
 		};
 
-		POI->GetOut()->GetMutablePoints().Sort(
+		POI.GetOut()->GetMutablePoints().Sort(
 			[&Rules, &SortDirection, Compare](
 			const FPCGPoint& A, const FPCGPoint& B)
 			{

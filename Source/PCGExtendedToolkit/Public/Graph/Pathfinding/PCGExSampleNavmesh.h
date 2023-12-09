@@ -17,15 +17,31 @@ namespace PCGExSampleNavmesh
 
 	struct PCGEXTENDEDTOOLKIT_API FPath
 	{
-		FPath(PCGExData::FPointIO* InPathPoints, int32 InSeedIndex, int32 InGoalIndex):
-			PathPoints(InPathPoints), SeedIndex(InSeedIndex), GoalIndex(InGoalIndex)
+		FPath(const int32 InSeedIndex, const FVector& InStart, const int32 InGoalIndex, const FVector& InEnd):
+			SeedIndex(InSeedIndex), Start(InStart), GoalIndex(InGoalIndex), End(InEnd)
 		{
+			Positions.Empty();
 		}
 
+		~FPath()
+		{
+			Positions.Empty();
+		}
+
+		void Add(FVector Location)
+		{
+			if (Positions.IsEmpty()) { Infos.Reset(Location); }
+			else { Infos.Add(Location); }
+			Positions.Emplace_GetRef(Location);
+		}
+
+		TArray<FVector> Positions;
 		PCGExMath::FPathInfos Infos;
-		PCGExData::FPointIO* PathPoints = nullptr;
+
 		int32 SeedIndex = -1;
+		FVector Start;
 		int32 GoalIndex = -1;
+		FVector End;
 	};
 }
 
@@ -63,7 +79,7 @@ protected:
 	//~End UPCGSettings interface
 
 public:
-	virtual PCGExData::EInit GetPointOutputInitMode() const override;
+	virtual PCGExPointIO::EInit GetPointOutputInitMode() const override;
 	virtual int32 GetPreferredChunkSize() const override;
 
 	virtual FName GetMainPointsInputLabel() const override;
@@ -111,10 +127,12 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNavmeshContext : public FPCGExPointsPr
 {
 	friend class FPCGExSampleNavmeshElement;
 
+	mutable FRWLock BufferLock;
+
 	virtual ~FPCGExSampleNavmeshContext() override;
 
-	PCGExData::FPointIO* GoalsPoints = nullptr;
-	PCGExData::FPointIOGroup* OutputPaths = nullptr;
+	FPCGExPointIO* GoalsPoints = nullptr;
+	FPCGExPointIOGroup* OutputPaths = nullptr;
 
 	UPCGExGoalPicker* GoalPicker = nullptr;
 	UPCGExSubPointsBlendOperation* Blending = nullptr;
@@ -151,14 +169,14 @@ class PCGEXTENDEDTOOLKIT_API FNavmeshPathTask : public FPCGExAsyncTask
 {
 public:
 	FNavmeshPathTask(
-		UPCGExAsyncTaskManager* InManager, const PCGExMT::FTaskInfos& InInfos, PCGExData::FPointIO* InPointIO,
+		UPCGExAsyncTaskManager* InManager, const PCGExMT::FTaskInfos& InInfos, FPCGExPointIO* InPointIO,
 		PCGExSampleNavmesh::FPath* InPath) :
 		FPCGExAsyncTask(InManager, InInfos, InPointIO),
 		Path(InPath)
 	{
 	}
 
-	PCGExSampleNavmesh::FPath* Path;
+	PCGExSampleNavmesh::FPath* Path = nullptr;
 
 	virtual bool ExecuteTask() override;
 };

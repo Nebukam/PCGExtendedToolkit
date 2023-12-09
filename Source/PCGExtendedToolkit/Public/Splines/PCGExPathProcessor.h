@@ -12,18 +12,18 @@
 /**
  * Calculates the distance between two points (inherently a n*n operation)
  */
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
+UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
 class PCGEXTENDEDTOOLKIT_API UPCGExPathProcessorSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
 public:
 	UPCGExPathProcessorSettings(const FObjectInitializer& ObjectInitializer);
-	virtual PCGExData::EInit GetPointOutputInitMode() const override;
+	virtual PCGExPointIO::EInit GetPointOutputInitMode() const override;
 
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(PathProcessor, "PathProcessor", "Processes paths segments.");
+	//PCGEX_NODE_INFOS(PathProcessor, "PathProcessor", "Processes paths segments.");
 	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorSpline; }
 #endif
 

@@ -6,7 +6,7 @@
 
 #define LOCTEXT_NAMESPACE "PCGExSampleSurfaceGuidedElement"
 
-PCGExData::EInit UPCGExSampleSurfaceGuidedSettings::GetPointOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
+PCGExPointIO::EInit UPCGExSampleSurfaceGuidedSettings::GetPointOutputInitMode() const { return PCGExPointIO::EInit::DuplicateInput; }
 
 int32 UPCGExSampleSurfaceGuidedSettings::GetPreferredChunkSize() const { return 32; }
 
@@ -84,10 +84,10 @@ bool FPCGExSampleSurfaceGuidedElement::ExecuteInternal(FPCGContext* InContext) c
 
 	if (Context->IsState(PCGExMT::State_ProcessingPoints))
 	{
-		auto Initialize = [&](PCGExData::FPointIO* PointIO) //UPCGExPointIO* PointIO
+		auto Initialize = [&](FPCGExPointIO& PointIO) //UPCGExPointIO* PointIO
 		{
-			Context->DirectionGetter.Validate(PointIO->GetOut());
-			PointIO->BuildMetadataEntries();
+			Context->DirectionGetter.Validate(PointIO.GetOut());
+			PointIO.BuildMetadataEntries();
 
 			PCGEX_INIT_ATTRIBUTE_OUT(Success, bool)
 			PCGEX_INIT_ATTRIBUTE_OUT(Location, FVector)
@@ -95,17 +95,17 @@ bool FPCGExSampleSurfaceGuidedElement::ExecuteInternal(FPCGContext* InContext) c
 			PCGEX_INIT_ATTRIBUTE_OUT(Distance, double)
 		};
 
-		auto ProcessPoint = [&](const int32 PointIndex, const PCGExData::FPointIO* PointIO)
+		auto ProcessPoint = [&](const int32 PointIndex, const FPCGExPointIO& PointIO)
 		{
-			Context->GetAsyncManager()->StartTask<FTraceTask>(PointIndex, PointIO->GetOutPoint(PointIndex).MetadataEntry, Context->CurrentIO);
+			Context->GetAsyncManager()->StartTask<FTraceTask>(PointIndex, PointIO.GetOutPoint(PointIndex).MetadataEntry, Context->CurrentIO);
 		};
 
-		if (Context->ProcessCurrentPoints(Initialize, ProcessPoint)) { Context->StartAsyncWait(PCGExMT::State_WaitingOnAsyncWork); }
+		if (Context->ProcessCurrentPoints(Initialize, ProcessPoint)) { Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork); }
 	}
 
 	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
 	{
-		if (Context->IsAsyncWorkComplete()) { Context->StopAsyncWait(PCGExMT::State_ReadyForNextPoints); }
+		if (Context->IsAsyncWorkComplete()) { Context->SetState(PCGExMT::State_ReadyForNextPoints); }
 	}
 
 	if (Context->IsDone())

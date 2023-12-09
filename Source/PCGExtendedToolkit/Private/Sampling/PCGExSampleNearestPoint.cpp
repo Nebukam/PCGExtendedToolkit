@@ -34,7 +34,7 @@ TArray<FPCGPinProperties> UPCGExSampleNearestPointSettings::InputPinProperties()
 	return PinProperties;
 }
 
-PCGExData::EInit UPCGExSampleNearestPointSettings::GetPointOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
+PCGExPointIO::EInit UPCGExSampleNearestPointSettings::GetPointOutputInitMode() const { return PCGExPointIO::EInit::DuplicateInput; }
 
 int32 UPCGExSampleNearestPointSettings::GetPreferredChunkSize() const { return 32; }
 
@@ -170,13 +170,13 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 
 	if (Context->IsState(PCGExMT::State_ProcessingPoints))
 	{
-		auto Initialize = [&](PCGExData::FPointIO* PointIO)
+		auto Initialize = [&](FPCGExPointIO& PointIO)
 		{
-			PointIO->BuildMetadataEntries();
+			PointIO.BuildMetadataEntries();
 
 			if (Context->bLocalRangeMin)
 			{
-				if (Context->RangeMinGetter.Validate(PointIO->GetIn()))
+				if (Context->RangeMinGetter.Validate(PointIO.GetIn()))
 				{
 					PCGE_LOG(Warning, GraphAndLog, LOCTEXT("InvalidLocalRangeMin", "RangeMin metadata missing"));
 				}
@@ -184,7 +184,7 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 
 			if (Context->bLocalRangeMax)
 			{
-				if (Context->RangeMaxGetter.Validate(PointIO->GetIn()))
+				if (Context->RangeMaxGetter.Validate(PointIO.GetIn()))
 				{
 					PCGE_LOG(Warning, GraphAndLog, LOCTEXT("InvalidLocalRangeMax", "RangeMax metadata missing"));
 				}
@@ -199,9 +199,9 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 			PCGEX_INIT_ATTRIBUTE_OUT(Angle, double)
 		};
 
-		auto ProcessPoint = [&](const int32 ReadIndex, const PCGExData::FPointIO* PointIO)
+		auto ProcessPoint = [&](const int32 ReadIndex, const FPCGExPointIO& PointIO)
 		{
-			const FPCGPoint& Point = PointIO->GetOutPoint(ReadIndex);
+			const FPCGPoint& Point = PointIO.GetOutPoint(ReadIndex);
 
 			double RangeMin = FMath::Pow(Context->RangeMinGetter.GetValueSafe(Point, Context->RangeMin), 2);
 			double RangeMax = FMath::Pow(Context->RangeMaxGetter.GetValueSafe(Point, Context->RangeMax), 2);

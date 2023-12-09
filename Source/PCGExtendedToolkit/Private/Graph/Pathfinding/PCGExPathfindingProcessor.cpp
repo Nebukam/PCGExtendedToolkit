@@ -59,15 +59,15 @@ void UPCGExPathfindingProcessorSettings::PostEditChangeProperty(FPropertyChanged
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
 
-PCGExData::EInit UPCGExPathfindingProcessorSettings::GetPointOutputInitMode() const { return PCGExData::EInit::NoOutput; }
+PCGExPointIO::EInit UPCGExPathfindingProcessorSettings::GetPointOutputInitMode() const { return PCGExPointIO::EInit::NoOutput; }
 bool UPCGExPathfindingProcessorSettings::GetRequiresSeeds() const { return true; }
 bool UPCGExPathfindingProcessorSettings::GetRequiresGoals() const { return true; }
 
 FPCGExPathfindingProcessorContext::~FPCGExPathfindingProcessorContext()
 {
-	if (SeedsPoints) { delete SeedsPoints; }
-	if (GoalsPoints) { delete GoalsPoints; }
-	if (OutputPaths) { delete OutputPaths; }
+	delete SeedsPoints;
+	delete GoalsPoints;
+	delete OutputPaths;
 }
 
 FPCGContext* FPCGExPathfindingProcessorElement::Initialize(
@@ -120,7 +120,7 @@ void FPCGExPathfindingProcessorElement::InitializeContext(
 			Seeds.Num() > 0)
 		{
 			const FPCGTaggedData& SeedsSource = Seeds[0];
-			Context->SeedsPoints = PCGExData::GetPointIO(Context, SeedsSource);
+			Context->SeedsPoints = PCGExPointIO::GetPointIO(Context, SeedsSource);
 		}
 	}
 
@@ -130,11 +130,11 @@ void FPCGExPathfindingProcessorElement::InitializeContext(
 			Goals.Num() > 0)
 		{
 			const FPCGTaggedData& GoalsSource = Goals[0];
-			Context->GoalsPoints = PCGExData::GetPointIO(Context, GoalsSource);
+			Context->GoalsPoints = PCGExPointIO::GetPointIO(Context, GoalsSource);
 		}
 	}
 
-	Context->OutputPaths = new PCGExData::FPointIOGroup();
+	Context->OutputPaths = new FPCGExPointIOGroup();
 
 	Context->GoalPicker = Settings->EnsureInstruction<UPCGExGoalPickerRandom>(Settings->GoalPicker, Context);
 	Context->Blending = Settings->EnsureInstruction<UPCGExSubPointsBlendInterpolate>(Settings->Blending, Context);

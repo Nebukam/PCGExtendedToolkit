@@ -27,7 +27,7 @@ TArray<FPCGPinProperties> UPCGExSampleNearestPolylineSettings::InputPinPropertie
 	return PinProperties;
 }
 
-PCGExData::EInit UPCGExSampleNearestPolylineSettings::GetPointOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
+PCGExPointIO::EInit UPCGExSampleNearestPolylineSettings::GetPointOutputInitMode() const { return PCGExPointIO::EInit::DuplicateInput; }
 
 int32 UPCGExSampleNearestPolylineSettings::GetPreferredChunkSize() const { return 32; }
 
@@ -35,7 +35,7 @@ FPCGElementPtr UPCGExSampleNearestPolylineSettings::CreateElement() const { retu
 
 FPCGExSampleNearestPolylineContext::~FPCGExSampleNearestPolylineContext()
 {
-	if (Targets) { delete Targets; }
+	delete Targets;
 }
 
 FPCGContext* FPCGExSampleNearestPolylineElement::Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node)
@@ -142,13 +142,13 @@ bool FPCGExSampleNearestPolylineElement::ExecuteInternal(FPCGContext* InContext)
 
 	if (Context->IsState(PCGExMT::State_ProcessingPoints))
 	{
-		auto Initialize = [&](PCGExData::FPointIO* PointIO)
+		auto Initialize = [&](FPCGExPointIO& PointIO)
 		{
-			PointIO->BuildMetadataEntries();
+			PointIO.BuildMetadataEntries();
 
 			if (Context->bLocalRangeMin)
 			{
-				if (Context->RangeMinGetter.Validate(PointIO->GetOut()))
+				if (Context->RangeMinGetter.Validate(PointIO.GetOut()))
 				{
 					PCGE_LOG(Warning, GraphAndLog, LOCTEXT("InvalidLocalRangeMin", "RangeMin metadata missing"));
 				}
@@ -156,7 +156,7 @@ bool FPCGExSampleNearestPolylineElement::ExecuteInternal(FPCGContext* InContext)
 
 			if (Context->bLocalRangeMax)
 			{
-				if (Context->RangeMaxGetter.Validate(PointIO->GetOut()))
+				if (Context->RangeMaxGetter.Validate(PointIO.GetOut()))
 				{
 					PCGE_LOG(Warning, GraphAndLog, LOCTEXT("InvalidLocalRangeMax", "RangeMax metadata missing"));
 				}
@@ -172,9 +172,9 @@ bool FPCGExSampleNearestPolylineElement::ExecuteInternal(FPCGContext* InContext)
 			PCGEX_INIT_ATTRIBUTE_OUT(Time, double)
 		};
 
-		auto ProcessPoint = [&](const int32 PointIndex, const PCGExData::FPointIO* PointIO)
+		auto ProcessPoint = [&](const int32 PointIndex, const FPCGExPointIO& PointIO)
 		{
-			const FPCGPoint& Point = PointIO->GetOutPoint(PointIndex);
+			const FPCGPoint& Point = PointIO.GetOutPoint(PointIndex);
 
 			double RangeMin = FMath::Pow(Context->RangeMinGetter.GetValueSafe(Point, Context->RangeMin), 2);
 			double RangeMax = FMath::Pow(Context->RangeMaxGetter.GetValueSafe(Point, Context->RangeMax), 2);

@@ -28,7 +28,7 @@ namespace PCGEx
 
 		FPCGExPointsProcessorContext* Context = nullptr;
 
-		PCGExData::FPointIO* PointIO = nullptr;
+		FPCGExPointIO* PointIO = nullptr;
 
 		int32 NumIterations = -1;
 		int32 ChunkSize = 32;
@@ -36,10 +36,10 @@ namespace PCGEx
 		int32 CurrentIndex = -1;
 		bool bAsyncEnabled = true;
 
-		inline PCGExData::FPointIO* GetPointIO() const;
+		inline FPCGExPointIO& GetPointIO() const;
 
-		virtual bool Advance(const TFunction<void(PCGExData::FPointIO*)>&& Initialize, const TFunction<void(const int32, const PCGExData::FPointIO*)>&& LoopBody) = 0;
-		virtual bool Advance(const TFunction<void(const int32, const PCGExData::FPointIO*)>&& LoopBody) = 0;
+		virtual bool Advance(const TFunction<void(FPCGExPointIO&)>&& Initialize, const TFunction<void(const int32, const FPCGExPointIO&)>&& LoopBody) = 0;
+		virtual bool Advance(const TFunction<void(const int32, const FPCGExPointIO&)>&& LoopBody) = 0;
 
 	protected:
 		int32 GetCurrentChunkSize() const
@@ -54,8 +54,8 @@ namespace PCGEx
 		{
 		}
 
-		virtual bool Advance(const TFunction<void(PCGExData::FPointIO*)>&& Initialize, const TFunction<void(const int32, const PCGExData::FPointIO*)>&& LoopBody) override;
-		virtual bool Advance(const TFunction<void(const int32, const PCGExData::FPointIO*)>&& LoopBody) override;
+		virtual bool Advance(const TFunction<void(FPCGExPointIO&)>&& Initialize, const TFunction<void(const int32, const FPCGExPointIO&)>&& LoopBody) override;
+		virtual bool Advance(const TFunction<void(const int32, const FPCGExPointIO&)>&& LoopBody) override;
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FBulkPointLoop : public FPointLoop
@@ -67,8 +67,8 @@ namespace PCGEx
 		TArray<FPointLoop> SubLoops;
 
 		virtual void Init();
-		virtual bool Advance(const TFunction<void(PCGExData::FPointIO*)>&& Initialize, const TFunction<void(const int32, const PCGExData::FPointIO*)>&& LoopBody) override;
-		virtual bool Advance(const TFunction<void(const int32, const PCGExData::FPointIO*)>&& LoopBody) override;
+		virtual bool Advance(const TFunction<void(FPCGExPointIO&)>&& Initialize, const TFunction<void(const int32, const FPCGExPointIO&)>&& LoopBody) override;
+		virtual bool Advance(const TFunction<void(const int32, const FPCGExPointIO&)>&& LoopBody) override;
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FAsyncPointLoop : public FPointLoop
@@ -77,8 +77,8 @@ namespace PCGEx
 		{
 		}
 
-		virtual bool Advance(const TFunction<void(PCGExData::FPointIO*)>&& Initialize, const TFunction<void(const int32, const PCGExData::FPointIO*)>&& LoopBody) override;
-		virtual bool Advance(const TFunction<void(const int32, const PCGExData::FPointIO*)>&& LoopBody) override;
+		virtual bool Advance(const TFunction<void(FPCGExPointIO&)>&& Initialize, const TFunction<void(const int32, const FPCGExPointIO&)>&& LoopBody) override;
+		virtual bool Advance(const TFunction<void(const int32, const FPCGExPointIO&)>&& LoopBody) override;
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FBulkAsyncPointLoop : public FAsyncPointLoop
@@ -90,8 +90,8 @@ namespace PCGEx
 		TArray<FAsyncPointLoop> SubLoops;
 
 		virtual void Init();
-		virtual bool Advance(const TFunction<void(PCGExData::FPointIO*)>&& Initialize, const TFunction<void(const int32, const PCGExData::FPointIO*)>&& LoopBody) override;
-		virtual bool Advance(const TFunction<void(const int32, const PCGExData::FPointIO*)>&& LoopBody) override;
+		virtual bool Advance(const TFunction<void(FPCGExPointIO&)>&& Initialize, const TFunction<void(const int32, const FPCGExPointIO&)>&& LoopBody) override;
+		virtual bool Advance(const TFunction<void(const int32, const FPCGExPointIO&)>&& LoopBody) override;
 	};
 }
 
@@ -99,7 +99,7 @@ namespace PCGEx
 /**
  * A Base node to process a set of point using GraphParams.
  */
-UCLASS(BlueprintType, ClassGroup = (Procedural))
+UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural))
 class PCGEXTENDEDTOOLKIT_API UPCGExPointsProcessorSettings : public UPCGSettings
 {
 	GENERATED_BODY()
@@ -112,7 +112,7 @@ public:
 
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(PointsProcessorSettings, "Points Processor Settings", "TOOLTIP_TEXT");
+	//PCGEX_NODE_INFOS(PointsProcessorSettings, "Points Processor Settings", "TOOLTIP_TEXT");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Spatial; }
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
@@ -124,7 +124,7 @@ public:
 	virtual FName GetMainPointsInputLabel() const;
 	virtual bool GetMainPointsInputAcceptMultipleData() const;
 	virtual FName GetMainPointsOutputLabel() const;
-	virtual PCGExData::EInit GetPointOutputInitMode() const;
+	virtual PCGExPointIO::EInit GetPointOutputInitMode() const;
 
 	/** Forces execution on main thread. Work is still chunked. Turning this off ensure linear order of operations, and, in most case, determinism.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Performance")
@@ -157,10 +157,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : public FPCGContext
 
 public:
 	mutable FRWLock ContextLock;
-	PCGExData::FPointIOGroup* MainPoints = nullptr;
+	FPCGExPointIOGroup* MainPoints = nullptr;
 
 	int32 GetCurrentPointsIndex() const { return CurrentPointsIndex; };
-	PCGExData::FPointIO* CurrentIO = nullptr;
+	FPCGExPointIO* CurrentIO = nullptr;
 
 	const UPCGPointData* GetCurrentIn() const { return CurrentIO->GetIn(); }
 	UPCGPointData* GetCurrentOut() const { return CurrentIO->GetOut(); }
@@ -175,28 +175,22 @@ public:
 	void Done();
 
 	UPCGExAsyncTaskManager* GetAsyncManager();
-	void StartAsyncWait(PCGExMT::AsyncState WaitState) { SetState(WaitState); }
-
-	void StopAsyncWait(const PCGExMT::AsyncState NextState)
-	{
-		ResetAsyncWork();
-		SetState(NextState);
-	}
+	void SetAsyncState(PCGExMT::AsyncState WaitState) { SetState(WaitState); }
 
 	virtual void SetState(PCGExMT::AsyncState OperationId);
 	virtual void Reset();
 
 	virtual bool ValidatePointDataInput(UPCGPointData* PointData);
-	virtual void PostInitPointDataInput(PCGExData::FPointIO* PointData);
+	virtual void PostInitPointDataInput(const FPCGExPointIO& PointData);
 
 	int32 ChunkSize = 0;
 	bool bDoAsyncProcessing = true;
 
 	void OutputPoints() { MainPoints->OutputTo(this); }
 
-	bool BulkProcessMainPoints(TFunction<void(PCGExData::FPointIO*)>&& Initialize, TFunction<void(const int32, const PCGExData::FPointIO*)>&& LoopBody);
-	bool ProcessCurrentPoints(TFunction<void(PCGExData::FPointIO*)>&& Initialize, TFunction<void(const int32, const PCGExData::FPointIO*)>&& LoopBody, bool bForceSync = false);
-	bool ProcessCurrentPoints(TFunction<void(const int32, const PCGExData::FPointIO*)>&& LoopBody, bool bForceSync = false);
+	bool BulkProcessMainPoints(TFunction<void(FPCGExPointIO&)>&& Initialize, TFunction<void(const int32, const FPCGExPointIO&)>&& LoopBody);
+	bool ProcessCurrentPoints(TFunction<void(FPCGExPointIO&)>&& Initialize, TFunction<void(const int32, const FPCGExPointIO&)>&& LoopBody, bool bForceSync = false);
+	bool ProcessCurrentPoints(TFunction<void(const int32, const FPCGExPointIO&)>&& LoopBody, bool bForceSync = false);
 
 	template <class InitializeFunc, class LoopBodyFunc>
 	bool Process(InitializeFunc&& Initialize, LoopBodyFunc&& LoopBody, const int32 NumIterations, const bool bForceSync = false)
@@ -238,14 +232,13 @@ protected:
 	virtual void ResetAsyncWork();
 	virtual bool IsAsyncWorkComplete();
 
-	PCGExMT::FAsyncParallelLoop MakeLoop() { return PCGExMT::FAsyncParallelLoop(this, ChunkSize, bDoAsyncProcessing); }
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorElementBase : public FPCGPointProcessingElementBase
 {
 public:
 	virtual FPCGContext* Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node) override;
-	virtual bool IsCacheable(const UPCGSettings* InSettings) const override { return false; }
+	virtual bool IsCacheable(const UPCGSettings* InSettings) const override { return true; }
 
 protected:
 	virtual bool Validate(FPCGContext* InContext) const;

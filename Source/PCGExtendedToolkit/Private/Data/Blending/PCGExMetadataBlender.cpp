@@ -46,7 +46,12 @@ namespace PCGExDataBlending
 		FPCGAttributeAccessorKeysPoints* InSecondaryKeys,
 		const TMap<FName, EPCGExDataBlendingType>& OperationTypeOverrides)
 	{
-		InternalPrepareForData(InPrimaryData, InSecondaryData ? InSecondaryData : InPrimaryData, InPrimaryKeys, InSecondaryKeys, OperationTypeOverrides);
+		InternalPrepareForData(
+			InPrimaryData,
+			InSecondaryData ? InSecondaryData : InPrimaryData,
+			InPrimaryKeys,
+			InSecondaryKeys ? InSecondaryKeys : InPrimaryData == InSecondaryData ? InPrimaryKeys : nullptr,
+			OperationTypeOverrides);
 	}
 
 	FMetadataBlender* FMetadataBlender::Copy(UPCGPointData* InPrimaryData, const UPCGPointData* InSecondaryData) const
@@ -109,12 +114,12 @@ namespace PCGExDataBlending
 
 		if (PrimaryKeys == SecondaryKeys)
 		{
-			if (PrimaryKeys && bOwnsPrimaryKeys) { delete PrimaryKeys; }
+			if (bOwnsPrimaryKeys) { delete PrimaryKeys; }
 		}
 		else
 		{
-			if (PrimaryKeys && bOwnsPrimaryKeys) { delete PrimaryKeys; }
-			if (SecondaryKeys && bOwnsSecondaryKeys) { delete SecondaryKeys; }
+			if (bOwnsPrimaryKeys) { delete PrimaryKeys; }
+			if (bOwnsSecondaryKeys) { delete SecondaryKeys; }
 		}
 
 		PrimaryKeys = nullptr;

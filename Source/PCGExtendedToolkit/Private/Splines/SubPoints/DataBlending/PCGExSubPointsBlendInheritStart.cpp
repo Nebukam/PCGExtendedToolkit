@@ -4,7 +4,7 @@
 
 #include "Splines/SubPoints/DataBlending/PCGExSubPointsBlendInheritStart.h"
 
-#include "../../../../Public/Data/Blending/PCGExMetadataBlender.h"
+#include "Data/Blending/PCGExMetadataBlender.h"
 
 void UPCGExSubPointsBlendInheritStart::BlendSubPoints(
 	const PCGEx::FPointRef& StartPoint,

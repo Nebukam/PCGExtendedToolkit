@@ -6,7 +6,7 @@
 #define LOCTEXT_NAMESPACE "PCGExBuildGraph"
 
 int32 UPCGExBuildGraphSettings::GetPreferredChunkSize() const { return 32; }
-PCGExData::EInit UPCGExBuildGraphSettings::GetPointOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
+PCGExPointIO::EInit UPCGExBuildGraphSettings::GetPointOutputInitMode() const { return PCGExPointIO::EInit::DuplicateInput; }
 
 UPCGExBuildGraphSettings::UPCGExBuildGraphSettings(
 	const FObjectInitializer& ObjectInitializer)
@@ -85,18 +85,18 @@ bool FPCGExBuildGraphElement::ExecuteInternal(
 
 	if (Context->IsState(State_ProbingPoints))
 	{
-		auto Initialize = [&](PCGExData::FPointIO* PointIO)
+		auto Initialize = [&](FPCGExPointIO& PointIO)
 		{
-			Context->PrepareCurrentGraphForPoints(PointIO->GetOut(), true);
+			Context->PrepareCurrentGraphForPoints(PointIO.GetOut(), true);
 		};
 
-		auto ProcessPoint = [&](const int32 PointIndex, const PCGExData::FPointIO* PointIO)
+		auto ProcessPoint = [&](const int32 PointIndex, const FPCGExPointIO& PointIO)
 		{
 			//TODO : Use async to compute results but DO NOT WRITE ON ATTRIBUTES
 
 			//Context->GetAsyncManager()->StartTask<FProbeTask>(PointIndex, PointIO->GetInPoint(PointIndex).MetadataEntry, Context->CurrentIO);
 
-			const FPCGPoint& Point = PointIO->GetOutPoint(PointIndex);
+			const FPCGPoint& Point = PointIO.GetOutPoint(PointIndex);
 			Context->CachedIndex->SetValue(Point.MetadataEntry, PointIndex); // Cache index
 
 			TArray<PCGExGraph::FSocketProbe> Probes;
@@ -107,7 +107,7 @@ bool FPCGExBuildGraphElement::ExecuteInternal(
 			//TODO : This is what needs to be async.
 			// This looks bad, but for some reason it's MUCH faster than using the Octree.
 			const FBox BBox = Box.GetBox();
-			const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
+			const TArray<FPCGPoint>& InPoints = PointIO.GetIn()->GetPoints();
 			for (int i = 0; i < InPoints.Num(); i++)
 			{
 				if (const FPCGPoint& Pt = InPoints[i];
@@ -125,20 +125,20 @@ bool FPCGExBuildGraphElement::ExecuteInternal(
 			}
 		};
 
-		if (Context->ProcessCurrentPoints(Initialize, ProcessPoint)) { Context->StartAsyncWait(PCGExMT::State_WaitingOnAsyncWork); }
+		if (Context->ProcessCurrentPoints(Initialize, ProcessPoint)) { Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork); }
 	}
 
 	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
 	{
-		if (Context->IsAsyncWorkComplete()) { Context->StopAsyncWait(PCGExGraph::State_FindingEdgeTypes); }
+		if (Context->IsAsyncWorkComplete()) { Context->SetState(PCGExGraph::State_FindingEdgeTypes); }
 	}
 
 	if (Context->IsState(PCGExGraph::State_FindingEdgeTypes))
 	{
 		// Process params again for edges types
-		auto ProcessPointEdgeType = [&](const int32 PointIndex, const PCGExData::FPointIO* PointIO)
+		auto ProcessPointEdgeType = [&](const int32 PointIndex, const FPCGExPointIO& PointIO)
 		{
-			ComputeEdgeType(Context->SocketInfos, PointIO->GetOutPoint(PointIndex), PointIndex, PointIO);
+			ComputeEdgeType(Context->SocketInfos, PointIO.GetOutPoint(PointIndex), PointIndex, PointIO);
 		};
 
 		if (Context->ProcessCurrentPoints(ProcessPointEdgeType)) { Context->SetState(PCGExGraph::State_ReadyForNextGraph); }

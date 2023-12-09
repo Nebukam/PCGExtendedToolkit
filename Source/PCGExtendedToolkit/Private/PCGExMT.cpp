@@ -6,10 +6,13 @@
 
 UPCGExAsyncTaskManager::~UPCGExAsyncTaskManager()
 {
+	bStopped = true;
+	Reset();
 }
 
 void UPCGExAsyncTaskManager::OnAsyncTaskExecutionComplete(FPCGExAsyncTask* AsyncTask, bool bSuccess)
 {
+	if (bFlushing) { return; }
 	FWriteScopeLock WriteLock(ManagerLock);
 	NumCompleted++;
 }
@@ -17,8 +20,24 @@ void UPCGExAsyncTaskManager::OnAsyncTaskExecutionComplete(FPCGExAsyncTask* Async
 bool UPCGExAsyncTaskManager::IsAsyncWorkComplete() const
 {
 	FReadScopeLock ReadLock(ManagerLock);
-	//UE_LOG(LogTemp, Warning, TEXT(" %d / %d"), NumCompleted, NumStarted);
 	return NumCompleted == NumStarted;
+}
+
+void UPCGExAsyncTaskManager::Reset()
+{
+	FWriteScopeLock WriteLock(ManagerLock);
+
+	bFlushing = true;
+	for (FAsyncTaskBase* Task : QueuedTasks)
+	{
+		if (Task && !Task->Cancel()) { Task->EnsureCompletion(); }
+		delete Task;
+	}
+	bFlushing = false;
+
+	QueuedTasks.Empty();
+	NumStarted = 0;
+	NumCompleted = 0;
 }
 
 bool UPCGExAsyncTaskManager::IsValid() const

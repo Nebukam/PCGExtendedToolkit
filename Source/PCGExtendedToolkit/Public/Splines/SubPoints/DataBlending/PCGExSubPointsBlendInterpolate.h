@@ -29,7 +29,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	EPCGExPathBlendOver BlendOver = EPCGExPathBlendOver::Distance;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="BlendOver==EPCGExPathLerpBase::Fixed", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="BlendOver==EPCGExPathBlendOver::Fixed", EditConditionHides))
 	double Alpha = 0.5;
 
 	virtual void BlendSubPoints(

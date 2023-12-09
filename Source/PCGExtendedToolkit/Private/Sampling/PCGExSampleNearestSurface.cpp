@@ -6,7 +6,7 @@
 #define LOCTEXT_NAMESPACE "PCGExSampleNearestSurfaceElement"
 
 
-PCGExData::EInit UPCGExSampleNearestSurfaceSettings::GetPointOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
+PCGExPointIO::EInit UPCGExSampleNearestSurfaceSettings::GetPointOutputInitMode() const { return PCGExPointIO::EInit::DuplicateInput; }
 
 int32 UPCGExSampleNearestSurfaceSettings::GetPreferredChunkSize() const { return 32; }
 
@@ -84,9 +84,9 @@ bool FPCGExSampleNearestSurfaceElement::ExecuteInternal(FPCGContext* InContext) 
 
 	if (Context->IsState(PCGExMT::State_ProcessingPoints))
 	{
-		auto Initialize = [&](PCGExData::FPointIO* PointIO) //UPCGExPointIO* PointIO
+		auto Initialize = [&](FPCGExPointIO& PointIO) 
 		{
-			PointIO->BuildMetadataEntries();
+			PointIO.BuildMetadataEntries();
 			PCGEX_INIT_ATTRIBUTE_OUT(Success, bool)
 			PCGEX_INIT_ATTRIBUTE_OUT(Location, FVector)
 			PCGEX_INIT_ATTRIBUTE_OUT(LookAt, FVector)
@@ -94,17 +94,17 @@ bool FPCGExSampleNearestSurfaceElement::ExecuteInternal(FPCGContext* InContext) 
 			PCGEX_INIT_ATTRIBUTE_OUT(Distance, double)
 		};
 
-		auto ProcessPoint = [&](int32 PointIndex, const PCGExData::FPointIO* PointIO)
+		auto ProcessPoint = [&](int32 PointIndex, const FPCGExPointIO& PointIO)
 		{
-			Context->GetAsyncManager()->StartTask<FSweepSphereTask>(PointIndex, PointIO->GetOutPoint(PointIndex).MetadataEntry, Context->CurrentIO);
+			Context->GetAsyncManager()->StartTask<FSweepSphereTask>(PointIndex, PointIO.GetOutPoint(PointIndex).MetadataEntry, Context->CurrentIO);
 		};
 
-		if (Context->ProcessCurrentPoints(Initialize, ProcessPoint)) { Context->StartAsyncWait(PCGExMT::State_WaitingOnAsyncWork); }
+		if (Context->ProcessCurrentPoints(Initialize, ProcessPoint)) { Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork); }
 	}
 
 	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
 	{
-		if (Context->IsAsyncWorkComplete()) { Context->StopAsyncWait(PCGExMT::State_ReadyForNextPoints); }
+		if (Context->IsAsyncWorkComplete()) { Context->SetState(PCGExMT::State_ReadyForNextPoints); }
 	}
 
 	if (Context->IsDone())

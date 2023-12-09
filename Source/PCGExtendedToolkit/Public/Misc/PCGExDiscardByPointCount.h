@@ -23,7 +23,7 @@ public:
 	PCGEX_NODE_INFOS(DiscardByPointCount, "Discard By Point Count", "Filter outputs by point count.");
 #endif
 
-	virtual PCGExData::EInit GetPointOutputInitMode() const override;
+	virtual PCGExPointIO::EInit GetPointOutputInitMode() const override;
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;

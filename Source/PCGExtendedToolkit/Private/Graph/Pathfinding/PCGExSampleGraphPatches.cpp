@@ -67,20 +67,20 @@ bool FPCGExSampleGraphPatchesElement::ExecuteInternal(FPCGContext* InContext) co
 
 	if (Context->IsState(PCGExMT::State_ProcessingPoints))
 	{
-		auto ProcessPoint = [&](const int32 PointIndex, const PCGExData::FPointIO* PointIO)
+		auto ProcessPoint = [&](const int32 PointIndex, const FPCGExPointIO& PointIO)
 		{
 			auto NavMeshTask = [&](int32 InGoalIndex)
 			{
-				PCGExData::FPointIO* PathPoints = Context->OutputPaths->Emplace_GetRef(PointIO->GetIn(), PCGExData::EInit::NewOutput);
+				FPCGExPointIO& PathPoints = Context->OutputPaths->Emplace_GetRef(PointIO.GetIn(), PCGExPointIO::EInit::NewOutput);
 				Context->GetAsyncManager()->StartTask<FSamplePatchPathTask>(
-					PointIndex, PointIO->GetInPoint(PointIndex).MetadataEntry, Context->CurrentIO,
-					InGoalIndex, PathPoints);
+					PointIndex, PointIO.GetInPoint(PointIndex).MetadataEntry, Context->CurrentIO,
+					InGoalIndex, &PathPoints);
 			};
 
 			if (Context->GoalPicker->OutputMultipleGoals())
 			{
 				TArray<int32> GoalIndices;
-				Context->GoalPicker->GetGoalIndices(PointIO->GetInPoint(PointIndex), GoalIndices);
+				Context->GoalPicker->GetGoalIndices(PointIO.GetInPoint(PointIndex), GoalIndices);
 				for (const int32 GoalIndex : GoalIndices)
 				{
 					if (GoalIndex < 0) { continue; }
@@ -89,18 +89,18 @@ bool FPCGExSampleGraphPatchesElement::ExecuteInternal(FPCGContext* InContext) co
 			}
 			else
 			{
-				const int32 GoalIndex = Context->GoalPicker->GetGoalIndex(PointIO->GetInPoint(PointIndex), PointIndex);
+				const int32 GoalIndex = Context->GoalPicker->GetGoalIndex(PointIO.GetInPoint(PointIndex), PointIndex);
 				if (GoalIndex < 0) { return; }
 				NavMeshTask(GoalIndex);
 			}
 		};
 
-		if (Context->ProcessCurrentPoints(ProcessPoint)) { Context->StartAsyncWait(PCGExMT::State_WaitingOnAsyncWork); }
+		if (Context->ProcessCurrentPoints(ProcessPoint)) { Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork); }
 	}
 
 	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
 	{
-		if (Context->IsAsyncWorkComplete()) { Context->StopAsyncWait(PCGExMT::State_Done); }
+		if (Context->IsAsyncWorkComplete()) { Context->Done(); }
 	}
 
 	if (Context->IsDone())

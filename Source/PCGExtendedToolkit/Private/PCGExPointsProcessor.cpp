@@ -9,25 +9,26 @@
 
 #pragma region Loops
 
-PCGExData::FPointIO* PCGEx::FAPointLoop::GetPointIO() const { return PointIO ? PointIO : Context->CurrentIO; }
+FPCGExPointIO& PCGEx::FAPointLoop::GetPointIO() const { return PointIO ? *PointIO : *Context->CurrentIO; }
 
-bool PCGEx::FPointLoop::Advance(const TFunction<void(PCGExData::FPointIO*)>&& Initialize, const TFunction<void(const int32, const PCGExData::FPointIO*)>&& LoopBody)
+bool PCGEx::FPointLoop::Advance(const TFunction<void(FPCGExPointIO&)>&& Initialize, const TFunction<void(const int32, const FPCGExPointIO&)>&& LoopBody)
 {
 	if (CurrentIndex == -1)
 	{
-		Initialize(GetPointIO());
-		NumIterations = GetPointIO()->GetNum();
+		FPCGExPointIO& PtIO = GetPointIO();
+		Initialize(PtIO);
+		NumIterations = PtIO.GetNum();
 		CurrentIndex = 0;
 	}
 	return Advance(std::move(LoopBody));
 }
 
-bool PCGEx::FPointLoop::Advance(const TFunction<void(const int32, const PCGExData::FPointIO*)>&& LoopBody)
+bool PCGEx::FPointLoop::Advance(const TFunction<void(const int32, const FPCGExPointIO&)>&& LoopBody)
 {
-	PCGExData::FPointIO* PtIO = GetPointIO();
+	FPCGExPointIO& PtIO = GetPointIO();
 	if (CurrentIndex == -1)
 	{
-		NumIterations = PtIO->GetNum();
+		NumIterations = PtIO.GetNum();
 		CurrentIndex = 0;
 	}
 	const int32 ChunkNumIterations = GetCurrentChunkSize();
@@ -56,12 +57,12 @@ void PCGEx::FBulkPointLoop::Init()
 			FPointLoop& SubLoop = SubLoops.Emplace_GetRef();
 			SubLoop.Context = Context;
 			SubLoop.ChunkSize = ChunkSize;
-			SubLoop.PointIO = Context->MainPoints->Pairs[i];
+			SubLoop.PointIO = &Context->MainPoints->Pairs[i];
 		}
 	}
 }
 
-bool PCGEx::FBulkPointLoop::Advance(const TFunction<void(PCGExData::FPointIO*)>&& Initialize, const TFunction<void(const int32, const PCGExData::FPointIO*)>&& LoopBody)
+bool PCGEx::FBulkPointLoop::Advance(const TFunction<void(FPCGExPointIO&)>&& Initialize, const TFunction<void(const int32, const FPCGExPointIO&)>&& LoopBody)
 {
 	Init();
 	for (int i = 0; i < SubLoops.Num(); i++)
@@ -82,7 +83,7 @@ bool PCGEx::FBulkPointLoop::Advance(const TFunction<void(PCGExData::FPointIO*)>&
 	return false;
 }
 
-bool PCGEx::FBulkPointLoop::Advance(const TFunction<void(const int32, const PCGExData::FPointIO*)>&& LoopBody)
+bool PCGEx::FBulkPointLoop::Advance(const TFunction<void(const int32, const FPCGExPointIO&)>&& LoopBody)
 {
 	Init();
 	for (int i = 0; i < SubLoops.Num(); i++)
@@ -103,12 +104,12 @@ bool PCGEx::FBulkPointLoop::Advance(const TFunction<void(const int32, const PCGE
 	return false;
 }
 
-bool PCGEx::FAsyncPointLoop::Advance(const TFunction<void(PCGExData::FPointIO*)>&& Initialize, const TFunction<void(const int32, const PCGExData::FPointIO*)>&& LoopBody)
+bool PCGEx::FAsyncPointLoop::Advance(const TFunction<void(FPCGExPointIO&)>&& Initialize, const TFunction<void(const int32, const FPCGExPointIO&)>&& LoopBody)
 {
 	if (!bAsyncEnabled) { return FPointLoop::Advance(std::move(Initialize), std::move(LoopBody)); }
 
-	PCGExData::FPointIO* PtIO = GetPointIO();
-	NumIterations = PtIO->GetNum();
+	FPCGExPointIO& PtIO = GetPointIO();
+	NumIterations = PtIO.GetNum();
 	return FPCGAsync::AsyncProcessingOneToOneEx(
 		&(Context->AsyncState), NumIterations, [&]()
 		{
@@ -120,12 +121,12 @@ bool PCGEx::FAsyncPointLoop::Advance(const TFunction<void(PCGExData::FPointIO*)>
 		}, true, ChunkSize);
 }
 
-bool PCGEx::FAsyncPointLoop::Advance(const TFunction<void(const int32, const PCGExData::FPointIO*)>&& LoopBody)
+bool PCGEx::FAsyncPointLoop::Advance(const TFunction<void(const int32, const FPCGExPointIO&)>&& LoopBody)
 {
 	if (!bAsyncEnabled) { return FPointLoop::Advance(std::move(LoopBody)); }
 
-	const PCGExData::FPointIO* PtIO = GetPointIO();
-	NumIterations = PtIO->GetNum();
+	const FPCGExPointIO& PtIO = GetPointIO();
+	NumIterations = PtIO.GetNum();
 	return FPCGAsync::AsyncProcessingOneToOneEx(
 		&(Context->AsyncState), NumIterations, []()
 		{
@@ -149,12 +150,12 @@ void PCGEx::FBulkAsyncPointLoop::Init()
 			SubLoop.Context = Context;
 			SubLoop.bAsyncEnabled = Context->bDoAsyncProcessing;
 			SubLoop.ChunkSize = ChunkSize;
-			SubLoop.PointIO = Context->MainPoints->Pairs[i];
+			SubLoop.PointIO = &Context->MainPoints->Pairs[i];
 		}
 	}
 }
 
-bool PCGEx::FBulkAsyncPointLoop::Advance(const TFunction<void(PCGExData::FPointIO*)>&& Initialize, const TFunction<void(const int32, const PCGExData::FPointIO*)>&& LoopBody)
+bool PCGEx::FBulkAsyncPointLoop::Advance(const TFunction<void(FPCGExPointIO&)>&& Initialize, const TFunction<void(const int32, const FPCGExPointIO&)>&& LoopBody)
 {
 	Init();
 	for (int i = 0; i < SubLoops.Num(); i++)
@@ -175,7 +176,7 @@ bool PCGEx::FBulkAsyncPointLoop::Advance(const TFunction<void(PCGExData::FPointI
 	return false;
 }
 
-bool PCGEx::FBulkAsyncPointLoop::Advance(const TFunction<void(const int32, const PCGExData::FPointIO*)>&& LoopBody)
+bool PCGEx::FBulkAsyncPointLoop::Advance(const TFunction<void(const int32, const FPCGExPointIO&)>&& LoopBody)
 {
 	Init();
 	for (int i = 0; i < SubLoops.Num(); i++)
@@ -241,14 +242,14 @@ FName UPCGExPointsProcessorSettings::GetMainPointsInputLabel() const { return PC
 
 bool UPCGExPointsProcessorSettings::GetMainPointsInputAcceptMultipleData() const { return true; }
 
-PCGExData::EInit UPCGExPointsProcessorSettings::GetPointOutputInitMode() const { return PCGExData::EInit::NewOutput; }
+PCGExPointIO::EInit UPCGExPointsProcessorSettings::GetPointOutputInitMode() const { return PCGExPointIO::EInit::NewOutput; }
 
 int32 UPCGExPointsProcessorSettings::GetPreferredChunkSize() const { return 256; }
 
 FPCGExPointsProcessorContext::~FPCGExPointsProcessorContext()
 {
-	if (AsyncManager) { delete AsyncManager; }
-	if (MainPoints) { delete MainPoints; }
+	delete AsyncManager; 
+	delete MainPoints;
 	CurrentIO = nullptr;
 	World = nullptr;
 }
@@ -258,7 +259,7 @@ bool FPCGExPointsProcessorContext::AdvancePointsIO()
 	CurrentPointsIndex++;
 	if (MainPoints->Pairs.IsValidIndex(CurrentPointsIndex))
 	{
-		CurrentIO = MainPoints->Pairs[CurrentPointsIndex];
+		CurrentIO = &MainPoints->Pairs[CurrentPointsIndex];
 		return true;
 	}
 	CurrentIO = nullptr;
@@ -272,6 +273,7 @@ void FPCGExPointsProcessorContext::Done()
 
 void FPCGExPointsProcessorContext::SetState(PCGExMT::AsyncState OperationId)
 {
+	ResetAsyncWork();
 	PCGExMT::AsyncState PreviousOperation = CurrentState;
 	CurrentState = OperationId;
 }
@@ -280,23 +282,23 @@ void FPCGExPointsProcessorContext::Reset() { CurrentState = PCGExMT::State_Setup
 
 bool FPCGExPointsProcessorContext::ValidatePointDataInput(UPCGPointData* PointData) { return true; }
 
-void FPCGExPointsProcessorContext::PostInitPointDataInput(PCGExData::FPointIO* PointData)
+void FPCGExPointsProcessorContext::PostInitPointDataInput(const FPCGExPointIO& PointData)
 {
 }
 
 #pragma endregion
 
-bool FPCGExPointsProcessorContext::BulkProcessMainPoints(TFunction<void(PCGExData::FPointIO*)>&& Initialize, TFunction<void(const int32, const PCGExData::FPointIO*)>&& LoopBody)
+bool FPCGExPointsProcessorContext::BulkProcessMainPoints(TFunction<void(FPCGExPointIO&)>&& Initialize, TFunction<void(const int32, const FPCGExPointIO&)>&& LoopBody)
 {
 	return BulkAsyncPointLoop.Advance(std::move(Initialize), std::move(LoopBody));
 }
 
-bool FPCGExPointsProcessorContext::ProcessCurrentPoints(TFunction<void(PCGExData::FPointIO*)>&& Initialize, TFunction<void(const int32, const PCGExData::FPointIO*)>&& LoopBody, bool bForceSync)
+bool FPCGExPointsProcessorContext::ProcessCurrentPoints(TFunction<void(FPCGExPointIO&)>&& Initialize, TFunction<void(const int32, const FPCGExPointIO&)>&& LoopBody, bool bForceSync)
 {
 	return bForceSync ? ChunkedPointLoop.Advance(std::move(Initialize), std::move(LoopBody)) : AsyncPointLoop.Advance(std::move(Initialize), std::move(LoopBody));
 }
 
-bool FPCGExPointsProcessorContext::ProcessCurrentPoints(TFunction<void(const int32, const PCGExData::FPointIO*)>&& LoopBody, bool bForceSync)
+bool FPCGExPointsProcessorContext::ProcessCurrentPoints(TFunction<void(const int32, const FPCGExPointIO&)>&& LoopBody, bool bForceSync)
 {
 	return bForceSync ? ChunkedPointLoop.Advance(std::move(LoopBody)) : AsyncPointLoop.Advance(std::move(LoopBody));
 }
@@ -366,14 +368,14 @@ void FPCGExPointsProcessorElementBase::InitializeContext(
 	InContext->AsyncPointLoop = InContext->MakeLoop<PCGEx::FAsyncPointLoop>();
 	InContext->BulkAsyncPointLoop = InContext->MakeLoop<PCGEx::FBulkAsyncPointLoop>();
 
-	InContext->MainPoints = new PCGExData::FPointIOGroup();
+	InContext->MainPoints = new FPCGExPointIOGroup();
 	InContext->MainPoints->DefaultOutputLabel = Settings->GetMainPointsOutputLabel();
 
 	TArray<FPCGTaggedData> Sources = InContext->InputData.GetInputsByPin(Settings->GetMainPointsInputLabel());
 	InContext->MainPoints->Initialize(
 		InContext, Sources, Settings->GetPointOutputInitMode(),
 		[&InContext](UPCGPointData* Data) { return InContext->ValidatePointDataInput(Data); },
-		[&InContext](PCGExData::FPointIO* PointIO) { return InContext->PostInitPointDataInput(PointIO); });
+		[&InContext](FPCGExPointIO& PointIO) { return InContext->PostInitPointDataInput(PointIO); });
 }
 
 #undef LOCTEXT_NAMESPACE

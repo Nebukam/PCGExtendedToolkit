@@ -20,7 +20,7 @@ void UPCGExSubdivideSettings::PostEditChangeProperty(FPropertyChangedEvent& Prop
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
 
-PCGExData::EInit UPCGExSubdivideSettings::GetPointOutputInitMode() const { return PCGExData::EInit::NewOutput; }
+PCGExPointIO::EInit UPCGExSubdivideSettings::GetPointOutputInitMode() const { return PCGExPointIO::EInit::NewOutput; }
 
 FPCGElementPtr UPCGExSubdivideSettings::CreateElement() const { return MakeShared<FPCGExSubdivideElement>(); }
 
@@ -63,23 +63,23 @@ bool FPCGExSubdivideElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsState(PCGExMT::State_ProcessingPoints))
 	{
-		auto Initialize = [&](PCGExData::FPointIO* PointIO)
+		auto Initialize = [&](FPCGExPointIO& PointIO)
 		{
 			Context->Milestones.Empty();
 			Context->Milestones.Add(0);
 			Context->MilestonesPathInfos.Empty();
 			Context->MilestonesPathInfos.Add(PCGExMath::FPathInfos{});
-			if (Context->bFlagSubPoints) { Context->FlagAttribute = PointIO->GetOut()->Metadata->FindOrCreateAttribute(Context->FlagName, false); }
+			if (Context->bFlagSubPoints) { Context->FlagAttribute = PointIO.GetOut()->Metadata->FindOrCreateAttribute(Context->FlagName, false); }
 			Context->Blending->PrepareForData(PointIO);
 		};
 
-		auto ProcessPoint = [&](const int32 Index, const PCGExData::FPointIO* PointIO)
+		auto ProcessPoint = [&](const int32 Index, const FPCGExPointIO& PointIO)
 		{
 			int32 LastIndex;
 
-			const FPCGPoint& StartPoint = PointIO->GetInPoint(Index);
-			const FPCGPoint* EndPtr = PointIO->TryGetInPoint(Index + 1);
-			PointIO->CopyPoint(StartPoint, LastIndex);
+			const FPCGPoint& StartPoint = PointIO.GetInPoint(Index);
+			const FPCGPoint* EndPtr = PointIO.TryGetInPoint(Index + 1);
+			PointIO.CopyPoint(StartPoint, LastIndex);
 
 			if (!EndPtr) { return; }
 
@@ -98,7 +98,7 @@ bool FPCGExSubdivideElement::ExecuteInternal(FPCGContext* InContext) const
 
 			for (int i = 0; i < NumSubdivisions; i++)
 			{
-				FPCGPoint& NewPoint = PointIO->CopyPoint(StartPoint, LastIndex);
+				FPCGPoint& NewPoint = PointIO.CopyPoint(StartPoint, LastIndex);
 				FVector SubLocation = StartPos + Dir * (StartOffset + i * StepSize);
 				NewPoint.Transform.SetLocation(SubLocation);
 				PathInfos.Add(SubLocation);
@@ -122,7 +122,7 @@ bool FPCGExSubdivideElement::ExecuteInternal(FPCGContext* InContext) const
 	{
 		auto Initialize = [&]()
 		{
-			Context->Blending->PrepareForData(Context->CurrentIO);
+			Context->Blending->PrepareForData(*Context->CurrentIO);
 		};
 
 		auto ProcessMilestone = [&](const int32 Index)
@@ -130,17 +130,17 @@ bool FPCGExSubdivideElement::ExecuteInternal(FPCGContext* InContext) const
 
 			if(!Context->Milestones.IsValidIndex(Index + 1)){return;} // Ignore last point
 			
-			PCGExData::FPointIO* PointIO = Context->CurrentIO;
+			FPCGExPointIO& PointIO = *Context->CurrentIO;
 
 			const int32 StartIndex = Context->Milestones[Index];
 			const int32 Range = Context->Milestones[Index + 1] - StartIndex;
 			const int32 EndIndex = StartIndex + Range + 1;
 
-			TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
+			TArray<FPCGPoint>& MutablePoints = PointIO.GetOut()->GetMutablePoints();
 			TArrayView<FPCGPoint> Path = MakeArrayView(MutablePoints.GetData() + StartIndex + 1, Range);
 
-			const FPCGPoint& StartPoint = PointIO->GetOutPoint(StartIndex);
-			const FPCGPoint* EndPtr = PointIO->TryGetOutPoint(EndIndex);
+			const FPCGPoint& StartPoint = PointIO.GetOutPoint(StartIndex);
+			const FPCGPoint* EndPtr = PointIO.TryGetOutPoint(EndIndex);
 			if (!EndPtr) { return; }
 
 			Context->Blending->ProcessSubPoints(PCGEx::FPointRef(StartPoint, StartIndex), PCGEx::FPointRef(*EndPtr, EndIndex), Path, Context->MilestonesPathInfos[Index]);

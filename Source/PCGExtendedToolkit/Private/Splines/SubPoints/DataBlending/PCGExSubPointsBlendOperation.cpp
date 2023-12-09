@@ -4,7 +4,7 @@
 
 #include "Splines/SubPoints/DataBlending/PCGExSubPointsBlendOperation.h"
 
-#include "..\..\..\..\Public\Data\PCGExPointsIO.h"
+#include "Data/PCGExPointsIO.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
 
 EPCGExDataBlendingType UPCGExSubPointsBlendOperation::GetDefaultBlending()
@@ -12,22 +12,36 @@ EPCGExDataBlendingType UPCGExSubPointsBlendOperation::GetDefaultBlending()
 	return EPCGExDataBlendingType::Copy;
 }
 
-void UPCGExSubPointsBlendOperation::PrepareForData(PCGExData::FPointIO* InData)
+void UPCGExSubPointsBlendOperation::PrepareForData(FPCGExPointIO& InData, FPCGAttributeAccessorKeysPoints* InPrimaryKeys)
 {
 	Super::PrepareForData(InData);
-	PrepareForData(InData->GetOut(), InData->GetOut());
+	PrepareForData(InData.GetOut(), InData.GetOut(), InPrimaryKeys, InPrimaryKeys);
 }
 
-void UPCGExSubPointsBlendOperation::PrepareForData(UPCGPointData* InPrimaryData, const UPCGPointData* InSecondaryData)
+void UPCGExSubPointsBlendOperation::PrepareForData(
+	UPCGPointData* InPrimaryData,
+	const UPCGPointData* InSecondaryData,
+	FPCGAttributeAccessorKeysPoints* InPrimaryKeys,
+	FPCGAttributeAccessorKeysPoints* InSecondaryKeys)
 {
-	if (InternalBlender) { delete InternalBlender; }
-	InternalBlender = CreateBlender(InPrimaryData, InSecondaryData);
+	delete InternalBlender;
+	InternalBlender = CreateBlender(InPrimaryData, InSecondaryData, InPrimaryKeys, InSecondaryKeys);
 	PropertiesBlender.Init(BlendingSettings);
 }
 
 void UPCGExSubPointsBlendOperation::ProcessSubPoints(const PCGEx::FPointRef& Start, const PCGEx::FPointRef& End, TArrayView<FPCGPoint>& SubPoints, const PCGExMath::FPathInfos& PathInfos) const
 {
 	BlendSubPoints(Start, End, SubPoints, PathInfos, InternalBlender);
+}
+
+void UPCGExSubPointsBlendOperation::ProcessSubPoints(TArrayView<FPCGPoint>& SubPoints, const PCGExMath::FPathInfos& PathInfos) const
+{
+	BlendSubPoints(SubPoints, PathInfos, InternalBlender);
+}
+
+void UPCGExSubPointsBlendOperation::ProcessSubPoints(TArrayView<FPCGPoint>& SubPoints, const PCGExMath::FPathInfos& PathInfos, const PCGExDataBlending::FMetadataBlender* InBlender) const
+{
+	BlendSubPoints(SubPoints, PathInfos, InBlender);
 }
 
 void UPCGExSubPointsBlendOperation::BlendSubPoints(
@@ -39,16 +53,34 @@ void UPCGExSubPointsBlendOperation::BlendSubPoints(
 {
 }
 
-PCGExDataBlending::FMetadataBlender* UPCGExSubPointsBlendOperation::CreateBlender(UPCGPointData* InPrimaryData, const UPCGPointData* InSecondaryData)
+void UPCGExSubPointsBlendOperation::BlendSubPoints(TArrayView<FPCGPoint>& SubPoints, const PCGExMath::FPathInfos& PathInfos, const PCGExDataBlending::FMetadataBlender* InBlender) const
+{
+	const FPCGPoint& Start = SubPoints[0];
+	const int32 LastIndex = SubPoints.Num() - 1;
+	const FPCGPoint& End = SubPoints[LastIndex];
+	BlendSubPoints(PCGEx::FPointRef(Start, 0), PCGEx::FPointRef(End, LastIndex), SubPoints, PathInfos, InBlender);
+}
+
+PCGExDataBlending::FMetadataBlender* UPCGExSubPointsBlendOperation::CreateBlender(
+	UPCGPointData* InPrimaryData,
+	const UPCGPointData* InSecondaryData,
+	FPCGAttributeAccessorKeysPoints* InPrimaryKeys,
+	FPCGAttributeAccessorKeysPoints* InSecondaryKeys)
 {
 	PCGExDataBlending::FMetadataBlender* NewBlender = new PCGExDataBlending::FMetadataBlender(GetDefaultBlending());
-	NewBlender->PrepareForData(InPrimaryData, InSecondaryData, BlendingSettings.AttributesOverrides);
+	NewBlender->PrepareForData(
+		InPrimaryData,
+		InSecondaryData,
+		InPrimaryKeys,
+		InSecondaryKeys,
+		BlendingSettings.AttributesOverrides);
+
 	return NewBlender;
 }
 
 void UPCGExSubPointsBlendOperation::BeginDestroy()
 {
-	if (InternalBlender) { delete InternalBlender; }
+	delete InternalBlender;
 	InternalBlender = nullptr;
 	Super::BeginDestroy();
 }

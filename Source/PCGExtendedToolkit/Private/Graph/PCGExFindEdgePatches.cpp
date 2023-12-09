@@ -10,12 +10,12 @@
 
 int32 UPCGExFindEdgePatchesSettings::GetPreferredChunkSize() const { return 32; }
 
-PCGExData::EInit UPCGExFindEdgePatchesSettings::GetPointOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
+PCGExPointIO::EInit UPCGExFindEdgePatchesSettings::GetPointOutputInitMode() const { return PCGExPointIO::EInit::DuplicateInput; }
 
 FPCGExFindEdgePatchesContext::~FPCGExFindEdgePatchesContext()
 {
-	if (PatchesIO) { delete PatchesIO; }
-	if (Patches) { delete Patches; }
+	delete PatchesIO;
+	delete Patches;
 }
 
 TArray<FPCGPinProperties> UPCGExFindEdgePatchesSettings::OutputPinProperties() const
@@ -94,7 +94,7 @@ bool FPCGExFindEdgePatchesElement::ExecuteInternal(
 	if (Context->IsSetup())
 	{
 		if (!Validate(Context)) { return true; }
-		Context->PatchesIO = new PCGExData::FPointIOGroup();
+		Context->PatchesIO = new FPCGExPointIOGroup();
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
@@ -126,22 +126,22 @@ bool FPCGExFindEdgePatchesElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExGraph::State_FindingPatch))
 	{
-		auto Initialize = [&](const PCGExData::FPointIO* PointIO)
+		auto Initialize = [&](const FPCGExPointIO& PointIO)
 		{
-			Context->PrepareCurrentGraphForPoints(PointIO->GetIn(), false); // Prepare to read PointIO->In
+			Context->PrepareCurrentGraphForPoints(PointIO.GetIn(), false); // Prepare to read PointIO->In
 		};
 
-		auto ProcessPoint = [&](const int32 PointIndex, const PCGExData::FPointIO* PointIO)
+		auto ProcessPoint = [&](const int32 PointIndex, const FPCGExPointIO& PointIO)
 		{
-			Context->GetAsyncManager()->StartTask<FDistributeToPatchTask>(PointIndex, PointIO->GetInPoint(PointIndex).MetadataEntry, nullptr);
+			Context->GetAsyncManager()->StartTask<FDistributeToPatchTask>(PointIndex, PointIO.GetInPoint(PointIndex).MetadataEntry, nullptr);
 		};
 
-		if (Context->ProcessCurrentPoints(Initialize, ProcessPoint)) { Context->StartAsyncWait(PCGExGraph::State_WaitingOnFindingPatch); }
+		if (Context->ProcessCurrentPoints(Initialize, ProcessPoint)) { Context->SetAsyncState(PCGExGraph::State_WaitingOnFindingPatch); }
 	}
 
 	if (Context->IsState(PCGExGraph::State_WaitingOnFindingPatch))
 	{
-		if (Context->IsAsyncWorkComplete()) { Context->StopAsyncWait(PCGExGraph::State_ReadyForNextGraph); }
+		if (Context->IsAsyncWorkComplete()) { Context->SetState(PCGExGraph::State_ReadyForNextGraph); }
 	}
 
 	// -> Each graph has been traversed, now merge patches
@@ -149,12 +149,12 @@ bool FPCGExFindEdgePatchesElement::ExecuteInternal(
 	if (Context->IsState(PCGExGraph::State_MergingPatch))
 	{
 		// TODO: Start FConsolidatePatchesTask
-		Context->StartAsyncWait(PCGExGraph::State_WaitingOnMergingPatch);
+		Context->SetAsyncState(PCGExGraph::State_WaitingOnMergingPatch);
 	}
 
 	if (Context->IsState(PCGExGraph::State_WaitingOnMergingPatch))
 	{
-		if (Context->IsAsyncWorkComplete()) { Context->StopAsyncWait(PCGExGraph::State_WritingPatch); }
+		if (Context->IsAsyncWorkComplete()) { Context->SetState(PCGExGraph::State_WritingPatch); }
 	}
 
 	// -> Patches have been merged, now write patches
@@ -172,7 +172,7 @@ bool FPCGExFindEdgePatchesElement::ExecuteInternal(
 			if (Context->MaxPatchSize >= 0 && OutNumPoints > Context->MaxPatchSize) { continue; }
 
 			// Create and mark patch data
-			UPCGPointData* PatchData = PCGExData::NewEmptyPointData(Context, PCGExGraph::OutputPatchesLabel);
+			UPCGPointData* PatchData = PCGExPointIO::NewEmptyPointData(Context, PCGExGraph::OutputPatchesLabel);
 			PCGEx::CreateMark(PatchData->Metadata, PCGExGraph::PUIDAttributeName, PUID);
 
 			// Mark point data
@@ -183,7 +183,7 @@ bool FPCGExFindEdgePatchesElement::ExecuteInternal(
 			Context->PatchUIndex++;
 		}
 
-		Context->StartAsyncWait(PCGExGraph::State_WaitingOnWritingPatch);
+		Context->SetAsyncState(PCGExGraph::State_WaitingOnWritingPatch);
 	}
 
 	if (Context->IsState(PCGExGraph::State_WaitingOnWritingPatch))
@@ -191,7 +191,7 @@ bool FPCGExFindEdgePatchesElement::ExecuteInternal(
 		if (Context->IsAsyncWorkComplete())
 		{
 			delete Context->Patches;
-			Context->StopAsyncWait(PCGExMT::State_ReadyForNextPoints);
+			Context->SetState(PCGExMT::State_ReadyForNextPoints);
 		}
 	}
 

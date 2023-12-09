@@ -14,7 +14,7 @@ class UPCGExGraphParamsData;
 /**
  * A Base node to process a set of point using GraphParams.
  */
-UCLASS(BlueprintType, ClassGroup = (Procedural))
+UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural))
 class PCGEXTENDEDTOOLKIT_API UPCGExGraphProcessorSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()

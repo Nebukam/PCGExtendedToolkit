@@ -26,7 +26,7 @@ public:
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
-	virtual PCGExData::EInit GetPointOutputInitMode() const override;
+	virtual PCGExPointIO::EInit GetPointOutputInitMode() const override;
 	//~End UPCGSettings interface
 
 	virtual int32 GetPreferredChunkSize() const override;
