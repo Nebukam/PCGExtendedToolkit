@@ -22,7 +22,7 @@ public:
 	PCGEX_NODE_INFOS(WriteIndex, "Write Index", "Write the current point index to an attribute.");
 #endif
 
-	virtual PCGExPointIO::EInit GetPointOutputInitMode() const override;
+	virtual PCGExData::EInit GetPointOutputInitMode() const override;
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
@@ -42,12 +42,18 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExWriteIndexContext : public FPCGExPointsProce
 {
 	friend class FPCGExWriteIndexElement;
 
-public:
+	~FPCGExWriteIndexContext();
+	
 	mutable FRWLock MapLock;
 	bool bOutputNormalizedIndex;
 	FName OutName = NAME_None;
-	TMap<FPCGExPointIO*, FPCGMetadataAttribute<int64>*> AttributeMap;
-	TMap<FPCGExPointIO*, FPCGMetadataAttribute<double>*> NormalizedAttributeMap;
+
+	TArray<int32> IndicesBuffer;
+	PCGEx::FAttributeAccessor<int32>* IndexAccessor = nullptr;
+
+	TArray<double> NormalizedIndicesBuffer;
+	PCGEx::FAttributeAccessor<double>* NormalizedIndexAccessor = nullptr;
+	
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExWriteIndexElement : public FPCGExPointsProcessorElementBase

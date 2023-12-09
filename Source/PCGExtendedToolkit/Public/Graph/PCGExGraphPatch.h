@@ -28,7 +28,7 @@ class PCGEXTENDEDTOOLKIT_API FPCGExGraphPatch
 public:
 	~FPCGExGraphPatch();
 
-	FPCGExPointIO* PointIO = nullptr;
+	PCGExData::FPointIO* PointIO = nullptr;
 	FPCGExGraphPatchGroup* Parent = nullptr;
 
 	int32 PatchID = -1;
@@ -43,7 +43,7 @@ public:
 	void AddEdge(uint64 InEdgeHash);
 	bool ContainsEdge(const uint64 InEdgeHash) const;
 
-	bool OutputTo(const FPCGExPointIO& OutIO, int32 PatchIDOverride);
+	bool OutputTo(const PCGExData::FPointIO& OutIO, int32 PatchIDOverride);
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExGraphPatchGroup
@@ -60,8 +60,8 @@ public:
 	EPCGExEdgeType CrawlEdgeTypes;
 
 	UPCGExGraphParamsData* CurrentGraph = nullptr;
-	FPCGExPointIO* PointIO = nullptr;
-	FPCGExPointIOGroup* PatchesIO = nullptr;
+	PCGExData::FPointIO* PointIO = nullptr;
+	PCGExData::FPointIOGroup* PatchesIO = nullptr;
 
 	FName PatchIDAttributeName;
 	FName PatchSizeAttributeName;

@@ -10,7 +10,7 @@
 
 int32 UPCGExFindEdgePatchesSettings::GetPreferredChunkSize() const { return 32; }
 
-PCGExPointIO::EInit UPCGExFindEdgePatchesSettings::GetPointOutputInitMode() const { return PCGExPointIO::EInit::DuplicateInput; }
+PCGExData::EInit UPCGExFindEdgePatchesSettings::GetPointOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
 FPCGExFindEdgePatchesContext::~FPCGExFindEdgePatchesContext()
 {
@@ -94,7 +94,7 @@ bool FPCGExFindEdgePatchesElement::ExecuteInternal(
 	if (Context->IsSetup())
 	{
 		if (!Validate(Context)) { return true; }
-		Context->PatchesIO = new FPCGExPointIOGroup();
+		Context->PatchesIO = new PCGExData::FPointIOGroup();
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
@@ -126,12 +126,12 @@ bool FPCGExFindEdgePatchesElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExGraph::State_FindingPatch))
 	{
-		auto Initialize = [&](const FPCGExPointIO& PointIO)
+		auto Initialize = [&](const PCGExData::FPointIO& PointIO)
 		{
 			Context->PrepareCurrentGraphForPoints(PointIO.GetIn(), false); // Prepare to read PointIO->In
 		};
 
-		auto ProcessPoint = [&](const int32 PointIndex, const FPCGExPointIO& PointIO)
+		auto ProcessPoint = [&](const int32 PointIndex, const PCGExData::FPointIO& PointIO)
 		{
 			Context->GetAsyncManager()->Start<FDistributeToPatchTask>(PointIndex, PointIO.GetInPoint(PointIndex).MetadataEntry, nullptr);
 		};
@@ -172,7 +172,7 @@ bool FPCGExFindEdgePatchesElement::ExecuteInternal(
 			if (Context->MaxPatchSize >= 0 && OutNumPoints > Context->MaxPatchSize) { continue; }
 
 			// Create and mark patch data
-			UPCGPointData* PatchData = PCGExPointIO::NewEmptyPointData(Context, PCGExGraph::OutputPatchesLabel);
+			UPCGPointData* PatchData = PCGExData::PCGExPointIO::NewEmptyPointData(Context, PCGExGraph::OutputPatchesLabel);
 			PCGEx::CreateMark(PatchData->Metadata, PCGExGraph::PUIDAttributeName, PUID);
 
 			// Mark point data

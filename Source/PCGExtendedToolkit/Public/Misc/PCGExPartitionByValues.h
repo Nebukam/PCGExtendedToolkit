@@ -154,7 +154,7 @@ protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings interface
 
-	virtual PCGExPointIO::EInit GetPointOutputInitMode() const override;
+	virtual PCGExData::EInit GetPointOutputInitMode() const override;
 
 public:
 	/** If false, will only write partition identifier values instead of splitting partitions into new point datasets. */
@@ -179,8 +179,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSplitByValuesContext : public FPCGExPointsPr
 	bool bSplitOutput = true;
 	UPCGExPartitionLayer* RootPartitionLayer;
 
-	void PrepareForPoints(const FPCGExPointIO& PointIO);
-	void PrepareForPointsWithMetadataEntries(FPCGExPointIO& PointIO);
+	void PrepareForPoints(const PCGExData::FPointIO& PointIO);
+	void PrepareForPointsWithMetadataEntries(PCGExData::FPointIO& PointIO);
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExPartitionByValuesElement : public FPCGExPointsProcessorElementBase

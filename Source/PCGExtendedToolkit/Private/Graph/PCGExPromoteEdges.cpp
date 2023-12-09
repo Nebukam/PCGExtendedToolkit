@@ -10,11 +10,11 @@
 
 int32 UPCGExPromoteEdgesSettings::GetPreferredChunkSize() const { return 32; }
 
-PCGExPointIO::EInit UPCGExPromoteEdgesSettings::GetPointOutputInitMode() const
+PCGExData::EInit UPCGExPromoteEdgesSettings::GetPointOutputInitMode() const
 {
 	return Promotion && Promotion->GeneratesNewPointData() ?
-		       PCGExPointIO::EInit::NoOutput :
-		       PCGExPointIO::EInit::NewOutput;
+		       PCGExData::EInit::NoOutput :
+		       PCGExData::EInit::NewOutput;
 }
 
 UPCGExPromoteEdgesSettings::UPCGExPromoteEdgesSettings(
@@ -71,7 +71,7 @@ bool FPCGExPromoteEdgesElement::ExecuteInternal(
 		if (Context->Promotion->GeneratesNewPointData())
 		{
 			int32 MaxPossibleOutputs = 0;
-			for (const FPCGExPointIO& PointIO : Context->MainPoints->Pairs)
+			for (const PCGExData::FPointIO& PointIO : Context->MainPoints->Pairs)
 			{
 				MaxPossibleOutputs += PointIO.GetNum();
 			}
@@ -109,12 +109,12 @@ bool FPCGExPromoteEdgesElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExGraph::State_ProcessingGraph))
 	{
-		auto Initialize = [&](const FPCGExPointIO& PointIO)
+		auto Initialize = [&](const PCGExData::FPointIO& PointIO)
 		{
 			Context->PrepareCurrentGraphForPoints(PointIO.GetIn(), true);
 		};
 
-		auto ProcessPoint = [&](const int32 PointIndex, const FPCGExPointIO& PointIO)
+		auto ProcessPoint = [&](const int32 PointIndex, const PCGExData::FPointIO& PointIO)
 		{
 			const FPCGPoint& Point = PointIO.GetInPoint(PointIndex);
 			TArray<PCGExGraph::FUnsignedEdge> UnsignedEdges;

@@ -15,7 +15,7 @@ namespace PCGExSortPoints
 
 FPCGElementPtr UPCGExSortPointsSettings::CreateElement() const { return MakeShared<FPCGExSortPointsElement>(); }
 
-PCGExPointIO::EInit UPCGExSortPointsSettings::GetPointOutputInitMode() const { return PCGExPointIO::EInit::DuplicateInput; }
+PCGExData::EInit UPCGExSortPointsSettings::GetPointOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
 bool FPCGExSortPointsElement::ExecuteInternal(FPCGContext* InContext) const
 {
@@ -41,7 +41,7 @@ bool FPCGExSortPointsElement::ExecuteInternal(FPCGContext* InContext) const
 	EPCGExSortDirection SortDirection = Settings->SortDirection;
 	TArray<FPCGExSortRule> Rules;
 
-	auto ProcessPair = [&](FPCGExPointIO& POI, const int32)
+	auto ProcessPair = [&](PCGExData::FPointIO& POI, const int32)
 	{
 		//POI->ForwardPoints(Context);
 		if (!BuildRulesForPoints(POI.GetOut(), DesiredRules, Rules)) { return; }

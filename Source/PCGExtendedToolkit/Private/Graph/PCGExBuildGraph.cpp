@@ -6,7 +6,7 @@
 #define LOCTEXT_NAMESPACE "PCGExBuildGraph"
 
 int32 UPCGExBuildGraphSettings::GetPreferredChunkSize() const { return 32; }
-PCGExPointIO::EInit UPCGExBuildGraphSettings::GetPointOutputInitMode() const { return PCGExPointIO::EInit::DuplicateInput; }
+PCGExData::EInit UPCGExBuildGraphSettings::GetPointOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
 UPCGExBuildGraphSettings::UPCGExBuildGraphSettings(
 	const FObjectInitializer& ObjectInitializer)
@@ -85,12 +85,12 @@ bool FPCGExBuildGraphElement::ExecuteInternal(
 
 	if (Context->IsState(State_ProbingPoints))
 	{
-		auto Initialize = [&](FPCGExPointIO& PointIO)
+		auto Initialize = [&](PCGExData::FPointIO& PointIO)
 		{
 			Context->PrepareCurrentGraphForPoints(PointIO.GetOut(), true);
 		};
 
-		auto ProcessPoint = [&](const int32 PointIndex, const FPCGExPointIO& PointIO)
+		auto ProcessPoint = [&](const int32 PointIndex, const PCGExData::FPointIO& PointIO)
 		{
 			//TODO : Use async to compute results but DO NOT WRITE ON ATTRIBUTES
 
@@ -136,7 +136,7 @@ bool FPCGExBuildGraphElement::ExecuteInternal(
 	if (Context->IsState(PCGExGraph::State_FindingEdgeTypes))
 	{
 		// Process params again for edges types
-		auto ProcessPointEdgeType = [&](const int32 PointIndex, const FPCGExPointIO& PointIO)
+		auto ProcessPointEdgeType = [&](const int32 PointIndex, const PCGExData::FPointIO& PointIO)
 		{
 			ComputeEdgeType(Context->SocketInfos, PointIO.GetOutPoint(PointIndex), PointIndex, PointIO);
 		};

@@ -5,7 +5,7 @@
 
 #define LOCTEXT_NAMESPACE "PCGExFusePointsElement"
 
-PCGExPointIO::EInit UPCGExFusePointsSettings::GetPointOutputInitMode() const { return PCGExPointIO::EInit::NewOutput; }
+PCGExData::EInit UPCGExFusePointsSettings::GetPointOutputInitMode() const { return PCGExData::EInit::NewOutput; }
 
 UPCGExFusePointsSettings::UPCGExFusePointsSettings(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -65,12 +65,12 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsState(PCGExFuse::State_FindingRootPoints))
 	{
-		auto Initialize = [&](FPCGExPointIO& PointIO)
+		auto Initialize = [&](PCGExData::FPointIO& PointIO)
 		{
 			Context->FusedPoints.Reset(PointIO.GetNum() / 2);
 		};
 
-		auto ProcessPoint = [&](const int32 PointIndex, const FPCGExPointIO& PointIO)
+		auto ProcessPoint = [&](const int32 PointIndex, const PCGExData::FPointIO& PointIO)
 		{
 			const FPCGPoint& Point = PointIO.GetInPoint(PointIndex);
 			const FVector PtPosition = Point.Transform.GetLocation();

@@ -43,7 +43,7 @@ public:
 	virtual FName GetMainPointsInputLabel() const override;
 	virtual int32 GetPreferredChunkSize() const override;
 
-	virtual PCGExPointIO::EInit GetPointOutputInitMode() const override;
+	virtual PCGExData::EInit GetPointOutputInitMode() const override;
 
 private:
 	friend class FPCGExBuildGraphElement;
@@ -77,7 +77,7 @@ protected:
 class PCGEXTENDEDTOOLKIT_API FProbeTask : public FPCGExNonAbandonableTask
 {
 public:
-	FProbeTask(FPCGExAsyncManager* InManager, const PCGExMT::FTaskInfos& InInfos, FPCGExPointIO* InPointIO) :
+	FProbeTask(FPCGExAsyncManager* InManager, const PCGExMT::FTaskInfos& InInfos, PCGExData::FPointIO* InPointIO) :
 		FPCGExNonAbandonableTask(InManager, InInfos, InPointIO)
 	{
 	}

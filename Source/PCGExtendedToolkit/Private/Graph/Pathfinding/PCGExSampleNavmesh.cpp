@@ -61,7 +61,7 @@ void UPCGExSampleNavmeshSettings::PostEditChangeProperty(FPropertyChangedEvent& 
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
 
-PCGExPointIO::EInit UPCGExSampleNavmeshSettings::GetPointOutputInitMode() const { return PCGExPointIO::EInit::NoOutput; }
+PCGExData::EInit UPCGExSampleNavmeshSettings::GetPointOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 int32 UPCGExSampleNavmeshSettings::GetPreferredChunkSize() const { return 32; }
 
 FName UPCGExSampleNavmeshSettings::GetMainPointsInputLabel() const { return PCGExPathfinding::SourceSeedsLabel; }
@@ -88,7 +88,7 @@ FPCGContext* FPCGExSampleNavmeshElement::Initialize(const FPCGDataCollection& In
 		Goals.Num() > 0)
 	{
 		const FPCGTaggedData& GoalsSource = Goals[0];
-		Context->GoalsPoints = PCGExPointIO::GetPointIO(Context, GoalsSource);
+		Context->GoalsPoints = PCGExData::PCGExPointIO::GetPointIO(Context, GoalsSource);
 	}
 
 	if (!Settings->NavData)
@@ -100,7 +100,7 @@ FPCGContext* FPCGExSampleNavmeshElement::Initialize(const FPCGDataCollection& In
 		}
 	}
 
-	Context->OutputPaths = new FPCGExPointIOGroup();
+	Context->OutputPaths = new PCGExData::FPointIOGroup();
 
 	Context->GoalPicker = Settings->EnsureInstruction<UPCGExGoalPickerRandom>(Settings->GoalPicker, Context);
 	Context->Blending = Settings->EnsureInstruction<UPCGExSubPointsBlendInterpolate>(Settings->Blending, Context);
@@ -156,7 +156,7 @@ bool FPCGExSampleNavmeshElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsState(PCGExMT::State_ProcessingPoints))
 	{
-		auto ProcessSeed = [&](const int32 PointIndex, const FPCGExPointIO& PointIO)
+		auto ProcessSeed = [&](const int32 PointIndex, const PCGExData::FPointIO& PointIO)
 		{
 			auto NavMeshTask = [&](int32 InGoalIndex)
 			{
@@ -287,7 +287,7 @@ bool FNavmeshPathTask::ExecuteTask()
 			{
 				PCGEX_ASYNC_CHECKPOINT
 
-				FPCGExPointIO& PathPoints = Context->OutputPaths->Emplace_GetRef(Context->GetCurrentIn(), PCGExPointIO::EInit::NewOutput);
+				PCGExData::FPointIO& PathPoints = Context->OutputPaths->Emplace_GetRef(Context->GetCurrentIn(), PCGExData::EInit::NewOutput);
 				Path->PathPoints = &PathPoints;
 
 				const int32 NumPositions = PathLocations.Num();

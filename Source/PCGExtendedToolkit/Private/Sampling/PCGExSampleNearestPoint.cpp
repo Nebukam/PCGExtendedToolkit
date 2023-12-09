@@ -34,7 +34,7 @@ TArray<FPCGPinProperties> UPCGExSampleNearestPointSettings::InputPinProperties()
 	return PinProperties;
 }
 
-PCGExPointIO::EInit UPCGExSampleNearestPointSettings::GetPointOutputInitMode() const { return PCGExPointIO::EInit::DuplicateInput; }
+PCGExData::EInit UPCGExSampleNearestPointSettings::GetPointOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
 int32 UPCGExSampleNearestPointSettings::GetPreferredChunkSize() const { return 32; }
 
@@ -170,7 +170,7 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 
 	if (Context->IsState(PCGExMT::State_ProcessingPoints))
 	{
-		auto Initialize = [&](FPCGExPointIO& PointIO)
+		auto Initialize = [&](PCGExData::FPointIO& PointIO)
 		{
 			PointIO.BuildMetadataEntries();
 
@@ -199,7 +199,7 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 			PCGEX_INIT_ATTRIBUTE_OUT(Angle, double)
 		};
 
-		auto ProcessPoint = [&](const int32 ReadIndex, const FPCGExPointIO& PointIO)
+		auto ProcessPoint = [&](const int32 ReadIndex, const PCGExData::FPointIO& PointIO)
 		{
 			const FPCGPoint& Point = PointIO.GetOutPoint(ReadIndex);
 

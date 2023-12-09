@@ -12,7 +12,7 @@ EPCGExDataBlendingType UPCGExSubPointsBlendOperation::GetDefaultBlending()
 	return EPCGExDataBlendingType::Copy;
 }
 
-void UPCGExSubPointsBlendOperation::PrepareForData(FPCGExPointIO& InData, FPCGAttributeAccessorKeysPoints* InPrimaryKeys)
+void UPCGExSubPointsBlendOperation::PrepareForData(PCGExData::FPointIO& InData, FPCGAttributeAccessorKeysPoints* InPrimaryKeys)
 {
 	Super::PrepareForData(InData);
 	PrepareForData(InData.GetOut(), InData.GetOut(), InPrimaryKeys, InPrimaryKeys);

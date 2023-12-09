@@ -11,6 +11,7 @@
 
 #include "PCGEx.h"
 #include "PCGExMath.h"
+#include "Metadata/Accessors/PCGAttributeAccessor.h"
 
 #include "PCGExAttributeHelpers.generated.h"
 
@@ -183,34 +184,171 @@ namespace PCGEx
 
 		FString GetDisplayName() const { return FString(Name.ToString() + FString::Printf(TEXT("( %d )"), UnderlyingType)); }
 		bool operator==(const FAttributeIdentity& Other) const { return Name == Other.Name; }
+
+		static void Get(const UPCGPointData* InData, TArray<FAttributeIdentity>& OutIdentities);
+		static void Get(const UPCGPointData* InData, TArray<FName>& OutNames, TMap<FName, FAttributeIdentity>& OutIdentities);
 	};
 
-	static void GetAttributeIdentities(const UPCGPointData* InData, TArray<FAttributeIdentity>& OutIdentities)
-	{
-		if (!InData->Metadata) { return; }
-		TArray<FName> Names;
-		TArray<EPCGMetadataTypes> Types;
-		InData->Metadata->GetAttributes(Names, Types);
-		const int32 NumAttributes = Names.Num();
-		for (int i = 0; i < NumAttributes; i++)
-		{
-			OutIdentities.AddUnique(FAttributeIdentity(Names[i], Types[i]));
-		}
-	}
+#pragma region Accessors
 
-	static void GetAttributeIdentities(const UPCGPointData* InData, TArray<FName>& OutNames, TMap<FName, FAttributeIdentity>& OutIdentities)
+	template <typename T>
+	class PCGEXTENDEDTOOLKIT_API FAttributeAccessorBase
 	{
-		if (!InData->Metadata) { return; }
-		TArray<EPCGMetadataTypes> Types;
-		InData->Metadata->GetAttributes(OutNames, Types);
-		const int32 NumAttributes = OutNames.Num();
-		for (int i = 0; i < NumAttributes; i++)
+	protected:
+		FPCGMetadataAttribute<T>* Attribute = nullptr;
+		int32 NumEntries = -1;
+		TUniquePtr<FPCGAttributeAccessor<T>> Accessor;
+		FPCGAttributeAccessorKeysPoints* InternalKeys = nullptr;
+		IPCGAttributeAccessorKeys* Keys = nullptr;
+
+		void Flush()
 		{
-			FName Name = OutNames[i];
-			OutNames.Add(Name);
-			OutIdentities.Add(Name, FAttributeIdentity(Name, Types[i]));
+			if (Accessor) { Accessor.Reset(); }
+			delete InternalKeys;
+			Keys = nullptr;
+			Attribute = nullptr;
 		}
-	}
+
+	public:
+		FAttributeAccessorBase(const UPCGPointData* InData, FPCGMetadataAttributeBase* InAttribute, FPCGAttributeAccessorKeysPoints* InKeys)
+		{
+			Flush();
+			Attribute = static_cast<FPCGMetadataAttribute<T>*>(InAttribute);
+			Accessor = MakeUnique<FPCGAttributeAccessor<T>>(Attribute, InData->Metadata);
+			NumEntries = InKeys->GetNum();
+			Keys = InKeys;
+		}
+
+		T GetDefaultValue() { return Attribute->GetValue(PCGInvalidEntryKey); }
+
+		int32 GetNum() const { return NumEntries; }
+
+		virtual T Get(const int32 Index)
+		{
+			if (T OutValue; Get(OutValue, Index)) { return OutValue; }
+			return GetDefaultValue();
+		}
+
+		bool Get(T& OutValue, int32 Index) const
+		{
+			TArrayView<T> Temp(&OutValue, 1);
+			return GetRange(TArrayView<T>(&OutValue, 1), Index);
+		}
+
+		bool GetRange(TArrayView<T> OutValues, int32 Index, FPCGAttributeAccessorKeysPoints& InKeys) const
+		{
+			return Accessor->GetRange(OutValues, Index, InKeys, EPCGAttributeAccessorFlags::StrictType);
+		}
+
+		bool GetRange(TArrayView<T> OutValues, int32 Index) const { return GetRange(OutValues, Index, *Keys); }
+
+		
+		bool GetRange(TArray<T>& OutValues, const int32 Index, FPCGAttributeAccessorKeysPoints& InKeys, int32 Count = -1) const
+		{
+			if (Count == -1) { Count = NumEntries - Index; }
+			OutValues.SetNumUninitialized(Count, true);
+			TArrayView<T> View(OutValues);
+			return GetRange(View, Index, InKeys);
+		}
+
+		bool GetRange(TArray<T>& OutValues, int32 Index = 0, int32 Count = -1) const
+		{
+			return GetRange(OutValues, Index, *Keys, Count);
+		}
+		
+
+		bool Set(const T& InValue, const int32 Index) { return SetRange(TArrayView<const T>(&InValue, 1), Index); }
+
+		
+		bool SetRange(TArrayView<const T> InValues, int32 Index, FPCGAttributeAccessorKeysPoints& InKeys)
+		{
+			return Accessor->SetRange(InValues, Index, InKeys, EPCGAttributeAccessorFlags::StrictType);
+		}
+		
+		bool SetRange(TArrayView<const T> InValues, int32 Index) { return SetRange(InValues, Index, *Keys); }
+
+		
+		bool SetRange(TArray<T>& InValues, int32 Index, FPCGAttributeAccessorKeysPoints& InKeys)
+		{
+			TArrayView<T> View(InValues);
+			return Accessor->SetRange(View, Index, InKeys, EPCGAttributeAccessorFlags::StrictType);
+		}
+		
+		bool SetRange(TArray<T>& InValues, int32 Index = 0)
+		{
+			TArrayView<T> View(InValues);
+			return SetRange(View, Index, *Keys);
+		}
+
+		virtual ~FAttributeAccessorBase()
+		{
+			Flush();
+		}
+	};
+
+	template <typename T>
+	class PCGEXTENDEDTOOLKIT_API FAttributeAccessor : public FAttributeAccessorBase<T>
+	{
+	public:
+		FAttributeAccessor(const UPCGPointData* InData, FPCGMetadataAttributeBase* InAttribute, FPCGAttributeAccessorKeysPoints* InKeys)
+			: FAttributeAccessorBase<T>(InData, InAttribute, InKeys)
+		{
+		}
+
+		FAttributeAccessor(UPCGPointData* InData, FPCGMetadataAttributeBase* InAttribute): FAttributeAccessorBase<T>()
+		{
+			this->Flush();
+			this->Attribute = static_cast<FPCGMetadataAttribute<T>*>(InAttribute);
+			this->Accessor = MakeUnique<FPCGAttributeAccessor<T>>(this->Attribute, InData->Metadata);
+
+			const TArrayView<FPCGPoint> View(InData->GetMutablePoints());
+			this->InternalKeys = new FPCGAttributeAccessorKeysPoints(View);
+
+			this->NumEntries = this->InternalKeys->GetNum();
+			this->Keys = this->InternalKeys;
+		}
+
+
+		static FAttributeAccessor* FindOrCreate(
+			UPCGPointData* InData, FName AttributeName,
+			const T& DefaultValue = T{}, bool bAllowsInterpolation = true, bool bOverrideParent = true, bool bOverwriteIfTypeMismatch = true)
+		{
+			FPCGMetadataAttribute<T>* InAttribute = InData->Metadata->FindOrCreateAttribute(AttributeName, DefaultValue, bAllowsInterpolation, bOverrideParent, bOverwriteIfTypeMismatch);
+			return new FAttributeAccessor<T>(InData, InAttribute);
+		}
+
+		static FAttributeAccessor* FindOrCreate(
+			UPCGPointData* InData, FName AttributeName, FPCGAttributeAccessorKeysPoints* InKeys,
+			const T& DefaultValue = T{}, bool bAllowsInterpolation = true, bool bOverrideParent = true, bool bOverwriteIfTypeMismatch = true)
+		{
+			FPCGMetadataAttribute<T>* InAttribute = InData->Metadata->FindOrCreateAttribute(AttributeName, DefaultValue, bAllowsInterpolation, bOverrideParent, bOverwriteIfTypeMismatch);
+			return new FAttributeAccessor<T>(InData, InAttribute, InKeys);
+		}
+	};
+
+	template <typename T>
+	class PCGEXTENDEDTOOLKIT_API FConstAttributeAccessor : public FAttributeAccessorBase<T>
+	{
+	public:
+		FConstAttributeAccessor(const UPCGPointData* InData, FPCGMetadataAttributeBase* InAttribute, FPCGAttributeAccessorKeysPoints* InKeys)
+			: FAttributeAccessorBase<T>(InData, InAttribute, InKeys)
+		{
+		}
+
+		FConstAttributeAccessor(const UPCGPointData* InData, FPCGMetadataAttributeBase* InAttribute): FAttributeAccessorBase<T>()
+		{
+			this->Flush();
+			this->Attribute = static_cast<FPCGMetadataAttribute<T>*>(InAttribute);
+			this->Accessor = MakeUnique<FPCGAttributeAccessor<T>>(this->Attribute, InData->Metadata);
+
+			this->InternalKeys = new FPCGAttributeAccessorKeysPoints(InData->GetPoints());
+
+			this->NumEntries = this->InternalKeys->GetNum();
+			this->Keys = this->InternalKeys;
+		}
+	};
+
+#pragma endregion
 
 	template <typename T>
 	static FPCGMetadataAttribute<T>* TryGetAttribute(UPCGSpatialData* InData, FName Name, bool bEnabled, T defaultValue = T{})

@@ -24,7 +24,7 @@ public:
 	FPCGMetadataAttribute<FVector>* ArriveAttribute = nullptr;
 	FPCGMetadataAttribute<FVector>* LeaveAttribute = nullptr;
 
-	virtual void PrepareForData(FPCGExPointIO& InPath);
+	virtual void PrepareForData(PCGExData::FPointIO& InPath);
 	virtual void ProcessFirstPoint(const int32 Index, const FPCGPoint& Point, const FPCGPoint& NextPoint) const;
 	virtual void ProcessLastPoint(const int32 Index, const FPCGPoint& Point, const FPCGPoint& PreviousPoint) const;
 	virtual void ProcessPoint(const int32 Index, const FPCGPoint& Point, const FPCGPoint& PreviousPoint, const FPCGPoint& NextPoint) const;

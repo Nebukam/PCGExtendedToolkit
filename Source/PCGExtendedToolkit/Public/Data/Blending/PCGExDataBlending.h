@@ -3,6 +3,7 @@
 
 #pragma once
 #include "PCGEx.h"
+#include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGPointData.h"
 #include "Metadata/Accessors/PCGAttributeAccessor.h"
 
@@ -101,121 +102,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBlendingSettings
 
 namespace PCGExDataBlending
 {
-	template <typename T>
-	class PCGEXTENDEDTOOLKIT_API FAttributeAccessorBase
-	{
-	protected:
-		FPCGMetadataAttribute<T>* Attribute = nullptr;
-		int32 NumEntries = -1;
-		TUniquePtr<FPCGAttributeAccessor<T>> Accessor;
-		FPCGAttributeAccessorKeysPoints* InternalKeys = nullptr;
-		IPCGAttributeAccessorKeys* Keys = nullptr;
-
-		void Flush()
-		{
-			if (Accessor) { Accessor.Reset(); }
-			delete InternalKeys;
-			Keys = nullptr;
-			Attribute = nullptr;
-		}
-
-	public:
-		FAttributeAccessorBase(const UPCGPointData* InData, FPCGMetadataAttributeBase* InAttribute, FPCGAttributeAccessorKeysPoints* InKeys)
-		{
-			Flush();
-			Attribute = static_cast<FPCGMetadataAttribute<T>*>(InAttribute);
-			Accessor = MakeUnique<FPCGAttributeAccessor<T>>(Attribute, InData->Metadata);
-			NumEntries = InKeys->GetNum();
-			Keys = InKeys;
-		}
-
-		T GetDefaultValue() { return Attribute->GetValue(PCGInvalidEntryKey); }
-
-		int32 GetNum() const { return NumEntries; }
-
-		virtual T Get(const int32 Index)
-		{
-			if (T OutValue; Get(OutValue, Index)) { return OutValue; }
-			return GetDefaultValue();
-		}
-
-		bool Get(T& OutValue, int32 Index) const
-		{
-			TArrayView<T> Temp(&OutValue, 1);
-			return GetRange(TArrayView<T>(&OutValue, 1), Index);
-		}
-
-		bool GetRange(TArrayView<T> OutValues, int32 Index) const { return Accessor->GetRange(OutValues, Index, *Keys, EPCGAttributeAccessorFlags::StrictType); }
-
-		bool GetRange(TArray<T>& OutValues, int32 Index = 0, int32 Count = -1) const
-		{
-			if (Count == -1) { Count = NumEntries - Index; }
-			OutValues.SetNumUninitialized(Count, true);
-			TArrayView<T> View(OutValues);
-			return GetRange(View, Index);
-		}
-
-		bool Set(const T& InValue, int32 Index) { return SetRange(TArrayView<const T>(&InValue, 1), Index); }
-
-		bool SetRange(TArrayView<const T> InValues, int32 Index) { return Accessor->SetRange(InValues, Index, *Keys, EPCGAttributeAccessorFlags::StrictType); }
-
-		bool SetRange(TArray<T>& InValues, int32 Index = 0)
-		{
-			TArrayView<T> View(InValues);
-			return SetRange(View, Index);
-		}
-
-		virtual ~FAttributeAccessorBase()
-		{
-			Flush();
-		}
-	};
-
-	template <typename T>
-	class PCGEXTENDEDTOOLKIT_API FAttributeAccessor : public FAttributeAccessorBase<T>
-	{
-	public:
-		FAttributeAccessor(const UPCGPointData* InData, FPCGMetadataAttributeBase* InAttribute, FPCGAttributeAccessorKeysPoints* InKeys)
-			: FAttributeAccessorBase<T>(InData, InAttribute, InKeys)
-		{
-		}
-
-		FAttributeAccessor(UPCGPointData* InData, FPCGMetadataAttributeBase* InAttribute): FAttributeAccessorBase<T>()
-		{
-			this->Flush();
-			this->Attribute = static_cast<FPCGMetadataAttribute<T>*>(InAttribute);
-			this->Accessor = MakeUnique<FPCGAttributeAccessor<T>>(this->Attribute, InData->Metadata);
-
-			const TArrayView<FPCGPoint> View(InData->GetMutablePoints());
-			this->InternalKeys = new FPCGAttributeAccessorKeysPoints(View);
-
-			this->NumEntries = this->InternalKeys->GetNum();
-			this->Keys = this->InternalKeys;
-		}
-	};
-
-	template <typename T>
-	class PCGEXTENDEDTOOLKIT_API FConstAttributeAccessor : public FAttributeAccessorBase<T>
-	{
-	public:
-		FConstAttributeAccessor(const UPCGPointData* InData, FPCGMetadataAttributeBase* InAttribute, FPCGAttributeAccessorKeysPoints* InKeys)
-			: FAttributeAccessorBase<T>(InData, InAttribute, InKeys)
-		{
-		}
-
-		FConstAttributeAccessor(const UPCGPointData* InData, FPCGMetadataAttributeBase* InAttribute): FAttributeAccessorBase<T>()
-		{
-			this->Flush();
-			this->Attribute = static_cast<FPCGMetadataAttribute<T>*>(InAttribute);
-			this->Accessor = MakeUnique<FPCGAttributeAccessor<T>>(this->Attribute, InData->Metadata);
-
-			this->InternalKeys = new FPCGAttributeAccessorKeysPoints(InData->GetPoints());
-
-			this->NumEntries = this->InternalKeys->GetNum();
-			this->Keys = this->InternalKeys;
-		}
-	};
-
+	
 	/**
 	 * 
 	 */
@@ -274,11 +161,11 @@ namespace PCGExDataBlending
 			}
 			
 			delete PrimaryAccessor;
-			PrimaryAccessor = new FAttributeAccessor<T>(InPrimaryData, PrimaryBaseAttribute, InPrimaryKeys);
+			PrimaryAccessor = new PCGEx::FAttributeAccessor<T>(InPrimaryData, PrimaryBaseAttribute, InPrimaryKeys);
 
 			//TODO: Reuse first dataset if ==
 			delete SecondaryAccessor;
-			SecondaryAccessor = new FConstAttributeAccessor<T>(InSecondaryData, SecondaryBaseAttribute, InSecondaryKeys);
+			SecondaryAccessor = new PCGEx::FConstAttributeAccessor<T>(InSecondaryData, SecondaryBaseAttribute, InSecondaryKeys);
 		}
 
 #define PCGEX_TEMP_VALUES TArray<T> Values; Values.SetNum(Count); TArrayView<T> View(Values);
@@ -371,8 +258,8 @@ namespace PCGExDataBlending
 		}
 
 	protected:
-		FAttributeAccessorBase<T>* PrimaryAccessor = nullptr;
-		FAttributeAccessorBase<T>* SecondaryAccessor = nullptr;
+		PCGEx::FAttributeAccessorBase<T>* PrimaryAccessor = nullptr;
+		PCGEx::FAttributeAccessorBase<T>* SecondaryAccessor = nullptr;
 	};
 
 #pragma region Add

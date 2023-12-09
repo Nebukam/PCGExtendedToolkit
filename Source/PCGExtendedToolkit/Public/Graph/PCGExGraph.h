@@ -774,7 +774,7 @@ namespace PCGExGraph
 		const TArray<FSocketInfos>& SocketInfos,
 		const FPCGPoint& Point,
 		const int32 ReadIndex,
-		const FPCGExPointIO& PointIO)
+		const PCGExData::FPointIO& PointIO)
 	{
 		for (const FSocketInfos& CurrentSocketInfos : SocketInfos)
 		{

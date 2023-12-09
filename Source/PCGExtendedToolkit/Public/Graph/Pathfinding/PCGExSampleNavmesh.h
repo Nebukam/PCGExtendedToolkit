@@ -30,7 +30,7 @@ namespace PCGExSampleNavmesh
 
 		TArray<FVector> Positions;
 		PCGExMath::FPathInfos Infos;
-		FPCGExPointIO* PathPoints = nullptr;
+		PCGExData::FPointIO* PathPoints = nullptr;
 
 		int32 SeedIndex = -1;
 		FVector Start;
@@ -73,7 +73,7 @@ protected:
 	//~End UPCGSettings interface
 
 public:
-	virtual PCGExPointIO::EInit GetPointOutputInitMode() const override;
+	virtual PCGExData::EInit GetPointOutputInitMode() const override;
 	virtual int32 GetPreferredChunkSize() const override;
 
 	virtual FName GetMainPointsInputLabel() const override;
@@ -125,8 +125,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNavmeshContext : public FPCGExPointsPr
 
 	virtual ~FPCGExSampleNavmeshContext() override;
 	
-	FPCGExPointIO* GoalsPoints = nullptr;
-	FPCGExPointIOGroup* OutputPaths = nullptr;
+	PCGExData::FPointIO* GoalsPoints = nullptr;
+	PCGExData::FPointIOGroup* OutputPaths = nullptr;
 
 	UPCGExGoalPicker* GoalPicker = nullptr;
 	UPCGExSubPointsBlendOperation* Blending = nullptr;
@@ -163,7 +163,7 @@ class PCGEXTENDEDTOOLKIT_API FNavmeshPathTask : public FPCGExNonAbandonableTask
 {
 public:
 	FNavmeshPathTask(
-		FPCGExAsyncManager* InManager, const PCGExMT::FTaskInfos& InInfos, FPCGExPointIO* InPointIO,
+		FPCGExAsyncManager* InManager, const PCGExMT::FTaskInfos& InInfos, PCGExData::FPointIO* InPointIO,
 		PCGExSampleNavmesh::FPath* InPath) :
 		FPCGExNonAbandonableTask(InManager, InInfos, InPointIO),
 		Path(InPath)

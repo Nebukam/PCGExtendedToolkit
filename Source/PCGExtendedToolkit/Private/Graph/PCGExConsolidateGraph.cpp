@@ -7,7 +7,7 @@
 
 int32 UPCGExConsolidateGraphSettings::GetPreferredChunkSize() const { return 32; }
 
-PCGExPointIO::EInit UPCGExConsolidateGraphSettings::GetPointOutputInitMode() const { return PCGExPointIO::EInit::DuplicateInput; }
+PCGExData::EInit UPCGExConsolidateGraphSettings::GetPointOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
 FPCGElementPtr UPCGExConsolidateGraphSettings::CreateElement() const
 {
@@ -64,14 +64,14 @@ bool FPCGExConsolidateGraphElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExGraph::State_CachingGraphIndices))
 	{
-		auto Initialize = [&](FPCGExPointIO& PointIO)
+		auto Initialize = [&](PCGExData::FPointIO& PointIO)
 		{
 			Context->IndicesRemap.Empty(PointIO.GetNum());
 			PointIO.BuildMetadataEntries();
 			Context->PrepareCurrentGraphForPoints(PointIO.GetOut(), true); // Prepare to read PointIO->Out
 		};
 
-		auto ProcessPoint = [&](const int32 PointIndex, const FPCGExPointIO& PointIO)
+		auto ProcessPoint = [&](const int32 PointIndex, const PCGExData::FPointIO& PointIO)
 		{
 			FWriteScopeLock WriteLock(Context->IndicesLock);
 			const int64 Key = PointIO.GetOutPoint(PointIndex).MetadataEntry;
@@ -91,7 +91,7 @@ bool FPCGExConsolidateGraphElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExGraph::State_SwappingGraphIndices))
 	{
-		auto ConsolidatePoint = [&](const int32 PointIndex, const FPCGExPointIO& PointIO)
+		auto ConsolidatePoint = [&](const int32 PointIndex, const PCGExData::FPointIO& PointIO)
 		{
 			FReadScopeLock ReadLock(Context->IndicesLock);
 			const FPCGPoint& Point = PointIO.GetOutPoint(PointIndex);
@@ -123,7 +123,7 @@ bool FPCGExConsolidateGraphElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExGraph::State_FindingEdgeTypes))
 	{
-		auto ConsolidateEdgesType = [&](const int32 PointIndex, const FPCGExPointIO& PointIO)
+		auto ConsolidateEdgesType = [&](const int32 PointIndex, const PCGExData::FPointIO& PointIO)
 		{
 			ComputeEdgeType(Context->SocketInfos, PointIO.GetOutPoint(PointIndex), PointIndex, PointIO);
 		};

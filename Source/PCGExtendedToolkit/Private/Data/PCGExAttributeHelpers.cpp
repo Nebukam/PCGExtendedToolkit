@@ -38,6 +38,33 @@ bool FPCGExInputDescriptor::Validate(const UPCGPointData* InData)
 	return false;
 }
 
+void PCGEx::FAttributeIdentity::Get(const UPCGPointData* InData, TArray<FAttributeIdentity>& OutIdentities)
+{
+	if (!InData->Metadata) { return; }
+	TArray<FName> Names;
+	TArray<EPCGMetadataTypes> Types;
+	InData->Metadata->GetAttributes(Names, Types);
+	const int32 NumAttributes = Names.Num();
+	for (int i = 0; i < NumAttributes; i++)
+	{
+		OutIdentities.AddUnique(FAttributeIdentity(Names[i], Types[i]));
+	}
+}
+
+void PCGEx::FAttributeIdentity::Get(const UPCGPointData* InData, TArray<FName>& OutNames, TMap<FName, FAttributeIdentity>& OutIdentities)
+{
+	if (!InData->Metadata) { return; }
+	TArray<EPCGMetadataTypes> Types;
+	InData->Metadata->GetAttributes(OutNames, Types);
+	const int32 NumAttributes = OutNames.Num();
+	for (int i = 0; i < NumAttributes; i++)
+	{
+		FName Name = OutNames[i];
+		OutNames.Add(Name);
+		OutIdentities.Add(Name, FAttributeIdentity(Name, Types[i]));
+	}
+}
+
 void PCGEx::FLocalSingleFieldGetter::Capture(const FPCGExInputDescriptorWithSingleField& InDescriptor)
 {
 	Descriptor = static_cast<FPCGExInputDescriptor>(InDescriptor);

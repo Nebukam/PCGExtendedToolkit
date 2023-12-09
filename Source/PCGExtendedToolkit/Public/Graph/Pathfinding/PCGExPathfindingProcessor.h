@@ -35,7 +35,7 @@ public:
 
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 
-	virtual PCGExPointIO::EInit GetPointOutputInitMode() const override;
+	virtual PCGExData::EInit GetPointOutputInitMode() const override;
 	virtual bool GetRequiresSeeds() const;
 	virtual bool GetRequiresGoals() const;
 
@@ -62,9 +62,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingProcessorContext : public FPCGExG
 
 	virtual ~FPCGExPathfindingProcessorContext() override;
 
-	FPCGExPointIO* SeedsPoints = nullptr;
-	FPCGExPointIO* GoalsPoints = nullptr;
-	FPCGExPointIOGroup* OutputPaths = nullptr;
+	PCGExData::FPointIO* SeedsPoints = nullptr;
+	PCGExData::FPointIO* GoalsPoints = nullptr;
+	PCGExData::FPointIOGroup* OutputPaths = nullptr;
 
 	UPCGExGoalPicker* GoalPicker;
 	UPCGExSubPointsBlendOperation* Blending;

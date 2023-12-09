@@ -6,7 +6,7 @@
 
 #include "..\..\..\..\Public\Data\PCGExPointIO.h"
 
-void UPCGExSubPointsOrientOperation::PrepareForData(FPCGExPointIO& InData, FPCGAttributeAccessorKeysPoints* InPrimaryKeys)
+void UPCGExSubPointsOrientOperation::PrepareForData(PCGExData::FPointIO& InData, FPCGAttributeAccessorKeysPoints* InPrimaryKeys)
 {
 	Super::PrepareForData(InData, InPrimaryKeys);
 }

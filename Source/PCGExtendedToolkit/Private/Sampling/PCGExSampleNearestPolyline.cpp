@@ -27,7 +27,7 @@ TArray<FPCGPinProperties> UPCGExSampleNearestPolylineSettings::InputPinPropertie
 	return PinProperties;
 }
 
-PCGExPointIO::EInit UPCGExSampleNearestPolylineSettings::GetPointOutputInitMode() const { return PCGExPointIO::EInit::DuplicateInput; }
+PCGExData::EInit UPCGExSampleNearestPolylineSettings::GetPointOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
 int32 UPCGExSampleNearestPolylineSettings::GetPreferredChunkSize() const { return 32; }
 
@@ -117,7 +117,7 @@ bool FPCGExSampleNearestPolylineElement::Validate(FPCGContext* InContext) const
 
 	Context->NormalSource = Settings->NormalSource;
 
-	Context->NumTargets = Context->Targets->PolyLines.Num();
+	Context->NumTargets = Context->Targets->Lines.Num();
 
 	return true;
 }
@@ -142,7 +142,7 @@ bool FPCGExSampleNearestPolylineElement::ExecuteInternal(FPCGContext* InContext)
 
 	if (Context->IsState(PCGExMT::State_ProcessingPoints))
 	{
-		auto Initialize = [&](FPCGExPointIO& PointIO)
+		auto Initialize = [&](PCGExData::FPointIO& PointIO)
 		{
 			PointIO.BuildMetadataEntries();
 
@@ -172,7 +172,7 @@ bool FPCGExSampleNearestPolylineElement::ExecuteInternal(FPCGContext* InContext)
 			PCGEX_INIT_ATTRIBUTE_OUT(Time, double)
 		};
 
-		auto ProcessPoint = [&](const int32 PointIndex, const FPCGExPointIO& PointIO)
+		auto ProcessPoint = [&](const int32 PointIndex, const PCGExData::FPointIO& PointIO)
 		{
 			const FPCGPoint& Point = PointIO.GetOutPoint(PointIndex);
 
@@ -208,7 +208,7 @@ bool FPCGExSampleNearestPolylineElement::ExecuteInternal(FPCGContext* InContext)
 			// First: Sample all possible targets
 			if (RangeMax > 0)
 			{
-				for (PCGExData::FPolyLineIO* Line : Context->Targets->PolyLines)
+				for (PCGExData::FPolyLineIO* Line : Context->Targets->Lines)
 				{
 					FTransform SampledTransform;
 					double Time;
@@ -218,7 +218,7 @@ bool FPCGExSampleNearestPolylineElement::ExecuteInternal(FPCGContext* InContext)
 			}
 			else
 			{
-				for (PCGExData::FPolyLineIO* Line : Context->Targets->PolyLines)
+				for (PCGExData::FPolyLineIO* Line : Context->Targets->Lines)
 				{
 					double Time;
 					ProcessTarget(Line->SampleNearestTransform(Origin, Time), Time);

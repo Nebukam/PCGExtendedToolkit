@@ -7,7 +7,7 @@
 
 #define LOCTEXT_NAMESPACE "PCGExDiscardByPointCountElement"
 
-PCGExPointIO::EInit UPCGExDiscardByPointCountSettings::GetPointOutputInitMode() const { return PCGExPointIO::EInit::NoOutput; }
+PCGExData::EInit UPCGExDiscardByPointCountSettings::GetPointOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 
 FPCGElementPtr UPCGExDiscardByPointCountSettings::CreateElement() const { return MakeShared<FPCGExDiscardByPointCountElement>(); }
 
@@ -25,7 +25,7 @@ bool FPCGExDiscardByPointCountElement::ExecuteInternal(FPCGContext* InContext) c
 	const UPCGExDiscardByPointCountSettings* Settings = InContext->GetInputSettings<UPCGExDiscardByPointCountSettings>();
 	check(Settings);
 
-	auto ProcessInput = [&](FPCGExPointIO& PointIO, int32)
+	auto ProcessInput = [&](PCGExData::FPointIO& PointIO, int32)
 	{
 		if (Settings->OutsidePointCountFilter(PointIO.GetNum())) { return; }
 

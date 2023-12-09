@@ -4,7 +4,7 @@
 #pragma once
 
 #include "PCGContext.h"
-#include "Data\PCGExPointIO.h"
+#include "Data/PCGExPointIO.h"
 #include "Helpers/PCGAsync.h"
 #include "Metadata/PCGMetadataCommon.h"
 
@@ -261,7 +261,7 @@ public:
 	}
 
 	template <typename T, typename... Args>
-	void Start(int32 Index, PCGMetadataAttributeKey Key, FPCGExPointIO* InPointsIO, Args... args)
+	void Start(int32 Index, PCGMetadataAttributeKey Key, PCGExData::FPointIO* InPointsIO, Args... args)
 	{
 		Start(new FAsyncTask<T>(this, PCGExMT::FTaskInfos(Index, Key), InPointsIO, args...));
 	}
@@ -281,7 +281,7 @@ public:
 	}
 
 	template <typename T, typename... Args>
-	void StartSync(int32 Index, PCGMetadataAttributeKey Key, FPCGExPointIO* InPointsIO, Args... args)
+	void StartSync(int32 Index, PCGMetadataAttributeKey Key, PCGExData::FPointIO* InPointsIO, Args... args)
 	{
 		StartSync(new FAsyncTask<T>(this, PCGExMT::FTaskInfos(Index, Key), InPointsIO, args...));
 	}
@@ -312,7 +312,7 @@ public:
 #define PCGEX_ASYNC_CHECKPOINT  if (!Checkpoint()) { return false; }
 
 	FPCGExNonAbandonableTask(
-		FPCGExAsyncManager* InManager, const PCGExMT::FTaskInfos& InInfos, FPCGExPointIO* InPointIO) :
+		FPCGExAsyncManager* InManager, const PCGExMT::FTaskInfos& InInfos, PCGExData::FPointIO* InPointIO) :
 		Manager(InManager), TaskInfos(InInfos), PointIO(InPointIO)
 	{
 	}
@@ -334,7 +334,7 @@ public:
 
 	FPCGExAsyncManager* Manager = nullptr;
 	PCGExMT::FTaskInfos TaskInfos;
-	FPCGExPointIO* PointIO = nullptr;
+	PCGExData::FPointIO* PointIO = nullptr;
 
 protected:
 	bool bWorkDone = false;

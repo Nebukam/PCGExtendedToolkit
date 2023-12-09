@@ -6,7 +6,7 @@
 
 #include "..\..\..\Public\Data\PCGExPointIO.h"
 
-void UPCGExCustomTangents::PrepareForData(FPCGExPointIO& InPath)
+void UPCGExCustomTangents::PrepareForData(PCGExData::FPointIO& InPath)
 {
 	Super::PrepareForData(InPath);
 	Arrive.PrepareForData(InPath.GetOut());

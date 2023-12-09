@@ -28,7 +28,7 @@ public:
 	PCGEX_NODE_INFOS(SampleNearestSurface, "Sample Nearest Surface", "Find the closest point on the nearest collidable surface.");
 #endif
 
-	virtual PCGExPointIO::EInit GetPointOutputInitMode() const override;
+	virtual PCGExData::EInit GetPointOutputInitMode() const override;
 	virtual int32 GetPreferredChunkSize() const override;
 
 protected:
@@ -155,7 +155,7 @@ protected:
 class PCGEXTENDEDTOOLKIT_API FSweepSphereTask : public FPCGExCollisionTask
 {
 public:
-	FSweepSphereTask(FPCGExAsyncManager* InManager, const PCGExMT::FTaskInfos& InInfos, FPCGExPointIO* InPointIO) :
+	FSweepSphereTask(FPCGExAsyncManager* InManager, const PCGExMT::FTaskInfos& InInfos, PCGExData::FPointIO* InPointIO) :
 		FPCGExCollisionTask(InManager, InInfos, InPointIO)
 	{
 	}

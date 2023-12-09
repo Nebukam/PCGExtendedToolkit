@@ -9,16 +9,17 @@
 
 namespace PCGExData
 {
-	FPolyLineIO::FPolyLineIO(const UPCGPolyLineData& InPolyline):
-		In(&InPolyline)
+	FPolyLineIO::FPolyLineIO(const UPCGPolyLineData& InPolyline)
+		: In(&InPolyline)
 	{
+		Segments.Empty();
 		Bounds = FBox(ForceInit);
 	}
 
 	FPolyLineIO::~FPolyLineIO()
 	{
-		Segments.Empty();
 		In = nullptr;
+		Segments.Empty();
 	}
 
 	PolyLine::FSegment* FPolyLineIO::NearestSegment(const FVector& Location)
@@ -119,8 +120,8 @@ namespace PCGExData
 
 	FPolyLineIOGroup::~FPolyLineIOGroup()
 	{
-		for (const FPolyLineIO* Line : PolyLines) { delete Line; }
-		PolyLines.Empty();
+		for (const FPolyLineIO* Line : Lines) { delete Line; }
+		Lines.Empty();
 	}
 
 	FPolyLineIO* FPolyLineIOGroup::Emplace_GetRef(const FPolyLineIO& PointIO)
@@ -132,8 +133,8 @@ namespace PCGExData
 	{
 		//FWriteScopeLock WriteLock(PairsLock);
 
-		FPolyLineIO * Line = new FPolyLineIO(*In);
-		PolyLines.Add(Line);
+		FPolyLineIO* Line = new FPolyLineIO(*In);
+		Lines.Add(Line);
 		Line->Source = Source;
 		Line->BuildCache();
 		return Line;
@@ -143,10 +144,7 @@ namespace PCGExData
 	{
 		double MinDistance = TNumericLimits<double>::Max();
 		bool bFound = false;
-		for (FPolyLineIO * Line
-		:
-		PolyLines
-		)
+		for (FPolyLineIO* Line : Lines)
 		{
 			FTransform Transform = Line->SampleNearestTransform(Location, OutTime);
 			if (const double SqrDist = FVector::DistSquared(Location, Transform.GetLocation());
@@ -164,9 +162,10 @@ namespace PCGExData
 	{
 		double MinDistance = TNumericLimits<double>::Max();
 		bool bFound = false;
-		for (FPolyLineIO * Line
-		:
-		PolyLines
+		for (FPolyLineIO* Line
+
+		     :
+		     Lines
 		)
 		{
 			FTransform Transform;
@@ -216,7 +215,7 @@ namespace PCGExData
 
 	void FPolyLineIOGroup::Initialize(TArray<FPCGTaggedData>& Sources)
 	{
-		PolyLines.Empty(Sources.Num());
+		Lines.Empty(Sources.Num());
 		for (FPCGTaggedData& Source : Sources)
 		{
 			UPCGPolyLineData* MutablePolyLineData = GetMutablePolyLineData(Source);
@@ -228,15 +227,15 @@ namespace PCGExData
 	void FPolyLineIOGroup::Initialize(
 		TArray<FPCGTaggedData>& Sources,
 		const TFunction<bool(UPCGPolyLineData*)>& ValidateFunc,
-		const TFunction<void(FPolyLineIO *)>& PostInitFunc)
+		const TFunction<void(FPolyLineIO*)>& PostInitFunc)
 	{
-		PolyLines.Empty(Sources.Num());
+		Lines.Empty(Sources.Num());
 		for (FPCGTaggedData& Source : Sources)
 		{
 			UPCGPolyLineData* MutablePolyLineData = GetMutablePolyLineData(Source);
 			if (!MutablePolyLineData || MutablePolyLineData->GetNumSegments() == 0) { continue; }
 			if (!ValidateFunc(MutablePolyLineData)) { continue; }
-			FPolyLineIO * NewPointIO = Emplace_GetRef(Source, MutablePolyLineData);
+			FPolyLineIO* NewPointIO = Emplace_GetRef(Source, MutablePolyLineData);
 			PostInitFunc(NewPointIO);
 		}
 	}

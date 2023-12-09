@@ -139,7 +139,7 @@ namespace PCGExDataBlending
 		TArray<PCGEx::FAttributeIdentity> Identities;
 		TSet<FName> Mismatch;
 
-		GetAttributeIdentities(InPrimaryData, Identities);
+		FAttributeIdentity::Get(InPrimaryData, Identities);
 
 		if (InSecondaryData != InPrimaryData)
 		{
@@ -147,8 +147,8 @@ namespace PCGExDataBlending
 			TArray<FName> SecondaryNames;
 			TMap<FName, PCGEx::FAttributeIdentity> PrimaryIdentityMap;
 			TMap<FName, PCGEx::FAttributeIdentity> SecondaryIdentityMap;
-			GetAttributeIdentities(InPrimaryData, PrimaryNames, PrimaryIdentityMap);
-			GetAttributeIdentities(InSecondaryData, SecondaryNames, SecondaryIdentityMap);
+			FAttributeIdentity::Get(InPrimaryData, PrimaryNames, PrimaryIdentityMap);
+			FAttributeIdentity::Get(InSecondaryData, SecondaryNames, SecondaryIdentityMap);
 
 			for (FName SecondaryName : SecondaryNames)
 			{

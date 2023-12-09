@@ -6,7 +6,7 @@
 
 #include "..\..\..\Public\Data\PCGExPointIO.h"
 
-void UPCGExTangentsOperation::PrepareForData(FPCGExPointIO& InPath)
+void UPCGExTangentsOperation::PrepareForData(PCGExData::FPointIO& InPath)
 {
 	UPCGMetadata* Metadata = InPath.GetOut()->Metadata;
 	ArriveAttribute = Metadata->FindOrCreateAttribute(ArriveName, FVector::ZeroVector);

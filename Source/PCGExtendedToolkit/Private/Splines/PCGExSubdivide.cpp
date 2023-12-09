@@ -20,7 +20,7 @@ void UPCGExSubdivideSettings::PostEditChangeProperty(FPropertyChangedEvent& Prop
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
 
-PCGExPointIO::EInit UPCGExSubdivideSettings::GetPointOutputInitMode() const { return PCGExPointIO::EInit::NewOutput; }
+PCGExData::EInit UPCGExSubdivideSettings::GetPointOutputInitMode() const { return PCGExData::EInit::NewOutput; }
 
 FPCGElementPtr UPCGExSubdivideSettings::CreateElement() const { return MakeShared<FPCGExSubdivideElement>(); }
 
@@ -63,7 +63,7 @@ bool FPCGExSubdivideElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsState(PCGExMT::State_ProcessingPoints))
 	{
-		auto Initialize = [&](FPCGExPointIO& PointIO)
+		auto Initialize = [&](PCGExData::FPointIO& PointIO)
 		{
 			Context->Milestones.Empty();
 			Context->Milestones.Add(0);
@@ -73,7 +73,7 @@ bool FPCGExSubdivideElement::ExecuteInternal(FPCGContext* InContext) const
 			Context->Blending->PrepareForData(PointIO);
 		};
 
-		auto ProcessPoint = [&](const int32 Index, const FPCGExPointIO& PointIO)
+		auto ProcessPoint = [&](const int32 Index, const PCGExData::FPointIO& PointIO)
 		{
 			int32 LastIndex;
 
@@ -130,7 +130,7 @@ bool FPCGExSubdivideElement::ExecuteInternal(FPCGContext* InContext) const
 
 			if(!Context->Milestones.IsValidIndex(Index + 1)){return;} // Ignore last point
 			
-			FPCGExPointIO& PointIO = *Context->CurrentIO;
+			PCGExData::FPointIO& PointIO = *Context->CurrentIO;
 
 			const int32 StartIndex = Context->Milestones[Index];
 			const int32 Range = Context->Milestones[Index + 1] - StartIndex;

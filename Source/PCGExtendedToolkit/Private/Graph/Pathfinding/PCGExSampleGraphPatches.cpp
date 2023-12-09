@@ -67,11 +67,11 @@ bool FPCGExSampleGraphPatchesElement::ExecuteInternal(FPCGContext* InContext) co
 
 	if (Context->IsState(PCGExMT::State_ProcessingPoints))
 	{
-		auto ProcessPoint = [&](const int32 PointIndex, const FPCGExPointIO& PointIO)
+		auto ProcessPoint = [&](const int32 PointIndex, const PCGExData::FPointIO& PointIO)
 		{
 			auto NavMeshTask = [&](int32 InGoalIndex)
 			{
-				FPCGExPointIO& PathPoints = Context->OutputPaths->Emplace_GetRef(PointIO.GetIn(), PCGExPointIO::EInit::NewOutput);
+				PCGExData::FPointIO& PathPoints = Context->OutputPaths->Emplace_GetRef(PointIO.GetIn(), PCGExData::EInit::NewOutput);
 				Context->GetAsyncManager()->Start<FSamplePatchPathTask>(
 					PointIndex, PointIO.GetInPoint(PointIndex).MetadataEntry, Context->CurrentIO,
 					InGoalIndex, &PathPoints);

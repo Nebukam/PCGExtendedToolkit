@@ -16,7 +16,7 @@ TArray<FPCGPinProperties> UPCGExDeleteGraphSettings::OutputPinProperties() const
 
 FPCGElementPtr UPCGExDeleteGraphSettings::CreateElement() const { return MakeShared<FPCGExDeleteGraphElement>(); }
 
-PCGExPointIO::EInit UPCGExDeleteGraphSettings::GetPointOutputInitMode() const { return PCGExPointIO::EInit::DuplicateInput; }
+PCGExData::EInit UPCGExDeleteGraphSettings::GetPointOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
 FPCGContext* FPCGExDeleteGraphElement::Initialize(
 	const FPCGDataCollection& InputData,
@@ -37,7 +37,7 @@ bool FPCGExDeleteGraphElement::ExecuteInternal(
 	if (!Validate(Context)) { return true; }
 
 	Context->MainPoints->ForEach(
-		[&](FPCGExPointIO& PointIO, int32)
+		[&](PCGExData::FPointIO& PointIO, int32)
 		{
 			auto DeleteSockets = [&](const UPCGExGraphParamsData* Params, int32)
 			{

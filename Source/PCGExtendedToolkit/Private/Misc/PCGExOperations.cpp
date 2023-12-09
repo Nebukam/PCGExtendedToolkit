@@ -5,7 +5,7 @@
 
 #define LOCTEXT_NAMESPACE "PCGExOperations"
 
-PCGExPointIO::EInit UPCGExOperationsSettings::GetPointOutputInitMode() const { return PCGExPointIO::EInit::NoOutput; }
+PCGExData::EInit UPCGExOperationsSettings::GetPointOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 
 UPCGExOperationsSettings::UPCGExOperationsSettings(
 	const FObjectInitializer& ObjectInitializer)
@@ -100,7 +100,7 @@ bool FPCGExOperationsElement::ExecuteInternal(
 		}
 	}
 
-	auto ProcessPoint = [&](const FPCGPoint& Point, const int32 ReadIndex, const FPCGExPointIO& PointIO)
+	auto ProcessPoint = [&](const FPCGPoint& Point, const int32 ReadIndex, const PCGExData::FPointIO& PointIO)
 	{
 		// FWriteScopeLock WriteLock(Context->ContextLock);
 		const FVector Start = Point.Transform.GetLocation();
@@ -113,7 +113,7 @@ bool FPCGExOperationsElement::ExecuteInternal(
 		}
 	};
 
-	auto Initialize = [&](const FPCGExPointIO& PointIO)
+	auto Initialize = [&](const PCGExData::FPointIO& PointIO)
 	{
 		Context->PrepareForPoints(PointIO.GetIn());
 	};
