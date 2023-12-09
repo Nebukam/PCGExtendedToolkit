@@ -149,7 +149,7 @@ void FPCGExGraphPatchGroup::OutputTo(FPCGContext* Context)
 		Patch->OutputTo(OutIO, -1);
 	}
 	PatchesIO->OutputTo(Context);
-	delete PatchesIO;
+	PCGEX_DELETE(PatchesIO)
 }
 
 FPCGExGraphPatchGroup::~FPCGExGraphPatchGroup()
@@ -178,5 +178,5 @@ void FPCGExGraphPatchGroup::OutputTo(FPCGContext* Context, const int64 MinPointC
 		PatchIndex++;
 	}
 	PatchesIO->OutputTo(Context);
-	delete PatchesIO;
+	PCGEX_DELETE(PatchesIO)
 }

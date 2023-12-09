@@ -248,8 +248,8 @@ int32 UPCGExPointsProcessorSettings::GetPreferredChunkSize() const { return 256;
 
 FPCGExPointsProcessorContext::~FPCGExPointsProcessorContext()
 {
-	delete AsyncManager;
-	delete MainPoints;
+	PCGEX_DELETE(AsyncManager)
+	PCGEX_DELETE(MainPoints)
 	CurrentIO = nullptr;
 	World = nullptr;
 }

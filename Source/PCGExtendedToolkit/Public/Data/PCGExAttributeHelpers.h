@@ -11,6 +11,7 @@
 
 #include "PCGEx.h"
 #include "PCGExMath.h"
+#include "PCGExPointIO.h"
 #include "Metadata/Accessors/PCGAttributeAccessor.h"
 
 #include "PCGExAttributeHelpers.generated.h"
@@ -191,6 +192,8 @@ namespace PCGEx
 
 #pragma region Accessors
 
+#define PCGEX_AAFLAG EPCGAttributeAccessorFlags::StrictType
+
 	template <typename T>
 	class PCGEXTENDEDTOOLKIT_API FAttributeAccessorBase
 	{
@@ -204,7 +207,7 @@ namespace PCGEx
 		void Flush()
 		{
 			if (Accessor) { Accessor.Reset(); }
-			delete InternalKeys;
+			PCGEX_DELETE(InternalKeys)
 			Keys = nullptr;
 			Attribute = nullptr;
 		}
@@ -235,49 +238,30 @@ namespace PCGEx
 			return GetRange(TArrayView<T>(&OutValue, 1), Index);
 		}
 
-		bool GetRange(TArrayView<T> OutValues, int32 Index, FPCGAttributeAccessorKeysPoints& InKeys) const
+		bool GetRange(TArrayView<T> OutValues, int32 Index = 0, FPCGAttributeAccessorKeysPoints* InKeys = nullptr) const
 		{
-			return Accessor->GetRange(OutValues, Index, InKeys, EPCGAttributeAccessorFlags::StrictType);
+			return Accessor->GetRange(OutValues, Index, InKeys ? *InKeys : *Keys, PCGEX_AAFLAG);
 		}
-
-		bool GetRange(TArrayView<T> OutValues, int32 Index) const { return GetRange(OutValues, Index, *Keys); }
-
 		
-		bool GetRange(TArray<T>& OutValues, const int32 Index, FPCGAttributeAccessorKeysPoints& InKeys, int32 Count = -1) const
+		bool GetRange(TArray<T>& OutValues, const int32 Index = 0, FPCGAttributeAccessorKeysPoints* InKeys = nullptr, int32 Count = -1) const
 		{
-			if (Count == -1) { Count = NumEntries - Index; }
-			OutValues.SetNumUninitialized(Count, true);
+			OutValues.SetNumUninitialized( Count == -1 ? NumEntries - Index : Count, true);
 			TArrayView<T> View(OutValues);
-			return GetRange(View, Index, InKeys);
+			return Accessor->GetRange(View, Index, InKeys ? *InKeys : *Keys, PCGEX_AAFLAG);
 		}
-
-		bool GetRange(TArray<T>& OutValues, int32 Index = 0, int32 Count = -1) const
-		{
-			return GetRange(OutValues, Index, *Keys, Count);
-		}
-		
 
 		bool Set(const T& InValue, const int32 Index) { return SetRange(TArrayView<const T>(&InValue, 1), Index); }
 
-		
-		bool SetRange(TArrayView<const T> InValues, int32 Index, FPCGAttributeAccessorKeysPoints& InKeys)
-		{
-			return Accessor->SetRange(InValues, Index, InKeys, EPCGAttributeAccessorFlags::StrictType);
-		}
-		
-		bool SetRange(TArrayView<const T> InValues, int32 Index) { return SetRange(InValues, Index, *Keys); }
 
-		
-		bool SetRange(TArray<T>& InValues, int32 Index, FPCGAttributeAccessorKeysPoints& InKeys)
+		bool SetRange(TArrayView<const T> InValues, int32 Index = 0, FPCGAttributeAccessorKeysPoints* InKeys = nullptr)
 		{
-			TArrayView<T> View(InValues);
-			return Accessor->SetRange(View, Index, InKeys, EPCGAttributeAccessorFlags::StrictType);
+			return Accessor->SetRange(InValues, Index, InKeys ? *InKeys : *Keys, PCGEX_AAFLAG);
 		}
-		
-		bool SetRange(TArray<T>& InValues, int32 Index = 0)
+
+		bool SetRange(TArray<T>& InValues, int32 Index = 0, FPCGAttributeAccessorKeysPoints* InKeys = nullptr)
 		{
-			TArrayView<T> View(InValues);
-			return SetRange(View, Index, *Keys);
+			TArrayView<const T> View(InValues);
+			return Accessor->SetRange(View, Index, InKeys ? *InKeys : *Keys, PCGEX_AAFLAG);
 		}
 
 		virtual ~FAttributeAccessorBase()
@@ -313,7 +297,10 @@ namespace PCGEx
 			UPCGPointData* InData, FName AttributeName,
 			const T& DefaultValue = T{}, bool bAllowsInterpolation = true, bool bOverrideParent = true, bool bOverwriteIfTypeMismatch = true)
 		{
-			FPCGMetadataAttribute<T>* InAttribute = InData->Metadata->FindOrCreateAttribute(AttributeName, DefaultValue, bAllowsInterpolation, bOverrideParent, bOverwriteIfTypeMismatch);
+			FPCGMetadataAttribute<T>* InAttribute = InData->Metadata->FindOrCreateAttribute(
+				AttributeName, DefaultValue,
+				bAllowsInterpolation, bOverrideParent, bOverwriteIfTypeMismatch);
+			
 			return new FAttributeAccessor<T>(InData, InAttribute);
 		}
 
@@ -321,8 +308,23 @@ namespace PCGEx
 			UPCGPointData* InData, FName AttributeName, FPCGAttributeAccessorKeysPoints* InKeys,
 			const T& DefaultValue = T{}, bool bAllowsInterpolation = true, bool bOverrideParent = true, bool bOverwriteIfTypeMismatch = true)
 		{
-			FPCGMetadataAttribute<T>* InAttribute = InData->Metadata->FindOrCreateAttribute(AttributeName, DefaultValue, bAllowsInterpolation, bOverrideParent, bOverwriteIfTypeMismatch);
+			FPCGMetadataAttribute<T>* InAttribute = InData->Metadata->FindOrCreateAttribute(
+				AttributeName, DefaultValue,
+				bAllowsInterpolation, bOverrideParent, bOverwriteIfTypeMismatch);
+			
 			return new FAttributeAccessor<T>(InData, InAttribute, InKeys);
+		}
+
+		static FAttributeAccessor* FindOrCreate(
+			PCGExData::FPointIO& InPointIO, FName AttributeName,
+			const T& DefaultValue = T{}, bool bAllowsInterpolation = true, bool bOverrideParent = true, bool bOverwriteIfTypeMismatch = true)
+		{
+			UPCGPointData* InData = InPointIO.GetOut();
+			FPCGMetadataAttribute<T>* InAttribute = InData->Metadata->FindOrCreateAttribute(
+				AttributeName, DefaultValue,
+				bAllowsInterpolation, bOverrideParent, bOverwriteIfTypeMismatch);
+			
+			return new FAttributeAccessor<T>(InData, InAttribute, InPointIO.GetOutKeys());
 		}
 	};
 
@@ -347,6 +349,8 @@ namespace PCGEx
 			this->Keys = this->InternalKeys;
 		}
 	};
+
+#undef PCGEX_AAFLAG
 
 #pragma endregion
 

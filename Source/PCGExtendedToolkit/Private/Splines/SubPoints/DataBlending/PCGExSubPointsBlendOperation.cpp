@@ -24,7 +24,7 @@ void UPCGExSubPointsBlendOperation::PrepareForData(
 	FPCGAttributeAccessorKeysPoints* InPrimaryKeys,
 	FPCGAttributeAccessorKeysPoints* InSecondaryKeys)
 {
-	delete InternalBlender;
+	PCGEX_DELETE(InternalBlender)
 	InternalBlender = CreateBlender(InPrimaryData, InSecondaryData, InPrimaryKeys, InSecondaryKeys);
 	PropertiesBlender.Init(BlendingSettings);
 }
@@ -80,7 +80,6 @@ PCGExDataBlending::FMetadataBlender* UPCGExSubPointsBlendOperation::CreateBlende
 
 void UPCGExSubPointsBlendOperation::BeginDestroy()
 {
-	delete InternalBlender;
-	InternalBlender = nullptr;
+	PCGEX_DELETE(InternalBlender)
 	Super::BeginDestroy();
 }

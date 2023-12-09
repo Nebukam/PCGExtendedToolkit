@@ -99,7 +99,7 @@ namespace PCGExData
 		UPCGPointData* NewEmptyOutput() const;
 		UPCGPointData* NewEmptyOutput(FPCGContext* Context, FName PinLabel = NAME_None) const;
 
-		void Cleanup() const;
+		void Cleanup();
 
 		void BuildMetadataEntries();
 

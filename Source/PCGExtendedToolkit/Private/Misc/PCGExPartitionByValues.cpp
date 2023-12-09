@@ -49,7 +49,7 @@ PCGExData::EInit UPCGExPartitionByValuesSettings::GetPointOutputInitMode() const
 
 FPCGExSplitByValuesContext::~FPCGExSplitByValuesContext()
 {
-	delete RootPartitionLayer;
+	PCGEX_DELETE(RootPartitionLayer)
 }
 
 void FPCGExSplitByValuesContext::PrepareForPoints(const PCGExData::FPointIO& PointIO)

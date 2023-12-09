@@ -14,8 +14,8 @@ PCGExData::EInit UPCGExFindEdgePatchesSettings::GetPointOutputInitMode() const {
 
 FPCGExFindEdgePatchesContext::~FPCGExFindEdgePatchesContext()
 {
-	delete PatchesIO;
-	delete Patches;
+	PCGEX_DELETE(PatchesIO);
+	PCGEX_DELETE(Patches);
 }
 
 TArray<FPCGPinProperties> UPCGExFindEdgePatchesSettings::OutputPinProperties() const
@@ -190,7 +190,7 @@ bool FPCGExFindEdgePatchesElement::ExecuteInternal(
 	{
 		if (Context->IsAsyncWorkComplete())
 		{
-			delete Context->Patches;
+			PCGEX_DELETE(Context->Patches)
 			Context->SetState(PCGExMT::State_ReadyForNextPoints);
 		}
 	}

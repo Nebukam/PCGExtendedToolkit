@@ -65,9 +65,9 @@ bool UPCGExPathfindingProcessorSettings::GetRequiresGoals() const { return true;
 
 FPCGExPathfindingProcessorContext::~FPCGExPathfindingProcessorContext()
 {
-	delete SeedsPoints;
-	delete GoalsPoints;
-	delete OutputPaths;
+	PCGEX_DELETE(SeedsPoints)
+	PCGEX_DELETE(GoalsPoints)
+	PCGEX_DELETE(OutputPaths)
 }
 
 FPCGContext* FPCGExPathfindingProcessorElement::Initialize(

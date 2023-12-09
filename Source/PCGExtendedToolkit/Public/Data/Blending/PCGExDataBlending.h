@@ -143,8 +143,8 @@ namespace PCGExDataBlending
 	public:
 		virtual ~FDataBlendingOperation() override
 		{
-			delete PrimaryAccessor;
-			delete SecondaryAccessor;
+			PCGEX_DELETE(PrimaryAccessor)
+			PCGEX_DELETE(SecondaryAccessor)
 		}
 
 		virtual void PrepareForData(

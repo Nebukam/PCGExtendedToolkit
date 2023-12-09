@@ -35,7 +35,7 @@ FPCGElementPtr UPCGExSampleNearestPolylineSettings::CreateElement() const { retu
 
 FPCGExSampleNearestPolylineContext::~FPCGExSampleNearestPolylineContext()
 {
-	delete Targets;
+	PCGEX_DELETE(Targets)
 }
 
 FPCGContext* FPCGExSampleNearestPolylineElement::Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node)

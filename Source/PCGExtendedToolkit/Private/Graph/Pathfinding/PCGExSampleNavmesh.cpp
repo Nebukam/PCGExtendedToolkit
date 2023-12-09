@@ -70,8 +70,8 @@ FName UPCGExSampleNavmeshSettings::GetMainPointsOutputLabel() const { return PCG
 FPCGExSampleNavmeshContext::~FPCGExSampleNavmeshContext()
 {
 	PathBuffer.Empty();
-	delete GoalsPoints;
-	delete OutputPaths;
+	PCGEX_DELETE(GoalsPoints)
+	PCGEX_DELETE(GoalsPoints)
 }
 
 FPCGElementPtr UPCGExSampleNavmeshSettings::CreateElement() const { return MakeShared<FPCGExSampleNavmeshElement>(); }
@@ -324,7 +324,7 @@ bool FNavmeshPathTask::ExecuteTask()
 				TArrayView<FPCGPoint> View(MutablePoints);
 				Context->Blending->BlendSubPoints(View, Path->Infos, TempBlender);
 
-				delete TempBlender;
+				PCGEX_DELETE(TempBlender)
 
 				if (!Context->bAddSeedToPath) { MutablePoints.RemoveAt(0); }
 				if (!Context->bAddGoalToPath) { MutablePoints.Pop(); }

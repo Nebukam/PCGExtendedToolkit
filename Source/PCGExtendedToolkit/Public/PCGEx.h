@@ -13,6 +13,8 @@
 
 #pragma region MACROS
 
+#define PCGEX_DELETE(_VALUE) delete _VALUE; _VALUE = nullptr;
+
 #define PCGEX_NODE_INFOS(_SHORTNAME, _NAME, _TOOLTIP)\
 virtual FName GetDefaultNodeName() const override { return FName(TEXT(#_SHORTNAME)); } \
 virtual FText GetDefaultNodeTitle() const override { return NSLOCTEXT("PCGEx" #_SHORTNAME, "NodeTitle", "PCGEx | " _NAME);} \

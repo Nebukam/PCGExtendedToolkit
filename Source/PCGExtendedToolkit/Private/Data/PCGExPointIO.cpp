@@ -119,10 +119,10 @@ namespace PCGExData
 		return OutData;
 	}
 
-	void FPointIO::Cleanup() const
+	void FPointIO::Cleanup()
 	{
-		delete InKeys;
-		delete OutKeys;
+		PCGEX_DELETE(InKeys)
+		PCGEX_DELETE(OutKeys)
 	}
 
 	FPointIO::~FPointIO()
@@ -151,7 +151,11 @@ namespace PCGExData
 
 		if (!bEmplace)
 		{
-			if (!In) { return false; }
+			if (!In)
+			{
+				Cleanup();
+				return false;
+			}
 
 			FPCGTaggedData& OutputRef = Context->OutputData.TaggedData.Add_GetRef(Source);
 			OutputRef.Data = Out;
@@ -165,6 +169,8 @@ namespace PCGExData
 			OutputRef.Pin = DefaultOutputLabel;
 			Output = OutputRef;
 		}
+
+		Cleanup();
 		return true;
 	}
 
