@@ -4,87 +4,16 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExFilter.h"
 
 #include "Graph/PCGExGraphProcessor.h"
 
 #include "PCGExPartitionByValues.generated.h"
 
-USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExPartitionRuleDescriptor : public FPCGExInputDescriptorWithSingleField
-{
-	GENERATED_BODY()
-
-	FPCGExPartitionRuleDescriptor()
-		: FPCGExInputDescriptorWithSingleField()
-	{
-	}
-
-	FPCGExPartitionRuleDescriptor(const FPCGExPartitionRuleDescriptor& Other)
-		: FPCGExInputDescriptorWithSingleField(Other),
-		  bEnabled(Other.bEnabled),
-		  FilterSize(Other.FilterSize),
-		  Upscale(Other.Upscale),
-		  Offset(Other.Offset),
-		  bWriteKey(Other.bWriteKey),
-		  KeyAttributeName(Other.KeyAttributeName)
-	{
-	}
-
-#if WITH_EDITOR
-	virtual FString GetDisplayName() const override;
-#endif
-
-	/** Enable or disable this partition. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(DisplayPriority=-1))
-	bool bEnabled = true;
-
-	/** Filter Size. Higher values means fewer, larger groups. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	double FilterSize = 1.0;
-
-	/** Upscale multiplier, applied before filtering. Handy to deal with floating point values. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	double Upscale = 1.0;
-
-	/** Offset input value. Applied after upscaling the raw value.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	double Offset = 0.0;
-
-	/** Whether to write the partition Key to an attribute. Useful for debugging. Note: They key is not the index, but instead the filtered value used to distribute into partitions. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
-	bool bWriteKey = false;
-
-	/** Name of the int64 attribute to write the partition Key to. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bWriteKey"))
-	FName KeyAttributeName = "PartitionKey";
-};
-
 namespace PCGExPartition
 {
 	const PCGExMT::AsyncState State_DistributeToPartition = PCGExMT::AsyncStateCounter::Unique();
 
-	struct PCGEXTENDEDTOOLKIT_API FRule : public PCGEx::FLocalSingleFieldGetter
-	{
-		FRule(FPCGExPartitionRuleDescriptor& InRule)
-			: FLocalSingleFieldGetter(InRule.Field, InRule.Axis),
-			  RuleDescriptor(&InRule),
-			  FilterSize(InRule.FilterSize),
-			  Upscale(InRule.Upscale),
-			  Offset(InRule.Offset)
-		{
-			Descriptor = static_cast<FPCGExInputDescriptor>(InRule);
-		}
-
-		~FRule();
-
-		FPCGExPartitionRuleDescriptor* RuleDescriptor;
-		TArray<int64> Values;
-		double FilterSize = 1.0;
-		double Upscale = 1.0;
-		double Offset = 0.0;
-
-		int64 GetPartitionKey(const FPCGPoint& Point) const;
-	};
 
 	class FKPartition;
 
@@ -95,20 +24,20 @@ namespace PCGExPartition
 		mutable FRWLock PointLock;
 
 	public:
-		FKPartition(FKPartition* InParent, int64 InKey, FRule* InRule);
+		FKPartition(FKPartition* InParent, int64 InKey, FPCGExFilter::FRule* InRule);
 		~FKPartition();
 
 		FKPartition* Parent = nullptr;
 		int64 PartitionKey = 0;
-		FRule* Rule = nullptr;
-		
+		FPCGExFilter::FRule* Rule = nullptr;
+
 		TMap<int64, FKPartition*> SubLayers;
 		TArray<int32> Points;
 
 		int32 GetNum() const { return Points.Num(); }
 		int32 GetSubPartitionsNum();
 
-		FKPartition* GetPartition(int64 Key, FRule* InRule);
+		FKPartition* GetPartition(int64 Key, FPCGExFilter::FRule* InRule);
 		void Add(const int64 Index);
 		void Register(TArray<FKPartition*>& Partitions);
 	};
@@ -145,7 +74,7 @@ public:
 
 	/** Rules */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(TitleProperty="{TitlePropertyName}"))
-	TArray<FPCGExPartitionRuleDescriptor> PartitionRules;
+	TArray<FPCGExFilterRuleDescriptor> PartitionRules;
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExSplitByValuesContext : public FPCGExPointsProcessorContext
@@ -154,10 +83,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSplitByValuesContext : public FPCGExPointsPr
 
 	~FPCGExSplitByValuesContext();
 
-	TArray<FPCGExPartitionRuleDescriptor> RulesDescriptors;
-	TArray<PCGExPartition::FRule> Rules;
+	TArray<FPCGExFilterRuleDescriptor> RulesDescriptors;
+	TArray<FPCGExFilter::FRule> Rules;
 	mutable FRWLock RulesLock;
-	
+
 	bool bSplitOutput = true;
 	PCGExPartition::FKPartition* RootPartition = nullptr;
 

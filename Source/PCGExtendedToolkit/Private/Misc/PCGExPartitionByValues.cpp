@@ -12,15 +12,9 @@ namespace PCGExPartitionByValues
 
 #if WITH_EDITOR
 
-FString FPCGExPartitionRuleDescriptor::GetDisplayName() const
-{
-	if (bEnabled) { return FPCGExInputDescriptorWithSingleField::GetDisplayName(); }
-	return "(Disabled) " + FPCGExInputDescriptorWithSingleField::GetDisplayName();
-}
-
 namespace PCGExPartition
 {
-	FKPartition::FKPartition(FKPartition* InParent, int64 InKey, FRule* InRule)
+	FKPartition::FKPartition(FKPartition* InParent, int64 InKey, FPCGExFilter::FRule* InRule)
 		: Parent(InParent), PartitionKey(InKey), Rule(InRule)
 	{
 	}
@@ -42,7 +36,7 @@ namespace PCGExPartition
 		return Num;
 	}
 
-	FKPartition* FKPartition::GetPartition(const int64 Key, FRule* InRule)
+	FKPartition* FKPartition::GetPartition(const int64 Key, FPCGExFilter::FRule* InRule)
 	{
 		FKPartition** LayerPtr;
 
@@ -81,24 +75,12 @@ namespace PCGExPartition
 		}
 	}
 
-	FRule::~FRule()
-	{
-		Values.Empty();
-		RuleDescriptor = nullptr;
-	}
-
-	int64 FRule::GetPartitionKey(const FPCGPoint& Point) const
-	{
-		const double Upscaled = GetValue(Point) * Upscale + (Offset + 1);
-		const double Filtered = (Upscaled - FMath::Fmod(Upscaled, FilterSize)) / FilterSize;
-		return static_cast<int64>(Filtered);
-	}
 }
 
 
 void UPCGExPartitionByValuesSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
-	for (FPCGExPartitionRuleDescriptor& Descriptor : PartitionRules) { Descriptor.UpdateUserFacingInfos(); }
+	for (FPCGExFilterRuleDescriptor& Descriptor : PartitionRules) { Descriptor.UpdateUserFacingInfos(); }
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
 
@@ -125,11 +107,11 @@ FPCGContext* FPCGExPartitionByValuesElement::Initialize(
 	const UPCGExPartitionByValuesSettings* Settings = Context->GetInputSettings<UPCGExPartitionByValuesSettings>();
 	check(Settings);
 
-	for (const FPCGExPartitionRuleDescriptor& Descriptor : Settings->PartitionRules)
+	for (const FPCGExFilterRuleDescriptor& Descriptor : Settings->PartitionRules)
 	{
 		if (!Descriptor.bEnabled) { continue; }
 
-		FPCGExPartitionRuleDescriptor& DescriptorCopy = Context->RulesDescriptors.Add_GetRef(Descriptor);
+		FPCGExFilterRuleDescriptor& DescriptorCopy = Context->RulesDescriptors.Add_GetRef(Descriptor);
 
 		if (Descriptor.bWriteKey && !FPCGMetadataAttributeBase::IsValidName(Descriptor.KeyAttributeName))
 		{
@@ -182,9 +164,9 @@ bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* InContext) con
 		{
 			Context->Rules.Empty();
 
-			for (FPCGExPartitionRuleDescriptor& Descriptor : Context->RulesDescriptors)
+			for (FPCGExFilterRuleDescriptor& Descriptor : Context->RulesDescriptors)
 			{
-				PCGExPartition::FRule& NewRule = Context->Rules.Emplace_GetRef(Descriptor);
+				FPCGExFilter::FRule& NewRule = Context->Rules.Emplace_GetRef(Descriptor);
 				if (!NewRule.Validate(PointIO.GetIn())) { Context->Rules.Pop(); }
 			}
 
@@ -192,7 +174,7 @@ bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* InContext) con
 			if (!Context->bSplitOutput)
 			{
 				const int32 NumPoints = PointIO.GetNum();
-				for (PCGExPartition::FRule& Rule : Context->Rules)
+				for (FPCGExFilter::FRule& Rule : Context->Rules)
 				{
 					if (!Rule.RuleDescriptor->bWriteKey) { continue; }
 					Rule.Values.SetNumZeroed(NumPoints);
@@ -204,9 +186,9 @@ bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* InContext) con
 		{
 			const FPCGPoint& Point = PointIO.GetInPoint(PointIndex);
 			PCGExPartition::FKPartition* Partition = Context->RootPartition;
-			for (PCGExPartition::FRule& Rule : Context->Rules)
+			for (FPCGExFilter::FRule& Rule : Context->Rules)
 			{
-				const int64 KeyValue = Rule.GetPartitionKey(Point);
+				const int64 KeyValue = Rule.Filter(Point);
 				Partition = Partition->GetPartition(KeyValue, &Rule);
 				if (!Context->bSplitOutput && Rule.RuleDescriptor->bWriteKey) { Rule.Values[PointIndex] = KeyValue; }
 			}
@@ -226,7 +208,7 @@ bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* InContext) con
 			}
 			else
 			{
-				for (PCGExPartition::FRule& Rule : Context->Rules)
+				for (FPCGExFilter::FRule& Rule : Context->Rules)
 				{
 					if (!Rule.RuleDescriptor->bWriteKey) { continue; }
 					PCGEx::FAttributeAccessor<int64>* Accessor = PCGEx::FAttributeAccessor<int64>::FindOrCreate(*Context->CurrentIO, Rule.RuleDescriptor->KeyAttributeName, 0, false);
@@ -257,7 +239,7 @@ bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* InContext) con
 
 			while (Partition->Parent)
 			{
-				const PCGExPartition::FRule* Rule = Partition->Rule;
+				const FPCGExFilter::FRule* Rule = Partition->Rule;
 
 				if (Rule->RuleDescriptor->bWriteKey)
 				{
