@@ -59,76 +59,58 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPartitionRuleDescriptor : public FPCGExInput
 	FName KeyAttributeName = "PartitionKey";
 };
 
-class UPCGExPartitionLayer;
-
-class PCGEXTENDEDTOOLKIT_API UPCGExPartitionLayer
-{
-public:
-	~UPCGExPartitionLayer();
-
-	TMap<int64, UPCGExPartitionLayer*> SubLayers;
-	UPCGPointData* PointData = nullptr;
-	TArray<FPCGPoint>* Points = nullptr;;
-
-protected:
-	mutable FRWLock LayersLock;
-	mutable FRWLock PointLock;
-
-public:
-	UPCGExPartitionLayer* GetLayer(int64 Key)
-	{
-		UPCGExPartitionLayer** LayerPtr;
-
-		{
-			FReadScopeLock ReadLock(LayersLock);
-			LayerPtr = SubLayers.Find(Key);
-		}
-
-		if (!LayerPtr)
-		{
-			FWriteScopeLock WriteLock(LayersLock);
-			UPCGExPartitionLayer* Layer = new UPCGExPartitionLayer();
-			SubLayers.Add(Key, Layer);
-			return Layer;
-		}
-		return *LayerPtr;
-	}
-
-	FPCGPoint& NewPoint(const FPCGPoint& Point) const
-	{
-		FWriteScopeLock WriteLock(PointLock);
-		return Points->Add_GetRef(Point);
-	}
-};
-
 namespace PCGExPartition
 {
+	const PCGExMT::AsyncState State_DistributeToPartition = PCGExMT::AsyncStateCounter::Unique();
+
 	struct PCGEXTENDEDTOOLKIT_API FRule : public PCGEx::FLocalSingleFieldGetter
 	{
-		FRule(FPCGExPartitionRuleDescriptor& InRule):
-			FLocalSingleFieldGetter(InRule.Field, InRule.Axis),
-			FilterSize(InRule.FilterSize),
-			Upscale(InRule.Upscale),
-			Offset(InRule.Offset)
+		FRule(FPCGExPartitionRuleDescriptor& InRule)
+			: FLocalSingleFieldGetter(InRule.Field, InRule.Axis),
+			  RuleDescriptor(&InRule),
+			  FilterSize(InRule.FilterSize),
+			  Upscale(InRule.Upscale),
+			  Offset(InRule.Offset)
 		{
 			Descriptor = static_cast<FPCGExInputDescriptor>(InRule);
-			RuleDescriptor = &InRule;
 		}
 
-	public:
-		FPCGMetadataAttribute<int64>* KeyAttribute;
+		~FRule();
+
 		FPCGExPartitionRuleDescriptor* RuleDescriptor;
+		TArray<int64> Values;
 		double FilterSize = 1.0;
 		double Upscale = 1.0;
 		double Offset = 0.0;
 
+		int64 GetPartitionKey(const FPCGPoint& Point) const;
+	};
 
-		int64 Filter(const FPCGPoint& Point) const
-		{
-			const double Upscaled = GetValue(Point) * Upscale + Offset;
-			const double Filtered = (Upscaled - FMath::Fmod(Upscaled, FilterSize)) / FilterSize;
-			return static_cast<int64>(Filtered);
-		}
+	class FKPartition;
+
+	class PCGEXTENDEDTOOLKIT_API FKPartition
+	{
+	protected:
+		mutable FRWLock LayersLock;
+		mutable FRWLock PointLock;
+
+	public:
+		FKPartition(FKPartition* InParent, int64 InKey, FRule* InRule);
+		~FKPartition();
+
+		FKPartition* Parent = nullptr;
+		int64 PartitionKey = 0;
+		FRule* Rule = nullptr;
+		
+		TMap<int64, FKPartition*> SubLayers;
+		TArray<int32> Points;
+
+		int32 GetNum() const { return Points.Num(); }
+		int32 GetSubPartitionsNum();
+
+		FKPartition* GetPartition(int64 Key, FRule* InRule);
+		void Add(const int64 Index);
+		void Register(TArray<FKPartition*>& Partitions);
 	};
 }
 
@@ -177,10 +159,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSplitByValuesContext : public FPCGExPointsPr
 	mutable FRWLock RulesLock;
 
 	bool bSplitOutput = true;
-	UPCGExPartitionLayer* RootPartitionLayer;
+	PCGExPartition::FKPartition* RootPartition = nullptr;
 
-	void PrepareForPoints(const PCGExData::FPointIO& PointIO);
-	void PrepareForPointsWithMetadataEntries(PCGExData::FPointIO& PointIO);
+	int32 NumPartitions = -1;
+	TArray<PCGExPartition::FKPartition*> Partitions;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExPartitionByValuesElement : public FPCGExPointsProcessorElementBase
@@ -190,6 +172,7 @@ public:
 		const FPCGDataCollection& InputData,
 		TWeakObjectPtr<UPCGComponent> SourceComponent,
 		const UPCGNode* Node) override;
+	virtual bool Validate(FPCGContext* InContext) const override;
 
 protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;

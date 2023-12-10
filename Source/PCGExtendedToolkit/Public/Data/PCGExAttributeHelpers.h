@@ -194,8 +194,12 @@ namespace PCGEx
 
 #define PCGEX_AAFLAG EPCGAttributeAccessorFlags::StrictType
 
+	class PCGEXTENDEDTOOLKIT_API FAttributeAccessorGeneric
+	{
+	};
+
 	template <typename T>
-	class PCGEXTENDEDTOOLKIT_API FAttributeAccessorBase
+	class PCGEXTENDEDTOOLKIT_API FAttributeAccessorBase : public FAttributeAccessorGeneric
 	{
 	protected:
 		FPCGMetadataAttribute<T>* Attribute = nullptr;
@@ -242,10 +246,10 @@ namespace PCGEx
 		{
 			return Accessor->GetRange(OutValues, Index, InKeys ? *InKeys : *Keys, PCGEX_AAFLAG);
 		}
-		
+
 		bool GetRange(TArray<T>& OutValues, const int32 Index = 0, FPCGAttributeAccessorKeysPoints* InKeys = nullptr, int32 Count = -1) const
 		{
-			OutValues.SetNumUninitialized( Count == -1 ? NumEntries - Index : Count, true);
+			OutValues.SetNumUninitialized(Count == -1 ? NumEntries - Index : Count, true);
 			TArrayView<T> View(OutValues);
 			return Accessor->GetRange(View, Index, InKeys ? *InKeys : *Keys, PCGEX_AAFLAG);
 		}
@@ -279,7 +283,8 @@ namespace PCGEx
 		{
 		}
 
-		FAttributeAccessor(UPCGPointData* InData, FPCGMetadataAttributeBase* InAttribute): FAttributeAccessorBase<T>()
+		FAttributeAccessor(UPCGPointData* InData, FPCGMetadataAttributeBase* InAttribute)
+			: FAttributeAccessorBase<T>()
 		{
 			this->Flush();
 			this->Attribute = static_cast<FPCGMetadataAttribute<T>*>(InAttribute);
@@ -300,7 +305,7 @@ namespace PCGEx
 			FPCGMetadataAttribute<T>* InAttribute = InData->Metadata->FindOrCreateAttribute(
 				AttributeName, DefaultValue,
 				bAllowsInterpolation, bOverrideParent, bOverwriteIfTypeMismatch);
-			
+
 			return new FAttributeAccessor<T>(InData, InAttribute);
 		}
 
@@ -311,7 +316,7 @@ namespace PCGEx
 			FPCGMetadataAttribute<T>* InAttribute = InData->Metadata->FindOrCreateAttribute(
 				AttributeName, DefaultValue,
 				bAllowsInterpolation, bOverrideParent, bOverwriteIfTypeMismatch);
-			
+
 			return new FAttributeAccessor<T>(InData, InAttribute, InKeys);
 		}
 
@@ -323,10 +328,36 @@ namespace PCGEx
 			FPCGMetadataAttribute<T>* InAttribute = InData->Metadata->FindOrCreateAttribute(
 				AttributeName, DefaultValue,
 				bAllowsInterpolation, bOverrideParent, bOverwriteIfTypeMismatch);
-			
+
 			return new FAttributeAccessor<T>(InData, InAttribute, InPointIO.GetOutKeys());
 		}
 	};
+
+	static FAttributeAccessorGeneric* TryGetAccessor(PCGExData::FPointIO& InPointIO, FName AttributeName)
+	{
+		const UPCGPointData* InData = InPointIO.GetIn();
+		FPCGMetadataAttributeBase* Attribute = InData->Metadata->GetMutableAttribute(AttributeName);
+		if (!Attribute) { return nullptr; }
+
+		FAttributeAccessorGeneric* Accessor = nullptr;
+		PCGMetadataAttribute::CallbackWithRightType(
+			Attribute->GetTypeId(), [&](auto DummyValue)
+			{
+				using T = decltype(DummyValue);
+				Accessor = new FAttributeAccessor<T>(InData, Attribute, InPointIO.GetInKeys());
+			});
+
+		return Accessor;
+	}
+
+	template <typename T>
+	static FAttributeAccessor<T>* TryGetAccessor(PCGExData::FPointIO& InPointIO, FName AttributeName)
+	{
+		const UPCGPointData* InData = InPointIO.GetIn();
+		const FPCGMetadataAttributeBase* Attribute = InData->Metadata->GetConstAttribute(AttributeName);
+		if (!Attribute) { return nullptr; }
+		return new FAttributeAccessor<T>(InData, Attribute, InPointIO.GetInKeys());;
+	}
 
 	template <typename T>
 	class PCGEXTENDEDTOOLKIT_API FConstAttributeAccessor : public FAttributeAccessorBase<T>

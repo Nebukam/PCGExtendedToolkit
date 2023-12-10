@@ -273,7 +273,7 @@ namespace PCGEx
 	}
 
 	template <typename T>
-	static FPCGMetadataAttribute<T>* CreateMark(UPCGMetadata* Metadata, FName MarkID, T MarkValue)
+	static FPCGMetadataAttribute<T>* CreateMark(UPCGMetadata* Metadata, const FName MarkID, T MarkValue)
 	{
 		FPCGMetadataAttribute<T>* Mark = Metadata->FindOrCreateAttribute<T>(MarkID, MarkValue, false, true, true);
 		Mark->ClearEntries();
