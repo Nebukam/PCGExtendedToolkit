@@ -387,11 +387,31 @@ void FPCGExPointsProcessorElementBase::InitializeContext(
 	InContext->MainPoints = new PCGExData::FPointIOGroup();
 	InContext->MainPoints->DefaultOutputLabel = Settings->GetMainPointsOutputLabel();
 
-	TArray<FPCGTaggedData> Sources = InContext->InputData.GetInputsByPin(Settings->GetMainPointsInputLabel());
-	InContext->MainPoints->Initialize(
-		InContext, Sources, Settings->GetPointOutputInitMode(),
-		[&InContext](UPCGPointData* Data) { return InContext->ValidatePointDataInput(Data); },
-		[&InContext](PCGExData::FPointIO& PointIO) { return InContext->PostInitPointDataInput(PointIO); });
+	if (Settings->GetMainPointsInputAcceptMultipleData())
+	{
+		TArray<FPCGTaggedData> Sources = InContext->InputData.GetInputsByPin(Settings->GetMainPointsInputLabel());
+		InContext->MainPoints->Initialize(
+			InContext, Sources, Settings->GetPointOutputInitMode(),
+			[&InContext](UPCGPointData* Data) { return InContext->ValidatePointDataInput(Data); },
+			[&InContext](PCGExData::FPointIO& PointIO) { return InContext->PostInitPointDataInput(PointIO); });
+	}
+	else
+	{
+		TArray<FPCGTaggedData> Sources = InContext->InputData.GetInputsByPin(Settings->GetMainPointsInputLabel());
+		const UPCGPointData* InData = nullptr;
+		const FPCGTaggedData* Source = nullptr;
+		int32 SrcIndex = 0;
+
+		while (!InData && Sources.IsValidIndex(SrcIndex))
+		{
+			InData = PCGExData::GetMutablePointData(InContext, Sources[SrcIndex]);
+			if (InData && !InData->GetPoints().IsEmpty()) { Source = &Sources[SrcIndex]; }
+			else { InData = nullptr; }
+			SrcIndex++;
+		}
+
+		if (InData) { InContext->MainPoints->Emplace_GetRef(*Source, InData, Settings->GetPointOutputInitMode()); }
+	}
 }
 
 #undef LOCTEXT_NAMESPACE

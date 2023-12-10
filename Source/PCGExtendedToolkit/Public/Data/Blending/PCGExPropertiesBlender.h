@@ -52,13 +52,13 @@ namespace PCGExDataBlending
 		void Init(const FPCGExBlendingSettings& BlendingSettings);
 		void Init(const FPCGExPointPropertyBlendingOverrides& BlendingOverrides, EPCGExDataBlendingType InDefaultBlending);
 
-		void PrepareBlending(FPCGPoint& Target, const FPCGPoint& Source) const;
+		void PrepareBlending(FPCGPoint& Target, const FPCGPoint& Source);
 		void Blend(const FPCGPoint& A, const FPCGPoint& B, FPCGPoint& Target, double Alpha);
 		void CompleteBlending(FPCGPoint& Target);
 
 		void BlendOnce(const FPCGPoint& A, const FPCGPoint& B, FPCGPoint& Target, double Alpha);
 
-		void PrepareRangeBlending(const FPCGPoint& A, const FPCGPoint& B, const TArrayView<FPCGPoint>& Targets) const;
+		void PrepareRangeBlending(const FPCGPoint& A, const FPCGPoint& B, const TArrayView<FPCGPoint>& Targets);
 		void BlendRange(const FPCGPoint& From, const FPCGPoint& To, TArrayView<FPCGPoint>& Targets, const TArrayView<double>& Alpha);
 		void CompleteRangeBlending(const TArrayView<FPCGPoint>& Targets);
 

@@ -50,7 +50,7 @@ if(_NAME##Blending == EPCGExDataBlendingType::Average){bAverage##_NAME=true; bRe
 #undef PCGEX_BLEND_FUNCASSIGN
 }
 
-void PCGExDataBlending::FPropertiesBlender::PrepareBlending(FPCGPoint& Target, const FPCGPoint& Source) const
+void PCGExDataBlending::FPropertiesBlender::PrepareBlending(FPCGPoint& Target, const FPCGPoint& Source)
 {
 	Target.Density = bAverageDensity ? 0 : Source.Density;
 	Target.BoundsMin = bAverageBoundsMin ? FVector::ZeroVector : Source.BoundsMin;
@@ -61,6 +61,7 @@ void PCGExDataBlending::FPropertiesBlender::PrepareBlending(FPCGPoint& Target, c
 	Target.Transform.SetScale3D(bAverageScale ? FVector::ZeroVector : Source.Transform.GetScale3D());
 	Target.Steepness = bAverageSteepness ? 0 : Source.Steepness;
 	Target.Seed = bAverageSeed ? 0 : Source.Seed;
+	NumBlends = 1;
 }
 
 void PCGExDataBlending::FPropertiesBlender::Blend(const FPCGPoint& A, const FPCGPoint& B, FPCGPoint& Target, double Alpha)
@@ -102,7 +103,6 @@ void PCGExDataBlending::FPropertiesBlender::CompleteBlending(FPCGPoint& Target)
 	if (bAverageScale) { Target.Transform.SetScale3D(Div(Target.Transform.GetScale3D(), NumBlends)); }
 	if (bAverageSteepness) { Target.Steepness = Div(Target.Steepness, NumBlends); }
 	if (bAverageSeed) { Target.Seed = Div(Target.Seed, NumBlends); }
-	NumBlends = 1;
 }
 
 void PCGExDataBlending::FPropertiesBlender::BlendOnce(const FPCGPoint& A, const FPCGPoint& B, FPCGPoint& Target, double Alpha)
@@ -119,7 +119,7 @@ void PCGExDataBlending::FPropertiesBlender::BlendOnce(const FPCGPoint& A, const 
 	}
 }
 
-void PCGExDataBlending::FPropertiesBlender::PrepareRangeBlending(const FPCGPoint& A, const FPCGPoint& B, const TArrayView<FPCGPoint>& Targets) const
+void PCGExDataBlending::FPropertiesBlender::PrepareRangeBlending(const FPCGPoint& A, const FPCGPoint& B, const TArrayView<FPCGPoint>& Targets)
 {
 	for (FPCGPoint& Target : Targets)
 	{
@@ -133,6 +133,7 @@ void PCGExDataBlending::FPropertiesBlender::PrepareRangeBlending(const FPCGPoint
 		Target.Steepness = bAverageSteepness ? 0 : A.Steepness;
 		Target.Seed = bAverageSeed ? 0 : A.Seed;
 	}
+	NumBlends = 1;
 }
 
 void PCGExDataBlending::FPropertiesBlender::BlendRange(const FPCGPoint& From, const FPCGPoint& To, TArrayView<FPCGPoint>& Targets, const TArrayView<double>& Alphas)

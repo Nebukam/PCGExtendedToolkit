@@ -33,26 +33,36 @@ EPCGExDataBlendingType _NAME##Blending;
 
 namespace PCGExFuse
 {
-	const PCGExMT::AsyncState State_FindingRootPoints = PCGExMT::AsyncStateCounter::Unique();
+	const PCGExMT::AsyncState State_FindingFusePoints = PCGExMT::AsyncStateCounter::Unique();
 	const PCGExMT::AsyncState State_MergingPoints = PCGExMT::AsyncStateCounter::Unique();
 
 	struct PCGEXTENDEDTOOLKIT_API FFusedPoint
 	{
-		int32 MainIndex = -1;
+		mutable FRWLock IndicesLock;
+		int32 Index = -1;
 		FVector Position = FVector::ZeroVector;
 		TArray<int32> Fused;
 		TArray<double> Distances;
 		double MaxDistance = 0;
 
-		FFusedPoint()
+		FFusedPoint(const int32 InIndex, const FVector& InPosition)
+			: Index(InIndex), Position(InPosition)
 		{
 			Fused.Empty();
 			Distances.Empty();
 		}
 
-		void Add(int32 Index, double Distance)
+		~FFusedPoint()
 		{
-			Fused.Add(Index);
+			Fused.Empty();
+			Distances.Empty();
+		}
+
+		void Add(int32 InIndex, double Distance)
+		{
+			FWriteScopeLock WriteLock(IndicesLock);
+			
+			Fused.Add(InIndex);
 			Distances.Add(Distance);
 			MaxDistance = FMath::Max(MaxDistance, Distance);
 		}
@@ -82,10 +92,6 @@ protected:
 public:
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	EPCGExDataBlendingType Blending = EPCGExDataBlendingType::Average;
-
-	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bComponentWiseRadius = false;
 
 	/** TBD */
@@ -95,14 +101,6 @@ public:
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bComponentWiseRadius", EditConditionHides))
 	FVector Radiuses = FVector(10);
-
-	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="Blending==EPCGExDataBlendingType::Weight", EditConditionHides))
-	bool bUseLocalWeight = false;
-
-	/** Attribute used to read weight from, as a double. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bUseLocalWeight && Blending==EPCGExDataBlendingType::Weight", EditConditionHides))
-	FPCGExInputDescriptorWithSingleField WeightAttribute;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	FPCGExBlendingSettings BlendingSettings;
@@ -115,12 +113,11 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFusePointsContext : public FPCGExPointsProce
 {
 	friend class FPCGExFusePointsElement;
 
-public:
-	int32 CurrentIndex = 0;
+	~FPCGExFusePointsContext();
 
 	TMap<FName, EPCGExDataBlendingType> AttributesBlendingOverrides;
-	TUniquePtr<PCGExDataBlending::FMetadataBlender> MetadataBlender;
-	TUniquePtr<PCGExDataBlending::FPropertiesBlender> PropertyBlender;
+	PCGExDataBlending::FMetadataBlender* MetadataBlender;
+	PCGExDataBlending::FPropertiesBlender* PropertyBlender;
 
 	TArray<PCGExFuse::FFusedPoint> FusedPoints;
 	TArray<FPCGPoint>* OutPoints;

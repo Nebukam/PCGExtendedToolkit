@@ -157,7 +157,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSplitByValuesContext : public FPCGExPointsPr
 	TArray<FPCGExPartitionRuleDescriptor> RulesDescriptors;
 	TArray<PCGExPartition::FRule> Rules;
 	mutable FRWLock RulesLock;
-
+	
 	bool bSplitOutput = true;
 	PCGExPartition::FKPartition* RootPartition = nullptr;
 

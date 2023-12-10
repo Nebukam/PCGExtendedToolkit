@@ -7,6 +7,15 @@
 
 PCGExData::EInit UPCGExFusePointsSettings::GetPointOutputInitMode() const { return PCGExData::EInit::NewOutput; }
 
+FPCGExFusePointsContext::~FPCGExFusePointsContext()
+{
+	AttributesBlendingOverrides.Empty();
+	FusedPoints.Empty();
+	OutPoints = nullptr;
+	PCGEX_DELETE(MetadataBlender)
+	PCGEX_DELETE(PropertyBlender)
+}
+
 UPCGExFusePointsSettings::UPCGExFusePointsSettings(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
@@ -33,8 +42,8 @@ FPCGContext* FPCGExFusePointsElement::Initialize(
 	check(Settings);
 
 	Context->AttributesBlendingOverrides = Settings->BlendingSettings.AttributesOverrides;
-	Context->MetadataBlender = MakeUnique<PCGExDataBlending::FMetadataBlender>(Settings->BlendingSettings.DefaultBlending);
-	Context->PropertyBlender = MakeUnique<PCGExDataBlending::FPropertiesBlender>(Settings->BlendingSettings);
+	Context->MetadataBlender = new PCGExDataBlending::FMetadataBlender(Settings->BlendingSettings.DefaultBlending);
+	Context->PropertyBlender = new PCGExDataBlending::FPropertiesBlender(Settings->BlendingSettings);
 
 	return Context;
 }
@@ -56,14 +65,10 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
 		if (!Context->AdvancePointsIO()) { Context->Done(); }
-		else
-		{
-			Context->CurrentIndex = 0;
-			Context->SetState(PCGExFuse::State_FindingRootPoints);
-		}
+		else { Context->SetState(PCGExFuse::State_FindingFusePoints); }
 	}
 
-	if (Context->IsState(PCGExFuse::State_FindingRootPoints))
+	if (Context->IsState(PCGExFuse::State_FindingFusePoints))
 	{
 		auto Initialize = [&](PCGExData::FPointIO& PointIO)
 		{
@@ -78,6 +83,7 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 			PCGExFuse::FFusedPoint* FuseTarget = nullptr;
 
 			Context->PointsLock.ReadLock();
+			
 			if (Settings->bComponentWiseRadius)
 			{
 				for (PCGExFuse::FFusedPoint& FusedPoint : Context->FusedPoints)
@@ -104,17 +110,15 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 					}
 				}
 			}
+			
 			Context->PointsLock.ReadUnlock();
 
-			FWriteScopeLock WriteLock(Context->PointsLock);
 			if (!FuseTarget)
 			{
-				FuseTarget = &Context->FusedPoints.Emplace_GetRef();
-				FuseTarget->MainIndex = PointIndex;
-				FuseTarget->Position = PtPosition;
+				FWriteScopeLock WriteLock(Context->PointsLock);
+				&Context->FusedPoints.Emplace_GetRef(PointIndex, PtPosition);
 			}
-
-			FuseTarget->Add(PointIndex, Distance);
+			else { FuseTarget->Add(PointIndex, Distance); }
 		};
 
 		if (Context->ProcessCurrentPoints(Initialize, ProcessPoint))
@@ -127,30 +131,43 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 	{
 		auto Initialize = [&]()
 		{
-			Context->GetCurrentOut()->GetMutablePoints().SetNumUninitialized(Context->FusedPoints.Num());
-			Context->MetadataBlender->PrepareForData(Context->GetCurrentOut(), Context->GetCurrentIn(), Context->AttributesBlendingOverrides);
+			const TArray<FPCGPoint>& InPoints = Context->GetCurrentIn()->GetPoints();
+			TArray<FPCGPoint>& MutablePoints = Context->GetCurrentOut()->GetMutablePoints();
+			MutablePoints.SetNumUninitialized(Context->FusedPoints.Num());
+
+			int32 Index = 0;
+			for (const PCGExFuse::FFusedPoint& FPoint : Context->FusedPoints)
+			{
+				MutablePoints[Index] = InPoints[FPoint.Index];
+				Index++;
+			}
+
+			Context->MetadataBlender->PrepareForData(Context->CurrentIO, Context->AttributesBlendingOverrides);
 		};
 
 		auto FusePoint = [&](int32 ReadIndex)
 		{
-			PCGExFuse::FFusedPoint& FusedPointData = Context->FusedPoints[ReadIndex];
-			const int32 NumFused = FusedPointData.Fused.Num();
+			PCGExFuse::FFusedPoint& FusedPoint = Context->FusedPoints[ReadIndex];
+			const int32 NumFused = FusedPoint.Fused.Num();
+
+			if (NumFused == 0) { return; }
+
 			const double AverageDivider = NumFused;
 
-			FPCGPoint& ConsolidatedPoint = Context->GetCurrentOut()->GetMutablePoints()[ReadIndex];
+			FPCGPoint& ConsolidatedPoint = Context->CurrentIO->GetMutablePoint(ReadIndex);
 
 			Context->MetadataBlender->PrepareForBlending(ReadIndex);
 
 			PCGExDataBlending::FPropertiesBlender PropertiesBlender = PCGExDataBlending::FPropertiesBlender(*Context->PropertyBlender);
-
-			if (PropertiesBlender.bRequiresPrepare) { PropertiesBlender.PrepareBlending(ConsolidatedPoint, Context->CurrentIO->GetInPoint(FusedPointData.MainIndex)); }
+			// Skip prepare, the original point is already data itself.
+			//if (PropertiesBlender.bRequiresPrepare) { PropertiesBlender.PrepareBlending(ConsolidatedPoint, ConsolidatedPoint); }
 
 			for (int i = 0; i < NumFused; i++)
 			{
-				const int32 FusedPointIndex = FusedPointData.Fused[i];
-				const double Weight = 1 - (FusedPointData.Distances[i] / FusedPointData.MaxDistance);
-				PropertiesBlender.Blend(ConsolidatedPoint, Context->CurrentIO->GetInPoint(FusedPointIndex), ConsolidatedPoint, Weight);
-				Context->MetadataBlender->Blend(ReadIndex, FusedPointIndex, ReadIndex, Weight);
+				const int32 FusedIndex = FusedPoint.Fused[i];
+				const double Weight = 1 - (FusedPoint.Distances[i] / FusedPoint.MaxDistance);
+				PropertiesBlender.Blend(ConsolidatedPoint, Context->CurrentIO->GetInPoint(FusedIndex), ConsolidatedPoint, Weight);
+				Context->MetadataBlender->Blend(ReadIndex, FusedIndex, ReadIndex, Weight);
 			}
 
 			if (PropertiesBlender.bRequiresPrepare) { PropertiesBlender.CompleteBlending(ConsolidatedPoint); }
@@ -159,18 +176,13 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 
 		if (PCGExMT::ParallelForLoop(Context, Context->FusedPoints.Num(), Initialize, FusePoint, Context->ChunkSize))
 		{
+			Context->CurrentIO->OutputTo(Context);
+			Context->CurrentIO->Cleanup();
 			Context->SetState(PCGExMT::State_ReadyForNextPoints);
 		}
 	}
 
-	if (Context->IsDone())
-	{
-		Context->FusedPoints.Empty();
-		Context->OutputPoints();
-		return true;
-	}
-
-	return false;
+	return Context->IsDone();
 }
 
 #undef LOCTEXT_NAMESPACE

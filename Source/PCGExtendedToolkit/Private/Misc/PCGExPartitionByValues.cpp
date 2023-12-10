@@ -89,7 +89,7 @@ namespace PCGExPartition
 
 	int64 FRule::GetPartitionKey(const FPCGPoint& Point) const
 	{
-		const double Upscaled = GetValue(Point) * Upscale + Offset;
+		const double Upscaled = GetValue(Point) * Upscale + (Offset + 1);
 		const double Filtered = (Upscaled - FMath::Fmod(Upscaled, FilterSize)) / FilterSize;
 		return static_cast<int64>(Filtered);
 	}
@@ -242,7 +242,7 @@ bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* InContext) con
 
 	if (Context->IsState(PCGExPartition::State_DistributeToPartition))
 	{
-		auto CreatePartitions = [&](const int32 Index)
+		auto CreatePartition = [&](const int32 Index)
 		{
 			PCGExPartition::FKPartition* Partition = Context->Partitions[Index];
 			const UPCGPointData* InData = Context->GetCurrentIn();
@@ -273,7 +273,7 @@ bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* InContext) con
 			Context->Output(OutData, Context->MainPoints->DefaultOutputLabel);
 		};
 
-		if (Context->Process(CreatePartitions, Context->NumPartitions)) { Context->Done(); }
+		if (Context->Process(CreatePartition, Context->NumPartitions)) { Context->Done(); }
 	}
 
 	return Context->IsDone();

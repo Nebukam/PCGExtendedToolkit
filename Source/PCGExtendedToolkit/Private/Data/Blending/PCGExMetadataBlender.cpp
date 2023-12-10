@@ -28,29 +28,32 @@ namespace PCGExDataBlending
 		DefaultOperation = ReferenceBlender->DefaultOperation;
 	}
 
-	void FMetadataBlender::PrepareForData(UPCGPointData* InPrimaryData, const UPCGPointData* InSecondaryData)
+	void FMetadataBlender::PrepareForData(PCGExData::FPointIO* InPointIO, const TMap<FName, EPCGExDataBlendingType>& OperationTypeOverrides)
 	{
-		const TMap<FName, EPCGExDataBlendingType> NoOverrides;
-		PrepareForData(InPrimaryData, InSecondaryData ? InSecondaryData : InPrimaryData, NoOverrides);
-	}
-
-	void FMetadataBlender::PrepareForData(UPCGPointData* InPrimaryData, const UPCGPointData* InSecondaryData, const TMap<FName, EPCGExDataBlendingType>& OperationTypeOverrides)
-	{
-		PrepareForData(InPrimaryData, InSecondaryData ? InSecondaryData : InPrimaryData, nullptr, nullptr, OperationTypeOverrides);
+		InternalPrepareForData(
+			InPointIO->GetOut(), InPointIO->GetIn(),
+			InPointIO->GetOutKeys(), InPointIO->GetInKeys(),
+			OperationTypeOverrides);
 	}
 
 	void FMetadataBlender::PrepareForData(
-		UPCGPointData* InPrimaryData,
-		const UPCGPointData* InSecondaryData,
-		FPCGAttributeAccessorKeysPoints* InPrimaryKeys,
-		FPCGAttributeAccessorKeysPoints* InSecondaryKeys,
+		UPCGPointData* InPrimaryData, const UPCGPointData* InSecondaryData,
 		const TMap<FName, EPCGExDataBlendingType>& OperationTypeOverrides)
 	{
 		InternalPrepareForData(
-			InPrimaryData,
-			InSecondaryData ? InSecondaryData : InPrimaryData,
-			InPrimaryKeys,
-			InSecondaryKeys ? InSecondaryKeys : InPrimaryData == InSecondaryData ? InPrimaryKeys : nullptr,
+			InPrimaryData, InSecondaryData ? InSecondaryData : InPrimaryData,
+			nullptr, nullptr,
+			OperationTypeOverrides);
+	}
+
+	void FMetadataBlender::PrepareForData(
+		UPCGPointData* InPrimaryData, const UPCGPointData* InSecondaryData,
+		FPCGAttributeAccessorKeysPoints* InPrimaryKeys, FPCGAttributeAccessorKeysPoints* InSecondaryKeys,
+		const TMap<FName, EPCGExDataBlendingType>& OperationTypeOverrides)
+	{
+		InternalPrepareForData(
+			InPrimaryData, InSecondaryData ? InSecondaryData : InPrimaryData,
+			InPrimaryKeys, InSecondaryKeys ? InSecondaryKeys : InPrimaryData == InSecondaryData ? InPrimaryKeys : nullptr,
 			OperationTypeOverrides);
 	}
 

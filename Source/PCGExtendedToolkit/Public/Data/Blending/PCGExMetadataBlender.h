@@ -52,8 +52,8 @@ PCGEX_BLEND_CASE(Max)
 		FMetadataBlender(const FMetadataBlender* ReferenceBlender);
 
 		void PrepareForData(
-			UPCGPointData* InPrimaryData,
-			const UPCGPointData* InSecondaryData = nullptr);
+			PCGExData::FPointIO* InPointIO,
+			const TMap<FName, EPCGExDataBlendingType>& OperationTypeOverrides);
 
 		void PrepareForData(
 			UPCGPointData* InPrimaryData,
