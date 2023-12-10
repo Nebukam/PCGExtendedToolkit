@@ -18,20 +18,19 @@ enum class EPCGExSortDirection : uint8
 	Descending UMETA(DisplayName = "Descending")
 };
 
-
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExInputDescriptorWithOrderField : public FPCGExInputDescriptor
+struct PCGEXTENDEDTOOLKIT_API FPCGExSortRule : public FPCGExInputDescriptor
 {
 	GENERATED_BODY()
 
-	FPCGExInputDescriptorWithOrderField(): FPCGExInputDescriptor()
+	FPCGExSortRule(): FPCGExInputDescriptor()
 	{
 	}
 
-	FPCGExInputDescriptorWithOrderField(const FPCGExInputDescriptorWithOrderField& Other)
-		: FPCGExInputDescriptor(Other)
+	template <typename T>
+	FPCGExSortRule(const FPCGExSortRule& Other)
+		: FPCGExInputDescriptor(Other), Tolerance(Other.Tolerance)
 	{
-		OrderFieldSelection = Other.OrderFieldSelection;
 	}
 
 public:
@@ -39,28 +38,6 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayAfter="Selector", ForceInlineRow))
 	EPCGExOrderedFieldSelection OrderFieldSelection = EPCGExOrderedFieldSelection::XYZ;
 
-	virtual ~FPCGExInputDescriptorWithOrderField() override
-	{
-	}
-};
-
-
-USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExSortRule : public FPCGExInputDescriptorWithOrderField
-{
-	GENERATED_BODY()
-
-	FPCGExSortRule(): FPCGExInputDescriptorWithOrderField()
-	{
-	}
-
-	template <typename T>
-	FPCGExSortRule(const FPCGExSortRule& Other): FPCGExInputDescriptorWithOrderField(Other)
-	{
-		Tolerance = Other.Tolerance;
-	}
-
-public:
 	/** Equality tolerance. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	float Tolerance = 0.0001f;
@@ -101,14 +78,4 @@ class PCGEXTENDEDTOOLKIT_API FPCGExSortPointsElement : public FPCGExPointsProces
 protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 
-	static bool BuildRulesForPoints(
-		const UPCGPointData* InData,
-		const TArray<FPCGExSortRule>& DesiredRules,
-		TArray<FPCGExSortRule>& OutRules);
-
-	template <typename T>
-	static int Compare(const T& A, const T& B, const FPCGExSortRule& Settings)
-	{
-		return FPCGExCompare::Compare(A, B, Settings.Tolerance, Settings.OrderFieldSelection);
-	}
 };

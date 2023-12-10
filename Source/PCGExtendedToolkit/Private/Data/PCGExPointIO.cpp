@@ -160,14 +160,12 @@ namespace PCGExData
 			FPCGTaggedData& OutputRef = Context->OutputData.TaggedData.Add_GetRef(Source);
 			OutputRef.Data = Out;
 			OutputRef.Pin = DefaultOutputLabel;
-			Output = OutputRef;
 		}
 		else
 		{
 			FPCGTaggedData& OutputRef = Context->OutputData.TaggedData.Emplace_GetRef();
 			OutputRef.Data = Out;
 			OutputRef.Pin = DefaultOutputLabel;
-			Output = OutputRef;
 		}
 
 		Cleanup();

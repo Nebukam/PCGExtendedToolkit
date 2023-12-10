@@ -21,98 +21,98 @@ bool FPCGExSortPointsElement::ExecuteInternal(FPCGContext* InContext) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExSortPointsByAttributesElement::Execute);
 
-	if (!Validate(InContext)) { return true; }
-
 	FPCGExPointsProcessorContext* Context = static_cast<FPCGExPointsProcessorContext*>(InContext);
 
 	const UPCGExSortPointsSettings* Settings = Context->GetInputSettings<UPCGExSortPointsSettings>();
 	check(Settings);
 
-	const TArray<FPCGExSortRule>& DesiredRules = Settings->Rules;
-
-	if (DesiredRules.IsEmpty())
+	if (Context->IsSetup())
 	{
-		PCGE_LOG(Error, GraphAndLog, LOCTEXT("NoSortParams", "No attributes to sort over."));
-		return true;
+		if (!Validate(Context)) { return true; }
+		if (Settings->Rules.IsEmpty())
+		{
+			PCGE_LOG(Error, GraphAndLog, LOCTEXT("NoSortParams", "No attributes to sort over."));
+			return true;
+		}
+
+		Context->SetState(PCGExMT::State_ProcessingPoints);
 	}
 
-	//
-
-	EPCGExSortDirection SortDirection = Settings->SortDirection;
-	TArray<FPCGExSortRule> Rules;
-
-	auto ProcessPair = [&](PCGExData::FPointIO& POI, const int32)
+	auto SortPointIO = [&](int32 Index)
 	{
-		//POI->ForwardPoints(Context);
-		if (!BuildRulesForPoints(POI.GetOut(), DesiredRules, Rules)) { return; }
+		PCGExData::FPointIO& PointIO = Context->MainPoints->Pairs[Index];
+		TArray<FPCGExSortRule> Rules;
+		Rules.Reserve(Settings->Rules.Num());
 
-		auto Compare = [](auto DummyValue, const FPCGExSortRule* Rule, const FPCGPoint& PtA, const FPCGPoint& PtB) -> int
+		for (const FPCGExSortRule& DesiredRule : Settings->Rules)
+		{
+			FPCGExSortRule& Rule = Rules.Emplace_GetRef(DesiredRule);
+			if (!Rule.Validate(PointIO.GetOut())) { Rules.Pop(); }
+		}
+
+		if (Rules.IsEmpty()) { return; } // Could not sort, omit output.
+
+		auto Compare = [&](auto DummyValue, const FPCGExSortRule* Rule, const FPCGPoint& PtA, const FPCGPoint& PtB) -> int
 		{
 			using T = decltype(DummyValue);
 			FPCGMetadataAttribute<T>* Attribute = static_cast<FPCGMetadataAttribute<T>*>(Rule->Attribute);
-			return FPCGExCompare::Compare(Attribute->GetValueFromItemKey(PtA.MetadataEntry), Attribute->GetValueFromItemKey(PtB.MetadataEntry), Rule->Tolerance, Rule->OrderFieldSelection);
+			return FPCGExCompare::Compare(
+				Attribute->GetValueFromItemKey(PtA.MetadataEntry),
+				Attribute->GetValueFromItemKey(PtB.MetadataEntry),
+				Rule->Tolerance, Rule->OrderFieldSelection);
 		};
 
-		POI.GetOut()->GetMutablePoints().Sort(
-			[&Rules, &SortDirection, Compare](
-			const FPCGPoint& A, const FPCGPoint& B)
-			{
+		auto SortPredicate = [&](const FPCGPoint& A, const FPCGPoint& B)
+		{
 #define PCGEX_COMPARE_PROPERTY_CASE(_ENUM, _ACCESSOR) \
 case _ENUM : Result = FPCGExCompare::Compare(A._ACCESSOR, B._ACCESSOR, Rule.Tolerance, Rule.OrderFieldSelection); break;
 
-				int Result = 0;
-				for (const FPCGExSortRule& Rule : Rules)
+			int Result = 0;
+			for (const FPCGExSortRule& Rule : Rules)
+			{
+				switch (Rule.Selector.GetSelection())
 				{
-					switch (Rule.Selector.GetSelection())
+				case EPCGAttributePropertySelection::Attribute:
+					Result = PCGMetadataAttribute::CallbackWithRightType(Rule.UnderlyingType, Compare, &Rule, A, B);
+					break;
+				case EPCGAttributePropertySelection::PointProperty:
+					switch (Rule.Selector.GetPointProperty())
 					{
-					case EPCGAttributePropertySelection::Attribute:
-						Result = PCGMetadataAttribute::CallbackWithRightType(Rule.UnderlyingType, Compare, &Rule, A, B);
-						break;
-					case EPCGAttributePropertySelection::PointProperty:
-						switch (Rule.Selector.GetPointProperty())
-						{
-						PCGEX_FOREACH_POINTPROPERTY(PCGEX_COMPARE_PROPERTY_CASE)
-						default: ;
-						}
-						break;
-					case EPCGAttributePropertySelection::ExtraProperty:
-						switch (Rule.Selector.GetExtraProperty())
-						{
-						PCGEX_FOREACH_POINTEXTRAPROPERTY(PCGEX_COMPARE_PROPERTY_CASE)
-						default: ;
-						}
-						break;
-					default: ;
+					PCGEX_FOREACH_POINTPROPERTY(PCGEX_COMPARE_PROPERTY_CASE)
 					}
-
-					if (Result != 0) { break; }
+					break;
+				case EPCGAttributePropertySelection::ExtraProperty:
+					switch (Rule.Selector.GetExtraProperty())
+					{
+					PCGEX_FOREACH_POINTEXTRAPROPERTY(PCGEX_COMPARE_PROPERTY_CASE)
+					}
+					break;
+				default: ;
 				}
 
-				if (SortDirection == EPCGExSortDirection::Descending) { Result *= -1; }
-				return Result <= 0;
-			});
+				if (Result != 0) { break; }
+			}
+
+			if (Settings->SortDirection == EPCGExSortDirection::Descending) { Result *= -1; }
+			return Result <= 0;
+		};
+
+		PointIO.GetOut()->GetMutablePoints().Sort(SortPredicate);
+
+		{
+			FWriteScopeLock WriteLock(Context->ContextLock);
+			PointIO.OutputTo(Context);
+		}
+
+		Rules.Empty();
 	};
 
-	Context->MainPoints->ForEach(ProcessPair);
-	Context->OutputPoints();
-
-	return true;
-}
-
-bool FPCGExSortPointsElement::BuildRulesForPoints(
-	const UPCGPointData* InData,
-	const TArray<FPCGExSortRule>& DesiredRules,
-	TArray<FPCGExSortRule>& OutRules)
-{
-	OutRules.Empty(DesiredRules.Num());
-
-	for (const FPCGExSortRule& DesiredRule : DesiredRules)
+	if (Context->IsState(PCGExMT::State_ProcessingPoints))
 	{
-		FPCGExSortRule& Rule = OutRules.Emplace_GetRef(DesiredRule);
-		if (!Rule.Validate(InData)) { OutRules.Pop(); }
+		if (Context->Process(SortPointIO, Context->MainPoints->Num())) { Context->Done(); }
 	}
 
-	return !OutRules.IsEmpty();
+	return Context->IsDone();
 }
 
 #undef PCGEX_COMPARE_PROPERTY

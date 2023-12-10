@@ -208,6 +208,9 @@ public:
 		return AsyncLoop.Advance(LoopBody);
 	}
 
+	void Output(FPCGTaggedData& OutTaggedData, UPCGData* OutData, FName OutputLabel);
+	void Output(UPCGData* OutData, FName OutputLabel);
+
 	template <typename T>
 	T MakeLoop()
 	{
