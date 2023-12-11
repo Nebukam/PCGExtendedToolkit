@@ -314,10 +314,9 @@ bool FPCGExSampleNearestPolylineElement::ExecuteInternal(FPCGContext* InContext)
 	if (Context->IsDone())
 	{
 		Context->OutputPoints();
-		return true;
 	}
 
-	return false;
+	return Context->IsDone();
 }
 
 #undef LOCTEXT_NAMESPACE

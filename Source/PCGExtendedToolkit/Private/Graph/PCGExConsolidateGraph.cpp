@@ -140,10 +140,9 @@ bool FPCGExConsolidateGraphElement::ExecuteInternal(
 	{
 		Context->IndicesRemap.Empty();
 		Context->OutputPointsAndGraphParams();
-		return true;
 	}
 
-	return false;
+	return Context->IsDone();
 }
 
 int64 FPCGExConsolidateGraphElement::GetFixedIndex(FPCGExConsolidateGraphContext* Context, int64 InIndex)

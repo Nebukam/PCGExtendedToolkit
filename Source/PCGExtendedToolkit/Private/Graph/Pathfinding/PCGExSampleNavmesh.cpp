@@ -13,8 +13,7 @@
 
 #define LOCTEXT_NAMESPACE "PCGExSampleNavmeshElement"
 
-UPCGExSampleNavmeshSettings::UPCGExSampleNavmeshSettings(
-	const FObjectInitializer& ObjectInitializer)
+UPCGExSampleNavmeshSettings::UPCGExSampleNavmeshSettings(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 	GoalPicker = EnsureInstruction<UPCGExGoalPickerRandom>(GoalPicker);
@@ -71,7 +70,7 @@ FPCGExSampleNavmeshContext::~FPCGExSampleNavmeshContext()
 {
 	PathBuffer.Empty();
 	PCGEX_DELETE(GoalsPoints)
-	PCGEX_DELETE(GoalsPoints)
+	PCGEX_DELETE(OutputPaths)
 }
 
 FPCGElementPtr UPCGExSampleNavmeshSettings::CreateElement() const { return MakeShared<FPCGExSampleNavmeshElement>(); }
@@ -102,6 +101,7 @@ FPCGContext* FPCGExSampleNavmeshElement::Initialize(const FPCGDataCollection& In
 
 	Context->OutputPaths = new PCGExData::FPointIOGroup();
 
+	//TODO: Copy & delete, otherwise leaks
 	Context->GoalPicker = Settings->EnsureInstruction<UPCGExGoalPickerRandom>(Settings->GoalPicker, Context);
 	Context->Blending = Settings->EnsureInstruction<UPCGExSubPointsBlendInterpolate>(Settings->Blending, Context);
 
@@ -210,10 +210,9 @@ bool FPCGExSampleNavmeshElement::ExecuteInternal(FPCGContext* InContext) const
 	if (Context->IsDone())
 	{
 		Context->OutputPaths->OutputTo(Context, true);
-		return true;
 	}
 
-	return false;
+	return Context->IsDone();
 }
 
 bool FNavmeshPathTask::ExecuteTask()
@@ -325,7 +324,7 @@ bool FNavmeshPathTask::ExecuteTask()
 
 				if (!Context->bAddSeedToPath) { MutablePoints.RemoveAt(0); }
 				if (!Context->bAddGoalToPath) { MutablePoints.Pop(); }
-				
+
 				bSuccess = true;
 			}
 		}

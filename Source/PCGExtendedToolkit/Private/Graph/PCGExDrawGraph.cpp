@@ -204,10 +204,9 @@ bool FPCGExDrawGraphElement::ExecuteInternal(FPCGContext* InContext) const
 	if (Context->IsDone())
 	{
 		//Context->OutputPointsAndParams();
-		return true;
 	}
 
-	return false;
+	return Context->IsDone();
 
 #elif
 	return  true;

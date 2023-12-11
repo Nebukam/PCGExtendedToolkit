@@ -106,10 +106,9 @@ bool FPCGExSampleGraphPatchesElement::ExecuteInternal(FPCGContext* InContext) co
 	if (Context->IsDone())
 	{
 		Context->OutputPaths->OutputTo(Context, true);
-		return true;
 	}
 
-	return false;
+	return Context->IsDone();
 }
 
 bool FSamplePatchPathTask::ExecuteTask()

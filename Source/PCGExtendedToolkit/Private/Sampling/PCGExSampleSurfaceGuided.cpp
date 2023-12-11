@@ -111,10 +111,9 @@ bool FPCGExSampleSurfaceGuidedElement::ExecuteInternal(FPCGContext* InContext) c
 	if (Context->IsDone())
 	{
 		Context->OutputPoints();
-		return true;
 	}
 
-	return false;
+	return Context->IsDone();
 }
 
 bool FTraceTask::ExecuteTask()

@@ -198,10 +198,9 @@ bool FPCGExFindEdgePatchesElement::ExecuteInternal(
 	if (Context->IsDone())
 	{
 		Context->OutputPointsAndGraphParams();
-		return true;
 	}
 
-	return false;
+	return Context->IsDone();
 }
 
 bool FDistributeToPatchTask::ExecuteTask()

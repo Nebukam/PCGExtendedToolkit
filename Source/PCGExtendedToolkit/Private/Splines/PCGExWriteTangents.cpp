@@ -85,10 +85,9 @@ bool FPCGExWriteTangentsElement::ExecuteInternal(FPCGContext* InContext) const
 	if (Context->IsDone())
 	{
 		Context->OutputPoints();
-		return true;
 	}
 
-	return false;
+	return Context->IsDone();
 }
 
 #undef LOCTEXT_NAMESPACE

@@ -24,6 +24,12 @@ PCGExData::EInit UPCGExSubdivideSettings::GetPointOutputInitMode() const { retur
 
 FPCGElementPtr UPCGExSubdivideSettings::CreateElement() const { return MakeShared<FPCGExSubdivideElement>(); }
 
+FPCGExSubdivideContext::~FPCGExSubdivideContext()
+{
+	Milestones.Empty();
+	MilestonesMetrics.Empty();
+}
+
 FPCGContext* FPCGExSubdivideElement::Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node)
 {
 	FPCGExSubdivideContext* Context = new FPCGExSubdivideContext();
@@ -37,6 +43,7 @@ FPCGContext* FPCGExSubdivideElement::Initialize(const FPCGDataCollection& InputD
 	Context->bFlagSubPoints = Settings->bFlagSubPoints;
 	Context->FlagName = Settings->FlagName;
 
+	//TODO: Copy & delete, otherwise leaks
 	Context->Blending = Settings->EnsureInstruction<UPCGExSubPointsBlendInterpolate>(Settings->Blending, Context);
 
 	return Context;
@@ -97,7 +104,7 @@ bool FPCGExSubdivideElement::ExecuteInternal(FPCGContext* InContext) const
 			const double StartOffset = (Distance - StepSize * NumSubdivisions) * 0.5;
 
 			Metrics.Reset(StartPos);
-			
+
 			for (int i = 0; i < NumSubdivisions; i++)
 			{
 				FPCGPoint& NewPoint = PointIO.CopyPoint(StartPoint, LastIndex);

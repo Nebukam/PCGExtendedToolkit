@@ -280,9 +280,7 @@ bool FPCGExDrawAttributesElement::ExecuteInternal(FPCGContext* InContext) const
 		}
 	}
 
-	if (Context->IsDone()) { return true; }
-
-	return false;
+	return Context->IsDone();
 
 #elif
 	return  true;

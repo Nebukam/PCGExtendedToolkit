@@ -71,7 +71,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSubdivideContext : public FPCGExPathProcesso
 {
 	friend class FPCGExSubdivideElement;
 
-public:
+	~FPCGExSubdivideContext();
+
+	UPCGExSubPointsBlendOperation* Blending = nullptr;
+	
 	EPCGExSubdivideMode Method;
 	double Distance;
 	int32 Count;
@@ -83,7 +86,7 @@ public:
 	TArray<int32> Milestones;
 	TArray<PCGExMath::FPathMetrics> MilestonesMetrics;
 
-	UPCGExSubPointsBlendOperation* Blending;
+	
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExSubdivideElement : public FPCGExPathProcessorElement

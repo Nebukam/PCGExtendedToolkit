@@ -110,10 +110,9 @@ bool FPCGExSampleNearestSurfaceElement::ExecuteInternal(FPCGContext* InContext) 
 	if (Context->IsDone())
 	{
 		Context->OutputPoints();
-		return true;
 	}
 
-	return false;
+	return Context->IsDone();
 }
 
 bool FSweepSphereTask::ExecuteTask()

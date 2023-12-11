@@ -343,10 +343,9 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 		Context->TargetsCache = nullptr;
 		Context->TargetIndices.Empty();
 		Context->OutputPoints();
-		return true;
 	}
 
-	return false;
+	return Context->IsDone();
 }
 
 #undef LOCTEXT_NAMESPACE
