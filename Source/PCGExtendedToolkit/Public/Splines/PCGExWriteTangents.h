@@ -48,7 +48,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExWriteTangentsContext : public FPCGExPathProc
 {
 	friend class FPCGExWriteTangentsElement;
 
-	~FPCGExWriteTangentsContext();
+	virtual ~FPCGExWriteTangentsContext() override;
 
 	PCGEx::FAttributeAccessor<FVector>* ArriveTangentsAccessor = nullptr;
 	PCGEx::FAttributeAccessor<FVector>* LeaveTangentsAccessor = nullptr;

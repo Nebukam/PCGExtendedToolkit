@@ -124,7 +124,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNavmeshContext : public FPCGExPointsPr
 	mutable FRWLock BufferLock;
 
 	virtual ~FPCGExSampleNavmeshContext() override;
-	
+
 	PCGExData::FPointIO* GoalsPoints = nullptr;
 	PCGExData::FPointIOGroup* OutputPaths = nullptr;
 

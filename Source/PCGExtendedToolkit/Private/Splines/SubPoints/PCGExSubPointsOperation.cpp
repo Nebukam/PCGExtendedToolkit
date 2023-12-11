@@ -4,7 +4,7 @@
 
 #include "Splines/SubPoints/PCGExSubPointsOperation.h"
 
-#include "..\..\..\Public\Data\PCGExPointIO.h"
+#include "Data/PCGExPointIO.h"
 
 
 void UPCGExSubPointsOperation::PrepareForData(PCGExData::FPointIO& InData)
@@ -27,8 +27,7 @@ void UPCGExSubPointsOperation::ProcessSubPoints(const PCGEx::FPointRef& Start, c
 void UPCGExSubPointsOperation::ProcessSubPoints(TArrayView<FPCGPoint>& SubPoints, const PCGExMath::FPathMetrics& Metrics) const
 {
 	const FPCGPoint& Start = SubPoints[0];
-	const int32 LastIndex = SubPoints.Num()-1;
+	const int32 LastIndex = SubPoints.Num() - 1;
 	const FPCGPoint& End = SubPoints[LastIndex];
 	ProcessSubPoints(PCGEx::FPointRef(Start, 0), PCGEx::FPointRef(End, LastIndex), SubPoints, Metrics);
 }
-

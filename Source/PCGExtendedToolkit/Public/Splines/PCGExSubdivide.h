@@ -56,7 +56,7 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="SubdivideMethod==EPCGExSubdivideMode::Count", EditConditionHides))
 	int32 Count = 10;
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced)
 	UPCGExSubPointsBlendOperation* Blending;
 
@@ -71,10 +71,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSubdivideContext : public FPCGExPathProcesso
 {
 	friend class FPCGExSubdivideElement;
 
-	~FPCGExSubdivideContext();
+	virtual ~FPCGExSubdivideContext() override;
 
 	UPCGExSubPointsBlendOperation* Blending = nullptr;
-	
+
 	EPCGExSubdivideMode Method;
 	double Distance;
 	int32 Count;
@@ -85,8 +85,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSubdivideContext : public FPCGExPathProcesso
 
 	TArray<int32> Milestones;
 	TArray<PCGExMath::FPathMetrics> MilestonesMetrics;
-
-	
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExSubdivideElement : public FPCGExPathProcessorElement

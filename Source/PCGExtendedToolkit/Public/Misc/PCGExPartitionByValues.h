@@ -81,7 +81,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSplitByValuesContext : public FPCGExPointsPr
 {
 	friend class FPCGExPartitionByValuesElement;
 
-	~FPCGExSplitByValuesContext();
+	virtual ~FPCGExSplitByValuesContext() override;
 
 	TArray<FPCGExFilterRuleDescriptor> RulesDescriptors;
 	TArray<FPCGExFilter::FRule> Rules;

@@ -84,7 +84,7 @@ bool FPCGExSampleNearestSurfaceElement::ExecuteInternal(FPCGContext* InContext) 
 
 	if (Context->IsState(PCGExMT::State_ProcessingPoints))
 	{
-		auto Initialize = [&](PCGExData::FPointIO& PointIO) 
+		auto Initialize = [&](PCGExData::FPointIO& PointIO)
 		{
 			PointIO.BuildMetadataEntries();
 			PCGEX_INIT_ATTRIBUTE_OUT(Success, bool)

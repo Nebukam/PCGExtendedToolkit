@@ -9,7 +9,7 @@
 #include "PCGEx.h"
 #include "PCGExMT.h"
 #include "Data/PCGExAttributeHelpers.h"
-#include "Data\PCGExPointIO.h"
+#include "Data/PCGExPointIO.h"
 #include "PCGExOperation.h"
 
 #include "PCGExPointsProcessor.generated.h"
@@ -223,12 +223,12 @@ public:
 		Loop.bAsyncEnabled = bDoAsyncProcessing;
 		return Loop;
 	}
-	
+
 	template <typename T>
 	T* RegisterOperation(UPCGExOperation* Operation)
 	{
 		T* RetValue = nullptr;
-		
+
 		if (!Operation)
 		{
 			RetValue = NewObject<T>();

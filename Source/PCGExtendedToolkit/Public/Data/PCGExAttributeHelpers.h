@@ -356,7 +356,7 @@ namespace PCGEx
 		const UPCGPointData* InData = InPointIO.GetIn();
 		const FPCGMetadataAttributeBase* Attribute = InData->Metadata->GetConstAttribute(AttributeName);
 		if (!Attribute) { return nullptr; }
-		return new FAttributeAccessor<T>(InData, Attribute, InPointIO.GetInKeys());;
+		return new FAttributeAccessor<T>(InData, Attribute, InPointIO.GetInKeys());
 	}
 
 	template <typename T>

@@ -122,7 +122,6 @@ bool FPCGExSubdivideElement::ExecuteInternal(FPCGContext* InContext) const
 
 		if (Context->ProcessCurrentPoints(Initialize, ProcessPoint, true))
 		{
-			
 			Context->SetState(PCGExSubdivide::State_BlendingPoints);
 		}
 	}

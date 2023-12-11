@@ -4,7 +4,7 @@
 
 #include "Splines/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
 
-#include "..\..\..\..\Public\Data\PCGExPointIO.h"
+#include "Data/PCGExPointIO.h"
 
 EPCGExDataBlendingType UPCGExSubPointsBlendInterpolate::GetDefaultBlending()
 {
@@ -57,19 +57,19 @@ void UPCGExSubPointsBlendInterpolate::BlendSubPoints(
 		}
 	}
 
-/*
-	FString str = TEXT("-> ");
-	for (double Al : Alphas)
-	{
-		str += FString::Printf(TEXT("%f | "), Al);
-	}
+	/*
+		FString str = TEXT("-> ");
+		for (double Al : Alphas)
+		{
+			str += FString::Printf(TEXT("%f | "), Al);
+		}
+	
+		str += FString::Printf(TEXT(" // %f"), Metrics.Length);
+		str += FString::Printf(TEXT(" // %d"), Metrics.Count);
+		
+		UE_LOG(LogTemp, Warning, TEXT("%s"), *str);
+	*/
 
-	str += FString::Printf(TEXT(" // %f"), Metrics.Length);
-	str += FString::Printf(TEXT(" // %d"), Metrics.Count);
-	
-	UE_LOG(LogTemp, Warning, TEXT("%s"), *str);
-*/
-	
 	LocalPropertiesBlender.BlendRangeOnce(*StartPoint.Point, *EndPoint.Point, SubPoints, Alphas);
 	InBlender->BlendRangeOnce(StartPoint.Index, EndPoint.Index, StartPoint.Index, NumPoints, Alphas);
 

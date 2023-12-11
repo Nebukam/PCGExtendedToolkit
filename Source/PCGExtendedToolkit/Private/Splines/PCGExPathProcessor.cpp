@@ -22,7 +22,7 @@ FPCGContext* FPCGExPathProcessorElement::Initialize(const FPCGDataCollection& In
 	FPCGExPathProcessorContext* Context = new FPCGExPathProcessorContext();
 	InitializeContext(Context, InputData, SourceComponent, Node);
 	const UPCGExPathProcessorSettings* Settings = Context->GetInputSettings<UPCGExPathProcessorSettings>();
-	check(Settings);	
+	check(Settings);
 	return Context;
 }
 

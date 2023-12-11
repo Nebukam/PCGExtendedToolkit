@@ -74,7 +74,6 @@ namespace PCGExPartition
 			Partitions.Add(this);
 		}
 	}
-
 }
 
 

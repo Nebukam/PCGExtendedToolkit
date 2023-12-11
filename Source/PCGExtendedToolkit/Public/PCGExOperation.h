@@ -4,7 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Data\PCGExPointIO.h"
+#include "Data/PCGExPointIO.h"
 #include "UObject/Object.h"
 #include "PCGExOperation.generated.h"
 

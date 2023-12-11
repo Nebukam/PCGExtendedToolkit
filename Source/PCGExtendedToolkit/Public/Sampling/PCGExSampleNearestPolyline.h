@@ -221,7 +221,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestPolylineContext : public FPCGEx
 {
 	friend class FPCGExSampleNearestPolylineElement;
 
-	~FPCGExSampleNearestPolylineContext();
+	virtual ~FPCGExSampleNearestPolylineContext() override;
 
 	PCGExData::FPolyLineIOGroup* Targets = nullptr;
 

@@ -82,7 +82,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointPropertyBlendingOverrides
 	EPCGExDataBlendingType SeedBlending = EPCGExDataBlendingType::Weight;
 
 #pragma endregion
-
 };
 
 USTRUCT(BlueprintType)
@@ -98,7 +97,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBlendingSettings
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	TMap<FName, EPCGExDataBlendingType> AttributesOverrides;
-
 };
 
 

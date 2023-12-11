@@ -8,21 +8,21 @@
 
 namespace PCGExData
 {
-	void FPointIO::InitializeOutput(const PCGExData::EInit InitOut)
+	void FPointIO::InitializeOutput(const EInit InitOut)
 	{
 		switch (InitOut)
 		{
-		case PCGExData::EInit::NoOutput:
+		case EInit::NoOutput:
 			break;
-		case PCGExData::EInit::NewOutput:
+		case EInit::NewOutput:
 			Out = NewObject<UPCGPointData>();
 			if (In) { Out->InitializeFromData(In); }
 			break;
-		case PCGExData::EInit::DuplicateInput:
+		case EInit::DuplicateInput:
 			check(In)
 			Out = Cast<UPCGPointData>(In->DuplicateData(true));
 			break;
-		case PCGExData::EInit::Forward:
+		case EInit::Forward:
 			check(In)
 			Out = const_cast<UPCGPointData*>(In);
 			break;
@@ -196,14 +196,14 @@ namespace PCGExData
 	{
 	}
 
-	FPointIOGroup::FPointIOGroup(FPCGContext* Context, FName InputLabel, PCGExData::EInit InitOut)
+	FPointIOGroup::FPointIOGroup(FPCGContext* Context, FName InputLabel, EInit InitOut)
 		: FPointIOGroup()
 	{
 		TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(InputLabel);
 		Initialize(Context, Sources, InitOut);
 	}
 
-	FPointIOGroup::FPointIOGroup(FPCGContext* Context, TArray<FPCGTaggedData>& Sources, PCGExData::EInit InitOut)
+	FPointIOGroup::FPointIOGroup(FPCGContext* Context, TArray<FPCGTaggedData>& Sources, EInit InitOut)
 		: FPointIOGroup()
 	{
 		Initialize(Context, Sources, InitOut);
@@ -216,12 +216,12 @@ namespace PCGExData
 
 	void FPointIOGroup::Initialize(
 		FPCGContext* Context, TArray<FPCGTaggedData>& Sources,
-		const PCGExData::EInit InitOut)
+		const EInit InitOut)
 	{
 		Pairs.Empty(Sources.Num());
 		for (FPCGTaggedData& Source : Sources)
 		{
-			const UPCGPointData* MutablePointData = PCGExData::GetMutablePointData(Context, Source);
+			const UPCGPointData* MutablePointData = GetMutablePointData(Context, Source);
 			if (!MutablePointData || MutablePointData->GetPoints().Num() == 0) { continue; }
 			Emplace_GetRef(Source, MutablePointData, InitOut);
 		}
@@ -229,49 +229,49 @@ namespace PCGExData
 
 	void FPointIOGroup::Initialize(
 		FPCGContext* Context, TArray<FPCGTaggedData>& Sources,
-		const PCGExData::EInit InitOut,
+		const EInit InitOut,
 		const TFunction<bool(UPCGPointData*)>& ValidateFunc,
-		const TFunction<void(PCGExData::FPointIO&)>& PostInitFunc)
+		const TFunction<void(FPointIO&)>& PostInitFunc)
 	{
 		Pairs.Empty(Sources.Num());
 		for (FPCGTaggedData& Source : Sources)
 		{
-			UPCGPointData* MutablePointData = PCGExData::GetMutablePointData(Context, Source);
+			UPCGPointData* MutablePointData = GetMutablePointData(Context, Source);
 			if (!MutablePointData || MutablePointData->GetPoints().Num() == 0) { continue; }
 			if (!ValidateFunc(MutablePointData)) { continue; }
-			PCGExData::FPointIO& PointIO = Emplace_GetRef(Source, MutablePointData, InitOut);
+			FPointIO& PointIO = Emplace_GetRef(Source, MutablePointData, InitOut);
 			PostInitFunc(PointIO);
 		}
 	}
 
-	PCGExData::FPointIO& FPointIOGroup::Emplace_GetRef(
-		const PCGExData::FPointIO& PointIO,
-		const PCGExData::EInit InitOut)
+	FPointIO& FPointIOGroup::Emplace_GetRef(
+		const FPointIO& PointIO,
+		const EInit InitOut)
 	{
 		FPointIO& Branch = Emplace_GetRef(PointIO.Source, PointIO.GetIn(), InitOut);
 		Branch.RootIO = const_cast<FPointIO*>(&PointIO);
 		return Branch;
 	}
 
-	PCGExData::FPointIO& FPointIOGroup::Emplace_GetRef(
+	FPointIO& FPointIOGroup::Emplace_GetRef(
 		const FPCGTaggedData& Source,
 		const UPCGPointData* In,
-		const PCGExData::EInit InitOut)
+		const EInit InitOut)
 	{
 		FWriteScopeLock WriteLock(PairsLock);
 		return Pairs.Emplace_GetRef(Source, In, DefaultOutputLabel, InitOut);
 	}
 
-	PCGExData::FPointIO& FPointIOGroup::Emplace_GetRef(
+	FPointIO& FPointIOGroup::Emplace_GetRef(
 		const UPCGPointData* In,
-		const PCGExData::EInit InitOut)
+		const EInit InitOut)
 	{
 		const FPCGTaggedData Source;
 		FWriteScopeLock WriteLock(PairsLock);
 		return Pairs.Emplace_GetRef(Source, In, DefaultOutputLabel, InitOut);
 	}
 
-	PCGExData::FPointIO& FPointIOGroup::Emplace_GetRef(const PCGExData::EInit InitOut)
+	FPointIO& FPointIOGroup::Emplace_GetRef(const EInit InitOut)
 	{
 		FWriteScopeLock WriteLock(PairsLock);
 		return Pairs.Emplace_GetRef(DefaultOutputLabel, InitOut);
@@ -284,7 +284,7 @@ namespace PCGExData
 	 */
 	void FPointIOGroup::OutputTo(FPCGContext* Context, const bool bEmplace)
 	{
-		for (PCGExData::FPointIO& Pair : Pairs)
+		for (FPointIO& Pair : Pairs)
 		{
 			Pair.OutputTo(Context, bEmplace);
 		}
@@ -299,13 +299,13 @@ namespace PCGExData
 	 */
 	void FPointIOGroup::OutputTo(FPCGContext* Context, bool bEmplace, const int64 MinPointCount, const int64 MaxPointCount)
 	{
-		for (PCGExData::FPointIO& Pair : Pairs)
+		for (FPointIO& Pair : Pairs)
 		{
 			Pair.OutputTo(Context, bEmplace, MinPointCount, MaxPointCount);
 		}
 	}
 
-	void FPointIOGroup::ForEach(const TFunction<void(PCGExData::FPointIO&, const int32)>& BodyLoop)
+	void FPointIOGroup::ForEach(const TFunction<void(FPointIO&, const int32)>& BodyLoop)
 	{
 		for (int i = 0; i < Pairs.Num(); i++)
 		{

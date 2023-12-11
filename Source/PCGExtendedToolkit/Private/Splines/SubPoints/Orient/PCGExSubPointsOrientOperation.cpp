@@ -4,7 +4,7 @@
 
 #include "Splines/SubPoints/Orient/PCGExSubPointsOrientOperation.h"
 
-#include "..\..\..\..\Public\Data\PCGExPointIO.h"
+#include "Data/PCGExPointIO.h"
 
 void UPCGExSubPointsOrientOperation::PrepareForData(PCGExData::FPointIO& InData)
 {

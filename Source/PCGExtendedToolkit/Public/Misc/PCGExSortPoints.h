@@ -77,5 +77,4 @@ class PCGEXTENDEDTOOLKIT_API FPCGExSortPointsElement : public FPCGExPointsProces
 {
 protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
-
 };

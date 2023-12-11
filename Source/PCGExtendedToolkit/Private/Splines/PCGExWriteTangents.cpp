@@ -59,7 +59,7 @@ bool FPCGExWriteTangentsElement::Validate(FPCGContext* InContext) const
 	if (!FPCGExPathProcessorElement::Validate(InContext)) { return false; }
 
 	const FPCGExWriteTangentsContext* Context = static_cast<FPCGExWriteTangentsContext*>(InContext);
-	
+
 	if (!FPCGMetadataAttributeBase::IsValidName(Context->Tangents->ArriveName) ||
 		!FPCGMetadataAttributeBase::IsValidName(Context->Tangents->LeaveName))
 	{
@@ -125,9 +125,8 @@ bool FPCGExWriteTangentsElement::ExecuteInternal(FPCGContext* InContext) const
 			Context->SetState(PCGExMT::State_ReadyForNextPoints);
 		}
 	}
-	
+
 	return Context->IsDone();
-	
 }
 
 #undef LOCTEXT_NAMESPACE
