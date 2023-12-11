@@ -46,7 +46,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExWriteIndexContext : public FPCGExPointsProce
 
 	mutable FRWLock MapLock;
 	bool bOutputNormalizedIndex;
-	FName OutName = NAME_None;
+	FName OutputAttributeName = NAME_None;
 
 	TArray<int32> IndicesBuffer;
 	PCGEx::FAttributeAccessor<int32>* IndexAccessor = nullptr;

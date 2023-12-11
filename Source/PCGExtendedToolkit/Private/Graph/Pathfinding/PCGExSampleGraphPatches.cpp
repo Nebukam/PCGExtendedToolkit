@@ -28,8 +28,7 @@ FPCGContext* FPCGExSampleGraphPatchesElement::Initialize(const FPCGDataCollectio
 	FPCGExSampleGraphPatchesContext* Context = new FPCGExSampleGraphPatchesContext();
 	InitializeContext(Context, InputData, SourceComponent, Node);
 
-	const UPCGExSampleGraphPatchesSettings* Settings = Context->GetInputSettings<UPCGExSampleGraphPatchesSettings>();
-	check(Settings);
+	PCGEX_SETTINGS(UPCGExSampleGraphPatchesSettings)
 
 	return Context;
 }
@@ -49,8 +48,8 @@ bool FPCGExSampleGraphPatchesElement::ExecuteInternal(FPCGContext* InContext) co
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExSampleGraphPatchesElement::Execute);
 
-	FPCGExSampleGraphPatchesContext* Context = static_cast<FPCGExSampleGraphPatchesContext*>(InContext);
-
+	PCGEX_CONTEXT(FPCGExSampleGraphPatchesContext)
+	
 	if (Context->IsSetup())
 	{
 		if (!Validate(Context)) { return true; }

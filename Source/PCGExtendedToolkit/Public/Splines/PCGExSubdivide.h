@@ -75,7 +75,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSubdivideContext : public FPCGExPathProcesso
 
 	UPCGExSubPointsBlendOperation* Blending = nullptr;
 
-	EPCGExSubdivideMode Method;
+	EPCGExSubdivideMode SubdivideMethod;
 	double Distance;
 	int32 Count;
 	bool bFlagSubPoints;

@@ -80,8 +80,7 @@ FPCGContext* FPCGExSampleNavmeshElement::Initialize(const FPCGDataCollection& In
 	FPCGExSampleNavmeshContext* Context = new FPCGExSampleNavmeshContext();
 	InitializeContext(Context, InputData, SourceComponent, Node);
 
-	const UPCGExSampleNavmeshSettings* Settings = Context->GetInputSettings<UPCGExSampleNavmeshSettings>();
-	check(Settings);
+	PCGEX_SETTINGS(UPCGExSampleNavmeshSettings)
 
 	if (TArray<FPCGTaggedData> Goals = Context->InputData.GetInputsByPin(PCGExPathfinding::SourceGoalsLabel);
 		Goals.Num() > 0)
@@ -104,13 +103,13 @@ FPCGContext* FPCGExSampleNavmeshElement::Initialize(const FPCGDataCollection& In
 	PCGEX_BIND_OPERATION(GoalPicker, UPCGExGoalPickerRandom)
 	PCGEX_BIND_OPERATION(Blending, UPCGExSubPointsBlendInterpolate)
 
-	Context->bAddSeedToPath = Settings->bAddSeedToPath;
-	Context->bAddGoalToPath = Settings->bAddGoalToPath;
-
-	Context->NavAgentProperties = Settings->NavAgentProperties;
-	Context->bRequireNavigableEndLocation = Settings->bRequireNavigableEndLocation;
-	Context->PathfindingMode = Settings->PathfindingMode;
-
+	PCGEX_FWD(bAddSeedToPath)
+	PCGEX_FWD(bAddGoalToPath)
+	
+	PCGEX_FWD(NavAgentProperties)
+	PCGEX_FWD(bRequireNavigableEndLocation)
+	PCGEX_FWD(PathfindingMode)
+	
 	Context->FuseDistance = Settings->FuseDistance * Settings->FuseDistance;
 
 	return Context;
@@ -120,9 +119,8 @@ bool FPCGExSampleNavmeshElement::Validate(FPCGContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElementBase::Validate(InContext)) { return false; }
 
-	const FPCGExSampleNavmeshContext* Context = static_cast<FPCGExSampleNavmeshContext*>(InContext);
-	const UPCGExSampleNavmeshSettings* Settings = InContext->GetInputSettings<UPCGExSampleNavmeshSettings>();
-	check(Settings);
+	PCGEX_CONTEXT(FPCGExSampleNavmeshContext)
+	PCGEX_SETTINGS(UPCGExSampleNavmeshSettings)
 
 	if (!Context->GoalsPoints || Context->GoalsPoints->GetNum() == 0)
 	{

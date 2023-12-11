@@ -17,19 +17,18 @@ FPCGContext* FPCGExSampleSurfaceGuidedElement::Initialize(const FPCGDataCollecti
 	FPCGExSampleSurfaceGuidedContext* Context = new FPCGExSampleSurfaceGuidedContext();
 	InitializeContext(Context, InputData, SourceComponent, Node);
 
-	const UPCGExSampleSurfaceGuidedSettings* Settings = Context->GetInputSettings<UPCGExSampleSurfaceGuidedSettings>();
-	check(Settings);
+	PCGEX_SETTINGS(UPCGExSampleSurfaceGuidedSettings)
 
-	Context->CollisionChannel = Settings->CollisionChannel;
-	Context->CollisionObjectType = Settings->CollisionObjectType;
-	Context->ProfileName = Settings->ProfileName;
+	PCGEX_FWD(CollisionChannel)
+	PCGEX_FWD(CollisionObjectType)
+	PCGEX_FWD(ProfileName)
+	PCGEX_FWD(bIgnoreSelf)
 
-	Context->bIgnoreSelf = Settings->bIgnoreSelf;
+	PCGEX_FWD(Size)
+	PCGEX_FWD(bUseLocalSize)
+	PCGEX_FWD(bProjectFailToSize)
 
-	Context->Size = Settings->Size;
-	Context->bUseLocalSize = Settings->bUseLocalSize;
 	Context->SizeGetter.Capture(Settings->LocalSize);
-	Context->bProjectFailToSize = Context->bProjectFailToSize;
 
 	Context->DirectionGetter.Capture(Settings->Direction);
 	PCGEX_FORWARD_OUT_ATTRIBUTE(Success)
@@ -44,7 +43,8 @@ bool FPCGExSampleSurfaceGuidedElement::Validate(FPCGContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElementBase::Validate(InContext)) { return false; }
 
-	FPCGExSampleSurfaceGuidedContext* Context = static_cast<FPCGExSampleSurfaceGuidedContext*>(InContext);
+	PCGEX_CONTEXT(FPCGExSampleSurfaceGuidedContext)
+
 	PCGEX_CHECK_OUT_ATTRIBUTE_NAME(Success)
 	PCGEX_CHECK_OUT_ATTRIBUTE_NAME(Location)
 	PCGEX_CHECK_OUT_ATTRIBUTE_NAME(Normal)
@@ -56,7 +56,7 @@ bool FPCGExSampleSurfaceGuidedElement::ExecuteInternal(FPCGContext* InContext) c
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExSampleSurfaceGuidedElement::Execute);
 
-	FPCGExSampleSurfaceGuidedContext* Context = static_cast<FPCGExSampleSurfaceGuidedContext*>(InContext);
+	PCGEX_CONTEXT(FPCGExSampleSurfaceGuidedContext)
 
 	if (Context->IsSetup())
 	{

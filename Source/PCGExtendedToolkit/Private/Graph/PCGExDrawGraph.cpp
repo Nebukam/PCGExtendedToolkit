@@ -40,8 +40,7 @@ FPCGContext* FPCGExDrawGraphElement::Initialize(const FPCGDataCollection& InputD
 	FPCGExDrawGraphContext* Context = new FPCGExDrawGraphContext();
 	InitializeContext(Context, InputData, SourceComponent, Node);
 
-	const UPCGExDrawGraphSettings* Settings = Context->GetInputSettings<UPCGExDrawGraphSettings>();
-	check(Settings);
+	PCGEX_SETTINGS(UPCGExDrawGraphSettings)
 
 	Context->GraphSolver = Settings->EnsureOperation<UPCGExGraphSolver>(nullptr, Context);
 
@@ -54,10 +53,8 @@ bool FPCGExDrawGraphElement::ExecuteInternal(FPCGContext* InContext) const
 
 #if WITH_EDITOR
 
-	FPCGExDrawGraphContext* Context = static_cast<FPCGExDrawGraphContext*>(InContext);
-
-	UPCGExDrawGraphSettings* Settings = const_cast<UPCGExDrawGraphSettings*>(Context->GetInputSettings<UPCGExDrawGraphSettings>());
-	check(Settings);
+	PCGEX_CONTEXT(FPCGExDrawGraphContext)
+	PCGEX_SETTINGS(UPCGExDrawGraphSettings)
 
 	if (Context->IsSetup())
 	{

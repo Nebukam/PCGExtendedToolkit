@@ -44,9 +44,9 @@ FPCGContext* FPCGExWriteTangentsElement::Initialize(const FPCGDataCollection& In
 {
 	FPCGExWriteTangentsContext* Context = new FPCGExWriteTangentsContext();
 	InitializeContext(Context, InputData, SourceComponent, Node);
-	const UPCGExWriteTangentsSettings* Settings = Context->GetInputSettings<UPCGExWriteTangentsSettings>();
-	check(Settings);
-
+	
+	PCGEX_SETTINGS(UPCGExWriteTangentsSettings)
+	
 	PCGEX_BIND_OPERATION(Tangents, UPCGExAutoTangents)
 	Context->Tangents->ArriveName = Settings->ArriveName;
 	Context->Tangents->LeaveName = Settings->LeaveName;
@@ -58,7 +58,7 @@ bool FPCGExWriteTangentsElement::Validate(FPCGContext* InContext) const
 {
 	if (!FPCGExPathProcessorElement::Validate(InContext)) { return false; }
 
-	const FPCGExWriteTangentsContext* Context = static_cast<FPCGExWriteTangentsContext*>(InContext);
+	PCGEX_CONTEXT(FPCGExWriteTangentsContext)
 
 	if (!FPCGMetadataAttributeBase::IsValidName(Context->Tangents->ArriveName) ||
 		!FPCGMetadataAttributeBase::IsValidName(Context->Tangents->LeaveName))
@@ -74,7 +74,7 @@ bool FPCGExWriteTangentsElement::ExecuteInternal(FPCGContext* InContext) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExWriteTangentsElement::Execute);
 
-	FPCGExWriteTangentsContext* Context = static_cast<FPCGExWriteTangentsContext*>(InContext);
+	PCGEX_CONTEXT(FPCGExWriteTangentsContext)
 
 	if (Context->IsSetup())
 	{

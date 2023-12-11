@@ -11,15 +11,8 @@ UPCGExSampleNearestPointSettings::UPCGExSampleNearestPointSettings(
 	const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	if (NormalSource.Selector.GetName() == FName("@Last"))
-	{
-		NormalSource.Selector.Update(TEXT("$Transform"));
-	}
-
-	if (!WeightOverDistance)
-	{
-		WeightOverDistance = PCGEx::WeightDistributionLinear;
-	}
+	if (NormalSource.Selector.GetName() == FName("@Last")) { NormalSource.Selector.Update(TEXT("$Transform")); }
+	if (!WeightOverDistance) { WeightOverDistance = PCGEx::WeightDistributionLinear; }
 }
 
 TArray<FPCGPinProperties> UPCGExSampleNearestPointSettings::InputPinProperties() const
@@ -45,8 +38,7 @@ FPCGContext* FPCGExSampleNearestPointElement::Initialize(const FPCGDataCollectio
 	FPCGExSampleNearestPointContext* Context = new FPCGExSampleNearestPointContext();
 	InitializeContext(Context, InputData, SourceComponent, Node);
 
-	const UPCGExSampleNearestPointSettings* Settings = Context->GetInputSettings<UPCGExSampleNearestPointSettings>();
-	check(Settings);
+	PCGEX_SETTINGS(UPCGExSampleNearestPointSettings)
 
 	TArray<FPCGTaggedData> Targets = InputData.GetInputsByPin(PCGEx::SourceTargetsLabel);
 	if (!Targets.IsEmpty())
@@ -64,8 +56,8 @@ FPCGContext* FPCGExSampleNearestPointElement::Initialize(const FPCGDataCollectio
 
 	Context->WeightCurve = Settings->WeightOverDistance.LoadSynchronous();
 
-	Context->RangeMin = Settings->RangeMin;
-	Context->RangeMax = Settings->RangeMax;
+	PCGEX_FWD(RangeMin)
+	PCGEX_FWD(RangeMax)
 
 	PCGEX_FORWARD_OUT_ATTRIBUTE(Success)
 	PCGEX_FORWARD_OUT_ATTRIBUTE(Location)
@@ -82,9 +74,8 @@ bool FPCGExSampleNearestPointElement::Validate(FPCGContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElementBase::Validate(InContext)) { return false; }
 
-	FPCGExSampleNearestPointContext* Context = static_cast<FPCGExSampleNearestPointContext*>(InContext);
-	const UPCGExSampleNearestPointSettings* Settings = Context->GetInputSettings<UPCGExSampleNearestPointSettings>();
-	check(Settings);
+	PCGEX_CONTEXT(FPCGExSampleNearestPointContext)
+	PCGEX_SETTINGS(UPCGExSampleNearestPointSettings)
 
 	if (!Context->Targets || Context->NumTargets < 1)
 	{

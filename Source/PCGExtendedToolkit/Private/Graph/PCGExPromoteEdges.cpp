@@ -47,7 +47,9 @@ FPCGContext* FPCGExPromoteEdgesElement::Initialize(
 	check(Settings);
 
 	Context->EdgeType = static_cast<EPCGExEdgeType>(Settings->EdgeType);
-	Context->Promotion = Settings->EnsureOperation<UPCGExEdgePromoteToPoint>(Settings->Promotion, Context);
+	
+	PCGEX_BIND_OPERATION(Promotion, UPCGExEdgePromoteToPoint)
+	
 	return Context;
 }
 
@@ -56,7 +58,7 @@ bool FPCGExPromoteEdgesElement::ExecuteInternal(
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExEdgesToPathsElement::Execute);
 
-	FPCGExPromoteEdgesContext* Context = static_cast<FPCGExPromoteEdgesContext*>(InContext);
+	PCGEX_CONTEXT(FPCGExPromoteEdgesContext)
 
 	if (Context->IsSetup())
 	{

@@ -44,20 +44,19 @@ FPCGContext* FPCGExFindEdgePatchesElement::Initialize(
 	FPCGExFindEdgePatchesContext* Context = new FPCGExFindEdgePatchesContext();
 	InitializeContext(Context, InputData, SourceComponent, Node);
 
-	const UPCGExFindEdgePatchesSettings* Settings = Context->GetInputSettings<UPCGExFindEdgePatchesSettings>();
-	check(Settings);
+	PCGEX_SETTINGS(UPCGExFindEdgePatchesSettings)
 
 	Context->CrawlEdgeTypes = static_cast<EPCGExEdgeType>(Settings->CrawlEdgeTypes);
-	Context->bRemoveSmallPatches = Settings->bRemoveSmallPatches;
+
+	PCGEX_FWD(bRemoveSmallPatches)
 	Context->MinPatchSize = Settings->bRemoveSmallPatches ? Settings->MinPatchSize : -1;
-	Context->bRemoveBigPatches = Settings->bRemoveBigPatches;
+
+	PCGEX_FWD(bRemoveBigPatches)
 	Context->MaxPatchSize = Settings->bRemoveBigPatches ? Settings->MaxPatchSize : -1;
 
-	Context->PatchIDAttributeName = Settings->PatchIDAttributeName;
-	Context->PatchSizeAttributeName = Settings->PatchSizeAttributeName;
-
-	Context->ResolveRoamingMethod = Settings->ResolveRoamingMethod;
-
+	PCGEX_FWD(PatchIDAttributeName)
+	PCGEX_FWD(PatchSizeAttributeName)
+	PCGEX_FWD(ResolveRoamingMethod)
 
 	return Context;
 }
@@ -67,20 +66,11 @@ bool FPCGExFindEdgePatchesElement::Validate(FPCGContext* InContext) const
 {
 	if (!FPCGExGraphProcessorElement::Validate(InContext)) { return false; }
 
-	const FPCGExFindEdgePatchesContext* Context = static_cast<FPCGExFindEdgePatchesContext*>(InContext);
+	PCGEX_CONTEXT(FPCGExFindEdgePatchesContext)
 
-	if (!FPCGMetadataAttributeBase::IsValidName(Context->PatchIDAttributeName))
-	{
-		PCGE_LOG(Error, GraphAndLog, LOCTEXT("InvalidName", "Patch ID Attribute name is invalid."));
-		return false;
-	}
-
-	if (!FPCGMetadataAttributeBase::IsValidName(Context->PatchSizeAttributeName))
-	{
-		PCGE_LOG(Error, GraphAndLog, LOCTEXT("InvalidName", "Patch size Attribute name is invalid."));
-		return false;
-	}
-
+	PCGEX_VALIDATE_NAME(Context->PatchIDAttributeName)
+	PCGEX_VALIDATE_NAME(Context->PatchSizeAttributeName)
+	
 	return true;
 }
 

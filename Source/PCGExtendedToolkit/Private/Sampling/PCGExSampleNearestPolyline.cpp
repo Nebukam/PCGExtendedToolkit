@@ -43,8 +43,7 @@ FPCGContext* FPCGExSampleNearestPolylineElement::Initialize(const FPCGDataCollec
 	FPCGExSampleNearestPolylineContext* Context = new FPCGExSampleNearestPolylineContext();
 	InitializeContext(Context, InputData, SourceComponent, Node);
 
-	const UPCGExSampleNearestPolylineSettings* Settings = Context->GetInputSettings<UPCGExSampleNearestPolylineSettings>();
-	check(Settings);
+	PCGEX_SETTINGS(UPCGExSampleNearestPolylineSettings)
 
 	TArray<FPCGTaggedData> Targets = InputData.GetInputsByPin(PCGEx::SourceTargetsLabel);
 
@@ -55,8 +54,8 @@ FPCGContext* FPCGExSampleNearestPolylineElement::Initialize(const FPCGDataCollec
 
 	Context->WeightCurve = Settings->WeightOverDistance.LoadSynchronous();
 
-	Context->RangeMin = Settings->RangeMin;
-	Context->RangeMax = Settings->RangeMax;
+	PCGEX_FWD(RangeMin)
+	PCGEX_FWD(RangeMax)
 
 	PCGEX_FORWARD_OUT_ATTRIBUTE(Success)
 	PCGEX_FORWARD_OUT_ATTRIBUTE(Location)
@@ -74,9 +73,8 @@ bool FPCGExSampleNearestPolylineElement::Validate(FPCGContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElementBase::Validate(InContext)) { return false; }
 
-	FPCGExSampleNearestPolylineContext* Context = static_cast<FPCGExSampleNearestPolylineContext*>(InContext);
-	const UPCGExSampleNearestPolylineSettings* Settings = Context->GetInputSettings<UPCGExSampleNearestPolylineSettings>();
-	check(Settings);
+	PCGEX_CONTEXT(FPCGExSampleNearestPolylineContext)
+	PCGEX_SETTINGS(UPCGExSampleNearestPolylineSettings)
 
 	if (!Context->Targets || Context->Targets->IsEmpty())
 	{

@@ -36,8 +36,8 @@ FPCGContext* FPCGExBuildGraphElement::Initialize(
 	const UPCGExBuildGraphSettings* Settings = Context->GetInputSettings<UPCGExBuildGraphSettings>();
 	check(Settings);
 
-	Context->GraphSolver = Settings->EnsureOperation<UPCGExGraphSolver>(Settings->GraphSolver, Context);
-
+	PCGEX_BIND_OPERATION(GraphSolver, UPCGExGraphSolver)
+	
 	return Context;
 }
 
@@ -165,7 +165,7 @@ bool FProbeTask::ExecuteTask()
 
 	const FBoxCenterAndExtent Box = FBoxCenterAndExtent(Point.Transform.GetLocation(), FVector(MaxDistance));
 
-	// This looks bad, but for some reason it's MUCH faster than using the Octree.
+	// This looks bad, but for some reason it's MUCH faster than using the native Octree.
 	const FBox BBox = Box.GetBox();
 	const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
 	for (int i = 0; i < InPoints.Num(); i++)

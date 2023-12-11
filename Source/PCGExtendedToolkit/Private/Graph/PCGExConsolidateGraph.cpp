@@ -22,10 +22,10 @@ FPCGContext* FPCGExConsolidateGraphElement::Initialize(
 	FPCGExConsolidateGraphContext* Context = new FPCGExConsolidateGraphContext();
 	InitializeContext(Context, InputData, SourceComponent, Node);
 
-	const UPCGExConsolidateGraphSettings* Settings = Context->GetInputSettings<UPCGExConsolidateGraphSettings>();
-	check(Settings);
-
-	Context->bConsolidateEdgeType = Settings->bConsolidateEdgeType;
+	PCGEX_SETTINGS(UPCGExConsolidateGraphSettings)
+	
+	PCGEX_FWD(bConsolidateEdgeType)
+	
 	return Context;
 }
 
@@ -34,7 +34,7 @@ bool FPCGExConsolidateGraphElement::ExecuteInternal(
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExConsolidateGraphElement::Execute);
 
-	FPCGExConsolidateGraphContext* Context = static_cast<FPCGExConsolidateGraphContext*>(InContext);
+	PCGEX_CONTEXT(FPCGExConsolidateGraphContext)
 
 	if (Context->IsSetup())
 	{

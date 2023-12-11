@@ -103,8 +103,7 @@ FPCGContext* FPCGExPartitionByValuesElement::Initialize(
 	FPCGExSplitByValuesContext* Context = new FPCGExSplitByValuesContext();
 	InitializeContext(Context, InputData, SourceComponent, Node);
 
-	const UPCGExPartitionByValuesSettings* Settings = Context->GetInputSettings<UPCGExPartitionByValuesSettings>();
-	check(Settings);
+	PCGEX_SETTINGS(UPCGExPartitionByValuesSettings)
 
 	for (const FPCGExFilterRuleDescriptor& Descriptor : Settings->PartitionRules)
 	{
@@ -119,8 +118,10 @@ FPCGContext* FPCGExPartitionByValuesElement::Initialize(
 		}
 	}
 
-	Context->bSplitOutput = Settings->bSplitOutput;
+	PCGEX_FWD(bSplitOutput)
+
 	Context->RootPartition = new PCGExPartition::FKPartition(nullptr, 0, nullptr);
+
 	return Context;
 }
 
@@ -128,7 +129,7 @@ bool FPCGExPartitionByValuesElement::Validate(FPCGContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElementBase::Validate(InContext)) { return false; }
 
-	const FPCGExSplitByValuesContext* Context = static_cast<FPCGExSplitByValuesContext*>(InContext);
+	PCGEX_CONTEXT(FPCGExSplitByValuesContext)
 
 	if (Context->RulesDescriptors.IsEmpty())
 	{
@@ -143,7 +144,7 @@ bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* InContext) con
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExBucketEntryElement::Execute);
 
-	FPCGExSplitByValuesContext* Context = static_cast<FPCGExSplitByValuesContext*>(InContext);
+	PCGEX_CONTEXT(FPCGExSplitByValuesContext)
 
 	if (Context->IsSetup())
 	{

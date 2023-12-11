@@ -34,14 +34,14 @@ FPCGContext* FPCGExSubdivideElement::Initialize(const FPCGDataCollection& InputD
 {
 	FPCGExSubdivideContext* Context = new FPCGExSubdivideContext();
 	InitializeContext(Context, InputData, SourceComponent, Node);
-	const UPCGExSubdivideSettings* Settings = Context->GetInputSettings<UPCGExSubdivideSettings>();
-	check(Settings);
 
-	Context->Method = Settings->SubdivideMethod;
-	Context->Distance = Settings->Distance;
-	Context->Count = Settings->Count;
-	Context->bFlagSubPoints = Settings->bFlagSubPoints;
-	Context->FlagName = Settings->FlagName;
+	PCGEX_SETTINGS(UPCGExSubdivideSettings)
+
+	PCGEX_FWD(SubdivideMethod)
+	PCGEX_FWD(Distance)
+	PCGEX_FWD(Count)
+	PCGEX_FWD(bFlagSubPoints)
+	PCGEX_FWD(FlagName)
 
 	PCGEX_BIND_OPERATION(Blending, UPCGExSubPointsBlendInterpolate)
 
@@ -53,7 +53,7 @@ bool FPCGExSubdivideElement::ExecuteInternal(FPCGContext* InContext) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExSubdivideElement::Execute);
 
-	FPCGExSubdivideContext* Context = static_cast<FPCGExSubdivideContext*>(InContext);
+	PCGEX_CONTEXT(FPCGExSubdivideContext)
 
 	if (Context->IsSetup())
 	{
@@ -95,7 +95,7 @@ bool FPCGExSubdivideElement::ExecuteInternal(FPCGContext* InContext) const
 			PCGExMath::FPathMetrics& Metrics = Context->MilestonesMetrics.Last();
 
 			const double Distance = FVector::Distance(StartPos, EndPos);
-			const int32 NumSubdivisions = Context->Method == EPCGExSubdivideMode::Count ?
+			const int32 NumSubdivisions = Context->SubdivideMethod == EPCGExSubdivideMode::Count ?
 				                              Context->Count :
 				                              FMath::Floor(FVector::Distance(StartPos, EndPos) / Context->Distance);
 

@@ -21,10 +21,8 @@ bool FPCGExSortPointsElement::ExecuteInternal(FPCGContext* InContext) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExSortPointsByAttributesElement::Execute);
 
-	FPCGExPointsProcessorContext* Context = static_cast<FPCGExPointsProcessorContext*>(InContext);
-
-	const UPCGExSortPointsSettings* Settings = Context->GetInputSettings<UPCGExSortPointsSettings>();
-	check(Settings);
+	PCGEX_CONTEXT(FPCGExPointsProcessorContext)
+	PCGEX_SETTINGS(UPCGExSortPointsSettings)
 
 	if (Context->IsSetup())
 	{

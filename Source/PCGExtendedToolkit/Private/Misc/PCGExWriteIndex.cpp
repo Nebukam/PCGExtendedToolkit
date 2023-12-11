@@ -21,6 +21,12 @@ FPCGContext* FPCGExWriteIndexElement::Initialize(const FPCGDataCollection& Input
 {
 	FPCGExWriteIndexContext* Context = new FPCGExWriteIndexContext();
 	InitializeContext(Context, InputData, SourceComponent, Node);
+
+	PCGEX_SETTINGS(UPCGExWriteIndexSettings)
+
+	PCGEX_FWD(bOutputNormalizedIndex)
+	PCGEX_FWD(OutputAttributeName)
+
 	return Context;
 }
 
@@ -28,20 +34,10 @@ bool FPCGExWriteIndexElement::Validate(FPCGContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElementBase::Validate(InContext)) { return false; }
 
-	FPCGExWriteIndexContext* Context = static_cast<FPCGExWriteIndexContext*>(InContext);
+	PCGEX_CONTEXT(FPCGExWriteIndexContext)
 
-	const UPCGExWriteIndexSettings* Settings = Context->GetInputSettings<UPCGExWriteIndexSettings>();
-	check(Settings);
+	PCGEX_VALIDATE_NAME(Context->OutputAttributeName)
 
-	const FName OutName = Settings->OutputAttributeName;
-	if (!FPCGMetadataAttributeBase::IsValidName(OutName))
-	{
-		PCGE_LOG(Error, GraphAndLog, LOCTEXT("InvalidName", "Output name is invalid."));
-		return false;
-	}
-
-	Context->bOutputNormalizedIndex = Settings->bOutputNormalizedIndex;
-	Context->OutName = Settings->OutputAttributeName;
 	return true;
 }
 
@@ -49,8 +45,8 @@ bool FPCGExWriteIndexElement::ExecuteInternal(FPCGContext* InContext) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExWriteIndexElement::Execute);
 
-	FPCGExWriteIndexContext* Context = static_cast<FPCGExWriteIndexContext*>(InContext);
-
+	PCGEX_CONTEXT(FPCGExWriteIndexContext)
+	
 	if (Context->IsSetup())
 	{
 		if (!Validate(Context)) { return true; }
@@ -70,7 +66,7 @@ bool FPCGExWriteIndexElement::ExecuteInternal(FPCGContext* InContext) const
 			auto Initialize = [&](PCGExData::FPointIO& PointIO)
 			{
 				Context->NormalizedIndicesBuffer.Reset(PointIO.GetNum());
-				Context->NormalizedIndexAccessor = PCGEx::FAttributeAccessor<double>::FindOrCreate(PointIO, Context->OutName, -1, false);
+				Context->NormalizedIndexAccessor = PCGEx::FAttributeAccessor<double>::FindOrCreate(PointIO, Context->OutputAttributeName, -1, false);
 				Context->NormalizedIndexAccessor->GetRange(Context->NormalizedIndicesBuffer, 0);
 			};
 
@@ -91,7 +87,7 @@ bool FPCGExWriteIndexElement::ExecuteInternal(FPCGContext* InContext) const
 			auto Initialize = [&](PCGExData::FPointIO& PointIO)
 			{
 				Context->IndicesBuffer.Reset(PointIO.GetNum());
-				Context->IndexAccessor = PCGEx::FAttributeAccessor<int32>::FindOrCreate(PointIO, Context->OutName, -1, false);
+				Context->IndexAccessor = PCGEx::FAttributeAccessor<int32>::FindOrCreate(PointIO, Context->OutputAttributeName, -1, false);
 				Context->IndexAccessor->GetRange(Context->IndicesBuffer, 0);
 			};
 

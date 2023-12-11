@@ -38,15 +38,15 @@ FPCGContext* FPCGExFusePointsElement::Initialize(
 	FPCGExFusePointsContext* Context = new FPCGExFusePointsContext();
 	InitializeContext(Context, InputData, SourceComponent, Node);
 
-	const UPCGExFusePointsSettings* Settings = Context->GetInputSettings<UPCGExFusePointsSettings>();
-	check(Settings);
+	PCGEX_SETTINGS(UPCGExFusePointsSettings)
 
 	Context->AttributesBlendingOverrides = Settings->BlendingSettings.AttributesOverrides;
 	Context->MetadataBlender = new PCGExDataBlending::FMetadataBlender(Settings->BlendingSettings.DefaultBlending);
 	Context->PropertyBlender = new PCGExDataBlending::FPropertiesBlender(Settings->BlendingSettings);
 
 	Context->Radius = Settings->Radius * Settings->Radius;
-	Context->bPreserveOrder = Settings->bPreserveOrder;
+
+	PCGEX_FWD(bPreserveOrder)
 
 	return Context;
 }
@@ -55,9 +55,8 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExFusePointsElement::Execute);
 
-	FPCGExFusePointsContext* Context = static_cast<FPCGExFusePointsContext*>(InContext);
-	const UPCGExFusePointsSettings* Settings = Context->GetInputSettings<UPCGExFusePointsSettings>();
-	check(Settings);
+	PCGEX_CONTEXT(FPCGExFusePointsContext)
+	PCGEX_SETTINGS(UPCGExFusePointsSettings)
 
 	if (Context->IsSetup())
 	{

@@ -17,17 +17,15 @@ FPCGContext* FPCGExSampleNearestSurfaceElement::Initialize(const FPCGDataCollect
 	FPCGExSampleNearestSurfaceContext* Context = new FPCGExSampleNearestSurfaceContext();
 	InitializeContext(Context, InputData, SourceComponent, Node);
 
-	const UPCGExSampleNearestSurfaceSettings* Settings = Context->GetInputSettings<UPCGExSampleNearestSurfaceSettings>();
-	check(Settings);
+	PCGEX_SETTINGS(UPCGExSampleNearestSurfaceSettings)
 
 	Context->RangeMax = Settings->MaxDistance;
 
-	Context->CollisionType = Settings->CollisionType;
-	Context->CollisionChannel = Settings->CollisionChannel;
-	Context->CollisionObjectType = Settings->CollisionObjectType;
-	Context->ProfileName = Settings->ProfileName;
-
-	Context->bIgnoreSelf = Settings->bIgnoreSelf;
+	PCGEX_FWD(CollisionType)
+	PCGEX_FWD(CollisionChannel)
+	PCGEX_FWD(CollisionObjectType)
+	PCGEX_FWD(ProfileName)
+	PCGEX_FWD(bIgnoreSelf)
 
 	PCGEX_FORWARD_OUT_ATTRIBUTE(Success)
 	PCGEX_FORWARD_OUT_ATTRIBUTE(Location)
@@ -42,7 +40,8 @@ bool FPCGExSampleNearestSurfaceElement::Validate(FPCGContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElementBase::Validate(InContext)) { return false; }
 
-	FPCGExSampleNearestSurfaceContext* Context = static_cast<FPCGExSampleNearestSurfaceContext*>(InContext);
+	PCGEX_CONTEXT(FPCGExSampleNearestSurfaceContext)
+	
 	PCGEX_CHECK_OUT_ATTRIBUTE_NAME(Success)
 	PCGEX_CHECK_OUT_ATTRIBUTE_NAME(Location)
 	PCGEX_CHECK_OUT_ATTRIBUTE_NAME(LookAt)
@@ -55,8 +54,8 @@ bool FPCGExSampleNearestSurfaceElement::ExecuteInternal(FPCGContext* InContext) 
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExSampleNearestSurfaceElement::Execute);
 
-	FPCGExSampleNearestSurfaceContext* Context = static_cast<FPCGExSampleNearestSurfaceContext*>(InContext);
-
+	PCGEX_CONTEXT(FPCGExSampleNearestSurfaceContext)
+	
 	if (Context->IsSetup())
 	{
 		if (!Validate(Context)) { return true; }

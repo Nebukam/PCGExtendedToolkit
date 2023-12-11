@@ -26,8 +26,8 @@ FPCGContext* FPCGExOrientElement::Initialize(const FPCGDataCollection& InputData
 {
 	FPCGExOrientContext* Context = new FPCGExOrientContext();
 	InitializeContext(Context, InputData, SourceComponent, Node);
-	const UPCGExOrientSettings* Settings = Context->GetInputSettings<UPCGExOrientSettings>();
-	check(Settings);
+
+	PCGEX_SETTINGS(UPCGExOrientSettings)
 
 	PCGEX_BIND_OPERATION(Orientation, UPCGExSubPointsOrientAverage)
 
@@ -39,7 +39,7 @@ bool FPCGExOrientElement::ExecuteInternal(FPCGContext* InContext) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExOrientElement::Execute);
 
-	FPCGExOrientContext* Context = static_cast<FPCGExOrientContext*>(InContext);
+	PCGEX_CONTEXT(FPCGExOrientContext)
 
 	if (Context->IsSetup())
 	{

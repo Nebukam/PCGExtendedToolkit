@@ -87,7 +87,7 @@ bool FPCGExGraphProcessorElement::Validate(FPCGContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElementBase::Validate(InContext)) { return false; }
 
-	const FPCGExGraphProcessorContext* Context = static_cast<FPCGExGraphProcessorContext*>(InContext);
+	PCGEX_CONTEXT(FPCGExGraphProcessorContext)
 
 	if (Context->Graphs.IsEmpty())
 	{
