@@ -21,7 +21,7 @@ FPCGExFindEdgePatchesContext::~FPCGExFindEdgePatchesContext()
 TArray<FPCGPinProperties> UPCGExFindEdgePatchesSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
-	FPCGPinProperties& PinPatchesOutput = PinProperties.Emplace_GetRef(PCGExGraph::OutputPatchesLabel, EPCGDataType::Point);
+	FPCGPinProperties& PinPatchesOutput = PinProperties.Emplace_GetRef(PCGExGraph::OutputEdgesLabel, EPCGDataType::Point);
 
 #if WITH_EDITOR
 	PinPatchesOutput.Tooltip = LOCTEXT("PCGExOutputParamsTooltip", "Point data representing edges.");
@@ -162,7 +162,7 @@ bool FPCGExFindEdgePatchesElement::ExecuteInternal(
 			if (Context->MaxPatchSize >= 0 && OutNumPoints > Context->MaxPatchSize) { continue; }
 
 			// Create and mark patch data
-			UPCGPointData* PatchData = PCGExData::PCGExPointIO::NewEmptyPointData(Context, PCGExGraph::OutputPatchesLabel);
+			UPCGPointData* PatchData = PCGExData::PCGExPointIO::NewEmptyPointData(Context, PCGExGraph::OutputEdgesLabel);
 			PCGEx::CreateMark(PatchData->Metadata, PCGExGraph::PUIDAttributeName, PUID);
 
 			// Mark point data
