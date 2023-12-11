@@ -18,7 +18,7 @@
 #define PCGEX_SETTINGS(_TYPE) const _TYPE* Settings = Context->GetInputSettings<_TYPE>();	check(Settings);
 #define PCGEX_CONTEXT(_TYPE) _TYPE* Context = static_cast<_TYPE*>(InContext);
 #define PCGEX_FWD(_NAME) Context->_NAME = Settings->_NAME;
-#define PCGEX_VALIDATE_NAME(_NAME) if (!FPCGMetadataAttributeBase::IsValidName(_NAME)){	PCGE_LOG(Error, GraphAndLog, LOCTEXT("InvalidName", "Invalid user-defined attribute .")); return false;	}
+#define PCGEX_VALIDATE_NAME(_NAME) if (!FPCGMetadataAttributeBase::IsValidName(_NAME)){	PCGE_LOG(Error, GraphAndLog, LOCTEXT("InvalidName", "Invalid user-defined attribute name.")); return false;	}
 
 struct FPCGExPointsProcessorContext;
 
