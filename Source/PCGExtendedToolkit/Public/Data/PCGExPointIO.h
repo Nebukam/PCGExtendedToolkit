@@ -27,6 +27,9 @@ namespace PCGExData
 	 */
 	struct PCGEXTENDEDTOOLKIT_API FPointIO
 	{
+
+		friend class FPointIOGroup;
+		
 	protected:
 		mutable FRWLock MapLock;
 		mutable FRWLock PointsLock;
@@ -41,6 +44,8 @@ namespace PCGExData
 
 		const UPCGPointData* In;      // Input PointData	
 		UPCGPointData* Out = nullptr; // Output PointData
+
+		FPointIO* RootIO = nullptr;
 
 	public:
 		FPCGTaggedData Source; // Source struct
@@ -103,6 +108,8 @@ namespace PCGExData
 
 		void BuildMetadataEntries();
 
+		FPointIO& Branch();
+		
 		/**
 		 * Write valid outputs to Context' tagged data
 		 * @param Context 
@@ -187,7 +194,7 @@ namespace PCGExData
 			}
 			return nullptr;
 		}
-
+		
 		static UPCGPointData* NewEmptyPointData(const UPCGPointData* InData = nullptr)
 		{
 			UPCGPointData* OutData = NewObject<UPCGPointData>();

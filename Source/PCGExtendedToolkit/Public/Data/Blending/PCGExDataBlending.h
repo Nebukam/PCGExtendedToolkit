@@ -14,7 +14,7 @@ enum class EPCGExDataBlendingType : uint8
 {
 	None    = 0 UMETA(DisplayName = "None", ToolTip="TBD"),
 	Average = 1 UMETA(DisplayName = "Average", ToolTip="Average values"),
-	Weight  = 2 UMETA(DisplayName = "Weight", ToolTip="TBD"),
+	Weight  = 2 UMETA(DisplayName = "Weight", ToolTip="Translates to basic interpolation in most use cases."),
 	Min     = 3 UMETA(DisplayName = "Min", ToolTip="TBD"),
 	Max     = 4 UMETA(DisplayName = "Max", ToolTip="TBD"),
 	Copy    = 5 UMETA(DisplayName = "Copy", ToolTip = "TBD"),
@@ -82,6 +82,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointPropertyBlendingOverrides
 	EPCGExDataBlendingType SeedBlending = EPCGExDataBlendingType::Weight;
 
 #pragma endregion
+
 };
 
 USTRUCT(BlueprintType)
@@ -97,12 +98,12 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBlendingSettings
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	TMap<FName, EPCGExDataBlendingType> AttributesOverrides;
+
 };
 
 
 namespace PCGExDataBlending
 {
-	
 	/**
 	 * 
 	 */
@@ -159,7 +160,7 @@ namespace PCGExDataBlending
 			{
 				if (SecondaryAccessor == PrimaryAccessor) { SecondaryAccessor = nullptr; }
 			}
-			
+
 			delete PrimaryAccessor;
 			PrimaryAccessor = new PCGEx::FAttributeAccessor<T>(InPrimaryData, PrimaryBaseAttribute, InPrimaryKeys);
 

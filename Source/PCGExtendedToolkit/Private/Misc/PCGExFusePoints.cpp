@@ -45,6 +45,8 @@ FPCGContext* FPCGExFusePointsElement::Initialize(
 	Context->MetadataBlender = new PCGExDataBlending::FMetadataBlender(Settings->BlendingSettings.DefaultBlending);
 	Context->PropertyBlender = new PCGExDataBlending::FPropertiesBlender(Settings->BlendingSettings);
 
+	Context->Radius = Settings->Radius * Settings->Radius;
+	
 	return Context;
 }
 
@@ -83,7 +85,7 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 			PCGExFuse::FFusedPoint* FuseTarget = nullptr;
 
 			Context->PointsLock.ReadLock();
-			
+
 			if (Settings->bComponentWiseRadius)
 			{
 				for (PCGExFuse::FFusedPoint& FusedPoint : Context->FusedPoints)
@@ -103,14 +105,14 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 				for (PCGExFuse::FFusedPoint& FusedPoint : Context->FusedPoints)
 				{
 					Distance = FVector::DistSquared(FusedPoint.Position, PtPosition);
-					if (Distance < (Settings->Radius * Settings->Radius))
+					if (Distance < Context->Radius)
 					{
 						FuseTarget = &FusedPoint;
 						break;
 					}
 				}
 			}
-			
+
 			Context->PointsLock.ReadUnlock();
 
 			if (!FuseTarget)
@@ -118,7 +120,10 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 				FWriteScopeLock WriteLock(Context->PointsLock);
 				&Context->FusedPoints.Emplace_GetRef(PointIndex, PtPosition);
 			}
-			else { FuseTarget->Add(PointIndex, Distance); }
+			else
+			{
+				FuseTarget->Add(PointIndex, Distance);
+			}
 		};
 
 		if (Context->ProcessCurrentPoints(Initialize, ProcessPoint))
@@ -133,14 +138,10 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 		{
 			const TArray<FPCGPoint>& InPoints = Context->GetCurrentIn()->GetPoints();
 			TArray<FPCGPoint>& MutablePoints = Context->GetCurrentOut()->GetMutablePoints();
-			MutablePoints.SetNumUninitialized(Context->FusedPoints.Num());
+			MutablePoints.Reserve(Context->FusedPoints.Num());
 
 			int32 Index = 0;
-			for (const PCGExFuse::FFusedPoint& FPoint : Context->FusedPoints)
-			{
-				MutablePoints[Index] = InPoints[FPoint.Index];
-				Index++;
-			}
+			for (const PCGExFuse::FFusedPoint& FPoint : Context->FusedPoints) { MutablePoints.Add(InPoints[FPoint.Index]); }
 
 			Context->MetadataBlender->PrepareForData(Context->CurrentIO, Context->AttributesBlendingOverrides);
 		};
@@ -148,10 +149,10 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 		auto FusePoint = [&](int32 ReadIndex)
 		{
 			PCGExFuse::FFusedPoint& FusedPoint = Context->FusedPoints[ReadIndex];
+
+			if (FusedPoint.Fused.IsEmpty()) { return; }
+
 			const int32 NumFused = FusedPoint.Fused.Num();
-
-			if (NumFused == 0) { return; }
-
 			const double AverageDivider = NumFused;
 
 			FPCGPoint& ConsolidatedPoint = Context->CurrentIO->GetMutablePoint(ReadIndex);
@@ -165,8 +166,7 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 			for (int i = 0; i < NumFused; i++)
 			{
 				const int32 FusedIndex = FusedPoint.Fused[i];
-				const double Weight = 1 - (FusedPoint.Distances[i] / FusedPoint.MaxDistance);
-				PropertiesBlender.Blend(ConsolidatedPoint, Context->CurrentIO->GetInPoint(FusedIndex), ConsolidatedPoint, Weight);
+				const double Weight = FusedPoint.MaxDistance == 0 ? 0 : 1 - (FusedPoint.Distances[i] / FusedPoint.MaxDistance);
 				Context->MetadataBlender->Blend(ReadIndex, FusedIndex, ReadIndex, Weight);
 			}
 

@@ -69,32 +69,53 @@ namespace PCGExDataBlending
 		for (const FDataBlendingOperationBase* Op : AttributesToBePrepared) { Op->PrepareOperation(WriteKey); }
 	}
 
-	void FMetadataBlender::Blend(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, const int32 WriteIndex, const double Alpha) const
+	void FMetadataBlender::Blend(
+		const int32 PrimaryReadIndex,
+		const int32 SecondaryReadIndex,
+		const int32 WriteIndex,
+		const double Alpha) const
 	{
 		for (const FDataBlendingOperationBase* Op : Attributes) { Op->DoOperation(PrimaryReadIndex, SecondaryReadIndex, WriteIndex, Alpha); }
 	}
 
-	void FMetadataBlender::CompleteBlending(const int32 WriteIndex, const double Alpha) const
+	void FMetadataBlender::CompleteBlending(
+		const int32 WriteIndex,
+		const double Alpha) const
 	{
 		for (const FDataBlendingOperationBase* Op : AttributesToBeCompleted) { Op->FinalizeOperation(WriteIndex, Alpha); }
 	}
 
-	void FMetadataBlender::PrepareRangeForBlending(const int32 StartIndex, const int32 Count) const
+	void FMetadataBlender::PrepareRangeForBlending(
+		const int32 StartIndex,
+		const int32 Count) const
 	{
 		for (const FDataBlendingOperationBase* Op : AttributesToBePrepared) { Op->PrepareRangeOperation(StartIndex, Count); }
 	}
 
-	void FMetadataBlender::BlendRange(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, const int32 StartIndex, const int32 Count, const TArrayView<double>& Alphas) const
+	void FMetadataBlender::BlendRange(
+		const int32 PrimaryReadIndex,
+		const int32 SecondaryReadIndex,
+		const int32 StartIndex,
+		const int32 Count,
+		const TArrayView<double>& Alphas) const
 	{
 		for (const FDataBlendingOperationBase* Op : Attributes) { Op->DoRangeOperation(PrimaryReadIndex, SecondaryReadIndex, StartIndex, Count, Alphas); }
 	}
 
-	void FMetadataBlender::CompleteRangeBlending(const int32 StartIndex, const int32 Count, const TArrayView<double>& Alphas) const
+	void FMetadataBlender::CompleteRangeBlending(
+		const int32 StartIndex,
+		const int32 Count,
+		const TArrayView<double>& Alphas) const
 	{
 		for (const FDataBlendingOperationBase* Op : AttributesToBePrepared) { Op->FinalizeRangeOperation(StartIndex, Count, Alphas); }
 	}
 
-	void FMetadataBlender::BlendRangeOnce(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, const int32 StartIndex, const int32 Count, const TArrayView<double>& Alphas) const
+	void FMetadataBlender::BlendRangeOnce(
+		const int32 PrimaryReadIndex,
+		const int32 SecondaryReadIndex,
+		const int32 StartIndex,
+		const int32 Count,
+		const TArrayView<double>& Alphas) const
 	{
 		PrepareRangeForBlending(StartIndex, Count);
 		BlendRange(PrimaryReadIndex, SecondaryReadIndex, StartIndex, Count, Alphas);

@@ -152,7 +152,7 @@ bool FSamplePatchPathTask::ExecuteTask()
 				for (FNavPathPoint PathPoint : Points) { PathLocations.Add(PathPoint.Location); }
 				PathLocations.Add(EndLocation);
 	
-				PCGExMath::FPathInfos PathHelper = PCGExMath::FPathInfos(StartLocation);
+				PCGExMath::FPathMetrics PathHelper = PCGExMath::FPathMetrics(StartLocation);
 				int32 FuseCountReduce = Context->bAddGoalToPath ? 2 : 1;
 				for (int i = Context->bAddSeedToPath; i < PathLocations.Num(); i++)
 				{

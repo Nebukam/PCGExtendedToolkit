@@ -60,8 +60,7 @@ namespace PCGExFuse
 
 		void Add(int32 InIndex, double Distance)
 		{
-			FWriteScopeLock WriteLock(IndicesLock);
-			
+			FWriteScopeLock WriteLock(IndicesLock);			
 			Fused.Add(InIndex);
 			Distances.Add(Distance);
 			MaxDistance = FMath::Max(MaxDistance, Distance);
@@ -119,6 +118,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFusePointsContext : public FPCGExPointsProce
 	PCGExDataBlending::FMetadataBlender* MetadataBlender;
 	PCGExDataBlending::FPropertiesBlender* PropertyBlender;
 
+	double Radius = 0;
+	
 	TArray<PCGExFuse::FFusedPoint> FusedPoints;
 	TArray<FPCGPoint>* OutPoints;
 

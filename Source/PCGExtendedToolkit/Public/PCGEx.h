@@ -53,6 +53,17 @@ MACRO(EPCGPointProperties::Steepness, Steepness) \
 MACRO(EPCGPointProperties::LocalCenter, GetLocalCenter()) \
 MACRO(EPCGPointProperties::Seed, Seed)
 
+#define PCGEX_FOREACH_POINTPROPERTY_LEAN(MACRO)\
+MACRO(Density) \
+MACRO(BoundsMin) \
+MACRO(BoundsMax) \
+MACRO(Color) \
+MACRO(Position) \
+MACRO(Rotation) \
+MACRO(Scale) \
+MACRO(Steepness) \
+MACRO(Seed)
+
 /**
  * Name
  * @param MACRO 

@@ -208,8 +208,9 @@ public:
 		return AsyncLoop.Advance(LoopBody);
 	}
 
-	void Output(FPCGTaggedData& OutTaggedData, UPCGData* OutData, FName OutputLabel);
-	void Output(UPCGData* OutData, FName OutputLabel);
+	void Output(FPCGTaggedData& OutTaggedData, UPCGData* OutData, const FName OutputLabel);
+	void Output(UPCGData* OutData, const FName OutputLabel);
+	void Output(const PCGExData::FPointIO& PointIO);
 
 	template <typename T>
 	T MakeLoop()
@@ -234,7 +235,6 @@ protected:
 
 	virtual void ResetAsyncWork();
 	virtual bool IsAsyncWorkComplete();
-
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorElementBase : public FPCGPointProcessingElementBase

@@ -6,12 +6,12 @@
 
 #include "..\..\..\..\Public\Data\PCGExPointIO.h"
 
-void UPCGExSubPointsOrientOperation::PrepareForData(PCGExData::FPointIO& InData, FPCGAttributeAccessorKeysPoints* InPrimaryKeys)
+void UPCGExSubPointsOrientOperation::PrepareForData(PCGExData::FPointIO& InData)
 {
-	Super::PrepareForData(InData, InPrimaryKeys);
+	Super::PrepareForData(InData);
 }
 
-void UPCGExSubPointsOrientOperation::ProcessSubPoints(const PCGEx::FPointRef& Start, const PCGEx::FPointRef& End, TArrayView<FPCGPoint>& SubPoints, const PCGExMath::FPathInfos& PathInfos) const
+void UPCGExSubPointsOrientOperation::ProcessSubPoints(const PCGEx::FPointRef& Start, const PCGEx::FPointRef& End, TArrayView<FPCGPoint>& SubPoints, const PCGExMath::FPathMetrics& Metrics) const
 {
 	const int32 NumPointsMinusOne = SubPoints.Num() - 1;
 	Orient(SubPoints[0], *Start.Point, SubPoints[1]);

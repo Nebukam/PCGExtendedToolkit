@@ -58,7 +58,7 @@ namespace PCGExDataBlending
 
 		void BlendOnce(const FPCGPoint& A, const FPCGPoint& B, FPCGPoint& Target, double Alpha);
 
-		void PrepareRangeBlending(const FPCGPoint& A, const FPCGPoint& B, const TArrayView<FPCGPoint>& Targets);
+		void PrepareRangeBlending(const FPCGPoint& A, const TArrayView<FPCGPoint>& Targets);
 		void BlendRange(const FPCGPoint& From, const FPCGPoint& To, TArrayView<FPCGPoint>& Targets, const TArrayView<double>& Alpha);
 		void CompleteRangeBlending(const TArrayView<FPCGPoint>& Targets);
 

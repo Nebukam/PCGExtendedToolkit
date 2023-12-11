@@ -119,7 +119,7 @@ void PCGExDataBlending::FPropertiesBlender::BlendOnce(const FPCGPoint& A, const 
 	}
 }
 
-void PCGExDataBlending::FPropertiesBlender::PrepareRangeBlending(const FPCGPoint& A, const FPCGPoint& B, const TArrayView<FPCGPoint>& Targets)
+void PCGExDataBlending::FPropertiesBlender::PrepareRangeBlending(const FPCGPoint& A, const TArrayView<FPCGPoint>& Targets)
 {
 	for (FPCGPoint& Target : Targets)
 	{
@@ -189,7 +189,7 @@ void PCGExDataBlending::FPropertiesBlender::BlendRangeOnce(const FPCGPoint& A, c
 {
 	if (bRequiresPrepare)
 	{
-		PrepareRangeBlending(A, B, Targets);
+		PrepareRangeBlending(A, Targets);
 		BlendRange(A, B, Targets, Alphas);
 		CompleteRangeBlending(Targets);
 	}

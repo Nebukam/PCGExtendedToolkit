@@ -24,14 +24,6 @@ enum class EPCGExSubdivideMode : uint8
 	Count UMETA(DisplayName = "Count", ToolTip="Number of subdivisions is static"),
 };
 
-UENUM(BlueprintType)
-enum class EPCGExSubdivideBlendMode : uint8
-{
-	InheritStart UMETA(DisplayName = "Inherit Start Point", ToolTip="Subdivided points inherit the segment' starting attributes"),
-	InheritEnd UMETA(DisplayName = "Inherit End Point", ToolTip="Subdivided points inherit the segment' starting attributes"),
-	Lerp UMETA(DisplayName = "Lerp", ToolTip="Subdivided points inherit the segment' starting attributes"),
-};
-
 /**
  * Calculates the distance between two points (inherently a n*n operation)
  */
@@ -59,10 +51,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	EPCGExSubdivideMode SubdivideMethod = EPCGExSubdivideMode::Distance;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="Method==EPCGExSubdivideMode::Distance", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="SubdivideMethod==EPCGExSubdivideMode::Distance", EditConditionHides))
 	double Distance = 10;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="Method==EPCGExSubdivideMode::Count", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="SubdivideMethod==EPCGExSubdivideMode::Count", EditConditionHides))
 	int32 Count = 10;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced)
@@ -89,7 +81,7 @@ public:
 	FPCGMetadataAttribute<bool>* FlagAttribute = nullptr;
 
 	TArray<int32> Milestones;
-	TArray<PCGExMath::FPathInfos> MilestonesPathInfos;
+	TArray<PCGExMath::FPathMetrics> MilestonesMetrics;
 
 	UPCGExSubPointsBlendOperation* Blending;
 };

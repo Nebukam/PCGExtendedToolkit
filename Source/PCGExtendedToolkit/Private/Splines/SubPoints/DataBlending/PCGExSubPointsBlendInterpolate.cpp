@@ -15,14 +15,14 @@ void UPCGExSubPointsBlendInterpolate::BlendSubPoints(
 	const PCGEx::FPointRef& StartPoint,
 	const PCGEx::FPointRef& EndPoint,
 	TArrayView<FPCGPoint>& SubPoints,
-	const PCGExMath::FPathInfos& PathInfos,
+	const PCGExMath::FPathMetrics& Metrics,
 	const PCGExDataBlending::FMetadataBlender* InBlender) const
 {
 	const int32 NumPoints = SubPoints.Num();
 	PCGExDataBlending::FPropertiesBlender LocalPropertiesBlender = PCGExDataBlending::FPropertiesBlender(PropertiesBlender);
 
 	EPCGExPathBlendOver SafeBlendOver = BlendOver;
-	if (BlendOver == EPCGExPathBlendOver::Distance && !PathInfos.IsValid()) { SafeBlendOver = EPCGExPathBlendOver::Index; }
+	if (BlendOver == EPCGExPathBlendOver::Distance && !Metrics.IsValid()) { SafeBlendOver = EPCGExPathBlendOver::Index; }
 
 	TArray<double> Alphas;
 	TArray<FVector> Locations;
@@ -32,13 +32,12 @@ void UPCGExSubPointsBlendInterpolate::BlendSubPoints(
 
 	if (SafeBlendOver == EPCGExPathBlendOver::Distance)
 	{
-		PCGExMath::FPathInfos CurrentPathInfos = PCGExMath::FPathInfos(StartPoint.Point->Transform.GetLocation());
+		PCGExMath::FPathMetrics PathMetrics = PCGExMath::FPathMetrics(StartPoint.Point->Transform.GetLocation());
 		for (const FPCGPoint& Point : SubPoints)
 		{
 			const FVector Location = Point.Transform.GetLocation();
-			CurrentPathInfos.Add(Location);
 			Locations.Add(Location);
-			Alphas.Add(PathInfos.GetTime(CurrentPathInfos.Length));
+			Alphas.Add(Metrics.GetTime(PathMetrics.Add(Location)));
 		}
 	}
 	else if (SafeBlendOver == EPCGExPathBlendOver::Index)
@@ -46,7 +45,7 @@ void UPCGExSubPointsBlendInterpolate::BlendSubPoints(
 		for (int i = 0; i < NumPoints; i++)
 		{
 			Locations.Add(SubPoints[i].Transform.GetLocation());
-			Alphas.Add(static_cast<double>(i + 1) / static_cast<double>(NumPoints));
+			Alphas.Add(static_cast<double>(i + 1) / static_cast<double>(Metrics.Count));
 		}
 	}
 	else if (SafeBlendOver == EPCGExPathBlendOver::Fixed)
@@ -58,6 +57,19 @@ void UPCGExSubPointsBlendInterpolate::BlendSubPoints(
 		}
 	}
 
+/*
+	FString str = TEXT("-> ");
+	for (double Al : Alphas)
+	{
+		str += FString::Printf(TEXT("%f | "), Al);
+	}
+
+	str += FString::Printf(TEXT(" // %f"), Metrics.Length);
+	str += FString::Printf(TEXT(" // %d"), Metrics.Count);
+	
+	UE_LOG(LogTemp, Warning, TEXT("%s"), *str);
+*/
+	
 	LocalPropertiesBlender.BlendRangeOnce(*StartPoint.Point, *EndPoint.Point, SubPoints, Alphas);
 	InBlender->BlendRangeOnce(StartPoint.Index, EndPoint.Index, StartPoint.Index, NumPoints, Alphas);
 

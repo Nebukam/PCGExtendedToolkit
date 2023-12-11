@@ -29,7 +29,7 @@ namespace PCGExSampleNavmesh
 		}
 
 		TArray<FVector> Positions;
-		PCGExMath::FPathInfos Infos;
+		PCGExMath::FPathMetrics Metrics;
 		PCGExData::FPointIO* PathPoints = nullptr;
 
 		int32 SeedIndex = -1;

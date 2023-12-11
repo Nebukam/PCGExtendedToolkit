@@ -4,7 +4,7 @@
 
 #include "Splines/SubPoints/Orient/PCGExSubPointsOrientLookAt.h"
 
-void UPCGExSubPointsOrientLookAt::ProcessSubPoints(const PCGEx::FPointRef& Start, const PCGEx::FPointRef& End, TArrayView<FPCGPoint>& SubPoints, const PCGExMath::FPathInfos& PathInfos) const
+void UPCGExSubPointsOrientLookAt::ProcessSubPoints(const PCGEx::FPointRef& Start, const PCGEx::FPointRef& End, TArrayView<FPCGPoint>& SubPoints, const PCGExMath::FPathMetrics& Metrics) const
 {
 	const int32 NumPointsMinusOne = SubPoints.Num() - 1;
 

@@ -38,6 +38,7 @@ namespace PCGExData
 
 	FPCGAttributeAccessorKeysPoints* FPointIO::GetInKeys()
 	{
+		if (RootIO) { return RootIO->GetInKeys(); }
 		if (!InKeys && In) { InKeys = new FPCGAttributeAccessorKeysPoints(In->GetPoints()); }
 		return InKeys;
 	}
@@ -128,6 +129,7 @@ namespace PCGExData
 	FPointIO::~FPointIO()
 	{
 		Cleanup();
+		RootIO = nullptr;
 		In = nullptr;
 		Out = nullptr;
 	}
@@ -143,6 +145,13 @@ namespace PCGExData
 		}
 		bMetadataEntryDirty = false;
 		bIndicesDirty = true;
+	}
+
+	FPointIO& FPointIO::Branch()
+	{
+		FPointIO& Branch = *(new FPointIO(Source, GetIn(), DefaultOutputLabel, EInit::NewOutput));
+		Branch.RootIO = this;
+		return Branch;
 	}
 
 	bool FPointIO::OutputTo(FPCGContext* Context, const bool bEmplace)
@@ -239,7 +248,9 @@ namespace PCGExData
 		const PCGExData::FPointIO& PointIO,
 		const PCGExData::EInit InitOut)
 	{
-		return Emplace_GetRef(PointIO.Source, PointIO.GetIn(), InitOut);
+		FPointIO& Branch = Emplace_GetRef(PointIO.Source, PointIO.GetIn(), InitOut);
+		Branch.RootIO = const_cast<FPointIO*>(&PointIO);
+		return Branch;
 	}
 
 	PCGExData::FPointIO& FPointIOGroup::Emplace_GetRef(

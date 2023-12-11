@@ -26,7 +26,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(ShowOnlyInnerProperties))
 	FPCGExBlendingSettings BlendingSettings;
 
-	virtual void PrepareForData(PCGExData::FPointIO& InData, FPCGAttributeAccessorKeysPoints* InPrimaryKeys = nullptr) override;
+	virtual void PrepareForData(PCGExData::FPointIO& InData) override;
 	virtual void PrepareForData(
 		UPCGPointData* InPrimaryData,
 		const UPCGPointData* InSecondaryData,
@@ -37,27 +37,27 @@ public:
 		const PCGEx::FPointRef& Start,
 		const PCGEx::FPointRef& End,
 		TArrayView<FPCGPoint>& SubPoints,
-		const PCGExMath::FPathInfos& PathInfos) const override;
+		const PCGExMath::FPathMetrics& Metrics) const override;
 
 	virtual void ProcessSubPoints(
 		TArrayView<FPCGPoint>& SubPoints,
-		const PCGExMath::FPathInfos& PathInfos) const override;
+		const PCGExMath::FPathMetrics& Metrics) const override;
 
 	virtual void ProcessSubPoints(
 		TArrayView<FPCGPoint>& SubPoints,
-		const PCGExMath::FPathInfos& PathInfos,
+		const PCGExMath::FPathMetrics& PathInfos,
 		const PCGExDataBlending::FMetadataBlender* InBlender) const;
 
 	virtual void BlendSubPoints(
 		const PCGEx::FPointRef& StartPoint,
 		const PCGEx::FPointRef& EndPoint,
 		TArrayView<FPCGPoint>& SubPoints,
-		const PCGExMath::FPathInfos& PathInfos,
+		const PCGExMath::FPathMetrics& Metrics,
 		const PCGExDataBlending::FMetadataBlender* InBlender) const;
 
 	virtual void BlendSubPoints(
 		TArrayView<FPCGPoint>& SubPoints,
-		const PCGExMath::FPathInfos& PathInfos,
+		const PCGExMath::FPathMetrics& Metrics,
 		const PCGExDataBlending::FMetadataBlender* InBlender) const;
 
 

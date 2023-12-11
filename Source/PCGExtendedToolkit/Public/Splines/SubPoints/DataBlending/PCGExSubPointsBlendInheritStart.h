@@ -20,6 +20,6 @@ public:
 		const PCGEx::FPointRef& StartPoint,
 		const PCGEx::FPointRef& EndPoint,
 		TArrayView<FPCGPoint>& SubPoints,
-		const PCGExMath::FPathInfos& PathInfos,
+		const PCGExMath::FPathMetrics& Metrics,
 		const PCGExDataBlending::FMetadataBlender* InBlender) const override;
 };

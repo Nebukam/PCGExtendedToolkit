@@ -224,7 +224,6 @@ bool FNavmeshPathTask::ExecuteTask()
 
 	if (UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(Context->World))
 	{
-		
 		const FPCGPoint* Seed = Context->CurrentIO->TryGetInPoint(Path->SeedIndex);
 		const FPCGPoint* Goal = Context->GoalsPoints->TryGetInPoint(Path->GoalIndex);
 
@@ -260,7 +259,7 @@ bool FNavmeshPathTask::ExecuteTask()
 			for (FNavPathPoint PathPoint : Points) { PathLocations.Add(PathPoint.Location); }
 			PathLocations.Add(EndLocation);
 
-			PCGExMath::FPathInfos PathHelper = PCGExMath::FPathInfos(StartLocation);
+			PCGExMath::FPathMetrics PathHelper = PCGExMath::FPathMetrics(StartLocation);
 			int32 FuseCountReduce = Context->bAddGoalToPath ? 2 : 1;
 			for (int i = Context->bAddSeedToPath; i < PathLocations.Num(); i++)
 			{
@@ -287,7 +286,7 @@ bool FNavmeshPathTask::ExecuteTask()
 			{
 				PCGEX_ASYNC_CHECKPOINT
 
-				PCGExData::FPointIO& PathPoints = Context->OutputPaths->Emplace_GetRef(Context->GetCurrentIn(), PCGExData::EInit::NewOutput);
+				PCGExData::FPointIO& PathPoints = Context->OutputPaths->Emplace_GetRef(*Context->CurrentIO, PCGExData::EInit::NewOutput);
 				Path->PathPoints = &PathPoints;
 
 				const int32 NumPositions = PathLocations.Num();
@@ -302,33 +301,31 @@ bool FNavmeshPathTask::ExecuteTask()
 				{
 					Location = PathLocations[i];
 					(MutablePoints[i] = *Seed).Transform.SetLocation(Location);
-					Path->Infos.Add(Location);
+					Path->Metrics.Add(Location);
 				}
 
 				Location = PathLocations[LastPosition];
 				(MutablePoints[LastPosition] = *Goal).Transform.SetLocation(Location);
-				Path->Infos.Add(Location);
+				Path->Metrics.Add(Location);
 
 				//
 
 				PCGEX_ASYNC_CHECKPOINT
 
 				const PCGExDataBlending::FMetadataBlender* TempBlender = Context->Blending->CreateBlender(
-					PathPoints.GetOut(),
-					Context->GoalsPoints->GetIn(),
-					PathPoints.GetOutKeys(),
-					Context->GoalsPoints->GetInKeys());
+					PathPoints.GetOut(), Context->GoalsPoints->GetIn(),
+					PathPoints.GetOutKeys(), Context->GoalsPoints->GetInKeys());
 
 				PCGEX_ASYNC_CHECKPOINT
 
 				TArrayView<FPCGPoint> View(MutablePoints);
-				Context->Blending->BlendSubPoints(View, Path->Infos, TempBlender);
+				Context->Blending->BlendSubPoints(View, Path->Metrics, TempBlender);
 
 				PCGEX_DELETE(TempBlender)
 
 				if (!Context->bAddSeedToPath) { MutablePoints.RemoveAt(0); }
 				if (!Context->bAddGoalToPath) { MutablePoints.Pop(); }
-
+				
 				bSuccess = true;
 			}
 		}
