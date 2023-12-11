@@ -46,7 +46,8 @@ FPCGContext* FPCGExFusePointsElement::Initialize(
 	Context->PropertyBlender = new PCGExDataBlending::FPropertiesBlender(Settings->BlendingSettings);
 
 	Context->Radius = Settings->Radius * Settings->Radius;
-	
+	Context->bPreserveOrder = Settings->bPreserveOrder;
+
 	return Context;
 }
 
@@ -128,6 +129,14 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 
 		if (Context->ProcessCurrentPoints(Initialize, ProcessPoint))
 		{
+			if (Context->bPreserveOrder)
+			{
+				Context->FusedPoints.Sort(
+					[&](const PCGExFuse::FFusedPoint& A, const PCGExFuse::FFusedPoint& B)
+					{
+						return A.Index > B.Index;
+					});
+			}
 			Context->SetState(PCGExFuse::State_MergingPoints);
 		}
 	}

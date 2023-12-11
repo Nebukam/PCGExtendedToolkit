@@ -21,7 +21,7 @@ UPCGExPromoteEdgesSettings::UPCGExPromoteEdgesSettings(
 	const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	Promotion = EnsureInstruction<UPCGExEdgePromoteToPoint>(Promotion);
+	Promotion = EnsureOperation<UPCGExEdgePromoteToPoint>(Promotion);
 }
 
 TArray<FPCGPinProperties> UPCGExPromoteEdgesSettings::OutputPinProperties() const
@@ -47,7 +47,7 @@ FPCGContext* FPCGExPromoteEdgesElement::Initialize(
 	check(Settings);
 
 	Context->EdgeType = static_cast<EPCGExEdgeType>(Settings->EdgeType);
-	Context->Promotion = Settings->EnsureInstruction<UPCGExEdgePromoteToPoint>(Settings->Promotion, Context);
+	Context->Promotion = Settings->EnsureOperation<UPCGExEdgePromoteToPoint>(Settings->Promotion, Context);
 	return Context;
 }
 

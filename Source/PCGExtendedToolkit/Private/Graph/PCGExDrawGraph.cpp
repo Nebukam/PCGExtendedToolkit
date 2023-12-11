@@ -43,7 +43,7 @@ FPCGContext* FPCGExDrawGraphElement::Initialize(const FPCGDataCollection& InputD
 	const UPCGExDrawGraphSettings* Settings = Context->GetInputSettings<UPCGExDrawGraphSettings>();
 	check(Settings);
 
-	Context->GraphSolver = Settings->EnsureInstruction<UPCGExGraphSolver>(nullptr, Context);
+	Context->GraphSolver = Settings->EnsureOperation<UPCGExGraphSolver>(nullptr, Context);
 
 	return Context;
 }

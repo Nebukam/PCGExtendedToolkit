@@ -56,7 +56,7 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="SubdivideMethod==EPCGExSubdivideMode::Count", EditConditionHides))
 	int32 Count = 10;
-
+	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced)
 	UPCGExSubPointsBlendOperation* Blending;
 

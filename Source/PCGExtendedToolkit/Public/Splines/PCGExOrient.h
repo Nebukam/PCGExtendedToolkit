@@ -56,14 +56,3 @@ public:
 protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
-
-class PCGEXTENDEDTOOLKIT_API FOrientTask : public FPCGExNonAbandonableTask
-{
-public:
-	FOrientTask(FPCGExAsyncManager* InManager, const PCGExMT::FTaskInfos& InInfos, PCGExData::FPointIO* InPointIO) :
-		FPCGExNonAbandonableTask(InManager, InInfos, InPointIO)
-	{
-	}
-
-	virtual bool ExecuteTask() override;
-};

@@ -21,14 +21,9 @@ public:
 	FName ArriveName = "ArriveTangent";
 	FName LeaveName = "LeaveTangent";
 
-	FPCGMetadataAttribute<FVector>* ArriveAttribute = nullptr;
-	FPCGMetadataAttribute<FVector>* LeaveAttribute = nullptr;
-
 	virtual void PrepareForData(PCGExData::FPointIO& InPath);
-	virtual void ProcessFirstPoint(const int32 Index, const FPCGPoint& Point, const FPCGPoint& NextPoint) const;
-	virtual void ProcessLastPoint(const int32 Index, const FPCGPoint& Point, const FPCGPoint& PreviousPoint) const;
-	virtual void ProcessPoint(const int32 Index, const FPCGPoint& Point, const FPCGPoint& PreviousPoint, const FPCGPoint& NextPoint) const;
+	virtual void ProcessFirstPoint(const PCGEx::FPointRef& MainPoint, const PCGEx::FPointRef& NextPoint, FVector& OutArrive, FVector& OutLeave) const;
+	virtual void ProcessLastPoint(const PCGEx::FPointRef& MainPoint, const PCGEx::FPointRef& PreviousPoint, FVector& OutArrive, FVector& OutLeave) const;
+	virtual void ProcessPoint(const PCGEx::FPointRef& MainPoint, const PCGEx::FPointRef& PreviousPoint, const PCGEx::FPointRef& NextPoint, FVector& OutArrive, FVector& OutLeave) const;
 
-protected:
-	inline void WriteTangents(const PCGMetadataEntryKey Key, const FVector& Arrive, const FVector& Leave) const;
 };

@@ -16,8 +16,8 @@
 UPCGExSampleNavmeshSettings::UPCGExSampleNavmeshSettings(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	GoalPicker = EnsureInstruction<UPCGExGoalPickerRandom>(GoalPicker);
-	Blending = EnsureInstruction<UPCGExSubPointsBlendInterpolate>(Blending);
+	GoalPicker = EnsureOperation<UPCGExGoalPickerRandom>(GoalPicker);
+	Blending = EnsureOperation<UPCGExSubPointsBlendInterpolate>(Blending);
 }
 
 TArray<FPCGPinProperties> UPCGExSampleNavmeshSettings::InputPinProperties() const
@@ -53,8 +53,8 @@ TArray<FPCGPinProperties> UPCGExSampleNavmeshSettings::OutputPinProperties() con
 
 void UPCGExSampleNavmeshSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
-	GoalPicker = EnsureInstruction<UPCGExGoalPickerRandom>(GoalPicker);
-	Blending = EnsureInstruction<UPCGExSubPointsBlendInterpolate>(Blending);
+	GoalPicker = EnsureOperation<UPCGExGoalPickerRandom>(GoalPicker);
+	Blending = EnsureOperation<UPCGExSubPointsBlendInterpolate>(Blending);
 	if (GoalPicker) { GoalPicker->UpdateUserFacingInfos(); }
 	if (Blending) { Blending->UpdateUserFacingInfos(); }
 	Super::PostEditChangeProperty(PropertyChangedEvent);
@@ -101,9 +101,8 @@ FPCGContext* FPCGExSampleNavmeshElement::Initialize(const FPCGDataCollection& In
 
 	Context->OutputPaths = new PCGExData::FPointIOGroup();
 
-	//TODO: Copy & delete, otherwise leaks
-	Context->GoalPicker = Settings->EnsureInstruction<UPCGExGoalPickerRandom>(Settings->GoalPicker, Context);
-	Context->Blending = Settings->EnsureInstruction<UPCGExSubPointsBlendInterpolate>(Settings->Blending, Context);
+	PCGEX_BIND_OPERATION(GoalPicker, UPCGExGoalPickerRandom)
+	PCGEX_BIND_OPERATION(Blending, UPCGExSubPointsBlendInterpolate)
 
 	Context->bAddSeedToPath = Settings->bAddSeedToPath;
 	Context->bAddGoalToPath = Settings->bAddGoalToPath;

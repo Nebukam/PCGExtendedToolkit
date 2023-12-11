@@ -20,7 +20,8 @@ class PCGEXTENDEDTOOLKIT_API UPCGExOperation : public UObject
 public:
 	void BindContext(FPCGExPointsProcessorContext* InContext);
 	virtual void UpdateUserFacingInfos();
+	virtual void Cleanup();
 
 protected:
-	FPCGExPointsProcessorContext* Context;
+	FPCGExPointsProcessorContext* Context = nullptr;
 };

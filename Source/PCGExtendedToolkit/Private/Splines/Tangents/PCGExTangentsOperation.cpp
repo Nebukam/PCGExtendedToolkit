@@ -8,28 +8,20 @@
 
 void UPCGExTangentsOperation::PrepareForData(PCGExData::FPointIO& InPath)
 {
-	UPCGMetadata* Metadata = InPath.GetOut()->Metadata;
-	ArriveAttribute = Metadata->FindOrCreateAttribute(ArriveName, FVector::ZeroVector);
-	LeaveAttribute = Metadata->FindOrCreateAttribute(LeaveName, FVector::ZeroVector);
+	
 }
 
-void UPCGExTangentsOperation::ProcessFirstPoint(const int32 Index, const FPCGPoint& Point, const FPCGPoint& NextPoint) const
+void UPCGExTangentsOperation::ProcessFirstPoint(const PCGEx::FPointRef& MainPoint, const PCGEx::FPointRef& NextPoint, FVector& OutArrive, FVector& OutLeave) const
 {
-	WriteTangents(Point.MetadataEntry, FVector::ZeroVector, FVector::ZeroVector);
+	
 }
 
-void UPCGExTangentsOperation::ProcessLastPoint(const int32 Index, const FPCGPoint& Point, const FPCGPoint& PreviousPoint) const
+void UPCGExTangentsOperation::ProcessLastPoint(const PCGEx::FPointRef& MainPoint, const PCGEx::FPointRef& PreviousPoint, FVector& OutArrive, FVector& OutLeave) const
 {
-	WriteTangents(Point.MetadataEntry, FVector::ZeroVector, FVector::ZeroVector);
+	
 }
 
-void UPCGExTangentsOperation::ProcessPoint(const int32 Index, const FPCGPoint& Point, const FPCGPoint& PreviousPoint, const FPCGPoint& NextPoint) const
+void UPCGExTangentsOperation::ProcessPoint(const PCGEx::FPointRef& MainPoint, const PCGEx::FPointRef& PreviousPoint, const PCGEx::FPointRef& NextPoint, FVector& OutArrive, FVector& OutLeave) const
 {
-	WriteTangents(Point.MetadataEntry, FVector::ZeroVector, FVector::ZeroVector);
-}
-
-void UPCGExTangentsOperation::WriteTangents(const PCGMetadataEntryKey Key, const FVector& Arrive, const FVector& Leave) const
-{
-	ArriveAttribute->SetValue(Key, Arrive);
-	LeaveAttribute->SetValue(Key, Leave);
+	
 }

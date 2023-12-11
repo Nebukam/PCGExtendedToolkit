@@ -10,12 +10,12 @@
 UPCGExOrientSettings::UPCGExOrientSettings(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	Orientation = EnsureInstruction<UPCGExSubPointsOrientAverage>(Orientation);
+	Orientation = EnsureOperation<UPCGExSubPointsOrientAverage>(Orientation);
 }
 
 void UPCGExOrientSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
-	Orientation = EnsureInstruction<UPCGExSubPointsOrientAverage>(Orientation);
+	Orientation = EnsureOperation<UPCGExSubPointsOrientAverage>(Orientation);
 	if (Orientation) { Orientation->UpdateUserFacingInfos(); }
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
@@ -29,8 +29,7 @@ FPCGContext* FPCGExOrientElement::Initialize(const FPCGDataCollection& InputData
 	const UPCGExOrientSettings* Settings = Context->GetInputSettings<UPCGExOrientSettings>();
 	check(Settings);
 
-
-	Context->Orientation = Settings->EnsureInstruction<UPCGExSubPointsOrientAverage>(Settings->Orientation, Context);
+	PCGEX_BIND_OPERATION(Orientation, UPCGExSubPointsOrientAverage)
 
 	return Context;
 }
@@ -51,16 +50,12 @@ bool FPCGExOrientElement::ExecuteInternal(FPCGContext* InContext) const
 	Context->MainPoints->ForEach(
 		[&](PCGExData::FPointIO& PointIO, int32)
 		{
+			if (PointIO.GetNum() <= 1) { return; }
 			Context->Orientation->PrepareForData(PointIO);
 			Context->Orientation->ProcessPoints(PointIO.GetOut());
+			Context->Output(PointIO);
 		});
 
-	Context->OutputPoints();
-	return true;
-}
-
-bool FOrientTask::ExecuteTask()
-{
 	return true;
 }
 

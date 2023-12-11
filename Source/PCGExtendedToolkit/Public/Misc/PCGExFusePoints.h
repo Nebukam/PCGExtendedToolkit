@@ -102,6 +102,9 @@ public:
 	FVector Radiuses = FVector(10);
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	bool bPreserveOrder = true;
+	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	FPCGExBlendingSettings BlendingSettings;
 
 private:
@@ -114,6 +117,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFusePointsContext : public FPCGExPointsProce
 
 	~FPCGExFusePointsContext();
 
+	bool bPreserveOrder;
+	
 	TMap<FName, EPCGExDataBlendingType> AttributesBlendingOverrides;
 	PCGExDataBlending::FMetadataBlender* MetadataBlender;
 	PCGExDataBlending::FPropertiesBlender* PropertyBlender;

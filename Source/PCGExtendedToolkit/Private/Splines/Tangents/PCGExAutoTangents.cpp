@@ -7,33 +7,36 @@
 #include "PCGExMath.h"
 #include "..\..\..\Public\Data\PCGExPointIO.h"
 
-void UPCGExAutoTangents::ProcessFirstPoint(const int32 Index, const FPCGPoint& Point, const FPCGPoint& NextPoint) const
+void UPCGExAutoTangents::ProcessFirstPoint(const PCGEx::FPointRef& MainPoint, const PCGEx::FPointRef& NextPoint, FVector& OutArrive, FVector& OutLeave) const
 {
 	PCGExMath::FApex Apex = PCGExMath::FApex::FromStartOnly(
-		NextPoint.Transform.GetLocation(),
-		Point.Transform.GetLocation());
+		NextPoint.Point->Transform.GetLocation(),
+		MainPoint.Point->Transform.GetLocation());
 
 	Apex.Scale(Scale);
-	WriteTangents(Point.MetadataEntry, Apex.TowardStart, Apex.TowardEnd * -1);
+	OutArrive = Apex.TowardStart;
+	OutLeave = Apex.TowardEnd * -1;
 }
 
-void UPCGExAutoTangents::ProcessLastPoint(const int32 Index, const FPCGPoint& Point, const FPCGPoint& PreviousPoint) const
+void UPCGExAutoTangents::ProcessLastPoint(const PCGEx::FPointRef& MainPoint, const PCGEx::FPointRef& PreviousPoint, FVector& OutArrive, FVector& OutLeave) const
 {
 	PCGExMath::FApex Apex = PCGExMath::FApex::FromEndOnly(
-		PreviousPoint.Transform.GetLocation(),
-		Point.Transform.GetLocation());
+		PreviousPoint.Point->Transform.GetLocation(),
+		MainPoint.Point->Transform.GetLocation());
 
 	Apex.Scale(Scale);
-	WriteTangents(Point.MetadataEntry, Apex.TowardStart, Apex.TowardEnd * -1);
+	OutArrive = Apex.TowardStart;
+	OutLeave = Apex.TowardEnd * -1;
 }
 
-void UPCGExAutoTangents::ProcessPoint(const int32 Index, const FPCGPoint& Point, const FPCGPoint& PreviousPoint, const FPCGPoint& NextPoint) const
+void UPCGExAutoTangents::ProcessPoint(const PCGEx::FPointRef& MainPoint, const PCGEx::FPointRef& PreviousPoint, const PCGEx::FPointRef& NextPoint, FVector& OutArrive, FVector& OutLeave) const
 {
 	PCGExMath::FApex Apex = PCGExMath::FApex(
-		PreviousPoint.Transform.GetLocation(),
-		NextPoint.Transform.GetLocation(),
-		Point.Transform.GetLocation());
+		PreviousPoint.Point->Transform.GetLocation(),
+		NextPoint.Point->Transform.GetLocation(),
+		MainPoint.Point->Transform.GetLocation());
 
 	Apex.Scale(Scale);
-	WriteTangents(Point.MetadataEntry, Apex.TowardStart, Apex.TowardEnd * -1);
+	OutArrive = Apex.TowardStart;
+	OutLeave = Apex.TowardEnd * -1;
 }

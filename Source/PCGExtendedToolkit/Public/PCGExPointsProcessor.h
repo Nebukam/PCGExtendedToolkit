@@ -14,6 +14,8 @@
 
 #include "PCGExPointsProcessor.generated.h"
 
+#define PCGEX_BIND_OPERATION(_NAME, _TYPE) Context->_NAME = Context->RegisterOperation<_TYPE>(Settings->_NAME);
+
 struct FPCGExPointsProcessorContext;
 
 namespace PCGEx
@@ -135,12 +137,12 @@ public:
 	int32 ChunkSize = -1;
 
 	template <typename T>
-	static T* EnsureInstruction(UPCGExOperation* Instruction) { return Instruction ? static_cast<T*>(Instruction) : NewObject<T>(); }
+	static T* EnsureOperation(UPCGExOperation* Operation) { return Operation ? static_cast<T*>(Operation) : NewObject<T>(); }
 
 	template <typename T>
-	static T* EnsureInstruction(UPCGExOperation* Instruction, FPCGExPointsProcessorContext* InContext)
+	static T* EnsureOperation(UPCGExOperation* Operation, FPCGExPointsProcessorContext* InContext)
 	{
-		T* RetValue = Instruction ? static_cast<T*>(Instruction) : NewObject<T>();
+		T* RetValue = Operation ? static_cast<T*>(Operation) : NewObject<T>();
 		RetValue->BindContext(InContext);
 		return RetValue;
 	}
@@ -221,6 +223,24 @@ public:
 		Loop.bAsyncEnabled = bDoAsyncProcessing;
 		return Loop;
 	}
+	
+	template <typename T>
+	T* RegisterOperation(UPCGExOperation* Operation)
+	{
+		T* RetValue = nullptr;
+		
+		if (!Operation)
+		{
+			RetValue = NewObject<T>();
+			OwnedProcessorOperations.Add(RetValue);
+		}
+		else
+		{
+			RetValue = static_cast<T*>(Operation);
+		}
+		RetValue->BindContext(this);
+		return RetValue;
+	}
 
 protected:
 	PCGExMT::FAsyncParallelLoop AsyncLoop;
@@ -232,6 +252,11 @@ protected:
 
 	PCGExMT::AsyncState CurrentState;
 	int32 CurrentPointsIndex = -1;
+
+	TArray<UPCGExOperation*> ProcessorOperations;
+	TSet<UPCGExOperation*> OwnedProcessorOperations;
+
+	void CleanupOperations();
 
 	virtual void ResetAsyncWork();
 	virtual bool IsAsyncWorkComplete();

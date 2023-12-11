@@ -248,8 +248,15 @@ int32 UPCGExPointsProcessorSettings::GetPreferredChunkSize() const { return 256;
 
 FPCGExPointsProcessorContext::~FPCGExPointsProcessorContext()
 {
+	CleanupOperations();
+	for (UPCGExOperation* Operation : OwnedProcessorOperations) { Operation->ConditionalBeginDestroy(); }
+
+	ProcessorOperations.Empty();
+	OwnedProcessorOperations.Empty();
+
 	PCGEX_DELETE(AsyncManager)
 	PCGEX_DELETE(MainPoints)
+
 	CurrentIO = nullptr;
 	World = nullptr;
 }
@@ -336,6 +343,11 @@ FPCGExAsyncManager* FPCGExPointsProcessorContext::GetAsyncManager()
 		AsyncManager->Context = this;
 	}
 	return AsyncManager;
+}
+
+void FPCGExPointsProcessorContext::CleanupOperations()
+{
+	for (UPCGExOperation* Operation : ProcessorOperations) { Operation->Cleanup(); }
 }
 
 void FPCGExPointsProcessorContext::ResetAsyncWork() { if (AsyncManager) { AsyncManager->Reset(); } }

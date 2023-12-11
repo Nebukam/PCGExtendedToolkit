@@ -136,8 +136,8 @@ void FPCGExPathfindingProcessorElement::InitializeContext(
 
 	Context->OutputPaths = new PCGExData::FPointIOGroup();
 
-	Context->GoalPicker = Settings->EnsureInstruction<UPCGExGoalPickerRandom>(Settings->GoalPicker, Context);
-	Context->Blending = Settings->EnsureInstruction<UPCGExSubPointsBlendInterpolate>(Settings->Blending, Context);
+	Context->GoalPicker = Settings->EnsureOperation<UPCGExGoalPickerRandom>(Settings->GoalPicker, Context);
+	Context->Blending = Settings->EnsureOperation<UPCGExSubPointsBlendInterpolate>(Settings->Blending, Context);
 
 	Context->bAddSeedToPath = Settings->bAddSeedToPath;
 	Context->bAddGoalToPath = Settings->bAddGoalToPath;

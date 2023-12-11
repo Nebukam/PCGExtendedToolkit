@@ -12,12 +12,12 @@ UPCGExBuildGraphSettings::UPCGExBuildGraphSettings(
 	const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	GraphSolver = EnsureInstruction<UPCGExGraphSolver>(GraphSolver);
+	GraphSolver = EnsureOperation<UPCGExGraphSolver>(GraphSolver);
 }
 
 void UPCGExBuildGraphSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
-	GraphSolver = EnsureInstruction<UPCGExGraphSolver>(GraphSolver);
+	GraphSolver = EnsureOperation<UPCGExGraphSolver>(GraphSolver);
 	if (GraphSolver) { GraphSolver->UpdateUserFacingInfos(); }
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
@@ -36,7 +36,7 @@ FPCGContext* FPCGExBuildGraphElement::Initialize(
 	const UPCGExBuildGraphSettings* Settings = Context->GetInputSettings<UPCGExBuildGraphSettings>();
 	check(Settings);
 
-	Context->GraphSolver = Settings->EnsureInstruction<UPCGExGraphSolver>(Settings->GraphSolver, Context);
+	Context->GraphSolver = Settings->EnsureOperation<UPCGExGraphSolver>(Settings->GraphSolver, Context);
 
 	return Context;
 }

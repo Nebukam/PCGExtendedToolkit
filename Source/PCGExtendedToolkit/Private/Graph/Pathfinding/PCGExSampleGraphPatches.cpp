@@ -17,8 +17,8 @@ UPCGExSampleGraphPatchesSettings::UPCGExSampleGraphPatchesSettings(
 	const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	GoalPicker = EnsureInstruction<UPCGExGoalPickerRandom>(GoalPicker);
-	Blending = EnsureInstruction<UPCGExSubPointsBlendInterpolate>(Blending);
+	GoalPicker = EnsureOperation<UPCGExGoalPickerRandom>(GoalPicker);
+	Blending = EnsureOperation<UPCGExSubPointsBlendInterpolate>(Blending);
 }
 
 FPCGElementPtr UPCGExSampleGraphPatchesSettings::CreateElement() const { return MakeShared<FPCGExSampleGraphPatchesElement>(); }

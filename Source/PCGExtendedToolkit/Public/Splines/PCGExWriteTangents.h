@@ -48,8 +48,17 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExWriteTangentsContext : public FPCGExPathProc
 {
 	friend class FPCGExWriteTangentsElement;
 
-public:
-	UPCGExTangentsOperation* Tangents;
+	~FPCGExWriteTangentsContext();
+
+	PCGEx::FAttributeAccessor<FVector>* ArriveTangentsAccessor = nullptr;
+	PCGEx::FAttributeAccessor<FVector>* LeaveTangentsAccessor = nullptr;
+
+	TArray<FVector> ArriveTangents;
+	TArray<FVector> LeaveTangents;
+
+	UPCGExTangentsOperation* Tangents = nullptr;
+
+	void WriteTangents();
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExWriteTangentsElement : public FPCGExPathProcessorElement
@@ -59,6 +68,7 @@ public:
 		const FPCGDataCollection& InputData,
 		TWeakObjectPtr<UPCGComponent> SourceComponent,
 		const UPCGNode* Node) override;
+	virtual bool Validate(FPCGContext* InContext) const override;
 
 protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;

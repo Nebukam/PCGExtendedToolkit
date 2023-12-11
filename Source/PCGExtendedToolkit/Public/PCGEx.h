@@ -82,6 +82,11 @@ MACRO(EPCGExtraProperties::Index, MetadataEntry)
 
 #pragma endregion
 
+namespace PCGExData
+{
+	struct FPointIO;
+}
+
 UENUM(BlueprintType)
 enum class EPCGExOrderedFieldSelection : uint8
 {
@@ -169,13 +174,26 @@ namespace PCGEx
 
 	struct PCGEXTENDEDTOOLKIT_API FPointRef
 	{
+		friend struct PCGExData::FPointIO;
+
 		FPointRef(const FPCGPoint& InPoint, const int32 InIndex):
 			Point(&InPoint), Index(InIndex)
 		{
 		}
 
-		const FPCGPoint* Point;
-		const int32 Index;
+		FPointRef(const FPCGPoint* InPoint, const int32 InIndex):
+			Point(InPoint), Index(InIndex)
+		{
+		}
+
+		FPointRef(const FPointRef& Other):
+			Point(Other.Point), Index(Other.Index)
+		{
+		}
+
+		bool IsValid() const { return Point && Index != -1; }
+		const FPCGPoint* Point = nullptr;
+		const int32 Index = -1;
 	};
 
 	static UWorld* GetWorld(const FPCGContext* Context)

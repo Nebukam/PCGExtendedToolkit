@@ -10,12 +10,12 @@
 UPCGExSubdivideSettings::UPCGExSubdivideSettings(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	Blending = EnsureInstruction<UPCGExSubPointsBlendInterpolate>(Blending);
+	Blending = EnsureOperation<UPCGExSubPointsBlendInterpolate>(Blending);
 }
 
 void UPCGExSubdivideSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
-	Blending = EnsureInstruction<UPCGExSubPointsBlendInterpolate>(Blending);
+	Blending = EnsureOperation<UPCGExSubPointsBlendInterpolate>(Blending);
 	if (Blending) { Blending->UpdateUserFacingInfos(); }
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
@@ -43,8 +43,7 @@ FPCGContext* FPCGExSubdivideElement::Initialize(const FPCGDataCollection& InputD
 	Context->bFlagSubPoints = Settings->bFlagSubPoints;
 	Context->FlagName = Settings->FlagName;
 
-	//TODO: Copy & delete, otherwise leaks
-	Context->Blending = Settings->EnsureInstruction<UPCGExSubPointsBlendInterpolate>(Settings->Blending, Context);
+	PCGEX_BIND_OPERATION(Blending, UPCGExSubPointsBlendInterpolate)
 
 	return Context;
 }
@@ -123,6 +122,7 @@ bool FPCGExSubdivideElement::ExecuteInternal(FPCGContext* InContext) const
 
 		if (Context->ProcessCurrentPoints(Initialize, ProcessPoint, true))
 		{
+			
 			Context->SetState(PCGExSubdivide::State_BlendingPoints);
 		}
 	}
