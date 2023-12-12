@@ -22,6 +22,8 @@ public:
 	virtual void UpdateUserFacingInfos();
 	virtual void Cleanup();
 
+	virtual void BeginDestroy() override;
+
 protected:
 	FPCGExPointsProcessorContext* Context = nullptr;
 };

@@ -495,7 +495,7 @@ namespace PCGEx
 	public:
 		virtual ~FAttributeGetter()
 		{
-			Values.Empty();
+			FAttributeGetter<T>::Cleanup();
 		}
 
 		TArray<T> Values;
@@ -504,6 +504,11 @@ namespace PCGEx
 		bool bValid = false;
 
 		FPCGExInputDescriptor Descriptor;
+
+		virtual void Cleanup()
+		{
+			Values.Empty();
+		}
 
 		/**
 		 * Build and validate a property/attribute accessor for the selected

@@ -44,7 +44,10 @@ FPCGExGraphProcessorContext::~FPCGExGraphProcessorContext()
 
 	PCGEX_DELETE(CachedIndexReader)
 	PCGEX_DELETE(CachedIndexWriter)
+
 	SocketInfos.Empty();
+
+	if (CurrentGraph) { CurrentGraph->Cleanup(); }
 }
 
 #pragma endregion
@@ -53,6 +56,9 @@ bool FPCGExGraphProcessorContext::AdvanceGraph(bool bResetPointsIndex)
 {
 	if (bResetPointsIndex) { CurrentPointsIndex = -1; }
 	CurrentParamsIndex++;
+
+	if (CurrentGraph) { CurrentGraph->Cleanup(); }
+
 	if (Graphs.Params.IsValidIndex(CurrentParamsIndex))
 	{
 		CurrentGraph = Graphs.Params[CurrentParamsIndex];

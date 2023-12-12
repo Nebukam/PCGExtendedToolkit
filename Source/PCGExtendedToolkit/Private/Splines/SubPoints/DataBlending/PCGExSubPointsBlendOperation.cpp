@@ -64,6 +64,12 @@ void UPCGExSubPointsBlendOperation::BlendSubPoints(TArrayView<FPCGPoint>& SubPoi
 	BlendSubPoints(PCGEx::FPointRef(Start, 0), PCGEx::FPointRef(End, LastIndex), SubPoints, Metrics, InBlender);
 }
 
+void UPCGExSubPointsBlendOperation::Cleanup()
+{
+	PCGEX_DELETE(InternalBlender)
+	Super::Cleanup();
+}
+
 PCGExDataBlending::FMetadataBlender* UPCGExSubPointsBlendOperation::CreateBlender(
 	UPCGPointData* InPrimaryData,
 	const UPCGPointData* InSecondaryData,
@@ -79,10 +85,4 @@ PCGExDataBlending::FMetadataBlender* UPCGExSubPointsBlendOperation::CreateBlende
 		BlendingSettings.AttributesOverrides);
 
 	return NewBlender;
-}
-
-void UPCGExSubPointsBlendOperation::BeginDestroy()
-{
-	PCGEX_DELETE(InternalBlender)
-	Super::BeginDestroy();
 }

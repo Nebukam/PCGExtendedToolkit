@@ -61,7 +61,7 @@ public:
 		const PCGExDataBlending::FMetadataBlender* InBlender) const;
 
 
-	virtual void BeginDestroy() override;
+	virtual void Cleanup() override;
 
 	PCGExDataBlending::FMetadataBlender* CreateBlender(
 		UPCGPointData* InPrimaryData,

@@ -83,7 +83,7 @@ namespace FPCGExFilter
 
 		virtual ~FRule() override
 		{
-			Values.Empty();
+			FRule::Cleanup();
 			RuleDescriptor = nullptr;
 		}
 
@@ -98,6 +98,12 @@ namespace FPCGExFilter
 			const double Upscaled = Values[Index] * Upscale + (Offset + 1);
 			const double Filtered = (Upscaled - FMath::Fmod(Upscaled, FilterSize)) / FilterSize;
 			return static_cast<int64>(Filtered);
+		}
+
+		virtual void Cleanup() override
+		{
+			Values.Empty();
+			FLocalSingleFieldGetter::Cleanup();
 		}
 	};
 

@@ -189,6 +189,13 @@ void PCGExGraph::FSocketMapping::GetSocketsInfos(TArray<FSocketInfos>& OutInfos)
 	}
 }
 
+void PCGExGraph::FSocketMapping::Cleanup()
+{
+	for (FSocket& Socket : Sockets) { Socket.Cleanup(); }
+	for (FProbeDistanceModifier& Modifier : Modifiers) { Modifier.Cleanup(); }
+	for (FLocalDirection& Direction : LocalDirections) { Direction.Cleanup(); }
+}
+
 void PCGExGraph::FSocketMapping::Reset()
 {
 	Sockets.Empty();

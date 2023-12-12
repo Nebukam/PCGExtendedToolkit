@@ -17,3 +17,9 @@ void UPCGExOperation::Cleanup()
 {
 	Context = nullptr;
 }
+
+void UPCGExOperation::BeginDestroy()
+{
+	Cleanup();
+	UObject::BeginDestroy();
+}

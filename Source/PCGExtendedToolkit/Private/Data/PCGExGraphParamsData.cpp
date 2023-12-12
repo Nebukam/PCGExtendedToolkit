@@ -11,10 +11,10 @@ UPCGExGraphParamsData::UPCGExGraphParamsData(const FObjectInitializer& ObjectIni
 {
 }
 
-bool UPCGExGraphParamsData::HasMatchingGraphData(const UPCGPointData* PointData)
+bool UPCGExGraphParamsData::HasMatchingGraphData(const UPCGPointData* PointData) const
 {
 	// Whether the data has metadata matching this GraphData block or not
-	for (const PCGExGraph::FSocket Socket : SocketMapping.Sockets)
+	for (const PCGExGraph::FSocket Socket : SocketMapping->Sockets)
 	{
 		if (!PointData->Metadata->HasAttribute(Socket.GetName())) { return false; }
 	}
@@ -23,16 +23,19 @@ bool UPCGExGraphParamsData::HasMatchingGraphData(const UPCGPointData* PointData)
 
 void UPCGExGraphParamsData::BeginDestroy()
 {
+	Cleanup();
+
+	PCGEX_DELETE(SocketMapping);
 	SocketsDescriptors.Empty();
 	Super::BeginDestroy();
 }
 
 void UPCGExGraphParamsData::Initialize()
 {
-	SocketMapping = PCGExGraph::FSocketMapping{};
+	SocketMapping = new PCGExGraph::FSocketMapping();
 
-	if (bApplyGlobalOverrides) { SocketMapping.InitializeWithOverrides(GraphIdentifier, SocketsDescriptors, GlobalOverrides); }
-	else { SocketMapping.Initialize(GraphIdentifier, SocketsDescriptors); }
+	if (bApplyGlobalOverrides) { SocketMapping->InitializeWithOverrides(GraphIdentifier, SocketsDescriptors, GlobalOverrides); }
+	else { SocketMapping->Initialize(GraphIdentifier, SocketsDescriptors); }
 
 	GreatestStaticMaxDistance = 0.0;
 	bHasVariableMaxDistance = false;
@@ -44,31 +47,36 @@ void UPCGExGraphParamsData::Initialize()
 		GreatestStaticMaxDistance = FMath::Max(GreatestStaticMaxDistance, Socket.Bounds.MaxDistance);
 	}
 
-	CachedIndexAttributeName = SocketMapping.GetCompoundName(FName("CachedIndex"));
+	CachedIndexAttributeName = SocketMapping->GetCompoundName(FName("CachedIndex"));
 }
 
-void UPCGExGraphParamsData::PrepareForPointData(const PCGExData::FPointIO& PointIO, const bool bReadOnly = true)
+void UPCGExGraphParamsData::PrepareForPointData(const PCGExData::FPointIO& PointIO, const bool bReadOnly = true) const
 {
-	SocketMapping.PrepareForPointData(PointIO, bReadOnly);
+	SocketMapping->PrepareForPointData(PointIO, bReadOnly);
 }
 
 void UPCGExGraphParamsData::GetSocketsData(const int32 PointIndex, TArray<PCGExGraph::FSocketMetadata>& OutMetadata) const
 {
-	OutMetadata.Reset(SocketMapping.NumSockets);
-	for (const PCGExGraph::FSocket& Socket : SocketMapping.Sockets) { OutMetadata.Add(Socket.GetData(PointIndex)); }
+	OutMetadata.Reset(SocketMapping->NumSockets);
+	for (const PCGExGraph::FSocket& Socket : SocketMapping->Sockets) { OutMetadata.Add(Socket.GetData(PointIndex)); }
 }
 
-void UPCGExGraphParamsData::SetSocketsData(const int32 PointIndex, TArray<PCGExGraph::FSocketMetadata>& InMetadata)
+void UPCGExGraphParamsData::SetSocketsData(const int32 PointIndex, TArray<PCGExGraph::FSocketMetadata>& InMetadata) const
 {
-	check(InMetadata.Num() == SocketMapping.NumSockets)
-	for (int i = 0; i < SocketMapping.NumSockets; i++)
+	check(InMetadata.Num() == SocketMapping->NumSockets)
+	for (int i = 0; i < SocketMapping->NumSockets; i++)
 	{
-		PCGExGraph::FSocket& Socket = SocketMapping.Sockets[i];
+		PCGExGraph::FSocket& Socket = SocketMapping->Sockets[i];
 		Socket.SetData(PointIndex, InMetadata[i]);
 	}
 }
 
-void UPCGExGraphParamsData::GetSocketsInfos(TArray<PCGExGraph::FSocketInfos>& OutInfos)
+void UPCGExGraphParamsData::GetSocketsInfos(TArray<PCGExGraph::FSocketInfos>& OutInfos) const
 {
-	SocketMapping.GetSocketsInfos(OutInfos);
+	SocketMapping->GetSocketsInfos(OutInfos);
+}
+
+void UPCGExGraphParamsData::Cleanup()
+{
+	if (SocketMapping) { SocketMapping->Cleanup(); }
 }

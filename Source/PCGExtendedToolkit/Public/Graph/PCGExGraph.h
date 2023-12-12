@@ -469,6 +469,11 @@ namespace PCGExGraph
 			Reset();
 		}
 
+		~FSocketMapping()
+		{
+			Reset();
+		}
+
 	public:
 		FName Identifier = NAME_None;
 		TArray<FSocket> Sockets;
@@ -494,6 +499,7 @@ namespace PCGExGraph
 		const TArray<FProbeDistanceModifier>& GetModifiers() const { return Modifiers; }
 
 		void GetSocketsInfos(TArray<FSocketInfos>& OutInfos);
+		void Cleanup();
 		void Reset();
 
 	private:
@@ -501,12 +507,6 @@ namespace PCGExGraph
 		 * Build matching set
 		 */
 		void PostProcessSockets();
-
-	public:
-		~FSocketMapping()
-		{
-			Reset();
-		}
 	};
 
 #pragma endregion

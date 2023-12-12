@@ -33,3 +33,10 @@ void UPCGExCustomTangents::ProcessPoint(const PCGEx::FPointRef& MainPoint, const
 	OutArrive = Arrive.GetTangent(Index);
 	OutLeave = bMirror ? Arrive.GetTangent(Index) : Leave.GetTangent(Index);
 }
+
+void UPCGExCustomTangents::Cleanup()
+{
+	Arrive.Cleanup();
+	Leave.Cleanup();
+	Super::Cleanup();
+}

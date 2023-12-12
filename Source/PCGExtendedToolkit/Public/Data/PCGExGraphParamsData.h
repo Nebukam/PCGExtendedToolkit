@@ -36,7 +36,7 @@ public:
 	 * @param PointData 
 	 * @return 
 	 */
-	bool HasMatchingGraphData(const UPCGPointData* PointData);
+	bool HasMatchingGraphData(const UPCGPointData* PointData) const;
 
 	FName GraphIdentifier = "GraphIdentifier";
 	double GreatestStaticMaxDistance = 0.0;
@@ -47,10 +47,10 @@ public:
 	virtual void BeginDestroy() override;
 
 protected:
-	PCGExGraph::FSocketMapping SocketMapping;
+	PCGExGraph::FSocketMapping* SocketMapping = nullptr;
 
 public:
-	const PCGExGraph::FSocketMapping* GetSocketMapping() const { return &SocketMapping; }
+	const PCGExGraph::FSocketMapping* GetSocketMapping() const { return SocketMapping; }
 
 	/**
 	 * Initialize this data object from a list of socket descriptors
@@ -66,7 +66,7 @@ public:
 	 * @param PointIO
 	 * @param bEnsureEdgeType 
 	 */
-	void PrepareForPointData(const PCGExData::FPointIO& PointIO, const bool bEnsureEdgeType);
+	void PrepareForPointData(const PCGExData::FPointIO& PointIO, const bool bEnsureEdgeType) const;
 
 	/**
 		 * Fills an array in order with each' socket metadata registered for a given point.
@@ -85,7 +85,7 @@ public:
 	template <typename T>
 	void GetEdges(const int32 InIndex, const PCGMetadataEntryKey MetadataEntry, TArray<T>& OutEdges) const
 	{
-		for (const PCGExGraph::FSocket& Socket : SocketMapping.Sockets)
+		for (const PCGExGraph::FSocket& Socket : SocketMapping->Sockets)
 		{
 			T Edge;
 			if (Socket.TryGetEdge(MetadataEntry, Edge)) { OutEdges.AddUnique(Edge); }
@@ -95,14 +95,13 @@ public:
 	/**
 	 * 
 	 * @param PointIndex 
-	 * @param MetadataEntry 
 	 * @param OutEdges
 	 * @param EdgeFilter 
 	 */
 	template <typename T>
 	void GetEdges(const int32 PointIndex, TArray<T>& OutEdges, const EPCGExEdgeType& EdgeFilter) const
 	{
-		for (const PCGExGraph::FSocket& Socket : SocketMapping.Sockets)
+		for (const PCGExGraph::FSocket& Socket : SocketMapping->Sockets)
 		{
 			T Edge;
 			if (Socket.TryGetEdge(PointIndex, Edge, EdgeFilter)) { OutEdges.AddUnique(Edge); }
@@ -114,9 +113,11 @@ public:
 	 * @param PointIndex 
 	 * @param InMetadata 
 	 */
-	void SetSocketsData(const int32 PointIndex, TArray<PCGExGraph::FSocketMetadata>& InMetadata);
+	void SetSocketsData(const int32 PointIndex, TArray<PCGExGraph::FSocketMetadata>& InMetadata) const;
 
-	void GetSocketsInfos(TArray<PCGExGraph::FSocketInfos>& OutInfos);
+	void GetSocketsInfos(TArray<PCGExGraph::FSocketInfos>& OutInfos) const;
+
+	void Cleanup();
 };
 
 namespace PCGExGraph
