@@ -175,7 +175,6 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 		{
 			PCGEX_SAMPLENEARESTPOINT_FOREACH(PCGEX_OUTPUT_WRITE)
 			Context->CurrentIO->OutputTo(Context);
-			Context->CurrentIO->Cleanup();
 			Context->SetState(PCGExMT::State_ReadyForNextPoints);
 		}
 	}

@@ -75,8 +75,6 @@ FPCGContext* FPCGExSampleNearestPolylineElement::Initialize(const FPCGDataCollec
 	PCGEX_FWD(bUseLocalRangeMax)
 	Context->RangeMaxGetter.Capture(Settings->LocalRangeMax);
 
-	Context->NumTargets = Context->Targets->Lines.Num();
-
 	PCGEX_SAMPLENEARESTPOLYLINE_FOREACH(PCGEX_OUTPUT_FWD)
 
 	return Context;
@@ -101,6 +99,8 @@ bool FPCGExSampleNearestPolylineElement::Validate(FPCGContext* InContext) const
 		return false;
 	}
 
+	Context->NumTargets = Context->Targets->Lines.Num();
+	
 	PCGEX_SAMPLENEARESTPOLYLINE_FOREACH(PCGEX_OUTPUT_VALIDATE_NAME)
 
 	return true;
@@ -276,6 +276,7 @@ bool FPCGExSampleNearestPolylineElement::ExecuteInternal(FPCGContext* InContext)
 		if (Context->ProcessCurrentPoints(Initialize, ProcessPoint))
 		{
 			PCGEX_SAMPLENEARESTPOLYLINE_FOREACH(PCGEX_OUTPUT_WRITE)
+			Context->CurrentIO->OutputTo(Context);
 			Context->SetState(PCGExMT::State_ReadyForNextPoints);
 		}
 	}

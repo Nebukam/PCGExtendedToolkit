@@ -120,8 +120,6 @@ bool FPCGExWriteTangentsElement::ExecuteInternal(FPCGContext* InContext) const
 		{
 			Context->WriteTangents();
 			Context->CurrentIO->OutputTo(Context);
-			Context->CurrentIO->Cleanup();
-
 			Context->SetState(PCGExMT::State_ReadyForNextPoints);
 		}
 	}

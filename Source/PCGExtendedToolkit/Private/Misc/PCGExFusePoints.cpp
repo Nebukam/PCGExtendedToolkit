@@ -184,7 +184,6 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 		if (PCGExMT::ParallelForLoop(Context, Context->FusedPoints.Num(), Initialize, FusePoint, Context->ChunkSize))
 		{
 			Context->CurrentIO->OutputTo(Context);
-			Context->CurrentIO->Cleanup();
 			Context->SetState(PCGExMT::State_ReadyForNextPoints);
 		}
 	}

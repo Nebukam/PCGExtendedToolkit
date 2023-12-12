@@ -108,13 +108,9 @@ bool FPCGExSampleSurfaceGuidedElement::ExecuteInternal(FPCGContext* InContext) c
 		if (Context->IsAsyncWorkComplete())
 		{
 			PCGEX_SAMPLENEARESTTRACE_FOREACH(PCGEX_OUTPUT_WRITE)
+			Context->CurrentIO->OutputTo(Context);
 			Context->SetState(PCGExMT::State_ReadyForNextPoints);
 		}
-	}
-
-	if (Context->IsDone())
-	{
-		Context->OutputPoints();
 	}
 
 	return Context->IsDone();

@@ -102,13 +102,9 @@ bool FPCGExSampleNearestSurfaceElement::ExecuteInternal(FPCGContext* InContext) 
 		if (Context->IsAsyncWorkComplete())
 		{
 			PCGEX_SAMPLENEARESTSURFACE_FOREACH(PCGEX_OUTPUT_WRITE)
+			Context->CurrentIO->OutputTo(Context);
 			Context->SetState(PCGExMT::State_ReadyForNextPoints);
 		}
-	}
-
-	if (Context->IsDone())
-	{
-		Context->OutputPoints();
 	}
 
 	return Context->IsDone();

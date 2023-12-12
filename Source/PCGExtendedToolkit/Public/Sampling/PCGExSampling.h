@@ -11,8 +11,8 @@
 
 #define PCGEX_OUTPUT_VALIDATE_NAME(_NAME, _TYPE)\
 if(Settings->bWrite##_NAME && !FPCGMetadataAttributeBase::IsValidName(Settings->_NAME))\
-{ PCGE_LOG(Warning, GraphAndLog, LOCTEXT("InvalidName", "Invalid output attribute name " #_NAME )); }\
-else{ PCGEX_DELETE(Context->_NAME##Writer) }
+{ PCGE_LOG(Warning, GraphAndLog, LOCTEXT("InvalidName", "Invalid output attribute name " #_NAME ));\
+PCGEX_DELETE(Context->_NAME##Writer)}
 
 #define PCGEX_OUTPUT_VALUE(_NAME, _INDEX, _VALUE) if(Context->_NAME##Writer){(*Context->_NAME##Writer)[_INDEX] = _VALUE; }
 #define PCGEX_OUTPUT_WRITE(_NAME, _TYPE) if(Context->_NAME##Writer){Context->_NAME##Writer->Write();}

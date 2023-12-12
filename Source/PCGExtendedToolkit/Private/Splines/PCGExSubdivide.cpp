@@ -169,7 +169,6 @@ bool FPCGExSubdivideElement::ExecuteInternal(FPCGContext* InContext) const
 		if (Context->Process(Initialize, ProcessMilestone, Context->Milestones.Num()))
 		{
 			Context->CurrentIO->OutputTo(Context);
-			Context->CurrentIO->Cleanup();
 			Context->SetState(PCGExMT::State_ReadyForNextPoints);
 		}
 	}
