@@ -36,7 +36,7 @@ void UPCGExCustomTangents::ProcessPoint(const PCGEx::FPointRef& MainPoint, const
 
 void UPCGExCustomTangents::Cleanup()
 {
-	Arrive.Cleanup();
-	Leave.Cleanup();
+	PCGEX_CLEANUP(Arrive)
+	PCGEX_CLEANUP(Leave)
 	Super::Cleanup();
 }

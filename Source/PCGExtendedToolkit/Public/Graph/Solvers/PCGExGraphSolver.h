@@ -55,9 +55,15 @@ namespace PCGExGraph
 			SocketInfos->Socket->SetTargetIndex(Index, BestCandidate.Index);
 		}
 
+		void Cleanup()
+		{
+			Candidates.Empty();
+			SocketInfos = nullptr;
+		}
+		
 		~FSocketProbe()
 		{
-			SocketInfos = nullptr;
+			Cleanup();
 		}
 	};
 }

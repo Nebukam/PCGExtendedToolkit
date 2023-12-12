@@ -82,14 +82,14 @@ FColor FPCGExAttributeDebugDraw::GetColor(const PCGEx::FPointRef& Point) const
 
 FVector FPCGExAttributeDebugDraw::GetVector(const PCGEx::FPointRef& Point) const
 {
-	FVector OutVector = VectorGetter.GetValueSafe(Point.Index, FVector::ZeroVector);
+	FVector OutVector = VectorGetter[Point.Index];
 	if (Descriptor->ExpressedAs == EPCGExDebugExpression::Direction && Descriptor->bNormalizeBeforeSizing) { OutVector.Normalize(); }
 	return OutVector;
 }
 
 FVector FPCGExAttributeDebugDraw::GetIndexedPosition(const PCGEx::FPointRef& Point, const UPCGPointData* PointData) const
 {
-	const int64 OutIndex = IndexGetter.GetValueSafe(Point.Index, -1);
+	const int64 OutIndex = IndexGetter.SafeGet(Point.Index, -1);
 	if (OutIndex != -1) { return PointData->GetPoints()[OutIndex].Transform.GetLocation(); }
 	return Point.Point->Transform.GetLocation();
 }
@@ -135,7 +135,7 @@ void FPCGExAttributeDebugDraw::DrawPoint(const UWorld* World, const FVector& Sta
 
 void FPCGExAttributeDebugDraw::DrawLabel(const UWorld* World, const FVector& Start, const PCGEx::FPointRef& Point) const
 {
-	FString Text = TextGetter.GetValueSafe(Point.Index, ".");
+	FString Text = TextGetter.SafeGet(Point.Index, ".");
 	DrawDebugString(World, Start, *Text, nullptr, GetColor(Point), 99999.0f, false, GetSize(Point));
 }
 

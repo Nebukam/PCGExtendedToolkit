@@ -14,6 +14,7 @@
 #pragma region MACROS
 
 #define PCGEX_DELETE(_VALUE) delete _VALUE; _VALUE = nullptr;
+#define PCGEX_CLEANUP(_VALUE) _VALUE.Cleanup();
 
 #define PCGEX_NODE_INFOS(_SHORTNAME, _NAME, _TOOLTIP)\
 virtual FName GetDefaultNodeName() const override { return FName(TEXT(#_SHORTNAME)); } \

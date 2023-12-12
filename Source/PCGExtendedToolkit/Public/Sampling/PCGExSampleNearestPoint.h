@@ -232,7 +232,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestPointContext : public FPCGExPoi
 
 	PCGEx::FLocalSingleFieldGetter RangeMinGetter;
 	PCGEx::FLocalSingleFieldGetter RangeMaxGetter;
-	PCGEx::FLocalDirectionGetter NormalInput;
+	PCGEx::FLocalDirectionGetter NormalGetter;
 
 	UCurveFloat* WeightCurve = nullptr;
 
@@ -256,11 +256,11 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FSamplePointTask : public FPCGExCollisionTask
+class PCGEXTENDEDTOOLKIT_API FSamplePointTask : public FPCGExNonAbandonableTask
 {
 public:
 	FSamplePointTask(FPCGExAsyncManager* InManager, const PCGExMT::FTaskInfos& InInfos, PCGExData::FPointIO* InPointIO) :
-		FPCGExCollisionTask(InManager, InInfos, InPointIO)
+		FPCGExNonAbandonableTask(InManager, InInfos, InPointIO)
 	{
 	}
 

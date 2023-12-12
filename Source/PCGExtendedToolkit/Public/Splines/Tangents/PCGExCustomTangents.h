@@ -47,12 +47,12 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSingleTangentParams
 	}
 
 	FVector GetDirection(const int32 Index) const { return DirectionGetter[Index]; }
-	FVector GetTangent(const int32 Index) const { return DirectionGetter[Index] * ScaleGetter.GetValueSafe(Index, DefaultScale); }
+	FVector GetTangent(const int32 Index) const { return DirectionGetter[Index] * ScaleGetter.SafeGet(Index, DefaultScale); }
 
 	void Cleanup()
 	{
-		DirectionGetter.Cleanup();
-		ScaleGetter.Cleanup();
+		PCGEX_CLEANUP(DirectionGetter)
+		PCGEX_CLEANUP(ScaleGetter)
 	}
 };
 

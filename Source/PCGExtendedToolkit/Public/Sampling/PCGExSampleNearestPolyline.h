@@ -273,3 +273,14 @@ protected:
 	virtual bool Validate(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
+
+class PCGEXTENDEDTOOLKIT_API FSamplePolylineTask : public FPCGExNonAbandonableTask
+{
+public:
+	FSamplePolylineTask(FPCGExAsyncManager* InManager, const PCGExMT::FTaskInfos& InInfos, PCGExData::FPointIO* InPointIO) :
+		FPCGExNonAbandonableTask(InManager, InInfos, InPointIO)
+	{
+	}
+
+	virtual bool ExecuteTask() override;
+};

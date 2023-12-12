@@ -88,7 +88,7 @@ FPCGContext* FPCGExSampleNavmeshElement::Initialize(const FPCGDataCollection& In
 		Goals.Num() > 0)
 	{
 		const FPCGTaggedData& GoalsSource = Goals[0];
-		Context->GoalsPoints = PCGExData::PCGExPointIO::GetPointIO(Context, GoalsSource);
+		Context->GoalsPoints = PCGExData::PCGExPointIO::GetPointIO(Context, GoalsSource, NAME_None, PCGExData::EInit::DuplicateInput);
 	}
 
 	if (!Settings->NavData)
@@ -313,7 +313,7 @@ bool FNavmeshPathTask::ExecuteTask()
 				PCGEX_ASYNC_CHECKPOINT
 
 				const PCGExDataBlending::FMetadataBlender* TempBlender = Context->Blending->CreateBlender(
-					PathPoints.GetOut(), Context->GoalsPoints->GetIn(),
+					PathPoints.GetOut(), Context->GoalsPoints->GetOut(),
 					PathPoints.GetOutKeys(), Context->GoalsPoints->GetInKeys());
 
 				PCGEX_ASYNC_CHECKPOINT

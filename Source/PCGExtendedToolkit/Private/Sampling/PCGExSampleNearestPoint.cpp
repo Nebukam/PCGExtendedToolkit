@@ -37,7 +37,12 @@ FPCGExSampleNearestPointContext::~FPCGExSampleNearestPointContext()
 {
 	PCGEX_CLEANUP_ASYNC
 
+	PCGEX_CLEANUP(RangeMinGetter)
+	PCGEX_CLEANUP(RangeMaxGetter)
+	PCGEX_CLEANUP(NormalGetter)
+	
 	PCGEX_DELETE(Targets)
+	
 	PCGEX_SAMPLENEARESTPOINT_FOREACH(PCGEX_OUTPUT_DELETE)
 }
 
@@ -110,8 +115,8 @@ bool FPCGExSampleNearestPointElement::Validate(FPCGContext* InContext) const
 
 	if (Context->NormalWriter)
 	{
-		Context->NormalInput.Capture(Settings->NormalSource);
-		if (!Context->NormalInput.Bind(*Context->Targets))
+		Context->NormalGetter.Capture(Settings->NormalSource);
+		if (!Context->NormalGetter.Bind(*Context->Targets))
 		{
 			PCGE_LOG(Warning, GraphAndLog, LOCTEXT("InvalidNormalSource", "Normal source is invalid."));
 		}
@@ -190,8 +195,8 @@ bool FSamplePointTask::ExecuteTask()
 	const int32 NumTargets = Context->Targets->GetNum();
 	const FVector Origin = PointIO->GetOutPoint(TaskInfos.Index).Transform.GetLocation();
 
-	double RangeMin = FMath::Pow(Context->RangeMinGetter.GetValueSafe(TaskInfos.Index, Context->RangeMin), 2);
-	double RangeMax = FMath::Pow(Context->RangeMaxGetter.GetValueSafe(TaskInfos.Index, Context->RangeMax), 2);
+	double RangeMin = FMath::Pow(Context->RangeMinGetter.SafeGet(TaskInfos.Index, Context->RangeMin), 2);
+	double RangeMax = FMath::Pow(Context->RangeMaxGetter.SafeGet(TaskInfos.Index, Context->RangeMax), 2);
 
 	if (RangeMin > RangeMax) { std::swap(RangeMin, RangeMax); }
 
@@ -260,7 +265,7 @@ bool FSamplePointTask::ExecuteTask()
 
 		WeightedLocation += (TargetLocationOffset * Weight); // Relative to origin
 		WeightedLookAt += (TargetLocationOffset.GetSafeNormal()) * Weight;
-		WeightedNormal += Context->NormalInput[TargetInfos.Index] * Weight;
+		WeightedNormal += Context->NormalGetter[TargetInfos.Index] * Weight;
 		WeightedSignAxis += PCGEx::GetDirection(Target.Transform.GetRotation(), Context->SignAxis) * Weight;
 		WeightedAngleAxis += PCGEx::GetDirection(Target.Transform.GetRotation(), Context->AngleAxis) * Weight;
 

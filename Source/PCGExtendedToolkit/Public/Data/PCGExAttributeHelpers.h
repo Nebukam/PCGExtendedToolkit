@@ -47,7 +47,7 @@ public:
 	FPCGAttributePropertyInputSelector Selector;
 
 	FPCGMetadataAttributeBase* Attribute = nullptr;
-	int16 UnderlyingType = 0;
+	int16 UnderlyingType = static_cast<int16>(EPCGMetadataTypes::Unknown);
 
 	FPCGAttributePropertyInputSelector& GetMutableSelector() { return Selector; }
 
@@ -549,7 +549,7 @@ namespace PCGEx
 						TArrayView<RawT> View(RawValues);
 						Accessor->GetRange(View, 0, *Keys, PCGEX_AAFLAG);
 
-						for (int i = 0; NumPoints; i++) { Values[i] = Convert(RawValues[i]); }
+						for (int i = 0; i < NumPoints; i++) { Values[i] = Convert(RawValues[i]); }
 
 						RawValues.Empty();
 						delete Accessor;
@@ -578,10 +578,9 @@ namespace PCGEx
 			return bValid;
 		}
 
-		T GetValueSafe(const int32 Index, T fallback) const { return (!bValid || !bEnabled) ? fallback : Values[Index]; }
+		const T& SafeGet(const int32 Index, const T& fallback) const { return (!bValid || !bEnabled) ? fallback : Values[Index]; }
 		T& operator[](int32 Index) { return Values[Index]; }
-		T operator[](int32 Index) const { return Values[Index]; }
-		T Get(int32 Index) const { return Values[Index]; }
+		T operator[](int32 Index) const { return bValid ? Values[Index] : GetDefaultValue(); }
 
 	protected:
 		virtual T GetDefaultValue() const = 0;

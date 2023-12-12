@@ -153,6 +153,7 @@ bool FProbeTask::ExecuteTask()
 		Context->GraphSolver->ResolveProbe(Probe);
 		PCGEX_ASYNC_CHECKPOINT
 		Probe.OutputTo(Point.Index);
+		PCGEX_CLEANUP(Probe)
 	}
 
 	return true;
