@@ -40,6 +40,8 @@ FName UPCGExGraphProcessorSettings::GetMainPointsOutputLabel() const { return PC
 
 FPCGExGraphProcessorContext::~FPCGExGraphProcessorContext()
 {
+	PCGEX_CLEANUP_ASYNC
+
 	PCGEX_DELETE(CachedIndexReader)
 	PCGEX_DELETE(CachedIndexWriter)
 	SocketInfos.Empty();

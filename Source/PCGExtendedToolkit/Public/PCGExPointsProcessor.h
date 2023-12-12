@@ -19,6 +19,7 @@
 #define PCGEX_CONTEXT(_TYPE) _TYPE* Context = static_cast<_TYPE*>(InContext);
 #define PCGEX_FWD(_NAME) Context->_NAME = Settings->_NAME;
 #define PCGEX_VALIDATE_NAME(_NAME) if (!FPCGMetadataAttributeBase::IsValidName(_NAME)){	PCGE_LOG(Error, GraphAndLog, LOCTEXT("InvalidName", "Invalid user-defined attribute name.")); return false;	}
+#define PCGEX_CLEANUP_ASYNC PCGEX_DELETE(AsyncManager)
 
 struct FPCGExPointsProcessorContext;
 
@@ -162,7 +163,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : public FPCGContext
 	virtual ~FPCGExPointsProcessorContext() override;
 
 	UWorld* World = nullptr;
-	
+
 	mutable FRWLock ContextLock;
 	PCGExData::FPointIOGroup* MainPoints = nullptr;
 

@@ -21,20 +21,23 @@ bool UPCGExGraphParamsData::HasMatchingGraphData(const UPCGPointData* PointData)
 	return true;
 }
 
-void UPCGExGraphParamsData::Initialize(
-	TArray<FPCGExSocketDescriptor>& InSockets,
-	const bool bApplyOverrides,
-	FPCGExSocketGlobalOverrides& Overrides)
+void UPCGExGraphParamsData::BeginDestroy()
+{
+	SocketsDescriptors.Empty();
+	Super::BeginDestroy();
+}
+
+void UPCGExGraphParamsData::Initialize()
 {
 	SocketMapping = PCGExGraph::FSocketMapping{};
 
-	if (bApplyOverrides) { SocketMapping.InitializeWithOverrides(GraphIdentifier, InSockets, Overrides); }
-	else { SocketMapping.Initialize(GraphIdentifier, InSockets); }
+	if (bApplyGlobalOverrides) { SocketMapping.InitializeWithOverrides(GraphIdentifier, SocketsDescriptors, GlobalOverrides); }
+	else { SocketMapping.Initialize(GraphIdentifier, SocketsDescriptors); }
 
 	GreatestStaticMaxDistance = 0.0;
 	bHasVariableMaxDistance = false;
 
-	for (const FPCGExSocketDescriptor& Socket : InSockets)
+	for (const FPCGExSocketDescriptor& Socket : SocketsDescriptors)
 	{
 		if (!Socket.bEnabled) { continue; }
 		if (Socket.bApplyAttributeModifier) { bHasVariableMaxDistance = true; }

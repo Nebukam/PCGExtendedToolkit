@@ -217,8 +217,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestPointContext : public FPCGExPoi
 {
 	friend class FPCGExSampleNearestPointElement;
 
-	~FPCGExSampleNearestPointContext();
-	
+	virtual ~FPCGExSampleNearestPointContext() override;
+
 	PCGExData::FPointIO* Targets = nullptr;
 
 	EPCGExSampleMethod SampleMethod = EPCGExSampleMethod::WithinRange;
@@ -237,7 +237,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestPointContext : public FPCGExPoi
 	UCurveFloat* WeightCurve = nullptr;
 
 	PCGEX_SAMPLENEARESTPOINT_FOREACH(PCGEX_OUTPUT_DECL)
-	
+
 	EPCGExAxis SignAxis;
 	EPCGExAxis AngleAxis;
 	EPCGExAngleRange AngleRange;
@@ -266,4 +266,3 @@ public:
 
 	virtual bool ExecuteTask() override;
 };
-

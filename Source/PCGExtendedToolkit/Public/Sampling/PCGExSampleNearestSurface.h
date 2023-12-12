@@ -127,8 +127,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestSurfaceContext : public FPCGExP
 {
 	friend class FPCGExSampleNearestSurfaceElement;
 
-	~FPCGExSampleNearestSurfaceContext();
-	
+	virtual ~FPCGExSampleNearestSurfaceContext() override;
+
 	double RangeMax = 1000;
 
 	EPCGExCollisionFilterType CollisionType = EPCGExCollisionFilterType::Channel;
@@ -140,7 +140,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestSurfaceContext : public FPCGExP
 	TArray<AActor*> IgnoredActors;
 
 	PCGEX_SAMPLENEARESTSURFACE_FOREACH(PCGEX_OUTPUT_DECL)
-	
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestSurfaceElement : public FPCGExPointsProcessorElementBase

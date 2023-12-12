@@ -46,7 +46,7 @@ bool FPCGExWriteIndexElement::ExecuteInternal(FPCGContext* InContext) const
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExWriteIndexElement::Execute);
 
 	PCGEX_CONTEXT(FPCGExWriteIndexContext)
-	
+
 	if (Context->IsSetup())
 	{
 		if (!Validate(Context)) { return true; }

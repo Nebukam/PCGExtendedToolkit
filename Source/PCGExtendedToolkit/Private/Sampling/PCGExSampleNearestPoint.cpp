@@ -35,6 +35,8 @@ FPCGElementPtr UPCGExSampleNearestPointSettings::CreateElement() const { return 
 
 FPCGExSampleNearestPointContext::~FPCGExSampleNearestPointContext()
 {
+	PCGEX_CLEANUP_ASYNC
+
 	PCGEX_DELETE(Targets)
 	PCGEX_SAMPLENEARESTPOINT_FOREACH(PCGEX_OUTPUT_DELETE)
 }
@@ -140,7 +142,6 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 	{
 		auto Initialize = [&](PCGExData::FPointIO& PointIO)
 		{
-
 			if (Context->bUseLocalRangeMin)
 			{
 				if (Context->RangeMinGetter.Bind(PointIO))

@@ -44,9 +44,9 @@ FPCGContext* FPCGExWriteTangentsElement::Initialize(const FPCGDataCollection& In
 {
 	FPCGExWriteTangentsContext* Context = new FPCGExWriteTangentsContext();
 	InitializeContext(Context, InputData, SourceComponent, Node);
-	
+
 	PCGEX_SETTINGS(UPCGExWriteTangentsSettings)
-	
+
 	PCGEX_BIND_OPERATION(Tangents, UPCGExAutoTangents)
 	Context->Tangents->ArriveName = Settings->ArriveName;
 	Context->Tangents->LeaveName = Settings->LeaveName;

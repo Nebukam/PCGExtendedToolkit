@@ -38,7 +38,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGraphProcessorContext : public FPCGExPointsP
 {
 	friend class UPCGExGraphProcessorSettings;
 
-	~FPCGExGraphProcessorContext();
+	virtual ~FPCGExGraphProcessorContext() override;
 
 	bool bReadOnly = false;
 	PCGExGraph::FGraphInputs Graphs;

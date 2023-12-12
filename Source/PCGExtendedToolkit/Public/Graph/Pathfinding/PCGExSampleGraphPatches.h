@@ -43,7 +43,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleGraphPatchesContext : public FPCGExPat
 {
 	friend class FPCGExSampleGraphPatchesElement;
 
-public:
+	virtual ~FPCGExSampleGraphPatchesContext() override;
+
 	PCGExData::FPointIO* GoalsPoints = nullptr;
 	PCGExData::FPointIOGroup* OutputPaths = nullptr;
 

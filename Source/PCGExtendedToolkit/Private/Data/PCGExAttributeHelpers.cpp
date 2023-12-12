@@ -14,7 +14,7 @@ void FPCGExInputDescriptor::UpdateUserFacingInfos() { TitlePropertyName = GetDis
 bool FPCGExInputDescriptor::Validate(const UPCGPointData* InData)
 {
 	Selector = Selector.CopyAndFixLast(InData);
-	
+
 	if (GetSelection() == EPCGAttributePropertySelection::Attribute)
 	{
 		Attribute = Selector.IsValid() ? InData->Metadata->GetMutableAttribute(GetName()) : nullptr;

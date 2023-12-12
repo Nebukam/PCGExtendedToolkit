@@ -122,8 +122,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleSurfaceGuidedContext : public FPCGExPo
 {
 	friend class FPCGExSampleSurfaceGuidedElement;
 
-	~FPCGExSampleSurfaceGuidedContext();
-	
+	virtual ~FPCGExSampleSurfaceGuidedContext() override;
+
 	EPCGExCollisionFilterType CollisionType = EPCGExCollisionFilterType::Channel;
 	TEnumAsByte<ECollisionChannel> CollisionChannel;
 	int32 CollisionObjectType;
@@ -139,7 +139,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleSurfaceGuidedContext : public FPCGExPo
 	PCGEx::FLocalDirectionGetter DirectionGetter;
 
 	PCGEX_SAMPLENEARESTTRACE_FOREACH(PCGEX_OUTPUT_DECL)
-	
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExSampleSurfaceGuidedElement : public FPCGExPointsProcessorElementBase

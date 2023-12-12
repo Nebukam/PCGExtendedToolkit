@@ -14,10 +14,10 @@ FPCGElementPtr UPCGExDiscardByPointCountSettings::CreateElement() const { return
 bool FPCGExDiscardByPointCountElement::ExecuteInternal(FPCGContext* InContext) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExDiscardByPointCountElement::Execute);
-	
+
 	PCGEX_CONTEXT(FPCGExPointsProcessorContext)
 	PCGEX_SETTINGS(UPCGExDiscardByPointCountSettings)
-	
+
 	if (Context->IsSetup())
 	{
 		if (!Validate(Context)) { return true; }

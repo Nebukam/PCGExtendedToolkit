@@ -176,13 +176,12 @@ T* FPCGExCreateGraphParamsElement::BuildParams(
 	}
 
 	TArray<FPCGTaggedData>& Outputs = Context->OutputData.TaggedData;
-	T* OutParams = NewObject<T>();
-
-	OutParams->GraphIdentifier = Settings->GraphIdentifier;
-	OutParams->Initialize(
-		const_cast<TArray<FPCGExSocketDescriptor>&>(Settings->GetSockets()),
+	T* OutParams = PCGExGraph::FGraphInputs::NewGraph(
+		Context->Node->GetUniqueID(),
+		Settings->GraphIdentifier,
+		Settings->GetSockets(),
 		Settings->bApplyGlobalOverrides,
-		const_cast<FPCGExSocketGlobalOverrides&>(Settings->GlobalOverrides));
+		Settings->GlobalOverrides);
 
 	FPCGTaggedData& Output = Outputs.Emplace_GetRef();
 	Output.Data = OutParams;

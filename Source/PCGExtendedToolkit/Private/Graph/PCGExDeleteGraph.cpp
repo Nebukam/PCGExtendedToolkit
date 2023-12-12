@@ -34,7 +34,7 @@ bool FPCGExDeleteGraphElement::ExecuteInternal(
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExDeleteGraphElement::Execute);
 
 	PCGEX_CONTEXT(FPCGExDeleteGraphContext)
-	
+
 	if (!Validate(Context)) { return true; }
 
 	Context->MainPoints->ForEach(

@@ -23,6 +23,11 @@ UPCGExSampleGraphPatchesSettings::UPCGExSampleGraphPatchesSettings(
 
 FPCGElementPtr UPCGExSampleGraphPatchesSettings::CreateElement() const { return MakeShared<FPCGExSampleGraphPatchesElement>(); }
 
+FPCGExSampleGraphPatchesContext::~FPCGExSampleGraphPatchesContext()
+{
+	PCGEX_CLEANUP_ASYNC
+}
+
 FPCGContext* FPCGExSampleGraphPatchesElement::Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node)
 {
 	FPCGExSampleGraphPatchesContext* Context = new FPCGExSampleGraphPatchesContext();

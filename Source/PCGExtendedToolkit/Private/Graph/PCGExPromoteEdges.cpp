@@ -47,9 +47,9 @@ FPCGContext* FPCGExPromoteEdgesElement::Initialize(
 	check(Settings);
 
 	Context->EdgeType = static_cast<EPCGExEdgeType>(Settings->EdgeType);
-	
+
 	PCGEX_BIND_OPERATION(Promotion, UPCGExEdgePromoteToPoint)
-	
+
 	return Context;
 }
 

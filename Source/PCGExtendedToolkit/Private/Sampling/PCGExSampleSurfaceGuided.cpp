@@ -14,6 +14,8 @@ FPCGElementPtr UPCGExSampleSurfaceGuidedSettings::CreateElement() const { return
 
 FPCGExSampleSurfaceGuidedContext::~FPCGExSampleSurfaceGuidedContext()
 {
+	PCGEX_CLEANUP_ASYNC
+
 	PCGEX_SAMPLENEARESTTRACE_FOREACH(PCGEX_OUTPUT_DELETE)
 }
 
@@ -36,7 +38,7 @@ FPCGContext* FPCGExSampleSurfaceGuidedElement::Initialize(const FPCGDataCollecti
 	Context->SizeGetter.Capture(Settings->LocalSize);
 
 	Context->DirectionGetter.Capture(Settings->Direction);
-	
+
 	PCGEX_SAMPLENEARESTTRACE_FOREACH(PCGEX_OUTPUT_FWD)
 
 	return Context;
@@ -50,7 +52,7 @@ bool FPCGExSampleSurfaceGuidedElement::Validate(FPCGContext* InContext) const
 	PCGEX_SETTINGS(UPCGExSampleSurfaceGuidedSettings)
 
 	PCGEX_SAMPLENEARESTTRACE_FOREACH(PCGEX_OUTPUT_VALIDATE_NAME)
-	
+
 	return true;
 }
 
@@ -86,7 +88,7 @@ bool FPCGExSampleSurfaceGuidedElement::ExecuteInternal(FPCGContext* InContext) c
 
 	if (Context->IsState(PCGExMT::State_ProcessingPoints))
 	{
-		auto Initialize = [&](PCGExData::FPointIO& PointIO) 
+		auto Initialize = [&](PCGExData::FPointIO& PointIO)
 		{
 			Context->DirectionGetter.Bind(PointIO);
 

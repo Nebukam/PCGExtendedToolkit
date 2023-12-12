@@ -14,6 +14,8 @@ FPCGElementPtr UPCGExSampleNearestSurfaceSettings::CreateElement() const { retur
 
 FPCGExSampleNearestSurfaceContext::~FPCGExSampleNearestSurfaceContext()
 {
+	PCGEX_CLEANUP_ASYNC
+
 	PCGEX_SAMPLENEARESTSURFACE_FOREACH(PCGEX_OUTPUT_DELETE)
 }
 

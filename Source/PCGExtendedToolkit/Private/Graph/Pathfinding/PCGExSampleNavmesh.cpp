@@ -68,6 +68,8 @@ FName UPCGExSampleNavmeshSettings::GetMainPointsOutputLabel() const { return PCG
 
 FPCGExSampleNavmeshContext::~FPCGExSampleNavmeshContext()
 {
+	PCGEX_CLEANUP_ASYNC
+
 	PathBuffer.Empty();
 	PCGEX_DELETE(GoalsPoints)
 	PCGEX_DELETE(OutputPaths)

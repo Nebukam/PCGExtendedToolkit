@@ -12,7 +12,7 @@ USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExSingleTangentParams
 {
 	GENERATED_BODY()
-	
+
 	FPCGExSingleTangentParams()
 	{
 		Direction.Selector.Update("$Transform");

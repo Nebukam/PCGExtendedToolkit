@@ -254,7 +254,7 @@ FPCGExPointsProcessorContext::~FPCGExPointsProcessorContext()
 	ProcessorOperations.Empty();
 	OwnedProcessorOperations.Empty();
 
-	PCGEX_DELETE(AsyncManager)
+	PCGEX_CLEANUP_ASYNC
 	PCGEX_DELETE(MainPoints)
 
 	CurrentIO = nullptr;

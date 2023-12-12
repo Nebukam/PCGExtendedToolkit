@@ -54,7 +54,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBuildGraphContext : public FPCGExGraphProces
 	friend class FPCGExBuildGraphElement;
 	friend class FProbeTask;
 
-public:
+	virtual ~FPCGExBuildGraphContext() override;
+
 	UPCGExGraphSolver* GraphSolver = nullptr;
 	bool bMoveSocketOriginOnPointExtent = false;
 

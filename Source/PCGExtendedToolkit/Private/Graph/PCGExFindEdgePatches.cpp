@@ -14,6 +14,8 @@ PCGExData::EInit UPCGExFindEdgePatchesSettings::GetPointOutputInitMode() const {
 
 FPCGExFindEdgePatchesContext::~FPCGExFindEdgePatchesContext()
 {
+	PCGEX_CLEANUP_ASYNC
+
 	PCGEX_DELETE(PatchesIO);
 	PCGEX_DELETE(Patches);
 }
@@ -70,7 +72,7 @@ bool FPCGExFindEdgePatchesElement::Validate(FPCGContext* InContext) const
 
 	PCGEX_VALIDATE_NAME(Context->PatchIDAttributeName)
 	PCGEX_VALIDATE_NAME(Context->PatchSizeAttributeName)
-	
+
 	return true;
 }
 

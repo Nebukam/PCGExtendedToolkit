@@ -173,9 +173,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExDrawAttributesContext : public FPCGExPointsP
 {
 	friend class FPCGExWriteIndexElement;
 
-	~FPCGExDrawAttributesContext();
-	
-	TArray<FPCGExAttributeDebugDraw> DebugList;	
+	virtual ~FPCGExDrawAttributesContext() override;
+
+	TArray<FPCGExAttributeDebugDraw> DebugList;
 };
 
 

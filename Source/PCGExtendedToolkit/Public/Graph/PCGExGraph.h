@@ -373,11 +373,7 @@ namespace PCGExGraph
 			Descriptor.Bounds.DotThreshold = FMath::Cos(Descriptor.Bounds.Angle * (PI / 180.0)); //Degrees to dot product
 		}
 
-		~FSocket()
-		{
-			MatchingSockets.Empty();
-			Cleanup();
-		}
+		~FSocket();
 
 		FPCGExSocketDescriptor Descriptor;
 
@@ -392,13 +388,7 @@ namespace PCGExGraph
 		PCGEx::TFAttributeReader<int32>* EdgeTypeReader = nullptr;
 		FName AttributeNameBase = NAME_None;
 
-		void Cleanup()
-		{
-			PCGEX_DELETE(TargetIndexWriter)
-			PCGEX_DELETE(EdgeTypeWriter)
-			PCGEX_DELETE(TargetIndexReader)
-			PCGEX_DELETE(EdgeTypeReader)
-		}
+		void Cleanup();
 
 	public:
 		FName GetName() const { return AttributeNameBase; }
@@ -406,18 +396,9 @@ namespace PCGExGraph
 		bool IsExclusive() const { return Descriptor.bExclusiveBehavior; }
 		bool Matches(const FSocket* OtherSocket) const { return MatchingSockets.Contains(OtherSocket->SocketIndex); }
 
-		void DeleteFrom(const UPCGPointData* PointData) const
-		{
-			if (TargetIndexWriter) { PointData->Metadata->DeleteAttribute(TargetIndexWriter->Name); }
-			if (EdgeTypeWriter) { PointData->Metadata->DeleteAttribute(EdgeTypeWriter->Name); }
-		}
+		void DeleteFrom(const UPCGPointData* PointData) const;
 
-		void Write(bool DoCleanup = true)
-		{
-			if (TargetIndexWriter) { TargetIndexWriter->Write(); }
-			if (EdgeTypeWriter) { EdgeTypeWriter->Write(); }
-			if (DoCleanup) { Cleanup(); }
-		}
+		void Write(bool DoCleanup = true);
 
 		/**
 		 * Find or create the attribute matching this socket on a given PointData object,
@@ -425,71 +406,21 @@ namespace PCGExGraph
 		 * @param PointIO
 		 * @param ReadOnly
 		 */
-		void PrepareForPointData(const PCGExData::FPointIO& PointIO, const bool ReadOnly = true)
-		{
-			Cleanup();
+		void PrepareForPointData(const PCGExData::FPointIO& PointIO, const bool ReadOnly = true);
 
-			bReadOnly = ReadOnly;
-
-			const FName NAME_Index = GetSocketPropertyName(SocketPropertyNameIndex);
-			const FName NAME_EdgeType = GetSocketPropertyName(SocketPropertyNameEdgeType);
-
-			PCGExData::FPointIO& MutablePointIO = const_cast<PCGExData::FPointIO&>(PointIO);
-
-			if (bReadOnly)
-			{
-				TargetIndexReader = new PCGEx::TFAttributeReader<int32>(NAME_Index);
-				EdgeTypeReader = new PCGEx::TFAttributeReader<int32>(NAME_EdgeType);
-				TargetIndexReader->Bind(MutablePointIO);
-				EdgeTypeReader->Bind(MutablePointIO);
-			}
-			else
-			{
-				TargetIndexWriter = new PCGEx::TFAttributeWriter<int32>(NAME_Index, -1, false);
-				EdgeTypeWriter = new PCGEx::TFAttributeWriter<int32>(NAME_EdgeType, static_cast<int32>(EPCGExEdgeType::Unknown), false);
-				TargetIndexWriter->BindAndGet(MutablePointIO);
-				EdgeTypeWriter->BindAndGet(MutablePointIO);
-			}
-
-			Descriptor.Bounds.LoadCurve();
-		}
-
-		void SetData(const PCGMetadataEntryKey MetadataEntry, const FSocketMetadata& SocketMetadata) const
-		{
-			SetTargetIndex(MetadataEntry, SocketMetadata.Index);
-			SetEdgeType(MetadataEntry, SocketMetadata.EdgeType);
-		}
+		void SetData(const PCGMetadataEntryKey MetadataEntry, const FSocketMetadata& SocketMetadata) const;
 
 		// Point index within the same data group.
-		void SetTargetIndex(const int32 PointIndex, int32 InValue) const
-		{
-			check(!bReadOnly)
-			(*TargetIndexWriter)[PointIndex] = InValue;
-		}
+		void SetTargetIndex(const int32 PointIndex, int32 InValue) const;
 
-		int32 GetTargetIndex(const int32 PointIndex) const
-		{
-			if (bReadOnly) { return (*TargetIndexReader)[PointIndex]; }
-			return (*TargetIndexWriter)[PointIndex];
-		}
+		int32 GetTargetIndex(const int32 PointIndex) const;
 
 		// Relation type
-		void SetEdgeType(const int32 PointIndex, EPCGExEdgeType InEdgeType) const
-		{
-			check(!bReadOnly)
-			(*EdgeTypeWriter)[PointIndex] = static_cast<int32>(InEdgeType);
-		}
+		void SetEdgeType(const int32 PointIndex, EPCGExEdgeType InEdgeType) const;
 
-		EPCGExEdgeType GetEdgeType(const int32 PointIndex) const
-		{
-			if (bReadOnly) { return static_cast<EPCGExEdgeType>((*EdgeTypeReader)[PointIndex]); }
-			return static_cast<EPCGExEdgeType>((*EdgeTypeWriter)[PointIndex]);
-		}
+		EPCGExEdgeType GetEdgeType(const int32 PointIndex) const;
 
-		FSocketMetadata GetData(const int32 PointIndex) const
-		{
-			return FSocketMetadata(GetTargetIndex(PointIndex), GetEdgeType(PointIndex));
-		}
+		FSocketMetadata GetData(const int32 PointIndex) const;
 
 		template <typename T>
 		bool TryGetEdge(const int32 PointIndex, T& OutEdge) const
@@ -512,11 +443,7 @@ namespace PCGExGraph
 			return true;
 		}
 
-		FName GetSocketPropertyName(FName PropertyName) const
-		{
-			const FString Separator = TEXT("/");
-			return *(AttributeNameBase.ToString() + Separator + PropertyName.ToString());
-		}
+		FName GetSocketPropertyName(FName PropertyName) const;
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FSocketInfos
@@ -526,6 +453,13 @@ namespace PCGExGraph
 		FLocalDirection* LocalDirection = nullptr;
 
 		bool Matches(const FSocketInfos& Other) const { return Socket->Matches(Other.Socket); }
+
+		~FSocketInfos()
+		{
+			Socket = nullptr;
+			Modifier = nullptr;
+			LocalDirection = nullptr;
+		}
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FSocketMapping
@@ -543,69 +477,10 @@ namespace PCGExGraph
 		TMap<FName, int32> NameToIndexMap;
 		int32 NumSockets = 0;
 
-		void Initialize(const FName InIdentifier, TArray<FPCGExSocketDescriptor>& InSockets)
-		{
-			Reset();
-			Identifier = InIdentifier;
-			for (FPCGExSocketDescriptor& Descriptor : InSockets)
-			{
-				if (!Descriptor.bEnabled) { continue; }
+		void Initialize(const FName InIdentifier, TArray<FPCGExSocketDescriptor>& InSockets);
+		void InitializeWithOverrides(FName InIdentifier, TArray<FPCGExSocketDescriptor>& InSockets, const FPCGExSocketGlobalOverrides& Overrides);
 
-				FProbeDistanceModifier& NewModifier = Modifiers.Emplace_GetRef(Descriptor);
-				FLocalDirection& NewLocalDirection = LocalDirections.Emplace_GetRef(Descriptor);
-
-				FSocket& NewSocket = Sockets.Emplace_GetRef(Descriptor);
-				NewSocket.AttributeNameBase = GetCompoundName(Descriptor.SocketName);
-				NewSocket.SocketIndex = NumSockets;
-				NameToIndexMap.Add(NewSocket.GetName(), NewSocket.SocketIndex);
-				NumSockets++;
-			}
-
-			PostProcessSockets();
-		}
-
-		void InitializeWithOverrides(FName InIdentifier, TArray<FPCGExSocketDescriptor>& InSockets, const FPCGExSocketGlobalOverrides& Overrides)
-		{
-			Reset();
-			Identifier = InIdentifier;
-			const FString PCGExName = TEXT("PCGEx");
-			for (FPCGExSocketDescriptor& Descriptor : InSockets)
-			{
-				if (!Descriptor.bEnabled) { continue; }
-
-				FProbeDistanceModifier& NewModifier = Modifiers.Emplace_GetRef(Descriptor);
-				NewModifier.bEnabled = Overrides.bOverrideAttributeModifier ? Overrides.bApplyAttributeModifier : Descriptor.bApplyAttributeModifier;
-				NewModifier.Descriptor = static_cast<FPCGExInputDescriptor>(Overrides.bOverrideAttributeModifier ? Overrides.AttributeModifier : Descriptor.AttributeModifier);
-
-				FLocalDirection& NewLocalDirection = LocalDirections.Emplace_GetRef(Descriptor);
-				NewLocalDirection.bEnabled = Overrides.bOverrideDirectionVectorFromAttribute ? Overrides.bDirectionVectorFromAttribute : Descriptor.bDirectionVectorFromAttribute;
-				NewLocalDirection.Descriptor = Overrides.bOverrideDirectionVectorFromAttribute ? Overrides.AttributeDirectionVector : Descriptor.AttributeDirectionVector;
-
-				FSocket& NewSocket = Sockets.Emplace_GetRef(Descriptor);
-				NewSocket.AttributeNameBase = GetCompoundName(Descriptor.SocketName);
-				NewSocket.SocketIndex = NumSockets;
-				NameToIndexMap.Add(NewSocket.GetName(), NewSocket.SocketIndex);
-
-				if (Overrides.bOverrideRelativeOrientation) { NewSocket.Descriptor.bRelativeOrientation = Overrides.bRelativeOrientation; }
-				if (Overrides.bOverrideAngle) { NewSocket.Descriptor.Bounds.Angle = Overrides.Angle; }
-				if (Overrides.bOverrideMaxDistance) { NewSocket.Descriptor.Bounds.MaxDistance = Overrides.MaxDistance; }
-				if (Overrides.bOverrideExclusiveBehavior) { NewSocket.Descriptor.bExclusiveBehavior = Overrides.bExclusiveBehavior; }
-				if (Overrides.bOverrideDotOverDistance) { NewSocket.Descriptor.Bounds.DotOverDistance = Overrides.DotOverDistance; }
-				if (Overrides.bOverrideOffsetOrigin) { NewSocket.Descriptor.OffsetOrigin = Overrides.OffsetOrigin; }
-
-				NewSocket.Descriptor.Bounds.DotThreshold = FMath::Cos(NewSocket.Descriptor.Bounds.Angle * (PI / 180.0));
-
-				NumSockets++;
-			}
-
-			PostProcessSockets();
-		}
-
-		FName GetCompoundName(FName SecondaryIdentifier) const
-		{
-			const FString Separator = TEXT("/");
-			return *(TEXT("PCGEx") + Separator + Identifier.ToString() + Separator + SecondaryIdentifier.ToString()); // PCGEx/ParamsIdentifier/SocketIdentifier
-		}
+		FName GetCompoundName(FName SecondaryIdentifier) const;
 
 		/**
 		 * Prepare socket mapping for working with a given PointData object.
@@ -613,57 +488,19 @@ namespace PCGExGraph
 		 * @param PointIO
 		 * @param bEnsureEdgeType Whether EdgeType attribute must be created if it doesn't exist. Set this to true if you intend on updating it. 
 		 */
-		void PrepareForPointData(const PCGExData::FPointIO& PointIO, const bool bReadOnly = true)
-		{
-			for (int i = 0; i < Sockets.Num(); i++)
-			{
-				Sockets[i].PrepareForPointData(PointIO, bReadOnly);
-				Modifiers[i].Bind(PointIO);
-				LocalDirections[i].Bind(PointIO);
-			}
-		}
+		void PrepareForPointData(const PCGExData::FPointIO& PointIO, const bool bReadOnly = true);
 
 		const TArray<FSocket>& GetSockets() const { return Sockets; }
 		const TArray<FProbeDistanceModifier>& GetModifiers() const { return Modifiers; }
 
-		void GetSocketsInfos(TArray<FSocketInfos>& OutInfos)
-		{
-			OutInfos.Empty(NumSockets);
-			for (int i = 0; i < NumSockets; i++)
-			{
-				FSocketInfos& Infos = OutInfos.Emplace_GetRef();
-				Infos.Socket = &(Sockets[i]);
-				Infos.Modifier = &(Modifiers[i]);
-				Infos.LocalDirection = &(LocalDirections[i]);
-			}
-		}
-
-		void Reset()
-		{
-			Sockets.Empty();
-			Modifiers.Empty();
-			LocalDirections.Empty();
-		}
+		void GetSocketsInfos(TArray<FSocketInfos>& OutInfos);
+		void Reset();
 
 	private:
 		/**
 		 * Build matching set
 		 */
-		void PostProcessSockets()
-		{
-			for (FSocket& Socket : Sockets)
-			{
-				for (const FName MatchingSocketName : Socket.Descriptor.MatchingSlots)
-				{
-					FName OtherSocketName = GetCompoundName(MatchingSocketName);
-					if (const int32* Index = NameToIndexMap.Find(OtherSocketName))
-					{
-						Socket.MatchingSockets.Add(*Index);
-						if (Socket.Descriptor.bMirrorMatchingSockets) { Sockets[*Index].MatchingSockets.Add(Socket.SocketIndex); }
-					}
-				}
-			}
-		}
+		void PostProcessSockets();
 
 	public:
 		~FSocketMapping()
@@ -693,51 +530,9 @@ namespace PCGExGraph
 	 * @param EndSocket 
 	 * @return 
 	 */
-	static EPCGExEdgeType GetEdgeType(const FSocketInfos& StartSocket, const FSocketInfos& EndSocket)
-	{
-		if (StartSocket.Matches(EndSocket))
-		{
-			if (EndSocket.Matches(StartSocket))
-			{
-				return EPCGExEdgeType::Complete;
-			}
-			return EPCGExEdgeType::Match;
-		}
-		if (StartSocket.Socket->SocketIndex == EndSocket.Socket->SocketIndex)
-		{
-			// We check for mirror AFTER checking for shared/match, since Mirror can be considered a legal match by design
-			// in which case we don't want to flag this as Mirrored.
-			return EPCGExEdgeType::Mirror;
-		}
-		return EPCGExEdgeType::Shared;
-	}
+	static EPCGExEdgeType GetEdgeType(const FSocketInfos& StartSocket, const FSocketInfos& EndSocket);
 
-	static void ComputeEdgeType(
-		const TArray<FSocketInfos>& SocketInfos,
-		const int32 PointIndex)
-	{
-		for (const FSocketInfos& CurrentSocketInfos : SocketInfos)
-		{
-			EPCGExEdgeType Type = EPCGExEdgeType::Unknown;
-			const int64 RelationIndex = CurrentSocketInfos.Socket->GetTargetIndex(PointIndex);
-
-			if (RelationIndex != -1)
-			{
-				for (const FSocketInfos& OtherSocketInfos : SocketInfos)
-				{
-					if (OtherSocketInfos.Socket->GetTargetIndex(RelationIndex) == PointIndex)
-					{
-						Type = GetEdgeType(CurrentSocketInfos, OtherSocketInfos);
-					}
-				}
-
-				if (Type == EPCGExEdgeType::Unknown) { Type = EPCGExEdgeType::Roaming; }
-			}
-
-
-			CurrentSocketInfos.Socket->SetEdgeType(PointIndex, Type);
-		}
-	}
+	static void ComputeEdgeType(const TArray<FSocketInfos>& SocketInfos, const int32 PointIndex);
 
 #pragma endregion
 }

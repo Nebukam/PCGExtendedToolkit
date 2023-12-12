@@ -60,7 +60,7 @@ namespace PCGExFuse
 
 		void Add(int32 InIndex, double Distance)
 		{
-			FWriteScopeLock WriteLock(IndicesLock);			
+			FWriteScopeLock WriteLock(IndicesLock);
 			Fused.Add(InIndex);
 			Distances.Add(Distance);
 			MaxDistance = FMath::Max(MaxDistance, Distance);
@@ -103,7 +103,7 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	bool bPreserveOrder = true;
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	FPCGExBlendingSettings BlendingSettings;
 
@@ -115,16 +115,16 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFusePointsContext : public FPCGExPointsProce
 {
 	friend class FPCGExFusePointsElement;
 
-	~FPCGExFusePointsContext();
+	virtual ~FPCGExFusePointsContext() override;
 
 	bool bPreserveOrder;
-	
+
 	TMap<FName, EPCGExDataBlendingType> AttributesBlendingOverrides;
 	PCGExDataBlending::FMetadataBlender* MetadataBlender;
 	PCGExDataBlending::FPropertiesBlender* PropertyBlender;
 
 	double Radius = 0;
-	
+
 	TArray<PCGExFuse::FFusedPoint> FusedPoints;
 	TArray<FPCGPoint>* OutPoints;
 

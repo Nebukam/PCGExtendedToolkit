@@ -51,13 +51,12 @@ FPCGContext* FPCGExSubdivideElement::Initialize(const FPCGDataCollection& InputD
 bool FPCGExSubdivideElement::Validate(FPCGContext* InContext) const
 {
 	if (!FPCGExPathProcessorElement::Validate(InContext)) { return false; }
-	
+
 	PCGEX_CONTEXT(FPCGExSubdivideContext)
-	
+
 	if (Context->bFlagSubPoints) { PCGEX_VALIDATE_NAME(Context->FlagName) }
 
 	return true;
-	
 }
 
 

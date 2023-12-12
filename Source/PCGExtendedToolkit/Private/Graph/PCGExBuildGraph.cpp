@@ -8,6 +8,11 @@
 int32 UPCGExBuildGraphSettings::GetPreferredChunkSize() const { return 32; }
 PCGExData::EInit UPCGExBuildGraphSettings::GetPointOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
+FPCGExBuildGraphContext::~FPCGExBuildGraphContext()
+{
+	PCGEX_CLEANUP_ASYNC
+}
+
 UPCGExBuildGraphSettings::UPCGExBuildGraphSettings(
 	const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)

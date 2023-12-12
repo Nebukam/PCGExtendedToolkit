@@ -24,7 +24,6 @@ enum class EPCGExEdgeType : uint8
 
 namespace PCGExGraph
 {
-
 	const FName SourceEdgesLabel = TEXT("Edges");
 	const FName OutputEdgesLabel = TEXT("Edges");
 

@@ -25,6 +25,10 @@ class PCGEXTENDEDTOOLKIT_API UPCGExGraphParamsData : public UPCGPointData
 public:
 	UPCGExGraphParamsData(const FObjectInitializer& ObjectInitializer);
 
+	TArray<FPCGExSocketDescriptor> SocketsDescriptors;
+	bool bApplyGlobalOverrides = false;
+	FPCGExSocketGlobalOverrides GlobalOverrides;
+
 	virtual EPCGDataType GetDataType() const override { return EPCGDataType::Param; }
 
 	/**
@@ -34,17 +38,13 @@ public:
 	 */
 	bool HasMatchingGraphData(const UPCGPointData* PointData);
 
-public:
-	UPROPERTY(BlueprintReadOnly)
 	FName GraphIdentifier = "GraphIdentifier";
-
-	UPROPERTY(BlueprintReadOnly)
 	double GreatestStaticMaxDistance = 0.0;
-
-	UPROPERTY(BlueprintReadOnly)
 	bool bHasVariableMaxDistance = false;
-
 	FName CachedIndexAttributeName;
+	uint64 GraphUID = 0;
+
+	virtual void BeginDestroy() override;
 
 protected:
 	PCGExGraph::FSocketMapping SocketMapping;
@@ -58,10 +58,7 @@ public:
 	 * @param bApplyOverrides
 	 * @param Overrides 
 	 */
-	virtual void Initialize(
-		TArray<FPCGExSocketDescriptor>& InSockets,
-		const bool bApplyOverrides,
-		FPCGExSocketGlobalOverrides& Overrides);
+	virtual void Initialize();
 
 	/**
 	 * Prepare socket mapping for working with a given PointData object.
@@ -161,12 +158,43 @@ namespace PCGExGraph
 			{
 				const UPCGExGraphParamsData* GraphData = Cast<UPCGExGraphParamsData>(Source.Data);
 				if (!GraphData) { continue; }
-				if (UniqueParams.Contains(GraphData->UID)) { continue; }
-				UniqueParams.Add(GraphData->UID);
+				if (UniqueParams.Contains(GraphData->GraphUID)) { continue; }
+				UniqueParams.Add(GraphData->GraphUID);
 				Params.Add(const_cast<UPCGExGraphParamsData*>(GraphData));
+				//Params.Add(CopyGraph(GraphData));
 				ParamsSources.Add(Source);
 			}
 			UniqueParams.Empty();
+		}
+
+		static UPCGExGraphParamsData* CopyGraph(const UPCGExGraphParamsData* InGraph)
+		{
+			return NewGraph(
+				InGraph->GraphUID,
+				InGraph->GraphIdentifier,
+				InGraph->SocketsDescriptors,
+				InGraph->bApplyGlobalOverrides,
+				InGraph->GlobalOverrides);
+		}
+
+		static UPCGExGraphParamsData* NewGraph(
+			uint64 GraphUID,
+			FName Identifier,
+			TArray<FPCGExSocketDescriptor> Sockets,
+			bool ApplyGlobalOverrides,
+			FPCGExSocketGlobalOverrides GlobalOverrides)
+		{
+			UPCGExGraphParamsData* OutParams = NewObject<UPCGExGraphParamsData>();
+
+			OutParams->GraphUID = GraphUID;
+			OutParams->GraphIdentifier = Identifier;
+
+			OutParams->SocketsDescriptors.Append(Sockets);
+			OutParams->bApplyGlobalOverrides = ApplyGlobalOverrides;
+			OutParams->GlobalOverrides = GlobalOverrides;
+			OutParams->Initialize();
+
+			return OutParams;
 		}
 
 		void ForEach(FPCGContext* Context, const TFunction<void(UPCGExGraphParamsData*, const int32)>& BodyLoop)

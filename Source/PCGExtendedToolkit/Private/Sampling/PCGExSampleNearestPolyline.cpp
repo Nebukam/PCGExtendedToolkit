@@ -128,7 +128,6 @@ bool FPCGExSampleNearestPolylineElement::ExecuteInternal(FPCGContext* InContext)
 	{
 		auto Initialize = [&](PCGExData::FPointIO& PointIO)
 		{
-
 			if (Context->bUseLocalRangeMin)
 			{
 				if (Context->RangeMinGetter.Bind(PointIO))
