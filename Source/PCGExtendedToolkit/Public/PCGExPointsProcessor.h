@@ -14,9 +14,13 @@
 
 #include "PCGExPointsProcessor.generated.h"
 
+#define PCGEX_INITIALIZE_CONTEXT(_NAME)\
+FPCGContext* FPCGEx##_NAME##Element::Initialize( const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node)\
+{	FPCGEx##_NAME##Context* Context = new FPCGEx##_NAME##Context();	return InitializeContext(Context, InputData, SourceComponent, Node); }
+#define PCGEX_CONTEXT_AND_SETTINGS(_NAME) PCGEX_CONTEXT(_NAME) PCGEX_SETTINGS(_NAME)
 #define PCGEX_BIND_OPERATION(_NAME, _TYPE) Context->_NAME = Context->RegisterOperation<_TYPE>(Settings->_NAME);
-#define PCGEX_SETTINGS(_TYPE) const _TYPE* Settings = Context->GetInputSettings<_TYPE>();	check(Settings);
-#define PCGEX_CONTEXT(_TYPE) _TYPE* Context = static_cast<_TYPE*>(InContext);
+#define PCGEX_CONTEXT(_NAME) FPCGEx##_NAME##Context* Context = static_cast<FPCGEx##_NAME##Context*>(InContext);
+#define PCGEX_SETTINGS(_NAME) const UPCGEx##_NAME##Settings* Settings = Context->GetInputSettings<UPCGEx##_NAME##Settings>();	check(Settings);
 #define PCGEX_FWD(_NAME) Context->_NAME = Settings->_NAME;
 #define PCGEX_VALIDATE_NAME(_NAME) if (!FPCGMetadataAttributeBase::IsValidName(_NAME)){	PCGE_LOG(Error, GraphAndLog, LOCTEXT("InvalidName", "Invalid user-defined attribute name.")); return false;	}
 #define PCGEX_CLEANUP_ASYNC PCGEX_DELETE(AsyncManager)
@@ -228,7 +232,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : public FPCGContext
 	}
 
 	template <typename T>
-	T* RegisterOperation(UPCGExOperation* Operation)
+	T* RegisterOperation(UPCGExOperation* Operation = nullptr)
 	{
 		T* RetValue = nullptr;
 
@@ -273,6 +277,6 @@ public:
 
 protected:
 	virtual bool Validate(FPCGContext* InContext) const;
-	virtual void InitializeContext(FPCGExPointsProcessorContext* InContext, const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node) const;
+	virtual FPCGContext* InitializeContext(FPCGExPointsProcessorContext* InContext, const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node) const;
 	//virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };

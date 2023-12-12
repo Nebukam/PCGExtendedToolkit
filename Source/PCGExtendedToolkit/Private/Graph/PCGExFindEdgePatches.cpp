@@ -38,15 +38,13 @@ FPCGElementPtr UPCGExFindEdgePatchesSettings::CreateElement() const
 	return MakeShared<FPCGExFindEdgePatchesElement>();
 }
 
-FPCGContext* FPCGExFindEdgePatchesElement::Initialize(
-	const FPCGDataCollection& InputData,
-	TWeakObjectPtr<UPCGComponent> SourceComponent,
-	const UPCGNode* Node)
-{
-	FPCGExFindEdgePatchesContext* Context = new FPCGExFindEdgePatchesContext();
-	InitializeContext(Context, InputData, SourceComponent, Node);
+PCGEX_INITIALIZE_CONTEXT(FindEdgePatches)
 
-	PCGEX_SETTINGS(UPCGExFindEdgePatchesSettings)
+bool FPCGExFindEdgePatchesElement::Validate(FPCGContext* InContext) const
+{
+	if (!FPCGExGraphProcessorElement::Validate(InContext)) { return false; }
+
+	PCGEX_CONTEXT_AND_SETTINGS(FindEdgePatches)
 
 	Context->CrawlEdgeTypes = static_cast<EPCGExEdgeType>(Settings->CrawlEdgeTypes);
 
@@ -60,16 +58,6 @@ FPCGContext* FPCGExFindEdgePatchesElement::Initialize(
 	PCGEX_FWD(PatchSizeAttributeName)
 	PCGEX_FWD(ResolveRoamingMethod)
 
-	return Context;
-}
-
-
-bool FPCGExFindEdgePatchesElement::Validate(FPCGContext* InContext) const
-{
-	if (!FPCGExGraphProcessorElement::Validate(InContext)) { return false; }
-
-	PCGEX_CONTEXT(FPCGExFindEdgePatchesContext)
-
 	PCGEX_VALIDATE_NAME(Context->PatchIDAttributeName)
 	PCGEX_VALIDATE_NAME(Context->PatchSizeAttributeName)
 
@@ -81,7 +69,7 @@ bool FPCGExFindEdgePatchesElement::ExecuteInternal(
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExFindEdgePatchesElement::Execute);
 
-	FPCGExFindEdgePatchesContext* Context = static_cast<FPCGExFindEdgePatchesContext*>(InContext);
+	PCGEX_CONTEXT(FindEdgePatches)
 
 	if (Context->IsSetup())
 	{

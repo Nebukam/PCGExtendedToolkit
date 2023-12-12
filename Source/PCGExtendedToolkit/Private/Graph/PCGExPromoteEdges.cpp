@@ -35,22 +35,19 @@ FPCGElementPtr UPCGExPromoteEdgesSettings::CreateElement() const { return MakeSh
 
 FName UPCGExPromoteEdgesSettings::GetMainPointsOutputLabel() const { return PCGExGraph::OutputPathsLabel; }
 
-FPCGContext* FPCGExPromoteEdgesElement::Initialize(
-	const FPCGDataCollection& InputData,
-	TWeakObjectPtr<UPCGComponent> SourceComponent,
-	const UPCGNode* Node)
+PCGEX_INITIALIZE_CONTEXT(PromoteEdges)
+
+bool FPCGExPromoteEdgesElement::Validate(FPCGContext* InContext) const
 {
-	FPCGExPromoteEdgesContext* Context = new FPCGExPromoteEdgesContext();
-	InitializeContext(Context, InputData, SourceComponent, Node);
+	if(! FPCGExGraphProcessorElement::Validate(InContext)){return false;}
 
-	const UPCGExPromoteEdgesSettings* Settings = Context->GetInputSettings<UPCGExPromoteEdgesSettings>();
-	check(Settings);
-
+	PCGEX_CONTEXT_AND_SETTINGS(PromoteEdges)
+	
 	Context->EdgeType = static_cast<EPCGExEdgeType>(Settings->EdgeType);
 
 	PCGEX_BIND_OPERATION(Promotion, UPCGExEdgePromoteToPoint)
-
-	return Context;
+	
+	return true;
 }
 
 bool FPCGExPromoteEdgesElement::ExecuteInternal(
@@ -58,7 +55,7 @@ bool FPCGExPromoteEdgesElement::ExecuteInternal(
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExEdgesToPathsElement::Execute);
 
-	PCGEX_CONTEXT(FPCGExPromoteEdgesContext)
+	PCGEX_CONTEXT(PromoteEdges)
 
 	if (Context->IsSetup())
 	{

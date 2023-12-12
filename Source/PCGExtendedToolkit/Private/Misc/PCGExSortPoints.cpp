@@ -21,9 +21,9 @@ bool FPCGExSortPointsElement::ExecuteInternal(FPCGContext* InContext) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExSortPointsByAttributesElement::Execute);
 
-	PCGEX_CONTEXT(FPCGExPointsProcessorContext)
-	PCGEX_SETTINGS(UPCGExSortPointsSettings)
-
+	PCGEX_CONTEXT(PointsProcessor)
+	PCGEX_SETTINGS(SortPoints)
+	
 	if (Context->IsSetup())
 	{
 		if (!Validate(Context)) { return true; }

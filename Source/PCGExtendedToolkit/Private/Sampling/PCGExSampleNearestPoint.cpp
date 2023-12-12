@@ -46,14 +46,15 @@ FPCGExSampleNearestPointContext::~FPCGExSampleNearestPointContext()
 	PCGEX_SAMPLENEARESTPOINT_FOREACH(PCGEX_OUTPUT_DELETE)
 }
 
-FPCGContext* FPCGExSampleNearestPointElement::Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node)
+PCGEX_INITIALIZE_CONTEXT(SampleNearestPoint)
+
+bool FPCGExSampleNearestPointElement::Validate(FPCGContext* InContext) const
 {
-	FPCGExSampleNearestPointContext* Context = new FPCGExSampleNearestPointContext();
-	InitializeContext(Context, InputData, SourceComponent, Node);
+	if (!FPCGExPointsProcessorElementBase::Validate(InContext)) { return false; }
 
-	PCGEX_SETTINGS(UPCGExSampleNearestPointSettings)
+	PCGEX_CONTEXT_AND_SETTINGS(SampleNearestPoint)
 
-	TArray<FPCGTaggedData> Targets = InputData.GetInputsByPin(PCGEx::SourceTargetsLabel);
+	TArray<FPCGTaggedData> Targets = Context->InputData.GetInputsByPin(PCGEx::SourceTargetsLabel);
 	if (!Targets.IsEmpty())
 	{
 		const FPCGTaggedData& Target = Targets[0];
@@ -89,16 +90,6 @@ FPCGContext* FPCGExSampleNearestPointElement::Initialize(const FPCGDataCollectio
 
 	PCGEX_SAMPLENEARESTPOINT_FOREACH(PCGEX_OUTPUT_FWD)
 
-	return Context;
-}
-
-bool FPCGExSampleNearestPointElement::Validate(FPCGContext* InContext) const
-{
-	if (!FPCGExPointsProcessorElementBase::Validate(InContext)) { return false; }
-
-	PCGEX_CONTEXT(FPCGExSampleNearestPointContext)
-	PCGEX_SETTINGS(UPCGExSampleNearestPointSettings)
-
 	if (!Context->Targets || Context->Targets->GetNum() < 1)
 	{
 		PCGE_LOG(Error, GraphAndLog, LOCTEXT("MissingTargets", "No targets (either no input or empty dataset)"));
@@ -129,8 +120,8 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExSampleNearestPointElement::Execute);
 
-	FPCGExSampleNearestPointContext* Context = static_cast<FPCGExSampleNearestPointContext*>(InContext);
-
+	PCGEX_CONTEXT(SampleNearestPoint)
+	
 	if (Context->IsSetup())
 	{
 		if (!Validate(Context)) { return true; }

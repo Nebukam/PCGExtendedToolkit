@@ -183,16 +183,14 @@ void UPCGExDrawAttributesSettings::PostEditChangeProperty(FPropertyChangedEvent&
 
 FPCGElementPtr UPCGExDrawAttributesSettings::CreateElement() const { return MakeShared<FPCGExDrawAttributesElement>(); }
 
-FPCGContext* FPCGExDrawAttributesElement::Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node)
+PCGEX_INITIALIZE_CONTEXT(DrawAttributes)
+
+bool FPCGExDrawAttributesElement::Validate(FPCGContext* InContext) const
 {
-	FPCGExDrawAttributesContext* Context = new FPCGExDrawAttributesContext();
-	InitializeContext(Context, InputData, SourceComponent, Node);
+	if (!FPCGExPointsProcessorElementBase::Validate(InContext)) { return false; }
 
-	const UPCGExDrawAttributesSettings* Settings = Context->GetInputSettings<UPCGExDrawAttributesSettings>();
-	check(Settings);
-
-	//const PCGEx::FPinAttributeInfos* ExtraAttributes = Settings->GetInputAttributeInfos(PCGEx::SourcePointsLabel);
-
+	PCGEX_CONTEXT_AND_SETTINGS(DrawAttributes)
+	
 	Context->DebugList.Empty();
 	for (const FPCGExAttributeDebugDrawDescriptor& Descriptor : Settings->DebugList)
 	{
@@ -204,16 +202,7 @@ FPCGContext* FPCGExDrawAttributesElement::Initialize(const FPCGDataCollection& I
 		FPCGExAttributeDebugDraw& Drawer = Context->DebugList.Emplace_GetRef();
 		Drawer.Descriptor = &MutableDescriptor;
 	}
-
-	return Context;
-}
-
-bool FPCGExDrawAttributesElement::Validate(FPCGContext* InContext) const
-{
-	if (!FPCGExPointsProcessorElementBase::Validate(InContext)) { return false; }
-
-	const FPCGExDrawAttributesContext* Context = static_cast<FPCGExDrawAttributesContext*>(InContext);
-
+	
 	if (Context->DebugList.IsEmpty())
 	{
 		PCGE_LOG(Warning, GraphAndLog, LOCTEXT("MissingDebugInfos", "Debug list is empty."));
@@ -234,11 +223,8 @@ bool FPCGExDrawAttributesElement::ExecuteInternal(FPCGContext* InContext) const
 
 #if WITH_EDITOR
 
-	FPCGExDrawAttributesContext* Context = static_cast<FPCGExDrawAttributesContext*>(InContext);
-
-	const UPCGExDrawAttributesSettings* Settings = Context->GetInputSettings<UPCGExDrawAttributesSettings>();
-	check(Settings);
-
+	PCGEX_CONTEXT_AND_SETTINGS(DrawAttributes)
+	
 	if (Context->IsSetup())
 	{
 		if (!Settings->bDebug) { return true; }

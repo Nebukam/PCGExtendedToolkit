@@ -30,12 +30,13 @@ FPCGExSubdivideContext::~FPCGExSubdivideContext()
 	MilestonesMetrics.Empty();
 }
 
-FPCGContext* FPCGExSubdivideElement::Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node)
-{
-	FPCGExSubdivideContext* Context = new FPCGExSubdivideContext();
-	InitializeContext(Context, InputData, SourceComponent, Node);
+PCGEX_INITIALIZE_CONTEXT(Subdivide)
 
-	PCGEX_SETTINGS(UPCGExSubdivideSettings)
+bool FPCGExSubdivideElement::Validate(FPCGContext* InContext) const
+{
+	if (!FPCGExPathProcessorElement::Validate(InContext)) { return false; }
+
+	PCGEX_CONTEXT_AND_SETTINGS(Subdivide)
 
 	PCGEX_FWD(SubdivideMethod)
 	PCGEX_FWD(Distance)
@@ -44,15 +45,6 @@ FPCGContext* FPCGExSubdivideElement::Initialize(const FPCGDataCollection& InputD
 	PCGEX_FWD(FlagName)
 
 	PCGEX_BIND_OPERATION(Blending, UPCGExSubPointsBlendInterpolate)
-
-	return Context;
-}
-
-bool FPCGExSubdivideElement::Validate(FPCGContext* InContext) const
-{
-	if (!FPCGExPathProcessorElement::Validate(InContext)) { return false; }
-
-	PCGEX_CONTEXT(FPCGExSubdivideContext)
 
 	if (Context->bFlagSubPoints) { PCGEX_VALIDATE_NAME(Context->FlagName) }
 
@@ -64,7 +56,7 @@ bool FPCGExSubdivideElement::ExecuteInternal(FPCGContext* InContext) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExSubdivideElement::Execute);
 
-	PCGEX_CONTEXT(FPCGExSubdivideContext)
+	PCGEX_CONTEXT(Subdivide)
 
 	if (Context->IsSetup())
 	{

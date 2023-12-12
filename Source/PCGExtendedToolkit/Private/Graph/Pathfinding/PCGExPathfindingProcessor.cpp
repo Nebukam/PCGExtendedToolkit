@@ -70,16 +70,7 @@ FPCGExPathfindingProcessorContext::~FPCGExPathfindingProcessorContext()
 	PCGEX_DELETE(OutputPaths)
 }
 
-FPCGContext* FPCGExPathfindingProcessorElement::Initialize(
-	const FPCGDataCollection& InputData,
-	TWeakObjectPtr<UPCGComponent> SourceComponent,
-	const UPCGNode* Node)
-{
-	FPCGExPathfindingProcessorContext* Context = new FPCGExPathfindingProcessorContext();
-	InitializeContext(Context, InputData, SourceComponent, Node);
-	return Context;
-}
-
+PCGEX_INITIALIZE_CONTEXT(PathfindingProcessor)
 bool FPCGExPathfindingProcessorElement::Validate(FPCGContext* InContext) const
 {
 	if (!FPCGExGraphProcessorElement::Validate(InContext)) { return false; }
@@ -102,14 +93,14 @@ bool FPCGExPathfindingProcessorElement::Validate(FPCGContext* InContext) const
 	return true;
 }
 
-void FPCGExPathfindingProcessorElement::InitializeContext(
+FPCGContext* FPCGExPathfindingProcessorElement::InitializeContext(
 	FPCGExPointsProcessorContext* InContext,
 	const FPCGDataCollection& InputData,
 	TWeakObjectPtr<UPCGComponent> SourceComponent,
 	const UPCGNode* Node) const
 {
-	FPCGExGraphProcessorElement::InitializeContext(InContext, InputData, SourceComponent, Node);
-	FPCGExPathfindingProcessorContext* Context = static_cast<FPCGExPathfindingProcessorContext*>(InContext);
+	
+	FPCGExPathfindingProcessorContext* Context = static_cast<FPCGExPathfindingProcessorContext*>(FPCGExGraphProcessorElement::InitializeContext(InContext, InputData, SourceComponent, Node));
 
 	const UPCGExPathfindingProcessorSettings* Settings = InContext->GetInputSettings<UPCGExPathfindingProcessorSettings>();
 	check(Settings);
@@ -141,6 +132,8 @@ void FPCGExPathfindingProcessorElement::InitializeContext(
 
 	Context->bAddSeedToPath = Settings->bAddSeedToPath;
 	Context->bAddGoalToPath = Settings->bAddGoalToPath;
+
+	return Context;
 }
 
 

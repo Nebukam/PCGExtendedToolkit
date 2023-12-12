@@ -37,26 +37,18 @@ TArray<FPCGPinProperties> UPCGExEdgesProcessorSettings::OutputPinProperties() co
 
 #pragma endregion
 
-FPCGContext* FPCGExEdgesProcessorElement::Initialize(
-	const FPCGDataCollection& InputData,
-	TWeakObjectPtr<UPCGComponent> SourceComponent,
-	const UPCGNode* Node)
-{
-	FPCGExEdgesProcessorContext* Context = new FPCGExEdgesProcessorContext();
-	InitializeContext(Context, InputData, SourceComponent, Node);
-	return Context;
-}
+PCGEX_INITIALIZE_CONTEXT(EdgesProcessor)
 
 bool FPCGExEdgesProcessorElement::Validate(FPCGContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElementBase::Validate(InContext)) { return false; }
 
-	PCGEX_CONTEXT(FPCGExEdgesProcessorContext)
+	PCGEX_CONTEXT_AND_SETTINGS(EdgesProcessor)
 
 	return true;
 }
 
-void FPCGExEdgesProcessorElement::InitializeContext(
+FPCGContext* FPCGExEdgesProcessorElement::InitializeContext(
 	FPCGExPointsProcessorContext* InContext,
 	const FPCGDataCollection& InputData,
 	TWeakObjectPtr<UPCGComponent> SourceComponent,
@@ -64,9 +56,11 @@ void FPCGExEdgesProcessorElement::InitializeContext(
 {
 	FPCGExPointsProcessorElementBase::InitializeContext(InContext, InputData, SourceComponent, Node);
 
-	FPCGExEdgesProcessorContext* Context = static_cast<FPCGExEdgesProcessorContext*>(InContext);
+	PCGEX_CONTEXT(EdgesProcessor)
 
 	TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(PCGExGraph::SourceParamsLabel);
+
+	return Context;
 }
 
 

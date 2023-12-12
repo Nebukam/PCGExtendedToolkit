@@ -14,19 +14,17 @@ FPCGElementPtr UPCGExConsolidateGraphSettings::CreateElement() const
 	return MakeShared<FPCGExConsolidateGraphElement>();
 }
 
-FPCGContext* FPCGExConsolidateGraphElement::Initialize(
-	const FPCGDataCollection& InputData,
-	TWeakObjectPtr<UPCGComponent> SourceComponent,
-	const UPCGNode* Node)
-{
-	FPCGExConsolidateGraphContext* Context = new FPCGExConsolidateGraphContext();
-	InitializeContext(Context, InputData, SourceComponent, Node);
+PCGEX_INITIALIZE_CONTEXT(ConsolidateGraph)
 
-	PCGEX_SETTINGS(UPCGExConsolidateGraphSettings)
+bool FPCGExConsolidateGraphElement::Validate(FPCGContext* InContext) const
+{
+	if (!FPCGExGraphProcessorElement::Validate(InContext)) { return false; }
+
+	PCGEX_CONTEXT_AND_SETTINGS(ConsolidateGraph)
 
 	PCGEX_FWD(bConsolidateEdgeType)
-
-	return Context;
+	
+	return true;
 }
 
 bool FPCGExConsolidateGraphElement::ExecuteInternal(
@@ -34,7 +32,7 @@ bool FPCGExConsolidateGraphElement::ExecuteInternal(
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExConsolidateGraphElement::Execute);
 
-	PCGEX_CONTEXT(FPCGExConsolidateGraphContext)
+	PCGEX_CONTEXT(ConsolidateGraph)
 
 	if (Context->IsSetup())
 	{

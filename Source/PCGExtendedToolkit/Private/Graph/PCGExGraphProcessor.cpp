@@ -113,21 +113,13 @@ void FPCGExGraphProcessorContext::PrepareCurrentGraphForPoints(const PCGExData::
 	CurrentGraph->PrepareForPointData(PointIO, bReadOnly);
 }
 
-FPCGContext* FPCGExGraphProcessorElement::Initialize(
-	const FPCGDataCollection& InputData,
-	TWeakObjectPtr<UPCGComponent> SourceComponent,
-	const UPCGNode* Node)
-{
-	FPCGExGraphProcessorContext* Context = new FPCGExGraphProcessorContext();
-	InitializeContext(Context, InputData, SourceComponent, Node);
-	return Context;
-}
+PCGEX_INITIALIZE_CONTEXT(GraphProcessor)
 
 bool FPCGExGraphProcessorElement::Validate(FPCGContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElementBase::Validate(InContext)) { return false; }
 
-	PCGEX_CONTEXT(FPCGExGraphProcessorContext)
+	PCGEX_CONTEXT(GraphProcessor)
 
 	if (Context->Graphs.IsEmpty())
 	{
@@ -138,7 +130,7 @@ bool FPCGExGraphProcessorElement::Validate(FPCGContext* InContext) const
 	return true;
 }
 
-void FPCGExGraphProcessorElement::InitializeContext(
+FPCGContext* FPCGExGraphProcessorElement::InitializeContext(
 	FPCGExPointsProcessorContext* InContext,
 	const FPCGDataCollection& InputData,
 	TWeakObjectPtr<UPCGComponent> SourceComponent,
@@ -146,10 +138,12 @@ void FPCGExGraphProcessorElement::InitializeContext(
 {
 	FPCGExPointsProcessorElementBase::InitializeContext(InContext, InputData, SourceComponent, Node);
 
-	FPCGExGraphProcessorContext* Context = static_cast<FPCGExGraphProcessorContext*>(InContext);
+	PCGEX_CONTEXT(GraphProcessor)
 
 	TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(PCGExGraph::SourceParamsLabel);
 	Context->Graphs.Initialize(InContext, Sources);
+
+	return Context;
 }
 
 

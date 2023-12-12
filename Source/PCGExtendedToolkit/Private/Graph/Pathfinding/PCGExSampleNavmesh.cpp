@@ -77,12 +77,13 @@ FPCGExSampleNavmeshContext::~FPCGExSampleNavmeshContext()
 
 FPCGElementPtr UPCGExSampleNavmeshSettings::CreateElement() const { return MakeShared<FPCGExSampleNavmeshElement>(); }
 
-FPCGContext* FPCGExSampleNavmeshElement::Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node)
-{
-	FPCGExSampleNavmeshContext* Context = new FPCGExSampleNavmeshContext();
-	InitializeContext(Context, InputData, SourceComponent, Node);
+PCGEX_INITIALIZE_CONTEXT(SampleNavmesh)
 
-	PCGEX_SETTINGS(UPCGExSampleNavmeshSettings)
+bool FPCGExSampleNavmeshElement::Validate(FPCGContext* InContext) const
+{
+	if (!FPCGExPointsProcessorElementBase::Validate(InContext)) { return false; }
+
+	PCGEX_CONTEXT_AND_SETTINGS(SampleNavmesh)
 
 	if (TArray<FPCGTaggedData> Goals = Context->InputData.GetInputsByPin(PCGExPathfinding::SourceGoalsLabel);
 		Goals.Num() > 0)
@@ -113,16 +114,6 @@ FPCGContext* FPCGExSampleNavmeshElement::Initialize(const FPCGDataCollection& In
 	PCGEX_FWD(PathfindingMode)
 
 	Context->FuseDistance = Settings->FuseDistance * Settings->FuseDistance;
-
-	return Context;
-}
-
-bool FPCGExSampleNavmeshElement::Validate(FPCGContext* InContext) const
-{
-	if (!FPCGExPointsProcessorElementBase::Validate(InContext)) { return false; }
-
-	PCGEX_CONTEXT(FPCGExSampleNavmeshContext)
-	PCGEX_SETTINGS(UPCGExSampleNavmeshSettings)
 
 	if (!Context->GoalsPoints || Context->GoalsPoints->GetNum() == 0)
 	{

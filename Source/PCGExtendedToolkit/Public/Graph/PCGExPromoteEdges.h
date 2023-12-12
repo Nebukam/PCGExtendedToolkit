@@ -69,5 +69,6 @@ public:
 		const UPCGNode* Node) override;
 
 protected:
+	virtual bool Validate(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };

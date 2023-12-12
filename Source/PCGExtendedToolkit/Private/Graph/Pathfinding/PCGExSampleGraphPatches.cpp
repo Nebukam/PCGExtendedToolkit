@@ -28,15 +28,7 @@ FPCGExSampleGraphPatchesContext::~FPCGExSampleGraphPatchesContext()
 	PCGEX_CLEANUP_ASYNC
 }
 
-FPCGContext* FPCGExSampleGraphPatchesElement::Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node)
-{
-	FPCGExSampleGraphPatchesContext* Context = new FPCGExSampleGraphPatchesContext();
-	InitializeContext(Context, InputData, SourceComponent, Node);
-
-	PCGEX_SETTINGS(UPCGExSampleGraphPatchesSettings)
-
-	return Context;
-}
+PCGEX_INITIALIZE_CONTEXT(SampleGraphPatches)
 
 bool FPCGExSampleGraphPatchesElement::Validate(FPCGContext* InContext) const
 {
@@ -53,7 +45,7 @@ bool FPCGExSampleGraphPatchesElement::ExecuteInternal(FPCGContext* InContext) co
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExSampleGraphPatchesElement::Execute);
 
-	PCGEX_CONTEXT(FPCGExSampleGraphPatchesContext)
+	PCGEX_CONTEXT(SampleGraphPatches)
 
 	if (Context->IsSetup())
 	{

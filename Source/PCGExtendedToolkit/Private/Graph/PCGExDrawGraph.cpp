@@ -35,16 +35,17 @@ void UPCGExDrawGraphSettings::PostEditChangeProperty(FPropertyChangedEvent& Prop
 }
 #endif
 
-FPCGContext* FPCGExDrawGraphElement::Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node)
+PCGEX_INITIALIZE_CONTEXT(DrawGraph)
+
+bool FPCGExDrawGraphElement::Validate(FPCGContext* InContext) const
 {
-	FPCGExDrawGraphContext* Context = new FPCGExDrawGraphContext();
-	InitializeContext(Context, InputData, SourceComponent, Node);
+	if (!FPCGExGraphProcessorElement::Validate(InContext)) { return false; }
 
-	PCGEX_SETTINGS(UPCGExDrawGraphSettings)
-
-	Context->GraphSolver = Settings->EnsureOperation<UPCGExGraphSolver>(nullptr, Context);
-
-	return Context;
+	PCGEX_CONTEXT(DrawGraph)
+	
+	Context->GraphSolver = Context->RegisterOperation<UPCGExGraphSolver>();
+	
+	return true;
 }
 
 bool FPCGExDrawGraphElement::ExecuteInternal(FPCGContext* InContext) const
@@ -53,8 +54,7 @@ bool FPCGExDrawGraphElement::ExecuteInternal(FPCGContext* InContext) const
 
 #if WITH_EDITOR
 
-	PCGEX_CONTEXT(FPCGExDrawGraphContext)
-	PCGEX_SETTINGS(UPCGExDrawGraphSettings)
+	PCGEX_CONTEXT_AND_SETTINGS(DrawGraph)
 
 	if (Context->IsSetup())
 	{

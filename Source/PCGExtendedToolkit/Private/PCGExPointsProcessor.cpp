@@ -378,7 +378,7 @@ bool FPCGExPointsProcessorElementBase::Validate(FPCGContext* InContext) const
 	return true;
 }
 
-void FPCGExPointsProcessorElementBase::InitializeContext(
+FPCGContext* FPCGExPointsProcessorElementBase::InitializeContext(
 	FPCGExPointsProcessorContext* InContext,
 	const FPCGDataCollection& InputData,
 	TWeakObjectPtr<UPCGComponent> SourceComponent,
@@ -432,6 +432,8 @@ void FPCGExPointsProcessorElementBase::InitializeContext(
 
 		if (InData) { InContext->MainPoints->Emplace_GetRef(*Source, InData, Settings->GetPointOutputInitMode()); }
 	}
+
+	return InContext;
 }
 
 #undef LOCTEXT_NAMESPACE

@@ -42,14 +42,15 @@ FPCGExSampleNearestPolylineContext::~FPCGExSampleNearestPolylineContext()
 	PCGEX_SAMPLENEARESTPOLYLINE_FOREACH(PCGEX_OUTPUT_DELETE)
 }
 
-FPCGContext* FPCGExSampleNearestPolylineElement::Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node)
+PCGEX_INITIALIZE_CONTEXT(SampleNearestPolyline)
+
+bool FPCGExSampleNearestPolylineElement::Validate(FPCGContext* InContext) const
 {
-	FPCGExSampleNearestPolylineContext* Context = new FPCGExSampleNearestPolylineContext();
-	InitializeContext(Context, InputData, SourceComponent, Node);
+	if (!FPCGExPointsProcessorElementBase::Validate(InContext)) { return false; }
 
-	PCGEX_SETTINGS(UPCGExSampleNearestPolylineSettings)
-
-	TArray<FPCGTaggedData> Targets = InputData.GetInputsByPin(PCGEx::SourceTargetsLabel);
+	PCGEX_CONTEXT_AND_SETTINGS(SampleNearestPolyline)
+	
+	TArray<FPCGTaggedData> Targets = Context->InputData.GetInputsByPin(PCGEx::SourceTargetsLabel);
 
 	if (!Targets.IsEmpty())
 	{
@@ -80,16 +81,6 @@ FPCGContext* FPCGExSampleNearestPolylineElement::Initialize(const FPCGDataCollec
 
 	PCGEX_SAMPLENEARESTPOLYLINE_FOREACH(PCGEX_OUTPUT_FWD)
 
-	return Context;
-}
-
-bool FPCGExSampleNearestPolylineElement::Validate(FPCGContext* InContext) const
-{
-	if (!FPCGExPointsProcessorElementBase::Validate(InContext)) { return false; }
-
-	PCGEX_CONTEXT(FPCGExSampleNearestPolylineContext)
-	PCGEX_SETTINGS(UPCGExSampleNearestPolylineSettings)
-
 	if (!Context->Targets || Context->Targets->IsEmpty())
 	{
 		PCGE_LOG(Error, GraphAndLog, LOCTEXT("MissingTargets", "No targets (either no input or empty dataset)"));
@@ -113,8 +104,8 @@ bool FPCGExSampleNearestPolylineElement::ExecuteInternal(FPCGContext* InContext)
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExSampleNearestPolylineElement::Execute);
 
-	FPCGExSampleNearestPolylineContext* Context = static_cast<FPCGExSampleNearestPolylineContext*>(InContext);
-
+	PCGEX_CONTEXT(SampleNearestPolyline)
+	
 	if (Context->IsSetup())
 	{
 		if (!Validate(Context)) { return true; }

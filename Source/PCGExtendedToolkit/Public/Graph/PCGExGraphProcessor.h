@@ -80,7 +80,7 @@ public:
 
 protected:
 	virtual bool Validate(FPCGContext* InContext) const override;
-	virtual void InitializeContext(
+	virtual FPCGContext* InitializeContext(
 		FPCGExPointsProcessorContext* InContext,
 		const FPCGDataCollection& InputData,
 		TWeakObjectPtr<UPCGComponent> SourceComponent,

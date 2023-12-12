@@ -19,12 +19,13 @@ FPCGExSampleNearestSurfaceContext::~FPCGExSampleNearestSurfaceContext()
 	PCGEX_SAMPLENEARESTSURFACE_FOREACH(PCGEX_OUTPUT_DELETE)
 }
 
-FPCGContext* FPCGExSampleNearestSurfaceElement::Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node)
-{
-	FPCGExSampleNearestSurfaceContext* Context = new FPCGExSampleNearestSurfaceContext();
-	InitializeContext(Context, InputData, SourceComponent, Node);
+PCGEX_INITIALIZE_CONTEXT(SampleNearestSurface)
 
-	PCGEX_SETTINGS(UPCGExSampleNearestSurfaceSettings)
+bool FPCGExSampleNearestSurfaceElement::Validate(FPCGContext* InContext) const
+{
+	if (!FPCGExPointsProcessorElementBase::Validate(InContext)) { return false; }
+
+	PCGEX_CONTEXT_AND_SETTINGS(SampleNearestSurface)
 
 	Context->RangeMax = Settings->MaxDistance;
 
@@ -35,17 +36,7 @@ FPCGContext* FPCGExSampleNearestSurfaceElement::Initialize(const FPCGDataCollect
 	PCGEX_FWD(bIgnoreSelf)
 
 	PCGEX_SAMPLENEARESTSURFACE_FOREACH(PCGEX_OUTPUT_FWD)
-
-	return Context;
-}
-
-bool FPCGExSampleNearestSurfaceElement::Validate(FPCGContext* InContext) const
-{
-	if (!FPCGExPointsProcessorElementBase::Validate(InContext)) { return false; }
-
-	PCGEX_CONTEXT(FPCGExSampleNearestSurfaceContext)
-	PCGEX_SETTINGS(UPCGExSampleNearestSurfaceSettings)
-
+	
 	PCGEX_SAMPLENEARESTSURFACE_FOREACH(PCGEX_OUTPUT_VALIDATE_NAME)
 
 	return true;
@@ -55,7 +46,7 @@ bool FPCGExSampleNearestSurfaceElement::ExecuteInternal(FPCGContext* InContext) 
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExSampleNearestSurfaceElement::Execute);
 
-	PCGEX_CONTEXT(FPCGExSampleNearestSurfaceContext)
+	PCGEX_CONTEXT(SampleNearestSurface)
 
 	if (Context->IsSetup())
 	{

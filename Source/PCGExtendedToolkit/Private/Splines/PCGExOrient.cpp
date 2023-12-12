@@ -22,16 +22,17 @@ void UPCGExOrientSettings::PostEditChangeProperty(FPropertyChangedEvent& Propert
 
 FPCGElementPtr UPCGExOrientSettings::CreateElement() const { return MakeShared<FPCGExOrientElement>(); }
 
-FPCGContext* FPCGExOrientElement::Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node)
-{
-	FPCGExOrientContext* Context = new FPCGExOrientContext();
-	InitializeContext(Context, InputData, SourceComponent, Node);
+PCGEX_INITIALIZE_CONTEXT(Orient)
 
-	PCGEX_SETTINGS(UPCGExOrientSettings)
+bool FPCGExOrientElement::Validate(FPCGContext* InContext) const
+{
+	if(! FPCGExPathProcessorElement::Validate(InContext)){return false;}
+	
+	PCGEX_CONTEXT_AND_SETTINGS(Orient)
 
 	PCGEX_BIND_OPERATION(Orientation, UPCGExSubPointsOrientAverage)
 
-	return Context;
+	return true;
 }
 
 
@@ -39,7 +40,7 @@ bool FPCGExOrientElement::ExecuteInternal(FPCGContext* InContext) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExOrientElement::Execute);
 
-	PCGEX_CONTEXT(FPCGExOrientContext)
+	PCGEX_CONTEXT(Orient)
 
 	if (Context->IsSetup())
 	{

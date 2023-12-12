@@ -77,11 +77,11 @@ public:
 	TArray<FPCGExFilterRuleDescriptor> PartitionRules;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExSplitByValuesContext : public FPCGExPointsProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExPartitionByValuesContext : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExPartitionByValuesElement;
 
-	virtual ~FPCGExSplitByValuesContext() override;
+	virtual ~FPCGExPartitionByValuesContext() override;
 
 	TArray<FPCGExFilterRuleDescriptor> RulesDescriptors;
 	TArray<FPCGExFilter::FRule> Rules;

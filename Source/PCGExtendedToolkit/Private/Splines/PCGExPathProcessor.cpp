@@ -17,13 +17,7 @@ PCGExData::EInit UPCGExPathProcessorSettings::GetPointOutputInitMode() const { r
 FName UPCGExPathProcessorSettings::GetMainPointsInputLabel() const { return PCGExGraph::SourcePathsLabel; }
 FName UPCGExPathProcessorSettings::GetMainPointsOutputLabel() const { return PCGExGraph::OutputPathsLabel; }
 
-FPCGContext* FPCGExPathProcessorElement::Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node)
-{
-	FPCGExPathProcessorContext* Context = new FPCGExPathProcessorContext();
-	InitializeContext(Context, InputData, SourceComponent, Node);
-	const UPCGExPathProcessorSettings* Settings = Context->GetInputSettings<UPCGExPathProcessorSettings>();
-	check(Settings);
-	return Context;
-}
+PCGEX_INITIALIZE_CONTEXT(PathProcessor)
+
 
 #undef LOCTEXT_NAMESPACE

@@ -112,7 +112,7 @@ public:
 	FNavAgentProperties NavAgentProperties;
 
 	/** If left empty, will attempt to fetch the default nav data instance.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	ANavigationData* NavData = nullptr;
 };
 

@@ -30,15 +30,13 @@ void UPCGExFusePointsSettings::PostEditChangeProperty(FPropertyChangedEvent& Pro
 
 FPCGElementPtr UPCGExFusePointsSettings::CreateElement() const { return MakeShared<FPCGExFusePointsElement>(); }
 
-FPCGContext* FPCGExFusePointsElement::Initialize(
-	const FPCGDataCollection& InputData,
-	TWeakObjectPtr<UPCGComponent> SourceComponent,
-	const UPCGNode* Node)
-{
-	FPCGExFusePointsContext* Context = new FPCGExFusePointsContext();
-	InitializeContext(Context, InputData, SourceComponent, Node);
+PCGEX_INITIALIZE_CONTEXT(FusePoints)
 
-	PCGEX_SETTINGS(UPCGExFusePointsSettings)
+bool FPCGExFusePointsElement::Validate(FPCGContext* InContext) const
+{
+	if (!FPCGExPointsProcessorElementBase::Validate(InContext)) { return false; }
+
+	PCGEX_CONTEXT_AND_SETTINGS(FusePoints)
 
 	Context->AttributesBlendingOverrides = Settings->BlendingSettings.AttributesOverrides;
 	Context->MetadataBlender = new PCGExDataBlending::FMetadataBlender(Settings->BlendingSettings.DefaultBlending);
@@ -48,15 +46,14 @@ FPCGContext* FPCGExFusePointsElement::Initialize(
 
 	PCGEX_FWD(bPreserveOrder)
 
-	return Context;
+	return true;
 }
 
 bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExFusePointsElement::Execute);
 
-	PCGEX_CONTEXT(FPCGExFusePointsContext)
-	PCGEX_SETTINGS(UPCGExFusePointsSettings)
+	PCGEX_CONTEXT_AND_SETTINGS(FusePoints)
 
 	if (Context->IsSetup())
 	{

@@ -17,24 +17,16 @@ FPCGExWriteIndexContext::~FPCGExWriteIndexContext()
 	PCGEX_DELETE(IndexAccessor)
 }
 
-FPCGContext* FPCGExWriteIndexElement::Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node)
-{
-	FPCGExWriteIndexContext* Context = new FPCGExWriteIndexContext();
-	InitializeContext(Context, InputData, SourceComponent, Node);
-
-	PCGEX_SETTINGS(UPCGExWriteIndexSettings)
-
-	PCGEX_FWD(bOutputNormalizedIndex)
-	PCGEX_FWD(OutputAttributeName)
-
-	return Context;
-}
+PCGEX_INITIALIZE_CONTEXT(WriteIndex)
 
 bool FPCGExWriteIndexElement::Validate(FPCGContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElementBase::Validate(InContext)) { return false; }
 
-	PCGEX_CONTEXT(FPCGExWriteIndexContext)
+	PCGEX_CONTEXT_AND_SETTINGS(WriteIndex)
+	
+	PCGEX_FWD(bOutputNormalizedIndex)
+	PCGEX_FWD(OutputAttributeName)
 
 	PCGEX_VALIDATE_NAME(Context->OutputAttributeName)
 
@@ -45,7 +37,7 @@ bool FPCGExWriteIndexElement::ExecuteInternal(FPCGContext* InContext) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExWriteIndexElement::Execute);
 
-	PCGEX_CONTEXT(FPCGExWriteIndexContext)
+	PCGEX_CONTEXT(WriteIndex)
 
 	if (Context->IsSetup())
 	{

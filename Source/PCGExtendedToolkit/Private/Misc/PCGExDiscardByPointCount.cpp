@@ -15,8 +15,8 @@ bool FPCGExDiscardByPointCountElement::ExecuteInternal(FPCGContext* InContext) c
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExDiscardByPointCountElement::Execute);
 
-	PCGEX_CONTEXT(FPCGExPointsProcessorContext)
-	PCGEX_SETTINGS(UPCGExDiscardByPointCountSettings)
+	PCGEX_CONTEXT(PointsProcessor)
+	PCGEX_SETTINGS(DiscardByPointCount)
 
 	if (Context->IsSetup())
 	{

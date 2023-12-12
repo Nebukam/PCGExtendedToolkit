@@ -90,20 +90,18 @@ bool UPCGExPartitionByValuesSettings::GetMainPointsInputAcceptMultipleData() con
 FPCGElementPtr UPCGExPartitionByValuesSettings::CreateElement() const { return MakeShared<FPCGExPartitionByValuesElement>(); }
 PCGExData::EInit UPCGExPartitionByValuesSettings::GetPointOutputInitMode() const { return bSplitOutput ? PCGExData::EInit::NoOutput : PCGExData::EInit::DuplicateInput; }
 
-FPCGExSplitByValuesContext::~FPCGExSplitByValuesContext()
+FPCGExPartitionByValuesContext::~FPCGExPartitionByValuesContext()
 {
 	PCGEX_DELETE(RootPartition)
 }
 
-FPCGContext* FPCGExPartitionByValuesElement::Initialize(
-	const FPCGDataCollection& InputData,
-	TWeakObjectPtr<UPCGComponent> SourceComponent,
-	const UPCGNode* Node)
-{
-	FPCGExSplitByValuesContext* Context = new FPCGExSplitByValuesContext();
-	InitializeContext(Context, InputData, SourceComponent, Node);
+PCGEX_INITIALIZE_CONTEXT(PartitionByValues)
 
-	PCGEX_SETTINGS(UPCGExPartitionByValuesSettings)
+bool FPCGExPartitionByValuesElement::Validate(FPCGContext* InContext) const
+{
+	if (!FPCGExPointsProcessorElementBase::Validate(InContext)) { return false; }
+
+	PCGEX_CONTEXT_AND_SETTINGS(PartitionByValues)
 
 	for (const FPCGExFilterRuleDescriptor& Descriptor : Settings->PartitionRules)
 	{
@@ -121,16 +119,7 @@ FPCGContext* FPCGExPartitionByValuesElement::Initialize(
 	PCGEX_FWD(bSplitOutput)
 
 	Context->RootPartition = new PCGExPartition::FKPartition(nullptr, 0, nullptr);
-
-	return Context;
-}
-
-bool FPCGExPartitionByValuesElement::Validate(FPCGContext* InContext) const
-{
-	if (!FPCGExPointsProcessorElementBase::Validate(InContext)) { return false; }
-
-	PCGEX_CONTEXT(FPCGExSplitByValuesContext)
-
+	
 	if (Context->RulesDescriptors.IsEmpty())
 	{
 		PCGE_LOG(Error, GraphAndLog, LOCTEXT("MissingRules", "No partitioning rules."));
@@ -144,7 +133,7 @@ bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* InContext) con
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExBucketEntryElement::Execute);
 
-	PCGEX_CONTEXT(FPCGExSplitByValuesContext)
+	PCGEX_CONTEXT(PartitionByValues)
 
 	if (Context->IsSetup())
 	{

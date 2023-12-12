@@ -30,20 +30,17 @@ void UPCGExBuildGraphSettings::PostEditChangeProperty(FPropertyChangedEvent& Pro
 FPCGElementPtr UPCGExBuildGraphSettings::CreateElement() const { return MakeShared<FPCGExBuildGraphElement>(); }
 FName UPCGExBuildGraphSettings::GetMainPointsInputLabel() const { return PCGEx::SourcePointsLabel; }
 
-FPCGContext* FPCGExBuildGraphElement::Initialize(
-	const FPCGDataCollection& InputData,
-	TWeakObjectPtr<UPCGComponent> SourceComponent,
-	const UPCGNode* Node)
-{
-	FPCGExBuildGraphContext* Context = new FPCGExBuildGraphContext();
-	InitializeContext(Context, InputData, SourceComponent, Node);
+PCGEX_INITIALIZE_CONTEXT(BuildGraph)
 
-	const UPCGExBuildGraphSettings* Settings = Context->GetInputSettings<UPCGExBuildGraphSettings>();
-	check(Settings);
+bool FPCGExBuildGraphElement::Validate(FPCGContext* InContext) const
+{
+	if(!FPCGExGraphProcessorElement::Validate(InContext)){return false;}
+
+	PCGEX_CONTEXT_AND_SETTINGS(BuildGraph)
 
 	PCGEX_BIND_OPERATION(GraphSolver, UPCGExGraphSolver)
-
-	return Context;
+	
+	return true;
 }
 
 bool FPCGExBuildGraphElement::ExecuteInternal(
@@ -51,8 +48,8 @@ bool FPCGExBuildGraphElement::ExecuteInternal(
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExBuildGraphElement::Execute);
 
-	FPCGExBuildGraphContext* Context = static_cast<FPCGExBuildGraphContext*>(InContext);
-
+	PCGEX_CONTEXT(BuildGraph)
+	
 	if (Context->IsSetup())
 	{
 		if (!Validate(Context)) { return true; }

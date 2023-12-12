@@ -18,22 +18,14 @@ FPCGElementPtr UPCGExDeleteGraphSettings::CreateElement() const { return MakeSha
 
 PCGExData::EInit UPCGExDeleteGraphSettings::GetPointOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
-FPCGContext* FPCGExDeleteGraphElement::Initialize(
-	const FPCGDataCollection& InputData,
-	TWeakObjectPtr<UPCGComponent> SourceComponent,
-	const UPCGNode* Node)
-{
-	FPCGExDeleteGraphContext* Context = new FPCGExDeleteGraphContext();
-	InitializeContext(Context, InputData, SourceComponent, Node);
-	return Context;
-}
+PCGEX_INITIALIZE_CONTEXT(DeleteGraph)
 
 bool FPCGExDeleteGraphElement::ExecuteInternal(
 	FPCGContext* InContext) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExDeleteGraphElement::Execute);
 
-	PCGEX_CONTEXT(FPCGExDeleteGraphContext)
+	PCGEX_CONTEXT(DeleteGraph)
 
 	if (!Validate(Context)) { return true; }
 
