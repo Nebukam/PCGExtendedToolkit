@@ -20,21 +20,19 @@ namespace PCGExGraph
 
 		double Distance = TNumericLimits<double>::Max();
 		double Dot = -1;
-
 		int32 Index = -1;
-		PCGMetadataEntryKey EntryKey = PCGInvalidEntryKey;
 	};
 
 	/** Per-socket temp data structure for processing only*/
 	struct PCGEXTENDEDTOOLKIT_API FSocketProbe : FPCGExSocketBounds
 	{
-		FSocketProbe()
+		FSocketProbe(const FSocketInfos* InSocketInfos)
+			: SocketInfos(InSocketInfos)
 		{
 			Candidates.Empty();
 		}
 
-	public:
-		FSocketInfos* SocketInfos = nullptr;
+		const FSocketInfos* SocketInfos;
 		FVector Origin = FVector::Zero();
 
 		TArray<FPointCandidate> Candidates;
@@ -52,10 +50,9 @@ namespace PCGExGraph
 		double ProbedDotMax = 0;
 		double ProbedDotMin = TNumericLimits<double>::Max();
 
-		void OutputTo(PCGMetadataEntryKey Key) const
+		void OutputTo(int32 Index) const
 		{
-			SocketInfos->Socket->SetTargetIndex(Key, BestCandidate.Index);
-			SocketInfos->Socket->SetTargetEntryKey(Key, BestCandidate.EntryKey);
+			SocketInfos->Socket->SetTargetIndex(Index, BestCandidate.Index);
 		}
 
 		~FSocketProbe()
@@ -75,9 +72,9 @@ class PCGEXTENDEDTOOLKIT_API UPCGExGraphSolver : public UPCGExOperation
 
 public:
 	virtual void InitializeProbe(PCGExGraph::FSocketProbe& Probe) const;
-	virtual bool ProcessPoint(PCGExGraph::FSocketProbe& Probe, const FPCGPoint& Point, const int32 Index) const;
+	virtual bool ProcessPoint(PCGExGraph::FSocketProbe& Probe, const PCGEx::FPointRef& Point) const;
 	virtual void ResolveProbe(PCGExGraph::FSocketProbe& Probe) const;
 
-	virtual double PrepareProbesForPoint(const TArray<PCGExGraph::FSocketInfos>& SocketInfos, const FPCGPoint& Point, TArray<PCGExGraph::FSocketProbe>& OutProbes) const;
-	virtual double PrepareProbeForPointSocketPair(const FPCGPoint& Point, PCGExGraph::FSocketProbe& Probe, const PCGExGraph::FSocketInfos& InSocketInfos) const;
+	virtual double PrepareProbesForPoint(const TArray<PCGExGraph::FSocketInfos>& SocketInfos, const PCGEx::FPointRef& Point, TArray<PCGExGraph::FSocketProbe>& OutProbes) const;
+	virtual double PrepareProbeForPointSocketPair(const PCGEx::FPointRef& Point, PCGExGraph::FSocketProbe& Probe, const PCGExGraph::FSocketInfos& InSocketInfos) const;
 };

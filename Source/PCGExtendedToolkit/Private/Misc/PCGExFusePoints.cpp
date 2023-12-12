@@ -79,8 +79,7 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 
 		auto ProcessPoint = [&](const int32 PointIndex, const PCGExData::FPointIO& PointIO)
 		{
-			const FPCGPoint& Point = PointIO.GetInPoint(PointIndex);
-			const FVector PtPosition = Point.Transform.GetLocation();
+			const FVector PtPosition = PointIO.GetInPoint(PointIndex).Transform.GetLocation();
 			double Distance = 0;
 			PCGExFuse::FFusedPoint* FuseTarget = nullptr;
 

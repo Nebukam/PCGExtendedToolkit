@@ -92,20 +92,20 @@ bool FPCGExDrawGraphElement::ExecuteInternal(FPCGContext* InContext) const
 	{
 		auto Initialize = [&](const PCGExData::FPointIO& PointIO)
 		{
-			Context->PrepareCurrentGraphForPoints(PointIO.GetIn(), false);
+			Context->PrepareCurrentGraphForPoints(PointIO);
 		};
 
 		auto ProcessPoint = [&](const int32 PointIndex, const PCGExData::FPointIO& PointIO)
 		{
-			const FPCGPoint& Point = PointIO.GetInPoint(PointIndex);
-			const FVector Start = Point.Transform.GetLocation();
+			const PCGEx::FPointRef& Point = PointIO.GetInPointRef(PointIndex);
+			const FVector Start = Point.Point->Transform.GetLocation();
 
 			TArray<PCGExGraph::FSocketProbe> Probes;
 			if ((Settings->bDrawSocketCones || Settings->bDrawSocketBox) && Context->GraphSolver) { Context->GraphSolver->PrepareProbesForPoint(Context->SocketInfos, Point, Probes); }
 
 			for (const PCGExGraph::FSocketInfos& SocketInfos : Context->SocketInfos)
 			{
-				const PCGExGraph::FSocketMetadata SocketMetadata = SocketInfos.Socket->GetData(Point.MetadataEntry);
+				const PCGExGraph::FSocketMetadata SocketMetadata = SocketInfos.Socket->GetData(PointIndex);
 
 				if (Settings->bDrawSocketCones && Context->GraphSolver)
 				{
@@ -141,7 +141,7 @@ bool FPCGExDrawGraphElement::ExecuteInternal(FPCGContext* InContext) const
 					if (SocketMetadata.Index == -1) { continue; }
 					if (static_cast<uint8>((SocketMetadata.EdgeType & static_cast<EPCGExEdgeType>(Settings->EdgeType))) == 0) { continue; }
 
-					FPCGPoint PtB = PointIO.GetInPoint(SocketMetadata.Index);
+					const FPCGPoint& PtB = PointIO.GetInPoint(SocketMetadata.Index);
 					FVector End = PtB.Transform.GetLocation();
 					float Thickness = 1.0f;
 					float ArrowSize = 0.0f;

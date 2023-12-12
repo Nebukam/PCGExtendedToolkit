@@ -11,6 +11,16 @@
 
 #include "PCGExSampleNearestPolyline.generated.h"
 
+#define PCGEX_SAMPLENEARESTPOLYLINE_FOREACH(MACRO)\
+MACRO(Success, bool)\
+MACRO(Location, FVector)\
+MACRO(LookAt, FVector)\
+MACRO(Normal, FVector)\
+MACRO(Distance, double)\
+MACRO(SignedDistance, double)\
+MACRO(Angle, double)\
+MACRO(Time, double)
+
 namespace PCGExPolyLine
 {
 	struct PCGEXTENDEDTOOLKIT_API FSampleInfos
@@ -233,8 +243,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestPolylineContext : public FPCGEx
 	double RangeMin = 0;
 	double RangeMax = 1000;
 
-	bool bLocalRangeMin = false;
-	bool bLocalRangeMax = false;
+	bool bUseLocalRangeMin = false;
+	bool bUseLocalRangeMax = false;
 
 	int64 NumTargets = 0;
 
@@ -245,19 +255,11 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestPolylineContext : public FPCGEx
 
 	//TODO: Setup target local inputs
 
-	PCGEX_OUT_ATTRIBUTE(Success, bool)
-	PCGEX_OUT_ATTRIBUTE(Location, FVector)
-	PCGEX_OUT_ATTRIBUTE(LookAt, FVector)
-	PCGEX_OUT_ATTRIBUTE(Normal, FVector)
-	PCGEX_OUT_ATTRIBUTE(Distance, double)
-	PCGEX_OUT_ATTRIBUTE(SignedDistance, double)
+	PCGEX_SAMPLENEARESTPOLYLINE_FOREACH(PCGEX_OUTPUT_DECL)
 	EPCGExAxis SignAxis;
-
-	PCGEX_OUT_ATTRIBUTE(Angle, double)
 	EPCGExAxis AngleAxis;
 	EPCGExAngleRange AngleRange;
-
-	PCGEX_OUT_ATTRIBUTE(Time, double)
+	
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestPolylineElement : public FPCGExPointsProcessorElementBase
@@ -268,8 +270,8 @@ public:
 		TWeakObjectPtr<UPCGComponent> SourceComponent,
 		const UPCGNode* Node) override;
 
-	virtual bool Validate(FPCGContext* InContext) const override;
 
 protected:
+	virtual bool Validate(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };

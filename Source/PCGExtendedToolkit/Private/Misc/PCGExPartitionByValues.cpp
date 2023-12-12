@@ -167,7 +167,7 @@ bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* InContext) con
 			for (FPCGExFilterRuleDescriptor& Descriptor : Context->RulesDescriptors)
 			{
 				FPCGExFilter::FRule& NewRule = Context->Rules.Emplace_GetRef(Descriptor);
-				if (!NewRule.Validate(PointIO.GetIn())) { Context->Rules.Pop(); }
+				if (!NewRule.Bind(PointIO)) { Context->Rules.Pop(); }
 			}
 
 			// Prepare each rule so it cache the filter key by index
@@ -184,11 +184,10 @@ bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* InContext) con
 
 		auto ProcessPoint = [&](const int32 PointIndex, const PCGExData::FPointIO& PointIO)
 		{
-			const FPCGPoint& Point = PointIO.GetInPoint(PointIndex);
 			PCGExPartition::FKPartition* Partition = Context->RootPartition;
 			for (FPCGExFilter::FRule& Rule : Context->Rules)
 			{
-				const int64 KeyValue = Rule.Filter(Point);
+				const int64 KeyValue = Rule.Filter(PointIndex);
 				Partition = Partition->GetPartition(KeyValue, &Rule);
 				if (!Context->bSplitOutput && Rule.RuleDescriptor->bWriteKey) { Rule.Values[PointIndex] = KeyValue; }
 			}

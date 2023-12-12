@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "NetworkMessage.h"
 
 #include "Data/PCGExPointIO.h"
 #include "Data/PCGExAttributeHelpers.h"
@@ -312,21 +313,19 @@ namespace PCGExGraph
 		{
 		}
 
-		FSocketMetadata(int32 InIndex, PCGMetadataEntryKey InEntryKey, EPCGExEdgeType InEdgeType):
+		FSocketMetadata(int32 InIndex, EPCGExEdgeType InEdgeType):
 			Index(InIndex),
-			EntryKey(InEntryKey),
 			EdgeType(InEdgeType)
 		{
 		}
 
 	public:
-		int32 Index = -1; // Index of the point this socket connects to
-		PCGMetadataEntryKey EntryKey = PCGInvalidEntryKey;
+		int32 Index = -1;
 		EPCGExEdgeType EdgeType = EPCGExEdgeType::Unknown;
 
 		bool operator==(const FSocketMetadata& Other) const
 		{
-			return Index == Other.Index && EntryKey == Other.EntryKey && EdgeType == Other.EdgeType;
+			return Index == Other.Index && EdgeType == Other.EdgeType;
 		}
 	};
 
@@ -358,10 +357,11 @@ namespace PCGExGraph
 
 	const FName SocketPropertyNameIndex = FName("Target");
 	const FName SocketPropertyNameEdgeType = FName("EdgeType");
-	const FName SocketPropertyNameEntryKey = FName("TargetEntryKey");
 
 	struct PCGEXTENDEDTOOLKIT_API FSocket
 	{
+		friend struct FSocketMapping;
+
 		FSocket()
 		{
 			MatchingSockets.Empty();
@@ -373,17 +373,32 @@ namespace PCGExGraph
 			Descriptor.Bounds.DotThreshold = FMath::Cos(Descriptor.Bounds.Angle * (PI / 180.0)); //Degrees to dot product
 		}
 
-		friend struct FSocketMapping;
+		~FSocket()
+		{
+			MatchingSockets.Empty();
+			Cleanup();
+		}
+
 		FPCGExSocketDescriptor Descriptor;
 
 		int32 SocketIndex = -1;
 		TSet<int32> MatchingSockets;
 
 	protected:
-		FPCGMetadataAttribute<int32>* AttributeTargetIndex = nullptr;
-		FPCGMetadataAttribute<int32>* AttributeEdgeType = nullptr;
-		FPCGMetadataAttribute<int64>* AttributeTargetEntryKey = nullptr;
+		bool bReadOnly = false;
+		PCGEx::TFAttributeWriter<int32>* TargetIndexWriter = nullptr;
+		PCGEx::TFAttributeWriter<int32>* EdgeTypeWriter = nullptr;
+		PCGEx::TFAttributeReader<int32>* TargetIndexReader = nullptr;
+		PCGEx::TFAttributeReader<int32>* EdgeTypeReader = nullptr;
 		FName AttributeNameBase = NAME_None;
+
+		void Cleanup()
+		{
+			PCGEX_DELETE(TargetIndexWriter)
+			PCGEX_DELETE(EdgeTypeWriter)
+			PCGEX_DELETE(TargetIndexReader)
+			PCGEX_DELETE(EdgeTypeReader)
+		}
 
 	public:
 		FName GetName() const { return AttributeNameBase; }
@@ -393,38 +408,52 @@ namespace PCGExGraph
 
 		void DeleteFrom(const UPCGPointData* PointData) const
 		{
-			if (AttributeTargetIndex) { PointData->Metadata->DeleteAttribute(AttributeTargetIndex->Name); }
-			if (AttributeEdgeType) { PointData->Metadata->DeleteAttribute(AttributeEdgeType->Name); }
-			if (AttributeTargetEntryKey) { PointData->Metadata->DeleteAttribute(AttributeTargetEntryKey->Name); }
+			if (TargetIndexWriter) { PointData->Metadata->DeleteAttribute(TargetIndexWriter->Name); }
+			if (EdgeTypeWriter) { PointData->Metadata->DeleteAttribute(EdgeTypeWriter->Name); }
+		}
+
+		void Write(bool DoCleanup = true)
+		{
+			if (TargetIndexWriter) { TargetIndexWriter->Write(); }
+			if (EdgeTypeWriter) { EdgeTypeWriter->Write(); }
+			if (DoCleanup) { Cleanup(); }
 		}
 
 		/**
 		 * Find or create the attribute matching this socket on a given PointData object,
 		 * as well as prepare the scape modifier for that same object.
-		 * @param PointData
-		 * @param bEnsureEdgeType 
+		 * @param PointIO
+		 * @param ReadOnly
 		 */
-		void PrepareForPointData(const UPCGPointData* PointData, const bool bEnsureEdgeType)
+		void PrepareForPointData(const PCGExData::FPointIO& PointIO, const bool ReadOnly = true)
 		{
-			AttributeTargetIndex = GetAttribute(PointData, SocketPropertyNameIndex, true, -1);
-			AttributeTargetEntryKey = GetAttribute(PointData, SocketPropertyNameEntryKey, true, PCGInvalidEntryKey);
-			AttributeEdgeType = GetAttribute(PointData, SocketPropertyNameEdgeType, bEnsureEdgeType, static_cast<int32>(EPCGExEdgeType::Unknown));
+			Cleanup();
+
+			bReadOnly = ReadOnly;
+
+			const FName NAME_Index = GetSocketPropertyName(SocketPropertyNameIndex);
+			const FName NAME_EdgeType = GetSocketPropertyName(SocketPropertyNameEdgeType);
+
+			PCGExData::FPointIO& MutablePointIO = const_cast<PCGExData::FPointIO&>(PointIO);
+
+			if (bReadOnly)
+			{
+				TargetIndexReader = new PCGEx::TFAttributeReader<int32>(NAME_Index);
+				EdgeTypeReader = new PCGEx::TFAttributeReader<int32>(NAME_EdgeType);
+				TargetIndexReader->Bind(MutablePointIO);
+				EdgeTypeReader->Bind(MutablePointIO);
+			}
+			else
+			{
+				TargetIndexWriter = new PCGEx::TFAttributeWriter<int32>(NAME_Index, -1, false);
+				EdgeTypeWriter = new PCGEx::TFAttributeWriter<int32>(NAME_EdgeType, static_cast<int32>(EPCGExEdgeType::Unknown), false);
+				TargetIndexWriter->BindAndGet(MutablePointIO);
+				EdgeTypeWriter->BindAndGet(MutablePointIO);
+			}
+
 			Descriptor.Bounds.LoadCurve();
 		}
 
-	protected:
-		template <typename T>
-		FPCGMetadataAttribute<T>* GetAttribute(const UPCGPointData* PointData, const FName PropertyName, bool bEnsureAttributeExists, T DefaultValue)
-		{
-			if (bEnsureAttributeExists || PointData->Metadata->HasAttribute(GetSocketPropertyName(PropertyName)))
-			{
-				return PointData->Metadata->FindOrCreateAttribute<T>(GetSocketPropertyName(PropertyName), DefaultValue, false);
-			}
-
-			return nullptr;
-		}
-
-	public:
 		void SetData(const PCGMetadataEntryKey MetadataEntry, const FSocketMetadata& SocketMetadata) const
 		{
 			SetTargetIndex(MetadataEntry, SocketMetadata.Index);
@@ -432,55 +461,54 @@ namespace PCGExGraph
 		}
 
 		// Point index within the same data group.
-		void SetTargetIndex(const PCGMetadataEntryKey MetadataEntry, int32 InIndex) const { AttributeTargetIndex->SetValue(MetadataEntry, InIndex); }
-		int32 GetTargetIndex(const PCGMetadataEntryKey MetadataEntry) const { return AttributeTargetIndex->GetValueFromItemKey(MetadataEntry); }
+		void SetTargetIndex(const int32 PointIndex, int32 InValue) const
+		{
+			check(!bReadOnly)
+			(*TargetIndexWriter)[PointIndex] = InValue;
+		}
 
-		// Point metadata entry key, faster than retrieving index if you only need to access attributes
-		void SetTargetEntryKey(const PCGMetadataEntryKey MetadataEntry, PCGMetadataEntryKey InEntryKey) const { AttributeTargetEntryKey->SetValue(MetadataEntry, InEntryKey); }
-		PCGMetadataEntryKey GetTargetEntryKey(const PCGMetadataEntryKey MetadataEntry) const { return AttributeTargetEntryKey->GetValueFromItemKey(MetadataEntry); }
+		int32 GetTargetIndex(const int32 PointIndex) const
+		{
+			if (bReadOnly) { return (*TargetIndexReader)[PointIndex]; }
+			return (*TargetIndexWriter)[PointIndex];
+		}
 
 		// Relation type
-		void SetEdgeType(const PCGMetadataEntryKey MetadataEntry, EPCGExEdgeType InEdgeType) const
+		void SetEdgeType(const int32 PointIndex, EPCGExEdgeType InEdgeType) const
 		{
-			if (!AttributeEdgeType) { return; }
-			AttributeEdgeType->SetValue(MetadataEntry, static_cast<int32>(InEdgeType));
+			check(!bReadOnly)
+			(*EdgeTypeWriter)[PointIndex] = static_cast<int32>(InEdgeType);
 		}
 
-		EPCGExEdgeType GetEdgeType(const PCGMetadataEntryKey MetadataEntry) const
+		EPCGExEdgeType GetEdgeType(const int32 PointIndex) const
 		{
-			return AttributeEdgeType ? static_cast<EPCGExEdgeType>(AttributeEdgeType->GetValueFromItemKey(MetadataEntry)) : EPCGExEdgeType::Unknown;
+			if (bReadOnly) { return static_cast<EPCGExEdgeType>((*EdgeTypeReader)[PointIndex]); }
+			return static_cast<EPCGExEdgeType>((*EdgeTypeWriter)[PointIndex]);
 		}
 
-		FSocketMetadata GetData(const PCGMetadataEntryKey MetadataEntry) const
+		FSocketMetadata GetData(const int32 PointIndex) const
 		{
-			return FSocketMetadata(
-					GetTargetIndex(MetadataEntry),
-					GetTargetEntryKey(MetadataEntry),
-					GetEdgeType(MetadataEntry)
-				);
+			return FSocketMetadata(GetTargetIndex(PointIndex), GetEdgeType(PointIndex));
 		}
 
 		template <typename T>
-		bool TryGetEdge(int32 Start, const PCGMetadataEntryKey MetadataEntry, T& OutEdge) const
+		bool TryGetEdge(const int32 PointIndex, T& OutEdge) const
 		{
-			const int64 End = GetTargetIndex(MetadataEntry);
+			const int64 End = GetTargetIndex(PointIndex);
 			if (End == -1) { return false; }
-			OutEdge = T(
-				Start,
-				End,
-				GetEdgeType(MetadataEntry));
+			OutEdge = T(PointIndex, End, GetEdgeType(PointIndex));
 			return true;
 		}
 
 		template <typename T>
-		bool TryGetEdge(int32 Start, const PCGMetadataEntryKey MetadataEntry, T& OutEdge, const EPCGExEdgeType& EdgeFilter) const
+		bool TryGetEdge(const int32 PointIndex, T& OutEdge, const EPCGExEdgeType& EdgeFilter) const
 		{
-			EPCGExEdgeType EdgeType = GetEdgeType(MetadataEntry);
+			EPCGExEdgeType EdgeType = GetEdgeType(PointIndex);
 			if (static_cast<uint8>((EdgeType & EdgeFilter)) == 0) { return false; }
 
-			const int32 End = GetTargetIndex(MetadataEntry);
+			const int32 End = GetTargetIndex(PointIndex);
 			if (End == -1) { return false; }
-			OutEdge = T(Start, End, EdgeType);
+			OutEdge = T(PointIndex, End, EdgeType);
 			return true;
 		}
 
@@ -488,15 +516,6 @@ namespace PCGExGraph
 		{
 			const FString Separator = TEXT("/");
 			return *(AttributeNameBase.ToString() + Separator + PropertyName.ToString());
-		}
-
-	public:
-		~FSocket()
-		{
-			AttributeTargetIndex = nullptr;
-			AttributeEdgeType = nullptr;
-			AttributeTargetEntryKey = nullptr;
-			MatchingSockets.Empty();
 		}
 	};
 
@@ -591,16 +610,16 @@ namespace PCGExGraph
 		/**
 		 * Prepare socket mapping for working with a given PointData object.
 		 * Each socket will cache Attribute & accessors
-		 * @param PointData
+		 * @param PointIO
 		 * @param bEnsureEdgeType Whether EdgeType attribute must be created if it doesn't exist. Set this to true if you intend on updating it. 
 		 */
-		void PrepareForPointData(const UPCGPointData* PointData, const bool bEnsureEdgeType)
+		void PrepareForPointData(const PCGExData::FPointIO& PointIO, const bool bReadOnly = true)
 		{
 			for (int i = 0; i < Sockets.Num(); i++)
 			{
-				Sockets[i].PrepareForPointData(PointData, bEnsureEdgeType);
-				Modifiers[i].Validate(PointData);
-				LocalDirections[i].Validate(PointData);
+				Sockets[i].PrepareForPointData(PointIO, bReadOnly);
+				Modifiers[i].Bind(PointIO);
+				LocalDirections[i].Bind(PointIO);
 			}
 		}
 
@@ -695,21 +714,18 @@ namespace PCGExGraph
 
 	static void ComputeEdgeType(
 		const TArray<FSocketInfos>& SocketInfos,
-		const FPCGPoint& Point,
-		const int32 ReadIndex,
-		const PCGExData::FPointIO& PointIO)
+		const int32 PointIndex)
 	{
 		for (const FSocketInfos& CurrentSocketInfos : SocketInfos)
 		{
 			EPCGExEdgeType Type = EPCGExEdgeType::Unknown;
-			const int64 RelationIndex = CurrentSocketInfos.Socket->GetTargetIndex(Point.MetadataEntry);
+			const int64 RelationIndex = CurrentSocketInfos.Socket->GetTargetIndex(PointIndex);
 
 			if (RelationIndex != -1)
 			{
-				const int32 Key = PointIO.GetOutPoint(RelationIndex).MetadataEntry;
 				for (const FSocketInfos& OtherSocketInfos : SocketInfos)
 				{
-					if (OtherSocketInfos.Socket->GetTargetIndex(Key) == ReadIndex)
+					if (OtherSocketInfos.Socket->GetTargetIndex(RelationIndex) == PointIndex)
 					{
 						Type = GetEdgeType(CurrentSocketInfos, OtherSocketInfos);
 					}
@@ -719,7 +735,7 @@ namespace PCGExGraph
 			}
 
 
-			CurrentSocketInfos.Socket->SetEdgeType(Point.MetadataEntry, Type);
+			CurrentSocketInfos.Socket->SetEdgeType(PointIndex, Type);
 		}
 	}
 

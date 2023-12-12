@@ -35,9 +35,6 @@ namespace PCGExData
 
 		int32 NumInPoints = -1;
 
-		bool bMetadataEntryDirty = true;
-		bool bIndicesDirty = true;
-
 		FPCGAttributeAccessorKeysPoints* InKeys = nullptr;
 		FPCGAttributeAccessorKeysPoints* OutKeys = nullptr;
 
@@ -89,6 +86,9 @@ namespace PCGExData
 		const FPCGPoint& GetOutPoint(const int32 Index) const { return Out->GetPoints()[Index]; }
 		FPCGPoint& GetMutablePoint(const int32 Index) const { return Out->GetMutablePoints()[Index]; }
 
+		PCGEx::FPointRef GetInPointRef(const int32 Index) const { return PCGEx::FPointRef(In->GetPoints()[Index], Index); }
+		PCGEx::FPointRef GetOutPointRef(const int32 Index) const { return PCGEx::FPointRef(Out->GetPoints()[Index], Index); }
+
 		const FPCGPoint* TryGetInPoint(const int32 Index) const { return In && In->GetPoints().IsValidIndex(Index) ? &In->GetPoints()[Index] : nullptr; }
 		const FPCGPoint* TryGetOutPoint(const int32 Index) const { return Out && Out->GetPoints().IsValidIndex(Index) ? &Out->GetPoints()[Index] : nullptr; }
 
@@ -104,8 +104,6 @@ namespace PCGExData
 		UPCGPointData* NewEmptyOutput(FPCGContext* Context, FName PinLabel = NAME_None) const;
 
 		void Cleanup();
-
-		void BuildMetadataEntries();
 
 		FPointIO& Branch();
 

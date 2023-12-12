@@ -38,6 +38,13 @@ TArray<FPCGPinProperties> UPCGExGraphProcessorSettings::OutputPinProperties() co
 FName UPCGExGraphProcessorSettings::GetMainPointsInputLabel() const { return PCGExGraph::SourceGraphsLabel; }
 FName UPCGExGraphProcessorSettings::GetMainPointsOutputLabel() const { return PCGExGraph::OutputGraphsLabel; }
 
+FPCGExGraphProcessorContext::~FPCGExGraphProcessorContext()
+{
+	PCGEX_DELETE(CachedIndexReader)
+	PCGEX_DELETE(CachedIndexWriter)
+	SocketInfos.Empty();
+}
+
 #pragma endregion
 
 bool FPCGExGraphProcessorContext::AdvanceGraph(bool bResetPointsIndex)
@@ -67,10 +74,35 @@ void FPCGExGraphProcessorContext::Reset()
 	CurrentParamsIndex = -1;
 }
 
-void FPCGExGraphProcessorContext::PrepareCurrentGraphForPoints(const UPCGPointData* InData, bool bEnsureEdgeType)
+void FPCGExGraphProcessorContext::SetCachedIndex(const int32 PointIndex, const int32 Index) const
 {
-	CachedIndex = InData->Metadata->FindOrCreateAttribute<int32>(CurrentGraph->CachedIndexAttributeName, -1, false);
-	CurrentGraph->PrepareForPointData(InData, bEnsureEdgeType);
+	check(!bReadOnly)
+	(*CachedIndexWriter)[PointIndex] = Index;
+}
+
+int32 FPCGExGraphProcessorContext::GetCachedIndex(const int32 PointIndex) const
+{
+	if (bReadOnly) { return (*CachedIndexReader)[PointIndex]; }
+	return (*CachedIndexWriter)[PointIndex];
+}
+
+void FPCGExGraphProcessorContext::PrepareCurrentGraphForPoints(const PCGExData::FPointIO& PointIO, const bool ReadOnly)
+{
+	bReadOnly = ReadOnly;
+	if (bReadOnly)
+	{
+		PCGEX_DELETE(CachedIndexWriter)
+		if (!CachedIndexReader) { CachedIndexReader = new PCGEx::TFAttributeReader<int32>(CurrentGraph->CachedIndexAttributeName); }
+		CachedIndexReader->Bind(const_cast<PCGExData::FPointIO&>(PointIO));
+	}
+	else
+	{
+		PCGEX_DELETE(CachedIndexReader)
+		if (!CachedIndexWriter) { CachedIndexWriter = new PCGEx::TFAttributeWriter<int32>(CurrentGraph->CachedIndexAttributeName, -1, false); }
+		CachedIndexWriter->BindAndGet(const_cast<PCGExData::FPointIO&>(PointIO));
+	}
+
+	CurrentGraph->PrepareForPointData(PointIO, bReadOnly);
 }
 
 FPCGContext* FPCGExGraphProcessorElement::Initialize(

@@ -37,7 +37,7 @@ FPCGContext* FPCGExBuildGraphElement::Initialize(
 	check(Settings);
 
 	PCGEX_BIND_OPERATION(GraphSolver, UPCGExGraphSolver)
-	
+
 	return Context;
 }
 
@@ -57,23 +57,15 @@ bool FPCGExBuildGraphElement::ExecuteInternal(
 	// Prep point for param loops
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
-		if (!Context->AdvancePointsIO(true))
-		{
-			Context->Done(); //No more points
-		}
-		else
-		{
-			Context->CurrentIO->Cleanup();
-			Context->CurrentIO->GetInKeys();
-			Context->CurrentIO->BuildMetadataEntries();
-			Context->SetState(PCGExGraph::State_ReadyForNextGraph);
-		}
+		if (!Context->AdvancePointsIO(true)) { Context->Done(); }
+		else { Context->SetState(PCGExGraph::State_ReadyForNextGraph); }
 	}
 
 	if (Context->IsState(PCGExGraph::State_ReadyForNextGraph))
 	{
 		if (!Context->AdvanceGraph())
 		{
+			Context->CurrentIO->Cleanup();
 			Context->SetState(PCGExMT::State_ReadyForNextPoints);
 			return false;
 		}
@@ -87,42 +79,12 @@ bool FPCGExBuildGraphElement::ExecuteInternal(
 	{
 		auto Initialize = [&](PCGExData::FPointIO& PointIO)
 		{
-			Context->PrepareCurrentGraphForPoints(PointIO.GetOut(), true);
+			Context->PrepareCurrentGraphForPoints(PointIO, false);
 		};
 
 		auto ProcessPoint = [&](const int32 PointIndex, const PCGExData::FPointIO& PointIO)
 		{
-			//TODO : Use async to compute results but DO NOT WRITE ON ATTRIBUTES
-
-			//Context->GetAsyncManager()->StartTask<FProbeTask>(PointIndex, PointIO->GetInPoint(PointIndex).MetadataEntry, Context->CurrentIO);
-
-			const FPCGPoint& Point = PointIO.GetOutPoint(PointIndex);
-			Context->CachedIndex->SetValue(Point.MetadataEntry, PointIndex); // Cache index
-
-			TArray<PCGExGraph::FSocketProbe> Probes;
-			const double MaxDistance = Context->GraphSolver->PrepareProbesForPoint(Context->SocketInfos, Point, Probes);
-
-			const FBoxCenterAndExtent Box = FBoxCenterAndExtent(Point.Transform.GetLocation(), FVector(MaxDistance));
-
-			//TODO : This is what needs to be async.
-			// This looks bad, but for some reason it's MUCH faster than using the Octree.
-			const FBox BBox = Box.GetBox();
-			const TArray<FPCGPoint>& InPoints = PointIO.GetIn()->GetPoints();
-			for (int i = 0; i < InPoints.Num(); i++)
-			{
-				if (const FPCGPoint& Pt = InPoints[i];
-					BBox.IsInside(Pt.Transform.GetLocation()))
-				{
-					for (PCGExGraph::FSocketProbe& Probe : Probes) { Context->GraphSolver->ProcessPoint(Probe, Pt, i); }
-				}
-			}
-
-			const PCGMetadataEntryKey Key = Point.MetadataEntry;
-			for (PCGExGraph::FSocketProbe& Probe : Probes)
-			{
-				Context->GraphSolver->ResolveProbe(Probe);
-				Probe.OutputTo(Key);
-			}
+			Context->GetAsyncManager()->Start<FProbeTask>(PointIndex, Context->CurrentIO);
 		};
 
 		if (Context->ProcessCurrentPoints(Initialize, ProcessPoint)) { Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork); }
@@ -138,10 +100,14 @@ bool FPCGExBuildGraphElement::ExecuteInternal(
 		// Process params again for edges types
 		auto ProcessPointEdgeType = [&](const int32 PointIndex, const PCGExData::FPointIO& PointIO)
 		{
-			ComputeEdgeType(Context->SocketInfos, PointIO.GetOutPoint(PointIndex), PointIndex, PointIO);
+			ComputeEdgeType(Context->SocketInfos, PointIndex);
 		};
 
-		if (Context->ProcessCurrentPoints(ProcessPointEdgeType)) { Context->SetState(PCGExGraph::State_ReadyForNextGraph); }
+		if (Context->ProcessCurrentPoints(ProcessPointEdgeType))
+		{
+			for (const PCGExGraph::FSocketInfos& SocketInfos : Context->SocketInfos) { SocketInfos.Socket->Write(); }
+			Context->SetState(PCGExGraph::State_ReadyForNextGraph);
+		}
 	}
 
 	if (Context->IsDone())
@@ -157,32 +123,31 @@ bool FProbeTask::ExecuteTask()
 	const FPCGExBuildGraphContext* Context = Manager->GetContext<FPCGExBuildGraphContext>();
 	PCGEX_ASYNC_CHECKPOINT
 
-	const FPCGPoint& Point = PointIO->GetOutPoint(TaskInfos.Index);
-	Context->CachedIndex->SetValue(Point.MetadataEntry, TaskInfos.Index); // Cache index
+	const PCGEx::FPointRef Point = PCGEx::FPointRef(PointIO->GetOutPoint(TaskInfos.Index), TaskInfos.Index);
+
+	Context->SetCachedIndex(TaskInfos.Index, TaskInfos.Index);
 
 	TArray<PCGExGraph::FSocketProbe> Probes;
 	const double MaxDistance = Context->GraphSolver->PrepareProbesForPoint(Context->SocketInfos, Point, Probes);
 
-	const FBoxCenterAndExtent Box = FBoxCenterAndExtent(Point.Transform.GetLocation(), FVector(MaxDistance));
+	const FBox Box = FBoxCenterAndExtent(Point.Point->Transform.GetLocation(), FVector(MaxDistance)).GetBox();
 
-	// This looks bad, but for some reason it's MUCH faster than using the native Octree.
-	const FBox BBox = Box.GetBox();
 	const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
 	for (int i = 0; i < InPoints.Num(); i++)
 	{
 		if (const FPCGPoint& Pt = InPoints[i];
-			BBox.IsInside(Pt.Transform.GetLocation()))
+			Box.IsInside(Pt.Transform.GetLocation()))
 		{
-			for (PCGExGraph::FSocketProbe& Probe : Probes) { Context->GraphSolver->ProcessPoint(Probe, Pt, i); }
+			const PCGEx::FPointRef& OtherPoint = PointIO->GetOutPointRef(i);
+			for (PCGExGraph::FSocketProbe& Probe : Probes) { Context->GraphSolver->ProcessPoint(Probe, OtherPoint); }
 		}
 	}
 
-	const PCGMetadataEntryKey Key = Point.MetadataEntry;
 	for (PCGExGraph::FSocketProbe& Probe : Probes)
 	{
-		PCGEX_ASYNC_CHECKPOINT
 		Context->GraphSolver->ResolveProbe(Probe);
-		Probe.OutputTo(Key);
+		PCGEX_ASYNC_CHECKPOINT
+		Probe.OutputTo(Point.Index);
 	}
 
 	return true;

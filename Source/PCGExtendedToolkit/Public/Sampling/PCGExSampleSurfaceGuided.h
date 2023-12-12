@@ -11,6 +11,11 @@
 
 #include "PCGExSampleSurfaceGuided.generated.h"
 
+#define PCGEX_SAMPLENEARESTTRACE_FOREACH(MACRO)\
+MACRO(Success, bool)\
+MACRO(Location, FVector)\
+MACRO(Normal, FVector)\
+MACRO(Distance, double)
 
 /**
  * Use PCGExSampling to manipulate the outgoing attributes instead of handling everything here.
@@ -117,7 +122,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleSurfaceGuidedContext : public FPCGExPo
 {
 	friend class FPCGExSampleSurfaceGuidedElement;
 
-public:
+	~FPCGExSampleSurfaceGuidedContext();
+	
 	EPCGExCollisionFilterType CollisionType = EPCGExCollisionFilterType::Channel;
 	TEnumAsByte<ECollisionChannel> CollisionChannel;
 	int32 CollisionObjectType;
@@ -132,10 +138,8 @@ public:
 	PCGEx::FLocalSingleFieldGetter SizeGetter;
 	PCGEx::FLocalDirectionGetter DirectionGetter;
 
-	PCGEX_OUT_ATTRIBUTE(Success, bool)
-	PCGEX_OUT_ATTRIBUTE(Location, FVector)
-	PCGEX_OUT_ATTRIBUTE(Normal, FVector)
-	PCGEX_OUT_ATTRIBUTE(Distance, double)
+	PCGEX_SAMPLENEARESTTRACE_FOREACH(PCGEX_OUTPUT_DECL)
+	
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExSampleSurfaceGuidedElement : public FPCGExPointsProcessorElementBase
@@ -145,9 +149,9 @@ public:
 		const FPCGDataCollection& InputData,
 		TWeakObjectPtr<UPCGComponent> SourceComponent,
 		const UPCGNode* Node) override;
-	virtual bool Validate(FPCGContext* InContext) const override;
 
 protected:
+	virtual bool Validate(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 

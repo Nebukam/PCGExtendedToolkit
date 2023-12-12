@@ -48,6 +48,18 @@ FPCGContext* FPCGExSubdivideElement::Initialize(const FPCGDataCollection& InputD
 	return Context;
 }
 
+bool FPCGExSubdivideElement::Validate(FPCGContext* InContext) const
+{
+	if (!FPCGExPathProcessorElement::Validate(InContext)) { return false; }
+	
+	PCGEX_CONTEXT(FPCGExSubdivideContext)
+	
+	if (Context->bFlagSubPoints) { PCGEX_VALIDATE_NAME(Context->FlagName) }
+
+	return true;
+	
+}
+
 
 bool FPCGExSubdivideElement::ExecuteInternal(FPCGContext* InContext) const
 {
@@ -75,7 +87,7 @@ bool FPCGExSubdivideElement::ExecuteInternal(FPCGContext* InContext) const
 			Context->Milestones.Add(0);
 			Context->MilestonesMetrics.Empty();
 			Context->MilestonesMetrics.Add(PCGExMath::FPathMetrics{});
-			if (Context->bFlagSubPoints) { Context->FlagAttribute = PointIO.GetOut()->Metadata->FindOrCreateAttribute(Context->FlagName, false); }
+			if (Context->bFlagSubPoints) { Context->FlagAttribute = PointIO.GetOut()->Metadata->FindOrCreateAttribute(Context->FlagName, false, false); }
 			Context->Blending->PrepareForData(PointIO);
 		};
 
@@ -111,7 +123,7 @@ bool FPCGExSubdivideElement::ExecuteInternal(FPCGContext* InContext) const
 				NewPoint.Transform.SetLocation(SubLocation);
 				Metrics.Add(SubLocation);
 
-				if (Context->bFlagSubPoints) { Context->FlagAttribute->SetValue(NewPoint.MetadataEntry, true); }
+				if (Context->FlagAttribute) { Context->FlagAttribute->SetValue(NewPoint.MetadataEntry, true); }
 			}
 
 			Metrics.Add(EndPos);

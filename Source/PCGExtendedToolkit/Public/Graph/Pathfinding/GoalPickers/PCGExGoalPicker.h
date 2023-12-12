@@ -23,9 +23,9 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	EPCGExIndexSafety IndexSafety = EPCGExIndexSafety::Wrap;
 
-	virtual void PrepareForData(const UPCGPointData* InSeeds, const UPCGPointData* InGoals);
-	virtual int32 GetGoalIndex(const FPCGPoint& Seed, const int32 SeedIndex) const;
-	virtual void GetGoalIndices(const FPCGPoint& Seed, TArray<int32>& OutIndices) const;
+	virtual void PrepareForData(const PCGExData::FPointIO& InSeeds, const PCGExData::FPointIO& InGoals);
+	virtual int32 GetGoalIndex(const PCGEx::FPointRef& Seed) const;
+	virtual void GetGoalIndices(const PCGEx::FPointRef& Seed, TArray<int32>& OutIndices) const;
 	virtual bool OutputMultipleGoals() const;
 
 protected:

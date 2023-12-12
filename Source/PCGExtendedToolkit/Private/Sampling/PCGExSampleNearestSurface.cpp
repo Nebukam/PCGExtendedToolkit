@@ -12,6 +12,11 @@ int32 UPCGExSampleNearestSurfaceSettings::GetPreferredChunkSize() const { return
 
 FPCGElementPtr UPCGExSampleNearestSurfaceSettings::CreateElement() const { return MakeShared<FPCGExSampleNearestSurfaceElement>(); }
 
+FPCGExSampleNearestSurfaceContext::~FPCGExSampleNearestSurfaceContext()
+{
+	PCGEX_SAMPLENEARESTSURFACE_FOREACH(PCGEX_OUTPUT_DELETE)
+}
+
 FPCGContext* FPCGExSampleNearestSurfaceElement::Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node)
 {
 	FPCGExSampleNearestSurfaceContext* Context = new FPCGExSampleNearestSurfaceContext();
@@ -27,11 +32,7 @@ FPCGContext* FPCGExSampleNearestSurfaceElement::Initialize(const FPCGDataCollect
 	PCGEX_FWD(ProfileName)
 	PCGEX_FWD(bIgnoreSelf)
 
-	PCGEX_FORWARD_OUT_ATTRIBUTE(Success)
-	PCGEX_FORWARD_OUT_ATTRIBUTE(Location)
-	PCGEX_FORWARD_OUT_ATTRIBUTE(LookAt)
-	PCGEX_FORWARD_OUT_ATTRIBUTE(Normal)
-	PCGEX_FORWARD_OUT_ATTRIBUTE(Distance)
+	PCGEX_SAMPLENEARESTSURFACE_FOREACH(PCGEX_OUTPUT_FWD)
 
 	return Context;
 }
@@ -41,12 +42,10 @@ bool FPCGExSampleNearestSurfaceElement::Validate(FPCGContext* InContext) const
 	if (!FPCGExPointsProcessorElementBase::Validate(InContext)) { return false; }
 
 	PCGEX_CONTEXT(FPCGExSampleNearestSurfaceContext)
-	
-	PCGEX_CHECK_OUT_ATTRIBUTE_NAME(Success)
-	PCGEX_CHECK_OUT_ATTRIBUTE_NAME(Location)
-	PCGEX_CHECK_OUT_ATTRIBUTE_NAME(LookAt)
-	PCGEX_CHECK_OUT_ATTRIBUTE_NAME(Normal)
-	PCGEX_CHECK_OUT_ATTRIBUTE_NAME(Distance)
+	PCGEX_SETTINGS(UPCGExSampleNearestSurfaceSettings)
+
+	PCGEX_SAMPLENEARESTSURFACE_FOREACH(PCGEX_OUTPUT_VALIDATE_NAME)
+
 	return true;
 }
 
@@ -55,7 +54,7 @@ bool FPCGExSampleNearestSurfaceElement::ExecuteInternal(FPCGContext* InContext) 
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExSampleNearestSurfaceElement::Execute);
 
 	PCGEX_CONTEXT(FPCGExSampleNearestSurfaceContext)
-	
+
 	if (Context->IsSetup())
 	{
 		if (!Validate(Context)) { return true; }
@@ -85,17 +84,12 @@ bool FPCGExSampleNearestSurfaceElement::ExecuteInternal(FPCGContext* InContext) 
 	{
 		auto Initialize = [&](PCGExData::FPointIO& PointIO)
 		{
-			PointIO.BuildMetadataEntries();
-			PCGEX_INIT_ATTRIBUTE_OUT(Success, bool)
-			PCGEX_INIT_ATTRIBUTE_OUT(Location, FVector)
-			PCGEX_INIT_ATTRIBUTE_OUT(LookAt, FVector)
-			PCGEX_INIT_ATTRIBUTE_OUT(Normal, FVector)
-			PCGEX_INIT_ATTRIBUTE_OUT(Distance, double)
+			PCGEX_SAMPLENEARESTSURFACE_FOREACH(PCGEX_OUTPUT_ACCESSOR_INIT)
 		};
 
 		auto ProcessPoint = [&](int32 PointIndex, const PCGExData::FPointIO& PointIO)
 		{
-			Context->GetAsyncManager()->Start<FSweepSphereTask>(PointIndex, PointIO.GetOutPoint(PointIndex).MetadataEntry, Context->CurrentIO);
+			Context->GetAsyncManager()->Start<FSweepSphereTask>(PointIndex, Context->CurrentIO);
 		};
 
 		if (Context->ProcessCurrentPoints(Initialize, ProcessPoint)) { Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork); }
@@ -103,7 +97,11 @@ bool FPCGExSampleNearestSurfaceElement::ExecuteInternal(FPCGContext* InContext) 
 
 	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
 	{
-		if (Context->IsAsyncWorkComplete()) { Context->SetState(PCGExMT::State_ReadyForNextPoints); }
+		if (Context->IsAsyncWorkComplete())
+		{
+			PCGEX_SAMPLENEARESTSURFACE_FOREACH(PCGEX_OUTPUT_WRITE)
+			Context->SetState(PCGExMT::State_ReadyForNextPoints);
+		}
 	}
 
 	if (Context->IsDone())
@@ -119,8 +117,7 @@ bool FSweepSphereTask::ExecuteTask()
 	const FPCGExSampleNearestSurfaceContext* Context = Manager->GetContext<FPCGExSampleNearestSurfaceContext>();
 	PCGEX_ASYNC_CHECKPOINT
 
-	const FPCGPoint& InPoint = PointIO->GetInPoint(TaskInfos.Index);
-	const FVector Origin = InPoint.Transform.GetLocation();
+	const FVector Origin = PointIO->GetInPoint(TaskInfos.Index).Transform.GetLocation();
 
 	FCollisionQueryParams CollisionParams;
 	CollisionParams.bTraceComplex = false;
@@ -158,10 +155,10 @@ bool FSweepSphereTask::ExecuteTask()
 		{
 			PCGEX_ASYNC_CHECKPOINT_VOID
 			const FVector Direction = (HitLocation - Origin).GetSafeNormal();
-			PCGEX_SET_OUT_ATTRIBUTE(Location, TaskInfos.Key, HitLocation)
-			PCGEX_SET_OUT_ATTRIBUTE(Normal, TaskInfos.Key, Direction*-1) // TODO: expose "precise normal" in which case we line trace to location
-			PCGEX_SET_OUT_ATTRIBUTE(LookAt, TaskInfos.Key, Direction)
-			PCGEX_SET_OUT_ATTRIBUTE(Distance, TaskInfos.Key, MinDist)
+			PCGEX_OUTPUT_VALUE(Location, TaskInfos.Index, HitLocation)
+			PCGEX_OUTPUT_VALUE(Normal, TaskInfos.Index, Direction*-1) // TODO: expose "precise normal" in which case we line trace to location
+			PCGEX_OUTPUT_VALUE(LookAt, TaskInfos.Index, Direction)
+			PCGEX_OUTPUT_VALUE(Distance, TaskInfos.Index, MinDist)
 		}
 	};
 
@@ -191,7 +188,7 @@ bool FSweepSphereTask::ExecuteTask()
 	}
 
 	PCGEX_ASYNC_CHECKPOINT
-	PCGEX_SET_OUT_ATTRIBUTE(Success, TaskInfos.Key, bSuccess)
+	PCGEX_OUTPUT_VALUE(Success, TaskInfos.Index, bSuccess)
 	return bSuccess;
 }
 

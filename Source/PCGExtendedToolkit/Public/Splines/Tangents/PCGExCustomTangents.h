@@ -12,7 +12,7 @@ USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExSingleTangentParams
 {
 	GENERATED_BODY()
-
+	
 	FPCGExSingleTangentParams()
 	{
 		Direction.Selector.Update("$Transform");
@@ -33,22 +33,21 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSingleTangentParams
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	double DefaultScale = 10;
 
-	void PrepareForData(const UPCGPointData* InData)
+	void PrepareForData(PCGExData::FPointIO& InData)
 	{
 		DirectionGetter.Capture(Direction);
-		DirectionGetter.Validate(InData);
-
+		DirectionGetter.Bind(InData);
 		if (bUseLocalScale)
 		{
 			ScaleGetter.bEnabled = true;
 			ScaleGetter.Capture(LocalScale);
-			ScaleGetter.Validate(InData);
+			ScaleGetter.Bind(InData);
 		}
 		else { ScaleGetter.bEnabled = false; }
 	}
 
-	FVector GetDirection(const FPCGPoint& Point) const { return DirectionGetter.GetValue(Point); }
-	FVector GetTangent(const FPCGPoint& Point) const { return DirectionGetter.GetValue(Point) * ScaleGetter.GetValueSafe(Point, DefaultScale); }
+	FVector GetDirection(const int32 Index) const { return DirectionGetter[Index]; }
+	FVector GetTangent(const int32 Index) const { return DirectionGetter[Index] * ScaleGetter.GetValueSafe(Index, DefaultScale); }
 };
 
 /**

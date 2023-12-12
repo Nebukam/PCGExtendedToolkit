@@ -105,11 +105,11 @@ FPCGContext* FPCGExSampleNavmeshElement::Initialize(const FPCGDataCollection& In
 
 	PCGEX_FWD(bAddSeedToPath)
 	PCGEX_FWD(bAddGoalToPath)
-	
+
 	PCGEX_FWD(NavAgentProperties)
 	PCGEX_FWD(bRequireNavigableEndLocation)
 	PCGEX_FWD(PathfindingMode)
-	
+
 	Context->FuseDistance = Settings->FuseDistance * Settings->FuseDistance;
 
 	return Context;
@@ -147,7 +147,7 @@ bool FPCGExSampleNavmeshElement::ExecuteInternal(FPCGContext* InContext) const
 	{
 		if (!Validate(Context)) { return true; }
 		Context->AdvancePointsIO();
-		Context->GoalPicker->PrepareForData(Context->CurrentIO->GetIn(), Context->GoalsPoints->GetIn());
+		Context->GoalPicker->PrepareForData(*Context->CurrentIO, *Context->GoalsPoints);
 		Context->SetState(PCGExMT::State_ProcessingPoints);
 	}
 
@@ -164,10 +164,12 @@ bool FPCGExSampleNavmeshElement::ExecuteInternal(FPCGContext* InContext) const
 				Context->BufferLock.WriteUnlock();
 			};
 
+			const PCGEx::FPointRef& Seed = PointIO.GetInPointRef(PointIndex);
+
 			if (Context->GoalPicker->OutputMultipleGoals())
 			{
 				TArray<int32> GoalIndices;
-				Context->GoalPicker->GetGoalIndices(PointIO.GetInPoint(PointIndex), GoalIndices);
+				Context->GoalPicker->GetGoalIndices(Seed, GoalIndices);
 				for (const int32 GoalIndex : GoalIndices)
 				{
 					if (GoalIndex < 0) { continue; }
@@ -176,7 +178,7 @@ bool FPCGExSampleNavmeshElement::ExecuteInternal(FPCGContext* InContext) const
 			}
 			else
 			{
-				const int32 GoalIndex = Context->GoalPicker->GetGoalIndex(PointIO.GetInPoint(PointIndex), PointIndex);
+				const int32 GoalIndex = Context->GoalPicker->GetGoalIndex(Seed);
 				if (GoalIndex < 0) { return; }
 				NavMeshTask(GoalIndex);
 			}
@@ -190,7 +192,7 @@ bool FPCGExSampleNavmeshElement::ExecuteInternal(FPCGContext* InContext) const
 		auto ProcessPath = [&](const int32 Index)
 		{
 			PCGExSampleNavmesh::FPath& PathObject = Context->PathBuffer[Index];
-			Context->GetAsyncManager()->Start<FNavmeshPathTask>(PathObject.SeedIndex, Context->CurrentIO->GetInPoint(PathObject.SeedIndex).MetadataEntry, Context->CurrentIO, &PathObject);
+			Context->GetAsyncManager()->Start<FNavmeshPathTask>(PathObject.SeedIndex, Context->CurrentIO, &PathObject);
 		};
 
 		if (Context->Process(ProcessPath, Context->PathBuffer.Num()))

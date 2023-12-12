@@ -23,9 +23,9 @@ FPCGContext* FPCGExConsolidateGraphElement::Initialize(
 	InitializeContext(Context, InputData, SourceComponent, Node);
 
 	PCGEX_SETTINGS(UPCGExConsolidateGraphSettings)
-	
+
 	PCGEX_FWD(bConsolidateEdgeType)
-	
+
 	return Context;
 }
 
@@ -67,17 +67,17 @@ bool FPCGExConsolidateGraphElement::ExecuteInternal(
 		auto Initialize = [&](PCGExData::FPointIO& PointIO)
 		{
 			Context->IndicesRemap.Empty(PointIO.GetNum());
-			PointIO.BuildMetadataEntries();
-			Context->PrepareCurrentGraphForPoints(PointIO.GetOut(), true); // Prepare to read PointIO->Out
+			//PointIO.GetInKeys();
+			//PointIO.GetOutKeys();
+			Context->PrepareCurrentGraphForPoints(PointIO, false); // Prepare to read PointIO->Out
 		};
 
 		auto ProcessPoint = [&](const int32 PointIndex, const PCGExData::FPointIO& PointIO)
 		{
 			FWriteScopeLock WriteLock(Context->IndicesLock);
-			const int64 Key = PointIO.GetOutPoint(PointIndex).MetadataEntry;
-			const int32 CachedIndex = Context->CachedIndex->GetValueFromItemKey(Key);
+			const int32 CachedIndex = Context->GetCachedIndex(PointIndex);
 			Context->IndicesRemap.Add(CachedIndex, PointIndex); // Store previous
-			Context->CachedIndex->SetValue(Key, PointIndex);    // Update cached value with fresh one
+			Context->SetCachedIndex(PointIndex, PointIndex);    // Update cached value with fresh one
 		};
 
 
@@ -97,19 +97,15 @@ bool FPCGExConsolidateGraphElement::ExecuteInternal(
 			const FPCGPoint& Point = PointIO.GetOutPoint(PointIndex);
 			for (const PCGExGraph::FSocketInfos& SocketInfos : Context->SocketInfos)
 			{
-				const int64 OldRelationIndex = SocketInfos.Socket->GetTargetIndex(Point.MetadataEntry);
+				const int32 OldRelationIndex = SocketInfos.Socket->GetTargetIndex(PointIndex);
 
 				if (OldRelationIndex == -1) { continue; } // No need to fix further
 
-				const int64 NewRelationIndex = GetFixedIndex(Context, OldRelationIndex);
-				const PCGMetadataEntryKey Key = Point.MetadataEntry;
-				PCGMetadataEntryKey NewEntryKey = PCGInvalidEntryKey;
+				const int32 NewRelationIndex = GetFixedIndex(Context, OldRelationIndex);
 
-				if (NewRelationIndex != -1) { NewEntryKey = PointIO.GetOutPoint(NewRelationIndex).MetadataEntry; }
-				else { SocketInfos.Socket->SetEdgeType(Key, EPCGExEdgeType::Unknown); }
+				if (NewRelationIndex == -1) { SocketInfos.Socket->SetEdgeType(PointIndex, EPCGExEdgeType::Unknown); }
 
-				SocketInfos.Socket->SetTargetIndex(Key, NewRelationIndex);
-				SocketInfos.Socket->SetTargetEntryKey(Key, NewEntryKey);
+				SocketInfos.Socket->SetTargetIndex(PointIndex, NewRelationIndex);
 			}
 		};
 
@@ -125,7 +121,7 @@ bool FPCGExConsolidateGraphElement::ExecuteInternal(
 	{
 		auto ConsolidateEdgesType = [&](const int32 PointIndex, const PCGExData::FPointIO& PointIO)
 		{
-			ComputeEdgeType(Context->SocketInfos, PointIO.GetOutPoint(PointIndex), PointIndex, PointIO);
+			ComputeEdgeType(Context->SocketInfos, PointIndex);
 		};
 
 		if (Context->ProcessCurrentPoints(ConsolidateEdgesType))

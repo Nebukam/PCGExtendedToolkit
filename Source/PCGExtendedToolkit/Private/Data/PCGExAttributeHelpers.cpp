@@ -13,28 +13,22 @@ void FPCGExInputDescriptor::UpdateUserFacingInfos() { TitlePropertyName = GetDis
 
 bool FPCGExInputDescriptor::Validate(const UPCGPointData* InData)
 {
-	bValidatedAtLeastOnce = true;
 	Selector = Selector.CopyAndFixLast(InData);
-
+	
 	if (GetSelection() == EPCGAttributePropertySelection::Attribute)
 	{
 		Attribute = Selector.IsValid() ? InData->Metadata->GetMutableAttribute(GetName()) : nullptr;
-
-		if (Attribute)
-		{
-			const TUniquePtr<const IPCGAttributeAccessor> Accessor = PCGAttributeAccessorHelpers::CreateConstAccessor(InData, Selector);
-			UnderlyingType = Accessor->GetUnderlyingType();
-			//if (!Accessor.IsValid()) { Attribute = nullptr; }
-		}
-
+		UnderlyingType = Attribute ? Attribute->GetTypeId() : static_cast<int16>(EPCGMetadataTypes::Unknown);
 		return Attribute != nullptr;
 	}
+
 	if (Selector.IsValid())
 	{
 		const TUniquePtr<const IPCGAttributeAccessor> Accessor = PCGAttributeAccessorHelpers::CreateConstAccessor(InData, Selector);
 		UnderlyingType = Accessor->GetUnderlyingType();
 		return true;
 	}
+
 	return false;
 }
 

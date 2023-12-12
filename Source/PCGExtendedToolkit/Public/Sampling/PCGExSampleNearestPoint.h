@@ -10,6 +10,15 @@
 
 #include "PCGExSampleNearestPoint.generated.h"
 
+#define PCGEX_SAMPLENEARESTPOINT_FOREACH(MACRO)\
+MACRO(Success, bool)\
+MACRO(Location, FVector)\
+MACRO(LookAt, FVector)\
+MACRO(Normal, FVector)\
+MACRO(Distance, double)\
+MACRO(SignedDistance, double)\
+MACRO(Angle, double)
+
 namespace PCGExNearestPoint
 {
 	struct PCGEXTENDEDTOOLKIT_API FTargetInfos
@@ -208,13 +217,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestPointContext : public FPCGExPoi
 {
 	friend class FPCGExSampleNearestPointElement;
 
-public:
-	UPCGPointData* Targets = nullptr;
-	UPCGPointData* TargetsCache = nullptr;
-	UPCGPointData::PointOctree* Octree = nullptr;
-
-	TMap<PCGMetadataEntryKey, int64> TargetIndices;
-	mutable FRWLock IndicesLock;
+	~FPCGExSampleNearestPointContext();
+	
+	PCGExData::FPointIO* Targets = nullptr;
 
 	EPCGExSampleMethod SampleMethod = EPCGExSampleMethod::WithinRange;
 	EPCGExWeightMethod WeightMethod = EPCGExWeightMethod::FullRange;
@@ -222,30 +227,18 @@ public:
 	double RangeMin = 0;
 	double RangeMax = 1000;
 
-	bool bLocalRangeMin = false;
-	bool bLocalRangeMax = false;
-
-	int64 NumTargets = 0;
+	bool bUseLocalRangeMin = false;
+	bool bUseLocalRangeMax = false;
 
 	PCGEx::FLocalSingleFieldGetter RangeMinGetter;
 	PCGEx::FLocalSingleFieldGetter RangeMaxGetter;
-
 	PCGEx::FLocalDirectionGetter NormalInput;
 
 	UCurveFloat* WeightCurve = nullptr;
 
-	//TODO: Setup target local inputs
-
-	PCGEX_OUT_ATTRIBUTE(Success, bool)
-	PCGEX_OUT_ATTRIBUTE(Location, FVector)
-	PCGEX_OUT_ATTRIBUTE(LookAt, FVector)
-	PCGEX_OUT_ATTRIBUTE(Normal, FVector)
-	PCGEX_OUT_ATTRIBUTE(Distance, double)
-
-	PCGEX_OUT_ATTRIBUTE(SignedDistance, double)
+	PCGEX_SAMPLENEARESTPOINT_FOREACH(PCGEX_OUTPUT_DECL)
+	
 	EPCGExAxis SignAxis;
-
-	PCGEX_OUT_ATTRIBUTE(Angle, double)
 	EPCGExAxis AngleAxis;
 	EPCGExAngleRange AngleRange;
 };
@@ -257,8 +250,20 @@ public:
 		const FPCGDataCollection& InputData,
 		TWeakObjectPtr<UPCGComponent> SourceComponent,
 		const UPCGNode* Node) override;
-	virtual bool Validate(FPCGContext* InContext) const override;
 
 protected:
+	virtual bool Validate(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
+
+class PCGEXTENDEDTOOLKIT_API FSamplePointTask : public FPCGExCollisionTask
+{
+public:
+	FSamplePointTask(FPCGExAsyncManager* InManager, const PCGExMT::FTaskInfos& InInfos, PCGExData::FPointIO* InPointIO) :
+		FPCGExCollisionTask(InManager, InInfos, InPointIO)
+	{
+	}
+
+	virtual bool ExecuteTask() override;
+};
+

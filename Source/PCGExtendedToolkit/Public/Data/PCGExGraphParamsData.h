@@ -66,18 +66,18 @@ public:
 	/**
 	 * Prepare socket mapping for working with a given PointData object.
 	 * @param Context
-	 * @param PointData
+	 * @param PointIO
 	 * @param bEnsureEdgeType 
 	 */
-	void PrepareForPointData(const UPCGPointData* PointData, const bool bEnsureEdgeType);
+	void PrepareForPointData(const PCGExData::FPointIO& PointIO, const bool bEnsureEdgeType);
 
 	/**
 		 * Fills an array in order with each' socket metadata registered for a given point.
 		 * Make sure to call PrepareForPointData first.
-		 * @param MetadataEntry 
+		 * @param PointIndex 
 		 * @param OutMetadata 
 		 */
-	void GetSocketsData(const PCGMetadataEntryKey MetadataEntry, TArray<PCGExGraph::FSocketMetadata>& OutMetadata) const;
+	void GetSocketsData(const int32 PointIndex, TArray<PCGExGraph::FSocketMetadata>& OutMetadata) const;
 
 	/**
 	 * 
@@ -91,33 +91,33 @@ public:
 		for (const PCGExGraph::FSocket& Socket : SocketMapping.Sockets)
 		{
 			T Edge;
-			if (Socket.TryGetEdge(InIndex, MetadataEntry, Edge)) { OutEdges.AddUnique(Edge); }
+			if (Socket.TryGetEdge(MetadataEntry, Edge)) { OutEdges.AddUnique(Edge); }
 		}
 	}
 
 	/**
 	 * 
-	 * @param InIndex 
+	 * @param PointIndex 
 	 * @param MetadataEntry 
 	 * @param OutEdges
 	 * @param EdgeFilter 
 	 */
 	template <typename T>
-	void GetEdges(const int32 InIndex, const PCGMetadataEntryKey MetadataEntry, TArray<T>& OutEdges, const EPCGExEdgeType& EdgeFilter) const
+	void GetEdges(const int32 PointIndex, TArray<T>& OutEdges, const EPCGExEdgeType& EdgeFilter) const
 	{
 		for (const PCGExGraph::FSocket& Socket : SocketMapping.Sockets)
 		{
 			T Edge;
-			if (Socket.TryGetEdge(InIndex, MetadataEntry, Edge, EdgeFilter)) { OutEdges.AddUnique(Edge); }
+			if (Socket.TryGetEdge(PointIndex, Edge, EdgeFilter)) { OutEdges.AddUnique(Edge); }
 		}
 	}
 
 	/**
 	 * Make sure InMetadata has the same length as the nu
-	 * @param MetadataEntry 
+	 * @param PointIndex 
 	 * @param InMetadata 
 	 */
-	void SetSocketsData(const PCGMetadataEntryKey MetadataEntry, TArray<PCGExGraph::FSocketMetadata>& InMetadata);
+	void SetSocketsData(const int32 PointIndex, TArray<PCGExGraph::FSocketMetadata>& InMetadata);
 
 	void GetSocketsInfos(TArray<PCGExGraph::FSocketInfos>& OutInfos);
 };
@@ -173,7 +173,7 @@ namespace PCGExGraph
 		{
 			for (int i = 0; i < Params.Num(); i++)
 			{
-				UPCGExGraphParamsData* ParamsData = Params[i];
+				UPCGExGraphParamsData* ParamsData = Params[i]; //TODO : Create "working copies" so we don't start working with destroyed sockets, as params lie early in the graph
 				BodyLoop(ParamsData, i);
 			}
 		}

@@ -49,13 +49,12 @@ bool FPCGExSampleGraphPatchesElement::ExecuteInternal(FPCGContext* InContext) co
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExSampleGraphPatchesElement::Execute);
 
 	PCGEX_CONTEXT(FPCGExSampleGraphPatchesContext)
-	
+
 	if (Context->IsSetup())
 	{
 		if (!Validate(Context)) { return true; }
 		Context->AdvancePointsIO();
-		Context->GoalPicker->PrepareForData(Context->GetCurrentIn(), Context->GoalsPoints->GetIn());
-		//Context->Blending->PrepareForData(Context->GetCurrentIn(), Context->GoalsPoints->GetIn());
+		Context->GoalPicker->PrepareForData(*Context->SeedsPoints, *Context->GoalsPoints);
 		Context->SetState(PCGExMT::State_ProcessingPoints);
 	}
 
@@ -72,14 +71,16 @@ bool FPCGExSampleGraphPatchesElement::ExecuteInternal(FPCGContext* InContext) co
 			{
 				PCGExData::FPointIO& PathPoints = Context->OutputPaths->Emplace_GetRef(PointIO.GetIn(), PCGExData::EInit::NewOutput);
 				Context->GetAsyncManager()->Start<FSamplePatchPathTask>(
-					PointIndex, PointIO.GetInPoint(PointIndex).MetadataEntry, Context->CurrentIO,
+					PointIndex, Context->CurrentIO,
 					InGoalIndex, &PathPoints);
 			};
+
+			const PCGEx::FPointRef& Seed = PointIO.GetInPointRef(PointIndex);
 
 			if (Context->GoalPicker->OutputMultipleGoals())
 			{
 				TArray<int32> GoalIndices;
-				Context->GoalPicker->GetGoalIndices(PointIO.GetInPoint(PointIndex), GoalIndices);
+				Context->GoalPicker->GetGoalIndices(Seed, GoalIndices);
 				for (const int32 GoalIndex : GoalIndices)
 				{
 					if (GoalIndex < 0) { continue; }
@@ -88,7 +89,7 @@ bool FPCGExSampleGraphPatchesElement::ExecuteInternal(FPCGContext* InContext) co
 			}
 			else
 			{
-				const int32 GoalIndex = Context->GoalPicker->GetGoalIndex(PointIO.GetInPoint(PointIndex), PointIndex);
+				const int32 GoalIndex = Context->GoalPicker->GetGoalIndex(Seed);
 				if (GoalIndex < 0) { return; }
 				NavMeshTask(GoalIndex);
 			}

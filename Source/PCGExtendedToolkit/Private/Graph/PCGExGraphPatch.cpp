@@ -130,7 +130,7 @@ void FPCGExGraphPatchGroup::Distribute(const int32 InIndex, FPCGExGraphPatch* Pa
 	TArray<PCGExGraph::FUnsignedEdge> UnsignedEdges;
 	UnsignedEdges.Reserve(NumMaxEdges);
 
-	CurrentGraph->GetEdges(InIndex, PointIO->GetInPoint(InIndex).MetadataEntry, UnsignedEdges, CrawlEdgeTypes);
+	CurrentGraph->GetEdges(InIndex, UnsignedEdges, CrawlEdgeTypes);
 
 	for (const PCGExGraph::FUnsignedEdge& UEdge : UnsignedEdges)
 	{

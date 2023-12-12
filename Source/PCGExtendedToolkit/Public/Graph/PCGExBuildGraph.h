@@ -38,7 +38,7 @@ protected:
 public:
 	/** Ignores candidates weighting pass and always favors the closest one.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced)
-	UPCGExGraphSolver* GraphSolver;
+	UPCGExGraphSolver* GraphSolver = nullptr;
 
 	virtual FName GetMainPointsInputLabel() const override;
 	virtual int32 GetPreferredChunkSize() const override;
@@ -55,7 +55,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBuildGraphContext : public FPCGExGraphProces
 	friend class FProbeTask;
 
 public:
-	UPCGExGraphSolver* GraphSolver;
+	UPCGExGraphSolver* GraphSolver = nullptr;
 	bool bMoveSocketOriginOnPointExtent = false;
 
 	UPCGPointData::PointOctree* Octree = nullptr;

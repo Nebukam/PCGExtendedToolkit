@@ -6,27 +6,18 @@
 #include "PCGExMT.h"
 #include "PCGExSampling.generated.h"
 
-#define PCGEX_OUT_ATTRIBUTE(_NAME, _TYPE)\
-bool bWrite##_NAME = false;\
-FName OutName##_NAME = NAME_None;\
-FPCGMetadataAttribute<_TYPE>* OutAttribute##_NAME = nullptr;
+#define PCGEX_OUTPUT_DECL(_NAME, _TYPE) PCGEx::TFAttributeWriter<_TYPE>* _NAME##Writer = nullptr;
+#define PCGEX_OUTPUT_FWD(_NAME, _TYPE) Context->_NAME##Writer = Settings->bWrite##_NAME ? new PCGEx::TFAttributeWriter<_TYPE>(Settings->_NAME) : nullptr;
 
-#define PCGEX_FORWARD_OUT_ATTRIBUTE(_NAME)\
-Context->bWrite##_NAME = Settings->bWrite##_NAME;\
-Context->OutName##_NAME = Settings->_NAME;
+#define PCGEX_OUTPUT_VALIDATE_NAME(_NAME, _TYPE)\
+if(Settings->bWrite##_NAME && !FPCGMetadataAttributeBase::IsValidName(Settings->_NAME))\
+{ PCGE_LOG(Warning, GraphAndLog, LOCTEXT("InvalidName", "Invalid output attribute name " #_NAME )); }\
+else{ PCGEX_DELETE(Context->_NAME##Writer) }
 
-#define PCGEX_CHECK_OUT_ATTRIBUTE_NAME(_NAME)\
-if(Context->bWrite##_NAME && !FPCGMetadataAttributeBase::IsValidName(Context->OutName##_NAME))\
-{ PCGE_LOG(Warning, GraphAndLog, LOCTEXT("InvalidName", "Invalid output attribute name " #_NAME ));\
-Context->bWrite##_NAME = false; }
-
-#define PCGEX_SET_OUT_ATTRIBUTE(_NAME, _KEY, _VALUE)\
-if (Context->OutAttribute##_NAME) { Context->OutAttribute##_NAME->SetValue(_KEY, _VALUE); }
-
-#define PCGEX_INIT_ATTRIBUTE_OUT(_NAME, _TYPE)\
-Context->OutAttribute##_NAME = PCGEx::TryGetAttribute<_TYPE>(PointIO.GetOut(), Context->OutName##_NAME, Context->bWrite##_NAME);
-#define PCGEX_INIT_ATTRIBUTE_IN(_NAME, _TYPE)\
-Context->OutAttribute##_NAME = PCGEx::TryGetAttribute<_TYPE>(PointIO.GetIn(), Context->OutName##_NAME, Context->bWrite##_NAME);
+#define PCGEX_OUTPUT_VALUE(_NAME, _INDEX, _VALUE) if(Context->_NAME##Writer){(*Context->_NAME##Writer)[_INDEX] = _VALUE; }
+#define PCGEX_OUTPUT_WRITE(_NAME, _TYPE) if(Context->_NAME##Writer){Context->_NAME##Writer->Write();}
+#define PCGEX_OUTPUT_ACCESSOR_INIT(_NAME, _TYPE) if(Context->_NAME##Writer){Context->_NAME##Writer->BindAndGet(PointIO);}
+#define PCGEX_OUTPUT_DELETE(_NAME, _TYPE) PCGEX_DELETE(_NAME##Writer)
 
 UENUM(BlueprintType)
 enum class EPCGExSampleMethod : uint8
@@ -60,8 +51,10 @@ namespace PCGExSampling
 	const FName SourceIgnoreActorsLabel = TEXT("InIgnoreActors");
 	const FName OutputSampledActorsLabel = TEXT("OutSampledActors");
 
-	static void GetAngle(const EPCGExAngleRange Mode, const FVector& A, const FVector& B, double& OutAngle)
+	static double GetAngle(const EPCGExAngleRange Mode, const FVector& A, const FVector& B)
 	{
+		double OutAngle = 0;
+
 		const FVector N1 = A.GetSafeNormal();
 		const FVector N2 = B.GetSafeNormal();
 
@@ -103,6 +96,8 @@ namespace PCGExSampling
 			break;
 		default: ;
 		}
+
+		return OutAngle;
 	}
 }
 

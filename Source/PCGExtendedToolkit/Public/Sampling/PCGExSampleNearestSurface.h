@@ -13,6 +13,13 @@
 #include "PCGExSampleNearestSurface.generated.h"
 
 
+#define PCGEX_SAMPLENEARESTSURFACE_FOREACH(MACRO)\
+MACRO(Success, bool)\
+MACRO(Location, FVector)\
+MACRO(LookAt, FVector)\
+MACRO(Normal, FVector)\
+MACRO(Distance, double)
+
 /**
  * Use PCGExSampling to manipulate the outgoing attributes instead of handling everything here.
  * This way we can multi-thread the various calculations instead of mixing everything along with async/game thread collision
@@ -120,7 +127,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestSurfaceContext : public FPCGExP
 {
 	friend class FPCGExSampleNearestSurfaceElement;
 
-public:
+	~FPCGExSampleNearestSurfaceContext();
+	
 	double RangeMax = 1000;
 
 	EPCGExCollisionFilterType CollisionType = EPCGExCollisionFilterType::Channel;
@@ -131,11 +139,8 @@ public:
 	bool bIgnoreSelf = true;
 	TArray<AActor*> IgnoredActors;
 
-	PCGEX_OUT_ATTRIBUTE(Success, bool)
-	PCGEX_OUT_ATTRIBUTE(Location, FVector)
-	PCGEX_OUT_ATTRIBUTE(LookAt, FVector)
-	PCGEX_OUT_ATTRIBUTE(Normal, FVector)
-	PCGEX_OUT_ATTRIBUTE(Distance, double)
+	PCGEX_SAMPLENEARESTSURFACE_FOREACH(PCGEX_OUTPUT_DECL)
+	
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestSurfaceElement : public FPCGExPointsProcessorElementBase
@@ -145,9 +150,9 @@ public:
 		const FPCGDataCollection& InputData,
 		TWeakObjectPtr<UPCGComponent> SourceComponent,
 		const UPCGNode* Node) override;
-	virtual bool Validate(FPCGContext* InContext) const override;
 
 protected:
+	virtual bool Validate(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 

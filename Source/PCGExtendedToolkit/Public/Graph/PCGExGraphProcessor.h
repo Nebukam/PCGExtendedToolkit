@@ -38,10 +38,11 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGraphProcessorContext : public FPCGExPointsP
 {
 	friend class UPCGExGraphProcessorSettings;
 
-public:
+	~FPCGExGraphProcessorContext();
+
+	bool bReadOnly = false;
 	PCGExGraph::FGraphInputs Graphs;
 
-	int32 GetCurrentParamsIndex() const { return CurrentParamsIndex; };
 	UPCGExGraphParamsData* CurrentGraph = nullptr;
 
 	bool AdvanceGraph(bool bResetPointsIndex = false);
@@ -49,10 +50,12 @@ public:
 
 	virtual void Reset() override;
 
-	FPCGMetadataAttribute<int32>* CachedIndex;
+	void SetCachedIndex(const int32 PointIndex, const int32 Index) const;
+	int32 GetCachedIndex(const int32 PointIndex) const;
+
 	TArray<PCGExGraph::FSocketInfos> SocketInfos;
 
-	void PrepareCurrentGraphForPoints(const UPCGPointData* InData, bool bEnsureEdgeType);
+	void PrepareCurrentGraphForPoints(const PCGExData::FPointIO& PointIO, const bool ReadOnly = true);
 	void OutputGraphParams() { Graphs.OutputTo(this); }
 
 	void OutputPointsAndGraphParams()
@@ -62,6 +65,8 @@ public:
 	}
 
 protected:
+	PCGEx::TFAttributeReader<int32>* CachedIndexReader = nullptr;
+	PCGEx::TFAttributeWriter<int32>* CachedIndexWriter = nullptr;
 	int32 CurrentParamsIndex = -1;
 };
 

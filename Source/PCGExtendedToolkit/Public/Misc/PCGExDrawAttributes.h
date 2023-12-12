@@ -108,20 +108,20 @@ public:
 
 	bool bValid = false;
 
-	bool Validate(const UPCGPointData* InData);
+	bool Validate(const PCGExData::FPointIO& PointIO);
 
-	double GetSize(const FPCGPoint& Point) const;
-	FColor GetColor(const FPCGPoint& Point) const;
-	FVector GetVector(const FPCGPoint& Point) const;
-	FVector GetIndexedPosition(const FPCGPoint& Point, const UPCGPointData* PointData) const;
+	double GetSize(const PCGEx::FPointRef& Point) const;
+	FColor GetColor(const PCGEx::FPointRef& Point) const;
+	FVector GetVector(const PCGEx::FPointRef& Point) const;
+	FVector GetIndexedPosition(const PCGEx::FPointRef& Point, const UPCGPointData* PointData) const;
 
-	void Draw(const UWorld* World, const FVector& Start, const FPCGPoint& Point, const UPCGPointData* PointData) const;
+	void Draw(const UWorld* World, const FVector& Start, const PCGEx::FPointRef& Point, const UPCGPointData* PointData) const;
 
 protected:
-	void DrawDirection(const UWorld* World, const FVector& Start, const FPCGPoint& Point) const;
-	void DrawConnection(const UWorld* World, const FVector& Start, const FPCGPoint& Point, const FVector& End) const;
-	void DrawPoint(const UWorld* World, const FVector& Start, const FPCGPoint& Point) const;
-	void DrawLabel(const UWorld* World, const FVector& Start, const FPCGPoint& Point) const;
+	void DrawDirection(const UWorld* World, const FVector& Start, const PCGEx::FPointRef& Point) const;
+	void DrawConnection(const UWorld* World, const FVector& Start, const PCGEx::FPointRef& Point, const FVector& End) const;
+	void DrawPoint(const UWorld* World, const FVector& Start, const PCGEx::FPointRef& Point) const;
+	void DrawLabel(const UWorld* World, const FVector& Start, const PCGEx::FPointRef& Point) const;
 
 	template <typename T, typename dummy = void>
 	FString AsString(const T& InValue) { return InValue.ToString(); }
@@ -173,9 +173,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExDrawAttributesContext : public FPCGExPointsP
 {
 	friend class FPCGExWriteIndexElement;
 
-public:
-	TArray<FPCGExAttributeDebugDraw> DebugList;
-	void PrepareForPoints(const UPCGPointData* PointData);
+	~FPCGExDrawAttributesContext();
+	
+	TArray<FPCGExAttributeDebugDraw> DebugList;	
 };
 
 
@@ -186,8 +186,8 @@ public:
 		const FPCGDataCollection& InputData,
 		TWeakObjectPtr<UPCGComponent> SourceComponent,
 		const UPCGNode* Node) override;
-	virtual bool Validate(FPCGContext* InContext) const override;
 
 protected:
+	virtual bool Validate(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };

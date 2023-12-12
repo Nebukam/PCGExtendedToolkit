@@ -12,6 +12,11 @@ int32 UPCGExSampleSurfaceGuidedSettings::GetPreferredChunkSize() const { return 
 
 FPCGElementPtr UPCGExSampleSurfaceGuidedSettings::CreateElement() const { return MakeShared<FPCGExSampleSurfaceGuidedElement>(); }
 
+FPCGExSampleSurfaceGuidedContext::~FPCGExSampleSurfaceGuidedContext()
+{
+	PCGEX_SAMPLENEARESTTRACE_FOREACH(PCGEX_OUTPUT_DELETE)
+}
+
 FPCGContext* FPCGExSampleSurfaceGuidedElement::Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node)
 {
 	FPCGExSampleSurfaceGuidedContext* Context = new FPCGExSampleSurfaceGuidedContext();
@@ -31,10 +36,8 @@ FPCGContext* FPCGExSampleSurfaceGuidedElement::Initialize(const FPCGDataCollecti
 	Context->SizeGetter.Capture(Settings->LocalSize);
 
 	Context->DirectionGetter.Capture(Settings->Direction);
-	PCGEX_FORWARD_OUT_ATTRIBUTE(Success)
-	PCGEX_FORWARD_OUT_ATTRIBUTE(Location)
-	PCGEX_FORWARD_OUT_ATTRIBUTE(Normal)
-	PCGEX_FORWARD_OUT_ATTRIBUTE(Distance)
+	
+	PCGEX_SAMPLENEARESTTRACE_FOREACH(PCGEX_OUTPUT_FWD)
 
 	return Context;
 }
@@ -44,11 +47,10 @@ bool FPCGExSampleSurfaceGuidedElement::Validate(FPCGContext* InContext) const
 	if (!FPCGExPointsProcessorElementBase::Validate(InContext)) { return false; }
 
 	PCGEX_CONTEXT(FPCGExSampleSurfaceGuidedContext)
+	PCGEX_SETTINGS(UPCGExSampleSurfaceGuidedSettings)
 
-	PCGEX_CHECK_OUT_ATTRIBUTE_NAME(Success)
-	PCGEX_CHECK_OUT_ATTRIBUTE_NAME(Location)
-	PCGEX_CHECK_OUT_ATTRIBUTE_NAME(Normal)
-	PCGEX_CHECK_OUT_ATTRIBUTE_NAME(Distance)
+	PCGEX_SAMPLENEARESTTRACE_FOREACH(PCGEX_OUTPUT_VALIDATE_NAME)
+	
 	return true;
 }
 
@@ -84,20 +86,16 @@ bool FPCGExSampleSurfaceGuidedElement::ExecuteInternal(FPCGContext* InContext) c
 
 	if (Context->IsState(PCGExMT::State_ProcessingPoints))
 	{
-		auto Initialize = [&](PCGExData::FPointIO& PointIO) //UPCGExPointIO* PointIO
+		auto Initialize = [&](PCGExData::FPointIO& PointIO) 
 		{
-			Context->DirectionGetter.Validate(PointIO.GetOut());
-			PointIO.BuildMetadataEntries();
+			Context->DirectionGetter.Bind(PointIO);
 
-			PCGEX_INIT_ATTRIBUTE_OUT(Success, bool)
-			PCGEX_INIT_ATTRIBUTE_OUT(Location, FVector)
-			PCGEX_INIT_ATTRIBUTE_OUT(Normal, FVector)
-			PCGEX_INIT_ATTRIBUTE_OUT(Distance, double)
+			PCGEX_SAMPLENEARESTTRACE_FOREACH(PCGEX_OUTPUT_ACCESSOR_INIT)
 		};
 
 		auto ProcessPoint = [&](const int32 PointIndex, const PCGExData::FPointIO& PointIO)
 		{
-			Context->GetAsyncManager()->Start<FTraceTask>(PointIndex, PointIO.GetOutPoint(PointIndex).MetadataEntry, Context->CurrentIO);
+			Context->GetAsyncManager()->Start<FTraceTask>(PointIndex, Context->CurrentIO);
 		};
 
 		if (Context->ProcessCurrentPoints(Initialize, ProcessPoint)) { Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork); }
@@ -105,7 +103,11 @@ bool FPCGExSampleSurfaceGuidedElement::ExecuteInternal(FPCGContext* InContext) c
 
 	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
 	{
-		if (Context->IsAsyncWorkComplete()) { Context->SetState(PCGExMT::State_ReadyForNextPoints); }
+		if (Context->IsAsyncWorkComplete())
+		{
+			PCGEX_SAMPLENEARESTTRACE_FOREACH(PCGEX_OUTPUT_WRITE)
+			Context->SetState(PCGExMT::State_ReadyForNextPoints);
+		}
 	}
 
 	if (Context->IsDone())
@@ -121,15 +123,14 @@ bool FTraceTask::ExecuteTask()
 	const FPCGExSampleSurfaceGuidedContext* Context = Manager->GetContext<FPCGExSampleSurfaceGuidedContext>();
 	PCGEX_ASYNC_CHECKPOINT
 
-	const FPCGPoint& InPoint = PointIO->GetInPoint(TaskInfos.Index);
-	const FVector Origin = InPoint.Transform.GetLocation();
+	const FVector Origin = PointIO->GetInPoint(TaskInfos.Index).Transform.GetLocation();
 
 	FCollisionQueryParams CollisionParams;
 	CollisionParams.bTraceComplex = true;
 	CollisionParams.AddIgnoredActors(Context->IgnoredActors);
 
-	const double Size = Context->bUseLocalSize ? Context->SizeGetter.GetValue(InPoint) : Context->Size;
-	const FVector Trace = Context->DirectionGetter.GetValue(InPoint) * Size;
+	const double Size = Context->bUseLocalSize ? Context->SizeGetter[TaskInfos.Index] : Context->Size;
+	const FVector Trace = Context->DirectionGetter[TaskInfos.Index] * Size;
 	const FVector End = Origin + Trace;
 
 	bool bSuccess = false;
@@ -137,9 +138,9 @@ bool FTraceTask::ExecuteTask()
 
 	auto ProcessTraceResult = [&]()
 	{
-		PCGEX_SET_OUT_ATTRIBUTE(Location, TaskInfos.Key, HitResult.ImpactPoint)
-		PCGEX_SET_OUT_ATTRIBUTE(Normal, TaskInfos.Key, HitResult.Normal)
-		PCGEX_SET_OUT_ATTRIBUTE(Distance, TaskInfos.Key, FVector::Distance(HitResult.ImpactPoint, Origin))
+		PCGEX_OUTPUT_VALUE(Location, TaskInfos.Index, HitResult.ImpactPoint)
+		PCGEX_OUTPUT_VALUE(Normal, TaskInfos.Index, HitResult.Normal)
+		PCGEX_OUTPUT_VALUE(Distance, TaskInfos.Index, FVector::Distance(HitResult.ImpactPoint, Origin))
 		bSuccess = true;
 	};
 
@@ -171,12 +172,12 @@ bool FTraceTask::ExecuteTask()
 	PCGEX_ASYNC_CHECKPOINT
 	if (Context->bProjectFailToSize)
 	{
-		PCGEX_SET_OUT_ATTRIBUTE(Location, TaskInfos.Key, End)
-		PCGEX_SET_OUT_ATTRIBUTE(Normal, TaskInfos.Key, Trace.GetSafeNormal()*-1)
-		PCGEX_SET_OUT_ATTRIBUTE(Distance, TaskInfos.Key, Size)
+		PCGEX_OUTPUT_VALUE(Location, TaskInfos.Index, End)
+		PCGEX_OUTPUT_VALUE(Normal, TaskInfos.Index, Trace.GetSafeNormal()*-1)
+		PCGEX_OUTPUT_VALUE(Distance, TaskInfos.Index, Size)
 	}
 
-	PCGEX_SET_OUT_ATTRIBUTE(Success, TaskInfos.Key, bSuccess)
+	PCGEX_OUTPUT_VALUE(Success, TaskInfos.Index, bSuccess)
 	return bSuccess;
 }
 

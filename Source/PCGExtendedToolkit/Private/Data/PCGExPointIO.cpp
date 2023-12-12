@@ -134,19 +134,6 @@ namespace PCGExData
 		Out = nullptr;
 	}
 
-	void FPointIO::BuildMetadataEntries()
-	{
-		if (!bMetadataEntryDirty) { return; }
-		TArray<FPCGPoint>& Points = Out->GetMutablePoints();
-		for (int i = 0; i < NumInPoints; i++)
-		{
-			FPCGPoint& Point = Points[i];
-			Out->Metadata->InitializeOnSet(Point.MetadataEntry, GetInPoint(i).MetadataEntry, In->Metadata);
-		}
-		bMetadataEntryDirty = false;
-		bIndicesDirty = true;
-	}
-
 	FPointIO& FPointIO::Branch()
 	{
 		FPointIO& Branch = *(new FPointIO(Source, GetIn(), DefaultOutputLabel, EInit::NewOutput));

@@ -116,14 +116,14 @@ bool FPCGExFindEdgePatchesElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExGraph::State_FindingPatch))
 	{
-		auto Initialize = [&](const PCGExData::FPointIO& PointIO)
+		auto Initialize = [&](PCGExData::FPointIO& PointIO)
 		{
-			Context->PrepareCurrentGraphForPoints(PointIO.GetIn(), false); // Prepare to read PointIO->In
+			Context->PrepareCurrentGraphForPoints(PointIO); // Prepare to read PointIO->In
 		};
 
 		auto ProcessPoint = [&](const int32 PointIndex, const PCGExData::FPointIO& PointIO)
 		{
-			Context->GetAsyncManager()->Start<FDistributeToPatchTask>(PointIndex, PointIO.GetInPoint(PointIndex).MetadataEntry, nullptr);
+			Context->GetAsyncManager()->Start<FDistributeToPatchTask>(PointIndex, nullptr);
 		};
 
 		if (Context->ProcessCurrentPoints(Initialize, ProcessPoint)) { Context->SetAsyncState(PCGExGraph::State_WaitingOnFindingPatch); }
@@ -168,7 +168,7 @@ bool FPCGExFindEdgePatchesElement::ExecuteInternal(
 			// Mark point data
 			PCGEx::CreateMark(Context->CurrentIO->GetOut()->Metadata, PCGExGraph::PUIDAttributeName, PUID);
 
-			Context->GetAsyncManager()->Start<FWritePatchesTask>(Context->PatchUIndex, -1, Context->CurrentIO, Patch, PatchData);
+			Context->GetAsyncManager()->Start<FWritePatchesTask>(Context->PatchUIndex, Context->CurrentIO, Patch, PatchData);
 
 			Context->PatchUIndex++;
 		}

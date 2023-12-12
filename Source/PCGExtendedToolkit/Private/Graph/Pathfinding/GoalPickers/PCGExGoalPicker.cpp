@@ -6,17 +6,17 @@
 
 #include "Data/PCGPointData.h"
 
-void UPCGExGoalPicker::PrepareForData(const UPCGPointData* InSeeds, const UPCGPointData* InGoals)
+void UPCGExGoalPicker::PrepareForData(const PCGExData::FPointIO& InSeeds, const PCGExData::FPointIO& InGoals)
 {
-	MaxGoalIndex = InGoals->GetPoints().Num() - 1;
+	MaxGoalIndex = InGoals.GetNum() - 1;
 }
 
-int32 UPCGExGoalPicker::GetGoalIndex(const FPCGPoint& Seed, const int32 SeedIndex) const
+int32 UPCGExGoalPicker::GetGoalIndex(const PCGEx::FPointRef& Seed) const
 {
-	return PCGEx::SanitizeIndex(SeedIndex, MaxGoalIndex, IndexSafety);
+	return PCGEx::SanitizeIndex(Seed.Index, MaxGoalIndex, IndexSafety);
 }
 
-void UPCGExGoalPicker::GetGoalIndices(const FPCGPoint& Seed, TArray<int32>& OutIndices) const
+void UPCGExGoalPicker::GetGoalIndices(const PCGEx::FPointRef& Seed, TArray<int32>& OutIndices) const
 {
 }
 

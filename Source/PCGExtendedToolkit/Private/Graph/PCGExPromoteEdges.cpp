@@ -113,14 +113,14 @@ bool FPCGExPromoteEdgesElement::ExecuteInternal(
 	{
 		auto Initialize = [&](const PCGExData::FPointIO& PointIO)
 		{
-			Context->PrepareCurrentGraphForPoints(PointIO.GetIn(), true);
+			Context->PrepareCurrentGraphForPoints(PointIO);
 		};
 
 		auto ProcessPoint = [&](const int32 PointIndex, const PCGExData::FPointIO& PointIO)
 		{
 			const FPCGPoint& Point = PointIO.GetInPoint(PointIndex);
 			TArray<PCGExGraph::FUnsignedEdge> UnsignedEdges;
-			Context->CurrentGraph->GetEdges(PointIndex, Point.MetadataEntry, UnsignedEdges, Context->EdgeType);
+			Context->CurrentGraph->GetEdges(PointIndex, UnsignedEdges, Context->EdgeType);
 
 			for (const PCGExGraph::FUnsignedEdge& UEdge : UnsignedEdges)
 			{

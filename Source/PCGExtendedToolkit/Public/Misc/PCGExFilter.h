@@ -93,9 +93,9 @@ namespace FPCGExFilter
 		double Upscale = 1.0;
 		double Offset = 0.0;
 
-		int64 Filter(const FPCGPoint& Point) const
+		int64 Filter(const int32 Index) const
 		{
-			const double Upscaled = GetValue(Point) * Upscale + (Offset + 1);
+			const double Upscaled = Values[Index] * Upscale + (Offset + 1);
 			const double Filtered = (Upscaled - FMath::Fmod(Upscaled, FilterSize)) / FilterSize;
 			return static_cast<int64>(Filtered);
 		}

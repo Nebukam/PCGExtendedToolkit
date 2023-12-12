@@ -53,12 +53,6 @@ bool FPCGExEdgesProcessorElement::Validate(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT(FPCGExEdgesProcessorContext)
 
-	if (Context->Graphs.IsEmpty())
-	{
-		PCGE_LOG(Error, GraphAndLog, LOCTEXT("MissingParams", "Missing Input Params."));
-		return false;
-	}
-
 	return true;
 }
 
@@ -73,7 +67,6 @@ void FPCGExEdgesProcessorElement::InitializeContext(
 	FPCGExEdgesProcessorContext* Context = static_cast<FPCGExEdgesProcessorContext*>(InContext);
 
 	TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(PCGExGraph::SourceParamsLabel);
-	Context->Graphs.Initialize(InContext, Sources);
 }
 
 

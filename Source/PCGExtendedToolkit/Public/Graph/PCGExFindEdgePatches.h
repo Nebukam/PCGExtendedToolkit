@@ -122,8 +122,8 @@ public:
 		const UPCGNode* Node) override;
 
 protected:
-	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 	virtual bool Validate(FPCGContext* InContext) const override;
+	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
 
 class PCGEXTENDEDTOOLKIT_API FDistributeToPatchTask : public FPCGExNonAbandonableTask

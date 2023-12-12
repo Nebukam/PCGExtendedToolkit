@@ -161,19 +161,17 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : public FPCGContext
 
 	virtual ~FPCGExPointsProcessorContext() override;
 
-public:
+	UWorld* World = nullptr;
+	
 	mutable FRWLock ContextLock;
 	PCGExData::FPointIOGroup* MainPoints = nullptr;
 
-	int32 GetCurrentPointsIndex() const { return CurrentPointsIndex; };
 	PCGExData::FPointIO* CurrentIO = nullptr;
 
 	const UPCGPointData* GetCurrentIn() const { return CurrentIO->GetIn(); }
 	UPCGPointData* GetCurrentOut() const { return CurrentIO->GetOut(); }
 
 	bool AdvancePointsIO();
-	UWorld* World = nullptr;
-
 	PCGExMT::AsyncState GetState() const { return CurrentState; }
 	bool IsState(const PCGExMT::AsyncState OperationId) const { return CurrentState == OperationId; }
 	bool IsSetup() const { return IsState(PCGExMT::State_Setup); }

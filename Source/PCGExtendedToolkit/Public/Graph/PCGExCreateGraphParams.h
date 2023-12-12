@@ -41,9 +41,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSocketQualityOfLifeInfos
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	FString EdgeTypeAttribute;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
-	FString EntryKeyAttribute;
-
 	void Populate(FName Identifier, const FPCGExSocketDescriptor& Descriptor)
 	{
 		BaseName = Descriptor.SocketName.ToString();
@@ -51,7 +48,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSocketQualityOfLifeInfos
 		FullName = *(TEXT("PCGEx") + Separator + Identifier.ToString() + Separator + BaseName);
 		IndexAttribute = *(FullName + Separator + PCGExGraph::SocketPropertyNameIndex.ToString());
 		EdgeTypeAttribute = *(FullName + Separator + PCGExGraph::SocketPropertyNameEdgeType.ToString());
-		EntryKeyAttribute = *(FullName + Separator + PCGExGraph::SocketPropertyNameEntryKey.ToString());
 	}
 };
 
