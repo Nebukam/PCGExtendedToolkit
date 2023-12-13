@@ -228,7 +228,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : public FPCGContext
 
 	void Output(FPCGTaggedData& OutTaggedData, UPCGData* OutData, const FName OutputLabel);
 	void Output(UPCGData* OutData, const FName OutputLabel);
-	void Output(const PCGExData::FPointIO& PointIO);
+	void Output(PCGExData::FPointIO& PointIO);
 
 	template <typename T>
 	T MakeLoop()
@@ -290,7 +290,7 @@ public:
 	}
 
 protected:
-	virtual bool Boot(FPCGContext* InContext) const;
 	virtual FPCGContext* InitializeContext(FPCGExPointsProcessorContext* InContext, const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node) const;
+	virtual bool Boot(FPCGContext* InContext) const;
 	//virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };

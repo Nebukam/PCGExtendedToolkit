@@ -12,23 +12,23 @@
 #include "Graph/PCGExGraph.h"
 #include "Splines/SubPoints/DataBlending/PCGExSubPointsBlendOperation.h"
 
-#include "PCGExSampleGraphPatches.generated.h"
+#include "PCGExSampleGraphEdges.generated.h"
 
 /**
  * Use PCGExTransform to manipulate the outgoing attributes instead of handling everything here.
  * This way we can multi-thread the various calculations instead of mixing everything along with async/game thread collision
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class PCGEXTENDEDTOOLKIT_API UPCGExSampleGraphPatchesSettings : public UPCGExPathfindingProcessorSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExSampleGraphEdgesSettings : public UPCGExPathfindingProcessorSettings
 {
 	GENERATED_BODY()
 
-	UPCGExSampleGraphPatchesSettings(const FObjectInitializer& ObjectInitializer);
+	UPCGExSampleGraphEdgesSettings(const FObjectInitializer& ObjectInitializer);
 
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(SampleGraphPatches, "Sample Graph Patches", "Extract paths from graph patches.");
+	PCGEX_NODE_INFOS(SampleGraphEdges, "Sample Graph Edges", "Extract paths from graph Islands.");
 #endif
 
 protected:
@@ -39,11 +39,11 @@ public:
 };
 
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExSampleGraphPatchesContext : public FPCGExPathfindingProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExSampleGraphEdgesContext : public FPCGExPathfindingProcessorContext
 {
-	friend class FPCGExSampleGraphPatchesElement;
+	friend class FPCGExSampleGraphEdgesElement;
 
-	virtual ~FPCGExSampleGraphPatchesContext() override;
+	virtual ~FPCGExSampleGraphEdgesContext() override;
 
 	PCGExData::FPointIO* GoalsPoints = nullptr;
 	PCGExData::FPointIOGroup* OutputPaths = nullptr;
@@ -55,7 +55,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleGraphPatchesContext : public FPCGExPat
 	bool bAddGoalToPath = true;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExSampleGraphPatchesElement : public FPCGExPathfindingProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExSampleGraphEdgesElement : public FPCGExPathfindingProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -69,10 +69,10 @@ protected:
 };
 
 // Define the background task class
-class PCGEXTENDEDTOOLKIT_API FSamplePatchPathTask : public FPCGExNonAbandonableTask
+class PCGEXTENDEDTOOLKIT_API FSampleIslandPathTask : public FPCGExNonAbandonableTask
 {
 public:
-	FSamplePatchPathTask(
+	FSampleIslandPathTask(
 		FPCGExAsyncManager* InManager, const PCGExMT::FTaskInfos& InInfos, PCGExData::FPointIO* InPointIO,
 		int32 InGoalIndex, PCGExData::FPointIO* InPathPoints) :
 		FPCGExNonAbandonableTask(InManager, InInfos, InPointIO),

@@ -17,6 +17,7 @@ namespace PCGExData
 		case EInit::NewOutput:
 			Out = NewObject<UPCGPointData>();
 			if (In) { Out->InitializeFromData(In); }
+			//else { Out->CreateEmptyMetadata(); }
 			break;
 		case EInit::DuplicateInput:
 			check(In)
@@ -28,18 +29,19 @@ namespace PCGExData
 			break;
 		default: ;
 		}
-
-		if (In) { NumInPoints = In->GetPoints().Num(); }
-		else { NumInPoints = 0; }
 	}
 
 	const UPCGPointData* FPointIO::GetIn() const { return In; }
-	int32 FPointIO::GetNum() const { return NumInPoints; }
+	int32 FPointIO::GetNum() const { return In ? In->GetPoints().Num() : Out ? Out->GetPoints().Num() : -1; }
 
 	FPCGAttributeAccessorKeysPoints* FPointIO::GetInKeys()
 	{
 		if (RootIO) { return RootIO->GetInKeys(); }
-		if (!InKeys && In) { InKeys = new FPCGAttributeAccessorKeysPoints(In->GetPoints()); }
+		if (!InKeys && In)
+		{
+			FWriteScopeLock WriteLock(KeysLock);
+			InKeys = new FPCGAttributeAccessorKeysPoints(In->GetPoints());
+		}
 		return InKeys;
 	}
 
@@ -49,6 +51,7 @@ namespace PCGExData
 	{
 		if (!OutKeys && Out)
 		{
+			FWriteScopeLock WriteLock(KeysLock);
 			const TArrayView<FPCGPoint> View(Out->GetMutablePoints());
 			OutKeys = new FPCGAttributeAccessorKeysPoints(View);
 		}
@@ -122,6 +125,7 @@ namespace PCGExData
 
 	void FPointIO::Cleanup()
 	{
+		FWriteScopeLock WriteLock(KeysLock);
 		PCGEX_DELETE(InKeys)
 		PCGEX_DELETE(OutKeys)
 	}
@@ -208,7 +212,7 @@ namespace PCGExData
 		Pairs.Empty(Sources.Num());
 		for (FPCGTaggedData& Source : Sources)
 		{
-			const UPCGPointData* MutablePointData = GetMutablePointData(Context, Source);
+			const UPCGPointData* MutablePointData = PCGExPointIO::GetMutablePointData(Context, Source);
 			if (!MutablePointData || MutablePointData->GetPoints().Num() == 0) { continue; }
 			Emplace_GetRef(Source, MutablePointData, InitOut);
 		}
@@ -223,7 +227,7 @@ namespace PCGExData
 		Pairs.Empty(Sources.Num());
 		for (FPCGTaggedData& Source : Sources)
 		{
-			UPCGPointData* MutablePointData = GetMutablePointData(Context, Source);
+			UPCGPointData* MutablePointData = PCGExPointIO::GetMutablePointData(Context, Source);
 			if (!MutablePointData || MutablePointData->GetPoints().Num() == 0) { continue; }
 			if (!ValidateFunc(MutablePointData)) { continue; }
 			FPointIO& PointIO = Emplace_GetRef(Source, MutablePointData, InitOut);
@@ -271,10 +275,7 @@ namespace PCGExData
 	 */
 	void FPointIOGroup::OutputTo(FPCGContext* Context, const bool bEmplace)
 	{
-		for (FPointIO& Pair : Pairs)
-		{
-			Pair.OutputTo(Context, bEmplace);
-		}
+		for (FPointIO& Pair : Pairs) { Pair.OutputTo(Context, bEmplace); }
 	}
 
 	/**
@@ -286,10 +287,7 @@ namespace PCGExData
 	 */
 	void FPointIOGroup::OutputTo(FPCGContext* Context, bool bEmplace, const int64 MinPointCount, const int64 MaxPointCount)
 	{
-		for (FPointIO& Pair : Pairs)
-		{
-			Pair.OutputTo(Context, bEmplace, MinPointCount, MaxPointCount);
-		}
+		for (FPointIO& Pair : Pairs) { Pair.OutputTo(Context, bEmplace, MinPointCount, MaxPointCount); }
 	}
 
 	void FPointIOGroup::ForEach(const TFunction<void(FPointIO&, const int32)>& BodyLoop)

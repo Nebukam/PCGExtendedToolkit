@@ -1,7 +1,7 @@
 ﻿// Copyright Timothé Lapetite 2023
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Graph/Pathfinding/PCGExSampleGraphPatches.h"
+#include "..\..\..\Public\Graph\Pathfinding\PCGExSampleGraphEdges.h"
 
 #include "NavigationSystem.h"
 
@@ -11,10 +11,10 @@
 #include "Splines/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
 #include "Splines/SubPoints/Orient/PCGExSubPointsOrientAverage.h"
 
-#define LOCTEXT_NAMESPACE "PCGExSampleGraphPatchesElement"
-#define PCGEX_NAMESPACE SampleGraphPatches
+#define LOCTEXT_NAMESPACE "PCGExSampleGraphEdgesElement"
+#define PCGEX_NAMESPACE SampleGraphEdges
 
-UPCGExSampleGraphPatchesSettings::UPCGExSampleGraphPatchesSettings(
+UPCGExSampleGraphEdgesSettings::UPCGExSampleGraphEdgesSettings(
 	const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
@@ -22,31 +22,31 @@ UPCGExSampleGraphPatchesSettings::UPCGExSampleGraphPatchesSettings(
 	Blending = EnsureOperation<UPCGExSubPointsBlendInterpolate>(Blending);
 }
 
-FPCGElementPtr UPCGExSampleGraphPatchesSettings::CreateElement() const { return MakeShared<FPCGExSampleGraphPatchesElement>(); }
+FPCGElementPtr UPCGExSampleGraphEdgesSettings::CreateElement() const { return MakeShared<FPCGExSampleGraphEdgesElement>(); }
 
-FPCGExSampleGraphPatchesContext::~FPCGExSampleGraphPatchesContext()
+FPCGExSampleGraphEdgesContext::~FPCGExSampleGraphEdgesContext()
 {
 	PCGEX_CLEANUP_ASYNC
 }
 
-PCGEX_INITIALIZE_CONTEXT(SampleGraphPatches)
+PCGEX_INITIALIZE_CONTEXT(SampleGraphEdges)
 
-bool FPCGExSampleGraphPatchesElement::Boot(FPCGContext* InContext) const
+bool FPCGExSampleGraphEdgesElement::Boot(FPCGContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElementBase::Boot(InContext)) { return false; }
 
-	const FPCGExSampleGraphPatchesContext* Context = static_cast<FPCGExSampleGraphPatchesContext*>(InContext);
-	const UPCGExSampleGraphPatchesSettings* Settings = InContext->GetInputSettings<UPCGExSampleGraphPatchesSettings>();
+	const FPCGExSampleGraphEdgesContext* Context = static_cast<FPCGExSampleGraphEdgesContext*>(InContext);
+	const UPCGExSampleGraphEdgesSettings* Settings = InContext->GetInputSettings<UPCGExSampleGraphEdgesSettings>();
 	check(Settings);
 
 	return true;
 }
 
-bool FPCGExSampleGraphPatchesElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExSampleGraphEdgesElement::ExecuteInternal(FPCGContext* InContext) const
 {
-	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExSampleGraphPatchesElement::Execute);
+	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExSampleGraphEdgesElement::Execute);
 
-	PCGEX_CONTEXT(SampleGraphPatches)
+	PCGEX_CONTEXT(SampleGraphEdges)
 
 	if (Context->IsSetup())
 	{
@@ -57,7 +57,7 @@ bool FPCGExSampleGraphPatchesElement::ExecuteInternal(FPCGContext* InContext) co
 	}
 
 	// For each SEED
-	// For each PATCH
+	// For each Island
 	// For each GRAPH -> Merge 
 
 
@@ -68,7 +68,7 @@ bool FPCGExSampleGraphPatchesElement::ExecuteInternal(FPCGContext* InContext) co
 			auto NavMeshTask = [&](int32 InGoalIndex)
 			{
 				PCGExData::FPointIO& PathPoints = Context->OutputPaths->Emplace_GetRef(PointIO.GetIn(), PCGExData::EInit::NewOutput);
-				Context->GetAsyncManager()->Start<FSamplePatchPathTask>(
+				Context->GetAsyncManager()->Start<FSampleIslandPathTask>(
 					PointIndex, Context->CurrentIO,
 					InGoalIndex, &PathPoints);
 			};
@@ -109,9 +109,9 @@ bool FPCGExSampleGraphPatchesElement::ExecuteInternal(FPCGContext* InContext) co
 	return Context->IsDone();
 }
 
-bool FSamplePatchPathTask::ExecuteTask()
+bool FSampleIslandPathTask::ExecuteTask()
 {
-	FPCGExSampleGraphPatchesContext* Context = Manager->GetContext<FPCGExSampleGraphPatchesContext>();
+	FPCGExSampleGraphEdgesContext* Context = Manager->GetContext<FPCGExSampleGraphEdgesContext>();
 	PCGEX_ASYNC_CHECKPOINT
 	//FWriteScopeLock WriteLock(Context->ContextLock);
 

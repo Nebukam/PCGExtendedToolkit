@@ -12,8 +12,8 @@ class UPCGExGoalPicker;
 
 namespace PCGExSampleNavmesh
 {
-	const PCGExMT::AsyncState State_Pathfinding = PCGExMT::AsyncStateCounter::Unique();
-	const PCGExMT::AsyncState State_WaitingPathfinding = PCGExMT::AsyncStateCounter::Unique();
+	constexpr PCGExMT::AsyncState State_Pathfinding = __COUNTER__;
+	constexpr PCGExMT::AsyncState State_WaitingPathfinding = __COUNTER__;
 
 	struct PCGEXTENDEDTOOLKIT_API FPath
 	{

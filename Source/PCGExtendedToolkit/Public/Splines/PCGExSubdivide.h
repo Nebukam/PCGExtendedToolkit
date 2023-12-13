@@ -14,7 +14,7 @@
 
 namespace PCGExSubdivide
 {
-	const PCGExMT::AsyncState State_BlendingPoints = PCGExMT::AsyncStateCounter::Unique();
+	constexpr PCGExMT::AsyncState State_BlendingPoints = __COUNTER__;
 }
 
 UENUM(BlueprintType)

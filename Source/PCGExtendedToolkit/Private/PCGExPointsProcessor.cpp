@@ -4,6 +4,7 @@
 #include "PCGExPointsProcessor.h"
 
 #include "PCGPin.h"
+#include "Data/PCGExData.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
 
@@ -264,8 +265,7 @@ FPCGExPointsProcessorContext::~FPCGExPointsProcessorContext()
 
 bool FPCGExPointsProcessorContext::AdvancePointsIO()
 {
-	CurrentPointsIndex++;
-	if (MainPoints->Pairs.IsValidIndex(CurrentPointsIndex))
+	if (MainPoints->Pairs.IsValidIndex(++CurrentPointsIndex))
 	{
 		CurrentIO = &MainPoints->Pairs[CurrentPointsIndex];
 		return true;
@@ -327,12 +327,18 @@ void FPCGExPointsProcessorContext::Output(UPCGData* OutData, const FName OutputL
 	OutputRef.Pin = OutputLabel;
 }
 
-void FPCGExPointsProcessorContext::Output(const PCGExData::FPointIO& PointIO)
+void FPCGExPointsProcessorContext::Output(PCGExData::FPointIO& PointIO)
 {
+	UPCGPointData* OutData = PointIO.GetOut();
+	if (!OutData || OutData->GetPoints().Num() == 0) { return; }
+
 	FWriteScopeLock WriteLock(ContextLock);
+
 	FPCGTaggedData& OutputRef = OutputData.TaggedData.Emplace_GetRef();
-	OutputRef.Data = PointIO.GetOut();
+	OutputRef.Data = OutData;
 	OutputRef.Pin = PointIO.DefaultOutputLabel;
+
+	PointIO.Cleanup();
 }
 
 FPCGExAsyncManager* FPCGExPointsProcessorContext::GetAsyncManager()
@@ -363,21 +369,6 @@ FPCGContext* FPCGExPointsProcessorElementBase::Initialize(
 	FPCGExPointsProcessorContext* Context = new FPCGExPointsProcessorContext();
 	InitializeContext(Context, InputData, SourceComponent, Node);
 	return Context;
-}
-
-bool FPCGExPointsProcessorElementBase::Boot(FPCGContext* InContext) const
-{
-	const FPCGExPointsProcessorContext* Context = static_cast<FPCGExPointsProcessorContext*>(InContext);
-
-	if (Context->InputData.GetInputs().IsEmpty()) { return false; } //Get rid of errors and warning when there is no input
-
-	if (Context->MainPoints->IsEmpty())
-	{
-		PCGE_LOG(Error, GraphAndLog, FTEXT("Missing Input Points."));
-		return false;
-	}
-
-	return true;
 }
 
 FPCGContext* FPCGExPointsProcessorElementBase::InitializeContext(
@@ -422,20 +413,34 @@ FPCGContext* FPCGExPointsProcessorElementBase::InitializeContext(
 		TArray<FPCGTaggedData> Sources = InContext->InputData.GetInputsByPin(Settings->GetMainInputLabel());
 		const UPCGPointData* InData = nullptr;
 		const FPCGTaggedData* Source = nullptr;
-		int32 SrcIndex = 0;
+		int32 SrcIndex = -1;
 
-		while (!InData && Sources.IsValidIndex(SrcIndex))
+		while (!InData && Sources.IsValidIndex(++SrcIndex))
 		{
 			InData = PCGExData::GetMutablePointData(InContext, Sources[SrcIndex]);
 			if (InData && !InData->GetPoints().IsEmpty()) { Source = &Sources[SrcIndex]; }
 			else { InData = nullptr; }
-			SrcIndex++;
 		}
 
 		if (InData) { InContext->MainPoints->Emplace_GetRef(*Source, InData, Settings->GetMainOutputInitMode()); }
 	}
 
 	return InContext;
+}
+
+bool FPCGExPointsProcessorElementBase::Boot(FPCGContext* InContext) const
+{
+	const FPCGExPointsProcessorContext* Context = static_cast<FPCGExPointsProcessorContext*>(InContext);
+
+	if (Context->InputData.GetInputs().IsEmpty()) { return false; } //Get rid of errors and warning when there is no input
+
+	if (Context->MainPoints->IsEmpty())
+	{
+		PCGE_LOG(Error, GraphAndLog, FTEXT("Missing Input Points."));
+		return false;
+	}
+
+	return true;
 }
 
 #undef LOCTEXT_NAMESPACE

@@ -287,22 +287,19 @@ namespace PCGExGraph
 
 	const FName PUIDAttributeName = TEXT("__PCGEx/PUID_");
 
-	const PCGExMT::AsyncState State_ReadyForNextGraph = PCGExMT::AsyncStateCounter::Unique();
-	const PCGExMT::AsyncState State_ProcessingGraph = PCGExMT::AsyncStateCounter::Unique();
+	constexpr PCGExMT::AsyncState State_ReadyForNextGraph = __COUNTER__;
+	constexpr PCGExMT::AsyncState State_ProcessingGraph = __COUNTER__;
 
-	const PCGExMT::AsyncState State_CachingGraphIndices = PCGExMT::AsyncStateCounter::Unique();
-	const PCGExMT::AsyncState State_SwappingGraphIndices = PCGExMT::AsyncStateCounter::Unique();
+	constexpr PCGExMT::AsyncState State_CachingGraphIndices = __COUNTER__;
+	constexpr PCGExMT::AsyncState State_SwappingGraphIndices = __COUNTER__;
 
-	const PCGExMT::AsyncState State_FindingEdgeTypes = PCGExMT::AsyncStateCounter::Unique();
+	constexpr PCGExMT::AsyncState State_FindingEdgeTypes = __COUNTER__;
 
-	const PCGExMT::AsyncState State_FindingPatch = PCGExMT::AsyncStateCounter::Unique();
-	const PCGExMT::AsyncState State_WaitingOnFindingPatch = PCGExMT::AsyncStateCounter::Unique();
-	const PCGExMT::AsyncState State_MergingPatch = PCGExMT::AsyncStateCounter::Unique();
-	const PCGExMT::AsyncState State_WaitingOnMergingPatch = PCGExMT::AsyncStateCounter::Unique();
-	const PCGExMT::AsyncState State_WritingPatch = PCGExMT::AsyncStateCounter::Unique();
-	const PCGExMT::AsyncState State_WaitingOnWritingPatch = PCGExMT::AsyncStateCounter::Unique();
+	constexpr PCGExMT::AsyncState State_InsertPointsToNetwork = __COUNTER__;
+	constexpr PCGExMT::AsyncState State_WritingIslands = __COUNTER__;
+	constexpr PCGExMT::AsyncState State_WaitingOnWritingIslands = __COUNTER__;
 
-	const PCGExMT::AsyncState State_PromotingEdges = PCGExMT::AsyncStateCounter::Unique();
+	constexpr PCGExMT::AsyncState State_PromotingEdges = __COUNTER__;
 
 
 #pragma region Sockets

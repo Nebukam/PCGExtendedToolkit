@@ -11,7 +11,7 @@
 
 #include "PCGExBuildGraph.generated.h"
 
-const PCGExMT::AsyncState State_ProbingPoints = PCGExMT::AsyncStateCounter::Unique();
+constexpr PCGExMT::AsyncState State_ProbingPoints = __COUNTER__;
 
 /**
  * Calculates the distance between two points (inherently a n*n operation)

@@ -12,8 +12,8 @@
 
 namespace PCGExPartition
 {
-	const PCGExMT::AsyncState State_DistributeToPartition = PCGExMT::AsyncStateCounter::Unique();
-
+	
+	constexpr PCGExMT::AsyncState State_DistributeToPartition = __COUNTER__;
 
 	class FKPartition;
 

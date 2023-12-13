@@ -11,6 +11,7 @@
         - [Partition by Values](PCGExPartitionByValues.md)
         - [Fuse Points](PCGExFusePoints.md)
         - [Write Index](PCGExWriteIndex.md)
+        - [Points To Bounds](PCGExPointsToBounds.md)
         - ~~[Operations](PCGExOperations.md)~~
     - Graph
         - [Create Graph Params](PCGExCreateGraphParams.md)

@@ -62,8 +62,8 @@ public:
 			FlushPersistentDebugLines(PCGEx::GetWorld(Context));
 			FlushDebugStrings(PCGEx::GetWorld(Context));
 		}
-		CurrentPingCount++;
-		if (CurrentPingCount >= DebugNodeCount) { CurrentPingCount = 0; }
+		
+		if (++CurrentPingCount >= DebugNodeCount) { CurrentPingCount = 0; }
 	}
 
 	virtual void ResetPing(const FPCGContext* Context) override

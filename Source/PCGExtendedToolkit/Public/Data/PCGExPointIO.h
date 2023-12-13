@@ -29,7 +29,7 @@ namespace PCGExData
 		friend class FPointIOGroup;
 
 	protected:
-		mutable FRWLock MapLock;
+		mutable FRWLock KeysLock;
 		mutable FRWLock PointsLock;
 
 		int32 NumInPoints = -1;

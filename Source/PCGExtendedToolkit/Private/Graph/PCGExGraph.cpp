@@ -116,9 +116,8 @@ void PCGExGraph::FSocketMapping::Initialize(const FName InIdentifier, TArray<FPC
 
 		FSocket& NewSocket = Sockets.Emplace_GetRef(Descriptor);
 		NewSocket.AttributeNameBase = GetCompoundName(Descriptor.SocketName);
-		NewSocket.SocketIndex = NumSockets;
+		NewSocket.SocketIndex = NumSockets++;
 		NameToIndexMap.Add(NewSocket.GetName(), NewSocket.SocketIndex);
-		NumSockets++;
 	}
 
 	PostProcessSockets();
@@ -143,7 +142,7 @@ void PCGExGraph::FSocketMapping::InitializeWithOverrides(FName InIdentifier, TAr
 
 		FSocket& NewSocket = Sockets.Emplace_GetRef(Descriptor);
 		NewSocket.AttributeNameBase = GetCompoundName(Descriptor.SocketName);
-		NewSocket.SocketIndex = NumSockets;
+		NewSocket.SocketIndex = NumSockets++;
 		NameToIndexMap.Add(NewSocket.GetName(), NewSocket.SocketIndex);
 
 		if (Overrides.bOverrideRelativeOrientation) { NewSocket.Descriptor.bRelativeOrientation = Overrides.bRelativeOrientation; }
@@ -155,7 +154,6 @@ void PCGExGraph::FSocketMapping::InitializeWithOverrides(FName InIdentifier, TAr
 
 		NewSocket.Descriptor.Bounds.DotThreshold = FMath::Cos(NewSocket.Descriptor.Bounds.Angle * (PI / 180.0));
 
-		NumSockets++;
 	}
 
 	PostProcessSockets();

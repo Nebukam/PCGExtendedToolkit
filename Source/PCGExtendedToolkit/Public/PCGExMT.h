@@ -12,20 +12,11 @@ namespace PCGExMT
 {
 	using AsyncState = int64;
 
-	struct AsyncStateCounter
-	{
-		static AsyncState Unique()
-		{
-			static AsyncState counter = 0;
-			return counter++;
-		}
-	};
-
-	const AsyncState State_Setup = AsyncStateCounter::Unique();
-	const AsyncState State_ReadyForNextPoints = AsyncStateCounter::Unique();
-	const AsyncState State_ProcessingPoints = AsyncStateCounter::Unique();
-	const AsyncState State_WaitingOnAsyncWork = AsyncStateCounter::Unique();
-	const AsyncState State_Done = AsyncStateCounter::Unique();
+	constexpr AsyncState State_Setup = __COUNTER__;
+	constexpr AsyncState State_ReadyForNextPoints = __COUNTER__;
+	constexpr AsyncState State_ProcessingPoints = __COUNTER__;
+	constexpr AsyncState State_WaitingOnAsyncWork = __COUNTER__;
+	constexpr AsyncState State_Done = __COUNTER__;
 
 	struct PCGEXTENDEDTOOLKIT_API FChunkedLoop
 	{

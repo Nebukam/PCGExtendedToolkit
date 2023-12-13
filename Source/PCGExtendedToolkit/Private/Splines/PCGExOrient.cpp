@@ -36,7 +36,6 @@ bool FPCGExOrientElement::Boot(FPCGContext* InContext) const
 	return true;
 }
 
-
 bool FPCGExOrientElement::ExecuteInternal(FPCGContext* InContext) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExOrientElement::Execute);

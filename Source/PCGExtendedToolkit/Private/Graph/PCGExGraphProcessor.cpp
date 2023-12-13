@@ -55,11 +55,10 @@ FPCGExGraphProcessorContext::~FPCGExGraphProcessorContext()
 bool FPCGExGraphProcessorContext::AdvanceGraph(bool bResetPointsIndex)
 {
 	if (bResetPointsIndex) { CurrentPointsIndex = -1; }
-	CurrentParamsIndex++;
 
 	if (CurrentGraph) { CurrentGraph->Cleanup(); }
 
-	if (Graphs.Params.IsValidIndex(CurrentParamsIndex))
+	if (Graphs.Params.IsValidIndex(++CurrentParamsIndex))
 	{
 		CurrentGraph = Graphs.Params[CurrentParamsIndex];
 		CurrentGraph->GetSocketsInfos(SocketInfos);

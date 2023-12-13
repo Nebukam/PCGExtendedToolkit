@@ -33,8 +33,8 @@ EPCGExDataBlendingType _NAME##Blending;
 
 namespace PCGExFuse
 {
-	const PCGExMT::AsyncState State_FindingFusePoints = PCGExMT::AsyncStateCounter::Unique();
-	const PCGExMT::AsyncState State_MergingPoints = PCGExMT::AsyncStateCounter::Unique();
+	constexpr PCGExMT::AsyncState State_FindingFusePoints = __COUNTER__;
+	constexpr PCGExMT::AsyncState State_MergingPoints = __COUNTER__;
 
 	struct PCGEXTENDEDTOOLKIT_API FFusedPoint
 	{
