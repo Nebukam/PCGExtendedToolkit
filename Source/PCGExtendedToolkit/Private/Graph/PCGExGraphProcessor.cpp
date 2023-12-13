@@ -127,6 +127,9 @@ bool FPCGExGraphProcessorElement::Boot(FPCGContext* InContext) const
 		return false;
 	}
 
+	Context->MergedInputSocketsNum = 0;
+	for (const UPCGExGraphParamsData* Graph : Context->Graphs.Params) { Context->MergedInputSocketsNum += Graph->GetSocketMapping()->NumSockets; }
+
 	return true;
 }
 

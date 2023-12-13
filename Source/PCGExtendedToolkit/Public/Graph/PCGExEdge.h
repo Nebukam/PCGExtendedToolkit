@@ -42,6 +42,12 @@ namespace PCGExGraph
 		{
 		}
 
+		uint32 Other(int32 InIndex) const
+		{
+			check(InIndex == Start || InIndex == End)
+			return InIndex == Start ? End : Start;
+		}
+
 		bool operator==(const FEdge& Other) const
 		{
 			return Start == Other.Start && End == Other.End;
@@ -88,6 +94,61 @@ namespace PCGExGraph
 			return Start > End ?
 				       static_cast<uint64>(Start) | (static_cast<uint64>(End) << 32) :
 				       static_cast<uint64>(End) | (static_cast<uint64>(Start) << 32);
+		}
+	};
+
+	struct FNode
+	{
+		FNode()
+		{
+		}
+
+		FNode(int32 InIndex, int32 InReserve)
+			: Index(InIndex)
+		{
+			Edges.Reserve(InReserve);
+		}
+
+		int32 Index = -1;
+		TSet<int32> Edges;
+		
+		void GetNeighbors(TSet<int32>& OutNeighbors, TArray<uint64>& InEdges)
+		{
+			for (const int32 Edge : Edges) { OutNeighbors.Add(FUnsignedEdge(InEdges[Edge]).Other(Index)); }
+		}
+	};
+
+	struct FNetwork
+	{
+		int32 NumEdgesReserve = 0;
+		TArray<FNode> Nodes;
+		TSet<uint64> UniqueEdges;
+		TArray<uint64> Edges;
+		
+		void SetNumNodes(const int32 Num)
+		{
+			Nodes.SetNum(Num);
+			int32 Index = 0;
+			for (FNode& Node : Nodes)
+			{
+				Node.Index = Index;
+				Node.Edges.Reserve(NumEdgesReserve);
+				Index++;
+			}
+		}
+
+		bool AddEdge(uint64 Edge)
+		{
+			if (UniqueEdges.Contains(Edge)) { return false; }
+			
+			UniqueEdges.Add(Edge);
+			const int32 EdgeIndex = Edges.Add(Edge);
+
+			const FUnsignedEdge TempEdge = FUnsignedEdge(Edge);
+			Nodes[TempEdge.Start].Edges.Add(EdgeIndex);
+			Nodes[TempEdge.End].Edges.Add(EdgeIndex);
+			
+			return true;
 		}
 	};
 

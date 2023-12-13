@@ -160,8 +160,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFindEdgePatchesContext : public FPCGExGraphP
 	FName PatchSizeAttributeName;
 	FName PointUIDAttributeName;
 
-	mutable FRWLock QueueLock;
-	TSet<int32> IndicesQueue;
+	mutable FRWLock EdgesHashLock; 
+	TSet<uint64> EdgesHash;
+	
 	PCGExGraph::FPatchGroup* Patches;
 
 	EPCGExRoamingResolveMethod ResolveRoamingMethod;

@@ -260,6 +260,8 @@ bool FPCGExFindEdgePatchesElement::ExecuteInternal(
 		if (!Context->AdvancePointsIO(true)) { Context->Done(); }
 		else
 		{
+			Context->EdgesHash.Empty();
+			Context->EdgesHash.Reserve(Context->CurrentIO->GetNum() * 6); //Ballpark estimate
 			Context->PreparePatchGroup(); // Prepare patch group for current points
 			Context->SetState(PCGExGraph::State_ReadyForNextGraph);
 		}
@@ -290,6 +292,15 @@ bool FPCGExFindEdgePatchesElement::ExecuteInternal(
 
 		auto ProcessPoint = [&](const int32 PointIndex, const PCGExData::FPointIO& PointIO)
 		{
+			for(const PCGExGraph::FSocketInfos& SocketInfo : Context->SocketInfos)
+			{
+				PCGExGraph::FUnsignedEdge UEdge;
+				if(SocketInfo.Socket->TryGetEdge(PointIndex, UEdge, Context->CrawlEdgeTypes))
+				{
+					FWriteScopeLock WriteLock(Context->EdgesHashLock);
+					Context->EdgesHash.Add(UEdge.GetUnsignedHash());
+				}
+			}
 			Context->GetAsyncManager()->Start<FDistributeToPatchTask>(PointIndex, nullptr);
 		};
 
