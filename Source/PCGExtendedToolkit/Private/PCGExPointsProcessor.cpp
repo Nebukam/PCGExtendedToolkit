@@ -7,6 +7,7 @@
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
 
+
 #pragma region Loops
 
 PCGExData::FPointIO& PCGEx::FAPointLoop::GetPointIO() const { return PointIO ? *PointIO : *Context->CurrentIO; }
@@ -215,11 +216,11 @@ void UPCGExPointsProcessorSettings::PostEditChangeProperty(FPropertyChangedEvent
 TArray<FPCGPinProperties> UPCGExPointsProcessorSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	bool bAcceptMultiple = GetMainPointsInputAcceptMultipleData();
-	FPCGPinProperties& PinPropertySource = PinProperties.Emplace_GetRef(GetMainPointsInputLabel(), EPCGDataType::Point, bAcceptMultiple, bAcceptMultiple);
+	bool bAcceptMultiple = GetMainAcceptMultipleData();
+	FPCGPinProperties& PinPropertySource = PinProperties.Emplace_GetRef(GetMainInputLabel(), EPCGDataType::Point, bAcceptMultiple, bAcceptMultiple);
 
 #if WITH_EDITOR
-	PinPropertySource.Tooltip = LOCTEXT("PCGExSourcePointsPinTooltip", "The point data to be processed.");
+	PinPropertySource.Tooltip = FTEXT("The point data to be processed.");
 #endif // WITH_EDITOR
 
 	return PinProperties;
@@ -228,21 +229,21 @@ TArray<FPCGPinProperties> UPCGExPointsProcessorSettings::InputPinProperties() co
 TArray<FPCGPinProperties> UPCGExPointsProcessorSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	FPCGPinProperties& PinPointsOutput = PinProperties.Emplace_GetRef(GetMainPointsOutputLabel(), EPCGDataType::Point);
+	FPCGPinProperties& PinPointsOutput = PinProperties.Emplace_GetRef(GetMainOutputLabel(), EPCGDataType::Point);
 
 #if WITH_EDITOR
-	PinPointsOutput.Tooltip = LOCTEXT("PCGExOutputPointsPinTooltip", "The processed points.");
+	PinPointsOutput.Tooltip = FTEXT("The processed points.");
 #endif // WITH_EDITOR
 
 	return PinProperties;
 }
 
-FName UPCGExPointsProcessorSettings::GetMainPointsOutputLabel() const { return PCGEx::OutputPointsLabel; }
-FName UPCGExPointsProcessorSettings::GetMainPointsInputLabel() const { return PCGEx::SourcePointsLabel; }
+FName UPCGExPointsProcessorSettings::GetMainOutputLabel() const { return PCGEx::OutputPointsLabel; }
+FName UPCGExPointsProcessorSettings::GetMainInputLabel() const { return PCGEx::SourcePointsLabel; }
 
-bool UPCGExPointsProcessorSettings::GetMainPointsInputAcceptMultipleData() const { return true; }
+bool UPCGExPointsProcessorSettings::GetMainAcceptMultipleData() const { return true; }
 
-PCGExData::EInit UPCGExPointsProcessorSettings::GetPointOutputInitMode() const { return PCGExData::EInit::NewOutput; }
+PCGExData::EInit UPCGExPointsProcessorSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NewOutput; }
 
 int32 UPCGExPointsProcessorSettings::GetPreferredChunkSize() const { return 256; }
 
@@ -340,6 +341,7 @@ FPCGExAsyncManager* FPCGExPointsProcessorContext::GetAsyncManager()
 	{
 		FWriteScopeLock WriteLock(ContextLock);
 		AsyncManager = new FPCGExAsyncManager();
+		AsyncManager->bForceSync = !bDoAsyncProcessing;
 		AsyncManager->Context = this;
 	}
 	return AsyncManager;
@@ -363,7 +365,7 @@ FPCGContext* FPCGExPointsProcessorElementBase::Initialize(
 	return Context;
 }
 
-bool FPCGExPointsProcessorElementBase::Validate(FPCGContext* InContext) const
+bool FPCGExPointsProcessorElementBase::Boot(FPCGContext* InContext) const
 {
 	const FPCGExPointsProcessorContext* Context = static_cast<FPCGExPointsProcessorContext*>(InContext);
 
@@ -371,7 +373,7 @@ bool FPCGExPointsProcessorElementBase::Validate(FPCGContext* InContext) const
 
 	if (Context->MainPoints->IsEmpty())
 	{
-		PCGE_LOG(Error, GraphAndLog, LOCTEXT("MissingPoints", "Missing Input Points."));
+		PCGE_LOG(Error, GraphAndLog, FTEXT("Missing Input Points."));
 		return false;
 	}
 
@@ -405,19 +407,19 @@ FPCGContext* FPCGExPointsProcessorElementBase::InitializeContext(
 	InContext->BulkAsyncPointLoop = InContext->MakeLoop<PCGEx::FBulkAsyncPointLoop>();
 
 	InContext->MainPoints = new PCGExData::FPointIOGroup();
-	InContext->MainPoints->DefaultOutputLabel = Settings->GetMainPointsOutputLabel();
+	InContext->MainPoints->DefaultOutputLabel = Settings->GetMainOutputLabel();
 
-	if (Settings->GetMainPointsInputAcceptMultipleData())
+	if (Settings->GetMainAcceptMultipleData())
 	{
-		TArray<FPCGTaggedData> Sources = InContext->InputData.GetInputsByPin(Settings->GetMainPointsInputLabel());
+		TArray<FPCGTaggedData> Sources = InContext->InputData.GetInputsByPin(Settings->GetMainInputLabel());
 		InContext->MainPoints->Initialize(
-			InContext, Sources, Settings->GetPointOutputInitMode(),
+			InContext, Sources, Settings->GetMainOutputInitMode(),
 			[&InContext](UPCGPointData* Data) { return InContext->ValidatePointDataInput(Data); },
 			[&InContext](PCGExData::FPointIO& PointIO) { return InContext->PostInitPointDataInput(PointIO); });
 	}
 	else
 	{
-		TArray<FPCGTaggedData> Sources = InContext->InputData.GetInputsByPin(Settings->GetMainPointsInputLabel());
+		TArray<FPCGTaggedData> Sources = InContext->InputData.GetInputsByPin(Settings->GetMainInputLabel());
 		const UPCGPointData* InData = nullptr;
 		const FPCGTaggedData* Source = nullptr;
 		int32 SrcIndex = 0;
@@ -430,7 +432,7 @@ FPCGContext* FPCGExPointsProcessorElementBase::InitializeContext(
 			SrcIndex++;
 		}
 
-		if (InData) { InContext->MainPoints->Emplace_GetRef(*Source, InData, Settings->GetPointOutputInitMode()); }
+		if (InData) { InContext->MainPoints->Emplace_GetRef(*Source, InData, Settings->GetMainOutputInitMode()); }
 	}
 
 	return InContext;

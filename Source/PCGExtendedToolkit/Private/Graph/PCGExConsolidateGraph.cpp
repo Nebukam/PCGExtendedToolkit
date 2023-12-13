@@ -2,12 +2,13 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Graph/PCGExConsolidateGraph.h"
+#define PCGEX_NAMESPACE ConsolidateGraph
 
 #define LOCTEXT_NAMESPACE "PCGExConsolidateGraph"
 
 int32 UPCGExConsolidateGraphSettings::GetPreferredChunkSize() const { return 32; }
 
-PCGExData::EInit UPCGExConsolidateGraphSettings::GetPointOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
+PCGExData::EInit UPCGExConsolidateGraphSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
 FPCGElementPtr UPCGExConsolidateGraphSettings::CreateElement() const
 {
@@ -16,14 +17,14 @@ FPCGElementPtr UPCGExConsolidateGraphSettings::CreateElement() const
 
 PCGEX_INITIALIZE_CONTEXT(ConsolidateGraph)
 
-bool FPCGExConsolidateGraphElement::Validate(FPCGContext* InContext) const
+bool FPCGExConsolidateGraphElement::Boot(FPCGContext* InContext) const
 {
-	if (!FPCGExGraphProcessorElement::Validate(InContext)) { return false; }
+	if (!FPCGExGraphProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(ConsolidateGraph)
 
 	PCGEX_FWD(bConsolidateEdgeType)
-	
+
 	return true;
 }
 
@@ -36,7 +37,7 @@ bool FPCGExConsolidateGraphElement::ExecuteInternal(
 
 	if (Context->IsSetup())
 	{
-		if (!Validate(Context)) { return true; }
+		if (!Boot(Context)) { return true; }
 		Context->SetState(PCGExGraph::State_ReadyForNextGraph);
 	}
 
@@ -146,3 +147,4 @@ int64 FPCGExConsolidateGraphElement::GetFixedIndex(FPCGExConsolidateGraphContext
 }
 
 #undef LOCTEXT_NAMESPACE
+#undef PCGEX_NAMESPACE

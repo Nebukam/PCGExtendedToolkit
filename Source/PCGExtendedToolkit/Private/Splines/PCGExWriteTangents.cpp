@@ -6,6 +6,7 @@
 #include "Splines/Tangents/PCGExAutoTangents.h"
 
 #define LOCTEXT_NAMESPACE "PCGExWriteTangentsElement"
+#define PCGEX_NAMESPACE BuildGraph
 
 UPCGExWriteTangentsSettings::UPCGExWriteTangentsSettings(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -42,9 +43,9 @@ void FPCGExWriteTangentsContext::WriteTangents()
 
 PCGEX_INITIALIZE_CONTEXT(WriteTangents)
 
-bool FPCGExWriteTangentsElement::Validate(FPCGContext* InContext) const
+bool FPCGExWriteTangentsElement::Boot(FPCGContext* InContext) const
 {
-	if (!FPCGExPathProcessorElement::Validate(InContext)) { return false; }
+	if (!FPCGExPathProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(WriteTangents)
 
@@ -55,7 +56,7 @@ bool FPCGExWriteTangentsElement::Validate(FPCGContext* InContext) const
 	if (!FPCGMetadataAttributeBase::IsValidName(Context->Tangents->ArriveName) ||
 		!FPCGMetadataAttributeBase::IsValidName(Context->Tangents->LeaveName))
 	{
-		PCGE_LOG(Error, GraphAndLog, LOCTEXT("InvalidAttributeName", "Invalid attribute names"));
+		PCGE_LOG(Error, GraphAndLog, FTEXT("Invalid attribute names"));
 		return false;
 	}
 	return true;
@@ -70,7 +71,7 @@ bool FPCGExWriteTangentsElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsSetup())
 	{
-		if (!Validate(Context)) { return true; }
+		if (!Boot(Context)) { return true; }
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
@@ -120,3 +121,4 @@ bool FPCGExWriteTangentsElement::ExecuteInternal(FPCGContext* InContext) const
 }
 
 #undef LOCTEXT_NAMESPACE
+#undef PCGEX_NAMESPACE

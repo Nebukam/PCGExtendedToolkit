@@ -13,13 +13,11 @@
 
 #pragma region MACROS
 
+#define FTEXT(_TEXT) FText::FromString(FString(_TEXT))
+#define FSTRING(_TEXT) FString(FString(_TEXT))
+
 #define PCGEX_DELETE(_VALUE) delete _VALUE; _VALUE = nullptr;
 #define PCGEX_CLEANUP(_VALUE) _VALUE.Cleanup();
-
-#define PCGEX_NODE_INFOS(_SHORTNAME, _NAME, _TOOLTIP)\
-virtual FName GetDefaultNodeName() const override { return FName(TEXT(#_SHORTNAME)); } \
-virtual FText GetDefaultNodeTitle() const override { return NSLOCTEXT("PCGEx" #_SHORTNAME, "NodeTitle", "PCGEx | " _NAME);} \
-virtual FText GetNodeTooltipText() const override{ return NSLOCTEXT("PCGEx" #_SHORTNAME "Tooltip", "NodeTooltip", _TOOLTIP); }
 
 #define PCGEX_FOREACH_SUPPORTEDTYPES(MACRO, ...) \
 MACRO(bool, Boolean, __VA_ARGS__)       \
@@ -145,9 +143,9 @@ enum class EPCGExIndexSafety : uint8
 UENUM(BlueprintType)
 enum class EPCGExCollisionFilterType : uint8
 {
-	Channel UMETA(DisplayName = "Channel", ToolTip="TBD"),
-	ObjectType UMETA(DisplayName = "Object Type", ToolTip="TBD"),
-	Profile UMETA(DisplayName = "Profile", ToolTip="TBD"),
+	Channel UMETA(DisplayName = "Channel", ToolTip="Channel"),
+	ObjectType UMETA(DisplayName = "Object Type", ToolTip="Object Type"),
+	Profile UMETA(DisplayName = "Profile", ToolTip="Profile"),
 };
 
 UENUM(BlueprintType)
@@ -300,15 +298,6 @@ namespace PCGEx
 		case EPCGExAxis::Down:
 			return FRotationMatrix::MakeFromZY(InForward, InUp).ToQuat();
 		}
-	}
-
-	template <typename T>
-	static FPCGMetadataAttribute<T>* CreateMark(UPCGMetadata* Metadata, const FName MarkID, T MarkValue)
-	{
-		FPCGMetadataAttribute<T>* Mark = Metadata->FindOrCreateAttribute<T>(MarkID, MarkValue, false, true, true);
-		Mark->ClearEntries();
-		Mark->SetDefaultValue(MarkValue);
-		return Mark;
 	}
 
 	template <typename T>

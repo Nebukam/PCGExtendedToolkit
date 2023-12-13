@@ -28,11 +28,11 @@ protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings interface
 
-	virtual FName GetMainPointsOutputLabel() const override;
+	virtual FName GetMainOutputLabel() const override;
 
 public:
 	virtual int32 GetPreferredChunkSize() const override;
-	virtual PCGExData::EInit GetPointOutputInitMode() const override;
+	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 
 public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExEdgeType"))
@@ -69,6 +69,6 @@ public:
 		const UPCGNode* Node) override;
 
 protected:
-	virtual bool Validate(FPCGContext* InContext) const override;
+	virtual bool Boot(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };

@@ -42,8 +42,8 @@ namespace PCGExSampleNavmesh
 UENUM(BlueprintType)
 enum class EPCGExNavmeshPathfindingMode : uint8
 {
-	Regular UMETA(DisplayName = "Regular", ToolTip="TBD"),
-	Hierarchical UMETA(DisplayName = "HIerarchical", ToolTip="TBD"),
+	Regular UMETA(DisplayName = "Regular", ToolTip="Regular pathfinding"),
+	Hierarchical UMETA(DisplayName = "HIerarchical", ToolTip="Cell-based pathfinding"),
 };
 
 /**
@@ -73,41 +73,42 @@ protected:
 	//~End UPCGSettings interface
 
 public:
-	virtual PCGExData::EInit GetPointOutputInitMode() const override;
+	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	virtual int32 GetPreferredChunkSize() const override;
 
-	virtual FName GetMainPointsInputLabel() const override;
-	virtual FName GetMainPointsOutputLabel() const override;
+	virtual FName GetMainInputLabel() const override;
+	virtual FName GetMainOutputLabel() const override;
 
 public:
 	/** Ignores candidates weighting pass and always favors the closest one.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced)
 	UPCGExGoalPicker* GoalPicker;
 
-	/** TBD */
+	/** Controls how path points blend from seed to goal. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced)
 	UPCGExSubPointsBlendOperation* Blending;
 
-	/** TBD */
+	/** Add seed point at the beginning of the path */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	bool bAddSeedToPath = true;
 
-	/** TBD */
+	/** Add goal point at the beginning of the path */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	bool bAddGoalToPath = true;
 
-	/** TBD */
+	/** Whether the pathfinding requires a naviguable end location. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	bool bRequireNavigableEndLocation = true;
 
-	/** Fuse points by distance */
+	/** Fuse sub points by distance. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	double FuseDistance = 10;
 
-	/** TBD */
+	/** Pathfinding mode */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	EPCGExNavmeshPathfindingMode PathfindingMode = EPCGExNavmeshPathfindingMode::Regular;
 
+	/** Nav agent to be used by the nav system. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	FNavAgentProperties NavAgentProperties;
 
@@ -154,7 +155,7 @@ public:
 		const UPCGNode* Node) override;
 
 protected:
-	virtual bool Validate(FPCGContext* InContext) const override;
+	virtual bool Boot(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 

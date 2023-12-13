@@ -244,6 +244,7 @@ public:
 	mutable FRWLock ManagerLock;
 	FPCGContext* Context;
 	bool bStopped = false;
+	bool bForceSync = false;
 
 	template <typename T, typename... Args>
 	void Start(FAsyncTask<T>* AsyncTask)
@@ -263,7 +264,8 @@ public:
 	template <typename T, typename... Args>
 	void Start(int32 Index, PCGExData::FPointIO* InPointsIO, Args... args)
 	{
-		Start(new FAsyncTask<T>(this, PCGExMT::FTaskInfos(Index, -1), InPointsIO, args...));
+		if (bForceSync) { StartSync(new FAsyncTask<T>(this, PCGExMT::FTaskInfos(Index, -1), InPointsIO, args...)); }
+		else { Start(new FAsyncTask<T>(this, PCGExMT::FTaskInfos(Index, -1), InPointsIO, args...)); }
 	}
 
 	template <typename T, typename... Args>
@@ -324,8 +326,8 @@ public:
 
 	void DoWork()
 	{
-		PCGEX_ASYNC_CHECKPOINT_VOID
 		if (bWorkDone) { return; }
+		PCGEX_ASYNC_CHECKPOINT_VOID
 		bWorkDone = true;
 		Manager->OnAsyncTaskExecutionComplete(this, ExecuteTask());
 	}

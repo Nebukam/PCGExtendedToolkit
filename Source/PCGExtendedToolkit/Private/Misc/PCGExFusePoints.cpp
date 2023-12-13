@@ -4,8 +4,9 @@
 #include "Misc/PCGExFusePoints.h"
 
 #define LOCTEXT_NAMESPACE "PCGExFusePointsElement"
+#define PCGEX_NAMESPACE FusePoints
 
-PCGExData::EInit UPCGExFusePointsSettings::GetPointOutputInitMode() const { return PCGExData::EInit::NewOutput; }
+PCGExData::EInit UPCGExFusePointsSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NewOutput; }
 
 FPCGExFusePointsContext::~FPCGExFusePointsContext()
 {
@@ -32,9 +33,9 @@ FPCGElementPtr UPCGExFusePointsSettings::CreateElement() const { return MakeShar
 
 PCGEX_INITIALIZE_CONTEXT(FusePoints)
 
-bool FPCGExFusePointsElement::Validate(FPCGContext* InContext) const
+bool FPCGExFusePointsElement::Boot(FPCGContext* InContext) const
 {
-	if (!FPCGExPointsProcessorElementBase::Validate(InContext)) { return false; }
+	if (!FPCGExPointsProcessorElementBase::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(FusePoints)
 
@@ -57,7 +58,7 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsSetup())
 	{
-		if (!Validate(Context)) { return true; }
+		if (!Boot(Context)) { return true; }
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
@@ -189,3 +190,4 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 }
 
 #undef LOCTEXT_NAMESPACE
+#undef PCGEX_NAMESPACE

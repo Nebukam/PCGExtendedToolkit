@@ -13,6 +13,11 @@
 #include "PCGExOperation.h"
 
 #include "PCGExPointsProcessor.generated.h"
+#define PCGEX_NODE_INFOS(_SHORTNAME, _NAME, _TOOLTIP)\
+virtual FName GetDefaultNodeName() const override { return FName(TEXT(#_SHORTNAME)); } \
+virtual FName AdditionalTaskName() const override{ return bCacheResult ? FName(FString("# ")+GetDefaultNodeTitle().ToString()) : FName(GetDefaultNodeTitle().ToString()); }\
+virtual FText GetDefaultNodeTitle() const override { return NSLOCTEXT("PCGEx" #_SHORTNAME, "NodeTitle", "PCGEx | " _NAME);} \
+virtual FText GetNodeTooltipText() const override{ return NSLOCTEXT("PCGEx" #_SHORTNAME "Tooltip", "NodeTooltip", _TOOLTIP); }
 
 #define PCGEX_INITIALIZE_CONTEXT(_NAME)\
 FPCGContext* FPCGEx##_NAME##Element::Initialize( const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node)\
@@ -22,7 +27,7 @@ FPCGContext* FPCGEx##_NAME##Element::Initialize( const FPCGDataCollection& Input
 #define PCGEX_CONTEXT(_NAME) FPCGEx##_NAME##Context* Context = static_cast<FPCGEx##_NAME##Context*>(InContext);
 #define PCGEX_SETTINGS(_NAME) const UPCGEx##_NAME##Settings* Settings = Context->GetInputSettings<UPCGEx##_NAME##Settings>();	check(Settings);
 #define PCGEX_FWD(_NAME) Context->_NAME = Settings->_NAME;
-#define PCGEX_VALIDATE_NAME(_NAME) if (!FPCGMetadataAttributeBase::IsValidName(_NAME)){	PCGE_LOG(Error, GraphAndLog, LOCTEXT("InvalidName", "Invalid user-defined attribute name.")); return false;	}
+#define PCGEX_VALIDATE_NAME(_NAME) if (!FPCGMetadataAttributeBase::IsValidName(_NAME)){	PCGE_LOG(Error, GraphAndLog, FTEXT("Invalid user-defined attribute name.")); return false;	}
 #define PCGEX_CLEANUP_ASYNC PCGEX_DELETE(AsyncManager)
 
 struct FPCGExPointsProcessorContext;
@@ -132,18 +137,22 @@ public:
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 	//~End UPCGSettings interface
 
-	virtual FName GetMainPointsInputLabel() const;
-	virtual bool GetMainPointsInputAcceptMultipleData() const;
-	virtual FName GetMainPointsOutputLabel() const;
-	virtual PCGExData::EInit GetPointOutputInitMode() const;
+	virtual FName GetMainInputLabel() const;
+	virtual FName GetMainOutputLabel() const;
+	virtual bool GetMainAcceptMultipleData() const;
+	virtual PCGExData::EInit GetMainOutputInitMode() const;
 
 	/** Forces execution on main thread. Work is still chunked. Turning this off ensure linear order of operations, and, in most case, determinism.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Performance")
 	bool bDoAsyncProcessing = true;
 
-	/** Chunk size for parallel processing.*/
+	/** Chunk size for parallel processing. <1 switches to preferred node value.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Performance")
 	int32 ChunkSize = -1;
+
+	/** Cache the results of this node. Can yield unexpected result in certain cases.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Performance")
+	bool bCacheResult = false;
 
 	template <typename T>
 	static T* EnsureOperation(UPCGExOperation* Operation) { return Operation ? static_cast<T*>(Operation) : NewObject<T>(); }
@@ -273,10 +282,15 @@ class PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorElementBase : public FPCGPoint
 {
 public:
 	virtual FPCGContext* Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node) override;
-	virtual bool IsCacheable(const UPCGSettings* InSettings) const override { return false; }
+
+	virtual bool IsCacheable(const UPCGSettings* InSettings) const override
+	{
+		const UPCGExPointsProcessorSettings* Settings = static_cast<const UPCGExPointsProcessorSettings*>(InSettings);
+		return Settings->bCacheResult;
+	}
 
 protected:
-	virtual bool Validate(FPCGContext* InContext) const;
+	virtual bool Boot(FPCGContext* InContext) const;
 	virtual FPCGContext* InitializeContext(FPCGExPointsProcessorContext* InContext, const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node) const;
 	//virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };

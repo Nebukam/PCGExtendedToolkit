@@ -6,6 +6,7 @@
 #include "Splines/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSubdivideElement"
+#define PCGEX_NAMESPACE Subdivide
 
 UPCGExSubdivideSettings::UPCGExSubdivideSettings(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -20,7 +21,7 @@ void UPCGExSubdivideSettings::PostEditChangeProperty(FPropertyChangedEvent& Prop
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
 
-PCGExData::EInit UPCGExSubdivideSettings::GetPointOutputInitMode() const { return PCGExData::EInit::NewOutput; }
+PCGExData::EInit UPCGExSubdivideSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NewOutput; }
 
 FPCGElementPtr UPCGExSubdivideSettings::CreateElement() const { return MakeShared<FPCGExSubdivideElement>(); }
 
@@ -32,9 +33,9 @@ FPCGExSubdivideContext::~FPCGExSubdivideContext()
 
 PCGEX_INITIALIZE_CONTEXT(Subdivide)
 
-bool FPCGExSubdivideElement::Validate(FPCGContext* InContext) const
+bool FPCGExSubdivideElement::Boot(FPCGContext* InContext) const
 {
-	if (!FPCGExPathProcessorElement::Validate(InContext)) { return false; }
+	if (!FPCGExPathProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(Subdivide)
 
@@ -60,7 +61,7 @@ bool FPCGExSubdivideElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsSetup())
 	{
-		if (!Validate(Context)) { return true; }
+		if (!Boot(Context)) { return true; }
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
@@ -169,3 +170,4 @@ bool FPCGExSubdivideElement::ExecuteInternal(FPCGContext* InContext) const
 }
 
 #undef LOCTEXT_NAMESPACE
+#undef PCGEX_NAMESPACE

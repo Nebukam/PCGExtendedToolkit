@@ -34,13 +34,13 @@ protected:
 	//~End UPCGSettings interface
 
 public:
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FName ArriveName = "ArriveTangent";
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FName LeaveName = "LeaveTangent";
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable))
 	UPCGExTangentsOperation* Tangents;
 };
 
@@ -70,6 +70,6 @@ public:
 		const UPCGNode* Node) override;
 
 protected:
-	virtual bool Validate(FPCGContext* InContext) const override;
+	virtual bool Boot(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };

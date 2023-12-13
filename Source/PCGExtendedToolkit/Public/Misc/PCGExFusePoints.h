@@ -86,24 +86,26 @@ protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings interface
 
-	virtual PCGExData::EInit GetPointOutputInitMode() const override;
+	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 
 public:
-	/** TBD */
+	/** Uses a per-axis radius, manathan-style */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bComponentWiseRadius = false;
 
-	/** TBD */
+	/** Fuse radius */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="!bComponentWiseRadius", EditConditionHides))
 	double Radius = 10;
 
-	/** TBD */
+	/** Component-wise radiuses */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bComponentWiseRadius", EditConditionHides))
 	FVector Radiuses = FVector(10);
 
+	/** Preserve the order of input points */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	bool bPreserveOrder = true;
 
+	/** Defines how fused point properties and attributes are merged together. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	FPCGExBlendingSettings BlendingSettings;
 
@@ -139,7 +141,7 @@ class PCGEXTENDEDTOOLKIT_API FPCGExFusePointsElement : public FPCGExPointsProces
 		const UPCGNode* Node) override;
 
 protected:
-	virtual bool Validate(FPCGContext* InContext) const override;
+	virtual bool Boot(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 

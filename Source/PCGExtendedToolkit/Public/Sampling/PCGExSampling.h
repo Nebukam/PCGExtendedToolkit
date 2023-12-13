@@ -7,11 +7,11 @@
 #include "PCGExSampling.generated.h"
 
 #define PCGEX_OUTPUT_DECL(_NAME, _TYPE) PCGEx::TFAttributeWriter<_TYPE>* _NAME##Writer = nullptr;
-#define PCGEX_OUTPUT_FWD(_NAME, _TYPE) Context->_NAME##Writer = Settings->bWrite##_NAME ? new PCGEx::TFAttributeWriter<_TYPE>(Settings->_NAME) : nullptr;
+#define PCGEX_OUTPUT_FWD(_NAME, _TYPE) Context->_NAME##Writer = Settings->bWrite##_NAME ? new PCGEx::TFAttributeWriter<_TYPE>(Settings->_NAME##AttributeName) : nullptr;
 
 #define PCGEX_OUTPUT_VALIDATE_NAME(_NAME, _TYPE)\
-if(Settings->bWrite##_NAME && !FPCGMetadataAttributeBase::IsValidName(Settings->_NAME))\
-{ PCGE_LOG(Warning, GraphAndLog, LOCTEXT("InvalidName", "Invalid output attribute name " #_NAME ));\
+if(Settings->bWrite##_NAME && !FPCGMetadataAttributeBase::IsValidName(Settings->_NAME##AttributeName))\
+{ PCGE_LOG(Warning, GraphAndLog, FTEXT("Invalid output attribute name for " #_NAME ));\
 PCGEX_DELETE(Context->_NAME##Writer)}
 
 #define PCGEX_OUTPUT_VALUE(_NAME, _INDEX, _VALUE) if(Context->_NAME##Writer){(*Context->_NAME##Writer)[_INDEX] = _VALUE; }
@@ -23,9 +23,9 @@ UENUM(BlueprintType)
 enum class EPCGExSampleMethod : uint8
 {
 	WithinRange UMETA(DisplayName = "Within Range", ToolTip="Use RangeMax = 0 to include all targets"),
-	ClosestTarget UMETA(DisplayName = "Closest Target", ToolTip="TBD"),
-	FarthestTarget UMETA(DisplayName = "Farthest Target", ToolTip="TBD"),
-	TargetsExtents UMETA(DisplayName = "Targets Extents", ToolTip="TBD"),
+	ClosestTarget UMETA(DisplayName = "Closest Target", ToolTip="Picks & process the closest target only"),
+	FarthestTarget UMETA(DisplayName = "Farthest Target", ToolTip="Picks & process the farthest target only"),
+	TargetsExtents UMETA(DisplayName = "Targets Extents", ToolTip="Pick targets if the point is inside their extents"),
 };
 
 UENUM(BlueprintType)

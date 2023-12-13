@@ -59,21 +59,21 @@ public:
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
 
-	virtual bool GetMainPointsInputAcceptMultipleData() const override;
+	virtual bool GetMainAcceptMultipleData() const override;
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings interface
 
-	virtual PCGExData::EInit GetPointOutputInitMode() const override;
+	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 
 public:
 	/** If false, will only write partition identifier values instead of splitting partitions into new point datasets. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bSplitOutput = true;
 
 	/** Rules */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(TitleProperty="{TitlePropertyName}"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, TitleProperty="{TitlePropertyName}"))
 	TArray<FPCGExFilterRuleDescriptor> PartitionRules;
 };
 
@@ -103,6 +103,6 @@ public:
 		const UPCGNode* Node) override;
 
 protected:
-	virtual bool Validate(FPCGContext* InContext) const override;
+	virtual bool Boot(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };

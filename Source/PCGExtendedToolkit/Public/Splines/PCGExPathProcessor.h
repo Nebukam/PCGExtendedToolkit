@@ -19,7 +19,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExPathProcessorSettings : public UPCGExPointsPr
 
 public:
 	UPCGExPathProcessorSettings(const FObjectInitializer& ObjectInitializer);
-	virtual PCGExData::EInit GetPointOutputInitMode() const override;
+	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
@@ -27,8 +27,8 @@ public:
 	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorSpline; }
 #endif
 
-	virtual FName GetMainPointsInputLabel() const override;
-	virtual FName GetMainPointsOutputLabel() const override;
+	virtual FName GetMainInputLabel() const override;
+	virtual FName GetMainOutputLabel() const override;
 	//~End UPCGSettings interface
 };
 

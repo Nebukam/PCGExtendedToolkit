@@ -9,7 +9,6 @@
 #include "Data/PCGPointData.h"
 
 #include "PCGEx.h"
-#include "PCGExData.h"
 #include "Metadata/Accessors/PCGAttributeAccessorKeys.h"
 
 namespace PCGExData
@@ -177,6 +176,17 @@ namespace PCGExData
 
 	namespace PCGExPointIO
 	{
+		static UPCGPointData* GetMutablePointData(FPCGContext* Context, const FPCGTaggedData& Source)
+		{
+			const UPCGSpatialData* SpatialData = Cast<UPCGSpatialData>(Source.Data);
+			if (!SpatialData) { return nullptr; }
+
+			const UPCGPointData* PointData = SpatialData->ToPointData(Context);
+			if (!PointData) { return nullptr; }
+
+			return const_cast<UPCGPointData*>(PointData);
+		}
+
 		static FPointIO* GetPointIO(
 			FPCGContext* Context,
 			const FPCGTaggedData& Source,

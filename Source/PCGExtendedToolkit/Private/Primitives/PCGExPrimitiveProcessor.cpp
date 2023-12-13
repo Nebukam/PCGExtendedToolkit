@@ -10,7 +10,7 @@ UPCGExPrimitiveProcessorSettings::UPCGExPrimitiveProcessorSettings(const FObject
 {
 }
 
-PCGExData::EInit UPCGExPrimitiveProcessorSettings::GetPointOutputInitMode() const { return PCGExData::EInit::NoOutput; }
+PCGExData::EInit UPCGExPrimitiveProcessorSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 
 TArray<FPCGPinProperties> UPCGExPrimitiveProcessorSettings::InputPinProperties() const
 {

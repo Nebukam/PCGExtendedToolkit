@@ -5,8 +5,9 @@
 #include "Elements/PCGActorSelector.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSampleSurfaceGuidedElement"
+#define PCGEX_NAMESPACE SampleSurfaceGuided
 
-PCGExData::EInit UPCGExSampleSurfaceGuidedSettings::GetPointOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
+PCGExData::EInit UPCGExSampleSurfaceGuidedSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
 int32 UPCGExSampleSurfaceGuidedSettings::GetPreferredChunkSize() const { return 32; }
 
@@ -21,15 +22,15 @@ FPCGExSampleSurfaceGuidedContext::~FPCGExSampleSurfaceGuidedContext()
 
 PCGEX_INITIALIZE_CONTEXT(SampleSurfaceGuided)
 
-bool FPCGExSampleSurfaceGuidedElement::Validate(FPCGContext* InContext) const
+bool FPCGExSampleSurfaceGuidedElement::Boot(FPCGContext* InContext) const
 {
-	if (!FPCGExPointsProcessorElementBase::Validate(InContext)) { return false; }
+	if (!FPCGExPointsProcessorElementBase::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(SampleSurfaceGuided)
 
 	PCGEX_FWD(CollisionChannel)
 	PCGEX_FWD(CollisionObjectType)
-	PCGEX_FWD(ProfileName)
+	PCGEX_FWD(CollisionProfileName)
 	PCGEX_FWD(bIgnoreSelf)
 
 	PCGEX_FWD(Size)
@@ -54,7 +55,7 @@ bool FPCGExSampleSurfaceGuidedElement::ExecuteInternal(FPCGContext* InContext) c
 
 	if (Context->IsSetup())
 	{
-		if (!Validate(Context)) { return true; }
+		if (!Boot(Context)) { return true; }
 		if (Context->bIgnoreSelf) { Context->IgnoredActors.Add(Context->SourceComponent->GetOwner()); }
 		const UPCGExSampleSurfaceGuidedSettings* Settings = Context->GetInputSettings<UPCGExSampleSurfaceGuidedSettings>();
 		check(Settings);
@@ -149,7 +150,7 @@ bool FTraceTask::ExecuteTask()
 		}
 		break;
 	case EPCGExCollisionFilterType::Profile:
-		if (Context->World->LineTraceSingleByProfile(HitResult, Origin, End, Context->ProfileName, CollisionParams))
+		if (Context->World->LineTraceSingleByProfile(HitResult, Origin, End, Context->CollisionProfileName, CollisionParams))
 		{
 			ProcessTraceResult();
 		}
@@ -170,3 +171,4 @@ bool FTraceTask::ExecuteTask()
 }
 
 #undef LOCTEXT_NAMESPACE
+#undef PCGEX_NAMESPACE

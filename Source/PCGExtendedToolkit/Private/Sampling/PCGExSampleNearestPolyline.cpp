@@ -4,6 +4,7 @@
 #include "Sampling/PCGExSampleNearestPolyline.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSampleNearestPolylineElement"
+#define PCGEX_NAMESPACE SampleNearestPolyLine
 
 UPCGExSampleNearestPolylineSettings::UPCGExSampleNearestPolylineSettings(
 	const FObjectInitializer& ObjectInitializer)
@@ -21,13 +22,13 @@ TArray<FPCGPinProperties> UPCGExSampleNearestPolylineSettings::InputPinPropertie
 	FPCGPinProperties& PinPropertySourceTargets = PinProperties.Emplace_GetRef(PCGEx::SourceTargetsLabel, EPCGDataType::PolyLine, true, true);
 
 #if WITH_EDITOR
-	PinPropertySourceTargets.Tooltip = LOCTEXT("PCGExSourceTargetsPointsPinTooltip", "The point data set to check against.");
+	PinPropertySourceTargets.Tooltip = FTEXT("The point data set to check against.");
 #endif // WITH_EDITOR
 
 	return PinProperties;
 }
 
-PCGExData::EInit UPCGExSampleNearestPolylineSettings::GetPointOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
+PCGExData::EInit UPCGExSampleNearestPolylineSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
 int32 UPCGExSampleNearestPolylineSettings::GetPreferredChunkSize() const { return 32; }
 
@@ -37,19 +38,19 @@ FPCGExSampleNearestPolylineContext::~FPCGExSampleNearestPolylineContext()
 {
 	PCGEX_CLEANUP(RangeMinGetter)
 	PCGEX_CLEANUP(RangeMaxGetter)
-	
+
 	PCGEX_DELETE(Targets)
 	PCGEX_SAMPLENEARESTPOLYLINE_FOREACH(PCGEX_OUTPUT_DELETE)
 }
 
 PCGEX_INITIALIZE_CONTEXT(SampleNearestPolyline)
 
-bool FPCGExSampleNearestPolylineElement::Validate(FPCGContext* InContext) const
+bool FPCGExSampleNearestPolylineElement::Boot(FPCGContext* InContext) const
 {
-	if (!FPCGExPointsProcessorElementBase::Validate(InContext)) { return false; }
+	if (!FPCGExPointsProcessorElementBase::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(SampleNearestPolyline)
-	
+
 	TArray<FPCGTaggedData> Targets = Context->InputData.GetInputsByPin(PCGEx::SourceTargetsLabel);
 
 	if (!Targets.IsEmpty())
@@ -83,13 +84,13 @@ bool FPCGExSampleNearestPolylineElement::Validate(FPCGContext* InContext) const
 
 	if (!Context->Targets || Context->Targets->IsEmpty())
 	{
-		PCGE_LOG(Error, GraphAndLog, LOCTEXT("MissingTargets", "No targets (either no input or empty dataset)"));
+		PCGE_LOG(Error, GraphAndLog, FTEXT("No targets (either no input or empty dataset)"));
 		return false;
 	}
 
 	if (!Context->WeightCurve)
 	{
-		PCGE_LOG(Error, GraphAndLog, LOCTEXT("InvalidWeightCurve", "Weight Curve asset could not be loaded."));
+		PCGE_LOG(Error, GraphAndLog, FTEXT("Weight Curve asset could not be loaded."));
 		return false;
 	}
 
@@ -105,10 +106,10 @@ bool FPCGExSampleNearestPolylineElement::ExecuteInternal(FPCGContext* InContext)
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExSampleNearestPolylineElement::Execute);
 
 	PCGEX_CONTEXT(SampleNearestPolyline)
-	
+
 	if (Context->IsSetup())
 	{
-		if (!Validate(Context)) { return true; }
+		if (!Boot(Context)) { return true; }
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
@@ -126,7 +127,7 @@ bool FPCGExSampleNearestPolylineElement::ExecuteInternal(FPCGContext* InContext)
 			{
 				if (Context->RangeMinGetter.Bind(PointIO))
 				{
-					PCGE_LOG(Warning, GraphAndLog, LOCTEXT("InvalidLocalRangeMin", "RangeMin metadata missing"));
+					PCGE_LOG(Warning, GraphAndLog, FTEXT("RangeMin metadata missing"));
 				}
 			}
 
@@ -134,7 +135,7 @@ bool FPCGExSampleNearestPolylineElement::ExecuteInternal(FPCGContext* InContext)
 			{
 				if (Context->RangeMaxGetter.Bind(PointIO))
 				{
-					PCGE_LOG(Warning, GraphAndLog, LOCTEXT("InvalidLocalRangeMax", "RangeMax metadata missing"));
+					PCGE_LOG(Warning, GraphAndLog, FTEXT("RangeMax metadata missing"));
 				}
 			}
 
@@ -158,7 +159,7 @@ bool FPCGExSampleNearestPolylineElement::ExecuteInternal(FPCGContext* InContext)
 			Context->SetState(PCGExMT::State_ReadyForNextPoints);
 		}
 	}
-	
+
 	return Context->IsDone();
 }
 
@@ -257,7 +258,7 @@ bool FSamplePolylineTask::ExecuteTask()
 	};
 
 	PCGEX_ASYNC_CHECKPOINT
-	
+
 	if (Context->SampleMethod == EPCGExSampleMethod::ClosestTarget ||
 		Context->SampleMethod == EPCGExSampleMethod::FarthestTarget)
 	{
@@ -299,3 +300,4 @@ bool FSamplePolylineTask::ExecuteTask()
 }
 
 #undef LOCTEXT_NAMESPACE
+#undef PCGEX_NAMESPACE

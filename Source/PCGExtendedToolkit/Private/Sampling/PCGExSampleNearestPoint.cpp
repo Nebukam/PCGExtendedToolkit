@@ -6,6 +6,7 @@
 #include "PCGExPointsProcessor.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSampleNearestPointElement"
+#define PCGEX_NAMESPACE SampleNearestPoint
 
 UPCGExSampleNearestPointSettings::UPCGExSampleNearestPointSettings(
 	const FObjectInitializer& ObjectInitializer)
@@ -21,13 +22,13 @@ TArray<FPCGPinProperties> UPCGExSampleNearestPointSettings::InputPinProperties()
 	FPCGPinProperties& PinPropertySourceTargets = PinProperties.Emplace_GetRef(PCGEx::SourceTargetsLabel, EPCGDataType::Point, false, false);
 
 #if WITH_EDITOR
-	PinPropertySourceTargets.Tooltip = LOCTEXT("PCGExSourceTargetsPointsPinTooltip", "The point data set to check against.");
+	PinPropertySourceTargets.Tooltip = FTEXT("The point data set to check against.");
 #endif // WITH_EDITOR
 
 	return PinProperties;
 }
 
-PCGExData::EInit UPCGExSampleNearestPointSettings::GetPointOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
+PCGExData::EInit UPCGExSampleNearestPointSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
 int32 UPCGExSampleNearestPointSettings::GetPreferredChunkSize() const { return 32; }
 
@@ -40,17 +41,17 @@ FPCGExSampleNearestPointContext::~FPCGExSampleNearestPointContext()
 	PCGEX_CLEANUP(RangeMinGetter)
 	PCGEX_CLEANUP(RangeMaxGetter)
 	PCGEX_CLEANUP(NormalGetter)
-	
+
 	PCGEX_DELETE(Targets)
-	
+
 	PCGEX_SAMPLENEARESTPOINT_FOREACH(PCGEX_OUTPUT_DELETE)
 }
 
 PCGEX_INITIALIZE_CONTEXT(SampleNearestPoint)
 
-bool FPCGExSampleNearestPointElement::Validate(FPCGContext* InContext) const
+bool FPCGExSampleNearestPointElement::Boot(FPCGContext* InContext) const
 {
-	if (!FPCGExPointsProcessorElementBase::Validate(InContext)) { return false; }
+	if (!FPCGExPointsProcessorElementBase::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(SampleNearestPoint)
 
@@ -92,13 +93,13 @@ bool FPCGExSampleNearestPointElement::Validate(FPCGContext* InContext) const
 
 	if (!Context->Targets || Context->Targets->GetNum() < 1)
 	{
-		PCGE_LOG(Error, GraphAndLog, LOCTEXT("MissingTargets", "No targets (either no input or empty dataset)"));
+		PCGE_LOG(Error, GraphAndLog, FTEXT("No targets (either no input or empty dataset)"));
 		return false;
 	}
 
 	if (!Context->WeightCurve)
 	{
-		PCGE_LOG(Error, GraphAndLog, LOCTEXT("InvalidWeightCurve", "Weight Curve asset could not be loaded."));
+		PCGE_LOG(Error, GraphAndLog, FTEXT("Weight Curve asset could not be loaded."));
 		return false;
 	}
 
@@ -109,7 +110,7 @@ bool FPCGExSampleNearestPointElement::Validate(FPCGContext* InContext) const
 		Context->NormalGetter.Capture(Settings->NormalSource);
 		if (!Context->NormalGetter.Bind(*Context->Targets))
 		{
-			PCGE_LOG(Warning, GraphAndLog, LOCTEXT("InvalidNormalSource", "Normal source is invalid."));
+			PCGE_LOG(Warning, GraphAndLog, FTEXT("Normal source is invalid."));
 		}
 	}
 
@@ -121,10 +122,10 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExSampleNearestPointElement::Execute);
 
 	PCGEX_CONTEXT(SampleNearestPoint)
-	
+
 	if (Context->IsSetup())
 	{
-		if (!Validate(Context)) { return true; }
+		if (!Boot(Context)) { return true; }
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
@@ -142,7 +143,7 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 			{
 				if (Context->RangeMinGetter.Bind(PointIO))
 				{
-					PCGE_LOG(Warning, GraphAndLog, LOCTEXT("InvalidLocalRangeMin", "RangeMin metadata missing"));
+					PCGE_LOG(Warning, GraphAndLog, FTEXT("RangeMin metadata missing"));
 				}
 			}
 
@@ -150,7 +151,7 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 			{
 				if (Context->RangeMaxGetter.Bind(PointIO))
 				{
-					PCGE_LOG(Warning, GraphAndLog, LOCTEXT("InvalidLocalRangeMax", "RangeMax metadata missing"));
+					PCGE_LOG(Warning, GraphAndLog, FTEXT("RangeMax metadata missing"));
 				}
 			}
 
@@ -303,3 +304,4 @@ bool FSamplePointTask::ExecuteTask()
 }
 
 #undef LOCTEXT_NAMESPACE
+#undef PCGEX_NAMESPACE

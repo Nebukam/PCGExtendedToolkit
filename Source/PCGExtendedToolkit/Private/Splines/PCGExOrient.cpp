@@ -6,6 +6,7 @@
 #include "Splines/SubPoints/Orient/PCGExSubPointsOrientAverage.h"
 
 #define LOCTEXT_NAMESPACE "PCGExOrientElement"
+#define PCGEX_NAMESPACE Orient
 
 UPCGExOrientSettings::UPCGExOrientSettings(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -24,10 +25,10 @@ FPCGElementPtr UPCGExOrientSettings::CreateElement() const { return MakeShared<F
 
 PCGEX_INITIALIZE_CONTEXT(Orient)
 
-bool FPCGExOrientElement::Validate(FPCGContext* InContext) const
+bool FPCGExOrientElement::Boot(FPCGContext* InContext) const
 {
-	if(! FPCGExPathProcessorElement::Validate(InContext)){return false;}
-	
+	if (!FPCGExPathProcessorElement::Boot(InContext)) { return false; }
+
 	PCGEX_CONTEXT_AND_SETTINGS(Orient)
 
 	PCGEX_BIND_OPERATION(Orientation, UPCGExSubPointsOrientAverage)
@@ -44,7 +45,7 @@ bool FPCGExOrientElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsSetup())
 	{
-		if (!Validate(Context)) { return true; }
+		if (!Boot(Context)) { return true; }
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
@@ -61,3 +62,4 @@ bool FPCGExOrientElement::ExecuteInternal(FPCGContext* InContext) const
 }
 
 #undef LOCTEXT_NAMESPACE
+#undef PCGEX_NAMESPACE

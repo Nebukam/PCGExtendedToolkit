@@ -4,9 +4,9 @@
 #include "Sampling/PCGExSampleNearestSurface.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSampleNearestSurfaceElement"
+#define PCGEX_NAMESPACE SampleNearestSurface
 
-
-PCGExData::EInit UPCGExSampleNearestSurfaceSettings::GetPointOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
+PCGExData::EInit UPCGExSampleNearestSurfaceSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
 int32 UPCGExSampleNearestSurfaceSettings::GetPreferredChunkSize() const { return 32; }
 
@@ -21,9 +21,9 @@ FPCGExSampleNearestSurfaceContext::~FPCGExSampleNearestSurfaceContext()
 
 PCGEX_INITIALIZE_CONTEXT(SampleNearestSurface)
 
-bool FPCGExSampleNearestSurfaceElement::Validate(FPCGContext* InContext) const
+bool FPCGExSampleNearestSurfaceElement::Boot(FPCGContext* InContext) const
 {
-	if (!FPCGExPointsProcessorElementBase::Validate(InContext)) { return false; }
+	if (!FPCGExPointsProcessorElementBase::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(SampleNearestSurface)
 
@@ -32,11 +32,11 @@ bool FPCGExSampleNearestSurfaceElement::Validate(FPCGContext* InContext) const
 	PCGEX_FWD(CollisionType)
 	PCGEX_FWD(CollisionChannel)
 	PCGEX_FWD(CollisionObjectType)
-	PCGEX_FWD(ProfileName)
+	PCGEX_FWD(CollisionProfileName)
 	PCGEX_FWD(bIgnoreSelf)
 
 	PCGEX_SAMPLENEARESTSURFACE_FOREACH(PCGEX_OUTPUT_FWD)
-	
+
 	PCGEX_SAMPLENEARESTSURFACE_FOREACH(PCGEX_OUTPUT_VALIDATE_NAME)
 
 	return true;
@@ -50,7 +50,7 @@ bool FPCGExSampleNearestSurfaceElement::ExecuteInternal(FPCGContext* InContext) 
 
 	if (Context->IsSetup())
 	{
-		if (!Validate(Context)) { return true; }
+		if (!Boot(Context)) { return true; }
 		if (Context->bIgnoreSelf) { Context->IgnoredActors.Add(Context->SourceComponent->GetOwner()); }
 
 		const UPCGExSampleNearestSurfaceSettings* Settings = Context->GetInputSettings<UPCGExSampleNearestSurfaceSettings>();
@@ -168,7 +168,7 @@ bool FSweepSphereTask::ExecuteTask()
 		}
 		break;
 	case EPCGExCollisionFilterType::Profile:
-		if (Context->World->OverlapMultiByProfile(OutOverlaps, Origin, FQuat::Identity, Context->ProfileName, CollisionShape, CollisionParams))
+		if (Context->World->OverlapMultiByProfile(OutOverlaps, Origin, FQuat::Identity, Context->CollisionProfileName, CollisionShape, CollisionParams))
 		{
 			ProcessOverlapResults();
 		}
@@ -182,3 +182,4 @@ bool FSweepSphereTask::ExecuteTask()
 }
 
 #undef LOCTEXT_NAMESPACE
+#undef PCGEX_NAMESPACE

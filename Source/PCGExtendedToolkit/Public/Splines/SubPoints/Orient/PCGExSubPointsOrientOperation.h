@@ -12,16 +12,16 @@
 /**
  * 
  */
-UCLASS(Blueprintable, EditInlineNew, HideDropdown)
+UCLASS(Abstract, Blueprintable, EditInlineNew)
 class PCGEXTENDEDTOOLKIT_API UPCGExSubPointsOrientOperation : public UPCGExSubPointsOperation
 {
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExAxis OrientAxis = EPCGExAxis::Forward;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExAxis UpAxis = EPCGExAxis::Up;
 
 	virtual void PrepareForData(PCGExData::FPointIO& InData) override;

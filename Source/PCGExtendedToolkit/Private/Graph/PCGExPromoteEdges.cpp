@@ -7,10 +7,11 @@
 #include "Graph/Promotions/PCGExEdgePromoteToPoint.h"
 
 #define LOCTEXT_NAMESPACE "PCGExEdgesToPaths"
+#define PCGEX_NAMESPACE PromoteEdges
 
 int32 UPCGExPromoteEdgesSettings::GetPreferredChunkSize() const { return 32; }
 
-PCGExData::EInit UPCGExPromoteEdgesSettings::GetPointOutputInitMode() const
+PCGExData::EInit UPCGExPromoteEdgesSettings::GetMainOutputInitMode() const
 {
 	return Promotion && Promotion->GeneratesNewPointData() ?
 		       PCGExData::EInit::NoOutput :
@@ -33,20 +34,20 @@ TArray<FPCGPinProperties> UPCGExPromoteEdgesSettings::OutputPinProperties() cons
 
 FPCGElementPtr UPCGExPromoteEdgesSettings::CreateElement() const { return MakeShared<FPCGExPromoteEdgesElement>(); }
 
-FName UPCGExPromoteEdgesSettings::GetMainPointsOutputLabel() const { return PCGExGraph::OutputPathsLabel; }
+FName UPCGExPromoteEdgesSettings::GetMainOutputLabel() const { return PCGExGraph::OutputPathsLabel; }
 
 PCGEX_INITIALIZE_CONTEXT(PromoteEdges)
 
-bool FPCGExPromoteEdgesElement::Validate(FPCGContext* InContext) const
+bool FPCGExPromoteEdgesElement::Boot(FPCGContext* InContext) const
 {
-	if(! FPCGExGraphProcessorElement::Validate(InContext)){return false;}
+	if (!FPCGExGraphProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(PromoteEdges)
-	
+
 	Context->EdgeType = static_cast<EPCGExEdgeType>(Settings->EdgeType);
 
 	PCGEX_BIND_OPERATION(Promotion, UPCGExEdgePromoteToPoint)
-	
+
 	return true;
 }
 
@@ -59,7 +60,7 @@ bool FPCGExPromoteEdgesElement::ExecuteInternal(
 
 	if (Context->IsSetup())
 	{
-		if (!Validate(Context)) { return true; }
+		if (!Boot(Context)) { return true; }
 
 		Context->MaxPossibleEdgesPerPoint = 0;
 		for (const UPCGExGraphParamsData* Graph : Context->Graphs.Params)
@@ -209,3 +210,4 @@ bool FPCGExPromoteEdgesElement::ExecuteInternal(
 }
 
 #undef LOCTEXT_NAMESPACE
+#undef PCGEX_NAMESPACE

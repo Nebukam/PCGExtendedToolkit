@@ -10,6 +10,7 @@
 #include "Splines/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPathfindingSettings"
+#define PCGEX_NAMESPACE PathfindingProcessor
 
 #pragma region UPCGSettings interface
 
@@ -22,7 +23,7 @@ TArray<FPCGPinProperties> UPCGExPathfindingProcessorSettings::InputPinProperties
 		FPCGPinProperties& PinPropertySeeds = PinProperties.Emplace_GetRef(PCGExPathfinding::SourceSeedsLabel, EPCGDataType::Point, false, false);
 
 #if WITH_EDITOR
-		PinPropertySeeds.Tooltip = LOCTEXT("PCGExSourceSeedsPinTooltip", "Seeds points for pathfinding.");
+		PinPropertySeeds.Tooltip = FTEXT("Seeds points for pathfinding.");
 #endif // WITH_EDITOR
 	}
 
@@ -31,7 +32,7 @@ TArray<FPCGPinProperties> UPCGExPathfindingProcessorSettings::InputPinProperties
 		FPCGPinProperties& PinPropertyGoals = PinProperties.Emplace_GetRef(PCGExPathfinding::SourceGoalsLabel, EPCGDataType::Point, false, false);
 
 #if WITH_EDITOR
-		PinPropertyGoals.Tooltip = LOCTEXT("PCGExSourcGoalsPinTooltip", "Goals points for pathfinding.");
+		PinPropertyGoals.Tooltip = FTEXT("Goals points for pathfinding.");
 #endif // WITH_EDITOR
 	}
 
@@ -44,7 +45,7 @@ TArray<FPCGPinProperties> UPCGExPathfindingProcessorSettings::OutputPinPropertie
 	FPCGPinProperties& PinPathsOutput = PinProperties.Emplace_GetRef(PCGExGraph::OutputPathsLabel, EPCGDataType::Point);
 
 #if WITH_EDITOR
-	PinPathsOutput.Tooltip = LOCTEXT("PCGExOutputPathsTooltip", "Paths output.");
+	PinPathsOutput.Tooltip = FTEXT("Paths output.");
 #endif // WITH_EDITOR
 
 	return PinProperties;
@@ -59,7 +60,7 @@ void UPCGExPathfindingProcessorSettings::PostEditChangeProperty(FPropertyChanged
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
 
-PCGExData::EInit UPCGExPathfindingProcessorSettings::GetPointOutputInitMode() const { return PCGExData::EInit::NoOutput; }
+PCGExData::EInit UPCGExPathfindingProcessorSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 bool UPCGExPathfindingProcessorSettings::GetRequiresSeeds() const { return true; }
 bool UPCGExPathfindingProcessorSettings::GetRequiresGoals() const { return true; }
 
@@ -71,22 +72,23 @@ FPCGExPathfindingProcessorContext::~FPCGExPathfindingProcessorContext()
 }
 
 PCGEX_INITIALIZE_CONTEXT(PathfindingProcessor)
-bool FPCGExPathfindingProcessorElement::Validate(FPCGContext* InContext) const
+
+bool FPCGExPathfindingProcessorElement::Boot(FPCGContext* InContext) const
 {
-	if (!FPCGExGraphProcessorElement::Validate(InContext)) { return false; }
+	if (!FPCGExGraphProcessorElement::Boot(InContext)) { return false; }
 	const FPCGExPathfindingProcessorContext* Context = static_cast<FPCGExPathfindingProcessorContext*>(InContext);
 	const UPCGExPathfindingProcessorSettings* Settings = InContext->GetInputSettings<UPCGExPathfindingProcessorSettings>();
 	check(Settings);
 
 	if (Settings->GetRequiresSeeds() && !Context->SeedsPoints)
 	{
-		PCGE_LOG(Error, GraphAndLog, LOCTEXT("MissingSeeds", "Missing Input Seeds."));
+		PCGE_LOG(Error, GraphAndLog, FTEXT("Missing Input Seeds."));
 		return false;
 	}
 
 	if (Settings->GetRequiresGoals() && !Context->GoalsPoints)
 	{
-		PCGE_LOG(Error, GraphAndLog, LOCTEXT("MissingGoals", "Missing Input Goals."));
+		PCGE_LOG(Error, GraphAndLog, FTEXT("Missing Input Goals."));
 		return false;
 	}
 
@@ -99,7 +101,6 @@ FPCGContext* FPCGExPathfindingProcessorElement::InitializeContext(
 	TWeakObjectPtr<UPCGComponent> SourceComponent,
 	const UPCGNode* Node) const
 {
-	
 	FPCGExPathfindingProcessorContext* Context = static_cast<FPCGExPathfindingProcessorContext*>(FPCGExGraphProcessorElement::InitializeContext(InContext, InputData, SourceComponent, Node));
 
 	const UPCGExPathfindingProcessorSettings* Settings = InContext->GetInputSettings<UPCGExPathfindingProcessorSettings>();
@@ -138,3 +139,4 @@ FPCGContext* FPCGExPathfindingProcessorElement::InitializeContext(
 
 
 #undef LOCTEXT_NAMESPACE
+#undef PCGEX_NAMESPACE

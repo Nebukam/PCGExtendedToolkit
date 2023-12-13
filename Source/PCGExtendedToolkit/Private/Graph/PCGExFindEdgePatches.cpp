@@ -3,14 +3,191 @@
 
 #include "Graph/PCGExFindEdgePatches.h"
 
+#include "Data/PCGExData.h"
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
-#include "Graph/PCGExGraphPatch.h"
 
-#define LOCTEXT_NAMESPACE "PCGExFindEdgePatches"
+#define LOCTEXT_NAMESPACE "PCGExGraph"
+#define PCGEX_NAMESPACE FindEdgePatches
+
+namespace PCGExGraph
+{
+	FPatch::~FPatch()
+	{
+		IndicesSet.Empty();
+		EdgesHashSet.Empty();
+		PointIO = nullptr;
+		Parent = nullptr;
+	}
+
+	void FPatch::Add(const int32 InIndex)
+	{
+		{
+			FReadScopeLock ReadLock(HashLock);
+			if (IndicesSet.Contains(InIndex)) { return; }
+		}
+
+		{
+			FWriteScopeLock WriteLock(HashLock);
+			IndicesSet.Add(InIndex);
+		}
+		{
+			FWriteScopeLock WriteLock(Parent->HashLock);
+			Parent->IndicesMap.Add(InIndex, this);
+		}
+	}
+
+	bool FPatch::Contains(const int32 InIndex) const
+	{
+		FReadScopeLock ReadLock(HashLock);
+		return IndicesSet.Contains(InIndex);
+	}
+
+	void FPatch::AddEdge(uint64 InEdgeHash)
+	{
+		const PCGExGraph::FEdge Edge = static_cast<PCGExGraph::FEdge>(InEdgeHash);
+		Add(Edge.Start);
+		Add(Edge.End);
+		{
+			FWriteScopeLock WriteLock(HashLock);
+			EdgesHashSet.Add(InEdgeHash);
+		}
+	}
+
+	bool FPatch::ContainsEdge(const uint64 InEdgeHash) const
+	{
+		FReadScopeLock ReadLock(HashLock);
+		return EdgesHashSet.Contains(InEdgeHash);
+	}
+
+	bool FPatch::OutputTo(const PCGExData::FPointIO& OutIO, int32 PatchIDOverride)
+	{
+		const TArray<FPCGPoint>& InPoints = OutIO.GetIn()->GetPoints();
+		UPCGPointData* OutData = OutIO.GetOut();
+		TArray<FPCGPoint>& Points = OutData->GetMutablePoints();
+
+		Points.Reserve(Points.Num() + IndicesSet.Num());
+		PCGMetadataElementCommon::ClearOrCreateAttribute(OutData->Metadata, Parent->PatchIDAttributeName, PatchIDOverride < 0 ? PatchID : PatchIDOverride);
+		PCGMetadataElementCommon::ClearOrCreateAttribute(OutData->Metadata, Parent->PatchSizeAttributeName, IndicesSet.Num());
+		for (const int32 Index : IndicesSet)
+		{
+			FPCGPoint& NewPoint = Points.Emplace_GetRef(InPoints[Index]);
+		}
+		return true;
+	}
+
+	bool FPatchGroup::Contains(const uint64 Hash) const
+	{
+		FReadScopeLock ReadLock(HashLock);
+		return IndicesMap.Contains(Hash);
+	}
+
+	FPatch* FPatchGroup::FindPatch(uint64 Hash)
+	{
+		FReadScopeLock ReadLock(HashLock);
+
+		FPatch** PatchPtr = IndicesMap.Find(Hash);
+		if (!PatchPtr) { return nullptr; }
+
+		return *PatchPtr;
+	}
+
+	FPatch* FPatchGroup::GetOrCreatePatch(const uint64 Hash)
+	{
+		{
+			FReadScopeLock ReadLock(HashLock);
+			if (FPatch** PatchPtr = IndicesMap.Find(Hash)) { return *PatchPtr; }
+		}
+
+		FPatch* NewPatch = CreatePatch();
+		NewPatch->Add(Hash);
+		return NewPatch;
+	}
+
+	FPatch* FPatchGroup::CreatePatch()
+	{
+		FWriteScopeLock WriteLock(PatchesLock);
+		FPatch* NewPatch = new FPatch();
+		Patches.Add(NewPatch);
+		NewPatch->Parent = this;
+		NewPatch->PointIO = PointIO;
+		NewPatch->PatchID = Patches.Num() - 1;
+		return NewPatch;
+	}
+
+	FPatch* FPatchGroup::Distribute(const int32 InIndex, FPatch* Patch)
+	{
+		if (Patch)
+		{
+			if (Patch->Contains(InIndex))
+			{
+				// Exit early since this point index has already been registered in this patch.
+				return Patch;
+			}
+
+			// Otherwise add index to active patch
+			Patch->Add(InIndex);
+		}
+
+		TArray<PCGExGraph::FUnsignedEdge> UnsignedEdges;
+		UnsignedEdges.Reserve(NumMaxEdges);
+
+		CurrentGraph->GetEdges(InIndex, UnsignedEdges, CrawlEdgeTypes);
+
+		for (const PCGExGraph::FUnsignedEdge& UEdge : UnsignedEdges)
+		{
+			if (!Patch) { Patch = GetOrCreatePatch(InIndex); }
+			Distribute(UEdge.End, Patch);
+			Patch->AddEdge(UEdge.GetUnsignedHash());
+		}
+
+		return Patch;
+	}
+
+	void FPatchGroup::OutputTo(FPCGContext* Context)
+	{
+		PatchesIO = new PCGExData::FPointIOGroup();
+		for (FPatch* Patch : Patches)
+		{
+			PCGExData::FPointIO& OutIO = PatchesIO->Emplace_GetRef(*PointIO, PCGExData::EInit::NewOutput);
+			Patch->OutputTo(OutIO, -1);
+		}
+		PatchesIO->OutputTo(Context);
+		PCGEX_DELETE(PatchesIO)
+	}
+
+	FPatchGroup::~FPatchGroup()
+	{
+		for (const FPatch* Patch : Patches) { delete Patch; }
+
+		Patches.Empty();
+		IndicesMap.Empty();
+		PointIO = nullptr;
+		CurrentGraph = nullptr;
+		PatchesIO = nullptr;
+	}
+
+	void FPatchGroup::OutputTo(FPCGContext* Context, const int64 MinPointCount, const int64 MaxPointCount, const uint32 PUID)
+	{
+		PatchesIO = new PCGExData::FPointIOGroup();
+		int32 PatchIndex = 0;
+		for (FPatch* Patch : Patches)
+		{
+			const int64 OutNumPoints = Patch->IndicesSet.Num();
+			if (MinPointCount >= 0 && OutNumPoints < MinPointCount) { continue; }
+			if (MaxPointCount >= 0 && OutNumPoints > MaxPointCount) { continue; }
+			PCGExData::FPointIO& OutIO = PatchesIO->Emplace_GetRef(*PointIO, PCGExData::EInit::NewOutput);
+			OutIO.GetOut()->Metadata->CreateAttribute<int32>(PCGExGraph::PUIDAttributeName, PUID, false, true);
+			Patch->OutputTo(OutIO, PatchIndex);
+			PatchIndex++;
+		}
+		PatchesIO->OutputTo(Context);
+		PCGEX_DELETE(PatchesIO)
+	}
+}
 
 int32 UPCGExFindEdgePatchesSettings::GetPreferredChunkSize() const { return 32; }
 
-PCGExData::EInit UPCGExFindEdgePatchesSettings::GetPointOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
+PCGExData::EInit UPCGExFindEdgePatchesSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
 FPCGExFindEdgePatchesContext::~FPCGExFindEdgePatchesContext()
 {
@@ -26,7 +203,7 @@ TArray<FPCGPinProperties> UPCGExFindEdgePatchesSettings::OutputPinProperties() c
 	FPCGPinProperties& PinPatchesOutput = PinProperties.Emplace_GetRef(PCGExGraph::OutputEdgesLabel, EPCGDataType::Point);
 
 #if WITH_EDITOR
-	PinPatchesOutput.Tooltip = LOCTEXT("PCGExOutputParamsTooltip", "Point data representing edges.");
+	PinPatchesOutput.Tooltip = FTEXT("Point data representing edges.");
 #endif // WITH_EDITOR
 
 	PCGEx::Swap(PinProperties, PinProperties.Num() - 1, PinProperties.Num() - 2);
@@ -40,9 +217,9 @@ FPCGElementPtr UPCGExFindEdgePatchesSettings::CreateElement() const
 
 PCGEX_INITIALIZE_CONTEXT(FindEdgePatches)
 
-bool FPCGExFindEdgePatchesElement::Validate(FPCGContext* InContext) const
+bool FPCGExFindEdgePatchesElement::Boot(FPCGContext* InContext) const
 {
-	if (!FPCGExGraphProcessorElement::Validate(InContext)) { return false; }
+	if (!FPCGExGraphProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(FindEdgePatches)
 
@@ -73,7 +250,7 @@ bool FPCGExFindEdgePatchesElement::ExecuteInternal(
 
 	if (Context->IsSetup())
 	{
-		if (!Validate(Context)) { return true; }
+		if (!Boot(Context)) { return true; }
 		Context->PatchesIO = new PCGExData::FPointIOGroup();
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
@@ -121,7 +298,11 @@ bool FPCGExFindEdgePatchesElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExGraph::State_WaitingOnFindingPatch))
 	{
-		if (Context->IsAsyncWorkComplete()) { Context->SetState(PCGExGraph::State_ReadyForNextGraph); }
+		if (Context->IsAsyncWorkComplete())
+		{
+			if()
+			Context->SetState(PCGExGraph::State_ReadyForNextGraph);
+		}
 	}
 
 	// -> Each graph has been traversed, now merge patches
@@ -145,7 +326,7 @@ bool FPCGExFindEdgePatchesElement::ExecuteInternal(
 
 		int32 PUID = Context->CurrentIO->GetIn()->GetUniqueID();
 
-		for (FPCGExGraphPatch* Patch : Context->Patches->Patches)
+		for (PCGExGraph::FPatch* Patch : Context->Patches->Patches)
 		{
 			const int64 OutNumPoints = Patch->IndicesSet.Num();
 			if (Context->MinPatchSize >= 0 && OutNumPoints < Context->MinPatchSize) { continue; }
@@ -153,10 +334,10 @@ bool FPCGExFindEdgePatchesElement::ExecuteInternal(
 
 			// Create and mark patch data
 			UPCGPointData* PatchData = PCGExData::PCGExPointIO::NewEmptyPointData(Context, PCGExGraph::OutputEdgesLabel);
-			PCGEx::CreateMark(PatchData->Metadata, PCGExGraph::PUIDAttributeName, PUID);
+			PCGExData::WriteMark<int64>(PatchData->Metadata, PCGExGraph::PUIDAttributeName, PUID);
 
 			// Mark point data
-			PCGEx::CreateMark(Context->CurrentIO->GetOut()->Metadata, PCGExGraph::PUIDAttributeName, PUID);
+			PCGExData::WriteMark<int64>(Context->CurrentIO->GetOut()->Metadata, PCGExGraph::PUIDAttributeName, PUID);
 
 			Context->GetAsyncManager()->Start<FWritePatchesTask>(Context->PatchUIndex, Context->CurrentIO, Patch, PatchData);
 
@@ -185,10 +366,18 @@ bool FPCGExFindEdgePatchesElement::ExecuteInternal(
 
 bool FDistributeToPatchTask::ExecuteTask()
 {
-	const FPCGExFindEdgePatchesContext* Context = Manager->GetContext<FPCGExFindEdgePatchesContext>();
+	FPCGExFindEdgePatchesContext* Context = Manager->GetContext<FPCGExFindEdgePatchesContext>();
 	PCGEX_ASYNC_CHECKPOINT
 
-	Context->Patches->Distribute(TaskInfos.Index);
+	{
+		FReadScopeLock ReadLock(Context->QueueLock);
+		if (!Context->IndicesQueue.Contains(TaskInfos.Index)) { return false; }
+	}
+
+	FWriteScopeLock WriteLock(Context->QueueLock);
+	PCGExGraph::FPatch* Patch = Context->Patches->Distribute(TaskInfos.Index);
+
+	for (const int32 Index : Patch->IndicesSet) { Context->IndicesQueue.Remove(Index); }
 
 	return true;
 }
@@ -210,11 +399,11 @@ bool FWritePatchesTask::ExecuteTask()
 	TArray<FPCGPoint>& MutablePoints = PatchData->GetMutablePoints();
 	MutablePoints.Reserve(MutablePoints.Num() + Patch->IndicesSet.Num());
 
-	int32 NumPoints = Patch->IndicesSet.Num();
+	const int32 NumPoints = Patch->IndicesSet.Num();
 
 	UPCGMetadata* Metadata = PointIO->GetOut()->Metadata;
-	PCGEx::CreateMark(Metadata, Context->Patches->PatchIDAttributeName, TaskInfos.Index);
-	PCGEx::CreateMark(Metadata, Context->Patches->PatchSizeAttributeName, NumPoints);
+	PCGExData::WriteMark<int64>(Metadata, Context->Patches->PatchIDAttributeName, TaskInfos.Index);
+	PCGExData::WriteMark<int64>(Metadata, Context->Patches->PatchSizeAttributeName, NumPoints);
 
 	FPCGMetadataAttribute<int32>* StartIndexAttribute = PatchData->Metadata->FindOrCreateAttribute<int32>(FName("StartIndex"), -1);
 	FPCGMetadataAttribute<int32>* EndIndexAttribute = PatchData->Metadata->FindOrCreateAttribute<int32>(FName("EndIndex"), -1);
@@ -236,3 +425,4 @@ bool FWritePatchesTask::ExecuteTask()
 }
 
 #undef LOCTEXT_NAMESPACE
+#undef PCGEX_NAMESPACE

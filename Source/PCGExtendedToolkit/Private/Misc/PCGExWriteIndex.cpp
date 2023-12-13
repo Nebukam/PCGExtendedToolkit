@@ -4,8 +4,9 @@
 #include "Misc/PCGExWriteIndex.h"
 
 #define LOCTEXT_NAMESPACE "PCGExWriteIndexElement"
+#define PCGEX_NAMESPACE WriteIndex
 
-PCGExData::EInit UPCGExWriteIndexSettings::GetPointOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
+PCGExData::EInit UPCGExWriteIndexSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
 FPCGElementPtr UPCGExWriteIndexSettings::CreateElement() const { return MakeShared<FPCGExWriteIndexElement>(); }
 
@@ -19,12 +20,12 @@ FPCGExWriteIndexContext::~FPCGExWriteIndexContext()
 
 PCGEX_INITIALIZE_CONTEXT(WriteIndex)
 
-bool FPCGExWriteIndexElement::Validate(FPCGContext* InContext) const
+bool FPCGExWriteIndexElement::Boot(FPCGContext* InContext) const
 {
-	if (!FPCGExPointsProcessorElementBase::Validate(InContext)) { return false; }
+	if (!FPCGExPointsProcessorElementBase::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(WriteIndex)
-	
+
 	PCGEX_FWD(bOutputNormalizedIndex)
 	PCGEX_FWD(OutputAttributeName)
 
@@ -41,7 +42,7 @@ bool FPCGExWriteIndexElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsSetup())
 	{
-		if (!Validate(Context)) { return true; }
+		if (!Boot(Context)) { return true; }
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
@@ -101,3 +102,4 @@ bool FPCGExWriteIndexElement::ExecuteInternal(FPCGContext* InContext) const
 }
 
 #undef LOCTEXT_NAMESPACE
+#undef PCGEX_NAMESPACE

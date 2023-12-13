@@ -4,9 +4,10 @@
 #include "Graph/PCGExBuildGraph.h"
 
 #define LOCTEXT_NAMESPACE "PCGExBuildGraph"
+#define PCGEX_NAMESPACE BuildGraph
 
 int32 UPCGExBuildGraphSettings::GetPreferredChunkSize() const { return 32; }
-PCGExData::EInit UPCGExBuildGraphSettings::GetPointOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
+PCGExData::EInit UPCGExBuildGraphSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
 FPCGExBuildGraphContext::~FPCGExBuildGraphContext()
 {
@@ -28,18 +29,18 @@ void UPCGExBuildGraphSettings::PostEditChangeProperty(FPropertyChangedEvent& Pro
 }
 
 FPCGElementPtr UPCGExBuildGraphSettings::CreateElement() const { return MakeShared<FPCGExBuildGraphElement>(); }
-FName UPCGExBuildGraphSettings::GetMainPointsInputLabel() const { return PCGEx::SourcePointsLabel; }
+FName UPCGExBuildGraphSettings::GetMainInputLabel() const { return PCGEx::SourcePointsLabel; }
 
 PCGEX_INITIALIZE_CONTEXT(BuildGraph)
 
-bool FPCGExBuildGraphElement::Validate(FPCGContext* InContext) const
+bool FPCGExBuildGraphElement::Boot(FPCGContext* InContext) const
 {
-	if(!FPCGExGraphProcessorElement::Validate(InContext)){return false;}
+	if (!FPCGExGraphProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(BuildGraph)
 
 	PCGEX_BIND_OPERATION(GraphSolver, UPCGExGraphSolver)
-	
+
 	return true;
 }
 
@@ -49,10 +50,10 @@ bool FPCGExBuildGraphElement::ExecuteInternal(
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExBuildGraphElement::Execute);
 
 	PCGEX_CONTEXT(BuildGraph)
-	
+
 	if (Context->IsSetup())
 	{
-		if (!Validate(Context)) { return true; }
+		if (!Boot(Context)) { return true; }
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
@@ -157,3 +158,4 @@ bool FProbeTask::ExecuteTask()
 }
 
 #undef LOCTEXT_NAMESPACE
+#undef PCGEX_NAMESPACE

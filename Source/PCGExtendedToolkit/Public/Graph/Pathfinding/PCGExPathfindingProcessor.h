@@ -35,7 +35,7 @@ public:
 
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 
-	virtual PCGExData::EInit GetPointOutputInitMode() const override;
+	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	virtual bool GetRequiresSeeds() const;
 	virtual bool GetRequiresGoals() const;
 
@@ -43,15 +43,15 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced)
 	UPCGExGoalPicker* GoalPicker;
 
-	/** TBD */
+	/** How to blend path points between seed & goal */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced)
 	UPCGExSubPointsBlendOperation* Blending;
 
-	/** TBD */
+	/** Add seed point at the beginning of the path */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	bool bAddSeedToPath = true;
 
-	/** TBD */
+	/** Add goal point at the beginning of the path */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	bool bAddGoalToPath = true;
 };
@@ -85,7 +85,7 @@ public:
 		const UPCGNode* Node) override;
 
 protected:
-	virtual bool Validate(FPCGContext* InContext) const override;
+	virtual bool Boot(FPCGContext* InContext) const override;
 	virtual FPCGContext* InitializeContext(
 		FPCGExPointsProcessorContext* InContext,
 		const FPCGDataCollection& InputData,

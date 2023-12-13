@@ -26,10 +26,10 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSubPointsBlendInterpolate : public UPCGExSubP
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExPathBlendOver BlendOver = EPCGExPathBlendOver::Distance;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="BlendOver==EPCGExPathBlendOver::Fixed", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="BlendOver==EPCGExPathBlendOver::Fixed", EditConditionHides))
 	double Alpha = 0.5;
 
 	virtual void BlendSubPoints(

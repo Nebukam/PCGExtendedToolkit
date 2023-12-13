@@ -259,7 +259,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bOverrideDotOverDistance = false;
 
-	/** TBD */
+	/**Curve to balance picking shortest distance over better angle. Only used by certain solvers.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bOverrideDotOverDistance"))
 	TSoftObjectPtr<UCurveFloat> DotOverDistance;
 
@@ -267,7 +267,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bOverrideOffsetOrigin = false;
 
-	/** Offset socket origin  */
+	/** What property to use for the offset.  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bOverrideOffsetOrigin"))
 	EPCGExExtension OffsetOrigin = EPCGExExtension::None;
 };
@@ -449,16 +449,16 @@ namespace PCGExGraph
 	struct PCGEXTENDEDTOOLKIT_API FSocketInfos
 	{
 		FSocket* Socket = nullptr;
-		FProbeDistanceModifier* Modifier = nullptr;
-		FLocalDirection* LocalDirection = nullptr;
+		FProbeDistanceModifier* MaxDistanceGetter = nullptr;
+		FLocalDirection* LocalDirectionGetter = nullptr;
 
 		bool Matches(const FSocketInfos& Other) const { return Socket->Matches(Other.Socket); }
 
 		~FSocketInfos()
 		{
 			Socket = nullptr;
-			Modifier = nullptr;
-			LocalDirection = nullptr;
+			MaxDistanceGetter = nullptr;
+			LocalDirectionGetter = nullptr;
 		}
 	};
 

@@ -17,7 +17,7 @@ TArray<FPCGPinProperties> UPCGExGraphProcessorSettings::InputPinProperties() con
 	FPCGPinProperties& PinPropertyParams = PinProperties.Emplace_GetRef(PCGExGraph::SourceParamsLabel, EPCGDataType::Param);
 
 #if WITH_EDITOR
-	PinPropertyParams.Tooltip = LOCTEXT("PCGExSourceParamsPinTooltip", "Graph Params. Data is de-duped internally.");
+	PinPropertyParams.Tooltip = FTEXT("Graph Params. Data is de-duped internally.");
 #endif // WITH_EDITOR
 
 	return PinProperties;
@@ -29,14 +29,14 @@ TArray<FPCGPinProperties> UPCGExGraphProcessorSettings::OutputPinProperties() co
 	FPCGPinProperties& PinParamsOutput = PinProperties.Emplace_GetRef(PCGExGraph::OutputParamsLabel, EPCGDataType::Param);
 
 #if WITH_EDITOR
-	PinParamsOutput.Tooltip = LOCTEXT("PCGExOutputParamsTooltip", "Graph Params forwarding. Data is de-duped internally.");
+	PinParamsOutput.Tooltip = FTEXT("Graph Params forwarding. Data is de-duped internally.");
 #endif // WITH_EDITOR
 
 	return PinProperties;
 }
 
-FName UPCGExGraphProcessorSettings::GetMainPointsInputLabel() const { return PCGExGraph::SourceGraphsLabel; }
-FName UPCGExGraphProcessorSettings::GetMainPointsOutputLabel() const { return PCGExGraph::OutputGraphsLabel; }
+FName UPCGExGraphProcessorSettings::GetMainInputLabel() const { return PCGExGraph::SourceGraphsLabel; }
+FName UPCGExGraphProcessorSettings::GetMainOutputLabel() const { return PCGExGraph::OutputGraphsLabel; }
 
 FPCGExGraphProcessorContext::~FPCGExGraphProcessorContext()
 {
@@ -115,15 +115,15 @@ void FPCGExGraphProcessorContext::PrepareCurrentGraphForPoints(const PCGExData::
 
 PCGEX_INITIALIZE_CONTEXT(GraphProcessor)
 
-bool FPCGExGraphProcessorElement::Validate(FPCGContext* InContext) const
+bool FPCGExGraphProcessorElement::Boot(FPCGContext* InContext) const
 {
-	if (!FPCGExPointsProcessorElementBase::Validate(InContext)) { return false; }
+	if (!FPCGExPointsProcessorElementBase::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT(GraphProcessor)
 
 	if (Context->Graphs.IsEmpty())
 	{
-		PCGE_LOG(Error, GraphAndLog, LOCTEXT("MissingParams", "Missing Input Params."));
+		PCGE_LOG(Error, GraphAndLog, FTEXT("Missing Input Params."));
 		return false;
 	}
 

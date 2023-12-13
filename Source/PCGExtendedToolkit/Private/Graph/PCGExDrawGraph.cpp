@@ -5,8 +5,9 @@
 #include "Graph/Solvers/PCGExGraphSolver.h"
 
 #define LOCTEXT_NAMESPACE "PCGExDrawGraph"
+#define PCGEX_NAMESPACE DrawGraph
 
-PCGExData::EInit UPCGExDrawGraphSettings::GetPointOutputInitMode() const { return PCGExData::EInit::NoOutput; }
+PCGExData::EInit UPCGExDrawGraphSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 
 FPCGElementPtr UPCGExDrawGraphSettings::CreateElement() const
 {
@@ -37,14 +38,14 @@ void UPCGExDrawGraphSettings::PostEditChangeProperty(FPropertyChangedEvent& Prop
 
 PCGEX_INITIALIZE_CONTEXT(DrawGraph)
 
-bool FPCGExDrawGraphElement::Validate(FPCGContext* InContext) const
+bool FPCGExDrawGraphElement::Boot(FPCGContext* InContext) const
 {
-	if (!FPCGExGraphProcessorElement::Validate(InContext)) { return false; }
+	if (!FPCGExGraphProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT(DrawGraph)
-	
+
 	Context->GraphSolver = Context->RegisterOperation<UPCGExGraphSolver>();
-	
+
 	return true;
 }
 
@@ -59,11 +60,11 @@ bool FPCGExDrawGraphElement::ExecuteInternal(FPCGContext* InContext) const
 	if (Context->IsSetup())
 	{
 		if (!Settings->bDebug) { return true; }
-		if (!Validate(Context)) { return true; }
+		if (!Boot(Context)) { return true; }
 
 		if (!PCGExDebug::NotifyExecute(InContext))
 		{
-			PCGE_LOG(Error, GraphAndLog, LOCTEXT("MissingDebugManager", "Could not find a PCGEx Debug Manager node in your graph."));
+			PCGE_LOG(Error, GraphAndLog, FTEXT("Could not find a PCGEx Debug Manager node in your graph."));
 			return true;
 		}
 
@@ -211,3 +212,4 @@ bool FPCGExDrawGraphElement::ExecuteInternal(FPCGContext* InContext) const
 }
 
 #undef LOCTEXT_NAMESPACE
+#undef PCGEX_NAMESPACE

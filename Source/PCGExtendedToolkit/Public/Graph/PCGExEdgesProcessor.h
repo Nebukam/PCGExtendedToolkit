@@ -48,7 +48,7 @@ public:
 		const UPCGNode* Node) override;
 
 protected:
-	virtual bool Validate(FPCGContext* InContext) const override;
+	virtual bool Boot(FPCGContext* InContext) const override;
 	virtual FPCGContext* InitializeContext(
 		FPCGExPointsProcessorContext* InContext,
 		const FPCGDataCollection& InputData,

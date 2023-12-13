@@ -35,49 +35,54 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeDebugDrawDescriptor : public FPCGEx
 #endif
 
 	/** Enable or disable this debug group. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(DisplayPriority=-1))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1))
 	bool bEnabled = true;
 
 	/** Draw line thickness. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExDebugExpression ExpressedAs = EPCGExDebugExpression::Direction;
 
-	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (DisplayName=" └─ Axis", EditCondition="ExpressedAs==EPCGExDebugExpression::Direction", EditConditionHides))
+	/** Directional axis to use when the input datatype allows for it.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" └─ Axis", EditCondition="ExpressedAs==EPCGExDebugExpression::Direction", EditConditionHides))
 	EPCGExAxis Axis = EPCGExAxis::Forward;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (EditCondition="ExpressedAs==EPCGExDebugExpression::Direction", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="ExpressedAs==EPCGExDebugExpression::Direction", EditConditionHides))
 	bool bNormalizeBeforeSizing = true;
 
-	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (DisplayName=" └─ Field", EditCondition="ExpressedAs==EPCGExDebugExpression::ConnectionToIndex", EditConditionHides))
+	/** Which unique field to use from the input data, when available. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName=" └─ Field", EditCondition="ExpressedAs==EPCGExDebugExpression::ConnectionToIndex", EditConditionHides))
 	EPCGExSingleField Field = EPCGExSingleField::X;
 
 	/** Draw line thickness. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	float Thickness = 1.0;
 
 	/** Draw size. What it means depends on the selected debug type. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Size")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Size", meta=(PCG_Overridable))
 	double Size = 100.0;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Size", meta = (InlineEditConditionToggle))
+	/** Fetch the size from a local attribute. The regular Size parameter then act as a scale.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Size", meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bSizeFromAttribute = false;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Size", meta = (EditCondition="bSizeFromAttribute"))
+	/** Fetch the size from a local attribute. The regular Size parameter then act as a scale.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Size", meta = (PCG_Overridable, EditCondition="bSizeFromAttribute"))
 	FPCGExInputDescriptorWithSingleField SizeAttribute;
 
 	/** Draw color. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Color")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Color", meta=(PCG_Overridable))
 	FColor Color = FColor(255, 0, 0);
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Color", meta = (EditCondition="bEnabled", InlineEditConditionToggle))
+	/** Fetch the color from a local attribute.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Color", meta = (PCG_Overridable, EditCondition="bEnabled", InlineEditConditionToggle))
 	bool bColorFromAttribute = false;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Color", meta = (EditCondition="bColorFromAttribute"))
+	/** Fetch the color from a local attribute.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Color", meta = (PCG_Overridable, EditCondition="bColorFromAttribute"))
 	FPCGExInputDescriptor ColorAttribute;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Color", meta = (EditCondition="bColorFromAttribute"))
+	/** Basically divides input values by 255*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Color", meta = (PCG_Overridable, EditCondition="bColorFromAttribute"))
 	bool bColorIsLinear = true;
 
 	FString GetNestedStructDisplayText() const
@@ -163,7 +168,7 @@ public:
 	//~End IPCGExDebug interface
 
 protected:
-	virtual PCGExData::EInit GetPointOutputInitMode() const override;
+	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 
 private:
 	friend class FPCGExDrawAttributesElement;
@@ -188,6 +193,6 @@ public:
 		const UPCGNode* Node) override;
 
 protected:
-	virtual bool Validate(FPCGContext* InContext) const override;
+	virtual bool Boot(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };

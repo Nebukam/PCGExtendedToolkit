@@ -35,7 +35,7 @@ public:
 	PCGEX_NODE_INFOS(SampleNearestSurface, "Sample Nearest Surface", "Find the closest point on the nearest collidable surface.");
 #endif
 
-	virtual PCGExData::EInit GetPointOutputInitMode() const override;
+	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	virtual int32 GetPreferredChunkSize() const override;
 
 protected:
@@ -43,83 +43,78 @@ protected:
 	//~End UPCGSettings interface
 
 public:
-	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(InlineEditConditionToggle))
+	/** Write whether the sampling was sucessful or not to a boolean attribute. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteSuccess = false;
 
-	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(EditCondition="bWriteSuccess"))
-	FName Success = FName("SuccessfullySampled");
+	/** Name of the 'boolean' attribute to write sampling success to.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteSuccess"))
+	FName SuccessAttributeName = FName("SuccessfullySampled");
 
-	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(InlineEditConditionToggle))
+	/** Write the sample location. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteLocation = false;
 
-	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(EditCondition="bWriteLocation"))
-	FName Location = FName("NearestLocation");
+	/** Name of the 'vector' attribute to write sampled Location to.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteLocation"))
+	FName LocationAttributeName = FName("NearestLocation");
 
-	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(InlineEditConditionToggle))
+	/** Write the sample "look at" direction from the point. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteLookAt = false;
 
-	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(EditCondition="bWriteLookAt"))
-	FName LookAt = FName("NearestLookAt");
+	/** Name of the 'vector' attribute to write sampled LookAt to.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteLookAt"))
+	FName LookAtAttributeName = FName("NearestLookAt");
 
 
-	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(InlineEditConditionToggle))
+	/** Write the sampled normal. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteNormal = false;
 
-	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(EditCondition="bWriteNormal"))
-	FName Normal = FName("NearestNormal");
+	/** Name of the 'vector' attribute to write sampled Normal to.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteNormal"))
+	FName NormalAttributeName = FName("NearestNormal");
 
 
-	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(InlineEditConditionToggle))
+	/** Write the sampled distance. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteDistance = false;
 
-	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(EditCondition="bWriteDistance"))
-	FName Distance = FName("NearestDistance");
+	/** Name of the 'double' attribute to write sampled distance to.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteDistance"))
+	FName DistanceAttributeName = FName("NearestDistance");
 
 
 	/** Maximum distance to check for closest surface.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision & Metrics")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision & Metrics", meta=(PCG_Overridable))
 	double MaxDistance = 1000;
 
 	/** Maximum distance to check for closest surface.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision & Metrics")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision & Metrics", meta=(PCG_Overridable))
 	EPCGExCollisionFilterType CollisionType = EPCGExCollisionFilterType::Channel;
 
 	/** Collision channel to check against */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision & Metrics", meta=(EditCondition="CollisionType==EPCGExCollisionFilterType::Channel", EditConditionHides, Bitmask, BitmaskEnum="/Script/Engine.ECollisionChannel"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision & Metrics", meta=(PCG_Overridable, EditCondition="CollisionType==EPCGExCollisionFilterType::Channel", EditConditionHides, Bitmask, BitmaskEnum="/Script/Engine.ECollisionChannel"))
 	TEnumAsByte<ECollisionChannel> CollisionChannel = ECC_WorldDynamic;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision & Metrics", meta=(EditCondition="CollisionType==EPCGExCollisionFilterType::ObjectType", EditConditionHides, Bitmask, BitmaskEnum="/Script/Engine.EObjectTypeQuery"))
+	/** Collision Object Type to check against */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision & Metrics", meta=(PCG_Overridable, EditCondition="CollisionType==EPCGExCollisionFilterType::ObjectType", EditConditionHides, Bitmask, BitmaskEnum="/Script/Engine.EObjectTypeQuery"))
 	int32 CollisionObjectType = ObjectTypeQuery1;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision & Metrics", meta=(EditCondition="CollisionType==EPCGExCollisionFilterType::Profile", EditConditionHides))
-	FName ProfileName = NAME_None;
+	/** Collision Profile to check against */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision & Metrics", meta=(PCG_Overridable, EditCondition="CollisionType==EPCGExCollisionFilterType::Profile", EditConditionHides))
+	FName CollisionProfileName = NAME_None;
 
 	/** Ignore this graph' PCG content */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision & Metrics")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision & Metrics", meta=(PCG_Overridable))
 	bool bIgnoreSelf = true;
 
-	/** StepSize can't get smaller than this.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision & Metrics")
-	double MinStepSize = 1;
-
-	/** Maximum number of attempts per point. Each attempt increases probing radius by (MaxDistance/NumMaxAttempts)*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision & Metrics")
-	int32 NumMaxAttempts = 256;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision & Metrics", meta=(InlineEditConditionToggle))
+	/** Ignore a procedural selection of actors */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision & Metrics", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bIgnoreActors = false;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision & Metrics", meta=(EditCondition="bIgnoreActors"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision & Metrics", meta=(PCG_Overridable, EditCondition="bIgnoreActors"))
 	FPCGExActorSelectorSettings IgnoredActorSelector;
 };
 
@@ -133,7 +128,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestSurfaceContext : public FPCGExP
 
 	EPCGExCollisionFilterType CollisionType = EPCGExCollisionFilterType::Channel;
 	TEnumAsByte<ECollisionChannel> CollisionChannel;
-	FName ProfileName;
+	FName CollisionProfileName;
 	int32 CollisionObjectType;
 
 	bool bIgnoreSelf = true;
@@ -151,7 +146,7 @@ public:
 		const UPCGNode* Node) override;
 
 protected:
-	virtual bool Validate(FPCGContext* InContext) const override;
+	virtual bool Boot(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 

@@ -12,10 +12,10 @@ UPCGExPathProcessorSettings::UPCGExPathProcessorSettings(const FObjectInitialize
 {
 }
 
-PCGExData::EInit UPCGExPathProcessorSettings::GetPointOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
+PCGExData::EInit UPCGExPathProcessorSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
-FName UPCGExPathProcessorSettings::GetMainPointsInputLabel() const { return PCGExGraph::SourcePathsLabel; }
-FName UPCGExPathProcessorSettings::GetMainPointsOutputLabel() const { return PCGExGraph::OutputPathsLabel; }
+FName UPCGExPathProcessorSettings::GetMainInputLabel() const { return PCGExGraph::SourcePathsLabel; }
+FName UPCGExPathProcessorSettings::GetMainOutputLabel() const { return PCGExGraph::OutputPathsLabel; }
 
 PCGEX_INITIALIZE_CONTEXT(PathProcessor)
 

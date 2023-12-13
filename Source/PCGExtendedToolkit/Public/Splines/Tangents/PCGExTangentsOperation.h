@@ -12,7 +12,7 @@
 /**
  * 
  */
-UCLASS(Blueprintable, EditInlineNew, HideDropdown)
+UCLASS(Abstract, Blueprintable, EditInlineNew)
 class PCGEXTENDEDTOOLKIT_API UPCGExTangentsOperation : public UPCGExOperation
 {
 	GENERATED_BODY()

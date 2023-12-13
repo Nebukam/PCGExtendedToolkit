@@ -17,13 +17,13 @@ namespace PCGExDataBlending
 /**
  * 
  */
-UCLASS(Blueprintable, EditInlineNew, HideDropdown)
+UCLASS(Abstract, Blueprintable, EditInlineNew)
 class PCGEXTENDEDTOOLKIT_API UPCGExSubPointsBlendOperation : public UPCGExSubPointsOperation
 {
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(ShowOnlyInnerProperties))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
 	FPCGExBlendingSettings BlendingSettings;
 
 	virtual void PrepareForData(PCGExData::FPointIO& InData) override;

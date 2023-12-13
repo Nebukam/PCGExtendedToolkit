@@ -12,12 +12,12 @@
 UENUM(BlueprintType)
 enum class EPCGExDataBlendingType : uint8
 {
-	None    = 0 UMETA(DisplayName = "None", ToolTip="TBD"),
-	Average = 1 UMETA(DisplayName = "Average", ToolTip="Average values"),
+	None    = 0 UMETA(DisplayName = "None", ToolTip="No blending is applied, keep the original value."),
+	Average = 1 UMETA(DisplayName = "Average", ToolTip="Average all sampled values."),
 	Weight  = 2 UMETA(DisplayName = "Weight", ToolTip="Translates to basic interpolation in most use cases."),
-	Min     = 3 UMETA(DisplayName = "Min", ToolTip="TBD"),
-	Max     = 4 UMETA(DisplayName = "Max", ToolTip="TBD"),
-	Copy    = 5 UMETA(DisplayName = "Copy", ToolTip = "TBD"),
+	Min     = 3 UMETA(DisplayName = "Min", ToolTip="Component-wise MIN operation"),
+	Max     = 4 UMETA(DisplayName = "Max", ToolTip="Component-wise MAX operation"),
+	Copy    = 5 UMETA(DisplayName = "Copy", ToolTip = "Copy incoming data"),
 };
 
 USTRUCT(BlueprintType)

@@ -2,7 +2,7 @@
 
 1. [Readme](../Readme.md)
 1. [Installation](Installation.md)
-1. [Principles](Principles.md)
+1. [General](GeneralInfos.md)
 1. Nodes
     - Misc
         - [Sort Points](PCGExSortPoints.md)

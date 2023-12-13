@@ -3,7 +3,10 @@
 
 #include "Misc/PCGExPartitionByValues.h"
 
+#include "Data/PCGExData.h"
+
 #define LOCTEXT_NAMESPACE "PCGExPartitionByValues"
+#define PCGEX_NAMESPACE PartitionByValues
 
 namespace PCGExPartitionByValues
 {
@@ -83,12 +86,12 @@ void UPCGExPartitionByValuesSettings::PostEditChangeProperty(FPropertyChangedEve
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
 
-bool UPCGExPartitionByValuesSettings::GetMainPointsInputAcceptMultipleData() const { return false; }
+bool UPCGExPartitionByValuesSettings::GetMainAcceptMultipleData() const { return false; }
 
 #endif
 
 FPCGElementPtr UPCGExPartitionByValuesSettings::CreateElement() const { return MakeShared<FPCGExPartitionByValuesElement>(); }
-PCGExData::EInit UPCGExPartitionByValuesSettings::GetPointOutputInitMode() const { return bSplitOutput ? PCGExData::EInit::NoOutput : PCGExData::EInit::DuplicateInput; }
+PCGExData::EInit UPCGExPartitionByValuesSettings::GetMainOutputInitMode() const { return bSplitOutput ? PCGExData::EInit::NoOutput : PCGExData::EInit::DuplicateInput; }
 
 FPCGExPartitionByValuesContext::~FPCGExPartitionByValuesContext()
 {
@@ -97,9 +100,9 @@ FPCGExPartitionByValuesContext::~FPCGExPartitionByValuesContext()
 
 PCGEX_INITIALIZE_CONTEXT(PartitionByValues)
 
-bool FPCGExPartitionByValuesElement::Validate(FPCGContext* InContext) const
+bool FPCGExPartitionByValuesElement::Boot(FPCGContext* InContext) const
 {
-	if (!FPCGExPointsProcessorElementBase::Validate(InContext)) { return false; }
+	if (!FPCGExPointsProcessorElementBase::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(PartitionByValues)
 
@@ -111,7 +114,7 @@ bool FPCGExPartitionByValuesElement::Validate(FPCGContext* InContext) const
 
 		if (Descriptor.bWriteKey && !FPCGMetadataAttributeBase::IsValidName(Descriptor.KeyAttributeName))
 		{
-			PCGE_LOG(Warning, GraphAndLog, LOCTEXT("MalformedAttributeName", "Key Partition name {0} is invalid."));
+			PCGE_LOG(Warning, GraphAndLog, FTEXT("Key Partition name {0} is invalid."));
 			DescriptorCopy.bWriteKey = false;
 		}
 	}
@@ -119,10 +122,10 @@ bool FPCGExPartitionByValuesElement::Validate(FPCGContext* InContext) const
 	PCGEX_FWD(bSplitOutput)
 
 	Context->RootPartition = new PCGExPartition::FKPartition(nullptr, 0, nullptr);
-	
+
 	if (Context->RulesDescriptors.IsEmpty())
 	{
-		PCGE_LOG(Error, GraphAndLog, LOCTEXT("MissingRules", "No partitioning rules."));
+		PCGE_LOG(Error, GraphAndLog, FTEXT("No partitioning rules."));
 		return false;
 	}
 
@@ -137,7 +140,7 @@ bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* InContext) con
 
 	if (Context->IsSetup())
 	{
-		if (!Validate(Context)) { return true; }
+		if (!Boot(Context)) { return true; }
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
@@ -231,7 +234,7 @@ bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* InContext) con
 
 				if (Rule->RuleDescriptor->bWriteKey)
 				{
-					PCGEx::CreateMark(
+					PCGExData::WriteMark<int64>(
 						OutData->Metadata,
 						Rule->RuleDescriptor->KeyAttributeName,
 						Partition->PartitionKey);
@@ -250,3 +253,4 @@ bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* InContext) con
 }
 
 #undef LOCTEXT_NAMESPACE
+#undef PCGEX_NAMESPACE

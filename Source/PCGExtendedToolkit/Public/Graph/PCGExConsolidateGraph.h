@@ -33,7 +33,7 @@ protected:
 
 	virtual int32 GetPreferredChunkSize() const override;
 
-	virtual PCGExData::EInit GetPointOutputInitMode() const override;
+	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 
 private:
 	friend class FPCGExConsolidateGraphElement;
@@ -60,7 +60,7 @@ public:
 		const UPCGNode* Node) override;
 
 protected:
-	virtual bool Validate(FPCGContext* InContext) const override;
+	virtual bool Boot(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 #if WITH_EDITOR
 	static int64 GetFixedIndex(FPCGExConsolidateGraphContext* Context, int64 InIndex);

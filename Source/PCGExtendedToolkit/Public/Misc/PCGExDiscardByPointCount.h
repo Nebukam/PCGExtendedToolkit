@@ -23,7 +23,7 @@ public:
 	PCGEX_NODE_INFOS(DiscardByPointCount, "Discard By Point Count", "Filter outputs by point count.");
 #endif
 
-	virtual PCGExData::EInit GetPointOutputInitMode() const override;
+	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
@@ -31,11 +31,11 @@ protected:
 
 public:
 	/** The name of the attribute to write its index to.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	int64 MinPointCount = 2;
 
 	/** The name of the attribute to write its index to.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	int64 MaxPointCount = -1;
 
 	bool OutsidePointCountFilter(const int32 InValue) const { return (MinPointCount > 0 && InValue < MinPointCount) || (MaxPointCount > 0 && InValue < MaxPointCount); }

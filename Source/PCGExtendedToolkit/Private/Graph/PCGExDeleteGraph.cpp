@@ -4,6 +4,7 @@
 #include "Graph/PCGExDeleteGraph.h"
 
 #define LOCTEXT_NAMESPACE "PCGExDeleteGraph"
+#define PCGEX_NAMESPACE DeleteGraph
 
 int32 UPCGExDeleteGraphSettings::GetPreferredChunkSize() const { return 32; }
 
@@ -16,7 +17,7 @@ TArray<FPCGPinProperties> UPCGExDeleteGraphSettings::OutputPinProperties() const
 
 FPCGElementPtr UPCGExDeleteGraphSettings::CreateElement() const { return MakeShared<FPCGExDeleteGraphElement>(); }
 
-PCGExData::EInit UPCGExDeleteGraphSettings::GetPointOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
+PCGExData::EInit UPCGExDeleteGraphSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
 PCGEX_INITIALIZE_CONTEXT(DeleteGraph)
 
@@ -27,7 +28,7 @@ bool FPCGExDeleteGraphElement::ExecuteInternal(
 
 	PCGEX_CONTEXT(DeleteGraph)
 
-	if (!Validate(Context)) { return true; }
+	if (!Boot(Context)) { return true; }
 
 	Context->MainPoints->ForEach(
 		[&](PCGExData::FPointIO& PointIO, int32)
@@ -51,3 +52,4 @@ bool FPCGExDeleteGraphElement::ExecuteInternal(
 }
 
 #undef LOCTEXT_NAMESPACE
+#undef PCGEX_NAMESPACE

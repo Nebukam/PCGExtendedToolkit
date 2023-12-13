@@ -6,7 +6,8 @@
 
 #include "Misc/PCGExCompare.h"
 
-#define LOCTEXT_NAMESPACE "PCGExSortPointsByAttributesElement"
+#define LOCTEXT_NAMESPACE "PCGExSortPoints"
+#define PCGEX_NAMESPACE SortPoints
 
 namespace PCGExSortPoints
 {
@@ -15,7 +16,7 @@ namespace PCGExSortPoints
 
 FPCGElementPtr UPCGExSortPointsSettings::CreateElement() const { return MakeShared<FPCGExSortPointsElement>(); }
 
-PCGExData::EInit UPCGExSortPointsSettings::GetPointOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
+PCGExData::EInit UPCGExSortPointsSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
 bool FPCGExSortPointsElement::ExecuteInternal(FPCGContext* InContext) const
 {
@@ -23,13 +24,13 @@ bool FPCGExSortPointsElement::ExecuteInternal(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT(PointsProcessor)
 	PCGEX_SETTINGS(SortPoints)
-	
+
 	if (Context->IsSetup())
 	{
-		if (!Validate(Context)) { return true; }
+		if (!Boot(Context)) { return true; }
 		if (Settings->Rules.IsEmpty())
 		{
-			PCGE_LOG(Error, GraphAndLog, LOCTEXT("NoSortParams", "No attributes to sort over."));
+			PCGE_LOG(Error, GraphAndLog, FTEXT("No attributes to sort over."));
 			return true;
 		}
 
@@ -117,3 +118,4 @@ case _ENUM : Result = FPCGExCompare::Compare(A._ACCESSOR, B._ACCESSOR, Rule.Tole
 #undef PCGEX_COMPARE_PROPERTY_CASE
 
 #undef LOCTEXT_NAMESPACE
+#undef PCGEX_NAMESPACE

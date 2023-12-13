@@ -22,7 +22,7 @@ public:
 	PCGEX_NODE_INFOS(WriteIndex, "Write Index", "Write the current point index to an attribute.");
 #endif
 
-	virtual PCGExData::EInit GetPointOutputInitMode() const override;
+	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
@@ -30,11 +30,11 @@ protected:
 
 public:
 	/** The name of the attribute to write its index to.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bOutputNormalizedIndex = false;
 
 	/** The name of the attribute to write its index to.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FName OutputAttributeName = "CurrentIndex";
 };
 
@@ -64,6 +64,6 @@ public:
 		const UPCGNode* Node) override;
 
 protected:
-	virtual bool Validate(FPCGContext* InContext) const override;
+	virtual bool Boot(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };

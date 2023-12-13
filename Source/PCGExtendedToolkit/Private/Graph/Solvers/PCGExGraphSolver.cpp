@@ -65,6 +65,12 @@ double UPCGExGraphSolver::PrepareProbeForPointSocketPair(
 	const FTransform PtTransform = Point.Point->Transform;
 	FVector Origin = PtTransform.GetLocation();
 
+	if (InSocketInfos.LocalDirectionGetter &&
+		InSocketInfos.LocalDirectionGetter->bValid)
+	{
+		Direction = (*InSocketInfos.LocalDirectionGetter)[Point.Index];
+	}
+
 	if (InSocketInfos.Socket->Descriptor.bRelativeOrientation)
 	{
 		Direction = PtTransform.Rotator().RotateVector(Direction);
@@ -72,18 +78,10 @@ double UPCGExGraphSolver::PrepareProbeForPointSocketPair(
 
 	Direction.Normalize();
 
-	if (InSocketInfos.Modifier &&
-		InSocketInfos.Modifier->bEnabled &&
-		InSocketInfos.Modifier->bValid)
+	if (InSocketInfos.MaxDistanceGetter &&
+		InSocketInfos.MaxDistanceGetter->bValid)
 	{
-		MaxDistance *= (*InSocketInfos.Modifier)[Point.Index];
-	}
-
-	if (InSocketInfos.LocalDirection &&
-		InSocketInfos.LocalDirection->bEnabled &&
-		InSocketInfos.LocalDirection->bValid)
-	{
-		// TODO: Apply LocalDirection
+		MaxDistance *= (*InSocketInfos.MaxDistanceGetter)[Point.Index];
 	}
 
 	Probe.Direction = Direction;

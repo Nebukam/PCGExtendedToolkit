@@ -184,8 +184,8 @@ void PCGExGraph::FSocketMapping::GetSocketsInfos(TArray<FSocketInfos>& OutInfos)
 	{
 		FSocketInfos& Infos = OutInfos.Emplace_GetRef();
 		Infos.Socket = &(Sockets[i]);
-		Infos.Modifier = &(Modifiers[i]);
-		Infos.LocalDirection = &(LocalDirections[i]);
+		Infos.MaxDistanceGetter = &(Modifiers[i]);
+		Infos.LocalDirectionGetter = &(LocalDirections[i]);
 	}
 }
 

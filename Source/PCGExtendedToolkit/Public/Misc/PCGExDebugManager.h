@@ -26,6 +26,7 @@ public:
 
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
+	bool bCacheResult = false;
 	PCGEX_NODE_INFOS(DebugSettings, "Debug Manager", "TOOLTIP_TEXT");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Debug; }
 	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorDebug; }

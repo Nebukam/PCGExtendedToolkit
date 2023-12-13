@@ -30,8 +30,8 @@ public:
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 	//~End UPCGSettings interface
 
-	virtual FName GetMainPointsInputLabel() const override;
-	virtual FName GetMainPointsOutputLabel() const override;
+	virtual FName GetMainInputLabel() const override;
+	virtual FName GetMainOutputLabel() const override;
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExGraphProcessorContext : public FPCGExPointsProcessorContext
@@ -79,7 +79,7 @@ public:
 		const UPCGNode* Node) override;
 
 protected:
-	virtual bool Validate(FPCGContext* InContext) const override;
+	virtual bool Boot(FPCGContext* InContext) const override;
 	virtual FPCGContext* InitializeContext(
 		FPCGExPointsProcessorContext* InContext,
 		const FPCGDataCollection& InputData,

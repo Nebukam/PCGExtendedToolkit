@@ -4,8 +4,9 @@
 #include "Misc/PCGExDrawAttributes.h"
 
 #define LOCTEXT_NAMESPACE "PCGExDrawAttributes"
+#define PCGEX_NAMESPACE DrawAttributes
 
-PCGExData::EInit UPCGExDrawAttributesSettings::GetPointOutputInitMode() const { return PCGExData::EInit::NoOutput; }
+PCGExData::EInit UPCGExDrawAttributesSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 
 FPCGExDrawAttributesContext::~FPCGExDrawAttributesContext()
 {
@@ -185,12 +186,12 @@ FPCGElementPtr UPCGExDrawAttributesSettings::CreateElement() const { return Make
 
 PCGEX_INITIALIZE_CONTEXT(DrawAttributes)
 
-bool FPCGExDrawAttributesElement::Validate(FPCGContext* InContext) const
+bool FPCGExDrawAttributesElement::Boot(FPCGContext* InContext) const
 {
-	if (!FPCGExPointsProcessorElementBase::Validate(InContext)) { return false; }
+	if (!FPCGExPointsProcessorElementBase::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(DrawAttributes)
-	
+
 	Context->DebugList.Empty();
 	for (const FPCGExAttributeDebugDrawDescriptor& Descriptor : Settings->DebugList)
 	{
@@ -202,15 +203,15 @@ bool FPCGExDrawAttributesElement::Validate(FPCGContext* InContext) const
 		FPCGExAttributeDebugDraw& Drawer = Context->DebugList.Emplace_GetRef();
 		Drawer.Descriptor = &MutableDescriptor;
 	}
-	
+
 	if (Context->DebugList.IsEmpty())
 	{
-		PCGE_LOG(Warning, GraphAndLog, LOCTEXT("MissingDebugInfos", "Debug list is empty."));
+		PCGE_LOG(Warning, GraphAndLog, FTEXT("Debug list is empty."));
 	}
 
 	if (!PCGExDebug::NotifyExecute(InContext))
 	{
-		PCGE_LOG(Error, GraphAndLog, LOCTEXT("MissingDebugManager", "Could not find a PCGEx Debug Manager node in your graph."));
+		PCGE_LOG(Error, GraphAndLog, FTEXT("Could not find a PCGEx Debug Manager node in your graph."));
 		return false;
 	}
 
@@ -224,11 +225,11 @@ bool FPCGExDrawAttributesElement::ExecuteInternal(FPCGContext* InContext) const
 #if WITH_EDITOR
 
 	PCGEX_CONTEXT_AND_SETTINGS(DrawAttributes)
-	
+
 	if (Context->IsSetup())
 	{
 		if (!Settings->bDebug) { return true; }
-		if (!Validate(Context)) { return true; }
+		if (!Boot(Context)) { return true; }
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
@@ -271,3 +272,4 @@ bool FPCGExDrawAttributesElement::ExecuteInternal(FPCGContext* InContext) const
 }
 
 #undef LOCTEXT_NAMESPACE
+#undef PCGEX_NAMESPACE

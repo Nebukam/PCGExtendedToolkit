@@ -60,7 +60,7 @@ namespace PCGExGraph
 			Candidates.Empty();
 			SocketInfos = nullptr;
 		}
-		
+
 		~FSocketProbe()
 		{
 			Cleanup();

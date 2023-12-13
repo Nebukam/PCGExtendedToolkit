@@ -14,10 +14,10 @@
 TArray<FPCGPinProperties> UPCGExEdgesProcessorSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	FPCGPinProperties& PinPropertyParams = PinProperties.Emplace_GetRef(PCGExGraph::SourceParamsLabel, EPCGDataType::Param);
+	FPCGPinProperties& PinEdgesInput = PinProperties.Emplace_GetRef(PCGExGraph::SourceEdgesLabel, EPCGDataType::Point);
 
 #if WITH_EDITOR
-	PinPropertyParams.Tooltip = LOCTEXT("PCGExSourceParamsPinTooltip", "Graph Params. Data is de-duped internally.");
+	PinEdgesInput.Tooltip = FTEXT("Edges associated with the main input points");
 #endif // WITH_EDITOR
 
 	return PinProperties;
@@ -26,10 +26,10 @@ TArray<FPCGPinProperties> UPCGExEdgesProcessorSettings::InputPinProperties() con
 TArray<FPCGPinProperties> UPCGExEdgesProcessorSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
-	FPCGPinProperties& PinParamsOutput = PinProperties.Emplace_GetRef(PCGExGraph::OutputParamsLabel, EPCGDataType::Param);
+	FPCGPinProperties& PinEdgesOutput = PinProperties.Emplace_GetRef(PCGExGraph::OutputEdgesLabel, EPCGDataType::Point);
 
 #if WITH_EDITOR
-	PinParamsOutput.Tooltip = LOCTEXT("PCGExOutputParamsTooltip", "Graph Params forwarding. Data is de-duped internally.");
+	PinEdgesOutput.Tooltip = FTEXT("Edges associated with the main output points");
 #endif // WITH_EDITOR
 
 	return PinProperties;
@@ -39,9 +39,9 @@ TArray<FPCGPinProperties> UPCGExEdgesProcessorSettings::OutputPinProperties() co
 
 PCGEX_INITIALIZE_CONTEXT(EdgesProcessor)
 
-bool FPCGExEdgesProcessorElement::Validate(FPCGContext* InContext) const
+bool FPCGExEdgesProcessorElement::Boot(FPCGContext* InContext) const
 {
-	if (!FPCGExPointsProcessorElementBase::Validate(InContext)) { return false; }
+	if (!FPCGExPointsProcessorElementBase::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(EdgesProcessor)
 

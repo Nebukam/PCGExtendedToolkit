@@ -19,7 +19,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExDynamicPrimitiveProcessorSettings : public UP
 
 public:
 	UPCGExDynamicPrimitiveProcessorSettings(const FObjectInitializer& ObjectInitializer);
-	virtual PCGExData::EInit GetPointOutputInitMode() const override;
+	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR

@@ -12,6 +12,7 @@
 #include "Splines/SubPoints/Orient/PCGExSubPointsOrientAverage.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSampleGraphPatchesElement"
+#define PCGEX_NAMESPACE SampleGraphPatches
 
 UPCGExSampleGraphPatchesSettings::UPCGExSampleGraphPatchesSettings(
 	const FObjectInitializer& ObjectInitializer)
@@ -30,9 +31,9 @@ FPCGExSampleGraphPatchesContext::~FPCGExSampleGraphPatchesContext()
 
 PCGEX_INITIALIZE_CONTEXT(SampleGraphPatches)
 
-bool FPCGExSampleGraphPatchesElement::Validate(FPCGContext* InContext) const
+bool FPCGExSampleGraphPatchesElement::Boot(FPCGContext* InContext) const
 {
-	if (!FPCGExPointsProcessorElementBase::Validate(InContext)) { return false; }
+	if (!FPCGExPointsProcessorElementBase::Boot(InContext)) { return false; }
 
 	const FPCGExSampleGraphPatchesContext* Context = static_cast<FPCGExSampleGraphPatchesContext*>(InContext);
 	const UPCGExSampleGraphPatchesSettings* Settings = InContext->GetInputSettings<UPCGExSampleGraphPatchesSettings>();
@@ -49,7 +50,7 @@ bool FPCGExSampleGraphPatchesElement::ExecuteInternal(FPCGContext* InContext) co
 
 	if (Context->IsSetup())
 	{
-		if (!Validate(Context)) { return true; }
+		if (!Boot(Context)) { return true; }
 		Context->AdvancePointsIO();
 		Context->GoalPicker->PrepareForData(*Context->SeedsPoints, *Context->GoalsPoints);
 		Context->SetState(PCGExMT::State_ProcessingPoints);
@@ -203,3 +204,4 @@ bool FSamplePatchPathTask::ExecuteTask()
 }
 
 #undef LOCTEXT_NAMESPACE
+#undef PCGEX_NAMESPACE
