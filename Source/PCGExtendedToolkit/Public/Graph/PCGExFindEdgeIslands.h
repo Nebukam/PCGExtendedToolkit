@@ -17,6 +17,147 @@ enum class EPCGExRoamingResolveMethod : uint8
 	Cutoff UMETA(DisplayName = "Cutoff", ToolTip="Roaming Islands discovery will be cut off where they would otherwise overlap."),
 };
 
+namespace PCGExGraph
+{
+	struct FNode
+	{
+		FNode()
+		{
+		}
+
+		int32 Index = -1;
+		int32 Island = -1;
+		TArray<int32> Edges;
+
+		bool IsIsolated() const { return Island == -1; }
+
+		bool GetNeighbors(TArray<int32>& OutIndices, const TArray<FUnsignedEdge>& InEdges)
+		{
+			if (Edges.IsEmpty()) { return false; }
+			for (const int32 Edge : Edges) { OutIndices.Add(InEdges[Edge].Other(Index)); }
+			return true;
+		}
+
+		template <typename Func, typename... Args>
+		void CallbackOnNeighbors(const TArray<FUnsignedEdge>& InEdges, Func Callback, Args&&... InArgs)
+		{
+			for (const int32 Edge : Edges) { Callback(InEdges[Edge].Other(Index, std::forward<Args>(InArgs)...)); }
+		}
+	};
+
+	struct FNetwork
+	{
+		const int32 NumEdgesReserve;
+		int32 IslandIncrement = 0;
+		int32 NumIslands = 0;
+		int32 NumEdges = 0;
+
+		TArray<FNode> Nodes;
+		TSet<uint64> UniqueEdges;
+		TArray<FUnsignedEdge> Edges;
+		TMap<int32, int32> IslandSizes;
+
+
+		~FNetwork()
+		{
+			Nodes.Empty();
+			UniqueEdges.Empty();
+			Edges.Empty();
+			IslandSizes.Empty();
+		}
+
+		FNetwork(const int32 InNumEdgesReserve, const int32 InNumNodes)
+			: NumEdgesReserve(InNumEdgesReserve)
+		{
+			Nodes.SetNum(InNumNodes);
+
+			int32 Index = 0;
+
+			for (FNode& Node : Nodes)
+			{
+				Node.Index = Index++;
+				Node.Edges.Reserve(NumEdgesReserve);
+			}
+		}
+
+		bool InsertEdge(FUnsignedEdge Edge)
+		{
+			const uint64 Hash = Edge.GetUnsignedHash();
+			if (UniqueEdges.Contains(Hash)) { return false; }
+
+			UniqueEdges.Add(Hash);
+			const int32 EdgeIndex = Edges.Add(Edge);
+
+			FNode& NodeA = Nodes[Edge.Start];
+			FNode& NodeB = Nodes[Edge.End];
+
+			NodeA.Edges.AddUnique(EdgeIndex);
+			NodeB.Edges.AddUnique(EdgeIndex);
+
+			if (NodeA.Island == -1 && NodeB.Island == -1)
+			{
+				// New island
+				NumIslands++;
+				NodeA.Island = NodeB.Island = IslandIncrement++;
+			}
+			else if (NodeA.Island != -1 && NodeB.Island != -1)
+			{
+				if (NodeA.Island != NodeB.Island)
+				{
+					// Merge islands
+					NumIslands--;
+					MergeIsland(NodeB.Index, NodeA.Island);
+				}
+			}
+			else
+			{
+				// Expand island
+				NodeA.Island = NodeB.Island = FMath::Max(NodeA.Island, NodeB.Island);
+			}
+
+			return true;
+		}
+
+		void MergeIsland(int32 NodeIndex, int32 Island)
+		{
+			FNode& Node = Nodes[NodeIndex];
+			if (Node.Island == Island) { return; }
+			Node.Island = Island;
+			for (const int32 EdgeIndex : Node.Edges)
+			{
+				MergeIsland(Edges[EdgeIndex].Other(NodeIndex), Island);
+			}
+			/*
+		Node.CallbackOnNeighbors(
+			Edges,
+			[&](const int32 OtherIndex)
+			{
+				MergeIsland(OtherIndex, Island);
+			});*/
+		}
+
+		void PrepareIslands(int32 MinSize = 1, int32 MaxSize = TNumericLimits<int32>::Max())
+		{
+			UniqueEdges.Empty();
+			IslandSizes.Empty(NumIslands);
+			NumEdges = 0;
+
+			for (const FUnsignedEdge& Edge : Edges)
+			{
+				FNode& NodeA = Nodes[Edge.Start];
+				if (const int32* SizePtr = IslandSizes.Find(NodeA.Island); !SizePtr) { IslandSizes.Add(NodeA.Island, 1); }
+				else { IslandSizes.Add(NodeA.Island, *SizePtr + 1); }
+			}
+
+			for (TPair<int32, int32>& Pair : IslandSizes)
+			{
+				if (FMath::IsWithin(Pair.Value, MinSize, MaxSize)) { NumEdges += Pair.Value; }
+				else { Pair.Value = -1; }
+			}
+		}
+	};
+}
+
 /**
  * Calculates the distance between two points (inherently a n*n operation)
  */
@@ -122,6 +263,17 @@ public:
 protected:
 	virtual bool Boot(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
+};
+
+class PCGEXTENDEDTOOLKIT_API FInsertEdgeTask : public FPCGExNonAbandonableTask
+{
+public:
+	FInsertEdgeTask(FPCGExAsyncManager* InManager, const PCGExMT::FTaskInfos& InInfos, PCGExData::FPointIO* InPointIO) :
+		FPCGExNonAbandonableTask(InManager, InInfos, InPointIO)
+	{
+	}
+
+	virtual bool ExecuteTask() override;
 };
 
 class PCGEXTENDEDTOOLKIT_API FWriteIslandTask : public FPCGExNonAbandonableTask

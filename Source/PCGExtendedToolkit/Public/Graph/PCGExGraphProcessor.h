@@ -43,7 +43,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGraphProcessorContext : public FPCGExPointsP
 	bool bReadOnly = false;
 	PCGExGraph::FGraphInputs Graphs;
 	int32 MergedInputSocketsNum = 0;
-	
+
 	UPCGExGraphParamsData* CurrentGraph = nullptr;
 
 	bool AdvanceGraph(bool bResetPointsIndex = false);
@@ -55,7 +55,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGraphProcessorContext : public FPCGExPointsP
 	int32 GetCachedIndex(const int32 PointIndex) const;
 
 	TArray<PCGExGraph::FSocketInfos> SocketInfos;
-
+	
 	void PrepareCurrentGraphForPoints(const PCGExData::FPointIO& PointIO, const bool ReadOnly = true);
 	void OutputGraphParams() { Graphs.OutputTo(this); }
 

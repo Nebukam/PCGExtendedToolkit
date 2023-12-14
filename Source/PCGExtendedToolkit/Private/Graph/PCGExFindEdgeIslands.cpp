@@ -15,7 +15,7 @@ PCGExData::EInit UPCGExFindEdgeIslandsSettings::GetMainOutputInitMode() const { 
 
 FPCGExFindEdgeIslandsContext::~FPCGExFindEdgeIslandsContext()
 {
-	PCGEX_CLEANUP_ASYNC
+	PCGEX_TERMINATE_ASYNC
 
 	PCGEX_DELETE(IslandsIO);
 	PCGEX_DELETE(Network);
@@ -24,13 +24,14 @@ FPCGExFindEdgeIslandsContext::~FPCGExFindEdgeIslandsContext()
 TArray<FPCGPinProperties> UPCGExFindEdgeIslandsSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
+	PinProperties.Pop(); //Remove graph output
 	FPCGPinProperties& PinIslandsOutput = PinProperties.Emplace_GetRef(PCGExGraph::OutputEdgesLabel, EPCGDataType::Point);
 
 #if WITH_EDITOR
 	PinIslandsOutput.Tooltip = FTEXT("Point data representing edges.");
 #endif // WITH_EDITOR
 
-	PCGEx::Swap(PinProperties, PinProperties.Num() - 1, PinProperties.Num() - 2);
+	//PCGEx::Swap(PinProperties, PinProperties.Num() - 1, PinProperties.Num() - 2);
 	return PinProperties;
 }
 
@@ -110,29 +111,28 @@ bool FPCGExFindEdgeIslandsElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExGraph::State_InsertPointsToNetwork))
 	{
-		auto Initialize = [&](PCGExData::FPointIO& PointIO)
-		{
-			Context->PrepareCurrentGraphForPoints(PointIO); // Prepare to read PointIO->In
-		};
+		Context->PrepareCurrentGraphForPoints(*Context->CurrentIO); // Prepare to read PointIO->In
 
-		auto ProcessPoint = [&](const int32 PointIndex, const PCGExData::FPointIO& PointIO)
+		const int32 NumPoints = Context->CurrentIO->GetNum();
+		const int32 EdgeType = static_cast<int32>(Context->CrawlEdgeTypes);
+
+		for (const PCGExGraph::FSocketInfos& SocketInfo : Context->SocketInfos)
 		{
-			FWriteScopeLock WriteLock(Context->NetworkLock);
-			for (const PCGExGraph::FSocketInfos& SocketInfo : Context->SocketInfos)
+			for (int i = 0; i < NumPoints; i++)
 			{
-				if (PCGExGraph::FUnsignedEdge UEdge;
-					SocketInfo.Socket->TryGetEdge(PointIndex, UEdge, Context->CrawlEdgeTypes))
-				{
-					check(UEdge.Start != -1 && UEdge.End != -1)
-					Context->Network->InsertEdge(UEdge);
-				}
+				const int32 End = SocketInfo.Socket->GetTargetIndexReader().Values[i];
+				if (End == -1 || (SocketInfo.Socket->GetEdgeTypeReader().Values[i] & EdgeType) == 0) { continue; }
+				Context->Network->InsertEdge(PCGExGraph::FUnsignedEdge(i, End, EPCGExEdgeType::Complete));
 			}
-		};
-
-		if (Context->ProcessCurrentPoints(Initialize, ProcessPoint))
-		{
-			Context->SetState(PCGExGraph::State_ReadyForNextGraph);
 		}
+		
+		Context->SetState(PCGExGraph::State_WritingIslands);
+		
+	}
+
+	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
+	{
+		if (Context->IsAsyncWorkComplete()) { Context->SetState(PCGExGraph::State_ReadyForNextGraph); }
 	}
 
 	// -> Network is ready
@@ -188,7 +188,7 @@ bool FPCGExFindEdgeIslandsElement::ExecuteInternal(
 			{
 				const int32 IslandSize = *Context->Network->IslandSizes.Find(Context->Network->Nodes[Edge.Start].Island);
 				if (IslandSize == -1) { continue; }
-				
+
 				EdgeStart->Values[PointIndex] = Edge.Start;
 				EdgeEnd->Values[PointIndex] = Edge.End;
 				IslandID->Values[PointIndex] = Context->Network->Nodes[Edge.Start].Island;
@@ -218,12 +218,28 @@ bool FPCGExFindEdgeIslandsElement::ExecuteInternal(
 		}
 	}
 
-	if (Context->IsDone())
-	{
-		Context->OutputPointsAndGraphParams();
-	}
+	if (Context->IsDone()) { Context->OutputPoints(); }
 
 	return Context->IsDone();
+}
+
+bool FInsertEdgeTask::ExecuteTask()
+{
+	const FPCGExFindEdgeIslandsContext* Context = Manager->GetContext<FPCGExFindEdgeIslandsContext>();
+	PCGEX_ASYNC_CHECKPOINT
+
+	FWriteScopeLock WriteLock(Context->NetworkLock);
+	for (const PCGExGraph::FSocketInfos& SocketInfo : Context->SocketInfos)
+	{
+		if (PCGExGraph::FUnsignedEdge UEdge;
+			SocketInfo.Socket->TryGetEdge(TaskInfos.Index, UEdge, Context->CrawlEdgeTypes))
+		{
+			check(UEdge.Start != -1 && UEdge.End != -1)
+			Context->Network->InsertEdge(UEdge);
+		}
+	}
+
+	return true;
 }
 
 bool FWriteIslandTask::ExecuteTask()
@@ -233,7 +249,7 @@ bool FWriteIslandTask::ExecuteTask()
 
 	const int32 IslandUID = TaskInfos.Index;
 	const int32 IslandSize = *Context->Network->IslandSizes.Find(IslandUID);
-	
+
 	TSet<uint64> Island;
 	Island.Reserve(IslandSize);
 
@@ -244,7 +260,7 @@ bool FWriteIslandTask::ExecuteTask()
 	}
 
 	PCGEX_ASYNC_CHECKPOINT
-	
+
 	TArray<FPCGPoint>& MutablePoints = IslandData->GetOut()->GetMutablePoints();
 	MutablePoints.SetNum(Island.Num());
 
@@ -264,7 +280,7 @@ bool FWriteIslandTask::ExecuteTask()
 	}
 
 	PCGEX_ASYNC_CHECKPOINT
-	
+
 	EdgeStart->Write();
 	EdgeEnd->Write();
 

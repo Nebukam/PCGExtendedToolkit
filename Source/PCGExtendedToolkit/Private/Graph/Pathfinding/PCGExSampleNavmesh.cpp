@@ -69,7 +69,7 @@ FName UPCGExSampleNavmeshSettings::GetMainOutputLabel() const { return PCGExGrap
 
 FPCGExSampleNavmeshContext::~FPCGExSampleNavmeshContext()
 {
-	PCGEX_CLEANUP_ASYNC
+	PCGEX_TERMINATE_ASYNC
 
 	PathBuffer.Empty();
 	PCGEX_DELETE(GoalsPoints)
@@ -151,11 +151,10 @@ bool FPCGExSampleNavmeshElement::ExecuteInternal(FPCGContext* InContext) const
 		{
 			auto NavMeshTask = [&](int32 InGoalIndex)
 			{
-				Context->BufferLock.WriteLock();
+				FWriteScopeLock WriteLock(Context->BufferLock);
 				Context->PathBuffer.Emplace_GetRef(
 					PointIndex, PointIO.GetInPoint(PointIndex).Transform.GetLocation(),
 					InGoalIndex, Context->GoalsPoints->GetInPoint(InGoalIndex).Transform.GetLocation());
-				Context->BufferLock.WriteUnlock();
 			};
 
 			const PCGEx::FPointRef& Seed = PointIO.GetInPointRef(PointIndex);
@@ -183,17 +182,14 @@ bool FPCGExSampleNavmeshElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsState(PCGExSampleNavmesh::State_Pathfinding))
 	{
-		auto ProcessPath = [&](const int32 Index)
+		for (int i = 0; i < Context->PathBuffer.Num(); i++)
 		{
-			PCGExSampleNavmesh::FPath& PathObject = Context->PathBuffer[Index];
+			PCGExSampleNavmesh::FPath& PathObject = Context->PathBuffer[i];
 			PathObject.PathPoints = &Context->OutputPaths->Emplace_GetRef(*Context->CurrentIO, PCGExData::EInit::NewOutput);
 			Context->GetAsyncManager()->Start<FNavmeshPathTask>(PathObject.SeedIndex, Context->CurrentIO, &PathObject);
-		};
-
-		if (Context->Process(ProcessPath, Context->PathBuffer.Num()))
-		{
-			Context->SetAsyncState(PCGExSampleNavmesh::State_WaitingPathfinding);
 		}
+
+		Context->SetAsyncState(PCGExSampleNavmesh::State_WaitingPathfinding);
 	}
 
 	if (Context->IsState(PCGExSampleNavmesh::State_WaitingPathfinding))

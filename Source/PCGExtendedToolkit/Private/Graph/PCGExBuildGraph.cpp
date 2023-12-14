@@ -11,7 +11,7 @@ PCGExData::EInit UPCGExBuildGraphSettings::GetMainOutputInitMode() const { retur
 
 FPCGExBuildGraphContext::~FPCGExBuildGraphContext()
 {
-	PCGEX_CLEANUP_ASYNC
+	PCGEX_TERMINATE_ASYNC
 }
 
 UPCGExBuildGraphSettings::UPCGExBuildGraphSettings(
@@ -113,10 +113,7 @@ bool FPCGExBuildGraphElement::ExecuteInternal(
 		}
 	}
 
-	if (Context->IsDone())
-	{
-		Context->OutputPointsAndGraphParams();
-	}
+	if (Context->IsDone()) { Context->OutputPointsAndGraphParams(); }
 
 	return Context->IsDone();
 }

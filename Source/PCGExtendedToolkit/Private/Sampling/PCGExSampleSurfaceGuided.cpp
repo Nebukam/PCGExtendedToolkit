@@ -15,7 +15,7 @@ FPCGElementPtr UPCGExSampleSurfaceGuidedSettings::CreateElement() const { return
 
 FPCGExSampleSurfaceGuidedContext::~FPCGExSampleSurfaceGuidedContext()
 {
-	PCGEX_CLEANUP_ASYNC
+	PCGEX_TERMINATE_ASYNC
 
 	PCGEX_SAMPLENEARESTTRACE_FOREACH(PCGEX_OUTPUT_DELETE)
 }

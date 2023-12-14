@@ -36,7 +36,7 @@ FPCGElementPtr UPCGExSampleNearestPointSettings::CreateElement() const { return 
 
 FPCGExSampleNearestPointContext::~FPCGExSampleNearestPointContext()
 {
-	PCGEX_CLEANUP_ASYNC
+	PCGEX_TERMINATE_ASYNC
 
 	PCGEX_CLEANUP(RangeMinGetter)
 	PCGEX_CLEANUP(RangeMaxGetter)

@@ -40,7 +40,7 @@ FName UPCGExGraphProcessorSettings::GetMainOutputLabel() const { return PCGExGra
 
 FPCGExGraphProcessorContext::~FPCGExGraphProcessorContext()
 {
-	PCGEX_CLEANUP_ASYNC
+	PCGEX_TERMINATE_ASYNC
 
 	PCGEX_DELETE(CachedIndexReader)
 	PCGEX_DELETE(CachedIndexWriter)

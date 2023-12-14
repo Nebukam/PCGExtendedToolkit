@@ -376,7 +376,7 @@ namespace PCGExGraph
 
 		int32 SocketIndex = -1;
 		TSet<int32> MatchingSockets;
-
+		
 	protected:
 		bool bReadOnly = false;
 		PCGEx::TFAttributeWriter<int32>* TargetIndexWriter = nullptr;
@@ -431,16 +431,23 @@ namespace PCGExGraph
 		template <typename T>
 		bool TryGetEdge(const int32 PointIndex, T& OutEdge, const EPCGExEdgeType& EdgeFilter) const
 		{
-			EPCGExEdgeType EdgeType = GetEdgeType(PointIndex);
-			if (static_cast<uint8>((EdgeType & EdgeFilter)) == 0) { return false; }
-
 			const int32 End = GetTargetIndex(PointIndex);
 			if (End == -1) { return false; }
+			
+			EPCGExEdgeType EdgeType = GetEdgeType(PointIndex);
+			if (static_cast<uint8>((EdgeType & EdgeFilter)) == 0) { return false; }
+			
 			OutEdge = T(PointIndex, End, EdgeType);
 			return true;
 		}
 
 		FName GetSocketPropertyName(FName PropertyName) const;
+
+		PCGEx::TFAttributeWriter<int32>& GetTargetIndexWriter(){return *TargetIndexWriter;}
+		PCGEx::TFAttributeWriter<int32>& GetEdgeTypeWriter(){return *EdgeTypeWriter;}
+		PCGEx::TFAttributeReader<int32>& GetTargetIndexReader(){return *TargetIndexReader;}
+		PCGEx::TFAttributeReader<int32>& GetEdgeTypeReader(){return *EdgeTypeReader;}
+		
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FSocketInfos

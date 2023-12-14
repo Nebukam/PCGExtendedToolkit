@@ -26,7 +26,7 @@ FPCGElementPtr UPCGExSampleGraphEdgesSettings::CreateElement() const { return Ma
 
 FPCGExSampleGraphEdgesContext::~FPCGExSampleGraphEdgesContext()
 {
-	PCGEX_CLEANUP_ASYNC
+	PCGEX_TERMINATE_ASYNC
 }
 
 PCGEX_INITIALIZE_CONTEXT(SampleGraphEdges)
