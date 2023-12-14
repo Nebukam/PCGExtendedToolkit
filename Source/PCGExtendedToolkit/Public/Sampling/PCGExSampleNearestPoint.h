@@ -90,7 +90,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSampleNearestPointSettings : public UPCGExPoi
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(SampleNearestPoint, "Sample Nearest Point", "Find the closest point on the nearest collidable surface.");
+	PCGEX_NODE_INFOS(SampleNearestPoint, "Sample : Nearest Point", "Find the closest point on the nearest collidable surface.");
 #endif
 
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;

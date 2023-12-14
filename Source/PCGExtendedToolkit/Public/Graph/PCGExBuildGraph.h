@@ -26,7 +26,7 @@ public:
 
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(BuildGraph, "Build Graph", "Write graph data to an attribute for each connected Graph Params. `Build Graph` uses the socket information as is.");
+	PCGEX_NODE_INFOS(BuildGraph, "Graph : Build", "Write graph data to an attribute for each connected Graph Params. `Build Graph` uses the socket information as is.");
 #endif
 
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;

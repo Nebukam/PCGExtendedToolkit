@@ -20,7 +20,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExDeleteGraphSettings : public UPCGExGraphProce
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(DeleteGraph, "Delete Graph", "Delete data associated with given Graph Params.");
+	PCGEX_NODE_INFOS(DeleteGraph, "Graph : Delete", "Delete data associated with given Graph Params.");
 #endif
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 

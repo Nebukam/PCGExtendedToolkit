@@ -29,7 +29,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSampleSurfaceGuidedSettings : public UPCGExPo
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(SampleSurfaceGuided, "Sample Surface Guided", "Find the collision point on the nearest collidable surface in a given direction.");
+	PCGEX_NODE_INFOS(SampleSurfaceGuided, "Sample : Guided Trace", "Find the collision point on the nearest collidable surface in a given direction.");
 #endif
 
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;

@@ -97,7 +97,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSampleNearestPolylineSettings : public UPCGEx
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(SampleNearestPolyline, "Sample Nearest Polyline", "Find the closest transform on nearest polylines.");
+	PCGEX_NODE_INFOS(SampleNearestPolyline, "Sample : Nearest Polyline", "Find the closest transform on nearest polylines.");
 #endif
 
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;

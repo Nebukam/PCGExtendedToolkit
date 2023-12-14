@@ -20,7 +20,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExConsolidateGraphSettings : public UPCGExGraph
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(ConsolidateGraph, "Consolidate Graph", "Repairs and consolidate graph indices after points have been removed post graph-building.");
+	PCGEX_NODE_INFOS(ConsolidateGraph, "Graph : Consolidate", "Repairs and consolidate graph indices after points have been removed post graph-building.");
 #endif
 
 	/** Compute edge types internally. If you don't need edge types, set it to false to save some cycles.*/

@@ -4,45 +4,48 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExPathProcessor.h"
 
 #include "PCGExPointsProcessor.h"
-#include "PCGExPointsToBounds.generated.h"
+#include "SubPoints/Orient/PCGExSubPointsOrientOperation.h"
+#include "PCGExOrient.generated.h"
 
 /**
  * Calculates the distance between two points (inherently a n*n operation)
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class PCGEXTENDEDTOOLKIT_API UPCGExPointsToBoundsSettings : public UPCGExPointsProcessorSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExOrientSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()
 
 public:
+	UPCGExOrientSettings(const FObjectInitializer& ObjectInitializer);
+
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(PointsToBounds, "Points to Bounds", "Compute the bounds of input points");
+	PCGEX_NODE_INFOS(Orient, "Path : Orient", "Orient paths points");
 #endif
 
-	virtual PCGExData::EInit GetMainOutputInitMode() const override;
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings interface
 
 public:
-	/** The name of the attribute to write its index to.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	FName OutputAttributeName = "CurrentIndex";
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable))
+	UPCGExSubPointsOrientOperation* Orientation;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExPointsToBoundsContext : public FPCGExPointsProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExOrientContext : public FPCGExPathProcessorContext
 {
-	friend class FPCGExPointsToBoundsElement;
+	friend class FPCGExOrientElement;
 
-	virtual ~FPCGExPointsToBoundsContext() override;
-
+public:
+	UPCGExSubPointsOrientOperation* Orientation;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExPointsToBoundsElement : public FPCGExPointsProcessorElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExOrientElement : public FPCGExPathProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

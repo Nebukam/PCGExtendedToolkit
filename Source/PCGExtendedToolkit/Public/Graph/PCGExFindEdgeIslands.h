@@ -169,7 +169,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExFindEdgeIslandsSettings : public UPCGExGraphP
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(FindEdgeIslands, "Find Edge Islands", "Create partitions from interconnected points. Each Island is the result of all input graphs combined.");
+	PCGEX_NODE_INFOS(FindEdgeIslands, "Graph : Find Edge Islands", "Create partitions from interconnected points. Each Island is the result of all input graphs combined.");
 #endif
 
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;

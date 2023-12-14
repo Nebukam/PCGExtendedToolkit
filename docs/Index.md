@@ -5,29 +5,28 @@
 1. [General](GeneralInfos.md)
 1. Nodes
     - Misc
-        - [Sort Points](PCGExSortPoints.md)
-        - [Fuse Points](PCGExFusePoints.md)
-        - [Draw Attributes](PCGExDrawAttributes.md)
-        - [Partition by Values](PCGExPartitionByValues.md)
-        - [Fuse Points](PCGExFusePoints.md)
-        - [Write Index](PCGExWriteIndex.md)
-        - [Points To Bounds](PCGExPointsToBounds.md)
-        - ~~[Operations](PCGExOperations.md)~~
+        - [Sort Points](PCGExMiscSortPoints.md)
+        - [Fuse Points](PCGExMiscFusePoints.md)
+        - [Draw Attributes](PCGExMiscDrawAttributes.md)
+        - [Partition by Values](PCGExMiscPartitionByValues.md)
+        - [Write Index](PCGExMiscWriteIndex.md)
+        - [Points To Bounds](PCGExMiscPointsToBounds.md)
+        - ~~[Operations](PCGExMiscOperations.md)~~
     - Graph
-        - [Create Graph Params](PCGExCreateGraphParams.md)
-        - [Build Graph](PCGExBuildGraph.md)
-        - [Consolidate Graph](PCGExConsolidateGraph.md)
-        - [Find Edge Islands](PCGExFindEdgeIslands.md)
-        - [Draw Graph](PCGExDrawGraph.md)
-        - [Delete Graph](PCGExDeleteGraph.md)
-        - [Edges to Paths](PCGExEdgesToPaths.md)
-        - Pathfinding
-            - [Find Paths in Edges](PCGExFindPathsInEdges.md)
-            - [Find Paths in Navmesh](PCGExFindPathsInNavmesh.md)
-    - Splines
-        - [Write Tangents](PCGExWriteTangents.md)
-        - [Auto Tangents](PCGExAutoTangents.md)
-        - [Subdivide](PCGExSubdivide.md)
+        - [Create Graph Params](PCGExGraphCreateGraph.md)
+        - [Build Graph](PCGExGraphBuild.md)
+        - [Consolidate Graph](PCGExGraphConsolidate.md)
+        - [Find Edge Islands](PCGExGraphFindEdgeIslands.md)
+        - [Draw Graph](PCGExGraphDraw.md)
+        - [Delete Graph](PCGExGraphDelete.md)
+        - [Edges to Paths](PCGExGraphEdgesToPaths.md)
+    - Pathfinding
+        - [Edges Pathfinding](PCGExPathfindingEdges.md)
+        - [Navmesh Pathfinding](PCGExPathfindingNavmesh.md)
+    - Paths
+        - [Write Tangents](PCGExPathsWriteTangents.md)
+        - [Orient](PCGExPathsSubdivide.md)
+        - [Subdivide](PCGExPathsSubdivide.md)
     - Data Sampling
         - [Sample Nearest Point](PCGExSampleNearestPoint.md)
         - [Sample Nearest Surface](PCGExSampleNearestSurface.md)

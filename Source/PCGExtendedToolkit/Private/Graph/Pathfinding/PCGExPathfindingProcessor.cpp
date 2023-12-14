@@ -6,8 +6,8 @@
 #include "Graph/Pathfinding/PCGExPathfinding.h"
 #include "Graph/Pathfinding/GoalPickers/PCGExGoalPicker.h"
 #include "Graph/Pathfinding/GoalPickers/PCGExGoalPickerRandom.h"
-#include "Splines/SubPoints/DataBlending/PCGExSubPointsBlendOperation.h"
-#include "Splines/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
+#include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendOperation.h"
+#include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPathfindingSettings"
 #define PCGEX_NAMESPACE PathfindingProcessor
