@@ -6,7 +6,7 @@
 #include "CoreMinimal.h"
 
 #include "PCGExPathfinding.h"
-#include "Graph/PCGExGraphProcessor.h"
+#include "Graph/PCGExEdgesProcessor.h"
 
 #include "PCGExPathfindingProcessor.generated.h"
 
@@ -19,7 +19,7 @@ class UPCGExPathfindingParamsData;
  * A Base node to process a set of point using GraphParams.
  */
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural))
-class PCGEXTENDEDTOOLKIT_API UPCGExPathfindingProcessorSettings : public UPCGExGraphProcessorSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExPathfindingProcessorSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -56,7 +56,7 @@ public:
 	bool bAddGoalToPath = true;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingProcessorContext : public FPCGExGraphProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingProcessorContext : public FPCGExEdgesProcessorContext
 {
 	friend class UPCGExPathfindingProcessorSettings;
 
@@ -76,7 +76,7 @@ protected:
 	int64 GetGoalIndex(const FPCGPoint& Seed, int64 SeedIndex);
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExPathfindingProcessorElement : public FPCGExGraphProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExPathfindingProcessorElement : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

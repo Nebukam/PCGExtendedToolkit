@@ -75,7 +75,7 @@ PCGEX_INITIALIZE_CONTEXT(PathfindingProcessor)
 
 bool FPCGExPathfindingProcessorElement::Boot(FPCGContext* InContext) const
 {
-	if (!FPCGExGraphProcessorElement::Boot(InContext)) { return false; }
+	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
 	const FPCGExPathfindingProcessorContext* Context = static_cast<FPCGExPathfindingProcessorContext*>(InContext);
 	const UPCGExPathfindingProcessorSettings* Settings = InContext->GetInputSettings<UPCGExPathfindingProcessorSettings>();
 	check(Settings);
@@ -101,7 +101,7 @@ FPCGContext* FPCGExPathfindingProcessorElement::InitializeContext(
 	TWeakObjectPtr<UPCGComponent> SourceComponent,
 	const UPCGNode* Node) const
 {
-	FPCGExPathfindingProcessorContext* Context = static_cast<FPCGExPathfindingProcessorContext*>(FPCGExGraphProcessorElement::InitializeContext(InContext, InputData, SourceComponent, Node));
+	FPCGExPathfindingProcessorContext* Context = static_cast<FPCGExPathfindingProcessorContext*>(FPCGExEdgesProcessorElement::InitializeContext(InContext, InputData, SourceComponent, Node));
 
 	const UPCGExPathfindingProcessorSettings* Settings = InContext->GetInputSettings<UPCGExPathfindingProcessorSettings>();
 	check(Settings);

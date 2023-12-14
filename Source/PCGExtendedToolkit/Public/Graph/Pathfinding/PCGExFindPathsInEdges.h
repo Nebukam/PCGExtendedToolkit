@@ -12,23 +12,23 @@
 #include "Graph/PCGExGraph.h"
 #include "Splines/SubPoints/DataBlending/PCGExSubPointsBlendOperation.h"
 
-#include "PCGExSampleGraphEdges.generated.h"
+#include "PCGExFindPathsInEdges.generated.h"
 
 /**
  * Use PCGExTransform to manipulate the outgoing attributes instead of handling everything here.
  * This way we can multi-thread the various calculations instead of mixing everything along with async/game thread collision
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class PCGEXTENDEDTOOLKIT_API UPCGExSampleGraphEdgesSettings : public UPCGExPathfindingProcessorSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExFindPathsInEdgesSettings : public UPCGExPathfindingProcessorSettings
 {
 	GENERATED_BODY()
 
-	UPCGExSampleGraphEdgesSettings(const FObjectInitializer& ObjectInitializer);
+	UPCGExFindPathsInEdgesSettings(const FObjectInitializer& ObjectInitializer);
 
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(SampleGraphEdges, "Sample Graph Edges", "Extract paths from graph Islands.");
+	PCGEX_NODE_INFOS(FindPathsInEdges, "Find Paths in Edges", "Extract paths from edges islands.");
 #endif
 
 protected:
@@ -39,11 +39,11 @@ public:
 };
 
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExSampleGraphEdgesContext : public FPCGExPathfindingProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExFindPathsInEdgesContext : public FPCGExPathfindingProcessorContext
 {
-	friend class FPCGExSampleGraphEdgesElement;
+	friend class FPCGExFindPathsInEdgesElement;
 
-	virtual ~FPCGExSampleGraphEdgesContext() override;
+	virtual ~FPCGExFindPathsInEdgesContext() override;
 
 	PCGExData::FPointIO* GoalsPoints = nullptr;
 	PCGExData::FPointIOGroup* OutputPaths = nullptr;
@@ -55,7 +55,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleGraphEdgesContext : public FPCGExPathf
 	bool bAddGoalToPath = true;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExSampleGraphEdgesElement : public FPCGExPathfindingProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExFindPathsInEdgesElement : public FPCGExPathfindingProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

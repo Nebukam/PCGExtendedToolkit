@@ -1,7 +1,7 @@
 ﻿// Copyright Timothé Lapetite 2023
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Graph/Pathfinding/PCGExSampleNavmesh.h"
+#include "Graph/Pathfinding/PCGExFindPathsInNavmesh.h"
 
 #include "NavigationSystem.h"
 
@@ -11,17 +11,17 @@
 #include "Graph/Pathfinding/GoalPickers/PCGExGoalPickerRandom.h"
 #include "Splines/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
 
-#define LOCTEXT_NAMESPACE "PCGExSampleNavmeshElement"
-#define PCGEX_NAMESPACE SampleNavmesh
+#define LOCTEXT_NAMESPACE "PCGExFindPathsInNavmeshElement"
+#define PCGEX_NAMESPACE FindPathsInNavmesh
 
-UPCGExSampleNavmeshSettings::UPCGExSampleNavmeshSettings(const FObjectInitializer& ObjectInitializer)
+UPCGExFindPathsInNavmeshSettings::UPCGExFindPathsInNavmeshSettings(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 	GoalPicker = EnsureOperation<UPCGExGoalPickerRandom>(GoalPicker);
 	Blending = EnsureOperation<UPCGExSubPointsBlendInterpolate>(Blending);
 }
 
-TArray<FPCGPinProperties> UPCGExSampleNavmeshSettings::InputPinProperties() const
+TArray<FPCGPinProperties> UPCGExFindPathsInNavmeshSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
 
@@ -40,7 +40,7 @@ TArray<FPCGPinProperties> UPCGExSampleNavmeshSettings::InputPinProperties() cons
 	return PinProperties;
 }
 
-TArray<FPCGPinProperties> UPCGExSampleNavmeshSettings::OutputPinProperties() const
+TArray<FPCGPinProperties> UPCGExFindPathsInNavmeshSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
 	FPCGPinProperties& PinPathsOutput = PinProperties.Emplace_GetRef(PCGExGraph::OutputPathsLabel, EPCGDataType::Point);
@@ -52,7 +52,7 @@ TArray<FPCGPinProperties> UPCGExSampleNavmeshSettings::OutputPinProperties() con
 	return PinProperties;
 }
 
-void UPCGExSampleNavmeshSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+void UPCGExFindPathsInNavmeshSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	GoalPicker = EnsureOperation<UPCGExGoalPickerRandom>(GoalPicker);
 	Blending = EnsureOperation<UPCGExSubPointsBlendInterpolate>(Blending);
@@ -61,13 +61,13 @@ void UPCGExSampleNavmeshSettings::PostEditChangeProperty(FPropertyChangedEvent& 
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
 
-PCGExData::EInit UPCGExSampleNavmeshSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
-int32 UPCGExSampleNavmeshSettings::GetPreferredChunkSize() const { return 32; }
+PCGExData::EInit UPCGExFindPathsInNavmeshSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
+int32 UPCGExFindPathsInNavmeshSettings::GetPreferredChunkSize() const { return 32; }
 
-FName UPCGExSampleNavmeshSettings::GetMainInputLabel() const { return PCGExPathfinding::SourceSeedsLabel; }
-FName UPCGExSampleNavmeshSettings::GetMainOutputLabel() const { return PCGExGraph::OutputPathsLabel; }
+FName UPCGExFindPathsInNavmeshSettings::GetMainInputLabel() const { return PCGExPathfinding::SourceSeedsLabel; }
+FName UPCGExFindPathsInNavmeshSettings::GetMainOutputLabel() const { return PCGExGraph::OutputPathsLabel; }
 
-FPCGExSampleNavmeshContext::~FPCGExSampleNavmeshContext()
+FPCGExFindPathsInNavmeshContext::~FPCGExFindPathsInNavmeshContext()
 {
 	PCGEX_TERMINATE_ASYNC
 
@@ -76,15 +76,15 @@ FPCGExSampleNavmeshContext::~FPCGExSampleNavmeshContext()
 	PCGEX_DELETE(OutputPaths)
 }
 
-FPCGElementPtr UPCGExSampleNavmeshSettings::CreateElement() const { return MakeShared<FPCGExSampleNavmeshElement>(); }
+FPCGElementPtr UPCGExFindPathsInNavmeshSettings::CreateElement() const { return MakeShared<FPCGExFindPathsInNavmeshElement>(); }
 
-PCGEX_INITIALIZE_CONTEXT(SampleNavmesh)
+PCGEX_INITIALIZE_CONTEXT(FindPathsInNavmesh)
 
-bool FPCGExSampleNavmeshElement::Boot(FPCGContext* InContext) const
+bool FPCGExFindPathsInNavmeshElement::Boot(FPCGContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElementBase::Boot(InContext)) { return false; }
 
-	PCGEX_CONTEXT_AND_SETTINGS(SampleNavmesh)
+	PCGEX_CONTEXT_AND_SETTINGS(FindPathsInNavmesh)
 
 	if (TArray<FPCGTaggedData> Goals = Context->InputData.GetInputsByPin(PCGExPathfinding::SourceGoalsLabel);
 		Goals.Num() > 0)
@@ -131,11 +131,11 @@ bool FPCGExSampleNavmeshElement::Boot(FPCGContext* InContext) const
 	return true;
 }
 
-bool FPCGExSampleNavmeshElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExFindPathsInNavmeshElement::ExecuteInternal(FPCGContext* InContext) const
 {
-	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExSampleNavmeshElement::Execute);
+	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExFindPathsInNavmeshElement::Execute);
 
-	FPCGExSampleNavmeshContext* Context = static_cast<FPCGExSampleNavmeshContext*>(InContext);
+	FPCGExFindPathsInNavmeshContext* Context = static_cast<FPCGExFindPathsInNavmeshContext*>(InContext);
 
 	if (Context->IsSetup())
 	{
@@ -177,22 +177,22 @@ bool FPCGExSampleNavmeshElement::ExecuteInternal(FPCGContext* InContext) const
 			}
 		};
 
-		if (Context->ProcessCurrentPoints(ProcessSeed)) { Context->SetState(PCGExSampleNavmesh::State_Pathfinding); }
+		if (Context->ProcessCurrentPoints(ProcessSeed)) { Context->SetState(PCGExFindPathsInNavmesh::State_Pathfinding); }
 	}
 
-	if (Context->IsState(PCGExSampleNavmesh::State_Pathfinding))
+	if (Context->IsState(PCGExFindPathsInNavmesh::State_Pathfinding))
 	{
 		for (int i = 0; i < Context->PathBuffer.Num(); i++)
 		{
-			PCGExSampleNavmesh::FPath& PathObject = Context->PathBuffer[i];
+			PCGExFindPathsInNavmesh::FPath& PathObject = Context->PathBuffer[i];
 			PathObject.PathPoints = &Context->OutputPaths->Emplace_GetRef(*Context->CurrentIO, PCGExData::EInit::NewOutput);
 			Context->GetAsyncManager()->Start<FNavmeshPathTask>(PathObject.SeedIndex, Context->CurrentIO, &PathObject);
 		}
 
-		Context->SetAsyncState(PCGExSampleNavmesh::State_WaitingPathfinding);
+		Context->SetAsyncState(PCGExFindPathsInNavmesh::State_WaitingPathfinding);
 	}
 
-	if (Context->IsState(PCGExSampleNavmesh::State_WaitingPathfinding))
+	if (Context->IsState(PCGExFindPathsInNavmesh::State_WaitingPathfinding))
 	{
 		if (Context->IsAsyncWorkComplete()) { Context->Done(); }
 	}
@@ -209,7 +209,7 @@ bool FNavmeshPathTask::ExecuteTask()
 {
 	PCGEX_ASYNC_CHECKPOINT
 
-	FPCGExSampleNavmeshContext* Context = Manager->GetContext<FPCGExSampleNavmeshContext>();
+	FPCGExFindPathsInNavmeshContext* Context = Manager->GetContext<FPCGExFindPathsInNavmeshContext>();
 
 	bool bSuccess = false;
 

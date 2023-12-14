@@ -5,12 +5,12 @@
 
 #include "CoreMinimal.h"
 #include "PCGExPointsProcessor.h"
-#include "PCGExSampleNavmesh.generated.h"
+#include "PCGExFindPathsInNavmesh.generated.h"
 
 class UPCGExSubPointsBlendOperation;
 class UPCGExGoalPicker;
 
-namespace PCGExSampleNavmesh
+namespace PCGExFindPathsInNavmesh
 {
 	constexpr PCGExMT::AsyncState State_Pathfinding = __COUNTER__;
 	constexpr PCGExMT::AsyncState State_WaitingPathfinding = __COUNTER__;
@@ -51,16 +51,16 @@ enum class EPCGExNavmeshPathfindingMode : uint8
  * This way we can multi-thread the various calculations instead of mixing everything along with async/game thread collision
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class PCGEXTENDEDTOOLKIT_API UPCGExSampleNavmeshSettings : public UPCGExPointsProcessorSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExFindPathsInNavmeshSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
-	UPCGExSampleNavmeshSettings(const FObjectInitializer& ObjectInitializer);
+	UPCGExFindPathsInNavmeshSettings(const FObjectInitializer& ObjectInitializer);
 
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(SampleNavmesh, "Sample Navmesh", "Extract paths from navmesh.");
+	PCGEX_NODE_INFOS(FindPathsInNavmesh, "Find Paths in Navmesh", "Extract paths from navmesh.");
 	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorPathfinding; }
 #endif
 
@@ -118,13 +118,13 @@ public:
 };
 
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNavmeshContext : public FPCGExPointsProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExFindPathsInNavmeshContext : public FPCGExPointsProcessorContext
 {
-	friend class FPCGExSampleNavmeshElement;
+	friend class FPCGExFindPathsInNavmeshElement;
 
 	mutable FRWLock BufferLock;
 
-	virtual ~FPCGExSampleNavmeshContext() override;
+	virtual ~FPCGExFindPathsInNavmeshContext() override;
 
 	PCGExData::FPointIO* GoalsPoints = nullptr;
 	PCGExData::FPointIOGroup* OutputPaths = nullptr;
@@ -135,7 +135,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNavmeshContext : public FPCGExPointsPr
 	bool bAddSeedToPath = true;
 	bool bAddGoalToPath = true;
 
-	TArray<PCGExSampleNavmesh::FPath> PathBuffer;
+	TArray<PCGExFindPathsInNavmesh::FPath> PathBuffer;
 
 	FNavAgentProperties NavAgentProperties;
 
@@ -146,7 +146,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNavmeshContext : public FPCGExPointsPr
 	double FuseDistance = 10;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExSampleNavmeshElement : public FPCGExPointsProcessorElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExFindPathsInNavmeshElement : public FPCGExPointsProcessorElementBase
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -165,13 +165,13 @@ class PCGEXTENDEDTOOLKIT_API FNavmeshPathTask : public FPCGExNonAbandonableTask
 public:
 	FNavmeshPathTask(
 		FPCGExAsyncManager* InManager, const PCGExMT::FTaskInfos& InInfos, PCGExData::FPointIO* InPointIO,
-		PCGExSampleNavmesh::FPath* InPath) :
+		PCGExFindPathsInNavmesh::FPath* InPath) :
 		FPCGExNonAbandonableTask(InManager, InInfos, InPointIO),
 		Path(InPath)
 	{
 	}
 
-	PCGExSampleNavmesh::FPath* Path = nullptr;
+	PCGExFindPathsInNavmesh::FPath* Path = nullptr;
 
 	virtual bool ExecuteTask() override;
 };

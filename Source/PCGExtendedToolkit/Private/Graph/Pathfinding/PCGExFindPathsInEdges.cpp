@@ -1,7 +1,7 @@
 ﻿// Copyright Timothé Lapetite 2023
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "..\..\..\Public\Graph\Pathfinding\PCGExSampleGraphEdges.h"
+#include "Graph\Pathfinding\PCGExFindPathsInEdges.h"
 
 #include "NavigationSystem.h"
 
@@ -11,10 +11,10 @@
 #include "Splines/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
 #include "Splines/SubPoints/Orient/PCGExSubPointsOrientAverage.h"
 
-#define LOCTEXT_NAMESPACE "PCGExSampleGraphEdgesElement"
-#define PCGEX_NAMESPACE SampleGraphEdges
+#define LOCTEXT_NAMESPACE "PCGExFindPathsInEdgesElement"
+#define PCGEX_NAMESPACE FindPathsInEdges
 
-UPCGExSampleGraphEdgesSettings::UPCGExSampleGraphEdgesSettings(
+UPCGExFindPathsInEdgesSettings::UPCGExFindPathsInEdgesSettings(
 	const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
@@ -22,31 +22,31 @@ UPCGExSampleGraphEdgesSettings::UPCGExSampleGraphEdgesSettings(
 	Blending = EnsureOperation<UPCGExSubPointsBlendInterpolate>(Blending);
 }
 
-FPCGElementPtr UPCGExSampleGraphEdgesSettings::CreateElement() const { return MakeShared<FPCGExSampleGraphEdgesElement>(); }
+FPCGElementPtr UPCGExFindPathsInEdgesSettings::CreateElement() const { return MakeShared<FPCGExFindPathsInEdgesElement>(); }
 
-FPCGExSampleGraphEdgesContext::~FPCGExSampleGraphEdgesContext()
+FPCGExFindPathsInEdgesContext::~FPCGExFindPathsInEdgesContext()
 {
 	PCGEX_TERMINATE_ASYNC
 }
 
-PCGEX_INITIALIZE_CONTEXT(SampleGraphEdges)
+PCGEX_INITIALIZE_CONTEXT(FindPathsInEdges)
 
-bool FPCGExSampleGraphEdgesElement::Boot(FPCGContext* InContext) const
+bool FPCGExFindPathsInEdgesElement::Boot(FPCGContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElementBase::Boot(InContext)) { return false; }
 
-	const FPCGExSampleGraphEdgesContext* Context = static_cast<FPCGExSampleGraphEdgesContext*>(InContext);
-	const UPCGExSampleGraphEdgesSettings* Settings = InContext->GetInputSettings<UPCGExSampleGraphEdgesSettings>();
+	const FPCGExFindPathsInEdgesContext* Context = static_cast<FPCGExFindPathsInEdgesContext*>(InContext);
+	const UPCGExFindPathsInEdgesSettings* Settings = InContext->GetInputSettings<UPCGExFindPathsInEdgesSettings>();
 	check(Settings);
 
 	return true;
 }
 
-bool FPCGExSampleGraphEdgesElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExFindPathsInEdgesElement::ExecuteInternal(FPCGContext* InContext) const
 {
-	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExSampleGraphEdgesElement::Execute);
+	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExFindPathsInEdgesElement::Execute);
 
-	PCGEX_CONTEXT(SampleGraphEdges)
+	PCGEX_CONTEXT(FindPathsInEdges)
 
 	if (Context->IsSetup())
 	{
@@ -111,7 +111,7 @@ bool FPCGExSampleGraphEdgesElement::ExecuteInternal(FPCGContext* InContext) cons
 
 bool FSampleIslandPathTask::ExecuteTask()
 {
-	FPCGExSampleGraphEdgesContext* Context = Manager->GetContext<FPCGExSampleGraphEdgesContext>();
+	FPCGExFindPathsInEdgesContext* Context = Manager->GetContext<FPCGExFindPathsInEdgesContext>();
 	PCGEX_ASYNC_CHECKPOINT
 	//FWriteScopeLock WriteLock(Context->ContextLock);
 

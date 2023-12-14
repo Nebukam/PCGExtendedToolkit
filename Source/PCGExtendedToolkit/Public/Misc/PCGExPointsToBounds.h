@@ -19,7 +19,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExPointsToBoundsSettings : public UPCGExPointsP
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(PointsToBounds, "Write Index", "Write the current point index to an attribute.");
+	PCGEX_NODE_INFOS(PointsToBounds, "Points to Bounds", "Compute the bounds of input points");
 #endif
 
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;

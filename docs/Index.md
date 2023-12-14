@@ -17,14 +17,13 @@
         - [Create Graph Params](PCGExCreateGraphParams.md)
         - [Build Graph](PCGExBuildGraph.md)
         - [Consolidate Graph](PCGExConsolidateGraph.md)
-        - [Partiton Graph Patches](PCGExFindEdgePatches.md)
-        - [Find Edges Type](PCGExFindEdgesType.md)
-        - [Find Paths](PCGExFindPaths.md)
+        - [Find Edge Islands](PCGExFindEdgeIslands.md)
         - [Draw Graph](PCGExDrawGraph.md)
         - [Delete Graph](PCGExDeleteGraph.md)
+        - [Edges to Paths](PCGExEdgesToPaths.md)
         - Pathfinding
-            - [Edges to Paths](PCGExEdgesToPaths.md)
-            - [Sample Navmesh](PCGExSampleNavmesh.md)
+            - [Find Paths in Edges](PCGExFindPathsInEdges.md)
+            - [Find Paths in Navmesh](PCGExFindPathsInNavmesh.md)
     - Splines
         - [Write Tangents](PCGExWriteTangents.md)
         - [Auto Tangents](PCGExAutoTangents.md)
@@ -34,7 +33,7 @@
         - [Sample Nearest Surface](PCGExSampleNearestSurface.md)
         - [Sample Surface Guided](PCGExSampleSurfaceGuided.md)
         - [Sample Nearest Polyline](PCGExSampleNearestPolyline.md)
-        - [Project](PCGExProject.md)
+        - ~~[Project](PCGExProject.md)~~
 1. Data Types
     - [Graph Data](PCGExGraphData.md)
 1. [Frequently Asked Questions](FAQ.md)
