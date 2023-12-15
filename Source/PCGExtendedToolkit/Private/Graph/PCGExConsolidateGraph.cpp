@@ -49,7 +49,7 @@ bool FPCGExConsolidateGraphElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
-		if (!Context->AdvancePointsIO(false))
+		if (!Context->AdvancePointsIO())
 		{
 			Context->SetState(PCGExGraph::State_ReadyForNextGraph); //No more points, move to next params
 		}

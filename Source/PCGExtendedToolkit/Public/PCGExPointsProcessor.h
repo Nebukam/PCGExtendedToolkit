@@ -185,7 +185,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : public FPCGContext
 	const UPCGPointData* GetCurrentIn() const { return CurrentIO->GetIn(); }
 	UPCGPointData* GetCurrentOut() const { return CurrentIO->GetOut(); }
 
-	bool AdvancePointsIO();
+	virtual bool AdvancePointsIO();
 	PCGExMT::AsyncState GetState() const { return CurrentState; }
 	bool IsState(const PCGExMT::AsyncState OperationId) const { return CurrentState == OperationId; }
 	bool IsSetup() const { return IsState(PCGExMT::State_Setup); }
@@ -197,9 +197,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : public FPCGContext
 
 	virtual void SetState(PCGExMT::AsyncState OperationId, bool bResetAsyncWork = true);
 	virtual void Reset();
-
-	virtual bool ValidatePointDataInput(UPCGPointData* PointData);
-	virtual void PostInitPointDataInput(const PCGExData::FPointIO& PointData);
 
 	int32 ChunkSize = 0;
 	bool bDoAsyncProcessing = true;

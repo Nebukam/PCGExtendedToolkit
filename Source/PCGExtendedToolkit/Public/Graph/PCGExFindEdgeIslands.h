@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 
 #include "PCGExGraphProcessor.h"
+#include "Data/PCGExData.h"
 
 #include "PCGExFindEdgeIslands.generated.h"
 
@@ -265,6 +266,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFindEdgeIslandsContext : public FPCGExGraphP
 	mutable FRWLock NetworkLock;
 	PCGExGraph::FNetwork* Network = nullptr;
 	PCGExData::FPointIOGroup* IslandsIO;
+
+	PCGExData::FKPointIOMarkedBindings<int32>* Markings = nullptr;
 
 	EPCGExRoamingResolveMethod ResolveRoamingMethod;
 

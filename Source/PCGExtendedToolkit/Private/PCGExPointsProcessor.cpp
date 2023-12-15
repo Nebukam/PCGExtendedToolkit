@@ -289,12 +289,6 @@ void FPCGExPointsProcessorContext::SetState(PCGExMT::AsyncState OperationId, boo
 
 void FPCGExPointsProcessorContext::Reset() { CurrentState = PCGExMT::State_Setup; }
 
-bool FPCGExPointsProcessorContext::ValidatePointDataInput(UPCGPointData* PointData) { return true; }
-
-void FPCGExPointsProcessorContext::PostInitPointDataInput(const PCGExData::FPointIO& PointData)
-{
-}
-
 #pragma endregion
 
 bool FPCGExPointsProcessorContext::BulkProcessMainPoints(TFunction<void(PCGExData::FPointIO&)>&& Initialize, TFunction<void(const int32, const PCGExData::FPointIO&)>&& LoopBody)
@@ -404,10 +398,7 @@ FPCGContext* FPCGExPointsProcessorElementBase::InitializeContext(
 	if (Settings->GetMainAcceptMultipleData())
 	{
 		TArray<FPCGTaggedData> Sources = InContext->InputData.GetInputsByPin(Settings->GetMainInputLabel());
-		InContext->MainPoints->Initialize(
-			InContext, Sources, Settings->GetMainOutputInitMode(),
-			[&InContext](UPCGPointData* Data) { return InContext->ValidatePointDataInput(Data); },
-			[&InContext](PCGExData::FPointIO& PointIO) { return InContext->PostInitPointDataInput(PointIO); });
+		InContext->MainPoints->Initialize(InContext, Sources, Settings->GetMainOutputInitMode());
 	}
 	else
 	{

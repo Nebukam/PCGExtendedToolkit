@@ -30,7 +30,7 @@ namespace PCGExData
 	template <typename T>
 	static bool TryReadMark(UPCGMetadata* Metadata, const FName MarkID, T& OutMark)
 	{
-		FPCGMetadataAttribute<T>* Mark = Metadata->GetConstTypedAttribute<T>(MarkID);
+		const FPCGMetadataAttribute<T>* Mark = Metadata->GetConstTypedAttribute<T>(MarkID);
 		if (!Mark) { return false; }
 		OutMark = Mark->GetValue(PCGInvalidEntryKey);
 		return true;
@@ -43,31 +43,38 @@ namespace PCGExData
 	}
 
 	template <typename T>
-	struct FMarkedPair
+	struct FPointIOMarkedPair
 	{
 		FName MarkIdentifier = NAME_None;
 		T Mark;
 		FPointIO* A = nullptr;
 		FPointIO* B = nullptr;
 
-		FMarkedPair()
+		FPointIOMarkedPair()
 		{
 		}
 
-		FMarkedPair(FPointIO* InA, FName InMarkIdentifier)
+		FPointIOMarkedPair(FPointIO* InA, FName InMarkIdentifier)
 			: MarkIdentifier(InMarkIdentifier),
 			  A(InA)
 		{
-			if (!TryReadMark<T>(A, MarkIdentifier, Mark)) { Mark = T{}; }
+			if (!TryReadMark<T>(*A, MarkIdentifier, Mark)) { Mark = T{}; }
 		}
 
-		FMarkedPair(const FMarkedPair& Other)
+		FPointIOMarkedPair(const FPointIOMarkedPair& Other)
 			: MarkIdentifier(Other.MarkIdentifier), Mark(Other.Mark),
 			  A(Other.A), B(Other.B)
 		{
 		}
 
-		bool CanPair(FPointIO* Other)
+		~FPointIOMarkedPair()
+		{
+			MarkIdentifier = NAME_None;
+			A = nullptr;
+			B = nullptr;
+		}
+
+		bool IsMatching(const FPointIO& Other)
 		{
 			T OtherMark;
 			if (!TryReadMark<T>(Other, MarkIdentifier, OtherMark)) { return false; }
@@ -79,11 +86,63 @@ namespace PCGExData
 		void UpdateMark()
 		{
 			if (!IsValid()) { return; }
-			WriteMark<T>(A, MarkIdentifier, Mark);
-			WriteMark<T>(B, MarkIdentifier, Mark);
+			WriteMark<T>(*A, MarkIdentifier, Mark);
+			WriteMark<T>(*B, MarkIdentifier, Mark);
 		}
 	};
 
+	template <typename T>
+	struct FKPointIOMarkedBindings
+	{
+		FName MarkIdentifier = NAME_None;
+		T Mark;
+		FPointIO* Key = nullptr;
+		TArray<FPointIO*> Values;
+
+		FKPointIOMarkedBindings()
+		{
+		}
+
+		FKPointIOMarkedBindings(FPointIO* InKey, FName InMarkIdentifier)
+			: MarkIdentifier(InMarkIdentifier),
+			  Key(InKey)
+		{
+			if (!TryReadMark<T>(*Key, MarkIdentifier, Mark)) { Mark = T{}; }
+		}
+
+		FKPointIOMarkedBindings(const FKPointIOMarkedBindings& Other)
+			: MarkIdentifier(Other.MarkIdentifier),
+			  Mark(Other.Mark),
+			  Key(Other.Key)
+		{
+			Values.Append(Other.Values);
+		}
+
+		~FKPointIOMarkedBindings()
+		{
+			MarkIdentifier = NAME_None;
+			Key = nullptr;
+			Values.Empty();
+		}
+
+		bool IsMatching(const FPointIO& Other)
+		{
+			T OtherMark;
+			if (!TryReadMark<T>(Other, MarkIdentifier, OtherMark)) { return false; }
+			return Mark == OtherMark;
+		}
+
+		void Add(FPointIO& Other) { Values.Add(&Other); }
+
+		bool IsValid() { return Key && !Values.IsEmpty(); }
+
+		void UpdateMark()
+		{
+			if (!IsValid()) { return; }
+			WriteMark<T>(*Key, MarkIdentifier, Mark);
+			for (const FPointIO* Value : Values) { WriteMark<T>(*Value, MarkIdentifier, Mark); }
+		}
+	};
 
 	static UPCGPointData* GetMutablePointData(FPCGContext* Context, const FPCGTaggedData& Source)
 	{

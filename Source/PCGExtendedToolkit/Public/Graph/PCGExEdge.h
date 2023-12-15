@@ -31,6 +31,9 @@ namespace PCGExGraph
 	const FName EdgeEndAttributeName = TEXT("PCGEx/EdgeEnd");
 	const FName IslandIndexAttributeName = TEXT("PCGEx/Island");
 
+	constexpr PCGExMT::AsyncState State_ReadyForNextEdges = __COUNTER__;
+	constexpr PCGExMT::AsyncState State_ProcessingEdges = __COUNTER__;
+
 	struct PCGEXTENDEDTOOLKIT_API FEdge
 	{
 		uint32 Start = 0;

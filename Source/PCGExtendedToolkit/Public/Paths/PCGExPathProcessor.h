@@ -24,7 +24,7 @@ public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	//PCGEX_NODE_INFOS(PathProcessor, "PathProcessor", "Processes paths segments.");
-	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorSpline; }
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorPath; }
 #endif
 
 	virtual FName GetMainInputLabel() const override;

@@ -1,42 +1,38 @@
 ﻿// Copyright Timothé Lapetite 2023
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Graph/PCGExWriteEdgeExtras.h"
-
-#include "Graph/Promotions/PCGExEdgePromoteToPath.h"
-#include "Graph/Promotions/PCGExEdgePromoteToPoint.h"
+#include "Graph/Edges/PCGExConnectEdgeIslands.h"
 
 #define LOCTEXT_NAMESPACE "PCGExEdgesToPaths"
-#define PCGEX_NAMESPACE WriteEdgeExtras
+#define PCGEX_NAMESPACE ConnectEdgeIslands
 
-UPCGExWriteEdgeExtrasSettings::UPCGExWriteEdgeExtrasSettings(
+UPCGExConnectEdgeIslandsSettings::UPCGExConnectEdgeIslandsSettings(
 	const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	
 }
 
-PCGExData::EInit UPCGExWriteEdgeExtrasSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
+PCGExData::EInit UPCGExConnectEdgeIslandsSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
-FPCGElementPtr UPCGExWriteEdgeExtrasSettings::CreateElement() const { return MakeShared<FPCGExWriteEdgeExtrasElement>(); }
+FPCGElementPtr UPCGExConnectEdgeIslandsSettings::CreateElement() const { return MakeShared<FPCGExConnectEdgeIslandsElement>(); }
 
-PCGEX_INITIALIZE_CONTEXT(WriteEdgeExtras)
+PCGEX_INITIALIZE_CONTEXT(ConnectEdgeIslands)
 
-bool FPCGExWriteEdgeExtrasElement::Boot(FPCGContext* InContext) const
+bool FPCGExConnectEdgeIslandsElement::Boot(FPCGContext* InContext) const
 {
 	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
 
-	PCGEX_CONTEXT_AND_SETTINGS(WriteEdgeExtras)
+	PCGEX_CONTEXT_AND_SETTINGS(ConnectEdgeIslands)
 
 	return true;
 }
 
-bool FPCGExWriteEdgeExtrasElement::ExecuteInternal(
+bool FPCGExConnectEdgeIslandsElement::ExecuteInternal(
 	FPCGContext* InContext) const
 {
-	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExWriteEdgeExtrasElement::Execute);
+	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExConnectEdgeIslandsElement::Execute);
 
-	PCGEX_CONTEXT(WriteEdgeExtras)
+	PCGEX_CONTEXT(ConnectEdgeIslands)
 
 	if (Context->IsSetup())
 	{

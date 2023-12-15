@@ -60,7 +60,7 @@ bool FPCGExBuildGraphElement::ExecuteInternal(
 	// Prep point for param loops
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
-		if (!Context->AdvancePointsIO(true)) { Context->Done(); }
+		if (!Context->AdvancePointsIOAndResetGraph()) { Context->Done(); }
 		else { Context->SetState(PCGExGraph::State_ReadyForNextGraph); }
 	}
 

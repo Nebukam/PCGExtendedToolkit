@@ -69,9 +69,9 @@ bool FPCGExGraphProcessorContext::AdvanceGraph(bool bResetPointsIndex)
 	return false;
 }
 
-bool FPCGExGraphProcessorContext::AdvancePointsIO(bool bResetParamsIndex)
+bool FPCGExGraphProcessorContext::AdvancePointsIOAndResetGraph()
 {
-	if (bResetParamsIndex) { CurrentParamsIndex = -1; }
+	CurrentParamsIndex = -1;
 	return FPCGExPointsProcessorContext::AdvancePointsIO();
 }
 

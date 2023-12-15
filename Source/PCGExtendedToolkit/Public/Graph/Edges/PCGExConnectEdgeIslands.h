@@ -4,20 +4,20 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExEdgesProcessor.h"
-#include "PCGExWriteEdgeExtras.generated.h"
+#include "Graph/PCGExEdgesProcessor.h"
+#include "PCGExConnectEdgeIslands.generated.h"
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Edges")
-class PCGEXTENDEDTOOLKIT_API UPCGExWriteEdgeExtrasSettings : public UPCGExEdgesProcessorSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExConnectEdgeIslandsSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()
 
 public:
-	UPCGExWriteEdgeExtrasSettings(const FObjectInitializer& ObjectInitializer);
+	UPCGExConnectEdgeIslandsSettings(const FObjectInitializer& ObjectInitializer);
 
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(WriteEdgeExtras, "Write Edge Extras", "Extract & write extra edge informations to the point representing the edge.");
+	PCGEX_NODE_INFOS(ConnectEdgeIslands, "Connect Edge Islands", "Connects isolated edge islands by their closest vertices.");
 #endif
 
 	virtual PCGExData::EInit GetEdgeOutputInitMode() const override;
@@ -27,16 +27,15 @@ protected:
 	//~End UPCGSettings interface
 
 private:
-	friend class FPCGExWriteEdgeExtrasElement;
+	friend class FPCGExConnectEdgeIslandsElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExWriteEdgeExtrasContext : public FPCGExEdgesProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExConnectEdgeIslandsContext : public FPCGExEdgesProcessorContext
 {
-	friend class FPCGExWriteEdgeExtrasElement;
-
+	friend class FPCGExConnectEdgeIslandsElement;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExWriteEdgeExtrasElement : public FPCGExEdgesProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExConnectEdgeIslandsElement : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

@@ -17,8 +17,9 @@ FPCGExFindEdgeIslandsContext::~FPCGExFindEdgeIslandsContext()
 {
 	PCGEX_TERMINATE_ASYNC
 
-	PCGEX_DELETE(IslandsIO);
-	PCGEX_DELETE(Network);
+	PCGEX_DELETE(IslandsIO)
+	PCGEX_DELETE(Network)
+	PCGEX_DELETE(Markings)
 }
 
 TArray<FPCGPinProperties> UPCGExFindEdgeIslandsSettings::OutputPinProperties() const
@@ -90,13 +91,15 @@ bool FPCGExFindEdgeIslandsElement::ExecuteInternal(
 	{
 		PCGEX_DELETE(Context->Network)
 		PCGEX_DELETE(Context->IslandsIO)
+		PCGEX_DELETE(Context->Markings)
 
-		if (!Context->AdvancePointsIO(true)) { Context->Done(); }
+		if (!Context->AdvancePointsIOAndResetGraph()) { Context->Done(); }
 		else
 		{
 			Context->IslandsIO = new PCGExData::FPointIOGroup();
 			Context->IslandsIO->DefaultOutputLabel = PCGExGraph::OutputEdgesLabel;
 			Context->Network = new PCGExGraph::FNetwork(Context->MergedInputSocketsNum, Context->CurrentIO->GetNum());
+			Context->Markings = new PCGExData::FKPointIOMarkedBindings<int32>(Context->CurrentIO, PCGExGraph::PUIDAttributeName);
 			Context->SetState(PCGExGraph::State_ReadyForNextGraph);
 		}
 	}
@@ -136,9 +139,7 @@ bool FPCGExFindEdgeIslandsElement::ExecuteInternal(
 	{
 		Context->IslandsIO->Flush();
 		Context->Network->PrepareIslands(Context->MinIslandSize, Context->MaxIslandSize);
-
-		const int32 PUID = Context->CurrentIO->GetIn()->GetUniqueID();
-		PCGExData::WriteMark(Context->CurrentIO->GetOut()->Metadata, PCGExGraph::PUIDAttributeName, PUID);
+		Context->Markings->Mark = Context->CurrentIO->GetIn()->GetUniqueID();
 
 		if (Context->bOutputIndividualIslands)
 		{
@@ -147,8 +148,8 @@ bool FPCGExFindEdgeIslandsElement::ExecuteInternal(
 				const int32 IslandSize = Pair.Value;
 				if (IslandSize == -1) { continue; }
 
-				PCGExData::FPointIO& IslandData = Context->IslandsIO->Emplace_GetRef(PCGExData::EInit::NewOutput); //*Context->CurrentIO,
-				PCGExData::WriteMark(IslandData.GetOut()->Metadata, PCGExGraph::PUIDAttributeName, PUID);
+				PCGExData::FPointIO& IslandData = Context->IslandsIO->Emplace_GetRef(PCGExData::EInit::NewOutput);
+				Context->Markings->Add(IslandData);
 
 				Context->GetAsyncManager()->Start<FWriteIslandTask>(Pair.Key, Context->CurrentIO, &IslandData);
 			}
@@ -165,7 +166,6 @@ bool FPCGExFindEdgeIslandsElement::ExecuteInternal(
 			// Output all islands
 
 			PCGExData::FPointIO& IslandData = Context->IslandsIO->Emplace_GetRef(PCGExData::EInit::NewOutput);
-			PCGExData::WriteMark(IslandData.GetOut()->Metadata, PCGExGraph::PUIDAttributeName, PUID);
 
 			TArray<FPCGPoint>& MutablePoints = IslandData.GetOut()->GetMutablePoints();
 			MutablePoints.SetNum(Context->Network->NumEdges);
@@ -201,8 +201,7 @@ bool FPCGExFindEdgeIslandsElement::ExecuteInternal(
 			PCGEX_DELETE(EdgeEnd)
 			PCGEX_DELETE(IslandID)
 
-			Context->IslandsIO->OutputTo(Context, true);
-			Context->SetState(PCGExMT::State_ReadyForNextPoints);
+			Context->SetState(PCGExGraph::State_WaitingOnWritingIslands);
 		}
 	}
 
@@ -210,6 +209,7 @@ bool FPCGExFindEdgeIslandsElement::ExecuteInternal(
 	{
 		if (Context->IsAsyncWorkComplete())
 		{
+			Context->Markings->UpdateMark();
 			Context->IslandsIO->OutputTo(Context, true);
 			Context->SetState(PCGExMT::State_ReadyForNextPoints);
 		}

@@ -144,12 +144,6 @@ namespace PCGExData
 			FPCGContext* Context, TArray<FPCGTaggedData>& Sources,
 			EInit InitOut = EInit::NoOutput);
 
-		void Initialize(
-			FPCGContext* Context, TArray<FPCGTaggedData>& Sources,
-			const EInit InitOut,
-			const TFunction<bool(UPCGPointData*)>& ValidateFunc,
-			const TFunction<void(FPointIO&)>& PostInitFunc);
-
 		FPointIO& Emplace_GetRef(
 			const FPointIO& PointIO,
 			const EInit InitOut = EInit::NoOutput);

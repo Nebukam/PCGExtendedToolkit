@@ -5,11 +5,26 @@
 
 #include "CoreMinimal.h"
 #include "PCGExPointsProcessor.h"
+#include "Data/PCGExData.h"
 #include "Data/PCGExGraphParamsData.h"
 
 #include "PCGExEdgesProcessor.generated.h"
 
-class UPCGExGraphParamsData;
+namespace PCGExGraph
+{
+	struct PCGEXTENDEDTOOLKIT_API FVertex
+	{
+		int32 Index;
+		TArray<int32> Neighbors;
+	};
+
+	struct PCGEXTENDEDTOOLKIT_API FMesh
+	{
+		int32 MeshID = -1;
+		TArray<FVertex> Vertices;    //Mesh vertices
+		TMap<uint64, int32> EdgeMap; //Edge hash to edge index
+	};
+}
 
 /**
  * A Base node to process a set of point using GraphParams.
@@ -23,8 +38,11 @@ public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(EdgesProcessorSettings, "Edges Processor Settings", "TOOLTIP_TEXT");
-	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorGraph; }
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorEdge; }
 #endif
+	virtual PCGExData::EInit GetMainOutputInitMode() const override;
+	virtual PCGExData::EInit GetEdgeOutputInitMode() const;
+	virtual bool GetMainAcceptMultipleData() const override;
 
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
@@ -35,8 +53,19 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgesProcessorContext : public FPCGExPointsP
 {
 	friend class UPCGExEdgesProcessorSettings;
 
+	~FPCGExEdgesProcessorContext();
+
+	PCGExData::FPointIOGroup* Edges = nullptr;
+	PCGExData::FKPointIOMarkedBindings<int32>* BoundEdges = nullptr;
+
+	PCGExData::FPointIO* CurrentEdges = nullptr;
+	virtual bool AdvancePointsIO() override;
+	bool AdvanceEdges();
+
+	TArray<PCGExGraph::FMesh> Meshes;
+
 protected:
-	int32 CurrentParamsIndex = -1;
+	int32 CurrentEdgesIndex = -1;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExEdgesProcessorElement : public FPCGExPointsProcessorElementBase

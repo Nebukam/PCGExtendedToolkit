@@ -228,23 +228,6 @@ namespace PCGExData
 		}
 	}
 
-	void FPointIOGroup::Initialize(
-		FPCGContext* Context, TArray<FPCGTaggedData>& Sources,
-		const EInit InitOut,
-		const TFunction<bool(UPCGPointData*)>& ValidateFunc,
-		const TFunction<void(FPointIO&)>& PostInitFunc)
-	{
-		Pairs.Empty(Sources.Num());
-		for (FPCGTaggedData& Source : Sources)
-		{
-			UPCGPointData* MutablePointData = PCGExPointIO::GetMutablePointData(Context, Source);
-			if (!MutablePointData || MutablePointData->GetPoints().Num() == 0) { continue; }
-			if (!ValidateFunc(MutablePointData)) { continue; }
-			FPointIO& PointIO = Emplace_GetRef(Source, MutablePointData, InitOut);
-			PostInitFunc(PointIO);
-		}
-	}
-
 	FPointIO& FPointIOGroup::Emplace_GetRef(
 		const FPointIO& PointIO,
 		const EInit InitOut)

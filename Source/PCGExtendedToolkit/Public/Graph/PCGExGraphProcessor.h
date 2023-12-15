@@ -47,7 +47,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGraphProcessorContext : public FPCGExPointsP
 	UPCGExGraphParamsData* CurrentGraph = nullptr;
 
 	bool AdvanceGraph(bool bResetPointsIndex = false);
-	bool AdvancePointsIO(bool bResetParamsIndex = false);
+	bool AdvancePointsIOAndResetGraph();
 
 	virtual void Reset() override;
 
