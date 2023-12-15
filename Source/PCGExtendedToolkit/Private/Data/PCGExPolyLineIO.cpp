@@ -14,6 +14,7 @@ namespace PCGExData
 	{
 		Segments.Empty();
 		Bounds = FBox(ForceInit);
+		BuildCache();
 	}
 
 	FPolyLineIO::~FPolyLineIO()
@@ -24,7 +25,6 @@ namespace PCGExData
 
 	PolyLine::FSegment* FPolyLineIO::NearestSegment(const FVector& Location)
 	{
-		if (bCacheDirty) { BuildCache(); }
 		FReadScopeLock ReadLock(SegmentLock);
 		PolyLine::FSegment* NearestSegment = nullptr;
 		double MinDistanceSquared = TNumericLimits<double>::Max();
@@ -43,7 +43,6 @@ namespace PCGExData
 
 	PolyLine::FSegment* FPolyLineIO::NearestSegment(const FVector& Location, const double Range)
 	{
-		if (bCacheDirty) { BuildCache(); }
 		FReadScopeLock ReadLock(SegmentLock);
 		PolyLine::FSegment* NearestSegment = nullptr;
 		double MinDistanceSquared = TNumericLimits<double>::Max();
@@ -63,7 +62,6 @@ namespace PCGExData
 
 	FTransform FPolyLineIO::SampleNearestTransform(const FVector& Location, double& OutTime)
 	{
-		if (bCacheDirty) { BuildCache(); }
 		const PolyLine::FSegment* Segment = NearestSegment(Location);
 		const FTransform OutTransform = Segment->NearestTransform(Location);
 		OutTime = Segment->GetAccumulatedLengthAt(OutTransform.GetLocation()) / TotalLength;
@@ -73,7 +71,6 @@ namespace PCGExData
 	bool FPolyLineIO::SampleNearestTransform(const FVector& Location, const double Range, FTransform& OutTransform, double& OutTime)
 	{
 		if (!Bounds.ExpandBy(Range).IsInside(Location)) { return false; }
-		if (bCacheDirty) { BuildCache(); }
 		const PolyLine::FSegment* Segment = NearestSegment(Location, Range);
 		if (!Segment) { return false; }
 		OutTransform = Segment->NearestTransform(Location);
@@ -83,8 +80,6 @@ namespace PCGExData
 
 	void FPolyLineIO::BuildCache()
 	{
-		if (!bCacheDirty) { return; }
-
 		FWriteScopeLock WriteLock(SegmentLock);
 		const int32 NumSegments = In->GetNumSegments();
 		TotalLength = 0;
@@ -98,7 +93,6 @@ namespace PCGExData
 		}
 
 		TotalClosedLength = TotalLength + FVector::Distance(Segments[0].Start, Segments.Last().End);
-		bCacheDirty = false;
 	}
 
 	FPolyLineIOGroup::FPolyLineIOGroup()
@@ -120,7 +114,6 @@ namespace PCGExData
 
 	FPolyLineIOGroup::~FPolyLineIOGroup()
 	{
-		for (const FPolyLineIO* Line : Lines) { delete Line; }
 		Lines.Empty();
 	}
 
@@ -131,12 +124,8 @@ namespace PCGExData
 
 	FPolyLineIO* FPolyLineIOGroup::Emplace_GetRef(const FPCGTaggedData& Source, const UPCGPolyLineData* In)
 	{
-		//FWriteScopeLock WriteLock(PairsLock);
-
-		FPolyLineIO* Line = new FPolyLineIO(*In);
-		Lines.Add(Line);
+		FPolyLineIO* Line = &Lines.Emplace_GetRef(*In);
 		Line->Source = Source;
-		Line->BuildCache();
 		return Line;
 	}
 
@@ -144,9 +133,9 @@ namespace PCGExData
 	{
 		double MinDistance = TNumericLimits<double>::Max();
 		bool bFound = false;
-		for (FPolyLineIO* Line : Lines)
+		for (FPolyLineIO& Line : Lines)
 		{
-			FTransform Transform = Line->SampleNearestTransform(Location, OutTime);
+			FTransform Transform = Line.SampleNearestTransform(Location, OutTime);
 			if (const double SqrDist = FVector::DistSquared(Location, Transform.GetLocation());
 				SqrDist < MinDistance)
 			{
@@ -162,14 +151,10 @@ namespace PCGExData
 	{
 		double MinDistance = TNumericLimits<double>::Max();
 		bool bFound = false;
-		for (FPolyLineIO* Line
-
-		     :
-		     Lines
-		)
+		for (FPolyLineIO& Line : Lines)
 		{
 			FTransform Transform;
-			if (!Line->SampleNearestTransform(Location, Range, Transform, OutTime)) { continue; }
+			if (!Line.SampleNearestTransform(Location, Range, Transform, OutTime)) { continue; }
 			if (const double SqrDist = FVector::DistSquared(Location, Transform.GetLocation());
 				SqrDist < MinDistance)
 			{
@@ -218,7 +203,7 @@ namespace PCGExData
 		Lines.Empty(Sources.Num());
 		for (FPCGTaggedData& Source : Sources)
 		{
-			UPCGPolyLineData* MutablePolyLineData = GetMutablePolyLineData(Source);
+			const UPCGPolyLineData* MutablePolyLineData = GetMutablePolyLineData(Source);
 			if (!MutablePolyLineData || MutablePolyLineData->GetNumSegments() == 0) { continue; }
 			Emplace_GetRef(Source, MutablePolyLineData);
 		}

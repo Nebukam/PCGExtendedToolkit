@@ -155,6 +155,7 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 				}
 			}
 
+			PointIO.CreateOutKeys();
 			PCGEX_SAMPLENEARESTPOINT_FOREACH(PCGEX_OUTPUT_ACCESSOR_INIT)
 		};
 

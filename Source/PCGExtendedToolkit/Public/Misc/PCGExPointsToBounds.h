@@ -39,7 +39,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsToBoundsContext : public FPCGExPointsP
 	friend class FPCGExPointsToBoundsElement;
 
 	virtual ~FPCGExPointsToBoundsContext() override;
-
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExPointsToBoundsElement : public FPCGExPointsProcessorElementBase

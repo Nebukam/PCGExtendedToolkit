@@ -250,13 +250,14 @@ int32 UPCGExPointsProcessorSettings::GetPreferredChunkSize() const { return 256;
 
 FPCGExPointsProcessorContext::~FPCGExPointsProcessorContext()
 {
+	PCGEX_TERMINATE_ASYNC
+
 	CleanupOperations();
 	for (UPCGExOperation* Operation : OwnedProcessorOperations) { Operation->ConditionalBeginDestroy(); }
 
 	ProcessorOperations.Empty();
 	OwnedProcessorOperations.Empty();
 
-	PCGEX_TERMINATE_ASYNC
 	PCGEX_DELETE(MainPoints)
 
 	CurrentIO = nullptr;

@@ -1,48 +1,48 @@
 ﻿// Copyright Timothé Lapetite 2023
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Graph/PCGExPromoteEdges.h"
+#include "Graph/PCGExWriteEdgeExtras.h"
 
 #include "Graph/Promotions/PCGExEdgePromoteToPath.h"
 #include "Graph/Promotions/PCGExEdgePromoteToPoint.h"
 
 #define LOCTEXT_NAMESPACE "PCGExEdgesToPaths"
-#define PCGEX_NAMESPACE PromoteEdges
+#define PCGEX_NAMESPACE WriteEdgeExtras
 
-int32 UPCGExPromoteEdgesSettings::GetPreferredChunkSize() const { return 32; }
+int32 UPCGExWriteEdgeExtrasSettings::GetPreferredChunkSize() const { return 32; }
 
-PCGExData::EInit UPCGExPromoteEdgesSettings::GetMainOutputInitMode() const
+PCGExData::EInit UPCGExWriteEdgeExtrasSettings::GetMainOutputInitMode() const
 {
 	return Promotion && Promotion->GeneratesNewPointData() ?
 		       PCGExData::EInit::NoOutput :
 		       PCGExData::EInit::NewOutput;
 }
 
-UPCGExPromoteEdgesSettings::UPCGExPromoteEdgesSettings(
+UPCGExWriteEdgeExtrasSettings::UPCGExWriteEdgeExtrasSettings(
 	const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 	Promotion = EnsureOperation<UPCGExEdgePromoteToPoint>(Promotion);
 }
 
-TArray<FPCGPinProperties> UPCGExPromoteEdgesSettings::OutputPinProperties() const
+TArray<FPCGPinProperties> UPCGExWriteEdgeExtrasSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
 	PinProperties.Pop();
 	return PinProperties;
 }
 
-FPCGElementPtr UPCGExPromoteEdgesSettings::CreateElement() const { return MakeShared<FPCGExPromoteEdgesElement>(); }
+FPCGElementPtr UPCGExWriteEdgeExtrasSettings::CreateElement() const { return MakeShared<FPCGExWriteEdgeExtrasElement>(); }
 
-FName UPCGExPromoteEdgesSettings::GetMainOutputLabel() const { return PCGExGraph::OutputPathsLabel; }
+FName UPCGExWriteEdgeExtrasSettings::GetMainOutputLabel() const { return PCGExGraph::OutputPathsLabel; }
 
-PCGEX_INITIALIZE_CONTEXT(PromoteEdges)
+PCGEX_INITIALIZE_CONTEXT(WriteEdgeExtras)
 
-bool FPCGExPromoteEdgesElement::Boot(FPCGContext* InContext) const
+bool FPCGExWriteEdgeExtrasElement::Boot(FPCGContext* InContext) const
 {
 	if (!FPCGExGraphProcessorElement::Boot(InContext)) { return false; }
 
-	PCGEX_CONTEXT_AND_SETTINGS(PromoteEdges)
+	PCGEX_CONTEXT_AND_SETTINGS(WriteEdgeExtras)
 
 	Context->EdgeType = static_cast<EPCGExEdgeType>(Settings->EdgeType);
 
@@ -51,12 +51,12 @@ bool FPCGExPromoteEdgesElement::Boot(FPCGContext* InContext) const
 	return true;
 }
 
-bool FPCGExPromoteEdgesElement::ExecuteInternal(
+bool FPCGExWriteEdgeExtrasElement::ExecuteInternal(
 	FPCGContext* InContext) const
 {
-	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExPromoteEdgesElement::Execute);
+	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExWriteEdgeExtrasElement::Execute);
 
-	PCGEX_CONTEXT(PromoteEdges)
+	PCGEX_CONTEXT(WriteEdgeExtras)
 
 	if (Context->IsSetup())
 	{

@@ -153,7 +153,6 @@ void PCGExGraph::FSocketMapping::InitializeWithOverrides(FName InIdentifier, TAr
 		if (Overrides.bOverrideOffsetOrigin) { NewSocket.Descriptor.OffsetOrigin = Overrides.OffsetOrigin; }
 
 		NewSocket.Descriptor.Bounds.DotThreshold = FMath::Cos(NewSocket.Descriptor.Bounds.Angle * (PI / 180.0));
-
 	}
 
 	PostProcessSockets();

@@ -82,6 +82,8 @@ bool FPCGExBuildGraphElement::ExecuteInternal(
 	{
 		auto Initialize = [&](PCGExData::FPointIO& PointIO)
 		{
+			PointIO.CreateInKeys();
+			PointIO.CreateOutKeys();
 			Context->PrepareCurrentGraphForPoints(PointIO, false);
 		};
 

@@ -80,7 +80,6 @@ namespace PCGExData
 		bool SampleNearestTransform(const FVector& Location, const double Range, FTransform& OutTransform, double& OutTime);
 
 	protected:
-		bool bCacheDirty = true;
 		void BuildCache();
 	};
 
@@ -93,9 +92,10 @@ namespace PCGExData
 		FPolyLineIOGroup();
 		FPolyLineIOGroup(const FPCGContext* Context, FName InputLabel);
 		FPolyLineIOGroup(TArray<FPCGTaggedData>& Sources);
+
 		~FPolyLineIOGroup();
 
-		TArray<FPolyLineIO*> Lines;
+		TArray<FPolyLineIO> Lines;
 
 		FPolyLineIO* Emplace_GetRef(const FPolyLineIO& PolyLine);
 

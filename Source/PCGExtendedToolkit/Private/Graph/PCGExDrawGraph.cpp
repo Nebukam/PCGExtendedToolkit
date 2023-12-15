@@ -74,7 +74,11 @@ bool FPCGExDrawGraphElement::ExecuteInternal(FPCGContext* InContext) const
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
 		if (!Context->AdvancePointsIO(true)) { Context->Done(); }
-		else { Context->SetState(PCGExGraph::State_ReadyForNextGraph); }
+		else
+		{
+			Context->CurrentIO->CreateInKeys();
+			Context->SetState(PCGExGraph::State_ReadyForNextGraph);
+		}
 	}
 
 	if (Context->IsState(PCGExGraph::State_ReadyForNextGraph))

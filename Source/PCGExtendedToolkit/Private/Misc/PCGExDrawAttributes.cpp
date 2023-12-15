@@ -243,6 +243,7 @@ bool FPCGExDrawAttributesElement::ExecuteInternal(FPCGContext* InContext) const
 	{
 		auto Initialize = [&](PCGExData::FPointIO& PointIO)
 		{
+			PointIO.CreateInKeys();
 			for (FPCGExAttributeDebugDraw& DebugInfos : Context->DebugList) { DebugInfos.Validate(PointIO); }
 		};
 

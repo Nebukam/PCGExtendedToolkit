@@ -14,7 +14,7 @@ namespace PCGExPathfindingNavmesh
 {
 	constexpr PCGExMT::AsyncState State_Pathfinding = __COUNTER__;
 	constexpr PCGExMT::AsyncState State_WaitingPathfinding = __COUNTER__;
-	
+
 	struct PCGEXTENDEDTOOLKIT_API FPath
 	{
 		FPath(const int32 InSeedIndex, const FVector& InStart, const int32 InGoalIndex, const FVector& InEnd):

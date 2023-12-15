@@ -6,9 +6,9 @@
 
 #include "Data/PCGExPointIO.h"
 
-void UPCGExSubPointsOrientOperation::PrepareForData(PCGExData::FPointIO& InData)
+void UPCGExSubPointsOrientOperation::PrepareForData(PCGExData::FPointIO& InPointIO)
 {
-	Super::PrepareForData(InData);
+	Super::PrepareForData(InPointIO);
 }
 
 void UPCGExSubPointsOrientOperation::ProcessSubPoints(const PCGEx::FPointRef& Start, const PCGEx::FPointRef& End, TArrayView<FPCGPoint>& SubPoints, const PCGExMath::FPathMetrics& Metrics) const

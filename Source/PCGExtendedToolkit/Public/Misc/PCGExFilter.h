@@ -88,7 +88,7 @@ namespace FPCGExFilter
 		}
 
 		FPCGExFilterRuleDescriptor* RuleDescriptor;
-		TArray<int64> Values;
+		TArray<int64> FilteredValues;
 		double FilterSize = 1.0;
 		double Upscale = 1.0;
 		double Offset = 0.0;

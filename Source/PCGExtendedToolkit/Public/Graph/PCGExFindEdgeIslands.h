@@ -43,10 +43,17 @@ namespace PCGExGraph
 		{
 			for (const int32 Edge : Edges) { Callback(InEdges[Edge].Other(Index, std::forward<Args>(InArgs)...)); }
 		}
+
+		void AddEdge(const int32 Edge)
+		{
+			Edges.AddUnique(Edge);
+		}
 	};
 
 	struct FNetwork
 	{
+		mutable FRWLock NetworkLock;
+
 		const int32 NumEdgesReserve;
 		int32 IslandIncrement = 0;
 		int32 NumIslands = 0;
@@ -83,16 +90,23 @@ namespace PCGExGraph
 		bool InsertEdge(FUnsignedEdge Edge)
 		{
 			const uint64 Hash = Edge.GetUnsignedHash();
-			if (UniqueEdges.Contains(Hash)) { return false; }
 
+			{
+				FReadScopeLock ReadLock(NetworkLock);
+				if (UniqueEdges.Contains(Hash)) { return false; }
+			}
+
+
+			FWriteScopeLock WriteLock(NetworkLock);
 			UniqueEdges.Add(Hash);
 			const int32 EdgeIndex = Edges.Add(Edge);
+
 
 			FNode& NodeA = Nodes[Edge.Start];
 			FNode& NodeB = Nodes[Edge.End];
 
-			NodeA.Edges.AddUnique(EdgeIndex);
-			NodeB.Edges.AddUnique(EdgeIndex);
+			NodeA.AddEdge(EdgeIndex);
+			NodeB.AddEdge(EdgeIndex);
 
 			if (NodeA.Island == -1 && NodeB.Island == -1)
 			{
@@ -127,13 +141,6 @@ namespace PCGExGraph
 			{
 				MergeIsland(Edges[EdgeIndex].Other(NodeIndex), Island);
 			}
-			/*
-		Node.CallbackOnNeighbors(
-			Edges,
-			[&](const int32 OtherIndex)
-			{
-				MergeIsland(OtherIndex, Island);
-			});*/
 		}
 
 		void PrepareIslands(int32 MinSize = 1, int32 MaxSize = TNumericLimits<int32>::Max())

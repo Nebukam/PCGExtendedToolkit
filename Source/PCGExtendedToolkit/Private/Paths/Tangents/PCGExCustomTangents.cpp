@@ -6,11 +6,11 @@
 
 #include "Data/PCGExPointIO.h"
 
-void UPCGExCustomTangents::PrepareForData(PCGExData::FPointIO& InPath)
+void UPCGExCustomTangents::PrepareForData(PCGExData::FPointIO& InPointIO)
 {
-	Super::PrepareForData(InPath);
-	Arrive.PrepareForData(InPath);
-	Leave.PrepareForData(InPath);
+	Super::PrepareForData(InPointIO);
+	Arrive.PrepareForData(InPointIO);
+	Leave.PrepareForData(InPointIO);
 }
 
 void UPCGExCustomTangents::ProcessFirstPoint(const PCGEx::FPointRef& MainPoint, const PCGEx::FPointRef& NextPoint, FVector& OutArrive, FVector& OutLeave) const

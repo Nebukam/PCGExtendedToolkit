@@ -29,9 +29,7 @@ namespace PCGExData
 		friend class FPointIOGroup;
 
 	protected:
-		mutable FRWLock KeysLock;
 		mutable FRWLock PointsLock;
-
 		int32 NumInPoints = -1;
 
 		FPCGAttributeAccessorKeysPoints* InKeys = nullptr;
@@ -75,9 +73,12 @@ namespace PCGExData
 
 		const UPCGPointData* GetIn() const;
 		int32 GetNum() const;
-		FPCGAttributeAccessorKeysPoints* GetInKeys();
+		FPCGAttributeAccessorKeysPoints* CreateInKeys();
+		FPCGAttributeAccessorKeysPoints* GetInKeys() const;
+
 		UPCGPointData* GetOut() const;
-		FPCGAttributeAccessorKeysPoints* GetOutKeys();
+		FPCGAttributeAccessorKeysPoints* CreateOutKeys();
+		FPCGAttributeAccessorKeysPoints* GetOutKeys() const;
 
 		FName DefaultOutputLabel = PCGEx::OutputPointsLabel;
 

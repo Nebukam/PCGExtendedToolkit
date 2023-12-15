@@ -7,7 +7,7 @@
 #include "Data/PCGExPointIO.h"
 
 
-void UPCGExSubPointsOperation::PrepareForData(PCGExData::FPointIO& InData)
+void UPCGExSubPointsOperation::PrepareForData(PCGExData::FPointIO& InPointIO)
 {
 }
 

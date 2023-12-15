@@ -17,7 +17,7 @@ namespace PCGExData
 		case EInit::NewOutput:
 			Out = NewObject<UPCGPointData>();
 			if (In) { Out->InitializeFromData(In); }
-			//else { Out->CreateEmptyMetadata(); }
+		//else { Out->CreateEmptyMetadata(); }
 			break;
 		case EInit::DuplicateInput:
 			check(In)
@@ -34,29 +34,29 @@ namespace PCGExData
 	const UPCGPointData* FPointIO::GetIn() const { return In; }
 	int32 FPointIO::GetNum() const { return In ? In->GetPoints().Num() : Out ? Out->GetPoints().Num() : -1; }
 
-	FPCGAttributeAccessorKeysPoints* FPointIO::GetInKeys()
+	FPCGAttributeAccessorKeysPoints* FPointIO::CreateInKeys()
 	{
-		if (RootIO) { return RootIO->GetInKeys(); }
-		if (!InKeys && In)
-		{
-			FWriteScopeLock WriteLock(KeysLock);
-			InKeys = new FPCGAttributeAccessorKeysPoints(In->GetPoints());
-		}
+		if (InKeys) { return InKeys; }
+		if (RootIO) { InKeys = RootIO->CreateInKeys(); }
+		else { InKeys = new FPCGAttributeAccessorKeysPoints(In->GetPoints()); }
 		return InKeys;
 	}
 
+	FPCGAttributeAccessorKeysPoints* FPointIO::GetInKeys() const { return InKeys; }
+
 	UPCGPointData* FPointIO::GetOut() const { return Out; }
 
-	FPCGAttributeAccessorKeysPoints* FPointIO::GetOutKeys()
+	FPCGAttributeAccessorKeysPoints* FPointIO::CreateOutKeys()
 	{
-		if (!OutKeys && Out)
+		if (!OutKeys)
 		{
-			FWriteScopeLock WriteLock(KeysLock);
 			const TArrayView<FPCGPoint> View(Out->GetMutablePoints());
 			OutKeys = new FPCGAttributeAccessorKeysPoints(View);
 		}
 		return OutKeys;
 	}
+
+	FPCGAttributeAccessorKeysPoints* FPointIO::GetOutKeys() const { return OutKeys; }
 
 
 	void FPointIO::InitPoint(FPCGPoint& Point, PCGMetadataEntryKey FromKey) const
@@ -125,8 +125,9 @@ namespace PCGExData
 
 	void FPointIO::Cleanup()
 	{
-		FWriteScopeLock WriteLock(KeysLock);
-		PCGEX_DELETE(InKeys)
+		if (!RootIO) { PCGEX_DELETE(InKeys) }
+		else { InKeys = nullptr; }
+
 		PCGEX_DELETE(OutKeys)
 	}
 
@@ -147,40 +148,49 @@ namespace PCGExData
 
 	bool FPointIO::OutputTo(FPCGContext* Context, const bool bEmplace)
 	{
-		if (!Out || Out->GetPoints().Num() == 0) { return false; }
+		bool bSuccess = false;
 
-		if (!bEmplace)
+		if (Out)
 		{
-			if (!In)
+			if (!bEmplace)
+			{
+				if (In)
+				{
+					FPCGTaggedData& OutputRef = Context->OutputData.TaggedData.Add_GetRef(Source);
+					OutputRef.Data = Out;
+					OutputRef.Pin = DefaultOutputLabel;
+					bSuccess = true;
+				}
+			}
+			else
+			{
+				FPCGTaggedData& OutputRef = Context->OutputData.TaggedData.Emplace_GetRef();
+				OutputRef.Data = Out;
+				OutputRef.Pin = DefaultOutputLabel;
+				bSuccess = true;
+			}
+		}
+
+		Cleanup();
+		return bSuccess;
+	}
+
+	bool FPointIO::OutputTo(FPCGContext* Context, bool bEmplace, const int64 MinPointCount, const int64 MaxPointCount)
+	{
+		if (Out)
+		{
+			const int64 OutNumPoints = Out->GetPoints().Num();
+
+			if ((MinPointCount >= 0 && OutNumPoints < MinPointCount) ||
+				(MaxPointCount >= 0 && OutNumPoints > MaxPointCount))
 			{
 				Cleanup();
 				return false;
 			}
 
-			FPCGTaggedData& OutputRef = Context->OutputData.TaggedData.Add_GetRef(Source);
-			OutputRef.Data = Out;
-			OutputRef.Pin = DefaultOutputLabel;
+			return OutputTo(Context, bEmplace);
 		}
-		else
-		{
-			FPCGTaggedData& OutputRef = Context->OutputData.TaggedData.Emplace_GetRef();
-			OutputRef.Data = Out;
-			OutputRef.Pin = DefaultOutputLabel;
-		}
-
-		Cleanup();
-		return true;
-	}
-
-	bool FPointIO::OutputTo(FPCGContext* Context, bool bEmplace, const int64 MinPointCount, const int64 MaxPointCount)
-	{
-		if (!Out) { return false; }
-
-		const int64 OutNumPoints = Out->GetPoints().Num();
-		if (MinPointCount >= 0 && OutNumPoints < MinPointCount) { return false; }
-		if (MaxPointCount >= 0 && OutNumPoints > MaxPointCount) { return false; }
-
-		return OutputTo(Context, bEmplace);
+		return false;
 	}
 
 	FPointIOGroup::FPointIOGroup()

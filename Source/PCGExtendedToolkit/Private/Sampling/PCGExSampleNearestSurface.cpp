@@ -77,6 +77,7 @@ bool FPCGExSampleNearestSurfaceElement::ExecuteInternal(FPCGContext* InContext) 
 	{
 		auto Initialize = [&](PCGExData::FPointIO& PointIO)
 		{
+			PointIO.CreateOutKeys();
 			PCGEX_SAMPLENEARESTSURFACE_FOREACH(PCGEX_OUTPUT_ACCESSOR_INIT)
 		};
 

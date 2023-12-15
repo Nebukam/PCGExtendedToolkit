@@ -9,18 +9,13 @@
 #define LOCTEXT_NAMESPACE "PCGExSortPoints"
 #define PCGEX_NAMESPACE SortPoints
 
-namespace PCGExSortPoints
-{
-	const FName SourceLabel = TEXT("Source");
-}
-
 FPCGElementPtr UPCGExSortPointsSettings::CreateElement() const { return MakeShared<FPCGExSortPointsElement>(); }
 
 PCGExData::EInit UPCGExSortPointsSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
 bool FPCGExSortPointsElement::ExecuteInternal(FPCGContext* InContext) const
 {
-	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExSortPointsByAttributesElement::Execute);
+	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExSortPointsElement::Execute);
 
 	PCGEX_CONTEXT(PointsProcessor)
 	PCGEX_SETTINGS(SortPoints)

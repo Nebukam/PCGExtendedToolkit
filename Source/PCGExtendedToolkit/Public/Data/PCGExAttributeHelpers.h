@@ -313,7 +313,7 @@ namespace PCGEx
 				AttributeName, DefaultValue,
 				bAllowsInterpolation, bOverrideParent, bOverwriteIfTypeMismatch);
 
-			return new FAttributeAccessor<T>(InData, InAttribute, InPointIO.GetOutKeys());
+			return new FAttributeAccessor<T>(InData, InAttribute, InPointIO.CreateOutKeys());
 		}
 	};
 
@@ -545,7 +545,7 @@ namespace PCGEx
 
 						FPCGMetadataAttribute<RawT>* TypedAttribute = InData->Metadata->GetMutableTypedAttribute<RawT>(Selector.GetName());
 						FPCGAttributeAccessor<RawT>* Accessor = new FPCGAttributeAccessor<RawT>(TypedAttribute, InData->Metadata);
-						IPCGAttributeAccessorKeys* Keys = const_cast<PCGExData::FPointIO&>(PointIO).GetInKeys();
+						IPCGAttributeAccessorKeys* Keys = const_cast<PCGExData::FPointIO&>(PointIO).CreateInKeys();
 						TArrayView<RawT> View(RawValues);
 						Accessor->GetRange(View, 0, *Keys, PCGEX_AAFLAG);
 

@@ -86,6 +86,7 @@ bool FPCGExWriteTangentsElement::ExecuteInternal(FPCGContext* InContext) const
 		auto Initialize = [&](PCGExData::FPointIO& PointIO)
 		{
 			const int32 NumPoints = PointIO.GetNum();
+
 			Context->ArriveTangents.SetNum(NumPoints);
 			Context->LeaveTangents.SetNum(NumPoints);
 

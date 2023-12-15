@@ -26,7 +26,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
 	FPCGExBlendingSettings BlendingSettings;
 
-	virtual void PrepareForData(PCGExData::FPointIO& InData) override;
+	virtual void PrepareForData(PCGExData::FPointIO& InPointIO) override;
 	virtual void PrepareForData(
 		UPCGPointData* InPrimaryData,
 		const UPCGPointData* InSecondaryData,

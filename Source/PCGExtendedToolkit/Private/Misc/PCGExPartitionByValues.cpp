@@ -134,7 +134,7 @@ bool FPCGExPartitionByValuesElement::Boot(FPCGContext* InContext) const
 
 bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* InContext) const
 {
-	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExBucketEntryElement::Execute);
+	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExPartitionByValuesElement::Execute);
 
 	PCGEX_CONTEXT(PartitionByValues)
 
@@ -155,6 +155,7 @@ bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* InContext) con
 		auto Initialize = [&](PCGExData::FPointIO& PointIO)
 		{
 			Context->Rules.Empty();
+			PointIO.CreateInKeys();
 
 			for (FPCGExFilterRuleDescriptor& Descriptor : Context->RulesDescriptors)
 			{
@@ -169,7 +170,7 @@ bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* InContext) con
 				for (FPCGExFilter::FRule& Rule : Context->Rules)
 				{
 					if (!Rule.RuleDescriptor->bWriteKey) { continue; }
-					Rule.Values.SetNumZeroed(NumPoints);
+					Rule.FilteredValues.SetNumZeroed(NumPoints);
 				}
 			}
 		};
@@ -181,7 +182,7 @@ bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* InContext) con
 			{
 				const int64 KeyValue = Rule.Filter(PointIndex);
 				Partition = Partition->GetPartition(KeyValue, &Rule);
-				if (!Context->bSplitOutput && Rule.RuleDescriptor->bWriteKey) { Rule.Values[PointIndex] = KeyValue; }
+				if (!Context->bSplitOutput && Rule.RuleDescriptor->bWriteKey) { Rule.FilteredValues[PointIndex] = KeyValue; }
 			}
 
 			Partition->Add(PointIndex);
@@ -203,7 +204,7 @@ bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* InContext) con
 				{
 					if (!Rule.RuleDescriptor->bWriteKey) { continue; }
 					PCGEx::FAttributeAccessor<int64>* Accessor = PCGEx::FAttributeAccessor<int64>::FindOrCreate(*Context->CurrentIO, Rule.RuleDescriptor->KeyAttributeName, 0, false);
-					Accessor->SetRange(Rule.Values);
+					Accessor->SetRange(Rule.FilteredValues);
 					delete Accessor;
 				}
 

@@ -12,12 +12,12 @@ EPCGExDataBlendingType UPCGExSubPointsBlendOperation::GetDefaultBlending()
 	return EPCGExDataBlendingType::Copy;
 }
 
-void UPCGExSubPointsBlendOperation::PrepareForData(PCGExData::FPointIO& InData)
+void UPCGExSubPointsBlendOperation::PrepareForData(PCGExData::FPointIO& InPointIO)
 {
-	Super::PrepareForData(InData);
+	Super::PrepareForData(InPointIO);
 	PrepareForData(
-		InData.GetOut(), InData.GetOut(),
-		InData.GetOutKeys(), InData.GetOutKeys());
+		InPointIO.GetOut(), InPointIO.GetOut(),
+		InPointIO.CreateOutKeys(), InPointIO.GetOutKeys());
 }
 
 void UPCGExSubPointsBlendOperation::PrepareForData(
@@ -27,7 +27,7 @@ void UPCGExSubPointsBlendOperation::PrepareForData(
 	FPCGAttributeAccessorKeysPoints* InSecondaryKeys)
 {
 	PCGEX_DELETE(InternalBlender)
-	//BlendingSettings.MakeWeightSafe();
+
 	InternalBlender = CreateBlender(InPrimaryData, InSecondaryData, InPrimaryKeys, InSecondaryKeys);
 	PropertiesBlender.Init(BlendingSettings);
 }

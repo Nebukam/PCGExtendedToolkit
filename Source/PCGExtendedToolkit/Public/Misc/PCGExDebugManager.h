@@ -62,7 +62,7 @@ public:
 			FlushPersistentDebugLines(PCGEx::GetWorld(Context));
 			FlushDebugStrings(PCGEx::GetWorld(Context));
 		}
-		
+
 		if (++CurrentPingCount >= DebugNodeCount) { CurrentPingCount = 0; }
 	}
 
