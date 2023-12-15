@@ -23,7 +23,7 @@ public:
 
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(PrimitiveProcessor, "PrimitiveProcessor", "Processes paths segments.");
+	PCGEX_NODE_INFOS(PrimitiveProcessor, "PrimitiveProcessor", "TOOLTIP");
 	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorPrimitives; }
 #endif
 

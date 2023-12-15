@@ -18,7 +18,7 @@ public:
 
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(WriteEdgeExtras, "Promote Edges", "Promote graph edges to points.");
+	PCGEX_NODE_INFOS(WriteEdgeExtras, "Write Edge Extras", "Extract & write extra edge informations to the point representing the edge.");
 	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorPathfinding; }
 #endif
 
