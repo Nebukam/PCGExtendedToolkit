@@ -186,10 +186,10 @@ bool FSamplePointTask::ExecuteTask()
 	PCGEX_ASYNC_CHECKPOINT
 
 	const int32 NumTargets = Context->Targets->GetNum();
-	const FVector Origin = PointIO->GetOutPoint(TaskInfos.Index).Transform.GetLocation();
+	const FVector Origin = PointIO->GetOutPoint(TaskIndex).Transform.GetLocation();
 
-	double RangeMin = FMath::Pow(Context->RangeMinGetter.SafeGet(TaskInfos.Index, Context->RangeMin), 2);
-	double RangeMax = FMath::Pow(Context->RangeMaxGetter.SafeGet(TaskInfos.Index, Context->RangeMax), 2);
+	double RangeMin = FMath::Pow(Context->RangeMinGetter.SafeGet(TaskIndex, Context->RangeMin), 2);
+	double RangeMax = FMath::Pow(Context->RangeMaxGetter.SafeGet(TaskIndex, Context->RangeMax), 2);
 
 	if (RangeMin > RangeMax) { std::swap(RangeMin, RangeMax); }
 
@@ -293,13 +293,13 @@ bool FSamplePointTask::ExecuteTask()
 
 	const double WeightedDistance = WeightedLocation.Length();
 
-	PCGEX_OUTPUT_VALUE(Success, TaskInfos.Index, TargetsCompoundInfos.IsValid())
-	PCGEX_OUTPUT_VALUE(Location, TaskInfos.Index, Origin + WeightedLocation)
-	PCGEX_OUTPUT_VALUE(LookAt, TaskInfos.Index, WeightedLookAt)
-	PCGEX_OUTPUT_VALUE(Normal, TaskInfos.Index, WeightedNormal)
-	PCGEX_OUTPUT_VALUE(Distance, TaskInfos.Index, WeightedDistance)
-	PCGEX_OUTPUT_VALUE(SignedDistance, TaskInfos.Index, FMath::Sign(WeightedSignAxis.Dot(WeightedLookAt)) * WeightedDistance)
-	PCGEX_OUTPUT_VALUE(Angle, TaskInfos.Index, PCGExSampling::GetAngle(Context->AngleRange, WeightedAngleAxis, WeightedLookAt))
+	PCGEX_OUTPUT_VALUE(Success, TaskIndex, TargetsCompoundInfos.IsValid())
+	PCGEX_OUTPUT_VALUE(Location, TaskIndex, Origin + WeightedLocation)
+	PCGEX_OUTPUT_VALUE(LookAt, TaskIndex, WeightedLookAt)
+	PCGEX_OUTPUT_VALUE(Normal, TaskIndex, WeightedNormal)
+	PCGEX_OUTPUT_VALUE(Distance, TaskIndex, WeightedDistance)
+	PCGEX_OUTPUT_VALUE(SignedDistance, TaskIndex, FMath::Sign(WeightedSignAxis.Dot(WeightedLookAt)) * WeightedDistance)
+	PCGEX_OUTPUT_VALUE(Angle, TaskIndex, PCGExSampling::GetAngle(Context->AngleRange, WeightedAngleAxis, WeightedLookAt))
 
 	return true;
 }

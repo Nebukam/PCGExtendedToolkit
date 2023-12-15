@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExMT.h"
 #include "Data/PCGExAttributeHelpers.h"
 
 #include "PCGExPathfinding.generated.h"
@@ -33,4 +34,29 @@ namespace PCGExPathfinding
 {
 	const FName SourceSeedsLabel = TEXT("Seeds");
 	const FName SourceGoalsLabel = TEXT("Goals");
+
+	constexpr PCGExMT::AsyncState State_Pathfinding = __COUNTER__;
+	constexpr PCGExMT::AsyncState State_WaitingPathfinding = __COUNTER__;
+
+	struct PCGEXTENDEDTOOLKIT_API FPath
+	{
+		FPath(const int32 InSeedIndex, const FVector& InStart, const int32 InGoalIndex, const FVector& InEnd):
+			SeedIndex(InSeedIndex), Start(InStart), GoalIndex(InGoalIndex), End(InEnd)
+		{
+		}
+
+		~FPath()
+		{
+		}
+
+		PCGExMath::FPathMetrics Metrics;
+		PCGExData::FPointIO* PathPoints = nullptr;
+
+		int32 SeedIndex = -1;
+		FVector Start;
+		int32 GoalIndex = -1;
+		FVector End;
+
+	};
+	
 }

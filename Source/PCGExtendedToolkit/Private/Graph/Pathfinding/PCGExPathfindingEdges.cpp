@@ -117,7 +117,7 @@ bool FSampleIslandPathTask::ExecuteTask()
 	/*
 		if (UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(Context->World))
 		{
-			const FPCGPoint& StartPoint = PointIO->GetInPoint(TaskInfos.Index);
+			const FPCGPoint& StartPoint = PointIO->GetInPoint(TaskIndex);
 			const FPCGPoint& EndPoint = Context->GoalsPoints->GetInPoint(GoalIndex);
 			const FVector StartLocation = StartPoint.Transform.GetLocation();
 			const FVector EndLocation = EndPoint.Transform.GetLocation();

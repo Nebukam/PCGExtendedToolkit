@@ -277,8 +277,8 @@ protected:
 class PCGEXTENDEDTOOLKIT_API FSamplePolylineTask : public FPCGExNonAbandonableTask
 {
 public:
-	FSamplePolylineTask(FPCGExAsyncManager* InManager, const PCGExMT::FTaskInfos& InInfos, PCGExData::FPointIO* InPointIO) :
-		FPCGExNonAbandonableTask(InManager, InInfos, InPointIO)
+	FSamplePolylineTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO) :
+		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO)
 	{
 	}
 

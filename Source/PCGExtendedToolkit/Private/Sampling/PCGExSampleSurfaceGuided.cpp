@@ -112,14 +112,14 @@ bool FTraceTask::ExecuteTask()
 	const FPCGExSampleSurfaceGuidedContext* Context = Manager->GetContext<FPCGExSampleSurfaceGuidedContext>();
 	PCGEX_ASYNC_CHECKPOINT
 
-	const FVector Origin = PointIO->GetInPoint(TaskInfos.Index).Transform.GetLocation();
+	const FVector Origin = PointIO->GetInPoint(TaskIndex).Transform.GetLocation();
 
 	FCollisionQueryParams CollisionParams;
 	CollisionParams.bTraceComplex = true;
 	CollisionParams.AddIgnoredActors(Context->IgnoredActors);
 
-	const double Size = Context->bUseLocalSize ? Context->SizeGetter[TaskInfos.Index] : Context->Size;
-	const FVector Trace = Context->DirectionGetter[TaskInfos.Index] * Size;
+	const double Size = Context->bUseLocalSize ? Context->SizeGetter[TaskIndex] : Context->Size;
+	const FVector Trace = Context->DirectionGetter[TaskIndex] * Size;
 	const FVector End = Origin + Trace;
 
 	bool bSuccess = false;
@@ -127,9 +127,9 @@ bool FTraceTask::ExecuteTask()
 
 	auto ProcessTraceResult = [&]()
 	{
-		PCGEX_OUTPUT_VALUE(Location, TaskInfos.Index, HitResult.ImpactPoint)
-		PCGEX_OUTPUT_VALUE(Normal, TaskInfos.Index, HitResult.Normal)
-		PCGEX_OUTPUT_VALUE(Distance, TaskInfos.Index, FVector::Distance(HitResult.ImpactPoint, Origin))
+		PCGEX_OUTPUT_VALUE(Location, TaskIndex, HitResult.ImpactPoint)
+		PCGEX_OUTPUT_VALUE(Normal, TaskIndex, HitResult.Normal)
+		PCGEX_OUTPUT_VALUE(Distance, TaskIndex, FVector::Distance(HitResult.ImpactPoint, Origin))
 		bSuccess = true;
 	};
 
@@ -161,12 +161,12 @@ bool FTraceTask::ExecuteTask()
 	PCGEX_ASYNC_CHECKPOINT
 	if (Context->bProjectFailToSize)
 	{
-		PCGEX_OUTPUT_VALUE(Location, TaskInfos.Index, End)
-		PCGEX_OUTPUT_VALUE(Normal, TaskInfos.Index, Trace.GetSafeNormal()*-1)
-		PCGEX_OUTPUT_VALUE(Distance, TaskInfos.Index, Size)
+		PCGEX_OUTPUT_VALUE(Location, TaskIndex, End)
+		PCGEX_OUTPUT_VALUE(Normal, TaskIndex, Trace.GetSafeNormal()*-1)
+		PCGEX_OUTPUT_VALUE(Distance, TaskIndex, Size)
 	}
 
-	PCGEX_OUTPUT_VALUE(Success, TaskInfos.Index, bSuccess)
+	PCGEX_OUTPUT_VALUE(Success, TaskIndex, bSuccess)
 	return bSuccess;
 }
 

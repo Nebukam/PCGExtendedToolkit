@@ -259,8 +259,8 @@ protected:
 class PCGEXTENDEDTOOLKIT_API FSamplePointTask : public FPCGExNonAbandonableTask
 {
 public:
-	FSamplePointTask(FPCGExAsyncManager* InManager, const PCGExMT::FTaskInfos& InInfos, PCGExData::FPointIO* InPointIO) :
-		FPCGExNonAbandonableTask(InManager, InInfos, InPointIO)
+	FSamplePointTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO) :
+		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO)
 	{
 	}
 

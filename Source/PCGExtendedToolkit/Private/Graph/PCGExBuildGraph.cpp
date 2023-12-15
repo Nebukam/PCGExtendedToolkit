@@ -125,9 +125,9 @@ bool FProbeTask::ExecuteTask()
 	const FPCGExBuildGraphContext* Context = Manager->GetContext<FPCGExBuildGraphContext>();
 	PCGEX_ASYNC_CHECKPOINT
 
-	const PCGEx::FPointRef Point = PCGEx::FPointRef(PointIO->GetOutPoint(TaskInfos.Index), TaskInfos.Index);
+	const PCGEx::FPointRef Point = PCGEx::FPointRef(PointIO->GetOutPoint(TaskIndex), TaskIndex);
 
-	Context->SetCachedIndex(TaskInfos.Index, TaskInfos.Index);
+	Context->SetCachedIndex(TaskIndex, TaskIndex);
 
 	TArray<PCGExGraph::FSocketProbe> Probes;
 	const double MaxDistance = Context->GraphSolver->PrepareProbesForPoint(Context->SocketInfos, Point, Probes);

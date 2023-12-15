@@ -107,7 +107,7 @@ bool FSweepSphereTask::ExecuteTask()
 	const FPCGExSampleNearestSurfaceContext* Context = Manager->GetContext<FPCGExSampleNearestSurfaceContext>();
 	PCGEX_ASYNC_CHECKPOINT
 
-	const FVector Origin = PointIO->GetInPoint(TaskInfos.Index).Transform.GetLocation();
+	const FVector Origin = PointIO->GetInPoint(TaskIndex).Transform.GetLocation();
 
 	FCollisionQueryParams CollisionParams;
 	CollisionParams.bTraceComplex = false;
@@ -145,10 +145,10 @@ bool FSweepSphereTask::ExecuteTask()
 		{
 			PCGEX_ASYNC_CHECKPOINT_VOID
 			const FVector Direction = (HitLocation - Origin).GetSafeNormal();
-			PCGEX_OUTPUT_VALUE(Location, TaskInfos.Index, HitLocation)
-			PCGEX_OUTPUT_VALUE(Normal, TaskInfos.Index, Direction*-1) // TODO: expose "precise normal" in which case we line trace to location
-			PCGEX_OUTPUT_VALUE(LookAt, TaskInfos.Index, Direction)
-			PCGEX_OUTPUT_VALUE(Distance, TaskInfos.Index, MinDist)
+			PCGEX_OUTPUT_VALUE(Location, TaskIndex, HitLocation)
+			PCGEX_OUTPUT_VALUE(Normal, TaskIndex, Direction*-1) // TODO: expose "precise normal" in which case we line trace to location
+			PCGEX_OUTPUT_VALUE(LookAt, TaskIndex, Direction)
+			PCGEX_OUTPUT_VALUE(Distance, TaskIndex, MinDist)
 		}
 	};
 
@@ -178,7 +178,7 @@ bool FSweepSphereTask::ExecuteTask()
 	}
 
 	PCGEX_ASYNC_CHECKPOINT
-	PCGEX_OUTPUT_VALUE(Success, TaskInfos.Index, bSuccess)
+	PCGEX_OUTPUT_VALUE(Success, TaskIndex, bSuccess)
 	return bSuccess;
 }
 

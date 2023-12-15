@@ -290,8 +290,8 @@ protected:
 class PCGEXTENDEDTOOLKIT_API FInsertEdgeTask : public FPCGExNonAbandonableTask
 {
 public:
-	FInsertEdgeTask(FPCGExAsyncManager* InManager, const PCGExMT::FTaskInfos& InInfos, PCGExData::FPointIO* InPointIO) :
-		FPCGExNonAbandonableTask(InManager, InInfos, InPointIO)
+	FInsertEdgeTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO) :
+		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO)
 	{
 	}
 
@@ -301,9 +301,9 @@ public:
 class PCGEXTENDEDTOOLKIT_API FWriteIslandTask : public FPCGExNonAbandonableTask
 {
 public:
-	FWriteIslandTask(FPCGExAsyncManager* InManager, const PCGExMT::FTaskInfos& InInfos, PCGExData::FPointIO* InPointIO,
+	FWriteIslandTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
 	                 PCGExData::FPointIO* InIslandData) :
-		FPCGExNonAbandonableTask(InManager, InInfos, InPointIO),
+		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
 		IslandData(InIslandData)
 	{
 	}

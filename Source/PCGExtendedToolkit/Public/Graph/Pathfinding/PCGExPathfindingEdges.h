@@ -73,9 +73,9 @@ class PCGEXTENDEDTOOLKIT_API FSampleIslandPathTask : public FPCGExNonAbandonable
 {
 public:
 	FSampleIslandPathTask(
-		FPCGExAsyncManager* InManager, const PCGExMT::FTaskInfos& InInfos, PCGExData::FPointIO* InPointIO,
+		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
 		int32 InGoalIndex, PCGExData::FPointIO* InPathPoints) :
-		FPCGExNonAbandonableTask(InManager, InInfos, InPointIO),
+		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
 		GoalIndex(InGoalIndex), PathPoints(InPathPoints)
 	{
 	}

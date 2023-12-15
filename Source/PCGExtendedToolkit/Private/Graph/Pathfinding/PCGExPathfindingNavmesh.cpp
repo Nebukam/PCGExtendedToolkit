@@ -154,7 +154,7 @@ bool FPCGExPathfindingNavmeshElement::ExecuteInternal(FPCGContext* InContext) co
 		{
 			auto NavMeshTask = [&](int32 InGoalIndex)
 			{
-				PCGExPathfindingNavmesh::FPath& PathObject = Context->PathBuffer.Emplace_GetRef(
+				PCGExPathfinding::FPath& PathObject = Context->PathBuffer.Emplace_GetRef(
 					PointIndex, Context->CurrentIO->GetInPoint(PointIndex).Transform.GetLocation(),
 					InGoalIndex, Context->GoalsPoints->GetInPoint(InGoalIndex).Transform.GetLocation());
 
@@ -178,10 +178,10 @@ bool FPCGExPathfindingNavmeshElement::ExecuteInternal(FPCGContext* InContext) co
 			}
 		}
 
-		Context->SetAsyncState(PCGExPathfindingNavmesh::State_Pathfinding);
+		Context->SetAsyncState(PCGExPathfinding::State_Pathfinding);
 	}
 
-	if (Context->IsState(PCGExPathfindingNavmesh::State_Pathfinding))
+	if (Context->IsState(PCGExPathfinding::State_Pathfinding))
 	{
 		if (Context->IsAsyncWorkComplete())
 		{

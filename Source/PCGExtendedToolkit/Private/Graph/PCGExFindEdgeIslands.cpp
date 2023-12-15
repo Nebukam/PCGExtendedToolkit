@@ -229,7 +229,7 @@ bool FInsertEdgeTask::ExecuteTask()
 	for (const PCGExGraph::FSocketInfos& SocketInfo : Context->SocketInfos)
 	{
 		if (PCGExGraph::FUnsignedEdge UEdge;
-			SocketInfo.Socket->TryGetEdge(TaskInfos.Index, UEdge, Context->CrawlEdgeTypes))
+			SocketInfo.Socket->TryGetEdge(TaskIndex, UEdge, Context->CrawlEdgeTypes))
 		{
 			check(UEdge.Start != -1 && UEdge.End != -1)
 			Context->Network->InsertEdge(UEdge);
@@ -244,7 +244,7 @@ bool FWriteIslandTask::ExecuteTask()
 	const FPCGExFindEdgeIslandsContext* Context = Manager->GetContext<FPCGExFindEdgeIslandsContext>();
 	PCGEX_ASYNC_CHECKPOINT
 
-	const int32 IslandUID = TaskInfos.Index;
+	const int32 IslandUID = TaskIndex;
 	const int32 IslandSize = *Context->Network->IslandSizes.Find(IslandUID);
 
 	TSet<uint64> Island;

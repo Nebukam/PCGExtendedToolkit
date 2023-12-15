@@ -4,40 +4,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExPathfinding.h"
 #include "PCGExPointsProcessor.h"
 #include "PCGExPathfindingNavmesh.generated.h"
 
 class UPCGExSubPointsBlendOperation;
 class UPCGExGoalPicker;
-
-namespace PCGExPathfindingNavmesh
-{
-	constexpr PCGExMT::AsyncState State_Pathfinding = __COUNTER__;
-	constexpr PCGExMT::AsyncState State_WaitingPathfinding = __COUNTER__;
-
-	struct PCGEXTENDEDTOOLKIT_API FPath
-	{
-		FPath(const int32 InSeedIndex, const FVector& InStart, const int32 InGoalIndex, const FVector& InEnd):
-			SeedIndex(InSeedIndex), Start(InStart), GoalIndex(InGoalIndex), End(InEnd)
-		{
-			Positions.Empty();
-		}
-
-		~FPath()
-		{
-			Positions.Empty();
-		}
-
-		TArray<FVector> Positions;
-		PCGExMath::FPathMetrics Metrics;
-		PCGExData::FPointIO* PathPoints = nullptr;
-
-		int32 SeedIndex = -1;
-		FVector Start;
-		int32 GoalIndex = -1;
-		FVector End;
-	};
-}
 
 UENUM(BlueprintType)
 enum class EPCGExPathfindingNavmeshMode : uint8
@@ -135,7 +107,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingNavmeshContext : public FPCGExPoi
 	bool bAddSeedToPath = true;
 	bool bAddGoalToPath = true;
 
-	TArray<PCGExPathfindingNavmesh::FPath> PathBuffer;
+	TArray<PCGExPathfinding::FPath> PathBuffer;
 
 	FNavAgentProperties NavAgentProperties;
 
@@ -164,14 +136,14 @@ class PCGEXTENDEDTOOLKIT_API FNavmeshPathTask : public FPCGExNonAbandonableTask
 {
 public:
 	FNavmeshPathTask(
-		FPCGExAsyncManager* InManager, const PCGExMT::FTaskInfos& InInfos, PCGExData::FPointIO* InPointIO,
-		PCGExPathfindingNavmesh::FPath* InPath) :
-		FPCGExNonAbandonableTask(InManager, InInfos, InPointIO),
+		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+		PCGExPathfinding::FPath* InPath) :
+		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
 		Path(InPath)
 	{
 	}
 
-	PCGExPathfindingNavmesh::FPath* Path = nullptr;
+	PCGExPathfinding::FPath* Path = nullptr;
 
 	virtual bool ExecuteTask() override;
 };
