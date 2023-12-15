@@ -162,6 +162,21 @@ namespace PCGExGraph
 				else { Pair.Value = -1; }
 			}
 		}
+
+		void ProcessNode(int32 PointIndex, TSet<int32>& VisitedNodes, TArray<PCGExGraph::FSocketInfos>& SocketInfos, const int32 EdgeType)
+		{
+			if (VisitedNodes.Contains(PointIndex)) { return; }
+
+			VisitedNodes.Add(PointIndex);
+
+			for (const PCGExGraph::FSocketInfos& SocketInfo : SocketInfos)
+			{
+				const int32 End = SocketInfo.Socket->GetTargetIndexReader().Values[PointIndex];
+				if (End == -1 || (SocketInfo.Socket->GetEdgeTypeReader().Values[PointIndex] & EdgeType) == 0) { continue; }
+				InsertEdge(PCGExGraph::FUnsignedEdge(PointIndex, End, EPCGExEdgeType::Complete));
+				ProcessNode(End, VisitedNodes, SocketInfos, EdgeType);
+			}
+		}
 	};
 }
 

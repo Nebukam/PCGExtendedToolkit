@@ -104,32 +104,25 @@ bool FPCGExFindEdgeIslandsElement::ExecuteInternal(
 	if (Context->IsState(PCGExGraph::State_ReadyForNextGraph))
 	{
 		if (!Context->AdvanceGraph()) { Context->SetState(PCGExGraph::State_WritingIslands); }
-		else { Context->SetState(PCGExGraph::State_InsertPointsToNetwork); }
+		else { Context->SetState(PCGExGraph::State_BuildNetwork); }
 	}
 
 	// -> Process current points with current graph
 
-	if (Context->IsState(PCGExGraph::State_InsertPointsToNetwork))
+	if (Context->IsState(PCGExGraph::State_BuildNetwork))
 	{
-		auto Initialize = [&](PCGExData::FPointIO& PointIO)
-		{
-			PointIO.CreateInKeys();
-			Context->PrepareCurrentGraphForPoints(PointIO); // Prepare to read PointIO->In
-		};
+		Context->CurrentIO->CreateInKeys();
+		Context->PrepareCurrentGraphForPoints(*Context->CurrentIO);
 
-		auto ProcessPoint = [&](const int32 PointIndex, const PCGExData::FPointIO& PointIO)
-		{
-			TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExFindEdgeIslandsElement::InsertEdgesFromPoint);
-			const int32 EdgeType = static_cast<int32>(Context->CrawlEdgeTypes);
-			for (const PCGExGraph::FSocketInfos& SocketInfo : Context->SocketInfos)
-			{
-				const int32 End = SocketInfo.Socket->GetTargetIndexReader().Values[PointIndex];
-				if (End == -1 || (SocketInfo.Socket->GetEdgeTypeReader().Values[PointIndex] & EdgeType) == 0) { continue; }
-				Context->Network->InsertEdge(PCGExGraph::FUnsignedEdge(PointIndex, End, EPCGExEdgeType::Complete));
-			}
-		};
+		const int32 NumNodes = Context->Network->Nodes.Num();
+		TSet<int32> VisitedNodes;
+		VisitedNodes.Reserve(NumNodes);
 
-		if (Context->ProcessCurrentPoints(Initialize, ProcessPoint)) { Context->SetState(PCGExGraph::State_WritingIslands); }
+		const int32 EdgeType = static_cast<int32>(Context->CrawlEdgeTypes);
+		for (int i = 0; i < NumNodes; i++) { Context->Network->ProcessNode(i, VisitedNodes, Context->SocketInfos, EdgeType); }
+
+		VisitedNodes.Empty();
+		Context->SetState(PCGExGraph::State_WritingIslands);
 	}
 
 	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
