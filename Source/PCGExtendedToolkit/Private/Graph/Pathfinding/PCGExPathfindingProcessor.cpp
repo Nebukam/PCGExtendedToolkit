@@ -76,9 +76,8 @@ PCGEX_INITIALIZE_CONTEXT(PathfindingProcessor)
 bool FPCGExPathfindingProcessorElement::Boot(FPCGContext* InContext) const
 {
 	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
-	const FPCGExPathfindingProcessorContext* Context = static_cast<FPCGExPathfindingProcessorContext*>(InContext);
-	const UPCGExPathfindingProcessorSettings* Settings = InContext->GetInputSettings<UPCGExPathfindingProcessorSettings>();
-	check(Settings);
+	
+	PCGEX_CONTEXT_AND_SETTINGS(PathfindingProcessor)
 
 	if (Settings->GetRequiresSeeds() && !Context->SeedsPoints)
 	{

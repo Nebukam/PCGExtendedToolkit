@@ -1,4 +1,4 @@
-# Edges Pathfinding ![Graph](https://img.shields.io/badge/Graph-37a573)
+# Pathfinding : Edges ![Pathfinding](https://img.shields.io/badge/Pathfinding-37a573)
 
 ## What is it useful for?
 TBD

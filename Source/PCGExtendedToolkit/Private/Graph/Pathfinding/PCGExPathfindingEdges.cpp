@@ -35,9 +35,7 @@ bool FPCGExPathfindingEdgesElement::Boot(FPCGContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElementBase::Boot(InContext)) { return false; }
 
-	const FPCGExPathfindingEdgesContext* Context = static_cast<FPCGExPathfindingEdgesContext*>(InContext);
-	const UPCGExPathfindingEdgesSettings* Settings = InContext->GetInputSettings<UPCGExPathfindingEdgesSettings>();
-	check(Settings);
+	PCGEX_CONTEXT_AND_SETTINGS(PathfindingEdges)
 
 	return true;
 }

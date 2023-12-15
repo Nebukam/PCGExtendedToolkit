@@ -12,26 +12,25 @@
         - [Write Index](PCGExMiscWriteIndex.md)
         - [Points To Bounds](PCGExMiscPointsToBounds.md)
         - ~~[Operations](PCGExMiscOperations.md)~~
-    - Graph
-        - [Create Graph Params](PCGExGraphCreateGraph.md)
-        - [Build Graph](PCGExGraphBuild.md)
-        - [Consolidate Graph](PCGExGraphConsolidate.md)
-        - [Find Edge Islands](PCGExGraphFindEdgeIslands.md)
-        - [Draw Graph](PCGExGraphDraw.md)
-        - [Delete Graph](PCGExGraphDelete.md)
-        - [Edges to Paths](PCGExGraphEdgesToPaths.md)
-    - Pathfinding
-        - [Edges Pathfinding](PCGExPathfindingEdges.md)
-        - [Navmesh Pathfinding](PCGExPathfindingNavmesh.md)
-    - Paths
-        - [Write Tangents](PCGExPathsWriteTangents.md)
-        - [Orient](PCGExPathsSubdivide.md)
-        - [Subdivide](PCGExPathsSubdivide.md)
-    - Data Sampling
-        - [Sample Nearest Point](PCGExSampleNearestPoint.md)
-        - [Sample Nearest Surface](PCGExSampleNearestSurface.md)
-        - [Sample Surface Guided](PCGExSampleSurfaceGuided.md)
-        - [Sample Nearest Polyline](PCGExSampleNearestPolyline.md)
+    - Graph :
+        - [*Graph* : Create Params](PCGExGraphCreateParams.md)
+        - [*Graph* : Build](PCGExGraphBuild.md)
+        - [*Graph* : Consolidate](PCGExGraphConsolidate.md)
+        - [*Graph* : Find Edge Islands](PCGExGraphFindEdgeIslands.md)
+        - [*Graph* : Draw](PCGExGraphDraw.md)
+        - [*Graph* : Delete](PCGExGraphDelete.md)
+    - Pathfinding :
+        - [*Pathfinding* : Edges](PCGExPathfindingEdges.md)
+        - [*Pathfinding* : Navmesh](PCGExPathfindingNavmesh.md)
+    - Paths :
+        - [*Path* : Write Tangents](PCGExPathsWriteTangents.md)
+        - [*Path* : Orient](PCGExPathsSubdivide.md)
+        - [*Path* : Subdivide](PCGExPathsSubdivide.md)
+    - Sample :
+        - [*Sample* : Nearest Point](PCGExSampleNearestPoint.md)
+        - [*Sample* : Nearest Surface](PCGExSampleNearestSurface.md)
+        - [*Sample* : Surface Guided](PCGExSampleSurfaceGuided.md)
+        - [*Sample* : Nearest Polyline](PCGExSampleNearestPolyline.md)
         - ~~[Project](PCGExProject.md)~~
 1. Data Types
     - [Graph Data](PCGExGraphData.md)

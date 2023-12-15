@@ -1,4 +1,4 @@
-# Build Graph ![Graph](https://img.shields.io/badge/Graph-37a573)
+# Graph : Build ![Graph](https://img.shields.io/badge/Graph-37a573)
 
 ## What is it useful for?
 This node builds a graph between input points based on specific [Graph Params](PCGExGraphParams.md).  

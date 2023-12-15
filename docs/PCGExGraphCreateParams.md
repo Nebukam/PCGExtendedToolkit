@@ -1,4 +1,4 @@
-# Create Graph Params ![Graph](https://img.shields.io/badge/Graph-37a573)
+# Graph : Params ![Graph](https://img.shields.io/badge/Graph-37a573)
 
 ## What is it useful for?
 This node contains a single "relational model". It defines a list of relation *slots*, that each represent a direction in which a connection may exist. 
