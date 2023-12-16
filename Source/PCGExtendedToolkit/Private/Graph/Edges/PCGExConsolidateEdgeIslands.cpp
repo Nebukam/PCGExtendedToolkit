@@ -1,38 +1,38 @@
 ﻿// Copyright Timothé Lapetite 2023
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Graph/Edges/PCGExConnectEdgeIslands.h"
+#include "..\..\..\Public\Graph\Edges\PCGExConsolidateEdgeIslands.h"
 
-#define LOCTEXT_NAMESPACE "PCGExConnectEdgeIslands"
-#define PCGEX_NAMESPACE ConnectEdgeIslands
+#define LOCTEXT_NAMESPACE "PCGExConsolidateEdgeIslands"
+#define PCGEX_NAMESPACE ConsolidateEdgeIslands
 
-UPCGExConnectEdgeIslandsSettings::UPCGExConnectEdgeIslandsSettings(
+UPCGExConsolidateEdgeIslandsSettings::UPCGExConsolidateEdgeIslandsSettings(
 	const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 }
 
-PCGExData::EInit UPCGExConnectEdgeIslandsSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
+PCGExData::EInit UPCGExConsolidateEdgeIslandsSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
-FPCGElementPtr UPCGExConnectEdgeIslandsSettings::CreateElement() const { return MakeShared<FPCGExConnectEdgeIslandsElement>(); }
+FPCGElementPtr UPCGExConsolidateEdgeIslandsSettings::CreateElement() const { return MakeShared<FPCGExConsolidateEdgeIslandsElement>(); }
 
-PCGEX_INITIALIZE_CONTEXT(ConnectEdgeIslands)
+PCGEX_INITIALIZE_CONTEXT(ConsolidateEdgeIslands)
 
-bool FPCGExConnectEdgeIslandsElement::Boot(FPCGContext* InContext) const
+bool FPCGExConsolidateEdgeIslandsElement::Boot(FPCGContext* InContext) const
 {
 	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
 
-	PCGEX_CONTEXT_AND_SETTINGS(ConnectEdgeIslands)
+	PCGEX_CONTEXT_AND_SETTINGS(ConsolidateEdgeIslands)
 
 	return true;
 }
 
-bool FPCGExConnectEdgeIslandsElement::ExecuteInternal(
+bool FPCGExConsolidateEdgeIslandsElement::ExecuteInternal(
 	FPCGContext* InContext) const
 {
-	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExConnectEdgeIslandsElement::Execute);
+	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExConsolidateEdgeIslandsElement::Execute);
 
-	PCGEX_CONTEXT(ConnectEdgeIslands)
+	PCGEX_CONTEXT(ConsolidateEdgeIslands)
 
 	if (Context->IsSetup())
 	{

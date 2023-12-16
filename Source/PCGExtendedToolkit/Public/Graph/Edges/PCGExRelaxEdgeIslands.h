@@ -5,19 +5,19 @@
 
 #include "CoreMinimal.h"
 #include "Graph/PCGExEdgesProcessor.h"
-#include "PCGExConnectEdgeIslands.generated.h"
+#include "PCGExRelaxEdgeIslands.generated.h"
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Edges")
-class PCGEXTENDEDTOOLKIT_API UPCGExConnectEdgeIslandsSettings : public UPCGExEdgesProcessorSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExRelaxEdgeIslandsSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()
 
 public:
-	UPCGExConnectEdgeIslandsSettings(const FObjectInitializer& ObjectInitializer);
+	UPCGExRelaxEdgeIslandsSettings(const FObjectInitializer& ObjectInitializer);
 
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(ConnectEdgeIslands, "Connect Edge Islands", "Connects isolated edge islands by their closest vertices.");
+	PCGEX_NODE_INFOS(RelaxEdgeIslands, "Edges : Relax", "Relax point positions using edges connecting them.");
 #endif
 
 	virtual PCGExData::EInit GetEdgeOutputInitMode() const override;
@@ -27,15 +27,15 @@ protected:
 	//~End UPCGSettings interface
 
 private:
-	friend class FPCGExConnectEdgeIslandsElement;
+	friend class FPCGExRelaxEdgeIslandsElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExConnectEdgeIslandsContext : public FPCGExEdgesProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExRelaxEdgeIslandsContext : public FPCGExEdgesProcessorContext
 {
-	friend class FPCGExConnectEdgeIslandsElement;
+	friend class FPCGExRelaxEdgeIslandsElement;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExConnectEdgeIslandsElement : public FPCGExEdgesProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExRelaxEdgeIslandsElement : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

@@ -210,6 +210,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExEdgeType"))
 	uint8 CrawlEdgeTypes = static_cast<uint8>(EPCGExEdgeType::Complete);
 
+	/** Removes roaming points from the output, and keeps only points that are part of an island. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	bool bPruneIsolatedPoints = true;
+
 	/** Output one point data per island, rather than one single data set containing possibly disconnected islands. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bOutputIndividualIslands = true;
@@ -254,11 +258,14 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFindEdgeIslandsContext : public FPCGExGraphP
 
 	EPCGExEdgeType CrawlEdgeTypes;
 	bool bOutputIndividualIslands;
+	bool bPruneIsolatedPoints;
 	int32 MinIslandSize;
 	int32 MaxIslandSize;
 
 	int32 IslandUIndex = 0;
 
+	TMap<int32, int32> IndexRemap;
+	
 	FName IslandIDAttributeName;
 	FName IslandSizeAttributeName;
 	FName PointUIDAttributeName;

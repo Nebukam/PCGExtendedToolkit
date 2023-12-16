@@ -2,7 +2,7 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 
-#include "Graph/Promotions/PCGExEdgePromoteToPoint.h"
+#include "Graph/Edges/Promoting/PCGExEdgePromoteToPoint.h"
 
 #include "PCGExPointsProcessor.h"
 

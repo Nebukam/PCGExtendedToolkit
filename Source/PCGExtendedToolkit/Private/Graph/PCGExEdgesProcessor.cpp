@@ -41,6 +41,8 @@ TArray<FPCGPinProperties> UPCGExEdgesProcessorSettings::OutputPinProperties() co
 	return PinProperties;
 }
 
+#pragma endregion
+
 FPCGExEdgesProcessorContext::~FPCGExEdgesProcessorContext()
 {
 	PCGEX_TERMINATE_ASYNC
@@ -51,7 +53,6 @@ FPCGExEdgesProcessorContext::~FPCGExEdgesProcessorContext()
 	Meshes.Empty();
 }
 
-#pragma endregion
 
 bool FPCGExEdgesProcessorContext::AdvanceAndBindPointsIO()
 {
@@ -66,7 +67,7 @@ bool FPCGExEdgesProcessorContext::AdvanceAndBindPointsIO()
 		{
 			if (BoundEdges->IsMatching(InEdgesData)) { BoundEdges->Add(InEdgesData); }
 		});
-
+	
 	return true;
 }
 

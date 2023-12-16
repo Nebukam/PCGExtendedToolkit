@@ -11,7 +11,7 @@
 
 int32 UPCGExFindEdgeIslandsSettings::GetPreferredChunkSize() const { return 32; }
 
-PCGExData::EInit UPCGExFindEdgeIslandsSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
+PCGExData::EInit UPCGExFindEdgeIslandsSettings::GetMainOutputInitMode() const { return bPruneIsolatedPoints ? PCGExData::EInit::NewOutput : PCGExData::EInit::DuplicateInput; }
 
 FPCGExFindEdgeIslandsContext::~FPCGExFindEdgeIslandsContext()
 {
@@ -20,6 +20,8 @@ FPCGExFindEdgeIslandsContext::~FPCGExFindEdgeIslandsContext()
 	PCGEX_DELETE(IslandsIO)
 	PCGEX_DELETE(Network)
 	PCGEX_DELETE(Markings)
+
+	IndexRemap.Empty();
 }
 
 TArray<FPCGPinProperties> UPCGExFindEdgeIslandsSettings::OutputPinProperties() const
@@ -60,6 +62,7 @@ bool FPCGExFindEdgeIslandsElement::Boot(FPCGContext* InContext) const
 	Context->CrawlEdgeTypes = static_cast<EPCGExEdgeType>(Settings->CrawlEdgeTypes);
 
 	PCGEX_FWD(bOutputIndividualIslands)
+	PCGEX_FWD(bPruneIsolatedPoints)
 
 	Context->MinIslandSize = Settings->bRemoveSmallIslands ? FMath::Max(1, Settings->MinIslandSize) : 1;
 	Context->MaxIslandSize = Settings->bRemoveBigIslands ? FMath::Max(1, Settings->MaxIslandSize) : TNumericLimits<int32>::Max();
@@ -125,7 +128,7 @@ bool FPCGExFindEdgeIslandsElement::ExecuteInternal(
 		for (int i = 0; i < NumNodes; i++) { Context->Network->ProcessNode(i, VisitedNodes, Context->SocketInfos, EdgeType); }
 
 		VisitedNodes.Empty();
-		Context->SetState(PCGExGraph::State_WritingIslands);
+		Context->SetState(PCGExGraph::State_ReadyForNextGraph);
 	}
 
 	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
@@ -140,6 +143,25 @@ bool FPCGExFindEdgeIslandsElement::ExecuteInternal(
 		Context->IslandsIO->Flush();
 		Context->Network->PrepareIslands(Context->MinIslandSize, Context->MaxIslandSize);
 		Context->Markings->Mark = Context->CurrentIO->GetIn()->GetUniqueID();
+
+		if (Context->bPruneIsolatedPoints)
+		{
+			UPCGPointData* OutData = Context->CurrentIO->GetOut();
+			TArray<FPCGPoint>& MutablePoints = OutData->GetMutablePoints();
+			const int32 NumMaxNodes = Context->Network->Nodes.Num();
+			MutablePoints.Reserve(NumMaxNodes);
+			Context->IndexRemap.Empty();
+			Context->IndexRemap.Reserve(NumMaxNodes);
+			int32 Index = 0;
+			for (PCGExGraph::FNode Node : Context->Network->Nodes)
+			{
+				if (Node.Island == -1 || Node.Edges.IsEmpty()) { continue; }
+				if (*Context->Network->IslandSizes.Find(Node.Island) == -1) { continue; }
+
+				Context->IndexRemap.Add(Node.Index, Index++);
+				MutablePoints.Add(Context->CurrentIO->GetInPoint(Node.Index));
+			}
+		}
 
 		if (Context->bOutputIndividualIslands)
 		{
@@ -180,14 +202,24 @@ bool FPCGExFindEdgeIslandsElement::ExecuteInternal(
 			EdgeEnd->BindAndGet(IslandData);
 			IslandID->BindAndGet(IslandData);
 
+
 			int32 PointIndex = 0;
 			for (const PCGExGraph::FUnsignedEdge& Edge : Context->Network->Edges)
 			{
 				const int32 IslandSize = *Context->Network->IslandSizes.Find(Context->Network->Nodes[Edge.Start].Island);
 				if (IslandSize == -1) { continue; }
 
-				EdgeStart->Values[PointIndex] = Edge.Start;
-				EdgeEnd->Values[PointIndex] = Edge.End;
+				if (Context->bPruneIsolatedPoints)
+				{
+					EdgeStart->Values[PointIndex] = *Context->IndexRemap.Find(Edge.Start);
+					EdgeEnd->Values[PointIndex] = *Context->IndexRemap.Find(Edge.End);
+				}
+				else
+				{
+					EdgeStart->Values[PointIndex] = Edge.Start;
+					EdgeEnd->Values[PointIndex] = Edge.End;
+				}
+
 				IslandID->Values[PointIndex] = Context->Network->Nodes[Edge.Start].Island;
 				Context->CenterEdgePoint(MutablePoints[PointIndex++], Edge);
 			}
@@ -273,8 +305,18 @@ bool FWriteIslandTask::ExecuteTask()
 	for (const uint64 EdgeHash : Island)
 	{
 		PCGExGraph::FUnsignedEdge Edge = PCGExGraph::FUnsignedEdge(EdgeHash);
-		EdgeStart->Values[PointIndex] = Edge.Start;
-		EdgeEnd->Values[PointIndex] = Edge.End;
+
+		if (Context->bPruneIsolatedPoints)
+		{
+			EdgeStart->Values[PointIndex] = *Context->IndexRemap.Find(Edge.Start);
+			EdgeEnd->Values[PointIndex] = *Context->IndexRemap.Find(Edge.End);
+		}
+		else
+		{
+			EdgeStart->Values[PointIndex] = Edge.Start;
+			EdgeEnd->Values[PointIndex] = Edge.End;
+		}
+
 		Context->CenterEdgePoint(MutablePoints[PointIndex++], PCGExGraph::FUnsignedEdge(Edge));
 	}
 

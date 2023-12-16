@@ -6,32 +6,59 @@
 #include "CoreMinimal.h"
 
 #include "PCGExPointsProcessor.h"
+#include "Data/PCGExAttributeHelpers.h"
+#include "Data/Blending/PCGExPropertiesBlender.h"
+#include "Data/Blending/PCGExMetadataBlender.h"
+
 #include "PCGExPointsToBounds.generated.h"
 
-/**
- * Calculates the distance between two points (inherently a n*n operation)
- */
+#define PCGEX_FUSE_FOREACH_POINTPROPERTYNAME(MACRO)\
+MACRO(Density) \
+MACRO(Extents) \
+MACRO(Color) \
+MACRO(Position) \
+MACRO(Rotation)\
+MACRO(Scale) \
+MACRO(Steepness) \
+MACRO(Seed)
+
+#define PCGEX_FUSE_UPROPERTY(_NAME)\
+UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Overrides", meta = (InlineEditConditionToggle))\
+bool bOverride##_NAME = false;\
+UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Overrides", meta = (EditCondition="bOverride" #_NAME))\
+EPCGExDataBlendingType _NAME##Blending = EPCGExDataBlendingType::Skip;
+
+#define PCGEX_FUSE_CONTEXT(_NAME)\
+EPCGExDataBlendingType _NAME##Blending;
+
+
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
 class PCGEXTENDEDTOOLKIT_API UPCGExPointsToBoundsSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
 public:
+	UPCGExPointsToBoundsSettings(const FObjectInitializer& ObjectInitializer);
+
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(PointsToBounds, "Points to Bounds", "Compute the bounds of input points");
+	PCGEX_NODE_INFOS(PointsToBounds, "Fuse to Bounds", "Merge points group to a single point representing their bounds.");
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
-
-	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings interface
 
+	virtual PCGExData::EInit GetMainOutputInitMode() const override;
+
 public:
-	/** The name of the attribute to write its index to.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	FName OutputAttributeName = "CurrentIndex";
+	/** Defines how fused point properties and attributes are merged together. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	FPCGExBlendingSettings BlendingSettings;
+
+private:
+	friend class FPCGExPointsToBoundsElement;
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExPointsToBoundsContext : public FPCGExPointsProcessorContext
@@ -39,11 +66,19 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsToBoundsContext : public FPCGExPointsP
 	friend class FPCGExPointsToBoundsElement;
 
 	virtual ~FPCGExPointsToBoundsContext() override;
+
+	bool bPreserveOrder;
+
+	TMap<FName, EPCGExDataBlendingType> AttributesBlendingOverrides;
+	PCGExDataBlending::FMetadataBlender* MetadataBlender;
+	PCGExDataBlending::FPropertiesBlender* PropertyBlender;
+
+	TArray<FPCGPoint>* OutPoints;
+
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExPointsToBoundsElement : public FPCGExPointsProcessorElementBase
 {
-public:
 	virtual FPCGContext* Initialize(
 		const FPCGDataCollection& InputData,
 		TWeakObjectPtr<UPCGComponent> SourceComponent,
@@ -53,3 +88,7 @@ protected:
 	virtual bool Boot(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
+
+#undef PCGEX_FUSE_FOREACH_POINTPROPERTYNAME
+#undef PCGEX_FUSE_UPROPERTY
+#undef PCGEX_FUSE_CONTEXT

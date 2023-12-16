@@ -1,10 +1,10 @@
 ﻿// Copyright Timothé Lapetite 2023
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Graph/PCGExPromoteEdges.h"
+#include "Graph/Edges/PCGExPromoteEdges.h"
 
-#include "Graph/Promotions/PCGExEdgePromoteToPath.h"
-#include "Graph/Promotions/PCGExEdgePromoteToPoint.h"
+#include "Graph/Edges/Promoting/PCGExEdgePromoteToPath.h"
+#include "Graph/Edges/Promoting/PCGExEdgePromoteToPoint.h"
 
 #define LOCTEXT_NAMESPACE "PCGExEdgesToPaths"
 #define PCGEX_NAMESPACE PromoteEdges

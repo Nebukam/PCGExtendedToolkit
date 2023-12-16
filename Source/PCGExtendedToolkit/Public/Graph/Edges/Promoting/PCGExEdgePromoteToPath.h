@@ -4,14 +4,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExEdgePromotion.h"
+#include "PCGExEdgePromotingOperation.h"
 #include "PCGExEdgePromoteToPath.generated.h"
 
 /**
  * 
  */
 UCLASS(Blueprintable, EditInlineNew, DisplayName = "Promote To Paths")
-class PCGEXTENDEDTOOLKIT_API UPCGExEdgePromoteToPath : public UPCGExEdgePromotion
+class PCGEXTENDEDTOOLKIT_API UPCGExEdgePromoteToPath : public UPCGExEdgePromotingOperation
 {
 	GENERATED_BODY()
 

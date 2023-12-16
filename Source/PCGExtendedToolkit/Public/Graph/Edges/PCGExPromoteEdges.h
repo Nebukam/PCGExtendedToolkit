@@ -4,8 +4,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExGraphProcessor.h"
-#include "Promotions/PCGExEdgePromotion.h"
+#include "Graph/PCGExGraphProcessor.h"
+#include "Graph/Edges/Promoting/PCGExEdgePromotingOperation.h"
 #include "PCGExPromoteEdges.generated.h"
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
@@ -39,7 +39,7 @@ public:
 	uint8 EdgeType = static_cast<uint8>(EPCGExEdgeType::Complete);
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced, meta = (NoResetToDefault))
-	TObjectPtr<UPCGExEdgePromotion> Promotion;
+	TObjectPtr<UPCGExEdgePromotingOperation> Promotion;
 
 private:
 	friend class FPCGExPromoteEdgesElement;
@@ -57,7 +57,7 @@ public:
 
 	mutable FRWLock EdgeLock;
 
-	UPCGExEdgePromotion* Promotion;
+	UPCGExEdgePromotingOperation* Promotion;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExPromoteEdgesElement : public FPCGExGraphProcessorElement

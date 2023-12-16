@@ -4,7 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExEdgesProcessor.h"
+#include "Graph/PCGExEdgesProcessor.h"
 #include "PCGExWriteEdgeExtras.generated.h"
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Edges")
@@ -17,7 +17,7 @@ public:
 
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(WriteEdgeExtras, "Write Edge Extras", "Extract & write extra edge informations to the point representing the edge.");
+	PCGEX_NODE_INFOS(WriteEdgeExtras, "Edges : Write Extras", "Extract & write extra edge informations to the point representing the edge.");
 #endif
 
 	virtual PCGExData::EInit GetEdgeOutputInitMode() const override;

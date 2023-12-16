@@ -22,6 +22,12 @@
     - Pathfinding :
         - [*Pathfinding* : Edges](PCGExPathfindingEdges.md)
         - [*Pathfinding* : Navmesh](PCGExPathfindingNavmesh.md)
+    - Edges :
+        - [*Edges* : Promote](PCGExEdgesPromote.md)
+        - [*Edges* : Relax](PCGExEdgesRelaxIslands.md)
+        - [*Edges* : Consolidate Islands](PCGExEdgesConsolidateIslands.md)
+        - [*Edges* : Pruning](PCGExEdgesRelaxIslands.md)
+        - [*Edges* : Write Extras](PCGExEdgesExtras.md)
     - Paths :
         - [*Path* : Write Tangents](PCGExPathsWriteTangents.md)
         - [*Path* : Orient](PCGExPathsSubdivide.md)

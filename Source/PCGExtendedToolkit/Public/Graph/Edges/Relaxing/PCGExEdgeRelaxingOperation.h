@@ -6,13 +6,13 @@
 #include "CoreMinimal.h"
 #include "PCGExOperation.h"
 #include "Graph/PCGExGraph.h"
-#include "PCGExEdgePromotion.generated.h"
+#include "PCGExEdgeRelaxingOperation.generated.h"
 
 /**
  * 
  */
 UCLASS(Abstract, Blueprintable, EditInlineNew)
-class PCGEXTENDEDTOOLKIT_API UPCGExEdgePromotion : public UPCGExOperation
+class PCGEXTENDEDTOOLKIT_API UPCGExEdgeRelaxingOperation : public UPCGExOperation
 {
 	GENERATED_BODY()
 

@@ -4,14 +4,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExEdgePromotion.h"
+#include "PCGExEdgePromotingOperation.h"
 #include "PCGExEdgePromoteToPoint.generated.h"
 
 /**
  * 
  */
 UCLASS(Blueprintable, EditInlineNew, DisplayName = "Promote To Points")
-class PCGEXTENDEDTOOLKIT_API UPCGExEdgePromoteToPoint : public UPCGExEdgePromotion
+class PCGEXTENDEDTOOLKIT_API UPCGExEdgePromoteToPoint : public UPCGExEdgePromotingOperation
 {
 	GENERATED_BODY()
 

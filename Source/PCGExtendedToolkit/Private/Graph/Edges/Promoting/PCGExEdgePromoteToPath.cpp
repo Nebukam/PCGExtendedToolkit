@@ -2,7 +2,7 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 
-#include "Graph/Promotions/PCGExEdgePromoteToPath.h"
+#include "Graph/Edges/Promoting/PCGExEdgePromoteToPath.h"
 
 bool UPCGExEdgePromoteToPath::GeneratesNewPointData() { return true; }
 
