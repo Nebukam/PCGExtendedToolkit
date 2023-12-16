@@ -72,7 +72,7 @@ bool FPCGExGraphProcessorContext::AdvanceGraph(bool bResetPointsIndex)
 bool FPCGExGraphProcessorContext::AdvancePointsIOAndResetGraph()
 {
 	CurrentParamsIndex = -1;
-	return FPCGExPointsProcessorContext::AdvancePointsIO();
+	return AdvancePointsIO();
 }
 
 void FPCGExGraphProcessorContext::Reset()

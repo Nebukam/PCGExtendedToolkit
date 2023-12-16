@@ -77,11 +77,6 @@ FPCGExPathfindingNavmeshContext::~FPCGExPathfindingNavmeshContext()
 
 FPCGElementPtr UPCGExPathfindingNavmeshSettings::CreateElement() const { return MakeShared<FPCGExPathfindingNavmeshElement>(); }
 
-void FPCGExPathfindingNavmeshContext::PositionPush(int32 PathIndex, FVector Position)
-{
-	PathBuffer[PathIndex].Positions.Add(Position);
-}
-
 PCGEX_INITIALIZE_CONTEXT(PathfindingNavmesh)
 
 bool FPCGExPathfindingNavmeshElement::Boot(FPCGContext* InContext) const
@@ -187,7 +182,7 @@ bool FPCGExPathfindingNavmeshElement::ExecuteInternal(FPCGContext* InContext) co
 			PCGExPathfinding::FPath& Path = Context->PathBuffer[PathIndex];
 
 			UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(Context->World);
-			
+
 			if (!NavSys) { return; }
 
 			const FPCGPoint* Seed = Context->CurrentIO->TryGetInPoint(Path.SeedIndex);
@@ -242,12 +237,12 @@ bool FPCGExPathfindingNavmeshElement::ExecuteInternal(FPCGContext* InContext) co
 
 			const int32 NumPositions = PathLocations.Num();
 			const int32 LastPosition = NumPositions - 1;
-			
+
 			PCGExData::FPointIO& PathPoints = Context->OutputPaths->Emplace_GetRef(*Context->CurrentIO, PCGExData::EInit::NewOutput);
 			UPCGPointData* OutData = PathPoints.GetOut();
 			TArray<FPCGPoint>& MutablePoints = OutData->GetMutablePoints();
 			MutablePoints.SetNumUninitialized(NumPositions);
-						
+
 			FVector Location;
 			for (int i = 0; i < LastPosition; i++)
 			{

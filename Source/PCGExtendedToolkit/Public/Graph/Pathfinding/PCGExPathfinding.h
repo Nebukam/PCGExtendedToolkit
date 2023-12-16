@@ -43,17 +43,11 @@ namespace PCGExPathfinding
 		FPath(const int32 InSeedIndex, const FVector& InStart, const int32 InGoalIndex, const FVector& InEnd):
 			SeedIndex(InSeedIndex), StartPosition(InStart), GoalIndex(InGoalIndex), EndPosition(InEnd)
 		{
-			Positions.Empty();
 		}
-
-		TArray<FVector> Positions;
-		PCGExData::FPointIO* PathPoints = nullptr;
 
 		int32 SeedIndex = -1;
 		FVector StartPosition;
 		int32 GoalIndex = -1;
 		FVector EndPosition;
-
-		
 	};
 }

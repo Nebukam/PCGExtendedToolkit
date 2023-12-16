@@ -58,7 +58,7 @@ bool FPCGExEdgesProcessorContext::AdvanceAndBindPointsIO()
 	PCGEX_DELETE(BoundEdges)
 	CurrentEdgesIndex = -1;
 
-	if (!FPCGExPointsProcessorContext::AdvancePointsIO()) { return false; }
+	if (!AdvancePointsIO()) { return false; }
 
 	BoundEdges = new PCGExData::FKPointIOMarkedBindings<int32>(CurrentIO, PCGExGraph::PUIDAttributeName);
 	Edges->ForEach(

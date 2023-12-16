@@ -116,8 +116,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingNavmeshContext : public FPCGExPoi
 	bool bRequireNavigableEndLocation = true;
 	EPCGExPathfindingNavmeshMode PathfindingMode;
 	double FuseDistance = 10;
-
-	void PositionPush(int32 PathIndex, FVector Position);
 	
 };
 

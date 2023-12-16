@@ -53,7 +53,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgesProcessorContext : public FPCGExPointsP
 {
 	friend class UPCGExEdgesProcessorSettings;
 
-	~FPCGExEdgesProcessorContext();
+	virtual ~FPCGExEdgesProcessorContext() override;
 
 	PCGExData::FPointIOGroup* Edges = nullptr;
 	PCGExData::FKPointIOMarkedBindings<int32>* BoundEdges = nullptr;

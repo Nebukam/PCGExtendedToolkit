@@ -20,7 +20,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExOrientSettings : public UPCGExPathProcessorSe
 
 public:
 	UPCGExOrientSettings(const FObjectInitializer& ObjectInitializer);
-	
+
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(Orient, "Path : Orient", "Orient paths points");
