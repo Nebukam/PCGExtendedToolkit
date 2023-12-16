@@ -18,12 +18,11 @@ UPCGExBuildGraphSettings::UPCGExBuildGraphSettings(
 	const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	GraphSolver = EnsureOperation<UPCGExGraphSolver>(GraphSolver);
+	PCGEX_DEFAULT_OPERATION(GraphSolver, UPCGExGraphSolver)
 }
 
 void UPCGExBuildGraphSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
-	GraphSolver = EnsureOperation<UPCGExGraphSolver>(GraphSolver);
 	if (GraphSolver) { GraphSolver->UpdateUserFacingInfos(); }
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }

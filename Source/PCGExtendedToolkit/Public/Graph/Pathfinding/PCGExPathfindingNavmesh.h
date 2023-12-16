@@ -27,9 +27,9 @@ class PCGEXTENDEDTOOLKIT_API UPCGExPathfindingNavmeshSettings : public UPCGExPoi
 {
 	GENERATED_BODY()
 
+	public:
 	UPCGExPathfindingNavmeshSettings(const FObjectInitializer& ObjectInitializer);
 
-public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(PathfindingNavmesh, "Pathfinding : Navmesh", "Extract paths from navmesh.");
@@ -53,12 +53,12 @@ public:
 
 public:
 	/** Ignores candidates weighting pass and always favors the closest one.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced)
-	UPCGExGoalPicker* GoalPicker;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced, meta = (NoResetToDefault))
+	TObjectPtr<UPCGExGoalPicker> GoalPicker;
 
 	/** Controls how path points blend from seed to goal. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced)
-	UPCGExSubPointsBlendOperation* Blending;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced, meta = (NoResetToDefault))
+	TObjectPtr<UPCGExSubPointsBlendOperation> Blending;
 
 	/** Add seed point at the beginning of the path */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
@@ -116,6 +116,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingNavmeshContext : public FPCGExPoi
 	bool bRequireNavigableEndLocation = true;
 	EPCGExPathfindingNavmeshMode PathfindingMode;
 	double FuseDistance = 10;
+
+	void PositionPush(int32 PathIndex, FVector Position);
+	
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExPathfindingNavmeshElement : public FPCGExPointsProcessorElementBase
@@ -129,21 +132,4 @@ public:
 protected:
 	virtual bool Boot(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
-};
-
-// Define the background task class
-class PCGEXTENDEDTOOLKIT_API FNavmeshPathTask : public FPCGExNonAbandonableTask
-{
-public:
-	FNavmeshPathTask(
-		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-		PCGExPathfinding::FPath* InPath) :
-		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
-		Path(InPath)
-	{
-	}
-
-	PCGExPathfinding::FPath* Path = nullptr;
-
-	virtual bool ExecuteTask() override;
 };

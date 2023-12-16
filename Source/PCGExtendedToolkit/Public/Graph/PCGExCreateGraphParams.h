@@ -57,9 +57,9 @@ class PCGEXTENDEDTOOLKIT_API UPCGExCreateGraphParamsSettings : public UPCGSettin
 {
 	GENERATED_BODY()
 
+public:
 	UPCGExCreateGraphParamsSettings(const FObjectInitializer& ObjectInitializer);
 
-public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	bool bCacheResult = false;

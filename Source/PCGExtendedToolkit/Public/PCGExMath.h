@@ -61,7 +61,7 @@ namespace PCGExMath
 		{
 		}
 
-		FPathMetrics(const FVector& InStart)
+		explicit FPathMetrics(const FVector& InStart)
 		{
 			Add(InStart);
 		}
@@ -74,8 +74,8 @@ namespace PCGExMath
 		{
 		}
 
-		FVector Start = FVector::ZeroVector;
-		FVector Last = FVector::ZeroVector;
+		FVector Start;
+		FVector Last;
 		double Length = -1;
 		int32 Count = 0;
 

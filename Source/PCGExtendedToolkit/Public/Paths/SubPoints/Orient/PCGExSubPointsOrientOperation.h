@@ -12,7 +12,7 @@
 /**
  * 
  */
-UCLASS(Abstract, Blueprintable, EditInlineNew)
+UCLASS(Abstract, Blueprintable)
 class PCGEXTENDEDTOOLKIT_API UPCGExSubPointsOrientOperation : public UPCGExSubPointsOperation
 {
 	GENERATED_BODY()

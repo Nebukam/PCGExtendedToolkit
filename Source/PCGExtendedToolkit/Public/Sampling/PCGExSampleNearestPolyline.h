@@ -92,9 +92,9 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSampleNearestPolylineSettings : public UPCGEx
 {
 	GENERATED_BODY()
 
+public:
 	UPCGExSampleNearestPolylineSettings(const FObjectInitializer& ObjectInitializer);
 
-public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(SampleNearestPolyline, "Sample : Nearest Polyline", "Find the closest transform on nearest polylines.");

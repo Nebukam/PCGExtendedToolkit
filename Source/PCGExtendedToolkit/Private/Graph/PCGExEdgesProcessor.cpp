@@ -53,7 +53,7 @@ FPCGExEdgesProcessorContext::~FPCGExEdgesProcessorContext()
 
 #pragma endregion
 
-bool FPCGExEdgesProcessorContext::AdvancePointsIO()
+bool FPCGExEdgesProcessorContext::AdvanceAndBindPointsIO()
 {
 	PCGEX_DELETE(BoundEdges)
 	CurrentEdgesIndex = -1;
@@ -134,7 +134,7 @@ bool FPCGExWriteEdgeExtrasElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
-		if (!Context->AdvancePointsIO()) { Context->Done(); }
+		if (!Context->AdvanceAndBindPointsIO()) { Context->Done(); }
 		else
 		{
 			if (!Context->BoundEdges->IsValid())

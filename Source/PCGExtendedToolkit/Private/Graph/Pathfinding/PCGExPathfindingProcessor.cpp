@@ -14,6 +14,14 @@
 
 #pragma region UPCGSettings interface
 
+UPCGExPathfindingProcessorSettings::UPCGExPathfindingProcessorSettings(
+	const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
+{
+	PCGEX_DEFAULT_OPERATION(GoalPicker, UPCGExGoalPickerRandom)
+	PCGEX_DEFAULT_OPERATION(Blending, UPCGExSubPointsBlendInterpolate)
+}
+
 TArray<FPCGPinProperties> UPCGExPathfindingProcessorSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
@@ -76,7 +84,7 @@ PCGEX_INITIALIZE_CONTEXT(PathfindingProcessor)
 bool FPCGExPathfindingProcessorElement::Boot(FPCGContext* InContext) const
 {
 	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
-	
+
 	PCGEX_CONTEXT_AND_SETTINGS(PathfindingProcessor)
 
 	if (Settings->GetRequiresSeeds() && !Context->SeedsPoints)
@@ -90,6 +98,9 @@ bool FPCGExPathfindingProcessorElement::Boot(FPCGContext* InContext) const
 		PCGE_LOG(Error, GraphAndLog, FTEXT("Missing Input Goals."));
 		return false;
 	}
+
+	PCGEX_BIND_OPERATION(GoalPicker, UPCGExGoalPickerRandom)
+	PCGEX_BIND_OPERATION(Blending, UPCGExSubPointsBlendInterpolate)
 
 	return true;
 }
@@ -126,9 +137,6 @@ FPCGContext* FPCGExPathfindingProcessorElement::InitializeContext(
 	}
 
 	Context->OutputPaths = new PCGExData::FPointIOGroup();
-
-	Context->GoalPicker = Settings->EnsureOperation<UPCGExGoalPickerRandom>(Settings->GoalPicker, Context);
-	Context->Blending = Settings->EnsureOperation<UPCGExSubPointsBlendInterpolate>(Settings->Blending, Context);
 
 	Context->bAddSeedToPath = Settings->bAddSeedToPath;
 	Context->bAddGoalToPath = Settings->bAddGoalToPath;

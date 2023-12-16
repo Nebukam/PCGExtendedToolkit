@@ -34,7 +34,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSubdivideSettings : public UPCGExPathProcesso
 
 public:
 	UPCGExSubdivideSettings(const FObjectInitializer& ObjectInitializer);
-
+	
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(Subdivide, "Path : Subdivide", "Subdivide paths segments.");
@@ -57,8 +57,8 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="SubdivideMethod==EPCGExSubdivideMode::Count", EditConditionHides))
 	int32 Count = 10;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable))
-	UPCGExSubPointsBlendOperation* Blending;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable, NoResetToDefault))
+	TObjectPtr<UPCGExSubPointsBlendOperation> Blending;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bFlagSubPoints = false;

@@ -85,9 +85,9 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSampleNearestPointSettings : public UPCGExPoi
 {
 	GENERATED_BODY()
 
+public:
 	UPCGExSampleNearestPointSettings(const FObjectInitializer& ObjectInitializer);
 
-public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(SampleNearestPoint, "Sample : Nearest Point", "Find the closest point on the nearest collidable surface.");

@@ -231,10 +231,10 @@ public:
 	}
 
 	template <typename T, typename... Args>
-	void Start(int32 Index, PCGExData::FPointIO* InPointsIO, Args... args)
+	void Start(int32 TaskIndex, PCGExData::FPointIO* InPointsIO, Args... args)
 	{
-		if (bForceSync) { StartSync(new FAsyncTask<T>(this, Index, InPointsIO, args...)); }
-		else { Start(new FAsyncTask<T>(this, Index, InPointsIO, args...)); }
+		if (bForceSync) { StartSync(new FAsyncTask<T>(this, TaskIndex, InPointsIO, args...)); }
+		else { Start(new FAsyncTask<T>(this, TaskIndex, InPointsIO, args...)); }
 	}
 
 	template <typename T, typename... Args>
@@ -248,7 +248,7 @@ public:
 		T& Task = AsyncTask->GetTask();
 		Task.TaskPtr = AsyncTask;
 
-		AsyncTask->StartBackgroundTask();
+		AsyncTask->StartSynchronousTask();
 	}
 
 	template <typename T, typename... Args>
@@ -277,6 +277,7 @@ protected:
 class PCGEXTENDEDTOOLKIT_API FPCGExNonAbandonableTask : public FNonAbandonableTask
 {
 public:
+	
 	FPCGExAsyncManager* Manager = nullptr;
 	int32 TaskIndex = -1;
 	FAsyncTaskBase* TaskPtr = nullptr;
@@ -290,8 +291,6 @@ public:
 		Manager(InManager), TaskIndex(InTaskIndex), PointIO(InPointIO)
 	{
 	}
-
-	virtual ~FPCGExNonAbandonableTask() = default;
 
 	FORCEINLINE TStatId GetStatId() const
 	{

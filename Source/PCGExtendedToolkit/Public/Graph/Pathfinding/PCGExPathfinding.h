@@ -41,22 +41,19 @@ namespace PCGExPathfinding
 	struct PCGEXTENDEDTOOLKIT_API FPath
 	{
 		FPath(const int32 InSeedIndex, const FVector& InStart, const int32 InGoalIndex, const FVector& InEnd):
-			SeedIndex(InSeedIndex), Start(InStart), GoalIndex(InGoalIndex), End(InEnd)
+			SeedIndex(InSeedIndex), StartPosition(InStart), GoalIndex(InGoalIndex), EndPosition(InEnd)
 		{
+			Positions.Empty();
 		}
 
-		~FPath()
-		{
-		}
-
-		PCGExMath::FPathMetrics Metrics;
+		TArray<FVector> Positions;
 		PCGExData::FPointIO* PathPoints = nullptr;
 
 		int32 SeedIndex = -1;
-		FVector Start;
+		FVector StartPosition;
 		int32 GoalIndex = -1;
-		FVector End;
+		FVector EndPosition;
 
+		
 	};
-	
 }

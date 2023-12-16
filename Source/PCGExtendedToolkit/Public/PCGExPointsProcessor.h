@@ -22,12 +22,14 @@ virtual FText GetNodeTooltipText() const override{ return NSLOCTEXT("PCGEx" #_SH
 #define PCGEX_INITIALIZE_CONTEXT(_NAME)\
 FPCGContext* FPCGEx##_NAME##Element::Initialize( const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node)\
 {	FPCGEx##_NAME##Context* Context = new FPCGEx##_NAME##Context();	return InitializeContext(Context, InputData, SourceComponent, Node); }
-#define PCGEX_CONTEXT_AND_SETTINGS(_NAME) PCGEX_CONTEXT(_NAME) PCGEX_SETTINGS(_NAME)
-#define PCGEX_BIND_OPERATION(_NAME, _TYPE) Context->_NAME = Context->RegisterOperation<_TYPE>(Settings->_NAME);
 #define PCGEX_CONTEXT(_NAME) FPCGEx##_NAME##Context* Context = static_cast<FPCGEx##_NAME##Context*>(InContext);
 #define PCGEX_SETTINGS(_NAME) const UPCGEx##_NAME##Settings* Settings = Context->GetInputSettings<UPCGEx##_NAME##Settings>();	check(Settings);
-#define PCGEX_FWD(_NAME) Context->_NAME = Settings->_NAME;
+#define PCGEX_CONTEXT_AND_SETTINGS(_NAME) PCGEX_CONTEXT(_NAME) PCGEX_SETTINGS(_NAME)
+#define PCGEX_DEFAULT_OPERATION(_NAME, _TYPE) _NAME = ObjectInitializer.CreateDefaultSubobject<_TYPE>(this, TEXT(#_NAME));
+#define PCGEX_VALIDATE_OPERATION(_NAME) if(!Settings->_NAME){PCGE_LOG(Error, GraphAndLog, FTEXT("Invalid user-defined operation: "#_NAME)); return false;}
 #define PCGEX_VALIDATE_NAME(_NAME) if (!FPCGMetadataAttributeBase::IsValidName(_NAME)){	PCGE_LOG(Error, GraphAndLog, FTEXT("Invalid user-defined attribute name.")); return false;	}
+#define PCGEX_BIND_OPERATION(_NAME, _TYPE) PCGEX_VALIDATE_OPERATION(_NAME) Context->_NAME = Context->RegisterOperation<_TYPE>(Settings->_NAME);
+#define PCGEX_FWD(_NAME) Context->_NAME = Settings->_NAME;
 #define PCGEX_TERMINATE_ASYNC PCGEX_DELETE(AsyncManager)
 
 struct FPCGExPointsProcessorContext;
@@ -157,14 +159,6 @@ public:
 	template <typename T>
 	static T* EnsureOperation(UPCGExOperation* Operation) { return Operation ? static_cast<T*>(Operation) : NewObject<T>(); }
 
-	template <typename T>
-	static T* EnsureOperation(UPCGExOperation* Operation, FPCGExPointsProcessorContext* InContext)
-	{
-		T* RetValue = Operation ? static_cast<T*>(Operation) : NewObject<T>();
-		RetValue->BindContext(InContext);
-		return RetValue;
-	}
-
 protected:
 	virtual int32 GetPreferredChunkSize() const;
 };
@@ -185,7 +179,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : public FPCGContext
 	const UPCGPointData* GetCurrentIn() const { return CurrentIO->GetIn(); }
 	UPCGPointData* GetCurrentOut() const { return CurrentIO->GetOut(); }
 
-	virtual bool AdvancePointsIO();
+	bool AdvancePointsIO();
 	PCGExMT::AsyncState GetState() const { return CurrentState; }
 	bool IsState(const PCGExMT::AsyncState OperationId) const { return CurrentState == OperationId; }
 	bool IsSetup() const { return IsState(PCGExMT::State_Setup); }
@@ -289,5 +283,4 @@ public:
 protected:
 	virtual FPCGContext* InitializeContext(FPCGExPointsProcessorContext* InContext, const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node) const;
 	virtual bool Boot(FPCGContext* InContext) const;
-	//virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };

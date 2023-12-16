@@ -23,9 +23,9 @@ class PCGEXTENDEDTOOLKIT_API UPCGExPathfindingEdgesSettings : public UPCGExPathf
 {
 	GENERATED_BODY()
 
+public:
 	UPCGExPathfindingEdgesSettings(const FObjectInitializer& ObjectInitializer);
 
-public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(PathfindingEdges, "Pathfinding : Edges", "Extract paths from edges islands.");
@@ -45,14 +45,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingEdgesContext : public FPCGExPathf
 
 	virtual ~FPCGExPathfindingEdgesContext() override;
 
-	PCGExData::FPointIO* GoalsPoints = nullptr;
-	PCGExData::FPointIOGroup* OutputPaths = nullptr;
-
-	UPCGExGoalPicker* GoalPicker;
-	UPCGExSubPointsBlendOperation* Blending;
-
-	bool bAddSeedToPath = true;
-	bool bAddGoalToPath = true;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExPathfindingEdgesElement : public FPCGExPathfindingProcessorElement

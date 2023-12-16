@@ -11,12 +11,11 @@
 UPCGExOrientSettings::UPCGExOrientSettings(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	Orientation = EnsureOperation<UPCGExSubPointsOrientAverage>(Orientation);
+	PCGEX_DEFAULT_OPERATION(Orientation, UPCGExSubPointsOrientAverage)
 }
 
 void UPCGExOrientSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
-	Orientation = EnsureOperation<UPCGExSubPointsOrientAverage>(Orientation);
 	if (Orientation) { Orientation->UpdateUserFacingInfos(); }
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }

@@ -11,12 +11,11 @@
 UPCGExSubdivideSettings::UPCGExSubdivideSettings(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	Blending = EnsureOperation<UPCGExSubPointsBlendInterpolate>(Blending);
+	PCGEX_DEFAULT_OPERATION(Blending, UPCGExSubPointsBlendInterpolate)
 }
 
 void UPCGExSubdivideSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
-	Blending = EnsureOperation<UPCGExSubPointsBlendInterpolate>(Blending);
 	if (Blending) { Blending->UpdateUserFacingInfos(); }
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }

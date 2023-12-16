@@ -37,8 +37,8 @@ protected:
 
 public:
 	/** Ignores candidates weighting pass and always favors the closest one.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable))
-	UPCGExGraphSolver* GraphSolver = nullptr;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable, NoResetToDefault))
+	UPCGExGraphSolver* GraphSolver;
 
 	virtual FName GetMainInputLabel() const override;
 	virtual int32 GetPreferredChunkSize() const override;

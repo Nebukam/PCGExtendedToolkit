@@ -3,7 +3,7 @@
 
 #include "Graph/Edges/PCGExConnectEdgeIslands.h"
 
-#define LOCTEXT_NAMESPACE "PCGExEdgesToPaths"
+#define LOCTEXT_NAMESPACE "PCGExConnectEdgeIslands"
 #define PCGEX_NAMESPACE ConnectEdgeIslands
 
 UPCGExConnectEdgeIslandsSettings::UPCGExConnectEdgeIslandsSettings(
@@ -42,7 +42,7 @@ bool FPCGExConnectEdgeIslandsElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
-		if (!Context->AdvancePointsIO()) { Context->Done(); }
+		if (!Context->AdvanceAndBindPointsIO()) { Context->Done(); }
 		else
 		{
 			if (!Context->BoundEdges->IsValid())

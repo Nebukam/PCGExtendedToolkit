@@ -73,9 +73,9 @@ class PCGEXTENDEDTOOLKIT_API UPCGExFusePointsSettings : public UPCGExPointsProce
 {
 	GENERATED_BODY()
 
+public:
 	UPCGExFusePointsSettings(const FObjectInitializer& ObjectInitializer);
 
-public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(FusePoints, "Fuse Points", "Fuse points based on distance.");

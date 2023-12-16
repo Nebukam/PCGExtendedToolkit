@@ -18,8 +18,6 @@ UPCGExPathfindingEdgesSettings::UPCGExPathfindingEdgesSettings(
 	const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	GoalPicker = EnsureOperation<UPCGExGoalPickerRandom>(GoalPicker);
-	Blending = EnsureOperation<UPCGExSubPointsBlendInterpolate>(Blending);
 }
 
 FPCGElementPtr UPCGExPathfindingEdgesSettings::CreateElement() const { return MakeShared<FPCGExPathfindingEdgesElement>(); }

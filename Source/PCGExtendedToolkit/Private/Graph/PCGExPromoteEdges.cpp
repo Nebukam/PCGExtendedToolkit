@@ -22,7 +22,7 @@ UPCGExPromoteEdgesSettings::UPCGExPromoteEdgesSettings(
 	const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	Promotion = EnsureOperation<UPCGExEdgePromoteToPoint>(Promotion);
+	PCGEX_DEFAULT_OPERATION(Promotion, UPCGExEdgePromoteToPoint)
 }
 
 TArray<FPCGPinProperties> UPCGExPromoteEdgesSettings::OutputPinProperties() const

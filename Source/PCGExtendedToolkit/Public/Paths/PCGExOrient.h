@@ -20,7 +20,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExOrientSettings : public UPCGExPathProcessorSe
 
 public:
 	UPCGExOrientSettings(const FObjectInitializer& ObjectInitializer);
-
+	
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(Orient, "Path : Orient", "Orient paths points");
@@ -33,8 +33,8 @@ protected:
 	//~End UPCGSettings interface
 
 public:
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable))
-	UPCGExSubPointsOrientOperation* Orientation;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable, NoResetToDefault))
+	TObjectPtr<UPCGExSubPointsOrientOperation> Orientation;
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExOrientContext : public FPCGExPathProcessorContext

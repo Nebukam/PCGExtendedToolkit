@@ -38,8 +38,8 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExEdgeType"))
 	uint8 EdgeType = static_cast<uint8>(EPCGExEdgeType::Complete);
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced)
-	UPCGExEdgePromotion* Promotion;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced, meta = (NoResetToDefault))
+	TObjectPtr<UPCGExEdgePromotion> Promotion;
 
 private:
 	friend class FPCGExPromoteEdgesElement;

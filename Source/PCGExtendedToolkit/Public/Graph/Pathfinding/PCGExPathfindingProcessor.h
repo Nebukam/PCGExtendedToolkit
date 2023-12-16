@@ -24,6 +24,8 @@ class PCGEXTENDEDTOOLKIT_API UPCGExPathfindingProcessorSettings : public UPCGExE
 	GENERATED_BODY()
 
 public:
+	UPCGExPathfindingProcessorSettings(const FObjectInitializer& ObjectInitializer);
+	
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(PathfindingProcessorSettings, "Pathfinding Processor Settings", "TOOLTIP_TEXT");
@@ -40,12 +42,12 @@ public:
 	virtual bool GetRequiresGoals() const;
 
 	/** Ignores candidates weighting pass and always favors the closest one.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced)
-	UPCGExGoalPicker* GoalPicker;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced, meta = (NoResetToDefault))
+	TObjectPtr<UPCGExGoalPicker> GoalPicker;
 
 	/** How to blend path points between seed & goal */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced)
-	UPCGExSubPointsBlendOperation* Blending;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced, meta = (NoResetToDefault))
+	TObjectPtr<UPCGExSubPointsBlendOperation> Blending;
 
 	/** Add seed point at the beginning of the path */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
@@ -66,8 +68,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingProcessorContext : public FPCGExE
 	PCGExData::FPointIO* GoalsPoints = nullptr;
 	PCGExData::FPointIOGroup* OutputPaths = nullptr;
 
-	UPCGExGoalPicker* GoalPicker;
-	UPCGExSubPointsBlendOperation* Blending;
+	UPCGExGoalPicker* GoalPicker = nullptr;
+	UPCGExSubPointsBlendOperation* Blending = nullptr;
 
 	bool bAddSeedToPath = true;
 	bool bAddGoalToPath = true;

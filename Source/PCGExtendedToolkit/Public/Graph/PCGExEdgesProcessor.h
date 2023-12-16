@@ -59,7 +59,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgesProcessorContext : public FPCGExPointsP
 	PCGExData::FKPointIOMarkedBindings<int32>* BoundEdges = nullptr;
 
 	PCGExData::FPointIO* CurrentEdges = nullptr;
-	virtual bool AdvancePointsIO() override;
+	bool AdvanceAndBindPointsIO();
 	bool AdvanceEdges();
 
 	TArray<PCGExGraph::FMesh> Meshes;

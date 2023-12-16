@@ -11,12 +11,11 @@
 UPCGExWriteTangentsSettings::UPCGExWriteTangentsSettings(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	Tangents = EnsureOperation<UPCGExAutoTangents>(Tangents);
+	PCGEX_DEFAULT_OPERATION(Tangents, UPCGExAutoTangents)
 }
 
 void UPCGExWriteTangentsSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
-	Tangents = EnsureOperation<UPCGExAutoTangents>(Tangents);
 	if (Tangents) { Tangents->UpdateUserFacingInfos(); }
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
