@@ -19,6 +19,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExEdgesProcessorSettings : public UPCGExPointsP
 	GENERATED_BODY()
 
 public:
+	
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(EdgesProcessorSettings, "Edges Processor Settings", "TOOLTIP_TEXT");
@@ -46,7 +47,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgesProcessorContext : public FPCGExPointsP
 	bool AdvanceAndBindPointsIO();
 	bool AdvanceEdges(); // Advance edges within current points
 
-	TArray<PCGExMesh::FMesh> Meshes;
+	PCGExMesh::FMesh* CurrentMesh = nullptr;
 
 protected:
 	int32 CurrentEdgesIndex = -1;

@@ -86,6 +86,9 @@ bool FPCGExPathfindingProcessorElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(PathfindingProcessor)
 
+	PCGEX_BIND_OPERATION(GoalPicker, UPCGExGoalPickerRandom)
+	//PCGEX_BIND_OPERATION(Blending, UPCGExSubPointsBlendInterpolate)
+	
 	if (Settings->GetRequiresSeeds() && !Context->SeedsPoints)
 	{
 		PCGE_LOG(Error, GraphAndLog, FTEXT("Missing Input Seeds."));
@@ -97,9 +100,6 @@ bool FPCGExPathfindingProcessorElement::Boot(FPCGContext* InContext) const
 		PCGE_LOG(Error, GraphAndLog, FTEXT("Missing Input Goals."));
 		return false;
 	}
-
-	PCGEX_BIND_OPERATION(GoalPicker, UPCGExGoalPickerRandom)
-	//PCGEX_BIND_OPERATION(Blending, UPCGExSubPointsBlendInterpolate)
 
 	return true;
 }

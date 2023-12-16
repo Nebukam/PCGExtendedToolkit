@@ -72,9 +72,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingProcessorContext : public FPCGExE
 
 	bool bAddSeedToPath = true;
 	bool bAddGoalToPath = true;
-
-protected:
-	//int64 GetGoalIndex(const FPCGPoint& Seed, int64 SeedIndex);
+	
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExPathfindingProcessorElement : public FPCGExEdgesProcessorElement

@@ -61,7 +61,6 @@ bool FPCGExFindEdgeIslandsElement::Boot(FPCGContext* InContext) const
 
 	Context->CrawlEdgeTypes = static_cast<EPCGExEdgeType>(Settings->CrawlEdgeTypes);
 
-	PCGEX_FWD(bOutputIndividualIslands)
 	PCGEX_FWD(bPruneIsolatedPoints)
 
 	Context->MinIslandSize = Settings->bRemoveSmallIslands ? FMath::Max(1, Settings->MinIslandSize) : 1;
@@ -163,31 +162,30 @@ bool FPCGExFindEdgeIslandsElement::ExecuteInternal(
 			}
 		}
 
-		if (Context->bOutputIndividualIslands)
+
+		//if (Context->bOutputIndividualIslands){
+		for (const TPair<int32, int32>& Pair : Context->Network->IslandSizes)
 		{
-			for (const TPair<int32, int32>& Pair : Context->Network->IslandSizes)
-			{
-				const int32 IslandSize = Pair.Value;
-				if (IslandSize == -1) { continue; }
+			const int32 IslandSize = Pair.Value;
+			if (IslandSize == -1) { continue; }
 
-				PCGExData::FPointIO& IslandData = Context->IslandsIO->Emplace_GetRef(PCGExData::EInit::NewOutput);
-				Context->Markings->Add(IslandData);
+			PCGExData::FPointIO& IslandData = Context->IslandsIO->Emplace_GetRef(PCGExData::EInit::NewOutput);
+			Context->Markings->Add(IslandData);
 
-				Context->GetAsyncManager()->Start<FWriteIslandTask>(Pair.Key, Context->CurrentIO, &IslandData);
-			}
+			Context->GetAsyncManager()->Start<FWriteIslandTask>(Pair.Key, Context->CurrentIO, &IslandData);
+		}
 
-			if (Context->IslandsIO->IsEmpty())
-			{
-				Context->CurrentIO->GetOut()->Metadata->DeleteAttribute(PCGExGraph::PUIDAttributeName); // Unmark
-				Context->SetState(PCGExMT::State_ReadyForNextPoints);
-			}
-			else
-			{
-				Context->SetAsyncState(PCGExGraph::State_WaitingOnWritingIslands);
-			}
+		if (Context->IslandsIO->IsEmpty())
+		{
+			Context->CurrentIO->GetOut()->Metadata->DeleteAttribute(PCGExGraph::PUIDAttributeName); // Unmark
+			Context->SetState(PCGExMT::State_ReadyForNextPoints);
 		}
 		else
 		{
+			Context->SetAsyncState(PCGExGraph::State_WaitingOnWritingIslands);
+		}
+		//}
+		/* else{
 			// Output all islands
 
 			PCGExData::FPointIO& IslandData = Context->IslandsIO->Emplace_GetRef(PCGExData::EInit::NewOutput);
@@ -237,7 +235,7 @@ bool FPCGExFindEdgeIslandsElement::ExecuteInternal(
 			PCGEX_DELETE(IslandID)
 
 			Context->SetState(PCGExGraph::State_WaitingOnWritingIslands);
-		}
+		}*/
 	}
 
 	if (Context->IsState(PCGExGraph::State_WaitingOnWritingIslands))

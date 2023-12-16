@@ -53,12 +53,12 @@ namespace PCGExMesh
 		~FMesh();
 
 		void BuildFrom(const PCGExData::FPointIO& InPoints, const PCGExData::FPointIO& InEdges);
-		int32 FindClosestVertex(const FVector& Position);
+		int32 FindClosestVertex(const FVector& Position) const;
 
-		FVertex& GetVertexFromPointIndex(int32 Index);
-		FVertex& GetVertex(int32 Index);
+		const FVertex& GetVertexFromPointIndex(const int32 Index) const;
+		const FVertex& GetVertex(const int32 Index) const;
 
 	protected:
-		FVertex& GetOrCreateVertex(int32 Index, bool& bJustCreated);
+		FVertex& GetOrCreateVertex(const int32 Index, bool& bJustCreated);
 	};
 }

@@ -148,38 +148,25 @@ bool FPCGExPathfindingNavmeshElement::ExecuteInternal(FPCGContext* InContext) co
 
 	if (Context->IsState(PCGExMT::State_ProcessingPoints))
 	{
-		for (int32 PointIndex = 0; PointIndex < Context->CurrentIO->GetNum(); PointIndex++)
+		auto NavMeshTask = [&](int32 SeedIndex, int32 GoalIndex)
 		{
-			auto NavMeshTask = [&](int32 InGoalIndex)
-			{
-				Context->PathBuffer.Emplace_GetRef(
-					PointIndex, Context->CurrentIO->GetInPoint(PointIndex).Transform.GetLocation(),
-					InGoalIndex, Context->GoalsPoints->GetInPoint(InGoalIndex).Transform.GetLocation());
-			};
+			FWriteScopeLock WriteLock(Context->ContextLock);
+			Context->PathBuffer.Emplace_GetRef(
+				SeedIndex, Context->CurrentIO->GetInPoint(SeedIndex).Transform.GetLocation(),
+				GoalIndex, Context->GoalsPoints->GetInPoint(GoalIndex).Transform.GetLocation());
+		};
 
-			const PCGEx::FPointRef& Seed = Context->CurrentIO->GetInPointRef(PointIndex);
-
-			if (Context->GoalPicker->OutputMultipleGoals())
-			{
-				TArray<int32> GoalIndices;
-				Context->GoalPicker->GetGoalIndices(Seed, GoalIndices);
-				for (const int32 GoalIndex : GoalIndices) { if (GoalIndex != -1) { NavMeshTask(GoalIndex); } }
-			}
-			else
-			{
-				const int32 GoalIndex = Context->GoalPicker->GetGoalIndex(Seed);
-				if (GoalIndex != -1) { NavMeshTask(GoalIndex); }
-			}
+		if (PCGExPathfinding::ProcessGoals(Context, Context->CurrentIO, Context->GoalPicker, NavMeshTask))
+		{
+			Context->SetAsyncState(PCGExPathfinding::State_Pathfinding);
 		}
-
-		Context->SetAsyncState(PCGExPathfinding::State_Pathfinding);
 	}
 
 	if (Context->IsState(PCGExPathfinding::State_Pathfinding))
 	{
 		auto FindPath = [&](const int32 PathIndex)
 		{
-			PCGExPathfinding::FPath& Path = Context->PathBuffer[PathIndex];
+			PCGExPathfinding::FPathInfos& Path = Context->PathBuffer[PathIndex];
 
 			UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(Context->World);
 
@@ -233,7 +220,7 @@ bool FPCGExPathfindingNavmeshElement::ExecuteInternal(FPCGContext* InContext) co
 				Metrics.Add(CurrentLocation);
 			}
 
-			if (PathLocations.Num() <= 2) { return; } /////
+			if (PathLocations.Num() <= 2) { return; } //
 
 			const int32 NumPositions = PathLocations.Num();
 			const int32 LastPosition = NumPositions - 1;
@@ -275,6 +262,11 @@ bool FPCGExPathfindingNavmeshElement::ExecuteInternal(FPCGContext* InContext) co
 	}
 
 	return Context->IsDone();
+}
+
+bool FSampleNavmeshTask::ExecuteTask()
+{
+	return false;
 }
 
 #undef LOCTEXT_NAMESPACE

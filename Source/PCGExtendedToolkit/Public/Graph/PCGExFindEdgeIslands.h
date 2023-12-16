@@ -215,8 +215,8 @@ public:
 	bool bPruneIsolatedPoints = true;
 
 	/** Output one point data per island, rather than one single data set containing possibly disconnected islands. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	bool bOutputIndividualIslands = true;
+	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	//bool bOutputIndividualIslands = true;
 
 	/** Don't output Islands if they have less points than a specified amount. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
@@ -257,7 +257,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFindEdgeIslandsContext : public FPCGExGraphP
 	virtual ~FPCGExFindEdgeIslandsContext() override;
 
 	EPCGExEdgeType CrawlEdgeTypes;
-	bool bOutputIndividualIslands;
+	//bool bOutputIndividualIslands;
 	bool bPruneIsolatedPoints;
 	int32 MinIslandSize;
 	int32 MaxIslandSize;

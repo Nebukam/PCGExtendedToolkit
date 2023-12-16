@@ -266,6 +266,8 @@ FPCGExPointsProcessorContext::~FPCGExPointsProcessorContext()
 
 bool FPCGExPointsProcessorContext::AdvancePointsIO()
 {
+	if (CurrentIO) { CurrentIO->Cleanup(); }
+	
 	if (MainPoints->Pairs.IsValidIndex(++CurrentPointsIndex))
 	{
 		CurrentIO = MainPoints->Pairs[CurrentPointsIndex];

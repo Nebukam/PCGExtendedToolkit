@@ -5,6 +5,8 @@
 
 #include "CoreMinimal.h"
 #include "PCGExMT.h"
+#include "PCGExPointsProcessor.h"
+#include "GoalPickers/PCGExGoalPicker.h"
 
 #include "PCGExPathfinding.generated.h"
 
@@ -37,9 +39,9 @@ namespace PCGExPathfinding
 	constexpr PCGExMT::AsyncState State_Pathfinding = __COUNTER__;
 	constexpr PCGExMT::AsyncState State_WaitingPathfinding = __COUNTER__;
 
-	struct PCGEXTENDEDTOOLKIT_API FPath
+	struct PCGEXTENDEDTOOLKIT_API FPathInfos
 	{
-		FPath(const int32 InSeedIndex, const FVector& InStart, const int32 InGoalIndex, const FVector& InEnd):
+		FPathInfos(const int32 InSeedIndex, const FVector& InStart, const int32 InGoalIndex, const FVector& InEnd):
 			SeedIndex(InSeedIndex), StartPosition(InStart), GoalIndex(InGoalIndex), EndPosition(InEnd)
 		{
 		}
@@ -49,4 +51,50 @@ namespace PCGExPathfinding
 		int32 GoalIndex = -1;
 		FVector EndPosition;
 	};
+
+	static bool ProcessGoals(
+		FPCGExPointsProcessorContext* Context,
+		const PCGExData::FPointIO* SeedIO,
+		const UPCGExGoalPicker* GoalPicker,
+		TFunction<void(int32, int32)>&& GoalFunc)
+	{
+		return Context->Process(
+			[&](const int32 PointIndex)
+			{
+				const PCGEx::FPointRef& Seed = SeedIO->GetInPointRef(PointIndex);
+
+				if (GoalPicker->OutputMultipleGoals())
+				{
+					TArray<int32> GoalIndices;
+					GoalPicker->GetGoalIndices(Seed, GoalIndices);
+					for (const int32 GoalIndex : GoalIndices)
+					{
+						if (GoalIndex < 0) { continue; }
+						GoalFunc(PointIndex, GoalIndex);
+					}
+				}
+				else
+				{
+					const int32 GoalIndex = GoalPicker->GetGoalIndex(Seed);
+					if (GoalIndex < 0) { return; }
+					GoalFunc(PointIndex, GoalIndex);
+				}
+			}, SeedIO->GetNum());
+	}
 }
+
+// Define the background task class
+class PCGEXTENDEDTOOLKIT_API FPathfindingTask : public FPCGExNonAbandonableTask
+{
+public:
+	FPathfindingTask(
+		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+		PCGExPathfinding::FPathInfos* InInfos) :
+		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+		Infos(InInfos)
+	{
+	}
+
+	PCGExPathfinding::FPathInfos* Infos = nullptr;
+
+};

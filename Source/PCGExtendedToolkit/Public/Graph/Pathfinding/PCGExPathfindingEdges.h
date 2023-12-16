@@ -4,12 +4,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExPathfinding.h"
 #include "PCGExPathfindingProcessor.h"
 
 #include "PCGExPointsProcessor.h"
 #include "GoalPickers/PCGExGoalPicker.h"
 #include "Graph/PCGExGraph.h"
-#include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendOperation.h"
 
 #include "PCGExPathfindingEdges.generated.h"
 
@@ -28,6 +28,7 @@ public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(PathfindingEdges, "Pathfinding : Edges", "Extract paths from edges islands.");
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
 
 protected:
@@ -41,6 +42,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingEdgesContext : public FPCGExPathf
 	friend class FPCGExPathfindingEdgesElement;
 
 	virtual ~FPCGExPathfindingEdgesContext() override;
+
+	TArray<PCGExPathfinding::FPathInfos*> SeedGoalPairs;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExPathfindingEdgesElement : public FPCGExPathfindingProcessorElement
@@ -57,19 +60,14 @@ protected:
 };
 
 // Define the background task class
-class PCGEXTENDEDTOOLKIT_API FSampleMeshPathTask : public FPCGExNonAbandonableTask
+class PCGEXTENDEDTOOLKIT_API FSampleMeshPathTask : public FPathfindingTask
 {
 public:
 	FSampleMeshPathTask(
-		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-		int32 InGoalIndex, PCGExData::FPointIO* InPathPoints) :
-		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
-		GoalIndex(InGoalIndex), PathPoints(InPathPoints)
+		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO, PCGExPathfinding::FPathInfos* InInfos) :
+		FPathfindingTask(InManager, InTaskIndex, InPointIO, InInfos)
 	{
 	}
-
-	int32 GoalIndex = -1;
-	PCGExData::FPointIO* PathPoints;
 
 	virtual bool ExecuteTask() override;
 };

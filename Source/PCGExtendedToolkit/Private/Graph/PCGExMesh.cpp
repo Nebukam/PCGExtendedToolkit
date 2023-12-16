@@ -86,7 +86,7 @@ namespace PCGExMesh
 		PCGEX_DELETE(EndIndexReader)
 	}
 
-	int32 FMesh::FindClosestVertex(const FVector& Position)
+	int32 FMesh::FindClosestVertex(const FVector& Position) const
 	{
 		double MaxDistance = TNumericLimits<double>::Max();
 		int32 ClosestIndex = -1;
@@ -103,6 +103,6 @@ namespace PCGExMesh
 		return ClosestIndex;
 	}
 
-	FVertex& FMesh::GetVertexFromPointIndex(int32 Index) { return GetVertex(*IndicesMap.Find(Index)); }
-	FVertex& FMesh::GetVertex(int32 Index) { return Vertices[Index]; }
+	const FVertex& FMesh::GetVertexFromPointIndex(const int32 Index) const { return GetVertex(*IndicesMap.Find(Index)); }
+	const FVertex& FMesh::GetVertex(const int32 Index) const { return Vertices[Index]; }
 }

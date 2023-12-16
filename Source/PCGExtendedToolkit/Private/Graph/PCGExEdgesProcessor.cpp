@@ -15,7 +15,7 @@ PCGExData::EInit UPCGExEdgesProcessorSettings::GetMainOutputInitMode() const { r
 
 PCGExData::EInit UPCGExEdgesProcessorSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::Forward; }
 
-bool UPCGExEdgesProcessorSettings::GetMainAcceptMultipleData() const { return false; }
+bool UPCGExEdgesProcessorSettings::GetMainAcceptMultipleData() const { return true; }
 
 TArray<FPCGPinProperties> UPCGExEdgesProcessorSettings::InputPinProperties() const
 {
@@ -49,8 +49,8 @@ FPCGExEdgesProcessorContext::~FPCGExEdgesProcessorContext()
 
 	PCGEX_DELETE(Edges)
 	PCGEX_DELETE(BoundEdges)
-
-	Meshes.Empty();
+	PCGEX_DELETE(CurrentMesh)
+	
 }
 
 
@@ -73,11 +73,18 @@ bool FPCGExEdgesProcessorContext::AdvanceAndBindPointsIO()
 
 bool FPCGExEdgesProcessorContext::AdvanceEdges()
 {
+	PCGEX_DELETE(CurrentMesh)
+
 	if (CurrentEdges) { CurrentEdges->Cleanup(); }
 
 	if (Edges->Pairs.IsValidIndex(++CurrentEdgesIndex))
 	{
 		CurrentEdges = Edges->Pairs[CurrentEdgesIndex];
+		
+		CurrentMesh = new PCGExMesh::FMesh();
+		CurrentIO->CreateInKeys();
+		CurrentEdges->CreateInKeys();
+		CurrentMesh->BuildFrom(*CurrentIO, *CurrentEdges);
 		return true;
 	}
 
