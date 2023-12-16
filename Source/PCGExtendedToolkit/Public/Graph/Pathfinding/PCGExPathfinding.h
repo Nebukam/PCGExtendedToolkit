@@ -84,17 +84,17 @@ namespace PCGExPathfinding
 }
 
 // Define the background task class
-class PCGEXTENDEDTOOLKIT_API FPathfindingTask : public FPCGExNonAbandonableTask
+class PCGEXTENDEDTOOLKIT_API FPCGExPathfindingTask : public FPCGExNonAbandonableTask
 {
 public:
-	FPathfindingTask(
+	FPCGExPathfindingTask(
 		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-		PCGExPathfinding::FPathInfos* InInfos) :
+		PCGExPathfinding::FPathInfos* InPathInfos) :
 		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
-		Infos(InInfos)
+		PathInfos(InPathInfos)
 	{
 	}
 
-	PCGExPathfinding::FPathInfos* Infos = nullptr;
+	PCGExPathfinding::FPathInfos* PathInfos = nullptr;
 
 };

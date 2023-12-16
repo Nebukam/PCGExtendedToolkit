@@ -42,8 +42,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingEdgesContext : public FPCGExPathf
 	friend class FPCGExPathfindingEdgesElement;
 
 	virtual ~FPCGExPathfindingEdgesContext() override;
-
-	TArray<PCGExPathfinding::FPathInfos*> SeedGoalPairs;
+	
+	mutable FRWLock BufferLock;
+	
+	TArray<PCGExPathfinding::FPathInfos*> PathBuffer;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExPathfindingEdgesElement : public FPCGExPathfindingProcessorElement
@@ -60,12 +62,12 @@ protected:
 };
 
 // Define the background task class
-class PCGEXTENDEDTOOLKIT_API FSampleMeshPathTask : public FPathfindingTask
+class PCGEXTENDEDTOOLKIT_API FSampleMeshPathTask : public FPCGExPathfindingTask
 {
 public:
 	FSampleMeshPathTask(
-		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO, PCGExPathfinding::FPathInfos* InInfos) :
-		FPathfindingTask(InManager, InTaskIndex, InPointIO, InInfos)
+		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO, PCGExPathfinding::FPathInfos* InPathInfos) :
+		FPCGExPathfindingTask(InManager, InTaskIndex, InPointIO, InPathInfos)
 	{
 	}
 

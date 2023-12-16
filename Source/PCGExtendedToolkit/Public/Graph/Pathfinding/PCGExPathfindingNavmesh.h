@@ -107,7 +107,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingNavmeshContext : public FPCGExPoi
 	bool bAddSeedToPath = true;
 	bool bAddGoalToPath = true;
 
-	TArray<PCGExPathfinding::FPathInfos> PathBuffer;
+	TArray<PCGExPathfinding::FPathInfos*> PathBuffer;
 
 	FNavAgentProperties NavAgentProperties;
 
@@ -132,18 +132,14 @@ protected:
 };
 
 // Define the background task class
-class PCGEXTENDEDTOOLKIT_API FSampleNavmeshTask : public FPCGExNonAbandonableTask
+class PCGEXTENDEDTOOLKIT_API FSampleNavmeshTask : public FPCGExPathfindingTask
 {
 public:
 	FSampleNavmeshTask(
-		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-		int32 InGoalIndex) :
-		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
-		GoalIndex(InGoalIndex)
+	FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO, PCGExPathfinding::FPathInfos* InPathInfos) :
+	FPCGExPathfindingTask(InManager, InTaskIndex, InPointIO, InPathInfos)
 	{
 	}
-
-	int32 GoalIndex = -1;
 
 	virtual bool ExecuteTask() override;
 };

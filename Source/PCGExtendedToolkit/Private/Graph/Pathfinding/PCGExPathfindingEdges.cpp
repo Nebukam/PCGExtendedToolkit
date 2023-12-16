@@ -29,7 +29,7 @@ FPCGExPathfindingEdgesContext::~FPCGExPathfindingEdgesContext()
 {
 	PCGEX_TERMINATE_ASYNC
 
-	PCGEX_DELETE_TARRAY(SeedGoalPairs, PCGExPathfinding::FPathInfos)
+	PCGEX_DELETE_TARRAY(PathBuffer, PCGExPathfinding::FPathInfos)
 }
 
 PCGEX_INITIALIZE_CONTEXT(PathfindingEdges)
@@ -60,7 +60,7 @@ bool FPCGExPathfindingEdgesElement::ExecuteInternal(FPCGContext* InContext) cons
 		if (!Context->AdvanceAndBindPointsIO()) { Context->Done(); }
 		else
 		{
-			PCGEX_DELETE_TARRAY(Context->SeedGoalPairs, PCGExPathfinding::FPathInfos)
+			PCGEX_DELETE_TARRAY(Context->PathBuffer, PCGExPathfinding::FPathInfos)
 			Context->GoalPicker->PrepareForData(*Context->SeedsPoints, *Context->GoalsPoints);
 			Context->SetState(PCGExMT::State_ProcessingPoints);
 		}
@@ -71,11 +71,12 @@ bool FPCGExPathfindingEdgesElement::ExecuteInternal(FPCGContext* InContext) cons
 		if (PCGExPathfinding::ProcessGoals(
 			Context, Context->SeedsPoints, Context->GoalPicker, [&](const int32 SeedIndex, int32 GoalIndex)
 			{
-				FWriteScopeLock WriteLock(Context->ContextLock);
-				Context->SeedGoalPairs.Add(
+				Context->BufferLock.WriteLock();
+				Context->PathBuffer.Add(
 					new PCGExPathfinding::FPathInfos(
 						SeedIndex, Context->CurrentIO->GetInPoint(SeedIndex).Transform.GetLocation(),
 						GoalIndex, Context->GoalsPoints->GetInPoint(GoalIndex).Transform.GetLocation()));
+				Context->BufferLock.WriteUnlock();
 			}))
 		{
 			Context->SetState(PCGExGraph::State_ReadyForNextEdges);
@@ -92,10 +93,10 @@ bool FPCGExPathfindingEdgesElement::ExecuteInternal(FPCGContext* InContext) cons
 	{
 		auto NavMeshTask = [&](int32 Index)
 		{
-			Context->GetAsyncManager()->Start<FSampleMeshPathTask>(Index, Context->CurrentIO, Context->SeedGoalPairs[Index]);
+			Context->GetAsyncManager()->Start<FSampleMeshPathTask>(Index, Context->CurrentIO, Context->PathBuffer[Index]);
 		};
 
-		if (Context->Process(NavMeshTask, Context->SeedGoalPairs.Num()))
+		if (Context->Process(NavMeshTask, Context->PathBuffer.Num()))
 		{
 			Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork);
 		}
@@ -119,12 +120,12 @@ bool FSampleMeshPathTask::ExecuteTask()
 	FPCGExPathfindingEdgesContext* Context = Manager->GetContext<FPCGExPathfindingEdgesContext>();
 	PCGEX_ASYNC_CHECKPOINT
 
-	const FPCGPoint& StartPoint = PointIO->GetInPoint(Infos->SeedIndex);
-	const FPCGPoint& EndPoint = Context->GoalsPoints->GetInPoint(Infos->GoalIndex);
+	const FPCGPoint& StartPoint = PointIO->GetInPoint(PathInfos->SeedIndex);
+	const FPCGPoint& EndPoint = Context->GoalsPoints->GetInPoint(PathInfos->GoalIndex);
 
 	const PCGExMesh::FMesh* Mesh = Context->CurrentMesh;
-	const int32 StartIndex = Mesh->FindClosestVertex(Infos->StartPosition);
-	const int32 EndIndex = Mesh->FindClosestVertex(Infos->EndPosition);
+	const int32 StartIndex = Mesh->FindClosestVertex(PathInfos->StartPosition);
+	const int32 EndIndex = Mesh->FindClosestVertex(PathInfos->EndPosition);
 
 	return false;
 
