@@ -3,108 +3,100 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExDataBlending.h"
-#include "PCGExDataBlendingOperation.h"
 #include "Data/PCGPointData.h"
 #include "UObject/Object.h"
 
-#include "PCGExDataBlendingCopy.h"
-#include "PCGExDataBlendingMin.h"
-#include "PCGExDataBlendingMax.h"
-#include "PCGExDataBlendingAverage.h"
-#include "PCGExDataBlendingWeight.h"
+#include "PCGExDataBlending.h"
+#include "PCGExDataBlendingOperations.h"
 #include "Data/PCGExAttributeHelpers.h"
-
-#include "PCGExMetadataBlender.generated.h"
 
 namespace PCGExDataBlending
 {
-	static UPCGExDataBlendingOperation* CreateOperation(const EPCGExDataBlendingType Type, const PCGEx::FAttributeIdentity& Identity)
+	static FDataBlendingOperationBase* CreateOperation(const EPCGExDataBlendingType Type, const PCGEx::FAttributeIdentity& Identity)
 	{
-#define PCGEX_SAO_NEW(_TYPE, _NAME, _ID) case EPCGMetadataTypes::_NAME : NewOperation = NewObject<UPCGExDataBlending##_ID##_NAME>(); break;
+#define PCGEX_SAO_NEW(_TYPE, _NAME, _ID) case EPCGMetadataTypes::_NAME : NewOperation = new FDataBlending##_ID<_TYPE>(); break;
+#define PCGEX_BLEND_CASE(_ID) case EPCGExDataBlendingType::_ID: switch (Identity.UnderlyingType) { PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_SAO_NEW, _ID) } break;
+#define PCGEX_FOREACH_BLEND(MACRO)\
+PCGEX_BLEND_CASE(None)\
+PCGEX_BLEND_CASE(Copy)\
+PCGEX_BLEND_CASE(Average)\
+PCGEX_BLEND_CASE(Weight)\
+PCGEX_BLEND_CASE(Min)\
+PCGEX_BLEND_CASE(Max)
 
-		UPCGExDataBlendingOperation* NewOperation = nullptr;
+		FDataBlendingOperationBase* NewOperation = nullptr;
+
 		switch (Type)
 		{
 		default:
-		case EPCGExDataBlendingType::None:
-#define PCGEX_SAO_NONE(_TYPE, _NAME) case EPCGMetadataTypes::_NAME : NewOperation = NewObject<UPCGExBlend##_NAME##Base>(); break;
-			switch (Identity.UnderlyingType) { PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_SAO_NONE) }
-#undef PCGEX_SAO_NONE
-			break;
-		case EPCGExDataBlendingType::Copy:
-#define PCGEX_SAO_COPY(_TYPE, _NAME) PCGEX_SAO_NEW(_TYPE, _NAME, Copy)
-			switch (Identity.UnderlyingType) { PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_SAO_COPY) }
-#undef PCGEX_SAO_COPY
-			break;
-		case EPCGExDataBlendingType::Average:
-#define PCGEX_SAO_AVG(_TYPE, _NAME) PCGEX_SAO_NEW(_TYPE, _NAME, Average)
-			switch (Identity.UnderlyingType) { PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_SAO_AVG) }
-#undef PCGEX_SAO_AVG
-			break;
-		case EPCGExDataBlendingType::Weight:
-#define PCGEX_SAO_WHT(_TYPE, _NAME) PCGEX_SAO_NEW(_TYPE, _NAME, Weight)
-			switch (Identity.UnderlyingType) { PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_SAO_WHT) }
-#undef PCGEX_SAO_WHT
-			break;
-		case EPCGExDataBlendingType::Min:
-#define PCGEX_SAO_MIN(_TYPE, _NAME) PCGEX_SAO_NEW(_TYPE, _NAME, Min)
-			switch (Identity.UnderlyingType) { PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_SAO_MIN) }
-#undef PCGEX_SAO_MIN
-			break;
-		case EPCGExDataBlendingType::Max:
-#define PCGEX_SAO_MAX(_TYPE, _NAME) PCGEX_SAO_NEW(_TYPE, _NAME, Max)
-			switch (Identity.UnderlyingType) { PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_SAO_MAX) }
-#undef PCGEX_SAO_MAX
-			break;
+		PCGEX_FOREACH_BLEND(PCGEX_BLEND_CASE)
 		}
-#undef PCGEX_SAO_NEW
+
 		if (NewOperation) { NewOperation->SetAttributeName(Identity.Name); }
 		return NewOperation;
+
+#undef PCGEX_SAO_NEW
+#undef PCGEX_BLEND_CASE
+#undef PCGEX_FOREACH_BLEND
 	}
+
+	class PCGEXTENDEDTOOLKIT_API FMetadataBlender
+	{
+	public:
+		virtual ~FMetadataBlender();
+
+		EPCGExDataBlendingType DefaultOperation = EPCGExDataBlendingType::Copy;
+
+		FMetadataBlender();
+		FMetadataBlender(EPCGExDataBlendingType InDefaultBlending);
+		FMetadataBlender(const FMetadataBlender* ReferenceBlender);
+
+		void PrepareForData(
+			PCGExData::FPointIO* InPointIO,
+			const TMap<FName, EPCGExDataBlendingType>& OperationTypeOverrides);
+
+		void PrepareForData(
+			UPCGPointData* InPrimaryData,
+			const UPCGPointData* InSecondaryData,
+			const TMap<FName, EPCGExDataBlendingType>& OperationTypeOverrides);
+
+		void PrepareForData(
+			UPCGPointData* InPrimaryData,
+			const UPCGPointData* InSecondaryData,
+			FPCGAttributeAccessorKeysPoints* InPrimaryKeys,
+			FPCGAttributeAccessorKeysPoints* InSecondaryKeys,
+			const TMap<FName, EPCGExDataBlendingType>& OperationTypeOverrides);
+
+		FMetadataBlender* Copy(UPCGPointData* InPrimaryData, const UPCGPointData* InSecondaryData) const;
+
+		void PrepareForBlending(const int32 WriteKey) const;
+		void Blend(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, const int32 WriteIndex, const double Alpha = 0) const;
+		void CompleteBlending(const int32 WriteIndex, double Alpha) const;
+
+		void PrepareRangeForBlending(const int32 StartIndex, const int32 Count) const;
+		void BlendRange(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, const int32 StartIndex, const int32 Count, const TArrayView<double>& Alphas) const;
+		void CompleteRangeBlending(const int32 StartIndex, const int32 Count, const TArrayView<double>& Alphas) const;
+
+		void BlendRangeOnce(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, const int32 StartIndex, const int32 Count, const TArrayView<double>& Alphas) const;
+
+		void ResetToDefaults(const int32 WriteIndex) const;
+		void Flush();
+
+	protected:
+		TMap<FName, EPCGExDataBlendingType> BlendingOverrides;
+		TArray<FDataBlendingOperationBase*> Attributes;
+		TArray<FDataBlendingOperationBase*> AttributesToBePrepared;
+		TArray<FDataBlendingOperationBase*> AttributesToBeCompleted;
+		FPCGAttributeAccessorKeysPoints* PrimaryKeys = nullptr;
+		FPCGAttributeAccessorKeysPoints* SecondaryKeys = nullptr;
+		bool bOwnsPrimaryKeys = false;
+		bool bOwnsSecondaryKeys = false;
+
+		void InternalPrepareForData(
+			UPCGPointData* InPrimaryData,
+			const UPCGPointData* InSecondaryData,
+			FPCGAttributeAccessorKeysPoints* InPrimaryKeys,
+			FPCGAttributeAccessorKeysPoints* InSecondaryKeys,
+			const TMap<FName, EPCGExDataBlendingType>& OperationTypeOverrides);
+	};
 }
-
-#undef PCGEX_SAO_CLASS
-
-UCLASS()
-class PCGEXTENDEDTOOLKIT_API UPCGExMetadataBlender : public UObject
-{
-	GENERATED_BODY()
-
-public:
-	EPCGExDataBlendingType DefaultOperation = EPCGExDataBlendingType::Copy;
-
-	void PrepareForData(
-		const UPCGPointData* InPrimaryData,
-		const UPCGPointData* InSecondaryData = nullptr);
-
-	/**
-	 * 
-	 * @param InPrimaryData 
-	 * @param InSecondaryData Can be nullptr. 
-	 * @param OperationTypeOverrides 
-	 */
-	void PrepareForData(
-		const UPCGPointData* InPrimaryData,
-		const UPCGPointData* InSecondaryData,
-		const TMap<FName, EPCGExDataBlendingType>& OperationTypeOverrides);
-
-	UPCGExMetadataBlender* Copy(const UPCGPointData* InPrimaryData, const UPCGPointData* InSecondaryData) const;
-
-	void PrepareForBlending(PCGMetadataEntryKey InPrimaryOutputKey) const;
-	void Blend(const PCGMetadataEntryKey InPrimaryKey, const PCGMetadataEntryKey InSecondaryKey, const PCGMetadataEntryKey InPrimaryOutputKey, const double Alpha = 0) const;
-	void CompleteBlending(PCGMetadataEntryKey InPrimaryOutputKey, double Alpha) const;
-	void ResetToDefaults(PCGMetadataEntryKey InPrimaryOutputKey) const;
-	void Flush();
-
-	virtual void BeginDestroy() override;
-
-	TMap<FName, EPCGExDataBlendingType> BlendingOverrides;
-	TArray<UPCGExDataBlendingOperation*> Attributes;
-	TArray<UPCGExDataBlendingOperation*> AttributesToBePrepared;
-	TArray<UPCGExDataBlendingOperation*> AttributesToBeCompleted;
-	void InternalPrepareForData(
-		const UPCGPointData* InPrimaryData,
-		const UPCGPointData* InSecondaryData,
-		const TMap<FName, EPCGExDataBlendingType>& OperationTypeOverrides);
-};

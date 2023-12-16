@@ -7,21 +7,22 @@
 #include "Graph/Promotions/PCGExEdgePromoteToPoint.h"
 
 #define LOCTEXT_NAMESPACE "PCGExEdgesToPaths"
+#define PCGEX_NAMESPACE PromoteEdges
 
 int32 UPCGExPromoteEdgesSettings::GetPreferredChunkSize() const { return 32; }
 
-PCGExPointIO::EInit UPCGExPromoteEdgesSettings::GetPointOutputInitMode() const
+PCGExData::EInit UPCGExPromoteEdgesSettings::GetMainOutputInitMode() const
 {
 	return Promotion && Promotion->GeneratesNewPointData() ?
-		       PCGExPointIO::EInit::NoOutput :
-		       PCGExPointIO::EInit::NewOutput;
+		       PCGExData::EInit::NoOutput :
+		       PCGExData::EInit::NewOutput;
 }
 
 UPCGExPromoteEdgesSettings::UPCGExPromoteEdgesSettings(
 	const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	Promotion = EnsureInstruction<UPCGExEdgePromoteToPoint>(Promotion);
+	PCGEX_DEFAULT_OPERATION(Promotion, UPCGExEdgePromoteToPoint)
 }
 
 TArray<FPCGPinProperties> UPCGExPromoteEdgesSettings::OutputPinProperties() const
@@ -33,36 +34,33 @@ TArray<FPCGPinProperties> UPCGExPromoteEdgesSettings::OutputPinProperties() cons
 
 FPCGElementPtr UPCGExPromoteEdgesSettings::CreateElement() const { return MakeShared<FPCGExPromoteEdgesElement>(); }
 
-FName UPCGExPromoteEdgesSettings::GetMainPointsOutputLabel() const { return PCGExGraph::OutputPathsLabel; }
+FName UPCGExPromoteEdgesSettings::GetMainOutputLabel() const { return PCGExGraph::OutputPathsLabel; }
 
-FPCGContext* FPCGExPromoteEdgesElement::Initialize(
-	const FPCGDataCollection& InputData,
-	TWeakObjectPtr<UPCGComponent> SourceComponent,
-	const UPCGNode* Node)
+PCGEX_INITIALIZE_CONTEXT(PromoteEdges)
+
+bool FPCGExPromoteEdgesElement::Boot(FPCGContext* InContext) const
 {
-	FPCGExPromoteEdgesContext* Context = new FPCGExPromoteEdgesContext();
-	InitializeContext(Context, InputData, SourceComponent, Node);
+	if (!FPCGExGraphProcessorElement::Boot(InContext)) { return false; }
 
-	const UPCGExPromoteEdgesSettings* Settings = Context->GetInputSettings<UPCGExPromoteEdgesSettings>();
-	check(Settings);
-
-	Context->AsyncEdgesLoop = Context->MakeLoop();
+	PCGEX_CONTEXT_AND_SETTINGS(PromoteEdges)
 
 	Context->EdgeType = static_cast<EPCGExEdgeType>(Settings->EdgeType);
-	Context->Promotion = Settings->EnsureInstruction<UPCGExEdgePromoteToPoint>(Settings->Promotion, Context);
-	return Context;
+
+	PCGEX_BIND_OPERATION(Promotion, UPCGExEdgePromoteToPoint)
+
+	return true;
 }
 
 bool FPCGExPromoteEdgesElement::ExecuteInternal(
 	FPCGContext* InContext) const
 {
-	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExEdgesToPathsElement::Execute);
+	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExPromoteEdgesElement::Execute);
 
-	FPCGExPromoteEdgesContext* Context = static_cast<FPCGExPromoteEdgesContext*>(InContext);
+	PCGEX_CONTEXT(PromoteEdges)
 
 	if (Context->IsSetup())
 	{
-		if (!Validate(Context)) { return true; }
+		if (!Boot(Context)) { return true; }
 
 		Context->MaxPossibleEdgesPerPoint = 0;
 		for (const UPCGExGraphParamsData* Graph : Context->Graphs.Params)
@@ -73,9 +71,9 @@ bool FPCGExPromoteEdgesElement::ExecuteInternal(
 		if (Context->Promotion->GeneratesNewPointData())
 		{
 			int32 MaxPossibleOutputs = 0;
-			for (const UPCGExPointIO* PointIO : Context->MainPoints->Pairs)
+			for (const PCGExData::FPointIO& PointIO : Context->MainPoints->Pairs)
 			{
-				MaxPossibleOutputs += PointIO->NumInPoints;
+				MaxPossibleOutputs += PointIO.GetNum();
 			}
 
 			MaxPossibleOutputs *= Context->MaxPossibleEdgesPerPoint;
@@ -88,10 +86,10 @@ bool FPCGExPromoteEdgesElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
-		if (!Context->AdvancePointsIO(true)) { Context->Done(); }
+		if (!Context->AdvancePointsIOAndResetGraph()) { Context->Done(); }
 		else
 		{
-			const int32 MaxNumEdges = (Context->MaxPossibleEdgesPerPoint * Context->CurrentIO->NumInPoints) / 2; // Oof
+			const int32 MaxNumEdges = (Context->MaxPossibleEdgesPerPoint * Context->CurrentIO->GetNum()) / 2; // Oof
 			Context->Edges.Reset(MaxNumEdges);
 			Context->UniqueEdges.Reset();
 			Context->UniqueEdges.Reserve(MaxNumEdges);
@@ -103,7 +101,6 @@ bool FPCGExPromoteEdgesElement::ExecuteInternal(
 	{
 		if (!Context->AdvanceGraph())
 		{
-			Context->AsyncEdgesLoop.NumIterations = Context->Edges.Num(); // !
 			Context->SetState(PCGExGraph::State_PromotingEdges);
 			return false;
 		}
@@ -112,16 +109,16 @@ bool FPCGExPromoteEdgesElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExGraph::State_ProcessingGraph))
 	{
-		auto Initialize = [&](const UPCGExPointIO* PointIO)
+		auto Initialize = [&](const PCGExData::FPointIO& PointIO)
 		{
-			Context->PrepareCurrentGraphForPoints(PointIO->In, true);
+			Context->PrepareCurrentGraphForPoints(PointIO);
 		};
 
-		auto ProcessPoint = [&](const int32 PointIndex, const UPCGExPointIO* PointIO)
+		auto ProcessPoint = [&](const int32 PointIndex, const PCGExData::FPointIO& PointIO)
 		{
-			const FPCGPoint& Point = PointIO->GetInPoint(PointIndex);
+			const FPCGPoint& Point = PointIO.GetInPoint(PointIndex);
 			TArray<PCGExGraph::FUnsignedEdge> UnsignedEdges;
-			Context->CurrentGraph->GetEdges(PointIndex, Point.MetadataEntry, UnsignedEdges, Context->EdgeType);
+			Context->CurrentGraph->GetEdges(PointIndex, UnsignedEdges, Context->EdgeType);
 
 			for (const PCGExGraph::FUnsignedEdge& UEdge : UnsignedEdges)
 			{
@@ -164,7 +161,7 @@ bool FPCGExPromoteEdgesElement::ExecuteInternal(
 
 
 			UPCGPointData* OutData = NewObject<UPCGPointData>();
-			OutData->InitializeFromData(Context->CurrentIO->In);
+			OutData->InitializeFromData(Context->CurrentIO->GetIn());
 
 			bool bSuccess = Context->Promotion->PromoteEdgeGen(
 				OutData,
@@ -188,11 +185,11 @@ bool FPCGExPromoteEdgesElement::ExecuteInternal(
 
 		if (Context->Promotion->GeneratesNewPointData())
 		{
-			if (Context->AsyncEdgesLoop.Advance(ProcessEdgeGen)) { Context->SetState(PCGExMT::State_ReadyForNextPoints); }
+			if (Context->Process(ProcessEdgeGen, Context->Edges.Num())) { Context->SetState(PCGExMT::State_ReadyForNextPoints); }
 		}
 		else
 		{
-			if (Context->AsyncEdgesLoop.Advance(ProcessEdge)) { Context->SetState(PCGExMT::State_ReadyForNextPoints); }
+			if (Context->Process(ProcessEdge, Context->Edges.Num())) { Context->SetState(PCGExMT::State_ReadyForNextPoints); }
 		}
 	}
 
@@ -207,11 +204,10 @@ bool FPCGExPromoteEdgesElement::ExecuteInternal(
 		{
 			Context->OutputPoints();
 		}
-
-		return true;
 	}
 
-	return false;
+	return Context->IsDone();
 }
 
 #undef LOCTEXT_NAMESPACE
+#undef PCGEX_NAMESPACE

@@ -10,6 +10,15 @@
 
 #include "PCGExSampleNearestPoint.generated.h"
 
+#define PCGEX_SAMPLENEARESTPOINT_FOREACH(MACRO)\
+MACRO(Success, bool)\
+MACRO(Location, FVector)\
+MACRO(LookAt, FVector)\
+MACRO(Normal, FVector)\
+MACRO(Distance, double)\
+MACRO(SignedDistance, double)\
+MACRO(Angle, double)
+
 namespace PCGExNearestPoint
 {
 	struct PCGEXTENDEDTOOLKIT_API FTargetInfos
@@ -76,17 +85,17 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSampleNearestPointSettings : public UPCGExPoi
 {
 	GENERATED_BODY()
 
+public:
 	UPCGExSampleNearestPointSettings(const FObjectInitializer& ObjectInitializer);
 
-public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(SampleNearestPoint, "Sample Nearest Point", "Find the closest point on the nearest collidable surface.");
+	PCGEX_NODE_INFOS(SampleNearestPoint, "Sample : Nearest Point", "Find the closest point on the nearest collidable surface.");
 #endif
 
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 
-	virtual PCGExPointIO::EInit GetPointOutputInitMode() const override;
+	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	virtual int32 GetPreferredChunkSize() const override;
 
 protected:
@@ -94,113 +103,113 @@ protected:
 	//~End UPCGSettings interface
 
 public:
-	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling")
+	/** Sampling method.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
 	EPCGExSampleMethod SampleMethod = EPCGExSampleMethod::WithinRange;
 
 	/** Minimum target range. Used as fallback if LocalRangeMin is enabled but missing. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
 	double RangeMin = 0;
 
 	/** Maximum target range. Used as fallback if LocalRangeMax is enabled but missing. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
 	double RangeMax = 300;
 
-	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(InlineEditConditionToggle))
+	/** Use a per-point minimum range*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bUseLocalRangeMin = false;
 
-	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(EditCondition="bUseLocalRangeMin", EditConditionHides))
+	/** Attribute or property to read the minimum range from. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, EditCondition="bUseLocalRangeMin", EditConditionHides))
 	FPCGExInputDescriptorWithSingleField LocalRangeMin;
 
-	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(InlineEditConditionToggle))
+	/** Use a per-point maximum range*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bUseLocalRangeMax = false;
 
-	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(EditCondition="bUseLocalRangeMax", EditConditionHides))
+	/** Attribute or property to read the maximum range from. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, EditCondition="bUseLocalRangeMax", EditConditionHides))
 	FPCGExInputDescriptorWithSingleField LocalRangeMax;
 
-	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting")
+	/** Weight method used for blending */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta=(PCG_Overridable))
 	EPCGExWeightMethod WeightMethod = EPCGExWeightMethod::FullRange;
 
-	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting")
+	/** Curve that balances weight over distance */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta=(PCG_Overridable))
 	TSoftObjectPtr<UCurveFloat> WeightOverDistance;
 
-	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(InlineEditConditionToggle))
+	/** Write whether the sampling was sucessful or not to a boolean attribute. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteSuccess = false;
 
-	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(EditCondition="bWriteSuccess"))
-	FName Success = FName("SuccessfullySampled");
+	/** Name of the 'boolean' attribute to write sampling success to.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteSuccess"))
+	FName SuccessAttributeName = FName("SuccessfullySampled");
 
-	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(InlineEditConditionToggle))
+	/** Write the sample location. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteLocation = false;
 
-	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(EditCondition="bWriteLocation"))
-	FName Location = FName("WeightedLocation");
+	/** Name of the 'vector' attribute to write sampled Location to.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteLocation"))
+	FName LocationAttributeName = FName("WeightedLocation");
 
-	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(InlineEditConditionToggle))
+	/** Write the sample "look at" direction from the point. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteLookAt = false;
 
-	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(EditCondition="bWriteLookAt"))
-	FName LookAt = FName("WeightedLookAt");
+	/** Name of the 'vector' attribute to write sampled LookAt to.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteLookAt"))
+	FName LookAtAttributeName = FName("WeightedLookAt");
 
 
-	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(InlineEditConditionToggle))
+	/** Write the sampled normal. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteNormal = false;
 
-	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(EditCondition="bWriteNormal"))
-	FName Normal = FName("WeightedNormal");
+	/** Name of the 'vector' attribute to write sampled Normal to.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteNormal"))
+	FName NormalAttributeName = FName("WeightedNormal");
 
-	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(DisplayName=" └─ Source", EditCondition="bWriteNormal"))
+	/** The attribute or property on the targets that is to be considered their "Normal".*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, DisplayName=" └─ Source", EditCondition="bWriteNormal"))
 	FPCGExInputDescriptorWithDirection NormalSource;
 
-	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(InlineEditConditionToggle))
+	/** Write the sampled distance. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteDistance = false;
 
-	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(EditCondition="bWriteDistance"))
-	FName Distance = FName("WeightedDistance");
+	/** Name of the 'double' attribute to write sampled distance to.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteDistance"))
+	FName DistanceAttributeName = FName("WeightedDistance");
 
-	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(InlineEditConditionToggle))
+	/** Write the sampled Signed distance. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteSignedDistance = false;
 
-	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(EditCondition="bWriteSignedDistance"))
-	FName SignedDistance = FName("WeightedSignedDistance");
+	/** Name of the 'double' attribute to write sampled Signed distance to.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteSignedDistance"))
+	FName SignedDistanceAttributeName = FName("WeightedSignedDistance");
 
-	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(DisplayName=" └─ Axis", EditCondition="bWriteSignedDistance"))
+	/** Axis to use to calculate the distance' sign*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, DisplayName=" └─ Axis", EditCondition="bWriteSignedDistance"))
 	EPCGExAxis SignAxis = EPCGExAxis::Forward;
 
-	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(InlineEditConditionToggle))
+	/** Write the sampled angle. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteAngle = false;
 
-	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(EditCondition="bWriteAngle"))
-	FName Angle = FName("WeightedAngle");
+	/** Name of the 'double' attribute to write sampled Signed distance to.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteAngle"))
+	FName AngleAttributeName = FName("WeightedAngle");
 
-	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(DisplayName=" └─ Axis", EditCondition="bWriteAngle"))
+	/** Axis to use to calculate the angle*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, DisplayName=" └─ Axis", EditCondition="bWriteAngle"))
 	EPCGExAxis AngleAxis = EPCGExAxis::Forward;
 
-	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(DisplayName=" └─ Range", EditCondition="bWriteAngle"))
+	/** Unit/range to output the angle to.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, DisplayName=" └─ Range", EditCondition="bWriteAngle"))
 	EPCGExAngleRange AngleRange = EPCGExAngleRange::PIRadians;
 };
 
@@ -208,13 +217,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestPointContext : public FPCGExPoi
 {
 	friend class FPCGExSampleNearestPointElement;
 
-public:
-	UPCGPointData* Targets = nullptr;
-	UPCGPointData* TargetsCache = nullptr;
-	UPCGPointData::PointOctree* Octree = nullptr;
+	virtual ~FPCGExSampleNearestPointContext() override;
 
-	TMap<PCGMetadataEntryKey, int64> TargetIndices;
-	mutable FRWLock IndicesLock;
+	PCGExData::FPointIO* Targets = nullptr;
 
 	EPCGExSampleMethod SampleMethod = EPCGExSampleMethod::WithinRange;
 	EPCGExWeightMethod WeightMethod = EPCGExWeightMethod::FullRange;
@@ -222,30 +227,18 @@ public:
 	double RangeMin = 0;
 	double RangeMax = 1000;
 
-	bool bLocalRangeMin = false;
-	bool bLocalRangeMax = false;
-
-	int64 NumTargets = 0;
+	bool bUseLocalRangeMin = false;
+	bool bUseLocalRangeMax = false;
 
 	PCGEx::FLocalSingleFieldGetter RangeMinGetter;
 	PCGEx::FLocalSingleFieldGetter RangeMaxGetter;
-
-	PCGEx::FLocalDirectionGetter NormalInput;
+	PCGEx::FLocalDirectionGetter NormalGetter;
 
 	UCurveFloat* WeightCurve = nullptr;
 
-	//TODO: Setup target local inputs
+	PCGEX_SAMPLENEARESTPOINT_FOREACH(PCGEX_OUTPUT_DECL)
 
-	PCGEX_OUT_ATTRIBUTE(Success, bool)
-	PCGEX_OUT_ATTRIBUTE(Location, FVector)
-	PCGEX_OUT_ATTRIBUTE(LookAt, FVector)
-	PCGEX_OUT_ATTRIBUTE(Normal, FVector)
-	PCGEX_OUT_ATTRIBUTE(Distance, double)
-
-	PCGEX_OUT_ATTRIBUTE(SignedDistance, double)
 	EPCGExAxis SignAxis;
-
-	PCGEX_OUT_ATTRIBUTE(Angle, double)
 	EPCGExAxis AngleAxis;
 	EPCGExAngleRange AngleRange;
 };
@@ -257,8 +250,19 @@ public:
 		const FPCGDataCollection& InputData,
 		TWeakObjectPtr<UPCGComponent> SourceComponent,
 		const UPCGNode* Node) override;
-	virtual bool Validate(FPCGContext* InContext) const override;
 
 protected:
+	virtual bool Boot(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
+};
+
+class PCGEXTENDEDTOOLKIT_API FSamplePointTask : public FPCGExNonAbandonableTask
+{
+public:
+	FSamplePointTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO) :
+		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO)
+	{
+	}
+
+	virtual bool ExecuteTask() override;
 };

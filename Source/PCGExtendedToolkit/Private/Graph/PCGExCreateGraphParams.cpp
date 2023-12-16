@@ -6,6 +6,7 @@
 #include "PCGPin.h"
 
 #define LOCTEXT_NAMESPACE "PCGExCreateGraphParams"
+#define PCGEX_NAMESPACE CreateGraphParams
 
 namespace PCGExDebugColors
 {
@@ -138,7 +139,7 @@ TArray<FPCGPinProperties> UPCGExCreateGraphParamsSettings::OutputPinProperties()
 	FPCGPinProperties& PinPropertyOutput = PinProperties.Emplace_GetRef(PCGExGraph::SourceParamsLabel, EPCGDataType::Param, false, false);
 
 #if WITH_EDITOR
-	PinPropertyOutput.Tooltip = LOCTEXT("PCGOutputPinTooltip", "Outputs Directional Sampling parameters to be used with other nodes.");
+	PinPropertyOutput.Tooltip = FTEXT("Outputs Directional Sampling parameters to be used with other nodes.");
 #endif // WITH_EDITOR
 
 	return PinProperties;
@@ -171,18 +172,17 @@ T* FPCGExCreateGraphParamsElement::BuildParams(
 
 	if (Settings->GraphIdentifier.IsNone() || !FPCGMetadataAttributeBase::IsValidName(Settings->GraphIdentifier.ToString()))
 	{
-		PCGE_LOG(Error, GraphAndLog, LOCTEXT("UnamedOutput", "Output name is invalid; Cannot be 'None' and can only contain the following special characters:[ ],[_],[-],[/]"));
+		PCGE_LOG(Error, GraphAndLog, FTEXT("Output name is invalid; Cannot be 'None' and can only contain the following special characters:[ ],[_],[-],[/]"));
 		return nullptr;
 	}
 
 	TArray<FPCGTaggedData>& Outputs = Context->OutputData.TaggedData;
-	T* OutParams = NewObject<T>();
-
-	OutParams->GraphIdentifier = Settings->GraphIdentifier;
-	OutParams->Initialize(
-		const_cast<TArray<FPCGExSocketDescriptor>&>(Settings->GetSockets()),
+	T* OutParams = PCGExGraph::FGraphInputs::NewGraph(
+		Context->Node->GetUniqueID(),
+		Settings->GraphIdentifier,
+		Settings->GetSockets(),
 		Settings->bApplyGlobalOverrides,
-		const_cast<FPCGExSocketGlobalOverrides&>(Settings->GlobalOverrides));
+		Settings->GlobalOverrides);
 
 	FPCGTaggedData& Output = Outputs.Emplace_GetRef();
 	Output.Data = OutParams;
@@ -200,3 +200,4 @@ bool FPCGExCreateGraphParamsElement::ExecuteInternal(
 }
 
 #undef LOCTEXT_NAMESPACE
+#undef PCGEX_NAMESPACE

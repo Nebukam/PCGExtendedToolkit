@@ -12,3 +12,14 @@ void UPCGExOperation::BindContext(FPCGExPointsProcessorContext* InContext)
 void UPCGExOperation::UpdateUserFacingInfos()
 {
 }
+
+void UPCGExOperation::Cleanup()
+{
+	Context = nullptr;
+}
+
+void UPCGExOperation::BeginDestroy()
+{
+	Cleanup();
+	UObject::BeginDestroy();
+}

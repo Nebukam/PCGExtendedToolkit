@@ -4,30 +4,38 @@
 
 #include "PCGExMT.h"
 
-void UPCGExAsyncTaskManager::OnAsyncTaskExecutionComplete(FPCGExAsyncTask* AsyncTask, bool bSuccess)
+FPCGExAsyncManager::~FPCGExAsyncManager()
 {
-	//if (!IsValid()) { return; }
+	bStopped = true;
+	Reset();
+}
+
+void FPCGExAsyncManager::OnAsyncTaskExecutionComplete(FPCGExNonAbandonableTask* AsyncTask, bool bSuccess)
+{
+	if (bFlushing) { return; }
 	FWriteScopeLock WriteLock(ManagerLock);
 	NumCompleted++;
 }
 
-bool UPCGExAsyncTaskManager::IsAsyncWorkComplete() const
+bool FPCGExAsyncManager::IsAsyncWorkComplete() const
 {
 	FReadScopeLock ReadLock(ManagerLock);
-	//UE_LOG(LogTemp, Warning, TEXT(" %d / %d"), NumCompleted, NumStarted);
 	return NumCompleted == NumStarted;
 }
 
-bool UPCGExAsyncTaskManager::IsValid() const
+void FPCGExAsyncManager::Reset()
 {
-	if (!Context ||
-		Context->SourceComponent == nullptr ||
-		!Context->SourceComponent.IsValid() ||
-		Context->SourceComponent.IsStale(true, true) ||
-		NumStarted == 0)
-	{
-		return false;
-	}
+	FWriteScopeLock WriteLock(ManagerLock);
 
-	return true;
+	bFlushing = true;
+	for (FAsyncTaskBase* Task : QueuedTasks)
+	{
+		if (Task && !Task->Cancel()) { Task->EnsureCompletion(); }
+		delete Task;
+	}
+	bFlushing = false;
+
+	QueuedTasks.Empty();
+	NumStarted = 0;
+	NumCompleted = 0;
 }

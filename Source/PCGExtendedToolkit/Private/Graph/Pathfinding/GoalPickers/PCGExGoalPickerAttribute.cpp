@@ -8,14 +8,14 @@
 #include "PCGExMath.h"
 #include "Data/PCGPointData.h"
 
-void UPCGExGoalPickerAttribute::PrepareForData(const UPCGPointData* InSeeds, const UPCGPointData* InGoals)
+void UPCGExGoalPickerAttribute::PrepareForData(const PCGExData::FPointIO& InSeeds, const PCGExData::FPointIO& InGoals)
 {
 	Super::PrepareForData(InSeeds, InGoals);
 
 	if (GoalCount == EPCGExGoalPickAttributeAmount::Single)
 	{
 		AttributeGetter.Descriptor = static_cast<FPCGExInputDescriptor>(Attribute);
-		AttributeGetter.Validate(InSeeds);
+		AttributeGetter.Bind(InSeeds);
 	}
 	else
 	{
@@ -24,26 +24,26 @@ void UPCGExGoalPickerAttribute::PrepareForData(const UPCGPointData* InSeeds, con
 		{
 			PCGEx::FLocalSingleFieldGetter& Getter = AttributeGetters.Emplace_GetRef();
 			Getter.Descriptor = static_cast<FPCGExInputDescriptor>(Descriptor);
-			Getter.Validate(InSeeds);
+			Getter.Bind(InSeeds);
 		}
 	}
 }
 
-int32 UPCGExGoalPickerAttribute::GetGoalIndex(const FPCGPoint& Seed, const int32 SeedIndex) const
+int32 UPCGExGoalPickerAttribute::GetGoalIndex(const PCGEx::FPointRef& Seed) const
 {
 	return PCGEx::SanitizeIndex(
-		static_cast<int32>(AttributeGetter.GetValueSafe(Seed, -1)),
+		static_cast<int32>(AttributeGetter.SafeGet(Seed.Index, -1)),
 		MaxGoalIndex, IndexSafety);
 }
 
-void UPCGExGoalPickerAttribute::GetGoalIndices(const FPCGPoint& Seed, TArray<int32>& OutIndices) const
+void UPCGExGoalPickerAttribute::GetGoalIndices(const PCGEx::FPointRef& Seed, TArray<int32>& OutIndices) const
 {
 	for (PCGEx::FLocalSingleFieldGetter Getter : AttributeGetters)
 	{
 		if (!Getter.bValid) { continue; }
 		OutIndices.Add(
 			PCGEx::SanitizeIndex(
-				static_cast<int32>(Getter.GetValueSafe(Seed, -1)),
+				static_cast<int32>(Getter.SafeGet(Seed.Index, -1)),
 				MaxGoalIndex, IndexSafety));
 	}
 }

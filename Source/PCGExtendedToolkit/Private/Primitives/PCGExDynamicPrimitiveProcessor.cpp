@@ -10,7 +10,7 @@ UPCGExDynamicPrimitiveProcessorSettings::UPCGExDynamicPrimitiveProcessorSettings
 {
 }
 
-PCGExPointIO::EInit UPCGExDynamicPrimitiveProcessorSettings::GetPointOutputInitMode() const { return PCGExPointIO::EInit::NoOutput; }
+PCGExData::EInit UPCGExDynamicPrimitiveProcessorSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 
 TArray<FPCGPinProperties> UPCGExDynamicPrimitiveProcessorSettings::InputPinProperties() const
 {
@@ -18,14 +18,6 @@ TArray<FPCGPinProperties> UPCGExDynamicPrimitiveProcessorSettings::InputPinPrope
 	return Empty;
 }
 
-FPCGContext* FPCGExDynamicPrimitiveProcessorElement::Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node)
-{
-	FPCGExDynamicPrimitiveProcessorContext* Context = new FPCGExDynamicPrimitiveProcessorContext();
-	InitializeContext(Context, InputData, SourceComponent, Node);
-	const UPCGExDynamicPrimitiveProcessorSettings* Settings = Context->GetInputSettings<UPCGExDynamicPrimitiveProcessorSettings>();
-	check(Settings);
-
-	return Context;
-}
+PCGEX_INITIALIZE_CONTEXT(DynamicPrimitiveProcessor)
 
 #undef LOCTEXT_NAMESPACE

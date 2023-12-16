@@ -6,7 +6,7 @@
 #include "CoreMinimal.h"
 
 #include "PCGExPathfinding.h"
-#include "Graph/PCGExGraphProcessor.h"
+#include "Graph/PCGExEdgesProcessor.h"
 
 #include "PCGExPathfindingProcessor.generated.h"
 
@@ -18,12 +18,14 @@ class UPCGExPathfindingParamsData;
 /**
  * A Base node to process a set of point using GraphParams.
  */
-UCLASS(BlueprintType, ClassGroup = (Procedural))
-class PCGEXTENDEDTOOLKIT_API UPCGExPathfindingProcessorSettings : public UPCGExGraphProcessorSettings
+UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural))
+class PCGEXTENDEDTOOLKIT_API UPCGExPathfindingProcessorSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()
 
 public:
+	UPCGExPathfindingProcessorSettings(const FObjectInitializer& ObjectInitializer);
+
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(PathfindingProcessorSettings, "Pathfinding Processor Settings", "TOOLTIP_TEXT");
@@ -35,38 +37,39 @@ public:
 
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 
-	virtual PCGExPointIO::EInit GetPointOutputInitMode() const override;
+	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	virtual bool GetRequiresSeeds() const;
 	virtual bool GetRequiresGoals() const;
 
 	/** Ignores candidates weighting pass and always favors the closest one.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced)
-	UPCGExGoalPicker* GoalPicker;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced, meta = (NoResetToDefault))
+	TObjectPtr<UPCGExGoalPicker> GoalPicker;
 
-	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced)
-	UPCGExSubPointsBlendOperation* Blending;
+	/** How to blend path points between seed & goal */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced, meta = (NoResetToDefault))
+	TObjectPtr<UPCGExSubPointsBlendOperation> Blending;
 
-	/** TBD */
+	/** Add seed point at the beginning of the path */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	bool bAddSeedToPath = true;
 
-	/** TBD */
+	/** Add goal point at the beginning of the path */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	bool bAddGoalToPath = true;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingProcessorContext : public FPCGExGraphProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingProcessorContext : public FPCGExEdgesProcessorContext
 {
 	friend class UPCGExPathfindingProcessorSettings;
 
-public:
-	UPCGExPointIO* SeedsPoints = nullptr;
-	UPCGExPointIO* GoalsPoints = nullptr;
-	UPCGExPointIOGroup* OutputPaths = nullptr;
+	virtual ~FPCGExPathfindingProcessorContext() override;
 
-	UPCGExGoalPicker* GoalPicker;
-	UPCGExSubPointsBlendOperation* Blending;
+	PCGExData::FPointIO* SeedsPoints = nullptr;
+	PCGExData::FPointIO* GoalsPoints = nullptr;
+	PCGExData::FPointIOGroup* OutputPaths = nullptr;
+
+	UPCGExGoalPicker* GoalPicker = nullptr;
+	UPCGExSubPointsBlendOperation* Blending = nullptr;
 
 	bool bAddSeedToPath = true;
 	bool bAddGoalToPath = true;
@@ -75,7 +78,7 @@ protected:
 	int64 GetGoalIndex(const FPCGPoint& Seed, int64 SeedIndex);
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExPathfindingProcessorElement : public FPCGExGraphProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExPathfindingProcessorElement : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -84,8 +87,8 @@ public:
 		const UPCGNode* Node) override;
 
 protected:
-	virtual bool Validate(FPCGContext* InContext) const override;
-	virtual void InitializeContext(
+	virtual bool Boot(FPCGContext* InContext) const override;
+	virtual FPCGContext* InitializeContext(
 		FPCGExPointsProcessorContext* InContext,
 		const FPCGDataCollection& InputData,
 		TWeakObjectPtr<UPCGComponent> SourceComponent,

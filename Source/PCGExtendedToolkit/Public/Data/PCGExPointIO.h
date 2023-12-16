@@ -9,10 +9,9 @@
 #include "Data/PCGPointData.h"
 
 #include "PCGEx.h"
+#include "Metadata/Accessors/PCGAttributeAccessorKeys.h"
 
-#include "PCGExPointIO.generated.h"
-
-namespace PCGExPointIO
+namespace PCGExData
 {
 	enum class EInit : uint8
 	{
@@ -21,224 +20,199 @@ namespace PCGExPointIO
 		DuplicateInput UMETA(DisplayName = "Duplicate Input Object"),
 		Forward UMETA(DisplayName = "Forward Input Object")
 	};
-}
-
-/**
- * 
- */
-UCLASS()
-class PCGEXTENDEDTOOLKIT_API UPCGExPointIO : public UObject
-{
-	GENERATED_BODY()
-
-public:
-	UPCGExPointIO();
-
-	FName DefaultOutputLabel = PCGEx::OutputPointsLabel;
-
-	FPCGTaggedData Source;       // Source struct
-	UPCGPointData* In = nullptr; // Input PointData
-
-	FPCGTaggedData Output;        // Source structS
-	UPCGPointData* Out = nullptr; // Output PointData
-
-	int32 NumInPoints = -1;
-
-	TMap<PCGMetadataEntryKey, int32> IndicesMap; //MetadataEntry::Index, based on Input points (output MetadataEntry will be offset)
-
-	const FPCGPoint& GetInPoint(const int32 Index) const { return In->GetPoints()[Index]; }
-	const FPCGPoint& GetOutPoint(const int32 Index) const { return Out->GetPoints()[Index]; }
-	FPCGPoint& GetMutablePoint(const int32 Index) const { return Out->GetMutablePoints()[Index]; }
-
-	const FPCGPoint* TryGetInPoint(const int32 Index) const { return In->GetPoints().IsValidIndex(Index) ? &In->GetPoints()[Index] : nullptr; }
-	const FPCGPoint* TryGetOutPoint(const int32 Index) const { return Out->GetPoints().IsValidIndex(Index) ? &Out->GetPoints()[Index] : nullptr; }
-
-	void Flush() { IndicesMap.Empty(); }
-
-	void InitPoint(FPCGPoint& Point, PCGMetadataEntryKey FromKey) const;
-	void InitPoint(FPCGPoint& Point, const FPCGPoint& FromPoint) const;
-	void InitPoint(FPCGPoint& Point) const;
-	FPCGPoint& CopyPoint(const FPCGPoint& FromPoint) const;
-	FPCGPoint& NewPoint() const;
-	void AddPoint(FPCGPoint& Point, bool bInit) const;
-	void AddPoint(FPCGPoint& Point, const FPCGPoint& FromPoint) const;
-
-	UPCGPointData* NewEmptyOutput() const;
-	UPCGPointData* NewEmptyOutput(FPCGContext* Context, FName PinLabel = NAME_None) const;
-
-protected:
-	mutable FRWLock MapLock;
-	mutable FRWLock PointsLock;
-
-public:
-	virtual ~UPCGExPointIO() override
-	{
-		IndicesMap.Empty();
-		In = nullptr;
-		Out = nullptr;
-	}
 
 	/**
 	 * 
-	 * @param InitOut Only initialize output if there is an existing input
-	 * @return 
 	 */
-	void InitializeOut(PCGExPointIO::EInit InitOut = PCGExPointIO::EInit::NoOutput);
+	struct PCGEXTENDEDTOOLKIT_API FPointIO
+	{
+		friend class FPointIOGroup;
 
-	void BuildIndices();
-	void BuildMetadataEntries();
-	void BuildMetadataEntriesAndIndices();
-	void ClearIndices();
+	protected:
+		mutable FRWLock PointsLock;
+		int32 NumInPoints = -1;
+
+		FPCGAttributeAccessorKeysPoints* InKeys = nullptr;
+		FPCGAttributeAccessorKeysPoints* OutKeys = nullptr;
+
+		const UPCGPointData* In;      // Input PointData	
+		UPCGPointData* Out = nullptr; // Output PointData
+
+		FPointIO* RootIO = nullptr;
+
+	public:
+		FPCGTaggedData Source; // Source struct
+		FPCGTaggedData Output; // Source struct
+
+		FPointIO(
+			FName InDefaultOutputLabel,
+			EInit InInit = EInit::NoOutput)
+			: In(nullptr)
+		{
+			DefaultOutputLabel = InDefaultOutputLabel;
+			NumInPoints = 0;
+			InitializeOutput(InInit);
+		}
+
+		FPointIO(
+			const FPCGTaggedData& InSource,
+			const UPCGPointData* InData,
+			FName InDefaultOutputLabel,
+			EInit InInit = EInit::NoOutput)
+			: In(InData)
+		{
+			DefaultOutputLabel = InDefaultOutputLabel;
+			Source = InSource;
+			NumInPoints = InData->GetPoints().Num();
+			InitializeOutput(InInit);
+		}
+
+		void InitializeOutput(EInit InitOut = EInit::NoOutput);
+
+		~FPointIO();
+
+		const UPCGPointData* GetIn() const;
+		int32 GetNum() const;
+		FPCGAttributeAccessorKeysPoints* CreateInKeys();
+		FPCGAttributeAccessorKeysPoints* GetInKeys() const;
+
+		UPCGPointData* GetOut() const;
+		FPCGAttributeAccessorKeysPoints* CreateOutKeys();
+		FPCGAttributeAccessorKeysPoints* GetOutKeys() const;
+
+		FName DefaultOutputLabel = PCGEx::OutputPointsLabel;
+
+		const FPCGPoint& GetInPoint(const int32 Index) const { return In->GetPoints()[Index]; }
+		const FPCGPoint& GetOutPoint(const int32 Index) const { return Out->GetPoints()[Index]; }
+		FPCGPoint& GetMutablePoint(const int32 Index) const { return Out->GetMutablePoints()[Index]; }
+
+		PCGEx::FPointRef GetInPointRef(const int32 Index) const { return PCGEx::FPointRef(In->GetPoints()[Index], Index); }
+		PCGEx::FPointRef GetOutPointRef(const int32 Index) const { return PCGEx::FPointRef(Out->GetPoints()[Index], Index); }
+
+		const FPCGPoint* TryGetInPoint(const int32 Index) const { return In && In->GetPoints().IsValidIndex(Index) ? &In->GetPoints()[Index] : nullptr; }
+		const FPCGPoint* TryGetOutPoint(const int32 Index) const { return Out && Out->GetPoints().IsValidIndex(Index) ? &Out->GetPoints()[Index] : nullptr; }
+
+		void InitPoint(FPCGPoint& Point, PCGMetadataEntryKey FromKey) const;
+		void InitPoint(FPCGPoint& Point, const FPCGPoint& FromPoint) const;
+		void InitPoint(FPCGPoint& Point) const;
+		FPCGPoint& CopyPoint(const FPCGPoint& FromPoint, int32& OutIndex) const;
+		FPCGPoint& NewPoint(int32& OutIndex) const;
+		void AddPoint(FPCGPoint& Point, int32& OutIndex, bool bInit) const;
+		void AddPoint(FPCGPoint& Point, int32& OutIndex, const FPCGPoint& FromPoint) const;
+
+		UPCGPointData* NewEmptyOutput() const;
+		UPCGPointData* NewEmptyOutput(FPCGContext* Context, FName PinLabel = NAME_None) const;
+
+		void Cleanup();
+
+		FPointIO& Branch();
+
+		/**
+		 * Write valid outputs to Context' tagged data
+		 * @param Context 
+		 * @param bEmplace if false (default), will try to use the source first
+		 */
+		bool OutputTo(FPCGContext* Context, bool bEmplace = false);
+		bool OutputTo(FPCGContext* Context, bool bEmplace, int64 MinPointCount, int64 MaxPointCount);
+	};
 
 	/**
-	 * Returns the index of the point with provided metadata key.
-	 * Make sure you built indices before calling this method.
-	 * @param Key 
-	 * @return 
+	 * 
 	 */
-	int32 GetIndex(PCGMetadataEntryKey Key) const;
-
-	/**
-	 * Write valid outputs to Context' tagged data
-	 * @param Context 
-	 * @param bEmplace if false (default), will try to use the source first
-	 */
-	bool OutputTo(FPCGContext* Context, bool bEmplace = false);
-	bool OutputTo(FPCGContext* Context, bool bEmplace, int64 MinPointCount, int64 MaxPointCount);
-
-protected:
-	bool bMetadataEntryDirty = true;
-	bool bIndicesDirty = true;
-};
-
-/**
- * 
- */
-UCLASS()
-class PCGEXTENDEDTOOLKIT_API UPCGExPointIOGroup : public UObject
-{
-	GENERATED_BODY()
-
-public:
-	UPCGExPointIOGroup();
-	UPCGExPointIOGroup(FPCGContext* Context, FName InputLabel, PCGExPointIO::EInit InitOut = PCGExPointIO::EInit::NoOutput);
-	UPCGExPointIOGroup(FPCGContext* Context, TArray<FPCGTaggedData>& Sources, PCGExPointIO::EInit InitOut = PCGExPointIO::EInit::NoOutput);
-
-	FName DefaultOutputLabel = PCGEx::OutputPointsLabel;
-	TArray<UPCGExPointIO*> Pairs;
-
-	/**
-	 * Initialize from Sources
-	 * @param Context 
-	 * @param Sources 
-	 * @param InitOut 
-	 */
-	void Initialize(
-		FPCGContext* Context, TArray<FPCGTaggedData>& Sources,
-		PCGExPointIO::EInit InitOut = PCGExPointIO::EInit::NoOutput);
-
-	void Initialize(
-		FPCGContext* Context, TArray<FPCGTaggedData>& Sources,
-		PCGExPointIO::EInit InitOut,
-		const TFunction<bool(UPCGPointData*)>& ValidateFunc,
-		const TFunction<void(UPCGExPointIO*)>& PostInitFunc);
-
-	UPCGExPointIO* Emplace_GetRef(
-		const UPCGExPointIO& PointIO,
-		const PCGExPointIO::EInit InitOut = PCGExPointIO::EInit::NoOutput);
-
-	UPCGExPointIO* Emplace_GetRef(
-		const FPCGTaggedData& Source, UPCGPointData* In,
-		const PCGExPointIO::EInit InitOut = PCGExPointIO::EInit::NoOutput);
-	UPCGExPointIO* Emplace_GetRef(UPCGPointData* In, PCGExPointIO::EInit InitOut = PCGExPointIO::EInit::NoOutput);
-
-	UPCGExPointIO* Emplace_GetRef(PCGExPointIO::EInit InitOut = PCGExPointIO::EInit::NewOutput);
-
-	bool IsEmpty() const { return Pairs.IsEmpty(); }
-	int32 Num() const { return Pairs.Num(); }
-
-	void OutputTo(FPCGContext* Context, bool bEmplace = false);
-	void OutputTo(FPCGContext* Context, bool bEmplace, const int64 MinPointCount, const int64 MaxPointCount);
-
-	void ForEach(const TFunction<void(UPCGExPointIO*, const int32)>& BodyLoop);
-
-	void Flush()
+	class PCGEXTENDEDTOOLKIT_API FPointIOGroup
 	{
-		for (UPCGExPointIO* Pair : Pairs) { Pair->Flush(); }
-		Pairs.Empty();
-	}
+	protected:
+		mutable FRWLock PairsLock;
 
-protected:
-	mutable FRWLock PairsLock;
-	TArray<bool> PairProcessingStatuses;
-	bool bProcessing = false;
-};
+	public:
+		FPointIOGroup();
+		FPointIOGroup(FPCGContext* Context, FName InputLabel, EInit InitOut = EInit::NoOutput);
+		FPointIOGroup(FPCGContext* Context, TArray<FPCGTaggedData>& Sources, EInit InitOut = EInit::NoOutput);
 
-namespace PCGExPointIO
-{
-	static UPCGPointData* GetMutablePointData(FPCGContext* Context, const FPCGTaggedData& Source)
+		~FPointIOGroup();
+
+		FName DefaultOutputLabel = PCGEx::OutputPointsLabel;
+		TArray<FPointIO> Pairs;
+
+		/**
+		 * Initialize from Sources
+		 * @param Context 
+		 * @param Sources 
+		 * @param InitOut 
+		 */
+		void Initialize(
+			FPCGContext* Context, TArray<FPCGTaggedData>& Sources,
+			EInit InitOut = EInit::NoOutput);
+
+		FPointIO& Emplace_GetRef(
+			const FPointIO& PointIO,
+			const EInit InitOut = EInit::NoOutput);
+
+		FPointIO& Emplace_GetRef(
+			const FPCGTaggedData& Source,
+			const UPCGPointData* In,
+			const EInit InitOut = EInit::NoOutput);
+		FPointIO& Emplace_GetRef(
+			const UPCGPointData* In,
+			EInit InitOut = EInit::NoOutput);
+
+		FPointIO& Emplace_GetRef(EInit InitOut = EInit::NewOutput);
+
+		bool IsEmpty() const { return Pairs.IsEmpty(); }
+		int32 Num() const { return Pairs.Num(); }
+
+		void OutputTo(FPCGContext* Context, bool bEmplace = false);
+		void OutputTo(FPCGContext* Context, bool bEmplace, const int64 MinPointCount, const int64 MaxPointCount);
+
+		void ForEach(const TFunction<void(FPointIO&, const int32)>& BodyLoop);
+
+		void Flush();
+	};
+
+	namespace PCGExPointIO
 	{
-		const UPCGSpatialData* SpatialData = Cast<UPCGSpatialData>(Source.Data);
-		if (!SpatialData) { return nullptr; }
+		static UPCGPointData* GetMutablePointData(FPCGContext* Context, const FPCGTaggedData& Source)
+		{
+			const UPCGSpatialData* SpatialData = Cast<UPCGSpatialData>(Source.Data);
+			if (!SpatialData) { return nullptr; }
 
-		const UPCGPointData* PointData = SpatialData->ToPointData(Context);
-		if (!PointData) { return nullptr; }
+			const UPCGPointData* PointData = SpatialData->ToPointData(Context);
+			if (!PointData) { return nullptr; }
 
-		return const_cast<UPCGPointData*>(PointData);
-	}
+			return const_cast<UPCGPointData*>(PointData);
+		}
 
-	static UPCGExPointIO* CreateNewPointIO(
-		const FName OutputLabel = NAME_None,
-		const EInit InitOut = EInit::NoOutput)
-	{
-		UPCGExPointIO* PointIO = NewObject<UPCGExPointIO>();
-		PointIO->DefaultOutputLabel = OutputLabel;
-		PointIO->InitializeOut(InitOut);
-		return PointIO;
-	}
+		static FPointIO* GetPointIO(
+			FPCGContext* Context,
+			const FPCGTaggedData& Source,
+			const FName OutputLabel = NAME_None,
+			const EInit InitOut = EInit::NoOutput)
+		{
+			if (const UPCGPointData* InData = GetMutablePointData(Context, Source))
+			{
+				FPointIO* PointIO = new FPointIO(Source, InData, OutputLabel, InitOut);
+				PointIO->InitializeOutput(InitOut);
+				return PointIO;
+			}
+			return nullptr;
+		}
 
+		static UPCGPointData* NewEmptyPointData(const UPCGPointData* InData = nullptr)
+		{
+			UPCGPointData* OutData = NewObject<UPCGPointData>();
+			if (InData) { OutData->InitializeFromData(InData); }
+			return OutData;
+		}
 
-	static UPCGExPointIO* CreateNewPointIO(
-		const FPCGTaggedData& Source,
-		UPCGPointData* In,
-		const FName OutputLabel = NAME_None,
-		const EInit InitOut = EInit::NoOutput)
-	{
-		UPCGExPointIO* PointIO = NewObject<UPCGExPointIO>();
-		PointIO->DefaultOutputLabel = OutputLabel;
-		PointIO->Source = Source;
-		PointIO->In = In;
-		PointIO->NumInPoints = PointIO->In->GetPoints().Num();
-		PointIO->InitializeOut(InitOut);
-		return PointIO;
-	}
+		static UPCGPointData* NewEmptyPointData(FPCGContext* Context, const FName PinLabel, const UPCGPointData* InData = nullptr)
+		{
+			UPCGPointData* OutData = NewObject<UPCGPointData>();
+			if (InData) { OutData->InitializeFromData(InData); }
+			FPCGTaggedData& OutputRef = Context->OutputData.TaggedData.Emplace_GetRef();
+			OutputRef.Data = OutData;
+			OutputRef.Pin = PinLabel;
 
-	static UPCGExPointIO* TryGetPointIO(
-		FPCGContext* Context,
-		const FPCGTaggedData& Source,
-		const FName OutputLabel = NAME_None,
-		const EInit InitOut = EInit::NoOutput)
-	{
-		UPCGPointData* InData = GetMutablePointData(Context, Source);
-		if (InData) { return CreateNewPointIO(Source, InData, OutputLabel, InitOut); }
-		return nullptr;
-	}
-
-	static UPCGPointData* NewEmptyOutput(const UPCGPointData* InData = nullptr)
-	{
-		UPCGPointData* OutData = NewObject<UPCGPointData>();
-		if (InData) { OutData->InitializeFromData(InData); }
-		return OutData;
-	}
-
-	static UPCGPointData* NewEmptyOutput(FPCGContext* Context, const FName PinLabel, const UPCGPointData* InData = nullptr)
-	{
-		UPCGPointData* OutData = NewObject<UPCGPointData>();
-		if (InData) { OutData->InitializeFromData(InData); }
-		FPCGTaggedData& OutputRef = Context->OutputData.TaggedData.Emplace_GetRef();
-		OutputRef.Data = OutData;
-		OutputRef.Pin = PinLabel;
-
-		return OutData;
+			return OutData;
+		}
 	}
 }

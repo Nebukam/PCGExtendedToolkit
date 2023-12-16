@@ -4,6 +4,7 @@
 #include "Graph/PCGExDeleteGraph.h"
 
 #define LOCTEXT_NAMESPACE "PCGExDeleteGraph"
+#define PCGEX_NAMESPACE DeleteGraph
 
 int32 UPCGExDeleteGraphSettings::GetPreferredChunkSize() const { return 32; }
 
@@ -16,37 +17,31 @@ TArray<FPCGPinProperties> UPCGExDeleteGraphSettings::OutputPinProperties() const
 
 FPCGElementPtr UPCGExDeleteGraphSettings::CreateElement() const { return MakeShared<FPCGExDeleteGraphElement>(); }
 
-PCGExPointIO::EInit UPCGExDeleteGraphSettings::GetPointOutputInitMode() const { return PCGExPointIO::EInit::DuplicateInput; }
+PCGExData::EInit UPCGExDeleteGraphSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
-FPCGContext* FPCGExDeleteGraphElement::Initialize(
-	const FPCGDataCollection& InputData,
-	TWeakObjectPtr<UPCGComponent> SourceComponent,
-	const UPCGNode* Node)
-{
-	FPCGExDeleteGraphContext* Context = new FPCGExDeleteGraphContext();
-	InitializeContext(Context, InputData, SourceComponent, Node);
-	return Context;
-}
+PCGEX_INITIALIZE_CONTEXT(DeleteGraph)
 
 bool FPCGExDeleteGraphElement::ExecuteInternal(
 	FPCGContext* InContext) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExDeleteGraphElement::Execute);
 
-	FPCGExDeleteGraphContext* Context = static_cast<FPCGExDeleteGraphContext*>(InContext);
-	if (!Validate(Context)) { return true; }
+	PCGEX_CONTEXT(DeleteGraph)
+
+	if (!Boot(Context)) { return true; }
 
 	Context->MainPoints->ForEach(
-		[&](UPCGExPointIO* PointIO, int32)
+		[&](PCGExData::FPointIO& PointIO, int32)
 		{
 			auto DeleteSockets = [&](const UPCGExGraphParamsData* Params, int32)
 			{
+				UPCGPointData* OutData = PointIO.GetOut();
 				for (const PCGExGraph::FSocket& Socket : Params->GetSocketMapping()->Sockets)
 				{
 					//TODO: Remove individual socket attributes
-					Socket.DeleteFrom(PointIO->Out);
+					Socket.DeleteFrom(OutData);
 				}
-				PointIO->Out->Metadata->DeleteAttribute(Params->CachedIndexAttributeName);
+				OutData->Metadata->DeleteAttribute(Params->CachedIndexAttributeName);
 			};
 			Context->Graphs.ForEach(Context, DeleteSockets);
 		});
@@ -57,3 +52,4 @@ bool FPCGExDeleteGraphElement::ExecuteInternal(
 }
 
 #undef LOCTEXT_NAMESPACE
+#undef PCGEX_NAMESPACE

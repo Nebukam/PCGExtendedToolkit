@@ -8,17 +8,15 @@
 #include "Helpers/PCGAsync.h"
 #include "Metadata/PCGMetadataCommon.h"
 
-#include "PCGExMT.generated.h"
-
 namespace PCGExMT
 {
 	using AsyncState = int64;
 
-	constexpr AsyncState State_Setup = TNumericLimits<int64>::Min();
-	constexpr AsyncState State_ReadyForNextPoints = 1;
-	constexpr AsyncState State_ProcessingPoints = 2;
-	constexpr AsyncState State_WaitingOnAsyncWork = 3;
-	constexpr AsyncState State_Done = TNumericLimits<int64>::Max();
+	constexpr AsyncState State_Setup = __COUNTER__;
+	constexpr AsyncState State_ReadyForNextPoints = __COUNTER__;
+	constexpr AsyncState State_ProcessingPoints = __COUNTER__;
+	constexpr AsyncState State_WaitingOnAsyncWork = __COUNTER__;
+	constexpr AsyncState State_Done = __COUNTER__;
 
 	struct PCGEXTENDEDTOOLKIT_API FChunkedLoop
 	{
@@ -67,13 +65,13 @@ namespace PCGExMT
 		}
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FAsyncChunkedLoop
+	struct PCGEXTENDEDTOOLKIT_API FAsyncParallelLoop
 	{
-		FAsyncChunkedLoop()
+		FAsyncParallelLoop()
 		{
 		}
 
-		FAsyncChunkedLoop(FPCGContext* InContext, int32 InChunkSize, bool InEnabled):
+		FAsyncParallelLoop(FPCGContext* InContext, int32 InChunkSize, bool InEnabled):
 			Context(InContext), ChunkSize(InChunkSize), bAsyncEnabled(InEnabled)
 		{
 		}
@@ -144,26 +142,6 @@ namespace PCGExMT
 		}
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FTaskInfos
-	{
-		FTaskInfos()
-		{
-		}
-
-		FTaskInfos(int32 InIndex, PCGMetadataEntryKey InKey):
-			Index(InIndex), Key(InKey)
-		{
-		}
-
-		FTaskInfos(const FTaskInfos& Other):
-			Index(Other.Index), Key(Other.Key)
-		{
-		}
-
-		int32 Index = -1;
-		PCGMetadataEntryKey Key = PCGInvalidEntryKey;
-	};
-
 	/**
 	 * 
 	 * @tparam LoopBodyFunc 
@@ -225,79 +203,110 @@ namespace PCGExMT
 	}
 }
 
-UCLASS(Blueprintable, EditInlineNew)
-class PCGEXTENDEDTOOLKIT_API UPCGExAsyncTaskManager : public UObject
+class PCGEXTENDEDTOOLKIT_API FPCGExAsyncManager
 {
-	GENERATED_BODY()
-
-	friend class FPCGExAsyncTask;
+	friend class FPCGExNonAbandonableTask;
 
 public:
+	~FPCGExAsyncManager();
+
 	mutable FRWLock ManagerLock;
 	FPCGContext* Context;
+	bool bStopped = false;
+	bool bForceSync = false;
 
 	template <typename T, typename... Args>
-	void StartTask(int32 Index, PCGMetadataAttributeKey Key, UPCGExPointIO* InPointsIO, Args... args)
+	void Start(FAsyncTask<T>* AsyncTask)
+	{
+		{
+			FWriteScopeLock WriteLock(ManagerLock);
+			NumStarted++;
+			QueuedTasks.Add(AsyncTask);
+		}
+
+		T& Task = AsyncTask->GetTask();
+		Task.TaskPtr = AsyncTask;
+
+		AsyncTask->StartBackgroundTask();
+	}
+
+	template <typename T, typename... Args>
+	void Start(int32 TaskIndex, PCGExData::FPointIO* InPointsIO, Args... args)
+	{
+		if (bForceSync) { StartSync(new FAsyncTask<T>(this, TaskIndex, InPointsIO, args...)); }
+		else { Start(new FAsyncTask<T>(this, TaskIndex, InPointsIO, args...)); }
+	}
+
+	template <typename T, typename... Args>
+	void StartSync(FAsyncTask<T>* AsyncTask)
 	{
 		{
 			FWriteScopeLock WriteLock(ManagerLock);
 			NumStarted++;
 		}
-		FAutoDeleteAsyncTask<T>* AsyncTask = new FAutoDeleteAsyncTask<T>(this, PCGExMT::FTaskInfos(Index, Key), InPointsIO, args...);
-		AsyncTask->StartBackgroundTask();
+
+		T& Task = AsyncTask->GetTask();
+		Task.TaskPtr = AsyncTask;
+
+		AsyncTask->StartSynchronousTask();
 	}
 
-	void OnAsyncTaskExecutionComplete(FPCGExAsyncTask* AsyncTask, bool bSuccess);
+	template <typename T, typename... Args>
+	void StartSync(int32 Index, PCGExData::FPointIO* InPointsIO, Args... args)
+	{
+		StartSync(new FAsyncTask<T>(this, Index, InPointsIO, args...));
+	}
+
+	void Reserve(int32 NumTasks) { QueuedTasks.Reserve(NumTasks); }
+
+	void OnAsyncTaskExecutionComplete(FPCGExNonAbandonableTask* AsyncTask, bool bSuccess);
 	bool IsAsyncWorkComplete() const;
 
-	void Reset()
-	{
-		NumStarted = 0;
-		NumCompleted = 0;
-	}
+	void Reset();
 
 	template <typename T>
 	T* GetContext() { return static_cast<T*>(Context); }
 
 protected:
+	bool bFlushing = false;
 	int32 NumStarted = 0;
 	int32 NumCompleted = 0;
-
-	bool IsValid() const;
+	TSet<FAsyncTaskBase*> QueuedTasks;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExAsyncTask : public FNonAbandonableTask
+class PCGEXTENDEDTOOLKIT_API FPCGExNonAbandonableTask : public FNonAbandonableTask
 {
 public:
-	virtual ~FPCGExAsyncTask() = default;
+	FPCGExAsyncManager* Manager = nullptr;
+	int32 TaskIndex = -1;
+	FAsyncTaskBase* TaskPtr = nullptr;
+	PCGExData::FPointIO* PointIO = nullptr;
 
-	FPCGExAsyncTask(
-		UPCGExAsyncTaskManager* InManager, const PCGExMT::FTaskInfos& InInfos, UPCGExPointIO* InPointIO) :
-		Manager(InManager), TaskInfos(InInfos), PointIO(InPointIO)
+#define PCGEX_ASYNC_CHECKPOINT_VOID  if (!Checkpoint()) { return; }
+#define PCGEX_ASYNC_CHECKPOINT  if (!Checkpoint()) { return false; }
+
+	FPCGExNonAbandonableTask(
+		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO) :
+		Manager(InManager), TaskIndex(InTaskIndex), PointIO(InPointIO)
 	{
 	}
 
 	FORCEINLINE TStatId GetStatId() const
 	{
-		RETURN_QUICK_DECLARE_CYCLE_STAT(FAsyncPointTask, STATGROUP_ThreadPoolAsyncTasks);
+		RETURN_QUICK_DECLARE_CYCLE_STAT(FPCGExAsyncTask, STATGROUP_ThreadPoolAsyncTasks);
 	}
 
 	void DoWork()
 	{
+		if (bWorkDone) { return; }
+		PCGEX_ASYNC_CHECKPOINT_VOID
+		bWorkDone = true;
 		Manager->OnAsyncTaskExecutionComplete(this, ExecuteTask());
 	}
 
 	virtual bool ExecuteTask() = 0;
 
-	UPCGExAsyncTaskManager* Manager = nullptr;
-	PCGExMT::FTaskInfos TaskInfos;
-	UPCGExPointIO* PointIO = nullptr;
-	bool bDropped = false;
-
 protected:
-	bool CanContinue() const
-	{
-		if (!Manager || !Manager->IsValid()) { return false; }
-		return true;
-	}
+	bool bWorkDone = false;
+	bool Checkpoint() const { return !(!Manager || Manager->bStopped || Manager->bFlushing); }
 };

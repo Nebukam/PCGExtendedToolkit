@@ -5,30 +5,34 @@
 
 #include "PCGComponent.h"
 #include "PCGContext.h"
+#include "Data/PCGPointData.h"
+#include "Metadata/PCGMetadata.h"
+#include "Metadata/PCGMetadataAttributeTpl.h"
 
 #include "PCGEx.generated.h"
 
 #pragma region MACROS
 
-#define PCGEX_NODE_INFOS(_SHORTNAME, _NAME, _TOOLTIP)\
-virtual FName GetDefaultNodeName() const override { return FName(TEXT(#_SHORTNAME)); } \
-virtual FText GetDefaultNodeTitle() const override { return NSLOCTEXT("PCGEx" #_SHORTNAME, "NodeTitle", "PCGEx | " _NAME);} \
-virtual FText GetNodeTooltipText() const override{ return NSLOCTEXT("PCGEx" #_SHORTNAME "Tooltip", "NodeTooltip", _TOOLTIP); }
+#define FTEXT(_TEXT) FText::FromString(FString(_TEXT))
+#define FSTRING(_TEXT) FString(FString(_TEXT))
 
-#define PCGEX_FOREACH_SUPPORTEDTYPES(MACRO) \
-MACRO(bool, Boolean)       \
-MACRO(int32, Integer32)      \
-MACRO(int64, Integer64)      \
-MACRO(float, Float)      \
-MACRO(double, Double)     \
-MACRO(FVector2D, Vector2)  \
-MACRO(FVector, Vector)    \
-MACRO(FVector4, Vector4)   \
-MACRO(FQuat, Quaternion)      \
-MACRO(FRotator, Rotator)   \
-MACRO(FTransform, Transform) \
-MACRO(FString, String)    \
-MACRO(FName, Name)
+#define PCGEX_DELETE(_VALUE) delete _VALUE; _VALUE = nullptr;
+#define PCGEX_CLEANUP(_VALUE) _VALUE.Cleanup();
+
+#define PCGEX_FOREACH_SUPPORTEDTYPES(MACRO, ...) \
+MACRO(bool, Boolean, __VA_ARGS__)       \
+MACRO(int32, Integer32, __VA_ARGS__)      \
+MACRO(int64, Integer64, __VA_ARGS__)      \
+MACRO(float, Float, __VA_ARGS__)      \
+MACRO(double, Double, __VA_ARGS__)     \
+MACRO(FVector2D, Vector2, __VA_ARGS__)  \
+MACRO(FVector, Vector, __VA_ARGS__)    \
+MACRO(FVector4, Vector4, __VA_ARGS__)   \
+MACRO(FQuat, Quaternion, __VA_ARGS__)      \
+MACRO(FRotator, Rotator, __VA_ARGS__)   \
+MACRO(FTransform, Transform, __VA_ARGS__) \
+MACRO(FString, String, __VA_ARGS__)    \
+MACRO(FName, Name, __VA_ARGS__)
 
 /**
  * Enum, Point.[Getter]
@@ -48,6 +52,17 @@ MACRO(EPCGPointProperties::Steepness, Steepness) \
 MACRO(EPCGPointProperties::LocalCenter, GetLocalCenter()) \
 MACRO(EPCGPointProperties::Seed, Seed)
 
+#define PCGEX_FOREACH_POINTPROPERTY_LEAN(MACRO)\
+MACRO(Density) \
+MACRO(BoundsMin) \
+MACRO(BoundsMax) \
+MACRO(Color) \
+MACRO(Position) \
+MACRO(Rotation) \
+MACRO(Scale) \
+MACRO(Steepness) \
+MACRO(Seed)
+
 /**
  * Name
  * @param MACRO 
@@ -65,6 +80,11 @@ MACRO(Seed)
 MACRO(EPCGExtraProperties::Index, MetadataEntry)
 
 #pragma endregion
+
+namespace PCGExData
+{
+	struct FPointIO;
+}
 
 UENUM(BlueprintType)
 enum class EPCGExOrderedFieldSelection : uint8
@@ -123,9 +143,9 @@ enum class EPCGExIndexSafety : uint8
 UENUM(BlueprintType)
 enum class EPCGExCollisionFilterType : uint8
 {
-	Channel UMETA(DisplayName = "Channel", ToolTip="TBD"),
-	ObjectType UMETA(DisplayName = "Object Type", ToolTip="TBD"),
-	Profile UMETA(DisplayName = "Profile", ToolTip="TBD"),
+	Channel UMETA(DisplayName = "Channel", ToolTip="Channel"),
+	ObjectType UMETA(DisplayName = "Object Type", ToolTip="Object Type"),
+	Profile UMETA(DisplayName = "Profile", ToolTip="Profile"),
 };
 
 UENUM(BlueprintType)
@@ -144,12 +164,37 @@ namespace PCGEx
 	constexpr FLinearColor NodeColorDebug = FLinearColor(1.0f, 0.0f, 0.0f, 1.0f);
 	constexpr FLinearColor NodeColorGraph = FLinearColor(80.0f / 255.0f, 241.0f / 255.0f, 168.0f / 255.0f, 1.0f);
 	constexpr FLinearColor NodeColorPathfinding = FLinearColor(80.0f / 255.0f, 241.0f / 255.0f, 100.0f / 255.0f, 1.0f);
-	constexpr FLinearColor NodeColorSpline = FLinearColor(50.0f / 255.0f, 150.0f / 255.0f, 241.0f / 255.0f, 1.0f);
+	constexpr FLinearColor NodeColorEdge = FLinearColor(100.0f / 255.0f, 241.0f / 255.0f, 100.0f / 255.0f, 1.0f);
+	constexpr FLinearColor NodeColorPath = FLinearColor(50.0f / 255.0f, 150.0f / 255.0f, 241.0f / 255.0f, 1.0f);
 	constexpr FLinearColor NodeColorPrimitives = FLinearColor(35.0f / 255.0f, 253.0f / 255.0f, 113.0f / 255.0f, 1.0f);
 	constexpr FLinearColor NodeColorWhite = FLinearColor(1.0f, 1.0f, 1.0f, 1.0f);
 
 	const FSoftObjectPath DefaultDotOverDistanceCurve = FSoftObjectPath(TEXT("/PCGExtendedToolkit/FC_PCGExGraphBalance_DistanceOnly.FC_PCGExGraphBalance_DistanceOnly"));
 	const FSoftObjectPath WeightDistributionLinear = FSoftObjectPath(TEXT("/PCGExtendedToolkit/FC_PCGExWeightDistribution_Linear.FC_PCGExWeightDistribution_Linear"));
+
+	struct PCGEXTENDEDTOOLKIT_API FPointRef
+	{
+		friend struct PCGExData::FPointIO;
+
+		FPointRef(const FPCGPoint& InPoint, const int32 InIndex):
+			Point(&InPoint), Index(InIndex)
+		{
+		}
+
+		FPointRef(const FPCGPoint* InPoint, const int32 InIndex):
+			Point(InPoint), Index(InIndex)
+		{
+		}
+
+		FPointRef(const FPointRef& Other):
+			Point(Other.Point), Index(Other.Index)
+		{
+		}
+
+		bool IsValid() const { return Point && Index != -1; }
+		const FPCGPoint* Point = nullptr;
+		const int32 Index = -1;
+	};
 
 	static UWorld* GetWorld(const FPCGContext* Context)
 	{
@@ -254,5 +299,13 @@ namespace PCGEx
 		case EPCGExAxis::Down:
 			return FRotationMatrix::MakeFromZY(InForward, InUp).ToQuat();
 		}
+	}
+
+	template <typename T>
+	static void Swap(TArray<T>& Array, int32 FirstIndex, int32 SecondIndex)
+	{
+		T* Ptr1 = &Array[FirstIndex];
+		T* Ptr2 = &Array[SecondIndex];
+		std::swap(*Ptr1, *Ptr2);
 	}
 }

@@ -5,8 +5,9 @@
 #include "Graph/Solvers/PCGExGraphSolver.h"
 
 #define LOCTEXT_NAMESPACE "PCGExDrawGraph"
+#define PCGEX_NAMESPACE DrawGraph
 
-PCGExPointIO::EInit UPCGExDrawGraphSettings::GetPointOutputInitMode() const { return PCGExPointIO::EInit::NoOutput; }
+PCGExData::EInit UPCGExDrawGraphSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 
 FPCGElementPtr UPCGExDrawGraphSettings::CreateElement() const
 {
@@ -35,17 +36,17 @@ void UPCGExDrawGraphSettings::PostEditChangeProperty(FPropertyChangedEvent& Prop
 }
 #endif
 
-FPCGContext* FPCGExDrawGraphElement::Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node)
+PCGEX_INITIALIZE_CONTEXT(DrawGraph)
+
+bool FPCGExDrawGraphElement::Boot(FPCGContext* InContext) const
 {
-	FPCGExDrawGraphContext* Context = new FPCGExDrawGraphContext();
-	InitializeContext(Context, InputData, SourceComponent, Node);
+	if (!FPCGExGraphProcessorElement::Boot(InContext)) { return false; }
 
-	const UPCGExDrawGraphSettings* Settings = Context->GetInputSettings<UPCGExDrawGraphSettings>();
-	check(Settings);
+	PCGEX_CONTEXT(DrawGraph)
 
-	Context->GraphSolver = Settings->EnsureInstruction<UPCGExGraphSolver>(nullptr, Context);
+	Context->GraphSolver = Context->RegisterOperation<UPCGExGraphSolver>();
 
-	return Context;
+	return true;
 }
 
 bool FPCGExDrawGraphElement::ExecuteInternal(FPCGContext* InContext) const
@@ -54,19 +55,16 @@ bool FPCGExDrawGraphElement::ExecuteInternal(FPCGContext* InContext) const
 
 #if WITH_EDITOR
 
-	FPCGExDrawGraphContext* Context = static_cast<FPCGExDrawGraphContext*>(InContext);
-
-	UPCGExDrawGraphSettings* Settings = const_cast<UPCGExDrawGraphSettings*>(Context->GetInputSettings<UPCGExDrawGraphSettings>());
-	check(Settings);
+	PCGEX_CONTEXT_AND_SETTINGS(DrawGraph)
 
 	if (Context->IsSetup())
 	{
 		if (!Settings->bDebug) { return true; }
-		if (!Validate(Context)) { return true; }
+		if (!Boot(Context)) { return true; }
 
 		if (!PCGExDebug::NotifyExecute(InContext))
 		{
-			PCGE_LOG(Error, GraphAndLog, LOCTEXT("MissingDebugManager", "Could not find a PCGEx Debug Manager node in your graph."));
+			PCGE_LOG(Error, GraphAndLog, FTEXT("Could not find a PCGEx Debug Manager node in your graph."));
 			return true;
 		}
 
@@ -75,8 +73,12 @@ bool FPCGExDrawGraphElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
-		if (!Context->AdvancePointsIO(true)) { Context->Done(); }
-		else { Context->SetState(PCGExGraph::State_ReadyForNextGraph); }
+		if (!Context->AdvancePointsIOAndResetGraph()) { Context->Done(); }
+		else
+		{
+			Context->CurrentIO->CreateInKeys();
+			Context->SetState(PCGExGraph::State_ReadyForNextGraph);
+		}
 	}
 
 	if (Context->IsState(PCGExGraph::State_ReadyForNextGraph))
@@ -93,22 +95,22 @@ bool FPCGExDrawGraphElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsState(PCGExGraph::State_ProcessingGraph))
 	{
-		auto Initialize = [&](const UPCGExPointIO* PointIO)
+		auto Initialize = [&](const PCGExData::FPointIO& PointIO)
 		{
-			Context->PrepareCurrentGraphForPoints(PointIO->In, false);
+			Context->PrepareCurrentGraphForPoints(PointIO);
 		};
 
-		auto ProcessPoint = [&](const int32 PointIndex, const UPCGExPointIO* PointIO)
+		auto ProcessPoint = [&](const int32 PointIndex, const PCGExData::FPointIO& PointIO)
 		{
-			const FPCGPoint& Point = PointIO->GetInPoint(PointIndex);
-			const FVector Start = Point.Transform.GetLocation();
+			const PCGEx::FPointRef& Point = PointIO.GetInPointRef(PointIndex);
+			const FVector Start = Point.Point->Transform.GetLocation();
 
 			TArray<PCGExGraph::FSocketProbe> Probes;
 			if ((Settings->bDrawSocketCones || Settings->bDrawSocketBox) && Context->GraphSolver) { Context->GraphSolver->PrepareProbesForPoint(Context->SocketInfos, Point, Probes); }
 
 			for (const PCGExGraph::FSocketInfos& SocketInfos : Context->SocketInfos)
 			{
-				const PCGExGraph::FSocketMetadata SocketMetadata = SocketInfos.Socket->GetData(Point.MetadataEntry);
+				const PCGExGraph::FSocketMetadata SocketMetadata = SocketInfos.Socket->GetData(PointIndex);
 
 				if (Settings->bDrawSocketCones && Context->GraphSolver)
 				{
@@ -144,7 +146,7 @@ bool FPCGExDrawGraphElement::ExecuteInternal(FPCGContext* InContext) const
 					if (SocketMetadata.Index == -1) { continue; }
 					if (static_cast<uint8>((SocketMetadata.EdgeType & static_cast<EPCGExEdgeType>(Settings->EdgeType))) == 0) { continue; }
 
-					FPCGPoint PtB = PointIO->GetInPoint(SocketMetadata.Index);
+					const FPCGPoint& PtB = PointIO.GetInPoint(SocketMetadata.Index);
 					FVector End = PtB.Transform.GetLocation();
 					float Thickness = 1.0f;
 					float ArrowSize = 0.0f;
@@ -204,10 +206,9 @@ bool FPCGExDrawGraphElement::ExecuteInternal(FPCGContext* InContext) const
 	if (Context->IsDone())
 	{
 		//Context->OutputPointsAndParams();
-		return true;
 	}
 
-	return false;
+	return Context->IsDone();
 
 #elif
 	return  true;
@@ -215,3 +216,4 @@ bool FPCGExDrawGraphElement::ExecuteInternal(FPCGContext* InContext) const
 }
 
 #undef LOCTEXT_NAMESPACE
+#undef PCGEX_NAMESPACE

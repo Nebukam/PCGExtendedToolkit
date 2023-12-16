@@ -20,7 +20,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExConsolidateGraphSettings : public UPCGExGraph
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(ConsolidateGraph, "Consolidate Graph", "Repairs and consolidate graph indices after points have been removed post graph-building.");
+	PCGEX_NODE_INFOS(ConsolidateGraph, "Graph : Consolidate", "Repairs and consolidate graph indices after points have been removed post graph-building.");
 #endif
 
 	/** Compute edge types internally. If you don't need edge types, set it to false to save some cycles.*/
@@ -33,7 +33,7 @@ protected:
 
 	virtual int32 GetPreferredChunkSize() const override;
 
-	virtual PCGExPointIO::EInit GetPointOutputInitMode() const override;
+	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 
 private:
 	friend class FPCGExConsolidateGraphElement;
@@ -60,6 +60,7 @@ public:
 		const UPCGNode* Node) override;
 
 protected:
+	virtual bool Boot(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 #if WITH_EDITOR
 	static int64 GetFixedIndex(FPCGExConsolidateGraphContext* Context, int64 InIndex);

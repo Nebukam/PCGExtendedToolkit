@@ -55,27 +55,48 @@ namespace PCGExMath
 		static FApex FromEndOnly(const FVector& End, const FVector& InApex) { return FApex(InApex, End, InApex); }
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FPathInfos
+	struct PCGEXTENDEDTOOLKIT_API FPathMetrics
 	{
-		FPathInfos()
+		FPathMetrics()
 		{
 		}
 
-		FPathInfos(const FVector& InStart)
+		explicit FPathMetrics(const FVector& InStart)
+		{
+			Add(InStart);
+		}
+
+		FPathMetrics(const FPathMetrics& Other)
+			: Start(Other.Start),
+			  Last(Other.Last),
+			  Length(Other.Length),
+			  Count(Other.Count)
+		{
+		}
+
+		FVector Start;
+		FVector Last;
+		double Length = -1;
+		int32 Count = 0;
+
+		void Reset(const FVector& InStart)
 		{
 			Start = InStart;
 			Last = InStart;
 			Length = 0;
+			Count = 1;
 		}
-
-		FVector Start = FVector::ZeroVector;
-		FVector Last = FVector::ZeroVector;
-		double Length = -1;
 
 		double Add(const FVector& Location)
 		{
+			if (Length == -1)
+			{
+				Reset(Location);
+				return 0;
+			}
 			Length += DistToLast(Location);
 			Last = Location;
+			Count++;
 			return Length;
 		}
 

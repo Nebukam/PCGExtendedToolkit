@@ -11,7 +11,7 @@
 
 #include "PCGExBuildGraph.generated.h"
 
-constexpr PCGExMT::AsyncState State_ProbingPoints = 200;
+constexpr PCGExMT::AsyncState State_ProbingPoints = __COUNTER__;
 
 /**
  * Calculates the distance between two points (inherently a n*n operation)
@@ -26,7 +26,7 @@ public:
 
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(BuildGraph, "Build Graph", "Write graph data to an attribute for each connected Graph Params. `Build Graph` uses the socket information as is.");
+	PCGEX_NODE_INFOS(BuildGraph, "Graph : Build", "Write graph data to an attribute for each connected Graph Params. `Build Graph` uses the socket information as is.");
 #endif
 
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
@@ -37,13 +37,13 @@ protected:
 
 public:
 	/** Ignores candidates weighting pass and always favors the closest one.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable, NoResetToDefault))
 	UPCGExGraphSolver* GraphSolver;
 
-	virtual FName GetMainPointsInputLabel() const override;
+	virtual FName GetMainInputLabel() const override;
 	virtual int32 GetPreferredChunkSize() const override;
 
-	virtual PCGExPointIO::EInit GetPointOutputInitMode() const override;
+	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 
 private:
 	friend class FPCGExBuildGraphElement;
@@ -54,8 +54,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBuildGraphContext : public FPCGExGraphProces
 	friend class FPCGExBuildGraphElement;
 	friend class FProbeTask;
 
-public:
-	UPCGExGraphSolver* GraphSolver;
+	virtual ~FPCGExBuildGraphContext() override;
+
+	UPCGExGraphSolver* GraphSolver = nullptr;
 	bool bMoveSocketOriginOnPointExtent = false;
 
 	UPCGPointData::PointOctree* Octree = nullptr;
@@ -71,14 +72,15 @@ public:
 		const UPCGNode* Node) override;
 
 protected:
+	virtual bool Boot(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FProbeTask : public FPCGExAsyncTask
+class PCGEXTENDEDTOOLKIT_API FProbeTask : public FPCGExNonAbandonableTask
 {
 public:
-	FProbeTask(UPCGExAsyncTaskManager* InManager, const PCGExMT::FTaskInfos& InInfos, UPCGExPointIO* InPointIO) :
-		FPCGExAsyncTask(InManager, InInfos, InPointIO)
+	FProbeTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO) :
+		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO)
 	{
 	}
 

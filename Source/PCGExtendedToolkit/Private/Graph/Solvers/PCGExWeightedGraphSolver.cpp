@@ -11,10 +11,9 @@ void UPCGExWeightedGraphSolver::InitializeProbe(PCGExGraph::FSocketProbe& Probe)
 
 bool UPCGExWeightedGraphSolver::ProcessPoint(
 	PCGExGraph::FSocketProbe& Probe,
-	const FPCGPoint& Point,
-	const int32 Index) const
+	const PCGEx::FPointRef& Point) const
 {
-	const FVector PtPosition = Point.Transform.GetLocation();
+	const FVector PtPosition = Point.Point->Transform.GetLocation();
 
 	if (!Probe.LooseBounds.IsInside(PtPosition)) { return false; }
 
@@ -33,9 +32,7 @@ bool UPCGExWeightedGraphSolver::ProcessPoint(
 
 	Candidate.Dot = Dot;
 	Candidate.Distance = PtDistance;
-
-	Candidate.Index = Index;
-	Candidate.EntryKey = Point.MetadataEntry;
+	Candidate.Index = Point.Index;
 
 	return true;
 }
@@ -84,7 +81,6 @@ void UPCGExWeightedGraphSolver::ResolveProbe(PCGExGraph::FSocketProbe& Probe) co
 			Probe.IndexedDotWeight = DotWeight;
 
 			BestCandidate.Index = Candidate.Index;
-			BestCandidate.EntryKey = Candidate.EntryKey;
 		}
 	}
 }

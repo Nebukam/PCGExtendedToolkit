@@ -6,8 +6,9 @@
 #include "PCGExPointsProcessor.h"
 
 #define LOCTEXT_NAMESPACE "PCGExDiscardByPointCountElement"
+#define PCGEX_NAMESPACE DiscardByPointCount
 
-PCGExPointIO::EInit UPCGExDiscardByPointCountSettings::GetPointOutputInitMode() const { return PCGExPointIO::EInit::NoOutput; }
+PCGExData::EInit UPCGExDiscardByPointCountSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 
 FPCGElementPtr UPCGExDiscardByPointCountSettings::CreateElement() const { return MakeShared<FPCGExDiscardByPointCountElement>(); }
 
@@ -15,27 +16,21 @@ bool FPCGExDiscardByPointCountElement::ExecuteInternal(FPCGContext* InContext) c
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExDiscardByPointCountElement::Execute);
 
-	FPCGExPointsProcessorContext* Context = static_cast<FPCGExPointsProcessorContext*>(InContext);
+	PCGEX_CONTEXT(PointsProcessor)
+	PCGEX_SETTINGS(DiscardByPointCount)
 
 	if (Context->IsSetup())
 	{
-		if (!Validate(Context)) { return true; }
+		if (!Boot(Context)) { return true; }
 	}
 
-	const UPCGExDiscardByPointCountSettings* Settings = InContext->GetInputSettings<UPCGExDiscardByPointCountSettings>();
-	check(Settings);
-
-	auto ProcessInput = [&](UPCGExPointIO* PointIO, int32)
+	auto ProcessInput = [&](PCGExData::FPointIO& PointIO, int32)
 	{
-		if ((Settings->MinPointCount > 0 && PointIO->NumInPoints < Settings->MinPointCount) ||
-			Settings->MaxPointCount > 0 && PointIO->NumInPoints < Settings->MaxPointCount)
-		{
-			return;
-		}
+		if (Settings->OutsidePointCountFilter(PointIO.GetNum())) { return; }
 
-		FPCGTaggedData& OutputRef = Context->OutputData.TaggedData.Add_GetRef(PointIO->Source);
-		OutputRef.Data = PointIO->In;
-		OutputRef.Pin = PointIO->DefaultOutputLabel;
+		FPCGTaggedData& OutputRef = Context->OutputData.TaggedData.Add_GetRef(PointIO.Source);
+		OutputRef.Data = PointIO.GetIn();
+		OutputRef.Pin = PointIO.DefaultOutputLabel;
 	};
 
 	Context->MainPoints->ForEach(ProcessInput);
@@ -43,3 +38,4 @@ bool FPCGExDiscardByPointCountElement::ExecuteInternal(FPCGContext* InContext) c
 }
 
 #undef LOCTEXT_NAMESPACE
+#undef PCGEX_NAMESPACE

@@ -4,314 +4,295 @@
 #include "Data/PCGExPointIO.h"
 
 #include "PCGExMT.h"
-#include "Helpers/PCGAsync.h"
+#include "Metadata/Accessors/PCGAttributeAccessorKeys.h"
 
-UPCGExPointIO::UPCGExPointIO(): In(nullptr), Out(nullptr), NumInPoints(-1)
+namespace PCGExData
 {
-	// Initialize other members as needed
-}
-
-void UPCGExPointIO::InitPoint(FPCGPoint& Point, PCGMetadataEntryKey FromKey) const
-{
-	Out->Metadata->InitializeOnSet(Point.MetadataEntry, FromKey, In->Metadata);
-}
-
-void UPCGExPointIO::InitPoint(FPCGPoint& Point, const FPCGPoint& FromPoint) const
-{
-	Out->Metadata->InitializeOnSet(Point.MetadataEntry, FromPoint.MetadataEntry, In->Metadata);
-}
-
-void UPCGExPointIO::InitPoint(FPCGPoint& Point) const
-{
-	Out->Metadata->InitializeOnSet(Point.MetadataEntry);
-}
-
-FPCGPoint& UPCGExPointIO::CopyPoint(const FPCGPoint& FromPoint) const
-{
-	FWriteScopeLock WriteLock(PointsLock);
-	FPCGPoint& Pt = Out->GetMutablePoints().Add_GetRef(FromPoint);
-	InitPoint(Pt, FromPoint);
-	return Pt;
-}
-
-FPCGPoint& UPCGExPointIO::NewPoint() const
-{
-	FWriteScopeLock WriteLock(PointsLock);
-	FPCGPoint& Pt = Out->GetMutablePoints().Emplace_GetRef();
-	InitPoint(Pt);
-	return Pt;
-}
-
-void UPCGExPointIO::AddPoint(FPCGPoint& Point, bool bInit = true) const
-{
-	FWriteScopeLock WriteLock(PointsLock);
-	Out->GetMutablePoints().Add(Point);
-	if (bInit) { Out->Metadata->InitializeOnSet(Point.MetadataEntry); }
-}
-
-void UPCGExPointIO::AddPoint(FPCGPoint& Point, const FPCGPoint& FromPoint) const
-{
-	FWriteScopeLock WriteLock(PointsLock);
-	Out->GetMutablePoints().Add(Point);
-	InitPoint(Point, FromPoint);
-}
-
-UPCGPointData* UPCGExPointIO::NewEmptyOutput() const
-{
-	return PCGExPointIO::NewEmptyOutput(In);
-}
-
-UPCGPointData* UPCGExPointIO::NewEmptyOutput(FPCGContext* Context, FName PinLabel) const
-{
-	UPCGPointData* OutData = PCGExPointIO::NewEmptyOutput(Context, PinLabel.IsNone() ? DefaultOutputLabel : PinLabel, In);
-	return OutData;
-}
-
-void UPCGExPointIO::InitializeOut(PCGExPointIO::EInit InitOut)
-{
-	switch (InitOut)
+	void FPointIO::InitializeOutput(const EInit InitOut)
 	{
-	case PCGExPointIO::EInit::NoOutput:
-		break;
-	case PCGExPointIO::EInit::NewOutput:
-		Out = NewObject<UPCGPointData>();
-		if (In) { Out->InitializeFromData(In); }
-		break;
-	case PCGExPointIO::EInit::DuplicateInput:
-		if (In)
+		switch (InitOut)
 		{
+		case EInit::NoOutput:
+			break;
+		case EInit::NewOutput:
+			Out = NewObject<UPCGPointData>();
+			if (In) { Out->InitializeFromData(In); }
+		//else { Out->CreateEmptyMetadata(); }
+			break;
+		case EInit::DuplicateInput:
+			check(In)
 			Out = Cast<UPCGPointData>(In->DuplicateData(true));
+			break;
+		case EInit::Forward:
+			check(In)
+			Out = const_cast<UPCGPointData*>(In);
+			break;
+		default: ;
 		}
-		else
+	}
+
+	const UPCGPointData* FPointIO::GetIn() const { return In; }
+	int32 FPointIO::GetNum() const { return In ? In->GetPoints().Num() : Out ? Out->GetPoints().Num() : -1; }
+
+	FPCGAttributeAccessorKeysPoints* FPointIO::CreateInKeys()
+	{
+		if (InKeys) { return InKeys; }
+		if (RootIO) { InKeys = RootIO->CreateInKeys(); }
+		else { InKeys = new FPCGAttributeAccessorKeysPoints(In->GetPoints()); }
+		return InKeys;
+	}
+
+	FPCGAttributeAccessorKeysPoints* FPointIO::GetInKeys() const { return InKeys; }
+
+	UPCGPointData* FPointIO::GetOut() const { return Out; }
+
+	FPCGAttributeAccessorKeysPoints* FPointIO::CreateOutKeys()
+	{
+		if (!OutKeys)
 		{
-			UE_LOG(LogTemp, Error, TEXT("Initialize::Duplicate, but no Input."));
+			const TArrayView<FPCGPoint> View(Out->GetMutablePoints());
+			OutKeys = new FPCGAttributeAccessorKeysPoints(View);
 		}
-		break;
-	case PCGExPointIO::EInit::Forward:
-		Out = In;
-		break;
-	default: ;
+		return OutKeys;
 	}
-	if (In) { NumInPoints = In->GetPoints().Num(); }
-}
 
-void UPCGExPointIO::BuildIndices()
-{
-	if (bMetadataEntryDirty) { BuildMetadataEntries(); }
-	if (!bIndicesDirty) { return; }
-	FWriteScopeLock WriteLock(MapLock);
-	const TArray<FPCGPoint>& Points = Out->GetPoints();
-	IndicesMap.Empty(NumInPoints);
-	for (int i = 0; i < NumInPoints; i++) { IndicesMap.Add(Points[i].MetadataEntry, i); }
-	bIndicesDirty = false;
-}
+	FPCGAttributeAccessorKeysPoints* FPointIO::GetOutKeys() const { return OutKeys; }
 
-void UPCGExPointIO::BuildMetadataEntries()
-{
-	if (!bMetadataEntryDirty) { return; }
-	TArray<FPCGPoint>& Points = Out->GetMutablePoints();
-	for (int i = 0; i < NumInPoints; i++)
+
+	void FPointIO::InitPoint(FPCGPoint& Point, PCGMetadataEntryKey FromKey) const
 	{
-		FPCGPoint& Point = Points[i];
-		Out->Metadata->InitializeOnSet(Point.MetadataEntry, GetInPoint(i).MetadataEntry, In->Metadata);
+		Out->Metadata->InitializeOnSet(Point.MetadataEntry, FromKey, In->Metadata);
 	}
-	bMetadataEntryDirty = false;
-	bIndicesDirty = true;
-}
 
-void UPCGExPointIO::BuildMetadataEntriesAndIndices()
-{
-	if (bMetadataEntryDirty) { BuildMetadataEntries(); }
-	if (!bIndicesDirty) { return; }
-	FWriteScopeLock WriteLock(MapLock);
-	TArray<FPCGPoint>& Points = Out->GetMutablePoints();
-	IndicesMap.Empty(NumInPoints);
-	for (int i = 0; i < NumInPoints; i++)
+	void FPointIO::InitPoint(FPCGPoint& Point, const FPCGPoint& FromPoint) const
 	{
-		FPCGPoint& Point = Points[i];
-		Out->Metadata->InitializeOnSet(Point.MetadataEntry, GetInPoint(i).MetadataEntry, In->Metadata);
-		IndicesMap.Add(Point.MetadataEntry, i);
+		Out->Metadata->InitializeOnSet(Point.MetadataEntry, FromPoint.MetadataEntry, In->Metadata);
 	}
-	bIndicesDirty = false;
-}
 
-void UPCGExPointIO::ClearIndices()
-{
-	IndicesMap.Empty();
-}
-
-int32 UPCGExPointIO::GetIndex(PCGMetadataEntryKey Key) const
-{
-	FReadScopeLock ReadLock(MapLock);
-	return *(IndicesMap.Find(Key));
-}
-
-bool UPCGExPointIO::OutputTo(FPCGContext* Context, bool bEmplace)
-{
-	if (!Out || Out->GetPoints().Num() == 0) { return false; }
-
-	if (!bEmplace)
+	void FPointIO::InitPoint(FPCGPoint& Point) const
 	{
-		if (!In)
+		Out->Metadata->InitializeOnSet(Point.MetadataEntry);
+	}
+
+	FPCGPoint& FPointIO::CopyPoint(const FPCGPoint& FromPoint, int32& OutIndex) const
+	{
+		FWriteScopeLock WriteLock(PointsLock);
+		TArray<FPCGPoint>& MutablePoints = Out->GetMutablePoints();
+		FPCGPoint& Pt = MutablePoints.Add_GetRef(FromPoint);
+		OutIndex = MutablePoints.Num() - 1;
+		InitPoint(Pt, FromPoint);
+		return Pt;
+	}
+
+	FPCGPoint& FPointIO::NewPoint(int32& OutIndex) const
+	{
+		FWriteScopeLock WriteLock(PointsLock);
+		TArray<FPCGPoint>& MutablePoints = Out->GetMutablePoints();
+		FPCGPoint& Pt = MutablePoints.Emplace_GetRef();
+		OutIndex = MutablePoints.Num() - 1;
+		InitPoint(Pt);
+		return Pt;
+	}
+
+	void FPointIO::AddPoint(FPCGPoint& Point, int32& OutIndex, bool bInit = true) const
+	{
+		FWriteScopeLock WriteLock(PointsLock);
+		TArray<FPCGPoint>& MutablePoints = Out->GetMutablePoints();
+		MutablePoints.Add(Point);
+		OutIndex = MutablePoints.Num() - 1;
+		if (bInit) { Out->Metadata->InitializeOnSet(Point.MetadataEntry); }
+	}
+
+	void FPointIO::AddPoint(FPCGPoint& Point, int32& OutIndex, const FPCGPoint& FromPoint) const
+	{
+		FWriteScopeLock WriteLock(PointsLock);
+		TArray<FPCGPoint>& MutablePoints = Out->GetMutablePoints();
+		MutablePoints.Add(Point);
+		OutIndex = MutablePoints.Num() - 1;
+		InitPoint(Point, FromPoint);
+	}
+
+	UPCGPointData* FPointIO::NewEmptyOutput() const
+	{
+		return PCGExPointIO::NewEmptyPointData(In);
+	}
+
+	UPCGPointData* FPointIO::NewEmptyOutput(FPCGContext* Context, FName PinLabel) const
+	{
+		UPCGPointData* OutData = PCGExPointIO::NewEmptyPointData(Context, PinLabel.IsNone() ? DefaultOutputLabel : PinLabel, In);
+		return OutData;
+	}
+
+	void FPointIO::Cleanup()
+	{
+		if (!RootIO) { PCGEX_DELETE(InKeys) }
+		else { InKeys = nullptr; }
+
+		PCGEX_DELETE(OutKeys)
+	}
+
+	FPointIO::~FPointIO()
+	{
+		Cleanup();
+		RootIO = nullptr;
+		In = nullptr;
+		Out = nullptr;
+	}
+
+	FPointIO& FPointIO::Branch()
+	{
+		FPointIO& Branch = *(new FPointIO(Source, GetIn(), DefaultOutputLabel, EInit::NewOutput));
+		Branch.RootIO = this;
+		return Branch;
+	}
+
+	bool FPointIO::OutputTo(FPCGContext* Context, const bool bEmplace)
+	{
+		bool bSuccess = false;
+
+		if (Out)
 		{
-			UE_LOG(LogTemp, Error, TEXT("OutputTo, bEmplace==false but no Input."));
-			return false;
+			if (!bEmplace)
+			{
+				if (In)
+				{
+					FPCGTaggedData& OutputRef = Context->OutputData.TaggedData.Add_GetRef(Source);
+					OutputRef.Data = Out;
+					OutputRef.Pin = DefaultOutputLabel;
+					bSuccess = true;
+				}
+			}
+			else
+			{
+				FPCGTaggedData& OutputRef = Context->OutputData.TaggedData.Emplace_GetRef();
+				OutputRef.Data = Out;
+				OutputRef.Pin = DefaultOutputLabel;
+				bSuccess = true;
+			}
 		}
 
-		FPCGTaggedData& OutputRef = Context->OutputData.TaggedData.Add_GetRef(Source);
-		OutputRef.Data = Out;
-		OutputRef.Pin = DefaultOutputLabel;
-		Output = OutputRef;
+		Cleanup();
+		return bSuccess;
 	}
-	else
+
+	bool FPointIO::OutputTo(FPCGContext* Context, bool bEmplace, const int64 MinPointCount, const int64 MaxPointCount)
 	{
-		FPCGTaggedData& OutputRef = Context->OutputData.TaggedData.Emplace_GetRef();
-		OutputRef.Data = Out;
-		OutputRef.Pin = DefaultOutputLabel;
-		Output = OutputRef;
+		if (Out)
+		{
+			const int64 OutNumPoints = Out->GetPoints().Num();
+
+			if ((MinPointCount >= 0 && OutNumPoints < MinPointCount) ||
+				(MaxPointCount >= 0 && OutNumPoints > MaxPointCount))
+			{
+				Cleanup();
+				return false;
+			}
+
+			return OutputTo(Context, bEmplace);
+		}
+		return false;
 	}
-	return true;
-}
 
-bool UPCGExPointIO::OutputTo(FPCGContext* Context, bool bEmplace, const int64 MinPointCount, const int64 MaxPointCount)
-{
-	if (!Out) { return false; }
-
-	const int64 OutNumPoints = Out->GetPoints().Num();
-	if (MinPointCount >= 0 && OutNumPoints < MinPointCount) { return false; }
-	if (MaxPointCount >= 0 && OutNumPoints > MaxPointCount) { return false; }
-
-	return OutputTo(Context, bEmplace);
-}
-
-UPCGExPointIOGroup::UPCGExPointIOGroup()
-{
-}
-
-UPCGExPointIOGroup::UPCGExPointIOGroup(FPCGContext* Context, FName InputLabel, PCGExPointIO::EInit InitOut)
-	: UPCGExPointIOGroup()
-{
-	TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(InputLabel);
-	Initialize(Context, Sources, InitOut);
-}
-
-UPCGExPointIOGroup::UPCGExPointIOGroup(FPCGContext* Context, TArray<FPCGTaggedData>& Sources, PCGExPointIO::EInit InitOut)
-	: UPCGExPointIOGroup()
-{
-	Initialize(Context, Sources, InitOut);
-}
-
-void UPCGExPointIOGroup::Initialize(
-	FPCGContext* Context, TArray<FPCGTaggedData>& Sources,
-	PCGExPointIO::EInit InitOut)
-{
-	Pairs.Empty(Sources.Num());
-	for (FPCGTaggedData& Source : Sources)
+	FPointIOGroup::FPointIOGroup()
 	{
-		UPCGPointData* MutablePointData = PCGExPointIO::GetMutablePointData(Context, Source);
-		if (!MutablePointData || MutablePointData->GetPoints().Num() == 0) { continue; }
-		Emplace_GetRef(Source, MutablePointData, InitOut);
 	}
-}
 
-void UPCGExPointIOGroup::Initialize(
-	FPCGContext* Context, TArray<FPCGTaggedData>& Sources,
-	PCGExPointIO::EInit InitOut,
-	const TFunction<bool(UPCGPointData*)>& ValidateFunc,
-	const TFunction<void(UPCGExPointIO*)>& PostInitFunc)
-{
-	Pairs.Empty(Sources.Num());
-	for (FPCGTaggedData& Source : Sources)
+	FPointIOGroup::FPointIOGroup(FPCGContext* Context, FName InputLabel, EInit InitOut)
+		: FPointIOGroup()
 	{
-		UPCGPointData* MutablePointData = PCGExPointIO::GetMutablePointData(Context, Source);
-		if (!MutablePointData || MutablePointData->GetPoints().Num() == 0) { continue; }
-		if (!ValidateFunc(MutablePointData)) { continue; }
-		UPCGExPointIO* NewPointIO = Emplace_GetRef(Source, MutablePointData, InitOut);
-		PostInitFunc(NewPointIO);
+		TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(InputLabel);
+		Initialize(Context, Sources, InitOut);
 	}
-}
 
-UPCGExPointIO* UPCGExPointIOGroup::Emplace_GetRef(
-	const UPCGExPointIO& PointIO,
-	const PCGExPointIO::EInit InitOut)
-{
-	return Emplace_GetRef(PointIO.Source, PointIO.In, InitOut);
-}
+	FPointIOGroup::FPointIOGroup(FPCGContext* Context, TArray<FPCGTaggedData>& Sources, EInit InitOut)
+		: FPointIOGroup()
+	{
+		Initialize(Context, Sources, InitOut);
+	}
 
-UPCGExPointIO* UPCGExPointIOGroup::Emplace_GetRef(
-	const FPCGTaggedData& Source, UPCGPointData* In,
-	const PCGExPointIO::EInit InitOut)
-{
-	UPCGExPointIO* Pair = CreateNewPointIO(Source, In, DefaultOutputLabel, InitOut);
+	FPointIOGroup::~FPointIOGroup()
+	{
+		Flush();
+	}
 
+	void FPointIOGroup::Initialize(
+		FPCGContext* Context, TArray<FPCGTaggedData>& Sources,
+		const EInit InitOut)
+	{
+		Pairs.Empty(Sources.Num());
+		for (FPCGTaggedData& Source : Sources)
+		{
+			const UPCGPointData* MutablePointData = PCGExPointIO::GetMutablePointData(Context, Source);
+			if (!MutablePointData || MutablePointData->GetPoints().Num() == 0) { continue; }
+			Emplace_GetRef(Source, MutablePointData, InitOut);
+		}
+	}
+
+	FPointIO& FPointIOGroup::Emplace_GetRef(
+		const FPointIO& PointIO,
+		const EInit InitOut)
+	{
+		FPointIO& Branch = Emplace_GetRef(PointIO.Source, PointIO.GetIn(), InitOut);
+		Branch.RootIO = const_cast<FPointIO*>(&PointIO);
+		return Branch;
+	}
+
+	FPointIO& FPointIOGroup::Emplace_GetRef(
+		const FPCGTaggedData& Source,
+		const UPCGPointData* In,
+		const EInit InitOut)
 	{
 		FWriteScopeLock WriteLock(PairsLock);
-		Pairs.Add(Pair);
+		return Pairs.Emplace_GetRef(Source, In, DefaultOutputLabel, InitOut);
 	}
 
-	return Pair;
-}
+	FPointIO& FPointIOGroup::Emplace_GetRef(
+		const UPCGPointData* In,
+		const EInit InitOut)
+	{
+		const FPCGTaggedData Source;
+		FWriteScopeLock WriteLock(PairsLock);
+		return Pairs.Emplace_GetRef(Source, In, DefaultOutputLabel, InitOut);
+	}
 
-UPCGExPointIO* UPCGExPointIOGroup::Emplace_GetRef(
-	UPCGPointData* In,
-	const PCGExPointIO::EInit InitOut)
-{
-	const FPCGTaggedData TaggedData;
-	UPCGExPointIO* Pair = CreateNewPointIO(TaggedData, In, DefaultOutputLabel, InitOut);
-
+	FPointIO& FPointIOGroup::Emplace_GetRef(const EInit InitOut)
 	{
 		FWriteScopeLock WriteLock(PairsLock);
-		Pairs.Add(Pair);
+		return Pairs.Emplace_GetRef(DefaultOutputLabel, InitOut);
 	}
 
-	return Pair;
-}
-
-UPCGExPointIO* UPCGExPointIOGroup::Emplace_GetRef(const PCGExPointIO::EInit InitOut)
-{
-	UPCGExPointIO* Pair = CreateNewPointIO(DefaultOutputLabel, InitOut);
-
+	/**
+	 * Write valid outputs to Context' tagged data
+	 * @param Context
+	 * @param bEmplace Emplace will create a new entry no matter if a Source is set, otherwise will match the In.Source. 
+	 */
+	void FPointIOGroup::OutputTo(FPCGContext* Context, const bool bEmplace)
 	{
-		FWriteScopeLock WriteLock(PairsLock);
-		Pairs.Add(Pair);
+		for (FPointIO& Pair : Pairs) { Pair.OutputTo(Context, bEmplace); }
 	}
 
-	return Pair;
-}
-
-/**
- * Write valid outputs to Context' tagged data
- * @param Context
- * @param bEmplace Emplace will create a new entry no matter if a Source is set, otherwise will match the In.Source. 
- */
-void UPCGExPointIOGroup::OutputTo(FPCGContext* Context, const bool bEmplace)
-{
-	for (UPCGExPointIO* Pair : Pairs)
+	/**
+	 * Write valid outputs to Context' tagged data
+	 * @param Context
+	 * @param bEmplace Emplace will create a new entry no matter if a Source is set, otherwise will match the In.Source.
+	 * @param MinPointCount
+	 * @param MaxPointCount 
+	 */
+	void FPointIOGroup::OutputTo(FPCGContext* Context, bool bEmplace, const int64 MinPointCount, const int64 MaxPointCount)
 	{
-		Pair->OutputTo(Context, bEmplace);
+		for (FPointIO& Pair : Pairs) { Pair.OutputTo(Context, bEmplace, MinPointCount, MaxPointCount); }
 	}
-}
 
-/**
- * Write valid outputs to Context' tagged data
- * @param Context
- * @param bEmplace Emplace will create a new entry no matter if a Source is set, otherwise will match the In.Source.
- * @param MinPointCount
- * @param MaxPointCount 
- */
-void UPCGExPointIOGroup::OutputTo(FPCGContext* Context, bool bEmplace, const int64 MinPointCount, const int64 MaxPointCount)
-{
-	for (UPCGExPointIO* Pair : Pairs)
+	void FPointIOGroup::ForEach(const TFunction<void(FPointIO&, const int32)>& BodyLoop)
 	{
-		Pair->OutputTo(Context, bEmplace, MinPointCount, MaxPointCount);
+		for (int i = 0; i < Pairs.Num(); i++)
+		{
+			BodyLoop(Pairs[i], i);
+		}
 	}
-}
 
-void UPCGExPointIOGroup::ForEach(const TFunction<void(UPCGExPointIO*, const int32)>& BodyLoop)
-{
-	for (int i = 0; i < Pairs.Num(); i++)
+	void FPointIOGroup::Flush()
 	{
-		UPCGExPointIO* PIOPair = Pairs[i];
-		BodyLoop(PIOPair, i);
+		Pairs.Empty();
 	}
 }

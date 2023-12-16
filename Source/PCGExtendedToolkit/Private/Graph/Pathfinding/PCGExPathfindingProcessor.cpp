@@ -6,12 +6,21 @@
 #include "Graph/Pathfinding/PCGExPathfinding.h"
 #include "Graph/Pathfinding/GoalPickers/PCGExGoalPicker.h"
 #include "Graph/Pathfinding/GoalPickers/PCGExGoalPickerRandom.h"
-#include "Splines/SubPoints/DataBlending/PCGExSubPointsBlendOperation.h"
-#include "Splines/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
+#include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendOperation.h"
+#include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPathfindingSettings"
+#define PCGEX_NAMESPACE PathfindingProcessor
 
 #pragma region UPCGSettings interface
+
+UPCGExPathfindingProcessorSettings::UPCGExPathfindingProcessorSettings(
+	const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
+{
+	PCGEX_DEFAULT_OPERATION(GoalPicker, UPCGExGoalPickerRandom)
+	PCGEX_DEFAULT_OPERATION(Blending, UPCGExSubPointsBlendInterpolate)
+}
 
 TArray<FPCGPinProperties> UPCGExPathfindingProcessorSettings::InputPinProperties() const
 {
@@ -22,7 +31,7 @@ TArray<FPCGPinProperties> UPCGExPathfindingProcessorSettings::InputPinProperties
 		FPCGPinProperties& PinPropertySeeds = PinProperties.Emplace_GetRef(PCGExPathfinding::SourceSeedsLabel, EPCGDataType::Point, false, false);
 
 #if WITH_EDITOR
-		PinPropertySeeds.Tooltip = LOCTEXT("PCGExSourceSeedsPinTooltip", "Seeds points for pathfinding.");
+		PinPropertySeeds.Tooltip = FTEXT("Seeds points for pathfinding.");
 #endif // WITH_EDITOR
 	}
 
@@ -31,7 +40,7 @@ TArray<FPCGPinProperties> UPCGExPathfindingProcessorSettings::InputPinProperties
 		FPCGPinProperties& PinPropertyGoals = PinProperties.Emplace_GetRef(PCGExPathfinding::SourceGoalsLabel, EPCGDataType::Point, false, false);
 
 #if WITH_EDITOR
-		PinPropertyGoals.Tooltip = LOCTEXT("PCGExSourcGoalsPinTooltip", "Goals points for pathfinding.");
+		PinPropertyGoals.Tooltip = FTEXT("Goals points for pathfinding.");
 #endif // WITH_EDITOR
 	}
 
@@ -44,7 +53,7 @@ TArray<FPCGPinProperties> UPCGExPathfindingProcessorSettings::OutputPinPropertie
 	FPCGPinProperties& PinPathsOutput = PinProperties.Emplace_GetRef(PCGExGraph::OutputPathsLabel, EPCGDataType::Point);
 
 #if WITH_EDITOR
-	PinPathsOutput.Tooltip = LOCTEXT("PCGExOutputPathsTooltip", "Paths output.");
+	PinPathsOutput.Tooltip = FTEXT("Paths output.");
 #endif // WITH_EDITOR
 
 	return PinProperties;
@@ -59,50 +68,50 @@ void UPCGExPathfindingProcessorSettings::PostEditChangeProperty(FPropertyChanged
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
 
-PCGExPointIO::EInit UPCGExPathfindingProcessorSettings::GetPointOutputInitMode() const { return PCGExPointIO::EInit::NoOutput; }
+PCGExData::EInit UPCGExPathfindingProcessorSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 bool UPCGExPathfindingProcessorSettings::GetRequiresSeeds() const { return true; }
 bool UPCGExPathfindingProcessorSettings::GetRequiresGoals() const { return true; }
 
-FPCGContext* FPCGExPathfindingProcessorElement::Initialize(
-	const FPCGDataCollection& InputData,
-	TWeakObjectPtr<UPCGComponent> SourceComponent,
-	const UPCGNode* Node)
+FPCGExPathfindingProcessorContext::~FPCGExPathfindingProcessorContext()
 {
-	FPCGExPathfindingProcessorContext* Context = new FPCGExPathfindingProcessorContext();
-	InitializeContext(Context, InputData, SourceComponent, Node);
-	return Context;
+	PCGEX_DELETE(SeedsPoints)
+	PCGEX_DELETE(GoalsPoints)
+	PCGEX_DELETE(OutputPaths)
 }
 
-bool FPCGExPathfindingProcessorElement::Validate(FPCGContext* InContext) const
+PCGEX_INITIALIZE_CONTEXT(PathfindingProcessor)
+
+bool FPCGExPathfindingProcessorElement::Boot(FPCGContext* InContext) const
 {
-	if (!FPCGExGraphProcessorElement::Validate(InContext)) { return false; }
-	const FPCGExPathfindingProcessorContext* Context = static_cast<FPCGExPathfindingProcessorContext*>(InContext);
-	const UPCGExPathfindingProcessorSettings* Settings = InContext->GetInputSettings<UPCGExPathfindingProcessorSettings>();
-	check(Settings);
+	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
+
+	PCGEX_CONTEXT_AND_SETTINGS(PathfindingProcessor)
 
 	if (Settings->GetRequiresSeeds() && !Context->SeedsPoints)
 	{
-		PCGE_LOG(Error, GraphAndLog, LOCTEXT("MissingSeeds", "Missing Input Seeds."));
+		PCGE_LOG(Error, GraphAndLog, FTEXT("Missing Input Seeds."));
 		return false;
 	}
 
 	if (Settings->GetRequiresGoals() && !Context->GoalsPoints)
 	{
-		PCGE_LOG(Error, GraphAndLog, LOCTEXT("MissingGoals", "Missing Input Goals."));
+		PCGE_LOG(Error, GraphAndLog, FTEXT("Missing Input Goals."));
 		return false;
 	}
+
+	PCGEX_BIND_OPERATION(GoalPicker, UPCGExGoalPickerRandom)
+	PCGEX_BIND_OPERATION(Blending, UPCGExSubPointsBlendInterpolate)
 
 	return true;
 }
 
-void FPCGExPathfindingProcessorElement::InitializeContext(
+FPCGContext* FPCGExPathfindingProcessorElement::InitializeContext(
 	FPCGExPointsProcessorContext* InContext,
 	const FPCGDataCollection& InputData,
 	TWeakObjectPtr<UPCGComponent> SourceComponent,
 	const UPCGNode* Node) const
 {
-	FPCGExGraphProcessorElement::InitializeContext(InContext, InputData, SourceComponent, Node);
-	FPCGExPathfindingProcessorContext* Context = static_cast<FPCGExPathfindingProcessorContext*>(InContext);
+	FPCGExPathfindingProcessorContext* Context = static_cast<FPCGExPathfindingProcessorContext*>(FPCGExEdgesProcessorElement::InitializeContext(InContext, InputData, SourceComponent, Node));
 
 	const UPCGExPathfindingProcessorSettings* Settings = InContext->GetInputSettings<UPCGExPathfindingProcessorSettings>();
 	check(Settings);
@@ -113,7 +122,7 @@ void FPCGExPathfindingProcessorElement::InitializeContext(
 			Seeds.Num() > 0)
 		{
 			const FPCGTaggedData& SeedsSource = Seeds[0];
-			Context->SeedsPoints = PCGExPointIO::TryGetPointIO(Context, SeedsSource);
+			Context->SeedsPoints = PCGExData::PCGExPointIO::GetPointIO(Context, SeedsSource);
 		}
 	}
 
@@ -123,18 +132,18 @@ void FPCGExPathfindingProcessorElement::InitializeContext(
 			Goals.Num() > 0)
 		{
 			const FPCGTaggedData& GoalsSource = Goals[0];
-			Context->GoalsPoints = PCGExPointIO::TryGetPointIO(Context, GoalsSource);
+			Context->GoalsPoints = PCGExData::PCGExPointIO::GetPointIO(Context, GoalsSource);
 		}
 	}
 
-	Context->OutputPaths = NewObject<UPCGExPointIOGroup>();
-
-	Context->GoalPicker = Settings->EnsureInstruction<UPCGExGoalPickerRandom>(Settings->GoalPicker, Context);
-	Context->Blending = Settings->EnsureInstruction<UPCGExSubPointsBlendInterpolate>(Settings->Blending, Context);
+	Context->OutputPaths = new PCGExData::FPointIOGroup();
 
 	Context->bAddSeedToPath = Settings->bAddSeedToPath;
 	Context->bAddGoalToPath = Settings->bAddGoalToPath;
+
+	return Context;
 }
 
 
 #undef LOCTEXT_NAMESPACE
+#undef PCGEX_NAMESPACE

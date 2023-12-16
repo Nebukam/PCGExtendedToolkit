@@ -11,61 +11,72 @@ UPCGExGraphParamsData::UPCGExGraphParamsData(const FObjectInitializer& ObjectIni
 {
 }
 
-bool UPCGExGraphParamsData::HasMatchingGraphData(const UPCGPointData* PointData)
+bool UPCGExGraphParamsData::HasMatchingGraphData(const UPCGPointData* PointData) const
 {
 	// Whether the data has metadata matching this GraphData block or not
-	for (const PCGExGraph::FSocket Socket : SocketMapping.Sockets)
+	for (const PCGExGraph::FSocket Socket : SocketMapping->Sockets)
 	{
 		if (!PointData->Metadata->HasAttribute(Socket.GetName())) { return false; }
 	}
 	return true;
 }
 
-void UPCGExGraphParamsData::Initialize(
-	TArray<FPCGExSocketDescriptor>& InSockets,
-	const bool bApplyOverrides,
-	FPCGExSocketGlobalOverrides& Overrides)
+void UPCGExGraphParamsData::BeginDestroy()
 {
-	SocketMapping = PCGExGraph::FSocketMapping{};
+	Cleanup();
 
-	if (bApplyOverrides) { SocketMapping.InitializeWithOverrides(GraphIdentifier, InSockets, Overrides); }
-	else { SocketMapping.Initialize(GraphIdentifier, InSockets); }
+	PCGEX_DELETE(SocketMapping);
+	SocketsDescriptors.Empty();
+	Super::BeginDestroy();
+}
+
+void UPCGExGraphParamsData::Initialize()
+{
+	SocketMapping = new PCGExGraph::FSocketMapping();
+
+	if (bApplyGlobalOverrides) { SocketMapping->InitializeWithOverrides(GraphIdentifier, SocketsDescriptors, GlobalOverrides); }
+	else { SocketMapping->Initialize(GraphIdentifier, SocketsDescriptors); }
 
 	GreatestStaticMaxDistance = 0.0;
 	bHasVariableMaxDistance = false;
 
-	for (const FPCGExSocketDescriptor& Socket : InSockets)
+	for (const FPCGExSocketDescriptor& Socket : SocketsDescriptors)
 	{
 		if (!Socket.bEnabled) { continue; }
 		if (Socket.bApplyAttributeModifier) { bHasVariableMaxDistance = true; }
-		GreatestStaticMaxDistance = FMath::Max(GreatestStaticMaxDistance, Socket.Angle.MaxDistance);
+		GreatestStaticMaxDistance = FMath::Max(GreatestStaticMaxDistance, Socket.Bounds.MaxDistance);
 	}
 
-	CachedIndexAttributeName = SocketMapping.GetCompoundName(FName("CachedIndex"));
+	CachedIndexAttributeName = SocketMapping->GetCompoundName(FName("CachedIndex"));
 }
 
-void UPCGExGraphParamsData::PrepareForPointData(const UPCGPointData* PointData, const bool bEnsureEdgeType)
+void UPCGExGraphParamsData::PrepareForPointData(const PCGExData::FPointIO& PointIO, const bool bReadOnly = true) const
 {
-	SocketMapping.PrepareForPointData(PointData, bEnsureEdgeType);
+	SocketMapping->PrepareForPointData(PointIO, bReadOnly);
 }
 
-void UPCGExGraphParamsData::GetSocketsData(const PCGMetadataEntryKey MetadataEntry, TArray<PCGExGraph::FSocketMetadata>& OutMetadata) const
+void UPCGExGraphParamsData::GetSocketsData(const int32 PointIndex, TArray<PCGExGraph::FSocketMetadata>& OutMetadata) const
 {
-	OutMetadata.Reset(SocketMapping.NumSockets);
-	for (const PCGExGraph::FSocket& Socket : SocketMapping.Sockets) { OutMetadata.Add(Socket.GetData(MetadataEntry)); }
+	OutMetadata.Reset(SocketMapping->NumSockets);
+	for (const PCGExGraph::FSocket& Socket : SocketMapping->Sockets) { OutMetadata.Add(Socket.GetData(PointIndex)); }
 }
 
-void UPCGExGraphParamsData::SetSocketsData(const PCGMetadataEntryKey MetadataEntry, TArray<PCGExGraph::FSocketMetadata>& InMetadata)
+void UPCGExGraphParamsData::SetSocketsData(const int32 PointIndex, TArray<PCGExGraph::FSocketMetadata>& InMetadata) const
 {
-	check(InMetadata.Num() == SocketMapping.NumSockets)
-	for (int i = 0; i < SocketMapping.NumSockets; i++)
+	check(InMetadata.Num() == SocketMapping->NumSockets)
+	for (int i = 0; i < SocketMapping->NumSockets; i++)
 	{
-		PCGExGraph::FSocket& Socket = SocketMapping.Sockets[i];
-		Socket.SetData(MetadataEntry, InMetadata[i]);
+		PCGExGraph::FSocket& Socket = SocketMapping->Sockets[i];
+		Socket.SetData(PointIndex, InMetadata[i]);
 	}
 }
 
-void UPCGExGraphParamsData::GetSocketsInfos(TArray<PCGExGraph::FSocketInfos>& OutInfos)
+void UPCGExGraphParamsData::GetSocketsInfos(TArray<PCGExGraph::FSocketInfos>& OutInfos) const
 {
-	SocketMapping.GetSocketsInfos(OutInfos);
+	SocketMapping->GetSocketsInfos(OutInfos);
+}
+
+void UPCGExGraphParamsData::Cleanup()
+{
+	if (SocketMapping) { SocketMapping->Cleanup(); }
 }

@@ -26,6 +26,7 @@ public:
 
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
+	bool bCacheResult = false;
 	PCGEX_NODE_INFOS(DebugSettings, "Debug Manager", "TOOLTIP_TEXT");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Debug; }
 	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorDebug; }
@@ -61,8 +62,8 @@ public:
 			FlushPersistentDebugLines(PCGEx::GetWorld(Context));
 			FlushDebugStrings(PCGEx::GetWorld(Context));
 		}
-		CurrentPingCount++;
-		if (CurrentPingCount >= DebugNodeCount) { CurrentPingCount = 0; }
+
+		if (++CurrentPingCount >= DebugNodeCount) { CurrentPingCount = 0; }
 	}
 
 	virtual void ResetPing(const FPCGContext* Context) override

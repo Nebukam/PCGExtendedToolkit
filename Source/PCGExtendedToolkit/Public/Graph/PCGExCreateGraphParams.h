@@ -41,9 +41,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSocketQualityOfLifeInfos
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	FString EdgeTypeAttribute;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
-	FString EntryKeyAttribute;
-
 	void Populate(FName Identifier, const FPCGExSocketDescriptor& Descriptor)
 	{
 		BaseName = Descriptor.SocketName.ToString();
@@ -51,7 +48,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSocketQualityOfLifeInfos
 		FullName = *(TEXT("PCGEx") + Separator + Identifier.ToString() + Separator + BaseName);
 		IndexAttribute = *(FullName + Separator + PCGExGraph::SocketPropertyNameIndex.ToString());
 		EdgeTypeAttribute = *(FullName + Separator + PCGExGraph::SocketPropertyNameEdgeType.ToString());
-		EntryKeyAttribute = *(FullName + Separator + PCGExGraph::SocketPropertyNameEntryKey.ToString());
 	}
 };
 
@@ -61,12 +57,13 @@ class PCGEXTENDEDTOOLKIT_API UPCGExCreateGraphParamsSettings : public UPCGSettin
 {
 	GENERATED_BODY()
 
+public:
 	UPCGExCreateGraphParamsSettings(const FObjectInitializer& ObjectInitializer);
 
-public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(GraphParams, "Graph Params", "Builds a collection of PCG-compatible data from the selected actors.");
+	bool bCacheResult = false;
+	PCGEX_NODE_INFOS(GraphParams, "Graph : Params", "Builds a collection of PCG-compatible data from the selected actors.");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Param; }
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif

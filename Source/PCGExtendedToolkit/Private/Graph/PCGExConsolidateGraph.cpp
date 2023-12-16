@@ -2,31 +2,30 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Graph/PCGExConsolidateGraph.h"
+#define PCGEX_NAMESPACE ConsolidateGraph
 
 #define LOCTEXT_NAMESPACE "PCGExConsolidateGraph"
 
 int32 UPCGExConsolidateGraphSettings::GetPreferredChunkSize() const { return 32; }
 
-PCGExPointIO::EInit UPCGExConsolidateGraphSettings::GetPointOutputInitMode() const { return PCGExPointIO::EInit::DuplicateInput; }
+PCGExData::EInit UPCGExConsolidateGraphSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
 FPCGElementPtr UPCGExConsolidateGraphSettings::CreateElement() const
 {
 	return MakeShared<FPCGExConsolidateGraphElement>();
 }
 
-FPCGContext* FPCGExConsolidateGraphElement::Initialize(
-	const FPCGDataCollection& InputData,
-	TWeakObjectPtr<UPCGComponent> SourceComponent,
-	const UPCGNode* Node)
+PCGEX_INITIALIZE_CONTEXT(ConsolidateGraph)
+
+bool FPCGExConsolidateGraphElement::Boot(FPCGContext* InContext) const
 {
-	FPCGExConsolidateGraphContext* Context = new FPCGExConsolidateGraphContext();
-	InitializeContext(Context, InputData, SourceComponent, Node);
+	if (!FPCGExGraphProcessorElement::Boot(InContext)) { return false; }
 
-	const UPCGExConsolidateGraphSettings* Settings = Context->GetInputSettings<UPCGExConsolidateGraphSettings>();
-	check(Settings);
+	PCGEX_CONTEXT_AND_SETTINGS(ConsolidateGraph)
 
-	Context->bConsolidateEdgeType = Settings->bConsolidateEdgeType;
-	return Context;
+	PCGEX_FWD(bConsolidateEdgeType)
+
+	return true;
 }
 
 bool FPCGExConsolidateGraphElement::ExecuteInternal(
@@ -34,11 +33,11 @@ bool FPCGExConsolidateGraphElement::ExecuteInternal(
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExConsolidateGraphElement::Execute);
 
-	FPCGExConsolidateGraphContext* Context = static_cast<FPCGExConsolidateGraphContext*>(InContext);
+	PCGEX_CONTEXT(ConsolidateGraph)
 
 	if (Context->IsSetup())
 	{
-		if (!Validate(Context)) { return true; }
+		if (!Boot(Context)) { return true; }
 		Context->SetState(PCGExGraph::State_ReadyForNextGraph);
 	}
 
@@ -50,7 +49,7 @@ bool FPCGExConsolidateGraphElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
-		if (!Context->AdvancePointsIO(false))
+		if (!Context->AdvancePointsIO())
 		{
 			Context->SetState(PCGExGraph::State_ReadyForNextGraph); //No more points, move to next params
 		}
@@ -64,20 +63,20 @@ bool FPCGExConsolidateGraphElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExGraph::State_CachingGraphIndices))
 	{
-		auto Initialize = [&](UPCGExPointIO* PointIO)
+		auto Initialize = [&](PCGExData::FPointIO& PointIO)
 		{
-			Context->IndicesRemap.Empty(PointIO->NumInPoints);
-			PointIO->BuildMetadataEntries();
-			Context->PrepareCurrentGraphForPoints(PointIO->Out, true); // Prepare to read PointIO->Out
+			Context->IndicesRemap.Empty(PointIO.GetNum());
+			//PointIO.GetInKeys();
+			//PointIO.GetOutKeys();
+			Context->PrepareCurrentGraphForPoints(PointIO, false); // Prepare to read PointIO->Out
 		};
 
-		auto ProcessPoint = [&](const int32 PointIndex, const UPCGExPointIO* PointIO)
+		auto ProcessPoint = [&](const int32 PointIndex, const PCGExData::FPointIO& PointIO)
 		{
 			FWriteScopeLock WriteLock(Context->IndicesLock);
-			const int64 Key = PointIO->GetOutPoint(PointIndex).MetadataEntry;
-			const int64 CachedIndex = Context->CachedIndex->GetValueFromItemKey(Key);
+			const int32 CachedIndex = Context->GetCachedIndex(PointIndex);
 			Context->IndicesRemap.Add(CachedIndex, PointIndex); // Store previous
-			Context->CachedIndex->SetValue(Key, PointIndex);    // Update cached value with fresh one
+			Context->SetCachedIndex(PointIndex, PointIndex);    // Update cached value with fresh one
 		};
 
 
@@ -91,25 +90,21 @@ bool FPCGExConsolidateGraphElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExGraph::State_SwappingGraphIndices))
 	{
-		auto ConsolidatePoint = [&](const int32 PointIndex, const UPCGExPointIO* PointIO)
+		auto ConsolidatePoint = [&](const int32 PointIndex, const PCGExData::FPointIO& PointIO)
 		{
 			FReadScopeLock ReadLock(Context->IndicesLock);
-			const FPCGPoint& Point = PointIO->GetOutPoint(PointIndex);
+			const FPCGPoint& Point = PointIO.GetOutPoint(PointIndex);
 			for (const PCGExGraph::FSocketInfos& SocketInfos : Context->SocketInfos)
 			{
-				const int64 OldRelationIndex = SocketInfos.Socket->GetTargetIndex(Point.MetadataEntry);
+				const int32 OldRelationIndex = SocketInfos.Socket->GetTargetIndex(PointIndex);
 
 				if (OldRelationIndex == -1) { continue; } // No need to fix further
 
-				const int64 NewRelationIndex = GetFixedIndex(Context, OldRelationIndex);
-				const PCGMetadataEntryKey Key = Point.MetadataEntry;
-				PCGMetadataEntryKey NewEntryKey = PCGInvalidEntryKey;
+				const int32 NewRelationIndex = GetFixedIndex(Context, OldRelationIndex);
 
-				if (NewRelationIndex != -1) { NewEntryKey = PointIO->GetOutPoint(NewRelationIndex).MetadataEntry; }
-				else { SocketInfos.Socket->SetEdgeType(Key, EPCGExEdgeType::Unknown); }
+				if (NewRelationIndex == -1) { SocketInfos.Socket->SetEdgeType(PointIndex, EPCGExEdgeType::Unknown); }
 
-				SocketInfos.Socket->SetTargetIndex(Key, NewRelationIndex);
-				SocketInfos.Socket->SetTargetEntryKey(Key, NewEntryKey);
+				SocketInfos.Socket->SetTargetIndex(PointIndex, NewRelationIndex);
 			}
 		};
 
@@ -123,9 +118,9 @@ bool FPCGExConsolidateGraphElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExGraph::State_FindingEdgeTypes))
 	{
-		auto ConsolidateEdgesType = [&](const int32 PointIndex, const UPCGExPointIO* PointIO)
+		auto ConsolidateEdgesType = [&](const int32 PointIndex, const PCGExData::FPointIO& PointIO)
 		{
-			ComputeEdgeType(Context->SocketInfos, PointIO->GetOutPoint(PointIndex), PointIndex, PointIO);
+			ComputeEdgeType(Context->SocketInfos, PointIndex);
 		};
 
 		if (Context->ProcessCurrentPoints(ConsolidateEdgesType))
@@ -139,11 +134,10 @@ bool FPCGExConsolidateGraphElement::ExecuteInternal(
 	if (Context->IsDone())
 	{
 		Context->IndicesRemap.Empty();
-		Context->OutputPointsAndParams();
-		return true;
+		Context->OutputPointsAndGraphParams();
 	}
 
-	return false;
+	return Context->IsDone();
 }
 
 int64 FPCGExConsolidateGraphElement::GetFixedIndex(FPCGExConsolidateGraphContext* Context, int64 InIndex)
@@ -153,3 +147,4 @@ int64 FPCGExConsolidateGraphElement::GetFixedIndex(FPCGExConsolidateGraphContext
 }
 
 #undef LOCTEXT_NAMESPACE
+#undef PCGEX_NAMESPACE

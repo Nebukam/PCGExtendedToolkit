@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExMT.h"
 #include "Data/PCGExAttributeHelpers.h"
 
 #include "PCGExPathfinding.generated.h"
@@ -29,148 +30,24 @@ enum class EPCGExPathPointOrientation : uint8
 	LookAtNext UMETA(DisplayName = "Look at Next", Tooltip="Orientation is set so the point forward axis looks at the next point"),
 };
 
-USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExPathPointOrientSettings
-{
-	GENERATED_BODY()
-
-	FPCGExPathPointOrientSettings()
-	{
-	}
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
-	EPCGExPathPointOrientation Mode = EPCGExPathPointOrientation::None;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="Mode!=EPCGExPathPointOrientation::None"))
-	EPCGExAxis Axis = EPCGExAxis::Forward;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="!bUseCustomUp", EditConditionHides))
-	EPCGExAxis UpAxis = EPCGExAxis::Up;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="bUseUpAxis", EditConditionHides))
-	bool bUseCustomUp = false;
-
-	void OrientNextOnly(FTransform& InTransform, const FVector& Next) const
-	{
-		if (Mode == EPCGExPathPointOrientation::None) { return; }
-		if (Mode != EPCGExPathPointOrientation::Average)
-		{
-			if (!bUseCustomUp)
-			{
-				InTransform.SetRotation(PCGEx::MakeDirection(Axis, (InTransform.GetLocation() - Next), PCGEx::GetDirection(UpAxis)));
-			}
-			else
-			{
-				InTransform.SetRotation(PCGEx::MakeDirection(Axis, (InTransform.GetLocation() - Next)));
-			}
-			return;
-		}
-
-		const PCGExMath::FApex Apex = PCGExMath::FApex::FromEndOnly(Next, InTransform.GetLocation());
-		if (!bUseCustomUp)
-		{
-			InTransform.SetRotation(PCGEx::MakeDirection(Axis, Apex.Direction, PCGEx::GetDirection(UpAxis)));
-		}
-		else
-		{
-			InTransform.SetRotation(PCGEx::MakeDirection(Axis, Apex.Direction));
-		}
-	}
-
-
-	void Orient(FTransform& InTransform, const FVector& Previous, const FVector& Next) const
-	{
-		if (Mode == EPCGExPathPointOrientation::None) { return; }
-		if (Mode == EPCGExPathPointOrientation::LookAtNext)
-		{
-			if (!bUseCustomUp)
-			{
-				InTransform.SetRotation(PCGEx::MakeDirection(Axis, (InTransform.GetLocation() - Next), PCGEx::GetDirection(UpAxis)));
-			}
-			else
-			{
-				InTransform.SetRotation(PCGEx::MakeDirection(Axis, (InTransform.GetLocation() - Next)));
-			}
-			return;
-		}
-
-		const PCGExMath::FApex Apex = PCGExMath::FApex(Previous, Next, InTransform.GetLocation());
-
-		if (Mode == EPCGExPathPointOrientation::Average)
-		{
-			if (!bUseCustomUp)
-			{
-				InTransform.SetRotation(PCGEx::MakeDirection(Axis, Apex.Direction, PCGEx::GetDirection(UpAxis)));
-			}
-			else
-			{
-				InTransform.SetRotation(PCGEx::MakeDirection(Axis, Apex.Direction));
-			}
-		}
-		else if (Mode == EPCGExPathPointOrientation::Weighted || Mode == EPCGExPathPointOrientation::WeightedInverse)
-		{
-			const FVector DirToPrev = (Previous - InTransform.GetLocation());
-			const FVector DirToNext = (InTransform.GetLocation() - Next);
-			double Weight = Apex.Alpha;
-			if (Mode == EPCGExPathPointOrientation::WeightedInverse) { Weight = 1 - Weight; }
-			if (!bUseCustomUp)
-			{
-				InTransform.SetRotation(PCGEx::MakeDirection(Axis, FMath::Lerp(DirToPrev, DirToNext, 1 - Weight), PCGEx::GetDirection(UpAxis)));
-			}
-			else
-			{
-				InTransform.SetRotation(PCGEx::MakeDirection(Axis, FMath::Lerp(DirToPrev, DirToNext, 1 - Weight)));
-			}
-		}
-	}
-
-	void OrientPreviousOnly(FTransform& InTransform, const FVector& Previous) const
-	{
-		if (Mode == EPCGExPathPointOrientation::None) { return; }
-
-		if (Mode != EPCGExPathPointOrientation::Average)
-		{
-			if (!bUseCustomUp)
-			{
-				InTransform.SetRotation(PCGEx::MakeDirection(Axis, (Previous - InTransform.GetLocation()), PCGEx::GetDirection(UpAxis)));
-			}
-			else
-			{
-				InTransform.SetRotation(PCGEx::MakeDirection(Axis, (Previous - InTransform.GetLocation())));
-			}
-			return;
-		}
-
-		const PCGExMath::FApex Apex = PCGExMath::FApex::FromStartOnly(Previous, InTransform.GetLocation());
-		if (!bUseCustomUp)
-		{
-			InTransform.SetRotation(PCGEx::MakeDirection(Axis, Apex.Direction, PCGEx::GetDirection(UpAxis)));
-		}
-		else
-		{
-			InTransform.SetRotation(PCGEx::MakeDirection(Axis, Apex.Direction));
-		}
-	}
-};
-
-/*
-UINTERFACE(MinimalAPI)
-class UPCGExPathfindingFindNextPoint : public UInterface
-{
-	GENERATED_BODY()
-};
-
-class PCGEXTENDEDTOOLKIT_API IPCGExPathfindingFindNextPoint
-{
-	GENERATED_BODY()
-
-public:
-	UFUNCTION(BlueprintImplementableEvent, Category = "Pathfinding")
-	int32 GetNextPoint(TArray<int32> Neighbors) const;
-};
-*/
 namespace PCGExPathfinding
 {
 	const FName SourceSeedsLabel = TEXT("Seeds");
 	const FName SourceGoalsLabel = TEXT("Goals");
+
+	constexpr PCGExMT::AsyncState State_Pathfinding = __COUNTER__;
+	constexpr PCGExMT::AsyncState State_WaitingPathfinding = __COUNTER__;
+
+	struct PCGEXTENDEDTOOLKIT_API FPath
+	{
+		FPath(const int32 InSeedIndex, const FVector& InStart, const int32 InGoalIndex, const FVector& InEnd):
+			SeedIndex(InSeedIndex), StartPosition(InStart), GoalIndex(InGoalIndex), EndPosition(InEnd)
+		{
+		}
+
+		int32 SeedIndex = -1;
+		FVector StartPosition;
+		int32 GoalIndex = -1;
+		FVector EndPosition;
+	};
 }

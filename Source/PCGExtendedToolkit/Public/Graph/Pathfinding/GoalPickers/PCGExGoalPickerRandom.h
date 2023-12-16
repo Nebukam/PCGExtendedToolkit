@@ -35,7 +35,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="GoalCount==EPCGExGoalPickRandomAmount::Random", EditConditionHides))
 	int32 NumGoals = 5;
 
-	virtual int32 GetGoalIndex(const FPCGPoint& Seed, const int32 SeedIndex) const override;
-	virtual void GetGoalIndices(const FPCGPoint& Seed, TArray<int32>& OutIndices) const override;
+	virtual int32 GetGoalIndex(const PCGEx::FPointRef& Seed) const override;
+	virtual void GetGoalIndices(const PCGEx::FPointRef& Seed, TArray<int32>& OutIndices) const override;
 	virtual bool OutputMultipleGoals() const override;
 };

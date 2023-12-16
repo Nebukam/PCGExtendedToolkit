@@ -22,7 +22,7 @@ public:
 	PCGEX_NODE_INFOS(WriteIndex, "Write Index", "Write the current point index to an attribute.");
 #endif
 
-	virtual PCGExPointIO::EInit GetPointOutputInitMode() const override;
+	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
@@ -30,11 +30,11 @@ protected:
 
 public:
 	/** The name of the attribute to write its index to.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bOutputNormalizedIndex = false;
 
 	/** The name of the attribute to write its index to.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FName OutputAttributeName = "CurrentIndex";
 };
 
@@ -42,12 +42,17 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExWriteIndexContext : public FPCGExPointsProce
 {
 	friend class FPCGExWriteIndexElement;
 
-public:
+	virtual ~FPCGExWriteIndexContext() override;
+
 	mutable FRWLock MapLock;
 	bool bOutputNormalizedIndex;
-	FName OutName = NAME_None;
-	TMap<UPCGExPointIO*, FPCGMetadataAttribute<int64>*> AttributeMap;
-	TMap<UPCGExPointIO*, FPCGMetadataAttribute<double>*> NormalizedAttributeMap;
+	FName OutputAttributeName = NAME_None;
+
+	TArray<int32> IndicesBuffer;
+	PCGEx::FAttributeAccessor<int32>* IndexAccessor = nullptr;
+
+	TArray<double> NormalizedIndicesBuffer;
+	PCGEx::FAttributeAccessor<double>* NormalizedIndexAccessor = nullptr;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExWriteIndexElement : public FPCGExPointsProcessorElementBase
@@ -57,8 +62,8 @@ public:
 		const FPCGDataCollection& InputData,
 		TWeakObjectPtr<UPCGComponent> SourceComponent,
 		const UPCGNode* Node) override;
-	virtual bool Validate(FPCGContext* InContext) const override;
 
 protected:
+	virtual bool Boot(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };

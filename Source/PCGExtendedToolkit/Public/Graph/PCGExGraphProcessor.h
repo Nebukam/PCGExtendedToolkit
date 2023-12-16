@@ -14,7 +14,7 @@ class UPCGExGraphParamsData;
 /**
  * A Base node to process a set of point using GraphParams.
  */
-UCLASS(BlueprintType, ClassGroup = (Procedural))
+UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural))
 class PCGEXTENDEDTOOLKIT_API UPCGExGraphProcessorSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
@@ -30,38 +30,44 @@ public:
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 	//~End UPCGSettings interface
 
-	virtual FName GetMainPointsInputLabel() const override;
-	virtual FName GetMainPointsOutputLabel() const override;
+	virtual FName GetMainInputLabel() const override;
+	virtual FName GetMainOutputLabel() const override;
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExGraphProcessorContext : public FPCGExPointsProcessorContext
 {
 	friend class UPCGExGraphProcessorSettings;
 
-public:
-	PCGExGraph::FGraphInputs Graphs;
+	virtual ~FPCGExGraphProcessorContext() override;
 
-	int32 GetCurrentParamsIndex() const { return CurrentParamsIndex; };
+	bool bReadOnly = false;
+	PCGExGraph::FGraphInputs Graphs;
+	int32 MergedInputSocketsNum = 0;
+
 	UPCGExGraphParamsData* CurrentGraph = nullptr;
 
 	bool AdvanceGraph(bool bResetPointsIndex = false);
-	bool AdvancePointsIO(bool bResetParamsIndex = false);
+	bool AdvancePointsIOAndResetGraph();
 
 	virtual void Reset() override;
 
-	FPCGMetadataAttribute<int64>* CachedIndex;
+	void SetCachedIndex(const int32 PointIndex, const int32 Index) const;
+	int32 GetCachedIndex(const int32 PointIndex) const;
+
 	TArray<PCGExGraph::FSocketInfos> SocketInfos;
 
-	void PrepareCurrentGraphForPoints(const UPCGPointData* InData, bool bEnsureEdgeType);
+	void PrepareCurrentGraphForPoints(const PCGExData::FPointIO& PointIO, const bool ReadOnly = true);
 	void OutputGraphParams() { Graphs.OutputTo(this); }
 
-	void OutputPointsAndParams()
+	void OutputPointsAndGraphParams()
 	{
 		OutputPoints();
 		OutputGraphParams();
 	}
 
 protected:
+	PCGEx::TFAttributeReader<int32>* CachedIndexReader = nullptr;
+	PCGEx::TFAttributeWriter<int32>* CachedIndexWriter = nullptr;
 	int32 CurrentParamsIndex = -1;
 };
 
@@ -74,8 +80,8 @@ public:
 		const UPCGNode* Node) override;
 
 protected:
-	virtual bool Validate(FPCGContext* InContext) const override;
-	virtual void InitializeContext(
+	virtual bool Boot(FPCGContext* InContext) const override;
+	virtual FPCGContext* InitializeContext(
 		FPCGExPointsProcessorContext* InContext,
 		const FPCGDataCollection& InputData,
 		TWeakObjectPtr<UPCGComponent> SourceComponent,

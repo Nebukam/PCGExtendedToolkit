@@ -17,7 +17,7 @@ TArray<FPCGPinProperties> UPCGExGraphProcessorSettings::InputPinProperties() con
 	FPCGPinProperties& PinPropertyParams = PinProperties.Emplace_GetRef(PCGExGraph::SourceParamsLabel, EPCGDataType::Param);
 
 #if WITH_EDITOR
-	PinPropertyParams.Tooltip = LOCTEXT("PCGExSourceParamsPinTooltip", "Graph Params. Data is de-duped internally.");
+	PinPropertyParams.Tooltip = FTEXT("Graph Params. Data is de-duped internally.");
 #endif // WITH_EDITOR
 
 	return PinProperties;
@@ -29,22 +29,36 @@ TArray<FPCGPinProperties> UPCGExGraphProcessorSettings::OutputPinProperties() co
 	FPCGPinProperties& PinParamsOutput = PinProperties.Emplace_GetRef(PCGExGraph::OutputParamsLabel, EPCGDataType::Param);
 
 #if WITH_EDITOR
-	PinParamsOutput.Tooltip = LOCTEXT("PCGExOutputParamsTooltip", "Graph Params forwarding. Data is de-duped internally.");
+	PinParamsOutput.Tooltip = FTEXT("Graph Params forwarding. Data is de-duped internally.");
 #endif // WITH_EDITOR
 
 	return PinProperties;
 }
 
-FName UPCGExGraphProcessorSettings::GetMainPointsInputLabel() const { return PCGExGraph::SourceGraphsLabel; }
-FName UPCGExGraphProcessorSettings::GetMainPointsOutputLabel() const { return PCGExGraph::OutputGraphsLabel; }
+FName UPCGExGraphProcessorSettings::GetMainInputLabel() const { return PCGExGraph::SourceGraphsLabel; }
+FName UPCGExGraphProcessorSettings::GetMainOutputLabel() const { return PCGExGraph::OutputGraphsLabel; }
+
+FPCGExGraphProcessorContext::~FPCGExGraphProcessorContext()
+{
+	PCGEX_TERMINATE_ASYNC
+
+	PCGEX_DELETE(CachedIndexReader)
+	PCGEX_DELETE(CachedIndexWriter)
+
+	SocketInfos.Empty();
+
+	if (CurrentGraph) { CurrentGraph->Cleanup(); }
+}
 
 #pragma endregion
 
 bool FPCGExGraphProcessorContext::AdvanceGraph(bool bResetPointsIndex)
 {
 	if (bResetPointsIndex) { CurrentPointsIndex = -1; }
-	CurrentParamsIndex++;
-	if (Graphs.Params.IsValidIndex(CurrentParamsIndex))
+
+	if (CurrentGraph) { CurrentGraph->Cleanup(); }
+
+	if (Graphs.Params.IsValidIndex(++CurrentParamsIndex))
 	{
 		CurrentGraph = Graphs.Params[CurrentParamsIndex];
 		CurrentGraph->GetSocketsInfos(SocketInfos);
@@ -55,10 +69,10 @@ bool FPCGExGraphProcessorContext::AdvanceGraph(bool bResetPointsIndex)
 	return false;
 }
 
-bool FPCGExGraphProcessorContext::AdvancePointsIO(bool bResetParamsIndex)
+bool FPCGExGraphProcessorContext::AdvancePointsIOAndResetGraph()
 {
-	if (bResetParamsIndex) { CurrentParamsIndex = -1; }
-	return FPCGExPointsProcessorContext::AdvancePointsIO();
+	CurrentParamsIndex = -1;
+	return AdvancePointsIO();
 }
 
 void FPCGExGraphProcessorContext::Reset()
@@ -67,38 +81,58 @@ void FPCGExGraphProcessorContext::Reset()
 	CurrentParamsIndex = -1;
 }
 
-void FPCGExGraphProcessorContext::PrepareCurrentGraphForPoints(const UPCGPointData* InData, bool bEnsureEdgeType)
+void FPCGExGraphProcessorContext::SetCachedIndex(const int32 PointIndex, const int32 Index) const
 {
-	CachedIndex = InData->Metadata->FindOrCreateAttribute<int64>(CurrentGraph->CachedIndexAttributeName, -1, false);
-	CurrentGraph->PrepareForPointData(InData, bEnsureEdgeType);
+	check(!bReadOnly)
+	(*CachedIndexWriter)[PointIndex] = Index;
 }
 
-FPCGContext* FPCGExGraphProcessorElement::Initialize(
-	const FPCGDataCollection& InputData,
-	TWeakObjectPtr<UPCGComponent> SourceComponent,
-	const UPCGNode* Node)
+int32 FPCGExGraphProcessorContext::GetCachedIndex(const int32 PointIndex) const
 {
-	FPCGExGraphProcessorContext* Context = new FPCGExGraphProcessorContext();
-	InitializeContext(Context, InputData, SourceComponent, Node);
-	return Context;
+	if (bReadOnly) { return (*CachedIndexReader)[PointIndex]; }
+	return (*CachedIndexWriter)[PointIndex];
 }
 
-bool FPCGExGraphProcessorElement::Validate(FPCGContext* InContext) const
+void FPCGExGraphProcessorContext::PrepareCurrentGraphForPoints(const PCGExData::FPointIO& PointIO, const bool ReadOnly)
 {
-	if (!FPCGExPointsProcessorElementBase::Validate(InContext)) { return false; }
+	bReadOnly = ReadOnly;
+	if (bReadOnly)
+	{
+		PCGEX_DELETE(CachedIndexWriter)
+		if (!CachedIndexReader) { CachedIndexReader = new PCGEx::TFAttributeReader<int32>(CurrentGraph->CachedIndexAttributeName); }
+		CachedIndexReader->Bind(const_cast<PCGExData::FPointIO&>(PointIO));
+	}
+	else
+	{
+		PCGEX_DELETE(CachedIndexReader)
+		if (!CachedIndexWriter) { CachedIndexWriter = new PCGEx::TFAttributeWriter<int32>(CurrentGraph->CachedIndexAttributeName, -1, false); }
+		CachedIndexWriter->BindAndGet(const_cast<PCGExData::FPointIO&>(PointIO));
+	}
 
-	const FPCGExGraphProcessorContext* Context = static_cast<FPCGExGraphProcessorContext*>(InContext);
+	CurrentGraph->PrepareForPointData(PointIO, bReadOnly);
+}
+
+PCGEX_INITIALIZE_CONTEXT(GraphProcessor)
+
+bool FPCGExGraphProcessorElement::Boot(FPCGContext* InContext) const
+{
+	if (!FPCGExPointsProcessorElementBase::Boot(InContext)) { return false; }
+
+	PCGEX_CONTEXT(GraphProcessor)
 
 	if (Context->Graphs.IsEmpty())
 	{
-		PCGE_LOG(Error, GraphAndLog, LOCTEXT("MissingParams", "Missing Input Params."));
+		PCGE_LOG(Error, GraphAndLog, FTEXT("Missing Input Params."));
 		return false;
 	}
+
+	Context->MergedInputSocketsNum = 0;
+	for (const UPCGExGraphParamsData* Graph : Context->Graphs.Params) { Context->MergedInputSocketsNum += Graph->GetSocketMapping()->NumSockets; }
 
 	return true;
 }
 
-void FPCGExGraphProcessorElement::InitializeContext(
+FPCGContext* FPCGExGraphProcessorElement::InitializeContext(
 	FPCGExPointsProcessorContext* InContext,
 	const FPCGDataCollection& InputData,
 	TWeakObjectPtr<UPCGComponent> SourceComponent,
@@ -106,10 +140,12 @@ void FPCGExGraphProcessorElement::InitializeContext(
 {
 	FPCGExPointsProcessorElementBase::InitializeContext(InContext, InputData, SourceComponent, Node);
 
-	FPCGExGraphProcessorContext* Context = static_cast<FPCGExGraphProcessorContext*>(InContext);
+	PCGEX_CONTEXT(GraphProcessor)
 
 	TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(PCGExGraph::SourceParamsLabel);
 	Context->Graphs.Initialize(InContext, Sources);
+
+	return Context;
 }
 
 

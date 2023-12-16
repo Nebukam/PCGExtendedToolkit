@@ -19,11 +19,11 @@ class PCGEXTENDEDTOOLKIT_API UPCGExPrimitiveProcessorSettings : public UPCGExPoi
 
 public:
 	UPCGExPrimitiveProcessorSettings(const FObjectInitializer& ObjectInitializer);
-	virtual PCGExPointIO::EInit GetPointOutputInitMode() const override;
+	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(PrimitiveProcessor, "PrimitiveProcessor", "Processes paths segments.");
+	PCGEX_NODE_INFOS(PrimitiveProcessor, "PrimitiveProcessor", "TOOLTIP");
 	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorPrimitives; }
 #endif
 

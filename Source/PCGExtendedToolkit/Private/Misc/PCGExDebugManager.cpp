@@ -8,6 +8,7 @@
 #include "PCGPin.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
+#define PCGEX_NAMESPACE Debug
 
 #pragma region UPCGSettings interface
 
@@ -74,3 +75,4 @@ bool FPCGExDebugElement::ExecuteInternal(FPCGContext* Context) const
 }
 
 #undef LOCTEXT_NAMESPACE
+#undef PCGEX_NAMESPACE

@@ -38,6 +38,8 @@ namespace PCGExDataBlending
 		{
 		}
 
+		FPropertiesBlender(const FPCGExBlendingSettings& Settings);
+
 		FPropertiesBlender(const FPropertiesBlender& Other):
 #define PCGEX_BLEND_COPY(_TYPE, _NAME) bAverage##_NAME(Other.bAverage##_NAME), _NAME##Blending(Other._NAME##Blending),
 			PCGEX_FOREACH_BLEND_POINTPROPERTY(PCGEX_BLEND_COPY)
@@ -47,12 +49,20 @@ namespace PCGExDataBlending
 		{
 		}
 
-		void Init(const FPCGExBlendingSettings& Settings);
-		void Init(const FPCGExPointPropertyBlendingOverrides& Blendings, EPCGExDataBlendingType InDefaultBlending);
-		void PrepareBlending(FPCGPoint& Target, const FPCGPoint& Source) const;
+		void Init(const FPCGExBlendingSettings& BlendingSettings);
+		void Init(const FPCGExPointPropertyBlendingOverrides& BlendingOverrides, EPCGExDataBlendingType InDefaultBlending);
+
+		void PrepareBlending(FPCGPoint& Target, const FPCGPoint& Source);
 		void Blend(const FPCGPoint& A, const FPCGPoint& B, FPCGPoint& Target, double Alpha);
-		void BlendSingle(const FPCGPoint& A, const FPCGPoint& B, FPCGPoint& Target, double Alpha);
 		void CompleteBlending(FPCGPoint& Target);
+
+		void BlendOnce(const FPCGPoint& A, const FPCGPoint& B, FPCGPoint& Target, double Alpha);
+
+		void PrepareRangeBlending(const FPCGPoint& A, const TArrayView<FPCGPoint>& Targets);
+		void BlendRange(const FPCGPoint& From, const FPCGPoint& To, TArrayView<FPCGPoint>& Targets, const TArrayView<double>& Alpha);
+		void CompleteRangeBlending(const TArrayView<FPCGPoint>& Targets);
+
+		void BlendRangeOnce(const FPCGPoint& A, const FPCGPoint& B, TArrayView<FPCGPoint>& Targets, const TArrayView<double>& Alphas);
 	};
 }
 

@@ -18,7 +18,7 @@ public:
 
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(PromoteEdges, "Promote Edges", "Promote graph edges to points.");
+	PCGEX_NODE_INFOS(PromoteEdges, "Edges : Promote", "Promote edges to points or small paths.");
 	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorPathfinding; }
 #endif
 
@@ -28,18 +28,18 @@ protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings interface
 
-	virtual FName GetMainPointsOutputLabel() const override;
+	virtual FName GetMainOutputLabel() const override;
 
 public:
 	virtual int32 GetPreferredChunkSize() const override;
-	virtual PCGExPointIO::EInit GetPointOutputInitMode() const override;
+	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 
 public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExEdgeType"))
 	uint8 EdgeType = static_cast<uint8>(EPCGExEdgeType::Complete);
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced)
-	UPCGExEdgePromotion* Promotion;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced, meta = (NoResetToDefault))
+	TObjectPtr<UPCGExEdgePromotion> Promotion;
 
 private:
 	friend class FPCGExPromoteEdgesElement;
@@ -58,9 +58,6 @@ public:
 	mutable FRWLock EdgeLock;
 
 	UPCGExEdgePromotion* Promotion;
-
-protected:
-	PCGExMT::FAsyncChunkedLoop AsyncEdgesLoop;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExPromoteEdgesElement : public FPCGExGraphProcessorElement
@@ -72,5 +69,6 @@ public:
 		const UPCGNode* Node) override;
 
 protected:
+	virtual bool Boot(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };

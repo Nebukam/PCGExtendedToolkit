@@ -4,41 +4,43 @@
 #include "Graph/PCGExBuildGraph.h"
 
 #define LOCTEXT_NAMESPACE "PCGExBuildGraph"
+#define PCGEX_NAMESPACE BuildGraph
 
 int32 UPCGExBuildGraphSettings::GetPreferredChunkSize() const { return 32; }
-PCGExPointIO::EInit UPCGExBuildGraphSettings::GetPointOutputInitMode() const { return PCGExPointIO::EInit::DuplicateInput; }
+PCGExData::EInit UPCGExBuildGraphSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
+
+FPCGExBuildGraphContext::~FPCGExBuildGraphContext()
+{
+	PCGEX_TERMINATE_ASYNC
+}
 
 UPCGExBuildGraphSettings::UPCGExBuildGraphSettings(
 	const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	GraphSolver = EnsureInstruction<UPCGExGraphSolver>(GraphSolver);
+	PCGEX_DEFAULT_OPERATION(GraphSolver, UPCGExGraphSolver)
 }
 
 void UPCGExBuildGraphSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
-	GraphSolver = EnsureInstruction<UPCGExGraphSolver>(GraphSolver);
 	if (GraphSolver) { GraphSolver->UpdateUserFacingInfos(); }
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
 
 FPCGElementPtr UPCGExBuildGraphSettings::CreateElement() const { return MakeShared<FPCGExBuildGraphElement>(); }
-FName UPCGExBuildGraphSettings::GetMainPointsInputLabel() const { return PCGEx::SourcePointsLabel; }
+FName UPCGExBuildGraphSettings::GetMainInputLabel() const { return PCGEx::SourcePointsLabel; }
 
-FPCGContext* FPCGExBuildGraphElement::Initialize(
-	const FPCGDataCollection& InputData,
-	TWeakObjectPtr<UPCGComponent> SourceComponent,
-	const UPCGNode* Node)
+PCGEX_INITIALIZE_CONTEXT(BuildGraph)
+
+bool FPCGExBuildGraphElement::Boot(FPCGContext* InContext) const
 {
-	FPCGExBuildGraphContext* Context = new FPCGExBuildGraphContext();
-	InitializeContext(Context, InputData, SourceComponent, Node);
+	if (!FPCGExGraphProcessorElement::Boot(InContext)) { return false; }
 
-	const UPCGExBuildGraphSettings* Settings = Context->GetInputSettings<UPCGExBuildGraphSettings>();
-	check(Settings);
+	PCGEX_CONTEXT_AND_SETTINGS(BuildGraph)
 
-	Context->GraphSolver = Settings->EnsureInstruction<UPCGExGraphSolver>(Settings->GraphSolver, Context);
+	PCGEX_BIND_OPERATION(GraphSolver, UPCGExGraphSolver)
 
-	return Context;
+	return true;
 }
 
 bool FPCGExBuildGraphElement::ExecuteInternal(
@@ -46,39 +48,26 @@ bool FPCGExBuildGraphElement::ExecuteInternal(
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExBuildGraphElement::Execute);
 
-	FPCGExBuildGraphContext* Context = static_cast<FPCGExBuildGraphContext*>(InContext);
+	PCGEX_CONTEXT(BuildGraph)
 
 	if (Context->IsSetup())
 	{
-		if (!Validate(Context)) { return true; }
+		if (!Boot(Context)) { return true; }
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
 	// Prep point for param loops
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
-		if (Context->CurrentIO)
-		{
-			//Cleanup current PointIO, indices won't be needed anymore.
-			Context->CurrentIO->Flush();
-		}
-
-		if (!Context->AdvancePointsIO(true))
-		{
-			Context->Done(); //No more points
-		}
-		else
-		{
-			//Context->CurrentIO->BuildMetadataEntriesAndIndices(); // Required to retrieve index when using the Octree
-			Context->CurrentIO->BuildMetadataEntries();
-			Context->SetState(PCGExGraph::State_ReadyForNextGraph);
-		}
+		if (!Context->AdvancePointsIOAndResetGraph()) { Context->Done(); }
+		else { Context->SetState(PCGExGraph::State_ReadyForNextGraph); }
 	}
 
 	if (Context->IsState(PCGExGraph::State_ReadyForNextGraph))
 	{
 		if (!Context->AdvanceGraph())
 		{
+			Context->CurrentIO->Cleanup();
 			Context->SetState(PCGExMT::State_ReadyForNextPoints);
 			return false;
 		}
@@ -90,90 +79,81 @@ bool FPCGExBuildGraphElement::ExecuteInternal(
 
 	if (Context->IsState(State_ProbingPoints))
 	{
-		auto Initialize = [&](const UPCGExPointIO* PointIO)
+		auto Initialize = [&](PCGExData::FPointIO& PointIO)
 		{
-			Context->PrepareCurrentGraphForPoints(PointIO->Out, true);
+			PointIO.CreateInKeys();
+			PointIO.CreateOutKeys();
+			Context->PrepareCurrentGraphForPoints(PointIO, false);
 		};
 
-		auto ProcessPoint = [&](const int32 PointIndex, const UPCGExPointIO* PointIO)
+		auto ProcessPoint = [&](const int32 PointIndex, const PCGExData::FPointIO& PointIO)
 		{
-			Context->GetAsyncManager()->StartTask<FProbeTask>(PointIndex, PointIO->GetInPoint(PointIndex).MetadataEntry, Context->CurrentIO);
+			Context->GetAsyncManager()->Start<FProbeTask>(PointIndex, Context->CurrentIO);
 		};
 
-		if (Context->ProcessCurrentPoints(Initialize, ProcessPoint)) { Context->StartAsyncWait(); }
+		if (Context->ProcessCurrentPoints(Initialize, ProcessPoint)) { Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork); }
 	}
 
 	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
 	{
-		if (Context->IsAsyncWorkComplete()) { Context->StopAsyncWait(PCGExGraph::State_FindingEdgeTypes); }
+		if (Context->IsAsyncWorkComplete()) { Context->SetState(PCGExGraph::State_FindingEdgeTypes); }
 	}
 
 	if (Context->IsState(PCGExGraph::State_FindingEdgeTypes))
 	{
 		// Process params again for edges types
-		auto ProcessPointEdgeType = [&](const int32 PointIndex, const UPCGExPointIO* PointIO)
+		auto ProcessPointEdgeType = [&](const int32 PointIndex, const PCGExData::FPointIO& PointIO)
 		{
-			ComputeEdgeType(Context->SocketInfos, PointIO->GetOutPoint(PointIndex), PointIndex, PointIO);
+			ComputeEdgeType(Context->SocketInfos, PointIndex);
 		};
 
-		if (Context->ProcessCurrentPoints(ProcessPointEdgeType)) { Context->SetState(PCGExGraph::State_ReadyForNextGraph); }
+		if (Context->ProcessCurrentPoints(ProcessPointEdgeType))
+		{
+			for (const PCGExGraph::FSocketInfos& SocketInfos : Context->SocketInfos) { SocketInfos.Socket->Write(); }
+			Context->SetState(PCGExGraph::State_ReadyForNextGraph);
+		}
 	}
 
-	if (Context->IsDone())
-	{
-		Context->OutputPointsAndParams();
-		return true;
-	}
+	if (Context->IsDone()) { Context->OutputPointsAndGraphParams(); }
 
-	return false;
+	return Context->IsDone();
 }
 
 bool FProbeTask::ExecuteTask()
 {
-	if (!CanContinue()) { return false; }
-
 	const FPCGExBuildGraphContext* Context = Manager->GetContext<FPCGExBuildGraphContext>();
+	PCGEX_ASYNC_CHECKPOINT
 
-	const FPCGPoint& Point = PointIO->GetOutPoint(TaskInfos.Index);
-	Context->CachedIndex->SetValue(Point.MetadataEntry, TaskInfos.Index); // Cache index
+	const PCGEx::FPointRef Point = PCGEx::FPointRef(PointIO->GetOutPoint(TaskIndex), TaskIndex);
+
+	Context->SetCachedIndex(TaskIndex, TaskIndex);
 
 	TArray<PCGExGraph::FSocketProbe> Probes;
 	const double MaxDistance = Context->GraphSolver->PrepareProbesForPoint(Context->SocketInfos, Point, Probes);
 
-	const FBoxCenterAndExtent Box = FBoxCenterAndExtent(Point.Transform.GetLocation(), FVector(MaxDistance));
-	/*
-	Context->Octree->FindElementsWithBoundsTest(
-		Box, [&](const FPCGPointRef& OtherPointRef)
-		{
-			const FPCGPoint& OtherPoint = *OtherPointRef.Point;
-			int Index = PointData->GetIndex(OtherPoint.MetadataEntry);
-			if (Index == Infos.Index) { return; }
-			for (PCGExGraph::FSocketProbe& Probe : Probes) { Context->GraphSolver->ProcessPoint(Probe, OtherPoint, Index); }
-		});
-	*/
+	const FBox Box = FBoxCenterAndExtent(Point.Point->Transform.GetLocation(), FVector(MaxDistance)).GetBox();
 
-	// This looks bad, but for some reason it's MUCH faster than using the Octree.
-	const FBox BBox = Box.GetBox();
-	const TArray<FPCGPoint>& InPoints = PointIO->In->GetPoints();
+	const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
 	for (int i = 0; i < InPoints.Num(); i++)
 	{
 		if (const FPCGPoint& Pt = InPoints[i];
-			BBox.IsInside(Pt.Transform.GetLocation()))
+			Box.IsInside(Pt.Transform.GetLocation()))
 		{
-			for (PCGExGraph::FSocketProbe& Probe : Probes) { Context->GraphSolver->ProcessPoint(Probe, Pt, i); }
+			const PCGEx::FPointRef& OtherPoint = PointIO->GetOutPointRef(i);
+			for (PCGExGraph::FSocketProbe& Probe : Probes) { Context->GraphSolver->ProcessPoint(Probe, OtherPoint); }
 		}
 	}
 
-	if (!CanContinue()) { return false; }
-
-	const PCGMetadataEntryKey Key = Point.MetadataEntry;
 	for (PCGExGraph::FSocketProbe& Probe : Probes)
 	{
 		Context->GraphSolver->ResolveProbe(Probe);
-		Probe.OutputTo(Key);
+		PCGEX_ASYNC_CHECKPOINT
+		Probe.OutputTo(Point.Index);
+		PCGEX_CLEANUP(Probe)
 	}
 
 	return true;
 }
 
 #undef LOCTEXT_NAMESPACE
+#undef PCGEX_NAMESPACE

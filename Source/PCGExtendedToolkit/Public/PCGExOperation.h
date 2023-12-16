@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Data/PCGExPointIO.h"
 #include "UObject/Object.h"
 #include "PCGExOperation.generated.h"
 
@@ -11,7 +12,7 @@ struct FPCGExPointsProcessorContext;
 /**
  * 
  */
-UCLASS(Blueprintable, EditInlineNew)
+UCLASS(Abstract, Blueprintable)
 class PCGEXTENDEDTOOLKIT_API UPCGExOperation : public UObject
 {
 	GENERATED_BODY()
@@ -19,7 +20,10 @@ class PCGEXTENDEDTOOLKIT_API UPCGExOperation : public UObject
 public:
 	void BindContext(FPCGExPointsProcessorContext* InContext);
 	virtual void UpdateUserFacingInfos();
+	virtual void Cleanup();
+
+	virtual void BeginDestroy() override;
 
 protected:
-	FPCGExPointsProcessorContext* Context;
+	FPCGExPointsProcessorContext* Context = nullptr;
 };
