@@ -4,6 +4,7 @@
 #include "Data/PCGExPolyLineIO.h"
 
 #include "PCGContext.h"
+#include "PCGEx.h"
 #include "Data/PCGIntersectionData.h"
 #include "Data/PCGSplineData.h"
 
@@ -114,7 +115,7 @@ namespace PCGExData
 
 	FPolyLineIOGroup::~FPolyLineIOGroup()
 	{
-		Lines.Empty();
+		PCGEX_DELETE_TARRAY(Lines, FPolyLineIO)
 	}
 
 	FPolyLineIO* FPolyLineIOGroup::Emplace_GetRef(const FPolyLineIO& PointIO)
@@ -124,7 +125,7 @@ namespace PCGExData
 
 	FPolyLineIO* FPolyLineIOGroup::Emplace_GetRef(const FPCGTaggedData& Source, const UPCGPolyLineData* In)
 	{
-		FPolyLineIO* Line = &Lines.Emplace_GetRef(*In);
+		FPolyLineIO* Line = Lines.Add_GetRef(new FPolyLineIO(*In));
 		Line->Source = Source;
 		return Line;
 	}
@@ -133,9 +134,9 @@ namespace PCGExData
 	{
 		double MinDistance = TNumericLimits<double>::Max();
 		bool bFound = false;
-		for (FPolyLineIO& Line : Lines)
+		for (FPolyLineIO*& Line : Lines)
 		{
-			FTransform Transform = Line.SampleNearestTransform(Location, OutTime);
+			FTransform Transform = Line->SampleNearestTransform(Location, OutTime);
 			if (const double SqrDist = FVector::DistSquared(Location, Transform.GetLocation());
 				SqrDist < MinDistance)
 			{
@@ -151,10 +152,10 @@ namespace PCGExData
 	{
 		double MinDistance = TNumericLimits<double>::Max();
 		bool bFound = false;
-		for (FPolyLineIO& Line : Lines)
+		for (FPolyLineIO* Line : Lines)
 		{
 			FTransform Transform;
-			if (!Line.SampleNearestTransform(Location, Range, Transform, OutTime)) { continue; }
+			if (!Line->SampleNearestTransform(Location, Range, Transform, OutTime)) { continue; }
 			if (const double SqrDist = FVector::DistSquared(Location, Transform.GetLocation());
 				SqrDist < MinDistance)
 			{

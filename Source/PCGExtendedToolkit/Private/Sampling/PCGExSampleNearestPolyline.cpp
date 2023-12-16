@@ -204,20 +204,20 @@ bool FSamplePolylineTask::ExecuteTask()
 	// First: Sample all possible targets
 	if (RangeMax > 0)
 	{
-		for (PCGExData::FPolyLineIO& Line : Context->Targets->Lines)
+		for (PCGExData::FPolyLineIO* Line : Context->Targets->Lines)
 		{
 			FTransform SampledTransform;
 			double Time;
-			if (!Line.SampleNearestTransform(Origin, FMath::Sqrt(RangeMax), SampledTransform, Time)) { continue; }
+			if (!Line->SampleNearestTransform(Origin, FMath::Sqrt(RangeMax), SampledTransform, Time)) { continue; }
 			ProcessTarget(SampledTransform, Time);
 		}
 	}
 	else
 	{
-		for (PCGExData::FPolyLineIO& Line : Context->Targets->Lines)
+		for (PCGExData::FPolyLineIO* Line : Context->Targets->Lines)
 		{
 			double Time;
-			ProcessTarget(Line.SampleNearestTransform(Origin, Time), Time);
+			ProcessTarget(Line->SampleNearestTransform(Origin, Time), Time);
 		}
 	}
 

@@ -95,7 +95,7 @@ namespace PCGExData
 
 		~FPolyLineIOGroup();
 
-		TArray<FPolyLineIO> Lines;
+		TArray<FPolyLineIO*> Lines;
 
 		FPolyLineIO* Emplace_GetRef(const FPolyLineIO& PolyLine);
 

@@ -293,7 +293,6 @@ namespace PCGExData
 
 	void FPointIOGroup::Flush()
 	{
-		for (const FPointIO* Pair : Pairs) { delete Pair; }
-		Pairs.Empty();
+		PCGEX_DELETE_TARRAY(Pairs, FPointIO)
 	}
 }
