@@ -34,7 +34,7 @@ bool FPCGExSortPointsElement::ExecuteInternal(FPCGContext* InContext) const
 
 	auto SortPointIO = [&](int32 Index)
 	{
-		PCGExData::FPointIO& PointIO = Context->MainPoints->Pairs[Index];
+		PCGExData::FPointIO& PointIO = *Context->MainPoints->Pairs[Index];
 		TArray<FPCGExSortRule> Rules;
 		Rules.Reserve(Settings->Rules.Num());
 

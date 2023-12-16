@@ -5,9 +5,6 @@
 
 #include "PCGComponent.h"
 #include "PCGContext.h"
-#include "Data/PCGPointData.h"
-#include "Metadata/PCGMetadata.h"
-#include "Metadata/PCGMetadataAttributeTpl.h"
 
 #include "PCGEx.generated.h"
 

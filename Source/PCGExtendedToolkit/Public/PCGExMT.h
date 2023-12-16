@@ -6,7 +6,6 @@
 #include "PCGContext.h"
 #include "Data/PCGExPointIO.h"
 #include "Helpers/PCGAsync.h"
-#include "Metadata/PCGMetadataCommon.h"
 
 namespace PCGExMT
 {

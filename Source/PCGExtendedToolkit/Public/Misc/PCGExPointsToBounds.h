@@ -42,7 +42,7 @@ public:
 
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(PointsToBounds, "Fuse to Bounds", "Merge points group to a single point representing their bounds.");
+	PCGEX_NODE_INFOS(PointsToBounds, "Points to Bounds", "Merge points group to a single point representing their bounds.");
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
 
@@ -53,9 +53,17 @@ protected:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 
 public:
-	/** Defines how fused point properties and attributes are merged together. */
+	/** Defines how fused point properties and attributes are merged into the final point. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	FPCGExBlendingSettings BlendingSettings;
+
+	/** Write point counts */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(InlineEditConditionToggle))
+	bool bWritePointsCount = false;
+
+	/** Attribute to write points count to */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="bWritePointsCount"))
+	FName PointsCountAttributeName = NAME_None;
 
 private:
 	friend class FPCGExPointsToBoundsElement;
@@ -74,7 +82,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsToBoundsContext : public FPCGExPointsP
 	PCGExDataBlending::FPropertiesBlender* PropertyBlender;
 
 	TArray<FPCGPoint>* OutPoints;
-
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExPointsToBoundsElement : public FPCGExPointsProcessorElementBase

@@ -5,7 +5,6 @@
 
 #include "PCGComponent.h"
 #include "PCGContext.h"
-#include "PCGEx.h"
 #include "PCGGraph.h"
 
 #include "IPCGExDebug.generated.h"

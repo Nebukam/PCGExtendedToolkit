@@ -3,13 +3,9 @@
 
 #include "Graph/Pathfinding/PCGExPathfindingEdges.h"
 
-#include "NavigationSystem.h"
-
 #include "PCGExPointsProcessor.h"
 #include "Graph/PCGExGraph.h"
 #include "Graph/Pathfinding/GoalPickers/PCGExGoalPickerRandom.h"
-#include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
-#include "Paths/SubPoints/Orient/PCGExSubPointsOrientAverage.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPathfindingEdgesElement"
 #define PCGEX_NAMESPACE PathfindingEdges
@@ -64,7 +60,7 @@ bool FPCGExPathfindingEdgesElement::ExecuteInternal(FPCGContext* InContext) cons
 			auto NavMeshTask = [&](int32 InGoalIndex)
 			{
 				PCGExData::FPointIO& PathPoints = Context->OutputPaths->Emplace_GetRef(PointIO.GetIn(), PCGExData::EInit::NewOutput);
-				Context->GetAsyncManager()->Start<FSampleIslandPathTask>(
+				Context->GetAsyncManager()->Start<FSampleMeshPathTask>(
 					PointIndex, Context->CurrentIO,
 					InGoalIndex, &PathPoints);
 			};
@@ -105,7 +101,7 @@ bool FPCGExPathfindingEdgesElement::ExecuteInternal(FPCGContext* InContext) cons
 	return Context->IsDone();
 }
 
-bool FSampleIslandPathTask::ExecuteTask()
+bool FSampleMeshPathTask::ExecuteTask()
 {
 	FPCGExPathfindingEdgesContext* Context = Manager->GetContext<FPCGExPathfindingEdgesContext>();
 	PCGEX_ASYNC_CHECKPOINT

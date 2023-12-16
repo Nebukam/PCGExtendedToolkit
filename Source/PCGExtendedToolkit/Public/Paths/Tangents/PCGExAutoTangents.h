@@ -4,9 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExMath.h"
 #include "PCGExTangentsOperation.h"
-#include "Metadata/PCGMetadataAttributeTpl.h"
 #include "PCGExAutoTangents.generated.h"
 
 /**

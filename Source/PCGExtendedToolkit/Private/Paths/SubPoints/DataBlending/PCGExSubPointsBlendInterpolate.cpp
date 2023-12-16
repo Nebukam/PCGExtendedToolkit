@@ -4,8 +4,6 @@
 
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
 
-#include "Data/PCGExPointIO.h"
-
 EPCGExDataBlendingType UPCGExSubPointsBlendInterpolate::GetDefaultBlending()
 {
 	return EPCGExDataBlendingType::Weight;

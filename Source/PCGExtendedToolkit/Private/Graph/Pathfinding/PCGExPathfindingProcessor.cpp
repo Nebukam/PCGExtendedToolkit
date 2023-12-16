@@ -6,7 +6,6 @@
 #include "Graph/Pathfinding/PCGExPathfinding.h"
 #include "Graph/Pathfinding/GoalPickers/PCGExGoalPicker.h"
 #include "Graph/Pathfinding/GoalPickers/PCGExGoalPickerRandom.h"
-#include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendOperation.h"
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPathfindingSettings"
@@ -19,7 +18,7 @@ UPCGExPathfindingProcessorSettings::UPCGExPathfindingProcessorSettings(
 	: Super(ObjectInitializer)
 {
 	PCGEX_DEFAULT_OPERATION(GoalPicker, UPCGExGoalPickerRandom)
-	PCGEX_DEFAULT_OPERATION(Blending, UPCGExSubPointsBlendInterpolate)
+	//PCGEX_DEFAULT_OPERATION(Blending, UPCGExSubPointsBlendInterpolate)
 }
 
 TArray<FPCGPinProperties> UPCGExPathfindingProcessorSettings::InputPinProperties() const
@@ -64,7 +63,7 @@ TArray<FPCGPinProperties> UPCGExPathfindingProcessorSettings::OutputPinPropertie
 void UPCGExPathfindingProcessorSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	if (GoalPicker) { GoalPicker->UpdateUserFacingInfos(); }
-	if (Blending) { Blending->UpdateUserFacingInfos(); }
+	//if (Blending) { Blending->UpdateUserFacingInfos(); }
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
 
@@ -100,7 +99,7 @@ bool FPCGExPathfindingProcessorElement::Boot(FPCGContext* InContext) const
 	}
 
 	PCGEX_BIND_OPERATION(GoalPicker, UPCGExGoalPickerRandom)
-	PCGEX_BIND_OPERATION(Blending, UPCGExSubPointsBlendInterpolate)
+	//PCGEX_BIND_OPERATION(Blending, UPCGExSubPointsBlendInterpolate)
 
 	return true;
 }

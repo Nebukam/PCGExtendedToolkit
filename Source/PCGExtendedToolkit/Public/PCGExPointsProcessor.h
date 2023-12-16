@@ -234,8 +234,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : public FPCGContext
 	template <typename T>
 	T* RegisterOperation(UPCGExOperation* Operation = nullptr)
 	{
-		T* RetValue = nullptr;
-
+		T* RetValue;
 		if (!Operation)
 		{
 			RetValue = NewObject<T>();

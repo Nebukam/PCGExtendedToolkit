@@ -5,7 +5,6 @@
 
 #include "CoreMinimal.h"
 #include "PCGExMT.h"
-#include "Data/PCGExAttributeHelpers.h"
 
 #include "PCGExPathfinding.generated.h"
 

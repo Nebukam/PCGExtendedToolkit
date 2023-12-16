@@ -5,8 +5,6 @@
 
 #include "CoreMinimal.h"
 
-#include "Data/PCGExPointIO.h"
-#include "Data/PCGExAttributeHelpers.h"
 #include "PCGExMT.h"
 
 #include "PCGExEdge.generated.h"

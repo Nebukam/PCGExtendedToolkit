@@ -181,7 +181,10 @@ bool FPCGExFindEdgeIslandsElement::ExecuteInternal(
 				Context->CurrentIO->GetOut()->Metadata->DeleteAttribute(PCGExGraph::PUIDAttributeName); // Unmark
 				Context->SetState(PCGExMT::State_ReadyForNextPoints);
 			}
-			else { Context->SetAsyncState(PCGExGraph::State_WaitingOnWritingIslands); }
+			else
+			{
+				Context->SetAsyncState(PCGExGraph::State_WaitingOnWritingIslands);
+			}
 		}
 		else
 		{
@@ -250,25 +253,6 @@ bool FPCGExFindEdgeIslandsElement::ExecuteInternal(
 	if (Context->IsDone()) { Context->OutputPoints(); }
 
 	return Context->IsDone();
-}
-
-bool FInsertEdgeTask::ExecuteTask()
-{
-	const FPCGExFindEdgeIslandsContext* Context = Manager->GetContext<FPCGExFindEdgeIslandsContext>();
-	PCGEX_ASYNC_CHECKPOINT
-
-	FWriteScopeLock WriteLock(Context->NetworkLock);
-	for (const PCGExGraph::FSocketInfos& SocketInfo : Context->SocketInfos)
-	{
-		if (PCGExGraph::FUnsignedEdge UEdge;
-			SocketInfo.Socket->TryGetEdge(TaskIndex, UEdge, Context->CrawlEdgeTypes))
-		{
-			check(UEdge.Start != -1 && UEdge.End != -1)
-			Context->Network->InsertEdge(UEdge);
-		}
-	}
-
-	return true;
 }
 
 bool FWriteIslandTask::ExecuteTask()

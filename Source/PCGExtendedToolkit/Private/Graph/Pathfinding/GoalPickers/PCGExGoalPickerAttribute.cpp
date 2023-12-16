@@ -5,8 +5,6 @@
 #include "Graph/Pathfinding/GoalPickers/PCGExGoalPickerAttribute.h"
 
 #include "PCGEx.h"
-#include "PCGExMath.h"
-#include "Data/PCGPointData.h"
 
 void UPCGExGoalPickerAttribute::PrepareForData(const PCGExData::FPointIO& InSeeds, const PCGExData::FPointIO& InGoals)
 {

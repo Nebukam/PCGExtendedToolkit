@@ -5,7 +5,6 @@
 
 #include "CoreMinimal.h"
 
-#include "PCGExPathfinding.h"
 #include "Graph/PCGExEdgesProcessor.h"
 
 #include "PCGExPathfindingProcessor.generated.h"
@@ -46,8 +45,8 @@ public:
 	TObjectPtr<UPCGExGoalPicker> GoalPicker;
 
 	/** How to blend path points between seed & goal */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced, meta = (NoResetToDefault))
-	TObjectPtr<UPCGExSubPointsBlendOperation> Blending;
+	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced, meta = (NoResetToDefault))
+	//TObjectPtr<UPCGExSubPointsBlendOperation> Blending;
 
 	/** Add seed point at the beginning of the path */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
@@ -69,13 +68,13 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingProcessorContext : public FPCGExE
 	PCGExData::FPointIOGroup* OutputPaths = nullptr;
 
 	UPCGExGoalPicker* GoalPicker = nullptr;
-	UPCGExSubPointsBlendOperation* Blending = nullptr;
+	//UPCGExSubPointsBlendOperation* Blending = nullptr;
 
 	bool bAddSeedToPath = true;
 	bool bAddGoalToPath = true;
 
 protected:
-	int64 GetGoalIndex(const FPCGPoint& Seed, int64 SeedIndex);
+	//int64 GetGoalIndex(const FPCGPoint& Seed, int64 SeedIndex);
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExPathfindingProcessorElement : public FPCGExEdgesProcessorElement

@@ -1,7 +1,7 @@
 ﻿// Copyright Timothé Lapetite 2023
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "..\..\..\Public\Graph\Edges\PCGExConsolidateEdgeIslands.h"
+#include "Graph/Edges/PCGExConsolidateEdgeIslands.h"
 
 #define LOCTEXT_NAMESPACE "PCGExConsolidateEdgeIslands"
 #define PCGEX_NAMESPACE ConsolidateEdgeIslands

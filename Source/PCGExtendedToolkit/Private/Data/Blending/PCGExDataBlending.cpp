@@ -3,9 +3,7 @@
 
 #include "Data/Blending/PCGExDataBlending.h"
 
-#include "Metadata/PCGMetadataAccessor.h"
 #include "Metadata/Accessors/PCGAttributeAccessor.h"
-#include "Metadata/Accessors/PCGAttributeAccessorHelpers.h"
 
 namespace PCGExDataBlending
 {

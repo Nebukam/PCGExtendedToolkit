@@ -265,7 +265,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFindEdgeIslandsContext : public FPCGExGraphP
 	int32 IslandUIndex = 0;
 
 	TMap<int32, int32> IndexRemap;
-	
+
 	FName IslandIDAttributeName;
 	FName IslandSizeAttributeName;
 	FName PointUIDAttributeName;
@@ -295,17 +295,6 @@ public:
 protected:
 	virtual bool Boot(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
-};
-
-class PCGEXTENDEDTOOLKIT_API FInsertEdgeTask : public FPCGExNonAbandonableTask
-{
-public:
-	FInsertEdgeTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO) :
-		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO)
-	{
-	}
-
-	virtual bool ExecuteTask() override;
 };
 
 class PCGEXTENDEDTOOLKIT_API FWriteIslandTask : public FPCGExNonAbandonableTask

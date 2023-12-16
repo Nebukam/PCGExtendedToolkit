@@ -4,11 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "PCGExDataBlending.h"
-#include "Data/PCGPointData.h"
 #include "UObject/Object.h"
 
 #include "PCGExPropertiesBlender.h"
-#include <functional>
 
 #define PCGEX_FOREACH_BLEND_POINTPROPERTY(MACRO)\
 MACRO(float, Density) \

@@ -4,27 +4,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExMesh.h"
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGExData.h"
-#include "Data/PCGExGraphParamsData.h"
 
 #include "PCGExEdgesProcessor.generated.h"
-
-namespace PCGExGraph
-{
-	struct PCGEXTENDEDTOOLKIT_API FVertex
-	{
-		int32 Index;
-		TArray<int32> Neighbors;
-	};
-
-	struct PCGEXTENDEDTOOLKIT_API FMesh
-	{
-		int32 MeshID = -1;
-		TArray<FVertex> Vertices;    //Mesh vertices
-		TMap<uint64, int32> EdgeMap; //Edge hash to edge index
-	};
-}
 
 /**
  * A Base node to process a set of point using GraphParams.
@@ -47,7 +31,6 @@ public:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 	//~End UPCGSettings interface
-
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExEdgesProcessorContext : public FPCGExPointsProcessorContext
@@ -61,9 +44,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgesProcessorContext : public FPCGExPointsP
 
 	PCGExData::FPointIO* CurrentEdges = nullptr;
 	bool AdvanceAndBindPointsIO();
-	bool AdvanceEdges();
+	bool AdvanceEdges(); // Advance edges within current points
 
-	TArray<PCGExGraph::FMesh> Meshes;
+	TArray<PCGExMesh::FMesh> Meshes;
 
 protected:
 	int32 CurrentEdgesIndex = -1;

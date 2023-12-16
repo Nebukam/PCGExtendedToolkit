@@ -27,7 +27,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExPathfindingNavmeshSettings : public UPCGExPoi
 {
 	GENERATED_BODY()
 
-	public:
+public:
 	UPCGExPathfindingNavmeshSettings(const FObjectInitializer& ObjectInitializer);
 
 	//~Begin UPCGSettings interface
@@ -116,7 +116,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingNavmeshContext : public FPCGExPoi
 	bool bRequireNavigableEndLocation = true;
 	EPCGExPathfindingNavmeshMode PathfindingMode;
 	double FuseDistance = 10;
-	
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExPathfindingNavmeshElement : public FPCGExPointsProcessorElementBase

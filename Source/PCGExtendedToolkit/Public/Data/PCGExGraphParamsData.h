@@ -53,16 +53,12 @@ public:
 	const PCGExGraph::FSocketMapping* GetSocketMapping() const { return SocketMapping; }
 
 	/**
-	 * Initialize this data object from a list of socket descriptors
-	 * @param InSockets
-	 * @param bApplyOverrides
-	 * @param Overrides 
+	 * Initialize this data object from a list of socket descriptors 
 	 */
 	virtual void Initialize();
 
 	/**
 	 * Prepare socket mapping for working with a given PointData object.
-	 * @param Context
 	 * @param PointIO
 	 * @param bEnsureEdgeType 
 	 */

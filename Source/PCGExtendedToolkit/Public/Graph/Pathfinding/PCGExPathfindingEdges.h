@@ -4,7 +4,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "NavigationSystem.h"
 #include "PCGExPathfindingProcessor.h"
 
 #include "PCGExPointsProcessor.h"
@@ -34,8 +33,6 @@ public:
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings interface
-
-public:
 };
 
 
@@ -44,7 +41,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingEdgesContext : public FPCGExPathf
 	friend class FPCGExPathfindingEdgesElement;
 
 	virtual ~FPCGExPathfindingEdgesContext() override;
-
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExPathfindingEdgesElement : public FPCGExPathfindingProcessorElement
@@ -61,10 +57,10 @@ protected:
 };
 
 // Define the background task class
-class PCGEXTENDEDTOOLKIT_API FSampleIslandPathTask : public FPCGExNonAbandonableTask
+class PCGEXTENDEDTOOLKIT_API FSampleMeshPathTask : public FPCGExNonAbandonableTask
 {
 public:
-	FSampleIslandPathTask(
+	FSampleMeshPathTask(
 		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
 		int32 InGoalIndex, PCGExData::FPointIO* InPathPoints) :
 		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),

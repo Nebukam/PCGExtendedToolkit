@@ -4,9 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "NetworkMessage.h"
 
-#include "Data/PCGExPointIO.h"
 #include "Data/PCGExAttributeHelpers.h"
 #include "PCGExMT.h"
 #include "PCGExEdge.h"
@@ -494,7 +492,7 @@ namespace PCGExGraph
 		 * Prepare socket mapping for working with a given PointData object.
 		 * Each socket will cache Attribute & accessors
 		 * @param PointIO
-		 * @param bEnsureEdgeType Whether EdgeType attribute must be created if it doesn't exist. Set this to true if you intend on updating it. 
+		 * @param bReadOnly 
 		 */
 		void PrepareForPointData(const PCGExData::FPointIO& PointIO, const bool bReadOnly = true);
 

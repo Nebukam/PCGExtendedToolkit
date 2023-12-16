@@ -6,6 +6,11 @@
 #define LOCTEXT_NAMESPACE "PCGExPointsToBoundsElement"
 #define PCGEX_NAMESPACE PointsToBounds
 
+#define PCGEX_WRITE_MARK(_NAME, _VALUE)\
+if(Settings->bWrite##_NAME){if(FPCGMetadataAttributeBase::IsValidName(Settings->_NAME##AttributeName)){\
+PCGExData::WriteMark(OutData->Metadata, FName(Settings->_NAME##AttributeName), _VALUE);\
+}else{PCGE_LOG(Error, GraphAndLog, FTEXT("Invalid attribute name "#_NAME));}}
+
 PCGExData::EInit UPCGExPointsToBoundsSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NewOutput; }
 
 FPCGExPointsToBoundsContext::~FPCGExPointsToBoundsContext()
@@ -66,7 +71,8 @@ bool FPCGExPointsToBoundsElement::ExecuteInternal(FPCGContext* InContext) const
 	if (Context->IsState(PCGExMT::State_ProcessingPoints))
 	{
 		const TArray<FPCGPoint>& InPoints = Context->GetCurrentIn()->GetPoints();
-		TArray<FPCGPoint>& MutablePoints = Context->GetCurrentOut()->GetMutablePoints();
+		UPCGPointData* OutData = Context->GetCurrentOut();
+		TArray<FPCGPoint>& MutablePoints = OutData->GetMutablePoints();
 		MutablePoints.Add(InPoints[0]);
 
 		Context->MetadataBlender->PrepareForData(Context->CurrentIO, Context->AttributesBlendingOverrides);
@@ -101,12 +107,15 @@ bool FPCGExPointsToBoundsElement::ExecuteInternal(FPCGContext* InContext) const
 		MutablePoints[0].BoundsMin = Box.Min - Center;
 		MutablePoints[0].BoundsMax = Box.Max - Center;
 
+		PCGEX_WRITE_MARK(PointsCount, AverageDivider)
+
 		Context->CurrentIO->OutputTo(Context);
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
 	return Context->IsDone();
 }
+#undef PCGEX_WRITE_MARK
 
 #undef LOCTEXT_NAMESPACE
 #undef PCGEX_NAMESPACE

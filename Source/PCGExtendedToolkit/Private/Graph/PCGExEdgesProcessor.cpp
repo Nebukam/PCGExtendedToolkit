@@ -67,7 +67,7 @@ bool FPCGExEdgesProcessorContext::AdvanceAndBindPointsIO()
 		{
 			if (BoundEdges->IsMatching(InEdgesData)) { BoundEdges->Add(InEdgesData); }
 		});
-	
+
 	return true;
 }
 
@@ -77,7 +77,7 @@ bool FPCGExEdgesProcessorContext::AdvanceEdges()
 
 	if (Edges->Pairs.IsValidIndex(++CurrentEdgesIndex))
 	{
-		CurrentEdges = &Edges->Pairs[CurrentEdgesIndex];
+		CurrentEdges = Edges->Pairs[CurrentEdgesIndex];
 		return true;
 	}
 

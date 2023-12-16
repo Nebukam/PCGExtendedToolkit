@@ -3,7 +3,6 @@
 
 #include "Graph/Edges/PCGExWriteEdgeExtras.h"
 
-#include "Graph/Edges/Promoting/PCGExEdgePromoteToPath.h"
 #include "Graph/Edges/Promoting/PCGExEdgePromoteToPoint.h"
 
 #define LOCTEXT_NAMESPACE "PCGExEdgesToPaths"

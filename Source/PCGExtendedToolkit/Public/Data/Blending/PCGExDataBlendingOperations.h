@@ -5,7 +5,6 @@
 
 #include "CoreMinimal.h"
 #include "PCGExDataBlending.h"
-#include "Data/PCGExData.h"
 
 namespace PCGExDataBlending
 {

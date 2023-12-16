@@ -32,6 +32,7 @@
         - [*Path* : Write Tangents](PCGExPathsWriteTangents.md)
         - [*Path* : Orient](PCGExPathsSubdivide.md)
         - [*Path* : Subdivide](PCGExPathsSubdivide.md)
+        - [*Path* : Fuse Colinear](PCGExFuseColinear.md)
     - Sample :
         - [*Sample* : Nearest Point](PCGExSampleNearestPoint.md)
         - [*Sample* : Nearest Surface](PCGExSampleNearestSurface.md)

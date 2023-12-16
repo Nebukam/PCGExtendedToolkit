@@ -59,7 +59,7 @@ void PCGEx::FBulkPointLoop::Init()
 			FPointLoop& SubLoop = SubLoops.Emplace_GetRef();
 			SubLoop.Context = Context;
 			SubLoop.ChunkSize = ChunkSize;
-			SubLoop.PointIO = &Context->MainPoints->Pairs[i];
+			SubLoop.PointIO = Context->MainPoints->Pairs[i];
 		}
 	}
 }
@@ -152,7 +152,7 @@ void PCGEx::FBulkAsyncPointLoop::Init()
 			SubLoop.Context = Context;
 			SubLoop.bAsyncEnabled = Context->bDoAsyncProcessing;
 			SubLoop.ChunkSize = ChunkSize;
-			SubLoop.PointIO = &Context->MainPoints->Pairs[i];
+			SubLoop.PointIO = Context->MainPoints->Pairs[i];
 		}
 	}
 }
@@ -268,7 +268,7 @@ bool FPCGExPointsProcessorContext::AdvancePointsIO()
 {
 	if (MainPoints->Pairs.IsValidIndex(++CurrentPointsIndex))
 	{
-		CurrentIO = &MainPoints->Pairs[CurrentPointsIndex];
+		CurrentIO = MainPoints->Pairs[CurrentPointsIndex];
 		return true;
 	}
 	CurrentIO = nullptr;

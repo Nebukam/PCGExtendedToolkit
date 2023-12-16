@@ -71,9 +71,9 @@ bool FPCGExPromoteEdgesElement::ExecuteInternal(
 		if (Context->Promotion->GeneratesNewPointData())
 		{
 			int32 MaxPossibleOutputs = 0;
-			for (const PCGExData::FPointIO& PointIO : Context->MainPoints->Pairs)
+			for (const PCGExData::FPointIO* PointIO : Context->MainPoints->Pairs)
 			{
-				MaxPossibleOutputs += PointIO.GetNum();
+				MaxPossibleOutputs += PointIO->GetNum();
 			}
 
 			MaxPossibleOutputs *= Context->MaxPossibleEdgesPerPoint;

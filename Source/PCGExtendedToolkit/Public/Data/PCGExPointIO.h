@@ -132,7 +132,7 @@ namespace PCGExData
 		~FPointIOGroup();
 
 		FName DefaultOutputLabel = PCGEx::OutputPointsLabel;
-		TArray<FPointIO> Pairs;
+		TArray<FPointIO*> Pairs;
 
 		/**
 		 * Initialize from Sources

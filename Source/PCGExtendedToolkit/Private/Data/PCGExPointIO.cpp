@@ -243,7 +243,7 @@ namespace PCGExData
 		const EInit InitOut)
 	{
 		FWriteScopeLock WriteLock(PairsLock);
-		return Pairs.Emplace_GetRef(Source, In, DefaultOutputLabel, InitOut);
+		return *Pairs.Add_GetRef(new FPointIO(Source, In, DefaultOutputLabel, InitOut));
 	}
 
 	FPointIO& FPointIOGroup::Emplace_GetRef(
@@ -252,13 +252,13 @@ namespace PCGExData
 	{
 		const FPCGTaggedData Source;
 		FWriteScopeLock WriteLock(PairsLock);
-		return Pairs.Emplace_GetRef(Source, In, DefaultOutputLabel, InitOut);
+		return *Pairs.Add_GetRef(new FPointIO(Source, In, DefaultOutputLabel, InitOut));
 	}
 
 	FPointIO& FPointIOGroup::Emplace_GetRef(const EInit InitOut)
 	{
 		FWriteScopeLock WriteLock(PairsLock);
-		return Pairs.Emplace_GetRef(DefaultOutputLabel, InitOut);
+		return *Pairs.Add_GetRef(new FPointIO(DefaultOutputLabel, InitOut));
 	}
 
 	/**
@@ -268,7 +268,7 @@ namespace PCGExData
 	 */
 	void FPointIOGroup::OutputTo(FPCGContext* Context, const bool bEmplace)
 	{
-		for (FPointIO& Pair : Pairs) { Pair.OutputTo(Context, bEmplace); }
+		for (FPointIO* Pair : Pairs) { Pair->OutputTo(Context, bEmplace); }
 	}
 
 	/**
@@ -280,19 +280,20 @@ namespace PCGExData
 	 */
 	void FPointIOGroup::OutputTo(FPCGContext* Context, bool bEmplace, const int64 MinPointCount, const int64 MaxPointCount)
 	{
-		for (FPointIO& Pair : Pairs) { Pair.OutputTo(Context, bEmplace, MinPointCount, MaxPointCount); }
+		for (FPointIO* Pair : Pairs) { Pair->OutputTo(Context, bEmplace, MinPointCount, MaxPointCount); }
 	}
 
 	void FPointIOGroup::ForEach(const TFunction<void(FPointIO&, const int32)>& BodyLoop)
 	{
 		for (int i = 0; i < Pairs.Num(); i++)
 		{
-			BodyLoop(Pairs[i], i);
+			BodyLoop(*Pairs[i], i);
 		}
 	}
 
 	void FPointIOGroup::Flush()
 	{
+		for (const FPointIO* Pair : Pairs) { delete Pair; }
 		Pairs.Empty();
 	}
 }
