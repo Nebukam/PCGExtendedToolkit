@@ -52,7 +52,7 @@ public:
 	virtual FName GetMainOutputLabel() const override;
 
 public:
-	/** Ignores candidates weighting pass and always favors the closest one.*/
+	/** Controls how goals are picked.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced, meta = (NoResetToDefault))
 	TObjectPtr<UPCGExGoalPicker> GoalPicker;
 
@@ -107,7 +107,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingNavmeshContext : public FPCGExPoi
 	bool bAddSeedToPath = true;
 	bool bAddGoalToPath = true;
 
-	TArray<PCGExPathfinding::FPathInfos*> PathBuffer;
+	TArray<PCGExPathfinding::FPathQuery*> PathBuffer;
 
 	FNavAgentProperties NavAgentProperties;
 
@@ -136,8 +136,8 @@ class PCGEXTENDEDTOOLKIT_API FSampleNavmeshTask : public FPCGExPathfindingTask
 {
 public:
 	FSampleNavmeshTask(
-	FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO, PCGExPathfinding::FPathInfos* InPathInfos) :
-	FPCGExPathfindingTask(InManager, InTaskIndex, InPointIO, InPathInfos)
+	FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO, PCGExPathfinding::FPathQuery* InQuery) :
+	FPCGExPathfindingTask(InManager, InTaskIndex, InPointIO, InQuery)
 	{
 	}
 

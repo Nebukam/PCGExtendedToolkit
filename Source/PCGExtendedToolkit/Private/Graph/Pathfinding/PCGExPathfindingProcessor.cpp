@@ -3,9 +3,11 @@
 
 #include "Graph/Pathfinding/PCGExPathfindingProcessor.h"
 
+#include "Graph/PCGExGraph.h"
 #include "Graph/Pathfinding/PCGExPathfinding.h"
 #include "Graph/Pathfinding/GoalPickers/PCGExGoalPicker.h"
 #include "Graph/Pathfinding/GoalPickers/PCGExGoalPickerRandom.h"
+#include "Graph/Pathfinding/Heuristics/PCGExHeuristicDistance.h"
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPathfindingSettings"
@@ -18,6 +20,7 @@ UPCGExPathfindingProcessorSettings::UPCGExPathfindingProcessorSettings(
 	: Super(ObjectInitializer)
 {
 	PCGEX_DEFAULT_OPERATION(GoalPicker, UPCGExGoalPickerRandom)
+	PCGEX_DEFAULT_OPERATION(Heuristics, UPCGExHeuristicDistance)
 	//PCGEX_DEFAULT_OPERATION(Blending, UPCGExSubPointsBlendInterpolate)
 }
 
@@ -63,6 +66,7 @@ TArray<FPCGPinProperties> UPCGExPathfindingProcessorSettings::OutputPinPropertie
 void UPCGExPathfindingProcessorSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	if (GoalPicker) { GoalPicker->UpdateUserFacingInfos(); }
+	if (Heuristics) { Heuristics->UpdateUserFacingInfos(); }
 	//if (Blending) { Blending->UpdateUserFacingInfos(); }
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
@@ -87,8 +91,9 @@ bool FPCGExPathfindingProcessorElement::Boot(FPCGContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(PathfindingProcessor)
 
 	PCGEX_BIND_OPERATION(GoalPicker, UPCGExGoalPickerRandom)
+	PCGEX_BIND_OPERATION(Heuristics, UPCGExHeuristicDistance)
 	//PCGEX_BIND_OPERATION(Blending, UPCGExSubPointsBlendInterpolate)
-	
+
 	if (Settings->GetRequiresSeeds() && !Context->SeedsPoints)
 	{
 		PCGE_LOG(Error, GraphAndLog, FTEXT("Missing Input Seeds."));

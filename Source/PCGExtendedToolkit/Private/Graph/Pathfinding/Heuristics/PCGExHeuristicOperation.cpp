@@ -6,18 +6,30 @@
 
 #include "Data/PCGPointData.h"
 
-void UPCGExHeuristicOperation::PrepareForData(const UPCGPointData* InSeeds, const UPCGPointData* InGoals)
-{
-	MaxGoalIndex = InGoals->GetPoints().Num() - 1;
-}
 
-int32 UPCGExHeuristicOperation::GetGoalIndex(const FPCGPoint& Seed, const int32 SeedIndex) const
-{
-	return PCGEx::SanitizeIndex(SeedIndex, MaxGoalIndex, IndexSafety);
-}
-
-void UPCGExHeuristicOperation::GetGoalIndices(const FPCGPoint& Seed, TArray<int32>& OutIndices) const
+void UPCGExHeuristicOperation::PrepareForData(const PCGExMesh::FMesh* InMesh)
 {
 }
 
-bool UPCGExHeuristicOperation::OutputMultipleGoals() const { return false; }
+double UPCGExHeuristicOperation::ComputeScore(
+	const PCGExMesh::FScoredVertex* From,
+	const PCGExMesh::FVertex& To,
+	const PCGExMesh::FVertex& Seed,
+	const PCGExMesh::FVertex& Goal) const
+{
+	return From->Score + 1;
+}
+
+bool UPCGExHeuristicOperation::IsBetterScore(const double NewScore, const double OtherScore) const
+{
+	return NewScore <= OtherScore;
+}
+
+int32 UPCGExHeuristicOperation::GetQueueingIndex(const TArray<PCGExMesh::FScoredVertex*>& InVertices, const double InScore) const
+{
+	for (int i = InVertices.Num() - 1; i >= 0; i--)
+	{
+		if (IsBetterScore(InScore, InVertices[i]->Score)) { return i + 1; }
+	}
+	return -1;
+}

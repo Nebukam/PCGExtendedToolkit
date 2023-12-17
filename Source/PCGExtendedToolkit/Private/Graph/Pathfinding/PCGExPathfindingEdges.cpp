@@ -7,6 +7,7 @@
 #include "Graph/PCGExGraph.h"
 #include "Graph/Pathfinding/PCGExPathfinding.h"
 #include "Graph/Pathfinding/GoalPickers/PCGExGoalPickerRandom.h"
+#include "Algo/Reverse.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPathfindingEdgesElement"
 #define PCGEX_NAMESPACE PathfindingEdges
@@ -29,7 +30,7 @@ FPCGExPathfindingEdgesContext::~FPCGExPathfindingEdgesContext()
 {
 	PCGEX_TERMINATE_ASYNC
 
-	PCGEX_DELETE_TARRAY(PathBuffer, PCGExPathfinding::FPathInfos)
+	PCGEX_DELETE_TARRAY(PathBuffer)
 }
 
 PCGEX_INITIALIZE_CONTEXT(PathfindingEdges)
@@ -60,7 +61,7 @@ bool FPCGExPathfindingEdgesElement::ExecuteInternal(FPCGContext* InContext) cons
 		if (!Context->AdvanceAndBindPointsIO()) { Context->Done(); }
 		else
 		{
-			PCGEX_DELETE_TARRAY(Context->PathBuffer, PCGExPathfinding::FPathInfos)
+			PCGEX_DELETE_TARRAY(Context->PathBuffer)
 			Context->GoalPicker->PrepareForData(*Context->SeedsPoints, *Context->GoalsPoints);
 			Context->SetState(PCGExMT::State_ProcessingPoints);
 		}
@@ -68,13 +69,18 @@ bool FPCGExPathfindingEdgesElement::ExecuteInternal(FPCGContext* InContext) cons
 
 	if (Context->IsState(PCGExMT::State_ProcessingPoints))
 	{
+		auto Initialize = []()
+		{
+		};
+
 		if (PCGExPathfinding::ProcessGoals(
-			Context, Context->SeedsPoints, Context->GoalPicker, [&](const int32 SeedIndex, int32 GoalIndex)
+			Initialize, Context, Context->SeedsPoints, Context->GoalPicker,
+			[&](const int32 SeedIndex, int32 GoalIndex)
 			{
 				Context->BufferLock.WriteLock();
 				Context->PathBuffer.Add(
-					new PCGExPathfinding::FPathInfos(
-						SeedIndex, Context->CurrentIO->GetInPoint(SeedIndex).Transform.GetLocation(),
+					new PCGExPathfinding::FPathQuery(
+						SeedIndex, Context->SeedsPoints->GetInPoint(SeedIndex).Transform.GetLocation(),
 						GoalIndex, Context->GoalsPoints->GetInPoint(GoalIndex).Transform.GetLocation()));
 				Context->BufferLock.WriteUnlock();
 			}))
@@ -86,7 +92,11 @@ bool FPCGExPathfindingEdgesElement::ExecuteInternal(FPCGContext* InContext) cons
 	if (Context->IsState(PCGExGraph::State_ReadyForNextEdges))
 	{
 		if (!Context->AdvanceEdges()) { Context->SetState(PCGExMT::State_ReadyForNextPoints); }
-		else { Context->SetState(PCGExGraph::State_ProcessingEdges); }
+		else
+		{
+			//TODO: Cache heuristics for current mesh
+			Context->SetState(PCGExGraph::State_ProcessingEdges);
+		}
 	}
 
 	if (Context->IsState(PCGExGraph::State_ProcessingEdges))
@@ -120,19 +130,30 @@ bool FSampleMeshPathTask::ExecuteTask()
 	FPCGExPathfindingEdgesContext* Context = Manager->GetContext<FPCGExPathfindingEdgesContext>();
 	PCGEX_ASYNC_CHECKPOINT
 
-	const FPCGPoint& StartPoint = PointIO->GetInPoint(PathInfos->SeedIndex);
-	const FPCGPoint& EndPoint = Context->GoalsPoints->GetInPoint(PathInfos->GoalIndex);
+	const FPCGPoint& StartPoint = Context->SeedsPoints->GetInPoint(Query->SeedIndex);
+	const FPCGPoint& EndPoint = Context->GoalsPoints->GetInPoint(Query->GoalIndex);
 
 	const PCGExMesh::FMesh* Mesh = Context->CurrentMesh;
-	const int32 StartIndex = Mesh->FindClosestVertex(PathInfos->StartPosition);
-	const int32 EndIndex = Mesh->FindClosestVertex(PathInfos->EndPosition);
 
-	return false;
+	TArray<int32> Path;
 
-	//PCGExData::FPointIO& PathPoints = Context->OutputPaths->Emplace_GetRef(Context->GetCurrentIn(), PCGExData::EInit::NewOutput);
-	// Remove start and/or end after blending
-	//if (!Context->bAddSeedToPath) { MutablePoints.RemoveAt(0); }
-	//if (!Context->bAddGoalToPath) { MutablePoints.Pop(); }
+	if (!PCGExPathfinding::FindPath(
+		Context->CurrentMesh, Query->StartPosition, Query->EndPosition,
+		Context->Heuristics, Path))
+	{
+		return false;
+	}
+
+	const PCGExData::FPointIO& PathPoints = Context->OutputPaths->Emplace_GetRef(Context->GetCurrentIn(), PCGExData::EInit::NewOutput);
+	UPCGPointData* OutData = PathPoints.GetOut();
+	TArray<FPCGPoint>& MutablePoints = OutData->GetMutablePoints();
+	const TArray<FPCGPoint>& InPoints = Context->GetCurrentIn()->GetPoints();
+
+	if (Context->bAddSeedToPath) { MutablePoints.Emplace_GetRef(StartPoint).MetadataEntry = PCGInvalidEntryKey; }
+	for (const int32 Index : Path) { MutablePoints.Add(InPoints[Mesh->Vertices[Index].PointIndex]); }
+	if (Context->bAddGoalToPath) { MutablePoints.Emplace_GetRef(EndPoint).MetadataEntry = PCGInvalidEntryKey; }
+
+	return true;
 }
 
 #undef LOCTEXT_NAMESPACE

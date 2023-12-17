@@ -72,7 +72,7 @@ FPCGExPathfindingNavmeshContext::~FPCGExPathfindingNavmeshContext()
 	PCGEX_DELETE(GoalsPoints)
 	PCGEX_DELETE(OutputPaths)
 
-	PCGEX_DELETE_TARRAY(PathBuffer, PCGExPathfinding::FPathInfos)
+	PCGEX_DELETE_TARRAY(PathBuffer)
 }
 
 FPCGElementPtr UPCGExPathfindingNavmeshSettings::CreateElement() const { return MakeShared<FPCGExPathfindingNavmeshElement>(); }
@@ -148,18 +148,22 @@ bool FPCGExPathfindingNavmeshElement::ExecuteInternal(FPCGContext* InContext) co
 
 	if (Context->IsState(PCGExMT::State_ProcessingPoints))
 	{
+		auto Initialize = []()
+		{
+		};
+
 		auto NavMeshTask = [&](int32 SeedIndex, int32 GoalIndex)
 		{
 			Context->BufferLock.WriteLock();
 			const int32 PathIndex = Context->PathBuffer.Add(
-				new PCGExPathfinding::FPathInfos(
+				new PCGExPathfinding::FPathQuery(
 					SeedIndex, Context->CurrentIO->GetInPoint(SeedIndex).Transform.GetLocation(),
 					GoalIndex, Context->GoalsPoints->GetInPoint(GoalIndex).Transform.GetLocation()));
 			Context->BufferLock.WriteUnlock();
 			Context->GetAsyncManager()->Start<FSampleNavmeshTask>(PathIndex, Context->CurrentIO, Context->PathBuffer[PathIndex]);
 		};
 
-		if (PCGExPathfinding::ProcessGoals(Context, Context->CurrentIO, Context->GoalPicker, NavMeshTask))
+		if (PCGExPathfinding::ProcessGoals(Initialize, Context, Context->CurrentIO, Context->GoalPicker, NavMeshTask))
 		{
 			Context->SetAsyncState(PCGExPathfinding::State_Pathfinding);
 		}
@@ -186,14 +190,14 @@ bool FSampleNavmeshTask::ExecuteTask()
 
 	if (!NavSys) { return false; }
 
-	const FPCGPoint* Seed = Context->CurrentIO->TryGetInPoint(PathInfos->SeedIndex);
-	const FPCGPoint* Goal = Context->GoalsPoints->TryGetInPoint(PathInfos->GoalIndex);
+	const FPCGPoint* Seed = Context->CurrentIO->TryGetInPoint(Query->SeedIndex);
+	const FPCGPoint* Goal = Context->GoalsPoints->TryGetInPoint(Query->GoalIndex);
 
 	if (!Seed || !Goal) { return false; }
 
 	FPathFindingQuery PathFindingQuery = FPathFindingQuery(
 		Context->World, *Context->NavData,
-		PathInfos->StartPosition, PathInfos->EndPosition, nullptr, nullptr,
+		Query->StartPosition, Query->EndPosition, nullptr, nullptr,
 		TNumericLimits<FVector::FReal>::Max(),
 		Context->bRequireNavigableEndLocation);
 
@@ -207,14 +211,15 @@ bool FSampleNavmeshTask::ExecuteTask()
 	PCGEX_ASYNC_CHECKPOINT
 
 	const TArray<FNavPathPoint>& Points = Result.Path->GetPathPoints();
+
 	TArray<FVector> PathLocations;
 	PathLocations.Reserve(Points.Num());
 
-	PathLocations.Add(PathInfos->StartPosition);
+	PathLocations.Add(Query->StartPosition);
 	for (FNavPathPoint PathPoint : Points) { PathLocations.Add(PathPoint.Location); }
-	PathLocations.Add(PathInfos->EndPosition);
+	PathLocations.Add(Query->EndPosition);
 
-	PCGExMath::FPathMetrics Metrics = PCGExMath::FPathMetrics(PathInfos->StartPosition);
+	PCGExMath::FPathMetrics Metrics = PCGExMath::FPathMetrics(Query->StartPosition);
 	int32 FuseCountReduce = Context->bAddGoalToPath ? 2 : 1;
 	for (int i = Context->bAddSeedToPath; i < PathLocations.Num(); i++)
 	{

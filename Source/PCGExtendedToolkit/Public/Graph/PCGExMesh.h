@@ -5,7 +5,6 @@
 
 #include "CoreMinimal.h"
 
-#include "Data/PCGExAttributeHelpers.h"
 #include "PCGExEdge.h"
 
 namespace PCGExMesh
@@ -24,13 +23,14 @@ namespace PCGExMesh
 	struct PCGEXTENDEDTOOLKIT_API FVertex
 	{
 		int32 Index = -1;
+		int32 PointIndex = -1;
 		FVector Position;
 		TArray<int32> Neighbors;
 		TArray<int32> Edges;
 
 		FVertex()
 		{
-			Index = -1;
+			PointIndex = -1;
 			Position = FVector::ZeroVector;
 			Neighbors.Empty();
 			Edges.Empty();
@@ -41,6 +41,27 @@ namespace PCGExMesh
 		void Add(const int32 EdgeIndex, const int32 VtxIndex);
 	};
 
+
+	struct PCGEXTENDEDTOOLKIT_API FScoredVertex
+	{
+		FScoredVertex(const PCGExMesh::FVertex& InVertex, const double InWeight)
+			: Vertex(&InVertex),
+			  Score(InWeight)
+		{
+		}
+
+		FScoredVertex(const PCGExMesh::FVertex& InVertex, const double InScore, FScoredVertex* InFrom)
+			: Vertex(&InVertex),
+			  Score(InScore),
+			  From(InFrom)
+		{
+		}
+
+		const PCGExMesh::FVertex* Vertex = nullptr;
+		double Score = -1;
+		FScoredVertex* From = nullptr;
+	};
+
 	struct PCGEXTENDEDTOOLKIT_API FMesh
 	{
 		int32 MeshID = -1;
@@ -48,6 +69,8 @@ namespace PCGExMesh
 		TArray<FVertex> Vertices;
 		TArray<FIndexedEdge> Edges;
 
+		PCGExData::FPointIO* PointsIO = nullptr;
+		PCGExData::FPointIO* EdgesIO = nullptr;
 		FMesh();
 
 		~FMesh();

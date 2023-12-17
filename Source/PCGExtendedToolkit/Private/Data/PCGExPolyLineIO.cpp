@@ -115,7 +115,7 @@ namespace PCGExData
 
 	FPolyLineIOGroup::~FPolyLineIOGroup()
 	{
-		PCGEX_DELETE_TARRAY(Lines, FPolyLineIO)
+		PCGEX_DELETE_TARRAY(Lines)
 	}
 
 	FPolyLineIO* FPolyLineIOGroup::Emplace_GetRef(const FPolyLineIO& PointIO)

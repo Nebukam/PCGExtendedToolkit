@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 
 #include "Graph/PCGExEdgesProcessor.h"
+#include "Heuristics/PCGExHeuristicOperation.h"
 
 #include "PCGExPathfindingProcessor.generated.h"
 
@@ -40,10 +41,14 @@ public:
 	virtual bool GetRequiresSeeds() const;
 	virtual bool GetRequiresGoals() const;
 
-	/** Ignores candidates weighting pass and always favors the closest one.*/
+	/** Controls how goals are picked.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced, meta = (NoResetToDefault))
 	TObjectPtr<UPCGExGoalPicker> GoalPicker;
 
+	/** Controls how heuristic are calculated. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced, meta = (NoResetToDefault))
+	TObjectPtr<UPCGExHeuristicOperation> Heuristics;
+	
 	/** How to blend path points between seed & goal */
 	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced, meta = (NoResetToDefault))
 	//TObjectPtr<UPCGExSubPointsBlendOperation> Blending;
@@ -68,6 +73,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingProcessorContext : public FPCGExE
 	PCGExData::FPointIOGroup* OutputPaths = nullptr;
 
 	UPCGExGoalPicker* GoalPicker = nullptr;
+	UPCGExHeuristicOperation* Heuristics = nullptr;
 	//UPCGExSubPointsBlendOperation* Blending = nullptr;
 
 	bool bAddSeedToPath = true;

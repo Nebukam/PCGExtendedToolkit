@@ -4,11 +4,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
+
 #include "PCGExPathfinding.h"
 #include "PCGExPathfindingProcessor.h"
-
 #include "PCGExPointsProcessor.h"
-#include "GoalPickers/PCGExGoalPicker.h"
 #include "Graph/PCGExGraph.h"
 
 #include "PCGExPathfindingEdges.generated.h"
@@ -42,10 +41,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingEdgesContext : public FPCGExPathf
 	friend class FPCGExPathfindingEdgesElement;
 
 	virtual ~FPCGExPathfindingEdgesContext() override;
-	
+
 	mutable FRWLock BufferLock;
-	
-	TArray<PCGExPathfinding::FPathInfos*> PathBuffer;
+
+	TArray<PCGExPathfinding::FPathQuery*> PathBuffer;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExPathfindingEdgesElement : public FPCGExPathfindingProcessorElement
@@ -66,8 +65,8 @@ class PCGEXTENDEDTOOLKIT_API FSampleMeshPathTask : public FPCGExPathfindingTask
 {
 public:
 	FSampleMeshPathTask(
-		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO, PCGExPathfinding::FPathInfos* InPathInfos) :
-		FPCGExPathfindingTask(InManager, InTaskIndex, InPointIO, InPathInfos)
+		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO, PCGExPathfinding::FPathQuery* InQuery) :
+		FPCGExPathfindingTask(InManager, InTaskIndex, InPointIO, InQuery)
 	{
 	}
 

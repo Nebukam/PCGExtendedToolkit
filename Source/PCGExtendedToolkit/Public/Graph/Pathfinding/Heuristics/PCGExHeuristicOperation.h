@@ -4,30 +4,26 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGEx.h"
 #include "PCGExOperation.h"
+#include "Graph/PCGExMesh.h"
 #include "UObject/Object.h"
 #include "PCGExHeuristicOperation.generated.h"
 
-struct FPCGPoint;
-class UPCGPointData;
 /**
  * 
  */
-UCLASS(Blueprintable, EditInlineNew, DisplayName = "Default")
+UCLASS(Abstract, Blueprintable)
 class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicOperation : public UPCGExOperation
 {
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
-	EPCGExIndexSafety IndexSafety = EPCGExIndexSafety::Wrap;
-
-	virtual void PrepareForData(const UPCGPointData* InSeeds, const UPCGPointData* InGoals);
-	virtual int32 GetGoalIndex(const FPCGPoint& Seed, const int32 SeedIndex) const;
-	virtual void GetGoalIndices(const FPCGPoint& Seed, TArray<int32>& OutIndices) const;
-	virtual bool OutputMultipleGoals() const;
-
-protected:
-	int32 MaxGoalIndex = -1;
+	virtual void PrepareForData(const PCGExMesh::FMesh* InMesh);
+	virtual double ComputeScore(
+		const PCGExMesh::FScoredVertex* From,
+		const PCGExMesh::FVertex& To,
+		const PCGExMesh::FVertex& Seed,
+		const PCGExMesh::FVertex& Goal) const;
+	virtual bool IsBetterScore(const double NewScore, const double OtherScore) const;
+	virtual int32 GetQueueingIndex(const TArray<PCGExMesh::FScoredVertex*>& InVertices, const double InScore) const;
 };

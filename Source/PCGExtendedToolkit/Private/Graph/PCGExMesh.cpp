@@ -41,9 +41,11 @@ namespace PCGExMesh
 
 		bJustCreated = true;
 		FVertex& Vertex = Vertices.Emplace_GetRef();
-		IndicesMap.Add(Index, Vertices.Num() - 1);
+		const int32 VtxIndex = Vertices.Num() - 1;
+		IndicesMap.Add(Index, VtxIndex);
 
-		Vertex.Index = Index;
+		Vertex.PointIndex = Index;
+		Vertex.Index = VtxIndex;
 
 		return Vertex;
 	}
