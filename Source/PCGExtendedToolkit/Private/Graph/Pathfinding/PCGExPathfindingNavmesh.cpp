@@ -184,7 +184,7 @@ bool FPCGExPathfindingNavmeshElement::ExecuteInternal(FPCGContext* InContext) co
 bool FSampleNavmeshTask::ExecuteTask()
 {
 	FPCGExPathfindingNavmeshContext* Context = static_cast<FPCGExPathfindingNavmeshContext*>(Manager->Context);
-	PCGEX_ASYNC_CHECKPOINT
+	//PCGEX_ASYNC_CHECKPOINT
 
 	UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(Context->World);
 
@@ -208,7 +208,7 @@ bool FSampleNavmeshTask::ExecuteTask()
 		Context->PathfindingMode == EPCGExPathfindingNavmeshMode::Regular ? EPathFindingMode::Type::Regular : EPathFindingMode::Type::Hierarchical);
 
 	if (Result.Result != ENavigationQueryResult::Type::Success) { return false; } ///
-	PCGEX_ASYNC_CHECKPOINT
+	//PCGEX_ASYNC_CHECKPOINT
 
 	const TArray<FNavPathPoint>& Points = Result.Path->GetPathPoints();
 
@@ -238,7 +238,7 @@ bool FSampleNavmeshTask::ExecuteTask()
 	}
 
 	if (PathLocations.Num() <= 2) { return false; } //
-	PCGEX_ASYNC_CHECKPOINT
+	//PCGEX_ASYNC_CHECKPOINT
 
 	const int32 NumPositions = PathLocations.Num();
 	const int32 LastPosition = NumPositions - 1;

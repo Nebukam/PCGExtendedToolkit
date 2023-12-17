@@ -25,7 +25,7 @@ FPCGContext* FPCGEx##_NAME##Element::Initialize( const FPCGDataCollection& Input
 #define PCGEX_CONTEXT(_NAME) FPCGEx##_NAME##Context* Context = static_cast<FPCGEx##_NAME##Context*>(InContext);
 #define PCGEX_SETTINGS(_NAME) const UPCGEx##_NAME##Settings* Settings = Context->GetInputSettings<UPCGEx##_NAME##Settings>();	check(Settings);
 #define PCGEX_CONTEXT_AND_SETTINGS(_NAME) PCGEX_CONTEXT(_NAME) PCGEX_SETTINGS(_NAME)
-#define PCGEX_DEFAULT_OPERATION(_NAME, _TYPE) _NAME = ObjectInitializer.CreateDefaultSubobject<_TYPE>(this, TEXT(#_NAME));
+#define PCGEX_DEFAULT_OPERATION(_NAME, _TYPE) if(!_NAME){_NAME = NewObject<_TYPE>();} //ObjectInitializer.CreateDefaultSubobject<_TYPE>(this, TEXT(#_NAME));
 #define PCGEX_VALIDATE_OPERATION(_NAME) if(!Settings->_NAME){PCGE_LOG(Error, GraphAndLog, FTEXT("Invalid user-defined operation: "#_NAME)); return false;}
 #define PCGEX_VALIDATE_NAME(_NAME) if (!FPCGMetadataAttributeBase::IsValidName(_NAME)){	PCGE_LOG(Error, GraphAndLog, FTEXT("Invalid user-defined attribute name.")); return false;	}
 #define PCGEX_BIND_OPERATION(_NAME, _TYPE) PCGEX_VALIDATE_OPERATION(_NAME) Context->_NAME = Context->RegisterOperation<_TYPE>(Settings->_NAME);

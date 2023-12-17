@@ -11,7 +11,7 @@
 /**
  * 
  */
-UCLASS(Abstract, Blueprintable, EditInlineNew)
+UCLASS(Abstract, BlueprintType, Blueprintable, EditInlineNew)
 class PCGEXTENDEDTOOLKIT_API UPCGExEdgePromotingOperation : public UPCGExOperation
 {
 	GENERATED_BODY()

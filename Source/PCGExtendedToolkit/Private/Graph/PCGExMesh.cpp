@@ -24,6 +24,7 @@ namespace PCGExMesh
 		IndicesMap.Empty();
 		Vertices.Empty();
 		Edges.Empty();
+		Bounds = FBox(ForceInit);
 	}
 
 	FMesh::~FMesh()
@@ -54,6 +55,9 @@ namespace PCGExMesh
 
 	void FMesh::BuildFrom(const PCGExData::FPointIO& InPoints, const PCGExData::FPointIO& InEdges)
 	{
+
+		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExMesh::BuildMesh);
+		
 		const TArray<FPCGPoint>& InVerticesPoints = InPoints.GetIn()->GetPoints();
 		const int32 NumVertices = InVerticesPoints.Num();
 		Vertices.Reset(NumVertices);
@@ -78,10 +82,18 @@ namespace PCGExMesh
 			bool JustCreated = false;
 
 			FVertex& Start = GetOrCreateVertex(VtxStart, JustCreated);
-			if (JustCreated) { Start.Position = InVerticesPoints[VtxStart].Transform.GetLocation(); }
+			if (JustCreated)
+			{
+				Start.Position = InVerticesPoints[VtxStart].Transform.GetLocation();
+				Bounds += Start.Position;
+			}
 			
 			FVertex& End = GetOrCreateVertex(VtxEnd, JustCreated);
-			if (JustCreated) { End.Position = InVerticesPoints[VtxEnd].Transform.GetLocation(); }
+			if (JustCreated)
+			{
+				End.Position = InVerticesPoints[VtxEnd].Transform.GetLocation();
+				Bounds += End.Position;
+			}
 			
 			Start.AddNeighbor(i, End.MeshIndex);
 			End.AddNeighbor(i, Start.MeshIndex);

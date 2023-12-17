@@ -21,6 +21,7 @@ public:
 #endif
 
 	virtual PCGExData::EInit GetEdgeOutputInitMode() const override;
+	virtual bool GetCacheAllMeshes() const override;
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
@@ -33,6 +34,12 @@ private:
 struct PCGEXTENDEDTOOLKIT_API FPCGExConsolidateEdgeIslandsContext : public FPCGExEdgesProcessorContext
 {
 	friend class FPCGExConsolidateEdgeIslandsElement;
+
+	virtual ~FPCGExConsolidateEdgeIslandsContext() override;
+
+	PCGExData::FPointIO* ConsolidatedEdges = nullptr;
+	TSet<PCGExMesh::FMesh*> VisitedMeshes;
+	
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExConsolidateEdgeIslandsElement : public FPCGExEdgesProcessorElement
@@ -46,4 +53,21 @@ public:
 protected:
 	virtual bool Boot(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
+};
+
+// Define the background task class
+class PCGEXTENDEDTOOLKIT_API FBridgeMeshesTask : public FPCGExNonAbandonableTask
+{
+public:
+	FBridgeMeshesTask(
+		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO, int32 InOtherMeshIndex) :
+		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+	OtherMeshIndex(InOtherMeshIndex)
+	{
+	}
+
+	int32 OtherMeshIndex = -1;
+	
+	virtual bool ExecuteTask() override;
+
 };

@@ -10,7 +10,7 @@
 /**
  * 
  */
-UCLASS(Blueprintable, EditInlineNew, DisplayName = "Inherit Start")
+UCLASS(BlueprintType, Blueprintable, EditInlineNew, DisplayName = "Inherit Start")
 class PCGEXTENDEDTOOLKIT_API UPCGExSubPointsBlendInheritStart : public UPCGExSubPointsBlendOperation
 {
 	GENERATED_BODY()

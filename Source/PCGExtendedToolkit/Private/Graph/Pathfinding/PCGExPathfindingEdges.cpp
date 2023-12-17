@@ -8,6 +8,7 @@
 #include "Graph/Pathfinding/PCGExPathfinding.h"
 #include "Graph/Pathfinding/GoalPickers/PCGExGoalPickerRandom.h"
 #include "Algo/Reverse.h"
+#include "Graph/Pathfinding/Heuristics/PCGExHeuristicDistance.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPathfindingEdgesElement"
 #define PCGEX_NAMESPACE PathfindingEdges
@@ -16,6 +17,7 @@ UPCGExPathfindingEdgesSettings::UPCGExPathfindingEdgesSettings(
 	const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	
 }
 
 void UPCGExPathfindingEdgesSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
@@ -61,9 +63,17 @@ bool FPCGExPathfindingEdgesElement::ExecuteInternal(FPCGContext* InContext) cons
 		if (!Context->AdvanceAndBindPointsIO()) { Context->Done(); }
 		else
 		{
-			PCGEX_DELETE_TARRAY(Context->PathBuffer)
-			Context->GoalPicker->PrepareForData(*Context->SeedsPoints, *Context->GoalsPoints);
-			Context->SetState(PCGExMT::State_ProcessingPoints);
+			if (!Context->BoundEdges->IsValid())
+			{
+				PCGE_LOG(Warning, GraphAndLog, FTEXT("Some input points have no associated edges."));
+				Context->SetState(PCGExMT::State_ReadyForNextPoints);
+			}
+			else
+			{
+				PCGEX_DELETE_TARRAY(Context->PathBuffer)
+				Context->GoalPicker->PrepareForData(*Context->SeedsPoints, *Context->GoalsPoints);
+				Context->SetState(PCGExMT::State_ProcessingPoints);
+			}
 		}
 	}
 
@@ -92,11 +102,7 @@ bool FPCGExPathfindingEdgesElement::ExecuteInternal(FPCGContext* InContext) cons
 	if (Context->IsState(PCGExGraph::State_ReadyForNextEdges))
 	{
 		if (!Context->AdvanceEdges()) { Context->SetState(PCGExMT::State_ReadyForNextPoints); }
-		else
-		{
-			//TODO: Cache heuristics for current mesh
-			Context->SetState(PCGExGraph::State_ProcessingEdges);
-		}
+		else { Context->SetState(PCGExGraph::State_ProcessingEdges); }
 	}
 
 	if (Context->IsState(PCGExGraph::State_ProcessingEdges))
@@ -128,7 +134,7 @@ bool FPCGExPathfindingEdgesElement::ExecuteInternal(FPCGContext* InContext) cons
 bool FSampleMeshPathTask::ExecuteTask()
 {
 	FPCGExPathfindingEdgesContext* Context = Manager->GetContext<FPCGExPathfindingEdgesContext>();
-	PCGEX_ASYNC_CHECKPOINT
+	//PCGEX_ASYNC_CHECKPOINT
 
 	const FPCGPoint& Seed = Context->SeedsPoints->GetInPoint(Query->SeedIndex);
 	const FPCGPoint& Goal = Context->GoalsPoints->GetInPoint(Query->GoalIndex);

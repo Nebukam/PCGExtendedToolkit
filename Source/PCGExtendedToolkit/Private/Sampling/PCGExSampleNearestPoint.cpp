@@ -183,7 +183,7 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 bool FSamplePointTask::ExecuteTask()
 {
 	const FPCGExSampleNearestPointContext* Context = Manager->GetContext<FPCGExSampleNearestPointContext>();
-	PCGEX_ASYNC_CHECKPOINT
+	//PCGEX_ASYNC_CHECKPOINT
 
 	const int32 NumTargets = Context->Targets->GetNum();
 	const FVector Origin = PointIO->GetOutPoint(TaskIndex).Transform.GetLocation();

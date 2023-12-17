@@ -53,11 +53,11 @@ public:
 
 public:
 	/** Controls how goals are picked.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced, meta = (NoResetToDefault))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced, meta = (NoResetToDefault, ShowOnlyInnerProperties))
 	TObjectPtr<UPCGExGoalPicker> GoalPicker;
 
 	/** Controls how path points blend from seed to goal. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced, meta = (NoResetToDefault))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced, meta = (NoResetToDefault, ShowOnlyInnerProperties))
 	TObjectPtr<UPCGExSubPointsBlendOperation> Blending;
 
 	/** Add seed point at the beginning of the path */

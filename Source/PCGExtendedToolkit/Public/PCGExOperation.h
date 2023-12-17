@@ -11,7 +11,7 @@ struct FPCGExPointsProcessorContext;
 /**
  * 
  */
-UCLASS(Abstract, Blueprintable)
+UCLASS(Abstract, BlueprintType, Blueprintable)
 class PCGEXTENDEDTOOLKIT_API UPCGExOperation : public UObject
 {
 	GENERATED_BODY()

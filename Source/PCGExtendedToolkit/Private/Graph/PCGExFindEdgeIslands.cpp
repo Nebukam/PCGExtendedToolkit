@@ -256,7 +256,7 @@ bool FPCGExFindEdgeIslandsElement::ExecuteInternal(
 bool FWriteIslandTask::ExecuteTask()
 {
 	const FPCGExFindEdgeIslandsContext* Context = Manager->GetContext<FPCGExFindEdgeIslandsContext>();
-	PCGEX_ASYNC_CHECKPOINT
+	//PCGEX_ASYNC_CHECKPOINT
 
 	const int32 IslandUID = TaskIndex;
 	const int32 IslandSize = *Context->Network->IslandSizes.Find(IslandUID);
@@ -270,7 +270,7 @@ bool FWriteIslandTask::ExecuteTask()
 		for (const int32 Edge : Node.Edges) { Island.Add(Context->Network->Edges[Edge].GetUnsignedHash()); }
 	}
 
-	PCGEX_ASYNC_CHECKPOINT
+	//PCGEX_ASYNC_CHECKPOINT
 
 	TArray<FPCGPoint>& MutablePoints = IslandData->GetOut()->GetMutablePoints();
 	MutablePoints.SetNum(Island.Num());
@@ -302,7 +302,7 @@ bool FWriteIslandTask::ExecuteTask()
 		Context->CenterEdgePoint(MutablePoints[PointIndex++], PCGExGraph::FUnsignedEdge(Edge));
 	}
 
-	PCGEX_ASYNC_CHECKPOINT
+	//PCGEX_ASYNC_CHECKPOINT
 
 	EdgeStart->Write();
 	EdgeEnd->Write();

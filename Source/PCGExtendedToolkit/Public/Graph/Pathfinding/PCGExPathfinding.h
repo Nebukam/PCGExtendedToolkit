@@ -97,6 +97,8 @@ namespace PCGExPathfinding
 	{
 		if (Seed == Goal) { return false; }
 
+		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExPathfinding::FindPath);
+		
 		const PCGExMesh::FVertex& StartVtx = Mesh->Vertices[Seed];
 		const PCGExMesh::FVertex& EndVtx = Mesh->Vertices[Goal];
 

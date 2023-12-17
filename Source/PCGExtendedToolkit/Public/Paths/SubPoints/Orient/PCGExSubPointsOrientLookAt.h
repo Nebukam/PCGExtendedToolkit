@@ -18,7 +18,7 @@ enum class EPCGExOrientLookAt : uint8
 /**
  * 
  */
-UCLASS(Blueprintable, EditInlineNew, DisplayName = "Look At")
+UCLASS(BlueprintType, Blueprintable, EditInlineNew, DisplayName = "Look At")
 class PCGEXTENDEDTOOLKIT_API UPCGExSubPointsOrientLookAt : public UPCGExSubPointsOrientOperation
 {
 	GENERATED_BODY()

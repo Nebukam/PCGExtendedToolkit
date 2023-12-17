@@ -122,7 +122,7 @@ bool FPCGExBuildGraphElement::ExecuteInternal(
 bool FProbeTask::ExecuteTask()
 {
 	const FPCGExBuildGraphContext* Context = Manager->GetContext<FPCGExBuildGraphContext>();
-	PCGEX_ASYNC_CHECKPOINT
+	//PCGEX_ASYNC_CHECKPOINT
 
 	const PCGEx::FPointRef Point = PCGEx::FPointRef(PointIO->GetOutPoint(TaskIndex), TaskIndex);
 
@@ -147,7 +147,7 @@ bool FProbeTask::ExecuteTask()
 	for (PCGExGraph::FSocketProbe& Probe : Probes)
 	{
 		Context->GraphSolver->ResolveProbe(Probe);
-		PCGEX_ASYNC_CHECKPOINT
+		//PCGEX_ASYNC_CHECKPOINT
 		Probe.OutputTo(Point.Index);
 		PCGEX_CLEANUP(Probe)
 	}

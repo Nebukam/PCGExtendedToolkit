@@ -42,12 +42,12 @@ public:
 	virtual bool GetRequiresGoals() const;
 
 	/** Controls how goals are picked.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced, meta = (NoResetToDefault))
-	TObjectPtr<UPCGExGoalPicker> GoalPicker;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced, meta = (NoResetToDefault, ShowOnlyInnerProperties))
+	TObjectPtr<UPCGExGoalPicker> GoalPicker = nullptr;
 
 	/** Controls how heuristic are calculated. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced, meta = (NoResetToDefault))
-	TObjectPtr<UPCGExHeuristicOperation> Heuristics;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced, meta = (NoResetToDefault, ShowOnlyInnerProperties))
+	TObjectPtr<UPCGExHeuristicOperation> Heuristics = nullptr;
 	
 	/** How to blend path points between seed & goal */
 	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced, meta = (NoResetToDefault))

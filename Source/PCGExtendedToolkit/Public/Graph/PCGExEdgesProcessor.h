@@ -19,7 +19,6 @@ class PCGEXTENDEDTOOLKIT_API UPCGExEdgesProcessorSettings : public UPCGExPointsP
 	GENERATED_BODY()
 
 public:
-	
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(EdgesProcessorSettings, "Edges Processor Settings", "TOOLTIP_TEXT");
@@ -32,11 +31,14 @@ public:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 	//~End UPCGSettings interface
+
+	virtual bool GetCacheAllMeshes() const;
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExEdgesProcessorContext : public FPCGExPointsProcessorContext
 {
 	friend class UPCGExEdgesProcessorSettings;
+	friend class FPCGExEdgesProcessorElement;
 
 	virtual ~FPCGExEdgesProcessorContext() override;
 
@@ -47,7 +49,21 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgesProcessorContext : public FPCGExPointsP
 	bool AdvanceAndBindPointsIO();
 	bool AdvanceEdges(); // Advance edges within current points
 
+	bool bCacheAllMeshes = false;
 	PCGExMesh::FMesh* CurrentMesh = nullptr;
+	TArray<PCGExMesh::FMesh*> Meshes;
+
+	void OutputPointsAndEdges()
+	{
+		MainPoints->OutputTo(this);
+		Edges->OutputTo(this);
+	}
+
+	template <class InitializeFunc, class LoopBodyFunc>
+	bool ProcessCurrentEdges(InitializeFunc&& Initialize, LoopBodyFunc&& LoopBody, bool bForceSync) { return Process(Initialize, LoopBody, CurrentEdges->GetNum(), bForceSync); }
+
+	template <class LoopBodyFunc>
+	bool ProcessCurrentEdges(LoopBodyFunc&& LoopBody, bool bForceSync) { return Process(LoopBody, CurrentEdges->GetNum(), bForceSync); }
 
 protected:
 	int32 CurrentEdgesIndex = -1;

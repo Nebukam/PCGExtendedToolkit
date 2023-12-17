@@ -10,7 +10,7 @@
 /**
  * 
  */
-UCLASS(Blueprintable, EditInlineNew, DisplayName = "Inherit End")
+UCLASS(BlueprintType, Blueprintable, EditInlineNew, DisplayName = "Inherit End")
 class PCGEXTENDEDTOOLKIT_API UPCGExSubPointsBlendInheritEnd : public UPCGExSubPointsBlendOperation
 {
 	GENERATED_BODY()

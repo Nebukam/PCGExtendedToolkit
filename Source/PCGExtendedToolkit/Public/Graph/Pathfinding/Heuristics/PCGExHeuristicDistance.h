@@ -12,7 +12,7 @@
 /**
  * 
  */
-UCLASS(Blueprintable, EditInlineNew, DisplayName = "Distance")
+UCLASS(BlueprintType, Blueprintable, EditInlineNew, DisplayName = "Distance")
 class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicDistance : public UPCGExHeuristicOperation
 {
 	GENERATED_BODY()

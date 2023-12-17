@@ -10,7 +10,7 @@
 /**
  * 
  */
-UCLASS(Blueprintable, EditInlineNew, DisplayName = "Average")
+UCLASS(BlueprintType, Blueprintable, EditInlineNew, DisplayName = "Average")
 class PCGEXTENDEDTOOLKIT_API UPCGExSubPointsOrientAverage : public UPCGExSubPointsOrientOperation
 {
 	GENERATED_BODY()

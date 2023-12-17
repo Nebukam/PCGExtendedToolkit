@@ -68,6 +68,7 @@ namespace PCGExMesh
 		TMap<int32, int32> IndicesMap; //Mesh vertices
 		TArray<FVertex> Vertices;
 		TArray<FIndexedEdge> Edges;
+		FBox Bounds;
 
 		PCGExData::FPointIO* PointsIO = nullptr;
 		PCGExData::FPointIO* EdgesIO = nullptr;
