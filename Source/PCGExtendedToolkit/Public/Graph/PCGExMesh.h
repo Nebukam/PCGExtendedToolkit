@@ -22,7 +22,7 @@ namespace PCGExMesh
 
 	struct PCGEXTENDEDTOOLKIT_API FVertex
 	{
-		int32 Index = -1;
+		int32 MeshIndex = -1;
 		int32 PointIndex = -1;
 		FVector Position;
 		TArray<int32> Neighbors;
@@ -38,7 +38,7 @@ namespace PCGExMesh
 
 		~FVertex();
 
-		void Add(const int32 EdgeIndex, const int32 VtxIndex);
+		void AddNeighbor(const int32 EdgeIndex, const int32 VertexIndex);
 	};
 
 
@@ -82,6 +82,6 @@ namespace PCGExMesh
 		const FVertex& GetVertex(const int32 Index) const;
 
 	protected:
-		FVertex& GetOrCreateVertex(const int32 Index, bool& bJustCreated);
+		FVertex& GetOrCreateVertex(const int32 PointIndex, bool& bJustCreated);
 	};
 }

@@ -197,7 +197,7 @@ bool FSampleNavmeshTask::ExecuteTask()
 
 	FPathFindingQuery PathFindingQuery = FPathFindingQuery(
 		Context->World, *Context->NavData,
-		Query->StartPosition, Query->EndPosition, nullptr, nullptr,
+		Query->SeedPosition, Query->GoalPosition, nullptr, nullptr,
 		TNumericLimits<FVector::FReal>::Max(),
 		Context->bRequireNavigableEndLocation);
 
@@ -215,11 +215,11 @@ bool FSampleNavmeshTask::ExecuteTask()
 	TArray<FVector> PathLocations;
 	PathLocations.Reserve(Points.Num());
 
-	PathLocations.Add(Query->StartPosition);
+	PathLocations.Add(Query->SeedPosition);
 	for (FNavPathPoint PathPoint : Points) { PathLocations.Add(PathPoint.Location); }
-	PathLocations.Add(Query->EndPosition);
+	PathLocations.Add(Query->GoalPosition);
 
-	PCGExMath::FPathMetrics Metrics = PCGExMath::FPathMetrics(Query->StartPosition);
+	PCGExMath::FPathMetrics Metrics = PCGExMath::FPathMetrics(Query->SeedPosition);
 	int32 FuseCountReduce = Context->bAddGoalToPath ? 2 : 1;
 	for (int i = Context->bAddSeedToPath; i < PathLocations.Num(); i++)
 	{

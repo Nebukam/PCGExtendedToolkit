@@ -43,15 +43,17 @@ namespace PCGExPathfinding
 
 	struct PCGEXTENDEDTOOLKIT_API FPathQuery
 	{
-		FPathQuery(const int32 InSeedIndex, const FVector& InStart, const int32 InGoalIndex, const FVector& InEnd):
-			SeedIndex(InSeedIndex), StartPosition(InStart), GoalIndex(InGoalIndex), EndPosition(InEnd)
+		FPathQuery(const int32 InSeedIndex, const FVector& InSeedPosition,
+		           const int32 InGoalIndex, const FVector& InGoalPosition):
+			SeedIndex(InSeedIndex), SeedPosition(InSeedPosition),
+			GoalIndex(InGoalIndex), GoalPosition(InGoalPosition)
 		{
 		}
 
 		int32 SeedIndex = -1;
-		FVector StartPosition;
+		FVector SeedPosition;
 		int32 GoalIndex = -1;
-		FVector EndPosition;
+		FVector GoalPosition;
 	};
 
 	template <class InitializeFunc>
@@ -89,14 +91,14 @@ namespace PCGExPathfinding
 
 	static bool FindPath(
 		const PCGExMesh::FMesh* Mesh,
-		const int32 From, const int32 To,
+		const int32 Seed, const int32 Goal,
 		const UPCGExHeuristicOperation* Heuristics,
 		TArray<int32>& OutPath)
 	{
-		if (From == To) { return false; }
+		if (Seed == Goal) { return false; }
 
-		const PCGExMesh::FVertex& StartVtx = Mesh->Vertices[From];
-		const PCGExMesh::FVertex& EndVtx = Mesh->Vertices[To];
+		const PCGExMesh::FVertex& StartVtx = Mesh->Vertices[Seed];
+		const PCGExMesh::FVertex& EndVtx = Mesh->Vertices[Goal];
 
 		// Basic A* implementation
 		TMap<int32, double> CachedScores;
@@ -114,24 +116,24 @@ namespace PCGExPathfinding
 		while (!bSuccess && !OpenList.IsEmpty())
 		{
 			PCGExMesh::FScoredVertex* CurrentWVtx = OpenList.Pop();
-			const int32 CurrentVtxIndex = CurrentWVtx->Vertex->Index;
+			const int32 CurrentVtxIndex = CurrentWVtx->Vertex->MeshIndex;
 
 			ClosedList.Add(CurrentWVtx);
 			Visited.Add(CurrentVtxIndex);
 
-			if (CurrentVtxIndex == EndVtx.Index)
+			if (CurrentVtxIndex == EndVtx.MeshIndex)
 			{
 				bSuccess = true;
-				//TArray<int32> Path;
+				TArray<int32> Path;
 
 				while (CurrentWVtx)
 				{
-					OutPath.Add(CurrentWVtx->Vertex->Index);
+					Path.Add(CurrentWVtx->Vertex->MeshIndex);
 					CurrentWVtx = CurrentWVtx->From;
 				}
 
-				//Algo::Reverse(Path);
-				//OutPath.Append(Path);
+				Algo::Reverse(Path);
+				OutPath.Append(Path);
 			}
 			else
 			{
@@ -144,8 +146,11 @@ namespace PCGExPathfinding
 					const PCGExMesh::FVertex& OtherVtx = Mesh->GetVertex(OtherVtxIndex);
 					double Score = Heuristics->ComputeScore(CurrentWVtx, OtherVtx, StartVtx, EndVtx);
 
-					const double* PreviousScore = CachedScores.Find(OtherVtxIndex);
-					if (PreviousScore && !Heuristics->IsBetterScore(*PreviousScore, Score)) { continue; }
+					if (const double* PreviousScore = CachedScores.Find(OtherVtxIndex);
+						PreviousScore && !Heuristics->IsBetterScore(*PreviousScore, Score))
+					{
+						continue;
+					}
 
 					PCGExMesh::FScoredVertex* NewWVtx = new PCGExMesh::FScoredVertex(OtherVtx, Score, CurrentWVtx);
 					CachedScores.Add(OtherVtxIndex, Score);
@@ -163,12 +168,14 @@ namespace PCGExPathfinding
 	}
 
 	static bool FindPath(
-		const PCGExMesh::FMesh* Mesh, const FVector& From, const FVector& To,
+		const PCGExMesh::FMesh* Mesh, const FVector& SeedPosition, const FVector& GoalPosition,
 		const UPCGExHeuristicOperation* Heuristics,
 		TArray<int32>& OutPath)
 	{
 		return FindPath(
-			Mesh, Mesh->FindClosestVertex(From), Mesh->FindClosestVertex(To),
+			Mesh,
+			Mesh->FindClosestVertex(SeedPosition),
+			Mesh->FindClosestVertex(GoalPosition),
 			Heuristics, OutPath);
 	}
 

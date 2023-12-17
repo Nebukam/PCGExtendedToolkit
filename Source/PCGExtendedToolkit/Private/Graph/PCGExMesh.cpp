@@ -3,6 +3,8 @@
 
 #include "Graph/PCGExMesh.h"
 
+#include "Data/PCGExAttributeHelpers.h"
+
 namespace PCGExMesh
 {
 	FVertex::~FVertex()
@@ -11,10 +13,10 @@ namespace PCGExMesh
 		Edges.Empty();
 	}
 
-	void FVertex::Add(const int32 EdgeIndex, const int32 VtxIndex)
+	void FVertex::AddNeighbor(const int32 EdgeIndex, const int32 VertexIndex)
 	{
 		Edges.AddUnique(EdgeIndex);
-		Neighbors.AddUnique(VtxIndex);
+		Neighbors.AddUnique(VertexIndex);
 	}
 
 	FMesh::FMesh()
@@ -31,9 +33,9 @@ namespace PCGExMesh
 		Edges.Empty();
 	}
 
-	FVertex& FMesh::GetOrCreateVertex(const int32 Index, bool& bJustCreated)
+	FVertex& FMesh::GetOrCreateVertex(const int32 PointIndex, bool& bJustCreated)
 	{
-		if (const int32* VertexIndex = IndicesMap.Find(Index))
+		if (const int32* VertexIndex = IndicesMap.Find(PointIndex))
 		{
 			bJustCreated = false;
 			return Vertices[*VertexIndex];
@@ -42,10 +44,10 @@ namespace PCGExMesh
 		bJustCreated = true;
 		FVertex& Vertex = Vertices.Emplace_GetRef();
 		const int32 VtxIndex = Vertices.Num() - 1;
-		IndicesMap.Add(Index, VtxIndex);
+		IndicesMap.Add(PointIndex, VtxIndex);
 
-		Vertex.PointIndex = Index;
-		Vertex.Index = VtxIndex;
+		Vertex.PointIndex = PointIndex;
+		Vertex.MeshIndex = VtxIndex;
 
 		return Vertex;
 	}
@@ -77,11 +79,12 @@ namespace PCGExMesh
 
 			FVertex& Start = GetOrCreateVertex(VtxStart, JustCreated);
 			if (JustCreated) { Start.Position = InVerticesPoints[VtxStart].Transform.GetLocation(); }
-			Start.Add(i, VtxEnd);
-
+			
 			FVertex& End = GetOrCreateVertex(VtxEnd, JustCreated);
-			if (JustCreated) { Start.Position = InVerticesPoints[VtxEnd].Transform.GetLocation(); }
-			End.Add(i, VtxStart);
+			if (JustCreated) { End.Position = InVerticesPoints[VtxEnd].Transform.GetLocation(); }
+			
+			Start.AddNeighbor(i, End.MeshIndex);
+			End.AddNeighbor(i, Start.MeshIndex);
 		}
 
 		PCGEX_DELETE(StartIndexReader)
@@ -98,7 +101,7 @@ namespace PCGExMesh
 			if (Dist < MaxDistance)
 			{
 				MaxDistance = Dist;
-				ClosestIndex = Vtx.Index;
+				ClosestIndex = Vtx.MeshIndex;
 			}
 		}
 

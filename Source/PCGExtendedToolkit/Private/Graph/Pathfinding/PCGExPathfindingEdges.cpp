@@ -130,15 +130,15 @@ bool FSampleMeshPathTask::ExecuteTask()
 	FPCGExPathfindingEdgesContext* Context = Manager->GetContext<FPCGExPathfindingEdgesContext>();
 	PCGEX_ASYNC_CHECKPOINT
 
-	const FPCGPoint& StartPoint = Context->SeedsPoints->GetInPoint(Query->SeedIndex);
-	const FPCGPoint& EndPoint = Context->GoalsPoints->GetInPoint(Query->GoalIndex);
+	const FPCGPoint& Seed = Context->SeedsPoints->GetInPoint(Query->SeedIndex);
+	const FPCGPoint& Goal = Context->GoalsPoints->GetInPoint(Query->GoalIndex);
 
 	const PCGExMesh::FMesh* Mesh = Context->CurrentMesh;
 
 	TArray<int32> Path;
 
 	if (!PCGExPathfinding::FindPath(
-		Context->CurrentMesh, Query->StartPosition, Query->EndPosition,
+		Context->CurrentMesh, Query->SeedPosition, Query->GoalPosition,
 		Context->Heuristics, Path))
 	{
 		return false;
@@ -149,9 +149,11 @@ bool FSampleMeshPathTask::ExecuteTask()
 	TArray<FPCGPoint>& MutablePoints = OutData->GetMutablePoints();
 	const TArray<FPCGPoint>& InPoints = Context->GetCurrentIn()->GetPoints();
 
-	if (Context->bAddSeedToPath) { MutablePoints.Emplace_GetRef(StartPoint).MetadataEntry = PCGInvalidEntryKey; }
-	for (const int32 Index : Path) { MutablePoints.Add(InPoints[Mesh->Vertices[Index].PointIndex]); }
-	if (Context->bAddGoalToPath) { MutablePoints.Emplace_GetRef(EndPoint).MetadataEntry = PCGInvalidEntryKey; }
+	MutablePoints.Reserve(Path.Num() + 2);
+
+	if (Context->bAddSeedToPath) { MutablePoints.Add_GetRef(Seed).MetadataEntry = PCGInvalidEntryKey; }
+	for (const int32 VtxIndex : Path) { MutablePoints.Add(InPoints[Mesh->Vertices[VtxIndex].PointIndex]); }
+	if (Context->bAddGoalToPath) { MutablePoints.Add_GetRef(Goal).MetadataEntry = PCGInvalidEntryKey; }
 
 	return true;
 }
