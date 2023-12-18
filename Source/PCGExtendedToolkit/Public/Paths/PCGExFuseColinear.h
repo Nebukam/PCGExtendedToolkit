@@ -42,7 +42,7 @@ public:
 	bool bDoBlend = false;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable, NoResetToDefault, ShowOnlyInnerProperties, EditCondition="bDoBlend"))
-	TObjectPtr<UPCGExSubPointsBlendOperation> Blending;
+	TObjectPtr<UPCGExSubPointsBlendOperation> Blending= nullptr;
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExFuseColinearContext : public FPCGExPathProcessorContext

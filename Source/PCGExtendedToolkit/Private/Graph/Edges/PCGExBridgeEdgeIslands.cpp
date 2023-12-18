@@ -1,24 +1,26 @@
 ﻿// Copyright Timothé Lapetite 2023
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Graph/Edges/PCGExConsolidateEdgeIslands.h"
+#include "Graph/Edges/PCGExBridgeEdgeIslands.h"
 
-#define LOCTEXT_NAMESPACE "PCGExConsolidateEdgeIslands"
-#define PCGEX_NAMESPACE ConsolidateEdgeIslands
+#include "Data/PCGExPointIOMerger.h"
 
-UPCGExConsolidateEdgeIslandsSettings::UPCGExConsolidateEdgeIslandsSettings(
+#define LOCTEXT_NAMESPACE "PCGExBridgeEdgeIslands"
+#define PCGEX_NAMESPACE BridgeEdgeIslands
+
+UPCGExBridgeEdgeIslandsSettings::UPCGExBridgeEdgeIslandsSettings(
 	const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 }
 
-PCGExData::EInit UPCGExConsolidateEdgeIslandsSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::NoOutput; }
+PCGExData::EInit UPCGExBridgeEdgeIslandsSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 
-bool UPCGExConsolidateEdgeIslandsSettings::GetCacheAllMeshes() const { return true; }
+bool UPCGExBridgeEdgeIslandsSettings::GetCacheAllMeshes() const { return true; }
 
-FPCGElementPtr UPCGExConsolidateEdgeIslandsSettings::CreateElement() const { return MakeShared<FPCGExConsolidateEdgeIslandsElement>(); }
+FPCGElementPtr UPCGExBridgeEdgeIslandsSettings::CreateElement() const { return MakeShared<FPCGExBridgeEdgeIslandsElement>(); }
 
-FPCGExConsolidateEdgeIslandsContext::~FPCGExConsolidateEdgeIslandsContext()
+FPCGExBridgeEdgeIslandsContext::~FPCGExBridgeEdgeIslandsContext()
 {
 	PCGEX_TERMINATE_ASYNC
 
@@ -28,23 +30,25 @@ FPCGExConsolidateEdgeIslandsContext::~FPCGExConsolidateEdgeIslandsContext()
 }
 
 
-PCGEX_INITIALIZE_CONTEXT(ConsolidateEdgeIslands)
+PCGEX_INITIALIZE_CONTEXT(BridgeEdgeIslands)
 
-bool FPCGExConsolidateEdgeIslandsElement::Boot(FPCGContext* InContext) const
+bool FPCGExBridgeEdgeIslandsElement::Boot(FPCGContext* InContext) const
 {
 	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
 
-	PCGEX_CONTEXT_AND_SETTINGS(ConsolidateEdgeIslands)
+	PCGEX_CONTEXT_AND_SETTINGS(BridgeEdgeIslands)
+
+	PCGEX_FWD(BridgeMethod)
 
 	return true;
 }
 
-bool FPCGExConsolidateEdgeIslandsElement::ExecuteInternal(
+bool FPCGExBridgeEdgeIslandsElement::ExecuteInternal(
 	FPCGContext* InContext) const
 {
-	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExConsolidateEdgeIslandsElement::Execute);
+	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExBridgeEdgeIslandsElement::Execute);
 
-	PCGEX_CONTEXT(ConsolidateEdgeIslands)
+	PCGEX_CONTEXT(BridgeEdgeIslands)
 
 	if (Context->IsSetup())
 	{
@@ -77,16 +81,9 @@ bool FPCGExConsolidateEdgeIslandsElement::ExecuteInternal(
 				}
 				else
 				{
-					int32 TotalEdgeCount = 0;
-					for (const PCGExData::FPointIO* BoundEdges : Context->BoundEdges->Values) { TotalEdgeCount += BoundEdges->GetNum(); }
-					MutablePoints.Reserve(TotalEdgeCount + (Context->BoundEdges->Values.Num() - 1));
-
-					// Dump
-					for (const PCGExData::FPointIO* BoundEdges : Context->BoundEdges->Values)
-					{
-						MutablePoints.Append(Context->BoundEdges->Values[0]->GetIn()->GetPoints());
-					}
-
+					FPCGExPointIOMerger* Merger = new FPCGExPointIOMerger(*Context->ConsolidatedEdges);
+					Merger->Append(Context->BoundEdges->Values);
+					Merger->DoMerge();
 					Context->SetState(PCGExGraph::State_ReadyForNextEdges);
 				}
 			}
@@ -104,22 +101,34 @@ bool FPCGExConsolidateEdgeIslandsElement::ExecuteInternal(
 		auto BridgeIslands = [&](const int32 MeshIndex)
 		{
 			PCGExMesh::FMesh* CurrentMesh = Context->Meshes[MeshIndex];
-			Context->VisitedMeshes.Add(CurrentMesh); // As to not connect to self or already connected
 
-			PCGExMesh::FMesh* ClosestMesh = nullptr;
-			double Distance = TNumericLimits<double>::Max();
-			for (PCGExMesh::FMesh* OtherMesh : Context->Meshes)
+			if (Context->BridgeMethod == EPCGExBridgeIslandMethod::LeastEdges)
 			{
-				if (Context->VisitedMeshes.Contains(OtherMesh)) { continue; }
-				double Dist = FVector::DistSquared(CurrentMesh->Bounds.GetCenter(), OtherMesh->Bounds.GetCenter());
-				if (!ClosestMesh || Dist < Distance)
+				Context->VisitedMeshes.Add(CurrentMesh); // As to not connect to self or already connected
+
+				PCGExMesh::FMesh* ClosestMesh = nullptr;
+				double Distance = TNumericLimits<double>::Max();
+				for (PCGExMesh::FMesh* OtherMesh : Context->Meshes)
 				{
-					ClosestMesh = OtherMesh;
-					Distance = Dist;
+					if (Context->VisitedMeshes.Contains(OtherMesh)) { continue; }
+					double Dist = FVector::DistSquared(CurrentMesh->Bounds.GetCenter(), OtherMesh->Bounds.GetCenter());
+					if (!ClosestMesh || Dist < Distance)
+					{
+						ClosestMesh = OtherMesh;
+						Distance = Dist;
+					}
+				}
+
+				Context->GetAsyncManager()->Start<FBridgeMeshesTask>(MeshIndex, Context->ConsolidatedEdges, Context->Meshes.IndexOfByKey(ClosestMesh));
+			}
+			else if (Context->BridgeMethod == EPCGExBridgeIslandMethod::MostEdges)
+			{
+				for (int i = 0; i < Context->Meshes.Num(); i++)
+				{
+					if (CurrentMesh == Context->Meshes[i]) { continue; }
+					Context->GetAsyncManager()->Start<FBridgeMeshesTask>(MeshIndex, Context->ConsolidatedEdges, i);
 				}
 			}
-
-			Context->GetAsyncManager()->StartSync<FBridgeMeshesTask>(MeshIndex, Context->ConsolidatedEdges, Context->Meshes.IndexOfByKey(ClosestMesh));
 		};
 
 		if (Context->Process(BridgeIslands, Context->Meshes.Num() - 1, true))
@@ -140,7 +149,7 @@ bool FPCGExConsolidateEdgeIslandsElement::ExecuteInternal(
 
 bool FBridgeMeshesTask::ExecuteTask()
 {
-	FPCGExConsolidateEdgeIslandsContext* Context = Manager->GetContext<FPCGExConsolidateEdgeIslandsContext>();
+	FPCGExBridgeEdgeIslandsContext* Context = Manager->GetContext<FPCGExBridgeEdgeIslandsContext>();
 	//PCGEX_ASYNC_CHECKPOINT
 
 	const TArray<PCGExMesh::FVertex>& CurrentMeshVertices = Context->Meshes[TaskIndex]->Vertices;
@@ -158,21 +167,24 @@ bool FBridgeMeshesTask::ExecuteTask()
 
 		for (int j = 0; j < OtherMeshVertices.Num(); j++)
 		{
-			double Dist = FVector::DistSquared(CurrentVtx.Position, OtherMeshVertices[j].Position);
-			if (Dist < Distance)
+			const PCGExMesh::FVertex& OtherVtx = OtherMeshVertices[j];
+			if (const double Dist = FVector::DistSquared(CurrentVtx.Position, OtherVtx.Position);
+				Dist < Distance)
 			{
-				IndexA = i;
-				IndexB = j;
+				IndexA = CurrentVtx.PointIndex;
+				IndexB = OtherVtx.PointIndex;
 				Distance = Dist;
 			}
 		}
 	}
 
-	if (IndexA == -1) { IndexA = 0; }
-	if (IndexB == -1) { IndexB = 0; }
-
 	int32 EdgeIndex = -1;
-	const FPCGPoint& Bridge = Context->ConsolidatedEdges->NewPoint(EdgeIndex);
+	FPCGPoint& Bridge = Context->ConsolidatedEdges->NewPoint(EdgeIndex);
+	Bridge.Transform.SetLocation(
+		FMath::Lerp(
+			Context->CurrentIO->GetInPoint(IndexA).Transform.GetLocation(),
+			Context->CurrentIO->GetInPoint(IndexB).Transform.GetLocation(), 0.5));
+
 	const PCGMetadataEntryKey BridgeKey = Bridge.MetadataEntry;
 	UPCGMetadata* OutMetadataData = Context->ConsolidatedEdges->GetOut()->Metadata;
 	OutMetadataData->FindOrCreateAttribute<int32>(PCGExGraph::EdgeStartAttributeName)->SetValue(BridgeKey, IndexA);

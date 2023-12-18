@@ -210,7 +210,8 @@ namespace PCGEx
 			Keys = InKeys;
 		}
 
-		T GetDefaultValue() { return Attribute->GetValue(PCGInvalidEntryKey); }
+		T GetDefaultValue() const { return Attribute->GetValue(PCGInvalidEntryKey); }
+		bool GetAllowsInterpolation() const { return Attribute->AllowsInterpolation(); }
 
 		int32 GetNum() const { return NumEntries; }
 
@@ -390,6 +391,9 @@ namespace PCGEx
 			Values.Empty();
 		}
 
+		T GetDefaultValue() const { return Accessor->GetDefaultValue(); }
+		bool GetAllowsInterpolation() const { return Accessor->GetAllowsInterpolation(); }
+		
 		void SetNum(int32 Num) { Values.SetNumZeroed(Num); }
 		virtual bool Bind(PCGExData::FPointIO& PointIO) = 0;
 

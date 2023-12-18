@@ -103,6 +103,12 @@ bool FPCGExEdgesProcessorContext::AdvanceEdges()
 	return false;
 }
 
+void FPCGExEdgesProcessorContext::OutputPointsAndEdges()
+{
+	MainPoints->OutputTo(this);
+	Edges->OutputTo(this);
+}
+
 PCGEX_INITIALIZE_CONTEXT(EdgesProcessor)
 
 bool FPCGExEdgesProcessorElement::Boot(FPCGContext* InContext) const
@@ -131,6 +137,7 @@ FPCGContext* FPCGExEdgesProcessorElement::InitializeContext(
 	PCGEX_CONTEXT_AND_SETTINGS(EdgesProcessor)
 
 	Context->Edges = new PCGExData::FPointIOGroup();
+	Context->Edges->DefaultOutputLabel = PCGExGraph::OutputEdgesLabel;
 	TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(PCGExGraph::SourceEdgesLabel);
 	Context->Edges->Initialize(Context, Sources, Settings->GetEdgeOutputInitMode());
 

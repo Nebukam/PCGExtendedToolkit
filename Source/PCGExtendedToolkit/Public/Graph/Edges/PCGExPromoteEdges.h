@@ -39,7 +39,7 @@ public:
 	uint8 EdgeType = static_cast<uint8>(EPCGExEdgeType::Complete);
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced, meta = (NoResetToDefault, ShowOnlyInnerProperties))
-	TObjectPtr<UPCGExEdgePromotingOperation> Promotion;
+	TObjectPtr<UPCGExEdgePromotingOperation> Promotion = nullptr;
 
 private:
 	friend class FPCGExPromoteEdgesElement;

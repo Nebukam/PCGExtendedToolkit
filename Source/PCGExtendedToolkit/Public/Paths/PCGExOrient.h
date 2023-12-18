@@ -34,7 +34,7 @@ protected:
 
 public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable, ShowOnlyInnerProperties, NoResetToDefault))
-	TObjectPtr<UPCGExSubPointsOrientOperation> Orientation;
+	TObjectPtr<UPCGExSubPointsOrientOperation> Orientation= nullptr;
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExOrientContext : public FPCGExPathProcessorContext

@@ -53,11 +53,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgesProcessorContext : public FPCGExPointsP
 	PCGExMesh::FMesh* CurrentMesh = nullptr;
 	TArray<PCGExMesh::FMesh*> Meshes;
 
-	void OutputPointsAndEdges()
-	{
-		MainPoints->OutputTo(this);
-		Edges->OutputTo(this);
-	}
+	void OutputPointsAndEdges();
 
 	template <class InitializeFunc, class LoopBodyFunc>
 	bool ProcessCurrentEdges(InitializeFunc&& Initialize, LoopBodyFunc&& LoopBody, bool bForceSync) { return Process(Initialize, LoopBody, CurrentEdges->GetNum(), bForceSync); }
