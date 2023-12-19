@@ -56,7 +56,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExRelaxEdgeIslandsContext : public FPCGExEdges
 {
 	friend class FPCGExRelaxEdgeIslandsElement;
 
-	~FPCGExRelaxEdgeIslandsContext();
+	virtual ~FPCGExRelaxEdgeIslandsContext() override;
 
 	int32 Iterations = 10;
 	int32 CurrentIteration = 0;

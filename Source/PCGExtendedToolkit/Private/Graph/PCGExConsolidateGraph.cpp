@@ -120,7 +120,7 @@ bool FPCGExConsolidateGraphElement::ExecuteInternal(
 	{
 		auto ConsolidateEdgesType = [&](const int32 PointIndex, const PCGExData::FPointIO& PointIO)
 		{
-			ComputeEdgeType(Context->SocketInfos, PointIndex);
+			PCGExGraph::ComputeEdgeType(Context->SocketInfos, PointIndex);
 		};
 
 		if (Context->ProcessCurrentPoints(ConsolidateEdgesType))
