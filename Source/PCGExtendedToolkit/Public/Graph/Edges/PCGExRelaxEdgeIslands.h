@@ -31,7 +31,7 @@ protected:
 public:
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ClampMin=1))
-	int32 Iterations = 10;
+	int32 Iterations = 100;
 
 	/** Draw size. What it means depends on the selected debug type. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0, ClampMax=1))
@@ -47,7 +47,7 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable, NoResetToDefault, ShowOnlyInnerProperties))
 	TObjectPtr<UPCGExEdgeRelaxingOperation> Relaxing = nullptr;
-	
+
 private:
 	friend class FPCGExRelaxEdgeIslandsElement;
 };
@@ -65,9 +65,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExRelaxEdgeIslandsContext : public FPCGExEdges
 
 	TArray<FVector> PrimaryBuffer;
 	TArray<FVector> SecondaryBuffer;
-	
+
 	UPCGExEdgeRelaxingOperation* Relaxing = nullptr;
-	
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExRelaxEdgeIslandsElement : public FPCGExEdgesProcessorElement

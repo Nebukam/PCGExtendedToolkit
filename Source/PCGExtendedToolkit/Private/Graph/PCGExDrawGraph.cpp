@@ -112,6 +112,8 @@ bool FPCGExDrawGraphElement::ExecuteInternal(FPCGContext* InContext) const
 			{
 				const PCGExGraph::FSocketMetadata SocketMetadata = SocketInfos.Socket->GetData(PointIndex);
 
+				if (!PointIO.GetIn()->GetPoints().IsValidIndex(SocketMetadata.Index)) { continue; } // Attempting to draw a graph with the wrong set of input points
+
 				if (Settings->bDrawSocketCones && Context->GraphSolver)
 				{
 					for (PCGExGraph::FSocketProbe Probe : Probes)

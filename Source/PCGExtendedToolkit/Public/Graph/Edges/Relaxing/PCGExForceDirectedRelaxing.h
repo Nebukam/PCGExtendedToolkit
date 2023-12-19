@@ -10,7 +10,7 @@
 /**
  * 
  */
-UCLASS(BlueprintType, Blueprintable, EditInlineNew, DisplayName = "Force-directed")
+UCLASS(BlueprintType, Blueprintable, EditInlineNew, DisplayName = "Force Directed")
 class PCGEXTENDEDTOOLKIT_API UPCGExForceDirectedRelaxing : public UPCGExEdgeRelaxingOperation
 {
 	GENERATED_BODY()
@@ -18,5 +18,13 @@ class PCGEXTENDEDTOOLKIT_API UPCGExForceDirectedRelaxing : public UPCGExEdgeRela
 public:
 	virtual void ProcessVertex(const PCGExMesh::FVertex& Vertex) override;
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	double SpringConstant = 0.1;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	double ElectrostaticConstant = 1000;
+
 protected:
+	void CalculateAttractiveForce(FVector& Force, const FVector& A, const FVector& B) const;
+	void CalculateRepulsiveForce(FVector& Force, const FVector& A, const FVector& B) const;
 };
