@@ -150,7 +150,7 @@ namespace PCGExData
 	{
 		bool bSuccess = false;
 
-		if (Out)
+		if (Out && Out->GetPoints().Num() > 0)
 		{
 			if (!bEmplace)
 			{
@@ -171,11 +171,17 @@ namespace PCGExData
 			}
 		}
 
+		if(!bSuccess && Out)
+		{
+			Out->ConditionalBeginDestroy();
+			Out = nullptr;
+		}
+		
 		Cleanup();
 		return bSuccess;
 	}
 
-	bool FPointIO::OutputTo(FPCGContext* Context, bool bEmplace, const int64 MinPointCount, const int64 MaxPointCount)
+	bool FPointIO::OutputTo(FPCGContext* Context, bool bEmplace, const int32 MinPointCount, const int32 MaxPointCount)
 	{
 		if (Out)
 		{
@@ -185,10 +191,13 @@ namespace PCGExData
 				(MaxPointCount >= 0 && OutNumPoints > MaxPointCount))
 			{
 				Cleanup();
-				return false;
+				Out->ConditionalBeginDestroy();
+				Out = nullptr;
 			}
-
-			return OutputTo(Context, bEmplace);
+			else
+			{
+				return OutputTo(Context, bEmplace);
+			}
 		}
 		return false;
 	}
@@ -278,17 +287,14 @@ namespace PCGExData
 	 * @param MinPointCount
 	 * @param MaxPointCount 
 	 */
-	void FPointIOGroup::OutputTo(FPCGContext* Context, bool bEmplace, const int64 MinPointCount, const int64 MaxPointCount)
+	void FPointIOGroup::OutputTo(FPCGContext* Context, bool bEmplace, const int32 MinPointCount, const int32 MaxPointCount)
 	{
 		for (FPointIO* Pair : Pairs) { Pair->OutputTo(Context, bEmplace, MinPointCount, MaxPointCount); }
 	}
 
 	void FPointIOGroup::ForEach(const TFunction<void(FPointIO&, const int32)>& BodyLoop)
 	{
-		for (int i = 0; i < Pairs.Num(); i++)
-		{
-			BodyLoop(*Pairs[i], i);
-		}
+		for (int i = 0; i < Pairs.Num(); i++) { BodyLoop(*Pairs[i], i); }
 	}
 
 	void FPointIOGroup::Flush()

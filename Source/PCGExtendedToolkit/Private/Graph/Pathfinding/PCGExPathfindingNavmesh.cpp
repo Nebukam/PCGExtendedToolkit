@@ -216,10 +216,10 @@ bool FSampleNavmeshTask::ExecuteTask()
 	PathLocations.Reserve(Points.Num());
 
 	PathLocations.Add(Query->SeedPosition);
-	for (FNavPathPoint PathPoint : Points) { PathLocations.Add(PathPoint.Location); }
+	for (const FNavPathPoint& PathPoint : Points) { PathLocations.Add(PathPoint.Location); }
 	PathLocations.Add(Query->GoalPosition);
 
-	PCGExMath::FPathMetrics Metrics = PCGExMath::FPathMetrics(Query->SeedPosition);
+	PCGExMath::FPathMetrics Metrics = PCGExMath::FPathMetrics(PathLocations[0]);
 	int32 FuseCountReduce = Context->bAddGoalToPath ? 2 : 1;
 	for (int i = Context->bAddSeedToPath; i < PathLocations.Num(); i++)
 	{
@@ -243,7 +243,7 @@ bool FSampleNavmeshTask::ExecuteTask()
 	const int32 NumPositions = PathLocations.Num();
 	const int32 LastPosition = NumPositions - 1;
 
-	PCGExData::FPointIO& PathPoints = Context->OutputPaths->Emplace_GetRef(*Context->CurrentIO, PCGExData::EInit::NewOutput);
+	PCGExData::FPointIO& PathPoints = Context->OutputPaths->Emplace_GetRef(*PointIO, PCGExData::EInit::NewOutput);
 	UPCGPointData* OutData = PathPoints.GetOut();
 	TArray<FPCGPoint>& MutablePoints = OutData->GetMutablePoints();
 	MutablePoints.SetNumUninitialized(NumPositions);

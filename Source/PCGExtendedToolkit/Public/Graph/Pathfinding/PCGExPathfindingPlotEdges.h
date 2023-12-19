@@ -17,7 +17,7 @@
  * This way we can multi-thread the various calculations instead of mixing everything along with async/game thread collision
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class PCGEXTENDEDTOOLKIT_API UPCGExPathfindingPlotEdgesSettings : public UPCGExPathfindingProcessorSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExPathfindingPlotEdgesSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -31,26 +31,49 @@ public:
 #endif
 
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
-	virtual bool GetRequiresGoals() const override;
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings interface
+
+public:
+	/** Controls how heuristic are calculated. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced, meta = (NoResetToDefault, ShowOnlyInnerProperties))
+	TObjectPtr<UPCGExHeuristicOperation> Heuristics = nullptr;
+	
+	/** Add seed point at the beginning of the path */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	bool bAddSeedToPath = true;
+
+	/** Add goal point at the beginning of the path */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	bool bAddGoalToPath = true;
+	
+	/** Insert plot points inside the path */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	bool bAddPlotPointsToPath = true;
 };
 
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingPlotEdgesContext : public FPCGExPathfindingProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingPlotEdgesContext : public FPCGExEdgesProcessorContext
 {
 	friend class FPCGExPathfindingPlotEdgesElement;
 
 	virtual ~FPCGExPathfindingPlotEdgesContext() override;
 
-	mutable FRWLock BufferLock;
+	PCGExData::FPointIOGroup* Plots = nullptr;
+	PCGExData::FPointIOGroup* OutputPaths = nullptr;
+	
+	UPCGExHeuristicOperation* Heuristics = nullptr;
+	//UPCGExSubPointsBlendOperation* Blending = nullptr;
 
-	TArray<PCGExPathfinding::FPathQuery*> PathBuffer;
+	bool bAddSeedToPath = true;
+	bool bAddGoalToPath = true;
+	bool bAddPlotPointsToPath = true;
+	
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExPathfindingPlotEdgesElement : public FPCGExPathfindingProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExPathfindingPlotEdgesElement : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -64,12 +87,12 @@ protected:
 };
 
 // Define the background task class
-class PCGEXTENDEDTOOLKIT_API FSampleMeshPathTask : public FPCGExPathfindingTask
+class PCGEXTENDEDTOOLKIT_API FPlotMeshPathTask : public FPCGExNonAbandonableTask
 {
 public:
-	FSampleMeshPathTask(
-		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO, PCGExPathfinding::FPathQuery* InQuery) :
-		FPCGExPathfindingTask(InManager, InTaskIndex, InPointIO, InQuery)
+	FPlotMeshPathTask(
+		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO) :
+		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO)
 	{
 	}
 

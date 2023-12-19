@@ -17,29 +17,27 @@ UPCGExPathfindingPlotEdgesSettings::UPCGExPathfindingPlotEdgesSettings(
 	const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	PCGEX_DEFAULT_OPERATION(Heuristics, UPCGExHeuristicDistance)
 }
 
 void UPCGExPathfindingPlotEdgesSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
-	if (GoalPicker) { GoalPicker->UpdateUserFacingInfos(); }
+	if (Heuristics) { Heuristics->UpdateUserFacingInfos(); }
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
 
 TArray<FPCGPinProperties> UPCGExPathfindingPlotEdgesSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PinProperties.Pop();
-	PinProperties.Pop();
-	FPCGPinProperties& PinPropertySeeds = PinProperties.Emplace_GetRef(PCGExPathfinding::SourceSeedsLabel, EPCGDataType::Point, true, true);
+
+	FPCGPinProperties& PinPropertySeeds = PinProperties.Emplace_GetRef(PCGExPathfinding::SourcePlotsLabel, EPCGDataType::Point, true, true);
 
 #if WITH_EDITOR
-	PinPropertySeeds.Tooltip = FTEXT("Seeds points for pathfinding.");
+	PinPropertySeeds.Tooltip = FTEXT("Plot points for pathfinding.");
 #endif // WITH_EDITOR
 
 	return PinProperties;
 }
-
-bool UPCGExPathfindingPlotEdgesSettings::GetRequiresGoals() const { return false; }
 
 FPCGElementPtr UPCGExPathfindingPlotEdgesSettings::CreateElement() const { return MakeShared<FPCGExPathfindingPlotEdgesElement>(); }
 
@@ -47,16 +45,31 @@ FPCGExPathfindingPlotEdgesContext::~FPCGExPathfindingPlotEdgesContext()
 {
 	PCGEX_TERMINATE_ASYNC
 
-	PCGEX_DELETE_TARRAY(PathBuffer)
+	PCGEX_DELETE(Plots)
+	PCGEX_DELETE(OutputPaths)
 }
 
 PCGEX_INITIALIZE_CONTEXT(PathfindingPlotEdges)
 
 bool FPCGExPathfindingPlotEdgesElement::Boot(FPCGContext* InContext) const
 {
-	if (!FPCGExPathfindingProcessorElement::Boot(InContext)) { return false; }
+	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(PathfindingPlotEdges)
+
+	PCGEX_BIND_OPERATION(Heuristics, UPCGExHeuristicDistance)
+
+	Context->OutputPaths = new PCGExData::FPointIOGroup();
+	Context->Plots = new PCGExData::FPointIOGroup();
+
+	TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(PCGExPathfinding::SourcePlotsLabel);
+	Context->Plots->Initialize(InContext, Sources, PCGExData::EInit::NoOutput);
+
+	if (Context->Plots->IsEmpty())
+	{
+		PCGE_LOG(Error, GraphAndLog, FTEXT("Missing Plots Points."));
+		return false;
+	}
 
 	return true;
 }
@@ -85,32 +98,8 @@ bool FPCGExPathfindingPlotEdgesElement::ExecuteInternal(FPCGContext* InContext) 
 			}
 			else
 			{
-				PCGEX_DELETE_TARRAY(Context->PathBuffer)
-				Context->GoalPicker->PrepareForData(*Context->SeedsPoints, *Context->GoalsPoints);
-				Context->SetState(PCGExMT::State_ProcessingPoints);
+				Context->SetState(PCGExGraph::State_ReadyForNextEdges);
 			}
-		}
-	}
-
-	if (Context->IsState(PCGExMT::State_ProcessingPoints))
-	{
-		auto Initialize = []()
-		{
-		};
-
-		if (PCGExPathfinding::ProcessGoals(
-			Initialize, Context, Context->SeedsPoints, Context->GoalPicker,
-			[&](const int32 SeedIndex, int32 GoalIndex)
-			{
-				Context->BufferLock.WriteLock();
-				Context->PathBuffer.Add(
-					new PCGExPathfinding::FPathQuery(
-						SeedIndex, Context->SeedsPoints->GetInPoint(SeedIndex).Transform.GetLocation(),
-						GoalIndex, Context->GoalsPoints->GetInPoint(GoalIndex).Transform.GetLocation()));
-				Context->BufferLock.WriteUnlock();
-			}))
-		{
-			Context->SetState(PCGExGraph::State_ReadyForNextEdges);
 		}
 	}
 
@@ -122,15 +111,14 @@ bool FPCGExPathfindingPlotEdgesElement::ExecuteInternal(FPCGContext* InContext) 
 
 	if (Context->IsState(PCGExGraph::State_ProcessingEdges))
 	{
-		auto NavMeshTask = [&](int32 Index)
-		{
-			Context->GetAsyncManager()->Start<FSampleMeshPathTask>(Index, Context->CurrentIO, Context->PathBuffer[Index]);
-		};
+		Context->Plots->ForEach(
+			[&](PCGExData::FPointIO& PlotIO, const int32 Index)
+			{
+				if (PlotIO.GetNum() < 2) { return; }
+				Context->GetAsyncManager()->Start<FPlotMeshPathTask>(Index, &PlotIO);
+			});
 
-		if (Context->Process(NavMeshTask, Context->PathBuffer.Num()))
-		{
-			Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork);
-		}
+		Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork);
 	}
 
 	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
@@ -138,31 +126,39 @@ bool FPCGExPathfindingPlotEdgesElement::ExecuteInternal(FPCGContext* InContext) 
 		if (Context->IsAsyncWorkComplete()) { Context->SetState(PCGExGraph::State_ReadyForNextEdges); }
 	}
 
-	if (Context->IsDone())
-	{
-		Context->OutputPaths->OutputTo(Context, true);
-	}
+	if (Context->IsDone()) { Context->Plots->OutputTo(Context, true); }
 
 	return Context->IsDone();
 }
 
-bool FSampleMeshPathTask::ExecuteTask()
+bool FPlotMeshPathTask::ExecuteTask()
 {
 	FPCGExPathfindingPlotEdgesContext* Context = Manager->GetContext<FPCGExPathfindingPlotEdgesContext>();
 	//PCGEX_ASYNC_CHECKPOINT
 
-	const FPCGPoint& Seed = Context->SeedsPoints->GetInPoint(Query->SeedIndex);
-	const FPCGPoint& Goal = Context->GoalsPoints->GetInPoint(Query->GoalIndex);
-
 	const PCGExMesh::FMesh* Mesh = Context->CurrentMesh;
 
-	TArray<int32> Path;
+	TArray<FVector> Plot;
+	Plot.Reserve(PointIO->GetNum());
+	for (const FPCGPoint& PlotPoint : PointIO->GetIn()->GetPoints()) { Plot.Add(PlotPoint.Transform.GetLocation()); }
 
-	if (!PCGExPathfinding::FindPath(
-		Context->CurrentMesh, Query->SeedPosition, Query->GoalPosition,
-		Context->Heuristics, Path))
+	TArray<int32> Path;
+	FVector PrevPosition = Plot.Pop();
+
+	while (!Plot.IsEmpty())
 	{
-		return false;
+		const int32 PlotIndex = Plot.Num();
+		FVector GoalPosition = Plot.Pop();
+
+		if (Context->bAddPlotPointsToPath && !Plot.IsEmpty())
+		{
+			Path.Add((PlotIndex + 1) * -1);
+		}
+
+		//Note: Can silently fail
+		PCGExPathfinding::FindPath(Context->CurrentMesh, PrevPosition, GoalPosition, Context->Heuristics, Path);
+
+		PrevPosition = GoalPosition;
 	}
 
 	const PCGExData::FPointIO& PathPoints = Context->OutputPaths->Emplace_GetRef(Context->GetCurrentIn(), PCGExData::EInit::NewOutput);
@@ -172,9 +168,19 @@ bool FSampleMeshPathTask::ExecuteTask()
 
 	MutablePoints.Reserve(Path.Num() + 2);
 
-	if (Context->bAddSeedToPath) { MutablePoints.Add_GetRef(Seed).MetadataEntry = PCGInvalidEntryKey; }
-	for (const int32 VtxIndex : Path) { MutablePoints.Add(InPoints[Mesh->Vertices[VtxIndex].PointIndex]); }
-	if (Context->bAddGoalToPath) { MutablePoints.Add_GetRef(Goal).MetadataEntry = PCGInvalidEntryKey; }
+	if (Context->bAddSeedToPath) { MutablePoints.Add_GetRef(PointIO->GetInPoint(0)).MetadataEntry = PCGInvalidEntryKey; }
+	for (const int32 VtxIndex : Path)
+	{
+		if (VtxIndex < -1)
+		{
+			// Plot point
+			MutablePoints.Add_GetRef(InPoints[(VtxIndex * -1) - 1]).MetadataEntry = PCGInvalidEntryKey;
+			continue;
+		}
+
+		MutablePoints.Add(InPoints[VtxIndex < -1 ? (VtxIndex * -1) - 1 : Mesh->Vertices[VtxIndex].PointIndex]);
+	}
+	if (Context->bAddGoalToPath) { MutablePoints.Add_GetRef(PointIO->GetInPoint(PointIO->GetNum() - 1)).MetadataEntry = PCGInvalidEntryKey; }
 
 	return true;
 }

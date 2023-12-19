@@ -37,14 +37,14 @@ void UPCGExSubPointsBlendOperation::ProcessSubPoints(const PCGEx::FPointRef& Sta
 	BlendSubPoints(Start, End, SubPoints, Metrics, InternalBlender);
 }
 
-void UPCGExSubPointsBlendOperation::ProcessSubPoints(TArrayView<FPCGPoint>& SubPoints, const PCGExMath::FPathMetrics& Metrics) const
+void UPCGExSubPointsBlendOperation::ProcessSubPoints(TArrayView<FPCGPoint>& SubPoints, const PCGExMath::FPathMetrics& Metrics, const int32 Offset) const
 {
-	BlendSubPoints(SubPoints, Metrics, InternalBlender);
+	BlendSubPoints(SubPoints, Metrics, InternalBlender, Offset);
 }
 
-void UPCGExSubPointsBlendOperation::ProcessSubPoints(TArrayView<FPCGPoint>& SubPoints, const PCGExMath::FPathMetrics& PathInfos, const PCGExDataBlending::FMetadataBlender* InBlender) const
+void UPCGExSubPointsBlendOperation::ProcessSubPoints(TArrayView<FPCGPoint>& SubPoints, const PCGExMath::FPathMetrics& PathInfos, const PCGExDataBlending::FMetadataBlender* InBlender, const int32 Offset) const
 {
-	BlendSubPoints(SubPoints, PathInfos, InBlender);
+	BlendSubPoints(SubPoints, PathInfos, InBlender, Offset);
 }
 
 void UPCGExSubPointsBlendOperation::BlendSubPoints(
@@ -56,12 +56,12 @@ void UPCGExSubPointsBlendOperation::BlendSubPoints(
 {
 }
 
-void UPCGExSubPointsBlendOperation::BlendSubPoints(TArrayView<FPCGPoint>& SubPoints, const PCGExMath::FPathMetrics& Metrics, const PCGExDataBlending::FMetadataBlender* InBlender) const
+void UPCGExSubPointsBlendOperation::BlendSubPoints(TArrayView<FPCGPoint>& SubPoints, const PCGExMath::FPathMetrics& Metrics, const PCGExDataBlending::FMetadataBlender* InBlender, const int32 Offset) const
 {
 	const FPCGPoint& Start = SubPoints[0];
 	const int32 LastIndex = SubPoints.Num() - 1;
 	const FPCGPoint& End = SubPoints[LastIndex];
-	BlendSubPoints(PCGEx::FPointRef(Start, 0), PCGEx::FPointRef(End, LastIndex), SubPoints, Metrics, InBlender);
+	BlendSubPoints(PCGEx::FPointRef(Start, Offset), PCGEx::FPointRef(End, Offset + LastIndex), SubPoints, Metrics, InBlender);
 }
 
 void UPCGExSubPointsBlendOperation::Cleanup()

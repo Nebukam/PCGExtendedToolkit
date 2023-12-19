@@ -36,7 +36,6 @@ public:
 	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorPathfinding; }
 #endif
 
-	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 
@@ -52,10 +51,6 @@ public:
 	virtual FName GetMainOutputLabel() const override;
 
 public:
-	/** Controls how goals are picked.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced, meta = (NoResetToDefault, ShowOnlyInnerProperties))
-	TObjectPtr<UPCGExGoalPicker> GoalPicker = nullptr;
-
 	/** Controls how path points blend from seed to goal. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced, meta = (NoResetToDefault, ShowOnlyInnerProperties))
 	TObjectPtr<UPCGExSubPointsBlendOperation> Blending = nullptr;
@@ -64,10 +59,15 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	bool bAddSeedToPath = true;
 
-	/** Add goal point at the beginning of the path */
+	/** Add goal point at the end of the path */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	bool bAddGoalToPath = true;
 
+	/** Insert plot points inside the path */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	bool bAddPlotPointsToPath = true;
+	
+	
 	/** Whether the pathfinding requires a naviguable end location. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	bool bRequireNavigableEndLocation = true;
@@ -94,20 +94,14 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingPlotNavmeshContext : public FPCGE
 {
 	friend class FPCGExPathfindingPlotNavmeshElement;
 
-	mutable FRWLock BufferLock;
-
 	virtual ~FPCGExPathfindingPlotNavmeshContext() override;
 
-	PCGExData::FPointIO* GoalsPoints = nullptr;
 	PCGExData::FPointIOGroup* OutputPaths = nullptr;
-
-	UPCGExGoalPicker* GoalPicker = nullptr;
 	UPCGExSubPointsBlendOperation* Blending = nullptr;
 
 	bool bAddSeedToPath = true;
 	bool bAddGoalToPath = true;
-
-	TArray<PCGExPathfinding::FPathQuery*> PathBuffer;
+	bool bAddPlotPointsToPath = true;
 
 	FNavAgentProperties NavAgentProperties;
 
@@ -132,12 +126,12 @@ protected:
 };
 
 // Define the background task class
-class PCGEXTENDEDTOOLKIT_API FSampleNavmeshTask : public FPCGExPathfindingTask
+class PCGEXTENDEDTOOLKIT_API FPlotNavmeshTask : public FPCGExNonAbandonableTask
 {
 public:
-	FSampleNavmeshTask(
-		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO, PCGExPathfinding::FPathQuery* InQuery) :
-		FPCGExPathfindingTask(InManager, InTaskIndex, InPointIO, InQuery)
+	FPlotNavmeshTask(
+		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO) :
+		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO)
 	{
 	}
 
