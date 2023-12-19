@@ -393,7 +393,7 @@ namespace PCGEx
 
 		T GetDefaultValue() const { return Accessor->GetDefaultValue(); }
 		bool GetAllowsInterpolation() const { return Accessor->GetAllowsInterpolation(); }
-		
+
 		void SetNum(int32 Num) { Values.SetNumZeroed(Num); }
 		virtual bool Bind(PCGExData::FPointIO& PointIO) = 0;
 
@@ -520,9 +520,8 @@ namespace PCGEx
 		 */
 		bool Bind(const PCGExData::FPointIO& PointIO)
 		{
-
 			Cleanup();
-			
+
 			bValid = false;
 			if (!bEnabled) { return false; }
 

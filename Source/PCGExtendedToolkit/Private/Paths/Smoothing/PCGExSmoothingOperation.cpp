@@ -35,7 +35,7 @@ void UPCGExSmoothingOperation::DoSmooth(PCGExData::FPointIO& InPointIO)
 
 	if (bPinStart)
 	{
-		const int32 Index = 0;
+		constexpr int32 Index = 0;
 		MetadataLerp->Blend(Index, Index, Index, 1);
 		PropertiesLerp->Blend(InPointIO.GetOutPoint(Index), InPointIO.GetInPoint(Index), InPointIO.GetMutablePoint(Index), 1);
 	}

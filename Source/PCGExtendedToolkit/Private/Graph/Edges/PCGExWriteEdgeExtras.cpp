@@ -12,7 +12,6 @@ UPCGExWriteEdgeExtrasSettings::UPCGExWriteEdgeExtrasSettings(
 	const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	
 }
 
 PCGExData::EInit UPCGExWriteEdgeExtrasSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }

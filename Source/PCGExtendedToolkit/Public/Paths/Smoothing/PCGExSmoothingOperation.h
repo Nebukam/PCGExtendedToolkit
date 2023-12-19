@@ -26,7 +26,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSmoothingOperation : public UPCGExOperation
 
 public:
 	virtual void DoSmooth(PCGExData::FPointIO& InPointIO);
-	
+
 	bool bPinStart = true;
 	bool bPinEnd = true;
 	double FixedInfluence = 1.0;
@@ -41,5 +41,4 @@ protected:
 		PCGExDataBlending::FMetadataBlender* MetadataInfluence,
 		PCGExDataBlending::FPropertiesBlender* PropertiesInfluence,
 		PCGExData::FPointIO& InPointIO);
-	
 };

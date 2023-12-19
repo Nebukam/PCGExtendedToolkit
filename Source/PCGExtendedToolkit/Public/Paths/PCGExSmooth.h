@@ -51,7 +51,7 @@ public:
 	/** Fetch the size from a local attribute. The regular Size parameter then act as a scale.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bSmoothAmountFromAttribute"))
 	FPCGExInputDescriptorWithSingleField LocalInfluence;
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable, NoResetToDefault, ShowOnlyInnerProperties))
 	TObjectPtr<UPCGExSmoothingOperation> Smoothing = nullptr;
 };

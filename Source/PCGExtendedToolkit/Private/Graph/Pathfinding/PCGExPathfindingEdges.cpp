@@ -17,7 +17,6 @@ UPCGExPathfindingEdgesSettings::UPCGExPathfindingEdgesSettings(
 	const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	
 }
 
 void UPCGExPathfindingEdgesSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)

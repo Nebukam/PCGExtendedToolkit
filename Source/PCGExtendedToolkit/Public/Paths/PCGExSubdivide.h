@@ -58,7 +58,7 @@ public:
 	int32 Count = 10;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable, ShowOnlyInnerProperties, NoResetToDefault))
-	TObjectPtr<UPCGExSubPointsBlendOperation> Blending= nullptr;
+	TObjectPtr<UPCGExSubPointsBlendOperation> Blending = nullptr;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bFlagSubPoints = false;

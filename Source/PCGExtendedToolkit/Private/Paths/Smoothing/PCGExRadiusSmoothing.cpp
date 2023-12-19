@@ -58,5 +58,4 @@ void UPCGExRadiusSmoothing::InternalDoSmooth(
 
 	PCGEX_DELETE(MetadataBlender)
 	PCGEX_DELETE(PropertiesBlender)
-
 }

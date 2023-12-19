@@ -25,5 +25,4 @@ public:
 		const PCGExMesh::FVertex& Goal) const override;
 
 	virtual bool IsBetterScore(const double NewScore, const double OtherScore) const override;
-
 };

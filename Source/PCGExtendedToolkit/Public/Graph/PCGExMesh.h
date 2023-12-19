@@ -44,20 +44,20 @@ namespace PCGExMesh
 
 	struct PCGEXTENDEDTOOLKIT_API FScoredVertex
 	{
-		FScoredVertex(const PCGExMesh::FVertex& InVertex, const double InWeight)
+		FScoredVertex(const FVertex& InVertex, const double InWeight)
 			: Vertex(&InVertex),
 			  Score(InWeight)
 		{
 		}
 
-		FScoredVertex(const PCGExMesh::FVertex& InVertex, const double InScore, FScoredVertex* InFrom)
+		FScoredVertex(const FVertex& InVertex, const double InScore, FScoredVertex* InFrom)
 			: Vertex(&InVertex),
 			  Score(InScore),
 			  From(InFrom)
 		{
 		}
 
-		const PCGExMesh::FVertex* Vertex = nullptr;
+		const FVertex* Vertex = nullptr;
 		double Score = -1;
 		FScoredVertex* From = nullptr;
 	};

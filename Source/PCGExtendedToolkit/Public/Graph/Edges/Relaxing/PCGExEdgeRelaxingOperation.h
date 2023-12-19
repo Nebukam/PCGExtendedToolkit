@@ -37,7 +37,7 @@ public:
 	double DefaultInfluence = 1;
 
 	virtual void Cleanup() override;
-	
+
 protected:
 	int32 CurrentIteration = 0;
 	PCGExData::FPointIO* CurrentPoints = nullptr;

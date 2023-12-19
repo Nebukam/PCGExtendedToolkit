@@ -54,11 +54,11 @@ public:
 public:
 	/** Controls how goals are picked.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced, meta = (NoResetToDefault, ShowOnlyInnerProperties))
-	TObjectPtr<UPCGExGoalPicker> GoalPicker= nullptr;
+	TObjectPtr<UPCGExGoalPicker> GoalPicker = nullptr;
 
 	/** Controls how path points blend from seed to goal. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced, meta = (NoResetToDefault, ShowOnlyInnerProperties))
-	TObjectPtr<UPCGExSubPointsBlendOperation> Blending= nullptr;
+	TObjectPtr<UPCGExSubPointsBlendOperation> Blending = nullptr;
 
 	/** Add seed point at the beginning of the path */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
@@ -136,8 +136,8 @@ class PCGEXTENDEDTOOLKIT_API FSampleNavmeshTask : public FPCGExPathfindingTask
 {
 public:
 	FSampleNavmeshTask(
-	FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO, PCGExPathfinding::FPathQuery* InQuery) :
-	FPCGExPathfindingTask(InManager, InTaskIndex, InPointIO, InQuery)
+		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO, PCGExPathfinding::FPathQuery* InQuery) :
+		FPCGExPathfindingTask(InManager, InTaskIndex, InPointIO, InQuery)
 	{
 	}
 

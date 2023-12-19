@@ -43,7 +43,7 @@ namespace PCGExMT
 		bool Advance(LoopBodyFunc&& LoopBody)
 		{
 			if (CurrentIndex == -1) { CurrentIndex = 0; }
-			const int32 ChunkNumIterations =  FMath::Min(NumIterations - CurrentIndex, GetCurrentChunkSize());
+			const int32 ChunkNumIterations = FMath::Min(NumIterations - CurrentIndex, GetCurrentChunkSize());
 			if (ChunkNumIterations > 0)
 			{
 				for (int i = 0; i < ChunkNumIterations; i++) { LoopBody(CurrentIndex + i); }

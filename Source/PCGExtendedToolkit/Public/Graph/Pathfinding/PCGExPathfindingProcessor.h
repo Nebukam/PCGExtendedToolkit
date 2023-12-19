@@ -48,7 +48,7 @@ public:
 	/** Controls how heuristic are calculated. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced, meta = (NoResetToDefault, ShowOnlyInnerProperties))
 	TObjectPtr<UPCGExHeuristicOperation> Heuristics = nullptr;
-	
+
 	/** How to blend path points between seed & goal */
 	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced, meta = (NoResetToDefault))
 	//TObjectPtr<UPCGExSubPointsBlendOperation> Blending;
@@ -78,7 +78,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingProcessorContext : public FPCGExE
 
 	bool bAddSeedToPath = true;
 	bool bAddGoalToPath = true;
-	
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExPathfindingProcessorElement : public FPCGExEdgesProcessorElement

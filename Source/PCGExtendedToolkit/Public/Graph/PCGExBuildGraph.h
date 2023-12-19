@@ -16,7 +16,7 @@ constexpr PCGExMT::AsyncState State_ProbingPoints = __COUNTER__;
 /**
  * Calculates the distance between two points (inherently a n*n operation)
  */
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph", meta=(DevelopmentOnly))
+UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
 class PCGEXTENDEDTOOLKIT_API UPCGExBuildGraphSettings : public UPCGExGraphProcessorSettings
 {
 	GENERATED_BODY()

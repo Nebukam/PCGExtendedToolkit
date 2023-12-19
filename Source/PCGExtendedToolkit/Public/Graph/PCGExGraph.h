@@ -531,9 +531,49 @@ namespace PCGExGraph
 	 * @param EndSocket 
 	 * @return 
 	 */
-	static EPCGExEdgeType GetEdgeType(const FSocketInfos& StartSocket, const FSocketInfos& EndSocket);
+	static EPCGExEdgeType GetEdgeType(const FSocketInfos& StartSocket, const FSocketInfos& EndSocket)
+	{
+		if (StartSocket.Matches(EndSocket))
+		{
+			if (EndSocket.Matches(StartSocket))
+			{
+				return EPCGExEdgeType::Complete;
+			}
+			return EPCGExEdgeType::Match;
+		}
+		if (StartSocket.Socket->SocketIndex == EndSocket.Socket->SocketIndex)
+		{
+			// We check for mirror AFTER checking for shared/match, since Mirror can be considered a legal match by design
+			// in which case we don't want to flag this as Mirrored.
+			return EPCGExEdgeType::Mirror;
+		}
+		return EPCGExEdgeType::Shared;
+	}
 
-	static void ComputeEdgeType(const TArray<FSocketInfos>& SocketInfos, const int32 PointIndex);
+	static void ComputeEdgeType(const TArray<FSocketInfos>& SocketInfos, const int32 PointIndex)
+	{
+		for (const FSocketInfos& CurrentSocketInfos : SocketInfos)
+		{
+			EPCGExEdgeType Type = EPCGExEdgeType::Unknown;
+			const int64 RelationIndex = CurrentSocketInfos.Socket->GetTargetIndex(PointIndex);
+
+			if (RelationIndex != -1)
+			{
+				for (const FSocketInfos& OtherSocketInfos : SocketInfos)
+				{
+					if (OtherSocketInfos.Socket->GetTargetIndex(RelationIndex) == PointIndex)
+					{
+						Type = GetEdgeType(CurrentSocketInfos, OtherSocketInfos);
+					}
+				}
+
+				if (Type == EPCGExEdgeType::Unknown) { Type = EPCGExEdgeType::Roaming; }
+			}
+
+
+			CurrentSocketInfos.Socket->SetEdgeType(PointIndex, Type);
+		}
+	}
 
 #pragma endregion
 }
