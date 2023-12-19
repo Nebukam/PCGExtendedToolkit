@@ -12,6 +12,12 @@
 
 #include "PCGExPathfinding.generated.h"
 
+UENUM(BlueprintType)
+enum class EPCGExPathfindingNavmeshMode : uint8
+{
+	Regular UMETA(DisplayName = "Regular", ToolTip="Regular pathfinding"),
+	Hierarchical UMETA(DisplayName = "HIerarchical", ToolTip="Cell-based pathfinding"),
+};
 
 UENUM(BlueprintType)
 enum class EPCGExPathfindingGoalPickMethod : uint8
@@ -35,6 +41,14 @@ enum class EPCGExPathPointOrientation : uint8
 
 namespace PCGExPathfinding
 {
+	
+	struct PCGEXTENDEDTOOLKIT_API FPlotPoint
+	{
+		int32 PlotIndex;
+		FVector Position;
+	};
+
+	
 	const FName SourceSeedsLabel = TEXT("Seeds");
 	const FName SourceGoalsLabel = TEXT("Goals");
 	const FName SourcePlotsLabel = TEXT("Plots");

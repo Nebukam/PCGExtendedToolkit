@@ -11,13 +11,6 @@
 class UPCGExSubPointsBlendOperation;
 class UPCGExGoalPicker;
 
-UENUM(BlueprintType)
-enum class EPCGExPathfindingNavmeshMode : uint8
-{
-	Regular UMETA(DisplayName = "Regular", ToolTip="Regular pathfinding"),
-	Hierarchical UMETA(DisplayName = "HIerarchical", ToolTip="Cell-based pathfinding"),
-};
-
 /**
  * Use PCGExTransform to manipulate the outgoing attributes instead of handling everything here.
  * This way we can multi-thread the various calculations instead of mixing everything along with async/game thread collision

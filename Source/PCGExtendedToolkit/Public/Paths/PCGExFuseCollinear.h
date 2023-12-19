@@ -35,6 +35,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, Units="Degrees", ClampMin=0, ClampMax=180))
 	double Threshold = 10;
 
+	/** Distance used to consider point to be overlapping. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	double FuseDistance = 0.01;
+	
 	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	//bool bDoBlend = false;
 
@@ -49,6 +53,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFuseCollinearContext : public FPCGExPathProc
 	virtual ~FPCGExFuseCollinearContext() override;
 
 	double Threshold;
+	double FuseDistance;
 	//bool bDoBlend;
 	//UPCGExSubPointsBlendOperation* Blending = nullptr;
 };

@@ -138,32 +138,26 @@ bool FPlotNavmeshTask::ExecuteTask()
 	if (!NavSys) { return false; }
 
 	TArray<FVector> Plot;
-	Plot.Reserve(PointIO->GetNum());
+	int32 NumPlots = PointIO->GetNum();
+	Plot.Reserve(NumPlots);
 	for (const FPCGPoint& PlotPoint : PointIO->GetIn()->GetPoints()) { Plot.Add(PlotPoint.Transform.GetLocation()); }
+	Algo::Reverse(Plot);
 
-	FVector PrevPosition = Plot.Pop();
+	int32 PlotIndex = 0;
+	FVector SeedPosition = Plot.Pop();
 
-	TArray<FVector> PathLocations;
-	PathLocations.Add(PrevPosition);
-
-	TArray<int32> PathIndices;
-	PathIndices.Add(0);
+	TArray<PCGExPathfinding::FPlotPoint> PathLocations;
+	PathLocations.Emplace_GetRef(PlotIndex, SeedPosition);
 
 	while (!Plot.IsEmpty())
 	{
-		int32 PlotIndex = Plot.Num();
 		FVector GoalPosition = Plot.Pop();
 
-		if (Context->bAddPlotPointsToPath && !Plot.IsEmpty())
-		{
-			PathLocations.Add(GoalPosition);
-			PathIndices.Add(PlotIndex);
-		}
 		///
 
 		FPathFindingQuery PathFindingQuery = FPathFindingQuery(
 			Context->World, *Context->NavData,
-			PrevPosition, GoalPosition, nullptr, nullptr,
+			SeedPosition, GoalPosition, nullptr, nullptr,
 			TNumericLimits<FVector::FReal>::Max(),
 			Context->bRequireNavigableEndLocation);
 
@@ -171,27 +165,30 @@ bool FPlotNavmeshTask::ExecuteTask()
 
 		const FPathFindingResult Result = NavSys->FindPathSync(
 			Context->NavAgentProperties, PathFindingQuery,
-			Context->PathfindingMode == EPCGExPathfindingPlotNavmeshMode::Regular ? EPathFindingMode::Type::Regular : EPathFindingMode::Type::Hierarchical);
+			Context->PathfindingMode == EPCGExPathfindingNavmeshMode::Regular ? EPathFindingMode::Type::Regular : EPathFindingMode::Type::Hierarchical);
 
-		if (Result.Result != ENavigationQueryResult::Type::Success) { continue; } ///
-
-		for (const FNavPathPoint& PathPoint : Result.Path->GetPathPoints())
+		if (Result.Result == ENavigationQueryResult::Type::Success)
 		{
-			PathLocations.Add(PathPoint.Location);
-			PathIndices.Add(PlotIndex);
+			for (const FNavPathPoint& PathPoint : Result.Path->GetPathPoints())
+			{
+				PathLocations.Emplace_GetRef(PlotIndex, PathPoint.Location);
+			}
 		}
-		///
 
-		PrevPosition = GoalPosition;
+		PlotIndex = NumPlots - Plot.Num() - 1;
+
+		if (Context->bAddPlotPointsToPath && !Plot.IsEmpty()) { PathLocations.Emplace_GetRef(PlotIndex, GoalPosition); }
+
+		SeedPosition = GoalPosition;
 	}
 
-	PathLocations.Add(PrevPosition); // End point
+	PathLocations.Emplace_GetRef(NumPlots-1, SeedPosition); // End point
 
-	PCGExMath::FPathMetrics Metrics = PCGExMath::FPathMetrics(PathLocations[0]);
+	PCGExMath::FPathMetrics Metrics = PCGExMath::FPathMetrics(PathLocations[0].Position);
 	int32 FuseCountReduce = Context->bAddGoalToPath ? 2 : 1;
 	for (int i = Context->bAddSeedToPath; i < PathLocations.Num(); i++)
 	{
-		FVector CurrentLocation = PathLocations[i];
+		FVector CurrentLocation = PathLocations[i].Position;
 		if (i > 0 && i < (PathLocations.Num() - FuseCountReduce))
 		{
 			if (Metrics.IsLastWithinRange(CurrentLocation, Context->FuseDistance))
@@ -201,7 +198,6 @@ bool FPlotNavmeshTask::ExecuteTask()
 				continue;
 			}
 		}
-
 		Metrics.Add(CurrentLocation);
 	}
 
@@ -215,28 +211,34 @@ bool FPlotNavmeshTask::ExecuteTask()
 	TArray<FPCGPoint>& MutablePoints = OutData->GetMutablePoints();
 	MutablePoints.SetNumUninitialized(NumPositions);
 
+	TArray<int32> BlendIndices;
+	int32 LastBlendIndex = PathLocations[0].PlotIndex;
+	BlendIndices.Add(0);
 	for (int i = 0; i < NumPositions; i++)
 	{
-		(MutablePoints[i] = PointIO->GetInPoint(PathIndices[i])).Transform.SetLocation(PathLocations[i]);
+		PCGExPathfinding::FPlotPoint PPoint = PathLocations[i];
+		(MutablePoints[i] = PointIO->GetInPoint(LastBlendIndex)).Transform.SetLocation(PPoint.Position);
+		if (LastBlendIndex != PPoint.PlotIndex)
+		{
+			LastBlendIndex = PPoint.PlotIndex;
+			BlendIndices.Add(i);
+		}
 	}
+	PathLocations.Empty();
 
 	const PCGExDataBlending::FMetadataBlender* TempBlender = Context->Blending->CreateBlender(
 		OutData, PointIO->GetIn(),
 		PathPoints.CreateOutKeys(), PointIO->GetInKeys());
 
-	int32 LastPlotPoint = PathIndices.Pop();
-	int32 ViewLength = 0;
-
-	while (!PathIndices.IsEmpty())
+	while (BlendIndices.Num() > 1)
 	{
-		ViewLength++;
-		int32 NewPlotPoint = PathIndices.Pop();
-		if (NewPlotPoint == LastPlotPoint) { continue; }
+		int32 StartIndex = BlendIndices[0];
+		int32 ViewLength = BlendIndices[1] - StartIndex;
 
-		TArrayView<FPCGPoint> View = MakeArrayView(MutablePoints.GetData() + LastPlotPoint, ViewLength);
-		Context->Blending->BlendSubPoints(View, Metrics, TempBlender, LastPlotPoint);
+		TArrayView<FPCGPoint> View = MakeArrayView(MutablePoints.GetData() + StartIndex, ViewLength);
+		Context->Blending->BlendSubPoints(View, Metrics, TempBlender);
 
-		LastPlotPoint = NewPlotPoint;
+		BlendIndices.RemoveAt(0);
 	}
 
 	PCGEX_DELETE(TempBlender)

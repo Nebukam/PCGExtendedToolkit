@@ -11,13 +11,6 @@
 class UPCGExSubPointsBlendOperation;
 class UPCGExGoalPicker;
 
-UENUM(BlueprintType)
-enum class EPCGExPathfindingPlotNavmeshMode : uint8
-{
-	Regular UMETA(DisplayName = "Regular", ToolTip="Regular pathfinding"),
-	Hierarchical UMETA(DisplayName = "HIerarchical", ToolTip="Cell-based pathfinding"),
-};
-
 /**
  * Use PCGExTransform to manipulate the outgoing attributes instead of handling everything here.
  * This way we can multi-thread the various calculations instead of mixing everything along with async/game thread collision
@@ -65,8 +58,7 @@ public:
 
 	/** Insert plot points inside the path */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
-	bool bAddPlotPointsToPath = true;
-	
+	bool bAddPlotPointsToPath = false;
 	
 	/** Whether the pathfinding requires a naviguable end location. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
@@ -78,7 +70,7 @@ public:
 
 	/** Pathfinding mode */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
-	EPCGExPathfindingPlotNavmeshMode PathfindingMode = EPCGExPathfindingPlotNavmeshMode::Regular;
+	EPCGExPathfindingNavmeshMode PathfindingMode = EPCGExPathfindingNavmeshMode::Regular;
 
 	/** Nav agent to be used by the nav system. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
@@ -108,7 +100,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingPlotNavmeshContext : public FPCGE
 	ANavigationData* NavData = nullptr;
 
 	bool bRequireNavigableEndLocation = true;
-	EPCGExPathfindingPlotNavmeshMode PathfindingMode;
+	EPCGExPathfindingNavmeshMode PathfindingMode;
 	double FuseDistance = 10;
 };
 

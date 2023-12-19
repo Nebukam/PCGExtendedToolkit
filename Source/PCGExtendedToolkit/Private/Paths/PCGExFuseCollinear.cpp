@@ -36,7 +36,9 @@ bool FPCGExFuseCollinearElement::Boot(FPCGContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(FuseCollinear)
 
 	Context->Threshold = FMath::Cos(Settings->Threshold * (PI / 180.0));
-
+	
+	PCGEX_FWD(FuseDistance)
+	
 	//PCGEX_FWD(bDoBlend)
 	//PCGEX_BIND_OPERATION(Blending, UPCGExSubPointsBlendInterpolate)
 
