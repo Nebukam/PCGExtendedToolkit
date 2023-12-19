@@ -3,28 +3,6 @@
 
 #include "Data/Blending/PCGExPropertiesBlender.h"
 
-#define PCGEX_FOREACH_BLEND_POINTPROPERTY(MACRO)\
-MACRO(float, Density, Float) \
-MACRO(FVector, BoundsMin, Vector) \
-MACRO(FVector, BoundsMax, Vector) \
-MACRO(FVector4, Color, Vector4) \
-MACRO(FVector, Position, Vector) \
-MACRO(FQuat, Rotation, Quaternion) \
-MACRO(FVector, Scale, Vector) \
-MACRO(float, Steepness, Float) \
-MACRO(int32, Seed, Integer32)
-
-#define PCGEX_FOREACH_BLENDINIT_POINTPROPERTY(MACRO)\
-MACRO(float, Density, Float, Density) \
-MACRO(FVector, BoundsMin, Vector, BoundsMin) \
-MACRO(FVector, BoundsMax, Vector, BoundsMax) \
-MACRO(FVector4, Color, Vector4, Color) \
-MACRO(FVector, Position, Vector,Transform.GetLocation()) \
-MACRO(FQuat, Rotation, Quaternion,Transform.GetRotation()) \
-MACRO(FVector, Scale, Vector, Transform.GetScale3D()) \
-MACRO(float, Steepness, Float,Steepness) \
-MACRO(int32, Seed, Integer32,Seed)
-
 PCGExDataBlending::FPropertiesBlender::FPropertiesBlender(const FPCGExBlendingSettings& Settings)
 {
 	Init(Settings);
@@ -57,11 +35,11 @@ void PCGExDataBlending::FPropertiesBlender::PrepareBlending(FPCGPoint& Target, c
 	Target.BoundsMax = bAverageBoundsMax ? FVector::ZeroVector : Source.BoundsMax;
 	Target.Color = bAverageColor ? FVector4::Zero() : Source.Color;
 	Target.Transform.SetLocation(bAveragePosition ? FVector::ZeroVector : Source.Transform.GetLocation());
-	Target.Transform.SetRotation(bAverageRotation ? FQuat::Identity : Source.Transform.GetRotation());
+	Target.Transform.SetRotation(bAverageRotation ? FQuat{} : Source.Transform.GetRotation());
 	Target.Transform.SetScale3D(bAverageScale ? FVector::ZeroVector : Source.Transform.GetScale3D());
 	Target.Steepness = bAverageSteepness ? 0 : Source.Steepness;
 	Target.Seed = bAverageSeed ? 0 : Source.Seed;
-	NumBlends = 1;
+	NumBlends = 0;
 }
 
 void PCGExDataBlending::FPropertiesBlender::Blend(const FPCGPoint& A, const FPCGPoint& B, FPCGPoint& Target, double Alpha)
@@ -94,6 +72,7 @@ void PCGExDataBlending::FPropertiesBlender::Blend(const FPCGPoint& A, const FPCG
 
 void PCGExDataBlending::FPropertiesBlender::CompleteBlending(FPCGPoint& Target)
 {
+	if (NumBlends == 0) { NumBlends = 1; }
 	if (bAverageDensity) { Target.Density = Div(Target.Density, NumBlends); }
 	if (bAverageBoundsMin) { Target.BoundsMin = Div(Target.BoundsMin, NumBlends); }
 	if (bAverageBoundsMax) { Target.BoundsMax = Div(Target.BoundsMax, NumBlends); }
@@ -128,12 +107,12 @@ void PCGExDataBlending::FPropertiesBlender::PrepareRangeBlending(const FPCGPoint
 		Target.BoundsMax = bAverageBoundsMax ? FVector::ZeroVector : A.BoundsMax;
 		Target.Color = bAverageColor ? FVector4::Zero() : A.Color;
 		Target.Transform.SetLocation(bAveragePosition ? FVector::ZeroVector : A.Transform.GetLocation());
-		Target.Transform.SetRotation(bAverageRotation ? FQuat::Identity : A.Transform.GetRotation());
+		Target.Transform.SetRotation(bAverageRotation ? FQuat{} : A.Transform.GetRotation());
 		Target.Transform.SetScale3D(bAverageScale ? FVector::ZeroVector : A.Transform.GetScale3D());
 		Target.Steepness = bAverageSteepness ? 0 : A.Steepness;
 		Target.Seed = bAverageSeed ? 0 : A.Seed;
 	}
-	NumBlends = 1;
+	NumBlends = 0;
 }
 
 void PCGExDataBlending::FPropertiesBlender::BlendRange(const FPCGPoint& From, const FPCGPoint& To, TArrayView<FPCGPoint>& Targets, const TArrayView<double>& Alphas)
@@ -170,6 +149,7 @@ case EPCGExDataBlendingType::Copy:		Target##_NAME = PCGExDataBlending::Copy(From
 
 void PCGExDataBlending::FPropertiesBlender::CompleteRangeBlending(const TArrayView<FPCGPoint>& Targets)
 {
+	if (NumBlends == 0) { NumBlends = 1; }
 	for (FPCGPoint& Target : Targets)
 	{
 		if (bAverageDensity) { Target.Density = Div(Target.Density, NumBlends); }
@@ -182,7 +162,7 @@ void PCGExDataBlending::FPropertiesBlender::CompleteRangeBlending(const TArrayVi
 		if (bAverageSteepness) { Target.Steepness = Div(Target.Steepness, NumBlends); }
 		if (bAverageSeed) { Target.Seed = Div(Target.Seed, NumBlends); }
 	}
-	NumBlends = 1;
+	NumBlends = 0;
 }
 
 void PCGExDataBlending::FPropertiesBlender::BlendRangeOnce(const FPCGPoint& A, const FPCGPoint& B, TArrayView<FPCGPoint>& Targets, const TArrayView<double>& Alphas)
@@ -198,7 +178,3 @@ void PCGExDataBlending::FPropertiesBlender::BlendRangeOnce(const FPCGPoint& A, c
 		BlendRange(A, B, Targets, Alphas);
 	}
 }
-
-
-#undef PCGEX_FOREACH_BLEND_POINTPROPERTY
-#undef PCGEX_FOREACH_BLENDINIT_POINTPROPERTY

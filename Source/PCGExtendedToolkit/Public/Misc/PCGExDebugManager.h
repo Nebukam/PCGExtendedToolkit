@@ -8,6 +8,7 @@
 #include "Elements/PCGPointProcessingElementBase.h"
 
 #include "PCGEx.h"
+#include "PCGExPointsProcessor.h"
 
 #include "PCGExDebugManager.generated.h"
 

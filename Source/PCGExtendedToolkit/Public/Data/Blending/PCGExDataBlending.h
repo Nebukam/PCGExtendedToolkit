@@ -9,6 +9,28 @@
 
 #include "PCGExDataBlending.generated.h"
 
+#define PCGEX_FOREACH_BLEND_POINTPROPERTY(MACRO)\
+MACRO(float, Density, Float) \
+MACRO(FVector, BoundsMin, Vector) \
+MACRO(FVector, BoundsMax, Vector) \
+MACRO(FVector4, Color, Vector4) \
+MACRO(FVector, Position, Vector) \
+MACRO(FQuat, Rotation, Quaternion) \
+MACRO(FVector, Scale, Vector) \
+MACRO(float, Steepness, Float) \
+MACRO(int32, Seed, Integer32)
+
+#define PCGEX_FOREACH_BLENDINIT_POINTPROPERTY(MACRO)\
+MACRO(float, Density, Float, Density) \
+MACRO(FVector, BoundsMin, Vector, BoundsMin) \
+MACRO(FVector, BoundsMax, Vector, BoundsMax) \
+MACRO(FVector4, Color, Vector4, Color) \
+MACRO(FVector, Position, Vector,Transform.GetLocation()) \
+MACRO(FQuat, Rotation, Quaternion,Transform.GetRotation()) \
+MACRO(FVector, Scale, Vector, Transform.GetScale3D()) \
+MACRO(float, Steepness, Float,Steepness) \
+MACRO(int32, Seed, Integer32,Seed)
+
 UENUM(BlueprintType)
 enum class EPCGExDataBlendingType : uint8
 {
@@ -88,6 +110,18 @@ USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExBlendingSettings
 {
 	GENERATED_BODY()
+
+	FPCGExBlendingSettings()
+	{
+	}
+
+	FPCGExBlendingSettings(const EPCGExDataBlendingType InDefaultBlending):
+		DefaultBlending(InDefaultBlending)
+	{
+#define PCGEX_SET_DEFAULT_POINTPROPERTY(_TYPE, _NAME, _TYPENAME) PropertiesOverrides._NAME##Blending = InDefaultBlending;
+		PCGEX_FOREACH_BLEND_POINTPROPERTY(PCGEX_SET_DEFAULT_POINTPROPERTY)
+#undef PCGEX_SET_DEFAULT_POINTPROPERTY
+	}
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	EPCGExDataBlendingType DefaultBlending = EPCGExDataBlendingType::Weight;
@@ -273,7 +307,7 @@ namespace PCGExDataBlending
 	inline static FTransform Add(const FTransform& A, const FTransform& B, const double& Alpha = 0)
 	{
 		return FTransform(
-			A.GetRotation() + B.GetRotation(),
+			Add(A.GetRotation().Rotator(), B.GetRotation().Rotator()).Quaternion(),
 			A.GetLocation() + B.GetLocation(),
 			A.GetScale3D() + B.GetScale3D());
 	}
@@ -454,7 +488,7 @@ namespace PCGExDataBlending
 	inline static FTransform Div(const FTransform& A, const double Divider)
 	{
 		return FTransform(
-			A.GetRotation() / Divider,
+			Div(A.GetRotation().Rotator(), Divider).Quaternion(),
 			A.GetLocation() / Divider,
 			A.GetScale3D() / Divider);
 	}

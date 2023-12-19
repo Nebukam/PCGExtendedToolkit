@@ -56,10 +56,16 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgesProcessorContext : public FPCGExPointsP
 	void OutputPointsAndEdges();
 
 	template <class InitializeFunc, class LoopBodyFunc>
-	bool ProcessCurrentEdges(InitializeFunc&& Initialize, LoopBodyFunc&& LoopBody, bool bForceSync) { return Process(Initialize, LoopBody, CurrentEdges->GetNum(), bForceSync); }
+	bool ProcessCurrentEdges(InitializeFunc&& Initialize, LoopBodyFunc&& LoopBody, bool bForceSync = false) { return Process(Initialize, LoopBody, CurrentEdges->GetNum(), bForceSync); }
 
 	template <class LoopBodyFunc>
-	bool ProcessCurrentEdges(LoopBodyFunc&& LoopBody, bool bForceSync) { return Process(LoopBody, CurrentEdges->GetNum(), bForceSync); }
+	bool ProcessCurrentEdges(LoopBodyFunc&& LoopBody, bool bForceSync = false) { return Process(LoopBody, CurrentEdges->GetNum(), bForceSync); }
+
+	template <class InitializeFunc, class LoopBodyFunc>
+	bool ProcessCurrentMesh(InitializeFunc&& Initialize, LoopBodyFunc&& LoopBody, bool bForceSync = false) { return Process(Initialize, LoopBody, CurrentMesh->Vertices.Num(), bForceSync); }
+
+	template <class LoopBodyFunc>
+	bool ProcessCurrentMesh(LoopBodyFunc&& LoopBody, bool bForceSync = false) { return Process(LoopBody, CurrentMesh->Vertices.Num(), bForceSync); }
 
 protected:
 	int32 CurrentEdgesIndex = -1;

@@ -27,7 +27,7 @@ enum class EPCGExSubdivideMode : uint8
 /**
  * Calculates the distance between two points (inherently a n*n operation)
  */
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
+UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
 class PCGEXTENDEDTOOLKIT_API UPCGExSubdivideSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()

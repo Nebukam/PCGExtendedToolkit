@@ -4,13 +4,54 @@
 
 #include "Graph/Edges/Relaxing/PCGExEdgeRelaxingOperation.h"
 
-bool UPCGExEdgeRelaxingOperation::GeneratesNewPointData() { return false; }
+void UPCGExEdgeRelaxingOperation::PrepareForPointIO(PCGExData::FPointIO& PointIO)
+{
+	CurrentPoints = &PointIO;
+}
 
-void UPCGExEdgeRelaxingOperation::PromoteEdge(const PCGExGraph::FUnsignedEdge& Edge, const FPCGPoint& StartPoint, const FPCGPoint& EndPoint)
+void UPCGExEdgeRelaxingOperation::PrepareForMesh(PCGExData::FPointIO& EdgesIO, PCGExMesh::FMesh* MeshIO)
+{
+	CurrentEdges = &EdgesIO;
+	CurrentMesh = MeshIO;
+}
+
+void UPCGExEdgeRelaxingOperation::PrepareForIteration(int Iteration, TArray<FVector>* PrimaryBuffer, TArray<FVector>* SecondaryBuffer)
+{
+	CurrentIteration = Iteration;
+	if (CurrentIteration % 2 == 0)
+	{
+		ReadBuffer = PrimaryBuffer;
+		WriteBuffer = SecondaryBuffer;
+	}
+	else
+	{
+		ReadBuffer = SecondaryBuffer;
+		WriteBuffer = PrimaryBuffer;
+	}
+}
+
+void UPCGExEdgeRelaxingOperation::ProcessVertex(const PCGExMesh::FVertex& Vertex)
 {
 }
 
-bool UPCGExEdgeRelaxingOperation::PromoteEdgeGen(UPCGPointData* InData, const PCGExGraph::FUnsignedEdge& Edge, const FPCGPoint& StartPoint, const FPCGPoint& EndPoint)
+void UPCGExEdgeRelaxingOperation::Write(PCGExData::FPointIO& PointIO, PCGEx::FLocalSingleFieldGetter& Influence)
 {
-	return false;
+	TArray<FPCGPoint>& MutablePoints = PointIO.GetOut()->GetMutablePoints();
+	for (int i = 0; i < WriteBuffer->Num(); i++)
+	{
+		FPCGPoint& OutPoint = MutablePoints[i];
+		OutPoint.Transform.SetLocation(
+			FMath::Lerp(OutPoint.Transform.GetLocation(), (*WriteBuffer)[i], Influence.SafeGet(i, DefaultInfluence)));
+	}
+}
+
+void UPCGExEdgeRelaxingOperation::Cleanup()
+{
+	CurrentPoints = nullptr;
+	CurrentEdges = nullptr;
+	CurrentMesh = nullptr;
+	ReadBuffer = nullptr;
+	WriteBuffer = nullptr;
+
+	Super::Cleanup();
 }

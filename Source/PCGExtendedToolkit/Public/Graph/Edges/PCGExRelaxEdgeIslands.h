@@ -7,6 +7,8 @@
 #include "Graph/PCGExEdgesProcessor.h"
 #include "PCGExRelaxEdgeIslands.generated.h"
 
+class UPCGExEdgeRelaxingOperation;
+
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Edges")
 class PCGEXTENDEDTOOLKIT_API UPCGExRelaxEdgeIslandsSettings : public UPCGExEdgesProcessorSettings
 {
@@ -20,12 +22,32 @@ public:
 	PCGEX_NODE_INFOS(RelaxEdgeIslands, "Edges : Relax", "Relax point positions using edges connecting them.");
 #endif
 
-	virtual PCGExData::EInit GetEdgeOutputInitMode() const override;
+	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings interface
 
+public:
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ClampMin=1))
+	int32 Iterations = 10;
+
+	/** Draw size. What it means depends on the selected debug type. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0, ClampMax=1))
+	double Influence = 1.0;
+
+	/** Fetch the size from a local attribute. The regular Size parameter then act as a scale.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
+	bool bUseLocalInfluence = false;
+
+	/** Fetch the size from a local attribute. The regular Size parameter then act as a scale.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bUseLocalInfluence"))
+	FPCGExInputDescriptorWithSingleField LocalInfluence;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable, NoResetToDefault, ShowOnlyInnerProperties))
+	TObjectPtr<UPCGExEdgeRelaxingOperation> Relaxing = nullptr;
+	
 private:
 	friend class FPCGExRelaxEdgeIslandsElement;
 };
@@ -33,6 +55,19 @@ private:
 struct PCGEXTENDEDTOOLKIT_API FPCGExRelaxEdgeIslandsContext : public FPCGExEdgesProcessorContext
 {
 	friend class FPCGExRelaxEdgeIslandsElement;
+
+	~FPCGExRelaxEdgeIslandsContext();
+
+	int32 Iterations = 10;
+	int32 CurrentIteration = 0;
+	bool bUseLocalInfluence = false;
+	PCGEx::FLocalSingleFieldGetter InfluenceGetter;
+
+	TArray<FVector> PrimaryBuffer;
+	TArray<FVector> SecondaryBuffer;
+	
+	UPCGExEdgeRelaxingOperation* Relaxing = nullptr;
+	
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExRelaxEdgeIslandsElement : public FPCGExEdgesProcessorElement

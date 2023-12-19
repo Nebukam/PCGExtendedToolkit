@@ -14,7 +14,7 @@
 /**
  * Calculates the distance between two points (inherently a n*n operation)
  */
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
+UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
 class PCGEXTENDEDTOOLKIT_API UPCGExWriteTangentsSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()

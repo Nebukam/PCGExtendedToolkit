@@ -17,7 +17,4 @@ class PCGEXTENDEDTOOLKIT_API UPCGExEdgePruningOperation : public UPCGExOperation
 	GENERATED_BODY()
 
 public:
-	virtual bool GeneratesNewPointData();
-	virtual void PromoteEdge(const PCGExGraph::FUnsignedEdge& Edge, const FPCGPoint& StartPoint, const FPCGPoint& EndPoint);
-	virtual bool PromoteEdgeGen(UPCGPointData* InData, const PCGExGraph::FUnsignedEdge& Edge, const FPCGPoint& StartPoint, const FPCGPoint& EndPoint);
 };

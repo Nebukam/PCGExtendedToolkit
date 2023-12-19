@@ -520,6 +520,9 @@ namespace PCGEx
 		 */
 		bool Bind(const PCGExData::FPointIO& PointIO)
 		{
+
+			Cleanup();
+			
 			bValid = false;
 			if (!bEnabled) { return false; }
 

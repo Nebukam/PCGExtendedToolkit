@@ -8,6 +8,16 @@
 #include "Graph/PCGExGraph.h"
 #include "PCGExEdgeRelaxingOperation.generated.h"
 
+namespace PCGExMesh
+{
+	struct FVertex;
+}
+
+namespace PCGExMesh
+{
+	struct FMesh;
+}
+
 /**
  * 
  */
@@ -17,7 +27,22 @@ class PCGEXTENDEDTOOLKIT_API UPCGExEdgeRelaxingOperation : public UPCGExOperatio
 	GENERATED_BODY()
 
 public:
-	virtual bool GeneratesNewPointData();
-	virtual void PromoteEdge(const PCGExGraph::FUnsignedEdge& Edge, const FPCGPoint& StartPoint, const FPCGPoint& EndPoint);
-	virtual bool PromoteEdgeGen(UPCGPointData* InData, const PCGExGraph::FUnsignedEdge& Edge, const FPCGPoint& StartPoint, const FPCGPoint& EndPoint);
+	virtual void PrepareForPointIO(PCGExData::FPointIO& PointIO);
+	virtual void PrepareForMesh(PCGExData::FPointIO& EdgesIO, PCGExMesh::FMesh*);
+	virtual void PrepareForIteration(int Iteration, TArray<FVector>* PrimaryBuffer, TArray<FVector>* SecondaryBuffer);
+	virtual void ProcessVertex(const PCGExMesh::FVertex& Vertex);
+
+	virtual void Write(PCGExData::FPointIO& PointIO, PCGEx::FLocalSingleFieldGetter& Influence);
+
+	double DefaultInfluence = 1;
+
+	virtual void Cleanup() override;
+	
+protected:
+	int32 CurrentIteration = 0;
+	PCGExData::FPointIO* CurrentPoints = nullptr;
+	PCGExData::FPointIO* CurrentEdges = nullptr;
+	PCGExMesh::FMesh* CurrentMesh = nullptr;
+	TArray<FVector>* ReadBuffer = nullptr;
+	TArray<FVector>* WriteBuffer = nullptr;
 };

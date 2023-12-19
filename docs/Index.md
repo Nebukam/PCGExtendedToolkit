@@ -11,7 +11,6 @@
         - [Partition by Values](PCGExMiscPartitionByValues.md)
         - [Write Index](PCGExMiscWriteIndex.md)
         - [Points To Bounds](PCGExMiscPointsToBounds.md)
-        - ~~[Operations](PCGExMiscOperations.md)~~
     - Graph :
         - [*Graph* : Create Params](PCGExGraphCreateParams.md)
         - [*Graph* : Build](PCGExGraphBuild.md)
@@ -23,7 +22,6 @@
         - [*Pathfinding* : Edges](PCGExPathfindingEdges.md)
         - [*Pathfinding* : Navmesh](PCGExPathfindingNavmesh.md)
     - Edges :
-        - [*Edges* : Promote](PCGExEdgesPromote.md)
         - [*Edges* : Relax](PCGExEdgesRelaxIslands.md)
         - [*Edges* : Consolidate Islands](PCGExEdgesConsolidateIslands.md)
         - [*Edges* : Pruning](PCGExEdgesRelaxIslands.md)
@@ -38,7 +36,6 @@
         - [*Sample* : Nearest Surface](PCGExSampleNearestSurface.md)
         - [*Sample* : Surface Guided](PCGExSampleSurfaceGuided.md)
         - [*Sample* : Nearest Polyline](PCGExSampleNearestPolyline.md)
-        - ~~[Project](PCGExProject.md)~~
 1. Data Types
     - [Graph Data](PCGExGraphData.md)
 1. [Frequently Asked Questions](FAQ.md)

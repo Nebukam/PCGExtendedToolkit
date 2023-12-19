@@ -8,22 +8,11 @@
 
 #include "PCGExPropertiesBlender.h"
 
-#define PCGEX_FOREACH_BLEND_POINTPROPERTY(MACRO)\
-MACRO(float, Density) \
-MACRO(FVector, BoundsMin) \
-MACRO(FVector, BoundsMax) \
-MACRO(FVector4, Color) \
-MACRO(FVector, Position) \
-MACRO(FQuat, Rotation) \
-MACRO(FVector, Scale) \
-MACRO(float, Steepness) \
-MACRO(int32, Seed)
-
 namespace PCGExDataBlending
 {
 	struct PCGEXTENDEDTOOLKIT_API FPropertiesBlender
 	{
-#define PCGEX_BLEND_FUNCREF(_TYPE, _NAME) bool bAverage##_NAME = false; EPCGExDataBlendingType _NAME##Blending = EPCGExDataBlendingType::Weight;
+#define PCGEX_BLEND_FUNCREF(_TYPE, _NAME, ...) bool bAverage##_NAME = false; EPCGExDataBlendingType _NAME##Blending = EPCGExDataBlendingType::Weight;
 		PCGEX_FOREACH_BLEND_POINTPROPERTY(PCGEX_BLEND_FUNCREF)
 #undef PCGEX_BLEND_FUNCREF
 
@@ -39,7 +28,7 @@ namespace PCGExDataBlending
 		FPropertiesBlender(const FPCGExBlendingSettings& Settings);
 
 		FPropertiesBlender(const FPropertiesBlender& Other):
-#define PCGEX_BLEND_COPY(_TYPE, _NAME) bAverage##_NAME(Other.bAverage##_NAME), _NAME##Blending(Other._NAME##Blending),
+#define PCGEX_BLEND_COPY(_TYPE, _NAME, ...) bAverage##_NAME(Other.bAverage##_NAME), _NAME##Blending(Other._NAME##Blending),
 			PCGEX_FOREACH_BLEND_POINTPROPERTY(PCGEX_BLEND_COPY)
 #undef PCGEX_BLEND_COPY
 			DefaultBlending(Other.DefaultBlending),
@@ -63,5 +52,3 @@ namespace PCGExDataBlending
 		void BlendRangeOnce(const FPCGPoint& A, const FPCGPoint& B, TArrayView<FPCGPoint>& Targets, const TArrayView<double>& Alphas);
 	};
 }
-
-#undef PCGEX_FOREACH_BLEND_POINTPROPERTY
