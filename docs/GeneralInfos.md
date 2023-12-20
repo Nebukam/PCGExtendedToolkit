@@ -28,7 +28,7 @@ Under the hood, all PCG node come with the ability to cache their result; but th
 
 ## Soft-typed-*ish* Attribute Getters
 
-PCG Attributes are, by nature, strongly typed. PCGEx nodes that read attributes have a slightly different approach, and will instead attempt to read the data needed for computation, no matter what the incoming type is.  
+PCG Attributes are, by nature, strongly typed. Some PCGEx nodes that read attributes have a slightly different approach, and will instead attempt to read the data needed for computation, no matter what the incoming type is.  
 This translate as attribute picker often displaying extra options, such as *Field*, or *Axis*:
 
 #### Field
@@ -40,3 +40,4 @@ This helps further narrowing down which sub-sub component you're willing to read
 
 > Note that the case of FTransform is trickier, and which component is used is context-dependent. Sometimes the FTransform.Rotator will be used, sometimes FTransform.Location is preferred.
 
+*I recon a more elegant approach would have been to make custom detail panel, but frankly it's wasn't worth the time*

@@ -19,7 +19,7 @@ public:
 
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(PromoteEdges, "Edges : Promote", "Promote edges to points or small paths.");
+	PCGEX_NODE_INFOS(PromoteEdges, "Graph : Promote Edges", "Promote edges to points or small paths.");
 	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorPathfinding; }
 #endif
 

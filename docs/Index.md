@@ -18,14 +18,17 @@
         - [*Graph* : Find Edge Islands](PCGExGraphFindEdgeIslands.md)
         - [*Graph* : Draw](PCGExGraphDraw.md)
         - [*Graph* : Delete](PCGExGraphDelete.md)
+        - [*Graph* : Promote Edges](PCGExGraphPromoteEdges.md)
     - Pathfinding :
         - [*Pathfinding* : Edges](PCGExPathfindingEdges.md)
+        - [*Pathfinding* : Plot Edges](PCGExPathfindingPlotEdges.md)
         - [*Pathfinding* : Navmesh](PCGExPathfindingNavmesh.md)
+        - [*Pathfinding* : Plot Navmesh](PCGExPathfindingPlotNavmesh.md)
     - Edges :
         - [*Edges* : Relax](PCGExEdgesRelaxIslands.md)
         - [*Edges* : Consolidate Islands](PCGExEdgesConsolidateIslands.md)
-        - [*Edges* : Pruning](PCGExEdgesRelaxIslands.md)
-        - [*Edges* : Write Extras](PCGExEdgesExtras.md)
+        ~~- [*Edges* : Pruning](PCGExEdgesPrune.md)~~
+        ~~- [*Edges* : Write Extras](PCGExEdgesExtras.md)~~
     - Paths :
         - [*Path* : Write Tangents](PCGExPathsWriteTangents.md)
         - [*Path* : Orient](PCGExPathsSubdivide.md)
