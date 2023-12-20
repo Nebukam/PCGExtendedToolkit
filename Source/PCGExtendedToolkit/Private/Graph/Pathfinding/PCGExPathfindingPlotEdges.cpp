@@ -126,7 +126,7 @@ bool FPCGExPathfindingPlotEdgesElement::ExecuteInternal(FPCGContext* InContext) 
 		if (Context->IsAsyncWorkComplete()) { Context->SetState(PCGExGraph::State_ReadyForNextEdges); }
 	}
 
-	if (Context->IsDone()) { Context->Plots->OutputTo(Context, true); }
+	if (Context->IsDone()) { Context->OutputPaths->OutputTo(Context, true); }
 
 	return Context->IsDone();
 }
@@ -139,28 +139,17 @@ bool FPlotMeshPathTask::ExecuteTask()
 	const PCGExMesh::FMesh* Mesh = Context->CurrentMesh;
 	TArray<int32> Path;
 
-	TArray<FVector> Plot;
 	const int32 NumPlots = PointIO->GetNum();
-	Plot.Reserve(NumPlots);
-	for (const FPCGPoint& PlotPoint : PointIO->GetIn()->GetPoints()) { Plot.Add(PlotPoint.Transform.GetLocation()); }
-	Algo::Reverse(Plot);
 
-	int32 PlotIndex = 0;
-	FVector SeedPosition = Plot.Pop();
-
-	while (!Plot.IsEmpty())
+	for (int i = 1; i < NumPlots; i++)
 	{
-		FVector GoalPosition = Plot.Pop();
+		FVector SeedPosition = PointIO->GetInPoint(i - 1).Transform.GetLocation();
+		FVector GoalPosition = PointIO->GetInPoint(i).Transform.GetLocation();
 
 		//Note: Can silently fail
 		PCGExPathfinding::FindPath(Context->CurrentMesh, SeedPosition, GoalPosition, Context->Heuristics, Path);
 
-		PlotIndex = NumPlots - Plot.Num() - 1;
-
-		if (Context->bAddPlotPointsToPath && !Plot.IsEmpty())
-		{
-			Path.Add((PlotIndex + 1) * -1);
-		}
+		if (Context->bAddPlotPointsToPath && i < NumPlots-1) { Path.Add((i + 1) * -1); }
 
 		SeedPosition = GoalPosition;
 	}
@@ -173,16 +162,18 @@ bool FPlotMeshPathTask::ExecuteTask()
 	MutablePoints.Reserve(Path.Num() + 2);
 
 	if (Context->bAddSeedToPath) { MutablePoints.Add_GetRef(PointIO->GetInPoint(0)).MetadataEntry = PCGInvalidEntryKey; }
+	int32 LastIndex = -1;
 	for (const int32 VtxIndex : Path)
 	{
-		if (VtxIndex < -1)
+		if (VtxIndex < -1) // Plot point
 		{
-			// Plot point
-			MutablePoints.Add_GetRef(InPoints[(VtxIndex * -1) - 1]).MetadataEntry = PCGInvalidEntryKey;
+			MutablePoints.Add_GetRef(PointIO->GetInPoint((VtxIndex * -1) - 1)).MetadataEntry = PCGInvalidEntryKey;
 			continue;
 		}
 
+		if (LastIndex == VtxIndex) { continue; } //Skip duplicates
 		MutablePoints.Add(InPoints[Mesh->Vertices[VtxIndex].PointIndex]);
+		LastIndex = VtxIndex;
 	}
 	if (Context->bAddGoalToPath) { MutablePoints.Add_GetRef(PointIO->GetInPoint(PointIO->GetNum() - 1)).MetadataEntry = PCGInvalidEntryKey; }
 
