@@ -77,6 +77,8 @@ bool UPCGExPathfindingProcessorSettings::GetRequiresGoals() const { return true;
 
 FPCGExPathfindingProcessorContext::~FPCGExPathfindingProcessorContext()
 {
+	PCGEX_TERMINATE_ASYNC
+
 	PCGEX_DELETE(SeedsPoints)
 	PCGEX_DELETE(GoalsPoints)
 	PCGEX_DELETE(OutputPaths)
@@ -142,8 +144,8 @@ FPCGContext* FPCGExPathfindingProcessorElement::InitializeContext(
 
 	Context->OutputPaths = new PCGExData::FPointIOGroup();
 
-	Context->bAddSeedToPath = Settings->bAddSeedToPath;
-	Context->bAddGoalToPath = Settings->bAddGoalToPath;
+	PCGEX_FWD(bAddSeedToPath)
+	PCGEX_FWD(bAddGoalToPath)
 
 	return Context;
 }

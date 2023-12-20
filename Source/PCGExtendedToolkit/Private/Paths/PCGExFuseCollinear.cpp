@@ -37,6 +37,8 @@ bool FPCGExFuseCollinearElement::Boot(FPCGContext* InContext) const
 
 	Context->Threshold = FMath::Cos(Settings->Threshold * (PI / 180.0));
 
+	Context->FuseDistance = Settings->FuseDistance * Settings->FuseDistance;
+
 	//PCGEX_FWD(bDoBlend)
 	//PCGEX_BIND_OPERATION(Blending, UPCGExSubPointsBlendInterpolate)
 
@@ -91,7 +93,8 @@ bool FFuseCollinearTask::ExecuteTask()
 	TArray<FPCGPoint>& OutPoints = PointIO->GetOut()->GetMutablePoints();
 	OutPoints.Add_GetRef(InPoints[0]);
 
-	FVector CurrentDirection = (InPoints[0].Transform.GetLocation() - InPoints[1].Transform.GetLocation()).GetSafeNormal();
+	FVector LastPosition = InPoints[0].Transform.GetLocation();
+	FVector CurrentDirection = (LastPosition - InPoints[1].Transform.GetLocation()).GetSafeNormal();
 	const int32 MaxIndex = InPoints.Num() - 1;
 
 	for (int i = 1; i < MaxIndex; i++)
@@ -100,7 +103,8 @@ bool FFuseCollinearTask::ExecuteTask()
 		FVector NextPosition = InPoints[i + 1].Transform.GetLocation();
 		FVector DirToNext = (CurrentPosition - NextPosition).GetSafeNormal();
 
-		if (FVector::DotProduct(CurrentDirection, DirToNext) > Context->Threshold)
+		if (FVector::DistSquared(CurrentPosition, LastPosition) <= Context->FuseDistance ||
+			FVector::DotProduct(CurrentDirection, DirToNext) > Context->Threshold)
 		{
 			// Collinear with previous, keep moving
 			continue;
@@ -108,6 +112,7 @@ bool FFuseCollinearTask::ExecuteTask()
 
 		OutPoints.Add_GetRef(InPoints[i]);
 		CurrentDirection = DirToNext;
+		LastPosition = CurrentPosition;
 	}
 
 	OutPoints.Add_GetRef(InPoints[MaxIndex]);

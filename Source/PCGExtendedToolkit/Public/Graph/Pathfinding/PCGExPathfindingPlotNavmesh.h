@@ -6,7 +6,7 @@
 #include "CoreMinimal.h"
 #include "PCGExPathfinding.h"
 #include "PCGExPointsProcessor.h"
-#include "PCGExPathfindingNavmesh.generated.h"
+#include "PCGExPathfindingPlotNavmesh.generated.h"
 
 class UPCGExSubPointsBlendOperation;
 class UPCGExGoalPicker;
@@ -16,20 +16,19 @@ class UPCGExGoalPicker;
  * This way we can multi-thread the various calculations instead of mixing everything along with async/game thread collision
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class PCGEXTENDEDTOOLKIT_API UPCGExPathfindingNavmeshSettings : public UPCGExPointsProcessorSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExPathfindingPlotNavmeshSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
 public:
-	UPCGExPathfindingNavmeshSettings(const FObjectInitializer& ObjectInitializer);
+	UPCGExPathfindingPlotNavmeshSettings(const FObjectInitializer& ObjectInitializer);
 
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(PathfindingNavmesh, "Pathfinding : Navmesh", "Extract paths from navmesh.");
+	PCGEX_NODE_INFOS(PCGExPathfindingPlotNavmesh, "Pathfinding : Plot Navmesh", "Extract a single paths from navmesh, going through each seed points in order.");
 	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorPathfinding; }
 #endif
 
-	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 
@@ -45,17 +44,17 @@ public:
 	virtual FName GetMainOutputLabel() const override;
 
 public:
-	/** Controls how goals are picked.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced, meta = (NoResetToDefault, ShowOnlyInnerProperties))
-	TObjectPtr<UPCGExGoalPicker> GoalPicker = nullptr;
-
 	/** Add seed point at the beginning of the path */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	bool bAddSeedToPath = true;
 
-	/** Add goal point at the beginning of the path */
+	/** Add goal point at the end of the path */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	bool bAddGoalToPath = true;
+
+	/** Insert plot points inside the path */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	bool bAddPlotPointsToPath = false;
 
 	/** Whether the pathfinding requires a naviguable end location. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
@@ -83,24 +82,18 @@ public:
 };
 
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingNavmeshContext : public FPCGExPointsProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingPlotNavmeshContext : public FPCGExPointsProcessorContext
 {
-	friend class FPCGExPathfindingNavmeshElement;
+	friend class FPCGExPathfindingPlotNavmeshElement;
 
-	mutable FRWLock BufferLock;
+	virtual ~FPCGExPathfindingPlotNavmeshContext() override;
 
-	virtual ~FPCGExPathfindingNavmeshContext() override;
-
-	PCGExData::FPointIO* GoalsPoints = nullptr;
 	PCGExData::FPointIOGroup* OutputPaths = nullptr;
-
-	UPCGExGoalPicker* GoalPicker = nullptr;
 	UPCGExSubPointsBlendOperation* Blending = nullptr;
 
 	bool bAddSeedToPath = true;
 	bool bAddGoalToPath = true;
-
-	TArray<PCGExPathfinding::FPathQuery*> PathBuffer;
+	bool bAddPlotPointsToPath = true;
 
 	FNavAgentProperties NavAgentProperties;
 
@@ -111,7 +104,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingNavmeshContext : public FPCGExPoi
 	double FuseDistance = 10;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExPathfindingNavmeshElement : public FPCGExPointsProcessorElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExPathfindingPlotNavmeshElement : public FPCGExPointsProcessorElementBase
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -125,12 +118,12 @@ protected:
 };
 
 // Define the background task class
-class PCGEXTENDEDTOOLKIT_API FSampleNavmeshTask : public FPCGExPathfindingTask
+class PCGEXTENDEDTOOLKIT_API FPlotNavmeshTask : public FPCGExNonAbandonableTask
 {
 public:
-	FSampleNavmeshTask(
-		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO, PCGExPathfinding::FPathQuery* InQuery) :
-		FPCGExPathfindingTask(InManager, InTaskIndex, InPointIO, InQuery)
+	FPlotNavmeshTask(
+		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO) :
+		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO)
 	{
 	}
 

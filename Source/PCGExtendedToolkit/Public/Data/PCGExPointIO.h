@@ -113,7 +113,7 @@ namespace PCGExData
 		 * @param bEmplace if false (default), will try to use the source first
 		 */
 		bool OutputTo(FPCGContext* Context, bool bEmplace = false);
-		bool OutputTo(FPCGContext* Context, bool bEmplace, int64 MinPointCount, int64 MaxPointCount);
+		bool OutputTo(FPCGContext* Context, bool bEmplace, const int32 MinPointCount, const int32 MaxPointCount);
 	};
 
 	/**
@@ -162,7 +162,7 @@ namespace PCGExData
 		int32 Num() const { return Pairs.Num(); }
 
 		void OutputTo(FPCGContext* Context, bool bEmplace = false);
-		void OutputTo(FPCGContext* Context, bool bEmplace, const int64 MinPointCount, const int64 MaxPointCount);
+		void OutputTo(FPCGContext* Context, bool bEmplace, const int32 MinPointCount, const int32 MaxPointCount);
 
 		void ForEach(const TFunction<void(FPointIO&, const int32)>& BodyLoop);
 

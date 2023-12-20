@@ -41,12 +41,14 @@ public:
 
 	virtual void ProcessSubPoints(
 		TArrayView<FPCGPoint>& SubPoints,
-		const PCGExMath::FPathMetrics& Metrics) const override;
+		const PCGExMath::FPathMetrics& Metrics,
+		const int32 Offset = 0) const override;
 
 	virtual void ProcessSubPoints(
 		TArrayView<FPCGPoint>& SubPoints,
 		const PCGExMath::FPathMetrics& PathInfos,
-		const PCGExDataBlending::FMetadataBlender* InBlender) const;
+		const PCGExDataBlending::FMetadataBlender* InBlender,
+		const int32 Offset = 0) const;
 
 	virtual void BlendSubPoints(
 		const PCGEx::FPointRef& StartPoint,
@@ -58,8 +60,8 @@ public:
 	virtual void BlendSubPoints(
 		TArrayView<FPCGPoint>& SubPoints,
 		const PCGExMath::FPathMetrics& Metrics,
-		const PCGExDataBlending::FMetadataBlender* InBlender) const;
-
+		const PCGExDataBlending::FMetadataBlender* InBlender,
+		const int32 Offset = 0) const;
 
 	virtual void Cleanup() override;
 

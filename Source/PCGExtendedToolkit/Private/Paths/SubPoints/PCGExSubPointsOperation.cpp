@@ -24,7 +24,7 @@ void UPCGExSubPointsOperation::ProcessSubPoints(const PCGEx::FPointRef& Start, c
 {
 }
 
-void UPCGExSubPointsOperation::ProcessSubPoints(TArrayView<FPCGPoint>& SubPoints, const PCGExMath::FPathMetrics& Metrics) const
+void UPCGExSubPointsOperation::ProcessSubPoints(TArrayView<FPCGPoint>& SubPoints, const PCGExMath::FPathMetrics& Metrics, const int32 Offset) const
 {
 	const FPCGPoint& Start = SubPoints[0];
 	const int32 LastIndex = SubPoints.Num() - 1;
