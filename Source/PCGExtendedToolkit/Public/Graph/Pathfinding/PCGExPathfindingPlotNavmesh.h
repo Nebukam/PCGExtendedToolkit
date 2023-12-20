@@ -44,7 +44,6 @@ public:
 	virtual FName GetMainOutputLabel() const override;
 
 public:
-
 	/** Add seed point at the beginning of the path */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	bool bAddSeedToPath = true;
@@ -56,7 +55,7 @@ public:
 	/** Insert plot points inside the path */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	bool bAddPlotPointsToPath = false;
-	
+
 	/** Whether the pathfinding requires a naviguable end location. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	bool bRequireNavigableEndLocation = true;
@@ -68,7 +67,7 @@ public:
 	/** Controls how path points blend from seed to goal. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced, meta = (NoResetToDefault, ShowOnlyInnerProperties))
 	TObjectPtr<UPCGExSubPointsBlendOperation> Blending = nullptr;
-	
+
 	/** Pathfinding mode */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	EPCGExPathfindingNavmeshMode PathfindingMode = EPCGExPathfindingNavmeshMode::Regular;

@@ -149,7 +149,7 @@ bool FPlotMeshPathTask::ExecuteTask()
 		//Note: Can silently fail
 		PCGExPathfinding::FindPath(Context->CurrentMesh, SeedPosition, GoalPosition, Context->Heuristics, Path);
 
-		if (Context->bAddPlotPointsToPath && i < NumPlots-1) { Path.Add((i + 1) * -1); }
+		if (Context->bAddPlotPointsToPath && i < NumPlots - 1) { Path.Add((i + 1) * -1); }
 
 		SeedPosition = GoalPosition;
 	}

@@ -78,7 +78,7 @@ bool UPCGExPathfindingProcessorSettings::GetRequiresGoals() const { return true;
 FPCGExPathfindingProcessorContext::~FPCGExPathfindingProcessorContext()
 {
 	PCGEX_TERMINATE_ASYNC
-	
+
 	PCGEX_DELETE(SeedsPoints)
 	PCGEX_DELETE(GoalsPoints)
 	PCGEX_DELETE(OutputPaths)

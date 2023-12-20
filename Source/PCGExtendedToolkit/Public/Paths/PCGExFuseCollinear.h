@@ -38,7 +38,7 @@ public:
 	/** Distance used to consider point to be overlapping. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	double FuseDistance = 0.01;
-	
+
 	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	//bool bDoBlend = false;
 

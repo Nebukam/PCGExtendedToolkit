@@ -48,7 +48,7 @@ public:
 		TArrayView<FPCGPoint>& SubPoints,
 		const PCGExMath::FPathMetrics& PathInfos,
 		const PCGExDataBlending::FMetadataBlender* InBlender,
-		 const int32 Offset = 0) const;
+		const int32 Offset = 0) const;
 
 	virtual void BlendSubPoints(
 		const PCGEx::FPointRef& StartPoint,
@@ -62,7 +62,7 @@ public:
 		const PCGExMath::FPathMetrics& Metrics,
 		const PCGExDataBlending::FMetadataBlender* InBlender,
 		const int32 Offset = 0) const;
-	
+
 	virtual void Cleanup() override;
 
 	PCGExDataBlending::FMetadataBlender* CreateBlender(

@@ -14,7 +14,7 @@ void UPCGExSmoothingOperation::DoSmooth(PCGExData::FPointIO& InPointIO)
 
 	InPointIO.CreateInKeys();
 	InPointIO.CreateOutKeys();
-	
+
 	if (bUseLocalInfluence)
 	{
 		InfluenceGetter.bEnabled = true;

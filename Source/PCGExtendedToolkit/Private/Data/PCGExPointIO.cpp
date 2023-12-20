@@ -171,12 +171,12 @@ namespace PCGExData
 			}
 		}
 
-		if(!bSuccess && Out)
+		if (!bSuccess && Out)
 		{
 			Out->ConditionalBeginDestroy();
 			Out = nullptr;
 		}
-		
+
 		Cleanup();
 		return bSuccess;
 	}

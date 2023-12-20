@@ -37,7 +37,6 @@ protected:
 	//~End UPCGSettings interface
 
 public:
-	
 	/** Add seed point at the beginning of the path */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	bool bAddSeedToPath = true;
@@ -45,11 +44,11 @@ public:
 	/** Add goal point at the beginning of the path */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	bool bAddGoalToPath = true;
-	
+
 	/** Insert plot points inside the path */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	bool bAddPlotPointsToPath = true;
-	
+
 	/** Controls how heuristic are calculated. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced, meta = (NoResetToDefault, ShowOnlyInnerProperties))
 	TObjectPtr<UPCGExHeuristicOperation> Heuristics = nullptr;
@@ -64,14 +63,13 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingPlotEdgesContext : public FPCGExE
 
 	PCGExData::FPointIOGroup* Plots = nullptr;
 	PCGExData::FPointIOGroup* OutputPaths = nullptr;
-	
+
 	UPCGExHeuristicOperation* Heuristics = nullptr;
 	//UPCGExSubPointsBlendOperation* Blending = nullptr;
 
 	bool bAddSeedToPath = true;
 	bool bAddGoalToPath = true;
 	bool bAddPlotPointsToPath = true;
-	
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExPathfindingPlotEdgesElement : public FPCGExEdgesProcessorElement
