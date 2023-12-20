@@ -46,6 +46,7 @@ namespace PCGExPathfinding
 	{
 		int32 PlotIndex;
 		FVector Position;
+		PCGMetadataEntryKey MetadataEntryKey = -1;
 	};
 
 	

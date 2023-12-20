@@ -12,6 +12,9 @@ void UPCGExSmoothingOperation::DoSmooth(PCGExData::FPointIO& InPointIO)
 {
 	PCGEx::FLocalSingleFieldGetter InfluenceGetter;
 
+	InPointIO.CreateInKeys();
+	InPointIO.CreateOutKeys();
+	
 	if (bUseLocalInfluence)
 	{
 		InfluenceGetter.bEnabled = true;

@@ -137,28 +137,32 @@ bool FPlotMeshPathTask::ExecuteTask()
 	//PCGEX_ASYNC_CHECKPOINT
 
 	const PCGExMesh::FMesh* Mesh = Context->CurrentMesh;
+	TArray<int32> Path;
 
 	TArray<FVector> Plot;
-	Plot.Reserve(PointIO->GetNum());
+	const int32 NumPlots = PointIO->GetNum();
+	Plot.Reserve(NumPlots);
 	for (const FPCGPoint& PlotPoint : PointIO->GetIn()->GetPoints()) { Plot.Add(PlotPoint.Transform.GetLocation()); }
+	Algo::Reverse(Plot);
 
-	TArray<int32> Path;
-	FVector PrevPosition = Plot.Pop();
+	int32 PlotIndex = 0;
+	FVector SeedPosition = Plot.Pop();
 
 	while (!Plot.IsEmpty())
 	{
-		const int32 PlotIndex = Plot.Num();
 		FVector GoalPosition = Plot.Pop();
+
+		//Note: Can silently fail
+		PCGExPathfinding::FindPath(Context->CurrentMesh, SeedPosition, GoalPosition, Context->Heuristics, Path);
+
+		PlotIndex = NumPlots - Plot.Num() - 1;
 
 		if (Context->bAddPlotPointsToPath && !Plot.IsEmpty())
 		{
 			Path.Add((PlotIndex + 1) * -1);
 		}
 
-		//Note: Can silently fail
-		PCGExPathfinding::FindPath(Context->CurrentMesh, PrevPosition, GoalPosition, Context->Heuristics, Path);
-
-		PrevPosition = GoalPosition;
+		SeedPosition = GoalPosition;
 	}
 
 	const PCGExData::FPointIO& PathPoints = Context->OutputPaths->Emplace_GetRef(Context->GetCurrentIn(), PCGExData::EInit::NewOutput);
@@ -178,7 +182,7 @@ bool FPlotMeshPathTask::ExecuteTask()
 			continue;
 		}
 
-		MutablePoints.Add(InPoints[VtxIndex < -1 ? (VtxIndex * -1) - 1 : Mesh->Vertices[VtxIndex].PointIndex]);
+		MutablePoints.Add(InPoints[Mesh->Vertices[VtxIndex].PointIndex]);
 	}
 	if (Context->bAddGoalToPath) { MutablePoints.Add_GetRef(PointIO->GetInPoint(PointIO->GetNum() - 1)).MetadataEntry = PCGInvalidEntryKey; }
 

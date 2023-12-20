@@ -37,9 +37,6 @@ protected:
 	//~End UPCGSettings interface
 
 public:
-	/** Controls how heuristic are calculated. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced, meta = (NoResetToDefault, ShowOnlyInnerProperties))
-	TObjectPtr<UPCGExHeuristicOperation> Heuristics = nullptr;
 	
 	/** Add seed point at the beginning of the path */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
@@ -52,6 +49,10 @@ public:
 	/** Insert plot points inside the path */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	bool bAddPlotPointsToPath = true;
+	
+	/** Controls how heuristic are calculated. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced, meta = (NoResetToDefault, ShowOnlyInnerProperties))
+	TObjectPtr<UPCGExHeuristicOperation> Heuristics = nullptr;
 };
 
 

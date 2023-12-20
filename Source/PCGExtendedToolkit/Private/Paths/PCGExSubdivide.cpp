@@ -147,7 +147,7 @@ bool FPCGExSubdivideElement::ExecuteInternal(FPCGContext* InContext) const
 			const int32 EndIndex = StartIndex + Range + 1;
 
 			TArray<FPCGPoint>& MutablePoints = PointIO.GetOut()->GetMutablePoints();
-			TArrayView<FPCGPoint> Path = MakeArrayView(MutablePoints.GetData() + StartIndex + 1, Range);
+			TArrayView<FPCGPoint> View = MakeArrayView(MutablePoints.GetData() + StartIndex + 1, Range);
 
 			const FPCGPoint& StartPoint = PointIO.GetOutPoint(StartIndex);
 			const FPCGPoint* EndPtr = PointIO.TryGetOutPoint(EndIndex);
@@ -155,7 +155,7 @@ bool FPCGExSubdivideElement::ExecuteInternal(FPCGContext* InContext) const
 
 			Context->Blending->ProcessSubPoints(
 				PCGEx::FPointRef(StartPoint, StartIndex), PCGEx::FPointRef(*EndPtr, EndIndex),
-				Path, Context->MilestonesMetrics[Index]);
+				View, Context->MilestonesMetrics[Index]);
 		};
 
 		if (Context->Process(Initialize, ProcessMilestone, Context->Milestones.Num()))

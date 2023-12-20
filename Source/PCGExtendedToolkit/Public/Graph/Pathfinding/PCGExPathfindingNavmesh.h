@@ -49,10 +49,6 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced, meta = (NoResetToDefault, ShowOnlyInnerProperties))
 	TObjectPtr<UPCGExGoalPicker> GoalPicker = nullptr;
 
-	/** Controls how path points blend from seed to goal. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced, meta = (NoResetToDefault, ShowOnlyInnerProperties))
-	TObjectPtr<UPCGExSubPointsBlendOperation> Blending = nullptr;
-
 	/** Add seed point at the beginning of the path */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	bool bAddSeedToPath = true;
@@ -68,6 +64,10 @@ public:
 	/** Fuse sub points by distance. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	double FuseDistance = 10;
+
+	/** Controls how path points blend from seed to goal. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced, meta = (NoResetToDefault, ShowOnlyInnerProperties))
+	TObjectPtr<UPCGExSubPointsBlendOperation> Blending = nullptr;
 
 	/** Pathfinding mode */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)

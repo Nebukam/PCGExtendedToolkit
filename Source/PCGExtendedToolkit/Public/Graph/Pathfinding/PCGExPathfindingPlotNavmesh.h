@@ -44,9 +44,6 @@ public:
 	virtual FName GetMainOutputLabel() const override;
 
 public:
-	/** Controls how path points blend from seed to goal. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced, meta = (NoResetToDefault, ShowOnlyInnerProperties))
-	TObjectPtr<UPCGExSubPointsBlendOperation> Blending = nullptr;
 
 	/** Add seed point at the beginning of the path */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
@@ -68,6 +65,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	double FuseDistance = 10;
 
+	/** Controls how path points blend from seed to goal. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced, meta = (NoResetToDefault, ShowOnlyInnerProperties))
+	TObjectPtr<UPCGExSubPointsBlendOperation> Blending = nullptr;
+	
 	/** Pathfinding mode */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	EPCGExPathfindingNavmeshMode PathfindingMode = EPCGExPathfindingNavmeshMode::Regular;
