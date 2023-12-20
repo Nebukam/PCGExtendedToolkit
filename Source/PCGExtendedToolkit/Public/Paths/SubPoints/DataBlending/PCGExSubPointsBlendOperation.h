@@ -17,7 +17,7 @@ namespace PCGExDataBlending
 /**
  * 
  */
-UCLASS(Abstract, BlueprintType, Blueprintable)
+UCLASS(Abstract)
 class PCGEXTENDEDTOOLKIT_API UPCGExSubPointsBlendOperation : public UPCGExSubPointsOperation
 {
 	GENERATED_BODY()

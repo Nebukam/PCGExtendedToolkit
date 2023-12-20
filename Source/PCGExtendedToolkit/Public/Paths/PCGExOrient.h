@@ -7,6 +7,7 @@
 #include "PCGExPathProcessor.h"
 
 #include "PCGExPointsProcessor.h"
+#include "SubPoints/Orient/PCGExSubPointsOrientAverage.h"
 #include "SubPoints/Orient/PCGExSubPointsOrientOperation.h"
 #include "PCGExOrient.generated.h"
 
@@ -33,8 +34,8 @@ protected:
 	//~End UPCGSettings interface
 
 public:
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable, ShowOnlyInnerProperties, NoResetToDefault))
-	TObjectPtr<UPCGExSubPointsOrientOperation> Orientation = nullptr;
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable, ShowOnlyInnerProperties, NoResetToDefault))
+	TObjectPtr<UPCGExSubPointsOrientOperation> Orientation;
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExOrientContext : public FPCGExPathProcessorContext

@@ -71,7 +71,7 @@ namespace PCGExGraph
 /**
  * 
  */
-UCLASS(Blueprintable, EditInlineNew, DisplayName = "Simple Solver")
+UCLASS(DisplayName = "Simple Solver")
 class PCGEXTENDEDTOOLKIT_API UPCGExGraphSolver : public UPCGExOperation
 {
 	GENERATED_BODY()

@@ -8,6 +8,7 @@
 
 #include "PCGExPointsProcessor.h"
 #include "Graph/PCGExGraph.h"
+#include "Tangents/PCGExAutoTangents.h"
 #include "Tangents/PCGExTangentsOperation.h"
 #include "PCGExWriteTangents.generated.h"
 
@@ -40,8 +41,8 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FName LeaveName = "LeaveTangent";
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable, ShowOnlyInnerProperties, NoResetToDefault))
-	TObjectPtr<UPCGExTangentsOperation> Tangents = nullptr;
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable, ShowOnlyInnerProperties, NoResetToDefault))
+	TObjectPtr<UPCGExTangentsOperation> Tangents;
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExWriteTangentsContext : public FPCGExPathProcessorContext

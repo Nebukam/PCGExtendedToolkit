@@ -23,7 +23,7 @@ enum class EPCGExGoalPickRandomAmount : uint8
 /**
  * 
  */
-UCLASS(BlueprintType, Blueprintable, EditInlineNew, DisplayName = "Random")
+UCLASS(DisplayName = "Random")
 class PCGEXTENDEDTOOLKIT_API UPCGExGoalPickerRandom : public UPCGExGoalPicker
 {
 	GENERATED_BODY()

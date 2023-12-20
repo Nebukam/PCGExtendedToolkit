@@ -17,8 +17,8 @@
 UPCGExPathfindingNavmeshSettings::UPCGExPathfindingNavmeshSettings(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	PCGEX_DEFAULT_OPERATION(GoalPicker, UPCGExGoalPickerRandom)
-	PCGEX_DEFAULT_OPERATION(Blending, UPCGExSubPointsBlendInterpolate)
+	PCGEX_OPERATION_DEFAULT(GoalPicker, UPCGExGoalPickerRandom)
+	PCGEX_OPERATION_DEFAULT(Blending, UPCGExSubPointsBlendInterpolate)
 }
 
 TArray<FPCGPinProperties> UPCGExPathfindingNavmeshSettings::InputPinProperties() const
@@ -85,8 +85,8 @@ bool FPCGExPathfindingNavmeshElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(PathfindingNavmesh)
 
-	PCGEX_BIND_OPERATION(GoalPicker, UPCGExGoalPickerRandom)
-	PCGEX_BIND_OPERATION(Blending, UPCGExSubPointsBlendInterpolate)
+	PCGEX_OPERATION_BIND(GoalPicker, UPCGExGoalPickerRandom)
+	PCGEX_OPERATION_BIND(Blending, UPCGExSubPointsBlendInterpolate)
 
 	if (TArray<FPCGTaggedData> Goals = Context->InputData.GetInputsByPin(PCGExPathfinding::SourceGoalsLabel);
 		Goals.Num() > 0)

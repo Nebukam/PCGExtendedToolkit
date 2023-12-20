@@ -10,7 +10,7 @@
 /**
  * 
  */
-UCLASS(BlueprintType, Blueprintable, EditInlineNew, DisplayName = "Weighted")
+UCLASS(DisplayName = "Weighted")
 class PCGEXTENDEDTOOLKIT_API UPCGExSubPointsOrientWeighted : public UPCGExSubPointsOrientOperation
 {
 	GENERATED_BODY()

@@ -21,7 +21,7 @@ namespace PCGExMesh
 /**
  * 
  */
-UCLASS(Abstract, BlueprintType, Blueprintable, EditInlineNew)
+UCLASS(Abstract)
 class PCGEXTENDEDTOOLKIT_API UPCGExEdgeRelaxingOperation : public UPCGExOperation
 {
 	GENERATED_BODY()

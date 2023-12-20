@@ -11,7 +11,7 @@
 /**
  * 
  */
-UCLASS(BlueprintType, Blueprintable, EditInlineNew, DisplayName = "Moving Average")
+UCLASS(DisplayName = "Moving Average")
 class PCGEXTENDEDTOOLKIT_API UPCGExMovingAverageSmoothing : public UPCGExSmoothingOperation
 {
 	GENERATED_BODY()

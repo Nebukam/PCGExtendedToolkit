@@ -19,7 +19,7 @@ namespace PCGExDataBlending
 /**
  * 
  */
-UCLASS(Abstract, BlueprintType, Blueprintable)
+UCLASS(Abstract)
 class PCGEXTENDEDTOOLKIT_API UPCGExSmoothingOperation : public UPCGExOperation
 {
 	GENERATED_BODY()

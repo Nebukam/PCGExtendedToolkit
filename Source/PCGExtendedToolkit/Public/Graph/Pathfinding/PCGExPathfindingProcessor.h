@@ -4,15 +4,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GoalPickers/PCGExGoalPicker.h"
 
 #include "Graph/PCGExEdgesProcessor.h"
+#include "Heuristics/PCGExHeuristicDistance.h"
 #include "Heuristics/PCGExHeuristicOperation.h"
 
 #include "PCGExPathfindingProcessor.generated.h"
 
-class UPCGExGoalPicker;
-class UPCGExSubPointsOrientOperation;
-class UPCGExSubPointsBlendOperation;
 class UPCGExPathfindingParamsData;
 
 /**
@@ -42,16 +41,12 @@ public:
 	virtual bool GetRequiresGoals() const;
 
 	/** Controls how goals are picked.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced, meta = (NoResetToDefault, ShowOnlyInnerProperties))
-	TObjectPtr<UPCGExGoalPicker> GoalPicker = nullptr;
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta = (NoResetToDefault, ShowOnlyInnerProperties))
+	TObjectPtr<UPCGExGoalPicker> GoalPicker;
 
 	/** Controls how heuristic are calculated. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced, meta = (NoResetToDefault, ShowOnlyInnerProperties))
-	TObjectPtr<UPCGExHeuristicOperation> Heuristics = nullptr;
-
-	/** How to blend path points between seed & goal */
-	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced, meta = (NoResetToDefault))
-	//TObjectPtr<UPCGExSubPointsBlendOperation> Blending;
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta = (NoResetToDefault, ShowOnlyInnerProperties))
+	TObjectPtr<UPCGExHeuristicOperation> Heuristics;
 
 	/** Add seed point at the beginning of the path */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)

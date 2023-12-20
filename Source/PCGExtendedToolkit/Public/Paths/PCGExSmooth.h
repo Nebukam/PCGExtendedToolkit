@@ -7,6 +7,7 @@
 #include "PCGExPathProcessor.h"
 
 #include "PCGExPointsProcessor.h"
+#include "Smoothing/PCGExMovingAverageSmoothing.h"
 #include "Smoothing/PCGExSmoothingOperation.h"
 #include "PCGExSmooth.generated.h"
 
@@ -49,11 +50,11 @@ public:
 	bool bUseLocalInfluence = false;
 
 	/** Fetch the size from a local attribute. The regular Size parameter then act as a scale.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bSmoothAmountFromAttribute"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bUseLocalInfluence"))
 	FPCGExInputDescriptorWithSingleField LocalInfluence;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable, NoResetToDefault, ShowOnlyInnerProperties))
-	TObjectPtr<UPCGExSmoothingOperation> Smoothing = nullptr;
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable, NoResetToDefault, ShowOnlyInnerProperties))
+	TObjectPtr<UPCGExSmoothingOperation> Smoothing;
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExSmoothContext : public FPCGExPathProcessorContext

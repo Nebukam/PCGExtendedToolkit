@@ -9,7 +9,7 @@
 UPCGExFuseCollinearSettings::UPCGExFuseCollinearSettings(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	//PCGEX_DEFAULT_OPERATION(Blending, UPCGExSubPointsBlendInterpolate)
+	//PCGEX_OPERATION_DEFAULT(Blending, UPCGExSubPointsBlendInterpolate)
 }
 
 void UPCGExFuseCollinearSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
@@ -40,7 +40,7 @@ bool FPCGExFuseCollinearElement::Boot(FPCGContext* InContext) const
 	Context->FuseDistance = Settings->FuseDistance * Settings->FuseDistance;
 
 	//PCGEX_FWD(bDoBlend)
-	//PCGEX_BIND_OPERATION(Blending, UPCGExSubPointsBlendInterpolate)
+	//PCGEX_OPERATION_BIND(Blending, UPCGExSubPointsBlendInterpolate)
 
 	return true;
 }

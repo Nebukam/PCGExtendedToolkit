@@ -5,9 +5,8 @@
 
 #include "CoreMinimal.h"
 #include "Graph/PCGExEdgesProcessor.h"
+#include "Relaxing/PCGExForceDirectedRelaxing.h"
 #include "PCGExRelaxEdgeIslands.generated.h"
-
-class UPCGExEdgeRelaxingOperation;
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Edges")
 class PCGEXTENDEDTOOLKIT_API UPCGExRelaxEdgeIslandsSettings : public UPCGExEdgesProcessorSettings
@@ -45,8 +44,8 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bUseLocalInfluence"))
 	FPCGExInputDescriptorWithSingleField LocalInfluence;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable, NoResetToDefault, ShowOnlyInnerProperties))
-	TObjectPtr<UPCGExEdgeRelaxingOperation> Relaxing = nullptr;
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable, NoResetToDefault, ShowOnlyInnerProperties))
+	TObjectPtr<UPCGExEdgeRelaxingOperation> Relaxing;
 
 private:
 	friend class FPCGExRelaxEdgeIslandsElement;

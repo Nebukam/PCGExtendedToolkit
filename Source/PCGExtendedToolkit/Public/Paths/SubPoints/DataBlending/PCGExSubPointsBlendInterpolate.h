@@ -20,7 +20,7 @@ enum class EPCGExPathBlendOver : uint8
 /**
  * 
  */
-UCLASS(BlueprintType, Blueprintable, EditInlineNew, DisplayName = "Interpolate")
+UCLASS(DisplayName = "Interpolate")
 class PCGEXTENDEDTOOLKIT_API UPCGExSubPointsBlendInterpolate : public UPCGExSubPointsBlendOperation
 {
 	GENERATED_BODY()

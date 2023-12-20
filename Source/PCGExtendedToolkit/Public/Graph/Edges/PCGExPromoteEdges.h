@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 #include "Graph/PCGExGraphProcessor.h"
 #include "Graph/Edges/Promoting/PCGExEdgePromotingOperation.h"
+#include "Promoting/PCGExEdgePromoteToPoint.h"
 #include "PCGExPromoteEdges.generated.h"
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
@@ -38,8 +39,8 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExEdgeType"))
 	uint8 EdgeType = static_cast<uint8>(EPCGExEdgeType::Complete);
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced, meta = (NoResetToDefault, ShowOnlyInnerProperties))
-	TObjectPtr<UPCGExEdgePromotingOperation> Promotion = nullptr;
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta = (NoResetToDefault, ShowOnlyInnerProperties))
+	TObjectPtr<UPCGExEdgePromotingOperation> Promotion;
 
 private:
 	friend class FPCGExPromoteEdgesElement;

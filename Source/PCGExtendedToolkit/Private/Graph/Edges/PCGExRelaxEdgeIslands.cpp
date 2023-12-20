@@ -13,7 +13,7 @@ UPCGExRelaxEdgeIslandsSettings::UPCGExRelaxEdgeIslandsSettings(
 	const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	PCGEX_DEFAULT_OPERATION(Relaxing, UPCGExForceDirectedRelaxing)
+	PCGEX_OPERATION_DEFAULT(Relaxing, UPCGExForceDirectedRelaxing)
 }
 
 PCGExData::EInit UPCGExRelaxEdgeIslandsSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
@@ -41,7 +41,7 @@ bool FPCGExRelaxEdgeIslandsElement::Boot(FPCGContext* InContext) const
 	Context->Iterations = FMath::Max(Settings->Iterations, 1);
 	PCGEX_FWD(bUseLocalInfluence)
 
-	PCGEX_BIND_OPERATION(Relaxing, UPCGExForceDirectedRelaxing)
+	PCGEX_OPERATION_BIND(Relaxing, UPCGExForceDirectedRelaxing)
 
 	Context->InfluenceGetter.Capture(Settings->LocalInfluence);
 	Context->Relaxing->DefaultInfluence = Settings->Influence;

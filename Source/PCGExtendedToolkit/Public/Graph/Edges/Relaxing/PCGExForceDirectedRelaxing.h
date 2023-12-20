@@ -10,7 +10,7 @@
 /**
  * 
  */
-UCLASS(BlueprintType, Blueprintable, EditInlineNew, DisplayName = "Force Directed")
+UCLASS(DisplayName = "Force Directed")
 class PCGEXTENDEDTOOLKIT_API UPCGExForceDirectedRelaxing : public UPCGExEdgeRelaxingOperation
 {
 	GENERATED_BODY()

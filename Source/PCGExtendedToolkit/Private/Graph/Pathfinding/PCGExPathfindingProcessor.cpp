@@ -15,13 +15,11 @@
 
 #pragma region UPCGSettings interface
 
-UPCGExPathfindingProcessorSettings::UPCGExPathfindingProcessorSettings(
-	const FObjectInitializer& ObjectInitializer)
+UPCGExPathfindingProcessorSettings::UPCGExPathfindingProcessorSettings(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	PCGEX_DEFAULT_OPERATION(GoalPicker, UPCGExGoalPickerRandom)
-	PCGEX_DEFAULT_OPERATION(Heuristics, UPCGExHeuristicDistance)
-	//PCGEX_DEFAULT_OPERATION(Blending, UPCGExSubPointsBlendInterpolate)
+	PCGEX_OPERATION_DEFAULT(GoalPicker, UPCGExGoalPickerRandom)
+	PCGEX_OPERATION_DEFAULT(Heuristics, UPCGExHeuristicDistance)
 }
 
 TArray<FPCGPinProperties> UPCGExPathfindingProcessorSettings::InputPinProperties() const
@@ -92,9 +90,9 @@ bool FPCGExPathfindingProcessorElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(PathfindingProcessor)
 
-	PCGEX_BIND_OPERATION(GoalPicker, UPCGExGoalPickerRandom)
-	PCGEX_BIND_OPERATION(Heuristics, UPCGExHeuristicDistance)
-	//PCGEX_BIND_OPERATION(Blending, UPCGExSubPointsBlendInterpolate)
+	PCGEX_OPERATION_BIND(GoalPicker, UPCGExGoalPickerRandom)
+	PCGEX_OPERATION_BIND(Heuristics, UPCGExHeuristicDistance)
+	//PCGEX_OPERATION_BIND(Blending, UPCGExSubPointsBlendInterpolate)
 
 	if (Settings->GetRequiresSeeds() && !Context->SeedsPoints)
 	{

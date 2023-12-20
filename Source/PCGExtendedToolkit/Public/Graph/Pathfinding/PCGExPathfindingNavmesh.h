@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 #include "PCGExPathfinding.h"
 #include "PCGExPointsProcessor.h"
+#include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
 #include "PCGExPathfindingNavmesh.generated.h"
 
 class UPCGExSubPointsBlendOperation;
@@ -46,8 +47,8 @@ public:
 
 public:
 	/** Controls how goals are picked.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced, meta = (NoResetToDefault, ShowOnlyInnerProperties))
-	TObjectPtr<UPCGExGoalPicker> GoalPicker = nullptr;
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta = (NoResetToDefault, ShowOnlyInnerProperties))
+	TObjectPtr<UPCGExGoalPicker> GoalPicker;
 
 	/** Add seed point at the beginning of the path */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
@@ -66,8 +67,8 @@ public:
 	double FuseDistance = 10;
 
 	/** Controls how path points blend from seed to goal. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced, meta = (NoResetToDefault, ShowOnlyInnerProperties))
-	TObjectPtr<UPCGExSubPointsBlendOperation> Blending = nullptr;
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta = (NoResetToDefault, ShowOnlyInnerProperties))
+	TObjectPtr<UPCGExSubPointsBlendOperation> Blending;
 
 	/** Pathfinding mode */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)

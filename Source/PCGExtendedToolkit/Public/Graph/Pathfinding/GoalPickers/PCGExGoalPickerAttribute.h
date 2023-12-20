@@ -22,7 +22,7 @@ enum class EPCGExGoalPickAttributeAmount : uint8
 /**
  * 
  */
-UCLASS(BlueprintType, Blueprintable, EditInlineNew, DisplayName = "Index Attribute")
+UCLASS(DisplayName = "Index Attribute")
 class PCGEXTENDEDTOOLKIT_API UPCGExGoalPickerAttribute : public UPCGExGoalPicker
 {
 	GENERATED_BODY()

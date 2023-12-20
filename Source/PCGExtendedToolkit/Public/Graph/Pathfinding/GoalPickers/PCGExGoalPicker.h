@@ -14,7 +14,7 @@ class UPCGPointData;
 /**
  * 
  */
-UCLASS(BlueprintType, Blueprintable, EditInlineNew, DisplayName = "Default")
+UCLASS(DisplayName = "Default")
 class PCGEXTENDEDTOOLKIT_API UPCGExGoalPicker : public UPCGExOperation
 {
 	GENERATED_BODY()

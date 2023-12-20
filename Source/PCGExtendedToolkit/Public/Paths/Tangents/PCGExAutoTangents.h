@@ -10,7 +10,7 @@
 /**
  * 
  */
-UCLASS(BlueprintType, Blueprintable, EditInlineNew)
+UCLASS(DisplayName="Auto")
 class PCGEXTENDEDTOOLKIT_API UPCGExAutoTangents : public UPCGExTangentsOperation
 {
 	GENERATED_BODY()

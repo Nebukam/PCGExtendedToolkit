@@ -11,7 +11,7 @@
 UPCGExOrientSettings::UPCGExOrientSettings(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	PCGEX_DEFAULT_OPERATION(Orientation, UPCGExSubPointsOrientAverage)
+	PCGEX_OPERATION_DEFAULT(Orientation, UPCGExSubPointsOrientAverage)
 }
 
 void UPCGExOrientSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
@@ -30,7 +30,7 @@ bool FPCGExOrientElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(Orient)
 
-	PCGEX_BIND_OPERATION(Orientation, UPCGExSubPointsOrientAverage)
+	PCGEX_OPERATION_BIND(Orientation, UPCGExSubPointsOrientAverage)
 
 	return true;
 }

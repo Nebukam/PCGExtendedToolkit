@@ -59,7 +59,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSingleTangentParams
 /**
  * 
  */
-UCLASS(BlueprintType, Blueprintable, EditInlineNew)
+UCLASS(DisplayName="Custom")
 class PCGEXTENDEDTOOLKIT_API UPCGExCustomTangents : public UPCGExTangentsOperation
 {
 	GENERATED_BODY()

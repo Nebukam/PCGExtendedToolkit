@@ -14,11 +14,10 @@ FPCGExBuildGraphContext::~FPCGExBuildGraphContext()
 	PCGEX_TERMINATE_ASYNC
 }
 
-UPCGExBuildGraphSettings::UPCGExBuildGraphSettings(
-	const FObjectInitializer& ObjectInitializer)
+UPCGExBuildGraphSettings::UPCGExBuildGraphSettings(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	PCGEX_DEFAULT_OPERATION(GraphSolver, UPCGExGraphSolver)
+	PCGEX_OPERATION_DEFAULT(GraphSolver, UPCGExGraphSolver)
 }
 
 void UPCGExBuildGraphSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
@@ -38,7 +37,7 @@ bool FPCGExBuildGraphElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(BuildGraph)
 
-	PCGEX_BIND_OPERATION(GraphSolver, UPCGExGraphSolver)
+	PCGEX_OPERATION_BIND(GraphSolver, UPCGExGraphSolver)
 
 	return true;
 }

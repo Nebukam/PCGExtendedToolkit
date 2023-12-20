@@ -10,7 +10,7 @@
 /**
  * 
  */
-UCLASS(Blueprintable, EditInlineNew, DisplayName = "Weighted Solver")
+UCLASS(DisplayName = "Weighted Solver")
 class PCGEXTENDEDTOOLKIT_API UPCGExWeightedGraphSolver : public UPCGExGraphSolver
 {
 	GENERATED_BODY()

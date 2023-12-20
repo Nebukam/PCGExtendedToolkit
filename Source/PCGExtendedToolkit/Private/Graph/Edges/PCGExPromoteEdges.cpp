@@ -18,11 +18,10 @@ PCGExData::EInit UPCGExPromoteEdgesSettings::GetMainOutputInitMode() const
 		       PCGExData::EInit::NewOutput;
 }
 
-UPCGExPromoteEdgesSettings::UPCGExPromoteEdgesSettings(
-	const FObjectInitializer& ObjectInitializer)
+UPCGExPromoteEdgesSettings::UPCGExPromoteEdgesSettings(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	PCGEX_DEFAULT_OPERATION(Promotion, UPCGExEdgePromoteToPoint)
+	PCGEX_OPERATION_DEFAULT(Promotion, UPCGExEdgePromoteToPoint)
 }
 
 TArray<FPCGPinProperties> UPCGExPromoteEdgesSettings::OutputPinProperties() const
@@ -46,7 +45,7 @@ bool FPCGExPromoteEdgesElement::Boot(FPCGContext* InContext) const
 
 	Context->EdgeType = static_cast<EPCGExEdgeType>(Settings->EdgeType);
 
-	PCGEX_BIND_OPERATION(Promotion, UPCGExEdgePromoteToPoint)
+	PCGEX_OPERATION_BIND(Promotion, UPCGExEdgePromoteToPoint)
 
 	return true;
 }

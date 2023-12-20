@@ -9,6 +9,7 @@
 #include "PCGExPathfindingProcessor.h"
 #include "PCGExPointsProcessor.h"
 #include "Graph/PCGExGraph.h"
+#include "Heuristics/PCGExHeuristicDistance.h"
 
 #include "PCGExPathfindingPlotEdges.generated.h"
 
@@ -23,7 +24,6 @@ class PCGEXTENDEDTOOLKIT_API UPCGExPathfindingPlotEdgesSettings : public UPCGExE
 
 public:
 	UPCGExPathfindingPlotEdgesSettings(const FObjectInitializer& ObjectInitializer);
-
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(PathfindingPlotEdges, "Pathfinding : Plot Edges", "Extract a single path from edges islands, going through every seed points in order.");
@@ -31,6 +31,7 @@ public:
 #endif
 
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
+	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
@@ -50,8 +51,8 @@ public:
 	bool bAddPlotPointsToPath = true;
 
 	/** Controls how heuristic are calculated. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced, meta = (NoResetToDefault, ShowOnlyInnerProperties))
-	TObjectPtr<UPCGExHeuristicOperation> Heuristics = nullptr;
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta = (NoResetToDefault, ShowOnlyInnerProperties))
+	TObjectPtr<UPCGExHeuristicOperation> Heuristics;
 };
 
 

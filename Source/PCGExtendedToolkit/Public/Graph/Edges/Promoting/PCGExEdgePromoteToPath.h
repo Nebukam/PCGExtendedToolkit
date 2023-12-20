@@ -10,7 +10,7 @@
 /**
  * 
  */
-UCLASS(BlueprintType, Blueprintable, EditInlineNew, DisplayName = "Promote To Paths")
+UCLASS(BlueprintType, DisplayName = "Promote To Paths")
 class PCGEXTENDEDTOOLKIT_API UPCGExEdgePromoteToPath : public UPCGExEdgePromotingOperation
 {
 	GENERATED_BODY()

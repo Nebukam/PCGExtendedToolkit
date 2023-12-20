@@ -17,7 +17,7 @@ UPCGExPathfindingPlotEdgesSettings::UPCGExPathfindingPlotEdgesSettings(
 	const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	PCGEX_DEFAULT_OPERATION(Heuristics, UPCGExHeuristicDistance)
+	PCGEX_OPERATION_DEFAULT(Heuristics, UPCGExHeuristicDistance)
 }
 
 void UPCGExPathfindingPlotEdgesSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
@@ -39,6 +39,13 @@ TArray<FPCGPinProperties> UPCGExPathfindingPlotEdgesSettings::InputPinProperties
 	return PinProperties;
 }
 
+TArray<FPCGPinProperties> UPCGExPathfindingPlotEdgesSettings::OutputPinProperties() const
+{
+	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
+	PinProperties.Pop(); // Remove edge output
+	return PinProperties;
+}
+
 FPCGElementPtr UPCGExPathfindingPlotEdgesSettings::CreateElement() const { return MakeShared<FPCGExPathfindingPlotEdgesElement>(); }
 
 FPCGExPathfindingPlotEdgesContext::~FPCGExPathfindingPlotEdgesContext()
@@ -57,7 +64,7 @@ bool FPCGExPathfindingPlotEdgesElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(PathfindingPlotEdges)
 
-	PCGEX_BIND_OPERATION(Heuristics, UPCGExHeuristicDistance)
+	PCGEX_OPERATION_BIND(Heuristics, UPCGExHeuristicDistance)
 
 	Context->OutputPaths = new PCGExData::FPointIOGroup();
 	Context->Plots = new PCGExData::FPointIOGroup();

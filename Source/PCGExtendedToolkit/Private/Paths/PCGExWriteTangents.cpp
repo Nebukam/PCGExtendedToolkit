@@ -11,7 +11,7 @@
 UPCGExWriteTangentsSettings::UPCGExWriteTangentsSettings(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	PCGEX_DEFAULT_OPERATION(Tangents, UPCGExAutoTangents)
+	PCGEX_OPERATION_DEFAULT(Tangents, UPCGExAutoTangents)
 }
 
 void UPCGExWriteTangentsSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
@@ -48,7 +48,7 @@ bool FPCGExWriteTangentsElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(WriteTangents)
 
-	PCGEX_BIND_OPERATION(Tangents, UPCGExAutoTangents)
+	PCGEX_OPERATION_BIND(Tangents, UPCGExAutoTangents)
 	Context->Tangents->ArriveName = Settings->ArriveName;
 	Context->Tangents->LeaveName = Settings->LeaveName;
 

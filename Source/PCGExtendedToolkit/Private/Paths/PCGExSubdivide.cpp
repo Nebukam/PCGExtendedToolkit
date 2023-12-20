@@ -11,7 +11,7 @@
 UPCGExSubdivideSettings::UPCGExSubdivideSettings(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	PCGEX_DEFAULT_OPERATION(Blending, UPCGExSubPointsBlendInterpolate)
+	PCGEX_OPERATION_DEFAULT(Blending, UPCGExSubPointsBlendInterpolate)
 }
 
 void UPCGExSubdivideSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
@@ -44,7 +44,7 @@ bool FPCGExSubdivideElement::Boot(FPCGContext* InContext) const
 	PCGEX_FWD(bFlagSubPoints)
 	PCGEX_FWD(FlagName)
 
-	PCGEX_BIND_OPERATION(Blending, UPCGExSubPointsBlendInterpolate)
+	PCGEX_OPERATION_BIND(Blending, UPCGExSubPointsBlendInterpolate)
 
 	if (Context->bFlagSubPoints) { PCGEX_VALIDATE_NAME(Context->FlagName) }
 

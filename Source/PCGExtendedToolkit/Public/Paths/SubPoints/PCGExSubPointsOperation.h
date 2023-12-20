@@ -12,7 +12,7 @@
 /**
  * 
  */
-UCLASS(Abstract, BlueprintType, Blueprintable)
+UCLASS(Abstract)
 class PCGEXTENDEDTOOLKIT_API UPCGExSubPointsOperation : public UPCGExOperation
 {
 	GENERATED_BODY()

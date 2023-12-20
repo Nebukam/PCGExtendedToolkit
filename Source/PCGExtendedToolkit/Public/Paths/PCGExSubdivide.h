@@ -9,6 +9,7 @@
 #include "PCGExPointsProcessor.h"
 #include "Graph/PCGExGraph.h"
 #include "Paths/SubPoints/PCGExSubPointsOperation.h"
+#include "SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
 #include "SubPoints/DataBlending/PCGExSubPointsBlendOperation.h"
 #include "PCGExSubdivide.generated.h"
 
@@ -57,8 +58,8 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="SubdivideMethod==EPCGExSubdivideMode::Count", EditConditionHides))
 	int32 Count = 10;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable, ShowOnlyInnerProperties, NoResetToDefault))
-	TObjectPtr<UPCGExSubPointsBlendOperation> Blending = nullptr;
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable, ShowOnlyInnerProperties, NoResetToDefault))
+	TObjectPtr<UPCGExSubPointsBlendOperation> Blending;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bFlagSubPoints = false;

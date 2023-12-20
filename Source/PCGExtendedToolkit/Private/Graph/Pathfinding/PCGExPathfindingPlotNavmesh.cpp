@@ -17,7 +17,7 @@
 UPCGExPathfindingPlotNavmeshSettings::UPCGExPathfindingPlotNavmeshSettings(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	PCGEX_DEFAULT_OPERATION(Blending, UPCGExSubPointsBlendInterpolate)
+	PCGEX_OPERATION_DEFAULT(Blending, UPCGExSubPointsBlendInterpolate)
 }
 
 TArray<FPCGPinProperties> UPCGExPathfindingPlotNavmeshSettings::OutputPinProperties() const
@@ -61,7 +61,7 @@ bool FPCGExPathfindingPlotNavmeshElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(PathfindingPlotNavmesh)
 
-	PCGEX_BIND_OPERATION(Blending, UPCGExSubPointsBlendInterpolate)
+	PCGEX_OPERATION_BIND(Blending, UPCGExSubPointsBlendInterpolate)
 
 	if (!Settings->NavData)
 	{

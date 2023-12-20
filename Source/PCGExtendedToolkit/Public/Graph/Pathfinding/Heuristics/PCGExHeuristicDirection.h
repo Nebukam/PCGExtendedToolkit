@@ -12,7 +12,7 @@
 /**
  * 
  */
-UCLASS(BlueprintType, Blueprintable, EditInlineNew, DisplayName = "Direction")
+UCLASS(DisplayName = "Direction")
 class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicDirection : public UPCGExHeuristicOperation
 {
 	GENERATED_BODY()

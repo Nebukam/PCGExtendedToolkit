@@ -11,7 +11,7 @@
 /**
  * 
  */
-UCLASS(BlueprintType, Blueprintable, EditInlineNew, DisplayName = "Radius")
+UCLASS(DisplayName = "Radius")
 class PCGEXTENDEDTOOLKIT_API UPCGExRadiusSmoothing : public UPCGExSmoothingOperation
 {
 	GENERATED_BODY()

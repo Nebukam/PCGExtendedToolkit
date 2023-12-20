@@ -12,7 +12,7 @@
 UPCGExSmoothSettings::UPCGExSmoothSettings(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	PCGEX_DEFAULT_OPERATION(Smoothing, UPCGExMovingAverageSmoothing)
+	PCGEX_OPERATION_DEFAULT(Smoothing, UPCGExMovingAverageSmoothing)
 }
 
 void UPCGExSmoothSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
@@ -38,7 +38,7 @@ bool FPCGExSmoothElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(Smooth)
 
-	PCGEX_BIND_OPERATION(Smoothing, UPCGExMovingAverageSmoothing)
+	PCGEX_OPERATION_BIND(Smoothing, UPCGExMovingAverageSmoothing)
 	Context->Smoothing->bPinStart = Settings->bPinStart;
 	Context->Smoothing->bPinEnd = Settings->bPinEnd;
 	Context->Smoothing->FixedInfluence = Settings->Influence;
