@@ -10,9 +10,6 @@
 #include "Data/Blending/PCGExPropertiesBlender.h"
 
 void UPCGExRadiusSmoothing::InternalDoSmooth(
-	const PCGEx::FLocalSingleFieldGetter& InfluenceGetter,
-	PCGExDataBlending::FMetadataBlender* MetadataInfluence,
-	PCGExDataBlending::FPropertiesBlender* PropertiesInfluence,
 	PCGExData::FPointIO& InPointIO)
 {
 	const TArray<FPCGPoint>& InPoints = InPointIO.GetIn()->GetPoints();
@@ -20,15 +17,12 @@ void UPCGExRadiusSmoothing::InternalDoSmooth(
 
 	PCGExDataBlending::FMetadataBlender* MetadataBlender = new PCGExDataBlending::FMetadataBlender(BlendingSettings.DefaultBlending);
 	PCGExDataBlending::FPropertiesBlender* PropertiesBlender = new PCGExDataBlending::FPropertiesBlender(BlendingSettings);
-	MetadataBlender->PrepareForData(&InPointIO, BlendingSettings.AttributesOverrides);
+	MetadataBlender->PrepareForData(InPointIO, BlendingSettings.AttributesOverrides);
 
 	const double RadiusSquared = BlendRadius * BlendRadius;
 	const int32 MaxPointIndex = InPoints.Num() - 1;
 	for (int i = 0; i <= MaxPointIndex; i++)
 	{
-		const double ReverseSmooth = GetReverseInfluence(InfluenceGetter, i);
-		if (ReverseSmooth == 1) { continue; }
-
 		FVector Origin = InPoints[i].Transform.GetLocation();
 		FPCGPoint& OutPoint = OutPoints[i];
 		int32 Count = 0;
@@ -52,9 +46,9 @@ void UPCGExRadiusSmoothing::InternalDoSmooth(
 		MetadataBlender->CompleteBlending(i, Count);
 		PropertiesBlender->CompleteBlending(OutPoint);
 
-		MetadataInfluence->Blend(i, i, i, ReverseSmooth);
-		PropertiesInfluence->Blend(OutPoint, InPoints[i], OutPoint, ReverseSmooth);
 	}
+
+	MetadataBlender->Write();
 
 	PCGEX_DELETE(MetadataBlender)
 	PCGEX_DELETE(PropertiesBlender)

@@ -27,11 +27,7 @@ public:
 	FPCGExBlendingSettings BlendingSettings;
 
 	virtual void PrepareForData(PCGExData::FPointIO& InPointIO) override;
-	virtual void PrepareForData(
-		UPCGPointData* InPrimaryData,
-		const UPCGPointData* InSecondaryData,
-		FPCGAttributeAccessorKeysPoints* InPrimaryKeys = nullptr,
-		FPCGAttributeAccessorKeysPoints* InSecondaryKeys = nullptr);
+	virtual void PrepareForData(PCGExData::FPointIO& InPrimaryData, const PCGExData::FPointIO& InSecondaryData, bool bSecondaryIn);
 
 	virtual void ProcessSubPoints(
 		const PCGEx::FPointRef& Start,
@@ -63,13 +59,10 @@ public:
 		const PCGExDataBlending::FMetadataBlender* InBlender,
 		const int32 Offset = 0) const;
 
+	virtual void Write() override;
 	virtual void Cleanup() override;
 
-	PCGExDataBlending::FMetadataBlender* CreateBlender(
-		UPCGPointData* InPrimaryData,
-		const UPCGPointData* InSecondaryData,
-		FPCGAttributeAccessorKeysPoints* InPrimaryKeys = nullptr,
-		FPCGAttributeAccessorKeysPoints* InSecondaryKeys = nullptr);
+	PCGExDataBlending::FMetadataBlender* CreateBlender(PCGExData::FPointIO& InPrimaryIO, const PCGExData::FPointIO& InSecondaryIO, bool bSecondaryIn = true);
 
 protected:
 	virtual EPCGExDataBlendingType GetDefaultBlending();

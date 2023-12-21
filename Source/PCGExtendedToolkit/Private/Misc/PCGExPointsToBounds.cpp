@@ -3,6 +3,8 @@
 
 #include "Misc/PCGExPointsToBounds.h"
 
+#include "Data/PCGExData.h"
+
 #define LOCTEXT_NAMESPACE "PCGExPointsToBoundsElement"
 #define PCGEX_NAMESPACE PointsToBounds
 
@@ -75,7 +77,7 @@ bool FPCGExPointsToBoundsElement::ExecuteInternal(FPCGContext* InContext) const
 		TArray<FPCGPoint>& MutablePoints = OutData->GetMutablePoints();
 		MutablePoints.Add(InPoints[0]);
 
-		Context->MetadataBlender->PrepareForData(Context->CurrentIO, Context->AttributesBlendingOverrides);
+		Context->MetadataBlender->PrepareForData(*Context->CurrentIO, Context->AttributesBlendingOverrides);
 		const double AverageDivider = InPoints.Num();
 
 		FBox Box = FBox(ForceInit);
@@ -109,8 +111,11 @@ bool FPCGExPointsToBoundsElement::ExecuteInternal(FPCGContext* InContext) const
 
 		PCGEX_WRITE_MARK(PointsCount, AverageDivider)
 
+		Context->MetadataBlender->Write();
+
 		Context->CurrentIO->OutputTo(Context);
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
+
 	}
 
 	return Context->IsDone();

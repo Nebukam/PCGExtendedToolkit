@@ -10,9 +10,6 @@
 #include "Data/Blending/PCGExPropertiesBlender.h"
 
 void UPCGExMovingAverageSmoothing::InternalDoSmooth(
-	const PCGEx::FLocalSingleFieldGetter& InfluenceGetter,
-	PCGExDataBlending::FMetadataBlender* MetadataInfluence,
-	PCGExDataBlending::FPropertiesBlender* PropertiesInfluence,
 	PCGExData::FPointIO& InPointIO)
 {
 	const double SafeWindowSize = FMath::Max(2, WindowSize);
@@ -23,15 +20,12 @@ void UPCGExMovingAverageSmoothing::InternalDoSmooth(
 	PCGExDataBlending::FMetadataBlender* MetadataBlender = new PCGExDataBlending::FMetadataBlender(BlendingSettings.DefaultBlending);
 	PCGExDataBlending::FPropertiesBlender* PropertiesBlender = new PCGExDataBlending::FPropertiesBlender(BlendingSettings);
 
-	MetadataBlender->PrepareForData(&InPointIO, BlendingSettings.AttributesOverrides);
+	MetadataBlender->PrepareForData(InPointIO, BlendingSettings.AttributesOverrides);
 
 	const int32 MaxPointIndex = InPoints.Num() - 1;
 
 	for (int i = 0; i <= MaxPointIndex; i++)
 	{
-		const double ReverseSmooth = GetReverseInfluence(InfluenceGetter, i);
-		if (ReverseSmooth == 1) { continue; }
-
 		FPCGPoint& OutPoint = OutPoints[i];
 
 		int32 Count = 0;
@@ -51,10 +45,9 @@ void UPCGExMovingAverageSmoothing::InternalDoSmooth(
 
 		MetadataBlender->CompleteBlending(i, Count);
 		PropertiesBlender->CompleteBlending(OutPoint);
-
-		MetadataInfluence->Blend(i, i, i, ReverseSmooth);
-		PropertiesInfluence->Blend(OutPoint, InPoints[i], OutPoint, ReverseSmooth);
 	}
+
+	MetadataBlender->Write();
 
 	PCGEX_DELETE(MetadataBlender)
 	PCGEX_DELETE(PropertiesBlender)

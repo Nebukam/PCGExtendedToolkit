@@ -258,12 +258,13 @@ bool FSampleNavmeshTask::ExecuteTask()
 	Location = PathLocations[LastPosition];
 	(MutablePoints[LastPosition] = *Goal).Transform.SetLocation(Location);
 
-	const PCGExDataBlending::FMetadataBlender* TempBlender = Context->Blending->CreateBlender(
-		OutData, Context->GoalsPoints->GetIn(),
-		PathPoints.CreateOutKeys(), Context->GoalsPoints->GetInKeys());
+	PCGExDataBlending::FMetadataBlender* TempBlender =
+		Context->Blending->CreateBlender(PathPoints, *Context->GoalsPoints);
 
 	TArrayView<FPCGPoint> View(MutablePoints);
 	Context->Blending->BlendSubPoints(View, Metrics, TempBlender);
+
+	TempBlender->Write();
 
 	PCGEX_DELETE(TempBlender)
 

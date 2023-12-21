@@ -20,6 +20,7 @@ public:
 	void BindContext(FPCGExPointsProcessorContext* InContext);
 	virtual void UpdateUserFacingInfos();
 	virtual void Cleanup();
+	virtual void Write();
 
 	virtual void BeginDestroy() override;
 

@@ -45,6 +45,7 @@ bool FPCGExWriteEdgeExtrasElement::Boot(FPCGContext* InContext) const
 	Context->PropertyBlender = new PCGExDataBlending::FPropertiesBlender(Settings->BlendingSettings);
 
 	PCGEX_WRITEEDGEEXTRA_FOREACH(PCGEX_OUTPUT_FWD)
+	PCGEX_WRITEEDGEEXTRA_FOREACH(PCGEX_OUTPUT_VALIDATE_NAME)
 
 	return true;
 }
@@ -89,12 +90,14 @@ bool FPCGExWriteEdgeExtrasElement::ExecuteInternal(
 				PCGE_LOG(Warning, GraphAndLog, FTEXT("Some input edges are invalid. They will be omitted from the calculation."));
 			}
 
+			PCGExData::FPointIO& PointIO = *Context->CurrentEdges;
+			PCGEX_WRITEEDGEEXTRA_FOREACH(PCGEX_OUTPUT_ACCESSOR_INIT)
+			
 			Context->MetadataBlender->PrepareForData(
-				Context->CurrentEdges->GetOut(), Context->CurrentIO->GetIn(),
-				Context->CurrentEdges->CreateOutKeys(), Context->CurrentIO->CreateInKeys(),
+				PointIO, *Context->CurrentIO,
 				Context->AttributesBlendingOverrides);
 
-			Context->GetAsyncManager()->Start<FWriteExtrasTask>(-1, Context->CurrentEdges);
+			Context->GetAsyncManager()->Start<FWriteExtrasTask>(-1, &PointIO);
 
 			Context->SetAsyncState(PCGExGraph::State_ProcessingEdges);
 		}
@@ -121,7 +124,7 @@ bool FWriteExtrasTask::ExecuteTask()
 	const TArray<PCGExMesh::FIndexedEdge>& Edges = Context->CurrentMesh->Edges;
 	for (const PCGExMesh::FIndexedEdge& Edge : Edges)
 	{
-		FPCGPoint& EdgePoint = Context->CurrentEdges->GetMutablePoint(Edge.Index);
+		FPCGPoint& EdgePoint = PointIO->GetMutablePoint(Edge.Index);
 		const FPCGPoint& StartPoint = Context->CurrentIO->GetInPoint(Edge.Start);
 		const FPCGPoint& EndPoint = Context->CurrentIO->GetInPoint(Edge.End);
 
@@ -129,7 +132,7 @@ bool FWriteExtrasTask::ExecuteTask()
 		Context->PropertyBlender->Blend(EdgePoint, StartPoint, EdgePoint, 0.5);
 		Context->PropertyBlender->Blend(EdgePoint, EndPoint, EdgePoint, 0.5);
 		Context->PropertyBlender->CompleteBlending(EdgePoint);
-		
+
 		Context->MetadataBlender->PrepareForBlending(Edge.Index);
 		Context->MetadataBlender->Blend(Edge.Index, Edge.Start, Edge.Index, 0.5);
 		Context->MetadataBlender->Blend(Edge.Index, Edge.End, Edge.Index, 0.5);
@@ -138,8 +141,9 @@ bool FWriteExtrasTask::ExecuteTask()
 		PCGEX_OUTPUT_VALUE(EdgeLength, Edge.Index, FVector::Distance(StartPoint.Transform.GetLocation(), EndPoint.Transform.GetLocation()));
 	}
 
-	PCGEX_OUTPUT_WRITE(EdgeLength)
-	
+	PCGEX_OUTPUT_WRITE(EdgeLength, double)
+	Context->MetadataBlender->Write();
+
 	return true;
 }
 

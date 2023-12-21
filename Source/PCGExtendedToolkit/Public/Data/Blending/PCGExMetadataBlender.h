@@ -52,22 +52,16 @@ PCGEX_BLEND_CASE(Max)
 		FMetadataBlender(const FMetadataBlender* ReferenceBlender);
 
 		void PrepareForData(
-			PCGExData::FPointIO* InPointIO,
+			PCGExData::FPointIO& InData,
 			const TMap<FName, EPCGExDataBlendingType>& OperationTypeOverrides);
 
 		void PrepareForData(
-			UPCGPointData* InPrimaryData,
-			const UPCGPointData* InSecondaryData,
-			const TMap<FName, EPCGExDataBlendingType>& OperationTypeOverrides);
+			PCGExData::FPointIO& InPrimaryData,
+			const PCGExData::FPointIO& InSecondaryData,
+			const TMap<FName, EPCGExDataBlendingType>& OperationTypeOverrides,
+			bool bSecondaryIn = true);
 
-		void PrepareForData(
-			UPCGPointData* InPrimaryData,
-			const UPCGPointData* InSecondaryData,
-			FPCGAttributeAccessorKeysPoints* InPrimaryKeys,
-			FPCGAttributeAccessorKeysPoints* InSecondaryKeys,
-			const TMap<FName, EPCGExDataBlendingType>& OperationTypeOverrides);
-
-		FMetadataBlender* Copy(UPCGPointData* InPrimaryData, const UPCGPointData* InSecondaryData) const;
+		FMetadataBlender* Copy(PCGExData::FPointIO& InPrimaryData, const PCGExData::FPointIO& InSecondaryData) const;
 
 		void PrepareForBlending(const int32 WriteKey) const;
 		void Blend(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, const int32 WriteIndex, const double Alpha = 0) const;
@@ -79,7 +73,10 @@ PCGEX_BLEND_CASE(Max)
 
 		void BlendRangeOnce(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, const int32 StartIndex, const int32 Count, const TArrayView<double>& Alphas) const;
 
+		void FullBlendToOne(const TArrayView<double>& Alphas) const;
+		
 		void ResetToDefaults(const int32 WriteIndex) const;
+		void Write();
 		void Flush();
 
 	protected:
@@ -87,16 +84,10 @@ PCGEX_BLEND_CASE(Max)
 		TArray<FDataBlendingOperationBase*> Attributes;
 		TArray<FDataBlendingOperationBase*> AttributesToBePrepared;
 		TArray<FDataBlendingOperationBase*> AttributesToBeCompleted;
-		FPCGAttributeAccessorKeysPoints* PrimaryKeys = nullptr;
-		FPCGAttributeAccessorKeysPoints* SecondaryKeys = nullptr;
-		bool bOwnsPrimaryKeys = false;
-		bool bOwnsSecondaryKeys = false;
 
 		void InternalPrepareForData(
-			UPCGPointData* InPrimaryData,
-			const UPCGPointData* InSecondaryData,
-			FPCGAttributeAccessorKeysPoints* InPrimaryKeys,
-			FPCGAttributeAccessorKeysPoints* InSecondaryKeys,
-			const TMap<FName, EPCGExDataBlendingType>& OperationTypeOverrides);
+			PCGExData::FPointIO& InPrimaryData,
+			const PCGExData::FPointIO& InSecondaryData,
+			const TMap<FName, EPCGExDataBlendingType>& OperationTypeOverrides, bool bSecondaryIn);
 	};
 }

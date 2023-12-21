@@ -35,10 +35,6 @@ public:
 
 protected:
 	FPCGExBlendingSettings InfluenceSettings = FPCGExBlendingSettings(EPCGExDataBlendingType::Weight);
-	double GetReverseInfluence(const PCGEx::FLocalSingleFieldGetter& Getter, const int32 Index) const;
 	virtual void InternalDoSmooth(
-		const PCGEx::FLocalSingleFieldGetter& InfluenceGetter,
-		PCGExDataBlending::FMetadataBlender* MetadataInfluence,
-		PCGExDataBlending::FPropertiesBlender* PropertiesInfluence,
 		PCGExData::FPointIO& InPointIO);
 };

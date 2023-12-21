@@ -75,7 +75,7 @@ bool FPCGExRelaxEdgeIslandsElement::ExecuteInternal(FPCGContext* InContext) cons
 			}
 			else { Context->InfluenceGetter.bEnabled = false; }
 
-			Context->Relaxing->Write(*Context->CurrentIO, Context->InfluenceGetter);
+			Context->Relaxing->WriteActiveBuffer(*Context->CurrentIO, Context->InfluenceGetter);
 		}
 
 		if (!Context->AdvanceAndBindPointsIO()) { Context->Done(); }

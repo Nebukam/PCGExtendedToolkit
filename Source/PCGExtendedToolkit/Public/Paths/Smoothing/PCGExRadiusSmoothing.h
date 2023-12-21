@@ -24,5 +24,5 @@ public:
 	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	FPCGExBlendingSettings BlendingSettings = FPCGExBlendingSettings(EPCGExDataBlendingType::Weight);
 
-	virtual void InternalDoSmooth(const PCGEx::FLocalSingleFieldGetter& InfluenceGetter, PCGExDataBlending::FMetadataBlender* MetadataInfluence, PCGExDataBlending::FPropertiesBlender* PropertiesInfluence, PCGExData::FPointIO& InPointIO) override;
+	virtual void InternalDoSmooth(PCGExData::FPointIO& InPointIO) override;
 };

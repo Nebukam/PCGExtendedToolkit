@@ -32,7 +32,7 @@ public:
 	virtual void PrepareForIteration(int Iteration, TArray<FVector>* PrimaryBuffer, TArray<FVector>* SecondaryBuffer);
 	virtual void ProcessVertex(const PCGExMesh::FVertex& Vertex);
 
-	virtual void Write(PCGExData::FPointIO& PointIO, PCGEx::FLocalSingleFieldGetter& Influence);
+	virtual void WriteActiveBuffer(PCGExData::FPointIO& PointIO, PCGEx::FLocalSingleFieldGetter& Influence);
 
 	double DefaultInfluence = 1;
 

@@ -9,23 +9,13 @@ namespace PCGExDataBlending
 {
 	FDataBlendingOperationBase::~FDataBlendingOperationBase()
 	{
-		PrimaryBaseAttribute = nullptr;
-		SecondaryBaseAttribute = nullptr;
+		
 	}
 
-	void FDataBlendingOperationBase::PrepareForData(
-		UPCGPointData* InPrimaryData,
-		const UPCGPointData* InSecondaryData,
-		FPCGAttributeAccessorKeysPoints* InPrimaryKeys,
-		FPCGAttributeAccessorKeysPoints* InSecondaryKeys)
+	void FDataBlendingOperationBase::PrepareForData(PCGExData::FPointIO& InPrimaryData, const PCGExData::FPointIO& InSecondaryData, bool bSecondaryIn)
 	{
-		PrimaryBaseAttribute = InPrimaryData->Metadata->GetMutableAttribute(AttributeName);
-		SecondaryBaseAttribute = InSecondaryData->Metadata->GetMutableAttribute(AttributeName);
-
-		if (!PrimaryBaseAttribute && SecondaryBaseAttribute)
-		{
-			PrimaryBaseAttribute = InPrimaryData->Metadata->CopyAttribute(SecondaryBaseAttribute, AttributeName, false, false, false);
-		}
+		const FPCGMetadataAttributeBase* PrimaryBaseAttribute = InPrimaryData.GetOut()->Metadata->GetConstAttribute(AttributeName);
+		const FPCGMetadataAttributeBase* SecondaryBaseAttribute = InSecondaryData.GetIn()->Metadata->GetConstAttribute(AttributeName);
 
 		bInterpolationAllowed = PrimaryBaseAttribute->AllowsInterpolation() && SecondaryBaseAttribute->AllowsInterpolation();
 	}
@@ -34,7 +24,7 @@ namespace PCGExDataBlending
 
 	void FDataBlendingOperationBase::PrepareOperation(const int32 WriteIndex) const
 	{
-		PrepareRangeOperation(1, WriteIndex);
+		PrepareRangeOperation(WriteIndex, 1);
 	}
 
 	void FDataBlendingOperationBase::DoOperation(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, const int32 WriteIndex, const double Alpha) const
@@ -47,6 +37,11 @@ namespace PCGExDataBlending
 	{
 		TArray<double> Alphas = {Alpha};
 		FinalizeRangeOperation(WriteIndex, 1, Alphas);
+	}
+
+	void FDataBlendingOperationBase::FullBlendToOne(const TArrayView<double>& Alphas) const
+	{
+		
 	}
 
 	void FDataBlendingOperationBase::ResetToDefault(int32 WriteIndex) const

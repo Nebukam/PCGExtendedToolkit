@@ -34,7 +34,7 @@ void UPCGExEdgeRelaxingOperation::ProcessVertex(const PCGExMesh::FVertex& Vertex
 {
 }
 
-void UPCGExEdgeRelaxingOperation::Write(PCGExData::FPointIO& PointIO, PCGEx::FLocalSingleFieldGetter& Influence)
+void UPCGExEdgeRelaxingOperation::WriteActiveBuffer(PCGExData::FPointIO& PointIO, PCGEx::FLocalSingleFieldGetter& Influence)
 {
 	TArray<FPCGPoint>& MutablePoints = PointIO.GetOut()->GetMutablePoints();
 	for (int i = 0; i < WriteBuffer->Num(); i++)

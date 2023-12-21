@@ -79,7 +79,6 @@ bool FPCGExSubdivideElement::ExecuteInternal(FPCGContext* InContext) const
 			Context->MilestonesMetrics.Empty();
 			Context->MilestonesMetrics.Add(PCGExMath::FPathMetrics{});
 			if (Context->bFlagSubPoints) { Context->FlagAttribute = PointIO.GetOut()->Metadata->FindOrCreateAttribute(Context->FlagName, false, false); }
-			Context->Blending->PrepareForData(PointIO);
 		};
 
 		auto ProcessPoint = [&](const int32 Index, const PCGExData::FPointIO& PointIO)
@@ -133,7 +132,7 @@ bool FPCGExSubdivideElement::ExecuteInternal(FPCGContext* InContext) const
 	{
 		auto Initialize = [&]()
 		{
-			Context->Blending->PrepareForData(*Context->CurrentIO);
+			Context->Blending->PrepareForData(*Context->CurrentIO, *Context->CurrentIO, false);
 		};
 
 		auto ProcessMilestone = [&](const int32 Index)
@@ -160,6 +159,7 @@ bool FPCGExSubdivideElement::ExecuteInternal(FPCGContext* InContext) const
 
 		if (Context->Process(Initialize, ProcessMilestone, Context->Milestones.Num()))
 		{
+			Context->Blending->Write();
 			Context->CurrentIO->OutputTo(Context);
 			Context->SetState(PCGExMT::State_ReadyForNextPoints);
 		}

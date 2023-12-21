@@ -18,6 +18,10 @@ void UPCGExOperation::Cleanup()
 	Context = nullptr;
 }
 
+void UPCGExOperation::Write()
+{
+}
+
 void UPCGExOperation::BeginDestroy()
 {
 	Cleanup();

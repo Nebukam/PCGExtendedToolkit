@@ -10,10 +10,18 @@
 
 void UPCGExSmoothingOperation::DoSmooth(PCGExData::FPointIO& InPointIO)
 {
-	PCGEx::FLocalSingleFieldGetter InfluenceGetter;
-
 	InPointIO.CreateInKeys();
 	InPointIO.CreateOutKeys();
+
+
+	InternalDoSmooth(InPointIO);
+
+	//Influence pass
+
+	TArray<double> Influences;
+	Influences.SetNumZeroed(InPointIO.GetNum());
+
+	PCGEx::FLocalSingleFieldGetter InfluenceGetter;
 
 	if (bUseLocalInfluence)
 	{
@@ -26,47 +34,41 @@ void UPCGExSmoothingOperation::DoSmooth(PCGExData::FPointIO& InPointIO)
 		InfluenceGetter.bEnabled = false;
 	}
 
-	PCGExDataBlending::FMetadataBlender* MetadataLerp = new PCGExDataBlending::FMetadataBlender(InfluenceSettings.DefaultBlending);
-	PCGExDataBlending::FPropertiesBlender* PropertiesLerp = new PCGExDataBlending::FPropertiesBlender(InfluenceSettings);
-	MetadataLerp->PrepareForData(&InPointIO, InfluenceSettings.AttributesOverrides);
-
-	InternalDoSmooth(
-		InfluenceGetter,
-		MetadataLerp,
-		PropertiesLerp,
-		InPointIO);
-
-	if (bPinStart)
+	if (!bUseLocalInfluence || !InfluenceGetter.bValid)
 	{
-		constexpr int32 Index = 0;
-		MetadataLerp->Blend(Index, Index, Index, 1);
-		PropertiesLerp->Blend(InPointIO.GetOutPoint(Index), InPointIO.GetInPoint(Index), InPointIO.GetMutablePoint(Index), 1);
+		const double StaticInfluence = 1 - FMath::Clamp(FixedInfluence, 0, 1);
+		for (int i = 0; i < Influences.Num(); i++) { Influences[i] = StaticInfluence; }
+	}
+	else
+	{
+		for (int i = 0; i < Influences.Num(); i++) { Influences[i] = FMath::Clamp(1 - InfluenceGetter.Values[i], 0, 1); }
 	}
 
-	if (bPinEnd)
+	if (bPinStart) { Influences[0] = 1; }
+	if (bPinEnd) { Influences[InPointIO.GetNum() - 1] = 1; }
+
+	PCGExDataBlending::FMetadataBlender* MetadataLerp = new PCGExDataBlending::FMetadataBlender(InfluenceSettings.DefaultBlending);
+	MetadataLerp->PrepareForData(InPointIO, InfluenceSettings.AttributesOverrides);
+	MetadataLerp->FullBlendToOne(Influences);
+	MetadataLerp->Write();
+
+	PCGExDataBlending::FPropertiesBlender* PropertiesLerp = new PCGExDataBlending::FPropertiesBlender(InfluenceSettings);
+	const TArray<FPCGPoint>& InPoints = InPointIO.GetIn()->GetPoints();
+	TArray<FPCGPoint>& OutPoints = InPointIO.GetOut()->GetMutablePoints();
+
+	for (int i = 0; i < InPointIO.GetNum(); i++)
 	{
-		const int32 Index = InPointIO.GetNum() - 1;
-		MetadataLerp->Blend(Index, Index, Index, 1);
-		PropertiesLerp->Blend(InPointIO.GetOutPoint(Index), InPointIO.GetInPoint(Index), InPointIO.GetMutablePoint(Index), 1);
+		PropertiesLerp->Blend(OutPoints[i], InPoints[i], OutPoints[i], Influences[i]);
 	}
 
 	PCGEX_DELETE(MetadataLerp)
 	PCGEX_DELETE(PropertiesLerp)
 
+	Influences.Empty();
 	InfluenceGetter.Cleanup();
 }
 
-double UPCGExSmoothingOperation::GetReverseInfluence(
-	const PCGEx::FLocalSingleFieldGetter& Getter, const int32 Index) const
-{
-	if (!bUseLocalInfluence) { return 1 - FMath::Clamp(FixedInfluence, 0, 1); }
-	return FMath::Clamp(1 - Getter.SafeGet(Index, FixedInfluence), 0, 1);
-}
-
 void UPCGExSmoothingOperation::InternalDoSmooth(
-	const PCGEx::FLocalSingleFieldGetter& InfluenceGetter,
-	PCGExDataBlending::FMetadataBlender* MetadataInfluence,
-	PCGExDataBlending::FPropertiesBlender* PropertiesInfluence,
 	PCGExData::FPointIO& InPointIO)
 {
 }

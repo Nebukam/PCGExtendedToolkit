@@ -148,7 +148,7 @@ namespace PCGExDataBlending
 		void SetAttributeName(FName InName) { AttributeName = InName; }
 		FName GetAttributeName() const { return AttributeName; }
 
-		virtual void PrepareForData(UPCGPointData* InPrimaryData, const UPCGPointData* InSecondaryData, FPCGAttributeAccessorKeysPoints* InPrimaryKeys, FPCGAttributeAccessorKeysPoints* InSecondaryKeys);
+		virtual void PrepareForData(PCGExData::FPointIO& InPrimaryData, const PCGExData::FPointIO& InSecondaryData, bool bSecondaryIn = true);
 
 		virtual bool GetRequiresPreparation() const;
 		virtual bool GetRequiresFinalization() const;
@@ -161,14 +161,16 @@ namespace PCGExDataBlending
 		virtual void DoRangeOperation(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, const int32 StartIndex, const int32 Count, const TArrayView<double>& Alphas) const = 0;
 		virtual void FinalizeRangeOperation(const int32 StartIndex, const int32 Count, const TArrayView<double>& Alphas) const = 0;
 
+		virtual void FullBlendToOne(const TArrayView<double>& Alphas) const;
+		
 		virtual void ResetToDefault(int32 WriteIndex) const;
 		virtual void ResetRangeToDefault(int32 StartIndex, int32 Count) const;
+
+		virtual void Write() = 0;
 
 	protected:
 		bool bInterpolationAllowed = true;
 		FName AttributeName = NAME_None;
-		FPCGMetadataAttributeBase* PrimaryBaseAttribute = nullptr;
-		FPCGMetadataAttributeBase* SecondaryBaseAttribute = nullptr;
 	};
 
 	template <typename T>
@@ -177,51 +179,43 @@ namespace PCGExDataBlending
 	public:
 		virtual ~FDataBlendingOperation() override
 		{
-			PCGEX_DELETE(PrimaryAccessor)
-			PCGEX_DELETE(SecondaryAccessor)
+			PCGEX_DELETE(Writer)
+			PCGEX_DELETE(Reader)
 		}
 
-		virtual void PrepareForData(
-			UPCGPointData* InPrimaryData,
-			const UPCGPointData* InSecondaryData,
-			FPCGAttributeAccessorKeysPoints* InPrimaryKeys,
-			FPCGAttributeAccessorKeysPoints* InSecondaryKeys) override
+		virtual void PrepareForData(PCGExData::FPointIO& InPrimaryData, const PCGExData::FPointIO& InSecondaryData, bool bSecondaryIn) override
 		{
-			FDataBlendingOperationBase::PrepareForData(InPrimaryData, InSecondaryData, InPrimaryKeys, InSecondaryKeys);
+			PCGEX_DELETE(Writer)
+			PCGEX_DELETE(Reader)
 
-			if (PrimaryAccessor)
-			{
-				if (SecondaryAccessor == PrimaryAccessor) { SecondaryAccessor = nullptr; }
-			}
+			Writer = new PCGEx::TFAttributeWriter<T>(AttributeName);
+			Writer->BindAndGet(InPrimaryData);
 
-			delete PrimaryAccessor;
-			PrimaryAccessor = new PCGEx::FAttributeAccessor<T>(InPrimaryData, PrimaryBaseAttribute, InPrimaryKeys);
-
-			//TODO: Reuse first dataset if ==
-			delete SecondaryAccessor;
-			SecondaryAccessor = new PCGEx::FConstAttributeAccessor<T>(InSecondaryData, SecondaryBaseAttribute, InSecondaryKeys);
+			//TODO: Reuse writer if Secondary is either null or == Primary
+			Reader = new PCGEx::TFAttributeReader<T>(AttributeName);
+			Reader->Bind(const_cast<PCGExData::FPointIO&>(InSecondaryData));
+			
+			FDataBlendingOperationBase::PrepareForData(InPrimaryData, InSecondaryData);
 		}
 
-#define PCGEX_TEMP_VALUES TArray<T> Values; Values.SetNum(Count); TArrayView<T> View(Values);
-		
+#define PCGEX_TEMP_VALUES TArrayView<T> View = MakeArrayView(Writer->Values.GetData() + StartIndex, Count);
+
 		virtual void PrepareRangeOperation(const int32 StartIndex, const int32 Count) const override
 		{
 			PCGEX_TEMP_VALUES
-			PrimaryAccessor->GetRange(View, StartIndex);
 			PrepareValuesRangeOperation(View, StartIndex);
 		}
 
 		virtual void DoRangeOperation(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, const int32 StartIndex, const int32 Count, const TArrayView<double>& Alphas) const override
 		{
 			PCGEX_TEMP_VALUES
-			DoValuesRangeOperation(PrimaryReadIndex, SecondaryReadIndex, View, StartIndex, Alphas);
+			DoValuesRangeOperation(PrimaryReadIndex, SecondaryReadIndex, View, Alphas);
 		}
 
 		virtual void FinalizeRangeOperation(const int32 StartIndex, const int32 Count, const TArrayView<double>& Alphas) const override
 		{
 			PCGEX_TEMP_VALUES
-			PrimaryAccessor->GetRange(View, StartIndex);
-			FinalizeValuesRangeOperation(View, StartIndex, Alphas);
+			FinalizeValuesRangeOperation(View, Alphas);
 		}
 
 #undef PCGEX_TEMP_VALUES
@@ -229,35 +223,36 @@ namespace PCGExDataBlending
 		virtual void PrepareValuesRangeOperation(TArrayView<T>& Values, const int32 StartIndex) const
 		{
 			for (int i = 0; i < Values.Num(); i++) { SinglePrepare(Values[i]); }
-			PrimaryAccessor->SetRange(Values, StartIndex);
 		}
 
-		virtual void DoValuesRangeOperation(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, TArrayView<T>& Values, const int32 StartIndex, const TArrayView<double>& Alphas) const
+		virtual void DoValuesRangeOperation(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, TArrayView<T>& Values, const TArrayView<double>& Alphas) const
 		{
 			if (bInterpolationAllowed)
 			{
-				const T A = PrimaryAccessor->Get(PrimaryReadIndex);
-				const T B = SecondaryAccessor->Get(SecondaryReadIndex);
+				const T A = (*Writer)[PrimaryReadIndex];
+				const T B = (*Reader)[SecondaryReadIndex];
 				for (int i = 0; i < Values.Num(); i++) { Values[i] = SingleOperation(A, B, Alphas[i]); }
-				PrimaryAccessor->SetRange(Values, StartIndex);
 			}
 			else
 			{
-				const T A = PrimaryAccessor->Get(PrimaryReadIndex);
+				// Unecessary
+				const T A = (*Writer)[PrimaryReadIndex];
 				for (int i = 0; i < Values.Num(); i++) { Values[i] = A; }
-				PrimaryAccessor->SetRange(Values, StartIndex);
 			}
 		}
 
-		virtual void FinalizeValuesRangeOperation(TArrayView<T>& Values, const int32 StartIndex, const TArrayView<double>& Alphas) const
+		virtual void FinalizeValuesRangeOperation(TArrayView<T>& Values, const TArrayView<double>& Alphas) const
 		{
-			if (bInterpolationAllowed)
-			{
-				for (int i = 0; i < Values.Num(); i++) { SingleFinalize(Values[i], Alphas[i]); }
-				PrimaryAccessor->SetRange(Values, StartIndex);
-			}
+			if (!bInterpolationAllowed) { return; }
+			for (int i = 0; i < Values.Num(); i++) {  SingleFinalize(Values[i], Alphas[i]); }
 		}
 
+		virtual void FullBlendToOne(const TArrayView<double>& Alphas) const override
+		{
+			if (!bInterpolationAllowed) { return; }
+			for (int i = 0; i < Writer->Values.Num(); i++) { Writer->Values[i] = SingleOperation(Writer->Values[i], Reader->Values[i], Alphas[i]); }
+		}
+		
 		virtual void SinglePrepare(T& A) const
 		{
 		};
@@ -270,30 +265,20 @@ namespace PCGExDataBlending
 
 		virtual void ResetToDefault(int32 WriteIndex) const override { ResetRangeToDefault(WriteIndex, 1); }
 
-		virtual void ResetRangeToDefault(int32 StartIndex, int32 Count) const override
+		virtual void ResetRangeToDefault(const int32 StartIndex, const int32 Count) const override
 		{
-			TArray<T> Defaults;
-			Defaults.SetNum(Count);
-			const T DefaultValue = PrimaryAccessor->GetDefaultValue();
-			for (int i = 0; i < Count; i++) { Defaults[i] = DefaultValue; }
-			PrimaryAccessor->SetRange(Defaults, StartIndex);
+			const T DefaultValue = Writer->GetDefaultValue();
+			for (int i = 0; i < Count; i++) { Writer->Values[StartIndex + i] = DefaultValue; }
 		}
 
-		virtual T GetPrimaryValue(const int32 Index) const
-		{
-			if (T OutValue; PrimaryAccessor->Get(OutValue, Index)) { return OutValue; }
-			return PrimaryAccessor->GetDefaultValue();
-		}
+		virtual T GetPrimaryValue(const int32 Index) const { return (*Writer)[Index]; }
+		virtual T GetSecondaryValue(const int32 Index) const { return (*Reader)[Index]; }
 
-		virtual T GetSecondaryValue(const int32 Index) const
-		{
-			if (T OutValue; SecondaryAccessor->Get(OutValue, Index)) { return OutValue; }
-			return SecondaryAccessor->GetDefaultValue();
-		}
+		virtual void Write() override { Writer->Write(); }
 
 	protected:
-		PCGEx::FAttributeAccessorBase<T>* PrimaryAccessor = nullptr;
-		PCGEx::FAttributeAccessorBase<T>* SecondaryAccessor = nullptr;
+		PCGEx::TFAttributeWriter<T>* Writer = nullptr;
+		PCGEx::TFAttributeReader<T>* Reader = nullptr;
 	};
 
 #pragma region Add

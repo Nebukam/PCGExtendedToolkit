@@ -244,13 +244,11 @@ namespace PCGEx
 
 		bool SetRange(TArrayView<const T> InValues, int32 Index = 0, FPCGAttributeAccessorKeysPoints* InKeys = nullptr)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("SetRange (View) Size = %d, Index = %d"), InValues.Num(), Index)
 			return Accessor->SetRange(InValues, Index, InKeys ? *InKeys : *Keys, PCGEX_AAFLAG);
 		}
 
 		bool SetRange(TArray<T>& InValues, int32 Index = 0, FPCGAttributeAccessorKeysPoints* InKeys = nullptr)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("SetRange (Array) Size = %d, Index = %d"), InValues.Num(), Index)
 			TArrayView<const T> View(InValues);
 			return Accessor->SetRange(View, Index, InKeys ? *InKeys : *Keys, PCGEX_AAFLAG);
 		}

@@ -28,39 +28,22 @@ namespace PCGExDataBlending
 		DefaultOperation = ReferenceBlender->DefaultOperation;
 	}
 
-	void FMetadataBlender::PrepareForData(PCGExData::FPointIO* InPointIO, const TMap<FName, EPCGExDataBlendingType>& OperationTypeOverrides)
+	void FMetadataBlender::PrepareForData(PCGExData::FPointIO& InData, const TMap<FName, EPCGExDataBlendingType>& OperationTypeOverrides)
 	{
-		InternalPrepareForData(
-			InPointIO->GetOut(), InPointIO->GetIn(),
-			InPointIO->GetOutKeys(), InPointIO->GetInKeys(),
-			OperationTypeOverrides);
+		InternalPrepareForData(InData, InData, OperationTypeOverrides, true);
 	}
 
 	void FMetadataBlender::PrepareForData(
-		UPCGPointData* InPrimaryData, const UPCGPointData* InSecondaryData,
-		const TMap<FName, EPCGExDataBlendingType>& OperationTypeOverrides)
+		PCGExData::FPointIO& InPrimaryData, const PCGExData::FPointIO& InSecondaryData,
+		const TMap<FName, EPCGExDataBlendingType>& OperationTypeOverrides, bool bSecondaryIn)
 	{
-		InternalPrepareForData(
-			InPrimaryData, InSecondaryData ? InSecondaryData : InPrimaryData,
-			nullptr, nullptr,
-			OperationTypeOverrides);
+		InternalPrepareForData(InPrimaryData, InSecondaryData, OperationTypeOverrides, bSecondaryIn);
 	}
 
-	void FMetadataBlender::PrepareForData(
-		UPCGPointData* InPrimaryData, const UPCGPointData* InSecondaryData,
-		FPCGAttributeAccessorKeysPoints* InPrimaryKeys, FPCGAttributeAccessorKeysPoints* InSecondaryKeys,
-		const TMap<FName, EPCGExDataBlendingType>& OperationTypeOverrides)
-	{
-		InternalPrepareForData(
-			InPrimaryData, InSecondaryData ? InSecondaryData : InPrimaryData,
-			InPrimaryKeys, InSecondaryKeys ? InSecondaryKeys : InPrimaryData == InSecondaryData ? InPrimaryKeys : nullptr,
-			OperationTypeOverrides);
-	}
-
-	FMetadataBlender* FMetadataBlender::Copy(UPCGPointData* InPrimaryData, const UPCGPointData* InSecondaryData) const
+	FMetadataBlender* FMetadataBlender::Copy(PCGExData::FPointIO& InPrimaryData, const PCGExData::FPointIO& InSecondaryData) const
 	{
 		FMetadataBlender* Copy = new FMetadataBlender(this);
-		Copy->PrepareForData(InPrimaryData, InSecondaryData, BlendingOverrides);
+		Copy->PrepareForData(InPrimaryData, InSecondaryData, BlendingOverrides, true);
 		return Copy;
 	}
 
@@ -122,55 +105,52 @@ namespace PCGExDataBlending
 		CompleteRangeBlending(StartIndex, Count, Alphas);
 	}
 
+	void FMetadataBlender::FullBlendToOne(const TArrayView<double>& Alphas) const
+	{
+		for (const FDataBlendingOperationBase* Op : AttributesToBePrepared) { Op->FullBlendToOne(Alphas); }
+	}
+
 	void FMetadataBlender::ResetToDefaults(const int32 WriteIndex) const
 	{
 		for (const FDataBlendingOperationBase* Op : Attributes) { Op->ResetToDefault(WriteIndex); }
 	}
 
+	void FMetadataBlender::Write()
+	{
+		for (FDataBlendingOperationBase* Op : Attributes) { Op->Write(); }
+	}
+
 	void FMetadataBlender::Flush()
 	{
-		for (FDataBlendingOperationBase* Op : Attributes) { delete Op; }
+		PCGEX_DELETE_TARRAY(Attributes)
 
 		BlendingOverrides.Empty();
-		Attributes.Empty();
 		AttributesToBePrepared.Empty();
 		AttributesToBeCompleted.Empty();
-
-		if (PrimaryKeys == SecondaryKeys)
-		{
-			if (bOwnsPrimaryKeys) { delete PrimaryKeys; }
-		}
-		else
-		{
-			if (bOwnsPrimaryKeys) { delete PrimaryKeys; }
-			if (bOwnsSecondaryKeys) { delete SecondaryKeys; }
-		}
-
-		PrimaryKeys = nullptr;
-		SecondaryKeys = nullptr;
 	}
 
 	void FMetadataBlender::InternalPrepareForData(
-		UPCGPointData* InPrimaryData,
-		const UPCGPointData* InSecondaryData,
-		FPCGAttributeAccessorKeysPoints* InPrimaryKeys,
-		FPCGAttributeAccessorKeysPoints* InSecondaryKeys,
-		const TMap<FName, EPCGExDataBlendingType>& OperationTypeOverrides)
+		PCGExData::FPointIO& InPrimaryData, const PCGExData::FPointIO& InSecondaryData,
+		const TMap<FName, EPCGExDataBlendingType>& OperationTypeOverrides, bool bSecondaryIn)
 	{
 		Flush();
+
+		InPrimaryData.CreateOutKeys();
+		const_cast<PCGExData::FPointIO&>(InSecondaryData).CreateInKeys(); //Ugh
+		
 		BlendingOverrides = OperationTypeOverrides;
 
 		TArray<PCGEx::FAttributeIdentity> Identities;
-		PCGEx::FAttributeIdentity::Get(InPrimaryData, Identities);
+		PCGEx::FAttributeIdentity::Get(InPrimaryData.GetOut(), Identities);
 
-		if (InSecondaryData != InPrimaryData)
+		if (&InSecondaryData != &InPrimaryData)
 		{
 			TArray<FName> PrimaryNames;
 			TArray<FName> SecondaryNames;
 			TMap<FName, PCGEx::FAttributeIdentity> PrimaryIdentityMap;
 			TMap<FName, PCGEx::FAttributeIdentity> SecondaryIdentityMap;
-			PCGEx::FAttributeIdentity::Get(InPrimaryData, PrimaryNames, PrimaryIdentityMap);
-			PCGEx::FAttributeIdentity::Get(InSecondaryData, SecondaryNames, SecondaryIdentityMap);
+			PCGEx::FAttributeIdentity::Get(InPrimaryData.GetOut(), PrimaryNames, PrimaryIdentityMap);
+			PCGEx::FAttributeIdentity::Get(InSecondaryData.GetIn(), SecondaryNames, SecondaryIdentityMap);
 
 			for (FName PrimaryName : PrimaryNames)
 			{
@@ -205,37 +185,6 @@ namespace PCGExDataBlending
 		AttributesToBeCompleted.Empty(Identities.Num());
 		AttributesToBePrepared.Empty(Identities.Num());
 
-		if (!InPrimaryKeys)
-		{
-			const TArrayView<FPCGPoint> View(InPrimaryData->GetMutablePoints());
-			PrimaryKeys = new FPCGAttributeAccessorKeysPoints(View);
-			bOwnsPrimaryKeys = true;
-		}
-		else
-		{
-			PrimaryKeys = InPrimaryKeys;
-			bOwnsPrimaryKeys = false;
-		}
-
-		if (InPrimaryData != InSecondaryData)
-		{
-			if (!InSecondaryKeys)
-			{
-				SecondaryKeys = new FPCGAttributeAccessorKeysPoints(InSecondaryData->GetPoints());
-				bOwnsSecondaryKeys = true;
-			}
-			else
-			{
-				SecondaryKeys = InSecondaryKeys;
-				bOwnsSecondaryKeys = false;
-			}
-		}
-		else
-		{
-			SecondaryKeys = PrimaryKeys;
-			bOwnsSecondaryKeys = bOwnsPrimaryKeys;
-		}
-
 		for (const PCGEx::FAttributeIdentity& Identity : Identities)
 		{
 			const EPCGExDataBlendingType* TypePtr = OperationTypeOverrides.Find(Identity.Name);
@@ -247,7 +196,7 @@ namespace PCGExDataBlending
 			if (Op->GetRequiresPreparation()) { AttributesToBePrepared.Add(Op); }
 			if (Op->GetRequiresFinalization()) { AttributesToBeCompleted.Add(Op); }
 
-			Op->PrepareForData(InPrimaryData, InSecondaryData, PrimaryKeys, SecondaryKeys);
+			Op->PrepareForData(InPrimaryData, InSecondaryData, bSecondaryIn);
 		}
 	}
 }

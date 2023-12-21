@@ -245,8 +245,8 @@ bool FPlotNavmeshTask::ExecuteTask()
 	}
 	PathLocations.Empty();
 
-	const PCGExDataBlending::FMetadataBlender* TempBlender = Context->Blending->CreateBlender(
-		OutData, OutData, PathPoints.CreateOutKeys(), PathPoints.GetOutKeys());
+	PCGExDataBlending::FMetadataBlender* TempBlender =
+		Context->Blending->CreateBlender(PathPoints, PathPoints, false);
 
 	for (int i = 0; i < Milestones.Num() - 1; i++)
 	{
@@ -264,6 +264,8 @@ bool FPlotNavmeshTask::ExecuteTask()
 			PCGEx::FPointRef(StartPoint, StartIndex), PCGEx::FPointRef(EndPoint, EndIndex),
 			View, MilestonesMetrics[i], TempBlender);
 	}
+
+	TempBlender->Write();
 
 	PCGEX_DELETE(TempBlender)
 	MilestonesMetrics.Empty();

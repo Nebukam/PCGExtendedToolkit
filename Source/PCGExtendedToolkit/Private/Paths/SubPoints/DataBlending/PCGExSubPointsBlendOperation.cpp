@@ -15,20 +15,14 @@ EPCGExDataBlendingType UPCGExSubPointsBlendOperation::GetDefaultBlending()
 void UPCGExSubPointsBlendOperation::PrepareForData(PCGExData::FPointIO& InPointIO)
 {
 	Super::PrepareForData(InPointIO);
-	PrepareForData(
-		InPointIO.GetOut(), InPointIO.GetOut(),
-		InPointIO.CreateOutKeys(), InPointIO.GetOutKeys());
+	PrepareForData(InPointIO, InPointIO, true);
 }
 
 void UPCGExSubPointsBlendOperation::PrepareForData(
-	UPCGPointData* InPrimaryData,
-	const UPCGPointData* InSecondaryData,
-	FPCGAttributeAccessorKeysPoints* InPrimaryKeys,
-	FPCGAttributeAccessorKeysPoints* InSecondaryKeys)
+	PCGExData::FPointIO& InPrimaryData, const PCGExData::FPointIO& InSecondaryData, bool bSecondaryIn)
 {
 	PCGEX_DELETE(InternalBlender)
-
-	InternalBlender = CreateBlender(InPrimaryData, InSecondaryData, InPrimaryKeys, InSecondaryKeys);
+	InternalBlender = CreateBlender(InPrimaryData, InSecondaryData, bSecondaryIn);
 	PropertiesBlender.Init(BlendingSettings);
 }
 
@@ -64,6 +58,12 @@ void UPCGExSubPointsBlendOperation::BlendSubPoints(TArrayView<FPCGPoint>& SubPoi
 	BlendSubPoints(PCGEx::FPointRef(Start, Offset), PCGEx::FPointRef(End, Offset + LastIndex), SubPoints, Metrics, InBlender);
 }
 
+void UPCGExSubPointsBlendOperation::Write()
+{
+	if (InternalBlender) { InternalBlender->Write(); }
+	Super::Write();
+}
+
 void UPCGExSubPointsBlendOperation::Cleanup()
 {
 	PCGEX_DELETE(InternalBlender)
@@ -71,18 +71,10 @@ void UPCGExSubPointsBlendOperation::Cleanup()
 }
 
 PCGExDataBlending::FMetadataBlender* UPCGExSubPointsBlendOperation::CreateBlender(
-	UPCGPointData* InPrimaryData,
-	const UPCGPointData* InSecondaryData,
-	FPCGAttributeAccessorKeysPoints* InPrimaryKeys,
-	FPCGAttributeAccessorKeysPoints* InSecondaryKeys)
+	PCGExData::FPointIO& InPrimaryIO, const PCGExData::FPointIO& InSecondaryIO, bool bSecondaryIn)
 {
 	PCGExDataBlending::FMetadataBlender* NewBlender = new PCGExDataBlending::FMetadataBlender(GetDefaultBlending());
-	NewBlender->PrepareForData(
-		InPrimaryData,
-		InSecondaryData,
-		InPrimaryKeys,
-		InSecondaryKeys,
-		BlendingSettings.AttributesOverrides);
+	NewBlender->PrepareForData(InPrimaryIO, InSecondaryIO, BlendingSettings.AttributesOverrides, bSecondaryIn);
 
 	return NewBlender;
 }
