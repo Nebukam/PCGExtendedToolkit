@@ -19,7 +19,6 @@ namespace PCGExDataBlending
 		EPCGExDataBlendingType DefaultBlending = EPCGExDataBlendingType::Weight;
 
 		bool bRequiresPrepare = false;
-		double NumBlends = 1;
 
 		FPropertiesBlender()
 		{
@@ -39,15 +38,15 @@ namespace PCGExDataBlending
 		void Init(const FPCGExBlendingSettings& BlendingSettings);
 		void Init(const FPCGExPointPropertyBlendingOverrides& BlendingOverrides, EPCGExDataBlendingType InDefaultBlending);
 
-		void PrepareBlending(FPCGPoint& Target, const FPCGPoint& Source);
+		void PrepareBlending(FPCGPoint& Target, const FPCGPoint& Default);
 		void Blend(const FPCGPoint& A, const FPCGPoint& B, FPCGPoint& Target, double Alpha);
-		void CompleteBlending(FPCGPoint& Target);
+		void CompleteBlending(FPCGPoint& Target, const double Alpha);
 
 		void BlendOnce(const FPCGPoint& A, const FPCGPoint& B, FPCGPoint& Target, double Alpha);
 
-		void PrepareRangeBlending(const FPCGPoint& A, const TArrayView<FPCGPoint>& Targets);
+		void PrepareRangeBlending(const TArrayView<FPCGPoint>& Targets, const FPCGPoint& Default);
 		void BlendRange(const FPCGPoint& From, const FPCGPoint& To, TArrayView<FPCGPoint>& Targets, const TArrayView<double>& Alpha);
-		void CompleteRangeBlending(const TArrayView<FPCGPoint>& Targets);
+		void CompleteRangeBlending(const TArrayView<FPCGPoint>& Targets, const double Alpha);
 
 		void BlendRangeOnce(const FPCGPoint& A, const FPCGPoint& B, TArrayView<FPCGPoint>& Targets, const TArrayView<double>& Alphas);
 	};

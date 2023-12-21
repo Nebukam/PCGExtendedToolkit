@@ -26,7 +26,7 @@ void UPCGExSubPointsBlendInheritEnd::BlendSubPoints(
 		Alphas.Add(1);
 	}
 
-	InBlender->BlendRangeOnce(StartPoint.Index, EndPoint.Index, StartPoint.Index, NumPoints, Alphas);
+	InBlender->BlendRangeOnce(StartPoint, EndPoint, StartPoint.Index, NumPoints, Alphas);
 
 	// Restore pre-blend position
 	for (int i = 0; i < NumPoints; i++) { SubPoints[i].Transform.SetLocation(Locations[i]); }

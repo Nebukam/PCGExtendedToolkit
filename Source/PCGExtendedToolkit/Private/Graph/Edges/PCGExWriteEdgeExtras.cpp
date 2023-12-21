@@ -117,10 +117,11 @@ bool FWriteExtrasTask::ExecuteTask()
 	const TArray<PCGExMesh::FIndexedEdge>& Edges = Context->CurrentMesh->Edges;
 	for (const PCGExMesh::FIndexedEdge& Edge : Edges)
 	{
-		Context->MetadataBlender->PrepareForBlending(Edge.Index);
-		Context->MetadataBlender->Blend(Edge.Index, Edge.Start, Edge.Index, 0.5);
-		Context->MetadataBlender->Blend(Edge.Index, Edge.End, Edge.Index, 0.5);
-		Context->MetadataBlender->CompleteBlending(Edge.Index, 2);
+		PCGEx::FPointRef Target = PointIO->GetOutPointRef(Edge.Index);
+		Context->MetadataBlender->PrepareForBlending(Target);
+		Context->MetadataBlender->Blend(Target, Context->CurrentIO->GetInPointRef(Edge.Start), Target, 0.5);
+		Context->MetadataBlender->Blend(Target, Context->CurrentIO->GetInPointRef(Edge.End), Target, 0.5);
+		Context->MetadataBlender->CompleteBlending(Target, 2);
 
 		const FPCGPoint& StartPoint = Context->CurrentIO->GetInPoint(Edge.Start);
 		const FPCGPoint& EndPoint = Context->CurrentIO->GetInPoint(Edge.End);

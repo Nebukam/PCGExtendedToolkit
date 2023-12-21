@@ -22,25 +22,23 @@ void UPCGExMovingAverageSmoothing::InternalDoSmooth(
 	MetadataBlender->PrepareForData(InPointIO);
 
 	const int32 MaxPointIndex = InPoints.Num() - 1;
-
 	for (int i = 0; i <= MaxPointIndex; i++)
 	{
-		FPCGPoint& OutPoint = OutPoints[i];
-
 		int32 Count = 0;
-		MetadataBlender->PrepareForBlending(i);
+		PCGEx::FPointRef Target = InPointIO.GetOutPointRef(i);
+		MetadataBlender->PrepareForBlending(Target);
 
 		for (int j = -SafeWindowSize; j <= SafeWindowSize; j++)
 		{
 			const int32 Index = FMath::Clamp(i + j, 0, MaxPointIndex);
 			const double Alpha = 1 - (static_cast<double>(FMath::Abs(j)) / SafeWindowSize);
 
-			MetadataBlender->Blend(i, Index, i, Alpha);
+			MetadataBlender->Blend(Target, InPointIO.GetInPointRef(Index), Target, Alpha);
 
 			Count++;
 		}
 
-		MetadataBlender->CompleteBlending(i, Count);
+		MetadataBlender->CompleteBlending(Target, Count);
 	}
 
 	MetadataBlender->Write();

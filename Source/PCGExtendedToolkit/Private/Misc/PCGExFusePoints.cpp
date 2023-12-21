@@ -158,17 +158,17 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 			const int32 NumFused = FusedPoint.Fused.Num();
 			const double AverageDivider = NumFused;
 
-			Context->MetadataBlender->PrepareForBlending(ReadIndex);
+			PCGEx::FPointRef Target = Context->CurrentIO->GetOutPointRef(ReadIndex);
+			Context->MetadataBlender->PrepareForBlending(Target);
 
 			for (int i = 0; i < NumFused; i++)
 			{
-				const int32 FusedIndex = FusedPoint.Fused[i];
 				const double Dist = FusedPoint.Distances[i];
 				const double Weight = Dist == 0 ? 1 : FusedPoint.MaxDistance == 0 ? 0 : 1 - (Dist / FusedPoint.MaxDistance);
-				Context->MetadataBlender->Blend(ReadIndex, FusedIndex, ReadIndex, Weight);
+				Context->MetadataBlender->Blend(Target, Context->CurrentIO->GetInPointRef(FusedPoint.Fused[i]), Target, Weight);
 			}
 
-			Context->MetadataBlender->CompleteBlending(ReadIndex, AverageDivider);
+			Context->MetadataBlender->CompleteBlending(Target, AverageDivider);
 		};
 
 		if (PCGExMT::ParallelForLoop(Context, Context->FusedPoints.Num(), Initialize, FusePoint, Context->ChunkSize))
