@@ -22,7 +22,8 @@ public:
 		const PCGExMesh::FScoredVertex* From,
 		const PCGExMesh::FVertex& To,
 		const PCGExMesh::FVertex& Seed,
-		const PCGExMesh::FVertex& Goal) const override;
+		const PCGExMesh::FVertex& Goal,
+		const PCGExMesh::FIndexedEdge& Edge) const override;
 
 	virtual bool IsBetterScore(const double NewScore, const double OtherScore) const override;
 };

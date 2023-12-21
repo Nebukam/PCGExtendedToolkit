@@ -60,7 +60,7 @@ bool FPCGExPruneEdgesElement::ExecuteInternal(
 	if (Context->IsState(PCGExGraph::State_ReadyForNextEdges))
 	{
 		if (!Context->AdvanceEdges()) { Context->SetState(PCGExMT::State_ReadyForNextPoints); }
-		Context->SetState(PCGExGraph::State_ProcessingEdges);
+		else{ Context->SetState(PCGExGraph::State_ProcessingEdges);}
 	}
 
 	if (Context->IsState(PCGExGraph::State_ProcessingEdges))

@@ -54,7 +54,6 @@ void PCGEx::FAttributeIdentity::Get(const UPCGPointData* InData, TArray<FName>& 
 	for (int i = 0; i < NumAttributes; i++)
 	{
 		FName Name = OutNames[i];
-		OutNames.Add(Name);
 		OutIdentities.Add(Name, FAttributeIdentity(Name, Types[i]));
 	}
 }

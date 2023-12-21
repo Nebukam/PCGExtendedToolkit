@@ -7,13 +7,14 @@
 #include "Graph/PCGExMesh.h"
 #include "UObject/Object.h"
 #include "PCGExHeuristicOperation.h"
-#include "PCGExHeuristicDirection.generated.h"
+#include "Graph/Pathfinding/PCGExPathfinding.h"
+#include "PCGExHeuristicModifiersOnly.generated.h"
 
 /**
  * 
  */
-UCLASS(DisplayName = "Direction")
-class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicDirection : public UPCGExHeuristicOperation
+UCLASS(DisplayName = "Modifiers Only")
+class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicModifiersOnly : public UPCGExHeuristicOperation
 {
 	GENERATED_BODY()
 
@@ -26,4 +27,8 @@ public:
 		const PCGExMesh::FIndexedEdge& Edge) const override;
 
 	virtual bool IsBetterScore(const double NewScore, const double OtherScore) const override;
+
+	/** How to interpret the data. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-2))
+	EPCGExHeuristicScoreMode BaseInterpretation = EPCGExHeuristicScoreMode::HigherIsBetter;
 };

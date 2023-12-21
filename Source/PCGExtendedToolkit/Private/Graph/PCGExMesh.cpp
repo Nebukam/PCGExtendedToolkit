@@ -57,6 +57,8 @@ namespace PCGExMesh
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExMesh::BuildMesh);
 
+		bHasInvalidEdges = false;
+
 		const TArray<FPCGPoint>& InVerticesPoints = InPoints.GetIn()->GetPoints();
 		const int32 NumVertices = InVerticesPoints.Num();
 		Vertices.Reset(NumVertices);
@@ -76,6 +78,13 @@ namespace PCGExMesh
 		{
 			int32 VtxStart = StartIndexReader->Values[i];
 			int32 VtxEnd = EndIndexReader->Values[i];
+
+			if (!InVerticesPoints.IsValidIndex(VtxStart) ||
+				!InVerticesPoints.IsValidIndex(VtxEnd))
+			{
+				bHasInvalidEdges = true;
+				continue;
+			}
 
 			FIndexedEdge& Edge = Edges.Emplace_GetRef(i, VtxStart, VtxEnd);
 			bool JustCreated = false;

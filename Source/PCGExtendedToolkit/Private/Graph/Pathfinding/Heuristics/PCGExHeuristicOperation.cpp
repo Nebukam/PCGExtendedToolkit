@@ -15,7 +15,8 @@ double UPCGExHeuristicOperation::ComputeScore(
 	const PCGExMesh::FScoredVertex* From,
 	const PCGExMesh::FVertex& To,
 	const PCGExMesh::FVertex& Seed,
-	const PCGExMesh::FVertex& Goal) const
+	const PCGExMesh::FVertex& Goal,
+	const PCGExMesh::FIndexedEdge& Edge) const
 {
 	return From->Score + 1;
 }

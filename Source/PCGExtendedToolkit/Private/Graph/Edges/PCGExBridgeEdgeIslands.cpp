@@ -92,7 +92,14 @@ bool FPCGExBridgeEdgeIslandsElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExGraph::State_ReadyForNextEdges))
 	{
-		while (Context->AdvanceEdges()) { /* Batch-build all meshes since bCacheAllMeshes == true */ }
+		while (Context->AdvanceEdges())
+		{
+			/* Batch-build all meshes since bCacheAllMeshes == true */
+			if (Context->CurrentMesh->HasInvalidEdges())
+			{
+				PCGE_LOG(Warning, GraphAndLog, FTEXT("Some input edges are invalid. This will highly likely cause unexpected results."));
+			}
+		}
 		Context->SetState(PCGExGraph::State_ProcessingEdges);
 	}
 

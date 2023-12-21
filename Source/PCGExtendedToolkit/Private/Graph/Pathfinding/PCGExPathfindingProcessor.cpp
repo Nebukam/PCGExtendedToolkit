@@ -4,7 +4,7 @@
 #include "Graph/Pathfinding/PCGExPathfindingProcessor.h"
 
 #include "Graph/PCGExGraph.h"
-#include "Graph/Pathfinding/PCGExPathfinding.h"
+#include "PCGExPathfinding.cpp"
 #include "Graph/Pathfinding/GoalPickers/PCGExGoalPicker.h"
 #include "Graph/Pathfinding/GoalPickers/PCGExGoalPickerRandom.h"
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicDistance.h"
@@ -77,6 +77,8 @@ FPCGExPathfindingProcessorContext::~FPCGExPathfindingProcessorContext()
 {
 	PCGEX_TERMINATE_ASYNC
 
+	if (HeuristicsModifiers) { HeuristicsModifiers->Cleanup(); }
+
 	PCGEX_DELETE(SeedsPoints)
 	PCGEX_DELETE(GoalsPoints)
 	PCGEX_DELETE(OutputPaths)
@@ -105,6 +107,8 @@ bool FPCGExPathfindingProcessorElement::Boot(FPCGContext* InContext) const
 		PCGE_LOG(Error, GraphAndLog, FTEXT("Missing Input Goals."));
 		return false;
 	}
+
+	Context->HeuristicsModifiers = const_cast<FPCGExHeuristicModifiersSettings*>(&Settings->HeuristicsModifiers);
 
 	return true;
 }

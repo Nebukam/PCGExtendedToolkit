@@ -21,11 +21,11 @@ namespace PCGExGraph
 
 	void FSocket::DeleteFrom(const UPCGPointData* PointData) const
 	{
-		if (TargetIndexReader) { PointData->Metadata->DeleteAttribute(TargetIndexReader->Name); }
-		if (TargetIndexWriter) { PointData->Metadata->DeleteAttribute(TargetIndexWriter->Name); }
+		const FName NAME_Index = GetSocketPropertyName(SocketPropertyNameIndex);
+		const FName NAME_EdgeType = GetSocketPropertyName(SocketPropertyNameEdgeType);
 
-		if (EdgeTypeReader) { PointData->Metadata->DeleteAttribute(EdgeTypeReader->Name); }
-		if (EdgeTypeWriter) { PointData->Metadata->DeleteAttribute(EdgeTypeWriter->Name); }
+		if (PointData->Metadata->HasAttribute(NAME_Index)) { PointData->Metadata->DeleteAttribute(NAME_Index); }
+		if (PointData->Metadata->HasAttribute(NAME_EdgeType)) { PointData->Metadata->DeleteAttribute(NAME_EdgeType); }
 	}
 
 	void FSocket::Write(bool DoCleanup)

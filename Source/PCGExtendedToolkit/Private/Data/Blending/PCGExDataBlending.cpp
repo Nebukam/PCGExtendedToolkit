@@ -27,7 +27,7 @@ namespace PCGExDataBlending
 			PrimaryBaseAttribute = InPrimaryData->Metadata->CopyAttribute(SecondaryBaseAttribute, AttributeName, false, false, false);
 		}
 
-		bInterpolationAllowed = PrimaryBaseAttribute->AllowsInterpolation() && !SecondaryBaseAttribute->AllowsInterpolation();
+		bInterpolationAllowed = PrimaryBaseAttribute->AllowsInterpolation() && SecondaryBaseAttribute->AllowsInterpolation();
 	}
 
 	bool FDataBlendingOperationBase::GetRequiresFinalization() const { return false; }

@@ -23,7 +23,10 @@ public:
 		const PCGExMesh::FScoredVertex* From,
 		const PCGExMesh::FVertex& To,
 		const PCGExMesh::FVertex& Seed,
-		const PCGExMesh::FVertex& Goal) const;
+		const PCGExMesh::FVertex& Goal,
+		const PCGExMesh::FIndexedEdge& Edge) const;
+
 	virtual bool IsBetterScore(const double NewScore, const double OtherScore) const;
 	virtual int32 GetQueueingIndex(const TArray<PCGExMesh::FScoredVertex*>& InVertices, const double InScore) const;
+	double GetScale() const { return IsBetterScore(-1, 1) ? 1 : -1; }
 };

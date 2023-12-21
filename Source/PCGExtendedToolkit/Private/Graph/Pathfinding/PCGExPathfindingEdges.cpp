@@ -5,7 +5,7 @@
 
 #include "PCGExPointsProcessor.h"
 #include "Graph/PCGExGraph.h"
-#include "Graph/Pathfinding/PCGExPathfinding.h"
+#include "PCGExPathfinding.cpp"
 #include "Graph/Pathfinding/GoalPickers/PCGExGoalPickerRandom.h"
 #include "Algo/Reverse.h"
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicDistance.h"
@@ -22,6 +22,7 @@ UPCGExPathfindingEdgesSettings::UPCGExPathfindingEdgesSettings(
 void UPCGExPathfindingEdgesSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	if (GoalPicker) { GoalPicker->UpdateUserFacingInfos(); }
+	HeuristicsModifiers.UpdateUserFacingInfos();
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
 
@@ -101,7 +102,15 @@ bool FPCGExPathfindingEdgesElement::ExecuteInternal(FPCGContext* InContext) cons
 	if (Context->IsState(PCGExGraph::State_ReadyForNextEdges))
 	{
 		if (!Context->AdvanceEdges()) { Context->SetState(PCGExMT::State_ReadyForNextPoints); }
-		else { Context->SetState(PCGExGraph::State_ProcessingEdges); }
+		else
+		{
+			if (Context->CurrentMesh->HasInvalidEdges())
+			{
+				PCGE_LOG(Warning, GraphAndLog, FTEXT("Some input edges are invalid. This will highly likely cause unexpected results or failed pathfinding."));
+			}
+			Context->HeuristicsModifiers->PrepareForData(*Context->CurrentIO, *Context->CurrentEdges, Context->Heuristics->GetScale());
+			Context->SetState(PCGExGraph::State_ProcessingEdges);
+		}
 	}
 
 	if (Context->IsState(PCGExGraph::State_ProcessingEdges))
@@ -144,7 +153,7 @@ bool FSampleMeshPathTask::ExecuteTask()
 
 	if (!PCGExPathfinding::FindPath(
 		Context->CurrentMesh, Query->SeedPosition, Query->GoalPosition,
-		Context->Heuristics, Path))
+		Context->Heuristics, Context->HeuristicsModifiers, Path))
 	{
 		return false;
 	}

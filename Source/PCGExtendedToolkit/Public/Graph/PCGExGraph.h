@@ -65,10 +65,10 @@ public:
 	FVector Direction = FVector::UpVector;
 
 	/** Cone threshold. Used along with the direction of the slot when looking for the closest candidate. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta=(Units="Degrees", UIMin=0, UIMax=180))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta=(Units="Degrees", ClampMin=0, ClampMax=180))
 	double Angle = 45.0; // 0.707f dot
 
-	UPROPERTY(BlueprintReadOnly, meta=(UIMin=-1, UIMax=1))
+	UPROPERTY(BlueprintReadOnly, meta=(ClampMin=-1, ClampMax=1))
 	double DotThreshold = 0.707;
 
 	/** Maximum sampling distance. */

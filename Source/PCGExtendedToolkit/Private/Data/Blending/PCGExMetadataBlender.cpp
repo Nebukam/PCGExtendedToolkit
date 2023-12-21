@@ -161,8 +161,6 @@ namespace PCGExDataBlending
 		BlendingOverrides = OperationTypeOverrides;
 
 		TArray<PCGEx::FAttributeIdentity> Identities;
-		TSet<FName> Mismatch;
-
 		PCGEx::FAttributeIdentity::Get(InPrimaryData, Identities);
 
 		if (InSecondaryData != InPrimaryData)
@@ -174,6 +172,16 @@ namespace PCGExDataBlending
 			PCGEx::FAttributeIdentity::Get(InPrimaryData, PrimaryNames, PrimaryIdentityMap);
 			PCGEx::FAttributeIdentity::Get(InSecondaryData, SecondaryNames, SecondaryIdentityMap);
 
+			for (FName PrimaryName : PrimaryNames)
+			{
+				const PCGEx::FAttributeIdentity& PrimaryIdentity = *PrimaryIdentityMap.Find(PrimaryName);
+				if (!SecondaryIdentityMap.Find(PrimaryName))
+				{
+					//An attribute exists on Primary but not on Secondary -- Simply ignore it.
+					Identities.Remove(PrimaryIdentity);
+				}
+			}
+
 			for (FName SecondaryName : SecondaryNames)
 			{
 				const PCGEx::FAttributeIdentity& SecondaryIdentity = *SecondaryIdentityMap.Find(SecondaryName);
@@ -181,7 +189,8 @@ namespace PCGExDataBlending
 				{
 					if (PrimaryIdentityPtr->UnderlyingType != SecondaryIdentity.UnderlyingType)
 					{
-						Mismatch.Add(SecondaryName);
+						// Type mismatch -- Simply ignore it
+						Identities.Remove(*PrimaryIdentityPtr);
 					}
 				}
 				else
@@ -238,7 +247,7 @@ namespace PCGExDataBlending
 			if (Op->GetRequiresPreparation()) { AttributesToBePrepared.Add(Op); }
 			if (Op->GetRequiresFinalization()) { AttributesToBeCompleted.Add(Op); }
 
-			Op->PrepareForData(InPrimaryData, Mismatch.Contains(Identity.Name) ? InSecondaryData : InPrimaryData, PrimaryKeys, SecondaryKeys);
+			Op->PrepareForData(InPrimaryData, InSecondaryData, PrimaryKeys, SecondaryKeys);
 		}
 	}
 }

@@ -82,7 +82,10 @@ namespace PCGExMesh
 		const FVertex& GetVertexFromPointIndex(const int32 Index) const;
 		const FVertex& GetVertex(const int32 Index) const;
 
+		bool HasInvalidEdges() const { return bHasInvalidEdges; }
+
 	protected:
+		bool bHasInvalidEdges = false;
 		FVertex& GetOrCreateVertex(const int32 PointIndex, bool& bJustCreated);
 	};
 }

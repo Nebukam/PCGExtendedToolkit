@@ -2,6 +2,7 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #pragma once
+
 #include "PCGEx.h"
 #include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGPointData.h"
@@ -202,7 +203,7 @@ namespace PCGExDataBlending
 		}
 
 #define PCGEX_TEMP_VALUES TArray<T> Values; Values.SetNum(Count); TArrayView<T> View(Values);
-
+		
 		virtual void PrepareRangeOperation(const int32 StartIndex, const int32 Count) const override
 		{
 			PCGEX_TEMP_VALUES
@@ -236,7 +237,7 @@ namespace PCGExDataBlending
 			if (bInterpolationAllowed)
 			{
 				const T A = PrimaryAccessor->Get(PrimaryReadIndex);
-				const T B = SecondaryAccessor->Get(PrimaryReadIndex);
+				const T B = SecondaryAccessor->Get(SecondaryReadIndex);
 				for (int i = 0; i < Values.Num(); i++) { Values[i] = SingleOperation(A, B, Alphas[i]); }
 				PrimaryAccessor->SetRange(Values, StartIndex);
 			}

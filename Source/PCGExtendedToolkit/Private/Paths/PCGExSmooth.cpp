@@ -52,7 +52,7 @@ bool FPCGExSmoothElement::ExecuteInternal(FPCGContext* InContext) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExSmoothElement::Execute);
 
-	PCGEX_CONTEXT(Smooth)
+	PCGEX_CONTEXT_AND_SETTINGS(Smooth)
 
 	if (Context->IsSetup())
 	{
@@ -63,15 +63,16 @@ bool FPCGExSmoothElement::ExecuteInternal(FPCGContext* InContext) const
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
 		int32 Index = 0;
-		while (Context->AdvancePointsIO())
-		{
-			if (Context->CurrentIO->GetNum() > 2)
+		Context->MainPoints->ForEach(
+			[&](PCGExData::FPointIO& PointIO, const int32)
 			{
-				Context->CurrentIO->CreateInKeys();
-				Context->CurrentIO->CreateOutKeys();
-				Context->GetAsyncManager()->Start<FSmoothTask>(Index++, Context->CurrentIO);
-			}
-		}
+				if (PointIO.GetNum() > 2)
+				{
+					PointIO.CreateInKeys();
+					PointIO.CreateOutKeys();
+					Context->GetAsyncManager()->Start<FSmoothTask>(Index++, &PointIO);
+				}
+			});
 		Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork);
 	}
 

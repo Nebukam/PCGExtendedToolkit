@@ -233,7 +233,11 @@ public:
 	/** Maximum points threshold */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bRemoveBigIslands"))
 	int32 MaxIslandSize = 500;
-
+		
+	/** Edges will inherit point attributes -- NOT IMPLEMENTED*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	bool bInheritAttributes = false;
+	
 	/** Name of the attribute to ouput the unique Island identifier to. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FName IslandIDAttributeName = "IslandID";
@@ -242,9 +246,9 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FName IslandSizeAttributeName = "IslandSize";
 
-	/** Not implemented yet, always Overlap */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	EPCGExRoamingResolveMethod ResolveRoamingMethod = EPCGExRoamingResolveMethod::Overlap;
+	/** Cleanup graph socket data from output points */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	bool bDeleteGraphData = true;
 
 private:
 	friend class FPCGExFindEdgeIslandsElement;
@@ -259,9 +263,11 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFindEdgeIslandsContext : public FPCGExGraphP
 	EPCGExEdgeType CrawlEdgeTypes;
 	//bool bOutputIndividualIslands;
 	bool bPruneIsolatedPoints;
+	bool bInheritAttributes;
+	
 	int32 MinIslandSize;
 	int32 MaxIslandSize;
-
+	
 	int32 IslandUIndex = 0;
 
 	TMap<int32, int32> IndexRemap;

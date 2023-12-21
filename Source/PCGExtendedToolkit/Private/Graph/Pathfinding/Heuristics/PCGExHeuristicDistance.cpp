@@ -8,9 +8,9 @@ double UPCGExHeuristicDistance::ComputeScore(
 	const PCGExMesh::FScoredVertex* From,
 	const PCGExMesh::FVertex& To,
 	const PCGExMesh::FVertex& Seed,
-	const PCGExMesh::FVertex& Goal) const
+	const PCGExMesh::FVertex& Goal, const PCGExMesh::FIndexedEdge& Edge) const
 {
-	return FVector::DistSquared(Goal.Position, To.Position);
+	return FVector::Distance(Goal.Position, To.Position);
 }
 
 bool UPCGExHeuristicDistance::IsBetterScore(const double NewScore, const double OtherScore) const

@@ -31,14 +31,13 @@ bool FPCGExDeleteGraphElement::ExecuteInternal(
 	if (!Boot(Context)) { return true; }
 
 	Context->MainPoints->ForEach(
-		[&](PCGExData::FPointIO& PointIO, int32)
+		[&](PCGExData::FPointIO& PointIO, const int32)
 		{
 			auto DeleteSockets = [&](const UPCGExGraphParamsData* Params, int32)
 			{
 				UPCGPointData* OutData = PointIO.GetOut();
 				for (const PCGExGraph::FSocket& Socket : Params->GetSocketMapping()->Sockets)
 				{
-					//TODO: Remove individual socket attributes
 					Socket.DeleteFrom(OutData);
 				}
 				OutData->Metadata->DeleteAttribute(Params->CachedIndexAttributeName);

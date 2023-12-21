@@ -39,6 +39,168 @@ enum class EPCGExPathPointOrientation : uint8
 	LookAtNext UMETA(DisplayName = "Look at Next", Tooltip="Orientation is set so the point forward axis looks at the next point"),
 };
 
+
+UENUM(BlueprintType)
+enum class EPCGExHeuristicScoreMode : uint8
+{
+	HigherIsBetter UMETA(DisplayName = "Higher is Better", Tooltip="Higher values are considered more desirable."),
+	LowerIsBetter UMETA(DisplayName = "Lower is Better", Tooltip="Lower values are considered more desirable."),
+};
+
+UENUM(BlueprintType)
+enum class EPCGExHeuristicScoreSource : uint8
+{
+	Point UMETA(DisplayName = "Point", Tooltip="Value is fetched from the point being evaluated."),
+	Edge UMETA(DisplayName = "Edge", Tooltip="Value is fetched from the edge connecting to the point being evaluated."),
+};
+
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicModifier : public FPCGExInputDescriptorWithSingleField
+{
+	GENERATED_BODY()
+
+	FPCGExHeuristicModifier()
+	{
+	}
+
+	~FPCGExHeuristicModifier()
+	{
+	}
+
+	/** Enable or disable this modifier. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-4))
+	bool bEnabled = true;
+
+	/** Read the data from either vertices or edges */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-3))
+	EPCGExHeuristicScoreSource Source = EPCGExHeuristicScoreSource::Point;
+
+	/** How to interpret the data. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-2))
+	EPCGExHeuristicScoreMode Interpretation = EPCGExHeuristicScoreMode::HigherIsBetter;
+
+	/** Modifier weight. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1))
+	double Weight = 100;
+};
+
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicModifiersSettings
+{
+	GENERATED_BODY()
+
+	/** Draw line thickness. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, TitleProperty="{TitlePropertyName} ({Interpretation})"))
+	TArray<FPCGExHeuristicModifier> Modifiers;
+
+	PCGExData::FPointIO* LastPoints = nullptr;
+	TArray<double> PointScoreModifiers;
+	TArray<double> EdgeScoreModifiers;
+
+	FPCGExHeuristicModifiersSettings()
+	{
+		PointScoreModifiers.Empty();
+		EdgeScoreModifiers.Empty();
+	}
+
+	~FPCGExHeuristicModifiersSettings()
+	{
+		Cleanup();
+	}
+
+	void Cleanup()
+	{
+		LastPoints = nullptr;
+		PointScoreModifiers.Empty();
+		EdgeScoreModifiers.Empty();
+	}
+
+	void UpdateUserFacingInfos()
+	{
+		for (FPCGExHeuristicModifier& Modifier : Modifiers) { Modifier.UpdateUserFacingInfos(); }
+	}
+
+	void PrepareForData(PCGExData::FPointIO& InPoints, PCGExData::FPointIO& InEdges, const double Scale = 1)
+	{
+		bool bUpdatePoints = false;
+		const int32 NumPoints = InPoints.GetNum();
+		const int32 NumEdges = InEdges.GetNum();
+		
+		if (LastPoints != &InPoints)
+		{
+			LastPoints = &InPoints;
+			bUpdatePoints = true;
+			
+			InPoints.CreateInKeys();
+			PointScoreModifiers.SetNumZeroed(NumPoints);
+		}
+
+		InEdges.CreateInKeys();
+		EdgeScoreModifiers.SetNumZeroed(NumEdges);
+
+		TArray<double>* TargetArray;
+		int32 NumIterations;
+
+		for (const FPCGExHeuristicModifier& Modifier : Modifiers)
+		{
+			if (!Modifier.bEnabled) { continue; }
+
+			PCGEx::FLocalSingleFieldGetter* NewGetter = new PCGEx::FLocalSingleFieldGetter();
+			NewGetter->Capture(Modifier);
+
+			bool bSuccess;
+			if (Modifier.Source == EPCGExHeuristicScoreSource::Point)
+			{
+				if (!bUpdatePoints) { continue; }
+				bSuccess = NewGetter->Bind(InPoints);
+				TargetArray = &PointScoreModifiers;
+				NumIterations = NumPoints;
+			}
+			else
+			{
+				bSuccess = NewGetter->Bind(InEdges);
+				TargetArray = &EdgeScoreModifiers;
+				NumIterations = NumEdges;
+			}
+
+			if (!bSuccess || !NewGetter->bValid || !NewGetter->bEnabled)
+			{
+				PCGEX_DELETE(NewGetter)
+				continue;
+			}
+
+			double MinValue = TNumericLimits<double>::Max();
+			double MaxValue = TNumericLimits<double>::Min();
+			for (int i = 0; i < NumIterations; i++)
+			{
+				const double Value = NewGetter->Values[i];
+				MinValue = FMath::Min(MinValue, Value);
+				MaxValue = FMath::Max(MaxValue, Value);
+			}
+
+			double OutMin = -1;
+			double OutMax = 1;
+			const double OutScale = Scale;
+
+			if (Modifier.Interpretation == EPCGExHeuristicScoreMode::HigherIsBetter)
+			{
+				OutMin = 1;
+				OutMax = -1;
+			}
+
+			for (int i = 0; i < NumIterations; i++) { (*TargetArray)[i] += (PCGExMath::Remap(NewGetter->Values[i], MinValue, MaxValue, OutMin, OutMax) * Modifier.Weight) * OutScale; }
+
+			PCGEX_DELETE(NewGetter)
+		}
+	}
+
+	double GetScore(int32 PointIndex, int32 EdgeIndex) const
+	{
+		return PointScoreModifiers[PointIndex] + EdgeScoreModifiers[EdgeIndex];
+	}
+};
+
+
 namespace PCGExPathfinding
 {
 	struct PCGEXTENDEDTOOLKIT_API FPlotPoint
@@ -108,7 +270,7 @@ namespace PCGExPathfinding
 		const PCGExMesh::FMesh* Mesh,
 		const int32 Seed, const int32 Goal,
 		const UPCGExHeuristicOperation* Heuristics,
-		TArray<int32>& OutPath)
+		const FPCGExHeuristicModifiersSettings* Modifiers, TArray<int32>& OutPath)
 	{
 		if (Seed == Goal) { return false; }
 
@@ -136,7 +298,7 @@ namespace PCGExPathfinding
 			const int32 CurrentVtxIndex = CurrentWVtx->Vertex->MeshIndex;
 
 			ClosedList.Add(CurrentWVtx);
-			Visited.Add(CurrentVtxIndex);
+			Visited.Add(CurrentWVtx->Vertex->PointIndex);
 
 			if (CurrentVtxIndex == EndVtx.MeshIndex)
 			{
@@ -156,21 +318,24 @@ namespace PCGExPathfinding
 			{
 				//Get current index neighbors
 				for (const PCGExMesh::FVertex& Vtx = Mesh->GetVertex(CurrentVtxIndex);
-				     const int32 OtherVtxIndex : Vtx.Neighbors) //TODO: Use edge instead?
+				     const int32 EdgeIndex : Vtx.Edges) //TODO: Use edge instead?
 				{
-					if (Visited.Contains(OtherVtxIndex)) { continue; }
+					const PCGExMesh::FIndexedEdge& Edge = Mesh->Edges[EdgeIndex];
+					const int32 OtherPointIndex = Edge.Other(Vtx.PointIndex);
+					if (Visited.Contains(OtherPointIndex)) { continue; }
 
-					const PCGExMesh::FVertex& OtherVtx = Mesh->GetVertex(OtherVtxIndex);
-					double Score = Heuristics->ComputeScore(CurrentWVtx, OtherVtx, StartVtx, EndVtx);
+					const PCGExMesh::FVertex& OtherVtx = Mesh->GetVertexFromPointIndex(OtherPointIndex);
+					double Score = Heuristics->ComputeScore(CurrentWVtx, OtherVtx, StartVtx, EndVtx, Edge);
+					Score += Modifiers->GetScore(OtherVtx.PointIndex, Edge.Index);
 
-					if (const double* PreviousScore = CachedScores.Find(OtherVtxIndex);
+					if (const double* PreviousScore = CachedScores.Find(OtherPointIndex);
 						PreviousScore && !Heuristics->IsBetterScore(*PreviousScore, Score))
 					{
 						continue;
 					}
 
 					PCGExMesh::FScoredVertex* NewWVtx = new PCGExMesh::FScoredVertex(OtherVtx, Score, CurrentWVtx);
-					CachedScores.Add(OtherVtxIndex, Score);
+					CachedScores.Add(OtherPointIndex, Score);
 
 					if (const int32 TargetIndex = Heuristics->GetQueueingIndex(OpenList, Score); TargetIndex == -1) { OpenList.Add(NewWVtx); }
 					else { OpenList.Insert(NewWVtx, TargetIndex); }
@@ -187,29 +352,31 @@ namespace PCGExPathfinding
 	static bool FindPath(
 		const PCGExMesh::FMesh* Mesh, const FVector& SeedPosition, const FVector& GoalPosition,
 		const UPCGExHeuristicOperation* Heuristics,
-		TArray<int32>& OutPath)
+		const FPCGExHeuristicModifiersSettings* Modifiers, TArray<int32>& OutPath)
 	{
-		return FindPath(
+		return PCGExPathfinding::FindPath(
 			Mesh,
 			Mesh->FindClosestVertex(SeedPosition),
 			Mesh->FindClosestVertex(GoalPosition),
-			Heuristics, OutPath);
+			Heuristics, Modifiers, OutPath);
 	}
+
 
 	static bool ContinuePath(
 		const PCGExMesh::FMesh* Mesh, const int32 To,
 		const UPCGExHeuristicOperation* Heuristics,
-		TArray<int32>& OutPath)
+		const FPCGExHeuristicModifiersSettings* Modifiers, TArray<int32>& OutPath)
 	{
-		return FindPath(Mesh, OutPath.Last(), To, Heuristics, OutPath);
+		return PCGExPathfinding::FindPath(Mesh, OutPath.Last(), To, Heuristics, Modifiers, OutPath);
 	}
+
 
 	static bool ContinuePath(
 		const PCGExMesh::FMesh* Mesh, const FVector& To,
 		const UPCGExHeuristicOperation* Heuristics,
-		TArray<int32>& OutPath)
+		const FPCGExHeuristicModifiersSettings* Modifiers, TArray<int32>& OutPath)
 	{
-		return ContinuePath(Mesh, Mesh->FindClosestVertex(To), Heuristics, OutPath);
+		return PCGExPathfinding::ContinuePath(Mesh, Mesh->FindClosestVertex(To), Heuristics, Modifiers, OutPath);
 	}
 }
 

@@ -8,9 +8,9 @@ double UPCGExHeuristicDirection::ComputeScore(
 	const PCGExMesh::FScoredVertex* From,
 	const PCGExMesh::FVertex& To,
 	const PCGExMesh::FVertex& Seed,
-	const PCGExMesh::FVertex& Goal) const
+	const PCGExMesh::FVertex& Goal, const PCGExMesh::FIndexedEdge& Edge) const
 {
-	return From->Score + FVector::DotProduct((From->Vertex->Position - To.Position).GetSafeNormal(), (From->Vertex->Position - Goal.Position).GetSafeNormal());
+	return From->Score + FVector::DotProduct((From->Vertex->Position - To.Position).GetSafeNormal(), (From->Vertex->Position - Goal.Position).GetSafeNormal()) * 100;
 }
 
 bool UPCGExHeuristicDirection::IsBetterScore(const double NewScore, const double OtherScore) const

@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExPathfinding.h"
 #include "GoalPickers/PCGExGoalPicker.h"
 
 #include "Graph/PCGExEdgesProcessor.h"
@@ -43,11 +44,7 @@ public:
 	/** Controls how goals are picked.*/
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta = (NoResetToDefault, ShowOnlyInnerProperties))
 	TObjectPtr<UPCGExGoalPicker> GoalPicker;
-
-	/** Controls how heuristic are calculated. */
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta = (NoResetToDefault, ShowOnlyInnerProperties))
-	TObjectPtr<UPCGExHeuristicOperation> Heuristics;
-
+	
 	/** Add seed point at the beginning of the path */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	bool bAddSeedToPath = true;
@@ -55,6 +52,13 @@ public:
 	/** Add goal point at the beginning of the path */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	bool bAddGoalToPath = true;
+
+	/** Controls how heuristic are calculated. */
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta = (NoResetToDefault, ShowOnlyInnerProperties))
+	TObjectPtr<UPCGExHeuristicOperation> Heuristics;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	FPCGExHeuristicModifiersSettings HeuristicsModifiers;
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingProcessorContext : public FPCGExEdgesProcessorContext
@@ -69,6 +73,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingProcessorContext : public FPCGExE
 
 	UPCGExGoalPicker* GoalPicker = nullptr;
 	UPCGExHeuristicOperation* Heuristics = nullptr;
+	FPCGExHeuristicModifiersSettings* HeuristicsModifiers = nullptr;
 	//UPCGExSubPointsBlendOperation* Blending = nullptr;
 
 	bool bAddSeedToPath = true;

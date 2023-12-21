@@ -5,7 +5,7 @@
 
 #include "PCGExPointsProcessor.h"
 #include "Graph/PCGExGraph.h"
-#include "Graph/Pathfinding/PCGExPathfinding.h"
+#include "PCGExPathfinding.cpp"
 #include "Graph/Pathfinding/GoalPickers/PCGExGoalPickerRandom.h"
 #include "Algo/Reverse.h"
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicDistance.h"
@@ -23,6 +23,7 @@ UPCGExPathfindingPlotEdgesSettings::UPCGExPathfindingPlotEdgesSettings(
 void UPCGExPathfindingPlotEdgesSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	if (Heuristics) { Heuristics->UpdateUserFacingInfos(); }
+	HeuristicsModifiers.UpdateUserFacingInfos();
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
 
@@ -52,6 +53,8 @@ FPCGExPathfindingPlotEdgesContext::~FPCGExPathfindingPlotEdgesContext()
 {
 	PCGEX_TERMINATE_ASYNC
 
+	if (HeuristicsModifiers) { HeuristicsModifiers->Cleanup(); }
+
 	PCGEX_DELETE(Plots)
 	PCGEX_DELETE(OutputPaths)
 }
@@ -77,6 +80,8 @@ bool FPCGExPathfindingPlotEdgesElement::Boot(FPCGContext* InContext) const
 		PCGE_LOG(Error, GraphAndLog, FTEXT("Missing Plots Points."));
 		return false;
 	}
+
+	Context->HeuristicsModifiers = const_cast<FPCGExHeuristicModifiersSettings*>(&Settings->HeuristicsModifiers);
 
 	return true;
 }
@@ -113,7 +118,15 @@ bool FPCGExPathfindingPlotEdgesElement::ExecuteInternal(FPCGContext* InContext) 
 	if (Context->IsState(PCGExGraph::State_ReadyForNextEdges))
 	{
 		if (!Context->AdvanceEdges()) { Context->SetState(PCGExMT::State_ReadyForNextPoints); }
-		else { Context->SetState(PCGExGraph::State_ProcessingEdges); }
+		else
+		{
+			if (Context->CurrentMesh->HasInvalidEdges())
+			{
+				PCGE_LOG(Warning, GraphAndLog, FTEXT("Some input edges are invalid. This will highly likely cause unexpected results or failed pathfinding."));
+			}
+			Context->HeuristicsModifiers->PrepareForData(*Context->CurrentIO, *Context->CurrentEdges, Context->Heuristics->GetScale());
+			Context->SetState(PCGExGraph::State_ProcessingEdges);
+		}
 	}
 
 	if (Context->IsState(PCGExGraph::State_ProcessingEdges))
@@ -154,7 +167,9 @@ bool FPlotMeshPathTask::ExecuteTask()
 		FVector GoalPosition = PointIO->GetInPoint(i).Transform.GetLocation();
 
 		//Note: Can silently fail
-		PCGExPathfinding::FindPath(Context->CurrentMesh, SeedPosition, GoalPosition, Context->Heuristics, Path);
+		PCGExPathfinding::FindPath(
+			Context->CurrentMesh, SeedPosition, GoalPosition,
+			Context->Heuristics, Context->HeuristicsModifiers, Path);
 
 		if (Context->bAddPlotPointsToPath && i < NumPlots - 1) { Path.Add((i + 1) * -1); }
 

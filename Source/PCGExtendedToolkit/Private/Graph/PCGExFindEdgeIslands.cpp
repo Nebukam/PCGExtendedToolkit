@@ -62,13 +62,13 @@ bool FPCGExFindEdgeIslandsElement::Boot(FPCGContext* InContext) const
 	Context->CrawlEdgeTypes = static_cast<EPCGExEdgeType>(Settings->CrawlEdgeTypes);
 
 	PCGEX_FWD(bPruneIsolatedPoints)
+	PCGEX_FWD(bInheritAttributes)
 
 	Context->MinIslandSize = Settings->bRemoveSmallIslands ? FMath::Max(1, Settings->MinIslandSize) : 1;
 	Context->MaxIslandSize = Settings->bRemoveBigIslands ? FMath::Max(1, Settings->MaxIslandSize) : TNumericLimits<int32>::Max();
 
 	PCGEX_FWD(IslandIDAttributeName)
 	PCGEX_FWD(IslandSizeAttributeName)
-	PCGEX_FWD(ResolveRoamingMethod)
 
 	PCGEX_VALIDATE_NAME(Context->IslandIDAttributeName)
 	PCGEX_VALIDATE_NAME(Context->IslandSizeAttributeName)
@@ -81,7 +81,7 @@ bool FPCGExFindEdgeIslandsElement::ExecuteInternal(
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExFindEdgeIslandsElement::Execute);
 
-	PCGEX_CONTEXT(FindEdgeIslands)
+	PCGEX_CONTEXT_AND_SETTINGS(FindEdgeIslands)
 
 	if (Context->IsSetup())
 	{
@@ -248,7 +248,27 @@ bool FPCGExFindEdgeIslandsElement::ExecuteInternal(
 		}
 	}
 
-	if (Context->IsDone()) { Context->OutputPoints(); }
+	if (Context->IsDone())
+	{
+		if (Settings->bDeleteGraphData)
+		{
+			Context->MainPoints->ForEach(
+				[&](PCGExData::FPointIO& PointIO, int32)
+				{
+					auto DeleteSockets = [&](const UPCGExGraphParamsData* Params, int32)
+					{
+						UPCGPointData* OutData = PointIO.GetOut();
+						for (const PCGExGraph::FSocket& Socket : Params->GetSocketMapping()->Sockets)
+						{
+							Socket.DeleteFrom(OutData);
+						}
+						OutData->Metadata->DeleteAttribute(Params->CachedIndexAttributeName);
+					};
+					Context->Graphs.ForEach(Context, DeleteSockets);
+				});
+		}
+		Context->OutputPoints();
+	}
 
 	return Context->IsDone();
 }

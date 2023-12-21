@@ -53,6 +53,10 @@ public:
 	/** Controls how heuristic are calculated. */
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta = (NoResetToDefault, ShowOnlyInnerProperties))
 	TObjectPtr<UPCGExHeuristicOperation> Heuristics;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	FPCGExHeuristicModifiersSettings HeuristicsModifiers;
+	
 };
 
 
@@ -66,6 +70,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingPlotEdgesContext : public FPCGExE
 	PCGExData::FPointIOGroup* OutputPaths = nullptr;
 
 	UPCGExHeuristicOperation* Heuristics = nullptr;
+	FPCGExHeuristicModifiersSettings* HeuristicsModifiers = nullptr;
 	//UPCGExSubPointsBlendOperation* Blending = nullptr;
 
 	bool bAddSeedToPath = true;
