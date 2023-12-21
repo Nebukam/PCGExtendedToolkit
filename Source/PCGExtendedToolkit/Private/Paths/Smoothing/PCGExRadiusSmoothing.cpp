@@ -15,9 +15,8 @@ void UPCGExRadiusSmoothing::InternalDoSmooth(
 	const TArray<FPCGPoint>& InPoints = InPointIO.GetIn()->GetPoints();
 	TArray<FPCGPoint>& OutPoints = InPointIO.GetOut()->GetMutablePoints();
 
-	PCGExDataBlending::FMetadataBlender* MetadataBlender = new PCGExDataBlending::FMetadataBlender(BlendingSettings.DefaultBlending);
-	PCGExDataBlending::FPropertiesBlender* PropertiesBlender = new PCGExDataBlending::FPropertiesBlender(BlendingSettings);
-	MetadataBlender->PrepareForData(InPointIO, BlendingSettings.AttributesOverrides);
+	PCGExDataBlending::FMetadataBlender* MetadataBlender = new PCGExDataBlending::FMetadataBlender(&BlendingSettings);
+	MetadataBlender->PrepareForData(InPointIO);
 
 	const double RadiusSquared = BlendRadius * BlendRadius;
 	const int32 MaxPointIndex = InPoints.Num() - 1;
@@ -28,7 +27,6 @@ void UPCGExRadiusSmoothing::InternalDoSmooth(
 		int32 Count = 0;
 
 		MetadataBlender->PrepareForBlending(i);
-		PropertiesBlender->PrepareBlending(OutPoint, OutPoint);
 
 		for (int j = 0; j <= MaxPointIndex; j++)
 		{
@@ -38,18 +36,14 @@ void UPCGExRadiusSmoothing::InternalDoSmooth(
 			{
 				const double Alpha = 1 - (Dist / RadiusSquared);
 				MetadataBlender->Blend(i, j, i, Alpha);
-				PropertiesBlender->Blend(OutPoint, InPoint, OutPoint, Alpha);
 				Count++;
 			}
 		}
 
 		MetadataBlender->CompleteBlending(i, Count);
-		PropertiesBlender->CompleteBlending(OutPoint);
-
 	}
 
 	MetadataBlender->Write();
 
 	PCGEX_DELETE(MetadataBlender)
-	PCGEX_DELETE(PropertiesBlender)
 }

@@ -397,6 +397,8 @@ namespace PCGEx
 		void SetNum(int32 Num) { Values.SetNumZeroed(Num); }
 		virtual bool Bind(PCGExData::FPointIO& PointIO) = 0;
 
+		T operator[](int32 Index) const { return this->Values[Index]; }
+		
 		bool IsValid() { return Accessor != nullptr; }
 
 		virtual ~FAttributeIOBase()
@@ -475,8 +477,6 @@ namespace PCGEx
 			: FAttributeIOBase<T>(InName)
 		{
 		}
-
-		T operator[](int32 Index) const { return this->Values[Index]; }
 
 		virtual bool Bind(PCGExData::FPointIO& PointIO) override
 		{

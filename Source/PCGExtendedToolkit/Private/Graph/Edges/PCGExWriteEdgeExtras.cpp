@@ -24,12 +24,9 @@ FPCGExWriteEdgeExtrasContext::~FPCGExWriteEdgeExtrasContext()
 {
 	PCGEX_TERMINATE_ASYNC
 
-	AttributesBlendingOverrides.Empty();
-
 	PCGEX_WRITEEDGEEXTRA_FOREACH(PCGEX_OUTPUT_DELETE)
 
 	PCGEX_DELETE(MetadataBlender)
-	PCGEX_DELETE(PropertyBlender)
 }
 
 PCGEX_INITIALIZE_CONTEXT(WriteEdgeExtras)
@@ -40,9 +37,7 @@ bool FPCGExWriteEdgeExtrasElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(WriteEdgeExtras)
 
-	Context->AttributesBlendingOverrides = Settings->BlendingSettings.AttributesOverrides;
-	Context->MetadataBlender = new PCGExDataBlending::FMetadataBlender(Settings->BlendingSettings.DefaultBlending);
-	Context->PropertyBlender = new PCGExDataBlending::FPropertiesBlender(Settings->BlendingSettings);
+	Context->MetadataBlender = new PCGExDataBlending::FMetadataBlender(const_cast<FPCGExBlendingSettings*>(&Settings->BlendingSettings));
 
 	PCGEX_WRITEEDGEEXTRA_FOREACH(PCGEX_OUTPUT_FWD)
 	PCGEX_WRITEEDGEEXTRA_FOREACH(PCGEX_OUTPUT_VALIDATE_NAME)
@@ -92,10 +87,8 @@ bool FPCGExWriteEdgeExtrasElement::ExecuteInternal(
 
 			PCGExData::FPointIO& PointIO = *Context->CurrentEdges;
 			PCGEX_WRITEEDGEEXTRA_FOREACH(PCGEX_OUTPUT_ACCESSOR_INIT)
-			
-			Context->MetadataBlender->PrepareForData(
-				PointIO, *Context->CurrentIO,
-				Context->AttributesBlendingOverrides);
+
+			Context->MetadataBlender->PrepareForData(PointIO, *Context->CurrentIO);
 
 			Context->GetAsyncManager()->Start<FWriteExtrasTask>(-1, &PointIO);
 
@@ -124,19 +117,13 @@ bool FWriteExtrasTask::ExecuteTask()
 	const TArray<PCGExMesh::FIndexedEdge>& Edges = Context->CurrentMesh->Edges;
 	for (const PCGExMesh::FIndexedEdge& Edge : Edges)
 	{
-		FPCGPoint& EdgePoint = PointIO->GetMutablePoint(Edge.Index);
-		const FPCGPoint& StartPoint = Context->CurrentIO->GetInPoint(Edge.Start);
-		const FPCGPoint& EndPoint = Context->CurrentIO->GetInPoint(Edge.End);
-
-		Context->PropertyBlender->PrepareBlending(EdgePoint, StartPoint);
-		Context->PropertyBlender->Blend(EdgePoint, StartPoint, EdgePoint, 0.5);
-		Context->PropertyBlender->Blend(EdgePoint, EndPoint, EdgePoint, 0.5);
-		Context->PropertyBlender->CompleteBlending(EdgePoint);
-
 		Context->MetadataBlender->PrepareForBlending(Edge.Index);
 		Context->MetadataBlender->Blend(Edge.Index, Edge.Start, Edge.Index, 0.5);
 		Context->MetadataBlender->Blend(Edge.Index, Edge.End, Edge.Index, 0.5);
 		Context->MetadataBlender->CompleteBlending(Edge.Index, 2);
+
+		const FPCGPoint& StartPoint = Context->CurrentIO->GetInPoint(Edge.Start);
+		const FPCGPoint& EndPoint = Context->CurrentIO->GetInPoint(Edge.End);
 
 		PCGEX_OUTPUT_VALUE(EdgeLength, Edge.Index, FVector::Distance(StartPoint.Transform.GetLocation(), EndPoint.Transform.GetLocation()));
 	}

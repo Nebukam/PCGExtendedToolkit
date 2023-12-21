@@ -9,15 +9,10 @@ namespace PCGExDataBlending
 {
 	FDataBlendingOperationBase::~FDataBlendingOperationBase()
 	{
-		
 	}
 
 	void FDataBlendingOperationBase::PrepareForData(PCGExData::FPointIO& InPrimaryData, const PCGExData::FPointIO& InSecondaryData, bool bSecondaryIn)
 	{
-		const FPCGMetadataAttributeBase* PrimaryBaseAttribute = InPrimaryData.GetOut()->Metadata->GetConstAttribute(AttributeName);
-		const FPCGMetadataAttributeBase* SecondaryBaseAttribute = InSecondaryData.GetIn()->Metadata->GetConstAttribute(AttributeName);
-
-		bInterpolationAllowed = PrimaryBaseAttribute->AllowsInterpolation() && SecondaryBaseAttribute->AllowsInterpolation();
 	}
 
 	bool FDataBlendingOperationBase::GetRequiresFinalization() const { return false; }
@@ -41,7 +36,6 @@ namespace PCGExDataBlending
 
 	void FDataBlendingOperationBase::FullBlendToOne(const TArrayView<double>& Alphas) const
 	{
-		
 	}
 
 	void FDataBlendingOperationBase::ResetToDefault(int32 WriteIndex) const
