@@ -31,11 +31,9 @@ TArray<FPCGPinProperties> UPCGExPromoteEdgesSettings::OutputPinProperties() cons
 	return PinProperties;
 }
 
-FPCGElementPtr UPCGExPromoteEdgesSettings::CreateElement() const { return MakeShared<FPCGExPromoteEdgesElement>(); }
-
 FName UPCGExPromoteEdgesSettings::GetMainOutputLabel() const { return PCGExGraph::OutputPathsLabel; }
 
-PCGEX_INITIALIZE_CONTEXT(PromoteEdges)
+PCGEX_INITIALIZE_ELEMENT(PromoteEdges)
 
 bool FPCGExPromoteEdgesElement::Boot(FPCGContext* InContext) const
 {

@@ -8,7 +8,7 @@
 
 PCGExData::EInit UPCGExWriteIndexSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
-FPCGElementPtr UPCGExWriteIndexSettings::CreateElement() const { return MakeShared<FPCGExWriteIndexElement>(); }
+PCGEX_INITIALIZE_ELEMENT(WriteIndex)
 
 FPCGExWriteIndexContext::~FPCGExWriteIndexContext()
 {
@@ -17,8 +17,6 @@ FPCGExWriteIndexContext::~FPCGExWriteIndexContext()
 	PCGEX_DELETE(NormalizedIndexAccessor)
 	PCGEX_DELETE(IndexAccessor)
 }
-
-PCGEX_INITIALIZE_CONTEXT(WriteIndex)
 
 bool FPCGExWriteIndexElement::Boot(FPCGContext* InContext) const
 {

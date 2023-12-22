@@ -37,7 +37,8 @@ namespace PCGExGraph
 		uint32 Start = 0;
 		uint32 End = 0;
 		EPCGExEdgeType Type = EPCGExEdgeType::Unknown;
-
+		bool bValid = true;
+		
 		FEdge()
 		{
 		}

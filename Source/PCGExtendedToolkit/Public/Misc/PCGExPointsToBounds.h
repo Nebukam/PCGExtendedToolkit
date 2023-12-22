@@ -77,9 +77,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsToBoundsContext : public FPCGExPointsP
 
 	bool bPreserveOrder;
 
-	TMap<FName, EPCGExDataBlendingType> AttributesBlendingOverrides;
 	PCGExDataBlending::FMetadataBlender* MetadataBlender;
-	PCGExDataBlending::FPropertiesBlender* PropertyBlender;
 
 	TArray<FPCGPoint>* OutPoints;
 };

@@ -65,6 +65,8 @@ int32 UPCGExPathfindingNavmeshSettings::GetPreferredChunkSize() const { return 3
 FName UPCGExPathfindingNavmeshSettings::GetMainInputLabel() const { return PCGExPathfinding::SourceSeedsLabel; }
 FName UPCGExPathfindingNavmeshSettings::GetMainOutputLabel() const { return PCGExGraph::OutputPathsLabel; }
 
+PCGEX_INITIALIZE_ELEMENT(PathfindingNavmesh)
+
 FPCGExPathfindingNavmeshContext::~FPCGExPathfindingNavmeshContext()
 {
 	PCGEX_TERMINATE_ASYNC
@@ -74,10 +76,6 @@ FPCGExPathfindingNavmeshContext::~FPCGExPathfindingNavmeshContext()
 
 	PCGEX_DELETE_TARRAY(PathBuffer)
 }
-
-FPCGElementPtr UPCGExPathfindingNavmeshSettings::CreateElement() const { return MakeShared<FPCGExPathfindingNavmeshElement>(); }
-
-PCGEX_INITIALIZE_CONTEXT(PathfindingNavmesh)
 
 bool FPCGExPathfindingNavmeshElement::Boot(FPCGContext* InContext) const
 {
@@ -184,7 +182,7 @@ bool FPCGExPathfindingNavmeshElement::ExecuteInternal(FPCGContext* InContext) co
 bool FSampleNavmeshTask::ExecuteTask()
 {
 	FPCGExPathfindingNavmeshContext* Context = static_cast<FPCGExPathfindingNavmeshContext*>(Manager->Context);
-	//PCGEX_ASYNC_CHECKPOINT
+	
 
 	UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(Context->World);
 
@@ -208,7 +206,7 @@ bool FSampleNavmeshTask::ExecuteTask()
 		Context->PathfindingMode == EPCGExPathfindingNavmeshMode::Regular ? EPathFindingMode::Type::Regular : EPathFindingMode::Type::Hierarchical);
 
 	if (Result.Result != ENavigationQueryResult::Type::Success) { return false; } ///
-	//PCGEX_ASYNC_CHECKPOINT
+	
 
 	const TArray<FNavPathPoint>& Points = Result.Path->GetPathPoints();
 
@@ -238,7 +236,7 @@ bool FSampleNavmeshTask::ExecuteTask()
 	}
 
 	if (PathLocations.Num() <= 2) { return false; } //
-	//PCGEX_ASYNC_CHECKPOINT
+	
 
 	const int32 NumPositions = PathLocations.Num();
 	const int32 LastPosition = NumPositions - 1;

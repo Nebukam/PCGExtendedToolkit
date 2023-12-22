@@ -14,9 +14,7 @@ UPCGExPruneEdgesSettings::UPCGExPruneEdgesSettings(
 
 PCGExData::EInit UPCGExPruneEdgesSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
-FPCGElementPtr UPCGExPruneEdgesSettings::CreateElement() const { return MakeShared<FPCGExPruneEdgesElement>(); }
-
-PCGEX_INITIALIZE_CONTEXT(PruneEdges)
+PCGEX_INITIALIZE_ELEMENT(PruneEdges)
 
 bool FPCGExPruneEdgesElement::Boot(FPCGContext* InContext) const
 {

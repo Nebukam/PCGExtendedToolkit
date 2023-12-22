@@ -26,10 +26,9 @@ void UPCGExBuildGraphSettings::PostEditChangeProperty(FPropertyChangedEvent& Pro
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
 
-FPCGElementPtr UPCGExBuildGraphSettings::CreateElement() const { return MakeShared<FPCGExBuildGraphElement>(); }
 FName UPCGExBuildGraphSettings::GetMainInputLabel() const { return PCGEx::SourcePointsLabel; }
 
-PCGEX_INITIALIZE_CONTEXT(BuildGraph)
+PCGEX_INITIALIZE_ELEMENT(BuildGraph)
 
 bool FPCGExBuildGraphElement::Boot(FPCGContext* InContext) const
 {
@@ -121,7 +120,7 @@ bool FPCGExBuildGraphElement::ExecuteInternal(
 bool FProbeTask::ExecuteTask()
 {
 	const FPCGExBuildGraphContext* Context = Manager->GetContext<FPCGExBuildGraphContext>();
-	//PCGEX_ASYNC_CHECKPOINT
+	
 
 	const PCGEx::FPointRef Point = PCGEx::FPointRef(PointIO->GetOutPoint(TaskIndex), TaskIndex);
 
@@ -146,7 +145,7 @@ bool FProbeTask::ExecuteTask()
 	for (PCGExGraph::FSocketProbe& Probe : Probes)
 	{
 		Context->GraphSolver->ResolveProbe(Probe);
-		//PCGEX_ASYNC_CHECKPOINT
+		
 		Probe.OutputTo(Point.Index);
 		PCGEX_CLEANUP(Probe)
 	}

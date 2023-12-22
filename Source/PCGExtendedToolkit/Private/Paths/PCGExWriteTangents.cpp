@@ -20,7 +20,7 @@ void UPCGExWriteTangentsSettings::PostEditChangeProperty(FPropertyChangedEvent& 
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
 
-FPCGElementPtr UPCGExWriteTangentsSettings::CreateElement() const { return MakeShared<FPCGExWriteTangentsElement>(); }
+PCGEX_INITIALIZE_ELEMENT(WriteTangents)
 
 FPCGExWriteTangentsContext::~FPCGExWriteTangentsContext()
 {
@@ -40,7 +40,6 @@ void FPCGExWriteTangentsContext::WriteTangents()
 	PCGEX_DELETE(LeaveTangentsAccessor)
 }
 
-PCGEX_INITIALIZE_CONTEXT(WriteTangents)
 
 bool FPCGExWriteTangentsElement::Boot(FPCGContext* InContext) const
 {

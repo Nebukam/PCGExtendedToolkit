@@ -279,6 +279,9 @@ namespace PCGExGraph
 
 	const FName SourceGraphsLabel = TEXT("In");
 	const FName OutputGraphsLabel = TEXT("Out");
+	
+	const FName SourceVerticesLabel = TEXT("Vtx");
+	const FName OutputVerticesLabel = TEXT("Vtx");
 
 	const FName SourcePathsLabel = TEXT("Paths");
 	const FName OutputPathsLabel = TEXT("Paths");
@@ -294,6 +297,7 @@ namespace PCGExGraph
 	constexpr PCGExMT::AsyncState State_FindingEdgeTypes = __COUNTER__;
 
 	constexpr PCGExMT::AsyncState State_BuildNetwork = __COUNTER__;
+	constexpr PCGExMT::AsyncState State_FindingCrossings = __COUNTER__;
 	constexpr PCGExMT::AsyncState State_WritingIslands = __COUNTER__;
 	constexpr PCGExMT::AsyncState State_WaitingOnWritingIslands = __COUNTER__;
 

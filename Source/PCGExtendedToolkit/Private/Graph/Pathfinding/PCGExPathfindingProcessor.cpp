@@ -73,6 +73,8 @@ PCGExData::EInit UPCGExPathfindingProcessorSettings::GetMainOutputInitMode() con
 bool UPCGExPathfindingProcessorSettings::GetRequiresSeeds() const { return true; }
 bool UPCGExPathfindingProcessorSettings::GetRequiresGoals() const { return true; }
 
+PCGEX_INITIALIZE_CONTEXT(PathfindingProcessor)
+
 FPCGExPathfindingProcessorContext::~FPCGExPathfindingProcessorContext()
 {
 	PCGEX_TERMINATE_ASYNC
@@ -83,8 +85,6 @@ FPCGExPathfindingProcessorContext::~FPCGExPathfindingProcessorContext()
 	PCGEX_DELETE(GoalsPoints)
 	PCGEX_DELETE(OutputPaths)
 }
-
-PCGEX_INITIALIZE_CONTEXT(PathfindingProcessor)
 
 bool FPCGExPathfindingProcessorElement::Boot(FPCGContext* InContext) const
 {
