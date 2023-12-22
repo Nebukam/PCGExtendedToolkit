@@ -10,7 +10,7 @@ PCGExData::EInit UPCGExSampleSurfaceGuidedSettings::GetMainOutputInitMode() cons
 
 int32 UPCGExSampleSurfaceGuidedSettings::GetPreferredChunkSize() const { return 32; }
 
-FPCGElementPtr UPCGExSampleSurfaceGuidedSettings::CreateElement() const { return MakeShared<FPCGExSampleSurfaceGuidedElement>(); }
+PCGEX_INITIALIZE_ELEMENT(SampleSurfaceGuided)
 
 FPCGExSampleSurfaceGuidedContext::~FPCGExSampleSurfaceGuidedContext()
 {
@@ -18,8 +18,6 @@ FPCGExSampleSurfaceGuidedContext::~FPCGExSampleSurfaceGuidedContext()
 
 	PCGEX_SAMPLENEARESTTRACE_FOREACH(PCGEX_OUTPUT_DELETE)
 }
-
-PCGEX_INITIALIZE_CONTEXT(SampleSurfaceGuided)
 
 bool FPCGExSampleSurfaceGuidedElement::Boot(FPCGContext* InContext) const
 {
@@ -31,7 +29,7 @@ bool FPCGExSampleSurfaceGuidedElement::Boot(FPCGContext* InContext) const
 	PCGEX_FWD(CollisionObjectType)
 	PCGEX_FWD(CollisionProfileName)
 	PCGEX_FWD(bIgnoreSelf)
-
+	
 	PCGEX_FWD(Size)
 	PCGEX_FWD(bUseLocalSize)
 	PCGEX_FWD(bProjectFailToSize)
@@ -42,7 +40,7 @@ bool FPCGExSampleSurfaceGuidedElement::Boot(FPCGContext* InContext) const
 	PCGEX_SAMPLENEARESTTRACE_FOREACH(PCGEX_OUTPUT_FWD)
 
 	PCGEX_SAMPLENEARESTTRACE_FOREACH(PCGEX_OUTPUT_VALIDATE_NAME)
-
+	
 	return true;
 }
 
@@ -109,7 +107,7 @@ bool FPCGExSampleSurfaceGuidedElement::ExecuteInternal(FPCGContext* InContext) c
 bool FTraceTask::ExecuteTask()
 {
 	const FPCGExSampleSurfaceGuidedContext* Context = Manager->GetContext<FPCGExSampleSurfaceGuidedContext>();
-	
+
 
 	const FVector Origin = PointIO->GetInPoint(TaskIndex).Transform.GetLocation();
 
@@ -132,7 +130,6 @@ bool FTraceTask::ExecuteTask()
 		bSuccess = true;
 	};
 
-	
 
 	switch (Context->CollisionType)
 	{
@@ -157,7 +154,7 @@ bool FTraceTask::ExecuteTask()
 	default: ;
 	}
 
-	
+
 	if (Context->bProjectFailToSize)
 	{
 		PCGEX_OUTPUT_VALUE(Location, TaskIndex, End)

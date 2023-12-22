@@ -20,14 +20,13 @@ void UPCGExFuseCollinearSettings::PostEditChangeProperty(FPropertyChangedEvent& 
 
 PCGExData::EInit UPCGExFuseCollinearSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NewOutput; }
 
-FPCGElementPtr UPCGExFuseCollinearSettings::CreateElement() const { return MakeShared<FPCGExFuseCollinearElement>(); }
+PCGEX_INITIALIZE_ELEMENT(FuseCollinear)
 
 FPCGExFuseCollinearContext::~FPCGExFuseCollinearContext()
 {
 	PCGEX_TERMINATE_ASYNC
 }
 
-PCGEX_INITIALIZE_CONTEXT(FuseCollinear)
 
 bool FPCGExFuseCollinearElement::Boot(FPCGContext* InContext) const
 {

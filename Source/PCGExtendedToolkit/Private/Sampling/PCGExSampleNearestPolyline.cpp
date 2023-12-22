@@ -32,7 +32,7 @@ PCGExData::EInit UPCGExSampleNearestPolylineSettings::GetMainOutputInitMode() co
 
 int32 UPCGExSampleNearestPolylineSettings::GetPreferredChunkSize() const { return 32; }
 
-FPCGElementPtr UPCGExSampleNearestPolylineSettings::CreateElement() const { return MakeShared<FPCGExSampleNearestPolylineElement>(); }
+PCGEX_INITIALIZE_ELEMENT(SampleNearestPolyline)
 
 FPCGExSampleNearestPolylineContext::~FPCGExSampleNearestPolylineContext()
 {
@@ -43,7 +43,6 @@ FPCGExSampleNearestPolylineContext::~FPCGExSampleNearestPolylineContext()
 	PCGEX_SAMPLENEARESTPOLYLINE_FOREACH(PCGEX_OUTPUT_DELETE)
 }
 
-PCGEX_INITIALIZE_CONTEXT(SampleNearestPolyline)
 
 bool FPCGExSampleNearestPolylineElement::Boot(FPCGContext* InContext) const
 {

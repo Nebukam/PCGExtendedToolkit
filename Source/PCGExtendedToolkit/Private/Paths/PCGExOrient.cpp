@@ -20,9 +20,7 @@ void UPCGExOrientSettings::PostEditChangeProperty(FPropertyChangedEvent& Propert
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
 
-FPCGElementPtr UPCGExOrientSettings::CreateElement() const { return MakeShared<FPCGExOrientElement>(); }
-
-PCGEX_INITIALIZE_CONTEXT(Orient)
+PCGEX_INITIALIZE_ELEMENT(Orient)
 
 bool FPCGExOrientElement::Boot(FPCGContext* InContext) const
 {

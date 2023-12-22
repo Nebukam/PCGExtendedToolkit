@@ -43,18 +43,21 @@ FName UPCGExPathsToEdgeIslandsSettings::GetMainInputLabel() const { return PCGEx
 
 FName UPCGExPathsToEdgeIslandsSettings::GetMainOutputLabel() const { return PCGExGraph::OutputVerticesLabel; }
 
-FPCGElementPtr UPCGExPathsToEdgeIslandsSettings::CreateElement() const { return MakeShared<FPCGExPathsToEdgeIslandsElement>(); }
+PCGEX_INITIALIZE_ELEMENT(PathsToEdgeIslands)
 
 FPCGExPathsToEdgeIslandsContext::~FPCGExPathsToEdgeIslandsContext()
 {
 	PCGEX_TERMINATE_ASYNC
 
+	VisitedNodes.Empty();
+
+	PCGEX_DELETE(Markings)
+	PCGEX_DELETE(IslandsIO)
+
 	PCGEX_DELETE(LooseNetwork)
 	PCGEX_DELETE(Network)
+	PCGEX_DELETE(Crossings)
 }
-
-
-PCGEX_INITIALIZE_CONTEXT(PathsToEdgeIslands)
 
 bool FPCGExPathsToEdgeIslandsElement::Boot(FPCGContext* InContext) const
 {
@@ -64,6 +67,9 @@ bool FPCGExPathsToEdgeIslandsElement::Boot(FPCGContext* InContext) const
 
 	Context->LooseNetwork = new PCGExGraph::FLooseNetwork(Settings->FuseDistance);
 	Context->IOIndices.Empty();
+
+	PCGEX_FWD(bFindCrossings)
+	PCGEX_FWD(CrossingTolerance)
 
 	return true;
 }
@@ -173,6 +179,49 @@ bool FPCGExPathsToEdgeIslandsElement::ExecuteInternal(FPCGContext* InContext) co
 				}
 			}
 		}
+
+		if (Context->bFindCrossings)
+		{
+			Context->Crossings = new PCGExGraph::FCrossingsHandler(Context->Network, Context->CrossingTolerance);
+			Context->Crossings->Prepare(Context->ConsolidatedPoints->GetOut()->GetPoints());
+			Context->SetState(PCGExGraph::State_FindingCrossings);
+		}
+		else
+		{
+			Context->SetState(PCGExGraph::State_WritingIslands);
+		}
+	}
+
+	if (Context->IsState(PCGExGraph::State_FindingCrossings))
+	{
+		auto Initialize = [&]()
+		{
+			Context->Crossings->Prepare(Context->ConsolidatedPoints->GetOut()->GetPoints());
+		};
+
+		auto ProcessEdge = [&](const int32 Index)
+		{
+			Context->Crossings->ProcessEdge(Index, Context->ConsolidatedPoints->GetOut()->GetPoints());
+		};
+		
+		if (Context->Process(Initialize, ProcessEdge, Context->Network->Edges.Num()))
+		{
+			Context->Crossings->InsertCrossings();
+			
+			TArray<FPCGPoint>& MutablePoints = Context->ConsolidatedPoints->GetOut()->GetMutablePoints();
+			MutablePoints.Reserve(MutablePoints.Num() + Context->Crossings->Crossings.Num());
+
+			for (const PCGExGraph::FCrossing& Crossing : Context->Crossings->Crossings)
+			{
+				MutablePoints.Emplace_GetRef().Transform.SetLocation(Crossing.Center);
+			}
+			
+			Context->SetState(PCGExGraph::State_WritingIslands);
+		}
+	}
+
+	if (Context->IsState(PCGExGraph::State_WritingIslands))
+	{
 		Context->VisitedNodes.Empty();
 
 		Context->IslandsIO->Flush();

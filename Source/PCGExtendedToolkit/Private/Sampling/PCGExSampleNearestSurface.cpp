@@ -10,7 +10,7 @@ PCGExData::EInit UPCGExSampleNearestSurfaceSettings::GetMainOutputInitMode() con
 
 int32 UPCGExSampleNearestSurfaceSettings::GetPreferredChunkSize() const { return 32; }
 
-FPCGElementPtr UPCGExSampleNearestSurfaceSettings::CreateElement() const { return MakeShared<FPCGExSampleNearestSurfaceElement>(); }
+PCGEX_INITIALIZE_ELEMENT(SampleNearestSurface)
 
 FPCGExSampleNearestSurfaceContext::~FPCGExSampleNearestSurfaceContext()
 {
@@ -18,8 +18,6 @@ FPCGExSampleNearestSurfaceContext::~FPCGExSampleNearestSurfaceContext()
 
 	PCGEX_SAMPLENEARESTSURFACE_FOREACH(PCGEX_OUTPUT_DELETE)
 }
-
-PCGEX_INITIALIZE_CONTEXT(SampleNearestSurface)
 
 bool FPCGExSampleNearestSurfaceElement::Boot(FPCGContext* InContext) const
 {
@@ -105,7 +103,7 @@ bool FPCGExSampleNearestSurfaceElement::ExecuteInternal(FPCGContext* InContext) 
 bool FSweepSphereTask::ExecuteTask()
 {
 	const FPCGExSampleNearestSurfaceContext* Context = Manager->GetContext<FPCGExSampleNearestSurfaceContext>();
-	
+
 
 	const FVector Origin = PointIO->GetInPoint(TaskIndex).Transform.GetLocation();
 
@@ -152,7 +150,6 @@ bool FSweepSphereTask::ExecuteTask()
 		}
 	};
 
-	
 
 	switch (Context->CollisionType)
 	{
@@ -177,7 +174,7 @@ bool FSweepSphereTask::ExecuteTask()
 	default: ;
 	}
 
-	
+
 	PCGEX_OUTPUT_VALUE(Success, TaskIndex, bSuccess)
 	return bSuccess;
 }

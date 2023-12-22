@@ -13,6 +13,7 @@
 
 namespace PCGExGraph
 {
+	struct FCrossingsHandler;
 	struct FNetwork;
 
 	struct PCGEXTENDEDTOOLKIT_API FLooseNode
@@ -109,6 +110,16 @@ public:
 	/** Distance at which points are fused */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	double FuseDistance = 10;
+
+	/** If two edges are close enough, create a "crossing" point. !!! VERY EXPENSIVE !!! */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bFindCrossings = false;
+
+	/** Distance at which segments are considered crossing. !!! VERY EXPENSIVE !!!*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bFindCrossings"))
+	double CrossingTolerance = 10;
+	
+	
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExPathsToEdgeIslandsContext : public FPCGExPathProcessorContext
@@ -117,12 +128,16 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathsToEdgeIslandsContext : public FPCGExPat
 
 	virtual ~FPCGExPathsToEdgeIslandsContext() override;
 
+	bool bFindCrossings;
+	double CrossingTolerance;
+	
 	PCGExGraph::FLooseNetwork* LooseNetwork;
 	TMap<PCGExData::FPointIO*, int32> IOIndices;
 
 	mutable FRWLock NetworkLock;
 	TSet<int32> VisitedNodes;
 	PCGExGraph::FNetwork* Network = nullptr;
+	PCGExGraph::FCrossingsHandler* Crossings = nullptr;
 	PCGExData::FPointIOGroup* IslandsIO;
 
 	PCGExData::FKPointIOMarkedBindings<int32>* Markings = nullptr;

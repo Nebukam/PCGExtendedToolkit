@@ -15,11 +15,9 @@ TArray<FPCGPinProperties> UPCGExDeleteGraphSettings::OutputPinProperties() const
 	return PinProperties;
 }
 
-FPCGElementPtr UPCGExDeleteGraphSettings::CreateElement() const { return MakeShared<FPCGExDeleteGraphElement>(); }
-
 PCGExData::EInit UPCGExDeleteGraphSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
-PCGEX_INITIALIZE_CONTEXT(DeleteGraph)
+PCGEX_INITIALIZE_ELEMENT(DeleteGraph)
 
 bool FPCGExDeleteGraphElement::ExecuteInternal(
 	FPCGContext* InContext) const

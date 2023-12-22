@@ -26,10 +26,9 @@ void UPCGExBuildGraphSettings::PostEditChangeProperty(FPropertyChangedEvent& Pro
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
 
-FPCGElementPtr UPCGExBuildGraphSettings::CreateElement() const { return MakeShared<FPCGExBuildGraphElement>(); }
 FName UPCGExBuildGraphSettings::GetMainInputLabel() const { return PCGEx::SourcePointsLabel; }
 
-PCGEX_INITIALIZE_CONTEXT(BuildGraph)
+PCGEX_INITIALIZE_ELEMENT(BuildGraph)
 
 bool FPCGExBuildGraphElement::Boot(FPCGContext* InContext) const
 {

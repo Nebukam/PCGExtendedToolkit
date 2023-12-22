@@ -29,9 +29,7 @@ void UPCGExFusePointsSettings::PostEditChangeProperty(FPropertyChangedEvent& Pro
 }
 #endif
 
-FPCGElementPtr UPCGExFusePointsSettings::CreateElement() const { return MakeShared<FPCGExFusePointsElement>(); }
-
-PCGEX_INITIALIZE_CONTEXT(FusePoints)
+PCGEX_INITIALIZE_ELEMENT(FusePoints)
 
 bool FPCGExFusePointsElement::Boot(FPCGContext* InContext) const
 {

@@ -33,9 +33,7 @@ void UPCGExPointsToBoundsSettings::PostEditChangeProperty(FPropertyChangedEvent&
 }
 #endif
 
-FPCGElementPtr UPCGExPointsToBoundsSettings::CreateElement() const { return MakeShared<FPCGExPointsToBoundsElement>(); }
-
-PCGEX_INITIALIZE_CONTEXT(PointsToBounds)
+PCGEX_INITIALIZE_ELEMENT(PointsToBounds)
 
 bool FPCGExPointsToBoundsElement::Boot(FPCGContext* InContext) const
 {

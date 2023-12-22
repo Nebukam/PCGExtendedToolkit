@@ -32,7 +32,7 @@ PCGExData::EInit UPCGExSampleNearestPointSettings::GetMainOutputInitMode() const
 
 int32 UPCGExSampleNearestPointSettings::GetPreferredChunkSize() const { return 32; }
 
-FPCGElementPtr UPCGExSampleNearestPointSettings::CreateElement() const { return MakeShared<FPCGExSampleNearestPointElement>(); }
+PCGEX_INITIALIZE_ELEMENT(SampleNearestPoint)
 
 FPCGExSampleNearestPointContext::~FPCGExSampleNearestPointContext()
 {
@@ -46,8 +46,6 @@ FPCGExSampleNearestPointContext::~FPCGExSampleNearestPointContext()
 
 	PCGEX_SAMPLENEARESTPOINT_FOREACH(PCGEX_OUTPUT_DELETE)
 }
-
-PCGEX_INITIALIZE_CONTEXT(SampleNearestPoint)
 
 bool FPCGExSampleNearestPointElement::Boot(FPCGContext* InContext) const
 {

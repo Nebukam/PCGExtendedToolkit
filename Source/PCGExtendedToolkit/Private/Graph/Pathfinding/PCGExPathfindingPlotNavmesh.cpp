@@ -44,6 +44,8 @@ int32 UPCGExPathfindingPlotNavmeshSettings::GetPreferredChunkSize() const { retu
 FName UPCGExPathfindingPlotNavmeshSettings::GetMainInputLabel() const { return PCGExPathfinding::SourcePlotsLabel; }
 FName UPCGExPathfindingPlotNavmeshSettings::GetMainOutputLabel() const { return PCGExGraph::OutputPathsLabel; }
 
+PCGEX_INITIALIZE_ELEMENT(PathfindingPlotNavmesh)
+
 FPCGExPathfindingPlotNavmeshContext::~FPCGExPathfindingPlotNavmeshContext()
 {
 	PCGEX_TERMINATE_ASYNC
@@ -51,9 +53,6 @@ FPCGExPathfindingPlotNavmeshContext::~FPCGExPathfindingPlotNavmeshContext()
 	PCGEX_DELETE(OutputPaths)
 }
 
-FPCGElementPtr UPCGExPathfindingPlotNavmeshSettings::CreateElement() const { return MakeShared<FPCGExPathfindingPlotNavmeshElement>(); }
-
-PCGEX_INITIALIZE_CONTEXT(PathfindingPlotNavmesh)
 
 bool FPCGExPathfindingPlotNavmeshElement::Boot(FPCGContext* InContext) const
 {

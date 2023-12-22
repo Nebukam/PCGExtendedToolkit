@@ -9,11 +9,6 @@
 
 PCGExData::EInit UPCGExDrawGraphSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 
-FPCGElementPtr UPCGExDrawGraphSettings::CreateElement() const
-{
-	return MakeShared<FPCGExDrawGraphElement>();
-}
-
 UPCGExDrawGraphSettings::UPCGExDrawGraphSettings(
 	const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -36,7 +31,7 @@ void UPCGExDrawGraphSettings::PostEditChangeProperty(FPropertyChangedEvent& Prop
 }
 #endif
 
-PCGEX_INITIALIZE_CONTEXT(DrawGraph)
+PCGEX_INITIALIZE_ELEMENT(DrawGraph)
 
 bool FPCGExDrawGraphElement::Boot(FPCGContext* InContext) const
 {

@@ -47,7 +47,7 @@ TArray<FPCGPinProperties> UPCGExPathfindingPlotEdgesSettings::OutputPinPropertie
 	return PinProperties;
 }
 
-FPCGElementPtr UPCGExPathfindingPlotEdgesSettings::CreateElement() const { return MakeShared<FPCGExPathfindingPlotEdgesElement>(); }
+PCGEX_INITIALIZE_ELEMENT(PathfindingPlotEdges)
 
 FPCGExPathfindingPlotEdgesContext::~FPCGExPathfindingPlotEdgesContext()
 {
@@ -59,7 +59,6 @@ FPCGExPathfindingPlotEdgesContext::~FPCGExPathfindingPlotEdgesContext()
 	PCGEX_DELETE(OutputPaths)
 }
 
-PCGEX_INITIALIZE_CONTEXT(PathfindingPlotEdges)
 
 bool FPCGExPathfindingPlotEdgesElement::Boot(FPCGContext* InContext) const
 {

@@ -182,9 +182,7 @@ void UPCGExDrawAttributesSettings::PostEditChangeProperty(FPropertyChangedEvent&
 }
 #endif
 
-FPCGElementPtr UPCGExDrawAttributesSettings::CreateElement() const { return MakeShared<FPCGExDrawAttributesElement>(); }
-
-PCGEX_INITIALIZE_CONTEXT(DrawAttributes)
+PCGEX_INITIALIZE_ELEMENT(DrawAttributes)
 
 bool FPCGExDrawAttributesElement::Boot(FPCGContext* InContext) const
 {

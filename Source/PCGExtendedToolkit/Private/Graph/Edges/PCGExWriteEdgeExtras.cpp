@@ -18,7 +18,7 @@ UPCGExWriteEdgeExtrasSettings::UPCGExWriteEdgeExtrasSettings(
 
 PCGExData::EInit UPCGExWriteEdgeExtrasSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
-FPCGElementPtr UPCGExWriteEdgeExtrasSettings::CreateElement() const { return MakeShared<FPCGExWriteEdgeExtrasElement>(); }
+PCGEX_INITIALIZE_ELEMENT(WriteEdgeExtras)
 
 FPCGExWriteEdgeExtrasContext::~FPCGExWriteEdgeExtrasContext()
 {
@@ -29,7 +29,6 @@ FPCGExWriteEdgeExtrasContext::~FPCGExWriteEdgeExtrasContext()
 	PCGEX_DELETE(MetadataBlender)
 }
 
-PCGEX_INITIALIZE_CONTEXT(WriteEdgeExtras)
 
 bool FPCGExWriteEdgeExtrasElement::Boot(FPCGContext* InContext) const
 {

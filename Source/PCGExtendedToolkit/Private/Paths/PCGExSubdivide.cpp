@@ -22,15 +22,13 @@ void UPCGExSubdivideSettings::PostEditChangeProperty(FPropertyChangedEvent& Prop
 
 PCGExData::EInit UPCGExSubdivideSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NewOutput; }
 
-FPCGElementPtr UPCGExSubdivideSettings::CreateElement() const { return MakeShared<FPCGExSubdivideElement>(); }
+PCGEX_INITIALIZE_ELEMENT(Subdivide)
 
 FPCGExSubdivideContext::~FPCGExSubdivideContext()
 {
 	Milestones.Empty();
 	MilestonesMetrics.Empty();
 }
-
-PCGEX_INITIALIZE_CONTEXT(Subdivide)
 
 bool FPCGExSubdivideElement::Boot(FPCGContext* InContext) const
 {
