@@ -62,10 +62,9 @@ public:
 	virtual void Write() override;
 	virtual void Cleanup() override;
 
-	PCGExDataBlending::FMetadataBlender* CreateBlender(PCGExData::FPointIO& InPrimaryIO, const PCGExData::FPointIO& InSecondaryIO, bool bSecondaryIn = true);
+	virtual PCGExDataBlending::FMetadataBlender* CreateBlender(PCGExData::FPointIO& InPrimaryIO, const PCGExData::FPointIO& InSecondaryIO, bool bSecondaryIn = true);
 
 protected:
 	virtual EPCGExDataBlendingType GetDefaultBlending();
 	PCGExDataBlending::FMetadataBlender* InternalBlender;
-	PCGExDataBlending::FPropertiesBlender PropertiesBlender;
 };

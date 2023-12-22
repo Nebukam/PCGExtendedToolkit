@@ -13,7 +13,6 @@ void UPCGExSubPointsBlendInheritEnd::BlendSubPoints(
 	const PCGExDataBlending::FMetadataBlender* InBlender) const
 {
 	const int32 NumPoints = SubPoints.Num();
-	PCGExDataBlending::FPropertiesBlender LocalPropertiesBlender = PCGExDataBlending::FPropertiesBlender(PropertiesBlender);
 
 	TArray<double> Alphas;
 	TArray<FVector> Locations;
@@ -27,8 +26,7 @@ void UPCGExSubPointsBlendInheritEnd::BlendSubPoints(
 		Alphas.Add(1);
 	}
 
-	LocalPropertiesBlender.BlendRangeOnce(*StartPoint.Point, *EndPoint.Point, SubPoints, Alphas);
-	InBlender->BlendRangeOnce(StartPoint.Index, EndPoint.Index, StartPoint.Index, NumPoints, Alphas);
+	InBlender->BlendRangeOnce(StartPoint, EndPoint, StartPoint.Index, NumPoints, Alphas);
 
 	// Restore pre-blend position
 	for (int i = 0; i < NumPoints; i++) { SubPoints[i].Transform.SetLocation(Locations[i]); }

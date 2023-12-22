@@ -28,6 +28,7 @@ namespace PCGExGraph
 
 		int32 Index = -1;
 		int32 Island = -1;
+		bool bCrossing = false;
 		TArray<int32> Edges;
 
 		bool IsIsolated() const { return Island == -1; }
@@ -49,6 +50,17 @@ namespace PCGExGraph
 		{
 			Edges.AddUnique(Edge);
 		}
+	};
+
+	struct FCrossing
+	{
+		FCrossing()
+		{
+		}
+
+		int32 EdgeA = -1;
+		int32 EdgeB = -1;
+		FVector Center;
 	};
 
 	struct FNetwork
@@ -152,6 +164,7 @@ namespace PCGExGraph
 
 			for (const FUnsignedEdge& Edge : Edges)
 			{
+				if (!Edge.bValid) { continue; } // Crossing may invalidate edges.
 				FNode& NodeA = Nodes[Edge.Start];
 				if (const int32* SizePtr = IslandSizes.Find(NodeA.Island); !SizePtr) { IslandSizes.Add(NodeA.Island, 1); }
 				else { IslandSizes.Add(NodeA.Island, *SizePtr + 1); }
@@ -163,19 +176,107 @@ namespace PCGExGraph
 				else { Pair.Value = -1; }
 			}
 		}
+	};
 
-		void ProcessNode(int32 PointIndex, TSet<int32>& VisitedNodes, TArray<FSocketInfos>& SocketInfos, const int32 EdgeType)
+	struct FCrossingsHandler
+	{
+		mutable FRWLock CrossingLock;
+
+		FNetwork* Network;
+		double Tolerance;
+		double SquaredTolerance;
+
+		TArray<FBox> SegmentBounds;
+		TArray<FCrossing> Crossings;
+
+		int32 NumEdges;
+		int32 StartIndex = 0;
+
+		FCrossingsHandler(FNetwork* InNetwork, double InTolerance)
+			: Network(InNetwork),
+			  Tolerance(InTolerance),
+			  SquaredTolerance(InTolerance * InTolerance)
 		{
-			if (VisitedNodes.Contains(PointIndex)) { return; }
+			NumEdges = InNetwork->Edges.Num();
 
-			VisitedNodes.Add(PointIndex);
+			Crossings.Empty();
 
-			for (const FSocketInfos& SocketInfo : SocketInfos)
+			SegmentBounds.Empty();
+			SegmentBounds.Reserve(NumEdges);
+		}
+
+		~FCrossingsHandler()
+		{
+			SegmentBounds.Empty();
+			Crossings.Empty();
+			Network = nullptr;
+		}
+
+		void Prepare(const TArray<FPCGPoint>& InPoints)
+		{
+			for (int i = 0; i < NumEdges; i++)
 			{
-				const int32 End = SocketInfo.Socket->GetTargetIndexReader().Values[PointIndex];
-				if (End == -1 || (SocketInfo.Socket->GetEdgeTypeReader().Values[PointIndex] & EdgeType) == 0) { continue; }
-				InsertEdge(FUnsignedEdge(PointIndex, End, EPCGExEdgeType::Complete));
-				ProcessNode(End, VisitedNodes, SocketInfos, EdgeType);
+				const FUnsignedEdge& Edge = Network->Edges[i];
+				FBox& NewBox = SegmentBounds.Emplace_GetRef(ForceInit);
+				NewBox += InPoints[Edge.Start].Transform.GetLocation();
+				NewBox += InPoints[Edge.End].Transform.GetLocation();
+			}
+		}
+
+		void ProcessEdge(int32 EdgeIndex, const TArray<FPCGPoint>& InPoints)
+		{
+			TArray<FUnsignedEdge>& Edges = Network->Edges;
+
+			const FUnsignedEdge& Edge = Edges[EdgeIndex];
+			const FBox CurrentBox = SegmentBounds[EdgeIndex].ExpandBy(Tolerance);
+			const FVector A1 = InPoints[Edge.Start].Transform.GetLocation();
+			const FVector B1 = InPoints[Edge.End].Transform.GetLocation();
+
+			for (int i = 0; i < NumEdges; i++)
+			{
+				if (CurrentBox.Intersect(SegmentBounds[i]))
+				{
+					const FUnsignedEdge& OtherEdge = Edges[i];
+					FVector A2 = InPoints[OtherEdge.Start].Transform.GetLocation();
+					FVector B2 = InPoints[OtherEdge.End].Transform.GetLocation();
+					FVector A3;
+					FVector B3;
+					FMath::SegmentDistToSegment(A1, B1, A2, B2, A3, B3);
+					const bool bIsEnd = A1 == A3 || B1 == A3 || A2 == A3 || B2 == A3 || A1 == B3 || B1 == B3 || A2 == B3 || B2 == B3;
+					if (!bIsEnd && FVector::DistSquared(A3, B3) < SquaredTolerance)
+					{
+						FWriteScopeLock WriteLock(CrossingLock);
+						FCrossing& Crossing = Crossings.Emplace_GetRef();
+						Crossing.EdgeA = EdgeIndex;
+						Crossing.EdgeB = i;
+						Crossing.Center = FMath::Lerp(A3, B3, 0.5);
+					}
+				}
+			}
+		}
+
+		void InsertCrossings()
+		{
+			TArray<FNode>& Nodes = Network->Nodes;
+			TArray<FUnsignedEdge>& Edges = Network->Edges;
+
+			Nodes.Reserve(Nodes.Num() + Crossings.Num());
+			StartIndex = Nodes.Num();
+			int32 Index = StartIndex;
+			for (const FCrossing& Crossing : Crossings)
+			{
+				Edges[Crossing.EdgeA].bValid = false;
+				Edges[Crossing.EdgeB].bValid = false;
+
+				FNode& NewNode = Nodes.Emplace_GetRef();
+				NewNode.Index = Index++;
+				NewNode.Edges.Reserve(4);
+				NewNode.bCrossing = true;
+
+				Network->InsertEdge(FUnsignedEdge(NewNode.Index, Edges[Crossing.EdgeA].Start, EPCGExEdgeType::Complete));
+				Network->InsertEdge(FUnsignedEdge(NewNode.Index, Edges[Crossing.EdgeA].End, EPCGExEdgeType::Complete));
+				Network->InsertEdge(FUnsignedEdge(NewNode.Index, Edges[Crossing.EdgeB].Start, EPCGExEdgeType::Complete));
+				Network->InsertEdge(FUnsignedEdge(NewNode.Index, Edges[Crossing.EdgeB].End, EPCGExEdgeType::Complete));
 			}
 		}
 	};
@@ -196,6 +297,7 @@ public:
 #endif
 
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
+	virtual FName GetMainOutputLabel() const override;
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
@@ -233,11 +335,19 @@ public:
 	/** Maximum points threshold */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bRemoveBigIslands"))
 	int32 MaxIslandSize = 500;
-		
+
+	/** If two edges are close enough, create a "crossing" point. !!! VERY EXPENSIVE !!! */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bFindCrossings = false;
+
+	/** Distance at which segments are considered crossing. !!! VERY EXPENSIVE !!! */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bFindCrossings"))
+	double CrossingTolerance = 10;
+
 	/** Edges will inherit point attributes -- NOT IMPLEMENTED*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bInheritAttributes = false;
-	
+
 	/** Name of the attribute to ouput the unique Island identifier to. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FName IslandIDAttributeName = "IslandID";
@@ -264,10 +374,13 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFindEdgeIslandsContext : public FPCGExGraphP
 	//bool bOutputIndividualIslands;
 	bool bPruneIsolatedPoints;
 	bool bInheritAttributes;
-	
+
 	int32 MinIslandSize;
 	int32 MaxIslandSize;
-	
+
+	bool bFindCrossings;
+	double CrossingTolerance;
+
 	int32 IslandUIndex = 0;
 
 	TMap<int32, int32> IndexRemap;
@@ -278,6 +391,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFindEdgeIslandsContext : public FPCGExGraphP
 
 	mutable FRWLock NetworkLock;
 	PCGExGraph::FNetwork* Network = nullptr;
+	PCGExGraph::FCrossingsHandler* Crossings = nullptr;
 	PCGExData::FPointIOGroup* IslandsIO;
 
 	PCGExData::FKPointIOMarkedBindings<int32>* Markings = nullptr;
@@ -285,8 +399,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFindEdgeIslandsContext : public FPCGExGraphP
 	EPCGExRoamingResolveMethod ResolveRoamingMethod;
 
 	FPCGMetadataAttribute<int64>* InCachedIndex;
-
-	void CenterEdgePoint(FPCGPoint& Point, PCGExGraph::FUnsignedEdge Edge) const;
 };
 
 
@@ -307,13 +419,15 @@ class PCGEXTENDEDTOOLKIT_API FWriteIslandTask : public FPCGExNonAbandonableTask
 {
 public:
 	FWriteIslandTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-	                 PCGExData::FPointIO* InIslandData) :
+	                 PCGExData::FPointIO* InIslandIO, PCGExGraph::FNetwork* InNetwork, TMap<int32, int32>* InIndexRemap = nullptr) :
 		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
-		IslandData(InIslandData)
+		IslandIO(InIslandIO), Network(InNetwork), IndexRemap(InIndexRemap)
 	{
 	}
 
-	PCGExData::FPointIO* IslandData;
+	PCGExData::FPointIO* IslandIO = nullptr;
+	PCGExGraph::FNetwork* Network = nullptr;
+	TMap<int32, int32>* IndexRemap = nullptr;
 
 	virtual bool ExecuteTask() override;
 };
