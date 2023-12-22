@@ -154,7 +154,7 @@ bool FPCGExPathfindingPlotEdgesElement::ExecuteInternal(FPCGContext* InContext) 
 bool FPlotMeshPathTask::ExecuteTask()
 {
 	FPCGExPathfindingPlotEdgesContext* Context = Manager->GetContext<FPCGExPathfindingPlotEdgesContext>();
-	//PCGEX_ASYNC_CHECKPOINT
+
 
 	const PCGExMesh::FMesh* Mesh = Context->CurrentMesh;
 	TArray<int32> Path;

@@ -279,6 +279,9 @@ namespace PCGExGraph
 
 	const FName SourceGraphsLabel = TEXT("In");
 	const FName OutputGraphsLabel = TEXT("Out");
+	
+	const FName SourceVerticesLabel = TEXT("Vtx");
+	const FName OutputVerticesLabel = TEXT("Vtx");
 
 	const FName SourcePathsLabel = TEXT("Paths");
 	const FName OutputPathsLabel = TEXT("Paths");

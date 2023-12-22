@@ -131,7 +131,7 @@ bool FPCGExPathfindingPlotNavmeshElement::ExecuteInternal(FPCGContext* InContext
 bool FPlotNavmeshTask::ExecuteTask()
 {
 	FPCGExPathfindingPlotNavmeshContext* Context = static_cast<FPCGExPathfindingPlotNavmeshContext*>(Manager->Context);
-	//PCGEX_ASYNC_CHECKPOINT
+	
 
 	UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(Context->World);
 
@@ -226,7 +226,7 @@ bool FPlotNavmeshTask::ExecuteTask()
 	}
 
 	if (PathLocations.Num() <= PointIO->GetNum()) { return false; } //
-	//PCGEX_ASYNC_CHECKPOINT
+	
 
 	const int32 NumPositions = PathLocations.Num();
 

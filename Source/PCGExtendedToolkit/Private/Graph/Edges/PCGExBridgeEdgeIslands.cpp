@@ -157,7 +157,7 @@ bool FPCGExBridgeEdgeIslandsElement::ExecuteInternal(
 bool FBridgeMeshesTask::ExecuteTask()
 {
 	FPCGExBridgeEdgeIslandsContext* Context = Manager->GetContext<FPCGExBridgeEdgeIslandsContext>();
-	//PCGEX_ASYNC_CHECKPOINT
+	
 
 	const TArray<PCGExMesh::FVertex>& CurrentMeshVertices = Context->Meshes[TaskIndex]->Vertices;
 	const TArray<PCGExMesh::FVertex>& OtherMeshVertices = Context->Meshes[OtherMeshIndex]->Vertices;

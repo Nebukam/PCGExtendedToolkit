@@ -105,7 +105,7 @@ bool FPCGExSampleNearestSurfaceElement::ExecuteInternal(FPCGContext* InContext) 
 bool FSweepSphereTask::ExecuteTask()
 {
 	const FPCGExSampleNearestSurfaceContext* Context = Manager->GetContext<FPCGExSampleNearestSurfaceContext>();
-	//PCGEX_ASYNC_CHECKPOINT
+	
 
 	const FVector Origin = PointIO->GetInPoint(TaskIndex).Transform.GetLocation();
 
@@ -152,7 +152,7 @@ bool FSweepSphereTask::ExecuteTask()
 		}
 	};
 
-	//PCGEX_ASYNC_CHECKPOINT
+	
 
 	switch (Context->CollisionType)
 	{
@@ -177,7 +177,7 @@ bool FSweepSphereTask::ExecuteTask()
 	default: ;
 	}
 
-	//PCGEX_ASYNC_CHECKPOINT
+	
 	PCGEX_OUTPUT_VALUE(Success, TaskIndex, bSuccess)
 	return bSuccess;
 }

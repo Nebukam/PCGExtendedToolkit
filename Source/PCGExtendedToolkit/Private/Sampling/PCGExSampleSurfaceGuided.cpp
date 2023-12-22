@@ -109,7 +109,7 @@ bool FPCGExSampleSurfaceGuidedElement::ExecuteInternal(FPCGContext* InContext) c
 bool FTraceTask::ExecuteTask()
 {
 	const FPCGExSampleSurfaceGuidedContext* Context = Manager->GetContext<FPCGExSampleSurfaceGuidedContext>();
-	//PCGEX_ASYNC_CHECKPOINT
+	
 
 	const FVector Origin = PointIO->GetInPoint(TaskIndex).Transform.GetLocation();
 
@@ -132,7 +132,7 @@ bool FTraceTask::ExecuteTask()
 		bSuccess = true;
 	};
 
-	//PCGEX_ASYNC_CHECKPOINT
+	
 
 	switch (Context->CollisionType)
 	{
@@ -157,7 +157,7 @@ bool FTraceTask::ExecuteTask()
 	default: ;
 	}
 
-	//PCGEX_ASYNC_CHECKPOINT
+	
 	if (Context->bProjectFailToSize)
 	{
 		PCGEX_OUTPUT_VALUE(Location, TaskIndex, End)

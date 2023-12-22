@@ -142,7 +142,7 @@ bool FPCGExPathfindingEdgesElement::ExecuteInternal(FPCGContext* InContext) cons
 bool FSampleMeshPathTask::ExecuteTask()
 {
 	FPCGExPathfindingEdgesContext* Context = Manager->GetContext<FPCGExPathfindingEdgesContext>();
-	//PCGEX_ASYNC_CHECKPOINT
+	
 
 	const FPCGPoint& Seed = Context->SeedsPoints->GetInPoint(Query->SeedIndex);
 	const FPCGPoint& Goal = Context->GoalsPoints->GetInPoint(Query->GoalIndex);

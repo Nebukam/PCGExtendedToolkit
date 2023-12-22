@@ -39,7 +39,7 @@ namespace PCGExData
 	template <typename T>
 	static bool TryReadMark(const FPointIO& PointIO, const FName MarkID, T& OutMark)
 	{
-		return TryReadMark(PointIO.GetIn()->Metadata, MarkID, OutMark);
+		return TryReadMark(PointIO.GetIn() ? PointIO.GetIn()->Metadata : PointIO.GetOut()->Metadata, MarkID, OutMark);
 	}
 
 	template <typename T>

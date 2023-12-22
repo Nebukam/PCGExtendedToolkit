@@ -163,21 +163,6 @@ namespace PCGExGraph
 				else { Pair.Value = -1; }
 			}
 		}
-
-		void ProcessNode(int32 PointIndex, TSet<int32>& VisitedNodes, TArray<FSocketInfos>& SocketInfos, const int32 EdgeType)
-		{
-			if (VisitedNodes.Contains(PointIndex)) { return; }
-
-			VisitedNodes.Add(PointIndex);
-
-			for (const FSocketInfos& SocketInfo : SocketInfos)
-			{
-				const int32 End = SocketInfo.Socket->GetTargetIndexReader().Values[PointIndex];
-				if (End == -1 || (SocketInfo.Socket->GetEdgeTypeReader().Values[PointIndex] & EdgeType) == 0) { continue; }
-				InsertEdge(FUnsignedEdge(PointIndex, End, EPCGExEdgeType::Complete));
-				ProcessNode(End, VisitedNodes, SocketInfos, EdgeType);
-			}
-		}
 	};
 }
 
@@ -196,6 +181,7 @@ public:
 #endif
 
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
+	virtual FName GetMainOutputLabel() const override;
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
@@ -233,11 +219,11 @@ public:
 	/** Maximum points threshold */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bRemoveBigIslands"))
 	int32 MaxIslandSize = 500;
-		
+
 	/** Edges will inherit point attributes -- NOT IMPLEMENTED*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bInheritAttributes = false;
-	
+
 	/** Name of the attribute to ouput the unique Island identifier to. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FName IslandIDAttributeName = "IslandID";
@@ -264,10 +250,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFindEdgeIslandsContext : public FPCGExGraphP
 	//bool bOutputIndividualIslands;
 	bool bPruneIsolatedPoints;
 	bool bInheritAttributes;
-	
+
 	int32 MinIslandSize;
 	int32 MaxIslandSize;
-	
+
 	int32 IslandUIndex = 0;
 
 	TMap<int32, int32> IndexRemap;
@@ -285,8 +271,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFindEdgeIslandsContext : public FPCGExGraphP
 	EPCGExRoamingResolveMethod ResolveRoamingMethod;
 
 	FPCGMetadataAttribute<int64>* InCachedIndex;
-
-	void CenterEdgePoint(FPCGPoint& Point, PCGExGraph::FUnsignedEdge Edge) const;
 };
 
 
@@ -307,13 +291,15 @@ class PCGEXTENDEDTOOLKIT_API FWriteIslandTask : public FPCGExNonAbandonableTask
 {
 public:
 	FWriteIslandTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-	                 PCGExData::FPointIO* InIslandData) :
+	                 PCGExData::FPointIO* InIslandIO, PCGExGraph::FNetwork* InNetwork, TMap<int32, int32>* InIndexRemap = nullptr) :
 		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
-		IslandData(InIslandData)
+		IslandIO(InIslandIO), Network(InNetwork), IndexRemap(InIndexRemap)
 	{
 	}
 
-	PCGExData::FPointIO* IslandData;
+	PCGExData::FPointIO* IslandIO = nullptr;
+	PCGExGraph::FNetwork* Network = nullptr;
+	TMap<int32, int32>* IndexRemap = nullptr;
 
 	virtual bool ExecuteTask() override;
 };
