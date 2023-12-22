@@ -162,7 +162,7 @@ namespace PCGExDataBlending
 		virtual void FinalizeRangeOperation(const int32 StartIndex, const int32 Count, const TArrayView<double>& Alphas) const = 0;
 
 		virtual void FullBlendToOne(const TArrayView<double>& Alphas) const;
-		
+
 		virtual void ResetToDefault(int32 WriteIndex) const;
 		virtual void ResetRangeToDefault(int32 StartIndex, int32 Count) const;
 
@@ -176,25 +176,38 @@ namespace PCGExDataBlending
 	template <typename T>
 	class PCGEXTENDEDTOOLKIT_API FDataBlendingOperation : public FDataBlendingOperationBase
 	{
-	public:
-		virtual ~FDataBlendingOperation() override
+	protected:
+		void Cleanup()
 		{
+			if (Reader == Writer) { Reader = nullptr; }
 			PCGEX_DELETE(Writer)
 			PCGEX_DELETE(Reader)
 		}
 
+	public:
+		virtual ~FDataBlendingOperation() override
+		{
+			Cleanup();
+		}
+
 		virtual void PrepareForData(PCGExData::FPointIO& InPrimaryData, const PCGExData::FPointIO& InSecondaryData, bool bSecondaryIn) override
 		{
-			PCGEX_DELETE(Writer)
-			PCGEX_DELETE(Reader)
-
+			Cleanup();
 			Writer = new PCGEx::TFAttributeWriter<T>(AttributeName);
 			Writer->BindAndGet(InPrimaryData);
 
-			//TODO: Reuse writer if Secondary is either null or == Primary
-			Reader = new PCGEx::TFAttributeReader<T>(AttributeName);
-			Reader->Bind(const_cast<PCGExData::FPointIO&>(InSecondaryData));
-			
+			if (&InPrimaryData == &InSecondaryData && !bSecondaryIn)
+			{
+				Reader = Writer;
+			}
+			else
+			{
+				Reader = new PCGEx::TFAttributeReader<T>(AttributeName);
+				Reader->Bind(const_cast<PCGExData::FPointIO&>(InSecondaryData));
+			}
+
+			bInterpolationAllowed = Writer->GetAllowsInterpolation() && Reader->GetAllowsInterpolation();
+
 			FDataBlendingOperationBase::PrepareForData(InPrimaryData, InSecondaryData);
 		}
 
@@ -244,7 +257,7 @@ namespace PCGExDataBlending
 		virtual void FinalizeValuesRangeOperation(TArrayView<T>& Values, const TArrayView<double>& Alphas) const
 		{
 			if (!bInterpolationAllowed) { return; }
-			for (int i = 0; i < Values.Num(); i++) {  SingleFinalize(Values[i], Alphas[i]); }
+			for (int i = 0; i < Values.Num(); i++) { SingleFinalize(Values[i], Alphas[i]); }
 		}
 
 		virtual void FullBlendToOne(const TArrayView<double>& Alphas) const override
@@ -252,7 +265,7 @@ namespace PCGExDataBlending
 			if (!bInterpolationAllowed) { return; }
 			for (int i = 0; i < Writer->Values.Num(); i++) { Writer->Values[i] = SingleOperation(Writer->Values[i], Reader->Values[i], Alphas[i]); }
 		}
-		
+
 		virtual void SinglePrepare(T& A) const
 		{
 		};
@@ -278,7 +291,7 @@ namespace PCGExDataBlending
 
 	protected:
 		PCGEx::TFAttributeWriter<T>* Writer = nullptr;
-		PCGEx::TFAttributeReader<T>* Reader = nullptr;
+		PCGEx::FAttributeIOBase<T>* Reader = nullptr;
 	};
 
 #pragma region Add
@@ -293,7 +306,7 @@ namespace PCGExDataBlending
 	inline static FTransform Add(const FTransform& A, const FTransform& B, const double& Alpha = 0)
 	{
 		return FTransform(
-			Add(A.GetRotation().Rotator(), B.GetRotation().Rotator()).Quaternion(),
+			A.GetRotation() + B.GetRotation(),
 			A.GetLocation() + B.GetLocation(),
 			A.GetScale3D() + B.GetScale3D());
 	}
@@ -471,10 +484,14 @@ namespace PCGExDataBlending
 	}
 
 	template <typename dummy = void>
+	inline static FQuat Div(const FQuat& A, const double Divider) { return Div(A.Rotator(), Divider).Quaternion(); }
+
+
+	template <typename dummy = void>
 	inline static FTransform Div(const FTransform& A, const double Divider)
 	{
 		return FTransform(
-			Div(A.GetRotation().Rotator(), Divider).Quaternion(),
+			Div(A.GetRotation(), Divider),
 			A.GetLocation() / Divider,
 			A.GetScale3D() / Divider);
 	}

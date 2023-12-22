@@ -14,7 +14,6 @@ void UPCGExSubPointsBlendInheritStart::BlendSubPoints(
 	const PCGExDataBlending::FMetadataBlender* InBlender) const
 {
 	const int32 NumPoints = SubPoints.Num();
-
 	TArray<double> Alphas;
 	TArray<FVector> Locations;
 

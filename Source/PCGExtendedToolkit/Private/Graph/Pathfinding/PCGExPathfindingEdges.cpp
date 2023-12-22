@@ -26,7 +26,7 @@ void UPCGExPathfindingEdgesSettings::PostEditChangeProperty(FPropertyChangedEven
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
 
-FPCGElementPtr UPCGExPathfindingEdgesSettings::CreateElement() const { return MakeShared<FPCGExPathfindingEdgesElement>(); }
+PCGEX_INITIALIZE_ELEMENT(PathfindingEdges)
 
 FPCGExPathfindingEdgesContext::~FPCGExPathfindingEdgesContext()
 {
@@ -35,7 +35,6 @@ FPCGExPathfindingEdgesContext::~FPCGExPathfindingEdgesContext()
 	PCGEX_DELETE_TARRAY(PathBuffer)
 }
 
-PCGEX_INITIALIZE_CONTEXT(PathfindingEdges)
 
 bool FPCGExPathfindingEdgesElement::Boot(FPCGContext* InContext) const
 {
@@ -142,7 +141,7 @@ bool FPCGExPathfindingEdgesElement::ExecuteInternal(FPCGContext* InContext) cons
 bool FSampleMeshPathTask::ExecuteTask()
 {
 	FPCGExPathfindingEdgesContext* Context = Manager->GetContext<FPCGExPathfindingEdgesContext>();
-	//PCGEX_ASYNC_CHECKPOINT
+	
 
 	const FPCGPoint& Seed = Context->SeedsPoints->GetInPoint(Query->SeedIndex);
 	const FPCGPoint& Goal = Context->GoalsPoints->GetInPoint(Query->GoalIndex);

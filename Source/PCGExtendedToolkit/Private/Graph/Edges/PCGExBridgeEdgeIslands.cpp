@@ -18,7 +18,7 @@ PCGExData::EInit UPCGExBridgeEdgeIslandsSettings::GetEdgeOutputInitMode() const 
 
 bool UPCGExBridgeEdgeIslandsSettings::GetCacheAllMeshes() const { return true; }
 
-FPCGElementPtr UPCGExBridgeEdgeIslandsSettings::CreateElement() const { return MakeShared<FPCGExBridgeEdgeIslandsElement>(); }
+PCGEX_INITIALIZE_ELEMENT(BridgeEdgeIslands)
 
 FPCGExBridgeEdgeIslandsContext::~FPCGExBridgeEdgeIslandsContext()
 {
@@ -29,8 +29,6 @@ FPCGExBridgeEdgeIslandsContext::~FPCGExBridgeEdgeIslandsContext()
 	VisitedMeshes.Empty();
 }
 
-
-PCGEX_INITIALIZE_CONTEXT(BridgeEdgeIslands)
 
 bool FPCGExBridgeEdgeIslandsElement::Boot(FPCGContext* InContext) const
 {
@@ -157,7 +155,7 @@ bool FPCGExBridgeEdgeIslandsElement::ExecuteInternal(
 bool FBridgeMeshesTask::ExecuteTask()
 {
 	FPCGExBridgeEdgeIslandsContext* Context = Manager->GetContext<FPCGExBridgeEdgeIslandsContext>();
-	//PCGEX_ASYNC_CHECKPOINT
+	
 
 	const TArray<PCGExMesh::FVertex>& CurrentMeshVertices = Context->Meshes[TaskIndex]->Vertices;
 	const TArray<PCGExMesh::FVertex>& OtherMeshVertices = Context->Meshes[OtherMeshIndex]->Vertices;

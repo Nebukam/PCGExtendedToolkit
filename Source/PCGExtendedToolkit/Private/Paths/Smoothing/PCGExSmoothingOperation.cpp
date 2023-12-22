@@ -13,7 +13,6 @@ void UPCGExSmoothingOperation::DoSmooth(PCGExData::FPointIO& InPointIO)
 	InPointIO.CreateInKeys();
 	InPointIO.CreateOutKeys();
 
-
 	InternalDoSmooth(InPointIO);
 
 	//Influence pass
@@ -47,22 +46,12 @@ void UPCGExSmoothingOperation::DoSmooth(PCGExData::FPointIO& InPointIO)
 	if (bPinStart) { Influences[0] = 1; }
 	if (bPinEnd) { Influences[InPointIO.GetNum() - 1] = 1; }
 
-	PCGExDataBlending::FMetadataBlender* MetadataLerp = new PCGExDataBlending::FMetadataBlender(InfluenceSettings.DefaultBlending);
-	MetadataLerp->PrepareForData(InPointIO, InfluenceSettings.AttributesOverrides);
+	PCGExDataBlending::FMetadataBlender* MetadataLerp = new PCGExDataBlending::FMetadataBlender(&InfluenceSettings);
+	MetadataLerp->PrepareForData(InPointIO);
 	MetadataLerp->FullBlendToOne(Influences);
 	MetadataLerp->Write();
 
-	PCGExDataBlending::FPropertiesBlender* PropertiesLerp = new PCGExDataBlending::FPropertiesBlender(InfluenceSettings);
-	const TArray<FPCGPoint>& InPoints = InPointIO.GetIn()->GetPoints();
-	TArray<FPCGPoint>& OutPoints = InPointIO.GetOut()->GetMutablePoints();
-
-	for (int i = 0; i < InPointIO.GetNum(); i++)
-	{
-		PropertiesLerp->Blend(OutPoints[i], InPoints[i], OutPoints[i], Influences[i]);
-	}
-
 	PCGEX_DELETE(MetadataLerp)
-	PCGEX_DELETE(PropertiesLerp)
 
 	Influences.Empty();
 	InfluenceGetter.Cleanup();

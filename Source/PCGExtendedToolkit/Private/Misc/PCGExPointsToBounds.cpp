@@ -17,10 +17,8 @@ PCGExData::EInit UPCGExPointsToBoundsSettings::GetMainOutputInitMode() const { r
 
 FPCGExPointsToBoundsContext::~FPCGExPointsToBoundsContext()
 {
-	AttributesBlendingOverrides.Empty();
 	OutPoints = nullptr;
 	PCGEX_DELETE(MetadataBlender)
-	PCGEX_DELETE(PropertyBlender)
 }
 
 UPCGExPointsToBoundsSettings::UPCGExPointsToBoundsSettings(const FObjectInitializer& ObjectInitializer)
@@ -35,9 +33,7 @@ void UPCGExPointsToBoundsSettings::PostEditChangeProperty(FPropertyChangedEvent&
 }
 #endif
 
-FPCGElementPtr UPCGExPointsToBoundsSettings::CreateElement() const { return MakeShared<FPCGExPointsToBoundsElement>(); }
-
-PCGEX_INITIALIZE_CONTEXT(PointsToBounds)
+PCGEX_INITIALIZE_ELEMENT(PointsToBounds)
 
 bool FPCGExPointsToBoundsElement::Boot(FPCGContext* InContext) const
 {
@@ -45,9 +41,7 @@ bool FPCGExPointsToBoundsElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(PointsToBounds)
 
-	Context->AttributesBlendingOverrides = Settings->BlendingSettings.AttributesOverrides;
-	Context->MetadataBlender = new PCGExDataBlending::FMetadataBlender(Settings->BlendingSettings.DefaultBlending);
-	Context->PropertyBlender = new PCGExDataBlending::FPropertiesBlender(Settings->BlendingSettings);
+	Context->MetadataBlender = new PCGExDataBlending::FMetadataBlender(const_cast<FPCGExBlendingSettings*>(&Settings->BlendingSettings));
 
 	return true;
 }
@@ -77,7 +71,7 @@ bool FPCGExPointsToBoundsElement::ExecuteInternal(FPCGContext* InContext) const
 		TArray<FPCGPoint>& MutablePoints = OutData->GetMutablePoints();
 		MutablePoints.Add(InPoints[0]);
 
-		Context->MetadataBlender->PrepareForData(*Context->CurrentIO, Context->AttributesBlendingOverrides);
+		Context->MetadataBlender->PrepareForData(*Context->CurrentIO);
 		const double AverageDivider = InPoints.Num();
 
 		FBox Box = FBox(ForceInit);
@@ -90,20 +84,17 @@ bool FPCGExPointsToBoundsElement::ExecuteInternal(FPCGContext* InContext) const
 		MutablePoints[0].BoundsMin = Box.Min - Center;
 		MutablePoints[0].BoundsMax = Box.Max - Center;
 
-		FPCGPoint& ConsolidatedPoint = Context->CurrentIO->GetMutablePoint(0);
-		Context->MetadataBlender->PrepareForBlending(0);
-		PCGExDataBlending::FPropertiesBlender PropertiesBlender = PCGExDataBlending::FPropertiesBlender(*Context->PropertyBlender);
-		if (PropertiesBlender.bRequiresPrepare) { PropertiesBlender.PrepareBlending(ConsolidatedPoint, ConsolidatedPoint); }
+		PCGEx::FPointRef Target = Context->CurrentIO->GetOutPointRef(0);
+		Context->MetadataBlender->PrepareForBlending(Target);
 
 		for (int i = 0; i < AverageDivider; i++)
 		{
 			FVector Location = InPoints[i].Transform.GetLocation();
 			const double Weight = FVector::DistSquared(Center, Location) / SqrDist;
-			Context->MetadataBlender->Blend(0, i, i, Weight);
+			Context->MetadataBlender->Blend(Target, Context->CurrentIO->GetInPointRef(i), Target, Weight);
 		}
 
-		if (PropertiesBlender.bRequiresPrepare) { PropertiesBlender.CompleteBlending(ConsolidatedPoint); }
-		Context->MetadataBlender->CompleteBlending(0, AverageDivider);
+		Context->MetadataBlender->CompleteBlending(Target, AverageDivider);
 
 		MutablePoints[0].Transform.SetLocation(Center);
 		MutablePoints[0].BoundsMin = Box.Min - Center;
@@ -115,7 +106,6 @@ bool FPCGExPointsToBoundsElement::ExecuteInternal(FPCGContext* InContext) const
 
 		Context->CurrentIO->OutputTo(Context);
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
-
 	}
 
 	return Context->IsDone();

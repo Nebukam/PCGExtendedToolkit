@@ -64,9 +64,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExWriteEdgeExtrasContext : public FPCGExEdgesP
 
 	~FPCGExWriteEdgeExtrasContext();
 
-	TMap<FName, EPCGExDataBlendingType> AttributesBlendingOverrides;
 	PCGExDataBlending::FMetadataBlender* MetadataBlender;
-	PCGExDataBlending::FPropertiesBlender* PropertyBlender;
 
 	PCGEX_WRITEEDGEEXTRA_FOREACH(PCGEX_OUTPUT_DECL)
 };

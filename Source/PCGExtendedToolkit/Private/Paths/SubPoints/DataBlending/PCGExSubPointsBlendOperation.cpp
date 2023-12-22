@@ -23,7 +23,6 @@ void UPCGExSubPointsBlendOperation::PrepareForData(
 {
 	PCGEX_DELETE(InternalBlender)
 	InternalBlender = CreateBlender(InPrimaryData, InSecondaryData, bSecondaryIn);
-	PropertiesBlender.Init(BlendingSettings);
 }
 
 void UPCGExSubPointsBlendOperation::ProcessSubPoints(const PCGEx::FPointRef& Start, const PCGEx::FPointRef& End, TArrayView<FPCGPoint>& SubPoints, const PCGExMath::FPathMetrics& Metrics) const
@@ -73,8 +72,9 @@ void UPCGExSubPointsBlendOperation::Cleanup()
 PCGExDataBlending::FMetadataBlender* UPCGExSubPointsBlendOperation::CreateBlender(
 	PCGExData::FPointIO& InPrimaryIO, const PCGExData::FPointIO& InSecondaryIO, bool bSecondaryIn)
 {
-	PCGExDataBlending::FMetadataBlender* NewBlender = new PCGExDataBlending::FMetadataBlender(GetDefaultBlending());
-	NewBlender->PrepareForData(InPrimaryIO, InSecondaryIO, BlendingSettings.AttributesOverrides, bSecondaryIn);
+	BlendingSettings.DefaultBlending = GetDefaultBlending();
+	PCGExDataBlending::FMetadataBlender* NewBlender = new PCGExDataBlending::FMetadataBlender(&BlendingSettings);
+	NewBlender->PrepareForData(InPrimaryIO, InSecondaryIO, bSecondaryIn);
 
 	return NewBlender;
 }

@@ -17,38 +17,31 @@ void UPCGExMovingAverageSmoothing::InternalDoSmooth(
 	const TArray<FPCGPoint>& InPoints = InPointIO.GetIn()->GetPoints();
 	TArray<FPCGPoint>& OutPoints = InPointIO.GetOut()->GetMutablePoints();
 
-	PCGExDataBlending::FMetadataBlender* MetadataBlender = new PCGExDataBlending::FMetadataBlender(BlendingSettings.DefaultBlending);
-	PCGExDataBlending::FPropertiesBlender* PropertiesBlender = new PCGExDataBlending::FPropertiesBlender(BlendingSettings);
+	PCGExDataBlending::FMetadataBlender* MetadataBlender = new PCGExDataBlending::FMetadataBlender(&BlendingSettings);
 
-	MetadataBlender->PrepareForData(InPointIO, BlendingSettings.AttributesOverrides);
+	MetadataBlender->PrepareForData(InPointIO);
 
 	const int32 MaxPointIndex = InPoints.Num() - 1;
-
 	for (int i = 0; i <= MaxPointIndex; i++)
 	{
-		FPCGPoint& OutPoint = OutPoints[i];
-
 		int32 Count = 0;
-		MetadataBlender->PrepareForBlending(i);
-		PropertiesBlender->PrepareBlending(OutPoint, OutPoint);
+		PCGEx::FPointRef Target = InPointIO.GetOutPointRef(i);
+		MetadataBlender->PrepareForBlending(Target);
 
 		for (int j = -SafeWindowSize; j <= SafeWindowSize; j++)
 		{
 			const int32 Index = FMath::Clamp(i + j, 0, MaxPointIndex);
 			const double Alpha = 1 - (static_cast<double>(FMath::Abs(j)) / SafeWindowSize);
 
-			MetadataBlender->Blend(i, Index, i, Alpha);
-			PropertiesBlender->Blend(OutPoint, InPoints[Index], OutPoint, Alpha);
+			MetadataBlender->Blend(Target, InPointIO.GetInPointRef(Index), Target, Alpha);
 
 			Count++;
 		}
 
-		MetadataBlender->CompleteBlending(i, Count);
-		PropertiesBlender->CompleteBlending(OutPoint);
+		MetadataBlender->CompleteBlending(Target, Count);
 	}
 
 	MetadataBlender->Write();
 
 	PCGEX_DELETE(MetadataBlender)
-	PCGEX_DELETE(PropertiesBlender)
 }

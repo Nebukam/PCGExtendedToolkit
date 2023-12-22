@@ -18,7 +18,7 @@ UPCGExRelaxEdgeIslandsSettings::UPCGExRelaxEdgeIslandsSettings(
 
 PCGExData::EInit UPCGExRelaxEdgeIslandsSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
-FPCGElementPtr UPCGExRelaxEdgeIslandsSettings::CreateElement() const { return MakeShared<FPCGExRelaxEdgeIslandsElement>(); }
+PCGEX_INITIALIZE_ELEMENT(RelaxEdgeIslands)
 
 FPCGExRelaxEdgeIslandsContext::~FPCGExRelaxEdgeIslandsContext()
 {
@@ -29,8 +29,6 @@ FPCGExRelaxEdgeIslandsContext::~FPCGExRelaxEdgeIslandsContext()
 
 	InfluenceGetter.Cleanup();
 }
-
-PCGEX_INITIALIZE_CONTEXT(RelaxEdgeIslands)
 
 bool FPCGExRelaxEdgeIslandsElement::Boot(FPCGContext* InContext) const
 {

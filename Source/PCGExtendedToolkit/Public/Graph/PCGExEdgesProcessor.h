@@ -24,12 +24,16 @@ public:
 	PCGEX_NODE_INFOS(EdgesProcessorSettings, "Edges Processor Settings", "TOOLTIP_TEXT");
 	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorEdge; }
 #endif
-	virtual PCGExData::EInit GetMainOutputInitMode() const override;
-	virtual PCGExData::EInit GetEdgeOutputInitMode() const;
-	virtual bool GetMainAcceptMultipleData() const override;
-
+	
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
+
+	virtual PCGExData::EInit GetMainOutputInitMode() const override;
+	virtual FName GetMainInputLabel() const override;
+	virtual FName GetMainOutputLabel() const override;
+	virtual PCGExData::EInit GetEdgeOutputInitMode() const;
+	virtual bool GetMainAcceptMultipleData() const override;
+	
 	//~End UPCGSettings interface
 
 	virtual bool GetCacheAllMeshes() const;

@@ -10,12 +10,7 @@ int32 UPCGExConsolidateGraphSettings::GetPreferredChunkSize() const { return 32;
 
 PCGExData::EInit UPCGExConsolidateGraphSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
-FPCGElementPtr UPCGExConsolidateGraphSettings::CreateElement() const
-{
-	return MakeShared<FPCGExConsolidateGraphElement>();
-}
-
-PCGEX_INITIALIZE_CONTEXT(ConsolidateGraph)
+PCGEX_INITIALIZE_ELEMENT(ConsolidateGraph)
 
 bool FPCGExConsolidateGraphElement::Boot(FPCGContext* InContext) const
 {

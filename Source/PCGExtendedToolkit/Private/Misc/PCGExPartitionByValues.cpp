@@ -90,7 +90,6 @@ bool UPCGExPartitionByValuesSettings::GetMainAcceptMultipleData() const { return
 
 #endif
 
-FPCGElementPtr UPCGExPartitionByValuesSettings::CreateElement() const { return MakeShared<FPCGExPartitionByValuesElement>(); }
 PCGExData::EInit UPCGExPartitionByValuesSettings::GetMainOutputInitMode() const { return bSplitOutput ? PCGExData::EInit::NoOutput : PCGExData::EInit::DuplicateInput; }
 
 FPCGExPartitionByValuesContext::~FPCGExPartitionByValuesContext()
@@ -98,7 +97,7 @@ FPCGExPartitionByValuesContext::~FPCGExPartitionByValuesContext()
 	PCGEX_DELETE(RootPartition)
 }
 
-PCGEX_INITIALIZE_CONTEXT(PartitionByValues)
+PCGEX_INITIALIZE_ELEMENT(PartitionByValues)
 
 bool FPCGExPartitionByValuesElement::Boot(FPCGContext* InContext) const
 {

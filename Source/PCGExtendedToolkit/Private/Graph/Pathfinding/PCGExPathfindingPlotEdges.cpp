@@ -47,7 +47,7 @@ TArray<FPCGPinProperties> UPCGExPathfindingPlotEdgesSettings::OutputPinPropertie
 	return PinProperties;
 }
 
-FPCGElementPtr UPCGExPathfindingPlotEdgesSettings::CreateElement() const { return MakeShared<FPCGExPathfindingPlotEdgesElement>(); }
+PCGEX_INITIALIZE_ELEMENT(PathfindingPlotEdges)
 
 FPCGExPathfindingPlotEdgesContext::~FPCGExPathfindingPlotEdgesContext()
 {
@@ -59,7 +59,6 @@ FPCGExPathfindingPlotEdgesContext::~FPCGExPathfindingPlotEdgesContext()
 	PCGEX_DELETE(OutputPaths)
 }
 
-PCGEX_INITIALIZE_CONTEXT(PathfindingPlotEdges)
 
 bool FPCGExPathfindingPlotEdgesElement::Boot(FPCGContext* InContext) const
 {
@@ -154,7 +153,7 @@ bool FPCGExPathfindingPlotEdgesElement::ExecuteInternal(FPCGContext* InContext) 
 bool FPlotMeshPathTask::ExecuteTask()
 {
 	FPCGExPathfindingPlotEdgesContext* Context = Manager->GetContext<FPCGExPathfindingPlotEdgesContext>();
-	//PCGEX_ASYNC_CHECKPOINT
+
 
 	const PCGExMesh::FMesh* Mesh = Context->CurrentMesh;
 	TArray<int32> Path;

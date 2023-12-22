@@ -121,9 +121,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFusePointsContext : public FPCGExPointsProce
 
 	bool bPreserveOrder;
 
-	TMap<FName, EPCGExDataBlendingType> AttributesBlendingOverrides;
 	PCGExDataBlending::FMetadataBlender* MetadataBlender;
-	PCGExDataBlending::FPropertiesBlender* PropertyBlender;
 
 	double Radius = 0;
 

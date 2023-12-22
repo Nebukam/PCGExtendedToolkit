@@ -44,6 +44,8 @@ int32 UPCGExPathfindingPlotNavmeshSettings::GetPreferredChunkSize() const { retu
 FName UPCGExPathfindingPlotNavmeshSettings::GetMainInputLabel() const { return PCGExPathfinding::SourcePlotsLabel; }
 FName UPCGExPathfindingPlotNavmeshSettings::GetMainOutputLabel() const { return PCGExGraph::OutputPathsLabel; }
 
+PCGEX_INITIALIZE_ELEMENT(PathfindingPlotNavmesh)
+
 FPCGExPathfindingPlotNavmeshContext::~FPCGExPathfindingPlotNavmeshContext()
 {
 	PCGEX_TERMINATE_ASYNC
@@ -51,9 +53,6 @@ FPCGExPathfindingPlotNavmeshContext::~FPCGExPathfindingPlotNavmeshContext()
 	PCGEX_DELETE(OutputPaths)
 }
 
-FPCGElementPtr UPCGExPathfindingPlotNavmeshSettings::CreateElement() const { return MakeShared<FPCGExPathfindingPlotNavmeshElement>(); }
-
-PCGEX_INITIALIZE_CONTEXT(PathfindingPlotNavmesh)
 
 bool FPCGExPathfindingPlotNavmeshElement::Boot(FPCGContext* InContext) const
 {
@@ -131,7 +130,7 @@ bool FPCGExPathfindingPlotNavmeshElement::ExecuteInternal(FPCGContext* InContext
 bool FPlotNavmeshTask::ExecuteTask()
 {
 	FPCGExPathfindingPlotNavmeshContext* Context = static_cast<FPCGExPathfindingPlotNavmeshContext*>(Manager->Context);
-	//PCGEX_ASYNC_CHECKPOINT
+	
 
 	UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(Context->World);
 
@@ -226,7 +225,7 @@ bool FPlotNavmeshTask::ExecuteTask()
 	}
 
 	if (PathLocations.Num() <= PointIO->GetNum()) { return false; } //
-	//PCGEX_ASYNC_CHECKPOINT
+	
 
 	const int32 NumPositions = PathLocations.Num();
 

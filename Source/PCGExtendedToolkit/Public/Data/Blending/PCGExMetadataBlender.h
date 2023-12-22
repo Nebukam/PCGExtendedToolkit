@@ -8,6 +8,7 @@
 
 #include "PCGExDataBlending.h"
 #include "PCGExDataBlendingOperations.h"
+#include "PCGExPropertiesBlender.h"
 #include "Data/PCGExAttributeHelpers.h"
 
 namespace PCGExDataBlending
@@ -43,51 +44,51 @@ PCGEX_BLEND_CASE(Max)
 	class PCGEXTENDEDTOOLKIT_API FMetadataBlender
 	{
 	public:
+		bool bBlendProperties = true;
+
 		virtual ~FMetadataBlender();
 
-		EPCGExDataBlendingType DefaultOperation = EPCGExDataBlendingType::Copy;
-
-		FMetadataBlender();
-		FMetadataBlender(EPCGExDataBlendingType InDefaultBlending);
+		FMetadataBlender(FPCGExBlendingSettings* InBlendingSettings);
 		FMetadataBlender(const FMetadataBlender* ReferenceBlender);
 
 		void PrepareForData(
-			PCGExData::FPointIO& InData,
-			const TMap<FName, EPCGExDataBlendingType>& OperationTypeOverrides);
+			PCGExData::FPointIO& InData);
 
 		void PrepareForData(
 			PCGExData::FPointIO& InPrimaryData,
 			const PCGExData::FPointIO& InSecondaryData,
-			const TMap<FName, EPCGExDataBlendingType>& OperationTypeOverrides,
 			bool bSecondaryIn = true);
 
 		FMetadataBlender* Copy(PCGExData::FPointIO& InPrimaryData, const PCGExData::FPointIO& InSecondaryData) const;
 
-		void PrepareForBlending(const int32 WriteKey) const;
-		void Blend(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, const int32 WriteIndex, const double Alpha = 0) const;
-		void CompleteBlending(const int32 WriteIndex, double Alpha) const;
+		void PrepareForBlending(const PCGEx::FPointRef& Target, const FPCGPoint* Defaults = nullptr) const;
+		void Blend(const PCGEx::FPointRef& A, const PCGEx::FPointRef& B, const PCGEx::FPointRef& Target, const double Alpha = 0) const;
+		void CompleteBlending(const PCGEx::FPointRef& Target, double Alpha) const;
 
 		void PrepareRangeForBlending(const int32 StartIndex, const int32 Count) const;
-		void BlendRange(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, const int32 StartIndex, const int32 Count, const TArrayView<double>& Alphas) const;
+		void BlendRange(const PCGEx::FPointRef& A, const PCGEx::FPointRef& B, const int32 StartIndex, const int32 Count, const TArrayView<double>& Alphas) const;
 		void CompleteRangeBlending(const int32 StartIndex, const int32 Count, const TArrayView<double>& Alphas) const;
 
-		void BlendRangeOnce(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, const int32 StartIndex, const int32 Count, const TArrayView<double>& Alphas) const;
+		void BlendRangeOnce(const PCGEx::FPointRef& A, const PCGEx::FPointRef& B, const int32 StartIndex, const int32 Count, const TArrayView<double>& Alphas) const;
 
 		void FullBlendToOne(const TArrayView<double>& Alphas) const;
-		
-		void ResetToDefaults(const int32 WriteIndex) const;
-		void Write();
+
+		void Write(bool bFlush = true);
 		void Flush();
 
 	protected:
-		TMap<FName, EPCGExDataBlendingType> BlendingOverrides;
+		FPCGExBlendingSettings* BlendingSettings = nullptr;
+		FPropertiesBlender* PropertiesBlender = nullptr;
 		TArray<FDataBlendingOperationBase*> Attributes;
 		TArray<FDataBlendingOperationBase*> AttributesToBePrepared;
 		TArray<FDataBlendingOperationBase*> AttributesToBeCompleted;
 
+		TArray<FPCGPoint>* PrimaryPoints = nullptr;
+		TArray<FPCGPoint>* SecondaryPoints = nullptr;
+
 		void InternalPrepareForData(
 			PCGExData::FPointIO& InPrimaryData,
 			const PCGExData::FPointIO& InSecondaryData,
-			const TMap<FName, EPCGExDataBlendingType>& OperationTypeOverrides, bool bSecondaryIn);
+			bool bSecondaryIn);
 	};
 }

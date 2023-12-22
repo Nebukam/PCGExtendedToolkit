@@ -32,7 +32,7 @@ PCGExData::EInit UPCGExSampleNearestPointSettings::GetMainOutputInitMode() const
 
 int32 UPCGExSampleNearestPointSettings::GetPreferredChunkSize() const { return 32; }
 
-FPCGElementPtr UPCGExSampleNearestPointSettings::CreateElement() const { return MakeShared<FPCGExSampleNearestPointElement>(); }
+PCGEX_INITIALIZE_ELEMENT(SampleNearestPoint)
 
 FPCGExSampleNearestPointContext::~FPCGExSampleNearestPointContext()
 {
@@ -46,8 +46,6 @@ FPCGExSampleNearestPointContext::~FPCGExSampleNearestPointContext()
 
 	PCGEX_SAMPLENEARESTPOINT_FOREACH(PCGEX_OUTPUT_DELETE)
 }
-
-PCGEX_INITIALIZE_CONTEXT(SampleNearestPoint)
 
 bool FPCGExSampleNearestPointElement::Boot(FPCGContext* InContext) const
 {
@@ -183,7 +181,7 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 bool FSamplePointTask::ExecuteTask()
 {
 	const FPCGExSampleNearestPointContext* Context = Manager->GetContext<FPCGExSampleNearestPointContext>();
-	//PCGEX_ASYNC_CHECKPOINT
+	
 
 	const int32 NumTargets = Context->Targets->GetNum();
 	const FVector Origin = PointIO->GetOutPoint(TaskIndex).Transform.GetLocation();

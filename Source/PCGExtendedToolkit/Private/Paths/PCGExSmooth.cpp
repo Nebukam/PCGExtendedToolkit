@@ -23,14 +23,12 @@ void UPCGExSmoothSettings::PostEditChangeProperty(FPropertyChangedEvent& Propert
 
 PCGExData::EInit UPCGExSmoothSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
-FPCGElementPtr UPCGExSmoothSettings::CreateElement() const { return MakeShared<FPCGExSmoothElement>(); }
+PCGEX_INITIALIZE_ELEMENT(Smooth)
 
 FPCGExSmoothContext::~FPCGExSmoothContext()
 {
 	PCGEX_TERMINATE_ASYNC
 }
-
-PCGEX_INITIALIZE_CONTEXT(Smooth)
 
 bool FPCGExSmoothElement::Boot(FPCGContext* InContext) const
 {
