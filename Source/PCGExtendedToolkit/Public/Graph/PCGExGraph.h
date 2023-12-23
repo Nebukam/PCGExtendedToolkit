@@ -279,7 +279,7 @@ namespace PCGExGraph
 
 	const FName SourceGraphsLabel = TEXT("In");
 	const FName OutputGraphsLabel = TEXT("Out");
-	
+
 	const FName SourceVerticesLabel = TEXT("Vtx");
 	const FName OutputVerticesLabel = TEXT("Vtx");
 
@@ -312,7 +312,7 @@ namespace PCGExGraph
 		{
 		}
 
-		FSocketMetadata(int32 InIndex, EPCGExEdgeType InEdgeType):
+		FSocketMetadata(const int32 InIndex, const EPCGExEdgeType InEdgeType):
 			Index(InIndex),
 			EdgeType(InEdgeType)
 		{
@@ -330,11 +330,11 @@ namespace PCGExGraph
 
 	struct PCGEXTENDEDTOOLKIT_API FProbeDistanceModifier : public PCGEx::FLocalSingleFieldGetter
 	{
-		FProbeDistanceModifier(): FLocalSingleFieldGetter()
+		FProbeDistanceModifier()
 		{
 		}
 
-		FProbeDistanceModifier(const FPCGExSocketDescriptor& InDescriptor): FLocalSingleFieldGetter()
+		explicit FProbeDistanceModifier(const FPCGExSocketDescriptor& InDescriptor)
 		{
 			Descriptor = static_cast<FPCGExInputDescriptor>(InDescriptor.AttributeModifier);
 			bEnabled = InDescriptor.bApplyAttributeModifier;
@@ -343,11 +343,11 @@ namespace PCGExGraph
 
 	struct PCGEXTENDEDTOOLKIT_API FLocalDirection : public PCGEx::FLocalDirectionGetter
 	{
-		FLocalDirection(): FLocalDirectionGetter()
+		FLocalDirection()
 		{
 		}
 
-		FLocalDirection(const FPCGExSocketDescriptor& InDescriptor): FLocalDirectionGetter()
+		explicit FLocalDirection(const FPCGExSocketDescriptor& InDescriptor)
 		{
 			Descriptor = static_cast<FPCGExInputDescriptor>(InDescriptor.AttributeDirectionVector);
 			bEnabled = InDescriptor.bDirectionVectorFromAttribute;
@@ -366,7 +366,7 @@ namespace PCGExGraph
 			MatchingSockets.Empty();
 		}
 
-		FSocket(const FPCGExSocketDescriptor& InDescriptor): FSocket()
+		explicit FSocket(const FPCGExSocketDescriptor& InDescriptor): FSocket()
 		{
 			Descriptor = InDescriptor;
 			Descriptor.Bounds.DotThreshold = FMath::Cos(Descriptor.Bounds.Angle * (PI / 180.0)); //Degrees to dot product
@@ -391,13 +391,13 @@ namespace PCGExGraph
 
 	public:
 		FName GetName() const { return AttributeNameBase; }
-		EPCGExSocketType GetType() const { return Descriptor.SocketType; }
+		EPCGExSocketType GetSocketType() const { return Descriptor.SocketType; }
 		bool IsExclusive() const { return Descriptor.bExclusiveBehavior; }
 		bool Matches(const FSocket* OtherSocket) const { return MatchingSockets.Contains(OtherSocket->SocketIndex); }
 
 		void DeleteFrom(const UPCGPointData* PointData) const;
 
-		void Write(bool DoCleanup = true);
+		void Write(bool bDoCleanup = true);
 
 		/**
 		 * Find or create the attribute matching this socket on a given PointData object,
@@ -445,10 +445,10 @@ namespace PCGExGraph
 
 		FName GetSocketPropertyName(FName PropertyName) const;
 
-		PCGEx::TFAttributeWriter<int32>& GetTargetIndexWriter() { return *TargetIndexWriter; }
-		PCGEx::TFAttributeWriter<int32>& GetEdgeTypeWriter() { return *EdgeTypeWriter; }
-		PCGEx::TFAttributeReader<int32>& GetTargetIndexReader() { return *TargetIndexReader; }
-		PCGEx::TFAttributeReader<int32>& GetEdgeTypeReader() { return *EdgeTypeReader; }
+		PCGEx::TFAttributeWriter<int32>& GetTargetIndexWriter() const { return *TargetIndexWriter; }
+		PCGEx::TFAttributeWriter<int32>& GetEdgeTypeWriter() const { return *EdgeTypeWriter; }
+		PCGEx::TFAttributeReader<int32>& GetTargetIndexReader() const { return *TargetIndexReader; }
+		PCGEx::TFAttributeReader<int32>& GetEdgeTypeReader() const { return *EdgeTypeReader; }
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FSocketInfos
@@ -579,5 +579,267 @@ namespace PCGExGraph
 		}
 	}
 
+#pragma endregion
+
+#pragma region Network
+	struct PCGEXTENDEDTOOLKIT_API FNetworkNode
+	{
+		FNetworkNode()
+		{
+		}
+
+		int32 Index = -1;
+		int32 Island = -1;
+		bool bCrossing = false;
+		TArray<int32> Edges;
+
+		bool IsIsolated() const { return Island == -1; }
+
+		bool GetNeighbors(TArray<int32>& OutIndices, const TArray<FUnsignedEdge>& InEdges)
+		{
+			if (Edges.IsEmpty()) { return false; }
+			for (const int32 Edge : Edges) { OutIndices.Add(InEdges[Edge].Other(Index)); }
+			return true;
+		}
+
+		template <typename Func, typename... Args>
+		void CallbackOnNeighbors(const TArray<FUnsignedEdge>& InEdges, Func Callback, Args&&... InArgs)
+		{
+			for (const int32 Edge : Edges) { Callback(InEdges[Edge].Other(Index, std::forward<Args>(InArgs)...)); }
+		}
+
+		void AddEdge(const int32 Edge)
+		{
+			Edges.AddUnique(Edge);
+		}
+	};
+
+	struct PCGEXTENDEDTOOLKIT_API FEdgeCrossing
+	{
+		FEdgeCrossing()
+		{
+		}
+
+		int32 EdgeA = -1;
+		int32 EdgeB = -1;
+		FVector Center;
+	};
+
+	struct PCGEXTENDEDTOOLKIT_API FEdgeNetwork
+	{
+		mutable FRWLock NetworkLock;
+
+		const int32 NumEdgesReserve;
+		int32 IslandIncrement = 0;
+		int32 NumIslands = 0;
+		int32 NumEdges = 0;
+
+		TArray<FNetworkNode> Nodes;
+		TSet<uint64> UniqueEdges;
+		TArray<FUnsignedEdge> Edges;
+		TMap<int32, int32> IslandSizes;
+
+		~FEdgeNetwork()
+		{
+			Nodes.Empty();
+			UniqueEdges.Empty();
+			Edges.Empty();
+			IslandSizes.Empty();
+		}
+
+		FEdgeNetwork(const int32 InNumEdgesReserve, const int32 InNumNodes)
+			: NumEdgesReserve(InNumEdgesReserve)
+		{
+			Nodes.SetNum(InNumNodes);
+
+			int32 Index = 0;
+
+			for (FNetworkNode& Node : Nodes)
+			{
+				Node.Index = Index++;
+				Node.Edges.Reserve(NumEdgesReserve);
+			}
+		}
+
+		bool InsertEdge(const FUnsignedEdge Edge)
+		{
+			const uint64 Hash = Edge.GetUnsignedHash();
+
+			{
+				FReadScopeLock ReadLock(NetworkLock);
+				if (UniqueEdges.Contains(Hash)) { return false; }
+			}
+
+
+			FWriteScopeLock WriteLock(NetworkLock);
+			UniqueEdges.Add(Hash);
+			const int32 EdgeIndex = Edges.Add(Edge);
+
+
+			FNetworkNode& NodeA = Nodes[Edge.Start];
+			FNetworkNode& NodeB = Nodes[Edge.End];
+
+			NodeA.AddEdge(EdgeIndex);
+			NodeB.AddEdge(EdgeIndex);
+
+			if (NodeA.Island == -1 && NodeB.Island == -1)
+			{
+				// New island
+				NumIslands++;
+				NodeA.Island = NodeB.Island = IslandIncrement++;
+			}
+			else if (NodeA.Island != -1 && NodeB.Island != -1)
+			{
+				if (NodeA.Island != NodeB.Island)
+				{
+					// Merge islands
+					NumIslands--;
+					MergeIsland(NodeB.Index, NodeA.Island);
+				}
+			}
+			else
+			{
+				// Expand island
+				NodeA.Island = NodeB.Island = FMath::Max(NodeA.Island, NodeB.Island);
+			}
+
+			return true;
+		}
+
+		void MergeIsland(const int32 NodeIndex, const int32 Island)
+		{
+			FNetworkNode& Node = Nodes[NodeIndex];
+			if (Node.Island == Island) { return; }
+			Node.Island = Island;
+			for (const int32 EdgeIndex : Node.Edges)
+			{
+				MergeIsland(Edges[EdgeIndex].Other(NodeIndex), Island);
+			}
+		}
+
+		void PrepareIslands(const int32 MinSize = 1, const int32 MaxSize = TNumericLimits<int32>::Max())
+		{
+			UniqueEdges.Empty();
+			IslandSizes.Empty(NumIslands);
+			NumEdges = 0;
+
+			for (const FUnsignedEdge& Edge : Edges)
+			{
+				if (!Edge.bValid) { continue; } // Crossing may invalidate edges.
+				FNetworkNode& NodeA = Nodes[Edge.Start];
+				if (const int32* SizePtr = IslandSizes.Find(NodeA.Island); !SizePtr) { IslandSizes.Add(NodeA.Island, 1); }
+				else { IslandSizes.Add(NodeA.Island, *SizePtr + 1); }
+			}
+
+			for (TPair<int32, int32>& Pair : IslandSizes)
+			{
+				if (FMath::IsWithin(Pair.Value, MinSize, MaxSize)) { NumEdges += Pair.Value; }
+				else { Pair.Value = -1; }
+			}
+		}
+	};
+
+	struct PCGEXTENDEDTOOLKIT_API FEdgeCrossingsHandler
+	{
+		mutable FRWLock CrossingLock;
+
+		FEdgeNetwork* EdgeNetwork;
+		double Tolerance;
+		double SquaredTolerance;
+
+		TArray<FBox> SegmentBounds;
+		TArray<FEdgeCrossing> Crossings;
+
+		int32 NumEdges;
+		int32 StartIndex = 0;
+
+		FEdgeCrossingsHandler(FEdgeNetwork* InEdgeNetwork, const double InTolerance)
+			: EdgeNetwork(InEdgeNetwork),
+			  Tolerance(InTolerance),
+			  SquaredTolerance(InTolerance * InTolerance)
+		{
+			NumEdges = InEdgeNetwork->Edges.Num();
+
+			Crossings.Empty();
+
+			SegmentBounds.Empty();
+			SegmentBounds.Reserve(NumEdges);
+		}
+
+		~FEdgeCrossingsHandler()
+		{
+			SegmentBounds.Empty();
+			Crossings.Empty();
+			EdgeNetwork = nullptr;
+		}
+
+		void Prepare(const TArray<FPCGPoint>& InPoints)
+		{
+			for (int i = 0; i < NumEdges; i++)
+			{
+				const FUnsignedEdge& Edge = EdgeNetwork->Edges[i];
+				FBox& NewBox = SegmentBounds.Emplace_GetRef(ForceInit);
+				NewBox += InPoints[Edge.Start].Transform.GetLocation();
+				NewBox += InPoints[Edge.End].Transform.GetLocation();
+			}
+		}
+
+		void ProcessEdge(const int32 EdgeIndex, const TArray<FPCGPoint>& InPoints)
+		{
+			TArray<FUnsignedEdge>& Edges = EdgeNetwork->Edges;
+
+			const FUnsignedEdge& Edge = Edges[EdgeIndex];
+			const FBox CurrentBox = SegmentBounds[EdgeIndex].ExpandBy(Tolerance);
+			const FVector A1 = InPoints[Edge.Start].Transform.GetLocation();
+			const FVector B1 = InPoints[Edge.End].Transform.GetLocation();
+
+			for (int i = 0; i < NumEdges; i++)
+			{
+				if (CurrentBox.Intersect(SegmentBounds[i]))
+				{
+					const FUnsignedEdge& OtherEdge = Edges[i];
+					FVector A2 = InPoints[OtherEdge.Start].Transform.GetLocation();
+					FVector B2 = InPoints[OtherEdge.End].Transform.GetLocation();
+					FVector A3;
+					FVector B3;
+					FMath::SegmentDistToSegment(A1, B1, A2, B2, A3, B3);
+					const bool bIsEnd = A1 == A3 || B1 == A3 || A2 == A3 || B2 == A3 || A1 == B3 || B1 == B3 || A2 == B3 || B2 == B3;
+					if (!bIsEnd && FVector::DistSquared(A3, B3) < SquaredTolerance)
+					{
+						FWriteScopeLock WriteLock(CrossingLock);
+						FEdgeCrossing& EdgeCrossing = Crossings.Emplace_GetRef();
+						EdgeCrossing.EdgeA = EdgeIndex;
+						EdgeCrossing.EdgeB = i;
+						EdgeCrossing.Center = FMath::Lerp(A3, B3, 0.5);
+					}
+				}
+			}
+		}
+
+		void InsertCrossings()
+		{
+			TArray<FNetworkNode>& Nodes = EdgeNetwork->Nodes;
+			TArray<FUnsignedEdge>& Edges = EdgeNetwork->Edges;
+
+			Nodes.Reserve(Nodes.Num() + Crossings.Num());
+			StartIndex = Nodes.Num();
+			int32 Index = StartIndex;
+			for (const FEdgeCrossing& EdgeCrossing : Crossings)
+			{
+				Edges[EdgeCrossing.EdgeA].bValid = false;
+				Edges[EdgeCrossing.EdgeB].bValid = false;
+
+				FNetworkNode& NewNode = Nodes.Emplace_GetRef();
+				NewNode.Index = Index++;
+				NewNode.Edges.Reserve(4);
+				NewNode.bCrossing = true;
+
+				EdgeNetwork->InsertEdge(FUnsignedEdge(NewNode.Index, Edges[EdgeCrossing.EdgeA].Start, EPCGExEdgeType::Complete));
+				EdgeNetwork->InsertEdge(FUnsignedEdge(NewNode.Index, Edges[EdgeCrossing.EdgeA].End, EPCGExEdgeType::Complete));
+				EdgeNetwork->InsertEdge(FUnsignedEdge(NewNode.Index, Edges[EdgeCrossing.EdgeB].Start, EPCGExEdgeType::Complete));
+				EdgeNetwork->InsertEdge(FUnsignedEdge(NewNode.Index, Edges[EdgeCrossing.EdgeB].End, EPCGExEdgeType::Complete));
+			}
+		}
+	};
 #pragma endregion
 }

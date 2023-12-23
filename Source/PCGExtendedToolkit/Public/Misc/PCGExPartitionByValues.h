@@ -55,16 +55,25 @@ public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(PartitionByValues, "Partition by Values", "Outputs separate buckets of points based on an attribute' value. Each bucket is named after a unique attribute value. Note that it is recommended to use a MERGE before.");
-	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
-
-	virtual bool GetMainAcceptMultipleData() const override;
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings interface
 
+	//~Begin UObject interface
+#if WITH_EDITOR
+
+public:
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+#endif
+	//~End UObject interface
+
+	//~Begin UPCGExPointsProcessorSettings interface
+public:
+	virtual bool GetMainAcceptMultipleData() const override;
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
+	//~End UPCGExPointsProcessorSettings interface
 
 public:
 	/** If false, will only write partition identifier values instead of splitting partitions into new point datasets. */

@@ -19,12 +19,14 @@ UPCGExPathfindingEdgesSettings::UPCGExPathfindingEdgesSettings(
 {
 }
 
+#if WITH_EDITOR
 void UPCGExPathfindingEdgesSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	if (GoalPicker) { GoalPicker->UpdateUserFacingInfos(); }
 	HeuristicsModifiers.UpdateUserFacingInfos();
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
+#endif
 
 PCGEX_INITIALIZE_ELEMENT(PathfindingEdges)
 
@@ -84,7 +86,7 @@ bool FPCGExPathfindingEdgesElement::ExecuteInternal(FPCGContext* InContext) cons
 
 		if (PCGExPathfinding::ProcessGoals(
 			Initialize, Context, Context->SeedsPoints, Context->GoalPicker,
-			[&](const int32 SeedIndex, int32 GoalIndex)
+			[&](const int32 SeedIndex, const int32 GoalIndex)
 			{
 				Context->BufferLock.WriteLock();
 				Context->PathBuffer.Add(
@@ -114,7 +116,7 @@ bool FPCGExPathfindingEdgesElement::ExecuteInternal(FPCGContext* InContext) cons
 
 	if (Context->IsState(PCGExGraph::State_ProcessingEdges))
 	{
-		auto NavMeshTask = [&](int32 Index)
+		auto NavMeshTask = [&](const int32 Index)
 		{
 			Context->GetAsyncManager()->Start<FSampleMeshPathTask>(Index, Context->CurrentIO, Context->PathBuffer[Index]);
 		};
@@ -140,8 +142,7 @@ bool FPCGExPathfindingEdgesElement::ExecuteInternal(FPCGContext* InContext) cons
 
 bool FSampleMeshPathTask::ExecuteTask()
 {
-	FPCGExPathfindingEdgesContext* Context = Manager->GetContext<FPCGExPathfindingEdgesContext>();
-	
+	const FPCGExPathfindingEdgesContext* Context = Manager->GetContext<FPCGExPathfindingEdgesContext>();
 
 	const FPCGPoint& Seed = Context->SeedsPoints->GetInPoint(Query->SeedIndex);
 	const FPCGPoint& Goal = Context->GoalsPoints->GetInPoint(Query->GoalIndex);

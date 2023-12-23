@@ -17,7 +17,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFilterRuleDescriptor : public FPCGExInputDes
 	GENERATED_BODY()
 
 	FPCGExFilterRuleDescriptor()
-		: FPCGExInputDescriptorWithSingleField()
 	{
 	}
 
@@ -71,7 +70,7 @@ namespace FPCGExFilter
 {
 	struct PCGEXTENDEDTOOLKIT_API FRule : public PCGEx::FLocalSingleFieldGetter
 	{
-		FRule(FPCGExFilterRuleDescriptor& InRule)
+		explicit FRule(FPCGExFilterRuleDescriptor& InRule)
 			: FLocalSingleFieldGetter(InRule.Field, InRule.Axis),
 			  RuleDescriptor(&InRule),
 			  FilterSize(InRule.FilterSize),

@@ -63,7 +63,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicModifier : public FPCGExInputDescri
 	{
 	}
 
-	~FPCGExHeuristicModifier()
+	virtual ~FPCGExHeuristicModifier() override
 	{
 	}
 
@@ -115,22 +115,24 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicModifiersSettings
 		EdgeScoreModifiers.Empty();
 	}
 
+#if WITH_EDITOR
 	void UpdateUserFacingInfos()
 	{
 		for (FPCGExHeuristicModifier& Modifier : Modifiers) { Modifier.UpdateUserFacingInfos(); }
 	}
+#endif
 
 	void PrepareForData(PCGExData::FPointIO& InPoints, PCGExData::FPointIO& InEdges, const double Scale = 1)
 	{
 		bool bUpdatePoints = false;
 		const int32 NumPoints = InPoints.GetNum();
 		const int32 NumEdges = InEdges.GetNum();
-		
+
 		if (LastPoints != &InPoints)
 		{
 			LastPoints = &InPoints;
 			bUpdatePoints = true;
-			
+
 			InPoints.CreateInKeys();
 			PointScoreModifiers.SetNumZeroed(NumPoints);
 		}
@@ -194,7 +196,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicModifiersSettings
 		}
 	}
 
-	double GetScore(int32 PointIndex, int32 EdgeIndex) const
+	double GetScore(const int32 PointIndex, const int32 EdgeIndex) const
 	{
 		return PointScoreModifiers[PointIndex] + EdgeScoreModifiers[EdgeIndex];
 	}
@@ -354,7 +356,7 @@ namespace PCGExPathfinding
 		const UPCGExHeuristicOperation* Heuristics,
 		const FPCGExHeuristicModifiersSettings* Modifiers, TArray<int32>& OutPath)
 	{
-		return PCGExPathfinding::FindPath(
+		return FindPath(
 			Mesh,
 			Mesh->FindClosestVertex(SeedPosition),
 			Mesh->FindClosestVertex(GoalPosition),
@@ -367,7 +369,7 @@ namespace PCGExPathfinding
 		const UPCGExHeuristicOperation* Heuristics,
 		const FPCGExHeuristicModifiersSettings* Modifiers, TArray<int32>& OutPath)
 	{
-		return PCGExPathfinding::FindPath(Mesh, OutPath.Last(), To, Heuristics, Modifiers, OutPath);
+		return FindPath(Mesh, OutPath.Last(), To, Heuristics, Modifiers, OutPath);
 	}
 
 
@@ -376,7 +378,7 @@ namespace PCGExPathfinding
 		const UPCGExHeuristicOperation* Heuristics,
 		const FPCGExHeuristicModifiersSettings* Modifiers, TArray<int32>& OutPath)
 	{
-		return PCGExPathfinding::ContinuePath(Mesh, Mesh->FindClosestVertex(To), Heuristics, Modifiers, OutPath);
+		return ContinuePath(Mesh, Mesh->FindClosestVertex(To), Heuristics, Modifiers, OutPath);
 	}
 }
 

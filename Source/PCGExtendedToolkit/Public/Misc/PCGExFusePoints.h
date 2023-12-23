@@ -7,7 +7,6 @@
 
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGExAttributeHelpers.h"
-#include "Data/Blending/PCGExPropertiesBlender.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
 
 #include "PCGExFusePoints.generated.h"
@@ -58,7 +57,7 @@ namespace PCGExFuse
 			Distances.Empty();
 		}
 
-		void Add(int32 InIndex, double Distance)
+		void Add(const int32 InIndex, const double Distance)
 		{
 			FWriteScopeLock WriteLock(IndicesLock);
 			Fused.Add(InIndex);
@@ -79,14 +78,24 @@ public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(FusePoints, "Fuse Points", "Fuse points based on distance.");
-	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings interface
 
+	//~Begin UObject interface
+#if WITH_EDITOR
+
+public:
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+#endif
+	//~End UObject interface
+
+	//~Begin UPCGExPointsProcessorSettings interface
+public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
+	//~End UPCGExPointsProcessorSettings interface
 
 public:
 	/** Uses a per-axis radius, manathan-style */

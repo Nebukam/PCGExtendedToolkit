@@ -3,8 +3,6 @@
 
 #include "Data/Blending/PCGExDataBlending.h"
 
-#include "Metadata/Accessors/PCGAttributeAccessor.h"
-
 namespace PCGExDataBlending
 {
 	FDataBlendingOperationBase::~FDataBlendingOperationBase()
@@ -28,7 +26,7 @@ namespace PCGExDataBlending
 		DoRangeOperation(PrimaryReadIndex, SecondaryReadIndex, WriteIndex, 1, Alphas);
 	}
 
-	void FDataBlendingOperationBase::FinalizeOperation(const int32 WriteIndex, double Alpha) const
+	void FDataBlendingOperationBase::FinalizeOperation(const int32 WriteIndex, const double Alpha) const
 	{
 		TArray<double> Alphas = {Alpha};
 		FinalizeRangeOperation(WriteIndex, 1, Alphas);
@@ -38,7 +36,7 @@ namespace PCGExDataBlending
 	{
 	}
 
-	void FDataBlendingOperationBase::ResetToDefault(int32 WriteIndex) const
+	void FDataBlendingOperationBase::ResetToDefault(const int32 WriteIndex) const
 	{
 		ResetRangeToDefault(WriteIndex, 1);
 	}

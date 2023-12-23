@@ -12,11 +12,13 @@ UPCGExFuseCollinearSettings::UPCGExFuseCollinearSettings(const FObjectInitialize
 	//PCGEX_OPERATION_DEFAULT(Blending, UPCGExSubPointsBlendInterpolate)
 }
 
+#if WITH_EDITOR
 void UPCGExFuseCollinearSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	//if (Blending) { Blending->UpdateUserFacingInfos(); }
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
+#endif
 
 PCGExData::EInit UPCGExFuseCollinearSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NewOutput; }
 

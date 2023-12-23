@@ -136,7 +136,7 @@ void FPCGExAttributeDebugDraw::DrawPoint(const UWorld* World, const FVector& Sta
 
 void FPCGExAttributeDebugDraw::DrawLabel(const UWorld* World, const FVector& Start, const PCGEx::FPointRef& Point) const
 {
-	FString Text = TextGetter.SafeGet(Point.Index, ".");
+	const FString Text = TextGetter.SafeGet(Point.Index, ".");
 	DrawDebugString(World, Start, *Text, nullptr, GetColor(Point), 99999.0f, false, GetSize(Point));
 }
 
@@ -167,13 +167,13 @@ UPCGExDrawAttributesSettings::UPCGExDrawAttributesSettings(
 	}
 }
 
-#if WITH_EDITOR
 TArray<FPCGPinProperties> UPCGExDrawAttributesSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> None;
 	return None;
 }
 
+#if WITH_EDITOR
 void UPCGExDrawAttributesSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	DebugSettings.PointScale = 0.0f;
@@ -188,6 +188,7 @@ bool FPCGExDrawAttributesElement::Boot(FPCGContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElementBase::Boot(InContext)) { return false; }
 
+#if WITH_EDITOR
 	PCGEX_CONTEXT_AND_SETTINGS(DrawAttributes)
 
 	Context->DebugList.Empty();
@@ -212,6 +213,7 @@ bool FPCGExDrawAttributesElement::Boot(FPCGContext* InContext) const
 		PCGE_LOG(Error, GraphAndLog, FTEXT("Could not find a PCGEx Debug Manager node in your graph."));
 		return false;
 	}
+#endif
 
 	return true;
 }
@@ -265,9 +267,9 @@ bool FPCGExDrawAttributesElement::ExecuteInternal(FPCGContext* InContext) const
 
 	return Context->IsDone();
 
-#elif
-	return  true;
 #endif
+
+	return true;
 }
 
 #undef LOCTEXT_NAMESPACE

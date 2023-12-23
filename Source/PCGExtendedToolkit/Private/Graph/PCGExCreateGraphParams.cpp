@@ -140,7 +140,7 @@ TArray<FPCGPinProperties> UPCGExCreateGraphParamsSettings::OutputPinProperties()
 
 #if WITH_EDITOR
 	PinPropertyOutput.Tooltip = FTEXT("Outputs Directional Sampling parameters to be used with other nodes.");
-#endif // WITH_EDITOR
+#endif
 
 	return PinProperties;
 }
@@ -161,7 +161,7 @@ void UPCGExCreateGraphParamsSettings::PostEditChangeProperty(FPropertyChangedEve
 	RefreshSocketNames();
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
-#endif // WITH_EDITOR
+#endif
 
 template <typename T>
 T* FPCGExCreateGraphParamsElement::BuildParams(

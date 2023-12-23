@@ -62,7 +62,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExWriteEdgeExtrasContext : public FPCGExEdgesP
 {
 	friend class FPCGExWriteEdgeExtrasElement;
 
-	~FPCGExWriteEdgeExtrasContext();
+	virtual ~FPCGExWriteEdgeExtrasContext() override;
 
 	PCGExDataBlending::FMetadataBlender* MetadataBlender;
 

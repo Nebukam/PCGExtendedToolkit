@@ -76,7 +76,7 @@ void UPCGExGraphParamsData::GetSocketsInfos(TArray<PCGExGraph::FSocketInfos>& Ou
 	SocketMapping->GetSocketsInfos(OutInfos);
 }
 
-void UPCGExGraphParamsData::Cleanup()
+void UPCGExGraphParamsData::Cleanup() const
 {
 	if (SocketMapping) { SocketMapping->Cleanup(); }
 }

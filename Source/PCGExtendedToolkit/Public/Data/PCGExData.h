@@ -43,7 +43,7 @@ namespace PCGExData
 	}
 
 	template <typename T>
-	struct FPointIOMarkedPair
+	struct PCGEXTENDEDTOOLKIT_API FPointIOMarkedPair
 	{
 		FName MarkIdentifier = NAME_None;
 		T Mark;
@@ -54,7 +54,7 @@ namespace PCGExData
 		{
 		}
 
-		FPointIOMarkedPair(FPointIO* InA, FName InMarkIdentifier)
+		FPointIOMarkedPair(FPointIO* InA, const FName InMarkIdentifier)
 			: MarkIdentifier(InMarkIdentifier),
 			  A(InA)
 		{
@@ -81,9 +81,9 @@ namespace PCGExData
 			return Mark == OtherMark;
 		}
 
-		bool IsValid() { return A && B; }
+		bool IsValid() const { return A && B; }
 
-		void UpdateMark()
+		void UpdateMark() const
 		{
 			if (!IsValid()) { return; }
 			WriteMark<T>(*A, MarkIdentifier, Mark);
@@ -92,7 +92,7 @@ namespace PCGExData
 	};
 
 	template <typename T>
-	struct FKPointIOMarkedBindings
+	struct PCGEXTENDEDTOOLKIT_API FKPointIOMarkedBindings
 	{
 		FName MarkIdentifier = NAME_None;
 		T Mark;
@@ -103,7 +103,7 @@ namespace PCGExData
 		{
 		}
 
-		FKPointIOMarkedBindings(FPointIO* InKey, FName InMarkIdentifier)
+		FKPointIOMarkedBindings(FPointIO* InKey, const FName InMarkIdentifier)
 			: MarkIdentifier(InMarkIdentifier),
 			  Key(InKey)
 		{
@@ -134,7 +134,7 @@ namespace PCGExData
 
 		void Add(FPointIO& Other) { Values.Add(&Other); }
 
-		bool IsValid() { return Key && !Values.IsEmpty(); }
+		bool IsValid() const { return Key && !Values.IsEmpty(); }
 
 		void UpdateMark()
 		{

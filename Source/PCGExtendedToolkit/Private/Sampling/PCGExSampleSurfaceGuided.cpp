@@ -29,7 +29,7 @@ bool FPCGExSampleSurfaceGuidedElement::Boot(FPCGContext* InContext) const
 	PCGEX_FWD(CollisionObjectType)
 	PCGEX_FWD(CollisionProfileName)
 	PCGEX_FWD(bIgnoreSelf)
-	
+
 	PCGEX_FWD(Size)
 	PCGEX_FWD(bUseLocalSize)
 	PCGEX_FWD(bProjectFailToSize)
@@ -40,7 +40,7 @@ bool FPCGExSampleSurfaceGuidedElement::Boot(FPCGContext* InContext) const
 	PCGEX_SAMPLENEARESTTRACE_FOREACH(PCGEX_OUTPUT_FWD)
 
 	PCGEX_SAMPLENEARESTTRACE_FOREACH(PCGEX_OUTPUT_VALIDATE_NAME)
-	
+
 	return true;
 }
 

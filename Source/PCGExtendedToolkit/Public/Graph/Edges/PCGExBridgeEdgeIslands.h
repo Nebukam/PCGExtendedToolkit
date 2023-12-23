@@ -27,13 +27,17 @@ public:
 	PCGEX_NODE_INFOS(BridgeEdgeIslands, "Edges : Bridge Islands", "Connects isolated edge islands by their closest vertices.");
 #endif
 
-	virtual PCGExData::EInit GetEdgeOutputInitMode() const override;
-	virtual bool GetCacheAllMeshes() const override;
-
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings interface
 
+	//~Begin UPCGExPointsProcessorSettings interface
+public:
+	virtual PCGExData::EInit GetEdgeOutputInitMode() const override;
+	virtual bool GetCacheAllMeshes() const override;
+	//~End UPCGExPointsProcessorSettings interface
+
+	/** Method used to find & insert bridges */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	EPCGExBridgeIslandMethod BridgeMethod = EPCGExBridgeIslandMethod::LeastEdges;
 
@@ -71,7 +75,7 @@ class PCGEXTENDEDTOOLKIT_API FBridgeMeshesTask : public FPCGExNonAbandonableTask
 {
 public:
 	FBridgeMeshesTask(
-		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO, int32 InOtherMeshIndex) :
+		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO, const int32 InOtherMeshIndex) :
 		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
 		OtherMeshIndex(InOtherMeshIndex)
 	{

@@ -26,7 +26,7 @@ namespace PCGExGraph
 	/** Per-socket temp data structure for processing only*/
 	struct PCGEXTENDEDTOOLKIT_API FSocketProbe : FPCGExSocketBounds
 	{
-		FSocketProbe(const FSocketInfos* InSocketInfos)
+		explicit FSocketProbe(const FSocketInfos* InSocketInfos)
 			: SocketInfos(InSocketInfos)
 		{
 			Candidates.Empty();
@@ -50,7 +50,7 @@ namespace PCGExGraph
 		double ProbedDotMax = 0;
 		double ProbedDotMin = TNumericLimits<double>::Max();
 
-		void OutputTo(int32 Index) const
+		void OutputTo(const int32 Index) const
 		{
 			SocketInfos->Socket->SetTargetIndex(Index, BestCandidate.Index);
 		}

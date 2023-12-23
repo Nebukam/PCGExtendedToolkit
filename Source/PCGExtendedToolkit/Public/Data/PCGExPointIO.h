@@ -44,9 +44,9 @@ namespace PCGExData
 		FPCGTaggedData Source; // Source struct
 		FPCGTaggedData Output; // Source struct
 
-		FPointIO(
-			FName InDefaultOutputLabel,
-			EInit InInit = EInit::NoOutput)
+		explicit FPointIO(
+			const FName InDefaultOutputLabel,
+			const EInit InInit = EInit::NoOutput)
 			: In(nullptr)
 		{
 			DefaultOutputLabel = InDefaultOutputLabel;
@@ -57,8 +57,8 @@ namespace PCGExData
 		FPointIO(
 			const FPCGTaggedData& InSource,
 			const UPCGPointData* InData,
-			FName InDefaultOutputLabel,
-			EInit InInit = EInit::NoOutput)
+			const FName InDefaultOutputLabel,
+			const EInit InInit = EInit::NoOutput)
 			: In(InData)
 		{
 			DefaultOutputLabel = InDefaultOutputLabel;

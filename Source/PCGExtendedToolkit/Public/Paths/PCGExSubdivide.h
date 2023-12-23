@@ -41,12 +41,22 @@ public:
 	PCGEX_NODE_INFOS(Subdivide, "Path : Subdivide", "Subdivide paths segments.");
 #endif
 
-	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
-	virtual PCGExData::EInit GetMainOutputInitMode() const override;
-
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings interface
+
+	//~Begin UObject interface
+#if WITH_EDITOR
+
+public:
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+#endif
+	//~End UObject interface
+
+	//~Begin UPCGExPointsProcessorSettings interface
+public:
+	virtual PCGExData::EInit GetMainOutputInitMode() const override;
+	//~End UPCGExPointsProcessorSettings interface
 
 public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))

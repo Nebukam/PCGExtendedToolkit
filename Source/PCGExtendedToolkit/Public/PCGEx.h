@@ -192,7 +192,7 @@ namespace PCGEx
 		bool IsValid() const { return Point && Index != -1; }
 		const FPCGPoint* Point = nullptr;
 		const int32 Index = -1;
-		
+
 		FPCGPoint& MutablePoint() const { return const_cast<FPCGPoint&>(*Point); }
 	};
 
@@ -212,10 +212,8 @@ namespace PCGEx
 			break;
 		case EPCGExIndexSafety::Wrap:
 			return FMath::Wrap(Index, 0, Limit);
-			break;
 		case EPCGExIndexSafety::Clamp:
 			return FMath::Clamp(Index, 0, Limit);
-			break;
 		default: ;
 		}
 		return Index;

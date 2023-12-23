@@ -4,6 +4,8 @@
 
 #include "Graph/Pathfinding/GoalPickers/PCGExGoalPicker.h"
 
+#include "Data/PCGExPointIO.h"
+
 void UPCGExGoalPicker::PrepareForData(const PCGExData::FPointIO& InSeeds, const PCGExData::FPointIO& InGoals)
 {
 	MaxGoalIndex = InGoals.GetNum() - 1;

@@ -15,7 +15,7 @@ UCLASS(Abstract, DefaultToInstanced, EditInlineNew, BlueprintType, Blueprintable
 class PCGEXTENDEDTOOLKIT_API UPCGExOperation : public UObject
 {
 	GENERATED_BODY()
-
+	//~Begin UPCGExOperation interface
 public:
 	void BindContext(FPCGExPointsProcessorContext* InContext);
 	virtual void UpdateUserFacingInfos();
@@ -26,4 +26,5 @@ public:
 
 protected:
 	FPCGExPointsProcessorContext* Context = nullptr;
+	//~End UPCGExOperation interface
 };

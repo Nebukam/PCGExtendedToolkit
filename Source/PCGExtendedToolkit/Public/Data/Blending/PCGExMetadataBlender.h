@@ -48,8 +48,8 @@ PCGEX_BLEND_CASE(Max)
 
 		virtual ~FMetadataBlender();
 
-		FMetadataBlender(FPCGExBlendingSettings* InBlendingSettings);
-		FMetadataBlender(const FMetadataBlender* ReferenceBlender);
+		explicit FMetadataBlender(FPCGExBlendingSettings* InBlendingSettings);
+		explicit FMetadataBlender(const FMetadataBlender* ReferenceBlender);
 
 		void PrepareForData(
 			PCGExData::FPointIO& InData);

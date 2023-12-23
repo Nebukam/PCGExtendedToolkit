@@ -3,8 +3,6 @@
 
 #include "Paths/PCGExPathProcessor.h"
 
-#include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
-
 #define LOCTEXT_NAMESPACE "PCGExPathProcessorElement"
 
 UPCGExPathProcessorSettings::UPCGExPathProcessorSettings(const FObjectInitializer& ObjectInitializer)

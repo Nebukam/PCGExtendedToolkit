@@ -66,7 +66,7 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsState(PCGExFuse::State_FindingFusePoints))
 	{
-		auto Initialize = [&](PCGExData::FPointIO& PointIO)
+		auto Initialize = [&](const PCGExData::FPointIO& PointIO)
 		{
 			Context->FusedPoints.Reset(PointIO.GetNum() / 2);
 		};
@@ -141,13 +141,12 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 			TArray<FPCGPoint>& MutablePoints = Context->GetCurrentOut()->GetMutablePoints();
 			MutablePoints.Reserve(Context->FusedPoints.Num());
 
-			int32 Index = 0;
 			for (const PCGExFuse::FFusedPoint& FPoint : Context->FusedPoints) { MutablePoints.Add(InPoints[FPoint.Index]); }
 
 			Context->MetadataBlender->PrepareForData(*Context->CurrentIO);
 		};
 
-		auto FusePoint = [&](int32 ReadIndex)
+		auto FusePoint = [&](const int32 ReadIndex)
 		{
 			PCGExFuse::FFusedPoint& FusedPoint = Context->FusedPoints[ReadIndex];
 
@@ -156,7 +155,7 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 			const int32 NumFused = FusedPoint.Fused.Num();
 			const double AverageDivider = NumFused;
 
-			PCGEx::FPointRef Target = Context->CurrentIO->GetOutPointRef(ReadIndex);
+			const PCGEx::FPointRef Target = Context->CurrentIO->GetOutPointRef(ReadIndex);
 			Context->MetadataBlender->PrepareForBlending(Target);
 
 			for (int i = 0; i < NumFused; i++)

@@ -52,7 +52,7 @@ FPCGExGraphProcessorContext::~FPCGExGraphProcessorContext()
 
 #pragma endregion
 
-bool FPCGExGraphProcessorContext::AdvanceGraph(bool bResetPointsIndex)
+bool FPCGExGraphProcessorContext::AdvanceGraph(const bool bResetPointsIndex)
 {
 	if (bResetPointsIndex) { CurrentPointsIndex = -1; }
 

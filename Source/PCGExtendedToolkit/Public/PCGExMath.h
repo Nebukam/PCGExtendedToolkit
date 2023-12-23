@@ -39,13 +39,13 @@ namespace PCGExMath
 
 		FVector GetAnchorNormal(const FVector& Location) const { return (Anchor - Location).GetSafeNormal(); }
 
-		void Scale(double InScale)
+		void Scale(const double InScale)
 		{
 			TowardStart *= InScale;
 			TowardEnd *= InScale;
 		}
 
-		void Extend(double InSize)
+		void Extend(const double InSize)
 		{
 			TowardStart += Direction * InSize;
 			TowardEnd += Direction * -InSize;
@@ -106,7 +106,7 @@ namespace PCGExMath
 		bool IsLastWithinRange(const FVector& Location, const double Range) const { return DistToLast(Location) < Range; }
 	};
 
-	inline static double ConvertStringToDouble(const FString& StringToConvert)
+	static double ConvertStringToDouble(const FString& StringToConvert)
 	{
 		const TCHAR* CharArray = *StringToConvert;
 		const double Result = FCString::Atod(CharArray);
@@ -114,12 +114,12 @@ namespace PCGExMath
 	}
 
 	// Remap function
-	inline static double Remap(const double InBase, const double InMin, const double InMax, const double OutMin = 0, const double OutMax = 1)
+	static double Remap(const double InBase, const double InMin, const double InMax, const double OutMin = 0, const double OutMax = 1)
 	{
 		return FMath::Lerp(OutMin, OutMax, (InBase - InMin) / (InMax - InMin));
 	}
 
-	inline static FVector CWWrap(const FVector& InValue, const FVector& Min, const FVector& Max)
+	static FVector CWWrap(const FVector& InValue, const FVector& Min, const FVector& Max)
 	{
 		return FVector(
 			FMath::Wrap(InValue.X, Min.X, Max.X),
@@ -128,22 +128,22 @@ namespace PCGExMath
 	}
 
 	template <typename T>
-	inline static int SignPlus(const T& InValue)
+	static int SignPlus(const T& InValue)
 	{
-		int sign = FMath::Sign(InValue);
-		return sign == 0 ? 1 : sign;
+		const int Sign = FMath::Sign(InValue);
+		return Sign == 0 ? 1 : Sign;
 	}
 
 	template <typename T>
-	inline static int SignMinus(const T& InValue)
+	static int SignMinus(const T& InValue)
 	{
-		int sign = FMath::Sign(InValue);
-		return sign == 0 ? -1 : sign;
+		const int Sign = FMath::Sign(InValue);
+		return Sign == 0 ? -1 : Sign;
 	}
 
 	static FBox ConeBox(const FVector& Center, const FVector& ConeDirection, double Size)
 	{
-		FVector Dir = ConeDirection.GetSafeNormal();
+		const FVector Dir = ConeDirection.GetSafeNormal();
 		const FVector U = FVector::CrossProduct(Dir, Dir + FVector(0.1)).GetSafeNormal();
 		const FVector V = FVector::CrossProduct(Dir, Dir + FVector(-0.1)).GetSafeNormal();
 

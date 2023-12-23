@@ -33,10 +33,10 @@ public:
 
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
-	//~End UPCGSettings interface
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
+	//~End UPCGSettings interface
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExForceGarbageCollectionElement : public FPCGPointProcessingElementBase

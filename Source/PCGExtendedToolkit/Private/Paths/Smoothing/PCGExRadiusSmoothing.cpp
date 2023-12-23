@@ -7,13 +7,11 @@
 #include "Data/PCGExPointIO.h"
 #include "Data/Blending/PCGExDataBlending.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
-#include "Data/Blending/PCGExPropertiesBlender.h"
 
 void UPCGExRadiusSmoothing::InternalDoSmooth(
 	PCGExData::FPointIO& InPointIO)
 {
 	const TArray<FPCGPoint>& InPoints = InPointIO.GetIn()->GetPoints();
-	TArray<FPCGPoint>& OutPoints = InPointIO.GetOut()->GetMutablePoints();
 
 	PCGExDataBlending::FMetadataBlender* MetadataBlender = new PCGExDataBlending::FMetadataBlender(&BlendingSettings);
 	MetadataBlender->PrepareForData(InPointIO);

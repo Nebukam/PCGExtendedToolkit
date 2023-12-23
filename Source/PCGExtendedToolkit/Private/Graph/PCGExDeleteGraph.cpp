@@ -29,11 +29,11 @@ bool FPCGExDeleteGraphElement::ExecuteInternal(
 	if (!Boot(Context)) { return true; }
 
 	Context->MainPoints->ForEach(
-		[&](PCGExData::FPointIO& PointIO, const int32)
+		[&](const PCGExData::FPointIO& PointIO, const int32)
 		{
 			auto DeleteSockets = [&](const UPCGExGraphParamsData* Params, int32)
 			{
-				UPCGPointData* OutData = PointIO.GetOut();
+				const UPCGPointData* OutData = PointIO.GetOut();
 				for (const PCGExGraph::FSocket& Socket : Params->GetSocketMapping()->Sockets)
 				{
 					Socket.DeleteFrom(OutData);

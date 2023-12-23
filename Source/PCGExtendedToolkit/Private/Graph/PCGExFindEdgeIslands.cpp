@@ -18,7 +18,7 @@ FPCGExFindEdgeIslandsContext::~FPCGExFindEdgeIslandsContext()
 	PCGEX_TERMINATE_ASYNC
 
 	PCGEX_DELETE(IslandsIO)
-	PCGEX_DELETE(Network)
+	PCGEX_DELETE(EdgeNetwork)
 	PCGEX_DELETE(Markings)
 
 	IndexRemap.Empty();
@@ -83,17 +83,17 @@ bool FPCGExFindEdgeIslandsElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
-		PCGEX_DELETE(Context->Network)
+		PCGEX_DELETE(Context->EdgeNetwork)
 		PCGEX_DELETE(Context->IslandsIO)
 		PCGEX_DELETE(Context->Markings)
-		PCGEX_DELETE(Context->Crossings)
+		PCGEX_DELETE(Context->EdgeCrossings)
 
 		if (!Context->AdvancePointsIOAndResetGraph()) { Context->Done(); }
 		else
 		{
 			Context->IslandsIO = new PCGExData::FPointIOGroup();
 			Context->IslandsIO->DefaultOutputLabel = PCGExGraph::OutputEdgesLabel;
-			Context->Network = new PCGExGraph::FNetwork(Context->MergedInputSocketsNum, Context->CurrentIO->GetNum());
+			Context->EdgeNetwork = new PCGExGraph::FEdgeNetwork(Context->MergedInputSocketsNum, Context->CurrentIO->GetNum());
 			Context->Markings = new PCGExData::FKPointIOMarkedBindings<int32>(Context->CurrentIO, PCGExGraph::PUIDAttributeName);
 			Context->SetState(PCGExGraph::State_ReadyForNextGraph);
 		}
@@ -105,7 +105,7 @@ bool FPCGExFindEdgeIslandsElement::ExecuteInternal(
 		{
 			if (Context->bFindCrossings)
 			{
-				Context->Crossings = new PCGExGraph::FCrossingsHandler(Context->Network, Context->CrossingTolerance);
+				Context->EdgeCrossings = new PCGExGraph::FEdgeCrossingsHandler(Context->EdgeNetwork, Context->CrossingTolerance);
 				Context->SetState(PCGExGraph::State_FindingCrossings);
 			}
 			else
@@ -123,7 +123,7 @@ bool FPCGExFindEdgeIslandsElement::ExecuteInternal(
 		Context->CurrentIO->CreateInKeys();
 		Context->PrepareCurrentGraphForPoints(*Context->CurrentIO);
 
-		const int32 NumNodes = Context->Network->Nodes.Num();
+		const int32 NumNodes = Context->EdgeNetwork->Nodes.Num();
 		TSet<int32> VisitedNodes;
 		VisitedNodes.Reserve(NumNodes);
 
@@ -147,7 +147,7 @@ bool FPCGExFindEdgeIslandsElement::ExecuteInternal(
 
 						if (End != -1 && (InEdgeType & EdgeType) != 0)
 						{
-							Context->Network->InsertEdge(PCGExGraph::FUnsignedEdge(Index, End, EPCGExEdgeType::Complete));
+							Context->EdgeNetwork->InsertEdge(PCGExGraph::FUnsignedEdge(Index, End, EPCGExEdgeType::Complete));
 							Queue.Enqueue(End);
 						}
 					}
@@ -163,17 +163,17 @@ bool FPCGExFindEdgeIslandsElement::ExecuteInternal(
 	{
 		auto Initialize = [&]()
 		{
-			Context->Crossings->Prepare(Context->CurrentIO->GetIn()->GetPoints());
+			Context->EdgeCrossings->Prepare(Context->CurrentIO->GetIn()->GetPoints());
 		};
 
 		auto ProcessEdge = [&](const int32 Index)
 		{
-			Context->Crossings->ProcessEdge(Index, Context->CurrentIO->GetIn()->GetPoints());
+			Context->EdgeCrossings->ProcessEdge(Index, Context->CurrentIO->GetIn()->GetPoints());
 		};
 
-		if (Context->Process(Initialize, ProcessEdge, Context->Network->Edges.Num()))
+		if (Context->Process(Initialize, ProcessEdge, Context->EdgeNetwork->Edges.Num()))
 		{
-			Context->Crossings->InsertCrossings();
+			Context->EdgeCrossings->InsertCrossings();
 			Context->SetState(PCGExGraph::State_WritingIslands);
 		}
 	}
@@ -183,24 +183,24 @@ bool FPCGExFindEdgeIslandsElement::ExecuteInternal(
 	if (Context->IsState(PCGExGraph::State_WritingIslands))
 	{
 		Context->IslandsIO->Flush();
-		Context->Network->PrepareIslands(Context->MinIslandSize, Context->MaxIslandSize);
+		Context->EdgeNetwork->PrepareIslands(Context->MinIslandSize, Context->MaxIslandSize);
 		Context->Markings->Mark = Context->CurrentIO->GetIn()->GetUniqueID();
 
 		if (Context->bPruneIsolatedPoints)
 		{
 			UPCGPointData* OutData = Context->CurrentIO->GetOut();
 			TArray<FPCGPoint>& MutablePoints = OutData->GetMutablePoints();
-			const int32 NumMaxNodes = Context->Network->Nodes.Num();
+			const int32 NumMaxNodes = Context->EdgeNetwork->Nodes.Num();
 			MutablePoints.Reserve(NumMaxNodes);
 			Context->IndexRemap.Empty();
 			Context->IndexRemap.Reserve(NumMaxNodes);
 			int32 Index = 0;
 
-			for (PCGExGraph::FNode Node : Context->Network->Nodes)
+			for (PCGExGraph::FNetworkNode Node : Context->EdgeNetwork->Nodes)
 			{
 				if (Node.bCrossing) { continue; }
 				if (Node.Island == -1 || Node.Edges.IsEmpty()) { continue; }
-				if (*Context->Network->IslandSizes.Find(Node.Island) == -1) { continue; }
+				if (*Context->EdgeNetwork->IslandSizes.Find(Node.Island) == -1) { continue; }
 
 				Context->IndexRemap.Add(Node.Index, Index++);
 				MutablePoints.Add(Context->CurrentIO->GetInPoint(Node.Index));
@@ -208,14 +208,14 @@ bool FPCGExFindEdgeIslandsElement::ExecuteInternal(
 
 			if (Context->bFindCrossings)
 			{
-				int32 Offset = Context->Crossings->StartIndex;
-				for (int i = 0; i < Context->Crossings->Crossings.Num(); i++)
+				const int32 Offset = Context->EdgeCrossings->StartIndex;
+				for (int i = 0; i < Context->EdgeCrossings->Crossings.Num(); i++)
 				{
-					const PCGExGraph::FCrossing& Crossing = Context->Crossings->Crossings[i];
-					const PCGExGraph::FNode& Node = Context->Network->Nodes[Offset + i];
+					const PCGExGraph::FEdgeCrossing& Crossing = Context->EdgeCrossings->Crossings[i];
+					const PCGExGraph::FNetworkNode& Node = Context->EdgeNetwork->Nodes[Offset + i];
 
 					if (Node.Island == -1 || Node.Edges.IsEmpty()) { continue; }
-					if (*Context->Network->IslandSizes.Find(Node.Island) == -1) { continue; }
+					if (*Context->EdgeNetwork->IslandSizes.Find(Node.Island) == -1) { continue; }
 
 					Context->IndexRemap.Add(Offset + i, Index++);
 					MutablePoints.Emplace_GetRef().Transform.SetLocation(Crossing.Center);
@@ -225,14 +225,14 @@ bool FPCGExFindEdgeIslandsElement::ExecuteInternal(
 		else if (Context->bFindCrossings)
 		{
 			TArray<FPCGPoint>& MutablePoints = Context->CurrentIO->GetOut()->GetMutablePoints();
-			for (const PCGExGraph::FCrossing& Crossing : Context->Crossings->Crossings)
+			for (const PCGExGraph::FEdgeCrossing& Crossing : Context->EdgeCrossings->Crossings)
 			{
 				MutablePoints.Emplace_GetRef().Transform.SetLocation(Crossing.Center);
 			}
 		}
 
 
-		for (const TPair<int32, int32>& Pair : Context->Network->IslandSizes)
+		for (const TPair<int32, int32>& Pair : Context->EdgeNetwork->IslandSizes)
 		{
 			const int32 IslandSize = Pair.Value;
 			if (IslandSize == -1) { continue; }
@@ -242,7 +242,7 @@ bool FPCGExFindEdgeIslandsElement::ExecuteInternal(
 
 			Context->GetAsyncManager()->Start<FWriteIslandTask>(
 				Pair.Key, Context->CurrentIO, &IslandIO,
-				Context->Network, Context->bPruneIsolatedPoints ? &Context->IndexRemap : nullptr);
+				Context->EdgeNetwork, Context->bPruneIsolatedPoints ? &Context->IndexRemap : nullptr);
 		}
 
 		if (Context->IslandsIO->IsEmpty())
@@ -271,11 +271,11 @@ bool FPCGExFindEdgeIslandsElement::ExecuteInternal(
 		if (Settings->bDeleteGraphData)
 		{
 			Context->MainPoints->ForEach(
-				[&](PCGExData::FPointIO& PointIO, int32)
+				[&](const PCGExData::FPointIO& PointIO, int32)
 				{
 					auto DeleteSockets = [&](const UPCGExGraphParamsData* Params, int32)
 					{
-						UPCGPointData* OutData = PointIO.GetOut();
+						const UPCGPointData* OutData = PointIO.GetOut();
 						for (const PCGExGraph::FSocket& Socket : Params->GetSocketMapping()->Sockets)
 						{
 							Socket.DeleteFrom(OutData);
@@ -294,18 +294,18 @@ bool FPCGExFindEdgeIslandsElement::ExecuteInternal(
 bool FWriteIslandTask::ExecuteTask()
 {
 	const int32 IslandUID = TaskIndex;
-	int32 IslandSize = *Network->IslandSizes.Find(IslandUID);
+	int32 IslandSize = *EdgeNetwork->IslandSizes.Find(IslandUID);
 
 	TSet<int32> IslandSet;
 	TQueue<int32> Island;
 	IslandSet.Reserve(IslandSize);
 
-	for (PCGExGraph::FNode& Node : Network->Nodes)
+	for (PCGExGraph::FNetworkNode& Node : EdgeNetwork->Nodes)
 	{
 		if (Node.Island == -1 || Node.Island != IslandUID) { continue; }
 		for (const int32 Edge : Node.Edges)
 		{
-			if (!IslandSet.Contains(Edge) && Network->Edges[Edge].bValid)
+			if (!IslandSet.Contains(Edge) && EdgeNetwork->Edges[Edge].bValid)
 			{
 				Island.Enqueue(Edge);
 				IslandSet.Add(Edge);
@@ -336,7 +336,7 @@ bool FWriteIslandTask::ExecuteTask()
 	{
 		while (Island.Dequeue(EdgeIndex))
 		{
-			const PCGExGraph::FUnsignedEdge& Edge = Network->Edges[EdgeIndex];
+			const PCGExGraph::FUnsignedEdge& Edge = EdgeNetwork->Edges[EdgeIndex];
 			MutablePoints[PointIndex].Transform.SetLocation(
 				FMath::Lerp(
 					Vertices[(EdgeStart->Values[PointIndex] = *IndexRemap->Find(Edge.Start))].Transform.GetLocation(),
@@ -348,7 +348,7 @@ bool FWriteIslandTask::ExecuteTask()
 	{
 		while (Island.Dequeue(EdgeIndex))
 		{
-			const PCGExGraph::FUnsignedEdge& Edge = Network->Edges[EdgeIndex];
+			const PCGExGraph::FUnsignedEdge& Edge = EdgeNetwork->Edges[EdgeIndex];
 			MutablePoints[PointIndex].Transform.SetLocation(
 				FMath::Lerp(
 					Vertices[(EdgeStart->Values[PointIndex] = Edge.Start)].Transform.GetLocation(),

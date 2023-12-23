@@ -35,12 +35,15 @@ public:
 	PCGEX_NODE_INFOS(SampleNearestSurface, "Sample : Nearest Surface", "Find the closest point on the nearest collidable surface.");
 #endif
 
-	virtual PCGExData::EInit GetMainOutputInitMode() const override;
-	virtual int32 GetPreferredChunkSize() const override;
-
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings interface
+
+	//~Begin UPCGExPointsProcessorSettings interface
+public:
+	virtual PCGExData::EInit GetMainOutputInitMode() const override;
+	virtual int32 GetPreferredChunkSize() const override;
+	//~End UPCGExPointsProcessorSettings interface
 
 public:
 	/** Write whether the sampling was sucessful or not to a boolean attribute. */

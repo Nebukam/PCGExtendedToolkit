@@ -13,8 +13,8 @@
 
 namespace PCGExGraph
 {
-	struct FCrossingsHandler;
-	struct FNetwork;
+	struct FEdgeCrossingsHandler;
+	struct FEdgeNetwork;
 
 	struct PCGEXTENDEDTOOLKIT_API FLooseNode
 	{
@@ -24,7 +24,7 @@ namespace PCGExGraph
 		TArray<int32> Neighbors;
 		TArray<uint64> FusedPoints;
 
-		FLooseNode(const FVector& InCenter, int32 InIndex)
+		FLooseNode(const FVector& InCenter, const int32 InIndex)
 			: Center(InCenter),
 			  Index(InIndex)
 		{
@@ -55,7 +55,7 @@ namespace PCGExGraph
 
 		double Tolerance;
 
-		FLooseNetwork(const double InTolerance)
+		explicit FLooseNetwork(const double InTolerance)
 			: Tolerance(InTolerance)
 		{
 			Nodes.Empty();
@@ -94,17 +94,26 @@ public:
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(PathsToEdgeIslands, "Path : To Edge Islands", "Merge paths to edge islands for glorious pathfinding inception");
 #endif
-
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
-
-	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
-	virtual PCGExData::EInit GetMainOutputInitMode() const override;
-	virtual FName GetMainInputLabel() const override;
-	virtual FName GetMainOutputLabel() const override;
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings interface
+
+	//~Begin UObject interface
+#if WITH_EDITOR
+
+public:
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+#endif
+	//~End UObject interface
+
+	//~Begin UPCGExPointsProcessorSettings interface
+public:
+	virtual PCGExData::EInit GetMainOutputInitMode() const override;
+	virtual FName GetMainInputLabel() const override;
+	virtual FName GetMainOutputLabel() const override;
+	//~End UPCGExPointsProcessorSettings interface
 
 public:
 	/** Distance at which points are fused */
@@ -118,8 +127,6 @@ public:
 	/** Distance at which segments are considered crossing. !!! VERY EXPENSIVE !!!*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bFindCrossings"))
 	double CrossingTolerance = 10;
-	
-	
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExPathsToEdgeIslandsContext : public FPCGExPathProcessorContext
@@ -130,14 +137,14 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathsToEdgeIslandsContext : public FPCGExPat
 
 	bool bFindCrossings;
 	double CrossingTolerance;
-	
+
 	PCGExGraph::FLooseNetwork* LooseNetwork;
 	TMap<PCGExData::FPointIO*, int32> IOIndices;
 
 	mutable FRWLock NetworkLock;
 	TSet<int32> VisitedNodes;
-	PCGExGraph::FNetwork* Network = nullptr;
-	PCGExGraph::FCrossingsHandler* Crossings = nullptr;
+	PCGExGraph::FEdgeNetwork* EdgeNetwork = nullptr;
+	PCGExGraph::FEdgeCrossingsHandler* EdgeCrossings = nullptr;
 	PCGExData::FPointIOGroup* IslandsIO;
 
 	PCGExData::FKPointIOMarkedBindings<int32>* Markings = nullptr;

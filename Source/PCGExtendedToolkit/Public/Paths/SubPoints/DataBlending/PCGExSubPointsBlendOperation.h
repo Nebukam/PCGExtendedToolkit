@@ -23,7 +23,6 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSubPointsBlendOperation : public UPCGExSubPoi
 	GENERATED_BODY()
 
 public:
-	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
 	FPCGExBlendingSettings BlendingSettings;
 

@@ -5,7 +5,6 @@
 
 #include "CoreMinimal.h"
 #include "PCGExOperation.h"
-#include "Graph/PCGExGraph.h"
 #include "PCGExEdgePruningOperation.generated.h"
 
 /**

@@ -113,7 +113,7 @@ public:
 
 	void GetSocketsInfos(TArray<PCGExGraph::FSocketInfos>& OutInfos) const;
 
-	void Cleanup();
+	void Cleanup() const;
 };
 
 namespace PCGExGraph
@@ -126,7 +126,7 @@ namespace PCGExGraph
 			ParamsSources.Empty();
 		}
 
-		FGraphInputs(FPCGContext* Context, FName InputLabel): FGraphInputs()
+		FGraphInputs(FPCGContext* Context, const FName InputLabel): FGraphInputs()
 		{
 			TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(InputLabel);
 			Initialize(Context, Sources);
@@ -175,11 +175,11 @@ namespace PCGExGraph
 		}
 
 		static UPCGExGraphParamsData* NewGraph(
-			uint64 GraphUID,
-			FName Identifier,
-			TArray<FPCGExSocketDescriptor> Sockets,
-			bool ApplyGlobalOverrides,
-			FPCGExSocketGlobalOverrides GlobalOverrides)
+			const uint64 GraphUID,
+			const FName Identifier,
+			const TArray<FPCGExSocketDescriptor>& Sockets,
+			const bool ApplyGlobalOverrides,
+			const FPCGExSocketGlobalOverrides& GlobalOverrides)
 		{
 			UPCGExGraphParamsData* OutParams = NewObject<UPCGExGraphParamsData>();
 

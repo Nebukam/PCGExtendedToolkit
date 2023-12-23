@@ -7,7 +7,6 @@
 
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGExAttributeHelpers.h"
-#include "Data/Blending/PCGExPropertiesBlender.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
 
 #include "PCGExPointsToBounds.generated.h"
@@ -43,14 +42,24 @@ public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(PointsToBounds, "Points to Bounds", "Merge points group to a single point representing their bounds.");
-	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings interface
 
+	//~Begin UObject interface
+#if WITH_EDITOR
+
+public:
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+#endif
+	//~End UObject interface
+
+	//~Begin UPCGExPointsProcessorSettings interface
+public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
+	//~End UPCGExPointsProcessorSettings interface
 
 public:
 	/** Defines how fused point properties and attributes are merged into the final point. */

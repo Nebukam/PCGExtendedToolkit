@@ -30,8 +30,11 @@ public:
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 	//~End UPCGSettings interface
 
+	//~Begin UPCGExPointsProcessorSettings interface
+public:
 	virtual FName GetMainInputLabel() const override;
 	virtual FName GetMainOutputLabel() const override;
+	//~End UPCGExPointsProcessorSettings interface
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExGraphProcessorContext : public FPCGExPointsProcessorContext

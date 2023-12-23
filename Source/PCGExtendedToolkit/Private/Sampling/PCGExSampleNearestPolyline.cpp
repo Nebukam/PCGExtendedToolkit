@@ -167,7 +167,7 @@ bool FPCGExSampleNearestPolylineElement::ExecuteInternal(FPCGContext* InContext)
 bool FSamplePolylineTask::ExecuteTask()
 {
 	const FPCGExSampleNearestPolylineContext* Context = Manager->GetContext<FPCGExSampleNearestPolylineContext>();
-	
+
 
 	const FPCGPoint& Point = PointIO->GetOutPoint(TaskIndex);
 
@@ -258,7 +258,6 @@ bool FSamplePolylineTask::ExecuteTask()
 		TotalWeight += Weight;
 	};
 
-	
 
 	if (Context->SampleMethod == EPCGExSampleMethod::ClosestTarget ||
 		Context->SampleMethod == EPCGExSampleMethod::FarthestTarget)

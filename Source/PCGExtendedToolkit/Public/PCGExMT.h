@@ -70,7 +70,7 @@ namespace PCGExMT
 		{
 		}
 
-		FAsyncParallelLoop(FPCGContext* InContext, int32 InChunkSize, bool InEnabled):
+		FAsyncParallelLoop(FPCGContext* InContext, const int32 InChunkSize, const bool InEnabled):
 			Context(InContext), ChunkSize(InChunkSize), bAsyncEnabled(InEnabled)
 		{
 		}
@@ -159,7 +159,7 @@ namespace PCGExMT
 		TFunction<void()>&& Initialize,
 		TFunction<void(int32)>&& LoopBody,
 		const int32 ChunkSize = 32,
-		bool bForceSync = false)
+		const bool bForceSync = false)
 	{
 		if (bForceSync)
 		{
@@ -168,7 +168,7 @@ namespace PCGExMT
 			return true;
 		}
 
-		auto InnerBodyLoop = [&](int32 ReadIndex, int32 WriteIndex)
+		auto InnerBodyLoop = [&](const int32 ReadIndex, int32 WriteIndex)
 		{
 			LoopBody(ReadIndex);
 			return true;
@@ -182,7 +182,7 @@ namespace PCGExMT
 		const int32 NumIterations,
 		TFunction<void(int32)>&& LoopBody,
 		const int32 ChunkSize = 32,
-		bool bForceSync = false)
+		const bool bForceSync = false)
 	{
 		if (bForceSync)
 		{
@@ -190,7 +190,7 @@ namespace PCGExMT
 			return true;
 		}
 
-		auto InnerBodyLoop = [&](int32 ReadIndex, int32 WriteIndex)
+		auto InnerBodyLoop = [&](const int32 ReadIndex, int32 WriteIndex)
 		{
 			LoopBody(ReadIndex);
 			return true;
@@ -214,7 +214,7 @@ public:
 	bool bStopped = false;
 	bool bForceSync = false;
 
-	template <typename T, typename... Args>
+	template <typename T>
 	void Start(FAsyncTask<T>* AsyncTask)
 	{
 		{
@@ -236,7 +236,7 @@ public:
 		else { Start(new FAsyncTask<T>(this, TaskIndex, InPointsIO, args...)); }
 	}
 
-	template <typename T, typename... Args>
+	template <typename T>
 	void StartSync(FAsyncTask<T>* AsyncTask)
 	{
 		{
@@ -256,7 +256,7 @@ public:
 		StartSync(new FAsyncTask<T>(this, Index, InPointsIO, args...));
 	}
 
-	void Reserve(int32 NumTasks) { QueuedTasks.Reserve(NumTasks); }
+	void Reserve(const int32 NumTasks) { QueuedTasks.Reserve(NumTasks); }
 
 	void OnAsyncTaskExecutionComplete(FPCGExNonAbandonableTask* AsyncTask, bool bSuccess);
 	bool IsAsyncWorkComplete() const;

@@ -14,11 +14,13 @@ UPCGExSubdivideSettings::UPCGExSubdivideSettings(const FObjectInitializer& Objec
 	PCGEX_OPERATION_DEFAULT(Blending, UPCGExSubPointsBlendInterpolate)
 }
 
+#if WITH_EDITOR
 void UPCGExSubdivideSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	if (Blending) { Blending->UpdateUserFacingInfos(); }
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
+#endif
 
 PCGExData::EInit UPCGExSubdivideSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NewOutput; }
 
@@ -70,7 +72,7 @@ bool FPCGExSubdivideElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsState(PCGExMT::State_ProcessingPoints))
 	{
-		auto Initialize = [&](PCGExData::FPointIO& PointIO)
+		auto Initialize = [&](const PCGExData::FPointIO& PointIO)
 		{
 			Context->Milestones.Empty();
 			Context->Milestones.Add(0);

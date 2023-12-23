@@ -23,11 +23,14 @@ public:
 	PCGEX_NODE_INFOS(DiscardByPointCount, "Discard By Point Count", "Filter outputs by point count.");
 #endif
 
-	virtual PCGExData::EInit GetMainOutputInitMode() const override;
-
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings interface
+
+	//~Begin UPCGExPointsProcessorSettings interface
+public:
+	virtual PCGExData::EInit GetMainOutputInitMode() const override;
+	//~End UPCGExPointsProcessorSettings interface
 
 public:
 	/** The name of the attribute to write its index to.*/

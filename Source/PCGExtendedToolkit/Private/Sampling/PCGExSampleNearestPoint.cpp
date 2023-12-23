@@ -59,7 +59,7 @@ bool FPCGExSampleNearestPointElement::Boot(FPCGContext* InContext) const
 		const FPCGTaggedData& Target = Targets[0];
 		if (const UPCGSpatialData* SpatialData = Cast<UPCGSpatialData>(Target.Data))
 		{
-			if (const UPCGPointData* PointData = SpatialData->ToPointData(Context))
+			if (SpatialData->ToPointData(Context))
 			{
 				Context->Targets = PCGExData::PCGExPointIO::GetPointIO(Context, Target);
 			}
@@ -181,7 +181,7 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 bool FSamplePointTask::ExecuteTask()
 {
 	const FPCGExSampleNearestPointContext* Context = Manager->GetContext<FPCGExSampleNearestPointContext>();
-	
+
 
 	const int32 NumTargets = Context->Targets->GetNum();
 	const FVector Origin = PointIO->GetOutPoint(TaskIndex).Transform.GetLocation();
@@ -249,7 +249,7 @@ bool FSamplePointTask::ExecuteTask()
 
 
 	auto ProcessTargetInfos = [&]
-		(const PCGExNearestPoint::FTargetInfos& TargetInfos, double Weight)
+		(const PCGExNearestPoint::FTargetInfos& TargetInfos, const double Weight)
 	{
 		const FPCGPoint& Target = Context->Targets->GetInPoint(TargetInfos.Index);
 		const FVector TargetLocationOffset = Target.Transform.GetLocation() - Origin;

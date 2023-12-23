@@ -177,7 +177,7 @@ namespace PCGExActorSelector
 		return FoundActors;
 	}
 
-	AActor* FindActor(const FPCGExActorSelectorSettings& InSettings, UPCGComponent* InComponent, const TFunction<bool(const AActor*)>& BoundsCheck, const TFunction<bool(const AActor*)>& SelfIgnoreCheck)
+	AActor* FindActor(const FPCGExActorSelectorSettings& InSettings, const UPCGComponent* InComponent, const TFunction<bool(const AActor*)>& BoundsCheck, const TFunction<bool(const AActor*)>& SelfIgnoreCheck)
 	{
 		// In order to make sure we don't try to select multiple, we'll do a copy of the settings here.
 		FPCGExActorSelectorSettings Settings = InSettings;
@@ -188,20 +188,20 @@ namespace PCGExActorSelector
 	}
 }
 
-FPCGExActorSelectionKey::FPCGExActorSelectionKey(EPCGExActorFilter InFilter)
+FPCGExActorSelectionKey::FPCGExActorSelectionKey(const EPCGExActorFilter InFilter)
 {
 	check(InFilter != EPCGExActorFilter::AllWorldActors);
 	ActorFilter = InFilter;
 }
 
-FPCGExActorSelectionKey::FPCGExActorSelectionKey(FName InTag)
+FPCGExActorSelectionKey::FPCGExActorSelectionKey(const FName InTag)
 {
 	Selection = EPCGExActorSelection::ByTag;
 	Tag = InTag;
 	ActorFilter = EPCGExActorFilter::AllWorldActors;
 }
 
-FPCGExActorSelectionKey::FPCGExActorSelectionKey(TSubclassOf<AActor> InSelectionClass)
+FPCGExActorSelectionKey::FPCGExActorSelectionKey(const TSubclassOf<AActor> InSelectionClass)
 {
 	Selection = EPCGExActorSelection::ByClass;
 	ActorSelectionClass = InSelectionClass;
@@ -229,7 +229,7 @@ bool FPCGExActorSelectionKey::IsMatching(const AActor* InActor, const UPCGCompon
 		// we want to gather all the actors that matches this given key, to find if ours matches.
 		FPCGExActorSelectorSettings SelectorSettings = FPCGExActorSelectorSettings::ReconstructFromKey(*this);
 		SelectorSettings.bSelectMultiple = true;
-		TArray<AActor*> AllActors = PCGExActorSelector::FindActors(SelectorSettings, InComponent, [](const AActor*) { return true; }, [](const AActor*) { return true; });
+		const TArray<AActor*> AllActors = PCGExActorSelector::FindActors(SelectorSettings, InComponent, [](const AActor*) { return true; }, [](const AActor*) { return true; });
 		return AllActors.Contains(InActor);
 	}
 

@@ -21,12 +21,12 @@ class PCGEXTENDEDTOOLKIT_API UPCGExDrawGraphSettings : public UPCGExGraphProcess
 
 public:
 	UPCGExDrawGraphSettings(const FObjectInitializer& ObjectInitializer);
+	
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(DrawGraph, "Draw Graph", "Draw graph edges. Toggle debug OFF (D) before disabling this node (E)! Warning: this node will clear persistent debug lines before it!");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Debug; }
 	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorDebug; }
-	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 
@@ -34,13 +34,28 @@ protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings interface
 
-	virtual PCGExData::EInit GetMainOutputInitMode() const override;
+	//~Begin UObject interface
+#if WITH_EDITOR
 
 public:
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+#endif
+	//~End UObject interface
+
+	//~Begin UPCGExPointsProcessorSettings interface
+public:
+	virtual PCGExData::EInit GetMainOutputInitMode() const override;
+	//~End UPCGExPointsProcessorSettings interface
+
 	//~Begin IPCGExDebug interface
+public:
+#if WITH_EDITOR
 	virtual bool IsDebugEnabled() const override { return bEnabled && bDebug; }
+#endif
+
 	//~End IPCGExDebug interface
 
+public:
 	/** Draw edges.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	bool bDrawGraph = true;

@@ -207,9 +207,9 @@ bool FPCGExDrawGraphElement::ExecuteInternal(FPCGContext* InContext) const
 
 	return Context->IsDone();
 
-#elif
-	return  true;
 #endif
+
+	return true;
 }
 
 #undef LOCTEXT_NAMESPACE

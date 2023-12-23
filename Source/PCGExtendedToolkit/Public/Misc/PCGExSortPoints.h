@@ -22,11 +22,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSortRule : public FPCGExInputDescriptor
 {
 	GENERATED_BODY()
 
-	FPCGExSortRule(): FPCGExInputDescriptor()
+	FPCGExSortRule()
 	{
 	}
 
-	template <typename T>
 	FPCGExSortRule(const FPCGExSortRule& Other)
 		: FPCGExInputDescriptor(Other), Tolerance(Other.Tolerance)
 	{
@@ -57,7 +56,10 @@ protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings interface
 
+	//~Begin UPCGExPointsProcessorSettings interface
+public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
+	//~End UPCGExPointsProcessorSettings interface
 
 public:
 	/** Controls the order in which points will be ordered. */

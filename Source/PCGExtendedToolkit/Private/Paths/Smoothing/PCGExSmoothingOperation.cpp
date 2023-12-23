@@ -6,7 +6,6 @@
 
 #include "Data/PCGExPointIO.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
-#include "Data/Blending/PCGExPropertiesBlender.h"
 
 void UPCGExSmoothingOperation::DoSmooth(PCGExData::FPointIO& InPointIO)
 {

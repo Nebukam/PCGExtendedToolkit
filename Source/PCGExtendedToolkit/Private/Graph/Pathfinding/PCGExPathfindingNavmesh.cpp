@@ -52,12 +52,14 @@ TArray<FPCGPinProperties> UPCGExPathfindingNavmeshSettings::OutputPinProperties(
 	return PinProperties;
 }
 
+#if WITH_EDITOR
 void UPCGExPathfindingNavmeshSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	if (GoalPicker) { GoalPicker->UpdateUserFacingInfos(); }
 	if (Blending) { Blending->UpdateUserFacingInfos(); }
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
+#endif
 
 PCGExData::EInit UPCGExPathfindingNavmeshSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 int32 UPCGExPathfindingNavmeshSettings::GetPreferredChunkSize() const { return 32; }
@@ -150,7 +152,7 @@ bool FPCGExPathfindingNavmeshElement::ExecuteInternal(FPCGContext* InContext) co
 		{
 		};
 
-		auto NavMeshTask = [&](int32 SeedIndex, int32 GoalIndex)
+		auto NavMeshTask = [&](const int32 SeedIndex, const int32 GoalIndex)
 		{
 			Context->BufferLock.WriteLock();
 			const int32 PathIndex = Context->PathBuffer.Add(
@@ -182,7 +184,7 @@ bool FPCGExPathfindingNavmeshElement::ExecuteInternal(FPCGContext* InContext) co
 bool FSampleNavmeshTask::ExecuteTask()
 {
 	FPCGExPathfindingNavmeshContext* Context = static_cast<FPCGExPathfindingNavmeshContext*>(Manager->Context);
-	
+
 
 	UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(Context->World);
 
@@ -206,7 +208,7 @@ bool FSampleNavmeshTask::ExecuteTask()
 		Context->PathfindingMode == EPCGExPathfindingNavmeshMode::Regular ? EPathFindingMode::Type::Regular : EPathFindingMode::Type::Hierarchical);
 
 	if (Result.Result != ENavigationQueryResult::Type::Success) { return false; } ///
-	
+
 
 	const TArray<FNavPathPoint>& Points = Result.Path->GetPathPoints();
 
@@ -236,7 +238,7 @@ bool FSampleNavmeshTask::ExecuteTask()
 	}
 
 	if (PathLocations.Num() <= 2) { return false; } //
-	
+
 
 	const int32 NumPositions = PathLocations.Num();
 	const int32 LastPosition = NumPositions - 1;

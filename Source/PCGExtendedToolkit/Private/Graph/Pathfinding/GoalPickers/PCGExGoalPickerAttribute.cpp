@@ -48,6 +48,7 @@ void UPCGExGoalPickerAttribute::GetGoalIndices(const PCGEx::FPointRef& Seed, TAr
 
 bool UPCGExGoalPickerAttribute::OutputMultipleGoals() const { return GoalCount != EPCGExGoalPickAttributeAmount::Single; }
 
+#if WITH_EDITOR
 void UPCGExGoalPickerAttribute::UpdateUserFacingInfos()
 {
 	Super::UpdateUserFacingInfos();
@@ -56,3 +57,4 @@ void UPCGExGoalPickerAttribute::UpdateUserFacingInfos()
 		Descriptor.UpdateUserFacingInfos();
 	}
 }
+#endif

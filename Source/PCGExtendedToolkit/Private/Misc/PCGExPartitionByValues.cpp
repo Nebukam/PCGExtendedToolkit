@@ -13,11 +13,9 @@ namespace PCGExPartitionByValues
 	const FName SourceLabel = TEXT("Source");
 }
 
-#if WITH_EDITOR
-
 namespace PCGExPartition
 {
-	FKPartition::FKPartition(FKPartition* InParent, int64 InKey, FPCGExFilter::FRule* InRule)
+	FKPartition::FKPartition(FKPartition* InParent, const int64 InKey, FPCGExFilter::FRule* InRule)
 		: Parent(InParent), PartitionKey(InKey), Rule(InRule)
 	{
 	}
@@ -79,16 +77,16 @@ namespace PCGExPartition
 	}
 }
 
-
+#if WITH_EDITOR
 void UPCGExPartitionByValuesSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	for (FPCGExFilterRuleDescriptor& Descriptor : PartitionRules) { Descriptor.UpdateUserFacingInfos(); }
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
+#endif
 
 bool UPCGExPartitionByValuesSettings::GetMainAcceptMultipleData() const { return false; }
 
-#endif
 
 PCGExData::EInit UPCGExPartitionByValuesSettings::GetMainOutputInitMode() const { return bSplitOutput ? PCGExData::EInit::NoOutput : PCGExData::EInit::DuplicateInput; }
 

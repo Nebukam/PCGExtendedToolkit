@@ -59,7 +59,7 @@ namespace PCGExData
 	FPCGAttributeAccessorKeysPoints* FPointIO::GetOutKeys() const { return OutKeys; }
 
 
-	void FPointIO::InitPoint(FPCGPoint& Point, PCGMetadataEntryKey FromKey) const
+	void FPointIO::InitPoint(FPCGPoint& Point, const PCGMetadataEntryKey FromKey) const
 	{
 		Out->Metadata->InitializeOnSet(Point.MetadataEntry, FromKey, In->Metadata);
 	}
@@ -94,7 +94,7 @@ namespace PCGExData
 		return Pt;
 	}
 
-	void FPointIO::AddPoint(FPCGPoint& Point, int32& OutIndex, bool bInit = true) const
+	void FPointIO::AddPoint(FPCGPoint& Point, int32& OutIndex, const bool bInit = true) const
 	{
 		FWriteScopeLock WriteLock(PointsLock);
 		TArray<FPCGPoint>& MutablePoints = Out->GetMutablePoints();
@@ -117,7 +117,7 @@ namespace PCGExData
 		return PCGExPointIO::NewEmptyPointData(In);
 	}
 
-	UPCGPointData* FPointIO::NewEmptyOutput(FPCGContext* Context, FName PinLabel) const
+	UPCGPointData* FPointIO::NewEmptyOutput(FPCGContext* Context, const FName PinLabel) const
 	{
 		UPCGPointData* OutData = PCGExPointIO::NewEmptyPointData(Context, PinLabel.IsNone() ? DefaultOutputLabel : PinLabel, In);
 		return OutData;
@@ -181,7 +181,7 @@ namespace PCGExData
 		return bSuccess;
 	}
 
-	bool FPointIO::OutputTo(FPCGContext* Context, bool bEmplace, const int32 MinPointCount, const int32 MaxPointCount)
+	bool FPointIO::OutputTo(FPCGContext* Context, const bool bEmplace, const int32 MinPointCount, const int32 MaxPointCount)
 	{
 		if (Out)
 		{
@@ -206,14 +206,14 @@ namespace PCGExData
 	{
 	}
 
-	FPointIOGroup::FPointIOGroup(FPCGContext* Context, FName InputLabel, EInit InitOut)
+	FPointIOGroup::FPointIOGroup(FPCGContext* Context, const FName InputLabel, const EInit InitOut)
 		: FPointIOGroup()
 	{
 		TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(InputLabel);
 		Initialize(Context, Sources, InitOut);
 	}
 
-	FPointIOGroup::FPointIOGroup(FPCGContext* Context, TArray<FPCGTaggedData>& Sources, EInit InitOut)
+	FPointIOGroup::FPointIOGroup(FPCGContext* Context, TArray<FPCGTaggedData>& Sources, const EInit InitOut)
 		: FPointIOGroup()
 	{
 		Initialize(Context, Sources, InitOut);
@@ -287,7 +287,7 @@ namespace PCGExData
 	 * @param MinPointCount
 	 * @param MaxPointCount 
 	 */
-	void FPointIOGroup::OutputTo(FPCGContext* Context, bool bEmplace, const int32 MinPointCount, const int32 MaxPointCount)
+	void FPointIOGroup::OutputTo(FPCGContext* Context, const bool bEmplace, const int32 MinPointCount, const int32 MaxPointCount)
 	{
 		for (FPointIO* Pair : Pairs) { Pair->OutputTo(Context, bEmplace, MinPointCount, MaxPointCount); }
 	}

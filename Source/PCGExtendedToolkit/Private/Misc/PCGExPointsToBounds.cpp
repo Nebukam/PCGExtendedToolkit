@@ -84,7 +84,7 @@ bool FPCGExPointsToBoundsElement::ExecuteInternal(FPCGContext* InContext) const
 		MutablePoints[0].BoundsMin = Box.Min - Center;
 		MutablePoints[0].BoundsMax = Box.Max - Center;
 
-		PCGEx::FPointRef Target = Context->CurrentIO->GetOutPointRef(0);
+		const PCGEx::FPointRef Target = Context->CurrentIO->GetOutPointRef(0);
 		Context->MetadataBlender->PrepareForBlending(Target);
 
 		for (int i = 0; i < AverageDivider; i++)

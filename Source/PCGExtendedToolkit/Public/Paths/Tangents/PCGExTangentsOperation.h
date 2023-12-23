@@ -4,8 +4,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGEx.h"
 #include "PCGExOperation.h"
 #include "PCGExTangentsOperation.generated.h"
+
+namespace PCGExData
+{
+	struct FPointIO;
+}
 
 /**
  * 

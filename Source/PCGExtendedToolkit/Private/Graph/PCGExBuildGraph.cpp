@@ -20,11 +20,13 @@ UPCGExBuildGraphSettings::UPCGExBuildGraphSettings(const FObjectInitializer& Obj
 	PCGEX_OPERATION_DEFAULT(GraphSolver, UPCGExGraphSolver)
 }
 
+#if WITH_EDITOR
 void UPCGExBuildGraphSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	if (GraphSolver) { GraphSolver->UpdateUserFacingInfos(); }
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
+#endif
 
 FName UPCGExBuildGraphSettings::GetMainInputLabel() const { return PCGEx::SourcePointsLabel; }
 
@@ -120,7 +122,7 @@ bool FPCGExBuildGraphElement::ExecuteInternal(
 bool FProbeTask::ExecuteTask()
 {
 	const FPCGExBuildGraphContext* Context = Manager->GetContext<FPCGExBuildGraphContext>();
-	
+
 
 	const PCGEx::FPointRef Point = PCGEx::FPointRef(PointIO->GetOutPoint(TaskIndex), TaskIndex);
 
@@ -145,7 +147,7 @@ bool FProbeTask::ExecuteTask()
 	for (PCGExGraph::FSocketProbe& Probe : Probes)
 	{
 		Context->GraphSolver->ResolveProbe(Probe);
-		
+
 		Probe.OutputTo(Point.Index);
 		PCGEX_CLEANUP(Probe)
 	}

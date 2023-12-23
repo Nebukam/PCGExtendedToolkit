@@ -100,7 +100,7 @@ namespace PCGExData
 	{
 	}
 
-	FPolyLineIOGroup::FPolyLineIOGroup(const FPCGContext* Context, FName InputLabel)
+	FPolyLineIOGroup::FPolyLineIOGroup(const FPCGContext* Context, const FName InputLabel)
 		: FPolyLineIOGroup()
 	{
 		TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(InputLabel);

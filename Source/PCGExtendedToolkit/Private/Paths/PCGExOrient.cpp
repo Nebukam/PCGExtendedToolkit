@@ -14,11 +14,13 @@ UPCGExOrientSettings::UPCGExOrientSettings(const FObjectInitializer& ObjectIniti
 	PCGEX_OPERATION_DEFAULT(Orientation, UPCGExSubPointsOrientAverage)
 }
 
+#if WITH_EDITOR
 void UPCGExOrientSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	if (Orientation) { Orientation->UpdateUserFacingInfos(); }
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
+#endif
 
 PCGEX_INITIALIZE_ELEMENT(Orient)
 

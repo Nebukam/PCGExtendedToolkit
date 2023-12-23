@@ -26,7 +26,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeDebugDrawDescriptor : public FPCGEx
 {
 	GENERATED_BODY()
 
-	FPCGExAttributeDebugDrawDescriptor(): FPCGExInputDescriptor()
+	FPCGExAttributeDebugDrawDescriptor()
 	{
 	}
 
@@ -91,7 +91,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeDebugDrawDescriptor : public FPCGEx
 	}
 };
 
-
 USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeDebugDraw
 {
@@ -129,7 +128,7 @@ protected:
 	void DrawLabel(const UWorld* World, const FVector& Start, const PCGEx::FPointRef& Point) const;
 
 	template <typename T, typename dummy = void>
-	FString AsString(const T& InValue) { return InValue.ToString(); }
+	static FString AsString(const T& InValue) { return InValue.ToString(); }
 };
 
 
@@ -149,23 +148,33 @@ public:
 	PCGEX_NODE_INFOS(DrawAttributes, "Draw Attributes", "Draw debug attributes. Toggle debug OFF (D) before disabling this node (E)! Warning: this node will clear persistent debug lines before it!");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Debug; }
 	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorDebug; }
-	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
 
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
-
-	/** Attributes to draw.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(TitleProperty="{TitlePropertyName} as {ExpressedAs}"))
-	TArray<FPCGExAttributeDebugDrawDescriptor> DebugList;
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings interface
 
+	//~Begin UObject interface
+#if WITH_EDITOR
+
+public:
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+#endif
+	//~End UObject interface
+
 	//~Begin IPCGExDebug interface
 public:
+#if WITH_EDITOR
 	virtual bool IsDebugEnabled() const override { return bEnabled && bDebug; }
+#endif
 	//~End IPCGExDebug interface
+
+public:
+	/** Attributes to draw.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(TitleProperty="{TitlePropertyName} as {ExpressedAs}"))
+	TArray<FPCGExAttributeDebugDrawDescriptor> DebugList;
 
 protected:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;

@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExPointsProcessor.h"
 
 #include "Data/PCGExGraphParamsData.h"
 
@@ -41,7 +42,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSocketQualityOfLifeInfos
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	FString EdgeTypeAttribute;
 
-	void Populate(FName Identifier, const FPCGExSocketDescriptor& Descriptor)
+	void Populate(const FName Identifier, const FPCGExSocketDescriptor& Descriptor)
 	{
 		BaseName = Descriptor.SocketName.ToString();
 		const FString Separator = TEXT("/");
@@ -63,9 +64,8 @@ public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	bool bCacheResult = false;
-	PCGEX_NODE_INFOS(GraphParams, "Graph : Params", "Builds a collection of PCG-compatible data from the selected actors.");
+	PCGEX_NODE_INFOS(GraphParams, "Graph : Params", "Builds a collection of PCG-compatible data from the selected actors.")
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Param; }
-	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
@@ -73,6 +73,14 @@ public:
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
+
+	//~Begin UObject interface
+#if WITH_EDITOR
+
+public:
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+#endif
+	//~End UObject interface
 
 public:
 	/** Attribute name to store graph data to. Used as prefix.*/

@@ -5,8 +5,6 @@
 
 #include "PCGEx.h"
 #include "Data/PCGExAttributeHelpers.h"
-#include "Data/PCGPointData.h"
-#include "Metadata/Accessors/PCGAttributeAccessor.h"
 
 #include "PCGExDataBlending.generated.h"
 
@@ -145,7 +143,7 @@ namespace PCGExDataBlending
 	public:
 		virtual ~FDataBlendingOperationBase();
 
-		void SetAttributeName(FName InName) { AttributeName = InName; }
+		void SetAttributeName(const FName InName) { AttributeName = InName; }
 		FName GetAttributeName() const { return AttributeName; }
 
 		virtual void PrepareForData(PCGExData::FPointIO& InPrimaryData, const PCGExData::FPointIO& InSecondaryData, bool bSecondaryIn = true);
@@ -190,7 +188,7 @@ namespace PCGExDataBlending
 			Cleanup();
 		}
 
-		virtual void PrepareForData(PCGExData::FPointIO& InPrimaryData, const PCGExData::FPointIO& InSecondaryData, bool bSecondaryIn) override
+		virtual void PrepareForData(PCGExData::FPointIO& InPrimaryData, const PCGExData::FPointIO& InSecondaryData, const bool bSecondaryIn) override
 		{
 			Cleanup();
 			Writer = new PCGEx::TFAttributeWriter<T>(AttributeName);
@@ -276,7 +274,7 @@ namespace PCGExDataBlending
 		{
 		};
 
-		virtual void ResetToDefault(int32 WriteIndex) const override { ResetRangeToDefault(WriteIndex, 1); }
+		virtual void ResetToDefault(const int32 WriteIndex) const override { ResetRangeToDefault(WriteIndex, 1); }
 
 		virtual void ResetRangeToDefault(const int32 StartIndex, const int32 Count) const override
 		{
@@ -297,13 +295,13 @@ namespace PCGExDataBlending
 #pragma region Add
 
 	template <typename T, typename dummy = void>
-	inline static T Add(const T& A, const T& B, const double& Alpha = 0) { return A + B; }
+	static T Add(const T& A, const T& B, const double& Alpha = 0) { return A + B; }
 
 	template <typename dummy = void>
-	inline static bool Add(const bool& A, const bool& B, const double& Alpha = 0) { return B ? true : A; }
+	static bool Add(const bool& A, const bool& B, const double& Alpha = 0) { return B ? true : A; }
 
 	template <typename dummy = void>
-	inline static FTransform Add(const FTransform& A, const FTransform& B, const double& Alpha = 0)
+	static FTransform Add(const FTransform& A, const FTransform& B, const double& Alpha = 0)
 	{
 		return FTransform(
 			A.GetRotation() + B.GetRotation(),
@@ -312,20 +310,20 @@ namespace PCGExDataBlending
 	}
 
 	template <typename dummy = void>
-	inline static FString Add(const FString& A, const FString& B, const double& Alpha = 0) { return A < B ? B : A; }
+	static FString Add(const FString& A, const FString& B, const double& Alpha = 0) { return A < B ? B : A; }
 
 	template <typename dummy = void>
-	inline static FName Add(const FName& A, const FName& B, const double& Alpha = 0) { return A.ToString() < B.ToString() ? B : A; }
+	static FName Add(const FName& A, const FName& B, const double& Alpha = 0) { return A.ToString() < B.ToString() ? B : A; }
 
 #pragma endregion
 
 #pragma region Min
 
 	template <typename T, typename dummy = void>
-	inline static T Min(const T& A, const T& B, const double& Alpha = 0) { return FMath::Min(A, B); }
+	static T Min(const T& A, const T& B, const double& Alpha = 0) { return FMath::Min(A, B); }
 
 	template <typename dummy = void>
-	inline static FVector2D Min(const FVector2D& A, const FVector2D& B, const double& Alpha = 0)
+	static FVector2D Min(const FVector2D& A, const FVector2D& B, const double& Alpha = 0)
 	{
 		return FVector2D(
 			FMath::Min(A.X, B.X),
@@ -333,7 +331,7 @@ namespace PCGExDataBlending
 	}
 
 	template <typename dummy = void>
-	inline static FVector Min(const FVector& A, const FVector& B, const double& Alpha = 0)
+	static FVector Min(const FVector& A, const FVector& B, const double& Alpha = 0)
 	{
 		return FVector(
 			FMath::Min(A.X, B.X),
@@ -342,7 +340,7 @@ namespace PCGExDataBlending
 	}
 
 	template <typename dummy = void>
-	inline static FVector4 Min(const FVector4& A, const FVector4& B, const double& Alpha = 0)
+	static FVector4 Min(const FVector4& A, const FVector4& B, const double& Alpha = 0)
 	{
 		return FVector4(
 			FMath::Min(A.X, B.X),
@@ -352,7 +350,7 @@ namespace PCGExDataBlending
 	}
 
 	template <typename dummy = void>
-	inline static FRotator Min(const FRotator& A, const FRotator& B, const double& Alpha = 0)
+	static FRotator Min(const FRotator& A, const FRotator& B, const double& Alpha = 0)
 	{
 		return FRotator(
 			FMath::Min(A.Pitch, B.Pitch),
@@ -361,10 +359,10 @@ namespace PCGExDataBlending
 	}
 
 	template <typename dummy = void>
-	inline static FQuat Min(const FQuat& A, const FQuat& B, const double& Alpha = 0) { return Min(A.Rotator(), B.Rotator()).Quaternion(); }
+	static FQuat Min(const FQuat& A, const FQuat& B, const double& Alpha = 0) { return Min(A.Rotator(), B.Rotator()).Quaternion(); }
 
 	template <typename dummy = void>
-	inline static FTransform Min(const FTransform& A, const FTransform& B, const double& Alpha = 0)
+	static FTransform Min(const FTransform& A, const FTransform& B, const double& Alpha = 0)
 	{
 		return FTransform(
 			Min(A.GetRotation(), B.GetRotation()),
@@ -373,20 +371,20 @@ namespace PCGExDataBlending
 	}
 
 	template <typename dummy = void>
-	inline static FString Min(const FString& A, const FString& B, const double& Alpha = 0) { return A > B ? B : A; }
+	static FString Min(const FString& A, const FString& B, const double& Alpha = 0) { return A > B ? B : A; }
 
 	template <typename dummy = void>
-	inline static FName Min(const FName& A, const FName& B, const double& Alpha = 0) { return A.ToString() > B.ToString() ? B : A; }
+	static FName Min(const FName& A, const FName& B, const double& Alpha = 0) { return A.ToString() > B.ToString() ? B : A; }
 
 #pragma endregion
 
 #pragma region Max
 
 	template <typename T, typename dummy = void>
-	inline static T Max(const T& A, const T& B, const double& Alpha = 0) { return FMath::Max(A, B); }
+	static T Max(const T& A, const T& B, const double& Alpha = 0) { return FMath::Max(A, B); }
 
 	template <typename dummy = void>
-	inline static FVector2D Max(const FVector2D& A, const FVector2D& B, const double& Alpha = 0)
+	static FVector2D Max(const FVector2D& A, const FVector2D& B, const double& Alpha = 0)
 	{
 		return FVector2D(
 			FMath::Max(A.X, B.X),
@@ -394,7 +392,7 @@ namespace PCGExDataBlending
 	}
 
 	template <typename dummy = void>
-	inline static FVector Max(const FVector& A, const FVector& B, const double& Alpha = 0)
+	static FVector Max(const FVector& A, const FVector& B, const double& Alpha = 0)
 	{
 		return FVector(
 			FMath::Max(A.X, B.X),
@@ -403,7 +401,7 @@ namespace PCGExDataBlending
 	}
 
 	template <typename dummy = void>
-	inline static FVector4 Max(const FVector4& A, const FVector4& B, const double& Alpha = 0)
+	static FVector4 Max(const FVector4& A, const FVector4& B, const double& Alpha = 0)
 	{
 		return FVector4(
 			FMath::Max(A.X, B.X),
@@ -413,7 +411,7 @@ namespace PCGExDataBlending
 	}
 
 	template <typename dummy = void>
-	inline static FRotator Max(const FRotator& A, const FRotator& B, const double& Alpha = 0)
+	static FRotator Max(const FRotator& A, const FRotator& B, const double& Alpha = 0)
 	{
 		return FRotator(
 			FMath::Max(A.Pitch, B.Pitch),
@@ -422,10 +420,10 @@ namespace PCGExDataBlending
 	}
 
 	template <typename dummy = void>
-	inline static FQuat Max(const FQuat& A, const FQuat& B, const double& Alpha = 0) { return Max(A.Rotator(), B.Rotator()).Quaternion(); }
+	static FQuat Max(const FQuat& A, const FQuat& B, const double& Alpha = 0) { return Max(A.Rotator(), B.Rotator()).Quaternion(); }
 
 	template <typename dummy = void>
-	inline static FTransform Max(const FTransform& A, const FTransform& B, const double& Alpha = 0)
+	static FTransform Max(const FTransform& A, const FTransform& B, const double& Alpha = 0)
 	{
 		return FTransform(
 			Max(A.GetRotation(), B.GetRotation()),
@@ -434,23 +432,23 @@ namespace PCGExDataBlending
 	}
 
 	template <typename dummy = void>
-	inline static FString Max(const FString& A, const FString& B, const double& Alpha = 0) { return A > B ? A : B; }
+	static FString Max(const FString& A, const FString& B, const double& Alpha = 0) { return A > B ? A : B; }
 
 	template <typename dummy = void>
-	inline static FName Max(const FName& A, const FName& B, const double& Alpha = 0) { return A.ToString() > B.ToString() ? A : B; }
+	static FName Max(const FName& A, const FName& B, const double& Alpha = 0) { return A.ToString() > B.ToString() ? A : B; }
 
 #pragma endregion
 
 #pragma region Lerp
 
 	template <typename T, typename dummy = void>
-	inline static T Lerp(const T& A, const T& B, const double& Alpha = 0) { return FMath::Lerp(A, B, Alpha); }
+	static T Lerp(const T& A, const T& B, const double& Alpha = 0) { return FMath::Lerp(A, B, Alpha); }
 
 	template <typename dummy = void>
-	inline static FQuat Lerp(const FQuat& A, const FQuat& B, const double& Alpha = 0) { return FQuat::Slerp(A, B, Alpha); }
+	static FQuat Lerp(const FQuat& A, const FQuat& B, const double& Alpha = 0) { return FQuat::Slerp(A, B, Alpha); }
 
 	template <typename dummy = void>
-	inline static FTransform Lerp(const FTransform& A, const FTransform& B, const double& Alpha = 0)
+	static FTransform Lerp(const FTransform& A, const FTransform& B, const double& Alpha = 0)
 	{
 		return FTransform(
 			Lerp(A.GetRotation(), B.GetRotation(), Alpha),
@@ -459,23 +457,23 @@ namespace PCGExDataBlending
 	}
 
 	template <typename dummy = void>
-	inline static FString Lerp(const FString& A, const FString& B, const double& Alpha = 0) { return Alpha > 0.5 ? B : A; }
+	static FString Lerp(const FString& A, const FString& B, const double& Alpha = 0) { return Alpha > 0.5 ? B : A; }
 
 	template <typename dummy = void>
-	inline static FName Lerp(const FName& A, const FName& B, const double& Alpha = 0) { return Alpha > 0.5 ? B : A; }
+	static FName Lerp(const FName& A, const FName& B, const double& Alpha = 0) { return Alpha > 0.5 ? B : A; }
 
 #pragma endregion
 
 #pragma region Divide
 
 	template <typename T, typename dummy = void>
-	inline static T Div(const T& A, const double Divider) { return A / Divider; }
+	static T Div(const T& A, const double Divider) { return A / Divider; }
 
 	template <typename dummy = void>
-	inline static bool Div(const bool& A, const double Divider) { return A; }
+	static bool Div(const bool& A, const double Divider) { return A; }
 
 	template <typename dummy = void>
-	inline static FRotator Div(const FRotator& A, const double Divider)
+	static FRotator Div(const FRotator& A, const double Divider)
 	{
 		return FRotator(
 			A.Pitch / Divider,
@@ -484,11 +482,11 @@ namespace PCGExDataBlending
 	}
 
 	template <typename dummy = void>
-	inline static FQuat Div(const FQuat& A, const double Divider) { return Div(A.Rotator(), Divider).Quaternion(); }
+	static FQuat Div(const FQuat& A, const double Divider) { return Div(A.Rotator(), Divider).Quaternion(); }
 
 
 	template <typename dummy = void>
-	inline static FTransform Div(const FTransform& A, const double Divider)
+	static FTransform Div(const FTransform& A, const double Divider)
 	{
 		return FTransform(
 			Div(A.GetRotation(), Divider),
@@ -497,24 +495,24 @@ namespace PCGExDataBlending
 	}
 
 	template <typename dummy = void>
-	inline static FString Div(const FString& A, const double Divider) { return A; }
+	static FString Div(const FString& A, const double Divider) { return A; }
 
 	template <typename dummy = void>
-	inline static FName Div(const FName& A, const double Divider) { return A; }
+	static FName Div(const FName& A, const double Divider) { return A; }
 
 #pragma endregion
 
 #pragma region Copy
 
 	template <typename T>
-	inline static T Copy(const T& A, const T& B, const double& Alpha = 0) { return B; }
+	static T Copy(const T& A, const T& B, const double& Alpha = 0) { return B; }
 
 #pragma endregion
 
 #pragma region NoBlend
 
 	template <typename T>
-	inline static T NoBlend(const T& A, const T& B, const double& Alpha = 0) { return A; }
+	static T NoBlend(const T& A, const T& B, const double& Alpha = 0) { return A; }
 
 #pragma endregion
 }

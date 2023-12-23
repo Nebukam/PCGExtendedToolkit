@@ -86,7 +86,7 @@ namespace PCGExMesh
 				continue;
 			}
 
-			FIndexedEdge& Edge = Edges.Emplace_GetRef(i, VtxStart, VtxEnd);
+			Edges.Emplace_GetRef(i, VtxStart, VtxEnd);
 			bool JustCreated = false;
 
 			FVertex& Start = GetOrCreateVertex(VtxStart, JustCreated);

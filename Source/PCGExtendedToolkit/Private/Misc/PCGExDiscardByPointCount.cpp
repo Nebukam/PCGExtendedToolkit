@@ -24,7 +24,7 @@ bool FPCGExDiscardByPointCountElement::ExecuteInternal(FPCGContext* InContext) c
 		if (!Boot(Context)) { return true; }
 	}
 
-	auto ProcessInput = [&](PCGExData::FPointIO& PointIO, int32)
+	auto ProcessInput = [&](const PCGExData::FPointIO& PointIO, int32)
 	{
 		if (Settings->OutsidePointCountFilter(PointIO.GetNum())) { return; }
 

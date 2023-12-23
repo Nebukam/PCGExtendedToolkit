@@ -116,7 +116,7 @@ bool FPCGExBridgeEdgeIslandsElement::ExecuteInternal(
 				for (PCGExMesh::FMesh* OtherMesh : Context->Meshes)
 				{
 					if (Context->VisitedMeshes.Contains(OtherMesh)) { continue; }
-					double Dist = FVector::DistSquared(CurrentMesh->Bounds.GetCenter(), OtherMesh->Bounds.GetCenter());
+					const double Dist = FVector::DistSquared(CurrentMesh->Bounds.GetCenter(), OtherMesh->Bounds.GetCenter());
 					if (!ClosestMesh || Dist < Distance)
 					{
 						ClosestMesh = OtherMesh;
@@ -155,7 +155,7 @@ bool FPCGExBridgeEdgeIslandsElement::ExecuteInternal(
 bool FBridgeMeshesTask::ExecuteTask()
 {
 	FPCGExBridgeEdgeIslandsContext* Context = Manager->GetContext<FPCGExBridgeEdgeIslandsContext>();
-	
+
 
 	const TArray<PCGExMesh::FVertex>& CurrentMeshVertices = Context->Meshes[TaskIndex]->Vertices;
 	const TArray<PCGExMesh::FVertex>& OtherMeshVertices = Context->Meshes[OtherMeshIndex]->Vertices;

@@ -32,7 +32,7 @@ bool FPCGExSortPointsElement::ExecuteInternal(FPCGContext* InContext) const
 		Context->SetState(PCGExMT::State_ProcessingPoints);
 	}
 
-	auto SortPointIO = [&](int32 Index)
+	auto SortPointIO = [&](const int32 Index)
 	{
 		PCGExData::FPointIO& PointIO = *Context->MainPoints->Pairs[Index];
 		TArray<FPCGExSortRule> Rules;

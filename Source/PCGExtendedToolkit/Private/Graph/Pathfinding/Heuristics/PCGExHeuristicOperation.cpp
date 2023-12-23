@@ -4,9 +4,6 @@
 
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicOperation.h"
 
-#include "Data/PCGPointData.h"
-
-
 void UPCGExHeuristicOperation::PrepareForData(const PCGExMesh::FMesh* InMesh)
 {
 }

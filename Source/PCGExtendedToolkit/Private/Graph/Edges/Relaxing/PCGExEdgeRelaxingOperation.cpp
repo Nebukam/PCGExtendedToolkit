@@ -15,7 +15,7 @@ void UPCGExEdgeRelaxingOperation::PrepareForMesh(PCGExData::FPointIO& EdgesIO, P
 	CurrentMesh = MeshIO;
 }
 
-void UPCGExEdgeRelaxingOperation::PrepareForIteration(int Iteration, TArray<FVector>* PrimaryBuffer, TArray<FVector>* SecondaryBuffer)
+void UPCGExEdgeRelaxingOperation::PrepareForIteration(const int Iteration, TArray<FVector>* PrimaryBuffer, TArray<FVector>* SecondaryBuffer)
 {
 	CurrentIteration = Iteration;
 	if (CurrentIteration % 2 == 0)

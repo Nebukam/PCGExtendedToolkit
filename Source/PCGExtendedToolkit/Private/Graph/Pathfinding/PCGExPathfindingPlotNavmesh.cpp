@@ -32,11 +32,13 @@ TArray<FPCGPinProperties> UPCGExPathfindingPlotNavmeshSettings::OutputPinPropert
 	return PinProperties;
 }
 
+#if WITH_EDITOR
 void UPCGExPathfindingPlotNavmeshSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	if (Blending) { Blending->UpdateUserFacingInfos(); }
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
+#endif
 
 PCGExData::EInit UPCGExPathfindingPlotNavmeshSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 int32 UPCGExPathfindingPlotNavmeshSettings::GetPreferredChunkSize() const { return 32; }
@@ -130,7 +132,7 @@ bool FPCGExPathfindingPlotNavmeshElement::ExecuteInternal(FPCGContext* InContext
 bool FPlotNavmeshTask::ExecuteTask()
 {
 	FPCGExPathfindingPlotNavmeshContext* Context = static_cast<FPCGExPathfindingPlotNavmeshContext*>(Manager->Context);
-	
+
 
 	UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(Context->World);
 
@@ -225,7 +227,7 @@ bool FPlotNavmeshTask::ExecuteTask()
 	}
 
 	if (PathLocations.Num() <= PointIO->GetNum()) { return false; } //
-	
+
 
 	const int32 NumPositions = PathLocations.Num();
 

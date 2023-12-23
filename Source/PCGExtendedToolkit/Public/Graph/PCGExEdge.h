@@ -38,7 +38,7 @@ namespace PCGExGraph
 		uint32 End = 0;
 		EPCGExEdgeType Type = EPCGExEdgeType::Unknown;
 		bool bValid = true;
-		
+
 		FEdge()
 		{
 		}
@@ -48,7 +48,7 @@ namespace PCGExGraph
 		{
 		}
 
-		uint32 Other(int32 InIndex) const
+		uint32 Other(const int32 InIndex) const
 		{
 			check(InIndex == Start || InIndex == End)
 			return InIndex == Start ? End : Start;
@@ -74,7 +74,7 @@ namespace PCGExGraph
 
 	struct PCGEXTENDEDTOOLKIT_API FUnsignedEdge : public FEdge
 	{
-		FUnsignedEdge(): FEdge()
+		FUnsignedEdge()
 		{
 		}
 

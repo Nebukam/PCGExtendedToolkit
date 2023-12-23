@@ -14,11 +14,13 @@ UPCGExWriteTangentsSettings::UPCGExWriteTangentsSettings(const FObjectInitialize
 	PCGEX_OPERATION_DEFAULT(Tangents, UPCGExAutoTangents)
 }
 
+#if WITH_EDITOR
 void UPCGExWriteTangentsSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	if (Tangents) { Tangents->UpdateUserFacingInfos(); }
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
+#endif
 
 PCGEX_INITIALIZE_ELEMENT(WriteTangents)
 

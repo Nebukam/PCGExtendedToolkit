@@ -30,7 +30,7 @@ namespace PCGExDataBlending
 
 	void FMetadataBlender::PrepareForData(
 		PCGExData::FPointIO& InPrimaryData, const PCGExData::FPointIO& InSecondaryData,
-		bool bSecondaryIn)
+		const bool bSecondaryIn)
 	{
 		InternalPrepareForData(InPrimaryData, InSecondaryData, bSecondaryIn);
 	}
@@ -132,7 +132,7 @@ namespace PCGExDataBlending
 		}
 	}
 
-	void FMetadataBlender::Write(bool bFlush)
+	void FMetadataBlender::Write(const bool bFlush)
 	{
 		for (FDataBlendingOperationBase* Op : Attributes) { Op->Write(); }
 		if (bFlush) { Flush(); }
@@ -152,7 +152,7 @@ namespace PCGExDataBlending
 	}
 
 	void FMetadataBlender::InternalPrepareForData(
-		PCGExData::FPointIO& InPrimaryData, const PCGExData::FPointIO& InSecondaryData, bool bSecondaryIn)
+		PCGExData::FPointIO& InPrimaryData, const PCGExData::FPointIO& InSecondaryData, const bool bSecondaryIn)
 	{
 		Flush();
 

@@ -58,7 +58,7 @@ bool FPCGExConsolidateGraphElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExGraph::State_CachingGraphIndices))
 	{
-		auto Initialize = [&](PCGExData::FPointIO& PointIO)
+		auto Initialize = [&](const PCGExData::FPointIO& PointIO)
 		{
 			Context->IndicesRemap.Empty(PointIO.GetNum());
 			//PointIO.GetInKeys();
@@ -74,7 +74,6 @@ bool FPCGExConsolidateGraphElement::ExecuteInternal(
 			Context->SetCachedIndex(PointIndex, PointIndex);    // Update cached value with fresh one
 		};
 
-
 		if (Context->ProcessCurrentPoints(Initialize, ProcessPoint))
 		{
 			Context->SetState(PCGExGraph::State_SwappingGraphIndices);
@@ -88,7 +87,6 @@ bool FPCGExConsolidateGraphElement::ExecuteInternal(
 		auto ConsolidatePoint = [&](const int32 PointIndex, const PCGExData::FPointIO& PointIO)
 		{
 			FReadScopeLock ReadLock(Context->IndicesLock);
-			const FPCGPoint& Point = PointIO.GetOutPoint(PointIndex);
 			for (const PCGExGraph::FSocketInfos& SocketInfos : Context->SocketInfos)
 			{
 				const int32 OldRelationIndex = SocketInfos.Socket->GetTargetIndex(PointIndex);
@@ -135,7 +133,7 @@ bool FPCGExConsolidateGraphElement::ExecuteInternal(
 	return Context->IsDone();
 }
 
-int64 FPCGExConsolidateGraphElement::GetFixedIndex(FPCGExConsolidateGraphContext* Context, int64 InIndex)
+int64 FPCGExConsolidateGraphElement::GetFixedIndex(FPCGExConsolidateGraphContext* Context, const int64 InIndex)
 {
 	if (const int64* FixedRelationIndexPtr = Context->IndicesRemap.Find(InIndex)) { return *FixedRelationIndexPtr; }
 	return -1;

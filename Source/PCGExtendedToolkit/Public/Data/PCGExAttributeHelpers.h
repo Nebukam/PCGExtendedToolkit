@@ -73,7 +73,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExInputDescriptorGeneric : public FPCGExInputD
 	GENERATED_BODY()
 
 	FPCGExInputDescriptorGeneric()
-		: FPCGExInputDescriptor()
 	{
 	}
 
@@ -109,7 +108,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExInputDescriptorWithDirection : public FPCGEx
 	GENERATED_BODY()
 
 	FPCGExInputDescriptorWithDirection()
-		: FPCGExInputDescriptor()
 	{
 	}
 
@@ -134,7 +132,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExInputDescriptorWithSingleField : public FPCG
 {
 	GENERATED_BODY()
 
-	FPCGExInputDescriptorWithSingleField(): FPCGExInputDescriptor()
+	FPCGExInputDescriptorWithSingleField()
 	{
 	}
 
@@ -221,7 +219,7 @@ namespace PCGEx
 			return GetDefaultValue();
 		}
 
-		bool Get(T& OutValue, int32 Index) const
+		bool Get(T& OutValue, const int32 Index) const
 		{
 			TArrayView<T> Temp(&OutValue, 1);
 			return GetRange(TArrayView<T>(&OutValue, 1), Index);
@@ -366,7 +364,7 @@ namespace PCGEx
 			this->Keys = this->InternalKeys;
 		}
 
-		static FConstAttributeAccessor* Find(PCGExData::FPointIO& InPointIO, FName AttributeName)
+		static FConstAttributeAccessor* Find(const PCGExData::FPointIO& InPointIO, const FName AttributeName)
 		{
 			const UPCGPointData* InData = InPointIO.GetIn();
 			if (FPCGMetadataAttributeBase* InAttribute = InData->Metadata->GetMutableAttribute(AttributeName))
@@ -398,7 +396,7 @@ namespace PCGEx
 		virtual bool Bind(PCGExData::FPointIO& PointIO) = 0;
 
 		T operator[](int32 Index) const { return this->Values[Index]; }
-		
+
 		bool IsValid() { return Accessor != nullptr; }
 
 		virtual ~FAttributeIOBase()
@@ -688,8 +686,8 @@ virtual _TYPE Convert(const FName Value) const override { return _TYPE(Value.ToS
 		}
 
 		FLocalSingleFieldGetter(
-			EPCGExSingleField InField,
-			EPCGExAxis InAxis)
+			const EPCGExSingleField InField,
+			const EPCGExAxis InAxis)
 		{
 			Field = InField;
 			Axis = InAxis;
@@ -775,8 +773,7 @@ virtual _TYPE Convert(const FName Value) const override { return _TYPE(Value.ToS
 		{
 		}
 
-		FLocalDirectionGetter(
-			EPCGExAxis InAxis)
+		explicit FLocalDirectionGetter(const EPCGExAxis InAxis)
 		{
 			Axis = InAxis;
 		}

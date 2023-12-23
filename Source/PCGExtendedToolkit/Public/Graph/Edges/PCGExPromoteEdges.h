@@ -6,7 +6,6 @@
 #include "CoreMinimal.h"
 #include "Graph/PCGExGraphProcessor.h"
 #include "Graph/Edges/Promoting/PCGExEdgePromotingOperation.h"
-#include "Promoting/PCGExEdgePromoteToPoint.h"
 #include "PCGExPromoteEdges.generated.h"
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
@@ -29,11 +28,13 @@ protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings interface
 
-	virtual FName GetMainOutputLabel() const override;
-
+	//~Begin UPCGExPointsProcessorSettings interface
 public:
-	virtual int32 GetPreferredChunkSize() const override;
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
+	virtual FName GetMainOutputLabel() const override;
+	virtual int32 GetPreferredChunkSize() const override;
+	//~End UPCGExPointsProcessorSettings interface
+
 
 public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExEdgeType"))

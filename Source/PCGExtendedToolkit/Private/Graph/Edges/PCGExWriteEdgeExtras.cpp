@@ -4,7 +4,6 @@
 #include "Graph/Edges/PCGExWriteEdgeExtras.h"
 
 #include "Data/Blending/PCGExMetadataBlender.h"
-#include "Data/Blending/PCGExPropertiesBlender.h"
 #include "Graph/Edges/Promoting/PCGExEdgePromoteToPoint.h"
 
 #define LOCTEXT_NAMESPACE "PCGExEdgesToPaths"

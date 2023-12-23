@@ -15,11 +15,13 @@ UPCGExSmoothSettings::UPCGExSmoothSettings(const FObjectInitializer& ObjectIniti
 	PCGEX_OPERATION_DEFAULT(Smoothing, UPCGExMovingAverageSmoothing)
 }
 
+#if WITH_EDITOR
 void UPCGExSmoothSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	if (Smoothing) { Smoothing->UpdateUserFacingInfos(); }
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
+#endif
 
 PCGExData::EInit UPCGExSmoothSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 

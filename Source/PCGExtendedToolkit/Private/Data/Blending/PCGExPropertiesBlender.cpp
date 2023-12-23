@@ -15,7 +15,7 @@ namespace PCGExDataBlending
 		Init(BlendingSettings.PropertiesOverrides, BlendingSettings.DefaultBlending);
 	}
 
-	void FPropertiesBlender::Init(const FPCGExPointPropertyBlendingOverrides& BlendingOverrides, EPCGExDataBlendingType InDefaultBlending)
+	void FPropertiesBlender::Init(const FPCGExPointPropertyBlendingOverrides& BlendingOverrides, const EPCGExDataBlendingType InDefaultBlending)
 	{
 		DefaultBlending = InDefaultBlending;
 		bRequiresPrepare = false;
@@ -29,7 +29,7 @@ if(_NAME##Blending == EPCGExDataBlendingType::Average){bAverage##_NAME=true; bRe
 #undef PCGEX_BLEND_FUNCASSIGN
 	}
 
-	void FPropertiesBlender::PrepareBlending(FPCGPoint& Target, const FPCGPoint& Default)
+	void FPropertiesBlender::PrepareBlending(FPCGPoint& Target, const FPCGPoint& Default) const
 	{
 		Target.Density = bAverageDensity ? 0 : Default.Density;
 		Target.BoundsMin = bAverageBoundsMin ? FVector::ZeroVector : Default.BoundsMin;
@@ -42,7 +42,7 @@ if(_NAME##Blending == EPCGExDataBlendingType::Average){bAverage##_NAME=true; bRe
 		Target.Seed = bAverageSeed ? 0 : Default.Seed;
 	}
 
-	void FPropertiesBlender::Blend(const FPCGPoint& A, const FPCGPoint& B, FPCGPoint& Target, double Alpha)
+	void FPropertiesBlender::Blend(const FPCGPoint& A, const FPCGPoint& B, FPCGPoint& Target, double Alpha) const
 	{
 #define PCGEX_BLEND_PROPDECL(_TYPE, _NAME, _FUNC, _ACCESSOR)\
 _TYPE Target##_NAME = Target._ACCESSOR;\
@@ -68,7 +68,7 @@ case EPCGExDataBlendingType::Copy:		Target##_NAME = PCGExDataBlending::Copy(A._A
 		Target.Seed = TargetSeed;
 	}
 
-	void FPropertiesBlender::CompleteBlending(FPCGPoint& Target, const double Alpha)
+	void FPropertiesBlender::CompleteBlending(FPCGPoint& Target, const double Alpha) const
 	{
 		if (bAverageDensity) { Target.Density = Div(Target.Density, Alpha); }
 		if (bAverageBoundsMin) { Target.BoundsMin = Div(Target.BoundsMin, Alpha); }
@@ -81,7 +81,7 @@ case EPCGExDataBlendingType::Copy:		Target##_NAME = PCGExDataBlending::Copy(A._A
 		if (bAverageSeed) { Target.Seed = Div(Target.Seed, Alpha); }
 	}
 
-	void FPropertiesBlender::BlendOnce(const FPCGPoint& A, const FPCGPoint& B, FPCGPoint& Target, double Alpha)
+	void FPropertiesBlender::BlendOnce(const FPCGPoint& A, const FPCGPoint& B, FPCGPoint& Target, const double Alpha) const
 	{
 		if (bRequiresPrepare)
 		{
@@ -95,22 +95,22 @@ case EPCGExDataBlendingType::Copy:		Target##_NAME = PCGExDataBlending::Copy(A._A
 		}
 	}
 
-	void FPropertiesBlender::PrepareRangeBlending(const TArrayView<FPCGPoint>& Targets, const FPCGPoint& Default)
+	void FPropertiesBlender::PrepareRangeBlending(const TArrayView<FPCGPoint>& Targets, const FPCGPoint& Default) const
 	{
 		for (FPCGPoint& Target : Targets) { PrepareBlending(Target, Default); }
 	}
 
-	void FPropertiesBlender::BlendRange(const FPCGPoint& From, const FPCGPoint& To, TArrayView<FPCGPoint>& Targets, const TArrayView<double>& Alphas)
+	void FPropertiesBlender::BlendRange(const FPCGPoint& From, const FPCGPoint& To, const TArrayView<FPCGPoint>& Targets, const TArrayView<double>& Alphas) const
 	{
 		for (int i = 0; i < Targets.Num(); i++) { Blend(From, To, Targets[i], Alphas[i]); }
 	}
 
-	void FPropertiesBlender::CompleteRangeBlending(const TArrayView<FPCGPoint>& Targets, const double Alpha)
+	void FPropertiesBlender::CompleteRangeBlending(const TArrayView<FPCGPoint>& Targets, const double Alpha) const
 	{
 		for (FPCGPoint& Target : Targets) { CompleteBlending(Target, Alpha); }
 	}
 
-	void FPropertiesBlender::BlendRangeOnce(const FPCGPoint& A, const FPCGPoint& B, TArrayView<FPCGPoint>& Targets, const TArrayView<double>& Alphas)
+	void FPropertiesBlender::BlendRangeOnce(const FPCGPoint& A, const FPCGPoint& B, const TArrayView<FPCGPoint>& Targets, const TArrayView<double>& Alphas) const
 	{
 		if (bRequiresPrepare)
 		{

@@ -113,7 +113,6 @@ bool FPCGExPromoteEdgesElement::ExecuteInternal(
 
 		auto ProcessPoint = [&](const int32 PointIndex, const PCGExData::FPointIO& PointIO)
 		{
-			const FPCGPoint& Point = PointIO.GetInPoint(PointIndex);
 			TArray<PCGExGraph::FUnsignedEdge> UnsignedEdges;
 			Context->CurrentGraph->GetEdges(PointIndex, UnsignedEdges, Context->EdgeType);
 
@@ -160,13 +159,11 @@ bool FPCGExPromoteEdgesElement::ExecuteInternal(
 			UPCGPointData* OutData = NewObject<UPCGPointData>();
 			OutData->InitializeFromData(Context->CurrentIO->GetIn());
 
-			bool bSuccess = Context->Promotion->PromoteEdgeGen(
+			if (bool bSuccess = Context->Promotion->PromoteEdgeGen(
 				OutData,
 				UEdge,
 				Context->CurrentIO->GetInPoint(UEdge.Start),
-				Context->CurrentIO->GetInPoint(UEdge.End));
-
-			if (bSuccess)
+				Context->CurrentIO->GetInPoint(UEdge.End)))
 			{
 				Context->EdgeLock.WriteLock();
 				FPCGTaggedData& OutputRef = Context->OutputData.TaggedData.Emplace_GetRef();

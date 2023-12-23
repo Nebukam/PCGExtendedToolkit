@@ -21,8 +21,7 @@ virtual FText GetNodeTooltipText() const override{ return NSLOCTEXT("PCGEx" #_SH
 
 #define PCGEX_INITIALIZE_CONTEXT(_NAME)\
 FPCGContext* FPCGEx##_NAME##Element::Initialize( const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node)\
-{	FPCGEx##_NAME##Context* Context = new FPCGEx##_NAME##Context();	return InitializeContext(Context, InputData, SourceComponent, Node); }\
-
+{	FPCGEx##_NAME##Context* Context = new FPCGEx##_NAME##Context();	return InitializeContext(Context, InputData, SourceComponent, Node); }
 #define PCGEX_INITIALIZE_ELEMENT(_NAME)\
 PCGEX_INITIALIZE_CONTEXT(_NAME)\
 FPCGElementPtr UPCGEx##_NAME##Settings::CreateElement() const{	return MakeShared<FPCGEx##_NAME##Element>();}
@@ -134,15 +133,22 @@ public:
 
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	//PCGEX_NODE_INFOS(PointsProcessorSettings, "Points Processor Settings", "TOOLTIP_TEXT");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Spatial; }
-	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
 
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 	//~End UPCGSettings interface
 
+	//~Begin UObject interface
+#if WITH_EDITOR
+public:
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+#endif
+	//~End UObject interface
+
+	//~Begin UPCGExPointsProcessorSettings interface
+public:
 	virtual FName GetMainInputLabel() const;
 	virtual FName GetMainOutputLabel() const;
 	virtual bool GetMainAcceptMultipleData() const;
@@ -165,6 +171,7 @@ public:
 
 protected:
 	virtual int32 GetPreferredChunkSize() const;
+	//~End UPCGExPointsProcessorSettings interface
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : public FPCGContext
@@ -191,7 +198,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : public FPCGContext
 	void Done();
 
 	FPCGExAsyncManager* GetAsyncManager();
-	void SetAsyncState(PCGExMT::AsyncState WaitState) { SetState(WaitState, false); }
+	void SetAsyncState(const PCGExMT::AsyncState WaitState) { SetState(WaitState, false); }
 
 	virtual void SetState(PCGExMT::AsyncState OperationId, bool bResetAsyncWork = true);
 	virtual void Reset();

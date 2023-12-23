@@ -28,11 +28,11 @@ namespace PCGExGraph
 		if (PointData->Metadata->HasAttribute(NAME_EdgeType)) { PointData->Metadata->DeleteAttribute(NAME_EdgeType); }
 	}
 
-	void FSocket::Write(bool DoCleanup)
+	void FSocket::Write(const bool bDoCleanup)
 	{
 		if (TargetIndexWriter) { TargetIndexWriter->Write(); }
 		if (EdgeTypeWriter) { EdgeTypeWriter->Write(); }
-		if (DoCleanup) { Cleanup(); }
+		if (bDoCleanup) { Cleanup(); }
 	}
 
 	void FSocket::PrepareForPointData(const PCGExData::FPointIO& PointIO, const bool ReadOnly)
@@ -70,7 +70,7 @@ namespace PCGExGraph
 		SetEdgeType(MetadataEntry, SocketMetadata.EdgeType);
 	}
 
-	void FSocket::SetTargetIndex(const int32 PointIndex, int32 InValue) const
+	void FSocket::SetTargetIndex(const int32 PointIndex, const int32 InValue) const
 	{
 		check(!bReadOnly)
 		(*TargetIndexWriter)[PointIndex] = InValue;
@@ -99,7 +99,7 @@ namespace PCGExGraph
 		return FSocketMetadata(GetTargetIndex(PointIndex), GetEdgeType(PointIndex));
 	}
 
-	FName FSocket::GetSocketPropertyName(FName PropertyName) const
+	FName FSocket::GetSocketPropertyName(const FName PropertyName) const
 	{
 		const FString Separator = TEXT("/");
 		return *(AttributeNameBase.ToString() + Separator + PropertyName.ToString());
@@ -113,8 +113,8 @@ namespace PCGExGraph
 		{
 			if (!Descriptor.bEnabled) { continue; }
 
-			FProbeDistanceModifier& NewModifier = Modifiers.Emplace_GetRef(Descriptor);
-			FLocalDirection& NewLocalDirection = LocalDirections.Emplace_GetRef(Descriptor);
+			Modifiers.Emplace_GetRef(Descriptor);
+			LocalDirections.Emplace_GetRef(Descriptor);
 
 			FSocket& NewSocket = Sockets.Emplace_GetRef(Descriptor);
 			NewSocket.AttributeNameBase = GetCompoundName(Descriptor.SocketName);
@@ -125,7 +125,7 @@ namespace PCGExGraph
 		PostProcessSockets();
 	}
 
-	void FSocketMapping::InitializeWithOverrides(FName InIdentifier, TArray<FPCGExSocketDescriptor>& InSockets, const FPCGExSocketGlobalOverrides& Overrides)
+	void FSocketMapping::InitializeWithOverrides(const FName InIdentifier, TArray<FPCGExSocketDescriptor>& InSockets, const FPCGExSocketGlobalOverrides& Overrides)
 	{
 		Reset();
 		Identifier = InIdentifier;
@@ -160,7 +160,7 @@ namespace PCGExGraph
 		PostProcessSockets();
 	}
 
-	FName FSocketMapping::GetCompoundName(FName SecondaryIdentifier) const
+	FName FSocketMapping::GetCompoundName(const FName SecondaryIdentifier) const
 	{
 		const FString Separator = TEXT("/");
 		return *(TEXT("PCGEx") + Separator + Identifier.ToString() + Separator + SecondaryIdentifier.ToString()); // PCGEx/ParamsIdentifier/SocketIdentifier

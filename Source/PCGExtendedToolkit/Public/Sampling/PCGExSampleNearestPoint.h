@@ -71,12 +71,12 @@ namespace PCGExNearestPoint
 			SampledRangeWidth = SampledRangeMax - SampledRangeMin;
 		}
 
-		double GetRangeRatio(double Distance) const
+		double GetRangeRatio(const double Distance) const
 		{
 			return (Distance - SampledRangeMin) / SampledRangeWidth;
 		}
 
-		bool IsValid() { return UpdateCount > 0; }
+		bool IsValid() const { return UpdateCount > 0; }
 	};
 }
 
@@ -92,15 +92,17 @@ public:
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(SampleNearestPoint, "Sample : Nearest Point", "Find the closest point on the nearest collidable surface.");
 #endif
-
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
-
-	virtual PCGExData::EInit GetMainOutputInitMode() const override;
-	virtual int32 GetPreferredChunkSize() const override;
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings interface
+
+	//~Begin UPCGExPointsProcessorSettings interface
+public:
+	virtual PCGExData::EInit GetMainOutputInitMode() const override;
+	virtual int32 GetPreferredChunkSize() const override;
+	//~End UPCGExPointsProcessorSettings interface
 
 public:
 	/** Sampling method.*/

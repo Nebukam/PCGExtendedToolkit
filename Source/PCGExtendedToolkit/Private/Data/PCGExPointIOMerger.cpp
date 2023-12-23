@@ -26,7 +26,7 @@ void FPCGExPointIOMerger::Append(PCGExData::FPointIO& InData)
 	PCGEx::FAttributeIdentity::Get(InData.GetIn(), NewIdentities);
 	for (PCGEx::FAttributeIdentity& NewIdentity : NewIdentities)
 	{
-		if (PCGEx::FAttributeIdentity* ExistingIdentity = Identities.Find(NewIdentity.Name)) { continue; } //TODO: Will likely create issues if there is an attribute missmatch, resolve during merge.
+		if (Identities.Find(NewIdentity.Name)) { continue; } //TODO: Will likely create issues if there is an attribute mismatch, resolve during merge.
 		Identities.Add(NewIdentity.Name, NewIdentity);
 		AllowsInterpolation.Add(NewIdentity.Name, InData.GetIn()->Metadata->GetConstAttribute(NewIdentity.Name)->AllowsInterpolation());
 	}

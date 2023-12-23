@@ -19,17 +19,19 @@ class PCGEXTENDEDTOOLKIT_API UPCGExPathProcessorSettings : public UPCGExPointsPr
 
 public:
 	UPCGExPathProcessorSettings(const FObjectInitializer& ObjectInitializer);
-	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	//PCGEX_NODE_INFOS(PathProcessor, "PathProcessor", "Processes paths segments.");
 	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorPath; }
 #endif
+	//~End UPCGSettings interface
 
+	//~Begin UPCGExPointsProcessorSettings interface
+public:
+	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	virtual FName GetMainInputLabel() const override;
 	virtual FName GetMainOutputLabel() const override;
-	//~End UPCGSettings interface
+	//~End UPCGExPointsProcessorSettings interface
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExPathProcessorContext : public FPCGExPointsProcessorContext

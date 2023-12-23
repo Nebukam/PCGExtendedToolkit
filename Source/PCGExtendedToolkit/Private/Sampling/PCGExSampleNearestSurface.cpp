@@ -79,7 +79,7 @@ bool FPCGExSampleNearestSurfaceElement::ExecuteInternal(FPCGContext* InContext) 
 			PCGEX_SAMPLENEARESTSURFACE_FOREACH(PCGEX_OUTPUT_ACCESSOR_INIT)
 		};
 
-		auto ProcessPoint = [&](int32 PointIndex, const PCGExData::FPointIO& PointIO)
+		auto ProcessPoint = [&](const int32 PointIndex, const PCGExData::FPointIO& PointIO)
 		{
 			Context->GetAsyncManager()->Start<FSweepSphereTask>(PointIndex, Context->CurrentIO);
 		};

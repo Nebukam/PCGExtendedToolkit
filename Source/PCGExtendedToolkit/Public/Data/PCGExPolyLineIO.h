@@ -66,7 +66,7 @@ namespace PCGExData
 		const UPCGPolyLineData* In;
 
 	public:
-		FPolyLineIO(const UPCGPolyLineData& InPolyline);
+		explicit FPolyLineIO(const UPCGPolyLineData& InPolyline);
 		~FPolyLineIO();
 
 		FPCGTaggedData Source; // Source struct		
@@ -91,7 +91,7 @@ namespace PCGExData
 	public:
 		FPolyLineIOGroup();
 		FPolyLineIOGroup(const FPCGContext* Context, FName InputLabel);
-		FPolyLineIOGroup(TArray<FPCGTaggedData>& Sources);
+		explicit FPolyLineIOGroup(TArray<FPCGTaggedData>& Sources);
 
 		~FPolyLineIOGroup();
 

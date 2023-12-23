@@ -8,7 +8,6 @@
 #include "GoalPickers/PCGExGoalPicker.h"
 
 #include "Graph/PCGExEdgesProcessor.h"
-#include "Heuristics/PCGExHeuristicDistance.h"
 #include "Heuristics/PCGExHeuristicOperation.h"
 
 #include "PCGExPathfindingProcessor.generated.h"
@@ -31,20 +30,32 @@ public:
 	PCGEX_NODE_INFOS(PathfindingProcessorSettings, "Pathfinding Processor Settings", "TOOLTIP_TEXT");
 	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorPathfinding; }
 #endif
+
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 	//~End UPCGSettings interface
 
-	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+	//~Begin UObject interface
+#if WITH_EDITOR
 
+public:
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+#endif
+	//~End UObject interface
+
+	//~Begin UPCGExPointsProcessorSettings interface
+public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
+	//~End UPCGExPointsProcessorSettings interface
+
+	//~Begin UPCGExPathfindingProcessorSettings interface
 	virtual bool GetRequiresSeeds() const;
 	virtual bool GetRequiresGoals() const;
 
 	/** Controls how goals are picked.*/
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta = (NoResetToDefault, ShowOnlyInnerProperties))
 	TObjectPtr<UPCGExGoalPicker> GoalPicker;
-	
+
 	/** Add seed point at the beginning of the path */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	bool bAddSeedToPath = true;
@@ -59,6 +70,7 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	FPCGExHeuristicModifiersSettings HeuristicsModifiers;
+	//~End UPCGExPathfindingProcessorSettings interface
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingProcessorContext : public FPCGExEdgesProcessorContext

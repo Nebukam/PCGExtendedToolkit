@@ -34,7 +34,7 @@ enum class EPCGExActorFilter : uint8
 	AllWorldActors
 };
 
-struct FPCGExActorSelectionKey
+struct PCGEXTENDEDTOOLKIT_API FPCGExActorSelectionKey
 {
 	FPCGExActorSelectionKey() = default;
 
@@ -61,7 +61,7 @@ struct FPCGExActorSelectionKey
 };
 
 USTRUCT(BlueprintType)
-struct FPCGExActorSelectorSettings
+struct PCGEXTENDEDTOOLKIT_API FPCGExActorSelectorSettings
 {
 	GENERATED_BODY()
 
@@ -125,5 +125,5 @@ struct FPCGExActorSelectorSettings
 namespace PCGExActorSelector
 {
 	TArray<AActor*> FindActors(const FPCGExActorSelectorSettings& Settings, const UPCGComponent* InComponent, const TFunction<bool(const AActor*)>& BoundsCheck, const TFunction<bool(const AActor*)>& SelfIgnoreCheck);
-	AActor* FindActor(const FPCGExActorSelectorSettings& InSettings, UPCGComponent* InComponent, const TFunction<bool(const AActor*)>& BoundsCheck, const TFunction<bool(const AActor*)>& SelfIgnoreCheck);
+	AActor* FindActor(const FPCGExActorSelectorSettings& InSettings, const UPCGComponent* InComponent, const TFunction<bool(const AActor*)>& BoundsCheck, const TFunction<bool(const AActor*)>& SelfIgnoreCheck);
 }

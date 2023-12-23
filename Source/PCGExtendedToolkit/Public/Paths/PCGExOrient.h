@@ -7,7 +7,6 @@
 #include "PCGExPathProcessor.h"
 
 #include "PCGExPointsProcessor.h"
-#include "SubPoints/Orient/PCGExSubPointsOrientAverage.h"
 #include "SubPoints/Orient/PCGExSubPointsOrientOperation.h"
 #include "PCGExOrient.generated.h"
 
@@ -27,11 +26,17 @@ public:
 	PCGEX_NODE_INFOS(Orient, "Path : Orient", "Orient paths points");
 #endif
 
-	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
-
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings interface
+
+	//~Begin UObject interface
+#if WITH_EDITOR
+
+public:
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+#endif
+	//~End UObject interface
 
 public:
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable, ShowOnlyInnerProperties, NoResetToDefault))

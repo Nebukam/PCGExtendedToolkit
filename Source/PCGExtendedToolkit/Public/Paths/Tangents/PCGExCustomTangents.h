@@ -33,7 +33,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSingleTangentParams
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	double DefaultScale = 10;
 
-	void PrepareForData(PCGExData::FPointIO& InData)
+	void PrepareForData(const PCGExData::FPointIO& InData)
 	{
 		DirectionGetter.Capture(Direction);
 		DirectionGetter.Bind(InData);

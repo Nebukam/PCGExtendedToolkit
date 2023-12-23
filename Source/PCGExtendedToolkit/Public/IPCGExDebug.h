@@ -20,7 +20,9 @@ class PCGEXTENDEDTOOLKIT_API IPCGExDebug
 	GENERATED_BODY()
 
 public:
+#if WITH_EDITOR
 	virtual bool IsDebugEnabled() const = 0;
+#endif
 };
 
 /// 
@@ -45,6 +47,7 @@ public:
 
 namespace PCGExDebug
 {
+#if WITH_EDITOR
 	static bool NotifyExecute(const FPCGContext* Context)
 	{
 		const IPCGExDebug* Originator = Cast<IPCGExDebug>(Context->Node->GetSettingsInterface());
@@ -67,7 +70,7 @@ namespace PCGExDebug
 		}
 		else if (ManagerCount == 0)
 		{
-			UE_LOG(LogTemp, Error, TEXT("There is no PCGEx DebugManager in your graph -- add one to make sure PCGEx Debug node can work."))
+			UE_LOG(LogTemp, Error, TEXT("There is no PCGEx DebugManager in your graph -- add one to make sure PCGEx Debug can work."))
 		}
 
 		return ManagerCount > 0;
@@ -87,4 +90,5 @@ namespace PCGExDebug
 
 		return DebugNodeCount;
 	}
+#endif
 }
