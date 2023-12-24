@@ -15,7 +15,7 @@
  * A Base node to process a set of point using GraphParams.
  */
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural))
-class PCGEXTENDEDTOOLKIT_API UPCGExEdgesProcessorSettings : public UPCGExPointsProcessorSettings, public IPCGExDebug
+class PCGEXTENDEDTOOLKIT_API UPCGExEdgesProcessorSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -43,18 +43,6 @@ public:
 
 	virtual bool GetCacheAllMeshes() const;
 
-	//~Begin IPCGExDebug interface
-public:
-#if WITH_EDITOR
-	virtual bool IsDebugEnabled() const override { return bEnabled && bDebug; }
-#endif
-	//~End IPCGExDebug interface
-
-#if WITH_EDITORONLY_DATA
-	/** Edge debug display settings */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Debug", meta=(DisplayPriority=999999))
-	FPCGExDebugEdgeSettings DebugEdgeSettings;
-#endif
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExEdgesProcessorContext : public FPCGExPointsProcessorContext
@@ -88,12 +76,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgesProcessorContext : public FPCGExPointsP
 
 	template <class LoopBodyFunc>
 	bool ProcessCurrentMesh(LoopBodyFunc&& LoopBody, bool bForceSync = false) { return Process(LoopBody, CurrentMesh->Vertices.Num(), bForceSync); }
-
-#if WITH_EDITOR
-	PCGExGraph::FDebugEdgeData* DebugEdgeData = nullptr;
-#endif
-
-	virtual void Done() override;
 
 protected:
 	int32 CurrentEdgesIndex = -1;

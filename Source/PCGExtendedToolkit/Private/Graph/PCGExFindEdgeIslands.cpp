@@ -40,21 +40,6 @@ TArray<FPCGPinProperties> UPCGExFindEdgeIslandsSettings::OutputPinProperties() c
 
 FName UPCGExFindEdgeIslandsSettings::GetMainOutputLabel() const { return PCGExGraph::OutputVerticesLabel; }
 
-void FPCGExFindEdgeIslandsContext::Done()
-{
-	FPCGExGraphProcessorContext::Done();
-
-#if WITH_EDITOR
-	const UPCGExFindEdgeIslandsSettings* Settings = GetInputSettings<UPCGExFindEdgeIslandsSettings>();
-	check(Settings);
-
-	if (DebugEdgeData)
-	{
-		if (PCGExDebug::NotifyExecute(this)) { DebugEdgeData->Draw(World, Settings->DebugEdgeSettings); }
-	}
-#endif
-}
-
 PCGEX_INITIALIZE_ELEMENT(FindEdgeIslands)
 
 bool FPCGExFindEdgeIslandsElement::Boot(FPCGContext* InContext) const

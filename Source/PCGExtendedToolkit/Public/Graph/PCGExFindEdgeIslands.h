@@ -29,7 +29,7 @@ enum class EPCGExRoamingResolveMethod : uint8
  * Calculates the distance between two points (inherently a n*n operation)
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
-class PCGEXTENDEDTOOLKIT_API UPCGExFindEdgeIslandsSettings : public UPCGExGraphProcessorSettings, public IPCGExDebug
+class PCGEXTENDEDTOOLKIT_API UPCGExFindEdgeIslandsSettings : public UPCGExGraphProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -100,19 +100,6 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	bool bDeleteGraphData = true;
 
-	//~Begin IPCGExDebug interface
-public:
-#if WITH_EDITOR
-	virtual bool IsDebugEnabled() const override { return bEnabled && bDebug; }
-#endif
-	//~End IPCGExDebug interface
-
-#if WITH_EDITORONLY_DATA
-	/** Edge debug display settings */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Debug", meta=(DisplayPriority=999999))
-	FPCGExDebugEdgeSettings DebugEdgeSettings;
-#endif
-
 private:
 	friend class FPCGExFindEdgeIslandsElement;
 };
@@ -152,11 +139,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFindEdgeIslandsContext : public FPCGExGraphP
 
 	FPCGMetadataAttribute<int64>* InCachedIndex;
 
-#if WITH_EDITOR
-	PCGExGraph::FDebugEdgeData* DebugEdgeData = nullptr;
-#endif
-
-	virtual void Done() override;
 };
 
 
