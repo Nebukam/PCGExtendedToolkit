@@ -103,7 +103,7 @@ public:
 	bool bComponentWiseRadius = false;
 
 	/** Fuse radius */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="!bComponentWiseRadius", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="!bComponentWiseRadius", EditConditionHides, ClampMin=0.001))
 	double Radius = 10;
 
 	/** Component-wise radiuses */

@@ -45,11 +45,11 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFilterRuleDescriptor : public FPCGExInputDes
 	bool bEnabled = true;
 
 	/** Filter Size. Higher values means fewer, larger groups. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ClampMin=0.001))
 	double FilterSize = 1.0;
 
 	/** Upscale multiplier, applied before filtering. Handy to deal with floating point values. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ClampMin=0.001))
 	double Upscale = 1.0;
 
 	/** Offset input value. Applied after upscaling the raw value.*/

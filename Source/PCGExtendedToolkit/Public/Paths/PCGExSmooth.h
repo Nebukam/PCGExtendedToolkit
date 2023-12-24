@@ -51,7 +51,7 @@ public:
 	bool bPinEnd = true;
 
 	/** Draw size. What it means depends on the selected debug type. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0, ClampMax=1))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=-1, ClampMax=1))
 	double Influence = 1.0;
 
 	/** Fetch the size from a local attribute. The regular Size parameter then act as a scale.*/

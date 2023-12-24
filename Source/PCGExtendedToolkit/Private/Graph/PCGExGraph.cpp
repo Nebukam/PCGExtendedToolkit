@@ -217,4 +217,241 @@ namespace PCGExGraph
 			}
 		}
 	}
+
+	bool FNetworkNode::GetNeighbors(TArray<int32>& OutIndices, const TArray<FUnsignedEdge>& InEdges)
+	{
+		if (Edges.IsEmpty()) { return false; }
+		for (const int32 Edge : Edges) { OutIndices.Add(InEdges[Edge].Other(Index)); }
+		return true;
+	}
+
+	void FNetworkNode::AddEdge(const int32 Edge)
+	{
+		Edges.AddUnique(Edge);
+	}
+
+	bool FEdgeNetwork::InsertEdge(const FUnsignedEdge Edge)
+
+	{
+		const uint64 Hash = Edge.GetUnsignedHash();
+
+		{
+			FReadScopeLock ReadLock(NetworkLock);
+			if (UniqueEdges.Contains(Hash)) { return false; }
+		}
+
+
+		FWriteScopeLock WriteLock(NetworkLock);
+		UniqueEdges.Add(Hash);
+		const int32 EdgeIndex = Edges.Add(Edge);
+
+
+		FNetworkNode& NodeA = Nodes[Edge.Start];
+		FNetworkNode& NodeB = Nodes[Edge.End];
+
+		NodeA.AddEdge(EdgeIndex);
+		NodeB.AddEdge(EdgeIndex);
+
+		if (NodeA.Island == -1 && NodeB.Island == -1)
+		{
+			// New island
+			NumIslands++;
+			NodeA.Island = NodeB.Island = IslandIncrement++;
+		}
+		else if (NodeA.Island != -1 && NodeB.Island != -1)
+		{
+			if (NodeA.Island != NodeB.Island)
+			{
+				// Merge islands
+				NumIslands--;
+				MergeIsland(NodeB.Index, NodeA.Island);
+			}
+		}
+		else
+		{
+			// Expand island
+			NodeA.Island = NodeB.Island = FMath::Max(NodeA.Island, NodeB.Island);
+		}
+
+		return true;
+	}
+
+	void FEdgeNetwork::MergeIsland(const int32 NodeIndex, const int32 Island)
+	{
+		FNetworkNode& Node = Nodes[NodeIndex];
+		if (Node.Island == Island) { return; }
+		Node.Island = Island;
+		for (const int32 EdgeIndex : Node.Edges)
+		{
+			MergeIsland(Edges[EdgeIndex].Other(NodeIndex), Island);
+		}
+	}
+
+	void FEdgeNetwork::PrepareIslands(const int32 MinSize, const int32 MaxSize)
+	{
+		UniqueEdges.Empty();
+		IslandSizes.Empty(NumIslands);
+		NumEdges = 0;
+
+		for (const FUnsignedEdge& Edge : Edges)
+		{
+			if (!Edge.bValid) { continue; } // Crossing may invalidate edges.
+			FNetworkNode& NodeA = Nodes[Edge.Start];
+			if (const int32* SizePtr = IslandSizes.Find(NodeA.Island); !SizePtr) { IslandSizes.Add(NodeA.Island, 1); }
+			else { IslandSizes.Add(NodeA.Island, *SizePtr + 1); }
+		}
+
+		for (TPair<int32, int32>& Pair : IslandSizes)
+		{
+			if (FMath::IsWithin(Pair.Value, MinSize, MaxSize)) { NumEdges += Pair.Value; }
+			else { Pair.Value = -1; }
+		}
+	}
+
+	void FEdgeCrossingsHandler::Prepare(const TArray<FPCGPoint>& InPoints)
+	{
+		for (int i = 0; i < NumEdges; i++)
+		{
+			const FUnsignedEdge& Edge = EdgeNetwork->Edges[i];
+			FBox& NewBox = SegmentBounds.Emplace_GetRef(ForceInit);
+			NewBox += InPoints[Edge.Start].Transform.GetLocation();
+			NewBox += InPoints[Edge.End].Transform.GetLocation();
+		}
+	}
+
+	void FEdgeCrossingsHandler::ProcessEdge(const int32 EdgeIndex, const TArray<FPCGPoint>& InPoints)
+
+	{
+		TArray<FUnsignedEdge>& Edges = EdgeNetwork->Edges;
+
+		const FUnsignedEdge& Edge = Edges[EdgeIndex];
+		const FBox CurrentBox = SegmentBounds[EdgeIndex].ExpandBy(Tolerance);
+		const FVector A1 = InPoints[Edge.Start].Transform.GetLocation();
+		const FVector B1 = InPoints[Edge.End].Transform.GetLocation();
+
+		for (int i = 0; i < NumEdges; i++)
+		{
+			if (CurrentBox.Intersect(SegmentBounds[i]))
+			{
+				const FUnsignedEdge& OtherEdge = Edges[i];
+				FVector A2 = InPoints[OtherEdge.Start].Transform.GetLocation();
+				FVector B2 = InPoints[OtherEdge.End].Transform.GetLocation();
+				FVector A3;
+				FVector B3;
+				FMath::SegmentDistToSegment(A1, B1, A2, B2, A3, B3);
+				const bool bIsEnd = A1 == A3 || B1 == A3 || A2 == A3 || B2 == A3 || A1 == B3 || B1 == B3 || A2 == B3 || B2 == B3;
+				if (!bIsEnd && FVector::DistSquared(A3, B3) < SquaredTolerance)
+				{
+					FWriteScopeLock WriteLock(CrossingLock);
+					FEdgeCrossing& EdgeCrossing = Crossings.Emplace_GetRef();
+					EdgeCrossing.EdgeA = EdgeIndex;
+					EdgeCrossing.EdgeB = i;
+					EdgeCrossing.Center = FMath::Lerp(A3, B3, 0.5);
+				}
+			}
+		}
+	}
+
+	void FEdgeCrossingsHandler::InsertCrossings()
+
+	{
+		TArray<FNetworkNode>& Nodes = EdgeNetwork->Nodes;
+		TArray<FUnsignedEdge>& Edges = EdgeNetwork->Edges;
+
+		Nodes.Reserve(Nodes.Num() + Crossings.Num());
+		StartIndex = Nodes.Num();
+		int32 Index = StartIndex;
+		for (const FEdgeCrossing& EdgeCrossing : Crossings)
+		{
+			Edges[EdgeCrossing.EdgeA].bValid = false;
+			Edges[EdgeCrossing.EdgeB].bValid = false;
+
+			FNetworkNode& NewNode = Nodes.Emplace_GetRef();
+			NewNode.Index = Index++;
+			NewNode.Edges.Reserve(4);
+			NewNode.bCrossing = true;
+
+			EdgeNetwork->InsertEdge(FUnsignedEdge(NewNode.Index, Edges[EdgeCrossing.EdgeA].Start, EPCGExEdgeType::Complete));
+			EdgeNetwork->InsertEdge(FUnsignedEdge(NewNode.Index, Edges[EdgeCrossing.EdgeA].End, EPCGExEdgeType::Complete));
+			EdgeNetwork->InsertEdge(FUnsignedEdge(NewNode.Index, Edges[EdgeCrossing.EdgeB].Start, EPCGExEdgeType::Complete));
+			EdgeNetwork->InsertEdge(FUnsignedEdge(NewNode.Index, Edges[EdgeCrossing.EdgeB].End, EPCGExEdgeType::Complete));
+		}
+	}
+}
+
+bool FWriteIslandTask::ExecuteTask()
+{
+	const int32 IslandUID = TaskIndex;
+	int32 IslandSize = *EdgeNetwork->IslandSizes.Find(IslandUID);
+
+	TSet<int32> IslandSet;
+	TQueue<int32> Island;
+	IslandSet.Reserve(IslandSize);
+
+	for (PCGExGraph::FNetworkNode& Node : EdgeNetwork->Nodes)
+	{
+		if (Node.Island == -1 || Node.Island != IslandUID) { continue; }
+		for (const int32 Edge : Node.Edges)
+		{
+			if (!IslandSet.Contains(Edge) && EdgeNetwork->Edges[Edge].bValid)
+			{
+				Island.Enqueue(Edge);
+				IslandSet.Add(Edge);
+			}
+		}
+	}
+
+	IslandSize = IslandSet.Num();
+	IslandSet.Empty();
+
+	TArray<FPCGPoint>& MutablePoints = IslandIO->GetOut()->GetMutablePoints();
+	MutablePoints.SetNum(IslandSize);
+
+	IslandIO->CreateOutKeys();
+
+	PCGEx::TFAttributeWriter<int32>* EdgeStart = new PCGEx::TFAttributeWriter<int32>(PCGExGraph::EdgeStartAttributeName, -1, false);
+	PCGEx::TFAttributeWriter<int32>* EdgeEnd = new PCGEx::TFAttributeWriter<int32>(PCGExGraph::EdgeEndAttributeName, -1, false);
+
+	EdgeStart->BindAndGet(*IslandIO);
+	EdgeEnd->BindAndGet(*IslandIO);
+
+	int32 PointIndex = 0;
+	int32 EdgeIndex;
+
+	const TArray<FPCGPoint> Vertices = PointIO->GetOut()->GetPoints();
+
+	if (IndexRemap)
+	{
+		while (Island.Dequeue(EdgeIndex))
+		{
+			const PCGExGraph::FUnsignedEdge& Edge = EdgeNetwork->Edges[EdgeIndex];
+			MutablePoints[PointIndex].Transform.SetLocation(
+				FMath::Lerp(
+					Vertices[(EdgeStart->Values[PointIndex] = *IndexRemap->Find(Edge.Start))].Transform.GetLocation(),
+					Vertices[(EdgeEnd->Values[PointIndex] = *IndexRemap->Find(Edge.End))].Transform.GetLocation(), 0.5));
+			PointIndex++;
+		}
+	}
+	else
+	{
+		while (Island.Dequeue(EdgeIndex))
+		{
+			const PCGExGraph::FUnsignedEdge& Edge = EdgeNetwork->Edges[EdgeIndex];
+			MutablePoints[PointIndex].Transform.SetLocation(
+				FMath::Lerp(
+					Vertices[(EdgeStart->Values[PointIndex] = Edge.Start)].Transform.GetLocation(),
+					Vertices[(EdgeEnd->Values[PointIndex] = Edge.End)].Transform.GetLocation(), 0.5));
+			PointIndex++;
+		}
+	}
+
+
+	EdgeStart->Write();
+	EdgeEnd->Write();
+
+	//IslandData->Cleanup();
+	PCGEX_DELETE(EdgeStart)
+	PCGEX_DELETE(EdgeEnd)
+
+	return true;
 }

@@ -117,7 +117,7 @@ public:
 
 public:
 	/** Distance at which points are fused */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0.001))
 	double FuseDistance = 10;
 
 	/** If two edges are close enough, create a "crossing" point. !!! VERY EXPENSIVE !!! */
@@ -125,7 +125,7 @@ public:
 	bool bFindCrossings = false;
 
 	/** Distance at which segments are considered crossing. !!! VERY EXPENSIVE !!!*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bFindCrossings"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bFindCrossings", ClampMin=0.001))
 	double CrossingTolerance = 10;
 };
 

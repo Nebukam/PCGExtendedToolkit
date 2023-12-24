@@ -116,12 +116,12 @@ bool FPCGExPathfindingEdgesElement::ExecuteInternal(FPCGContext* InContext) cons
 
 	if (Context->IsState(PCGExGraph::State_ProcessingEdges))
 	{
-		auto NavMeshTask = [&](const int32 Index)
+		auto SampleMeshTask = [&](const int32 Index)
 		{
 			Context->GetAsyncManager()->Start<FSampleMeshPathTask>(Index, Context->CurrentIO, Context->PathBuffer[Index]);
 		};
 
-		if (Context->Process(NavMeshTask, Context->PathBuffer.Num()))
+		if (Context->Process(SampleMeshTask, Context->PathBuffer.Num()))
 		{
 			Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork);
 		}

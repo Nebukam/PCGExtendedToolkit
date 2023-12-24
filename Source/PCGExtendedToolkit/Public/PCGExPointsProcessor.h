@@ -159,7 +159,7 @@ public:
 	bool bDoAsyncProcessing = true;
 
 	/** Chunk size for parallel processing. <1 switches to preferred node value.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Performance")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Performance", meta=(ClampMin=-1, ClampMax=8196))
 	int32 ChunkSize = -1;
 
 	/** Cache the results of this node. Can yield unexpected result in certain cases.*/
@@ -195,7 +195,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : public FPCGContext
 	bool IsState(const PCGExMT::AsyncState OperationId) const { return CurrentState == OperationId; }
 	bool IsSetup() const { return IsState(PCGExMT::State_Setup); }
 	bool IsDone() const { return IsState(PCGExMT::State_Done); }
-	void Done();
+	virtual void Done();
 
 	FPCGExAsyncManager* GetAsyncManager();
 	void SetAsyncState(const PCGExMT::AsyncState WaitState) { SetState(WaitState, false); }

@@ -15,7 +15,35 @@ PCGExData::EInit UPCGExPathProcessorSettings::GetMainOutputInitMode() const { re
 FName UPCGExPathProcessorSettings::GetMainInputLabel() const { return PCGExGraph::SourcePathsLabel; }
 FName UPCGExPathProcessorSettings::GetMainOutputLabel() const { return PCGExGraph::OutputPathsLabel; }
 
+void FPCGExPathProcessorContext::Done()
+{
+	FPCGExPointsProcessorContext::Done();
+
+#if WITH_EDITOR
+	const UPCGExPathProcessorSettings* Settings = GetInputSettings<UPCGExPathProcessorSettings>();
+	check(Settings);
+
+	if (DebugEdgeData)
+	{
+		if (PCGExDebug::NotifyExecute(this)) { DebugEdgeData->Draw(World, Settings->DebugEdgeSettings); }
+	}
+#endif
+}
+
 PCGEX_INITIALIZE_CONTEXT(PathProcessor)
+
+bool FPCGExPathProcessorElement::Boot(FPCGContext* InContext) const
+{
+	if (!FPCGExPointsProcessorElementBase::Boot(InContext)) { return false; }
+
+	PCGEX_CONTEXT_AND_SETTINGS(PathProcessor)
+
+#if WITH_EDITOR
+	if (Settings->IsDebugEnabled()) { Context->DebugEdgeData = new PCGExGraph::FDebugEdgeData(); }
+#endif
+
+	return true;
+}
 
 
 #undef LOCTEXT_NAMESPACE

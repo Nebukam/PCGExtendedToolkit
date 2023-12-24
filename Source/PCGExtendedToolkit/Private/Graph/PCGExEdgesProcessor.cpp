@@ -61,6 +61,10 @@ FPCGExEdgesProcessorContext::~FPCGExEdgesProcessorContext()
 		PCGEX_DELETE_TARRAY(Meshes)
 	}
 	else { PCGEX_DELETE(CurrentMesh) }
+
+#if WITH_EDITOR
+	PCGEX_DELETE(DebugEdgeData)
+#endif
 }
 
 
@@ -112,6 +116,21 @@ void FPCGExEdgesProcessorContext::OutputPointsAndEdges()
 	Edges->OutputTo(this);
 }
 
+void FPCGExEdgesProcessorContext::Done()
+{
+	FPCGExPointsProcessorContext::Done();
+
+#if WITH_EDITOR
+	const UPCGExEdgesProcessorSettings* Settings = GetInputSettings<UPCGExEdgesProcessorSettings>();
+	check(Settings);
+
+	if (DebugEdgeData)
+	{
+		if (PCGExDebug::NotifyExecute(this)) { DebugEdgeData->Draw(World, Settings->DebugEdgeSettings); }
+	}
+#endif
+}
+
 PCGEX_INITIALIZE_CONTEXT(EdgesProcessor)
 
 bool FPCGExEdgesProcessorElement::Boot(FPCGContext* InContext) const
@@ -125,6 +144,10 @@ bool FPCGExEdgesProcessorElement::Boot(FPCGContext* InContext) const
 		PCGE_LOG(Error, GraphAndLog, FTEXT("Missing Edges."));
 		return false;
 	}
+
+#if WITH_EDITOR
+	if (Settings->IsDebugEnabled()) { Context->DebugEdgeData = new PCGExGraph::FDebugEdgeData(); }
+#endif
 
 	return true;
 }

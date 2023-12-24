@@ -110,11 +110,11 @@ public:
 	EPCGExSampleMethod SampleMethod = EPCGExSampleMethod::WithinRange;
 
 	/** Minimum target range. Used as fallback if LocalRangeMin is enabled but missing. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, ClampMin=0))
 	double RangeMin = 0;
 
 	/** Maximum target range. Used as fallback if LocalRangeMax is enabled but missing. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, ClampMin=1))
 	double RangeMax = 300;
 
 	/** Use a per-point minimum range*/
@@ -236,7 +236,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestPointContext : public FPCGExPoi
 	PCGEx::FLocalSingleFieldGetter RangeMaxGetter;
 	PCGEx::FLocalDirectionGetter NormalGetter;
 
-	UCurveFloat* WeightCurve = nullptr;
+	TObjectPtr<UCurveFloat> WeightCurve = nullptr;
 
 	PCGEX_SAMPLENEARESTPOINT_FOREACH(PCGEX_OUTPUT_DECL)
 

@@ -48,7 +48,7 @@ public:
 	FPCGExInputDescriptorWithDirection Direction;
 
 	/** Trace size */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, CLampMin=0.001))
 	double Size = 1000;
 
 	/** Use a per-point maximum size*/

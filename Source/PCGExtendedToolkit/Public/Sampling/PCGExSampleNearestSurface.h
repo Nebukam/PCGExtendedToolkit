@@ -90,7 +90,7 @@ public:
 
 
 	/** Maximum distance to check for closest surface.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision & Metrics", meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision & Metrics", meta=(PCG_Overridable, ClampMin=0.001))
 	double MaxDistance = 1000;
 
 	/** Maximum distance to check for closest surface.*/

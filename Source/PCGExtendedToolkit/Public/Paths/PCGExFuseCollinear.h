@@ -46,7 +46,7 @@ public:
 	double Threshold = 10;
 
 	/** Distance used to consider point to be overlapping. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(ClampMin=0.001))
 	double FuseDistance = 0.01;
 
 	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))

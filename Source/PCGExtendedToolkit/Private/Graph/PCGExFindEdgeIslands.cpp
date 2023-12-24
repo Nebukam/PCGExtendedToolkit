@@ -40,6 +40,21 @@ TArray<FPCGPinProperties> UPCGExFindEdgeIslandsSettings::OutputPinProperties() c
 
 FName UPCGExFindEdgeIslandsSettings::GetMainOutputLabel() const { return PCGExGraph::OutputVerticesLabel; }
 
+void FPCGExFindEdgeIslandsContext::Done()
+{
+	FPCGExGraphProcessorContext::Done();
+
+#if WITH_EDITOR
+	const UPCGExFindEdgeIslandsSettings* Settings = GetInputSettings<UPCGExFindEdgeIslandsSettings>();
+	check(Settings);
+
+	if (DebugEdgeData)
+	{
+		if (PCGExDebug::NotifyExecute(this)) { DebugEdgeData->Draw(World, Settings->DebugEdgeSettings); }
+	}
+#endif
+}
+
 PCGEX_INITIALIZE_ELEMENT(FindEdgeIslands)
 
 bool FPCGExFindEdgeIslandsElement::Boot(FPCGContext* InContext) const
@@ -289,83 +304,6 @@ bool FPCGExFindEdgeIslandsElement::ExecuteInternal(
 	}
 
 	return Context->IsDone();
-}
-
-bool FWriteIslandTask::ExecuteTask()
-{
-	const int32 IslandUID = TaskIndex;
-	int32 IslandSize = *EdgeNetwork->IslandSizes.Find(IslandUID);
-
-	TSet<int32> IslandSet;
-	TQueue<int32> Island;
-	IslandSet.Reserve(IslandSize);
-
-	for (PCGExGraph::FNetworkNode& Node : EdgeNetwork->Nodes)
-	{
-		if (Node.Island == -1 || Node.Island != IslandUID) { continue; }
-		for (const int32 Edge : Node.Edges)
-		{
-			if (!IslandSet.Contains(Edge) && EdgeNetwork->Edges[Edge].bValid)
-			{
-				Island.Enqueue(Edge);
-				IslandSet.Add(Edge);
-			}
-		}
-	}
-
-	IslandSize = IslandSet.Num();
-	IslandSet.Empty();
-
-	TArray<FPCGPoint>& MutablePoints = IslandIO->GetOut()->GetMutablePoints();
-	MutablePoints.SetNum(IslandSize);
-
-	IslandIO->CreateOutKeys();
-
-	PCGEx::TFAttributeWriter<int32>* EdgeStart = new PCGEx::TFAttributeWriter<int32>(PCGExGraph::EdgeStartAttributeName, -1, false);
-	PCGEx::TFAttributeWriter<int32>* EdgeEnd = new PCGEx::TFAttributeWriter<int32>(PCGExGraph::EdgeEndAttributeName, -1, false);
-
-	EdgeStart->BindAndGet(*IslandIO);
-	EdgeEnd->BindAndGet(*IslandIO);
-
-	int32 PointIndex = 0;
-	int32 EdgeIndex;
-
-	const TArray<FPCGPoint> Vertices = PointIO->GetOut()->GetPoints();
-
-	if (IndexRemap)
-	{
-		while (Island.Dequeue(EdgeIndex))
-		{
-			const PCGExGraph::FUnsignedEdge& Edge = EdgeNetwork->Edges[EdgeIndex];
-			MutablePoints[PointIndex].Transform.SetLocation(
-				FMath::Lerp(
-					Vertices[(EdgeStart->Values[PointIndex] = *IndexRemap->Find(Edge.Start))].Transform.GetLocation(),
-					Vertices[(EdgeEnd->Values[PointIndex] = *IndexRemap->Find(Edge.End))].Transform.GetLocation(), 0.5));
-			PointIndex++;
-		}
-	}
-	else
-	{
-		while (Island.Dequeue(EdgeIndex))
-		{
-			const PCGExGraph::FUnsignedEdge& Edge = EdgeNetwork->Edges[EdgeIndex];
-			MutablePoints[PointIndex].Transform.SetLocation(
-				FMath::Lerp(
-					Vertices[(EdgeStart->Values[PointIndex] = Edge.Start)].Transform.GetLocation(),
-					Vertices[(EdgeEnd->Values[PointIndex] = Edge.End)].Transform.GetLocation(), 0.5));
-			PointIndex++;
-		}
-	}
-
-
-	EdgeStart->Write();
-	EdgeEnd->Write();
-
-	//IslandData->Cleanup();
-	PCGEX_DELETE(EdgeStart)
-	PCGEX_DELETE(EdgeEnd)
-
-	return true;
 }
 
 #undef LOCTEXT_NAMESPACE

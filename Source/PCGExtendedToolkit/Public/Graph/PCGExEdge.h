@@ -20,6 +20,25 @@ enum class EPCGExEdgeType : uint8
 	Mirror   = 1 << 4 UMETA(DisplayName = "Mirrored relation", Tooltip="Mirrored relation, connected sockets are the same on both points."),
 };
 
+
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExDebugEdgeSettings
+{
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	FColor ValidEdgeColor = FColor::Cyan;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta=(ClampMin=0.1, ClampMax=10))
+	double ValidEdgeThickness = 0.5;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	FColor InvalidEdgeColor = FColor::Red;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta=(ClampMin=0.1, ClampMax=10))
+	double InvalidEdgeThickness = 0.5;
+};
+
 namespace PCGExGraph
 {
 	const FName SourceEdgesLabel = TEXT("Edges");
@@ -102,6 +121,63 @@ namespace PCGExGraph
 				       static_cast<uint64>(End) | (static_cast<uint64>(Start) << 32);
 		}
 	};
+
+#pragma region Debug
+
+#if WITH_EDITOR
+
+#endif
+
+	struct PCGEXTENDEDTOOLKIT_API FDebugEdge
+	{
+		FVector StartPosition;
+		FVector EndPosition;
+		bool bValid = true;
+
+		FDebugEdge(const FVector& InStartPosition, const FVector& InEndPosition)
+			: StartPosition(InStartPosition),
+			  EndPosition(InEndPosition)
+		{
+		}
+	};
+
+	struct PCGEXTENDEDTOOLKIT_API FDebugEdgeData
+	{
+		mutable FRWLock EdgeWriteLock;
+		TArray<FDebugEdge> Edges;
+
+		FDebugEdgeData()
+		{
+			Edges.Empty();
+		}
+
+		~FDebugEdgeData()
+		{
+			Edges.Empty();
+		}
+
+		FDebugEdge& CreateEdge(FVector StartPosition, FVector EndPosition)
+		{
+			FWriteScopeLock WriteLock(EdgeWriteLock);
+			return Edges.Emplace_GetRef(StartPosition, EndPosition);
+		}
+
+		void Draw(const UWorld* World, const FPCGExDebugEdgeSettings& Settings)
+		{
+			for (FDebugEdge& Edge : Edges)
+			{
+				if (Edge.bValid)
+				{
+					DrawDebugLine(World, Edge.StartPosition, Edge.EndPosition, Settings.ValidEdgeColor, true, -1, 0, Settings.ValidEdgeThickness);
+				}
+				else
+				{
+					DrawDebugLine(World, Edge.StartPosition, Edge.EndPosition, Settings.InvalidEdgeColor, true, -1, 0, Settings.InvalidEdgeThickness);
+				}
+			}
+		}
+	};
+
 
 #pragma endregion
 }

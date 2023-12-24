@@ -73,7 +73,7 @@ public:
 	bool bRequireNavigableEndLocation = true;
 
 	/** Fuse sub points by distance. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(ClampMin=0.001))
 	double FuseDistance = 10;
 
 	/** Controls how path points blend from seed to goal. */
