@@ -14,7 +14,9 @@ UENUM(BlueprintType)
 enum class EPCGExGraphModel : uint8
 {
 	Custom UMETA(DisplayName = "Custom Sockets", Tooltip="Edit socket individually."),
-	Grid UMETA(DisplayName = "3D Grid", Tooltip="A 3D-like model, with 6 sockets, 2 for each axis (Plus/Minus)."),
+	Grid UMETA(DisplayName = "3D Grid (Cube faces)", Tooltip="A 3D-like model, with 6 sockets, 2 for each axis (Plus/Minus)."),
+	CornerGrid UMETA(DisplayName = "3D Grid (Cube corners)", Tooltip="A 3D-like model, with 8 sockets, 1 for each of a cube corner."),
+	UberGrid UMETA(DisplayName = "3D Grid (Cube faces + corners)", Tooltip="A 3D-like model, with 14 sockets, 1 for each of a cube corner as well as faces."),
 	PlaneXY UMETA(DisplayName = "Plane - XY", Tooltip="A 2D-like model, with 4 sockets, 2 for each X & Y axis (Plus/Minus)."),
 	PlaneXZ UMETA(DisplayName = "Plane - XZ", Tooltip="A 2D-like model, with 4 sockets, 2 for each X & Z axis (Plus/Minus)."),
 	PlaneYZ UMETA(DisplayName = "Plane - YZ", Tooltip="A 2D-like model, with 4 sockets, 2 for each Y & Z axis (Plus/Minus)."),

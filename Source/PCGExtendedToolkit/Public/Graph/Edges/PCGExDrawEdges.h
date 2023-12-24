@@ -49,8 +49,16 @@ public:
 	//~End IPCGExDebug interface
 
 	/** Draw color. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Color", meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings", meta=(PCG_Overridable))
 	FColor Color = FColor::Cyan;
+
+	/** Draw thickness. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings", meta=(PCG_Overridable, ClampMin=0.01, ClampMax=10))
+	double Thickness = 0.5;
+
+	/** Draw thickness. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings", meta=(PCG_Overridable))
+	int32 DepthPriority = 0;
 	
 private:
 	friend class FPCGExDrawEdgesElement;

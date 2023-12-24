@@ -89,7 +89,7 @@ bool FPCGExDrawEdgesElement::ExecuteInternal(
 				if (!Edge.bValid) { continue; }
 				FVector Start = Context->CurrentMesh->Vertices[Edge.Start].Position;
 				FVector End = Context->CurrentMesh->Vertices[Edge.End].Position;
-				DrawDebugLine(Context->World, Start, End, Settings->Color, true, -1, 0, 0.5);
+				DrawDebugLine(Context->World, Start, End, Settings->Color, true, -1, Settings->DepthPriority, Settings->Thickness);
 			}
 		}
 

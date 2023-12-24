@@ -62,6 +62,7 @@ void UPCGExCreateGraphParamsSettings::InitSocketContent(TArray<FPCGExSocketDescr
 
 	const EPCGExSocketType Input = bTypedPreset ? EPCGExSocketType::Input : EPCGExSocketType::None;
 	const EPCGExSocketType Output = bTypedPreset ? EPCGExSocketType::Output : EPCGExSocketType::None;
+	const EPCGExSocketType AnyIO = bTypedPreset ? EPCGExSocketType::Any : EPCGExSocketType::None;
 
 	switch (GraphModel)
 	{
@@ -115,6 +116,32 @@ void UPCGExCreateGraphParamsSettings::InitSocketContent(TArray<FPCGExSocketDescr
 		OutSockets.Add(FPCGExSocketDescriptor("InRighty", ToTheRight.RotateVector(FVector::ForwardVector), Output, PCGExDebugColors::YPlus));
 		OutSockets.Add(FPCGExSocketDescriptor("OutLefty", ToTheLeft.RotateVector(FVector::BackwardVector), Input, PCGExDebugColors::XMinus));
 		OutSockets.Add(FPCGExSocketDescriptor("OutRighty", ToTheRight.RotateVector(FVector::BackwardVector), Input, PCGExDebugColors::YMinus));
+		break;
+	case EPCGExGraphModel::CornerGrid:
+		OutSockets.Add(FPCGExSocketDescriptor("ForwardRightUp", (FVector::ForwardVector + FVector::RightVector + FVector::UpVector).GetSafeNormal(), "BackwardLeftDown", AnyIO, PCGExDebugColors::XPlus));
+		OutSockets.Add(FPCGExSocketDescriptor("ForwardRightDown", (FVector::ForwardVector + FVector::RightVector + FVector::DownVector).GetSafeNormal(), "BackwardLeftUp", AnyIO, PCGExDebugColors::XMinus));
+		OutSockets.Add(FPCGExSocketDescriptor("ForwardLeftUp", (FVector::ForwardVector + FVector::LeftVector + FVector::UpVector).GetSafeNormal(), "BackwardRightDown", AnyIO, PCGExDebugColors::XPlus));
+		OutSockets.Add(FPCGExSocketDescriptor("ForwardLeftDown", (FVector::ForwardVector + FVector::LeftVector + FVector::DownVector).GetSafeNormal(), "BackwardRightUp", AnyIO, PCGExDebugColors::XMinus));
+		OutSockets.Add(FPCGExSocketDescriptor("BackwardRightUp", (FVector::BackwardVector + FVector::RightVector + FVector::UpVector).GetSafeNormal(), "ForwardLeftDown", AnyIO, PCGExDebugColors::ZPlus));
+		OutSockets.Add(FPCGExSocketDescriptor("BackwardRightDown", (FVector::BackwardVector + FVector::RightVector + FVector::DownVector).GetSafeNormal(), "ForwardLeftUp", AnyIO, PCGExDebugColors::YMinus));
+		OutSockets.Add(FPCGExSocketDescriptor("BackwardLeftUp", (FVector::BackwardVector + FVector::LeftVector + FVector::UpVector).GetSafeNormal(), "ForwardRightDown", AnyIO, PCGExDebugColors::ZPlus));
+		OutSockets.Add(FPCGExSocketDescriptor("BackwardLeftDown", (FVector::BackwardVector + FVector::LeftVector + FVector::DownVector).GetSafeNormal(), "ForwardRightUp", AnyIO, PCGExDebugColors::YMinus));
+		break;
+	case EPCGExGraphModel::UberGrid:
+		OutSockets.Add(FPCGExSocketDescriptor("Forward", FVector::ForwardVector, "Backward", Output, PCGExDebugColors::XPlus));
+		OutSockets.Add(FPCGExSocketDescriptor("Backward", FVector::BackwardVector, "Forward", Input, PCGExDebugColors::XMinus));
+		OutSockets.Add(FPCGExSocketDescriptor("Right", FVector::RightVector, "Left", Output, PCGExDebugColors::YPlus));
+		OutSockets.Add(FPCGExSocketDescriptor("Left", FVector::LeftVector, "Right", Input, PCGExDebugColors::YMinus));
+		OutSockets.Add(FPCGExSocketDescriptor("Up", FVector::UpVector, "Down", Output, PCGExDebugColors::ZPlus));
+		OutSockets.Add(FPCGExSocketDescriptor("Down", FVector::DownVector, "Up", Input, PCGExDebugColors::ZMinus));
+		OutSockets.Add(FPCGExSocketDescriptor("ForwardRightUp", (FVector::ForwardVector + FVector::RightVector + FVector::UpVector).GetSafeNormal(), "BackwardLeftDown", AnyIO, PCGExDebugColors::XPlus));
+		OutSockets.Add(FPCGExSocketDescriptor("ForwardRightDown", (FVector::ForwardVector + FVector::RightVector + FVector::DownVector).GetSafeNormal(), "BackwardLeftUp", AnyIO, PCGExDebugColors::XMinus));
+		OutSockets.Add(FPCGExSocketDescriptor("ForwardLeftUp", (FVector::ForwardVector + FVector::LeftVector + FVector::UpVector).GetSafeNormal(), "BackwardRightDown", AnyIO, PCGExDebugColors::XPlus));
+		OutSockets.Add(FPCGExSocketDescriptor("ForwardLeftDown", (FVector::ForwardVector + FVector::LeftVector + FVector::DownVector).GetSafeNormal(), "BackwardRightUp", AnyIO, PCGExDebugColors::XMinus));
+		OutSockets.Add(FPCGExSocketDescriptor("BackwardRightUp", (FVector::BackwardVector + FVector::RightVector + FVector::UpVector).GetSafeNormal(), "ForwardLeftDown", AnyIO, PCGExDebugColors::ZPlus));
+		OutSockets.Add(FPCGExSocketDescriptor("BackwardRightDown", (FVector::BackwardVector + FVector::RightVector + FVector::DownVector).GetSafeNormal(), "ForwardLeftUp", AnyIO, PCGExDebugColors::YMinus));
+		OutSockets.Add(FPCGExSocketDescriptor("BackwardLeftUp", (FVector::BackwardVector + FVector::LeftVector + FVector::UpVector).GetSafeNormal(), "ForwardRightDown", AnyIO, PCGExDebugColors::ZPlus));
+		OutSockets.Add(FPCGExSocketDescriptor("BackwardLeftDown", (FVector::BackwardVector + FVector::LeftVector + FVector::DownVector).GetSafeNormal(), "ForwardRightUp", AnyIO, PCGExDebugColors::YMinus));
 		break;
 	default: ;
 	}
