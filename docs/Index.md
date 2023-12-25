@@ -27,13 +27,13 @@
     - Edges :
         - [*Edges* : Relax](PCGExEdgesRelaxIslands.md)
         - [*Edges* : Consolidate Islands](PCGExEdgesConsolidateIslands.md)
-        ~~- [*Edges* : Pruning](PCGExEdgesPrune.md)~~
-        ~~- [*Edges* : Write Extras](PCGExEdgesExtras.md)~~
+        - [*Edges* : Write Extras](PCGExEdgesExtras.md)
     - Paths :
         - [*Path* : Write Tangents](PCGExPathsWriteTangents.md)
         - [*Path* : Orient](PCGExPathsSubdivide.md)
         - [*Path* : Subdivide](PCGExPathsSubdivide.md)
         - [*Path* : Fuse Colinear](PCGExFuseColinear.md)
+        - [*Path* : To Edges Islands](PCGExPathsToEdges.md)
     - Sample :
         - [*Sample* : Nearest Point](PCGExSampleNearestPoint.md)
         - [*Sample* : Nearest Surface](PCGExSampleNearestSurface.md)
