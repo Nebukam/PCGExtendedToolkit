@@ -156,4 +156,31 @@ namespace PCGExMath
 
 		return Box;
 	}
+
+	// Function to find the center and radius of a sphere given 4 points on its surface
+	static bool FindSphereCenterAndRadius(const FVector& Point1, const FVector& Point2, const FVector& Point3, const FVector& Point4, FSphere& OutSphere)
+	{
+		// Calculate the vectors between the points
+		const FVector V21 = Point2 - Point1;
+		const FVector V31 = Point3 - Point1;
+		const FVector V41 = Point4 - Point1;
+
+		// Calculate the cross products
+		const FVector Cross321 = FVector::CrossProduct(V31, V21);
+		const FVector Cross421 = FVector::CrossProduct(V41, V21);
+
+		// Calculate the denominator
+		const float Denominator = 2.0f * FVector::DotProduct(Cross321, Cross421);
+
+		if (FMath::IsNearlyZero(Denominator)) { return false; } // Points are coplanar or nearly coplanar
+
+		// Calculate the coefficients
+		float A = FVector::DotProduct(V21, V21);
+		float B = FVector::DotProduct(V31, V31);
+		float C = FVector::DotProduct(V41, V41);
+		const FVector Center = (A * Cross421 + B * Cross321) / Denominator;
+
+		OutSphere = FSphere(Center, FVector::Dist(Center, Point1));
+		return true;
+	}
 }

@@ -29,36 +29,12 @@ namespace PCGExMesh
 
 		std::sort(std::begin(Vtx), std::end(Vtx), [](FVertex* A, FVertex* B) { return A->PointIndex < B->PointIndex; });
 
-		Det = Determinant3X3(
-				Vtx[0]->Position.X - Vtx[3]->Position.X, Vtx[0]->Position.Y - Vtx[3]->Position.Y, Vtx[0]->Position.Z - Vtx[3]->Position.Z,
-				Vtx[1]->Position.X - Vtx[3]->Position.X, Vtx[1]->Position.Y - Vtx[3]->Position.Y, Vtx[1]->Position.Z - Vtx[3]->Position.Z,
-				Vtx[2]->Position.X - Vtx[3]->Position.X, Vtx[2]->Position.Y - Vtx[3]->Position.Y, Vtx[2]->Position.Z - Vtx[3]->Position.Z
-			);
-
-		Det = Det * Det;
-	}
-
-	bool FTetrahedron::IsInCircumsphere(const FVector& Position)
-	{
-		const double Det1 = Determinant3X3(
-				Position.X - Vtx[0]->Position.X, Position.Y - Vtx[0]->Position.Y, Position.Z - Vtx[0]->Position.Z,
-				Vtx[1]->Position.X - Vtx[0]->Position.X, Vtx[1]->Position.Y - Vtx[0]->Position.Y, Vtx[1]->Position.Z - Vtx[0]->Position.Z,
-				Vtx[2]->Position.X - Vtx[0]->Position.X, Vtx[2]->Position.Y - Vtx[0]->Position.Y, Vtx[2]->Position.Z - Vtx[0]->Position.Z
-			);
-
-		const double Det2 = Determinant3X3(
-				Vtx[1]->Position.X - Vtx[0]->Position.X, Vtx[1]->Position.Y - Vtx[0]->Position.Y, Vtx[1]->Position.Z - Vtx[0]->Position.Z,
-				Position.X - Vtx[0]->Position.X, Position.Y - Vtx[0]->Position.Y, Position.Z - Vtx[0]->Position.Z,
-				Vtx[2]->Position.X - Vtx[0]->Position.X, Vtx[2]->Position.Y - Vtx[0]->Position.Y, Vtx[2]->Position.Z - Vtx[0]->Position.Z
-			);
-
-		const double Det3 = Determinant3X3(
-				Vtx[2]->Position.X - Vtx[0]->Position.X, Vtx[2]->Position.Y - Vtx[0]->Position.Y, Vtx[2]->Position.Z - Vtx[0]->Position.Z,
-				Vtx[1]->Position.X - Vtx[0]->Position.X, Vtx[1]->Position.Y - Vtx[0]->Position.Y, Vtx[1]->Position.Z - Vtx[0]->Position.Z,
-				Position.X - Vtx[0]->Position.X, Position.Y - Vtx[0]->Position.Y, Position.Z - Vtx[0]->Position.Z
-			);
-
-		return (Det1 * Det1 + Det2 * Det2 + Det3 * Det3 - Det) > 0;
+		bValid = PCGExMath::FindSphereCenterAndRadius(
+			Vtx[0]->Position,
+			Vtx[1]->Position,
+			Vtx[2]->Position,
+			Vtx[3]->Position,
+			Circumsphere);
 	}
 
 	bool FTetrahedron::SharedFace(const FTetrahedron* OtherTetrahedron, FVertex& A, FVertex& B, FVertex& C) const
@@ -72,38 +48,58 @@ namespace PCGExMesh
 		return false;
 	}
 
-	void FTetrahedron::RegisterEdges(TSet<uint64>& UniqueEdges, TArray<PCGExGraph::FUnsignedEdge>& Edges)
+	void FTetrahedron::RegisterEdges(TSet<uint64>& UniqueEdges, TArray<PCGExGraph::FUnsignedEdge>& Edges, const int32 MaxIndex) const
 	{
-		PCGExGraph::FUnsignedEdge Edge = PCGExGraph::FUnsignedEdge(Vtx[0]->PointIndex, Vtx[1]->PointIndex, EPCGExEdgeType::Complete);
-		uint64 EdgeHash = Edge.GetUnsignedHash();
-		if (!UniqueEdges.Contains(EdgeHash))
+		PCGExGraph::FUnsignedEdge Edge;
+		uint64 EdgeHash;
+
+		const int32 I1 = Vtx[0]->PointIndex;
+		const int32 I2 = Vtx[1]->PointIndex;
+		const int32 I3 = Vtx[2]->PointIndex;
+		const int32 I4 = Vtx[3]->PointIndex;
+
+		if (I1 < MaxIndex && I2 < MaxIndex)
 		{
-			UniqueEdges.Add(EdgeHash);
-			Edges.Add(Edge);
+			Edge = PCGExGraph::FUnsignedEdge(I1, I2, EPCGExEdgeType::Complete);
+			EdgeHash = Edge.GetUnsignedHash();
+			if (!UniqueEdges.Contains(EdgeHash))
+			{
+				UniqueEdges.Add(EdgeHash);
+				Edges.Add(Edge);
+			}
 		}
 
-		Edge = PCGExGraph::FUnsignedEdge(Vtx[1]->PointIndex, Vtx[2]->PointIndex, EPCGExEdgeType::Complete);
-		EdgeHash = Edge.GetUnsignedHash();
-		if (!UniqueEdges.Contains(EdgeHash))
+		if (I2 < MaxIndex && I3 < MaxIndex)
 		{
-			UniqueEdges.Add(EdgeHash);
-			Edges.Add(Edge);
+			Edge = PCGExGraph::FUnsignedEdge(I2, I3, EPCGExEdgeType::Complete);
+			EdgeHash = Edge.GetUnsignedHash();
+			if (!UniqueEdges.Contains(EdgeHash))
+			{
+				UniqueEdges.Add(EdgeHash);
+				Edges.Add(Edge);
+			}
 		}
 
-		Edge = PCGExGraph::FUnsignedEdge(Vtx[2]->PointIndex, Vtx[3]->PointIndex, EPCGExEdgeType::Complete);
-		EdgeHash = Edge.GetUnsignedHash();
-		if (!UniqueEdges.Contains(EdgeHash))
+		if (Vtx[2]->PointIndex < MaxIndex && I4 < MaxIndex)
 		{
-			UniqueEdges.Add(EdgeHash);
-			Edges.Add(Edge);
+			Edge = PCGExGraph::FUnsignedEdge(I3, I4, EPCGExEdgeType::Complete);
+			EdgeHash = Edge.GetUnsignedHash();
+			if (!UniqueEdges.Contains(EdgeHash))
+			{
+				UniqueEdges.Add(EdgeHash);
+				Edges.Add(Edge);
+			}
 		}
 
-		Edge = PCGExGraph::FUnsignedEdge(Vtx[0]->PointIndex, Vtx[3]->PointIndex, EPCGExEdgeType::Complete);
-		EdgeHash = Edge.GetUnsignedHash();
-		if (!UniqueEdges.Contains(EdgeHash))
+		if (I1 < MaxIndex && I4 < MaxIndex)
 		{
-			UniqueEdges.Add(EdgeHash);
-			Edges.Add(Edge);
+			Edge = PCGExGraph::FUnsignedEdge(I1, I4, EPCGExEdgeType::Complete);
+			EdgeHash = Edge.GetUnsignedHash();
+			if (!UniqueEdges.Contains(EdgeHash))
+			{
+				UniqueEdges.Add(EdgeHash);
+				Edges.Add(Edge);
+			}
 		}
 	}
 
@@ -137,14 +133,16 @@ namespace PCGExMesh
 		Tetrahedrons.Empty();
 	}
 
-	void FDelaunayTriangulation::PrepareFrom(const PCGExData::FPointIO& PointIO)
+	bool FDelaunayTriangulation::PrepareFrom(const PCGExData::FPointIO& PointIO)
 	{
+		if (PointIO.GetNum() <= 4) { return false; }
+
 		FVector Min = FVector(TNumericLimits<double>::Max());
 		FVector Max = FVector(TNumericLimits<double>::Min());
 		FVector Centroid = FVector::Zero();
 
 		const TArray<FPCGPoint>& Points = PointIO.GetIn()->GetPoints();
-		int32 NumPoints = Points.Num();
+		NumPoints = Points.Num();
 		Vertices.SetNum(NumPoints + 4);
 		for (int i = 0; i < NumPoints; i++)
 		{
@@ -180,7 +178,7 @@ namespace PCGExMesh
 		Vertices[NumPoints + 2].Position = FVector(Centroid.X + Radius, Centroid.Y - Radius, Centroid.Z - Radius);
 		Vertices[NumPoints + 3].Position = FVector(Centroid.X, Centroid.Y, Centroid.Z + Radius * 2);
 
-		EmplaceTetrahedron(&Vertices[NumPoints], &Vertices[NumPoints + 1], &Vertices[NumPoints + 2], &Vertices[NumPoints + 3]);
+		return EmplaceTetrahedron(&Vertices[NumPoints], &Vertices[NumPoints + 1], &Vertices[NumPoints + 2], &Vertices[NumPoints + 3])->bValid;
 	}
 
 	FTetrahedron* FDelaunayTriangulation::EmplaceTetrahedron(FVertex* InVtx1, FVertex* InVtx2, FVertex* InVtx3, FVertex* InVtx4)
@@ -200,7 +198,7 @@ namespace PCGExMesh
 
 		for (const TPair<uint64, FTetrahedron*>& Pair : Tetrahedrons)
 		{
-			if (Pair.Value->IsInCircumsphere(Vtx->Position))
+			if (Pair.Value->Circumsphere.IsInside(Vtx->Position))
 			{
 				DeprecatedTetrahedrons.Enqueue(Pair.Key);
 			}
@@ -225,16 +223,19 @@ namespace PCGExMesh
 	void FDelaunayTriangulation::FindEdges()
 	{
 		// Remove supertetrahedron
-		const FTetrahedron* Tetrahedron = *Tetrahedrons.Find(0);
-		Tetrahedrons.Remove(0);
-		delete Tetrahedron;
+		if (FTetrahedron** Tetrahedron = Tetrahedrons.Find(0))
+		{
+			Tetrahedrons.Remove(0);
+			delete *Tetrahedron;
+		}
+
 
 		TSet<uint64> UniqueEdges;
 		UniqueEdges.Reserve(Tetrahedrons.Num());
 
 		for (const TPair<uint64, FTetrahedron*>& Pair : Tetrahedrons)
 		{
-			Pair.Value->RegisterEdges(UniqueEdges, Edges);
+			Pair.Value->RegisterEdges(UniqueEdges, Edges, NumPoints);
 		}
 
 		UniqueEdges.Empty();

@@ -82,10 +82,19 @@ bool FPCGExBuildDelaunayGraphElement::ExecuteInternal(
 		if (!Context->AdvancePointsIO()) { Context->Done(); }
 		else
 		{
-			Context->CurrentIslandIO = &Context->IslandsIO->Emplace_GetRef();
-			Context->EdgeNetwork = new PCGExGraph::FEdgeNetwork(Context->CurrentIO->GetNum() * 3, Context->CurrentIO->GetNum());
-			Context->Markings = new PCGExData::FKPointIOMarkedBindings<int32>(Context->CurrentIO, PCGExGraph::PUIDAttributeName);
-			Context->SetState(PCGExMT::State_ProcessingPoints);
+			Context->Delaunay = new PCGExMesh::FDelaunayTriangulation();
+			if (Context->Delaunay->PrepareFrom(*Context->CurrentIO))
+			{
+				Context->CurrentIslandIO = &Context->IslandsIO->Emplace_GetRef();
+				Context->EdgeNetwork = new PCGExGraph::FEdgeNetwork(Context->CurrentIO->GetNum() * 3, Context->CurrentIO->GetNum());
+				Context->Markings = new PCGExData::FKPointIOMarkedBindings<int32>(Context->CurrentIO, PCGExGraph::PUIDAttributeName);
+
+				Context->SetState(PCGExMT::State_ProcessingPoints);
+			}
+			else
+			{
+				Context->SetState(PCGExMT::State_ReadyForNextPoints);
+			}
 		}
 	}
 
@@ -93,8 +102,6 @@ bool FPCGExBuildDelaunayGraphElement::ExecuteInternal(
 	{
 		auto Initialize = [&](PCGExData::FPointIO& PointIO)
 		{
-			Context->Delaunay = new PCGExMesh::FDelaunayTriangulation();
-			Context->Delaunay->PrepareFrom(PointIO);
 			(*Context->Delaunay->Tetrahedrons.Find(0))->Draw(Context->World);
 		};
 
@@ -126,6 +133,8 @@ bool FPCGExBuildDelaunayGraphElement::ExecuteInternal(
 		Context->Markings->Mark = Context->CurrentIO->GetIn()->GetUniqueID();
 
 		PCGExData::FPointIO& DelaunayEdges = Context->IslandsIO->Emplace_GetRef();
+		Context->Markings->Add(DelaunayEdges);
+
 		TArray<FPCGPoint>& MutablePoints = DelaunayEdges.GetOut()->GetMutablePoints();
 		MutablePoints.SetNum(Context->Delaunay->Edges.Num());
 
@@ -146,10 +155,10 @@ bool FPCGExBuildDelaunayGraphElement::ExecuteInternal(
 					(Context->Delaunay->Vertices)[EdgeEnd->Values[PointIndex] = Edge.End].Position, 0.5));
 			PointIndex++;
 		}
-		
+
 		EdgeStart->Write();
 		EdgeEnd->Write();
-		
+
 		PCGEX_DELETE(EdgeStart)
 		PCGEX_DELETE(EdgeEnd)
 
