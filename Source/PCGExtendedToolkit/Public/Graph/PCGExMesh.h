@@ -41,6 +41,48 @@ namespace PCGExMesh
 		void AddNeighbor(const int32 EdgeIndex, const int32 VertexIndex);
 	};
 
+	struct PCGEXTENDEDTOOLKIT_API FTetrahedron
+	{
+		FVertex* Vtx[4];
+		double Det;
+
+		FTetrahedron(FVertex* InVtx1, FVertex* InVtx2, FVertex* InVtx3, FVertex* InVtx4);
+
+		double Determinant3X3(const double A, const double B, const double C, const double D, const double E, const double F, const double G, const double H, const double I)
+		{
+			return A * (E * I - F * H) - B * (D * I - F * G) + C * (D * H - E * G);
+		}
+
+		bool IsInCircumsphere(const FVector& Position);
+
+		bool SharedFace(const FTetrahedron* OtherTetrahedron, FVertex& A, FVertex& B, FVertex& C) const;
+
+		void RegisterEdges(TSet<uint64>& UniqueEdges, TArray<PCGExGraph::FUnsignedEdge>& Edges);
+
+		void Draw(const UWorld* World) const;
+		
+	};
+
+	struct PCGEXTENDEDTOOLKIT_API FDelaunayTriangulation
+	{
+		mutable FRWLock TetraLock;
+		int32 MeshID = -1;
+		TArray<FVertex> Vertices;
+		TArray<PCGExGraph::FUnsignedEdge> Edges;
+		TMap<uint64, FTetrahedron*> Tetrahedrons;
+		uint64 TUID = 0;
+
+		FDelaunayTriangulation();
+
+		~FDelaunayTriangulation();
+
+		void PrepareFrom(const PCGExData::FPointIO& PointIO);
+		FTetrahedron* EmplaceTetrahedron(FVertex* InVtx1, FVertex* InVtx2, FVertex* InVtx3, FVertex* InVtx4);
+
+		void InsertVertex(int32 Index);
+
+		void FindEdges();
+	};
 
 	struct PCGEXTENDEDTOOLKIT_API FScoredVertex
 	{

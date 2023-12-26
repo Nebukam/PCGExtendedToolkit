@@ -4,4 +4,6 @@
 TBD
 
 ## How to use
+Takes data generated from [*Graph* : Find Edge Islands](PCGExGraphFindEdgeIslands.md) and related nodes.
+
 ### Inputs

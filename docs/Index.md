@@ -26,7 +26,7 @@
         - [*Pathfinding* : Plot Navmesh](PCGExPathfindingPlotNavmesh.md)
     - Edges :
         - [*Edges* : Relax](PCGExEdgesRelaxIslands.md)
-        - [*Edges* : Consolidate Islands](PCGExEdgesConsolidateIslands.md)
+        - [*Edges* : Bridge Islands](PCGExEdgesBridgeIslands.md)
         - [*Edges* : Write Extras](PCGExEdgesExtras.md)
     - Paths :
         - [*Path* : Write Tangents](PCGExPathsWriteTangents.md)
