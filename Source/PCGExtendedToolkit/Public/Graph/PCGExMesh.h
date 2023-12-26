@@ -41,16 +41,41 @@ namespace PCGExMesh
 		void AddNeighbor(const int32 EdgeIndex, const int32 VertexIndex);
 	};
 
+	struct PCGEXTENDEDTOOLKIT_API FDelaunayVertex
+	{
+		int32 MeshIndex = -1;
+		int32 PointIndex = -1;
+		FVector Position;
+		double Dist = -1;
+
+		FDelaunayVertex()
+		{
+			PointIndex = -1;
+			Position = FVector::ZeroVector;
+		}
+
+		~FDelaunayVertex(){}
+
+	};
+
 	struct PCGEXTENDEDTOOLKIT_API FTetrahedron
 	{
-		FVertex* Vtx[4];
+		FDelaunayVertex* Vtx[4];
 		FSphere Circumsphere;
 		bool bValid = false;
 
-		FTetrahedron(FVertex* InVtx1, FVertex* InVtx2, FVertex* InVtx3, FVertex* InVtx4);
+		FTetrahedron(FDelaunayVertex* InVtx1, FDelaunayVertex* InVtx2, FDelaunayVertex* InVtx3, FDelaunayVertex* InVtx4);
 
-		bool SharedFace(const FTetrahedron* OtherTetrahedron, FVertex& A, FVertex& B, FVertex& C) const;
-		void RegisterEdges(TSet<uint64>& UniqueEdges, TArray<PCGExGraph::FUnsignedEdge>& Edges, const int32 MaxIndex) const;
+		// Function to check if a point is inside a tetrahedron
+		bool IsInside(const FVector& Point) const;
+		FDelaunayVertex* GetOppositeVertex(FDelaunayVertex* A, FDelaunayVertex* B) const;
+		bool Contains(const FDelaunayVertex* Vertex) const;
+		bool ContainsEdge(const FDelaunayVertex* A, const FDelaunayVertex* B) const;
+		bool HasSharedEdge(const FTetrahedron* OtherTetrahedron) const;
+		bool GetSharedEdge(const FTetrahedron* OtherTetrahedron, FDelaunayVertex& A, FDelaunayVertex& B) const;
+		bool FlipEdge(FTetrahedron* OtherTetrahedron);
+		bool SharedFace(const FTetrahedron* OtherTetrahedron, FDelaunayVertex& A, FDelaunayVertex& B, FDelaunayVertex& C) const;
+		void RegisterEdges(TSet<uint64>& UniqueEdges, TArray<PCGExGraph::FUnsignedEdge>& Edges) const;
 		void Draw(const UWorld* World) const;
 	};
 
@@ -58,23 +83,25 @@ namespace PCGExMesh
 	{
 		mutable FRWLock TetraLock;
 		int32 MeshID = -1;
-		int32 NumPoints = 0;
-		TArray<FVertex> Vertices;
+		TArray<FDelaunayVertex> Vertices;
 		TArray<PCGExGraph::FUnsignedEdge> Edges;
 		TMap<uint64, FTetrahedron*> Tetrahedrons;
 		uint64 TUID = 0;
-		int32 CurrentVtxIndex = -1;
+		int32 CurrentIndex = -1;
 
 		FDelaunayTriangulation();
 
 		~FDelaunayTriangulation();
 
 		bool PrepareFrom(const PCGExData::FPointIO& PointIO);
-		FTetrahedron* EmplaceTetrahedron(FVertex* InVtx1, FVertex* InVtx2, FVertex* InVtx3, FVertex* InVtx4);
+		FTetrahedron* EmplaceTetrahedron(FDelaunayVertex* InVtx1, FDelaunayVertex* InVtx2, FDelaunayVertex* InVtx3, FDelaunayVertex* InVtx4);
 
-		void InsertVertex(int32 Index);
-		void InsertNextVertex();
+		void InsertVertex(int32 InIndex);
 
+		bool IsUnsharedEdge(const FTetrahedron* Tetrahedron, const FDelaunayVertex* A, const FDelaunayVertex* B);
+		void FindNeighbors(const FTetrahedron* Tetrahedron, TArray<FTetrahedron*>& OutNeighbors);
+		void FindNeighborsWithVertex(const FTetrahedron* Tetrahedron, const FDelaunayVertex* Vertex, TArray<FTetrahedron*>& OutNeighbors);
+		
 		void FindEdges();
 	};
 

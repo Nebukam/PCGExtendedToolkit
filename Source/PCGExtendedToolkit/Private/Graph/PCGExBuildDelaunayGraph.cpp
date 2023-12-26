@@ -178,7 +178,7 @@ bool FPCGExBuildDelaunayGraphElement::ExecuteInternal(
 bool FDelaunayInsertTask::ExecuteTask()
 {
 	const FPCGExBuildDelaunayGraphContext* Context = Manager->GetContext<FPCGExBuildDelaunayGraphContext>();
-	Context->Delaunay->InsertNextVertex();
+	Context->Delaunay->InsertVertex(TaskIndex);
 	return true;
 }
 
