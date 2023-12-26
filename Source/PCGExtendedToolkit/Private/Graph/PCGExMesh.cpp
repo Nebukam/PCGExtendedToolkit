@@ -39,6 +39,8 @@ namespace PCGExMesh
 			Vtx[2]->Position,
 			Vtx[3]->Position,
 			Circumsphere);
+
+		Circumsphere.W = Circumsphere.W - 0.001;
 	}
 
 	bool FTetrahedron::IsInside(const FVector& Point) const
@@ -57,88 +59,10 @@ namespace PCGExMesh
 		return (Alpha >= 0.0f && Beta >= 0.0f && Gamma >= 0.0f && Delta >= 0.0f && Delta <= 1.0f);
 	}
 
-	FDelaunayVertex* FTetrahedron::GetOppositeVertex(FDelaunayVertex* A, FDelaunayVertex* B) const
-	{
-		// Assuming that the tetrahedron vertices are ordered in a consistent way
-		if (A != Vtx[0] && A != Vtx[1] && A != Vtx[2] && A != Vtx[3])
-		{
-			return A;
-		}
-		else
-		{
-			return B;
-		}
-	}
-
-	bool FTetrahedron::Contains(const FDelaunayVertex* Vertex) const
-	{
-		for (const FDelaunayVertex* InVtx : Vtx) { if (InVtx == Vertex) { return true; } }
-		return false;
-	}
-
-	bool FTetrahedron::ContainsEdge(const FDelaunayVertex* A, const FDelaunayVertex* B) const
-	{
-		PCGEX_FOREACH_TETRA_EDGE(Vtx, CVtx, OVtx, if ((A == CVtx && B == OVtx) || (B == CVtx && A == OVtx)) { return true; })
-		return false;
-	}
-
-	bool FTetrahedron::HasSharedEdge(const FTetrahedron* OtherTetrahedron) const
-	{
-		PCGEX_FOREACH_TETRA_EDGE(Vtx, A, B, if (OtherTetrahedron->ContainsEdge(A, B)) { return true; })
-		return false;
-	}
-
-	bool FTetrahedron::GetSharedEdge(const FTetrahedron* OtherTetrahedron, FDelaunayVertex& A, FDelaunayVertex& B) const
-	{
-		PCGEX_FOREACH_TETRA_EDGE(
-			Vtx, CVtx, OVtx,
-			if (OtherTetrahedron->ContainsEdge(CVtx, OVtx))
-			{
-			A = *CVtx;
-			B = *OVtx;
-			return true;
-			})
-		return false;
-	}
-
-	bool FTetrahedron::FlipEdge(FTetrahedron* OtherTetrahedron)
-	{
-		// Find the common edge
-		FDelaunayVertex& A = *Vtx[0];
-		FDelaunayVertex& B = *Vtx[0];
-		if (!GetSharedEdge(OtherTetrahedron, A, B)) { return false; }
-
-		// Flip the edge by updating vertices
-		FDelaunayVertex* oppositeVertex1 = GetOppositeVertex(&A, &B);
-		FDelaunayVertex* oppositeVertex2 = OtherTetrahedron->GetOppositeVertex(&A, &B);
-
-		// Update vertices to flip the edge
-		Vtx[0] = &A;
-		Vtx[1] = &B;
-		Vtx[2] = oppositeVertex2;
-
-		OtherTetrahedron->Vtx[0] = &A;
-		OtherTetrahedron->Vtx[1] = &B;
-		OtherTetrahedron->Vtx[3] = oppositeVertex1;
-
-		return true; // Indicate that the edge was flipped
-	}
-
-	bool FTetrahedron::SharedFace(const FTetrahedron* OtherTetrahedron, FDelaunayVertex& A, FDelaunayVertex& B, FDelaunayVertex& C) const
-	{
-		if ((Vtx[0] == OtherTetrahedron->Vtx[0] || Vtx[0] == OtherTetrahedron->Vtx[1] || Vtx[0] == OtherTetrahedron->Vtx[2]) &&
-			(Vtx[1] == OtherTetrahedron->Vtx[0] || Vtx[1] == OtherTetrahedron->Vtx[1] || Vtx[1] == OtherTetrahedron->Vtx[2]) &&
-			(Vtx[2] == OtherTetrahedron->Vtx[0] || Vtx[2] == OtherTetrahedron->Vtx[1] || Vtx[2] == OtherTetrahedron->Vtx[2]))
-		{
-			// Assign A B C
-		}
-		return false;
-	}
-
 	void FTetrahedron::RegisterEdges(TSet<uint64>& UniqueEdges, TArray<PCGExGraph::FUnsignedEdge>& Edges) const
 	{
 		PCGEX_FOREACH_TETRA_EDGE(
-			Vtx, CVtx, OVtx, if (OVtx->PointIndex != -1)
+			Vtx, CVtx, OVtx, if (CVtx->PointIndex != -1 && OVtx->PointIndex != -1)
 			{
 			PCGExGraph::FUnsignedEdge Edge = PCGExGraph::FUnsignedEdge(CVtx->PointIndex, OVtx->PointIndex, EPCGExEdgeType::Complete);
 			if (uint64 EdgeHash = Edge.GetUnsignedHash();
@@ -182,7 +106,7 @@ namespace PCGExMesh
 		FVector Centroid = FVector::Zero();
 
 		const TArray<FPCGPoint>& Points = PointIO.GetIn()->GetPoints();
-		int32 NumPoints = Points.Num();
+		const int32 NumPoints = Points.Num();
 		Vertices.SetNum(NumPoints + 4);
 		for (int i = 0; i < NumPoints; i++)
 		{
@@ -236,110 +160,58 @@ namespace PCGExMesh
 	{
 		const int32 Index = ++CurrentIndex;
 		FWriteScopeLock WriteLock(TetraLock);
-
-		TQueue<uint64> DeprecatedTetrahedrons;
 		FDelaunayVertex* Vtx = &Vertices[Index];
 
-		int32 insideCount = 0;
-		UE_LOG(LogTemp, Warning, TEXT("Inserting %d (T Num = %d)"), Index, Tetrahedrons.Num());
 		for (const TPair<uint64, FTetrahedron*>& Pair : Tetrahedrons)
 		{
 			if (Pair.Value->Circumsphere.IsInside(Vtx->Position) && Pair.Value->IsInside(Vtx->Position))
 			{
-				DeprecatedTetrahedrons.Enqueue(Pair.Key);
-				insideCount++;
+				SplitTetrahedron(Vtx, Pair.Key);
+				break;
 			}
 		}
-		UE_LOG(LogTemp, Warning, TEXT("Inserting %d (T Inside = %d)"), Index, insideCount);
-		uint64 TKey;
-		while (DeprecatedTetrahedrons.Dequeue(TKey))
+/*
+		int32 uCount = 0;
+		// Update triangulation until new point is outside of any circumsphere 
+		uint64 TKey = 0;
+		while (FindNextBadTetrahedronKey(Vtx->Position, TKey))
 		{
-			const FTetrahedron* Tetrahedron = *Tetrahedrons.Find(TKey);
-			Tetrahedrons.Remove(TKey);
-
-			EmplaceTetrahedron(Vtx, Tetrahedron->Vtx[0], Tetrahedron->Vtx[1], Tetrahedron->Vtx[2]);
-			EmplaceTetrahedron(Vtx, Tetrahedron->Vtx[0], Tetrahedron->Vtx[1], Tetrahedron->Vtx[3]);
-			EmplaceTetrahedron(Vtx, Tetrahedron->Vtx[0], Tetrahedron->Vtx[2], Tetrahedron->Vtx[3]);
-			EmplaceTetrahedron(Vtx, Tetrahedron->Vtx[1], Tetrahedron->Vtx[2], Tetrahedron->Vtx[3]);
-
-			delete Tetrahedron;
+			SplitTetrahedron(Vtx, TKey);
+			uCount++;
 		}
+*/
+		
 	}
 
-	bool FDelaunayTriangulation::IsUnsharedEdge(const FTetrahedron* Tetrahedron, const FDelaunayVertex* A, const FDelaunayVertex* B)
+	void FDelaunayTriangulation::SplitTetrahedron(FDelaunayVertex* Splitter, uint64 Key)
+	{
+		const FTetrahedron* Tetrahedron = *Tetrahedrons.Find(Key);
+		Tetrahedrons.Remove(Key);
+
+		EmplaceTetrahedron(Splitter, Tetrahedron->Vtx[0], Tetrahedron->Vtx[1], Tetrahedron->Vtx[2]);
+		EmplaceTetrahedron(Splitter, Tetrahedron->Vtx[0], Tetrahedron->Vtx[1], Tetrahedron->Vtx[3]);
+		EmplaceTetrahedron(Splitter, Tetrahedron->Vtx[0], Tetrahedron->Vtx[2], Tetrahedron->Vtx[3]);
+		EmplaceTetrahedron(Splitter, Tetrahedron->Vtx[1], Tetrahedron->Vtx[2], Tetrahedron->Vtx[3]);
+
+		delete Tetrahedron;
+	}
+
+	bool FDelaunayTriangulation::FindNextBadTetrahedronKey(const FVector& Position, uint64& OutKey)
 	{
 		for (const TPair<uint64, FTetrahedron*>& Pair : Tetrahedrons)
 		{
-			if (Pair.Value != Tetrahedron) { if (Pair.Value->ContainsEdge(A, B)) { return true; } }
+			if (Pair.Value->Circumsphere.IsInside(Position))
+			{
+				OutKey = Pair.Key;
+				return true;
+			}
 		}
+
 		return false;
-	}
-
-	void FDelaunayTriangulation::FindNeighbors(const FTetrahedron* Tetrahedron, TArray<FTetrahedron*>& OutNeighbors)
-	{
-		for (const TPair<uint64, FTetrahedron*>& Pair : Tetrahedrons)
-		{
-			if (Pair.Value != Tetrahedron) { if (Tetrahedron->HasSharedEdge(Pair.Value)) { OutNeighbors.Add(Pair.Value); } }
-		}
-	}
-
-	void FDelaunayTriangulation::FindNeighborsWithVertex(const FTetrahedron* Tetrahedron, const FDelaunayVertex* Vertex, TArray<FTetrahedron*>& OutNeighbors)
-	{
-		for (const TPair<uint64, FTetrahedron*>& Pair : Tetrahedrons)
-		{
-			if (Pair.Value != Tetrahedron) { if (Tetrahedron->Contains(Vertex)) { OutNeighbors.Add(Pair.Value); } }
-		}
 	}
 
 	void FDelaunayTriangulation::FindEdges()
 	{
-		// Make it Delaunay compliant
-		bool modificationFlag = true;
-
-		while (modificationFlag)
-		{
-			modificationFlag = false;
-
-			for (const TPair<uint64, FTetrahedron*>& Pair : Tetrahedrons)
-			{
-				// Assume GetEdges is a method that returns pairs of edges for the tetrahedron
-				for (int i = 0; i < 4; i++)
-				{
-					for (int j = i + 1; j < 4; j++)
-					{
-						check(i!=j)
-						FDelaunayVertex* A = Pair.Value->Vtx[i];
-						FDelaunayVertex* B = Pair.Value->Vtx[j];
-						
-						if (A != B && IsUnsharedEdge(Pair.Value, A, B))
-						{
-							TArray<FTetrahedron*> Neighbors;
-							FindNeighbors(Pair.Value, Neighbors);
-
-							// Calculate the opposite vertex
-							FDelaunayVertex* oppositeVertex = Pair.Value->GetOppositeVertex(A, B);
-
-							// Check if the opposite vertex is inside the circumcircle of the neighboring tetrahedron
-							FindNeighborsWithVertex(Pair.Value, oppositeVertex, Neighbors);
-							for (FTetrahedron* Neighbor : Neighbors)
-							{
-								if (Neighbor->Circumsphere.IsInside(oppositeVertex->Position))
-								{
-									// Flip the edge
-									if (Pair.Value->FlipEdge(Neighbor))
-									{
-										// Set the modification flag to true if an edge was flipped
-										modificationFlag = true;
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-
-
 		// Remove supertetrahedron
 		if (FTetrahedron** Tetrahedron = Tetrahedrons.Find(0))
 		{
