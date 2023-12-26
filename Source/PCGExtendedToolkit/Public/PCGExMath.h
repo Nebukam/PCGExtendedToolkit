@@ -157,30 +157,61 @@ namespace PCGExMath
 		return Box;
 	}
 
-	// Function to find the center and radius of a sphere given 4 points on its surface
-	static bool FindSphereCenterAndRadius(const FVector& Point1, const FVector& Point2, const FVector& Point3, const FVector& Point4, FSphere& OutSphere)
+	static double S_U(
+		const FVector& A, const FVector& B, const FVector& C, const FVector& D,
+		const FVector& E, const FVector& F, const FVector& G, const FVector& H)
 	{
-		// Calculate the vectors between the points
-		const FVector V21 = Point2 - Point1;
-		const FVector V31 = Point3 - Point1;
-		const FVector V41 = Point4 - Point1;
+		return (A.Z - B.Z) * (C.X * D.Y - D.X * C.Y) - (E.Z - F.Z) * (G.X * H.Y - H.X * G.Y);
+	};
 
-		// Calculate the cross products
-		const FVector Cross321 = FVector::CrossProduct(V31, V21);
-		const FVector Cross421 = FVector::CrossProduct(V41, V21);
+	static double S_D(
+		const int FirstComponent, const int SecondComponent,
+		FVector A, FVector B, FVector C)
+	{
+		return
+			A[FirstComponent] * (B[SecondComponent] - C[SecondComponent]) +
+			B[FirstComponent] * (C[SecondComponent] - A[SecondComponent]) +
+			C[FirstComponent] * (A[SecondComponent] - B[SecondComponent]);
+	};
 
-		// Calculate the denominator
-		const float Denominator = 2.0f * FVector::DotProduct(Cross321, Cross421);
+	static double S_E(
+		const int FirstComponent, const int SecondComponent,
+		const FVector& A, const FVector& B, const FVector& C, const FVector& D,
+		const double RA, const double RB, const double RC, const double RD, const double UVW)
+	{
+		return (RA * S_D(FirstComponent, SecondComponent, B, C, D) - RB * S_D(FirstComponent, SecondComponent, C, D, A) +
+			RC * S_D(FirstComponent, SecondComponent, D, A, B) - RD * S_D(FirstComponent, SecondComponent, A, B, C)) / UVW;
+	};
 
-		if (FMath::IsNearlyZero(Denominator)) { return false; } // Points are coplanar or nearly coplanar
+	static double S_SQ(const FVector& P) { return P.X * P.X + P.Y * P.Y + P.Z * P.Z; };
 
-		// Calculate the coefficients
-		float A = FVector::DotProduct(V21, V21);
-		float B = FVector::DotProduct(V31, V31);
-		float C = FVector::DotProduct(V41, V41);
-		const FVector Center = (A * Cross421 + B * Cross321) / Denominator;
+	static bool FindSphereFrom4Points(const FVector& A, const FVector& B, const FVector& C, const FVector& D, FSphere& OutSphere)
+	{
+		//Shamelessly stolen from https://stackoverflow.com/questions/37449046/how-to-calculate-the-sphere-center-with-4-points
 
-		OutSphere = FSphere(Center, FVector::Dist(Center, Point1));
+		const double U = S_U(A, B, C, D, B, C, D, A);
+		const double V = S_U(C, D, A, B, D, A, B, C);
+		const double W = S_U(A, C, D, B, B, D, A, C);
+		const double UVW = 2 * (U + V + W);
+
+		if (UVW == 0.0) { return false; } // Coplanar
+
+		constexpr int C_X = 0;
+		constexpr int C_Y = 1;
+		constexpr int C_Z = 2;
+		const double RA = S_SQ(A);
+		const double RB = S_SQ(B);
+		const double RC = S_SQ(C);
+		const double RD = S_SQ(D);
+
+		const FVector Center = FVector(
+			S_E(C_Y, C_Z, A, B, C, D, RA, RB, RC, RD, UVW),
+			S_E(C_Z, C_X, A, B, C, D, RA, RB, RC, RD, UVW),
+			S_E(C_X, C_Y, A, B, C, D, RA, RB, RC, RD, UVW));
+
+		const double radius = FMath::Sqrt(S_SQ(FVector(A - Center)));
+
+		OutSphere = FSphere(Center, radius);
 		return true;
 	}
 }

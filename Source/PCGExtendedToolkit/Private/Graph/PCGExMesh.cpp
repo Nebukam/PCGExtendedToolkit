@@ -5,6 +5,7 @@
 
 #include "Data/PCGExAttributeHelpers.h"
 #include "Data/Blending/PCGExDataBlending.h"
+#include "Kismet/KismetMathLibrary.h"
 
 namespace PCGExMesh
 {
@@ -29,7 +30,7 @@ namespace PCGExMesh
 
 		std::sort(std::begin(Vtx), std::end(Vtx), [](FVertex* A, FVertex* B) { return A->PointIndex < B->PointIndex; });
 
-		bValid = PCGExMath::FindSphereCenterAndRadius(
+		bValid = PCGExMath::FindSphereFrom4Points(
 			Vtx[0]->Position,
 			Vtx[1]->Position,
 			Vtx[2]->Position,
@@ -117,6 +118,8 @@ namespace PCGExMesh
 				}
 			}
 		}
+
+		DrawDebugSphere(World, Circumsphere.Center, Circumsphere.W, 32, FColor::Green, true, -1, 0, 1);
 	}
 
 	FDelaunayTriangulation::FDelaunayTriangulation()
@@ -130,6 +133,9 @@ namespace PCGExMesh
 	{
 		Vertices.Empty();
 		Edges.Empty();
+
+		for (const TPair<uint64, FTetrahedron*>& Pair : Tetrahedrons) { delete Pair.Value; }
+
 		Tetrahedrons.Empty();
 	}
 
@@ -218,6 +224,11 @@ namespace PCGExMesh
 
 			delete Tetrahedron;
 		}
+	}
+
+	void FDelaunayTriangulation::InsertNextVertex()
+	{
+		InsertVertex(++CurrentVtxIndex);
 	}
 
 	void FDelaunayTriangulation::FindEdges()

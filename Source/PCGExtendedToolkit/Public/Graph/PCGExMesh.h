@@ -63,6 +63,7 @@ namespace PCGExMesh
 		TArray<PCGExGraph::FUnsignedEdge> Edges;
 		TMap<uint64, FTetrahedron*> Tetrahedrons;
 		uint64 TUID = 0;
+		int32 CurrentVtxIndex = -1;
 
 		FDelaunayTriangulation();
 
@@ -72,6 +73,7 @@ namespace PCGExMesh
 		FTetrahedron* EmplaceTetrahedron(FVertex* InVtx1, FVertex* InVtx2, FVertex* InVtx3, FVertex* InVtx4);
 
 		void InsertVertex(int32 Index);
+		void InsertNextVertex();
 
 		void FindEdges();
 	};
