@@ -170,6 +170,21 @@ namespace PCGExMesh
 				break;
 			}
 		}
+
+		for (const TPair<uint64, FTetrahedron*>& Pair : Tetrahedrons)
+		{
+			if (Pair.Value->Circumsphere.IsInside(Vtx->Position))
+			{
+				// Perform local adjustments to maintain the Delaunay property
+				// In this example, we simply re-insert the point locally
+				//SplitTetrahedron(Vtx, Pair.Key);
+
+				// Break the loop after the adjustment, as we have handled the violation locally
+				break;
+			}
+		}
+// Check out https://github.com/Scrawk/Hull-Delaunay-Voronoi/blob/master/Assets/HullDelaunayVoronoi/Scripts/Delaunay/DelaunayTriangulation3.cs ?
+
 /*
 		int32 uCount = 0;
 		// Update triangulation until new point is outside of any circumsphere 

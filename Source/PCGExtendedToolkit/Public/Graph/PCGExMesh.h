@@ -71,6 +71,7 @@ namespace PCGExMesh
 		bool IsInside(const FVector& Point) const;
 		void RegisterEdges(TSet<uint64>& UniqueEdges, TArray<PCGExGraph::FUnsignedEdge>& Edges) const;
 		void Draw(const UWorld* World) const;
+		bool FindBadEdges(const FDelaunayVertex* new_point, TArray<PCGExGraph::FUnsignedEdge> OutEdges);
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FDelaunayTriangulation
