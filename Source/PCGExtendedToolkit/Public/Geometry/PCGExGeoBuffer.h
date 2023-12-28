@@ -279,10 +279,10 @@ namespace PCGExGeo
 			Face->bInList = false;
 
 			if (Face->Previous) { Face->Previous->Next = Face->Next; }
-			else if (!Face->Previous) { First = Face->Next; }
+			else if (!Face->Previous && Face == First) { First = Face->Next; }
 
 			if (Face->Next) { Face->Next->Previous = Face->Previous; }
-			else if (!Face->Next) { Last = Face->Previous; }
+			else if (!Face->Next && Last == Face) { Last = Face->Previous; }
 
 			Face->Next = nullptr;
 			Face->Previous = nullptr;
@@ -402,6 +402,7 @@ namespace PCGExGeo
 
 		TObjectBuffer()
 		{
+			for (int i = 0; i < CONNECTOR_TABLE_SIZE; i++) { ConnectorTable[i] = nullptr; }
 			Reset();
 		}
 
@@ -475,14 +476,14 @@ namespace PCGExGeo
 			{
 				ConnectorList<TSimplexConnector<DIMENSIONS, VECTOR_TYPE>>* CList = ConnectorTable[i];
 				PCGEX_DELETE(CList)
+				ConnectorTable[i] = nullptr;
 			}
 		}
 
-		void InitInput(TArray<TFVtx<DIMENSIONS, VECTOR_TYPE>*>& Input, bool bAssignIds)
+		void InitInput(TArray<TFVtx<DIMENSIONS, VECTOR_TYPE>*>& Input)
 		{
 			InputVertices.Empty(Input.Num());
 			InputVertices.Append(Input);
-			if (bAssignIds) { for (int i = 0; i < InputVertices.Num(); i++) { InputVertices[i]->Id = i; } }
 		}
 	};
 }

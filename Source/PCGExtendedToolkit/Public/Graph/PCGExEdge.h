@@ -51,6 +51,13 @@ namespace PCGExGraph
 	constexpr PCGExMT::AsyncState State_ReadyForNextEdges = __COUNTER__;
 	constexpr PCGExMT::AsyncState State_ProcessingEdges = __COUNTER__;
 
+	static uint64 GetUnsignedHash64(const uint32 A, const uint32 B)
+	{
+		return A > B ?
+			       static_cast<uint64>(A) | (static_cast<uint64>(B) << 32) :
+			       static_cast<uint64>(B) | (static_cast<uint64>(A) << 32);
+	}
+
 	struct PCGEXTENDEDTOOLKIT_API FEdge
 	{
 		uint32 Start = 0;
@@ -114,12 +121,6 @@ namespace PCGExGraph
 			Type = EPCGExEdgeType::Unknown;
 		}
 
-		uint64 GetUnsignedHash() const
-		{
-			return Start > End ?
-				       static_cast<uint64>(Start) | (static_cast<uint64>(End) << 32) :
-				       static_cast<uint64>(End) | (static_cast<uint64>(Start) << 32);
-		}
+		uint64 GetUnsignedHash() const { return GetUnsignedHash64(Start, End); }
 	};
-
 }

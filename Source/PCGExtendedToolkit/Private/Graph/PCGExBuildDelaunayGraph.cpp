@@ -21,7 +21,7 @@ FPCGExBuildDelaunayGraphContext::~FPCGExBuildDelaunayGraphContext()
 	PCGEX_TERMINATE_ASYNC
 
 	PCGEX_DELETE(IslandsIO)
-	PCGEX_DELETE(Delaunay)
+	PCGEX_DELETE(DelaunayTriangulation)
 	PCGEX_DELETE(EdgeNetwork)
 	PCGEX_DELETE(Markings)
 }
@@ -78,18 +78,19 @@ bool FPCGExBuildDelaunayGraphElement::ExecuteInternal(
 	{
 		PCGEX_DELETE(Context->EdgeNetwork)
 		PCGEX_DELETE(Context->Markings)
-		PCGEX_DELETE(Context->Delaunay)
+		PCGEX_DELETE(Context->DelaunayTriangulation)
 
 		if (!Context->AdvancePointsIO()) { Context->Done(); }
 		else
 		{
-			Context->Delaunay = new PCGExMesh::FDelaunayTriangulation();
-			if (Context->Delaunay->PrepareFrom(*Context->CurrentIO))
+			Context->DelaunayTriangulation = new PCGExGeo::TDelaunayTriangulation3();
+			if (Context->DelaunayTriangulation->PrepareFrom(*Context->CurrentIO))
 			{
 				Context->CurrentIslandIO = &Context->IslandsIO->Emplace_GetRef();
 				Context->EdgeNetwork = new PCGExGraph::FEdgeNetwork(Context->CurrentIO->GetNum() * 3, Context->CurrentIO->GetNum());
 				Context->Markings = new PCGExData::FKPointIOMarkedBindings<int32>(Context->CurrentIO, PCGExGraph::PUIDAttributeName);
 
+				Context->DelaunayTriangulation->Generate();
 				Context->SetState(PCGExMT::State_ProcessingPoints);
 			}
 			else
@@ -103,7 +104,7 @@ bool FPCGExBuildDelaunayGraphElement::ExecuteInternal(
 	{
 		auto Initialize = [&](PCGExData::FPointIO& PointIO)
 		{
-			(*Context->Delaunay->Simplices.Find(0))->Draw(Context->World);
+			//(*Context->Delaunay->Simplices.Find(0))->Draw(Context->World);
 		};
 
 		auto ProcessPoint = [&](const int32 PointIndex, const PCGExData::FPointIO& PointIO)
@@ -130,14 +131,32 @@ bool FPCGExBuildDelaunayGraphElement::ExecuteInternal(
 	if (Context->IsState(PCGExGraph::State_WritingIslands))
 	{
 		Context->IslandsIO->Flush();
-		Context->Delaunay->FindEdges();
 		Context->Markings->Mark = Context->CurrentIO->GetIn()->GetUniqueID();
+
+		// Find unique edges
+		TSet<uint64> UniqueEdges;
+		TArray<PCGExGraph::FUnsignedEdge> Edges;
+		UniqueEdges.Reserve(Context->DelaunayTriangulation->Cells.Num() * 3);
+		for (const PCGExGeo::TDelaunayCell<4, FVector4>* Cell : Context->DelaunayTriangulation->Cells)
+		{
+			for (int i = 0; i < 4; i++)
+			{
+				const int32 A = Cell->Simplex->Vertices[i]->Id;
+				for (int j = i + 1; j < 4; j++)
+				{
+					const int32 B = Cell->Simplex->Vertices[j]->Id;
+					const uint64 Hash = PCGExGraph::GetUnsignedHash64(A, B);
+					if (UniqueEdges.Contains(Hash)) { Edges.Emplace(A, B, EPCGExEdgeType::Complete); }
+				}
+			}
+		}
+
 
 		PCGExData::FPointIO& DelaunayEdges = Context->IslandsIO->Emplace_GetRef();
 		Context->Markings->Add(DelaunayEdges);
 
 		TArray<FPCGPoint>& MutablePoints = DelaunayEdges.GetOut()->GetMutablePoints();
-		MutablePoints.SetNum(Context->Delaunay->Edges.Num());
+		MutablePoints.SetNum(Edges.Num());
 
 		DelaunayEdges.CreateOutKeys();
 
@@ -148,12 +167,12 @@ bool FPCGExBuildDelaunayGraphElement::ExecuteInternal(
 		EdgeEnd->BindAndGet(DelaunayEdges);
 
 		int32 PointIndex = 0;
-		for (const PCGExGraph::FUnsignedEdge& Edge : Context->Delaunay->Edges)
+		for (const PCGExGraph::FUnsignedEdge& Edge : Edges)
 		{
 			MutablePoints[PointIndex].Transform.SetLocation(
 				FMath::Lerp(
-					(Context->Delaunay->Vertices)[EdgeStart->Values[PointIndex] = Edge.Start].Position,
-					(Context->Delaunay->Vertices)[EdgeEnd->Values[PointIndex] = Edge.End].Position, 0.5));
+					(Context->DelaunayTriangulation->Vertices)[EdgeStart->Values[PointIndex] = Edge.Start]->Position,
+					(Context->DelaunayTriangulation->Vertices)[EdgeEnd->Values[PointIndex] = Edge.End]->Position, 0.5));
 			PointIndex++;
 		}
 
@@ -179,9 +198,8 @@ bool FPCGExBuildDelaunayGraphElement::ExecuteInternal(
 bool FDelaunayInsertTask::ExecuteTask()
 {
 	const FPCGExBuildDelaunayGraphContext* Context = Manager->GetContext<FPCGExBuildDelaunayGraphContext>();
-	Context->Delaunay->InsertVertex(TaskIndex);
+	//	Context->Delaunay->InsertVertex(TaskIndex);
 
-	//PCGExGeo::TDelaunayTriangulation3* Triangulation3 = new PCGExGeo::TDelaunayTriangulation3();
 	//PCGEX_DELETE(Triangulation3)
 	return true;
 }

@@ -10,6 +10,11 @@
 
 #include "PCGExBuildDelaunayGraph.generated.h"
 
+namespace PCGExGeo
+{
+	class TDelaunayTriangulation3;
+}
+
 namespace PCGExMesh
 {
 	struct FDelaunayTriangulation;
@@ -66,8 +71,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBuildDelaunayGraphContext : public FPCGExPoi
 	FName IslandSizeAttributeName;
 	FName PointUIDAttributeName;
 
+
+	PCGExGeo::TDelaunayTriangulation3* DelaunayTriangulation = nullptr;
+	
 	mutable FRWLock NetworkLock;
-	PCGExMesh::FDelaunayTriangulation* Delaunay = nullptr;
 	PCGExGraph::FEdgeNetwork* EdgeNetwork = nullptr;
 	PCGExData::FPointIOGroup* IslandsIO;
 	PCGExData::FPointIO* CurrentIslandIO = nullptr;

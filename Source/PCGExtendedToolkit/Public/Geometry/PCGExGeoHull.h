@@ -16,7 +16,7 @@ namespace PCGExGeo
 		static constexpr double PLANE_DISTANCE_TOLERANCE = 1e-7f;
 
 		TArray<TFVtx<DIMENSIONS, VECTOR_TYPE>*> Vertices;
-		TArray<TFSimplex<DIMENSIONS, VECTOR_TYPE>*> Simplexs;
+		TArray<TFSimplex<DIMENSIONS, VECTOR_TYPE>*> Simplices;
 
 		VECTOR_TYPE Centroid = VECTOR_TYPE{};
 
@@ -25,18 +25,18 @@ namespace PCGExGeo
 		TConvexHull()
 		{
 			Vertices.Empty();
-			Simplexs.Empty();
+			Simplices.Empty();
 		}
 
 		~TConvexHull()
 		{
 			Vertices.Empty();
-			Simplexs.Empty();
+			Simplices.Empty();
 		}
 
 		bool Contains(TFVtx<DIMENSIONS, VECTOR_TYPE>* vertex)
 		{
-			for (TFSimplex<DIMENSIONS, VECTOR_TYPE>* Simplex : Simplexs)
+			for (TFSimplex<DIMENSIONS, VECTOR_TYPE>* Simplex : Simplices)
 			{
 				if (Simplex->GetVertexDistance(vertex) >= PLANE_DISTANCE_TOLERANCE) { return false; }
 			}
@@ -46,16 +46,15 @@ namespace PCGExGeo
 
 #pragma region Generate
 
-		void Generate(TArray<TFVtx<DIMENSIONS, VECTOR_TYPE>*>& input, bool assignIds = true)
+		void Generate(TArray<TFVtx<DIMENSIONS, VECTOR_TYPE>*>& Input)
 		{
 			Clear();
 
-			PCGEX_DELETE(Buffer)
 			Buffer = new TObjectBuffer<DIMENSIONS, VECTOR_TYPE>();
 
-			if (input.Num() < DIMENSIONS + 1) { return; }
+			if (Input.Num() < DIMENSIONS + 1) { return; }
 
-			Buffer->InitInput(input, assignIds);
+			Buffer->InitInput(Input);
 
 			InitConvexHull();
 
@@ -82,13 +81,13 @@ namespace PCGExGeo
 			{
 				TSimplexWrap<DIMENSIONS, VECTOR_TYPE>* Wrap = Buffer->ConvexSimplexs[i];
 				Wrap->Tag = i;
-				Simplexs.Add(new TFSimplex<DIMENSIONS, VECTOR_TYPE>()); //TODO: Need to destroy this at some point
+				Simplices.Add(new TFSimplex<DIMENSIONS, VECTOR_TYPE>()); //TODO: Need to destroy this at some point
 			}
 
 			for (int i = 0; i < Buffer->ConvexSimplexs.Num(); i++)
 			{
 				TSimplexWrap<DIMENSIONS, VECTOR_TYPE>* Wrap = Buffer->ConvexSimplexs[i];
-				TFSimplex<DIMENSIONS, VECTOR_TYPE>* Simplex = Simplexs[i];
+				TFSimplex<DIMENSIONS, VECTOR_TYPE>* Simplex = Simplices[i];
 
 				Simplex->bIsNormalFlipped = Wrap->bIsNormalFlipped;
 				Simplex->Offset = Wrap->Offset;
@@ -98,7 +97,7 @@ namespace PCGExGeo
 					Simplex->Normal[j] = Wrap->Normal[j];
 					Simplex->Vertices[j] = Wrap->Vertices[j];
 
-					if (Wrap->AdjacentFaces[j]) { Simplex->AdjacentFaces[j] = Simplexs[Wrap->AdjacentFaces[j]->Tag]; }
+					if (Wrap->AdjacentFaces[j]) { Simplex->AdjacentFaces[j] = Simplices[Wrap->AdjacentFaces[j]->Tag]; }
 					else { Simplex->AdjacentFaces[j] = nullptr; }
 				}
 
@@ -112,8 +111,9 @@ namespace PCGExGeo
 		void Clear()
 		{
 			Centroid = VECTOR_TYPE{};
-			PCGEX_DELETE_TARRAY(Simplexs);
 			Vertices.Empty();
+			PCGEX_DELETE_TARRAY(Simplices);
+			PCGEX_DELETE(Buffer)
 		}
 
 #pragma endregion
@@ -392,8 +392,9 @@ namespace PCGExGeo
 				for (int i = 0; i < DIMENSIONS; i++)
 				{
 					TSimplexWrap<DIMENSIONS, VECTOR_TYPE>* AdjFace = Top->TypedAdjacentFace(i);
-
-					if (!AdjFace) { /* TODO: Throw "(2) Adjacent Face should never be null" */ }
+					if(!AdjFace){continue;}
+					/* (2) Adjacent Face should never be null */
+					check(AdjFace)
 
 					if (AdjFace->Tag == 0 && AdjFace->GetVertexDistance(Buffer->CurrentVertex) >= PLANE_DISTANCE_TOLERANCE)
 					{
@@ -421,7 +422,9 @@ namespace PCGExGeo
 				{
 					TSimplexWrap<DIMENSIONS, VECTOR_TYPE>* Af = oldFace->TypedAdjacentFace(i);
 
-					if (!Af) { /* TODO: Throw "(3) Adjacent Face should never be null" */ }
+					if(!Af){continue;}
+					// (3) Adjacent Face should never be null"
+					check(Af)
 
 					if (Af->Tag == 0) // Tag == 0 when oldFaces does not contain af
 					{

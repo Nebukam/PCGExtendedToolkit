@@ -70,36 +70,58 @@ namespace PCGExGeo
 			Centroid = new TFVtx<DIMENSIONS, VECTOR_TYPE>();
 		}
 
-		virtual void Generate(TArray<TFVtx<DIMENSIONS, VECTOR_TYPE>*>& Input, bool bAssignIds = true)
+		bool PrepareFrom(const PCGExData::FPointIO& PointIO)
 		{
-			//TODO: Take an array of FPCGPoint as input so we don't have to create an upscaled copy of the point for hull generation
 			Clear();
-			if (Input.Num() <= DIMENSIONS + 1) return;
 
-			UpscaledVertices.Reserve(Input.Num());
+			const TArray<FPCGPoint>& Points = PointIO.GetIn()->GetPoints();
+			int32 NumPoints = Points.Num();
+			if (NumPoints <= DIMENSIONS + 1) { return false; }
+			Vertices.SetNumUninitialized(NumPoints);
+
+			for (int i = 0; i < NumPoints; i++)
+			{
+				Vertices[i] = new TFVtx<DIMENSIONS, VECTOR_TYPE>();
+				Vertices[i]->Id = i;
+				FVector Position = Points[i].Transform.GetLocation();
+				for (int x = 0; x < DIMENSIONS; x++) { Vertices[i]->Position[x] = Position[x]; }
+			}
+
+			return true;
+		}
+
+		virtual void Generate()
+		{
+			//Clear();
+			//if (Input.Num() <= DIMENSIONS + 1) return;
+
+			UpscaledVertices.Reserve(Vertices.Num());
 
 			//Create upscaled input for Hull generation			
-			for (TFVtx<DIMENSIONS, VECTOR_TYPE>* Vtx : Input)
+			for (TFVtx<DIMENSIONS, VECTOR_TYPE>* Vtx : Vertices)
 			{
 				TFVtx<DIMENSIONS + 1, UPSCALED_VECTOR_TYPE>* UVtx = UpscaledVertices.Add_GetRef(new TFVtx<DIMENSIONS + 1, UPSCALED_VECTOR_TYPE>());
+				UVtx->Id = Vtx->Id;
 				for (int i = 0; i < DIMENSIONS; i++) { UVtx->Position[i] = Vtx->Position[i]; }
 				UVtx->Position[DIMENSIONS] = Vtx->SqrMagnitude();
 			}
 
 			TConvexHull<DIMENSIONS + 1, UPSCALED_VECTOR_TYPE>* Hull = new TConvexHull<DIMENSIONS + 1, UPSCALED_VECTOR_TYPE>();
-			Hull->Generate(UpscaledVertices, bAssignIds);
+			Hull->Generate(UpscaledVertices);
 
+			/*
 			Vertices.Empty(Hull->Vertices.Num());
 			for (int i = 0; i < Hull->Vertices.Num(); i++)
 			{
 				TFVtx<DIMENSIONS + 1, UPSCALED_VECTOR_TYPE>* UVtx = Hull->Vertices[i];
-				TFVtx<DIMENSIONS, VECTOR_TYPE>* Vtx = Input[i];
+				TFVtx<DIMENSIONS, VECTOR_TYPE>* Vtx = Vertices[i];
 				// TODO: Update original points with hulled data? Pointless if id are stable.
 			}
+			*/
 
 			for (int i = 0; i < DIMENSIONS; i++) { Centroid->Position[i] = Hull->Centroid[i]; }
 
-			for (TFSimplex<DIMENSIONS + 1, UPSCALED_VECTOR_TYPE>* Simplex : Hull->Simplexs)
+			for (TFSimplex<DIMENSIONS + 1, UPSCALED_VECTOR_TYPE>* Simplex : Hull->Simplices)
 			{
 				if (Simplex->Normal[DIMENSIONS] >= 0.0f)
 				{
@@ -110,7 +132,7 @@ namespace PCGExGeo
 				}
 				else
 				{
-					TDelaunayCell<DIMENSIONS  + 1, UPSCALED_VECTOR_TYPE>* Cell = CreateCell(Simplex);
+					TDelaunayCell<DIMENSIONS + 1, UPSCALED_VECTOR_TYPE>* Cell = CreateCell(Simplex);
 					//cell.CircumCenter.Id = i;
 					Cells.Add(Cell);
 				}

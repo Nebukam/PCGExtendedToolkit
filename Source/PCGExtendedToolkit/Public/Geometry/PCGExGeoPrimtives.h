@@ -43,12 +43,12 @@ namespace PCGExGeo
 	public:
 		VECTOR_TYPE Normal = VECTOR_TYPE{};
 		VECTOR_TYPE Centroid = VECTOR_TYPE{};
-		
+
 		/// The vertices that make up the simplex.
 		/// For 2D a face will be 2 vertices making a line.
 		/// For 3D a face will be 3 vertices making a triangle.
 		TFVtx<DIMENSIONS, VECTOR_TYPE>* Vertices[DIMENSIONS];
-		
+
 		/// The simplexs adjacent to this simplex
 		/// For 2D a simplex will be a segment and it with have two adjacent segments joining it.
 		/// For 3D a simplex will be a triangle and it with have three adjacent triangles joining it.
@@ -160,17 +160,19 @@ namespace PCGExGeo
 		void UpdateAdjacency(TFSimplex* OtherSimplex)
 		{
 			int i;
+
+			// reset marks on the 1st face & mark 2nd
 			for (i = 0; i < DIMENSIONS; i++)
 			{
-				Vertices[i]->Tag = 0;               // reset marks on the 1st face
-				OtherSimplex->Vertices[i]->Tag = 1; // mark all vertices on the 2nd face
+				Vertices[i]->Tag = 0;
+				OtherSimplex->Vertices[i]->Tag = 1;
 			}
 
 			// find the 1st false index
 			for (i = 0; i < DIMENSIONS; i++) { if (Vertices[i]->Tag == 0) { break; } }
 
 			// no vertex was marked
-			if (i == DIMENSIONS) return;
+			if (i == DIMENSIONS) { return; }
 
 			// check if only 1 vertex wasn't marked
 			for (int j = i + 1; j < DIMENSIONS; j++) { if (Vertices[j]->Tag == 0) { return; } }
@@ -180,15 +182,9 @@ namespace PCGExGeo
 
 			// update the adj. face on the other face - find the vertex that remains marked
 			for (i = 0; i < DIMENSIONS; i++) { Vertices[i]->Tag = 0; }
-
-			for (i = 0; i < DIMENSIONS; i++)
-			{
-				if (OtherSimplex->Vertices[i]->Tag == 1)
-				{
-					OtherSimplex->AdjacentFaces[i] = this;
-					break;
-				}
-			}
+			for (i = 0; i < DIMENSIONS; i++) { if (OtherSimplex->Vertices[i]->Tag == 1) { break; } }
+			
+			OtherSimplex->AdjacentFaces[i] = this;
 		}
 
 		bool HasNullAdjacency() const
