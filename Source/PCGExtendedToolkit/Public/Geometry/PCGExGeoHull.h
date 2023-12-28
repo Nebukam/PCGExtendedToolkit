@@ -12,12 +12,6 @@ namespace PCGExGeo
 	template <int DIMENSIONS, typename VECTOR_TYPE>
 	class PCGEXTENDEDTOOLKIT_API TConvexHull
 	{
-	protected:
-		TSimplexWrap<DIMENSIONS, VECTOR_TYPE>* NULL_WRAP = nullptr;
-		TSimplexConnector<DIMENSIONS, VECTOR_TYPE>* NULL_CONNECTOR = nullptr;
-		TVertexBuffer<TFVtx<DIMENSIONS, VECTOR_TYPE>>* NULL_BUFFER = nullptr;
-		TDeferredSimplex<TSimplexWrap<DIMENSIONS, VECTOR_TYPE>>* NULL_DEFERRED = nullptr;
-
 	public:
 		static constexpr double PLANE_DISTANCE_TOLERANCE = 1e-7f;
 
@@ -32,22 +26,12 @@ namespace PCGExGeo
 		{
 			Vertices.Empty();
 			Simplexs.Empty();
-
-			NULL_WRAP = new TSimplexWrap<DIMENSIONS, VECTOR_TYPE>(nullptr);
-			NULL_CONNECTOR = new TSimplexConnector<DIMENSIONS, VECTOR_TYPE>();
-			NULL_BUFFER = new TVertexBuffer<TFVtx<DIMENSIONS, VECTOR_TYPE>>();
-			NULL_DEFERRED = new TDeferredSimplex<TSimplexWrap<DIMENSIONS, VECTOR_TYPE>>();
 		}
 
 		~TConvexHull()
 		{
 			Vertices.Empty();
 			Simplexs.Empty();
-
-			PCGEX_DELETE(NULL_WRAP);
-			PCGEX_DELETE(NULL_CONNECTOR);
-			PCGEX_DELETE(NULL_BUFFER);
-			PCGEX_DELETE(NULL_DEFERRED);
 		}
 
 		bool Contains(TFVtx<DIMENSIONS, VECTOR_TYPE>* vertex)
@@ -171,10 +155,10 @@ namespace PCGExGeo
 			for (int i = 0; i < DIMENSIONS + 1; i++)
 			{
 				FindBeyondVertices(Faces[i]);
-				if (Faces[i]->VerticesBeyond.Count == 0)
+				if (Faces[i]->VerticesBeyond->Num() == 0)
 					Buffer->ConvexSimplexs.Add(Faces[i]); // The face is on the hull
 				else
-					Buffer->UnprocessedFaces.Add(Faces[i]);
+					Buffer->UnprocessedFaces->Add(Faces[i]);
 			}
 		}
 
@@ -342,7 +326,7 @@ namespace PCGExGeo
 
 			double Offset = 0.0f;
 			double CenterDistance = 0.0f;
-			VECTOR_TYPE Fi = Face->Vertices[0].Position;
+			VECTOR_TYPE Fi = Face->Vertices[0]->Position;
 
 			for (int i = 0; i < DIMENSIONS; i++)
 			{
@@ -402,12 +386,12 @@ namespace PCGExGeo
 			Buffer->TraverseStack.Enqueue(CurrentFace);
 			CurrentFace->Tag = 1;
 
-			TSimplexWrap<DIMENSIONS, VECTOR_TYPE>& top = NULL_WRAP;
-			while (Buffer->TraverseStack.Dequeue(top))
+			TSimplexWrap<DIMENSIONS, VECTOR_TYPE>* Top = nullptr;
+			while (Buffer->TraverseStack.Dequeue(Top))
 			{
 				for (int i = 0; i < DIMENSIONS; i++)
 				{
-					TSimplexWrap<DIMENSIONS, VECTOR_TYPE>* AdjFace = top.AdjacentFaces[i];
+					TSimplexWrap<DIMENSIONS, VECTOR_TYPE>* AdjFace = Top->TypedAdjacentFace(i);
 
 					if (!AdjFace) { /* TODO: Throw "(2) Adjacent Face should never be null" */ }
 
@@ -435,7 +419,7 @@ namespace PCGExGeo
 				int UpdateCount = 0;
 				for (int i = 0; i < DIMENSIONS; i++)
 				{
-					TSimplexWrap<DIMENSIONS, VECTOR_TYPE>* Af = oldFace->AdjacentFaces[i];
+					TSimplexWrap<DIMENSIONS, VECTOR_TYPE>* Af = oldFace->TypedAdjacentFace(i);
 
 					if (!Af) { /* TODO: Throw "(3) Adjacent Face should never be null" */ }
 
@@ -449,11 +433,11 @@ namespace PCGExGeo
 
 				for (int i = 0; i < UpdateCount; i++)
 				{
-					TFSimplex<DIMENSIONS, VECTOR_TYPE>* adjacentFace = Buffer->UpdateBuffer[i];
+					TSimplexWrap<DIMENSIONS, VECTOR_TYPE>* AdjacentFace = Buffer->UpdateBuffer[i];
 					int OldFaceAdjacentIndex = 0;
 					for (int j = 0; j < DIMENSIONS; j++)
 					{
-						if (oldFace == adjacentFace->AdjacentFaces[j])
+						if (oldFace == AdjacentFace->AdjacentFaces[j])
 						{
 							OldFaceAdjacentIndex = j;
 							break;
@@ -463,9 +447,9 @@ namespace PCGExGeo
 					// Index of the face that corresponds to this adjacent face
 					int Forbidden = Buffer->UpdateIndices[i];
 
-					TSimplexWrap<DIMENSIONS, VECTOR_TYPE>* NewFace = Buffer->ObjectManager.GetFace();
+					TSimplexWrap<DIMENSIONS, VECTOR_TYPE>* NewFace = Buffer->ObjectManager->GetFace();
 
-					for (int j = 0; j < DIMENSIONS; j++) { NewFace->Vertices[j] = oldFace.Vertices[j]; }
+					for (int j = 0; j < DIMENSIONS; j++) { NewFace->Vertices[j] = oldFace->Vertices[j]; }
 
 					const int OldVertexIndex = NewFace->Vertices[Forbidden]->Id;
 					int OrderedPivotIndex;
@@ -502,7 +486,7 @@ namespace PCGExGeo
 
 					if (!CalculateFacePlane(NewFace)) { return false; }
 
-					Buffer->ConeFaceBuffer.Add(MakeDeferredFace(NewFace, OrderedPivotIndex, adjacentFace, OldFaceAdjacentIndex, oldFace));
+					Buffer->ConeFaceBuffer.Add(MakeDeferredFace(NewFace, OrderedPivotIndex, AdjacentFace, OldFaceAdjacentIndex, oldFace));
 				}
 			}
 
@@ -510,12 +494,12 @@ namespace PCGExGeo
 		}
 
 		/// Creates a new deferred face.
-		TDeferredSimplex<TFVtx<DIMENSIONS, VECTOR_TYPE>>* MakeDeferredFace(
+		TDeferredSimplex<TSimplexWrap<DIMENSIONS, VECTOR_TYPE>>* MakeDeferredFace(
 			TSimplexWrap<DIMENSIONS, VECTOR_TYPE>* Face, int FaceIndex,
 			TSimplexWrap<DIMENSIONS, VECTOR_TYPE>* Pivot, int PivotIndex,
 			TSimplexWrap<DIMENSIONS, VECTOR_TYPE>* OldFace)
 		{
-			TDeferredSimplex<TFVtx<DIMENSIONS, VECTOR_TYPE>>* Ret = Buffer->ObjectManager.GetDeferredSimplex();
+			TDeferredSimplex<TSimplexWrap<DIMENSIONS, VECTOR_TYPE>>* Ret = Buffer->ObjectManager->GetDeferredSimplex();
 
 			Ret->Face = Face;
 			Ret->FaceIndex = FaceIndex;
@@ -595,14 +579,14 @@ namespace PCGExGeo
 		/// Connect faces using a connector.
 		void ConnectFace(TSimplexConnector<DIMENSIONS, VECTOR_TYPE>* Connector)
 		{
-			int32 index = Connector.HashCode % Buffer->CONNECTOR_TABLE_SIZE;
+			int32 index = Connector->HashCode % Buffer->CONNECTOR_TABLE_SIZE;
 			ConnectorList<TSimplexConnector<DIMENSIONS, VECTOR_TYPE>>* List = Buffer->ConnectorTable[index];
 
-			for (TSimplexConnector<DIMENSIONS, VECTOR_TYPE>* Current = List.First; Current != nullptr; Current = Current.Next)
+			for (TSimplexConnector<DIMENSIONS, VECTOR_TYPE>* Current = List->First; Current != nullptr; Current = Current->Next)
 			{
 				if (TSimplexConnector<DIMENSIONS, VECTOR_TYPE>::AreConnectable(Connector, Current))
 				{
-					List.Remove(Current);
+					List->Remove(Current);
 					TSimplexConnector<DIMENSIONS, VECTOR_TYPE>::Connect(Current, Connector);
 
 					Buffer->ObjectManager->DepositConnector(Current);
@@ -611,7 +595,7 @@ namespace PCGExGeo
 				}
 			}
 
-			List.Add(Connector);
+			List->Add(Connector);
 		}
 
 		/// Used by update faces.
@@ -626,21 +610,21 @@ namespace PCGExGeo
 			Buffer->FurthestVertex = nullptr;
 			TFVtx<DIMENSIONS, VECTOR_TYPE>* v = nullptr;
 
-			for (int i = 0; i < Beyond1->Num(); i++) { Beyond1[i]->Tag = 1; }
+			for (int i = 0; i < Beyond1->Num(); i++) { (*Beyond1)[i]->Tag = 1; }
 
-			Buffer->CurrentVertex.Tag = 0;
+			Buffer->CurrentVertex->Tag = 0;
 
 			for (int i = 0; i < Beyond->Num(); i++)
 			{
-				v = Beyond[i];
-				if (ReferenceEquals(v, Buffer->CurrentVertex)) { continue; }
+				v = (*Beyond)[i];
+				if (v == Buffer->CurrentVertex) { continue; }
 				v->Tag = 0;
 				IsBeyond(Face, BeyondVertices, v);
 			}
 
 			for (int i = 0; i < Beyond1->Num(); i++)
 			{
-				v = Beyond1[i];
+				v = (*Beyond1)[i];
 				if (v->Tag == 1) { IsBeyond(Face, BeyondVertices, v); }
 			}
 
@@ -707,7 +691,7 @@ namespace PCGExGeo
 			int Count = Vertices.Num() + 1;
 			for (int i = 0; i < DIMENSIONS; i++) { Centroid[i] *= Count; }
 			float f = 1.0f / (Count - 1);
-			for (int i = 0; i < DIMENSIONS; i++) { Centroid[i] = f * (Centroid[i] - Buffer->CurrentVertex.Position[i]); }
+			for (int i = 0; i < DIMENSIONS; i++) { Centroid[i] = f * (Centroid[i] - Buffer->CurrentVertex->Position[i]); }
 		}
 	};
 }

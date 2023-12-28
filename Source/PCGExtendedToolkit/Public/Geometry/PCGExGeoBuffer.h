@@ -54,6 +54,8 @@ namespace PCGExGeo
 		/// Is it present in the list.
 		bool bInList = false;
 
+		TSimplexWrap* TypedAdjacentFace(int32 Index) { return static_cast<TSimplexWrap*>(this->AdjacentFaces[Index]); }
+
 		explicit TSimplexWrap(TVertexBuffer<TFVtx<DIMENSIONS, VECTOR_TYPE>>* InBeyondList)
 		{
 			Clear();
@@ -71,7 +73,6 @@ namespace PCGExGeo
 				this->Vertices[i] = nullptr;
 			}
 		}
-
 	};
 
 	/// For deferred face addition.
@@ -134,7 +135,7 @@ namespace PCGExGeo
 			for (int i = 0, c = 0; i < DIMENSIONS; i++)
 			{
 				if (i == InEdgeIndex) { continue; }
-				int v = InFace.Vertices[i].Id;
+				int v = InFace->Vertices[i]->Id;
 				Vertices[c++] = v;
 				TempHashCode += 23 * TempHashCode + static_cast<uint64>(v);
 			}
@@ -145,16 +146,16 @@ namespace PCGExGeo
 		/// Can two faces be connected.
 		static bool AreConnectable(TSimplexConnector* A, TSimplexConnector* B)
 		{
-			if (A.HashCode != B.HashCode) return false;
-			for (int i = 0; i < DIMENSIONS - 1; i++) { if (A.Vertices[i] != B.Vertices[i]) { return false; } }
+			if (A->HashCode != B->HashCode) return false;
+			for (int i = 0; i < DIMENSIONS - 1; i++) { if (A->Vertices[i] != B->Vertices[i]) { return false; } }
 			return true;
 		}
 
 		/// Connect two faces.
 		static void Connect(TSimplexConnector* A, TSimplexConnector* B)
 		{
-			A.Face.AdjacentFaces[A.EdgeIndex] = B.Face;
-			B.Face.AdjacentFaces[B.EdgeIndex] = A.Face;
+			A->Face->AdjacentFaces[A->EdgeIndex] = B->Face;
+			B->Face->AdjacentFaces[B->EdgeIndex] = A->Face;
 		}
 
 		void Clear()
@@ -174,6 +175,7 @@ namespace PCGExGeo
 	template <typename T>
 	class ConnectorList
 	{
+	public:
 		T* First = nullptr;
 		T* Last = nullptr;
 
@@ -184,35 +186,35 @@ namespace PCGExGeo
 		}
 
 		/// Adds the element to the beginning.
-		void AddFirst(T* connector)
+		void AddFirst(T* Connector)
 		{
-			this.First.Previous = connector;
-			connector.Next = this.First;
-			this.First = connector;
+			First->Previous = Connector;
+			Connector->Next = First;
+			First = Connector;
 		}
 
 		/// Adds a face to the list.
-		void Add(T* element)
+		void Add(T* Element)
 		{
-			if (this.Last) { this.Last.Next = element; }
-			element.Previous = this.Last;
-			this.Last = element;
-			if (!this.First) { this.First = element; }
+			if (Last) { Last->Next = Element; }
+			Element->Previous = Last;
+			Last = Element;
+			if (!First) { First = Element; }
 		}
 
 		/// <summary>
 		/// Removes the element from the list.
 		/// </summary>
-		void Remove(T* connector)
+		void Remove(T* Connector)
 		{
-			if (connector.Previous) { connector.Previous.Next = connector.Next; }
-			else if (!connector.Previous) { this.First = connector.Next; }
+			if (Connector->Previous) { Connector->Previous->Next = Connector->Next; }
+			else if (!Connector->Previous) { First = Connector->Next; }
 
-			if (connector.Next) { connector.Next.Previous = connector.Previous; }
-			else if (!connector.Next) { this.Last = connector.Previous; }
+			if (Connector->Next) { Connector->Next->Previous = Connector->Previous; }
+			else if (!Connector->Next) { Last = Connector->Previous; }
 
-			connector.Next = nullptr;
-			connector.Previous = nullptr;
+			Connector->Next = nullptr;
+			Connector->Previous = nullptr;
 		}
 	};
 
@@ -233,18 +235,18 @@ namespace PCGExGeo
 		/// Adds the element to the beginning.
 		void AddFirst(T* Face)
 		{
-			Face.bInList = true;
-			First.Previous = Face;
-			Face.Next = First;
+			Face->bInList = true;
+			First->Previous = Face;
+			Face->Next = First;
 			First = Face;
 		}
 
 		/// Adds a face to the list.
 		void Add(T* Face)
 		{
-			if (Face.bInList)
+			if (Face->bInList)
 			{
-				if (First.VerticesBeyond.Num() < Face.VerticesBeyond.Num())
+				if (First->VerticesBeyond->Num() < Face->VerticesBeyond->Num())
 				{
 					Remove(Face);
 					AddFirst(Face);
@@ -252,18 +254,18 @@ namespace PCGExGeo
 				return;
 			}
 
-			Face.bInList = true;
+			Face->bInList = true;
 
-			if (First && First.VerticesBeyond.Num() < Face.VerticesBeyond.Num())
+			if (First && First->VerticesBeyond->Num() < Face->VerticesBeyond->Num())
 			{
-				First.Previous = Face;
-				Face.Next = First;
+				First->Previous = Face;
+				Face->Next = First;
 				First = Face;
 			}
 			else
 			{
-				if (Last) { Last.Next = Face; }
-				Face.Previous = Last;
+				if (Last) { Last->Next = Face; }
+				Face->Previous = Last;
 				Last = Face;
 				if (!First) { First = Face; }
 			}
@@ -272,18 +274,18 @@ namespace PCGExGeo
 		/// Removes the element from the list.
 		void Remove(T* Face)
 		{
-			if (!Face.bInList) { return; }
+			if (!Face->bInList) { return; }
 
-			Face.bInList = false;
+			Face->bInList = false;
 
-			if (Face.Previous) { Face.Previous.Next = Face.Next; }
-			else if (!Face.Previous) { First = Face.Next; }
+			if (Face->Previous) { Face->Previous->Next = Face->Next; }
+			else if (!Face->Previous) { First = Face->Next; }
 
-			if (Face.Next) { Face.Next.Previous = Face.Previous; }
-			else if (!Face.Next) { Last = Face.Previous; }
+			if (Face->Next) { Face->Next->Previous = Face->Previous; }
+			else if (!Face->Next) { Last = Face->Previous; }
 
-			Face.Next = nullptr;
-			Face.Previous = nullptr;
+			Face->Next = nullptr;
+			Face->Previous = nullptr;
 		}
 	};
 
@@ -291,12 +293,6 @@ namespace PCGExGeo
 	template <int DIMENSIONS, typename VECTOR_TYPE>
 	class TObjectManager
 	{
-	protected:
-		TSimplexWrap<DIMENSIONS, VECTOR_TYPE>* NULL_WRAP = nullptr;
-		TSimplexConnector<DIMENSIONS, VECTOR_TYPE>* NULL_CONNECTOR = nullptr;
-		TVertexBuffer<TFVtx<DIMENSIONS, VECTOR_TYPE>>* NULL_BUFFER = nullptr;
-		TDeferredSimplex<TSimplexWrap<DIMENSIONS, VECTOR_TYPE>>* NULL_DEFERRED = nullptr;
-
 	public:
 		TQueue<TSimplexWrap<DIMENSIONS, VECTOR_TYPE>*> RecycledFaceStack;
 		TQueue<TSimplexConnector<DIMENSIONS, VECTOR_TYPE>*> ConnectorStack;
@@ -305,18 +301,10 @@ namespace PCGExGeo
 
 		TObjectManager()
 		{
-			NULL_WRAP = new TSimplexWrap<DIMENSIONS, VECTOR_TYPE>(nullptr);
-			NULL_CONNECTOR = new TSimplexConnector<DIMENSIONS, VECTOR_TYPE>();
-			NULL_BUFFER = new TVertexBuffer<TFVtx<DIMENSIONS, VECTOR_TYPE>>();
-			NULL_DEFERRED = new TDeferredSimplex<TSimplexWrap<DIMENSIONS, VECTOR_TYPE>>();
 		}
 
 		~TObjectManager()
 		{
-			PCGEX_DELETE(NULL_WRAP);
-			PCGEX_DELETE(NULL_CONNECTOR);
-			PCGEX_DELETE(NULL_BUFFER);
-			PCGEX_DELETE(NULL_DEFERRED);
 		}
 
 		void Clear()
@@ -335,8 +323,8 @@ namespace PCGExGeo
 
 		TSimplexWrap<DIMENSIONS, VECTOR_TYPE>* GetFace()
 		{
-			TSimplexWrap<DIMENSIONS, VECTOR_TYPE>& OutFace = *NULL_WRAP;
-			if (RecycledFaceStack.Dequeue(OutFace)) { return &OutFace; }
+			if (TSimplexWrap<DIMENSIONS, VECTOR_TYPE>* OutFace = nullptr;
+				RecycledFaceStack.Dequeue(OutFace)) { return OutFace; }
 			return new TSimplexWrap<DIMENSIONS, VECTOR_TYPE>(GetVertexBuffer());
 		}
 
@@ -348,21 +336,21 @@ namespace PCGExGeo
 
 		TSimplexConnector<DIMENSIONS, VECTOR_TYPE>* GetConnector()
 		{
-			TSimplexConnector<DIMENSIONS, VECTOR_TYPE>& OutConnector = *NULL_CONNECTOR;
-			if (ConnectorStack.Dequeue(OutConnector)) { return &OutConnector; }
+			if (TSimplexConnector<DIMENSIONS, VECTOR_TYPE>* OutConnector = nullptr;
+				ConnectorStack.Dequeue(OutConnector)) { return OutConnector; }
 			return new TSimplexConnector<DIMENSIONS, VECTOR_TYPE>();
 		}
 
 		void DepositVertexBuffer(TVertexBuffer<TFVtx<DIMENSIONS, VECTOR_TYPE>>* Buffer)
 		{
-			Buffer.Clear();
+			Buffer->Clear();
 			EmptyBufferStack.Enqueue(Buffer);
 		}
 
 		TVertexBuffer<TFVtx<DIMENSIONS, VECTOR_TYPE>>* GetVertexBuffer()
 		{
-			TVertexBuffer<TFVtx<DIMENSIONS, VECTOR_TYPE>>& OutBuffer = *NULL_BUFFER;
-			if (EmptyBufferStack.Dequeue(OutBuffer)) { return &OutBuffer; }
+			if (TVertexBuffer<TFVtx<DIMENSIONS, VECTOR_TYPE>>* OutBuffer = nullptr;
+				EmptyBufferStack.Dequeue(OutBuffer)) { return OutBuffer; }
 			return new TVertexBuffer<TFVtx<DIMENSIONS, VECTOR_TYPE>>();
 		}
 
@@ -374,8 +362,8 @@ namespace PCGExGeo
 
 		TDeferredSimplex<TSimplexWrap<DIMENSIONS, VECTOR_TYPE>>* GetDeferredSimplex()
 		{
-			TDeferredSimplex<TSimplexWrap<DIMENSIONS, VECTOR_TYPE>>& OutDeferredSimplex = *NULL_DEFERRED;
-			if (DeferredSimplexStack.Dequeue(OutDeferredSimplex)) { return &OutDeferredSimplex; }
+			if (TDeferredSimplex<TSimplexWrap<DIMENSIONS, VECTOR_TYPE>>* OutDeferredSimplex = nullptr;
+				DeferredSimplexStack.Dequeue(OutDeferredSimplex)) { return OutDeferredSimplex; }
 			return new TDeferredSimplex<TSimplexWrap<DIMENSIONS, VECTOR_TYPE>>();
 		}
 	};
@@ -400,12 +388,12 @@ namespace PCGExGeo
 
 		TSimplexList<TSimplexWrap<DIMENSIONS, VECTOR_TYPE>>* UnprocessedFaces = nullptr;
 		TArray<TSimplexWrap<DIMENSIONS, VECTOR_TYPE>*> AffectedFaceBuffer;
-		TQueue<TFSimplex<DIMENSIONS, VECTOR_TYPE>*> TraverseStack;
+		TQueue<TSimplexWrap<DIMENSIONS, VECTOR_TYPE>*> TraverseStack;
 		TSet<TFVtx<DIMENSIONS, VECTOR_TYPE>*> SingularVertices;
 
 		TArray<TDeferredSimplex<TSimplexWrap<DIMENSIONS, VECTOR_TYPE>>*> ConeFaceBuffer;
 
-		TFSimplex<DIMENSIONS, VECTOR_TYPE>* UpdateBuffer[DIMENSIONS];
+		TSimplexWrap<DIMENSIONS, VECTOR_TYPE>* UpdateBuffer[DIMENSIONS];
 		int32 UpdateIndices[DIMENSIONS];
 
 		ConnectorList<TSimplexConnector<DIMENSIONS, VECTOR_TYPE>>* ConnectorTable[CONNECTOR_TABLE_SIZE];
@@ -425,7 +413,7 @@ namespace PCGExGeo
 			ConvexSimplexs.Empty();
 
 			PCGEX_DELETE(UnprocessedFaces)
-			UnprocessedFaces = new TSimplexList<TFVtx<DIMENSIONS, VECTOR_TYPE>>();
+			UnprocessedFaces = new TSimplexList<TSimplexWrap<DIMENSIONS, VECTOR_TYPE>>();
 			AffectedFaceBuffer.Empty();
 			TraverseStack.Empty();
 			SingularVertices.Empty();
