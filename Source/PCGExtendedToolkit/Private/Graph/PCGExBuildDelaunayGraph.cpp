@@ -5,6 +5,7 @@
 
 #include "Data/PCGExData.h"
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
+#include "Geometry/PCGExGeoDelaunay.h"
 #include "Graph/PCGExConsolidateGraph.h"
 #include "Graph/PCGExMesh.h"
 
@@ -102,7 +103,7 @@ bool FPCGExBuildDelaunayGraphElement::ExecuteInternal(
 	{
 		auto Initialize = [&](PCGExData::FPointIO& PointIO)
 		{
-			(*Context->Delaunay->Tetrahedrons.Find(0))->Draw(Context->World);
+			(*Context->Delaunay->Simplices.Find(0))->Draw(Context->World);
 		};
 
 		auto ProcessPoint = [&](const int32 PointIndex, const PCGExData::FPointIO& PointIO)
@@ -179,6 +180,9 @@ bool FDelaunayInsertTask::ExecuteTask()
 {
 	const FPCGExBuildDelaunayGraphContext* Context = Manager->GetContext<FPCGExBuildDelaunayGraphContext>();
 	Context->Delaunay->InsertVertex(TaskIndex);
+
+	//PCGExGeo::TDelaunayTriangulation3* Triangulation3 = new PCGExGeo::TDelaunayTriangulation3();
+	//PCGEX_DELETE(Triangulation3)
 	return true;
 }
 

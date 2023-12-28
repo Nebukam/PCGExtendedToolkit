@@ -24,15 +24,18 @@ namespace PCGExMesh
 		Neighbors.AddUnique(VertexIndex);
 	}
 
-	FTetrahedron::FTetrahedron(FDelaunayVertex* InVtx1, FDelaunayVertex* InVtx2, FDelaunayVertex* InVtx3, FDelaunayVertex* InVtx4)
+	FSimplex::FSimplex(FDelaunayVertex* InVtx1, FDelaunayVertex* InVtx2, FDelaunayVertex* InVtx3, FDelaunayVertex* InVtx4)
 	{
+		
 		Vtx[0] = InVtx1;
 		Vtx[1] = InVtx2;
 		Vtx[2] = InVtx3;
 		Vtx[3] = InVtx4;
 
 		std::sort(std::begin(Vtx), std::end(Vtx), [](FDelaunayVertex* A, FDelaunayVertex* B) { return A->PointIndex < B->PointIndex; });
-
+		
+		for(int i = 0; i < 4; i++){ Adjacent[i] = nullptr; }
+		
 		bValid = PCGExMath::FindSphereFrom4Points(
 			Vtx[0]->Position,
 			Vtx[1]->Position,
@@ -40,10 +43,13 @@ namespace PCGExMesh
 			Vtx[3]->Position,
 			Circumsphere);
 
-		Circumsphere.W = Circumsphere.W - 0.001;
+		//Circumsphere.W = Circumsphere.W - 0.001;
+
+		//
+		
 	}
 
-	bool FTetrahedron::IsInside(const FVector& Point) const
+	bool FSimplex::IsInside(const FVector& Point) const
 	{
 		const FVector U = Vtx[1]->Position - Vtx[0]->Position;
 		const FVector V = Vtx[2]->Position - Vtx[0]->Position;
@@ -59,7 +65,7 @@ namespace PCGExMesh
 		return (Alpha >= 0.0f && Beta >= 0.0f && Gamma >= 0.0f && Delta >= 0.0f && Delta <= 1.0f);
 	}
 
-	void FTetrahedron::RegisterEdges(TSet<uint64>& UniqueEdges, TArray<PCGExGraph::FUnsignedEdge>& Edges) const
+	void FSimplex::RegisterEdges(TSet<uint64>& UniqueEdges, TArray<PCGExGraph::FUnsignedEdge>& Edges) const
 	{
 		PCGEX_FOREACH_TETRA_EDGE(
 			Vtx, CVtx, OVtx, if (CVtx->PointIndex != -1 && OVtx->PointIndex != -1)
@@ -74,7 +80,7 @@ namespace PCGExMesh
 			})
 	}
 
-	void FTetrahedron::Draw(const UWorld* World) const
+	void FSimplex::Draw(const UWorld* World) const
 	{
 		PCGEX_FOREACH_TETRA_EDGE(Vtx, A, B, DrawDebugLine(World, A->Position, B->Position, FColor::Red, true, 0, 0, 1);)
 		DrawDebugSphere(World, Circumsphere.Center, Circumsphere.W, 32, FColor::Green, true, -1, 0, 1);
@@ -84,7 +90,7 @@ namespace PCGExMesh
 	{
 		Vertices.Empty();
 		Edges.Empty();
-		Tetrahedrons.Empty();
+		Simplices.Empty();
 	}
 
 	FDelaunayTriangulation::~FDelaunayTriangulation()
@@ -92,9 +98,9 @@ namespace PCGExMesh
 		Vertices.Empty();
 		Edges.Empty();
 
-		for (const TPair<uint64, FTetrahedron*>& Pair : Tetrahedrons) { delete Pair.Value; }
+		for (const TPair<uint64, FSimplex*>& Pair : Simplices) { delete Pair.Value; }
 
-		Tetrahedrons.Empty();
+		Simplices.Empty();
 	}
 
 	bool FDelaunayTriangulation::PrepareFrom(const PCGExData::FPointIO& PointIO)
@@ -148,11 +154,11 @@ namespace PCGExMesh
 		return EmplaceTetrahedron(&Vertices[NumPoints], &Vertices[NumPoints + 1], &Vertices[NumPoints + 2], &Vertices[NumPoints + 3])->bValid;
 	}
 
-	FTetrahedron* FDelaunayTriangulation::EmplaceTetrahedron(FDelaunayVertex* InVtx1, FDelaunayVertex* InVtx2, FDelaunayVertex* InVtx3, FDelaunayVertex* InVtx4)
+	FSimplex* FDelaunayTriangulation::EmplaceTetrahedron(FDelaunayVertex* InVtx1, FDelaunayVertex* InVtx2, FDelaunayVertex* InVtx3, FDelaunayVertex* InVtx4)
 	{
 		const uint64 NTUID = TUID++;
-		FTetrahedron* NewTetrahedron = new FTetrahedron(InVtx1, InVtx2, InVtx3, InVtx4);
-		Tetrahedrons.Add(NTUID, NewTetrahedron);
+		FSimplex* NewTetrahedron = new FSimplex(InVtx1, InVtx2, InVtx3, InVtx4);
+		Simplices.Add(NTUID, NewTetrahedron);
 		return NewTetrahedron;
 	}
 
@@ -162,7 +168,7 @@ namespace PCGExMesh
 		FWriteScopeLock WriteLock(TetraLock);
 		FDelaunayVertex* Vtx = &Vertices[Index];
 
-		for (const TPair<uint64, FTetrahedron*>& Pair : Tetrahedrons)
+		for (const TPair<uint64, FSimplex*>& Pair : Simplices)
 		{
 			if (Pair.Value->Circumsphere.IsInside(Vtx->Position) && Pair.Value->IsInside(Vtx->Position))
 			{
@@ -171,7 +177,7 @@ namespace PCGExMesh
 			}
 		}
 
-		for (const TPair<uint64, FTetrahedron*>& Pair : Tetrahedrons)
+		for (const TPair<uint64, FSimplex*>& Pair : Simplices)
 		{
 			if (Pair.Value->Circumsphere.IsInside(Vtx->Position))
 			{
@@ -200,8 +206,8 @@ namespace PCGExMesh
 
 	void FDelaunayTriangulation::SplitTetrahedron(FDelaunayVertex* Splitter, uint64 Key)
 	{
-		const FTetrahedron* Tetrahedron = *Tetrahedrons.Find(Key);
-		Tetrahedrons.Remove(Key);
+		const FSimplex* Tetrahedron = *Simplices.Find(Key);
+		Simplices.Remove(Key);
 
 		EmplaceTetrahedron(Splitter, Tetrahedron->Vtx[0], Tetrahedron->Vtx[1], Tetrahedron->Vtx[2]);
 		EmplaceTetrahedron(Splitter, Tetrahedron->Vtx[0], Tetrahedron->Vtx[1], Tetrahedron->Vtx[3]);
@@ -213,7 +219,7 @@ namespace PCGExMesh
 
 	bool FDelaunayTriangulation::FindNextBadTetrahedronKey(const FVector& Position, uint64& OutKey)
 	{
-		for (const TPair<uint64, FTetrahedron*>& Pair : Tetrahedrons)
+		for (const TPair<uint64, FSimplex*>& Pair : Simplices)
 		{
 			if (Pair.Value->Circumsphere.IsInside(Position))
 			{
@@ -228,16 +234,16 @@ namespace PCGExMesh
 	void FDelaunayTriangulation::FindEdges()
 	{
 		// Remove supertetrahedron
-		if (FTetrahedron** Tetrahedron = Tetrahedrons.Find(0))
+		if (FSimplex** Tetrahedron = Simplices.Find(0))
 		{
-			Tetrahedrons.Remove(0);
+			Simplices.Remove(0);
 			delete *Tetrahedron;
 		}
 
 		TSet<uint64> UniqueEdges;
-		UniqueEdges.Reserve(Tetrahedrons.Num());
+		UniqueEdges.Reserve(Simplices.Num());
 
-		for (const TPair<uint64, FTetrahedron*>& Pair : Tetrahedrons)
+		for (const TPair<uint64, FSimplex*>& Pair : Simplices)
 		{
 			Pair.Value->RegisterEdges(UniqueEdges, Edges);
 		}
