@@ -10,6 +10,7 @@
 UENUM(BlueprintType)
 enum class EPCGExBridgeIslandMethod : uint8
 {
+	Delaunay UMETA(DisplayName = "Delaunay", ToolTip="Uses Delaunay graph to find connections."),
 	LeastEdges UMETA(DisplayName = "Least Edges", ToolTip="Ensure all islands are connected using the least possible number of bridges."),
 	MostEdges UMETA(DisplayName = "Most Edges", ToolTip="Each island will have a bridge to every other island"),
 };
@@ -39,7 +40,7 @@ public:
 
 	/** Method used to find & insert bridges */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
-	EPCGExBridgeIslandMethod BridgeMethod = EPCGExBridgeIslandMethod::LeastEdges;
+	EPCGExBridgeIslandMethod BridgeMethod = EPCGExBridgeIslandMethod::Delaunay;
 
 private:
 	friend class FPCGExBridgeEdgeIslandsElement;
