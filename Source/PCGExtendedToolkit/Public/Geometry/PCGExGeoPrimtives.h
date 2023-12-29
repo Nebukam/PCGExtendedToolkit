@@ -51,6 +51,13 @@ namespace PCGExGeo
 			Position[2] = V[2];
 			Position[3] = V[3];
 		}
+
+		double SqrMagnitude()
+		{
+			double sum = 0.0f;
+			for (int i = 0; i < Dimension; i++) { sum += Position[i] * Position[i]; }
+			return sum;
+		}
 	};
 
 	template <int DIMENSIONS>

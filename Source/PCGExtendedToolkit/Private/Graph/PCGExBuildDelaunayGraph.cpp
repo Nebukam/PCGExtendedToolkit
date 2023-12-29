@@ -146,7 +146,11 @@ bool FPCGExBuildDelaunayGraphElement::ExecuteInternal(
 				{
 					const int32 B = Cell->Simplex->Vertices[j]->Id;
 					const uint64 Hash = PCGExGraph::GetUnsignedHash64(A, B);
-					if (UniqueEdges.Contains(Hash)) { Edges.Emplace(A, B, EPCGExEdgeType::Complete); }
+					if (!UniqueEdges.Contains(Hash))
+					{
+						Edges.Emplace(A, B, EPCGExEdgeType::Complete);
+						UniqueEdges.Add(Hash);
+					}
 				}
 			}
 		}

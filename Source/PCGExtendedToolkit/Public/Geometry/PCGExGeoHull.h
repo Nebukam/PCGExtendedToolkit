@@ -147,17 +147,16 @@ namespace PCGExGeo
 			}
 
 			// Create the initial simplexes.
-			TSimplexWrap<DIMENSIONS>* Faces[DIMENSIONS + 1];
+			TArray<TSimplexWrap<DIMENSIONS>*> Faces;
+			Faces.SetNumUninitialized(DIMENSIONS + 1);
 			InitiateFaceDatabase(Faces);
 
 			// Init the vertex beyond buffers.
-			for (int i = 0; i < DIMENSIONS + 1; i++)
+			for (TSimplexWrap<DIMENSIONS>* Face : Faces)
 			{
-				FindBeyondVertices(Faces[i]);
-				if (Faces[i]->VerticesBeyond->Num() == 0)
-					Buffer->ConvexSimplices.Add(Faces[i]); // The face is on the hull
-				else
-					Buffer->UnprocessedFaces->Add(Faces[i]);
+				FindBeyondVertices(Face);
+				if (Face->VerticesBeyond->IsEmpty()) { Buffer->ConvexSimplices.Add(Face); } // The face is on the hull 
+				else { Buffer->UnprocessedFaces->Add(Face); }
 			}
 		}
 
@@ -208,7 +207,7 @@ namespace PCGExGeo
 				const TFVtx<DIMENSIONS>* InitPt = InitialPoints[i];
 				for (int j = 0; j < DIMENSIONS; j++)
 				{
-					const float t = ((*InitPt)[j] - (*Pivot)[j]);
+					const double t = ((*InitPt)[j] - (*Pivot)[j]);
 					Sum += t * t;
 				}
 			}
@@ -231,10 +230,10 @@ namespace PCGExGeo
 				{
 					TFVtx<DIMENSIONS>* B = InExtremes[j];
 
-					float Dist = 0;
+					double Dist = 0;
 					for (int k = 0; k < DIMENSIONS; k++)
 					{
-						const double S = (*A)[i] - (*B)[i];
+						const double S = (*A)[k] - (*B)[k];
 						Dist += S * S;
 					}
 
@@ -255,9 +254,8 @@ namespace PCGExGeo
 				double Maximum = 0.000001f;
 				TFVtx<DIMENSIONS>* MaxPoint = nullptr;
 
-				for (int j = 0; j < InExtremes.Num(); j++)
+				for (TFVtx<DIMENSIONS>* Extreme : InExtremes)
 				{
-					TFVtx<DIMENSIONS>* Extreme = InExtremes[j];
 					if (OutInitialPoints.Contains(Extreme)) { continue; }
 
 					if (const double Val = GetSquaredDistanceSum(Extreme, OutInitialPoints);
@@ -274,11 +272,9 @@ namespace PCGExGeo
 				}
 				else
 				{
-					for (int j = 0; j < Buffer->InputVertices.Num(); j++)
+					for (TFVtx<DIMENSIONS>* Point : Buffer->InputVertices)
 					{
-						TFVtx<DIMENSIONS>* Point = Buffer->InputVertices[j];
 						if (OutInitialPoints.Contains(Point)) { continue; }
-
 						if (const double Val = GetSquaredDistanceSum(Point, OutInitialPoints);
 							Val > Maximum)
 						{
@@ -287,22 +283,25 @@ namespace PCGExGeo
 						}
 					}
 
-					if (MaxPoint) { OutInitialPoints.Add(MaxPoint); }
-					else { /* TODO : SINGULAR EXCEPTION TO BE HANDLED */ }
+					check(MaxPoint) // Singular input data error
+					OutInitialPoints.Add(MaxPoint);
 				}
 			}
 		}
 
 		/// Create the first faces from (dimension + 1) vertices.
-		void InitiateFaceDatabase(TSimplexWrap<DIMENSIONS>* (&Faces)[DIMENSIONS + 1])
+		void InitiateFaceDatabase(TArray<TSimplexWrap<DIMENSIONS>*>& Faces)
 		{
-			for (int i = 0; i < DIMENSIONS + 1; i++)
+			for (int i = 0; i < Faces.Num(); i++)
 			{
 				TSimplexWrap<DIMENSIONS>* NewFace = new TSimplexWrap<DIMENSIONS>(new TVertexBuffer<DIMENSIONS>());
 
 				// Skips the i-th vertex
-				int II = 0;
-				for (int32 j = 0; j < Vertices.Num(); ++j) { if (i != j) { NewFace->Vertices[II++] = Vertices[j]; } }
+				int32 II = 0;
+				for (int j = 0; j < Faces.Num() + 1; ++j)
+				{
+					if (j != i && II < DIMENSIONS) { NewFace->Vertices[II++] = Vertices[j]; }
+				}
 
 				std::sort(
 					std::begin(NewFace->Vertices), std::end(NewFace->Vertices),
@@ -313,7 +312,46 @@ namespace PCGExGeo
 			}
 
 			// update the adjacency (check all pairs of faces)
-			for (int i = 0; i < DIMENSIONS; i++) { for (int j = i + 1; j < DIMENSIONS + 1; j++) { Faces[i]->UpdateAdjacency(Faces[j]); } }
+			for (int i = 0; i < DIMENSIONS; i++)
+			{
+				for (int j = i + 1; j < DIMENSIONS + 1; j++)
+				{
+					UpdateAdjacency(Faces[i],Faces[j]);
+				}
+			}
+		}
+
+		/// Check if 2 faces are adjacent and if so, update their AdjacentFaces array.
+		void UpdateAdjacency(TSimplexWrap<DIMENSIONS>* l, TSimplexWrap<DIMENSIONS>* r)
+		{
+			
+			int i;
+
+			// reset marks on the 1st face
+			for (i = 0; i < DIMENSIONS; i++) l->Vertices[i]->Tag = 0;
+
+			// mark all vertices on the 2nd face
+			for (i = 0; i < DIMENSIONS; i++) r->Vertices[i]->Tag = 1;
+
+			// find the 1st false index
+			for (i = 0; i < DIMENSIONS; i++) if (l->Vertices[i]->Tag == 0) break;
+
+			// no vertex was marked
+			if (i == DIMENSIONS) return;
+
+			// check if only 1 vertex wasn't marked
+			for (int j = i + 1; j < DIMENSIONS; j++) if (l->Vertices[j]->Tag == 0) return;
+
+			// if we are here, the two faces share an edge
+			l->AdjacentFaces[i] = r;
+
+			// update the adj. face on the other face - find the vertex that remains marked
+			for (i = 0; i < DIMENSIONS; i++) l->Vertices[i]->Tag = 0;
+			for (i = 0; i < DIMENSIONS; i++)
+			{
+				if (r->Vertices[i]->Tag == 1) break;
+			}
+			r->AdjacentFaces[i] = l;
 		}
 
 		/// Calculates the normal and offset of the hyper-plane given by the face's vertices.
@@ -394,8 +432,7 @@ namespace PCGExGeo
 				{
 					TSimplexWrap<DIMENSIONS>* AdjFace = Top->TypedAdjacentFace(i);
 
-					/* (2) Adjacent Face should never be null */
-					check(AdjFace)
+					check(AdjFace) // (2) Adjacent Face should never be null
 
 					if (AdjFace->Tag == 0 && AdjFace->GetVertexDistance(Buffer->CurrentVertex) >= PLANE_DISTANCE_TOLERANCE)
 					{
@@ -415,13 +452,13 @@ namespace PCGExGeo
 
 			for (int FIndex = 0; FIndex < Buffer->AffectedFaceBuffer.Num(); FIndex++)
 			{
-				TSimplexWrap<DIMENSIONS>* oldFace = Buffer->AffectedFaceBuffer[FIndex];
+				TSimplexWrap<DIMENSIONS>* OldFace = Buffer->AffectedFaceBuffer[FIndex];
 
 				// Find the faces that need to be updated
 				int UpdateCount = 0;
 				for (int i = 0; i < DIMENSIONS; i++)
 				{
-					TSimplexWrap<DIMENSIONS>* Af = oldFace->TypedAdjacentFace(i);
+					TSimplexWrap<DIMENSIONS>* Af = OldFace->TypedAdjacentFace(i);
 
 					// (3) Adjacent Face should never be null"
 					check(Af)
@@ -440,7 +477,7 @@ namespace PCGExGeo
 					int OldFaceAdjacentIndex = 0;
 					for (int j = 0; j < DIMENSIONS; j++)
 					{
-						if (oldFace == AdjacentFace->AdjacentFaces[j])
+						if (OldFace == AdjacentFace->AdjacentFaces[j])
 						{
 							OldFaceAdjacentIndex = j;
 							break;
@@ -452,7 +489,7 @@ namespace PCGExGeo
 
 					TSimplexWrap<DIMENSIONS>* NewFace = Buffer->ObjectManager->GetFace();
 
-					for (int j = 0; j < DIMENSIONS; j++) { NewFace->Vertices[j] = oldFace->Vertices[j]; }
+					for (int j = 0; j < DIMENSIONS; j++) { NewFace->Vertices[j] = OldFace->Vertices[j]; }
 
 					const int OldVertexIndex = NewFace->Vertices[Forbidden]->Id;
 					int OrderedPivotIndex;
@@ -489,7 +526,7 @@ namespace PCGExGeo
 
 					if (!CalculateFacePlane(NewFace)) { return false; }
 
-					Buffer->ConeFaceBuffer.Add(MakeDeferredFace(NewFace, OrderedPivotIndex, AdjacentFace, OldFaceAdjacentIndex, oldFace));
+					Buffer->ConeFaceBuffer.Add(MakeDeferredFace(NewFace, OrderedPivotIndex, AdjacentFace, OldFaceAdjacentIndex, OldFace));
 				}
 			}
 
@@ -683,18 +720,18 @@ namespace PCGExGeo
 		void UpdateCenter()
 		{
 			const int32 Count = Vertices.Num() + 1;
-			for (int i = 0; i < DIMENSIONS; i++) { Centroid[i] *= (Count - 1); }
-			float f = 1.0f / Count;
-			for (int i = 0; i < DIMENSIONS; i++) { Centroid[i] = f * (Centroid[i] + (*Buffer->CurrentVertex)[i]); }
+			const double F1 = Count - 1;
+			const double F2 = 1.0f / static_cast<double>(Count);
+			for (int i = 0; i < DIMENSIONS; i++) { Centroid[i] = F2 * ((Centroid[i] * F1) + (*Buffer->CurrentVertex)[i]); }
 		}
 
 		/// Removes the last vertex from the center.
 		void RollbackCenter()
 		{
-			int Count = Vertices.Num() + 1;
-			for (int i = 0; i < DIMENSIONS; i++) { Centroid[i] *= Count; }
-			float f = 1.0f / (Count - 1);
-			for (int i = 0; i < DIMENSIONS; i++) { Centroid[i] = f * (Centroid[i] - (*Buffer->CurrentVertex)[i]); }
+			const int32 Count = Vertices.Num() + 1;
+			double F1 = Count;
+			double F2 = 1.0f / static_cast<double>(Count - 1);
+			for (int i = 0; i < DIMENSIONS; i++) { Centroid[i] = F2 * ((Centroid[i] * F1) - (*Buffer->CurrentVertex)[i]); }
 		}
 	};
 }

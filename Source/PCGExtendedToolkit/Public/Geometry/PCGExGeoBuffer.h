@@ -24,6 +24,7 @@ namespace PCGExGeo
 			Items.Reserve(InCapacity);
 		}
 
+		bool IsEmpty() { return Items.IsEmpty(); }
 		int32 Num() { return Items.Num(); }
 
 		TFVtx<DIMENSIONS>* operator[](int32 Index) const { return Items[Index]; }
@@ -377,7 +378,7 @@ namespace PCGExGeo
 	public:
 		static constexpr int32 CONNECTOR_TABLE_SIZE = 2017;
 
-		float MaxDistance;
+		double MaxDistance;
 
 		TArray<TFVtx<DIMENSIONS>*> InputVertices;
 		TArray<TSimplexWrap<DIMENSIONS>*> ConvexSimplices;

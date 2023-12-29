@@ -51,7 +51,6 @@ namespace PCGExGeo
 
 		virtual ~TDelaunayTriangulation()
 		{
-			UE_LOG(LogTemp, Warning, TEXT("DESTROY"))
 			Cells.Empty();
 			Vertices.Empty();
 			PCGEX_DELETE(Centroid)
@@ -59,7 +58,6 @@ namespace PCGExGeo
 
 		virtual void Clear()
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Clear"))
 			Cells.Empty();
 			Vertices.Empty();
 			PCGEX_DELETE(Centroid)
@@ -68,7 +66,6 @@ namespace PCGExGeo
 
 		bool PrepareFrom(const TArray<FPCGPoint>& InPoints)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Preapre From"))
 			Clear();
 
 			const int32 NumPoints = InPoints.Num();
@@ -78,10 +75,9 @@ namespace PCGExGeo
 
 			for (int i = 0; i < NumPoints; i++)
 			{
-				UE_LOG(LogTemp, Warning, TEXT("Loop %d"), i)
-
 				TFVtx<DIMENSIONS>* Vtx = Vertices[i] = new TFVtx<DIMENSIONS>();
-
+				Vtx->Id = i;
+				
 				FVector Position = InPoints[i].Transform.GetLocation();
 				double SqrLn = 0;
 				for (int P = 0; P < DIMENSIONS - 1; P++)
@@ -90,7 +86,7 @@ namespace PCGExGeo
 					SqrLn += Position[P] * Position[P];
 				}
 
-				(*Vtx)[DIMENSIONS] = SqrLn;
+				(*Vtx)[DIMENSIONS-1] = SqrLn;
 			}
 
 			return true;
@@ -106,7 +102,7 @@ namespace PCGExGeo
 
 			for (TFSimplex<DIMENSIONS>* Simplex : Hull->Simplices)
 			{
-				if (Simplex->Normal[DIMENSIONS] >= 0.0f)
+				if (Simplex->Normal[DIMENSIONS-1] >= 0.0f)
 				{
 					for (TFSimplex<DIMENSIONS>* Adjacent : Simplex->AdjacentFaces)
 					{
