@@ -9,23 +9,21 @@
 
 namespace PCGExGeo
 {
-	template <int DIMENSIONS, typename VECTOR_TYPE>
-	class TDelaunayCell
+	template <int DIMENSIONS>
+	class PCGEXTENDEDTOOLKIT_API TDelaunayCell
 	{
 	public:
-		TFSimplex<DIMENSIONS, VECTOR_TYPE>* Simplex = nullptr;
-		TFVtx<DIMENSIONS, VECTOR_TYPE>* Circumcenter = nullptr;
+		TFSimplex<DIMENSIONS>* Simplex = nullptr;
+		TFVtx<DIMENSIONS>* Circumcenter = nullptr;
 		double Radius = 0;
 
 		TDelaunayCell(
-			TFSimplex<DIMENSIONS, VECTOR_TYPE>* InSimplex,
-			VECTOR_TYPE InCircumcenter,
+			TFSimplex<DIMENSIONS>* InSimplex,
+			TFVtx<DIMENSIONS>* InCircumcenter,
 			const double InRadius)
 		{
 			Simplex = InSimplex;
-
-			Circumcenter = new TFVtx<DIMENSIONS, VECTOR_TYPE>();
-			Circumcenter->Position = InCircumcenter;
+			Circumcenter = InCircumcenter;
 			Radius = InRadius;
 		}
 
@@ -37,54 +35,62 @@ namespace PCGExGeo
 		}
 	};
 
-	template <int DIMENSIONS, typename VECTOR_TYPE, typename UPSCALED_VECTOR_TYPE>
-	class TDelaunayTriangulation
+	template <int DIMENSIONS, typename VECTOR_TYPE>
+	class PCGEXTENDEDTOOLKIT_API TDelaunayTriangulation
 	{
 	public:
-		TArray<TFVtx<DIMENSIONS + 1, UPSCALED_VECTOR_TYPE>*> UpscaledVertices;
-		TArray<TFVtx<DIMENSIONS, VECTOR_TYPE>*> Vertices;
-		TArray<TDelaunayCell<DIMENSIONS + 1, UPSCALED_VECTOR_TYPE>*> Cells;
-		TFVtx<DIMENSIONS, VECTOR_TYPE>* Centroid = nullptr;
+		TArray<TFVtx<DIMENSIONS>*> Vertices;
+		TArray<TDelaunayCell<DIMENSIONS>*> Cells;
+		TFVtx<DIMENSIONS>* Centroid = nullptr;
 
-		double MTX[DIMENSIONS + 1][DIMENSIONS + 1] = {};
+		double MTX[DIMENSIONS][DIMENSIONS];
 
 		TDelaunayTriangulation()
 		{
-			Centroid = new TFVtx<DIMENSIONS, VECTOR_TYPE>();
 		}
 
 		virtual ~TDelaunayTriangulation()
 		{
+			UE_LOG(LogTemp, Warning, TEXT("DESTROY"))
 			Cells.Empty();
 			Vertices.Empty();
-			UpscaledVertices.Empty();
 			PCGEX_DELETE(Centroid)
 		}
 
 		virtual void Clear()
 		{
+			UE_LOG(LogTemp, Warning, TEXT("Clear"))
 			Cells.Empty();
 			Vertices.Empty();
-			UpscaledVertices.Empty();
 			PCGEX_DELETE(Centroid)
-			Centroid = new TFVtx<DIMENSIONS, VECTOR_TYPE>();
+			Centroid = new TFVtx<DIMENSIONS>();
 		}
 
-		bool PrepareFrom(const PCGExData::FPointIO& PointIO)
+		bool PrepareFrom(const TArray<FPCGPoint>& InPoints)
 		{
+			UE_LOG(LogTemp, Warning, TEXT("Preapre From"))
 			Clear();
 
-			const TArray<FPCGPoint>& Points = PointIO.GetIn()->GetPoints();
-			int32 NumPoints = Points.Num();
-			if (NumPoints <= DIMENSIONS + 1) { return false; }
+			const int32 NumPoints = InPoints.Num();
+			if (NumPoints <= DIMENSIONS) { return false; }
+
 			Vertices.SetNumUninitialized(NumPoints);
 
 			for (int i = 0; i < NumPoints; i++)
 			{
-				Vertices[i] = new TFVtx<DIMENSIONS, VECTOR_TYPE>();
-				Vertices[i]->Id = i;
-				FVector Position = Points[i].Transform.GetLocation();
-				for (int x = 0; x < DIMENSIONS; x++) { Vertices[i]->Position[x] = Position[x]; }
+				UE_LOG(LogTemp, Warning, TEXT("Loop %d"), i)
+
+				TFVtx<DIMENSIONS>* Vtx = Vertices[i] = new TFVtx<DIMENSIONS>();
+
+				FVector Position = InPoints[i].Transform.GetLocation();
+				double SqrLn = 0;
+				for (int P = 0; P < DIMENSIONS - 1; P++)
+				{
+					(*Vtx)[P] = Position[P];
+					SqrLn += Position[P] * Position[P];
+				}
+
+				(*Vtx)[DIMENSIONS] = SqrLn;
 			}
 
 			return true;
@@ -92,47 +98,24 @@ namespace PCGExGeo
 
 		virtual void Generate()
 		{
-			//Clear();
-			//if (Input.Num() <= DIMENSIONS + 1) return;
+			//Create upscaled input for Hull generation		
+			TConvexHull<DIMENSIONS>* Hull = new TConvexHull<DIMENSIONS>();
+			Hull->Generate(Vertices);
 
-			UpscaledVertices.Reserve(Vertices.Num());
+			for (int i = 0; i < DIMENSIONS; i++) { (*Centroid)[i] = Hull->Centroid[i]; }
 
-			//Create upscaled input for Hull generation			
-			for (TFVtx<DIMENSIONS, VECTOR_TYPE>* Vtx : Vertices)
-			{
-				TFVtx<DIMENSIONS + 1, UPSCALED_VECTOR_TYPE>* UVtx = UpscaledVertices.Add_GetRef(new TFVtx<DIMENSIONS + 1, UPSCALED_VECTOR_TYPE>());
-				UVtx->Id = Vtx->Id;
-				for (int i = 0; i < DIMENSIONS; i++) { UVtx->Position[i] = Vtx->Position[i]; }
-				UVtx->Position[DIMENSIONS] = Vtx->SqrMagnitude();
-			}
-
-			TConvexHull<DIMENSIONS + 1, UPSCALED_VECTOR_TYPE>* Hull = new TConvexHull<DIMENSIONS + 1, UPSCALED_VECTOR_TYPE>();
-			Hull->Generate(UpscaledVertices);
-
-			/*
-			Vertices.Empty(Hull->Vertices.Num());
-			for (int i = 0; i < Hull->Vertices.Num(); i++)
-			{
-				TFVtx<DIMENSIONS + 1, UPSCALED_VECTOR_TYPE>* UVtx = Hull->Vertices[i];
-				TFVtx<DIMENSIONS, VECTOR_TYPE>* Vtx = Vertices[i];
-				// TODO: Update original points with hulled data? Pointless if id are stable.
-			}
-			*/
-
-			for (int i = 0; i < DIMENSIONS; i++) { Centroid->Position[i] = Hull->Centroid[i]; }
-
-			for (TFSimplex<DIMENSIONS + 1, UPSCALED_VECTOR_TYPE>* Simplex : Hull->Simplices)
+			for (TFSimplex<DIMENSIONS>* Simplex : Hull->Simplices)
 			{
 				if (Simplex->Normal[DIMENSIONS] >= 0.0f)
 				{
-					for (TFSimplex<DIMENSIONS + 1, UPSCALED_VECTOR_TYPE>* Adjacent : Simplex->AdjacentFaces)
+					for (TFSimplex<DIMENSIONS>* Adjacent : Simplex->AdjacentFaces)
 					{
 						if (Adjacent) { Adjacent->Remove(Simplex); }
 					}
 				}
 				else
 				{
-					TDelaunayCell<DIMENSIONS + 1, UPSCALED_VECTOR_TYPE>* Cell = CreateCell(Simplex);
+					TDelaunayCell<DIMENSIONS>* Cell = CreateCell(Simplex);
 					//cell.CircumCenter.Id = i;
 					Cells.Add(Cell);
 				}
@@ -140,11 +123,11 @@ namespace PCGExGeo
 		}
 
 	protected:
-		virtual TDelaunayCell<DIMENSIONS + 1, UPSCALED_VECTOR_TYPE>* CreateCell(TFSimplex<DIMENSIONS + 1, UPSCALED_VECTOR_TYPE>* Simplex) = 0;
+		virtual TDelaunayCell<DIMENSIONS>* CreateCell(TFSimplex<DIMENSIONS>* Simplex) = 0;
 		virtual double Determinant() const = 0;
 	};
 
-	class TDelaunayTriangulation2 : public TDelaunayTriangulation<2, FVector2D, FVector>
+	class PCGEXTENDEDTOOLKIT_API TDelaunayTriangulation2 : public TDelaunayTriangulation<3, FVector>
 	{
 	public:
 		TDelaunayTriangulation2() : TDelaunayTriangulation()
@@ -160,40 +143,45 @@ namespace PCGExGeo
 			return MTX[0][0] * F00 + MTX[0][1] * F10 + MTX[0][2] * F20;
 		}
 
-		virtual TDelaunayCell<3, FVector>* CreateCell(TFSimplex<3, FVector>* Simplex) override
+		virtual TDelaunayCell<3>* CreateCell(TFSimplex<3>* Simplex) override
 		{
 			// From MathWorld: http://mathworld.wolfram.com/Circumcircle.html
 
 			// x, y, 1
 			for (int i = 0; i < 3; i++)
 			{
-				MTX[i][0] = Simplex->Vertices[i]->Position[0];
-				MTX[i][1] = Simplex->Vertices[i]->Position[1];
+				TFVtx<3>& V = (*Simplex->Vertices[i]);
+				MTX[i][0] = V[0];
+				MTX[i][1] = V[1];
 				MTX[i][2] = 1;
 			}
 
 			const double a = Determinant();
 
 			// size, y, 1
-			for (int i = 0; i < 3; i++) { MTX[i][0] = Simplex->Vertices[i]->Position[2]; } //->SqrMagnitude();
+			for (int i = 0; i < 3; i++) { MTX[i][0] = (*Simplex->Vertices[i])[2]; } //->SqrMagnitude();
 			const double DX = -Determinant();
 
 			// size, x, 1
-			for (int i = 0; i < 3; i++) { MTX[i][1] = Simplex->Vertices[i]->Position[0]; }
+			for (int i = 0; i < 3; i++) { MTX[i][1] = (*Simplex->Vertices[i])[0]; }
 			const double DY = Determinant();
 
 			// size, x, y
-			for (int i = 0; i < 3; i++) { MTX[i][2] = Simplex->Vertices[i]->Position[1]; }
+			for (int i = 0; i < 3; i++) { MTX[i][2] = (*Simplex->Vertices[i])[1]; }
 			const double c = -Determinant();
 
 			const double s = -1.0f / (2.0f * a);
+
+			TFVtx<3>* CC = new TFVtx<3>();
+			CC->SetV3(FVector(s * DX, s * DY, 0));
+
 			return new TDelaunayCell(
-				Simplex, FVector(s * DX, s * DY, 0),
+				Simplex, CC,
 				FMath::Abs(s) * FMath::Sqrt(DX * DX + DY * DY - 4.0 * a * c));
 		}
 	};
 
-	class TDelaunayTriangulation3 : public TDelaunayTriangulation<3, FVector, FVector4>
+	class PCGEXTENDEDTOOLKIT_API TDelaunayTriangulation3 : public TDelaunayTriangulation<4, FVector4>
 	{
 	public:
 		TDelaunayTriangulation3() : TDelaunayTriangulation()
@@ -217,40 +205,44 @@ namespace PCGExGeo
 				MTX[0][3] * MINOR(1, 2, 3, 0, 1, 2));
 		}
 
-		virtual TDelaunayCell<4, FVector4>* CreateCell(TFSimplex<4, FVector4>* Simplex) override
+		virtual TDelaunayCell<4>* CreateCell(TFSimplex<4>* Simplex) override
 		{
 			// From MathWorld: http://mathworld.wolfram.com/Circumsphere.html
 
 			// x, y, z, 1
 			for (int i = 0; i < 4; i++)
 			{
-				MTX[i][0] = Simplex->Vertices[i]->Position[0];
-				MTX[i][1] = Simplex->Vertices[i]->Position[1];
-				MTX[i][2] = Simplex->Vertices[i]->Position[2];
+				TFVtx<4>& V = (*Simplex->Vertices[i]);
+				MTX[i][0] = V[0];
+				MTX[i][1] = V[1];
+				MTX[i][2] = V[2];
 				MTX[i][3] = 1;
 			}
 			const double a = Determinant();
 
 			// size, y, z, 1
-			for (int i = 0; i < 4; i++) { MTX[i][0] = Simplex->Vertices[i]->Position[3]; } //->SqrMagnitude();
+			for (int i = 0; i < 4; i++) { MTX[i][0] = (*Simplex->Vertices[i])[3]; } //->SqrMagnitude();
 			const double DX = Determinant();
 
 			// size, x, z, 1
-			for (int i = 0; i < 4; i++) { MTX[i][1] = Simplex->Vertices[i]->Position[0]; }
+			for (int i = 0; i < 4; i++) { MTX[i][1] = (*Simplex->Vertices[i])[0]; }
 			const double DY = -Determinant();
 
 			// size, x, y, 1
-			for (int i = 0; i < 4; i++) { MTX[i][2] = Simplex->Vertices[i]->Position[1]; }
+			for (int i = 0; i < 4; i++) { MTX[i][2] = (*Simplex->Vertices[i])[1]; }
 			const double DZ = Determinant();
 
 			//size, x, y, z
-			for (int i = 0; i < 4; i++) { MTX[i][3] = Simplex->Vertices[i]->Position[2]; }
+			for (int i = 0; i < 4; i++) { MTX[i][3] = (*Simplex->Vertices[i])[2]; }
 			const double c = Determinant();
 
 			const double s = -1.0f / (2.0f * a);
+
+			TFVtx<4>* CC = new TFVtx<4>();
+			CC->SetV4(FVector4(s * DX, s * DY, s * DZ, 0));
+
 			return new TDelaunayCell(
-				Simplex,
-				FVector4(s * DX, s * DY, s * DZ, 0),
+				Simplex, CC,
 				FMath::Abs(s) * FMath::Sqrt(DX * DX + DY * DY + DZ * DZ - 4 * a * c));
 		}
 	};

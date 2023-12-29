@@ -84,7 +84,7 @@ bool FPCGExBuildDelaunayGraphElement::ExecuteInternal(
 		else
 		{
 			Context->DelaunayTriangulation = new PCGExGeo::TDelaunayTriangulation3();
-			if (Context->DelaunayTriangulation->PrepareFrom(*Context->CurrentIO))
+			if (Context->DelaunayTriangulation->PrepareFrom(Context->CurrentIO->GetIn()->GetPoints()))
 			{
 				Context->CurrentIslandIO = &Context->IslandsIO->Emplace_GetRef();
 				Context->EdgeNetwork = new PCGExGraph::FEdgeNetwork(Context->CurrentIO->GetNum() * 3, Context->CurrentIO->GetNum());
@@ -137,7 +137,7 @@ bool FPCGExBuildDelaunayGraphElement::ExecuteInternal(
 		TSet<uint64> UniqueEdges;
 		TArray<PCGExGraph::FUnsignedEdge> Edges;
 		UniqueEdges.Reserve(Context->DelaunayTriangulation->Cells.Num() * 3);
-		for (const PCGExGeo::TDelaunayCell<4, FVector4>* Cell : Context->DelaunayTriangulation->Cells)
+		for (const PCGExGeo::TDelaunayCell<4>* Cell : Context->DelaunayTriangulation->Cells)
 		{
 			for (int i = 0; i < 4; i++)
 			{
@@ -171,8 +171,8 @@ bool FPCGExBuildDelaunayGraphElement::ExecuteInternal(
 		{
 			MutablePoints[PointIndex].Transform.SetLocation(
 				FMath::Lerp(
-					(Context->DelaunayTriangulation->Vertices)[EdgeStart->Values[PointIndex] = Edge.Start]->Position,
-					(Context->DelaunayTriangulation->Vertices)[EdgeEnd->Values[PointIndex] = Edge.End]->Position, 0.5));
+					(Context->DelaunayTriangulation->Vertices)[EdgeStart->Values[PointIndex] = Edge.Start]->GetV3(),
+					(Context->DelaunayTriangulation->Vertices)[EdgeEnd->Values[PointIndex] = Edge.End]->GetV3(), 0.5));
 			PointIndex++;
 		}
 
