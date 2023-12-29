@@ -322,36 +322,36 @@ namespace PCGExGeo
 		}
 
 		/// Check if 2 faces are adjacent and if so, update their AdjacentFaces array.
-		void UpdateAdjacency(TSimplexWrap<DIMENSIONS>* l, TSimplexWrap<DIMENSIONS>* r)
+		void UpdateAdjacency(TSimplexWrap<DIMENSIONS>* Left, TSimplexWrap<DIMENSIONS>* Right)
 		{
 			
 			int i;
 
 			// reset marks on the 1st face
-			for (i = 0; i < DIMENSIONS; i++) l->Vertices[i]->Tag = 0;
+			for (i = 0; i < DIMENSIONS; i++) Left->Vertices[i]->Tag = 0;
 
 			// mark all vertices on the 2nd face
-			for (i = 0; i < DIMENSIONS; i++) r->Vertices[i]->Tag = 1;
+			for (i = 0; i < DIMENSIONS; i++) Right->Vertices[i]->Tag = 1;
 
 			// find the 1st false index
-			for (i = 0; i < DIMENSIONS; i++) if (l->Vertices[i]->Tag == 0) break;
+			for (i = 0; i < DIMENSIONS; i++) if (Left->Vertices[i]->Tag == 0) break;
 
 			// no vertex was marked
 			if (i == DIMENSIONS) return;
 
 			// check if only 1 vertex wasn't marked
-			for (int j = i + 1; j < DIMENSIONS; j++) if (l->Vertices[j]->Tag == 0) return;
+			for (int j = i + 1; j < DIMENSIONS; j++) if (Left->Vertices[j]->Tag == 0) return;
 
 			// if we are here, the two faces share an edge
-			l->AdjacentFaces[i] = r;
+			Left->AdjacentFaces[i] = Right;
 
 			// update the adj. face on the other face - find the vertex that remains marked
-			for (i = 0; i < DIMENSIONS; i++) l->Vertices[i]->Tag = 0;
+			for (i = 0; i < DIMENSIONS; i++) Left->Vertices[i]->Tag = 0;
 			for (i = 0; i < DIMENSIONS; i++)
 			{
-				if (r->Vertices[i]->Tag == 1) break;
+				if (Right->Vertices[i]->Tag == 1) break;
 			}
-			r->AdjacentFaces[i] = l;
+			Right->AdjacentFaces[i] = Left;
 		}
 
 		/// Calculates the normal and offset of the hyper-plane given by the face's vertices.
