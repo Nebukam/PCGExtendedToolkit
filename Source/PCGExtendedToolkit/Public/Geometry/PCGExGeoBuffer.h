@@ -24,6 +24,8 @@ namespace PCGExGeo
 			Items.Reserve(InCapacity);
 		}
 
+		~TVertexBuffer() { Items.Empty(); }
+
 		bool IsEmpty() { return Items.IsEmpty(); }
 		int32 Num() { return Items.Num(); }
 
@@ -306,6 +308,17 @@ namespace PCGExGeo
 
 		~TObjectManager()
 		{
+			TSimplexWrap<DIMENSIONS>* OutFace = nullptr;
+			while (RecycledFaceStack.Dequeue(OutFace)) { delete OutFace; }
+
+			TSimplexConnector<DIMENSIONS>* OutConnector = nullptr;
+			while (ConnectorStack.Dequeue(OutConnector)) { delete OutConnector; }
+
+			TVertexBuffer<DIMENSIONS>* OutBuffer = nullptr;
+			while (EmptyBufferStack.Dequeue(OutBuffer)) { delete OutBuffer; }
+
+			TDeferredSimplex<DIMENSIONS>* OutDeferredSimplex = nullptr;
+			while (DeferredSimplexStack.Dequeue(OutDeferredSimplex)) { delete OutDeferredSimplex; }
 		}
 
 		void Clear()
@@ -470,7 +483,6 @@ namespace PCGExGeo
 				UpdateIndices[i] = -1;
 			}
 
-			PCGEX_DELETE(ObjectManager)
 			PCGEX_DELETE(EmptyBuffer)
 			PCGEX_DELETE(BeyondBuffer)
 
@@ -480,6 +492,8 @@ namespace PCGExGeo
 				PCGEX_DELETE(CList)
 				ConnectorTable[i] = nullptr;
 			}
+
+			PCGEX_DELETE(ObjectManager)
 		}
 
 		void InitInput(const TArray<TFVtx<DIMENSIONS>*>& Input)

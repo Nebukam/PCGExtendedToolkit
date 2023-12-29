@@ -104,7 +104,6 @@ namespace PCGExGeo
 				Simplex->UpdateCentroid();
 			}
 
-			//TODO : Woah, definitely some more cleanup to do, buffer owns tons of shit apparently
 			PCGEX_DELETE(Buffer)
 		}
 
@@ -316,7 +315,7 @@ namespace PCGExGeo
 			{
 				for (int j = i + 1; j < DIMENSIONS + 1; j++)
 				{
-					UpdateAdjacency(Faces[i],Faces[j]);
+					UpdateAdjacency(Faces[i], Faces[j]);
 				}
 			}
 		}
@@ -324,33 +323,30 @@ namespace PCGExGeo
 		/// Check if 2 faces are adjacent and if so, update their AdjacentFaces array.
 		void UpdateAdjacency(TSimplexWrap<DIMENSIONS>* Left, TSimplexWrap<DIMENSIONS>* Right)
 		{
-			
 			int i;
 
 			// reset marks on the 1st face
-			for (i = 0; i < DIMENSIONS; i++) Left->Vertices[i]->Tag = 0;
+			for (i = 0; i < DIMENSIONS; i++) { Left->Vertices[i]->Tag = 0; }
 
 			// mark all vertices on the 2nd face
-			for (i = 0; i < DIMENSIONS; i++) Right->Vertices[i]->Tag = 1;
+			for (i = 0; i < DIMENSIONS; i++) { Right->Vertices[i]->Tag = 1; }
 
 			// find the 1st false index
-			for (i = 0; i < DIMENSIONS; i++) if (Left->Vertices[i]->Tag == 0) break;
+			for (i = 0; i < DIMENSIONS; i++) { if (Left->Vertices[i]->Tag == 0) { break; } }
 
 			// no vertex was marked
-			if (i == DIMENSIONS) return;
+			if (i == DIMENSIONS) { return; }
 
 			// check if only 1 vertex wasn't marked
-			for (int j = i + 1; j < DIMENSIONS; j++) if (Left->Vertices[j]->Tag == 0) return;
+			for (int j = i + 1; j < DIMENSIONS; j++) { if (Left->Vertices[j]->Tag == 0) { return; } }
 
 			// if we are here, the two faces share an edge
 			Left->AdjacentFaces[i] = Right;
 
 			// update the adj. face on the other face - find the vertex that remains marked
-			for (i = 0; i < DIMENSIONS; i++) Left->Vertices[i]->Tag = 0;
-			for (i = 0; i < DIMENSIONS; i++)
-			{
-				if (Right->Vertices[i]->Tag == 1) break;
-			}
+			for (i = 0; i < DIMENSIONS; i++) { Left->Vertices[i]->Tag = 0; }
+			for (i = 0; i < DIMENSIONS; i++) { if (Right->Vertices[i]->Tag == 1) { break; } }
+
 			Right->AdjacentFaces[i] = Left;
 		}
 

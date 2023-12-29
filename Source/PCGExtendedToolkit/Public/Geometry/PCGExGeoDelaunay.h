@@ -51,8 +51,8 @@ namespace PCGExGeo
 
 		virtual ~TDelaunayTriangulation()
 		{
-			Cells.Empty();
-			Vertices.Empty();
+			PCGEX_DELETE_TARRAY(Cells)
+			PCGEX_DELETE_TARRAY(Vertices)
 			PCGEX_DELETE(Centroid)
 		}
 
@@ -77,7 +77,7 @@ namespace PCGExGeo
 			{
 				TFVtx<DIMENSIONS>* Vtx = Vertices[i] = new TFVtx<DIMENSIONS>();
 				Vtx->Id = i;
-				
+
 				FVector Position = InPoints[i].Transform.GetLocation();
 				double SqrLn = 0;
 				for (int P = 0; P < DIMENSIONS - 1; P++)
@@ -86,7 +86,7 @@ namespace PCGExGeo
 					SqrLn += Position[P] * Position[P];
 				}
 
-				(*Vtx)[DIMENSIONS-1] = SqrLn;
+				(*Vtx)[DIMENSIONS - 1] = SqrLn;
 			}
 
 			return true;
@@ -100,9 +100,10 @@ namespace PCGExGeo
 
 			for (int i = 0; i < DIMENSIONS; i++) { (*Centroid)[i] = Hull->Centroid[i]; }
 
+			int i = 0;
 			for (TFSimplex<DIMENSIONS>* Simplex : Hull->Simplices)
 			{
-				if (Simplex->Normal[DIMENSIONS-1] >= 0.0f)
+				if (Simplex->Normal[DIMENSIONS - 1] >= 0.0f)
 				{
 					for (TFSimplex<DIMENSIONS>* Adjacent : Simplex->AdjacentFaces)
 					{
@@ -112,7 +113,7 @@ namespace PCGExGeo
 				else
 				{
 					TDelaunayCell<DIMENSIONS>* Cell = CreateCell(Simplex);
-					//cell.CircumCenter.Id = i;
+					Cell->Circumcenter->Id = i++;
 					Cells.Add(Cell);
 				}
 			}
