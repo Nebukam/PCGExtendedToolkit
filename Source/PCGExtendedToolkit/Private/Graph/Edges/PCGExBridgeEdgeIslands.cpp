@@ -4,6 +4,7 @@
 #include "Graph/Edges/PCGExBridgeEdgeIslands.h"
 
 #include "Data/PCGExPointIOMerger.h"
+#include "Geometry/PCGExGeoDelaunay.h"
 
 #define LOCTEXT_NAMESPACE "PCGExBridgeEdgeIslands"
 #define PCGEX_NAMESPACE BridgeEdgeIslands
@@ -107,7 +108,42 @@ bool FPCGExBridgeEdgeIslandsElement::ExecuteInternal(
 		{
 			PCGExMesh::FMesh* CurrentMesh = Context->Meshes[MeshIndex];
 
-			if (Context->BridgeMethod == EPCGExBridgeIslandMethod::LeastEdges)
+			if(Context->BridgeMethod == EPCGExBridgeIslandMethod::Delaunay)
+			{
+				PCGExGeo::TDelaunayTriangulation3* Delaunay = new PCGExGeo::TDelaunayTriangulation3();
+				TArray<FPCGPoint> Points;
+				Points.SetNum(Context->Meshes.Num());
+				for(int i = 0; i < Points.Num(); i++){Points[i].Transform.SetLocation(Context->Meshes[i]->Bounds.GetCenter());}
+				if(Delaunay->PrepareFrom(Points))
+				{
+					Delaunay->Generate();
+					
+					TSet<uint64> UniqueEdges;
+					UniqueEdges.Reserve(Delaunay->Cells.Num() * 3);
+					for (const PCGExGeo::TDelaunayCell<4>* Cell : Delaunay->Cells)
+					{
+						for (int i = 0; i < 4; i++)
+						{
+							const int32 A = Cell->Simplex->Vertices[i]->Id;
+							for (int j = i + 1; j < 4; j++)
+							{
+								const int32 B = Cell->Simplex->Vertices[j]->Id;
+								const uint64 Hash = PCGExGraph::GetUnsignedHash64(A, B);
+								if (!UniqueEdges.Contains(Hash))
+								{
+									Context->GetAsyncManager()->Start<FBridgeMeshesTask>(A, Context->ConsolidatedEdges, B);
+									UniqueEdges.Add(Hash);
+								}
+							}
+						}
+					}
+
+					UniqueEdges.Empty();
+				}
+				
+				PCGEX_DELETE(Delaunay)
+			}
+			else if (Context->BridgeMethod == EPCGExBridgeIslandMethod::LeastEdges)
 			{
 				Context->VisitedMeshes.Add(CurrentMesh); // As to not connect to self or already connected
 

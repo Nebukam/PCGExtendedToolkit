@@ -38,35 +38,37 @@ namespace PCGExGeo
 	template <int DIMENSIONS, typename VECTOR_TYPE>
 	class PCGEXTENDEDTOOLKIT_API TDelaunayTriangulation
 	{
+		
+		TConvexHull<DIMENSIONS>* Hull = nullptr;
+		
 	public:
 		TArray<TFVtx<DIMENSIONS>*> Vertices;
 		TArray<TDelaunayCell<DIMENSIONS>*> Cells;
 		TFVtx<DIMENSIONS>* Centroid = nullptr;
 
 		double MTX[DIMENSIONS][DIMENSIONS];
-
+		
 		TDelaunayTriangulation()
 		{
 		}
 
 		virtual ~TDelaunayTriangulation()
 		{
-			Cells.Empty();
-			Vertices.Empty();
+			PCGEX_DELETE_TARRAY(Cells)
+			PCGEX_DELETE_TARRAY(Vertices)
 			PCGEX_DELETE(Centroid)
-		}
-
-		virtual void Clear()
-		{
-			Cells.Empty();
-			Vertices.Empty();
-			PCGEX_DELETE(Centroid)
-			Centroid = new TFVtx<DIMENSIONS>();
+			PCGEX_DELETE(Hull)
 		}
 
 		bool PrepareFrom(const TArray<FPCGPoint>& InPoints)
 		{
-			Clear();
+			
+			PCGEX_DELETE_TARRAY(Cells)
+			PCGEX_DELETE_TARRAY(Vertices)
+			PCGEX_DELETE(Centroid)
+			PCGEX_DELETE(Hull)
+			
+			Centroid = new TFVtx<DIMENSIONS>();
 
 			const int32 NumPoints = InPoints.Num();
 			if (NumPoints <= DIMENSIONS) { return false; }
@@ -77,7 +79,7 @@ namespace PCGExGeo
 			{
 				TFVtx<DIMENSIONS>* Vtx = Vertices[i] = new TFVtx<DIMENSIONS>();
 				Vtx->Id = i;
-				
+
 				FVector Position = InPoints[i].Transform.GetLocation();
 				double SqrLn = 0;
 				for (int P = 0; P < DIMENSIONS - 1; P++)
@@ -86,7 +88,7 @@ namespace PCGExGeo
 					SqrLn += Position[P] * Position[P];
 				}
 
-				(*Vtx)[DIMENSIONS-1] = SqrLn;
+				(*Vtx)[DIMENSIONS - 1] = SqrLn;
 			}
 
 			return true;
@@ -94,15 +96,16 @@ namespace PCGExGeo
 
 		virtual void Generate()
 		{
-			//Create upscaled input for Hull generation		
-			TConvexHull<DIMENSIONS>* Hull = new TConvexHull<DIMENSIONS>();
+			PCGEX_DELETE(Hull)		
+			Hull = new TConvexHull<DIMENSIONS>();
 			Hull->Generate(Vertices);
 
 			for (int i = 0; i < DIMENSIONS; i++) { (*Centroid)[i] = Hull->Centroid[i]; }
 
+			int i = 0;
 			for (TFSimplex<DIMENSIONS>* Simplex : Hull->Simplices)
 			{
-				if (Simplex->Normal[DIMENSIONS-1] >= 0.0f)
+				if (Simplex->Normal[DIMENSIONS - 1] >= 0.0f)
 				{
 					for (TFSimplex<DIMENSIONS>* Adjacent : Simplex->AdjacentFaces)
 					{
@@ -112,7 +115,7 @@ namespace PCGExGeo
 				else
 				{
 					TDelaunayCell<DIMENSIONS>* Cell = CreateCell(Simplex);
-					//cell.CircumCenter.Id = i;
+					Cell->Circumcenter->Id = i++;
 					Cells.Add(Cell);
 				}
 			}
