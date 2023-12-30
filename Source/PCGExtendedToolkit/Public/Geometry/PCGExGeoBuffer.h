@@ -10,32 +10,8 @@ namespace PCGExGeo
 {
 	/// Used to effectively store vertices beyond.
 	template <int DIMENSIONS>
-	class TVertexBuffer
+	class TVertexBuffer : public TArray<TFVtx<DIMENSIONS>*>
 	{
-	public:
-		TArray<TFVtx<DIMENSIONS>*> Items;
-
-		TVertexBuffer()
-		{
-		}
-
-		explicit TVertexBuffer(int32 InCapacity)
-		{
-			Items.Reserve(InCapacity);
-		}
-
-		~TVertexBuffer() { Items.Empty(); }
-
-		bool IsEmpty() { return Items.IsEmpty(); }
-		int32 Num() { return Items.Num(); }
-
-		TFVtx<DIMENSIONS>* operator[](int32 Index) const { return Items[Index]; }
-
-		/// Adds a vertex to the buffer.
-		void Add(TFVtx<DIMENSIONS>* Vtx) { Items.Add(Vtx); }
-
-		/// Sets the Count to 0, otherwise does nothing.
-		void Clear() { Items.Empty(); }
 	};
 
 	template <int DIMENSIONS>
@@ -65,6 +41,11 @@ namespace PCGExGeo
 			VerticesBeyond = InBeyondList;
 		}
 
+		virtual ~TSimplexWrap() override
+		{
+			PCGEX_DELETE(VerticesBeyond)
+		}
+		
 		void Clear()
 		{
 			Previous = nullptr;
@@ -188,14 +169,6 @@ namespace PCGExGeo
 			Last = nullptr;
 		}
 
-		/// Adds the element to the beginning.
-		void AddFirst(TSimplexConnector<DIMENSIONS>* Connector)
-		{
-			First->Previous = Connector;
-			Connector->Next = First;
-			First = Connector;
-		}
-
 		/// Adds a face to the list.
 		void Add(TSimplexConnector<DIMENSIONS>* Element)
 		{
@@ -230,7 +203,6 @@ namespace PCGExGeo
 
 		void Clear()
 		{
-			//TODO: Destroy
 			First = nullptr;
 			Last = nullptr;
 		}
@@ -294,212 +266,90 @@ namespace PCGExGeo
 
 	/// A helper class for object allocation/storage. 
 	template <int DIMENSIONS>
-	class TObjectManager
+	class THullObjectsPool
 	{
 	public:
-		TQueue<TSimplexWrap<DIMENSIONS>*> RecycledFaceStack;
-		TQueue<TSimplexConnector<DIMENSIONS>*> ConnectorStack;
-		TQueue<TVertexBuffer<DIMENSIONS>*> EmptyBufferStack;
-		TQueue<TDeferredSimplex<DIMENSIONS>*> DeferredSimplexStack;
+		TQueue<TSimplexWrap<DIMENSIONS>*> FacesQueue;
+		TQueue<TSimplexConnector<DIMENSIONS>*> ConnectorsQueue;
+		TQueue<TVertexBuffer<DIMENSIONS>*> EmptyBufferQueue;
+		TQueue<TDeferredSimplex<DIMENSIONS>*> DeferredSimplexQueue;
 
-		TObjectManager()
+		static constexpr int32 CONNECTOR_TABLE_SIZE = 2017;
+		ConnectorList<DIMENSIONS>* ConnectorTable[CONNECTOR_TABLE_SIZE];
+
+		THullObjectsPool()
 		{
+			for (int i = 0; i < CONNECTOR_TABLE_SIZE; i++){ ConnectorTable[i] = new ConnectorList<DIMENSIONS>(); }
 		}
 
-		~TObjectManager()
+		~THullObjectsPool()
 		{
 			TSimplexWrap<DIMENSIONS>* OutFace = nullptr;
-			while (RecycledFaceStack.Dequeue(OutFace)) { delete OutFace; }
+			while (FacesQueue.Dequeue(OutFace)) { delete OutFace; }
 
 			TSimplexConnector<DIMENSIONS>* OutConnector = nullptr;
-			while (ConnectorStack.Dequeue(OutConnector)) { delete OutConnector; }
+			while (ConnectorsQueue.Dequeue(OutConnector)) { delete OutConnector; }
 
 			TVertexBuffer<DIMENSIONS>* OutBuffer = nullptr;
-			while (EmptyBufferStack.Dequeue(OutBuffer)) { delete OutBuffer; }
+			while (EmptyBufferQueue.Dequeue(OutBuffer)) { delete OutBuffer; }
 
 			TDeferredSimplex<DIMENSIONS>* OutDeferredSimplex = nullptr;
-			while (DeferredSimplexStack.Dequeue(OutDeferredSimplex)) { delete OutDeferredSimplex; }
+			while (DeferredSimplexQueue.Dequeue(OutDeferredSimplex)) { delete OutDeferredSimplex; }
+
+			for (int i = 0; i < CONNECTOR_TABLE_SIZE; i++){ delete ConnectorTable[i]; }
 		}
 
-		void Clear()
-		{
-			//TODO: Flush memory and delete
-			RecycledFaceStack.Empty();
-			ConnectorStack.Empty();
-			EmptyBufferStack.Empty();
-			DeferredSimplexStack.Empty();
-		}
-
-		void DepositFace(TSimplexWrap<DIMENSIONS>* Face)
+		void ReturnFace(TSimplexWrap<DIMENSIONS>* Face)
 		{
 			Face->Clear();
-			RecycledFaceStack.Enqueue(Face);
+			FacesQueue.Enqueue(Face);
 		}
 
 		TSimplexWrap<DIMENSIONS>* GetFace()
 		{
 			if (TSimplexWrap<DIMENSIONS>* OutFace = nullptr;
-				RecycledFaceStack.Dequeue(OutFace)) { return OutFace; }
+				FacesQueue.Dequeue(OutFace)) { return OutFace; }
 			return new TSimplexWrap<DIMENSIONS>(GetVertexBuffer());
 		}
 
-		void DepositConnector(TSimplexConnector<DIMENSIONS>* Connector)
+		void ReturnConnector(TSimplexConnector<DIMENSIONS>* Connector)
 		{
 			Connector->Clear();
-			ConnectorStack.Enqueue(Connector);
+			ConnectorsQueue.Enqueue(Connector);
 		}
 
 		TSimplexConnector<DIMENSIONS>* GetConnector()
 		{
 			if (TSimplexConnector<DIMENSIONS>* OutConnector = nullptr;
-				ConnectorStack.Dequeue(OutConnector)) { return OutConnector; }
+				ConnectorsQueue.Dequeue(OutConnector)) { return OutConnector; }
 			return new TSimplexConnector<DIMENSIONS>();
 		}
 
-		void DepositVertexBuffer(TVertexBuffer<DIMENSIONS>* Buffer)
+		void ReturnVertexBuffer(TVertexBuffer<DIMENSIONS>* Buffer)
 		{
-			Buffer->Clear();
-			EmptyBufferStack.Enqueue(Buffer);
+			Buffer->Empty();
+			EmptyBufferQueue.Enqueue(Buffer);
 		}
 
 		TVertexBuffer<DIMENSIONS>* GetVertexBuffer()
 		{
 			if (TVertexBuffer<DIMENSIONS>* OutBuffer = nullptr;
-				EmptyBufferStack.Dequeue(OutBuffer)) { return OutBuffer; }
+				EmptyBufferQueue.Dequeue(OutBuffer)) { return OutBuffer; }
 			return new TVertexBuffer<DIMENSIONS>();
 		}
 
-		void DepositDeferredSimplex(TDeferredSimplex<DIMENSIONS>* Face)
+		void ReturnDeferredSimplex(TDeferredSimplex<DIMENSIONS>* Face)
 		{
 			Face->Clear();
-			DeferredSimplexStack.Enqueue(Face);
+			DeferredSimplexQueue.Enqueue(Face);
 		}
 
 		TDeferredSimplex<DIMENSIONS>* GetDeferredSimplex()
 		{
 			if (TDeferredSimplex<DIMENSIONS>* OutDeferredSimplex = nullptr;
-				DeferredSimplexStack.Dequeue(OutDeferredSimplex)) { return OutDeferredSimplex; }
+				DeferredSimplexQueue.Dequeue(OutDeferredSimplex)) { return OutDeferredSimplex; }
 			return new TDeferredSimplex<DIMENSIONS>();
 		}
 	};
-
-	/// Holds all the objects needed to create a convex hull.
-	/// Helps keep the Convex hull class clean and could maybe recyle them.
-	template <int DIMENSIONS>
-	class TObjectBuffer
-	{
-	public:
-		static constexpr int32 CONNECTOR_TABLE_SIZE = 2017;
-
-		double MaxDistance;
-
-		TArray<TFVtx<DIMENSIONS>*> InputVertices;
-		TArray<TSimplexWrap<DIMENSIONS>*> ConvexSimplices;
-
-		TFVtx<DIMENSIONS>* CurrentVertex = nullptr;
-		TFVtx<DIMENSIONS>* FurthestVertex = nullptr;
-
-		TObjectManager<DIMENSIONS>* ObjectManager = nullptr;
-
-		TSimplexList<DIMENSIONS>* UnprocessedFaces = nullptr;
-		TArray<TSimplexWrap<DIMENSIONS>*> AffectedFaceBuffer;
-		TQueue<TSimplexWrap<DIMENSIONS>*> TraverseStack;
-		TSet<TFVtx<DIMENSIONS>*> SingularVertices;
-
-		TArray<TDeferredSimplex<DIMENSIONS>*> ConeFaceBuffer;
-
-		TSimplexWrap<DIMENSIONS>* UpdateBuffer[DIMENSIONS];
-		int32 UpdateIndices[DIMENSIONS];
-
-		ConnectorList<DIMENSIONS>* ConnectorTable[CONNECTOR_TABLE_SIZE];
-		TVertexBuffer<DIMENSIONS>* EmptyBuffer = nullptr;
-		TVertexBuffer<DIMENSIONS>* BeyondBuffer = nullptr;
-
-		TObjectBuffer()
-		{
-			for (int i = 0; i < CONNECTOR_TABLE_SIZE; i++) { ConnectorTable[i] = nullptr; }
-			Reset();
-		}
-
-		void Reset()
-		{
-			MaxDistance = TNumericLimits<double>::Min();
-
-			InputVertices.Empty();
-			ConvexSimplices.Empty();
-
-			PCGEX_DELETE(UnprocessedFaces)
-			UnprocessedFaces = new TSimplexList<DIMENSIONS>();
-			AffectedFaceBuffer.Empty();
-			TraverseStack.Empty();
-			SingularVertices.Empty();
-
-			ConeFaceBuffer.Empty();
-
-			for (int i = 0; i < DIMENSIONS; i++)
-			{
-				UpdateBuffer[i] = nullptr;
-				UpdateIndices[i] = -1;
-			}
-
-			PCGEX_DELETE(ObjectManager)
-			ObjectManager = new TObjectManager<DIMENSIONS>();
-
-			PCGEX_DELETE(EmptyBuffer)
-			EmptyBuffer = new TVertexBuffer<DIMENSIONS>();
-
-			PCGEX_DELETE(BeyondBuffer)
-			BeyondBuffer = new TVertexBuffer<DIMENSIONS>();
-
-			for (int i = 0; i < CONNECTOR_TABLE_SIZE; i++)
-			{
-				ConnectorList<DIMENSIONS>* CList = ConnectorTable[i];
-				PCGEX_DELETE(CList)
-				ConnectorTable[i] = new ConnectorList<DIMENSIONS>();
-			}
-		}
-
-		void Clear()
-		{
-			Reset();
-		}
-
-		~TObjectBuffer()
-		{
-			InputVertices.Empty();
-			ConvexSimplices.Empty();
-
-			PCGEX_DELETE(UnprocessedFaces)
-
-			AffectedFaceBuffer.Empty();
-			TraverseStack.Empty();
-			SingularVertices.Empty();
-
-			ConeFaceBuffer.Empty();
-
-			for (int i = 0; i < DIMENSIONS; i++)
-			{
-				UpdateBuffer[i] = nullptr;
-				UpdateIndices[i] = -1;
-			}
-
-			PCGEX_DELETE(EmptyBuffer)
-			PCGEX_DELETE(BeyondBuffer)
-
-			for (int i = 0; i < CONNECTOR_TABLE_SIZE; i++)
-			{
-				ConnectorList<DIMENSIONS>* CList = ConnectorTable[i];
-				PCGEX_DELETE(CList)
-				ConnectorTable[i] = nullptr;
-			}
-
-			PCGEX_DELETE(ObjectManager)
-		}
-
-		void InitInput(const TArray<TFVtx<DIMENSIONS>*>& Input)
-		{
-			InputVertices.Empty(Input.Num());
-			InputVertices.Append(Input);
-		}
-	};
+	
 }

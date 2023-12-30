@@ -38,13 +38,16 @@ namespace PCGExGeo
 	template <int DIMENSIONS, typename VECTOR_TYPE>
 	class PCGEXTENDEDTOOLKIT_API TDelaunayTriangulation
 	{
+		
+		TConvexHull<DIMENSIONS>* Hull = nullptr;
+		
 	public:
 		TArray<TFVtx<DIMENSIONS>*> Vertices;
 		TArray<TDelaunayCell<DIMENSIONS>*> Cells;
 		TFVtx<DIMENSIONS>* Centroid = nullptr;
 
 		double MTX[DIMENSIONS][DIMENSIONS];
-
+		
 		TDelaunayTriangulation()
 		{
 		}
@@ -54,19 +57,18 @@ namespace PCGExGeo
 			PCGEX_DELETE_TARRAY(Cells)
 			PCGEX_DELETE_TARRAY(Vertices)
 			PCGEX_DELETE(Centroid)
-		}
-
-		virtual void Clear()
-		{
-			Cells.Empty();
-			Vertices.Empty();
-			PCGEX_DELETE(Centroid)
-			Centroid = new TFVtx<DIMENSIONS>();
+			PCGEX_DELETE(Hull)
 		}
 
 		bool PrepareFrom(const TArray<FPCGPoint>& InPoints)
 		{
-			Clear();
+			
+			PCGEX_DELETE_TARRAY(Cells)
+			PCGEX_DELETE_TARRAY(Vertices)
+			PCGEX_DELETE(Centroid)
+			PCGEX_DELETE(Hull)
+			
+			Centroid = new TFVtx<DIMENSIONS>();
 
 			const int32 NumPoints = InPoints.Num();
 			if (NumPoints <= DIMENSIONS) { return false; }
@@ -94,8 +96,8 @@ namespace PCGExGeo
 
 		virtual void Generate()
 		{
-			//Create upscaled input for Hull generation		
-			TConvexHull<DIMENSIONS>* Hull = new TConvexHull<DIMENSIONS>();
+			PCGEX_DELETE(Hull)		
+			Hull = new TConvexHull<DIMENSIONS>();
 			Hull->Generate(Vertices);
 
 			for (int i = 0; i < DIMENSIONS; i++) { (*Centroid)[i] = Hull->Centroid[i]; }

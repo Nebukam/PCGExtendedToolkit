@@ -13,56 +13,94 @@ namespace PCGExGeo
 	class PCGEXTENDEDTOOLKIT_API TConvexHull
 	{
 	public:
-		static constexpr double PLANE_DISTANCE_TOLERANCE = 1e-7f;
-
 		TArray<TFVtx<DIMENSIONS>*> Vertices;
 		TArray<TFSimplex<DIMENSIONS>*> Simplices;
 
 		double Centroid[DIMENSIONS];
 
-		TObjectBuffer<DIMENSIONS>* Buffer = nullptr;
+	protected:
+		static constexpr double PLANE_DISTANCE_TOLERANCE = 1e-7f;
+		double CurrentMaxDistance = TNumericLimits<double>::Min();
 
+		TArray<TDeferredSimplex<DIMENSIONS>*> ConeFaceBuffer;
+		TArray<TFVtx<DIMENSIONS>*> InternalVertices;
+		TArray<TSimplexWrap<DIMENSIONS>*> InternalSimplices;
+		TArray<TSimplexWrap<DIMENSIONS>*> CurrentAffectedFaces;
+		TSet<TFVtx<DIMENSIONS>*> SingularVertices;
+
+		TSimplexWrap<DIMENSIONS>* InternalUpdateBuffer[DIMENSIONS];
+		int32 InternalUpdateIndices[DIMENSIONS];
+
+		TFVtx<DIMENSIONS>* CurrentVertex = nullptr;
+		TFVtx<DIMENSIONS>* CurrentFurthestVertex = nullptr;
+
+		TSimplexList<DIMENSIONS>* UnprocessedFaces = nullptr;
+
+		TVertexBuffer<DIMENSIONS>* EMPTY_VBUFFER = nullptr;
+		TVertexBuffer<DIMENSIONS>* OriginalBeyondVertices = nullptr;
+		TVertexBuffer<DIMENSIONS>* CurrentBeyondVertices = nullptr;
+
+		THullObjectsPool<DIMENSIONS>* Pool = nullptr;
+		TQueue<TSimplexWrap<DIMENSIONS>*> TraverseQueue;
+
+	public:
 		TConvexHull()
 		{
 			Vertices.Empty();
 			Simplices.Empty();
+
+			ConeFaceBuffer.Empty();
+
+			for (int i = 0; i < DIMENSIONS; i++)
+			{
+				InternalUpdateBuffer[i] = nullptr;
+				InternalUpdateIndices[i] = -1;
+			}
+
+			UnprocessedFaces = new TSimplexList<DIMENSIONS>();
+			EMPTY_VBUFFER = new TVertexBuffer<DIMENSIONS>();
+			OriginalBeyondVertices = new TVertexBuffer<DIMENSIONS>();
+
+			CurrentBeyondVertices = OriginalBeyondVertices;
+
+			Pool = new THullObjectsPool<DIMENSIONS>();
 		}
 
 		~TConvexHull()
 		{
 			Vertices.Empty();
 			Simplices.Empty();
-		}
 
-		bool Contains(TFVtx<DIMENSIONS>* Vertex)
-		{
-			for (TFSimplex<DIMENSIONS>* Simplex : Simplices)
-			{
-				if (Simplex->GetVertexDistance(Vertex) >= PLANE_DISTANCE_TOLERANCE) { return false; }
-			}
+			ConeFaceBuffer.Empty();
+			InternalVertices.Empty();
 
-			return true;
+			for (TSimplexWrap<DIMENSIONS>* Wrap : InternalSimplices) { if (Wrap->VerticesBeyond == EMPTY_VBUFFER) { Wrap->VerticesBeyond = nullptr; } }
+			PCGEX_DELETE_TARRAY(InternalSimplices) //TODO: Need to check ownership of internal TVertexBuffer
+			CurrentAffectedFaces.Empty();
+			SingularVertices.Empty();
+
+			PCGEX_DELETE(UnprocessedFaces)
+			PCGEX_DELETE(EMPTY_VBUFFER)
+			PCGEX_DELETE(OriginalBeyondVertices)
+			PCGEX_DELETE(Pool)
 		}
 
 #pragma region Generate
 
-		void Generate(TArray<TFVtx<DIMENSIONS>*>& Input)
+		bool Generate(TArray<TFVtx<DIMENSIONS>*>& Input)
 		{
-			Clear();
+			if (Input.Num() < DIMENSIONS + 1) { return false; }
 
-			Buffer = new TObjectBuffer<DIMENSIONS>();
-
-			if (Input.Num() < DIMENSIONS + 1) { return; }
-
-			Buffer->InitInput(Input);
+			InternalVertices.Empty(Input.Num());
+			InternalVertices.Append(Input);
 
 			InitConvexHull();
 
 			// Expand the convex hull and faces.
-			while (Buffer->UnprocessedFaces->First)
+			while (UnprocessedFaces->First)
 			{
-				TSimplexWrap<DIMENSIONS>* CurrentFace = Buffer->UnprocessedFaces->First;
-				Buffer->CurrentVertex = CurrentFace->FurthestVertex;
+				TSimplexWrap<DIMENSIONS>* CurrentFace = UnprocessedFaces->First;
+				CurrentVertex = CurrentFace->FurthestVertex;
 
 				UpdateCenter();
 
@@ -70,52 +108,26 @@ namespace PCGExGeo
 				TagAffectedFaces(CurrentFace);
 
 				// Create the cone from the currentVertex and the affected faces horizon.
-				if (!Buffer->SingularVertices.Contains(Buffer->CurrentVertex) && CreateCone()) { CommitCone(); }
+				if (!SingularVertices.Contains(CurrentVertex) && CreateCone()) { CommitCone(); }
 				else { HandleSingular(); }
 
 				// Need to reset the tags
-				for (TSimplexWrap<DIMENSIONS>* Simplex : Buffer->AffectedFaceBuffer) { Simplex->Tag = 0; }
+				for (TSimplexWrap<DIMENSIONS>* Simplex : CurrentAffectedFaces) { Simplex->Tag = 0; }
 			}
 
-			for (int i = 0; i < Buffer->ConvexSimplices.Num(); i++)
+			for (int i = 0; i < InternalSimplices.Num(); i++)
 			{
-				TSimplexWrap<DIMENSIONS>* Wrap = Buffer->ConvexSimplices[i];
+				TSimplexWrap<DIMENSIONS>* Wrap = InternalSimplices[i];
 				Wrap->Tag = i;
-				Simplices.Add(new TFSimplex<DIMENSIONS>()); //TODO: Need to destroy this at some point
+				Simplices.Add(Wrap);
 			}
 
-			for (int i = 0; i < Buffer->ConvexSimplices.Num(); i++)
-			{
-				TSimplexWrap<DIMENSIONS>* Wrap = Buffer->ConvexSimplices[i];
-				TFSimplex<DIMENSIONS>* Simplex = Simplices[i];
-
-				Simplex->bIsNormalFlipped = Wrap->bIsNormalFlipped;
-				Simplex->Offset = Wrap->Offset;
-
-				for (int j = 0; j < DIMENSIONS; j++)
-				{
-					Simplex->Normal[j] = Wrap->Normal[j];
-					Simplex->Vertices[j] = Wrap->Vertices[j];
-
-					if (Wrap->AdjacentFaces[j]) { Simplex->AdjacentFaces[j] = Simplices[Wrap->AdjacentFaces[j]->Tag]; }
-					else { Simplex->AdjacentFaces[j] = nullptr; }
-				}
-
-				Simplex->UpdateCentroid();
-			}
-
-			PCGEX_DELETE(Buffer)
-		}
-
-		void Clear()
-		{
-			Vertices.Empty();
-			PCGEX_DELETE_TARRAY(Simplices);
-			PCGEX_DELETE(Buffer)
+			return true;
 		}
 
 #pragma endregion
 
+	protected:
 #pragma region Initilization
 
 		/// Find the (dimension+1) initial points and create the simplexes.
@@ -135,11 +147,11 @@ namespace PCGExGeo
 			// Add the initial points to the convex hull.
 			for (int i = 0; i < NumPoints; i++)
 			{
-				Buffer->CurrentVertex = InitialPoints[i];
+				CurrentVertex = InitialPoints[i];
 				// update center must be called before adding the vertex.
 				UpdateCenter();
-				Vertices.Add(Buffer->CurrentVertex);
-				Buffer->InputVertices.Remove(InitialPoints[i]);
+				Vertices.Add(CurrentVertex);
+				InternalVertices.Remove(InitialPoints[i]);
 
 				// Because of the AklTou heuristic.
 				Extremes.Remove(InitialPoints[i]);
@@ -154,8 +166,8 @@ namespace PCGExGeo
 			for (TSimplexWrap<DIMENSIONS>* Face : Faces)
 			{
 				FindBeyondVertices(Face);
-				if (Face->VerticesBeyond->IsEmpty()) { Buffer->ConvexSimplices.Add(Face); } // The face is on the hull 
-				else { Buffer->UnprocessedFaces->Add(Face); }
+				if (Face->VerticesBeyond->IsEmpty()) { InternalSimplices.Add(Face); } // The face is on the hull 
+				else { UnprocessedFaces->Add(Face); }
 			}
 		}
 
@@ -169,9 +181,9 @@ namespace PCGExGeo
 				int MinInd = 0;
 				int MaxInd = 0;
 
-				for (int j = 0; j < Buffer->InputVertices.Num(); j++)
+				for (int j = 0; j < InternalVertices.Num(); j++)
 				{
-					const double v = (*Buffer->InputVertices[j])[i];
+					const double v = (*InternalVertices[j])[i];
 
 					if (v < Min)
 					{
@@ -188,10 +200,10 @@ namespace PCGExGeo
 
 				if (MinInd != MaxInd)
 				{
-					OutExtremes.Add(Buffer->InputVertices[MinInd]);
-					OutExtremes.Add(Buffer->InputVertices[MaxInd]);
+					OutExtremes.Add(InternalVertices[MinInd]);
+					OutExtremes.Add(InternalVertices[MaxInd]);
 				}
-				else { OutExtremes.Add(Buffer->InputVertices[MinInd]); }
+				else { OutExtremes.Add(InternalVertices[MinInd]); }
 			}
 		}
 
@@ -271,7 +283,7 @@ namespace PCGExGeo
 				}
 				else
 				{
-					for (TFVtx<DIMENSIONS>* Point : Buffer->InputVertices)
+					for (TFVtx<DIMENSIONS>* Point : InternalVertices)
 					{
 						if (OutInitialPoints.Contains(Point)) { continue; }
 						if (const double Val = GetSquaredDistanceSum(Point, OutInitialPoints);
@@ -293,7 +305,7 @@ namespace PCGExGeo
 		{
 			for (int i = 0; i < Faces.Num(); i++)
 			{
-				TSimplexWrap<DIMENSIONS>* NewFace = new TSimplexWrap<DIMENSIONS>(new TVertexBuffer<DIMENSIONS>());
+				TSimplexWrap<DIMENSIONS>* NewFace = Pool->GetFace();
 
 				// Skips the i-th vertex
 				int32 II = 0;
@@ -391,15 +403,15 @@ namespace PCGExGeo
 		{
 			TVertexBuffer<DIMENSIONS>* BeyondVertices = Face->VerticesBeyond;
 
-			Buffer->MaxDistance = TNumericLimits<double>::Min();
-			Buffer->FurthestVertex = nullptr;
+			CurrentMaxDistance = TNumericLimits<double>::Min();
+			CurrentFurthestVertex = nullptr;
 
-			for (int i = 0; i < Buffer->InputVertices.Num(); i++)
+			for (int i = 0; i < InternalVertices.Num(); i++)
 			{
-				IsBeyond(Face, BeyondVertices, Buffer->InputVertices[i]);
+				IsBeyond(Face, BeyondVertices, InternalVertices[i]);
 			}
 
-			Face->FurthestVertex = Buffer->FurthestVertex;
+			Face->FurthestVertex = CurrentFurthestVertex;
 		}
 
 #pragma endregion
@@ -409,20 +421,21 @@ namespace PCGExGeo
 		/// Tags all faces seen from the current vertex with 1.
 		void TagAffectedFaces(TSimplexWrap<DIMENSIONS>* CurrentFace)
 		{
-			Buffer->AffectedFaceBuffer.Empty();
-			Buffer->AffectedFaceBuffer.Add(CurrentFace);
+			CurrentAffectedFaces.Empty();
+			CurrentAffectedFaces.Add(CurrentFace);
 			TraverseAffectedFaces(CurrentFace);
 		}
 
 		/// Recursively traverse all the relevant faces.
 		void TraverseAffectedFaces(TSimplexWrap<DIMENSIONS>* CurrentFace)
 		{
-			Buffer->TraverseStack.Empty();
-			Buffer->TraverseStack.Enqueue(CurrentFace);
+			TraverseQueue.Empty();
+			TraverseQueue.Enqueue(CurrentFace);
+
 			CurrentFace->Tag = 1;
 
 			TSimplexWrap<DIMENSIONS>* Top = nullptr;
-			while (Buffer->TraverseStack.Dequeue(Top))
+			while (TraverseQueue.Dequeue(Top))
 			{
 				for (int i = 0; i < DIMENSIONS; i++)
 				{
@@ -430,11 +443,11 @@ namespace PCGExGeo
 
 					check(AdjFace) // (2) Adjacent Face should never be null
 
-					if (AdjFace->Tag == 0 && AdjFace->GetVertexDistance(Buffer->CurrentVertex) >= PLANE_DISTANCE_TOLERANCE)
+					if (AdjFace->Tag == 0 && AdjFace->GetVertexDistance(CurrentVertex) >= PLANE_DISTANCE_TOLERANCE)
 					{
-						Buffer->AffectedFaceBuffer.Add(AdjFace);
+						CurrentAffectedFaces.Add(AdjFace);
 						AdjFace->Tag = 1;
-						Buffer->TraverseStack.Enqueue(AdjFace);
+						TraverseQueue.Enqueue(AdjFace);
 					}
 				}
 			}
@@ -443,12 +456,12 @@ namespace PCGExGeo
 		/// Removes the faces "covered" by the current vertex and adds the newly created ones.
 		bool CreateCone()
 		{
-			int CurrentVertexIndex = Buffer->CurrentVertex->Id;
-			Buffer->ConeFaceBuffer.Empty();
+			int CurrentVertexIndex = CurrentVertex->Id;
+			ConeFaceBuffer.Empty();
 
-			for (int FIndex = 0; FIndex < Buffer->AffectedFaceBuffer.Num(); FIndex++)
+			for (int FIndex = 0; FIndex < CurrentAffectedFaces.Num(); FIndex++)
 			{
-				TSimplexWrap<DIMENSIONS>* OldFace = Buffer->AffectedFaceBuffer[FIndex];
+				TSimplexWrap<DIMENSIONS>* OldFace = CurrentAffectedFaces[FIndex];
 
 				// Find the faces that need to be updated
 				int UpdateCount = 0;
@@ -461,15 +474,15 @@ namespace PCGExGeo
 
 					if (Af->Tag == 0) // Tag == 0 when oldFaces does not contain af
 					{
-						Buffer->UpdateBuffer[UpdateCount] = Af;
-						Buffer->UpdateIndices[UpdateCount] = i;
+						InternalUpdateBuffer[UpdateCount] = Af;
+						InternalUpdateIndices[UpdateCount] = i;
 						++UpdateCount;
 					}
 				}
 
 				for (int i = 0; i < UpdateCount; i++)
 				{
-					TSimplexWrap<DIMENSIONS>* AdjacentFace = Buffer->UpdateBuffer[i];
+					TSimplexWrap<DIMENSIONS>* AdjacentFace = InternalUpdateBuffer[i];
 					int OldFaceAdjacentIndex = 0;
 					for (int j = 0; j < DIMENSIONS; j++)
 					{
@@ -481,9 +494,9 @@ namespace PCGExGeo
 					}
 
 					// Index of the face that corresponds to this adjacent face
-					int Forbidden = Buffer->UpdateIndices[i];
+					int Forbidden = InternalUpdateIndices[i];
 
-					TSimplexWrap<DIMENSIONS>* NewFace = Buffer->ObjectManager->GetFace();
+					TSimplexWrap<DIMENSIONS>* NewFace = Pool->GetFace();
 
 					for (int j = 0; j < DIMENSIONS; j++) { NewFace->Vertices[j] = OldFace->Vertices[j]; }
 
@@ -518,24 +531,24 @@ namespace PCGExGeo
 						}
 					}
 
-					NewFace->Vertices[OrderedPivotIndex] = Buffer->CurrentVertex;
+					NewFace->Vertices[OrderedPivotIndex] = CurrentVertex;
 
 					if (!CalculateFacePlane(NewFace)) { return false; }
 
-					Buffer->ConeFaceBuffer.Add(MakeDeferredFace(NewFace, OrderedPivotIndex, AdjacentFace, OldFaceAdjacentIndex, OldFace));
+					ConeFaceBuffer.Add(MakeDeferredFace(NewFace, OrderedPivotIndex, AdjacentFace, OldFaceAdjacentIndex, OldFace));
 				}
 			}
 
 			return true;
 		}
 
-		/// Creates a new deferred face.
+		/// Creates a deferred face.
 		TDeferredSimplex<DIMENSIONS>* MakeDeferredFace(
 			TSimplexWrap<DIMENSIONS>* Face, int FaceIndex,
 			TSimplexWrap<DIMENSIONS>* Pivot, int PivotIndex,
 			TSimplexWrap<DIMENSIONS>* OldFace)
 		{
-			TDeferredSimplex<DIMENSIONS>* Ret = Buffer->ObjectManager->GetDeferredSimplex();
+			TDeferredSimplex<DIMENSIONS>* Ret = Pool->GetDeferredSimplex();
 
 			Ret->Face = Face;
 			Ret->FaceIndex = FaceIndex;
@@ -553,12 +566,12 @@ namespace PCGExGeo
 		void CommitCone()
 		{
 			// Add the current vertex.
-			Vertices.Add(Buffer->CurrentVertex);
+			Vertices.Add(CurrentVertex);
 
 			// Fill the adjacency.
-			for (int i = 0; i < Buffer->ConeFaceBuffer.Num(); i++)
+			for (int i = 0; i < ConeFaceBuffer.Num(); i++)
 			{
-				TDeferredSimplex<DIMENSIONS>* Face = Buffer->ConeFaceBuffer[i];
+				TDeferredSimplex<DIMENSIONS>* Face = ConeFaceBuffer[i];
 
 				TSimplexWrap<DIMENSIONS>* NewFace = Face->Face;
 				TSimplexWrap<DIMENSIONS>* AdjacentFace = Face->Pivot;
@@ -572,7 +585,7 @@ namespace PCGExGeo
 				for (int j = 0; j < DIMENSIONS; j++)
 				{
 					if (j == OrderedPivotIndex) continue;
-					TSimplexConnector<DIMENSIONS>* Connector = Buffer->ObjectManager->GetConnector();
+					TSimplexConnector<DIMENSIONS>* Connector = Pool->GetConnector();
 					Connector->Update(NewFace, j);
 					ConnectFace(Connector);
 				}
@@ -590,33 +603,33 @@ namespace PCGExGeo
 				// This face will definitely lie on the hull
 				if (NewFace->VerticesBeyond->Num() == 0)
 				{
-					Buffer->ConvexSimplices.Add(NewFace);
-					Buffer->UnprocessedFaces->Remove(NewFace);
-					Buffer->ObjectManager->DepositVertexBuffer(NewFace->VerticesBeyond);
-					NewFace->VerticesBeyond = Buffer->EmptyBuffer;
+					InternalSimplices.Add(NewFace);
+					UnprocessedFaces->Remove(NewFace);
+					Pool->ReturnVertexBuffer(NewFace->VerticesBeyond);
+					NewFace->VerticesBeyond = EMPTY_VBUFFER;
 				}
 				else // Add the face to the list
 				{
-					Buffer->UnprocessedFaces->Add(NewFace);
+					UnprocessedFaces->Add(NewFace);
 				}
 
 				// recycle the object.
-				Buffer->ObjectManager->DepositDeferredSimplex(Face);
+				Pool->ReturnDeferredSimplex(Face);
 			}
 
 			// Recycle the affected faces.
-			for (TSimplexWrap<DIMENSIONS>* DeprecatedFace : Buffer->AffectedFaceBuffer)
+			for (TSimplexWrap<DIMENSIONS>* DeprecatedFace : CurrentAffectedFaces)
 			{
-				Buffer->UnprocessedFaces->Remove(DeprecatedFace);
-				Buffer->ObjectManager->DepositFace(DeprecatedFace);
+				UnprocessedFaces->Remove(DeprecatedFace);
+				Pool->ReturnFace(DeprecatedFace);
 			}
 		}
 
 		/// Connect faces using a connector.
 		void ConnectFace(TSimplexConnector<DIMENSIONS>* Connector)
 		{
-			int32 index = Connector->HashCode % Buffer->CONNECTOR_TABLE_SIZE;
-			ConnectorList<DIMENSIONS>* List = Buffer->ConnectorTable[index];
+			int32 index = Connector->HashCode % Pool->CONNECTOR_TABLE_SIZE;
+			ConnectorList<DIMENSIONS>* List = Pool->ConnectorTable[index];
 
 			for (TSimplexConnector<DIMENSIONS>* Current = List->First; Current != nullptr; Current = Current->Next)
 			{
@@ -625,8 +638,8 @@ namespace PCGExGeo
 					List->Remove(Current);
 					TSimplexConnector<DIMENSIONS>::Connect(Current, Connector);
 
-					Buffer->ObjectManager->DepositConnector(Current);
-					Buffer->ObjectManager->DepositConnector(Connector);
+					Pool->ReturnConnector(Current);
+					Pool->ReturnConnector(Connector);
 					return;
 				}
 			}
@@ -640,55 +653,53 @@ namespace PCGExGeo
 			TVertexBuffer<DIMENSIONS>* Beyond,
 			TVertexBuffer<DIMENSIONS>* Beyond1)
 		{
-			TVertexBuffer<DIMENSIONS>* BeyondVertices = Buffer->BeyondBuffer;
-
-			Buffer->MaxDistance = TNumericLimits<double>::Min();
-			Buffer->FurthestVertex = nullptr;
+			CurrentMaxDistance = TNumericLimits<double>::Min();
+			CurrentFurthestVertex = nullptr;
 			TFVtx<DIMENSIONS>* v = nullptr;
 
 			for (int i = 0; i < Beyond1->Num(); i++) { (*Beyond1)[i]->Tag = 1; }
 
-			Buffer->CurrentVertex->Tag = 0;
+			CurrentVertex->Tag = 0;
 
 			for (int i = 0; i < Beyond->Num(); i++)
 			{
 				v = (*Beyond)[i];
-				if (v == Buffer->CurrentVertex) { continue; }
+				if (v == CurrentVertex) { continue; }
 				v->Tag = 0;
-				IsBeyond(Face, BeyondVertices, v);
+				IsBeyond(Face, CurrentBeyondVertices, v);
 			}
 
 			for (int i = 0; i < Beyond1->Num(); i++)
 			{
 				v = (*Beyond1)[i];
-				if (v->Tag == 1) { IsBeyond(Face, BeyondVertices, v); }
+				if (v->Tag == 1) { IsBeyond(Face, CurrentBeyondVertices, v); }
 			}
 
-			Face->FurthestVertex = Buffer->FurthestVertex;
+			Face->FurthestVertex = CurrentFurthestVertex;
 
 			// Pull the old switch a roo
-			TVertexBuffer<DIMENSIONS>* Temp = Face->VerticesBeyond;
-			Face->VerticesBeyond = BeyondVertices;
-			if (Temp->Num() > 0) { Temp->Clear(); }
-			Buffer->BeyondBuffer = Temp;
+			TVertexBuffer<DIMENSIONS>* NextVerticesBeyond = Face->VerticesBeyond;
+			Face->VerticesBeyond = CurrentBeyondVertices;
+			NextVerticesBeyond->Empty();
+			CurrentBeyondVertices = NextVerticesBeyond;
 		}
 
 		/// Handles singular vertex.
 		void HandleSingular()
 		{
 			RollbackCenter();
-			Buffer->SingularVertices.Add(Buffer->CurrentVertex);
+			SingularVertices.Add(CurrentVertex);
 
 			// This means that all the affected faces must be on the hull and that all their "vertices beyond" are singular.
-			for (TSimplexWrap<DIMENSIONS>* Face : Buffer->AffectedFaceBuffer)
+			for (TSimplexWrap<DIMENSIONS>* Face : CurrentAffectedFaces)
 			{
 				TVertexBuffer<DIMENSIONS>* VB = Face->VerticesBeyond;
-				for (int i = 0; i < VB->Num(); i++) { Buffer->SingularVertices.Add((*VB)[i]); }
+				for (int i = 0; i < VB->Num(); i++) { SingularVertices.Add((*VB)[i]); }
 
-				Buffer->ConvexSimplices.Add(Face);
-				Buffer->UnprocessedFaces->Remove(Face);
-				Buffer->ObjectManager->DepositVertexBuffer(Face->VerticesBeyond);
-				Face->VerticesBeyond = Buffer->EmptyBuffer;
+				InternalSimplices.Add(Face);
+				UnprocessedFaces->Remove(Face);
+				Pool->ReturnVertexBuffer(Face->VerticesBeyond);
+				Face->VerticesBeyond = EMPTY_VBUFFER;
 			}
 		}
 
@@ -700,13 +711,13 @@ namespace PCGExGeo
 			TVertexBuffer<DIMENSIONS>* BeyondVertices,
 			TFVtx<DIMENSIONS>* V)
 		{
-			double Distance = Face->GetVertexDistance(V);
+			const double Distance = Face->GetVertexDistance(V);
 			if (Distance >= PLANE_DISTANCE_TOLERANCE)
 			{
-				if (Distance > Buffer->MaxDistance)
+				if (Distance > CurrentMaxDistance)
 				{
-					Buffer->MaxDistance = Distance;
-					Buffer->FurthestVertex = V;
+					CurrentMaxDistance = Distance;
+					CurrentFurthestVertex = V;
 				}
 				BeyondVertices->Add(V);
 			}
@@ -718,7 +729,7 @@ namespace PCGExGeo
 			const int32 Count = Vertices.Num() + 1;
 			const double F1 = Count - 1;
 			const double F2 = 1.0f / static_cast<double>(Count);
-			for (int i = 0; i < DIMENSIONS; i++) { Centroid[i] = F2 * ((Centroid[i] * F1) + (*Buffer->CurrentVertex)[i]); }
+			for (int i = 0; i < DIMENSIONS; i++) { Centroid[i] = F2 * ((Centroid[i] * F1) + (*CurrentVertex)[i]); }
 		}
 
 		/// Removes the last vertex from the center.
@@ -727,7 +738,7 @@ namespace PCGExGeo
 			const int32 Count = Vertices.Num() + 1;
 			double F1 = Count;
 			double F2 = 1.0f / static_cast<double>(Count - 1);
-			for (int i = 0; i < DIMENSIONS; i++) { Centroid[i] = F2 * ((Centroid[i] * F1) - (*Buffer->CurrentVertex)[i]); }
+			for (int i = 0; i < DIMENSIONS; i++) { Centroid[i] = F2 * ((Centroid[i] * F1) - (*CurrentVertex)[i]); }
 		}
 	};
 }
