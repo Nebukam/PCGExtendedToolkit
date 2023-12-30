@@ -14,6 +14,7 @@
     - Graph :
         - [*Graph* : Create Params](PCGExGraphCreateParams.md)
         - [*Graph* : Build](PCGExGraphBuild.md)
+        - [*Graph* : Build Delaunay](PCGExGraphBuildDelaunay.md)
         - [*Graph* : Consolidate](PCGExGraphConsolidate.md)
         - [*Graph* : Find Edge Islands](PCGExGraphFindEdgeIslands.md)
         - [*Graph* : Draw](PCGExGraphDraw.md)

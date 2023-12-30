@@ -47,13 +47,17 @@ public:
 	//~End UPCGExPointsProcessorSettings interface
 	
 public:
-	/** Name of the attribute to ouput the unique Island identifier to. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FName IslandIDAttributeName = "IslandID";
+	/** TBD */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
+	bool bMarkHull = true;
 
-	/** Name of the attribute to output the Island size to. */
+	/** Name of the attribute to output the Hull boolean to. True if point is on the hull, otherwise false. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bMarkHull"))
+	FName HullAttributeName = "bIsOnHull";
+
+	/** When true, edges that have at least a point on the Hull as marked as being on the hull. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FName IslandSizeAttributeName = "IslandSize";
+	bool bMarkEdgeOnTouch = false;
 	
 private:
 	friend class FPCGExBuildDelaunayGraphElement;
@@ -67,12 +71,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBuildDelaunayGraphContext : public FPCGExPoi
 
 	int32 IslandUIndex = 0;
 	
-	FName IslandIDAttributeName;
-	FName IslandSizeAttributeName;
-	FName PointUIDAttributeName;
-
-
-	PCGExGeo::TDelaunayTriangulation3* DelaunayTriangulation = nullptr;
+	PCGExGeo::TDelaunayTriangulation3* Delaunay = nullptr;
 	
 	mutable FRWLock NetworkLock;
 	PCGExGraph::FEdgeNetwork* EdgeNetwork = nullptr;

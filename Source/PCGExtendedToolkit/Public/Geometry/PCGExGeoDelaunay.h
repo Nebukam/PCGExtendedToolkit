@@ -39,9 +39,9 @@ namespace PCGExGeo
 	class PCGEXTENDEDTOOLKIT_API TDelaunayTriangulation
 	{
 		
-		TConvexHull<DIMENSIONS>* Hull = nullptr;
 		
 	public:
+		TConvexHull<DIMENSIONS>* Hull = nullptr;
 		TArray<TFVtx<DIMENSIONS>*> Vertices;
 		TArray<TDelaunayCell<DIMENSIONS>*> Cells;
 		TFVtx<DIMENSIONS>* Centroid = nullptr;

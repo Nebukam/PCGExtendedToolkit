@@ -108,11 +108,16 @@ bool FPCGExBridgeEdgeIslandsElement::ExecuteInternal(
 		{
 			PCGExMesh::FMesh* CurrentMesh = Context->Meshes[MeshIndex];
 
-			if(Context->BridgeMethod == EPCGExBridgeIslandMethod::Delaunay)
+			const int32 MeshNum = Context->Meshes.Num();
+			EPCGExBridgeIslandMethod SafeMethod = Context->BridgeMethod;
+
+			if(MeshNum <= 4 && SafeMethod == EPCGExBridgeIslandMethod::Delaunay){ SafeMethod = EPCGExBridgeIslandMethod::MostEdges; }
+			
+			if(SafeMethod == EPCGExBridgeIslandMethod::Delaunay)
 			{
 				PCGExGeo::TDelaunayTriangulation3* Delaunay = new PCGExGeo::TDelaunayTriangulation3();
 				TArray<FPCGPoint> Points;
-				Points.SetNum(Context->Meshes.Num());
+				Points.SetNum(MeshNum);
 				for(int i = 0; i < Points.Num(); i++){Points[i].Transform.SetLocation(Context->Meshes[i]->Bounds.GetCenter());}
 				if(Delaunay->PrepareFrom(Points))
 				{
@@ -143,7 +148,7 @@ bool FPCGExBridgeEdgeIslandsElement::ExecuteInternal(
 				
 				PCGEX_DELETE(Delaunay)
 			}
-			else if (Context->BridgeMethod == EPCGExBridgeIslandMethod::LeastEdges)
+			else if (SafeMethod == EPCGExBridgeIslandMethod::LeastEdges)
 			{
 				Context->VisitedMeshes.Add(CurrentMesh); // As to not connect to self or already connected
 
@@ -162,9 +167,9 @@ bool FPCGExBridgeEdgeIslandsElement::ExecuteInternal(
 
 				Context->GetAsyncManager()->Start<FBridgeMeshesTask>(MeshIndex, Context->ConsolidatedEdges, Context->Meshes.IndexOfByKey(ClosestMesh));
 			}
-			else if (Context->BridgeMethod == EPCGExBridgeIslandMethod::MostEdges)
+			else if (SafeMethod == EPCGExBridgeIslandMethod::MostEdges)
 			{
-				for (int i = 0; i < Context->Meshes.Num(); i++)
+				for (int i = 0; i < MeshNum; i++)
 				{
 					if (CurrentMesh == Context->Meshes[i]) { continue; }
 					Context->GetAsyncManager()->Start<FBridgeMeshesTask>(MeshIndex, Context->ConsolidatedEdges, i);
