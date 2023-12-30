@@ -25,4 +25,5 @@ See the [Full documentation index](docs/Index.md) for an overview of the new nod
 * [Frequently Asked Questions](docs/FAQ.md)
 
 ### Footnotes
+- 3D Delaunay adapted from the excellent [Scrawk' Hull-Delaunay-Voronoi](https://github.com/Scrawk/Hull-Delaunay-Voronoi) repo
 - Effort to build this toolkit was originally inspired by the [PCG Pathfinding](https://github.com/spood/PCGPathfinding) repo 
