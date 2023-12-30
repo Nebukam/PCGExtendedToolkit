@@ -24,8 +24,10 @@ namespace PCGExGeo
 
 		TArray<TDeferredSimplex<DIMENSIONS>*> ConeFaceBuffer;
 		TArray<TFVtx<DIMENSIONS>*> InternalVertices;
-		TArray<TSimplexWrap<DIMENSIONS>*> InternalSimplices;
+		TArray<TSimplexWrap<DIMENSIONS>*> ConvexSimplices;
 		TArray<TSimplexWrap<DIMENSIONS>*> CurrentAffectedFaces;
+		TQueue<TSimplexWrap<DIMENSIONS>*> TraverseQueue;
+		
 		TSet<TFVtx<DIMENSIONS>*> SingularVertices;
 
 		TSimplexWrap<DIMENSIONS>* InternalUpdateBuffer[DIMENSIONS];
@@ -36,12 +38,10 @@ namespace PCGExGeo
 
 		TSimplexList<DIMENSIONS>* UnprocessedFaces = nullptr;
 
-		TVertexBuffer<DIMENSIONS>* EMPTY_VBUFFER = nullptr;
-		TVertexBuffer<DIMENSIONS>* OriginalBeyondVertices = nullptr;
+		TVertexBuffer<DIMENSIONS>* EMPTY_BUFFER = nullptr;
 		TVertexBuffer<DIMENSIONS>* CurrentBeyondVertices = nullptr;
 
 		THullObjectsPool<DIMENSIONS>* Pool = nullptr;
-		TQueue<TSimplexWrap<DIMENSIONS>*> TraverseQueue;
 
 	public:
 		TConvexHull()
@@ -55,13 +55,13 @@ namespace PCGExGeo
 			{
 				InternalUpdateBuffer[i] = nullptr;
 				InternalUpdateIndices[i] = -1;
+				Centroid[i] = 0;
 			}
 
 			UnprocessedFaces = new TSimplexList<DIMENSIONS>();
-			EMPTY_VBUFFER = new TVertexBuffer<DIMENSIONS>();
-			OriginalBeyondVertices = new TVertexBuffer<DIMENSIONS>();
-
-			CurrentBeyondVertices = OriginalBeyondVertices;
+			EMPTY_BUFFER = new TVertexBuffer<DIMENSIONS>();
+			
+			CurrentBeyondVertices = new TVertexBuffer<DIMENSIONS>();
 
 			Pool = new THullObjectsPool<DIMENSIONS>();
 		}
@@ -74,14 +74,13 @@ namespace PCGExGeo
 			ConeFaceBuffer.Empty();
 			InternalVertices.Empty();
 
-			for (TSimplexWrap<DIMENSIONS>* Wrap : InternalSimplices) { if (Wrap->VerticesBeyond == EMPTY_VBUFFER) { Wrap->VerticesBeyond = nullptr; } }
-			PCGEX_DELETE_TARRAY(InternalSimplices) //TODO: Need to check ownership of internal TVertexBuffer
+			for (TSimplexWrap<DIMENSIONS>* Wrap : ConvexSimplices) { if (Wrap->VerticesBeyond == EMPTY_BUFFER) { Wrap->VerticesBeyond = nullptr; } }
+			PCGEX_DELETE_TARRAY(ConvexSimplices) //TODO: Need to check ownership of internal TVertexBuffer
 			CurrentAffectedFaces.Empty();
 			SingularVertices.Empty();
 
 			PCGEX_DELETE(UnprocessedFaces)
-			PCGEX_DELETE(EMPTY_VBUFFER)
-			PCGEX_DELETE(OriginalBeyondVertices)
+			PCGEX_DELETE(EMPTY_BUFFER)
 			PCGEX_DELETE(Pool)
 		}
 
@@ -115,9 +114,9 @@ namespace PCGExGeo
 				for (TSimplexWrap<DIMENSIONS>* Simplex : CurrentAffectedFaces) { Simplex->Tag = 0; }
 			}
 
-			for (int i = 0; i < InternalSimplices.Num(); i++)
+			for (int i = 0; i < ConvexSimplices.Num(); i++)
 			{
-				TSimplexWrap<DIMENSIONS>* Wrap = InternalSimplices[i];
+				TSimplexWrap<DIMENSIONS>* Wrap = ConvexSimplices[i];
 				Wrap->Tag = i;
 				Simplices.Add(Wrap);
 			}
@@ -166,7 +165,7 @@ namespace PCGExGeo
 			for (TSimplexWrap<DIMENSIONS>* Face : Faces)
 			{
 				FindBeyondVertices(Face);
-				if (Face->VerticesBeyond->IsEmpty()) { InternalSimplices.Add(Face); } // The face is on the hull 
+				if (Face->VerticesBeyond->IsEmpty()) { ConvexSimplices.Add(Face); } // The face is on the hull 
 				else { UnprocessedFaces->Add(Face); }
 			}
 		}
@@ -603,10 +602,10 @@ namespace PCGExGeo
 				// This face will definitely lie on the hull
 				if (NewFace->VerticesBeyond->Num() == 0)
 				{
-					InternalSimplices.Add(NewFace);
+					ConvexSimplices.Add(NewFace);
 					UnprocessedFaces->Remove(NewFace);
 					Pool->ReturnVertexBuffer(NewFace->VerticesBeyond);
-					NewFace->VerticesBeyond = EMPTY_VBUFFER;
+					NewFace->VerticesBeyond = EMPTY_BUFFER;
 				}
 				else // Add the face to the list
 				{
@@ -696,10 +695,10 @@ namespace PCGExGeo
 				TVertexBuffer<DIMENSIONS>* VB = Face->VerticesBeyond;
 				for (int i = 0; i < VB->Num(); i++) { SingularVertices.Add((*VB)[i]); }
 
-				InternalSimplices.Add(Face);
+				ConvexSimplices.Add(Face);
 				UnprocessedFaces->Remove(Face);
 				Pool->ReturnVertexBuffer(Face->VerticesBeyond);
-				Face->VerticesBeyond = EMPTY_VBUFFER;
+				Face->VerticesBeyond = EMPTY_BUFFER;
 			}
 		}
 

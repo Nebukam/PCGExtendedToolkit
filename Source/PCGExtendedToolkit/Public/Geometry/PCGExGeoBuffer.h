@@ -45,7 +45,7 @@ namespace PCGExGeo
 		{
 			PCGEX_DELETE(VerticesBeyond)
 		}
-		
+
 		void Clear()
 		{
 			Previous = nullptr;
@@ -279,7 +279,7 @@ namespace PCGExGeo
 
 		THullObjectsPool()
 		{
-			for (int i = 0; i < CONNECTOR_TABLE_SIZE; i++){ ConnectorTable[i] = new ConnectorList<DIMENSIONS>(); }
+			for (int i = 0; i < CONNECTOR_TABLE_SIZE; i++) { ConnectorTable[i] = new ConnectorList<DIMENSIONS>(); }
 		}
 
 		~THullObjectsPool()
@@ -296,7 +296,7 @@ namespace PCGExGeo
 			TDeferredSimplex<DIMENSIONS>* OutDeferredSimplex = nullptr;
 			while (DeferredSimplexQueue.Dequeue(OutDeferredSimplex)) { delete OutDeferredSimplex; }
 
-			for (int i = 0; i < CONNECTOR_TABLE_SIZE; i++){ delete ConnectorTable[i]; }
+			for (int i = 0; i < CONNECTOR_TABLE_SIZE; i++) { delete ConnectorTable[i]; }
 		}
 
 		void ReturnFace(TSimplexWrap<DIMENSIONS>* Face)
@@ -351,5 +351,4 @@ namespace PCGExGeo
 			return new TDeferredSimplex<DIMENSIONS>();
 		}
 	};
-	
 }
