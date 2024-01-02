@@ -47,16 +47,20 @@ public:
 	//~End UPCGExPointsProcessorSettings interface
 	
 public:
-	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
+	/** Only exports the convex hull (truncate points output to fit edges) */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	bool bHullOnly = true;
+
+	/** Mark points & edges that lie on the hull */	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle, EditConditionHides, EditCondition="!bHullOnly"))
 	bool bMarkHull = true;
 
 	/** Name of the attribute to output the Hull boolean to. True if point is on the hull, otherwise false. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bMarkHull"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditConditionHides, EditCondition="!bHullOnly && bMarkHull"))
 	FName HullAttributeName = "bIsOnHull";
 
 	/** When true, edges that have at least a point on the Hull as marked as being on the hull. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditConditionHides, EditCondition="!bHullOnly"))
 	bool bMarkEdgeOnTouch = false;
 	
 private:
@@ -76,7 +80,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBuildDelaunayGraphContext : public FPCGExPoi
 	mutable FRWLock NetworkLock;
 	PCGExGraph::FEdgeNetwork* EdgeNetwork = nullptr;
 	PCGExData::FPointIOGroup* IslandsIO;
-	PCGExData::FPointIO* CurrentIslandIO = nullptr;
 
 	PCGExData::FKPointIOMarkedBindings<int32>* Markings = nullptr;
 
@@ -94,6 +97,8 @@ public:
 protected:
 	virtual bool Boot(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
+	void ExportCurrent(FPCGExBuildDelaunayGraphContext* Context) const;
+	void ExportCurrentHullOnly(FPCGExBuildDelaunayGraphContext* Context) const;
 };
 
 class PCGEXTENDEDTOOLKIT_API FDelaunayInsertTask : public FPCGExNonAbandonableTask
