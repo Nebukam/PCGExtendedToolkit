@@ -1,4 +1,4 @@
->⚠️ AT THIS TIME THE PLUGIN IS FUNCTIONAL STILL WIP ⚠️  
+>⚠️ AT THIS TIME THE PLUGIN IS FUNCTIONAL BUT HEAVILY WIP ⚠️  
 >_I'm pushing changes and update in separate branches to make sure the main is stable._
 
 # PCG Extended Toolkit ![BETA](https://img.shields.io/badge/BETA-ff0f0f)
