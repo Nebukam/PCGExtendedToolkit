@@ -15,6 +15,7 @@ namespace PCGExGeo
 	public:
 		int32 Id = -1;
 		int32 Tag = 0;
+		bool bIsOnHull = false;
 
 		int Dimension() const { return DIMENSIONS; }
 
@@ -88,6 +89,20 @@ namespace PCGExGeo
 				AdjacentFaces[i] = nullptr;
 				Vertices[i] = nullptr;
 			}
+		}
+
+		explicit TFSimplex(TFSimplex* Other)
+		{
+			for (int i = 0; i < DIMENSIONS; i++)
+			{
+				Vertices[i] = Other->Vertices[i];
+				Normal[i] = Other->Normal[i];
+				Vertices[i] = Other->Vertices[i];
+				Centroid[i] = Other->Centroid[i];
+			}
+
+			bIsNormalFlipped = Other->bIsNormalFlipped;
+			Offset = Other->Offset;
 		}
 
 		virtual ~TFSimplex()

@@ -8,26 +8,26 @@
 #include "PCGExGraphProcessor.h"
 #include "Data/PCGExData.h"
 
-#include "PCGExBuildDelaunayGraph.generated.h"
+#include "PCGExBuildDelaunayGraph2D.generated.h"
 
 namespace PCGExGeo
 {
-	class TConvexHull3;
-	class TDelaunayTriangulation3;
+	class TDelaunayTriangulation2;
+	class TConvexHull2;
 }
 
 /**
  * Calculates the distance between two points (inherently a n*n operation)
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
-class PCGEXTENDEDTOOLKIT_API UPCGExBuildDelaunayGraphSettings : public UPCGExPointsProcessorSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExBuildDelaunayGraph2DSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(BuildDelaunayGraph, "Graph : Delaunay 3D", "Create a 3D delaunay triangulation for each input dataset.");
+	PCGEX_NODE_INFOS(BuildDelaunayGraph2D, "Graph : Delaunay 2D", "Create a 2D delaunay triangulation for each input dataset.");
 #endif
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 
@@ -60,19 +60,19 @@ public:
 	bool bMarkEdgeOnTouch = false;
 	
 private:
-	friend class FPCGExBuildDelaunayGraphElement;
+	friend class FPCGExBuildDelaunayGraph2DElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExBuildDelaunayGraphContext : public FPCGExPointsProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExBuildDelaunayGraph2DContext : public FPCGExPointsProcessorContext
 {
-	friend class FPCGExBuildDelaunayGraphElement;
+	friend class FPCGExBuildDelaunayGraph2DElement;
 
-	virtual ~FPCGExBuildDelaunayGraphContext() override;
+	virtual ~FPCGExBuildDelaunayGraph2DContext() override;
 
 	int32 IslandUIndex = 0;
 	
-	PCGExGeo::TDelaunayTriangulation3* Delaunay = nullptr;
-	PCGExGeo::TConvexHull3* ConvexHull = nullptr;
+	PCGExGeo::TDelaunayTriangulation2* Delaunay = nullptr;
+	PCGExGeo::TConvexHull2* ConvexHull = nullptr;
 	
 	mutable FRWLock NetworkLock;
 	PCGExGraph::FEdgeNetwork* EdgeNetwork = nullptr;
@@ -83,7 +83,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBuildDelaunayGraphContext : public FPCGExPoi
 };
 
 
-class PCGEXTENDEDTOOLKIT_API FPCGExBuildDelaunayGraphElement : public FPCGExPointsProcessorElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExBuildDelaunayGraph2DElement : public FPCGExPointsProcessorElementBase
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -94,14 +94,14 @@ public:
 protected:
 	virtual bool Boot(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
-	void ExportCurrent(FPCGExBuildDelaunayGraphContext* Context) const;
-	void ExportCurrentHullOnly(FPCGExBuildDelaunayGraphContext* Context) const;
+	void ExportCurrent(FPCGExBuildDelaunayGraph2DContext* Context) const;
+	void ExportCurrentHullOnly(FPCGExBuildDelaunayGraph2DContext* Context) const;
 };
 
-class PCGEXTENDEDTOOLKIT_API FDelaunayInsertTask : public FPCGExNonAbandonableTask
+class PCGEXTENDEDTOOLKIT_API FDelaunay2DInsertTask : public FPCGExNonAbandonableTask
 {
 public:
-	FDelaunayInsertTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO) :
+	FDelaunay2DInsertTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO) :
 		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO)
 	{
 	}

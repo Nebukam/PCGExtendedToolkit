@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExGeo.h"
 #include "PCGExGeoHull.h"
 #include "PCGExGeoPrimtives.h"
 
@@ -35,11 +36,11 @@ namespace PCGExGeo
 		}
 	};
 
-	template <int DIMENSIONS, typename VECTOR_TYPE>
+	template <int DIMENSIONS>
 	class PCGEXTENDEDTOOLKIT_API TDelaunayTriangulation
 	{
-		
-		
+		bool bOwnsVertices = true;
+
 	public:
 		TConvexHull<DIMENSIONS>* Hull = nullptr;
 		TArray<TFVtx<DIMENSIONS>*> Vertices;
@@ -47,7 +48,7 @@ namespace PCGExGeo
 		TFVtx<DIMENSIONS>* Centroid = nullptr;
 
 		double MTX[DIMENSIONS][DIMENSIONS];
-		
+
 		TDelaunayTriangulation()
 		{
 		}
@@ -55,48 +56,49 @@ namespace PCGExGeo
 		virtual ~TDelaunayTriangulation()
 		{
 			PCGEX_DELETE_TARRAY(Cells)
-			PCGEX_DELETE_TARRAY(Vertices)
+			if (bOwnsVertices) { PCGEX_DELETE_TARRAY(Vertices) }
+			else { Vertices.Empty(); }
 			PCGEX_DELETE(Centroid)
 			PCGEX_DELETE(Hull)
 		}
 
 		bool PrepareFrom(const TArray<FPCGPoint>& InPoints)
 		{
-			
+			bOwnsVertices = true;
+
 			PCGEX_DELETE_TARRAY(Cells)
-			PCGEX_DELETE_TARRAY(Vertices)
 			PCGEX_DELETE(Centroid)
 			PCGEX_DELETE(Hull)
-			
+
 			Centroid = new TFVtx<DIMENSIONS>();
+			GetUpscaledVerticesFromPoints<DIMENSIONS>(InPoints, Vertices);
 
-			const int32 NumPoints = InPoints.Num();
-			if (NumPoints <= DIMENSIONS) { return false; }
+			if (Vertices.Num() <= DIMENSIONS) { return false; }
 
-			Vertices.SetNumUninitialized(NumPoints);
+			return true;
+		}
 
-			for (int i = 0; i < NumPoints; i++)
-			{
-				TFVtx<DIMENSIONS>* Vtx = Vertices[i] = new TFVtx<DIMENSIONS>();
-				Vtx->Id = i;
+		bool PrepareFrom(const TArray<TFVtx<DIMENSIONS>*>& InVertices)
+		{
+			bOwnsVertices = false;
 
-				FVector Position = InPoints[i].Transform.GetLocation();
-				double SqrLn = 0;
-				for (int P = 0; P < DIMENSIONS - 1; P++)
-				{
-					(*Vtx)[P] = Position[P];
-					SqrLn += Position[P] * Position[P];
-				}
+			PCGEX_DELETE_TARRAY(Cells)
+			PCGEX_DELETE(Centroid)
+			PCGEX_DELETE(Hull)
 
-				(*Vtx)[DIMENSIONS - 1] = SqrLn;
-			}
+			Centroid = new TFVtx<DIMENSIONS>();
+			if (InVertices.Num() <= DIMENSIONS) { return false; }
+
+			Vertices.Empty();
+			Vertices.Reserve(InVertices.Num());
+			Vertices.Append(InVertices);
 
 			return true;
 		}
 
 		virtual void Generate()
 		{
-			PCGEX_DELETE(Hull)		
+			PCGEX_DELETE(Hull)
 			Hull = new TConvexHull<DIMENSIONS>();
 			Hull->Generate(Vertices);
 
@@ -126,7 +128,7 @@ namespace PCGExGeo
 		virtual double Determinant() const = 0;
 	};
 
-	class PCGEXTENDEDTOOLKIT_API TDelaunayTriangulation2 : public TDelaunayTriangulation<3, FVector>
+	class PCGEXTENDEDTOOLKIT_API TDelaunayTriangulation2 : public TDelaunayTriangulation<3>
 	{
 	public:
 		TDelaunayTriangulation2() : TDelaunayTriangulation()
@@ -180,7 +182,7 @@ namespace PCGExGeo
 		}
 	};
 
-	class PCGEXTENDEDTOOLKIT_API TDelaunayTriangulation3 : public TDelaunayTriangulation<4, FVector4>
+	class PCGEXTENDEDTOOLKIT_API TDelaunayTriangulation3 : public TDelaunayTriangulation<4>
 	{
 	public:
 		TDelaunayTriangulation3() : TDelaunayTriangulation()

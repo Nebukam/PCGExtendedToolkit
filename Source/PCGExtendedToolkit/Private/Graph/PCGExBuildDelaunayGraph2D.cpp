@@ -1,7 +1,7 @@
 ﻿// Copyright Timothé Lapetite 2023
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Graph/PCGExBuildDelaunayGraph.h"
+#include "Graph/PCGExBuildDelaunayGraph2D.h"
 
 #include "Data/PCGExData.h"
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
@@ -10,24 +10,23 @@
 #include "Graph/PCGExMesh.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraph"
-#define PCGEX_NAMESPACE BuildDelaunayGraph
+#define PCGEX_NAMESPACE BuildDelaunayGraph2D
 
-int32 UPCGExBuildDelaunayGraphSettings::GetPreferredChunkSize() const { return 32; }
+int32 UPCGExBuildDelaunayGraph2DSettings::GetPreferredChunkSize() const { return 32; }
 
-PCGExData::EInit UPCGExBuildDelaunayGraphSettings::GetMainOutputInitMode() const { return bHullOnly ? PCGExData::EInit::NewOutput : PCGExData::EInit::DuplicateInput; }
+PCGExData::EInit UPCGExBuildDelaunayGraph2DSettings::GetMainOutputInitMode() const { return bHullOnly ? PCGExData::EInit::NewOutput : PCGExData::EInit::DuplicateInput; }
 
-FPCGExBuildDelaunayGraphContext::~FPCGExBuildDelaunayGraphContext()
+FPCGExBuildDelaunayGraph2DContext::~FPCGExBuildDelaunayGraph2DContext()
 {
 	PCGEX_TERMINATE_ASYNC
 
 	PCGEX_DELETE(IslandsIO)
 	PCGEX_DELETE(Delaunay)
-	PCGEX_DELETE(ConvexHull)
 	PCGEX_DELETE(EdgeNetwork)
 	PCGEX_DELETE(Markings)
 }
 
-TArray<FPCGPinProperties> UPCGExBuildDelaunayGraphSettings::OutputPinProperties() const
+TArray<FPCGPinProperties> UPCGExBuildDelaunayGraph2DSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
 	FPCGPinProperties& PinIslandsOutput = PinProperties.Emplace_GetRef(PCGExGraph::OutputEdgesLabel, EPCGDataType::Point);
@@ -40,15 +39,15 @@ TArray<FPCGPinProperties> UPCGExBuildDelaunayGraphSettings::OutputPinProperties(
 	return PinProperties;
 }
 
-FName UPCGExBuildDelaunayGraphSettings::GetMainOutputLabel() const { return PCGExGraph::OutputVerticesLabel; }
+FName UPCGExBuildDelaunayGraph2DSettings::GetMainOutputLabel() const { return PCGExGraph::OutputVerticesLabel; }
 
-PCGEX_INITIALIZE_ELEMENT(BuildDelaunayGraph)
+PCGEX_INITIALIZE_ELEMENT(BuildDelaunayGraph2D)
 
-bool FPCGExBuildDelaunayGraphElement::Boot(FPCGContext* InContext) const
+bool FPCGExBuildDelaunayGraph2DElement::Boot(FPCGContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElementBase::Boot(InContext)) { return false; }
 
-	PCGEX_CONTEXT_AND_SETTINGS(BuildDelaunayGraph)
+	PCGEX_CONTEXT_AND_SETTINGS(BuildDelaunayGraph2D)
 
 	PCGEX_VALIDATE_NAME(Settings->HullAttributeName)
 
@@ -58,12 +57,12 @@ bool FPCGExBuildDelaunayGraphElement::Boot(FPCGContext* InContext) const
 	return true;
 }
 
-bool FPCGExBuildDelaunayGraphElement::ExecuteInternal(
+bool FPCGExBuildDelaunayGraph2DElement::ExecuteInternal(
 	FPCGContext* InContext) const
 {
-	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExBuildDelaunayGraphElement::Execute);
+	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExBuildDelaunayGraph2DElement::Execute);
 
-	PCGEX_CONTEXT_AND_SETTINGS(BuildDelaunayGraph)
+	PCGEX_CONTEXT_AND_SETTINGS(BuildDelaunayGraph2D)
 
 	if (Context->IsSetup())
 	{
@@ -118,9 +117,9 @@ bool FPCGExBuildDelaunayGraphElement::ExecuteInternal(
 	return Context->IsDone();
 }
 
-void FPCGExBuildDelaunayGraphElement::ExportCurrent(FPCGExBuildDelaunayGraphContext* Context) const
+void FPCGExBuildDelaunayGraph2DElement::ExportCurrent(FPCGExBuildDelaunayGraph2DContext* Context) const
 {
-	PCGEX_SETTINGS(BuildDelaunayGraph)
+	PCGEX_SETTINGS(BuildDelaunayGraph2D)
 
 	// Find unique edges
 	TSet<uint64> UniqueEdges;
@@ -210,9 +209,9 @@ void FPCGExBuildDelaunayGraphElement::ExportCurrent(FPCGExBuildDelaunayGraphCont
 	PCGEX_DELETE(HullMarkWriter)
 }
 
-void FPCGExBuildDelaunayGraphElement::ExportCurrentHullOnly(FPCGExBuildDelaunayGraphContext* Context) const
+void FPCGExBuildDelaunayGraph2DElement::ExportCurrentHullOnly(FPCGExBuildDelaunayGraph2DContext* Context) const
 {
-	PCGEX_SETTINGS(BuildDelaunayGraph)
+	PCGEX_SETTINGS(BuildDelaunayGraph2D)
 
 	// Find unique edges
 	TSet<uint64> UniqueEdges;
@@ -289,9 +288,9 @@ void FPCGExBuildDelaunayGraphElement::ExportCurrentHullOnly(FPCGExBuildDelaunayG
 	PCGEX_DELETE(EdgeEnd)
 }
 
-bool FDelaunayInsertTask::ExecuteTask()
+bool FDelaunay2DInsertTask::ExecuteTask()
 {
-	const FPCGExBuildDelaunayGraphContext* Context = Manager->GetContext<FPCGExBuildDelaunayGraphContext>();
+	const FPCGExBuildDelaunayGraph2DContext* Context = Manager->GetContext<FPCGExBuildDelaunayGraph2DContext>();
 	//	Context->Delaunay->InsertVertex(TaskIndex);
 
 	//PCGEX_DELETE(Triangulation3)
