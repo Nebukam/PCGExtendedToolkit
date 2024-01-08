@@ -27,7 +27,7 @@ TArray<FPCGPinProperties> UPCGExPathfindingPlotNavmeshSettings::OutputPinPropert
 
 #if WITH_EDITOR
 	PinPathsOutput.Tooltip = FTEXT("Paths output.");
-#endif // WITH_EDITOR
+#endif
 
 	return PinProperties;
 }

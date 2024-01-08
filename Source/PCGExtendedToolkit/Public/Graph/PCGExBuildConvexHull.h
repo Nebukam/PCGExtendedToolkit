@@ -12,12 +12,8 @@
 
 namespace PCGExGeo
 {
+	class TConvexHull3;
 	class TDelaunayTriangulation3;
-}
-
-namespace PCGExMesh
-{
-	struct FDelaunayTriangulation;
 }
 
 /**
@@ -45,24 +41,20 @@ public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	virtual int32 GetPreferredChunkSize() const override;
 	//~End UPCGExPointsProcessorSettings interface
-	
-public:
-	/** Only exports the convex hull (truncate points output to fit edges) */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	bool bHullOnly = true;
 
-	/** Mark points & edges that lie on the hull */	
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle, EditConditionHides, EditCondition="!bHullOnly"))
+public:
+	/** Removes points that are not on the hull from the Vtx output. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	bool bPrunePoints = true;
+
+	/** Mark points & edges that lie on the hull */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle, EditCondition="!bPrunePoints"))
 	bool bMarkHull = true;
 
 	/** Name of the attribute to output the Hull boolean to. True if point is on the hull, otherwise false. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditConditionHides, EditCondition="!bHullOnly && bMarkHull"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="!bPrunePoints && bMarkHull"))
 	FName HullAttributeName = "bIsOnHull";
 
-	/** When true, edges that have at least a point on the Hull as marked as being on the hull. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditConditionHides, EditCondition="!bHullOnly"))
-	bool bMarkEdgeOnTouch = false;
-	
 private:
 	friend class FPCGExBuildConvexHullElement;
 };
@@ -73,16 +65,17 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBuildConvexHullContext : public FPCGExPoints
 
 	virtual ~FPCGExBuildConvexHullContext() override;
 
-	int32 IslandUIndex = 0;
-	
-	PCGExGeo::TDelaunayTriangulation3* Delaunay = nullptr;
-	
+	int32 ClusterUIndex = 0;
+
+	PCGExGeo::TConvexHull3* ConvexHull = nullptr;
+	TSet<int32> HullIndices;
+	TMap<int32, int32> IndicesRemap;
+
 	mutable FRWLock NetworkLock;
 	PCGExGraph::FEdgeNetwork* EdgeNetwork = nullptr;
-	PCGExData::FPointIOGroup* IslandsIO;
+	PCGExData::FPointIOGroup* ClustersIO;
 
 	PCGExData::FKPointIOMarkedBindings<int32>* Markings = nullptr;
-
 };
 
 
@@ -97,18 +90,16 @@ public:
 protected:
 	virtual bool Boot(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
-	void ExportCurrent(FPCGExBuildConvexHullContext* Context) const;
-	void ExportCurrentHullOnly(FPCGExBuildConvexHullContext* Context) const;
+	void WriteEdges(FPCGExBuildConvexHullContext* Context) const;
 };
 
-class PCGEXTENDEDTOOLKIT_API FHullInsertTask : public FPCGExNonAbandonableTask
+class PCGEXTENDEDTOOLKIT_API FHull3DInsertTask : public FPCGExNonAbandonableTask
 {
 public:
-	FHullInsertTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO) :
+	FHull3DInsertTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO) :
 		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO)
 	{
 	}
-	
+
 	virtual bool ExecuteTask() override;
 };
-

@@ -12,7 +12,6 @@ namespace PCGExGeo
 	template <int DIMENSIONS>
 	static void GetVerticesFromPoints(const TArray<FPCGPoint>& InPoints, TArray<TFVtx<DIMENSIONS>*>& OutVertices)
 	{
-		
 		const int32 NumPoints = InPoints.Num();
 
 		PCGEX_DELETE_TARRAY(OutVertices)
@@ -23,15 +22,13 @@ namespace PCGExGeo
 			TFVtx<DIMENSIONS>* Vtx = OutVertices[i] = new TFVtx<DIMENSIONS>();
 			Vtx->Id = i;
 			FVector Position = InPoints[i].Transform.GetLocation();
-			for (int P = 0; P < DIMENSIONS; P++){ (*Vtx)[P] = Position[P]; }
+			for (int P = 0; P < DIMENSIONS; P++) { (*Vtx)[P] = Position[P]; }
 		}
-
 	}
 
 	template <int DIMENSIONS>
 	static void GetUpscaledVerticesFromPoints(const TArray<FPCGPoint>& InPoints, TArray<TFVtx<DIMENSIONS>*>& OutVertices)
 	{
-		
 		const int32 NumPoints = InPoints.Num();
 
 		PCGEX_DELETE_TARRAY(OutVertices)
@@ -52,6 +49,5 @@ namespace PCGExGeo
 
 			(*Vtx)[DIMENSIONS - 1] = SqrLn;
 		}
-
 	}
 }

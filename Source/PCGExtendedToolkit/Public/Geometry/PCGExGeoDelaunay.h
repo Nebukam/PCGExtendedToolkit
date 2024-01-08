@@ -123,6 +123,32 @@ namespace PCGExGeo
 			}
 		}
 
+		void GetUniqueEdges(TArray<PCGExGraph::FUnsignedEdge>& OutEdges)
+		{
+			TSet<uint64> UniqueEdges;
+			UniqueEdges.Reserve(Cells.Num() * 3);
+
+			for (const TDelaunayCell<DIMENSIONS>* Cell : Cells)
+			{
+				for (int i = 0; i < DIMENSIONS; i++)
+				{
+					const int32 A = Cell->Simplex->Vertices[i]->Id;
+					for (int j = i + 1; j < DIMENSIONS; j++)
+					{
+						const int32 B = Cell->Simplex->Vertices[j]->Id;
+						if (const uint64 Hash = PCGExGraph::GetUnsignedHash64(A, B);
+							!UniqueEdges.Contains(Hash))
+						{
+							OutEdges.Emplace(A, B);
+							UniqueEdges.Add(Hash);
+						}
+					}
+				}
+			}
+
+			UniqueEdges.Empty();
+		}
+
 	protected:
 		virtual TDelaunayCell<DIMENSIONS>* CreateCell(TFSimplex<DIMENSIONS>* Simplex) = 0;
 		virtual double Determinant() const = 0;

@@ -18,6 +18,8 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSubPointsOperation : public UPCGExOperation
 	GENERATED_BODY()
 
 public:
+	bool bClosedPath = false;
+
 	virtual void PrepareForData(PCGExData::FPointIO& InPointIO);
 	virtual void ProcessPoints(UPCGPointData* InData) const;
 	virtual void ProcessSubPoints(const PCGEx::FPointRef& Start, const PCGEx::FPointRef& End, TArrayView<FPCGPoint>& SubPoints, const PCGExMath::FPathMetrics& Metrics) const;

@@ -27,7 +27,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExBuildDelaunayGraphSettings : public UPCGExPoi
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(BuildDelaunayGraph, "Graph : Delaunay 3D", "Create a 3D delaunay triangulation for each input dataset.");
+	PCGEX_NODE_INFOS(BuildDelaunayGraph, "Graph : Delaunay 3D", "Create a 3D delaunay tetrahedralization for each input dataset.");
 #endif
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 
@@ -41,24 +41,20 @@ public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	virtual int32 GetPreferredChunkSize() const override;
 	//~End UPCGExPointsProcessorSettings interface
-	
-public:
-	/** Only exports the convex hull (truncate points output to fit edges) */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	bool bHullOnly = true;
 
-	/** Mark points & edges that lie on the hull */	
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle, EditConditionHides, EditCondition="!bHullOnly"))
+public:
+	/** Mark points & edges that lie on the hull */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bMarkHull = true;
 
 	/** Name of the attribute to output the Hull boolean to. True if point is on the hull, otherwise false. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditConditionHides, EditCondition="!bHullOnly && bMarkHull"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bMarkHull"))
 	FName HullAttributeName = "bIsOnHull";
 
 	/** When true, edges that have at least a point on the Hull as marked as being on the hull. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditConditionHides, EditCondition="!bHullOnly"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bMarkEdgeOnTouch = false;
-	
+
 private:
 	friend class FPCGExBuildDelaunayGraphElement;
 };
@@ -69,17 +65,17 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBuildDelaunayGraphContext : public FPCGExPoi
 
 	virtual ~FPCGExBuildDelaunayGraphContext() override;
 
-	int32 IslandUIndex = 0;
-	
+	int32 ClusterUIndex = 0;
+
 	PCGExGeo::TDelaunayTriangulation3* Delaunay = nullptr;
 	PCGExGeo::TConvexHull3* ConvexHull = nullptr;
-	
+	TSet<int32> HullIndices;
+
 	mutable FRWLock NetworkLock;
 	PCGExGraph::FEdgeNetwork* EdgeNetwork = nullptr;
-	PCGExData::FPointIOGroup* IslandsIO;
+	PCGExData::FPointIOGroup* ClustersIO;
 
 	PCGExData::FKPointIOMarkedBindings<int32>* Markings = nullptr;
-
 };
 
 
@@ -94,8 +90,7 @@ public:
 protected:
 	virtual bool Boot(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
-	void ExportCurrent(FPCGExBuildDelaunayGraphContext* Context) const;
-	void ExportCurrentHullOnly(FPCGExBuildDelaunayGraphContext* Context) const;
+	void WriteEdges(FPCGExBuildDelaunayGraphContext* Context) const;
 };
 
 class PCGEXTENDEDTOOLKIT_API FDelaunayInsertTask : public FPCGExNonAbandonableTask
@@ -105,7 +100,6 @@ public:
 		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO)
 	{
 	}
-	
+
 	virtual bool ExecuteTask() override;
 };
-

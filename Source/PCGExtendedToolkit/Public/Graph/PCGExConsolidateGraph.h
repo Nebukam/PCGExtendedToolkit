@@ -68,4 +68,3 @@ protected:
 	static int64 GetFixedIndex(FPCGExConsolidateGraphContext* Context, int64 InIndex);
 #endif
 };
-

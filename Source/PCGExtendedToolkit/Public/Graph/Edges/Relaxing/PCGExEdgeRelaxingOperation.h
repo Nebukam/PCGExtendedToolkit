@@ -8,14 +8,14 @@
 #include "Graph/PCGExGraph.h"
 #include "PCGExEdgeRelaxingOperation.generated.h"
 
-namespace PCGExMesh
+namespace PCGExCluster
 {
 	struct FVertex;
 }
 
-namespace PCGExMesh
+namespace PCGExCluster
 {
-	struct FMesh;
+	struct FCluster;
 }
 
 /**
@@ -28,9 +28,9 @@ class PCGEXTENDEDTOOLKIT_API UPCGExEdgeRelaxingOperation : public UPCGExOperatio
 
 public:
 	virtual void PrepareForPointIO(PCGExData::FPointIO& PointIO);
-	virtual void PrepareForMesh(PCGExData::FPointIO& EdgesIO, PCGExMesh::FMesh*);
+	virtual void PrepareForCluster(PCGExData::FPointIO& EdgesIO, PCGExCluster::FCluster* InCluster);
 	virtual void PrepareForIteration(int Iteration, TArray<FVector>* PrimaryBuffer, TArray<FVector>* SecondaryBuffer);
-	virtual void ProcessVertex(const PCGExMesh::FVertex& Vertex);
+	virtual void ProcessVertex(const PCGExCluster::FVertex& Vertex);
 
 	virtual void WriteActiveBuffer(PCGExData::FPointIO& PointIO, PCGEx::FLocalSingleFieldGetter& Influence);
 
@@ -42,7 +42,7 @@ protected:
 	int32 CurrentIteration = 0;
 	PCGExData::FPointIO* CurrentPoints = nullptr;
 	PCGExData::FPointIO* CurrentEdges = nullptr;
-	PCGExMesh::FMesh* CurrentMesh = nullptr;
+	PCGExCluster::FCluster* CurrentCluster = nullptr;
 	TArray<FVector>* ReadBuffer = nullptr;
 	TArray<FVector>* WriteBuffer = nullptr;
 };

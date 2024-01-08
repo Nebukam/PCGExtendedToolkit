@@ -68,10 +68,10 @@ protected:
 };
 
 // Define the background task class
-class PCGEXTENDEDTOOLKIT_API FSampleMeshPathTask : public FPCGExPathfindingTask
+class PCGEXTENDEDTOOLKIT_API FSampleClusterPathTask : public FPCGExPathfindingTask
 {
 public:
-	FSampleMeshPathTask(
+	FSampleClusterPathTask(
 		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO, PCGExPathfinding::FPathQuery* InQuery) :
 		FPCGExPathfindingTask(InManager, InTaskIndex, InPointIO, InQuery)
 	{

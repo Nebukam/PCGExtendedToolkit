@@ -130,7 +130,10 @@ namespace PCGExGeo
 		/// Can two faces be connected.
 		static bool AreConnectable(TSimplexConnector* A, TSimplexConnector* B)
 		{
-			if (A->HashCode != B->HashCode) return false;
+			if (A->HashCode != B->HashCode)
+			{
+				return false;
+			}
 			for (int i = 0; i < DIMENSIONS - 1; i++) { if (A->Vertices[i] != B->Vertices[i]) { return false; } }
 			return true;
 		}

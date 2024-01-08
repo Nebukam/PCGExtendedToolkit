@@ -21,7 +21,7 @@ TArray<FPCGPinProperties> UPCGExForceGarbageCollectionSettings::InputPinProperti
 
 #if WITH_EDITOR
 	PinPropertySource.Tooltip = FTEXT("Anything really.");
-#endif // WITH_EDITOR
+#endif
 
 	return PinProperties;
 }

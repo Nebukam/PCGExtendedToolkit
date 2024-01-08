@@ -6,19 +6,19 @@
 #include "CoreMinimal.h"
 #include "Graph/PCGExEdgesProcessor.h"
 #include "Relaxing/PCGExForceDirectedRelaxing.h"
-#include "PCGExRelaxEdgeIslands.generated.h"
+#include "PCGExRelaxEdgeClusters.generated.h"
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Edges")
-class PCGEXTENDEDTOOLKIT_API UPCGExRelaxEdgeIslandsSettings : public UPCGExEdgesProcessorSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExRelaxEdgeClustersSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()
 
 public:
-	UPCGExRelaxEdgeIslandsSettings(const FObjectInitializer& ObjectInitializer);
+	UPCGExRelaxEdgeClustersSettings(const FObjectInitializer& ObjectInitializer);
 
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(RelaxEdgeIslands, "Edges : Relax", "Relax point positions using edges connecting them.");
+	PCGEX_NODE_INFOS(RelaxEdgeClusters, "Edges : Relax", "Relax point positions using edges connecting them.");
 #endif
 
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
@@ -48,14 +48,14 @@ public:
 	TObjectPtr<UPCGExEdgeRelaxingOperation> Relaxing;
 
 private:
-	friend class FPCGExRelaxEdgeIslandsElement;
+	friend class FPCGExRelaxEdgeClustersElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExRelaxEdgeIslandsContext : public FPCGExEdgesProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExRelaxEdgeClustersContext : public FPCGExEdgesProcessorContext
 {
-	friend class FPCGExRelaxEdgeIslandsElement;
+	friend class FPCGExRelaxEdgeClustersElement;
 
-	virtual ~FPCGExRelaxEdgeIslandsContext() override;
+	virtual ~FPCGExRelaxEdgeClustersContext() override;
 
 	int32 Iterations = 10;
 	int32 CurrentIteration = 0;
@@ -68,7 +68,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExRelaxEdgeIslandsContext : public FPCGExEdges
 	UPCGExEdgeRelaxingOperation* Relaxing = nullptr;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExRelaxEdgeIslandsElement : public FPCGExEdgesProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExRelaxEdgeClustersElement : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

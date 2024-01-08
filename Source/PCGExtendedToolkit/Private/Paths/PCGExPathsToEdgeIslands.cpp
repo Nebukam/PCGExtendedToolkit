@@ -1,70 +1,70 @@
 ﻿// Copyright Timothé Lapetite 2023
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Paths/PCGExPathsToEdgeIslands.h"
+#include "Paths/PCGExPathsToEdgeClusters.h"
 
 #include "Data/PCGExData.h"
-#include "Graph/PCGExFindEdgeIslands.h"
+#include "Graph/PCGExFindEdgeClusters.h"
 
-#define LOCTEXT_NAMESPACE "PCGExPathsToEdgeIslandsElement"
+#define LOCTEXT_NAMESPACE "PCGExPathsToEdgeClustersElement"
 #define PCGEX_NAMESPACE BuildGraph
 
 namespace PCGExGraph
 {
 }
 
-UPCGExPathsToEdgeIslandsSettings::UPCGExPathsToEdgeIslandsSettings(const FObjectInitializer& ObjectInitializer)
+UPCGExPathsToEdgeClustersSettings::UPCGExPathsToEdgeClustersSettings(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 }
 
-TArray<FPCGPinProperties> UPCGExPathsToEdgeIslandsSettings::OutputPinProperties() const
+TArray<FPCGPinProperties> UPCGExPathsToEdgeClustersSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
-	FPCGPinProperties& PinIslandsOutput = PinProperties.Emplace_GetRef(PCGExGraph::OutputEdgesLabel, EPCGDataType::Point);
+	FPCGPinProperties& PinClustersOutput = PinProperties.Emplace_GetRef(PCGExGraph::OutputEdgesLabel, EPCGDataType::Point);
 
 #if WITH_EDITOR
-	PinIslandsOutput.Tooltip = FTEXT("Point data representing edges.");
-#endif // WITH_EDITOR
+	PinClustersOutput.Tooltip = FTEXT("Point data representing edges.");
+#endif
 
-	//PCGEx::Swap(PinProperties, PinProperties.Num() - 1, PinProperties.Num() - 2);
+
 	return PinProperties;
 }
 
 #if WITH_EDITOR
-void UPCGExPathsToEdgeIslandsSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+void UPCGExPathsToEdgeClustersSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
 #endif
 
-PCGExData::EInit UPCGExPathsToEdgeIslandsSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
+PCGExData::EInit UPCGExPathsToEdgeClustersSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 
-FName UPCGExPathsToEdgeIslandsSettings::GetMainInputLabel() const { return PCGExGraph::SourcePathsLabel; }
+FName UPCGExPathsToEdgeClustersSettings::GetMainInputLabel() const { return PCGExGraph::SourcePathsLabel; }
 
-FName UPCGExPathsToEdgeIslandsSettings::GetMainOutputLabel() const { return PCGExGraph::OutputVerticesLabel; }
+FName UPCGExPathsToEdgeClustersSettings::GetMainOutputLabel() const { return PCGExGraph::OutputVerticesLabel; }
 
-PCGEX_INITIALIZE_ELEMENT(PathsToEdgeIslands)
+PCGEX_INITIALIZE_ELEMENT(PathsToEdgeClusters)
 
-FPCGExPathsToEdgeIslandsContext::~FPCGExPathsToEdgeIslandsContext()
+FPCGExPathsToEdgeClustersContext::~FPCGExPathsToEdgeClustersContext()
 {
 	PCGEX_TERMINATE_ASYNC
 
 	VisitedNodes.Empty();
 
 	PCGEX_DELETE(Markings)
-	PCGEX_DELETE(IslandsIO)
+	PCGEX_DELETE(ClustersIO)
 
 	PCGEX_DELETE(LooseNetwork)
 	PCGEX_DELETE(EdgeNetwork)
 	PCGEX_DELETE(EdgeCrossings)
 }
 
-bool FPCGExPathsToEdgeIslandsElement::Boot(FPCGContext* InContext) const
+bool FPCGExPathsToEdgeClustersElement::Boot(FPCGContext* InContext) const
 {
 	if (!FPCGExPathProcessorElement::Boot(InContext)) { return false; }
 
-	PCGEX_CONTEXT_AND_SETTINGS(PathsToEdgeIslands)
+	PCGEX_CONTEXT_AND_SETTINGS(PathsToEdgeClusters)
 
 	Context->LooseNetwork = new PCGExGraph::FLooseNetwork(Settings->FuseDistance);
 	Context->IOIndices.Empty();
@@ -76,11 +76,11 @@ bool FPCGExPathsToEdgeIslandsElement::Boot(FPCGContext* InContext) const
 }
 
 
-bool FPCGExPathsToEdgeIslandsElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExPathsToEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) const
 {
-	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExPathsToEdgeIslandsElement::Execute);
+	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExPathsToEdgeClustersElement::Execute);
 
-	PCGEX_CONTEXT(PathsToEdgeIslands)
+	PCGEX_CONTEXT(PathsToEdgeClusters)
 
 	if (Context->IsSetup())
 	{
@@ -107,8 +107,8 @@ bool FPCGExPathsToEdgeIslandsElement::ExecuteInternal(FPCGContext* InContext) co
 				MutablePoints[i].Transform.SetLocation(Context->LooseNetwork->Nodes[i]->Center);
 			}
 
-			Context->IslandsIO = new PCGExData::FPointIOGroup();
-			Context->IslandsIO->DefaultOutputLabel = PCGExGraph::OutputEdgesLabel;
+			Context->ClustersIO = new PCGExData::FPointIOGroup();
+			Context->ClustersIO->DefaultOutputLabel = PCGExGraph::OutputEdgesLabel;
 
 			Context->EdgeNetwork = new PCGExGraph::FEdgeNetwork(Context->ConsolidatedPoints->GetNum() * 2, Context->ConsolidatedPoints->GetNum());
 			Context->Markings = new PCGExData::FKPointIOMarkedBindings<int32>(Context->ConsolidatedPoints, PCGExGraph::PUIDAttributeName);
@@ -174,7 +174,7 @@ bool FPCGExPathsToEdgeIslandsElement::ExecuteInternal(FPCGContext* InContext) co
 					for (PCGExGraph::FLooseNode* OtherNode = Context->LooseNetwork->Nodes[Index];
 					     const int32 OtherNodeIndex : OtherNode->Neighbors)
 					{
-						Context->EdgeNetwork->InsertEdge(PCGExGraph::FUnsignedEdge(Index, OtherNodeIndex, EPCGExEdgeType::Complete));
+						Context->EdgeNetwork->InsertEdge(PCGExGraph::FUnsignedEdge(Index, OtherNodeIndex));
 						Queue.Enqueue(OtherNodeIndex);
 					}
 				}
@@ -189,7 +189,7 @@ bool FPCGExPathsToEdgeIslandsElement::ExecuteInternal(FPCGContext* InContext) co
 		}
 		else
 		{
-			Context->SetState(PCGExGraph::State_WritingIslands);
+			Context->SetState(PCGExGraph::State_WritingClusters);
 		}
 	}
 
@@ -217,38 +217,38 @@ bool FPCGExPathsToEdgeIslandsElement::ExecuteInternal(FPCGContext* InContext) co
 				MutablePoints.Emplace_GetRef().Transform.SetLocation(Crossing.Center);
 			}
 
-			Context->SetState(PCGExGraph::State_WritingIslands);
+			Context->SetState(PCGExGraph::State_WritingClusters);
 		}
 	}
 
-	if (Context->IsState(PCGExGraph::State_WritingIslands))
+	if (Context->IsState(PCGExGraph::State_WritingClusters))
 	{
 		Context->VisitedNodes.Empty();
 
-		Context->IslandsIO->Flush();
-		Context->EdgeNetwork->PrepareIslands(); // !
+		Context->ClustersIO->Flush();
+		Context->EdgeNetwork->PrepareClusters(); // !
 		Context->Markings->Mark = Context->ConsolidatedPoints->GetOut()->GetUniqueID();
 
-		for (const TPair<int32, int32>& Pair : Context->EdgeNetwork->IslandSizes)
+		for (const TPair<int32, int32>& Pair : Context->EdgeNetwork->ClusterSizes)
 		{
-			const int32 IslandSize = Pair.Value;
-			if (IslandSize == -1) { continue; }
+			const int32 ClusterSize = Pair.Value;
+			if (ClusterSize == -1) { continue; }
 
-			PCGExData::FPointIO& IslandIO = Context->IslandsIO->Emplace_GetRef(PCGExData::EInit::NewOutput);
-			Context->Markings->Add(IslandIO);
+			PCGExData::FPointIO& ClusterIO = Context->ClustersIO->Emplace_GetRef(PCGExData::EInit::NewOutput);
+			Context->Markings->Add(ClusterIO);
 
-			Context->GetAsyncManager()->Start<FWriteIslandTask>(Pair.Key, Context->ConsolidatedPoints, &IslandIO, Context->EdgeNetwork);
+			Context->GetAsyncManager()->Start<FWriteClusterTask>(Pair.Key, Context->ConsolidatedPoints, &ClusterIO, Context->EdgeNetwork);
 		}
 
-		Context->SetAsyncState(PCGExGraph::State_WaitingOnWritingIslands);
+		Context->SetAsyncState(PCGExGraph::State_WaitingOnWritingClusters);
 	}
 
-	if (Context->IsState(PCGExGraph::State_WaitingOnWritingIslands))
+	if (Context->IsState(PCGExGraph::State_WaitingOnWritingClusters))
 	{
 		if (Context->IsAsyncWorkComplete())
 		{
 			Context->Markings->UpdateMark();
-			Context->IslandsIO->OutputTo(Context, true);
+			Context->ClustersIO->OutputTo(Context, true);
 			Context->ConsolidatedPoints->OutputTo(Context, true);
 			Context->Done();
 		}

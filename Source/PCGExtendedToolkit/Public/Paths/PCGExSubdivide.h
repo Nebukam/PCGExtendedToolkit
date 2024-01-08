@@ -59,6 +59,10 @@ public:
 	//~End UPCGExPointsProcessorSettings interface
 
 public:
+	/** Consider paths to be closed -- processing will wrap between first and last points. (TODO:Not implemented) */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	bool bClosedPath = false;
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExSubdivideMode SubdivideMethod = EPCGExSubdivideMode::Distance;
 

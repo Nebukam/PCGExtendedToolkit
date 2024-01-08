@@ -1,16 +1,11 @@
 ﻿// Copyright Timothé Lapetite 2023
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Graph/PCGExMesh.h"
+#include "Graph/PCGExCluster.h"
 
 #include "Data/PCGExAttributeHelpers.h"
-#include "Data/Blending/PCGExDataBlending.h"
-#include "Kismet/KismetMathLibrary.h"
 
-#define PCGEX_FOREACH_TETRA_EDGE(_ACCESSOR,_EDGE_A, _EDGE_B, _BODY)\
-for (int i = 0; i < 4; i++){ const FDelaunayVertex* _EDGE_A = _ACCESSOR[i];	for (int j = i + 1; j < 4; j++)	{ const FDelaunayVertex* _EDGE_B = _ACCESSOR[j]; _BODY }}
-
-namespace PCGExMesh
+namespace PCGExCluster
 {
 	FVertex::~FVertex()
 	{
@@ -24,7 +19,25 @@ namespace PCGExMesh
 		Neighbors.AddUnique(VertexIndex);
 	}
 
-	FMesh::FMesh()
+	bool FVertex::GetNormal(FCluster* InCluster, FVector& OutNormal)
+	{
+		if (Neighbors.IsEmpty()) { return false; }
+		
+		OutNormal = FVector::Zero();
+		for(int32 I : Neighbors)
+		{
+			FVector B = InCluster->Vertices[I].Position;
+			FVector C = B + FVector::UpVector; 
+			C = FVector::CrossProduct(B - Position, C - Position).GetSafeNormal();
+			OutNormal += FVector::CrossProduct(B - Position, C - Position).GetSafeNormal();			
+		}
+
+		OutNormal /= Neighbors.Num();
+		
+		return true;
+	}
+
+	FCluster::FCluster()
 	{
 		IndicesMap.Empty();
 		Vertices.Empty();
@@ -32,14 +45,14 @@ namespace PCGExMesh
 		Bounds = FBox(ForceInit);
 	}
 
-	FMesh::~FMesh()
+	FCluster::~FCluster()
 	{
 		Vertices.Empty();
 		IndicesMap.Empty();
 		Edges.Empty();
 	}
 
-	FVertex& FMesh::GetOrCreateVertex(const int32 PointIndex, bool& bJustCreated)
+	FVertex& FCluster::GetOrCreateVertex(const int32 PointIndex, bool& bJustCreated)
 	{
 		if (const int32* VertexIndex = IndicesMap.Find(PointIndex))
 		{
@@ -53,14 +66,14 @@ namespace PCGExMesh
 		IndicesMap.Add(PointIndex, VtxIndex);
 
 		Vertex.PointIndex = PointIndex;
-		Vertex.MeshIndex = VtxIndex;
+		Vertex.ClusterIndex = VtxIndex;
 
 		return Vertex;
 	}
 
-	void FMesh::BuildFrom(const PCGExData::FPointIO& InPoints, const PCGExData::FPointIO& InEdges)
+	void FCluster::BuildFrom(const PCGExData::FPointIO& InPoints, const PCGExData::FPointIO& InEdges)
 	{
-		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExMesh::BuildMesh);
+		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExCluster::BuildCluster);
 
 		bHasInvalidEdges = false;
 
@@ -108,15 +121,15 @@ namespace PCGExMesh
 				Bounds += End.Position;
 			}
 
-			Start.AddNeighbor(i, End.MeshIndex);
-			End.AddNeighbor(i, Start.MeshIndex);
+			Start.AddNeighbor(i, End.ClusterIndex);
+			End.AddNeighbor(i, Start.ClusterIndex);
 		}
 
 		PCGEX_DELETE(StartIndexReader)
 		PCGEX_DELETE(EndIndexReader)
 	}
 
-	int32 FMesh::FindClosestVertex(const FVector& Position) const
+	int32 FCluster::FindClosestVertex(const FVector& Position) const
 	{
 		double MaxDistance = TNumericLimits<double>::Max();
 		int32 ClosestIndex = -1;
@@ -126,15 +139,13 @@ namespace PCGExMesh
 			if (Dist < MaxDistance)
 			{
 				MaxDistance = Dist;
-				ClosestIndex = Vtx.MeshIndex;
+				ClosestIndex = Vtx.ClusterIndex;
 			}
 		}
 
 		return ClosestIndex;
 	}
 
-	const FVertex& FMesh::GetVertexFromPointIndex(const int32 Index) const { return GetVertex(*IndicesMap.Find(Index)); }
-	const FVertex& FMesh::GetVertex(const int32 Index) const { return Vertices[Index]; }
+	const FVertex& FCluster::GetVertexFromPointIndex(const int32 Index) const { return GetVertex(*IndicesMap.Find(Index)); }
+	const FVertex& FCluster::GetVertex(const int32 Index) const { return Vertices[Index]; }
 }
-
-#undef PCGEX_FOREACH_TETRA_EDGE

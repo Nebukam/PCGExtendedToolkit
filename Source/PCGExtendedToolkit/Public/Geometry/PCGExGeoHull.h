@@ -12,6 +12,9 @@ namespace PCGExGeo
 	template <int DIMENSIONS>
 	class PCGEXTENDEDTOOLKIT_API TConvexHull
 	{
+		bool bAsyncWorkDone = false;
+		FRWLock AsyncLock;
+
 	public:
 		TArray<TFVtx<DIMENSIONS>*> Vertices;
 		TArray<TSimplexWrap<DIMENSIONS>*> Simplices;
@@ -79,16 +82,80 @@ namespace PCGExGeo
 			PCGEX_DELETE(Pool)
 		}
 
+#pragma region Utils
+
+		void GetUniqueEdges(TArray<PCGExGraph::FUnsignedEdge>& OutEdges)
+		{
+			TSet<uint64> UniqueEdges;
+			UniqueEdges.Reserve(Simplices.Num() * 3);
+
+			for (const TFSimplex<DIMENSIONS>* Simplex : Simplices)
+			{
+				for (int i = 0; i < DIMENSIONS; i++)
+				{
+					const int32 A = Simplex->Vertices[i]->Id;
+					const int32 B = Simplex->Vertices[PCGExMath::Tile(i + 1, 0, DIMENSIONS - 1)]->Id;
+
+					if (const uint64 Hash = PCGExGraph::GetUnsignedHash64(A, B);
+						!UniqueEdges.Contains(Hash))
+					{
+						OutEdges.Emplace(A, B);
+						UniqueEdges.Add(Hash);
+					}
+				}
+			}
+
+			UniqueEdges.Empty();
+		}
+
+		void GetUniqueEdgesRemapped(TArray<PCGExGraph::FUnsignedEdge>& OutEdges, const TMap<int32, int32>& Remap)
+		{
+			TSet<uint64> UniqueEdges;
+			UniqueEdges.Reserve(Simplices.Num() * 3);
+
+			for (const TFSimplex<DIMENSIONS>* Simplex : Simplices)
+			{
+				for (int i = 0; i < DIMENSIONS; i++)
+				{
+					const int32 A = Simplex->Vertices[i]->Id;
+					const int32 B = Simplex->Vertices[PCGExMath::Tile(i + 1, 0, DIMENSIONS - 1)]->Id;
+
+					if (const uint64 Hash = PCGExGraph::GetUnsignedHash64(A, B);
+						!UniqueEdges.Contains(Hash))
+					{
+						OutEdges.Emplace(*Remap.Find(A), *Remap.Find(B));
+						UniqueEdges.Add(Hash);
+					}
+				}
+			}
+
+			UniqueEdges.Empty();
+		}
+
+		void GetHullIndices(TSet<int32>& OutSet)
+		{
+			for (const TFVtx<DIMENSIONS>* Vtx : Vertices) { if (Vtx->bIsOnHull) { OutSet.Add(Vtx->Id); } }
+		}
+
+#pragma endregion
+
 #pragma region Generate
 
-		bool Generate(TArray<TFVtx<DIMENSIONS>*>& Input)
+		bool PreGenerate(TArray<TFVtx<DIMENSIONS>*>& Input)
 		{
+			bAsyncWorkDone = false;
+
 			if (Input.Num() < DIMENSIONS + 1) { return false; }
 
 			InternalVertices.Empty(Input.Num());
 			InternalVertices.Append(Input);
 
-			InitConvexHull();
+			return InitConvexHull();
+		}
+
+		bool Generate(TArray<TFVtx<DIMENSIONS>*>& Input)
+		{
+			if (!PreGenerate(Input)) { return false; }
 
 			// Expand the convex hull and faces.
 			while (UnprocessedFaces->First)
@@ -109,14 +176,46 @@ namespace PCGExGeo
 				for (TSimplexWrap<DIMENSIONS>* Simplex : CurrentAffectedFaces) { Simplex->Tag = 0; }
 			}
 
+			return PostGenerate();
+		}
+
+		bool PostGenerate()
+		{
+			if (bAsyncWorkDone) { return true; }
+
 			int SimplexIndex = 0;
 			for (TSimplexWrap<DIMENSIONS>* Wrap : Simplices)
 			{
 				Wrap->Tag = SimplexIndex++;
-				for (int i = 0; i < DIMENSIONS-1; i++) { Wrap->Vertices[i]->bIsOnHull = true; }
+				for (int i = 0; i < DIMENSIONS; i++) { Wrap->Vertices[i]->bIsOnHull = true; }
 			}
-			
+
+			bAsyncWorkDone = true;
 			return true;
+		}
+
+		bool AsyncGenerate()
+		{
+			FWriteScopeLock WriteLock(AsyncLock);
+
+			if (!UnprocessedFaces->First) { return PostGenerate(); }
+
+			TSimplexWrap<DIMENSIONS>* CurrentFace = UnprocessedFaces->First;
+			CurrentVertex = CurrentFace->FurthestVertex;
+
+			UpdateCenter();
+
+			// The affected faces get tagged
+			TagAffectedFaces(CurrentFace);
+
+			// Create the cone from the currentVertex and the affected faces horizon.
+			if (!SingularVertices.Contains(CurrentVertex) && CreateCone()) { CommitCone(); }
+			else { HandleSingular(); }
+
+			// Need to reset the tags
+			for (TSimplexWrap<DIMENSIONS>* Simplex : CurrentAffectedFaces) { Simplex->Tag = 0; }
+
+			return false;
 		}
 
 #pragma endregion
@@ -125,7 +224,7 @@ namespace PCGExGeo
 #pragma region Initilization
 
 		/// Find the (dimension+1) initial points and create the simplexes.
-		void InitConvexHull()
+		bool InitConvexHull()
 		{
 			TArray<TFVtx<DIMENSIONS>*> Extremes;
 			Extremes.Reserve(2 * DIMENSIONS);
@@ -134,7 +233,7 @@ namespace PCGExGeo
 			TArray<TFVtx<DIMENSIONS>*> InitialPoints;
 			FindInitialPoints(Extremes, InitialPoints);
 
-			//TODO: InitialPoints may be empty due to singularities.
+			if (InitialPoints.IsEmpty()) { return false; }
 
 			const int NumPoints = InitialPoints.Num();
 
@@ -142,6 +241,7 @@ namespace PCGExGeo
 			for (int i = 0; i < NumPoints; i++)
 			{
 				CurrentVertex = InitialPoints[i];
+
 				// update center must be called before adding the vertex.
 				UpdateCenter();
 				Vertices.Add(CurrentVertex);
@@ -163,6 +263,8 @@ namespace PCGExGeo
 				if (Face->VerticesBeyond->IsEmpty()) { Simplices.Add(Face); } // The face is on the hull 
 				else { UnprocessedFaces->Add(Face); }
 			}
+
+			return true;
 		}
 
 		/// Finds the extremes in all dimensions.
@@ -501,7 +603,7 @@ namespace PCGExGeo
 					if (CurrentVertexIndex < OldVertexIndex)
 					{
 						OrderedPivotIndex = 0;
-						for (int j = Forbidden - 1; j >= 0; j--)
+						for (int j = Forbidden - 1; j >= 0; --j)
 						{
 							if (NewFace->Vertices[j]->Id > CurrentVertexIndex) { NewFace->Vertices[j + 1] = NewFace->Vertices[j]; }
 							else
@@ -514,7 +616,7 @@ namespace PCGExGeo
 					else
 					{
 						OrderedPivotIndex = DIMENSIONS - 1;
-						for (int j = Forbidden + 1; j < DIMENSIONS; j++)
+						for (int j = Forbidden + 1; j < DIMENSIONS; ++j)
 						{
 							if (NewFace->Vertices[j]->Id < CurrentVertexIndex) { NewFace->Vertices[j - 1] = NewFace->Vertices[j]; }
 							else
@@ -578,7 +680,10 @@ namespace PCGExGeo
 				// let there be a connection.
 				for (int j = 0; j < DIMENSIONS; j++)
 				{
-					if (j == OrderedPivotIndex) continue;
+					if (j == OrderedPivotIndex)
+					{
+						continue;
+					}
 					TSimplexConnector<DIMENSIONS>* Connector = Pool->GetConnector();
 					Connector->Update(NewFace, j);
 					ConnectFace(Connector);
@@ -738,12 +843,9 @@ namespace PCGExGeo
 
 	class PCGEXTENDEDTOOLKIT_API TConvexHull2 : public TConvexHull<2>
 	{
-		
 	};
-	
+
 	class PCGEXTENDEDTOOLKIT_API TConvexHull3 : public TConvexHull<3>
 	{
-		
 	};
-	
 }

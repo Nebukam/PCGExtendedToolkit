@@ -29,13 +29,13 @@ TArray<FPCGPinProperties> UPCGExPathfindingNavmeshSettings::InputPinProperties()
 
 #if WITH_EDITOR
 	PinPropertySeeds.Tooltip = FTEXT("Seeds points for pathfinding.");
-#endif // WITH_EDITOR
+#endif
 
 	FPCGPinProperties& PinPropertyGoals = PinProperties.Emplace_GetRef(PCGExPathfinding::SourceGoalsLabel, EPCGDataType::Point, false, false);
 
 #if WITH_EDITOR
 	PinPropertyGoals.Tooltip = FTEXT("Goals points for pathfinding.");
-#endif // WITH_EDITOR
+#endif
 
 	return PinProperties;
 }
@@ -47,7 +47,7 @@ TArray<FPCGPinProperties> UPCGExPathfindingNavmeshSettings::OutputPinProperties(
 
 #if WITH_EDITOR
 	PinPathsOutput.Tooltip = FTEXT("Paths output.");
-#endif // WITH_EDITOR
+#endif
 
 	return PinProperties;
 }
@@ -152,7 +152,7 @@ bool FPCGExPathfindingNavmeshElement::ExecuteInternal(FPCGContext* InContext) co
 		{
 		};
 
-		auto NavMeshTask = [&](const int32 SeedIndex, const int32 GoalIndex)
+		auto NavClusterTask = [&](const int32 SeedIndex, const int32 GoalIndex)
 		{
 			Context->BufferLock.WriteLock();
 			const int32 PathIndex = Context->PathBuffer.Add(
@@ -163,7 +163,7 @@ bool FPCGExPathfindingNavmeshElement::ExecuteInternal(FPCGContext* InContext) co
 			Context->GetAsyncManager()->Start<FSampleNavmeshTask>(PathIndex, Context->CurrentIO, Context->PathBuffer[PathIndex]);
 		};
 
-		if (PCGExPathfinding::ProcessGoals(Initialize, Context, Context->CurrentIO, Context->GoalPicker, NavMeshTask))
+		if (PCGExPathfinding::ProcessGoals(Initialize, Context, Context->CurrentIO, Context->GoalPicker, NavClusterTask))
 		{
 			Context->SetAsyncState(PCGExPathfinding::State_Pathfinding);
 		}

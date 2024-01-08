@@ -304,7 +304,7 @@ FName FPCGExActorSelectorSettings::GetTaskName(const FText& Prefix) const
 {
 	return FName(FText::Format(NSLOCTEXT("PCGActorSelectorSettings", "NodeTitleFormat", "{0} ({1})"), Prefix, GetTaskNameSuffix()).ToString());
 }
-#endif // WITH_EDITOR
+#endif
 
 FPCGExActorSelectionKey FPCGExActorSelectorSettings::GetAssociatedKey() const
 {

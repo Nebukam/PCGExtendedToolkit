@@ -59,7 +59,7 @@ public:
 	/** Draw thickness. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings", meta=(PCG_Overridable))
 	int32 DepthPriority = 0;
-	
+
 private:
 	friend class FPCGExDrawEdgesElement;
 };

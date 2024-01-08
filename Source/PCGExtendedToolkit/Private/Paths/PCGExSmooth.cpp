@@ -39,6 +39,7 @@ bool FPCGExSmoothElement::Boot(FPCGContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(Smooth)
 
 	PCGEX_OPERATION_BIND(Smoothing, UPCGExMovingAverageSmoothing)
+	Context->Smoothing->bClosedPath = Settings->bClosedPath;
 	Context->Smoothing->bPinStart = Settings->bPinStart;
 	Context->Smoothing->bPinEnd = Settings->bPinEnd;
 	Context->Smoothing->FixedInfluence = Settings->Influence;

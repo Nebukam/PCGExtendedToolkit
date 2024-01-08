@@ -1,26 +1,26 @@
 ﻿// Copyright Timothé Lapetite 2023
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Graph/Edges/PCGExRelaxEdgeIslands.h"
+#include "Graph/Edges/PCGExRelaxEdgeClusters.h"
 
 #include "Graph/Edges/Relaxing/PCGExEdgeRelaxingOperation.h"
 #include "Graph/Edges/Relaxing/PCGExForceDirectedRelaxing.h"
 
-#define LOCTEXT_NAMESPACE "PCGExRelaxEdgeIslands"
-#define PCGEX_NAMESPACE RelaxEdgeIslands
+#define LOCTEXT_NAMESPACE "PCGExRelaxEdgeClusters"
+#define PCGEX_NAMESPACE RelaxEdgeClusters
 
-UPCGExRelaxEdgeIslandsSettings::UPCGExRelaxEdgeIslandsSettings(
+UPCGExRelaxEdgeClustersSettings::UPCGExRelaxEdgeClustersSettings(
 	const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 	PCGEX_OPERATION_DEFAULT(Relaxing, UPCGExForceDirectedRelaxing)
 }
 
-PCGExData::EInit UPCGExRelaxEdgeIslandsSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
+PCGExData::EInit UPCGExRelaxEdgeClustersSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
-PCGEX_INITIALIZE_ELEMENT(RelaxEdgeIslands)
+PCGEX_INITIALIZE_ELEMENT(RelaxEdgeClusters)
 
-FPCGExRelaxEdgeIslandsContext::~FPCGExRelaxEdgeIslandsContext()
+FPCGExRelaxEdgeClustersContext::~FPCGExRelaxEdgeClustersContext()
 {
 	PCGEX_TERMINATE_ASYNC
 
@@ -30,11 +30,11 @@ FPCGExRelaxEdgeIslandsContext::~FPCGExRelaxEdgeIslandsContext()
 	InfluenceGetter.Cleanup();
 }
 
-bool FPCGExRelaxEdgeIslandsElement::Boot(FPCGContext* InContext) const
+bool FPCGExRelaxEdgeClustersElement::Boot(FPCGContext* InContext) const
 {
 	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
 
-	PCGEX_CONTEXT_AND_SETTINGS(RelaxEdgeIslands)
+	PCGEX_CONTEXT_AND_SETTINGS(RelaxEdgeClusters)
 
 	Context->Iterations = FMath::Max(Settings->Iterations, 1);
 	PCGEX_FWD(bUseLocalInfluence)
@@ -47,11 +47,11 @@ bool FPCGExRelaxEdgeIslandsElement::Boot(FPCGContext* InContext) const
 	return true;
 }
 
-bool FPCGExRelaxEdgeIslandsElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExRelaxEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) const
 {
-	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExRelaxEdgeIslandsElement::Execute);
+	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExRelaxEdgeClustersElement::Execute);
 
-	PCGEX_CONTEXT(RelaxEdgeIslands)
+	PCGEX_CONTEXT(RelaxEdgeClusters)
 
 	if (Context->IsSetup())
 	{
@@ -109,7 +109,7 @@ bool FPCGExRelaxEdgeIslandsElement::ExecuteInternal(FPCGContext* InContext) cons
 		if (!Context->AdvanceEdges()) { Context->SetState(PCGExMT::State_ReadyForNextPoints); }
 		else
 		{
-			Context->Relaxing->PrepareForMesh(*Context->CurrentEdges, Context->CurrentMesh);
+			Context->Relaxing->PrepareForCluster(*Context->CurrentEdges, Context->CurrentCluster);
 			Context->SetState(PCGExGraph::State_ProcessingEdges);
 		}
 	}
@@ -123,13 +123,13 @@ bool FPCGExRelaxEdgeIslandsElement::ExecuteInternal(FPCGContext* InContext) cons
 
 		auto ProcessVertex = [&](const int32 VertexIndex)
 		{
-			const PCGExMesh::FVertex& Vtx = Context->CurrentMesh->Vertices[VertexIndex];
+			const PCGExCluster::FVertex& Vtx = Context->CurrentCluster->Vertices[VertexIndex];
 			Context->Relaxing->ProcessVertex(Vtx);
 		};
 
 		while (Context->CurrentIteration != Context->Iterations)
 		{
-			if (Context->ProcessCurrentMesh(Initialize, ProcessVertex)) { Context->CurrentIteration++; }
+			if (Context->ProcessCurrentCluster(Initialize, ProcessVertex)) { Context->CurrentIteration++; }
 			return false;
 		}
 

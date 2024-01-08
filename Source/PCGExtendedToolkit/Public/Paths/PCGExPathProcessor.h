@@ -33,13 +33,11 @@ public:
 	virtual FName GetMainInputLabel() const override;
 	virtual FName GetMainOutputLabel() const override;
 	//~End UPCGExPointsProcessorSettings interface
-
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExPathProcessorContext : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExPathProcessorElement;
-	
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExPathProcessorElement : public FPCGExPointsProcessorElementBase
@@ -52,5 +50,4 @@ public:
 
 protected:
 	virtual bool Boot(FPCGContext* InContext) const override;
-	
 };

@@ -142,6 +142,7 @@ public:
 
 	//~Begin UObject interface
 #if WITH_EDITOR
+
 public:
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif

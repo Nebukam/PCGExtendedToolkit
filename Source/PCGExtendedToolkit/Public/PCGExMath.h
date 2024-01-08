@@ -119,12 +119,59 @@ namespace PCGExMath
 		return FMath::Lerp(OutMin, OutMax, (InBase - InMin) / (InMax - InMin));
 	}
 
-	static FVector CWWrap(const FVector& InValue, const FVector& Min, const FVector& Max)
+	template <typename T, typename dummy = void>
+	static T Tile(const T Value, const T InMin, const T InMax, bool bSafe = false)
+	{
+		T Min = InMin;
+		T Max = InMax;
+		T OutValue = Value;
+		T Range = Max - Min + 1;
+
+		if (bSafe)
+		{
+			// Ensure the range is positive
+			Min = FMath::Min(InMin, InMax);
+			Max = FMath::Max(InMin, InMax);
+			Range = Max - Min + 1;
+		}
+
+		// Wrap the value within the specified range
+		OutValue = FMath::Fmod(static_cast<double>(OutValue - Min), static_cast<double>(Range));
+
+		// Handle negative results
+		if (OutValue < 0) { OutValue += Range; }
+
+		// Shift back to the original range
+		OutValue += Min;
+
+		return OutValue;
+	}
+
+	template <typename dummy = void>
+	static FVector2D Tile(const FVector2D Value, const FVector2D Min, const FVector2D Max, bool bSafe = false)
+	{
+		return FVector2D(
+			Tile(Value.X, Min.X, Max.X, bSafe),
+			Tile(Value.Y, Min.Y, Max.Y, bSafe));
+	}
+
+	template <typename dummy = void>
+	static FVector Tile(const FVector Value, const FVector Min, const FVector Max, bool bSafe = false)
 	{
 		return FVector(
-			FMath::Wrap(InValue.X, Min.X, Max.X),
-			FMath::Wrap(InValue.Y, Min.Y, Max.Y),
-			FMath::Wrap(InValue.Z, Min.Z, Max.Z));
+			Tile(Value.X, Min.X, Max.X, bSafe),
+			Tile(Value.Y, Min.Y, Max.Y, bSafe),
+			Tile(Value.Z, Min.Z, Max.Z, bSafe));
+	}
+
+	template <typename dummy = void>
+	static FVector4 Tile(const FVector4 Value, const FVector4 Min, const FVector4 Max, bool bSafe = false)
+	{
+		return FVector4(
+			Tile(Value.X, Min.X, Max.X, bSafe),
+			Tile(Value.Y, Min.Y, Max.Y, bSafe),
+			Tile(Value.Z, Min.Z, Max.Z, bSafe),
+			Tile(Value.W, Min.W, Max.W, bSafe));
 	}
 
 	template <typename T>

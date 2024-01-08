@@ -9,7 +9,7 @@
 #include "PCGExGraphProcessor.h"
 #include "Data/PCGExData.h"
 
-#include "PCGExFindEdgeIslands.generated.h"
+#include "PCGExFindEdgeClusters.generated.h"
 
 namespace PCGExGraph
 {
@@ -20,23 +20,23 @@ namespace PCGExGraph
 UENUM(BlueprintType)
 enum class EPCGExRoamingResolveMethod : uint8
 {
-	Overlap UMETA(DisplayName = "Overlap", ToolTip="Roaming nodes with unidirectional connections will create their own overlapping Islands."),
-	Merge UMETA(DisplayName = "Merge", ToolTip="Roaming Islands will be merged into existing ones; thus creating less Islands yet not canon ones."),
-	Cutoff UMETA(DisplayName = "Cutoff", ToolTip="Roaming Islands discovery will be cut off where they would otherwise overlap."),
+	Overlap UMETA(DisplayName = "Overlap", ToolTip="Roaming nodes with unidirectional connections will create their own overlapping Clusters."),
+	Merge UMETA(DisplayName = "Merge", ToolTip="Roaming Clusters will be merged into existing ones; thus creating less Clusters yet not canon ones."),
+	Cutoff UMETA(DisplayName = "Cutoff", ToolTip="Roaming Clusters discovery will be cut off where they would otherwise overlap."),
 };
 
 /**
  * Calculates the distance between two points (inherently a n*n operation)
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
-class PCGEXTENDEDTOOLKIT_API UPCGExFindEdgeIslandsSettings : public UPCGExGraphProcessorSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExFindEdgeClustersSettings : public UPCGExGraphProcessorSettings
 {
 	GENERATED_BODY()
 
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(FindEdgeIslands, "Graph : Find Edge Islands", "Create partitions from interconnected points. Each Island is the result of all input graphs combined.");
+	PCGEX_NODE_INFOS(FindEdgeClusters, "Graph : Find Edge Clusters", "Create partitions from interconnected points. Each Cluster is the result of all input graphs combined.");
 #endif
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 
@@ -52,7 +52,7 @@ public:
 	//~End UPCGExPointsProcessorSettings interface
 
 public:
-	/** Edge types to crawl to create a Island */
+	/** Edge types to crawl to create a Cluster */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExEdgeType"))
 	uint8 CrawlEdgeTypes = static_cast<uint8>(EPCGExEdgeType::Complete);
 
@@ -60,21 +60,21 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bPruneIsolatedPoints = true;
 
-	/** Don't output Islands if they have less points than a specified amount. */
+	/** Don't output Clusters if they have less points than a specified amount. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
-	bool bRemoveSmallIslands = true;
+	bool bRemoveSmallClusters = true;
 
 	/** Minimum points threshold */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bRemoveSmallIslands", ClampMin=2))
-	int32 MinIslandSize = 3;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bRemoveSmallClusters", ClampMin=2))
+	int32 MinClusterSize = 3;
 
-	/** Don't output Islands if they have more points than a specified amount. */
+	/** Don't output Clusters if they have more points than a specified amount. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
-	bool bRemoveBigIslands = false;
+	bool bRemoveBigClusters = false;
 
 	/** Maximum points threshold */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bRemoveBigIslands", ClampMin=2))
-	int32 MaxIslandSize = 500;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bRemoveBigClusters", ClampMin=2))
+	int32 MaxClusterSize = 500;
 
 	/** If two edges are close enough, create a "crossing" point. !!! VERY EXPENSIVE !!! */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
@@ -88,61 +88,60 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bInheritAttributes = false;
 
-	/** Name of the attribute to ouput the unique Island identifier to. */
+	/** Name of the attribute to ouput the unique Cluster identifier to. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FName IslandIDAttributeName = "IslandID";
+	FName ClusterIDAttributeName = "ClusterID";
 
-	/** Name of the attribute to output the Island size to. */
+	/** Name of the attribute to output the Cluster size to. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FName IslandSizeAttributeName = "IslandSize";
+	FName ClusterSizeAttributeName = "ClusterSize";
 
 	/** Cleanup graph socket data from output points */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	bool bDeleteGraphData = true;
 
 private:
-	friend class FPCGExFindEdgeIslandsElement;
+	friend class FPCGExFindEdgeClustersElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExFindEdgeIslandsContext : public FPCGExGraphProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExFindEdgeClustersContext : public FPCGExGraphProcessorContext
 {
-	friend class FPCGExFindEdgeIslandsElement;
+	friend class FPCGExFindEdgeClustersElement;
 
-	virtual ~FPCGExFindEdgeIslandsContext() override;
+	virtual ~FPCGExFindEdgeClustersContext() override;
 
 	EPCGExEdgeType CrawlEdgeTypes;
 	bool bPruneIsolatedPoints;
 	bool bInheritAttributes;
 
-	int32 MinIslandSize;
-	int32 MaxIslandSize;
+	int32 MinClusterSize;
+	int32 MaxClusterSize;
 
 	bool bFindCrossings;
 	double CrossingTolerance;
 
-	int32 IslandUIndex = 0;
+	int32 ClusterUIndex = 0;
 
 	TMap<int32, int32> IndexRemap;
 
-	FName IslandIDAttributeName;
-	FName IslandSizeAttributeName;
+	FName ClusterIDAttributeName;
+	FName ClusterSizeAttributeName;
 	FName PointUIDAttributeName;
 
 	mutable FRWLock NetworkLock;
 	PCGExGraph::FEdgeNetwork* EdgeNetwork = nullptr;
 	PCGExGraph::FEdgeCrossingsHandler* EdgeCrossings = nullptr;
-	PCGExData::FPointIOGroup* IslandsIO;
+	PCGExData::FPointIOGroup* ClustersIO;
 
 	PCGExData::FKPointIOMarkedBindings<int32>* Markings = nullptr;
 
 	EPCGExRoamingResolveMethod ResolveRoamingMethod;
 
 	FPCGMetadataAttribute<int64>* InCachedIndex;
-
 };
 
 
-class PCGEXTENDEDTOOLKIT_API FPCGExFindEdgeIslandsElement : public FPCGExGraphProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExFindEdgeClustersElement : public FPCGExGraphProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

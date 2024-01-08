@@ -84,11 +84,11 @@ bool FPCGExDrawEdgesElement::ExecuteInternal(
 	{
 		while (Context->AdvanceEdges())
 		{
-			for (const PCGExMesh::FIndexedEdge& Edge : Context->CurrentMesh->Edges)
+			for (const PCGExCluster::FIndexedEdge& Edge : Context->CurrentCluster->Edges)
 			{
 				if (!Edge.bValid) { continue; }
-				FVector Start = Context->CurrentMesh->GetVertexFromPointIndex(Edge.Start).Position;
-				FVector End = Context->CurrentMesh->GetVertexFromPointIndex(Edge.End).Position;
+				FVector Start = Context->CurrentCluster->GetVertexFromPointIndex(Edge.Start).Position;
+				FVector End = Context->CurrentCluster->GetVertexFromPointIndex(Edge.End).Position;
 				DrawDebugLine(Context->World, Start, End, Settings->Color, true, -1, Settings->DepthPriority, Settings->Thickness);
 			}
 		}

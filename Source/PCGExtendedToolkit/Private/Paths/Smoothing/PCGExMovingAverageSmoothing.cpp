@@ -20,6 +20,7 @@ void UPCGExMovingAverageSmoothing::InternalDoSmooth(
 	MetadataBlender->PrepareForData(InPointIO);
 
 	const int32 MaxPointIndex = InPoints.Num() - 1;
+
 	for (int i = 0; i <= MaxPointIndex; i++)
 	{
 		int32 Count = 0;
@@ -28,7 +29,7 @@ void UPCGExMovingAverageSmoothing::InternalDoSmooth(
 
 		for (int j = -SafeWindowSize; j <= SafeWindowSize; j++)
 		{
-			const int32 Index = FMath::Clamp(i + j, 0, MaxPointIndex);
+			const int32 Index = bClosedPath ? PCGExMath::Tile(i + j, 0, MaxPointIndex) : FMath::Clamp(i + j, 0, MaxPointIndex);
 			const double Alpha = 1 - (static_cast<double>(FMath::Abs(j)) / SafeWindowSize);
 
 			MetadataBlender->Blend(Target, InPointIO.GetInPointRef(Index), Target, Alpha);

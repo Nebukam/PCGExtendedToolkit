@@ -1,79 +1,79 @@
 ﻿// Copyright Timothé Lapetite 2023
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Graph/PCGExFindEdgeIslands.h"
+#include "Graph/PCGExFindEdgeClusters.h"
 
 #include "Data/PCGExData.h"
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraph"
-#define PCGEX_NAMESPACE FindEdgeIslands
+#define PCGEX_NAMESPACE FindEdgeClusters
 
-int32 UPCGExFindEdgeIslandsSettings::GetPreferredChunkSize() const { return 32; }
+int32 UPCGExFindEdgeClustersSettings::GetPreferredChunkSize() const { return 32; }
 
-PCGExData::EInit UPCGExFindEdgeIslandsSettings::GetMainOutputInitMode() const { return bPruneIsolatedPoints ? PCGExData::EInit::NewOutput : PCGExData::EInit::DuplicateInput; }
+PCGExData::EInit UPCGExFindEdgeClustersSettings::GetMainOutputInitMode() const { return bPruneIsolatedPoints ? PCGExData::EInit::NewOutput : PCGExData::EInit::DuplicateInput; }
 
-FPCGExFindEdgeIslandsContext::~FPCGExFindEdgeIslandsContext()
+FPCGExFindEdgeClustersContext::~FPCGExFindEdgeClustersContext()
 {
 	PCGEX_TERMINATE_ASYNC
 
-	PCGEX_DELETE(IslandsIO)
+	PCGEX_DELETE(ClustersIO)
 	PCGEX_DELETE(EdgeNetwork)
 	PCGEX_DELETE(Markings)
 
 	IndexRemap.Empty();
 }
 
-TArray<FPCGPinProperties> UPCGExFindEdgeIslandsSettings::OutputPinProperties() const
+TArray<FPCGPinProperties> UPCGExFindEdgeClustersSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
 	PinProperties.Pop(); //Remove graph output
-	FPCGPinProperties& PinIslandsOutput = PinProperties.Emplace_GetRef(PCGExGraph::OutputEdgesLabel, EPCGDataType::Point);
+	FPCGPinProperties& PinClustersOutput = PinProperties.Emplace_GetRef(PCGExGraph::OutputEdgesLabel, EPCGDataType::Point);
 
 #if WITH_EDITOR
-	PinIslandsOutput.Tooltip = FTEXT("Point data representing edges.");
-#endif // WITH_EDITOR
+	PinClustersOutput.Tooltip = FTEXT("Point data representing edges.");
+#endif
 
-	//PCGEx::Swap(PinProperties, PinProperties.Num() - 1, PinProperties.Num() - 2);
+
 	return PinProperties;
 }
 
-FName UPCGExFindEdgeIslandsSettings::GetMainOutputLabel() const { return PCGExGraph::OutputVerticesLabel; }
+FName UPCGExFindEdgeClustersSettings::GetMainOutputLabel() const { return PCGExGraph::OutputVerticesLabel; }
 
-PCGEX_INITIALIZE_ELEMENT(FindEdgeIslands)
+PCGEX_INITIALIZE_ELEMENT(FindEdgeClusters)
 
-bool FPCGExFindEdgeIslandsElement::Boot(FPCGContext* InContext) const
+bool FPCGExFindEdgeClustersElement::Boot(FPCGContext* InContext) const
 {
 	if (!FPCGExGraphProcessorElement::Boot(InContext)) { return false; }
 
-	PCGEX_CONTEXT_AND_SETTINGS(FindEdgeIslands)
+	PCGEX_CONTEXT_AND_SETTINGS(FindEdgeClusters)
 
 	Context->CrawlEdgeTypes = static_cast<EPCGExEdgeType>(Settings->CrawlEdgeTypes);
 
 	PCGEX_FWD(bPruneIsolatedPoints)
 	PCGEX_FWD(bInheritAttributes)
 
-	Context->MinIslandSize = Settings->bRemoveSmallIslands ? FMath::Max(1, Settings->MinIslandSize) : 1;
-	Context->MaxIslandSize = Settings->bRemoveBigIslands ? FMath::Max(1, Settings->MaxIslandSize) : TNumericLimits<int32>::Max();
+	Context->MinClusterSize = Settings->bRemoveSmallClusters ? FMath::Max(1, Settings->MinClusterSize) : 1;
+	Context->MaxClusterSize = Settings->bRemoveBigClusters ? FMath::Max(1, Settings->MaxClusterSize) : TNumericLimits<int32>::Max();
 
-	PCGEX_FWD(IslandIDAttributeName)
-	PCGEX_FWD(IslandSizeAttributeName)
+	PCGEX_FWD(ClusterIDAttributeName)
+	PCGEX_FWD(ClusterSizeAttributeName)
 
 	PCGEX_FWD(bFindCrossings)
 	PCGEX_FWD(CrossingTolerance)
 
-	PCGEX_VALIDATE_NAME(Context->IslandIDAttributeName)
-	PCGEX_VALIDATE_NAME(Context->IslandSizeAttributeName)
+	PCGEX_VALIDATE_NAME(Context->ClusterIDAttributeName)
+	PCGEX_VALIDATE_NAME(Context->ClusterSizeAttributeName)
 
 	return true;
 }
 
-bool FPCGExFindEdgeIslandsElement::ExecuteInternal(
+bool FPCGExFindEdgeClustersElement::ExecuteInternal(
 	FPCGContext* InContext) const
 {
-	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExFindEdgeIslandsElement::Execute);
+	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExFindEdgeClustersElement::Execute);
 
-	PCGEX_CONTEXT_AND_SETTINGS(FindEdgeIslands)
+	PCGEX_CONTEXT_AND_SETTINGS(FindEdgeClusters)
 
 	if (Context->IsSetup())
 	{
@@ -84,15 +84,15 @@ bool FPCGExFindEdgeIslandsElement::ExecuteInternal(
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
 		PCGEX_DELETE(Context->EdgeNetwork)
-		PCGEX_DELETE(Context->IslandsIO)
+		PCGEX_DELETE(Context->ClustersIO)
 		PCGEX_DELETE(Context->Markings)
 		PCGEX_DELETE(Context->EdgeCrossings)
 
 		if (!Context->AdvancePointsIOAndResetGraph()) { Context->Done(); }
 		else
 		{
-			Context->IslandsIO = new PCGExData::FPointIOGroup();
-			Context->IslandsIO->DefaultOutputLabel = PCGExGraph::OutputEdgesLabel;
+			Context->ClustersIO = new PCGExData::FPointIOGroup();
+			Context->ClustersIO->DefaultOutputLabel = PCGExGraph::OutputEdgesLabel;
 			Context->EdgeNetwork = new PCGExGraph::FEdgeNetwork(Context->MergedInputSocketsNum, Context->CurrentIO->GetNum());
 			Context->Markings = new PCGExData::FKPointIOMarkedBindings<int32>(Context->CurrentIO, PCGExGraph::PUIDAttributeName);
 			Context->SetState(PCGExGraph::State_ReadyForNextGraph);
@@ -110,7 +110,7 @@ bool FPCGExFindEdgeIslandsElement::ExecuteInternal(
 			}
 			else
 			{
-				Context->SetState(PCGExGraph::State_WritingIslands);
+				Context->SetState(PCGExGraph::State_WritingClusters);
 			}
 		}
 		else { Context->SetState(PCGExGraph::State_BuildNetwork); }
@@ -147,7 +147,7 @@ bool FPCGExFindEdgeIslandsElement::ExecuteInternal(
 
 						if (End != -1 && (InEdgeType & EdgeType) != 0)
 						{
-							Context->EdgeNetwork->InsertEdge(PCGExGraph::FUnsignedEdge(Index, End, EPCGExEdgeType::Complete));
+							Context->EdgeNetwork->InsertEdge(PCGExGraph::FUnsignedEdge(Index, End));
 							Queue.Enqueue(End);
 						}
 					}
@@ -174,16 +174,16 @@ bool FPCGExFindEdgeIslandsElement::ExecuteInternal(
 		if (Context->Process(Initialize, ProcessEdge, Context->EdgeNetwork->Edges.Num()))
 		{
 			Context->EdgeCrossings->InsertCrossings();
-			Context->SetState(PCGExGraph::State_WritingIslands);
+			Context->SetState(PCGExGraph::State_WritingClusters);
 		}
 	}
 
 	// -> Network is ready
 
-	if (Context->IsState(PCGExGraph::State_WritingIslands))
+	if (Context->IsState(PCGExGraph::State_WritingClusters))
 	{
-		Context->IslandsIO->Flush();
-		Context->EdgeNetwork->PrepareIslands(Context->MinIslandSize, Context->MaxIslandSize);
+		Context->ClustersIO->Flush();
+		Context->EdgeNetwork->PrepareClusters(Context->MinClusterSize, Context->MaxClusterSize);
 		Context->Markings->Mark = Context->CurrentIO->GetIn()->GetUniqueID();
 
 		if (Context->bPruneIsolatedPoints)
@@ -199,8 +199,8 @@ bool FPCGExFindEdgeIslandsElement::ExecuteInternal(
 			for (PCGExGraph::FNetworkNode Node : Context->EdgeNetwork->Nodes)
 			{
 				if (Node.bCrossing) { continue; }
-				if (Node.Island == -1 || Node.Edges.IsEmpty()) { continue; }
-				if (*Context->EdgeNetwork->IslandSizes.Find(Node.Island) == -1) { continue; }
+				if (Node.Cluster == -1 || Node.Edges.IsEmpty()) { continue; }
+				if (*Context->EdgeNetwork->ClusterSizes.Find(Node.Cluster) == -1) { continue; }
 
 				Context->IndexRemap.Add(Node.Index, Index++);
 				MutablePoints.Add(Context->CurrentIO->GetInPoint(Node.Index));
@@ -214,8 +214,8 @@ bool FPCGExFindEdgeIslandsElement::ExecuteInternal(
 					const PCGExGraph::FEdgeCrossing& Crossing = Context->EdgeCrossings->Crossings[i];
 					const PCGExGraph::FNetworkNode& Node = Context->EdgeNetwork->Nodes[Offset + i];
 
-					if (Node.Island == -1 || Node.Edges.IsEmpty()) { continue; }
-					if (*Context->EdgeNetwork->IslandSizes.Find(Node.Island) == -1) { continue; }
+					if (Node.Cluster == -1 || Node.Edges.IsEmpty()) { continue; }
+					if (*Context->EdgeNetwork->ClusterSizes.Find(Node.Cluster) == -1) { continue; }
 
 					Context->IndexRemap.Add(Offset + i, Index++);
 					MutablePoints.Emplace_GetRef().Transform.SetLocation(Crossing.Center);
@@ -232,36 +232,36 @@ bool FPCGExFindEdgeIslandsElement::ExecuteInternal(
 		}
 
 
-		for (const TPair<int32, int32>& Pair : Context->EdgeNetwork->IslandSizes)
+		for (const TPair<int32, int32>& Pair : Context->EdgeNetwork->ClusterSizes)
 		{
-			const int32 IslandSize = Pair.Value;
-			if (IslandSize == -1) { continue; }
+			const int32 ClusterSize = Pair.Value;
+			if (ClusterSize == -1) { continue; }
 
-			PCGExData::FPointIO& IslandIO = Context->IslandsIO->Emplace_GetRef(PCGExData::EInit::NewOutput);
-			Context->Markings->Add(IslandIO);
+			PCGExData::FPointIO& ClusterIO = Context->ClustersIO->Emplace_GetRef(PCGExData::EInit::NewOutput);
+			Context->Markings->Add(ClusterIO);
 
-			Context->GetAsyncManager()->Start<FWriteIslandTask>(
-				Pair.Key, Context->CurrentIO, &IslandIO,
+			Context->GetAsyncManager()->Start<FWriteClusterTask>(
+				Pair.Key, Context->CurrentIO, &ClusterIO,
 				Context->EdgeNetwork, Context->bPruneIsolatedPoints ? &Context->IndexRemap : nullptr);
 		}
 
-		if (Context->IslandsIO->IsEmpty())
+		if (Context->ClustersIO->IsEmpty())
 		{
 			Context->CurrentIO->GetOut()->Metadata->DeleteAttribute(PCGExGraph::PUIDAttributeName); // Unmark
 			Context->SetState(PCGExMT::State_ReadyForNextPoints);
 		}
 		else
 		{
-			Context->SetAsyncState(PCGExGraph::State_WaitingOnWritingIslands);
+			Context->SetAsyncState(PCGExGraph::State_WaitingOnWritingClusters);
 		}
 	}
 
-	if (Context->IsState(PCGExGraph::State_WaitingOnWritingIslands))
+	if (Context->IsState(PCGExGraph::State_WaitingOnWritingClusters))
 	{
 		if (Context->IsAsyncWorkComplete())
 		{
 			Context->Markings->UpdateMark();
-			Context->IslandsIO->OutputTo(Context, true);
+			Context->ClustersIO->OutputTo(Context, true);
 			Context->SetState(PCGExMT::State_ReadyForNextPoints);
 		}
 	}

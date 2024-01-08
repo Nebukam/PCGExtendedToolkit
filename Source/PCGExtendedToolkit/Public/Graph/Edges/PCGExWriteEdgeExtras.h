@@ -31,6 +31,7 @@ public:
 	PCGEX_NODE_INFOS(WriteEdgeExtras, "Edges : Write Extras", "Extract & write extra edge informations to the point representing the edge.");
 #endif
 
+	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	virtual PCGExData::EInit GetEdgeOutputInitMode() const override;
 
 protected:
@@ -38,6 +39,15 @@ protected:
 	//~End UPCGSettings interface
 
 public:
+
+	/** Write normal from edges on vertices. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bWriteVtxNormal = false;
+
+	/** Name of the 'normal' vertex attribute to write normal to.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteVtxNormal"))
+	FName VtxNormalAttributeName = FName("Normal");
+	
 	/** Write whether the sampling was sucessful or not to a boolean attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteEdgeLength = false;
@@ -67,6 +77,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExWriteEdgeExtrasContext : public FPCGExEdgesP
 	PCGExDataBlending::FMetadataBlender* MetadataBlender;
 
 	PCGEX_WRITEEDGEEXTRA_FOREACH(PCGEX_OUTPUT_DECL)
+	
+	PCGEx::TFAttributeWriter<FVector>* VtxNormalWriter = nullptr;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExWriteEdgeExtrasElement : public FPCGExEdgesProcessorElement

@@ -23,7 +23,7 @@ TArray<FPCGPinProperties> UPCGExSampleNearestPointSettings::InputPinProperties()
 
 #if WITH_EDITOR
 	PinPropertySourceTargets.Tooltip = FTEXT("The point data set to check against.");
-#endif // WITH_EDITOR
+#endif
 
 	return PinProperties;
 }

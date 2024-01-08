@@ -46,7 +46,7 @@ namespace PCGExGraph
 
 	const FName EdgeStartAttributeName = TEXT("PCGEx/EdgeStart");
 	const FName EdgeEndAttributeName = TEXT("PCGEx/EdgeEnd");
-	const FName IslandIndexAttributeName = TEXT("PCGEx/Island");
+	const FName ClusterIndexAttributeName = TEXT("PCGEx/Cluster");
 
 	constexpr PCGExMT::AsyncState State_ReadyForNextEdges = __COUNTER__;
 	constexpr PCGExMT::AsyncState State_ProcessingEdges = __COUNTER__;
@@ -69,10 +69,17 @@ namespace PCGExGraph
 		{
 		}
 
+		FEdge(const int32 InStart, const int32 InEnd):
+			Start(InStart), End(InEnd), Type(EPCGExEdgeType::Unknown)
+		{
+		}
+
 		FEdge(const int32 InStart, const int32 InEnd, const EPCGExEdgeType InType):
 			Start(InStart), End(InEnd), Type(InType)
 		{
 		}
+
+		bool Contains(const int32 InIndex) const { return Start == InIndex || End == InIndex; }
 
 		uint32 Other(const int32 InIndex) const
 		{
@@ -101,6 +108,11 @@ namespace PCGExGraph
 	struct PCGEXTENDEDTOOLKIT_API FUnsignedEdge : public FEdge
 	{
 		FUnsignedEdge()
+		{
+		}
+
+		FUnsignedEdge(const int32 InStart, const int32 InEnd):
+			FEdge(InStart, InEnd)
 		{
 		}
 

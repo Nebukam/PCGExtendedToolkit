@@ -298,8 +298,8 @@ namespace PCGExGraph
 
 	constexpr PCGExMT::AsyncState State_BuildNetwork = __COUNTER__;
 	constexpr PCGExMT::AsyncState State_FindingCrossings = __COUNTER__;
-	constexpr PCGExMT::AsyncState State_WritingIslands = __COUNTER__;
-	constexpr PCGExMT::AsyncState State_WaitingOnWritingIslands = __COUNTER__;
+	constexpr PCGExMT::AsyncState State_WritingClusters = __COUNTER__;
+	constexpr PCGExMT::AsyncState State_WaitingOnWritingClusters = __COUNTER__;
 
 	constexpr PCGExMT::AsyncState State_PromotingEdges = __COUNTER__;
 
@@ -572,11 +572,11 @@ namespace PCGExGraph
 		}
 
 		int32 Index = -1;
-		int32 Island = -1;
+		int32 Cluster = -1;
 		bool bCrossing = false;
 		TArray<int32> Edges;
 
-		bool IsIsolated() const { return Island == -1; }
+		bool IsIsolated() const { return Cluster == -1; }
 		bool GetNeighbors(TArray<int32>& OutIndices, const TArray<FUnsignedEdge>& InEdges);
 		void AddEdge(const int32 Edge);
 	};
@@ -597,21 +597,21 @@ namespace PCGExGraph
 		mutable FRWLock NetworkLock;
 
 		const int32 NumEdgesReserve;
-		int32 IslandIncrement = 0;
-		int32 NumIslands = 0;
+		int32 ClusterIncrement = 0;
+		int32 NumClusters = 0;
 		int32 NumEdges = 0;
 
 		TArray<FNetworkNode> Nodes;
 		TSet<uint64> UniqueEdges;
 		TArray<FUnsignedEdge> Edges;
-		TMap<int32, int32> IslandSizes;
+		TMap<int32, int32> ClusterSizes;
 
 		~FEdgeNetwork()
 		{
 			Nodes.Empty();
 			UniqueEdges.Empty();
 			Edges.Empty();
-			IslandSizes.Empty();
+			ClusterSizes.Empty();
 		}
 
 		FEdgeNetwork(const int32 InNumEdgesReserve, const int32 InNumNodes)
@@ -629,8 +629,8 @@ namespace PCGExGraph
 		}
 
 		bool InsertEdge(const FUnsignedEdge Edge);
-		void MergeIsland(const int32 NodeIndex, const int32 Island);
-		void PrepareIslands(const int32 MinSize = 1, const int32 MaxSize = TNumericLimits<int32>::Max());
+		void MergeCluster(const int32 NodeIndex, const int32 Cluster);
+		void PrepareClusters(const int32 MinSize = 1, const int32 MaxSize = TNumericLimits<int32>::Max());
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FEdgeCrossingsHandler
@@ -675,17 +675,17 @@ namespace PCGExGraph
 }
 
 
-class PCGEXTENDEDTOOLKIT_API FWriteIslandTask : public FPCGExNonAbandonableTask
+class PCGEXTENDEDTOOLKIT_API FWriteClusterTask : public FPCGExNonAbandonableTask
 {
 public:
-	FWriteIslandTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-	                 PCGExData::FPointIO* InIslandIO, PCGExGraph::FEdgeNetwork* InEdgeNetwork, TMap<int32, int32>* InIndexRemap = nullptr) //, PCGExGraph::FDebugEdgeData* InEdgeDebugData = nullptr) 
+	FWriteClusterTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+	                  PCGExData::FPointIO* InClusterIO, PCGExGraph::FEdgeNetwork* InEdgeNetwork, TMap<int32, int32>* InIndexRemap = nullptr) //, PCGExGraph::FDebugEdgeData* InEdgeDebugData = nullptr) 
 		: FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
-		  IslandIO(InIslandIO), EdgeNetwork(InEdgeNetwork), IndexRemap(InIndexRemap) //, EdgeDebugData(InEdgeDebugData)
+		  ClusterIO(InClusterIO), EdgeNetwork(InEdgeNetwork), IndexRemap(InIndexRemap) //, EdgeDebugData(InEdgeDebugData)
 	{
 	}
 
-	PCGExData::FPointIO* IslandIO = nullptr;
+	PCGExData::FPointIO* ClusterIO = nullptr;
 	PCGExGraph::FEdgeNetwork* EdgeNetwork = nullptr;
 	TMap<int32, int32>* IndexRemap = nullptr;
 	//PCGExGraph::FDebugEdgeData* EdgeDebugData = nullptr;

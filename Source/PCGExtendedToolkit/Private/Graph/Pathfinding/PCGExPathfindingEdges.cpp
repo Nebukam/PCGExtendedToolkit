@@ -105,7 +105,7 @@ bool FPCGExPathfindingEdgesElement::ExecuteInternal(FPCGContext* InContext) cons
 		if (!Context->AdvanceEdges()) { Context->SetState(PCGExMT::State_ReadyForNextPoints); }
 		else
 		{
-			if (Context->CurrentMesh->HasInvalidEdges())
+			if (Context->CurrentCluster->HasInvalidEdges())
 			{
 				PCGE_LOG(Warning, GraphAndLog, FTEXT("Some input edges are invalid. This will highly likely cause unexpected results or failed pathfinding."));
 			}
@@ -116,12 +116,12 @@ bool FPCGExPathfindingEdgesElement::ExecuteInternal(FPCGContext* InContext) cons
 
 	if (Context->IsState(PCGExGraph::State_ProcessingEdges))
 	{
-		auto SampleMeshTask = [&](const int32 Index)
+		auto SampleClusterTask = [&](const int32 Index)
 		{
-			Context->GetAsyncManager()->Start<FSampleMeshPathTask>(Index, Context->CurrentIO, Context->PathBuffer[Index]);
+			Context->GetAsyncManager()->Start<FSampleClusterPathTask>(Index, Context->CurrentIO, Context->PathBuffer[Index]);
 		};
 
-		if (Context->Process(SampleMeshTask, Context->PathBuffer.Num()))
+		if (Context->Process(SampleClusterTask, Context->PathBuffer.Num()))
 		{
 			Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork);
 		}
@@ -140,19 +140,19 @@ bool FPCGExPathfindingEdgesElement::ExecuteInternal(FPCGContext* InContext) cons
 	return Context->IsDone();
 }
 
-bool FSampleMeshPathTask::ExecuteTask()
+bool FSampleClusterPathTask::ExecuteTask()
 {
 	const FPCGExPathfindingEdgesContext* Context = Manager->GetContext<FPCGExPathfindingEdgesContext>();
 
 	const FPCGPoint& Seed = Context->SeedsPoints->GetInPoint(Query->SeedIndex);
 	const FPCGPoint& Goal = Context->GoalsPoints->GetInPoint(Query->GoalIndex);
 
-	const PCGExMesh::FMesh* Mesh = Context->CurrentMesh;
+	const PCGExCluster::FCluster* Cluster = Context->CurrentCluster;
 
 	TArray<int32> Path;
 
 	if (!PCGExPathfinding::FindPath(
-		Context->CurrentMesh, Query->SeedPosition, Query->GoalPosition,
+		Context->CurrentCluster, Query->SeedPosition, Query->GoalPosition,
 		Context->Heuristics, Context->HeuristicsModifiers, Path))
 	{
 		return false;
@@ -166,7 +166,7 @@ bool FSampleMeshPathTask::ExecuteTask()
 	MutablePoints.Reserve(Path.Num() + 2);
 
 	if (Context->bAddSeedToPath) { MutablePoints.Add_GetRef(Seed).MetadataEntry = PCGInvalidEntryKey; }
-	for (const int32 VtxIndex : Path) { MutablePoints.Add(InPoints[Mesh->Vertices[VtxIndex].PointIndex]); }
+	for (const int32 VtxIndex : Path) { MutablePoints.Add(InPoints[Cluster->Vertices[VtxIndex].PointIndex]); }
 	if (Context->bAddGoalToPath) { MutablePoints.Add_GetRef(Goal).MetadataEntry = PCGInvalidEntryKey; }
 
 	return true;
