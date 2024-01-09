@@ -17,6 +17,8 @@ namespace PCGExGeo
 		TFSimplex<DIMENSIONS>* Simplex = nullptr;
 		TFVtx<DIMENSIONS>* Circumcenter = nullptr;
 		double Radius = 0;
+		bool bIsWithinBounds = true;
+		FVector Centroid = FVector::Zero();
 
 		TDelaunayCell(
 			TFSimplex<DIMENSIONS>* InSimplex,
@@ -26,6 +28,7 @@ namespace PCGExGeo
 			Simplex = InSimplex;
 			Circumcenter = InCircumcenter;
 			Radius = InRadius;
+			ComputeCentroid();
 		}
 
 		~TDelaunayCell()
@@ -33,6 +36,19 @@ namespace PCGExGeo
 			Simplex = nullptr;
 			PCGEX_DELETE(Circumcenter)
 			Radius = 0;
+		}
+
+		void ComputeCentroid()
+		{
+			Centroid = FVector::Zero();
+			for (TFVtx<DIMENSIONS>* Vtx : Simplex->Vertices) { Centroid += Vtx->GetV3(); }
+			Centroid /= DIMENSIONS - 1;
+		}
+
+		FVector GetBestCenter() const
+		{
+			if (bIsWithinBounds) { return Circumcenter->GetV3(); }
+			return Centroid;
 		}
 	};
 
@@ -46,6 +62,10 @@ namespace PCGExGeo
 		TArray<TFVtx<DIMENSIONS>*> Vertices;
 		TArray<TDelaunayCell<DIMENSIONS>*> Cells;
 		TFVtx<DIMENSIONS>* Centroid = nullptr;
+
+		FBox Bounds;
+		double BoundsExtension = 0;
+		EPCGExCellCenter CellCenter = EPCGExCellCenter::Circumcenter;
 
 		double MTX[DIMENSIONS][DIMENSIONS];
 
@@ -74,6 +94,7 @@ namespace PCGExGeo
 			GetUpscaledVerticesFromPoints<DIMENSIONS>(InPoints, Vertices);
 
 			if (Vertices.Num() <= DIMENSIONS) { return false; }
+			ComputeVerticesBounds();
 
 			return true;
 		}
@@ -92,8 +113,16 @@ namespace PCGExGeo
 			Vertices.Empty();
 			Vertices.Reserve(InVertices.Num());
 			Vertices.Append(InVertices);
+			ComputeVerticesBounds();
 
 			return true;
+		}
+
+		void ComputeVerticesBounds()
+		{
+			Bounds = FBox(ForceInit);
+			for (TFVtx<DIMENSIONS>* Vtx : Vertices) { Bounds += Vtx->GetV3(); }
+			Bounds = Bounds.ExpandBy(BoundsExtension);
 		}
 
 		virtual void Generate()
@@ -109,14 +138,12 @@ namespace PCGExGeo
 			{
 				if (Simplex->Normal[DIMENSIONS - 1] >= 0.0f)
 				{
-					for (TFSimplex<DIMENSIONS>* Adjacent : Simplex->AdjacentFaces)
-					{
-						if (Adjacent) { Adjacent->Remove(Simplex); }
-					}
+					for (TFSimplex<DIMENSIONS>* Adjacent : Simplex->AdjacentFaces) { if (Adjacent) { Adjacent->Remove(Simplex); } }
 				}
 				else
 				{
 					TDelaunayCell<DIMENSIONS>* Cell = CreateCell(Simplex);
+					Cell->bIsWithinBounds = Bounds.IsInside(CellCenter == EPCGExCellCenter::Circumcenter ? Cell->Circumcenter->GetV3() : Cell->Centroid);
 					Cell->Circumcenter->Id = i++;
 					Cells.Add(Cell);
 				}
@@ -263,7 +290,7 @@ namespace PCGExGeo
 			for (int i = 0; i < 4; i++) { MTX[i][3] = (*Simplex->Vertices[i])[2]; }
 			const double c = Determinant();
 
-			const double s = -1.0f / (2.0f * a);
+			const double s = 1.0f / (2.0f * a);
 
 			TFVtx<4>* CC = new TFVtx<4>();
 			CC->SetV4(FVector4(s * DX, s * DY, s * DZ, 0));

@@ -5,7 +5,21 @@
 
 #include "CoreMinimal.h"
 #include "PCGExGeoPrimtives.h"
-#include "Data/PCGExPointIO.h"
+
+UENUM(BlueprintType)
+enum class EPCGExDelaunay2DNormal : uint8
+{
+	Static UMETA(DisplayName = "Static Normal", ToolTip="Static normal"),
+	Local UMETA(DisplayName = "Local Normal", ToolTip="Local normal fetched from point attribute"),
+};
+
+UENUM(BlueprintType)
+enum class EPCGExCellCenter : uint8
+{
+	Ideal UMETA(DisplayName = "Ideal", ToolTip="Pick centroid if circumcenter is out of bounds, otherwise uses circumcenter."),
+	Circumcenter UMETA(DisplayName = "Canon (Circumcenter)", ToolTip="Uses Delaunay cells' circumcenter."),
+	Centroid UMETA(DisplayName = "Centroid", ToolTip="Uses Delaunay cells' averaged vertice positions.")
+};
 
 namespace PCGExGeo
 {

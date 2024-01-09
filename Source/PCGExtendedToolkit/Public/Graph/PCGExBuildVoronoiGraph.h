@@ -7,6 +7,7 @@
 
 #include "PCGExGraphProcessor.h"
 #include "Data/PCGExData.h"
+#include "Geometry/PCGExGeo.h"
 
 #include "PCGExBuildVoronoiGraph.generated.h"
 
@@ -48,6 +49,18 @@ public:
 	//~End UPCGExPointsProcessorSettings interface
 
 public:
+	/** Method used to find Voronoi cell location */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	EPCGExCellCenter Method = EPCGExCellCenter::Ideal;
+	
+	/** Prune points and cell outside bounds */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
+	bool bPruneOutsideBounds = false;
+
+	/** Prune points and cell outside bounds (computed based on input vertices + optional extension)*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bPruneOutsideBounds"))
+	double BoundsCutoff = 500;
+	
 	/** Mark points & edges that lie on the hull */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bMarkHull = true;

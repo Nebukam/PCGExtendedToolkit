@@ -32,13 +32,13 @@ namespace PCGExGeo
 			To = nullptr;
 		}
 
-		bool operator==(const TVoronoiEdge<DIMENSIONS>& Other) const
+		bool operator==(const TVoronoiEdge& Other) const
 		{
 			if (*Other == this) { return true; }
 			return From == Other.To; //TODO: Double check
 		}
 
-		bool operator!=(const TVoronoiEdge<DIMENSIONS>& Other) const
+		bool operator!=(const TVoronoiEdge& Other) const
 		{
 			return !(this == Other);
 		}
@@ -54,6 +54,7 @@ namespace PCGExGeo
 		int32 Id = -1;
 		TArray<TDelaunayCell<DIMENSIONS>*> Cells;
 		TArray<TVoronoiEdge<DIMENSIONS>*> Edges;
+		bool bIsWithinBounds = true;
 
 		TVoronoiRegion()
 		{
@@ -63,6 +64,19 @@ namespace PCGExGeo
 		{
 			Cells.Empty();
 			PCGEX_DELETE_TARRAY(Edges) // Region owns edges
+		}
+
+		void CheckWithinBounds()
+		{
+			bIsWithinBounds = true;
+			for (TDelaunayCell<DIMENSIONS>* Cell : Cells)
+			{
+				if (!Cell->bIsWithinBounds)
+				{
+					bIsWithinBounds = false;
+					break;
+				}
+			}
 		}
 	};
 
@@ -74,6 +88,8 @@ namespace PCGExGeo
 	public:
 		TArray<TVoronoiRegion<DIMENSIONS>*> Regions;
 		T_DELAUNAY* Delaunay = nullptr;
+		double BoundsExtension = 0;
+		EPCGExCellCenter CellCenter = EPCGExCellCenter::Circumcenter;
 
 		TVoronoiMesh()
 		{
@@ -91,6 +107,9 @@ namespace PCGExGeo
 			PCGEX_DELETE(Delaunay)
 
 			Delaunay = new T_DELAUNAY();
+			Delaunay->BoundsExtension = BoundsExtension;
+			Delaunay->CellCenter = CellCenter;
+
 			if (!Delaunay->PrepareFrom(InPoints)) { return false; }
 
 			return true;
@@ -102,6 +121,9 @@ namespace PCGExGeo
 			PCGEX_DELETE(Delaunay)
 
 			Delaunay = new T_DELAUNAY();
+			Delaunay->BoundsExtension = BoundsExtension;
+			Delaunay->CellCenter = CellCenter;
+
 			if (!Delaunay->PrepareFrom(InVertices)) { return false; }
 
 			return true;
@@ -169,14 +191,14 @@ namespace PCGExGeo
 							}
 						}
 					}
-
+					Region->CheckWithinBounds();
 					Region->Id = Regions.Num();
 					Regions.Add(Region);
 				}
 			}
 		}
 
-		void GetUniqueEdges(TArray<PCGExGraph::FUnsignedEdge>& OutEdges)
+		void GetUniqueEdges(TArray<PCGExGraph::FUnsignedEdge>& OutEdges, bool bPruneOutsideBounds = false)
 		{
 			TSet<uint64> UniqueEdges;
 			UniqueEdges.Reserve(Regions.Num() * 5);
@@ -185,6 +207,7 @@ namespace PCGExGeo
 			{
 				for (const TVoronoiEdge<DIMENSIONS>* Edge : Region->Edges)
 				{
+					if (bPruneOutsideBounds && (!Edge->From->bIsWithinBounds || !Edge->To->bIsWithinBounds)) { continue; }
 					if (const uint64 Hash = Edge->GetUnsignedHash();
 						!UniqueEdges.Contains(Hash))
 					{

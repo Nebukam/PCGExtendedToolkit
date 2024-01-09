@@ -120,17 +120,20 @@ bool FPCGExBuildVoronoiGraphElement::ExecuteInternal(
 				}
 			}
 
-			bool bValidDelaunay = false;
+			bool bValidVoronoi = false;
 
 			Context->Voronoi = new PCGExGeo::TVoronoiMesh3();
+			Context->Voronoi->CellCenter = Settings->Method;
+			Context->Voronoi->BoundsExtension = Settings->BoundsCutoff;
+
 			if (Context->Voronoi->PrepareFrom(Context->CurrentIO->GetIn()->GetPoints()))
 			{
 				Context->Voronoi->Generate();
-				bValidDelaunay = !Context->Voronoi->Regions.IsEmpty();
+				bValidVoronoi = !Context->Voronoi->Regions.IsEmpty();
 				Context->SetState(PCGExGraph::State_WritingClusters);
 			}
 
-			if (!bValidDelaunay)
+			if (!bValidVoronoi)
 			{
 				PCGE_LOG(Warning, GraphAndLog, FTEXT("Some inputs generates no results. Are points coplanar? If so, use Voronoi 2D instead."));
 				Context->SetState(PCGExMT::State_ReadyForNextPoints);
@@ -176,16 +179,35 @@ void FPCGExBuildVoronoiGraphElement::WriteEdges(FPCGExBuildVoronoiGraphContext* 
 	TArray<FPCGPoint>& Centroids = Context->CurrentIO->GetOut()->GetMutablePoints();
 	Centroids.SetNum(Context->Voronoi->Delaunay->Cells.Num());
 
-	for (const PCGExGeo::TDelaunayCell<4>* Cell : Context->Voronoi->Delaunay->Cells)
-	{
-		const int32 CellIndex = Cell->Circumcenter->Id;
-		Centroids[CellIndex].Transform.SetLocation(Cell->Circumcenter->GetV3());
+	switch (Settings->Method) {
+	default: 
+	case EPCGExCellCenter::Ideal:
+		for (const PCGExGeo::TDelaunayCell<4>* Cell : Context->Voronoi->Delaunay->Cells)
+		{
+			const int32 CellIndex = Cell->Circumcenter->Id;
+			Centroids[CellIndex].Transform.SetLocation(Cell->GetBestCenter());
+		}
+		break;
+	case EPCGExCellCenter::Circumcenter:
+		for (const PCGExGeo::TDelaunayCell<4>* Cell : Context->Voronoi->Delaunay->Cells)
+		{
+			const int32 CellIndex = Cell->Circumcenter->Id;
+			Centroids[CellIndex].Transform.SetLocation(Cell->Circumcenter->GetV3());
+		}
+		break;
+	case EPCGExCellCenter::Centroid:
+		for (const PCGExGeo::TDelaunayCell<4>* Cell : Context->Voronoi->Delaunay->Cells)
+		{
+			const int32 CellIndex = Cell->Circumcenter->Id;
+			Centroids[CellIndex].Transform.SetLocation(Cell->Centroid);
+		}
+		break;
 	}
 
 	// Find unique edges
 	TSet<uint64> UniqueEdges;
 	TArray<PCGExGraph::FUnsignedEdge> Edges;
-	Context->Voronoi->GetUniqueEdges(Edges);
+	Context->Voronoi->GetUniqueEdges(Edges, Settings->bPruneOutsideBounds && Settings->Method != EPCGExCellCenter::Ideal);
 
 	PCGExData::FPointIO& VoronoiEdges = Context->ClustersIO->Emplace_GetRef();
 	Context->Markings->Add(VoronoiEdges);

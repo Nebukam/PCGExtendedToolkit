@@ -320,7 +320,7 @@ namespace PCGExPathfinding
 			{
 				//Get current index neighbors
 				for (const PCGExCluster::FVertex& Vtx = Cluster->GetVertex(CurrentVtxIndex);
-				     const int32 EdgeIndex : Vtx.Edges) //TODO: Use edge instead?
+					const int32 EdgeIndex : Vtx.Edges) //TODO: Use edge instead?
 				{
 					const PCGExCluster::FIndexedEdge& Edge = Cluster->Edges[EdgeIndex];
 					const int32 OtherPointIndex = Edge.Other(Vtx.PointIndex);
