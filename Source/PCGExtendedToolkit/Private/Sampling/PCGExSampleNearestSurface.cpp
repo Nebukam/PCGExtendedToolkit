@@ -15,8 +15,7 @@ PCGEX_INITIALIZE_ELEMENT(SampleNearestSurface)
 FPCGExSampleNearestSurfaceContext::~FPCGExSampleNearestSurfaceContext()
 {
 	PCGEX_TERMINATE_ASYNC
-
-	PCGEX_SAMPLENEARESTSURFACE_FOREACH(PCGEX_OUTPUT_DELETE)
+	PCGEX_FOREACH_FIELD_NEARESTSURFACE(PCGEX_OUTPUT_DELETE)
 }
 
 bool FPCGExSampleNearestSurfaceElement::Boot(FPCGContext* InContext) const
@@ -33,9 +32,9 @@ bool FPCGExSampleNearestSurfaceElement::Boot(FPCGContext* InContext) const
 	PCGEX_FWD(CollisionProfileName)
 	PCGEX_FWD(bIgnoreSelf)
 
-	PCGEX_SAMPLENEARESTSURFACE_FOREACH(PCGEX_OUTPUT_FWD)
+	PCGEX_FOREACH_FIELD_NEARESTSURFACE(PCGEX_OUTPUT_FWD)
 
-	PCGEX_SAMPLENEARESTSURFACE_FOREACH(PCGEX_OUTPUT_VALIDATE_NAME)
+	PCGEX_FOREACH_FIELD_NEARESTSURFACE(PCGEX_OUTPUT_VALIDATE_NAME)
 
 	return true;
 }
@@ -76,7 +75,7 @@ bool FPCGExSampleNearestSurfaceElement::ExecuteInternal(FPCGContext* InContext) 
 		auto Initialize = [&](PCGExData::FPointIO& PointIO)
 		{
 			PointIO.CreateOutKeys();
-			PCGEX_SAMPLENEARESTSURFACE_FOREACH(PCGEX_OUTPUT_ACCESSOR_INIT)
+			PCGEX_FOREACH_FIELD_NEARESTSURFACE(PCGEX_OUTPUT_ACCESSOR_INIT)
 		};
 
 		auto ProcessPoint = [&](const int32 PointIndex, const PCGExData::FPointIO& PointIO)
@@ -91,7 +90,7 @@ bool FPCGExSampleNearestSurfaceElement::ExecuteInternal(FPCGContext* InContext) 
 	{
 		if (Context->IsAsyncWorkComplete())
 		{
-			PCGEX_SAMPLENEARESTSURFACE_FOREACH(PCGEX_OUTPUT_WRITE)
+			PCGEX_FOREACH_FIELD_NEARESTSURFACE(PCGEX_OUTPUT_WRITE)
 			Context->CurrentIO->OutputTo(Context);
 			Context->SetState(PCGExMT::State_ReadyForNextPoints);
 		}

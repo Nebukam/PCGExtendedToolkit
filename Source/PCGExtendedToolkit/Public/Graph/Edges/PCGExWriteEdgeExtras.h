@@ -9,7 +9,7 @@
 #include "Sampling/PCGExSampling.h"
 #include "PCGExWriteEdgeExtras.generated.h"
 
-#define PCGEX_WRITEEDGEEXTRA_FOREACH(MACRO)\
+#define PCGEX_FOREACH_FIELD_EDGEEXTRAS(MACRO)\
 MACRO(EdgeLength, double)
 
 namespace PCGExDataBlending
@@ -39,15 +39,14 @@ protected:
 	//~End UPCGSettings interface
 
 public:
-
 	/** Write normal from edges on vertices. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
+	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteVtxNormal = false;
 
 	/** Name of the 'normal' vertex attribute to write normal to.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteVtxNormal"))
+	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteVtxNormal"))
 	FName VtxNormalAttributeName = FName("Normal");
-	
+
 	/** Write whether the sampling was sucessful or not to a boolean attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteEdgeLength = false;
@@ -76,8 +75,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExWriteEdgeExtrasContext : public FPCGExEdgesP
 
 	PCGExDataBlending::FMetadataBlender* MetadataBlender;
 
-	PCGEX_WRITEEDGEEXTRA_FOREACH(PCGEX_OUTPUT_DECL)
-	
+	PCGEX_FOREACH_FIELD_EDGEEXTRAS(PCGEX_OUTPUT_DECL)
+
 	PCGEx::TFAttributeWriter<FVector>* VtxNormalWriter = nullptr;
 };
 

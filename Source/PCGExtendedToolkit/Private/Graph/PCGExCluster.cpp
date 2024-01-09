@@ -22,18 +22,16 @@ namespace PCGExCluster
 	bool FVertex::GetNormal(FCluster* InCluster, FVector& OutNormal)
 	{
 		if (Neighbors.IsEmpty()) { return false; }
-		
-		OutNormal = FVector::Zero();
-		for(int32 I : Neighbors)
+
+		for (int32 I : Neighbors)
 		{
-			FVector B = InCluster->Vertices[I].Position;
-			FVector C = B + FVector::UpVector; 
-			C = FVector::CrossProduct(B - Position, C - Position).GetSafeNormal();
-			OutNormal += FVector::CrossProduct(B - Position, C - Position).GetSafeNormal();			
+			FVector E1 = (InCluster->Vertices[I].Position - Position).GetSafeNormal();
+			FVector Perp = FVector::CrossProduct(FVector::UpVector, E1).GetSafeNormal();
+			OutNormal += FVector::CrossProduct(E1, Perp).GetSafeNormal();
 		}
 
-		OutNormal /= Neighbors.Num();
-		
+		OutNormal /= static_cast<double>(Neighbors.Num());
+
 		return true;
 	}
 

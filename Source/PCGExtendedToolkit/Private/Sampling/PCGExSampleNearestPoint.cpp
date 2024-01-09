@@ -44,7 +44,7 @@ FPCGExSampleNearestPointContext::~FPCGExSampleNearestPointContext()
 
 	PCGEX_DELETE(Targets)
 
-	PCGEX_SAMPLENEARESTPOINT_FOREACH(PCGEX_OUTPUT_DELETE)
+	PCGEX_FOREACH_FIELD_NEARESTPOINT(PCGEX_OUTPUT_DELETE)
 }
 
 bool FPCGExSampleNearestPointElement::Boot(FPCGContext* InContext) const
@@ -87,7 +87,7 @@ bool FPCGExSampleNearestPointElement::Boot(FPCGContext* InContext) const
 	PCGEX_FWD(SampleMethod)
 	PCGEX_FWD(WeightMethod)
 
-	PCGEX_SAMPLENEARESTPOINT_FOREACH(PCGEX_OUTPUT_FWD)
+	PCGEX_FOREACH_FIELD_NEARESTPOINT(PCGEX_OUTPUT_FWD)
 
 	if (!Context->Targets || Context->Targets->GetNum() < 1)
 	{
@@ -101,7 +101,7 @@ bool FPCGExSampleNearestPointElement::Boot(FPCGContext* InContext) const
 		return false;
 	}
 
-	PCGEX_SAMPLENEARESTPOINT_FOREACH(PCGEX_OUTPUT_VALIDATE_NAME)
+	PCGEX_FOREACH_FIELD_NEARESTPOINT(PCGEX_OUTPUT_VALIDATE_NAME)
 
 	if (Context->NormalWriter)
 	{
@@ -154,7 +154,7 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 			}
 
 			PointIO.CreateOutKeys();
-			PCGEX_SAMPLENEARESTPOINT_FOREACH(PCGEX_OUTPUT_ACCESSOR_INIT)
+			PCGEX_FOREACH_FIELD_NEARESTPOINT(PCGEX_OUTPUT_ACCESSOR_INIT)
 		};
 
 		auto ProcessPoint = [&](const int32 ReadIndex, const PCGExData::FPointIO& PointIO)
@@ -169,7 +169,7 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 	{
 		if (Context->IsAsyncWorkComplete())
 		{
-			PCGEX_SAMPLENEARESTPOINT_FOREACH(PCGEX_OUTPUT_WRITE)
+			PCGEX_FOREACH_FIELD_NEARESTPOINT(PCGEX_OUTPUT_WRITE)
 			Context->CurrentIO->OutputTo(Context);
 			Context->SetState(PCGExMT::State_ReadyForNextPoints);
 		}

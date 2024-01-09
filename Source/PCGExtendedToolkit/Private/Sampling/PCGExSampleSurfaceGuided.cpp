@@ -15,8 +15,7 @@ PCGEX_INITIALIZE_ELEMENT(SampleSurfaceGuided)
 FPCGExSampleSurfaceGuidedContext::~FPCGExSampleSurfaceGuidedContext()
 {
 	PCGEX_TERMINATE_ASYNC
-
-	PCGEX_SAMPLENEARESTTRACE_FOREACH(PCGEX_OUTPUT_DELETE)
+	PCGEX_FOREACH_FIELD_SURFACEGUIDED(PCGEX_OUTPUT_DELETE)
 }
 
 bool FPCGExSampleSurfaceGuidedElement::Boot(FPCGContext* InContext) const
@@ -37,9 +36,9 @@ bool FPCGExSampleSurfaceGuidedElement::Boot(FPCGContext* InContext) const
 	Context->SizeGetter.Capture(Settings->LocalSize);
 	Context->DirectionGetter.Capture(Settings->Direction);
 
-	PCGEX_SAMPLENEARESTTRACE_FOREACH(PCGEX_OUTPUT_FWD)
+	PCGEX_FOREACH_FIELD_SURFACEGUIDED(PCGEX_OUTPUT_FWD)
 
-	PCGEX_SAMPLENEARESTTRACE_FOREACH(PCGEX_OUTPUT_VALIDATE_NAME)
+	PCGEX_FOREACH_FIELD_SURFACEGUIDED(PCGEX_OUTPUT_VALIDATE_NAME)
 
 	return true;
 }
@@ -80,7 +79,7 @@ bool FPCGExSampleSurfaceGuidedElement::ExecuteInternal(FPCGContext* InContext) c
 		{
 			Context->DirectionGetter.Bind(PointIO);
 
-			PCGEX_SAMPLENEARESTTRACE_FOREACH(PCGEX_OUTPUT_ACCESSOR_INIT)
+			PCGEX_FOREACH_FIELD_SURFACEGUIDED(PCGEX_OUTPUT_ACCESSOR_INIT)
 		};
 
 		auto ProcessPoint = [&](const int32 PointIndex, const PCGExData::FPointIO& PointIO)
@@ -95,7 +94,7 @@ bool FPCGExSampleSurfaceGuidedElement::ExecuteInternal(FPCGContext* InContext) c
 	{
 		if (Context->IsAsyncWorkComplete())
 		{
-			PCGEX_SAMPLENEARESTTRACE_FOREACH(PCGEX_OUTPUT_WRITE)
+			PCGEX_FOREACH_FIELD_SURFACEGUIDED(PCGEX_OUTPUT_WRITE)
 			Context->CurrentIO->OutputTo(Context);
 			Context->SetState(PCGExMT::State_ReadyForNextPoints);
 		}

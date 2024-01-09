@@ -11,7 +11,7 @@
 
 #include "PCGExSampleNearestPolyline.generated.h"
 
-#define PCGEX_SAMPLENEARESTPOLYLINE_FOREACH(MACRO)\
+#define PCGEX_FOREACH_FIELD_NEARESTPOLYLINE(MACRO)\
 MACRO(Success, bool)\
 MACRO(Location, FVector)\
 MACRO(LookAt, FVector)\
@@ -258,7 +258,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestPolylineContext : public FPCGEx
 
 	//TODO: Setup target local inputs
 
-	PCGEX_SAMPLENEARESTPOLYLINE_FOREACH(PCGEX_OUTPUT_DECL)
+	PCGEX_FOREACH_FIELD_NEARESTPOLYLINE(PCGEX_OUTPUT_DECL)
 	EPCGExAxis SignAxis;
 	EPCGExAxis AngleAxis;
 	EPCGExAngleRange AngleRange;

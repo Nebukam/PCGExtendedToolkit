@@ -7,7 +7,7 @@
 #include "Graph/PCGExEdgesProcessor.h"
 #include "PCGExDrawEdges.generated.h"
 
-#define PCGEX_WRITEEDGEEXTRA_FOREACH(MACRO)\
+#define PCGEX_FOREACH_SAMPLING_FIELD(MACRO)\
 MACRO(EdgeLength, double)
 
 namespace PCGExDataBlending

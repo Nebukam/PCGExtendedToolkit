@@ -21,7 +21,7 @@ namespace PCGExCluster
 	};
 
 	struct FCluster;
-	
+
 	struct PCGEXTENDEDTOOLKIT_API FVertex
 	{
 		int32 ClusterIndex = -1;
@@ -43,7 +43,7 @@ namespace PCGExCluster
 		void AddNeighbor(const int32 EdgeIndex, const int32 VertexIndex);
 		bool GetNormal(FCluster* InCluster, FVector& OutNormal);
 	};
-	
+
 	struct PCGEXTENDEDTOOLKIT_API FScoredVertex
 	{
 		FScoredVertex(const FVertex& InVertex, const double InWeight)

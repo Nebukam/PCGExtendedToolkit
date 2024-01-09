@@ -24,8 +24,7 @@ PCGEX_INITIALIZE_ELEMENT(WriteEdgeExtras)
 FPCGExWriteEdgeExtrasContext::~FPCGExWriteEdgeExtrasContext()
 {
 	PCGEX_TERMINATE_ASYNC
-
-	PCGEX_WRITEEDGEEXTRA_FOREACH(PCGEX_OUTPUT_DELETE)
+	PCGEX_FOREACH_FIELD_EDGEEXTRAS(PCGEX_OUTPUT_DELETE)
 
 	PCGEX_OUTPUT_DELETE(VtxNormal, FVector)
 
@@ -40,8 +39,8 @@ bool FPCGExWriteEdgeExtrasElement::Boot(FPCGContext* InContext) const
 
 	Context->MetadataBlender = new PCGExDataBlending::FMetadataBlender(const_cast<FPCGExBlendingSettings*>(&Settings->BlendingSettings));
 
-	PCGEX_WRITEEDGEEXTRA_FOREACH(PCGEX_OUTPUT_VALIDATE_NAME)
-	PCGEX_WRITEEDGEEXTRA_FOREACH(PCGEX_OUTPUT_FWD)
+	PCGEX_FOREACH_FIELD_EDGEEXTRAS(PCGEX_OUTPUT_VALIDATE_NAME)
+	PCGEX_FOREACH_FIELD_EDGEEXTRAS(PCGEX_OUTPUT_FWD)
 
 	PCGEX_OUTPUT_VALIDATE_NAME(VtxNormal, FVector)
 	PCGEX_OUTPUT_FWD(VtxNormal, FVector)
@@ -76,7 +75,6 @@ bool FPCGExWriteEdgeExtrasElement::ExecuteInternal(
 			{
 				PCGExData::FPointIO& PointIO = *Context->CurrentIO;
 				PCGEX_OUTPUT_ACCESSOR_INIT(VtxNormal, FVector)
-
 				Context->SetState(PCGExGraph::State_ReadyForNextEdges);
 			}
 		}
@@ -84,7 +82,11 @@ bool FPCGExWriteEdgeExtrasElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExGraph::State_ReadyForNextEdges))
 	{
-		if (!Context->AdvanceEdges()) { Context->SetState(PCGExMT::State_ReadyForNextPoints); }
+		if (!Context->AdvanceEdges())
+		{
+			PCGEX_OUTPUT_WRITE(VtxNormal, FVector)
+			Context->SetState(PCGExMT::State_ReadyForNextPoints);
+		}
 		else
 		{
 			if (Context->CurrentCluster->HasInvalidEdges())
@@ -93,12 +95,10 @@ bool FPCGExWriteEdgeExtrasElement::ExecuteInternal(
 			}
 
 			PCGExData::FPointIO& PointIO = *Context->CurrentEdges;
-			PCGEX_WRITEEDGEEXTRA_FOREACH(PCGEX_OUTPUT_ACCESSOR_INIT)
+			PCGEX_FOREACH_FIELD_EDGEEXTRAS(PCGEX_OUTPUT_ACCESSOR_INIT)
 
 			Context->MetadataBlender->PrepareForData(PointIO, *Context->CurrentIO);
-
 			Context->GetAsyncManager()->Start<FWriteExtrasTask>(-1, &PointIO);
-
 			Context->SetAsyncState(PCGExGraph::State_ProcessingEdges);
 		}
 	}
@@ -121,11 +121,14 @@ bool FWriteExtrasTask::ExecuteTask()
 {
 	const FPCGExWriteEdgeExtrasContext* Context = Manager->GetContext<FPCGExWriteEdgeExtrasContext>();
 
-	for (PCGExCluster::FVertex& Vtx : Context->CurrentCluster->Vertices)
+	if (Context->VtxNormalWriter)
 	{
-		FVector Normal;
-		if (!Vtx.GetNormal(Context->CurrentCluster, Normal)) { continue; }
-		Context->VtxNormalWriter->Values[Vtx.PointIndex] = Normal;
+		for (PCGExCluster::FVertex& Vtx : Context->CurrentCluster->Vertices)
+		{
+			FVector Normal;
+			if (!Vtx.GetNormal(Context->CurrentCluster, Normal)) { continue; }
+			Context->VtxNormalWriter->Values[Vtx.PointIndex] = Normal;
+		}
 	}
 
 	const TArray<PCGExCluster::FIndexedEdge>& Edges = Context->CurrentCluster->Edges;

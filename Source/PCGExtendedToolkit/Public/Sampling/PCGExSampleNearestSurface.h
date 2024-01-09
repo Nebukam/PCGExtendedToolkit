@@ -13,7 +13,7 @@
 #include "PCGExSampleNearestSurface.generated.h"
 
 
-#define PCGEX_SAMPLENEARESTSURFACE_FOREACH(MACRO)\
+#define PCGEX_FOREACH_FIELD_NEARESTSURFACE(MACRO)\
 MACRO(Success, bool)\
 MACRO(Location, FVector)\
 MACRO(LookAt, FVector)\
@@ -137,7 +137,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestSurfaceContext : public FPCGExP
 	bool bIgnoreSelf = true;
 	TArray<AActor*> IgnoredActors;
 
-	PCGEX_SAMPLENEARESTSURFACE_FOREACH(PCGEX_OUTPUT_DECL)
+	PCGEX_FOREACH_FIELD_NEARESTSURFACE(PCGEX_OUTPUT_DECL)
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestSurfaceElement : public FPCGExPointsProcessorElementBase
