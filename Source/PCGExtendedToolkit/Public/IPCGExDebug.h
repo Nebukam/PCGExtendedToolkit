@@ -9,6 +9,10 @@
 
 #include "IPCGExDebug.generated.h"
 
+#define PCGEX_DEBUG_NOTIFY \
+if (!Settings->bDebug) { return false; } \
+if (!PCGExDebug::NotifyExecute(InContext)){	PCGE_LOG(Error, GraphAndLog, FTEXT("Could not find a PCGEx Debug Manager node in your graph.")); return false; }
+
 UINTERFACE(MinimalAPI)
 class UPCGExDebug : public UInterface
 {

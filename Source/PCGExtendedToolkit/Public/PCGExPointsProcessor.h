@@ -138,6 +138,7 @@ public:
 
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
+	virtual bool OnlyPassThroughOneEdgeWhenDisabled() const override;
 	//~End UPCGSettings interface
 
 	//~Begin UObject interface
@@ -290,7 +291,7 @@ public:
 		const UPCGExPointsProcessorSettings* Settings = static_cast<const UPCGExPointsProcessorSettings*>(InSettings);
 		return Settings->bCacheResult;
 	}
-
+	
 protected:
 	virtual FPCGContext* InitializeContext(FPCGExPointsProcessorContext* InContext, const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node) const;
 	virtual bool Boot(FPCGContext* InContext) const;

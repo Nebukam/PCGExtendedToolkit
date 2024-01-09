@@ -9,10 +9,10 @@ void UPCGExEdgeRelaxingOperation::PrepareForPointIO(PCGExData::FPointIO& PointIO
 	CurrentPoints = &PointIO;
 }
 
-void UPCGExEdgeRelaxingOperation::PrepareForCluster(PCGExData::FPointIO& EdgesIO, PCGExCluster::FCluster* Cluster)
+void UPCGExEdgeRelaxingOperation::PrepareForCluster(PCGExData::FPointIO& EdgesIO, PCGExCluster::FCluster* InCluster)
 {
 	CurrentEdges = &EdgesIO;
-	CurrentCluster = Cluster;
+	CurrentCluster = InCluster;
 }
 
 void UPCGExEdgeRelaxingOperation::PrepareForIteration(const int Iteration, TArray<FVector>* PrimaryBuffer, TArray<FVector>* SecondaryBuffer)

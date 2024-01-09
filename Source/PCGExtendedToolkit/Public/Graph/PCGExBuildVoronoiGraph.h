@@ -12,6 +12,11 @@
 
 namespace PCGExGeo
 {
+	class TVoronoiMesh3;
+}
+
+namespace PCGExGeo
+{
 	class TConvexHull3;
 	class TDelaunayTriangulation3;
 }
@@ -67,7 +72,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBuildVoronoiGraphContext : public FPCGExPoin
 
 	int32 ClusterUIndex = 0;
 
-	PCGExGeo::TDelaunayTriangulation3* Delaunay = nullptr;
+	PCGExGeo::TVoronoiMesh3* Voronoi = nullptr;
 	PCGExGeo::TConvexHull3* ConvexHull = nullptr;
 	TSet<int32> HullIndices;
 

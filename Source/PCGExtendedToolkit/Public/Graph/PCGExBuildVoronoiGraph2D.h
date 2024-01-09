@@ -67,7 +67,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBuildVoronoiGraph2DContext : public FPCGExPo
 
 	int32 ClusterUIndex = 0;
 
-	PCGExGeo::TDelaunayTriangulation2* Delaunay = nullptr;
+	PCGExGeo::TDelaunayTriangulation2* Voronoi = nullptr;
 	PCGExGeo::TConvexHull2* ConvexHull = nullptr;
 	TSet<int32> HullIndices;
 

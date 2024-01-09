@@ -210,6 +210,8 @@ bool FPCGExDrawAttributesElement::Boot(FPCGContext* InContext) const
 #if WITH_EDITOR
 	PCGEX_CONTEXT_AND_SETTINGS(DrawAttributes)
 
+	PCGEX_DEBUG_NOTIFY
+	
 	Context->DebugList.Empty();
 	for (const FPCGExAttributeDebugDrawDescriptor& Descriptor : Settings->DebugList)
 	{
@@ -227,11 +229,6 @@ bool FPCGExDrawAttributesElement::Boot(FPCGContext* InContext) const
 		PCGE_LOG(Warning, GraphAndLog, FTEXT("Debug list is empty."));
 	}
 
-	if (!PCGExDebug::NotifyExecute(InContext))
-	{
-		PCGE_LOG(Error, GraphAndLog, FTEXT("Could not find a PCGEx Debug Manager node in your graph."));
-		return false;
-	}
 #endif
 
 	return true;
@@ -247,7 +244,6 @@ bool FPCGExDrawAttributesElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsSetup())
 	{
-		if (!Settings->bDebug) { return true; }
 		if (!Boot(Context)) { return true; }
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}

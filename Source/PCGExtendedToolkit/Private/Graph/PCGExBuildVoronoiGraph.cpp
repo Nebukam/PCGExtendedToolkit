@@ -6,6 +6,7 @@
 #include "Data/PCGExData.h"
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
 #include "Geometry/PCGExGeoDelaunay.h"
+#include "Geometry/PCGExGeoVoronoi.h"
 #include "Graph/PCGExConsolidateGraph.h"
 #include "Graph/PCGExCluster.h"
 
@@ -14,7 +15,7 @@
 
 int32 UPCGExBuildVoronoiGraphSettings::GetPreferredChunkSize() const { return 32; }
 
-PCGExData::EInit UPCGExBuildVoronoiGraphSettings::GetMainOutputInitMode() const { return bMarkHull ? PCGExData::EInit::DuplicateInput : PCGExData::EInit::Forward; }
+PCGExData::EInit UPCGExBuildVoronoiGraphSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NewOutput; }
 
 FPCGExBuildVoronoiGraphContext::~FPCGExBuildVoronoiGraphContext()
 {
@@ -22,7 +23,7 @@ FPCGExBuildVoronoiGraphContext::~FPCGExBuildVoronoiGraphContext()
 
 	PCGEX_DELETE(ClustersIO)
 
-	PCGEX_DELETE(Delaunay)
+	PCGEX_DELETE(Voronoi)
 	PCGEX_DELETE(ConvexHull)
 
 	PCGEX_DELETE(EdgeNetwork)
@@ -77,7 +78,7 @@ bool FPCGExBuildVoronoiGraphElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
-		PCGEX_DELETE(Context->Delaunay)
+		PCGEX_DELETE(Context->Voronoi)
 		PCGEX_DELETE(Context->ConvexHull)
 		Context->HullIndices.Empty();
 
@@ -91,7 +92,7 @@ bool FPCGExBuildVoronoiGraphElement::ExecuteInternal(
 				return false;
 			}
 
-			if (Settings->bMarkHull)
+			if (false) //if (Settings->bMarkHull)
 			{
 				Context->ConvexHull = new PCGExGeo::TConvexHull3();
 				TArray<PCGExGeo::TFVtx<3>*> HullVertices;
@@ -113,7 +114,7 @@ bool FPCGExBuildVoronoiGraphElement::ExecuteInternal(
 				}
 				else
 				{
-					PCGE_LOG(Warning, GraphAndLog, FTEXT("Some inputs generates no results. Are points coplanar? If so, use Delaunay 2D instead."));
+					PCGE_LOG(Warning, GraphAndLog, FTEXT("Some inputs generates no results. Are points coplanar? If so, use Voronoi 2D instead."));
 					Context->SetState(PCGExMT::State_ReadyForNextPoints);
 					return false;
 				}
@@ -121,18 +122,18 @@ bool FPCGExBuildVoronoiGraphElement::ExecuteInternal(
 
 			bool bValidDelaunay = false;
 
-			Context->Delaunay = new PCGExGeo::TDelaunayTriangulation3();
-			if (Context->Delaunay->PrepareFrom(Context->CurrentIO->GetIn()->GetPoints()))
+			Context->Voronoi = new PCGExGeo::TVoronoiMesh3();
+			if (Context->Voronoi->PrepareFrom(Context->CurrentIO->GetIn()->GetPoints()))
 			{
-				Context->Delaunay->Generate();
-				bValidDelaunay = !Context->Delaunay->Cells.IsEmpty();
+				Context->Voronoi->Generate();
+				bValidDelaunay = !Context->Voronoi->Regions.IsEmpty();
 				Context->SetState(PCGExGraph::State_WritingClusters);
 			}
 
 			if (!bValidDelaunay)
 			{
+				PCGE_LOG(Warning, GraphAndLog, FTEXT("Some inputs generates no results. Are points coplanar? If so, use Voronoi 2D instead."));
 				Context->SetState(PCGExMT::State_ReadyForNextPoints);
-				PCGE_LOG(Warning, GraphAndLog, FTEXT("Some inputs generates no results. Are points coplanar? If so, use Delaunay 2D instead."));
 				return false;
 			}
 			Context->SetState(PCGExGraph::State_WritingClusters);
@@ -169,30 +170,42 @@ void FPCGExBuildVoronoiGraphElement::WriteEdges(FPCGExBuildVoronoiGraphContext* 
 {
 	PCGEX_SETTINGS(BuildVoronoiGraph)
 
+	// Vtx -> Circumcenters
+	//TODO : Datablending
+
+	TArray<FPCGPoint>& Centroids = Context->CurrentIO->GetOut()->GetMutablePoints();
+	Centroids.SetNum(Context->Voronoi->Delaunay->Cells.Num());
+
+	for (const PCGExGeo::TDelaunayCell<4>* Cell : Context->Voronoi->Delaunay->Cells)
+	{
+		const int32 CellIndex = Cell->Circumcenter->Id;
+		Centroids[CellIndex].Transform.SetLocation(Cell->Circumcenter->GetV3());
+	}
+
 	// Find unique edges
 	TSet<uint64> UniqueEdges;
 	TArray<PCGExGraph::FUnsignedEdge> Edges;
-	Context->Delaunay->GetUniqueEdges(Edges);
+	Context->Voronoi->GetUniqueEdges(Edges);
 
-	PCGExData::FPointIO& DelaunayEdges = Context->ClustersIO->Emplace_GetRef();
-	Context->Markings->Add(DelaunayEdges);
+	PCGExData::FPointIO& VoronoiEdges = Context->ClustersIO->Emplace_GetRef();
+	Context->Markings->Add(VoronoiEdges);
 
-	TArray<FPCGPoint>& MutablePoints = DelaunayEdges.GetOut()->GetMutablePoints();
+	TArray<FPCGPoint>& MutablePoints = VoronoiEdges.GetOut()->GetMutablePoints();
 	MutablePoints.SetNum(Edges.Num());
 
-	DelaunayEdges.CreateOutKeys();
+	VoronoiEdges.CreateOutKeys();
 
 	PCGEx::TFAttributeWriter<int32>* EdgeStart = new PCGEx::TFAttributeWriter<int32>(PCGExGraph::EdgeStartAttributeName, -1, false);
 	PCGEx::TFAttributeWriter<int32>* EdgeEnd = new PCGEx::TFAttributeWriter<int32>(PCGExGraph::EdgeEndAttributeName, -1, false);
 	PCGEx::TFAttributeWriter<bool>* HullMarkWriter = nullptr;
 
-	EdgeStart->BindAndGet(DelaunayEdges);
-	EdgeEnd->BindAndGet(DelaunayEdges);
+	EdgeStart->BindAndGet(VoronoiEdges);
+	EdgeEnd->BindAndGet(VoronoiEdges);
 
-	if (Settings->bMarkHull)
+	if (false) //if (Settings->bMarkHull)
 	{
 		HullMarkWriter = new PCGEx::TFAttributeWriter<bool>(Settings->HullAttributeName, false);
-		HullMarkWriter->BindAndGet(DelaunayEdges);
+		HullMarkWriter->BindAndGet(VoronoiEdges);
 	}
 
 	int32 PointIndex = 0;
@@ -201,8 +214,8 @@ void FPCGExBuildVoronoiGraphElement::WriteEdges(FPCGExBuildVoronoiGraphContext* 
 		EdgeStart->Values[PointIndex] = Edge.Start;
 		EdgeEnd->Values[PointIndex] = Edge.End;
 
-		const FVector StartPosition = Context->CurrentIO->GetInPoint(Edge.Start).Transform.GetLocation();
-		const FVector EndPosition = Context->CurrentIO->GetInPoint(Edge.End).Transform.GetLocation();
+		const FVector StartPosition = Context->CurrentIO->GetOutPoint(Edge.Start).Transform.GetLocation();
+		const FVector EndPosition = Context->CurrentIO->GetOutPoint(Edge.End).Transform.GetLocation();
 
 		MutablePoints[PointIndex].Transform.SetLocation(FMath::Lerp(StartPosition, EndPosition, 0.5));
 

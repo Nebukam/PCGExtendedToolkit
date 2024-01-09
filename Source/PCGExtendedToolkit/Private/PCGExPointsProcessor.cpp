@@ -241,6 +241,12 @@ TArray<FPCGPinProperties> UPCGExPointsProcessorSettings::OutputPinProperties() c
 	return PinProperties;
 }
 
+bool UPCGExPointsProcessorSettings::OnlyPassThroughOneEdgeWhenDisabled() const
+{
+	return false;
+	//return Super::OnlyPassThroughOneEdgeWhenDisabled();
+}
+
 FName UPCGExPointsProcessorSettings::GetMainOutputLabel() const { return PCGEx::OutputPointsLabel; }
 FName UPCGExPointsProcessorSettings::GetMainInputLabel() const { return PCGEx::SourcePointsLabel; }
 
@@ -378,7 +384,7 @@ FPCGContext* FPCGExPointsProcessorElementBase::InitializeContext(
 	InContext->InputData = InputData;
 	InContext->SourceComponent = SourceComponent;
 	InContext->Node = Node;
-
+	
 	check(SourceComponent.IsValid());
 	InContext->World = SourceComponent->GetWorld();
 

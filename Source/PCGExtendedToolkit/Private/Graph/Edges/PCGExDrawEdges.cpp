@@ -32,13 +32,17 @@ FPCGExDrawEdgesContext::~FPCGExDrawEdgesContext()
 	PCGEX_TERMINATE_ASYNC
 }
 
-
 bool FPCGExDrawEdgesElement::Boot(FPCGContext* InContext) const
 {
 	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
 
+#if WITH_EDITOR
+	
 	PCGEX_CONTEXT_AND_SETTINGS(DrawEdges)
-
+	PCGEX_DEBUG_NOTIFY
+	
+#endif
+	
 	return true;
 }
 
@@ -52,14 +56,8 @@ bool FPCGExDrawEdgesElement::ExecuteInternal(
 	PCGEX_CONTEXT_AND_SETTINGS(DrawEdges)
 
 	if (Context->IsSetup())
-	{
-		if (!Settings->bDebug) { return true; }
+	{		
 		if (!Boot(Context)) { return true; }
-		if (!PCGExDebug::NotifyExecute(InContext))
-		{
-			PCGE_LOG(Error, GraphAndLog, FTEXT("Could not find a PCGEx Debug Manager node in your graph."));
-			return true;
-		}
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 

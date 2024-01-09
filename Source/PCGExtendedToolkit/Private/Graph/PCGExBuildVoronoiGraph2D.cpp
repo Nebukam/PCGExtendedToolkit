@@ -22,7 +22,7 @@ FPCGExBuildVoronoiGraph2DContext::~FPCGExBuildVoronoiGraph2DContext()
 
 	PCGEX_DELETE(ClustersIO)
 
-	PCGEX_DELETE(Delaunay)
+	PCGEX_DELETE(Voronoi)
 	PCGEX_DELETE(ConvexHull)
 
 	PCGEX_DELETE(EdgeNetwork)
@@ -77,7 +77,7 @@ bool FPCGExBuildVoronoiGraph2DElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
-		PCGEX_DELETE(Context->Delaunay)
+		PCGEX_DELETE(Context->Voronoi)
 		PCGEX_DELETE(Context->ConvexHull)
 		Context->HullIndices.Empty();
 
@@ -121,11 +121,11 @@ bool FPCGExBuildVoronoiGraph2DElement::ExecuteInternal(
 
 			bool bValidDelaunay = false;
 
-			Context->Delaunay = new PCGExGeo::TDelaunayTriangulation2();
-			if (Context->Delaunay->PrepareFrom(Context->CurrentIO->GetIn()->GetPoints()))
+			Context->Voronoi = new PCGExGeo::TDelaunayTriangulation2();
+			if (Context->Voronoi->PrepareFrom(Context->CurrentIO->GetIn()->GetPoints()))
 			{
-				Context->Delaunay->Generate();
-				bValidDelaunay = !Context->Delaunay->Cells.IsEmpty();
+				Context->Voronoi->Generate();
+				bValidDelaunay = !Context->Voronoi->Cells.IsEmpty();
 				Context->SetState(PCGExGraph::State_WritingClusters);
 			}
 
@@ -172,7 +172,7 @@ void FPCGExBuildVoronoiGraph2DElement::WriteEdges(FPCGExBuildVoronoiGraph2DConte
 	// Find unique edges
 	TSet<uint64> UniqueEdges;
 	TArray<PCGExGraph::FUnsignedEdge> Edges;
-	Context->Delaunay->GetUniqueEdges(Edges);
+	Context->Voronoi->GetUniqueEdges(Edges);
 
 	PCGExData::FPointIO& DelaunayEdges = Context->ClustersIO->Emplace_GetRef();
 	Context->Markings->Add(DelaunayEdges);
