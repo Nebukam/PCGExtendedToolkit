@@ -37,10 +37,16 @@ bool FPCGExDrawGraphElement::Boot(FPCGContext* InContext) const
 {
 	if (!FPCGExGraphProcessorElement::Boot(InContext)) { return false; }
 
-	PCGEX_CONTEXT(DrawGraph)
+#if WITH_EDITOR
+
+	PCGEX_CONTEXT_AND_SETTINGS(DrawGraph)
+	
+	PCGEX_DEBUG_NOTIFY
 
 	Context->GraphSolver = Context->RegisterOperation<UPCGExGraphSolver>();
-
+	
+#endif
+	
 	return true;
 }
 
@@ -53,16 +59,8 @@ bool FPCGExDrawGraphElement::ExecuteInternal(FPCGContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(DrawGraph)
 
 	if (Context->IsSetup())
-	{
-		if (!Settings->bDebug) { return true; }
+	{	
 		if (!Boot(Context)) { return true; }
-
-		if (!PCGExDebug::NotifyExecute(InContext))
-		{
-			PCGE_LOG(Error, GraphAndLog, FTEXT("Could not find a PCGEx Debug Manager node in your graph."));
-			return true;
-		}
-
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 

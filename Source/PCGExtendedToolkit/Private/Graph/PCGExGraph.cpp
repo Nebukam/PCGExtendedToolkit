@@ -252,56 +252,56 @@ namespace PCGExGraph
 		NodeA.AddEdge(EdgeIndex);
 		NodeB.AddEdge(EdgeIndex);
 
-		if (NodeA.Island == -1 && NodeB.Island == -1)
+		if (NodeA.Cluster == -1 && NodeB.Cluster == -1)
 		{
 			// New island
-			NumIslands++;
-			NodeA.Island = NodeB.Island = IslandIncrement++;
+			NumClusters++;
+			NodeA.Cluster = NodeB.Cluster = ClusterIncrement++;
 		}
-		else if (NodeA.Island != -1 && NodeB.Island != -1)
+		else if (NodeA.Cluster != -1 && NodeB.Cluster != -1)
 		{
-			if (NodeA.Island != NodeB.Island)
+			if (NodeA.Cluster != NodeB.Cluster)
 			{
 				// Merge islands
-				NumIslands--;
-				MergeIsland(NodeB.Index, NodeA.Island);
+				NumClusters--;
+				MergeCluster(NodeB.Index, NodeA.Cluster);
 			}
 		}
 		else
 		{
 			// Expand island
-			NodeA.Island = NodeB.Island = FMath::Max(NodeA.Island, NodeB.Island);
+			NodeA.Cluster = NodeB.Cluster = FMath::Max(NodeA.Cluster, NodeB.Cluster);
 		}
 
 		return true;
 	}
 
-	void FEdgeNetwork::MergeIsland(const int32 NodeIndex, const int32 Island)
+	void FEdgeNetwork::MergeCluster(const int32 NodeIndex, const int32 Cluster)
 	{
 		FNetworkNode& Node = Nodes[NodeIndex];
-		if (Node.Island == Island) { return; }
-		Node.Island = Island;
+		if (Node.Cluster == Cluster) { return; }
+		Node.Cluster = Cluster;
 		for (const int32 EdgeIndex : Node.Edges)
 		{
-			MergeIsland(Edges[EdgeIndex].Other(NodeIndex), Island);
+			MergeCluster(Edges[EdgeIndex].Other(NodeIndex), Cluster);
 		}
 	}
 
-	void FEdgeNetwork::PrepareIslands(const int32 MinSize, const int32 MaxSize)
+	void FEdgeNetwork::PrepareClusters(const int32 MinSize, const int32 MaxSize)
 	{
 		UniqueEdges.Empty();
-		IslandSizes.Empty(NumIslands);
+		ClusterSizes.Empty(NumClusters);
 		NumEdges = 0;
 
 		for (const FUnsignedEdge& Edge : Edges)
 		{
 			if (!Edge.bValid) { continue; } // Crossing may invalidate edges.
 			FNetworkNode& NodeA = Nodes[Edge.Start];
-			if (const int32* SizePtr = IslandSizes.Find(NodeA.Island); !SizePtr) { IslandSizes.Add(NodeA.Island, 1); }
-			else { IslandSizes.Add(NodeA.Island, *SizePtr + 1); }
+			if (const int32* SizePtr = ClusterSizes.Find(NodeA.Cluster); !SizePtr) { ClusterSizes.Add(NodeA.Cluster, 1); }
+			else { ClusterSizes.Add(NodeA.Cluster, *SizePtr + 1); }
 		}
 
-		for (TPair<int32, int32>& Pair : IslandSizes)
+		for (TPair<int32, int32>& Pair : ClusterSizes)
 		{
 			if (FMath::IsWithin(Pair.Value, MinSize, MaxSize)) { NumEdges += Pair.Value; }
 			else { Pair.Value = -1; }
@@ -371,49 +371,49 @@ namespace PCGExGraph
 			NewNode.Edges.Reserve(4);
 			NewNode.bCrossing = true;
 
-			EdgeNetwork->InsertEdge(FUnsignedEdge(NewNode.Index, Edges[EdgeCrossing.EdgeA].Start, EPCGExEdgeType::Complete));
-			EdgeNetwork->InsertEdge(FUnsignedEdge(NewNode.Index, Edges[EdgeCrossing.EdgeA].End, EPCGExEdgeType::Complete));
-			EdgeNetwork->InsertEdge(FUnsignedEdge(NewNode.Index, Edges[EdgeCrossing.EdgeB].Start, EPCGExEdgeType::Complete));
-			EdgeNetwork->InsertEdge(FUnsignedEdge(NewNode.Index, Edges[EdgeCrossing.EdgeB].End, EPCGExEdgeType::Complete));
+			EdgeNetwork->InsertEdge(FUnsignedEdge(NewNode.Index, Edges[EdgeCrossing.EdgeA].Start));
+			EdgeNetwork->InsertEdge(FUnsignedEdge(NewNode.Index, Edges[EdgeCrossing.EdgeA].End));
+			EdgeNetwork->InsertEdge(FUnsignedEdge(NewNode.Index, Edges[EdgeCrossing.EdgeB].Start));
+			EdgeNetwork->InsertEdge(FUnsignedEdge(NewNode.Index, Edges[EdgeCrossing.EdgeB].End));
 		}
 	}
 }
 
-bool FWriteIslandTask::ExecuteTask()
+bool FWriteClusterTask::ExecuteTask()
 {
-	const int32 IslandUID = TaskIndex;
-	int32 IslandSize = *EdgeNetwork->IslandSizes.Find(IslandUID);
+	const int32 ClusterUID = TaskIndex;
+	int32 ClusterSize = *EdgeNetwork->ClusterSizes.Find(ClusterUID);
 
-	TSet<int32> IslandSet;
-	TQueue<int32> Island;
-	IslandSet.Reserve(IslandSize);
+	TSet<int32> ClusterSet;
+	TQueue<int32> Cluster;
+	ClusterSet.Reserve(ClusterSize);
 
 	for (PCGExGraph::FNetworkNode& Node : EdgeNetwork->Nodes)
 	{
-		if (Node.Island == -1 || Node.Island != IslandUID) { continue; }
+		if (Node.Cluster == -1 || Node.Cluster != ClusterUID) { continue; }
 		for (const int32 Edge : Node.Edges)
 		{
-			if (!IslandSet.Contains(Edge) && EdgeNetwork->Edges[Edge].bValid)
+			if (!ClusterSet.Contains(Edge) && EdgeNetwork->Edges[Edge].bValid)
 			{
-				Island.Enqueue(Edge);
-				IslandSet.Add(Edge);
+				Cluster.Enqueue(Edge);
+				ClusterSet.Add(Edge);
 			}
 		}
 	}
 
-	IslandSize = IslandSet.Num();
-	IslandSet.Empty();
+	ClusterSize = ClusterSet.Num();
+	ClusterSet.Empty();
 
-	TArray<FPCGPoint>& MutablePoints = IslandIO->GetOut()->GetMutablePoints();
-	MutablePoints.SetNum(IslandSize);
+	TArray<FPCGPoint>& MutablePoints = ClusterIO->GetOut()->GetMutablePoints();
+	MutablePoints.SetNum(ClusterSize);
 
-	IslandIO->CreateOutKeys();
+	ClusterIO->CreateOutKeys();
 
 	PCGEx::TFAttributeWriter<int32>* EdgeStart = new PCGEx::TFAttributeWriter<int32>(PCGExGraph::EdgeStartAttributeName, -1, false);
 	PCGEx::TFAttributeWriter<int32>* EdgeEnd = new PCGEx::TFAttributeWriter<int32>(PCGExGraph::EdgeEndAttributeName, -1, false);
 
-	EdgeStart->BindAndGet(*IslandIO);
-	EdgeEnd->BindAndGet(*IslandIO);
+	EdgeStart->BindAndGet(*ClusterIO);
+	EdgeEnd->BindAndGet(*ClusterIO);
 
 	int32 PointIndex = 0;
 	int32 EdgeIndex;
@@ -422,7 +422,7 @@ bool FWriteIslandTask::ExecuteTask()
 
 	if (IndexRemap)
 	{
-		while (Island.Dequeue(EdgeIndex))
+		while (Cluster.Dequeue(EdgeIndex))
 		{
 			const PCGExGraph::FUnsignedEdge& Edge = EdgeNetwork->Edges[EdgeIndex];
 			MutablePoints[PointIndex].Transform.SetLocation(
@@ -434,7 +434,7 @@ bool FWriteIslandTask::ExecuteTask()
 	}
 	else
 	{
-		while (Island.Dequeue(EdgeIndex))
+		while (Cluster.Dequeue(EdgeIndex))
 		{
 			const PCGExGraph::FUnsignedEdge& Edge = EdgeNetwork->Edges[EdgeIndex];
 			MutablePoints[PointIndex].Transform.SetLocation(
@@ -449,7 +449,7 @@ bool FWriteIslandTask::ExecuteTask()
 	EdgeStart->Write();
 	EdgeEnd->Write();
 
-	//IslandData->Cleanup();
+	//ClusterData->Cleanup();
 	PCGEX_DELETE(EdgeStart)
 	PCGEX_DELETE(EdgeEnd)
 

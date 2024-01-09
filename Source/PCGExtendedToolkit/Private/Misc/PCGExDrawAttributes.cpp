@@ -44,6 +44,10 @@ bool FPCGExAttributeDebugDraw::Validate(const PCGExData::FPointIO& PointIO)
 		TextGetter.Descriptor = static_cast<FPCGExInputDescriptor>(*Descriptor);
 		bValid = TextGetter.Bind(PointIO);
 		break;
+	case EPCGExDebugExpression::Boolean:
+		SingleGetter.Descriptor = static_cast<FPCGExInputDescriptor>(*Descriptor);
+		bValid = SingleGetter.Bind(PointIO);
+		break;
 	default: ;
 	}
 
@@ -81,6 +85,11 @@ FColor FPCGExAttributeDebugDraw::GetColor(const PCGEx::FPointRef& Point) const
 	return Descriptor->Color;
 }
 
+double FPCGExAttributeDebugDraw::GetSingle(const PCGEx::FPointRef& Point) const
+{
+	return SingleGetter[Point.Index];
+}
+
 FVector FPCGExAttributeDebugDraw::GetVector(const PCGEx::FPointRef& Point) const
 {
 	FVector OutVector = VectorGetter[Point.Index];
@@ -114,6 +123,10 @@ void FPCGExAttributeDebugDraw::Draw(const UWorld* World, const FVector& Start, c
 	case EPCGExDebugExpression::Label:
 		DrawLabel(World, Start, Point);
 		break;
+	case EPCGExDebugExpression::Boolean:
+		DrawSingle(World, Start, Point);
+		break;
+	default: ;
 	}
 }
 
@@ -132,6 +145,12 @@ void FPCGExAttributeDebugDraw::DrawPoint(const UWorld* World, const FVector& Sta
 {
 	const FVector End = GetVector(Point);
 	DrawDebugPoint(World, End, GetSize(Point), GetColor(Point), true, -1, 0);
+}
+
+void FPCGExAttributeDebugDraw::DrawSingle(const UWorld* World, const FVector& Start, const PCGEx::FPointRef& Point) const
+{
+	const double End = GetSingle(Point);
+	DrawDebugPoint(World, Start, GetSize(Point), End <= 0 ? GetColor(Point) : Descriptor->SecondaryColor, true, -1, 0);
 }
 
 void FPCGExAttributeDebugDraw::DrawLabel(const UWorld* World, const FVector& Start, const PCGEx::FPointRef& Point) const
@@ -191,6 +210,8 @@ bool FPCGExDrawAttributesElement::Boot(FPCGContext* InContext) const
 #if WITH_EDITOR
 	PCGEX_CONTEXT_AND_SETTINGS(DrawAttributes)
 
+	PCGEX_DEBUG_NOTIFY
+	
 	Context->DebugList.Empty();
 	for (const FPCGExAttributeDebugDrawDescriptor& Descriptor : Settings->DebugList)
 	{
@@ -208,11 +229,6 @@ bool FPCGExDrawAttributesElement::Boot(FPCGContext* InContext) const
 		PCGE_LOG(Warning, GraphAndLog, FTEXT("Debug list is empty."));
 	}
 
-	if (!PCGExDebug::NotifyExecute(InContext))
-	{
-		PCGE_LOG(Error, GraphAndLog, FTEXT("Could not find a PCGEx Debug Manager node in your graph."));
-		return false;
-	}
 #endif
 
 	return true;
@@ -228,7 +244,6 @@ bool FPCGExDrawAttributesElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsSetup())
 	{
-		if (!Settings->bDebug) { return true; }
 		if (!Boot(Context)) { return true; }
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}

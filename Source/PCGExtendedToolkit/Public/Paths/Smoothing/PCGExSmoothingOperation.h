@@ -26,6 +26,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSmoothingOperation : public UPCGExOperation
 public:
 	virtual void DoSmooth(PCGExData::FPointIO& InPointIO);
 
+	bool bClosedPath = false;
 	bool bPinStart = true;
 	bool bPinEnd = true;
 	double FixedInfluence = 1.0;

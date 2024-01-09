@@ -11,7 +11,7 @@
 
 #include "PCGExSampleSurfaceGuided.generated.h"
 
-#define PCGEX_SAMPLENEARESTTRACE_FOREACH(MACRO)\
+#define PCGEX_FOREACH_FIELD_SURFACEGUIDED(MACRO)\
 MACRO(Success, bool)\
 MACRO(Location, FVector)\
 MACRO(Normal, FVector)\
@@ -144,7 +144,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleSurfaceGuidedContext : public FPCGExPo
 	PCGEx::FLocalSingleFieldGetter SizeGetter;
 	PCGEx::FLocalDirectionGetter DirectionGetter;
 
-	PCGEX_SAMPLENEARESTTRACE_FOREACH(PCGEX_OUTPUT_DECL)
+	PCGEX_FOREACH_FIELD_SURFACEGUIDED(PCGEX_OUTPUT_DECL)
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExSampleSurfaceGuidedElement : public FPCGExPointsProcessorElementBase

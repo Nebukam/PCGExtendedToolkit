@@ -59,6 +59,7 @@ bool FPCGExWriteTangentsElement::Boot(FPCGContext* InContext) const
 		PCGE_LOG(Error, GraphAndLog, FTEXT("Invalid attribute names"));
 		return false;
 	}
+
 	return true;
 }
 
@@ -67,7 +68,7 @@ bool FPCGExWriteTangentsElement::ExecuteInternal(FPCGContext* InContext) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExWriteTangentsElement::Execute);
 
-	PCGEX_CONTEXT(WriteTangents)
+	PCGEX_CONTEXT_AND_SETTINGS(WriteTangents)
 
 	if (Context->IsSetup())
 	{
@@ -110,7 +111,27 @@ bool FPCGExWriteTangentsElement::ExecuteInternal(FPCGContext* InContext) const
 			else if (PrevPoint.IsValid()) { Context->Tangents->ProcessLastPoint(MainPoint, PrevPoint, OutArrive, OutLeave); }
 		};
 
-		if (Context->ProcessCurrentPoints(Initialize, ProcessPoint))
+		auto ProcessPointTile = [&](const int32 Index, const PCGExData::FPointIO& PointIO)
+		{
+			FVector& OutArrive = Context->ArriveTangents[Index];
+			FVector& OutLeave = Context->LeaveTangents[Index];
+
+			const int32 MaxIndex = PointIO.GetNum() - 1;
+			const int32 PrevIndex = PCGExMath::Tile(Index - 1, 0, MaxIndex);
+			const int32 NextIndex = PCGExMath::Tile(Index + 1, 0, MaxIndex);
+
+			const PCGEx::FPointRef MainPoint = PCGEx::FPointRef(PointIO.GetOutPoint(Index), Index);
+			const PCGEx::FPointRef PrevPoint = PCGEx::FPointRef(PointIO.GetOutPoint(PrevIndex), PrevIndex);
+			const PCGEx::FPointRef NextPoint = PCGEx::FPointRef(PointIO.GetOutPoint(NextIndex), NextIndex);
+
+			Context->Tangents->ProcessPoint(MainPoint, PrevPoint, NextPoint, OutArrive, OutLeave);
+		};
+
+		bool bProcessingComplete;
+		if (Settings->bClosedPath) { bProcessingComplete = Context->ProcessCurrentPoints(Initialize, ProcessPointTile); }
+		else { bProcessingComplete = Context->ProcessCurrentPoints(Initialize, ProcessPoint); }
+
+		if (bProcessingComplete)
 		{
 			Context->WriteTangents();
 			Context->CurrentIO->OutputTo(Context);

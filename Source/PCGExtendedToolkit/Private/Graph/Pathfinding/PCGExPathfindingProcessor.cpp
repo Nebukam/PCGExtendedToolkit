@@ -32,7 +32,7 @@ TArray<FPCGPinProperties> UPCGExPathfindingProcessorSettings::InputPinProperties
 
 #if WITH_EDITOR
 		PinPropertySeeds.Tooltip = FTEXT("Seeds points for pathfinding.");
-#endif // WITH_EDITOR
+#endif
 	}
 
 	if (GetRequiresGoals())
@@ -41,7 +41,7 @@ TArray<FPCGPinProperties> UPCGExPathfindingProcessorSettings::InputPinProperties
 
 #if WITH_EDITOR
 		PinPropertyGoals.Tooltip = FTEXT("Goals points for pathfinding.");
-#endif // WITH_EDITOR
+#endif
 	}
 
 	return PinProperties;
@@ -54,7 +54,7 @@ TArray<FPCGPinProperties> UPCGExPathfindingProcessorSettings::OutputPinPropertie
 
 #if WITH_EDITOR
 	PinPathsOutput.Tooltip = FTEXT("Paths output.");
-#endif // WITH_EDITOR
+#endif
 
 	return PinProperties;
 }

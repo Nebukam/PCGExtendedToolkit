@@ -5,10 +5,10 @@
 
 #include "CoreMinimal.h"
 #include "Graph/PCGExEdgesProcessor.h"
-#include "PCGExBridgeEdgeIslands.generated.h"
+#include "PCGExBridgeEdgeClusters.generated.h"
 
 UENUM(BlueprintType)
-enum class EPCGExBridgeIslandMethod : uint8
+enum class EPCGExBridgeClusterMethod : uint8
 {
 	Delaunay UMETA(DisplayName = "Delaunay", ToolTip="Uses Delaunay graph to find connections."),
 	LeastEdges UMETA(DisplayName = "Least Edges", ToolTip="Ensure all islands are connected using the least possible number of bridges."),
@@ -16,16 +16,16 @@ enum class EPCGExBridgeIslandMethod : uint8
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Edges")
-class PCGEXTENDEDTOOLKIT_API UPCGExBridgeEdgeIslandsSettings : public UPCGExEdgesProcessorSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExBridgeEdgeClustersSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()
 
 public:
-	UPCGExBridgeEdgeIslandsSettings(const FObjectInitializer& ObjectInitializer);
+	UPCGExBridgeEdgeClustersSettings(const FObjectInitializer& ObjectInitializer);
 
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(BridgeEdgeIslands, "Edges : Bridge Islands", "Connects isolated edge islands by their closest vertices.");
+	PCGEX_NODE_INFOS(BridgeEdgeClusters, "Edges : Bridge Clusters", "Connects isolated edge islands by their closest vertices.");
 #endif
 
 protected:
@@ -35,30 +35,30 @@ protected:
 	//~Begin UPCGExPointsProcessorSettings interface
 public:
 	virtual PCGExData::EInit GetEdgeOutputInitMode() const override;
-	virtual bool GetCacheAllMeshes() const override;
+	virtual bool GetCacheAllClusteres() const override;
 	//~End UPCGExPointsProcessorSettings interface
 
 	/** Method used to find & insert bridges */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
-	EPCGExBridgeIslandMethod BridgeMethod = EPCGExBridgeIslandMethod::Delaunay;
+	EPCGExBridgeClusterMethod BridgeMethod = EPCGExBridgeClusterMethod::Delaunay;
 
 private:
-	friend class FPCGExBridgeEdgeIslandsElement;
+	friend class FPCGExBridgeEdgeClustersElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExBridgeEdgeIslandsContext : public FPCGExEdgesProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExBridgeEdgeClustersContext : public FPCGExEdgesProcessorContext
 {
-	friend class FPCGExBridgeEdgeIslandsElement;
+	friend class FPCGExBridgeEdgeClustersElement;
 
-	virtual ~FPCGExBridgeEdgeIslandsContext() override;
+	virtual ~FPCGExBridgeEdgeClustersContext() override;
 
-	EPCGExBridgeIslandMethod BridgeMethod;
+	EPCGExBridgeClusterMethod BridgeMethod;
 
 	PCGExData::FPointIO* ConsolidatedEdges = nullptr;
-	TSet<PCGExMesh::FMesh*> VisitedMeshes;
+	TSet<PCGExCluster::FCluster*> VisitedClusters;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExBridgeEdgeIslandsElement : public FPCGExEdgesProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExBridgeEdgeClustersElement : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -72,17 +72,17 @@ protected:
 };
 
 // Define the background task class
-class PCGEXTENDEDTOOLKIT_API FBridgeMeshesTask : public FPCGExNonAbandonableTask
+class PCGEXTENDEDTOOLKIT_API FBridgeClusteresTask : public FPCGExNonAbandonableTask
 {
 public:
-	FBridgeMeshesTask(
-		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO, const int32 InOtherMeshIndex) :
+	FBridgeClusteresTask(
+		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO, const int32 InOtherClusterIndex) :
 		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
-		OtherMeshIndex(InOtherMeshIndex)
+		OtherClusterIndex(InOtherClusterIndex)
 	{
 	}
 
-	int32 OtherMeshIndex = -1;
+	int32 OtherClusterIndex = -1;
 
 	virtual bool ExecuteTask() override;
 };

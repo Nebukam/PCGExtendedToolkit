@@ -10,7 +10,7 @@
 
 #include "PCGExSampleNearestPoint.generated.h"
 
-#define PCGEX_SAMPLENEARESTPOINT_FOREACH(MACRO)\
+#define PCGEX_FOREACH_FIELD_NEARESTPOINT(MACRO)\
 MACRO(Success, bool)\
 MACRO(Location, FVector)\
 MACRO(LookAt, FVector)\
@@ -238,7 +238,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestPointContext : public FPCGExPoi
 
 	TObjectPtr<UCurveFloat> WeightCurve = nullptr;
 
-	PCGEX_SAMPLENEARESTPOINT_FOREACH(PCGEX_OUTPUT_DECL)
+	PCGEX_FOREACH_FIELD_NEARESTPOINT(PCGEX_OUTPUT_DECL)
 
 	EPCGExAxis SignAxis;
 	EPCGExAxis AngleAxis;

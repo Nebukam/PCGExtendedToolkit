@@ -23,7 +23,7 @@ TArray<FPCGPinProperties> UPCGExSampleNearestPolylineSettings::InputPinPropertie
 
 #if WITH_EDITOR
 	PinPropertySourceTargets.Tooltip = FTEXT("The point data set to check against.");
-#endif // WITH_EDITOR
+#endif
 
 	return PinProperties;
 }
@@ -36,13 +36,12 @@ PCGEX_INITIALIZE_ELEMENT(SampleNearestPolyline)
 
 FPCGExSampleNearestPolylineContext::~FPCGExSampleNearestPolylineContext()
 {
+	PCGEX_TERMINATE_ASYNC
 	PCGEX_CLEANUP(RangeMinGetter)
 	PCGEX_CLEANUP(RangeMaxGetter)
-
 	PCGEX_DELETE(Targets)
-	PCGEX_SAMPLENEARESTPOLYLINE_FOREACH(PCGEX_OUTPUT_DELETE)
+	PCGEX_FOREACH_FIELD_NEARESTPOLYLINE(PCGEX_OUTPUT_DELETE)
 }
-
 
 bool FPCGExSampleNearestPolylineElement::Boot(FPCGContext* InContext) const
 {
@@ -79,7 +78,7 @@ bool FPCGExSampleNearestPolylineElement::Boot(FPCGContext* InContext) const
 	PCGEX_FWD(bUseLocalRangeMax)
 	Context->RangeMaxGetter.Capture(Settings->LocalRangeMax);
 
-	PCGEX_SAMPLENEARESTPOLYLINE_FOREACH(PCGEX_OUTPUT_FWD)
+	PCGEX_FOREACH_FIELD_NEARESTPOLYLINE(PCGEX_OUTPUT_FWD)
 
 	if (!Context->Targets || Context->Targets->IsEmpty())
 	{
@@ -95,7 +94,7 @@ bool FPCGExSampleNearestPolylineElement::Boot(FPCGContext* InContext) const
 
 	Context->NumTargets = Context->Targets->Lines.Num();
 
-	PCGEX_SAMPLENEARESTPOLYLINE_FOREACH(PCGEX_OUTPUT_VALIDATE_NAME)
+	PCGEX_FOREACH_FIELD_NEARESTPOLYLINE(PCGEX_OUTPUT_VALIDATE_NAME)
 
 	return true;
 }
@@ -140,7 +139,7 @@ bool FPCGExSampleNearestPolylineElement::ExecuteInternal(FPCGContext* InContext)
 
 			PointIO.CreateOutKeys();
 
-			PCGEX_SAMPLENEARESTPOLYLINE_FOREACH(PCGEX_OUTPUT_ACCESSOR_INIT)
+			PCGEX_FOREACH_FIELD_NEARESTPOLYLINE(PCGEX_OUTPUT_ACCESSOR_INIT)
 		};
 
 		auto ProcessPoint = [&](const int32 PointIndex, const PCGExData::FPointIO& PointIO)
@@ -155,7 +154,7 @@ bool FPCGExSampleNearestPolylineElement::ExecuteInternal(FPCGContext* InContext)
 	{
 		if (Context->IsAsyncWorkComplete())
 		{
-			PCGEX_SAMPLENEARESTPOLYLINE_FOREACH(PCGEX_OUTPUT_WRITE)
+			PCGEX_FOREACH_FIELD_NEARESTPOLYLINE(PCGEX_OUTPUT_WRITE)
 			Context->CurrentIO->OutputTo(Context);
 			Context->SetState(PCGExMT::State_ReadyForNextPoints);
 		}

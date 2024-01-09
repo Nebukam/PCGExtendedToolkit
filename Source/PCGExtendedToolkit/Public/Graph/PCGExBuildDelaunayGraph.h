@@ -12,12 +12,8 @@
 
 namespace PCGExGeo
 {
+	class TConvexHull3;
 	class TDelaunayTriangulation3;
-}
-
-namespace PCGExMesh
-{
-	struct FDelaunayTriangulation;
 }
 
 /**
@@ -31,7 +27,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExBuildDelaunayGraphSettings : public UPCGExPoi
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(BuildDelaunayGraph, "Graph : Delaunay", "Create a 3D delaunay triangulation for each input dataset.");
+	PCGEX_NODE_INFOS(BuildDelaunayGraph, "Graph : Delaunay 3D", "Create a 3D delaunay tetrahedralization for each input dataset.");
 #endif
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 
@@ -45,9 +41,9 @@ public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	virtual int32 GetPreferredChunkSize() const override;
 	//~End UPCGExPointsProcessorSettings interface
-	
+
 public:
-	/** TBD */
+	/** Mark points & edges that lie on the hull */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bMarkHull = true;
 
@@ -58,7 +54,7 @@ public:
 	/** When true, edges that have at least a point on the Hull as marked as being on the hull. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bMarkEdgeOnTouch = false;
-	
+
 private:
 	friend class FPCGExBuildDelaunayGraphElement;
 };
@@ -69,17 +65,17 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBuildDelaunayGraphContext : public FPCGExPoi
 
 	virtual ~FPCGExBuildDelaunayGraphContext() override;
 
-	int32 IslandUIndex = 0;
-	
+	int32 ClusterUIndex = 0;
+
 	PCGExGeo::TDelaunayTriangulation3* Delaunay = nullptr;
-	
+	PCGExGeo::TConvexHull3* ConvexHull = nullptr;
+	TSet<int32> HullIndices;
+
 	mutable FRWLock NetworkLock;
 	PCGExGraph::FEdgeNetwork* EdgeNetwork = nullptr;
-	PCGExData::FPointIOGroup* IslandsIO;
-	PCGExData::FPointIO* CurrentIslandIO = nullptr;
+	PCGExData::FPointIOGroup* ClustersIO;
 
 	PCGExData::FKPointIOMarkedBindings<int32>* Markings = nullptr;
-
 };
 
 
@@ -94,6 +90,7 @@ public:
 protected:
 	virtual bool Boot(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
+	void WriteEdges(FPCGExBuildDelaunayGraphContext* Context) const;
 };
 
 class PCGEXTENDEDTOOLKIT_API FDelaunayInsertTask : public FPCGExNonAbandonableTask
@@ -103,7 +100,6 @@ public:
 		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO)
 	{
 	}
-	
+
 	virtual bool ExecuteTask() override;
 };
-

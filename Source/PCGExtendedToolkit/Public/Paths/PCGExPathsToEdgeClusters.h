@@ -9,7 +9,7 @@
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGExData.h"
 #include "Graph/PCGExGraph.h"
-#include "PCGExPathsToEdgeIslands.generated.h"
+#include "PCGExPathsToEdgeClusters.generated.h"
 
 namespace PCGExGraph
 {
@@ -83,16 +83,16 @@ namespace PCGExGraph
  * Calculates the distance between two points (inherently a n*n operation)
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
-class PCGEXTENDEDTOOLKIT_API UPCGExPathsToEdgeIslandsSettings : public UPCGExPathProcessorSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExPathsToEdgeClustersSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()
 
 public:
-	UPCGExPathsToEdgeIslandsSettings(const FObjectInitializer& ObjectInitializer);
+	UPCGExPathsToEdgeClustersSettings(const FObjectInitializer& ObjectInitializer);
 
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(PathsToEdgeIslands, "Path : To Edge Islands", "Merge paths to edge islands for glorious pathfinding inception");
+	PCGEX_NODE_INFOS(PathsToEdgeClusters, "Path : To Edge Clusters", "Merge paths to edge islands for glorious pathfinding inception");
 #endif
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 
@@ -129,11 +129,11 @@ public:
 	double CrossingTolerance = 10;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExPathsToEdgeIslandsContext : public FPCGExPathProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExPathsToEdgeClustersContext : public FPCGExPathProcessorContext
 {
-	friend class FPCGExPathsToEdgeIslandsElement;
+	friend class FPCGExPathsToEdgeClustersElement;
 
-	virtual ~FPCGExPathsToEdgeIslandsContext() override;
+	virtual ~FPCGExPathsToEdgeClustersContext() override;
 
 	bool bFindCrossings;
 	double CrossingTolerance;
@@ -145,14 +145,14 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathsToEdgeIslandsContext : public FPCGExPat
 	TSet<int32> VisitedNodes;
 	PCGExGraph::FEdgeNetwork* EdgeNetwork = nullptr;
 	PCGExGraph::FEdgeCrossingsHandler* EdgeCrossings = nullptr;
-	PCGExData::FPointIOGroup* IslandsIO;
+	PCGExData::FPointIOGroup* ClustersIO;
 
 	PCGExData::FKPointIOMarkedBindings<int32>* Markings = nullptr;
 
 	PCGExData::FPointIO* ConsolidatedPoints = nullptr;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExPathsToEdgeIslandsElement : public FPCGExPathProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExPathsToEdgeClustersElement : public FPCGExPathProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

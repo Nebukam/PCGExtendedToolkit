@@ -4,16 +4,16 @@
 
 #include "Graph/Edges/Relaxing/PCGExForceDirectedRelaxing.h"
 
-#include "Graph/PCGExMesh.h"
+#include "Graph/PCGExCluster.h"
 
-void UPCGExForceDirectedRelaxing::ProcessVertex(const PCGExMesh::FVertex& Vertex)
+void UPCGExForceDirectedRelaxing::ProcessVertex(const PCGExCluster::FVertex& Vertex)
 {
 	const FVector Position = (*ReadBuffer)[Vertex.PointIndex];
 	FVector Force = FVector::Zero();
 
 	for (const int32 VtxIndex : Vertex.Neighbors)
 	{
-		const PCGExMesh::FVertex& OtherVtx = CurrentMesh->Vertices[VtxIndex];
+		const PCGExCluster::FVertex& OtherVtx = CurrentCluster->Vertices[VtxIndex];
 		const FVector OtherPosition = (*ReadBuffer)[OtherVtx.PointIndex];
 		CalculateAttractiveForce(Force, Position, OtherPosition);
 		CalculateRepulsiveForce(Force, Position, OtherPosition);

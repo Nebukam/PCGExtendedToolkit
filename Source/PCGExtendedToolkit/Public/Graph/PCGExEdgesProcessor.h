@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "IPCGExDebug.h"
-#include "PCGExMesh.h"
+#include "PCGExCluster.h"
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGExData.h"
 
@@ -41,8 +41,7 @@ public:
 	virtual bool GetMainAcceptMultipleData() const override;
 	//~End UPCGExPointsProcessorSettings interface
 
-	virtual bool GetCacheAllMeshes() const;
-
+	virtual bool GetCacheAllClusteres() const;
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExEdgesProcessorContext : public FPCGExPointsProcessorContext
@@ -59,9 +58,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgesProcessorContext : public FPCGExPointsP
 	bool AdvanceAndBindPointsIO();
 	bool AdvanceEdges(); // Advance edges within current points
 
-	bool bCacheAllMeshes = false;
-	PCGExMesh::FMesh* CurrentMesh = nullptr;
-	TArray<PCGExMesh::FMesh*> Meshes;
+	bool bCacheAllClusteres = false;
+	PCGExCluster::FCluster* CurrentCluster = nullptr;
+	TArray<PCGExCluster::FCluster*> Clusters;
 
 	void OutputPointsAndEdges();
 
@@ -72,10 +71,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgesProcessorContext : public FPCGExPointsP
 	bool ProcessCurrentEdges(LoopBodyFunc&& LoopBody, bool bForceSync = false) { return Process(LoopBody, CurrentEdges->GetNum(), bForceSync); }
 
 	template <class InitializeFunc, class LoopBodyFunc>
-	bool ProcessCurrentMesh(InitializeFunc&& Initialize, LoopBodyFunc&& LoopBody, bool bForceSync = false) { return Process(Initialize, LoopBody, CurrentMesh->Vertices.Num(), bForceSync); }
+	bool ProcessCurrentCluster(InitializeFunc&& Initialize, LoopBodyFunc&& LoopBody, bool bForceSync = false) { return Process(Initialize, LoopBody, CurrentCluster->Vertices.Num(), bForceSync); }
 
 	template <class LoopBodyFunc>
-	bool ProcessCurrentMesh(LoopBodyFunc&& LoopBody, bool bForceSync = false) { return Process(LoopBody, CurrentMesh->Vertices.Num(), bForceSync); }
+	bool ProcessCurrentCluster(LoopBodyFunc&& LoopBody, bool bForceSync = false) { return Process(LoopBody, CurrentCluster->Vertices.Num(), bForceSync); }
 
 protected:
 	int32 CurrentEdgesIndex = -1;

@@ -18,6 +18,7 @@ enum class EPCGExDebugExpression : uint8
 	ConnectionToIndex UMETA(DisplayName = "Connection (Point Index)", ToolTip="Attribute is treated as a lookup index in the same data block."),
 	ConnectionToPosition UMETA(DisplayName = "Connection (Position)", ToolTip="Attribute is treated as world space position in the same data block."),
 	Point UMETA(DisplayName = "Point", ToolTip="Attribute is treated as a world space position."),
+	Boolean UMETA(DisplayName = "Boolean", ToolTip="Attribute is treated as a boolean switch between two colors."),
 	Label UMETA(DisplayName = "Label", ToolTip="Displays attribute values as string"),
 };
 
@@ -71,7 +72,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeDebugDrawDescriptor : public FPCGEx
 
 	/** Draw color. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Color", meta=(PCG_Overridable))
-	FColor Color = FColor(255, 0, 0);
+	FColor Color = FColor(255, 0, 0); /** Draw color. */
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Color", meta=(PCG_Overridable, EditConditionHides, EditCondition="ExpressedAs==EPCGExDebugExpression::Boolean"))
+	FColor SecondaryColor = FColor(0, 255, 0);
 
 	/** Fetch the color from a local attribute.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Color", meta = (PCG_Overridable, EditCondition="bEnabled", InlineEditConditionToggle))
@@ -106,6 +110,7 @@ public:
 
 	PCGEx::FLocalDirectionGetter VectorGetter;
 	PCGEx::FLocalSingleFieldGetter IndexGetter;
+	PCGEx::FLocalSingleFieldGetter SingleGetter;
 	PCGEx::FLocalSingleFieldGetter SizeGetter;
 	PCGEx::FLocalVectorInput ColorGetter;
 	PCGEx::FLocalToStringGetter TextGetter;
@@ -116,6 +121,7 @@ public:
 
 	double GetSize(const PCGEx::FPointRef& Point) const;
 	FColor GetColor(const PCGEx::FPointRef& Point) const;
+	double GetSingle(const PCGEx::FPointRef& Point) const;
 	FVector GetVector(const PCGEx::FPointRef& Point) const;
 	FVector GetIndexedPosition(const PCGEx::FPointRef& Point, const UPCGPointData* PointData) const;
 
@@ -125,6 +131,7 @@ protected:
 	void DrawDirection(const UWorld* World, const FVector& Start, const PCGEx::FPointRef& Point) const;
 	void DrawConnection(const UWorld* World, const FVector& Start, const PCGEx::FPointRef& Point, const FVector& End) const;
 	void DrawPoint(const UWorld* World, const FVector& Start, const PCGEx::FPointRef& Point) const;
+	void DrawSingle(const UWorld* World, const FVector& Start, const PCGEx::FPointRef& Point) const;
 	void DrawLabel(const UWorld* World, const FVector& Start, const PCGEx::FPointRef& Point) const;
 
 	template <typename T, typename dummy = void>

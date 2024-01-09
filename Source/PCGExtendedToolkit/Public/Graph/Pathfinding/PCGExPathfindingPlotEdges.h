@@ -97,10 +97,10 @@ protected:
 };
 
 // Define the background task class
-class PCGEXTENDEDTOOLKIT_API FPlotMeshPathTask : public FPCGExNonAbandonableTask
+class PCGEXTENDEDTOOLKIT_API FPlotClusterPathTask : public FPCGExNonAbandonableTask
 {
 public:
-	FPlotMeshPathTask(
+	FPlotClusterPathTask(
 		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO) :
 		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO)
 	{

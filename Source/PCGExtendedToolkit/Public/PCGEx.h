@@ -5,6 +5,7 @@
 
 #include "PCGComponent.h"
 #include "PCGContext.h"
+#include "PCGExMath.h"
 
 #include "PCGEx.generated.h"
 
@@ -211,7 +212,7 @@ namespace PCGEx
 			if (Index < 0 || Index > Limit) { return -1; }
 			break;
 		case EPCGExIndexSafety::Wrap:
-			return FMath::Wrap(Index, 0, Limit);
+			return PCGExMath::Tile(Index, 0, Limit);
 		case EPCGExIndexSafety::Clamp:
 			return FMath::Clamp(Index, 0, Limit);
 		default: ;

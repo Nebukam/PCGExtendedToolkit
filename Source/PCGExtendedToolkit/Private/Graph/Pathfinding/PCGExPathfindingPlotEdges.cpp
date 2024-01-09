@@ -37,7 +37,7 @@ TArray<FPCGPinProperties> UPCGExPathfindingPlotEdgesSettings::InputPinProperties
 
 #if WITH_EDITOR
 	PinPropertySeeds.Tooltip = FTEXT("Plot points for pathfinding.");
-#endif // WITH_EDITOR
+#endif
 
 	return PinProperties;
 }
@@ -121,7 +121,7 @@ bool FPCGExPathfindingPlotEdgesElement::ExecuteInternal(FPCGContext* InContext) 
 		if (!Context->AdvanceEdges()) { Context->SetState(PCGExMT::State_ReadyForNextPoints); }
 		else
 		{
-			if (Context->CurrentMesh->HasInvalidEdges())
+			if (Context->CurrentCluster->HasInvalidEdges())
 			{
 				PCGE_LOG(Warning, GraphAndLog, FTEXT("Some input edges are invalid. This will highly likely cause unexpected results or failed pathfinding."));
 			}
@@ -136,7 +136,7 @@ bool FPCGExPathfindingPlotEdgesElement::ExecuteInternal(FPCGContext* InContext) 
 			[&](PCGExData::FPointIO& PlotIO, const int32 Index)
 			{
 				if (PlotIO.GetNum() < 2) { return; }
-				Context->GetAsyncManager()->Start<FPlotMeshPathTask>(Index, &PlotIO);
+				Context->GetAsyncManager()->Start<FPlotClusterPathTask>(Index, &PlotIO);
 			});
 
 		Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork);
@@ -152,11 +152,11 @@ bool FPCGExPathfindingPlotEdgesElement::ExecuteInternal(FPCGContext* InContext) 
 	return Context->IsDone();
 }
 
-bool FPlotMeshPathTask::ExecuteTask()
+bool FPlotClusterPathTask::ExecuteTask()
 {
 	const FPCGExPathfindingPlotEdgesContext* Context = Manager->GetContext<FPCGExPathfindingPlotEdgesContext>();
 
-	const PCGExMesh::FMesh* Mesh = Context->CurrentMesh;
+	const PCGExCluster::FCluster* Cluster = Context->CurrentCluster;
 	TArray<int32> Path;
 
 	const int32 NumPlots = PointIO->GetNum();
@@ -168,7 +168,7 @@ bool FPlotMeshPathTask::ExecuteTask()
 
 		//Note: Can silently fail
 		PCGExPathfinding::FindPath(
-			Context->CurrentMesh, SeedPosition, GoalPosition,
+			Context->CurrentCluster, SeedPosition, GoalPosition,
 			Context->Heuristics, Context->HeuristicsModifiers, Path);
 
 		if (Context->bAddPlotPointsToPath && i < NumPlots - 1) { Path.Add((i + 1) * -1); }
@@ -194,7 +194,7 @@ bool FPlotMeshPathTask::ExecuteTask()
 		}
 
 		if (LastIndex == VtxIndex) { continue; } //Skip duplicates
-		MutablePoints.Add(InPoints[Mesh->Vertices[VtxIndex].PointIndex]);
+		MutablePoints.Add(InPoints[Cluster->Vertices[VtxIndex].PointIndex]);
 		LastIndex = VtxIndex;
 	}
 	if (Context->bAddGoalToPath) { MutablePoints.Add_GetRef(PointIO->GetInPoint(PointIO->GetNum() - 1)).MetadataEntry = PCGInvalidEntryKey; }

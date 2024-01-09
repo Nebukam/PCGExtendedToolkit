@@ -1,36 +1,40 @@
 ﻿// Copyright Timothé Lapetite 2023
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Graph/Edges/PCGExPruneEdges.h"
+#include "..\..\..\Public\Graph\Edges\PCGExRefineEdges.h"
 
-#define LOCTEXT_NAMESPACE "PCGExPruneEdges"
-#define PCGEX_NAMESPACE PruneEdges
+#include "Graph/Edges/Refining/PCGExEdgeRefineUrquhart.h"
 
-UPCGExPruneEdgesSettings::UPCGExPruneEdgesSettings(
+#define LOCTEXT_NAMESPACE "PCGExRefineEdges"
+#define PCGEX_NAMESPACE RefineEdges
+
+UPCGExRefineEdgesSettings::UPCGExRefineEdgesSettings(
 	const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 }
 
-PCGExData::EInit UPCGExPruneEdgesSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
+PCGExData::EInit UPCGExRefineEdgesSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
-PCGEX_INITIALIZE_ELEMENT(PruneEdges)
+PCGEX_INITIALIZE_ELEMENT(RefineEdges)
 
-bool FPCGExPruneEdgesElement::Boot(FPCGContext* InContext) const
+bool FPCGExRefineEdgesElement::Boot(FPCGContext* InContext) const
 {
 	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
 
-	PCGEX_CONTEXT_AND_SETTINGS(PruneEdges)
+	PCGEX_CONTEXT_AND_SETTINGS(RefineEdges)
+
+	PCGEX_OPERATION_BIND(Refinement, UPCGExEdgeRefineUrquhart)
 
 	return true;
 }
 
-bool FPCGExPruneEdgesElement::ExecuteInternal(
+bool FPCGExRefineEdgesElement::ExecuteInternal(
 	FPCGContext* InContext) const
 {
-	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExPruneEdgesElement::Execute);
+	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExRefineEdgesElement::Execute);
 
-	PCGEX_CONTEXT(PruneEdges)
+	PCGEX_CONTEXT(RefineEdges)
 
 	if (Context->IsSetup())
 	{

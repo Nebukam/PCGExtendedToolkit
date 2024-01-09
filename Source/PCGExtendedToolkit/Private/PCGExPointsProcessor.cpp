@@ -224,7 +224,7 @@ TArray<FPCGPinProperties> UPCGExPointsProcessorSettings::InputPinProperties() co
 
 #if WITH_EDITOR
 	PinPropertySource.Tooltip = FTEXT("The point data to be processed.");
-#endif // WITH_EDITOR
+#endif
 
 	return PinProperties;
 }
@@ -236,9 +236,15 @@ TArray<FPCGPinProperties> UPCGExPointsProcessorSettings::OutputPinProperties() c
 
 #if WITH_EDITOR
 	PinPointsOutput.Tooltip = FTEXT("The processed points.");
-#endif // WITH_EDITOR
+#endif
 
 	return PinProperties;
+}
+
+bool UPCGExPointsProcessorSettings::OnlyPassThroughOneEdgeWhenDisabled() const
+{
+	return false;
+	//return Super::OnlyPassThroughOneEdgeWhenDisabled();
 }
 
 FName UPCGExPointsProcessorSettings::GetMainOutputLabel() const { return PCGEx::OutputPointsLabel; }
@@ -378,7 +384,7 @@ FPCGContext* FPCGExPointsProcessorElementBase::InitializeContext(
 	InContext->InputData = InputData;
 	InContext->SourceComponent = SourceComponent;
 	InContext->Node = Node;
-
+	
 	check(SourceComponent.IsValid());
 	InContext->World = SourceComponent->GetWorld();
 

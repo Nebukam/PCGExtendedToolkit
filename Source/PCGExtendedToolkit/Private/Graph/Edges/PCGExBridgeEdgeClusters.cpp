@@ -1,53 +1,53 @@
 ﻿// Copyright Timothé Lapetite 2023
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Graph/Edges/PCGExBridgeEdgeIslands.h"
+#include "Graph/Edges/PCGExBridgeEdgeClusters.h"
 
 #include "Data/PCGExPointIOMerger.h"
 #include "Geometry/PCGExGeoDelaunay.h"
 
-#define LOCTEXT_NAMESPACE "PCGExBridgeEdgeIslands"
-#define PCGEX_NAMESPACE BridgeEdgeIslands
+#define LOCTEXT_NAMESPACE "PCGExBridgeEdgeClusters"
+#define PCGEX_NAMESPACE BridgeEdgeClusters
 
-UPCGExBridgeEdgeIslandsSettings::UPCGExBridgeEdgeIslandsSettings(
+UPCGExBridgeEdgeClustersSettings::UPCGExBridgeEdgeClustersSettings(
 	const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 }
 
-PCGExData::EInit UPCGExBridgeEdgeIslandsSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::NoOutput; }
+PCGExData::EInit UPCGExBridgeEdgeClustersSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 
-bool UPCGExBridgeEdgeIslandsSettings::GetCacheAllMeshes() const { return true; }
+bool UPCGExBridgeEdgeClustersSettings::GetCacheAllClusteres() const { return true; }
 
-PCGEX_INITIALIZE_ELEMENT(BridgeEdgeIslands)
+PCGEX_INITIALIZE_ELEMENT(BridgeEdgeClusters)
 
-FPCGExBridgeEdgeIslandsContext::~FPCGExBridgeEdgeIslandsContext()
+FPCGExBridgeEdgeClustersContext::~FPCGExBridgeEdgeClustersContext()
 {
 	PCGEX_TERMINATE_ASYNC
 
 	ConsolidatedEdges = nullptr;
 
-	VisitedMeshes.Empty();
+	VisitedClusters.Empty();
 }
 
 
-bool FPCGExBridgeEdgeIslandsElement::Boot(FPCGContext* InContext) const
+bool FPCGExBridgeEdgeClustersElement::Boot(FPCGContext* InContext) const
 {
 	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
 
-	PCGEX_CONTEXT_AND_SETTINGS(BridgeEdgeIslands)
+	PCGEX_CONTEXT_AND_SETTINGS(BridgeEdgeClusters)
 
 	PCGEX_FWD(BridgeMethod)
 
 	return true;
 }
 
-bool FPCGExBridgeEdgeIslandsElement::ExecuteInternal(
+bool FPCGExBridgeEdgeClustersElement::ExecuteInternal(
 	FPCGContext* InContext) const
 {
-	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExBridgeEdgeIslandsElement::Execute);
+	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExBridgeEdgeClustersElement::Execute);
 
-	PCGEX_CONTEXT(BridgeEdgeIslands)
+	PCGEX_CONTEXT(BridgeEdgeClusters)
 
 	if (Context->IsSetup())
 	{
@@ -57,7 +57,7 @@ bool FPCGExBridgeEdgeIslandsElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
-		Context->VisitedMeshes.Empty();
+		Context->VisitedClusters.Empty();
 
 		if (!Context->AdvanceAndBindPointsIO()) { Context->Done(); }
 		else
@@ -93,8 +93,8 @@ bool FPCGExBridgeEdgeIslandsElement::ExecuteInternal(
 	{
 		while (Context->AdvanceEdges())
 		{
-			/* Batch-build all meshes since bCacheAllMeshes == true */
-			if (Context->CurrentMesh->HasInvalidEdges())
+			/* Batch-build all meshes since bCacheAllClusteres == true */
+			if (Context->CurrentCluster->HasInvalidEdges())
 			{
 				PCGE_LOG(Warning, GraphAndLog, FTEXT("Some input edges are invalid. This will highly likely cause unexpected results."));
 			}
@@ -104,25 +104,25 @@ bool FPCGExBridgeEdgeIslandsElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExGraph::State_ProcessingEdges))
 	{
-		auto BridgeIslands = [&](const int32 MeshIndex)
+		auto BridgeClusters = [&](const int32 ClusterIndex)
 		{
-			PCGExMesh::FMesh* CurrentMesh = Context->Meshes[MeshIndex];
+			PCGExCluster::FCluster* CurrentCluster = Context->Clusters[ClusterIndex];
 
-			const int32 MeshNum = Context->Meshes.Num();
-			EPCGExBridgeIslandMethod SafeMethod = Context->BridgeMethod;
+			const int32 ClusterNum = Context->Clusters.Num();
+			EPCGExBridgeClusterMethod SafeMethod = Context->BridgeMethod;
 
-			if(MeshNum <= 4 && SafeMethod == EPCGExBridgeIslandMethod::Delaunay){ SafeMethod = EPCGExBridgeIslandMethod::MostEdges; }
-			
-			if(SafeMethod == EPCGExBridgeIslandMethod::Delaunay)
+			if (ClusterNum <= 4 && SafeMethod == EPCGExBridgeClusterMethod::Delaunay) { SafeMethod = EPCGExBridgeClusterMethod::MostEdges; }
+
+			if (SafeMethod == EPCGExBridgeClusterMethod::Delaunay)
 			{
 				PCGExGeo::TDelaunayTriangulation3* Delaunay = new PCGExGeo::TDelaunayTriangulation3();
 				TArray<FPCGPoint> Points;
-				Points.SetNum(MeshNum);
-				for(int i = 0; i < Points.Num(); i++){Points[i].Transform.SetLocation(Context->Meshes[i]->Bounds.GetCenter());}
-				if(Delaunay->PrepareFrom(Points))
+				Points.SetNum(ClusterNum);
+				for (int i = 0; i < Points.Num(); i++) { Points[i].Transform.SetLocation(Context->Clusters[i]->Bounds.GetCenter()); }
+				if (Delaunay->PrepareFrom(Points))
 				{
 					Delaunay->Generate();
-					
+
 					TSet<uint64> UniqueEdges;
 					UniqueEdges.Reserve(Delaunay->Cells.Num() * 3);
 					for (const PCGExGeo::TDelaunayCell<4>* Cell : Delaunay->Cells)
@@ -136,7 +136,7 @@ bool FPCGExBridgeEdgeIslandsElement::ExecuteInternal(
 								const uint64 Hash = PCGExGraph::GetUnsignedHash64(A, B);
 								if (!UniqueEdges.Contains(Hash))
 								{
-									Context->GetAsyncManager()->Start<FBridgeMeshesTask>(A, Context->ConsolidatedEdges, B);
+									Context->GetAsyncManager()->Start<FBridgeClusteresTask>(A, Context->ConsolidatedEdges, B);
 									UniqueEdges.Add(Hash);
 								}
 							}
@@ -145,39 +145,39 @@ bool FPCGExBridgeEdgeIslandsElement::ExecuteInternal(
 
 					UniqueEdges.Empty();
 				}
-				
+
 				PCGEX_DELETE(Delaunay)
 			}
-			else if (SafeMethod == EPCGExBridgeIslandMethod::LeastEdges)
+			else if (SafeMethod == EPCGExBridgeClusterMethod::LeastEdges)
 			{
-				Context->VisitedMeshes.Add(CurrentMesh); // As to not connect to self or already connected
+				Context->VisitedClusters.Add(CurrentCluster); // As to not connect to self or already connected
 
-				PCGExMesh::FMesh* ClosestMesh = nullptr;
+				PCGExCluster::FCluster* ClosestCluster = nullptr;
 				double Distance = TNumericLimits<double>::Max();
-				for (PCGExMesh::FMesh* OtherMesh : Context->Meshes)
+				for (PCGExCluster::FCluster* OtherCluster : Context->Clusters)
 				{
-					if (Context->VisitedMeshes.Contains(OtherMesh)) { continue; }
-					const double Dist = FVector::DistSquared(CurrentMesh->Bounds.GetCenter(), OtherMesh->Bounds.GetCenter());
-					if (!ClosestMesh || Dist < Distance)
+					if (Context->VisitedClusters.Contains(OtherCluster)) { continue; }
+					const double Dist = FVector::DistSquared(CurrentCluster->Bounds.GetCenter(), OtherCluster->Bounds.GetCenter());
+					if (!ClosestCluster || Dist < Distance)
 					{
-						ClosestMesh = OtherMesh;
+						ClosestCluster = OtherCluster;
 						Distance = Dist;
 					}
 				}
 
-				Context->GetAsyncManager()->Start<FBridgeMeshesTask>(MeshIndex, Context->ConsolidatedEdges, Context->Meshes.IndexOfByKey(ClosestMesh));
+				Context->GetAsyncManager()->Start<FBridgeClusteresTask>(ClusterIndex, Context->ConsolidatedEdges, Context->Clusters.IndexOfByKey(ClosestCluster));
 			}
-			else if (SafeMethod == EPCGExBridgeIslandMethod::MostEdges)
+			else if (SafeMethod == EPCGExBridgeClusterMethod::MostEdges)
 			{
-				for (int i = 0; i < MeshNum; i++)
+				for (int i = 0; i < ClusterNum; i++)
 				{
-					if (CurrentMesh == Context->Meshes[i]) { continue; }
-					Context->GetAsyncManager()->Start<FBridgeMeshesTask>(MeshIndex, Context->ConsolidatedEdges, i);
+					if (CurrentCluster == Context->Clusters[i]) { continue; }
+					Context->GetAsyncManager()->Start<FBridgeClusteresTask>(ClusterIndex, Context->ConsolidatedEdges, i);
 				}
 			}
 		};
 
-		if (Context->Process(BridgeIslands, Context->Meshes.Num() - 1, true))
+		if (Context->Process(BridgeClusters, Context->Clusters.Num() - 1, true))
 		{
 			Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork);
 		}
@@ -193,13 +193,13 @@ bool FPCGExBridgeEdgeIslandsElement::ExecuteInternal(
 	return Context->IsDone();
 }
 
-bool FBridgeMeshesTask::ExecuteTask()
+bool FBridgeClusteresTask::ExecuteTask()
 {
-	FPCGExBridgeEdgeIslandsContext* Context = Manager->GetContext<FPCGExBridgeEdgeIslandsContext>();
+	FPCGExBridgeEdgeClustersContext* Context = Manager->GetContext<FPCGExBridgeEdgeClustersContext>();
 
 
-	const TArray<PCGExMesh::FVertex>& CurrentMeshVertices = Context->Meshes[TaskIndex]->Vertices;
-	const TArray<PCGExMesh::FVertex>& OtherMeshVertices = Context->Meshes[OtherMeshIndex]->Vertices;
+	const TArray<PCGExCluster::FVertex>& CurrentClusterVertices = Context->Clusters[TaskIndex]->Vertices;
+	const TArray<PCGExCluster::FVertex>& OtherClusterVertices = Context->Clusters[OtherClusterIndex]->Vertices;
 
 	int32 IndexA = -1;
 	int32 IndexB = -1;
@@ -207,13 +207,13 @@ bool FBridgeMeshesTask::ExecuteTask()
 	double Distance = TNumericLimits<double>::Max();
 
 	//Brute force find closest points
-	for (int i = 0; i < CurrentMeshVertices.Num(); i++)
+	for (int i = 0; i < CurrentClusterVertices.Num(); i++)
 	{
-		const PCGExMesh::FVertex& CurrentVtx = CurrentMeshVertices[i];
+		const PCGExCluster::FVertex& CurrentVtx = CurrentClusterVertices[i];
 
-		for (int j = 0; j < OtherMeshVertices.Num(); j++)
+		for (int j = 0; j < OtherClusterVertices.Num(); j++)
 		{
-			const PCGExMesh::FVertex& OtherVtx = OtherMeshVertices[j];
+			const PCGExCluster::FVertex& OtherVtx = OtherClusterVertices[j];
 			if (const double Dist = FVector::DistSquared(CurrentVtx.Position, OtherVtx.Position);
 				Dist < Distance)
 			{

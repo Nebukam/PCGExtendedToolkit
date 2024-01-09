@@ -16,7 +16,7 @@
         - [*Graph* : Build](PCGExGraphBuild.md)
         - [*Graph* : Build Delaunay](PCGExGraphBuildDelaunay.md)
         - [*Graph* : Consolidate](PCGExGraphConsolidate.md)
-        - [*Graph* : Find Edge Islands](PCGExGraphFindEdgeIslands.md)
+        - [*Graph* : Find Edge Clusters](PCGExGraphFindEdgeClusters.md)
         - [*Graph* : Draw](PCGExGraphDraw.md)
         - [*Graph* : Delete](PCGExGraphDelete.md)
         - [*Graph* : Promote Edges](PCGExGraphPromoteEdges.md)
@@ -26,15 +26,15 @@
         - [*Pathfinding* : Navmesh](PCGExPathfindingNavmesh.md)
         - [*Pathfinding* : Plot Navmesh](PCGExPathfindingPlotNavmesh.md)
     - Edges :
-        - [*Edges* : Relax](PCGExEdgesRelaxIslands.md)
-        - [*Edges* : Bridge Islands](PCGExEdgesBridgeIslands.md)
+        - [*Edges* : Relax](PCGExEdgesRelaxClusters.md)
+        - [*Edges* : Bridge Clusters](PCGExEdgesBridgeClusters.md)
         - [*Edges* : Write Extras](PCGExEdgesExtras.md)
     - Paths :
         - [*Path* : Write Tangents](PCGExPathsWriteTangents.md)
         - [*Path* : Orient](PCGExPathsSubdivide.md)
         - [*Path* : Subdivide](PCGExPathsSubdivide.md)
         - [*Path* : Fuse Colinear](PCGExFuseColinear.md)
-        - [*Path* : To Edges Islands](PCGExPathsToEdges.md)
+        - [*Path* : To Edges Clusters](PCGExPathsToEdges.md)
     - Sample :
         - [*Sample* : Nearest Point](PCGExSampleNearestPoint.md)
         - [*Sample* : Nearest Surface](PCGExSampleNearestSurface.md)

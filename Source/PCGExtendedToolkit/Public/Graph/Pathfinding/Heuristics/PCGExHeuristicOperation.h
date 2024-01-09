@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExOperation.h"
-#include "Graph/PCGExMesh.h"
+#include "Graph/PCGExCluster.h"
 #include "UObject/Object.h"
 #include "PCGExHeuristicOperation.generated.h"
 
@@ -18,15 +18,15 @@ class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicOperation : public UPCGExOperation
 	GENERATED_BODY()
 
 public:
-	virtual void PrepareForData(const PCGExMesh::FMesh* InMesh);
+	virtual void PrepareForData(const PCGExCluster::FCluster* InCluster);
 	virtual double ComputeScore(
-		const PCGExMesh::FScoredVertex* From,
-		const PCGExMesh::FVertex& To,
-		const PCGExMesh::FVertex& Seed,
-		const PCGExMesh::FVertex& Goal,
-		const PCGExMesh::FIndexedEdge& Edge) const;
+		const PCGExCluster::FScoredVertex* From,
+		const PCGExCluster::FVertex& To,
+		const PCGExCluster::FVertex& Seed,
+		const PCGExCluster::FVertex& Goal,
+		const PCGExCluster::FIndexedEdge& Edge) const;
 
 	virtual bool IsBetterScore(const double NewScore, const double OtherScore) const;
-	virtual int32 GetQueueingIndex(const TArray<PCGExMesh::FScoredVertex*>& InVertices, const double InScore) const;
+	virtual int32 GetQueueingIndex(const TArray<PCGExCluster::FScoredVertex*>& InVertices, const double InScore) const;
 	double GetScale() const { return IsBetterScore(-1, 1) ? 1 : -1; }
 };

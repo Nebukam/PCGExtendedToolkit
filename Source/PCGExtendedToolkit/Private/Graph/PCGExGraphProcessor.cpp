@@ -18,7 +18,7 @@ TArray<FPCGPinProperties> UPCGExGraphProcessorSettings::InputPinProperties() con
 
 #if WITH_EDITOR
 	PinPropertyParams.Tooltip = FTEXT("Graph Params. Data is de-duped internally.");
-#endif // WITH_EDITOR
+#endif
 
 	return PinProperties;
 }
@@ -30,7 +30,7 @@ TArray<FPCGPinProperties> UPCGExGraphProcessorSettings::OutputPinProperties() co
 
 #if WITH_EDITOR
 	PinParamsOutput.Tooltip = FTEXT("Graph Params forwarding. Data is de-duped internally.");
-#endif // WITH_EDITOR
+#endif
 
 	return PinProperties;
 }

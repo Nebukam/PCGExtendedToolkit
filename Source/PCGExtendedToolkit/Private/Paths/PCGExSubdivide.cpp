@@ -45,6 +45,7 @@ bool FPCGExSubdivideElement::Boot(FPCGContext* InContext) const
 	PCGEX_FWD(FlagName)
 
 	PCGEX_OPERATION_BIND(Blending, UPCGExSubPointsBlendInterpolate)
+	Context->Blending->bClosedPath = Settings->bClosedPath;
 
 	if (Context->bFlagSubPoints) { PCGEX_VALIDATE_NAME(Context->FlagName) }
 

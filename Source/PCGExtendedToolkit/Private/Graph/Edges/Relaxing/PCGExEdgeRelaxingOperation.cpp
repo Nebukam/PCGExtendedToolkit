@@ -9,10 +9,10 @@ void UPCGExEdgeRelaxingOperation::PrepareForPointIO(PCGExData::FPointIO& PointIO
 	CurrentPoints = &PointIO;
 }
 
-void UPCGExEdgeRelaxingOperation::PrepareForMesh(PCGExData::FPointIO& EdgesIO, PCGExMesh::FMesh* MeshIO)
+void UPCGExEdgeRelaxingOperation::PrepareForCluster(PCGExData::FPointIO& EdgesIO, PCGExCluster::FCluster* InCluster)
 {
 	CurrentEdges = &EdgesIO;
-	CurrentMesh = MeshIO;
+	CurrentCluster = InCluster;
 }
 
 void UPCGExEdgeRelaxingOperation::PrepareForIteration(const int Iteration, TArray<FVector>* PrimaryBuffer, TArray<FVector>* SecondaryBuffer)
@@ -30,7 +30,7 @@ void UPCGExEdgeRelaxingOperation::PrepareForIteration(const int Iteration, TArra
 	}
 }
 
-void UPCGExEdgeRelaxingOperation::ProcessVertex(const PCGExMesh::FVertex& Vertex)
+void UPCGExEdgeRelaxingOperation::ProcessVertex(const PCGExCluster::FVertex& Vertex)
 {
 }
 
@@ -49,7 +49,7 @@ void UPCGExEdgeRelaxingOperation::Cleanup()
 {
 	CurrentPoints = nullptr;
 	CurrentEdges = nullptr;
-	CurrentMesh = nullptr;
+	CurrentCluster = nullptr;
 	ReadBuffer = nullptr;
 	WriteBuffer = nullptr;
 

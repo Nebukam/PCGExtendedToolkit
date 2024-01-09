@@ -7,7 +7,7 @@
 #include "Graph/PCGExEdgesProcessor.h"
 #include "PCGExDrawEdges.generated.h"
 
-#define PCGEX_WRITEEDGEEXTRA_FOREACH(MACRO)\
+#define PCGEX_FOREACH_SAMPLING_FIELD(MACRO)\
 MACRO(EdgeLength, double)
 
 namespace PCGExDataBlending
@@ -59,7 +59,7 @@ public:
 	/** Draw thickness. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings", meta=(PCG_Overridable))
 	int32 DepthPriority = 0;
-	
+
 private:
 	friend class FPCGExDrawEdgesElement;
 };
