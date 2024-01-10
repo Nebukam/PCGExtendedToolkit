@@ -147,7 +147,7 @@ bool FPCGExFindEdgeClustersElement::ExecuteInternal(
 
 						if (End != -1 && (InEdgeType & EdgeType) != 0)
 						{
-							Context->EdgeNetwork->InsertEdge(PCGExGraph::FUnsignedEdge(Index, End));
+							Context->EdgeNetwork->InsertEdge(Index, End);
 							Queue.Enqueue(End);
 						}
 					}
@@ -183,7 +183,7 @@ bool FPCGExFindEdgeClustersElement::ExecuteInternal(
 	if (Context->IsState(PCGExGraph::State_WritingClusters))
 	{
 		Context->ClustersIO->Flush();
-		Context->EdgeNetwork->PrepareClusters(Context->MinClusterSize, Context->MaxClusterSize);
+		Context->EdgeNetwork->Consolidate(Context->MinClusterSize, Context->MaxClusterSize);
 		Context->Markings->Mark = Context->CurrentIO->GetIn()->GetUniqueID();
 
 		if (Context->bPruneIsolatedPoints)

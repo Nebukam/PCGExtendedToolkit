@@ -125,7 +125,7 @@ bool FPCGExBuildVoronoiGraph2DElement::ExecuteInternal(
 			Context->Voronoi = new PCGExGeo::TVoronoiMesh2();
 			Context->Voronoi->CellCenter = Settings->Method;
 			Context->Voronoi->BoundsExtension = Settings->BoundsCutoff;
-			
+
 			if (Context->Voronoi->PrepareFrom(Context->CurrentIO->GetIn()->GetPoints()))
 			{
 				Context->Voronoi->Generate();
@@ -179,9 +179,10 @@ void FPCGExBuildVoronoiGraph2DElement::WriteEdges(FPCGExBuildVoronoiGraph2DConte
 	TArray<FPCGPoint>& Centroids = Context->CurrentIO->GetOut()->GetMutablePoints();
 	Centroids.SetNum(Context->Voronoi->Delaunay->Cells.Num());
 
-	switch (Settings->Method) {
-	default: 
-	case EPCGExCellCenter::Ideal:
+	switch (Settings->Method)
+	{
+	default:
+	case EPCGExCellCenter::Balanced:
 		for (const PCGExGeo::TDelaunayCell<3>* Cell : Context->Voronoi->Delaunay->Cells)
 		{
 			const int32 CellIndex = Cell->Circumcenter->Id;
@@ -203,12 +204,13 @@ void FPCGExBuildVoronoiGraph2DElement::WriteEdges(FPCGExBuildVoronoiGraph2DConte
 		}
 		break;
 	}
-	
+
 	// Find unique edges
 	TSet<uint64> UniqueEdges;
 	TArray<PCGExGraph::FUnsignedEdge> Edges;
-	Context->Voronoi->GetUniqueEdges(Edges, Settings->bPruneOutsideBounds && Settings->Method != EPCGExCellCenter::Ideal);
+	Context->Voronoi->GetUniqueEdges(Edges, Settings->bPruneOutsideBounds && Settings->Method != EPCGExCellCenter::Balanced);
 
+		
 	PCGExData::FPointIO& VoronoiEdges = Context->ClustersIO->Emplace_GetRef();
 	Context->Markings->Add(VoronoiEdges);
 

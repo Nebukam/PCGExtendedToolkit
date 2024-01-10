@@ -148,7 +148,7 @@ namespace PCGExGeo
 			if (Input.Num() < DIMENSIONS + 1) { return false; }
 
 			InternalVertices.Empty(Input.Num());
-			InternalVertices.Append(Input);
+			InternalVertices.Append(Input, TODO);
 
 			return InitConvexHull();
 		}
@@ -244,7 +244,7 @@ namespace PCGExGeo
 
 				// update center must be called before adding the vertex.
 				UpdateCenter();
-				Vertices.Add(CurrentVertex);
+				Vertices.Add(CurrentVertex, TODO);
 				InternalVertices.Remove(InitialPoints[i]);
 
 				// Because of the AklTou heuristic.
@@ -260,8 +260,8 @@ namespace PCGExGeo
 			for (TSimplexWrap<DIMENSIONS>* Face : Faces)
 			{
 				FindBeyondVertices(Face);
-				if (Face->VerticesBeyond->IsEmpty()) { Simplices.Add(Face); } // The face is on the hull 
-				else { UnprocessedFaces->Add(Face); }
+				if (Face->VerticesBeyond->IsEmpty()) { Simplices.Add(Face, TODO); } // The face is on the hull 
+				else { UnprocessedFaces->Add(Face, TODO); }
 			}
 
 			return true;
@@ -296,10 +296,10 @@ namespace PCGExGeo
 
 				if (MinInd != MaxInd)
 				{
-					OutExtremes.Add(InternalVertices[MinInd]);
-					OutExtremes.Add(InternalVertices[MaxInd]);
+					OutExtremes.Add(InternalVertices[MinInd], TODO);
+					OutExtremes.Add(InternalVertices[MaxInd], TODO);
 				}
-				else { OutExtremes.Add(InternalVertices[MinInd]); }
+				else { OutExtremes.Add(InternalVertices[MinInd], TODO); }
 			}
 		}
 
@@ -353,8 +353,8 @@ namespace PCGExGeo
 				}
 			}
 
-			OutInitialPoints.Add(First);
-			OutInitialPoints.Add(Second);
+			OutInitialPoints.Add(First, TODO);
+			OutInitialPoints.Add(Second, TODO);
 
 			for (int i = 2; i <= DIMENSIONS; i++)
 			{
@@ -375,7 +375,7 @@ namespace PCGExGeo
 
 				if (MaxPoint)
 				{
-					OutInitialPoints.Add(MaxPoint);
+					OutInitialPoints.Add(MaxPoint, TODO);
 				}
 				else
 				{
@@ -391,7 +391,7 @@ namespace PCGExGeo
 					}
 
 					check(MaxPoint) // Singular input data error
-					OutInitialPoints.Add(MaxPoint);
+					OutInitialPoints.Add(MaxPoint, TODO);
 				}
 			}
 		}
@@ -518,7 +518,7 @@ namespace PCGExGeo
 		void TagAffectedFaces(TSimplexWrap<DIMENSIONS>* CurrentFace)
 		{
 			CurrentAffectedFaces.Empty();
-			CurrentAffectedFaces.Add(CurrentFace);
+			CurrentAffectedFaces.Add(CurrentFace, TODO);
 			TraverseAffectedFaces(CurrentFace);
 		}
 
@@ -541,7 +541,7 @@ namespace PCGExGeo
 
 					if (AdjFace->Tag == 0 && AdjFace->GetVertexDistance(CurrentVertex) >= PLANE_DISTANCE_TOLERANCE)
 					{
-						CurrentAffectedFaces.Add(AdjFace);
+						CurrentAffectedFaces.Add(AdjFace, TODO);
 						AdjFace->Tag = 1;
 						TraverseQueue.Enqueue(AdjFace);
 					}
@@ -631,7 +631,7 @@ namespace PCGExGeo
 
 					if (!CalculateFacePlane(NewFace)) { return false; }
 
-					ConeFaceBuffer.Add(MakeDeferredFace(NewFace, OrderedPivotIndex, AdjacentFace, OldFaceAdjacentIndex, OldFace));
+					ConeFaceBuffer.Add(MakeDeferredFace(NewFace, OrderedPivotIndex, AdjacentFace, OldFaceAdjacentIndex, OldFace), TODO);
 				}
 			}
 
@@ -662,7 +662,7 @@ namespace PCGExGeo
 		void CommitCone()
 		{
 			// Add the current vertex.
-			Vertices.Add(CurrentVertex);
+			Vertices.Add(CurrentVertex, TODO);
 
 			// Fill the adjacency.
 			for (int i = 0; i < ConeFaceBuffer.Num(); i++)
@@ -702,14 +702,14 @@ namespace PCGExGeo
 				// This face will definitely lie on the hull
 				if (NewFace->VerticesBeyond->Num() == 0)
 				{
-					Simplices.Add(NewFace);
+					Simplices.Add(NewFace, TODO);
 					UnprocessedFaces->Remove(NewFace);
 					Pool->ReturnVertexBuffer(NewFace->VerticesBeyond);
 					NewFace->VerticesBeyond = EMPTY_BUFFER;
 				}
 				else // Add the face to the list
 				{
-					UnprocessedFaces->Add(NewFace);
+					UnprocessedFaces->Add(NewFace, TODO);
 				}
 
 				// recycle the object.
@@ -743,7 +743,7 @@ namespace PCGExGeo
 				}
 			}
 
-			List->Add(Connector);
+			List->Add(Connector, TODO);
 		}
 
 		/// Used by update faces.
@@ -787,15 +787,15 @@ namespace PCGExGeo
 		void HandleSingular()
 		{
 			RollbackCenter();
-			SingularVertices.Add(CurrentVertex);
+			SingularVertices.Add(CurrentVertex, TODO);
 
 			// This means that all the affected faces must be on the hull and that all their "vertices beyond" are singular.
 			for (TSimplexWrap<DIMENSIONS>* Face : CurrentAffectedFaces)
 			{
 				TVertexBuffer<DIMENSIONS>* VB = Face->VerticesBeyond;
-				for (int i = 0; i < VB->Num(); i++) { SingularVertices.Add((*VB)[i]); }
+				for (int i = 0; i < VB->Num(); i++) { SingularVertices.Add((*VB)[i], TODO); }
 
-				Simplices.Add(Face);
+				Simplices.Add(Face, TODO);
 				UnprocessedFaces->Remove(Face);
 				Pool->ReturnVertexBuffer(Face->VerticesBeyond);
 				Face->VerticesBeyond = EMPTY_BUFFER;
@@ -818,7 +818,7 @@ namespace PCGExGeo
 					CurrentMaxDistance = Distance;
 					CurrentFurthestVertex = V;
 				}
-				BeyondVertices->Add(V);
+				BeyondVertices->Add(V, TODO);
 			}
 		}
 

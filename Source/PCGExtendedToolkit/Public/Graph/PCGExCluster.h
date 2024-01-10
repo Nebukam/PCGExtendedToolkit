@@ -9,17 +9,7 @@
 
 namespace PCGExCluster
 {
-	struct PCGEXTENDEDTOOLKIT_API FIndexedEdge : public PCGExGraph::FUnsignedEdge
-	{
-		int32 Index = -1;
-
-		FIndexedEdge(const int32 InIndex, const int32 InStart, const int32 InEnd)
-			: FUnsignedEdge(InStart, InEnd),
-			  Index(InIndex)
-		{
-		}
-	};
-
+	
 	struct FCluster;
 
 	struct PCGEXTENDEDTOOLKIT_API FVertex
@@ -69,7 +59,7 @@ namespace PCGExCluster
 		int32 ClusterID = -1;
 		TMap<int32, int32> IndicesMap; //Cluster vertices
 		TArray<FVertex> Vertices;
-		TArray<FIndexedEdge> Edges;
+		TArray<PCGExGraph::FIndexedEdge> Edges;
 		FBox Bounds;
 
 		PCGExData::FPointIO* PointsIO = nullptr;

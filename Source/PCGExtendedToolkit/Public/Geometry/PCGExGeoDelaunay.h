@@ -42,7 +42,7 @@ namespace PCGExGeo
 		{
 			Centroid = FVector::Zero();
 			for (TFVtx<DIMENSIONS>* Vtx : Simplex->Vertices) { Centroid += Vtx->GetV3(); }
-			Centroid /= DIMENSIONS - 1;
+			Centroid /= DIMENSIONS;
 		}
 
 		FVector GetBestCenter() const
@@ -112,7 +112,7 @@ namespace PCGExGeo
 
 			Vertices.Empty();
 			Vertices.Reserve(InVertices.Num());
-			Vertices.Append(InVertices);
+			Vertices.Append(InVertices, TODO);
 			ComputeVerticesBounds();
 
 			return true;
@@ -143,9 +143,9 @@ namespace PCGExGeo
 				else
 				{
 					TDelaunayCell<DIMENSIONS>* Cell = CreateCell(Simplex);
-					Cell->bIsWithinBounds = Bounds.IsInside(CellCenter == EPCGExCellCenter::Circumcenter ? Cell->Circumcenter->GetV3() : Cell->Centroid);
+					Cell->bIsWithinBounds = Bounds.IsInside(CellCenter == EPCGExCellCenter::Centroid ? Cell->Centroid : Cell->Circumcenter->GetV3());
 					Cell->Circumcenter->Id = i++;
-					Cells.Add(Cell);
+					Cells.Add(Cell, TODO);
 				}
 			}
 		}

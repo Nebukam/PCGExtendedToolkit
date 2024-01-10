@@ -70,13 +70,15 @@ namespace PCGExGraph
 		}
 
 		FEdge(const int32 InStart, const int32 InEnd):
-			Start(InStart), End(InEnd), Type(EPCGExEdgeType::Unknown)
+			Start(InStart), End(InEnd)
 		{
+			bValid = InStart != InEnd && InStart != -1 && InEnd != -1;
 		}
 
-		FEdge(const int32 InStart, const int32 InEnd, const EPCGExEdgeType InType):
-			Start(InStart), End(InEnd), Type(InType)
+		FEdge(const int32 InStart, const int32 InEnd, const EPCGExEdgeType InType)
+			: FEdge(InStart, InEnd)
 		{
+			Type = InType;
 		}
 
 		bool Contains(const int32 InIndex) const { return Start == InIndex || End == InIndex; }
@@ -134,5 +136,20 @@ namespace PCGExGraph
 		}
 
 		uint64 GetUnsignedHash() const { return GetUnsignedHash64(Start, End); }
+	};
+
+	struct PCGEXTENDEDTOOLKIT_API FIndexedEdge : public FUnsignedEdge
+	{
+		int32 Index = -1;
+
+		FIndexedEdge()
+		{
+		}
+		
+		FIndexedEdge(const int32 InIndex, const int32 InStart, const int32 InEnd)
+			: FUnsignedEdge(InStart, InEnd),
+			  Index(InIndex)
+		{
+		}
 	};
 }

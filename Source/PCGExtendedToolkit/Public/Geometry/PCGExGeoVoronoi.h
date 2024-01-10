@@ -167,7 +167,7 @@ namespace PCGExGeo
 				if (!LocalCells.IsEmpty())
 				{
 					TVoronoiRegion<DIMENSIONS>* Region = new TVoronoiRegion<DIMENSIONS>();
-					Region->Cells.Append(LocalCells);
+					Region->Cells.Append(LocalCells, TODO);
 
 					NeighbourCells.Empty();
 
@@ -187,13 +187,13 @@ namespace PCGExGeo
 							if (int32 Key = Simplex->AdjacentFaces[k]->Tag;
 								NeighbourCells.Contains(Key))
 							{
-								Region->Edges.Add(new TVoronoiEdge<DIMENSIONS>(Cell, *NeighbourCells.Find(Key)));
+								Region->Edges.Add(new TVoronoiEdge<DIMENSIONS>(Cell, *NeighbourCells.Find(Key)), TODO);
 							}
 						}
 					}
 					Region->CheckWithinBounds();
 					Region->Id = Regions.Num();
-					Regions.Add(Region);
+					Regions.Add(Region, TODO);
 				}
 			}
 		}

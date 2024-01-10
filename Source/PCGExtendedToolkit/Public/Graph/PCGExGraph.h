@@ -565,20 +565,23 @@ namespace PCGExGraph
 #pragma endregion
 
 #pragma region Network
+
+	struct FEdgeNetwork;
+
 	struct PCGEXTENDEDTOOLKIT_API FNetworkNode
 	{
 		FNetworkNode()
 		{
 		}
 
-		int32 Index = -1;
-		int32 Cluster = -1;
 		bool bCrossing = false;
+		int32 Index = -1;
+		int64 Cluster = -1;
 		TArray<int32> Edges;
 
 		bool IsIsolated() const { return Cluster == -1; }
-		bool GetNeighbors(TArray<int32>& OutIndices, const TArray<FUnsignedEdge>& InEdges);
-		void AddEdge(const int32 Edge);
+		bool GetNeighbors(const TArray<FIndexedEdge>& InEdges, TArray<int32>& OutIndices);
+		void Add(const FIndexedEdge& Edge);
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FEdgeCrossing
@@ -592,45 +595,66 @@ namespace PCGExGraph
 		FVector Center;
 	};
 
+	struct PCGEXTENDEDTOOLKIT_API FEdgeCluster
+	{
+		int64 Id = -1;
+		TSet<int32> Nodes;
+		TSet<int32> Edges;
+
+		FEdgeCluster()
+		{
+		}
+
+		~FEdgeCluster()
+		{
+			Nodes.Empty();
+			Edges.Empty();
+		}
+
+		void Add(const FIndexedEdge& Edge, FEdgeNetwork* InNetwork);
+		void Append(const FEdgeCluster* Other, FEdgeNetwork* InNetwork);
+		void Consolidate(const FEdgeNetwork* InNetwork);
+	};
+
 	struct PCGEXTENDEDTOOLKIT_API FEdgeNetwork
 	{
+	protected:
 		mutable FRWLock NetworkLock;
+		int64 ClusterId = 0;
 
+	public:
 		const int32 NumEdgesReserve;
-		int32 ClusterIncrement = 0;
-		int32 NumClusters = 0;
-		int32 NumEdges = 0;
 
 		TArray<FNetworkNode> Nodes;
+		TArray<FIndexedEdge> Edges;
+
 		TSet<uint64> UniqueEdges;
-		TArray<FUnsignedEdge> Edges;
-		TMap<int32, int32> ClusterSizes;
+
+		TMap<int64, FEdgeCluster*> Clusters;
+
+		FEdgeNetwork(const int32 InNumEdgesReserve, const int32 InNumNodes)
+			: NumEdgesReserve(InNumEdgesReserve)
+		{
+			Nodes.SetNum(InNumNodes);
+			for (int i = 0; i < InNumNodes; i++)
+			{
+				FNetworkNode& Node = Nodes[i];
+				Node.Index = i;
+				Node.Edges.Reserve(NumEdgesReserve);
+			}
+		}
+
+		bool InsertEdge(const int32 A, const int32 B);
 
 		~FEdgeNetwork()
 		{
 			Nodes.Empty();
 			UniqueEdges.Empty();
 			Edges.Empty();
-			ClusterSizes.Empty();
+
+			for (const TPair<int64, FEdgeCluster*>& Pair : Clusters) { delete Pair.Value; }
+			Clusters.Empty();
 		}
-
-		FEdgeNetwork(const int32 InNumEdgesReserve, const int32 InNumNodes)
-			: NumEdgesReserve(InNumEdgesReserve)
-		{
-			Nodes.SetNum(InNumNodes);
-
-			int32 Index = 0;
-
-			for (FNetworkNode& Node : Nodes)
-			{
-				Node.Index = Index++;
-				Node.Edges.Reserve(NumEdgesReserve);
-			}
-		}
-
-		bool InsertEdge(const FUnsignedEdge Edge);
-		void MergeCluster(const int32 NodeIndex, const int32 Cluster);
-		void PrepareClusters(const int32 MinSize = 1, const int32 MaxSize = TNumericLimits<int32>::Max());
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FEdgeCrossingsHandler
@@ -645,7 +669,6 @@ namespace PCGExGraph
 		TArray<FEdgeCrossing> Crossings;
 
 		int32 NumEdges;
-		int32 StartIndex = 0;
 
 		FEdgeCrossingsHandler(FEdgeNetwork* InEdgeNetwork, const double InTolerance)
 			: EdgeNetwork(InEdgeNetwork),
@@ -653,9 +676,7 @@ namespace PCGExGraph
 			  SquaredTolerance(InTolerance * InTolerance)
 		{
 			NumEdges = InEdgeNetwork->Edges.Num();
-
 			Crossings.Empty();
-
 			SegmentBounds.Empty();
 			SegmentBounds.Reserve(NumEdges);
 		}
@@ -679,16 +700,19 @@ class PCGEXTENDEDTOOLKIT_API FWriteClusterTask : public FPCGExNonAbandonableTask
 {
 public:
 	FWriteClusterTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-	                  PCGExData::FPointIO* InClusterIO, PCGExGraph::FEdgeNetwork* InEdgeNetwork, TMap<int32, int32>* InIndexRemap = nullptr) //, PCGExGraph::FDebugEdgeData* InEdgeDebugData = nullptr) 
+	                  PCGExData::FPointIO* InClusterIO, PCGExGraph::FEdgeNetwork* InEdgeNetwork, TMap<int32, int32>* InIndexRemap = nullptr,
+	                  int32 InMin = 0, int32 InMax = TNumericLimits<int32>::Max())
 		: FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
-		  ClusterIO(InClusterIO), EdgeNetwork(InEdgeNetwork), IndexRemap(InIndexRemap) //, EdgeDebugData(InEdgeDebugData)
+		  ClusterIO(InClusterIO), EdgeNetwork(InEdgeNetwork), IndexRemap(InIndexRemap),
+		  Min(InMin), Max(InMax)
 	{
 	}
 
+	int32 Min;
+	int32 Max;
 	PCGExData::FPointIO* ClusterIO = nullptr;
 	PCGExGraph::FEdgeNetwork* EdgeNetwork = nullptr;
 	TMap<int32, int32>* IndexRemap = nullptr;
-	//PCGExGraph::FDebugEdgeData* EdgeDebugData = nullptr;
 
 	virtual bool ExecuteTask() override;
 };

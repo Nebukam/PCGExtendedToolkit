@@ -16,7 +16,7 @@ enum class EPCGExDelaunay2DNormal : uint8
 UENUM(BlueprintType)
 enum class EPCGExCellCenter : uint8
 {
-	Ideal UMETA(DisplayName = "Ideal", ToolTip="Pick centroid if circumcenter is out of bounds, otherwise uses circumcenter."),
+	Balanced UMETA(DisplayName = "Balanced", ToolTip="Pick centroid if circumcenter is out of bounds, otherwise uses circumcenter."),
 	Circumcenter UMETA(DisplayName = "Canon (Circumcenter)", ToolTip="Uses Delaunay cells' circumcenter."),
 	Centroid UMETA(DisplayName = "Centroid", ToolTip="Uses Delaunay cells' averaged vertice positions.")
 };

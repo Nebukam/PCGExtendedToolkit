@@ -174,7 +174,7 @@ bool FPCGExPathsToEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) c
 					for (PCGExGraph::FLooseNode* OtherNode = Context->LooseNetwork->Nodes[Index];
 					     const int32 OtherNodeIndex : OtherNode->Neighbors)
 					{
-						Context->EdgeNetwork->InsertEdge(PCGExGraph::FUnsignedEdge(Index, OtherNodeIndex));
+						Context->EdgeNetwork->InsertEdge(Index, OtherNodeIndex);
 						Queue.Enqueue(OtherNodeIndex);
 					}
 				}
@@ -226,13 +226,12 @@ bool FPCGExPathsToEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) c
 		Context->VisitedNodes.Empty();
 
 		Context->ClustersIO->Flush();
-		Context->EdgeNetwork->PrepareClusters(); // !
 		Context->Markings->Mark = Context->ConsolidatedPoints->GetOut()->GetUniqueID();
 
-		for (const TPair<int32, int32>& Pair : Context->EdgeNetwork->ClusterSizes)
+		for (const TPair<int64, PCGExGraph::FEdgeCluster*>& Pair : Context->EdgeNetwork->Clusters)
 		{
-			const int32 ClusterSize = Pair.Value;
-			if (ClusterSize == -1) { continue; }
+			if (Pair.Value->Nodes.IsEmpty() ||
+				Pair.Value->Edges.IsEmpty()) { continue; }
 
 			PCGExData::FPointIO& ClusterIO = Context->ClustersIO->Emplace_GetRef(PCGExData::EInit::NewOutput);
 			Context->Markings->Add(ClusterIO);
