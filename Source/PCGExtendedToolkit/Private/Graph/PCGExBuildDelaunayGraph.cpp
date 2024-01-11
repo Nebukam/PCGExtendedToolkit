@@ -97,8 +97,9 @@ bool FPCGExBuildDelaunayGraphElement::ExecuteInternal(
 				TArray<PCGExGeo::TFVtx<3>*> HullVertices;
 				GetVerticesFromPoints(Context->CurrentIO->GetIn()->GetPoints(), HullVertices);
 
-				if (Context->ConvexHull->Generate(HullVertices))
+				if (Context->ConvexHull->Prepare(HullVertices))
 				{
+					Context->ConvexHull->Generate();
 					Context->ConvexHull->GetHullIndices(Context->HullIndices);
 
 					PCGEx::TFAttributeWriter<bool>* HullMarkPointWriter = new PCGEx::TFAttributeWriter<bool>(Settings->HullAttributeName, false, false);
@@ -223,15 +224,6 @@ void FPCGExBuildDelaunayGraphElement::WriteEdges(FPCGExBuildDelaunayGraphContext
 	PCGEX_DELETE(EdgeStart)
 	PCGEX_DELETE(EdgeEnd)
 	PCGEX_DELETE(HullMarkWriter)
-}
-
-bool FDelaunayInsertTask::ExecuteTask()
-{
-	const FPCGExBuildDelaunayGraphContext* Context = Manager->GetContext<FPCGExBuildDelaunayGraphContext>();
-	//	Context->Delaunay->InsertVertex(TaskIndex);
-
-	//PCGEX_DELETE(Triangulation3)
-	return true;
 }
 
 #undef LOCTEXT_NAMESPACE

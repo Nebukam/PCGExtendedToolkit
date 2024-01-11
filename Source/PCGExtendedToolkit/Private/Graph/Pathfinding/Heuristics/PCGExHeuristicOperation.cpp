@@ -13,7 +13,7 @@ double UPCGExHeuristicOperation::ComputeScore(
 	const PCGExCluster::FVertex& To,
 	const PCGExCluster::FVertex& Seed,
 	const PCGExCluster::FVertex& Goal,
-	const PCGExCluster::FIndexedEdge& Edge) const
+	const PCGExGraph::FIndexedEdge& Edge) const
 {
 	return From->Score + 1;
 }

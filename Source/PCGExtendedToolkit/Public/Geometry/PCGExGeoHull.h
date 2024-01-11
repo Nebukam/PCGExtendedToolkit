@@ -9,10 +9,13 @@
 
 namespace PCGExGeo
 {
+	class FProcessHullTask;
+
 	template <int DIMENSIONS>
 	class PCGEXTENDEDTOOLKIT_API TConvexHull
 	{
-		bool bAsyncWorkDone = false;
+	protected:
+		bool bAsyncComplete = false;
 		FRWLock AsyncLock;
 
 	public:
@@ -65,7 +68,7 @@ namespace PCGExGeo
 			Pool = new THullObjectsPool<DIMENSIONS>();
 		}
 
-		~TConvexHull()
+		virtual ~TConvexHull()
 		{
 			Vertices.Empty();
 
@@ -141,66 +144,31 @@ namespace PCGExGeo
 
 #pragma region Generate
 
-		bool PreGenerate(TArray<TFVtx<DIMENSIONS>*>& Input)
+		bool Prepare(TArray<TFVtx<DIMENSIONS>*>& Input)
 		{
-			bAsyncWorkDone = false;
+			bAsyncComplete = false;
 
 			if (Input.Num() < DIMENSIONS + 1) { return false; }
 
 			InternalVertices.Empty(Input.Num());
-			InternalVertices.Append(Input, TODO);
+			InternalVertices.Append(Input);
 
 			return InitConvexHull();
 		}
 
-		bool Generate(TArray<TFVtx<DIMENSIONS>*>& Input)
+		void Generate()
 		{
-			if (!PreGenerate(Input)) { return false; }
-
 			// Expand the convex hull and faces.
-			while (UnprocessedFaces->First)
-			{
-				TSimplexWrap<DIMENSIONS>* CurrentFace = UnprocessedFaces->First;
-				CurrentVertex = CurrentFace->FurthestVertex;
-
-				UpdateCenter();
-
-				// The affected faces get tagged
-				TagAffectedFaces(CurrentFace);
-
-				// Create the cone from the currentVertex and the affected faces horizon.
-				if (!SingularVertices.Contains(CurrentVertex) && CreateCone()) { CommitCone(); }
-				else { HandleSingular(); }
-
-				// Need to reset the tags
-				for (TSimplexWrap<DIMENSIONS>* Simplex : CurrentAffectedFaces) { Simplex->Tag = 0; }
-			}
-
-			return PostGenerate();
+			while (UnprocessedFaces->First) { ProcessNext(); }
+			Finalize();
 		}
 
-		bool PostGenerate()
+		bool ProcessNext()
 		{
-			if (bAsyncWorkDone) { return true; }
-
-			int SimplexIndex = 0;
-			for (TSimplexWrap<DIMENSIONS>* Wrap : Simplices)
-			{
-				Wrap->Tag = SimplexIndex++;
-				for (int i = 0; i < DIMENSIONS; i++) { Wrap->Vertices[i]->bIsOnHull = true; }
-			}
-
-			bAsyncWorkDone = true;
-			return true;
-		}
-
-		bool AsyncGenerate()
-		{
-			FWriteScopeLock WriteLock(AsyncLock);
-
-			if (!UnprocessedFaces->First) { return PostGenerate(); }
-
 			TSimplexWrap<DIMENSIONS>* CurrentFace = UnprocessedFaces->First;
+
+			if (!CurrentFace) { return false; }
+
 			CurrentVertex = CurrentFace->FurthestVertex;
 
 			UpdateCenter();
@@ -215,12 +183,24 @@ namespace PCGExGeo
 			// Need to reset the tags
 			for (TSimplexWrap<DIMENSIONS>* Simplex : CurrentAffectedFaces) { Simplex->Tag = 0; }
 
-			return false;
+			return UnprocessedFaces->First ? true : false;
 		}
+
+		void Finalize()
+		{
+			int SimplexIndex = 0;
+			for (TSimplexWrap<DIMENSIONS>* Wrap : Simplices)
+			{
+				Wrap->Tag = SimplexIndex++;
+				for (int i = 0; i < DIMENSIONS; i++) { Wrap->Vertices[i]->bIsOnHull = true; }
+			}
+		}
+
+		virtual void StartAsyncProcessing(FPCGExAsyncManager* Manager) = 0;
 
 #pragma endregion
 
-	protected:
+	protected :
 #pragma region Initilization
 
 		/// Find the (dimension+1) initial points and create the simplexes.
@@ -244,7 +224,7 @@ namespace PCGExGeo
 
 				// update center must be called before adding the vertex.
 				UpdateCenter();
-				Vertices.Add(CurrentVertex, TODO);
+				Vertices.Add(CurrentVertex);
 				InternalVertices.Remove(InitialPoints[i]);
 
 				// Because of the AklTou heuristic.
@@ -260,8 +240,8 @@ namespace PCGExGeo
 			for (TSimplexWrap<DIMENSIONS>* Face : Faces)
 			{
 				FindBeyondVertices(Face);
-				if (Face->VerticesBeyond->IsEmpty()) { Simplices.Add(Face, TODO); } // The face is on the hull 
-				else { UnprocessedFaces->Add(Face, TODO); }
+				if (Face->VerticesBeyond->IsEmpty()) { Simplices.Add(Face); } // The face is on the hull 
+				else { UnprocessedFaces->Add(Face); }
 			}
 
 			return true;
@@ -296,10 +276,10 @@ namespace PCGExGeo
 
 				if (MinInd != MaxInd)
 				{
-					OutExtremes.Add(InternalVertices[MinInd], TODO);
-					OutExtremes.Add(InternalVertices[MaxInd], TODO);
+					OutExtremes.Add(InternalVertices[MinInd]);
+					OutExtremes.Add(InternalVertices[MaxInd]);
 				}
-				else { OutExtremes.Add(InternalVertices[MinInd], TODO); }
+				else { OutExtremes.Add(InternalVertices[MinInd]); }
 			}
 		}
 
@@ -353,8 +333,8 @@ namespace PCGExGeo
 				}
 			}
 
-			OutInitialPoints.Add(First, TODO);
-			OutInitialPoints.Add(Second, TODO);
+			OutInitialPoints.Add(First);
+			OutInitialPoints.Add(Second);
 
 			for (int i = 2; i <= DIMENSIONS; i++)
 			{
@@ -375,7 +355,7 @@ namespace PCGExGeo
 
 				if (MaxPoint)
 				{
-					OutInitialPoints.Add(MaxPoint, TODO);
+					OutInitialPoints.Add(MaxPoint);
 				}
 				else
 				{
@@ -391,7 +371,7 @@ namespace PCGExGeo
 					}
 
 					check(MaxPoint) // Singular input data error
-					OutInitialPoints.Add(MaxPoint, TODO);
+					OutInitialPoints.Add(MaxPoint);
 				}
 			}
 		}
@@ -518,7 +498,7 @@ namespace PCGExGeo
 		void TagAffectedFaces(TSimplexWrap<DIMENSIONS>* CurrentFace)
 		{
 			CurrentAffectedFaces.Empty();
-			CurrentAffectedFaces.Add(CurrentFace, TODO);
+			CurrentAffectedFaces.Add(CurrentFace);
 			TraverseAffectedFaces(CurrentFace);
 		}
 
@@ -541,7 +521,7 @@ namespace PCGExGeo
 
 					if (AdjFace->Tag == 0 && AdjFace->GetVertexDistance(CurrentVertex) >= PLANE_DISTANCE_TOLERANCE)
 					{
-						CurrentAffectedFaces.Add(AdjFace, TODO);
+						CurrentAffectedFaces.Add(AdjFace);
 						AdjFace->Tag = 1;
 						TraverseQueue.Enqueue(AdjFace);
 					}
@@ -631,7 +611,7 @@ namespace PCGExGeo
 
 					if (!CalculateFacePlane(NewFace)) { return false; }
 
-					ConeFaceBuffer.Add(MakeDeferredFace(NewFace, OrderedPivotIndex, AdjacentFace, OldFaceAdjacentIndex, OldFace), TODO);
+					ConeFaceBuffer.Add(MakeDeferredFace(NewFace, OrderedPivotIndex, AdjacentFace, OldFaceAdjacentIndex, OldFace));
 				}
 			}
 
@@ -662,7 +642,7 @@ namespace PCGExGeo
 		void CommitCone()
 		{
 			// Add the current vertex.
-			Vertices.Add(CurrentVertex, TODO);
+			Vertices.Add(CurrentVertex);
 
 			// Fill the adjacency.
 			for (int i = 0; i < ConeFaceBuffer.Num(); i++)
@@ -702,14 +682,14 @@ namespace PCGExGeo
 				// This face will definitely lie on the hull
 				if (NewFace->VerticesBeyond->Num() == 0)
 				{
-					Simplices.Add(NewFace, TODO);
+					Simplices.Add(NewFace);
 					UnprocessedFaces->Remove(NewFace);
 					Pool->ReturnVertexBuffer(NewFace->VerticesBeyond);
 					NewFace->VerticesBeyond = EMPTY_BUFFER;
 				}
 				else // Add the face to the list
 				{
-					UnprocessedFaces->Add(NewFace, TODO);
+					UnprocessedFaces->Add(NewFace);
 				}
 
 				// recycle the object.
@@ -743,7 +723,7 @@ namespace PCGExGeo
 				}
 			}
 
-			List->Add(Connector, TODO);
+			List->Add(Connector);
 		}
 
 		/// Used by update faces.
@@ -787,15 +767,15 @@ namespace PCGExGeo
 		void HandleSingular()
 		{
 			RollbackCenter();
-			SingularVertices.Add(CurrentVertex, TODO);
+			SingularVertices.Add(CurrentVertex);
 
 			// This means that all the affected faces must be on the hull and that all their "vertices beyond" are singular.
 			for (TSimplexWrap<DIMENSIONS>* Face : CurrentAffectedFaces)
 			{
 				TVertexBuffer<DIMENSIONS>* VB = Face->VerticesBeyond;
-				for (int i = 0; i < VB->Num(); i++) { SingularVertices.Add((*VB)[i], TODO); }
+				for (int i = 0; i < VB->Num(); i++) { SingularVertices.Add((*VB)[i]); }
 
-				Simplices.Add(Face, TODO);
+				Simplices.Add(Face);
 				UnprocessedFaces->Remove(Face);
 				Pool->ReturnVertexBuffer(Face->VerticesBeyond);
 				Face->VerticesBeyond = EMPTY_BUFFER;
@@ -818,7 +798,7 @@ namespace PCGExGeo
 					CurrentMaxDistance = Distance;
 					CurrentFurthestVertex = V;
 				}
-				BeyondVertices->Add(V, TODO);
+				BeyondVertices->Add(V);
 			}
 		}
 
@@ -841,11 +821,22 @@ namespace PCGExGeo
 		}
 	};
 
-	class PCGEXTENDEDTOOLKIT_API TConvexHull2 : public TConvexHull<2>
-	{
-	};
 
-	class PCGEXTENDEDTOOLKIT_API TConvexHull3 : public TConvexHull<3>
-	{
-	};
+#define PCGEX_HULL_CLASS(_NUM)\
+	class FProcessHull##_NUM##Task;\
+	class PCGEXTENDEDTOOLKIT_API TConvexHull##_NUM : public TConvexHull<_NUM>{\
+	public: virtual void StartAsyncProcessing(FPCGExAsyncManager* Manager) override{Manager->Start<FProcessHull##_NUM##Task>(-1, nullptr, this);} };\
+	class PCGEXTENDEDTOOLKIT_API FProcessHull##_NUM##Task : public FPCGExNonAbandonableTask	{\
+	public:\
+		FProcessHull##_NUM##Task(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO, TConvexHull##_NUM* InHull) : FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO), Hull(InHull){}\
+		TConvexHull##_NUM* Hull = nullptr;\
+		virtual bool ExecuteTask() override{if (Hull->ProcessNext()){Manager->Start<FProcessHull##_NUM##Task>(TaskIndex, PointIO, Hull); return true;} return false;}};
+
+	PCGEX_HULL_CLASS(2)
+
+	PCGEX_HULL_CLASS(3)
+
+	PCGEX_HULL_CLASS(4)
+
+#undef PCGEX_HULL_CLASS
 }

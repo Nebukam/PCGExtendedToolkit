@@ -135,21 +135,12 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathsToEdgeClustersContext : public FPCGExPa
 
 	virtual ~FPCGExPathsToEdgeClustersContext() override;
 
-	bool bFindCrossings;
-	double CrossingTolerance;
-
 	PCGExGraph::FLooseNetwork* LooseNetwork;
 	TMap<PCGExData::FPointIO*, int32> IOIndices;
 
-	mutable FRWLock NetworkLock;
-	TSet<int32> VisitedNodes;
-	PCGExGraph::FEdgeNetwork* EdgeNetwork = nullptr;
-	PCGExGraph::FEdgeCrossingsHandler* EdgeCrossings = nullptr;
-	PCGExData::FPointIOGroup* ClustersIO;
-
-	PCGExData::FKPointIOMarkedBindings<int32>* Markings = nullptr;
-
 	PCGExData::FPointIO* ConsolidatedPoints = nullptr;
+
+	PCGExGraph::FEdgeNetworkBuilder* NetworkBuilder = nullptr;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExPathsToEdgeClustersElement : public FPCGExPathProcessorElement

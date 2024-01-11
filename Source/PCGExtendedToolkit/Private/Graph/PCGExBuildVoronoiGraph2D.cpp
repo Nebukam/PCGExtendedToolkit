@@ -98,8 +98,9 @@ bool FPCGExBuildVoronoiGraph2DElement::ExecuteInternal(
 				TArray<PCGExGeo::TFVtx<2>*> HullVertices;
 				GetVerticesFromPoints(Context->CurrentIO->GetIn()->GetPoints(), HullVertices);
 
-				if (Context->ConvexHull->Generate(HullVertices))
+				if (Context->ConvexHull->Prepare(HullVertices))
 				{
+					Context->ConvexHull->Generate();
 					Context->ConvexHull->GetHullIndices(Context->HullIndices);
 
 					PCGEx::TFAttributeWriter<bool>* HullMarkPointWriter = new PCGEx::TFAttributeWriter<bool>(Settings->HullAttributeName, false, false);
@@ -210,7 +211,7 @@ void FPCGExBuildVoronoiGraph2DElement::WriteEdges(FPCGExBuildVoronoiGraph2DConte
 	TArray<PCGExGraph::FUnsignedEdge> Edges;
 	Context->Voronoi->GetUniqueEdges(Edges, Settings->bPruneOutsideBounds && Settings->Method != EPCGExCellCenter::Balanced);
 
-		
+
 	PCGExData::FPointIO& VoronoiEdges = Context->ClustersIO->Emplace_GetRef();
 	Context->Markings->Add(VoronoiEdges);
 

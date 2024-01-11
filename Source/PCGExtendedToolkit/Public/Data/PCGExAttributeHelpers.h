@@ -505,6 +505,8 @@ namespace PCGEx
 		bool bEnabled = true;
 		bool bValid = false;
 
+		bool IsUsable(int32 NumEntries) { return bEnabled && bValid && Values.Num() >= NumEntries; }
+
 		FPCGExInputDescriptor Descriptor;
 
 		virtual void Cleanup()

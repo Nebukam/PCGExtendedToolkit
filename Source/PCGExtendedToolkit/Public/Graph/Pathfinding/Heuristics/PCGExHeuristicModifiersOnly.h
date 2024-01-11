@@ -24,7 +24,7 @@ public:
 		const PCGExCluster::FVertex& To,
 		const PCGExCluster::FVertex& Seed,
 		const PCGExCluster::FVertex& Goal,
-		const PCGExCluster::FIndexedEdge& Edge) const override;
+		const PCGExGraph::FIndexedEdge& Edge) const override;
 
 	virtual bool IsBetterScore(const double NewScore, const double OtherScore) const override;
 

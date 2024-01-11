@@ -219,6 +219,7 @@ public:
 	{
 		{
 			FWriteScopeLock WriteLock(ManagerLock);
+			if (bStopped) { return; }
 			NumStarted++;
 			QueuedTasks.Add(AsyncTask);
 		}
@@ -232,6 +233,7 @@ public:
 	template <typename T, typename... Args>
 	void Start(int32 TaskIndex, PCGExData::FPointIO* InPointsIO, Args... args)
 	{
+		if (bStopped) { return; }
 		if (bForceSync) { StartSync(new FAsyncTask<T>(this, TaskIndex, InPointsIO, args...)); }
 		else { Start(new FAsyncTask<T>(this, TaskIndex, InPointsIO, args...)); }
 	}
@@ -241,6 +243,7 @@ public:
 	{
 		{
 			FWriteScopeLock WriteLock(ManagerLock);
+			if (bStopped) { return; }
 			NumStarted++;
 		}
 
@@ -253,6 +256,7 @@ public:
 	template <typename T, typename... Args>
 	void StartSync(int32 Index, PCGExData::FPointIO* InPointsIO, Args... args)
 	{
+		if (bStopped) { return; }
 		StartSync(new FAsyncTask<T>(this, Index, InPointsIO, args...));
 	}
 

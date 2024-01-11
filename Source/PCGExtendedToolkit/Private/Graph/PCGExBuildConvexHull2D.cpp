@@ -108,8 +108,9 @@ bool FPCGExBuildConvexHull2DElement::ExecuteInternal(
 			const TArray<FPCGPoint>& InPoints = Context->CurrentIO->GetIn()->GetPoints();
 			GetVerticesFromPoints(InPoints, HullVertices);
 
-			if (Context->ConvexHull->Generate(HullVertices))
+			if (Context->ConvexHull->Prepare(HullVertices))
 			{
+				Context->ConvexHull->Generate();
 				Context->ConvexHull->GetHullIndices(Context->HullIndices);
 
 				if (Settings->bPrunePoints)

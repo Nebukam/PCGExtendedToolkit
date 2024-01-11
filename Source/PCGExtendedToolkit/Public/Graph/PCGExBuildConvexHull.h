@@ -92,14 +92,3 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 	void WriteEdges(FPCGExBuildConvexHullContext* Context) const;
 };
-
-class PCGEXTENDEDTOOLKIT_API FHull3DInsertTask : public FPCGExNonAbandonableTask
-{
-public:
-	FHull3DInsertTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO) :
-		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO)
-	{
-	}
-
-	virtual bool ExecuteTask() override;
-};

@@ -57,18 +57,18 @@ public:
 	TObjectPtr<UPCGExGoalPicker> GoalPicker;
 
 	/** Add seed point at the beginning of the path */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bAddSeedToPath = true;
 
 	/** Add goal point at the beginning of the path */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bAddGoalToPath = true;
 
 	/** Controls how heuristic are calculated. */
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta = (NoResetToDefault, ShowOnlyInnerProperties))
 	TObjectPtr<UPCGExHeuristicOperation> Heuristics;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGExHeuristicModifiersSettings HeuristicsModifiers;
 	//~End UPCGExPathfindingProcessorSettings interface
 };

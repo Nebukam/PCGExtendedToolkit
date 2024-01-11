@@ -11,6 +11,8 @@
 
 namespace PCGExGeo
 {
+	class FVoronoiRegionTask;
+
 	template <int DIMENSIONS>
 	class PCGEXTENDEDTOOLKIT_API TVoronoiEdge
 	{
@@ -84,6 +86,7 @@ namespace PCGExGeo
 	class PCGEXTENDEDTOOLKIT_API TVoronoiMesh
 	{
 		bool bOwnsVertices = true;
+		FRWLock AsyncLock;
 
 	public:
 		TArray<TVoronoiRegion<DIMENSIONS>*> Regions;
@@ -95,107 +98,10 @@ namespace PCGExGeo
 		{
 		}
 
-		~TVoronoiMesh()
+		virtual ~TVoronoiMesh()
 		{
 			PCGEX_DELETE_TARRAY(Regions)
 			PCGEX_DELETE(Delaunay)
-		}
-
-		bool PrepareFrom(const TArray<FPCGPoint>& InPoints)
-		{
-			PCGEX_DELETE_TARRAY(Regions)
-			PCGEX_DELETE(Delaunay)
-
-			Delaunay = new T_DELAUNAY();
-			Delaunay->BoundsExtension = BoundsExtension;
-			Delaunay->CellCenter = CellCenter;
-
-			if (!Delaunay->PrepareFrom(InPoints)) { return false; }
-
-			return true;
-		}
-
-		bool PrepareFrom(const TArray<TFVtx<DIMENSIONS>*>& InVertices)
-		{
-			PCGEX_DELETE_TARRAY(Regions)
-			PCGEX_DELETE(Delaunay)
-
-			Delaunay = new T_DELAUNAY();
-			Delaunay->BoundsExtension = BoundsExtension;
-			Delaunay->CellCenter = CellCenter;
-
-			if (!Delaunay->PrepareFrom(InVertices)) { return false; }
-
-			return true;
-		}
-
-		void Generate()
-		{
-			Delaunay->Generate();
-
-			for (int i = 0; i < Delaunay->Vertices.Num(); i++) { Delaunay->Vertices[i]->Tag = i; }
-
-			int32 CellIndex = 0;
-			for (TDelaunayCell<DIMENSIONS>* Cell : Delaunay->Cells)
-			{
-				Cell->Circumcenter->Id = CellIndex;
-				Cell->Simplex->Tag = CellIndex;
-				CellIndex++;
-			}
-
-			TArray<TDelaunayCell<DIMENSIONS>*> LocalCells;
-			LocalCells.Reserve(Delaunay->Cells.Num());
-
-			TMap<int32, TDelaunayCell<DIMENSIONS>*> NeighbourCells;
-
-			for (TFVtx<DIMENSIONS>* Vertex : Delaunay->Vertices)
-			{
-				LocalCells.Reset();
-
-				for (TDelaunayCell<DIMENSIONS>* Cell : Delaunay->Cells)
-				{
-					for (TFVtx<DIMENSIONS>* SVertex : Cell->Simplex->Vertices)
-					{
-						if (SVertex->Tag == Vertex->Tag)
-						{
-							LocalCells.Add(Cell);
-							break;
-						}
-					}
-				}
-
-				if (!LocalCells.IsEmpty())
-				{
-					TVoronoiRegion<DIMENSIONS>* Region = new TVoronoiRegion<DIMENSIONS>();
-					Region->Cells.Append(LocalCells, TODO);
-
-					NeighbourCells.Empty();
-
-					for (TDelaunayCell<DIMENSIONS>* Cell : Delaunay->Cells)
-					{
-						NeighbourCells.Add(Cell->Circumcenter->Id, Cell);
-					}
-
-					for (TDelaunayCell<DIMENSIONS>* Cell : Delaunay->Cells)
-					{
-						TFSimplex<DIMENSIONS>* Simplex = Cell->Simplex;
-
-						for (int k = 0; k < DIMENSIONS; k++)
-						{
-							if (!Simplex->AdjacentFaces[k]) { continue; }
-
-							if (int32 Key = Simplex->AdjacentFaces[k]->Tag;
-								NeighbourCells.Contains(Key))
-							{
-								Region->Edges.Add(new TVoronoiEdge<DIMENSIONS>(Cell, *NeighbourCells.Find(Key)), TODO);
-							}
-						}
-					}
-					Region->CheckWithinBounds();
-					Region->Id = Regions.Num();
-					Regions.Add(Region, TODO);
-				}
-			}
 		}
 
 		void GetUniqueEdges(TArray<PCGExGraph::FUnsignedEdge>& OutEdges, bool bPruneOutsideBounds = false)
@@ -219,21 +125,124 @@ namespace PCGExGeo
 
 			UniqueEdges.Empty();
 		}
+
+	protected:
+		void InternalPrepare()
+		{
+			PCGEX_DELETE_TARRAY(Regions)
+			PCGEX_DELETE(Delaunay)
+
+			Delaunay = new T_DELAUNAY();
+			Delaunay->BoundsExtension = BoundsExtension;
+			Delaunay->CellCenter = CellCenter;
+		}
+
+	public:
+		bool PrepareFrom(const TArray<FPCGPoint>& InPoints)
+		{
+			InternalPrepare();
+			return Delaunay->PrepareFrom(InPoints);
+		}
+
+		bool PrepareFrom(const TArray<TFVtx<DIMENSIONS>*>& InVertices)
+		{
+			InternalPrepare();
+			return Delaunay->PrepareFrom(InVertices);
+		}
+
+		void Generate()
+		{
+			Delaunay->Generate();
+			PrepareVoronoi();
+			for (int i = 0; i < Delaunay->Vertices.Num(); i++) { ProcessVertex(i); }
+		}
+
+	protected:
+		void PrepareVoronoi()
+		{
+			for (int i = 0; i < Delaunay->Vertices.Num(); i++) { Delaunay->Vertices[i]->Tag = i; }
+
+			int32 CellIndex = 0;
+			for (TDelaunayCell<DIMENSIONS>* Cell : Delaunay->Cells)
+			{
+				Cell->Circumcenter->Id = CellIndex;
+				Cell->Simplex->Tag = CellIndex++;
+			}
+		}
+
+	public:
+		void ProcessVertex(int32 Index)
+		{
+			TArray<TDelaunayCell<DIMENSIONS>*> RegionCells;
+			RegionCells.Reserve(20);
+
+			TFVtx<DIMENSIONS>* Vertex = Delaunay->Vertices[Index];
+
+			for (TDelaunayCell<DIMENSIONS>* Cell : Delaunay->Cells)
+			{
+				for (TFVtx<DIMENSIONS>* SVertex : Cell->Simplex->Vertices)
+				{
+					if (SVertex->Tag == Vertex->Tag)
+					{
+						RegionCells.Add(Cell);
+						break;
+					}
+				}
+			}
+
+			if (!RegionCells.IsEmpty())
+			{
+				TMap<int32, TDelaunayCell<DIMENSIONS>*> NeighbourCells;
+				TVoronoiRegion<DIMENSIONS>* Region = new TVoronoiRegion<DIMENSIONS>();
+				Region->Cells.Append(RegionCells);
+
+				for (TDelaunayCell<DIMENSIONS>* Cell : Delaunay->Cells)
+				{
+					NeighbourCells.Add(Cell->Circumcenter->Id, Cell);
+				}
+
+				for (TDelaunayCell<DIMENSIONS>* Cell : Delaunay->Cells)
+				{
+					TFSimplex<DIMENSIONS>* Simplex = Cell->Simplex;
+
+					for (int k = 0; k < DIMENSIONS; k++)
+					{
+						if (!Simplex->AdjacentFaces[k]) { continue; }
+
+						if (int32 Key = Simplex->AdjacentFaces[k]->Tag;
+							NeighbourCells.Contains(Key))
+						{
+							Region->Edges.Add(new TVoronoiEdge<DIMENSIONS>(Cell, *NeighbourCells.Find(Key)));
+						}
+					}
+				}
+
+				Region->CheckWithinBounds();
+				Region->Id = Regions.Num();
+
+				{
+					FWriteScopeLock WriteLock(AsyncLock);
+					Regions.Add(Region);
+				}
+
+				NeighbourCells.Empty();
+			}
+		}
+
+		virtual void StartAsyncPreprocessing(FPCGExAsyncManager* Manager) = 0;
 	};
 
-	class PCGEXTENDEDTOOLKIT_API TVoronoiMesh2 : public TVoronoiMesh<3, TDelaunayTriangulation2>
-	{
-	public:
-		TVoronoiMesh2() : TVoronoiMesh<3, TDelaunayTriangulation2>()
-		{
-		}
-	};
+#define PCGEX_DELAUNAY_CLASS(_NUM, _DIM)\
+class FVoronoiRegion##_NUM##Task;\
+class PCGEXTENDEDTOOLKIT_API TVoronoiMesh##_NUM : public TVoronoiMesh<_DIM, TDelaunayTriangulation##_NUM>	{	public:\
+TVoronoiMesh##_NUM() : TVoronoiMesh<_DIM, TDelaunayTriangulation##_NUM>(){}\
+virtual void StartAsyncPreprocessing(FPCGExAsyncManager* Manager){ for (int i = 0; i < Delaunay->Vertices.Num(); i++) { Manager->Start<FVoronoiRegion##_NUM##Task>(i, nullptr, this); }}};\
+class PCGEXTENDEDTOOLKIT_API FVoronoiRegion##_NUM##Task : public FPCGExNonAbandonableTask{	public:\
+FVoronoiRegion##_NUM##Task(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO, TVoronoiMesh##_NUM* InVoronoiMesh) : FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO), Voronoi(InVoronoiMesh){}\
+TVoronoiMesh##_NUM* Voronoi = nullptr;\
+virtual bool ExecuteTask() override{ Voronoi->ProcessVertex(TaskIndex); return true; }};
 
-	class PCGEXTENDEDTOOLKIT_API TVoronoiMesh3 : public TVoronoiMesh<4, TDelaunayTriangulation3>
-	{
-	public:
-		TVoronoiMesh3() : TVoronoiMesh<4, TDelaunayTriangulation3>()
-		{
-		}
-	};
+	PCGEX_DELAUNAY_CLASS(2, 3)
+
+	PCGEX_DELAUNAY_CLASS(3, 4)
 }

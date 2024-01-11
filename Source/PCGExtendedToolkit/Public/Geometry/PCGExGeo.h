@@ -23,6 +23,11 @@ enum class EPCGExCellCenter : uint8
 
 namespace PCGExGeo
 {
+	constexpr PCGExMT::AsyncState State_ProcessingHull = __COUNTER__;
+	constexpr PCGExMT::AsyncState State_ProcessingDelaunayPreprocess = __COUNTER__;
+	constexpr PCGExMT::AsyncState State_ProcessingDelaunay = __COUNTER__;
+	constexpr PCGExMT::AsyncState State_ProcessingVoronoi = __COUNTER__;
+
 	template <int DIMENSIONS>
 	static void GetVerticesFromPoints(const TArray<FPCGPoint>& InPoints, TArray<TFVtx<DIMENSIONS>*>& OutVertices)
 	{
@@ -35,7 +40,10 @@ namespace PCGExGeo
 		{
 			TFVtx<DIMENSIONS>* Vtx = OutVertices[i] = new TFVtx<DIMENSIONS>();
 			Vtx->Id = i;
+
 			FVector Position = InPoints[i].Transform.GetLocation();
+			Vtx->Location = Position;
+
 			for (int P = 0; P < DIMENSIONS; P++) { (*Vtx)[P] = Position[P]; }
 		}
 	}
@@ -54,6 +62,8 @@ namespace PCGExGeo
 			Vtx->Id = i;
 
 			FVector Position = InPoints[i].Transform.GetLocation();
+			Vtx->Location = Position;
+
 			double SqrLn = 0;
 			for (int P = 0; P < DIMENSIONS - 1; P++)
 			{

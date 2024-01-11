@@ -24,7 +24,7 @@ public:
 		const PCGExCluster::FVertex& To,
 		const PCGExCluster::FVertex& Seed,
 		const PCGExCluster::FVertex& Goal,
-		const PCGExCluster::FIndexedEdge& Edge) const;
+		const PCGExGraph::FIndexedEdge& Edge) const;
 
 	virtual bool IsBetterScore(const double NewScore, const double OtherScore) const;
 	virtual int32 GetQueueingIndex(const TArray<PCGExCluster::FScoredVertex*>& InVertices, const double InScore) const;

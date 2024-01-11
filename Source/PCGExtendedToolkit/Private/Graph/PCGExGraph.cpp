@@ -3,6 +3,8 @@
 
 #include "Graph/PCGExGraph.h"
 
+#include "PCGExPointsProcessor.h"
+
 namespace PCGExGraph
 {
 	FSocket::~FSocket()
@@ -251,22 +253,12 @@ namespace PCGExGraph
 		Edges.Append(Other->Edges);
 	}
 
-	void FEdgeCluster::Consolidate(const FEdgeNetwork* InNetwork)
+	void FEdgeCluster::Consolidate(FEdgeNetwork* InNetwork)
 	{
+		if (bConsolidated) { return; }
+		bConsolidated = true;
+
 		TArray<int32> InvalidIndices;
-
-		InvalidIndices.Reserve(Nodes.Num());
-		for (const int32 NodeIndex : Nodes) { if (InNetwork->Nodes[NodeIndex].Cluster == -1) { InvalidIndices.Add(NodeIndex); } }
-
-		if (InvalidIndices.Num() == Nodes.Num())
-		{
-			Nodes.Empty();
-			Edges.Empty();
-			return;
-		}
-
-		for (const int32 NodeIndex : InvalidIndices) { Nodes.Remove(NodeIndex); }
-
 		InvalidIndices.Reset(Edges.Num());
 		for (const int32 EdgeIndex : Edges)
 		{
@@ -281,13 +273,28 @@ namespace PCGExGraph
 
 		if (InvalidIndices.Num() == Edges.Num())
 		{
+			for (const int32 NodeIndex : Nodes) { InNetwork->Nodes[NodeIndex].Cluster = -1; }
 			Nodes.Empty();
 			Edges.Empty();
-			return;
+		}
+		else
+		{
+			for (const int32 EdgeIndex : InvalidIndices)
+			{
+				InNetwork->Nodes[InNetwork->Edges[EdgeIndex].Start].Cluster = -1;
+				InNetwork->Nodes[InNetwork->Edges[EdgeIndex].End].Cluster = -1;
+				Edges.Remove(EdgeIndex);
+			}
 		}
 
-		for (const int32 EdgeIndex : InvalidIndices) { Edges.Remove(EdgeIndex); }
 		InvalidIndices.Empty();
+		return;
+	}
+
+	void FEdgeCluster::Invalidate(FEdgeNetwork* InNetwork)
+	{
+		for (const int32 EdgeIndex : Edges) { InNetwork->Edges[EdgeIndex].bValid = false; }
+		for (const int32 NodeIndex : Nodes) { InNetwork->Nodes[NodeIndex].Cluster = -1; }
 	}
 
 	bool FEdgeNetwork::InsertEdge(const int32 A, const int32 B)
@@ -303,10 +310,16 @@ namespace PCGExGraph
 
 		UniqueEdges.Add(Hash);
 
+		FNetworkNode& NodeA = Nodes[A];
+		FNetworkNode& NodeB = Nodes[B];
+
 		const FIndexedEdge& Edge = Edges.Emplace_GetRef(Edges.Num(), A, B);
 
-		FEdgeCluster** ClusterA = Clusters.Find(Nodes[A].Cluster);
-		FEdgeCluster** ClusterB = Clusters.Find(Nodes[B].Cluster);
+		NodeA.Add(Edge);
+		NodeB.Add(Edge);
+
+		FEdgeCluster** ClusterA = Clusters.Find(NodeA.Cluster);
+		FEdgeCluster** ClusterB = Clusters.Find(NodeB.Cluster);
 
 		if (!ClusterA && !ClusterB)
 		{
@@ -336,6 +349,35 @@ namespace PCGExGraph
 		}
 
 		return true;
+	}
+
+	void FEdgeNetwork::ConsolidateIndices(const bool bPrune)
+	{
+		if (bPrune)
+		{
+			int32 SafeIndex = 0;
+			for (FNetworkNode& Node : Nodes) { Node.SafeIndex = Node.Cluster == -1 || Node.Edges.IsEmpty() ? -1 : SafeIndex++; }
+		}
+		else { for (FNetworkNode& Node : Nodes) { Node.SafeIndex = Node.Index; } }
+	}
+
+	void FEdgeNetwork::Consolidate(const bool bPrune, const int32 Min, const int32 Max)
+	{
+		TArray<FEdgeCluster*> InvalidClusters;
+		for (const TPair<int64, FEdgeCluster*>& Pair : Clusters)
+		{
+			Pair.Value->Consolidate(this);
+			if (!FMath::IsWithin(Pair.Value->Edges.Num(), Min, Max)) { InvalidClusters.Add(Pair.Value); }
+		}
+
+		for (FEdgeCluster* Cluster : InvalidClusters)
+		{
+			Clusters.Remove(Cluster->Id);
+			Cluster->Invalidate(this);
+			delete Cluster;
+		}
+
+		ConsolidateIndices(bPrune);
 	}
 
 	void FEdgeCrossingsHandler::Prepare(const TArray<FPCGPoint>& InPoints)
@@ -408,17 +450,94 @@ namespace PCGExGraph
 			EdgeNetwork->InsertEdge(NewNode.Index, EdgeB.End);
 		}
 	}
+
+	void FEdgeNetworkBuilder::EnableCrossings(const double Tolerance)
+	{
+		EdgeCrossings = new FEdgeCrossingsHandler(Network, Tolerance);
+	}
+
+	void FEdgeNetworkBuilder::EnablePointsPruning()
+	{
+		bPrunePoints = true;
+	}
+
+	bool FEdgeNetworkBuilder::BeginWriting(FPCGExPointsProcessorContext* InContext, int32 Min, int32 Max) const
+	{
+		if (EdgeCrossings) { EdgeCrossings->InsertCrossings(); }
+		if (bPrunePoints)
+		{
+			Network->Consolidate(true, Min, Max);
+
+			TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
+			const int32 NumMaxNodes = Network->Nodes.Num();
+			MutablePoints.Reserve(NumMaxNodes);
+
+			for (const PCGExGraph::FNetworkNode& Node : Network->Nodes)
+			{
+				if (Node.bCrossing || Node.SafeIndex == -1) { continue; }
+				const int32 Index = MutablePoints.Add(PointIO->GetInPoint(Node.Index));
+			}
+
+			if (EdgeCrossings)
+			{
+				for (int i = 0; i < EdgeCrossings->Crossings.Num(); i++)
+				{
+					if (Network->Nodes[EdgeCrossings->StartIndex + i].SafeIndex == -1) { continue; }
+					MutablePoints.Last().Transform.SetLocation(EdgeCrossings->Crossings[i].Center);
+				}
+			}
+		}
+		else
+		{
+			Network->ConsolidateIndices(false);
+
+			if (EdgeCrossings)
+			{
+				TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
+				for (const PCGExGraph::FEdgeCrossing& Crossing : EdgeCrossings->Crossings)
+				{
+					MutablePoints.Emplace_GetRef().Transform.SetLocation(Crossing.Center);
+				}
+			}
+		}
+
+		Network->ForEachCluster(
+			[&](PCGExGraph::FEdgeCluster* Cluster)
+			{
+				PCGExData::FPointIO& ClusterIO = ClustersIO->Emplace_GetRef(PCGExData::EInit::NewOutput);
+				Markings->Add(ClusterIO);
+
+				InContext->GetAsyncManager()->Start<FWriteClusterTask>(
+					Cluster->Id, PointIO, &ClusterIO,
+					Network, Cluster, Min, Max);
+			});
+
+		if (ClustersIO->IsEmpty())
+		{
+			PointIO->GetOut()->Metadata->DeleteAttribute(PCGExGraph::PUIDAttributeName); // Unmark
+			return false;
+		}
+
+		return true;
+	}
+
+	void FEdgeNetworkBuilder::CompleteWriting(FPCGExPointsProcessorContext* InContext) const
+	{
+		Markings->UpdateMark();
+		ClustersIO->OutputTo(InContext, true);
+	}
 }
 
 bool FWriteClusterTask::ExecuteTask()
 {
-	PCGExGraph::FEdgeCluster* Cluster = *EdgeNetwork->Clusters.Find(TaskIndex);
 	Cluster->Consolidate(EdgeNetwork);
 
 	if (Cluster->Edges.IsEmpty() ||
 		Cluster->Nodes.IsEmpty() ||
-		Cluster->Edges.Num() < Min ||
-		Cluster->Edges.Num() > Max) { return false; }
+		!FMath::IsWithin(Cluster->Edges.Num(), Min, Max))
+	{
+		return false;
+	}
 
 	TArray<FPCGPoint>& MutablePoints = ClusterIO->GetOut()->GetMutablePoints();
 	MutablePoints.SetNum(Cluster->Edges.Num());
@@ -444,21 +563,14 @@ bool FWriteClusterTask::ExecuteTask()
 		PointIndex++;
 	};
 
-	if (IndexRemap)
+	for (const int32 EdgeIndex : Cluster->Edges)
 	{
-		for (const int32 EdgeIndex : Cluster->Edges)
-		{
-			const PCGExGraph::FIndexedEdge& Edge = EdgeNetwork->Edges[EdgeIndex];
-			WriteEdge(*IndexRemap->Find(Edge.Start), *IndexRemap->Find(Edge.End));
-		}
-	}
-	else
-	{
-		for (const int32 EdgeIndex : Cluster->Edges)
-		{
-			const PCGExGraph::FUnsignedEdge& Edge = EdgeNetwork->Edges[EdgeIndex];
-			WriteEdge(Edge.Start, Edge.End);
-		}
+		const PCGExGraph::FUnsignedEdge& Edge = EdgeNetwork->Edges[EdgeIndex];
+		MutablePoints[PointIndex].Transform.SetLocation(
+			FMath::Lerp(
+				Vertices[(EdgeStart->Values[PointIndex] = EdgeNetwork->Nodes[Edge.Start].SafeIndex)].Transform.GetLocation(),
+				Vertices[(EdgeEnd->Values[PointIndex] = EdgeNetwork->Nodes[Edge.End].SafeIndex)].Transform.GetLocation(), 0.5));
+		PointIndex++;
 	}
 
 	EdgeStart->Write();

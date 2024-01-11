@@ -8,6 +8,12 @@
 #include "Refining/PCGExEdgeRefineOperation.h"
 #include "PCGExRefineEdges.generated.h"
 
+namespace PCGExGraph
+{
+	struct FEdgeNetworkBuilder;
+	struct FEdgeNetwork;
+}
+
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Edges")
 class PCGEXTENDEDTOOLKIT_API UPCGExRefineEdgesSettings : public UPCGExEdgesProcessorSettings
 {
@@ -21,12 +27,20 @@ public:
 	PCGEX_NODE_INFOS(RefineEdges, "Edges : Refine", "Refine edges according to special rules.");
 #endif
 
-	virtual PCGExData::EInit GetEdgeOutputInitMode() const override;
-
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings interface
 
+	//~Begin UPCGExPointsProcessorSettings interface
+public:
+	virtual PCGExData::EInit GetEdgeOutputInitMode() const override;
+	virtual bool GetCacheAllClusters() const override;
+	//~End UPCGExPointsProcessorSettings interface
+
+	/** Removes roaming points from the output, and keeps only points that are part of an cluster. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	bool bPruneIsolatedPoints = true;
+	
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta = (NoResetToDefault, ShowOnlyInnerProperties))
 	TObjectPtr<UPCGExEdgeRefineOperation> Refinement;
 
@@ -38,8 +52,12 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExRefineEdgesContext : public FPCGExEdgesProce
 {
 	friend class FPCGExRefineEdgesElement;
 
-public:
+	~FPCGExRefineEdgesContext();
+
 	UPCGExEdgeRefineOperation* Refinement;
+
+	PCGExGraph::FEdgeNetworkBuilder* NetworkBuilder = nullptr;
+	
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExRefineEdgesElement : public FPCGExEdgesProcessorElement
@@ -53,4 +71,22 @@ public:
 protected:
 	virtual bool Boot(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
+};
+
+// Define the background task class
+class PCGEXTENDEDTOOLKIT_API FRefineEdgesTask : public FPCGExNonAbandonableTask
+{
+public:
+	FRefineEdgesTask(
+		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+		PCGExCluster::FCluster* InCluster, PCGExData::FPointIO* InEdges) :
+		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+		Cluster(InCluster), Edges(InEdges)
+	{
+	}
+
+	PCGExCluster::FCluster* Cluster = nullptr;
+	PCGExData::FPointIO* Edges = nullptr;
+
+	virtual bool ExecuteTask() override;
 };

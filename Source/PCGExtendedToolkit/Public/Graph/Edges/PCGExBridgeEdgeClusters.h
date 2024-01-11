@@ -12,7 +12,7 @@ enum class EPCGExBridgeClusterMethod : uint8
 {
 	Delaunay UMETA(DisplayName = "Delaunay", ToolTip="Uses Delaunay graph to find connections."),
 	LeastEdges UMETA(DisplayName = "Least Edges", ToolTip="Ensure all islands are connected using the least possible number of bridges."),
-	MostEdges UMETA(DisplayName = "Most Edges", ToolTip="Each island will have a bridge to every other island"),
+	MostEdges UMETA(DisplayName = "Most Edges", ToolTip="Each cluster will have a bridge to every other cluster"),
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Edges")
@@ -35,7 +35,7 @@ protected:
 	//~Begin UPCGExPointsProcessorSettings interface
 public:
 	virtual PCGExData::EInit GetEdgeOutputInitMode() const override;
-	virtual bool GetCacheAllClusteres() const override;
+	virtual bool GetCacheAllClusters() const override;
 	//~End UPCGExPointsProcessorSettings interface
 
 	/** Method used to find & insert bridges */

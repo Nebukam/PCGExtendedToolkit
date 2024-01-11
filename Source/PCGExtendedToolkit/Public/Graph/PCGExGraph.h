@@ -8,9 +8,11 @@
 #include "Data/PCGExAttributeHelpers.h"
 #include "PCGExMT.h"
 #include "PCGExEdge.h"
+#include "Data/PCGExData.h"
 
 #include "PCGExGraph.generated.h"
 
+struct FPCGExPointsProcessorContext;
 ENUM_CLASS_FLAGS(EPCGExEdgeType)
 
 UENUM(BlueprintType, meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor="true"))
@@ -576,6 +578,7 @@ namespace PCGExGraph
 
 		bool bCrossing = false;
 		int32 Index = -1;
+		int32 SafeIndex = -1;
 		int64 Cluster = -1;
 		TArray<int32> Edges;
 
@@ -597,6 +600,7 @@ namespace PCGExGraph
 
 	struct PCGEXTENDEDTOOLKIT_API FEdgeCluster
 	{
+		bool bConsolidated = false;
 		int64 Id = -1;
 		TSet<int32> Nodes;
 		TSet<int32> Edges;
@@ -613,7 +617,8 @@ namespace PCGExGraph
 
 		void Add(const FIndexedEdge& Edge, FEdgeNetwork* InNetwork);
 		void Append(const FEdgeCluster* Other, FEdgeNetwork* InNetwork);
-		void Consolidate(const FEdgeNetwork* InNetwork);
+		void Consolidate(FEdgeNetwork* InNetwork);
+		void Invalidate(FEdgeNetwork* InNetwork);
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FEdgeNetwork
@@ -645,6 +650,17 @@ namespace PCGExGraph
 		}
 
 		bool InsertEdge(const int32 A, const int32 B);
+		void Consolidate(const bool bPrune, const int32 Min = 1, const int32 Max = TNumericLimits<int32>::Max());
+		void ConsolidateIndices(bool bPrune);
+
+		void ForEachCluster(TFunction<void(FEdgeCluster*)>&& Func)
+		{
+			for (const TPair<int64, FEdgeCluster*>& Pair : Clusters)
+			{
+				if (Pair.Value->Nodes.IsEmpty() || Pair.Value->Edges.IsEmpty()) { continue; }
+				Func(Pair.Value);
+			}
+		}
 
 		~FEdgeNetwork()
 		{
@@ -669,6 +685,7 @@ namespace PCGExGraph
 		TArray<FEdgeCrossing> Crossings;
 
 		int32 NumEdges;
+		int32 StartIndex;
 
 		FEdgeCrossingsHandler(FEdgeNetwork* InEdgeNetwork, const double InTolerance)
 			: EdgeNetwork(InEdgeNetwork),
@@ -676,6 +693,7 @@ namespace PCGExGraph
 			  SquaredTolerance(InTolerance * InTolerance)
 		{
 			NumEdges = InEdgeNetwork->Edges.Num();
+			StartIndex = InEdgeNetwork->Nodes.Num();
 			Crossings.Empty();
 			SegmentBounds.Empty();
 			SegmentBounds.Reserve(NumEdges);
@@ -692,6 +710,49 @@ namespace PCGExGraph
 		void ProcessEdge(const int32 EdgeIndex, const TArray<FPCGPoint>& InPoints);
 		void InsertCrossings();
 	};
+
+	struct PCGEXTENDEDTOOLKIT_API FEdgeNetworkBuilder
+	{
+	protected:
+		bool bPrunePoints = false;
+
+	public:
+		PCGExData::FPointIO* PointIO = nullptr;
+		PCGExData::FKPointIOMarkedBindings<int32>* Markings = nullptr;
+
+		FEdgeNetwork* Network = nullptr;
+		FEdgeCrossingsHandler* EdgeCrossings = nullptr;
+
+		PCGExData::FPointIOGroup* ClustersIO = nullptr;
+
+		FEdgeNetworkBuilder(PCGExData::FPointIO& InPointIO, int32 NumEdgeReserve = 8)
+		{
+			PointIO = &InPointIO;
+
+			Network = new FEdgeNetwork(NumEdgeReserve, PointIO->GetNum());
+
+			Markings = new PCGExData::FKPointIOMarkedBindings<int32>(PointIO, PUIDAttributeName);
+			Markings->Mark = PointIO->GetIn()->GetUniqueID();
+
+			ClustersIO = new PCGExData::FPointIOGroup();
+			ClustersIO->DefaultOutputLabel = OutputEdgesLabel;
+		}
+
+		void EnableCrossings(const double Tolerance);
+		void EnablePointsPruning();
+
+		bool BeginWriting(FPCGExPointsProcessorContext* InContext, int32 Min = 1, int32 Max = TNumericLimits<int32>::Max()) const;
+		void CompleteWriting(FPCGExPointsProcessorContext* InContext) const;
+
+		~FEdgeNetworkBuilder()
+		{
+			PCGEX_DELETE(Markings)
+			PCGEX_DELETE(Network)
+			PCGEX_DELETE(EdgeCrossings)
+			PCGEX_DELETE(ClustersIO)
+		}
+	};
+
 #pragma endregion
 }
 
@@ -700,19 +761,19 @@ class PCGEXTENDEDTOOLKIT_API FWriteClusterTask : public FPCGExNonAbandonableTask
 {
 public:
 	FWriteClusterTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-	                  PCGExData::FPointIO* InClusterIO, PCGExGraph::FEdgeNetwork* InEdgeNetwork, TMap<int32, int32>* InIndexRemap = nullptr,
-	                  int32 InMin = 0, int32 InMax = TNumericLimits<int32>::Max())
+	                  PCGExData::FPointIO* InClusterIO, PCGExGraph::FEdgeNetwork* InEdgeNetwork, PCGExGraph::FEdgeCluster* InCluster,
+	                  int32 InMin = 1, int32 InMax = TNumericLimits<int32>::Max())
 		: FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
-		  ClusterIO(InClusterIO), EdgeNetwork(InEdgeNetwork), IndexRemap(InIndexRemap),
+		  ClusterIO(InClusterIO), EdgeNetwork(InEdgeNetwork), Cluster(InCluster),
 		  Min(InMin), Max(InMax)
 	{
 	}
 
-	int32 Min;
-	int32 Max;
 	PCGExData::FPointIO* ClusterIO = nullptr;
 	PCGExGraph::FEdgeNetwork* EdgeNetwork = nullptr;
-	TMap<int32, int32>* IndexRemap = nullptr;
+	PCGExGraph::FEdgeCluster* Cluster = nullptr;
+	int32 Min;
+	int32 Max;
 
 	virtual bool ExecuteTask() override;
 };

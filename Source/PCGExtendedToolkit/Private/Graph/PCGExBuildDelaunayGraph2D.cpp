@@ -97,8 +97,9 @@ bool FPCGExBuildDelaunayGraph2DElement::ExecuteInternal(
 				TArray<PCGExGeo::TFVtx<2>*> HullVertices;
 				GetVerticesFromPoints(Context->CurrentIO->GetIn()->GetPoints(), HullVertices);
 
-				if (Context->ConvexHull->Generate(HullVertices))
+				if (Context->ConvexHull->Prepare(HullVertices))
 				{
+					Context->ConvexHull->Generate();
 					Context->ConvexHull->GetHullIndices(Context->HullIndices);
 
 					PCGEx::TFAttributeWriter<bool>* HullMarkPointWriter = new PCGEx::TFAttributeWriter<bool>(Settings->HullAttributeName, false, false);

@@ -16,6 +16,7 @@ namespace PCGExGeo
 		int32 Id = -1;
 		int32 Tag = 0;
 		bool bIsOnHull = false;
+		FVector Location = FVector::Zero();
 
 		int Dimension() const { return DIMENSIONS; }
 

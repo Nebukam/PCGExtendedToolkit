@@ -8,7 +8,7 @@ double UPCGExHeuristicDirection::ComputeScore(
 	const PCGExCluster::FScoredVertex* From,
 	const PCGExCluster::FVertex& To,
 	const PCGExCluster::FVertex& Seed,
-	const PCGExCluster::FVertex& Goal, const PCGExCluster::FIndexedEdge& Edge) const
+	const PCGExCluster::FVertex& Goal, const PCGExGraph::FIndexedEdge& Edge) const
 {
 	return From->Score + FVector::DotProduct((From->Vertex->Position - To.Position).GetSafeNormal(), (From->Vertex->Position - Goal.Position).GetSafeNormal()) * 100;
 }
