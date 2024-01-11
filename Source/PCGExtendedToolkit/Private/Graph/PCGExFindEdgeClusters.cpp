@@ -101,10 +101,13 @@ bool FPCGExFindEdgeClustersElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExGraph::State_BuildNetwork))
 	{
-		Context->CurrentIO->CreateInKeys();
-		Context->PrepareCurrentGraphForPoints(*Context->CurrentIO);
+		auto Initialize = [&](PCGExData::FPointIO& PointIO)
+		{
+			PointIO.CreateInKeys();
+			Context->PrepareCurrentGraphForPoints(PointIO);
+		};
 
-		for (int PointIndex = 0; PointIndex < Context->CurrentIO->GetNum(); PointIndex++)
+		auto InsertEdge = [&](const int32 PointIndex, const PCGExData::FPointIO& PointIO)
 		{
 			const int32 EdgeType = static_cast<int32>(Context->CrawlEdgeTypes);
 
@@ -114,9 +117,13 @@ bool FPCGExFindEdgeClustersElement::ExecuteInternal(
 				const int32 InEdgeType = SocketInfo.Socket->GetEdgeTypeReader().Values[PointIndex];
 				if (End != -1 && (InEdgeType & EdgeType) != 0) { Context->NetworkBuilder->Network->InsertEdge(PointIndex, End); }
 			}
-		}
+		};
 
-		Context->SetState(PCGExGraph::State_ReadyForNextGraph);
+
+		if (Context->ProcessCurrentPoints(Initialize, InsertEdge))
+		{
+			Context->SetState(PCGExGraph::State_ReadyForNextGraph);
+		}
 	}
 
 	if (Context->IsState(PCGExGraph::State_FindingCrossings))

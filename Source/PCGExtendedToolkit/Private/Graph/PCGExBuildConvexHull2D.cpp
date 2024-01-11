@@ -98,55 +98,63 @@ bool FPCGExBuildConvexHull2DElement::ExecuteInternal(
 		{
 			if (Context->CurrentIO->GetNum() <= 3)
 			{
-				Context->SetState(PCGExMT::State_ReadyForNextPoints);
-				PCGE_LOG(Warning, GraphAndLog, FTEXT("Some inputs have too few points to be processed (<= 3)."));
+				PCGE_LOG(Warning, GraphAndLog, FTEXT("(0) Some inputs have too few points to be processed (<= 3)."));
 				return false;
 			}
 
 			Context->ConvexHull = new PCGExGeo::TConvexHull2();
 			TArray<PCGExGeo::TFVtx<2>*> HullVertices;
-			const TArray<FPCGPoint>& InPoints = Context->CurrentIO->GetIn()->GetPoints();
-			GetVerticesFromPoints(InPoints, HullVertices);
+			GetVerticesFromPoints(Context->CurrentIO->GetIn()->GetPoints(), HullVertices);
 
 			if (Context->ConvexHull->Prepare(HullVertices))
 			{
-				Context->ConvexHull->Generate();
-				Context->ConvexHull->GetHullIndices(Context->HullIndices);
-
-				if (Settings->bPrunePoints)
-				{
-					TArray<FPCGPoint>& MutablePoints = Context->CurrentIO->GetOut()->GetMutablePoints();
-					MutablePoints.SetNumUninitialized(Context->HullIndices.Num());
-					int32 PointIndex = 0;
-
-					for (int i = 0; i < Context->CurrentIO->GetNum(); i++)
-					{
-						if (!Context->HullIndices.Contains(i)) { continue; }
-						MutablePoints[PointIndex] = InPoints[i];
-						Context->IndicesRemap.Add(i, PointIndex++);
-					}
-				}
-				else if (Settings->bMarkHull)
-				{
-					PCGEx::TFAttributeWriter<bool>* HullMarkPointWriter = new PCGEx::TFAttributeWriter<bool>(Settings->HullAttributeName, false, false);
-					HullMarkPointWriter->BindAndGet(*Context->CurrentIO);
-
-					for (int i = 0; i < Context->CurrentIO->GetNum(); i++) { HullMarkPointWriter->Values[i] = Context->HullIndices.Contains(i); }
-
-					HullMarkPointWriter->Write();
-					PCGEX_DELETE(HullMarkPointWriter)
-				}
+				if (Context->bDoAsyncProcessing) { Context->ConvexHull->StartAsyncProcessing(Context->GetAsyncManager()); }
+				else { Context->ConvexHull->Generate(); }
+				Context->SetAsyncState(PCGExGeo::State_ProcessingHull);
 			}
 			else
 			{
-				PCGE_LOG(Warning, GraphAndLog, FTEXT("Some inputs generates no results. Check for singularities."));
-				Context->SetState(PCGExMT::State_ReadyForNextPoints);
+				PCGE_LOG(Warning, GraphAndLog, FTEXT("(1) Some inputs generates no results. Check for singularities."));
 				return false;
 			}
-
-			Context->SetState(PCGExGraph::State_WritingClusters);
 		}
 	}
+
+	if (Context->IsState(PCGExGeo::State_ProcessingHull))
+	{
+		if (!Context->IsAsyncWorkComplete()) { return false; }
+
+		if (Context->bDoAsyncProcessing) { Context->ConvexHull->Finalize(); }
+		Context->ConvexHull->GetHullIndices(Context->HullIndices);
+
+		const TArray<FPCGPoint>& InPoints = Context->CurrentIO->GetIn()->GetPoints();
+
+		if (Settings->bPrunePoints)
+		{
+			TArray<FPCGPoint>& MutablePoints = Context->CurrentIO->GetOut()->GetMutablePoints();
+			MutablePoints.SetNumUninitialized(Context->HullIndices.Num());
+			int32 PointIndex = 0;
+
+			for (int i = 0; i < Context->CurrentIO->GetNum(); i++)
+			{
+				if (!Context->HullIndices.Contains(i)) { continue; }
+				MutablePoints[PointIndex] = InPoints[i];
+				Context->IndicesRemap.Add(i, PointIndex++);
+			}
+		}
+		else if (Settings->bMarkHull)
+		{
+			PCGEx::TFAttributeWriter<bool>* HullMarkPointWriter = new PCGEx::TFAttributeWriter<bool>(Settings->HullAttributeName, false, false);
+			HullMarkPointWriter->BindAndGet(*Context->CurrentIO);
+
+			for (int i = 0; i < Context->CurrentIO->GetNum(); i++) { HullMarkPointWriter->Values[i] = Context->HullIndices.Contains(i); }
+
+			HullMarkPointWriter->Write();
+			PCGEX_DELETE(HullMarkPointWriter)
+		}
+		Context->SetState(PCGExGraph::State_WritingClusters);
+	}
+
 
 	if (Context->IsState(PCGExGraph::State_WritingClusters))
 	{
@@ -166,13 +174,20 @@ bool FPCGExBuildConvexHull2DElement::ExecuteInternal(
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
-	if (Context->IsDone())
+	if
+	(Context
+		->
+		IsDone()
+	)
 	{
 		Context->OutputPoints();
 		Context->PathsIO->OutputTo(Context);
 	}
 
-	return Context->IsDone();
+	return
+		Context
+		->
+		IsDone();
 }
 
 void FPCGExBuildConvexHull2DElement::WriteEdges(FPCGExBuildConvexHull2DContext* Context) const

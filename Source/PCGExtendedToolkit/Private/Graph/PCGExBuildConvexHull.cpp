@@ -88,8 +88,7 @@ bool FPCGExBuildConvexHullElement::ExecuteInternal(
 		{
 			if (Context->CurrentIO->GetNum() <= 3)
 			{
-				Context->SetState(PCGExMT::State_ReadyForNextPoints);
-				PCGE_LOG(Warning, GraphAndLog, FTEXT("Some inputs have too few points to be processed (<= 4)."));
+				PCGE_LOG(Warning, GraphAndLog, FTEXT("(0) Some inputs have too few points to be processed (<= 4)."));
 				return false;
 			}
 
@@ -99,13 +98,13 @@ bool FPCGExBuildConvexHullElement::ExecuteInternal(
 
 			if (Context->ConvexHull->Prepare(HullVertices))
 			{
-				Context->ConvexHull->StartAsyncProcessing(Context->GetAsyncManager());
+				if (Context->bDoAsyncProcessing) { Context->ConvexHull->StartAsyncProcessing(Context->GetAsyncManager()); }
+				else { Context->ConvexHull->Generate(); }
 				Context->SetAsyncState(PCGExGeo::State_ProcessingHull);
 			}
 			else
 			{
-				PCGE_LOG(Warning, GraphAndLog, FTEXT("Some inputs generates no results. Are points coplanar? If so, use Convex Hull 2D instead."));
-				Context->SetState(PCGExMT::State_ReadyForNextPoints);
+				PCGE_LOG(Warning, GraphAndLog, FTEXT("(1) Some inputs generates no results. Are points coplanar? If so, use Convex Hull 2D instead."));
 				return false;
 			}
 		}
@@ -113,39 +112,38 @@ bool FPCGExBuildConvexHullElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExGeo::State_ProcessingHull))
 	{
-		if (Context->IsAsyncWorkComplete())
+		if (!Context->IsAsyncWorkComplete()) { return false; }
+
+		if (Context->bDoAsyncProcessing) { Context->ConvexHull->Finalize(); }
+		Context->ConvexHull->GetHullIndices(Context->HullIndices);
+
+		const TArray<FPCGPoint>& InPoints = Context->CurrentIO->GetIn()->GetPoints();
+
+		if (Settings->bPrunePoints)
 		{
-			Context->ConvexHull->Finalize();
-			Context->ConvexHull->GetHullIndices(Context->HullIndices);
+			TArray<FPCGPoint>& MutablePoints = Context->CurrentIO->GetOut()->GetMutablePoints();
+			MutablePoints.SetNumUninitialized(Context->HullIndices.Num());
+			int32 PointIndex = 0;
 
-			const TArray<FPCGPoint>& InPoints = Context->CurrentIO->GetIn()->GetPoints();
-			
-			if (Settings->bPrunePoints)
+			for (int i = 0; i < Context->CurrentIO->GetNum(); i++)
 			{
-				TArray<FPCGPoint>& MutablePoints = Context->CurrentIO->GetOut()->GetMutablePoints();
-				MutablePoints.SetNumUninitialized(Context->HullIndices.Num());
-				int32 PointIndex = 0;
-
-				for (int i = 0; i < Context->CurrentIO->GetNum(); i++)
-				{
-					if (!Context->HullIndices.Contains(i)) { continue; }
-					MutablePoints[PointIndex] = InPoints[i];
-					Context->IndicesRemap.Add(i, PointIndex++);
-				}
+				if (!Context->HullIndices.Contains(i)) { continue; }
+				MutablePoints[PointIndex] = InPoints[i];
+				Context->IndicesRemap.Add(i, PointIndex++);
 			}
-			else if (Settings->bMarkHull)
-			{
-				PCGEx::TFAttributeWriter<bool>* HullMarkPointWriter = new PCGEx::TFAttributeWriter<bool>(Settings->HullAttributeName, false, false);
-				HullMarkPointWriter->BindAndGet(*Context->CurrentIO);
-
-				for (int i = 0; i < Context->CurrentIO->GetNum(); i++) { HullMarkPointWriter->Values[i] = Context->HullIndices.Contains(i); }
-
-				HullMarkPointWriter->Write();
-				PCGEX_DELETE(HullMarkPointWriter)
-			}
-
-			Context->SetState(PCGExGraph::State_WritingClusters);
 		}
+		else if (Settings->bMarkHull)
+		{
+			PCGEx::TFAttributeWriter<bool>* HullMarkPointWriter = new PCGEx::TFAttributeWriter<bool>(Settings->HullAttributeName, false, false);
+			HullMarkPointWriter->BindAndGet(*Context->CurrentIO);
+
+			for (int i = 0; i < Context->CurrentIO->GetNum(); i++) { HullMarkPointWriter->Values[i] = Context->HullIndices.Contains(i); }
+
+			HullMarkPointWriter->Write();
+			PCGEX_DELETE(HullMarkPointWriter)
+		}
+
+		Context->SetState(PCGExGraph::State_WritingClusters);
 	}
 
 	if (Context->IsState(PCGExGraph::State_WritingClusters))

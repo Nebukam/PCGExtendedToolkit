@@ -22,6 +22,7 @@ namespace PCGExGeo
 		TArray<TFVtx<DIMENSIONS>*> Vertices;
 		TArray<TSimplexWrap<DIMENSIONS>*> Simplices;
 		double Centroid[DIMENSIONS];
+		FBox Bounds;
 
 	protected:
 		static constexpr double PLANE_DISTANCE_TOLERANCE = 1e-7f;
@@ -140,6 +141,17 @@ namespace PCGExGeo
 			for (const TFVtx<DIMENSIONS>* Vtx : Vertices) { if (Vtx->bIsOnHull) { OutSet.Add(Vtx->Id); } }
 		}
 
+		bool Contains(FVector Position)
+		{
+			if (!Bounds.IsInside(Position)) { return false; }
+			for (const TFSimplex<DIMENSIONS>* Simplex : Simplices)
+			{
+				if (Simplex->GetVertexDistance(Position) >= PLANE_DISTANCE_TOLERANCE) { return false; }
+			}
+
+			return true;
+		}
+
 #pragma endregion
 
 #pragma region Generate
@@ -188,6 +200,7 @@ namespace PCGExGeo
 
 		void Finalize()
 		{
+			Bounds = FBox(ForceInit);
 			int SimplexIndex = 0;
 			for (TSimplexWrap<DIMENSIONS>* Wrap : Simplices)
 			{

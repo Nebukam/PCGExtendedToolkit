@@ -63,7 +63,6 @@ namespace PCGExGeo
 		FRWLock HullLock;
 		FRWLock AsyncLock;
 
-		int32 NumFinalCells = 0;
 		TMap<int32, int32> SimpliceIndices;
 
 	public:
@@ -71,6 +70,7 @@ namespace PCGExGeo
 		TArray<TFVtx<DIMENSIONS>*> Vertices;
 		TArray<TDelaunayCell<DIMENSIONS>*> Cells;
 		TFVtx<DIMENSIONS>* Centroid = nullptr;
+		int32 NumFinalCells = 0;
 
 		FBox Bounds;
 		double BoundsExtension = 0;
@@ -193,19 +193,16 @@ namespace PCGExGeo
 		}
 
 	public:
-		virtual void StartAsyncPreprocessing(FPCGExAsyncManager* Manager) = 0;
-		virtual void StartAsyncProcessing(FPCGExAsyncManager* Manager) = 0;
-
 		void PreprocessSimplex(int32 Index)
 		{
+			TRACE_CPUPROFILER_EVENT_SCOPE(Delaunay::PreprocessSimplex);
+
 			TFSimplex<DIMENSIONS>* Simplex = Hull->Simplices[Index];
 
 			if (Simplex->Normal[DIMENSIONS - 1] >= 0.0f)
 			{
-				{
-					FWriteScopeLock WriteLock(HullLock);
-					for (TFSimplex<DIMENSIONS>* Adjacent : Simplex->AdjacentFaces) { if (Adjacent) { Adjacent->Remove(Simplex); } }
-				}
+				FWriteScopeLock WriteLock(HullLock);
+				for (TFSimplex<DIMENSIONS>* Adjacent : Simplex->AdjacentFaces) { if (Adjacent) { Adjacent->Remove(Simplex); } }
 				return;
 			}
 
@@ -217,6 +214,8 @@ namespace PCGExGeo
 
 		void ProcessSimplex(int32 Index)
 		{
+			TRACE_CPUPROFILER_EVENT_SCOPE(Delaunay::ProcessSimplex);
+
 			TFSimplex<DIMENSIONS>* Simplex = Hull->Simplices[*SimpliceIndices.Find(Index)];
 			TDelaunayCell<DIMENSIONS>* Cell = CreateCell(Simplex);
 			Cell->bIsWithinBounds = Bounds.IsInside(CellCenter == EPCGExCellCenter::Centroid ? Cell->Centroid : Cell->Circumcenter->GetV3());
@@ -228,23 +227,8 @@ namespace PCGExGeo
 		virtual TDelaunayCell<DIMENSIONS>* CreateCell(TFSimplex<DIMENSIONS>* Simplex) = 0;
 	};
 
-#define PCGEX_DELAUNAY_CLASS_DECL(_NUM) class FPreProcessSimplex##_NUM##Task; class FProcessSimplex##_NUM##Task;
-#define PCGEX_DELAUNAY_METHODS(_NUM)\
-	virtual void StartAsyncPreprocessing(FPCGExAsyncManager* Manager) override { for (int i = 0; i < Hull->Simplices.Num(); i++) { Manager->Start<FPreProcessSimplex##_NUM##Task>(i, nullptr, this); } }\
-	virtual void StartAsyncProcessing(FPCGExAsyncManager* Manager) override	{Cells.SetNumUninitialized(NumFinalCells); for (int i = 0; i < NumFinalCells; i++) { Manager->Start<FProcessSimplex##_NUM##Task>(i, nullptr, this); }}
-#define PCGEX_DELAUNAY_CLASS(_NUM)\
-	class PCGEXTENDEDTOOLKIT_API FPreProcessSimplex##_NUM##Task : public FPCGExNonAbandonableTask{	public:\
-		FPreProcessSimplex##_NUM##Task(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO, TDelaunayTriangulation##_NUM* InDelaunay) : FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO), Delaunay(InDelaunay){}\
-		TDelaunayTriangulation##_NUM* Delaunay = nullptr;\
-		virtual bool ExecuteTask() override{Delaunay->PreprocessSimplex(TaskIndex);return false;}};\
-	class PCGEXTENDEDTOOLKIT_API FProcessSimplex##_NUM##Task : public FPCGExNonAbandonableTask{	public:\
-		FProcessSimplex##_NUM##Task(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO, TDelaunayTriangulation##_NUM* InDelaunay) :FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),Delaunay(InDelaunay){}\
-		TDelaunayTriangulation##_NUM* Delaunay = nullptr;\
-		virtual bool ExecuteTask() override{Delaunay->PreprocessSimplex(TaskIndex);return false;}};
-
 #pragma region Delaunay2
 
-	PCGEX_DELAUNAY_CLASS_DECL(2)
 
 	class PCGEXTENDEDTOOLKIT_API TDelaunayTriangulation2 : public TDelaunayTriangulation<3, TConvexHull3>
 	{
@@ -252,8 +236,6 @@ namespace PCGExGeo
 		TDelaunayTriangulation2() : TDelaunayTriangulation()
 		{
 		}
-
-		PCGEX_DELAUNAY_METHODS(2)
 
 	protected:
 		virtual TDelaunayCell<3>* CreateCell(TFSimplex<3>* Simplex) override
@@ -303,12 +285,8 @@ namespace PCGExGeo
 		}
 	};
 
-	PCGEX_DELAUNAY_CLASS(2)
-
 #pragma endregion
 #pragma region Delaunay3
-
-	PCGEX_DELAUNAY_CLASS_DECL(3)
 
 	class PCGEXTENDEDTOOLKIT_API TDelaunayTriangulation3 : public TDelaunayTriangulation<4, TConvexHull4>
 	{
@@ -316,8 +294,6 @@ namespace PCGExGeo
 		TDelaunayTriangulation3() : TDelaunayTriangulation()
 		{
 		}
-
-		PCGEX_DELAUNAY_METHODS(3)
 
 	protected:
 		virtual TDelaunayCell<4>* CreateCell(TFSimplex<4>* Simplex) override
@@ -379,8 +355,6 @@ namespace PCGExGeo
 				FMath::Abs(s) * FMath::Sqrt(DX * DX + DY * DY + DZ * DZ - 4 * a * c));
 		}
 	};
-
-	PCGEX_DELAUNAY_CLASS(3)
 
 #pragma endregion
 

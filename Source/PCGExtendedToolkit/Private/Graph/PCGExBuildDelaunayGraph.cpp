@@ -86,8 +86,7 @@ bool FPCGExBuildDelaunayGraphElement::ExecuteInternal(
 		{
 			if (Context->CurrentIO->GetNum() <= 4)
 			{
-				Context->SetState(PCGExMT::State_ReadyForNextPoints);
-				PCGE_LOG(Warning, GraphAndLog, FTEXT("Some inputs have too few points to be processed (<= 4)."));
+				PCGE_LOG(Warning, GraphAndLog, FTEXT(" (0) Some inputs have too few points to be processed (<= 4)."));
 				return false;
 			}
 
@@ -99,49 +98,101 @@ bool FPCGExBuildDelaunayGraphElement::ExecuteInternal(
 
 				if (Context->ConvexHull->Prepare(HullVertices))
 				{
-					Context->ConvexHull->Generate();
-					Context->ConvexHull->GetHullIndices(Context->HullIndices);
-
-					PCGEx::TFAttributeWriter<bool>* HullMarkPointWriter = new PCGEx::TFAttributeWriter<bool>(Settings->HullAttributeName, false, false);
-					HullMarkPointWriter->BindAndGet(*Context->CurrentIO);
-
-					for (int i = 0; i < Context->CurrentIO->GetNum(); i++) { HullMarkPointWriter->Values[i] = Context->HullIndices.Contains(i); }
-
-					HullMarkPointWriter->Write();
-					PCGEX_DELETE(HullMarkPointWriter)
-
-					PCGEX_DELETE(Context->ConvexHull)
+					if (Context->bDoAsyncProcessing) { Context->ConvexHull->StartAsyncProcessing(Context->GetAsyncManager()); }
+					else { Context->ConvexHull->Generate(); }
+					Context->SetAsyncState(PCGExGeo::State_ProcessingHull);
 				}
 				else
 				{
-					PCGE_LOG(Warning, GraphAndLog, FTEXT("Some inputs generates no results. Are points coplanar? If so, use Delaunay 2D instead."));
-					Context->SetState(PCGExMT::State_ReadyForNextPoints);
+					PCGE_LOG(Warning, GraphAndLog, FTEXT("(1) Some inputs generates no results. Are points coplanar? If so, use Delaunay 2D instead."));
 					return false;
 				}
 			}
+			else
+			{
+				Context->SetAsyncState(PCGExGeo::State_ProcessingHull);
+			}
+		}
+	}
 
-			bool bValidDelaunay = false;
+	if (Context->IsState(PCGExGeo::State_ProcessingHull))
+	{
+		if (Settings->bMarkHull)
+		{
+			if (!Context->IsAsyncWorkComplete()) { return false; }
 
-			Context->Delaunay = new PCGExGeo::TDelaunayTriangulation3();
-			if (Context->Delaunay->PrepareFrom(Context->CurrentIO->GetIn()->GetPoints()))
+			if (Context->bDoAsyncProcessing) { Context->ConvexHull->Finalize(); }
+			Context->ConvexHull->GetHullIndices(Context->HullIndices);
+
+			PCGEx::TFAttributeWriter<bool>* HullMarkPointWriter = new PCGEx::TFAttributeWriter<bool>(Settings->HullAttributeName, false, false);
+			HullMarkPointWriter->BindAndGet(*Context->CurrentIO);
+
+			for (int i = 0; i < Context->CurrentIO->GetNum(); i++) { HullMarkPointWriter->Values[i] = Context->HullIndices.Contains(i); }
+
+			HullMarkPointWriter->Write();
+			PCGEX_DELETE(HullMarkPointWriter)
+			PCGEX_DELETE(Context->ConvexHull)
+		}
+
+		Context->Delaunay = new PCGExGeo::TDelaunayTriangulation3();
+		if (Context->Delaunay->PrepareFrom(Context->CurrentIO->GetIn()->GetPoints()))
+		{
+			if (Context->bDoAsyncProcessing) { Context->Delaunay->Hull->StartAsyncProcessing(Context->GetAsyncManager()); }
+			else { Context->Delaunay->Hull->Generate(); }
+			Context->SetAsyncState(PCGExGeo::State_ProcessingDelaunayHull);
+		}
+		else
+		{
+			Context->SetState(PCGExMT::State_ReadyForNextPoints);
+			PCGE_LOG(Warning, GraphAndLog, FTEXT("(2) Some inputs generates no results. Are points coplanar? If so, use Delaunay 2D instead."));
+			return false;
+		}
+	}
+
+	if (Context->IsState(PCGExGeo::State_ProcessingDelaunayHull))
+	{
+		if (Context->IsAsyncWorkComplete())
+		{
+			if (Context->bDoAsyncProcessing)
+			{
+				Context->SetState(PCGExGeo::State_ProcessingDelaunayPreprocess);
+			}
+			else
 			{
 				Context->Delaunay->Generate();
-				bValidDelaunay = !Context->Delaunay->Cells.IsEmpty();
-				Context->SetState(PCGExGraph::State_WritingClusters);
+				Context->SetAsyncState(PCGExGeo::State_ProcessingDelaunay);
 			}
-
-			if (!bValidDelaunay)
-			{
-				Context->SetState(PCGExMT::State_ReadyForNextPoints);
-				PCGE_LOG(Warning, GraphAndLog, FTEXT("Some inputs generates no results. Are points coplanar? If so, use Delaunay 2D instead."));
-				return false;
-			}
-			Context->SetState(PCGExGraph::State_WritingClusters);
 		}
+	}
+
+	if (Context->IsState(PCGExGeo::State_ProcessingDelaunayPreprocess))
+	{
+		auto PreprocessSimplex = [&](const int32 Index) { Context->Delaunay->PreprocessSimplex(Index); };
+		if (!Context->Process(PreprocessSimplex, Context->Delaunay->Hull->Simplices.Num())) { return false; }
+
+		Context->Delaunay->Cells.SetNumUninitialized(Context->Delaunay->NumFinalCells);
+		Context->SetState(PCGExGeo::State_ProcessingDelaunay);
+	}
+
+	if (Context->IsState(PCGExGeo::State_ProcessingDelaunay))
+	{
+		auto ProcessSimplex = [&](const int32 Index) { Context->Delaunay->ProcessSimplex(Index); };
+		if (!Context->Process(ProcessSimplex, Context->Delaunay->NumFinalCells)) { return false; }
+
+		if (Context->Delaunay->Cells.IsEmpty())
+		{
+			Context->SetState(PCGExMT::State_ReadyForNextPoints);
+			PCGE_LOG(Warning, GraphAndLog, FTEXT("(3) Some inputs generates no results. Are points coplanar? If so, use Delaunay 2D instead."));
+			return false;
+		}
+
+		Context->SetState(PCGExGraph::State_WritingClusters);
 	}
 
 	if (Context->IsState(PCGExGraph::State_WritingClusters))
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExBuildDelaunayGraphElement::WritingClusters);
+
 		Context->EdgeNetwork = new PCGExGraph::FEdgeNetwork(10, Context->CurrentIO->GetNum());
 		Context->Markings = new PCGExData::FKPointIOMarkedBindings<int32>(Context->CurrentIO, PCGExGraph::PUIDAttributeName);
 		Context->Markings->Mark = Context->CurrentIO->GetIn()->GetUniqueID();

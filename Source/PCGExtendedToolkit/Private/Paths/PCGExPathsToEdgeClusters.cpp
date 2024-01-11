@@ -145,17 +145,20 @@ bool FPCGExPathsToEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) c
 	if (Context->IsState(PCGExGraph::State_ProcessingGraph))
 	{
 		// Build Network
-		for (const PCGExGraph::FLooseNode* Node : Context->LooseNetwork->Nodes)
+		auto InsertEdge = [&](const int32 NodeIndex)
 		{
+			const PCGExGraph::FLooseNode* Node = Context->LooseNetwork->Nodes[NodeIndex];
 			for (const int32 OtherNodeIndex : Node->Neighbors)
 			{
 				Context->NetworkBuilder->Network->InsertEdge(Node->Index, OtherNodeIndex);
 			}
+		};
+
+		if (Context->Process(InsertEdge, Context->LooseNetwork->Nodes.Num()))
+		{
+			if (Context->NetworkBuilder->EdgeCrossings) { Context->SetState(PCGExGraph::State_FindingCrossings); }
+			else { Context->SetState(PCGExGraph::State_WritingClusters); }
 		}
-
-		if (Context->NetworkBuilder->EdgeCrossings) { Context->SetState(PCGExGraph::State_FindingCrossings); }
-		else { Context->SetState(PCGExGraph::State_WritingClusters); }
-
 	}
 
 	if (Context->IsState(PCGExGraph::State_FindingCrossings))

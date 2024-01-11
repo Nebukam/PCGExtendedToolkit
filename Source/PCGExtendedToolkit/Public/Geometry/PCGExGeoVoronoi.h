@@ -157,7 +157,6 @@ namespace PCGExGeo
 			for (int i = 0; i < Delaunay->Vertices.Num(); i++) { ProcessVertex(i); }
 		}
 
-	protected:
 		void PrepareVoronoi()
 		{
 			for (int i = 0; i < Delaunay->Vertices.Num(); i++) { Delaunay->Vertices[i]->Tag = i; }

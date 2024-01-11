@@ -24,6 +24,7 @@ enum class EPCGExCellCenter : uint8
 namespace PCGExGeo
 {
 	constexpr PCGExMT::AsyncState State_ProcessingHull = __COUNTER__;
+	constexpr PCGExMT::AsyncState State_ProcessingDelaunayHull = __COUNTER__;
 	constexpr PCGExMT::AsyncState State_ProcessingDelaunayPreprocess = __COUNTER__;
 	constexpr PCGExMT::AsyncState State_ProcessingDelaunay = __COUNTER__;
 	constexpr PCGExMT::AsyncState State_ProcessingVoronoi = __COUNTER__;
