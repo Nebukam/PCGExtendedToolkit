@@ -626,9 +626,10 @@ namespace PCGExGraph
 	protected:
 		mutable FRWLock NetworkLock;
 		int64 ClusterId = 0;
-
+		
 	public:
 		const int32 NumEdgesReserve;
+		bool bRequiresConsolidation = false;
 
 		TArray<FNetworkNode> Nodes;
 		TArray<FIndexedEdge> Edges;
@@ -650,6 +651,7 @@ namespace PCGExGraph
 		}
 
 		bool InsertEdge(const int32 A, const int32 B);
+		void BuildClusters();
 		void Consolidate(const bool bPrune, const int32 Min = 1, const int32 Max = TNumericLimits<int32>::Max());
 		void ConsolidateIndices(bool bPrune);
 

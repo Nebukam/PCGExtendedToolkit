@@ -4,6 +4,7 @@
 #include "Graph/PCGExGraph.h"
 
 #include "PCGExPointsProcessor.h"
+#include "Graph/PCGExCluster.h"
 
 namespace PCGExGraph
 {
@@ -263,12 +264,7 @@ namespace PCGExGraph
 		for (const int32 EdgeIndex : Edges)
 		{
 			const FIndexedEdge& Edge = InNetwork->Edges[EdgeIndex];
-			if (!Edge.bValid ||
-				!Nodes.Contains(Edge.Start) ||
-				!Nodes.Contains(Edge.End))
-			{
-				InvalidIndices.Add(EdgeIndex);
-			}
+			if (!Edge.bValid) { InvalidIndices.Add(EdgeIndex); }
 		}
 
 		if (InvalidIndices.Num() == Edges.Num())
@@ -279,16 +275,10 @@ namespace PCGExGraph
 		}
 		else
 		{
-			for (const int32 EdgeIndex : InvalidIndices)
-			{
-				InNetwork->Nodes[InNetwork->Edges[EdgeIndex].Start].Cluster = -1;
-				InNetwork->Nodes[InNetwork->Edges[EdgeIndex].End].Cluster = -1;
-				Edges.Remove(EdgeIndex);
-			}
+			for (const int32 EdgeIndex : InvalidIndices) { Edges.Remove(EdgeIndex); }
 		}
 
 		InvalidIndices.Empty();
-		return;
 	}
 
 	void FEdgeCluster::Invalidate(FEdgeNetwork* InNetwork)
@@ -318,37 +308,50 @@ namespace PCGExGraph
 		NodeA.Add(Edge);
 		NodeB.Add(Edge);
 
-		FEdgeCluster** ClusterA = Clusters.Find(NodeA.Cluster);
-		FEdgeCluster** ClusterB = Clusters.Find(NodeB.Cluster);
+		return true;
+	}
 
-		if (!ClusterA && !ClusterB)
-		{
-			// New cluster
-			FEdgeCluster* NewCluster = new FEdgeCluster();
-			Clusters.Add(ClusterId, NewCluster);
+	void FEdgeNetwork::BuildClusters()
+	{
+		TSet<int32> VisitedNodes;
+		VisitedNodes.Reserve(Nodes.Num());
 
-			NewCluster->Id = ClusterId++;
-			NewCluster->Add(Edge, this);
-		}
-		else if (ClusterA && ClusterB)
+		for (int i = 0; i < Nodes.Num(); i++)
 		{
-			if (ClusterA != ClusterB)
+			int32 NodeIndex = Nodes[i].Index;
+			if (VisitedNodes.Contains(NodeIndex)) { continue; }
+
+			const FNetworkNode& StartNode = Nodes[i];
+			if (Nodes[NodeIndex].Edges.IsEmpty())
 			{
-				// Merge clusters
-				(*ClusterA)->Append(*ClusterB, this);
-				Clusters.Remove((*ClusterB)->Id);
-				PCGEX_DELETE(*ClusterB);
+				VisitedNodes.Add(NodeIndex);
+				continue;
 			}
 
-			(*ClusterA)->Add(Edge, this);
-		}
-		else
-		{
-			// Expand cluster
-			(ClusterA ? *ClusterA : *ClusterB)->Add(Edge, this);
-		}
+			FEdgeCluster* Cluster = new FEdgeCluster();
+			Clusters.Add(ClusterId, Cluster);
+			Cluster->Id = ClusterId++;
 
-		return true;
+			TQueue<int32> ClusterQueue;
+			ClusterQueue.Enqueue(NodeIndex);
+
+			int32 NextIndex = -1;
+			while (ClusterQueue.Dequeue(NextIndex))
+			{
+				if (VisitedNodes.Contains(NextIndex)) { continue; }
+				VisitedNodes.Add(NextIndex);
+
+				for (int32 E : Nodes[NextIndex].Edges)
+				{
+					const FIndexedEdge& Edge = Edges[E];
+					if (!Edge.bValid) { continue; }
+
+					int32 OtherIndex = Edge.Other(NextIndex);
+					Cluster->Add(Edge, this);
+					if (!VisitedNodes.Contains(OtherIndex)) { ClusterQueue.Enqueue(OtherIndex); }
+				}
+			}
+		}
 	}
 
 	void FEdgeNetwork::ConsolidateIndices(const bool bPrune)
@@ -364,9 +367,10 @@ namespace PCGExGraph
 	void FEdgeNetwork::Consolidate(const bool bPrune, const int32 Min, const int32 Max)
 	{
 		TArray<FEdgeCluster*> InvalidClusters;
+
 		for (const TPair<int64, FEdgeCluster*>& Pair : Clusters)
 		{
-			Pair.Value->Consolidate(this);
+			if (bRequiresConsolidation) { Pair.Value->Consolidate(this); }
 			if (!FMath::IsWithin(Pair.Value->Edges.Num(), Min, Max)) { InvalidClusters.Add(Pair.Value); }
 		}
 
@@ -376,6 +380,8 @@ namespace PCGExGraph
 			Cluster->Invalidate(this);
 			delete Cluster;
 		}
+
+		bRequiresConsolidation = false;
 
 		ConsolidateIndices(bPrune);
 	}
@@ -430,6 +436,7 @@ namespace PCGExGraph
 		TArray<FIndexedEdge>& Edges = EdgeNetwork->Edges;
 
 		Nodes.Reserve(Nodes.Num() + Crossings.Num());
+		if (!Crossings.IsEmpty()) { EdgeNetwork->bRequiresConsolidation = true; }
 
 		for (const FEdgeCrossing& EdgeCrossing : Crossings)
 		{
@@ -464,10 +471,12 @@ namespace PCGExGraph
 	bool FEdgeNetworkBuilder::BeginWriting(FPCGExPointsProcessorContext* InContext, int32 Min, int32 Max) const
 	{
 		if (EdgeCrossings) { EdgeCrossings->InsertCrossings(); }
+
+		Network->BuildClusters();
+
 		if (bPrunePoints)
 		{
 			Network->Consolidate(true, Min, Max);
-
 			TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
 			const int32 NumMaxNodes = Network->Nodes.Num();
 			MutablePoints.Reserve(NumMaxNodes);
@@ -530,7 +539,7 @@ namespace PCGExGraph
 
 bool FWriteClusterTask::ExecuteTask()
 {
-	Cluster->Consolidate(EdgeNetwork);
+	if (EdgeNetwork->bRequiresConsolidation) { Cluster->Consolidate(EdgeNetwork); }
 
 	if (Cluster->Edges.IsEmpty() ||
 		Cluster->Nodes.IsEmpty() ||

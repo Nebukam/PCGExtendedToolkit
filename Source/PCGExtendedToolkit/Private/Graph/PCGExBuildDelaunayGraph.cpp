@@ -14,19 +14,15 @@
 
 int32 UPCGExBuildDelaunayGraphSettings::GetPreferredChunkSize() const { return 32; }
 
-PCGExData::EInit UPCGExBuildDelaunayGraphSettings::GetMainOutputInitMode() const { return bMarkHull ? PCGExData::EInit::DuplicateInput : PCGExData::EInit::Forward; }
+PCGExData::EInit UPCGExBuildDelaunayGraphSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
 FPCGExBuildDelaunayGraphContext::~FPCGExBuildDelaunayGraphContext()
 {
 	PCGEX_TERMINATE_ASYNC
 
-	PCGEX_DELETE(ClustersIO)
-
+	PCGEX_DELETE(NetworkBuilder)
 	PCGEX_DELETE(Delaunay)
 	PCGEX_DELETE(ConvexHull)
-
-	PCGEX_DELETE(EdgeNetwork)
-	PCGEX_DELETE(Markings)
 
 	HullIndices.Empty();
 }
@@ -56,9 +52,6 @@ bool FPCGExBuildDelaunayGraphElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_VALIDATE_NAME(Settings->HullAttributeName)
 
-	Context->ClustersIO = new PCGExData::FPointIOGroup();
-	Context->ClustersIO->DefaultOutputLabel = PCGExGraph::OutputEdgesLabel;
-
 	return true;
 }
 
@@ -77,6 +70,7 @@ bool FPCGExBuildDelaunayGraphElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
+		PCGEX_DELETE(Context->NetworkBuilder)
 		PCGEX_DELETE(Context->Delaunay)
 		PCGEX_DELETE(Context->ConvexHull)
 		Context->HullIndices.Empty();
@@ -186,26 +180,23 @@ bool FPCGExBuildDelaunayGraphElement::ExecuteInternal(
 			return false;
 		}
 
-		Context->SetState(PCGExGraph::State_WritingClusters);
+		Context->NetworkBuilder = new PCGExGraph::FEdgeNetworkBuilder(*Context->CurrentIO, 8);
+
+		TArray<PCGExGraph::FUnsignedEdge> Edges;
+		Context->Delaunay->GetUniqueEdges(Edges);
+		for (const PCGExGraph::FUnsignedEdge& Edge : Edges)
+		{
+			Context->NetworkBuilder->Network->InsertEdge(Edge.Start, Edge.End);
+		}
+
+		Context->NetworkBuilder->BeginWriting(Context);
+		Context->SetAsyncState(PCGExGraph::State_WritingClusters);
 	}
 
 	if (Context->IsState(PCGExGraph::State_WritingClusters))
 	{
-		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExBuildDelaunayGraphElement::WritingClusters);
-
-		Context->EdgeNetwork = new PCGExGraph::FEdgeNetwork(10, Context->CurrentIO->GetNum());
-		Context->Markings = new PCGExData::FKPointIOMarkedBindings<int32>(Context->CurrentIO, PCGExGraph::PUIDAttributeName);
-		Context->Markings->Mark = Context->CurrentIO->GetIn()->GetUniqueID();
-
-		WriteEdges(Context);
-
-		Context->Markings->UpdateMark();
-		Context->ClustersIO->OutputTo(Context, true);
-		Context->ClustersIO->Flush();
-
-		PCGEX_DELETE(Context->EdgeNetwork)
-		PCGEX_DELETE(Context->Markings)
-
+		if (!Context->IsAsyncWorkComplete()) { return false; }
+		Context->NetworkBuilder->CompleteWriting(Context);		
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
@@ -219,12 +210,22 @@ bool FPCGExBuildDelaunayGraphElement::ExecuteInternal(
 
 void FPCGExBuildDelaunayGraphElement::WriteEdges(FPCGExBuildDelaunayGraphContext* Context) const
 {
+	/*
 	PCGEX_SETTINGS(BuildDelaunayGraph)
+
+	Context->NetworkBuilder = new PCGExGraph::FEdgeNetworkBuilder(*Context->CurrentIO, 8);
 
 	// Find unique edges
 	TSet<uint64> UniqueEdges;
 	TArray<PCGExGraph::FUnsignedEdge> Edges;
 	Context->Delaunay->GetUniqueEdges(Edges);
+
+	for (const PCGExGraph::FUnsignedEdge& Edge : Edges)
+	{
+		Context->NetworkBuilder->Network->InsertEdge(Edge.Start, Edge.End);
+	}
+
+	Context->NetworkBuilder->BeginWriting()
 
 	PCGExData::FPointIO& DelaunayEdges = Context->ClustersIO->Emplace_GetRef();
 	Context->Markings->Add(DelaunayEdges);
@@ -275,6 +276,7 @@ void FPCGExBuildDelaunayGraphElement::WriteEdges(FPCGExBuildDelaunayGraphContext
 	PCGEX_DELETE(EdgeStart)
 	PCGEX_DELETE(EdgeEnd)
 	PCGEX_DELETE(HullMarkWriter)
+	*/
 }
 
 #undef LOCTEXT_NAMESPACE

@@ -71,11 +71,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBuildDelaunayGraphContext : public FPCGExPoi
 	PCGExGeo::TConvexHull3* ConvexHull = nullptr;
 	TSet<int32> HullIndices;
 
-	mutable FRWLock NetworkLock;
-	PCGExGraph::FEdgeNetwork* EdgeNetwork = nullptr;
-	PCGExData::FPointIOGroup* ClustersIO;
-
-	PCGExData::FKPointIOMarkedBindings<int32>* Markings = nullptr;
+	PCGExGraph::FEdgeNetworkBuilder* NetworkBuilder = nullptr;
 };
 
 
