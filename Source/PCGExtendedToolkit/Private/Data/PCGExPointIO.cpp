@@ -32,7 +32,19 @@ namespace PCGExData
 	}
 
 	const UPCGPointData* FPointIO::GetIn() const { return In; }
-	int32 FPointIO::GetNum() const { return In ? In->GetPoints().Num() : Out ? Out->GetPoints().Num() : -1; }
+	UPCGPointData* FPointIO::GetOut() const { return Out; }
+	const UPCGPointData* FPointIO::GetOutIn() const { return Out ? Out : In; }
+	const UPCGPointData* FPointIO::GetInOut() const { return In ? In : Out; }
+
+	int32 FPointIO::GetNum() const
+	{
+		return In ? In->GetPoints().Num() : Out ? Out->GetPoints().Num() : -1;
+	}
+
+	int32 FPointIO::GetOutNum() const
+	{
+		return Out && !Out->GetPoints().IsEmpty() ? Out->GetPoints().Num() : In ? In->GetPoints().Num() : -1;
+	}
 
 	FPCGAttributeAccessorKeysPoints* FPointIO::CreateInKeys()
 	{
@@ -44,7 +56,6 @@ namespace PCGExData
 
 	FPCGAttributeAccessorKeysPoints* FPointIO::GetInKeys() const { return InKeys; }
 
-	UPCGPointData* FPointIO::GetOut() const { return Out; }
 
 	FPCGAttributeAccessorKeysPoints* FPointIO::CreateOutKeys()
 	{
@@ -162,7 +173,8 @@ namespace PCGExData
 					bSuccess = true;
 				}
 			}
-			else
+			
+			if(!bSuccess) //Emplace Out with no In
 			{
 				FPCGTaggedData& OutputRef = Context->OutputData.TaggedData.Emplace_GetRef();
 				OutputRef.Data = Out;

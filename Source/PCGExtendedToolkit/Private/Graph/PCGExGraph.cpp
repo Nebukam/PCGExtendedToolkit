@@ -308,10 +308,6 @@ namespace PCGExGraph
 
 			const FIndexedEdge& Edge = Edges.Emplace_GetRef(Edges.Num(), E.Start, E.End);
 
-			check(Nodes.IsValidIndex(E.Start))
-			check(Nodes.IsValidIndex(E.End))
-			check(Edges.IsValidIndex(Edge.Index))
-			
 			Nodes[E.Start].Add(Edge.Index);
 			Nodes[E.End].Add(Edge.Index);
 		}
@@ -476,20 +472,39 @@ namespace PCGExGraph
 		{
 			Graph->Consolidate(true, Min, Max);
 			TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
-			const int32 NumMaxNodes = Graph->Nodes.Num();
-			MutablePoints.Reserve(NumMaxNodes);
 
-			for (const PCGExGraph::FNode& Node : Graph->Nodes)
+			if (!MutablePoints.IsEmpty())
 			{
-				if (Node.bCrossing || Node.PointIndex == -1) { continue; }
-				const int32 Index = MutablePoints.Add(PointIO->GetInPoint(Node.Index));
+				//Assume points were filled before, and remove them from the current array
+				TArray<FPCGPoint> ValidPoints;
+				ValidPoints.Reserve(MutablePoints.Num());
+
+				for (PCGExGraph::FNode& Node : Graph->Nodes)
+				{
+					if (Node.bCrossing || !Node.bValid) { continue; }
+					Node.PointIndex = ValidPoints.Add(MutablePoints[Node.Index]);
+				}
+
+				MutablePoints.Reset(ValidPoints.Num());
+				MutablePoints.Append(ValidPoints);
+			}
+			else
+			{
+				const int32 NumMaxNodes = Graph->Nodes.Num();
+				MutablePoints.Reserve(NumMaxNodes);
+
+				for (PCGExGraph::FNode& Node : Graph->Nodes)
+				{
+					if (Node.bCrossing || !Node.bValid) { continue; }
+					Node.PointIndex = MutablePoints.Add(PointIO->GetInPoint(Node.Index));
+				}
 			}
 
 			if (EdgeCrossings)
 			{
 				for (int i = 0; i < EdgeCrossings->Crossings.Num(); i++)
 				{
-					if (Graph->Nodes[EdgeCrossings->StartIndex + i].PointIndex == -1) { continue; }
+					if (!Graph->Nodes[EdgeCrossings->StartIndex + i].bValid) { continue; }
 					MutablePoints.Last().Transform.SetLocation(EdgeCrossings->Crossings[i].Center);
 				}
 			}

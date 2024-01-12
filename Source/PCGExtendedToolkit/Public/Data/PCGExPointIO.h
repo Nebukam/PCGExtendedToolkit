@@ -72,11 +72,15 @@ namespace PCGExData
 		~FPointIO();
 
 		const UPCGPointData* GetIn() const;
+		UPCGPointData* GetOut() const;
+		const UPCGPointData* GetOutIn() const;
+		const UPCGPointData* GetInOut() const;
+		
 		int32 GetNum() const;
+		int32 GetOutNum() const;
 		FPCGAttributeAccessorKeysPoints* CreateInKeys();
 		FPCGAttributeAccessorKeysPoints* GetInKeys() const;
 
-		UPCGPointData* GetOut() const;
 		FPCGAttributeAccessorKeysPoints* CreateOutKeys();
 		FPCGAttributeAccessorKeysPoints* GetOutKeys() const;
 

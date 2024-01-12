@@ -650,14 +650,15 @@ namespace PCGExGraph
 			for (int i = 0; i < InNumNodes; i++)
 			{
 				FNode& Node = Nodes[i];
-				Node.Index = i;
+				Node.Index = Node.PointIndex = i;
+				Node.bValid = false;
 				Node.Edges.Reserve(NumEdgesReserve);
 			}
 		}
 
 		bool InsertEdge(const int32 A, const int32 B);
 		void InsertEdges(const TArray<FUnsignedEdge>& InEdges);
-		
+
 		void BuildSubGraphs();
 		void Consolidate(const bool bPrune, const int32 Min = 1, const int32 Max = TNumericLimits<int32>::Max());
 		void ConsolidateIndices(bool bPrune);
@@ -737,10 +738,12 @@ namespace PCGExGraph
 		{
 			PointIO = &InPointIO;
 
-			Graph = new FGraph(PointIO->GetNum(), NumEdgeReserve);
+			const int32 NumNodes = PointIO->GetOutNum();
+			
+			Graph = new FGraph(NumNodes, NumEdgeReserve);
 
 			Markings = new PCGExData::FKPointIOMarkedBindings<int32>(PointIO, PUIDAttributeName);
-			Markings->Mark = PointIO->GetIn()->GetUniqueID();
+			Markings->Mark = PointIO->GetOutIn()->GetUniqueID();
 
 			EdgesIO = new PCGExData::FPointIOGroup();
 			EdgesIO->DefaultOutputLabel = OutputEdgesLabel;
@@ -768,8 +771,8 @@ class PCGEXTENDEDTOOLKIT_API FWriteSubGraphEdgesTask : public FPCGExNonAbandonab
 {
 public:
 	FWriteSubGraphEdgesTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-	                  PCGExData::FPointIO* InClusterIO, PCGExGraph::FGraph* InGraph, PCGExGraph::FSubGraph* InSubGraph,
-	                  int32 InMin = 1, int32 InMax = TNumericLimits<int32>::Max())
+	                        PCGExData::FPointIO* InClusterIO, PCGExGraph::FGraph* InGraph, PCGExGraph::FSubGraph* InSubGraph,
+	                        int32 InMin = 1, int32 InMax = TNumericLimits<int32>::Max())
 		: FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
 		  EdgeIO(InClusterIO), Graph(InGraph), SubGraph(InSubGraph),
 		  Min(InMin), Max(InMax)

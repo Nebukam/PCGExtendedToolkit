@@ -234,7 +234,7 @@ void FPCGExBuildVoronoiGraphContext::WriteEdges()
 
 	// Vtx -> Circumcenters
 	//TODO : Datablending
-
+	
 	TArray<FPCGPoint>& Centroids = CurrentIO->GetOut()->GetMutablePoints();
 	Voronoi->GetVoronoiPoints(Centroids, Settings->Method);
 

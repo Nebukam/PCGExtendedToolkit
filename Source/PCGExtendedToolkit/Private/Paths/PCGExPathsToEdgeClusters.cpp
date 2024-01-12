@@ -165,12 +165,12 @@ bool FPCGExPathsToEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) c
 	{
 		auto Initialize = [&]()
 		{
-			Context->NetworkBuilder->EdgeCrossings->Prepare(Context->CurrentIO->GetIn()->GetPoints());
+			Context->NetworkBuilder->EdgeCrossings->Prepare(Context->ConsolidatedPoints->GetOut()->GetPoints());
 		};
 
 		auto ProcessEdge = [&](const int32 Index)
 		{
-			Context->NetworkBuilder->EdgeCrossings->ProcessEdge(Index, Context->CurrentIO->GetIn()->GetPoints());
+			Context->NetworkBuilder->EdgeCrossings->ProcessEdge(Index, Context->ConsolidatedPoints->GetOut()->GetPoints());
 		};
 
 		if (Context->Process(Initialize, ProcessEdge, Context->NetworkBuilder->Graph->Edges.Num()))
@@ -196,6 +196,7 @@ bool FPCGExPathsToEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) c
 		if (Context->IsAsyncWorkComplete())
 		{
 			Context->NetworkBuilder->Write(Context);
+			Context->OutputPoints();
 			Context->Done();
 		}
 	}
