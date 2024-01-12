@@ -26,7 +26,7 @@ FPCGExBuildVoronoiGraph2DContext::~FPCGExBuildVoronoiGraph2DContext()
 	PCGEX_DELETE(Voronoi)
 	PCGEX_DELETE(ConvexHull)
 
-	PCGEX_DELETE(EdgeNetwork)
+	PCGEX_DELETE(Graph)
 	PCGEX_DELETE(Markings)
 
 	HullIndices.Empty();
@@ -217,7 +217,7 @@ bool FPCGExBuildVoronoiGraph2DElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExGraph::State_WritingClusters))
 	{
-		Context->EdgeNetwork = new PCGExGraph::FEdgeNetwork(10, Context->CurrentIO->GetNum());
+		Context->Graph = new PCGExGraph::FGraph(Context->CurrentIO->GetNum());
 		Context->Markings = new PCGExData::FKPointIOMarkedBindings<int32>(Context->CurrentIO, PCGExGraph::PUIDAttributeName);
 		Context->Markings->Mark = Context->CurrentIO->GetIn()->GetUniqueID();
 
@@ -227,7 +227,7 @@ bool FPCGExBuildVoronoiGraph2DElement::ExecuteInternal(
 		Context->ClustersIO->OutputTo(Context, true);
 		Context->ClustersIO->Flush();
 
-		PCGEX_DELETE(Context->EdgeNetwork)
+		PCGEX_DELETE(Context->Graph)
 		PCGEX_DELETE(Context->Markings)
 
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);

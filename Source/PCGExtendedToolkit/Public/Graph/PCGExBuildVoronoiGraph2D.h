@@ -85,7 +85,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBuildVoronoiGraph2DContext : public FPCGExPo
 	TSet<int32> HullIndices;
 
 	mutable FRWLock NetworkLock;
-	PCGExGraph::FEdgeNetwork* EdgeNetwork = nullptr;
+	PCGExGraph::FGraph* Graph = nullptr;
 	PCGExData::FPointIOGroup* ClustersIO;
 
 	PCGExData::FKPointIOMarkedBindings<int32>* Markings = nullptr;

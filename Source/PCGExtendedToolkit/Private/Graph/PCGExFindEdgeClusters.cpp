@@ -79,7 +79,7 @@ bool FPCGExFindEdgeClustersElement::ExecuteInternal(
 		if (!Context->AdvancePointsIOAndResetGraph()) { Context->Done(); }
 		else
 		{
-			Context->NetworkBuilder = new PCGExGraph::FEdgeNetworkBuilder(*Context->CurrentIO, Context->MergedInputSocketsNum);
+			Context->NetworkBuilder = new PCGExGraph::FGraphBuilder(*Context->CurrentIO, Context->MergedInputSocketsNum);
 			if (Settings->bFindCrossings) { Context->NetworkBuilder->EnableCrossings(Settings->CrossingTolerance); }
 			if (Settings->bPruneIsolatedPoints) { Context->NetworkBuilder->EnablePointsPruning(); }
 
@@ -115,7 +115,7 @@ bool FPCGExFindEdgeClustersElement::ExecuteInternal(
 			{
 				const int32 End = SocketInfo.Socket->GetTargetIndexReader().Values[PointIndex];
 				const int32 InEdgeType = SocketInfo.Socket->GetEdgeTypeReader().Values[PointIndex];
-				if (End != -1 && (InEdgeType & EdgeType) != 0) { Context->NetworkBuilder->Network->InsertEdge(PointIndex, End); }
+				if (End != -1 && (InEdgeType & EdgeType) != 0) { Context->NetworkBuilder->Graph->InsertEdge(PointIndex, End); }
 			}
 		};
 
@@ -138,7 +138,7 @@ bool FPCGExFindEdgeClustersElement::ExecuteInternal(
 			Context->NetworkBuilder->EdgeCrossings->ProcessEdge(Index, Context->CurrentIO->GetIn()->GetPoints());
 		};
 
-		if (Context->Process(Initialize, ProcessEdge, Context->NetworkBuilder->Network->Edges.Num()))
+		if (Context->Process(Initialize, ProcessEdge, Context->NetworkBuilder->Graph->Edges.Num()))
 		{
 			Context->SetState(PCGExGraph::State_WritingClusters);
 		}
@@ -148,7 +148,7 @@ bool FPCGExFindEdgeClustersElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExGraph::State_WritingClusters))
 	{
-		if (Context->NetworkBuilder->BeginWriting(Context, Context->MinClusterSize, Context->MaxClusterSize))
+		if (Context->NetworkBuilder->Compile(Context, Context->MinClusterSize, Context->MaxClusterSize))
 		{
 			Context->SetAsyncState(PCGExGraph::State_WaitingOnWritingClusters);
 		}
@@ -162,7 +162,7 @@ bool FPCGExFindEdgeClustersElement::ExecuteInternal(
 	{
 		if (Context->IsAsyncWorkComplete())
 		{
-			Context->NetworkBuilder->CompleteWriting(Context);
+			Context->NetworkBuilder->Write(Context);
 			Context->SetState(PCGExMT::State_ReadyForNextPoints);
 		}
 	}

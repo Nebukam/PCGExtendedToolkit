@@ -65,7 +65,7 @@ bool FPCGExRefineEdgesElement::ExecuteInternal(
 			}
 			else
 			{
-				Context->NetworkBuilder = new PCGExGraph::FEdgeNetworkBuilder(*Context->CurrentIO, 8);
+				Context->NetworkBuilder = new PCGExGraph::FGraphBuilder(*Context->CurrentIO, 8);
 				if (Settings->bPruneIsolatedPoints) { Context->NetworkBuilder->EnablePointsPruning(); }
 
 				Context->SetState(PCGExGraph::State_ReadyForNextEdges);
@@ -96,7 +96,7 @@ bool FPCGExRefineEdgesElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExGraph::State_WritingClusters))
 	{
-		if (Context->NetworkBuilder->BeginWriting(Context))
+		if (Context->NetworkBuilder->Compile(Context))
 		{
 			Context->SetAsyncState(PCGExGraph::State_WaitingOnWritingClusters);
 		}
@@ -110,7 +110,7 @@ bool FPCGExRefineEdgesElement::ExecuteInternal(
 	{
 		if (Context->IsAsyncWorkComplete())
 		{
-			Context->NetworkBuilder->CompleteWriting(Context);
+			Context->NetworkBuilder->Write(Context);
 			Context->SetState(PCGExMT::State_ReadyForNextPoints);
 		}
 	}

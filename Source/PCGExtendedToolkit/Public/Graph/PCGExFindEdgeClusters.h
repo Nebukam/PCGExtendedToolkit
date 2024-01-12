@@ -13,7 +13,7 @@
 
 namespace PCGExGraph
 {
-	struct FEdgeNetwork;
+	class FGraph;
 	struct FEdgeCrossingsHandler;
 }
 
@@ -120,7 +120,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFindEdgeClustersContext : public FPCGExGraph
 	FName ClusterSizeAttributeName;
 	FName PointUIDAttributeName;
 
-	PCGExGraph::FEdgeNetworkBuilder* NetworkBuilder = nullptr;
+	PCGExGraph::FGraphBuilder* NetworkBuilder = nullptr;
 };
 
 

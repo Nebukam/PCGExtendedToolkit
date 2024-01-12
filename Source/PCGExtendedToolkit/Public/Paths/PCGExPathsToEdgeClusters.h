@@ -14,7 +14,7 @@
 namespace PCGExGraph
 {
 	struct FEdgeCrossingsHandler;
-	struct FEdgeNetwork;
+	class FGraph;
 
 	struct PCGEXTENDEDTOOLKIT_API FLooseNode
 	{
@@ -140,7 +140,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathsToEdgeClustersContext : public FPCGExPa
 
 	PCGExData::FPointIO* ConsolidatedPoints = nullptr;
 
-	PCGExGraph::FEdgeNetworkBuilder* NetworkBuilder = nullptr;
+	PCGExGraph::FGraphBuilder* NetworkBuilder = nullptr;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExPathsToEdgeClustersElement : public FPCGExPathProcessorElement

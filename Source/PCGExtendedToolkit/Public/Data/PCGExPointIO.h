@@ -161,6 +161,8 @@ namespace PCGExData
 		bool IsEmpty() const { return Pairs.IsEmpty(); }
 		int32 Num() const { return Pairs.Num(); }
 
+		FPointIO& operator[](int32 Index) const { return *Pairs[Index]; }
+		
 		void OutputTo(FPCGContext* Context, bool bEmplace = false);
 		void OutputTo(FPCGContext* Context, bool bEmplace, const int32 MinPointCount, const int32 MaxPointCount);
 

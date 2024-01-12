@@ -10,8 +10,8 @@
 
 namespace PCGExGraph
 {
-	struct FEdgeNetworkBuilder;
-	struct FEdgeNetwork;
+	class FGraphBuilder;
+	class FGraph;
 }
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Edges")
@@ -56,7 +56,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExRefineEdgesContext : public FPCGExEdgesProce
 
 	UPCGExEdgeRefineOperation* Refinement;
 
-	PCGExGraph::FEdgeNetworkBuilder* NetworkBuilder = nullptr;
+	PCGExGraph::FGraphBuilder* NetworkBuilder = nullptr;
 	
 };
 

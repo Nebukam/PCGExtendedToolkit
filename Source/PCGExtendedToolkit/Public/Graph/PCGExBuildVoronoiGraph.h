@@ -89,11 +89,11 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBuildVoronoiGraphContext : public FPCGExPoin
 	PCGExGeo::TConvexHull3* ConvexHull = nullptr;
 	TSet<int32> HullIndices;
 
-	mutable FRWLock NetworkLock;
-	PCGExGraph::FEdgeNetwork* EdgeNetwork = nullptr;
-	PCGExData::FPointIOGroup* ClustersIO;
+	PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
 
-	PCGExData::FKPointIOMarkedBindings<int32>* Markings = nullptr;
+protected:
+	void WriteEdges();
+	
 };
 
 
@@ -108,5 +108,4 @@ public:
 protected:
 	virtual bool Boot(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
-	void WriteEdges(FPCGExBuildVoronoiGraphContext* Context) const;
 };

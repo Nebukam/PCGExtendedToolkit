@@ -99,7 +99,7 @@ bool FPCGExPathsToEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) c
 				MutablePoints[i].Transform.SetLocation(Context->LooseNetwork->Nodes[i]->Center);
 			}
 
-			Context->NetworkBuilder = new PCGExGraph::FEdgeNetworkBuilder(*Context->ConsolidatedPoints, 4);
+			Context->NetworkBuilder = new PCGExGraph::FGraphBuilder(*Context->ConsolidatedPoints, 4);
 			if (Settings->bFindCrossings) { Context->NetworkBuilder->EnableCrossings(Settings->CrossingTolerance); }
 
 			Context->SetState(PCGExGraph::State_ProcessingGraph);
@@ -150,7 +150,7 @@ bool FPCGExPathsToEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) c
 			const PCGExGraph::FLooseNode* Node = Context->LooseNetwork->Nodes[NodeIndex];
 			for (const int32 OtherNodeIndex : Node->Neighbors)
 			{
-				Context->NetworkBuilder->Network->InsertEdge(Node->Index, OtherNodeIndex);
+				Context->NetworkBuilder->Graph->InsertEdge(Node->Index, OtherNodeIndex);
 			}
 		};
 
@@ -173,7 +173,7 @@ bool FPCGExPathsToEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) c
 			Context->NetworkBuilder->EdgeCrossings->ProcessEdge(Index, Context->CurrentIO->GetIn()->GetPoints());
 		};
 
-		if (Context->Process(Initialize, ProcessEdge, Context->NetworkBuilder->Network->Edges.Num()))
+		if (Context->Process(Initialize, ProcessEdge, Context->NetworkBuilder->Graph->Edges.Num()))
 		{
 			Context->SetState(PCGExGraph::State_WritingClusters);
 		}
@@ -181,7 +181,7 @@ bool FPCGExPathsToEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) c
 
 	if (Context->IsState(PCGExGraph::State_WritingClusters))
 	{
-		if (Context->NetworkBuilder->BeginWriting(Context))
+		if (Context->NetworkBuilder->Compile(Context))
 		{
 			Context->SetAsyncState(PCGExGraph::State_WaitingOnWritingClusters);
 		}
@@ -195,7 +195,7 @@ bool FPCGExPathsToEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) c
 	{
 		if (Context->IsAsyncWorkComplete())
 		{
-			Context->NetworkBuilder->CompleteWriting(Context);
+			Context->NetworkBuilder->Write(Context);
 			Context->Done();
 		}
 	}

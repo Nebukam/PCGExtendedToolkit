@@ -69,13 +69,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBuildConvexHullContext : public FPCGExPoints
 
 	PCGExGeo::TConvexHull3* ConvexHull = nullptr;
 	TSet<int32> HullIndices;
-	TMap<int32, int32> IndicesRemap;
-
-	mutable FRWLock NetworkLock;
-	PCGExGraph::FEdgeNetwork* EdgeNetwork = nullptr;
-	PCGExData::FPointIOGroup* ClustersIO;
-
-	PCGExData::FKPointIOMarkedBindings<int32>* Markings = nullptr;
+	PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
+	
 };
 
 

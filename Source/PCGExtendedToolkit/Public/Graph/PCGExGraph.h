@@ -568,23 +568,31 @@ namespace PCGExGraph
 
 #pragma region Network
 
-	struct FEdgeNetwork;
+	class FGraph;
 
-	struct PCGEXTENDEDTOOLKIT_API FNetworkNode
+	struct PCGEXTENDEDTOOLKIT_API FNode
 	{
-		FNetworkNode()
+		FNode()
 		{
 		}
 
 		bool bCrossing = false;
-		int32 Index = -1;
-		int32 SafeIndex = -1;
-		int64 Cluster = -1;
-		TArray<int32> Edges;
+		bool bValid = false;
 
-		bool IsIsolated() const { return Cluster == -1; }
-		bool GetNeighbors(const TArray<FIndexedEdge>& InEdges, TArray<int32>& OutIndices);
-		void Add(const FIndexedEdge& Edge);
+		int32 Index = -1;
+		int32 PointIndex = -1;
+
+		TArray<int32> Edges;
+		TArray<int32> AdjacentNodes;
+
+		~FNode()
+		{
+			Edges.Empty();
+			AdjacentNodes.Empty();
+		}
+
+		void FixAdjacentNodes(const TArray<FIndexedEdge>& InEdges);
+		void Add(const int32 EdgeIndex);
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FEdgeCrossing
@@ -598,80 +606,79 @@ namespace PCGExGraph
 		FVector Center;
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FEdgeCluster
+	struct PCGEXTENDEDTOOLKIT_API FSubGraph
 	{
 		bool bConsolidated = false;
 		int64 Id = -1;
 		TSet<int32> Nodes;
-		TSet<int32> Edges;
+		TSet<int32> Edges; //TODO : Test for TArray
 
-		FEdgeCluster()
+		FSubGraph()
 		{
 		}
 
-		~FEdgeCluster()
+		~FSubGraph()
 		{
 			Nodes.Empty();
 			Edges.Empty();
 		}
 
-		void Add(const FIndexedEdge& Edge, FEdgeNetwork* InNetwork);
-		void Append(const FEdgeCluster* Other, FEdgeNetwork* InNetwork);
-		void Consolidate(FEdgeNetwork* InNetwork);
-		void Invalidate(FEdgeNetwork* InNetwork);
+		void Add(const FIndexedEdge& Edge, FGraph* InGraph);
+		void Consolidate(FGraph* InGraph);
+		void Invalidate(FGraph* InGraph);
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FEdgeNetwork
+	class PCGEXTENDEDTOOLKIT_API FGraph
 	{
-	protected:
-		mutable FRWLock NetworkLock;
-		int64 ClusterId = 0;
-		
-	public:
+		mutable FRWLock GraphLock;
 		const int32 NumEdgesReserve;
+
+	public:
 		bool bRequiresConsolidation = false;
 
-		TArray<FNetworkNode> Nodes;
+		TArray<FNode> Nodes;
 		TArray<FIndexedEdge> Edges;
 
 		TSet<uint64> UniqueEdges;
 
-		TMap<int64, FEdgeCluster*> Clusters;
+		TArray<FSubGraph*> SubGraphs;
 
-		FEdgeNetwork(const int32 InNumEdgesReserve, const int32 InNumNodes)
+		FGraph(const int32 InNumNodes, const int32 InNumEdgesReserve = 10)
 			: NumEdgesReserve(InNumEdgesReserve)
 		{
 			Nodes.SetNum(InNumNodes);
 			for (int i = 0; i < InNumNodes; i++)
 			{
-				FNetworkNode& Node = Nodes[i];
+				FNode& Node = Nodes[i];
 				Node.Index = i;
 				Node.Edges.Reserve(NumEdgesReserve);
 			}
 		}
 
 		bool InsertEdge(const int32 A, const int32 B);
-		void BuildClusters();
+		void InsertEdges(const TArray<FUnsignedEdge>& InEdges);
+		
+		void BuildSubGraphs();
 		void Consolidate(const bool bPrune, const int32 Min = 1, const int32 Max = TNumericLimits<int32>::Max());
 		void ConsolidateIndices(bool bPrune);
 
-		void ForEachCluster(TFunction<void(FEdgeCluster*)>&& Func)
+		void ForEachCluster(TFunction<void(FSubGraph*)>&& Func)
 		{
-			for (const TPair<int64, FEdgeCluster*>& Pair : Clusters)
+			for (FSubGraph* Cluster : SubGraphs)
 			{
-				if (Pair.Value->Nodes.IsEmpty() || Pair.Value->Edges.IsEmpty()) { continue; }
-				Func(Pair.Value);
+				if (Cluster->Nodes.IsEmpty() || Cluster->Edges.IsEmpty()) { continue; }
+				Func(Cluster);
 			}
 		}
 
-		~FEdgeNetwork()
+		~FGraph()
 		{
 			Nodes.Empty();
 			UniqueEdges.Empty();
 			Edges.Empty();
 
-			for (const TPair<int64, FEdgeCluster*>& Pair : Clusters) { delete Pair.Value; }
-			Clusters.Empty();
+			for (const FSubGraph* Cluster : SubGraphs) { delete Cluster; }
+			SubGraphs.Empty();
 		}
 	};
 
@@ -679,7 +686,7 @@ namespace PCGExGraph
 	{
 		mutable FRWLock CrossingLock;
 
-		FEdgeNetwork* EdgeNetwork;
+		FGraph* Graph;
 		double Tolerance;
 		double SquaredTolerance;
 
@@ -689,8 +696,8 @@ namespace PCGExGraph
 		int32 NumEdges;
 		int32 StartIndex;
 
-		FEdgeCrossingsHandler(FEdgeNetwork* InEdgeNetwork, const double InTolerance)
-			: EdgeNetwork(InEdgeNetwork),
+		FEdgeCrossingsHandler(FGraph* InEdgeNetwork, const double InTolerance)
+			: Graph(InEdgeNetwork),
 			  Tolerance(InTolerance),
 			  SquaredTolerance(InTolerance * InTolerance)
 		{
@@ -705,7 +712,7 @@ namespace PCGExGraph
 		{
 			SegmentBounds.Empty();
 			Crossings.Empty();
-			EdgeNetwork = nullptr;
+			Graph = nullptr;
 		}
 
 		void Prepare(const TArray<FPCGPoint>& InPoints);
@@ -713,67 +720,65 @@ namespace PCGExGraph
 		void InsertCrossings();
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FEdgeNetworkBuilder
+	class PCGEXTENDEDTOOLKIT_API FGraphBuilder
 	{
-	protected:
 		bool bPrunePoints = false;
 
 	public:
 		PCGExData::FPointIO* PointIO = nullptr;
 		PCGExData::FKPointIOMarkedBindings<int32>* Markings = nullptr;
 
-		FEdgeNetwork* Network = nullptr;
+		FGraph* Graph = nullptr;
 		FEdgeCrossingsHandler* EdgeCrossings = nullptr;
 
-		PCGExData::FPointIOGroup* ClustersIO = nullptr;
+		PCGExData::FPointIOGroup* EdgesIO = nullptr;
 
-		FEdgeNetworkBuilder(PCGExData::FPointIO& InPointIO, int32 NumEdgeReserve = 8)
+		FGraphBuilder(PCGExData::FPointIO& InPointIO, int32 NumEdgeReserve = 6)
 		{
 			PointIO = &InPointIO;
 
-			Network = new FEdgeNetwork(NumEdgeReserve, PointIO->GetNum());
+			Graph = new FGraph(PointIO->GetNum(), NumEdgeReserve);
 
 			Markings = new PCGExData::FKPointIOMarkedBindings<int32>(PointIO, PUIDAttributeName);
 			Markings->Mark = PointIO->GetIn()->GetUniqueID();
 
-			ClustersIO = new PCGExData::FPointIOGroup();
-			ClustersIO->DefaultOutputLabel = OutputEdgesLabel;
+			EdgesIO = new PCGExData::FPointIOGroup();
+			EdgesIO->DefaultOutputLabel = OutputEdgesLabel;
 		}
 
 		void EnableCrossings(const double Tolerance);
 		void EnablePointsPruning();
 
-		bool BeginWriting(FPCGExPointsProcessorContext* InContext, int32 Min = 1, int32 Max = TNumericLimits<int32>::Max()) const;
-		void CompleteWriting(FPCGExPointsProcessorContext* InContext) const;
+		bool Compile(FPCGExPointsProcessorContext* InContext, int32 Min = 1, int32 Max = TNumericLimits<int32>::Max()) const;
+		void Write(FPCGExPointsProcessorContext* InContext) const;
 
-		~FEdgeNetworkBuilder()
+		~FGraphBuilder()
 		{
 			PCGEX_DELETE(Markings)
-			PCGEX_DELETE(Network)
+			PCGEX_DELETE(Graph)
 			PCGEX_DELETE(EdgeCrossings)
-			PCGEX_DELETE(ClustersIO)
+			PCGEX_DELETE(EdgesIO)
 		}
 	};
 
 #pragma endregion
 }
 
-
-class PCGEXTENDEDTOOLKIT_API FWriteClusterTask : public FPCGExNonAbandonableTask
+class PCGEXTENDEDTOOLKIT_API FWriteSubGraphEdgesTask : public FPCGExNonAbandonableTask
 {
 public:
-	FWriteClusterTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-	                  PCGExData::FPointIO* InClusterIO, PCGExGraph::FEdgeNetwork* InEdgeNetwork, PCGExGraph::FEdgeCluster* InCluster,
+	FWriteSubGraphEdgesTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+	                  PCGExData::FPointIO* InClusterIO, PCGExGraph::FGraph* InGraph, PCGExGraph::FSubGraph* InSubGraph,
 	                  int32 InMin = 1, int32 InMax = TNumericLimits<int32>::Max())
 		: FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
-		  ClusterIO(InClusterIO), EdgeNetwork(InEdgeNetwork), Cluster(InCluster),
+		  EdgeIO(InClusterIO), Graph(InGraph), SubGraph(InSubGraph),
 		  Min(InMin), Max(InMax)
 	{
 	}
 
-	PCGExData::FPointIO* ClusterIO = nullptr;
-	PCGExGraph::FEdgeNetwork* EdgeNetwork = nullptr;
-	PCGExGraph::FEdgeCluster* Cluster = nullptr;
+	PCGExData::FPointIO* EdgeIO = nullptr;
+	PCGExGraph::FGraph* Graph = nullptr;
+	PCGExGraph::FSubGraph* SubGraph = nullptr;
 	int32 Min;
 	int32 Max;
 

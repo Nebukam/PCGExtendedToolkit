@@ -71,7 +71,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBuildDelaunayGraphContext : public FPCGExPoi
 	PCGExGeo::TConvexHull3* ConvexHull = nullptr;
 	TSet<int32> HullIndices;
 
-	PCGExGraph::FEdgeNetworkBuilder* NetworkBuilder = nullptr;
+	PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
 };
 
 
@@ -86,5 +86,4 @@ public:
 protected:
 	virtual bool Boot(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
-	void WriteEdges(FPCGExBuildDelaunayGraphContext* Context) const;
 };

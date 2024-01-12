@@ -70,12 +70,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBuildDelaunayGraph2DContext : public FPCGExP
 	PCGExGeo::TDelaunayTriangulation2* Delaunay = nullptr;
 	PCGExGeo::TConvexHull2* ConvexHull = nullptr;
 	TSet<int32> HullIndices;
-
-	mutable FRWLock NetworkLock;
-	PCGExGraph::FEdgeNetwork* EdgeNetwork = nullptr;
-	PCGExData::FPointIOGroup* ClustersIO;
-
-	PCGExData::FKPointIOMarkedBindings<int32>* Markings = nullptr;
+	
+	PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
+	
 };
 
 
@@ -90,16 +87,4 @@ public:
 protected:
 	virtual bool Boot(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
-	void WriteEdges(FPCGExBuildDelaunayGraph2DContext* Context) const;
-};
-
-class PCGEXTENDEDTOOLKIT_API FDelaunay2DInsertTask : public FPCGExNonAbandonableTask
-{
-public:
-	FDelaunay2DInsertTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO) :
-		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO)
-	{
-	}
-
-	virtual bool ExecuteTask() override;
 };

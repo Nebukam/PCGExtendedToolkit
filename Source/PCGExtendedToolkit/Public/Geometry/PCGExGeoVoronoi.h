@@ -126,6 +126,34 @@ namespace PCGExGeo
 			UniqueEdges.Empty();
 		}
 
+		virtual void GetVoronoiPoints(TArray<FPCGPoint>& OutPoints, EPCGExCellCenter Method)
+		{
+			OutPoints.SetNum(Delaunay->Cells.Num());
+
+			switch (Method)
+			{
+			default:
+			case EPCGExCellCenter::Balanced:
+				for (const TDelaunayCell<DIMENSIONS>* Cell : Delaunay->Cells)
+				{
+					OutPoints[Cell->Circumcenter->Id].Transform.SetLocation(Cell->GetBestCenter());
+				}
+				break;
+			case EPCGExCellCenter::Circumcenter:
+				for (const TDelaunayCell<DIMENSIONS>* Cell : Delaunay->Cells)
+				{
+					OutPoints[Cell->Circumcenter->Id].Transform.SetLocation(Cell->Circumcenter->GetV3());
+				}
+				break;
+			case EPCGExCellCenter::Centroid:
+				for (const TDelaunayCell<DIMENSIONS>* Cell : Delaunay->Cells)
+				{
+					OutPoints[Cell->Circumcenter->Id].Transform.SetLocation(Cell->Centroid);
+				}
+				break;
+			}
+		}
+
 	protected:
 		void InternalPrepare()
 		{
