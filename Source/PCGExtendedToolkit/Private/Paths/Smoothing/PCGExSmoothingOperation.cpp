@@ -42,8 +42,8 @@ void UPCGExSmoothingOperation::DoSmooth(PCGExData::FPointIO& InPointIO)
 		for (int i = 0; i < Influences.Num(); i++) { Influences[i] = FMath::Clamp(1 - InfluenceGetter.Values[i], 0, 1); }
 	}
 
-	if (bPinStart) { Influences[0] = 1; }
-	if (bPinEnd) { Influences[InPointIO.GetNum() - 1] = 1; }
+	if (bPreserveStart) { Influences[0] = 1; }
+	if (bPreserveEnd) { Influences[InPointIO.GetNum() - 1] = 1; }
 
 	PCGExDataBlending::FMetadataBlender* MetadataLerp = new PCGExDataBlending::FMetadataBlender(&InfluenceSettings);
 	MetadataLerp->PrepareForData(InPointIO);

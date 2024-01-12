@@ -24,7 +24,7 @@ bool FPCGExAsyncManager::IsAsyncWorkComplete() const
 }
 
 void FPCGExAsyncManager::Reset()
-{
+{	
 	FWriteScopeLock WriteLock(ManagerLock);
 
 	bFlushing = true;

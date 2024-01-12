@@ -82,7 +82,7 @@ bool FPCGExDrawEdgesElement::ExecuteInternal(
 	{
 		while (Context->AdvanceEdges())
 		{
-			for (const PCGExCluster::FIndexedEdge& Edge : Context->CurrentCluster->Edges)
+			for (const PCGExGraph::FIndexedEdge& Edge : Context->CurrentCluster->Edges)
 			{
 				if (!Edge.bValid) { continue; }
 				FVector Start = Context->CurrentCluster->GetVertexFromPointIndex(Edge.Start).Position;

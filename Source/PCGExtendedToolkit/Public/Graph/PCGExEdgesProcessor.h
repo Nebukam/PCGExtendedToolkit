@@ -41,7 +41,7 @@ public:
 	virtual bool GetMainAcceptMultipleData() const override;
 	//~End UPCGExPointsProcessorSettings interface
 
-	virtual bool GetCacheAllClusteres() const;
+	virtual bool GetCacheAllClusters() const;
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExEdgesProcessorContext : public FPCGExPointsProcessorContext
@@ -58,7 +58,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgesProcessorContext : public FPCGExPointsP
 	bool AdvanceAndBindPointsIO();
 	bool AdvanceEdges(); // Advance edges within current points
 
-	bool bCacheAllClusteres = false;
+	bool bCacheAllClusters = false;
 	PCGExCluster::FCluster* CurrentCluster = nullptr;
 	TArray<PCGExCluster::FCluster*> Clusters;
 

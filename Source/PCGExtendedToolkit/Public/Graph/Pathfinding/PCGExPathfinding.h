@@ -82,6 +82,14 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicModifier : public FPCGExInputDescri
 	/** Modifier weight. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1))
 	double Weight = 100;
+
+	/** Fetch weight from attribute. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle, DisplayPriority=1))
+	bool bUseLocalWeight = false;
+
+	/** Attribute to fetch local weight from. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseLocalWeight", DisplayPriority=1))
+	FPCGExInputDescriptorWithSingleField LocalWeight;
 };
 
 USTRUCT(BlueprintType)
@@ -150,17 +158,28 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicModifiersSettings
 			PCGEx::FLocalSingleFieldGetter* NewGetter = new PCGEx::FLocalSingleFieldGetter();
 			NewGetter->Capture(Modifier);
 
+			PCGEx::FLocalSingleFieldGetter* WeightGetter = nullptr;
+
+			if (Modifier.bUseLocalWeight)
+			{
+				WeightGetter = new PCGEx::FLocalSingleFieldGetter();
+				WeightGetter->Capture(Modifier.LocalWeight);
+			}
+
 			bool bSuccess;
+			bool bLocalWeight = false;
 			if (Modifier.Source == EPCGExHeuristicScoreSource::Point)
 			{
 				if (!bUpdatePoints) { continue; }
 				bSuccess = NewGetter->Bind(InPoints);
+				if (WeightGetter) { bLocalWeight = WeightGetter->Bind(InPoints); }
 				TargetArray = &PointScoreModifiers;
 				NumIterations = NumPoints;
 			}
 			else
 			{
 				bSuccess = NewGetter->Bind(InEdges);
+				if (WeightGetter) { bLocalWeight = WeightGetter->Bind(InEdges); }
 				TargetArray = &EdgeScoreModifiers;
 				NumIterations = NumEdges;
 			}
@@ -189,10 +208,24 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicModifiersSettings
 				OutMin = 1;
 				OutMax = -1;
 			}
-
-			for (int i = 0; i < NumIterations; i++) { (*TargetArray)[i] += (PCGExMath::Remap(NewGetter->Values[i], MinValue, MaxValue, OutMin, OutMax) * Modifier.Weight) * OutScale; }
+			
+			if (bLocalWeight)
+			{
+				for (int i = 0; i < NumIterations; i++)
+				{
+					(*TargetArray)[i] += (PCGExMath::Remap(NewGetter->Values[i], MinValue, MaxValue, OutMin, OutMax) * WeightGetter->Values[i]) * OutScale;
+				}
+			}
+			else
+			{
+				for (int i = 0; i < NumIterations; i++)
+				{
+					(*TargetArray)[i] += (PCGExMath::Remap(NewGetter->Values[i], MinValue, MaxValue, OutMin, OutMax) * Modifier.Weight) * OutScale;
+				}
+			}
 
 			PCGEX_DELETE(NewGetter)
+			PCGEX_DELETE(WeightGetter)
 		}
 	}
 
@@ -322,7 +355,7 @@ namespace PCGExPathfinding
 				for (const PCGExCluster::FVertex& Vtx = Cluster->GetVertex(CurrentVtxIndex);
 				     const int32 EdgeIndex : Vtx.Edges) //TODO: Use edge instead?
 				{
-					const PCGExCluster::FIndexedEdge& Edge = Cluster->Edges[EdgeIndex];
+					const PCGExGraph::FIndexedEdge& Edge = Cluster->Edges[EdgeIndex];
 					const int32 OtherPointIndex = Edge.Other(Vtx.PointIndex);
 					if (Visited.Contains(OtherPointIndex)) { continue; }
 

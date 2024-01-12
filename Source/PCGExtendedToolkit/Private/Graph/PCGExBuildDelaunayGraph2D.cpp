@@ -20,13 +20,9 @@ FPCGExBuildDelaunayGraph2DContext::~FPCGExBuildDelaunayGraph2DContext()
 {
 	PCGEX_TERMINATE_ASYNC
 
-	PCGEX_DELETE(ClustersIO)
-
+	PCGEX_DELETE(GraphBuilder)
 	PCGEX_DELETE(Delaunay)
 	PCGEX_DELETE(ConvexHull)
-
-	PCGEX_DELETE(EdgeNetwork)
-	PCGEX_DELETE(Markings)
 
 	HullIndices.Empty();
 }
@@ -56,9 +52,6 @@ bool FPCGExBuildDelaunayGraph2DElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_VALIDATE_NAME(Settings->HullAttributeName)
 
-	Context->ClustersIO = new PCGExData::FPointIOGroup();
-	Context->ClustersIO->DefaultOutputLabel = PCGExGraph::OutputEdgesLabel;
-
 	return true;
 }
 
@@ -77,6 +70,7 @@ bool FPCGExBuildDelaunayGraph2DElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
+		PCGEX_DELETE(Context->GraphBuilder)
 		PCGEX_DELETE(Context->Delaunay)
 		PCGEX_DELETE(Context->ConvexHull)
 		Context->HullIndices.Empty();
@@ -86,8 +80,7 @@ bool FPCGExBuildDelaunayGraph2DElement::ExecuteInternal(
 		{
 			if (Context->CurrentIO->GetNum() <= 4)
 			{
-				Context->SetState(PCGExMT::State_ReadyForNextPoints);
-				PCGE_LOG(Warning, GraphAndLog, FTEXT("Some inputs have too few points to be processed (<= 3)."));
+				PCGE_LOG(Warning, GraphAndLog, FTEXT("(0) Some inputs have too few points to be processed (<= 3)."));
 				return false;
 			}
 
@@ -97,63 +90,114 @@ bool FPCGExBuildDelaunayGraph2DElement::ExecuteInternal(
 				TArray<PCGExGeo::TFVtx<2>*> HullVertices;
 				GetVerticesFromPoints(Context->CurrentIO->GetIn()->GetPoints(), HullVertices);
 
-				if (Context->ConvexHull->Generate(HullVertices))
+				if (Context->ConvexHull->Prepare(HullVertices))
 				{
-					Context->ConvexHull->GetHullIndices(Context->HullIndices);
-
-					PCGEx::TFAttributeWriter<bool>* HullMarkPointWriter = new PCGEx::TFAttributeWriter<bool>(Settings->HullAttributeName, false, false);
-					HullMarkPointWriter->BindAndGet(*Context->CurrentIO);
-
-					for (int i = 0; i < Context->CurrentIO->GetNum(); i++) { HullMarkPointWriter->Values[i] = Context->HullIndices.Contains(i); }
-
-					HullMarkPointWriter->Write();
-					PCGEX_DELETE(HullMarkPointWriter)
-
-					PCGEX_DELETE(Context->ConvexHull)
+					if (Context->bDoAsyncProcessing) { Context->ConvexHull->StartAsyncProcessing(Context->GetAsyncManager()); }
+					else { Context->ConvexHull->Generate(); }
+					Context->SetAsyncState(PCGExGeo::State_ProcessingHull);
 				}
 				else
 				{
-					PCGE_LOG(Warning, GraphAndLog, FTEXT("Some inputs generates no results. Check for singularities."));
-					Context->SetState(PCGExMT::State_ReadyForNextPoints);
+					PCGE_LOG(Warning, GraphAndLog, FTEXT("(1) Some inputs generates no results. Check for singularities."));
 					return false;
 				}
 			}
+		}
+	}
 
-			bool bValidDelaunay = false;
+	if (Context->IsState(PCGExGeo::State_ProcessingHull))
+	{
+		if (Settings->bMarkHull)
+		{
+			if (!Context->IsAsyncWorkComplete()) { return false; }
 
-			Context->Delaunay = new PCGExGeo::TDelaunayTriangulation2();
-			if (Context->Delaunay->PrepareFrom(Context->CurrentIO->GetIn()->GetPoints()))
+			if (Context->bDoAsyncProcessing) { Context->ConvexHull->Finalize(); }
+			Context->ConvexHull->GetHullIndices(Context->HullIndices);
+
+			PCGEx::TFAttributeWriter<bool>* HullMarkPointWriter = new PCGEx::TFAttributeWriter<bool>(Settings->HullAttributeName, false, false);
+			HullMarkPointWriter->BindAndGet(*Context->CurrentIO);
+
+			for (int i = 0; i < Context->CurrentIO->GetNum(); i++) { HullMarkPointWriter->Values[i] = Context->HullIndices.Contains(i); }
+
+			HullMarkPointWriter->Write();
+			PCGEX_DELETE(HullMarkPointWriter)
+			PCGEX_DELETE(Context->ConvexHull)
+		}
+
+		Context->Delaunay = new PCGExGeo::TDelaunayTriangulation2();
+		if (Context->Delaunay->PrepareFrom(Context->CurrentIO->GetIn()->GetPoints()))
+		{
+			if (Context->bDoAsyncProcessing)
+			{
+				Context->Delaunay->Hull->StartAsyncProcessing(Context->GetAsyncManager());
+			}
+			else { Context->Delaunay->Hull->Generate(); }
+			Context->SetAsyncState(PCGExGeo::State_ProcessingDelaunayHull);
+		}
+		else
+		{
+			Context->SetState(PCGExMT::State_ReadyForNextPoints);
+			PCGE_LOG(Warning, GraphAndLog, FTEXT("(2) Some inputs generates no results. Are points coplanar? If so, use Delaunay 2D instead."));
+			return false;
+		}
+	}
+
+	if (Context->IsState(PCGExGeo::State_ProcessingDelaunayHull))
+	{
+		if (Context->IsAsyncWorkComplete())
+		{
+			Context->Delaunay->Hull->Finalize();
+
+			if (Context->bDoAsyncProcessing)
+			{
+				Context->SetState(PCGExGeo::State_ProcessingDelaunayPreprocess);
+			}
+			else
 			{
 				Context->Delaunay->Generate();
-				bValidDelaunay = !Context->Delaunay->Cells.IsEmpty();
-				Context->SetState(PCGExGraph::State_WritingClusters);
+				Context->SetAsyncState(PCGExGeo::State_ProcessingDelaunay);
 			}
-
-			if (!bValidDelaunay)
-			{
-				Context->SetState(PCGExMT::State_ReadyForNextPoints);
-				PCGE_LOG(Warning, GraphAndLog, FTEXT("Some inputs generates no results. Check for singularities."));
-				return false;
-			}
-			Context->SetState(PCGExGraph::State_WritingClusters);
 		}
+	}
+
+	if (Context->IsState(PCGExGeo::State_ProcessingDelaunayPreprocess))
+	{
+		auto PreprocessSimplex = [&](const int32 Index) { Context->Delaunay->PreprocessSimplex(Index); };
+		if (!Context->Process(PreprocessSimplex, Context->Delaunay->Hull->Simplices.Num())) { return false; }
+
+		Context->Delaunay->Cells.SetNumUninitialized(Context->Delaunay->NumFinalCells);
+		Context->SetState(PCGExGeo::State_ProcessingDelaunay);
+	}
+
+	if (Context->IsState(PCGExGeo::State_ProcessingDelaunay))
+	{
+		auto ProcessSimplex = [&](const int32 Index) { Context->Delaunay->ProcessSimplex(Index); };
+		if (!Context->Process(ProcessSimplex, Context->Delaunay->NumFinalCells)) { return false; }
+
+		if (Context->Delaunay->Cells.IsEmpty())
+		{
+			Context->SetState(PCGExMT::State_ReadyForNextPoints);
+			PCGE_LOG(Warning, GraphAndLog, FTEXT("(3) Some inputs generates no results. Are points coplanar? If so, use Delaunay 2D instead."));
+			return false;
+		}
+
+		Context->GraphBuilder = new PCGExGraph::FGraphBuilder(*Context->CurrentIO, 8);
+
+		TArray<PCGExGraph::FUnsignedEdge> Edges;
+		Context->Delaunay->GetUniqueEdges(Edges);
+		Context->GraphBuilder->Graph->InsertEdges(Edges);
+
+		Context->GraphBuilder->Compile(Context);
+		Context->SetAsyncState(PCGExGraph::State_WritingClusters);
 	}
 
 	if (Context->IsState(PCGExGraph::State_WritingClusters))
 	{
-		Context->EdgeNetwork = new PCGExGraph::FEdgeNetwork(10, Context->CurrentIO->GetNum());
-		Context->Markings = new PCGExData::FKPointIOMarkedBindings<int32>(Context->CurrentIO, PCGExGraph::PUIDAttributeName);
-		Context->Markings->Mark = Context->CurrentIO->GetIn()->GetUniqueID();
+		if (!Context->IsAsyncWorkComplete()) { return false; }
 
-		WriteEdges(Context);
+		//TODO: Mark edges, process EdgesIO from GraphBuilder
 
-		Context->Markings->UpdateMark();
-		Context->ClustersIO->OutputTo(Context, true);
-		Context->ClustersIO->Flush();
-
-		PCGEX_DELETE(Context->EdgeNetwork)
-		PCGEX_DELETE(Context->Markings)
-
+		Context->GraphBuilder->Write(Context);
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
@@ -163,75 +207,6 @@ bool FPCGExBuildDelaunayGraph2DElement::ExecuteInternal(
 	}
 
 	return Context->IsDone();
-}
-
-void FPCGExBuildDelaunayGraph2DElement::WriteEdges(FPCGExBuildDelaunayGraph2DContext* Context) const
-{
-	PCGEX_SETTINGS(BuildDelaunayGraph2D)
-
-	// Find unique edges
-	TSet<uint64> UniqueEdges;
-	TArray<PCGExGraph::FUnsignedEdge> Edges;
-	Context->Delaunay->GetUniqueEdges(Edges);
-
-	PCGExData::FPointIO& DelaunayEdges = Context->ClustersIO->Emplace_GetRef();
-	Context->Markings->Add(DelaunayEdges);
-
-	TArray<FPCGPoint>& MutablePoints = DelaunayEdges.GetOut()->GetMutablePoints();
-	MutablePoints.SetNum(Edges.Num());
-
-	DelaunayEdges.CreateOutKeys();
-
-	PCGEx::TFAttributeWriter<int32>* EdgeStart = new PCGEx::TFAttributeWriter<int32>(PCGExGraph::EdgeStartAttributeName, -1, false);
-	PCGEx::TFAttributeWriter<int32>* EdgeEnd = new PCGEx::TFAttributeWriter<int32>(PCGExGraph::EdgeEndAttributeName, -1, false);
-	PCGEx::TFAttributeWriter<bool>* HullMarkWriter = nullptr;
-
-	EdgeStart->BindAndGet(DelaunayEdges);
-	EdgeEnd->BindAndGet(DelaunayEdges);
-
-	if (Settings->bMarkHull)
-	{
-		HullMarkWriter = new PCGEx::TFAttributeWriter<bool>(Settings->HullAttributeName, false);
-		HullMarkWriter->BindAndGet(DelaunayEdges);
-	}
-
-	int32 PointIndex = 0;
-	for (const PCGExGraph::FUnsignedEdge& Edge : Edges)
-	{
-		EdgeStart->Values[PointIndex] = Edge.Start;
-		EdgeEnd->Values[PointIndex] = Edge.End;
-
-		const FVector StartPosition = Context->CurrentIO->GetInPoint(Edge.Start).Transform.GetLocation();
-		const FVector EndPosition = Context->CurrentIO->GetInPoint(Edge.End).Transform.GetLocation();
-
-		MutablePoints[PointIndex].Transform.SetLocation(FMath::Lerp(StartPosition, EndPosition, 0.5));
-
-		if (HullMarkWriter)
-		{
-			const bool bStartOnHull = Context->HullIndices.Contains(Edge.Start);
-			const bool bEndOnHull = Context->HullIndices.Contains(Edge.End);
-			HullMarkWriter->Values[PointIndex] = Settings->bMarkEdgeOnTouch ? bStartOnHull || bEndOnHull : bStartOnHull && bEndOnHull;
-		}
-
-		PointIndex++;
-	}
-
-	EdgeStart->Write();
-	EdgeEnd->Write();
-	if (HullMarkWriter) { HullMarkWriter->Write(); }
-
-	PCGEX_DELETE(EdgeStart)
-	PCGEX_DELETE(EdgeEnd)
-	PCGEX_DELETE(HullMarkWriter)
-}
-
-bool FDelaunay2DInsertTask::ExecuteTask()
-{
-	const FPCGExBuildDelaunayGraph2DContext* Context = Manager->GetContext<FPCGExBuildDelaunayGraph2DContext>();
-	//	Context->Delaunay->InsertVertex(TaskIndex);
-
-	//PCGEX_DELETE(Triangulation3)
-	return true;
 }
 
 #undef LOCTEXT_NAMESPACE

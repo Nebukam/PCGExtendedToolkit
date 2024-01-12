@@ -131,8 +131,8 @@ bool FWriteExtrasTask::ExecuteTask()
 		}
 	}
 
-	const TArray<PCGExCluster::FIndexedEdge>& Edges = Context->CurrentCluster->Edges;
-	for (const PCGExCluster::FIndexedEdge& Edge : Edges)
+	const TArray<PCGExGraph::FIndexedEdge>& Edges = Context->CurrentCluster->Edges;
+	for (const PCGExGraph::FIndexedEdge& Edge : Edges)
 	{
 		PCGEx::FPointRef Target = PointIO->GetOutPointRef(Edge.Index);
 		Context->MetadataBlender->PrepareForBlending(Target);

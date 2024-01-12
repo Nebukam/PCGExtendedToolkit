@@ -7,13 +7,14 @@
 
 #include "PCGExGraphProcessor.h"
 #include "Data/PCGExData.h"
+#include "Geometry/PCGExGeo.h"
 
 #include "PCGExBuildVoronoiGraph2D.generated.h"
 
 namespace PCGExGeo
 {
+	class TVoronoiMesh2;
 	class TConvexHull2;
-	class TDelaunayTriangulation2;
 }
 
 /**
@@ -43,6 +44,18 @@ public:
 	//~End UPCGExPointsProcessorSettings interface
 
 public:
+	/** Method used to find Voronoi cell location */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	EPCGExCellCenter Method = EPCGExCellCenter::Balanced;
+
+	/** Prune points and cell outside bounds */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
+	bool bPruneOutsideBounds = false;
+
+	/** Prune points and cell outside bounds (computed based on input vertices + optional extension)*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bPruneOutsideBounds"))
+	double BoundsCutoff = 100;
+
 	/** Mark points & edges that lie on the hull */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bMarkHull = true;
@@ -67,12 +80,12 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBuildVoronoiGraph2DContext : public FPCGExPo
 
 	int32 ClusterUIndex = 0;
 
-	PCGExGeo::TDelaunayTriangulation2* Voronoi = nullptr;
+	PCGExGeo::TVoronoiMesh2* Voronoi = nullptr;
 	PCGExGeo::TConvexHull2* ConvexHull = nullptr;
 	TSet<int32> HullIndices;
 
 	mutable FRWLock NetworkLock;
-	PCGExGraph::FEdgeNetwork* EdgeNetwork = nullptr;
+	PCGExGraph::FGraph* Graph = nullptr;
 	PCGExData::FPointIOGroup* ClustersIO;
 
 	PCGExData::FKPointIOMarkedBindings<int32>* Markings = nullptr;

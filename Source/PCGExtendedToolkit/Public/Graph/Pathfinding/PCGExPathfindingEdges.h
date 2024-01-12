@@ -33,6 +33,9 @@ protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings interface
 
+public:
+	virtual PCGExData::EInit GetEdgeOutputInitMode() const override;
+	
 	//~Begin UObject interface
 #if WITH_EDITOR
 

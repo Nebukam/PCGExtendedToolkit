@@ -17,7 +17,7 @@ UPCGExBridgeEdgeClustersSettings::UPCGExBridgeEdgeClustersSettings(
 
 PCGExData::EInit UPCGExBridgeEdgeClustersSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 
-bool UPCGExBridgeEdgeClustersSettings::GetCacheAllClusteres() const { return true; }
+bool UPCGExBridgeEdgeClustersSettings::GetCacheAllClusters() const { return true; }
 
 PCGEX_INITIALIZE_ELEMENT(BridgeEdgeClusters)
 
@@ -93,7 +93,7 @@ bool FPCGExBridgeEdgeClustersElement::ExecuteInternal(
 	{
 		while (Context->AdvanceEdges())
 		{
-			/* Batch-build all meshes since bCacheAllClusteres == true */
+			/* Batch-build all meshes since bCacheAllClusters == true */
 			if (Context->CurrentCluster->HasInvalidEdges())
 			{
 				PCGE_LOG(Warning, GraphAndLog, FTEXT("Some input edges are invalid. This will highly likely cause unexpected results."));

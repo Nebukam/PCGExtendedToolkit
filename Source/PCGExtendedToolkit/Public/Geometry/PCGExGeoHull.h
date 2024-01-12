@@ -9,16 +9,20 @@
 
 namespace PCGExGeo
 {
+	class FProcessHullTask;
+
 	template <int DIMENSIONS>
 	class PCGEXTENDEDTOOLKIT_API TConvexHull
 	{
-		bool bAsyncWorkDone = false;
+	protected:
+		bool bAsyncComplete = false;
 		FRWLock AsyncLock;
 
 	public:
 		TArray<TFVtx<DIMENSIONS>*> Vertices;
 		TArray<TSimplexWrap<DIMENSIONS>*> Simplices;
 		double Centroid[DIMENSIONS];
+		FBox Bounds;
 
 	protected:
 		static constexpr double PLANE_DISTANCE_TOLERANCE = 1e-7f;
@@ -65,7 +69,7 @@ namespace PCGExGeo
 			Pool = new THullObjectsPool<DIMENSIONS>();
 		}
 
-		~TConvexHull()
+		virtual ~TConvexHull()
 		{
 			Vertices.Empty();
 
@@ -137,13 +141,24 @@ namespace PCGExGeo
 			for (const TFVtx<DIMENSIONS>* Vtx : Vertices) { if (Vtx->bIsOnHull) { OutSet.Add(Vtx->Id); } }
 		}
 
+		bool Contains(FVector Position)
+		{
+			if (!Bounds.IsInside(Position)) { return false; }
+			for (const TFSimplex<DIMENSIONS>* Simplex : Simplices)
+			{
+				if (Simplex->GetVertexDistance(Position) >= PLANE_DISTANCE_TOLERANCE) { return false; }
+			}
+
+			return true;
+		}
+
 #pragma endregion
 
 #pragma region Generate
 
-		bool PreGenerate(TArray<TFVtx<DIMENSIONS>*>& Input)
+		bool Prepare(TArray<TFVtx<DIMENSIONS>*>& Input)
 		{
-			bAsyncWorkDone = false;
+			bAsyncComplete = false;
 
 			if (Input.Num() < DIMENSIONS + 1) { return false; }
 
@@ -153,54 +168,19 @@ namespace PCGExGeo
 			return InitConvexHull();
 		}
 
-		bool Generate(TArray<TFVtx<DIMENSIONS>*>& Input)
+		void Generate()
 		{
-			if (!PreGenerate(Input)) { return false; }
-
 			// Expand the convex hull and faces.
-			while (UnprocessedFaces->First)
-			{
-				TSimplexWrap<DIMENSIONS>* CurrentFace = UnprocessedFaces->First;
-				CurrentVertex = CurrentFace->FurthestVertex;
-
-				UpdateCenter();
-
-				// The affected faces get tagged
-				TagAffectedFaces(CurrentFace);
-
-				// Create the cone from the currentVertex and the affected faces horizon.
-				if (!SingularVertices.Contains(CurrentVertex) && CreateCone()) { CommitCone(); }
-				else { HandleSingular(); }
-
-				// Need to reset the tags
-				for (TSimplexWrap<DIMENSIONS>* Simplex : CurrentAffectedFaces) { Simplex->Tag = 0; }
-			}
-
-			return PostGenerate();
+			while (UnprocessedFaces->First) { ProcessNext(); }
+			Finalize();
 		}
 
-		bool PostGenerate()
+		bool ProcessNext()
 		{
-			if (bAsyncWorkDone) { return true; }
-
-			int SimplexIndex = 0;
-			for (TSimplexWrap<DIMENSIONS>* Wrap : Simplices)
-			{
-				Wrap->Tag = SimplexIndex++;
-				for (int i = 0; i < DIMENSIONS; i++) { Wrap->Vertices[i]->bIsOnHull = true; }
-			}
-
-			bAsyncWorkDone = true;
-			return true;
-		}
-
-		bool AsyncGenerate()
-		{
-			FWriteScopeLock WriteLock(AsyncLock);
-
-			if (!UnprocessedFaces->First) { return PostGenerate(); }
-
 			TSimplexWrap<DIMENSIONS>* CurrentFace = UnprocessedFaces->First;
+
+			if (!CurrentFace) { return false; }
+
 			CurrentVertex = CurrentFace->FurthestVertex;
 
 			UpdateCenter();
@@ -215,12 +195,25 @@ namespace PCGExGeo
 			// Need to reset the tags
 			for (TSimplexWrap<DIMENSIONS>* Simplex : CurrentAffectedFaces) { Simplex->Tag = 0; }
 
-			return false;
+			return UnprocessedFaces->First ? true : false;
 		}
+
+		void Finalize()
+		{
+			Bounds = FBox(ForceInit);
+			int SimplexIndex = 0;
+			for (TSimplexWrap<DIMENSIONS>* Wrap : Simplices)
+			{
+				Wrap->Tag = SimplexIndex++;
+				for (int i = 0; i < DIMENSIONS; i++) { Wrap->Vertices[i]->bIsOnHull = true; }
+			}
+		}
+
+		virtual void StartAsyncProcessing(FPCGExAsyncManager* Manager) = 0;
 
 #pragma endregion
 
-	protected:
+	protected :
 #pragma region Initilization
 
 		/// Find the (dimension+1) initial points and create the simplexes.
@@ -841,11 +834,22 @@ namespace PCGExGeo
 		}
 	};
 
-	class PCGEXTENDEDTOOLKIT_API TConvexHull2 : public TConvexHull<2>
-	{
-	};
 
-	class PCGEXTENDEDTOOLKIT_API TConvexHull3 : public TConvexHull<3>
-	{
-	};
+#define PCGEX_HULL_CLASS(_NUM)\
+	class FProcessHull##_NUM##Task;\
+	class PCGEXTENDEDTOOLKIT_API TConvexHull##_NUM : public TConvexHull<_NUM>{\
+	public: virtual void StartAsyncProcessing(FPCGExAsyncManager* Manager) override{Manager->Start<FProcessHull##_NUM##Task>(-1, nullptr, this);} };\
+	class PCGEXTENDEDTOOLKIT_API FProcessHull##_NUM##Task : public FPCGExNonAbandonableTask	{\
+	public:\
+		FProcessHull##_NUM##Task(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO, TConvexHull##_NUM* InHull) : FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO), Hull(InHull){}\
+		TConvexHull##_NUM* Hull = nullptr;\
+		virtual bool ExecuteTask() override{if (Hull->ProcessNext()){Manager->Start<FProcessHull##_NUM##Task>(TaskIndex, PointIO, Hull); return true;} return false;}};
+
+	PCGEX_HULL_CLASS(2)
+
+	PCGEX_HULL_CLASS(3)
+
+	PCGEX_HULL_CLASS(4)
+
+#undef PCGEX_HULL_CLASS
 }

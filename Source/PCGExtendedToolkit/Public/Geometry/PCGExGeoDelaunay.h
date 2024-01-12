@@ -10,6 +10,9 @@
 
 namespace PCGExGeo
 {
+	class FPreProcessSimplexTask;
+	class FProcessSimplexTask;
+
 	template <int DIMENSIONS>
 	class PCGEXTENDEDTOOLKIT_API TDelaunayCell
 	{
@@ -17,6 +20,8 @@ namespace PCGExGeo
 		TFSimplex<DIMENSIONS>* Simplex = nullptr;
 		TFVtx<DIMENSIONS>* Circumcenter = nullptr;
 		double Radius = 0;
+		bool bIsWithinBounds = true;
+		FVector Centroid = FVector::Zero();
 
 		TDelaunayCell(
 			TFSimplex<DIMENSIONS>* InSimplex,
@@ -26,6 +31,7 @@ namespace PCGExGeo
 			Simplex = InSimplex;
 			Circumcenter = InCircumcenter;
 			Radius = InRadius;
+			ComputeCentroid();
 		}
 
 		~TDelaunayCell()
@@ -34,20 +40,41 @@ namespace PCGExGeo
 			PCGEX_DELETE(Circumcenter)
 			Radius = 0;
 		}
+
+		void ComputeCentroid()
+		{
+			Centroid = FVector::Zero();
+			for (TFVtx<DIMENSIONS>* Vtx : Simplex->Vertices) { Centroid += Vtx->Location; }
+			Centroid /= DIMENSIONS;
+		}
+
+		FVector GetBestCenter() const
+		{
+			if (bIsWithinBounds) { return Circumcenter->GetV3(); }
+			return Centroid;
+		}
 	};
 
-	template <int DIMENSIONS>
+	template <int DIMENSIONS, typename T_HULL>
 	class PCGEXTENDEDTOOLKIT_API TDelaunayTriangulation
 	{
+	protected:
 		bool bOwnsVertices = true;
+		FRWLock HullLock;
+		FRWLock AsyncLock;
+
+		TMap<int32, int32> SimpliceIndices;
 
 	public:
 		TConvexHull<DIMENSIONS>* Hull = nullptr;
 		TArray<TFVtx<DIMENSIONS>*> Vertices;
 		TArray<TDelaunayCell<DIMENSIONS>*> Cells;
 		TFVtx<DIMENSIONS>* Centroid = nullptr;
+		int32 NumFinalCells = 0;
 
-		double MTX[DIMENSIONS][DIMENSIONS];
+		FBox Bounds;
+		double BoundsExtension = 0;
+		EPCGExCellCenter CellCenter = EPCGExCellCenter::Circumcenter;
 
 		TDelaunayTriangulation()
 		{
@@ -56,71 +83,11 @@ namespace PCGExGeo
 		virtual ~TDelaunayTriangulation()
 		{
 			PCGEX_DELETE_TARRAY(Cells)
+			SimpliceIndices.Empty();
 			if (bOwnsVertices) { PCGEX_DELETE_TARRAY(Vertices) }
 			else { Vertices.Empty(); }
 			PCGEX_DELETE(Centroid)
 			PCGEX_DELETE(Hull)
-		}
-
-		bool PrepareFrom(const TArray<FPCGPoint>& InPoints)
-		{
-			bOwnsVertices = true;
-
-			PCGEX_DELETE_TARRAY(Cells)
-			PCGEX_DELETE(Centroid)
-			PCGEX_DELETE(Hull)
-
-			Centroid = new TFVtx<DIMENSIONS>();
-			GetUpscaledVerticesFromPoints<DIMENSIONS>(InPoints, Vertices);
-
-			if (Vertices.Num() <= DIMENSIONS) { return false; }
-
-			return true;
-		}
-
-		bool PrepareFrom(const TArray<TFVtx<DIMENSIONS>*>& InVertices)
-		{
-			bOwnsVertices = false;
-
-			PCGEX_DELETE_TARRAY(Cells)
-			PCGEX_DELETE(Centroid)
-			PCGEX_DELETE(Hull)
-
-			Centroid = new TFVtx<DIMENSIONS>();
-			if (InVertices.Num() <= DIMENSIONS) { return false; }
-
-			Vertices.Empty();
-			Vertices.Reserve(InVertices.Num());
-			Vertices.Append(InVertices);
-
-			return true;
-		}
-
-		virtual void Generate()
-		{
-			PCGEX_DELETE(Hull)
-			Hull = new TConvexHull<DIMENSIONS>();
-			Hull->Generate(Vertices);
-
-			for (int i = 0; i < DIMENSIONS; i++) { (*Centroid)[i] = Hull->Centroid[i]; }
-
-			int i = 0;
-			for (TFSimplex<DIMENSIONS>* Simplex : Hull->Simplices)
-			{
-				if (Simplex->Normal[DIMENSIONS - 1] >= 0.0f)
-				{
-					for (TFSimplex<DIMENSIONS>* Adjacent : Simplex->AdjacentFaces)
-					{
-						if (Adjacent) { Adjacent->Remove(Simplex); }
-					}
-				}
-				else
-				{
-					TDelaunayCell<DIMENSIONS>* Cell = CreateCell(Simplex);
-					Cell->Circumcenter->Id = i++;
-					Cells.Add(Cell);
-				}
-			}
 		}
 
 		void GetUniqueEdges(TArray<PCGExGraph::FUnsignedEdge>& OutEdges)
@@ -149,12 +116,121 @@ namespace PCGExGeo
 			UniqueEdges.Empty();
 		}
 
+		bool PrepareFrom(const TArray<FPCGPoint>& InPoints)
+		{
+			bOwnsVertices = true;
+
+			GetUpscaledVerticesFromPoints<DIMENSIONS>(InPoints, Vertices);
+
+			if (Vertices.Num() <= DIMENSIONS) { return false; }
+			ComputeVerticesBounds();
+
+			return InternalPrepare();
+		}
+
+		bool PrepareFrom(const TArray<TFVtx<DIMENSIONS>*>& InVertices)
+		{
+			bOwnsVertices = false;
+
+			if (InVertices.Num() <= DIMENSIONS) { return false; }
+
+			Vertices.Reset(InVertices.Num());
+			Vertices.Append(InVertices);
+			ComputeVerticesBounds();
+
+			return InternalPrepare();
+		}
+
+		virtual void Generate()
+		{
+			Hull->Generate();
+			PrepareDelaunay();
+
+			for (int i = 0; i < Hull->Simplices.Num(); i++) { PreprocessSimplex(i); }
+
+			Cells.SetNumUninitialized(NumFinalCells);
+			for (int i = 0; i < NumFinalCells; i++) { ProcessSimplex(i); }
+		}
+
+		virtual void Flatten()
+		{
+		}
+
+	protected:
+		void PrepareDelaunay()
+		{
+			for (int i = 0; i < DIMENSIONS; i++) { (*Centroid)[i] = Hull->Centroid[i]; }
+
+			NumFinalCells = 0;
+			SimpliceIndices.Empty();
+		}
+
+		void ComputeVerticesBounds()
+		{
+			Bounds = FBox(ForceInit);
+			for (TFVtx<DIMENSIONS>* Vtx : Vertices) { Bounds += Vtx->Location; }
+			Bounds = Bounds.ExpandBy(BoundsExtension);
+		}
+
+		bool InternalPrepare()
+		{
+			PCGEX_DELETE_TARRAY(Cells)
+			PCGEX_DELETE(Centroid)
+			PCGEX_DELETE(Hull)
+
+			if (Vertices.Num() <= DIMENSIONS) { return false; }
+
+			Hull = new T_HULL();
+
+			if (!Hull->Prepare(Vertices))
+			{
+				PCGEX_DELETE(Hull)
+				return false;
+			}
+
+			Centroid = new TFVtx<DIMENSIONS>();
+			return true;
+		}
+
+	public:
+		void PreprocessSimplex(int32 Index)
+		{
+			TRACE_CPUPROFILER_EVENT_SCOPE(Delaunay::PreprocessSimplex);
+
+			TFSimplex<DIMENSIONS>* Simplex = Hull->Simplices[Index];
+
+			if (Simplex->Normal[DIMENSIONS - 1] >= 0.0f)
+			{
+				FWriteScopeLock WriteLock(HullLock);
+				for (TFSimplex<DIMENSIONS>* Adjacent : Simplex->AdjacentFaces) { if (Adjacent) { Adjacent->Remove(Simplex); } }
+				return;
+			}
+
+			{
+				FWriteScopeLock WriteLock(AsyncLock);
+				SimpliceIndices.Add(NumFinalCells++, Index);
+			}
+		}
+
+		void ProcessSimplex(int32 Index)
+		{
+			TRACE_CPUPROFILER_EVENT_SCOPE(Delaunay::ProcessSimplex);
+
+			TFSimplex<DIMENSIONS>* Simplex = Hull->Simplices[*SimpliceIndices.Find(Index)];
+			TDelaunayCell<DIMENSIONS>* Cell = CreateCell(Simplex);
+			Cell->bIsWithinBounds = Bounds.IsInside(CellCenter == EPCGExCellCenter::Centroid ? Cell->Centroid : Cell->Circumcenter->GetV3());
+			Cell->Circumcenter->Id = Index;
+			Cells[Index] = Cell;
+		}
+
 	protected:
 		virtual TDelaunayCell<DIMENSIONS>* CreateCell(TFSimplex<DIMENSIONS>* Simplex) = 0;
-		virtual double Determinant() const = 0;
 	};
 
-	class PCGEXTENDEDTOOLKIT_API TDelaunayTriangulation2 : public TDelaunayTriangulation<3>
+#pragma region Delaunay2
+
+
+	class PCGEXTENDEDTOOLKIT_API TDelaunayTriangulation2 : public TDelaunayTriangulation<3, TConvexHull3>
 	{
 	public:
 		TDelaunayTriangulation2() : TDelaunayTriangulation()
@@ -162,17 +238,18 @@ namespace PCGExGeo
 		}
 
 	protected:
-		virtual double Determinant() const override
-		{
-			const double F00 = MTX[1][1] * MTX[2][2] - MTX[1][2] * MTX[2][1];
-			const double F10 = MTX[1][2] * MTX[2][0] - MTX[1][0] * MTX[2][2];
-			const double F20 = MTX[1][0] * MTX[2][1] - MTX[1][1] * MTX[2][0];
-			return MTX[0][0] * F00 + MTX[0][1] * F10 + MTX[0][2] * F20;
-		}
-
 		virtual TDelaunayCell<3>* CreateCell(TFSimplex<3>* Simplex) override
 		{
 			// From MathWorld: http://mathworld.wolfram.com/Circumcircle.html
+			double MTX[3][3];
+
+			auto Determinant = [&]() -> double
+			{
+				const double F00 = MTX[1][1] * MTX[2][2] - MTX[1][2] * MTX[2][1];
+				const double F10 = MTX[1][2] * MTX[2][0] - MTX[1][0] * MTX[2][2];
+				const double F20 = MTX[1][0] * MTX[2][1] - MTX[1][1] * MTX[2][0];
+				return MTX[0][0] * F00 + MTX[0][1] * F10 + MTX[0][2] * F20;
+			};
 
 			// x, y, 1
 			for (int i = 0; i < 3; i++)
@@ -208,7 +285,10 @@ namespace PCGExGeo
 		}
 	};
 
-	class PCGEXTENDEDTOOLKIT_API TDelaunayTriangulation3 : public TDelaunayTriangulation<4>
+#pragma endregion
+#pragma region Delaunay3
+
+	class PCGEXTENDEDTOOLKIT_API TDelaunayTriangulation3 : public TDelaunayTriangulation<4, TConvexHull4>
 	{
 	public:
 		TDelaunayTriangulation3() : TDelaunayTriangulation()
@@ -216,25 +296,27 @@ namespace PCGExGeo
 		}
 
 	protected:
-		double MINOR(const int R0, const int R1, const int R2, const int C0, const int C1, const int C2) const
-		{
-			return
-				MTX[R0][C0] * (MTX[R1][C1] * MTX[R2][C2] - MTX[R2][C1] * MTX[R1][C2]) -
-				MTX[R0][C1] * (MTX[R1][C0] * MTX[R2][C2] - MTX[R2][C0] * MTX[R1][C2]) +
-				MTX[R0][C2] * (MTX[R1][C0] * MTX[R2][C1] - MTX[R2][C0] * MTX[R1][C1]);
-		}
-
-		virtual double Determinant() const override
-		{
-			return (MTX[0][0] * MINOR(1, 2, 3, 1, 2, 3) -
-				MTX[0][1] * MINOR(1, 2, 3, 0, 2, 3) +
-				MTX[0][2] * MINOR(1, 2, 3, 0, 1, 3) -
-				MTX[0][3] * MINOR(1, 2, 3, 0, 1, 2));
-		}
-
 		virtual TDelaunayCell<4>* CreateCell(TFSimplex<4>* Simplex) override
 		{
 			// From MathWorld: http://mathworld.wolfram.com/Circumsphere.html
+
+			double MTX[4][4];
+
+			auto MINOR = [&](const int R0, const int R1, const int R2, const int C0, const int C1, const int C2) -> double
+			{
+				return
+					MTX[R0][C0] * (MTX[R1][C1] * MTX[R2][C2] - MTX[R2][C1] * MTX[R1][C2]) -
+					MTX[R0][C1] * (MTX[R1][C0] * MTX[R2][C2] - MTX[R2][C0] * MTX[R1][C2]) +
+					MTX[R0][C2] * (MTX[R1][C0] * MTX[R2][C1] - MTX[R2][C0] * MTX[R1][C1]);
+			};
+
+			auto Determinant = [&]()-> double
+			{
+				return (MTX[0][0] * MINOR(1, 2, 3, 1, 2, 3) -
+					MTX[0][1] * MINOR(1, 2, 3, 0, 2, 3) +
+					MTX[0][2] * MINOR(1, 2, 3, 0, 1, 3) -
+					MTX[0][3] * MINOR(1, 2, 3, 0, 1, 2));
+			};
 
 			// x, y, z, 1
 			for (int i = 0; i < 4; i++)
@@ -263,7 +345,7 @@ namespace PCGExGeo
 			for (int i = 0; i < 4; i++) { MTX[i][3] = (*Simplex->Vertices[i])[2]; }
 			const double c = Determinant();
 
-			const double s = -1.0f / (2.0f * a);
+			const double s = 1.0f / (2.0f * a);
 
 			TFVtx<4>* CC = new TFVtx<4>();
 			CC->SetV4(FVector4(s * DX, s * DY, s * DZ, 0));
@@ -273,4 +355,10 @@ namespace PCGExGeo
 				FMath::Abs(s) * FMath::Sqrt(DX * DX + DY * DY + DZ * DZ - 4 * a * c));
 		}
 	};
+
+#pragma endregion
+
+#undef PCGEX_DELAUNAY_CLASS_DECL
+#undef PCGEX_DELAUNAY_METHODS
+#undef PCGEX_DELAUNAY_CLASS
 }

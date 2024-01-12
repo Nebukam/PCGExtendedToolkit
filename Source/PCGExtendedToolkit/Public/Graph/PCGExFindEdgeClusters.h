@@ -13,7 +13,7 @@
 
 namespace PCGExGraph
 {
-	struct FEdgeNetwork;
+	class FGraph;
 	struct FEdgeCrossingsHandler;
 }
 
@@ -56,7 +56,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExEdgeType"))
 	uint8 CrawlEdgeTypes = static_cast<uint8>(EPCGExEdgeType::Complete);
 
-	/** Removes roaming points from the output, and keeps only points that are part of an island. */
+	/** Removes roaming points from the output, and keeps only points that are part of an cluster. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bPruneIsolatedPoints = true;
 
@@ -111,33 +111,16 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFindEdgeClustersContext : public FPCGExGraph
 	virtual ~FPCGExFindEdgeClustersContext() override;
 
 	EPCGExEdgeType CrawlEdgeTypes;
-	bool bPruneIsolatedPoints;
 	bool bInheritAttributes;
 
 	int32 MinClusterSize;
 	int32 MaxClusterSize;
 
-	bool bFindCrossings;
-	double CrossingTolerance;
-
-	int32 ClusterUIndex = 0;
-
-	TMap<int32, int32> IndexRemap;
-
 	FName ClusterIDAttributeName;
 	FName ClusterSizeAttributeName;
 	FName PointUIDAttributeName;
 
-	mutable FRWLock NetworkLock;
-	PCGExGraph::FEdgeNetwork* EdgeNetwork = nullptr;
-	PCGExGraph::FEdgeCrossingsHandler* EdgeCrossings = nullptr;
-	PCGExData::FPointIOGroup* ClustersIO;
-
-	PCGExData::FKPointIOMarkedBindings<int32>* Markings = nullptr;
-
-	EPCGExRoamingResolveMethod ResolveRoamingMethod;
-
-	FPCGMetadataAttribute<int64>* InCachedIndex;
+	PCGExGraph::FGraphBuilder* NetworkBuilder = nullptr;
 };
 
 

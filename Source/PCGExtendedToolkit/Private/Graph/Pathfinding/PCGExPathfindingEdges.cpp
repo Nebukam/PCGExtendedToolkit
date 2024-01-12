@@ -30,6 +30,8 @@ void UPCGExPathfindingEdgesSettings::PostEditChangeProperty(FPropertyChangedEven
 
 PCGEX_INITIALIZE_ELEMENT(PathfindingEdges)
 
+PCGExData::EInit UPCGExPathfindingEdgesSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::NoOutput; }
+
 FPCGExPathfindingEdgesContext::~FPCGExPathfindingEdgesContext()
 {
 	PCGEX_TERMINATE_ASYNC

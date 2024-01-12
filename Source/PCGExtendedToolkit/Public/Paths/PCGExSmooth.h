@@ -49,10 +49,10 @@ public:
 	bool bClosedPath = false;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	bool bPinStart = true;
+	bool bPreserveStart = true;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	bool bPinEnd = true;
+	bool bPreserveEnd = true;
 
 	/** Draw size. What it means depends on the selected debug type. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=-1, ClampMax=1))

@@ -96,7 +96,8 @@ namespace PCGExCluster
 			int32 VtxEnd = EndIndexReader->Values[i];
 
 			if (!InVerticesPoints.IsValidIndex(VtxStart) ||
-				!InVerticesPoints.IsValidIndex(VtxEnd))
+				!InVerticesPoints.IsValidIndex(VtxEnd) ||
+				VtxStart == VtxEnd)
 			{
 				bHasInvalidEdges = true;
 				continue;

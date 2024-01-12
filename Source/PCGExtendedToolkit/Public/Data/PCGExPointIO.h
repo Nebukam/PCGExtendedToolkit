@@ -72,11 +72,15 @@ namespace PCGExData
 		~FPointIO();
 
 		const UPCGPointData* GetIn() const;
+		UPCGPointData* GetOut() const;
+		const UPCGPointData* GetOutIn() const;
+		const UPCGPointData* GetInOut() const;
+		
 		int32 GetNum() const;
+		int32 GetOutNum() const;
 		FPCGAttributeAccessorKeysPoints* CreateInKeys();
 		FPCGAttributeAccessorKeysPoints* GetInKeys() const;
 
-		UPCGPointData* GetOut() const;
 		FPCGAttributeAccessorKeysPoints* CreateOutKeys();
 		FPCGAttributeAccessorKeysPoints* GetOutKeys() const;
 
@@ -161,6 +165,8 @@ namespace PCGExData
 		bool IsEmpty() const { return Pairs.IsEmpty(); }
 		int32 Num() const { return Pairs.Num(); }
 
+		FPointIO& operator[](int32 Index) const { return *Pairs[Index]; }
+		
 		void OutputTo(FPCGContext* Context, bool bEmplace = false);
 		void OutputTo(FPCGContext* Context, bool bEmplace, const int32 MinPointCount, const int32 MaxPointCount);
 

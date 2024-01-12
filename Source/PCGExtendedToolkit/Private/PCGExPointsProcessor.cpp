@@ -363,7 +363,7 @@ void FPCGExPointsProcessorContext::CleanupOperations()
 }
 
 void FPCGExPointsProcessorContext::ResetAsyncWork() { if (AsyncManager) { AsyncManager->Reset(); } }
-bool FPCGExPointsProcessorContext::IsAsyncWorkComplete() { return AsyncManager ? AsyncManager->IsAsyncWorkComplete() : true; }
+bool FPCGExPointsProcessorContext::IsAsyncWorkComplete() { return bDoAsyncProcessing ? AsyncManager ? AsyncManager->IsAsyncWorkComplete() : true : true; }
 
 FPCGContext* FPCGExPointsProcessorElementBase::Initialize(
 	const FPCGDataCollection& InputData,
@@ -384,7 +384,7 @@ FPCGContext* FPCGExPointsProcessorElementBase::InitializeContext(
 	InContext->InputData = InputData;
 	InContext->SourceComponent = SourceComponent;
 	InContext->Node = Node;
-	
+
 	check(SourceComponent.IsValid());
 	InContext->World = SourceComponent->GetWorld();
 

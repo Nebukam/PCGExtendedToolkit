@@ -1,8 +1,9 @@
 ﻿// Copyright Timothé Lapetite 2023
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "..\..\..\Public\Graph\Edges\PCGExRefineEdges.h"
+#include "Graph\Edges\PCGExRefineEdges.h"
 
+#include "Graph/PCGExGraph.h"
 #include "Graph/Edges/Refining/PCGExEdgeRefineUrquhart.h"
 
 #define LOCTEXT_NAMESPACE "PCGExRefineEdges"
@@ -16,7 +17,15 @@ UPCGExRefineEdgesSettings::UPCGExRefineEdgesSettings(
 
 PCGExData::EInit UPCGExRefineEdgesSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
+bool UPCGExRefineEdgesSettings::GetCacheAllClusters() const { return true; }
+
 PCGEX_INITIALIZE_ELEMENT(RefineEdges)
+
+FPCGExRefineEdgesContext::~FPCGExRefineEdgesContext()
+{
+	PCGEX_TERMINATE_ASYNC
+	PCGEX_DELETE(NetworkBuilder)
+}
 
 bool FPCGExRefineEdgesElement::Boot(FPCGContext* InContext) const
 {
@@ -34,7 +43,7 @@ bool FPCGExRefineEdgesElement::ExecuteInternal(
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExRefineEdgesElement::Execute);
 
-	PCGEX_CONTEXT(RefineEdges)
+	PCGEX_CONTEXT_AND_SETTINGS(RefineEdges)
 
 	if (Context->IsSetup())
 	{
@@ -44,6 +53,8 @@ bool FPCGExRefineEdgesElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
+		PCGEX_DELETE(Context->NetworkBuilder)
+
 		if (!Context->AdvanceAndBindPointsIO()) { Context->Done(); }
 		else
 		{
@@ -54,6 +65,9 @@ bool FPCGExRefineEdgesElement::ExecuteInternal(
 			}
 			else
 			{
+				Context->NetworkBuilder = new PCGExGraph::FGraphBuilder(*Context->CurrentIO, 8);
+				if (Settings->bPruneIsolatedPoints) { Context->NetworkBuilder->EnablePointsPruning(); }
+
 				Context->SetState(PCGExGraph::State_ReadyForNextEdges);
 			}
 		}
@@ -61,27 +75,57 @@ bool FPCGExRefineEdgesElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExGraph::State_ReadyForNextEdges))
 	{
-		if (!Context->AdvanceEdges()) { Context->SetState(PCGExMT::State_ReadyForNextPoints); }
-		else { Context->SetState(PCGExGraph::State_ProcessingEdges); }
+		while (Context->AdvanceEdges())
+		{
+			/* Batch-build all meshes since bCacheAllClusters == true */
+			if (Context->CurrentCluster->HasInvalidEdges())
+			{
+				PCGE_LOG(Warning, GraphAndLog, FTEXT("Some input edges are invalid. This will highly likely cause unexpected results."));
+			}
+
+			Context->GetAsyncManager()->Start<FRefineEdgesTask>(-1, Context->CurrentIO, Context->CurrentCluster, Context->CurrentEdges);
+		}
+
+		Context->SetAsyncState(PCGExGraph::State_ProcessingEdges);
 	}
 
 	if (Context->IsState(PCGExGraph::State_ProcessingEdges))
 	{
-		auto Initialize = [&](const PCGExData::FPointIO& PointIO)
-		{
-		};
+		if (Context->IsAsyncWorkComplete()) { Context->SetState(PCGExMT::State_ReadyForNextPoints); }
+	}
 
-		auto ProcessPoint = [&](const int32 PointIndex, const PCGExData::FPointIO& PointIO)
+	if (Context->IsState(PCGExGraph::State_WritingClusters))
+	{
+		if (Context->NetworkBuilder->Compile(Context))
 		{
-		};
-
-		if (Context->ProcessCurrentPoints(Initialize, ProcessPoint))
+			Context->SetAsyncState(PCGExGraph::State_WaitingOnWritingClusters);
+		}
+		else
 		{
-			Context->SetState(PCGExGraph::State_ReadyForNextEdges);
+			Context->SetState(PCGExMT::State_ReadyForNextPoints);
 		}
 	}
 
+	if (Context->IsState(PCGExGraph::State_WaitingOnWritingClusters))
+	{
+		if (Context->IsAsyncWorkComplete())
+		{
+			Context->NetworkBuilder->Write(Context);
+			Context->SetState(PCGExMT::State_ReadyForNextPoints);
+		}
+	}
+
+	if (Context->IsDone())
+	{
+		Context->OutputPoints();
+	}
+
 	return Context->IsDone();
+}
+
+bool FRefineEdgesTask::ExecuteTask()
+{
+	return false;
 }
 
 #undef LOCTEXT_NAMESPACE

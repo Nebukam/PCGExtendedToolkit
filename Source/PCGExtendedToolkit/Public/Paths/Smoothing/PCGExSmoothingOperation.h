@@ -27,8 +27,8 @@ public:
 	virtual void DoSmooth(PCGExData::FPointIO& InPointIO);
 
 	bool bClosedPath = false;
-	bool bPinStart = true;
-	bool bPinEnd = true;
+	bool bPreserveStart = true;
+	bool bPreserveEnd = true;
 	double FixedInfluence = 1.0;
 	bool bUseLocalInfluence = false;
 	FPCGExInputDescriptorWithSingleField InfluenceDescriptor;

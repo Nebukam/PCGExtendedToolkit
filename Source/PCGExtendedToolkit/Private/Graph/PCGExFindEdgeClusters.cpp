@@ -16,12 +16,7 @@ PCGExData::EInit UPCGExFindEdgeClustersSettings::GetMainOutputInitMode() const {
 FPCGExFindEdgeClustersContext::~FPCGExFindEdgeClustersContext()
 {
 	PCGEX_TERMINATE_ASYNC
-
-	PCGEX_DELETE(ClustersIO)
-	PCGEX_DELETE(EdgeNetwork)
-	PCGEX_DELETE(Markings)
-
-	IndexRemap.Empty();
+	PCGEX_DELETE(NetworkBuilder)
 }
 
 TArray<FPCGPinProperties> UPCGExFindEdgeClustersSettings::OutputPinProperties() const
@@ -50,7 +45,6 @@ bool FPCGExFindEdgeClustersElement::Boot(FPCGContext* InContext) const
 
 	Context->CrawlEdgeTypes = static_cast<EPCGExEdgeType>(Settings->CrawlEdgeTypes);
 
-	PCGEX_FWD(bPruneIsolatedPoints)
 	PCGEX_FWD(bInheritAttributes)
 
 	Context->MinClusterSize = Settings->bRemoveSmallClusters ? FMath::Max(1, Settings->MinClusterSize) : 1;
@@ -58,9 +52,6 @@ bool FPCGExFindEdgeClustersElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_FWD(ClusterIDAttributeName)
 	PCGEX_FWD(ClusterSizeAttributeName)
-
-	PCGEX_FWD(bFindCrossings)
-	PCGEX_FWD(CrossingTolerance)
 
 	PCGEX_VALIDATE_NAME(Context->ClusterIDAttributeName)
 	PCGEX_VALIDATE_NAME(Context->ClusterSizeAttributeName)
@@ -83,18 +74,15 @@ bool FPCGExFindEdgeClustersElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
-		PCGEX_DELETE(Context->EdgeNetwork)
-		PCGEX_DELETE(Context->ClustersIO)
-		PCGEX_DELETE(Context->Markings)
-		PCGEX_DELETE(Context->EdgeCrossings)
+		PCGEX_DELETE(Context->NetworkBuilder)
 
 		if (!Context->AdvancePointsIOAndResetGraph()) { Context->Done(); }
 		else
 		{
-			Context->ClustersIO = new PCGExData::FPointIOGroup();
-			Context->ClustersIO->DefaultOutputLabel = PCGExGraph::OutputEdgesLabel;
-			Context->EdgeNetwork = new PCGExGraph::FEdgeNetwork(Context->MergedInputSocketsNum, Context->CurrentIO->GetNum());
-			Context->Markings = new PCGExData::FKPointIOMarkedBindings<int32>(Context->CurrentIO, PCGExGraph::PUIDAttributeName);
+			Context->NetworkBuilder = new PCGExGraph::FGraphBuilder(*Context->CurrentIO, Context->MergedInputSocketsNum);
+			if (Settings->bFindCrossings) { Context->NetworkBuilder->EnableCrossings(Settings->CrossingTolerance); }
+			if (Settings->bPruneIsolatedPoints) { Context->NetworkBuilder->EnablePointsPruning(); }
+
 			Context->SetState(PCGExGraph::State_ReadyForNextGraph);
 		}
 	}
@@ -103,15 +91,8 @@ bool FPCGExFindEdgeClustersElement::ExecuteInternal(
 	{
 		if (!Context->AdvanceGraph())
 		{
-			if (Context->bFindCrossings)
-			{
-				Context->EdgeCrossings = new PCGExGraph::FEdgeCrossingsHandler(Context->EdgeNetwork, Context->CrossingTolerance);
-				Context->SetState(PCGExGraph::State_FindingCrossings);
-			}
-			else
-			{
-				Context->SetState(PCGExGraph::State_WritingClusters);
-			}
+			if (Context->NetworkBuilder->EdgeCrossings) { Context->SetState(PCGExGraph::State_FindingCrossings); }
+			else { Context->SetState(PCGExGraph::State_WritingClusters); }
 		}
 		else { Context->SetState(PCGExGraph::State_BuildNetwork); }
 	}
@@ -120,60 +101,45 @@ bool FPCGExFindEdgeClustersElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExGraph::State_BuildNetwork))
 	{
-		Context->CurrentIO->CreateInKeys();
-		Context->PrepareCurrentGraphForPoints(*Context->CurrentIO);
-
-		const int32 NumNodes = Context->EdgeNetwork->Nodes.Num();
-		TSet<int32> VisitedNodes;
-		VisitedNodes.Reserve(NumNodes);
-
-		const int32 EdgeType = static_cast<int32>(Context->CrawlEdgeTypes);
-		for (int i = 0; i < NumNodes; i++)
+		auto Initialize = [&](PCGExData::FPointIO& PointIO)
 		{
-			TQueue<int32> Queue;
-			Queue.Enqueue(i);
+			PointIO.CreateInKeys();
+			Context->PrepareCurrentGraphForPoints(PointIO);
+		};
 
-			int32 Index;
-			while (Queue.Dequeue(Index))
+		auto InsertEdge = [&](const int32 PointIndex, const PCGExData::FPointIO& PointIO)
+		{
+			const int32 EdgeType = static_cast<int32>(Context->CrawlEdgeTypes);
+
+			for (const PCGExGraph::FSocketInfos& SocketInfo : Context->SocketInfos)
 			{
-				if (!VisitedNodes.Contains(Index))
-				{
-					VisitedNodes.Add(Index);
-
-					for (const PCGExGraph::FSocketInfos& SocketInfo : Context->SocketInfos)
-					{
-						const int32 End = SocketInfo.Socket->GetTargetIndexReader().Values[Index];
-						const int32 InEdgeType = SocketInfo.Socket->GetEdgeTypeReader().Values[Index];
-
-						if (End != -1 && (InEdgeType & EdgeType) != 0)
-						{
-							Context->EdgeNetwork->InsertEdge(PCGExGraph::FUnsignedEdge(Index, End));
-							Queue.Enqueue(End);
-						}
-					}
-				}
+				const int32 End = SocketInfo.Socket->GetTargetIndexReader().Values[PointIndex];
+				const int32 InEdgeType = SocketInfo.Socket->GetEdgeTypeReader().Values[PointIndex];
+				if (End != -1 && (InEdgeType & EdgeType) != 0) { Context->NetworkBuilder->Graph->InsertEdge(PointIndex, End); }
 			}
-		}
+		};
 
-		VisitedNodes.Empty();
-		Context->SetState(PCGExGraph::State_ReadyForNextGraph);
+
+		if (Context->ProcessCurrentPoints(Initialize, InsertEdge))
+		{
+			Context->SetState(PCGExGraph::State_ReadyForNextGraph);
+		}
 	}
 
 	if (Context->IsState(PCGExGraph::State_FindingCrossings))
 	{
 		auto Initialize = [&]()
 		{
-			Context->EdgeCrossings->Prepare(Context->CurrentIO->GetIn()->GetPoints());
+			Context->NetworkBuilder->EdgeCrossings->Prepare(Context->CurrentIO->GetIn()->GetPoints());
 		};
 
 		auto ProcessEdge = [&](const int32 Index)
 		{
-			Context->EdgeCrossings->ProcessEdge(Index, Context->CurrentIO->GetIn()->GetPoints());
+			Context->NetworkBuilder->EdgeCrossings->ProcessEdge(Index, Context->CurrentIO->GetIn()->GetPoints());
 		};
 
-		if (Context->Process(Initialize, ProcessEdge, Context->EdgeNetwork->Edges.Num()))
+		if (Context->Process(Initialize, ProcessEdge, Context->NetworkBuilder->Graph->Edges.Num()))
 		{
-			Context->EdgeCrossings->InsertCrossings();
 			Context->SetState(PCGExGraph::State_WritingClusters);
 		}
 	}
@@ -182,77 +148,13 @@ bool FPCGExFindEdgeClustersElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExGraph::State_WritingClusters))
 	{
-		Context->ClustersIO->Flush();
-		Context->EdgeNetwork->PrepareClusters(Context->MinClusterSize, Context->MaxClusterSize);
-		Context->Markings->Mark = Context->CurrentIO->GetIn()->GetUniqueID();
-
-		if (Context->bPruneIsolatedPoints)
+		if (Context->NetworkBuilder->Compile(Context, Context->MinClusterSize, Context->MaxClusterSize))
 		{
-			UPCGPointData* OutData = Context->CurrentIO->GetOut();
-			TArray<FPCGPoint>& MutablePoints = OutData->GetMutablePoints();
-			const int32 NumMaxNodes = Context->EdgeNetwork->Nodes.Num();
-			MutablePoints.Reserve(NumMaxNodes);
-			Context->IndexRemap.Empty();
-			Context->IndexRemap.Reserve(NumMaxNodes);
-			int32 Index = 0;
-
-			for (PCGExGraph::FNetworkNode Node : Context->EdgeNetwork->Nodes)
-			{
-				if (Node.bCrossing) { continue; }
-				if (Node.Cluster == -1 || Node.Edges.IsEmpty()) { continue; }
-				if (*Context->EdgeNetwork->ClusterSizes.Find(Node.Cluster) == -1) { continue; }
-
-				Context->IndexRemap.Add(Node.Index, Index++);
-				MutablePoints.Add(Context->CurrentIO->GetInPoint(Node.Index));
-			}
-
-			if (Context->bFindCrossings)
-			{
-				const int32 Offset = Context->EdgeCrossings->StartIndex;
-				for (int i = 0; i < Context->EdgeCrossings->Crossings.Num(); i++)
-				{
-					const PCGExGraph::FEdgeCrossing& Crossing = Context->EdgeCrossings->Crossings[i];
-					const PCGExGraph::FNetworkNode& Node = Context->EdgeNetwork->Nodes[Offset + i];
-
-					if (Node.Cluster == -1 || Node.Edges.IsEmpty()) { continue; }
-					if (*Context->EdgeNetwork->ClusterSizes.Find(Node.Cluster) == -1) { continue; }
-
-					Context->IndexRemap.Add(Offset + i, Index++);
-					MutablePoints.Emplace_GetRef().Transform.SetLocation(Crossing.Center);
-				}
-			}
-		}
-		else if (Context->bFindCrossings)
-		{
-			TArray<FPCGPoint>& MutablePoints = Context->CurrentIO->GetOut()->GetMutablePoints();
-			for (const PCGExGraph::FEdgeCrossing& Crossing : Context->EdgeCrossings->Crossings)
-			{
-				MutablePoints.Emplace_GetRef().Transform.SetLocation(Crossing.Center);
-			}
-		}
-
-
-		for (const TPair<int32, int32>& Pair : Context->EdgeNetwork->ClusterSizes)
-		{
-			const int32 ClusterSize = Pair.Value;
-			if (ClusterSize == -1) { continue; }
-
-			PCGExData::FPointIO& ClusterIO = Context->ClustersIO->Emplace_GetRef(PCGExData::EInit::NewOutput);
-			Context->Markings->Add(ClusterIO);
-
-			Context->GetAsyncManager()->Start<FWriteClusterTask>(
-				Pair.Key, Context->CurrentIO, &ClusterIO,
-				Context->EdgeNetwork, Context->bPruneIsolatedPoints ? &Context->IndexRemap : nullptr);
-		}
-
-		if (Context->ClustersIO->IsEmpty())
-		{
-			Context->CurrentIO->GetOut()->Metadata->DeleteAttribute(PCGExGraph::PUIDAttributeName); // Unmark
-			Context->SetState(PCGExMT::State_ReadyForNextPoints);
+			Context->SetAsyncState(PCGExGraph::State_WaitingOnWritingClusters);
 		}
 		else
 		{
-			Context->SetAsyncState(PCGExGraph::State_WaitingOnWritingClusters);
+			Context->SetState(PCGExMT::State_ReadyForNextPoints);
 		}
 	}
 
@@ -260,8 +162,7 @@ bool FPCGExFindEdgeClustersElement::ExecuteInternal(
 	{
 		if (Context->IsAsyncWorkComplete())
 		{
-			Context->Markings->UpdateMark();
-			Context->ClustersIO->OutputTo(Context, true);
+			Context->NetworkBuilder->Write(Context);
 			Context->SetState(PCGExMT::State_ReadyForNextPoints);
 		}
 	}

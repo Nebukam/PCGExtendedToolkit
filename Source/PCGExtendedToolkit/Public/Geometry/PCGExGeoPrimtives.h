@@ -16,6 +16,7 @@ namespace PCGExGeo
 		int32 Id = -1;
 		int32 Tag = 0;
 		bool bIsOnHull = false;
+		FVector Location = FVector::Zero();
 
 		int Dimension() const { return DIMENSIONS; }
 
@@ -67,6 +68,7 @@ namespace PCGExGeo
 	public:
 		double Normal[DIMENSIONS];
 		double Centroid[DIMENSIONS];
+		FBox Bounds;
 
 		/// The vertices that make up the simplex.
 		/// For 2D a face will be 2 vertices making a line.
@@ -202,6 +204,9 @@ namespace PCGExGeo
 			for (int x = 0; x < DIMENSIONS; x++) { Centroid[x] = 0; }
 			for (int i = 0; i < DIMENSIONS; i++) { for (int x = 0; x < DIMENSIONS; x++) { Centroid[x] += (*Vertices[i])[x]; } }
 			for (int x = 0; x < DIMENSIONS; x++) { Centroid[x] /= static_cast<double>(DIMENSIONS); }
+
+			Bounds = FBox(ForceInit);
+			for (int i = 0; i < DIMENSIONS; i++) { Bounds += Vertices[i]->Location; }
 		};
 
 		void UpdateAdjacency(TFSimplex* OtherSimplex)
@@ -236,25 +241,13 @@ namespace PCGExGeo
 
 		bool HasNullAdjacency() const
 		{
-			for (int i = 0; i < DIMENSIONS; i++)
-			{
-				if (!AdjacentFaces[i])
-				{
-					return true;
-				}
-			}
+			for (int i = 0; i < DIMENSIONS; i++) { if (!AdjacentFaces[i]) { return true; } }
 			return false;
 		}
 
 		bool HasAdjacency() const
 		{
-			for (int i = 0; i < DIMENSIONS; i++)
-			{
-				if (AdjacentFaces[i])
-				{
-					return true;
-				}
-			}
+			for (int i = 0; i < DIMENSIONS; i++) { if (AdjacentFaces[i]) { return true; } }
 			return false;
 		}
 
@@ -263,10 +256,14 @@ namespace PCGExGeo
 		double GetVertexDistance(const TFVtx<DIMENSIONS>* V)
 		{
 			double Distance = Offset;
-			for (int i = 0; i < DIMENSIONS; i++)
-			{
-				Distance += Normal[i] * (*V)[i];
-			}
+			for (int i = 0; i < DIMENSIONS; i++) { Distance += Normal[i] * (*V)[i]; }
+			return Distance;
+		}
+
+		double GetVertexDistance(const FVector& V)
+		{
+			double Distance = Offset;
+			for (int i = 0; i < DIMENSIONS; i++) { Distance += Normal[i] * V[i]; }
 			return Distance;
 		}
 	};

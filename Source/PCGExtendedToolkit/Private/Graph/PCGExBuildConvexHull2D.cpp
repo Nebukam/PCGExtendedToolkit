@@ -23,16 +23,11 @@ FPCGExBuildConvexHull2DContext::~FPCGExBuildConvexHull2DContext()
 {
 	PCGEX_TERMINATE_ASYNC
 
-	PCGEX_DELETE(ClustersIO)
+	PCGEX_DELETE(ConvexHull)
+	PCGEX_DELETE(GraphBuilder)
 	PCGEX_DELETE(PathsIO)
 
-	PCGEX_DELETE(ConvexHull)
-
-	PCGEX_DELETE(EdgeNetwork)
-	PCGEX_DELETE(Markings)
-
 	HullIndices.Empty();
-	IndicesRemap.Empty();
 }
 
 TArray<FPCGPinProperties> UPCGExBuildConvexHull2DSettings::OutputPinProperties() const
@@ -66,9 +61,6 @@ bool FPCGExBuildConvexHull2DElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_VALIDATE_NAME(Settings->HullAttributeName)
 
-	Context->ClustersIO = new PCGExData::FPointIOGroup();
-	Context->ClustersIO->DefaultOutputLabel = PCGExGraph::OutputEdgesLabel;
-
 	Context->PathsIO = new PCGExData::FPointIOGroup();
 	Context->PathsIO->DefaultOutputLabel = PCGExGraph::OutputPathsLabel;
 
@@ -90,6 +82,7 @@ bool FPCGExBuildConvexHull2DElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
+		PCGEX_DELETE(Context->GraphBuilder)
 		PCGEX_DELETE(Context->ConvexHull)
 		Context->HullIndices.Empty();
 
@@ -98,70 +91,67 @@ bool FPCGExBuildConvexHull2DElement::ExecuteInternal(
 		{
 			if (Context->CurrentIO->GetNum() <= 3)
 			{
-				Context->SetState(PCGExMT::State_ReadyForNextPoints);
-				PCGE_LOG(Warning, GraphAndLog, FTEXT("Some inputs have too few points to be processed (<= 3)."));
+				PCGE_LOG(Warning, GraphAndLog, FTEXT("(0) Some inputs have too few points to be processed (<= 3)."));
 				return false;
 			}
 
 			Context->ConvexHull = new PCGExGeo::TConvexHull2();
 			TArray<PCGExGeo::TFVtx<2>*> HullVertices;
-			const TArray<FPCGPoint>& InPoints = Context->CurrentIO->GetIn()->GetPoints();
-			GetVerticesFromPoints(InPoints, HullVertices);
+			GetVerticesFromPoints(Context->CurrentIO->GetIn()->GetPoints(), HullVertices);
 
-			if (Context->ConvexHull->Generate(HullVertices))
+			if (Context->ConvexHull->Prepare(HullVertices))
 			{
-				Context->ConvexHull->GetHullIndices(Context->HullIndices);
-
-				if (Settings->bPrunePoints)
-				{
-					TArray<FPCGPoint>& MutablePoints = Context->CurrentIO->GetOut()->GetMutablePoints();
-					MutablePoints.SetNumUninitialized(Context->HullIndices.Num());
-					int32 PointIndex = 0;
-
-					for (int i = 0; i < Context->CurrentIO->GetNum(); i++)
-					{
-						if (!Context->HullIndices.Contains(i)) { continue; }
-						MutablePoints[PointIndex] = InPoints[i];
-						Context->IndicesRemap.Add(i, PointIndex++);
-					}
-				}
-				else if (Settings->bMarkHull)
-				{
-					PCGEx::TFAttributeWriter<bool>* HullMarkPointWriter = new PCGEx::TFAttributeWriter<bool>(Settings->HullAttributeName, false, false);
-					HullMarkPointWriter->BindAndGet(*Context->CurrentIO);
-
-					for (int i = 0; i < Context->CurrentIO->GetNum(); i++) { HullMarkPointWriter->Values[i] = Context->HullIndices.Contains(i); }
-
-					HullMarkPointWriter->Write();
-					PCGEX_DELETE(HullMarkPointWriter)
-				}
+				if (Context->bDoAsyncProcessing) { Context->ConvexHull->StartAsyncProcessing(Context->GetAsyncManager()); }
+				else { Context->ConvexHull->Generate(); }
+				Context->SetAsyncState(PCGExGeo::State_ProcessingHull);
 			}
 			else
 			{
-				PCGE_LOG(Warning, GraphAndLog, FTEXT("Some inputs generates no results. Check for singularities."));
-				Context->SetState(PCGExMT::State_ReadyForNextPoints);
+				PCGE_LOG(Warning, GraphAndLog, FTEXT("(1) Some inputs generates no results. Check for singularities."));
 				return false;
 			}
-
-			Context->SetState(PCGExGraph::State_WritingClusters);
 		}
+	}
+
+	if (Context->IsState(PCGExGeo::State_ProcessingHull))
+	{
+		if (!Context->IsAsyncWorkComplete()) { return false; }
+
+		if (Context->bDoAsyncProcessing) { Context->ConvexHull->Finalize(); }
+
+
+		const TArray<FPCGPoint>& InPoints = Context->CurrentIO->GetIn()->GetPoints();
+
+		if (Settings->bMarkHull && !Settings->bPrunePoints)
+		{
+			Context->ConvexHull->GetHullIndices(Context->HullIndices);
+
+			PCGEx::TFAttributeWriter<bool>* HullMarkPointWriter = new PCGEx::TFAttributeWriter<bool>(Settings->HullAttributeName, false, false);
+			HullMarkPointWriter->BindAndGet(*Context->CurrentIO);
+
+			for (int i = 0; i < Context->CurrentIO->GetNum(); i++) { HullMarkPointWriter->Values[i] = Context->HullIndices.Contains(i); }
+
+			HullMarkPointWriter->Write();
+			PCGEX_DELETE(HullMarkPointWriter)
+		}
+
+		Context->GraphBuilder = new PCGExGraph::FGraphBuilder(*Context->CurrentIO, 6);
+		if (Settings->bPrunePoints) { Context->GraphBuilder->EnablePointsPruning(); }
+
+		TArray<PCGExGraph::FUnsignedEdge> Edges;
+		Context->ConvexHull->GetUniqueEdges(Edges);
+		Context->GraphBuilder->Graph->InsertEdges(Edges);
+
+		Context->GraphBuilder->Compile(Context);
+		Context->SetAsyncState(PCGExGraph::State_WritingClusters);
 	}
 
 	if (Context->IsState(PCGExGraph::State_WritingClusters))
 	{
-		Context->EdgeNetwork = new PCGExGraph::FEdgeNetwork(10, Context->CurrentIO->GetNum());
-		Context->Markings = new PCGExData::FKPointIOMarkedBindings<int32>(Context->CurrentIO, PCGExGraph::PUIDAttributeName);
-		Context->Markings->Mark = Context->CurrentIO->GetIn()->GetUniqueID();
+		if (!Context->IsAsyncWorkComplete()) { return false; }
 
-		WriteEdges(Context);
-
-		Context->Markings->UpdateMark();
-		Context->ClustersIO->OutputTo(Context, true);
-		Context->ClustersIO->Flush();
-
-		PCGEX_DELETE(Context->EdgeNetwork)
-		PCGEX_DELETE(Context->Markings)
-
+		Context->BuildPath();
+		Context->GraphBuilder->Write(Context);
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
@@ -174,18 +164,14 @@ bool FPCGExBuildConvexHull2DElement::ExecuteInternal(
 	return Context->IsDone();
 }
 
-void FPCGExBuildConvexHull2DElement::WriteEdges(FPCGExBuildConvexHull2DContext* Context) const
+void FPCGExBuildConvexHull2DContext::BuildPath()
 {
-	PCGEX_SETTINGS(BuildConvexHull2D)
-
-	// Find unique edges
 	TSet<uint64> UniqueEdges;
 	TArray<PCGExGraph::FUnsignedEdge> Edges;
 
-	Context->ConvexHull->GetUniqueEdges(Edges);
+	ConvexHull->GetUniqueEdges(Edges);
 
-	PCGExData::FPointIO& PathIO = Context->PathsIO->Emplace_GetRef(*Context->CurrentIO, PCGExData::EInit::NewOutput);
-	Context->Markings->Add(PathIO);
+	const PCGExData::FPointIO& PathIO = PathsIO->Emplace_GetRef(*CurrentIO, PCGExData::EInit::NewOutput);
 
 	TArray<FPCGPoint>& MutablePathPoints = PathIO.GetOut()->GetMutablePoints();
 	TSet<int32> VisitedEdges;
@@ -202,7 +188,7 @@ void FPCGExBuildConvexHull2DElement::WriteEdges(FPCGExBuildConvexHull2DContext* 
 		{
 			EdgeIndex = 0;
 			FirstIndex = Edges[EdgeIndex].Start;
-			MutablePathPoints.Add(Context->CurrentIO->GetInPoint(FirstIndex));
+			MutablePathPoints.Add(CurrentIO->GetInPoint(FirstIndex));
 			CurrentIndex = Edges[EdgeIndex].End;
 		}
 		else
@@ -223,61 +209,10 @@ void FPCGExBuildConvexHull2DElement::WriteEdges(FPCGExBuildConvexHull2DContext* 
 		if (CurrentIndex == FirstIndex) { break; }
 
 		VisitedEdges.Add(EdgeIndex);
-		MutablePathPoints.Add(Context->CurrentIO->GetInPoint(CurrentIndex));
+		MutablePathPoints.Add(CurrentIO->GetInPoint(CurrentIndex));
 	}
 
 	VisitedEdges.Empty();
-
-	//		
-
-	if (Settings->bPrunePoints)
-	{
-		Edges.Empty(Edges.Num());
-		Context->ConvexHull->GetUniqueEdgesRemapped(Edges, Context->IndicesRemap);
-	}
-
-	PCGExData::FPointIO& HullEdges = Context->ClustersIO->Emplace_GetRef();
-	Context->Markings->Add(HullEdges);
-
-	TArray<FPCGPoint>& MutablePoints = HullEdges.GetOut()->GetMutablePoints();
-	MutablePoints.SetNum(Edges.Num());
-
-	HullEdges.CreateOutKeys();
-
-	PCGEx::TFAttributeWriter<int32>* EdgeStart = new PCGEx::TFAttributeWriter<int32>(PCGExGraph::EdgeStartAttributeName, -1, false);
-	PCGEx::TFAttributeWriter<int32>* EdgeEnd = new PCGEx::TFAttributeWriter<int32>(PCGExGraph::EdgeEndAttributeName, -1, false);
-
-	EdgeStart->BindAndGet(HullEdges);
-	EdgeEnd->BindAndGet(HullEdges);
-
-	int32 PointIndex = 0;
-	for (const PCGExGraph::FUnsignedEdge& Edge : Edges)
-	{
-		EdgeStart->Values[PointIndex] = Edge.Start;
-		EdgeEnd->Values[PointIndex] = Edge.End;
-
-		const FVector StartPosition = Context->CurrentIO->GetOutPoint(Edge.Start).Transform.GetLocation();
-		const FVector EndPosition = Context->CurrentIO->GetOutPoint(Edge.End).Transform.GetLocation();
-
-		MutablePoints[PointIndex].Transform.SetLocation(FMath::Lerp(StartPosition, EndPosition, 0.5));
-
-		PointIndex++;
-	}
-
-	EdgeStart->Write();
-	EdgeEnd->Write();
-
-	PCGEX_DELETE(EdgeStart)
-	PCGEX_DELETE(EdgeEnd)
-}
-
-bool FHull2DInsertTask::ExecuteTask()
-{
-	const FPCGExBuildConvexHull2DContext* Context = Manager->GetContext<FPCGExBuildConvexHull2DContext>();
-	//	Context->Delaunay->InsertVertex(TaskIndex);
-
-	//PCGEX_DELETE(Triangulation3)
-	return true;
 }
 
 #undef LOCTEXT_NAMESPACE

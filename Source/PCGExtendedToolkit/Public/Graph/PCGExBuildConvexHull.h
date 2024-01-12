@@ -69,13 +69,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBuildConvexHullContext : public FPCGExPoints
 
 	PCGExGeo::TConvexHull3* ConvexHull = nullptr;
 	TSet<int32> HullIndices;
-	TMap<int32, int32> IndicesRemap;
-
-	mutable FRWLock NetworkLock;
-	PCGExGraph::FEdgeNetwork* EdgeNetwork = nullptr;
-	PCGExData::FPointIOGroup* ClustersIO;
-
-	PCGExData::FKPointIOMarkedBindings<int32>* Markings = nullptr;
+	PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
+	
 };
 
 
@@ -91,15 +86,4 @@ protected:
 	virtual bool Boot(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 	void WriteEdges(FPCGExBuildConvexHullContext* Context) const;
-};
-
-class PCGEXTENDEDTOOLKIT_API FHull3DInsertTask : public FPCGExNonAbandonableTask
-{
-public:
-	FHull3DInsertTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO) :
-		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO)
-	{
-	}
-
-	virtual bool ExecuteTask() override;
 };
