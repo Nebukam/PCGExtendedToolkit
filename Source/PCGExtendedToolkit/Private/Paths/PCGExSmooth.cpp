@@ -1,4 +1,4 @@
-﻿// Copyright Timothé Lapetite 2023
+﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Paths/PCGExSmooth.h"
@@ -79,11 +79,9 @@ bool FPCGExSmoothElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
 	{
-		if (Context->IsAsyncWorkComplete())
-		{
-			Context->OutputPoints();
-			Context->Done();
-		}
+		if (!Context->IsAsyncWorkComplete()) { return false; }
+		Context->OutputPoints();
+		Context->Done();
 	}
 
 	return Context->IsDone();

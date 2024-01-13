@@ -1,4 +1,4 @@
-﻿// Copyright Timothé Lapetite 2023
+﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #pragma once
@@ -40,7 +40,7 @@ public:
 	/** Removes roaming points from the output, and keeps only points that are part of an cluster. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bPruneIsolatedPoints = true;
-	
+
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta = (NoResetToDefault, ShowOnlyInnerProperties))
 	TObjectPtr<UPCGExEdgeRefineOperation> Refinement;
 
@@ -52,12 +52,11 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExRefineEdgesContext : public FPCGExEdgesProce
 {
 	friend class FPCGExRefineEdgesElement;
 
-	~FPCGExRefineEdgesContext();
+	virtual ~FPCGExRefineEdgesContext() override;
 
 	UPCGExEdgeRefineOperation* Refinement;
 
 	PCGExGraph::FGraphBuilder* NetworkBuilder = nullptr;
-	
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExRefineEdgesElement : public FPCGExEdgesProcessorElement

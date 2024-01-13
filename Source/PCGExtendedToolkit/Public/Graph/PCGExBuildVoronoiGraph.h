@@ -1,11 +1,11 @@
-﻿// Copyright Timothé Lapetite 2023
+﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #pragma once
 
 #include "CoreMinimal.h"
 
-#include "PCGExGraphProcessor.h"
+#include "PCGExCustomGraphProcessor.h"
 #include "Data/PCGExData.h"
 #include "Geometry/PCGExGeo.h"
 
@@ -33,7 +33,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExBuildVoronoiGraphSettings : public UPCGExPoin
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(BuildVoronoiGraph, "Graph : Voronoi 3D", "Create a 3D Voronoi graph for each input dataset.");
+	PCGEX_NODE_INFOS(BuildVoronoiGraph, "Custom Graph : Voronoi 3D", "Create a 3D Voronoi graph for each input dataset.");
 #endif
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 
@@ -52,7 +52,7 @@ public:
 	/** Method used to find Voronoi cell location */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExCellCenter Method = EPCGExCellCenter::Balanced;
-	
+
 	/** Prune points and cell outside bounds */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bPruneOutsideBounds = false;
@@ -60,7 +60,7 @@ public:
 	/** Prune points and cell outside bounds (computed based on input vertices + optional extension)*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bPruneOutsideBounds"))
 	double BoundsCutoff = 100;
-	
+
 	/** Mark points & edges that lie on the hull */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bMarkHull = true;
@@ -93,7 +93,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBuildVoronoiGraphContext : public FPCGExPoin
 
 protected:
 	void WriteEdges();
-	
 };
 
 

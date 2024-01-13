@@ -1,30 +1,30 @@
-﻿// Copyright Timothé Lapetite 2023
+﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Graph/PCGExDeleteGraph.h"
+#include "Graph/PCGExDeleteCustomGraph.h"
 
-#define LOCTEXT_NAMESPACE "PCGExDeleteGraph"
-#define PCGEX_NAMESPACE DeleteGraph
+#define LOCTEXT_NAMESPACE "PCGExDeleteCustomGraph"
+#define PCGEX_NAMESPACE DeleteCustomGraph
 
-int32 UPCGExDeleteGraphSettings::GetPreferredChunkSize() const { return 32; }
+int32 UPCGExDeleteCustomGraphSettings::GetPreferredChunkSize() const { return 32; }
 
-TArray<FPCGPinProperties> UPCGExDeleteGraphSettings::OutputPinProperties() const
+TArray<FPCGPinProperties> UPCGExDeleteCustomGraphSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
 	PinProperties.Pop();
 	return PinProperties;
 }
 
-PCGExData::EInit UPCGExDeleteGraphSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
+PCGExData::EInit UPCGExDeleteCustomGraphSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
-PCGEX_INITIALIZE_ELEMENT(DeleteGraph)
+PCGEX_INITIALIZE_ELEMENT(DeleteCustomGraph)
 
-bool FPCGExDeleteGraphElement::ExecuteInternal(
+bool FPCGExDeleteCustomGraphElement::ExecuteInternal(
 	FPCGContext* InContext) const
 {
-	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExDeleteGraphElement::Execute);
+	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExDeleteCustomGraphElement::Execute);
 
-	PCGEX_CONTEXT(DeleteGraph)
+	PCGEX_CONTEXT(DeleteCustomGraph)
 
 	if (!Boot(Context)) { return true; }
 

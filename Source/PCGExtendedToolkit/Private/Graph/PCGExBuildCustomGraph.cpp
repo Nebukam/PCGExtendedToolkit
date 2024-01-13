@@ -1,54 +1,54 @@
-﻿// Copyright Timothé Lapetite 2023
+﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Graph/PCGExBuildGraph.h"
+#include "Graph/PCGExBuildCustomGraph.h"
 
-#define LOCTEXT_NAMESPACE "PCGExBuildGraph"
-#define PCGEX_NAMESPACE BuildGraph
+#define LOCTEXT_NAMESPACE "PCGExBuildCustomGraph"
+#define PCGEX_NAMESPACE BuildCustomGraph
 
-int32 UPCGExBuildGraphSettings::GetPreferredChunkSize() const { return 32; }
-PCGExData::EInit UPCGExBuildGraphSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
+int32 UPCGExBuildCustomGraphSettings::GetPreferredChunkSize() const { return 32; }
+PCGExData::EInit UPCGExBuildCustomGraphSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
-FPCGExBuildGraphContext::~FPCGExBuildGraphContext()
+FPCGExBuildCustomGraphContext::~FPCGExBuildCustomGraphContext()
 {
 	PCGEX_TERMINATE_ASYNC
 }
 
-UPCGExBuildGraphSettings::UPCGExBuildGraphSettings(const FObjectInitializer& ObjectInitializer)
+UPCGExBuildCustomGraphSettings::UPCGExBuildCustomGraphSettings(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 	PCGEX_OPERATION_DEFAULT(GraphSolver, UPCGExGraphSolver)
 }
 
 #if WITH_EDITOR
-void UPCGExBuildGraphSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+void UPCGExBuildCustomGraphSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	if (GraphSolver) { GraphSolver->UpdateUserFacingInfos(); }
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
 #endif
 
-FName UPCGExBuildGraphSettings::GetMainInputLabel() const { return PCGEx::SourcePointsLabel; }
+FName UPCGExBuildCustomGraphSettings::GetMainInputLabel() const { return PCGEx::SourcePointsLabel; }
 
-PCGEX_INITIALIZE_ELEMENT(BuildGraph)
+PCGEX_INITIALIZE_ELEMENT(BuildCustomGraph)
 
-bool FPCGExBuildGraphElement::Boot(FPCGContext* InContext) const
+bool FPCGExBuildCustomGraphElement::Boot(FPCGContext* InContext) const
 {
-	if (!FPCGExGraphProcessorElement::Boot(InContext)) { return false; }
+	if (!FPCGExCustomGraphProcessorElement::Boot(InContext)) { return false; }
 
-	PCGEX_CONTEXT_AND_SETTINGS(BuildGraph)
+	PCGEX_CONTEXT_AND_SETTINGS(BuildCustomGraph)
 
-	PCGEX_OPERATION_BIND(GraphSolver, UPCGExGraphSolver)
+	PCGEX_OPERATION_BIND(GraphSolver, UPCGExCustomGraphSolver)
 
 	return true;
 }
 
-bool FPCGExBuildGraphElement::ExecuteInternal(
+bool FPCGExBuildCustomGraphElement::ExecuteInternal(
 	FPCGContext* InContext) const
 {
-	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExBuildGraphElement::Execute);
+	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExBuildCustomGraphElement::Execute);
 
-	PCGEX_CONTEXT(BuildGraph)
+	PCGEX_CONTEXT(BuildCustomGraph)
 
 	if (Context->IsSetup())
 	{
@@ -91,12 +91,14 @@ bool FPCGExBuildGraphElement::ExecuteInternal(
 			Context->GetAsyncManager()->Start<FProbeTask>(PointIndex, Context->CurrentIO);
 		};
 
-		if (Context->ProcessCurrentPoints(Initialize, ProcessPoint)) { Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork); }
+		if (!Context->ProcessCurrentPoints(Initialize, ProcessPoint)) { return false; }
+		Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork);
 	}
 
 	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
 	{
-		if (Context->IsAsyncWorkComplete()) { Context->SetState(PCGExGraph::State_FindingEdgeTypes); }
+		if (!Context->IsAsyncWorkComplete()) { return false; }
+		Context->SetState(PCGExGraph::State_FindingEdgeTypes);
 	}
 
 	if (Context->IsState(PCGExGraph::State_FindingEdgeTypes))
@@ -107,11 +109,9 @@ bool FPCGExBuildGraphElement::ExecuteInternal(
 			ComputeEdgeType(Context->SocketInfos, PointIndex);
 		};
 
-		if (Context->ProcessCurrentPoints(ProcessPointEdgeType))
-		{
-			for (const PCGExGraph::FSocketInfos& SocketInfos : Context->SocketInfos) { SocketInfos.Socket->Write(); }
-			Context->SetState(PCGExGraph::State_ReadyForNextGraph);
-		}
+		if (!Context->ProcessCurrentPoints(ProcessPointEdgeType)) { return false; }
+		for (const PCGExGraph::FSocketInfos& SocketInfos : Context->SocketInfos) { SocketInfos.Socket->Write(); }
+		Context->SetState(PCGExGraph::State_ReadyForNextGraph);
 	}
 
 	if (Context->IsDone()) { Context->OutputPointsAndGraphParams(); }
@@ -121,7 +121,7 @@ bool FPCGExBuildGraphElement::ExecuteInternal(
 
 bool FProbeTask::ExecuteTask()
 {
-	const FPCGExBuildGraphContext* Context = Manager->GetContext<FPCGExBuildGraphContext>();
+	const FPCGExBuildCustomGraphContext* Context = Manager->GetContext<FPCGExBuildCustomGraphContext>();
 
 
 	const PCGEx::FPointRef Point = PCGEx::FPointRef(PointIO->GetOutPoint(TaskIndex), TaskIndex);

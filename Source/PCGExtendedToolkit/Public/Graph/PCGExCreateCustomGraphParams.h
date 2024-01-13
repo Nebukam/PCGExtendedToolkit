@@ -1,4 +1,4 @@
-﻿// Copyright Timothé Lapetite 2023
+﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #pragma once
@@ -8,7 +8,7 @@
 
 #include "Data/PCGExGraphParamsData.h"
 
-#include "PCGExCreateGraphParams.generated.h"
+#include "PCGExCreateCustomGraphParams.generated.h"
 
 UENUM(BlueprintType)
 enum class EPCGExGraphModel : uint8
@@ -56,17 +56,17 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSocketQualityOfLifeInfos
 
 /** Outputs a single GraphParam to be consumed by other nodes */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
-class PCGEXTENDEDTOOLKIT_API UPCGExCreateGraphParamsSettings : public UPCGSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExCreateCustomGraphParamsSettings : public UPCGSettings
 {
 	GENERATED_BODY()
 
 public:
-	UPCGExCreateGraphParamsSettings(const FObjectInitializer& ObjectInitializer);
+	UPCGExCreateCustomGraphParamsSettings(const FObjectInitializer& ObjectInitializer);
 
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	bool bCacheResult = false;
-	PCGEX_NODE_INFOS(GraphParams, "Graph : Params", "Builds a collection of PCG-compatible data from the selected actors.")
+	PCGEX_NODE_INFOS(GraphParams, "Custom Graph : Params", "Builds a collection of PCG-compatible data from the selected actors.")
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Param; }
 #endif
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
@@ -125,7 +125,7 @@ protected:
 	void InitSocketContent(TArray<FPCGExSocketDescriptor>& OutSockets) const;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExCreateGraphParamsElement : public FSimplePCGElement
+class PCGEXTENDEDTOOLKIT_API FPCGExCreateCustomGraphParamsElement : public FSimplePCGElement
 {
 protected:
 	template <typename T>

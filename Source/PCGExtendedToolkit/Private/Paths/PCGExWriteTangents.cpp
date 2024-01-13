@@ -1,4 +1,4 @@
-﻿// Copyright Timothé Lapetite 2023
+﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Paths/PCGExWriteTangents.h"
@@ -6,7 +6,7 @@
 #include "Paths/Tangents/PCGExAutoTangents.h"
 
 #define LOCTEXT_NAMESPACE "PCGExWriteTangentsElement"
-#define PCGEX_NAMESPACE BuildGraph
+#define PCGEX_NAMESPACE BuildCustomGraph
 
 UPCGExWriteTangentsSettings::UPCGExWriteTangentsSettings(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -131,12 +131,11 @@ bool FPCGExWriteTangentsElement::ExecuteInternal(FPCGContext* InContext) const
 		if (Settings->bClosedPath) { bProcessingComplete = Context->ProcessCurrentPoints(Initialize, ProcessPointTile); }
 		else { bProcessingComplete = Context->ProcessCurrentPoints(Initialize, ProcessPoint); }
 
-		if (bProcessingComplete)
-		{
-			Context->WriteTangents();
-			Context->CurrentIO->OutputTo(Context);
-			Context->SetState(PCGExMT::State_ReadyForNextPoints);
-		}
+		if (!bProcessingComplete) { return false; }
+
+		Context->WriteTangents();
+		Context->CurrentIO->OutputTo(Context);
+		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
 	return Context->IsDone();

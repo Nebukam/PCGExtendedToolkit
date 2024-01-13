@@ -1,4 +1,4 @@
-﻿// Copyright Timothé Lapetite 2023
+﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #pragma once
@@ -9,7 +9,6 @@
 
 namespace PCGExCluster
 {
-	
 	struct FCluster;
 
 	struct PCGEXTENDEDTOOLKIT_API FVertex

@@ -1,7 +1,7 @@
-﻿// Copyright Timothé Lapetite 2023
+﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Graph/PCGExGraphProcessor.h"
+#include "Graph/PCGExCustomGraphProcessor.h"
 
 #include "IPCGExDebug.h"
 #include "Data/PCGExGraphParamsData.h"
@@ -11,7 +11,7 @@
 #pragma region UPCGSettings interface
 
 
-TArray<FPCGPinProperties> UPCGExGraphProcessorSettings::InputPinProperties() const
+TArray<FPCGPinProperties> UPCGExCustomGraphProcessorSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 	FPCGPinProperties& PinPropertyParams = PinProperties.Emplace_GetRef(PCGExGraph::SourceParamsLabel, EPCGDataType::Param);
@@ -23,7 +23,7 @@ TArray<FPCGPinProperties> UPCGExGraphProcessorSettings::InputPinProperties() con
 	return PinProperties;
 }
 
-TArray<FPCGPinProperties> UPCGExGraphProcessorSettings::OutputPinProperties() const
+TArray<FPCGPinProperties> UPCGExCustomGraphProcessorSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
 	FPCGPinProperties& PinParamsOutput = PinProperties.Emplace_GetRef(PCGExGraph::OutputParamsLabel, EPCGDataType::Param);
@@ -35,10 +35,10 @@ TArray<FPCGPinProperties> UPCGExGraphProcessorSettings::OutputPinProperties() co
 	return PinProperties;
 }
 
-FName UPCGExGraphProcessorSettings::GetMainInputLabel() const { return PCGExGraph::SourceGraphsLabel; }
-FName UPCGExGraphProcessorSettings::GetMainOutputLabel() const { return PCGExGraph::OutputGraphsLabel; }
+FName UPCGExCustomGraphProcessorSettings::GetMainInputLabel() const { return PCGExGraph::SourceGraphsLabel; }
+FName UPCGExCustomGraphProcessorSettings::GetMainOutputLabel() const { return PCGExGraph::OutputGraphsLabel; }
 
-FPCGExGraphProcessorContext::~FPCGExGraphProcessorContext()
+FPCGExCustomGraphProcessorContext::~FPCGExCustomGraphProcessorContext()
 {
 	PCGEX_TERMINATE_ASYNC
 
@@ -52,7 +52,7 @@ FPCGExGraphProcessorContext::~FPCGExGraphProcessorContext()
 
 #pragma endregion
 
-bool FPCGExGraphProcessorContext::AdvanceGraph(const bool bResetPointsIndex)
+bool FPCGExCustomGraphProcessorContext::AdvanceGraph(const bool bResetPointsIndex)
 {
 	if (bResetPointsIndex) { CurrentPointsIndex = -1; }
 
@@ -69,31 +69,31 @@ bool FPCGExGraphProcessorContext::AdvanceGraph(const bool bResetPointsIndex)
 	return false;
 }
 
-bool FPCGExGraphProcessorContext::AdvancePointsIOAndResetGraph()
+bool FPCGExCustomGraphProcessorContext::AdvancePointsIOAndResetGraph()
 {
 	CurrentParamsIndex = -1;
 	return AdvancePointsIO();
 }
 
-void FPCGExGraphProcessorContext::Reset()
+void FPCGExCustomGraphProcessorContext::Reset()
 {
 	FPCGExPointsProcessorContext::Reset();
 	CurrentParamsIndex = -1;
 }
 
-void FPCGExGraphProcessorContext::SetCachedIndex(const int32 PointIndex, const int32 Index) const
+void FPCGExCustomGraphProcessorContext::SetCachedIndex(const int32 PointIndex, const int32 Index) const
 {
 	check(!bReadOnly)
 	(*CachedIndexWriter)[PointIndex] = Index;
 }
 
-int32 FPCGExGraphProcessorContext::GetCachedIndex(const int32 PointIndex) const
+int32 FPCGExCustomGraphProcessorContext::GetCachedIndex(const int32 PointIndex) const
 {
 	if (bReadOnly) { return (*CachedIndexReader)[PointIndex]; }
 	return (*CachedIndexWriter)[PointIndex];
 }
 
-void FPCGExGraphProcessorContext::PrepareCurrentGraphForPoints(const PCGExData::FPointIO& PointIO, const bool ReadOnly)
+void FPCGExCustomGraphProcessorContext::PrepareCurrentGraphForPoints(const PCGExData::FPointIO& PointIO, const bool ReadOnly)
 {
 	bReadOnly = ReadOnly;
 	if (bReadOnly)
@@ -112,13 +112,13 @@ void FPCGExGraphProcessorContext::PrepareCurrentGraphForPoints(const PCGExData::
 	CurrentGraph->PrepareForPointData(PointIO, bReadOnly);
 }
 
-PCGEX_INITIALIZE_CONTEXT(GraphProcessor)
+PCGEX_INITIALIZE_CONTEXT(CustomGraphProcessor)
 
-bool FPCGExGraphProcessorElement::Boot(FPCGContext* InContext) const
+bool FPCGExCustomGraphProcessorElement::Boot(FPCGContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElementBase::Boot(InContext)) { return false; }
 
-	PCGEX_CONTEXT(GraphProcessor)
+	PCGEX_CONTEXT(CustomGraphProcessor)
 
 	if (Context->Graphs.IsEmpty())
 	{
@@ -132,7 +132,7 @@ bool FPCGExGraphProcessorElement::Boot(FPCGContext* InContext) const
 	return true;
 }
 
-FPCGContext* FPCGExGraphProcessorElement::InitializeContext(
+FPCGContext* FPCGExCustomGraphProcessorElement::InitializeContext(
 	FPCGExPointsProcessorContext* InContext,
 	const FPCGDataCollection& InputData,
 	TWeakObjectPtr<UPCGComponent> SourceComponent,
@@ -140,7 +140,7 @@ FPCGContext* FPCGExGraphProcessorElement::InitializeContext(
 {
 	FPCGExPointsProcessorElementBase::InitializeContext(InContext, InputData, SourceComponent, Node);
 
-	PCGEX_CONTEXT(GraphProcessor)
+	PCGEX_CONTEXT(CustomGraphProcessor)
 
 	TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(PCGExGraph::SourceParamsLabel);
 	Context->Graphs.Initialize(InContext, Sources);

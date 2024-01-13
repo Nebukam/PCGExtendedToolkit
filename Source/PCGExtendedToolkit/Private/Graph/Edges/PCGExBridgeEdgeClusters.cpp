@@ -1,4 +1,4 @@
-﻿// Copyright Timothé Lapetite 2023
+﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Graph/Edges/PCGExBridgeEdgeClusters.h"
@@ -177,15 +177,14 @@ bool FPCGExBridgeEdgeClustersElement::ExecuteInternal(
 			}
 		};
 
-		if (Context->Process(BridgeClusters, Context->Clusters.Num() - 1, true))
-		{
-			Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork);
-		}
+		if (!Context->Process(BridgeClusters, Context->Clusters.Num() - 1, true)) { return false; }
+		Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork);
 	}
 
 	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
 	{
-		if (Context->IsAsyncWorkComplete()) { Context->SetState(PCGExMT::State_ReadyForNextPoints); }
+		if (!Context->IsAsyncWorkComplete()) { return false; }
+		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
 	if (Context->IsDone()) { Context->OutputPointsAndEdges(); }

@@ -1,26 +1,26 @@
-﻿// Copyright Timothé Lapetite 2023
+﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #pragma once
 
 #include "CoreMinimal.h"
 
-#include "PCGExGraphProcessor.h"
+#include "PCGExCustomGraphProcessor.h"
 
-#include "PCGExConsolidateGraph.generated.h"
+#include "PCGExConsolidateCustomGraph.generated.h"
 
 /**
  * Calculates the distance between two points (inherently a n*n operation)
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
-class PCGEXTENDEDTOOLKIT_API UPCGExConsolidateGraphSettings : public UPCGExGraphProcessorSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExConsolidateCustomGraphSettings : public UPCGExCustomGraphProcessorSettings
 {
 	GENERATED_BODY()
 
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(ConsolidateGraph, "Graph : Consolidate", "Repairs and consolidate graph indices after points have been removed post graph-building.");
+	PCGEX_NODE_INFOS(ConsolidateCustomGraph, "Custom Graph : Consolidate", "Repairs and consolidate graph indices after points have been removed post graph-building.");
 #endif
 
 protected:
@@ -38,12 +38,12 @@ public:
 	bool bConsolidateEdgeType = true;
 
 private:
-	friend class FPCGExConsolidateGraphElement;
+	friend class FPCGExConsolidateCustomGraphElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExConsolidateGraphContext : public FPCGExGraphProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExConsolidateCustomGraphContext : public FPCGExCustomGraphProcessorContext
 {
-	friend class FPCGExConsolidateGraphElement;
+	friend class FPCGExConsolidateCustomGraphElement;
 
 public:
 	bool bConsolidateEdgeType;
@@ -53,7 +53,7 @@ public:
 };
 
 
-class PCGEXTENDEDTOOLKIT_API FPCGExConsolidateGraphElement : public FPCGExGraphProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExConsolidateCustomGraphElement : public FPCGExCustomGraphProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -65,6 +65,6 @@ protected:
 	virtual bool Boot(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 #if WITH_EDITOR
-	static int64 GetFixedIndex(FPCGExConsolidateGraphContext* Context, int64 InIndex);
+	static int64 GetFixedIndex(FPCGExConsolidateCustomGraphContext* Context, int64 InIndex);
 #endif
 };

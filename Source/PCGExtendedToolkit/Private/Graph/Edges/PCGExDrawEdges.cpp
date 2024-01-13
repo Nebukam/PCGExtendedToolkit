@@ -1,4 +1,4 @@
-﻿// Copyright Timothé Lapetite 2023
+﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Graph/Edges/PCGExDrawEdges.h"
@@ -37,12 +37,12 @@ bool FPCGExDrawEdgesElement::Boot(FPCGContext* InContext) const
 	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
 
 #if WITH_EDITOR
-	
+
 	PCGEX_CONTEXT_AND_SETTINGS(DrawEdges)
 	PCGEX_DEBUG_NOTIFY
-	
+
 #endif
-	
+
 	return true;
 }
 
@@ -56,7 +56,7 @@ bool FPCGExDrawEdgesElement::ExecuteInternal(
 	PCGEX_CONTEXT_AND_SETTINGS(DrawEdges)
 
 	if (Context->IsSetup())
-	{		
+	{
 		if (!Boot(Context)) { return true; }
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}

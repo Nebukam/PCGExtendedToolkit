@@ -1,4 +1,4 @@
-﻿// Copyright Timothé Lapetite 2023
+﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Graph/Edges/PCGExPromoteEdges.h"
@@ -37,7 +37,7 @@ PCGEX_INITIALIZE_ELEMENT(PromoteEdges)
 
 bool FPCGExPromoteEdgesElement::Boot(FPCGContext* InContext) const
 {
-	if (!FPCGExGraphProcessorElement::Boot(InContext)) { return false; }
+	if (!FPCGExCustomGraphProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(PromoteEdges)
 
@@ -134,10 +134,9 @@ bool FPCGExPromoteEdgesElement::ExecuteInternal(
 		};
 
 
-		if (Context->ProcessCurrentPoints(Initialize, ProcessPoint))
-		{
-			Context->SetState(PCGExGraph::State_ReadyForNextGraph);
-		}
+		if (!Context->ProcessCurrentPoints(Initialize, ProcessPoint)) { return false; }
+
+		Context->SetState(PCGExGraph::State_ReadyForNextGraph);
 	}
 
 	if (Context->IsState(PCGExGraph::State_PromotingEdges))
@@ -177,14 +176,10 @@ bool FPCGExPromoteEdgesElement::ExecuteInternal(
 			}
 		};
 
-		if (Context->Promotion->GeneratesNewPointData())
-		{
-			if (Context->Process(ProcessEdgeGen, Context->Edges.Num())) { Context->SetState(PCGExMT::State_ReadyForNextPoints); }
-		}
-		else
-		{
-			if (Context->Process(ProcessEdge, Context->Edges.Num())) { Context->SetState(PCGExMT::State_ReadyForNextPoints); }
-		}
+		if (Context->Promotion->GeneratesNewPointData()) { if (!Context->Process(ProcessEdgeGen, Context->Edges.Num())) { return false; } }
+		else { if (!Context->Process(ProcessEdge, Context->Edges.Num())) { return false; } }
+
+		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
 	if (Context->IsDone())

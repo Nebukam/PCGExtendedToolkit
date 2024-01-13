@@ -1,4 +1,4 @@
-﻿// Copyright Timothé Lapetite 2023
+﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #pragma once
@@ -7,7 +7,7 @@
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGExGraphParamsData.h"
 
-#include "PCGExGraphProcessor.generated.h"
+#include "PCGExCustomGraphProcessor.generated.h"
 
 class UPCGExGraphParamsData;
 
@@ -15,14 +15,14 @@ class UPCGExGraphParamsData;
  * A Base node to process a set of point using GraphParams.
  */
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural))
-class PCGEXTENDEDTOOLKIT_API UPCGExGraphProcessorSettings : public UPCGExPointsProcessorSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExCustomGraphProcessorSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(GraphProcessorSettings, "Graph Processor Settings", "TOOLTIP_TEXT");
+	PCGEX_NODE_INFOS(CustomGraphProcessorSettings, "Graph Processor Settings", "TOOLTIP_TEXT");
 	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorGraph; }
 #endif
 
@@ -37,11 +37,11 @@ public:
 	//~End UPCGExPointsProcessorSettings interface
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExGraphProcessorContext : public FPCGExPointsProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExCustomGraphProcessorContext : public FPCGExPointsProcessorContext
 {
-	friend class UPCGExGraphProcessorSettings;
+	friend class UPCGExCustomGraphProcessorSettings;
 
-	virtual ~FPCGExGraphProcessorContext() override;
+	virtual ~FPCGExCustomGraphProcessorContext() override;
 
 	bool bReadOnly = false;
 	PCGExGraph::FGraphInputs Graphs;
@@ -74,7 +74,7 @@ protected:
 	int32 CurrentParamsIndex = -1;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExGraphProcessorElement : public FPCGExPointsProcessorElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExCustomGraphProcessorElement : public FPCGExPointsProcessorElementBase
 {
 public:
 	virtual FPCGContext* Initialize(

@@ -1,4 +1,4 @@
-﻿// Copyright Timothé Lapetite 2023
+﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #pragma once
@@ -8,7 +8,7 @@
 #include "Data/PCGExGraphParamsData.h"
 #include "UObject/Object.h"
 
-#include "PCGExGraphSolver.generated.h"
+#include "PCGExCustomGraphSolver.generated.h"
 
 namespace PCGExGraph
 {
@@ -72,7 +72,7 @@ namespace PCGExGraph
  * 
  */
 UCLASS(DisplayName = "Simple Solver")
-class PCGEXTENDEDTOOLKIT_API UPCGExGraphSolver : public UPCGExOperation
+class PCGEXTENDEDTOOLKIT_API UPCGExCustomGraphSolver : public UPCGExOperation
 {
 	GENERATED_BODY()
 

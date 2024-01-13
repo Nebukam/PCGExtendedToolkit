@@ -1,4 +1,4 @@
-﻿// Copyright Timothé Lapetite 2023
+﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Graph/Pathfinding/PCGExPathfindingPlotNavmesh.h"
@@ -118,7 +118,8 @@ bool FPCGExPathfindingPlotNavmeshElement::ExecuteInternal(FPCGContext* InContext
 
 	if (Context->IsState(PCGExMT::State_ProcessingPoints))
 	{
-		if (Context->IsAsyncWorkComplete()) { Context->Done(); }
+		if (!Context->IsAsyncWorkComplete()) { return false; }
+		Context->Done();
 	}
 
 	if (Context->IsDone())

@@ -1,4 +1,4 @@
-﻿// Copyright Timothé Lapetite 2023
+﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Graph/PCGExFindEdgeClusters.h"
@@ -39,7 +39,7 @@ PCGEX_INITIALIZE_ELEMENT(FindEdgeClusters)
 
 bool FPCGExFindEdgeClustersElement::Boot(FPCGContext* InContext) const
 {
-	if (!FPCGExGraphProcessorElement::Boot(InContext)) { return false; }
+	if (!FPCGExCustomGraphProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(FindEdgeClusters)
 
@@ -94,12 +94,12 @@ bool FPCGExFindEdgeClustersElement::ExecuteInternal(
 			if (Context->NetworkBuilder->EdgeCrossings) { Context->SetState(PCGExGraph::State_FindingCrossings); }
 			else { Context->SetState(PCGExGraph::State_WritingClusters); }
 		}
-		else { Context->SetState(PCGExGraph::State_BuildNetwork); }
+		else { Context->SetState(PCGExGraph::State_BuildCustomGraph); }
 	}
 
 	// -> Process current points with current graph
 
-	if (Context->IsState(PCGExGraph::State_BuildNetwork))
+	if (Context->IsState(PCGExGraph::State_BuildCustomGraph))
 	{
 		auto Initialize = [&](PCGExData::FPointIO& PointIO)
 		{
@@ -119,11 +119,8 @@ bool FPCGExFindEdgeClustersElement::ExecuteInternal(
 			}
 		};
 
-
-		if (Context->ProcessCurrentPoints(Initialize, InsertEdge))
-		{
-			Context->SetState(PCGExGraph::State_ReadyForNextGraph);
-		}
+		if (!Context->ProcessCurrentPoints(Initialize, InsertEdge)) { return false; }
+		Context->SetState(PCGExGraph::State_ReadyForNextGraph);
 	}
 
 	if (Context->IsState(PCGExGraph::State_FindingCrossings))
@@ -138,10 +135,8 @@ bool FPCGExFindEdgeClustersElement::ExecuteInternal(
 			Context->NetworkBuilder->EdgeCrossings->ProcessEdge(Index, Context->CurrentIO->GetIn()->GetPoints());
 		};
 
-		if (Context->Process(Initialize, ProcessEdge, Context->NetworkBuilder->Graph->Edges.Num()))
-		{
-			Context->SetState(PCGExGraph::State_WritingClusters);
-		}
+		if (!Context->Process(Initialize, ProcessEdge, Context->NetworkBuilder->Graph->Edges.Num())) { return false; }
+		Context->SetState(PCGExGraph::State_WritingClusters);
 	}
 
 	// -> Network is ready
@@ -160,16 +155,14 @@ bool FPCGExFindEdgeClustersElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExGraph::State_WaitingOnWritingClusters))
 	{
-		if (Context->IsAsyncWorkComplete())
-		{
-			Context->NetworkBuilder->Write(Context);
-			Context->SetState(PCGExMT::State_ReadyForNextPoints);
-		}
+		if (!Context->IsAsyncWorkComplete()) { return false; }
+		Context->NetworkBuilder->Write(Context);
+		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
 	if (Context->IsDone())
 	{
-		if (Settings->bDeleteGraphData)
+		if (Settings->bDeleteCustomGraphData)
 		{
 			Context->MainPoints->ForEach(
 				[&](const PCGExData::FPointIO& PointIO, int32)

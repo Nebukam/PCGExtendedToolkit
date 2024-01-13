@@ -1,7 +1,7 @@
-﻿// Copyright Timothé Lapetite 2023
+﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Graph\Edges\PCGExRefineEdges.h"
+#include "Graph/Edges/PCGExRefineEdges.h"
 
 #include "Graph/PCGExGraph.h"
 #include "Graph/Edges/Refining/PCGExEdgeRefineUrquhart.h"
@@ -91,7 +91,8 @@ bool FPCGExRefineEdgesElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExGraph::State_ProcessingEdges))
 	{
-		if (Context->IsAsyncWorkComplete()) { Context->SetState(PCGExMT::State_ReadyForNextPoints); }
+		if (!Context->IsAsyncWorkComplete()) { return false; }
+		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
 	if (Context->IsState(PCGExGraph::State_WritingClusters))
@@ -108,11 +109,9 @@ bool FPCGExRefineEdgesElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExGraph::State_WaitingOnWritingClusters))
 	{
-		if (Context->IsAsyncWorkComplete())
-		{
-			Context->NetworkBuilder->Write(Context);
-			Context->SetState(PCGExMT::State_ReadyForNextPoints);
-		}
+		if (!Context->IsAsyncWorkComplete()) { return false; }
+		Context->NetworkBuilder->Write(Context);
+		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
 	if (Context->IsDone())

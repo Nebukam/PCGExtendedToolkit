@@ -1,4 +1,4 @@
-﻿// Copyright Timothé Lapetite 2023
+﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Misc/PCGExPartitionByValues.h"
@@ -185,29 +185,28 @@ bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* InContext) con
 			Partition->Add(PointIndex);
 		};
 
-		if (Context->ProcessCurrentPoints(Initialize, ProcessPoint))
+		if (!Context->ProcessCurrentPoints(Initialize, ProcessPoint)) { return false; }
+
+		if (Context->bSplitOutput)
 		{
-			if (Context->bSplitOutput)
-			{
-				Context->NumPartitions = Context->RootPartition->GetSubPartitionsNum();
-				Context->Partitions.Reserve(Context->NumPartitions);
-				Context->RootPartition->Register(Context->Partitions);
+			Context->NumPartitions = Context->RootPartition->GetSubPartitionsNum();
+			Context->Partitions.Reserve(Context->NumPartitions);
+			Context->RootPartition->Register(Context->Partitions);
 
-				Context->SetState(PCGExPartition::State_DistributeToPartition);
-			}
-			else
+			Context->SetState(PCGExPartition::State_DistributeToPartition);
+		}
+		else
+		{
+			for (FPCGExFilter::FRule& Rule : Context->Rules)
 			{
-				for (FPCGExFilter::FRule& Rule : Context->Rules)
-				{
-					if (!Rule.RuleDescriptor->bWriteKey) { continue; }
-					PCGEx::FAttributeAccessor<int64>* Accessor = PCGEx::FAttributeAccessor<int64>::FindOrCreate(*Context->CurrentIO, Rule.RuleDescriptor->KeyAttributeName, 0, false);
-					Accessor->SetRange(Rule.FilteredValues);
-					delete Accessor;
-				}
-
-				Context->OutputPoints();
-				Context->Done();
+				if (!Rule.RuleDescriptor->bWriteKey) { continue; }
+				PCGEx::FAttributeAccessor<int64>* Accessor = PCGEx::FAttributeAccessor<int64>::FindOrCreate(*Context->CurrentIO, Rule.RuleDescriptor->KeyAttributeName, 0, false);
+				Accessor->SetRange(Rule.FilteredValues);
+				delete Accessor;
 			}
+
+			Context->OutputPoints();
+			Context->Done();
 		}
 	}
 
@@ -244,7 +243,8 @@ bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* InContext) con
 			Context->Output(OutData, Context->MainPoints->DefaultOutputLabel);
 		};
 
-		if (Context->Process(CreatePartition, Context->NumPartitions)) { Context->Done(); }
+		if (!Context->Process(CreatePartition, Context->NumPartitions)) { return false; }
+		Context->Done();
 	}
 
 	return Context->IsDone();

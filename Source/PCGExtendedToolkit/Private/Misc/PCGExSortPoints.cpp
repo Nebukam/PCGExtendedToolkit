@@ -1,4 +1,4 @@
-﻿// Copyright Timothé Lapetite 2023
+﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
 
@@ -103,7 +103,8 @@ case _ENUM : Result = FPCGExCompare::Compare(A._ACCESSOR, B._ACCESSOR, Rule.Tole
 
 	if (Context->IsState(PCGExMT::State_ProcessingPoints))
 	{
-		if (Context->Process(SortPointIO, Context->MainPoints->Num())) { Context->Done(); }
+		if (!Context->Process(SortPointIO, Context->MainPoints->Num())) { return false; }
+		Context->Done();
 	}
 
 	return Context->IsDone();

@@ -1,17 +1,17 @@
-﻿// Copyright Timothé Lapetite 2023
+﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExGraphSolver.h"
-#include "PCGExWeightedGraphSolver.generated.h"
+#include "PCGExCustomGraphSolver.h"
+#include "PCGExCustomGraphSolverWeighted.generated.h"
 
 /**
  * 
  */
 UCLASS(DisplayName = "Weighted Solver")
-class PCGEXTENDEDTOOLKIT_API UPCGExWeightedGraphSolver : public UPCGExGraphSolver
+class PCGEXTENDEDTOOLKIT_API UPCGExCustomGraphSolverWeighted : public UPCGExCustomGraphSolver
 {
 	GENERATED_BODY()
 

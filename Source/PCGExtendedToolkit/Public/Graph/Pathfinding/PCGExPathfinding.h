@@ -1,4 +1,4 @@
-﻿// Copyright Timothé Lapetite 2023
+﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #pragma once
@@ -208,7 +208,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicModifiersSettings
 				OutMin = 1;
 				OutMax = -1;
 			}
-			
+
 			if (bLocalWeight)
 			{
 				for (int i = 0; i < NumIterations; i++)

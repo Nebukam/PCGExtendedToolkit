@@ -1,4 +1,4 @@
-﻿// Copyright Timothé Lapetite 2023
+﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Sampling/PCGExSampleNearestPolyline.h"
@@ -51,10 +51,7 @@ bool FPCGExSampleNearestPolylineElement::Boot(FPCGContext* InContext) const
 
 	TArray<FPCGTaggedData> Targets = Context->InputData.GetInputsByPin(PCGEx::SourceTargetsLabel);
 
-	if (!Targets.IsEmpty())
-	{
-		Context->Targets = new PCGExData::FPolyLineIOGroup(Targets);
-	}
+	if (!Targets.IsEmpty()) { Context->Targets = new PCGExData::FPolyLineIOGroup(Targets); }
 
 	Context->WeightCurve = Settings->WeightOverDistance.LoadSynchronous();
 
@@ -121,20 +118,14 @@ bool FPCGExSampleNearestPolylineElement::ExecuteInternal(FPCGContext* InContext)
 	{
 		auto Initialize = [&](PCGExData::FPointIO& PointIO)
 		{
-			if (Context->bUseLocalRangeMin)
+			if (Context->bUseLocalRangeMin && Context->RangeMinGetter.Bind(PointIO))
 			{
-				if (Context->RangeMinGetter.Bind(PointIO))
-				{
-					PCGE_LOG(Warning, GraphAndLog, FTEXT("RangeMin metadata missing"));
-				}
+				PCGE_LOG(Warning, GraphAndLog, FTEXT("RangeMin metadata missing"));
 			}
 
-			if (Context->bUseLocalRangeMax)
+			if (Context->bUseLocalRangeMax && Context->RangeMaxGetter.Bind(PointIO))
 			{
-				if (Context->RangeMaxGetter.Bind(PointIO))
-				{
-					PCGE_LOG(Warning, GraphAndLog, FTEXT("RangeMax metadata missing"));
-				}
+				PCGE_LOG(Warning, GraphAndLog, FTEXT("RangeMax metadata missing"));
 			}
 
 			PointIO.CreateOutKeys();
@@ -147,17 +138,17 @@ bool FPCGExSampleNearestPolylineElement::ExecuteInternal(FPCGContext* InContext)
 			Context->GetAsyncManager()->Start<FSamplePolylineTask>(PointIndex, Context->CurrentIO);
 		};
 
-		if (Context->ProcessCurrentPoints(Initialize, ProcessPoint)) { Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork); }
+		if (!Context->ProcessCurrentPoints(Initialize, ProcessPoint)) { return false; }
+		Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork);
 	}
 
 	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
 	{
-		if (Context->IsAsyncWorkComplete())
-		{
-			PCGEX_FOREACH_FIELD_NEARESTPOLYLINE(PCGEX_OUTPUT_WRITE)
-			Context->CurrentIO->OutputTo(Context);
-			Context->SetState(PCGExMT::State_ReadyForNextPoints);
-		}
+		if (!Context->IsAsyncWorkComplete()) { return false; }
+
+		PCGEX_FOREACH_FIELD_NEARESTPOLYLINE(PCGEX_OUTPUT_WRITE)
+		Context->CurrentIO->OutputTo(Context);
+		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
 	return Context->IsDone();

@@ -1,4 +1,4 @@
-﻿// Copyright Timothé Lapetite 2023
+﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #pragma once
@@ -145,7 +145,7 @@ namespace PCGExGraph
 		FIndexedEdge()
 		{
 		}
-		
+
 		FIndexedEdge(const int32 InIndex, const int32 InStart, const int32 InEnd)
 			: FUnsignedEdge(InStart, InEnd),
 			  Index(InIndex)

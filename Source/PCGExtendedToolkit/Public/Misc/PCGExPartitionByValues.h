@@ -1,4 +1,4 @@
-﻿// Copyright Timothé Lapetite 2023
+﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #pragma once
@@ -6,7 +6,7 @@
 #include "CoreMinimal.h"
 #include "PCGExFilter.h"
 
-#include "Graph/PCGExGraphProcessor.h"
+#include "Graph/PCGExCustomGraphProcessor.h"
 
 #include "PCGExPartitionByValues.generated.h"
 

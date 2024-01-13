@@ -1,22 +1,22 @@
-﻿// Copyright Timothé Lapetite 2023
+﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Graph/PCGExDrawGraph.h"
-#include "Graph/Solvers/PCGExGraphSolver.h"
+#include "Graph/PCGExDrawCustomGraph.h"
+#include "Graph/Solvers/PCGExCustomGraphSolver.h"
 
-#define LOCTEXT_NAMESPACE "PCGExDrawGraph"
-#define PCGEX_NAMESPACE DrawGraph
+#define LOCTEXT_NAMESPACE "PCGExDrawCustomGraph"
+#define PCGEX_NAMESPACE DrawCustomGraph
 
-PCGExData::EInit UPCGExDrawGraphSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
+PCGExData::EInit UPCGExDrawCustomGraphSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 
-UPCGExDrawGraphSettings::UPCGExDrawGraphSettings(
+UPCGExDrawCustomGraphSettings::UPCGExDrawCustomGraphSettings(
 	const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 	DebugSettings.PointScale = 0.0f;
 }
 
-TArray<FPCGPinProperties> UPCGExDrawGraphSettings::OutputPinProperties() const
+TArray<FPCGPinProperties> UPCGExDrawCustomGraphSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> Empty;
 	Empty.Empty();
@@ -24,42 +24,42 @@ TArray<FPCGPinProperties> UPCGExDrawGraphSettings::OutputPinProperties() const
 }
 
 #if WITH_EDITOR
-void UPCGExDrawGraphSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+void UPCGExDrawCustomGraphSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	//if (const UWorld* EditorWorld = GEditor->GetEditorWorldContext().World()) { FlushPersistentDebugLines(EditorWorld); }
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
 #endif
 
-PCGEX_INITIALIZE_ELEMENT(DrawGraph)
+PCGEX_INITIALIZE_ELEMENT(DrawCustomGraph)
 
-bool FPCGExDrawGraphElement::Boot(FPCGContext* InContext) const
+bool FPCGExDrawCustomGraphElement::Boot(FPCGContext* InContext) const
 {
-	if (!FPCGExGraphProcessorElement::Boot(InContext)) { return false; }
+	if (!FPCGExCustomGraphProcessorElement::Boot(InContext)) { return false; }
 
 #if WITH_EDITOR
 
-	PCGEX_CONTEXT_AND_SETTINGS(DrawGraph)
-	
+	PCGEX_CONTEXT_AND_SETTINGS(DrawCustomGraph)
+
 	PCGEX_DEBUG_NOTIFY
 
-	Context->GraphSolver = Context->RegisterOperation<UPCGExGraphSolver>();
-	
+	Context->GraphSolver = Context->RegisterOperation<UPCGExCustomGraphSolver>();
+
 #endif
-	
+
 	return true;
 }
 
-bool FPCGExDrawGraphElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExDrawCustomGraphElement::ExecuteInternal(FPCGContext* InContext) const
 {
-	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExDrawGraphElement::Execute);
+	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExDrawCustomGraphElement::Execute);
 
 #if WITH_EDITOR
 
-	PCGEX_CONTEXT_AND_SETTINGS(DrawGraph)
+	PCGEX_CONTEXT_AND_SETTINGS(DrawCustomGraph)
 
 	if (Context->IsSetup())
-	{	
+	{
 		if (!Boot(Context)) { return true; }
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
@@ -136,7 +136,7 @@ bool FPCGExDrawGraphElement::ExecuteInternal(FPCGContext* InContext) const
 					}
 				}
 
-				if (Settings->bDrawGraph)
+				if (Settings->bDrawCustomGraph)
 				{
 					if (SocketMetadata.Index == -1) { continue; }
 					if (static_cast<uint8>((SocketMetadata.EdgeType & static_cast<EPCGExEdgeType>(Settings->EdgeType))) == 0) { continue; }

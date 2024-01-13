@@ -1,4 +1,4 @@
-﻿// Copyright Timothé Lapetite 2023
+﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #pragma once
@@ -75,7 +75,7 @@ namespace PCGExData
 		UPCGPointData* GetOut() const;
 		const UPCGPointData* GetOutIn() const;
 		const UPCGPointData* GetInOut() const;
-		
+
 		int32 GetNum() const;
 		int32 GetOutNum() const;
 		FPCGAttributeAccessorKeysPoints* CreateInKeys();
@@ -116,7 +116,7 @@ namespace PCGExData
 		 * @param Context 
 		 * @param bEmplace if false (default), will try to use the source first
 		 */
-		bool OutputTo(FPCGContext* Context, bool bEmplace = false);
+		bool OutputTo(FPCGContext* Context);
 		bool OutputTo(FPCGContext* Context, bool bEmplace, const int32 MinPointCount, const int32 MaxPointCount);
 	};
 
@@ -166,7 +166,7 @@ namespace PCGExData
 		int32 Num() const { return Pairs.Num(); }
 
 		FPointIO& operator[](int32 Index) const { return *Pairs[Index]; }
-		
+
 		void OutputTo(FPCGContext* Context, bool bEmplace = false);
 		void OutputTo(FPCGContext* Context, bool bEmplace, const int32 MinPointCount, const int32 MaxPointCount);
 

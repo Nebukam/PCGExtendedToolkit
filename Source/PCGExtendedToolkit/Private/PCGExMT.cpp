@@ -1,4 +1,4 @@
-﻿// Copyright Timothé Lapetite 2023
+﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
 
@@ -24,7 +24,7 @@ bool FPCGExAsyncManager::IsAsyncWorkComplete() const
 }
 
 void FPCGExAsyncManager::Reset()
-{	
+{
 	FWriteScopeLock WriteLock(ManagerLock);
 
 	bFlushing = true;

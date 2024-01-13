@@ -1,11 +1,11 @@
-﻿// Copyright Timothé Lapetite 2023
+﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #pragma once
 
 #include "CoreMinimal.h"
 
-#include "PCGExGraphProcessor.h"
+#include "PCGExCustomGraphProcessor.h"
 #include "Data/PCGExData.h"
 
 #include "PCGExBuildConvexHull.generated.h"
@@ -27,7 +27,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExBuildConvexHullSettings : public UPCGExPoints
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(BuildConvexHull, "Graph : Convex Hull 3D", "Create a 3D Convex Hull triangulation for each input dataset.");
+	PCGEX_NODE_INFOS(BuildConvexHull, "Custom Graph : Convex Hull 3D", "Create a 3D Convex Hull triangulation for each input dataset.");
 #endif
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 
@@ -70,7 +70,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBuildConvexHullContext : public FPCGExPoints
 	PCGExGeo::TConvexHull3* ConvexHull = nullptr;
 	TSet<int32> HullIndices;
 	PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
-	
 };
 
 

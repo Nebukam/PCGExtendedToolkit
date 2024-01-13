@@ -1,4 +1,4 @@
-﻿// Copyright Timothé Lapetite 2023
+﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Paths/PCGExSubdivide.h"
@@ -123,10 +123,8 @@ bool FPCGExSubdivideElement::ExecuteInternal(FPCGContext* InContext) const
 			Context->MilestonesMetrics.Emplace_GetRef();
 		};
 
-		if (Context->ProcessCurrentPoints(Initialize, ProcessPoint, true))
-		{
-			Context->SetState(PCGExSubdivide::State_BlendingPoints);
-		}
+		if (!Context->ProcessCurrentPoints(Initialize, ProcessPoint, true)) { return false; }
+		Context->SetState(PCGExSubdivide::State_BlendingPoints);
 	}
 
 	if (Context->IsState(PCGExSubdivide::State_BlendingPoints))
@@ -158,12 +156,11 @@ bool FPCGExSubdivideElement::ExecuteInternal(FPCGContext* InContext) const
 				View, Context->MilestonesMetrics[Index]);
 		};
 
-		if (Context->Process(Initialize, ProcessMilestone, Context->Milestones.Num()))
-		{
-			Context->Blending->Write();
-			Context->CurrentIO->OutputTo(Context);
-			Context->SetState(PCGExMT::State_ReadyForNextPoints);
-		}
+		if (!Context->Process(Initialize, ProcessMilestone, Context->Milestones.Num())) { return false; }
+
+		Context->Blending->Write();
+		Context->CurrentIO->OutputTo(Context);
+		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
 	return Context->IsDone();

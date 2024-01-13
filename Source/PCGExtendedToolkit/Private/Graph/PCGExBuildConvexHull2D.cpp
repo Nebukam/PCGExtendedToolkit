@@ -1,4 +1,4 @@
-﻿// Copyright Timothé Lapetite 2023
+﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Graph/PCGExBuildConvexHull2D.h"
@@ -6,7 +6,7 @@
 #include "Data/PCGExData.h"
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
 #include "Geometry/PCGExGeoDelaunay.h"
-#include "Graph/PCGExConsolidateGraph.h"
+#include "Graph/PCGExConsolidateCustomGraph.h"
 #include "Graph/PCGExCluster.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraph"
@@ -118,14 +118,10 @@ bool FPCGExBuildConvexHull2DElement::ExecuteInternal(
 		if (!Context->IsAsyncWorkComplete()) { return false; }
 
 		if (Context->bDoAsyncProcessing) { Context->ConvexHull->Finalize(); }
-
-
-		const TArray<FPCGPoint>& InPoints = Context->CurrentIO->GetIn()->GetPoints();
+		Context->ConvexHull->GetHullIndices(Context->HullIndices);
 
 		if (Settings->bMarkHull && !Settings->bPrunePoints)
 		{
-			Context->ConvexHull->GetHullIndices(Context->HullIndices);
-
 			PCGEx::TFAttributeWriter<bool>* HullMarkPointWriter = new PCGEx::TFAttributeWriter<bool>(Settings->HullAttributeName, false, false);
 			HullMarkPointWriter->BindAndGet(*Context->CurrentIO);
 

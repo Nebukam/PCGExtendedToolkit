@@ -1,15 +1,15 @@
-﻿// Copyright Timothé Lapetite 2023
+﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
 
-#include "Graph/Solvers/PCGExWeightedGraphSolver.h"
+#include "Graph/Solvers/PCGExCustomGraphSolverWeighted.h"
 
-void UPCGExWeightedGraphSolver::InitializeProbe(PCGExGraph::FSocketProbe& Probe) const
+void UPCGExCustomGraphSolverWeighted::InitializeProbe(PCGExGraph::FSocketProbe& Probe) const
 {
 	Probe.Candidates.Empty();
 }
 
-bool UPCGExWeightedGraphSolver::ProcessPoint(
+bool UPCGExCustomGraphSolverWeighted::ProcessPoint(
 	PCGExGraph::FSocketProbe& Probe,
 	const PCGEx::FPointRef& Point) const
 {
@@ -37,7 +37,7 @@ bool UPCGExWeightedGraphSolver::ProcessPoint(
 	return true;
 }
 
-void UPCGExWeightedGraphSolver::ResolveProbe(PCGExGraph::FSocketProbe& Probe) const
+void UPCGExCustomGraphSolverWeighted::ResolveProbe(PCGExGraph::FSocketProbe& Probe) const
 {
 	PCGExGraph::FPointCandidate& BestCandidate = Probe.BestCandidate;
 

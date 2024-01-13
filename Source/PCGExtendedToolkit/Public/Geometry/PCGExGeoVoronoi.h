@@ -1,4 +1,4 @@
-﻿// Copyright Timothé Lapetite 2023
+﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #pragma once
@@ -57,6 +57,7 @@ namespace PCGExGeo
 		TArray<TDelaunayCell<DIMENSIONS>*> Cells;
 		TArray<TVoronoiEdge<DIMENSIONS>*> Edges;
 		bool bIsWithinBounds = true;
+		bool bIsOnHull = false;
 
 		TVoronoiRegion()
 		{

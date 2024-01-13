@@ -1,11 +1,11 @@
-﻿// Copyright Timothé Lapetite 2023
+﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #pragma once
 
 #include "CoreMinimal.h"
 
-#include "PCGExGraphProcessor.h"
+#include "PCGExCustomGraphProcessor.h"
 #include "Data/PCGExData.h"
 
 #include "PCGExBuildDelaunayGraph2D.generated.h"
@@ -27,7 +27,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExBuildDelaunayGraph2DSettings : public UPCGExP
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(BuildDelaunayGraph2D, "Graph : Delaunay 2D", "Create a 2D delaunay triangulation for each input dataset.");
+	PCGEX_NODE_INFOS(BuildDelaunayGraph2D, "Custom Graph : Delaunay 2D", "Create a 2D delaunay triangulation for each input dataset.");
 #endif
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 
@@ -70,9 +70,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBuildDelaunayGraph2DContext : public FPCGExP
 	PCGExGeo::TDelaunayTriangulation2* Delaunay = nullptr;
 	PCGExGeo::TConvexHull2* ConvexHull = nullptr;
 	TSet<int32> HullIndices;
-	
+
 	PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
-	
 };
 
 
