@@ -7,7 +7,7 @@
 #include "Graph/PCGExFindEdgeClusters.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPathsToEdgeClustersElement"
-#define PCGEX_NAMESPACE BuildGraph
+#define PCGEX_NAMESPACE BuildCustomGraph
 
 namespace PCGExGraph
 {

@@ -6,25 +6,25 @@
 #include "CoreMinimal.h"
 #include "IPCGExDebug.h"
 
-#include "PCGExGraphProcessor.h"
+#include "PCGExCustomGraphProcessor.h"
 
-#include "PCGExDrawGraph.generated.h"
+#include "PCGExDrawCustomGraph.generated.h"
 
-class UPCGExGraphSolver;
+class UPCGExCustomGraphSolver;
 /**
  * Calculates the distance between two points (inherently a n*n operation)
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
-class PCGEXTENDEDTOOLKIT_API UPCGExDrawGraphSettings : public UPCGExGraphProcessorSettings, public IPCGExDebug
+class PCGEXTENDEDTOOLKIT_API UPCGExDrawCustomGraphSettings : public UPCGExCustomGraphProcessorSettings, public IPCGExDebug
 {
 	GENERATED_BODY()
 
 public:
-	UPCGExDrawGraphSettings(const FObjectInitializer& ObjectInitializer);
+	UPCGExDrawCustomGraphSettings(const FObjectInitializer& ObjectInitializer);
 
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(DrawGraph, "Draw Graph", "Draw graph edges. Toggle debug OFF (D) before disabling this node (E)! Warning: this node will clear persistent debug lines before it!");
+	PCGEX_NODE_INFOS(DrawCustomGraph, "Draw Graph", "Draw graph edges. Toggle debug OFF (D) before disabling this node (E)! Warning: this node will clear persistent debug lines before it!");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Debug; }
 	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorDebug; }
 #endif
@@ -58,7 +58,7 @@ public:
 public:
 	/** Draw edges.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
-	bool bDrawGraph = true;
+	bool bDrawCustomGraph = true;
 
 	/** Type of edge to draw.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExEdgeType"))
@@ -73,22 +73,22 @@ public:
 	bool bDrawSocketBox = false;
 
 private:
-	friend class FPCGExDrawGraphElement;
+	friend class FPCGExDrawCustomGraphElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExDrawGraphContext : public FPCGExGraphProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExDrawCustomGraphContext : public FPCGExCustomGraphProcessorContext
 {
-	friend class FPCGExBuildGraphElement;
+	friend class FPCGExBuildCustomGraphElement;
 	friend class FProbeTask;
 
 public:
-	UPCGExGraphSolver* GraphSolver = nullptr;
+	UPCGExCustomGraphSolver* GraphSolver = nullptr;
 	bool bMoveSocketOriginOnPointExtent = false;
 
 	UPCGPointData::PointOctree* Octree = nullptr;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExDrawGraphElement : public FPCGExGraphProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExDrawCustomGraphElement : public FPCGExCustomGraphProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

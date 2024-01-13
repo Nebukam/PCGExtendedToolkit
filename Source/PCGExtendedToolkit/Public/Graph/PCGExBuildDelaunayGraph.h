@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 
-#include "PCGExGraphProcessor.h"
+#include "PCGExCustomGraphProcessor.h"
 #include "Data/PCGExData.h"
 
 #include "PCGExBuildDelaunayGraph.generated.h"
@@ -27,7 +27,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExBuildDelaunayGraphSettings : public UPCGExPoi
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(BuildDelaunayGraph, "Graph : Delaunay 3D", "Create a 3D delaunay tetrahedralization for each input dataset.");
+	PCGEX_NODE_INFOS(BuildDelaunayGraph, "Custom Graph : Delaunay 3D", "Create a 3D delaunay tetrahedralization for each input dataset.");
 #endif
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 

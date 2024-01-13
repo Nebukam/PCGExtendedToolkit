@@ -4,12 +4,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExDrawGraph.h"
+#include "PCGExDrawCustomGraph.h"
 
-#include "PCGExGraphProcessor.h"
-#include "Solvers/PCGExGraphSolver.h"
+#include "PCGExCustomGraphProcessor.h"
+#include "Solvers/PCGExCustomGraphSolver.h"
 
-#include "PCGExBuildGraph.generated.h"
+#include "PCGExBuildCustomGraph.generated.h"
 
 constexpr PCGExMT::AsyncState State_ProbingPoints = __COUNTER__;
 
@@ -17,16 +17,16 @@ constexpr PCGExMT::AsyncState State_ProbingPoints = __COUNTER__;
  * Calculates the distance between two points (inherently a n*n operation)
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
-class PCGEXTENDEDTOOLKIT_API UPCGExBuildGraphSettings : public UPCGExGraphProcessorSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExBuildCustomGraphSettings : public UPCGExCustomGraphProcessorSettings
 {
 	GENERATED_BODY()
 
 public:
-	UPCGExBuildGraphSettings(const FObjectInitializer& ObjectInitializer);
+	UPCGExBuildCustomGraphSettings(const FObjectInitializer& ObjectInitializer);
 
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(BuildGraph, "Graph : Build", "Write graph data to an attribute for each connected Graph Params. `Build Graph` uses the socket information as is.");
+	PCGEX_NODE_INFOS(BuildCustomGraph, "Custom Graph : Build", "Write graph data to an attribute for each connected Graph Params. `Build Graph` uses the socket information as is.");
 #endif
 
 protected:
@@ -52,27 +52,27 @@ public:
 public:
 	/** Ignores candidates weighting pass and always favors the closest one.*/
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable, ShowOnlyInnerProperties, NoResetToDefault))
-	UPCGExGraphSolver* GraphSolver;
+	UPCGExCustomGraphSolver* GraphSolver;
 
 private:
-	friend class FPCGExBuildGraphElement;
+	friend class FPCGExBuildCustomGraphElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExBuildGraphContext : public FPCGExGraphProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExBuildCustomGraphContext : public FPCGExCustomGraphProcessorContext
 {
-	friend class FPCGExBuildGraphElement;
+	friend class FPCGExBuildCustomGraphElement;
 	friend class FProbeTask;
 
-	virtual ~FPCGExBuildGraphContext() override;
+	virtual ~FPCGExBuildCustomGraphContext() override;
 
-	UPCGExGraphSolver* GraphSolver = nullptr;
+	UPCGExCustomGraphSolver* GraphSolver = nullptr;
 	bool bMoveSocketOriginOnPointExtent = false;
 
 	UPCGPointData::PointOctree* Octree = nullptr;
 };
 
 
-class PCGEXTENDEDTOOLKIT_API FPCGExBuildGraphElement : public FPCGExGraphProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExBuildCustomGraphElement : public FPCGExCustomGraphProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

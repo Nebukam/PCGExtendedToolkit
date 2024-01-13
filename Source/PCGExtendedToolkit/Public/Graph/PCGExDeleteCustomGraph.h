@@ -5,22 +5,22 @@
 
 #include "CoreMinimal.h"
 
-#include "PCGExGraphProcessor.h"
+#include "PCGExCustomGraphProcessor.h"
 
-#include "PCGExDeleteGraph.generated.h"
+#include "PCGExDeleteCustomGraph.generated.h"
 
 /**
  * Calculates the distance between two points (inherently a n*n operation)
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
-class PCGEXTENDEDTOOLKIT_API UPCGExDeleteGraphSettings : public UPCGExGraphProcessorSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExDeleteCustomGraphSettings : public UPCGExCustomGraphProcessorSettings
 {
 	GENERATED_BODY()
 
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(DeleteGraph, "Graph : Delete", "Delete data associated with given Graph Params.");
+	PCGEX_NODE_INFOS(DeleteCustomGraph, "Custom Graph : Delete", "Delete data associated with given Graph Params.");
 #endif
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 
@@ -35,16 +35,16 @@ public:
 	//~End UPCGExPointsProcessorSettings interface
 
 private:
-	friend class FPCGExDeleteGraphElement;
+	friend class FPCGExDeleteCustomGraphElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExDeleteGraphContext : public FPCGExGraphProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExDeleteCustomGraphContext : public FPCGExCustomGraphProcessorContext
 {
-	friend class FPCGExDeleteGraphElement;
+	friend class FPCGExDeleteCustomGraphElement;
 };
 
 
-class PCGEXTENDEDTOOLKIT_API FPCGExDeleteGraphElement : public FPCGExGraphProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExDeleteCustomGraphElement : public FPCGExCustomGraphProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

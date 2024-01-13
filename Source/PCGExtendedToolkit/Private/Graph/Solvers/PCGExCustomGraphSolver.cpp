@@ -2,13 +2,13 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 
-#include "Graph/Solvers/PCGExGraphSolver.h"
+#include "Graph/Solvers/PCGExCustomGraphSolver.h"
 
-void UPCGExGraphSolver::InitializeProbe(PCGExGraph::FSocketProbe& Probe) const
+void UPCGExCustomGraphSolver::InitializeProbe(PCGExGraph::FSocketProbe& Probe) const
 {
 }
 
-bool UPCGExGraphSolver::ProcessPoint(
+bool UPCGExCustomGraphSolver::ProcessPoint(
 	PCGExGraph::FSocketProbe& Probe,
 	const PCGEx::FPointRef& Point) const
 {
@@ -30,11 +30,11 @@ bool UPCGExGraphSolver::ProcessPoint(
 	return true;
 }
 
-void UPCGExGraphSolver::ResolveProbe(PCGExGraph::FSocketProbe& Probe) const
+void UPCGExCustomGraphSolver::ResolveProbe(PCGExGraph::FSocketProbe& Probe) const
 {
 }
 
-double UPCGExGraphSolver::PrepareProbesForPoint(
+double UPCGExCustomGraphSolver::PrepareProbesForPoint(
 	const TArray<PCGExGraph::FSocketInfos>& SocketInfos,
 	const PCGEx::FPointRef& Point,
 	TArray<PCGExGraph::FSocketProbe>& OutProbes) const
@@ -51,7 +51,7 @@ double UPCGExGraphSolver::PrepareProbesForPoint(
 	return MaxDistance;
 }
 
-double UPCGExGraphSolver::PrepareProbeForPointSocketPair(
+double UPCGExCustomGraphSolver::PrepareProbeForPointSocketPair(
 	const PCGEx::FPointRef& Point,
 	PCGExGraph::FSocketProbe& Probe,
 	const PCGExGraph::FSocketInfos& InSocketInfos) const

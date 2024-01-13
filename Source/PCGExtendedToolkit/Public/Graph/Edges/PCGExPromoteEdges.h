@@ -4,12 +4,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Graph/PCGExGraphProcessor.h"
+#include "Graph/PCGExCustomGraphProcessor.h"
 #include "Graph/Edges/Promoting/PCGExEdgePromotingOperation.h"
 #include "PCGExPromoteEdges.generated.h"
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
-class PCGEXTENDEDTOOLKIT_API UPCGExPromoteEdgesSettings : public UPCGExGraphProcessorSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExPromoteEdgesSettings : public UPCGExCustomGraphProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -18,7 +18,7 @@ public:
 
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(PromoteEdges, "Graph : Promote Edges", "Promote edges to points or small paths.");
+	PCGEX_NODE_INFOS(PromoteEdges, "Custom Graph : Promote Edges", "Promote edges to points or small paths.");
 	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorPathfinding; }
 #endif
 
@@ -47,7 +47,7 @@ private:
 	friend class FPCGExPromoteEdgesElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExPromoteEdgesContext : public FPCGExGraphProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExPromoteEdgesContext : public FPCGExCustomGraphProcessorContext
 {
 	friend class FPCGExPromoteEdgesElement;
 
@@ -62,7 +62,7 @@ public:
 	UPCGExEdgePromotingOperation* Promotion;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExPromoteEdgesElement : public FPCGExGraphProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExPromoteEdgesElement : public FPCGExCustomGraphProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

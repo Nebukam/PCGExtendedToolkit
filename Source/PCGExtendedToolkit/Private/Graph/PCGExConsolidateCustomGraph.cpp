@@ -1,34 +1,34 @@
 ﻿// Copyright Timothé Lapetite 2023
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Graph/PCGExConsolidateGraph.h"
-#define PCGEX_NAMESPACE ConsolidateGraph
+#include "Graph/PCGExConsolidateCustomGraph.h"
+#define PCGEX_NAMESPACE ConsolidateCustomGraph
 
-#define LOCTEXT_NAMESPACE "PCGExConsolidateGraph"
+#define LOCTEXT_NAMESPACE "PCGExConsolidateCustomGraph"
 
-int32 UPCGExConsolidateGraphSettings::GetPreferredChunkSize() const { return 32; }
+int32 UPCGExConsolidateCustomGraphSettings::GetPreferredChunkSize() const { return 32; }
 
-PCGExData::EInit UPCGExConsolidateGraphSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
+PCGExData::EInit UPCGExConsolidateCustomGraphSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
-PCGEX_INITIALIZE_ELEMENT(ConsolidateGraph)
+PCGEX_INITIALIZE_ELEMENT(ConsolidateCustomGraph)
 
-bool FPCGExConsolidateGraphElement::Boot(FPCGContext* InContext) const
+bool FPCGExConsolidateCustomGraphElement::Boot(FPCGContext* InContext) const
 {
-	if (!FPCGExGraphProcessorElement::Boot(InContext)) { return false; }
+	if (!FPCGExCustomGraphProcessorElement::Boot(InContext)) { return false; }
 
-	PCGEX_CONTEXT_AND_SETTINGS(ConsolidateGraph)
+	PCGEX_CONTEXT_AND_SETTINGS(ConsolidateCustomGraph)
 
 	PCGEX_FWD(bConsolidateEdgeType)
 
 	return true;
 }
 
-bool FPCGExConsolidateGraphElement::ExecuteInternal(
+bool FPCGExConsolidateCustomGraphElement::ExecuteInternal(
 	FPCGContext* InContext) const
 {
-	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExConsolidateGraphElement::Execute);
+	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExConsolidateCustomGraphElement::Execute);
 
-	PCGEX_CONTEXT(ConsolidateGraph)
+	PCGEX_CONTEXT(ConsolidateCustomGraph)
 
 	if (Context->IsSetup())
 	{
@@ -129,7 +129,7 @@ bool FPCGExConsolidateGraphElement::ExecuteInternal(
 	return Context->IsDone();
 }
 
-int64 FPCGExConsolidateGraphElement::GetFixedIndex(FPCGExConsolidateGraphContext* Context, const int64 InIndex)
+int64 FPCGExConsolidateCustomGraphElement::GetFixedIndex(FPCGExConsolidateCustomGraphContext* Context, const int64 InIndex)
 {
 	if (const int64* FixedRelationIndexPtr = Context->IndicesRemap.Find(InIndex)) { return *FixedRelationIndexPtr; }
 	return -1;

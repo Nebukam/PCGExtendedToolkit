@@ -6,7 +6,7 @@
 #include "Paths/Tangents/PCGExAutoTangents.h"
 
 #define LOCTEXT_NAMESPACE "PCGExWriteTangentsElement"
-#define PCGEX_NAMESPACE BuildGraph
+#define PCGEX_NAMESPACE BuildCustomGraph
 
 UPCGExWriteTangentsSettings::UPCGExWriteTangentsSettings(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)

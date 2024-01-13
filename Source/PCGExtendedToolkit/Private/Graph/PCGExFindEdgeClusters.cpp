@@ -39,7 +39,7 @@ PCGEX_INITIALIZE_ELEMENT(FindEdgeClusters)
 
 bool FPCGExFindEdgeClustersElement::Boot(FPCGContext* InContext) const
 {
-	if (!FPCGExGraphProcessorElement::Boot(InContext)) { return false; }
+	if (!FPCGExCustomGraphProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(FindEdgeClusters)
 
@@ -94,12 +94,12 @@ bool FPCGExFindEdgeClustersElement::ExecuteInternal(
 			if (Context->NetworkBuilder->EdgeCrossings) { Context->SetState(PCGExGraph::State_FindingCrossings); }
 			else { Context->SetState(PCGExGraph::State_WritingClusters); }
 		}
-		else { Context->SetState(PCGExGraph::State_BuildGraph); }
+		else { Context->SetState(PCGExGraph::State_BuildCustomGraph); }
 	}
 
 	// -> Process current points with current graph
 
-	if (Context->IsState(PCGExGraph::State_BuildGraph))
+	if (Context->IsState(PCGExGraph::State_BuildCustomGraph))
 	{
 		auto Initialize = [&](PCGExData::FPointIO& PointIO)
 		{
@@ -162,7 +162,7 @@ bool FPCGExFindEdgeClustersElement::ExecuteInternal(
 
 	if (Context->IsDone())
 	{
-		if (Settings->bDeleteGraphData)
+		if (Settings->bDeleteCustomGraphData)
 		{
 			Context->MainPoints->ForEach(
 				[&](const PCGExData::FPointIO& PointIO, int32)

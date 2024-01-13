@@ -37,7 +37,7 @@ PCGEX_INITIALIZE_ELEMENT(PromoteEdges)
 
 bool FPCGExPromoteEdgesElement::Boot(FPCGContext* InContext) const
 {
-	if (!FPCGExGraphProcessorElement::Boot(InContext)) { return false; }
+	if (!FPCGExCustomGraphProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(PromoteEdges)
 

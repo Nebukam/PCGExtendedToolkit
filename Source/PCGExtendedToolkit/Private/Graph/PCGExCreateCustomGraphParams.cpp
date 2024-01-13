@@ -1,12 +1,12 @@
 ﻿// Copyright Timothé Lapetite 2023
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Graph/PCGExCreateGraphParams.h"
+#include "Graph/PCGExCreateCustomGraphParams.h"
 
 #include "PCGPin.h"
 
-#define LOCTEXT_NAMESPACE "PCGExCreateGraphParams"
-#define PCGEX_NAMESPACE CreateGraphParams
+#define LOCTEXT_NAMESPACE "PCGExCreateCustomGraphParams"
+#define PCGEX_NAMESPACE CreateCustomGraphParams
 
 namespace PCGExDebugColors
 {
@@ -20,16 +20,16 @@ namespace PCGExDebugColors
 	constexpr FColor ZMinus = FColor(0, 0, Minus);
 }
 
-UPCGExCreateGraphParamsSettings::UPCGExCreateGraphParamsSettings(
+UPCGExCreateCustomGraphParamsSettings::UPCGExCreateCustomGraphParamsSettings(
 	const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	if (CustomSockets.IsEmpty()) { UPCGExCreateGraphParamsSettings::InitDefaultSockets(); }
+	if (CustomSockets.IsEmpty()) { UPCGExCreateCustomGraphParamsSettings::InitDefaultSockets(); }
 	InitSocketContent(PresetSockets);
 	RefreshSocketNames();
 }
 
-void UPCGExCreateGraphParamsSettings::InitDefaultSockets()
+void UPCGExCreateCustomGraphParamsSettings::InitDefaultSockets()
 {
 	const EPCGExSocketType Input = bTypedPreset ? EPCGExSocketType::Input : EPCGExSocketType::None;
 	const EPCGExSocketType Output = bTypedPreset ? EPCGExSocketType::Output : EPCGExSocketType::None;
@@ -42,7 +42,7 @@ void UPCGExCreateGraphParamsSettings::InitDefaultSockets()
 	CustomSockets.Add(FPCGExSocketDescriptor("Down", FVector::DownVector, "Up", Input, PCGExDebugColors::ZMinus));
 }
 
-void UPCGExCreateGraphParamsSettings::RefreshSocketNames()
+void UPCGExCreateCustomGraphParamsSettings::RefreshSocketNames()
 {
 	GeneratedSocketNames.Empty();
 	TArray<FPCGExSocketDescriptor>& RefSockets = GraphModel == EPCGExGraphModel::Custom ? CustomSockets : PresetSockets;
@@ -53,7 +53,7 @@ void UPCGExCreateGraphParamsSettings::RefreshSocketNames()
 	}
 }
 
-void UPCGExCreateGraphParamsSettings::InitSocketContent(TArray<FPCGExSocketDescriptor>& OutSockets) const
+void UPCGExCreateCustomGraphParamsSettings::InitSocketContent(TArray<FPCGExSocketDescriptor>& OutSockets) const
 {
 	OutSockets.Empty();
 
@@ -147,20 +147,20 @@ void UPCGExCreateGraphParamsSettings::InitSocketContent(TArray<FPCGExSocketDescr
 	}
 }
 
-const TArray<FPCGExSocketDescriptor>& UPCGExCreateGraphParamsSettings::GetSockets() const
+const TArray<FPCGExSocketDescriptor>& UPCGExCreateCustomGraphParamsSettings::GetSockets() const
 {
 	return GraphModel == EPCGExGraphModel::Custom ? CustomSockets : PresetSockets;
 }
 
-FPCGElementPtr UPCGExCreateGraphParamsSettings::CreateElement() const { return MakeShared<FPCGExCreateGraphParamsElement>(); }
+FPCGElementPtr UPCGExCreateCustomGraphParamsSettings::CreateElement() const { return MakeShared<FPCGExCreateCustomGraphParamsElement>(); }
 
-TArray<FPCGPinProperties> UPCGExCreateGraphParamsSettings::InputPinProperties() const
+TArray<FPCGPinProperties> UPCGExCreateCustomGraphParamsSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> NoInput;
 	return NoInput;
 }
 
-TArray<FPCGPinProperties> UPCGExCreateGraphParamsSettings::OutputPinProperties() const
+TArray<FPCGPinProperties> UPCGExCreateCustomGraphParamsSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
 	FPCGPinProperties& PinPropertyOutput = PinProperties.Emplace_GetRef(PCGExGraph::SourceParamsLabel, EPCGDataType::Param, false, false);
@@ -173,13 +173,13 @@ TArray<FPCGPinProperties> UPCGExCreateGraphParamsSettings::OutputPinProperties()
 }
 
 #if WITH_EDITOR
-void UPCGExCreateGraphParamsSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+void UPCGExCreateCustomGraphParamsSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	if (PropertyChangedEvent.Property)
 	{
 		const FName& PropertyName = PropertyChangedEvent.Property->GetFName();
 
-		if (PropertyName == GET_MEMBER_NAME_CHECKED(UPCGExCreateGraphParamsSettings, GraphModel))
+		if (PropertyName == GET_MEMBER_NAME_CHECKED(UPCGExCreateCustomGraphParamsSettings, GraphModel))
 		{
 			InitSocketContent(PresetSockets);
 		}
@@ -191,10 +191,10 @@ void UPCGExCreateGraphParamsSettings::PostEditChangeProperty(FPropertyChangedEve
 #endif
 
 template <typename T>
-T* FPCGExCreateGraphParamsElement::BuildParams(
+T* FPCGExCreateCustomGraphParamsElement::BuildParams(
 	FPCGContext* Context) const
 {
-	const UPCGExCreateGraphParamsSettings* Settings = Context->GetInputSettings<UPCGExCreateGraphParamsSettings>();
+	const UPCGExCreateCustomGraphParamsSettings* Settings = Context->GetInputSettings<UPCGExCreateCustomGraphParamsSettings>();
 	check(Settings);
 
 	if (Settings->GraphIdentifier.IsNone() || !FPCGMetadataAttributeBase::IsValidName(Settings->GraphIdentifier.ToString()))
@@ -218,10 +218,10 @@ T* FPCGExCreateGraphParamsElement::BuildParams(
 	return OutParams;
 }
 
-bool FPCGExCreateGraphParamsElement::ExecuteInternal(
+bool FPCGExCreateCustomGraphParamsElement::ExecuteInternal(
 	FPCGContext* Context) const
 {
-	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExCreateGraphParamsElement::Execute);
+	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExCreateCustomGraphParamsElement::Execute);
 	BuildParams<UPCGExGraphParamsData>(Context);
 	return true;
 }
