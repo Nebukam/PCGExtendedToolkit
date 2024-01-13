@@ -1,4 +1,4 @@
-﻿// Copyright Timothé Lapetite 2023
+﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Graph/PCGExGraph.h"
@@ -6,9 +6,8 @@
 #include "PCGExPointsProcessor.h"
 #include "Graph/PCGExCluster.h"
 
-
-	namespace PCGExGraph
-	{
+namespace PCGExGraph
+{
 	void FNode::FixAdjacentNodes(const TArray<FIndexedEdge>& InEdges)
 	{
 		AdjacentNodes.SetNum(Edges.Num());
