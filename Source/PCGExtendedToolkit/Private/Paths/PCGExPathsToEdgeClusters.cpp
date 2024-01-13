@@ -136,10 +136,8 @@ bool FPCGExPathsToEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) c
 			}
 		};
 
-		if (Context->ProcessCurrentPoints(Initialize, ProcessPoint, true))
-		{
-			Context->SetState(PCGExMT::State_ReadyForNextPoints);
-		}
+		if (!Context->ProcessCurrentPoints(Initialize, ProcessPoint, true)) { return false; }
+		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
 	if (Context->IsState(PCGExGraph::State_ProcessingGraph))
@@ -154,11 +152,9 @@ bool FPCGExPathsToEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) c
 			}
 		};
 
-		if (Context->Process(InsertEdge, Context->LooseNetwork->Nodes.Num()))
-		{
-			if (Context->NetworkBuilder->EdgeCrossings) { Context->SetState(PCGExGraph::State_FindingCrossings); }
-			else { Context->SetState(PCGExGraph::State_WritingClusters); }
-		}
+		if (!Context->Process(InsertEdge, Context->LooseNetwork->Nodes.Num())) { return false; }
+		if (Context->NetworkBuilder->EdgeCrossings) { Context->SetState(PCGExGraph::State_FindingCrossings); }
+		else { Context->SetState(PCGExGraph::State_WritingClusters); }
 	}
 
 	if (Context->IsState(PCGExGraph::State_FindingCrossings))
@@ -173,32 +169,23 @@ bool FPCGExPathsToEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) c
 			Context->NetworkBuilder->EdgeCrossings->ProcessEdge(Index, Context->ConsolidatedPoints->GetOut()->GetPoints());
 		};
 
-		if (Context->Process(Initialize, ProcessEdge, Context->NetworkBuilder->Graph->Edges.Num()))
-		{
-			Context->SetState(PCGExGraph::State_WritingClusters);
-		}
+		if (!Context->Process(Initialize, ProcessEdge, Context->NetworkBuilder->Graph->Edges.Num())) { return false; }
+		Context->SetState(PCGExGraph::State_WritingClusters);
 	}
 
 	if (Context->IsState(PCGExGraph::State_WritingClusters))
 	{
-		if (Context->NetworkBuilder->Compile(Context))
-		{
-			Context->SetAsyncState(PCGExGraph::State_WaitingOnWritingClusters);
-		}
-		else
-		{
-			Context->SetState(PCGExMT::State_ReadyForNextPoints);
-		}
+		if (Context->NetworkBuilder->Compile(Context)) { Context->SetAsyncState(PCGExGraph::State_WaitingOnWritingClusters); }
+		else { Context->SetState(PCGExMT::State_ReadyForNextPoints); }
 	}
 
 	if (Context->IsState(PCGExGraph::State_WaitingOnWritingClusters))
 	{
-		if (Context->IsAsyncWorkComplete())
-		{
-			Context->NetworkBuilder->Write(Context);
-			Context->OutputPoints();
-			Context->Done();
-		}
+		if (!Context->IsAsyncWorkComplete()) { return false; }
+
+		Context->NetworkBuilder->Write(Context);
+		Context->OutputPoints();
+		Context->Done();
 	}
 
 	return Context->IsDone();

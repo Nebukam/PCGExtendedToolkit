@@ -29,12 +29,11 @@ class PCGEXTENDEDTOOLKIT_API UPCGExEdgeRefineOperation : public UPCGExOperation
 public:
 	virtual void PrepareForPointIO(PCGExData::FPointIO& PointIO);
 	virtual void PrepareForCluster(PCGExData::FPointIO& EdgesIO, PCGExCluster::FCluster* InCluster);
-	
+
 	virtual void Cleanup() override;
 
 protected:
 	PCGExData::FPointIO* CurrentPoints = nullptr;
 	PCGExData::FPointIO* CurrentEdges = nullptr;
 	PCGExCluster::FCluster* CurrentCluster = nullptr;
-	
 };

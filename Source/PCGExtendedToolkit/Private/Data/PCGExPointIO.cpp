@@ -157,40 +157,30 @@ namespace PCGExData
 		return Branch;
 	}
 
-	bool FPointIO::OutputTo(FPCGContext* Context, const bool bEmplace)
+	bool FPointIO::OutputTo(FPCGContext* Context)
 	{
-		bool bSuccess = false;
-
 		if (Out && Out->GetPoints().Num() > 0)
 		{
-			if (!bEmplace)
-			{
-				if (In)
-				{
-					FPCGTaggedData& OutputRef = Context->OutputData.TaggedData.Add_GetRef(Source);
-					OutputRef.Data = Out;
-					OutputRef.Pin = DefaultOutputLabel;
-					bSuccess = true;
-				}
-			}
-			
-			if(!bSuccess) //Emplace Out with no In
-			{
-				FPCGTaggedData& OutputRef = Context->OutputData.TaggedData.Emplace_GetRef();
-				OutputRef.Data = Out;
-				OutputRef.Pin = DefaultOutputLabel;
-				bSuccess = true;
-			}
+			FPCGTaggedData* TaggedOutput;
+
+			if (In) { TaggedOutput = &Context->OutputData.TaggedData.Add_GetRef(Source); }
+			else { TaggedOutput = &Context->OutputData.TaggedData.Emplace_GetRef(); }
+
+			TaggedOutput->Data = Out;
+			TaggedOutput->Pin = DefaultOutputLabel;
+
+			Cleanup();
+			return true;
 		}
 
-		if (!bSuccess && Out)
+		if (Out)
 		{
 			Out->ConditionalBeginDestroy();
 			Out = nullptr;
 		}
 
 		Cleanup();
-		return bSuccess;
+		return false;
 	}
 
 	bool FPointIO::OutputTo(FPCGContext* Context, const bool bEmplace, const int32 MinPointCount, const int32 MaxPointCount)
@@ -208,7 +198,7 @@ namespace PCGExData
 			}
 			else
 			{
-				return OutputTo(Context, bEmplace);
+				return OutputTo(Context);
 			}
 		}
 		return false;
@@ -289,7 +279,7 @@ namespace PCGExData
 	 */
 	void FPointIOGroup::OutputTo(FPCGContext* Context, const bool bEmplace)
 	{
-		for (FPointIO* Pair : Pairs) { Pair->OutputTo(Context, bEmplace); }
+		for (FPointIO* Pair : Pairs) { Pair->OutputTo(Context); }
 	}
 
 	/**

@@ -85,7 +85,7 @@ bool FPCGExBuildVoronoiGraphElement::ExecuteInternal(
 				return false;
 			}
 
-			if (false) //Settings->bMarkHull)
+			if (Settings->bMarkHull)
 			{
 				Context->ConvexHull = new PCGExGeo::TConvexHull3();
 				TArray<PCGExGeo::TFVtx<3>*> HullVertices;
@@ -95,7 +95,6 @@ bool FPCGExBuildVoronoiGraphElement::ExecuteInternal(
 				{
 					if (Context->bDoAsyncProcessing) { Context->ConvexHull->StartAsyncProcessing(Context->GetAsyncManager()); }
 					else { Context->ConvexHull->Generate(); }
-					Context->SetAsyncState(PCGExGeo::State_ProcessingHull);
 				}
 				else
 				{
@@ -110,26 +109,11 @@ bool FPCGExBuildVoronoiGraphElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExGeo::State_ProcessingHull))
 	{
-		if (false) //Settings->bMarkHull)
+		if (Settings->bMarkHull)
 		{
-			if (Context->IsAsyncWorkComplete())
-			{
-				if (Context->bDoAsyncProcessing) { Context->ConvexHull->Finalize(); }
-				Context->ConvexHull->GetHullIndices(Context->HullIndices);
-
-				PCGEx::TFAttributeWriter<bool>* HullMarkPointWriter = new PCGEx::TFAttributeWriter<bool>(Settings->HullAttributeName, false, false);
-				HullMarkPointWriter->BindAndGet(*Context->CurrentIO);
-
-				for (int i = 0; i < Context->CurrentIO->GetNum(); i++) { HullMarkPointWriter->Values[i] = Context->HullIndices.Contains(i); }
-
-				HullMarkPointWriter->Write();
-				PCGEX_DELETE(HullMarkPointWriter)
-				PCGEX_DELETE(Context->ConvexHull)
-			}
-			else
-			{
-				return false;
-			}
+			if (!Context->IsAsyncWorkComplete()) { return false; }
+			if (Context->bDoAsyncProcessing) { Context->ConvexHull->Finalize(); }
+			Context->ConvexHull->GetHullIndices(Context->HullIndices);
 		}
 
 		Context->Voronoi = new PCGExGeo::TVoronoiMesh3();
@@ -138,6 +122,8 @@ bool FPCGExBuildVoronoiGraphElement::ExecuteInternal(
 
 		if (Context->Voronoi->PrepareFrom(Context->CurrentIO->GetIn()->GetPoints()))
 		{
+			Context->Voronoi->Delaunay->ConvexHullIndices = &Context->HullIndices;
+
 			if (Context->bDoAsyncProcessing)
 			{
 				Context->Voronoi->Delaunay->Hull->StartAsyncProcessing(Context->GetAsyncManager());
@@ -160,7 +146,6 @@ bool FPCGExBuildVoronoiGraphElement::ExecuteInternal(
 	if (Context->IsState(PCGExGeo::State_ProcessingDelaunayHull))
 	{
 		if (!Context->IsAsyncWorkComplete()) { return false; }
-
 		Context->Voronoi->Delaunay->Hull->Finalize();
 		Context->SetState(PCGExGeo::State_ProcessingDelaunayPreprocess);
 	}
@@ -205,8 +190,19 @@ bool FPCGExBuildVoronoiGraphElement::ExecuteInternal(
 			return false;
 		}
 
-		Context->WriteEdges();
-		
+		// Write Edges
+
+		TArray<FPCGPoint>& Centroids = Context->CurrentIO->GetOut()->GetMutablePoints();
+		Context->Voronoi->GetVoronoiPoints(Centroids, Settings->Method);
+
+		Context->GraphBuilder = new PCGExGraph::FGraphBuilder(*Context->CurrentIO, 8);
+
+		TArray<PCGExGraph::FUnsignedEdge> Edges;
+		Context->Voronoi->GetUniqueEdges(Edges, Settings->bPruneOutsideBounds && Settings->Method != EPCGExCellCenter::Balanced);
+		Context->GraphBuilder->Graph->InsertEdges(Edges);
+
+		//
+
 		Context->GraphBuilder->Compile(Context);
 		Context->SetAsyncState(PCGExGraph::State_WritingClusters);
 	}
@@ -214,6 +210,37 @@ bool FPCGExBuildVoronoiGraphElement::ExecuteInternal(
 	if (Context->IsState(PCGExGraph::State_WritingClusters))
 	{
 		if (!Context->IsAsyncWorkComplete()) { return false; }
+
+		/*
+		//Mark hull
+		if (Settings->bMarkHull)
+		{
+			int32 GraphIndex = 0;
+			for (PCGExGraph::FSubGraph* SubGraph : Context->GraphBuilder->Graph->SubGraphs)
+			{
+				PCGEx::TFAttributeWriter<bool>* HullMarkWriter = nullptr;
+				HullMarkWriter = new PCGEx::TFAttributeWriter<bool>(Settings->HullAttributeName, false);
+				HullMarkWriter->BindAndGet((*Context->GraphBuilder->EdgesIO)[GraphIndex++]);
+
+				for (int32 NodeIndex : SubGraph->Nodes)
+				{
+					PCGExGraph::FNode& Node = SubGraph->Nodes[NodeIndex];
+					//Nodes are from
+				}
+
+				for (int i = 0; i < Edges.Num(); i++)
+				{
+					const PCGExGraph::FUnsignedEdge& Edge = Edges[i];
+					const bool bStartOnHull = HullIndices.Contains(Edge.Start);
+					const bool bEndOnHull = HullIndices.Contains(Edge.End);
+					HullMarkWriter->Values[i] = Settings->bMarkEdgeOnTouch ? bStartOnHull || bEndOnHull : bStartOnHull && bEndOnHull;
+				}
+
+				HullMarkWriter->Write();
+				PCGEX_DELETE(HullMarkWriter)
+			}
+		}
+		*/
 
 		Context->GraphBuilder->Write(Context);
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
@@ -225,43 +252,6 @@ bool FPCGExBuildVoronoiGraphElement::ExecuteInternal(
 	}
 
 	return Context->IsDone();
-}
-
-void FPCGExBuildVoronoiGraphContext::WriteEdges()
-{
-	const UPCGExBuildVoronoiGraphSettings* Settings = GetInputSettings<UPCGExBuildVoronoiGraphSettings>();
-	check(Settings);
-
-	// Vtx -> Circumcenters
-	//TODO : Datablending
-	
-	TArray<FPCGPoint>& Centroids = CurrentIO->GetOut()->GetMutablePoints();
-	Voronoi->GetVoronoiPoints(Centroids, Settings->Method);
-
-	GraphBuilder = new PCGExGraph::FGraphBuilder(*CurrentIO, 8);
-
-	TArray<PCGExGraph::FUnsignedEdge> Edges;
-	Voronoi->GetUniqueEdges(Edges, Settings->bPruneOutsideBounds && Settings->Method != EPCGExCellCenter::Balanced);
-	GraphBuilder->Graph->InsertEdges(Edges);
-
-	if (false) //if (Settings->bMarkHull)
-	{
-		//TODO: For each IO in Builder->EgdesIO, since some point can be culled and create isolated clusters
-		PCGEx::TFAttributeWriter<bool>* HullMarkWriter = nullptr;
-		HullMarkWriter = new PCGEx::TFAttributeWriter<bool>(Settings->HullAttributeName, false);
-		HullMarkWriter->BindAndGet((*GraphBuilder->EdgesIO)[0]); //Assume there's only one graph, which is not a good idea
-
-		for (int i = 0; i < Edges.Num(); i++)
-		{
-			const PCGExGraph::FUnsignedEdge& Edge = Edges[i];
-			const bool bStartOnHull = HullIndices.Contains(Edge.Start);
-			const bool bEndOnHull = HullIndices.Contains(Edge.End);
-			HullMarkWriter->Values[i] = Settings->bMarkEdgeOnTouch ? bStartOnHull || bEndOnHull : bStartOnHull && bEndOnHull;
-		}
-
-		HullMarkWriter->Write();
-		PCGEX_DELETE(HullMarkWriter)
-	}
 }
 
 #undef LOCTEXT_NAMESPACE

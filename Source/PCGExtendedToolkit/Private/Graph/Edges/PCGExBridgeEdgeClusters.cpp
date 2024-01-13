@@ -177,15 +177,14 @@ bool FPCGExBridgeEdgeClustersElement::ExecuteInternal(
 			}
 		};
 
-		if (Context->Process(BridgeClusters, Context->Clusters.Num() - 1, true))
-		{
-			Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork);
-		}
+		if (!Context->Process(BridgeClusters, Context->Clusters.Num() - 1, true)) { return false; }
+		Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork);
 	}
 
 	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
 	{
-		if (Context->IsAsyncWorkComplete()) { Context->SetState(PCGExMT::State_ReadyForNextPoints); }
+		if (!Context->IsAsyncWorkComplete()) { return false; }
+		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
 	if (Context->IsDone()) { Context->OutputPointsAndEdges(); }

@@ -118,14 +118,10 @@ bool FPCGExBuildConvexHull2DElement::ExecuteInternal(
 		if (!Context->IsAsyncWorkComplete()) { return false; }
 
 		if (Context->bDoAsyncProcessing) { Context->ConvexHull->Finalize(); }
-
-
-		const TArray<FPCGPoint>& InPoints = Context->CurrentIO->GetIn()->GetPoints();
+		Context->ConvexHull->GetHullIndices(Context->HullIndices);
 
 		if (Settings->bMarkHull && !Settings->bPrunePoints)
 		{
-			Context->ConvexHull->GetHullIndices(Context->HullIndices);
-
 			PCGEx::TFAttributeWriter<bool>* HullMarkPointWriter = new PCGEx::TFAttributeWriter<bool>(Settings->HullAttributeName, false, false);
 			HullMarkPointWriter->BindAndGet(*Context->CurrentIO);
 

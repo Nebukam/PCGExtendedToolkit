@@ -163,19 +163,15 @@ bool FPCGExPathfindingNavmeshElement::ExecuteInternal(FPCGContext* InContext) co
 			Context->GetAsyncManager()->Start<FSampleNavmeshTask>(PathIndex, Context->CurrentIO, Context->PathBuffer[PathIndex]);
 		};
 
-		if (PCGExPathfinding::ProcessGoals(Initialize, Context, Context->CurrentIO, Context->GoalPicker, NavClusterTask))
-		{
-			Context->SetAsyncState(PCGExPathfinding::State_Pathfinding);
-		}
+		if (!PCGExPathfinding::ProcessGoals(Initialize, Context, Context->CurrentIO, Context->GoalPicker, NavClusterTask)) { return false; }
+		Context->SetAsyncState(PCGExPathfinding::State_Pathfinding);
 	}
 
 	if (Context->IsState(PCGExPathfinding::State_Pathfinding))
 	{
-		if (Context->IsAsyncWorkComplete())
-		{
-			Context->OutputPaths->OutputTo(Context, true);
-			Context->Done();
-		}
+		if (!Context->IsAsyncWorkComplete()) { return false; }
+		Context->OutputPaths->OutputTo(Context, true);
+		Context->Done();
 	}
 
 	return Context->IsDone();

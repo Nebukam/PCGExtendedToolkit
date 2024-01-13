@@ -61,17 +61,19 @@ bool FPCGExWriteIndexElement::ExecuteInternal(FPCGContext* InContext) const
 				Context->NormalizedIndexAccessor->GetRange(Context->NormalizedIndicesBuffer, 0);
 			};
 
-			if (Context->ProcessCurrentPoints(
+			if (!Context->ProcessCurrentPoints(
 				Initialize, [&](const int32 Index, const PCGExData::FPointIO& PointIO)
 				{
 					Context->NormalizedIndicesBuffer[Index] = static_cast<double>(Index) / static_cast<double>(Context->NormalizedIndicesBuffer.Num());
 				}))
 			{
-				Context->NormalizedIndexAccessor->SetRange(Context->NormalizedIndicesBuffer);
-				PCGEX_DELETE(Context->NormalizedIndexAccessor)
-				Context->SetState(PCGExMT::State_ReadyForNextPoints);
-				Context->CurrentIO->OutputTo(Context);
+				return false;
 			}
+
+			Context->NormalizedIndexAccessor->SetRange(Context->NormalizedIndicesBuffer);
+			PCGEX_DELETE(Context->NormalizedIndexAccessor)
+			Context->SetState(PCGExMT::State_ReadyForNextPoints);
+			Context->CurrentIO->OutputTo(Context);
 		}
 		else
 		{
@@ -82,17 +84,19 @@ bool FPCGExWriteIndexElement::ExecuteInternal(FPCGContext* InContext) const
 				Context->IndexAccessor->GetRange(Context->IndicesBuffer, 0);
 			};
 
-			if (Context->ProcessCurrentPoints(
+			if (!Context->ProcessCurrentPoints(
 				Initialize, [&](const int32 Index, const PCGExData::FPointIO& PointIO)
 				{
 					Context->IndicesBuffer[Index] = Index;
 				}))
 			{
-				Context->IndexAccessor->SetRange(Context->IndicesBuffer);
-				PCGEX_DELETE(Context->IndexAccessor)
-				Context->SetState(PCGExMT::State_ReadyForNextPoints);
-				Context->CurrentIO->OutputTo(Context);
+				return false;
 			}
+
+			Context->IndexAccessor->SetRange(Context->IndicesBuffer);
+			PCGEX_DELETE(Context->IndexAccessor)
+			Context->SetState(PCGExMT::State_ReadyForNextPoints);
+			Context->CurrentIO->OutputTo(Context);
 		}
 	}
 

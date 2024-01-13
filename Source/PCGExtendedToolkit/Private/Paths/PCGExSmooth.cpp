@@ -79,11 +79,9 @@ bool FPCGExSmoothElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
 	{
-		if (Context->IsAsyncWorkComplete())
-		{
-			Context->OutputPoints();
-			Context->Done();
-		}
+		if (!Context->IsAsyncWorkComplete()) { return false; }
+		Context->OutputPoints();
+		Context->Done();
 	}
 
 	return Context->IsDone();

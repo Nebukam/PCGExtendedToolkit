@@ -94,12 +94,12 @@ bool FPCGExFindEdgeClustersElement::ExecuteInternal(
 			if (Context->NetworkBuilder->EdgeCrossings) { Context->SetState(PCGExGraph::State_FindingCrossings); }
 			else { Context->SetState(PCGExGraph::State_WritingClusters); }
 		}
-		else { Context->SetState(PCGExGraph::State_BuildNetwork); }
+		else { Context->SetState(PCGExGraph::State_BuildGraph); }
 	}
 
 	// -> Process current points with current graph
 
-	if (Context->IsState(PCGExGraph::State_BuildNetwork))
+	if (Context->IsState(PCGExGraph::State_BuildGraph))
 	{
 		auto Initialize = [&](PCGExData::FPointIO& PointIO)
 		{
@@ -119,11 +119,8 @@ bool FPCGExFindEdgeClustersElement::ExecuteInternal(
 			}
 		};
 
-
-		if (Context->ProcessCurrentPoints(Initialize, InsertEdge))
-		{
-			Context->SetState(PCGExGraph::State_ReadyForNextGraph);
-		}
+		if (!Context->ProcessCurrentPoints(Initialize, InsertEdge)) { return false; }
+		Context->SetState(PCGExGraph::State_ReadyForNextGraph);
 	}
 
 	if (Context->IsState(PCGExGraph::State_FindingCrossings))
@@ -138,10 +135,8 @@ bool FPCGExFindEdgeClustersElement::ExecuteInternal(
 			Context->NetworkBuilder->EdgeCrossings->ProcessEdge(Index, Context->CurrentIO->GetIn()->GetPoints());
 		};
 
-		if (Context->Process(Initialize, ProcessEdge, Context->NetworkBuilder->Graph->Edges.Num()))
-		{
-			Context->SetState(PCGExGraph::State_WritingClusters);
-		}
+		if (!Context->Process(Initialize, ProcessEdge, Context->NetworkBuilder->Graph->Edges.Num())) { return false; }
+		Context->SetState(PCGExGraph::State_WritingClusters);
 	}
 
 	// -> Network is ready
@@ -160,11 +155,9 @@ bool FPCGExFindEdgeClustersElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExGraph::State_WaitingOnWritingClusters))
 	{
-		if (Context->IsAsyncWorkComplete())
-		{
-			Context->NetworkBuilder->Write(Context);
-			Context->SetState(PCGExMT::State_ReadyForNextPoints);
-		}
+		if (!Context->IsAsyncWorkComplete()) { return false; }
+		Context->NetworkBuilder->Write(Context);
+		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
 	if (Context->IsDone())

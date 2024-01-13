@@ -101,10 +101,8 @@ bool FPCGExConsolidateGraphElement::ExecuteInternal(
 			}
 		};
 
-		if (Context->ProcessCurrentPoints(ConsolidatePoint))
-		{
-			Context->SetState(Context->bConsolidateEdgeType ? PCGExGraph::State_FindingEdgeTypes : PCGExMT::State_ReadyForNextPoints);
-		}
+		if (!Context->ProcessCurrentPoints(ConsolidatePoint)) { return false; }
+		Context->SetState(Context->bConsolidateEdgeType ? PCGExGraph::State_FindingEdgeTypes : PCGExMT::State_ReadyForNextPoints);
 	}
 
 	// Optional 3rd Pass on points - Recompute edges type
@@ -116,10 +114,8 @@ bool FPCGExConsolidateGraphElement::ExecuteInternal(
 			ComputeEdgeType(Context->SocketInfos, PointIndex);
 		};
 
-		if (Context->ProcessCurrentPoints(ConsolidateEdgesType))
-		{
-			Context->SetState(PCGExMT::State_ReadyForNextPoints);
-		}
+		if (!Context->ProcessCurrentPoints(ConsolidateEdgesType)) { return false; }
+		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
 	// Done

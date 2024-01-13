@@ -94,7 +94,6 @@ bool FPCGExBuildDelaunayGraphElement::ExecuteInternal(
 				{
 					if (Context->bDoAsyncProcessing) { Context->ConvexHull->StartAsyncProcessing(Context->GetAsyncManager()); }
 					else { Context->ConvexHull->Generate(); }
-					Context->SetAsyncState(PCGExGeo::State_ProcessingHull);
 				}
 				else
 				{
@@ -102,10 +101,8 @@ bool FPCGExBuildDelaunayGraphElement::ExecuteInternal(
 					return false;
 				}
 			}
-			else
-			{
-				Context->SetAsyncState(PCGExGeo::State_ProcessingHull);
-			}
+
+			Context->SetAsyncState(PCGExGeo::State_ProcessingHull);
 		}
 	}
 
@@ -145,17 +142,16 @@ bool FPCGExBuildDelaunayGraphElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExGeo::State_ProcessingDelaunayHull))
 	{
-		if (Context->IsAsyncWorkComplete())
+		if (!Context->IsAsyncWorkComplete()) { return false; }
+
+		if (Context->bDoAsyncProcessing)
 		{
-			if (Context->bDoAsyncProcessing)
-			{
-				Context->SetState(PCGExGeo::State_ProcessingDelaunayPreprocess);
-			}
-			else
-			{
-				Context->Delaunay->Generate();
-				Context->SetAsyncState(PCGExGeo::State_ProcessingDelaunay);
-			}
+			Context->SetState(PCGExGeo::State_ProcessingDelaunayPreprocess);
+		}
+		else
+		{
+			Context->Delaunay->Generate();
+			Context->SetAsyncState(PCGExGeo::State_ProcessingDelaunay);
 		}
 	}
 

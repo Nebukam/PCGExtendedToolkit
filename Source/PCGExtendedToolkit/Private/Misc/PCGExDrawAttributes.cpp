@@ -211,7 +211,7 @@ bool FPCGExDrawAttributesElement::Boot(FPCGContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(DrawAttributes)
 
 	PCGEX_DEBUG_NOTIFY
-	
+
 	Context->DebugList.Empty();
 	for (const FPCGExAttributeDebugDrawDescriptor& Descriptor : Settings->DebugList)
 	{

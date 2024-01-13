@@ -119,18 +119,17 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 			}
 		};
 
-		if (Context->ProcessCurrentPoints(Initialize, ProcessPoint))
+		if (!Context->ProcessCurrentPoints(Initialize, ProcessPoint)) { return false; }
+
+		if (Context->bPreserveOrder)
 		{
-			if (Context->bPreserveOrder)
-			{
-				Context->FusedPoints.Sort(
-					[&](const PCGExFuse::FFusedPoint& A, const PCGExFuse::FFusedPoint& B)
-					{
-						return A.Index > B.Index;
-					});
-			}
-			Context->SetState(PCGExFuse::State_MergingPoints);
+			Context->FusedPoints.Sort(
+				[&](const PCGExFuse::FFusedPoint& A, const PCGExFuse::FFusedPoint& B)
+				{
+					return A.Index > B.Index;
+				});
 		}
+		Context->SetState(PCGExFuse::State_MergingPoints);
 	}
 
 	if (Context->IsState(PCGExFuse::State_MergingPoints))
@@ -168,12 +167,11 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 			Context->MetadataBlender->CompleteBlending(Target, AverageDivider);
 		};
 
-		if (PCGExMT::ParallelForLoop(Context, Context->FusedPoints.Num(), Initialize, FusePoint, Context->ChunkSize))
-		{
-			Context->MetadataBlender->Write();
-			Context->CurrentIO->OutputTo(Context);
-			Context->SetState(PCGExMT::State_ReadyForNextPoints);
-		}
+		if (!PCGExMT::ParallelForLoop(Context, Context->FusedPoints.Num(), Initialize, FusePoint, Context->ChunkSize)) { return false; }
+
+		Context->MetadataBlender->Write();
+		Context->CurrentIO->OutputTo(Context);
+		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
 	return Context->IsDone();

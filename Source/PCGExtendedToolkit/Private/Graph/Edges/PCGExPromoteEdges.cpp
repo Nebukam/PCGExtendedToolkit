@@ -134,10 +134,9 @@ bool FPCGExPromoteEdgesElement::ExecuteInternal(
 		};
 
 
-		if (Context->ProcessCurrentPoints(Initialize, ProcessPoint))
-		{
-			Context->SetState(PCGExGraph::State_ReadyForNextGraph);
-		}
+		if (!Context->ProcessCurrentPoints(Initialize, ProcessPoint)) { return false; }
+
+		Context->SetState(PCGExGraph::State_ReadyForNextGraph);
 	}
 
 	if (Context->IsState(PCGExGraph::State_PromotingEdges))
@@ -177,14 +176,10 @@ bool FPCGExPromoteEdgesElement::ExecuteInternal(
 			}
 		};
 
-		if (Context->Promotion->GeneratesNewPointData())
-		{
-			if (Context->Process(ProcessEdgeGen, Context->Edges.Num())) { Context->SetState(PCGExMT::State_ReadyForNextPoints); }
-		}
-		else
-		{
-			if (Context->Process(ProcessEdge, Context->Edges.Num())) { Context->SetState(PCGExMT::State_ReadyForNextPoints); }
-		}
+		if (Context->Promotion->GeneratesNewPointData()) { if (!Context->Process(ProcessEdgeGen, Context->Edges.Num())) { return false; } }
+		else { if (!Context->Process(ProcessEdge, Context->Edges.Num())) { return false; } }
+
+		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
 	if (Context->IsDone())

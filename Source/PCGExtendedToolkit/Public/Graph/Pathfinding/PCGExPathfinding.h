@@ -208,7 +208,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicModifiersSettings
 				OutMin = 1;
 				OutMax = -1;
 			}
-			
+
 			if (bLocalWeight)
 			{
 				for (int i = 0; i < NumIterations; i++)

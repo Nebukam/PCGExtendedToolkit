@@ -86,7 +86,7 @@ bool FPCGExPathfindingEdgesElement::ExecuteInternal(FPCGContext* InContext) cons
 		{
 		};
 
-		if (PCGExPathfinding::ProcessGoals(
+		if (!PCGExPathfinding::ProcessGoals(
 			Initialize, Context, Context->SeedsPoints, Context->GoalPicker,
 			[&](const int32 SeedIndex, const int32 GoalIndex)
 			{
@@ -98,8 +98,10 @@ bool FPCGExPathfindingEdgesElement::ExecuteInternal(FPCGContext* InContext) cons
 				Context->BufferLock.WriteUnlock();
 			}))
 		{
-			Context->SetState(PCGExGraph::State_ReadyForNextEdges);
+			return false;
 		}
+
+		Context->SetState(PCGExGraph::State_ReadyForNextEdges);
 	}
 
 	if (Context->IsState(PCGExGraph::State_ReadyForNextEdges))
@@ -123,15 +125,14 @@ bool FPCGExPathfindingEdgesElement::ExecuteInternal(FPCGContext* InContext) cons
 			Context->GetAsyncManager()->Start<FSampleClusterPathTask>(Index, Context->CurrentIO, Context->PathBuffer[Index]);
 		};
 
-		if (Context->Process(SampleClusterTask, Context->PathBuffer.Num()))
-		{
-			Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork);
-		}
+		if (!Context->Process(SampleClusterTask, Context->PathBuffer.Num())) { return false; }
+		Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork);
 	}
 
 	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
 	{
-		if (Context->IsAsyncWorkComplete()) { Context->SetState(PCGExGraph::State_ReadyForNextEdges); }
+		if (!Context->IsAsyncWorkComplete()) { return false; }
+		Context->SetState(PCGExGraph::State_ReadyForNextEdges);
 	}
 
 	if (Context->IsDone())

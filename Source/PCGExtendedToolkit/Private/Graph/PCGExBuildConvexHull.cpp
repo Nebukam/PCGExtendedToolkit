@@ -108,16 +108,15 @@ bool FPCGExBuildConvexHullElement::ExecuteInternal(
 		if (!Context->IsAsyncWorkComplete()) { return false; }
 
 		if (Context->bDoAsyncProcessing) { Context->ConvexHull->Finalize(); }
+		Context->ConvexHull->GetHullIndices(Context->HullIndices);
 
 		if (Settings->bMarkHull && !Settings->bPrunePoints)
 		{
-			Context->ConvexHull->GetHullIndices(Context->HullIndices);
-
 			PCGEx::TFAttributeWriter<bool>* HullMarkPointWriter = new PCGEx::TFAttributeWriter<bool>(Settings->HullAttributeName, false, false);
 			HullMarkPointWriter->BindAndGet(*Context->CurrentIO);
-			
+
 			for (int i = 0; i < Context->CurrentIO->GetNum(); i++) { HullMarkPointWriter->Values[i] = Context->HullIndices.Contains(i); }
-			
+
 			HullMarkPointWriter->Write();
 			PCGEX_DELETE(HullMarkPointWriter)
 		}
@@ -136,7 +135,7 @@ bool FPCGExBuildConvexHullElement::ExecuteInternal(
 	if (Context->IsState(PCGExGraph::State_WritingClusters))
 	{
 		if (!Context->IsAsyncWorkComplete()) { return false; }
-		
+
 		Context->GraphBuilder->Write(Context);
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}

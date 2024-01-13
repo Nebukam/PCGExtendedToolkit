@@ -131,12 +131,11 @@ bool FPCGExWriteTangentsElement::ExecuteInternal(FPCGContext* InContext) const
 		if (Settings->bClosedPath) { bProcessingComplete = Context->ProcessCurrentPoints(Initialize, ProcessPointTile); }
 		else { bProcessingComplete = Context->ProcessCurrentPoints(Initialize, ProcessPoint); }
 
-		if (bProcessingComplete)
-		{
-			Context->WriteTangents();
-			Context->CurrentIO->OutputTo(Context);
-			Context->SetState(PCGExMT::State_ReadyForNextPoints);
-		}
+		if (!bProcessingComplete) { return false; }
+
+		Context->WriteTangents();
+		Context->CurrentIO->OutputTo(Context);
+		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
 	return Context->IsDone();

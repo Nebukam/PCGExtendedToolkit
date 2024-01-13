@@ -21,6 +21,7 @@ namespace PCGExGeo
 		TFVtx<DIMENSIONS>* Circumcenter = nullptr;
 		double Radius = 0;
 		bool bIsWithinBounds = true;
+		bool bIsOnHull = false;
 		FVector Centroid = FVector::Zero();
 
 		TDelaunayCell(
@@ -53,6 +54,19 @@ namespace PCGExGeo
 			if (bIsWithinBounds) { return Circumcenter->GetV3(); }
 			return Centroid;
 		}
+
+		void ComputeHullQuality()
+		{
+			bIsOnHull = true;
+			for (int i = 0; i < DIMENSIONS - 1; i++)
+			{
+				if (!Simplex->Vertices[i]->bIsOnHull)
+				{
+					bIsOnHull = false;
+					return;
+				}
+			}
+		}
 	};
 
 	template <int DIMENSIONS, typename T_HULL>
@@ -71,6 +85,7 @@ namespace PCGExGeo
 		TArray<TDelaunayCell<DIMENSIONS>*> Cells;
 		TFVtx<DIMENSIONS>* Centroid = nullptr;
 		int32 NumFinalCells = 0;
+		TSet<int32>* ConvexHullIndices = nullptr;
 
 		FBox Bounds;
 		double BoundsExtension = 0;
@@ -138,6 +153,8 @@ namespace PCGExGeo
 			Vertices.Append(InVertices);
 			ComputeVerticesBounds();
 
+			for (TFVtx<DIMENSIONS>* Vtx : Vertices) { Vtx->bIsOnHull = ConvexHullIndices->Contains(Vtx->Id); }
+
 			return InternalPrepare();
 		}
 
@@ -150,10 +167,6 @@ namespace PCGExGeo
 
 			Cells.SetNumUninitialized(NumFinalCells);
 			for (int i = 0; i < NumFinalCells; i++) { ProcessSimplex(i); }
-		}
-
-		virtual void Flatten()
-		{
 		}
 
 	protected:
@@ -220,6 +233,7 @@ namespace PCGExGeo
 			TDelaunayCell<DIMENSIONS>* Cell = CreateCell(Simplex);
 			Cell->bIsWithinBounds = Bounds.IsInside(CellCenter == EPCGExCellCenter::Centroid ? Cell->Centroid : Cell->Circumcenter->GetV3());
 			Cell->Circumcenter->Id = Index;
+			Cell->ComputeHullQuality();
 			Cells[Index] = Cell;
 		}
 

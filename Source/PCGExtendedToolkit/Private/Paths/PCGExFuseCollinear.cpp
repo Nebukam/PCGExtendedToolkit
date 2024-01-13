@@ -75,7 +75,8 @@ bool FPCGExFuseCollinearElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
 	{
-		if (Context->IsAsyncWorkComplete()) { Context->Done(); }
+		if (!Context->IsAsyncWorkComplete()) { return false; }
+		Context->Done();
 	}
 
 	if (Context->IsDone())

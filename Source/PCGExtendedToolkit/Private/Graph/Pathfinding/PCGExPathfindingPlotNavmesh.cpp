@@ -118,7 +118,8 @@ bool FPCGExPathfindingPlotNavmeshElement::ExecuteInternal(FPCGContext* InContext
 
 	if (Context->IsState(PCGExMT::State_ProcessingPoints))
 	{
-		if (Context->IsAsyncWorkComplete()) { Context->Done(); }
+		if (!Context->IsAsyncWorkComplete()) { return false; }
+		Context->Done();
 	}
 
 	if (Context->IsDone())

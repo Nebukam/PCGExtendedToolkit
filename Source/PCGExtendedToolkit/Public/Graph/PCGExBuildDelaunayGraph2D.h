@@ -70,9 +70,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBuildDelaunayGraph2DContext : public FPCGExP
 	PCGExGeo::TDelaunayTriangulation2* Delaunay = nullptr;
 	PCGExGeo::TConvexHull2* ConvexHull = nullptr;
 	TSet<int32> HullIndices;
-	
+
 	PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
-	
 };
 
 

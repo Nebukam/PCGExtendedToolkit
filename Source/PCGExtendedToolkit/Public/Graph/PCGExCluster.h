@@ -9,7 +9,6 @@
 
 namespace PCGExCluster
 {
-	
 	struct FCluster;
 
 	struct PCGEXTENDEDTOOLKIT_API FVertex

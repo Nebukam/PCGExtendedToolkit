@@ -91,12 +91,14 @@ bool FPCGExBuildGraphElement::ExecuteInternal(
 			Context->GetAsyncManager()->Start<FProbeTask>(PointIndex, Context->CurrentIO);
 		};
 
-		if (Context->ProcessCurrentPoints(Initialize, ProcessPoint)) { Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork); }
+		if (!Context->ProcessCurrentPoints(Initialize, ProcessPoint)) { return false; }
+		Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork);
 	}
 
 	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
 	{
-		if (Context->IsAsyncWorkComplete()) { Context->SetState(PCGExGraph::State_FindingEdgeTypes); }
+		if (!Context->IsAsyncWorkComplete()) { return false; }
+		Context->SetState(PCGExGraph::State_FindingEdgeTypes);
 	}
 
 	if (Context->IsState(PCGExGraph::State_FindingEdgeTypes))
@@ -107,11 +109,9 @@ bool FPCGExBuildGraphElement::ExecuteInternal(
 			ComputeEdgeType(Context->SocketInfos, PointIndex);
 		};
 
-		if (Context->ProcessCurrentPoints(ProcessPointEdgeType))
-		{
-			for (const PCGExGraph::FSocketInfos& SocketInfos : Context->SocketInfos) { SocketInfos.Socket->Write(); }
-			Context->SetState(PCGExGraph::State_ReadyForNextGraph);
-		}
+		if (!Context->ProcessCurrentPoints(ProcessPointEdgeType)) { return false; }
+		for (const PCGExGraph::FSocketInfos& SocketInfos : Context->SocketInfos) { SocketInfos.Socket->Write(); }
+		Context->SetState(PCGExGraph::State_ReadyForNextGraph);
 	}
 
 	if (Context->IsDone()) { Context->OutputPointsAndGraphParams(); }

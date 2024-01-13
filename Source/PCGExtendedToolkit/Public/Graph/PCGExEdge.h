@@ -145,7 +145,7 @@ namespace PCGExGraph
 		FIndexedEdge()
 		{
 		}
-		
+
 		FIndexedEdge(const int32 InIndex, const int32 InStart, const int32 InEnd)
 			: FUnsignedEdge(InStart, InEnd),
 			  Index(InIndex)

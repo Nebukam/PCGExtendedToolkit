@@ -479,7 +479,7 @@ namespace PCGExGraph
 				TArray<FPCGPoint> ValidPoints;
 				ValidPoints.Reserve(MutablePoints.Num());
 
-				for (PCGExGraph::FNode& Node : Graph->Nodes)
+				for (FNode& Node : Graph->Nodes)
 				{
 					if (Node.bCrossing || !Node.bValid) { continue; }
 					Node.PointIndex = ValidPoints.Add(MutablePoints[Node.Index]);
@@ -493,7 +493,7 @@ namespace PCGExGraph
 				const int32 NumMaxNodes = Graph->Nodes.Num();
 				MutablePoints.Reserve(NumMaxNodes);
 
-				for (PCGExGraph::FNode& Node : Graph->Nodes)
+				for (FNode& Node : Graph->Nodes)
 				{
 					if (Node.bCrossing || !Node.bValid) { continue; }
 					Node.PointIndex = MutablePoints.Add(PointIO->GetInPoint(Node.Index));
@@ -516,7 +516,7 @@ namespace PCGExGraph
 			if (EdgeCrossings)
 			{
 				TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
-				for (const PCGExGraph::FEdgeCrossing& Crossing : EdgeCrossings->Crossings)
+				for (const FEdgeCrossing& Crossing : EdgeCrossings->Crossings)
 				{
 					MutablePoints.Emplace_GetRef().Transform.SetLocation(Crossing.Center);
 				}
@@ -525,7 +525,7 @@ namespace PCGExGraph
 
 		if (Graph->SubGraphs.IsEmpty())
 		{
-			PointIO->GetOut()->Metadata->DeleteAttribute(PCGExGraph::PUIDAttributeName); // Unmark
+			PointIO->GetOut()->Metadata->DeleteAttribute(PUIDAttributeName); // Unmark
 			return false;
 		}
 

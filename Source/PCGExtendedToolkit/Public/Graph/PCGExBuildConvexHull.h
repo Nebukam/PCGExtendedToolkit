@@ -70,7 +70,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBuildConvexHullContext : public FPCGExPoints
 	PCGExGeo::TConvexHull3* ConvexHull = nullptr;
 	TSet<int32> HullIndices;
 	PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
-	
 };
 
 

@@ -74,7 +74,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBuildConvexHull2DContext : public FPCGExPoin
 
 protected:
 	void BuildPath();
-	
 };
 
 

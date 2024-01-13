@@ -57,6 +57,7 @@ namespace PCGExGeo
 		TArray<TDelaunayCell<DIMENSIONS>*> Cells;
 		TArray<TVoronoiEdge<DIMENSIONS>*> Edges;
 		bool bIsWithinBounds = true;
+		bool bIsOnHull = false;
 
 		TVoronoiRegion()
 		{

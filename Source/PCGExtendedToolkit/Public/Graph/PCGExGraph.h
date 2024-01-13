@@ -298,7 +298,7 @@ namespace PCGExGraph
 
 	constexpr PCGExMT::AsyncState State_FindingEdgeTypes = __COUNTER__;
 
-	constexpr PCGExMT::AsyncState State_BuildNetwork = __COUNTER__;
+	constexpr PCGExMT::AsyncState State_BuildGraph = __COUNTER__;
 	constexpr PCGExMT::AsyncState State_FindingCrossings = __COUNTER__;
 	constexpr PCGExMT::AsyncState State_WritingClusters = __COUNTER__;
 	constexpr PCGExMT::AsyncState State_WaitingOnWritingClusters = __COUNTER__;
@@ -697,13 +697,13 @@ namespace PCGExGraph
 		int32 NumEdges;
 		int32 StartIndex;
 
-		FEdgeCrossingsHandler(FGraph* InEdgeNetwork, const double InTolerance)
-			: Graph(InEdgeNetwork),
+		FEdgeCrossingsHandler(FGraph* InGraph, const double InTolerance)
+			: Graph(InGraph),
 			  Tolerance(InTolerance),
 			  SquaredTolerance(InTolerance * InTolerance)
 		{
-			NumEdges = InEdgeNetwork->Edges.Num();
-			StartIndex = InEdgeNetwork->Nodes.Num();
+			NumEdges = InGraph->Edges.Num();
+			StartIndex = InGraph->Nodes.Num();
 			Crossings.Empty();
 			SegmentBounds.Empty();
 			SegmentBounds.Reserve(NumEdges);
@@ -739,7 +739,7 @@ namespace PCGExGraph
 			PointIO = &InPointIO;
 
 			const int32 NumNodes = PointIO->GetOutNum();
-			
+
 			Graph = new FGraph(NumNodes, NumEdgeReserve);
 
 			Markings = new PCGExData::FKPointIOMarkedBindings<int32>(PointIO, PUIDAttributeName);

@@ -94,7 +94,6 @@ bool FPCGExBuildDelaunayGraph2DElement::ExecuteInternal(
 				{
 					if (Context->bDoAsyncProcessing) { Context->ConvexHull->StartAsyncProcessing(Context->GetAsyncManager()); }
 					else { Context->ConvexHull->Generate(); }
-					Context->SetAsyncState(PCGExGeo::State_ProcessingHull);
 				}
 				else
 				{
@@ -102,6 +101,8 @@ bool FPCGExBuildDelaunayGraph2DElement::ExecuteInternal(
 					return false;
 				}
 			}
+
+			Context->SetAsyncState(PCGExGeo::State_ProcessingHull);
 		}
 	}
 

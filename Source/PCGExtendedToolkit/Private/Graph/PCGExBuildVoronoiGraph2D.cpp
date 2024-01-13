@@ -92,7 +92,7 @@ bool FPCGExBuildVoronoiGraph2DElement::ExecuteInternal(
 				return false;
 			}
 
-			if (false) //Settings->bMarkHull)
+			if constexpr (false) //Settings->bMarkHull)
 			{
 				Context->ConvexHull = new PCGExGeo::TConvexHull2();
 				TArray<PCGExGeo::TFVtx<2>*> HullVertices;
@@ -117,7 +117,7 @@ bool FPCGExBuildVoronoiGraph2DElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExGeo::State_ProcessingHull))
 	{
-		if (false) //Settings->bMarkHull)
+		if constexpr (false) //Settings->bMarkHull)
 		{
 			if (Context->IsAsyncWorkComplete())
 			{
@@ -145,6 +145,8 @@ bool FPCGExBuildVoronoiGraph2DElement::ExecuteInternal(
 
 		if (Context->Voronoi->PrepareFrom(Context->CurrentIO->GetIn()->GetPoints()))
 		{
+			Context->Voronoi->Delaunay->ConvexHullIndices = &Context->HullIndices;
+
 			if (Context->bDoAsyncProcessing)
 			{
 				Context->Voronoi->Delaunay->Hull->StartAsyncProcessing(Context->GetAsyncManager());
@@ -297,7 +299,7 @@ void FPCGExBuildVoronoiGraph2DElement::WriteEdges(FPCGExBuildVoronoiGraph2DConte
 	EdgeStart->BindAndGet(VoronoiEdges);
 	EdgeEnd->BindAndGet(VoronoiEdges);
 
-	if (false) //if (Settings->bMarkHull)
+	if constexpr (false) //if (Settings->bMarkHull)
 	{
 		HullMarkWriter = new PCGEx::TFAttributeWriter<bool>(Settings->HullAttributeName, false);
 		HullMarkWriter->BindAndGet(VoronoiEdges);

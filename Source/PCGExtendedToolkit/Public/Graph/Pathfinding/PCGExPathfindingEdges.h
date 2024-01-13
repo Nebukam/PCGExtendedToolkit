@@ -35,7 +35,7 @@ protected:
 
 public:
 	virtual PCGExData::EInit GetEdgeOutputInitMode() const override;
-	
+
 	//~Begin UObject interface
 #if WITH_EDITOR
 

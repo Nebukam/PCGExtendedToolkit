@@ -40,13 +40,13 @@ bool FPCGExDrawGraphElement::Boot(FPCGContext* InContext) const
 #if WITH_EDITOR
 
 	PCGEX_CONTEXT_AND_SETTINGS(DrawGraph)
-	
+
 	PCGEX_DEBUG_NOTIFY
 
 	Context->GraphSolver = Context->RegisterOperation<UPCGExGraphSolver>();
-	
+
 #endif
-	
+
 	return true;
 }
 
@@ -59,7 +59,7 @@ bool FPCGExDrawGraphElement::ExecuteInternal(FPCGContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(DrawGraph)
 
 	if (Context->IsSetup())
-	{	
+	{
 		if (!Boot(Context)) { return true; }
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
