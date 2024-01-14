@@ -30,17 +30,38 @@ namespace PCGExData
 		{
 			for (const FString& TagString : InTags)
 			{
-				RawTags.Add(TagString);
-				
 				FString InKey;
 				FString InValue;
 
-				if (!GetTagFromString(TagString, InKey, InValue)) { continue; }
-				RawTags.Remove(TagString);
+				if (!GetTagFromString(TagString, InKey, InValue))
+				{
+					RawTags.Add(TagString);
+					continue;
+				}
+
 				check(!Tags.Contains(InKey)) // Should not contain duplicate tag with different value
 
 				Tags.Add(InKey, InValue);
 			}
+		}
+
+		explicit FTags(const FTags& InTags)
+			: FTags()
+		{
+			Reset(InTags);
+		}
+
+		void Reset()
+		{
+			RawTags.Empty();
+			Tags.Empty();
+		}
+
+		void Reset(const FTags& InTags)
+		{
+			Reset();
+			RawTags.Append(InTags.RawTags);
+			Tags.Append(InTags.Tags);
 		}
 
 		void Dump(TSet<FString>& InTags) const
@@ -58,7 +79,12 @@ namespace PCGExData
 		void Set(const FString& Key, const FString& Value)
 		{
 			Tags.Add(Key, Value);
-			RawTags.Remove((Key + TagSeparator + Value));
+		}
+
+		void Set(const FString& Key, int64 Value, FString& OutValue)
+		{
+			OutValue = FString::Printf(TEXT("%llu"), Value);
+			Tags.Add(Key, OutValue);
 		}
 
 		bool GetValue(const FString& Key, FString& OutValue)
@@ -86,7 +112,7 @@ namespace PCGExData
 		void GetOrSet(const FString& Key, int64 Value, FString& OutValue)
 		{
 			OutValue = FString::Printf(TEXT("%llu"), Value);
-			GetOrSet(Key, OutValue);			
+			GetOrSet(Key, OutValue);
 		}
 
 		bool IsTagged(const FString& Key) const { return Tags.Contains(Key); }

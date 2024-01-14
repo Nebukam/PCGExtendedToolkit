@@ -113,7 +113,6 @@ bool FPCGExSanitizeClustersElement::Boot(FPCGContext* InContext) const
 	Context->MinClusterSize = Settings->bRemoveSmallClusters ? FMath::Max(1, Settings->MinClusterSize) : 1;
 	Context->MaxClusterSize = Settings->bRemoveBigClusters ? FMath::Max(1, Settings->MaxClusterSize) : TNumericLimits<int32>::Max();
 
-
 	return true;
 }
 

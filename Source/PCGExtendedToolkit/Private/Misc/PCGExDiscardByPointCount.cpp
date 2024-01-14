@@ -24,16 +24,17 @@ bool FPCGExDiscardByPointCountElement::ExecuteInternal(FPCGContext* InContext) c
 		if (!Boot(Context)) { return true; }
 	}
 
-	auto ProcessInput = [&](const PCGExData::FPointIO& PointIO, int32)
-	{
-		if (Settings->OutsidePointCountFilter(PointIO.GetNum())) { return; }
+	const int32 Min = Settings->bRemoveBelow ? FMath::Max(1, Settings->MinPointCount) : 1;
+	const int32 Max = Settings->bRemoveAbove ? FMath::Max(1, Settings->MaxPointCount) : TNumericLimits<int32>::Max();
 
-		FPCGTaggedData& OutputRef = Context->OutputData.TaggedData.Add_GetRef(PointIO.Source);
-		OutputRef.Data = PointIO.GetIn();
-		OutputRef.Pin = PointIO.DefaultOutputLabel;
+	auto ProcessInput = [&](PCGExData::FPointIO& PointIO, int32)
+	{
+		if (!FMath::IsWithin(PointIO.GetNum(), Min, Max)) { return; }
+		PointIO.InitializeOutput(PCGExData::EInit::Forward);
 	};
 
 	Context->MainPoints->ForEach(ProcessInput);
+	Context->OutputPoints();
 	return true;
 }
 

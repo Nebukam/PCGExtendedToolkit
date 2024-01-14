@@ -164,11 +164,7 @@ namespace PCGExData
 	{
 		if (bEnabled && Out && Out->GetPoints().Num() > 0)
 		{
-			FPCGTaggedData* TaggedOutput;
-
-			if (In) { TaggedOutput = &Context->OutputData.TaggedData.Add_GetRef(Source); }
-			else { TaggedOutput = &Context->OutputData.TaggedData.Emplace_GetRef(); }
-
+			FPCGTaggedData* TaggedOutput =  &Context->OutputData.TaggedData.Emplace_GetRef();
 			TaggedOutput->Data = Out;
 			TaggedOutput->Pin = DefaultOutputLabel;
 			Tags->Dump(TaggedOutput->Tags);
@@ -248,6 +244,7 @@ namespace PCGExData
 		const EInit InitOut)
 	{
 		FPointIO& Branch = Emplace_GetRef(PointIO.Source, PointIO.GetIn(), InitOut);
+		Branch.Tags->Reset(*PointIO.Tags);
 		Branch.RootIO = const_cast<FPointIO*>(&PointIO);
 		return Branch;
 	}

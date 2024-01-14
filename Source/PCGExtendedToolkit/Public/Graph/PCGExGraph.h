@@ -214,7 +214,7 @@ namespace PCGExGraph
 			: SourceEdgesIO(InSourceEdges)
 		{
 			PointIO = &InPointIO;
-			PointIO->Tags->GetOrSet(PCGExGraph::Tag_Cluster, PointIO->GetInOut()->UID, EdgeTagValue);
+			PointIO->Tags->Set(PCGExGraph::Tag_Cluster, PointIO->GetInOut()->UID, EdgeTagValue);
 
 			const int32 NumNodes = PointIO->GetOutNum();
 
@@ -268,8 +268,8 @@ class PCGEXTENDEDTOOLKIT_API FPCGExWriteSubGraphEdgesTask : public FPCGExNonAban
 {
 public:
 	FPCGExWriteSubGraphEdgesTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-	                        PCGExData::FPointIO* InClusterIO, PCGExGraph::FGraph* InGraph, PCGExGraph::FSubGraph* InSubGraph,
-	                        const int32 InMin = 1, const int32 InMax = TNumericLimits<int32>::Max())
+	                             PCGExData::FPointIO* InClusterIO, PCGExGraph::FGraph* InGraph, PCGExGraph::FSubGraph* InSubGraph,
+	                             const int32 InMin = 1, const int32 InMax = TNumericLimits<int32>::Max())
 		: FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
 		  EdgeIO(InClusterIO), Graph(InGraph), SubGraph(InSubGraph),
 		  Min(InMin), Max(InMax)
@@ -290,7 +290,7 @@ class PCGEXTENDEDTOOLKIT_API FPCGExCompileGraphTask : public FPCGExNonAbandonabl
 {
 public:
 	FPCGExCompileGraphTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-	                  PCGExGraph::FGraphBuilder* InGraphBuilder, const int32 InMin = 1, const int32 InMax = TNumericLimits<int32>::Max())
+	                       PCGExGraph::FGraphBuilder* InGraphBuilder, const int32 InMin = 1, const int32 InMax = TNumericLimits<int32>::Max())
 		: FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
 		  Builder(InGraphBuilder), Min(InMin), Max(InMax)
 	{

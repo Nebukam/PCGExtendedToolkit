@@ -25,7 +25,7 @@ FPCGExBridgeEdgeClustersContext::~FPCGExBridgeEdgeClustersContext()
 {
 	PCGEX_TERMINATE_ASYNC
 	PCGEX_DELETE(GraphBuilder)
-	
+
 	ConsolidatedEdges = nullptr;
 	VisitedClusters.Empty();
 }
@@ -93,7 +93,6 @@ bool FPCGExBridgeEdgeClustersElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExGraph::State_ReadyForNextEdges))
 	{
-		
 		while (Context->AdvanceEdges())
 		{
 			/* Batch-build all meshes since bCacheAllClusters == true */
@@ -202,7 +201,7 @@ bool FPCGExBridgeEdgeClustersElement::ExecuteInternal(
 bool FPCGExBridgeClusteresTask::ExecuteTask()
 {
 	FPCGExBridgeEdgeClustersContext* Context = Manager->GetContext<FPCGExBridgeEdgeClustersContext>();
-	
+
 	const TArray<PCGExCluster::FNode>& CurrentClusterVertices = Context->Clusters[TaskIndex]->Nodes;
 	const TArray<PCGExCluster::FNode>& OtherClusterVertices = Context->Clusters[OtherClusterIndex]->Nodes;
 
@@ -238,8 +237,20 @@ bool FPCGExBridgeClusteresTask::ExecuteTask()
 
 	const PCGMetadataEntryKey BridgeKey = Bridge.MetadataEntry;
 	UPCGMetadata* OutMetadataData = Context->ConsolidatedEdges->GetOut()->Metadata;
-	OutMetadataData->FindOrCreateAttribute<int32>(PCGExGraph::Tag_EdgeStart)->SetValue(BridgeKey, IndexA);
-	OutMetadataData->FindOrCreateAttribute<int32>(PCGExGraph::Tag_EdgeEnd)->SetValue(BridgeKey, IndexB);
+
+	OutMetadataData->FindOrCreateAttribute<int32>(PCGExGraph::Tag_EdgeStart, -1, false)->SetValue(BridgeKey, IndexA);
+	OutMetadataData->FindOrCreateAttribute<int32>(PCGExGraph::Tag_EdgeEnd, -1, false)->SetValue(BridgeKey, IndexB);
+
+	FPCGMetadataAttribute<int32>* NumEdgeAttribute = Context->CurrentIO->GetOut()->Metadata->FindOrCreateAttribute<int32>(PCGExGraph::Tag_EdgesNum, 0, false);
+
+	auto IncrementNumEdge = [&](int32 PointIndex)
+	{
+		const PCGMetadataEntryKey PointKey = Context->CurrentIO->GetOutPoint(PointIndex).MetadataEntry;
+		NumEdgeAttribute->SetValue(PointKey, NumEdgeAttribute->GetValueFromItemKey(PointKey) + 1);
+	};
+
+	IncrementNumEdge(IndexA);
+	IncrementNumEdge(IndexB);
 
 	return true;
 }

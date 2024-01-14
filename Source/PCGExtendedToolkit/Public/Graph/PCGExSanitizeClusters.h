@@ -49,7 +49,7 @@ public:
 
 	/** Don't output Clusters if they have less points than a specified amount. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
-	bool bRemoveSmallClusters = true;
+	bool bRemoveSmallClusters = false;
 
 	/** Minimum points threshold */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bRemoveSmallClusters", ClampMin=2))

@@ -33,13 +33,21 @@ public:
 	//~End UPCGExPointsProcessorSettings interface
 
 public:
-	/** The name of the attribute to write its index to.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=2))
-	int64 MinPointCount = 2;
+	/** Don't output Clusters if they have less points than a specified amount. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
+	bool bRemoveBelow = false;
+	
+	/** Discarded if point count is less than */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bRemoveBelow", ClampMin=2))
+	int32 MinPointCount = 2;
 
-	/** The name of the attribute to write its index to.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=-1))
-	int64 MaxPointCount = -1;
+	/** Don't output Clusters if they have more points than a specified amount. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
+	bool bRemoveAbove = false;
+	
+	/** Discarded if point count is more than */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bRemoveAbove", ClampMin=-1))
+	int32 MaxPointCount = 500;
 
 	bool OutsidePointCountFilter(const int32 InValue) const { return (MinPointCount > 0 && InValue < MinPointCount) || (MaxPointCount > 0 && InValue < MaxPointCount); }
 };
