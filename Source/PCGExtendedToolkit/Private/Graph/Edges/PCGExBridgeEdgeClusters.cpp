@@ -24,9 +24,9 @@ PCGEX_INITIALIZE_ELEMENT(BridgeEdgeClusters)
 FPCGExBridgeEdgeClustersContext::~FPCGExBridgeEdgeClustersContext()
 {
 	PCGEX_TERMINATE_ASYNC
-
+	PCGEX_DELETE(GraphBuilder)
+	
 	ConsolidatedEdges = nullptr;
-
 	VisitedClusters.Empty();
 }
 
@@ -57,6 +57,7 @@ bool FPCGExBridgeEdgeClustersElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
+		PCGEX_DELETE(Context->GraphBuilder)
 		Context->VisitedClusters.Empty();
 
 		if (!Context->AdvancePointsIO()) { Context->Done(); }
@@ -92,6 +93,7 @@ bool FPCGExBridgeEdgeClustersElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExGraph::State_ReadyForNextEdges))
 	{
+		
 		while (Context->AdvanceEdges())
 		{
 			/* Batch-build all meshes since bCacheAllClusters == true */
@@ -200,8 +202,7 @@ bool FPCGExBridgeEdgeClustersElement::ExecuteInternal(
 bool FPCGExBridgeClusteresTask::ExecuteTask()
 {
 	FPCGExBridgeEdgeClustersContext* Context = Manager->GetContext<FPCGExBridgeEdgeClustersContext>();
-
-
+	
 	const TArray<PCGExCluster::FNode>& CurrentClusterVertices = Context->Clusters[TaskIndex]->Nodes;
 	const TArray<PCGExCluster::FNode>& OtherClusterVertices = Context->Clusters[OtherClusterIndex]->Nodes;
 

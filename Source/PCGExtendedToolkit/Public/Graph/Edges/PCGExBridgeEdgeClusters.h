@@ -56,6 +56,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBridgeEdgeClustersContext : public FPCGExEdg
 
 	PCGExData::FPointIO* ConsolidatedEdges = nullptr;
 	TSet<PCGExCluster::FCluster*> VisitedClusters;
+
+	PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
+	
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExBridgeEdgeClustersElement : public FPCGExEdgesProcessorElement

@@ -47,6 +47,22 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bPruneIsolatedPoints = true;
 
+	/** Don't output Clusters if they have less points than a specified amount. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
+	bool bRemoveSmallClusters = true;
+
+	/** Minimum points threshold */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bRemoveSmallClusters", ClampMin=2))
+	int32 MinClusterSize = 3;
+
+	/** Don't output Clusters if they have more points than a specified amount. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
+	bool bRemoveBigClusters = false;
+
+	/** Maximum points threshold */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bRemoveBigClusters", ClampMin=2))
+	int32 MaxClusterSize = 500;
+
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExSanitizeClustersContext : public FPCGExPointsProcessorContext
@@ -56,6 +72,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSanitizeClustersContext : public FPCGExPoint
 
 	virtual ~FPCGExSanitizeClustersContext() override;
 
+	int32 MinClusterSize;
+	int32 MaxClusterSize;
+	
 	PCGExData::FPointIOGroup* MainEdges = nullptr;
 	PCGExData::FPointIO* CurrentEdges = nullptr;
 

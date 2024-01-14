@@ -11,7 +11,7 @@
 #pragma region UPCGSettings interface
 
 
-PCGExData::EInit UPCGExSanitizeClustersSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NewOutput; }
+PCGExData::EInit UPCGExSanitizeClustersSettings::GetMainOutputInitMode() const { return bPruneIsolatedPoints ? PCGExData::EInit::NewOutput : PCGExData::EInit::DuplicateInput; }
 
 FName UPCGExSanitizeClustersSettings::GetMainInputLabel() const { return PCGExGraph::SourceVerticesLabel; }
 FName UPCGExSanitizeClustersSettings::GetMainOutputLabel() const { return PCGExGraph::OutputVerticesLabel; }
@@ -109,6 +109,10 @@ bool FPCGExSanitizeClustersElement::Boot(FPCGContext* InContext) const
 		PCGE_LOG(Error, GraphAndLog, FTEXT("Missing Edges."));
 		return false;
 	}
+
+	Context->MinClusterSize = Settings->bRemoveSmallClusters ? FMath::Max(1, Settings->MinClusterSize) : 1;
+	Context->MaxClusterSize = Settings->bRemoveBigClusters ? FMath::Max(1, Settings->MaxClusterSize) : TNumericLimits<int32>::Max();
+
 
 	return true;
 }
@@ -253,7 +257,7 @@ bool FPCGExSanitizeClustersElement::ExecuteInternal(FPCGContext* InContext) cons
 		PCGEX_DELETE(Context->StartIndexReader)
 		PCGEX_DELETE(Context->EndIndexReader)
 
-		Context->GraphBuilder->Compile(Context);
+		Context->GraphBuilder->Compile(Context, Context->MinClusterSize, Context->MaxClusterSize);
 		Context->SetAsyncState(PCGExGraph::State_WritingClusters);
 	}
 
