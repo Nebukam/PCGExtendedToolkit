@@ -52,8 +52,8 @@ FPCGExEdgesProcessorContext::~FPCGExEdgesProcessorContext()
 {
 	PCGEX_TERMINATE_ASYNC
 
-	PCGEX_DELETE(Edges)
-	PCGEX_DELETE(BoundEdges)
+	PCGEX_DELETE(InputDictionary)
+	PCGEX_DELETE(MainEdges)
 
 	if (bCacheAllClusters)
 	{
@@ -61,23 +61,45 @@ FPCGExEdgesProcessorContext::~FPCGExEdgesProcessorContext()
 		PCGEX_DELETE_TARRAY(Clusters)
 	}
 	else { PCGEX_DELETE(CurrentCluster) }
+
+	RemappedPointsIndices.Empty();
 }
 
 
-bool FPCGExEdgesProcessorContext::AdvanceAndBindPointsIO()
+bool FPCGExEdgesProcessorContext::AdvancePointsIO()
 {
 	PCGEX_DELETE_TARRAY(Clusters)
-	PCGEX_DELETE(BoundEdges)
+	PCGEX_DELETE(EdgeNumReader)
 	CurrentEdgesIndex = -1;
+	RemappedPointsIndices.Empty();
 
-	if (!AdvancePointsIO()) { return false; }
+	if (!FPCGExPointsProcessorContext::AdvancePointsIO()) { return false; }
 
-	BoundEdges = new PCGExData::FKPointIOMarkedBindings<int32>(CurrentIO, PCGExGraph::PUIDAttributeName);
-	Edges->ForEach(
-		[&](PCGExData::FPointIO& InEdgesData, int32)
+	if (FString CurrentTagValue;
+		CurrentIO->Tags->GetValue(PCGExGraph::Tag_Cluster, CurrentTagValue))
+	{
+		TaggedEdges = InputDictionary->GetEntries(CurrentTagValue);
+		if (TaggedEdges->Entries.IsEmpty()) { TaggedEdges = nullptr; }
+	}
+	else { TaggedEdges = nullptr; }
+
+	if (TaggedEdges)
+	{
+		bool bValidPoints = false;
+		CurrentIO->CreateInKeys();
+
+		if (PCGExGraph::GetRemappedIndices(*CurrentIO, PCGExGraph::Tag_EdgeIndex, RemappedPointsIndices))
 		{
-			if (BoundEdges->IsMatching(InEdgesData)) { BoundEdges->Add(InEdgesData); }
-		});
+			EdgeNumReader = new PCGEx::TFAttributeReader<int32>(PCGExGraph::Tag_EdgesNum);
+			if (EdgeNumReader->Bind(*CurrentIO)) { bValidPoints = true; }
+		}
+
+		if (!bValidPoints)
+		{
+			PCGEX_DELETE(EdgeNumReader)
+			TaggedEdges = nullptr;
+		}
+	}
 
 	return true;
 }
@@ -88,17 +110,31 @@ bool FPCGExEdgesProcessorContext::AdvanceEdges()
 
 	if (CurrentEdges) { CurrentEdges->Cleanup(); }
 
-	if (Edges->Pairs.IsValidIndex(++CurrentEdgesIndex))
+	if (TaggedEdges && TaggedEdges->Entries.IsValidIndex(++CurrentEdgesIndex))
 	{
-		CurrentEdges = Edges->Pairs[CurrentEdgesIndex];
-
-		CurrentCluster = new PCGExCluster::FCluster();
-		CurrentIO->CreateInKeys();
+		CurrentEdges = TaggedEdges->Entries[CurrentEdgesIndex];
 		CurrentEdges->CreateInKeys();
-		CurrentCluster->BuildFrom(*CurrentIO, *CurrentEdges);
 
-		if (bCacheAllClusters) { Clusters.Add(CurrentCluster); }
+		PCGEx::FAttributesInfos* EdgeInfos = PCGEx::FAttributesInfos::Get(CurrentEdges->GetIn());
+		if (EdgeInfos->Contains(PCGExGraph::Tag_EdgeStart, EPCGMetadataTypes::Integer32) &&
+			EdgeInfos->Contains(PCGExGraph::Tag_EdgeEnd, EPCGMetadataTypes::Integer32))
+		{
+			CurrentCluster = new PCGExCluster::FCluster();
 
+			if (!CurrentCluster->BuildFrom(
+				*CurrentEdges,
+				CurrentIO->GetIn()->GetPoints(),
+				RemappedPointsIndices,
+				EdgeNumReader->Values))
+			{
+				// Bad cluster/edges.
+				PCGEX_DELETE(CurrentCluster)
+				CurrentEdges->Cleanup();
+			}
+			else if (bCacheAllClusters) { Clusters.Add(CurrentCluster); }
+		}
+
+		PCGEX_DELETE(EdgeInfos)
 		return true;
 	}
 
@@ -109,7 +145,7 @@ bool FPCGExEdgesProcessorContext::AdvanceEdges()
 void FPCGExEdgesProcessorContext::OutputPointsAndEdges()
 {
 	MainPoints->OutputTo(this);
-	Edges->OutputTo(this);
+	MainEdges->OutputTo(this);
 }
 
 PCGEX_INITIALIZE_CONTEXT(EdgesProcessor)
@@ -120,7 +156,7 @@ bool FPCGExEdgesProcessorElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(EdgesProcessor)
 
-	if (Context->Edges->IsEmpty())
+	if (Context->MainEdges->IsEmpty())
 	{
 		PCGE_LOG(Error, GraphAndLog, FTEXT("Missing Edges."));
 		return false;
@@ -139,10 +175,23 @@ FPCGContext* FPCGExEdgesProcessorElement::InitializeContext(
 
 	PCGEX_CONTEXT_AND_SETTINGS(EdgesProcessor)
 
-	Context->Edges = new PCGExData::FPointIOGroup();
-	Context->Edges->DefaultOutputLabel = PCGExGraph::OutputEdgesLabel;
+	Context->InputDictionary = new PCGExData::FPointIOTaggedDictionary(PCGExGraph::Tag_Cluster);
+	Context->MainPoints->ForEach(
+		[&](PCGExData::FPointIO& PointIO, int32)
+		{
+			Context->InputDictionary->CreateKey(PointIO);
+		});
+
+	Context->MainEdges = new PCGExData::FPointIOGroup();
+	Context->MainEdges->DefaultOutputLabel = PCGExGraph::OutputEdgesLabel;
 	TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(PCGExGraph::SourceEdgesLabel);
-	Context->Edges->Initialize(Context, Sources, Settings->GetEdgeOutputInitMode());
+	Context->MainEdges->Initialize(Context, Sources, Settings->GetEdgeOutputInitMode());
+
+	Context->MainEdges->ForEach(
+		[&](PCGExData::FPointIO& PointIO, int32)
+		{
+			Context->InputDictionary->TryAddEntry(PointIO);
+		});
 
 	Context->bCacheAllClusters = Settings->GetCacheAllClusters();
 

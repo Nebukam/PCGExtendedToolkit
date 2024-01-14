@@ -423,6 +423,8 @@ namespace PCGExGraph
 		}
 	};
 
+	const FName ParamPropertyNameIndex = FName("EdgeIndex");
+	
 	struct PCGEXTENDEDTOOLKIT_API FSocketMapping
 	{
 		FSocketMapping()
@@ -441,6 +443,7 @@ namespace PCGExGraph
 		TArray<FProbeDistanceModifier> Modifiers;
 		TArray<FLocalDirection> LocalDirections;
 		TMap<FName, int32> NameToIndexMap;
+		TMap<int32, int32> IndexRemap;
 		int32 NumSockets = 0;
 
 		void Initialize(const FName InIdentifier, TArray<FPCGExSocketDescriptor>& InSockets);
@@ -462,6 +465,8 @@ namespace PCGExGraph
 		void GetSocketsInfos(TArray<FSocketInfos>& OutInfos);
 		void Cleanup();
 		void Reset();
+
+		FName GetParamPropertyName(const FName PropertyName) const;
 
 	private:
 		/**

@@ -1,25 +1,25 @@
 ﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Graph/PCGExFindEdgeClusters.h"
+#include "Graph/PCGExFindCustomGraphEdgeClusters.h"
 
 #include "Data/PCGExData.h"
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraph"
-#define PCGEX_NAMESPACE FindEdgeClusters
+#define PCGEX_NAMESPACE FindCustomGraphEdgeClusters
 
-int32 UPCGExFindEdgeClustersSettings::GetPreferredChunkSize() const { return 32; }
+int32 UPCGExFindCustomGraphEdgeClustersSettings::GetPreferredChunkSize() const { return 32; }
 
-PCGExData::EInit UPCGExFindEdgeClustersSettings::GetMainOutputInitMode() const { return bPruneIsolatedPoints ? PCGExData::EInit::NewOutput : PCGExData::EInit::DuplicateInput; }
+PCGExData::EInit UPCGExFindCustomGraphEdgeClustersSettings::GetMainOutputInitMode() const { return bPruneIsolatedPoints ? PCGExData::EInit::NewOutput : PCGExData::EInit::DuplicateInput; }
 
-FPCGExFindEdgeClustersContext::~FPCGExFindEdgeClustersContext()
+FPCGExFindCustomGraphEdgeClustersContext::~FPCGExFindCustomGraphEdgeClustersContext()
 {
 	PCGEX_TERMINATE_ASYNC
-	PCGEX_DELETE(NetworkBuilder)
+	PCGEX_DELETE(GraphBuilder)
 }
 
-TArray<FPCGPinProperties> UPCGExFindEdgeClustersSettings::OutputPinProperties() const
+TArray<FPCGPinProperties> UPCGExFindCustomGraphEdgeClustersSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
 	PinProperties.Pop(); //Remove graph output
@@ -33,15 +33,15 @@ TArray<FPCGPinProperties> UPCGExFindEdgeClustersSettings::OutputPinProperties() 
 	return PinProperties;
 }
 
-FName UPCGExFindEdgeClustersSettings::GetMainOutputLabel() const { return PCGExGraph::OutputVerticesLabel; }
+FName UPCGExFindCustomGraphEdgeClustersSettings::GetMainOutputLabel() const { return PCGExGraph::OutputVerticesLabel; }
 
-PCGEX_INITIALIZE_ELEMENT(FindEdgeClusters)
+PCGEX_INITIALIZE_ELEMENT(FindCustomGraphEdgeClusters)
 
-bool FPCGExFindEdgeClustersElement::Boot(FPCGContext* InContext) const
+bool FPCGExFindCustomGraphEdgeClustersElement::Boot(FPCGContext* InContext) const
 {
 	if (!FPCGExCustomGraphProcessorElement::Boot(InContext)) { return false; }
 
-	PCGEX_CONTEXT_AND_SETTINGS(FindEdgeClusters)
+	PCGEX_CONTEXT_AND_SETTINGS(FindCustomGraphEdgeClusters)
 
 	Context->CrawlEdgeTypes = static_cast<EPCGExEdgeType>(Settings->CrawlEdgeTypes);
 
@@ -59,12 +59,12 @@ bool FPCGExFindEdgeClustersElement::Boot(FPCGContext* InContext) const
 	return true;
 }
 
-bool FPCGExFindEdgeClustersElement::ExecuteInternal(
+bool FPCGExFindCustomGraphEdgeClustersElement::ExecuteInternal(
 	FPCGContext* InContext) const
 {
-	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExFindEdgeClustersElement::Execute);
+	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExFindCustomGraphEdgeClustersElement::Execute);
 
-	PCGEX_CONTEXT_AND_SETTINGS(FindEdgeClusters)
+	PCGEX_CONTEXT_AND_SETTINGS(FindCustomGraphEdgeClusters)
 
 	if (Context->IsSetup())
 	{
@@ -74,14 +74,14 @@ bool FPCGExFindEdgeClustersElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
-		PCGEX_DELETE(Context->NetworkBuilder)
+		PCGEX_DELETE(Context->GraphBuilder)
 
 		if (!Context->AdvancePointsIOAndResetGraph()) { Context->Done(); }
 		else
 		{
-			Context->NetworkBuilder = new PCGExGraph::FGraphBuilder(*Context->CurrentIO, Context->MergedInputSocketsNum);
-			if (Settings->bFindCrossings) { Context->NetworkBuilder->EnableCrossings(Settings->CrossingTolerance); }
-			if (Settings->bPruneIsolatedPoints) { Context->NetworkBuilder->EnablePointsPruning(); }
+			Context->GraphBuilder = new PCGExGraph::FGraphBuilder(*Context->CurrentIO, Context->MergedInputSocketsNum);
+			if (Settings->bFindCrossings) { Context->GraphBuilder->EnableCrossings(Settings->CrossingTolerance); }
+			if (Settings->bPruneIsolatedPoints) { Context->GraphBuilder->EnablePointsPruning(); }
 
 			Context->SetState(PCGExGraph::State_ReadyForNextGraph);
 		}
@@ -91,7 +91,7 @@ bool FPCGExFindEdgeClustersElement::ExecuteInternal(
 	{
 		if (!Context->AdvanceGraph())
 		{
-			if (Context->NetworkBuilder->EdgeCrossings) { Context->SetState(PCGExGraph::State_FindingCrossings); }
+			if (Context->GraphBuilder->EdgeCrossings) { Context->SetState(PCGExGraph::State_FindingCrossings); }
 			else { Context->SetState(PCGExGraph::State_WritingClusters); }
 		}
 		else { Context->SetState(PCGExGraph::State_BuildCustomGraph); }
@@ -110,12 +110,13 @@ bool FPCGExFindEdgeClustersElement::ExecuteInternal(
 		auto InsertEdge = [&](const int32 PointIndex, const PCGExData::FPointIO& PointIO)
 		{
 			const int32 EdgeType = static_cast<int32>(Context->CrawlEdgeTypes);
+			PCGExGraph::FIndexedEdge NewEdge = PCGExGraph::FIndexedEdge{};
 
 			for (const PCGExGraph::FSocketInfos& SocketInfo : Context->SocketInfos)
 			{
 				const int32 End = SocketInfo.Socket->GetTargetIndexReader().Values[PointIndex];
 				const int32 InEdgeType = SocketInfo.Socket->GetEdgeTypeReader().Values[PointIndex];
-				if (End != -1 && (InEdgeType & EdgeType) != 0) { Context->NetworkBuilder->Graph->InsertEdge(PointIndex, End); }
+				if (End != -1 && (InEdgeType & EdgeType) != 0) { Context->GraphBuilder->Graph->InsertEdge(PointIndex, End, NewEdge); }
 			}
 		};
 
@@ -127,15 +128,15 @@ bool FPCGExFindEdgeClustersElement::ExecuteInternal(
 	{
 		auto Initialize = [&]()
 		{
-			Context->NetworkBuilder->EdgeCrossings->Prepare(Context->CurrentIO->GetIn()->GetPoints());
+			Context->GraphBuilder->EdgeCrossings->Prepare(Context->CurrentIO->GetIn()->GetPoints());
 		};
 
 		auto ProcessEdge = [&](const int32 Index)
 		{
-			Context->NetworkBuilder->EdgeCrossings->ProcessEdge(Index, Context->CurrentIO->GetIn()->GetPoints());
+			Context->GraphBuilder->EdgeCrossings->ProcessEdge(Index, Context->CurrentIO->GetIn()->GetPoints());
 		};
 
-		if (!Context->Process(Initialize, ProcessEdge, Context->NetworkBuilder->Graph->Edges.Num())) { return false; }
+		if (!Context->Process(Initialize, ProcessEdge, Context->GraphBuilder->Graph->Edges.Num())) { return false; }
 		Context->SetState(PCGExGraph::State_WritingClusters);
 	}
 
@@ -143,20 +144,14 @@ bool FPCGExFindEdgeClustersElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExGraph::State_WritingClusters))
 	{
-		if (Context->NetworkBuilder->Compile(Context, Context->MinClusterSize, Context->MaxClusterSize))
-		{
-			Context->SetAsyncState(PCGExGraph::State_WaitingOnWritingClusters);
-		}
-		else
-		{
-			Context->SetState(PCGExMT::State_ReadyForNextPoints);
-		}
+		Context->GraphBuilder->Compile(Context, Context->MinClusterSize, Context->MaxClusterSize);
+		Context->SetAsyncState(PCGExGraph::State_WaitingOnWritingClusters);
 	}
 
 	if (Context->IsState(PCGExGraph::State_WaitingOnWritingClusters))
 	{
 		if (!Context->IsAsyncWorkComplete()) { return false; }
-		Context->NetworkBuilder->Write(Context);
+		if (Context->GraphBuilder->bCompiledSuccessfully) { Context->GraphBuilder->Write(Context); }
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 

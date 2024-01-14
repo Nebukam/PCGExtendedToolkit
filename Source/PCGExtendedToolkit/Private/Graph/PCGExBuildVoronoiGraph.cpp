@@ -71,6 +71,7 @@ bool FPCGExBuildVoronoiGraphElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
+		PCGEX_DELETE(Context->GraphBuilder)
 		PCGEX_DELETE(Context->Voronoi)
 		PCGEX_DELETE(Context->ConvexHull)
 		Context->HullIndices.Empty();
@@ -242,7 +243,7 @@ bool FPCGExBuildVoronoiGraphElement::ExecuteInternal(
 		}
 		*/
 
-		Context->GraphBuilder->Write(Context);
+		if (Context->GraphBuilder->bCompiledSuccessfully) { Context->GraphBuilder->Write(Context); }
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 

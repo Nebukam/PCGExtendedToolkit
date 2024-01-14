@@ -71,7 +71,7 @@ bool FPCGExSmoothElement::ExecuteInternal(FPCGContext* InContext) const
 				{
 					PointIO.CreateInKeys();
 					PointIO.CreateOutKeys();
-					Context->GetAsyncManager()->Start<FSmoothTask>(Index++, &PointIO);
+					Context->GetAsyncManager()->Start<FPCGExSmoothTask>(Index++, &PointIO);
 				}
 			});
 		Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork);
@@ -87,7 +87,7 @@ bool FPCGExSmoothElement::ExecuteInternal(FPCGContext* InContext) const
 	return Context->IsDone();
 }
 
-bool FSmoothTask::ExecuteTask()
+bool FPCGExSmoothTask::ExecuteTask()
 {
 	const FPCGExSmoothContext* Context = Manager->GetContext<FPCGExSmoothContext>();
 	Context->Smoothing->DoSmooth(*PointIO);

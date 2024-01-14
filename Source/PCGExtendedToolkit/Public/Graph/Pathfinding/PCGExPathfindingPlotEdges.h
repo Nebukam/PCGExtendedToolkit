@@ -25,7 +25,7 @@ public:
 	UPCGExPathfindingPlotEdgesSettings(const FObjectInitializer& ObjectInitializer);
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(PathfindingPlotEdges, "Pathfinding : Plot Edges", "Extract a single path from edges islands, going through every seed points in order.");
+	PCGEX_NODE_INFOS(PathfindingPlotEdges, "Pathfinding : Plot Edges", "Extract a single path from edges clusters, going through every seed points in order.");
 #endif
 
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
@@ -97,10 +97,10 @@ protected:
 };
 
 // Define the background task class
-class PCGEXTENDEDTOOLKIT_API FPlotClusterPathTask : public FPCGExNonAbandonableTask
+class PCGEXTENDEDTOOLKIT_API FPCGExPlotClusterPathTask : public FPCGExNonAbandonableTask
 {
 public:
-	FPlotClusterPathTask(
+	FPCGExPlotClusterPathTask(
 		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO) :
 		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO)
 	{

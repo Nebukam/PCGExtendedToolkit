@@ -11,7 +11,7 @@ UENUM(BlueprintType)
 enum class EPCGExBridgeClusterMethod : uint8
 {
 	Delaunay UMETA(DisplayName = "Delaunay", ToolTip="Uses Delaunay graph to find connections."),
-	LeastEdges UMETA(DisplayName = "Least Edges", ToolTip="Ensure all islands are connected using the least possible number of bridges."),
+	LeastEdges UMETA(DisplayName = "Least Edges", ToolTip="Ensure all clusters are connected using the least possible number of bridges."),
 	MostEdges UMETA(DisplayName = "Most Edges", ToolTip="Each cluster will have a bridge to every other cluster"),
 };
 
@@ -25,7 +25,7 @@ public:
 
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(BridgeEdgeClusters, "Edges : Bridge Clusters", "Connects isolated edge islands by their closest vertices.");
+	PCGEX_NODE_INFOS(BridgeEdgeClusters, "Edges : Bridge Clusters", "Connects isolated edge clusters by their closest vertices.");
 #endif
 
 protected:
@@ -72,10 +72,10 @@ protected:
 };
 
 // Define the background task class
-class PCGEXTENDEDTOOLKIT_API FBridgeClusteresTask : public FPCGExNonAbandonableTask
+class PCGEXTENDEDTOOLKIT_API FPCGExBridgeClusteresTask : public FPCGExNonAbandonableTask
 {
 public:
-	FBridgeClusteresTask(
+	FPCGExBridgeClusteresTask(
 		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO, const int32 InOtherClusterIndex) :
 		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
 		OtherClusterIndex(InOtherClusterIndex)

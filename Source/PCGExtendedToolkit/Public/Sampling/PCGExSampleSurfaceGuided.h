@@ -160,11 +160,11 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FTraceTask : public FPCGExCollisionTask
+class PCGEXTENDEDTOOLKIT_API FTraceTask : public FPCGExPCGExCollisionTask
 {
 public:
 	FTraceTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO) :
-		FPCGExCollisionTask(InManager, InTaskIndex, InPointIO)
+		FPCGExPCGExCollisionTask(InManager, InTaskIndex, InPointIO)
 	{
 	}
 

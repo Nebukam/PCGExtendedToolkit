@@ -193,7 +193,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : public FPCGContext
 	const UPCGPointData* GetCurrentIn() const { return CurrentIO->GetIn(); }
 	UPCGPointData* GetCurrentOut() const { return CurrentIO->GetOut(); }
 
-	bool AdvancePointsIO();
+	virtual bool AdvancePointsIO();
 	PCGExMT::AsyncState GetState() const { return CurrentState; }
 	bool IsState(const PCGExMT::AsyncState OperationId) const { return CurrentState == OperationId; }
 	bool IsSetup() const { return IsState(PCGExMT::State_Setup); }

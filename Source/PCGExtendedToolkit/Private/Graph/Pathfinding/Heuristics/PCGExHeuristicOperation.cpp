@@ -9,10 +9,10 @@ void UPCGExHeuristicOperation::PrepareForData(const PCGExCluster::FCluster* InCl
 }
 
 double UPCGExHeuristicOperation::ComputeScore(
-	const PCGExCluster::FScoredVertex* From,
-	const PCGExCluster::FVertex& To,
-	const PCGExCluster::FVertex& Seed,
-	const PCGExCluster::FVertex& Goal,
+	const PCGExCluster::FScoredNode* From,
+	const PCGExCluster::FNode& To,
+	const PCGExCluster::FNode& Seed,
+	const PCGExCluster::FNode& Goal,
 	const PCGExGraph::FIndexedEdge& Edge) const
 {
 	return From->Score + 1;
@@ -23,7 +23,7 @@ bool UPCGExHeuristicOperation::IsBetterScore(const double NewScore, const double
 	return NewScore <= OtherScore;
 }
 
-int32 UPCGExHeuristicOperation::GetQueueingIndex(const TArray<PCGExCluster::FScoredVertex*>& InVertices, const double InScore) const
+int32 UPCGExHeuristicOperation::GetQueueingIndex(const TArray<PCGExCluster::FScoredNode*>& InVertices, const double InScore) const
 {
 	for (int i = InVertices.Num() - 1; i >= 0; i--)
 	{

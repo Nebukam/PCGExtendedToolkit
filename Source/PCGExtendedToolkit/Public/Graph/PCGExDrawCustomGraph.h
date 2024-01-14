@@ -79,7 +79,7 @@ private:
 struct PCGEXTENDEDTOOLKIT_API FPCGExDrawCustomGraphContext : public FPCGExCustomGraphProcessorContext
 {
 	friend class FPCGExBuildCustomGraphElement;
-	friend class FProbeTask;
+	friend class FPCGExProbeTask;
 
 public:
 	UPCGExCustomGraphSolver* GraphSolver = nullptr;

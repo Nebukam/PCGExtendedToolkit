@@ -92,7 +92,7 @@ public:
 
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(PathsToEdgeClusters, "Path : To Edge Clusters", "Merge paths to edge islands for glorious pathfinding inception");
+	PCGEX_NODE_INFOS(PathsToEdgeClusters, "Path : To Edge Clusters", "Merge paths to edge clusters for glorious pathfinding inception");
 #endif
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 
@@ -140,7 +140,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathsToEdgeClustersContext : public FPCGExPa
 
 	PCGExData::FPointIO* ConsolidatedPoints = nullptr;
 
-	PCGExGraph::FGraphBuilder* NetworkBuilder = nullptr;
+	PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExPathsToEdgeClustersElement : public FPCGExPathProcessorElement

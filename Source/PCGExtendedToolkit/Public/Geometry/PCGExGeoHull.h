@@ -836,14 +836,14 @@ namespace PCGExGeo
 
 
 #define PCGEX_HULL_CLASS(_NUM)\
-	class FProcessHull##_NUM##Task;\
+	class FPCGExProcessHull##_NUM##Task;\
 	class PCGEXTENDEDTOOLKIT_API TConvexHull##_NUM : public TConvexHull<_NUM>{\
-	public: virtual void StartAsyncProcessing(FPCGExAsyncManager* Manager) override{Manager->Start<FProcessHull##_NUM##Task>(-1, nullptr, this);} };\
-	class PCGEXTENDEDTOOLKIT_API FProcessHull##_NUM##Task : public FPCGExNonAbandonableTask	{\
+	public: virtual void StartAsyncProcessing(FPCGExAsyncManager* Manager) override{Manager->Start<FPCGExProcessHull##_NUM##Task>(-1, nullptr, this);} };\
+	class PCGEXTENDEDTOOLKIT_API FPCGExProcessHull##_NUM##Task : public FPCGExNonAbandonableTask	{\
 	public:\
-		FProcessHull##_NUM##Task(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO, TConvexHull##_NUM* InHull) : FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO), Hull(InHull){}\
+		FPCGExProcessHull##_NUM##Task(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO, TConvexHull##_NUM* InHull) : FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO), Hull(InHull){}\
 		TConvexHull##_NUM* Hull = nullptr;\
-		virtual bool ExecuteTask() override{if (Hull->ProcessNext()){Manager->Start<FProcessHull##_NUM##Task>(TaskIndex, PointIO, Hull); return true;} return false;}};
+		virtual bool ExecuteTask() override{if (Hull->ProcessNext()){Manager->Start<FPCGExProcessHull##_NUM##Task>(TaskIndex, PointIO, Hull); return true;} return false;}};
 
 	PCGEX_HULL_CLASS(2)
 

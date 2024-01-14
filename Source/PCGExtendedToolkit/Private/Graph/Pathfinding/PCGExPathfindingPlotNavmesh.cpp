@@ -111,7 +111,7 @@ bool FPCGExPathfindingPlotNavmeshElement::ExecuteInternal(FPCGContext* InContext
 		while (Context->AdvancePointsIO())
 		{
 			if (Context->CurrentIO->GetNum() < 2) { continue; }
-			Context->GetAsyncManager()->Start<FPlotNavmeshTask>(-1, Context->CurrentIO);
+			Context->GetAsyncManager()->Start<FPCGExPlotNavmeshTask>(-1, Context->CurrentIO);
 		}
 		Context->SetAsyncState(PCGExMT::State_ProcessingPoints);
 	}
@@ -124,13 +124,13 @@ bool FPCGExPathfindingPlotNavmeshElement::ExecuteInternal(FPCGContext* InContext
 
 	if (Context->IsDone())
 	{
-		Context->OutputPaths->OutputTo(Context, true);
+		Context->OutputPaths->OutputTo(Context);
 	}
 
 	return Context->IsDone();
 }
 
-bool FPlotNavmeshTask::ExecuteTask()
+bool FPCGExPlotNavmeshTask::ExecuteTask()
 {
 	FPCGExPathfindingPlotNavmeshContext* Context = static_cast<FPCGExPathfindingPlotNavmeshContext*>(Manager->Context);
 

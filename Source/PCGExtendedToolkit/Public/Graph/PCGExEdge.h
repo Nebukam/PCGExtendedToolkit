@@ -44,9 +44,13 @@ namespace PCGExGraph
 	const FName SourceEdgesLabel = TEXT("Edges");
 	const FName OutputEdgesLabel = TEXT("Edges");
 
-	const FName EdgeStartAttributeName = TEXT("PCGEx/EdgeStart");
-	const FName EdgeEndAttributeName = TEXT("PCGEx/EdgeEnd");
-	const FName ClusterIndexAttributeName = TEXT("PCGEx/Cluster");
+	const FName Tag_EdgeStart = TEXT("PCGEx/EdgeStart");
+	const FName Tag_EdgeEnd = TEXT("PCGEx/EdgeEnd");
+	const FName Tag_EdgeIndex = TEXT("PCGEx/CachedIndex");
+	const FName Tag_EdgesNum = TEXT("PCGEx/CachedEdgeNum");
+	const FName Tag_ClusterIndex = TEXT("PCGEx/ClusterIndex");
+
+	const FString Tag_Cluster = FString(TEXT("PCGEx/Cluster"));
 
 	constexpr PCGExMT::AsyncState State_ReadyForNextEdges = __COUNTER__;
 	constexpr PCGExMT::AsyncState State_ProcessingEdges = __COUNTER__;
@@ -140,7 +144,8 @@ namespace PCGExGraph
 
 	struct PCGEXTENDEDTOOLKIT_API FIndexedEdge : public FUnsignedEdge
 	{
-		int32 Index = -1;
+		int32 EdgeIndex = -1;
+		int32 TaggedIndex = -1;
 
 		FIndexedEdge()
 		{
@@ -148,7 +153,7 @@ namespace PCGExGraph
 
 		FIndexedEdge(const int32 InIndex, const int32 InStart, const int32 InEnd)
 			: FUnsignedEdge(InStart, InEnd),
-			  Index(InIndex)
+			  EdgeIndex(InIndex)
 		{
 		}
 	};

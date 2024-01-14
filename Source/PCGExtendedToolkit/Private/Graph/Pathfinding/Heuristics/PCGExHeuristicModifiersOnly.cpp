@@ -5,10 +5,10 @@
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicModifiersOnly.h"
 
 double UPCGExHeuristicModifiersOnly::ComputeScore(
-	const PCGExCluster::FScoredVertex* From,
-	const PCGExCluster::FVertex& To,
-	const PCGExCluster::FVertex& Seed,
-	const PCGExCluster::FVertex& Goal, const PCGExGraph::FIndexedEdge& Edge) const
+	const PCGExCluster::FScoredNode* From,
+	const PCGExCluster::FNode& To,
+	const PCGExCluster::FNode& Seed,
+	const PCGExCluster::FNode& Goal, const PCGExGraph::FIndexedEdge& Edge) const
 {
 	return 0;
 }

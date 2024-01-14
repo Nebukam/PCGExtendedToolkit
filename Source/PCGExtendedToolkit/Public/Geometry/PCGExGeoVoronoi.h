@@ -137,19 +137,25 @@ namespace PCGExGeo
 			case EPCGExCellCenter::Balanced:
 				for (const TDelaunayCell<DIMENSIONS>* Cell : Delaunay->Cells)
 				{
-					OutPoints[Cell->Circumcenter->Id].Transform.SetLocation(Cell->GetBestCenter());
+					FPCGPoint& Point = OutPoints[Cell->Circumcenter->Id];
+					Point.Transform.SetLocation(Cell->GetBestCenter());
+					PCGEx::RandomizeSeed(Point);
 				}
 				break;
 			case EPCGExCellCenter::Circumcenter:
 				for (const TDelaunayCell<DIMENSIONS>* Cell : Delaunay->Cells)
 				{
-					OutPoints[Cell->Circumcenter->Id].Transform.SetLocation(Cell->Circumcenter->GetV3());
+					FPCGPoint& Point = OutPoints[Cell->Circumcenter->Id];
+					Point.Transform.SetLocation(Cell->Circumcenter->GetV3());
+					PCGEx::RandomizeSeed(Point);
 				}
 				break;
 			case EPCGExCellCenter::Centroid:
 				for (const TDelaunayCell<DIMENSIONS>* Cell : Delaunay->Cells)
 				{
-					OutPoints[Cell->Circumcenter->Id].Transform.SetLocation(Cell->Centroid);
+					FPCGPoint& Point = OutPoints[Cell->Circumcenter->Id];
+					Point.Transform.SetLocation(Cell->Centroid);
+					PCGEx::RandomizeSeed(Point);
 				}
 				break;
 			}
@@ -261,12 +267,12 @@ namespace PCGExGeo
 	};
 
 #define PCGEX_DELAUNAY_CLASS(_NUM, _DIM)\
-class FVoronoiRegion##_NUM##Task;\
+class FPCGExVoronoiRegion##_NUM##Task;\
 class PCGEXTENDEDTOOLKIT_API TVoronoiMesh##_NUM : public TVoronoiMesh<_DIM, TDelaunayTriangulation##_NUM>	{	public:\
 TVoronoiMesh##_NUM() : TVoronoiMesh<_DIM, TDelaunayTriangulation##_NUM>(){}\
-virtual void StartAsyncPreprocessing(FPCGExAsyncManager* Manager){ for (int i = 0; i < Delaunay->Vertices.Num(); i++) { Manager->Start<FVoronoiRegion##_NUM##Task>(i, nullptr, this); }}};\
-class PCGEXTENDEDTOOLKIT_API FVoronoiRegion##_NUM##Task : public FPCGExNonAbandonableTask{	public:\
-FVoronoiRegion##_NUM##Task(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO, TVoronoiMesh##_NUM* InVoronoiMesh) : FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO), Voronoi(InVoronoiMesh){}\
+virtual void StartAsyncPreprocessing(FPCGExAsyncManager* Manager){ for (int i = 0; i < Delaunay->Vertices.Num(); i++) { Manager->Start<FPCGExVoronoiRegion##_NUM##Task>(i, nullptr, this); }}};\
+class PCGEXTENDEDTOOLKIT_API FPCGExVoronoiRegion##_NUM##Task : public FPCGExNonAbandonableTask{	public:\
+FPCGExVoronoiRegion##_NUM##Task(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO, TVoronoiMesh##_NUM* InVoronoiMesh) : FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO), Voronoi(InVoronoiMesh){}\
 TVoronoiMesh##_NUM* Voronoi = nullptr;\
 virtual bool ExecuteTask() override{ Voronoi->ProcessVertex(TaskIndex); return true; }};
 

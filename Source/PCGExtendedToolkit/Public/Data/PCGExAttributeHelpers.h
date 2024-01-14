@@ -160,7 +160,7 @@ public:
 #pragma endregion
 
 namespace PCGEx
-{
+{	
 	struct PCGEXTENDEDTOOLKIT_API FAttributeIdentity
 	{
 		FName Name = NAME_None;
@@ -171,6 +171,21 @@ namespace PCGEx
 
 		static void Get(const UPCGPointData* InData, TArray<FAttributeIdentity>& OutIdentities);
 		static void Get(const UPCGPointData* InData, TArray<FName>& OutNames, TMap<FName, FAttributeIdentity>& OutIdentities);
+	};
+
+	struct FAttributesInfos
+	{
+
+		TArray<FAttributeIdentity> Identities;		
+		bool Contains(FName AttributeName, EPCGMetadataTypes Type);
+
+		~FAttributesInfos()
+		{
+			Identities.Empty();
+		}
+		
+		static FAttributesInfos* Get(const UPCGPointData* InData);
+		
 	};
 
 #pragma region Accessors
@@ -451,7 +466,7 @@ namespace PCGEx
 		{
 			if (Bind(PointIO))
 			{
-				this->SetNum(PointIO.GetNum());
+				this->SetNum(PointIO.GetOutNum());
 				this->Accessor->GetRange(this->Values);
 				return true;
 			}

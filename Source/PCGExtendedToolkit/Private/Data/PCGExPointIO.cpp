@@ -145,6 +145,9 @@ namespace PCGExData
 	FPointIO::~FPointIO()
 	{
 		Cleanup();
+
+		PCGEX_DELETE(Tags)
+
 		RootIO = nullptr;
 		In = nullptr;
 		Out = nullptr;
@@ -159,7 +162,7 @@ namespace PCGExData
 
 	bool FPointIO::OutputTo(FPCGContext* Context)
 	{
-		if (Out && Out->GetPoints().Num() > 0)
+		if (bEnabled && Out && Out->GetPoints().Num() > 0)
 		{
 			FPCGTaggedData* TaggedOutput;
 
@@ -168,6 +171,7 @@ namespace PCGExData
 
 			TaggedOutput->Data = Out;
 			TaggedOutput->Pin = DefaultOutputLabel;
+			Tags->Dump(TaggedOutput->Tags);
 
 			Cleanup();
 			return true;
@@ -183,7 +187,7 @@ namespace PCGExData
 		return false;
 	}
 
-	bool FPointIO::OutputTo(FPCGContext* Context, const bool bEmplace, const int32 MinPointCount, const int32 MaxPointCount)
+	bool FPointIO::OutputTo(FPCGContext* Context, const int32 MinPointCount, const int32 MaxPointCount)
 	{
 		if (Out)
 		{
@@ -274,10 +278,9 @@ namespace PCGExData
 
 	/**
 	 * Write valid outputs to Context' tagged data
-	 * @param Context
-	 * @param bEmplace Emplace will create a new entry no matter if a Source is set, otherwise will match the In.Source. 
+	 * @param Context 
 	 */
-	void FPointIOGroup::OutputTo(FPCGContext* Context, const bool bEmplace)
+	void FPointIOGroup::OutputTo(FPCGContext* Context)
 	{
 		for (FPointIO* Pair : Pairs) { Pair->OutputTo(Context); }
 	}
@@ -285,13 +288,12 @@ namespace PCGExData
 	/**
 	 * Write valid outputs to Context' tagged data
 	 * @param Context
-	 * @param bEmplace Emplace will create a new entry no matter if a Source is set, otherwise will match the In.Source.
 	 * @param MinPointCount
 	 * @param MaxPointCount 
 	 */
-	void FPointIOGroup::OutputTo(FPCGContext* Context, const bool bEmplace, const int32 MinPointCount, const int32 MaxPointCount)
+	void FPointIOGroup::OutputTo(FPCGContext* Context, const int32 MinPointCount, const int32 MaxPointCount)
 	{
-		for (FPointIO* Pair : Pairs) { Pair->OutputTo(Context, bEmplace, MinPointCount, MaxPointCount); }
+		for (FPointIO* Pair : Pairs) { Pair->OutputTo(Context, MinPointCount, MaxPointCount); }
 	}
 
 	void FPointIOGroup::ForEach(const TFunction<void(FPointIO&, const int32)>& BodyLoop)
@@ -302,5 +304,47 @@ namespace PCGExData
 	void FPointIOGroup::Flush()
 	{
 		PCGEX_DELETE_TARRAY(Pairs)
+	}
+
+	void FPointIOTaggedEntries::Add(FPointIO* Value)
+	{
+		Entries.AddUnique(Value);
+		Value->Tags->Set(TagId, TagValue);
+	}
+
+	void FPointIOTaggedDictionary::CreateKey(const FPointIO& PointIOKey)
+	{
+		FString TagValue;
+		if (!PointIOKey.Tags->GetValue(TagId, TagValue))
+		{
+			TagValue = FString::Printf(TEXT("%llu"), PointIOKey.GetInOut()->UID);
+			PointIOKey.Tags->Set(TagId, TagValue);
+		}
+
+		for (FPointIOTaggedEntries* Binding : Entries) { check(Binding->TagValue != TagValue) } // TagValue shouldn't exist already
+
+		FPointIOTaggedEntries* NewBinding = new FPointIOTaggedEntries(TagId, TagValue);
+		TagMap.Add(TagValue, Entries.Add(NewBinding));
+	}
+
+	bool FPointIOTaggedDictionary::TryAddEntry(FPointIO& PointIOEntry)
+	{
+		FString TagValue;
+		if (!PointIOEntry.Tags->GetValue(TagId, TagValue)) { return false; }
+
+		if (const int32* Index = TagMap.Find(TagValue))
+		{
+			FPointIOTaggedEntries* Key = Entries[*Index];
+			Key->Add(&PointIOEntry);
+			return true;
+		}
+
+		return false;
+	}
+
+	FPointIOTaggedEntries* FPointIOTaggedDictionary::GetEntries(const FString& Key)
+	{
+		if (const int32* Index = TagMap.Find(Key)) { return Entries[*Index]; }
+		return nullptr;
 	}
 }

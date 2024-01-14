@@ -27,6 +27,7 @@ public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(BuildCustomGraph, "Custom Graph : Build", "Write graph data to an attribute for each connected Graph Params. `Build Graph` uses the socket information as is.");
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorGraph; }
 #endif
 
 protected:
@@ -61,7 +62,7 @@ private:
 struct PCGEXTENDEDTOOLKIT_API FPCGExBuildCustomGraphContext : public FPCGExCustomGraphProcessorContext
 {
 	friend class FPCGExBuildCustomGraphElement;
-	friend class FProbeTask;
+	friend class FPCGExProbeTask;
 
 	virtual ~FPCGExBuildCustomGraphContext() override;
 
@@ -85,10 +86,10 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FProbeTask : public FPCGExNonAbandonableTask
+class PCGEXTENDEDTOOLKIT_API FPCGExProbeTask : public FPCGExNonAbandonableTask
 {
 public:
-	FProbeTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO) :
+	FPCGExProbeTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO) :
 		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO)
 	{
 	}

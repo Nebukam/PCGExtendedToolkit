@@ -9,6 +9,8 @@
 #include "Data/PCGPointData.h"
 
 #include "PCGEx.h"
+#include "PCGExDataTag.h"
+#include "Kismet/KismetStringLibrary.h"
 #include "Metadata/Accessors/PCGAttributeAccessorKeys.h"
 
 namespace PCGExData
@@ -39,10 +41,11 @@ namespace PCGExData
 		UPCGPointData* Out = nullptr; // Output PointData
 
 		FPointIO* RootIO = nullptr;
+		bool bEnabled = true;
 
 	public:
 		FPCGTaggedData Source; // Source struct
-		FPCGTaggedData Output; // Source struct
+		FTags* Tags = nullptr;
 
 		explicit FPointIO(
 			const FName InDefaultOutputLabel,
@@ -51,6 +54,7 @@ namespace PCGExData
 		{
 			DefaultOutputLabel = InDefaultOutputLabel;
 			NumInPoints = 0;
+			Tags = new FTags();
 			InitializeOutput(InInit);
 		}
 
@@ -63,6 +67,7 @@ namespace PCGExData
 		{
 			DefaultOutputLabel = InDefaultOutputLabel;
 			Source = InSource;
+			Tags = new FTags(InSource.Tags);
 			NumInPoints = InData->GetPoints().Num();
 			InitializeOutput(InInit);
 		}
@@ -111,13 +116,15 @@ namespace PCGExData
 
 		FPointIO& Branch();
 
+		void Disable() { bEnabled = false; }
+		void Enable() { bEnabled = true; }
+		bool IsEnabled() const { return bEnabled; }
 		/**
 		 * Write valid outputs to Context' tagged data
 		 * @param Context 
-		 * @param bEmplace if false (default), will try to use the source first
 		 */
 		bool OutputTo(FPCGContext* Context);
-		bool OutputTo(FPCGContext* Context, bool bEmplace, const int32 MinPointCount, const int32 MaxPointCount);
+		bool OutputTo(FPCGContext* Context, const int32 MinPointCount, const int32 MaxPointCount);
 	};
 
 	/**
@@ -167,12 +174,55 @@ namespace PCGExData
 
 		FPointIO& operator[](int32 Index) const { return *Pairs[Index]; }
 
-		void OutputTo(FPCGContext* Context, bool bEmplace = false);
-		void OutputTo(FPCGContext* Context, bool bEmplace, const int32 MinPointCount, const int32 MaxPointCount);
+		void OutputTo(FPCGContext* Context);
+		void OutputTo(FPCGContext* Context, const int32 MinPointCount, const int32 MaxPointCount);
 
 		void ForEach(const TFunction<void(FPointIO&, const int32)>& BodyLoop);
 
 		void Flush();
+	};
+
+	class PCGEXTENDEDTOOLKIT_API FPointIOTaggedEntries
+	{
+	public:
+		FString TagId;
+		FString TagValue;
+		TArray<FPointIO*> Entries;
+
+		FPointIOTaggedEntries(const FString& InTagId, const FString& InTagValue)
+			: TagId(InTagId), TagValue(InTagValue)
+		{
+		}
+
+		~FPointIOTaggedEntries()
+		{
+			Entries.Empty();
+		}
+
+		void Add(FPointIO* Value);
+	};
+
+	class PCGEXTENDEDTOOLKIT_API FPointIOTaggedDictionary
+	{
+	public:
+		FString TagId;
+		TMap<FString, int32> TagMap;
+		TArray<FPointIOTaggedEntries*> Entries;
+
+		explicit FPointIOTaggedDictionary(const FString& InTagId)
+			: TagId(InTagId)
+		{
+		}
+
+		~FPointIOTaggedDictionary()
+		{
+			TagMap.Empty();
+			Entries.Empty();
+		}
+
+		void CreateKey(const FPointIO& PointIOKey);
+		bool TryAddEntry(FPointIO& PointIOEntry);
+		FPointIOTaggedEntries* GetEntries(const FString& Key);
 	};
 
 	namespace PCGExPointIO

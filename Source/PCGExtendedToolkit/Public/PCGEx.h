@@ -307,4 +307,11 @@ namespace PCGEx
 		T* Ptr2 = &Array[SecondIndex];
 		std::swap(*Ptr1, *Ptr2);
 	}
+
+	static void RandomizeSeed(FPCGPoint& Point)
+	{
+		Point.Seed = static_cast<int32>(PCGExMath::Remap(
+			FMath::PerlinNoise3D(PCGExMath::Tile(Point.Transform.GetLocation() * 0.001, FVector(-1), FVector(1))),
+			-1, 1, TNumericLimits<int32>::Min(), TNumericLimits<int32>::Max()));
+	}
 }

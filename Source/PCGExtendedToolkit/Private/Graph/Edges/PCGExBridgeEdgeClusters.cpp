@@ -59,29 +59,30 @@ bool FPCGExBridgeEdgeClustersElement::ExecuteInternal(
 	{
 		Context->VisitedClusters.Empty();
 
-		if (!Context->AdvanceAndBindPointsIO()) { Context->Done(); }
+		if (!Context->AdvancePointsIO()) { Context->Done(); }
 		else
 		{
-			if (!Context->BoundEdges->IsValid())
+			if (!Context->TaggedEdges)
 			{
 				PCGE_LOG(Warning, GraphAndLog, FTEXT("Some input points have no associated edges."));
 				Context->SetState(PCGExMT::State_ReadyForNextPoints);
 			}
 			else
 			{
-				Context->ConsolidatedEdges = &Context->Edges->Emplace_GetRef(*Context->BoundEdges->Values[0], PCGExData::EInit::NewOutput);
+				const PCGExData::FPointIO* Head = Context->TaggedEdges->Entries[0];
+				Context->ConsolidatedEdges = &Context->MainEdges->Emplace_GetRef(*Head, PCGExData::EInit::NewOutput);
 				TArray<FPCGPoint>& MutablePoints = Context->ConsolidatedEdges->GetOut()->GetMutablePoints();
 
-				if (Context->BoundEdges->Values.Num() == 1)
+				if (Context->TaggedEdges->Entries.Num() == 1)
 				{
-					// No islands to consolidate, just dump existing points
-					MutablePoints.Append(Context->BoundEdges->Values[0]->GetIn()->GetPoints());
+					// No clusters to consolidate, just dump existing points
+					MutablePoints.Append(Head->GetIn()->GetPoints());
 					Context->SetState(PCGExMT::State_ReadyForNextPoints);
 				}
 				else
 				{
 					FPCGExPointIOMerger* Merger = new FPCGExPointIOMerger(*Context->ConsolidatedEdges);
-					Merger->Append(Context->BoundEdges->Values);
+					Merger->Append(Context->TaggedEdges->Entries);
 					Merger->DoMerge();
 					Context->SetState(PCGExGraph::State_ReadyForNextEdges);
 				}
@@ -94,11 +95,15 @@ bool FPCGExBridgeEdgeClustersElement::ExecuteInternal(
 		while (Context->AdvanceEdges())
 		{
 			/* Batch-build all meshes since bCacheAllClusters == true */
-			if (Context->CurrentCluster->HasInvalidEdges())
-			{
-				PCGE_LOG(Warning, GraphAndLog, FTEXT("Some input edges are invalid. This will highly likely cause unexpected results."));
-			}
+			if (!Context->CurrentCluster) { PCGEX_INVALID_CLUSTER_LOG }
 		}
+
+		if (Context->Clusters.IsEmpty())
+		{
+			Context->SetState(PCGExMT::State_ReadyForNextPoints);
+			return false;
+		}
+
 		Context->SetState(PCGExGraph::State_ProcessingEdges);
 	}
 
@@ -136,7 +141,7 @@ bool FPCGExBridgeEdgeClustersElement::ExecuteInternal(
 								const uint64 Hash = PCGExGraph::GetUnsignedHash64(A, B);
 								if (!UniqueEdges.Contains(Hash))
 								{
-									Context->GetAsyncManager()->Start<FBridgeClusteresTask>(A, Context->ConsolidatedEdges, B);
+									Context->GetAsyncManager()->Start<FPCGExBridgeClusteresTask>(A, Context->ConsolidatedEdges, B);
 									UniqueEdges.Add(Hash);
 								}
 							}
@@ -165,14 +170,14 @@ bool FPCGExBridgeEdgeClustersElement::ExecuteInternal(
 					}
 				}
 
-				Context->GetAsyncManager()->Start<FBridgeClusteresTask>(ClusterIndex, Context->ConsolidatedEdges, Context->Clusters.IndexOfByKey(ClosestCluster));
+				Context->GetAsyncManager()->Start<FPCGExBridgeClusteresTask>(ClusterIndex, Context->ConsolidatedEdges, Context->Clusters.IndexOfByKey(ClosestCluster));
 			}
 			else if (SafeMethod == EPCGExBridgeClusterMethod::MostEdges)
 			{
 				for (int i = 0; i < ClusterNum; i++)
 				{
 					if (CurrentCluster == Context->Clusters[i]) { continue; }
-					Context->GetAsyncManager()->Start<FBridgeClusteresTask>(ClusterIndex, Context->ConsolidatedEdges, i);
+					Context->GetAsyncManager()->Start<FPCGExBridgeClusteresTask>(ClusterIndex, Context->ConsolidatedEdges, i);
 				}
 			}
 		};
@@ -192,13 +197,13 @@ bool FPCGExBridgeEdgeClustersElement::ExecuteInternal(
 	return Context->IsDone();
 }
 
-bool FBridgeClusteresTask::ExecuteTask()
+bool FPCGExBridgeClusteresTask::ExecuteTask()
 {
 	FPCGExBridgeEdgeClustersContext* Context = Manager->GetContext<FPCGExBridgeEdgeClustersContext>();
 
 
-	const TArray<PCGExCluster::FVertex>& CurrentClusterVertices = Context->Clusters[TaskIndex]->Vertices;
-	const TArray<PCGExCluster::FVertex>& OtherClusterVertices = Context->Clusters[OtherClusterIndex]->Vertices;
+	const TArray<PCGExCluster::FNode>& CurrentClusterVertices = Context->Clusters[TaskIndex]->Nodes;
+	const TArray<PCGExCluster::FNode>& OtherClusterVertices = Context->Clusters[OtherClusterIndex]->Nodes;
 
 	int32 IndexA = -1;
 	int32 IndexB = -1;
@@ -208,11 +213,11 @@ bool FBridgeClusteresTask::ExecuteTask()
 	//Brute force find closest points
 	for (int i = 0; i < CurrentClusterVertices.Num(); i++)
 	{
-		const PCGExCluster::FVertex& CurrentVtx = CurrentClusterVertices[i];
+		const PCGExCluster::FNode& CurrentVtx = CurrentClusterVertices[i];
 
 		for (int j = 0; j < OtherClusterVertices.Num(); j++)
 		{
-			const PCGExCluster::FVertex& OtherVtx = OtherClusterVertices[j];
+			const PCGExCluster::FNode& OtherVtx = OtherClusterVertices[j];
 			if (const double Dist = FVector::DistSquared(CurrentVtx.Position, OtherVtx.Position);
 				Dist < Distance)
 			{
@@ -232,8 +237,8 @@ bool FBridgeClusteresTask::ExecuteTask()
 
 	const PCGMetadataEntryKey BridgeKey = Bridge.MetadataEntry;
 	UPCGMetadata* OutMetadataData = Context->ConsolidatedEdges->GetOut()->Metadata;
-	OutMetadataData->FindOrCreateAttribute<int32>(PCGExGraph::EdgeStartAttributeName)->SetValue(BridgeKey, IndexA);
-	OutMetadataData->FindOrCreateAttribute<int32>(PCGExGraph::EdgeEndAttributeName)->SetValue(BridgeKey, IndexB);
+	OutMetadataData->FindOrCreateAttribute<int32>(PCGExGraph::Tag_EdgeStart)->SetValue(BridgeKey, IndexA);
+	OutMetadataData->FindOrCreateAttribute<int32>(PCGExGraph::Tag_EdgeEnd)->SetValue(BridgeKey, IndexB);
 
 	return true;
 }
