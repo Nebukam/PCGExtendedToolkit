@@ -159,7 +159,7 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 
 		auto ProcessPoint = [&](const int32 ReadIndex, const PCGExData::FPointIO& PointIO)
 		{
-			Context->GetAsyncManager()->Start<FSamplePointTask>(ReadIndex, const_cast<PCGExData::FPointIO*>(&PointIO));
+			Context->GetAsyncManager()->Start<FPCGExSamplePointTask>(ReadIndex, const_cast<PCGExData::FPointIO*>(&PointIO));
 		};
 
 		if (!Context->ProcessCurrentPoints(Initialize, ProcessPoint)) { return false; }
@@ -178,7 +178,7 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 	return Context->IsDone();
 }
 
-bool FSamplePointTask::ExecuteTask()
+bool FPCGExSamplePointTask::ExecuteTask()
 {
 	const FPCGExSampleNearestPointContext* Context = Manager->GetContext<FPCGExSampleNearestPointContext>();
 

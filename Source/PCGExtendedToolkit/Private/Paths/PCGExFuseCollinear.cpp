@@ -67,7 +67,7 @@ bool FPCGExFuseCollinearElement::ExecuteInternal(FPCGContext* InContext) const
 			if (Context->CurrentIO->GetNum() > 2)
 			{
 				//Context->CurrentIO->CreateInKeys();
-				Context->GetAsyncManager()->Start<FFuseCollinearTask>(Index++, Context->CurrentIO);
+				Context->GetAsyncManager()->Start<FPCGExFuseCollinearTask>(Index++, Context->CurrentIO);
 			}
 		}
 		Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork);
@@ -87,7 +87,7 @@ bool FPCGExFuseCollinearElement::ExecuteInternal(FPCGContext* InContext) const
 	return Context->IsDone();
 }
 
-bool FFuseCollinearTask::ExecuteTask()
+bool FPCGExFuseCollinearTask::ExecuteTask()
 {
 	const FPCGExFuseCollinearContext* Context = Manager->GetContext<FPCGExFuseCollinearContext>();
 

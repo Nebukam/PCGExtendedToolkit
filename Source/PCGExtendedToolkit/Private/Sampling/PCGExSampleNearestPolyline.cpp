@@ -135,7 +135,7 @@ bool FPCGExSampleNearestPolylineElement::ExecuteInternal(FPCGContext* InContext)
 
 		auto ProcessPoint = [&](const int32 PointIndex, const PCGExData::FPointIO& PointIO)
 		{
-			Context->GetAsyncManager()->Start<FSamplePolylineTask>(PointIndex, Context->CurrentIO);
+			Context->GetAsyncManager()->Start<FPCGExSamplePolylineTask>(PointIndex, Context->CurrentIO);
 		};
 
 		if (!Context->ProcessCurrentPoints(Initialize, ProcessPoint)) { return false; }
@@ -154,7 +154,7 @@ bool FPCGExSampleNearestPolylineElement::ExecuteInternal(FPCGContext* InContext)
 	return Context->IsDone();
 }
 
-bool FSamplePolylineTask::ExecuteTask()
+bool FPCGExSamplePolylineTask::ExecuteTask()
 {
 	const FPCGExSampleNearestPolylineContext* Context = Manager->GetContext<FPCGExSampleNearestPolylineContext>();
 

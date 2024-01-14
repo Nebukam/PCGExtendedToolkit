@@ -145,7 +145,7 @@ namespace PCGExGraph
 	struct PCGEXTENDEDTOOLKIT_API FIndexedEdge : public FUnsignedEdge
 	{
 		int32 EdgeIndex = -1;
-		int32 Tag = -1;
+		int32 TaggedIndex = -1;
 
 		FIndexedEdge()
 		{

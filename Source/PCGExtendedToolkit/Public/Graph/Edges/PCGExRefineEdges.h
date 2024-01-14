@@ -56,7 +56,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExRefineEdgesContext : public FPCGExEdgesProce
 
 	UPCGExEdgeRefineOperation* Refinement;
 
-	PCGExGraph::FGraphBuilder* NetworkBuilder = nullptr;
+	PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExRefineEdgesElement : public FPCGExEdgesProcessorElement
@@ -73,10 +73,10 @@ protected:
 };
 
 // Define the background task class
-class PCGEXTENDEDTOOLKIT_API FRefineEdgesTask : public FPCGExNonAbandonableTask
+class PCGEXTENDEDTOOLKIT_API FPCGExRefineEdgesTask : public FPCGExNonAbandonableTask
 {
 public:
-	FRefineEdgesTask(
+	FPCGExRefineEdgesTask(
 		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
 		PCGExCluster::FCluster* InCluster, PCGExData::FPointIO* InEdges) :
 		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),

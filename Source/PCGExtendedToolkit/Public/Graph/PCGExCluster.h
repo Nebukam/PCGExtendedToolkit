@@ -67,7 +67,11 @@ namespace PCGExCluster
 
 		~FCluster();
 
-		bool BuildFrom(const PCGExData::FPointIO& InPoints, const PCGExData::FPointIO& InEdges);
+		bool BuildFrom(
+			const PCGExData::FPointIO& InEdges,
+			const TArray<FPCGPoint>& InNodePoints,
+			const TMap<int32, int32>& CachedPointIndices,
+			const TArray<int32>& PerNodeEdgeNums);
 		int32 FindClosestNode(const FVector& Position) const;
 
 		const FNode& GetNodeFromPointIndex(const int32 Index) const;

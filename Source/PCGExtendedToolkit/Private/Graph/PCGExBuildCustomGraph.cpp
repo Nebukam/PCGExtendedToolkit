@@ -88,7 +88,7 @@ bool FPCGExBuildCustomGraphElement::ExecuteInternal(
 
 		auto ProcessPoint = [&](const int32 PointIndex, const PCGExData::FPointIO& PointIO)
 		{
-			Context->GetAsyncManager()->Start<FProbeTask>(PointIndex, Context->CurrentIO);
+			Context->GetAsyncManager()->Start<FPCGExProbeTask>(PointIndex, Context->CurrentIO);
 		};
 
 		if (!Context->ProcessCurrentPoints(Initialize, ProcessPoint)) { return false; }
@@ -119,7 +119,7 @@ bool FPCGExBuildCustomGraphElement::ExecuteInternal(
 	return Context->IsDone();
 }
 
-bool FProbeTask::ExecuteTask()
+bool FPCGExProbeTask::ExecuteTask()
 {
 	const FPCGExBuildCustomGraphContext* Context = Manager->GetContext<FPCGExBuildCustomGraphContext>();
 

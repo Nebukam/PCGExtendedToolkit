@@ -28,6 +28,7 @@ public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(BuildDelaunayGraph2D, "Graph : Delaunay 2D", "Create a 2D delaunay triangulation for each input dataset.");
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorGraph; }
 #endif
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 

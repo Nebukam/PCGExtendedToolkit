@@ -234,8 +234,8 @@ public:
 	void Start(int32 TaskIndex, PCGExData::FPointIO* InPointsIO, Args... args)
 	{
 		if (bStopped) { return; }
-		if (bForceSync) { StartSync(new FAsyncTask<T>(this, TaskIndex, InPointsIO, args...)); }
-		else { Start(new FAsyncTask<T>(this, TaskIndex, InPointsIO, args...)); }
+		if (bForceSync) { StartSync<T>(new FAsyncTask<T>(this, TaskIndex, InPointsIO, args...)); }
+		else { Start<T>(new FAsyncTask<T>(this, TaskIndex, InPointsIO, args...)); }
 	}
 
 	template <typename T>

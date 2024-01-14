@@ -139,7 +139,7 @@ bool FPCGExPathfindingPlotEdgesElement::ExecuteInternal(FPCGContext* InContext) 
 			[&](PCGExData::FPointIO& PlotIO, const int32 Index)
 			{
 				if (PlotIO.GetNum() < 2) { return; }
-				Context->GetAsyncManager()->Start<FPlotClusterPathTask>(Index, &PlotIO);
+				Context->GetAsyncManager()->Start<FPCGExPlotClusterPathTask>(Index, &PlotIO);
 			});
 
 		Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork);
@@ -156,7 +156,7 @@ bool FPCGExPathfindingPlotEdgesElement::ExecuteInternal(FPCGContext* InContext) 
 	return Context->IsDone();
 }
 
-bool FPlotClusterPathTask::ExecuteTask()
+bool FPCGExPlotClusterPathTask::ExecuteTask()
 {
 	const FPCGExPathfindingPlotEdgesContext* Context = Manager->GetContext<FPCGExPathfindingPlotEdgesContext>();
 

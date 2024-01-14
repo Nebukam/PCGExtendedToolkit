@@ -24,7 +24,7 @@ PCGEX_INITIALIZE_ELEMENT(RefineEdges)
 FPCGExRefineEdgesContext::~FPCGExRefineEdgesContext()
 {
 	PCGEX_TERMINATE_ASYNC
-	PCGEX_DELETE(NetworkBuilder)
+	PCGEX_DELETE(GraphBuilder)
 }
 
 bool FPCGExRefineEdgesElement::Boot(FPCGContext* InContext) const
@@ -53,7 +53,7 @@ bool FPCGExRefineEdgesElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
-		PCGEX_DELETE(Context->NetworkBuilder)
+		PCGEX_DELETE(Context->GraphBuilder)
 
 		if (!Context->AdvancePointsIO()) { Context->Done(); }
 		else
@@ -65,8 +65,8 @@ bool FPCGExRefineEdgesElement::ExecuteInternal(
 			}
 			else
 			{
-				Context->NetworkBuilder = new PCGExGraph::FGraphBuilder(*Context->CurrentIO, 8);
-				if (Settings->bPruneIsolatedPoints) { Context->NetworkBuilder->EnablePointsPruning(); }
+				Context->GraphBuilder = new PCGExGraph::FGraphBuilder(*Context->CurrentIO, 8);
+				if (Settings->bPruneIsolatedPoints) { Context->GraphBuilder->EnablePointsPruning(); }
 
 				Context->SetState(PCGExGraph::State_ReadyForNextEdges);
 			}
@@ -84,7 +84,7 @@ bool FPCGExRefineEdgesElement::ExecuteInternal(
 			}
 			else
 			{
-				Context->GetAsyncManager()->Start<FRefineEdgesTask>(-1, Context->CurrentIO, Context->CurrentCluster, Context->CurrentEdges);
+				Context->GetAsyncManager()->Start<FPCGExRefineEdgesTask>(-1, Context->CurrentIO, Context->CurrentCluster, Context->CurrentEdges);
 			}
 		}
 
@@ -105,20 +105,14 @@ bool FPCGExRefineEdgesElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExGraph::State_WritingClusters))
 	{
-		if (Context->NetworkBuilder->Compile(Context))
-		{
-			Context->SetAsyncState(PCGExGraph::State_WaitingOnWritingClusters);
-		}
-		else
-		{
-			Context->SetState(PCGExMT::State_ReadyForNextPoints);
-		}
+		Context->GraphBuilder->Compile(Context);
+		Context->SetAsyncState(PCGExGraph::State_WaitingOnWritingClusters);
 	}
 
 	if (Context->IsState(PCGExGraph::State_WaitingOnWritingClusters))
 	{
 		if (!Context->IsAsyncWorkComplete()) { return false; }
-		Context->NetworkBuilder->Write(Context);
+		if (Context->GraphBuilder->bCompiledSuccessfully) { Context->GraphBuilder->Write(Context); }
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
@@ -130,7 +124,7 @@ bool FPCGExRefineEdgesElement::ExecuteInternal(
 	return Context->IsDone();
 }
 
-bool FRefineEdgesTask::ExecuteTask()
+bool FPCGExRefineEdgesTask::ExecuteTask()
 {
 	return false;
 }

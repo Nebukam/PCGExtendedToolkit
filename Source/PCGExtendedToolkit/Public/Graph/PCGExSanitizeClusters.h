@@ -16,7 +16,7 @@
 /**
  * A Base node to process a set of point using GraphParams.
  */
-UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural))
+UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
 class PCGEXTENDEDTOOLKIT_API UPCGExSanitizeClustersSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
@@ -30,6 +30,9 @@ public:
 
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
+	
+protected:
+	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings interface
 
 	//~Begin UPCGExPointsProcessorSettings interface
@@ -40,7 +43,10 @@ public:
 	virtual FName GetMainOutputLabel() const override;
 	//~End UPCGExPointsProcessorSettings interface
 
-	virtual bool GetCacheAllClusters() const;
+	/** Removes roaming points from the output, and keeps only points that are part of an cluster. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	bool bPruneIsolatedPoints = true;
+
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExSanitizeClustersContext : public FPCGExPointsProcessorContext
@@ -57,7 +63,11 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSanitizeClustersContext : public FPCGExPoint
 	PCGExData::FPointIOTaggedEntries* TaggedEdges = nullptr;
 
 	TMap<int32, int32> CachedPointIndices;
+	PCGEx::TFAttributeReader<int32>* StartIndexReader = nullptr;
+	PCGEx::TFAttributeReader<int32>* EndIndexReader = nullptr;
+	
 	PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
+
 	
 	virtual bool AdvancePointsIO() override;
 	bool AdvanceEdges(); // Advance edges within current points

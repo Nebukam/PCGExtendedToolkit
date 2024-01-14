@@ -120,7 +120,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFindCustomGraphEdgeClustersContext : public 
 	FName ClusterSizeAttributeName;
 	FName PointUIDAttributeName;
 
-	PCGExGraph::FGraphBuilder* NetworkBuilder = nullptr;
+	PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
 };
 
 

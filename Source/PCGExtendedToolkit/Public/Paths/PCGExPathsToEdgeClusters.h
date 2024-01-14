@@ -140,7 +140,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathsToEdgeClustersContext : public FPCGExPa
 
 	PCGExData::FPointIO* ConsolidatedPoints = nullptr;
 
-	PCGExGraph::FGraphBuilder* NetworkBuilder = nullptr;
+	PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExPathsToEdgeClustersElement : public FPCGExPathProcessorElement

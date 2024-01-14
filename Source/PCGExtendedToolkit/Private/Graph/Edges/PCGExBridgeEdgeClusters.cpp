@@ -141,7 +141,7 @@ bool FPCGExBridgeEdgeClustersElement::ExecuteInternal(
 								const uint64 Hash = PCGExGraph::GetUnsignedHash64(A, B);
 								if (!UniqueEdges.Contains(Hash))
 								{
-									Context->GetAsyncManager()->Start<FBridgeClusteresTask>(A, Context->ConsolidatedEdges, B);
+									Context->GetAsyncManager()->Start<FPCGExBridgeClusteresTask>(A, Context->ConsolidatedEdges, B);
 									UniqueEdges.Add(Hash);
 								}
 							}
@@ -170,14 +170,14 @@ bool FPCGExBridgeEdgeClustersElement::ExecuteInternal(
 					}
 				}
 
-				Context->GetAsyncManager()->Start<FBridgeClusteresTask>(ClusterIndex, Context->ConsolidatedEdges, Context->Clusters.IndexOfByKey(ClosestCluster));
+				Context->GetAsyncManager()->Start<FPCGExBridgeClusteresTask>(ClusterIndex, Context->ConsolidatedEdges, Context->Clusters.IndexOfByKey(ClosestCluster));
 			}
 			else if (SafeMethod == EPCGExBridgeClusterMethod::MostEdges)
 			{
 				for (int i = 0; i < ClusterNum; i++)
 				{
 					if (CurrentCluster == Context->Clusters[i]) { continue; }
-					Context->GetAsyncManager()->Start<FBridgeClusteresTask>(ClusterIndex, Context->ConsolidatedEdges, i);
+					Context->GetAsyncManager()->Start<FPCGExBridgeClusteresTask>(ClusterIndex, Context->ConsolidatedEdges, i);
 				}
 			}
 		};
@@ -197,7 +197,7 @@ bool FPCGExBridgeEdgeClustersElement::ExecuteInternal(
 	return Context->IsDone();
 }
 
-bool FBridgeClusteresTask::ExecuteTask()
+bool FPCGExBridgeClusteresTask::ExecuteTask()
 {
 	FPCGExBridgeEdgeClustersContext* Context = Manager->GetContext<FPCGExBridgeEdgeClustersContext>();
 

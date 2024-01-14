@@ -58,6 +58,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgesProcessorContext : public FPCGExPointsP
 
 	PCGExData::FPointIOTaggedDictionary* InputDictionary = nullptr;
 	PCGExData::FPointIOTaggedEntries* TaggedEdges = nullptr;
+	TMap<int32, int32> RemappedPointsIndices;
+	PCGEx::TFAttributeReader<int32>* EdgeNumReader = nullptr;
 
 	virtual bool AdvancePointsIO() override;
 	bool AdvanceEdges(); // Advance edges within current points

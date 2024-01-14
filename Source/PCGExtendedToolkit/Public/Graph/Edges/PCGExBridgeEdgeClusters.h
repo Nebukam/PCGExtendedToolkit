@@ -72,10 +72,10 @@ protected:
 };
 
 // Define the background task class
-class PCGEXTENDEDTOOLKIT_API FBridgeClusteresTask : public FPCGExNonAbandonableTask
+class PCGEXTENDEDTOOLKIT_API FPCGExBridgeClusteresTask : public FPCGExNonAbandonableTask
 {
 public:
-	FBridgeClusteresTask(
+	FPCGExBridgeClusteresTask(
 		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO, const int32 InOtherClusterIndex) :
 		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
 		OtherClusterIndex(InOtherClusterIndex)

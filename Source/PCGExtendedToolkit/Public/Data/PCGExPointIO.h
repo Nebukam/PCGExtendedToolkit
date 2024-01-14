@@ -118,7 +118,7 @@ namespace PCGExData
 
 		void Disable() { bEnabled = false; }
 		void Enable() { bEnabled = true; }
-		void IsEnabled() { return bEnabled; }
+		bool IsEnabled() const { return bEnabled; }
 		/**
 		 * Write valid outputs to Context' tagged data
 		 * @param Context 

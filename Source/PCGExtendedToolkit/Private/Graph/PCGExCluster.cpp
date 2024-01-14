@@ -68,39 +68,22 @@ namespace PCGExCluster
 		return Node;
 	}
 
-	bool FCluster::BuildFrom(const PCGExData::FPointIO& InPoints, const PCGExData::FPointIO& InEdges)
+	bool FCluster::BuildFrom(
+		const PCGExData::FPointIO& InEdges,
+		const TArray<FPCGPoint>& InNodePoints,
+		const TMap<int32, int32>& CachedPointIndices,
+		const TArray<int32>& PerNodeEdgeNums)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExCluster::BuildCluster);
 
-		PCGEx::TFAttributeReader<int32>* IndexReader = new PCGEx::TFAttributeReader<int32>(PCGExGraph::Tag_EdgeIndex);
-		if (!IndexReader->Bind(const_cast<PCGExData::FPointIO&>(InPoints)))
-		{
-			PCGEX_DELETE(IndexReader)
-			return false;
-		}
-
-		TMap<int32, int32> CachedPointIndices;
-		CachedPointIndices.Reserve(IndexReader->Values.Num());
-		for (int i = 0; i < IndexReader->Values.Num(); i++) { CachedPointIndices.Add(IndexReader->Values[i], i); }
-		PCGEX_DELETE(IndexReader)
+		bool bInvalidCluster = false;
 
 		PCGEx::TFAttributeReader<int32>* StartIndexReader = new PCGEx::TFAttributeReader<int32>(PCGExGraph::Tag_EdgeStart);
-		if (!StartIndexReader->Bind(const_cast<PCGExData::FPointIO&>(InEdges)))
-		{
-			PCGEX_DELETE(StartIndexReader)
-			return false;
-		}
-
 		PCGEx::TFAttributeReader<int32>* EndIndexReader = new PCGEx::TFAttributeReader<int32>(PCGExGraph::Tag_EdgeEnd);
-		if (!EndIndexReader->Bind(const_cast<PCGExData::FPointIO&>(InEdges)))
-		{
-			PCGEX_DELETE(EndIndexReader)
-			return false;
-		}
 
-		bool bHasInvalidEdges = false;
+		StartIndexReader->Bind(const_cast<PCGExData::FPointIO&>(InEdges));
+		EndIndexReader->Bind(const_cast<PCGExData::FPointIO&>(InEdges));
 
-		const TArray<FPCGPoint>& InNodePoints = InPoints.GetIn()->GetPoints();
 		const int32 NumNodes = InNodePoints.Num();
 		Nodes.Reset(NumNodes);
 		PointIndexMap.Empty(NumNodes);
@@ -116,7 +99,7 @@ namespace PCGExCluster
 
 			if (!NodeStartPtr || !NodeEndPtr)
 			{
-				bHasInvalidEdges = true;
+				bInvalidCluster = true;
 				break;
 			}
 
@@ -127,7 +110,7 @@ namespace PCGExCluster
 				!InNodePoints.IsValidIndex(NodeEnd) ||
 				NodeStart == NodeEnd)
 			{
-				bHasInvalidEdges = true;
+				bInvalidCluster = true;
 				break;
 			}
 
@@ -140,28 +123,22 @@ namespace PCGExCluster
 			End.AddConnection(i, Start.NodeIndex);
 		}
 
-		CachedPointIndices.Empty();
 		PCGEX_DELETE(StartIndexReader)
 		PCGEX_DELETE(EndIndexReader)
 
-		if (!bHasInvalidEdges)
+		if (!bInvalidCluster)
 		{
-			PCGEx::TFAttributeReader<int32>* EdgeNumReader = new PCGEx::TFAttributeReader<int32>(PCGExGraph::Tag_EdgesNum);
-			if (EdgeNumReader->Bind(const_cast<PCGExData::FPointIO&>(InEdges)))
+			for (const FNode& Node : Nodes)
 			{
-				for (const FNode& Node : Nodes)
+				if (PerNodeEdgeNums[Node.PointIndex] != Node.AdjacentNodes.Num())
 				{
-					if (EdgeNumReader->Values[Node.PointIndex] != Node.AdjacentNodes.Num())
-					{
-						bHasInvalidEdges = true;
-						break;
-					}
+					bInvalidCluster = true;
+					break;
 				}
 			}
-			PCGEX_DELETE(EdgeNumReader)
 		}
 
-		return !bHasInvalidEdges;
+		return !bInvalidCluster;
 	}
 
 	int32 FCluster::FindClosestNode(const FVector& Position) const

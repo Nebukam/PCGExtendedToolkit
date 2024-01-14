@@ -100,7 +100,7 @@ bool FPCGExWriteEdgeExtrasElement::ExecuteInternal(
 			PCGEX_FOREACH_FIELD_EDGEEXTRAS(PCGEX_OUTPUT_ACCESSOR_INIT)
 
 			Context->MetadataBlender->PrepareForData(PointIO, *Context->CurrentIO);
-			Context->GetAsyncManager()->Start<FWriteExtrasTask>(-1, &PointIO);
+			Context->GetAsyncManager()->Start<FPCGExWriteExtrasTask>(-1, &PointIO);
 			Context->SetAsyncState(PCGExGraph::State_ProcessingEdges);
 		}
 	}
@@ -117,7 +117,7 @@ bool FPCGExWriteEdgeExtrasElement::ExecuteInternal(
 	return Context->IsDone();
 }
 
-bool FWriteExtrasTask::ExecuteTask()
+bool FPCGExWriteExtrasTask::ExecuteTask()
 {
 	const FPCGExWriteEdgeExtrasContext* Context = Manager->GetContext<FPCGExWriteEdgeExtrasContext>();
 

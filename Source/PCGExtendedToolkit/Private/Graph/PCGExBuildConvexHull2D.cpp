@@ -145,9 +145,11 @@ bool FPCGExBuildConvexHull2DElement::ExecuteInternal(
 	if (Context->IsState(PCGExGraph::State_WritingClusters))
 	{
 		if (!Context->IsAsyncWorkComplete()) { return false; }
-
-		Context->BuildPath();
-		Context->GraphBuilder->Write(Context);
+		if (Context->GraphBuilder->bCompiledSuccessfully)
+		{
+			Context->BuildPath();
+			Context->GraphBuilder->Write(Context);
+		}
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 

@@ -126,10 +126,10 @@ protected:
 };
 
 // Define the background task class
-class PCGEXTENDEDTOOLKIT_API FPlotNavmeshTask : public FPCGExNonAbandonableTask
+class PCGEXTENDEDTOOLKIT_API FPCGExPlotNavmeshTask : public FPCGExNonAbandonableTask
 {
 public:
-	FPlotNavmeshTask(
+	FPCGExPlotNavmeshTask(
 		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO) :
 		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO)
 	{

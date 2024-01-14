@@ -154,11 +154,11 @@ protected:
 };
 
 // Define the background task class
-class PCGEXTENDEDTOOLKIT_API FSweepSphereTask : public FPCGExCollisionTask
+class PCGEXTENDEDTOOLKIT_API FSweepSphereTask : public FPCGExPCGExCollisionTask
 {
 public:
 	FSweepSphereTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO) :
-		FPCGExCollisionTask(InManager, InTaskIndex, InPointIO)
+		FPCGExPCGExCollisionTask(InManager, InTaskIndex, InPointIO)
 	{
 	}
 

@@ -51,7 +51,7 @@ FPCGExPathsToEdgeClustersContext::~FPCGExPathsToEdgeClustersContext()
 	PCGEX_TERMINATE_ASYNC
 
 	PCGEX_DELETE(LooseNetwork)
-	PCGEX_DELETE(NetworkBuilder)
+	PCGEX_DELETE(GraphBuilder)
 }
 
 bool FPCGExPathsToEdgeClustersElement::Boot(FPCGContext* InContext) const
@@ -99,8 +99,8 @@ bool FPCGExPathsToEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) c
 				MutablePoints[i].Transform.SetLocation(Context->LooseNetwork->Nodes[i]->Center);
 			}
 
-			Context->NetworkBuilder = new PCGExGraph::FGraphBuilder(*Context->ConsolidatedPoints, 4);
-			if (Settings->bFindCrossings) { Context->NetworkBuilder->EnableCrossings(Settings->CrossingTolerance); }
+			Context->GraphBuilder = new PCGExGraph::FGraphBuilder(*Context->ConsolidatedPoints, 4);
+			if (Settings->bFindCrossings) { Context->GraphBuilder->EnableCrossings(Settings->CrossingTolerance); }
 
 			Context->SetState(PCGExGraph::State_ProcessingGraph);
 		}
@@ -145,15 +145,16 @@ bool FPCGExPathsToEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) c
 		// Build Network
 		auto InsertEdge = [&](const int32 NodeIndex)
 		{
+			PCGExGraph::FIndexedEdge NewEdge = PCGExGraph::FIndexedEdge{};
 			const PCGExGraph::FLooseNode* Node = Context->LooseNetwork->Nodes[NodeIndex];
 			for (const int32 OtherNodeIndex : Node->Neighbors)
 			{
-				Context->NetworkBuilder->Graph->InsertEdge(Node->Index, OtherNodeIndex);
+				Context->GraphBuilder->Graph->InsertEdge(Node->Index, OtherNodeIndex, NewEdge);
 			}
 		};
 
 		if (!Context->Process(InsertEdge, Context->LooseNetwork->Nodes.Num())) { return false; }
-		if (Context->NetworkBuilder->EdgeCrossings) { Context->SetState(PCGExGraph::State_FindingCrossings); }
+		if (Context->GraphBuilder->EdgeCrossings) { Context->SetState(PCGExGraph::State_FindingCrossings); }
 		else { Context->SetState(PCGExGraph::State_WritingClusters); }
 	}
 
@@ -161,30 +162,32 @@ bool FPCGExPathsToEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) c
 	{
 		auto Initialize = [&]()
 		{
-			Context->NetworkBuilder->EdgeCrossings->Prepare(Context->ConsolidatedPoints->GetOut()->GetPoints());
+			Context->GraphBuilder->EdgeCrossings->Prepare(Context->ConsolidatedPoints->GetOut()->GetPoints());
 		};
 
 		auto ProcessEdge = [&](const int32 Index)
 		{
-			Context->NetworkBuilder->EdgeCrossings->ProcessEdge(Index, Context->ConsolidatedPoints->GetOut()->GetPoints());
+			Context->GraphBuilder->EdgeCrossings->ProcessEdge(Index, Context->ConsolidatedPoints->GetOut()->GetPoints());
 		};
 
-		if (!Context->Process(Initialize, ProcessEdge, Context->NetworkBuilder->Graph->Edges.Num())) { return false; }
+		if (!Context->Process(Initialize, ProcessEdge, Context->GraphBuilder->Graph->Edges.Num())) { return false; }
 		Context->SetState(PCGExGraph::State_WritingClusters);
 	}
 
 	if (Context->IsState(PCGExGraph::State_WritingClusters))
 	{
-		if (Context->NetworkBuilder->Compile(Context)) { Context->SetAsyncState(PCGExGraph::State_WaitingOnWritingClusters); }
-		else { Context->SetState(PCGExMT::State_ReadyForNextPoints); }
+		Context->GraphBuilder->Compile(Context);
+		Context->SetAsyncState(PCGExGraph::State_WaitingOnWritingClusters);
 	}
 
 	if (Context->IsState(PCGExGraph::State_WaitingOnWritingClusters))
 	{
 		if (!Context->IsAsyncWorkComplete()) { return false; }
-
-		Context->NetworkBuilder->Write(Context);
-		Context->OutputPoints();
+		if (Context->GraphBuilder->bCompiledSuccessfully)
+		{
+			Context->GraphBuilder->Write(Context);
+			Context->OutputPoints();
+		}
 		Context->Done();
 	}
 

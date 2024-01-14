@@ -195,10 +195,11 @@ bool FPCGExBuildDelaunayGraph2DElement::ExecuteInternal(
 	if (Context->IsState(PCGExGraph::State_WritingClusters))
 	{
 		if (!Context->IsAsyncWorkComplete()) { return false; }
-
-		//TODO: Mark edges, process EdgesIO from GraphBuilder
-
-		Context->GraphBuilder->Write(Context);
+		if(Context->GraphBuilder->bCompiledSuccessfully)
+		{
+			Context->GraphBuilder->Write(Context);
+			//TODO: Mark edges, process EdgesIO from GraphBuilder
+		}
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 

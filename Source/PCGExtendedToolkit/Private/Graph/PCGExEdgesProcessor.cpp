@@ -61,13 +61,17 @@ FPCGExEdgesProcessorContext::~FPCGExEdgesProcessorContext()
 		PCGEX_DELETE_TARRAY(Clusters)
 	}
 	else { PCGEX_DELETE(CurrentCluster) }
+
+	RemappedPointsIndices.Empty();
 }
 
 
 bool FPCGExEdgesProcessorContext::AdvancePointsIO()
 {
 	PCGEX_DELETE_TARRAY(Clusters)
+	PCGEX_DELETE(EdgeNumReader)
 	CurrentEdgesIndex = -1;
+	RemappedPointsIndices.Empty();
 
 	if (!FPCGExPointsProcessorContext::AdvancePointsIO()) { return false; }
 
@@ -79,7 +83,23 @@ bool FPCGExEdgesProcessorContext::AdvancePointsIO()
 	}
 	else { TaggedEdges = nullptr; }
 
-	if (TaggedEdges) { CurrentIO->CreateInKeys(); }
+	if (TaggedEdges)
+	{
+		bool bValidPoints = false;
+		CurrentIO->CreateInKeys();
+
+		if (PCGExGraph::GetRemappedIndices(*CurrentIO, PCGExGraph::Tag_EdgeIndex, RemappedPointsIndices))
+		{
+			EdgeNumReader = new PCGEx::TFAttributeReader<int32>(PCGExGraph::Tag_EdgesNum);
+			if (EdgeNumReader->Bind(*CurrentIO)) { bValidPoints = true; }
+		}
+
+		if (!bValidPoints)
+		{
+			PCGEX_DELETE(EdgeNumReader)
+			TaggedEdges = nullptr;
+		}
+	}
 
 	return true;
 }
@@ -93,17 +113,28 @@ bool FPCGExEdgesProcessorContext::AdvanceEdges()
 	if (TaggedEdges && TaggedEdges->Entries.IsValidIndex(++CurrentEdgesIndex))
 	{
 		CurrentEdges = TaggedEdges->Entries[CurrentEdgesIndex];
-
-		CurrentCluster = new PCGExCluster::FCluster();
 		CurrentEdges->CreateInKeys();
 
-		if (!CurrentCluster->BuildFrom(*CurrentIO, *CurrentEdges))
+		PCGEx::FAttributesInfos* EdgeInfos = PCGEx::FAttributesInfos::Get(CurrentEdges->GetIn());
+		if (EdgeInfos->Contains(PCGExGraph::Tag_EdgeStart, EPCGMetadataTypes::Integer32) &&
+			EdgeInfos->Contains(PCGExGraph::Tag_EdgeEnd, EPCGMetadataTypes::Integer32))
 		{
-			// Bad cluster.
-			PCGEX_DELETE(CurrentCluster)
-			CurrentEdges->Cleanup();
+			CurrentCluster = new PCGExCluster::FCluster();
+
+			if (!CurrentCluster->BuildFrom(
+				*CurrentEdges,
+				CurrentIO->GetIn()->GetPoints(),
+				RemappedPointsIndices,
+				EdgeNumReader->Values))
+			{
+				// Bad cluster/edges.
+				PCGEX_DELETE(CurrentCluster)
+				CurrentEdges->Cleanup();
+			}
+			else if (bCacheAllClusters) { Clusters.Add(CurrentCluster); }
 		}
-		else if (bCacheAllClusters) { Clusters.Add(CurrentCluster); }
+
+		PCGEX_DELETE(EdgeInfos)
 		return true;
 	}
 
