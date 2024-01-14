@@ -120,8 +120,8 @@ namespace PCGExCluster
 				break;
 			}
 
-			int32 NodeStart = *NodeStartPtr;
-			int32 NodeEnd = *NodeEndPtr;
+			const int32 NodeStart = *NodeStartPtr;
+			const int32 NodeEnd = *NodeEndPtr;
 
 			if (!InNodePoints.IsValidIndex(NodeStart) ||
 				!InNodePoints.IsValidIndex(NodeEnd) ||

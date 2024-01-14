@@ -374,7 +374,7 @@ bool FWriteSubGraphEdgesTask::ExecuteTask()
 	{
 		const PCGExGraph::FIndexedEdge& Edge = Graph->Edges[EdgeIndex];
 
-		if (const FPCGPoint* InEdgePtr = EdgeIO->TryGetInPoint(Edge.InputIndex))
+		if (const FPCGPoint* InEdgePtr = EdgeIO->TryGetInPoint(Edge.Tag))
 		{
 			MutablePoints[PointIndex] = *InEdgePtr; // Copy input edge point if it exists
 		}
