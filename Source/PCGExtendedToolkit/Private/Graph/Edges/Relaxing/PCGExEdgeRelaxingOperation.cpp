@@ -30,7 +30,7 @@ void UPCGExEdgeRelaxingOperation::PrepareForIteration(const int Iteration, TArra
 	}
 }
 
-void UPCGExEdgeRelaxingOperation::ProcessVertex(const PCGExCluster::FVertex& Vertex)
+void UPCGExEdgeRelaxingOperation::ProcessVertex(const PCGExCluster::FNode& Vertex)
 {
 }
 

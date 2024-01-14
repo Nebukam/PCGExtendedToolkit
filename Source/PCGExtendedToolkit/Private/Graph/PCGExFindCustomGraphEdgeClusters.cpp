@@ -1,25 +1,25 @@
 ﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Graph/PCGExFindEdgeClusters.h"
+#include "Graph/PCGExFindCustomGraphEdgeClusters.h"
 
 #include "Data/PCGExData.h"
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraph"
-#define PCGEX_NAMESPACE FindEdgeClusters
+#define PCGEX_NAMESPACE FindCustomGraphEdgeClusters
 
-int32 UPCGExFindEdgeClustersSettings::GetPreferredChunkSize() const { return 32; }
+int32 UPCGExFindCustomGraphEdgeClustersSettings::GetPreferredChunkSize() const { return 32; }
 
-PCGExData::EInit UPCGExFindEdgeClustersSettings::GetMainOutputInitMode() const { return bPruneIsolatedPoints ? PCGExData::EInit::NewOutput : PCGExData::EInit::DuplicateInput; }
+PCGExData::EInit UPCGExFindCustomGraphEdgeClustersSettings::GetMainOutputInitMode() const { return bPruneIsolatedPoints ? PCGExData::EInit::NewOutput : PCGExData::EInit::DuplicateInput; }
 
-FPCGExFindEdgeClustersContext::~FPCGExFindEdgeClustersContext()
+FPCGExFindCustomGraphEdgeClustersContext::~FPCGExFindCustomGraphEdgeClustersContext()
 {
 	PCGEX_TERMINATE_ASYNC
 	PCGEX_DELETE(NetworkBuilder)
 }
 
-TArray<FPCGPinProperties> UPCGExFindEdgeClustersSettings::OutputPinProperties() const
+TArray<FPCGPinProperties> UPCGExFindCustomGraphEdgeClustersSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
 	PinProperties.Pop(); //Remove graph output
@@ -33,15 +33,15 @@ TArray<FPCGPinProperties> UPCGExFindEdgeClustersSettings::OutputPinProperties() 
 	return PinProperties;
 }
 
-FName UPCGExFindEdgeClustersSettings::GetMainOutputLabel() const { return PCGExGraph::OutputVerticesLabel; }
+FName UPCGExFindCustomGraphEdgeClustersSettings::GetMainOutputLabel() const { return PCGExGraph::OutputVerticesLabel; }
 
-PCGEX_INITIALIZE_ELEMENT(FindEdgeClusters)
+PCGEX_INITIALIZE_ELEMENT(FindCustomGraphEdgeClusters)
 
-bool FPCGExFindEdgeClustersElement::Boot(FPCGContext* InContext) const
+bool FPCGExFindCustomGraphEdgeClustersElement::Boot(FPCGContext* InContext) const
 {
 	if (!FPCGExCustomGraphProcessorElement::Boot(InContext)) { return false; }
 
-	PCGEX_CONTEXT_AND_SETTINGS(FindEdgeClusters)
+	PCGEX_CONTEXT_AND_SETTINGS(FindCustomGraphEdgeClusters)
 
 	Context->CrawlEdgeTypes = static_cast<EPCGExEdgeType>(Settings->CrawlEdgeTypes);
 
@@ -59,12 +59,12 @@ bool FPCGExFindEdgeClustersElement::Boot(FPCGContext* InContext) const
 	return true;
 }
 
-bool FPCGExFindEdgeClustersElement::ExecuteInternal(
+bool FPCGExFindCustomGraphEdgeClustersElement::ExecuteInternal(
 	FPCGContext* InContext) const
 {
-	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExFindEdgeClustersElement::Execute);
+	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExFindCustomGraphEdgeClustersElement::Execute);
 
-	PCGEX_CONTEXT_AND_SETTINGS(FindEdgeClusters)
+	PCGEX_CONTEXT_AND_SETTINGS(FindCustomGraphEdgeClusters)
 
 	if (Context->IsSetup())
 	{

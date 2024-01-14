@@ -10,7 +10,7 @@
 
 namespace PCGExCluster
 {
-	struct FVertex;
+	struct FNode;
 }
 
 namespace PCGExCluster

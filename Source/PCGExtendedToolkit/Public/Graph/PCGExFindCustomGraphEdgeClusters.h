@@ -9,7 +9,7 @@
 #include "PCGExCustomGraphProcessor.h"
 #include "Data/PCGExData.h"
 
-#include "PCGExFindEdgeClusters.generated.h"
+#include "PCGExFindCustomGraphEdgeClusters.generated.h"
 
 namespace PCGExGraph
 {
@@ -29,14 +29,14 @@ enum class EPCGExRoamingResolveMethod : uint8
  * Calculates the distance between two points (inherently a n*n operation)
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
-class PCGEXTENDEDTOOLKIT_API UPCGExFindEdgeClustersSettings : public UPCGExCustomGraphProcessorSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExFindCustomGraphEdgeClustersSettings : public UPCGExCustomGraphProcessorSettings
 {
 	GENERATED_BODY()
 
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(FindEdgeClusters, "Custom Graph : Find Edge Clusters", "Create partitions from interconnected points. Each Cluster is the result of all input graphs combined.");
+	PCGEX_NODE_INFOS(FindCustomGraphEdgeClusters, "Custom Graph : Find Edge Clusters", "Create partitions from interconnected points. Each Cluster is the result of all input graphs combined.");
 #endif
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 
@@ -101,14 +101,14 @@ public:
 	bool bDeleteCustomGraphData = true;
 
 private:
-	friend class FPCGExFindEdgeClustersElement;
+	friend class FPCGExFindCustomGraphEdgeClustersElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExFindEdgeClustersContext : public FPCGExCustomGraphProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExFindCustomGraphEdgeClustersContext : public FPCGExCustomGraphProcessorContext
 {
-	friend class FPCGExFindEdgeClustersElement;
+	friend class FPCGExFindCustomGraphEdgeClustersElement;
 
-	virtual ~FPCGExFindEdgeClustersContext() override;
+	virtual ~FPCGExFindCustomGraphEdgeClustersContext() override;
 
 	EPCGExEdgeType CrawlEdgeTypes;
 	bool bInheritAttributes;
@@ -124,7 +124,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFindEdgeClustersContext : public FPCGExCusto
 };
 
 
-class PCGEXTENDEDTOOLKIT_API FPCGExFindEdgeClustersElement : public FPCGExCustomGraphProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExFindCustomGraphEdgeClustersElement : public FPCGExCustomGraphProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

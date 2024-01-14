@@ -124,7 +124,7 @@ bool FPCGExPathfindingPlotNavmeshElement::ExecuteInternal(FPCGContext* InContext
 
 	if (Context->IsDone())
 	{
-		Context->OutputPaths->OutputTo(Context, true);
+		Context->OutputPaths->OutputTo(Context);
 	}
 
 	return Context->IsDone();

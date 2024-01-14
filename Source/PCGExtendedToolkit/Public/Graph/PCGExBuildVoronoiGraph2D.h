@@ -28,7 +28,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExBuildVoronoiGraph2DSettings : public UPCGExPo
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(BuildVoronoiGraph2D, "Custom Graph : Voronoi 2D", "Create a 2D Voronoi graph for each input dataset.");
+	PCGEX_NODE_INFOS(BuildVoronoiGraph2D, "Graph : Voronoi 2D", "Create a 2D Voronoi graph for each input dataset.");
 #endif
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 
@@ -84,11 +84,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBuildVoronoiGraph2DContext : public FPCGExPo
 	PCGExGeo::TConvexHull2* ConvexHull = nullptr;
 	TSet<int32> HullIndices;
 
-	mutable FRWLock NetworkLock;
-	PCGExGraph::FGraph* Graph = nullptr;
-	PCGExData::FPointIOGroup* ClustersIO;
-
-	PCGExData::FKPointIOMarkedBindings<int32>* Markings = nullptr;
+	PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
 };
 
 
@@ -103,5 +99,4 @@ public:
 protected:
 	virtual bool Boot(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
-	void WriteEdges(FPCGExBuildVoronoiGraph2DContext* Context) const;
 };

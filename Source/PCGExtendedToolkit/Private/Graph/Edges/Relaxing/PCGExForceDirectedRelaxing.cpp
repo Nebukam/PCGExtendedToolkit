@@ -6,14 +6,14 @@
 
 #include "Graph/PCGExCluster.h"
 
-void UPCGExForceDirectedRelaxing::ProcessVertex(const PCGExCluster::FVertex& Vertex)
+void UPCGExForceDirectedRelaxing::ProcessVertex(const PCGExCluster::FNode& Vertex)
 {
 	const FVector Position = (*ReadBuffer)[Vertex.PointIndex];
 	FVector Force = FVector::Zero();
 
-	for (const int32 VtxIndex : Vertex.Neighbors)
+	for (const int32 VtxIndex : Vertex.AdjacentNodes)
 	{
-		const PCGExCluster::FVertex& OtherVtx = CurrentCluster->Vertices[VtxIndex];
+		const PCGExCluster::FNode& OtherVtx = CurrentCluster->Nodes[VtxIndex];
 		const FVector OtherPosition = (*ReadBuffer)[OtherVtx.PointIndex];
 		CalculateAttractiveForce(Force, Position, OtherPosition);
 		CalculateRepulsiveForce(Force, Position, OtherPosition);

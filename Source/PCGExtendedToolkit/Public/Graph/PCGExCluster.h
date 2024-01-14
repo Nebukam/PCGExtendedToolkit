@@ -6,58 +6,58 @@
 #include "CoreMinimal.h"
 
 #include "PCGExEdge.h"
+#include "PCGExGraph.h"
+#include "Data/PCGExAttributeHelpers.h"
 
 namespace PCGExCluster
 {
 	struct FCluster;
 
-	struct PCGEXTENDEDTOOLKIT_API FVertex
+	struct PCGEXTENDEDTOOLKIT_API FNode : public PCGExGraph::FNode
 	{
-		int32 ClusterIndex = -1;
-		int32 PointIndex = -1;
 		FVector Position;
-		TArray<int32> Neighbors;
-		TArray<int32> Edges;
 
-		FVertex()
+		TArray<int32> AdjacentNodes;
+
+		FNode()
 		{
 			PointIndex = -1;
 			Position = FVector::ZeroVector;
-			Neighbors.Empty();
+			AdjacentNodes.Empty();
 			Edges.Empty();
 		}
 
-		~FVertex();
+		~FNode();
 
-		void AddNeighbor(const int32 EdgeIndex, const int32 VertexIndex);
+		void AddConnection(const int32 EdgeIndex, const int32 NodeIndex);
 		bool GetNormal(FCluster* InCluster, FVector& OutNormal);
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FScoredVertex
+	struct PCGEXTENDEDTOOLKIT_API FScoredNode
 	{
-		FScoredVertex(const FVertex& InVertex, const double InWeight)
-			: Vertex(&InVertex),
+		FScoredNode(const FNode& InNode, const double InWeight)
+			: Node(&InNode),
 			  Score(InWeight)
 		{
 		}
 
-		FScoredVertex(const FVertex& InVertex, const double InScore, FScoredVertex* InFrom)
-			: Vertex(&InVertex),
+		FScoredNode(const FNode& InNode, const double InScore, FScoredNode* InFrom)
+			: Node(&InNode),
 			  Score(InScore),
 			  From(InFrom)
 		{
 		}
 
-		const FVertex* Vertex = nullptr;
+		const FNode* Node = nullptr;
 		double Score = -1;
-		FScoredVertex* From = nullptr;
+		FScoredNode* From = nullptr;
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FCluster
 	{
 		int32 ClusterID = -1;
-		TMap<int32, int32> IndicesMap; //Cluster vertices
-		TArray<FVertex> Vertices;
+		TMap<int32, int32> PointIndexMap; //Cluster vertices
+		TArray<FNode> Nodes;
 		TArray<PCGExGraph::FIndexedEdge> Edges;
 		FBox Bounds;
 
@@ -67,16 +67,12 @@ namespace PCGExCluster
 
 		~FCluster();
 
-		void BuildFrom(const PCGExData::FPointIO& InPoints, const PCGExData::FPointIO& InEdges);
-		int32 FindClosestVertex(const FVector& Position) const;
+		bool BuildFrom(const PCGExData::FPointIO& InPoints, const PCGExData::FPointIO& InEdges);
+		int32 FindClosestNode(const FVector& Position) const;
 
-		const FVertex& GetVertexFromPointIndex(const int32 Index) const;
-		const FVertex& GetVertex(const int32 Index) const;
-
-		bool HasInvalidEdges() const { return bHasInvalidEdges; }
+		const FNode& GetNodeFromPointIndex(const int32 Index) const;
 
 	protected:
-		bool bHasInvalidEdges = false;
-		FVertex& GetOrCreateVertex(const int32 PointIndex, bool& bJustCreated);
+		FNode& GetOrCreateNode(const int32 PointIndex, const TArray<FPCGPoint>& InPoints);
 	};
 }

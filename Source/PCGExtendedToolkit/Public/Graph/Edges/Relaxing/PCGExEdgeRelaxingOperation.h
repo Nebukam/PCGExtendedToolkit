@@ -10,7 +10,7 @@
 
 namespace PCGExCluster
 {
-	struct FVertex;
+	struct FNode;
 }
 
 namespace PCGExCluster
@@ -30,7 +30,7 @@ public:
 	virtual void PrepareForPointIO(PCGExData::FPointIO& PointIO);
 	virtual void PrepareForCluster(PCGExData::FPointIO& EdgesIO, PCGExCluster::FCluster* InCluster);
 	virtual void PrepareForIteration(int Iteration, TArray<FVector>* PrimaryBuffer, TArray<FVector>* SecondaryBuffer);
-	virtual void ProcessVertex(const PCGExCluster::FVertex& Vertex);
+	virtual void ProcessVertex(const PCGExCluster::FNode& Vertex);
 
 	virtual void WriteActiveBuffer(PCGExData::FPointIO& PointIO, PCGEx::FLocalSingleFieldGetter& Influence);
 

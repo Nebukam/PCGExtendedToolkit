@@ -16,7 +16,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExForceDirectedRelaxing : public UPCGExEdgeRela
 	GENERATED_BODY()
 
 public:
-	virtual void ProcessVertex(const PCGExCluster::FVertex& Vertex) override;
+	virtual void ProcessVertex(const PCGExCluster::FNode& Vertex) override;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	double SpringConstant = 0.1;

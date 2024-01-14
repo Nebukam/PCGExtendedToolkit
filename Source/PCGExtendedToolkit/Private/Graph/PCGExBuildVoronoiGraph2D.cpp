@@ -21,13 +21,9 @@ FPCGExBuildVoronoiGraph2DContext::~FPCGExBuildVoronoiGraph2DContext()
 {
 	PCGEX_TERMINATE_ASYNC
 
-	PCGEX_DELETE(ClustersIO)
-
+	PCGEX_DELETE(GraphBuilder)
 	PCGEX_DELETE(Voronoi)
 	PCGEX_DELETE(ConvexHull)
-
-	PCGEX_DELETE(Graph)
-	PCGEX_DELETE(Markings)
 
 	HullIndices.Empty();
 }
@@ -57,9 +53,6 @@ bool FPCGExBuildVoronoiGraph2DElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_VALIDATE_NAME(Settings->HullAttributeName)
 
-	Context->ClustersIO = new PCGExData::FPointIOGroup();
-	Context->ClustersIO->DefaultOutputLabel = PCGExGraph::OutputEdgesLabel;
-
 	return true;
 }
 
@@ -78,6 +71,7 @@ bool FPCGExBuildVoronoiGraph2DElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
+		PCGEX_DELETE(Context->GraphBuilder)
 		PCGEX_DELETE(Context->Voronoi)
 		PCGEX_DELETE(Context->ConvexHull)
 		Context->HullIndices.Empty();
@@ -214,24 +208,59 @@ bool FPCGExBuildVoronoiGraph2DElement::ExecuteInternal(
 			return false;
 		}
 
-		Context->SetState(PCGExGraph::State_WritingClusters);
+		// Write Edges
+
+		TArray<FPCGPoint>& Centroids = Context->CurrentIO->GetOut()->GetMutablePoints();
+		Context->Voronoi->GetVoronoiPoints(Centroids, Settings->Method);
+
+		Context->GraphBuilder = new PCGExGraph::FGraphBuilder(*Context->CurrentIO, 8);
+
+		TArray<PCGExGraph::FUnsignedEdge> Edges;
+		Context->Voronoi->GetUniqueEdges(Edges, Settings->bPruneOutsideBounds && Settings->Method != EPCGExCellCenter::Balanced);
+		Context->GraphBuilder->Graph->InsertEdges(Edges);
+
+		//
+
+		Context->GraphBuilder->Compile(Context);
+		Context->SetAsyncState(PCGExGraph::State_WritingClusters);
 	}
 
 	if (Context->IsState(PCGExGraph::State_WritingClusters))
 	{
-		Context->Graph = new PCGExGraph::FGraph(Context->CurrentIO->GetNum());
-		Context->Markings = new PCGExData::FKPointIOMarkedBindings<int32>(Context->CurrentIO, PCGExGraph::PUIDAttributeName);
-		Context->Markings->Mark = Context->CurrentIO->GetIn()->GetUniqueID();
+		if (!Context->IsAsyncWorkComplete()) { return false; }
 
-		WriteEdges(Context);
+		/*
+		//Mark hull
+		if (Settings->bMarkHull)
+		{
+			int32 GraphIndex = 0;
+			for (PCGExGraph::FSubGraph* SubGraph : Context->GraphBuilder->Graph->SubGraphs)
+			{
+				PCGEx::TFAttributeWriter<bool>* HullMarkWriter = nullptr;
+				HullMarkWriter = new PCGEx::TFAttributeWriter<bool>(Settings->HullAttributeName, false);
+				HullMarkWriter->BindAndGet((*Context->GraphBuilder->EdgesIO)[GraphIndex++]);
 
-		Context->Markings->UpdateMark();
-		Context->ClustersIO->OutputTo(Context, true);
-		Context->ClustersIO->Flush();
+				for (int32 NodeIndex : SubGraph->Nodes)
+				{
+					PCGExGraph::FNode& Node = SubGraph->Nodes[NodeIndex];
+					//Nodes are from
+				}
 
-		PCGEX_DELETE(Context->Graph)
-		PCGEX_DELETE(Context->Markings)
+				for (int i = 0; i < Edges.Num(); i++)
+				{
+					const PCGExGraph::FUnsignedEdge& Edge = Edges[i];
+					const bool bStartOnHull = HullIndices.Contains(Edge.Start);
+					const bool bEndOnHull = HullIndices.Contains(Edge.End);
+					HullMarkWriter->Values[i] = Settings->bMarkEdgeOnTouch ? bStartOnHull || bEndOnHull : bStartOnHull && bEndOnHull;
+				}
 
+				HullMarkWriter->Write();
+				PCGEX_DELETE(HullMarkWriter)
+			}
+		}
+		*/
+
+		Context->GraphBuilder->Write(Context);
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
@@ -241,98 +270,6 @@ bool FPCGExBuildVoronoiGraph2DElement::ExecuteInternal(
 	}
 
 	return Context->IsDone();
-}
-
-void FPCGExBuildVoronoiGraph2DElement::WriteEdges(FPCGExBuildVoronoiGraph2DContext* Context) const
-{
-	PCGEX_SETTINGS(BuildVoronoiGraph2D)
-
-	// Vtx -> Circumcenters
-	//TODO : Datablending
-
-	TArray<FPCGPoint>& Centroids = Context->CurrentIO->GetOut()->GetMutablePoints();
-	Centroids.SetNum(Context->Voronoi->Delaunay->Cells.Num());
-
-	switch (Settings->Method)
-	{
-	default:
-	case EPCGExCellCenter::Balanced:
-		for (const PCGExGeo::TDelaunayCell<3>* Cell : Context->Voronoi->Delaunay->Cells)
-		{
-			const int32 CellIndex = Cell->Circumcenter->Id;
-			Centroids[CellIndex].Transform.SetLocation(Cell->GetBestCenter());
-		}
-		break;
-	case EPCGExCellCenter::Circumcenter:
-		for (const PCGExGeo::TDelaunayCell<3>* Cell : Context->Voronoi->Delaunay->Cells)
-		{
-			const int32 CellIndex = Cell->Circumcenter->Id;
-			Centroids[CellIndex].Transform.SetLocation(Cell->Circumcenter->GetV3());
-		}
-		break;
-	case EPCGExCellCenter::Centroid:
-		for (const PCGExGeo::TDelaunayCell<3>* Cell : Context->Voronoi->Delaunay->Cells)
-		{
-			const int32 CellIndex = Cell->Circumcenter->Id;
-			Centroids[CellIndex].Transform.SetLocation(Cell->Centroid);
-		}
-		break;
-	}
-
-	// Find unique edges
-	TSet<uint64> UniqueEdges;
-	TArray<PCGExGraph::FUnsignedEdge> Edges;
-	Context->Voronoi->GetUniqueEdges(Edges, Settings->bPruneOutsideBounds && Settings->Method != EPCGExCellCenter::Balanced);
-
-	PCGExData::FPointIO& VoronoiEdges = Context->ClustersIO->Emplace_GetRef();
-	Context->Markings->Add(VoronoiEdges);
-
-	TArray<FPCGPoint>& MutablePoints = VoronoiEdges.GetOut()->GetMutablePoints();
-	MutablePoints.SetNum(Edges.Num());
-
-	VoronoiEdges.CreateOutKeys();
-
-	PCGEx::TFAttributeWriter<int32>* EdgeStart = new PCGEx::TFAttributeWriter<int32>(PCGExGraph::EdgeStartAttributeName, -1, false);
-	PCGEx::TFAttributeWriter<int32>* EdgeEnd = new PCGEx::TFAttributeWriter<int32>(PCGExGraph::EdgeEndAttributeName, -1, false);
-	PCGEx::TFAttributeWriter<bool>* HullMarkWriter = nullptr;
-
-	EdgeStart->BindAndGet(VoronoiEdges);
-	EdgeEnd->BindAndGet(VoronoiEdges);
-
-	if constexpr (false) //if (Settings->bMarkHull)
-	{
-		HullMarkWriter = new PCGEx::TFAttributeWriter<bool>(Settings->HullAttributeName, false);
-		HullMarkWriter->BindAndGet(VoronoiEdges);
-	}
-
-	int32 PointIndex = 0;
-	for (const PCGExGraph::FUnsignedEdge& Edge : Edges)
-	{
-		EdgeStart->Values[PointIndex] = Edge.Start;
-		EdgeEnd->Values[PointIndex] = Edge.End;
-
-		const FVector StartPosition = Context->CurrentIO->GetOutPoint(Edge.Start).Transform.GetLocation();
-		const FVector EndPosition = Context->CurrentIO->GetOutPoint(Edge.End).Transform.GetLocation();
-
-		MutablePoints[PointIndex].Transform.SetLocation(FMath::Lerp(StartPosition, EndPosition, 0.5));
-
-		if (HullMarkWriter)
-		{
-			const bool bStartOnHull = Context->HullIndices.Contains(Edge.Start);
-			const bool bEndOnHull = Context->HullIndices.Contains(Edge.End);
-			HullMarkWriter->Values[PointIndex] = Settings->bMarkEdgeOnTouch ? bStartOnHull || bEndOnHull : bStartOnHull && bEndOnHull;
-		}
-
-		PointIndex++;
-	}
-
-	EdgeStart->Write();
-	EdgeEnd->Write();
-	if (HullMarkWriter) { HullMarkWriter->Write(); }
-
-	PCGEX_DELETE(EdgeStart)
-	PCGEX_DELETE(EdgeEnd)
-	PCGEX_DELETE(HullMarkWriter)
 }
 
 #undef LOCTEXT_NAMESPACE

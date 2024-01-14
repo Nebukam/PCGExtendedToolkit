@@ -451,7 +451,7 @@ namespace PCGEx
 		{
 			if (Bind(PointIO))
 			{
-				this->SetNum(PointIO.GetNum());
+				this->SetNum(PointIO.GetOutNum());
 				this->Accessor->GetRange(this->Values);
 				return true;
 			}

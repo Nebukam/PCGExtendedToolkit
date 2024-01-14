@@ -63,10 +63,10 @@ bool FPCGExPathfindingEdgesElement::ExecuteInternal(FPCGContext* InContext) cons
 
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
-		if (!Context->AdvanceAndBindPointsIO()) { Context->Done(); }
+		if (!Context->AdvancePointsIO()) { Context->Done(); }
 		else
 		{
-			if (!Context->BoundEdges->IsValid())
+			if (!Context->TaggedEdges)
 			{
 				PCGE_LOG(Warning, GraphAndLog, FTEXT("Some input points have no associated edges."));
 				Context->SetState(PCGExMT::State_ReadyForNextPoints);
@@ -109,10 +109,13 @@ bool FPCGExPathfindingEdgesElement::ExecuteInternal(FPCGContext* InContext) cons
 		if (!Context->AdvanceEdges()) { Context->SetState(PCGExMT::State_ReadyForNextPoints); }
 		else
 		{
-			if (Context->CurrentCluster->HasInvalidEdges())
+			if (!Context->CurrentCluster)
 			{
-				PCGE_LOG(Warning, GraphAndLog, FTEXT("Some input edges are invalid. This will highly likely cause unexpected results or failed pathfinding."));
+				PCGEX_INVALID_CLUSTER_LOG
+				Context->SetState(PCGExMT::State_ReadyForNextPoints);
+				return false;
 			}
+			
 			Context->HeuristicsModifiers->PrepareForData(*Context->CurrentIO, *Context->CurrentEdges, Context->Heuristics->GetScale());
 			Context->SetState(PCGExGraph::State_ProcessingEdges);
 		}
@@ -137,7 +140,7 @@ bool FPCGExPathfindingEdgesElement::ExecuteInternal(FPCGContext* InContext) cons
 
 	if (Context->IsDone())
 	{
-		Context->OutputPaths->OutputTo(Context, true);
+		Context->OutputPaths->OutputTo(Context);
 	}
 
 	return Context->IsDone();
@@ -169,7 +172,7 @@ bool FSampleClusterPathTask::ExecuteTask()
 	MutablePoints.Reserve(Path.Num() + 2);
 
 	if (Context->bAddSeedToPath) { MutablePoints.Add_GetRef(Seed).MetadataEntry = PCGInvalidEntryKey; }
-	for (const int32 VtxIndex : Path) { MutablePoints.Add(InPoints[Cluster->Vertices[VtxIndex].PointIndex]); }
+	for (const int32 VtxIndex : Path) { MutablePoints.Add(InPoints[Cluster->Nodes[VtxIndex].PointIndex]); }
 	if (Context->bAddGoalToPath) { MutablePoints.Add_GetRef(Goal).MetadataEntry = PCGInvalidEntryKey; }
 
 	return true;

@@ -27,7 +27,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExBuildConvexHullSettings : public UPCGExPoints
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(BuildConvexHull, "Custom Graph : Convex Hull 3D", "Create a 3D Convex Hull triangulation for each input dataset.");
+	PCGEX_NODE_INFOS(BuildConvexHull, "Graph : Convex Hull 3D", "Create a 3D Convex Hull triangulation for each input dataset.");
 #endif
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 

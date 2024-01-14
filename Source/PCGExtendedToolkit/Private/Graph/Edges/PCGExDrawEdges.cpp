@@ -63,10 +63,10 @@ bool FPCGExDrawEdgesElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
-		if (!Context->AdvanceAndBindPointsIO()) { Context->Done(); }
+		if (!Context->AdvancePointsIO()) { Context->Done(); }
 		else
 		{
-			if (!Context->BoundEdges->IsValid())
+			if (!Context->TaggedEdges)
 			{
 				PCGE_LOG(Warning, GraphAndLog, FTEXT("Some input points have no bound edges."));
 				Context->SetState(PCGExMT::State_ReadyForNextPoints);
@@ -82,11 +82,12 @@ bool FPCGExDrawEdgesElement::ExecuteInternal(
 	{
 		while (Context->AdvanceEdges())
 		{
+			if (!Context->CurrentCluster) { continue; }
 			for (const PCGExGraph::FIndexedEdge& Edge : Context->CurrentCluster->Edges)
 			{
 				if (!Edge.bValid) { continue; }
-				FVector Start = Context->CurrentCluster->GetVertexFromPointIndex(Edge.Start).Position;
-				FVector End = Context->CurrentCluster->GetVertexFromPointIndex(Edge.End).Position;
+				FVector Start = Context->CurrentCluster->GetNodeFromPointIndex(Edge.Start).Position;
+				FVector End = Context->CurrentCluster->GetNodeFromPointIndex(Edge.End).Position;
 				DrawDebugLine(Context->World, Start, End, Settings->Color, true, -1, Settings->DepthPriority, Settings->Thickness);
 			}
 		}

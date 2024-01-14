@@ -26,8 +26,6 @@ namespace PCGExGraph
 	const FName SourcePathsLabel = TEXT("Paths");
 	const FName OutputPathsLabel = TEXT("Paths");
 
-	const FName PUIDAttributeName = TEXT("__PCGEx/PUID_");
-
 	constexpr PCGExMT::AsyncState State_ReadyForNextGraph = __COUNTER__;
 	constexpr PCGExMT::AsyncState State_ProcessingGraph = __COUNTER__;
 
@@ -56,19 +54,17 @@ namespace PCGExGraph
 		bool bCrossing = false;
 		bool bValid = false;
 
-		int32 Index = -1;
+		int32 NodeIndex = -1;
 		int32 PointIndex = -1;
+		int32 NumExportedEdges = 0;
 
 		TArray<int32> Edges;
-		TArray<int32> AdjacentNodes;
 
 		~FNode()
 		{
 			Edges.Empty();
-			AdjacentNodes.Empty();
 		}
 
-		void FixAdjacentNodes(const TArray<FIndexedEdge>& InEdges);
 		void Add(const int32 EdgeIndex);
 	};
 
@@ -127,7 +123,7 @@ namespace PCGExGraph
 			for (int i = 0; i < InNumNodes; i++)
 			{
 				FNode& Node = Nodes[i];
-				Node.Index = Node.PointIndex = i;
+				Node.NodeIndex = Node.PointIndex = i;
 				Node.bValid = false;
 				Node.Edges.Reserve(NumEdgesReserve);
 			}
@@ -201,26 +197,26 @@ namespace PCGExGraph
 	class PCGEXTENDEDTOOLKIT_API FGraphBuilder
 	{
 		bool bPrunePoints = false;
+		FString EdgeTagValue;
 
 	public:
 		PCGExData::FPointIO* PointIO = nullptr;
-		PCGExData::FKPointIOMarkedBindings<int32>* Markings = nullptr;
 
 		FGraph* Graph = nullptr;
 		FEdgeCrossingsHandler* EdgeCrossings = nullptr;
 
 		PCGExData::FPointIOGroup* EdgesIO = nullptr;
+		PCGExData::FPointIO* SourceEdgesIO = nullptr;
 
-		FGraphBuilder(PCGExData::FPointIO& InPointIO, int32 NumEdgeReserve = 6)
+		FGraphBuilder(PCGExData::FPointIO& InPointIO, int32 NumEdgeReserve = 6, PCGExData::FPointIO* InSourceEdges = nullptr)
+			: SourceEdgesIO(InSourceEdges)
 		{
 			PointIO = &InPointIO;
+			PointIO->Tags->GetOrSet(PCGExGraph::Tag_Cluster, PointIO->GetInOut()->UID, EdgeTagValue);
 
 			const int32 NumNodes = PointIO->GetOutNum();
 
 			Graph = new FGraph(NumNodes, NumEdgeReserve);
-
-			Markings = new PCGExData::FKPointIOMarkedBindings<int32>(PointIO, PUIDAttributeName);
-			Markings->Mark = PointIO->GetOutIn()->GetUniqueID();
 
 			EdgesIO = new PCGExData::FPointIOGroup();
 			EdgesIO->DefaultOutputLabel = OutputEdgesLabel;
@@ -234,7 +230,6 @@ namespace PCGExGraph
 
 		~FGraphBuilder()
 		{
-			PCGEX_DELETE(Markings)
 			PCGEX_DELETE(Graph)
 			PCGEX_DELETE(EdgeCrossings)
 			PCGEX_DELETE(EdgesIO)

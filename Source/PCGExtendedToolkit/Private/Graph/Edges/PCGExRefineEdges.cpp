@@ -55,10 +55,10 @@ bool FPCGExRefineEdgesElement::ExecuteInternal(
 	{
 		PCGEX_DELETE(Context->NetworkBuilder)
 
-		if (!Context->AdvanceAndBindPointsIO()) { Context->Done(); }
+		if (!Context->AdvancePointsIO()) { Context->Done(); }
 		else
 		{
-			if (!Context->BoundEdges->IsValid())
+			if (!Context->TaggedEdges)
 			{
 				PCGE_LOG(Warning, GraphAndLog, FTEXT("Some input points have no bound edges."));
 				Context->SetState(PCGExMT::State_ReadyForNextPoints);
@@ -78,12 +78,20 @@ bool FPCGExRefineEdgesElement::ExecuteInternal(
 		while (Context->AdvanceEdges())
 		{
 			/* Batch-build all meshes since bCacheAllClusters == true */
-			if (Context->CurrentCluster->HasInvalidEdges())
+			if (!Context->CurrentCluster)
 			{
-				PCGE_LOG(Warning, GraphAndLog, FTEXT("Some input edges are invalid. This will highly likely cause unexpected results."));
+				PCGEX_INVALID_CLUSTER_LOG
 			}
+			else
+			{
+				Context->GetAsyncManager()->Start<FRefineEdgesTask>(-1, Context->CurrentIO, Context->CurrentCluster, Context->CurrentEdges);
+			}
+		}
 
-			Context->GetAsyncManager()->Start<FRefineEdgesTask>(-1, Context->CurrentIO, Context->CurrentCluster, Context->CurrentEdges);
+		if (Context->Clusters.IsEmpty())
+		{
+			Context->SetState(PCGExMT::State_ReadyForNextPoints);
+			return false;
 		}
 
 		Context->SetAsyncState(PCGExGraph::State_ProcessingEdges);

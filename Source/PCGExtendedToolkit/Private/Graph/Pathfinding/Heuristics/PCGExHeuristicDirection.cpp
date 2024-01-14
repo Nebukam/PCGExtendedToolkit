@@ -5,12 +5,12 @@
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicDirection.h"
 
 double UPCGExHeuristicDirection::ComputeScore(
-	const PCGExCluster::FScoredVertex* From,
-	const PCGExCluster::FVertex& To,
-	const PCGExCluster::FVertex& Seed,
-	const PCGExCluster::FVertex& Goal, const PCGExGraph::FIndexedEdge& Edge) const
+	const PCGExCluster::FScoredNode* From,
+	const PCGExCluster::FNode& To,
+	const PCGExCluster::FNode& Seed,
+	const PCGExCluster::FNode& Goal, const PCGExGraph::FIndexedEdge& Edge) const
 {
-	return From->Score + FVector::DotProduct((From->Vertex->Position - To.Position).GetSafeNormal(), (From->Vertex->Position - Goal.Position).GetSafeNormal()) * 100;
+	return From->Score + FVector::DotProduct((From->Node->Position - To.Position).GetSafeNormal(), (From->Node->Position - Goal.Position).GetSafeNormal()) * 100;
 }
 
 bool UPCGExHeuristicDirection::IsBetterScore(const double NewScore, const double OtherScore) const

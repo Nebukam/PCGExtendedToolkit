@@ -311,39 +311,39 @@ namespace PCGExPathfinding
 
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExPathfinding::FindPath);
 
-		const PCGExCluster::FVertex& StartVtx = Cluster->Vertices[Seed];
-		const PCGExCluster::FVertex& EndVtx = Cluster->Vertices[Goal];
+		const PCGExCluster::FNode& StartNode = Cluster->Nodes[Seed];
+		const PCGExCluster::FNode& EndNode = Cluster->Nodes[Goal];
 
 		// Basic A* implementation
 		TMap<int32, double> CachedScores;
 
-		TArray<PCGExCluster::FScoredVertex*> OpenList;
-		OpenList.Reserve(Cluster->Vertices.Num() / 3);
+		TArray<PCGExCluster::FScoredNode*> OpenList;
+		OpenList.Reserve(Cluster->Nodes.Num() / 3);
 
-		TArray<PCGExCluster::FScoredVertex*> ClosedList;
-		ClosedList.Reserve(Cluster->Vertices.Num() / 3);
+		TArray<PCGExCluster::FScoredNode*> ClosedList;
+		ClosedList.Reserve(Cluster->Nodes.Num() / 3);
 		TSet<int32> Visited;
 
-		OpenList.Add(new PCGExCluster::FScoredVertex(StartVtx, 0));
+		OpenList.Add(new PCGExCluster::FScoredNode(StartNode, 0));
 		bool bSuccess = false;
 
 		while (!bSuccess && !OpenList.IsEmpty())
 		{
-			PCGExCluster::FScoredVertex* CurrentWVtx = OpenList.Pop();
-			const int32 CurrentVtxIndex = CurrentWVtx->Vertex->ClusterIndex;
+			PCGExCluster::FScoredNode* CurrentScoredNode = OpenList.Pop();
+			const int32 CurrentNodeIndex = CurrentScoredNode->Node->NodeIndex;
 
-			ClosedList.Add(CurrentWVtx);
-			Visited.Add(CurrentWVtx->Vertex->PointIndex);
+			ClosedList.Add(CurrentScoredNode);
+			Visited.Add(CurrentScoredNode->Node->PointIndex);
 
-			if (CurrentVtxIndex == EndVtx.ClusterIndex)
+			if (CurrentNodeIndex == EndNode.NodeIndex)
 			{
 				bSuccess = true;
 				TArray<int32> Path;
 
-				while (CurrentWVtx)
+				while (CurrentScoredNode)
 				{
-					Path.Add(CurrentWVtx->Vertex->ClusterIndex);
-					CurrentWVtx = CurrentWVtx->From;
+					Path.Add(CurrentScoredNode->Node->NodeIndex);
+					CurrentScoredNode = CurrentScoredNode->From;
 				}
 
 				Algo::Reverse(Path);
@@ -352,16 +352,16 @@ namespace PCGExPathfinding
 			else
 			{
 				//Get current index neighbors
-				for (const PCGExCluster::FVertex& Vtx = Cluster->GetVertex(CurrentVtxIndex);
-				     const int32 EdgeIndex : Vtx.Edges) //TODO: Use edge instead?
+				for (const PCGExCluster::FNode& Node = Cluster->Nodes[CurrentNodeIndex];
+				     const int32 EdgeIndex : Node.Edges) //TODO: Use edge instead?
 				{
 					const PCGExGraph::FIndexedEdge& Edge = Cluster->Edges[EdgeIndex];
-					const int32 OtherPointIndex = Edge.Other(Vtx.PointIndex);
+					const int32 OtherPointIndex = Edge.Other(Node.PointIndex);
 					if (Visited.Contains(OtherPointIndex)) { continue; }
 
-					const PCGExCluster::FVertex& OtherVtx = Cluster->GetVertexFromPointIndex(OtherPointIndex);
-					double Score = Heuristics->ComputeScore(CurrentWVtx, OtherVtx, StartVtx, EndVtx, Edge);
-					Score += Modifiers->GetScore(OtherVtx.PointIndex, Edge.Index);
+					const PCGExCluster::FNode& OtherNode = Cluster->GetNodeFromPointIndex(OtherPointIndex);
+					double Score = Heuristics->ComputeScore(CurrentScoredNode, OtherNode, StartNode, EndNode, Edge);
+					Score += Modifiers->GetScore(OtherNode.PointIndex, Edge.EdgeIndex);
 
 					if (const double* PreviousScore = CachedScores.Find(OtherPointIndex);
 						PreviousScore && !Heuristics->IsBetterScore(*PreviousScore, Score))
@@ -369,11 +369,11 @@ namespace PCGExPathfinding
 						continue;
 					}
 
-					PCGExCluster::FScoredVertex* NewWVtx = new PCGExCluster::FScoredVertex(OtherVtx, Score, CurrentWVtx);
+					PCGExCluster::FScoredNode* NewScoredNode = new PCGExCluster::FScoredNode(OtherNode, Score, CurrentScoredNode);
 					CachedScores.Add(OtherPointIndex, Score);
 
-					if (const int32 TargetIndex = Heuristics->GetQueueingIndex(OpenList, Score); TargetIndex == -1) { OpenList.Add(NewWVtx); }
-					else { OpenList.Insert(NewWVtx, TargetIndex); }
+					if (const int32 TargetIndex = Heuristics->GetQueueingIndex(OpenList, Score); TargetIndex == -1) { OpenList.Add(NewScoredNode); }
+					else { OpenList.Insert(NewScoredNode, TargetIndex); }
 				}
 			}
 		}
@@ -391,8 +391,8 @@ namespace PCGExPathfinding
 	{
 		return FindPath(
 			Cluster,
-			Cluster->FindClosestVertex(SeedPosition),
-			Cluster->FindClosestVertex(GoalPosition),
+			Cluster->FindClosestNode(SeedPosition),
+			Cluster->FindClosestNode(GoalPosition),
 			Heuristics, Modifiers, OutPath);
 	}
 
@@ -411,7 +411,7 @@ namespace PCGExPathfinding
 		const UPCGExHeuristicOperation* Heuristics,
 		const FPCGExHeuristicModifiersSettings* Modifiers, TArray<int32>& OutPath)
 	{
-		return ContinuePath(Cluster, Cluster->FindClosestVertex(To), Heuristics, Modifiers, OutPath);
+		return ContinuePath(Cluster, Cluster->FindClosestNode(To), Heuristics, Modifiers, OutPath);
 	}
 }
 

@@ -170,7 +170,7 @@ bool FPCGExPathfindingNavmeshElement::ExecuteInternal(FPCGContext* InContext) co
 	if (Context->IsState(PCGExPathfinding::State_Pathfinding))
 	{
 		if (!Context->IsAsyncWorkComplete()) { return false; }
-		Context->OutputPaths->OutputTo(Context, true);
+		Context->OutputPaths->OutputTo(Context);
 		Context->Done();
 	}
 

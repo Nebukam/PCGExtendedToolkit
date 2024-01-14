@@ -76,10 +76,10 @@ bool FPCGExRelaxEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) con
 			Context->Relaxing->WriteActiveBuffer(*Context->CurrentIO, Context->InfluenceGetter);
 		}
 
-		if (!Context->AdvanceAndBindPointsIO()) { Context->Done(); }
+		if (!Context->AdvancePointsIO()) { Context->Done(); }
 		else
 		{
-			if (!Context->BoundEdges->IsValid())
+			if (!Context->TaggedEdges)
 			{
 				PCGE_LOG(Warning, GraphAndLog, FTEXT("Some input points have no bound edges."));
 				Context->SetState(PCGExMT::State_ReadyForNextPoints);
@@ -123,7 +123,7 @@ bool FPCGExRelaxEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) con
 
 		auto ProcessVertex = [&](const int32 VertexIndex)
 		{
-			const PCGExCluster::FVertex& Vtx = Context->CurrentCluster->Vertices[VertexIndex];
+			const PCGExCluster::FNode& Vtx = Context->CurrentCluster->Nodes[VertexIndex];
 			Context->Relaxing->ProcessVertex(Vtx);
 		};
 

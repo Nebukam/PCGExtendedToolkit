@@ -33,7 +33,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExBuildVoronoiGraphSettings : public UPCGExPoin
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(BuildVoronoiGraph, "Custom Graph : Voronoi 3D", "Create a 3D Voronoi graph for each input dataset.");
+	PCGEX_NODE_INFOS(BuildVoronoiGraph, "Graph : Voronoi 3D", "Create a 3D Voronoi graph for each input dataset.");
 #endif
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 
@@ -91,8 +91,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBuildVoronoiGraphContext : public FPCGExPoin
 
 	PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
 
-protected:
-	void WriteEdges();
 };
 
 

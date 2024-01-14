@@ -9,7 +9,7 @@
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGExData.h"
 
-#include "PCGExEdgesProcessor.generated.h"
+#include "PCGExSanitizeClusters.generated.h"
 
 #define PCGEX_INVALID_CLUSTER_LOG PCGE_LOG(Warning, GraphAndLog, FTEXT("Some clusters are corrupted and will be ignored. If you modified vtx/edges manually, make sure to use Sanitize Cluster first."));
 
@@ -17,14 +17,14 @@
  * A Base node to process a set of point using GraphParams.
  */
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural))
-class PCGEXTENDEDTOOLKIT_API UPCGExEdgesProcessorSettings : public UPCGExPointsProcessorSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExSanitizeClustersSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(EdgesProcessorSettings, "Edges Processor Settings", "TOOLTIP_TEXT");
+	PCGEX_NODE_INFOS(SanitizeClusters, "Edges : Sanitize Clusters", "Ensure the input set of vertex and edges outputs clean, interconnected clusters. May create new clusters, but does not creates nor deletes points/edges.");
 	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorEdge; }
 #endif
 
@@ -35,23 +35,20 @@ public:
 	//~Begin UPCGExPointsProcessorSettings interface
 public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
-	virtual PCGExData::EInit GetEdgeOutputInitMode() const;
 
 	virtual FName GetMainInputLabel() const override;
 	virtual FName GetMainOutputLabel() const override;
-
-	virtual bool GetMainAcceptMultipleData() const override;
 	//~End UPCGExPointsProcessorSettings interface
 
 	virtual bool GetCacheAllClusters() const;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExEdgesProcessorContext : public FPCGExPointsProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExSanitizeClustersContext : public FPCGExPointsProcessorContext
 {
-	friend class UPCGExEdgesProcessorSettings;
-	friend class FPCGExEdgesProcessorElement;
+	friend class UPCGExSanitizeClustersSettings;
+	friend class FPCGExSanitizeClustersElement;
 
-	virtual ~FPCGExEdgesProcessorContext() override;
+	virtual ~FPCGExSanitizeClustersContext() override;
 
 	PCGExData::FPointIOGroup* MainEdges = nullptr;
 	PCGExData::FPointIO* CurrentEdges = nullptr;
@@ -59,32 +56,19 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgesProcessorContext : public FPCGExPointsP
 	PCGExData::FPointIOTaggedDictionary* InputDictionary = nullptr;
 	PCGExData::FPointIOTaggedEntries* TaggedEdges = nullptr;
 
+	TMap<int32, int32> CachedPointIndices;
+	PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
+	
 	virtual bool AdvancePointsIO() override;
 	bool AdvanceEdges(); // Advance edges within current points
 
-	bool bCacheAllClusters = false;
-	PCGExCluster::FCluster* CurrentCluster = nullptr;
-	TArray<PCGExCluster::FCluster*> Clusters;
-
 	void OutputPointsAndEdges();
-
-	template <class InitializeFunc, class LoopBodyFunc>
-	bool ProcessCurrentEdges(InitializeFunc&& Initialize, LoopBodyFunc&& LoopBody, bool bForceSync = false) { return Process(Initialize, LoopBody, CurrentEdges->GetNum(), bForceSync); }
-
-	template <class LoopBodyFunc>
-	bool ProcessCurrentEdges(LoopBodyFunc&& LoopBody, bool bForceSync = false) { return Process(LoopBody, CurrentEdges->GetNum(), bForceSync); }
-
-	template <class InitializeFunc, class LoopBodyFunc>
-	bool ProcessCurrentCluster(InitializeFunc&& Initialize, LoopBodyFunc&& LoopBody, bool bForceSync = false) { return Process(Initialize, LoopBody, CurrentCluster->Nodes.Num(), bForceSync); }
-
-	template <class LoopBodyFunc>
-	bool ProcessCurrentCluster(LoopBodyFunc&& LoopBody, bool bForceSync = false) { return Process(LoopBody, CurrentCluster->Nodes.Num(), bForceSync); }
 
 protected:
 	int32 CurrentEdgesIndex = -1;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExEdgesProcessorElement : public FPCGExPointsProcessorElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExSanitizeClustersElement : public FPCGExPointsProcessorElementBase
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -99,4 +83,5 @@ protected:
 		const FPCGDataCollection& InputData,
 		TWeakObjectPtr<UPCGComponent> SourceComponent,
 		const UPCGNode* Node) const override;
+	virtual bool ExecuteInternal(FPCGContext* InContext) const override;	
 };
