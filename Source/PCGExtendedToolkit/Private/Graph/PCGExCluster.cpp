@@ -71,7 +71,7 @@ namespace PCGExCluster
 	bool FCluster::BuildFrom(
 		const PCGExData::FPointIO& InEdges,
 		const TArray<FPCGPoint>& InNodePoints,
-		const TMap<int32, int32>& CachedPointIndices,
+		const TMap<int32, int32>& InNodeIndicesMap,
 		const TArray<int32>& PerNodeEdgeNums)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExCluster::BuildCluster);
@@ -94,8 +94,8 @@ namespace PCGExCluster
 
 		for (int i = 0; i < NumEdges; i++)
 		{
-			const int32* NodeStartPtr = CachedPointIndices.Find(StartIndexReader->Values[i]);
-			const int32* NodeEndPtr = CachedPointIndices.Find(EndIndexReader->Values[i]);
+			const int32* NodeStartPtr = InNodeIndicesMap.Find(StartIndexReader->Values[i]);
+			const int32* NodeEndPtr = InNodeIndicesMap.Find(EndIndexReader->Values[i]);
 
 			if (!NodeStartPtr || !NodeEndPtr)
 			{
@@ -138,7 +138,8 @@ namespace PCGExCluster
 			}
 		}
 
-		return !bInvalidCluster;
+		bValid = !bInvalidCluster;
+		return bValid;
 	}
 
 	int32 FCluster::FindClosestNode(const FVector& Position) const
@@ -159,4 +160,15 @@ namespace PCGExCluster
 	}
 
 	const FNode& FCluster::GetNodeFromPointIndex(const int32 Index) const { return Nodes[*PointIndexMap.Find(Index)]; }
+}
+
+bool FPCGExBuildCluster::ExecuteTask()
+{
+	Cluster->BuildFrom(
+		*EdgeIO,
+		PointIO->GetIn()->GetPoints(),
+		*NodeIndicesMap,
+		*PerNodeEdgeNums);
+
+	return true;
 }

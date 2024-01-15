@@ -17,8 +17,6 @@ UPCGExRefineEdgesSettings::UPCGExRefineEdgesSettings(
 
 PCGExData::EInit UPCGExRefineEdgesSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
-bool UPCGExRefineEdgesSettings::GetCacheAllClusters() const { return true; }
-
 PCGEX_INITIALIZE_ELEMENT(RefineEdges)
 
 FPCGExRefineEdgesContext::~FPCGExRefineEdgesContext()
@@ -87,13 +85,13 @@ bool FPCGExRefineEdgesElement::ExecuteInternal(
 				Context->GetAsyncManager()->Start<FPCGExRefineEdgesTask>(-1, Context->CurrentIO, Context->CurrentCluster, Context->CurrentEdges);
 			}
 		}
-
+/*
 		if (Context->Clusters.IsEmpty())
 		{
 			Context->SetState(PCGExMT::State_ReadyForNextPoints);
 			return false;
 		}
-
+*/
 		Context->SetAsyncState(PCGExGraph::State_ProcessingEdges);
 	}
 

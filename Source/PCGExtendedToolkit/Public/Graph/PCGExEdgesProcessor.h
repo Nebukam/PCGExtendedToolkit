@@ -43,8 +43,6 @@ public:
 	virtual bool GetMainAcceptMultipleData() const override;
 	//~End UPCGExPointsProcessorSettings interface
 
-	virtual bool GetCacheAllClusters() const;
-	virtual bool GetGenerateClusters() const;
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExEdgesProcessorContext : public FPCGExPointsProcessorContext
@@ -59,16 +57,13 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgesProcessorContext : public FPCGExPointsP
 
 	PCGExData::FPointIOTaggedDictionary* InputDictionary = nullptr;
 	PCGExData::FPointIOTaggedEntries* TaggedEdges = nullptr;
-	TMap<int32, int32> RemappedPointsIndices;
+	TMap<int32, int32> NodeIndicesMap;
 	PCGEx::TFAttributeReader<int32>* EdgeNumReader = nullptr;
 
 	virtual bool AdvancePointsIO() override;
-	bool AdvanceEdges(); // Advance edges within current points
+	bool AdvanceEdges(bool bBuildCluster = true); // Advance edges within current points
 
-	bool bGenerateClusters = true;
-	bool bCacheAllClusters = false;
 	PCGExCluster::FCluster* CurrentCluster = nullptr;
-	TArray<PCGExCluster::FCluster*> Clusters;
 
 	void OutputPointsAndEdges();
 

@@ -34,7 +34,6 @@ protected:
 	//~Begin UPCGExPointsProcessorSettings interface
 public:
 	virtual PCGExData::EInit GetEdgeOutputInitMode() const override;
-	virtual bool GetCacheAllClusters() const override;
 	//~End UPCGExPointsProcessorSettings interface
 
 	/** Removes roaming points from the output, and keeps only points that are part of an cluster. */

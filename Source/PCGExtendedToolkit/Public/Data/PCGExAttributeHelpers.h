@@ -390,12 +390,19 @@ namespace PCGEx
 
 	class PCGEXTENDEDTOOLKIT_API FAAttributeIO
 	{
+	public:
 		FName Name = NAME_None;
 
 		explicit FAAttributeIO(const FName InName):
 			Name(InName)
 		{
 		}
+
+		virtual ~FAAttributeIO()
+		{
+			
+		}
+		
 	};
 
 	template <typename T>
@@ -421,7 +428,7 @@ namespace PCGEx
 
 		bool IsValid() { return Accessor != nullptr; }
 
-		virtual ~FAttributeIOBase()
+		virtual ~FAttributeIOBase() override
 		{
 			PCGEX_DELETE(Accessor)
 			Values.Empty();

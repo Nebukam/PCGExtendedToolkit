@@ -261,6 +261,34 @@ namespace PCGExGraph
 		return GetRemappedIndices(const_cast<PCGExData::FPointIO&>(InPointIO), AttributeName, OutIndices);
 	}
 
+	static bool IsPointDataVtxReady(const UPCGPointData* PointData)
+	{
+		const FName Tags[] = {PCGExGraph::Tag_EdgeIndex, PCGExGraph::Tag_EdgesNum};
+		constexpr int16 I32 = static_cast<uint16>(EPCGMetadataTypes::Integer32);
+
+		for (const FName Name : Tags)
+		{
+			if (const FPCGMetadataAttributeBase* AttributeCheck = PointData->Metadata->GetMutableAttribute(Name);
+				!AttributeCheck || AttributeCheck->GetTypeId() != I32) { return false; }
+		}
+
+		return true;
+	}
+
+	static bool IsPointDataEdgeReady(const UPCGPointData* PointData)
+	{
+		const FName Tags[] = {PCGExGraph::Tag_EdgeStart, PCGExGraph::Tag_EdgeEnd};
+		constexpr int16 I32 = static_cast<uint16>(EPCGMetadataTypes::Integer32);
+
+		for (const FName Name : Tags)
+		{
+			if (const FPCGMetadataAttributeBase* AttributeCheck = PointData->Metadata->GetMutableAttribute(Name);
+				!AttributeCheck || AttributeCheck->GetTypeId() != I32) { return false; }
+		}
+
+		return true;
+	}
+
 #pragma endregion
 }
 

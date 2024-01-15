@@ -54,6 +54,7 @@ namespace PCGExGraph
 
 	constexpr PCGExMT::AsyncState State_ReadyForNextEdges = __COUNTER__;
 	constexpr PCGExMT::AsyncState State_ProcessingEdges = __COUNTER__;
+	constexpr PCGExMT::AsyncState State_BuildingClusters = __COUNTER__;
 
 	static uint64 GetUnsignedHash64(const uint32 A, const uint32 B)
 	{
@@ -157,4 +158,5 @@ namespace PCGExGraph
 		{
 		}
 	};
+	
 }
