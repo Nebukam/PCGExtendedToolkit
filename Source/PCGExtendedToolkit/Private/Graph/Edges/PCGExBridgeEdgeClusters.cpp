@@ -19,12 +19,18 @@ PCGExData::EInit UPCGExBridgeEdgeClustersSettings::GetEdgeOutputInitMode() const
 
 bool UPCGExBridgeEdgeClustersSettings::GetCacheAllClusters() const { return true; }
 
+bool UPCGExBridgeEdgeClustersSettings::GetGenerateClusters() const { return false; }
+
 PCGEX_INITIALIZE_ELEMENT(BridgeEdgeClusters)
 
 FPCGExBridgeEdgeClustersContext::~FPCGExBridgeEdgeClustersContext()
 {
 	PCGEX_TERMINATE_ASYNC
+
+	PCGEX_DELETE(Merger)
 	PCGEX_DELETE(GraphBuilder)
+	PCGEX_DELETE(StartIndexReader)
+	PCGEX_DELETE(EndIndexReader)
 
 	ConsolidatedEdges = nullptr;
 	VisitedClusters.Empty();
@@ -57,7 +63,10 @@ bool FPCGExBridgeEdgeClustersElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
+		PCGEX_DELETE(Context->Merger)
 		PCGEX_DELETE(Context->GraphBuilder)
+
+		Context->CachedPointIndices.Empty();
 		Context->VisitedClusters.Empty();
 
 		if (!Context->AdvancePointsIO()) { Context->Done(); }
@@ -82,34 +91,59 @@ bool FPCGExBridgeEdgeClustersElement::ExecuteInternal(
 				}
 				else
 				{
-					FPCGExPointIOMerger* Merger = new FPCGExPointIOMerger(*Context->ConsolidatedEdges);
-					Merger->Append(Context->TaggedEdges->Entries);
-					Merger->DoMerge();
-					Context->SetState(PCGExGraph::State_ReadyForNextEdges);
+					// Merge all edges into a huge blurb
+					Context->Merger = new FPCGExPointIOMerger(*Context->ConsolidatedEdges);
+					Context->Merger->Append(Context->TaggedEdges->Entries);
+					Context->Merger->Merge(Context->GetAsyncManager());
+
+					Context->TotalPoints = Context->Merger->TotalPoints;
+
+					Context->SetState(PCGExData::State_MergingData);
 				}
 			}
 		}
 	}
 
-	if (Context->IsState(PCGExGraph::State_ReadyForNextEdges))
+	if (Context->IsState(PCGExData::State_MergingData))
 	{
-		while (Context->AdvanceEdges())
-		{
-			/* Batch-build all meshes since bCacheAllClusters == true */
-			if (!Context->CurrentCluster) { PCGEX_INVALID_CLUSTER_LOG }
-		}
+		if (!Context->IsAsyncWorkComplete()) { return false; }
 
-		if (Context->Clusters.IsEmpty())
-		{
-			Context->SetState(PCGExMT::State_ReadyForNextPoints);
-			return false;
-		}
+		Context->Merger->Write();
+		PCGEX_DELETE(Context->Merger);
 
 		Context->SetState(PCGExGraph::State_ProcessingEdges);
 	}
 
 	if (Context->IsState(PCGExGraph::State_ProcessingEdges))
 	{
+		const int32 NumBounds = Context->TaggedEdges->Entries.Num();
+		EPCGExBridgeClusterMethod SafeMethod = Context->BridgeMethod;
+
+		if (NumBounds <= 4 && SafeMethod == EPCGExBridgeClusterMethod::Delaunay) { SafeMethod = EPCGExBridgeClusterMethod::MostEdges; }
+
+		TSet<uint64> UniqueEdges;
+		TQueue<uint64> NewEdgeQueue;
+
+		if (SafeMethod == EPCGExBridgeClusterMethod::Delaunay)
+		{
+		}
+		else if (SafeMethod == EPCGExBridgeClusterMethod::LeastEdges)
+		{
+		}
+		else if (SafeMethod == EPCGExBridgeClusterMethod::MostEdges)
+		{
+			for (int i = 0; i < NumBounds; i++)
+			{
+				for (int j = 0; j < NumBounds; j++)
+				{
+					uint64 Hash = PCGExGraph::GetUnsignedHash64(i, j);
+					if (i == j || UniqueEdges.Contains(Hash)) { continue; }
+					UniqueEdges.Add(Hash);
+					NewEdgeQueue.Enqueue(Hash);
+				}
+			}
+		}
+
 		auto BridgeClusters = [&](const int32 ClusterIndex)
 		{
 			PCGExCluster::FCluster* CurrentCluster = Context->Clusters[ClusterIndex];
@@ -122,14 +156,15 @@ bool FPCGExBridgeEdgeClustersElement::ExecuteInternal(
 			if (SafeMethod == EPCGExBridgeClusterMethod::Delaunay)
 			{
 				PCGExGeo::TDelaunayTriangulation3* Delaunay = new PCGExGeo::TDelaunayTriangulation3();
+
 				TArray<FPCGPoint> Points;
 				Points.SetNum(ClusterNum);
 				for (int i = 0; i < Points.Num(); i++) { Points[i].Transform.SetLocation(Context->Clusters[i]->Bounds.GetCenter()); }
+
 				if (Delaunay->PrepareFrom(Points))
 				{
 					Delaunay->Generate();
 
-					TSet<uint64> UniqueEdges;
 					UniqueEdges.Reserve(Delaunay->Cells.Num() * 3);
 					for (const PCGExGeo::TDelaunayCell<4>* Cell : Delaunay->Cells)
 					{
@@ -143,6 +178,7 @@ bool FPCGExBridgeEdgeClustersElement::ExecuteInternal(
 								if (!UniqueEdges.Contains(Hash))
 								{
 									Context->GetAsyncManager()->Start<FPCGExBridgeClusteresTask>(A, Context->ConsolidatedEdges, B);
+									NewEdgeQueue.Enqueue(Hash);
 									UniqueEdges.Add(Hash);
 								}
 							}
@@ -156,6 +192,9 @@ bool FPCGExBridgeEdgeClustersElement::ExecuteInternal(
 			}
 			else if (SafeMethod == EPCGExBridgeClusterMethod::LeastEdges)
 			{
+				TSet<int32> VisitedEdges;
+				VisitedEdges.Reserve(Context->TaggedEdges->Entries.Num());
+
 				Context->VisitedClusters.Add(CurrentCluster); // As to not connect to self or already connected
 
 				PCGExCluster::FCluster* ClosestCluster = nullptr;

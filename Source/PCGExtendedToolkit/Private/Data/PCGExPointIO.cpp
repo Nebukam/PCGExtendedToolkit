@@ -164,7 +164,7 @@ namespace PCGExData
 	{
 		if (bEnabled && Out && Out->GetPoints().Num() > 0)
 		{
-			FPCGTaggedData* TaggedOutput =  &Context->OutputData.TaggedData.Emplace_GetRef();
+			FPCGTaggedData* TaggedOutput = &Context->OutputData.TaggedData.Emplace_GetRef();
 			TaggedOutput->Data = Out;
 			TaggedOutput->Pin = DefaultOutputLabel;
 			Tags->Dump(TaggedOutput->Tags);
@@ -344,4 +344,5 @@ namespace PCGExData
 		if (const int32* Index = TagMap.Find(Key)) { return Entries[*Index]; }
 		return nullptr;
 	}
+
 }

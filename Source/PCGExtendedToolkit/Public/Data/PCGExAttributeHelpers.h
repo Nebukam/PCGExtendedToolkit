@@ -160,7 +160,7 @@ public:
 #pragma endregion
 
 namespace PCGEx
-{	
+{
 	struct PCGEXTENDEDTOOLKIT_API FAttributeIdentity
 	{
 		FName Name = NAME_None;
@@ -175,17 +175,15 @@ namespace PCGEx
 
 	struct FAttributesInfos
 	{
-
-		TArray<FAttributeIdentity> Identities;		
+		TArray<FAttributeIdentity> Identities;
 		bool Contains(FName AttributeName, EPCGMetadataTypes Type);
 
 		~FAttributesInfos()
 		{
 			Identities.Empty();
 		}
-		
+
 		static FAttributesInfos* Get(const UPCGPointData* InData);
-		
 	};
 
 #pragma region Accessors
@@ -390,16 +388,25 @@ namespace PCGEx
 		}
 	};
 
+	class PCGEXTENDEDTOOLKIT_API FAAttributeIO
+	{
+		FName Name = NAME_None;
+
+		explicit FAAttributeIO(const FName InName):
+			Name(InName)
+		{
+		}
+	};
+
 	template <typename T>
-	class PCGEXTENDEDTOOLKIT_API FAttributeIOBase
+	class PCGEXTENDEDTOOLKIT_API FAttributeIOBase : public FAAttributeIO
 	{
 	public:
-		FName Name = NAME_None;
 		TArray<T> Values;
 		FAttributeAccessorBase<T>* Accessor = nullptr;
 
 		explicit FAttributeIOBase(const FName InName):
-			Name(InName)
+			FAAttributeIO(InName)
 		{
 			Values.Empty();
 		}

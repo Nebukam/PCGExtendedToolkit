@@ -46,6 +46,8 @@ TArray<FPCGPinProperties> UPCGExEdgesProcessorSettings::OutputPinProperties() co
 
 bool UPCGExEdgesProcessorSettings::GetCacheAllClusters() const { return false; }
 
+bool UPCGExEdgesProcessorSettings::GetGenerateClusters() const { return true; }
+
 #pragma endregion
 
 FPCGExEdgesProcessorContext::~FPCGExEdgesProcessorContext()
@@ -115,6 +117,8 @@ bool FPCGExEdgesProcessorContext::AdvanceEdges()
 		CurrentEdges = TaggedEdges->Entries[CurrentEdgesIndex];
 		CurrentEdges->CreateInKeys();
 
+		if (!bGenerateClusters) { return true; } //!
+
 		PCGEx::FAttributesInfos* EdgeInfos = PCGEx::FAttributesInfos::Get(CurrentEdges->GetIn());
 		if (EdgeInfos->Contains(PCGExGraph::Tag_EdgeStart, EPCGMetadataTypes::Integer32) &&
 			EdgeInfos->Contains(PCGExGraph::Tag_EdgeEnd, EPCGMetadataTypes::Integer32))
@@ -135,6 +139,8 @@ bool FPCGExEdgesProcessorContext::AdvanceEdges()
 		}
 
 		PCGEX_DELETE(EdgeInfos)
+
+
 		return true;
 	}
 
@@ -193,6 +199,7 @@ FPCGContext* FPCGExEdgesProcessorElement::InitializeContext(
 			Context->InputDictionary->TryAddEntry(PointIO);
 		});
 
+	Context->bGenerateClusters = Settings->GetGenerateClusters();
 	Context->bCacheAllClusters = Settings->GetCacheAllClusters();
 
 	return Context;

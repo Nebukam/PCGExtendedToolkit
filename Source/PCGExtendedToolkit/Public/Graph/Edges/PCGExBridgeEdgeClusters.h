@@ -38,6 +38,8 @@ public:
 	virtual bool GetCacheAllClusters() const override;
 	//~End UPCGExPointsProcessorSettings interface
 
+	virtual bool GetGenerateClusters() const override;
+	
 	/** Method used to find & insert bridges */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	EPCGExBridgeClusterMethod BridgeMethod = EPCGExBridgeClusterMethod::Delaunay;
@@ -54,10 +56,16 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBridgeEdgeClustersContext : public FPCGExEdg
 
 	EPCGExBridgeClusterMethod BridgeMethod;
 
+	int32 TotalPoints = -1;
 	PCGExData::FPointIO* ConsolidatedEdges = nullptr;
 	TSet<PCGExCluster::FCluster*> VisitedClusters;
-
+	
+	FPCGExPointIOMerger* Merger = nullptr;
 	PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
+
+	TMap<int32, int32> CachedPointIndices;
+	PCGEx::TFAttributeReader<int32>* StartIndexReader = nullptr;
+	PCGEx::TFAttributeReader<int32>* EndIndexReader = nullptr;
 	
 };
 

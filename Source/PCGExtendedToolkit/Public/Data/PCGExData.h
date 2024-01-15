@@ -11,6 +11,9 @@
 
 namespace PCGExData
 {
+
+	constexpr PCGExMT::AsyncState State_MergingData = __COUNTER__;
+	
 	template <typename T>
 	static FPCGMetadataAttribute<T>* WriteMark(UPCGMetadata* Metadata, const FName MarkID, T MarkValue)
 	{
