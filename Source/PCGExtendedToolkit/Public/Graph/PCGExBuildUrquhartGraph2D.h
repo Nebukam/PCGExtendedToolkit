@@ -6,33 +6,27 @@
 #include "CoreMinimal.h"
 
 #include "PCGExCustomGraphProcessor.h"
-#include "Geometry/PCGExGeo.h"
 
-#include "PCGExBuildVoronoiGraph.generated.h"
-
-namespace PCGExGeo
-{
-	class TVoronoiMesh3;
-}
+#include "PCGExBuildUrquhartGraph2D.generated.h"
 
 namespace PCGExGeo
 {
-	class TConvexHull3;
-	class TDelaunayTriangulation3;
+	class TConvexHull2;
+	class TDelaunayTriangulation2;
 }
 
 /**
  * Calculates the distance between two points (inherently a n*n operation)
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
-class PCGEXTENDEDTOOLKIT_API UPCGExBuildVoronoiGraphSettings : public UPCGExPointsProcessorSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExBuildUrquhartGraph2DSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(BuildVoronoiGraph, "Graph : Voronoi 3D", "Create a 3D Voronoi graph for each input dataset.");
+	PCGEX_NODE_INFOS(BuildUrquhartGraph2D, "Graph : Urquhart 2D", "Create a 2D Urquhart graph for each input dataset.");
 	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorGraph; }
 #endif
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
@@ -49,18 +43,6 @@ public:
 	//~End UPCGExPointsProcessorSettings interface
 
 public:
-	/** Method used to find Voronoi cell location */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	EPCGExCellCenter Method = EPCGExCellCenter::Balanced;
-
-	/** Prune points and cell outside bounds */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
-	bool bPruneOutsideBounds = false;
-
-	/** Prune points and cell outside bounds (computed based on input vertices + optional extension)*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bPruneOutsideBounds"))
-	double BoundsCutoff = 100;
-
 	/** Mark points & edges that lie on the hull */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bMarkHull = true;
@@ -74,27 +56,26 @@ public:
 	bool bMarkEdgeOnTouch = false;
 
 private:
-	friend class FPCGExBuildVoronoiGraphElement;
+	friend class FPCGExBuildUrquhartGraph2DElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExBuildVoronoiGraphContext : public FPCGExPointsProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExBuildUrquhartGraph2DContext : public FPCGExPointsProcessorContext
 {
-	friend class FPCGExBuildVoronoiGraphElement;
+	friend class FPCGExBuildUrquhartGraph2DElement;
 
-	virtual ~FPCGExBuildVoronoiGraphContext() override;
+	virtual ~FPCGExBuildUrquhartGraph2DContext() override;
 
 	int32 ClusterUIndex = 0;
 
-	PCGExGeo::TVoronoiMesh3* Voronoi = nullptr;
-	PCGExGeo::TConvexHull3* ConvexHull = nullptr;
+	PCGExGeo::TDelaunayTriangulation2* Delaunay = nullptr;
+	PCGExGeo::TConvexHull2* ConvexHull = nullptr;
 	TSet<int32> HullIndices;
 
 	PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
-
 };
 
 
-class PCGEXTENDEDTOOLKIT_API FPCGExBuildVoronoiGraphElement : public FPCGExPointsProcessorElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExBuildUrquhartGraph2DElement : public FPCGExPointsProcessorElementBase
 {
 public:
 	virtual FPCGContext* Initialize(

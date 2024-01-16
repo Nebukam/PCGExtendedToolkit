@@ -92,7 +92,6 @@ bool FPCGExWriteEdgeExtrasElement::ExecuteInternal(
 			if (!Context->CurrentCluster)
 			{
 				PCGEX_INVALID_CLUSTER_LOG
-				Context->SetState(PCGExMT::State_ReadyForNextPoints);
 				return false;
 			}
 

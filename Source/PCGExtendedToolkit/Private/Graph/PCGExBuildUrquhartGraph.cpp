@@ -1,7 +1,7 @@
 ﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Graph/PCGExBuildDelaunayGraph.h"
+#include "Graph/PCGExBuildUrquhartGraph.h"
 
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
 #include "Geometry/PCGExGeoDelaunay.h"
@@ -9,13 +9,13 @@
 #include "Graph/PCGExCluster.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraph"
-#define PCGEX_NAMESPACE BuildDelaunayGraph
+#define PCGEX_NAMESPACE BuildUrquhartGraph
 
-int32 UPCGExBuildDelaunayGraphSettings::GetPreferredChunkSize() const { return 32; }
+int32 UPCGExBuildUrquhartGraphSettings::GetPreferredChunkSize() const { return 32; }
 
-PCGExData::EInit UPCGExBuildDelaunayGraphSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
+PCGExData::EInit UPCGExBuildUrquhartGraphSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
-FPCGExBuildDelaunayGraphContext::~FPCGExBuildDelaunayGraphContext()
+FPCGExBuildUrquhartGraphContext::~FPCGExBuildUrquhartGraphContext()
 {
 	PCGEX_TERMINATE_ASYNC
 
@@ -26,7 +26,7 @@ FPCGExBuildDelaunayGraphContext::~FPCGExBuildDelaunayGraphContext()
 	HullIndices.Empty();
 }
 
-TArray<FPCGPinProperties> UPCGExBuildDelaunayGraphSettings::OutputPinProperties() const
+TArray<FPCGPinProperties> UPCGExBuildUrquhartGraphSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
 	FPCGPinProperties& PinClustersOutput = PinProperties.Emplace_GetRef(PCGExGraph::OutputEdgesLabel, EPCGDataType::Point);
@@ -39,27 +39,27 @@ TArray<FPCGPinProperties> UPCGExBuildDelaunayGraphSettings::OutputPinProperties(
 	return PinProperties;
 }
 
-FName UPCGExBuildDelaunayGraphSettings::GetMainOutputLabel() const { return PCGExGraph::OutputVerticesLabel; }
+FName UPCGExBuildUrquhartGraphSettings::GetMainOutputLabel() const { return PCGExGraph::OutputVerticesLabel; }
 
-PCGEX_INITIALIZE_ELEMENT(BuildDelaunayGraph)
+PCGEX_INITIALIZE_ELEMENT(BuildUrquhartGraph)
 
-bool FPCGExBuildDelaunayGraphElement::Boot(FPCGContext* InContext) const
+bool FPCGExBuildUrquhartGraphElement::Boot(FPCGContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElementBase::Boot(InContext)) { return false; }
 
-	PCGEX_CONTEXT_AND_SETTINGS(BuildDelaunayGraph)
+	PCGEX_CONTEXT_AND_SETTINGS(BuildUrquhartGraph)
 
 	PCGEX_VALIDATE_NAME(Settings->HullAttributeName)
 
 	return true;
 }
 
-bool FPCGExBuildDelaunayGraphElement::ExecuteInternal(
+bool FPCGExBuildUrquhartGraphElement::ExecuteInternal(
 	FPCGContext* InContext) const
 {
-	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExBuildDelaunayGraphElement::Execute);
+	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExBuildUrquhartGraphElement::Execute);
 
-	PCGEX_CONTEXT_AND_SETTINGS(BuildDelaunayGraph)
+	PCGEX_CONTEXT_AND_SETTINGS(BuildUrquhartGraph)
 
 	if (Context->IsSetup())
 	{

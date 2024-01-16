@@ -18,7 +18,9 @@ class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicOperation : public UPCGExOperation
 	GENERATED_BODY()
 
 public:
-	virtual void PrepareForData(const PCGExCluster::FCluster* InCluster);
+	double ReferenceWeight = 100;
+	
+	virtual void PrepareForData(PCGExCluster::FCluster* InCluster);
 	virtual double ComputeScore(
 		const PCGExCluster::FScoredNode* From,
 		const PCGExCluster::FNode& To,
@@ -26,7 +28,13 @@ public:
 		const PCGExCluster::FNode& Goal,
 		const PCGExGraph::FIndexedEdge& Edge) const;
 
-	virtual bool IsBetterScore(const double NewScore, const double OtherScore) const;
-	virtual int32 GetQueueingIndex(const TArray<PCGExCluster::FScoredNode*>& InVertices, const double InScore) const;
-	double GetScale() const { return IsBetterScore(-1, 1) ? 1 : -1; }
+	virtual bool IsBetterScore(const double NewScore, const double OtherScore, const int32 A, const int32 B) const;
+	virtual int32 GetQueueingIndex(const TArray<PCGExCluster::FScoredNode*>& InList, const double InScore, const int32 A) const;
+	double GetFactor() const { return IsBetterScore(-1, 1, 0, 0) ? 1 : -1; }
+
+	virtual void Cleanup() override;
+	
+protected:
+	PCGExCluster::FCluster* Cluster = nullptr;
+	
 };

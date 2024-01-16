@@ -26,7 +26,7 @@ public:
 		const PCGExCluster::FNode& Goal,
 		const PCGExGraph::FIndexedEdge& Edge) const override;
 
-	virtual bool IsBetterScore(const double NewScore, const double OtherScore) const override;
+	virtual bool IsBetterScore(const double NewScore, const double OtherScore, const int32 A, const int32 B) const override;
 
 	/** How to interpret the data. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-2))

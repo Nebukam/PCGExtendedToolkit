@@ -6,7 +6,6 @@
 #include "CoreMinimal.h"
 
 #include "PCGExCustomGraphProcessor.h"
-#include "Data/PCGExData.h"
 
 #include "PCGExBuildConvexHull2D.generated.h"
 

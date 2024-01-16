@@ -60,7 +60,7 @@ namespace PCGEx
 		}
 	}
 
-	bool FAttributesInfos::Contains(FName AttributeName, EPCGMetadataTypes Type)
+	bool FAttributesInfos::Contains(const FName AttributeName, const EPCGMetadataTypes Type)
 	{
 		for (FAttributeIdentity& Identity : Identities) { if (Identity.Name == AttributeName && Identity.UnderlyingType == Type) { return true; } }
 		return false;

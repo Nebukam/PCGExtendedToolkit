@@ -422,7 +422,7 @@ namespace PCGExGeo
 		}
 
 		/// Check if 2 faces are adjacent and if so, update their AdjacentFaces array.
-		void UpdateAdjacency(TSimplexWrap<DIMENSIONS>* Left, TSimplexWrap<DIMENSIONS>* Right)
+		static void UpdateAdjacency(TSimplexWrap<DIMENSIONS>* Left, TSimplexWrap<DIMENSIONS>* Right)
 		{
 			int i;
 

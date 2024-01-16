@@ -48,6 +48,7 @@ namespace PCGExCluster
 		Nodes.Empty();
 		PointIndexMap.Empty();
 		Edges.Empty();
+		EdgeLengths.Empty();
 	}
 
 	FNode& FCluster::GetOrCreateNode(const int32 PointIndex, const TArray<FPCGPoint>& InPoints)
@@ -80,7 +81,7 @@ namespace PCGExCluster
 
 		PCGEx::TFAttributeReader<int32>* StartIndexReader = new PCGEx::TFAttributeReader<int32>(PCGExGraph::Tag_EdgeStart);
 		PCGEx::TFAttributeReader<int32>* EndIndexReader = new PCGEx::TFAttributeReader<int32>(PCGExGraph::Tag_EdgeEnd);
-
+		
 		StartIndexReader->Bind(const_cast<PCGExData::FPointIO&>(InEdges));
 		EndIndexReader->Bind(const_cast<PCGExData::FPointIO&>(InEdges));
 
@@ -160,6 +161,27 @@ namespace PCGExCluster
 	}
 
 	const FNode& FCluster::GetNodeFromPointIndex(const int32 Index) const { return Nodes[*PointIndexMap.Find(Index)]; }
+
+	void FCluster::ComputeEdgeLengths(const bool bNormalize)
+	{
+		if (!bEdgeLengthsDirty) { return; }
+
+		const int32 NumEdges = Edges.Num();
+		double Max = TNumericLimits<double>::Min();
+		EdgeLengths.SetNum(NumEdges);
+
+		for (int i = 0; i < NumEdges; i++)
+		{
+			const PCGExGraph::FIndexedEdge& Edge = Edges[i];
+			const double Dist = FVector::DistSquared(Nodes[Edge.Start].Position, Nodes[Edge.End].Position);
+			EdgeLengths[i] = Dist;
+			Max = FMath::Max(Dist, Max);
+		}
+
+		if (bNormalize) { for (int i = 0; i < NumEdges; i++) { EdgeLengths[i] /= Max; } }
+
+		bEdgeLengthsDirty = false;
+	}
 }
 
 bool FPCGExBuildCluster::ExecuteTask()

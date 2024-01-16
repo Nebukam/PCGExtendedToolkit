@@ -111,7 +111,8 @@ bool FPCGExPathfindingProcessorElement::Boot(FPCGContext* InContext) const
 	}
 
 	Context->HeuristicsModifiers = const_cast<FPCGExHeuristicModifiersSettings*>(&Settings->HeuristicsModifiers);
-
+	Context->Heuristics->ReferenceWeight = Context->HeuristicsModifiers->ReferenceWeight;
+	
 	return true;
 }
 

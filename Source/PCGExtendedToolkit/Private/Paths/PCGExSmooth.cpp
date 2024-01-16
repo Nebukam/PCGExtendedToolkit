@@ -4,7 +4,6 @@
 #include "Paths/PCGExSmooth.h"
 
 #include "Paths/Smoothing/PCGExMovingAverageSmoothing.h"
-#include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSmoothElement"
 #define PCGEX_NAMESPACE Smooth

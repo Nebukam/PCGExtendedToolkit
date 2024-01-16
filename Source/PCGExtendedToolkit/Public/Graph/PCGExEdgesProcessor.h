@@ -4,10 +4,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "IPCGExDebug.h"
 #include "PCGExCluster.h"
 #include "PCGExPointsProcessor.h"
-#include "Data/PCGExData.h"
 
 #include "PCGExEdgesProcessor.generated.h"
 

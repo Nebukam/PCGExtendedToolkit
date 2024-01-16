@@ -10,10 +10,10 @@ double UPCGExHeuristicDirection::ComputeScore(
 	const PCGExCluster::FNode& Seed,
 	const PCGExCluster::FNode& Goal, const PCGExGraph::FIndexedEdge& Edge) const
 {
-	return From->Score + FVector::DotProduct((From->Node->Position - To.Position).GetSafeNormal(), (From->Node->Position - Goal.Position).GetSafeNormal()) * 100;
+	return FVector::DotProduct((From->Node->Position - To.Position).GetSafeNormal(), (From->Node->Position - Goal.Position).GetSafeNormal()) * ReferenceWeight;
 }
 
-bool UPCGExHeuristicDirection::IsBetterScore(const double NewScore, const double OtherScore) const
+bool UPCGExHeuristicDirection::IsBetterScore(const double NewScore, const double OtherScore, const int32 A, const int32 B) const
 {
-	return NewScore >= OtherScore;
+	return FMath::IsNearlyEqual(NewScore, OtherScore) ? A > B : NewScore > OtherScore;
 }

@@ -2,19 +2,20 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 
-#include "Graph/Pathfinding/Heuristics/PCGExHeuristicDistance.h"
+#include "Graph/Pathfinding/Heuristics/PCGExHeuristicLocalDistance.h"
 
-void UPCGExHeuristicDistance::PrepareForData(PCGExCluster::FCluster* InCluster)
+void UPCGExHeuristicLocalDistance::PrepareForData(PCGExCluster::FCluster* InCluster)
 {
 	InCluster->ComputeEdgeLengths(true);
 	Super::PrepareForData(InCluster);
 }
 
-double UPCGExHeuristicDistance::ComputeScore(
+double UPCGExHeuristicLocalDistance::ComputeScore(
 	const PCGExCluster::FScoredNode* From,
 	const PCGExCluster::FNode& To,
 	const PCGExCluster::FNode& Seed,
 	const PCGExCluster::FNode& Goal, const PCGExGraph::FIndexedEdge& Edge) const
 {
-	return From->Score + Cluster->EdgeLengths[Edge.EdgeIndex] * ReferenceWeight;
+	return Cluster->EdgeLengths[Edge.EdgeIndex] * ReferenceWeight;
 }
+

@@ -92,20 +92,20 @@ bool FPCGExEdgesProcessorContext::AdvancePointsIO()
 	return true;
 }
 
-bool FPCGExEdgesProcessorContext::AdvanceEdges(bool bBuildCluster)
+bool FPCGExEdgesProcessorContext::AdvanceEdges(const bool bBuildCluster)
 {
 
 	PCGEX_DELETE(CurrentCluster);
 	
-	if (CurrentEdges) { CurrentEdges->Cleanup(); }
+	if (bBuildCluster && CurrentEdges) { CurrentEdges->Cleanup(); }
 
 	if (TaggedEdges && TaggedEdges->Entries.IsValidIndex(++CurrentEdgesIndex))
 	{
 		CurrentEdges = TaggedEdges->Entries[CurrentEdgesIndex];
-		CurrentEdges->CreateInKeys();
 
 		if (!bBuildCluster) { return true; }
 
+		CurrentEdges->CreateInKeys();
 		CurrentCluster = new PCGExCluster::FCluster();
 
 		if (!CurrentCluster->BuildFrom(

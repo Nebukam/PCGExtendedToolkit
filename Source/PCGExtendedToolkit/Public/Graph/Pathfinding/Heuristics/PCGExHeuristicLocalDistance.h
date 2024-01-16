@@ -7,13 +7,13 @@
 #include "Graph/PCGExCluster.h"
 #include "UObject/Object.h"
 #include "PCGExHeuristicOperation.h"
-#include "PCGExHeuristicDistance.generated.h"
+#include "PCGExHeuristicLocalDistance.generated.h"
 
 /**
  * 
  */
-UCLASS(DisplayName = "Distance")
-class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicDistance : public UPCGExHeuristicOperation
+UCLASS(DisplayName = "Local Distance (MST)")
+class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicLocalDistance : public UPCGExHeuristicOperation
 {
 	GENERATED_BODY()
 

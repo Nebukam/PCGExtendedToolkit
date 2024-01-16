@@ -210,7 +210,7 @@ namespace PCGExGraph
 
 		bool bCompiledSuccessfully = false;
 
-		FGraphBuilder(PCGExData::FPointIO& InPointIO, int32 NumEdgeReserve = 6, PCGExData::FPointIO* InSourceEdges = nullptr)
+		FGraphBuilder(PCGExData::FPointIO& InPointIO, const int32 NumEdgeReserve = 6, PCGExData::FPointIO* InSourceEdges = nullptr)
 			: SourceEdgesIO(InSourceEdges)
 		{
 			PointIO = &InPointIO;

@@ -55,11 +55,13 @@ namespace PCGExCluster
 
 	struct PCGEXTENDEDTOOLKIT_API FCluster
 	{
+		bool bEdgeLengthsDirty = true;
 		bool bValid = false;
 		int32 ClusterID = -1;
 		TMap<int32, int32> PointIndexMap; //Cluster vertices
 		TArray<FNode> Nodes;
 		TArray<PCGExGraph::FIndexedEdge> Edges;
+		TArray<double> EdgeLengths;
 		FBox Bounds;
 
 		PCGExData::FPointIO* PointsIO = nullptr;
@@ -76,6 +78,7 @@ namespace PCGExCluster
 		int32 FindClosestNode(const FVector& Position) const;
 
 		const FNode& GetNodeFromPointIndex(const int32 Index) const;
+		void ComputeEdgeLengths(bool bNormalize = false);
 
 	protected:
 		FNode& GetOrCreateNode(const int32 PointIndex, const TArray<FPCGPoint>& InPoints);
@@ -87,7 +90,7 @@ class PCGEXTENDEDTOOLKIT_API FPCGExBuildCluster : public FPCGExNonAbandonableTas
 public:
 	FPCGExBuildCluster(
 		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-		PCGExCluster::FCluster* InCluster, PCGExData::FPointIO* InEdgeIO, TMap<int32, int32>* InNodeIndicesMap, TArray<int32>* InPerNodeEdgeNums ) :
+		PCGExCluster::FCluster* InCluster, PCGExData::FPointIO* InEdgeIO, TMap<int32, int32>* InNodeIndicesMap, TArray<int32>* InPerNodeEdgeNums) :
 		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
 		Cluster(InCluster), EdgeIO(InEdgeIO), NodeIndicesMap(InNodeIndicesMap), PerNodeEdgeNums(InPerNodeEdgeNums)
 	{

@@ -97,7 +97,11 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicModifiersSettings
 {
 	GENERATED_BODY()
 
-	/** Draw line thickness. */
+	/** Reference weight. This is used by unexposed heuristics computations to stay consistent with user-defined modifiers.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	double ReferenceWeight = 100;
+
+	/** List of weighted heuristic modifiers */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, TitleProperty="{TitlePropertyName} ({Interpretation})"))
 	TArray<FPCGExHeuristicModifier> Modifiers;
 
@@ -130,7 +134,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicModifiersSettings
 	}
 #endif
 
-	void PrepareForData(PCGExData::FPointIO& InPoints, PCGExData::FPointIO& InEdges, const double Scale = 1)
+	void PrepareForData(PCGExData::FPointIO& InPoints, PCGExData::FPointIO& InEdges, const double Factor = 1)
 	{
 		bool bUpdatePoints = false;
 		const int32 NumPoints = InPoints.GetNum();
@@ -201,7 +205,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicModifiersSettings
 
 			double OutMin = -1;
 			double OutMax = 1;
-			const double OutScale = Scale;
 
 			if (Modifier.Interpretation == EPCGExHeuristicScoreMode::HigherIsBetter)
 			{
@@ -213,14 +216,14 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicModifiersSettings
 			{
 				for (int i = 0; i < NumIterations; i++)
 				{
-					(*TargetArray)[i] += (PCGExMath::Remap(NewGetter->Values[i], MinValue, MaxValue, OutMin, OutMax) * WeightGetter->Values[i]) * OutScale;
+					(*TargetArray)[i] += (PCGExMath::Remap(NewGetter->Values[i], MinValue, MaxValue, OutMin, OutMax) * WeightGetter->Values[i]) * Factor;
 				}
 			}
 			else
 			{
 				for (int i = 0; i < NumIterations; i++)
 				{
-					(*TargetArray)[i] += (PCGExMath::Remap(NewGetter->Values[i], MinValue, MaxValue, OutMin, OutMax) * Modifier.Weight) * OutScale;
+					(*TargetArray)[i] += (PCGExMath::Remap(NewGetter->Values[i], MinValue, MaxValue, OutMin, OutMax) * Modifier.Weight) * Factor;
 				}
 			}
 
@@ -364,7 +367,7 @@ namespace PCGExPathfinding
 					Score += Modifiers->GetScore(OtherNode.PointIndex, Edge.EdgeIndex);
 
 					if (const double* PreviousScore = CachedScores.Find(OtherPointIndex);
-						PreviousScore && !Heuristics->IsBetterScore(*PreviousScore, Score))
+						PreviousScore && !Heuristics->IsBetterScore(*PreviousScore, Score, OtherPointIndex, Node.PointIndex))
 					{
 						continue;
 					}
@@ -372,7 +375,7 @@ namespace PCGExPathfinding
 					PCGExCluster::FScoredNode* NewScoredNode = new PCGExCluster::FScoredNode(OtherNode, Score, CurrentScoredNode);
 					CachedScores.Add(OtherPointIndex, Score);
 
-					if (const int32 TargetIndex = Heuristics->GetQueueingIndex(OpenList, Score); TargetIndex == -1) { OpenList.Add(NewScoredNode); }
+					if (const int32 TargetIndex = Heuristics->GetQueueingIndex(OpenList, Score, Node.PointIndex); TargetIndex == -1) { OpenList.Add(NewScoredNode); }
 					else { OpenList.Insert(NewScoredNode, TargetIndex); }
 				}
 			}

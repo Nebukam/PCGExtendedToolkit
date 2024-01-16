@@ -6,7 +6,6 @@
 #include "CoreMinimal.h"
 
 #include "PCGExCustomGraphProcessor.h"
-#include "Data/PCGExData.h"
 
 #include "PCGExBuildDelaunayGraph.generated.h"
 

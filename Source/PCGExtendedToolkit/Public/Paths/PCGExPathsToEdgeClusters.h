@@ -7,7 +7,6 @@
 #include "PCGExPathProcessor.h"
 
 #include "PCGExPointsProcessor.h"
-#include "Data/PCGExData.h"
 #include "Graph/PCGExGraph.h"
 #include "PCGExPathsToEdgeClusters.generated.h"
 

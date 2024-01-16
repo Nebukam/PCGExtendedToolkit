@@ -120,7 +120,7 @@ namespace PCGExMath
 	}
 
 	template <typename T, typename dummy = void>
-	static T Tile(const T Value, const T InMin, const T InMax, bool bSafe = false)
+	static T Tile(const T Value, const T InMin, const T InMax, const bool bSafe = false)
 	{
 		T Min = InMin;
 		T Max = InMax;
@@ -148,7 +148,7 @@ namespace PCGExMath
 	}
 
 	template <typename dummy = void>
-	static FVector2D Tile(const FVector2D Value, const FVector2D Min, const FVector2D Max, bool bSafe = false)
+	static FVector2D Tile(const FVector2D Value, const FVector2D Min, const FVector2D Max, const bool bSafe = false)
 	{
 		return FVector2D(
 			Tile(Value.X, Min.X, Max.X, bSafe),
@@ -156,7 +156,7 @@ namespace PCGExMath
 	}
 
 	template <typename dummy = void>
-	static FVector Tile(const FVector Value, const FVector Min, const FVector Max, bool bSafe = false)
+	static FVector Tile(const FVector Value, const FVector Min, const FVector Max, const bool bSafe = false)
 	{
 		return FVector(
 			Tile(Value.X, Min.X, Max.X, bSafe),
@@ -165,7 +165,7 @@ namespace PCGExMath
 	}
 
 	template <typename dummy = void>
-	static FVector4 Tile(const FVector4 Value, const FVector4 Min, const FVector4 Max, bool bSafe = false)
+	static FVector4 Tile(const FVector4 Value, const FVector4 Min, const FVector4 Max, const bool bSafe = false)
 	{
 		return FVector4(
 			Tile(Value.X, Min.X, Max.X, bSafe),
@@ -188,7 +188,7 @@ namespace PCGExMath
 		return Sign == 0 ? -1 : Sign;
 	}
 
-	static FBox ConeBox(const FVector& Center, const FVector& ConeDirection, double Size)
+	static FBox ConeBox(const FVector& Center, const FVector& ConeDirection, const double Size)
 	{
 		const FVector Dir = ConeDirection.GetSafeNormal();
 		const FVector U = FVector::CrossProduct(Dir, Dir + FVector(0.1)).GetSafeNormal();

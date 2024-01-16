@@ -112,11 +112,11 @@ bool FPCGExPathfindingEdgesElement::ExecuteInternal(FPCGContext* InContext) cons
 			if (!Context->CurrentCluster)
 			{
 				PCGEX_INVALID_CLUSTER_LOG
-				Context->SetState(PCGExMT::State_ReadyForNextPoints);
 				return false;
 			}
-			
-			Context->HeuristicsModifiers->PrepareForData(*Context->CurrentIO, *Context->CurrentEdges, Context->Heuristics->GetScale());
+
+			Context->Heuristics->PrepareForData(Context->CurrentCluster);
+			Context->HeuristicsModifiers->PrepareForData(*Context->CurrentIO, *Context->CurrentEdges, Context->Heuristics->GetFactor());
 			Context->SetState(PCGExGraph::State_ProcessingEdges);
 		}
 	}

@@ -13,7 +13,8 @@ double UPCGExHeuristicModifiersOnly::ComputeScore(
 	return 0;
 }
 
-bool UPCGExHeuristicModifiersOnly::IsBetterScore(const double NewScore, const double OtherScore) const
+bool UPCGExHeuristicModifiersOnly::IsBetterScore(const double NewScore, const double OtherScore, const int32 A, const int32 B) const
 {
-	return BaseInterpretation == EPCGExHeuristicScoreMode::HigherIsBetter ? NewScore >= OtherScore : NewScore <= OtherScore;
+	if (BaseInterpretation == EPCGExHeuristicScoreMode::HigherIsBetter) { return FMath::IsNearlyEqual(NewScore, OtherScore) ? A > B : NewScore > OtherScore; }
+	else { return FMath::IsNearlyEqual(NewScore, OtherScore) ? A < B : NewScore < OtherScore; }
 }

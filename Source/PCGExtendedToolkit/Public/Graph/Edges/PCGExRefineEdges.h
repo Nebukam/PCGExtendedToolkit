@@ -77,14 +77,13 @@ class PCGEXTENDEDTOOLKIT_API FPCGExRefineEdgesTask : public FPCGExNonAbandonable
 public:
 	FPCGExRefineEdgesTask(
 		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-		PCGExCluster::FCluster* InCluster, PCGExData::FPointIO* InEdges) :
+		PCGExData::FPointIO* InEdgeIO) :
 		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
-		Cluster(InCluster), Edges(InEdges)
+		EdgeIO(InEdgeIO)
 	{
 	}
 
-	PCGExCluster::FCluster* Cluster = nullptr;
-	PCGExData::FPointIO* Edges = nullptr;
+	PCGExData::FPointIO* EdgeIO = nullptr;
 
 	virtual bool ExecuteTask() override;
 };

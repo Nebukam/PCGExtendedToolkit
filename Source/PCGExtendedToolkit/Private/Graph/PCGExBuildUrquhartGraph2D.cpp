@@ -1,7 +1,7 @@
 ﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Graph/PCGExBuildDelaunayGraph.h"
+#include "Graph/PCGExBuildUrquhartGraph2D.h"
 
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
 #include "Geometry/PCGExGeoDelaunay.h"
@@ -9,13 +9,13 @@
 #include "Graph/PCGExCluster.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraph"
-#define PCGEX_NAMESPACE BuildDelaunayGraph
+#define PCGEX_NAMESPACE BuildUrquhartGraph2D
 
-int32 UPCGExBuildDelaunayGraphSettings::GetPreferredChunkSize() const { return 32; }
+int32 UPCGExBuildUrquhartGraph2DSettings::GetPreferredChunkSize() const { return 32; }
 
-PCGExData::EInit UPCGExBuildDelaunayGraphSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
+PCGExData::EInit UPCGExBuildUrquhartGraph2DSettings::GetMainOutputInitMode() const { return bMarkHull ? PCGExData::EInit::DuplicateInput : PCGExData::EInit::Forward; }
 
-FPCGExBuildDelaunayGraphContext::~FPCGExBuildDelaunayGraphContext()
+FPCGExBuildUrquhartGraph2DContext::~FPCGExBuildUrquhartGraph2DContext()
 {
 	PCGEX_TERMINATE_ASYNC
 
@@ -26,7 +26,7 @@ FPCGExBuildDelaunayGraphContext::~FPCGExBuildDelaunayGraphContext()
 	HullIndices.Empty();
 }
 
-TArray<FPCGPinProperties> UPCGExBuildDelaunayGraphSettings::OutputPinProperties() const
+TArray<FPCGPinProperties> UPCGExBuildUrquhartGraph2DSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
 	FPCGPinProperties& PinClustersOutput = PinProperties.Emplace_GetRef(PCGExGraph::OutputEdgesLabel, EPCGDataType::Point);
@@ -39,27 +39,27 @@ TArray<FPCGPinProperties> UPCGExBuildDelaunayGraphSettings::OutputPinProperties(
 	return PinProperties;
 }
 
-FName UPCGExBuildDelaunayGraphSettings::GetMainOutputLabel() const { return PCGExGraph::OutputVerticesLabel; }
+FName UPCGExBuildUrquhartGraph2DSettings::GetMainOutputLabel() const { return PCGExGraph::OutputVerticesLabel; }
 
-PCGEX_INITIALIZE_ELEMENT(BuildDelaunayGraph)
+PCGEX_INITIALIZE_ELEMENT(BuildUrquhartGraph2D)
 
-bool FPCGExBuildDelaunayGraphElement::Boot(FPCGContext* InContext) const
+bool FPCGExBuildUrquhartGraph2DElement::Boot(FPCGContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElementBase::Boot(InContext)) { return false; }
 
-	PCGEX_CONTEXT_AND_SETTINGS(BuildDelaunayGraph)
+	PCGEX_CONTEXT_AND_SETTINGS(BuildUrquhartGraph2D)
 
 	PCGEX_VALIDATE_NAME(Settings->HullAttributeName)
 
 	return true;
 }
 
-bool FPCGExBuildDelaunayGraphElement::ExecuteInternal(
+bool FPCGExBuildUrquhartGraph2DElement::ExecuteInternal(
 	FPCGContext* InContext) const
 {
-	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExBuildDelaunayGraphElement::Execute);
+	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExBuildUrquhartGraph2DElement::Execute);
 
-	PCGEX_CONTEXT_AND_SETTINGS(BuildDelaunayGraph)
+	PCGEX_CONTEXT_AND_SETTINGS(BuildUrquhartGraph2D)
 
 	if (Context->IsSetup())
 	{
@@ -79,14 +79,14 @@ bool FPCGExBuildDelaunayGraphElement::ExecuteInternal(
 		{
 			if (Context->CurrentIO->GetNum() <= 4)
 			{
-				PCGE_LOG(Warning, GraphAndLog, FTEXT(" (0) Some inputs have too few points to be processed (<= 4)."));
+				PCGE_LOG(Warning, GraphAndLog, FTEXT("(0) Some inputs have too few points to be processed (<= 3)."));
 				return false;
 			}
 
 			if (Settings->bMarkHull)
 			{
-				Context->ConvexHull = new PCGExGeo::TConvexHull3();
-				TArray<PCGExGeo::TFVtx<3>*> HullVertices;
+				Context->ConvexHull = new PCGExGeo::TConvexHull2();
+				TArray<PCGExGeo::TFVtx<2>*> HullVertices;
 				GetVerticesFromPoints(Context->CurrentIO->GetIn()->GetPoints(), HullVertices);
 
 				if (Context->ConvexHull->Prepare(HullVertices))
@@ -96,7 +96,7 @@ bool FPCGExBuildDelaunayGraphElement::ExecuteInternal(
 				}
 				else
 				{
-					PCGE_LOG(Warning, GraphAndLog, FTEXT("(1) Some inputs generates no results. Are points coplanar? If so, use Delaunay 2D instead."));
+					PCGE_LOG(Warning, GraphAndLog, FTEXT("(1) Some inputs generates no results. Check for singularities."));
 					return false;
 				}
 			}
@@ -124,10 +124,13 @@ bool FPCGExBuildDelaunayGraphElement::ExecuteInternal(
 			PCGEX_DELETE(Context->ConvexHull)
 		}
 
-		Context->Delaunay = new PCGExGeo::TDelaunayTriangulation3();
+		Context->Delaunay = new PCGExGeo::TDelaunayTriangulation2();
 		if (Context->Delaunay->PrepareFrom(Context->CurrentIO->GetIn()->GetPoints()))
 		{
-			if (Context->bDoAsyncProcessing) { Context->Delaunay->Hull->StartAsyncProcessing(Context->GetAsyncManager()); }
+			if (Context->bDoAsyncProcessing)
+			{
+				Context->Delaunay->Hull->StartAsyncProcessing(Context->GetAsyncManager());
+			}
 			else { Context->Delaunay->Hull->Generate(); }
 			Context->SetAsyncState(PCGExGeo::State_ProcessingDelaunayHull);
 		}
@@ -141,16 +144,19 @@ bool FPCGExBuildDelaunayGraphElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExGeo::State_ProcessingDelaunayHull))
 	{
-		if (!Context->IsAsyncWorkComplete()) { return false; }
+		if (Context->IsAsyncWorkComplete())
+		{
+			Context->Delaunay->Hull->Finalize();
 
-		if (Context->bDoAsyncProcessing)
-		{
-			Context->SetState(PCGExGeo::State_ProcessingDelaunayPreprocess);
-		}
-		else
-		{
-			Context->Delaunay->Generate();
-			Context->SetAsyncState(PCGExGeo::State_ProcessingDelaunay);
+			if (Context->bDoAsyncProcessing)
+			{
+				Context->SetState(PCGExGeo::State_ProcessingDelaunayPreprocess);
+			}
+			else
+			{
+				Context->Delaunay->Generate();
+				Context->SetAsyncState(PCGExGeo::State_ProcessingDelaunay);
+			}
 		}
 	}
 
@@ -188,7 +194,11 @@ bool FPCGExBuildDelaunayGraphElement::ExecuteInternal(
 	if (Context->IsState(PCGExGraph::State_WritingClusters))
 	{
 		if (!Context->IsAsyncWorkComplete()) { return false; }
-		if (Context->GraphBuilder->bCompiledSuccessfully) { Context->GraphBuilder->Write(Context); }
+		if(Context->GraphBuilder->bCompiledSuccessfully)
+		{
+			Context->GraphBuilder->Write(Context);
+			//TODO: Mark edges, process EdgesIO from GraphBuilder
+		}
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 

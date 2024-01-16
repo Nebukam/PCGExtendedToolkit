@@ -3,7 +3,6 @@
 
 #include "Graph/PCGExFindCustomGraphEdgeClusters.h"
 
-#include "Data/PCGExData.h"
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraph"
