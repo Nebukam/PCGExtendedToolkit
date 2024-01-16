@@ -204,13 +204,13 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicModifiersSettings
 			}
 
 			// Default is, lower score is better.
-			double OutMin = 0;
+			double OutMin = -1;
 			double OutMax = 1;
 
 			if (Modifier.Interpretation == EPCGExHeuristicScoreMode::HigherIsBetter)
 			{
 				OutMin = 1;
-				OutMax = 0;
+				OutMax = -1;
 			}
 
 			if (bLocalWeight)

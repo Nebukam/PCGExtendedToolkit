@@ -191,7 +191,9 @@ namespace PCGExCluster
 		for (int i = 0; i < NumEdges; i++)
 		{
 			const PCGExGraph::FIndexedEdge& Edge = Edges[i];
-			const double Dist = FVector::DistSquared(Nodes[Edge.Start].Position, Nodes[Edge.End].Position);
+			const FNode& A = GetNodeFromPointIndex(Edge.Start);
+			const FNode& B = GetNodeFromPointIndex(Edge.End);
+			const double Dist = FVector::DistSquared(A.Position, B.Position);
 			EdgeLengths[i] = Dist;
 			Max = FMath::Max(Dist, Max);
 		}
