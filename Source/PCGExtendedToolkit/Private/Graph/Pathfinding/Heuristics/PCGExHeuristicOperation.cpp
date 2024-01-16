@@ -19,18 +19,33 @@ double UPCGExHeuristicOperation::ComputeScore(
 	return From->Score + 1;
 }
 
-bool UPCGExHeuristicOperation::IsBetterScore(const double NewScore, const double OtherScore, const int32 A, const int32 B) const
+bool UPCGExHeuristicOperation::IsBetterScore(const double NewScore, const double OtherScore) const // Defaults to lower is better
 {
-	return FMath::IsNearlyEqual(NewScore, OtherScore) ? A < B : NewScore < OtherScore; // Defaults to lower is better
+	return NewScore < OtherScore;
 }
 
 int32 UPCGExHeuristicOperation::GetQueueingIndex(const TArray<PCGExCluster::FScoredNode*>& InList, const double InScore, const int32 A) const
 {
-	for (int i = InList.Num() - 1; i >= 0; i--)
+	const int32 MaxIndex = InList.Num() - 1;
+	for (int i = MaxIndex; i >= 0; i--) { if (IsBetterScore(InScore, InList[i]->Score)) { return i + 1; } }
+	return FMath::Max(0, MaxIndex);
+}
+
+void UPCGExHeuristicOperation::ScoredInsert(TArray<PCGExCluster::FScoredNode*>& InList, PCGExCluster::FScoredNode* Node) const
+{
+	int32 TargetIndex = 0;
+	const int32 MaxIndex = InList.Num() - 1;
+
+	for (int i = MaxIndex; i >= 0; i--)
 	{
-		if (IsBetterScore(InScore, InList[i]->Score, A, InList[i]->Node->PointIndex)) { return i + 1; }
+		if (IsBetterScore(Node->Score, InList[i]->Score))
+		{
+			TargetIndex = i + 1;
+			break;
+		}
 	}
-	return -1;
+
+	InList.Insert(Node, TargetIndex);
 }
 
 void UPCGExHeuristicOperation::Cleanup()

@@ -81,7 +81,7 @@ namespace PCGExCluster
 
 		PCGEx::TFAttributeReader<int32>* StartIndexReader = new PCGEx::TFAttributeReader<int32>(PCGExGraph::Tag_EdgeStart);
 		PCGEx::TFAttributeReader<int32>* EndIndexReader = new PCGEx::TFAttributeReader<int32>(PCGExGraph::Tag_EdgeEnd);
-		
+
 		StartIndexReader->Bind(const_cast<PCGExData::FPointIO&>(InEdges));
 		EndIndexReader->Bind(const_cast<PCGExData::FPointIO&>(InEdges));
 
@@ -92,6 +92,9 @@ namespace PCGExCluster
 		const TArray<FPCGPoint>& InEdgesPoints = InEdges.GetIn()->GetPoints();
 		const int32 NumEdges = InEdgesPoints.Num();
 		Edges.Reset(NumEdges);
+
+		TArray<PCGExGraph::FUnsignedEdge> EdgeList;
+		EdgeList.SetNum(NumEdges);
 
 		for (int i = 0; i < NumEdges; i++)
 		{
@@ -115,13 +118,8 @@ namespace PCGExCluster
 				break;
 			}
 
-			Edges.Emplace_GetRef(i, NodeStart, NodeEnd);
-
-			FNode& Start = GetOrCreateNode(NodeStart, InNodePoints);
-			FNode& End = GetOrCreateNode(NodeEnd, InNodePoints);
-
-			Start.AddConnection(i, End.NodeIndex);
-			End.AddConnection(i, Start.NodeIndex);
+			EdgeList[i].Start = NodeStart;
+			EdgeList[i].End = NodeEnd;
 		}
 
 		PCGEX_DELETE(StartIndexReader)
@@ -129,7 +127,25 @@ namespace PCGExCluster
 
 		if (!bInvalidCluster)
 		{
-			for (const FNode& Node : Nodes)
+			EdgeList.Sort(
+				[](const PCGExGraph::FUnsignedEdge& A, const PCGExGraph::FUnsignedEdge& B)
+				{
+					return A.Start == B.Start ? A.End < B.End : A.Start < B.Start;
+				});
+
+			for (int i = 0; i < NumEdges; i++)
+			{
+				const PCGExGraph::FUnsignedEdge& E = EdgeList[i];
+				Edges.Emplace_GetRef(i, E.Start, E.End);
+
+				FNode& Start = GetOrCreateNode(E.Start, InNodePoints);
+				FNode& End = GetOrCreateNode(E.End, InNodePoints);
+
+				Start.AddConnection(i, End.NodeIndex);
+				End.AddConnection(i, Start.NodeIndex);
+			}
+
+			for (FNode& Node : Nodes)
 			{
 				if (PerNodeEdgeNums[Node.PointIndex] != Node.AdjacentNodes.Num())
 				{
@@ -138,6 +154,8 @@ namespace PCGExCluster
 				}
 			}
 		}
+
+		EdgeList.Empty();
 
 		bValid = !bInvalidCluster;
 		return bValid;

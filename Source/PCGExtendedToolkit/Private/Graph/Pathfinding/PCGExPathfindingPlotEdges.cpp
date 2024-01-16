@@ -44,8 +44,13 @@ TArray<FPCGPinProperties> UPCGExPathfindingPlotEdgesSettings::InputPinProperties
 
 TArray<FPCGPinProperties> UPCGExPathfindingPlotEdgesSettings::OutputPinProperties() const
 {
-	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
-	PinProperties.Pop(); // Remove edge output
+	TArray<FPCGPinProperties> PinProperties;
+	FPCGPinProperties& PinPathsOutput = PinProperties.Emplace_GetRef(PCGExGraph::OutputPathsLabel, EPCGDataType::Point);
+
+#if WITH_EDITOR
+	PinPathsOutput.Tooltip = FTEXT("Paths output.");
+#endif
+
 	return PinProperties;
 }
 
@@ -83,6 +88,7 @@ bool FPCGExPathfindingPlotEdgesElement::Boot(FPCGContext* InContext) const
 	}
 
 	Context->HeuristicsModifiers = const_cast<FPCGExHeuristicModifiersSettings*>(&Settings->HeuristicsModifiers);
+	Context->Heuristics->ReferenceWeight = Context->HeuristicsModifiers->ReferenceWeight;
 
 	return true;
 }
@@ -128,7 +134,7 @@ bool FPCGExPathfindingPlotEdgesElement::ExecuteInternal(FPCGContext* InContext) 
 			}
 
 			Context->Heuristics->PrepareForData(Context->CurrentCluster);
-			Context->HeuristicsModifiers->PrepareForData(*Context->CurrentIO, *Context->CurrentEdges, Context->Heuristics->GetFactor());
+			Context->HeuristicsModifiers->PrepareForData(*Context->CurrentIO, *Context->CurrentEdges);
 			Context->SetState(PCGExGraph::State_ProcessingEdges);
 		}
 	}

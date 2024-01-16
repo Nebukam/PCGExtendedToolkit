@@ -33,6 +33,7 @@ protected:
 
 	//~Begin UPCGExPointsProcessorSettings interface
 public:
+	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	virtual PCGExData::EInit GetEdgeOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings interface
 

@@ -94,9 +94,8 @@ bool FPCGExEdgesProcessorContext::AdvancePointsIO()
 
 bool FPCGExEdgesProcessorContext::AdvanceEdges(const bool bBuildCluster)
 {
-
 	PCGEX_DELETE(CurrentCluster);
-	
+
 	if (bBuildCluster && CurrentEdges) { CurrentEdges->Cleanup(); }
 
 	if (TaggedEdges && TaggedEdges->Entries.IsValidIndex(++CurrentEdgesIndex))
@@ -157,6 +156,8 @@ FPCGContext* FPCGExEdgesProcessorElement::InitializeContext(
 	FPCGExPointsProcessorElementBase::InitializeContext(InContext, InputData, SourceComponent, Node);
 
 	PCGEX_CONTEXT_AND_SETTINGS(EdgesProcessor)
+
+	if (!Settings->bEnabled) { return Context; }
 
 	Context->InputDictionary = new PCGExData::FPointIOTaggedDictionary(PCGExGraph::Tag_Cluster);
 	Context->MainPoints->ForEach(

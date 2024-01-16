@@ -140,7 +140,9 @@ FPCGContext* FPCGExCustomGraphProcessorElement::InitializeContext(
 {
 	FPCGExPointsProcessorElementBase::InitializeContext(InContext, InputData, SourceComponent, Node);
 
-	PCGEX_CONTEXT(CustomGraphProcessor)
+	PCGEX_CONTEXT_AND_SETTINGS(CustomGraphProcessor)
+
+	if (!Settings->bEnabled) { return Context; }
 
 	TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(PCGExGraph::SourceParamsLabel);
 	Context->Graphs.Initialize(InContext, Sources);

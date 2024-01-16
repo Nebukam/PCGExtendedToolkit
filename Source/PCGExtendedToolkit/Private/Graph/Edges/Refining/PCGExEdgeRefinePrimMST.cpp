@@ -18,7 +18,7 @@ void UPCGExEdgeRefinePrimMST::Process(PCGExCluster::FCluster* InCluster, PCGExGr
 	Heuristics->ReferenceWeight = HeuristicsModifiers.ReferenceWeight;
 
 	Heuristics->PrepareForData(InCluster);
-	HeuristicsModifiers.PrepareForData(*PointIO, *InEdgesIO, Heuristics->GetFactor());
+	HeuristicsModifiers.PrepareForData(*PointIO, *InEdgesIO);
 
 	const PCGExCluster::FNode* NoNode = new PCGExCluster::FNode();
 	const int32 NumNodes = InCluster->Nodes.Num();
@@ -71,10 +71,7 @@ void UPCGExEdgeRefinePrimMST::Process(PCGExCluster::FCluster* InCluster, PCGExGr
 				BestScore[AdjacentIndex] = Score;
 				Parent[AdjacentIndex] = CurrentNodeIndex;
 
-				PCGExCluster::FScoredNode* NewScoredNode = new PCGExCluster::FScoredNode(AdjacentNode, Score);
-
-				if (const int32 TargetIndex = Heuristics->GetQueueingIndex(OpenList, Score, AdjacentNode.PointIndex); TargetIndex == -1) { OpenList.Add(NewScoredNode); }
-				else { OpenList.Insert(NewScoredNode, TargetIndex); }
+				Heuristics->ScoredInsert(OpenList, new PCGExCluster::FScoredNode(AdjacentNode, Score));
 			}
 		}
 

@@ -15,6 +15,7 @@ UPCGExRefineEdgesSettings::UPCGExRefineEdgesSettings(
 {
 }
 
+PCGExData::EInit UPCGExRefineEdgesSettings::GetMainOutputInitMode() const { return bPruneIsolatedPoints ? PCGExData::EInit::NewOutput : PCGExData::EInit::DuplicateInput; }
 PCGExData::EInit UPCGExRefineEdgesSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 
 PCGEX_INITIALIZE_ELEMENT(RefineEdges)

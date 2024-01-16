@@ -127,6 +127,8 @@ FPCGContext* FPCGExPathfindingProcessorElement::InitializeContext(
 	const UPCGExPathfindingProcessorSettings* Settings = InContext->GetInputSettings<UPCGExPathfindingProcessorSettings>();
 	check(Settings);
 
+	if(!Settings->bEnabled){ return Context; }
+
 	if (Settings->GetRequiresSeeds())
 	{
 		if (TArray<FPCGTaggedData> Seeds = InContext->InputData.GetInputsByPin(PCGExPathfinding::SourceSeedsLabel);

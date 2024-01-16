@@ -28,10 +28,11 @@ public:
 		const PCGExCluster::FNode& Goal,
 		const PCGExGraph::FIndexedEdge& Edge) const;
 
-	virtual bool IsBetterScore(const double NewScore, const double OtherScore, const int32 A, const int32 B) const;
+	virtual bool IsBetterScore(const double NewScore, const double OtherScore) const;
 	virtual int32 GetQueueingIndex(const TArray<PCGExCluster::FScoredNode*>& InList, const double InScore, const int32 A) const;
-	double GetFactor() const { return IsBetterScore(-1, 1, 0, 0) ? 1 : -1; }
 
+	virtual void ScoredInsert(TArray<PCGExCluster::FScoredNode*>& InList, PCGExCluster::FScoredNode* Node) const;
+	
 	virtual void Cleanup() override;
 	
 protected:
