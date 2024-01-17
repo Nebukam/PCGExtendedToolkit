@@ -13,7 +13,7 @@ void UPCGExGoalPickerAttribute::PrepareForData(const PCGExData::FPointIO& InSeed
 	if (GoalCount == EPCGExGoalPickAttributeAmount::Single)
 	{
 		AttributeGetter.Descriptor = static_cast<FPCGExInputDescriptor>(Attribute);
-		AttributeGetter.Bind(InSeeds);
+		AttributeGetter.Grab(InSeeds);
 	}
 	else
 	{
@@ -22,7 +22,7 @@ void UPCGExGoalPickerAttribute::PrepareForData(const PCGExData::FPointIO& InSeed
 		{
 			PCGEx::FLocalSingleFieldGetter& Getter = AttributeGetters.Emplace_GetRef();
 			Getter.Descriptor = static_cast<FPCGExInputDescriptor>(Descriptor);
-			Getter.Bind(InSeeds);
+			Getter.Grab(InSeeds);
 		}
 	}
 }

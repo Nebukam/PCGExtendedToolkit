@@ -32,21 +32,21 @@ bool FPCGExAttributeDebugDraw::Validate(const PCGExData::FPointIO& PointIO)
 	case EPCGExDebugExpression::ConnectionToPosition:
 		VectorGetter.Descriptor = static_cast<FPCGExInputDescriptor>(*Descriptor);
 		VectorGetter.Axis = Descriptor->Axis;
-		bValid = VectorGetter.Bind(PointIO);
+		bValid = VectorGetter.Grab(PointIO);
 		break;
 	case EPCGExDebugExpression::ConnectionToIndex:
 		IndexGetter.Descriptor = static_cast<FPCGExInputDescriptor>(*Descriptor);
 		IndexGetter.Axis = Descriptor->Axis;
 		IndexGetter.Field = Descriptor->Field;
-		bValid = IndexGetter.Bind(PointIO);
+		bValid = IndexGetter.Grab(PointIO);
 		break;
 	case EPCGExDebugExpression::Label:
 		TextGetter.Descriptor = static_cast<FPCGExInputDescriptor>(*Descriptor);
-		bValid = TextGetter.Bind(PointIO);
+		bValid = TextGetter.Grab(PointIO);
 		break;
 	case EPCGExDebugExpression::Boolean:
 		SingleGetter.Descriptor = static_cast<FPCGExInputDescriptor>(*Descriptor);
-		bValid = SingleGetter.Bind(PointIO);
+		bValid = SingleGetter.Grab(PointIO);
 		break;
 	default: ;
 	}
@@ -54,10 +54,10 @@ bool FPCGExAttributeDebugDraw::Validate(const PCGExData::FPointIO& PointIO)
 	if (bValid)
 	{
 		SizeGetter.Capture(Descriptor->SizeAttribute);
-		SizeGetter.Bind(PointIO);
+		SizeGetter.Grab(PointIO);
 
 		ColorGetter.Descriptor = Descriptor->ColorAttribute;
-		ColorGetter.Bind(PointIO);
+		ColorGetter.Grab(PointIO);
 	}
 	else
 	{

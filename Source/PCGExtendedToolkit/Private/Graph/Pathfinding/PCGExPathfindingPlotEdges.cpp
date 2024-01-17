@@ -89,7 +89,7 @@ bool FPCGExPathfindingPlotEdgesElement::Boot(FPCGContext* InContext) const
 
 	Context->HeuristicsModifiers = const_cast<FPCGExHeuristicModifiersSettings*>(&Settings->HeuristicsModifiers);
 	Context->Heuristics->ReferenceWeight = Context->HeuristicsModifiers->ReferenceWeight;
-
+	
 	return true;
 }
 
@@ -133,8 +133,9 @@ bool FPCGExPathfindingPlotEdgesElement::ExecuteInternal(FPCGContext* InContext) 
 				return false;
 			}
 
-			Context->Heuristics->PrepareForData(Context->CurrentCluster);
 			Context->HeuristicsModifiers->PrepareForData(*Context->CurrentIO, *Context->CurrentEdges);
+			Context->Heuristics->Scale = Context->HeuristicsModifiers->Scale;
+			Context->Heuristics->PrepareForData(Context->CurrentCluster);
 			Context->SetState(PCGExGraph::State_ProcessingEdges);
 		}
 	}

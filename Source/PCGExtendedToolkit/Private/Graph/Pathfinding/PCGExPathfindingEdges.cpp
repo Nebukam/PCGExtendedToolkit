@@ -115,20 +115,20 @@ bool FPCGExPathfindingEdgesElement::ExecuteInternal(FPCGContext* InContext) cons
 				return false;
 			}
 
-			Context->Heuristics->PrepareForData(Context->CurrentCluster);
 			Context->HeuristicsModifiers->PrepareForData(*Context->CurrentIO, *Context->CurrentEdges);
+			Context->Heuristics->Scale = Context->HeuristicsModifiers->Scale;
+			Context->Heuristics->PrepareForData(Context->CurrentCluster);
 			Context->SetState(PCGExGraph::State_ProcessingEdges);
 		}
 	}
 
 	if (Context->IsState(PCGExGraph::State_ProcessingEdges))
 	{
-		auto SampleClusterTask = [&](const int32 Index)
+		for (int i = 0; i < Context->PathBuffer.Num(); i++)
 		{
-			Context->GetAsyncManager()->Start<FSampleClusterPathTask>(Index, Context->CurrentIO, Context->PathBuffer[Index]);
-		};
+			Context->GetAsyncManager()->Start<FSampleClusterPathTask>(i, Context->CurrentIO, Context->PathBuffer[i]);
+		}
 
-		if (!Context->Process(SampleClusterTask, Context->PathBuffer.Num())) { return false; }
 		Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork);
 	}
 

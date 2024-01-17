@@ -18,24 +18,30 @@ class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicOperation : public UPCGExOperation
 	GENERATED_BODY()
 
 public:
+	double Scale = 1;
 	double ReferenceWeight = 100;
-	
+
 	virtual void PrepareForData(PCGExCluster::FCluster* InCluster);
-	virtual double ComputeScore(
-		const PCGExCluster::FScoredNode* From,
-		const PCGExCluster::FNode& To,
+
+	virtual double ComputeFScore(
+		const PCGExCluster::FNode& From,
 		const PCGExCluster::FNode& Seed,
-		const PCGExCluster::FNode& Goal,
-		const PCGExGraph::FIndexedEdge& Edge) const;
+		const PCGExCluster::FNode& Goal) const;
+
+	virtual double ComputeDScore(
+		const PCGExCluster::FNode& From,
+		const PCGExCluster::FNode& To,
+		const PCGExGraph::FIndexedEdge& Edge,
+		const PCGExCluster::FNode& Seed,
+		const PCGExCluster::FNode& Goal) const;
 
 	virtual bool IsBetterScore(const double NewScore, const double OtherScore) const;
 	virtual int32 GetQueueingIndex(const TArray<PCGExCluster::FScoredNode*>& InList, const double InScore, const int32 A) const;
 
 	virtual void ScoredInsert(TArray<PCGExCluster::FScoredNode*>& InList, PCGExCluster::FScoredNode* Node) const;
-	
+
 	virtual void Cleanup() override;
-	
+
 protected:
 	PCGExCluster::FCluster* Cluster = nullptr;
-	
 };

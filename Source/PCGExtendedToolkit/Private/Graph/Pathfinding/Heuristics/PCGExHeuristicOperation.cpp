@@ -9,14 +9,22 @@ void UPCGExHeuristicOperation::PrepareForData(PCGExCluster::FCluster* InCluster)
 	Cluster = InCluster;
 }
 
-double UPCGExHeuristicOperation::ComputeScore(
-	const PCGExCluster::FScoredNode* From,
-	const PCGExCluster::FNode& To,
+double UPCGExHeuristicOperation::ComputeFScore(
+	const PCGExCluster::FNode& From,
 	const PCGExCluster::FNode& Seed,
-	const PCGExCluster::FNode& Goal,
-	const PCGExGraph::FIndexedEdge& Edge) const
+	const PCGExCluster::FNode& Goal) const
 {
-	return From->Score + 1;
+	return 1;
+}
+
+double UPCGExHeuristicOperation::ComputeDScore(
+	const PCGExCluster::FNode& From,
+	const PCGExCluster::FNode& To,
+	const PCGExGraph::FIndexedEdge& Edge,
+	const PCGExCluster::FNode& Seed,
+	const PCGExCluster::FNode& Goal) const
+{
+	return 1;
 }
 
 bool UPCGExHeuristicOperation::IsBetterScore(const double NewScore, const double OtherScore) const // Defaults to lower is better

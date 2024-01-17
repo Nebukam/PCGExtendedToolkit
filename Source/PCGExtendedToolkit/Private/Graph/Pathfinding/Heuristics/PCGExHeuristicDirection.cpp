@@ -4,11 +4,22 @@
 
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicDirection.h"
 
-double UPCGExHeuristicDirection::ComputeScore(
-	const PCGExCluster::FScoredNode* From,
-	const PCGExCluster::FNode& To,
+
+double UPCGExHeuristicDirection::ComputeFScore(
+	const PCGExCluster::FNode& From,
 	const PCGExCluster::FNode& Seed,
-	const PCGExCluster::FNode& Goal, const PCGExGraph::FIndexedEdge& Edge) const
+	const PCGExCluster::FNode& Goal) const
 {
-	return (FVector::DotProduct((From->Node->Position - To.Position).GetSafeNormal(), (From->Node->Position - Goal.Position).GetSafeNormal()) * -1) * ReferenceWeight;
+	FVector Dir = (Seed.Position - Goal.Position).GetSafeNormal();
+	return FVector::DotProduct(Dir, (From.Position - Goal.Position).GetSafeNormal()) * -1;
+}
+
+double UPCGExHeuristicDirection::ComputeDScore(
+	const PCGExCluster::FNode& From,
+	const PCGExCluster::FNode& To,
+	const PCGExGraph::FIndexedEdge& Edge,
+	const PCGExCluster::FNode& Seed,
+	const PCGExCluster::FNode& Goal) const
+{
+	return (FVector::DotProduct((From.Position - To.Position).GetSafeNormal(), (From.Position - Goal.Position).GetSafeNormal()) * -1) * ReferenceWeight;
 }

@@ -15,10 +15,10 @@ void UPCGExEdgeRefinePrimMST::PrepareForPointIO(PCGExData::FPointIO* InPointIO)
 void UPCGExEdgeRefinePrimMST::Process(PCGExCluster::FCluster* InCluster, PCGExGraph::FGraph* InGraph, PCGExData::FPointIO* InEdgesIO)
 {
 	const TObjectPtr<UPCGExHeuristicLocalDistance> Heuristics = NewObject<UPCGExHeuristicLocalDistance>();
-	Heuristics->ReferenceWeight = HeuristicsModifiers.ReferenceWeight;
 
-	Heuristics->PrepareForData(InCluster);
 	HeuristicsModifiers.PrepareForData(*PointIO, *InEdgesIO);
+	Heuristics->ReferenceWeight = HeuristicsModifiers.Scale;
+	Heuristics->PrepareForData(InCluster);
 
 	const PCGExCluster::FNode* NoNode = new PCGExCluster::FNode();
 	const int32 NumNodes = InCluster->Nodes.Num();
@@ -62,7 +62,7 @@ void UPCGExEdgeRefinePrimMST::Process(PCGExCluster::FCluster* InCluster, PCGExGr
 
 			if (VisitedNodes.Contains(AdjacentIndex)) { continue; }
 
-			double Score = Heuristics->ComputeScore(CurrentScoredNode, AdjacentNode, *NoNode, *NoNode, Edge);
+			double Score = Heuristics->ComputeDScore(*CurrentScoredNode->Node, AdjacentNode, Edge, *NoNode, *NoNode);
 			Score += HeuristicsModifiers.GetScore(AdjacentNode.PointIndex, Edge.EdgeIndex);
 
 			if (Score < BestScore[AdjacentIndex])

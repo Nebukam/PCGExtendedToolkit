@@ -18,11 +18,16 @@ class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicDirection : public UPCGExHeuristicOp
 	GENERATED_BODY()
 
 public:
-	virtual double ComputeScore(
-		const PCGExCluster::FScoredNode* From,
-		const PCGExCluster::FNode& To,
+	virtual double ComputeFScore(
+		const PCGExCluster::FNode& From,
 		const PCGExCluster::FNode& Seed,
-		const PCGExCluster::FNode& Goal,
-		const PCGExGraph::FIndexedEdge& Edge) const override;
+		const PCGExCluster::FNode& Goal) const override;
+	
+	virtual double ComputeDScore(
+		const PCGExCluster::FNode& From,
+		const PCGExCluster::FNode& To,
+		const PCGExGraph::FIndexedEdge& Edge,
+		const PCGExCluster::FNode& Seed,
+		const PCGExCluster::FNode& Goal) const override;
 
 };

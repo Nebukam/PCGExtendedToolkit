@@ -118,14 +118,14 @@ bool FPCGExSampleNearestPolylineElement::ExecuteInternal(FPCGContext* InContext)
 	{
 		auto Initialize = [&](PCGExData::FPointIO& PointIO)
 		{
-			if (Context->bUseLocalRangeMin && Context->RangeMinGetter.Bind(PointIO))
+			if (Context->bUseLocalRangeMin)
 			{
-				PCGE_LOG(Warning, GraphAndLog, FTEXT("RangeMin metadata missing"));
+				if (Context->RangeMinGetter.Grab(PointIO)) { PCGE_LOG(Warning, GraphAndLog, FTEXT("RangeMin metadata missing")); }
 			}
 
-			if (Context->bUseLocalRangeMax && Context->RangeMaxGetter.Bind(PointIO))
+			if (Context->bUseLocalRangeMax)
 			{
-				PCGE_LOG(Warning, GraphAndLog, FTEXT("RangeMax metadata missing"));
+				if (Context->RangeMaxGetter.Grab(PointIO)) { PCGE_LOG(Warning, GraphAndLog, FTEXT("RangeMax metadata missing")); }
 			}
 
 			PointIO.CreateOutKeys();

@@ -47,12 +47,12 @@ if(_NAME##Blending == EPCGExDataBlendingType::Average){bAverage##_NAME=true; bRe
 #define PCGEX_BLEND_PROPDECL(_TYPE, _NAME, _FUNC, _ACCESSOR)\
 _TYPE Target##_NAME = Target._ACCESSOR;\
 switch (_NAME##Blending) {\
-case EPCGExDataBlendingType::None:		Target##_NAME = PCGExDataBlending::NoBlend(A._ACCESSOR, B._ACCESSOR, Alpha); break;\
-case EPCGExDataBlendingType::Average:	Target##_NAME = PCGExDataBlending::Add(A._ACCESSOR, B._ACCESSOR, Alpha);break;\
-case EPCGExDataBlendingType::Weight:	Target##_NAME = PCGExDataBlending::Lerp(A._ACCESSOR, B._ACCESSOR, Alpha);break;\
-case EPCGExDataBlendingType::Min:		Target##_NAME = PCGExDataBlending::Min(A._ACCESSOR, B._ACCESSOR, Alpha);break;\
-case EPCGExDataBlendingType::Max:		Target##_NAME = PCGExDataBlending::Max(A._ACCESSOR, B._ACCESSOR, Alpha);break;\
-case EPCGExDataBlendingType::Copy:		Target##_NAME = PCGExDataBlending::Copy(A._ACCESSOR, B._ACCESSOR, Alpha);break;}
+case EPCGExDataBlendingType::None:		Target##_NAME = PCGExMath::NoBlend(A._ACCESSOR, B._ACCESSOR, Alpha); break;\
+case EPCGExDataBlendingType::Average:	Target##_NAME = PCGExMath::Add(A._ACCESSOR, B._ACCESSOR, Alpha);break;\
+case EPCGExDataBlendingType::Weight:	Target##_NAME = PCGExMath::Lerp(A._ACCESSOR, B._ACCESSOR, Alpha);break;\
+case EPCGExDataBlendingType::Min:		Target##_NAME = PCGExMath::Min(A._ACCESSOR, B._ACCESSOR, Alpha);break;\
+case EPCGExDataBlendingType::Max:		Target##_NAME = PCGExMath::Max(A._ACCESSOR, B._ACCESSOR, Alpha);break;\
+case EPCGExDataBlendingType::Copy:		Target##_NAME = PCGExMath::Copy(A._ACCESSOR, B._ACCESSOR, Alpha);break;}
 
 		PCGEX_FOREACH_BLENDINIT_POINTPROPERTY(PCGEX_BLEND_PROPDECL)
 #undef PCGEX_BLEND_PROPDECL
@@ -70,15 +70,15 @@ case EPCGExDataBlendingType::Copy:		Target##_NAME = PCGExDataBlending::Copy(A._A
 
 	void FPropertiesBlender::CompleteBlending(FPCGPoint& Target, const double Alpha) const
 	{
-		if (bAverageDensity) { Target.Density = Div(Target.Density, Alpha); }
-		if (bAverageBoundsMin) { Target.BoundsMin = Div(Target.BoundsMin, Alpha); }
-		if (bAverageBoundsMax) { Target.BoundsMax = Div(Target.BoundsMax, Alpha); }
-		if (bAverageColor) { Target.Color = Div(Target.Color, Alpha); }
-		if (bAveragePosition) { Target.Transform.SetLocation(Div(Target.Transform.GetLocation(), Alpha)); }
-		if (bAverageRotation) { Target.Transform.SetRotation(Div(Target.Transform.GetRotation(), Alpha)); }
-		if (bAverageScale) { Target.Transform.SetScale3D(Div(Target.Transform.GetScale3D(), Alpha)); }
-		if (bAverageSteepness) { Target.Steepness = Div(Target.Steepness, Alpha); }
-		if (bAverageSeed) { Target.Seed = Div(Target.Seed, Alpha); }
+		if (bAverageDensity) { Target.Density = PCGExMath::Div(Target.Density, Alpha); }
+		if (bAverageBoundsMin) { Target.BoundsMin = PCGExMath::Div(Target.BoundsMin, Alpha); }
+		if (bAverageBoundsMax) { Target.BoundsMax = PCGExMath::Div(Target.BoundsMax, Alpha); }
+		if (bAverageColor) { Target.Color = PCGExMath::Div(Target.Color, Alpha); }
+		if (bAveragePosition) { Target.Transform.SetLocation(PCGExMath::Div(Target.Transform.GetLocation(), Alpha)); }
+		if (bAverageRotation) { Target.Transform.SetRotation(PCGExMath::Div(Target.Transform.GetRotation(), Alpha)); }
+		if (bAverageScale) { Target.Transform.SetScale3D(PCGExMath::Div(Target.Transform.GetScale3D(), Alpha)); }
+		if (bAverageSteepness) { Target.Steepness = PCGExMath::Div(Target.Steepness, Alpha); }
+		if (bAverageSeed) { Target.Seed = PCGExMath::Div(Target.Seed, Alpha); }
 	}
 
 	void FPropertiesBlender::BlendOnce(const FPCGPoint& A, const FPCGPoint& B, FPCGPoint& Target, const double Alpha) const

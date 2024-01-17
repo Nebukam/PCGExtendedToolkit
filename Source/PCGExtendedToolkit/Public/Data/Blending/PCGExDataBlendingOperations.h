@@ -16,8 +16,8 @@ namespace PCGExDataBlending
 		virtual bool GetRequiresFinalization() const override { return true; }
 
 		virtual void SinglePrepare(T& A) const override { A = this->Writer->GetDefaultValue(); }
-		virtual T SingleOperation(T A, T B, double Alpha) const override { return PCGExDataBlending::Add(A, B); }
-		virtual void SingleFinalize(T& A, double Alpha) const override { A = PCGExDataBlending::Div(A, Alpha); }
+		virtual T SingleOperation(T A, T B, double Alpha) const override { return PCGExMath::Add(A, B); }
+		virtual void SingleFinalize(T& A, double Alpha) const override { A = PCGExMath::Div(A, Alpha); }
 	};
 
 	template <typename T>
@@ -31,21 +31,21 @@ namespace PCGExDataBlending
 	class PCGEXTENDEDTOOLKIT_API FDataBlendingMax final : public FDataBlendingOperation<T>
 	{
 	public:
-		virtual T SingleOperation(T A, T B, double Alpha) const override { return PCGExDataBlending::Max(A, B); }
+		virtual T SingleOperation(T A, T B, double Alpha) const override { return PCGExMath::Max(A, B); }
 	};
 
 	template <typename T>
 	class PCGEXTENDEDTOOLKIT_API FDataBlendingMin final : public FDataBlendingOperation<T>
 	{
 	public:
-		virtual T SingleOperation(T A, T B, double Alpha) const override { return PCGExDataBlending::Min(A, B); }
+		virtual T SingleOperation(T A, T B, double Alpha) const override { return PCGExMath::Min(A, B); }
 	};
 
 	template <typename T>
 	class PCGEXTENDEDTOOLKIT_API FDataBlendingWeight final : public FDataBlendingOperation<T>
 	{
 	public:
-		virtual T SingleOperation(T A, T B, double Alpha) const override { return PCGExDataBlending::Lerp(A, B, Alpha); }
+		virtual T SingleOperation(T A, T B, double Alpha) const override { return PCGExMath::Lerp(A, B, Alpha); }
 	};
 
 	template <typename T>

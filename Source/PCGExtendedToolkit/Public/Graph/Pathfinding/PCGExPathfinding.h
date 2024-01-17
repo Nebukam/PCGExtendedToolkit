@@ -87,7 +87,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicModifier : public FPCGExInputDescri
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle, DisplayPriority=1))
 	bool bUseLocalWeight = false;
 
-	/** Attribute to fetch local weight from. */
+	/** Attribute to fetch local weight from. This value will be scaled by the base weight. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseLocalWeight", DisplayPriority=1))
 	FPCGExInputDescriptorWithSingleField LocalWeight;
 };
@@ -100,6 +100,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicModifiersSettings
 	/** Reference weight. This is used by unexposed heuristics computations to stay consistent with user-defined modifiers.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	double ReferenceWeight = 100;
+
+	double TotalWeight = 0;
+	double Scale = 0;
 
 	/** List of weighted heuristic modifiers */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, TitleProperty="{TitlePropertyName} ({Interpretation})"))
@@ -155,12 +158,21 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicModifiersSettings
 		TArray<double>* TargetArray;
 		int32 NumIterations;
 
+		TotalWeight = ReferenceWeight;
+		for (const FPCGExHeuristicModifier& Modifier : Modifiers)
+		{
+			if (!Modifier.bEnabled) { continue; }
+			TotalWeight += FMath::Abs(Modifier.Weight);
+		}
+
+		Scale = ReferenceWeight / TotalWeight;
+
 		for (const FPCGExHeuristicModifier& Modifier : Modifiers)
 		{
 			if (!Modifier.bEnabled) { continue; }
 
-			PCGEx::FLocalSingleFieldGetter* NewGetter = new PCGEx::FLocalSingleFieldGetter();
-			NewGetter->Capture(Modifier);
+			PCGEx::FLocalSingleFieldGetter* ModifierGetter = new PCGEx::FLocalSingleFieldGetter();
+			ModifierGetter->Capture(Modifier);
 
 			PCGEx::FLocalSingleFieldGetter* WeightGetter = nullptr;
 
@@ -170,65 +182,61 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicModifiersSettings
 				WeightGetter->Capture(Modifier.LocalWeight);
 			}
 
-			bool bSuccess;
-			bool bLocalWeight = false;
+			bool bModifierGrabbed;
+			bool bLocalWeightGrabbed = false;
 			if (Modifier.Source == EPCGExHeuristicScoreSource::Point)
 			{
 				if (!bUpdatePoints) { continue; }
-				bSuccess = NewGetter->Bind(InPoints);
-				if (WeightGetter) { bLocalWeight = WeightGetter->Bind(InPoints); }
+				bModifierGrabbed = ModifierGetter->Grab(InPoints, true);
+				if (WeightGetter) { bLocalWeightGrabbed = WeightGetter->Grab(InPoints); }
 				TargetArray = &PointScoreModifiers;
 				NumIterations = NumPoints;
 			}
 			else
 			{
-				bSuccess = NewGetter->Bind(InEdges);
-				if (WeightGetter) { bLocalWeight = WeightGetter->Bind(InEdges); }
+				bModifierGrabbed = ModifierGetter->Grab(InEdges, true);
+				if (WeightGetter) { bLocalWeightGrabbed = WeightGetter->Grab(InEdges); }
 				TargetArray = &EdgeScoreModifiers;
 				NumIterations = NumEdges;
 			}
 
-			if (!bSuccess || !NewGetter->bValid || !NewGetter->bEnabled)
+			if (!bModifierGrabbed || !ModifierGetter->bValid || !ModifierGetter->bEnabled)
 			{
-				PCGEX_DELETE(NewGetter)
+				PCGEX_DELETE(ModifierGetter)
 				continue;
 			}
 
-			double MinValue = TNumericLimits<double>::Max();
-			double MaxValue = TNumericLimits<double>::Min();
-			for (int i = 0; i < NumIterations; i++)
-			{
-				const double Value = NewGetter->Values[i];
-				MinValue = FMath::Min(MinValue, Value);
-				MaxValue = FMath::Max(MaxValue, Value);
-			}
+			const double MinValue = ModifierGetter->Min;
+			const double MaxValue = ModifierGetter->Max;
+			const double WeightScale = Modifier.Weight / TotalWeight;
 
 			// Default is, lower score is better.
-			double OutMin = -1;
+			double OutMin = 0;
 			double OutMax = 1;
 
 			if (Modifier.Interpretation == EPCGExHeuristicScoreMode::HigherIsBetter)
 			{
+				// Make the score substractive
 				OutMin = 1;
-				OutMax = -1;
+				OutMax = 0;
 			}
 
-			if (bLocalWeight)
+			if (bLocalWeightGrabbed)
 			{
 				for (int i = 0; i < NumIterations; i++)
 				{
-					(*TargetArray)[i] += (PCGExMath::Remap(NewGetter->Values[i], MinValue, MaxValue, OutMin, OutMax) * WeightGetter->Values[i]);
+					(*TargetArray)[i] += (PCGExMath::Remap(ModifierGetter->Values[i], MinValue, MaxValue, OutMin, OutMax) * (WeightGetter->Values[i] / TotalWeight));
 				}
 			}
 			else
 			{
 				for (int i = 0; i < NumIterations; i++)
 				{
-					(*TargetArray)[i] += (PCGExMath::Remap(NewGetter->Values[i], MinValue, MaxValue, OutMin, OutMax) * Modifier.Weight);
+					(*TargetArray)[i] += (PCGExMath::Remap(ModifierGetter->Values[i], MinValue, MaxValue, OutMin, OutMax) * WeightScale);
 				}
 			}
 
-			PCGEX_DELETE(NewGetter)
+			PCGEX_DELETE(ModifierGetter)
 			PCGEX_DELETE(WeightGetter)
 		}
 	}
@@ -313,76 +321,90 @@ namespace PCGExPathfinding
 	{
 		if (Seed == Goal) { return false; }
 
+		const int32 NumNodes = Cluster->Nodes.Num();
+
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExPathfinding::FindPath);
 
-		const PCGExCluster::FNode& StartNode = Cluster->Nodes[Seed];
-		const PCGExCluster::FNode& EndNode = Cluster->Nodes[Goal];
+		const PCGExCluster::FNode& SeedNode = Cluster->Nodes[Seed];
+		const PCGExCluster::FNode& GoalNode = Cluster->Nodes[Goal];
 
 		// Basic A* implementation
-		TMap<int32, double> CachedScores;
 
-		TArray<PCGExCluster::FScoredNode*> OpenList;
-		OpenList.Reserve(Cluster->Nodes.Num() / 3);
+		// For node n, cameFrom[n] is the node immediately preceding it on the cheapest path from the start
+		// to n currently known.
+		TMap<int32, int32> CameFrom;
 
-		TArray<PCGExCluster::FScoredNode*> ClosedList;
-		ClosedList.Reserve(Cluster->Nodes.Num() / 3);
-		TSet<int32> Visited;
+		// For node n, gScore[n] is the cost of the cheapest path from start to n currently known.
+		TArray<double> GScore;
 
-		OpenList.Add(new PCGExCluster::FScoredNode(StartNode, 0));
+		// For node n, fScore[n] := gScore[n] + h(n). fScore[n] represents our current best guess as to
+		// how cheap a path could be from start to finish if it goes through n.
+		TArray<double> FScore;
+
+		GScore.SetNum(NumNodes);
+		FScore.SetNum(NumNodes);
+
+		for (int i = 0; i < NumNodes; i++)
+		{
+			GScore[i] = TNumericLimits<double>::Max();
+			FScore[i] = TNumericLimits<double>::Max();
+		}
+
+		GScore[SeedNode.NodeIndex] = 0;
+		FScore[SeedNode.NodeIndex] = Heuristics->ComputeFScore(SeedNode, SeedNode, GoalNode);
+
+		TArray<int32> OpenList;
+		OpenList.Add(SeedNode.NodeIndex);
+
 		bool bSuccess = false;
 
-		while (!bSuccess && !OpenList.IsEmpty())
+		while (!OpenList.IsEmpty())
 		{
-			PCGExCluster::FScoredNode* CurrentScoredNode = OpenList.Pop();
-			const int32 CurrentNodeIndex = CurrentScoredNode->Node->NodeIndex;
+			// the node in openSet having the lowest FScore value
+			const PCGExCluster::FNode& Current = Cluster->Nodes[OpenList.Pop()]; // TODO: Sorted add, otherwise this won't work.
 
-			ClosedList.Add(CurrentScoredNode);
-			Visited.Add(CurrentScoredNode->Node->PointIndex);
-
-			if (CurrentNodeIndex == EndNode.NodeIndex)
+			if (Current.NodeIndex == GoalNode.NodeIndex)
 			{
 				bSuccess = true;
 				TArray<int32> Path;
-
-				while (CurrentScoredNode)
+				int32 PathIndex = Current.NodeIndex;
+				
+				while (PathIndex != -1)
 				{
-					Path.Add(CurrentScoredNode->Node->NodeIndex);
-					CurrentScoredNode = CurrentScoredNode->From;
+					Path.Add(PathIndex);
+					const int32* PathIndexPtr = CameFrom.Find(PathIndex);
+					PathIndex = PathIndexPtr ? *PathIndexPtr : -1;
 				}
 
 				Algo::Reverse(Path);
 				OutPath.Append(Path);
+				break;
 			}
-			else
+
+			//Get current index neighbors
+			for (const int32 EdgeIndex : Current.Edges) //TODO: Use edge instead?
 			{
-				//Get current index neighbors
-				for (const PCGExCluster::FNode& Node = Cluster->Nodes[CurrentNodeIndex];
-				     const int32 EdgeIndex : Node.Edges) //TODO: Use edge instead?
+				const PCGExGraph::FIndexedEdge& Edge = Cluster->Edges[EdgeIndex];
+				const PCGExCluster::FNode& AdjacentNode = Cluster->GetNodeFromPointIndex(Edge.Other(Current.PointIndex));
+
+				// d(current,neighbor) is the weight of the edge from current to neighbor
+				// tentative_gScore is the distance from start to the neighbor through current
+				double tentative_gScore = GScore[Current.NodeIndex] + Heuristics->ComputeDScore(Current, AdjacentNode, Edge, SeedNode, GoalNode);
+				tentative_gScore += Modifiers->GetScore(AdjacentNode.PointIndex, Edge.EdgeIndex);
+
+				if (tentative_gScore >= GScore[AdjacentNode.NodeIndex]) { continue; }
+
+				CameFrom.Add(AdjacentNode.NodeIndex, Current.NodeIndex);
+				GScore[AdjacentNode.NodeIndex] = tentative_gScore;
+				FScore[AdjacentNode.NodeIndex] = tentative_gScore + Heuristics->ComputeFScore(AdjacentNode, SeedNode, GoalNode);
+				
+				if(!OpenList.Contains(AdjacentNode.NodeIndex))
 				{
-					const PCGExGraph::FIndexedEdge& Edge = Cluster->Edges[EdgeIndex];
-					const int32 OtherPointIndex = Edge.Other(Node.PointIndex);
-					if (Visited.Contains(OtherPointIndex)) { continue; }
-
-					const PCGExCluster::FNode& OtherNode = Cluster->GetNodeFromPointIndex(OtherPointIndex);
-					double Score = Heuristics->ComputeScore(CurrentScoredNode, OtherNode, StartNode, EndNode, Edge);
-					Score += Modifiers->GetScore(OtherNode.PointIndex, Edge.EdgeIndex);
-
-					if (const double* PreviousScore = CachedScores.Find(OtherPointIndex);
-						PreviousScore && !Heuristics->IsBetterScore(*PreviousScore, Score))
-					{
-						continue;
-					}
-
-					PCGExCluster::FScoredNode* NewScoredNode = new PCGExCluster::FScoredNode(OtherNode, Score, CurrentScoredNode);
-					CachedScores.Add(OtherPointIndex, Score);
-
-					Heuristics->ScoredInsert(OpenList, NewScoredNode);
+					// Do a "sorted add" so OpenList is a priority queue
+					OpenList.Add(AdjacentNode.NodeIndex);
 				}
 			}
 		}
-
-		PCGEX_DELETE_TARRAY(ClosedList)
-		PCGEX_DELETE_TARRAY(OpenList)
 
 		return bSuccess;
 	}
