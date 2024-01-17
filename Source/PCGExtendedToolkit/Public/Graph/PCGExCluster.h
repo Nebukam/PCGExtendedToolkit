@@ -58,7 +58,8 @@ namespace PCGExCluster
 		bool bEdgeLengthsDirty = true;
 		bool bValid = false;
 		int32 ClusterID = -1;
-		TMap<int32, int32> PointIndexMap; //Cluster vertices
+		TMap<int32, int32> PointIndexMap; // Node index -> Point Index
+		TMap<uint64, int32> EdgeIndexMap; // Edge Hash -> Edge Index
 		TArray<FNode> Nodes;
 		TArray<PCGExGraph::FIndexedEdge> Edges;
 		TArray<double> EdgeLengths;
@@ -78,6 +79,7 @@ namespace PCGExCluster
 		int32 FindClosestNode(const FVector& Position) const;
 
 		const FNode& GetNodeFromPointIndex(const int32 Index) const;
+		const PCGExGraph::FIndexedEdge& GetEdgeFromNodeIndices(const int32 A, const int32 B) const;
 		void ComputeEdgeLengths(bool bNormalize = false);
 
 	protected:

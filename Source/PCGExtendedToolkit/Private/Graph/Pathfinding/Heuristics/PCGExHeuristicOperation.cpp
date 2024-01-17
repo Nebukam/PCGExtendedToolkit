@@ -14,7 +14,7 @@ double UPCGExHeuristicOperation::ComputeFScore(
 	const PCGExCluster::FNode& Seed,
 	const PCGExCluster::FNode& Goal) const
 {
-	return 1;
+	return 0;
 }
 
 double UPCGExHeuristicOperation::ComputeDScore(

@@ -19,10 +19,14 @@ class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicDistance : public UPCGExHeuristicLoc
 	GENERATED_BODY()
 
 public:
+	virtual void PrepareForData(PCGExCluster::FCluster* InCluster) override;
 	
 	virtual double ComputeFScore(
 		const PCGExCluster::FNode& From,
 		const PCGExCluster::FNode& Seed,
 		const PCGExCluster::FNode& Goal) const override;
+
+protected:
+	double MaxDistSquared = 0;
 	
 };

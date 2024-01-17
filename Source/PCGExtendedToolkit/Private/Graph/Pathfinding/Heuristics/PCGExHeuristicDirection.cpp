@@ -11,7 +11,8 @@ double UPCGExHeuristicDirection::ComputeFScore(
 	const PCGExCluster::FNode& Goal) const
 {
 	FVector Dir = (Seed.Position - Goal.Position).GetSafeNormal();
-	return FVector::DotProduct(Dir, (From.Position - Goal.Position).GetSafeNormal()) * -1;
+	double Dot = FVector::DotProduct(Dir, (From.Position - Goal.Position).GetSafeNormal()) * -1; 
+	return PCGExMath::Remap(Dot, -1,1,0,1) * ReferenceWeight * Scale;
 }
 
 double UPCGExHeuristicDirection::ComputeDScore(
@@ -21,5 +22,6 @@ double UPCGExHeuristicDirection::ComputeDScore(
 	const PCGExCluster::FNode& Seed,
 	const PCGExCluster::FNode& Goal) const
 {
-	return (FVector::DotProduct((From.Position - To.Position).GetSafeNormal(), (From.Position - Goal.Position).GetSafeNormal()) * -1) * ReferenceWeight;
+	double Dot = (FVector::DotProduct((From.Position - To.Position).GetSafeNormal(), (From.Position - Goal.Position).GetSafeNormal()) * -1); 
+	return PCGExMath::Remap(Dot, -1,1,0,1) * ReferenceWeight * Scale;
 }

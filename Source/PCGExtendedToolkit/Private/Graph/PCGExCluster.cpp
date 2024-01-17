@@ -140,6 +140,7 @@ namespace PCGExCluster
 
 				FNode& Start = GetOrCreateNode(E.Start, InNodePoints);
 				FNode& End = GetOrCreateNode(E.End, InNodePoints);
+				EdgeIndexMap.Add(PCGExGraph::GetUnsignedHash64(Start.NodeIndex, End.NodeIndex), i);
 
 				Start.AddConnection(i, End.NodeIndex);
 				End.AddConnection(i, Start.NodeIndex);
@@ -179,6 +180,8 @@ namespace PCGExCluster
 	}
 
 	const FNode& FCluster::GetNodeFromPointIndex(const int32 Index) const { return Nodes[*PointIndexMap.Find(Index)]; }
+
+	const PCGExGraph::FIndexedEdge& FCluster::GetEdgeFromNodeIndices(const int32 A, const int32 B) const { return Edges[*PointIndexMap.Find(PCGExGraph::GetUnsignedHash64(A, B))]; }
 
 	void FCluster::ComputeEdgeLengths(const bool bNormalize)
 	{

@@ -8,10 +8,10 @@
 #include "GoalPickers/PCGExGoalPicker.h"
 
 #include "Graph/PCGExEdgesProcessor.h"
-#include "Heuristics/PCGExHeuristicOperation.h"
 
 #include "PCGExPathfindingProcessor.generated.h"
 
+class UPCGExSearchOperation;
 class UPCGExPathfindingParamsData;
 
 /**
@@ -64,6 +64,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bAddGoalToPath = true;
 
+	/** Search algorithm. */
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta = (NoResetToDefault, ShowOnlyInnerProperties))
+	TObjectPtr<UPCGExSearchOperation> SearchAlgorithm;
+
 	/** Controls how heuristic are calculated. */
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta = (NoResetToDefault, ShowOnlyInnerProperties))
 	TObjectPtr<UPCGExHeuristicOperation> Heuristics;
@@ -84,6 +88,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingProcessorContext : public FPCGExE
 	PCGExData::FPointIOGroup* OutputPaths = nullptr;
 
 	UPCGExGoalPicker* GoalPicker = nullptr;
+	UPCGExSearchOperation* SearchAlgorithm = nullptr;
 	UPCGExHeuristicOperation* Heuristics = nullptr;
 	FPCGExHeuristicModifiersSettings* HeuristicsModifiers = nullptr;
 	//UPCGExSubPointsBlendOperation* Blending = nullptr;

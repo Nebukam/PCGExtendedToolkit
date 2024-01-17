@@ -9,6 +9,7 @@
 #include "Graph/Pathfinding/GoalPickers/PCGExGoalPickerRandom.h"
 #include "Algo/Reverse.h"
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicDistance.h"
+#include "Graph/Pathfinding/Search/PCGExSearchOperation.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPathfindingEdgesElement"
 #define PCGEX_NAMESPACE PathfindingEdges
@@ -23,6 +24,7 @@ UPCGExPathfindingEdgesSettings::UPCGExPathfindingEdgesSettings(
 void UPCGExPathfindingEdgesSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	if (GoalPicker) { GoalPicker->UpdateUserFacingInfos(); }
+	if (SearchAlgorithm) { SearchAlgorithm->UpdateUserFacingInfos(); }
 	HeuristicsModifiers.UpdateUserFacingInfos();
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
@@ -157,10 +159,12 @@ bool FSampleClusterPathTask::ExecuteTask()
 
 	TArray<int32> Path;
 
-	if (!PCGExPathfinding::FindPath(
+	//Note: Can silently fail
+	if (!Context->SearchAlgorithm->FindPath(
 		Context->CurrentCluster, Query->SeedPosition, Query->GoalPosition,
 		Context->Heuristics, Context->HeuristicsModifiers, Path))
 	{
+		// Failed
 		return false;
 	}
 

@@ -9,6 +9,7 @@
 #include "Graph/Pathfinding/GoalPickers/PCGExGoalPickerRandom.h"
 #include "Algo/Reverse.h"
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicDistance.h"
+#include "Graph/Pathfinding/Search/PCGExSearchAStar.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPathfindingPlotEdgesElement"
 #define PCGEX_NAMESPACE PathfindingPlotEdges
@@ -17,6 +18,7 @@ UPCGExPathfindingPlotEdgesSettings::UPCGExPathfindingPlotEdgesSettings(
 	const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	PCGEX_OPERATION_DEFAULT(SearchAlgorithm, UPCGExSearchAStar)
 	PCGEX_OPERATION_DEFAULT(Heuristics, UPCGExHeuristicDistance)
 }
 
@@ -73,6 +75,7 @@ bool FPCGExPathfindingPlotEdgesElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(PathfindingPlotEdges)
 
+	PCGEX_OPERATION_BIND(SearchAlgorithm, UPCGExSearchAStar)
 	PCGEX_OPERATION_BIND(Heuristics, UPCGExHeuristicDistance)
 
 	Context->OutputPaths = new PCGExData::FPointIOGroup();
@@ -177,10 +180,12 @@ bool FPCGExPlotClusterPathTask::ExecuteTask()
 		FVector SeedPosition = PointIO->GetInPoint(i - 1).Transform.GetLocation();
 		FVector GoalPosition = PointIO->GetInPoint(i).Transform.GetLocation();
 
-		//Note: Can silently fail
-		PCGExPathfinding::FindPath(
+		if(!Context->SearchAlgorithm->FindPath(
 			Context->CurrentCluster, SeedPosition, GoalPosition,
-			Context->Heuristics, Context->HeuristicsModifiers, Path);
+			Context->Heuristics, Context->HeuristicsModifiers, Path))
+		{
+			// Failed
+		}
 
 		if (Context->bAddPlotPointsToPath && i < NumPlots - 1) { Path.Add((i + 1) * -1); }
 
