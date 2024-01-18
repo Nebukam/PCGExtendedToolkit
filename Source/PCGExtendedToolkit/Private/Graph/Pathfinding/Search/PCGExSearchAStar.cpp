@@ -24,6 +24,16 @@ bool UPCGExSearchAStar::FindPath(const PCGExCluster::FCluster* Cluster, const FV
 	TMap<int32, int32> Previous;
 	TMap<int32, double> GScore;
 
+	double MinGScore = TNumericLimits<double>::Max();
+	double MaxGScore = TNumericLimits<double>::Min();
+
+	for (int i = 0; i < Cluster->Nodes.Num(); i++)
+	{
+		double GS = Heuristics->GetGlobalScore(Cluster->Nodes[i], SeedNode, GoalNode);
+		MinGScore = FMath::Min(MinGScore, GS);
+		MaxGScore = FMath::Max(MaxGScore, GS);
+	}
+
 	PCGExSearch::TScoredQueue<int32>* ScoredQueue = new PCGExSearch::TScoredQueue<int32>(
 		SeedNode.NodeIndex, Heuristics->GetGlobalScore(SeedNode, SeedNode, GoalNode));
 
@@ -38,11 +48,11 @@ bool UPCGExSearchAStar::FindPath(const PCGExCluster::FCluster* Cluster, const FV
 		const PCGExCluster::FNode& Current = Cluster->Nodes[CurrentNodeIndex];
 		Visited.Add(CurrentNodeIndex);
 
-		if (Current.NodeIndex == GoalNode.NodeIndex) { break; }
+		//if (Current.NodeIndex == GoalNode.NodeIndex) { break; } // Exit early
 
 		for (const int32 AdjacentIndex : Current.AdjacentNodes)
 		{
-			if (Visited.Contains(AdjacentIndex)) { continue; } // Exit early
+			if (Visited.Contains(AdjacentIndex)) { continue; }
 
 			const PCGExCluster::FNode& AdjacentNode = Cluster->Nodes[AdjacentIndex];
 			const PCGExGraph::FIndexedEdge& Edge = Cluster->GetEdgeFromNodeIndices(CurrentNodeIndex, AdjacentIndex);
@@ -55,7 +65,9 @@ bool UPCGExSearchAStar::FindPath(const PCGExCluster::FCluster* Cluster, const FV
 
 			Previous.Add(AdjacentIndex, CurrentNodeIndex);
 			GScore.Add(AdjacentIndex, TentativeGScore);
-			const double FScore = TentativeGScore + Heuristics->GetGlobalScore(AdjacentNode, SeedNode, GoalNode);
+
+			const double GS = PCGExMath::Remap(Heuristics->GetGlobalScore(AdjacentNode, SeedNode, GoalNode), MinGScore, MaxGScore, 0, 1);
+			const double FScore = TentativeGScore + GS * Heuristics->ReferenceWeight;
 
 			ScoredQueue->SetScore(AdjacentIndex, FScore, !Visited.Contains(AdjacentIndex));
 		}
