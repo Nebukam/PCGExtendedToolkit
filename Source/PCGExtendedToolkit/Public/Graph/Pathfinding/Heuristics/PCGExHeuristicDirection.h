@@ -18,12 +18,12 @@ class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicDirection : public UPCGExHeuristicOp
 	GENERATED_BODY()
 
 public:
-	virtual double ComputeFScore(
+	virtual double GetGlobalScore(
 		const PCGExCluster::FNode& From,
 		const PCGExCluster::FNode& Seed,
 		const PCGExCluster::FNode& Goal) const override;
 	
-	virtual double ComputeDScore(
+	virtual double GetEdgeScore(
 		const PCGExCluster::FNode& From,
 		const PCGExCluster::FNode& To,
 		const PCGExGraph::FIndexedEdge& Edge,

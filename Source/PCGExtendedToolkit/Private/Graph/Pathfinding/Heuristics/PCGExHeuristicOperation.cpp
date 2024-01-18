@@ -9,7 +9,7 @@ void UPCGExHeuristicOperation::PrepareForData(PCGExCluster::FCluster* InCluster)
 	Cluster = InCluster;
 }
 
-double UPCGExHeuristicOperation::ComputeFScore(
+double UPCGExHeuristicOperation::GetGlobalScore(
 	const PCGExCluster::FNode& From,
 	const PCGExCluster::FNode& Seed,
 	const PCGExCluster::FNode& Goal) const
@@ -17,7 +17,7 @@ double UPCGExHeuristicOperation::ComputeFScore(
 	return 0;
 }
 
-double UPCGExHeuristicOperation::ComputeDScore(
+double UPCGExHeuristicOperation::GetEdgeScore(
 	const PCGExCluster::FNode& From,
 	const PCGExCluster::FNode& To,
 	const PCGExGraph::FIndexedEdge& Edge,

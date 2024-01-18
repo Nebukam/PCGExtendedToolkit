@@ -18,17 +18,16 @@ class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicOperation : public UPCGExOperation
 	GENERATED_BODY()
 
 public:
-	double Scale = 1;
 	double ReferenceWeight = 100;
 
 	virtual void PrepareForData(PCGExCluster::FCluster* InCluster);
 
-	virtual double ComputeFScore(
+	virtual double GetGlobalScore(
 		const PCGExCluster::FNode& From,
 		const PCGExCluster::FNode& Seed,
 		const PCGExCluster::FNode& Goal) const;
 
-	virtual double ComputeDScore(
+	virtual double GetEdgeScore(
 		const PCGExCluster::FNode& From,
 		const PCGExCluster::FNode& To,
 		const PCGExGraph::FIndexedEdge& Edge,

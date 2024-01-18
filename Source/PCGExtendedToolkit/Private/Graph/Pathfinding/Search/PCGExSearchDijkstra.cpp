@@ -60,7 +60,7 @@ bool UPCGExSearchDijkstra::FindPath(const PCGExCluster::FCluster* Cluster, const
 			const PCGExGraph::FIndexedEdge& Edge = Cluster->GetEdgeFromNodeIndices(Current.NodeIndex, AdjacentNodeIndex);
 
 			const double ScoreOffset = Modifiers->GetScore(AdjacentNode.PointIndex, Edge.EdgeIndex);
-			const double AltScore = CurrentScore + Heuristics->ComputeDScore(Current, AdjacentNode, Edge, SeedNode, GoalNode) + ScoreOffset;
+			const double AltScore = CurrentScore + Heuristics->GetEdgeScore(Current, AdjacentNode, Edge, SeedNode, GoalNode) + ScoreOffset;
 
 			if (AltScore >= Scores[AdjacentNode.NodeIndex]) { continue; }
 

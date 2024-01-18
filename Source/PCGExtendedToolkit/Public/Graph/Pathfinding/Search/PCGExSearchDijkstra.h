@@ -18,7 +18,7 @@ class UPCGExHeuristicOperation;
 /**
  * 
  */
-UCLASS(Abstract)
+UCLASS(DisplayName = "Dijkstra", meta=(ToolTip ="Dijkstra search. Slower than A* but more respectful of modifiers and weights."))
 class PCGEXTENDEDTOOLKIT_API UPCGExSearchDijkstra : public UPCGExSearchOperation
 {
 	GENERATED_BODY()

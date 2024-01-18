@@ -13,7 +13,7 @@ UPCGExSampleNearestPointSettings::UPCGExSampleNearestPointSettings(
 	: Super(ObjectInitializer)
 {
 	if (NormalSource.Selector.GetName() == FName("@Last")) { NormalSource.Selector.Update(TEXT("$Transform")); }
-	if (!WeightOverDistance) { WeightOverDistance = PCGEx::WeightDistributionLinear; }
+	if (!WeightOverDistance) { WeightOverDistance = PCGEx::WeightDistributionLinearInv; }
 }
 
 TArray<FPCGPinProperties> UPCGExSampleNearestPointSettings::InputPinProperties() const

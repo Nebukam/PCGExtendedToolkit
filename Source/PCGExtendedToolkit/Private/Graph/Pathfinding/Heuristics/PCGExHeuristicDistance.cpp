@@ -10,10 +10,10 @@ void UPCGExHeuristicDistance::PrepareForData(PCGExCluster::FCluster* InCluster)
 	Super::PrepareForData(InCluster);
 }
 
-double UPCGExHeuristicDistance::ComputeFScore(
+double UPCGExHeuristicDistance::GetGlobalScore(
 	const PCGExCluster::FNode& From,
 	const PCGExCluster::FNode& Seed,
 	const PCGExCluster::FNode& Goal) const
 {
-	return /*FVector::DistSquared(Seed.Position, From.Position) +*/ (FVector::DistSquared(From.Position, Goal.Position) / MaxDistSquared) * ReferenceWeight * Scale;
+	return (FVector::DistSquared(From.Position, Goal.Position) / MaxDistSquared) * ReferenceWeight;
 }

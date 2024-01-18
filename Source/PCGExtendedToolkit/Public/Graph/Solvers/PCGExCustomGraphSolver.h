@@ -71,7 +71,7 @@ namespace PCGExGraph
 /**
  * 
  */
-UCLASS(DisplayName = "Simple Solver")
+UCLASS(DisplayName = "Simple Solver", meta=(ToolTip ="Simple graph solver."))
 class PCGEXTENDEDTOOLKIT_API UPCGExCustomGraphSolver : public UPCGExOperation
 {
 	GENERATED_BODY()

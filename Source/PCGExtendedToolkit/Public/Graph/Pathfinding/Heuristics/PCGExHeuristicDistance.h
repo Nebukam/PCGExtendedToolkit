@@ -21,7 +21,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicDistance : public UPCGExHeuristicLoc
 public:
 	virtual void PrepareForData(PCGExCluster::FCluster* InCluster) override;
 	
-	virtual double ComputeFScore(
+	virtual double GetGlobalScore(
 		const PCGExCluster::FNode& From,
 		const PCGExCluster::FNode& Seed,
 		const PCGExCluster::FNode& Goal) const override;

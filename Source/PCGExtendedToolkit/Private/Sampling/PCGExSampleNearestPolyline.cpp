@@ -12,7 +12,7 @@ UPCGExSampleNearestPolylineSettings::UPCGExSampleNearestPolylineSettings(
 {
 	if (!WeightOverDistance)
 	{
-		WeightOverDistance = PCGEx::WeightDistributionLinear;
+		WeightOverDistance = PCGEx::WeightDistributionLinearInv;
 	}
 }
 

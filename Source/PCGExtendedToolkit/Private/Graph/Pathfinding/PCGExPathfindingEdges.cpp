@@ -118,7 +118,6 @@ bool FPCGExPathfindingEdgesElement::ExecuteInternal(FPCGContext* InContext) cons
 			}
 
 			Context->HeuristicsModifiers->PrepareForData(*Context->CurrentIO, *Context->CurrentEdges);
-			Context->Heuristics->Scale = Context->HeuristicsModifiers->Scale;
 			Context->Heuristics->PrepareForData(Context->CurrentCluster);
 			Context->SetState(PCGExGraph::State_ProcessingEdges);
 		}
