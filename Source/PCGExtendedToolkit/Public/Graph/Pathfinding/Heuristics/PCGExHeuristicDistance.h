@@ -13,14 +13,14 @@
 /**
  * 
  */
-UCLASS(DisplayName = "Distance")
+UCLASS(DisplayName = "Shortest Distance")
 class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicDistance : public UPCGExHeuristicLocalDistance
 {
 	GENERATED_BODY()
 
 public:
 	virtual void PrepareForData(PCGExCluster::FCluster* InCluster) override;
-	
+
 	virtual double GetGlobalScore(
 		const PCGExCluster::FNode& From,
 		const PCGExCluster::FNode& Seed,
@@ -28,5 +28,4 @@ public:
 
 protected:
 	double MaxDistSquared = 0;
-	
 };

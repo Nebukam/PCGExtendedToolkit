@@ -111,7 +111,7 @@ bool FPCGExSanitizeClustersElement::ExecuteInternal(FPCGContext* InContext) cons
 
 			if (!InNodePoints.IsValidIndex(NodeStart) ||
 				!InNodePoints.IsValidIndex(NodeEnd) ||
-				NodeStart == NodeEnd) { return;; }
+				NodeStart == NodeEnd) { return; }
 
 			if (!Context->GraphBuilder->Graph->InsertEdge(NodeStart, NodeEnd, NewEdge)) { return; }
 			NewEdge.PointIndex = EdgeIndex; // Tag edge since it's a new insertion

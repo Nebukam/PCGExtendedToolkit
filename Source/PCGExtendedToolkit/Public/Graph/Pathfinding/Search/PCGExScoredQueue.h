@@ -124,8 +124,8 @@ namespace PCGExSearch
 
 			Node->Collapse();
 			Node->Score = Score;
-			
-			if(!Tail && !Head)
+
+			if (!Tail && !Head)
 			{
 				Tail = Head = Node;
 				return;

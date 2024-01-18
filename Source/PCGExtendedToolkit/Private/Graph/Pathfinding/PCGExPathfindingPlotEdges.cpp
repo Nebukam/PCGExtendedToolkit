@@ -92,7 +92,7 @@ bool FPCGExPathfindingPlotEdgesElement::Boot(FPCGContext* InContext) const
 
 	Context->HeuristicsModifiers = const_cast<FPCGExHeuristicModifiersSettings*>(&Settings->HeuristicsModifiers);
 	Context->Heuristics->ReferenceWeight = Context->HeuristicsModifiers->ReferenceWeight;
-	
+
 	return true;
 }
 
@@ -179,7 +179,7 @@ bool FPCGExPlotClusterPathTask::ExecuteTask()
 		FVector SeedPosition = PointIO->GetInPoint(i - 1).Transform.GetLocation();
 		FVector GoalPosition = PointIO->GetInPoint(i).Transform.GetLocation();
 
-		if(!Context->SearchAlgorithm->FindPath(
+		if (!Context->SearchAlgorithm->FindPath(
 			Context->CurrentCluster, SeedPosition, GoalPosition,
 			Context->Heuristics, Context->HeuristicsModifiers, Path))
 		{

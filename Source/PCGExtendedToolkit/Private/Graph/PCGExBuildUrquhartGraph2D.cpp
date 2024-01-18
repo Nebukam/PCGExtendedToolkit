@@ -194,7 +194,7 @@ bool FPCGExBuildUrquhartGraph2DElement::ExecuteInternal(
 	if (Context->IsState(PCGExGraph::State_WritingClusters))
 	{
 		if (!Context->IsAsyncWorkComplete()) { return false; }
-		if(Context->GraphBuilder->bCompiledSuccessfully)
+		if (Context->GraphBuilder->bCompiledSuccessfully)
 		{
 			Context->GraphBuilder->Write(Context);
 			//TODO: Mark edges, process EdgesIO from GraphBuilder

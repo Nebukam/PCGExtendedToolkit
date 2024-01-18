@@ -34,11 +34,6 @@ public:
 		const PCGExCluster::FNode& Seed,
 		const PCGExCluster::FNode& Goal) const;
 
-	virtual bool IsBetterScore(const double NewScore, const double OtherScore) const;
-	virtual int32 GetQueueingIndex(const TArray<PCGExCluster::FScoredNode*>& InList, const double InScore, const int32 A) const;
-
-	virtual void ScoredInsert(TArray<PCGExCluster::FScoredNode*>& InList, PCGExCluster::FScoredNode* Node) const;
-
 	virtual void Cleanup() override;
 
 protected:

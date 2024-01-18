@@ -33,26 +33,6 @@ namespace PCGExCluster
 		bool GetNormal(FCluster* InCluster, FVector& OutNormal);
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FScoredNode
-	{
-		FScoredNode(const FNode& InNode, const double InWeight)
-			: Node(&InNode),
-			  Score(InWeight)
-		{
-		}
-
-		FScoredNode(const FNode& InNode, const double InScore, FScoredNode* InFrom)
-			: Node(&InNode),
-			  Score(InScore),
-			  From(InFrom)
-		{
-		}
-
-		const FNode* Node = nullptr;
-		double Score = -1;
-		FScoredNode* From = nullptr;
-	};
-
 	struct PCGEXTENDEDTOOLKIT_API FCluster
 	{
 		bool bEdgeLengthsDirty = true;

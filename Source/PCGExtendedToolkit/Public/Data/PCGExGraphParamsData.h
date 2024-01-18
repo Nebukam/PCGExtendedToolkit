@@ -424,7 +424,7 @@ namespace PCGExGraph
 	};
 
 	const FName ParamPropertyNameIndex = FName("EdgeIndex");
-	
+
 	struct PCGEXTENDEDTOOLKIT_API FSocketMapping
 	{
 		FSocketMapping()

@@ -10,9 +10,8 @@
 
 class PCGEXTENDEDTOOLKIT_API FPCGExPointIOMerger
 {
-
 	friend class FPCGExAttributeMergeTask;
-	
+
 public:
 	FPCGExPointIOMerger(PCGExData::FPointIO& OutData);
 	virtual ~FPCGExPointIOMerger();
@@ -32,14 +31,13 @@ protected:
 	PCGExData::FPointIO* MergedData = nullptr;
 	TArray<PCGExData::FPointIO*> MergedPoints;
 	bool bCleanupInputs = true;
-	
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExAttributeMergeTask : public FPCGExNonAbandonableTask
 {
 public:
 	FPCGExAttributeMergeTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-						   FPCGExPointIOMerger* InMerger, const FName InAttributeName)
+	                         FPCGExPointIOMerger* InMerger, const FName InAttributeName)
 		: FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
 		  Merger(InMerger), AttributeName(InAttributeName)
 	{

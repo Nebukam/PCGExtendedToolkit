@@ -214,7 +214,7 @@ namespace PCGExGraph
 			: SourceEdgesIO(InSourceEdges)
 		{
 			PointIO = &InPointIO;
-			PointIO->Tags->Set(PCGExGraph::Tag_Cluster, PointIO->GetInOut()->UID, EdgeTagValue);
+			PointIO->Tags->Set(Tag_Cluster, PointIO->GetInOut()->UID, EdgeTagValue);
 
 			const int32 NumNodes = PointIO->GetOutNum();
 
@@ -243,7 +243,7 @@ namespace PCGExGraph
 		OutIndices.Empty();
 
 		PCGEx::TFAttributeReader<int32>* IndexReader = new PCGEx::TFAttributeReader<int32>(AttributeName);
-		if (!IndexReader->Bind(const_cast<PCGExData::FPointIO&>(InPointIO)))
+		if (!IndexReader->Bind(InPointIO))
 		{
 			PCGEX_DELETE(IndexReader)
 			return false;
@@ -263,7 +263,7 @@ namespace PCGExGraph
 
 	static bool IsPointDataVtxReady(const UPCGPointData* PointData)
 	{
-		const FName Tags[] = {PCGExGraph::Tag_EdgeIndex, PCGExGraph::Tag_EdgesNum};
+		const FName Tags[] = {Tag_EdgeIndex, Tag_EdgesNum};
 		constexpr int16 I32 = static_cast<uint16>(EPCGMetadataTypes::Integer32);
 
 		for (const FName Name : Tags)
@@ -277,7 +277,7 @@ namespace PCGExGraph
 
 	static bool IsPointDataEdgeReady(const UPCGPointData* PointData)
 	{
-		const FName Tags[] = {PCGExGraph::Tag_EdgeStart, PCGExGraph::Tag_EdgeEnd};
+		const FName Tags[] = {Tag_EdgeStart, Tag_EdgeEnd};
 		constexpr int16 I32 = static_cast<uint16>(EPCGMetadataTypes::Integer32);
 
 		for (const FName Name : Tags)

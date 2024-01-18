@@ -171,11 +171,10 @@ namespace PCGExGraph
 
 	void FSocketMapping::PrepareForPointData(const PCGExData::FPointIO& PointIO, const bool bReadOnly)
 	{
-
 		//TODO: Write index per graph instead of per socket
 		//GetRemappedIndices(PointIO, ) GetParamPropertyName(ParamPropertyNameIndex)
-		
-		
+
+
 		for (int i = 0; i < Sockets.Num(); i++)
 		{
 			Sockets[i].PrepareForPointData(PointIO, bReadOnly);

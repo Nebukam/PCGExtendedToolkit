@@ -24,9 +24,6 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSearchAStar : public UPCGExSearchOperation
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
-	bool bExitEarly = true;
-	
 	virtual bool FindPath(
 		const PCGExCluster::FCluster* Cluster,
 		const FVector& SeedPosition,
@@ -34,5 +31,4 @@ public:
 		const UPCGExHeuristicOperation* Heuristics,
 		const FPCGExHeuristicModifiersSettings* Modifiers,
 		TArray<int32>& OutPath) override;
-
 };

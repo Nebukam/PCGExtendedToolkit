@@ -25,7 +25,7 @@ public:
 	PCGEX_NODE_INFOS(SanitizeClusters, "Edges : Sanitize Clusters", "Ensure the input set of vertex and edges outputs clean, interconnected clusters. May create new clusters, but does not creates nor deletes points/edges.");
 	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorEdge; }
 #endif
-	
+
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings interface
@@ -55,7 +55,6 @@ public:
 	/** Maximum points threshold */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bRemoveBigClusters", ClampMin=2))
 	int32 MaxClusterSize = 500;
-
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExSanitizeClustersContext : public FPCGExEdgesProcessorContext
@@ -70,9 +69,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSanitizeClustersContext : public FPCGExEdges
 
 	PCGEx::TFAttributeReader<int32>* StartIndexReader = nullptr;
 	PCGEx::TFAttributeReader<int32>* EndIndexReader = nullptr;
-	
-	PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
 
+	PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExSanitizeClustersElement : public FPCGExEdgesProcessorElement
@@ -85,5 +83,5 @@ public:
 
 protected:
 	virtual bool Boot(FPCGContext* InContext) const override;
-	virtual bool ExecuteInternal(FPCGContext* InContext) const override;	
+	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };

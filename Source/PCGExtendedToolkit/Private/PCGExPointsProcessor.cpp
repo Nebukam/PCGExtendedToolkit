@@ -405,7 +405,7 @@ FPCGContext* FPCGExPointsProcessorElementBase::InitializeContext(
 	InContext->MainPoints->DefaultOutputLabel = Settings->GetMainOutputLabel();
 
 	if (!Settings->bEnabled) { return InContext; }
-	
+
 	if (Settings->GetMainAcceptMultipleData())
 	{
 		TArray<FPCGTaggedData> Sources = InContext->InputData.GetInputsByPin(Settings->GetMainInputLabel());

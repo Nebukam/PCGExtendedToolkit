@@ -59,7 +59,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicModifier : public FPCGExInputDescri
 	GENERATED_BODY()
 
 	FPCGExHeuristicModifier()
-		: InfluenceCurve(PCGEx::WeightDistributionLinear)
+		: ScoreCurve(PCGEx::WeightDistributionLinear)
 	{
 	}
 
@@ -93,7 +93,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicModifier : public FPCGExInputDescri
 
 	/** Curve the value will be remapped over. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta=(PCG_Overridable))
-	TSoftObjectPtr<UCurveFloat> InfluenceCurve;
+	TSoftObjectPtr<UCurveFloat> ScoreCurve;
 };
 
 USTRUCT(BlueprintType)
@@ -170,9 +170,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicModifiersSettings
 
 			PCGEx::FLocalSingleFieldGetter* WeightGetter = nullptr;
 
-			TObjectPtr<UCurveFloat> InfluenceFC;
-			if (Modifier.InfluenceCurve.IsNull()) { InfluenceFC = TSoftObjectPtr<UCurveFloat>(PCGEx::WeightDistributionLinear).LoadSynchronous(); }
-			else { InfluenceFC = Modifier.InfluenceCurve.LoadSynchronous(); }
+			TObjectPtr<UCurveFloat> ScoreFC;
+			if (Modifier.ScoreCurve.IsNull()) { ScoreFC = TSoftObjectPtr<UCurveFloat>(PCGEx::WeightDistributionLinear).LoadSynchronous(); }
+			else { ScoreFC = Modifier.ScoreCurve.LoadSynchronous(); }
 
 			if (Modifier.bUseLocalWeight)
 			{
@@ -212,7 +212,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicModifiersSettings
 				for (int i = 0; i < NumIterations; i++)
 				{
 					const double BaseValue = PCGExMath::Remap(ModifierGetter->Values[i], MinValue, MaxValue, 0, 1);
-					(*TargetArray)[i] += FMath::Max(0, InfluenceFC->GetFloatValue(BaseValue)) * WeightGetter->Values[i];
+					(*TargetArray)[i] += FMath::Max(0, ScoreFC->GetFloatValue(BaseValue)) * WeightGetter->Values[i];
 				}
 			}
 			else
@@ -221,7 +221,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicModifiersSettings
 				for (int i = 0; i < NumIterations; i++)
 				{
 					const double BaseValue = PCGExMath::Remap(ModifierGetter->Values[i], MinValue, MaxValue, 0, 1);
-					(*TargetArray)[i] += FMath::Max(0, InfluenceFC->GetFloatValue(BaseValue)) * Factor;
+					(*TargetArray)[i] += FMath::Max(0, ScoreFC->GetFloatValue(BaseValue)) * Factor;
 				}
 			}
 

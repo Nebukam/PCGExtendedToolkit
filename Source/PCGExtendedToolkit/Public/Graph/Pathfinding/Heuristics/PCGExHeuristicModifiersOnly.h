@@ -19,5 +19,4 @@ class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicModifiersOnly : public UPCGExHeurist
 	GENERATED_BODY()
 
 public:
-
 };

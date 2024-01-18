@@ -5,24 +5,19 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
-#include "PCGExHeuristicOperation.h"
 #include "Graph/PCGExCluster.h"
-#include "PCGExHeuristicDirection.generated.h"
+#include "PCGExHeuristicDistance.h"
 
+#include "PCGExHeuristicNodeCount.generated.h"
 /**
  * 
  */
-UCLASS(DisplayName = "Direction")
-class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicDirection : public UPCGExHeuristicOperation
+UCLASS(DisplayName = "Least Nodes")
+class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicNodeCount : public UPCGExHeuristicDistance
 {
 	GENERATED_BODY()
 
 public:
-	virtual double GetGlobalScore(
-		const PCGExCluster::FNode& From,
-		const PCGExCluster::FNode& Seed,
-		const PCGExCluster::FNode& Goal) const override;
-
 	virtual double GetEdgeScore(
 		const PCGExCluster::FNode& From,
 		const PCGExCluster::FNode& To,

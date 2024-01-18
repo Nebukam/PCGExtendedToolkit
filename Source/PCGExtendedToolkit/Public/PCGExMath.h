@@ -511,5 +511,4 @@ namespace PCGExMath
 	static T NoBlend(const T& A, const T& B, const double& Alpha = 0) { return A; }
 
 #pragma endregion
-
 }

@@ -31,7 +31,7 @@ public:
 	virtual void Process(PCGExCluster::FCluster* InCluster, PCGExGraph::FGraph* InGraph, PCGExData::FPointIO* InEdgesIO);
 
 	virtual void Cleanup() override;
-	
+
 protected:
 	PCGExData::FPointIO* PointIO;
 };

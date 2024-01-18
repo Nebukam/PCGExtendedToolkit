@@ -27,7 +27,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExInputDescriptor
 	{
 	}
 
-	FPCGExInputDescriptor(const FPCGExInputDescriptor& Other)
+	explicit FPCGExInputDescriptor(const FPCGExInputDescriptor& Other)
 		: Selector(Other.Selector),
 		  Attribute(Other.Attribute)
 	{
@@ -76,7 +76,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExInputDescriptorGeneric : public FPCGExInputD
 	{
 	}
 
-	FPCGExInputDescriptorGeneric(const FPCGExInputDescriptorGeneric& Other)
+	explicit FPCGExInputDescriptorGeneric(const FPCGExInputDescriptorGeneric& Other)
 		: FPCGExInputDescriptor(Other),
 		  Type(Other.Type),
 		  Axis(Other.Axis),
@@ -111,7 +111,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExInputDescriptorWithDirection : public FPCGEx
 	{
 	}
 
-	FPCGExInputDescriptorWithDirection(const FPCGExInputDescriptorWithDirection& Other)
+	explicit FPCGExInputDescriptorWithDirection(const FPCGExInputDescriptorWithDirection& Other)
 		: FPCGExInputDescriptor(Other),
 		  Axis(Other.Axis)
 	{
@@ -136,7 +136,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExInputDescriptorWithSingleField : public FPCG
 	{
 	}
 
-	FPCGExInputDescriptorWithSingleField(const FPCGExInputDescriptorWithSingleField& Other)
+	explicit FPCGExInputDescriptorWithSingleField(const FPCGExInputDescriptorWithSingleField& Other)
 		: FPCGExInputDescriptor(Other),
 		  Axis(Other.Axis),
 		  Field(Other.Field)
@@ -708,7 +708,7 @@ virtual _TYPE Convert(const FName Value) const override { return static_cast<_TY
 	PCGEX_SINGLE(Boolean, bool, Min = false; Max = true;)
 
 #undef PCGEX_SINGLE
-	
+
 #define PCGEX_VECTOR_CAST(_NAME, _TYPE, VECTOR2D)\
 struct PCGEXTENDEDTOOLKIT_API FLocal ## _NAME ## Input : public FAttributeGetter<_TYPE>	{\
 protected: \
@@ -786,7 +786,12 @@ virtual _TYPE Convert(const FName Value) const override { return _TYPE(Value.ToS
 		void Capture(const FPCGExInputDescriptorGeneric& InDescriptor);
 
 	protected:
-		virtual void ResetMinMax() const override{ Min = TNumericLimits<double>::Max(); Max = TNumericLimits<double>::Min(); }
+		virtual void ResetMinMax() const override
+		{
+			Min = TNumericLimits<double>::Max();
+			Max = TNumericLimits<double>::Min();
+		}
+
 		virtual double GetDefaultValue() const override { return 0; }
 
 		virtual double Convert(const int32 Value) const override { return Value; }
@@ -880,7 +885,12 @@ virtual _TYPE Convert(const FName Value) const override { return _TYPE(Value.ToS
 		}
 
 	protected:
-		virtual void ResetMinMax() const override{ Min = FVector(TNumericLimits<double>::Max()); Max = FVector(TNumericLimits<double>::Min()); }
+		virtual void ResetMinMax() const override
+		{
+			Min = FVector(TNumericLimits<double>::Max());
+			Max = FVector(TNumericLimits<double>::Min());
+		}
+
 		virtual FVector GetDefaultValue() const override { return FVector::ZeroVector; }
 
 		virtual FVector Convert(const bool Value) const override { return GetDefaultValue(); }
@@ -907,7 +917,12 @@ virtual _TYPE Convert(const FName Value) const override { return _TYPE(Value.ToS
 	public:
 
 	protected:
-		virtual void ResetMinMax() const override{ Min = TEXT(""); Max = TEXT(""); }
+		virtual void ResetMinMax() const override
+		{
+			Min = TEXT("");
+			Max = TEXT("");
+		}
+
 		virtual FString GetDefaultValue() const override { return ""; }
 
 		virtual FString Convert(const bool Value) const override { return FString::Printf(TEXT("%s"), Value ? TEXT("true") : TEXT("false")); }

@@ -24,12 +24,12 @@ namespace PCGExData
 			check(In)
 			Out = Cast<UPCGPointData>(In->DuplicateData(true));
 			break;
-			/*
-		case EInit::Forward: // Seems to be creating a lot of weird issues
-			check(In)
-			Out = const_cast<UPCGPointData*>(In);
-			break;
-			*/
+		/*
+	case EInit::Forward: // Seems to be creating a lot of weird issues
+		check(In)
+		Out = const_cast<UPCGPointData*>(In);
+		break;
+		*/
 		default: ;
 		}
 	}
@@ -347,5 +347,4 @@ namespace PCGExData
 		if (const int32* Index = TagMap.Find(Key)) { return Entries[*Index]; }
 		return nullptr;
 	}
-
 }

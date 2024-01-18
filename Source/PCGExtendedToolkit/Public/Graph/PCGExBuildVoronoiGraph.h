@@ -90,7 +90,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBuildVoronoiGraphContext : public FPCGExPoin
 	TSet<int32> HullIndices;
 
 	PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
-
 };
 
 

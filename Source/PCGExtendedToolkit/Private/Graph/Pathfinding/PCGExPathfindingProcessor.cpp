@@ -116,7 +116,7 @@ bool FPCGExPathfindingProcessorElement::Boot(FPCGContext* InContext) const
 
 	Context->HeuristicsModifiers = const_cast<FPCGExHeuristicModifiersSettings*>(&Settings->HeuristicsModifiers);
 	Context->Heuristics->ReferenceWeight = Context->HeuristicsModifiers->ReferenceWeight;
-	
+
 	return true;
 }
 
@@ -131,7 +131,7 @@ FPCGContext* FPCGExPathfindingProcessorElement::InitializeContext(
 	const UPCGExPathfindingProcessorSettings* Settings = InContext->GetInputSettings<UPCGExPathfindingProcessorSettings>();
 	check(Settings);
 
-	if(!Settings->bEnabled){ return Context; }
+	if (!Settings->bEnabled) { return Context; }
 
 	if (Settings->GetRequiresSeeds())
 	{

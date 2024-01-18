@@ -291,5 +291,4 @@ namespace PCGExDataBlending
 		PCGEx::TFAttributeWriter<T>* Writer = nullptr;
 		PCGEx::FAttributeIOBase<T>* Reader = nullptr;
 	};
-
 }

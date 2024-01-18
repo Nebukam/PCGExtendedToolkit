@@ -91,7 +91,7 @@ namespace PCGExData
 			{
 				OutValue = *Value;
 				return true;
-			};
+			}
 
 			return false;
 		}
@@ -102,7 +102,7 @@ namespace PCGExData
 			{
 				Value = *InValue;
 				return;
-			};
+			}
 
 			Tags.Add(Key, Value);
 		}

@@ -38,10 +38,12 @@ bool UPCGExSearchAStar::FindPath(const PCGExCluster::FCluster* Cluster, const FV
 		const PCGExCluster::FNode& Current = Cluster->Nodes[CurrentNodeIndex];
 		Visited.Add(CurrentNodeIndex);
 
-		if (Current.NodeIndex == GoalNode.NodeIndex && bExitEarly) { break; }
+		if (Current.NodeIndex == GoalNode.NodeIndex) { break; }
 
 		for (const int32 AdjacentIndex : Current.AdjacentNodes)
 		{
+			if (Visited.Contains(AdjacentIndex)) { continue; } // Exit early
+
 			const PCGExCluster::FNode& AdjacentNode = Cluster->Nodes[AdjacentIndex];
 			const PCGExGraph::FIndexedEdge& Edge = Cluster->GetEdgeFromNodeIndices(CurrentNodeIndex, AdjacentIndex);
 

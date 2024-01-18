@@ -27,7 +27,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSortRule : public FPCGExInputDescriptor
 	}
 
 	FPCGExSortRule(const FPCGExSortRule& Other)
-		: FPCGExInputDescriptor(Other), Tolerance(Other.Tolerance)
+		: FPCGExInputDescriptor(Other), OrderFieldSelection(Other.OrderFieldSelection), Tolerance(Other.Tolerance)
 	{
 	}
 

@@ -60,7 +60,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBridgeEdgeClustersContext : public FPCGExEdg
 
 	int32 TotalPoints = -1;
 	PCGExData::FPointIO* ConsolidatedEdges = nullptr;
-	
+
 	TArray<PCGExCluster::FCluster*> Clusters;
 	TArray<PCGExData::FPointIO*> BridgedEdges;
 	TArray<PCGExCluster::FCluster*> BridgedClusters;
@@ -71,7 +71,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBridgeEdgeClustersContext : public FPCGExEdg
 protected:
 	mutable FRWLock NumEdgeLock;
 	void BumpEdgeNum(const FPCGPoint& A, const FPCGPoint& B);
-
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExBridgeEdgeClustersElement : public FPCGExEdgesProcessorElement

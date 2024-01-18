@@ -23,7 +23,7 @@ PCGEX_INITIALIZE_ELEMENT(RelaxEdgeClusters)
 FPCGExRelaxEdgeClustersContext::~FPCGExRelaxEdgeClustersContext()
 {
 	PCGEX_TERMINATE_ASYNC
-	
+
 	PrimaryBuffer.Empty();
 	SecondaryBuffer.Empty();
 

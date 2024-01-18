@@ -6,6 +6,7 @@
 
 #include "Graph/PCGExCluster.h"
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicLocalDistance.h"
+#include "Graph/Pathfinding/Search/PCGExScoredQueue.h"
 
 void UPCGExEdgeRefinePrimMST::PrepareForPointIO(PCGExData::FPointIO* InPointIO)
 {
@@ -17,72 +18,63 @@ void UPCGExEdgeRefinePrimMST::Process(PCGExCluster::FCluster* InCluster, PCGExGr
 	const TObjectPtr<UPCGExHeuristicLocalDistance> Heuristics = NewObject<UPCGExHeuristicLocalDistance>();
 
 	HeuristicsModifiers.PrepareForData(*PointIO, *InEdgesIO);
-	Heuristics->ReferenceWeight = HeuristicsModifiers.Scale;
+	Heuristics->ReferenceWeight = HeuristicsModifiers.ReferenceWeight;
 	Heuristics->PrepareForData(InCluster);
 
 	const PCGExCluster::FNode* NoNode = new PCGExCluster::FNode();
 	const int32 NumNodes = InCluster->Nodes.Num();
 
-	TArray<PCGExCluster::FScoredNode*> OpenList;
-	TSet<int32> VisitedNodes;
+	TSet<int32> Visited;
 
-	VisitedNodes.Reserve(NumNodes);
-	OpenList.Reserve(NumNodes);
+	Visited.Reserve(NumNodes);
+	PCGExSearch::TScoredQueue<int32>* ScoredQueue = new PCGExSearch::TScoredQueue<int32>(0, 0);
 
-	TArray<double> BestScore;
+	TArray<double> Scores;
 	TArray<int32> Parent;
 
-	BestScore.SetNum(NumNodes);
+	Scores.SetNum(NumNodes);
 	Parent.SetNum(NumNodes);
 
 	for (int i = 0; i < NumNodes; i++)
 	{
-		BestScore[i] = TNumericLimits<double>::Max();
+		Scores[i] = TNumericLimits<double>::Max();
 		Parent[i] = 0;
 	}
 
-	// Set the key of the first vertex to 0 and push it to the priority queue
-	OpenList.Add(new PCGExCluster::FScoredNode(InCluster->Nodes[0], 0)); // weight, vertex
-
-	while (!OpenList.IsEmpty())
+	int32 CurrentNodeIndex;
+	double CurrentNodeScore;
+	while (ScoredQueue->Dequeue(CurrentNodeIndex, CurrentNodeScore))
 	{
-		// Extract the vertex with the minimum key from the priority queue
-		const PCGExCluster::FScoredNode* CurrentScoredNode = OpenList.Pop();
-		int32 CurrentNodeIndex = CurrentScoredNode->Node->NodeIndex;
+		const PCGExCluster::FNode& Current = InCluster->Nodes[CurrentNodeIndex];
+		Visited.Add(CurrentNodeIndex);
 
-		VisitedNodes.Add(CurrentNodeIndex);
-
-		// Explore all adjacent vertices of the extracted vertex
-		for (const int32 EdgeIndex : CurrentScoredNode->Node->Edges)
+		for (const int32 AdjacentIndex : Current.AdjacentNodes)
 		{
-			PCGExGraph::FIndexedEdge Edge = InCluster->Edges[EdgeIndex];
-			const PCGExCluster::FNode& AdjacentNode = InCluster->GetNodeFromPointIndex(Edge.Other(CurrentScoredNode->Node->PointIndex));
+			if (Visited.Contains(AdjacentIndex)) { continue; } // Exit early
 
-			const int32 AdjacentIndex = AdjacentNode.NodeIndex;
+			const PCGExCluster::FNode& AdjacentNode = InCluster->Nodes[AdjacentIndex];
+			const PCGExGraph::FIndexedEdge& Edge = InCluster->GetEdgeFromNodeIndices(CurrentNodeIndex, AdjacentIndex);
 
-			if (VisitedNodes.Contains(AdjacentIndex)) { continue; }
-
-			double Score = Heuristics->GetEdgeScore(*CurrentScoredNode->Node, AdjacentNode, Edge, *NoNode, *NoNode);
+			double Score = Heuristics->GetEdgeScore(Current, AdjacentNode, Edge, *NoNode, *NoNode);
 			Score += HeuristicsModifiers.GetScore(AdjacentNode.PointIndex, Edge.PointIndex);
 
-			if (Score < BestScore[AdjacentIndex])
-			{
-				// Update the minimum weight of the adjacent vertex and push it to the priority queue
-				BestScore[AdjacentIndex] = Score;
-				Parent[AdjacentIndex] = CurrentNodeIndex;
+			if (Score >= Scores[AdjacentIndex]) { continue; }
 
-				Heuristics->ScoredInsert(OpenList, new PCGExCluster::FScoredNode(AdjacentNode, Score));
-			}
+			Scores[AdjacentIndex] = Score;
+			Parent[AdjacentIndex] = CurrentNodeIndex;
+
+			ScoredQueue->SetScore(AdjacentIndex, Score, true);
 		}
-
-		PCGEX_DELETE(CurrentScoredNode)
 	}
 
 	PCGExGraph::FIndexedEdge InsertedEdge;
-	for (int32 i = 0; i < NumNodes; i++) { InGraph->InsertEdge(InCluster->Nodes[Parent[i]].PointIndex, InCluster->Nodes[i].PointIndex, InsertedEdge); }
+	for (int32 i = 0; i < NumNodes; i++)
+	{
+		InGraph->InsertEdge(InCluster->Nodes[Parent[i]].PointIndex, InCluster->Nodes[i].PointIndex, InsertedEdge);
+	}
 
-	VisitedNodes.Empty();
-	PCGEX_DELETE_TARRAY(OpenList)
+	Visited.Empty();
+	PCGEX_DELETE(ScoredQueue)
 	PCGEX_DELETE(NoNode)
 }
 

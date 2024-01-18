@@ -223,7 +223,7 @@ namespace PCGExGraph
 		Nodes.Reserve(Nodes.Num() + Crossings.Num());
 		if (!Crossings.IsEmpty()) { Graph->bRequiresConsolidation = true; }
 
-		PCGExGraph::FIndexedEdge NewEdge = PCGExGraph::FIndexedEdge{};
+		FIndexedEdge NewEdge = FIndexedEdge{};
 
 		for (const FEdgeCrossing& EdgeCrossing : Crossings)
 		{
@@ -258,7 +258,6 @@ namespace PCGExGraph
 	{
 		EdgesIO->OutputTo(InContext);
 	}
-	
 }
 
 bool FPCGExWriteSubGraphEdgesTask::ExecuteTask()

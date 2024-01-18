@@ -158,5 +158,4 @@ namespace PCGExGraph
 		{
 		}
 	};
-	
 }
