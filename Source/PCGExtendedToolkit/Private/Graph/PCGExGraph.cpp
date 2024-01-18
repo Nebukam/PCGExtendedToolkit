@@ -291,7 +291,7 @@ bool FPCGExWriteSubGraphEdgesTask::ExecuteTask()
 	{
 		const PCGExGraph::FIndexedEdge& Edge = Graph->Edges[EdgeIndex];
 
-		if (const FPCGPoint* InEdgePtr = EdgeIO->TryGetInPoint(Edge.TaggedIndex))
+		if (const FPCGPoint* InEdgePtr = EdgeIO->TryGetInPoint(Edge.PointIndex))
 		{
 			MutablePoints[PointIndex] = *InEdgePtr; // Copy input edge point if it exists
 		}

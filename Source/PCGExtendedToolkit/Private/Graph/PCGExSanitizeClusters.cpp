@@ -114,7 +114,7 @@ bool FPCGExSanitizeClustersElement::ExecuteInternal(FPCGContext* InContext) cons
 				NodeStart == NodeEnd) { return;; }
 
 			if (!Context->GraphBuilder->Graph->InsertEdge(NodeStart, NodeEnd, NewEdge)) { return; }
-			NewEdge.TaggedIndex = EdgeIndex; // Tag edge since it's a new insertion
+			NewEdge.PointIndex = EdgeIndex; // Tag edge since it's a new insertion
 		};
 
 		if (!Context->Process(Initialize, InsertEdge, InEdgePoints.Num())) { return false; }

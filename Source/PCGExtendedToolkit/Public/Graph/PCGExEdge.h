@@ -146,15 +146,15 @@ namespace PCGExGraph
 	struct PCGEXTENDEDTOOLKIT_API FIndexedEdge : public FUnsignedEdge
 	{
 		int32 EdgeIndex = -1;
-		int32 TaggedIndex = -1;
+		int32 PointIndex = -1;
 
 		FIndexedEdge()
 		{
 		}
 
-		FIndexedEdge(const int32 InIndex, const int32 InStart, const int32 InEnd)
+		FIndexedEdge(const int32 InIndex, const int32 InStart, const int32 InEnd, const int32 InPointIndex = -1)
 			: FUnsignedEdge(InStart, InEnd),
-			  EdgeIndex(InIndex)
+			  EdgeIndex(InIndex), PointIndex(InPointIndex)
 		{
 		}
 	};

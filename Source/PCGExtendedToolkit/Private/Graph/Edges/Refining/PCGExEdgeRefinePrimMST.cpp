@@ -63,7 +63,7 @@ void UPCGExEdgeRefinePrimMST::Process(PCGExCluster::FCluster* InCluster, PCGExGr
 			if (VisitedNodes.Contains(AdjacentIndex)) { continue; }
 
 			double Score = Heuristics->GetEdgeScore(*CurrentScoredNode->Node, AdjacentNode, Edge, *NoNode, *NoNode);
-			Score += HeuristicsModifiers.GetScore(AdjacentNode.PointIndex, Edge.EdgeIndex);
+			Score += HeuristicsModifiers.GetScore(AdjacentNode.PointIndex, Edge.PointIndex);
 
 			if (Score < BestScore[AdjacentIndex])
 			{

@@ -37,6 +37,7 @@ namespace PCGExSearch
 		};
 
 	protected:
+		FScoredNode* Head = nullptr;
 		FScoredNode* Tail = nullptr;
 
 		TMap<FElementType, FScoredNode*> Map;
@@ -44,12 +45,10 @@ namespace PCGExSearch
 		void InsertNode(FScoredNode* Node)
 		{
 			FScoredNode* PrevBest = Tail;
-			FScoredNode* Head = Tail;
 			while (PrevBest)
 			{
 				if (PrevBest->Score > Node->Score) { break; }
 				PrevBest = PrevBest->Prev;
-				if (PrevBest) { Head = PrevBest; }
 			}
 
 			if (!PrevBest)
@@ -57,17 +56,17 @@ namespace PCGExSearch
 				Head->Prev = Node;
 				Node->Next = Head;
 				Node->Prev = nullptr;
+				Head = Node;
 			}
 			else
 			{
 				FScoredNode* OldNext = PrevBest->Next;
-				PrevBest->Next = Node;
+				if (PrevBest) { PrevBest->Next = Node; }
 
 				Node->Prev = PrevBest;
 				Node->Next = OldNext;
 
 				if (OldNext) { OldNext->Prev = Node; }
-
 				if (PrevBest == Tail) { Tail = Node; }
 			}
 		}
@@ -100,9 +99,9 @@ namespace PCGExSearch
 			FScoredNode* NewNode = new FScoredNode(Item, Score);
 			Map.Add(Item, NewNode);
 
-			if (!Tail)
+			if (!Tail && !Head)
 			{
-				Tail = NewNode;
+				Head = Tail = NewNode;
 				return;
 			}
 
@@ -121,7 +120,16 @@ namespace PCGExSearch
 
 			FScoredNode* Node = *NodePtr;
 			if (Node == Tail) { Tail = Node->Prev; }
+			if (Node == Head) { Head = Node->Next; }
+
 			Node->Collapse();
+			Node->Score = Score;
+			
+			if(!Tail && !Head)
+			{
+				Tail = Head = Node;
+				return;
+			}
 
 			InsertNode(Node);
 		}
@@ -142,7 +150,9 @@ namespace PCGExSearch
 			if (!Tail) { return false; }
 
 			FScoredNode* OldTail = Tail;
+			if (OldTail == Head) { Head = nullptr; }
 			Tail = Tail->Prev;
+
 
 			OldTail->Collapse();
 
@@ -153,6 +163,29 @@ namespace PCGExSearch
 			delete OldTail;
 
 			return true;
+		}
+
+		void Push(const FElementType& Item)
+		{
+			if (Map.Contains(Item))
+			{
+				SetScore(Item, TNumericLimits<double>::Max());
+				return;
+			}
+
+			FScoredNode* NewNode = new FScoredNode(Item, TNumericLimits<double>::Max());
+			Map.Add(Item, NewNode);
+
+			if (!Tail && !Head)
+			{
+				Head = Tail = NewNode;
+				return;
+			}
+
+			Head->Prev = NewNode;
+			NewNode->Next = Head;
+			NewNode->Prev = nullptr;
+			Head = NewNode;
 		}
 	};
 }

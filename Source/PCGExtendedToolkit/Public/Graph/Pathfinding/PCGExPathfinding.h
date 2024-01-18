@@ -8,7 +8,6 @@
 #include "PCGExPointsProcessor.h"
 #include "GoalPickers/PCGExGoalPicker.h"
 #include "Graph/PCGExCluster.h"
-#include "Heuristics/PCGExHeuristicOperation.h"
 
 #include "PCGExPathfinding.generated.h"
 
@@ -213,15 +212,16 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicModifiersSettings
 				for (int i = 0; i < NumIterations; i++)
 				{
 					const double BaseValue = PCGExMath::Remap(ModifierGetter->Values[i], MinValue, MaxValue, 0, 1);
-					(*TargetArray)[i] += InfluenceFC->GetFloatValue(BaseValue) * WeightGetter->Values[i];
+					(*TargetArray)[i] += FMath::Max(0, InfluenceFC->GetFloatValue(BaseValue)) * WeightGetter->Values[i];
 				}
 			}
 			else
 			{
+				const double Factor = Modifier.Weight;
 				for (int i = 0; i < NumIterations; i++)
 				{
 					const double BaseValue = PCGExMath::Remap(ModifierGetter->Values[i], MinValue, MaxValue, 0, 1);
-					(*TargetArray)[i] += InfluenceFC->GetFloatValue(BaseValue) * Modifier.Weight;
+					(*TargetArray)[i] += FMath::Max(0, InfluenceFC->GetFloatValue(BaseValue)) * Factor;
 				}
 			}
 
@@ -303,7 +303,27 @@ namespace PCGExPathfinding
 	}
 }
 
-// Define the background task class
+class PCGEXTENDEDTOOLKIT_API FPCGExCompileModifiersTask : public FPCGExNonAbandonableTask
+{
+public:
+	FPCGExCompileModifiersTask(
+		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+		PCGExData::FPointIO* InEdgeIO, FPCGExHeuristicModifiersSettings* InModifiers) :
+		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+		EdgeIO(InEdgeIO), Modifiers(InModifiers)
+	{
+	}
+
+	PCGExData::FPointIO* EdgeIO = nullptr;
+	FPCGExHeuristicModifiersSettings* Modifiers = nullptr;
+
+	virtual bool ExecuteTask() override
+	{
+		Modifiers->PrepareForData(*PointIO, *EdgeIO);
+		return true;
+	}
+};
+
 class PCGEXTENDEDTOOLKIT_API FPCGExPathfindingTask : public FPCGExNonAbandonableTask
 {
 public:

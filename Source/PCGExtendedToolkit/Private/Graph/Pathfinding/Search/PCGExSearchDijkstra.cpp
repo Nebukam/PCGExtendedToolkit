@@ -7,6 +7,7 @@
 #include "Graph/PCGExCluster.h"
 #include "Graph/Pathfinding/PCGExPathfinding.h"
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicOperation.h"
+#include "Graph/Pathfinding/Search/PCGExScoredQueue.h"
 
 bool UPCGExSearchDijkstra::FindPath(const PCGExCluster::FCluster* Cluster, const FVector& SeedPosition, const FVector& GoalPosition, const UPCGExHeuristicOperation* Heuristics, const FPCGExHeuristicModifiersSettings* Modifiers, TArray<int32>& OutPath)
 {
@@ -22,50 +23,44 @@ bool UPCGExSearchDijkstra::FindPath(const PCGExCluster::FCluster* Cluster, const
 
 	// Basic Dijkstra implementation TODO:Optimize
 
-	TMap<int32, int32> Previous;
 	TSet<int32> Visited;
-	Visited.Reserve(NumNodes);
+	TMap<int32, double> Scores;
+	TMap<int32, int32> Previous;
+	PCGExSearch::TScoredQueue<int32>* ScoredQueue = new PCGExSearch::TScoredQueue<int32>(SeedNode.NodeIndex, 0);
 
-	TArray<double> Scores;
-	TArray<double> FScore;
+	Scores.Reserve(NumNodes);
+	Scores.Add(SeedNode.NodeIndex, 0);
 
-	Scores.SetNum(NumNodes);
-	FScore.SetNum(NumNodes);
-	TArray<int32> OpenList;
-
-	for (int i = 0; i < NumNodes; i++)
+	int32 CurrentNodeIndex;
+	double CurrentScore;
+	while (ScoredQueue->Dequeue(CurrentNodeIndex, CurrentScore))
 	{
-		Scores[i] = TNumericLimits<double>::Max();
-		FScore[i] = TNumericLimits<double>::Max();
-	}
+		const PCGExCluster::FNode& Current = Cluster->Nodes[CurrentNodeIndex];
+		Visited.Add(CurrentNodeIndex);
 
-	Scores[SeedNode.NodeIndex] = 0;
-	OpenList.Add(SeedNode.NodeIndex);
-
-	while (!OpenList.IsEmpty())
-	{
-		// the node in openSet having the lowest FScore value
-		const PCGExCluster::FNode& Current = Cluster->Nodes[OpenList.Pop()]; // TODO: Sorted add, otherwise this won't work.
-		Visited.Remove(Current.NodeIndex);
-
-		const double CurrentScore = Scores[Current.NodeIndex];
-
-		//Get current index neighbors
 		for (const int32 AdjacentNodeIndex : Current.AdjacentNodes)
 		{
-			if (Visited.Contains(AdjacentNodeIndex)) { continue; }
-			Visited.Add(AdjacentNodeIndex);
-
 			const PCGExCluster::FNode& AdjacentNode = Cluster->Nodes[AdjacentNodeIndex];
-			const PCGExGraph::FIndexedEdge& Edge = Cluster->GetEdgeFromNodeIndices(Current.NodeIndex, AdjacentNodeIndex);
+			const PCGExGraph::FIndexedEdge& Edge = Cluster->GetEdgeFromNodeIndices(CurrentNodeIndex, AdjacentNodeIndex);
 
-			const double ScoreOffset = Modifiers->GetScore(AdjacentNode.PointIndex, Edge.EdgeIndex);
-			const double AltScore = CurrentScore + Heuristics->GetEdgeScore(Current, AdjacentNode, Edge, SeedNode, GoalNode) + ScoreOffset;
+			const double ScoreMod = Modifiers->GetScore(AdjacentNode.PointIndex, Edge.PointIndex);
+			const double AltScore = CurrentScore + Heuristics->GetEdgeScore(Current, AdjacentNode, Edge, SeedNode, GoalNode) + ScoreMod;
 
-			if (AltScore >= Scores[AdjacentNode.NodeIndex]) { continue; }
+			const double* PreviousScore = Scores.Find(AdjacentNodeIndex);
+			if (PreviousScore && AltScore > *PreviousScore) { continue; }
 
-			Scores[AdjacentNode.NodeIndex] = AltScore;
-			Previous.Add(AdjacentNode.NodeIndex, Current.NodeIndex);
+			if (PreviousScore)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("%d -> %d AltScore = %f (was %f) | from %f"), CurrentNodeIndex, AdjacentNodeIndex, AltScore, *PreviousScore, CurrentScore )
+			}
+			else
+			{
+				UE_LOG(LogTemp, Warning, TEXT("%d -> %d BaseScore = %f | from %f"), CurrentNodeIndex, AdjacentNodeIndex, AltScore, CurrentScore)
+			}
+
+			ScoredQueue->SetScore(AdjacentNodeIndex, AltScore, !Visited.Contains(AdjacentNodeIndex));
+			Scores.Add(AdjacentNodeIndex, AltScore);
+			Previous.Add(AdjacentNodeIndex, CurrentNodeIndex);
 		}
 	}
 
@@ -81,6 +76,11 @@ bool UPCGExSearchDijkstra::FindPath(const PCGExCluster::FCluster* Cluster, const
 
 	Algo::Reverse(Path);
 	OutPath.Append(Path);
+
+	Visited.Empty();
+	Scores.Empty();
+	Previous.Empty();
+	PCGEX_DELETE(ScoredQueue)
 
 	return true;
 }

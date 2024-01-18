@@ -45,7 +45,7 @@ bool UPCGExSearchAStar::FindPath(const PCGExCluster::FCluster* Cluster, const FV
 			const PCGExCluster::FNode& AdjacentNode = Cluster->Nodes[AdjacentIndex];
 			const PCGExGraph::FIndexedEdge& Edge = Cluster->GetEdgeFromNodeIndices(CurrentNodeIndex, AdjacentIndex);
 
-			const double ScoreMod = Modifiers->GetScore(AdjacentNode.PointIndex, Edge.EdgeIndex);
+			const double ScoreMod = Modifiers->GetScore(AdjacentNode.PointIndex, Edge.PointIndex);
 			const double TentativeGScore = CurrentGScore + Heuristics->GetEdgeScore(Current, AdjacentNode, Edge, SeedNode, GoalNode) + ScoreMod;
 
 			if (const double* GScorePtr = GScore.Find(AdjacentIndex);

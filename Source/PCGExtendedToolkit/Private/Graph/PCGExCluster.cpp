@@ -93,33 +93,34 @@ namespace PCGExCluster
 		const int32 NumEdges = InEdgesPoints.Num();
 		Edges.Reset(NumEdges);
 
-		TArray<PCGExGraph::FUnsignedEdge> EdgeList;
+		TArray<PCGExGraph::FIndexedEdge> EdgeList;
 		EdgeList.SetNum(NumEdges);
 
 		for (int i = 0; i < NumEdges; i++)
 		{
-			const int32* NodeStartPtr = InNodeIndicesMap.Find(StartIndexReader->Values[i]);
-			const int32* NodeEndPtr = InNodeIndicesMap.Find(EndIndexReader->Values[i]);
+			const int32* StartPtr = InNodeIndicesMap.Find(StartIndexReader->Values[i]);
+			const int32* EndPtr = InNodeIndicesMap.Find(EndIndexReader->Values[i]);
 
-			if (!NodeStartPtr || !NodeEndPtr)
+			if (!StartPtr || !EndPtr)
 			{
 				bInvalidCluster = true;
 				break;
 			}
 
-			const int32 NodeStart = *NodeStartPtr;
-			const int32 NodeEnd = *NodeEndPtr;
+			const int32 StartPoint = *StartPtr;
+			const int32 EndPoint = *EndPtr;
 
-			if (!InNodePoints.IsValidIndex(NodeStart) ||
-				!InNodePoints.IsValidIndex(NodeEnd) ||
-				NodeStart == NodeEnd)
+			if (!InNodePoints.IsValidIndex(StartPoint) ||
+				!InNodePoints.IsValidIndex(EndPoint) ||
+				StartPoint == EndPoint)
 			{
 				bInvalidCluster = true;
 				break;
 			}
 
-			EdgeList[i].Start = NodeStart;
-			EdgeList[i].End = NodeEnd;
+			EdgeList[i].Start = StartPoint;
+			EdgeList[i].End = EndPoint;
+			EdgeList[i].PointIndex = i;
 		}
 
 		PCGEX_DELETE(StartIndexReader)
@@ -128,18 +129,18 @@ namespace PCGExCluster
 		if (!bInvalidCluster)
 		{
 			EdgeList.Sort(
-				[](const PCGExGraph::FUnsignedEdge& A, const PCGExGraph::FUnsignedEdge& B)
+				[](const PCGExGraph::FIndexedEdge& A, const PCGExGraph::FIndexedEdge& B)
 				{
 					return A.Start == B.Start ? A.End < B.End : A.Start < B.Start;
 				});
 
 			for (int i = 0; i < NumEdges; i++)
 			{
-				const PCGExGraph::FUnsignedEdge& E = EdgeList[i];
-				Edges.Emplace_GetRef(i, E.Start, E.End);
+				const PCGExGraph::FIndexedEdge& SortedEdge = EdgeList[i];
+				Edges.Emplace_GetRef(i, SortedEdge.Start, SortedEdge.End, SortedEdge.PointIndex);
 
-				FNode& Start = GetOrCreateNode(E.Start, InNodePoints);
-				FNode& End = GetOrCreateNode(E.End, InNodePoints);
+				FNode& Start = GetOrCreateNode(SortedEdge.Start, InNodePoints);
+				FNode& End = GetOrCreateNode(SortedEdge.End, InNodePoints);
 				EdgeIndexMap.Add(PCGExGraph::GetUnsignedHash64(Start.NodeIndex, End.NodeIndex), i);
 
 				Start.AddConnection(i, End.NodeIndex);
@@ -181,13 +182,14 @@ namespace PCGExCluster
 
 	const FNode& FCluster::GetNodeFromPointIndex(const int32 Index) const { return Nodes[*PointIndexMap.Find(Index)]; }
 
-	const PCGExGraph::FIndexedEdge& FCluster::GetEdgeFromNodeIndices(const int32 A, const int32 B) const { return Edges[*PointIndexMap.Find(PCGExGraph::GetUnsignedHash64(A, B))]; }
+	const PCGExGraph::FIndexedEdge& FCluster::GetEdgeFromNodeIndices(const int32 A, const int32 B) const { return Edges[*EdgeIndexMap.Find(PCGExGraph::GetUnsignedHash64(A, B))]; }
 
 	void FCluster::ComputeEdgeLengths(const bool bNormalize)
 	{
 		if (!bEdgeLengthsDirty) { return; }
 
 		const int32 NumEdges = Edges.Num();
+		double Min = TNumericLimits<double>::Max();
 		double Max = TNumericLimits<double>::Min();
 		EdgeLengths.SetNum(NumEdges);
 
@@ -198,10 +200,11 @@ namespace PCGExCluster
 			const FNode& B = GetNodeFromPointIndex(Edge.End);
 			const double Dist = FVector::DistSquared(A.Position, B.Position);
 			EdgeLengths[i] = Dist;
+			Min = FMath::Min(Dist, Min);
 			Max = FMath::Max(Dist, Max);
 		}
 
-		if (bNormalize) { for (int i = 0; i < NumEdges; i++) { EdgeLengths[i] /= Max; } }
+		if (bNormalize) { for (int i = 0; i < NumEdges; i++) { EdgeLengths[i] = PCGExMath::Remap(EdgeLengths[i], Min, Max, 0, 1); } }
 
 		bEdgeLengthsDirty = false;
 	}

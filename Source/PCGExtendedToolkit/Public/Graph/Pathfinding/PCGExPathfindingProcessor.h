@@ -11,6 +11,7 @@
 
 #include "PCGExPathfindingProcessor.generated.h"
 
+class UPCGExHeuristicOperation;
 class UPCGExSearchOperation;
 class UPCGExPathfindingParamsData;
 
