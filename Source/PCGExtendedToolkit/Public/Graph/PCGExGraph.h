@@ -210,11 +210,11 @@ namespace PCGExGraph
 
 		bool bCompiledSuccessfully = false;
 
-		FGraphBuilder(PCGExData::FPointIO& InPointIO, int32 NumEdgeReserve = 6, PCGExData::FPointIO* InSourceEdges = nullptr)
+		FGraphBuilder(PCGExData::FPointIO& InPointIO, const int32 NumEdgeReserve = 6, PCGExData::FPointIO* InSourceEdges = nullptr)
 			: SourceEdgesIO(InSourceEdges)
 		{
 			PointIO = &InPointIO;
-			PointIO->Tags->Set(PCGExGraph::Tag_Cluster, PointIO->GetInOut()->UID, EdgeTagValue);
+			PointIO->Tags->Set(Tag_Cluster, PointIO->GetInOut()->UID, EdgeTagValue);
 
 			const int32 NumNodes = PointIO->GetOutNum();
 
@@ -243,7 +243,7 @@ namespace PCGExGraph
 		OutIndices.Empty();
 
 		PCGEx::TFAttributeReader<int32>* IndexReader = new PCGEx::TFAttributeReader<int32>(AttributeName);
-		if (!IndexReader->Bind(const_cast<PCGExData::FPointIO&>(InPointIO)))
+		if (!IndexReader->Bind(InPointIO))
 		{
 			PCGEX_DELETE(IndexReader)
 			return false;
@@ -259,6 +259,34 @@ namespace PCGExGraph
 	static bool GetRemappedIndices(const PCGExData::FPointIO& InPointIO, const FName AttributeName, TMap<int32, int32>& OutIndices)
 	{
 		return GetRemappedIndices(const_cast<PCGExData::FPointIO&>(InPointIO), AttributeName, OutIndices);
+	}
+
+	static bool IsPointDataVtxReady(const UPCGPointData* PointData)
+	{
+		const FName Tags[] = {Tag_EdgeIndex, Tag_EdgesNum};
+		constexpr int16 I32 = static_cast<uint16>(EPCGMetadataTypes::Integer32);
+
+		for (const FName Name : Tags)
+		{
+			if (const FPCGMetadataAttributeBase* AttributeCheck = PointData->Metadata->GetMutableAttribute(Name);
+				!AttributeCheck || AttributeCheck->GetTypeId() != I32) { return false; }
+		}
+
+		return true;
+	}
+
+	static bool IsPointDataEdgeReady(const UPCGPointData* PointData)
+	{
+		const FName Tags[] = {Tag_EdgeStart, Tag_EdgeEnd};
+		constexpr int16 I32 = static_cast<uint16>(EPCGMetadataTypes::Integer32);
+
+		for (const FName Name : Tags)
+		{
+			if (const FPCGMetadataAttributeBase* AttributeCheck = PointData->Metadata->GetMutableAttribute(Name);
+				!AttributeCheck || AttributeCheck->GetTypeId() != I32) { return false; }
+		}
+
+		return true;
 	}
 
 #pragma endregion

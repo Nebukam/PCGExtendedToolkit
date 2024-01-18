@@ -19,16 +19,4 @@ class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicModifiersOnly : public UPCGExHeurist
 	GENERATED_BODY()
 
 public:
-	virtual double ComputeScore(
-		const PCGExCluster::FScoredNode* From,
-		const PCGExCluster::FNode& To,
-		const PCGExCluster::FNode& Seed,
-		const PCGExCluster::FNode& Goal,
-		const PCGExGraph::FIndexedEdge& Edge) const override;
-
-	virtual bool IsBetterScore(const double NewScore, const double OtherScore) const override;
-
-	/** How to interpret the data. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-2))
-	EPCGExHeuristicScoreMode BaseInterpretation = EPCGExHeuristicScoreMode::HigherIsBetter;
 };

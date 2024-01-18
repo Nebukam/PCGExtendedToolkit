@@ -223,7 +223,7 @@ namespace PCGExGraph
 		Nodes.Reserve(Nodes.Num() + Crossings.Num());
 		if (!Crossings.IsEmpty()) { Graph->bRequiresConsolidation = true; }
 
-		PCGExGraph::FIndexedEdge NewEdge = PCGExGraph::FIndexedEdge{};
+		FIndexedEdge NewEdge = FIndexedEdge{};
 
 		for (const FEdgeCrossing& EdgeCrossing : Crossings)
 		{
@@ -290,7 +290,7 @@ bool FPCGExWriteSubGraphEdgesTask::ExecuteTask()
 	{
 		const PCGExGraph::FIndexedEdge& Edge = Graph->Edges[EdgeIndex];
 
-		if (const FPCGPoint* InEdgePtr = EdgeIO->TryGetInPoint(Edge.TaggedIndex))
+		if (const FPCGPoint* InEdgePtr = EdgeIO->TryGetInPoint(Edge.PointIndex))
 		{
 			MutablePoints[PointIndex] = *InEdgePtr; // Copy input edge point if it exists
 		}

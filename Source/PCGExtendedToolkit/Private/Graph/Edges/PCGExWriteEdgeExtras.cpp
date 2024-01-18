@@ -92,7 +92,6 @@ bool FPCGExWriteEdgeExtrasElement::ExecuteInternal(
 			if (!Context->CurrentCluster)
 			{
 				PCGEX_INVALID_CLUSTER_LOG
-				Context->SetState(PCGExMT::State_ReadyForNextPoints);
 				return false;
 			}
 
@@ -134,7 +133,7 @@ bool FPCGExWriteExtrasTask::ExecuteTask()
 	const TArray<PCGExGraph::FIndexedEdge>& Edges = Context->CurrentCluster->Edges;
 	for (const PCGExGraph::FIndexedEdge& Edge : Edges)
 	{
-		PCGEx::FPointRef Target = PointIO->GetOutPointRef(Edge.EdgeIndex);
+		PCGEx::FPointRef Target = PointIO->GetOutPointRef(Edge.PointIndex);
 		Context->MetadataBlender->PrepareForBlending(Target);
 		Context->MetadataBlender->Blend(Target, Context->CurrentIO->GetInPointRef(Edge.Start), Target, 0.5);
 		Context->MetadataBlender->Blend(Target, Context->CurrentIO->GetInPointRef(Edge.End), Target, 0.5);
@@ -143,7 +142,7 @@ bool FPCGExWriteExtrasTask::ExecuteTask()
 		const FPCGPoint& StartPoint = Context->CurrentIO->GetInPoint(Edge.Start);
 		const FPCGPoint& EndPoint = Context->CurrentIO->GetInPoint(Edge.End);
 
-		PCGEX_OUTPUT_VALUE(EdgeLength, Edge.EdgeIndex, FVector::Distance(StartPoint.Transform.GetLocation(), EndPoint.Transform.GetLocation()));
+		PCGEX_OUTPUT_VALUE(EdgeLength, Edge.PointIndex, FVector::Distance(StartPoint.Transform.GetLocation(), EndPoint.Transform.GetLocation()));
 	}
 
 	PCGEX_OUTPUT_WRITE(EdgeLength, double)

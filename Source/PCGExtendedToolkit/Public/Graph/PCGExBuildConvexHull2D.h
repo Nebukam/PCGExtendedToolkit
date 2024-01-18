@@ -6,7 +6,6 @@
 #include "CoreMinimal.h"
 
 #include "PCGExCustomGraphProcessor.h"
-#include "Data/PCGExData.h"
 
 #include "PCGExBuildConvexHull2D.generated.h"
 
@@ -47,6 +46,10 @@ public:
 	/** Removes points that are not on the hull from the Vtx output. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bPrunePoints = true;
+
+	/** Optimized hull ignores point that are collinear (lie perfectly on hull edges without participating to the hull itself) */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	bool bOptimizedHull = true;
 
 	/** Mark points & edges that lie on the hull */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle, EditCondition="!bPrunePoints"))

@@ -36,12 +36,12 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSingleTangentParams
 	void PrepareForData(const PCGExData::FPointIO& InData)
 	{
 		DirectionGetter.Capture(Direction);
-		DirectionGetter.Bind(InData);
+		DirectionGetter.Grab(InData);
 		if (bUseLocalScale)
 		{
 			ScaleGetter.bEnabled = true;
 			ScaleGetter.Capture(LocalScale);
-			ScaleGetter.Bind(InData);
+			ScaleGetter.Grab(InData);
 		}
 		else { ScaleGetter.bEnabled = false; }
 	}

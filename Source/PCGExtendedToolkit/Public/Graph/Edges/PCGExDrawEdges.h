@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "IPCGExDebug.h"
 #include "Graph/PCGExEdgesProcessor.h"
 #include "PCGExDrawEdges.generated.h"
 

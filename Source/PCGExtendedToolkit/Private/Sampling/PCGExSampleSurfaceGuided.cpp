@@ -77,8 +77,7 @@ bool FPCGExSampleSurfaceGuidedElement::ExecuteInternal(FPCGContext* InContext) c
 	{
 		auto Initialize = [&](PCGExData::FPointIO& PointIO)
 		{
-			Context->DirectionGetter.Bind(PointIO);
-
+			Context->DirectionGetter.Grab(PointIO);
 			PCGEX_FOREACH_FIELD_SURFACEGUIDED(PCGEX_OUTPUT_ACCESSOR_INIT)
 		};
 

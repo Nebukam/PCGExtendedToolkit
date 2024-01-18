@@ -4,16 +4,24 @@
 
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicDirection.h"
 
-double UPCGExHeuristicDirection::ComputeScore(
-	const PCGExCluster::FScoredNode* From,
-	const PCGExCluster::FNode& To,
+
+double UPCGExHeuristicDirection::GetGlobalScore(
+	const PCGExCluster::FNode& From,
 	const PCGExCluster::FNode& Seed,
-	const PCGExCluster::FNode& Goal, const PCGExGraph::FIndexedEdge& Edge) const
+	const PCGExCluster::FNode& Goal) const
 {
-	return From->Score + FVector::DotProduct((From->Node->Position - To.Position).GetSafeNormal(), (From->Node->Position - Goal.Position).GetSafeNormal()) * 100;
+	const FVector Dir = (Seed.Position - Goal.Position).GetSafeNormal();
+	const double Dot = FVector::DotProduct(Dir, (From.Position - Goal.Position).GetSafeNormal()) * -1;
+	return PCGExMath::Remap(Dot, -1, 1, 0, 1) * ReferenceWeight;
 }
 
-bool UPCGExHeuristicDirection::IsBetterScore(const double NewScore, const double OtherScore) const
+double UPCGExHeuristicDirection::GetEdgeScore(
+	const PCGExCluster::FNode& From,
+	const PCGExCluster::FNode& To,
+	const PCGExGraph::FIndexedEdge& Edge,
+	const PCGExCluster::FNode& Seed,
+	const PCGExCluster::FNode& Goal) const
 {
-	return NewScore >= OtherScore;
+	const double Dot = (FVector::DotProduct((From.Position - To.Position).GetSafeNormal(), (From.Position - Goal.Position).GetSafeNormal()) * -1);
+	return PCGExMath::Remap(Dot, -1, 1, 0, 1) * ReferenceWeight;
 }

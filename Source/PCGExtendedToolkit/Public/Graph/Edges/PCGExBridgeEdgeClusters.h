@@ -7,6 +7,8 @@
 #include "Graph/PCGExEdgesProcessor.h"
 #include "PCGExBridgeEdgeClusters.generated.h"
 
+class FPCGExPointIOMerger;
+
 UENUM(BlueprintType)
 enum class EPCGExBridgeClusterMethod : uint8
 {
@@ -34,9 +36,10 @@ protected:
 
 	//~Begin UPCGExPointsProcessorSettings interface
 public:
-	virtual PCGExData::EInit GetEdgeOutputInitMode() const override;
-	virtual bool GetCacheAllClusters() const override;
+	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings interface
+
+	virtual PCGExData::EInit GetEdgeOutputInitMode() const override;
 
 	/** Method used to find & insert bridges */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
@@ -49,16 +52,25 @@ private:
 struct PCGEXTENDEDTOOLKIT_API FPCGExBridgeEdgeClustersContext : public FPCGExEdgesProcessorContext
 {
 	friend class FPCGExBridgeEdgeClustersElement;
+	friend class FPCGExCreateBridgeTask;
 
 	virtual ~FPCGExBridgeEdgeClustersContext() override;
 
 	EPCGExBridgeClusterMethod BridgeMethod;
 
+	int32 TotalPoints = -1;
 	PCGExData::FPointIO* ConsolidatedEdges = nullptr;
-	TSet<PCGExCluster::FCluster*> VisitedClusters;
 
+	TArray<PCGExCluster::FCluster*> Clusters;
+	TArray<PCGExData::FPointIO*> BridgedEdges;
+	TArray<PCGExCluster::FCluster*> BridgedClusters;
+
+	FPCGExPointIOMerger* Merger = nullptr;
 	PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
-	
+
+protected:
+	mutable FRWLock NumEdgeLock;
+	void BumpEdgeNum(const FPCGPoint& A, const FPCGPoint& B);
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExBridgeEdgeClustersElement : public FPCGExEdgesProcessorElement
@@ -74,18 +86,18 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
 
-// Define the background task class
-class PCGEXTENDEDTOOLKIT_API FPCGExBridgeClusteresTask : public FPCGExNonAbandonableTask
+class PCGEXTENDEDTOOLKIT_API FPCGExCreateBridgeTask : public FPCGExNonAbandonableTask
 {
 public:
-	FPCGExBridgeClusteresTask(
-		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO, const int32 InOtherClusterIndex) :
+	FPCGExCreateBridgeTask(
+		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO, PCGExCluster::FCluster* A, PCGExCluster::FCluster* B) :
 		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
-		OtherClusterIndex(InOtherClusterIndex)
+		ClusterA(A), ClusterB(B)
 	{
 	}
 
-	int32 OtherClusterIndex = -1;
+	PCGExCluster::FCluster* ClusterA = nullptr;
+	PCGExCluster::FCluster* ClusterB = nullptr;
 
 	virtual bool ExecuteTask() override;
 };

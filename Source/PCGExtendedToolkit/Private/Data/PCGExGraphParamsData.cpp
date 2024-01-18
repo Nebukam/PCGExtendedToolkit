@@ -116,8 +116,8 @@ namespace PCGExGraph
 		{
 			if (!Descriptor.bEnabled) { continue; }
 
-			Modifiers.Emplace_GetRef(Descriptor);
-			LocalDirections.Emplace_GetRef(Descriptor);
+			MaxDistanceGetters.Emplace_GetRef(Descriptor);
+			LocalDirectionGetters.Emplace_GetRef(Descriptor);
 
 			FSocket& NewSocket = Sockets.Emplace_GetRef(Descriptor);
 			NewSocket.AttributeNameBase = GetCompoundName(Descriptor.SocketName);
@@ -137,11 +137,11 @@ namespace PCGExGraph
 		{
 			if (!Descriptor.bEnabled) { continue; }
 
-			FProbeDistanceModifier& NewModifier = Modifiers.Emplace_GetRef(Descriptor);
+			FProbeDistanceModifier& NewModifier = MaxDistanceGetters.Emplace_GetRef(Descriptor);
 			NewModifier.bEnabled = Overrides.bOverrideAttributeModifier ? Overrides.bApplyAttributeModifier : Descriptor.bApplyAttributeModifier;
 			NewModifier.Descriptor = static_cast<FPCGExInputDescriptor>(Overrides.bOverrideAttributeModifier ? Overrides.AttributeModifier : Descriptor.AttributeModifier);
 
-			FLocalDirection& NewLocalDirection = LocalDirections.Emplace_GetRef(Descriptor);
+			FLocalDirection& NewLocalDirection = LocalDirectionGetters.Emplace_GetRef(Descriptor);
 			NewLocalDirection.bEnabled = Overrides.bOverrideDirectionVectorFromAttribute ? Overrides.bDirectionVectorFromAttribute : Descriptor.bDirectionVectorFromAttribute;
 			NewLocalDirection.Descriptor = Overrides.bOverrideDirectionVectorFromAttribute ? Overrides.AttributeDirectionVector : Descriptor.AttributeDirectionVector;
 
@@ -171,16 +171,15 @@ namespace PCGExGraph
 
 	void FSocketMapping::PrepareForPointData(const PCGExData::FPointIO& PointIO, const bool bReadOnly)
 	{
-
 		//TODO: Write index per graph instead of per socket
 		//GetRemappedIndices(PointIO, ) GetParamPropertyName(ParamPropertyNameIndex)
-		
-		
+
+
 		for (int i = 0; i < Sockets.Num(); i++)
 		{
 			Sockets[i].PrepareForPointData(PointIO, bReadOnly);
-			Modifiers[i].Bind(PointIO);
-			LocalDirections[i].Bind(PointIO);
+			MaxDistanceGetters[i].Grab(PointIO);
+			LocalDirectionGetters[i].Grab(PointIO);
 		}
 	}
 
@@ -191,23 +190,23 @@ namespace PCGExGraph
 		{
 			FSocketInfos& Infos = OutInfos.Emplace_GetRef();
 			Infos.Socket = &(Sockets[i]);
-			Infos.MaxDistanceGetter = &(Modifiers[i]);
-			Infos.LocalDirectionGetter = &(LocalDirections[i]);
+			Infos.MaxDistanceGetter = &(MaxDistanceGetters[i]);
+			Infos.LocalDirectionGetter = &(LocalDirectionGetters[i]);
 		}
 	}
 
 	void FSocketMapping::Cleanup()
 	{
 		for (FSocket& Socket : Sockets) { Socket.Cleanup(); }
-		for (FProbeDistanceModifier& Modifier : Modifiers) { Modifier.Cleanup(); }
-		for (FLocalDirection& Direction : LocalDirections) { Direction.Cleanup(); }
+		for (FProbeDistanceModifier& Modifier : MaxDistanceGetters) { Modifier.Cleanup(); }
+		for (FLocalDirection& Direction : LocalDirectionGetters) { Direction.Cleanup(); }
 	}
 
 	void FSocketMapping::Reset()
 	{
 		Sockets.Empty();
-		Modifiers.Empty();
-		LocalDirections.Empty();
+		MaxDistanceGetters.Empty();
+		LocalDirectionGetters.Empty();
 	}
 
 	FName FSocketMapping::GetParamPropertyName(const FName PropertyName) const

@@ -74,7 +74,6 @@ bool FPCGExPromoteEdgesElement::ExecuteInternal(
 			}
 
 			MaxPossibleOutputs *= Context->MaxPossibleEdgesPerPoint;
-			UE_LOG(LogTemp, Warning, TEXT("Max Possible Outputs = %d"), MaxPossibleOutputs);
 			Context->OutputData.TaggedData.Reserve(MaxPossibleOutputs);
 		}
 
@@ -186,8 +185,6 @@ bool FPCGExPromoteEdgesElement::ExecuteInternal(
 	{
 		Context->UniqueEdges.Empty();
 		Context->Edges.Empty();
-
-		UE_LOG(LogTemp, Warning, TEXT("Actual Outputs = %d"), Context->OutputData.TaggedData.Num());
 
 		if (!Context->Promotion->GeneratesNewPointData())
 		{

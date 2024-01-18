@@ -53,7 +53,7 @@ public:
 
 	/** Name of the 'boolean' attribute to write sampling success to.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteEdgeLength"))
-	FName EdgeLengthAttributeName = FName("SuccessfullySampled");
+	FName EdgeLengthAttributeName = FName("EdgeLength");
 
 	/** Edges will inherit point attributes -- NOT IMPLEMENTED*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))

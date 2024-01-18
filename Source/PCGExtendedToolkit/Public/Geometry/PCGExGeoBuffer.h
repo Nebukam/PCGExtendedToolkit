@@ -109,7 +109,7 @@ namespace PCGExGeo
 		}
 
 		/// Updates the connector.
-		void Update(TSimplexWrap<DIMENSIONS>* InFace, int InEdgeIndex)
+		void Update(TSimplexWrap<DIMENSIONS>* InFace, const int InEdgeIndex)
 		{
 			Face = InFace;
 			EdgeIndex = InEdgeIndex;

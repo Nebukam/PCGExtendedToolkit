@@ -127,7 +127,7 @@ namespace PCGExGeo
 			UniqueEdges.Empty();
 		}
 
-		virtual void GetVoronoiPoints(TArray<FPCGPoint>& OutPoints, EPCGExCellCenter Method)
+		virtual void GetVoronoiPoints(TArray<FPCGPoint>& OutPoints, const EPCGExCellCenter Method)
 		{
 			OutPoints.SetNum(Delaunay->Cells.Num());
 

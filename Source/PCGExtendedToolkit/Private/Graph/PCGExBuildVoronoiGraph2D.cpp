@@ -3,7 +3,6 @@
 
 #include "Graph/PCGExBuildVoronoiGraph2D.h"
 
-#include "Data/PCGExData.h"
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
 #include "Geometry/PCGExGeoDelaunay.h"
 #include "Geometry/PCGExGeoVoronoi.h"

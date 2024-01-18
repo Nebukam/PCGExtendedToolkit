@@ -11,6 +11,8 @@
 
 namespace PCGExData
 {
+	constexpr PCGExMT::AsyncState State_MergingData = __COUNTER__;
+
 	template <typename T>
 	static FPCGMetadataAttribute<T>* WriteMark(UPCGMetadata* Metadata, const FName MarkID, T MarkValue)
 	{
@@ -41,7 +43,7 @@ namespace PCGExData
 	{
 		return TryReadMark(PointIO.GetIn() ? PointIO.GetIn()->Metadata : PointIO.GetOut()->Metadata, MarkID, OutMark);
 	}
-	
+
 	static UPCGPointData* GetMutablePointData(FPCGContext* Context, const FPCGTaggedData& Source)
 	{
 		const UPCGSpatialData* SpatialData = Cast<UPCGSpatialData>(Source.Data);

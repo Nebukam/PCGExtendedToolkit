@@ -25,7 +25,7 @@ void UPCGExSmoothingOperation::DoSmooth(PCGExData::FPointIO& InPointIO)
 	{
 		InfluenceGetter.bEnabled = true;
 		InfluenceGetter.Capture(InfluenceDescriptor);
-		InfluenceGetter.Bind(InPointIO);
+		InfluenceGetter.Grab(InPointIO);
 	}
 	else
 	{

@@ -3,17 +3,3 @@
 
 
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicModifiersOnly.h"
-
-double UPCGExHeuristicModifiersOnly::ComputeScore(
-	const PCGExCluster::FScoredNode* From,
-	const PCGExCluster::FNode& To,
-	const PCGExCluster::FNode& Seed,
-	const PCGExCluster::FNode& Goal, const PCGExGraph::FIndexedEdge& Edge) const
-{
-	return 0;
-}
-
-bool UPCGExHeuristicModifiersOnly::IsBetterScore(const double NewScore, const double OtherScore) const
-{
-	return BaseInterpretation == EPCGExHeuristicScoreMode::HigherIsBetter ? NewScore >= OtherScore : NewScore <= OtherScore;
-}

@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExHeuristicLocalDistance.h"
 #include "Graph/PCGExCluster.h"
 #include "UObject/Object.h"
 #include "PCGExHeuristicOperation.h"
@@ -12,18 +13,19 @@
 /**
  * 
  */
-UCLASS(DisplayName = "Distance")
-class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicDistance : public UPCGExHeuristicOperation
+UCLASS(DisplayName = "Shortest Distance")
+class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicDistance : public UPCGExHeuristicLocalDistance
 {
 	GENERATED_BODY()
 
 public:
-	virtual double ComputeScore(
-		const PCGExCluster::FScoredNode* From,
-		const PCGExCluster::FNode& To,
-		const PCGExCluster::FNode& Seed,
-		const PCGExCluster::FNode& Goal,
-		const PCGExGraph::FIndexedEdge& Edge) const override;
+	virtual void PrepareForData(PCGExCluster::FCluster* InCluster) override;
 
-	virtual bool IsBetterScore(const double NewScore, const double OtherScore) const override;
+	virtual double GetGlobalScore(
+		const PCGExCluster::FNode& From,
+		const PCGExCluster::FNode& Seed,
+		const PCGExCluster::FNode& Goal) const override;
+
+protected:
+	double MaxDistSquared = 0;
 };

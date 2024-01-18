@@ -18,7 +18,7 @@ namespace PCGExGeo
 		bool bIsOnHull = false;
 		FVector Location = FVector::Zero();
 
-		int Dimension() const { return DIMENSIONS; }
+		static int Dimension() { return DIMENSIONS; }
 
 		double& operator[](int32 Component) { return Position[Component]; };
 		double operator[](int32 Component) const { return Position[Component]; };

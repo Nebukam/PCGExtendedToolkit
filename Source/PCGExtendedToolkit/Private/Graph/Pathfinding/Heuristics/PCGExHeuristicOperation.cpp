@@ -4,30 +4,31 @@
 
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicOperation.h"
 
-void UPCGExHeuristicOperation::PrepareForData(const PCGExCluster::FCluster* InCluster)
+void UPCGExHeuristicOperation::PrepareForData(PCGExCluster::FCluster* InCluster)
 {
+	Cluster = InCluster;
 }
 
-double UPCGExHeuristicOperation::ComputeScore(
-	const PCGExCluster::FScoredNode* From,
-	const PCGExCluster::FNode& To,
+double UPCGExHeuristicOperation::GetGlobalScore(
+	const PCGExCluster::FNode& From,
 	const PCGExCluster::FNode& Seed,
-	const PCGExCluster::FNode& Goal,
-	const PCGExGraph::FIndexedEdge& Edge) const
+	const PCGExCluster::FNode& Goal) const
 {
-	return From->Score + 1;
+	return 0;
 }
 
-bool UPCGExHeuristicOperation::IsBetterScore(const double NewScore, const double OtherScore) const
+double UPCGExHeuristicOperation::GetEdgeScore(
+	const PCGExCluster::FNode& From,
+	const PCGExCluster::FNode& To,
+	const PCGExGraph::FIndexedEdge& Edge,
+	const PCGExCluster::FNode& Seed,
+	const PCGExCluster::FNode& Goal) const
 {
-	return NewScore <= OtherScore;
+	return 1;
 }
 
-int32 UPCGExHeuristicOperation::GetQueueingIndex(const TArray<PCGExCluster::FScoredNode*>& InVertices, const double InScore) const
+void UPCGExHeuristicOperation::Cleanup()
 {
-	for (int i = InVertices.Num() - 1; i >= 0; i--)
-	{
-		if (IsBetterScore(InScore, InVertices[i]->Score)) { return i + 1; }
-	}
-	return -1;
+	Cluster = nullptr;
+	Super::Cleanup();
 }

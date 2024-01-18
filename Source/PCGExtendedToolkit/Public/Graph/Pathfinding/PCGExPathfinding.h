@@ -8,7 +8,6 @@
 #include "PCGExPointsProcessor.h"
 #include "GoalPickers/PCGExGoalPicker.h"
 #include "Graph/PCGExCluster.h"
-#include "Heuristics/PCGExHeuristicOperation.h"
 
 #include "PCGExPathfinding.generated.h"
 
@@ -43,8 +42,8 @@ enum class EPCGExPathPointOrientation : uint8
 UENUM(BlueprintType)
 enum class EPCGExHeuristicScoreMode : uint8
 {
-	HigherIsBetter UMETA(DisplayName = "Higher is Better", Tooltip="Higher values are considered more desirable."),
 	LowerIsBetter UMETA(DisplayName = "Lower is Better", Tooltip="Lower values are considered more desirable."),
+	HigherIsBetter UMETA(DisplayName = "Higher is Better", Tooltip="Higher values are considered more desirable."),
 };
 
 UENUM(BlueprintType)
@@ -60,6 +59,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicModifier : public FPCGExInputDescri
 	GENERATED_BODY()
 
 	FPCGExHeuristicModifier()
+		: ScoreCurve(PCGEx::WeightDistributionLinear)
 	{
 	}
 
@@ -76,20 +76,24 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicModifier : public FPCGExInputDescri
 	EPCGExHeuristicScoreSource Source = EPCGExHeuristicScoreSource::Point;
 
 	/** How to interpret the data. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-2))
-	EPCGExHeuristicScoreMode Interpretation = EPCGExHeuristicScoreMode::HigherIsBetter;
+	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-2))
+	//EPCGExHeuristicScoreMode Interpretation = EPCGExHeuristicScoreMode::HigherIsBetter;
 
 	/** Modifier weight. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1, ClampMin="1"))
 	double Weight = 100;
 
 	/** Fetch weight from attribute. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle, DisplayPriority=1))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta=(PCG_Overridable, InlineEditConditionToggle, DisplayPriority=1))
 	bool bUseLocalWeight = false;
 
-	/** Attribute to fetch local weight from. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseLocalWeight", DisplayPriority=1))
+	/** Attribute to fetch local weight from. This value will be scaled by the base weight. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta=(PCG_Overridable, EditCondition="bUseLocalWeight", DisplayPriority=1))
 	FPCGExInputDescriptorWithSingleField LocalWeight;
+
+	/** Curve the value will be remapped over. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta=(PCG_Overridable))
+	TSoftObjectPtr<UCurveFloat> ScoreCurve;
 };
 
 USTRUCT(BlueprintType)
@@ -97,8 +101,14 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicModifiersSettings
 {
 	GENERATED_BODY()
 
-	/** Draw line thickness. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, TitleProperty="{TitlePropertyName} ({Interpretation})"))
+	/** Reference weight. This is used by unexposed heuristics computations to stay consistent with user-defined modifiers.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	double ReferenceWeight = 100;
+
+	double Scale = 0;
+
+	/** List of weighted heuristic modifiers */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, TitleProperty="{TitlePropertyName}")) // ({Interpretation})
 	TArray<FPCGExHeuristicModifier> Modifiers;
 
 	PCGExData::FPointIO* LastPoints = nullptr;
@@ -130,7 +140,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicModifiersSettings
 	}
 #endif
 
-	void PrepareForData(PCGExData::FPointIO& InPoints, PCGExData::FPointIO& InEdges, const double Scale = 1)
+	void PrepareForData(PCGExData::FPointIO& InPoints, PCGExData::FPointIO& InEdges)
 	{
 		bool bUpdatePoints = false;
 		const int32 NumPoints = InPoints.GetNum();
@@ -155,10 +165,14 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicModifiersSettings
 		{
 			if (!Modifier.bEnabled) { continue; }
 
-			PCGEx::FLocalSingleFieldGetter* NewGetter = new PCGEx::FLocalSingleFieldGetter();
-			NewGetter->Capture(Modifier);
+			PCGEx::FLocalSingleFieldGetter* ModifierGetter = new PCGEx::FLocalSingleFieldGetter();
+			ModifierGetter->Capture(Modifier);
 
 			PCGEx::FLocalSingleFieldGetter* WeightGetter = nullptr;
+
+			TObjectPtr<UCurveFloat> ScoreFC;
+			if (Modifier.ScoreCurve.IsNull()) { ScoreFC = TSoftObjectPtr<UCurveFloat>(PCGEx::WeightDistributionLinear).LoadSynchronous(); }
+			else { ScoreFC = Modifier.ScoreCurve.LoadSynchronous(); }
 
 			if (Modifier.bUseLocalWeight)
 			{
@@ -166,65 +180,52 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicModifiersSettings
 				WeightGetter->Capture(Modifier.LocalWeight);
 			}
 
-			bool bSuccess;
-			bool bLocalWeight = false;
+			bool bModifierGrabbed;
+			bool bLocalWeightGrabbed = false;
 			if (Modifier.Source == EPCGExHeuristicScoreSource::Point)
 			{
 				if (!bUpdatePoints) { continue; }
-				bSuccess = NewGetter->Bind(InPoints);
-				if (WeightGetter) { bLocalWeight = WeightGetter->Bind(InPoints); }
+				bModifierGrabbed = ModifierGetter->Grab(InPoints, true);
+				if (WeightGetter) { bLocalWeightGrabbed = WeightGetter->Grab(InPoints); }
 				TargetArray = &PointScoreModifiers;
 				NumIterations = NumPoints;
 			}
 			else
 			{
-				bSuccess = NewGetter->Bind(InEdges);
-				if (WeightGetter) { bLocalWeight = WeightGetter->Bind(InEdges); }
+				bModifierGrabbed = ModifierGetter->Grab(InEdges, true);
+				if (WeightGetter) { bLocalWeightGrabbed = WeightGetter->Grab(InEdges); }
 				TargetArray = &EdgeScoreModifiers;
 				NumIterations = NumEdges;
 			}
 
-			if (!bSuccess || !NewGetter->bValid || !NewGetter->bEnabled)
+			if (!bModifierGrabbed || !ModifierGetter->bValid || !ModifierGetter->bEnabled)
 			{
-				PCGEX_DELETE(NewGetter)
+				PCGEX_DELETE(ModifierGetter)
 				continue;
 			}
 
-			double MinValue = TNumericLimits<double>::Max();
-			double MaxValue = TNumericLimits<double>::Min();
-			for (int i = 0; i < NumIterations; i++)
-			{
-				const double Value = NewGetter->Values[i];
-				MinValue = FMath::Min(MinValue, Value);
-				MaxValue = FMath::Max(MaxValue, Value);
-			}
+			const double MinValue = ModifierGetter->Min;
+			const double MaxValue = ModifierGetter->Max;
 
-			double OutMin = -1;
-			double OutMax = 1;
-			const double OutScale = Scale;
-
-			if (Modifier.Interpretation == EPCGExHeuristicScoreMode::HigherIsBetter)
-			{
-				OutMin = 1;
-				OutMax = -1;
-			}
-
-			if (bLocalWeight)
+			if (bLocalWeightGrabbed)
 			{
 				for (int i = 0; i < NumIterations; i++)
 				{
-					(*TargetArray)[i] += (PCGExMath::Remap(NewGetter->Values[i], MinValue, MaxValue, OutMin, OutMax) * WeightGetter->Values[i]) * OutScale;
+					const double BaseValue = PCGExMath::Remap(ModifierGetter->Values[i], MinValue, MaxValue, 0, 1);
+					(*TargetArray)[i] += FMath::Max(0, ScoreFC->GetFloatValue(BaseValue)) * WeightGetter->Values[i];
 				}
 			}
 			else
 			{
+				const double Factor = Modifier.Weight;
 				for (int i = 0; i < NumIterations; i++)
 				{
-					(*TargetArray)[i] += (PCGExMath::Remap(NewGetter->Values[i], MinValue, MaxValue, OutMin, OutMax) * Modifier.Weight) * OutScale;
+					const double BaseValue = PCGExMath::Remap(ModifierGetter->Values[i], MinValue, MaxValue, 0, 1);
+					(*TargetArray)[i] += FMath::Max(0, ScoreFC->GetFloatValue(BaseValue)) * Factor;
 				}
 			}
 
-			PCGEX_DELETE(NewGetter)
+			PCGEX_DELETE(ModifierGetter)
 			PCGEX_DELETE(WeightGetter)
 		}
 	}
@@ -300,122 +301,29 @@ namespace PCGExPathfinding
 				}
 			}, SeedIO->GetNum());
 	}
-
-	static bool FindPath(
-		const PCGExCluster::FCluster* Cluster,
-		const int32 Seed, const int32 Goal,
-		const UPCGExHeuristicOperation* Heuristics,
-		const FPCGExHeuristicModifiersSettings* Modifiers, TArray<int32>& OutPath)
-	{
-		if (Seed == Goal) { return false; }
-
-		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExPathfinding::FindPath);
-
-		const PCGExCluster::FNode& StartNode = Cluster->Nodes[Seed];
-		const PCGExCluster::FNode& EndNode = Cluster->Nodes[Goal];
-
-		// Basic A* implementation
-		TMap<int32, double> CachedScores;
-
-		TArray<PCGExCluster::FScoredNode*> OpenList;
-		OpenList.Reserve(Cluster->Nodes.Num() / 3);
-
-		TArray<PCGExCluster::FScoredNode*> ClosedList;
-		ClosedList.Reserve(Cluster->Nodes.Num() / 3);
-		TSet<int32> Visited;
-
-		OpenList.Add(new PCGExCluster::FScoredNode(StartNode, 0));
-		bool bSuccess = false;
-
-		while (!bSuccess && !OpenList.IsEmpty())
-		{
-			PCGExCluster::FScoredNode* CurrentScoredNode = OpenList.Pop();
-			const int32 CurrentNodeIndex = CurrentScoredNode->Node->NodeIndex;
-
-			ClosedList.Add(CurrentScoredNode);
-			Visited.Add(CurrentScoredNode->Node->PointIndex);
-
-			if (CurrentNodeIndex == EndNode.NodeIndex)
-			{
-				bSuccess = true;
-				TArray<int32> Path;
-
-				while (CurrentScoredNode)
-				{
-					Path.Add(CurrentScoredNode->Node->NodeIndex);
-					CurrentScoredNode = CurrentScoredNode->From;
-				}
-
-				Algo::Reverse(Path);
-				OutPath.Append(Path);
-			}
-			else
-			{
-				//Get current index neighbors
-				for (const PCGExCluster::FNode& Node = Cluster->Nodes[CurrentNodeIndex];
-				     const int32 EdgeIndex : Node.Edges) //TODO: Use edge instead?
-				{
-					const PCGExGraph::FIndexedEdge& Edge = Cluster->Edges[EdgeIndex];
-					const int32 OtherPointIndex = Edge.Other(Node.PointIndex);
-					if (Visited.Contains(OtherPointIndex)) { continue; }
-
-					const PCGExCluster::FNode& OtherNode = Cluster->GetNodeFromPointIndex(OtherPointIndex);
-					double Score = Heuristics->ComputeScore(CurrentScoredNode, OtherNode, StartNode, EndNode, Edge);
-					Score += Modifiers->GetScore(OtherNode.PointIndex, Edge.EdgeIndex);
-
-					if (const double* PreviousScore = CachedScores.Find(OtherPointIndex);
-						PreviousScore && !Heuristics->IsBetterScore(*PreviousScore, Score))
-					{
-						continue;
-					}
-
-					PCGExCluster::FScoredNode* NewScoredNode = new PCGExCluster::FScoredNode(OtherNode, Score, CurrentScoredNode);
-					CachedScores.Add(OtherPointIndex, Score);
-
-					if (const int32 TargetIndex = Heuristics->GetQueueingIndex(OpenList, Score); TargetIndex == -1) { OpenList.Add(NewScoredNode); }
-					else { OpenList.Insert(NewScoredNode, TargetIndex); }
-				}
-			}
-		}
-
-		PCGEX_DELETE_TARRAY(ClosedList)
-		PCGEX_DELETE_TARRAY(OpenList)
-
-		return bSuccess;
-	}
-
-	static bool FindPath(
-		const PCGExCluster::FCluster* Cluster, const FVector& SeedPosition, const FVector& GoalPosition,
-		const UPCGExHeuristicOperation* Heuristics,
-		const FPCGExHeuristicModifiersSettings* Modifiers, TArray<int32>& OutPath)
-	{
-		return FindPath(
-			Cluster,
-			Cluster->FindClosestNode(SeedPosition),
-			Cluster->FindClosestNode(GoalPosition),
-			Heuristics, Modifiers, OutPath);
-	}
-
-
-	static bool ContinuePath(
-		const PCGExCluster::FCluster* Cluster, const int32 To,
-		const UPCGExHeuristicOperation* Heuristics,
-		const FPCGExHeuristicModifiersSettings* Modifiers, TArray<int32>& OutPath)
-	{
-		return FindPath(Cluster, OutPath.Last(), To, Heuristics, Modifiers, OutPath);
-	}
-
-
-	static bool ContinuePath(
-		const PCGExCluster::FCluster* Cluster, const FVector& To,
-		const UPCGExHeuristicOperation* Heuristics,
-		const FPCGExHeuristicModifiersSettings* Modifiers, TArray<int32>& OutPath)
-	{
-		return ContinuePath(Cluster, Cluster->FindClosestNode(To), Heuristics, Modifiers, OutPath);
-	}
 }
 
-// Define the background task class
+class PCGEXTENDEDTOOLKIT_API FPCGExCompileModifiersTask : public FPCGExNonAbandonableTask
+{
+public:
+	FPCGExCompileModifiersTask(
+		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+		PCGExData::FPointIO* InEdgeIO, FPCGExHeuristicModifiersSettings* InModifiers) :
+		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+		EdgeIO(InEdgeIO), Modifiers(InModifiers)
+	{
+	}
+
+	PCGExData::FPointIO* EdgeIO = nullptr;
+	FPCGExHeuristicModifiersSettings* Modifiers = nullptr;
+
+	virtual bool ExecuteTask() override
+	{
+		Modifiers->PrepareForData(*PointIO, *EdgeIO);
+		return true;
+	}
+};
+
 class PCGEXTENDEDTOOLKIT_API FPCGExPathfindingTask : public FPCGExNonAbandonableTask
 {
 public:

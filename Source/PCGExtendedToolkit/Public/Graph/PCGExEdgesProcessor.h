@@ -4,10 +4,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "IPCGExDebug.h"
 #include "PCGExCluster.h"
 #include "PCGExPointsProcessor.h"
-#include "Data/PCGExData.h"
 
 #include "PCGExEdgesProcessor.generated.h"
 
@@ -42,8 +40,6 @@ public:
 
 	virtual bool GetMainAcceptMultipleData() const override;
 	//~End UPCGExPointsProcessorSettings interface
-
-	virtual bool GetCacheAllClusters() const;
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExEdgesProcessorContext : public FPCGExPointsProcessorContext
@@ -58,15 +54,13 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgesProcessorContext : public FPCGExPointsP
 
 	PCGExData::FPointIOTaggedDictionary* InputDictionary = nullptr;
 	PCGExData::FPointIOTaggedEntries* TaggedEdges = nullptr;
-	TMap<int32, int32> RemappedPointsIndices;
+	TMap<int32, int32> NodeIndicesMap;
 	PCGEx::TFAttributeReader<int32>* EdgeNumReader = nullptr;
 
 	virtual bool AdvancePointsIO() override;
-	bool AdvanceEdges(); // Advance edges within current points
+	bool AdvanceEdges(bool bBuildCluster = true); // Advance edges within current points
 
-	bool bCacheAllClusters = false;
 	PCGExCluster::FCluster* CurrentCluster = nullptr;
-	TArray<PCGExCluster::FCluster*> Clusters;
 
 	void OutputPointsAndEdges();
 

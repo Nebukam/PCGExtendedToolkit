@@ -6,7 +6,6 @@
 #include "CoreMinimal.h"
 
 #include "PCGExCustomGraphProcessor.h"
-#include "Data/PCGExData.h"
 #include "Geometry/PCGExGeo.h"
 
 #include "PCGExBuildVoronoiGraph.generated.h"
@@ -91,7 +90,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBuildVoronoiGraphContext : public FPCGExPoin
 	TSet<int32> HullIndices;
 
 	PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
-
 };
 
 

@@ -27,7 +27,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExInputDescriptor
 	{
 	}
 
-	FPCGExInputDescriptor(const FPCGExInputDescriptor& Other)
+	explicit FPCGExInputDescriptor(const FPCGExInputDescriptor& Other)
 		: Selector(Other.Selector),
 		  Attribute(Other.Attribute)
 	{
@@ -76,7 +76,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExInputDescriptorGeneric : public FPCGExInputD
 	{
 	}
 
-	FPCGExInputDescriptorGeneric(const FPCGExInputDescriptorGeneric& Other)
+	explicit FPCGExInputDescriptorGeneric(const FPCGExInputDescriptorGeneric& Other)
 		: FPCGExInputDescriptor(Other),
 		  Type(Other.Type),
 		  Axis(Other.Axis),
@@ -111,7 +111,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExInputDescriptorWithDirection : public FPCGEx
 	{
 	}
 
-	FPCGExInputDescriptorWithDirection(const FPCGExInputDescriptorWithDirection& Other)
+	explicit FPCGExInputDescriptorWithDirection(const FPCGExInputDescriptorWithDirection& Other)
 		: FPCGExInputDescriptor(Other),
 		  Axis(Other.Axis)
 	{
@@ -136,7 +136,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExInputDescriptorWithSingleField : public FPCG
 	{
 	}
 
-	FPCGExInputDescriptorWithSingleField(const FPCGExInputDescriptorWithSingleField& Other)
+	explicit FPCGExInputDescriptorWithSingleField(const FPCGExInputDescriptorWithSingleField& Other)
 		: FPCGExInputDescriptor(Other),
 		  Axis(Other.Axis),
 		  Field(Other.Field)
@@ -160,7 +160,9 @@ public:
 #pragma endregion
 
 namespace PCGEx
-{	
+{
+#pragma region Attribute identity
+
 	struct PCGEXTENDEDTOOLKIT_API FAttributeIdentity
 	{
 		FName Name = NAME_None;
@@ -175,18 +177,18 @@ namespace PCGEx
 
 	struct FAttributesInfos
 	{
-
-		TArray<FAttributeIdentity> Identities;		
+		TArray<FAttributeIdentity> Identities;
 		bool Contains(FName AttributeName, EPCGMetadataTypes Type);
 
 		~FAttributesInfos()
 		{
 			Identities.Empty();
 		}
-		
+
 		static FAttributesInfos* Get(const UPCGPointData* InData);
-		
 	};
+
+#pragma endregion
 
 #pragma region Accessors
 #define PCGEX_AAFLAG EPCGAttributeAccessorFlags::AllowBroadcast
@@ -390,16 +392,30 @@ namespace PCGEx
 		}
 	};
 
-	template <typename T>
-	class PCGEXTENDEDTOOLKIT_API FAttributeIOBase
+	class PCGEXTENDEDTOOLKIT_API FAAttributeIO
 	{
 	public:
 		FName Name = NAME_None;
+
+		explicit FAAttributeIO(const FName InName):
+			Name(InName)
+		{
+		}
+
+		virtual ~FAAttributeIO()
+		{
+		}
+	};
+
+	template <typename T>
+	class PCGEXTENDEDTOOLKIT_API FAttributeIOBase : public FAAttributeIO
+	{
+	public:
 		TArray<T> Values;
 		FAttributeAccessorBase<T>* Accessor = nullptr;
 
 		explicit FAttributeIOBase(const FName InName):
-			Name(InName)
+			FAAttributeIO(InName)
 		{
 			Values.Empty();
 		}
@@ -414,7 +430,7 @@ namespace PCGEx
 
 		bool IsValid() { return Accessor != nullptr; }
 
-		virtual ~FAttributeIOBase()
+		virtual ~FAttributeIOBase() override
 		{
 			PCGEX_DELETE(Accessor)
 			Values.Empty();
@@ -509,6 +525,10 @@ namespace PCGEx
 	template <typename T>
 	struct PCGEXTENDEDTOOLKIT_API FAttributeGetter
 	{
+	protected:
+		bool bMinMaxDirty = true;
+		bool bNormalized = false;
+
 	public:
 		virtual ~FAttributeGetter()
 		{
@@ -516,6 +536,8 @@ namespace PCGEx
 		}
 
 		TArray<T> Values;
+		mutable T Min = T{};
+		mutable T Max = T{};
 
 		bool bEnabled = true;
 		bool bValid = false;
@@ -531,11 +553,16 @@ namespace PCGEx
 
 		/**
 		 * Build and validate a property/attribute accessor for the selected
-		 * @param PointIO 
+		 * @param PointIO
+		 * @param bCaptureMinMax 
 		 */
-		bool Bind(const PCGExData::FPointIO& PointIO)
+		bool Grab(const PCGExData::FPointIO& PointIO, bool bCaptureMinMax = false)
 		{
 			Cleanup();
+
+			ResetMinMax();
+			bMinMaxDirty = !bCaptureMinMax;
+			bNormalized = false;
 
 			bValid = false;
 			if (!bEnabled) { return false; }
@@ -544,7 +571,6 @@ namespace PCGEx
 
 			const FPCGAttributePropertyInputSelector Selector = Descriptor.Selector.CopyAndFixLast(InData);
 			if (!Selector.IsValid()) { return false; }
-
 
 			int32 NumPoints = PointIO.GetNum();
 			const EPCGAttributePropertySelection Selection = Selector.GetSelection();
@@ -570,7 +596,20 @@ namespace PCGEx
 						TArrayView<RawT> View(RawValues);
 						Accessor->GetRange(View, 0, *Keys, PCGEX_AAFLAG);
 
-						for (int i = 0; i < NumPoints; i++) { Values[i] = Convert(RawValues[i]); }
+						if (bCaptureMinMax)
+						{
+							for (int i = 0; i < NumPoints; i++)
+							{
+								T V = Convert(RawValues[i]);
+								Min = PCGExMath::Min(V, Min);
+								Max = PCGExMath::Max(V, Max);
+								Values[i] = V;
+							}
+						}
+						else
+						{
+							for (int i = 0; i < NumPoints; i++) { Values[i] = Convert(RawValues[i]); }
+						}
 
 						RawValues.Empty();
 						delete Accessor;
@@ -583,7 +622,11 @@ namespace PCGEx
 				const TUniquePtr<const IPCGAttributeAccessor> Accessor = PCGAttributeAccessorHelpers::CreateConstAccessor(InData, Selector);
 				const TArray<FPCGPoint>& InPoints = InData->GetPoints();
 				Values.SetNumUninitialized(NumPoints);
-#define PCGEX_GET_BY_ACCESSOR(_ENUM, _ACCESSOR) case _ENUM: for (int i = 0; i < NumPoints; i++) { Values[i] = Convert(InPoints[i]._ACCESSOR); } break;
+#define PCGEX_GET_BY_ACCESSOR(_ENUM, _ACCESSOR) case _ENUM:\
+				if (bCaptureMinMax) { for (int i = 0; i < NumPoints; i++) {\
+						T V = Convert(InPoints[i]._ACCESSOR); Min = PCGExMath::Min(V, Min); Max = PCGExMath::Max(V, Max); Values[i] = V;\
+					} } else { for (int i = 0; i < NumPoints; i++) { Values[i] = Convert(InPoints[i]._ACCESSOR); } } break;
+
 				switch (Descriptor.Selector.GetPointProperty())
 				{
 				PCGEX_FOREACH_POINTPROPERTY(PCGEX_GET_BY_ACCESSOR)
@@ -599,21 +642,45 @@ namespace PCGEx
 			return bValid;
 		}
 
+		void UpdateMinMax()
+		{
+			if (!bMinMaxDirty) { return; }
+			ResetMinMax();
+			bMinMaxDirty = false;
+			for (int i = 0; i < Values.Num(); i++)
+			{
+				T V = Values[i];
+				Min = PCGExMath::Min(V, Min);
+				Max = PCGExMath::Max(V, Max);
+			}
+		}
+
+		void Normalize()
+		{
+			if (bNormalized) { return; }
+			bNormalized = true;
+			UpdateMinMax();
+			T Range = PCGExMath::Sub(Max, Min);
+			for (int i = 0; i < Values.Num(); i++) { Values[i] = PCGExMath::Div(Values[i], Range); }
+		}
+
 		const T& SafeGet(const int32 Index, const T& fallback) const { return (!bValid || !bEnabled) ? fallback : Values[Index]; }
 		T& operator[](int32 Index) { return Values[Index]; }
 		T operator[](int32 Index) const { return bValid ? Values[Index] : GetDefaultValue(); }
 
 	protected:
 		virtual T GetDefaultValue() const = 0;
+		virtual void ResetMinMax() const = 0;
 
 #define  PCGEX_PRINT_VIRTUAL(_TYPE, _NAME, ...) virtual T Convert(const _TYPE Value) const { return GetDefaultValue(); };
 		PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_PRINT_VIRTUAL)
 	};
 
 
-#define PCGEX_SINGLE(_NAME, _TYPE)\
+#define PCGEX_SINGLE(_NAME, _TYPE, _MINMAX)\
 struct PCGEXTENDEDTOOLKIT_API FLocal ## _NAME ## Input : public FAttributeGetter<_TYPE>	{\
 protected: \
+virtual void ResetMinMax() const override{ _MINMAX }\
 virtual _TYPE GetDefaultValue() const override{ return 0; }\
 virtual _TYPE Convert(const int32 Value) const override { return static_cast<_TYPE>(Value); } \
 virtual _TYPE Convert(const int64 Value) const override { return static_cast<_TYPE>(Value); }\
@@ -630,21 +697,22 @@ virtual _TYPE Convert(const FString Value) const override { return static_cast<_
 virtual _TYPE Convert(const FName Value) const override { return static_cast<_TYPE>(GetTypeHash(Value)); }\
 };
 
-	PCGEX_SINGLE(Integer32, int32)
+	PCGEX_SINGLE(Integer32, int32, Min = TNumericLimits<int32>::Max(); Max = TNumericLimits<int32>::Min();)
 
-	PCGEX_SINGLE(Integer64, int64)
+	PCGEX_SINGLE(Integer64, int64, Min = TNumericLimits<int64>::Max(); Max = TNumericLimits<int64>::Min();)
 
-	PCGEX_SINGLE(Float, float)
+	PCGEX_SINGLE(Float, float, Min = TNumericLimits<float>::Max(); Max = TNumericLimits<float>::Min();)
 
-	PCGEX_SINGLE(Double, double)
+	PCGEX_SINGLE(Double, double, Min = TNumericLimits<double>::Max(); Max = TNumericLimits<double>::Min();)
 
-	PCGEX_SINGLE(Boolean, bool)
+	PCGEX_SINGLE(Boolean, bool, Min = false; Max = true;)
 
 #undef PCGEX_SINGLE
 
 #define PCGEX_VECTOR_CAST(_NAME, _TYPE, VECTOR2D)\
 struct PCGEXTENDEDTOOLKIT_API FLocal ## _NAME ## Input : public FAttributeGetter<_TYPE>	{\
 protected: \
+virtual void ResetMinMax() const override{ Min = _TYPE(TNumericLimits<double>::Min()); Max = _TYPE(TNumericLimits<double>::Max()); }\
 virtual _TYPE GetDefaultValue() const override { return _TYPE(0); }\
 virtual _TYPE Convert(const int32 Value) const override { return _TYPE(Value); } \
 virtual _TYPE Convert(const int64 Value) const override { return _TYPE(Value); }\
@@ -670,6 +738,7 @@ virtual _TYPE Convert(const FRotator Value) const override { return _TYPE(Value.
 #define PCGEX_LITERAL_CAST(_NAME, _TYPE)\
 struct PCGEXTENDEDTOOLKIT_API FLocal ## _NAME ## Input : public FAttributeGetter<_TYPE>	{\
 protected: \
+virtual void ResetMinMax() const override{  }\
 virtual _TYPE GetDefaultValue() const override { return _TYPE(""); }\
 virtual _TYPE Convert(const int32 Value) const override { return _TYPE(FString::FromInt(Value)); } \
 virtual _TYPE Convert(const int64 Value) const override { return _TYPE(FString::FromInt(Value)); }\
@@ -710,7 +779,6 @@ virtual _TYPE Convert(const FName Value) const override { return _TYPE(Value.ToS
 			Axis = InAxis;
 		}
 
-	public:
 		EPCGExSingleField Field = EPCGExSingleField::X;
 		EPCGExAxis Axis = EPCGExAxis::Forward;
 
@@ -718,6 +786,12 @@ virtual _TYPE Convert(const FName Value) const override { return _TYPE(Value.ToS
 		void Capture(const FPCGExInputDescriptorGeneric& InDescriptor);
 
 	protected:
+		virtual void ResetMinMax() const override
+		{
+			Min = TNumericLimits<double>::Max();
+			Max = TNumericLimits<double>::Min();
+		}
+
 		virtual double GetDefaultValue() const override { return 0; }
 
 		virtual double Convert(const int32 Value) const override { return Value; }
@@ -811,6 +885,12 @@ virtual _TYPE Convert(const FName Value) const override { return _TYPE(Value.ToS
 		}
 
 	protected:
+		virtual void ResetMinMax() const override
+		{
+			Min = FVector(TNumericLimits<double>::Max());
+			Max = FVector(TNumericLimits<double>::Min());
+		}
+
 		virtual FVector GetDefaultValue() const override { return FVector::ZeroVector; }
 
 		virtual FVector Convert(const bool Value) const override { return GetDefaultValue(); }
@@ -837,6 +917,12 @@ virtual _TYPE Convert(const FName Value) const override { return _TYPE(Value.ToS
 	public:
 
 	protected:
+		virtual void ResetMinMax() const override
+		{
+			Min = TEXT("");
+			Max = TEXT("");
+		}
+
 		virtual FString GetDefaultValue() const override { return ""; }
 
 		virtual FString Convert(const bool Value) const override { return FString::Printf(TEXT("%s"), Value ? TEXT("true") : TEXT("false")); }

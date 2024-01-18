@@ -9,6 +9,7 @@
 #include "Graph/Pathfinding/GoalPickers/PCGExGoalPickerRandom.h"
 #include "Algo/Reverse.h"
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicDistance.h"
+#include "Graph/Pathfinding/Search/PCGExSearchOperation.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPathfindingEdgesElement"
 #define PCGEX_NAMESPACE PathfindingEdges
@@ -23,6 +24,7 @@ UPCGExPathfindingEdgesSettings::UPCGExPathfindingEdgesSettings(
 void UPCGExPathfindingEdgesSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	if (GoalPicker) { GoalPicker->UpdateUserFacingInfos(); }
+	if (SearchAlgorithm) { SearchAlgorithm->UpdateUserFacingInfos(); }
 	HeuristicsModifiers.UpdateUserFacingInfos();
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
@@ -112,23 +114,22 @@ bool FPCGExPathfindingEdgesElement::ExecuteInternal(FPCGContext* InContext) cons
 			if (!Context->CurrentCluster)
 			{
 				PCGEX_INVALID_CLUSTER_LOG
-				Context->SetState(PCGExMT::State_ReadyForNextPoints);
 				return false;
 			}
-			
-			Context->HeuristicsModifiers->PrepareForData(*Context->CurrentIO, *Context->CurrentEdges, Context->Heuristics->GetScale());
+
+			Context->HeuristicsModifiers->PrepareForData(*Context->CurrentIO, *Context->CurrentEdges);
+			Context->Heuristics->PrepareForData(Context->CurrentCluster);
 			Context->SetState(PCGExGraph::State_ProcessingEdges);
 		}
 	}
 
 	if (Context->IsState(PCGExGraph::State_ProcessingEdges))
 	{
-		auto SampleClusterTask = [&](const int32 Index)
+		for (int i = 0; i < Context->PathBuffer.Num(); i++)
 		{
-			Context->GetAsyncManager()->Start<FSampleClusterPathTask>(Index, Context->CurrentIO, Context->PathBuffer[Index]);
-		};
+			Context->GetAsyncManager()->Start<FSampleClusterPathTask>(i, Context->CurrentIO, Context->PathBuffer[i]);
+		}
 
-		if (!Context->Process(SampleClusterTask, Context->PathBuffer.Num())) { return false; }
 		Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork);
 	}
 
@@ -157,10 +158,12 @@ bool FSampleClusterPathTask::ExecuteTask()
 
 	TArray<int32> Path;
 
-	if (!PCGExPathfinding::FindPath(
+	//Note: Can silently fail
+	if (!Context->SearchAlgorithm->FindPath(
 		Context->CurrentCluster, Query->SeedPosition, Query->GoalPosition,
 		Context->Heuristics, Context->HeuristicsModifiers, Path))
 	{
+		// Failed
 		return false;
 	}
 

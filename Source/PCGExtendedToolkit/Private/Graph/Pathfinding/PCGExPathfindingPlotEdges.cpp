@@ -9,6 +9,7 @@
 #include "Graph/Pathfinding/GoalPickers/PCGExGoalPickerRandom.h"
 #include "Algo/Reverse.h"
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicDistance.h"
+#include "Graph/Pathfinding/Search/PCGExSearchAStar.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPathfindingPlotEdgesElement"
 #define PCGEX_NAMESPACE PathfindingPlotEdges
@@ -17,6 +18,7 @@ UPCGExPathfindingPlotEdgesSettings::UPCGExPathfindingPlotEdgesSettings(
 	const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	PCGEX_OPERATION_DEFAULT(SearchAlgorithm, UPCGExSearchAStar)
 	PCGEX_OPERATION_DEFAULT(Heuristics, UPCGExHeuristicDistance)
 }
 
@@ -44,8 +46,13 @@ TArray<FPCGPinProperties> UPCGExPathfindingPlotEdgesSettings::InputPinProperties
 
 TArray<FPCGPinProperties> UPCGExPathfindingPlotEdgesSettings::OutputPinProperties() const
 {
-	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
-	PinProperties.Pop(); // Remove edge output
+	TArray<FPCGPinProperties> PinProperties;
+	FPCGPinProperties& PinPathsOutput = PinProperties.Emplace_GetRef(PCGExGraph::OutputPathsLabel, EPCGDataType::Point);
+
+#if WITH_EDITOR
+	PinPathsOutput.Tooltip = FTEXT("Paths output.");
+#endif
+
 	return PinProperties;
 }
 
@@ -68,6 +75,7 @@ bool FPCGExPathfindingPlotEdgesElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(PathfindingPlotEdges)
 
+	PCGEX_OPERATION_BIND(SearchAlgorithm, UPCGExSearchAStar)
 	PCGEX_OPERATION_BIND(Heuristics, UPCGExHeuristicDistance)
 
 	Context->OutputPaths = new PCGExData::FPointIOGroup();
@@ -83,6 +91,7 @@ bool FPCGExPathfindingPlotEdgesElement::Boot(FPCGContext* InContext) const
 	}
 
 	Context->HeuristicsModifiers = const_cast<FPCGExHeuristicModifiersSettings*>(&Settings->HeuristicsModifiers);
+	Context->Heuristics->ReferenceWeight = Context->HeuristicsModifiers->ReferenceWeight;
 
 	return true;
 }
@@ -124,11 +133,11 @@ bool FPCGExPathfindingPlotEdgesElement::ExecuteInternal(FPCGContext* InContext) 
 			if (!Context->CurrentCluster)
 			{
 				PCGEX_INVALID_CLUSTER_LOG
-				Context->SetState(PCGExMT::State_ReadyForNextPoints);
 				return false;
 			}
 
-			Context->HeuristicsModifiers->PrepareForData(*Context->CurrentIO, *Context->CurrentEdges, Context->Heuristics->GetScale());
+			Context->HeuristicsModifiers->PrepareForData(*Context->CurrentIO, *Context->CurrentEdges);
+			Context->Heuristics->PrepareForData(Context->CurrentCluster);
 			Context->SetState(PCGExGraph::State_ProcessingEdges);
 		}
 	}
@@ -170,10 +179,12 @@ bool FPCGExPlotClusterPathTask::ExecuteTask()
 		FVector SeedPosition = PointIO->GetInPoint(i - 1).Transform.GetLocation();
 		FVector GoalPosition = PointIO->GetInPoint(i).Transform.GetLocation();
 
-		//Note: Can silently fail
-		PCGExPathfinding::FindPath(
+		if (!Context->SearchAlgorithm->FindPath(
 			Context->CurrentCluster, SeedPosition, GoalPosition,
-			Context->Heuristics, Context->HeuristicsModifiers, Path);
+			Context->Heuristics, Context->HeuristicsModifiers, Path))
+		{
+			// Failed
+		}
 
 		if (Context->bAddPlotPointsToPath && i < NumPlots - 1) { Path.Add((i + 1) * -1); }
 

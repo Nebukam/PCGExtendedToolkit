@@ -120,7 +120,7 @@ namespace PCGExMath
 	}
 
 	template <typename T, typename dummy = void>
-	static T Tile(const T Value, const T InMin, const T InMax, bool bSafe = false)
+	static T Tile(const T Value, const T InMin, const T InMax, const bool bSafe = false)
 	{
 		T Min = InMin;
 		T Max = InMax;
@@ -148,7 +148,7 @@ namespace PCGExMath
 	}
 
 	template <typename dummy = void>
-	static FVector2D Tile(const FVector2D Value, const FVector2D Min, const FVector2D Max, bool bSafe = false)
+	static FVector2D Tile(const FVector2D Value, const FVector2D Min, const FVector2D Max, const bool bSafe = false)
 	{
 		return FVector2D(
 			Tile(Value.X, Min.X, Max.X, bSafe),
@@ -156,7 +156,7 @@ namespace PCGExMath
 	}
 
 	template <typename dummy = void>
-	static FVector Tile(const FVector Value, const FVector Min, const FVector Max, bool bSafe = false)
+	static FVector Tile(const FVector Value, const FVector Min, const FVector Max, const bool bSafe = false)
 	{
 		return FVector(
 			Tile(Value.X, Min.X, Max.X, bSafe),
@@ -165,7 +165,7 @@ namespace PCGExMath
 	}
 
 	template <typename dummy = void>
-	static FVector4 Tile(const FVector4 Value, const FVector4 Min, const FVector4 Max, bool bSafe = false)
+	static FVector4 Tile(const FVector4 Value, const FVector4 Min, const FVector4 Max, const bool bSafe = false)
 	{
 		return FVector4(
 			Tile(Value.X, Min.X, Max.X, bSafe),
@@ -188,7 +188,7 @@ namespace PCGExMath
 		return Sign == 0 ? -1 : Sign;
 	}
 
-	static FBox ConeBox(const FVector& Center, const FVector& ConeDirection, double Size)
+	static FBox ConeBox(const FVector& Center, const FVector& ConeDirection, const double Size)
 	{
 		const FVector Dir = ConeDirection.GetSafeNormal();
 		const FVector U = FVector::CrossProduct(Dir, Dir + FVector(0.1)).GetSafeNormal();
@@ -261,4 +261,254 @@ namespace PCGExMath
 		OutSphere = FSphere(Center, radius);
 		return true;
 	}
+
+
+#pragma region Add
+
+	template <typename T, typename dummy = void>
+	static T Add(const T& A, const T& B, const double& Alpha = 0) { return A + B; }
+
+	template <typename dummy = void>
+	static bool Add(const bool& A, const bool& B, const double& Alpha = 0) { return B ? true : A; }
+
+	template <typename dummy = void>
+	static FTransform Add(const FTransform& A, const FTransform& B, const double& Alpha = 0)
+	{
+		return FTransform(
+			A.GetRotation() + B.GetRotation(),
+			A.GetLocation() + B.GetLocation(),
+			A.GetScale3D() + B.GetScale3D());
+	}
+
+	template <typename dummy = void>
+	static FString Add(const FString& A, const FString& B, const double& Alpha = 0) { return A < B ? B : A; }
+
+	template <typename dummy = void>
+	static FName Add(const FName& A, const FName& B, const double& Alpha = 0) { return A.ToString() < B.ToString() ? B : A; }
+
+#pragma endregion
+
+#pragma region Sub
+
+	template <typename T, typename dummy = void>
+	static T Sub(const T& A, const T& B, const double& Alpha = 0) { return A - B; }
+
+	template <typename dummy = void>
+	static bool Sub(const bool& A, const bool& B, const double& Alpha = 0) { return B ? true : A; }
+
+	template <typename dummy = void>
+	static FTransform Sub(const FTransform& A, const FTransform& B, const double& Alpha = 0)
+	{
+		return FTransform(
+			A.GetRotation() - B.GetRotation(),
+			A.GetLocation() - B.GetLocation(),
+			A.GetScale3D() - B.GetScale3D());
+	}
+
+	template <typename dummy = void>
+	static FString Sub(const FString& A, const FString& B, const double& Alpha = 0) { return A < B ? A : B; }
+
+	template <typename dummy = void>
+	static FName Sub(const FName& A, const FName& B, const double& Alpha = 0) { return A.ToString() < B.ToString() ? A : B; }
+
+#pragma endregion
+
+#pragma region Min
+
+	template <typename T, typename dummy = void>
+	static T Min(const T& A, const T& B, const double& Alpha = 0) { return FMath::Min(A, B); }
+
+	template <typename dummy = void>
+	static FVector2D Min(const FVector2D& A, const FVector2D& B, const double& Alpha = 0)
+	{
+		return FVector2D(
+			FMath::Min(A.X, B.X),
+			FMath::Min(A.Y, B.Y));
+	}
+
+	template <typename dummy = void>
+	static FVector Min(const FVector& A, const FVector& B, const double& Alpha = 0)
+	{
+		return FVector(
+			FMath::Min(A.X, B.X),
+			FMath::Min(A.Y, B.Y),
+			FMath::Min(A.Z, B.Z));
+	}
+
+	template <typename dummy = void>
+	static FVector4 Min(const FVector4& A, const FVector4& B, const double& Alpha = 0)
+	{
+		return FVector4(
+			FMath::Min(A.X, B.X),
+			FMath::Min(A.Y, B.Y),
+			FMath::Min(A.Z, B.Z),
+			FMath::Min(A.W, B.W));
+	}
+
+	template <typename dummy = void>
+	static FRotator Min(const FRotator& A, const FRotator& B, const double& Alpha = 0)
+	{
+		return FRotator(
+			FMath::Min(A.Pitch, B.Pitch),
+			FMath::Min(A.Yaw, B.Yaw),
+			FMath::Min(A.Roll, B.Roll));
+	}
+
+	template <typename dummy = void>
+	static FQuat Min(const FQuat& A, const FQuat& B, const double& Alpha = 0) { return Min(A.Rotator(), B.Rotator()).Quaternion(); }
+
+	template <typename dummy = void>
+	static FTransform Min(const FTransform& A, const FTransform& B, const double& Alpha = 0)
+	{
+		return FTransform(
+			Min(A.GetRotation(), B.GetRotation()),
+			Min(A.GetLocation(), B.GetLocation()),
+			Min(A.GetScale3D(), B.GetScale3D()));
+	}
+
+	template <typename dummy = void>
+	static FString Min(const FString& A, const FString& B, const double& Alpha = 0) { return A > B ? B : A; }
+
+	template <typename dummy = void>
+	static FName Min(const FName& A, const FName& B, const double& Alpha = 0) { return A.ToString() > B.ToString() ? B : A; }
+
+#pragma endregion
+
+#pragma region Max
+
+	template <typename T, typename dummy = void>
+	static T Max(const T& A, const T& B, const double& Alpha = 0) { return FMath::Max(A, B); }
+
+	template <typename dummy = void>
+	static FVector2D Max(const FVector2D& A, const FVector2D& B, const double& Alpha = 0)
+	{
+		return FVector2D(
+			FMath::Max(A.X, B.X),
+			FMath::Max(A.Y, B.Y));
+	}
+
+	template <typename dummy = void>
+	static FVector Max(const FVector& A, const FVector& B, const double& Alpha = 0)
+	{
+		return FVector(
+			FMath::Max(A.X, B.X),
+			FMath::Max(A.Y, B.Y),
+			FMath::Max(A.Z, B.Z));
+	}
+
+	template <typename dummy = void>
+	static FVector4 Max(const FVector4& A, const FVector4& B, const double& Alpha = 0)
+	{
+		return FVector4(
+			FMath::Max(A.X, B.X),
+			FMath::Max(A.Y, B.Y),
+			FMath::Max(A.Z, B.Z),
+			FMath::Max(A.W, B.W));
+	}
+
+	template <typename dummy = void>
+	static FRotator Max(const FRotator& A, const FRotator& B, const double& Alpha = 0)
+	{
+		return FRotator(
+			FMath::Max(A.Pitch, B.Pitch),
+			FMath::Max(A.Yaw, B.Yaw),
+			FMath::Max(A.Roll, B.Roll));
+	}
+
+	template <typename dummy = void>
+	static FQuat Max(const FQuat& A, const FQuat& B, const double& Alpha = 0) { return Max(A.Rotator(), B.Rotator()).Quaternion(); }
+
+	template <typename dummy = void>
+	static FTransform Max(const FTransform& A, const FTransform& B, const double& Alpha = 0)
+	{
+		return FTransform(
+			Max(A.GetRotation(), B.GetRotation()),
+			Max(A.GetLocation(), B.GetLocation()),
+			Max(A.GetScale3D(), B.GetScale3D()));
+	}
+
+	template <typename dummy = void>
+	static FString Max(const FString& A, const FString& B, const double& Alpha = 0) { return A > B ? A : B; }
+
+	template <typename dummy = void>
+	static FName Max(const FName& A, const FName& B, const double& Alpha = 0) { return A.ToString() > B.ToString() ? A : B; }
+
+#pragma endregion
+
+#pragma region Lerp
+
+	template <typename T, typename dummy = void>
+	static T Lerp(const T& A, const T& B, const double& Alpha = 0) { return FMath::Lerp(A, B, Alpha); }
+
+	template <typename dummy = void>
+	static FQuat Lerp(const FQuat& A, const FQuat& B, const double& Alpha = 0) { return FQuat::Slerp(A, B, Alpha); }
+
+	template <typename dummy = void>
+	static FTransform Lerp(const FTransform& A, const FTransform& B, const double& Alpha = 0)
+	{
+		return FTransform(
+			Lerp(A.GetRotation(), B.GetRotation(), Alpha),
+			Lerp(A.GetLocation(), B.GetLocation(), Alpha),
+			Lerp(A.GetScale3D(), B.GetScale3D(), Alpha));
+	}
+
+	template <typename dummy = void>
+	static FString Lerp(const FString& A, const FString& B, const double& Alpha = 0) { return Alpha > 0.5 ? B : A; }
+
+	template <typename dummy = void>
+	static FName Lerp(const FName& A, const FName& B, const double& Alpha = 0) { return Alpha > 0.5 ? B : A; }
+
+#pragma endregion
+
+#pragma region Divide
+
+	template <typename T, typename dummy = void>
+	static T Div(const T& A, const double Divider) { return A / Divider; }
+
+	template <typename dummy = void>
+	static bool Div(const bool& A, const double Divider) { return A; }
+
+	template <typename dummy = void>
+	static FRotator Div(const FRotator& A, const double Divider)
+	{
+		return FRotator(
+			A.Pitch / Divider,
+			A.Yaw / Divider,
+			A.Roll / Divider);
+	}
+
+	template <typename dummy = void>
+	static FQuat Div(const FQuat& A, const double Divider) { return Div(A.Rotator(), Divider).Quaternion(); }
+
+
+	template <typename dummy = void>
+	static FTransform Div(const FTransform& A, const double Divider)
+	{
+		return FTransform(
+			Div(A.GetRotation(), Divider),
+			A.GetLocation() / Divider,
+			A.GetScale3D() / Divider);
+	}
+
+	template <typename dummy = void>
+	static FString Div(const FString& A, const double Divider) { return A; }
+
+	template <typename dummy = void>
+	static FName Div(const FName& A, const double Divider) { return A; }
+
+#pragma endregion
+
+#pragma region Copy
+
+	template <typename T>
+	static T Copy(const T& A, const T& B, const double& Alpha = 0) { return B; }
+
+#pragma endregion
+
+#pragma region NoBlend
+
+	template <typename T>
+	static T NoBlend(const T& A, const T& B, const double& Alpha = 0) { return A; }
+
+#pragma endregion
 }

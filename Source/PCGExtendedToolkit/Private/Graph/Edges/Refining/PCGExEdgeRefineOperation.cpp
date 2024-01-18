@@ -4,22 +4,17 @@
 
 #include "Graph/Edges/Refining/PCGExEdgeRefineOperation.h"
 
-void UPCGExEdgeRefineOperation::PrepareForPointIO(PCGExData::FPointIO& PointIO)
+void UPCGExEdgeRefineOperation::PrepareForPointIO(PCGExData::FPointIO* InPointIO)
 {
-	CurrentPoints = &PointIO;
+	PointIO = InPointIO;
 }
 
-void UPCGExEdgeRefineOperation::PrepareForCluster(PCGExData::FPointIO& EdgesIO, PCGExCluster::FCluster* InCluster)
+void UPCGExEdgeRefineOperation::Process(PCGExCluster::FCluster* InCluster, PCGExGraph::FGraph* InGraph, PCGExData::FPointIO* InEdgesIO)
 {
-	CurrentEdges = &EdgesIO;
-	CurrentCluster = InCluster;
 }
 
 void UPCGExEdgeRefineOperation::Cleanup()
 {
-	CurrentPoints = nullptr;
-	CurrentEdges = nullptr;
-	CurrentCluster = nullptr;
-
+	PointIO = nullptr;
 	Super::Cleanup();
 }

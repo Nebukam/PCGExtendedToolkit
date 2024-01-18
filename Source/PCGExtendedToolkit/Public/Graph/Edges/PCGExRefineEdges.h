@@ -33,8 +33,8 @@ protected:
 
 	//~Begin UPCGExPointsProcessorSettings interface
 public:
+	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	virtual PCGExData::EInit GetEdgeOutputInitMode() const override;
-	virtual bool GetCacheAllClusters() const override;
 	//~End UPCGExPointsProcessorSettings interface
 
 	/** Removes roaming points from the output, and keeps only points that are part of an cluster. */
@@ -78,14 +78,13 @@ class PCGEXTENDEDTOOLKIT_API FPCGExRefineEdgesTask : public FPCGExNonAbandonable
 public:
 	FPCGExRefineEdgesTask(
 		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-		PCGExCluster::FCluster* InCluster, PCGExData::FPointIO* InEdges) :
+		PCGExData::FPointIO* InEdgeIO) :
 		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
-		Cluster(InCluster), Edges(InEdges)
+		EdgeIO(InEdgeIO)
 	{
 	}
 
-	PCGExCluster::FCluster* Cluster = nullptr;
-	PCGExData::FPointIO* Edges = nullptr;
+	PCGExData::FPointIO* EdgeIO = nullptr;
 
 	virtual bool ExecuteTask() override;
 };

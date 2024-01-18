@@ -13,15 +13,23 @@ FPCGExPointIOMerger::FPCGExPointIOMerger(PCGExData::FPointIO& OutData)
 
 FPCGExPointIOMerger::~FPCGExPointIOMerger()
 {
-	MergedData = nullptr;
-	MergedPoints.Empty();
+	for (const PCGEx::FAAttributeIO* Writer : WriterList) { delete Writer; }
+	Writers.Empty();
+
 	Identities.Empty();
 	AllowsInterpolation.Empty();
+
+	if (bCleanupInputs) { for (PCGExData::FPointIO* PointIO : MergedPoints) { PointIO->Cleanup(); } }
+	MergedPoints.Empty();
+
+	MergedData->Cleanup();
+	MergedData = nullptr;
 }
 
 void FPCGExPointIOMerger::Append(PCGExData::FPointIO& InData)
 {
 	MergedPoints.Add(&InData);
+
 	TArray<PCGEx::FAttributeIdentity> NewIdentities;
 	PCGEx::FAttributeIdentity::Get(InData.GetIn(), NewIdentities);
 	for (PCGEx::FAttributeIdentity& NewIdentity : NewIdentities)
@@ -30,6 +38,7 @@ void FPCGExPointIOMerger::Append(PCGExData::FPointIO& InData)
 		Identities.Add(NewIdentity.Name, NewIdentity);
 		AllowsInterpolation.Add(NewIdentity.Name, InData.GetIn()->Metadata->GetConstAttribute(NewIdentity.Name)->AllowsInterpolation());
 	}
+
 	TotalPoints += InData.GetNum();
 
 	InData.CreateInKeys();
@@ -40,27 +49,32 @@ void FPCGExPointIOMerger::Append(const TArray<PCGExData::FPointIO*>& InData)
 	for (const PCGExData::FPointIO* PointIO : InData) { Append(const_cast<PCGExData::FPointIO&>(*PointIO)); }
 }
 
-void FPCGExPointIOMerger::DoMerge()
+void FPCGExPointIOMerger::Merge(FPCGExAsyncManager* AsyncManager, const bool CleanupInputs)
 {
+	bCleanupInputs = CleanupInputs;
+
 	TArray<FPCGPoint>& MutablePoints = MergedData->GetOut()->GetMutablePoints();
 	MutablePoints.SetNum(TotalPoints);
 
-	MergedData->CreateOutKeys();
-
 	int32 StartIndex = 0;
+
 	for (const PCGExData::FPointIO* PointIO : MergedPoints)
 	{
-		const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
-		for (int i = 0; i < InPoints.Num(); i++)
+		const int32 NumPoints = PointIO->GetNum();
+		for (int i = 0; i < NumPoints; i++)
 		{
-			const int32 PtIndex = StartIndex + i;
-			const PCGMetadataEntryKey ExistingKey = MutablePoints[PtIndex].MetadataEntry;
-			MutablePoints[PtIndex] = InPoints[i];
-			MutablePoints[PtIndex].MetadataEntry = ExistingKey;
+			FPCGPoint& Point = MutablePoints[StartIndex + i] = PointIO->GetInPoint(i);
+			Point.MetadataEntry = PCGInvalidEntryKey;
 		}
+
+		StartIndex += NumPoints;
 	}
 
-	//TODO : Refactor this
+	MergedData->CreateOutKeys();
+
+	// Prepare writers for each attribute on the merged
+	FPCGExPointIOMerger* Merger = this;
+
 	for (const TPair<FName, PCGEx::FAttributeIdentity>& Identity : Identities)
 	{
 		PCGMetadataAttribute::CallbackWithRightType(
@@ -70,30 +84,49 @@ void FPCGExPointIOMerger::DoMerge()
 				PCGEx::TFAttributeWriter<T>* Writer = new PCGEx::TFAttributeWriter<T>(Identity.Key, T{}, *AllowsInterpolation.Find(Identity.Key));
 				Writer->BindAndGet(*MergedData);
 
-				StartIndex = 0;
-				for (PCGExData::FPointIO* PointIO : MergedPoints)
-				{
-					const int32 NumPoints = PointIO->GetIn()->GetPoints().Num();
+				Writers.Add(Identity.Key, Writer);
+				WriterList.Add(Writer);
 
-					PCGEx::TFAttributeReader<T>* Reader = new PCGEx::TFAttributeReader<T>(Identity.Key);
-					if (Reader->Bind(*PointIO))
-					{
-						for (int i = 0; i < NumPoints; i++)
-						{
-							const int32 PtIndex = StartIndex + i;
-							Writer->Values[PtIndex] = Reader->Values[i];
-						}
-					}
-
-					PCGEX_DELETE(Reader)
-					StartIndex += PointIO->GetNum();
-				}
-
-				Writer->Write();
-				PCGEX_DELETE(Writer)
+				int32 PointIndex = 0;
+				for (PCGExData::FPointIO* PointIO : MergedPoints) { AsyncManager->Start<FPCGExAttributeMergeTask>(PointIndex++, PointIO, Merger, Identity.Key); }
 			});
 	}
+}
 
-	for (PCGExData::FPointIO* PointIO : MergedPoints) { PointIO->Cleanup(); }
-	MergedData->Cleanup();
+void FPCGExPointIOMerger::Write()
+{
+	for (const TPair<FName, PCGEx::FAAttributeIO*>& Pair : Writers)
+	{
+		PCGMetadataAttribute::CallbackWithRightType(
+			static_cast<uint16>(Identities.Find(Pair.Key)->UnderlyingType), [&](auto DummyValue)
+			{
+				using T = decltype(DummyValue);
+				static_cast<PCGEx::TFAttributeWriter<T>*>(Pair.Value)->Write();
+			});
+	}
+}
+
+bool FPCGExAttributeMergeTask::ExecuteTask()
+{
+	const int32 NumPoints = PointIO->GetNum();
+
+	int32 StartIndex = 0;
+	for (int i = 0; i < TaskIndex; i++) { StartIndex += Merger->MergedPoints[i]->GetNum(); }
+
+	PCGMetadataAttribute::CallbackWithRightType(
+		static_cast<uint16>(Merger->Identities.Find(AttributeName)->UnderlyingType), [&](auto DummyValue)
+		{
+			using T = decltype(DummyValue);
+
+			PCGEx::TFAttributeReader<T>* Reader = new PCGEx::TFAttributeReader<T>(AttributeName);
+			if (!Reader->Bind(*PointIO)) { return; }
+
+			PCGEx::TFAttributeWriter<T>* Writer = static_cast<PCGEx::TFAttributeWriter<T>*>(*Merger->Writers.Find(AttributeName));
+
+			for (int i = 0; i < NumPoints; i++) { Writer->Values[StartIndex + i] = Reader->Values[i]; }
+
+			PCGEX_DELETE(Reader)
+		});
+
+	return true;
 }

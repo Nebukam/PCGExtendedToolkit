@@ -3,9 +3,6 @@
 
 #include "Paths/PCGExPathsToEdgeClusters.h"
 
-#include "Data/PCGExData.h"
-#include "Graph/PCGExFindCustomGraphEdgeClusters.h"
-
 #define LOCTEXT_NAMESPACE "PCGExPathsToEdgeClustersElement"
 #define PCGEX_NAMESPACE BuildCustomGraph
 

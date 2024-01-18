@@ -13,7 +13,7 @@ UPCGExSampleNearestPointSettings::UPCGExSampleNearestPointSettings(
 	: Super(ObjectInitializer)
 {
 	if (NormalSource.Selector.GetName() == FName("@Last")) { NormalSource.Selector.Update(TEXT("$Transform")); }
-	if (!WeightOverDistance) { WeightOverDistance = PCGEx::WeightDistributionLinear; }
+	if (!WeightOverDistance) { WeightOverDistance = PCGEx::WeightDistributionLinearInv; }
 }
 
 TArray<FPCGPinProperties> UPCGExSampleNearestPointSettings::InputPinProperties() const
@@ -106,10 +106,7 @@ bool FPCGExSampleNearestPointElement::Boot(FPCGContext* InContext) const
 	if (Context->NormalWriter)
 	{
 		Context->NormalGetter.Capture(Settings->NormalSource);
-		if (!Context->NormalGetter.Bind(*Context->Targets))
-		{
-			PCGE_LOG(Warning, GraphAndLog, FTEXT("Normal source is invalid."));
-		}
+		if (!Context->NormalGetter.Grab(*Context->Targets)) { PCGE_LOG(Warning, GraphAndLog, FTEXT("Normal source is invalid.")); }
 	}
 
 	return true;
@@ -139,18 +136,12 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 		{
 			if (Context->bUseLocalRangeMin)
 			{
-				if (Context->RangeMinGetter.Bind(PointIO))
-				{
-					PCGE_LOG(Warning, GraphAndLog, FTEXT("RangeMin metadata missing"));
-				}
+				if (Context->RangeMinGetter.Grab(PointIO)) { PCGE_LOG(Warning, GraphAndLog, FTEXT("RangeMin metadata missing")); }
 			}
 
 			if (Context->bUseLocalRangeMax)
 			{
-				if (Context->RangeMaxGetter.Bind(PointIO))
-				{
-					PCGE_LOG(Warning, GraphAndLog, FTEXT("RangeMax metadata missing"));
-				}
+				if (Context->RangeMaxGetter.Grab(PointIO)) { PCGE_LOG(Warning, GraphAndLog, FTEXT("RangeMax metadata missing")); }
 			}
 
 			PointIO.CreateOutKeys();

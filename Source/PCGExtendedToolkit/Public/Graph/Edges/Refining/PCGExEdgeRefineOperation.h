@@ -8,9 +8,9 @@
 #include "Data/PCGExPointIO.h"
 #include "PCGExEdgeRefineOperation.generated.h"
 
-namespace PCGExCluster
+namespace PCGExGraph
 {
-	struct FNode;
+	class FGraph;
 }
 
 namespace PCGExCluster
@@ -27,13 +27,11 @@ class PCGEXTENDEDTOOLKIT_API UPCGExEdgeRefineOperation : public UPCGExOperation
 	GENERATED_BODY()
 
 public:
-	virtual void PrepareForPointIO(PCGExData::FPointIO& PointIO);
-	virtual void PrepareForCluster(PCGExData::FPointIO& EdgesIO, PCGExCluster::FCluster* InCluster);
+	virtual void PrepareForPointIO(PCGExData::FPointIO* InPointIO);
+	virtual void Process(PCGExCluster::FCluster* InCluster, PCGExGraph::FGraph* InGraph, PCGExData::FPointIO* InEdgesIO);
 
 	virtual void Cleanup() override;
 
 protected:
-	PCGExData::FPointIO* CurrentPoints = nullptr;
-	PCGExData::FPointIO* CurrentEdges = nullptr;
-	PCGExCluster::FCluster* CurrentCluster = nullptr;
+	PCGExData::FPointIO* PointIO;
 };

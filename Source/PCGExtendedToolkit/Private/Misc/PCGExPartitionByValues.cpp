@@ -157,7 +157,7 @@ bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* InContext) con
 			for (FPCGExFilterRuleDescriptor& Descriptor : Context->RulesDescriptors)
 			{
 				FPCGExFilter::FRule& NewRule = Context->Rules.Emplace_GetRef(Descriptor);
-				if (!NewRule.Bind(PointIO)) { Context->Rules.Pop(); }
+				if (!NewRule.Grab(PointIO)) { Context->Rules.Pop(); }
 			}
 
 			// Prepare each rule so it cache the filter key by index

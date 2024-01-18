@@ -8,6 +8,7 @@
 #include "Graph/Pathfinding/GoalPickers/PCGExGoalPicker.h"
 #include "Graph/Pathfinding/GoalPickers/PCGExGoalPickerRandom.h"
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicDistance.h"
+#include "Graph/Pathfinding/Search/PCGExSearchAStar.h"
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPathfindingSettings"
@@ -19,6 +20,7 @@ UPCGExPathfindingProcessorSettings::UPCGExPathfindingProcessorSettings(const FOb
 	: Super(ObjectInitializer)
 {
 	PCGEX_OPERATION_DEFAULT(GoalPicker, UPCGExGoalPickerRandom)
+	PCGEX_OPERATION_DEFAULT(SearchAlgorithm, UPCGExSearchAStar)
 	PCGEX_OPERATION_DEFAULT(Heuristics, UPCGExHeuristicDistance)
 }
 
@@ -65,6 +67,7 @@ TArray<FPCGPinProperties> UPCGExPathfindingProcessorSettings::OutputPinPropertie
 void UPCGExPathfindingProcessorSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	if (GoalPicker) { GoalPicker->UpdateUserFacingInfos(); }
+	if (SearchAlgorithm) { SearchAlgorithm->UpdateUserFacingInfos(); }
 	if (Heuristics) { Heuristics->UpdateUserFacingInfos(); }
 	//if (Blending) { Blending->UpdateUserFacingInfos(); }
 	Super::PostEditChangeProperty(PropertyChangedEvent);
@@ -95,6 +98,7 @@ bool FPCGExPathfindingProcessorElement::Boot(FPCGContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(PathfindingProcessor)
 
 	PCGEX_OPERATION_BIND(GoalPicker, UPCGExGoalPickerRandom)
+	PCGEX_OPERATION_BIND(SearchAlgorithm, UPCGExSearchAStar)
 	PCGEX_OPERATION_BIND(Heuristics, UPCGExHeuristicDistance)
 	//PCGEX_OPERATION_BIND(Blending, UPCGExSubPointsBlendInterpolate)
 
@@ -111,6 +115,7 @@ bool FPCGExPathfindingProcessorElement::Boot(FPCGContext* InContext) const
 	}
 
 	Context->HeuristicsModifiers = const_cast<FPCGExHeuristicModifiersSettings*>(&Settings->HeuristicsModifiers);
+	Context->Heuristics->ReferenceWeight = Context->HeuristicsModifiers->ReferenceWeight;
 
 	return true;
 }
@@ -125,6 +130,8 @@ FPCGContext* FPCGExPathfindingProcessorElement::InitializeContext(
 
 	const UPCGExPathfindingProcessorSettings* Settings = InContext->GetInputSettings<UPCGExPathfindingProcessorSettings>();
 	check(Settings);
+
+	if (!Settings->bEnabled) { return Context; }
 
 	if (Settings->GetRequiresSeeds())
 	{

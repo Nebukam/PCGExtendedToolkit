@@ -34,7 +34,7 @@ bool FPCGExInputDescriptor::Validate(const UPCGPointData* InData)
 
 namespace PCGEx
 {
-	void PCGEx::FAttributeIdentity::Get(const UPCGPointData* InData, TArray<FAttributeIdentity>& OutIdentities)
+	void FAttributeIdentity::Get(const UPCGPointData* InData, TArray<FAttributeIdentity>& OutIdentities)
 	{
 		if (!InData->Metadata) { return; }
 		TArray<FName> Names;
@@ -47,7 +47,7 @@ namespace PCGEx
 		}
 	}
 
-	void PCGEx::FAttributeIdentity::Get(const UPCGPointData* InData, TArray<FName>& OutNames, TMap<FName, FAttributeIdentity>& OutIdentities)
+	void FAttributeIdentity::Get(const UPCGPointData* InData, TArray<FName>& OutNames, TMap<FName, FAttributeIdentity>& OutIdentities)
 	{
 		if (!InData->Metadata) { return; }
 		TArray<EPCGMetadataTypes> Types;
@@ -60,27 +60,27 @@ namespace PCGEx
 		}
 	}
 
-	bool FAttributesInfos::Contains(FName AttributeName, EPCGMetadataTypes Type)
+	bool FAttributesInfos::Contains(const FName AttributeName, const EPCGMetadataTypes Type)
 	{
 		for (FAttributeIdentity& Identity : Identities) { if (Identity.Name == AttributeName && Identity.UnderlyingType == Type) { return true; } }
 		return false;
 	}
 
-	PCGEx::FAttributesInfos* PCGEx::FAttributesInfos::Get(const UPCGPointData* InData)
+	FAttributesInfos* FAttributesInfos::Get(const UPCGPointData* InData)
 	{
 		FAttributesInfos* NewInfos = new FAttributesInfos();
 		FAttributeIdentity::Get(InData, NewInfos->Identities);
 		return NewInfos;
 	}
 
-	void PCGEx::FLocalSingleFieldGetter::Capture(const FPCGExInputDescriptorWithSingleField& InDescriptor)
+	void FLocalSingleFieldGetter::Capture(const FPCGExInputDescriptorWithSingleField& InDescriptor)
 	{
 		Descriptor = static_cast<FPCGExInputDescriptor>(InDescriptor);
 		Field = InDescriptor.Field;
 		Axis = InDescriptor.Axis;
 	}
 
-	void PCGEx::FLocalSingleFieldGetter::Capture(const FPCGExInputDescriptorGeneric& InDescriptor)
+	void FLocalSingleFieldGetter::Capture(const FPCGExInputDescriptorGeneric& InDescriptor)
 	{
 		Descriptor = static_cast<FPCGExInputDescriptor>(InDescriptor);
 		Field = InDescriptor.Field;

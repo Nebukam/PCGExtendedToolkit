@@ -3,7 +3,6 @@
 
 #include "Graph/PCGExBuildConvexHull2D.h"
 
-#include "Data/PCGExData.h"
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
 #include "Geometry/PCGExGeoDelaunay.h"
 #include "Graph/PCGExConsolidateCustomGraph.h"

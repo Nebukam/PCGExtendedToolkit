@@ -4,16 +4,16 @@
 
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicDistance.h"
 
-double UPCGExHeuristicDistance::ComputeScore(
-	const PCGExCluster::FScoredNode* From,
-	const PCGExCluster::FNode& To,
-	const PCGExCluster::FNode& Seed,
-	const PCGExCluster::FNode& Goal, const PCGExGraph::FIndexedEdge& Edge) const
+void UPCGExHeuristicDistance::PrepareForData(PCGExCluster::FCluster* InCluster)
 {
-	return FVector::Distance(Goal.Position, To.Position);
+	MaxDistSquared = FVector::DistSquared(InCluster->Bounds.Min, InCluster->Bounds.Max);
+	Super::PrepareForData(InCluster);
 }
 
-bool UPCGExHeuristicDistance::IsBetterScore(const double NewScore, const double OtherScore) const
+double UPCGExHeuristicDistance::GetGlobalScore(
+	const PCGExCluster::FNode& From,
+	const PCGExCluster::FNode& Seed,
+	const PCGExCluster::FNode& Goal) const
 {
-	return NewScore <= OtherScore;
+	return (FVector::DistSquared(From.Position, Goal.Position) / MaxDistSquared) * ReferenceWeight;
 }

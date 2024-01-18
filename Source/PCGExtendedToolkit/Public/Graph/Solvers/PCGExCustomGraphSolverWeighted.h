@@ -10,7 +10,7 @@
 /**
  * 
  */
-UCLASS(DisplayName = "Weighted Solver")
+UCLASS(DisplayName = "Weighted Solver", meta=(ToolTip ="Weighted graph solver. Uses Distance-over-Dot curve to find the ideal candidate."))
 class PCGEXTENDEDTOOLKIT_API UPCGExCustomGraphSolverWeighted : public UPCGExCustomGraphSolver
 {
 	GENERATED_BODY()

@@ -6,12 +6,12 @@
 #include "CoreMinimal.h"
 
 #include "PCGExPathfinding.h"
-#include "PCGExPathfindingProcessor.h"
 #include "PCGExPointsProcessor.h"
-#include "Graph/PCGExGraph.h"
+#include "Graph/PCGExEdgesProcessor.h"
 
 #include "PCGExPathfindingPlotEdges.generated.h"
 
+class UPCGExSearchOperation;
 /**
  * Use PCGExTransform to manipulate the outgoing attributes instead of handling everything here.
  * This way we can multi-thread the various calculations instead of mixing everything along with async/game thread collision
@@ -56,6 +56,14 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	bool bAddPlotPointsToPath = true;
 
+	/** Insert plot points inside the path */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	bool b = true;
+
+	/** Search algorithm. */
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta = (NoResetToDefault, ShowOnlyInnerProperties))
+	TObjectPtr<UPCGExSearchOperation> SearchAlgorithm;
+
 	/** Controls how heuristic are calculated. */
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta = (NoResetToDefault, ShowOnlyInnerProperties))
 	TObjectPtr<UPCGExHeuristicOperation> Heuristics;
@@ -75,6 +83,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingPlotEdgesContext : public FPCGExE
 	PCGExData::FPointIOGroup* OutputPaths = nullptr;
 
 	UPCGExHeuristicOperation* Heuristics = nullptr;
+	UPCGExSearchOperation* SearchAlgorithm = nullptr;
 	FPCGExHeuristicModifiersSettings* HeuristicsModifiers = nullptr;
 	//UPCGExSubPointsBlendOperation* Blending = nullptr;
 

@@ -5,10 +5,8 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
-#include "Data/PCGPointData.h"
 
 #include "Kismet/KismetStringLibrary.h"
-#include "Misc/DefaultValueHelper.h"
 
 namespace PCGExData
 {
@@ -81,7 +79,7 @@ namespace PCGExData
 			Tags.Add(Key, Value);
 		}
 
-		void Set(const FString& Key, int64 Value, FString& OutValue)
+		void Set(const FString& Key, const int64 Value, FString& OutValue)
 		{
 			OutValue = FString::Printf(TEXT("%llu"), Value);
 			Tags.Add(Key, OutValue);
@@ -93,7 +91,7 @@ namespace PCGExData
 			{
 				OutValue = *Value;
 				return true;
-			};
+			}
 
 			return false;
 		}
@@ -104,12 +102,12 @@ namespace PCGExData
 			{
 				Value = *InValue;
 				return;
-			};
+			}
 
 			Tags.Add(Key, Value);
 		}
 
-		void GetOrSet(const FString& Key, int64 Value, FString& OutValue)
+		void GetOrSet(const FString& Key, const int64 Value, FString& OutValue)
 		{
 			OutValue = FString::Printf(TEXT("%llu"), Value);
 			GetOrSet(Key, OutValue);

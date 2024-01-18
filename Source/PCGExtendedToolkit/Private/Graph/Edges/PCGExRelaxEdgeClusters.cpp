@@ -69,7 +69,7 @@ bool FPCGExRelaxEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) con
 			if (Context->bUseLocalInfluence)
 			{
 				Context->InfluenceGetter.bEnabled = true;
-				Context->InfluenceGetter.Bind(*Context->CurrentIO);
+				Context->InfluenceGetter.Grab(*Context->CurrentIO);
 			}
 			else { Context->InfluenceGetter.bEnabled = false; }
 
