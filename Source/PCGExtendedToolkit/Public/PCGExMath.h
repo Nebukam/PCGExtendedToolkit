@@ -263,7 +263,7 @@ namespace PCGExMath
 	}
 
 	template <typename T>
-	T GetMinMax(const TArray<T>& Values, T& OutMin, T& OutMax)
+	static T GetMinMax(const TArray<T>& Values, T& OutMin, T& OutMax)
 	{
 		OutMin = TNumericLimits<T>::Max();
 		OutMax = TNumericLimits<T>::Min();
@@ -275,7 +275,7 @@ namespace PCGExMath
 	}
 
 	template <typename T>
-	void SignedNormalize(TArray<T> Values)
+	static void SignedNormalize(TArray<T> Values)
 	{
 		T Min;
 		T Max;
@@ -285,17 +285,23 @@ namespace PCGExMath
 	}
 
 	template <typename T>
-	void Remap(TArray<T> Values, bool bZeroMin = false, T Scale = 1)
+	static void Remap(TArray<T> Values, bool bZeroMin = false, T Range = 1)
 	{
 		T Min;
 		T Max;
 		GetMinMax(Values, Min, Max);
-		if (bZeroMin) { for (int i = 0; i < Values.Num(); i++) { Values[i] = Remap(Values[i], 0, Max, 0, 1) * Scale; } }
-		else { for (int i = 0; i < Values.Num(); i++) { Values[i] = Remap(Values[i], Min, Max, 0, 1) * Scale; } }
+		if (bZeroMin) { for (int i = 0; i < Values.Num(); i++) { Values[i] = Remap(Values[i], 0, Max, 0, 1) * Range; } }
+		else { for (int i = 0; i < Values.Num(); i++) { Values[i] = Remap(Values[i], Min, Max, 0, 1) * Range; } }
 	}
 
 	template <typename T>
-	T GetAverage(const TArray<T>& Values)
+	static void Remap(TArray<T> Values, T Min, T Max, T Range = 1)
+	{
+		for (int i = 0; i < Values.Num(); i++) { Values[i] = Remap(Values[i], Min, Max, 0, 1) * Range; }
+	}
+
+	template <typename T>
+	static T GetAverage(const TArray<T>& Values)
 	{
 		T Sum = 0;
 		for (const T Value : Values) { Sum += Value; }
@@ -303,10 +309,11 @@ namespace PCGExMath
 	}
 
 	template <typename T>
-	T GetMedian(const TArray<T>& Values)
+	static T GetMedian(const TArray<T>& Values)
 	{
 		TArray<T> SortedValues;
 		SortedValues.Reserve(Values.Num());
+		SortedValues.Append(Values);
 		SortedValues.Sort();
 
 		T Median = T{};
@@ -322,6 +329,35 @@ namespace PCGExMath
 
 		SortedValues.Empty();
 		return Median;
+	}
+
+	static double GetMode(const TArray<double>& Values, bool bHighest, uint32 Tolerance = 5)
+	{
+		TMap<double, int32> Map;
+		int32 LastCount = 0;
+		double Mode = 0;
+
+		for (const double Value : Values)
+		{
+			const double AdjustedValue = FMath::RoundToZero(Value / Tolerance) * Tolerance;
+			const int32* Count = Map.Find(AdjustedValue);
+			const int32 UpdatedCount = Count ? *Count + 1 : 1;
+			Map.Add(Value, UpdatedCount);
+
+			if (LastCount < UpdatedCount)
+			{
+				LastCount = UpdatedCount;
+				Mode = AdjustedValue;
+			}
+			else if (LastCount == UpdatedCount)
+			{
+				if (bHighest) { Mode = FMath::Max(Mode, AdjustedValue); }
+				else { Mode = FMath::Min(Mode, AdjustedValue); }
+			}
+		}
+
+		Map.Empty();
+		return Mode;
 	}
 
 #pragma region Add

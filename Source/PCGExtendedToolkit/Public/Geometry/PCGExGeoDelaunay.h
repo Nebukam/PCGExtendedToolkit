@@ -131,6 +131,65 @@ namespace PCGExGeo
 			UniqueEdges.Empty();
 		}
 
+		void GetUrquhartEdges(TArray<PCGExGraph::FUnsignedEdge>& OutEdges)
+		{
+			TSet<uint64> UniqueEdges;
+			UniqueEdges.Reserve(Cells.Num() * 3);
+
+			struct FMeasuredEdge
+			{
+				int32 A;
+				int32 B;
+			};
+
+			int32 EdgeCount = 0;
+			for (int i = 0; i < DIMENSIONS; i++) { for (int j = i + 1; j < DIMENSIONS; j++) { EdgeCount++; } }
+
+			TArray<FMeasuredEdge> MeasuredEdges;
+			MeasuredEdges.SetNum(EdgeCount);
+
+			for (const TDelaunayCell<DIMENSIONS>* Cell : Cells)
+			{
+				int32 E = -1;
+				int32 LE = -1;
+				double MaxDist = TNumericLimits<double>::Min();
+
+				for (int i = 0; i < DIMENSIONS; i++)
+				{
+					const int32 A = Cell->Simplex->Vertices[i]->Id;
+					for (int j = i + 1; j < DIMENSIONS; j++)
+					{
+						const int32 B = Cell->Simplex->Vertices[j]->Id;
+						FMeasuredEdge& Edge = MeasuredEdges[++E];
+						Edge.A = A;
+						Edge.B = B;
+
+						if (const double Dist = FVector::DistSquared(Vertices[A]->GetV3Downscaled(), Vertices[B]->GetV3Downscaled());
+							Dist > MaxDist)
+						{
+							LE = E;
+							MaxDist = Dist;
+						}
+					}
+				}
+
+				const FMeasuredEdge& LongestEdge = MeasuredEdges[LE];
+				UniqueEdges.Add(PCGExGraph::GetUnsignedHash64(LongestEdge.A, LongestEdge.B));
+
+				for (const FMeasuredEdge& Edge : MeasuredEdges)
+				{
+					if (uint64 Hash = PCGExGraph::GetUnsignedHash64(Edge.A, Edge.B);
+						!UniqueEdges.Contains(Hash))
+					{
+						OutEdges.Emplace(Edge.A, Edge.B);
+						UniqueEdges.Add(Hash);
+					}
+				}
+			}
+
+			UniqueEdges.Empty();
+		}
+
 		bool PrepareFrom(const TArray<FPCGPoint>& InPoints)
 		{
 			bOwnsVertices = true;

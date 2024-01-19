@@ -130,7 +130,9 @@ namespace PCGExGraph
 		}
 
 		bool InsertEdge(const int32 A, const int32 B, FIndexedEdge& OutEdge);
+		bool InsertEdge(const FIndexedEdge& Edge);
 		void InsertEdges(const TArray<FUnsignedEdge>& InEdges);
+		void InsertEdges(const TArray<FIndexedEdge>& InEdges);
 
 		void BuildSubGraphs();
 		void Consolidate(const bool bPrune, const int32 Min = 1, const int32 Max = TNumericLimits<int32>::Max());

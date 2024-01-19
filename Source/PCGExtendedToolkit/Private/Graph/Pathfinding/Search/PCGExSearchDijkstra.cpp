@@ -21,7 +21,7 @@ bool UPCGExSearchDijkstra::FindPath(const PCGExCluster::FCluster* Cluster, const
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExPathfinding::FindPath);
 
 
-	// Basic Dijkstra implementation TODO:Optimize
+	// Basic Dijkstra implementation
 
 	TSet<int32> Visited;
 	TMap<int32, double> Scores;

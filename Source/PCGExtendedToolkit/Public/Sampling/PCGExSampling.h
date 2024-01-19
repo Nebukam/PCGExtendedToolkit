@@ -9,6 +9,10 @@
 #define PCGEX_OUTPUT_DECL(_NAME, _TYPE) PCGEx::TFAttributeWriter<_TYPE>* _NAME##Writer = nullptr;
 #define PCGEX_OUTPUT_FWD(_NAME, _TYPE) Context->_NAME##Writer = Settings->bWrite##_NAME ? new PCGEx::TFAttributeWriter<_TYPE>(Settings->_NAME##AttributeName) : nullptr;
 
+#define PCGEX_OUTPUT_VALIDATE_NAME_NOWRITER(_NAME)\
+if(Settings->bWrite##_NAME && !FPCGMetadataAttributeBase::IsValidName(Settings->_NAME##AttributeName))\
+{ PCGE_LOG(Warning, GraphAndLog, FTEXT("Invalid output attribute name for " #_NAME ));}
+
 #define PCGEX_OUTPUT_VALIDATE_NAME(_NAME, _TYPE)\
 if(Settings->bWrite##_NAME && !FPCGMetadataAttributeBase::IsValidName(Settings->_NAME##AttributeName))\
 { PCGE_LOG(Warning, GraphAndLog, FTEXT("Invalid output attribute name for " #_NAME ));\

@@ -10,18 +10,21 @@
 #include "PCGExPruneEdgesByLength.generated.h"
 
 UENUM(BlueprintType)
-enum class EPCGExEdgeThresholdMode : uint8
+enum class EPCGExEdgeLengthMeasure : uint8
 {
-	Relative UMETA(DisplayName = "Relative", ToolTip="Regular pathfinding"),
-	Absolute UMETA(DisplayName = "Absolute", ToolTip="Cell-based pathfinding"),
+	Relative UMETA(DisplayName = "Relative", ToolTip="Edge length will be normalized between 0..1"),
+	Absolute UMETA(DisplayName = "Absolute", ToolTip="Raw edge length will be used."),
 };
 
 UENUM(BlueprintType)
-enum class EPCGExEdgePruningThresholdMean : uint8
+enum class EPCGExEdgeMeanMethod : uint8
 {
-	Average UMETA(DisplayName = "Average", ToolTip="Average lengths"),
+	Average UMETA(DisplayName = "Average", ToolTip="Average length"),
 	Median UMETA(DisplayName = "Median", ToolTip="Median length"),
-	Static UMETA(DisplayName = "Static", ToolTip="Static threshold"),
+	ModeMin UMETA(DisplayName = "Mode (Shortest)", ToolTip="Mode length (~= longest most common length)"),
+	ModeMax UMETA(DisplayName = "Mode (Longest)", ToolTip="Mode length (~= shortest most common length)"),
+	Central UMETA(DisplayName = "Central", ToolTip="Central uses the middle value between Min/Max edge lengths."),
+	Fixed UMETA(DisplayName = "Fixed", ToolTip="Fixed threshold"),
 };
 
 /**
@@ -53,29 +56,45 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bPruneIsolatedPoints = true;
 
-	/** Value mode */
+	/** Measure mode. If using relative, threshold values should be kept between 0-1, while absolute use the world-space length of the edge. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	EPCGExEdgeThresholdMode Mode = EPCGExEdgeThresholdMode::Relative;
+	EPCGExEdgeLengthMeasure Measure = EPCGExEdgeLengthMeasure::Relative;
 
-	/** Threshold reference value */
+	/** Which mean value is used to check whether an edge is above or below. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	EPCGExEdgePruningThresholdMean Mean = EPCGExEdgePruningThresholdMean::Average;
-
-	/** Prune edges if their length is below a specific threshold */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
-	bool bPruneBelowThreshold = false;
+	EPCGExEdgeMeanMethod MeanMethod = EPCGExEdgeMeanMethod::Average;
 
 	/** Minimum length threshold */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bPruneBelowThreshold", ClampMin=0))
-	double PruneBelow = 0;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditConditionHides, EditCondition="Mean==EPCGExEdgePruningThresholdMean::Fixed", ClampMin=0))
+	double MeanValue = 0;
 
-	/** Prune edges if their length is below a specific threshold */
+	/** Used to estimate the mode value. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditConditionHides, EditCondition="Mean==EPCGExEdgePruningThresholdMean::Mode", ClampMin=0))
+	double ModeTolerance = 0;
+
+	/** Prune edges if their length is below a specific threshold. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
-	bool bPruneAboveThreshold = false;
+	bool bPruneBelowMean = false;
 
-	/** Minimum length threshold */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bPruneBelowThreshold", ClampMin=0))
-	double PruneAbove = 0.9;
+	/** Minimum length threshold. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bPruneBelowMean", ClampMin=0.001))
+	double PruneBelow = 0.2;
+
+	/** Prune edges if their length is below a specific threshold. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
+	bool bPruneAboveMean = false;
+
+	/** Minimum length threshold. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bPruneAboveMean", ClampMin=0.001))
+	double PruneAbove = 0.2;
+
+	/** Write Mean value used to an attribute */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
+	bool bWriteMean = false;
+
+	/** Attribute to write the Mean value into */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bWriteMean"))
+	FName MeanAttributeName = "Mean";
 
 	/** Don't output Clusters if they have less points than a specified amount. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sanitization", meta = (PCG_Overridable, InlineEditConditionToggle))
@@ -104,13 +123,12 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPruneEdgesByLengthContext : public FPCGExEdg
 	int32 MinClusterSize;
 	int32 MaxClusterSize;
 
-	PCGEx::TFAttributeReader<int32>* StartIndexReader = nullptr;
-	PCGEx::TFAttributeReader<int32>* EndIndexReader = nullptr;
+	double ReferenceValue;
+	double ReferenceMin;
+	double ReferenceMax;
 
-	double MinEdgeLength;
-	double MaxEdgeLength;
-	
-	TArray<PCGExGraph::FIndexedEdge> Edges;
+	TArray<PCGExGraph::FIndexedEdge> IndexedEdges;
+
 	TArray<double> EdgeLength;
 
 	PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;

@@ -36,6 +36,7 @@ namespace PCGExGeo
 		}
 
 		FVector GetV3() const { return FVector(Position[0], Position[1], Position[2]); }
+		FVector GetV3Downscaled() const { return FVector(Position[0], Position[1], DIMENSIONS == 4 ? Position[2] : 0); }
 
 		void SetV3(FVector V)
 		{

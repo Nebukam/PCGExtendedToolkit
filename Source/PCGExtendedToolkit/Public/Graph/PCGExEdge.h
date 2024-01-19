@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 
 #include "PCGExMT.h"
+#include "Data/PCGExAttributeHelpers.h"
 
 #include "PCGExEdge.generated.h"
 
@@ -152,10 +153,74 @@ namespace PCGExGraph
 		{
 		}
 
+		FIndexedEdge(const FIndexedEdge& Other)
+			: FUnsignedEdge(Other.Start, Other.End),
+			  EdgeIndex(Other.EdgeIndex), PointIndex(Other.PointIndex)
+		{
+		}
+
 		FIndexedEdge(const int32 InIndex, const int32 InStart, const int32 InEnd, const int32 InPointIndex = -1)
 			: FUnsignedEdge(InStart, InEnd),
 			  EdgeIndex(InIndex), PointIndex(InPointIndex)
 		{
 		}
 	};
+
+	static bool BuildIndexedEdges(
+		const PCGExData::FPointIO& EdgeIO,
+		const TMap<int32, int32>& NodeIndicesMap,
+		TArray<FIndexedEdge>& OutEdges,
+		bool bInvalidateOnError = false)
+	{
+		//EdgeIO.CreateInKeys();
+
+		PCGEx::TFAttributeReader<int32>* StartIndexReader = new PCGEx::TFAttributeReader<int32>(PCGExGraph::Tag_EdgeStart);
+		PCGEx::TFAttributeReader<int32>* EndIndexReader = new PCGEx::TFAttributeReader<int32>(PCGExGraph::Tag_EdgeEnd);
+
+		if (!StartIndexReader->Bind(const_cast<PCGExData::FPointIO&>(EdgeIO))) { return false; }
+		if (!EndIndexReader->Bind(const_cast<PCGExData::FPointIO&>(EdgeIO))) { return false; }
+
+		bool bValid = true;
+		const int32 NumEdges = EdgeIO.GetNum();
+		int32 EdgeIndex = 0;
+
+		OutEdges.Reserve(NumEdges);
+
+		if (!bInvalidateOnError)
+		{
+			for (int i = 0; i < NumEdges; i++)
+			{
+				const int32* NodeStartPtr = NodeIndicesMap.Find(StartIndexReader->Values[i]);
+				const int32* NodeEndPtr = NodeIndicesMap.Find(EndIndexReader->Values[i]);
+
+				if ((!NodeStartPtr || !NodeEndPtr) ||
+					(*NodeStartPtr == *NodeEndPtr)) { continue; }
+
+				OutEdges.Emplace(EdgeIndex++, *NodeStartPtr, *NodeEndPtr, i);
+			}
+		}
+		else
+		{
+			for (int i = 0; i < NumEdges; i++)
+			{
+				const int32* NodeStartPtr = NodeIndicesMap.Find(StartIndexReader->Values[i]);
+				const int32* NodeEndPtr = NodeIndicesMap.Find(EndIndexReader->Values[i]);
+
+				if ((!NodeStartPtr || !NodeEndPtr) ||
+					(*NodeStartPtr == *NodeEndPtr))
+				{
+					bValid = false;
+					break;
+				}
+
+				OutEdges.Emplace(EdgeIndex++, *NodeStartPtr, *NodeEndPtr, i);
+			}
+		}
+
+
+		PCGEX_DELETE(StartIndexReader)
+		PCGEX_DELETE(EndIndexReader)
+
+		return bValid;
+	}
 }

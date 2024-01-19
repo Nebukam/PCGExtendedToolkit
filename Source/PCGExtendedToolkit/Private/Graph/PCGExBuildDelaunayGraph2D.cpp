@@ -184,7 +184,10 @@ bool FPCGExBuildDelaunayGraph2DElement::ExecuteInternal(
 		Context->GraphBuilder = new PCGExGraph::FGraphBuilder(*Context->CurrentIO, 8);
 
 		TArray<PCGExGraph::FUnsignedEdge> Edges;
-		Context->Delaunay->GetUniqueEdges(Edges);
+
+		if (Settings->bUrquhart) { Context->Delaunay->GetUrquhartEdges(Edges); }
+		else { Context->Delaunay->GetUniqueEdges(Edges); }
+		
 		Context->GraphBuilder->Graph->InsertEdges(Edges);
 
 		Context->GraphBuilder->Compile(Context);

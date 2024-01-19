@@ -78,6 +78,28 @@ namespace PCGExGraph
 		return true;
 	}
 
+	bool FGraph::InsertEdge(const FIndexedEdge& Edge)
+	{
+		const uint64 Hash = Edge.GetUnsignedHash();
+
+		{
+			FReadScopeLock ReadLock(GraphLock);
+			if (UniqueEdges.Contains(Hash)) { return false; }
+		}
+
+		FWriteScopeLock WriteLock(GraphLock);
+
+		UniqueEdges.Add(Hash);
+
+		FIndexedEdge& NewEdge = Edges.Emplace_GetRef(Edge);
+		NewEdge.EdgeIndex = Edges.Num()-1;
+
+		Nodes[Edge.Start].Add(NewEdge.EdgeIndex);
+		Nodes[Edge.End].Add(NewEdge.EdgeIndex);
+
+		return true;
+	}
+
 	void FGraph::InsertEdges(const TArray<FUnsignedEdge>& InEdges)
 	{
 		for (const FUnsignedEdge& E : InEdges)
@@ -91,6 +113,23 @@ namespace PCGExGraph
 
 			Nodes[E.Start].Add(Edge.EdgeIndex);
 			Nodes[E.End].Add(Edge.EdgeIndex);
+		}
+	}
+
+	void FGraph::InsertEdges(const TArray<FIndexedEdge>& InEdges)
+	{
+		for (const FIndexedEdge& E : InEdges)
+		{
+			const uint64 Hash = E.GetUnsignedHash();
+			if (UniqueEdges.Contains(Hash)) { continue; }
+
+			UniqueEdges.Add(Hash);
+
+			FIndexedEdge& NewEdge = Edges.Emplace_GetRef(E);
+			NewEdge.EdgeIndex = Edges.Num()-1;
+
+			Nodes[E.Start].Add(NewEdge.EdgeIndex);
+			Nodes[E.End].Add(NewEdge.EdgeIndex);
 		}
 	}
 

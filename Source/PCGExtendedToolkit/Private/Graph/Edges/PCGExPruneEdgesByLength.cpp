@@ -5,6 +5,7 @@
 
 #include "IPCGExDebug.h"
 #include "Data/PCGExGraphParamsData.h"
+#include "Sampling/PCGExSampling.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
 
@@ -19,12 +20,9 @@ FPCGExPruneEdgesByLengthContext::~FPCGExPruneEdgesByLengthContext()
 {
 	PCGEX_TERMINATE_ASYNC
 
-	PCGEX_DELETE(StartIndexReader)
-	PCGEX_DELETE(EndIndexReader)
-
 	PCGEX_DELETE(GraphBuilder)
 
-	Edges.Empty();
+	IndexedEdges.Empty();
 	EdgeLength.Empty();
 }
 
@@ -35,6 +33,7 @@ bool FPCGExPruneEdgesByLengthElement::Boot(FPCGContext* InContext) const
 	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(PruneEdgesByLength)
+	PCGEX_OUTPUT_VALIDATE_NAME_NOWRITER(Mean)
 
 	Context->MinClusterSize = Settings->bRemoveSmallClusters ? FMath::Max(1, Settings->MinClusterSize) : 1;
 	Context->MaxClusterSize = Settings->bRemoveBigClusters ? FMath::Max(1, Settings->MaxClusterSize) : TNumericLimits<int32>::Max();
@@ -76,82 +75,88 @@ bool FPCGExPruneEdgesByLengthElement::ExecuteInternal(FPCGContext* InContext) co
 			return false;
 		}
 
-		Context->MinEdgeLength = TNumericLimits<double>::Max();
-		Context->MaxEdgeLength = TNumericLimits<double>::Min();
+		Context->CurrentEdges->CreateInKeys();
+
+		double MinEdgeLength = TNumericLimits<double>::Max();
+		double MaxEdgeLength = TNumericLimits<double>::Min();
+		double SumEdgeLength = 0;
+
+		PCGExGraph::BuildIndexedEdges(*Context->CurrentEdges, Context->NodeIndicesMap, Context->IndexedEdges);
 
 		const TArray<FPCGPoint>& InNodePoints = Context->CurrentIO->GetIn()->GetPoints();
 
-		PCGExData::FPointIO& EdgeIO = *Context->CurrentEdges;
-		const int32 NumEdges = EdgeIO.GetNum();
+		Context->EdgeLength.SetNum(Context->IndexedEdges.Num());
 
-		Context->Edges.Reset(NumEdges);
-		Context->EdgeLength.Reset(NumEdges);
-
-		EdgeIO.CreateInKeys();
-
-		Context->StartIndexReader = new PCGEx::TFAttributeReader<int32>(PCGExGraph::Tag_EdgeStart);
-		Context->EndIndexReader = new PCGEx::TFAttributeReader<int32>(PCGExGraph::Tag_EdgeEnd);
-
-		Context->StartIndexReader->Bind(EdgeIO);
-		Context->EndIndexReader->Bind(EdgeIO);
-
-		for (int i = 0; i < NumEdges; i++)
+		for (const PCGExGraph::FIndexedEdge& Edge : Context->IndexedEdges)
 		{
-			const int32* NodeStartPtr = Context->NodeIndicesMap.Find(Context->StartIndexReader->Values[i]);
-			const int32* NodeEndPtr = Context->NodeIndicesMap.Find(Context->EndIndexReader->Values[i]);
+			const double EdgeLength = FVector::Dist(InNodePoints[Edge.Start].Transform.GetLocation(), InNodePoints[Edge.End].Transform.GetLocation());
+			Context->EdgeLength[Edge.EdgeIndex] = EdgeLength;
 
-			if (!NodeStartPtr || !NodeEndPtr) { continue; }
-
-			const int32 NodeStart = *NodeStartPtr;
-			const int32 NodeEnd = *NodeEndPtr;
-
-			if (!InNodePoints.IsValidIndex(NodeStart) ||
-				!InNodePoints.IsValidIndex(NodeEnd) ||
-				NodeStart == NodeEnd) { continue; }
-
-			Context->Edges.Emplace(i, NodeStart, NodeEnd, i);
-			double EdgeLength = FVector::DistSquared(InNodePoints[NodeStart].Transform.GetLocation(), InNodePoints[NodeEnd].Transform.GetLocation());
-			Context->EdgeLength.Add(EdgeLength);
-
-			Context->MinEdgeLength = FMath::Min(Context->MinEdgeLength, EdgeLength);
-			Context->MaxEdgeLength = FMath::Max(Context->MaxEdgeLength, EdgeLength);
+			MinEdgeLength = FMath::Min(MinEdgeLength, EdgeLength);
+			MaxEdgeLength = FMath::Max(MaxEdgeLength, EdgeLength);
+			SumEdgeLength += EdgeLength;
 		}
 
-		PCGEX_DELETE(Context->StartIndexReader)
-		PCGEX_DELETE(Context->EndIndexReader)
+		if (Settings->Measure == EPCGExEdgeLengthMeasure::Relative)
+		{
+			double RelativeMinEdgeLength = TNumericLimits<double>::Max();
+			double RelativeMaxEdgeLength = TNumericLimits<double>::Min();
+			SumEdgeLength = 0;
+			for (int i = 0; i < Context->EdgeLength.Num(); i++)
+			{
+				const double Normalized = (Context->EdgeLength[i] /= MaxEdgeLength);
+				RelativeMinEdgeLength = FMath::Min(Normalized, RelativeMinEdgeLength);
+				RelativeMaxEdgeLength = FMath::Max(Normalized, RelativeMaxEdgeLength);
+				SumEdgeLength += Normalized;
+			}
+			MinEdgeLength = RelativeMinEdgeLength;
+			MaxEdgeLength = 1;
+		}
 
-		
+		switch (Settings->MeanMethod)
+		{
+		default:
+		case EPCGExEdgeMeanMethod::Average:
+			Context->ReferenceValue = SumEdgeLength / Context->EdgeLength.Num();
+			break;
+		case EPCGExEdgeMeanMethod::Median:
+			Context->ReferenceValue = PCGExMath::GetMedian(Context->EdgeLength);
+			break;
+		case EPCGExEdgeMeanMethod::Fixed:
+			Context->ReferenceValue = Settings->MeanValue;
+			break;
+		case EPCGExEdgeMeanMethod::ModeMin:
+			Context->ReferenceValue = PCGExMath::GetMode(Context->EdgeLength, false, Settings->ModeTolerance);
+			break;
+		case EPCGExEdgeMeanMethod::ModeMax:
+			Context->ReferenceValue = PCGExMath::GetMode(Context->EdgeLength, true, Settings->ModeTolerance);
+			break;
+		case EPCGExEdgeMeanMethod::Central:
+			Context->ReferenceValue = MinEdgeLength + (MaxEdgeLength - MinEdgeLength) * 0.5;
+			break;
+		}
+
+		Context->ReferenceMin = Settings->bPruneBelowMean ? Context->ReferenceValue - Settings->PruneBelow : 0;
+		Context->ReferenceMax = Settings->bPruneAboveMean ? Context->ReferenceValue + Settings->PruneAbove : TNumericLimits<double>::Max();
+
 		Context->SetState(PCGExGraph::State_ProcessingEdges);
 	}
 
 	if (Context->IsState(PCGExGraph::State_ProcessingEdges))
 	{
-		const TArray<FPCGPoint>& InEdgePoints = Context->CurrentEdges->GetIn()->GetPoints();
-		const TArray<FPCGPoint>& InNodePoints = Context->CurrentIO->GetIn()->GetPoints();
-
 		auto Initialize = [&]()
 		{
-			PCGExData::FPointIO& EdgeIO = *Context->CurrentEdges;
-			
-			Context->GraphBuilder = new PCGExGraph::FGraphBuilder(*Context->CurrentIO, 6, &EdgeIO);
+			Context->GraphBuilder = new PCGExGraph::FGraphBuilder(*Context->CurrentIO, 6, Context->CurrentEdges);
 			if (Settings->bPruneIsolatedPoints) { Context->GraphBuilder->EnablePointsPruning(); }
-
 		};
-
-		//TODO: Compute edge length and min/max first, as well as median etc
 
 		auto InsertEdge = [&](int32 EdgeIndex)
 		{
-			PCGExGraph::FIndexedEdge& ProcessedEdge = ;
-			
-			PCGExGraph::FIndexedEdge* NewEdge = nullptr;
-			if (!Context->GraphBuilder->Graph->InsertEdge(ProcessedEdge.Start, ProcessedEdge.End, NewEdge)) { return; }
+			if (!FMath::IsWithin(Context->EdgeLength[EdgeIndex], Context->ReferenceMin, Context->ReferenceMax)) { return; }
+			Context->GraphBuilder->Graph->InsertEdge(Context->IndexedEdges[EdgeIndex]);
 		};
 
-		if (!Context->Process(Initialize, InsertEdge, Context->Edges.Num())) { return false; }
-
-		PCGEX_DELETE(Context->StartIndexReader)
-		PCGEX_DELETE(Context->EndIndexReader)
+		if (!Context->Process(Initialize, InsertEdge, Context->IndexedEdges.Num())) { return false; }
 
 		Context->GraphBuilder->Compile(Context, Context->MinClusterSize, Context->MaxClusterSize);
 		Context->SetAsyncState(PCGExGraph::State_WritingClusters);
@@ -160,7 +165,18 @@ bool FPCGExPruneEdgesByLengthElement::ExecuteInternal(FPCGContext* InContext) co
 	if (Context->IsState(PCGExGraph::State_WritingClusters))
 	{
 		if (!Context->IsAsyncWorkComplete()) { return false; }
-		if (Context->GraphBuilder->bCompiledSuccessfully) { Context->GraphBuilder->Write(Context); }
+		if (Context->GraphBuilder->bCompiledSuccessfully)
+		{
+			if (Settings->bWriteMean)
+			{
+				Context->GraphBuilder->EdgesIO->ForEach(
+					[&](PCGExData::FPointIO& PointIO, int32 Index)
+					{
+						PCGExData::WriteMark(PointIO.GetOut()->Metadata, Settings->MeanAttributeName, Context->ReferenceValue);
+					});
+			}
+			Context->GraphBuilder->Write(Context);
+		}
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
