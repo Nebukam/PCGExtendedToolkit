@@ -56,10 +56,6 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	bool bAddPlotPointsToPath = true;
 
-	/** Insert plot points inside the path */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
-	bool b = true;
-
 	/** Search algorithm. */
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta = (NoResetToDefault, ShowOnlyInnerProperties))
 	TObjectPtr<UPCGExSearchOperation> SearchAlgorithm;

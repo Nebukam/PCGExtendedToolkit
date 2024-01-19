@@ -117,14 +117,17 @@ bool FPCGExPathfindingEdgesElement::ExecuteInternal(FPCGContext* InContext) cons
 				return false;
 			}
 
-			Context->HeuristicsModifiers->PrepareForData(*Context->CurrentIO, *Context->CurrentEdges);
-			Context->Heuristics->PrepareForData(Context->CurrentCluster);
-			Context->SetState(PCGExGraph::State_ProcessingEdges);
+			Context->GetAsyncManager()->Start<FPCGExCompileModifiersTask>(0, Context->CurrentIO, Context->CurrentEdges, Context->HeuristicsModifiers);
+			Context->SetAsyncState(PCGExGraph::State_ProcessingEdges);
 		}
 	}
 
 	if (Context->IsState(PCGExGraph::State_ProcessingEdges))
 	{
+		if (!Context->IsAsyncWorkComplete()) { return false; }
+
+		Context->Heuristics->PrepareForData(Context->CurrentCluster);
+
 		for (int i = 0; i < Context->PathBuffer.Num(); i++)
 		{
 			Context->GetAsyncManager()->Start<FSampleClusterPathTask>(i, Context->CurrentIO, Context->PathBuffer[i]);

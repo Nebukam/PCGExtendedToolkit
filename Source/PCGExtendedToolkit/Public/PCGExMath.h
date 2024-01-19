@@ -262,6 +262,67 @@ namespace PCGExMath
 		return true;
 	}
 
+	template <typename T>
+	T GetMinMax(const TArray<T>& Values, T& OutMin, T& OutMax)
+	{
+		OutMin = TNumericLimits<T>::Max();
+		OutMax = TNumericLimits<T>::Min();
+		for (const T Value : Values)
+		{
+			OutMin = FMath::Min(OutMin, Value);
+			OutMax = FMath::Max(OutMax, Value);
+		}
+	}
+
+	template <typename T>
+	void SignedNormalize(TArray<T> Values)
+	{
+		T Min;
+		T Max;
+		GetMinMax(Values, Min, Max);
+		T Range = FMath::Max(FMath::Abs(Max), FMath::Abs(Min));
+		for (int i = 0; i < Values.Num(); i++) { Values[i] = Values[i] / Range; }
+	}
+
+	template <typename T>
+	void Remap(TArray<T> Values, bool bZeroMin = false, T Scale = 1)
+	{
+		T Min;
+		T Max;
+		GetMinMax(Values, Min, Max);
+		if (bZeroMin) { for (int i = 0; i < Values.Num(); i++) { Values[i] = Remap(Values[i], 0, Max, 0, 1) * Scale; } }
+		else { for (int i = 0; i < Values.Num(); i++) { Values[i] = Remap(Values[i], Min, Max, 0, 1) * Scale; } }
+	}
+
+	template <typename T>
+	T GetAverage(const TArray<T>& Values)
+	{
+		T Sum = 0;
+		for (const T Value : Values) { Sum += Value; }
+		return Div(Sum, Values.Num());
+	}
+
+	template <typename T>
+	T GetMedian(const TArray<T>& Values)
+	{
+		TArray<T> SortedValues;
+		SortedValues.Reserve(Values.Num());
+		SortedValues.Sort();
+
+		T Median = T{};
+
+		if (SortedValues.IsEmpty()) { Median = 0; }
+		else if (SortedValues.Num() == 1) { Median = SortedValues[0]; }
+		else
+		{
+			int32 MiddleIndex = FMath::Floor(SortedValues.Num() / 2);
+			if (SortedValues.Num() % 2 == 0) { Median = (SortedValues[MiddleIndex] + SortedValues[MiddleIndex + 1]) / 2; }
+			else { Median = SortedValues[MiddleIndex]; }
+		}
+
+		SortedValues.Empty();
+		return Median;
+	}
 
 #pragma region Add
 

@@ -246,11 +246,11 @@ namespace PCGExPathfinding
 		PCGMetadataEntryKey MetadataEntryKey = -1;
 	};
 
-
 	const FName SourceSeedsLabel = TEXT("Seeds");
 	const FName SourceGoalsLabel = TEXT("Goals");
 	const FName SourcePlotsLabel = TEXT("Plots");
 
+	constexpr PCGExMT::AsyncState State_ProcessingHeuristicModifiers = __COUNTER__;
 	constexpr PCGExMT::AsyncState State_Pathfinding = __COUNTER__;
 	constexpr PCGExMT::AsyncState State_WaitingPathfinding = __COUNTER__;
 
