@@ -64,6 +64,44 @@ namespace PCGExGeo
 	};
 
 	template <int DIMENSIONS>
+	struct PCGEXTENDEDTOOLKIT_API FTriangle
+	{
+		int32 A = -1;
+		int32 B = -1;
+		int32 C = -1;
+
+		FTriangle(int32 InA, int32 InB, int32 InC)
+			: A(InA), B(InB), C(InC)
+		{
+		}
+
+		void GetLongestEdge(TArray<TFVtx<DIMENSIONS>*>& Vertices, int32& OutStart, int32& OutEnd) const
+		{
+			const double Lengths[3] = {
+				FVector::DistSquared(Vertices[A]->GetV3Downscaled(), Vertices[B]->GetV3Downscaled()),
+				FVector::DistSquared(Vertices[A]->GetV3Downscaled(), Vertices[C]->GetV3Downscaled()),
+				FVector::DistSquared(Vertices[B]->GetV3Downscaled(), Vertices[C]->GetV3Downscaled())
+			};
+
+			if (Lengths[0] > Lengths[1] && Lengths[0] > Lengths[2])
+			{
+				OutStart = A;
+				OutEnd = B;
+			}
+			else if (Lengths[1] > Lengths[0] && Lengths[1] > Lengths[2])
+			{
+				OutStart = A;
+				OutEnd = C;
+			}
+			else
+			{
+				OutStart = B;
+				OutEnd = C;
+			}
+		}
+	};
+
+	template <int DIMENSIONS>
 	class PCGEXTENDEDTOOLKIT_API TFSimplex
 	{
 	public:
@@ -266,6 +304,20 @@ namespace PCGExGeo
 			double Distance = Offset;
 			for (int i = 0; i < DIMENSIONS; i++) { Distance += Normal[i] * V[i]; }
 			return Distance;
+		}
+
+		void GetTriangles(TArray<FTriangle<DIMENSIONS>>& Triangles)
+		{
+			if (DIMENSIONS == 3)
+			{
+				Triangles.Emplace(Vertices[0]->Id, Vertices[1]->Id, Vertices[2]->Id);
+			}
+			else if (DIMENSIONS == 4)
+			{
+				Triangles.Emplace(Vertices[0]->Id, Vertices[1]->Id, Vertices[2]->Id);
+				Triangles.Emplace(Vertices[0]->Id, Vertices[1]->Id, Vertices[3]->Id);
+				Triangles.Emplace(Vertices[0]->Id, Vertices[2]->Id, Vertices[3]->Id);
+			}
 		}
 	};
 }

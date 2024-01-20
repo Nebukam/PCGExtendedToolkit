@@ -136,53 +136,36 @@ namespace PCGExGeo
 			TSet<uint64> UniqueEdges;
 			UniqueEdges.Reserve(Cells.Num() * 3);
 
-			struct FMeasuredEdge
+			TArray<FTriangle<DIMENSIONS>> Triangles;
+			int32 NumTriangles = DIMENSIONS == 3 ? 1 : 3;
+			for (const TDelaunayCell<DIMENSIONS>* Cell : Cells)
 			{
-				int32 A;
-				int32 B;
-			};
-
-			int32 EdgeCount = 0;
-			for (int i = 0; i < DIMENSIONS; i++) { for (int j = i + 1; j < DIMENSIONS; j++) { EdgeCount++; } }
-
-			TArray<FMeasuredEdge> MeasuredEdges;
-			MeasuredEdges.SetNum(EdgeCount);
+				//TODO: Refactor this monstrosity
+				Triangles.Reset(NumTriangles);
+				Cell->Simplex->GetTriangles(Triangles);
+				for (const FTriangle<DIMENSIONS>& Triangle : Triangles)
+				{
+					int32 A = -1;
+					int32 B = -1;
+					Triangle.GetLongestEdge(Vertices, A, B);
+					UniqueEdges.Add(PCGExGraph::GetUnsignedHash64(A, B));
+				}
+			}
 
 			for (const TDelaunayCell<DIMENSIONS>* Cell : Cells)
 			{
-				int32 E = -1;
-				int32 LE = -1;
-				double MaxDist = TNumericLimits<double>::Min();
-
 				for (int i = 0; i < DIMENSIONS; i++)
 				{
 					const int32 A = Cell->Simplex->Vertices[i]->Id;
 					for (int j = i + 1; j < DIMENSIONS; j++)
 					{
 						const int32 B = Cell->Simplex->Vertices[j]->Id;
-						FMeasuredEdge& Edge = MeasuredEdges[++E];
-						Edge.A = A;
-						Edge.B = B;
-
-						if (const double Dist = FVector::DistSquared(Vertices[A]->GetV3Downscaled(), Vertices[B]->GetV3Downscaled());
-							Dist > MaxDist)
+						if (const uint64 Hash = PCGExGraph::GetUnsignedHash64(A, B);
+							!UniqueEdges.Contains(Hash))
 						{
-							LE = E;
-							MaxDist = Dist;
+							OutEdges.Emplace(A, B);
+							UniqueEdges.Add(Hash);
 						}
-					}
-				}
-
-				const FMeasuredEdge& LongestEdge = MeasuredEdges[LE];
-				UniqueEdges.Add(PCGExGraph::GetUnsignedHash64(LongestEdge.A, LongestEdge.B));
-
-				for (const FMeasuredEdge& Edge : MeasuredEdges)
-				{
-					if (uint64 Hash = PCGExGraph::GetUnsignedHash64(Edge.A, Edge.B);
-						!UniqueEdges.Contains(Hash))
-					{
-						OutEdges.Emplace(Edge.A, Edge.B);
-						UniqueEdges.Add(Hash);
 					}
 				}
 			}
