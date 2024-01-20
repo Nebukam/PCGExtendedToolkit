@@ -51,14 +51,14 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgesProcessorContext : public FPCGExPointsP
 
 	PCGExData::FPointIOGroup* MainEdges = nullptr;
 	PCGExData::FPointIO* CurrentEdges = nullptr;
-
+		
 	PCGExData::FPointIOTaggedDictionary* InputDictionary = nullptr;
 	PCGExData::FPointIOTaggedEntries* TaggedEdges = nullptr;
 	TMap<int32, int32> NodeIndicesMap;
 	PCGEx::TFAttributeReader<int32>* EdgeNumReader = nullptr;
 
 	virtual bool AdvancePointsIO() override;
-	bool AdvanceEdges(bool bBuildCluster = true); // Advance edges within current points
+	bool AdvanceEdges(bool bBuildCluster); // Advance edges within current points
 
 	PCGExCluster::FCluster* CurrentCluster = nullptr;
 

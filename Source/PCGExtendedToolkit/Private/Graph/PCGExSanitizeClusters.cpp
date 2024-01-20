@@ -19,10 +19,9 @@ FPCGExSanitizeClustersContext::~FPCGExSanitizeClustersContext()
 {
 	PCGEX_TERMINATE_ASYNC
 
-	PCGEX_DELETE(StartIndexReader)
-	PCGEX_DELETE(EndIndexReader)
-
 	PCGEX_DELETE(GraphBuilder)
+
+	IndexedEdges.Empty();
 }
 
 PCGEX_INITIALIZE_ELEMENT(SanitizeClusters)
@@ -66,6 +65,8 @@ bool FPCGExSanitizeClustersElement::ExecuteInternal(FPCGContext* InContext) cons
 	if (Context->IsState(PCGExGraph::State_ReadyForNextEdges))
 	{
 		PCGEX_DELETE(Context->GraphBuilder)
+		Context->IndexedEdges.Empty();
+		if (Context->CurrentEdges) { Context->CurrentEdges->Cleanup(); }
 
 		if (!Context->AdvanceEdges(false))
 		{
@@ -73,54 +74,24 @@ bool FPCGExSanitizeClustersElement::ExecuteInternal(FPCGContext* InContext) cons
 			return false;
 		}
 
+		Context->CurrentEdges->CreateInKeys();
 		Context->SetState(PCGExGraph::State_ProcessingEdges);
 	}
 
 	if (Context->IsState(PCGExGraph::State_ProcessingEdges))
 	{
-		const TArray<FPCGPoint>& InEdgePoints = Context->CurrentEdges->GetIn()->GetPoints();
-		const TArray<FPCGPoint>& InNodePoints = Context->CurrentIO->GetIn()->GetPoints();
+		PCGExGraph::BuildIndexedEdges(*Context->CurrentEdges, Context->NodeIndicesMap, Context->IndexedEdges);
 
-		auto Initialize = [&]()
+		if (Context->IndexedEdges.IsEmpty())
 		{
-			Context->CurrentEdges->CreateInKeys();
+			Context->SetState(PCGExGraph::State_ReadyForNextEdges);
+			return false;
+		}
 
-			PCGExData::FPointIO& EdgeIO = *Context->CurrentEdges;
+		Context->GraphBuilder = new PCGExGraph::FGraphBuilder(*Context->CurrentIO, 6, Context->CurrentEdges);
+		if (Settings->bPruneIsolatedPoints) { Context->GraphBuilder->EnablePointsPruning(); }
 
-			Context->GraphBuilder = new PCGExGraph::FGraphBuilder(*Context->CurrentIO, 6, &EdgeIO);
-			if (Settings->bPruneIsolatedPoints) { Context->GraphBuilder->EnablePointsPruning(); }
-
-			Context->StartIndexReader = new PCGEx::TFAttributeReader<int32>(PCGExGraph::Tag_EdgeStart);
-			Context->EndIndexReader = new PCGEx::TFAttributeReader<int32>(PCGExGraph::Tag_EdgeEnd);
-
-			Context->StartIndexReader->Bind(EdgeIO);
-			Context->EndIndexReader->Bind(EdgeIO);
-		};
-
-		auto InsertEdge = [&](int32 EdgeIndex)
-		{
-			PCGExGraph::FIndexedEdge NewEdge = PCGExGraph::FIndexedEdge{};
-
-			const int32* NodeStartPtr = Context->NodeIndicesMap.Find(Context->StartIndexReader->Values[EdgeIndex]);
-			const int32* NodeEndPtr = Context->NodeIndicesMap.Find(Context->EndIndexReader->Values[EdgeIndex]);
-
-			if (!NodeStartPtr || !NodeEndPtr) { return; }
-
-			const int32 NodeStart = *NodeStartPtr;
-			const int32 NodeEnd = *NodeEndPtr;
-
-			if (!InNodePoints.IsValidIndex(NodeStart) ||
-				!InNodePoints.IsValidIndex(NodeEnd) ||
-				NodeStart == NodeEnd) { return; }
-
-			if (!Context->GraphBuilder->Graph->InsertEdge(NodeStart, NodeEnd, NewEdge)) { return; }
-			NewEdge.PointIndex = EdgeIndex; // Tag edge since it's a new insertion
-		};
-
-		if (!Context->Process(Initialize, InsertEdge, InEdgePoints.Num())) { return false; }
-
-		PCGEX_DELETE(Context->StartIndexReader)
-		PCGEX_DELETE(Context->EndIndexReader)
+		Context->GraphBuilder->Graph->InsertEdges(Context->IndexedEdges);
 
 		Context->GraphBuilder->Compile(Context, Context->MinClusterSize, Context->MaxClusterSize);
 		Context->SetAsyncState(PCGExGraph::State_WritingClusters);
@@ -130,7 +101,7 @@ bool FPCGExSanitizeClustersElement::ExecuteInternal(FPCGContext* InContext) cons
 	{
 		if (!Context->IsAsyncWorkComplete()) { return false; }
 		if (Context->GraphBuilder->bCompiledSuccessfully) { Context->GraphBuilder->Write(Context); }
-		Context->SetState(PCGExMT::State_ReadyForNextPoints);
+		Context->SetState(PCGExGraph::State_ReadyForNextEdges);
 	}
 
 	if (Context->IsDone())
@@ -139,6 +110,11 @@ bool FPCGExSanitizeClustersElement::ExecuteInternal(FPCGContext* InContext) cons
 	}
 
 	return Context->IsDone();
+}
+
+bool FPCGExFetchAndInsertEdgesTask::ExecuteTask()
+{
+	return false;
 }
 
 #undef LOCTEXT_NAMESPACE

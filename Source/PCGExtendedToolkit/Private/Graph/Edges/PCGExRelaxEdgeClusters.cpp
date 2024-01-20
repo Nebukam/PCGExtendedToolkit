@@ -106,12 +106,14 @@ bool FPCGExRelaxEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) con
 
 	if (Context->IsState(PCGExGraph::State_ReadyForNextEdges))
 	{
-		if (!Context->AdvanceEdges()) { Context->SetState(PCGExMT::State_ReadyForNextPoints); }
-		else
+		if (!Context->AdvanceEdges(true))
 		{
-			Context->Relaxing->PrepareForCluster(*Context->CurrentEdges, Context->CurrentCluster);
-			Context->SetState(PCGExGraph::State_ProcessingEdges);
+			Context->SetState(PCGExMT::State_ReadyForNextPoints);
+			return false;
 		}
+
+		Context->Relaxing->PrepareForCluster(*Context->CurrentEdges, Context->CurrentCluster);
+		Context->SetState(PCGExGraph::State_ProcessingEdges);
 	}
 
 	if (Context->IsState(PCGExGraph::State_ProcessingEdges))

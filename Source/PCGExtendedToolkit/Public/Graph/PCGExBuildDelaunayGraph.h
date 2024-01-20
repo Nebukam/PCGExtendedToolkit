@@ -43,6 +43,10 @@ public:
 	//~End UPCGExPointsProcessorSettings interface
 
 public:
+	/** Output the Urquhart graph of the Delaunay triangulation (removes the longest edge of each Delaunay cell) */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	bool bUrquhart = false;
+	
 	/** Mark points & edges that lie on the hull */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bMarkHull = true;

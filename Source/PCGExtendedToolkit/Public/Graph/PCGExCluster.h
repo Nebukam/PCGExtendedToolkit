@@ -52,7 +52,7 @@ namespace PCGExCluster
 		~FCluster();
 
 		bool BuildFrom(
-			const PCGExData::FPointIO& InEdges,
+			const PCGExData::FPointIO& EdgeIO,
 			const TArray<FPCGPoint>& InNodePoints,
 			const TMap<int32, int32>& InNodeIndicesMap,
 			const TArray<int32>& PerNodeEdgeNums);

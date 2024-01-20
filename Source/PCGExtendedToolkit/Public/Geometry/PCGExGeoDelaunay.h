@@ -131,6 +131,48 @@ namespace PCGExGeo
 			UniqueEdges.Empty();
 		}
 
+		void GetUrquhartEdges(TArray<PCGExGraph::FUnsignedEdge>& OutEdges)
+		{
+			TSet<uint64> UniqueEdges;
+			UniqueEdges.Reserve(Cells.Num() * 3);
+
+			TArray<FTriangle<DIMENSIONS>> Triangles;
+			int32 NumTriangles = DIMENSIONS == 3 ? 1 : 3;
+			for (const TDelaunayCell<DIMENSIONS>* Cell : Cells)
+			{
+				//TODO: Refactor this monstrosity
+				Triangles.Reset(NumTriangles);
+				Cell->Simplex->GetTriangles(Triangles);
+				for (const FTriangle<DIMENSIONS>& Triangle : Triangles)
+				{
+					int32 A = -1;
+					int32 B = -1;
+					Triangle.GetLongestEdge(Vertices, A, B);
+					UniqueEdges.Add(PCGExGraph::GetUnsignedHash64(A, B));
+				}
+			}
+
+			for (const TDelaunayCell<DIMENSIONS>* Cell : Cells)
+			{
+				for (int i = 0; i < DIMENSIONS; i++)
+				{
+					const int32 A = Cell->Simplex->Vertices[i]->Id;
+					for (int j = i + 1; j < DIMENSIONS; j++)
+					{
+						const int32 B = Cell->Simplex->Vertices[j]->Id;
+						if (const uint64 Hash = PCGExGraph::GetUnsignedHash64(A, B);
+							!UniqueEdges.Contains(Hash))
+						{
+							OutEdges.Emplace(A, B);
+							UniqueEdges.Add(Hash);
+						}
+					}
+				}
+			}
+
+			UniqueEdges.Empty();
+		}
+
 		bool PrepareFrom(const TArray<FPCGPoint>& InPoints)
 		{
 			bOwnsVertices = true;

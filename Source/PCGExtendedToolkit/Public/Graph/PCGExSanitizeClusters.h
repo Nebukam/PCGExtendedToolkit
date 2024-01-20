@@ -9,8 +9,6 @@
 
 #include "PCGExSanitizeClusters.generated.h"
 
-#define PCGEX_INVALID_CLUSTER_LOG PCGE_LOG(Warning, GraphAndLog, FTEXT("Some clusters are corrupted and will be ignored. If you modified vtx/edges manually, make sure to use Sanitize Cluster first."));
-
 /**
  * A Base node to process a set of point using GraphParams.
  */
@@ -64,11 +62,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSanitizeClustersContext : public FPCGExEdges
 
 	virtual ~FPCGExSanitizeClustersContext() override;
 
+	TArray<PCGExGraph::FIndexedEdge> IndexedEdges;
+
 	int32 MinClusterSize;
 	int32 MaxClusterSize;
-
-	PCGEx::TFAttributeReader<int32>* StartIndexReader = nullptr;
-	PCGEx::TFAttributeReader<int32>* EndIndexReader = nullptr;
 
 	PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
 };
@@ -84,4 +81,23 @@ public:
 protected:
 	virtual bool Boot(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
+};
+
+class PCGEXTENDEDTOOLKIT_API FPCGExFetchAndInsertEdgesTask : public FPCGExNonAbandonableTask
+{
+public:
+	FPCGExFetchAndInsertEdgesTask(
+		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+		PCGExGraph::FGraphBuilder* InGraphBuilder, PCGExData::FPointIO* InEdgeIO, TMap<int32, int32>* InNodeIndicesMap) :
+		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+		GraphBuilder(InGraphBuilder), EdgeIO(InEdgeIO), NodeIndicesMap(InNodeIndicesMap)
+	{
+	}
+
+	PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
+	PCGExData::FPointIO* EdgeIO = nullptr;
+	TMap<int32, int32>* NodeIndicesMap = nullptr;
+
+	virtual bool ExecuteTask() override;
+
 };

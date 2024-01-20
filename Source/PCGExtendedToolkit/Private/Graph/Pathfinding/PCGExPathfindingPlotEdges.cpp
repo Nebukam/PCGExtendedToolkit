@@ -127,23 +127,28 @@ bool FPCGExPathfindingPlotEdgesElement::ExecuteInternal(FPCGContext* InContext) 
 
 	if (Context->IsState(PCGExGraph::State_ReadyForNextEdges))
 	{
-		if (!Context->AdvanceEdges()) { Context->SetState(PCGExMT::State_ReadyForNextPoints); }
-		else
+		if (!Context->AdvanceEdges(true))
 		{
-			if (!Context->CurrentCluster)
-			{
-				PCGEX_INVALID_CLUSTER_LOG
-				return false;
-			}
-
-			Context->HeuristicsModifiers->PrepareForData(*Context->CurrentIO, *Context->CurrentEdges);
-			Context->Heuristics->PrepareForData(Context->CurrentCluster);
-			Context->SetState(PCGExGraph::State_ProcessingEdges);
+			Context->SetState(PCGExMT::State_ReadyForNextPoints);
+			return false;
 		}
+		
+		if (!Context->CurrentCluster)
+		{
+			PCGEX_INVALID_CLUSTER_LOG
+			return false;
+		}
+
+		Context->GetAsyncManager()->Start<FPCGExCompileModifiersTask>(0, Context->CurrentIO, Context->CurrentEdges, Context->HeuristicsModifiers);
+		Context->SetAsyncState(PCGExGraph::State_ProcessingEdges);
 	}
 
 	if (Context->IsState(PCGExGraph::State_ProcessingEdges))
 	{
+		if (!Context->IsAsyncWorkComplete()) { return false; }
+
+		Context->Heuristics->PrepareForData(Context->CurrentCluster);
+
 		Context->Plots->ForEach(
 			[&](PCGExData::FPointIO& PlotIO, const int32 Index)
 			{

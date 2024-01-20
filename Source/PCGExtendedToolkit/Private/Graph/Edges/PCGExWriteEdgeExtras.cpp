@@ -82,26 +82,26 @@ bool FPCGExWriteEdgeExtrasElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExGraph::State_ReadyForNextEdges))
 	{
-		if (!Context->AdvanceEdges())
+		if (!Context->AdvanceEdges(true))
 		{
 			PCGEX_OUTPUT_WRITE(VtxNormal, FVector)
 			Context->SetState(PCGExMT::State_ReadyForNextPoints);
+			return false;
 		}
-		else
+
+		if (!Context->CurrentCluster)
 		{
-			if (!Context->CurrentCluster)
-			{
-				PCGEX_INVALID_CLUSTER_LOG
-				return false;
-			}
-
-			PCGExData::FPointIO& PointIO = *Context->CurrentEdges;
-			PCGEX_FOREACH_FIELD_EDGEEXTRAS(PCGEX_OUTPUT_ACCESSOR_INIT)
-
-			Context->MetadataBlender->PrepareForData(PointIO, *Context->CurrentIO);
-			Context->GetAsyncManager()->Start<FPCGExWriteExtrasTask>(-1, &PointIO);
-			Context->SetAsyncState(PCGExGraph::State_ProcessingEdges);
+			PCGEX_INVALID_CLUSTER_LOG
+			return false;
 		}
+
+		PCGExData::FPointIO& PointIO = *Context->CurrentEdges;
+		PCGEX_FOREACH_FIELD_EDGEEXTRAS(PCGEX_OUTPUT_ACCESSOR_INIT)
+
+		Context->MetadataBlender->PrepareForData(PointIO, *Context->CurrentIO);
+		Context->GetAsyncManager()->Start<FPCGExWriteExtrasTask>(-1, &PointIO);
+		Context->SetAsyncState(PCGExGraph::State_ProcessingEdges);
+		
 	}
 
 	if (Context->IsState(PCGExGraph::State_ProcessingEdges))

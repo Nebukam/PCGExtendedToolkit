@@ -70,94 +70,65 @@ namespace PCGExCluster
 	}
 
 	bool FCluster::BuildFrom(
-		const PCGExData::FPointIO& InEdges,
+		const PCGExData::FPointIO& EdgeIO,
 		const TArray<FPCGPoint>& InNodePoints,
 		const TMap<int32, int32>& InNodeIndicesMap,
 		const TArray<int32>& PerNodeEdgeNums)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExCluster::BuildCluster);
 
-		bool bInvalidCluster = false;
-
-		PCGEx::TFAttributeReader<int32>* StartIndexReader = new PCGEx::TFAttributeReader<int32>(PCGExGraph::Tag_EdgeStart);
-		PCGEx::TFAttributeReader<int32>* EndIndexReader = new PCGEx::TFAttributeReader<int32>(PCGExGraph::Tag_EdgeEnd);
-
-		StartIndexReader->Bind(const_cast<PCGExData::FPointIO&>(InEdges));
-		EndIndexReader->Bind(const_cast<PCGExData::FPointIO&>(InEdges));
-
-		const int32 NumNodes = InNodePoints.Num();
-		Nodes.Reset(NumNodes);
-		PointIndexMap.Empty(NumNodes);
-
-		const TArray<FPCGPoint>& InEdgesPoints = InEdges.GetIn()->GetPoints();
-		const int32 NumEdges = InEdgesPoints.Num();
-		Edges.Reset(NumEdges);
+		Nodes.Empty();
+		Edges.Empty();
+		PointIndexMap.Empty();
+		EdgeIndexMap.Empty();
 
 		TArray<PCGExGraph::FIndexedEdge> EdgeList;
-		EdgeList.SetNum(NumEdges);
+		if (!PCGExGraph::BuildIndexedEdges(EdgeIO, InNodeIndicesMap, EdgeList, true))
+		{
+			EdgeList.Empty();
+			return false;
+		}
+
+		bool bInvalidCluster = false;
+
+		const int32 NumNodes = InNodePoints.Num();
+		Nodes.Reserve(NumNodes);
+		PointIndexMap.Reserve(NumNodes);
+
+		const int32 NumEdges = EdgeList.Num();
+		Edges.SetNumUninitialized(NumEdges);
+		EdgeIndexMap.Reserve(NumEdges);
+
+		//We need to sort edges in order to have deterministic processing of the clusters
+		EdgeList.Sort(
+			[](const PCGExGraph::FIndexedEdge& A, const PCGExGraph::FIndexedEdge& B)
+			{
+				return A.Start == B.Start ? A.End < B.End : A.Start < B.Start;
+			});
 
 		for (int i = 0; i < NumEdges; i++)
 		{
-			const int32* StartPtr = InNodeIndicesMap.Find(StartIndexReader->Values[i]);
-			const int32* EndPtr = InNodeIndicesMap.Find(EndIndexReader->Values[i]);
+			PCGExGraph::FIndexedEdge& SortedEdge = (Edges[i] = EdgeList[i]);
+			SortedEdge.EdgeIndex = i;
 
-			if (!StartPtr || !EndPtr)
-			{
-				bInvalidCluster = true;
-				break;
-			}
+			FNode& Start = GetOrCreateNode(SortedEdge.Start, InNodePoints);
+			FNode& End = GetOrCreateNode(SortedEdge.End, InNodePoints);
+			EdgeIndexMap.Add(PCGExGraph::GetUnsignedHash64(Start.NodeIndex, End.NodeIndex), i);
 
-			const int32 StartPoint = *StartPtr;
-			const int32 EndPoint = *EndPtr;
-
-			if (!InNodePoints.IsValidIndex(StartPoint) ||
-				!InNodePoints.IsValidIndex(EndPoint) ||
-				StartPoint == EndPoint)
-			{
-				bInvalidCluster = true;
-				break;
-			}
-
-			EdgeList[i].Start = StartPoint;
-			EdgeList[i].End = EndPoint;
-			EdgeList[i].PointIndex = i;
-		}
-
-		PCGEX_DELETE(StartIndexReader)
-		PCGEX_DELETE(EndIndexReader)
-
-		if (!bInvalidCluster)
-		{
-			EdgeList.Sort(
-				[](const PCGExGraph::FIndexedEdge& A, const PCGExGraph::FIndexedEdge& B)
-				{
-					return A.Start == B.Start ? A.End < B.End : A.Start < B.Start;
-				});
-
-			for (int i = 0; i < NumEdges; i++)
-			{
-				const PCGExGraph::FIndexedEdge& SortedEdge = EdgeList[i];
-				Edges.Emplace_GetRef(i, SortedEdge.Start, SortedEdge.End, SortedEdge.PointIndex);
-
-				FNode& Start = GetOrCreateNode(SortedEdge.Start, InNodePoints);
-				FNode& End = GetOrCreateNode(SortedEdge.End, InNodePoints);
-				EdgeIndexMap.Add(PCGExGraph::GetUnsignedHash64(Start.NodeIndex, End.NodeIndex), i);
-
-				Start.AddConnection(i, End.NodeIndex);
-				End.AddConnection(i, Start.NodeIndex);
-			}
-
-			for (FNode& Node : Nodes)
-			{
-				if (PerNodeEdgeNums[Node.PointIndex] != Node.AdjacentNodes.Num())
-				{
-					bInvalidCluster = true;
-					break;
-				}
-			}
+			Start.AddConnection(i, End.NodeIndex);
+			End.AddConnection(i, Start.NodeIndex);
 		}
 
 		EdgeList.Empty();
+
+		for (FNode& Node : Nodes)
+		{
+			if (PerNodeEdgeNums[Node.PointIndex] != Node.AdjacentNodes.Num())
+			{
+				bInvalidCluster = true;
+				break;
+			}
+		}
 
 		bValid = !bInvalidCluster;
 		return bValid;
