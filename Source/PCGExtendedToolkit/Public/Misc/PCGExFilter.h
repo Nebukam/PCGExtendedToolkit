@@ -27,7 +27,11 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFilterRuleDescriptor : public FPCGExInputDes
 		  Upscale(Other.Upscale),
 		  Offset(Other.Offset),
 		  bWriteKey(Other.bWriteKey),
-		  KeyAttributeName(Other.KeyAttributeName)
+		  KeyAttributeName(Other.KeyAttributeName),
+		  bUsePartitionIndexAsKey(Other.bUsePartitionIndexAsKey),
+		  bWriteTag(Other.bWriteTag),
+		  TagPrefixName(Other.TagPrefixName),
+		  bTagUsePartitionIndexAsKey(Other.bTagUsePartitionIndexAsKey)
 	{
 	}
 
@@ -63,6 +67,22 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFilterRuleDescriptor : public FPCGExInputDes
 	/** Name of the int64 attribute to write the partition Key to. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bWriteKey"))
 	FName KeyAttributeName = "PartitionKey";
+
+	/** Output the partition index instead of the value used for partitioning. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bWriteKey"))
+	bool bUsePartitionIndexAsKey = false;
+
+	/** Whether to write the partition Key to a tag. Will write tags as 'Prefix::Key' */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
+	bool bWriteTag = false;
+
+	/** Name of the tag prefix used for this partition. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bWriteTag"))
+	FName TagPrefixName = "Partition";
+	
+	/** Output the partition index to the tag instead of the value used for partitioning. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bWriteTag"))
+	bool bTagUsePartitionIndexAsKey = false;
 };
 
 

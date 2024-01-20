@@ -18,18 +18,25 @@ bool UPCGExSearchDijkstra::FindPath(const PCGExCluster::FCluster* Cluster, const
 
 	const int32 NumNodes = Cluster->Nodes.Num();
 
-	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExPathfinding::FindPath);
+	TRACE_CPUPROFILER_EVENT_SCOPE(UPCGExSearchDijkstra::FindPath);
 
 
 	// Basic Dijkstra implementation
 
 	TSet<int32> Visited;
-	TMap<int32, double> Scores;
-	TMap<int32, int32> Previous;
-	PCGExSearch::TScoredQueue<int32>* ScoredQueue = new PCGExSearch::TScoredQueue<int32>(SeedNode.NodeIndex, 0);
+	TArray<int32> Previous;
 
-	Scores.Reserve(NumNodes);
-	Scores.Add(SeedNode.NodeIndex, 0);
+	PCGExSearch::TScoredQueue* ScoredQueue = new PCGExSearch::TScoredQueue(
+		NumNodes, SeedNode.NodeIndex, 0);
+
+	Previous.SetNum(NumNodes);
+	for (int i = 0; i < NumNodes; i++)
+	{
+		ScoredQueue->Scores[i] = -1;
+		Previous[i] = -1;
+	}
+
+	ScoredQueue->Scores[SeedNode.NodeIndex] = 0;
 
 	int32 CurrentNodeIndex;
 	double CurrentScore;
@@ -40,22 +47,21 @@ bool UPCGExSearchDijkstra::FindPath(const PCGExCluster::FCluster* Cluster, const
 		const PCGExCluster::FNode& Current = Cluster->Nodes[CurrentNodeIndex];
 		Visited.Add(CurrentNodeIndex);
 
-		for (const int32 AdjacentNodeIndex : Current.AdjacentNodes)
+		for (const int32 AdjacentIndex : Current.AdjacentNodes)
 		{
-			if (Visited.Contains(AdjacentNodeIndex)) { continue; }
+			if (Visited.Contains(AdjacentIndex)) { continue; }
 
-			const PCGExCluster::FNode& AdjacentNode = Cluster->Nodes[AdjacentNodeIndex];
-			const PCGExGraph::FIndexedEdge& Edge = Cluster->GetEdgeFromNodeIndices(CurrentNodeIndex, AdjacentNodeIndex);
+			const PCGExCluster::FNode& AdjacentNode = Cluster->Nodes[AdjacentIndex];
+			const PCGExGraph::FIndexedEdge& Edge = Cluster->GetEdgeFromNodeIndices(CurrentNodeIndex, AdjacentIndex);
 
 			const double ScoreMod = Modifiers->GetScore(AdjacentNode.PointIndex, Edge.PointIndex);
 			const double AltScore = CurrentScore + Heuristics->GetEdgeScore(Current, AdjacentNode, Edge, SeedNode, GoalNode) + ScoreMod;
 
-			const double* PreviousScore = Scores.Find(AdjacentNodeIndex);
-			if (PreviousScore && AltScore > *PreviousScore) { continue; }
+			const double PreviousScore = ScoredQueue->Scores[AdjacentIndex];
+			if (PreviousScore != -1 && AltScore > PreviousScore) { continue; }
 
-			ScoredQueue->SetScore(AdjacentNodeIndex, AltScore, !Visited.Contains(AdjacentNodeIndex));
-			Scores.Add(AdjacentNodeIndex, AltScore);
-			Previous.Add(AdjacentNodeIndex, CurrentNodeIndex);
+			ScoredQueue->Enqueue(AdjacentIndex, AltScore);
+			Previous[AdjacentIndex] = CurrentNodeIndex;
 		}
 	}
 
@@ -65,15 +71,13 @@ bool UPCGExSearchDijkstra::FindPath(const PCGExCluster::FCluster* Cluster, const
 	while (PathIndex != -1)
 	{
 		Path.Add(PathIndex);
-		const int32* PathIndexPtr = Previous.Find(PathIndex);
-		PathIndex = PathIndexPtr ? *PathIndexPtr : -1;
+		PathIndex = Previous[PathIndex];
 	}
 
 	Algo::Reverse(Path);
 	OutPath.Append(Path);
 
 	Visited.Empty();
-	Scores.Empty();
 	Previous.Empty();
 	PCGEX_DELETE(ScoredQueue)
 

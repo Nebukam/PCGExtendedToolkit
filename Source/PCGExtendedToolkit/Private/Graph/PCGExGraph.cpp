@@ -92,7 +92,7 @@ namespace PCGExGraph
 		UniqueEdges.Add(Hash);
 
 		FIndexedEdge& NewEdge = Edges.Emplace_GetRef(Edge);
-		NewEdge.EdgeIndex = Edges.Num()-1;
+		NewEdge.EdgeIndex = Edges.Num() - 1;
 
 		Nodes[Edge.Start].Add(NewEdge.EdgeIndex);
 		Nodes[Edge.End].Add(NewEdge.EdgeIndex);
@@ -104,6 +104,8 @@ namespace PCGExGraph
 	{
 		for (const FUnsignedEdge& E : InEdges)
 		{
+			if (!E.bValid) { continue; }
+			
 			const uint64 Hash = E.GetUnsignedHash();
 			if (UniqueEdges.Contains(Hash)) { continue; }
 
@@ -126,7 +128,7 @@ namespace PCGExGraph
 			UniqueEdges.Add(Hash);
 
 			FIndexedEdge& NewEdge = Edges.Emplace_GetRef(E);
-			NewEdge.EdgeIndex = Edges.Num()-1;
+			NewEdge.EdgeIndex = Edges.Num() - 1;
 
 			Nodes[E.Start].Add(NewEdge.EdgeIndex);
 			Nodes[E.End].Add(NewEdge.EdgeIndex);

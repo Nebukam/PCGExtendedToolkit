@@ -323,12 +323,13 @@ void FPCGExPointsProcessorContext::Output(FPCGTaggedData& OutTaggedData, UPCGDat
 	OutputRef.Pin = OutputLabel;
 }
 
-void FPCGExPointsProcessorContext::Output(UPCGData* OutData, const FName OutputLabel)
+FPCGTaggedData* FPCGExPointsProcessorContext::Output(UPCGData* OutData, const FName OutputLabel)
 {
 	FWriteScopeLock WriteLock(ContextLock);
 	FPCGTaggedData& OutputRef = OutputData.TaggedData.Emplace_GetRef();
 	OutputRef.Data = OutData;
 	OutputRef.Pin = OutputLabel;
+	return &OutputRef;
 }
 
 void FPCGExPointsProcessorContext::Output(PCGExData::FPointIO& PointIO)

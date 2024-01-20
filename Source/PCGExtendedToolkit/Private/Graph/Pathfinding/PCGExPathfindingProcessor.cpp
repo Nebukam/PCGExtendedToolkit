@@ -102,16 +102,22 @@ bool FPCGExPathfindingProcessorElement::Boot(FPCGContext* InContext) const
 	PCGEX_OPERATION_BIND(Heuristics, UPCGExHeuristicDistance)
 	//PCGEX_OPERATION_BIND(Blending, UPCGExSubPointsBlendInterpolate)
 
-	if (Settings->GetRequiresSeeds() && !Context->SeedsPoints)
+	if (Settings->GetRequiresSeeds())
 	{
-		PCGE_LOG(Error, GraphAndLog, FTEXT("Missing Input Seeds."));
-		return false;
+		if (!Context->SeedsPoints || Context->SeedsPoints->GetNum() == 0)
+		{
+			PCGE_LOG(Error, GraphAndLog, FTEXT("Missing Input Seeds."));
+			return false;
+		}
 	}
 
-	if (Settings->GetRequiresGoals() && !Context->GoalsPoints)
+	if (Settings->GetRequiresGoals())
 	{
-		PCGE_LOG(Error, GraphAndLog, FTEXT("Missing Input Goals."));
-		return false;
+		if (!Context->GoalsPoints || Context->GoalsPoints->GetNum() == 0)
+		{
+			PCGE_LOG(Error, GraphAndLog, FTEXT("Missing Input Goals."));
+			return false;
+		}
 	}
 
 	Context->HeuristicsModifiers = const_cast<FPCGExHeuristicModifiersSettings*>(&Settings->HeuristicsModifiers);

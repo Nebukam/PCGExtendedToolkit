@@ -23,10 +23,11 @@ namespace PCGExPartition
 		mutable FRWLock PointLock;
 
 	public:
-		FKPartition(FKPartition* InParent, int64 InKey, FPCGExFilter::FRule* InRule);
+		FKPartition(FKPartition* InParent, int64 InKey, FPCGExFilter::FRule* InRule, int32 InPartitionIndex);
 		~FKPartition();
 
 		FKPartition* Parent = nullptr;
+		int32 PartitionIndex = 0;
 		int64 PartitionKey = 0;
 		FPCGExFilter::FRule* Rule = nullptr;
 
@@ -54,7 +55,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExPartitionByValuesSettings : public UPCGExPoin
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(PartitionByValues, "Partition by Values", "Outputs separate buckets of points based on an attribute' value. Each bucket is named after a unique attribute value. Note that it is recommended to use a MERGE before.");
+	PCGEX_NODE_INFOS(PartitionByValues, "Partition by Values", "Outputs separate buckets of points based on an attribute' value. Each bucket is named after a unique attribute value. Note that it is recommended to use a Merge before.");
 #endif
 
 protected:
@@ -83,6 +84,7 @@ public:
 	/** Rules */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, TitleProperty="{TitlePropertyName}"))
 	TArray<FPCGExFilterRuleDescriptor> PartitionRules;
+	
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExPartitionByValuesContext : public FPCGExPointsProcessorContext

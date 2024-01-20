@@ -232,7 +232,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : public FPCGContext
 	}
 
 	void Output(FPCGTaggedData& OutTaggedData, UPCGData* OutData, const FName OutputLabel);
-	void Output(UPCGData* OutData, const FName OutputLabel);
+	FPCGTaggedData* Output(UPCGData* OutData, const FName OutputLabel);
 	void Output(PCGExData::FPointIO& PointIO);
 
 	template <typename T>

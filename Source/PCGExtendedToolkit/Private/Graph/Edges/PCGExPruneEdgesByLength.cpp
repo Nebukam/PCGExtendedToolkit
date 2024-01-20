@@ -144,20 +144,15 @@ bool FPCGExPruneEdgesByLengthElement::ExecuteInternal(FPCGContext* InContext) co
 
 	if (Context->IsState(PCGExGraph::State_ProcessingEdges))
 	{
-		auto Initialize = [&]()
+		Context->GraphBuilder = new PCGExGraph::FGraphBuilder(*Context->CurrentIO, 6, Context->CurrentEdges);
+		if (Settings->bPruneIsolatedPoints) { Context->GraphBuilder->EnablePointsPruning(); }
+
+		for (PCGExGraph::FIndexedEdge& Edge : Context->IndexedEdges)
 		{
-			Context->GraphBuilder = new PCGExGraph::FGraphBuilder(*Context->CurrentIO, 6, Context->CurrentEdges);
-			if (Settings->bPruneIsolatedPoints) { Context->GraphBuilder->EnablePointsPruning(); }
-		};
+			Edge.bValid = FMath::IsWithin(Context->EdgeLength[Edge.EdgeIndex], Context->ReferenceMin, Context->ReferenceMax);
+		}
 
-		auto InsertEdge = [&](int32 EdgeIndex)
-		{
-			if (!FMath::IsWithin(Context->EdgeLength[EdgeIndex], Context->ReferenceMin, Context->ReferenceMax)) { return; }
-			Context->GraphBuilder->Graph->InsertEdge(Context->IndexedEdges[EdgeIndex]);
-		};
-
-		if (!Context->Process(Initialize, InsertEdge, Context->IndexedEdges.Num())) { return false; }
-
+		Context->GraphBuilder->Graph->InsertEdges(Context->IndexedEdges);
 		Context->GraphBuilder->Compile(Context, Context->MinClusterSize, Context->MaxClusterSize);
 		Context->SetAsyncState(PCGExGraph::State_WritingClusters);
 	}

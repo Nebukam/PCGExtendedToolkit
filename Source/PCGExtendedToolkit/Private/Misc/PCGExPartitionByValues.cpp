@@ -15,8 +15,8 @@ namespace PCGExPartitionByValues
 
 namespace PCGExPartition
 {
-	FKPartition::FKPartition(FKPartition* InParent, const int64 InKey, FPCGExFilter::FRule* InRule)
-		: Parent(InParent), PartitionKey(InKey), Rule(InRule)
+	FKPartition::FKPartition(FKPartition* InParent, const int64 InKey, FPCGExFilter::FRule* InRule, const int32 InPartitionIndex)
+		: Parent(InParent), PartitionIndex(InPartitionIndex), PartitionKey(InKey), Rule(InRule)
 	{
 	}
 
@@ -49,7 +49,7 @@ namespace PCGExPartition
 		if (!LayerPtr)
 		{
 			FWriteScopeLock WriteLock(LayersLock);
-			FKPartition* Partition = new FKPartition(this, Key, InRule);
+			FKPartition* Partition = new FKPartition(this, Key, InRule, SubLayers.Num());
 
 			SubLayers.Add(Key, Partition);
 			return Partition;
@@ -111,14 +111,20 @@ bool FPCGExPartitionByValuesElement::Boot(FPCGContext* InContext) const
 
 		if (Descriptor.bWriteKey && !FPCGMetadataAttributeBase::IsValidName(Descriptor.KeyAttributeName))
 		{
-			PCGE_LOG(Warning, GraphAndLog, FTEXT("Key Partition name {0} is invalid."));
+			PCGE_LOG(Warning, GraphAndLog, FText::Format(FTEXT("Key Partition name {0} is invalid."), FText::FromName(Descriptor.KeyAttributeName)));
 			DescriptorCopy.bWriteKey = false;
+		}
+
+		if (Descriptor.bWriteTag && !FPCGMetadataAttributeBase::IsValidName(Descriptor.TagPrefixName))
+		{
+			PCGE_LOG(Warning, GraphAndLog, FText::Format(FTEXT("Tag Partition name {0} is invalid."), FText::FromName(Descriptor.TagPrefixName)));
+			DescriptorCopy.bWriteTag = false;
 		}
 	}
 
 	PCGEX_FWD(bSplitOutput)
 
-	Context->RootPartition = new PCGExPartition::FKPartition(nullptr, 0, nullptr);
+	Context->RootPartition = new PCGExPartition::FKPartition(nullptr, 0, nullptr, -1);
 
 	if (Context->RulesDescriptors.IsEmpty())
 	{
@@ -214,6 +220,7 @@ bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* InContext) con
 	{
 		auto CreatePartition = [&](const int32 Index)
 		{
+			PCGExData::FTags* Tags = new PCGExData::FTags();
 			PCGExPartition::FKPartition* Partition = Context->Partitions[Index];
 			const UPCGPointData* InData = Context->GetCurrentIn();
 			UPCGPointData* OutData = NewObject<UPCGPointData>();
@@ -234,13 +241,24 @@ bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* InContext) con
 					PCGExData::WriteMark<int64>(
 						OutData->Metadata,
 						Rule->RuleDescriptor->KeyAttributeName,
-						Partition->PartitionKey);
+						Rule->RuleDescriptor->bUsePartitionIndexAsKey ? Partition->PartitionIndex : Partition->PartitionKey);
+				}
+
+				if (Rule->RuleDescriptor->bWriteTag)
+				{
+					FString TagValue;
+					Tags->Set(
+						Rule->RuleDescriptor->TagPrefixName.ToString(),
+						Rule->RuleDescriptor->bTagUsePartitionIndexAsKey ? Partition->PartitionIndex : Partition->PartitionKey,
+						TagValue);
 				}
 
 				Partition = Partition->Parent;
 			}
 
-			Context->Output(OutData, Context->MainPoints->DefaultOutputLabel);
+			FPCGTaggedData* TaggedData = Context->Output(OutData, Context->MainPoints->DefaultOutputLabel);
+			Tags->Dump(TaggedData->Tags);
+			PCGEX_DELETE(Tags)
 		};
 
 		if (!Context->Process(CreatePartition, Context->NumPartitions)) { return false; }

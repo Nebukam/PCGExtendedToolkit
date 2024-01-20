@@ -25,21 +25,20 @@ void UPCGExEdgeRefinePrimMST::Process(PCGExCluster::FCluster* InCluster, PCGExGr
 	const int32 NumNodes = InCluster->Nodes.Num();
 
 	TSet<int32> Visited;
-
 	Visited.Reserve(NumNodes);
-	PCGExSearch::TScoredQueue<int32>* ScoredQueue = new PCGExSearch::TScoredQueue<int32>(0, 0);
+	
+	PCGExSearch::TScoredQueue* ScoredQueue = new PCGExSearch::TScoredQueue(NumNodes, 0, 0);
 
-	TArray<double> Scores;
 	TArray<int32> Parent;
-
-	Scores.SetNum(NumNodes);
 	Parent.SetNum(NumNodes);
 
 	for (int i = 0; i < NumNodes; i++)
 	{
-		Scores[i] = TNumericLimits<double>::Max();
+		ScoredQueue->Scores[i] = TNumericLimits<double>::Max();
 		Parent[i] = 0;
 	}
+
+	ScoredQueue->Scores[0] = 0;
 
 	int32 CurrentNodeIndex;
 	double CurrentNodeScore;
@@ -58,12 +57,12 @@ void UPCGExEdgeRefinePrimMST::Process(PCGExCluster::FCluster* InCluster, PCGExGr
 			double Score = Heuristics->GetEdgeScore(Current, AdjacentNode, Edge, *NoNode, *NoNode);
 			Score += HeuristicsModifiers.GetScore(AdjacentNode.PointIndex, Edge.PointIndex);
 
-			if (Score >= Scores[AdjacentIndex]) { continue; }
+			if (Score >= ScoredQueue->Scores[AdjacentIndex]) { continue; }
 
-			Scores[AdjacentIndex] = Score;
+			ScoredQueue->Scores[AdjacentIndex] = Score;
 			Parent[AdjacentIndex] = CurrentNodeIndex;
 
-			ScoredQueue->SetScore(AdjacentIndex, Score, true);
+			ScoredQueue->Enqueue(AdjacentIndex, Score);
 		}
 	}
 
@@ -74,6 +73,7 @@ void UPCGExEdgeRefinePrimMST::Process(PCGExCluster::FCluster* InCluster, PCGExGr
 	}
 
 	Visited.Empty();
+	Parent.Empty();
 	PCGEX_DELETE(ScoredQueue)
 	PCGEX_DELETE(NoNode)
 }
