@@ -52,10 +52,6 @@ public:
 	virtual PCGExData::EInit GetEdgeOutputInitMode() const override;
 	//~End UPCGExEdgesProcessorSettings interface
 
-	/** Removes roaming points from the output, and keeps only points that are part of an cluster. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	bool bPruneIsolatedPoints = true;
-
 	/** Measure mode. If using relative, threshold values should be kept between 0-1, while absolute use the world-space length of the edge. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExEdgeLengthMeasure Measure = EPCGExEdgeLengthMeasure::Relative;
@@ -65,11 +61,11 @@ public:
 	EPCGExEdgeMeanMethod MeanMethod = EPCGExEdgeMeanMethod::Average;
 
 	/** Minimum length threshold */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditConditionHides, EditCondition="Mean==EPCGExEdgePruningThresholdMean::Fixed", ClampMin=0))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditConditionHides, EditCondition="Mean==EPCGExEdgeMeanMethod::Fixed", ClampMin=0))
 	double MeanValue = 0;
 
 	/** Used to estimate the mode value. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditConditionHides, EditCondition="Mean==EPCGExEdgePruningThresholdMean::Mode", ClampMin=0))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditConditionHides, EditCondition="Mean==EPCGExEdgeMeanMethod::Mode", ClampMin=0))
 	double ModeTolerance = 0;
 
 	/** Prune edges if their length is below a specific threshold. */
@@ -96,21 +92,9 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bWriteMean"))
 	FName MeanAttributeName = "Mean";
 
-	/** Don't output Clusters if they have less points than a specified amount. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sanitization", meta = (PCG_Overridable, InlineEditConditionToggle))
-	bool bRemoveSmallClusters = false;
-
-	/** Minimum points threshold */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sanitization", meta = (PCG_Overridable, EditCondition="bRemoveSmallClusters", ClampMin=2))
-	int32 MinClusterSize = 3;
-
-	/** Don't output Clusters if they have more points than a specified amount. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sanitization", meta = (PCG_Overridable, InlineEditConditionToggle))
-	bool bRemoveBigClusters = false;
-
-	/** Maximum points threshold */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sanitization", meta = (PCG_Overridable, EditCondition="bRemoveBigClusters", ClampMin=2))
-	int32 MaxClusterSize = 500;
+	/** Graph & Edges output properties */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Graph Output Settings"))
+	FPCGExGraphBuilderSettings GraphBuilderSettings;
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExPruneEdgesByLengthContext : public FPCGExEdgesProcessorContext
@@ -120,17 +104,14 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPruneEdgesByLengthContext : public FPCGExEdg
 
 	virtual ~FPCGExPruneEdgesByLengthContext() override;
 
-	int32 MinClusterSize;
-	int32 MaxClusterSize;
-
 	double ReferenceValue;
 	double ReferenceMin;
 	double ReferenceMax;
 
 	TArray<PCGExGraph::FIndexedEdge> IndexedEdges;
-
 	TArray<double> EdgeLength;
 
+	FPCGExGraphBuilderSettings GraphBuilderSettings;
 	PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
 };
 

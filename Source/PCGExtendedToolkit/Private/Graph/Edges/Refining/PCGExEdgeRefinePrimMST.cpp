@@ -26,7 +26,7 @@ void UPCGExEdgeRefinePrimMST::Process(PCGExCluster::FCluster* InCluster, PCGExGr
 
 	TSet<int32> Visited;
 	Visited.Reserve(NumNodes);
-	
+
 	PCGExSearch::TScoredQueue* ScoredQueue = new PCGExSearch::TScoredQueue(NumNodes, 0, 0);
 
 	TArray<int32> Parent;

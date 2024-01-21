@@ -10,7 +10,54 @@
 #include "PCGExEdge.h"
 #include "Data/PCGExData.h"
 
+#include "PCGExGraph.generated.h"
+
 struct FPCGExPointsProcessorContext;
+
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExGraphBuilderSettings
+{
+	GENERATED_BODY()
+
+	/** Removes roaming points from the output, and keeps only points that are part of an cluster. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (PCG_Overridable))
+	bool bPruneIsolatedPoints = true;
+
+	/** Don't output Clusters if they have less points than a specified amount. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (PCG_Overridable, InlineEditConditionToggle))
+	bool bWriteEdgePosition = true;
+
+	/** Edge position interpolation between start and end point positions. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (PCG_Overridable, EditCondition="bWriteEdgePosition"))
+	double EdgePosition = 0.5;
+
+	/** Don't output Clusters if they have less points than a specified amount. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (PCG_Overridable, InlineEditConditionToggle))
+	bool bRemoveSmallClusters = false;
+
+	/** Minimum points threshold */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (PCG_Overridable, EditCondition="bRemoveSmallClusters", ClampMin=2))
+	int32 MinClusterSize = 3;
+
+	/** Don't output Clusters if they have more points than a specified amount. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (PCG_Overridable, InlineEditConditionToggle))
+	bool bRemoveBigClusters = false;
+
+	/** Maximum points threshold */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (PCG_Overridable, EditCondition="bRemoveBigClusters", ClampMin=2))
+	int32 MaxClusterSize = 500;
+
+	/** If two edges are close enough, create a "crossing" point. !!! VERY EXPENSIVE !!! */
+	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bFindCrossings = false;
+
+	/** Distance at which segments are considered crossing. !!! VERY EXPENSIVE !!!*/
+	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bFindCrossings", ClampMin=0.001))
+	double CrossingTolerance = 10;
+
+	int32 GetMinClusterSize() const { return bRemoveSmallClusters ? MinClusterSize : 0; }
+	int32 GetMaxClusterSize() const { return bRemoveSmallClusters ? MinClusterSize : TNumericLimits<int32>::Max(); }
+};
 
 namespace PCGExGraph
 {
@@ -116,6 +163,9 @@ namespace PCGExGraph
 
 		TArray<FSubGraph*> SubGraphs;
 
+		bool bWriteEdgePosition = true;
+		double EdgePosition = 0.5;
+
 		FGraph(const int32 InNumNodes, const int32 InNumEdgesReserve = 10)
 			: NumEdgesReserve(InNumEdgesReserve)
 		{
@@ -199,6 +249,8 @@ namespace PCGExGraph
 	class PCGEXTENDEDTOOLKIT_API FGraphBuilder
 	{
 	public:
+		FPCGExGraphBuilderSettings* OutputSettings = nullptr;
+
 		bool bPrunePoints = false;
 		FString EdgeTagValue;
 
@@ -212,8 +264,8 @@ namespace PCGExGraph
 
 		bool bCompiledSuccessfully = false;
 
-		FGraphBuilder(PCGExData::FPointIO& InPointIO, const int32 NumEdgeReserve = 6, PCGExData::FPointIO* InSourceEdges = nullptr)
-			: SourceEdgesIO(InSourceEdges)
+		FGraphBuilder(PCGExData::FPointIO& InPointIO, FPCGExGraphBuilderSettings* InSettings, const int32 NumEdgeReserve = 6, PCGExData::FPointIO* InSourceEdges = nullptr)
+			: OutputSettings(InSettings), SourceEdgesIO(InSourceEdges)
 		{
 			PointIO = &InPointIO;
 			PointIO->Tags->Set(Tag_Cluster, PointIO->GetInOut()->UID, EdgeTagValue);
@@ -221,15 +273,17 @@ namespace PCGExGraph
 			const int32 NumNodes = PointIO->GetOutNum();
 
 			Graph = new FGraph(NumNodes, NumEdgeReserve);
+			Graph->bWriteEdgePosition = OutputSettings->bWriteEdgePosition;
+			Graph->EdgePosition = OutputSettings->EdgePosition;
 
 			EdgesIO = new PCGExData::FPointIOGroup();
 			EdgesIO->DefaultOutputLabel = OutputEdgesLabel;
+
+			bPrunePoints = OutputSettings->bPruneIsolatedPoints;
+			if (OutputSettings->bFindCrossings) { EdgeCrossings = new FEdgeCrossingsHandler(Graph, OutputSettings->CrossingTolerance); }
 		}
 
-		void EnableCrossings(const double Tolerance);
-		void EnablePointsPruning();
-
-		void Compile(FPCGExPointsProcessorContext* InContext, int32 Min = 1, int32 Max = TNumericLimits<int32>::Max()) const;
+		void Compile(FPCGExPointsProcessorContext* InContext) const;
 		void Write(FPCGExPointsProcessorContext* InContext) const;
 
 		~FGraphBuilder()

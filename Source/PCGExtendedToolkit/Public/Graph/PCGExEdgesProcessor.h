@@ -51,7 +51,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgesProcessorContext : public FPCGExPointsP
 
 	PCGExData::FPointIOGroup* MainEdges = nullptr;
 	PCGExData::FPointIO* CurrentEdges = nullptr;
-		
+
 	PCGExData::FPointIOTaggedDictionary* InputDictionary = nullptr;
 	PCGExData::FPointIOTaggedEntries* TaggedEdges = nullptr;
 	TMap<int32, int32> NodeIndicesMap;

@@ -105,7 +105,7 @@ namespace PCGExGraph
 		for (const FUnsignedEdge& E : InEdges)
 		{
 			if (!E.bValid) { continue; }
-			
+
 			const uint64 Hash = E.GetUnsignedHash();
 			if (UniqueEdges.Contains(Hash)) { continue; }
 
@@ -286,13 +286,11 @@ namespace PCGExGraph
 		}
 	}
 
-	void FGraphBuilder::EnableCrossings(const double Tolerance) { EdgeCrossings = new FEdgeCrossingsHandler(Graph, Tolerance); }
-
-	void FGraphBuilder::EnablePointsPruning() { bPrunePoints = true; }
-
-	void FGraphBuilder::Compile(FPCGExPointsProcessorContext* InContext, const int32 Min, const int32 Max) const
+	void FGraphBuilder::Compile(FPCGExPointsProcessorContext* InContext) const
 	{
-		InContext->GetAsyncManager()->Start<FPCGExCompileGraphTask>(-1, PointIO, const_cast<FGraphBuilder*>(this), Min, Max);
+		InContext->GetAsyncManager()->Start<FPCGExCompileGraphTask>(
+			-1, PointIO, const_cast<FGraphBuilder*>(this),
+			OutputSettings->GetMinClusterSize(), OutputSettings->GetMaxClusterSize());
 	}
 
 	void FGraphBuilder::Write(FPCGExPointsProcessorContext* InContext) const
@@ -337,12 +335,15 @@ bool FPCGExWriteSubGraphEdgesTask::ExecuteTask()
 		}
 
 		FPCGPoint& Point = MutablePoints[PointIndex];
-		Point.Transform.SetLocation(
-			FMath::Lerp(
-				Vertices[(EdgeStart->Values[PointIndex] = Graph->Nodes[Edge.Start].PointIndex)].Transform.GetLocation(),
-				Vertices[(EdgeEnd->Values[PointIndex] = Graph->Nodes[Edge.End].PointIndex)].Transform.GetLocation(), 0.5));
+		if (Graph->bWriteEdgePosition)
+		{
+			Point.Transform.SetLocation(
+				FMath::Lerp(
+					Vertices[(EdgeStart->Values[PointIndex] = Graph->Nodes[Edge.Start].PointIndex)].Transform.GetLocation(),
+					Vertices[(EdgeEnd->Values[PointIndex] = Graph->Nodes[Edge.End].PointIndex)].Transform.GetLocation(), Graph->EdgePosition));
+		}
 
-		PCGEx::RandomizeSeed(Point);
+		if (Point.Seed == 0) { PCGEx::RandomizeSeed(Point); }
 		PointIndex++;
 	}
 

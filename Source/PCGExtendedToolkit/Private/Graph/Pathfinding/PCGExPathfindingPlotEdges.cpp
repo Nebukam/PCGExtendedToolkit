@@ -132,7 +132,7 @@ bool FPCGExPathfindingPlotEdgesElement::ExecuteInternal(FPCGContext* InContext) 
 			Context->SetState(PCGExMT::State_ReadyForNextPoints);
 			return false;
 		}
-		
+
 		if (!Context->CurrentCluster)
 		{
 			PCGEX_INVALID_CLUSTER_LOG

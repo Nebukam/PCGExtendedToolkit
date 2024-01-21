@@ -11,7 +11,7 @@
 
 #pragma region UPCGSettings interface
 
-PCGExData::EInit UPCGExPruneEdgesByLengthSettings::GetMainOutputInitMode() const { return bPruneIsolatedPoints ? PCGExData::EInit::NewOutput : PCGExData::EInit::DuplicateInput; }
+PCGExData::EInit UPCGExPruneEdgesByLengthSettings::GetMainOutputInitMode() const { return GraphBuilderSettings.bPruneIsolatedPoints ? PCGExData::EInit::NewOutput : PCGExData::EInit::DuplicateInput; }
 PCGExData::EInit UPCGExPruneEdgesByLengthSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 
 #pragma endregion
@@ -35,8 +35,7 @@ bool FPCGExPruneEdgesByLengthElement::Boot(FPCGContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(PruneEdgesByLength)
 	PCGEX_OUTPUT_VALIDATE_NAME_NOWRITER(Mean)
 
-	Context->MinClusterSize = Settings->bRemoveSmallClusters ? FMath::Max(1, Settings->MinClusterSize) : 1;
-	Context->MaxClusterSize = Settings->bRemoveBigClusters ? FMath::Max(1, Settings->MaxClusterSize) : TNumericLimits<int32>::Max();
+	PCGEX_FWD(GraphBuilderSettings)
 
 	return true;
 }
@@ -81,7 +80,7 @@ bool FPCGExPruneEdgesByLengthElement::ExecuteInternal(FPCGContext* InContext) co
 		double MaxEdgeLength = TNumericLimits<double>::Min();
 		double SumEdgeLength = 0;
 
-		PCGExGraph::BuildIndexedEdges(*Context->CurrentEdges, Context->NodeIndicesMap, Context->IndexedEdges);
+		BuildIndexedEdges(*Context->CurrentEdges, Context->NodeIndicesMap, Context->IndexedEdges);
 
 		const TArray<FPCGPoint>& InNodePoints = Context->CurrentIO->GetIn()->GetPoints();
 
@@ -144,8 +143,7 @@ bool FPCGExPruneEdgesByLengthElement::ExecuteInternal(FPCGContext* InContext) co
 
 	if (Context->IsState(PCGExGraph::State_ProcessingEdges))
 	{
-		Context->GraphBuilder = new PCGExGraph::FGraphBuilder(*Context->CurrentIO, 6, Context->CurrentEdges);
-		if (Settings->bPruneIsolatedPoints) { Context->GraphBuilder->EnablePointsPruning(); }
+		Context->GraphBuilder = new PCGExGraph::FGraphBuilder(*Context->CurrentIO, &Context->GraphBuilderSettings, 6, Context->CurrentEdges);
 
 		for (PCGExGraph::FIndexedEdge& Edge : Context->IndexedEdges)
 		{
@@ -153,7 +151,7 @@ bool FPCGExPruneEdgesByLengthElement::ExecuteInternal(FPCGContext* InContext) co
 		}
 
 		Context->GraphBuilder->Graph->InsertEdges(Context->IndexedEdges);
-		Context->GraphBuilder->Compile(Context, Context->MinClusterSize, Context->MaxClusterSize);
+		Context->GraphBuilder->Compile(Context);
 		Context->SetAsyncState(PCGExGraph::State_WritingClusters);
 	}
 

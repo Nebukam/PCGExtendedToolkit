@@ -39,14 +39,14 @@ namespace PCGExSearch
 			Scores.SetNum(Size);
 			Enqueue(Item, Score);
 		}
-		
+
 		~TScoredQueue()
 		{
 			std::priority_queue<FScoredNode, std::vector<FScoredNode>, std::greater<FScoredNode>> EmptyQueue;
 			std::swap(InternalQueue, EmptyQueue);
 			Scores.Empty();
 		}
-		
+
 		void Enqueue(const FElementType& Id, const double Score)
 		{
 			Scores[Id] = Score;

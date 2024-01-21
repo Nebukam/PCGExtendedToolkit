@@ -48,6 +48,7 @@ bool FPCGExBuildDelaunayGraph2DElement::Boot(FPCGContext* InContext) const
 	if (!FPCGExPointsProcessorElementBase::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(BuildDelaunayGraph2D)
+	Context->GraphBuilderSettings.bPruneIsolatedPoints = false;
 
 	PCGEX_VALIDATE_NAME(Settings->HullAttributeName)
 
@@ -181,13 +182,13 @@ bool FPCGExBuildDelaunayGraph2DElement::ExecuteInternal(
 			return false;
 		}
 
-		Context->GraphBuilder = new PCGExGraph::FGraphBuilder(*Context->CurrentIO, 8);
+		Context->GraphBuilder = new PCGExGraph::FGraphBuilder(*Context->CurrentIO, &Context->GraphBuilderSettings, 8);
 
 		TArray<PCGExGraph::FUnsignedEdge> Edges;
 
 		if (Settings->bUrquhart) { Context->Delaunay->GetUrquhartEdges(Edges); }
 		else { Context->Delaunay->GetUniqueEdges(Edges); }
-		
+
 		Context->GraphBuilder->Graph->InsertEdges(Edges);
 
 		Context->GraphBuilder->Compile(Context);

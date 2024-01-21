@@ -10,7 +10,7 @@
 
 int32 UPCGExFindCustomGraphEdgeClustersSettings::GetPreferredChunkSize() const { return 32; }
 
-PCGExData::EInit UPCGExFindCustomGraphEdgeClustersSettings::GetMainOutputInitMode() const { return bPruneIsolatedPoints ? PCGExData::EInit::NewOutput : PCGExData::EInit::DuplicateInput; }
+PCGExData::EInit UPCGExFindCustomGraphEdgeClustersSettings::GetMainOutputInitMode() const { return GraphBuilderSettings.bPruneIsolatedPoints ? PCGExData::EInit::NewOutput : PCGExData::EInit::DuplicateInput; }
 
 FPCGExFindCustomGraphEdgeClustersContext::~FPCGExFindCustomGraphEdgeClustersContext()
 {
@@ -46,11 +46,10 @@ bool FPCGExFindCustomGraphEdgeClustersElement::Boot(FPCGContext* InContext) cons
 
 	PCGEX_FWD(bInheritAttributes)
 
-	Context->MinClusterSize = Settings->bRemoveSmallClusters ? FMath::Max(1, Settings->MinClusterSize) : 1;
-	Context->MaxClusterSize = Settings->bRemoveBigClusters ? FMath::Max(1, Settings->MaxClusterSize) : TNumericLimits<int32>::Max();
-
 	PCGEX_FWD(ClusterIDAttributeName)
 	PCGEX_FWD(ClusterSizeAttributeName)
+
+	PCGEX_FWD(GraphBuilderSettings)
 
 	PCGEX_VALIDATE_NAME(Context->ClusterIDAttributeName)
 	PCGEX_VALIDATE_NAME(Context->ClusterSizeAttributeName)
@@ -78,10 +77,7 @@ bool FPCGExFindCustomGraphEdgeClustersElement::ExecuteInternal(
 		if (!Context->AdvancePointsIOAndResetGraph()) { Context->Done(); }
 		else
 		{
-			Context->GraphBuilder = new PCGExGraph::FGraphBuilder(*Context->CurrentIO, Context->MergedInputSocketsNum);
-			if (Settings->bFindCrossings) { Context->GraphBuilder->EnableCrossings(Settings->CrossingTolerance); }
-			if (Settings->bPruneIsolatedPoints) { Context->GraphBuilder->EnablePointsPruning(); }
-
+			Context->GraphBuilder = new PCGExGraph::FGraphBuilder(*Context->CurrentIO, &Context->GraphBuilderSettings, Context->MergedInputSocketsNum);
 			Context->SetState(PCGExGraph::State_ReadyForNextGraph);
 		}
 	}
@@ -143,7 +139,7 @@ bool FPCGExFindCustomGraphEdgeClustersElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExGraph::State_WritingClusters))
 	{
-		Context->GraphBuilder->Compile(Context, Context->MinClusterSize, Context->MaxClusterSize);
+		Context->GraphBuilder->Compile(Context);
 		Context->SetAsyncState(PCGExGraph::State_WaitingOnWritingClusters);
 	}
 

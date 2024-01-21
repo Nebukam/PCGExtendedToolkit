@@ -79,7 +79,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFilterRuleDescriptor : public FPCGExInputDes
 	/** Name of the tag prefix used for this partition. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bWriteTag"))
 	FName TagPrefixName = "Partition";
-	
+
 	/** Output the partition index to the tag instead of the value used for partitioning. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bWriteTag"))
 	bool bTagUsePartitionIndexAsKey = false;

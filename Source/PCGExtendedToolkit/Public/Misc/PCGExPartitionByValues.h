@@ -84,7 +84,6 @@ public:
 	/** Rules */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, TitleProperty="{TitlePropertyName}"))
 	TArray<FPCGExFilterRuleDescriptor> PartitionRules;
-	
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExPartitionByValuesContext : public FPCGExPointsProcessorContext

@@ -174,8 +174,8 @@ namespace PCGExGraph
 	{
 		//EdgeIO.CreateInKeys();
 
-		PCGEx::TFAttributeReader<int32>* StartIndexReader = new PCGEx::TFAttributeReader<int32>(PCGExGraph::Tag_EdgeStart);
-		PCGEx::TFAttributeReader<int32>* EndIndexReader = new PCGEx::TFAttributeReader<int32>(PCGExGraph::Tag_EdgeEnd);
+		PCGEx::TFAttributeReader<int32>* StartIndexReader = new PCGEx::TFAttributeReader<int32>(Tag_EdgeStart);
+		PCGEx::TFAttributeReader<int32>* EndIndexReader = new PCGEx::TFAttributeReader<int32>(Tag_EdgeEnd);
 
 		if (!StartIndexReader->Bind(const_cast<PCGExData::FPointIO&>(EdgeIO))) { return false; }
 		if (!EndIndexReader->Bind(const_cast<PCGExData::FPointIO&>(EdgeIO))) { return false; }

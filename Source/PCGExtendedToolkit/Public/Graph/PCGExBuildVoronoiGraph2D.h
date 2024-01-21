@@ -68,6 +68,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bMarkEdgeOnTouch = false;
 
+	/** Graph & Edges output properties. Only available if bPruneOutsideBounds as it otherwise generates a complete graph. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bPruneOutsideBounds", EditConditionHides, DisplayName="Graph Output Settings"))
+	FPCGExGraphBuilderSettings GraphBuilderSettings;
+
 private:
 	friend class FPCGExBuildVoronoiGraph2DElement;
 };
@@ -84,6 +88,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBuildVoronoiGraph2DContext : public FPCGExPo
 	PCGExGeo::TConvexHull2* ConvexHull = nullptr;
 	TSet<int32> HullIndices;
 
+	FPCGExGraphBuilderSettings GraphBuilderSettings;
 	PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
 };
 

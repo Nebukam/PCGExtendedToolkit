@@ -57,6 +57,8 @@ bool FPCGExPathsToEdgeClustersElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(PathsToEdgeClusters)
 
+	PCGEX_FWD(GraphBuilderSettings)
+
 	Context->LooseNetwork = new PCGExGraph::FLooseNetwork(Settings->FuseDistance);
 	Context->IOIndices.Empty();
 
@@ -96,9 +98,7 @@ bool FPCGExPathsToEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) c
 				MutablePoints[i].Transform.SetLocation(Context->LooseNetwork->Nodes[i]->Center);
 			}
 
-			Context->GraphBuilder = new PCGExGraph::FGraphBuilder(*Context->ConsolidatedPoints, 4);
-			if (Settings->bFindCrossings) { Context->GraphBuilder->EnableCrossings(Settings->CrossingTolerance); }
-
+			Context->GraphBuilder = new PCGExGraph::FGraphBuilder(*Context->CurrentIO, &Context->GraphBuilderSettings, 4);
 			Context->SetState(PCGExGraph::State_ProcessingGraph);
 		}
 		else { Context->SetState(PCGExMT::State_ProcessingPoints); }

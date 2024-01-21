@@ -51,6 +51,7 @@ bool FPCGExBuildVoronoiGraph2DElement::Boot(FPCGContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(BuildVoronoiGraph2D)
 
 	PCGEX_VALIDATE_NAME(Settings->HullAttributeName)
+	PCGEX_FWD(GraphBuilderSettings)
 
 	return true;
 }
@@ -212,7 +213,7 @@ bool FPCGExBuildVoronoiGraph2DElement::ExecuteInternal(
 		TArray<FPCGPoint>& Centroids = Context->CurrentIO->GetOut()->GetMutablePoints();
 		Context->Voronoi->GetVoronoiPoints(Centroids, Settings->Method);
 
-		Context->GraphBuilder = new PCGExGraph::FGraphBuilder(*Context->CurrentIO, 8);
+		Context->GraphBuilder = new PCGExGraph::FGraphBuilder(*Context->CurrentIO, &Context->GraphBuilderSettings, 8);
 
 		TArray<PCGExGraph::FUnsignedEdge> Edges;
 		Context->Voronoi->GetUniqueEdges(Edges, Settings->bPruneOutsideBounds && Settings->Method != EPCGExCellCenter::Balanced);

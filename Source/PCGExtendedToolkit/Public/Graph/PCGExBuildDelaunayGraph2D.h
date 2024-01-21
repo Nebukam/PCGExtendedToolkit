@@ -46,7 +46,7 @@ public:
 	/** Output the Urquhart graph of the Delaunay triangulation (removes the longest edge of each Delaunay cell) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bUrquhart = false;
-	
+
 	/** Mark points & edges that lie on the hull */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bMarkHull = true;
@@ -75,6 +75,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBuildDelaunayGraph2DContext : public FPCGExP
 	PCGExGeo::TConvexHull2* ConvexHull = nullptr;
 	TSet<int32> HullIndices;
 
+	FPCGExGraphBuilderSettings GraphBuilderSettings;
 	PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
 };
 

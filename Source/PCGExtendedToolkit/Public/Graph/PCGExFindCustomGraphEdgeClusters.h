@@ -54,33 +54,9 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExEdgeType"))
 	uint8 CrawlEdgeTypes = static_cast<uint8>(EPCGExEdgeType::Complete);
 
-	/** Removes roaming points from the output, and keeps only points that are part of an cluster. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	bool bPruneIsolatedPoints = true;
-
-	/** Don't output Clusters if they have less points than a specified amount. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
-	bool bRemoveSmallClusters = false;
-
-	/** Minimum points threshold */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bRemoveSmallClusters", ClampMin=2))
-	int32 MinClusterSize = 3;
-
-	/** Don't output Clusters if they have more points than a specified amount. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
-	bool bRemoveBigClusters = false;
-
-	/** Maximum points threshold */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bRemoveBigClusters", ClampMin=2))
-	int32 MaxClusterSize = 500;
-
-	/** If two edges are close enough, create a "crossing" point. !!! VERY EXPENSIVE !!! */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
-	bool bFindCrossings = false;
-
-	/** Distance at which segments are considered crossing. !!! VERY EXPENSIVE !!! */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bFindCrossings", ClampMin=0.001))
-	double CrossingTolerance = 10;
+	/** Graph & Edges output properties */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Graph Output Settings"))
+	FPCGExGraphBuilderSettings GraphBuilderSettings;
 
 	/** Edges will inherit point attributes -- NOT IMPLEMENTED*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
@@ -111,13 +87,11 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFindCustomGraphEdgeClustersContext : public 
 	EPCGExEdgeType CrawlEdgeTypes;
 	bool bInheritAttributes;
 
-	int32 MinClusterSize;
-	int32 MaxClusterSize;
-
 	FName ClusterIDAttributeName;
 	FName ClusterSizeAttributeName;
 	FName PointUIDAttributeName;
 
+	FPCGExGraphBuilderSettings GraphBuilderSettings;
 	PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
 };
 
