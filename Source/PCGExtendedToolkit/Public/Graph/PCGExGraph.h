@@ -47,16 +47,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGraphBuilderSettings
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (PCG_Overridable, EditCondition="bRemoveBigClusters", ClampMin=2))
 	int32 MaxClusterSize = 500;
 
-	/** If two edges are close enough, create a "crossing" point. !!! VERY EXPENSIVE !!! */
-	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
-	bool bFindCrossings = false;
-
-	/** Distance at which segments are considered crossing. !!! VERY EXPENSIVE !!!*/
-	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bFindCrossings", ClampMin=0.001))
-	double CrossingTolerance = 10;
-
 	int32 GetMinClusterSize() const { return bRemoveSmallClusters ? MinClusterSize : 0; }
-	int32 GetMaxClusterSize() const { return bRemoveSmallClusters ? MinClusterSize : TNumericLimits<int32>::Max(); }
+	int32 GetMaxClusterSize() const { return bRemoveBigClusters ? MaxClusterSize : TNumericLimits<int32>::Max(); }
 };
 
 namespace PCGExGraph
@@ -98,11 +90,10 @@ namespace PCGExGraph
 		{
 		}
 
-		bool bCrossing = false;
-		bool bValid = false;
+		bool bValid = true;
 
-		int32 NodeIndex = -1;
-		int32 PointIndex = -1;
+		int32 NodeIndex = -1; // Index in the context of the list that helds the node
+		int32 PointIndex = -1; // Index in the context of the UPCGPointData that helds the vtx
 		int32 NumExportedEdges = 0;
 
 		TArray<int32> Edges;
@@ -115,20 +106,10 @@ namespace PCGExGraph
 		void Add(const int32 EdgeIndex);
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FEdgeCrossing
-	{
-		FEdgeCrossing()
-		{
-		}
-
-		int32 EdgeA = -1;
-		int32 EdgeB = -1;
-		FVector Center;
-	};
+	
 
 	struct PCGEXTENDEDTOOLKIT_API FSubGraph
 	{
-		bool bConsolidated = false;
 		int64 Id = -1;
 		TSet<int32> Nodes;
 		TSet<int32> Edges; //TODO : Test for TArray
@@ -144,7 +125,6 @@ namespace PCGExGraph
 		}
 
 		void Add(const FIndexedEdge& Edge, FGraph* InGraph);
-		void Consolidate(FGraph* InGraph);
 		void Invalidate(FGraph* InGraph);
 	};
 
@@ -174,7 +154,6 @@ namespace PCGExGraph
 			{
 				FNode& Node = Nodes[i];
 				Node.NodeIndex = Node.PointIndex = i;
-				Node.bValid = false;
 				Node.Edges.Reserve(NumEdgesReserve);
 			}
 		}
@@ -184,9 +163,7 @@ namespace PCGExGraph
 		void InsertEdges(const TArray<FUnsignedEdge>& InEdges);
 		void InsertEdges(const TArray<FIndexedEdge>& InEdges);
 
-		void BuildSubGraphs();
-		void Consolidate(const bool bPrune, const int32 Min = 1, const int32 Max = TNumericLimits<int32>::Max());
-		void ConsolidateIndices(bool bPrune);
+		void BuildSubGraphs(const int32 Min = 1, const int32 Max = TNumericLimits<int32>::Max());
 
 		void ForEachCluster(TFunction<void(FSubGraph*)>&& Func)
 		{
@@ -208,44 +185,6 @@ namespace PCGExGraph
 		}
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FEdgeCrossingsHandler
-	{
-		mutable FRWLock CrossingLock;
-
-		FGraph* Graph;
-		double Tolerance;
-		double SquaredTolerance;
-
-		TArray<FBox> SegmentBounds;
-		TArray<FEdgeCrossing> Crossings;
-
-		int32 NumEdges;
-		int32 StartIndex;
-
-		FEdgeCrossingsHandler(FGraph* InGraph, const double InTolerance)
-			: Graph(InGraph),
-			  Tolerance(InTolerance),
-			  SquaredTolerance(InTolerance * InTolerance)
-		{
-			NumEdges = InGraph->Edges.Num();
-			StartIndex = InGraph->Nodes.Num();
-			Crossings.Empty();
-			SegmentBounds.Empty();
-			SegmentBounds.Reserve(NumEdges);
-		}
-
-		~FEdgeCrossingsHandler()
-		{
-			SegmentBounds.Empty();
-			Crossings.Empty();
-			Graph = nullptr;
-		}
-
-		void Prepare(const TArray<FPCGPoint>& InPoints);
-		void ProcessEdge(const int32 EdgeIndex, const TArray<FPCGPoint>& InPoints);
-		void InsertCrossings();
-	};
-
 	class PCGEXTENDEDTOOLKIT_API FGraphBuilder
 	{
 	public:
@@ -257,7 +196,6 @@ namespace PCGExGraph
 		PCGExData::FPointIO* PointIO = nullptr;
 
 		FGraph* Graph = nullptr;
-		FEdgeCrossingsHandler* EdgeCrossings = nullptr;
 
 		PCGExData::FPointIOGroup* EdgesIO = nullptr;
 		PCGExData::FPointIO* SourceEdgesIO = nullptr;
@@ -280,7 +218,6 @@ namespace PCGExGraph
 			EdgesIO->DefaultOutputLabel = OutputEdgesLabel;
 
 			bPrunePoints = OutputSettings->bPruneIsolatedPoints;
-			if (OutputSettings->bFindCrossings) { EdgeCrossings = new FEdgeCrossingsHandler(Graph, OutputSettings->CrossingTolerance); }
 		}
 
 		void Compile(FPCGExPointsProcessorContext* InContext) const;
@@ -289,7 +226,6 @@ namespace PCGExGraph
 		~FGraphBuilder()
 		{
 			PCGEX_DELETE(Graph)
-			PCGEX_DELETE(EdgeCrossings)
 			PCGEX_DELETE(EdgesIO)
 		}
 	};
@@ -352,19 +288,15 @@ class PCGEXTENDEDTOOLKIT_API FPCGExWriteSubGraphEdgesTask : public FPCGExNonAban
 {
 public:
 	FPCGExWriteSubGraphEdgesTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-	                             PCGExData::FPointIO* InClusterIO, PCGExGraph::FGraph* InGraph, PCGExGraph::FSubGraph* InSubGraph,
-	                             const int32 InMin = 1, const int32 InMax = TNumericLimits<int32>::Max())
+	                             PCGExData::FPointIO* InClusterIO, PCGExGraph::FGraph* InGraph, PCGExGraph::FSubGraph* InSubGraph)
 		: FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
-		  EdgeIO(InClusterIO), Graph(InGraph), SubGraph(InSubGraph),
-		  Min(InMin), Max(InMax)
+		  EdgeIO(InClusterIO), Graph(InGraph), SubGraph(InSubGraph)
 	{
 	}
 
 	PCGExData::FPointIO* EdgeIO = nullptr;
 	PCGExGraph::FGraph* Graph = nullptr;
 	PCGExGraph::FSubGraph* SubGraph = nullptr;
-	int32 Min;
-	int32 Max;
 
 	virtual bool ExecuteTask() override;
 };

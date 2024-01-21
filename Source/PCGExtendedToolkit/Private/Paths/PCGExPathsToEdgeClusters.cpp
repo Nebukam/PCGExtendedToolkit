@@ -151,23 +151,6 @@ bool FPCGExPathsToEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) c
 		};
 
 		if (!Context->Process(InsertEdge, Context->LooseNetwork->Nodes.Num())) { return false; }
-		if (Context->GraphBuilder->EdgeCrossings) { Context->SetState(PCGExGraph::State_FindingCrossings); }
-		else { Context->SetState(PCGExGraph::State_WritingClusters); }
-	}
-
-	if (Context->IsState(PCGExGraph::State_FindingCrossings))
-	{
-		auto Initialize = [&]()
-		{
-			Context->GraphBuilder->EdgeCrossings->Prepare(Context->ConsolidatedPoints->GetOut()->GetPoints());
-		};
-
-		auto ProcessEdge = [&](const int32 Index)
-		{
-			Context->GraphBuilder->EdgeCrossings->ProcessEdge(Index, Context->ConsolidatedPoints->GetOut()->GetPoints());
-		};
-
-		if (!Context->Process(Initialize, ProcessEdge, Context->GraphBuilder->Graph->Edges.Num())) { return false; }
 		Context->SetState(PCGExGraph::State_WritingClusters);
 	}
 

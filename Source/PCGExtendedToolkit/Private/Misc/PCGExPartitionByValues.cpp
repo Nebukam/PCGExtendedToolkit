@@ -203,9 +203,30 @@ bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* InContext) con
 		}
 		else
 		{
+			TMap<int64, int64> IndiceMap;
 			for (FPCGExFilter::FRule& Rule : Context->Rules)
 			{
 				if (!Rule.RuleDescriptor->bWriteKey) { continue; }
+				if (Rule.RuleDescriptor->bUsePartitionIndexAsKey)
+				{
+					IndiceMap.Empty(Rule.FilteredValues.Num());
+					int64 PIndex = -1;
+					for (int64& Value : Rule.FilteredValues)
+					{
+						if (const int64* FilterPtr = IndiceMap.Find(Value);
+							!FilterPtr)
+						{
+							IndiceMap.Add(Value, ++PIndex);
+							Value = PIndex;
+						}
+						else
+						{
+							Value = *FilterPtr;
+						}
+					}
+					IndiceMap.Empty();
+				}
+
 				PCGEx::FAttributeAccessor<int64>* Accessor = PCGEx::FAttributeAccessor<int64>::FindOrCreate(*Context->CurrentIO, Rule.RuleDescriptor->KeyAttributeName, 0, false);
 				Accessor->SetRange(Rule.FilteredValues);
 				delete Accessor;

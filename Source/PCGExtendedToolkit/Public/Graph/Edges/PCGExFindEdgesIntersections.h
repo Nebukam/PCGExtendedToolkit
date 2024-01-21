@@ -9,6 +9,60 @@
 
 #include "PCGExFindEdgesIntersections.generated.h"
 
+namespace PCGExGraph
+{
+	struct PCGEXTENDEDTOOLKIT_API FEdgeCrossing
+	{
+		FEdgeCrossing()
+		{
+		}
+
+		int32 EdgeA = -1;
+		int32 EdgeB = -1;
+		FVector Center;
+	};
+
+	
+	struct PCGEXTENDEDTOOLKIT_API FEdgeCrossingsHandler
+	{
+		mutable FRWLock CrossingLock;
+
+		FGraph* Graph;
+		double Tolerance;
+		double SquaredTolerance;
+
+		TArray<FBox> SegmentBounds;
+		TArray<FEdgeCrossing> Crossings;
+
+		int32 NumEdges;
+		int32 StartIndex;
+
+		FEdgeCrossingsHandler(FGraph* InGraph, const double InTolerance)
+			: Graph(InGraph),
+			  Tolerance(InTolerance),
+			  SquaredTolerance(InTolerance * InTolerance)
+		{
+			NumEdges = InGraph->Edges.Num();
+			StartIndex = InGraph->Nodes.Num();
+			Crossings.Empty();
+			SegmentBounds.Empty();
+			SegmentBounds.Reserve(NumEdges);
+		}
+
+		~FEdgeCrossingsHandler()
+		{
+			SegmentBounds.Empty();
+			Crossings.Empty();
+			Graph = nullptr;
+		}
+
+		void Prepare(const TArray<FPCGPoint>& InPoints);
+		void ProcessEdge(const int32 EdgeIndex, const TArray<FPCGPoint>& InPoints);
+		void InsertCrossings();
+	};
+
+}
+
 /**
  * A Base node to process a set of point using GraphParams.
  */
@@ -34,10 +88,14 @@ public:
 	virtual PCGExData::EInit GetEdgeOutputInitMode() const override;
 	//~End UPCGExEdgesProcessorSettings interface
 
-	/** Distance at which segments are considered crossing. !!! VERY EXPENSIVE !!!*/
-	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bFindCrossings", ClampMin=0.001))
-	double CrossingTolerance = 10;
+	/** Attempts to merge all edge clusters associated with a vtx input before proceeding to finding crossings. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bMergeBoundClusters = true;
 	
+	/** Distance at which segments are considered crossing. !!! VERY EXPENSIVE !!!*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bFindCrossings", ClampMin=0.001))
+	double CrossingTolerance = 10;
+
 	/** Graph & Edges output properties */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Graph Output Settings"))
 	FPCGExGraphBuilderSettings GraphBuilderSettings;
@@ -67,4 +125,20 @@ public:
 protected:
 	virtual bool Boot(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
+};
+
+class PCGEXTENDEDTOOLKIT_API FPCGExFindIntersectionsTask : public FPCGExNonAbandonableTask
+{
+public:
+	FPCGExFindIntersectionsTask(
+		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+		PCGExGraph::FGraph* InGraph) :
+		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+		Graph(InGraph)
+	{
+	}
+
+	PCGExGraph::FGraph* Graph = nullptr;
+
+	virtual bool ExecuteTask() override;
 };
