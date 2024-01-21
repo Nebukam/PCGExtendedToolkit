@@ -31,6 +31,7 @@ namespace PCGExPartition
 		int64 PartitionKey = 0;
 		FPCGExFilter::FRule* Rule = nullptr;
 
+		TSet<int64> UniquePartitionKeys;
 		TMap<int64, FKPartition*> SubLayers;
 		TArray<int32> Points;
 
@@ -40,6 +41,8 @@ namespace PCGExPartition
 		FKPartition* GetPartition(int64 Key, FPCGExFilter::FRule* InRule);
 		void Add(const int64 Index);
 		void Register(TArray<FKPartition*>& Partitions);
+
+		void SortPartitions();
 	};
 }
 
@@ -84,6 +87,14 @@ public:
 	/** Rules */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, TitleProperty="{TitlePropertyName}"))
 	TArray<FPCGExFilterRuleDescriptor> PartitionRules;
+
+	/** Write the sum of partition values to an attribute. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bWriteKeySum = false;
+
+	/** The Attribute name to write key sum to. Note that this value is not guaranteed to be unique. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bWriteKeySum"))
+	FName KeySumAttributeName = "KeySum";
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExPartitionByValuesContext : public FPCGExPointsProcessorContext
@@ -95,6 +106,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPartitionByValuesContext : public FPCGExPoin
 	TArray<FPCGExFilterRuleDescriptor> RulesDescriptors;
 	TArray<FPCGExFilter::FRule> Rules;
 	mutable FRWLock RulesLock;
+
+	TArray<int64> KeySums;
 
 	bool bSplitOutput = true;
 	PCGExPartition::FKPartition* RootPartition = nullptr;
