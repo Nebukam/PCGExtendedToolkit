@@ -4,3 +4,9 @@
 
 
 ## How to use
+
+## Orient : Average
+
+## Orient : LookAt
+
+## Orient : Weighted

@@ -1,4 +1,4 @@
-# Graph : Delete ![Graph](https://img.shields.io/badge/Graph-37a573)
+# Custom Graph : Delete ![Graph](https://img.shields.io/badge/Graph-37a573)
 
 ## What is it useful for?
 This node deletes relational data attributes associated with given inputs.  

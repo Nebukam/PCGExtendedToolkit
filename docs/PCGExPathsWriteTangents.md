@@ -4,3 +4,7 @@
 
 
 ## How to use
+
+## Tangents : Auto
+
+## Tangents : Custom

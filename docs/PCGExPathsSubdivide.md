@@ -4,3 +4,10 @@
 
 ## How to use
 ### Inputs
+
+
+## Blending : Inherit End
+
+## Blending : Inherit Start
+
+## Blending : Inherit Interpolate

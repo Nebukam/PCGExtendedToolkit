@@ -4,3 +4,7 @@
 
 ## How to use
 ### Inputs
+
+## Relax Method : Force Directed
+
+## Relax Method : Laplacian (Poisson)

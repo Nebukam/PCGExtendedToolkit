@@ -1,6 +1,4 @@
-# Edges : Prune ![Edges](https://img.shields.io/badge/Edges-37a573)
-
-> **This node is currently WIP.**
+# Edges : Prune by Length ![Edges](https://img.shields.io/badge/Edges-37a573)
 
 ## What is it useful for?
 
