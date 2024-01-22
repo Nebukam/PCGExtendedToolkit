@@ -101,7 +101,6 @@ bool FPCGExWriteEdgeExtrasElement::ExecuteInternal(
 		Context->MetadataBlender->PrepareForData(PointIO, *Context->CurrentIO);
 		Context->GetAsyncManager()->Start<FPCGExWriteExtrasTask>(-1, &PointIO);
 		Context->SetAsyncState(PCGExGraph::State_ProcessingEdges);
-		
 	}
 
 	if (Context->IsState(PCGExGraph::State_ProcessingEdges))

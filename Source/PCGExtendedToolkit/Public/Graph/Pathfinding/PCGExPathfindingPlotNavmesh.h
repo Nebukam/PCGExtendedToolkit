@@ -125,7 +125,7 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-// Define the background task class
+
 class PCGEXTENDEDTOOLKIT_API FPCGExPlotNavmeshTask : public FPCGExNonAbandonableTask
 {
 public:

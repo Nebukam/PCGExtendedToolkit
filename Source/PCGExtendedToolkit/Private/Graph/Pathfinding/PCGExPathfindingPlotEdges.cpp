@@ -91,6 +91,7 @@ bool FPCGExPathfindingPlotEdgesElement::Boot(FPCGContext* InContext) const
 	}
 
 	Context->HeuristicsModifiers = const_cast<FPCGExHeuristicModifiersSettings*>(&Settings->HeuristicsModifiers);
+	Context->HeuristicsModifiers->LoadCurves();
 	Context->Heuristics->ReferenceWeight = Context->HeuristicsModifiers->ReferenceWeight;
 
 	return true;
@@ -132,7 +133,7 @@ bool FPCGExPathfindingPlotEdgesElement::ExecuteInternal(FPCGContext* InContext) 
 			Context->SetState(PCGExMT::State_ReadyForNextPoints);
 			return false;
 		}
-		
+
 		if (!Context->CurrentCluster)
 		{
 			PCGEX_INVALID_CLUSTER_LOG

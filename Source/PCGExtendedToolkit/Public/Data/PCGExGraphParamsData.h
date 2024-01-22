@@ -161,7 +161,7 @@ public:
 
 	/** Local attribute to override the direction vector with */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bDirectionVectorFromAttribute", ShowOnlyInnerProperties))
-	FPCGExInputDescriptorWithDirection AttributeDirectionVector;
+	FPCGExInputDescriptor AttributeDirectionVector;
 
 	/** If enabled, multiplies the max sampling distance of this socket by the value of a local attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(InlineEditConditionToggle))
@@ -169,7 +169,7 @@ public:
 
 	/** Local attribute to multiply the max distance by.  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bApplyAttributeModifier", ShowOnlyInnerProperties))
-	FPCGExInputDescriptorWithSingleField AttributeModifier;
+	FPCGExInputDescriptor AttributeModifier;
 
 	/** Offset socket origin  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
@@ -254,7 +254,7 @@ public:
 
 	/** Which local attribute is used to factor the distance */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bOverrideAttributeModifier"))
-	FPCGExInputDescriptorWithSingleField AttributeModifier;
+	FPCGExInputDescriptor AttributeModifier;
 
 	/** Is the distance modified by local attributes */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
@@ -314,7 +314,7 @@ namespace PCGExGraph
 		}
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FLocalDirection : public PCGEx::FLocalDirectionGetter
+	struct PCGEXTENDEDTOOLKIT_API FLocalDirection : public PCGEx::FLocalVectorGetter
 	{
 		FLocalDirection()
 		{

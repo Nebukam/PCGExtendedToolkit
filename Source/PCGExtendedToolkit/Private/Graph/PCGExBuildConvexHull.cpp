@@ -53,6 +53,8 @@ bool FPCGExBuildConvexHullElement::Boot(FPCGContext* InContext) const
 
 	if (!Settings->bPrunePoints) { PCGEX_VALIDATE_NAME(Settings->HullAttributeName) }
 
+	Context->GraphBuilderSettings.bPruneIsolatedPoints = Settings->bPrunePoints;
+
 	return true;
 }
 
@@ -120,8 +122,7 @@ bool FPCGExBuildConvexHullElement::ExecuteInternal(
 			PCGEX_DELETE(HullMarkPointWriter)
 		}
 
-		Context->GraphBuilder = new PCGExGraph::FGraphBuilder(*Context->CurrentIO, 6);
-		if (Settings->bPrunePoints) { Context->GraphBuilder->EnablePointsPruning(); }
+		Context->GraphBuilder = new PCGExGraph::FGraphBuilder(*Context->CurrentIO, &Context->GraphBuilderSettings, 6);
 
 		TArray<PCGExGraph::FUnsignedEdge> Edges;
 		Context->ConvexHull->GetUniqueEdges(Edges);

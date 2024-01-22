@@ -12,7 +12,7 @@
 struct FPCGPoint;
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExFilterRuleDescriptor : public FPCGExInputDescriptorWithSingleField
+struct PCGEXTENDEDTOOLKIT_API FPCGExFilterRuleDescriptor : public FPCGExInputDescriptor
 {
 	GENERATED_BODY()
 
@@ -21,7 +21,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFilterRuleDescriptor : public FPCGExInputDes
 	}
 
 	FPCGExFilterRuleDescriptor(const FPCGExFilterRuleDescriptor& Other)
-		: FPCGExInputDescriptorWithSingleField(Other),
+		: FPCGExInputDescriptor(Other),
 		  bEnabled(Other.bEnabled),
 		  FilterSize(Other.FilterSize),
 		  Upscale(Other.Upscale),
@@ -38,8 +38,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFilterRuleDescriptor : public FPCGExInputDes
 #if WITH_EDITOR
 	virtual FString GetDisplayName() const override
 	{
-		if (bEnabled) { return FPCGExInputDescriptorWithSingleField::GetDisplayName(); }
-		return "(Disabled) " + FPCGExInputDescriptorWithSingleField::GetDisplayName();
+		if (bEnabled) { return FPCGExInputDescriptor::GetDisplayName(); }
+		return "(Disabled) " + FPCGExInputDescriptor::GetDisplayName();
 	}
 
 #endif
@@ -79,7 +79,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFilterRuleDescriptor : public FPCGExInputDes
 	/** Name of the tag prefix used for this partition. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bWriteTag"))
 	FName TagPrefixName = "Partition";
-	
+
 	/** Output the partition index to the tag instead of the value used for partitioning. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bWriteTag"))
 	bool bTagUsePartitionIndexAsKey = false;
@@ -91,7 +91,7 @@ namespace FPCGExFilter
 	struct PCGEXTENDEDTOOLKIT_API FRule : public PCGEx::FLocalSingleFieldGetter
 	{
 		explicit FRule(FPCGExFilterRuleDescriptor& InRule)
-			: FLocalSingleFieldGetter(InRule.Field, InRule.Axis),
+			: FLocalSingleFieldGetter(),
 			  RuleDescriptor(&InRule),
 			  FilterSize(InRule.FilterSize),
 			  Upscale(InRule.Upscale),

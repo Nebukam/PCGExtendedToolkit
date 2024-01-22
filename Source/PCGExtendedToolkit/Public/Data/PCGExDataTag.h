@@ -133,5 +133,4 @@ namespace PCGExData
 			return true;
 		}
 	};
-	
 }

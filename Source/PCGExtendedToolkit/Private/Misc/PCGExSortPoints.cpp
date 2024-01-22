@@ -4,10 +4,16 @@
 
 #include "Misc/PCGExSortPoints.h"
 
-#include "Misc/PCGExCompare.h"
-
 #define LOCTEXT_NAMESPACE "PCGExSortPoints"
 #define PCGEX_NAMESPACE SortPoints
+
+#if WITH_EDITOR
+void UPCGExSortPointsSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+{
+	for (FPCGExSortRuleDescriptor& Descriptor : Rules) { Descriptor.UpdateUserFacingInfos(); }
+	Super::PostEditChangeProperty(PropertyChangedEvent);
+}
+#endif
 
 FPCGElementPtr UPCGExSortPointsSettings::CreateElement() const { return MakeShared<FPCGExSortPointsElement>(); }
 
@@ -35,55 +41,41 @@ bool FPCGExSortPointsElement::ExecuteInternal(FPCGContext* InContext) const
 	auto SortPointIO = [&](const int32 Index)
 	{
 		PCGExData::FPointIO& PointIO = *Context->MainPoints->Pairs[Index];
-		TArray<FPCGExSortRule> Rules;
+		TArray<FPCGExSortRule*> Rules;
 		Rules.Reserve(Settings->Rules.Num());
 
-		for (const FPCGExSortRule& DesiredRule : Settings->Rules)
+		TMap<PCGMetadataEntryKey, int32> PointIndices;
+		PointIO.PrintInKeysMap(PointIndices);
+
+		for (const FPCGExSortRuleDescriptor& RuleDescriptor : Settings->Rules)
 		{
-			FPCGExSortRule& Rule = Rules.Emplace_GetRef(DesiredRule);
-			if (!Rule.Validate(PointIO.GetOut())) { Rules.Pop(); }
+			FPCGExSortRule* NewRule = new FPCGExSortRule();
+			NewRule->Capture(RuleDescriptor);
+			if (!NewRule->Grab(PointIO))
+			{
+				delete NewRule;
+				continue;
+			}
+			NewRule->Tolerance = RuleDescriptor.Tolerance;
+			Rules.Add(NewRule);
 		}
 
-		if (Rules.IsEmpty()) { return; } // Could not sort, omit output.
-
-		auto Compare = [&](auto DummyValue, const FPCGExSortRule* Rule, const FPCGPoint& PtA, const FPCGPoint& PtB) -> int
+		if (Rules.IsEmpty())
 		{
-			using T = decltype(DummyValue);
-			FPCGMetadataAttribute<T>* Attribute = static_cast<FPCGMetadataAttribute<T>*>(Rule->Attribute);
-			return FPCGExCompare::Compare(
-				Attribute->GetValueFromItemKey(PtA.MetadataEntry),
-				Attribute->GetValueFromItemKey(PtB.MetadataEntry),
-				Rule->Tolerance, Rule->OrderFieldSelection);
-		};
+			// Don't sort
+			FWriteScopeLock WriteLock(Context->ContextLock);
+			PointIO.OutputTo(Context);
+			return;
+		}
 
 		auto SortPredicate = [&](const FPCGPoint& A, const FPCGPoint& B)
 		{
-#define PCGEX_COMPARE_PROPERTY_CASE(_ENUM, _ACCESSOR) \
-case _ENUM : Result = FPCGExCompare::Compare(A._ACCESSOR, B._ACCESSOR, Rule.Tolerance, Rule.OrderFieldSelection); break;
-
 			int Result = 0;
-			for (const FPCGExSortRule& Rule : Rules)
+			for (const FPCGExSortRule* Rule : Rules)
 			{
-				switch (Rule.Selector.GetSelection())
-				{
-				case EPCGAttributePropertySelection::Attribute:
-					Result = PCGMetadataAttribute::CallbackWithRightType(Rule.UnderlyingType, Compare, &Rule, A, B);
-					break;
-				case EPCGAttributePropertySelection::PointProperty:
-					switch (Rule.Selector.GetPointProperty())
-					{
-					PCGEX_FOREACH_POINTPROPERTY(PCGEX_COMPARE_PROPERTY_CASE)
-					}
-					break;
-				case EPCGAttributePropertySelection::ExtraProperty:
-					switch (Rule.Selector.GetExtraProperty())
-					{
-					PCGEX_FOREACH_POINTEXTRAPROPERTY(PCGEX_COMPARE_PROPERTY_CASE)
-					}
-					break;
-				default: ;
-				}
-
+				const double ValueA = Rule->Values[*PointIndices.Find(A.MetadataEntry)];
+				const double ValueB = Rule->Values[*PointIndices.Find(B.MetadataEntry)];
+				Result = FMath::IsNearlyEqual(ValueA, ValueB, Rule->Tolerance) ? 0 : ValueA < ValueB ? -1 : 1;
 				if (Result != 0) { break; }
 			}
 

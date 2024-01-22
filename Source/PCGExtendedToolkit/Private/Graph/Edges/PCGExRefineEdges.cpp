@@ -15,7 +15,7 @@ UPCGExRefineEdgesSettings::UPCGExRefineEdgesSettings(
 {
 }
 
-PCGExData::EInit UPCGExRefineEdgesSettings::GetMainOutputInitMode() const { return bPruneIsolatedPoints ? PCGExData::EInit::NewOutput : PCGExData::EInit::DuplicateInput; }
+PCGExData::EInit UPCGExRefineEdgesSettings::GetMainOutputInitMode() const { return GraphBuilderSettings.bPruneIsolatedPoints ? PCGExData::EInit::NewOutput : PCGExData::EInit::DuplicateInput; }
 PCGExData::EInit UPCGExRefineEdgesSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 
 PCGEX_INITIALIZE_ELEMENT(RefineEdges)
@@ -34,6 +34,7 @@ bool FPCGExRefineEdgesElement::Boot(FPCGContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(RefineEdges)
 
 	PCGEX_OPERATION_BIND(Refinement, UPCGExEdgeRefinePrimMST)
+	PCGEX_FWD(GraphBuilderSettings)
 
 	return true;
 }
@@ -62,8 +63,7 @@ bool FPCGExRefineEdgesElement::ExecuteInternal(
 
 			Context->Refinement->PrepareForPointIO(Context->CurrentIO);
 
-			Context->GraphBuilder = new PCGExGraph::FGraphBuilder(*Context->CurrentIO, 8);
-			if (Settings->bPruneIsolatedPoints) { Context->GraphBuilder->EnablePointsPruning(); }
+			Context->GraphBuilder = new PCGExGraph::FGraphBuilder(*Context->CurrentIO, &Context->GraphBuilderSettings, 8);
 
 			Context->SetState(PCGExGraph::State_ReadyForNextEdges);
 		}

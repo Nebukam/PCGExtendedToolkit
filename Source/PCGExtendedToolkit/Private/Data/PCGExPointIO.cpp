@@ -59,6 +59,14 @@ namespace PCGExData
 
 	FPCGAttributeAccessorKeysPoints* FPointIO::GetInKeys() const { return InKeys; }
 
+	void FPointIO::PrintInKeysMap(TMap<PCGMetadataEntryKey, int32>& InMap)
+	{
+		CreateInKeys();
+		const TArray<FPCGPoint>& PointList = In->GetPoints();
+		InMap.Empty(PointList.Num());
+		for (int i = 0; i < PointList.Num(); i++) { InMap.Add(PointList[i].MetadataEntry, i); }
+	}
+
 
 	FPCGAttributeAccessorKeysPoints* FPointIO::CreateOutKeys()
 	{
@@ -71,6 +79,14 @@ namespace PCGExData
 	}
 
 	FPCGAttributeAccessorKeysPoints* FPointIO::GetOutKeys() const { return OutKeys; }
+
+	void FPointIO::PrintOutKeysMap(TMap<PCGMetadataEntryKey, int32>& InMap)
+	{
+		CreateOutKeys();
+		const TArray<FPCGPoint>& PointList = Out->GetPoints();
+		InMap.Empty(PointList.Num());
+		for (int i = 0; i < PointList.Num(); i++) { InMap.Add(PointList[i].MetadataEntry, i); }
+	}
 
 
 	void FPointIO::InitPoint(FPCGPoint& Point, const PCGMetadataEntryKey FromKey) const

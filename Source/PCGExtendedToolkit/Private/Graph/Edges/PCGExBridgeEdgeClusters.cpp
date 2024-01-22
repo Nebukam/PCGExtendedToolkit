@@ -91,7 +91,7 @@ bool FPCGExBridgeEdgeClustersElement::ExecuteInternal(
 				Context->SetState(PCGExMT::State_ReadyForNextPoints);
 				return false;
 			}
-			
+
 			if (Context->TaggedEdges->Entries.Num() == 1)
 			{
 				// No clusters to consolidate, just dump existing points

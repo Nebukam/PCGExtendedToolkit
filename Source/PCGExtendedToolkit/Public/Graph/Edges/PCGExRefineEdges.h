@@ -37,12 +37,12 @@ public:
 	virtual PCGExData::EInit GetEdgeOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings interface
 
-	/** Removes roaming points from the output, and keeps only points that are part of an cluster. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	bool bPruneIsolatedPoints = true;
-
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta = (NoResetToDefault, ShowOnlyInnerProperties))
 	TObjectPtr<UPCGExEdgeRefineOperation> Refinement;
+
+	/** Graph & Edges output properties */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Graph Output Settings"))
+	FPCGExGraphBuilderSettings GraphBuilderSettings;
 
 private:
 	friend class FPCGExRefineEdgesElement;
@@ -56,6 +56,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExRefineEdgesContext : public FPCGExEdgesProce
 
 	UPCGExEdgeRefineOperation* Refinement;
 
+	FPCGExGraphBuilderSettings GraphBuilderSettings;
 	PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
 };
 
@@ -72,7 +73,7 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
 
-// Define the background task class
+
 class PCGEXTENDEDTOOLKIT_API FPCGExRefineEdgesTask : public FPCGExNonAbandonableTask
 {
 public:

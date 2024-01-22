@@ -12,16 +12,16 @@ void UPCGExGoalPickerAttribute::PrepareForData(const PCGExData::FPointIO& InSeed
 
 	if (GoalCount == EPCGExGoalPickAttributeAmount::Single)
 	{
-		AttributeGetter.Descriptor = static_cast<FPCGExInputDescriptor>(Attribute);
+		AttributeGetter.Descriptor = Attribute;
 		AttributeGetter.Grab(InSeeds);
 	}
 	else
 	{
 		AttributeGetters.Reset(Attributes.Num());
-		for (const FPCGExInputDescriptorWithSingleField& Descriptor : Attributes)
+		for (const FPCGExInputDescriptor& Descriptor : Attributes)
 		{
 			PCGEx::FLocalSingleFieldGetter& Getter = AttributeGetters.Emplace_GetRef();
-			Getter.Descriptor = static_cast<FPCGExInputDescriptor>(Descriptor);
+			Getter.Descriptor = Descriptor;
 			Getter.Grab(InSeeds);
 		}
 	}
@@ -52,7 +52,7 @@ bool UPCGExGoalPickerAttribute::OutputMultipleGoals() const { return GoalCount !
 void UPCGExGoalPickerAttribute::UpdateUserFacingInfos()
 {
 	Super::UpdateUserFacingInfos();
-	for (FPCGExInputDescriptorWithSingleField& Descriptor : Attributes)
+	for (FPCGExInputDescriptor& Descriptor : Attributes)
 	{
 		Descriptor.UpdateUserFacingInfos();
 	}

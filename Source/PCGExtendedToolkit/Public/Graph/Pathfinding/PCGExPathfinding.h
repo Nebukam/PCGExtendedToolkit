@@ -54,7 +54,7 @@ enum class EPCGExHeuristicScoreSource : uint8
 };
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicModifier : public FPCGExInputDescriptorWithSingleField
+struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicModifier : public FPCGExInputDescriptor
 {
 	GENERATED_BODY()
 
@@ -75,10 +75,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicModifier : public FPCGExInputDescri
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-3))
 	EPCGExHeuristicScoreSource Source = EPCGExHeuristicScoreSource::Point;
 
-	/** How to interpret the data. */
-	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-2))
-	//EPCGExHeuristicScoreMode Interpretation = EPCGExHeuristicScoreMode::HigherIsBetter;
-
 	/** Modifier weight. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1, ClampMin="0.001"))
 	double Weight = 100;
@@ -89,11 +85,12 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicModifier : public FPCGExInputDescri
 
 	/** Attribute to fetch local weight from. This value will be scaled by the base weight. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta=(PCG_Overridable, EditCondition="bUseLocalWeight", DisplayPriority=1))
-	FPCGExInputDescriptorWithSingleField LocalWeight;
+	FPCGExInputDescriptor LocalWeightAttribute;
 
 	/** Curve the value will be remapped over. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta=(PCG_Overridable))
 	TSoftObjectPtr<UCurveFloat> ScoreCurve;
+	TObjectPtr<UCurveFloat> ScoreCurveObj;
 };
 
 USTRUCT(BlueprintType)
@@ -124,6 +121,16 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicModifiersSettings
 	~FPCGExHeuristicModifiersSettings()
 	{
 		Cleanup();
+	}
+
+	void LoadCurves()
+	{
+		for (FPCGExHeuristicModifier& Modifier : Modifiers)
+		{
+			if (!Modifier.bEnabled) { continue; }
+			if (Modifier.ScoreCurve.IsNull()) { Modifier.ScoreCurveObj = TSoftObjectPtr<UCurveFloat>(PCGEx::WeightDistributionLinear).LoadSynchronous(); }
+			else { Modifier.ScoreCurveObj = Modifier.ScoreCurve.LoadSynchronous(); }
+		}
 	}
 
 	void Cleanup()
@@ -170,14 +177,12 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicModifiersSettings
 
 			PCGEx::FLocalSingleFieldGetter* WeightGetter = nullptr;
 
-			TObjectPtr<UCurveFloat> ScoreFC;
-			if (Modifier.ScoreCurve.IsNull()) { ScoreFC = TSoftObjectPtr<UCurveFloat>(PCGEx::WeightDistributionLinear).LoadSynchronous(); }
-			else { ScoreFC = Modifier.ScoreCurve.LoadSynchronous(); }
+			const TObjectPtr<UCurveFloat> ScoreFC = Modifier.ScoreCurveObj;
 
 			if (Modifier.bUseLocalWeight)
 			{
 				WeightGetter = new PCGEx::FLocalSingleFieldGetter();
-				WeightGetter->Capture(Modifier.LocalWeight);
+				WeightGetter->Capture(Modifier.LocalWeightAttribute);
 			}
 
 			bool bModifierGrabbed;

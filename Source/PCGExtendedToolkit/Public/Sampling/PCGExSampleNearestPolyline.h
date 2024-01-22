@@ -131,7 +131,7 @@ public:
 
 	/** Attribute or property to read the minimum range from. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, EditCondition="bUseLocalRangeMin && SampleMethod==EPCGExSampleMethod::WithinRange", EditConditionHides))
-	FPCGExInputDescriptorWithSingleField LocalRangeMin;
+	FPCGExInputDescriptor LocalRangeMin;
 
 	/** Use a per-point maximum range*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, InlineEditConditionToggle, EditCondition="SampleMethod==EPCGExSampleMethod::WithinRange"))
@@ -139,7 +139,7 @@ public:
 
 	/** Attribute or property to read the maximum range from. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, EditCondition="bUseLocalRangeMax && SampleMethod==EPCGExSampleMethod::WithinRange", EditConditionHides))
-	FPCGExInputDescriptorWithSingleField LocalRangeMax;
+	FPCGExInputDescriptor LocalRangeMax;
 
 	/** Weight method used for blending */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta=(PCG_Overridable))

@@ -93,7 +93,7 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
 
-// Define the background task class
+
 class PCGEXTENDEDTOOLKIT_API FPCGExWriteExtrasTask : public FPCGExNonAbandonableTask
 {
 public:

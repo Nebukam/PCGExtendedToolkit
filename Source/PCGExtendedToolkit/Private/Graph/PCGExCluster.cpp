@@ -83,7 +83,7 @@ namespace PCGExCluster
 		EdgeIndexMap.Empty();
 
 		TArray<PCGExGraph::FIndexedEdge> EdgeList;
-		if (!PCGExGraph::BuildIndexedEdges(EdgeIO, InNodeIndicesMap, EdgeList, true))
+		if (!BuildIndexedEdges(EdgeIO, InNodeIndicesMap, EdgeList, true))
 		{
 			EdgeList.Empty();
 			return false;

@@ -18,33 +18,51 @@ enum class EPCGExSortDirection : uint8
 };
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExSortRule : public FPCGExInputDescriptor
+struct PCGEXTENDEDTOOLKIT_API FPCGExSortRuleDescriptor : public FPCGExInputDescriptor
 {
 	GENERATED_BODY()
 
+	FPCGExSortRuleDescriptor()
+	{
+	}
+
+	FPCGExSortRuleDescriptor(const FPCGExSortRuleDescriptor& Other)
+		: FPCGExInputDescriptor(Other),
+		  Tolerance(Other.Tolerance)
+	{
+	}
+
+	/** Equality tolerance. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	double Tolerance = 0.0001f;
+};
+
+struct PCGEXTENDEDTOOLKIT_API FPCGExSortRule : public PCGEx::FLocalSingleFieldGetter
+{
 	FPCGExSortRule()
 	{
 	}
 
 	FPCGExSortRule(const FPCGExSortRule& Other)
-		: FPCGExInputDescriptor(Other), OrderFieldSelection(Other.OrderFieldSelection), Tolerance(Other.Tolerance)
+		: FLocalSingleFieldGetter(Other)
 	{
 	}
 
-public:
-	/** Sub-component order, used only for multi-field attributes (FVector, FRotator etc). */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayAfter="Selector", ForceInlineRow))
-	EPCGExOrderedFieldSelection OrderFieldSelection = EPCGExOrderedFieldSelection::XYZ;
-
-	/** Equality tolerance. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	float Tolerance = 0.0001f;
+	double Tolerance = 0.0001f;
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
 class PCGEXTENDEDTOOLKIT_API UPCGExSortPointsSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
+
+	//~Begin UObject interface
+#if WITH_EDITOR
+
+public:
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+#endif
+	//~End UObject interface
 
 public:
 	//~Begin UPCGSettings interface
@@ -67,8 +85,8 @@ public:
 	EPCGExSortDirection SortDirection = EPCGExSortDirection::Ascending;
 
 	/** Ordered list of attribute to check to sort over. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	TArray<FPCGExSortRule> Rules = {FPCGExSortRule{}};
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, TitleProperty="{TitlePropertyName}"))
+	TArray<FPCGExSortRuleDescriptor> Rules = {FPCGExSortRuleDescriptor{}};
 
 private:
 	friend class FPCGExSortPointsElement;

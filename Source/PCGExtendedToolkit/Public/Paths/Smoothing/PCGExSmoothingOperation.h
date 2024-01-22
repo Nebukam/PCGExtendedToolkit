@@ -31,7 +31,7 @@ public:
 	bool bPreserveEnd = true;
 	double FixedInfluence = 1.0;
 	bool bUseLocalInfluence = false;
-	FPCGExInputDescriptorWithSingleField InfluenceDescriptor;
+	FPCGExInputDescriptor InfluenceDescriptor;
 
 protected:
 	FPCGExBlendingSettings InfluenceSettings = FPCGExBlendingSettings(EPCGExDataBlendingType::Weight);

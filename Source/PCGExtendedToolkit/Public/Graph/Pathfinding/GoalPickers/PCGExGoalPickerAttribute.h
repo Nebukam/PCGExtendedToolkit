@@ -32,11 +32,11 @@ public:
 	EPCGExGoalPickAttributeAmount GoalCount = EPCGExGoalPickAttributeAmount::Single;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="GoalCount==EPCGExGoalPickAttributeAmount::Single", EditConditionHides))
-	FPCGExInputDescriptorWithSingleField Attribute;
+	FPCGExInputDescriptor Attribute;
 	PCGEx::FLocalSingleFieldGetter AttributeGetter;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="GoalCount==EPCGExGoalPickAttributeAmount::List", EditConditionHides, TitleProperty="{TitlePropertyName}"))
-	TArray<FPCGExInputDescriptorWithSingleField> Attributes;
+	TArray<FPCGExInputDescriptor> Attributes;
 	TArray<PCGEx::FLocalSingleFieldGetter> AttributeGetters;
 
 	virtual void PrepareForData(const PCGExData::FPointIO& InSeeds, const PCGExData::FPointIO& InGoals) override;

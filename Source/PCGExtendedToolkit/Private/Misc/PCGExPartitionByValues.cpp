@@ -4,6 +4,7 @@
 #include "Misc/PCGExPartitionByValues.h"
 
 #include "Data/PCGExData.h"
+#include "Sampling/PCGExSampling.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPartitionByValues"
 #define PCGEX_NAMESPACE PartitionByValues
@@ -26,6 +27,7 @@ namespace PCGExPartition
 		SubLayers.GetKeys(Keys);
 		for (const int64 Key : Keys) { delete *SubLayers.Find(Key); }
 		SubLayers.Empty();
+		UniquePartitionKeys.Empty();
 	}
 
 	int32 FKPartition::GetSubPartitionsNum()
@@ -51,6 +53,7 @@ namespace PCGExPartition
 			FWriteScopeLock WriteLock(LayersLock);
 			FKPartition* Partition = new FKPartition(this, Key, InRule, SubLayers.Num());
 
+			UniquePartitionKeys.Add(Key);
 			SubLayers.Add(Key, Partition);
 			return Partition;
 		}
@@ -75,6 +78,26 @@ namespace PCGExPartition
 			Partitions.Add(this);
 		}
 	}
+
+	void FKPartition::SortPartitions()
+	{
+		TMap<int64, int64> ValuesIndices;
+		TArray<int64> UValues = UniquePartitionKeys.Array();
+		UValues.Sort();
+
+		int64 PIndex = 0;
+		for (int64 UniquePartitionKey : UValues) { ValuesIndices.Add(UniquePartitionKey, PIndex++); }
+		UValues.Empty();
+
+		for (const TPair<int64, FKPartition*>& Pair : SubLayers)
+		{
+			Pair.Value->SortPartitions();
+			Pair.Value->PartitionIndex = *ValuesIndices.Find(Pair.Value->PartitionKey); //Ordered index
+		}
+
+		ValuesIndices.Empty();
+		UniquePartitionKeys.Empty();
+	}
 }
 
 #if WITH_EDITOR
@@ -93,6 +116,7 @@ PCGExData::EInit UPCGExPartitionByValuesSettings::GetMainOutputInitMode() const 
 FPCGExPartitionByValuesContext::~FPCGExPartitionByValuesContext()
 {
 	PCGEX_DELETE(RootPartition)
+	KeySums.Empty();
 }
 
 PCGEX_INITIALIZE_ELEMENT(PartitionByValues)
@@ -102,6 +126,8 @@ bool FPCGExPartitionByValuesElement::Boot(FPCGContext* InContext) const
 	if (!FPCGExPointsProcessorElementBase::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(PartitionByValues)
+
+	PCGEX_OUTPUT_VALIDATE_NAME_NOWRITER(KeySum)
 
 	for (const FPCGExFilterRuleDescriptor& Descriptor : Settings->PartitionRules)
 	{
@@ -139,7 +165,7 @@ bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* InContext) con
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExPartitionByValuesElement::Execute);
 
-	PCGEX_CONTEXT(PartitionByValues)
+	PCGEX_CONTEXT_AND_SETTINGS(PartitionByValues)
 
 	if (Context->IsSetup())
 	{
@@ -157,8 +183,12 @@ bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* InContext) con
 	{
 		auto Initialize = [&](PCGExData::FPointIO& PointIO)
 		{
-			Context->Rules.Empty();
+			Context->Rules.Empty(); //
 			PointIO.CreateInKeys();
+
+			const int32 NumPoints = PointIO.GetNum();
+
+			if (Settings->bWriteKeySum && !Context->bSplitOutput) { Context->KeySums.SetNumZeroed(NumPoints); }
 
 			for (FPCGExFilterRuleDescriptor& Descriptor : Context->RulesDescriptors)
 			{
@@ -167,15 +197,7 @@ bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* InContext) con
 			}
 
 			// Prepare each rule so it cache the filter key by index
-			if (!Context->bSplitOutput)
-			{
-				const int32 NumPoints = PointIO.GetNum();
-				for (FPCGExFilter::FRule& Rule : Context->Rules)
-				{
-					if (!Rule.RuleDescriptor->bWriteKey) { continue; }
-					Rule.FilteredValues.SetNumZeroed(NumPoints);
-				}
-			}
+			for (FPCGExFilter::FRule& Rule : Context->Rules) { Rule.FilteredValues.SetNumZeroed(NumPoints); }
 		};
 
 		auto ProcessPoint = [&](const int32 PointIndex, const PCGExData::FPointIO& PointIO)
@@ -185,13 +207,15 @@ bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* InContext) con
 			{
 				const int64 KeyValue = Rule.Filter(PointIndex);
 				Partition = Partition->GetPartition(KeyValue, &Rule);
-				if (!Context->bSplitOutput && Rule.RuleDescriptor->bWriteKey) { Rule.FilteredValues[PointIndex] = KeyValue; }
+				Rule.FilteredValues[PointIndex] = KeyValue;
 			}
 
 			Partition->Add(PointIndex);
 		};
 
 		if (!Context->ProcessCurrentPoints(Initialize, ProcessPoint)) { return false; }
+
+		Context->RootPartition->SortPartitions();
 
 		if (Context->bSplitOutput)
 		{
@@ -203,12 +227,41 @@ bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* InContext) con
 		}
 		else
 		{
+			TMap<int64, int64> IndiceMap;
 			for (FPCGExFilter::FRule& Rule : Context->Rules)
 			{
 				if (!Rule.RuleDescriptor->bWriteKey) { continue; }
+				if (Rule.RuleDescriptor->bUsePartitionIndexAsKey)
+				{
+					IndiceMap.Empty(Rule.FilteredValues.Num());
+					int64 PIndex = -1;
+					for (int64& Value : Rule.FilteredValues)
+					{
+						const int64* FilterPtr = IndiceMap.Find(Value);
+						if (!FilterPtr)
+						{
+							IndiceMap.Add(Value, ++PIndex);
+							Value = PIndex;
+						}
+						else
+						{
+							Value = *FilterPtr;
+						}
+					}
+					IndiceMap.Empty();
+				}
+
 				PCGEx::FAttributeAccessor<int64>* Accessor = PCGEx::FAttributeAccessor<int64>::FindOrCreate(*Context->CurrentIO, Rule.RuleDescriptor->KeyAttributeName, 0, false);
 				Accessor->SetRange(Rule.FilteredValues);
 				delete Accessor;
+
+				if (Settings->bWriteKeySum)
+				{
+					for (int i = 0; i < Rule.FilteredValues.Num(); i++) { Context->KeySums[i] += Rule.FilteredValues[i]; }
+					PCGEx::FAttributeAccessor<int64>* KSAccessor = PCGEx::FAttributeAccessor<int64>::FindOrCreate(*Context->CurrentIO, Settings->KeySumAttributeName, 0, false);
+					KSAccessor->SetRange(Context->KeySums);
+					delete KSAccessor;
+				}
 			}
 
 			Context->OutputPoints();
@@ -232,9 +285,11 @@ bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* InContext) con
 
 			for (const int32 PointIndex : Partition->Points) { OutPoints.Add(InPoints[PointIndex]); }
 
+			int64 Sum = 0;
 			while (Partition->Parent)
 			{
 				const FPCGExFilter::FRule* Rule = Partition->Rule;
+				Sum += Partition->PartitionKey;
 
 				if (Rule->RuleDescriptor->bWriteKey)
 				{
@@ -255,6 +310,8 @@ bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* InContext) con
 
 				Partition = Partition->Parent;
 			}
+
+			if (Settings->bWriteKeySum) { PCGExData::WriteMark<int64>(OutData->Metadata, Settings->KeySumAttributeName, Sum); }
 
 			FPCGTaggedData* TaggedData = Context->Output(OutData, Context->MainPoints->DefaultOutputLabel);
 			Tags->Dump(TaggedData->Tags);

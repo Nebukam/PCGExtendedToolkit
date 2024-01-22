@@ -14,7 +14,6 @@ void FPCGExInputDescriptor::UpdateUserFacingInfos() { TitlePropertyName = GetDis
 bool FPCGExInputDescriptor::Validate(const UPCGPointData* InData)
 {
 	Selector = Selector.CopyAndFixLast(InData);
-
 	if (GetSelection() == EPCGAttributePropertySelection::Attribute)
 	{
 		Attribute = Selector.IsValid() ? InData->Metadata->GetMutableAttribute(GetName()) : nullptr;
@@ -22,10 +21,10 @@ bool FPCGExInputDescriptor::Validate(const UPCGPointData* InData)
 		return Attribute != nullptr;
 	}
 
-	if (Selector.IsValid())
+	if (Selector.IsValid() &&
+		Selector.GetSelection() == EPCGAttributePropertySelection::PointProperty)
 	{
-		const TUniquePtr<const IPCGAttributeAccessor> Accessor = PCGAttributeAccessorHelpers::CreateConstAccessor(InData, Selector);
-		UnderlyingType = Accessor->GetUnderlyingType();
+		UnderlyingType = static_cast<int16>(PCGEx::GetPointPropertyTypeId(Selector.GetPointProperty()));
 		return true;
 	}
 
@@ -71,19 +70,5 @@ namespace PCGEx
 		FAttributesInfos* NewInfos = new FAttributesInfos();
 		FAttributeIdentity::Get(InData, NewInfos->Identities);
 		return NewInfos;
-	}
-
-	void FLocalSingleFieldGetter::Capture(const FPCGExInputDescriptorWithSingleField& InDescriptor)
-	{
-		Descriptor = static_cast<FPCGExInputDescriptor>(InDescriptor);
-		Field = InDescriptor.Field;
-		Axis = InDescriptor.Axis;
-	}
-
-	void FLocalSingleFieldGetter::Capture(const FPCGExInputDescriptorGeneric& InDescriptor)
-	{
-		Descriptor = static_cast<FPCGExInputDescriptor>(InDescriptor);
-		Field = InDescriptor.Field;
-		Axis = InDescriptor.Axis;
 	}
 }

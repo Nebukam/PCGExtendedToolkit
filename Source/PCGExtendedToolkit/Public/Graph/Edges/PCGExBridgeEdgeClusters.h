@@ -66,6 +66,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBridgeEdgeClustersContext : public FPCGExEdg
 	TArray<PCGExCluster::FCluster*> BridgedClusters;
 
 	FPCGExPointIOMerger* Merger = nullptr;
+	FPCGExGraphBuilderSettings GraphBuilderSettings;
 	PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
 
 protected:
