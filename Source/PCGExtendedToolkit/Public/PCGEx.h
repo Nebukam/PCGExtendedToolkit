@@ -6,13 +6,14 @@
 #include "PCGComponent.h"
 #include "PCGContext.h"
 #include "PCGExMath.h"
+#include "MatchAndSet/PCGMatchAndSetWeighted.h"
 
 #include "PCGEx.generated.h"
 
 #pragma region MACROS
 
 #define FTEXT(_TEXT) FText::FromString(FString(_TEXT))
-#define FSTRING(_TEXT) FString(FString(_TEXT))
+#define FSTRING(_TEXT) FString(_TEXT)
 
 #define PCGEX_DELETE(_VALUE) delete _VALUE; _VALUE = nullptr;
 #define PCGEX_DELETE_TARRAY(_VALUE) for(const auto* Item : _VALUE){ delete Item; } _VALUE.Empty();
@@ -107,6 +108,14 @@ enum class EPCGExOrderedFieldSelection : uint8
 };
 
 UENUM(BlueprintType)
+enum class EPCGExTransformComponent : uint8
+{
+	Position UMETA(DisplayName = "Position", ToolTip="Position component."),
+	Rotation UMETA(DisplayName = "Rotation", ToolTip="Rotation component."),
+	Scale UMETA(DisplayName = "Scale", ToolTip="Scale component."),
+};
+
+UENUM(BlueprintType)
 enum class EPCGExSingleField : uint8
 {
 	X UMETA(DisplayName = "X/Roll", ToolTip="X/Roll component if it exist, raw value otherwise."),
@@ -125,6 +134,7 @@ enum class EPCGExAxis : uint8
 	Left UMETA(DisplayName = "Left", ToolTip="Left from Transform/FQuat/Rotator, or raw vector."),
 	Up UMETA(DisplayName = "Up", ToolTip="Up from Transform/FQuat/Rotator, or raw vector."),
 	Down UMETA(DisplayName = "Down", ToolTip="Down from Transform/FQuat/Rotator, or raw vector."),
+	Euler UMETA(DisplayName = "Euler", ToolTip="Fetch Euler from Transform.GetRotation/FQuat/Rotator."),
 };
 
 UENUM(BlueprintType)
@@ -178,6 +188,131 @@ namespace PCGEx
 	const FSoftObjectPath WeightDistributionLinear = FSoftObjectPath(TEXT("/PCGExtendedToolkit/FC_PCGExWeightDistribution_Linear.FC_PCGExWeightDistribution_Linear"));
 	const FSoftObjectPath WeightDistributionExpoInv = FSoftObjectPath(TEXT("/PCGExtendedToolkit/FC_PCGExWeightDistribution_Expo_Inv.FC_PCGExWeightDistribution_Expo_Inv"));
 	const FSoftObjectPath WeightDistributionExpo = FSoftObjectPath(TEXT("/PCGExtendedToolkit/FC_PCGExWeightDistribution_Expo.FC_PCGExWeightDistribution_Expo"));
+
+#pragma region Field Helpers
+
+	static EPCGMetadataTypes GetPointPropertyTypeId(const EPCGPointProperties Property)
+	{
+		switch (Property)
+		{
+		case EPCGPointProperties::Density:
+			return EPCGMetadataTypes::Float;
+		case EPCGPointProperties::BoundsMin:
+			return EPCGMetadataTypes::Vector;
+		case EPCGPointProperties::BoundsMax:
+			return EPCGMetadataTypes::Vector;
+		case EPCGPointProperties::Extents:
+			return EPCGMetadataTypes::Vector;
+		case EPCGPointProperties::Color:
+			return EPCGMetadataTypes::Vector4;
+		case EPCGPointProperties::Position:
+			return EPCGMetadataTypes::Vector;
+		case EPCGPointProperties::Rotation:
+			return EPCGMetadataTypes::Quaternion;
+		case EPCGPointProperties::Scale:
+			return EPCGMetadataTypes::Vector;
+		case EPCGPointProperties::Transform:
+			return EPCGMetadataTypes::Transform;
+		case EPCGPointProperties::Steepness:
+			return EPCGMetadataTypes::Float;
+		case EPCGPointProperties::LocalCenter:
+			return EPCGMetadataTypes::Vector;
+		case EPCGPointProperties::Seed:
+			return EPCGMetadataTypes::Integer32;
+		default:
+			return EPCGMetadataTypes::Unknown;
+		}
+	}
+
+	static const TMap<FString, EPCGExTransformComponent> STRMAP_TRANSFORM_FIELD = {
+		{TEXT("POSITION"), EPCGExTransformComponent::Position},
+		{TEXT("POS"), EPCGExTransformComponent::Position},
+		{TEXT("ROTATION"), EPCGExTransformComponent::Rotation},
+		{TEXT("ROT"), EPCGExTransformComponent::Rotation},
+		{TEXT("ORIENT"), EPCGExTransformComponent::Rotation},
+		{TEXT("SCALE"), EPCGExTransformComponent::Scale},
+	};
+
+	static const TMap<FString, EPCGExSingleField> STRMAP_SINGLE_FIELD = {
+		{TEXT("X"), EPCGExSingleField::X},
+		{TEXT("R"), EPCGExSingleField::X},
+		{TEXT("ROLL"), EPCGExSingleField::X},
+		{TEXT("RX"), EPCGExSingleField::X},
+		{TEXT("Y"), EPCGExSingleField::Y},
+		{TEXT("G"), EPCGExSingleField::Y},
+		{TEXT("YAW"), EPCGExSingleField::Y},
+		{TEXT("RY"), EPCGExSingleField::Y},
+		{TEXT("Z"), EPCGExSingleField::Z},
+		{TEXT("B"), EPCGExSingleField::Z},
+		{TEXT("PITCH"), EPCGExSingleField::Z},
+		{TEXT("RZ"), EPCGExSingleField::Z},
+		{TEXT("W"), EPCGExSingleField::W},
+		{TEXT("A"), EPCGExSingleField::W},
+		{TEXT("L"), EPCGExSingleField::Length},
+		{TEXT("LEN"), EPCGExSingleField::Length},
+		{TEXT("LENGTH"), EPCGExSingleField::Length},
+	};
+
+	static const TMap<FString, EPCGExAxis> STRMAP_AXIS = {
+		{TEXT("FORWARD"), EPCGExAxis::Forward},
+		{TEXT("FRONT"), EPCGExAxis::Forward},
+		{TEXT("BACKWARD"), EPCGExAxis::Backward},
+		{TEXT("BACK"), EPCGExAxis::Backward},
+		{TEXT("RIGHT"), EPCGExAxis::Right},
+		{TEXT("LEFT"), EPCGExAxis::Left},
+		{TEXT("UP"), EPCGExAxis::Up},
+		{TEXT("TOP"), EPCGExAxis::Up},
+		{TEXT("DOWN"), EPCGExAxis::Down},
+		{TEXT("BOTTOM"), EPCGExAxis::Down},
+	};
+
+	static bool GetComponentSelection(const TArray<FString>& Names, EPCGExTransformComponent& OutSelection)
+	{
+		if (Names.IsEmpty()) { return false; }
+		for (const FString& Name : Names)
+		{
+			if (const EPCGExTransformComponent* Selection = STRMAP_TRANSFORM_FIELD.Find(Name.ToUpper()))
+			{
+				OutSelection = *Selection;
+				return true;
+			}
+		}
+		return false;
+	}
+
+	static bool GetFieldSelection(const TArray<FString>& Names, EPCGExSingleField& OutSelection)
+	{
+		if (Names.IsEmpty()) { return false; }
+		const FString& STR = Names.Num() > 1 ? Names[1].ToUpper() : Names[0].ToUpper();
+		if (const EPCGExSingleField* Selection = STRMAP_SINGLE_FIELD.Find(STR))
+		{
+			OutSelection = *Selection;
+			return true;
+		}
+		if (STR.Len() <= 0) { return false; }
+		if (const EPCGExSingleField* Selection = STRMAP_SINGLE_FIELD.Find(FString::Printf(TEXT("%c"), STR[0]).ToUpper()))
+		{
+			OutSelection = *Selection;
+			return true;
+		}
+		return false;
+	}
+
+	static bool GetAxisSelection(const TArray<FString>& Names, EPCGExAxis& OutSelection)
+	{
+		if (Names.IsEmpty()) { return false; }
+		for (const FString& Name : Names)
+		{
+			if (const EPCGExAxis* Selection = STRMAP_AXIS.Find(Name.ToUpper()))
+			{
+				OutSelection = *Selection;
+				return true;
+			}
+		}
+		return false;
+	}
+
+#pragma endregion
 
 	struct PCGEXTENDEDTOOLKIT_API FPointRef
 	{
@@ -245,6 +380,8 @@ namespace PCGEx
 			return Quat.GetUpVector();
 		case EPCGExAxis::Down:
 			return Quat.GetUpVector() * -1;
+		case EPCGExAxis::Euler:
+			return Quat.Euler() * -1;
 		}
 	}
 
@@ -265,6 +402,8 @@ namespace PCGEx
 			return FVector::UpVector;
 		case EPCGExAxis::Down:
 			return FVector::DownVector;
+		case EPCGExAxis::Euler:
+			return FVector::OneVector;
 		}
 	}
 

@@ -22,7 +22,7 @@ namespace PCGExGraph
 		FVector Center;
 	};
 
-	
+
 	struct PCGEXTENDEDTOOLKIT_API FEdgeCrossingsHandler
 	{
 		mutable FRWLock CrossingLock;
@@ -60,7 +60,6 @@ namespace PCGExGraph
 		void ProcessEdge(const int32 EdgeIndex, const TArray<FPCGPoint>& InPoints);
 		void InsertCrossings();
 	};
-
 }
 
 /**
@@ -91,7 +90,7 @@ public:
 	/** Attempts to merge all edge clusters associated with a vtx input before proceeding to finding crossings. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bMergeBoundClusters = true;
-	
+
 	/** Distance at which segments are considered crossing. !!! VERY EXPENSIVE !!!*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bFindCrossings", ClampMin=0.001))
 	double CrossingTolerance = 10;

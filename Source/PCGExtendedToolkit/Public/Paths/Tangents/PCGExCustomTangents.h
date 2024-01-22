@@ -15,19 +15,18 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSingleTangentParams
 
 	FPCGExSingleTangentParams()
 	{
-		Direction.Selector.Update("$Transform");
-		Direction.Axis = EPCGExAxis::Backward;
+		Direction.Selector.Update("$Transform.Backward");
 	}
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	FPCGExInputDescriptorWithDirection Direction;
-	PCGEx::FLocalDirectionGetter DirectionGetter;
+	FPCGExInputDescriptor Direction;
+	PCGEx::FLocalVectorGetter DirectionGetter;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bUseLocalScale = false;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseLocalScale"))
-	FPCGExInputDescriptorWithSingleField LocalScale;
+	FPCGExInputDescriptor LocalScale;
 	PCGEx::FLocalSingleFieldGetter ScaleGetter;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))

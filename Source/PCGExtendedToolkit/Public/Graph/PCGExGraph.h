@@ -92,7 +92,7 @@ namespace PCGExGraph
 
 		bool bValid = true;
 
-		int32 NodeIndex = -1; // Index in the context of the list that helds the node
+		int32 NodeIndex = -1;  // Index in the context of the list that helds the node
 		int32 PointIndex = -1; // Index in the context of the UPCGPointData that helds the vtx
 		int32 NumExportedEdges = 0;
 
@@ -106,7 +106,6 @@ namespace PCGExGraph
 		void Add(const int32 EdgeIndex);
 	};
 
-	
 
 	struct PCGEXTENDEDTOOLKIT_API FSubGraph
 	{

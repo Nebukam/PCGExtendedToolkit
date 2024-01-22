@@ -123,7 +123,7 @@ public:
 
 	/** Attribute or property to read the minimum range from. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, EditCondition="bUseLocalRangeMin", EditConditionHides))
-	FPCGExInputDescriptorWithSingleField LocalRangeMin;
+	FPCGExInputDescriptor LocalRangeMin;
 
 	/** Use a per-point maximum range*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, InlineEditConditionToggle))
@@ -131,7 +131,7 @@ public:
 
 	/** Attribute or property to read the maximum range from. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, EditCondition="bUseLocalRangeMax", EditConditionHides))
-	FPCGExInputDescriptorWithSingleField LocalRangeMax;
+	FPCGExInputDescriptor LocalRangeMax;
 
 	/** Weight method used for blending */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta=(PCG_Overridable))
@@ -176,7 +176,7 @@ public:
 
 	/** The attribute or property on the targets that is to be considered their "Normal".*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, DisplayName=" └─ Source", EditCondition="bWriteNormal"))
-	FPCGExInputDescriptorWithDirection NormalSource;
+	FPCGExInputDescriptor NormalSource;
 
 	/** Write the sampled distance. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
@@ -234,7 +234,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestPointContext : public FPCGExPoi
 
 	PCGEx::FLocalSingleFieldGetter RangeMinGetter;
 	PCGEx::FLocalSingleFieldGetter RangeMaxGetter;
-	PCGEx::FLocalDirectionGetter NormalGetter;
+	PCGEx::FLocalVectorGetter NormalGetter;
 
 	TObjectPtr<UCurveFloat> WeightCurve = nullptr;
 

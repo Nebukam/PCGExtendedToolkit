@@ -30,22 +30,19 @@ bool FPCGExAttributeDebugDraw::Validate(const PCGExData::FPointIO& PointIO)
 	case EPCGExDebugExpression::Direction:
 	case EPCGExDebugExpression::Point:
 	case EPCGExDebugExpression::ConnectionToPosition:
-		VectorGetter.Descriptor = static_cast<FPCGExInputDescriptor>(*Descriptor);
-		VectorGetter.Axis = Descriptor->Axis;
+		VectorGetter.Capture(*Descriptor);
 		bValid = VectorGetter.Grab(PointIO);
 		break;
 	case EPCGExDebugExpression::ConnectionToIndex:
-		IndexGetter.Descriptor = static_cast<FPCGExInputDescriptor>(*Descriptor);
-		IndexGetter.Axis = Descriptor->Axis;
-		IndexGetter.Field = Descriptor->Field;
+		IndexGetter.Capture(*Descriptor);
 		bValid = IndexGetter.Grab(PointIO);
 		break;
 	case EPCGExDebugExpression::Label:
-		TextGetter.Descriptor = static_cast<FPCGExInputDescriptor>(*Descriptor);
+		TextGetter.Capture(*Descriptor);
 		bValid = TextGetter.Grab(PointIO);
 		break;
 	case EPCGExDebugExpression::Boolean:
-		SingleGetter.Descriptor = static_cast<FPCGExInputDescriptor>(*Descriptor);
+		SingleGetter.Capture(*Descriptor);
 		bValid = SingleGetter.Grab(PointIO);
 		break;
 	default: ;
@@ -53,10 +50,10 @@ bool FPCGExAttributeDebugDraw::Validate(const PCGExData::FPointIO& PointIO)
 
 	if (bValid)
 	{
-		SizeGetter.Capture(Descriptor->SizeAttribute);
+		SizeGetter.Capture(Descriptor->LocalSizeAttribute);
 		SizeGetter.Grab(PointIO);
 
-		ColorGetter.Descriptor = Descriptor->ColorAttribute;
+		ColorGetter.Descriptor = Descriptor->LocalColorAttribute;
 		ColorGetter.Grab(PointIO);
 	}
 	else
@@ -167,20 +164,17 @@ UPCGExDrawAttributesSettings::UPCGExDrawAttributesSettings(
 	if (DebugList.IsEmpty())
 	{
 		FPCGExAttributeDebugDrawDescriptor& Forward = DebugList.Emplace_GetRef();
-		Forward.Selector.Update(TEXT("$transform"));
-		Forward.Axis = EPCGExAxis::Forward;
+		Forward.Selector.Update(TEXT("$transform.Forward"));
 		Forward.Color = FColor::Red;
 		Forward.Size = 50;
 
 		FPCGExAttributeDebugDrawDescriptor& Right = DebugList.Emplace_GetRef();
-		Right.Selector.Update(TEXT("$transform"));
-		Right.Axis = EPCGExAxis::Right;
+		Right.Selector.Update(TEXT("$transform.Right"));
 		Right.Color = FColor::Green;
 		Right.Size = 50;
 
 		FPCGExAttributeDebugDrawDescriptor& Up = DebugList.Emplace_GetRef();
-		Up.Selector.Update(TEXT("$transform"));
-		Up.Axis = EPCGExAxis::Up;
+		Up.Selector.Update(TEXT("$transform.Up"));
 		Up.Color = FColor::Blue;
 		Up.Size = 50;
 	}

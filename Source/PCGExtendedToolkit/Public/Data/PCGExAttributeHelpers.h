@@ -42,7 +42,7 @@ public:
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta = (HideInDetailPanel, Hidden, EditConditionHides, EditCondition="false"))
 	FString TitlePropertyName;
 
-	/** Point Attribute or $Property */
+	/** Attribute or $Property. \n Supports sub-selector like Attribute.X, $Position.Y, $Transform.Backward, QuatAttribute.Up etc. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayPriority=0))
 	FPCGAttributePropertyInputSelector Selector;
 
@@ -63,98 +63,8 @@ public:
 	 * @param InData 
 	 * @return 
 	 */
-	bool Validate(const UPCGPointData* InData);
+	virtual bool Validate(const UPCGPointData* InData);
 	FString ToString() const { return GetName().ToString(); }
-};
-
-USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExInputDescriptorGeneric : public FPCGExInputDescriptor
-{
-	GENERATED_BODY()
-
-	FPCGExInputDescriptorGeneric()
-	{
-	}
-
-	explicit FPCGExInputDescriptorGeneric(const FPCGExInputDescriptorGeneric& Other)
-		: FPCGExInputDescriptor(Other),
-		  Type(Other.Type),
-		  Axis(Other.Axis),
-		  Field(Other.Field)
-	{
-	}
-
-public:
-	/** How to interpret the data */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayAfter="Selector"))
-	EPCGExSelectorType Type = EPCGExSelectorType::SingleField;
-
-	/** Direction to sample on relevant data types (FQuat are transformed to a direction first, from which the single component is selected) */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (DisplayName=" └─ Axis", PCG_Overridable, DisplayAfter="Type"))
-	EPCGExAxis Axis = EPCGExAxis::Forward;
-
-	/** Single field selection */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (DisplayName=" └─ Field", PCG_Overridable, DisplayAfter="Axis", EditCondition="Type==EPCGExSelectorType::SingleField", EditConditionHides))
-	EPCGExSingleField Field = EPCGExSingleField::X;
-
-	virtual ~FPCGExInputDescriptorGeneric() override
-	{
-	}
-};
-
-USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExInputDescriptorWithDirection : public FPCGExInputDescriptor
-{
-	GENERATED_BODY()
-
-	FPCGExInputDescriptorWithDirection()
-	{
-	}
-
-	explicit FPCGExInputDescriptorWithDirection(const FPCGExInputDescriptorWithDirection& Other)
-		: FPCGExInputDescriptor(Other),
-		  Axis(Other.Axis)
-	{
-	}
-
-public:
-	/** Sub-component order, used only for multi-field attributes (FVector, FRotator etc). */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (DisplayName=" └─ Axis", PCG_Overridable, DisplayAfter="Selector"))
-	EPCGExAxis Axis = EPCGExAxis::Forward;
-
-	virtual ~FPCGExInputDescriptorWithDirection() override
-	{
-	}
-};
-
-USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExInputDescriptorWithSingleField : public FPCGExInputDescriptor
-{
-	GENERATED_BODY()
-
-	FPCGExInputDescriptorWithSingleField()
-	{
-	}
-
-	explicit FPCGExInputDescriptorWithSingleField(const FPCGExInputDescriptorWithSingleField& Other)
-		: FPCGExInputDescriptor(Other),
-		  Axis(Other.Axis),
-		  Field(Other.Field)
-	{
-	}
-
-public:
-	/** Direction to sample on relevant data types (FQuat are transformed to a direction first, from which the single component is selected) */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (DisplayName=" └─ Axis", PCG_Overridable, DisplayAfter="Selector"))
-	EPCGExAxis Axis = EPCGExAxis::Forward;
-
-	/** Single field selection */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (DisplayName=" └─ Field", PCG_Overridable, DisplayAfter="Axis"))
-	EPCGExSingleField Field = EPCGExSingleField::X;
-
-	virtual ~FPCGExInputDescriptorWithSingleField() override
-	{
-	}
 };
 
 #pragma endregion
@@ -333,33 +243,6 @@ namespace PCGEx
 		}
 	};
 
-	/*
-		static FAttributeAccessorGeneric* TryGetAccessor(PCGExData::FPointIO& InPointIO, FName AttributeName)
-		{
-			const UPCGPointData* InData = InPointIO.GetIn();
-			FPCGMetadataAttributeBase* Attribute = InData->Metadata->GetMutableAttribute(AttributeName);
-			if (!Attribute) { return nullptr; }
-	
-			FAttributeAccessorGeneric* Accessor = nullptr;
-			PCGMetadataAttribute::CallbackWithRightType(
-				Attribute->GetTypeId(), [&](auto DummyValue)
-				{
-					using T = decltype(DummyValue);
-					Accessor = new FAttributeAccessor<T>(InData, Attribute, InPointIO.GetInKeys());
-				});
-	
-			return Accessor;
-		}
-	
-		template <typename T>
-		static FAttributeAccessor<T>* TryGetAccessor(PCGExData::FPointIO& InPointIO, FName AttributeName)
-		{
-			const UPCGPointData* InData = InPointIO.GetIn();
-			const FPCGMetadataAttributeBase* Attribute = InData->Metadata->GetConstAttribute(AttributeName);
-			if (!Attribute) { return nullptr; }
-			return new FAttributeAccessor<T>(InData, Attribute, InPointIO.GetInKeys());
-		}
-	*/
 	template <typename T>
 	class PCGEXTENDEDTOOLKIT_API FConstAttributeAccessor : public FAttributeAccessorBase<T>
 	{
@@ -530,10 +413,25 @@ namespace PCGEx
 		bool bNormalized = false;
 
 	public:
+		FAttributeGetter()
+		{
+		}
+
+		FAttributeGetter(const FAttributeGetter& Other)
+			: Component(Other.Component),
+			  Axis(Other.Axis),
+			  Field(Other.Field)
+		{
+		}
+
 		virtual ~FAttributeGetter()
 		{
 			FAttributeGetter<T>::Cleanup();
 		}
+
+		EPCGExTransformComponent Component = EPCGExTransformComponent::Position;
+		EPCGExAxis Axis = EPCGExAxis::Forward;
+		EPCGExSingleField Field = EPCGExSingleField::X;
 
 		TArray<T> Values;
 		mutable T Min = T{};
@@ -571,6 +469,7 @@ namespace PCGEx
 
 			const FPCGAttributePropertyInputSelector Selector = Descriptor.Selector.CopyAndFixLast(InData);
 			if (!Selector.IsValid()) { return false; }
+			ProcessExtraNames(Descriptor.Selector.GetExtraNames());
 
 			int32 NumPoints = PointIO.GetNum();
 			const EPCGAttributePropertySelection Selection = Selector.GetSelection();
@@ -668,7 +567,27 @@ namespace PCGEx
 		T& operator[](int32 Index) { return Values[Index]; }
 		T operator[](int32 Index) const { return bValid ? Values[Index] : GetDefaultValue(); }
 
+		virtual void Capture(const FPCGExInputDescriptor& InDescriptor) { Descriptor = InDescriptor; }
+
 	protected:
+		virtual void ProcessExtraNames(const TArray<FString>& ExtraNames)
+		{
+			if (Descriptor.Selector.GetName() == TEXT("Transform"))
+			{
+				if (GetAxisSelection(Descriptor.Selector.GetExtraNames(), Axis) &&
+					!GetComponentSelection(Descriptor.Selector.GetExtraNames(), Component))
+				{
+					// Only axis is set, assume rotation instead of position
+					Component = EPCGExTransformComponent::Rotation;
+				}
+			}
+			else
+			{
+				GetAxisSelection(Descriptor.Selector.GetExtraNames(), Axis);
+			}
+			GetFieldSelection(ExtraNames, Field);
+		}
+
 		virtual T GetDefaultValue() const = 0;
 		virtual void ResetMinMax() const = 0;
 
@@ -676,115 +595,12 @@ namespace PCGEx
 		PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_PRINT_VIRTUAL)
 	};
 
-
-#define PCGEX_SINGLE(_NAME, _TYPE, _MINMAX)\
-struct PCGEXTENDEDTOOLKIT_API FLocal ## _NAME ## Input : public FAttributeGetter<_TYPE>	{\
-protected: \
-virtual void ResetMinMax() const override{ _MINMAX }\
-virtual _TYPE GetDefaultValue() const override{ return 0; }\
-virtual _TYPE Convert(const int32 Value) const override { return static_cast<_TYPE>(Value); } \
-virtual _TYPE Convert(const int64 Value) const override { return static_cast<_TYPE>(Value); }\
-virtual _TYPE Convert(const float Value) const override { return static_cast<_TYPE>(Value); }\
-virtual _TYPE Convert(const double Value) const override { return static_cast<_TYPE>(Value); }\
-virtual _TYPE Convert(const FVector2D Value) const override { return static_cast<_TYPE>(Value.Length()); }\
-virtual _TYPE Convert(const FVector Value) const override { return static_cast<_TYPE>(Value.Length()); }\
-virtual _TYPE Convert(const FVector4 Value) const override { return static_cast<_TYPE>(FVector(Value).Length()); }\
-virtual _TYPE Convert(const FQuat Value) const override { return static_cast<_TYPE>(Value.GetForwardVector().Length()); }\
-virtual _TYPE Convert(const FTransform Value) const override { return static_cast<_TYPE>(Value.GetLocation().Length()); }\
-virtual _TYPE Convert(const bool Value) const override { return static_cast<_TYPE>(Value); }\
-virtual _TYPE Convert(const FRotator Value) const override { return static_cast<_TYPE>(Value.Euler().Length()); }\
-virtual _TYPE Convert(const FString Value) const override { return static_cast<_TYPE>(GetTypeHash(Value)); }\
-virtual _TYPE Convert(const FName Value) const override { return static_cast<_TYPE>(GetTypeHash(Value)); }\
-};
-
-	PCGEX_SINGLE(Integer32, int32, Min = TNumericLimits<int32>::Max(); Max = TNumericLimits<int32>::Min();)
-
-	PCGEX_SINGLE(Integer64, int64, Min = TNumericLimits<int64>::Max(); Max = TNumericLimits<int64>::Min();)
-
-	PCGEX_SINGLE(Float, float, Min = TNumericLimits<float>::Max(); Max = TNumericLimits<float>::Min();)
-
-	PCGEX_SINGLE(Double, double, Min = TNumericLimits<double>::Max(); Max = TNumericLimits<double>::Min();)
-
-	PCGEX_SINGLE(Boolean, bool, Min = false; Max = true;)
-
-#undef PCGEX_SINGLE
-
-#define PCGEX_VECTOR_CAST(_NAME, _TYPE, VECTOR2D)\
-struct PCGEXTENDEDTOOLKIT_API FLocal ## _NAME ## Input : public FAttributeGetter<_TYPE>	{\
-protected: \
-virtual void ResetMinMax() const override{ Min = _TYPE(TNumericLimits<double>::Min()); Max = _TYPE(TNumericLimits<double>::Max()); }\
-virtual _TYPE GetDefaultValue() const override { return _TYPE(0); }\
-virtual _TYPE Convert(const int32 Value) const override { return _TYPE(Value); } \
-virtual _TYPE Convert(const int64 Value) const override { return _TYPE(Value); }\
-virtual _TYPE Convert(const float Value) const override { return _TYPE(Value); }\
-virtual _TYPE Convert(const double Value) const override { return _TYPE(Value); }\
-virtual _TYPE Convert(const FVector2D Value) const VECTOR2D \
-virtual _TYPE Convert(const FVector Value) const override { return _TYPE(Value); }\
-virtual _TYPE Convert(const FVector4 Value) const override { return _TYPE(Value); }\
-virtual _TYPE Convert(const FQuat Value) const override { return _TYPE(Value.GetForwardVector()); }\
-virtual _TYPE Convert(const FTransform Value) const override { return _TYPE(Value.GetLocation()); }\
-virtual _TYPE Convert(const bool Value) const override { return _TYPE(Value); }\
-virtual _TYPE Convert(const FRotator Value) const override { return _TYPE(Value.Vector()); }\
-};
-
-	PCGEX_VECTOR_CAST(Vector2, FVector2D, { return Value;})
-
-	PCGEX_VECTOR_CAST(Vector, FVector, { return FVector(Value.X, Value.Y, 0);})
-
-	PCGEX_VECTOR_CAST(Vector4, FVector4, { return FVector4(Value.X, Value.Y, 0, 0);})
-
-#undef PCGEX_VECTOR_CAST
-
-#define PCGEX_LITERAL_CAST(_NAME, _TYPE)\
-struct PCGEXTENDEDTOOLKIT_API FLocal ## _NAME ## Input : public FAttributeGetter<_TYPE>	{\
-protected: \
-virtual void ResetMinMax() const override{  }\
-virtual _TYPE GetDefaultValue() const override { return _TYPE(""); }\
-virtual _TYPE Convert(const int32 Value) const override { return _TYPE(FString::FromInt(Value)); } \
-virtual _TYPE Convert(const int64 Value) const override { return _TYPE(FString::FromInt(Value)); }\
-virtual _TYPE Convert(const float Value) const override { return _TYPE(FString::SanitizeFloat(Value)); }\
-virtual _TYPE Convert(const double Value) const override { return _TYPE(""); }\
-virtual _TYPE Convert(const FVector2D Value) const override { return _TYPE(Value.ToString()); } \
-virtual _TYPE Convert(const FVector Value) const override { return _TYPE(Value.ToString()); }\
-virtual _TYPE Convert(const FVector4 Value) const override { return _TYPE(Value.ToString()); }\
-virtual _TYPE Convert(const FQuat Value) const override { return _TYPE(Value.ToString()); }\
-virtual _TYPE Convert(const FTransform Value) const override { return _TYPE(Value.ToString()); }\
-virtual _TYPE Convert(const bool Value) const override { return _TYPE(FString::FromInt(Value)); }\
-virtual _TYPE Convert(const FRotator Value) const override { return _TYPE(Value.ToString()); }\
-virtual _TYPE Convert(const FString Value) const override { return _TYPE(Value); }\
-virtual _TYPE Convert(const FName Value) const override { return _TYPE(Value.ToString()); }\
-};
-
-	PCGEX_LITERAL_CAST(String, FString)
-
-	PCGEX_LITERAL_CAST(Name, FName)
-
-#undef PCGEX_LITERAL_CAST
-
 #pragma endregion
 
 #pragma region Local Attribute Getter
 
 	struct PCGEXTENDEDTOOLKIT_API FLocalSingleFieldGetter : public FAttributeGetter<double>
 	{
-		FLocalSingleFieldGetter()
-		{
-		}
-
-		FLocalSingleFieldGetter(
-			const EPCGExSingleField InField,
-			const EPCGExAxis InAxis)
-		{
-			Field = InField;
-			Axis = InAxis;
-		}
-
-		EPCGExSingleField Field = EPCGExSingleField::X;
-		EPCGExAxis Axis = EPCGExAxis::Forward;
-
-		void Capture(const FPCGExInputDescriptorWithSingleField& InDescriptor);
-		void Capture(const FPCGExInputDescriptorGeneric& InDescriptor);
-
 	protected:
 		virtual void ResetMinMax() const override
 		{
@@ -851,39 +667,29 @@ virtual _TYPE Convert(const FName Value) const override { return _TYPE(Value.ToS
 		}
 
 		virtual double Convert(const FQuat Value) const override { return Convert(GetDirection(Value, Axis)); }
-		virtual double Convert(const FTransform Value) const override { return Convert(Value.GetLocation()); }
+
+		virtual double Convert(const FTransform Value) const override
+		{
+			switch (Component)
+			{
+			default: ;
+			case EPCGExTransformComponent::Position:
+				return Convert(Value.GetLocation());
+			case EPCGExTransformComponent::Rotation:
+				return Convert(Value.GetRotation());
+			case EPCGExTransformComponent::Scale:
+				return Convert(Value.GetScale3D());
+			}
+		}
+
 		virtual double Convert(const bool Value) const override { return Value; }
-		virtual double Convert(const FRotator Value) const override { return Convert(Value.Vector()); }
+		virtual double Convert(const FRotator Value) const override { return Convert(FVector(Value.Roll, Value.Pitch, Value.Yaw)); }
 		virtual double Convert(const FString Value) const override { return PCGExMath::ConvertStringToDouble(Value); }
 		virtual double Convert(const FName Value) const override { return PCGExMath::ConvertStringToDouble(Value.ToString()); }
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FLocalDirectionGetter : public FAttributeGetter<FVector>
+	struct PCGEXTENDEDTOOLKIT_API FLocalVectorGetter : public FAttributeGetter<FVector>
 	{
-		FLocalDirectionGetter()
-		{
-		}
-
-		explicit FLocalDirectionGetter(const EPCGExAxis InAxis)
-		{
-			Axis = InAxis;
-		}
-
-	public:
-		EPCGExAxis Axis = EPCGExAxis::Forward;
-
-		void Capture(const FPCGExInputDescriptorWithDirection& InDescriptor)
-		{
-			Descriptor = static_cast<FPCGExInputDescriptor>(InDescriptor);
-			Axis = InDescriptor.Axis;
-		}
-
-		void Capture(const FPCGExInputDescriptorGeneric& InDescriptor)
-		{
-			Descriptor = static_cast<FPCGExInputDescriptor>(InDescriptor);
-			Axis = InDescriptor.Axis;
-		}
-
 	protected:
 		virtual void ResetMinMax() const override
 		{
@@ -893,16 +699,30 @@ virtual _TYPE Convert(const FName Value) const override { return _TYPE(Value.ToS
 
 		virtual FVector GetDefaultValue() const override { return FVector::ZeroVector; }
 
-		virtual FVector Convert(const bool Value) const override { return GetDefaultValue(); }
-		virtual FVector Convert(const int32 Value) const override { return GetDefaultValue(); }
-		virtual FVector Convert(const int64 Value) const override { return GetDefaultValue(); }
-		virtual FVector Convert(const float Value) const override { return GetDefaultValue(); }
-		virtual FVector Convert(const double Value) const override { return GetDefaultValue(); }
+		virtual FVector Convert(const bool Value) const override { return FVector(Value); }
+		virtual FVector Convert(const int32 Value) const override { return FVector(Value); }
+		virtual FVector Convert(const int64 Value) const override { return FVector(Value); }
+		virtual FVector Convert(const float Value) const override { return FVector(Value); }
+		virtual FVector Convert(const double Value) const override { return FVector(Value); }
 		virtual FVector Convert(const FVector2D Value) const override { return FVector(Value.X, Value.Y, 0); }
 		virtual FVector Convert(const FVector Value) const override { return Value; }
 		virtual FVector Convert(const FVector4 Value) const override { return FVector(Value); }
 		virtual FVector Convert(const FQuat Value) const override { return GetDirection(Value, Axis); }
-		virtual FVector Convert(const FTransform Value) const override { return GetDirection(Value.GetRotation(), Axis); }
+
+		virtual FVector Convert(const FTransform Value) const override
+		{
+			switch (Component)
+			{
+			default: ;
+			case EPCGExTransformComponent::Position:
+				return Convert(Value.GetLocation());
+			case EPCGExTransformComponent::Rotation:
+				return Convert(Value.GetRotation());
+			case EPCGExTransformComponent::Scale:
+				return Convert(Value.GetScale3D());
+			}
+		}
+
 		virtual FVector Convert(const FRotator Value) const override { return Value.Vector(); }
 		virtual FVector Convert(const FString Value) const override { return GetDefaultValue(); }
 		virtual FVector Convert(const FName Value) const override { return GetDefaultValue(); }
@@ -910,12 +730,6 @@ virtual _TYPE Convert(const FName Value) const override { return _TYPE(Value.ToS
 
 	struct PCGEXTENDEDTOOLKIT_API FLocalToStringGetter : public FAttributeGetter<FString>
 	{
-		FLocalToStringGetter()
-		{
-		}
-
-	public:
-
 	protected:
 		virtual void ResetMinMax() const override
 		{
@@ -944,5 +758,3 @@ virtual _TYPE Convert(const FName Value) const override { return _TYPE(Value.ToS
 }
 
 #undef PCGEX_AAFLAG
-#undef PCGEX_ATTRIBUTE_RETURN
-#undef PCGEX_ATTRIBUTE

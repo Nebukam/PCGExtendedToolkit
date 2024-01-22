@@ -148,7 +148,7 @@ bool FPCGExFindEdgesIntersectionsElement::ExecuteInternal(FPCGContext* InContext
 		}
 
 		Context->CurrentEdges->CreateInKeys();
-		
+
 		Context->SetState(PCGExGraph::State_ProcessingEdges);
 	}
 
@@ -159,7 +159,7 @@ bool FPCGExFindEdgesIntersectionsElement::ExecuteInternal(FPCGContext* InContext
 		//Context->GraphBuilder->Graph->InsertEdges(Context->IndexedEdges);
 
 		//TODO: Insert merged edges BEFORE compilation 
-		
+
 		Context->GraphBuilder->Compile(Context);
 		Context->SetAsyncState(PCGExGraph::State_WritingClusters);
 	}
@@ -169,7 +169,6 @@ bool FPCGExFindEdgesIntersectionsElement::ExecuteInternal(FPCGContext* InContext
 		if (!Context->IsAsyncWorkComplete()) { return false; }
 		if (Context->GraphBuilder->bCompiledSuccessfully)
 		{
-			
 			Context->GraphBuilder->Write(Context);
 		}
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
