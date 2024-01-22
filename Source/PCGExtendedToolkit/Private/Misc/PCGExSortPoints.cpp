@@ -63,6 +63,7 @@ bool FPCGExSortPointsElement::ExecuteInternal(FPCGContext* InContext) const
 		if (Rules.IsEmpty())
 		{
 			// Don't sort
+			PointIndices.Empty();
 			FWriteScopeLock WriteLock(Context->ContextLock);
 			PointIO.OutputTo(Context);
 			return;
@@ -90,7 +91,8 @@ bool FPCGExSortPointsElement::ExecuteInternal(FPCGContext* InContext) const
 			PointIO.OutputTo(Context);
 		}
 
-		Rules.Empty();
+		PointIndices.Empty();
+		PCGEX_DELETE_TARRAY(Rules)
 	};
 
 	if (Context->IsState(PCGExMT::State_ProcessingPoints))
