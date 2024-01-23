@@ -1,3 +1,0 @@
-# Blending
-
-TBD
