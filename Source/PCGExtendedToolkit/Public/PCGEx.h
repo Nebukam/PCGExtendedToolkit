@@ -244,6 +244,7 @@ namespace PCGEx
 		{TEXT("RY"), EPCGExSingleField::Y},
 		{TEXT("Z"), EPCGExSingleField::Z},
 		{TEXT("B"), EPCGExSingleField::Z},
+		{TEXT("P"), EPCGExSingleField::Z},
 		{TEXT("PITCH"), EPCGExSingleField::Z},
 		{TEXT("RZ"), EPCGExSingleField::Z},
 		{TEXT("W"), EPCGExSingleField::W},

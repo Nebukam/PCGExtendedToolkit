@@ -14,7 +14,7 @@ While there are a bunch of misc (useful!) nodes in this toolkit, its primary goa
 Generally speaking, PCGEx nodes are not "magic". They aim to enhance existing features in a highly modular way, allowing content creators to achieve more without making assumptions about their specific goals. In other words, PCGEx' nodes do very little on their own.  
 See the [Full documentation index](docs/Index.md) for an overview of the new nodes and concepts introduced by **PCGEx**!
 
-*Note: Most of the nodes are multithreaded!*
+*Note: Most of the nodes are multithreaded or async!*
 
 ## Getting Started
 * [Installation](docs/Installation.md)
@@ -24,6 +24,9 @@ See the [Full documentation index](docs/Index.md) for an overview of the new nod
 ### See Also
 * [Full Documentation Index](docs/Index.md)
 * [Frequently Asked Questions](docs/FAQ.md)
+
+### Thanks
+- Kudo to [MikeC] for his reckless experiment with uncooked releases, feedbacks, suggestions. Without him this plugin wouldn't be as useful and stable as it is today.
 
 ### Footnotes
 - 3D Delaunay adapted from the excellent [Scrawk' Hull-Delaunay-Voronoi](https://github.com/Scrawk/Hull-Delaunay-Voronoi) repo
