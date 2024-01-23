@@ -1201,7 +1201,7 @@
   },"200": {
     "doc": "Documentation",
     "title": "Documentation",
-    "content": "Notes &amp; informations . This section is dedicated to broader &amp; shared documentation topics. Node specifics can be found on the dedicated node page. When working with specific nodes, make sure to check out the home of the category they belong to as is often contains important doc pertaining to their family of nodes! . ",
+    "content": "Notes &amp; informations . This section is dedicated to broader &amp; shared documentation topics. Node specifics can be found on the dedicated node page. When working with specific nodes, make sure to check out the home of the category they belong to as it often contains important infos pertaining to their family of nodes as a whole! . ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/docs/#documentation",
     "relUrl": "/docs/#documentation"
   },"201": {
