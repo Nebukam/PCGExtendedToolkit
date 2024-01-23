@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">
+  <g id="main">
+    <polyline points="43.16 89.87 10.85 89.87 10.85 10 90.72 10 90.72 42.67" fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="5" opacity="0.5"/>
+    <g>
+      <line x1="39.19" y1="38.74" x2="39.19" y2="72.54" fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="10"/>
+      <line x1="28.81" y1="49.47" x2="48.99" y2="49.47" fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="10"/>
+      <path d="M39.19,38.74A12.44,12.44,0,0,1,62.4,32.52" fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="10"/>
+    </g>
+  </g>
+  <g id="accent">
+    <g>
+      <line x1="65.96" y1="83.65" x2="61.51" y2="89.87" fill="none" stroke="#3ec188" stroke-linecap="round" stroke-linejoin="round" stroke-width="10"/>
+      <line x1="54.6" y1="69.06" x2="61.93" y2="71.44" fill="none" stroke="#3ec188" stroke-linecap="round" stroke-linejoin="round" stroke-width="10"/>
+      <line x1="72.3" y1="63.89" x2="72.3" y2="56.21" fill="none" stroke="#3ec188" stroke-linecap="round" stroke-linejoin="round" stroke-width="10"/>
+      <line x1="90" y1="69.06" x2="82.68" y2="71.44" fill="none" stroke="#3ec188" stroke-linecap="round" stroke-linejoin="round" stroke-width="10"/>
+      <line x1="83.24" y1="89.87" x2="78.69" y2="83.61" fill="none" stroke="#3ec188" stroke-linecap="round" stroke-linejoin="round" stroke-width="10"/>
+    </g>
+  </g>
+</svg>

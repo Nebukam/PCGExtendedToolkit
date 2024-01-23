@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">
+  <g id="main">
+    <path d="M30.25,89.87H19.44V10H62.13l20,20V89.87H71.32" fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="5"/>
+    <polygon points="60.5 10 60.5 31.55 82.13 31.55 60.5 10" fill="#fff"/>
+  </g>
+  <g id="accent">
+    <g>
+      <polyline points="67.77 68.63 50.78 85.62 33.8 68.63" fill="none" stroke="#708dcc" stroke-linecap="round" stroke-linejoin="round" stroke-width="10"/>
+      <line x1="50.78" y1="85.62" x2="50.78" y2="51.65" fill="none" stroke="#708dcc" stroke-linecap="round" stroke-linejoin="round" stroke-width="10"/>
+    </g>
+  </g>
+</svg>

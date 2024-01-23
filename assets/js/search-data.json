@@ -1,0 +1,2882 @@
+{"0": {
+    "doc": "F.A.Q",
+    "title": "F.A.Q",
+    "content": "Frequently Asked Questions . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/FAQ.html#faq",
+    "relUrl": "/FAQ.html#faq"
+  },"1": {
+    "doc": "F.A.Q",
+    "title": "Q: I get “Ensure condition failed: InDependenciesCrc.IsValid()” when caching/uncaching PCGEx nodes!",
+    "content": "Yes. It’s ok, you can ignore these. PCG isn’t natively architectured to support node that switch between cacheable/not-cacheable, which sometime generates failed checks. It’s annoying but is harmless. The benefits of switching caching mode outweights the assert in my opinion – if that bugs you, don’t touch to the checkbox, it’s generally safer not to ship with cached data anyway. ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/FAQ.html#q-i-get-ensure-condition-failed-independenciescrcisvalid-when-cachinguncaching-pcgex-nodes",
+    "relUrl": "/FAQ.html#q-i-get-ensure-condition-failed-independenciescrcisvalid-when-cachinguncaching-pcgex-nodes"
+  },"2": {
+    "doc": "F.A.Q",
+    "title": "F.A.Q",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/FAQ.html",
+    "relUrl": "/FAQ.html"
+  },"3": {
+    "doc": "About",
+    "title": "I’m Tim!",
+    "content": "I made this. Follow @Nebukam . I made PCGEx as a way to bring some my personal Houdini toolkit into Unreal, and figured it could be useful to my fellow artists and designers. I love my current workflow &amp; tools when it comes to procedural generation, and often needed ways to generate data &amp; structures to… well, generate more data and structures to spawn stuff on. Unreal PCG has powerful tools to generate and work with splines, but unless you’re making them by hand, spline are a pain to manipulate and maintain at scale – that’s the main reason why I wanted to have tools to create graph and pathfinding them. Turns out, it’s useful for plenty of other things :) . Special Thanks . Massive kudo to MikeC, who has been an early adopter, and whose feedback and suggestions tremendously helped make PCGEx a better and more useful tool &lt;3 Also thanks to Sinbad, as I shamelessly pasted some of his C++ formatting and practices for this documentation ^_^ . Source code . PCGEx is licensed under MIT : if you want to look at the code, or if you’re worried it could hurt your machine, the code is available in full on github. It does not rely on nor embbed any third party library/dlls. Bugs! . If you encounter a bug, please fill an issue here. Please provide as much information as you can (stack traces, node setup, …). Footnotes . I am not affiliated with Unreal! . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/about/#im-tim",
+    "relUrl": "/about/#im-tim"
+  },"4": {
+    "doc": "About",
+    "title": "About",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/about/",
+    "relUrl": "/about/"
+  },"5": {
+    "doc": "All Nodes",
+    "title": "Graphs",
+    "content": "Delaunay, Voronoi, Convex Hulls, … . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/all-nodes.html#graphs",
+    "relUrl": "/nodes/all-nodes.html#graphs"
+  },"6": {
+    "doc": "All Nodes",
+    "title": "Convex Hull 3D",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/all-nodes.html#convex-hull-3d",
+    "relUrl": "/nodes/all-nodes.html#convex-hull-3d"
+  },"7": {
+    "doc": "All Nodes",
+    "title": "Delaunay 3D",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/all-nodes.html#delaunay-3d",
+    "relUrl": "/nodes/all-nodes.html#delaunay-3d"
+  },"8": {
+    "doc": "All Nodes",
+    "title": "Voronoi 3D",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/all-nodes.html#voronoi-3d",
+    "relUrl": "/nodes/all-nodes.html#voronoi-3d"
+  },"9": {
+    "doc": "All Nodes",
+    "title": "Convex Hull 2D",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/all-nodes.html#convex-hull-2d",
+    "relUrl": "/nodes/all-nodes.html#convex-hull-2d"
+  },"10": {
+    "doc": "All Nodes",
+    "title": "Delaunay 2D",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/all-nodes.html#delaunay-2d",
+    "relUrl": "/nodes/all-nodes.html#delaunay-2d"
+  },"11": {
+    "doc": "All Nodes",
+    "title": "Voronoi 2D",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/all-nodes.html#voronoi-2d",
+    "relUrl": "/nodes/all-nodes.html#voronoi-2d"
+  },"12": {
+    "doc": "All Nodes",
+    "title": "Sanitize Clusters",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/all-nodes.html#sanitize-clusters",
+    "relUrl": "/nodes/all-nodes.html#sanitize-clusters"
+  },"13": {
+    "doc": "All Nodes",
+    "title": "Pathfinders",
+    "content": "Seed(s)-to-goal(s), Plots, Navmesh, … . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/all-nodes.html#pathfinders",
+    "relUrl": "/nodes/all-nodes.html#pathfinders"
+  },"14": {
+    "doc": "All Nodes",
+    "title": "Edges Pathfinding",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/all-nodes.html#edges-pathfinding",
+    "relUrl": "/nodes/all-nodes.html#edges-pathfinding"
+  },"15": {
+    "doc": "All Nodes",
+    "title": "Plot Edges Pathfinding",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/all-nodes.html#plot-edges-pathfinding",
+    "relUrl": "/nodes/all-nodes.html#plot-edges-pathfinding"
+  },"16": {
+    "doc": "All Nodes",
+    "title": "Navmesh Pathfinding",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/all-nodes.html#navmesh-pathfinding",
+    "relUrl": "/nodes/all-nodes.html#navmesh-pathfinding"
+  },"17": {
+    "doc": "All Nodes",
+    "title": "Plot Navmesh Pathfinding",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/all-nodes.html#plot-navmesh-pathfinding",
+    "relUrl": "/nodes/all-nodes.html#plot-navmesh-pathfinding"
+  },"18": {
+    "doc": "All Nodes",
+    "title": "Sampling",
+    "content": "Data from nearest points, polylines, surfaces, … . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/all-nodes.html#sampling",
+    "relUrl": "/nodes/all-nodes.html#sampling"
+  },"19": {
+    "doc": "All Nodes",
+    "title": "Sample Nearest Surface",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/all-nodes.html#sample-nearest-surface",
+    "relUrl": "/nodes/all-nodes.html#sample-nearest-surface"
+  },"20": {
+    "doc": "All Nodes",
+    "title": "Sample Surface Guided",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/all-nodes.html#sample-surface-guided",
+    "relUrl": "/nodes/all-nodes.html#sample-surface-guided"
+  },"21": {
+    "doc": "All Nodes",
+    "title": "Sample Nearest Polyline",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/all-nodes.html#sample-nearest-polyline",
+    "relUrl": "/nodes/all-nodes.html#sample-nearest-polyline"
+  },"22": {
+    "doc": "All Nodes",
+    "title": "Sample Nearest Point",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/all-nodes.html#sample-nearest-point",
+    "relUrl": "/nodes/all-nodes.html#sample-nearest-point"
+  },"23": {
+    "doc": "All Nodes",
+    "title": "Misc",
+    "content": "Sort, Partition, Fuse, … . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/all-nodes.html#misc",
+    "relUrl": "/nodes/all-nodes.html#misc"
+  },"24": {
+    "doc": "All Nodes",
+    "title": "Sort Points",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/all-nodes.html#sort-points",
+    "relUrl": "/nodes/all-nodes.html#sort-points"
+  },"25": {
+    "doc": "All Nodes",
+    "title": "Partition by Values",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/all-nodes.html#partition-by-values",
+    "relUrl": "/nodes/all-nodes.html#partition-by-values"
+  },"26": {
+    "doc": "All Nodes",
+    "title": "Fuse Points",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/all-nodes.html#fuse-points",
+    "relUrl": "/nodes/all-nodes.html#fuse-points"
+  },"27": {
+    "doc": "All Nodes",
+    "title": "Draw Attributes",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/all-nodes.html#draw-attributes",
+    "relUrl": "/nodes/all-nodes.html#draw-attributes"
+  },"28": {
+    "doc": "All Nodes",
+    "title": "Points to Bounds",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/all-nodes.html#points-to-bounds",
+    "relUrl": "/nodes/all-nodes.html#points-to-bounds"
+  },"29": {
+    "doc": "All Nodes",
+    "title": "Discard Points by Count",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/all-nodes.html#discard-points-by-count",
+    "relUrl": "/nodes/all-nodes.html#discard-points-by-count"
+  },"30": {
+    "doc": "All Nodes",
+    "title": "Write Index",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/all-nodes.html#write-index",
+    "relUrl": "/nodes/all-nodes.html#write-index"
+  },"31": {
+    "doc": "All Nodes",
+    "title": "Debug Manager",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/all-nodes.html#debug-manager",
+    "relUrl": "/nodes/all-nodes.html#debug-manager"
+  },"32": {
+    "doc": "All Nodes",
+    "title": "Paths",
+    "content": "Data from nearest points, polylines, surfaces, … . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/all-nodes.html#paths",
+    "relUrl": "/nodes/all-nodes.html#paths"
+  },"33": {
+    "doc": "All Nodes",
+    "title": "Smooth",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/all-nodes.html#smooth",
+    "relUrl": "/nodes/all-nodes.html#smooth"
+  },"34": {
+    "doc": "All Nodes",
+    "title": "Orient",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/all-nodes.html#orient",
+    "relUrl": "/nodes/all-nodes.html#orient"
+  },"35": {
+    "doc": "All Nodes",
+    "title": "Fuse Collinear",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/all-nodes.html#fuse-collinear",
+    "relUrl": "/nodes/all-nodes.html#fuse-collinear"
+  },"36": {
+    "doc": "All Nodes",
+    "title": "Subdivide",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/all-nodes.html#subdivide",
+    "relUrl": "/nodes/all-nodes.html#subdivide"
+  },"37": {
+    "doc": "All Nodes",
+    "title": "Write Tangents",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/all-nodes.html#write-tangents",
+    "relUrl": "/nodes/all-nodes.html#write-tangents"
+  },"38": {
+    "doc": "All Nodes",
+    "title": "Paths to Edges",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/all-nodes.html#paths-to-edges",
+    "relUrl": "/nodes/all-nodes.html#paths-to-edges"
+  },"39": {
+    "doc": "All Nodes",
+    "title": "Edges",
+    "content": "Refinemement, connections, intersections, … . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/all-nodes.html#edges",
+    "relUrl": "/nodes/all-nodes.html#edges"
+  },"40": {
+    "doc": "All Nodes",
+    "title": "Bridge Clusters",
+    "content": "Connects clusters together. ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/all-nodes.html#bridge-clusters",
+    "relUrl": "/nodes/all-nodes.html#bridge-clusters"
+  },"41": {
+    "doc": "All Nodes",
+    "title": "Refine",
+    "content": "Refine edges configuration of a graph (i.e MST) . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/all-nodes.html#refine",
+    "relUrl": "/nodes/all-nodes.html#refine"
+  },"42": {
+    "doc": "All Nodes",
+    "title": "Relax",
+    "content": "Relax points positions of a graph. ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/all-nodes.html#relax",
+    "relUrl": "/nodes/all-nodes.html#relax"
+  },"43": {
+    "doc": "All Nodes",
+    "title": "Write Extras",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/all-nodes.html#write-extras",
+    "relUrl": "/nodes/all-nodes.html#write-extras"
+  },"44": {
+    "doc": "All Nodes",
+    "title": "Prune by Length",
+    "content": "Remove edges from a graph using length data. ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/all-nodes.html#prune-by-length",
+    "relUrl": "/nodes/all-nodes.html#prune-by-length"
+  },"45": {
+    "doc": "All Nodes",
+    "title": "Find Intersections",
+    "content": "Find and registers edges intersections inside a cluster. ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/all-nodes.html#find-intersections",
+    "relUrl": "/nodes/all-nodes.html#find-intersections"
+  },"46": {
+    "doc": "All Nodes",
+    "title": "Draw Edges",
+    "content": "Draw debug edge lines of a given vtx/edge pair. ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/all-nodes.html#draw-edges",
+    "relUrl": "/nodes/all-nodes.html#draw-edges"
+  },"47": {
+    "doc": "All Nodes",
+    "title": "Custom Graphs",
+    "content": "Custom graph creation from user-defined rules . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/all-nodes.html#custom-graphs",
+    "relUrl": "/nodes/all-nodes.html#custom-graphs"
+  },"48": {
+    "doc": "All Nodes",
+    "title": "Create Params",
+    "content": "Create params to build a custom graph from. ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/all-nodes.html#create-params",
+    "relUrl": "/nodes/all-nodes.html#create-params"
+  },"49": {
+    "doc": "All Nodes",
+    "title": "Build",
+    "content": "Build a custom graph from a ore or multiple params. ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/all-nodes.html#build",
+    "relUrl": "/nodes/all-nodes.html#build"
+  },"50": {
+    "doc": "All Nodes",
+    "title": "Find Edge Clusters",
+    "content": "Find and creates edge cluster from a custom graph. ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/all-nodes.html#find-edge-clusters",
+    "relUrl": "/nodes/all-nodes.html#find-edge-clusters"
+  },"51": {
+    "doc": "All Nodes",
+    "title": "Draw Custom Graph",
+    "content": "Debug &amp; draw custom graph generated edges. ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/all-nodes.html#draw-custom-graph",
+    "relUrl": "/nodes/all-nodes.html#draw-custom-graph"
+  },"52": {
+    "doc": "All Nodes",
+    "title": "Consolidate",
+    "content": "Rebuild a custom graph after editing. ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/all-nodes.html#consolidate",
+    "relUrl": "/nodes/all-nodes.html#consolidate"
+  },"53": {
+    "doc": "All Nodes",
+    "title": "Delete",
+    "content": "Delete custom graph attributes. ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/all-nodes.html#delete",
+    "relUrl": "/nodes/all-nodes.html#delete"
+  },"54": {
+    "doc": "All Nodes",
+    "title": "Promote Edges",
+    "content": "Translate custom graph edge to points or paths. ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/all-nodes.html#promote-edges",
+    "relUrl": "/nodes/all-nodes.html#promote-edges"
+  },"55": {
+    "doc": "All Nodes",
+    "title": "Data",
+    "content": "Custom graph data object. ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/all-nodes.html#data",
+    "relUrl": "/nodes/all-nodes.html#data"
+  },"56": {
+    "doc": "All Nodes",
+    "title": "All Nodes",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/all-nodes.html",
+    "relUrl": "/nodes/all-nodes.html"
+  },"57": {
+    "doc": "All Pathfinding Modules",
+    "title": "Goal Pickers",
+    "content": "An inventory of the available goal pickers modules. ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/pathfinding/all-pathfinding-modules.html#goal-pickers",
+    "relUrl": "/pathfinding/all-pathfinding-modules.html#goal-pickers"
+  },"58": {
+    "doc": "All Pathfinding Modules",
+    "title": "Default",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/pathfinding/all-pathfinding-modules.html#default",
+    "relUrl": "/pathfinding/all-pathfinding-modules.html#default"
+  },"59": {
+    "doc": "All Pathfinding Modules",
+    "title": "Random",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/pathfinding/all-pathfinding-modules.html#random",
+    "relUrl": "/pathfinding/all-pathfinding-modules.html#random"
+  },"60": {
+    "doc": "All Pathfinding Modules",
+    "title": "Goal from Attribute",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/pathfinding/all-pathfinding-modules.html#goal-from-attribute",
+    "relUrl": "/pathfinding/all-pathfinding-modules.html#goal-from-attribute"
+  },"61": {
+    "doc": "All Pathfinding Modules",
+    "title": "Search",
+    "content": "An inventory of the available heuristics modules. ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/pathfinding/all-pathfinding-modules.html#search",
+    "relUrl": "/pathfinding/all-pathfinding-modules.html#search"
+  },"62": {
+    "doc": "All Pathfinding Modules",
+    "title": "Djikstra",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/pathfinding/all-pathfinding-modules.html#djikstra",
+    "relUrl": "/pathfinding/all-pathfinding-modules.html#djikstra"
+  },"63": {
+    "doc": "All Pathfinding Modules",
+    "title": "A* Star",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/pathfinding/all-pathfinding-modules.html#a-star",
+    "relUrl": "/pathfinding/all-pathfinding-modules.html#a-star"
+  },"64": {
+    "doc": "All Pathfinding Modules",
+    "title": "Heuristics",
+    "content": "An inventory of the available heuristics modules. ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/pathfinding/all-pathfinding-modules.html#heuristics",
+    "relUrl": "/pathfinding/all-pathfinding-modules.html#heuristics"
+  },"65": {
+    "doc": "All Pathfinding Modules",
+    "title": "Shortest Distance",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/pathfinding/all-pathfinding-modules.html#shortest-distance",
+    "relUrl": "/pathfinding/all-pathfinding-modules.html#shortest-distance"
+  },"66": {
+    "doc": "All Pathfinding Modules",
+    "title": "Local Distance",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/pathfinding/all-pathfinding-modules.html#local-distance",
+    "relUrl": "/pathfinding/all-pathfinding-modules.html#local-distance"
+  },"67": {
+    "doc": "All Pathfinding Modules",
+    "title": "Modifiers Only",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/pathfinding/all-pathfinding-modules.html#modifiers-only",
+    "relUrl": "/pathfinding/all-pathfinding-modules.html#modifiers-only"
+  },"68": {
+    "doc": "All Pathfinding Modules",
+    "title": "Least Nodes",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/pathfinding/all-pathfinding-modules.html#least-nodes",
+    "relUrl": "/pathfinding/all-pathfinding-modules.html#least-nodes"
+  },"69": {
+    "doc": "All Pathfinding Modules",
+    "title": "Heuristic Modifiers",
+    "content": "How to use heuristic modifiers . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/pathfinding/all-pathfinding-modules.html#heuristic-modifiers",
+    "relUrl": "/pathfinding/all-pathfinding-modules.html#heuristic-modifiers"
+  },"70": {
+    "doc": "All Pathfinding Modules",
+    "title": "Direction",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/pathfinding/all-pathfinding-modules.html#direction",
+    "relUrl": "/pathfinding/all-pathfinding-modules.html#direction"
+  },"71": {
+    "doc": "All Pathfinding Modules",
+    "title": "All Pathfinding Modules",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/pathfinding/all-pathfinding-modules.html",
+    "relUrl": "/pathfinding/all-pathfinding-modules.html"
+  },"72": {
+    "doc": "Inherit End",
+    "title": "Inherit End",
+    "content": "Subtitle . Table of content . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/docs/blending/blending-inherit-end.html#inherit-end",
+    "relUrl": "/docs/blending/blending-inherit-end.html#inherit-end"
+  },"73": {
+    "doc": "Inherit End",
+    "title": "Inherit End",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/docs/blending/blending-inherit-end.html",
+    "relUrl": "/docs/blending/blending-inherit-end.html"
+  },"74": {
+    "doc": "Inherit Start",
+    "title": "Inherit Start",
+    "content": "Subtitle . Table of content . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/docs/blending/blending-inherit-start.html#inherit-start",
+    "relUrl": "/docs/blending/blending-inherit-start.html#inherit-start"
+  },"75": {
+    "doc": "Inherit Start",
+    "title": "Inherit Start",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/docs/blending/blending-inherit-start.html",
+    "relUrl": "/docs/blending/blending-inherit-start.html"
+  },"76": {
+    "doc": "Interpolate",
+    "title": "Interpolate",
+    "content": "Subtitle . Table of content . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/docs/blending/blending-interpolate.html#interpolate",
+    "relUrl": "/docs/blending/blending-interpolate.html#interpolate"
+  },"77": {
+    "doc": "Interpolate",
+    "title": "Interpolate",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/docs/blending/blending-interpolate.html",
+    "relUrl": "/docs/blending/blending-interpolate.html"
+  },"78": {
+    "doc": "Build",
+    "title": "Build",
+    "content": "Build a custom graph from a ore or multiple params. … . Table of content . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/custom-graph/custom-graph-build.html#build",
+    "relUrl": "/nodes/custom-graph/custom-graph-build.html#build"
+  },"79": {
+    "doc": "Build",
+    "title": "Build",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/custom-graph/custom-graph-build.html",
+    "relUrl": "/nodes/custom-graph/custom-graph-build.html"
+  },"80": {
+    "doc": "Consolidate",
+    "title": "Consolidate",
+    "content": "Rebuild a custom graph after editing. … . Table of content . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/custom-graph/custom-graph-consolidate.html#consolidate",
+    "relUrl": "/nodes/custom-graph/custom-graph-consolidate.html#consolidate"
+  },"81": {
+    "doc": "Consolidate",
+    "title": "Consolidate",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/custom-graph/custom-graph-consolidate.html",
+    "relUrl": "/nodes/custom-graph/custom-graph-consolidate.html"
+  },"82": {
+    "doc": "Create Params",
+    "title": "Create Params",
+    "content": "Create params to build a custom graph from. … . Table of content . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/custom-graph/custom-graph-create-params.html#create-params",
+    "relUrl": "/nodes/custom-graph/custom-graph-create-params.html#create-params"
+  },"83": {
+    "doc": "Create Params",
+    "title": "Create Params",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/custom-graph/custom-graph-create-params.html",
+    "relUrl": "/nodes/custom-graph/custom-graph-create-params.html"
+  },"84": {
+    "doc": "Data",
+    "title": "Data",
+    "content": "Custom graph data object. … . Table of content . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/custom-graph/custom-graph-data.html#data",
+    "relUrl": "/nodes/custom-graph/custom-graph-data.html#data"
+  },"85": {
+    "doc": "Data",
+    "title": "Data",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/custom-graph/custom-graph-data.html",
+    "relUrl": "/nodes/custom-graph/custom-graph-data.html"
+  },"86": {
+    "doc": "Delete",
+    "title": "Delete",
+    "content": "Delete custom graph attributes. … . Table of content . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/custom-graph/custom-graph-delete.html#delete",
+    "relUrl": "/nodes/custom-graph/custom-graph-delete.html#delete"
+  },"87": {
+    "doc": "Delete",
+    "title": "Delete",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/custom-graph/custom-graph-delete.html",
+    "relUrl": "/nodes/custom-graph/custom-graph-delete.html"
+  },"88": {
+    "doc": "Draw Custom Graph",
+    "title": "Draw Custom Graph",
+    "content": "Debug &amp; draw custom graph generated edges. … . Table of content . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/custom-graph/custom-graph-draw.html#draw-custom-graph",
+    "relUrl": "/nodes/custom-graph/custom-graph-draw.html#draw-custom-graph"
+  },"89": {
+    "doc": "Draw Custom Graph",
+    "title": "Draw Custom Graph",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/custom-graph/custom-graph-draw.html",
+    "relUrl": "/nodes/custom-graph/custom-graph-draw.html"
+  },"90": {
+    "doc": "Find Edge Clusters",
+    "title": "Find Edge Clusters",
+    "content": "Find and creates edge cluster from a custom graph. … . Table of content . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/custom-graph/custom-graph-find-edge-clusters.html#find-edge-clusters",
+    "relUrl": "/nodes/custom-graph/custom-graph-find-edge-clusters.html#find-edge-clusters"
+  },"91": {
+    "doc": "Find Edge Clusters",
+    "title": "Find Edge Clusters",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/custom-graph/custom-graph-find-edge-clusters.html",
+    "relUrl": "/nodes/custom-graph/custom-graph-find-edge-clusters.html"
+  },"92": {
+    "doc": "Promote Edges",
+    "title": "Promote Edges",
+    "content": "Translate custom graph edge to points or paths. … . Table of content . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/custom-graph/custom-graph-promote-edges.html#promote-edges",
+    "relUrl": "/nodes/custom-graph/custom-graph-promote-edges.html#promote-edges"
+  },"93": {
+    "doc": "Promote Edges",
+    "title": "Promote Edges",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/custom-graph/custom-graph-promote-edges.html",
+    "relUrl": "/nodes/custom-graph/custom-graph-promote-edges.html"
+  },"94": {
+    "doc": "Debug",
+    "title": "Debug",
+    "content": "Working with PCGEx Debug nodes . PCGEx Debug nodes are red, and must have debug enabled using , otherwise they are technically disabled. This is to stay consistent with PCG’ debug interaction patterns. PCGEx Debug node draw debug information flagged as persistent, and as such needs to be flushed. However, there is currently no way in Unreal to selectively flush or tag debug line – hence ALL debug is flushed before it is redrawn. This means two things: . | Debug nodes will flush persistent lines when executed – including your own. | PCGEx expects a specific node to be present with the graph: Debug Manager | . The debug manager is basically there to manage execution order and ensure stuffs aren’t flushed from the buffer right after they’re drawn. It’s non-intrusive, and sometimes needs an update or two to work right. Note that the debug manager node has no inputs nor outputs – it just needs to sit there. ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/docs/debug.html#debug",
+    "relUrl": "/docs/debug.html#debug"
+  },"95": {
+    "doc": "Debug",
+    "title": "Debug",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/docs/debug.html",
+    "relUrl": "/docs/debug.html"
+  },"96": {
+    "doc": "Bridge Clusters",
+    "title": "Bridge Clusters",
+    "content": "Connects clusters together. … . Table of content . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/edges/edges-bridge-clusters.html#bridge-clusters",
+    "relUrl": "/nodes/edges/edges-bridge-clusters.html#bridge-clusters"
+  },"97": {
+    "doc": "Bridge Clusters",
+    "title": "Bridge Clusters",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/edges/edges-bridge-clusters.html",
+    "relUrl": "/nodes/edges/edges-bridge-clusters.html"
+  },"98": {
+    "doc": "Draw Edges",
+    "title": "Draw Edges",
+    "content": "Draw debug edge lines of a given vtx/edge pair. … . Table of content . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/edges/edges-draw.html#draw-edges",
+    "relUrl": "/nodes/edges/edges-draw.html#draw-edges"
+  },"99": {
+    "doc": "Draw Edges",
+    "title": "Draw Edges",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/edges/edges-draw.html",
+    "relUrl": "/nodes/edges/edges-draw.html"
+  },"100": {
+    "doc": "Find Intersections",
+    "title": "Find Intersections",
+    "content": "Find and registers edges intersections inside a cluster. … . Table of content . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/edges/edges-find-intersections.html#find-intersections",
+    "relUrl": "/nodes/edges/edges-find-intersections.html#find-intersections"
+  },"101": {
+    "doc": "Find Intersections",
+    "title": "Find Intersections",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/edges/edges-find-intersections.html",
+    "relUrl": "/nodes/edges/edges-find-intersections.html"
+  },"102": {
+    "doc": "Prune by Length",
+    "title": "Prune by Length",
+    "content": "Remove edges from a graph using length data. … . Table of content . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/edges/edges-prune-by-length.html#prune-by-length",
+    "relUrl": "/nodes/edges/edges-prune-by-length.html#prune-by-length"
+  },"103": {
+    "doc": "Prune by Length",
+    "title": "Prune by Length",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/edges/edges-prune-by-length.html",
+    "relUrl": "/nodes/edges/edges-prune-by-length.html"
+  },"104": {
+    "doc": "Refine",
+    "title": "Refine",
+    "content": "Refine edges configuration of a graph (i.e MST) . … . Table of content . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/edges/edges-refine.html#refine",
+    "relUrl": "/nodes/edges/edges-refine.html#refine"
+  },"105": {
+    "doc": "Refine",
+    "title": "Refine",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/edges/edges-refine.html",
+    "relUrl": "/nodes/edges/edges-refine.html"
+  },"106": {
+    "doc": "Relax",
+    "title": "Relax",
+    "content": "Relax points positions of a graph. … . Table of content . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/edges/edges-relax.html#relax",
+    "relUrl": "/nodes/edges/edges-relax.html#relax"
+  },"107": {
+    "doc": "Relax",
+    "title": "Relax",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/edges/edges-relax.html",
+    "relUrl": "/nodes/edges/edges-relax.html"
+  },"108": {
+    "doc": "Write Extras",
+    "title": "Write Extras",
+    "content": "Subtitle . … . Table of content . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/edges/edges-write-extras.html#write-extras",
+    "relUrl": "/nodes/edges/edges-write-extras.html#write-extras"
+  },"109": {
+    "doc": "Write Extras",
+    "title": "Write Extras",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/edges/edges-write-extras.html",
+    "relUrl": "/nodes/edges/edges-write-extras.html"
+  },"110": {
+    "doc": "Finding Nodes",
+    "title": "Finding Nodes",
+    "content": "Where and how to find nodes once in Unreal . Once the plugin is installed and compiled, nodes are available in any PCG Graph along with vanilla nodes. You can either find them in the explorer on the left, or in the list when right-clicking any empty space in the graph. All PCGEx nodes are prefixed with PCGEx | – which is a bit annoying at first, but quickly comes in handy to ensure nodes are clearly identifiable. ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/installation/finding-nodes.html#finding-nodes",
+    "relUrl": "/installation/finding-nodes.html#finding-nodes"
+  },"111": {
+    "doc": "Finding Nodes",
+    "title": "Finding Nodes",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/installation/finding-nodes.html",
+    "relUrl": "/installation/finding-nodes.html"
+  },"112": {
+    "doc": "Convex Hull 2D",
+    "title": "Convex Hull 2D",
+    "content": "Subtitle . … . Table of content . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/graphs/graphs-convex-hull-2d.html#convex-hull-2d",
+    "relUrl": "/nodes/graphs/graphs-convex-hull-2d.html#convex-hull-2d"
+  },"113": {
+    "doc": "Convex Hull 2D",
+    "title": "Convex Hull 2D",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/graphs/graphs-convex-hull-2d.html",
+    "relUrl": "/nodes/graphs/graphs-convex-hull-2d.html"
+  },"114": {
+    "doc": "Convex Hull 3D",
+    "title": "Convex Hull 3D",
+    "content": "Subtitle . … . Table of content . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/graphs/graphs-convex-hull-3d.html#convex-hull-3d",
+    "relUrl": "/nodes/graphs/graphs-convex-hull-3d.html#convex-hull-3d"
+  },"115": {
+    "doc": "Convex Hull 3D",
+    "title": "Convex Hull 3D",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/graphs/graphs-convex-hull-3d.html",
+    "relUrl": "/nodes/graphs/graphs-convex-hull-3d.html"
+  },"116": {
+    "doc": "Delaunay 2D",
+    "title": "Delaunay 2D",
+    "content": "Subtitle . … . Table of content . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/graphs/graphs-delaunay-2d.html#delaunay-2d",
+    "relUrl": "/nodes/graphs/graphs-delaunay-2d.html#delaunay-2d"
+  },"117": {
+    "doc": "Delaunay 2D",
+    "title": "Delaunay 2D",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/graphs/graphs-delaunay-2d.html",
+    "relUrl": "/nodes/graphs/graphs-delaunay-2d.html"
+  },"118": {
+    "doc": "Delaunay 3D",
+    "title": "Delaunay 3D",
+    "content": "Subtitle . … . Table of content . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/graphs/graphs-delaunay-3d.html#delaunay-3d",
+    "relUrl": "/nodes/graphs/graphs-delaunay-3d.html#delaunay-3d"
+  },"119": {
+    "doc": "Delaunay 3D",
+    "title": "Delaunay 3D",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/graphs/graphs-delaunay-3d.html",
+    "relUrl": "/nodes/graphs/graphs-delaunay-3d.html"
+  },"120": {
+    "doc": "Sanitize Clusters",
+    "title": "Sanitize Clusters",
+    "content": "Subtitle . … . Table of content . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/graphs/graphs-sanitize-clusters.html#sanitize-clusters",
+    "relUrl": "/nodes/graphs/graphs-sanitize-clusters.html#sanitize-clusters"
+  },"121": {
+    "doc": "Sanitize Clusters",
+    "title": "Sanitize Clusters",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/graphs/graphs-sanitize-clusters.html",
+    "relUrl": "/nodes/graphs/graphs-sanitize-clusters.html"
+  },"122": {
+    "doc": "Voronoi 2D",
+    "title": "Voronoi 2D",
+    "content": "Subtitle . … . Table of content . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/graphs/graphs-voronoi-2d.html#voronoi-2d",
+    "relUrl": "/nodes/graphs/graphs-voronoi-2d.html#voronoi-2d"
+  },"123": {
+    "doc": "Voronoi 2D",
+    "title": "Voronoi 2D",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/graphs/graphs-voronoi-2d.html",
+    "relUrl": "/nodes/graphs/graphs-voronoi-2d.html"
+  },"124": {
+    "doc": "Voronoi 3D",
+    "title": "Voronoi 3D",
+    "content": "Subtitle . … . Table of content . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/graphs/graphs-voronoi-3d.html#voronoi-3d",
+    "relUrl": "/nodes/graphs/graphs-voronoi-3d.html#voronoi-3d"
+  },"125": {
+    "doc": "Voronoi 3D",
+    "title": "Voronoi 3D",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/graphs/graphs-voronoi-3d.html",
+    "relUrl": "/nodes/graphs/graphs-voronoi-3d.html"
+  },"126": {
+    "doc": "Direction",
+    "title": "Direction",
+    "content": "Subtitle . Table of content . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/pathfinding/heuristics/heuristic-direction.html#direction",
+    "relUrl": "/pathfinding/heuristics/heuristic-direction.html#direction"
+  },"127": {
+    "doc": "Direction",
+    "title": "Direction",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/pathfinding/heuristics/heuristic-direction.html",
+    "relUrl": "/pathfinding/heuristics/heuristic-direction.html"
+  },"128": {
+    "doc": "Shortest Distance",
+    "title": "Shortest Distance",
+    "content": "Subtitle . Table of content . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/pathfinding/heuristics/heuristic-distance.html#shortest-distance",
+    "relUrl": "/pathfinding/heuristics/heuristic-distance.html#shortest-distance"
+  },"129": {
+    "doc": "Shortest Distance",
+    "title": "Shortest Distance",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/pathfinding/heuristics/heuristic-distance.html",
+    "relUrl": "/pathfinding/heuristics/heuristic-distance.html"
+  },"130": {
+    "doc": "Local Distance",
+    "title": "Local Distance",
+    "content": "Subtitle . Table of content . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/pathfinding/heuristics/heuristic-local-distance.html#local-distance",
+    "relUrl": "/pathfinding/heuristics/heuristic-local-distance.html#local-distance"
+  },"131": {
+    "doc": "Local Distance",
+    "title": "Local Distance",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/pathfinding/heuristics/heuristic-local-distance.html",
+    "relUrl": "/pathfinding/heuristics/heuristic-local-distance.html"
+  },"132": {
+    "doc": "Modifiers Only",
+    "title": "Modifiers Only",
+    "content": "Subtitle . Table of content . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/pathfinding/heuristics/heuristic-modifiers-only.html#modifiers-only",
+    "relUrl": "/pathfinding/heuristics/heuristic-modifiers-only.html#modifiers-only"
+  },"133": {
+    "doc": "Modifiers Only",
+    "title": "Modifiers Only",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/pathfinding/heuristics/heuristic-modifiers-only.html",
+    "relUrl": "/pathfinding/heuristics/heuristic-modifiers-only.html"
+  },"134": {
+    "doc": "Least Nodes",
+    "title": "Least Nodes",
+    "content": "Subtitle . Table of content . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/pathfinding/heuristics/heuristic-node-count.html#least-nodes",
+    "relUrl": "/pathfinding/heuristics/heuristic-node-count.html#least-nodes"
+  },"135": {
+    "doc": "Least Nodes",
+    "title": "Least Nodes",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/pathfinding/heuristics/heuristic-node-count.html",
+    "relUrl": "/pathfinding/heuristics/heuristic-node-count.html"
+  },"136": {
+    "doc": "Custom Graphs",
+    "title": "Custom Graphs",
+    "content": "Custom graph creation from user-defined rules . Connect points! . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/custom-graph/#custom-graphs",
+    "relUrl": "/nodes/custom-graph/#custom-graphs"
+  },"137": {
+    "doc": "Custom Graphs",
+    "title": "Nodes",
+    "content": ". ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/custom-graph/#nodes",
+    "relUrl": "/nodes/custom-graph/#nodes"
+  },"138": {
+    "doc": "Custom Graphs",
+    "title": "Create Params",
+    "content": "Create params to build a custom graph from. ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/custom-graph/#create-params",
+    "relUrl": "/nodes/custom-graph/#create-params"
+  },"139": {
+    "doc": "Custom Graphs",
+    "title": "Build",
+    "content": "Build a custom graph from a ore or multiple params. ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/custom-graph/#build",
+    "relUrl": "/nodes/custom-graph/#build"
+  },"140": {
+    "doc": "Custom Graphs",
+    "title": "Find Edge Clusters",
+    "content": "Find and creates edge cluster from a custom graph. ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/custom-graph/#find-edge-clusters",
+    "relUrl": "/nodes/custom-graph/#find-edge-clusters"
+  },"141": {
+    "doc": "Custom Graphs",
+    "title": "Consolidate",
+    "content": "Rebuild a custom graph after editing. ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/custom-graph/#consolidate",
+    "relUrl": "/nodes/custom-graph/#consolidate"
+  },"142": {
+    "doc": "Custom Graphs",
+    "title": "Delete",
+    "content": "Delete custom graph attributes. ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/custom-graph/#delete",
+    "relUrl": "/nodes/custom-graph/#delete"
+  },"143": {
+    "doc": "Custom Graphs",
+    "title": "Promote Edges",
+    "content": "Translate custom graph edge to points or paths. ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/custom-graph/#promote-edges",
+    "relUrl": "/nodes/custom-graph/#promote-edges"
+  },"144": {
+    "doc": "Custom Graphs",
+    "title": "Data",
+    "content": "Custom graph data object. ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/custom-graph/#data",
+    "relUrl": "/nodes/custom-graph/#data"
+  },"145": {
+    "doc": "Custom Graphs",
+    "title": "Custom Graphs",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/custom-graph/",
+    "relUrl": "/nodes/custom-graph/"
+  },"146": {
+    "doc": "Edges",
+    "title": "Edges",
+    "content": "Refinemement, connections, intersections, … . Edge-based operations . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/edges/#edges",
+    "relUrl": "/nodes/edges/#edges"
+  },"147": {
+    "doc": "Edges",
+    "title": "Nodes",
+    "content": ". ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/edges/#nodes",
+    "relUrl": "/nodes/edges/#nodes"
+  },"148": {
+    "doc": "Edges",
+    "title": "Bridge Clusters",
+    "content": "Connects clusters together. ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/edges/#bridge-clusters",
+    "relUrl": "/nodes/edges/#bridge-clusters"
+  },"149": {
+    "doc": "Edges",
+    "title": "Refine",
+    "content": "Refine edges configuration of a graph (i.e MST) . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/edges/#refine",
+    "relUrl": "/nodes/edges/#refine"
+  },"150": {
+    "doc": "Edges",
+    "title": "Relax",
+    "content": "Relax points positions of a graph. ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/edges/#relax",
+    "relUrl": "/nodes/edges/#relax"
+  },"151": {
+    "doc": "Edges",
+    "title": "Write Extras",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/edges/#write-extras",
+    "relUrl": "/nodes/edges/#write-extras"
+  },"152": {
+    "doc": "Edges",
+    "title": "Prune by Length",
+    "content": "Remove edges from a graph using length data. ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/edges/#prune-by-length",
+    "relUrl": "/nodes/edges/#prune-by-length"
+  },"153": {
+    "doc": "Edges",
+    "title": "Find Intersections",
+    "content": "Find and registers edges intersections inside a cluster. ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/edges/#find-intersections",
+    "relUrl": "/nodes/edges/#find-intersections"
+  },"154": {
+    "doc": "Edges",
+    "title": "Draw Edges",
+    "content": "Draw debug edge lines of a given vtx/edge pair. ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/edges/#draw-edges",
+    "relUrl": "/nodes/edges/#draw-edges"
+  },"155": {
+    "doc": "Edges",
+    "title": "Edges",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/edges/",
+    "relUrl": "/nodes/edges/"
+  },"156": {
+    "doc": "Blending",
+    "title": "Blending",
+    "content": "An inventory of the available blending modules. Blending modules are primarily used by nodes like Fuse Points, as well as under the hood of many nodes where only a sub-selection of parameters will be exposed (as opposed to full module selection) . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/docs/blending/#blending",
+    "relUrl": "/docs/blending/#blending"
+  },"157": {
+    "doc": "Blending",
+    "title": "Modules",
+    "content": ". ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/docs/blending/#modules",
+    "relUrl": "/docs/blending/#modules"
+  },"158": {
+    "doc": "Blending",
+    "title": "Inherit Start",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/docs/blending/#inherit-start",
+    "relUrl": "/docs/blending/#inherit-start"
+  },"159": {
+    "doc": "Blending",
+    "title": "Interpolate",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/docs/blending/#interpolate",
+    "relUrl": "/docs/blending/#interpolate"
+  },"160": {
+    "doc": "Blending",
+    "title": "Inherit End",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/docs/blending/#inherit-end",
+    "relUrl": "/docs/blending/#inherit-end"
+  },"161": {
+    "doc": "Blending",
+    "title": "Blending",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/docs/blending/",
+    "relUrl": "/docs/blending/"
+  },"162": {
+    "doc": "Relaxing",
+    "title": "Relaxing",
+    "content": "An inventory of the available relax modules. Smoothing modules are primarily used by the Smooth node. ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/docs/relaxing/#relaxing",
+    "relUrl": "/docs/relaxing/#relaxing"
+  },"163": {
+    "doc": "Relaxing",
+    "title": "Modules",
+    "content": ". ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/docs/relaxing/#modules",
+    "relUrl": "/docs/relaxing/#modules"
+  },"164": {
+    "doc": "Relaxing",
+    "title": "Force Directed",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/docs/relaxing/#force-directed",
+    "relUrl": "/docs/relaxing/#force-directed"
+  },"165": {
+    "doc": "Relaxing",
+    "title": "Relaxing",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/docs/relaxing/",
+    "relUrl": "/docs/relaxing/"
+  },"166": {
+    "doc": "Pathfinding",
+    "title": "Pathfinding",
+    "content": "Notes &amp; informations . This section is dedicated to broader &amp; shared pathfinding topics. Node specifics can be found on the dedicated node page. Pathfinding modules are primarily used by Pathfinders nodes, such as Edges Pathfinding and Plot Edges Pathfinding. ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/pathfinding/#pathfinding",
+    "relUrl": "/pathfinding/#pathfinding"
+  },"167": {
+    "doc": "Pathfinding",
+    "title": "Goal Pickers",
+    "content": "An inventory of the available goal pickers modules. ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/pathfinding/#goal-pickers",
+    "relUrl": "/pathfinding/#goal-pickers"
+  },"168": {
+    "doc": "Pathfinding",
+    "title": "Default",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/pathfinding/#default",
+    "relUrl": "/pathfinding/#default"
+  },"169": {
+    "doc": "Pathfinding",
+    "title": "Random",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/pathfinding/#random",
+    "relUrl": "/pathfinding/#random"
+  },"170": {
+    "doc": "Pathfinding",
+    "title": "Goal from Attribute",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/pathfinding/#goal-from-attribute",
+    "relUrl": "/pathfinding/#goal-from-attribute"
+  },"171": {
+    "doc": "Pathfinding",
+    "title": "Search",
+    "content": "An inventory of the available heuristics modules. ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/pathfinding/#search",
+    "relUrl": "/pathfinding/#search"
+  },"172": {
+    "doc": "Pathfinding",
+    "title": "Djikstra",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/pathfinding/#djikstra",
+    "relUrl": "/pathfinding/#djikstra"
+  },"173": {
+    "doc": "Pathfinding",
+    "title": "A* Star",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/pathfinding/#a-star",
+    "relUrl": "/pathfinding/#a-star"
+  },"174": {
+    "doc": "Pathfinding",
+    "title": "Heuristics",
+    "content": "An inventory of the available heuristics modules. ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/pathfinding/#heuristics",
+    "relUrl": "/pathfinding/#heuristics"
+  },"175": {
+    "doc": "Pathfinding",
+    "title": "Shortest Distance",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/pathfinding/#shortest-distance",
+    "relUrl": "/pathfinding/#shortest-distance"
+  },"176": {
+    "doc": "Pathfinding",
+    "title": "Local Distance",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/pathfinding/#local-distance",
+    "relUrl": "/pathfinding/#local-distance"
+  },"177": {
+    "doc": "Pathfinding",
+    "title": "Modifiers Only",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/pathfinding/#modifiers-only",
+    "relUrl": "/pathfinding/#modifiers-only"
+  },"178": {
+    "doc": "Pathfinding",
+    "title": "Least Nodes",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/pathfinding/#least-nodes",
+    "relUrl": "/pathfinding/#least-nodes"
+  },"179": {
+    "doc": "Pathfinding",
+    "title": "Heuristic Modifiers",
+    "content": "How to use heuristic modifiers . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/pathfinding/#heuristic-modifiers",
+    "relUrl": "/pathfinding/#heuristic-modifiers"
+  },"180": {
+    "doc": "Pathfinding",
+    "title": "Direction",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/pathfinding/#direction",
+    "relUrl": "/pathfinding/#direction"
+  },"181": {
+    "doc": "Pathfinding",
+    "title": "Pathfinding",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/pathfinding/",
+    "relUrl": "/pathfinding/"
+  },"182": {
+    "doc": "Smoothing",
+    "title": "Smoothing",
+    "content": "An inventory of the available smoothing modules. Smoothing modules are primarily used by the Smooth node. ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/docs/smoothing/#smoothing",
+    "relUrl": "/docs/smoothing/#smoothing"
+  },"183": {
+    "doc": "Smoothing",
+    "title": "Modules",
+    "content": ". ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/docs/smoothing/#modules",
+    "relUrl": "/docs/smoothing/#modules"
+  },"184": {
+    "doc": "Smoothing",
+    "title": "Radius",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/docs/smoothing/#radius",
+    "relUrl": "/docs/smoothing/#radius"
+  },"185": {
+    "doc": "Smoothing",
+    "title": "Moving Average",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/docs/smoothing/#moving-average",
+    "relUrl": "/docs/smoothing/#moving-average"
+  },"186": {
+    "doc": "Smoothing",
+    "title": "Smoothing",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/docs/smoothing/",
+    "relUrl": "/docs/smoothing/"
+  },"187": {
+    "doc": "Search",
+    "title": "Search",
+    "content": "An inventory of the available heuristics modules. Search algorithms are at the core of PCGEx Pathfinding nodes &amp; capabilities. They are responsible for traversing individual clusters in search for the ideal path between the seed and goal points. At the time of writing, there are only two algorithms implemented, A Start and Djikstra. The next implementation candidates will be DFS and BFS as they yield slightly different results, althought less friendly to modifiers. ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/pathfinding/search/#search",
+    "relUrl": "/pathfinding/search/#search"
+  },"188": {
+    "doc": "Search",
+    "title": "Modules",
+    "content": ". ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/pathfinding/search/#modules",
+    "relUrl": "/pathfinding/search/#modules"
+  },"189": {
+    "doc": "Search",
+    "title": "Djikstra",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/pathfinding/search/#djikstra",
+    "relUrl": "/pathfinding/search/#djikstra"
+  },"190": {
+    "doc": "Search",
+    "title": "A* Star",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/pathfinding/search/#a-star",
+    "relUrl": "/pathfinding/search/#a-star"
+  },"191": {
+    "doc": "Search",
+    "title": "Search",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/pathfinding/search/",
+    "relUrl": "/pathfinding/search/"
+  },"192": {
+    "doc": "Heuristics",
+    "title": "Heuristics",
+    "content": "An inventory of the available heuristics modules. Heuristics modules are primarily used by Pathfinding nodes, such as Edges Pathfinding and Plot Edges Pathfinding . Heuristics are basically some under-the-hood maths used by Search Algorithms to gauge whether one path is better than another. Different algorithms use heuristics differently, but their values is computed consistently. ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/pathfinding/heuristics/#heuristics",
+    "relUrl": "/pathfinding/heuristics/#heuristics"
+  },"193": {
+    "doc": "Heuristics",
+    "title": "Modules",
+    "content": ". ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/pathfinding/heuristics/#modules",
+    "relUrl": "/pathfinding/heuristics/#modules"
+  },"194": {
+    "doc": "Heuristics",
+    "title": "Shortest Distance",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/pathfinding/heuristics/#shortest-distance",
+    "relUrl": "/pathfinding/heuristics/#shortest-distance"
+  },"195": {
+    "doc": "Heuristics",
+    "title": "Local Distance",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/pathfinding/heuristics/#local-distance",
+    "relUrl": "/pathfinding/heuristics/#local-distance"
+  },"196": {
+    "doc": "Heuristics",
+    "title": "Modifiers Only",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/pathfinding/heuristics/#modifiers-only",
+    "relUrl": "/pathfinding/heuristics/#modifiers-only"
+  },"197": {
+    "doc": "Heuristics",
+    "title": "Least Nodes",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/pathfinding/heuristics/#least-nodes",
+    "relUrl": "/pathfinding/heuristics/#least-nodes"
+  },"198": {
+    "doc": "Heuristics",
+    "title": "Direction",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/pathfinding/heuristics/#direction",
+    "relUrl": "/pathfinding/heuristics/#direction"
+  },"199": {
+    "doc": "Heuristics",
+    "title": "Heuristics",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/pathfinding/heuristics/",
+    "relUrl": "/pathfinding/heuristics/"
+  },"200": {
+    "doc": "Documentation",
+    "title": "Documentation",
+    "content": "Notes &amp; informations . This section is dedicated to broader &amp; shared documentation topics. Node specifics can be found on the dedicated node page. When working with specific nodes, make sure to check out the home of the category they belong to as is often contains important doc pertaining to their family of nodes! . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/docs/#documentation",
+    "relUrl": "/docs/#documentation"
+  },"201": {
+    "doc": "Documentation",
+    "title": "PCGEx Nodes",
+    "content": "Shared concepts . A summary of the informations &amp; parameters available on every PCGEx node. ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/docs/#pcgex-nodes",
+    "relUrl": "/docs/#pcgex-nodes"
+  },"202": {
+    "doc": "Documentation",
+    "title": "Attribute Selectors",
+    "content": "Selecting sub-components and fields . Attribute selection are not just names, but also provide additional way to select more specific data from a given attribute. ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/docs/#attribute-selectors",
+    "relUrl": "/docs/#attribute-selectors"
+  },"203": {
+    "doc": "Documentation",
+    "title": "Working with Graphs",
+    "content": "Basic concepts in the context of PCGEx . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/docs/#working-with-graphs",
+    "relUrl": "/docs/#working-with-graphs"
+  },"204": {
+    "doc": "Documentation",
+    "title": "Debug",
+    "content": "Working with PCGEx Debug nodes . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/docs/#debug",
+    "relUrl": "/docs/#debug"
+  },"205": {
+    "doc": "Documentation",
+    "title": "Modules &amp; Sub-processors",
+    "content": "Modules and sub-processors are instanced classes used across a variety of nodes. ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/docs/#modules--sub-processors",
+    "relUrl": "/docs/#modules--sub-processors"
+  },"206": {
+    "doc": "Documentation",
+    "title": "Relaxing",
+    "content": "An inventory of the available relax modules. ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/docs/#relaxing",
+    "relUrl": "/docs/#relaxing"
+  },"207": {
+    "doc": "Documentation",
+    "title": "Smoothing",
+    "content": "An inventory of the available smoothing modules. ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/docs/#smoothing",
+    "relUrl": "/docs/#smoothing"
+  },"208": {
+    "doc": "Documentation",
+    "title": "Orient",
+    "content": "An inventory of the available orientation modules. ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/docs/#orient",
+    "relUrl": "/docs/#orient"
+  },"209": {
+    "doc": "Documentation",
+    "title": "Blending",
+    "content": "An inventory of the available blending modules. Pathfinding and its modules being more complex, it has a dedicated section. ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/docs/#blending",
+    "relUrl": "/docs/#blending"
+  },"210": {
+    "doc": "Documentation",
+    "title": "Documentation",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/docs/",
+    "relUrl": "/docs/"
+  },"211": {
+    "doc": "Graphs",
+    "title": "Graphs",
+    "content": "Delaunay, Voronoi, Convex Hulls, … . Graph generation &amp; operations . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/graphs/#graphs",
+    "relUrl": "/nodes/graphs/#graphs"
+  },"212": {
+    "doc": "Graphs",
+    "title": "Nodes",
+    "content": ". ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/graphs/#nodes",
+    "relUrl": "/nodes/graphs/#nodes"
+  },"213": {
+    "doc": "Graphs",
+    "title": "Convex Hull 3D",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/graphs/#convex-hull-3d",
+    "relUrl": "/nodes/graphs/#convex-hull-3d"
+  },"214": {
+    "doc": "Graphs",
+    "title": "Delaunay 3D",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/graphs/#delaunay-3d",
+    "relUrl": "/nodes/graphs/#delaunay-3d"
+  },"215": {
+    "doc": "Graphs",
+    "title": "Voronoi 3D",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/graphs/#voronoi-3d",
+    "relUrl": "/nodes/graphs/#voronoi-3d"
+  },"216": {
+    "doc": "Graphs",
+    "title": "Convex Hull 2D",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/graphs/#convex-hull-2d",
+    "relUrl": "/nodes/graphs/#convex-hull-2d"
+  },"217": {
+    "doc": "Graphs",
+    "title": "Delaunay 2D",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/graphs/#delaunay-2d",
+    "relUrl": "/nodes/graphs/#delaunay-2d"
+  },"218": {
+    "doc": "Graphs",
+    "title": "Voronoi 2D",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/graphs/#voronoi-2d",
+    "relUrl": "/nodes/graphs/#voronoi-2d"
+  },"219": {
+    "doc": "Graphs",
+    "title": "Sanitize Clusters",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/graphs/#sanitize-clusters",
+    "relUrl": "/nodes/graphs/#sanitize-clusters"
+  },"220": {
+    "doc": "Graphs",
+    "title": "Graphs",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/graphs/",
+    "relUrl": "/nodes/graphs/"
+  },"221": {
+    "doc": "Misc",
+    "title": "Misc",
+    "content": "Sort, Partition, Fuse, … . Utilitary nodes . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/misc/#misc",
+    "relUrl": "/nodes/misc/#misc"
+  },"222": {
+    "doc": "Misc",
+    "title": "Nodes",
+    "content": ". ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/misc/#nodes",
+    "relUrl": "/nodes/misc/#nodes"
+  },"223": {
+    "doc": "Misc",
+    "title": "Sort Points",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/misc/#sort-points",
+    "relUrl": "/nodes/misc/#sort-points"
+  },"224": {
+    "doc": "Misc",
+    "title": "Partition by Values",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/misc/#partition-by-values",
+    "relUrl": "/nodes/misc/#partition-by-values"
+  },"225": {
+    "doc": "Misc",
+    "title": "Fuse Points",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/misc/#fuse-points",
+    "relUrl": "/nodes/misc/#fuse-points"
+  },"226": {
+    "doc": "Misc",
+    "title": "Draw Attributes",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/misc/#draw-attributes",
+    "relUrl": "/nodes/misc/#draw-attributes"
+  },"227": {
+    "doc": "Misc",
+    "title": "Points to Bounds",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/misc/#points-to-bounds",
+    "relUrl": "/nodes/misc/#points-to-bounds"
+  },"228": {
+    "doc": "Misc",
+    "title": "Discard Points by Count",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/misc/#discard-points-by-count",
+    "relUrl": "/nodes/misc/#discard-points-by-count"
+  },"229": {
+    "doc": "Misc",
+    "title": "Write Index",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/misc/#write-index",
+    "relUrl": "/nodes/misc/#write-index"
+  },"230": {
+    "doc": "Misc",
+    "title": "Debug Manager",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/misc/#debug-manager",
+    "relUrl": "/nodes/misc/#debug-manager"
+  },"231": {
+    "doc": "Misc",
+    "title": "Misc",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/misc/",
+    "relUrl": "/nodes/misc/"
+  },"232": {
+    "doc": "Installation",
+    "title": "Installation",
+    "content": "How to install . The best way is to clone the repo as a submodule; though you can also download sources as a .zip to ensure long term stability. ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/installation/#installation",
+    "relUrl": "/installation/#installation"
+  },"233": {
+    "doc": "Installation",
+    "title": "Sources",
+    "content": "  Latest (.zip) Github . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/installation/#sources",
+    "relUrl": "/installation/#sources"
+  },"234": {
+    "doc": "Installation",
+    "title": "Cloning",
+    "content": "The best way is to clone the repository to a submodule; that way you can contribute pull requests if you want. The project should placed in your project’s Plugins folder. &gt; cd YourProject &gt; git submodule add https://github.com/Nebukam/PCGExtendedToolkit Plugins/PCGExtendedToolkit &gt; git add ../.gitmodules &gt; git commit . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/installation/#cloning",
+    "relUrl": "/installation/#cloning"
+  },"235": {
+    "doc": "Installation",
+    "title": "Install from the ZIP",
+    "content": "  Alternatively you can download the ZIP of this repo and place it in YourProject/Plugins/PCGExtendedToolkit . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/installation/#install-from-the-zip",
+    "relUrl": "/installation/#install-from-the-zip"
+  },"236": {
+    "doc": "Installation",
+    "title": "Referencing in C++",
+    "content": "Edit YourProject.Build.cs and do something similar to this: . using System.IO; using UnrealBuildTool; public class PCGExExamples : ModuleRules { private string PluginsPath { get { return Path.GetFullPath( Path.Combine( ModuleDirectory, \"../../Plugins/\" ) ); } } protected void AddPCGEx() { // Linker PrivateDependencyModuleNames.AddRange(new string[] { \"PCGExtendedToolkit\" }); // Headers PublicIncludePaths.Add(Path.Combine( PluginsPath, \"PCGExtendedToolkit\", \"Source\", \"PCGExtendedToolkit\", \"Public\")); } public PCGExExamples(ReadOnlyTargetRules Target) : base(Target) { PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs; PublicDependencyModuleNames.AddRange(new string[] { \"Core\", \"CoreUObject\", \"Engine\", \"InputCore\" }); AddPCGEx(); } } . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/installation/#referencing-in-c",
+    "relUrl": "/installation/#referencing-in-c"
+  },"237": {
+    "doc": "Installation",
+    "title": "Installation",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/installation/",
+    "relUrl": "/installation/"
+  },"238": {
+    "doc": "Guides",
+    "title": "Guides",
+    "content": "A few example scenarios . Small examples &amp; step-by-step guides to get going with the more abstract and obscures nodes . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/guides/#guides",
+    "relUrl": "/guides/#guides"
+  },"239": {
+    "doc": "Guides",
+    "title": "Guides",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/guides/",
+    "relUrl": "/guides/"
+  },"240": {
+    "doc": "Goal Pickers",
+    "title": "Goal Pickers",
+    "content": "An inventory of the available goal pickers modules. Heuristics modules are primarily used by Pathfinding nodes, such as Edges Pathfinding and Plot Edges Pathfinding . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/pathfinding/goal-pickers/#goal-pickers",
+    "relUrl": "/pathfinding/goal-pickers/#goal-pickers"
+  },"241": {
+    "doc": "Goal Pickers",
+    "title": "Modules",
+    "content": ". ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/pathfinding/goal-pickers/#modules",
+    "relUrl": "/pathfinding/goal-pickers/#modules"
+  },"242": {
+    "doc": "Goal Pickers",
+    "title": "Goal Pickers",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/pathfinding/goal-pickers/",
+    "relUrl": "/pathfinding/goal-pickers/"
+  },"243": {
+    "doc": "Nodes",
+    "title": "Nodes",
+    "content": "All of ‘em nodes! . Nodes on this page are grouped by categories, but make sure to check each hub as they contains useful infos to better understand the inner workings of their members. ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/#nodes",
+    "relUrl": "/nodes/#nodes"
+  },"244": {
+    "doc": "Nodes",
+    "title": "Graphs",
+    "content": "Delaunay, Voronoi, Convex Hulls, … . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/#graphs",
+    "relUrl": "/nodes/#graphs"
+  },"245": {
+    "doc": "Nodes",
+    "title": "Convex Hull 3D",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/#convex-hull-3d",
+    "relUrl": "/nodes/#convex-hull-3d"
+  },"246": {
+    "doc": "Nodes",
+    "title": "Delaunay 3D",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/#delaunay-3d",
+    "relUrl": "/nodes/#delaunay-3d"
+  },"247": {
+    "doc": "Nodes",
+    "title": "Voronoi 3D",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/#voronoi-3d",
+    "relUrl": "/nodes/#voronoi-3d"
+  },"248": {
+    "doc": "Nodes",
+    "title": "Convex Hull 2D",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/#convex-hull-2d",
+    "relUrl": "/nodes/#convex-hull-2d"
+  },"249": {
+    "doc": "Nodes",
+    "title": "Delaunay 2D",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/#delaunay-2d",
+    "relUrl": "/nodes/#delaunay-2d"
+  },"250": {
+    "doc": "Nodes",
+    "title": "Voronoi 2D",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/#voronoi-2d",
+    "relUrl": "/nodes/#voronoi-2d"
+  },"251": {
+    "doc": "Nodes",
+    "title": "Sanitize Clusters",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/#sanitize-clusters",
+    "relUrl": "/nodes/#sanitize-clusters"
+  },"252": {
+    "doc": "Nodes",
+    "title": "Pathfinders",
+    "content": "Seed(s)-to-goal(s), Plots, Navmesh, … . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/#pathfinders",
+    "relUrl": "/nodes/#pathfinders"
+  },"253": {
+    "doc": "Nodes",
+    "title": "Edges Pathfinding",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/#edges-pathfinding",
+    "relUrl": "/nodes/#edges-pathfinding"
+  },"254": {
+    "doc": "Nodes",
+    "title": "Plot Edges Pathfinding",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/#plot-edges-pathfinding",
+    "relUrl": "/nodes/#plot-edges-pathfinding"
+  },"255": {
+    "doc": "Nodes",
+    "title": "Navmesh Pathfinding",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/#navmesh-pathfinding",
+    "relUrl": "/nodes/#navmesh-pathfinding"
+  },"256": {
+    "doc": "Nodes",
+    "title": "Plot Navmesh Pathfinding",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/#plot-navmesh-pathfinding",
+    "relUrl": "/nodes/#plot-navmesh-pathfinding"
+  },"257": {
+    "doc": "Nodes",
+    "title": "Sampling",
+    "content": "Data from nearest points, polylines, surfaces, … . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/#sampling",
+    "relUrl": "/nodes/#sampling"
+  },"258": {
+    "doc": "Nodes",
+    "title": "Sample Nearest Surface",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/#sample-nearest-surface",
+    "relUrl": "/nodes/#sample-nearest-surface"
+  },"259": {
+    "doc": "Nodes",
+    "title": "Sample Surface Guided",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/#sample-surface-guided",
+    "relUrl": "/nodes/#sample-surface-guided"
+  },"260": {
+    "doc": "Nodes",
+    "title": "Sample Nearest Polyline",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/#sample-nearest-polyline",
+    "relUrl": "/nodes/#sample-nearest-polyline"
+  },"261": {
+    "doc": "Nodes",
+    "title": "Sample Nearest Point",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/#sample-nearest-point",
+    "relUrl": "/nodes/#sample-nearest-point"
+  },"262": {
+    "doc": "Nodes",
+    "title": "Misc",
+    "content": "Sort, Partition, Fuse, … . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/#misc",
+    "relUrl": "/nodes/#misc"
+  },"263": {
+    "doc": "Nodes",
+    "title": "Sort Points",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/#sort-points",
+    "relUrl": "/nodes/#sort-points"
+  },"264": {
+    "doc": "Nodes",
+    "title": "Partition by Values",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/#partition-by-values",
+    "relUrl": "/nodes/#partition-by-values"
+  },"265": {
+    "doc": "Nodes",
+    "title": "Fuse Points",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/#fuse-points",
+    "relUrl": "/nodes/#fuse-points"
+  },"266": {
+    "doc": "Nodes",
+    "title": "Draw Attributes",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/#draw-attributes",
+    "relUrl": "/nodes/#draw-attributes"
+  },"267": {
+    "doc": "Nodes",
+    "title": "Points to Bounds",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/#points-to-bounds",
+    "relUrl": "/nodes/#points-to-bounds"
+  },"268": {
+    "doc": "Nodes",
+    "title": "Discard Points by Count",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/#discard-points-by-count",
+    "relUrl": "/nodes/#discard-points-by-count"
+  },"269": {
+    "doc": "Nodes",
+    "title": "Write Index",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/#write-index",
+    "relUrl": "/nodes/#write-index"
+  },"270": {
+    "doc": "Nodes",
+    "title": "Debug Manager",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/#debug-manager",
+    "relUrl": "/nodes/#debug-manager"
+  },"271": {
+    "doc": "Nodes",
+    "title": "Paths",
+    "content": "Data from nearest points, polylines, surfaces, … . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/#paths",
+    "relUrl": "/nodes/#paths"
+  },"272": {
+    "doc": "Nodes",
+    "title": "Smooth",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/#smooth",
+    "relUrl": "/nodes/#smooth"
+  },"273": {
+    "doc": "Nodes",
+    "title": "Orient",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/#orient",
+    "relUrl": "/nodes/#orient"
+  },"274": {
+    "doc": "Nodes",
+    "title": "Fuse Collinear",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/#fuse-collinear",
+    "relUrl": "/nodes/#fuse-collinear"
+  },"275": {
+    "doc": "Nodes",
+    "title": "Subdivide",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/#subdivide",
+    "relUrl": "/nodes/#subdivide"
+  },"276": {
+    "doc": "Nodes",
+    "title": "Write Tangents",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/#write-tangents",
+    "relUrl": "/nodes/#write-tangents"
+  },"277": {
+    "doc": "Nodes",
+    "title": "Paths to Edges",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/#paths-to-edges",
+    "relUrl": "/nodes/#paths-to-edges"
+  },"278": {
+    "doc": "Nodes",
+    "title": "Edges",
+    "content": "Refinemement, connections, intersections, … . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/#edges",
+    "relUrl": "/nodes/#edges"
+  },"279": {
+    "doc": "Nodes",
+    "title": "Bridge Clusters",
+    "content": "Connects clusters together. ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/#bridge-clusters",
+    "relUrl": "/nodes/#bridge-clusters"
+  },"280": {
+    "doc": "Nodes",
+    "title": "Refine",
+    "content": "Refine edges configuration of a graph (i.e MST) . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/#refine",
+    "relUrl": "/nodes/#refine"
+  },"281": {
+    "doc": "Nodes",
+    "title": "Relax",
+    "content": "Relax points positions of a graph. ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/#relax",
+    "relUrl": "/nodes/#relax"
+  },"282": {
+    "doc": "Nodes",
+    "title": "Write Extras",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/#write-extras",
+    "relUrl": "/nodes/#write-extras"
+  },"283": {
+    "doc": "Nodes",
+    "title": "Prune by Length",
+    "content": "Remove edges from a graph using length data. ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/#prune-by-length",
+    "relUrl": "/nodes/#prune-by-length"
+  },"284": {
+    "doc": "Nodes",
+    "title": "Find Intersections",
+    "content": "Find and registers edges intersections inside a cluster. ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/#find-intersections",
+    "relUrl": "/nodes/#find-intersections"
+  },"285": {
+    "doc": "Nodes",
+    "title": "Draw Edges",
+    "content": "Draw debug edge lines of a given vtx/edge pair. ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/#draw-edges",
+    "relUrl": "/nodes/#draw-edges"
+  },"286": {
+    "doc": "Nodes",
+    "title": "Custom Graphs",
+    "content": "Custom graph creation from user-defined rules . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/#custom-graphs",
+    "relUrl": "/nodes/#custom-graphs"
+  },"287": {
+    "doc": "Nodes",
+    "title": "Create Params",
+    "content": "Create params to build a custom graph from. ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/#create-params",
+    "relUrl": "/nodes/#create-params"
+  },"288": {
+    "doc": "Nodes",
+    "title": "Build",
+    "content": "Build a custom graph from a ore or multiple params. ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/#build",
+    "relUrl": "/nodes/#build"
+  },"289": {
+    "doc": "Nodes",
+    "title": "Find Edge Clusters",
+    "content": "Find and creates edge cluster from a custom graph. ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/#find-edge-clusters",
+    "relUrl": "/nodes/#find-edge-clusters"
+  },"290": {
+    "doc": "Nodes",
+    "title": "Draw Custom Graph",
+    "content": "Debug &amp; draw custom graph generated edges. ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/#draw-custom-graph",
+    "relUrl": "/nodes/#draw-custom-graph"
+  },"291": {
+    "doc": "Nodes",
+    "title": "Consolidate",
+    "content": "Rebuild a custom graph after editing. ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/#consolidate",
+    "relUrl": "/nodes/#consolidate"
+  },"292": {
+    "doc": "Nodes",
+    "title": "Delete",
+    "content": "Delete custom graph attributes. ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/#delete",
+    "relUrl": "/nodes/#delete"
+  },"293": {
+    "doc": "Nodes",
+    "title": "Promote Edges",
+    "content": "Translate custom graph edge to points or paths. ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/#promote-edges",
+    "relUrl": "/nodes/#promote-edges"
+  },"294": {
+    "doc": "Nodes",
+    "title": "Data",
+    "content": "Custom graph data object. ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/#data",
+    "relUrl": "/nodes/#data"
+  },"295": {
+    "doc": "Nodes",
+    "title": "Nodes",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/",
+    "relUrl": "/nodes/"
+  },"296": {
+    "doc": "Orient",
+    "title": "Orient",
+    "content": "An inventory of the available orientation modules. Heuristics modules are primarily used by Pathfinding nodes, such as Edges Pathfinding and Plot Edges Pathfinding . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/docs/orient/#orient",
+    "relUrl": "/docs/orient/#orient"
+  },"297": {
+    "doc": "Orient",
+    "title": "Modules",
+    "content": ". ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/docs/orient/#modules",
+    "relUrl": "/docs/orient/#modules"
+  },"298": {
+    "doc": "Orient",
+    "title": "Orient",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/docs/orient/",
+    "relUrl": "/docs/orient/"
+  },"299": {
+    "doc": "Sampling",
+    "title": "Sampling",
+    "content": "Data from nearest points, polylines, surfaces, … . Extract data in relation to surroundings . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/sampling/#sampling",
+    "relUrl": "/nodes/sampling/#sampling"
+  },"300": {
+    "doc": "Sampling",
+    "title": "Nodes",
+    "content": ". ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/sampling/#nodes",
+    "relUrl": "/nodes/sampling/#nodes"
+  },"301": {
+    "doc": "Sampling",
+    "title": "Sample Nearest Surface",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/sampling/#sample-nearest-surface",
+    "relUrl": "/nodes/sampling/#sample-nearest-surface"
+  },"302": {
+    "doc": "Sampling",
+    "title": "Sample Surface Guided",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/sampling/#sample-surface-guided",
+    "relUrl": "/nodes/sampling/#sample-surface-guided"
+  },"303": {
+    "doc": "Sampling",
+    "title": "Sample Nearest Polyline",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/sampling/#sample-nearest-polyline",
+    "relUrl": "/nodes/sampling/#sample-nearest-polyline"
+  },"304": {
+    "doc": "Sampling",
+    "title": "Sample Nearest Point",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/sampling/#sample-nearest-point",
+    "relUrl": "/nodes/sampling/#sample-nearest-point"
+  },"305": {
+    "doc": "Sampling",
+    "title": "Sampling",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/sampling/",
+    "relUrl": "/nodes/sampling/"
+  },"306": {
+    "doc": "Paths",
+    "title": "Paths",
+    "content": "Data from nearest points, polylines, surfaces, … . Extract data in relation to surroundings . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/paths/#paths",
+    "relUrl": "/nodes/paths/#paths"
+  },"307": {
+    "doc": "Paths",
+    "title": "Nodes",
+    "content": ". ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/paths/#nodes",
+    "relUrl": "/nodes/paths/#nodes"
+  },"308": {
+    "doc": "Paths",
+    "title": "Smooth",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/paths/#smooth",
+    "relUrl": "/nodes/paths/#smooth"
+  },"309": {
+    "doc": "Paths",
+    "title": "Orient",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/paths/#orient",
+    "relUrl": "/nodes/paths/#orient"
+  },"310": {
+    "doc": "Paths",
+    "title": "Fuse Collinear",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/paths/#fuse-collinear",
+    "relUrl": "/nodes/paths/#fuse-collinear"
+  },"311": {
+    "doc": "Paths",
+    "title": "Subdivide",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/paths/#subdivide",
+    "relUrl": "/nodes/paths/#subdivide"
+  },"312": {
+    "doc": "Paths",
+    "title": "Write Tangents",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/paths/#write-tangents",
+    "relUrl": "/nodes/paths/#write-tangents"
+  },"313": {
+    "doc": "Paths",
+    "title": "Paths to Edges",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/paths/#paths-to-edges",
+    "relUrl": "/nodes/paths/#paths-to-edges"
+  },"314": {
+    "doc": "Paths",
+    "title": "Paths",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/paths/",
+    "relUrl": "/nodes/paths/"
+  },"315": {
+    "doc": "Pathfinders",
+    "title": "Pathfinders",
+    "content": "Seed(s)-to-goal(s), Plots, Navmesh, … . Find path inside graphs . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/pathfinder/#pathfinders",
+    "relUrl": "/nodes/pathfinder/#pathfinders"
+  },"316": {
+    "doc": "Pathfinders",
+    "title": "Nodes",
+    "content": ". ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/pathfinder/#nodes",
+    "relUrl": "/nodes/pathfinder/#nodes"
+  },"317": {
+    "doc": "Pathfinders",
+    "title": "Edges Pathfinding",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/pathfinder/#edges-pathfinding",
+    "relUrl": "/nodes/pathfinder/#edges-pathfinding"
+  },"318": {
+    "doc": "Pathfinders",
+    "title": "Plot Edges Pathfinding",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/pathfinder/#plot-edges-pathfinding",
+    "relUrl": "/nodes/pathfinder/#plot-edges-pathfinding"
+  },"319": {
+    "doc": "Pathfinders",
+    "title": "Navmesh Pathfinding",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/pathfinder/#navmesh-pathfinding",
+    "relUrl": "/nodes/pathfinder/#navmesh-pathfinding"
+  },"320": {
+    "doc": "Pathfinders",
+    "title": "Plot Navmesh Pathfinding",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/pathfinder/#plot-navmesh-pathfinding",
+    "relUrl": "/nodes/pathfinder/#plot-navmesh-pathfinding"
+  },"321": {
+    "doc": "Pathfinders",
+    "title": "Pathfinders",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/pathfinder/",
+    "relUrl": "/nodes/pathfinder/"
+  },"322": {
+    "doc": "PCG Extended Toolkit",
+    "title": "PCGEx PCGExtendedToolkit",
+    "content": "The PCG Extended Toolkit is a free (libre) plugin that extends Unreal Engine’ Procedural Content Generation pipeline, with a focus on building graphs &amp; pathfinding.   Installation Guides Documentation . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/#pcgex-pcgextendedtoolkit",
+    "relUrl": "/#pcgex-pcgextendedtoolkit"
+  },"323": {
+    "doc": "PCG Extended Toolkit",
+    "title": "Nodes",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/#nodes",
+    "relUrl": "/#nodes"
+  },"324": {
+    "doc": "PCG Extended Toolkit",
+    "title": "Graphs",
+    "content": "Delaunay, Voronoi, Convex Hulls, … . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/#graphs",
+    "relUrl": "/#graphs"
+  },"325": {
+    "doc": "PCG Extended Toolkit",
+    "title": "Convex Hull 3D",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/#convex-hull-3d",
+    "relUrl": "/#convex-hull-3d"
+  },"326": {
+    "doc": "PCG Extended Toolkit",
+    "title": "Delaunay 3D",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/#delaunay-3d",
+    "relUrl": "/#delaunay-3d"
+  },"327": {
+    "doc": "PCG Extended Toolkit",
+    "title": "Voronoi 3D",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/#voronoi-3d",
+    "relUrl": "/#voronoi-3d"
+  },"328": {
+    "doc": "PCG Extended Toolkit",
+    "title": "Convex Hull 2D",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/#convex-hull-2d",
+    "relUrl": "/#convex-hull-2d"
+  },"329": {
+    "doc": "PCG Extended Toolkit",
+    "title": "Delaunay 2D",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/#delaunay-2d",
+    "relUrl": "/#delaunay-2d"
+  },"330": {
+    "doc": "PCG Extended Toolkit",
+    "title": "Voronoi 2D",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/#voronoi-2d",
+    "relUrl": "/#voronoi-2d"
+  },"331": {
+    "doc": "PCG Extended Toolkit",
+    "title": "Sanitize Clusters",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/#sanitize-clusters",
+    "relUrl": "/#sanitize-clusters"
+  },"332": {
+    "doc": "PCG Extended Toolkit",
+    "title": "Pathfinders",
+    "content": "Seed(s)-to-goal(s), Plots, Navmesh, … . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/#pathfinders",
+    "relUrl": "/#pathfinders"
+  },"333": {
+    "doc": "PCG Extended Toolkit",
+    "title": "Edges Pathfinding",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/#edges-pathfinding",
+    "relUrl": "/#edges-pathfinding"
+  },"334": {
+    "doc": "PCG Extended Toolkit",
+    "title": "Plot Edges Pathfinding",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/#plot-edges-pathfinding",
+    "relUrl": "/#plot-edges-pathfinding"
+  },"335": {
+    "doc": "PCG Extended Toolkit",
+    "title": "Navmesh Pathfinding",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/#navmesh-pathfinding",
+    "relUrl": "/#navmesh-pathfinding"
+  },"336": {
+    "doc": "PCG Extended Toolkit",
+    "title": "Plot Navmesh Pathfinding",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/#plot-navmesh-pathfinding",
+    "relUrl": "/#plot-navmesh-pathfinding"
+  },"337": {
+    "doc": "PCG Extended Toolkit",
+    "title": "Sampling",
+    "content": "Data from nearest points, polylines, surfaces, … . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/#sampling",
+    "relUrl": "/#sampling"
+  },"338": {
+    "doc": "PCG Extended Toolkit",
+    "title": "Sample Nearest Surface",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/#sample-nearest-surface",
+    "relUrl": "/#sample-nearest-surface"
+  },"339": {
+    "doc": "PCG Extended Toolkit",
+    "title": "Sample Surface Guided",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/#sample-surface-guided",
+    "relUrl": "/#sample-surface-guided"
+  },"340": {
+    "doc": "PCG Extended Toolkit",
+    "title": "Sample Nearest Polyline",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/#sample-nearest-polyline",
+    "relUrl": "/#sample-nearest-polyline"
+  },"341": {
+    "doc": "PCG Extended Toolkit",
+    "title": "Sample Nearest Point",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/#sample-nearest-point",
+    "relUrl": "/#sample-nearest-point"
+  },"342": {
+    "doc": "PCG Extended Toolkit",
+    "title": "Misc",
+    "content": "Sort, Partition, Fuse, … . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/#misc",
+    "relUrl": "/#misc"
+  },"343": {
+    "doc": "PCG Extended Toolkit",
+    "title": "Sort Points",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/#sort-points",
+    "relUrl": "/#sort-points"
+  },"344": {
+    "doc": "PCG Extended Toolkit",
+    "title": "Partition by Values",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/#partition-by-values",
+    "relUrl": "/#partition-by-values"
+  },"345": {
+    "doc": "PCG Extended Toolkit",
+    "title": "Fuse Points",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/#fuse-points",
+    "relUrl": "/#fuse-points"
+  },"346": {
+    "doc": "PCG Extended Toolkit",
+    "title": "Draw Attributes",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/#draw-attributes",
+    "relUrl": "/#draw-attributes"
+  },"347": {
+    "doc": "PCG Extended Toolkit",
+    "title": "Points to Bounds",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/#points-to-bounds",
+    "relUrl": "/#points-to-bounds"
+  },"348": {
+    "doc": "PCG Extended Toolkit",
+    "title": "Discard Points by Count",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/#discard-points-by-count",
+    "relUrl": "/#discard-points-by-count"
+  },"349": {
+    "doc": "PCG Extended Toolkit",
+    "title": "Write Index",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/#write-index",
+    "relUrl": "/#write-index"
+  },"350": {
+    "doc": "PCG Extended Toolkit",
+    "title": "Debug Manager",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/#debug-manager",
+    "relUrl": "/#debug-manager"
+  },"351": {
+    "doc": "PCG Extended Toolkit",
+    "title": "Paths",
+    "content": "Data from nearest points, polylines, surfaces, … . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/#paths",
+    "relUrl": "/#paths"
+  },"352": {
+    "doc": "PCG Extended Toolkit",
+    "title": "Smooth",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/#smooth",
+    "relUrl": "/#smooth"
+  },"353": {
+    "doc": "PCG Extended Toolkit",
+    "title": "Orient",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/#orient",
+    "relUrl": "/#orient"
+  },"354": {
+    "doc": "PCG Extended Toolkit",
+    "title": "Fuse Collinear",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/#fuse-collinear",
+    "relUrl": "/#fuse-collinear"
+  },"355": {
+    "doc": "PCG Extended Toolkit",
+    "title": "Subdivide",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/#subdivide",
+    "relUrl": "/#subdivide"
+  },"356": {
+    "doc": "PCG Extended Toolkit",
+    "title": "Write Tangents",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/#write-tangents",
+    "relUrl": "/#write-tangents"
+  },"357": {
+    "doc": "PCG Extended Toolkit",
+    "title": "Paths to Edges",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/#paths-to-edges",
+    "relUrl": "/#paths-to-edges"
+  },"358": {
+    "doc": "PCG Extended Toolkit",
+    "title": "Edges",
+    "content": "Refinemement, connections, intersections, … . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/#edges",
+    "relUrl": "/#edges"
+  },"359": {
+    "doc": "PCG Extended Toolkit",
+    "title": "Bridge Clusters",
+    "content": "Connects clusters together. ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/#bridge-clusters",
+    "relUrl": "/#bridge-clusters"
+  },"360": {
+    "doc": "PCG Extended Toolkit",
+    "title": "Refine",
+    "content": "Refine edges configuration of a graph (i.e MST) . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/#refine",
+    "relUrl": "/#refine"
+  },"361": {
+    "doc": "PCG Extended Toolkit",
+    "title": "Relax",
+    "content": "Relax points positions of a graph. ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/#relax",
+    "relUrl": "/#relax"
+  },"362": {
+    "doc": "PCG Extended Toolkit",
+    "title": "Write Extras",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/#write-extras",
+    "relUrl": "/#write-extras"
+  },"363": {
+    "doc": "PCG Extended Toolkit",
+    "title": "Prune by Length",
+    "content": "Remove edges from a graph using length data. ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/#prune-by-length",
+    "relUrl": "/#prune-by-length"
+  },"364": {
+    "doc": "PCG Extended Toolkit",
+    "title": "Find Intersections",
+    "content": "Find and registers edges intersections inside a cluster. ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/#find-intersections",
+    "relUrl": "/#find-intersections"
+  },"365": {
+    "doc": "PCG Extended Toolkit",
+    "title": "Draw Edges",
+    "content": "Draw debug edge lines of a given vtx/edge pair. ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/#draw-edges",
+    "relUrl": "/#draw-edges"
+  },"366": {
+    "doc": "PCG Extended Toolkit",
+    "title": "Custom Graphs",
+    "content": "Custom graph creation from user-defined rules . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/#custom-graphs",
+    "relUrl": "/#custom-graphs"
+  },"367": {
+    "doc": "PCG Extended Toolkit",
+    "title": "Create Params",
+    "content": "Create params to build a custom graph from. ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/#create-params",
+    "relUrl": "/#create-params"
+  },"368": {
+    "doc": "PCG Extended Toolkit",
+    "title": "Build",
+    "content": "Build a custom graph from a ore or multiple params. ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/#build",
+    "relUrl": "/#build"
+  },"369": {
+    "doc": "PCG Extended Toolkit",
+    "title": "Find Edge Clusters",
+    "content": "Find and creates edge cluster from a custom graph. ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/#find-edge-clusters",
+    "relUrl": "/#find-edge-clusters"
+  },"370": {
+    "doc": "PCG Extended Toolkit",
+    "title": "Draw Custom Graph",
+    "content": "Debug &amp; draw custom graph generated edges. ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/#draw-custom-graph",
+    "relUrl": "/#draw-custom-graph"
+  },"371": {
+    "doc": "PCG Extended Toolkit",
+    "title": "Consolidate",
+    "content": "Rebuild a custom graph after editing. ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/#consolidate",
+    "relUrl": "/#consolidate"
+  },"372": {
+    "doc": "PCG Extended Toolkit",
+    "title": "Delete",
+    "content": "Delete custom graph attributes. ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/#delete",
+    "relUrl": "/#delete"
+  },"373": {
+    "doc": "PCG Extended Toolkit",
+    "title": "Promote Edges",
+    "content": "Translate custom graph edge to points or paths. ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/#promote-edges",
+    "relUrl": "/#promote-edges"
+  },"374": {
+    "doc": "PCG Extended Toolkit",
+    "title": "Data",
+    "content": "Custom graph data object. ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/#data",
+    "relUrl": "/#data"
+  },"375": {
+    "doc": "PCG Extended Toolkit",
+    "title": "PCG Extended Toolkit",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/",
+    "relUrl": "/"
+  },"376": {
+    "doc": "Debug Manager",
+    "title": "Debug Manager",
+    "content": "Subtitle . … . Table of content . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/misc/misc-debug-manager.html#debug-manager",
+    "relUrl": "/nodes/misc/misc-debug-manager.html#debug-manager"
+  },"377": {
+    "doc": "Debug Manager",
+    "title": "Debug Manager",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/misc/misc-debug-manager.html",
+    "relUrl": "/nodes/misc/misc-debug-manager.html"
+  },"378": {
+    "doc": "Discard Points by Count",
+    "title": "Discard Points by Count",
+    "content": "Subtitle . … . Table of content . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/misc/misc-discard-points-by-count.html#discard-points-by-count",
+    "relUrl": "/nodes/misc/misc-discard-points-by-count.html#discard-points-by-count"
+  },"379": {
+    "doc": "Discard Points by Count",
+    "title": "Discard Points by Count",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/misc/misc-discard-points-by-count.html",
+    "relUrl": "/nodes/misc/misc-discard-points-by-count.html"
+  },"380": {
+    "doc": "Draw Attributes",
+    "title": "Draw Attributes",
+    "content": "Subtitle . … . Table of content . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/misc/misc-draw-attributes.html#draw-attributes",
+    "relUrl": "/nodes/misc/misc-draw-attributes.html#draw-attributes"
+  },"381": {
+    "doc": "Draw Attributes",
+    "title": "Draw Attributes",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/misc/misc-draw-attributes.html",
+    "relUrl": "/nodes/misc/misc-draw-attributes.html"
+  },"382": {
+    "doc": "Fuse Points",
+    "title": "Fuse Points",
+    "content": "Subtitle . … . Table of content . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/misc/misc-fuse-points.html#fuse-points",
+    "relUrl": "/nodes/misc/misc-fuse-points.html#fuse-points"
+  },"383": {
+    "doc": "Fuse Points",
+    "title": "Fuse Points",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/misc/misc-fuse-points.html",
+    "relUrl": "/nodes/misc/misc-fuse-points.html"
+  },"384": {
+    "doc": "Partition by Values",
+    "title": "Partition by Values",
+    "content": "Subtitle . This node is similar to the already existing “Partition” PCG Node in the sense that it split input data into smaller sub-groups. However, Partition by Values allows you to have more control over how sub-groups are identified and computed and cross-compare any number of attribute/properties. Table of content . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/misc/misc-partition-by-values.html#partition-by-values",
+    "relUrl": "/nodes/misc/misc-partition-by-values.html#partition-by-values"
+  },"385": {
+    "doc": "Partition by Values",
+    "title": "Partition by Values",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/misc/misc-partition-by-values.html",
+    "relUrl": "/nodes/misc/misc-partition-by-values.html"
+  },"386": {
+    "doc": "Points to Bounds",
+    "title": "Points to Bounds",
+    "content": "Subtitle . … . Table of content . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/misc/misc-points-to-bounds.html#points-to-bounds",
+    "relUrl": "/nodes/misc/misc-points-to-bounds.html#points-to-bounds"
+  },"387": {
+    "doc": "Points to Bounds",
+    "title": "Points to Bounds",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/misc/misc-points-to-bounds.html",
+    "relUrl": "/nodes/misc/misc-points-to-bounds.html"
+  },"388": {
+    "doc": "Sort Points",
+    "title": "Sort Points",
+    "content": "Subtitle . … . Table of content . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/misc/misc-sort-points.html#sort-points",
+    "relUrl": "/nodes/misc/misc-sort-points.html#sort-points"
+  },"389": {
+    "doc": "Sort Points",
+    "title": "Sort Points",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/misc/misc-sort-points.html",
+    "relUrl": "/nodes/misc/misc-sort-points.html"
+  },"390": {
+    "doc": "Write Index",
+    "title": "Write Index",
+    "content": "Subtitle . … . Table of content . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/misc/misc-write-index.html#write-index",
+    "relUrl": "/nodes/misc/misc-write-index.html#write-index"
+  },"391": {
+    "doc": "Write Index",
+    "title": "Write Index",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/misc/misc-write-index.html",
+    "relUrl": "/nodes/misc/misc-write-index.html"
+  },"392": {
+    "doc": "Heuristic Modifiers",
+    "title": "Heuristic Modifiers",
+    "content": "How to use heuristic modifiers . Heuristics modifier allows fine-grained and precise control over pathfinding constraints. Note that each of the Search algorithm uses modifier values slightly differently. How so is detailed on the dedicated algorithm page. Checklist . | Performance . | Do Async Processing | Chunk Size | Cache Result | . | . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/pathfinding/heuristics/modifiers.html#heuristic-modifiers",
+    "relUrl": "/pathfinding/heuristics/modifiers.html#heuristic-modifiers"
+  },"393": {
+    "doc": "Heuristic Modifiers",
+    "title": "Performance",
+    "content": ". Do Async Processing . Checked by default, you can toggle it off to force synchronous/unparallelized execution of the code. (This is a cheap workaround to ensure deterministic result in nodes that are otherwise non-deterministic due to parallel processing) . Note that synchronous execution still processes data in chunks, it just does it with guaranteed order, as opposed to parallel processing. Chunk Size . The chunk size usually represents the number of point a node will process in a single parallel batch. There is no ideal value: too small and you loose the gain of parallelization, too high and you’re just hogging thread ressources. Ultimately, it depends on your specific setup. A value of -1 fallbacks to that specific’ node default value under the hood. Unreal PCG plugin recommend a minimum batch size of 256, which is the default value I’m using for most of the nodes. Heavier operations can go as low as 32. Cache Result . Under the hood, all PCG node come with the ability to cache their result; but the system is designed so it’s a compile-time choice, not an editor-time one. I exposed the ability to cache on-demand at the price of some harmless asserts, because once you’re done iterating on certain settings, it’s worth caching the results. Be aware that the cache is easily corrupted, and sometime leads to missing points or data; it’s still a small price to pay when you’re working iteratively with hundreds of thousands points. ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/pathfinding/heuristics/modifiers.html#performance",
+    "relUrl": "/pathfinding/heuristics/modifiers.html#performance"
+  },"394": {
+    "doc": "Heuristic Modifiers",
+    "title": "Heuristic Modifiers",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/pathfinding/heuristics/modifiers.html",
+    "relUrl": "/pathfinding/heuristics/modifiers.html"
+  },"395": {
+    "doc": "Average",
+    "title": "Average",
+    "content": "TBD . This is an overview of the Font Editor. Table of content . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/docs/orient/orient-average.html#average",
+    "relUrl": "/docs/orient/orient-average.html#average"
+  },"396": {
+    "doc": "Average",
+    "title": "Average",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/docs/orient/orient-average.html",
+    "relUrl": "/docs/orient/orient-average.html"
+  },"397": {
+    "doc": "LookAt",
+    "title": "LookAt",
+    "content": "TBD . This is an overview of the Font Editor. Table of content . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/docs/orient/orient-lookat.html#lookat",
+    "relUrl": "/docs/orient/orient-lookat.html#lookat"
+  },"398": {
+    "doc": "LookAt",
+    "title": "LookAt",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/docs/orient/orient-lookat.html",
+    "relUrl": "/docs/orient/orient-lookat.html"
+  },"399": {
+    "doc": "Weighted",
+    "title": "Weighted",
+    "content": "TBD . This is an overview of the Font Editor. Table of content . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/docs/orient/orient-weighted.html#weighted",
+    "relUrl": "/docs/orient/orient-weighted.html#weighted"
+  },"400": {
+    "doc": "Weighted",
+    "title": "Weighted",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/docs/orient/orient-weighted.html",
+    "relUrl": "/docs/orient/orient-weighted.html"
+  },"401": {
+    "doc": "Plot Edges Pathfinding",
+    "title": "Plot Edges Pathfinding",
+    "content": "Subtitle . … . Table of content . | Heuristics | Shortest Distance | Local Distance | Modifiers Only | Least Nodes | Direction | . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/pathfinder/pathfinding-edges-plot.html#plot-edges-pathfinding",
+    "relUrl": "/nodes/pathfinder/pathfinding-edges-plot.html#plot-edges-pathfinding"
+  },"402": {
+    "doc": "Plot Edges Pathfinding",
+    "title": "Heuristics",
+    "content": ". ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/pathfinder/pathfinding-edges-plot.html#heuristics",
+    "relUrl": "/nodes/pathfinder/pathfinding-edges-plot.html#heuristics"
+  },"403": {
+    "doc": "Plot Edges Pathfinding",
+    "title": "Shortest Distance",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/pathfinder/pathfinding-edges-plot.html#shortest-distance",
+    "relUrl": "/nodes/pathfinder/pathfinding-edges-plot.html#shortest-distance"
+  },"404": {
+    "doc": "Plot Edges Pathfinding",
+    "title": "Local Distance",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/pathfinder/pathfinding-edges-plot.html#local-distance",
+    "relUrl": "/nodes/pathfinder/pathfinding-edges-plot.html#local-distance"
+  },"405": {
+    "doc": "Plot Edges Pathfinding",
+    "title": "Modifiers Only",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/pathfinder/pathfinding-edges-plot.html#modifiers-only",
+    "relUrl": "/nodes/pathfinder/pathfinding-edges-plot.html#modifiers-only"
+  },"406": {
+    "doc": "Plot Edges Pathfinding",
+    "title": "Least Nodes",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/pathfinder/pathfinding-edges-plot.html#least-nodes",
+    "relUrl": "/nodes/pathfinder/pathfinding-edges-plot.html#least-nodes"
+  },"407": {
+    "doc": "Plot Edges Pathfinding",
+    "title": "Direction",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/pathfinder/pathfinding-edges-plot.html#direction",
+    "relUrl": "/nodes/pathfinder/pathfinding-edges-plot.html#direction"
+  },"408": {
+    "doc": "Plot Edges Pathfinding",
+    "title": "Plot Edges Pathfinding",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/pathfinder/pathfinding-edges-plot.html",
+    "relUrl": "/nodes/pathfinder/pathfinding-edges-plot.html"
+  },"409": {
+    "doc": "Edges Pathfinding",
+    "title": "Edges Pathfinding",
+    "content": "Subtitle . … . Table of content . | Heuristics | Shortest Distance | Local Distance | Modifiers Only | Least Nodes | Direction | . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/pathfinder/pathfinding-edges.html#edges-pathfinding",
+    "relUrl": "/nodes/pathfinder/pathfinding-edges.html#edges-pathfinding"
+  },"410": {
+    "doc": "Edges Pathfinding",
+    "title": "Heuristics",
+    "content": ". ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/pathfinder/pathfinding-edges.html#heuristics",
+    "relUrl": "/nodes/pathfinder/pathfinding-edges.html#heuristics"
+  },"411": {
+    "doc": "Edges Pathfinding",
+    "title": "Shortest Distance",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/pathfinder/pathfinding-edges.html#shortest-distance",
+    "relUrl": "/nodes/pathfinder/pathfinding-edges.html#shortest-distance"
+  },"412": {
+    "doc": "Edges Pathfinding",
+    "title": "Local Distance",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/pathfinder/pathfinding-edges.html#local-distance",
+    "relUrl": "/nodes/pathfinder/pathfinding-edges.html#local-distance"
+  },"413": {
+    "doc": "Edges Pathfinding",
+    "title": "Modifiers Only",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/pathfinder/pathfinding-edges.html#modifiers-only",
+    "relUrl": "/nodes/pathfinder/pathfinding-edges.html#modifiers-only"
+  },"414": {
+    "doc": "Edges Pathfinding",
+    "title": "Least Nodes",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/pathfinder/pathfinding-edges.html#least-nodes",
+    "relUrl": "/nodes/pathfinder/pathfinding-edges.html#least-nodes"
+  },"415": {
+    "doc": "Edges Pathfinding",
+    "title": "Direction",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/pathfinder/pathfinding-edges.html#direction",
+    "relUrl": "/nodes/pathfinder/pathfinding-edges.html#direction"
+  },"416": {
+    "doc": "Edges Pathfinding",
+    "title": "Edges Pathfinding",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/pathfinder/pathfinding-edges.html",
+    "relUrl": "/nodes/pathfinder/pathfinding-edges.html"
+  },"417": {
+    "doc": "Plot Navmesh Pathfinding",
+    "title": "Plot Navmesh Pathfinding",
+    "content": "Subtitle . … . Table of content . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/pathfinder/pathfinding-navmesh-plot.html#plot-navmesh-pathfinding",
+    "relUrl": "/nodes/pathfinder/pathfinding-navmesh-plot.html#plot-navmesh-pathfinding"
+  },"418": {
+    "doc": "Plot Navmesh Pathfinding",
+    "title": "Plot Navmesh Pathfinding",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/pathfinder/pathfinding-navmesh-plot.html",
+    "relUrl": "/nodes/pathfinder/pathfinding-navmesh-plot.html"
+  },"419": {
+    "doc": "Navmesh Pathfinding",
+    "title": "Navmesh Pathfinding",
+    "content": "Subtitle . … . Table of content . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/pathfinder/pathfinding-navmesh.html#navmesh-pathfinding",
+    "relUrl": "/nodes/pathfinder/pathfinding-navmesh.html#navmesh-pathfinding"
+  },"420": {
+    "doc": "Navmesh Pathfinding",
+    "title": "Navmesh Pathfinding",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/pathfinder/pathfinding-navmesh.html",
+    "relUrl": "/nodes/pathfinder/pathfinding-navmesh.html"
+  },"421": {
+    "doc": "Fuse Collinear",
+    "title": "Fuse Collinear",
+    "content": "Subtitle . … . Table of content . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/paths/paths-fuse-collinear.html#fuse-collinear",
+    "relUrl": "/nodes/paths/paths-fuse-collinear.html#fuse-collinear"
+  },"422": {
+    "doc": "Fuse Collinear",
+    "title": "Fuse Collinear",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/paths/paths-fuse-collinear.html",
+    "relUrl": "/nodes/paths/paths-fuse-collinear.html"
+  },"423": {
+    "doc": "Orient",
+    "title": "Orient",
+    "content": "Subtitle . … . Table of content . | Smoothing | LookAt | Weighted | Average | . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/paths/paths-orient.html#orient",
+    "relUrl": "/nodes/paths/paths-orient.html#orient"
+  },"424": {
+    "doc": "Orient",
+    "title": "Smoothing",
+    "content": ". ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/paths/paths-orient.html#smoothing",
+    "relUrl": "/nodes/paths/paths-orient.html#smoothing"
+  },"425": {
+    "doc": "Orient",
+    "title": "LookAt",
+    "content": "TBD . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/paths/paths-orient.html#lookat",
+    "relUrl": "/nodes/paths/paths-orient.html#lookat"
+  },"426": {
+    "doc": "Orient",
+    "title": "Weighted",
+    "content": "TBD . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/paths/paths-orient.html#weighted",
+    "relUrl": "/nodes/paths/paths-orient.html#weighted"
+  },"427": {
+    "doc": "Orient",
+    "title": "Average",
+    "content": "TBD . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/paths/paths-orient.html#average",
+    "relUrl": "/nodes/paths/paths-orient.html#average"
+  },"428": {
+    "doc": "Orient",
+    "title": "Orient",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/paths/paths-orient.html",
+    "relUrl": "/nodes/paths/paths-orient.html"
+  },"429": {
+    "doc": "Smooth",
+    "title": "Smooth",
+    "content": "Subtitle . … . Table of content . | Smoothing | Radius | Moving Average | . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/paths/paths-smooth.html#smooth",
+    "relUrl": "/nodes/paths/paths-smooth.html#smooth"
+  },"430": {
+    "doc": "Smooth",
+    "title": "Smoothing",
+    "content": ". ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/paths/paths-smooth.html#smoothing",
+    "relUrl": "/nodes/paths/paths-smooth.html#smoothing"
+  },"431": {
+    "doc": "Smooth",
+    "title": "Radius",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/paths/paths-smooth.html#radius",
+    "relUrl": "/nodes/paths/paths-smooth.html#radius"
+  },"432": {
+    "doc": "Smooth",
+    "title": "Moving Average",
+    "content": "Subtitle . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/paths/paths-smooth.html#moving-average",
+    "relUrl": "/nodes/paths/paths-smooth.html#moving-average"
+  },"433": {
+    "doc": "Smooth",
+    "title": "Smooth",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/paths/paths-smooth.html",
+    "relUrl": "/nodes/paths/paths-smooth.html"
+  },"434": {
+    "doc": "Subdivide",
+    "title": "Subdivide",
+    "content": "Subtitle . … . Table of content . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/paths/paths-subdivide.html#subdivide",
+    "relUrl": "/nodes/paths/paths-subdivide.html#subdivide"
+  },"435": {
+    "doc": "Subdivide",
+    "title": "Subdivide",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/paths/paths-subdivide.html",
+    "relUrl": "/nodes/paths/paths-subdivide.html"
+  },"436": {
+    "doc": "Paths to Edges",
+    "title": "Paths to Edges",
+    "content": "Subtitle . … . Table of content . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/paths/paths-to-edges.html#paths-to-edges",
+    "relUrl": "/nodes/paths/paths-to-edges.html#paths-to-edges"
+  },"437": {
+    "doc": "Paths to Edges",
+    "title": "Paths to Edges",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/paths/paths-to-edges.html",
+    "relUrl": "/nodes/paths/paths-to-edges.html"
+  },"438": {
+    "doc": "Write Tangents",
+    "title": "Write Tangents",
+    "content": "Subtitle . … . Table of content . | Smoothing | . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/paths/paths-write-tangents.html#write-tangents",
+    "relUrl": "/nodes/paths/paths-write-tangents.html#write-tangents"
+  },"439": {
+    "doc": "Write Tangents",
+    "title": "Smoothing",
+    "content": ". ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/paths/paths-write-tangents.html#smoothing",
+    "relUrl": "/nodes/paths/paths-write-tangents.html#smoothing"
+  },"440": {
+    "doc": "Write Tangents",
+    "title": "Write Tangents",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/paths/paths-write-tangents.html",
+    "relUrl": "/nodes/paths/paths-write-tangents.html"
+  },"441": {
+    "doc": "Attribute Selectors",
+    "title": "Attribute Selectors",
+    "content": "Selecting sub-components and fields . Attribute selection are not just names, but also provide additional way to select more specific data from a given attribute. A lot of the nodes in PCGEx allow you to select local values or attributes to further tweak and alter the way data is processed. These selectors inherit from native PCG implementation and support both point properties and attribute names as strings. In PCGEx, this is only supported when reading from attributes, not writing to them. ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/docs/pcgex-attribute-selectors.html#attribute-selectors",
+    "relUrl": "/docs/pcgex-attribute-selectors.html#attribute-selectors"
+  },"442": {
+    "doc": "Attribute Selectors",
+    "title": "Component selection",
+    "content": "PCG natively support suffixing properties &amp; attribute with selectors, such as .X, .Y, .Z; as shown in the debug view. This means you can safely use $Position.Z inside an attribute selector in order to select the Z value of the Position vector. ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/docs/pcgex-attribute-selectors.html#component-selection",
+    "relUrl": "/docs/pcgex-attribute-selectors.html#component-selection"
+  },"443": {
+    "doc": "Attribute Selectors",
+    "title": "Extra Selectors",
+    "content": "PCGEx expand a tiny bit on that and support additional properties, depending on the underlying data type: . Note that these extra selectors are not case sensitive, and can be used additively: $Transform.Backward.Length is a valid selectors. | Selector | Data | . | : **Vectors** :| |   | . | | Uses the X component (Vector2D, Vector, Vector4) | . | | Uses the Y component (Vector2D, Vector, Vector4) | . | | Uses the Z component (Vector, Vector4), fallbacks to Y. | . | | Uses the W component (Vector4), fallbacks to Z | . | , , | Uses the length of the vector | . | : **Color** :| |   | . | | Uses the Red value | . | | Uses the Green value | . | | Uses the Blue value | . | | Uses the Alpha value | . | : **Rotators** :| |   | . | , , | Uses the Roll component | . | , , | Uses the Yaw component | . | , , | Uses the Pitch component | . | : **Quaternions &amp; Transforms** :| |   | . | , | Uses the Forward direction vector | . | , | Uses the Backward direction vector | . | | Uses the Right direction vector | . | | Uses the Roll direction vector | . | , | Uses the Up direction vector | . | , | Uses the Down direction vector | . | : **Transforms** :| |   | . | , | Uses the Position component (Vector) | . | , , | Uses the Rotation component (Quaternion) | . | | Uses the Scale component (Vector) | . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/docs/pcgex-attribute-selectors.html#extra-selectors",
+    "relUrl": "/docs/pcgex-attribute-selectors.html#extra-selectors"
+  },"444": {
+    "doc": "Attribute Selectors",
+    "title": "Attribute Selectors",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/docs/pcgex-attribute-selectors.html",
+    "relUrl": "/docs/pcgex-attribute-selectors.html"
+  },"445": {
+    "doc": "PCGEx Nodes",
+    "title": "PCGEx Nodes",
+    "content": "Shared concepts . A summary of the informations &amp; parameters available on every PCGEx node. Almost every node in the PCGEx inherit from the same point processor, and as such they have some shared capabilities. PCGEx has a focus on performance and multithreading – very few nodes are actively computing anything on the main thread, and instead the bulk of the tasks is handled asynchronously; and parallelized whenever possible. This helps keeping the editor relatively smooth when performing heavy tasks. Because of the parallelization, a very few select nodes have non-deterministic outputs; infamously the Fuse Points will yield slightly results depending on the selected blending, as the reference point for fusing may not be the same between two runs. These nodes are flagged in the doc. This is something I’m working to fix to ensure all nodes have deterministic results. Common Tweaks . | Performance . | Do Async Processing | Chunk Size | Cache Result | . | . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/docs/pcgex-node.html#pcgex-nodes",
+    "relUrl": "/docs/pcgex-node.html#pcgex-nodes"
+  },"446": {
+    "doc": "PCGEx Nodes",
+    "title": "Performance",
+    "content": ". Do Async Processing . Checked by default, you can toggle it off to force synchronous/unparallelized execution of the code. (This is a cheap workaround to ensure deterministic result in nodes that are otherwise non-deterministic due to parallel processing) . Note that synchronous execution still processes data in chunks, it just does it with guaranteed order, as opposed to parallel processing. Chunk Size . The chunk size usually represents the number of point a node will process in a single parallel batch. There is no ideal value: too small and you loose the gain of parallelization, too high and you’re just hogging thread ressources. Ultimately, it depends on your specific setup. A value of -1 fallbacks to that specific’ node default value under the hood. Unreal PCG plugin recommend a minimum batch size of 256, which is the default value I’m using for most of the nodes. Heavier operations can go as low as 32. Cache Result . Under the hood, all PCG node come with the ability to cache their result; but the system is designed so it’s a compile-time choice, not an editor-time one. I exposed the ability to cache on-demand at the price of some harmless asserts, because once you’re done iterating on certain settings, it’s worth caching the results. Be aware that the cache is easily corrupted, and sometime leads to missing points or data; it’s still a small price to pay when you’re working iteratively with hundreds of thousands points. ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/docs/pcgex-node.html#performance",
+    "relUrl": "/docs/pcgex-node.html#performance"
+  },"447": {
+    "doc": "PCGEx Nodes",
+    "title": "PCGEx Nodes",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/docs/pcgex-node.html",
+    "relUrl": "/docs/pcgex-node.html"
+  },"448": {
+    "doc": "Goal from Attribute",
+    "title": "Goal from Attribute",
+    "content": "Subtitle . Table of content . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/pathfinding/goal-pickers/picker-attribute.html#goal-from-attribute",
+    "relUrl": "/pathfinding/goal-pickers/picker-attribute.html#goal-from-attribute"
+  },"449": {
+    "doc": "Goal from Attribute",
+    "title": "Goal from Attribute",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/pathfinding/goal-pickers/picker-attribute.html",
+    "relUrl": "/pathfinding/goal-pickers/picker-attribute.html"
+  },"450": {
+    "doc": "Default",
+    "title": "Default",
+    "content": "Subtitle . Table of content . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/pathfinding/goal-pickers/picker-default.html#default",
+    "relUrl": "/pathfinding/goal-pickers/picker-default.html#default"
+  },"451": {
+    "doc": "Default",
+    "title": "Default",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/pathfinding/goal-pickers/picker-default.html",
+    "relUrl": "/pathfinding/goal-pickers/picker-default.html"
+  },"452": {
+    "doc": "Random",
+    "title": "Random",
+    "content": "Subtitle . Table of content . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/pathfinding/goal-pickers/picker-random.html#random",
+    "relUrl": "/pathfinding/goal-pickers/picker-random.html#random"
+  },"453": {
+    "doc": "Random",
+    "title": "Random",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/pathfinding/goal-pickers/picker-random.html",
+    "relUrl": "/pathfinding/goal-pickers/picker-random.html"
+  },"454": {
+    "doc": "Force Directed",
+    "title": "Force Directed",
+    "content": "Subtitle . Table of content . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/docs/relaxing/relax-force-directed.html#force-directed",
+    "relUrl": "/docs/relaxing/relax-force-directed.html#force-directed"
+  },"455": {
+    "doc": "Force Directed",
+    "title": "Force Directed",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/docs/relaxing/relax-force-directed.html",
+    "relUrl": "/docs/relaxing/relax-force-directed.html"
+  },"456": {
+    "doc": "Laplaciant",
+    "title": "Laplaciant",
+    "content": "Subtitle . Table of content . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/docs/relaxing/relax-laplacian.html#laplaciant",
+    "relUrl": "/docs/relaxing/relax-laplacian.html#laplaciant"
+  },"457": {
+    "doc": "Laplaciant",
+    "title": "Laplaciant",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/docs/relaxing/relax-laplacian.html",
+    "relUrl": "/docs/relaxing/relax-laplacian.html"
+  },"458": {
+    "doc": "Sample Nearest Point",
+    "title": "Sample Nearest Point",
+    "content": "Subtitle . … . Table of content . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/sampling/sampling-nearest-point.html#sample-nearest-point",
+    "relUrl": "/nodes/sampling/sampling-nearest-point.html#sample-nearest-point"
+  },"459": {
+    "doc": "Sample Nearest Point",
+    "title": "Sample Nearest Point",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/sampling/sampling-nearest-point.html",
+    "relUrl": "/nodes/sampling/sampling-nearest-point.html"
+  },"460": {
+    "doc": "Sample Nearest Polyline",
+    "title": "Sample Nearest Polyline",
+    "content": "Subtitle . … . Table of content . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/sampling/sampling-nearest-polyline.html#sample-nearest-polyline",
+    "relUrl": "/nodes/sampling/sampling-nearest-polyline.html#sample-nearest-polyline"
+  },"461": {
+    "doc": "Sample Nearest Polyline",
+    "title": "Sample Nearest Polyline",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/sampling/sampling-nearest-polyline.html",
+    "relUrl": "/nodes/sampling/sampling-nearest-polyline.html"
+  },"462": {
+    "doc": "Sample Nearest Surface",
+    "title": "Sample Nearest Surface",
+    "content": "Subtitle . … . Table of content . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/sampling/sampling-nearest-surface.html#sample-nearest-surface",
+    "relUrl": "/nodes/sampling/sampling-nearest-surface.html#sample-nearest-surface"
+  },"463": {
+    "doc": "Sample Nearest Surface",
+    "title": "Sample Nearest Surface",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/sampling/sampling-nearest-surface.html",
+    "relUrl": "/nodes/sampling/sampling-nearest-surface.html"
+  },"464": {
+    "doc": "Sample Surface Guided",
+    "title": "Sample Surface Guided",
+    "content": "Subtitle . … . Table of content . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/sampling/sampling-surface-guided.html#sample-surface-guided",
+    "relUrl": "/nodes/sampling/sampling-surface-guided.html#sample-surface-guided"
+  },"465": {
+    "doc": "Sample Surface Guided",
+    "title": "Sample Surface Guided",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/nodes/sampling/sampling-surface-guided.html",
+    "relUrl": "/nodes/sampling/sampling-surface-guided.html"
+  },"466": {
+    "doc": "A* Star",
+    "title": "A* Star",
+    "content": "Subtitle . Table of content . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/pathfinding/search/search-astar.html#a-star",
+    "relUrl": "/pathfinding/search/search-astar.html#a-star"
+  },"467": {
+    "doc": "A* Star",
+    "title": "A* Star",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/pathfinding/search/search-astar.html",
+    "relUrl": "/pathfinding/search/search-astar.html"
+  },"468": {
+    "doc": "Djikstra",
+    "title": "Djikstra",
+    "content": "Subtitle . Table of content . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/pathfinding/search/search-djikstra.html#djikstra",
+    "relUrl": "/pathfinding/search/search-djikstra.html#djikstra"
+  },"469": {
+    "doc": "Djikstra",
+    "title": "Djikstra",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/pathfinding/search/search-djikstra.html",
+    "relUrl": "/pathfinding/search/search-djikstra.html"
+  },"470": {
+    "doc": "Moving Average",
+    "title": "Moving Average",
+    "content": "Subtitle . Table of content . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/docs/smoothing/smoothing-moving-average.html#moving-average",
+    "relUrl": "/docs/smoothing/smoothing-moving-average.html#moving-average"
+  },"471": {
+    "doc": "Moving Average",
+    "title": "Moving Average",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/docs/smoothing/smoothing-moving-average.html",
+    "relUrl": "/docs/smoothing/smoothing-moving-average.html"
+  },"472": {
+    "doc": "Radius",
+    "title": "Radius",
+    "content": "Subtitle . Table of content . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/docs/smoothing/smoothing-radius.html#radius",
+    "relUrl": "/docs/smoothing/smoothing-radius.html#radius"
+  },"473": {
+    "doc": "Radius",
+    "title": "Radius",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/docs/smoothing/smoothing-radius.html",
+    "relUrl": "/docs/smoothing/smoothing-radius.html"
+  },"474": {
+    "doc": "Working with Graphs",
+    "title": "Working with Graphs",
+    "content": "Basic concepts in the context of PCGEx . One of the main focus of PCGEx is working with graphs and edge-based structures. They’re akin to a mesh without faces: a bunch of vertices connected by a bunch of edges. PCGEx leverage PCG’ point data as data holders in order to enable easy tweaking and manipulation of edge/vertice data using existing vanilla nodes. In short, a graph is represented by at least two separate set of points: the first, Vtx represent individual vertices; others, Edges, represent interconnected clusters. Edges points stores the indices of their start and end point in the matching Vtx group. Because of that approach, nodes that work with graph require Vtx and Edges as separate inputs. Data Tags are used to mark which edges match which vertices, so you will see additional tags appear on your data, formatted as PCGEx/Cluster::UID. Rule of thumb : If you manually alter (as in add or remove points) the content of a Vtx or Edges created by a PCGEx Node, make sure to use the Sanitize Clusters node before using them as inputs for other PCGEx nodes. Checklist . | Vtx . | Cached Index | Cached Edge Num | . | Edges . | Edge Start | Edge End | . | Clusters | Important Notes | . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/docs/working-with-graphs.html#working-with-graphs",
+    "relUrl": "/docs/working-with-graphs.html#working-with-graphs"
+  },"475": {
+    "doc": "Working with Graphs",
+    "title": "Vtx",
+    "content": "A Vtx has two important piece of data written on it, and their position in space is relied upon for edge metrics – Vtx being edges’ start and end points. Cached Index . The PCGEx/CachedIndex attribute hold the index of the Vtx when it was written into a graph. This is the index PCGEx/EdgeStart and PCGEx/EdgeEnd refers to on the Edges points. It is primarily useful to know whether the vtx structure has been altered or not, and ensure the graph is safe to use to avoid exceptions. Cached Edge Num . The PCGEx/CachedEdgeNum attribute hold the number of edges connected to that Vtx when it was written into a graph. It is solely used for validation purposes when rebuilding a cluster to process it. Note that this attribute can be reliably fetched to know how many unique edges are connected to a Vtx ;) . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/docs/working-with-graphs.html#vtx",
+    "relUrl": "/docs/working-with-graphs.html#vtx"
+  },"476": {
+    "doc": "Working with Graphs",
+    "title": "Edges",
+    "content": "Rule of thumb : The only information that matter on Edges for graphs is their start and end attribute. Their position in space is ignored so feel free to use those points if they can be relevant to you. Edges have two important piece of data written on them, and everything else is pretty much ignored by PCGEx – meaning you can use the set of point almost as you see fit. Edge Start . The PCGEx/EdgeStart attribute hold the cached index of its start Vtx when it was written into a graph. Edge End . The PCGEx/EdgeEnd attribute hold the cached index of its end Vtx when it was written into a graph. ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/docs/working-with-graphs.html#edges",
+    "relUrl": "/docs/working-with-graphs.html#edges"
+  },"477": {
+    "doc": "Working with Graphs",
+    "title": "Clusters",
+    "content": "In PCGEx terms, a cluster is “a set of Vtx and Edges that are interconnected in a finite way” – in other words, there is a guaranteed way inside a cluster that a path can be found between any Vtx to any other Vtx when passing through Edges. A graph usually has a single set of vertices, but will output as many edge datasets as there are clusters. These will be then rebuilt inside the nodes to be processed. If you’re unhappy with how clusters have been split in your graph, Bridge Clusters is here to save your day! . ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/docs/working-with-graphs.html#clusters",
+    "relUrl": "/docs/working-with-graphs.html#clusters"
+  },"478": {
+    "doc": "Working with Graphs",
+    "title": "Important Notes",
+    "content": "Altering PCGEx/CachedIndex, PCGEx/CachedEdgeNum, PCGEx/EdgeStart or PCGEx/EdgeEnd voids the guarantee that PCGEx nodes will work as expected. The UID used for the tagging is NOT deterministic, and will change at each execution of the graph, and for each node. It is used under the hood only, and should not be edited, nor relied upon for any kind of tag-related operations. For the same reason, if you create custom tags starting with PCGEx/Cluster::, it will break existing vtx/edge associations. Because of the reliance on the tagging system, if you edit Vtx and Edges before using them with a PCGEx node, make sure tags are preserved. ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/docs/working-with-graphs.html#important-notes",
+    "relUrl": "/docs/working-with-graphs.html#important-notes"
+  },"479": {
+    "doc": "Working with Graphs",
+    "title": "Working with Graphs",
+    "content": " ",
+    "url": "https://nebukam.github.io/pcgextendedtoolkit/docs/working-with-graphs.html",
+    "relUrl": "/docs/working-with-graphs.html"
+  }
+}

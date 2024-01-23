@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">
+  <g id="main">
+    <g>
+      <line x1="9.97" y1="24.29" x2="90" y2="24.29" fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="5" opacity="0.5"/>
+      <line x1="24.27" y1="90" x2="24.27" y2="10" fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="5"/>
+    </g>
+    <line x1="90" y1="75.71" x2="9.97" y2="75.71" fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="5" opacity="0.5"/>
+    <g opacity="0.5">
+      <line x1="90.1" y1="56.92" x2="9.96" y2="56.92" fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="5"/>
+    </g>
+  </g>
+  <g id="accent">
+    <line x1="75.7" y1="9.98" x2="75.7" y2="90.02" fill="none" stroke="#3ec188" stroke-linecap="round" stroke-linejoin="round" stroke-width="10"/>
+  </g>
+</svg>
