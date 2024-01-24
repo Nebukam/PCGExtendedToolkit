@@ -11,25 +11,6 @@
 
 #include "PCGExFusePoints.generated.h"
 
-#define PCGEX_FUSE_FOREACH_POINTPROPERTYNAME(MACRO)\
-MACRO(Density) \
-MACRO(Extents) \
-MACRO(Color) \
-MACRO(Position) \
-MACRO(Rotation)\
-MACRO(Scale) \
-MACRO(Steepness) \
-MACRO(Seed)
-
-#define PCGEX_FUSE_UPROPERTY(_NAME)\
-UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Overrides", meta = (InlineEditConditionToggle))\
-bool bOverride##_NAME = false;\
-UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Overrides", meta = (EditCondition="bOverride" #_NAME))\
-EPCGExDataBlendingType _NAME##Blending = EPCGExDataBlendingType::Skip;
-
-#define PCGEX_FUSE_CONTEXT(_NAME)\
-EPCGExDataBlendingType _NAME##Blending;
-
 namespace PCGExFuse
 {
 	constexpr PCGExMT::AsyncState State_FindingFusePoints = __COUNTER__;
@@ -130,12 +111,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFusePointsContext : public FPCGExPointsProce
 
 	bool bPreserveOrder;
 
-	PCGExDataBlending::FMetadataBlender* MetadataBlender;
-
 	double Radius = 0;
-
-	TArray<PCGExFuse::FFusedPoint> FusedPoints;
-	TArray<FPCGPoint>* OutPoints;
 
 	mutable FRWLock PointsLock;
 };
@@ -152,6 +128,13 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-#undef PCGEX_FUSE_FOREACH_POINTPROPERTYNAME
-#undef PCGEX_FUSE_UPROPERTY
-#undef PCGEX_FUSE_CONTEXT
+class PCGEXTENDEDTOOLKIT_API FPCGExFuseTask : public FPCGExNonAbandonableTask
+{
+public:
+	FPCGExFuseTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO) :
+		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO)
+	{
+	}
+
+	virtual bool ExecuteTask() override;
+};
