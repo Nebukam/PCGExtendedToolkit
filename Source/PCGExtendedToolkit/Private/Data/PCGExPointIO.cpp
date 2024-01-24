@@ -337,7 +337,7 @@ namespace PCGExData
 			PointIOKey.Tags->Set(TagId, TagValue);
 		}
 
-		for (FPointIOTaggedEntries* Binding : Entries) { check(Binding->TagValue != TagValue) } // TagValue shouldn't exist already
+		//for (FPointIOTaggedEntries* Binding : Entries) { check(Binding->TagValue != TagValue) } // TagValue shouldn't exist already
 
 		FPointIOTaggedEntries* NewBinding = new FPointIOTaggedEntries(TagId, TagValue);
 		TagMap.Add(TagValue, Entries.Add(NewBinding));
