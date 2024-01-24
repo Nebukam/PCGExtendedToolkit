@@ -61,12 +61,12 @@ public:
 	EPCGExEdgeMeanMethod MeanMethod = EPCGExEdgeMeanMethod::Average;
 
 	/** Minimum length threshold */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditConditionHides, EditCondition="MeanMethod==EPCGExEdgeMeanMethod::Fixed", ClampMin=0))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditConditionHides, EditCondition="MeanMethod==EPCGExEdgeMeanMethod::Fixed"))
 	double MeanValue = 0;
 
 	/** Used to estimate the mode value. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditConditionHides, EditCondition="MeanMethod==EPCGExEdgeMeanMethod::Mode", ClampMin=0))
-	double ModeTolerance = 0;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditConditionHides, EditCondition="MeanMethod==EPCGExEdgeMeanMethod::ModeMin || MeanMethod==EPCGExEdgeMeanMethod::ModeMax"))
+	double ModeTolerance = 5;
 
 	/** Prune edges if their length is below a specific threshold. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
