@@ -328,7 +328,7 @@ namespace PCGExData
 		Value->Tags->Set(TagId, TagValue);
 	}
 
-	void FPointIOTaggedDictionary::CreateKey(const FPointIO& PointIOKey)
+	bool FPointIOTaggedDictionary::CreateKey(const FPointIO& PointIOKey)
 	{
 		FString TagValue;
 		if (!PointIOKey.Tags->GetValue(TagId, TagValue))
@@ -337,10 +337,16 @@ namespace PCGExData
 			PointIOKey.Tags->Set(TagId, TagValue);
 		}
 
-		//for (FPointIOTaggedEntries* Binding : Entries) { check(Binding->TagValue != TagValue) } // TagValue shouldn't exist already
+		bool bFoundDupe = false;
+		for (FPointIOTaggedEntries* Binding : Entries)
+		{
+			// TagValue shouldn't exist already
+			if (Binding->TagValue == TagValue) { return false; }
+		}
 
 		FPointIOTaggedEntries* NewBinding = new FPointIOTaggedEntries(TagId, TagValue);
 		TagMap.Add(TagValue, Entries.Add(NewBinding));
+		return true;
 	}
 
 	bool FPointIOTaggedDictionary::TryAddEntry(FPointIO& PointIOEntry)

@@ -221,7 +221,7 @@ namespace PCGExData
 			Entries.Empty();
 		}
 
-		void CreateKey(const FPointIO& PointIOKey);
+		bool CreateKey(const FPointIO& PointIOKey);
 		bool TryAddEntry(FPointIO& PointIOEntry);
 		FPointIOTaggedEntries* GetEntries(const FString& Key);
 	};
