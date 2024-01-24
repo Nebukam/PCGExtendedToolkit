@@ -171,7 +171,7 @@ FPCGContext* FPCGExEdgesProcessorElement::InitializeContext(
 			}
 			if(!Context->InputDictionary->CreateKey(PointIO))
 			{
-				PCGE_LOG(Warning, GraphAndLog, FTEXT("Two Vtx inputs share the same Cluster tag. One of them will be disabled."));
+				PCGE_LOG(Warning, GraphAndLog, FTEXT("At least two Vtx inputs share the same PCGEx/Cluster tag. Only one will be processed."));
 				PointIO.Disable();
 			}
 		});
