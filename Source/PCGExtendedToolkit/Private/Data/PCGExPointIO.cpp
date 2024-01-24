@@ -250,12 +250,18 @@ namespace PCGExData
 		const EInit InitOut)
 	{
 		Pairs.Empty(Sources.Num());
+		TSet<uint64> UniqueData;
+		UniqueData.Reserve(Sources.Num());
 		for (FPCGTaggedData& Source : Sources)
 		{
+			if (UniqueData.Contains(Source.Data->UID)) { continue; } // Dedupe
+			UniqueData.Add(Source.Data->UID);
+			
 			const UPCGPointData* MutablePointData = PCGExPointIO::GetMutablePointData(Context, Source);
 			if (!MutablePointData || MutablePointData->GetPoints().Num() == 0) { continue; }
 			Emplace_GetRef(Source, MutablePointData, InitOut);
 		}
+		UniqueData.Empty();
 	}
 
 	FPointIO& FPointIOGroup::Emplace_GetRef(
