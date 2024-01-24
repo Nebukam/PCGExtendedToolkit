@@ -101,14 +101,20 @@ bool FPCGExFindCustomGraphEdgeClustersElement::ExecuteInternal(
 		auto InsertEdge = [&](const int32 PointIndex, const PCGExData::FPointIO& PointIO)
 		{
 			const int32 EdgeType = static_cast<int32>(Context->CrawlEdgeTypes);
-			PCGExGraph::FIndexedEdge NewEdge = PCGExGraph::FIndexedEdge{};
-
+			TArray<PCGExGraph::FUnsignedEdge> Edges;
+			
 			for (const PCGExGraph::FSocketInfos& SocketInfo : Context->SocketInfos)
 			{
 				const int32 End = SocketInfo.Socket->GetTargetIndexReader().Values[PointIndex];
 				const int32 InEdgeType = SocketInfo.Socket->GetEdgeTypeReader().Values[PointIndex];
-				if (End != -1 && (InEdgeType & EdgeType) != 0) { Context->GraphBuilder->Graph->InsertEdge(PointIndex, End, NewEdge); }
+				if (End == -1 || (InEdgeType & EdgeType) == 0 || PointIndex == End){continue;}
+
+				Edges.Emplace(PointIndex, End);
+				
 			}
+						
+			Context->GraphBuilder->Graph->InsertEdges(Edges);
+			Edges.Empty();
 		};
 
 		if (!Context->ProcessCurrentPoints(Initialize, InsertEdge)) { return false; }

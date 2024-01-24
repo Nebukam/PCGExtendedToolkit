@@ -74,11 +74,13 @@ namespace PCGExGraph
 
 	void FGraph::InsertEdges(const TArray<FUnsignedEdge>& InEdges)
 	{
+		FWriteScopeLock WriteLock(GraphLock);
 		for (const FUnsignedEdge& E : InEdges) { PCGEX_EDGE_INSERT }
 	}
 
 	void FGraph::InsertEdges(const TArray<FIndexedEdge>& InEdges)
 	{
+		FWriteScopeLock WriteLock(GraphLock);
 		for (const FIndexedEdge& E : InEdges) { PCGEX_EDGE_INSERT }
 	}
 
