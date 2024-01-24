@@ -10,7 +10,7 @@
 /**
  * 
  */
-UCLASS(DisplayName = "Inherit Start")
+UCLASS(DisplayName = "Inherit First")
 class PCGEXTENDEDTOOLKIT_API UPCGExSubPointsBlendInheritStart : public UPCGExSubPointsBlendOperation
 {
 	GENERATED_BODY()
