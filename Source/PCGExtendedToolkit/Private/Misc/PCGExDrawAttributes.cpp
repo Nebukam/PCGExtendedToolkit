@@ -130,24 +130,24 @@ void FPCGExAttributeDebugDraw::Draw(const UWorld* World, const FVector& Start, c
 void FPCGExAttributeDebugDraw::DrawDirection(const UWorld* World, const FVector& Start, const PCGEx::FPointRef& Point) const
 {
 	const FVector Dir = GetVector(Point) * GetSize(Point);
-	DrawDebugDirectionalArrow(World, Start, Start + Dir, Dir.Length() * 0.05f, GetColor(Point), true, -1, 0, Descriptor->Thickness);
+	DrawDebugDirectionalArrow(World, Start, Start + Dir, Dir.Length() * 0.05f, GetColor(Point), true, -1, Descriptor->DepthPriority, Descriptor->Thickness);
 }
 
 void FPCGExAttributeDebugDraw::DrawConnection(const UWorld* World, const FVector& Start, const PCGEx::FPointRef& Point, const FVector& End) const
 {
-	DrawDebugLine(World, Start, End, GetColor(Point), true, -1, 0, Descriptor->Thickness);
+	DrawDebugLine(World, Start, End, GetColor(Point), true, -1, Descriptor->DepthPriority, Descriptor->Thickness);
 }
 
 void FPCGExAttributeDebugDraw::DrawPoint(const UWorld* World, const FVector& Start, const PCGEx::FPointRef& Point) const
 {
 	const FVector End = GetVector(Point);
-	DrawDebugPoint(World, End, GetSize(Point), GetColor(Point), true, -1, 0);
+	DrawDebugPoint(World, End, GetSize(Point), GetColor(Point), true, -1, Descriptor->DepthPriority);
 }
 
 void FPCGExAttributeDebugDraw::DrawSingle(const UWorld* World, const FVector& Start, const PCGEx::FPointRef& Point) const
 {
 	const double End = GetSingle(Point);
-	DrawDebugPoint(World, Start, GetSize(Point), End <= 0 ? GetColor(Point) : Descriptor->SecondaryColor, true, -1, 0);
+	DrawDebugPoint(World, Start, GetSize(Point), End <= 0 ? GetColor(Point) : Descriptor->SecondaryColor, true, -1, Descriptor->DepthPriority);
 }
 
 void FPCGExAttributeDebugDraw::DrawLabel(const UWorld* World, const FVector& Start, const PCGEx::FPointRef& Point) const

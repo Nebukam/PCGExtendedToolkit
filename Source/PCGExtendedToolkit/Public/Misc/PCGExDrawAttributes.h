@@ -81,6 +81,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeDebugDrawDescriptor : public FPCGEx
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Color", meta = (PCG_Overridable, EditCondition="bColorFromAttribute"))
 	bool bColorIsLinear = true;
 
+	/** Depth priority. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings", meta=(PCG_Overridable))
+	int32 DepthPriority = 0;
+
 	FString GetNestedStructDisplayText() const
 	{
 		return Selector.GetName().ToString();

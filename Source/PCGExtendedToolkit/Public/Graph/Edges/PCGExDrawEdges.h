@@ -54,10 +54,10 @@ public:
 	FColor Color = FColor::Cyan;
 
 	/** Draw thickness. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings", meta=(PCG_Overridable, ClampMin=0.01, ClampMax=10))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings", meta=(PCG_Overridable, ClampMin=0.01, ClampMax=100))
 	double Thickness = 0.5;
 
-	/** Draw thickness. */
+	/** Depth priority. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings", meta=(PCG_Overridable))
 	int32 DepthPriority = 0;
 

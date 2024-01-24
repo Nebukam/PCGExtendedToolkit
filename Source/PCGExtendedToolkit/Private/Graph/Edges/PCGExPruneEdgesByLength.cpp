@@ -135,9 +135,12 @@ bool FPCGExPruneEdgesByLengthElement::ExecuteInternal(FPCGContext* InContext) co
 			break;
 		}
 
-		Context->ReferenceMin = Settings->bPruneBelowMean ? Context->ReferenceValue - Settings->PruneBelow : 0;
-		Context->ReferenceMax = Settings->bPruneAboveMean ? Context->ReferenceValue + Settings->PruneAbove : TNumericLimits<double>::Max();
+		double RMin = Settings->bPruneBelowMean ? Context->ReferenceValue - Settings->PruneBelow : 0;
+		double RMax = Settings->bPruneAboveMean ? Context->ReferenceValue + Settings->PruneAbove : TNumericLimits<double>::Max();
 
+		Context->ReferenceMin = FMath::Min(RMin, RMax);
+		Context->ReferenceMax = FMath::Max(RMin, RMax);
+		
 		Context->SetState(PCGExGraph::State_ProcessingEdges);
 	}
 
