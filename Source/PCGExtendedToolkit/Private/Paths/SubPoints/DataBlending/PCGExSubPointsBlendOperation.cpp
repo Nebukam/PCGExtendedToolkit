@@ -9,7 +9,7 @@
 
 EPCGExDataBlendingType UPCGExSubPointsBlendOperation::GetDefaultBlending()
 {
-	return EPCGExDataBlendingType::Copy;
+	return EPCGExDataBlendingType::Weight;
 }
 
 void UPCGExSubPointsBlendOperation::PrepareForData(PCGExData::FPointIO& InPointIO)
