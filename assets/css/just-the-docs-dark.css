@@ -850,7 +850,9 @@ blockquote.error { border-left: 1px solid #d11c73; background-color: rgba(158, 2
 
 blockquote.error::before { content: "⛛"; color: #ed1e79; }
 
-img, table { border-radius: 3px; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12), 0 3px 10px rgba(0, 0, 0, 0.08); }
+img, table { border-radius: 3px; }
+
+table { box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12), 0 3px 10px rgba(0, 0, 0, 0.08); }
 
 img[alt$=">"] { float: right; margin-left: 20px; }
 
