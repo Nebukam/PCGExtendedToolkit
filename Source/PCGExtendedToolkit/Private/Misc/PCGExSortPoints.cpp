@@ -35,73 +35,88 @@ bool FPCGExSortPointsElement::ExecuteInternal(FPCGContext* InContext) const
 			return true;
 		}
 
-		Context->SetState(PCGExMT::State_ProcessingPoints);
+		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
-	auto SortPointIO = [&](const int32 Index)
+	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
-		PCGExData::FPointIO& PointIO = *Context->MainPoints->Pairs[Index];
-		TArray<FPCGExSortRule*> Rules;
-		Rules.Reserve(Settings->Rules.Num());
+		int32 IOIndex = 0;
+		while (Context->AdvancePointsIO()) { Context->GetAsyncManager()->Start<FPCGExSortPointIO>(IOIndex, Context->CurrentIO); }
 
-		TMap<PCGMetadataEntryKey, int32> PointIndices;
-		PointIO.PrintInKeysMap(PointIndices);
-
-		for (const FPCGExSortRuleDescriptor& RuleDescriptor : Settings->Rules)
-		{
-			FPCGExSortRule* NewRule = new FPCGExSortRule();
-			NewRule->Capture(RuleDescriptor);
-			if (!NewRule->Grab(PointIO))
-			{
-				delete NewRule;
-				continue;
-			}
-			NewRule->Tolerance = RuleDescriptor.Tolerance;
-			Rules.Add(NewRule);
-		}
-
-		if (Rules.IsEmpty())
-		{
-			// Don't sort
-			PointIndices.Empty();
-			FWriteScopeLock WriteLock(Context->ContextLock);
-			PointIO.OutputTo(Context);
-			return;
-		}
-
-		auto SortPredicate = [&](const FPCGPoint& A, const FPCGPoint& B)
-		{
-			int Result = 0;
-			for (const FPCGExSortRule* Rule : Rules)
-			{
-				const double ValueA = Rule->Values[*PointIndices.Find(A.MetadataEntry)];
-				const double ValueB = Rule->Values[*PointIndices.Find(B.MetadataEntry)];
-				Result = FMath::IsNearlyEqual(ValueA, ValueB, Rule->Tolerance) ? 0 : ValueA < ValueB ? -1 : 1;
-				if (Result != 0) { break; }
-			}
-
-			if (Settings->SortDirection == EPCGExSortDirection::Descending) { Result *= -1; }
-			return Result <= 0;
-		};
-
-		PointIO.GetOut()->GetMutablePoints().Sort(SortPredicate);
-
-		{
-			FWriteScopeLock WriteLock(Context->ContextLock);
-			PointIO.OutputTo(Context);
-		}
-
-		PointIndices.Empty();
-		PCGEX_DELETE_TARRAY(Rules)
-	};
+		Context->SetAsyncState(PCGExMT::State_ProcessingPoints);
+	}
 
 	if (Context->IsState(PCGExMT::State_ProcessingPoints))
 	{
-		if (!Context->Process(SortPointIO, Context->MainPoints->Num())) { return false; }
+		if (!Context->IsAsyncWorkComplete()) { return false; }
+
+		Context->OutputPoints();
 		Context->Done();
 	}
 
 	return Context->IsDone();
+}
+
+bool FPCGExSortPointIO::ExecuteTask()
+{
+	const FPCGExPointsProcessorContext* Context = Manager->GetContext<FPCGExPointsProcessorContext>();
+	PCGEX_SETTINGS(SortPoints);
+	TArray<FPCGExSortRule*> Rules;
+	Rules.Reserve(Settings->Rules.Num());
+
+	PointIO->CreateOutKeys(); //Initialize metadata keys
+	TMap<PCGMetadataEntryKey, int32> PointIndices;
+	PointIO->PrintOutKeysMap(PointIndices, true);
+
+	for (const FPCGExSortRuleDescriptor& RuleDescriptor : Settings->Rules)
+	{
+		FPCGExSortRule* NewRule = new FPCGExSortRule();
+		NewRule->Capture(RuleDescriptor);
+		if (!NewRule->Grab(*PointIO))
+		{
+			delete NewRule;
+			continue;
+		}
+
+		//if (NewRule->bAbsolute) { for (double& Value : NewRule->Values) { Value = FMath::Abs(Value); } }
+		
+		NewRule->Tolerance = RuleDescriptor.Tolerance;
+		NewRule->bInvertRule = RuleDescriptor.bInvertRule;
+		Rules.Add(NewRule);
+	}
+
+	if (Rules.IsEmpty())
+	{
+		// Don't sort
+		PointIndices.Empty();
+		return false;
+	}
+
+	auto SortPredicate = [&](const FPCGPoint& A, const FPCGPoint& B)
+	{
+		int Result = 0;
+		for (const FPCGExSortRule* Rule : Rules)
+		{
+			const double ValueA = Rule->Values[*PointIndices.Find(A.MetadataEntry)];
+			const double ValueB = Rule->Values[*PointIndices.Find(B.MetadataEntry)];
+			Result = FMath::IsNearlyEqual(ValueA, ValueB, Rule->Tolerance) ? 0 : ValueA < ValueB ? -1 : 1;
+			if (Result != 0)
+			{
+				if (Rule->bInvertRule) { Result *= -1; }
+				break;
+			}
+		}
+
+		if (Settings->SortDirection == EPCGExSortDirection::Descending) { Result *= -1; }
+		return Result < 0;
+	};
+
+	PointIO->GetOut()->GetMutablePoints().Sort(SortPredicate);
+
+	PointIndices.Empty();
+	PCGEX_DELETE_TARRAY(Rules)
+
+	return true;
 }
 
 #undef PCGEX_COMPARE_PROPERTY

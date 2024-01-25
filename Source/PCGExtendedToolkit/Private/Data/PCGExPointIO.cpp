@@ -80,12 +80,27 @@ namespace PCGExData
 
 	FPCGAttributeAccessorKeysPoints* FPointIO::GetOutKeys() const { return OutKeys; }
 
-	void FPointIO::PrintOutKeysMap(TMap<PCGMetadataEntryKey, int32>& InMap)
+	void FPointIO::PrintOutKeysMap(TMap<PCGMetadataEntryKey, int32>& InMap, const bool bInitializeOnSet = false)
 	{
-		CreateOutKeys();
-		const TArray<FPCGPoint>& PointList = Out->GetPoints();
-		InMap.Empty(PointList.Num());
-		for (int i = 0; i < PointList.Num(); i++) { InMap.Add(PointList[i].MetadataEntry, i); }
+		if (bInitializeOnSet)
+		{
+			TArray<FPCGPoint>& PointList = Out->GetMutablePoints();
+			InMap.Empty(PointList.Num());
+			for (int i = 0; i < PointList.Num(); i++)
+			{
+				FPCGPoint& Point = PointList[i];
+				Out->Metadata->InitializeOnSet(Point.MetadataEntry);
+				InMap.Add(Point.MetadataEntry, i);
+			}
+			CreateOutKeys();
+		}
+		else
+		{
+			CreateOutKeys();
+			const TArray<FPCGPoint>& PointList = Out->GetPoints();
+			InMap.Empty(PointList.Num());
+			for (int i = 0; i < PointList.Num(); i++) { InMap.Add(PointList[i].MetadataEntry, i); }
+		}
 	}
 
 
@@ -256,7 +271,7 @@ namespace PCGExData
 		{
 			if (UniqueData.Contains(Source.Data->UID)) { continue; } // Dedupe
 			UniqueData.Add(Source.Data->UID);
-			
+
 			const UPCGPointData* MutablePointData = PCGExPointIO::GetMutablePointData(Context, Source);
 			if (!MutablePointData || MutablePointData->GetPoints().Num() == 0) { continue; }
 			Emplace_GetRef(Source, MutablePointData, InitOut);

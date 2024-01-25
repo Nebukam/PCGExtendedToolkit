@@ -359,7 +359,7 @@ namespace PCGExMath
 		Map.Empty();
 		return Mode;
 	}
-
+	
 #pragma region Add
 
 	template <typename T, typename dummy = void>

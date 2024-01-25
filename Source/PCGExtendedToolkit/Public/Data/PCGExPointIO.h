@@ -88,7 +88,7 @@ namespace PCGExData
 
 		FPCGAttributeAccessorKeysPoints* CreateOutKeys();
 		FPCGAttributeAccessorKeysPoints* GetOutKeys() const;
-		void PrintOutKeysMap(TMap<PCGMetadataEntryKey, int32>& InMap);
+		void PrintOutKeysMap(TMap<PCGMetadataEntryKey, int32>& InMap, bool bInitializeOnSet);
 
 		FName DefaultOutputLabel = PCGEx::OutputPointsLabel;
 

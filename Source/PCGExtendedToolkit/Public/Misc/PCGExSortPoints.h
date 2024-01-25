@@ -35,6 +35,14 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSortRuleDescriptor : public FPCGExInputDescr
 	/** Equality tolerance. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	double Tolerance = 0.0001f;
+
+	/** Invert sorting direction on that rule. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	bool bInvertRule = false;
+
+	/** Compare absolute value. */
+	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	//bool bAbsolute = false;
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExSortRule : public PCGEx::FLocalSingleFieldGetter
@@ -49,6 +57,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSortRule : public PCGEx::FLocalSingleFieldGe
 	}
 
 	double Tolerance = 0.0001f;
+	bool bInvertRule = false;
+	bool bAbsolute = false;
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
@@ -96,4 +106,15 @@ class PCGEXTENDEDTOOLKIT_API FPCGExSortPointsElement : public FPCGExPointsProces
 {
 protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
+};
+
+class PCGEXTENDEDTOOLKIT_API FPCGExSortPointIO : public FPCGExNonAbandonableTask
+{
+public:
+	FPCGExSortPointIO(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO) :
+		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO)
+	{
+	}
+
+	virtual bool ExecuteTask() override;
 };

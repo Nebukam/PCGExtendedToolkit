@@ -277,8 +277,9 @@ protected:
 	TSet<UPCGExOperation*> OwnedProcessorOperations;
 
 	void CleanupOperations();
-
 	virtual void ResetAsyncWork();
+
+public:
 	virtual bool IsAsyncWorkComplete();
 };
 

@@ -318,7 +318,7 @@ bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* InContext) con
 			PCGEX_DELETE(Tags)
 		};
 
-		if (!Context->Process(CreatePartition, Context->NumPartitions)) { return false; }
+		if (!Context->Process(CreatePartition, Context->NumPartitions, true)) { return false; }
 		Context->Done();
 	}
 
