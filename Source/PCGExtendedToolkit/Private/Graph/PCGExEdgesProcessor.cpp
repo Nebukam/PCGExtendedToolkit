@@ -165,7 +165,7 @@ FPCGContext* FPCGExEdgesProcessorElement::InitializeContext(
 		{
 			if (!PCGExGraph::IsPointDataVtxReady(PointIO.GetIn()))
 			{
-				PCGE_LOG(Warning, GraphAndLog, FTEXT("A Vtx input has not vtx metadata and will be discarded."));
+				PCGE_LOG(Warning, GraphAndLog, FTEXT("A Vtx input has no metadata and will be discarded."));
 				PointIO.Disable();
 				return;
 			}
