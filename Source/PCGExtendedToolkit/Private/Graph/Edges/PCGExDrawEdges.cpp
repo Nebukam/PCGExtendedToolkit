@@ -34,7 +34,7 @@ bool FPCGExDrawEdgesElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(DrawEdges)
 
-	if (!Settings->PCGExDebug) { return false; }
+	if (!Settings->bPCGExDebug) { return false; }
 
 #endif
 

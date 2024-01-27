@@ -41,7 +41,7 @@ protected:
 
 	/** Debug drawing toggle. Exposed to have more control on debug draw in sub-graph. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Debug", meta=(PCG_Overridable))
-	int32 PCGExDebug = true;
+	bool bPCGExDebug = true;
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExDebugContext : public FPCGContext
@@ -57,6 +57,8 @@ public:
 	virtual FPCGContext* Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node) override;
 	virtual bool IsCacheable(const UPCGSettings* InSettings) const override { return false; }
 	virtual bool CanExecuteOnlyOnMainThread(FPCGContext* Context) const override { return true; }
+
+	//virtual void DisabledPassThroughData(FPCGContext* Context) const override;
 
 protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;

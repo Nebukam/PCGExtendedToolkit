@@ -33,7 +33,7 @@ bool FPCGExDrawCustomGraphElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(DrawCustomGraph)
 
-	if (!Settings->PCGExDebug) { return false; }
+	if (!Settings->bPCGExDebug) { return false; }
 
 	Context->GraphSolver = Context->RegisterOperation<UPCGExCustomGraphSolver>();
 

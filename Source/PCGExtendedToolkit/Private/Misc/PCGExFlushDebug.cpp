@@ -64,7 +64,7 @@ bool FPCGExDebugElement::ExecuteInternal(FPCGContext* Context) const
 #if WITH_EDITOR
 
 	const UPCGExDebugSettings* Settings = Context->GetInputSettings<UPCGExDebugSettings>();
-	if (!Settings->PCGExDebug) { return true; }
+	if (!Settings->bPCGExDebug) { return true; }
 
 	FlushPersistentDebugLines(PCGEx::GetWorld(Context));
 	FlushDebugStrings(PCGEx::GetWorld(Context));

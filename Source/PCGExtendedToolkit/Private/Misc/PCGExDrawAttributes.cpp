@@ -198,7 +198,7 @@ bool FPCGExDrawAttributesElement::Boot(FPCGContext* InContext) const
 #if WITH_EDITOR
 	PCGEX_CONTEXT_AND_SETTINGS(DrawAttributes)
 
-	if (!Settings->PCGExDebug) { return false; }
+	if (!Settings->bPCGExDebug) { return false; }
 
 	Context->DebugList.Empty();
 	for (const FPCGExAttributeDebugDrawDescriptor& Descriptor : Settings->DebugList)

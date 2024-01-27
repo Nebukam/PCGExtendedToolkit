@@ -376,6 +376,18 @@ FPCGContext* FPCGExPointsProcessorElementBase::Initialize(
 	return Context;
 }
 
+void FPCGExPointsProcessorElementBase::DisabledPassThroughData(FPCGContext* Context) const
+{
+	FPCGPointProcessingElementBase::DisabledPassThroughData(Context);
+
+	const UPCGExPointsProcessorSettings* Settings = Context->GetInputSettings<UPCGExPointsProcessorSettings>();
+	check(Settings);
+	
+	//Forward main points
+	TArray<FPCGTaggedData> MainSources = Context->InputData.GetInputsByPin(Settings->GetMainInputLabel());
+	for (const FPCGTaggedData& TData : MainSources) { Context->OutputData.TaggedData.Emplace_GetRef(TData.Data, TData.Tags, Settings->GetMainOutputLabel()); }
+}
+
 FPCGContext* FPCGExPointsProcessorElementBase::InitializeContext(
 	FPCGExPointsProcessorContext* InContext,
 	const FPCGDataCollection& InputData,

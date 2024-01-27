@@ -135,7 +135,7 @@ void FPCGExEdgesProcessorElement::DisabledPassThroughData(FPCGContext* Context) 
 {
 	FPCGExPointsProcessorElementBase::DisabledPassThroughData(Context);
 
-	//Forward edges
+	//Forward main edges
 	TArray<FPCGTaggedData> EdgesSources = Context->InputData.GetInputsByPin(PCGExGraph::SourceEdgesLabel);
 	for (const FPCGTaggedData& TData : EdgesSources) { Context->OutputData.TaggedData.Emplace_GetRef(TData.Data, TData.Tags, PCGExGraph::OutputEdgesLabel); }
 }

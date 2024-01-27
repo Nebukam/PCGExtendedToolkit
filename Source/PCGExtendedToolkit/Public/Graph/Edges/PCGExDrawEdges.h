@@ -54,7 +54,7 @@ protected:
 
 	/** Debug drawing toggle. Exposed to have more control on debug draw in sub-graph. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Debug", meta=(PCG_Overridable))
-	int32 PCGExDebug = true;
+	bool bPCGExDebug = true;
 
 private:
 	friend class FPCGExDrawEdgesElement;
