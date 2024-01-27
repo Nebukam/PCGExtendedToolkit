@@ -862,6 +862,8 @@ img[alt$="><"] { display: block; max-width: 100%; height: auto; margin: auto; fl
 
 details { padding: 10px 20px; background-color: rgba(0, 0, 0, 0.2); }
 
+.summary-excerpt { overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+
 .icon.emb { height: 1em; transform: translateY(0.15em); margin-right: 0.1em; }
 
 .link-more { position: absolute; top: 250px; top: 230px; right: -5px; background-color: #5771aa; padding: 5px 10px; border-radius: 3px 0px 0px 3px; padding-bottom: 0px; }
