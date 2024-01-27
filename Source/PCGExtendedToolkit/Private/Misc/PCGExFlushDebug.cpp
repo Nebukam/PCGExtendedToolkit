@@ -64,10 +64,15 @@ bool FPCGExDebugElement::ExecuteInternal(FPCGContext* Context) const
 #if WITH_EDITOR
 
 	const UPCGExDebugSettings* Settings = Context->GetInputSettings<UPCGExDebugSettings>();
-	if (!Settings->bPCGExDebug) { return true; }
+	
+	if (!Settings->bPCGExDebug)
+	{
+		DisabledPassThroughData(Context);
+		return true;
+	}
 
 	FlushPersistentDebugLines(PCGEx::GetWorld(Context));
-	FlushDebugStrings(PCGEx::GetWorld(Context));
+	//FlushDebugStrings(PCGEx::GetWorld(Context));
 
 #endif
 

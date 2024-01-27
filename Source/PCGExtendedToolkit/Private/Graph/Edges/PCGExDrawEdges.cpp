@@ -54,7 +54,7 @@ bool FPCGExDrawEdgesElement::ExecuteInternal(
 	{
 		if (!Boot(Context))
 		{
-			Context->OutputPointsAndEdges();
+			DisabledPassThroughData(Context);
 			return true;
 		}
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);

@@ -198,7 +198,11 @@ bool FPCGExDrawAttributesElement::Boot(FPCGContext* InContext) const
 #if WITH_EDITOR
 	PCGEX_CONTEXT_AND_SETTINGS(DrawAttributes)
 
-	if (!Settings->bPCGExDebug) { return false; }
+	if (!Settings->bPCGExDebug)
+	{
+		DisabledPassThroughData(Context);
+		return true;
+	}
 
 	Context->DebugList.Empty();
 	for (const FPCGExAttributeDebugDrawDescriptor& Descriptor : Settings->DebugList)

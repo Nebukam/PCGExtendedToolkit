@@ -54,7 +54,7 @@ bool FPCGExDrawCustomGraphElement::ExecuteInternal(FPCGContext* InContext) const
 	{
 		if (!Boot(Context))
 		{
-			Context->OutputPointsAndGraphParams();
+			DisabledPassThroughData(Context);
 			return true;
 		}
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
