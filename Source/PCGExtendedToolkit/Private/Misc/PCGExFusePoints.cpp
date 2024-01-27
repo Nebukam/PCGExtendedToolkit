@@ -137,7 +137,7 @@ bool FPCGExFuseTask::ExecuteTask()
 	MutablePoints.Reserve(FusedPoints.Num());
 
 	for (const PCGExFuse::FFusedPoint& FPoint : FusedPoints) { MutablePoints.Add(InPoints[FPoint.Index]); }
-	
+
 	PCGExDataBlending::FMetadataBlender* MetadataBlender = new PCGExDataBlending::FMetadataBlender(const_cast<FPCGExBlendingSettings*>(&Settings->BlendingSettings));
 	MetadataBlender->PrepareForData(*PointIO);
 
@@ -161,10 +161,10 @@ bool FPCGExFuseTask::ExecuteTask()
 		}
 
 		MetadataBlender->CompleteBlending(Target, AverageDivider);
-	};
+	}
 
 	MetadataBlender->Write();
-	
+
 	PCGEX_DELETE(MetadataBlender);
 	FusedPoints.Empty();
 

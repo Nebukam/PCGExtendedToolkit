@@ -3,7 +3,6 @@
 
 #include "Graph/Edges/PCGExPruneEdgesByLength.h"
 
-#include "IPCGExDebug.h"
 #include "Data/PCGExGraphParamsData.h"
 #include "Sampling/PCGExSampling.h"
 
@@ -140,7 +139,7 @@ bool FPCGExPruneEdgesByLengthElement::ExecuteInternal(FPCGContext* InContext) co
 
 		Context->ReferenceMin = FMath::Min(RMin, RMax);
 		Context->ReferenceMax = FMath::Max(RMin, RMax);
-		
+
 		Context->SetState(PCGExGraph::State_ProcessingEdges);
 	}
 

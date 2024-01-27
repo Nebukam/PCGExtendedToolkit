@@ -3,7 +3,6 @@
 
 #include "Graph/Edges/PCGExFindEdgesIntersections.h"
 
-#include "IPCGExDebug.h"
 #include "Data/PCGExGraphParamsData.h"
 #include "Sampling/PCGExSampling.h"
 

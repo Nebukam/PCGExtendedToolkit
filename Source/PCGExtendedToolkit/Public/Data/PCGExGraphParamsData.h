@@ -309,7 +309,7 @@ namespace PCGExGraph
 
 		explicit FProbeDistanceModifier(const FPCGExSocketDescriptor& InDescriptor)
 		{
-			Descriptor = static_cast<FPCGExInputDescriptor>(InDescriptor.AttributeModifier);
+			Descriptor = InDescriptor.AttributeModifier;
 			bEnabled = InDescriptor.bApplyAttributeModifier;
 		}
 	};
@@ -322,7 +322,7 @@ namespace PCGExGraph
 
 		explicit FLocalDirection(const FPCGExSocketDescriptor& InDescriptor)
 		{
-			Descriptor = static_cast<FPCGExInputDescriptor>(InDescriptor.AttributeDirectionVector);
+			Descriptor = InDescriptor.AttributeDirectionVector;
 			bEnabled = InDescriptor.bDirectionVectorFromAttribute;
 		}
 	};

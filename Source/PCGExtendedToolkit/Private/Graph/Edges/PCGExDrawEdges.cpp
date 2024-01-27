@@ -15,12 +15,6 @@ UPCGExDrawEdgesSettings::UPCGExDrawEdgesSettings(
 {
 }
 
-TArray<FPCGPinProperties> UPCGExDrawEdgesSettings::OutputPinProperties() const
-{
-	TArray<FPCGPinProperties> NoPins;
-	return NoPins;
-}
-
 PCGExData::EInit UPCGExDrawEdgesSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 PCGExData::EInit UPCGExDrawEdgesSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 
@@ -39,7 +33,8 @@ bool FPCGExDrawEdgesElement::Boot(FPCGContext* InContext) const
 #if WITH_EDITOR
 
 	PCGEX_CONTEXT_AND_SETTINGS(DrawEdges)
-	PCGEX_DEBUG_NOTIFY
+
+	if (!Settings->bPCGExDebug) { return false; }
 
 #endif
 
@@ -57,7 +52,11 @@ bool FPCGExDrawEdgesElement::ExecuteInternal(
 
 	if (Context->IsSetup())
 	{
-		if (!Boot(Context)) { return true; }
+		if (!Boot(Context))
+		{
+			DisabledPassThroughData(Context);
+			return true;
+		}
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
@@ -95,9 +94,13 @@ bool FPCGExDrawEdgesElement::ExecuteInternal(
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
+	if (Context->IsDone()) { DisabledPassThroughData(Context); }
+
 	return Context->IsDone();
 
 #endif
+
+	DisabledPassThroughData(Context);
 
 	return true;
 }

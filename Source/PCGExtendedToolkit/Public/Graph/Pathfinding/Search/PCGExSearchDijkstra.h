@@ -30,5 +30,6 @@ public:
 		const FVector& GoalPosition,
 		const UPCGExHeuristicOperation* Heuristics,
 		const FPCGExHeuristicModifiersSettings* Modifiers,
-		TArray<int32>& OutPath) override;
+		TArray<int32>& OutPath,
+		PCGExPathfinding::FExtraWeights* ExtraWeights) override;
 };

@@ -66,6 +66,26 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGExHeuristicModifiersSettings HeuristicsModifiers;
+
+	/** Add weight to points that are already part of the growing path */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Extra Weighting")
+	bool bWeightUpVisited = false;
+
+	/** Weight to add to points that are already part of the plotted path. This is a multplier of the Reference Weight.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Extra Weighting", meta=(EditCondition="bWeightUpVisited"))
+	double VisitedPointsWeightFactor = 1;
+
+	/** Weight to add to edges that are already part of the plotted path. This is a multplier of the Reference Weight.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Extra Weighting", meta=(EditCondition="bWeightUpVisited"))
+	double VisitedEdgesWeightFactor = 1;
+
+	/** Shares visited weight between pathfinding queries. Slow as it break parallelism. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Extra Weighting", meta=(EditCondition="bWeightUpVisited"))
+	bool bGlobalVisitedWeight = true;
+
+	/** Output various statistics. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	FPCGExPathStatistics Statistics;
 };
 
 
@@ -82,6 +102,12 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingPlotEdgesContext : public FPCGExE
 	UPCGExSearchOperation* SearchAlgorithm = nullptr;
 	FPCGExHeuristicModifiersSettings* HeuristicsModifiers = nullptr;
 	//UPCGExSubPointsBlendOperation* Blending = nullptr;
+
+	int32 CurrentPlotIndex = -1;
+	bool bWeightUpVisited = true;
+	double VisitedPointsWeightFactor = 1;
+	double VisitedEdgesWeightFactor = 1;
+	PCGExPathfinding::FExtraWeights* GlobalExtraWeights = nullptr;
 
 	bool bAddSeedToPath = true;
 	bool bAddGoalToPath = true;
@@ -106,10 +132,15 @@ class PCGEXTENDEDTOOLKIT_API FPCGExPlotClusterPathTask : public FPCGExNonAbandon
 {
 public:
 	FPCGExPlotClusterPathTask(
-		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO) :
-		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO)
+		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+		PCGExPathfinding::FExtraWeights* InGlobalExtraWeights = nullptr) :
+		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+		GlobalExtraWeights(InGlobalExtraWeights)
+
 	{
 	}
+
+	PCGExPathfinding::FExtraWeights* GlobalExtraWeights = nullptr;
 
 	virtual bool ExecuteTask() override;
 };

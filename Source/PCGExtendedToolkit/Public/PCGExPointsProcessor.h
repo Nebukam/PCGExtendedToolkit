@@ -288,11 +288,15 @@ class PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorElementBase : public FPCGPoint
 public:
 	virtual FPCGContext* Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node) override;
 
+	virtual bool ShouldLog() const override { return false; }
+
 	virtual bool IsCacheable(const UPCGSettings* InSettings) const override
 	{
 		const UPCGExPointsProcessorSettings* Settings = static_cast<const UPCGExPointsProcessorSettings*>(InSettings);
 		return Settings->bCacheResult;
 	}
+
+	virtual void DisabledPassThroughData(FPCGContext* Context) const override;
 
 protected:
 	virtual FPCGContext* InitializeContext(FPCGExPointsProcessorContext* InContext, const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node) const;

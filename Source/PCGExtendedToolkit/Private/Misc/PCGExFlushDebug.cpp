@@ -1,9 +1,8 @@
 ﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Misc/PCGExDebugManager.h"
+#include "Misc/PCGExFlushDebug.h"
 
-#include "IPCGExDebug.h"
 #include "PCGGraph.h"
 #include "PCGPin.h"
 
@@ -20,18 +19,29 @@ UPCGExDebugSettings::UPCGExDebugSettings(
 
 TArray<FPCGPinProperties> UPCGExDebugSettings::InputPinProperties() const
 {
-	TArray<FPCGPinProperties> Empty;
-	return Empty;
+	TArray<FPCGPinProperties> PinProperties;
+	FPCGPinProperties& PinPropertySource = PinProperties.Emplace_GetRef(PCGEx::SourcePointsLabel, EPCGDataType::Any, true, true);
+
+#if WITH_EDITOR
+	PinPropertySource.Tooltip = FTEXT("In.");
+#endif
+
+	return PinProperties;
 }
 
 TArray<FPCGPinProperties> UPCGExDebugSettings::OutputPinProperties() const
 {
-	TArray<FPCGPinProperties> Empty;
-	return Empty;
+	TArray<FPCGPinProperties> PinProperties;
+	FPCGPinProperties& PinPointsOutput = PinProperties.Emplace_GetRef(PCGEx::OutputPointsLabel, EPCGDataType::Any);
+
+#if WITH_EDITOR
+	PinPointsOutput.Tooltip = FTEXT("Out.");
+#endif
+
+	return PinProperties;
 }
 
 FPCGElementPtr UPCGExDebugSettings::CreateElement() const { return MakeShared<FPCGExDebugElement>(); }
-
 
 #pragma endregion
 
@@ -53,23 +63,20 @@ bool FPCGExDebugElement::ExecuteInternal(FPCGContext* Context) const
 {
 #if WITH_EDITOR
 
-	const int32 DebugNodeCount = PCGExDebug::GetActiveDebugNodeCount(Context);
-
 	const UPCGExDebugSettings* Settings = Context->GetInputSettings<UPCGExDebugSettings>();
-	check(Settings);
+	
+	if (!Settings->bPCGExDebug)
+	{
+		DisabledPassThroughData(Context);
+		return true;
+	}
 
-	UPCGExDebugSettings* MutableSettings = const_cast<UPCGExDebugSettings*>(Settings);
-	if (MutableSettings->DebugNodeCount != DebugNodeCount && DebugNodeCount == 0)
-	{
-		// This ensure we flush undesirable (deprecated) debug lines
-		MutableSettings->ResetPing(Context);
-	}
-	else
-	{
-		MutableSettings->DebugNodeCount = DebugNodeCount;
-	}
+	FlushPersistentDebugLines(PCGEx::GetWorld(Context));
+	//FlushDebugStrings(PCGEx::GetWorld(Context));
 
 #endif
+
+	DisabledPassThroughData(Context);
 
 	return true;
 }

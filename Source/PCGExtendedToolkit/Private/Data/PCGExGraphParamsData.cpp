@@ -139,7 +139,7 @@ namespace PCGExGraph
 
 			FProbeDistanceModifier& NewModifier = MaxDistanceGetters.Emplace_GetRef(Descriptor);
 			NewModifier.bEnabled = Overrides.bOverrideAttributeModifier ? Overrides.bApplyAttributeModifier : Descriptor.bApplyAttributeModifier;
-			NewModifier.Descriptor = static_cast<FPCGExInputDescriptor>(Overrides.bOverrideAttributeModifier ? Overrides.AttributeModifier : Descriptor.AttributeModifier);
+			NewModifier.Descriptor = Overrides.bOverrideAttributeModifier ? Overrides.AttributeModifier : Descriptor.AttributeModifier;
 
 			FLocalDirection& NewLocalDirection = LocalDirectionGetters.Emplace_GetRef(Descriptor);
 			NewLocalDirection.bEnabled = Overrides.bOverrideDirectionVectorFromAttribute ? Overrides.bDirectionVectorFromAttribute : Descriptor.bDirectionVectorFromAttribute;

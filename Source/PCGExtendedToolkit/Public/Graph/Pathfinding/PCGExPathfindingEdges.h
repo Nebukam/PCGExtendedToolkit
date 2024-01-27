@@ -51,8 +51,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingEdgesContext : public FPCGExPathf
 
 	virtual ~FPCGExPathfindingEdgesContext() override;
 
-	mutable FRWLock BufferLock;
-
+	int32 CurrentPathBufferIndex = -1;
 	TArray<PCGExPathfinding::FPathQuery*> PathBuffer;
 };
 
@@ -74,8 +73,8 @@ class PCGEXTENDEDTOOLKIT_API FSampleClusterPathTask : public FPCGExPathfindingTa
 {
 public:
 	FSampleClusterPathTask(
-		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO, PCGExPathfinding::FPathQuery* InQuery) :
-		FPCGExPathfindingTask(InManager, InTaskIndex, InPointIO, InQuery)
+		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO, PCGExPathfinding::FPathQuery* InQuery, PCGExPathfinding::FExtraWeights* InGlobalExtraWeights = nullptr) :
+		FPCGExPathfindingTask(InManager, InTaskIndex, InPointIO, InQuery, InGlobalExtraWeights)
 	{
 	}
 

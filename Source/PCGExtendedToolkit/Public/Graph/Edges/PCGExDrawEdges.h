@@ -4,7 +4,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "IPCGExDebug.h"
 #include "Graph/PCGExEdgesProcessor.h"
 #include "PCGExDrawEdges.generated.h"
 
@@ -18,7 +17,7 @@ namespace PCGExDataBlending
 }
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Edges")
-class PCGEXTENDEDTOOLKIT_API UPCGExDrawEdgesSettings : public UPCGExEdgesProcessorSettings, public IPCGExDebug
+class PCGEXTENDEDTOOLKIT_API UPCGExDrawEdgesSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -32,21 +31,13 @@ public:
 	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorDebug; }
 #endif
 
-	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
-
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings interface
 
 	//~Begin IPCGExDebug interface
-public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	virtual PCGExData::EInit GetEdgeOutputInitMode() const override;
-
-#if WITH_EDITOR
-	virtual bool IsDebugEnabled() const override { return bEnabled && bDebug; }
-#endif
-
 	//~End IPCGExDebug interface
 
 	/** Draw color. */
@@ -60,6 +51,10 @@ public:
 	/** Depth priority. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings", meta=(PCG_Overridable))
 	int32 DepthPriority = 0;
+
+	/** Debug drawing toggle. Exposed to have more control on debug draw in sub-graph. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Debug", meta=(PCG_Overridable))
+	bool bPCGExDebug = true;
 
 private:
 	friend class FPCGExDrawEdgesElement;
@@ -79,6 +74,8 @@ public:
 		const FPCGDataCollection& InputData,
 		TWeakObjectPtr<UPCGComponent> SourceComponent,
 		const UPCGNode* Node) override;
+
+	virtual bool CanExecuteOnlyOnMainThread(FPCGContext* Context) const override { return true; }
 
 protected:
 	virtual bool Boot(FPCGContext* InContext) const override;

@@ -9,7 +9,14 @@
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicOperation.h"
 #include "Graph/Pathfinding/Search/PCGExScoredQueue.h"
 
-bool UPCGExSearchAStar::FindPath(const PCGExCluster::FCluster* Cluster, const FVector& SeedPosition, const FVector& GoalPosition, const UPCGExHeuristicOperation* Heuristics, const FPCGExHeuristicModifiersSettings* Modifiers, TArray<int32>& OutPath)
+bool UPCGExSearchAStar::FindPath(
+	const PCGExCluster::FCluster* Cluster,
+	const FVector& SeedPosition,
+	const FVector& GoalPosition,
+	const UPCGExHeuristicOperation* Heuristics,
+	const FPCGExHeuristicModifiersSettings* Modifiers,
+	TArray<int32>& OutPath,
+	PCGExPathfinding::FExtraWeights* ExtraWeights)
 {
 	const PCGExCluster::FNode& SeedNode = Cluster->Nodes[Cluster->FindClosestNode(SeedPosition)];
 	const PCGExCluster::FNode& GoalNode = Cluster->Nodes[Cluster->FindClosestNode(GoalPosition)];
@@ -67,6 +74,7 @@ bool UPCGExSearchAStar::FindPath(const PCGExCluster::FCluster* Cluster, const FV
 			const PCGExCluster::FNode& AdjacentNode = Cluster->Nodes[AdjacentIndex];
 			const PCGExGraph::FIndexedEdge& Edge = Cluster->GetEdgeFromNodeIndices(CurrentNodeIndex, AdjacentIndex);
 
+			const double ExtraWeight = +ExtraWeights ? ExtraWeights->GetExtraWeight(CurrentNodeIndex, Edge.EdgeIndex) : 0;
 			const double ScoreMod = Modifiers->GetScore(AdjacentNode.PointIndex, Edge.PointIndex);
 			const double TentativeGScore = CurrentGScore + Heuristics->GetEdgeScore(Current, AdjacentNode, Edge, SeedNode, GoalNode) + ScoreMod;
 
@@ -88,13 +96,32 @@ bool UPCGExSearchAStar::FindPath(const PCGExCluster::FCluster* Cluster, const FV
 	{
 		bSuccess = true;
 		TArray<int32> Path;
-
-		while (PathIndex != -1)
+		if (ExtraWeights)
 		{
-			Path.Add(PathIndex);
-			PathIndex = Previous[PathIndex];
-		}
+			const double ExtraNodeWeight = Heuristics->ReferenceWeight * ExtraWeights->NodeScale;
+			const double ExtraEdgeWeight = Heuristics->ReferenceWeight * ExtraWeights->EdgeScale;
+			while (PathIndex != -1)
+			{
+				const int32 CurrentIndex = PathIndex;
+				ExtraWeights->AddPointWeight(CurrentIndex, ExtraNodeWeight);
+				Path.Add(CurrentIndex);
+				PathIndex = Previous[PathIndex];
 
+				if (PathIndex != -1)
+				{
+					const PCGExGraph::FIndexedEdge& Edge = Cluster->GetEdgeFromNodeIndices(CurrentIndex, PathIndex);
+					ExtraWeights->AddEdgeWeight(Edge.EdgeIndex, ExtraEdgeWeight);
+				}
+			}
+		}
+		else
+		{
+			while (PathIndex != -1)
+			{
+				Path.Add(PathIndex);
+				PathIndex = Previous[PathIndex];
+			}
+		}
 		Algo::Reverse(Path);
 		OutPath.Append(Path);
 	}

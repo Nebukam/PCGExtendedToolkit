@@ -4,7 +4,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "IPCGExDebug.h"
 
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGExAttributeHelpers.h"
@@ -139,7 +138,7 @@ protected:
  * Calculates the distance between two points (inherently a n*n operation)
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
-class PCGEXTENDEDTOOLKIT_API UPCGExDrawAttributesSettings : public UPCGExPointsProcessorSettings, public IPCGExDebug
+class PCGEXTENDEDTOOLKIT_API UPCGExDrawAttributesSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -153,8 +152,6 @@ public:
 	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorDebug; }
 #endif
 
-	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
-
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings interface
@@ -167,17 +164,14 @@ public:
 #endif
 	//~End UObject interface
 
-	//~Begin IPCGExDebug interface
-public:
-#if WITH_EDITOR
-	virtual bool IsDebugEnabled() const override { return bEnabled && bDebug; }
-#endif
-	//~End IPCGExDebug interface
-
 public:
 	/** Attributes to draw.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(TitleProperty="{TitlePropertyName} as {ExpressedAs}"))
 	TArray<FPCGExAttributeDebugDrawDescriptor> DebugList;
+
+	/** Debug drawing toggle. Exposed to have more control on debug draw in sub-graph. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Debug", meta=(PCG_Overridable))
+	bool bPCGExDebug = true;
 
 protected:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
@@ -203,6 +197,8 @@ public:
 		const FPCGDataCollection& InputData,
 		TWeakObjectPtr<UPCGComponent> SourceComponent,
 		const UPCGNode* Node) override;
+
+	virtual bool CanExecuteOnlyOnMainThread(FPCGContext* Context) const override { return true; }
 
 protected:
 	virtual bool Boot(FPCGContext* InContext) const override;

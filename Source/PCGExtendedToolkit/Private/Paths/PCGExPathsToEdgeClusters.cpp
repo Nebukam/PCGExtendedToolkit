@@ -98,7 +98,7 @@ bool FPCGExPathsToEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) c
 				MutablePoints[i].Transform.SetLocation(Context->LooseNetwork->Nodes[i]->Center);
 			}
 
-			Context->GraphBuilder = new PCGExGraph::FGraphBuilder(*Context->CurrentIO, &Context->GraphBuilderSettings, 4);
+			Context->GraphBuilder = new PCGExGraph::FGraphBuilder(*Context->ConsolidatedPoints, &Context->GraphBuilderSettings, 4);
 			Context->SetState(PCGExGraph::State_ProcessingGraph);
 		}
 		else { Context->SetState(PCGExMT::State_ProcessingPoints); }

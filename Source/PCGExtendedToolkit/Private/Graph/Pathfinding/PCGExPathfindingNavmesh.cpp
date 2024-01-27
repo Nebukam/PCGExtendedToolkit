@@ -148,22 +148,17 @@ bool FPCGExPathfindingNavmeshElement::ExecuteInternal(FPCGContext* InContext) co
 
 	if (Context->IsState(PCGExMT::State_ProcessingPoints))
 	{
-		auto Initialize = []()
-		{
-		};
-
 		auto NavClusterTask = [&](const int32 SeedIndex, const int32 GoalIndex)
 		{
-			Context->BufferLock.WriteLock();
 			const int32 PathIndex = Context->PathBuffer.Add(
 				new PCGExPathfinding::FPathQuery(
 					SeedIndex, Context->CurrentIO->GetInPoint(SeedIndex).Transform.GetLocation(),
 					GoalIndex, Context->GoalsPoints->GetInPoint(GoalIndex).Transform.GetLocation()));
-			Context->BufferLock.WriteUnlock();
+
 			Context->GetAsyncManager()->Start<FSampleNavmeshTask>(PathIndex, Context->CurrentIO, Context->PathBuffer[PathIndex]);
 		};
 
-		if (!PCGExPathfinding::ProcessGoals(Initialize, Context, Context->CurrentIO, Context->GoalPicker, NavClusterTask)) { return false; }
+		PCGExPathfinding::ProcessGoals(Context->CurrentIO, Context->GoalPicker, NavClusterTask);
 		Context->SetAsyncState(PCGExPathfinding::State_Pathfinding);
 	}
 
