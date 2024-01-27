@@ -6,7 +6,7 @@
 #define LOCTEXT_NAMESPACE "PCGExDrawAttributes"
 #define PCGEX_NAMESPACE DrawAttributes
 
-PCGExData::EInit UPCGExDrawAttributesSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
+PCGExData::EInit UPCGExDrawAttributesSettings::GetMainOutputInitMode() const { return PCGExData::EInit::Forward; }
 
 FPCGExDrawAttributesContext::~FPCGExDrawAttributesContext()
 {
@@ -180,12 +180,6 @@ UPCGExDrawAttributesSettings::UPCGExDrawAttributesSettings(
 	}
 }
 
-TArray<FPCGPinProperties> UPCGExDrawAttributesSettings::OutputPinProperties() const
-{
-	TArray<FPCGPinProperties> None;
-	return None;
-}
-
 #if WITH_EDITOR
 void UPCGExDrawAttributesSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
@@ -204,7 +198,7 @@ bool FPCGExDrawAttributesElement::Boot(FPCGContext* InContext) const
 #if WITH_EDITOR
 	PCGEX_CONTEXT_AND_SETTINGS(DrawAttributes)
 
-	PCGEX_DEBUG_NOTIFY
+	if (!Settings->PCGExDebug) { return false; }
 
 	Context->DebugList.Empty();
 	for (const FPCGExAttributeDebugDrawDescriptor& Descriptor : Settings->DebugList)
@@ -238,7 +232,11 @@ bool FPCGExDrawAttributesElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsSetup())
 	{
-		if (!Boot(Context)) { return true; }
+		if (!Boot(Context))
+		{
+			Context->OutputPoints();
+			return true;
+		}
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
@@ -274,9 +272,13 @@ bool FPCGExDrawAttributesElement::ExecuteInternal(FPCGContext* InContext) const
 		}
 	}
 
+	if (Context->IsDone()) { DisabledPassThroughData(Context); }
+
 	return Context->IsDone();
 
 #endif
+
+	DisabledPassThroughData(Context);
 
 	return true;
 }

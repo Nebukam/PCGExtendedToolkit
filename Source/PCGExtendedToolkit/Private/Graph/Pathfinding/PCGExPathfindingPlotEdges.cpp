@@ -64,6 +64,7 @@ FPCGExPathfindingPlotEdgesContext::~FPCGExPathfindingPlotEdgesContext()
 
 	if (HeuristicsModifiers) { HeuristicsModifiers->Cleanup(); }
 
+	PCGEX_DELETE(GlobalExtraWeights)
 	PCGEX_DELETE(Plots)
 	PCGEX_DELETE(OutputPaths)
 }
@@ -77,6 +78,14 @@ bool FPCGExPathfindingPlotEdgesElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_OPERATION_BIND(SearchAlgorithm, UPCGExSearchAStar)
 	PCGEX_OPERATION_BIND(Heuristics, UPCGExHeuristicDistance)
+
+	PCGEX_FWD(bAddSeedToPath)
+	PCGEX_FWD(bAddGoalToPath)
+	PCGEX_FWD(bAddPlotPointsToPath)
+
+	PCGEX_FWD(bWeightUpVisited)
+	PCGEX_FWD(VisitedPointsWeightFactor)
+	PCGEX_FWD(VisitedEdgesWeightFactor)
 
 	Context->OutputPaths = new PCGExData::FPointIOGroup();
 	Context->Plots = new PCGExData::FPointIOGroup();
@@ -101,7 +110,7 @@ bool FPCGExPathfindingPlotEdgesElement::ExecuteInternal(FPCGContext* InContext) 
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExPathfindingPlotEdgesElement::Execute);
 
-	PCGEX_CONTEXT(PathfindingPlotEdges)
+	PCGEX_CONTEXT_AND_SETTINGS(PathfindingPlotEdges)
 
 	if (Context->IsSetup())
 	{
@@ -148,16 +157,53 @@ bool FPCGExPathfindingPlotEdgesElement::ExecuteInternal(FPCGContext* InContext) 
 	{
 		if (!Context->IsAsyncWorkComplete()) { return false; }
 
+		PCGEX_DELETE(Context->GlobalExtraWeights);
 		Context->Heuristics->PrepareForData(Context->CurrentCluster);
 
-		Context->Plots->ForEach(
-			[&](PCGExData::FPointIO& PlotIO, const int32 Index)
-			{
-				if (PlotIO.GetNum() < 2) { return; }
-				Context->GetAsyncManager()->Start<FPCGExPlotClusterPathTask>(Index, &PlotIO);
-			});
+		if (Settings->bWeightUpVisited && Settings->bGlobalVisitedWeight)
+		{
+			Context->GlobalExtraWeights = new PCGExPathfinding::FExtraWeights(
+				Context->CurrentCluster,
+				Context->VisitedPointsWeightFactor,
+				Context->VisitedEdgesWeightFactor);
 
-		Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork);
+			Context->CurrentPlotIndex = -1;
+			Context->SetAsyncState(PCGExPathfinding::State_Pathfinding);
+		}
+		else
+		{
+			Context->Plots->ForEach(
+				[&](PCGExData::FPointIO& PlotIO, const int32 Index)
+				{
+					if (PlotIO.GetNum() < 2) { return; }
+					Context->GetAsyncManager()->Start<FPCGExPlotClusterPathTask>(Index, &PlotIO);
+				});
+
+			Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork);
+		}
+	}
+
+	if (Context->IsState(PCGExPathfinding::State_Pathfinding))
+	{
+		// Advance to next plot
+		Context->CurrentPlotIndex++;
+		if (!Context->Plots->Pairs.IsValidIndex(Context->CurrentPlotIndex))
+		{
+			Context->SetState(PCGExGraph::State_ReadyForNextEdges);
+			return false;
+		}
+
+		PCGExData::FPointIO* PlotIO = Context->Plots->Pairs[Context->CurrentPlotIndex];
+		if (PlotIO->GetNum() < 2) { return false; }
+
+		Context->GetAsyncManager()->Start<FPCGExPlotClusterPathTask>(Context->CurrentPlotIndex, PlotIO, Context->GlobalExtraWeights);
+		Context->SetAsyncState(PCGExPathfinding::State_WaitingPathfinding);
+	}
+
+	if (Context->IsState(PCGExPathfinding::State_WaitingPathfinding))
+	{
+		if (!Context->IsAsyncWorkComplete()) { return false; }
+		Context->SetState(PCGExPathfinding::State_Pathfinding);
 	}
 
 	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
@@ -178,6 +224,15 @@ bool FPCGExPlotClusterPathTask::ExecuteTask()
 	const PCGExCluster::FCluster* Cluster = Context->CurrentCluster;
 	TArray<int32> Path;
 
+	PCGExPathfinding::FExtraWeights* ExtraWeights = GlobalExtraWeights;
+	if (Context->bWeightUpVisited && !ExtraWeights)
+	{
+		ExtraWeights = new PCGExPathfinding::FExtraWeights(
+			Cluster,
+			Context->VisitedPointsWeightFactor,
+			Context->VisitedEdgesWeightFactor);
+	}
+
 	const int32 NumPlots = PointIO->GetNum();
 
 	for (int i = 1; i < NumPlots; i++)
@@ -187,7 +242,7 @@ bool FPCGExPlotClusterPathTask::ExecuteTask()
 
 		if (!Context->SearchAlgorithm->FindPath(
 			Context->CurrentCluster, SeedPosition, GoalPosition,
-			Context->Heuristics, Context->HeuristicsModifiers, Path))
+			Context->Heuristics, Context->HeuristicsModifiers, Path, ExtraWeights))
 		{
 			// Failed
 		}
@@ -219,6 +274,8 @@ bool FPCGExPlotClusterPathTask::ExecuteTask()
 		LastIndex = VtxIndex;
 	}
 	if (Context->bAddGoalToPath) { MutablePoints.Add_GetRef(PointIO->GetInPoint(PointIO->GetNum() - 1)).MetadataEntry = PCGInvalidEntryKey; }
+
+	if (ExtraWeights != GlobalExtraWeights) { PCGEX_DELETE(ExtraWeights) }
 
 	return true;
 }

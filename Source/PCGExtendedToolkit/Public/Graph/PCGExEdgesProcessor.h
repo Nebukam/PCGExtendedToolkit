@@ -88,6 +88,8 @@ public:
 		TWeakObjectPtr<UPCGComponent> SourceComponent,
 		const UPCGNode* Node) override;
 
+	virtual void DisabledPassThroughData(FPCGContext* Context) const override;
+
 protected:
 	virtual bool Boot(FPCGContext* InContext) const override;
 	virtual FPCGContext* InitializeContext(

@@ -3,7 +3,6 @@
 
 #include "Graph/PCGExEdgesProcessor.h"
 
-#include "IPCGExDebug.h"
 #include "Data/PCGExGraphParamsData.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
@@ -132,6 +131,15 @@ void FPCGExEdgesProcessorContext::OutputPointsAndEdges()
 
 PCGEX_INITIALIZE_CONTEXT(EdgesProcessor)
 
+void FPCGExEdgesProcessorElement::DisabledPassThroughData(FPCGContext* Context) const
+{
+	FPCGExPointsProcessorElementBase::DisabledPassThroughData(Context);
+
+	//Forward edges
+	TArray<FPCGTaggedData> EdgesSources = Context->InputData.GetInputsByPin(PCGExGraph::SourceEdgesLabel);
+	for (const FPCGTaggedData& TData : EdgesSources) { Context->OutputData.TaggedData.Emplace_GetRef(TData.Data, TData.Tags, PCGExGraph::OutputEdgesLabel); }
+}
+
 bool FPCGExEdgesProcessorElement::Boot(FPCGContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElementBase::Boot(InContext)) { return false; }
@@ -169,7 +177,7 @@ FPCGContext* FPCGExEdgesProcessorElement::InitializeContext(
 				PointIO.Disable();
 				return;
 			}
-			if(!Context->InputDictionary->CreateKey(PointIO))
+			if (!Context->InputDictionary->CreateKey(PointIO))
 			{
 				PCGE_LOG(Warning, GraphAndLog, FTEXT("At least two Vtx inputs share the same PCGEx/Cluster tag. Only one will be processed."));
 				PointIO.Disable();

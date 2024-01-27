@@ -3,7 +3,6 @@
 
 #include "Graph/PCGExCustomGraphProcessor.h"
 
-#include "IPCGExDebug.h"
 #include "Data/PCGExGraphParamsData.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
@@ -113,6 +112,15 @@ void FPCGExCustomGraphProcessorContext::PrepareCurrentGraphForPoints(const PCGEx
 }
 
 PCGEX_INITIALIZE_CONTEXT(CustomGraphProcessor)
+
+void FPCGExCustomGraphProcessorElement::DisabledPassThroughData(FPCGContext* Context) const
+{
+	FPCGExPointsProcessorElementBase::DisabledPassThroughData(Context);
+
+	//Forward edges
+	TArray<FPCGTaggedData> GraphsSources = Context->InputData.GetInputsByPin(PCGExGraph::SourceGraphsLabel);
+	for (const FPCGTaggedData& TData : GraphsSources) { Context->OutputData.TaggedData.Emplace_GetRef(TData.Data, TData.Tags, PCGExGraph::OutputGraphsLabel); }
+}
 
 bool FPCGExCustomGraphProcessorElement::Boot(FPCGContext* InContext) const
 {

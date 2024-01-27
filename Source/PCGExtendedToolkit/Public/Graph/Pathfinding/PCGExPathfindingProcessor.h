@@ -76,6 +76,22 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGExHeuristicModifiersSettings HeuristicsModifiers;
 	//~End UPCGExPathfindingProcessorSettings interface
+
+	/** Add weight to points that have already been visited. Slow as it break parallelism. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Extra Weighting")
+	bool bWeightUpVisited = false;
+
+	/** Weight to add to points that are already part of the plotted path. This is a multplier of the Reference Weight.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Extra Weighting", meta=(EditCondition="bWeightUpVisited"))
+	double VisitedPointsWeightFactor = 1;
+
+	/** Weight to add to edges that are already part of the plotted path. This is a multplier of the Reference Weight.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Extra Weighting", meta=(EditCondition="bWeightUpVisited"))
+	double VisitedEdgesWeightFactor = 1;
+
+	/** Output various statistics. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	FPCGExPathStatistics Statistics;
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingProcessorContext : public FPCGExEdgesProcessorContext
@@ -96,6 +112,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingProcessorContext : public FPCGExE
 
 	bool bAddSeedToPath = true;
 	bool bAddGoalToPath = true;
+
+	PCGExPathfinding::FExtraWeights* GlobalExtraWeights = nullptr;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExPathfindingProcessorElement : public FPCGExEdgesProcessorElement

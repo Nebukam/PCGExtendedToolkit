@@ -4,7 +4,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "IPCGExDebug.h"
 
 #include "PCGExCustomGraphProcessor.h"
 
@@ -15,7 +14,7 @@ class UPCGExCustomGraphSolver;
  * Calculates the distance between two points (inherently a n*n operation)
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
-class PCGEXTENDEDTOOLKIT_API UPCGExDrawCustomGraphSettings : public UPCGExCustomGraphProcessorSettings, public IPCGExDebug
+class PCGEXTENDEDTOOLKIT_API UPCGExDrawCustomGraphSettings : public UPCGExCustomGraphProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -28,7 +27,6 @@ public:
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Debug; }
 	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorDebug; }
 #endif
-	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
@@ -47,14 +45,6 @@ public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings interface
 
-	//~Begin IPCGExDebug interface
-public:
-#if WITH_EDITOR
-	virtual bool IsDebugEnabled() const override { return bEnabled && bDebug; }
-#endif
-
-	//~End IPCGExDebug interface
-
 public:
 	/** Draw edges.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
@@ -71,6 +61,10 @@ public:
 	/** Draw socket loose bounds.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	bool bDrawSocketBox = false;
+
+	/** Debug drawing toggle. Exposed to have more control on debug draw in sub-graph. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Debug", meta=(PCG_Overridable))
+	int32 PCGExDebug = true;
 
 private:
 	friend class FPCGExDrawCustomGraphElement;
@@ -95,6 +89,8 @@ public:
 		const FPCGDataCollection& InputData,
 		TWeakObjectPtr<UPCGComponent> SourceComponent,
 		const UPCGNode* Node) override;
+
+	virtual bool CanExecuteOnlyOnMainThread(FPCGContext* Context) const override { return true; }
 
 protected:
 	virtual bool Boot(FPCGContext* InContext) const override;

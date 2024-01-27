@@ -241,9 +241,75 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicModifiersSettings
 	}
 };
 
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExPathStatistics
+{
+	GENERATED_BODY()
+
+	FPCGExPathStatistics()
+	{
+	}
+
+	virtual ~FPCGExPathStatistics()
+	{
+	}
+
+	/** Write the point use count. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bWritePointUseCount = false;
+
+	/** Name of the attribute to write point use count to.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bWritePointUseCount"))
+	FName PointUseCountAttributeName = FName("UseCount");
+
+	/** Write the edge use count. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bWriteEdgeUseCount = false;
+
+	/** Name of the attribute to write edge use count to.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bWriteEdgeUseCount"))
+	FName EdgeUseCountAttributeName = FName("UseCount");
+};
 
 namespace PCGExPathfinding
 {
+	struct PCGEXTENDEDTOOLKIT_API FExtraWeights
+	{
+		TArray<double> NodeExtraWeight;
+		TArray<double> EdgeExtraWeight;
+
+		double NodeScale = 1;
+		double EdgeScale = 1;
+
+		FExtraWeights(const PCGExCluster::FCluster* InCluster, const double InNodeScale, const double InEdgeScale)
+			: NodeScale(InNodeScale), EdgeScale(InEdgeScale)
+		{
+			NodeExtraWeight.SetNumZeroed(InCluster->Nodes.Num());
+			EdgeExtraWeight.SetNumZeroed(InCluster->Edges.Num());
+		}
+
+		~FExtraWeights()
+		{
+			NodeExtraWeight.Empty();
+			EdgeExtraWeight.Empty();
+		}
+
+		void AddPointWeight(const int32 PointIndex, const double InScore)
+		{
+			NodeExtraWeight[PointIndex] += InScore;
+		}
+
+		void AddEdgeWeight(const int32 EdgeIndex, const double InScore)
+		{
+			EdgeExtraWeight[EdgeIndex] += InScore;
+		}
+
+		double GetExtraWeight(const int32 NodeIndex, const int32 EdgeIndex) const
+		{
+			return NodeExtraWeight[NodeIndex] + EdgeExtraWeight[EdgeIndex];
+		}
+	};
+
 	struct PCGEXTENDEDTOOLKIT_API FPlotPoint
 	{
 		int32 PlotIndex;
@@ -274,37 +340,32 @@ namespace PCGExPathfinding
 		FVector GoalPosition;
 	};
 
-	template <class InitializeFunc>
-	static bool ProcessGoals(
-		InitializeFunc&& Initialize,
-		FPCGExPointsProcessorContext* Context,
+	static void ProcessGoals(
 		const PCGExData::FPointIO* SeedIO,
 		const UPCGExGoalPicker* GoalPicker,
 		TFunction<void(int32, int32)>&& GoalFunc)
 	{
-		return Context->Process(
-			Initialize,
-			[&](const int32 PointIndex)
-			{
-				const PCGEx::FPointRef& Seed = SeedIO->GetInPointRef(PointIndex);
+		for (int PointIndex = 0; PointIndex < SeedIO->GetNum(); PointIndex++)
+		{
+			const PCGEx::FPointRef& Seed = SeedIO->GetInPointRef(PointIndex);
 
-				if (GoalPicker->OutputMultipleGoals())
+			if (GoalPicker->OutputMultipleGoals())
+			{
+				TArray<int32> GoalIndices;
+				GoalPicker->GetGoalIndices(Seed, GoalIndices);
+				for (const int32 GoalIndex : GoalIndices)
 				{
-					TArray<int32> GoalIndices;
-					GoalPicker->GetGoalIndices(Seed, GoalIndices);
-					for (const int32 GoalIndex : GoalIndices)
-					{
-						if (GoalIndex < 0) { continue; }
-						GoalFunc(PointIndex, GoalIndex);
-					}
-				}
-				else
-				{
-					const int32 GoalIndex = GoalPicker->GetGoalIndex(Seed);
-					if (GoalIndex < 0) { return; }
+					if (GoalIndex < 0) { continue; }
 					GoalFunc(PointIndex, GoalIndex);
 				}
-			}, SeedIO->GetNum());
+			}
+			else
+			{
+				const int32 GoalIndex = GoalPicker->GetGoalIndex(Seed);
+				if (GoalIndex < 0) { continue; }
+				GoalFunc(PointIndex, GoalIndex);
+			}
+		}
 	}
 }
 
@@ -334,11 +395,12 @@ class PCGEXTENDEDTOOLKIT_API FPCGExPathfindingTask : public FPCGExNonAbandonable
 public:
 	FPCGExPathfindingTask(
 		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-		PCGExPathfinding::FPathQuery* InQuery) :
+		PCGExPathfinding::FPathQuery* InQuery, PCGExPathfinding::FExtraWeights* InGlobalExtraWeights = nullptr) :
 		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
-		Query(InQuery)
+		Query(InQuery), GlobalExtraWeights(InGlobalExtraWeights)
 	{
 	}
 
 	PCGExPathfinding::FPathQuery* Query = nullptr;
+	PCGExPathfinding::FExtraWeights* GlobalExtraWeights = nullptr;
 };

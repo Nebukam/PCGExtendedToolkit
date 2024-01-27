@@ -98,8 +98,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingNavmeshContext : public FPCGExPoi
 {
 	friend class FPCGExPathfindingNavmeshElement;
 
-	mutable FRWLock BufferLock;
-
 	virtual ~FPCGExPathfindingNavmeshContext() override;
 
 	PCGExData::FPointIO* GoalsPoints = nullptr;

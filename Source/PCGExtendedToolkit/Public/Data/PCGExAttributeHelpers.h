@@ -71,6 +71,27 @@ public:
 
 namespace PCGEx
 {
+	static FPCGAttributePropertyInputSelector CopyAndFixLast(const FPCGAttributePropertyInputSelector& InSelector, const UPCGData* InData, TArray<FString>& OutExtraNames)
+	{
+		//Copy, fix, and clear ExtraNames to support PCGEx custom selectors
+		FPCGAttributePropertyInputSelector NewSelector = InSelector.CopyAndFixLast(InData);
+		OutExtraNames = NewSelector.GetExtraNames();
+		switch (NewSelector.GetSelection())
+		{
+		default: ;
+		case EPCGAttributePropertySelection::Attribute:
+			NewSelector.SetAttributeName(NewSelector.GetAttributeName(), true);
+			break;
+		case EPCGAttributePropertySelection::PointProperty:
+			NewSelector.SetPointProperty(NewSelector.GetPointProperty(), true);
+			break;
+		case EPCGAttributePropertySelection::ExtraProperty:
+			NewSelector.SetExtraProperty(NewSelector.GetExtraProperty(), true);
+			break;
+		}
+		return NewSelector;
+	}
+
 #pragma region Attribute identity
 
 	struct PCGEXTENDEDTOOLKIT_API FAttributeIdentity
@@ -467,15 +488,16 @@ namespace PCGEx
 
 			const UPCGPointData* InData = PointIO.GetIn();
 
-			const FPCGAttributePropertyInputSelector Selector = Descriptor.Selector.CopyAndFixLast(InData);
+			TArray<FString> ExtraNames;
+			const FPCGAttributePropertyInputSelector Selector = CopyAndFixLast(Descriptor.Selector, InData, ExtraNames);
 			if (!Selector.IsValid()) { return false; }
-			ProcessExtraNames(Descriptor.Selector.GetExtraNames());
+
+			ProcessExtraNames(ExtraNames);
 
 			int32 NumPoints = PointIO.GetNum();
 			const EPCGAttributePropertySelection Selection = Selector.GetSelection();
 			if (Selection == EPCGAttributePropertySelection::Attribute)
 			{
-				// TODO: Create accessor
 				const FPCGMetadataAttributeBase* Attribute = InData->Metadata->GetConstAttribute(Selector.GetName());
 				if (!Attribute) { return false; }
 
@@ -574,8 +596,8 @@ namespace PCGEx
 		{
 			if (Descriptor.Selector.GetName() == TEXT("Transform"))
 			{
-				if (GetAxisSelection(Descriptor.Selector.GetExtraNames(), Axis) &&
-					!GetComponentSelection(Descriptor.Selector.GetExtraNames(), Component))
+				if (GetAxisSelection(ExtraNames, Axis) &&
+					!GetComponentSelection(ExtraNames, Component))
 				{
 					// Only axis is set, assume rotation instead of position
 					Component = EPCGExTransformComponent::Rotation;
@@ -583,8 +605,9 @@ namespace PCGEx
 			}
 			else
 			{
-				GetAxisSelection(Descriptor.Selector.GetExtraNames(), Axis);
+				GetAxisSelection(ExtraNames, Axis);
 			}
+
 			GetFieldSelection(ExtraNames, Field);
 		}
 

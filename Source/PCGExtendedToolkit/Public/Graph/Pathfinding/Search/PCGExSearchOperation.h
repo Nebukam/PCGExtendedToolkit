@@ -8,6 +8,11 @@
 #include "UObject/Object.h"
 #include "PCGExSearchOperation.generated.h"
 
+namespace PCGExPathfinding
+{
+	struct FExtraWeights;
+}
+
 struct FPCGExHeuristicModifiersSettings;
 class UPCGExHeuristicOperation;
 
@@ -31,5 +36,6 @@ public:
 		const FVector& GoalPosition,
 		const UPCGExHeuristicOperation* Heuristics,
 		const FPCGExHeuristicModifiersSettings* Modifiers,
-		TArray<int32>& OutPath);
+		TArray<int32>& OutPath,
+		PCGExPathfinding::FExtraWeights* ExtraWeights = nullptr);
 };

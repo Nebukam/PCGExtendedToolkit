@@ -79,7 +79,7 @@ bool FPCGExSortPointIO::ExecuteTask()
 		}
 
 		//if (NewRule->bAbsolute) { for (double& Value : NewRule->Values) { Value = FMath::Abs(Value); } }
-		
+
 		NewRule->Tolerance = RuleDescriptor.Tolerance;
 		NewRule->bInvertRule = RuleDescriptor.bInvertRule;
 		Rules.Add(NewRule);

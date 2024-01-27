@@ -16,17 +16,9 @@ UPCGExDrawCustomGraphSettings::UPCGExDrawCustomGraphSettings(
 	DebugSettings.PointScale = 0.0f;
 }
 
-TArray<FPCGPinProperties> UPCGExDrawCustomGraphSettings::OutputPinProperties() const
-{
-	TArray<FPCGPinProperties> Empty;
-	Empty.Empty();
-	return Empty;
-}
-
 #if WITH_EDITOR
 void UPCGExDrawCustomGraphSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
-	//if (const UWorld* EditorWorld = GEditor->GetEditorWorldContext().World()) { FlushPersistentDebugLines(EditorWorld); }
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
 #endif
@@ -41,7 +33,7 @@ bool FPCGExDrawCustomGraphElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(DrawCustomGraph)
 
-	PCGEX_DEBUG_NOTIFY
+	if (!Settings->PCGExDebug) { return false; }
 
 	Context->GraphSolver = Context->RegisterOperation<UPCGExCustomGraphSolver>();
 
@@ -60,7 +52,11 @@ bool FPCGExDrawCustomGraphElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsSetup())
 	{
-		if (!Boot(Context)) { return true; }
+		if (!Boot(Context))
+		{
+			Context->OutputPointsAndGraphParams();
+			return true;
+		}
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
@@ -198,14 +194,13 @@ bool FPCGExDrawCustomGraphElement::ExecuteInternal(FPCGContext* InContext) const
 		}
 	}
 
-	if (Context->IsDone())
-	{
-		//Context->OutputPointsAndParams();
-	}
+	if (Context->IsDone()) { DisabledPassThroughData(Context); }
 
 	return Context->IsDone();
 
 #endif
+
+	DisabledPassThroughData(Context);
 
 	return true;
 }

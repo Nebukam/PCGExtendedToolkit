@@ -86,6 +86,7 @@ FPCGExPathfindingProcessorContext::~FPCGExPathfindingProcessorContext()
 
 	if (HeuristicsModifiers) { HeuristicsModifiers->Cleanup(); }
 
+	PCGEX_DELETE(GlobalExtraWeights)
 	PCGEX_DELETE(SeedsPoints)
 	PCGEX_DELETE(GoalsPoints)
 	PCGEX_DELETE(OutputPaths)
