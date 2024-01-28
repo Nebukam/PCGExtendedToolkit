@@ -246,8 +246,6 @@ bool FPCGExDrawAttributesElement::ExecuteInternal(FPCGContext* InContext) const
 		return false;
 	}
 	
-	//UE_LOG(LogTemp, Warning, TEXT("<<")) // Empty logging seems to fix weird debug draw freezes
-
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
 		if (!Context->AdvancePointsIO()) { Context->Done(); }
@@ -277,8 +275,6 @@ bool FPCGExDrawAttributesElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsDone()) { DisabledPassThroughData(Context); }
 
-	//UE_LOG(LogTemp, Warning, TEXT(">>")) // Empty logging seems to fix weird debug draw freezes
-	
 	return Context->IsDone();
 
 #endif
