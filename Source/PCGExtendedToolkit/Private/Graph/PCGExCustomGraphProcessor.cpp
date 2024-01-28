@@ -92,23 +92,25 @@ int32 FPCGExCustomGraphProcessorContext::GetCachedIndex(const int32 PointIndex) 
 	return (*CachedIndexWriter)[PointIndex];
 }
 
-void FPCGExCustomGraphProcessorContext::PrepareCurrentGraphForPoints(const PCGExData::FPointIO& PointIO, const bool ReadOnly)
+bool FPCGExCustomGraphProcessorContext::PrepareCurrentGraphForPoints(const PCGExData::FPointIO& PointIO, const bool ReadOnly)
 {
+	bValidCurrentGraph = false;
 	bReadOnly = ReadOnly;
 	if (bReadOnly)
 	{
 		PCGEX_DELETE(CachedIndexWriter)
 		if (!CachedIndexReader) { CachedIndexReader = new PCGEx::TFAttributeReader<int32>(CurrentGraph->CachedIndexAttributeName); }
-		CachedIndexReader->Bind(const_cast<PCGExData::FPointIO&>(PointIO));
+		bValidCurrentGraph = CachedIndexReader->Bind(const_cast<PCGExData::FPointIO&>(PointIO));
 	}
 	else
 	{
 		PCGEX_DELETE(CachedIndexReader)
 		if (!CachedIndexWriter) { CachedIndexWriter = new PCGEx::TFAttributeWriter<int32>(CurrentGraph->CachedIndexAttributeName, -1, false); }
-		CachedIndexWriter->BindAndGet(const_cast<PCGExData::FPointIO&>(PointIO));
+		bValidCurrentGraph = CachedIndexWriter->BindAndGet(const_cast<PCGExData::FPointIO&>(PointIO));
 	}
 
-	CurrentGraph->PrepareForPointData(PointIO, bReadOnly);
+	if (bValidCurrentGraph) { CurrentGraph->PrepareForPointData(PointIO, bReadOnly); }
+	return bValidCurrentGraph;
 }
 
 PCGEX_INITIALIZE_CONTEXT(CustomGraphProcessor)
@@ -118,8 +120,8 @@ void FPCGExCustomGraphProcessorElement::DisabledPassThroughData(FPCGContext* Con
 	FPCGExPointsProcessorElementBase::DisabledPassThroughData(Context);
 
 	//Forward edges
-	TArray<FPCGTaggedData> GraphsSources = Context->InputData.GetInputsByPin(PCGExGraph::SourceGraphsLabel);
-	for (const FPCGTaggedData& TData : GraphsSources) { Context->OutputData.TaggedData.Emplace_GetRef(TData.Data, TData.Tags, PCGExGraph::OutputGraphsLabel); }
+	TArray<FPCGTaggedData> GraphsSources = Context->InputData.GetInputsByPin(PCGExGraph::SourceParamsLabel);
+	for (const FPCGTaggedData& TData : GraphsSources) { Context->OutputData.TaggedData.Emplace_GetRef(TData.Data, TData.Tags, PCGExGraph::OutputParamsLabel); }
 }
 
 bool FPCGExCustomGraphProcessorElement::Boot(FPCGContext* InContext) const

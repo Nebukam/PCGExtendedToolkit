@@ -11,6 +11,8 @@
 
 class UPCGExGraphParamsData;
 
+#define PCGEX_GRAPH_MISSING_METADATA PCGE_LOG(Warning, GraphAndLog, FText::Format(FTEXT("An input is missing '{0}' graph metadata."), FText::FromName(Context->CurrentGraph->GraphIdentifier)));
+
 /**
  * A Base node to process a set of point using GraphParams.
  */
@@ -59,7 +61,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExCustomGraphProcessorContext : public FPCGExP
 
 	TArray<PCGExGraph::FSocketInfos> SocketInfos;
 
-	void PrepareCurrentGraphForPoints(const PCGExData::FPointIO& PointIO, const bool ReadOnly = true);
+	bool PrepareCurrentGraphForPoints(const PCGExData::FPointIO& PointIO, const bool ReadOnly = true);
 	void OutputGraphParams() { Graphs.OutputTo(this); }
 
 	void OutputPointsAndGraphParams()
@@ -68,6 +70,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExCustomGraphProcessorContext : public FPCGExP
 		OutputGraphParams();
 	}
 
+	bool bValidCurrentGraph = false;
+	
 protected:
 	PCGEx::TFAttributeReader<int32>* CachedIndexReader = nullptr;
 	PCGEx::TFAttributeWriter<int32>* CachedIndexWriter = nullptr;

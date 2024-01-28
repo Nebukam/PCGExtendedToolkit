@@ -47,8 +47,7 @@ protected:
 struct PCGEXTENDEDTOOLKIT_API FPCGExDebugContext : public FPCGContext
 {
 	friend class FPCGExDebugElement;
-
-public:
+	bool bWait = true;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExDebugElement : public FPCGPointProcessingElementBase

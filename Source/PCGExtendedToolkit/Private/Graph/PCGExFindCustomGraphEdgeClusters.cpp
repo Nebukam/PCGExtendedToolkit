@@ -85,19 +85,24 @@ bool FPCGExFindCustomGraphEdgeClustersElement::ExecuteInternal(
 	if (Context->IsState(PCGExGraph::State_ReadyForNextGraph))
 	{
 		if (!Context->AdvanceGraph()) { Context->SetState(PCGExGraph::State_WritingClusters); }
-		else { Context->SetState(PCGExGraph::State_BuildCustomGraph); }
+		else
+		{
+			Context->CurrentIO->CreateInKeys();
+
+			if (!Context->PrepareCurrentGraphForPoints(*Context->CurrentIO))
+			{
+				PCGEX_GRAPH_MISSING_METADATA
+				return false;
+			}
+
+			Context->SetState(PCGExGraph::State_BuildCustomGraph);
+		}
 	}
 
 	// -> Process current points with current graph
 
 	if (Context->IsState(PCGExGraph::State_BuildCustomGraph))
 	{
-		auto Initialize = [&](PCGExData::FPointIO& PointIO)
-		{
-			PointIO.CreateInKeys();
-			Context->PrepareCurrentGraphForPoints(PointIO);
-		};
-
 		auto InsertEdge = [&](const int32 PointIndex, const PCGExData::FPointIO& PointIO)
 		{
 			const int32 EdgeType = static_cast<int32>(Context->CrawlEdgeTypes);
@@ -116,7 +121,7 @@ bool FPCGExFindCustomGraphEdgeClustersElement::ExecuteInternal(
 			Edges.Empty();
 		};
 
-		if (!Context->ProcessCurrentPoints(Initialize, InsertEdge)) { return false; }
+		if (!Context->ProcessCurrentPoints(InsertEdge)) { return false; }
 		Context->SetState(PCGExGraph::State_ReadyForNextGraph);
 	}
 

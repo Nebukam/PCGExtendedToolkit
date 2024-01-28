@@ -89,6 +89,9 @@ bool FPCGExPromoteEdgesElement::ExecuteInternal(
 			Context->Edges.Reset(MaxNumEdges);
 			Context->UniqueEdges.Reset();
 			Context->UniqueEdges.Reserve(MaxNumEdges);
+
+			Context->CurrentIO->CreateInKeys();
+
 			Context->SetState(PCGExGraph::State_ReadyForNextGraph);
 		}
 	}
@@ -100,40 +103,42 @@ bool FPCGExPromoteEdgesElement::ExecuteInternal(
 			Context->SetState(PCGExGraph::State_PromotingEdges);
 			return false;
 		}
+
+		if (!Context->PrepareCurrentGraphForPoints(*Context->CurrentIO))
+		{
+			PCGEX_GRAPH_MISSING_METADATA
+			return false;
+		}
+
 		Context->SetState(PCGExGraph::State_ProcessingGraph);
 	}
 
 	if (Context->IsState(PCGExGraph::State_ProcessingGraph))
 	{
-		auto Initialize = [&](const PCGExData::FPointIO& PointIO)
-		{
-			Context->PrepareCurrentGraphForPoints(PointIO);
-		};
-
 		auto ProcessPoint = [&](const int32 PointIndex, const PCGExData::FPointIO& PointIO)
 		{
-			TArray<PCGExGraph::FUnsignedEdge> UnsignedEdges;
-			Context->CurrentGraph->GetEdges(PointIndex, UnsignedEdges, Context->EdgeType);
+			const int32 EdgeType = static_cast<int32>(Context->EdgeType);
 
-			for (const PCGExGraph::FUnsignedEdge& UEdge : UnsignedEdges)
+			TArray<PCGExGraph::FUnsignedEdge> Edges;
+			for (const PCGExGraph::FSocketInfos& SocketInfo : Context->SocketInfos)
 			{
-				Context->EdgeLock.ReadLock();
-				if (Context->UniqueEdges.Contains(UEdge.GetUnsignedHash()))
-				{
-					Context->EdgeLock.ReadUnlock();
-					continue;
-				}
-				Context->EdgeLock.ReadUnlock();
+				const int32 End = SocketInfo.Socket->GetTargetIndexReader().Values[PointIndex];
+				const int32 InEdgeType = SocketInfo.Socket->GetEdgeTypeReader().Values[PointIndex];
+				if (End == -1 || (InEdgeType & EdgeType) == 0 || PointIndex == End) { continue; }
 
-				Context->EdgeLock.WriteLock();
-				Context->UniqueEdges.Add(UEdge.GetUnsignedHash());
-				Context->Edges.Add(UEdge);
-				Context->EdgeLock.WriteUnlock();
+				uint64 Hash = PCGExGraph::GetUnsignedHash64(PointIndex, End);
+				{
+					FReadScopeLock ReadLock(Context->EdgeLock);
+					if (Context->UniqueEdges.Contains(Hash)) { continue; }
+				}
+
+				FWriteScopeLock WriteLock(Context->EdgeLock);
+				Context->UniqueEdges.Add(Hash);
+				Context->Edges.Emplace(PointIndex, End);
 			}
 		};
 
-
-		if (!Context->ProcessCurrentPoints(Initialize, ProcessPoint)) { return false; }
+		if (!Context->ProcessCurrentPoints(ProcessPoint)) { return false; }
 
 		Context->SetState(PCGExGraph::State_ReadyForNextGraph);
 	}

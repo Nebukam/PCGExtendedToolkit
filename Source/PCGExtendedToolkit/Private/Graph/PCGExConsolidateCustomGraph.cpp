@@ -50,6 +50,15 @@ bool FPCGExConsolidateCustomGraphElement::ExecuteInternal(
 		}
 		else
 		{
+			Context->IndicesRemap.Empty(Context->CurrentIO->GetNum());
+			Context->CurrentIO->CreateOutKeys();
+
+			if (!Context->PrepareCurrentGraphForPoints(*Context->CurrentIO, false))
+			{
+				PCGEX_GRAPH_MISSING_METADATA
+				return false;
+			}
+			
 			Context->SetState(PCGExGraph::State_CachingGraphIndices);
 		}
 	}
@@ -58,14 +67,6 @@ bool FPCGExConsolidateCustomGraphElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExGraph::State_CachingGraphIndices))
 	{
-		auto Initialize = [&](const PCGExData::FPointIO& PointIO)
-		{
-			Context->IndicesRemap.Empty(PointIO.GetNum());
-			//PointIO.GetInKeys();
-			//PointIO.GetOutKeys();
-			Context->PrepareCurrentGraphForPoints(PointIO, false); // Prepare to read PointIO->Out
-		};
-
 		auto ProcessPoint = [&](const int32 PointIndex, const PCGExData::FPointIO& PointIO)
 		{
 			FWriteScopeLock WriteLock(Context->IndicesLock);
@@ -74,14 +75,12 @@ bool FPCGExConsolidateCustomGraphElement::ExecuteInternal(
 			Context->SetCachedIndex(PointIndex, PointIndex);    // Update cached value with fresh one
 		};
 
-		if (Context->ProcessCurrentPoints(Initialize, ProcessPoint))
-		{
-			Context->SetState(PCGExGraph::State_SwappingGraphIndices);
-		}
+		if (!Context->ProcessCurrentPoints(ProcessPoint)) { return false; }
+
+		Context->SetState(PCGExGraph::State_SwappingGraphIndices);
 	}
 
 	// 2nd Pass on points - Swap indices with updated ones
-
 	if (Context->IsState(PCGExGraph::State_SwappingGraphIndices))
 	{
 		auto ConsolidatePoint = [&](const int32 PointIndex, const PCGExData::FPointIO& PointIO)

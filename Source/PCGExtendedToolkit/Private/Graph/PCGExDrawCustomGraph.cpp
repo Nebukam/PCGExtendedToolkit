@@ -79,17 +79,17 @@ bool FPCGExDrawCustomGraphElement::ExecuteInternal(FPCGContext* InContext) const
 		}
 		else
 		{
+			if (!Context->PrepareCurrentGraphForPoints(*Context->CurrentIO))
+			{
+				PCGEX_GRAPH_MISSING_METADATA
+				return false;
+			}
 			Context->SetState(PCGExGraph::State_ProcessingGraph);
 		}
 	}
 
 	if (Context->IsState(PCGExGraph::State_ProcessingGraph))
 	{
-		auto Initialize = [&](const PCGExData::FPointIO& PointIO)
-		{
-			Context->PrepareCurrentGraphForPoints(PointIO);
-		};
-
 		auto ProcessPoint = [&](const int32 PointIndex, const PCGExData::FPointIO& PointIO)
 		{
 			const PCGEx::FPointRef& Point = PointIO.GetInPointRef(PointIndex);
@@ -189,10 +189,8 @@ bool FPCGExDrawCustomGraphElement::ExecuteInternal(FPCGContext* InContext) const
 			}
 		};
 
-		if (Context->ProcessCurrentPoints(Initialize, ProcessPoint, true))
-		{
-			Context->SetState(PCGExGraph::State_ReadyForNextGraph);
-		}
+		if (!Context->ProcessCurrentPoints(ProcessPoint, true)) { return false; }
+		Context->SetState(PCGExGraph::State_ReadyForNextGraph);
 	}
 
 	if (Context->IsDone()) { DisabledPassThroughData(Context); }

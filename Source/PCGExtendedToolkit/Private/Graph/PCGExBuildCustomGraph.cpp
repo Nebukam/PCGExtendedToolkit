@@ -60,7 +60,11 @@ bool FPCGExBuildCustomGraphElement::ExecuteInternal(
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
 		if (!Context->AdvancePointsIOAndResetGraph()) { Context->Done(); }
-		else { Context->SetState(PCGExGraph::State_ReadyForNextGraph); }
+		else
+		{
+			Context->CurrentIO->CreateOutKeys();
+			Context->SetState(PCGExGraph::State_ReadyForNextGraph);
+		}
 	}
 
 	if (Context->IsState(PCGExGraph::State_ReadyForNextGraph))
@@ -71,27 +75,27 @@ bool FPCGExBuildCustomGraphElement::ExecuteInternal(
 			Context->SetState(PCGExMT::State_ReadyForNextPoints);
 			return false;
 		}
+
+		if (!Context->PrepareCurrentGraphForPoints(*Context->CurrentIO, false))
+		{
+			PCGEX_GRAPH_MISSING_METADATA
+			return false;
+		}
+
 		Context->SetState(State_ProbingPoints);
 	}
 
 	// Process params for current points
 
-
 	if (Context->IsState(State_ProbingPoints))
 	{
-		auto Initialize = [&](PCGExData::FPointIO& PointIO)
-		{
-			PointIO.CreateInKeys();
-			PointIO.CreateOutKeys();
-			Context->PrepareCurrentGraphForPoints(PointIO, false);
-		};
-
 		auto ProcessPoint = [&](const int32 PointIndex, const PCGExData::FPointIO& PointIO)
 		{
 			Context->GetAsyncManager()->Start<FPCGExProbeTask>(PointIndex, Context->CurrentIO);
 		};
 
-		if (!Context->ProcessCurrentPoints(Initialize, ProcessPoint)) { return false; }
+		if (!Context->ProcessCurrentPoints(ProcessPoint)) { return false; }
+
 		Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork);
 	}
 

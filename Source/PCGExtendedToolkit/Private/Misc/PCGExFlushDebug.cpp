@@ -59,11 +59,11 @@ FPCGContext* FPCGExDebugElement::Initialize(
 	return Context;
 }
 
-bool FPCGExDebugElement::ExecuteInternal(FPCGContext* Context) const
+bool FPCGExDebugElement::ExecuteInternal(FPCGContext* InContext) const
 {
 #if WITH_EDITOR
 
-	const UPCGExDebugSettings* Settings = Context->GetInputSettings<UPCGExDebugSettings>();
+	PCGEX_CONTEXT_AND_SETTINGS(Debug)
 	
 	if (!Settings->bPCGExDebug)
 	{
@@ -71,6 +71,12 @@ bool FPCGExDebugElement::ExecuteInternal(FPCGContext* Context) const
 		return true;
 	}
 
+	if(Context->bWait)
+	{
+		Context->bWait = false;
+		return false;
+	}
+	
 	FlushPersistentDebugLines(PCGEx::GetWorld(Context));
 	//FlushDebugStrings(PCGEx::GetWorld(Context));
 
