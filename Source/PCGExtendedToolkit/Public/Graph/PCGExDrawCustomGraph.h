@@ -23,7 +23,7 @@ public:
 
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(DrawCustomGraph, "Draw Graph", "Draw graph edges. Toggle debug OFF (D) before disabling this node (E)! Warning: this node will clear persistent debug lines before it!");
+	PCGEX_NODE_INFOS(DrawCustomGraph, "Draw Custom Graph", "Draw graph edges. Toggle debug OFF (D) before disabling this node (E)! Warning: this node will clear persistent debug lines before it!");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Debug; }
 	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorDebug; }
 #endif
