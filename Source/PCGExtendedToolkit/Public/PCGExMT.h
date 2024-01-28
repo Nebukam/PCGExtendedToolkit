@@ -313,3 +313,4 @@ protected:
 	bool bWorkDone = false;
 	bool Checkpoint() const { return !(!Manager || Manager->bStopped || Manager->bFlushing); }
 };
+

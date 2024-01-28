@@ -378,7 +378,7 @@ FPCGContext* FPCGExPointsProcessorElementBase::Initialize(
 
 void FPCGExPointsProcessorElementBase::DisabledPassThroughData(FPCGContext* Context) const
 {
-	FPCGPointProcessingElementBase::DisabledPassThroughData(Context);
+	//FPCGPointProcessingElementBase::DisabledPassThroughData(Context);
 
 	const UPCGExPointsProcessorSettings* Settings = Context->GetInputSettings<UPCGExPointsProcessorSettings>();
 	check(Settings);

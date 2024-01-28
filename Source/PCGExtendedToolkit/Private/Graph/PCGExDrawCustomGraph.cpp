@@ -58,6 +58,7 @@ bool FPCGExDrawCustomGraphElement::ExecuteInternal(FPCGContext* InContext) const
 			return true;
 		}
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
+		return false;
 	}
 
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
@@ -201,7 +202,6 @@ bool FPCGExDrawCustomGraphElement::ExecuteInternal(FPCGContext* InContext) const
 #endif
 
 	DisabledPassThroughData(Context);
-
 	return true;
 }
 

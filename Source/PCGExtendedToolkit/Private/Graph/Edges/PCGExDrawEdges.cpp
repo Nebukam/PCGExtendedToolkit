@@ -58,6 +58,7 @@ bool FPCGExDrawEdgesElement::ExecuteInternal(
 			return true;
 		}
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
+		return false;
 	}
 
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
@@ -101,7 +102,6 @@ bool FPCGExDrawEdgesElement::ExecuteInternal(
 #endif
 
 	DisabledPassThroughData(Context);
-
 	return true;
 }
 

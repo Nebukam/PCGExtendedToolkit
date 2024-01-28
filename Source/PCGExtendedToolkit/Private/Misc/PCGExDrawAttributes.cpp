@@ -234,15 +234,19 @@ bool FPCGExDrawAttributesElement::ExecuteInternal(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(DrawAttributes)
 
+	
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context))
 		{
-			Context->OutputPoints();
+			DisabledPassThroughData(Context);
 			return true;
 		}
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
+		return false;
 	}
+	
+	//UE_LOG(LogTemp, Warning, TEXT("<<")) // Empty logging seems to fix weird debug draw freezes
 
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
@@ -252,38 +256,34 @@ bool FPCGExDrawAttributesElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsState(PCGExMT::State_ProcessingPoints))
 	{
-		auto Initialize = [&](PCGExData::FPointIO& PointIO)
-		{
-			PointIO.CreateInKeys();
-			for (FPCGExAttributeDebugDraw& DebugInfos : Context->DebugList) { DebugInfos.Validate(PointIO); }
-		};
+		Context->CurrentIO->CreateInKeys();
+		for (FPCGExAttributeDebugDraw& DebugInfos : Context->DebugList) { DebugInfos.Validate(*Context->CurrentIO); }
 
-		auto ProcessPoint = [&](const int32 PointIndex, const PCGExData::FPointIO& PointIO)
+		for (int PointIndex = 0; PointIndex < Context->CurrentIO->GetNum(); PointIndex++)
 		{
-			const PCGEx::FPointRef& Point = PointIO.GetInPointRef(PointIndex);
+			const PCGEx::FPointRef& Point = Context->CurrentIO->GetInPointRef(PointIndex);
 			const FVector Start = Point.Point->Transform.GetLocation();
 			DrawDebugPoint(Context->World, Start, 1.0f, FColor::White, true);
 			for (FPCGExAttributeDebugDraw& Drawer : Context->DebugList)
 			{
 				if (!Drawer.bValid) { continue; }
-				Drawer.Draw(Context->World, Start, Point, PointIO.GetIn());
+				Drawer.Draw(Context->World, Start, Point, Context->CurrentIO->GetIn());
 			}
 		};
 
-		if (Context->ProcessCurrentPoints(Initialize, ProcessPoint, true))
-		{
-			Context->SetState(PCGExMT::State_ReadyForNextPoints);
-		}
+		Context->CurrentIO->Cleanup();
+		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
 	if (Context->IsDone()) { DisabledPassThroughData(Context); }
 
+	//UE_LOG(LogTemp, Warning, TEXT(">>")) // Empty logging seems to fix weird debug draw freezes
+	
 	return Context->IsDone();
 
 #endif
 
 	DisabledPassThroughData(Context);
-
 	return true;
 }
 

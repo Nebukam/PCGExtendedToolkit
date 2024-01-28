@@ -198,6 +198,7 @@ public:
 		TWeakObjectPtr<UPCGComponent> SourceComponent,
 		const UPCGNode* Node) override;
 
+	virtual bool IsCacheable(const UPCGSettings* InSettings) const override{return true;}
 	virtual bool CanExecuteOnlyOnMainThread(FPCGContext* Context) const override { return true; }
 
 protected:
