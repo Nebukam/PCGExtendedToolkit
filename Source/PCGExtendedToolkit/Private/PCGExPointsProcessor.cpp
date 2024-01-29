@@ -385,7 +385,13 @@ void FPCGExPointsProcessorElementBase::DisabledPassThroughData(FPCGContext* Cont
 	
 	//Forward main points
 	TArray<FPCGTaggedData> MainSources = Context->InputData.GetInputsByPin(Settings->GetMainInputLabel());
-	for (const FPCGTaggedData& TData : MainSources) { Context->OutputData.TaggedData.Emplace_GetRef(TData.Data, TData.Tags, Settings->GetMainOutputLabel()); }
+	for (const FPCGTaggedData& TaggedData : MainSources)
+	{
+		FPCGTaggedData& TaggedDataCopy = Context->OutputData.TaggedData.Emplace_GetRef();
+		TaggedDataCopy.Data = TaggedData.Data;
+		TaggedDataCopy.Tags.Append(TaggedData.Tags);
+		TaggedDataCopy.Pin = Settings->GetMainOutputLabel();
+	}
 }
 
 FPCGContext* FPCGExPointsProcessorElementBase::InitializeContext(

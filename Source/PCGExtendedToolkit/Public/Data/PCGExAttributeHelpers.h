@@ -99,6 +99,12 @@ namespace PCGEx
 		FName Name = NAME_None;
 		EPCGMetadataTypes UnderlyingType = EPCGMetadataTypes::Unknown;
 
+		FAttributeIdentity(FName InName, EPCGMetadataTypes InUnderlyingType)
+			:Name(InName), UnderlyingType(InUnderlyingType)
+		{
+			
+		}
+		
 		FString GetDisplayName() const { return FString(Name.ToString() + FString::Printf(TEXT("( %d )"), UnderlyingType)); }
 		bool operator==(const FAttributeIdentity& Other) const { return Name == Other.Name; }
 

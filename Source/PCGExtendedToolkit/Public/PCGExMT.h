@@ -202,6 +202,8 @@ namespace PCGExMT
 	}
 }
 
+class FPCGExNonAbandonableTask;
+
 class PCGEXTENDEDTOOLKIT_API FPCGExAsyncManager
 {
 	friend class FPCGExNonAbandonableTask;

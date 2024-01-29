@@ -121,7 +121,13 @@ void FPCGExCustomGraphProcessorElement::DisabledPassThroughData(FPCGContext* Con
 
 	//Forward edges
 	TArray<FPCGTaggedData> GraphsSources = Context->InputData.GetInputsByPin(PCGExGraph::SourceParamsLabel);
-	for (const FPCGTaggedData& TData : GraphsSources) { Context->OutputData.TaggedData.Emplace_GetRef(TData.Data, TData.Tags, PCGExGraph::OutputParamsLabel); }
+	for (const FPCGTaggedData& TaggedData : GraphsSources)
+	{
+		FPCGTaggedData& TaggedDataCopy = Context->OutputData.TaggedData.Emplace_GetRef();
+		TaggedDataCopy.Data = TaggedData.Data;
+		TaggedDataCopy.Tags.Append(TaggedData.Tags);
+		TaggedDataCopy.Pin = PCGExGraph::OutputParamsLabel;
+	}
 }
 
 bool FPCGExCustomGraphProcessorElement::Boot(FPCGContext* InContext) const
