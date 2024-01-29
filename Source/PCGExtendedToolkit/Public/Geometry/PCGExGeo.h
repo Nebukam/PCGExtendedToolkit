@@ -75,4 +75,5 @@ namespace PCGExGeo
 			(*Vtx)[DIMENSIONS - 1] = SqrLn;
 		}
 	}
+
 }

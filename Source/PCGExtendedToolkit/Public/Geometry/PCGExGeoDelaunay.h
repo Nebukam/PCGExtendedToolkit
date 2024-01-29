@@ -51,7 +51,7 @@ namespace PCGExGeo
 
 		FVector GetBestCenter() const
 		{
-			if (bIsWithinBounds) { return Circumcenter->GetV3(); }
+			if (bIsWithinBounds) { return PCGExGeo::GetV3(Circumcenter); }
 			return Centroid;
 		}
 
@@ -273,7 +273,7 @@ namespace PCGExGeo
 
 			TFSimplex<DIMENSIONS>* Simplex = Hull->Simplices[*SimpliceIndices.Find(Index)];
 			TDelaunayCell<DIMENSIONS>* Cell = CreateCell(Simplex);
-			Cell->bIsWithinBounds = Bounds.IsInside(CellCenter == EPCGExCellCenter::Centroid ? Cell->Centroid : Cell->Circumcenter->GetV3());
+			Cell->bIsWithinBounds = Bounds.IsInside(CellCenter == EPCGExCellCenter::Centroid ? Cell->Centroid : PCGExGeo::GetV3(Cell->Circumcenter));
 			Cell->Circumcenter->Id = Index;
 			Cell->ComputeHullQuality();
 			Cells[Index] = Cell;
@@ -333,7 +333,9 @@ namespace PCGExGeo
 			const double s = -1.0f / (2.0f * a);
 
 			TFVtx<3>* CC = new TFVtx<3>();
-			CC->SetV3(FVector(s * DX, s * DY, 0));
+			CC->Position[0] = s * DX;
+			CC->Position[1] = s * DY;
+			CC->Position[2] = 0;
 
 			return new TDelaunayCell(
 				Simplex, CC,
@@ -404,7 +406,10 @@ namespace PCGExGeo
 			const double s = 1.0f / (2.0f * a);
 
 			TFVtx<4>* CC = new TFVtx<4>();
-			CC->SetV4(FVector4(s * DX, s * DY, s * DZ, 0));
+			CC->Position[0] = s * DX;
+			CC->Position[1] = s * DY;
+			CC->Position[2] = s * DZ;
+			CC->Position[3] = 0;
 
 			return new TDelaunayCell(
 				Simplex, CC,

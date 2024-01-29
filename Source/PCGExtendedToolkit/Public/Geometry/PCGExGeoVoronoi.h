@@ -146,7 +146,7 @@ namespace PCGExGeo
 				for (const TDelaunayCell<DIMENSIONS>* Cell : Delaunay->Cells)
 				{
 					FPCGPoint& Point = OutPoints[Cell->Circumcenter->Id];
-					Point.Transform.SetLocation(Cell->Circumcenter->GetV3());
+					Point.Transform.SetLocation(PCGExGeo::GetV3(Cell->Circumcenter));
 					PCGEx::RandomizeSeed(Point);
 				}
 				break;

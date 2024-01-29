@@ -10,15 +10,13 @@ namespace PCGExGeo
 	template <int DIMENSIONS>
 	class PCGEXTENDEDTOOLKIT_API TFVtx
 	{
+	public:
 		double Position[DIMENSIONS];
 
-	public:
 		int32 Id = -1;
 		int32 Tag = 0;
 		bool bIsOnHull = false;
 		FVector Location = FVector::Zero();
-
-		static int Dimension() { return DIMENSIONS; }
 
 		double& operator[](int32 Component) { return Position[Component]; };
 		double operator[](int32 Component) const { return Position[Component]; };
@@ -27,42 +25,44 @@ namespace PCGExGeo
 		{
 		}
 
-		FVector2D GetV2() const { return FVector2D(Position[0], Position[1]); }
-
-		void SetV2(FVector2D V)
-		{
-			Position[0] = V[0];
-			Position[1] = V[1];
-		}
-
-		FVector GetV3() const { return FVector(Position[0], Position[1], Position[2]); }
-		FVector GetV3Downscaled() const { return FVector(Position[0], Position[1], DIMENSIONS == 4 ? Position[2] : 0); }
-
-		void SetV3(FVector V)
-		{
-			Position[0] = V[0];
-			Position[1] = V[1];
-			Position[2] = V[2];
-		}
-
-		FVector4 GetV4() const { return FVector4(Position[0], Position[1], Position[2], Position[3]); }
-
-		void SetV4(FVector4 V)
-		{
-			Position[0] = V[0];
-			Position[1] = V[1];
-			Position[2] = V[2];
-			Position[3] = V[3];
-		}
-
 		double SqrMagnitude()
 		{
 			double sum = 0.0f;
-			for (int i = 0; i < Dimension; i++) { sum += Position[i] * Position[i]; }
+			for (int i = 0; i < DIMENSIONS; i++) { sum += Position[i] * Position[i]; }
 			return sum;
 		}
 	};
 
+#pragma region V3 Cast
+
+	template <int DIMENSIONS, typename CompilerSafety = void>
+	static FVector GetV3(TFVtx<DIMENSIONS>* Vtx) { return FVector::ZeroVector; }
+
+	template <typename CompilerSafety = void>
+	static FVector GetV3(TFVtx<2>* Vtx) { return FVector(Vtx->Position[0], Vtx->Position[1], 0); }
+
+	template <typename CompilerSafety = void>
+	static FVector GetV3(TFVtx<3>* Vtx) { return FVector(Vtx->Position[0], Vtx->Position[1], Vtx->Position[2]); }
+	
+	template <typename CompilerSafety = void>
+	static FVector GetV3(TFVtx<4>* Vtx) { return FVector(Vtx->Position[0], Vtx->Position[1], Vtx->Position[2]); }
+
+	//
+	
+	template <int DIMENSIONS, typename CompilerSafety = void>
+	static FVector GetV3Downscaled(TFVtx<DIMENSIONS>* Vtx) { return FVector::ZeroVector; }
+
+	template <typename CompilerSafety = void>
+	static FVector GetV3Downscaled(TFVtx<2>* Vtx) { return FVector(Vtx->Position[0], Vtx->Position[1], 0); }
+
+	template <typename CompilerSafety = void>
+	static FVector GetV3Downscaled(TFVtx<3>* Vtx) { return FVector(Vtx->Position[0], Vtx->Position[1], 0); }
+	
+	template <typename CompilerSafety = void>
+	static FVector GetV3Downscaled(TFVtx<4>* Vtx) { return FVector(Vtx->Position[0], Vtx->Position[1], Vtx->Position[2]); }
+
+#pragma endregion 
+	
 	template <int DIMENSIONS>
 	struct PCGEXTENDEDTOOLKIT_API FTriangle
 	{
@@ -77,10 +77,11 @@ namespace PCGExGeo
 
 		void GetLongestEdge(TArray<TFVtx<DIMENSIONS>*>& Vertices, int32& OutStart, int32& OutEnd) const
 		{
+			//TODO: Refactor this
 			const double Lengths[3] = {
-				FVector::DistSquared(Vertices[A]->GetV3Downscaled(), Vertices[B]->GetV3Downscaled()),
-				FVector::DistSquared(Vertices[A]->GetV3Downscaled(), Vertices[C]->GetV3Downscaled()),
-				FVector::DistSquared(Vertices[B]->GetV3Downscaled(), Vertices[C]->GetV3Downscaled())
+				FVector::DistSquared(PCGExGeo::GetV3Downscaled(Vertices[A]), PCGExGeo::GetV3Downscaled(Vertices[B])),
+				FVector::DistSquared(PCGExGeo::GetV3Downscaled(Vertices[A]), PCGExGeo::GetV3Downscaled(Vertices[C])),
+				FVector::DistSquared(PCGExGeo::GetV3Downscaled(Vertices[B]), PCGExGeo::GetV3Downscaled(Vertices[C]))
 			};
 
 			if (Lengths[0] > Lengths[1] && Lengths[0] > Lengths[2])

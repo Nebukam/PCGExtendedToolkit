@@ -132,7 +132,7 @@ protected:
 	void DrawSingle(const UWorld* World, const FVector& Start, const PCGEx::FPointRef& Point) const;
 	void DrawLabel(const UWorld* World, const FVector& Start, const PCGEx::FPointRef& Point) const;
 
-	template <typename T, typename dummy = void>
+	template <typename T, typename CompilerSafety = void>
 	static FString AsString(const T& InValue) { return InValue.ToString(); }
 };
 

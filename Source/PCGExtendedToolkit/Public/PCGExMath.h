@@ -119,7 +119,7 @@ namespace PCGExMath
 		return FMath::Lerp(OutMin, OutMax, (InBase - InMin) / (InMax - InMin));
 	}
 
-	template <typename T, typename dummy = void>
+	template <typename T, typename CompilerSafety = void>
 	static T Tile(const T Value, const T InMin, const T InMax, const bool bSafe = false)
 	{
 		T Min = InMin;
@@ -147,7 +147,7 @@ namespace PCGExMath
 		return OutValue;
 	}
 
-	template <typename dummy = void>
+	template <typename CompilerSafety = void>
 	static FVector2D Tile(const FVector2D Value, const FVector2D Min, const FVector2D Max, const bool bSafe = false)
 	{
 		return FVector2D(
@@ -155,7 +155,7 @@ namespace PCGExMath
 			Tile(Value.Y, Min.Y, Max.Y, bSafe));
 	}
 
-	template <typename dummy = void>
+	template <typename CompilerSafety = void>
 	static FVector Tile(const FVector Value, const FVector Min, const FVector Max, const bool bSafe = false)
 	{
 		return FVector(
@@ -164,7 +164,7 @@ namespace PCGExMath
 			Tile(Value.Z, Min.Z, Max.Z, bSafe));
 	}
 
-	template <typename dummy = void>
+	template <typename CompilerSafety = void>
 	static FVector4 Tile(const FVector4 Value, const FVector4 Min, const FVector4 Max, const bool bSafe = false)
 	{
 		return FVector4(
@@ -362,13 +362,13 @@ namespace PCGExMath
 
 #pragma region Add
 
-	template <typename T, typename dummy = void>
+	template <typename T, typename CompilerSafety = void>
 	static T Add(const T& A, const T& B, const double& Alpha = 0) { return A + B; }
 
-	template <typename dummy = void>
+	template <typename CompilerSafety = void>
 	static bool Add(const bool& A, const bool& B, const double& Alpha = 0) { return B ? true : A; }
 
-	template <typename dummy = void>
+	template <typename CompilerSafety = void>
 	static FTransform Add(const FTransform& A, const FTransform& B, const double& Alpha = 0)
 	{
 		return FTransform(
@@ -377,23 +377,23 @@ namespace PCGExMath
 			A.GetScale3D() + B.GetScale3D());
 	}
 
-	template <typename dummy = void>
+	template <typename CompilerSafety = void>
 	static FString Add(const FString& A, const FString& B, const double& Alpha = 0) { return A < B ? B : A; }
 
-	template <typename dummy = void>
+	template <typename CompilerSafety = void>
 	static FName Add(const FName& A, const FName& B, const double& Alpha = 0) { return A.ToString() < B.ToString() ? B : A; }
 
 #pragma endregion
 
 #pragma region Sub
 
-	template <typename T, typename dummy = void>
+	template <typename T, typename CompilerSafety = void>
 	static T Sub(const T& A, const T& B, const double& Alpha = 0) { return A - B; }
 
-	template <typename dummy = void>
+	template <typename CompilerSafety = void>
 	static bool Sub(const bool& A, const bool& B, const double& Alpha = 0) { return B ? true : A; }
 
-	template <typename dummy = void>
+	template <typename CompilerSafety = void>
 	static FTransform Sub(const FTransform& A, const FTransform& B, const double& Alpha = 0)
 	{
 		return FTransform(
@@ -402,20 +402,20 @@ namespace PCGExMath
 			A.GetScale3D() - B.GetScale3D());
 	}
 
-	template <typename dummy = void>
+	template <typename CompilerSafety = void>
 	static FString Sub(const FString& A, const FString& B, const double& Alpha = 0) { return A < B ? A : B; }
 
-	template <typename dummy = void>
+	template <typename CompilerSafety = void>
 	static FName Sub(const FName& A, const FName& B, const double& Alpha = 0) { return A.ToString() < B.ToString() ? A : B; }
 
 #pragma endregion
 
 #pragma region Min
 
-	template <typename T, typename dummy = void>
+	template <typename T, typename CompilerSafety = void>
 	static T Min(const T& A, const T& B, const double& Alpha = 0) { return FMath::Min(A, B); }
 
-	template <typename dummy = void>
+	template <typename CompilerSafety = void>
 	static FVector2D Min(const FVector2D& A, const FVector2D& B, const double& Alpha = 0)
 	{
 		return FVector2D(
@@ -423,7 +423,7 @@ namespace PCGExMath
 			FMath::Min(A.Y, B.Y));
 	}
 
-	template <typename dummy = void>
+	template <typename CompilerSafety = void>
 	static FVector Min(const FVector& A, const FVector& B, const double& Alpha = 0)
 	{
 		return FVector(
@@ -432,7 +432,7 @@ namespace PCGExMath
 			FMath::Min(A.Z, B.Z));
 	}
 
-	template <typename dummy = void>
+	template <typename CompilerSafety = void>
 	static FVector4 Min(const FVector4& A, const FVector4& B, const double& Alpha = 0)
 	{
 		return FVector4(
@@ -442,7 +442,7 @@ namespace PCGExMath
 			FMath::Min(A.W, B.W));
 	}
 
-	template <typename dummy = void>
+	template <typename CompilerSafety = void>
 	static FRotator Min(const FRotator& A, const FRotator& B, const double& Alpha = 0)
 	{
 		return FRotator(
@@ -451,10 +451,10 @@ namespace PCGExMath
 			FMath::Min(A.Roll, B.Roll));
 	}
 
-	template <typename dummy = void>
+	template <typename CompilerSafety = void>
 	static FQuat Min(const FQuat& A, const FQuat& B, const double& Alpha = 0) { return Min(A.Rotator(), B.Rotator()).Quaternion(); }
 
-	template <typename dummy = void>
+	template <typename CompilerSafety = void>
 	static FTransform Min(const FTransform& A, const FTransform& B, const double& Alpha = 0)
 	{
 		return FTransform(
@@ -463,20 +463,20 @@ namespace PCGExMath
 			Min(A.GetScale3D(), B.GetScale3D()));
 	}
 
-	template <typename dummy = void>
+	template <typename CompilerSafety = void>
 	static FString Min(const FString& A, const FString& B, const double& Alpha = 0) { return A > B ? B : A; }
 
-	template <typename dummy = void>
+	template <typename CompilerSafety = void>
 	static FName Min(const FName& A, const FName& B, const double& Alpha = 0) { return A.ToString() > B.ToString() ? B : A; }
 
 #pragma endregion
 
 #pragma region Max
 
-	template <typename T, typename dummy = void>
+	template <typename T, typename CompilerSafety = void>
 	static T Max(const T& A, const T& B, const double& Alpha = 0) { return FMath::Max(A, B); }
 
-	template <typename dummy = void>
+	template <typename CompilerSafety = void>
 	static FVector2D Max(const FVector2D& A, const FVector2D& B, const double& Alpha = 0)
 	{
 		return FVector2D(
@@ -484,7 +484,7 @@ namespace PCGExMath
 			FMath::Max(A.Y, B.Y));
 	}
 
-	template <typename dummy = void>
+	template <typename CompilerSafety = void>
 	static FVector Max(const FVector& A, const FVector& B, const double& Alpha = 0)
 	{
 		return FVector(
@@ -493,7 +493,7 @@ namespace PCGExMath
 			FMath::Max(A.Z, B.Z));
 	}
 
-	template <typename dummy = void>
+	template <typename CompilerSafety = void>
 	static FVector4 Max(const FVector4& A, const FVector4& B, const double& Alpha = 0)
 	{
 		return FVector4(
@@ -503,7 +503,7 @@ namespace PCGExMath
 			FMath::Max(A.W, B.W));
 	}
 
-	template <typename dummy = void>
+	template <typename CompilerSafety = void>
 	static FRotator Max(const FRotator& A, const FRotator& B, const double& Alpha = 0)
 	{
 		return FRotator(
@@ -512,10 +512,10 @@ namespace PCGExMath
 			FMath::Max(A.Roll, B.Roll));
 	}
 
-	template <typename dummy = void>
+	template <typename CompilerSafety = void>
 	static FQuat Max(const FQuat& A, const FQuat& B, const double& Alpha = 0) { return Max(A.Rotator(), B.Rotator()).Quaternion(); }
 
-	template <typename dummy = void>
+	template <typename CompilerSafety = void>
 	static FTransform Max(const FTransform& A, const FTransform& B, const double& Alpha = 0)
 	{
 		return FTransform(
@@ -524,23 +524,23 @@ namespace PCGExMath
 			Max(A.GetScale3D(), B.GetScale3D()));
 	}
 
-	template <typename dummy = void>
+	template <typename CompilerSafety = void>
 	static FString Max(const FString& A, const FString& B, const double& Alpha = 0) { return A > B ? A : B; }
 
-	template <typename dummy = void>
+	template <typename CompilerSafety = void>
 	static FName Max(const FName& A, const FName& B, const double& Alpha = 0) { return A.ToString() > B.ToString() ? A : B; }
 
 #pragma endregion
 
 #pragma region Lerp
 
-	template <typename T, typename dummy = void>
+	template <typename T, typename CompilerSafety = void>
 	static T Lerp(const T& A, const T& B, const double& Alpha = 0) { return FMath::Lerp(A, B, Alpha); }
 
-	template <typename dummy = void>
+	template <typename CompilerSafety = void>
 	static FQuat Lerp(const FQuat& A, const FQuat& B, const double& Alpha = 0) { return FQuat::Slerp(A, B, Alpha); }
 
-	template <typename dummy = void>
+	template <typename CompilerSafety = void>
 	static FTransform Lerp(const FTransform& A, const FTransform& B, const double& Alpha = 0)
 	{
 		return FTransform(
@@ -549,23 +549,23 @@ namespace PCGExMath
 			Lerp(A.GetScale3D(), B.GetScale3D(), Alpha));
 	}
 
-	template <typename dummy = void>
+	template <typename CompilerSafety = void>
 	static FString Lerp(const FString& A, const FString& B, const double& Alpha = 0) { return Alpha > 0.5 ? B : A; }
 
-	template <typename dummy = void>
+	template <typename CompilerSafety = void>
 	static FName Lerp(const FName& A, const FName& B, const double& Alpha = 0) { return Alpha > 0.5 ? B : A; }
 
 #pragma endregion
 
 #pragma region Divide
 
-	template <typename T, typename dummy = void>
+	template <typename T, typename CompilerSafety = void>
 	static T Div(const T& A, const double Divider) { return A / Divider; }
 
-	template <typename dummy = void>
+	template <typename CompilerSafety = void>
 	static bool Div(const bool& A, const double Divider) { return A; }
 
-	template <typename dummy = void>
+	template <typename CompilerSafety = void>
 	static FRotator Div(const FRotator& A, const double Divider)
 	{
 		return FRotator(
@@ -574,11 +574,11 @@ namespace PCGExMath
 			A.Roll / Divider);
 	}
 
-	template <typename dummy = void>
+	template <typename CompilerSafety = void>
 	static FQuat Div(const FQuat& A, const double Divider) { return Div(A.Rotator(), Divider).Quaternion(); }
 
 
-	template <typename dummy = void>
+	template <typename CompilerSafety = void>
 	static FTransform Div(const FTransform& A, const double Divider)
 	{
 		return FTransform(
@@ -587,10 +587,10 @@ namespace PCGExMath
 			A.GetScale3D() / Divider);
 	}
 
-	template <typename dummy = void>
+	template <typename CompilerSafety = void>
 	static FString Div(const FString& A, const double Divider) { return A; }
 
-	template <typename dummy = void>
+	template <typename CompilerSafety = void>
 	static FName Div(const FName& A, const double Divider) { return A; }
 
 #pragma endregion
