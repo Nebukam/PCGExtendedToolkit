@@ -42,6 +42,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeDebugDrawDescriptor : public FPCGEx
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExDebugExpression ExpressedAs = EPCGExDebugExpression::Direction;
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="ExpressedAs==EPCGExDebugExpression::ConnectionToIndex||ExpressedAs==EPCGExDebugExpression::ConnectionToPosition||ExpressedAs==EPCGExDebugExpression::Point", EditConditionHides))
+	bool bAsOffset = false;
+	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="ExpressedAs==EPCGExDebugExpression::Direction", EditConditionHides))
 	bool bNormalizeBeforeSizing = true;
 

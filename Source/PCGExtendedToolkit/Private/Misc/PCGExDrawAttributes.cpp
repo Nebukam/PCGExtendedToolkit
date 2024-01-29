@@ -38,8 +38,9 @@ bool FPCGExAttributeDebugDraw::Validate(const PCGExData::FPointIO& PointIO)
 		bValid = IndexGetter.Grab(PointIO);
 		break;
 	case EPCGExDebugExpression::Label:
-		TextGetter.Capture(*Descriptor);
-		bValid = TextGetter.Grab(PointIO);
+		//TextGetter.Capture(*Descriptor);
+		//bValid = TextGetter.Grab(PointIO);
+		bValid = false;
 		break;
 	case EPCGExDebugExpression::Boolean:
 		SingleGetter.Capture(*Descriptor);
@@ -96,8 +97,9 @@ FVector FPCGExAttributeDebugDraw::GetVector(const PCGEx::FPointRef& Point) const
 
 FVector FPCGExAttributeDebugDraw::GetIndexedPosition(const PCGEx::FPointRef& Point, const UPCGPointData* PointData) const
 {
+	const TArray<FPCGPoint> Points =PointData->GetPoints(); 
 	const int64 OutIndex = IndexGetter.SafeGet(Point.Index, -1);
-	if (OutIndex != -1) { return PointData->GetPoints()[OutIndex].Transform.GetLocation(); }
+	if (OutIndex != -1) { return Points[PCGExMath::Tile<int32>(OutIndex, 0, Points.Num()-1)].Transform.GetLocation(); }
 	return Point.Point->Transform.GetLocation();
 }
 
@@ -135,19 +137,19 @@ void FPCGExAttributeDebugDraw::DrawDirection(const UWorld* World, const FVector&
 
 void FPCGExAttributeDebugDraw::DrawConnection(const UWorld* World, const FVector& Start, const PCGEx::FPointRef& Point, const FVector& End) const
 {
-	DrawDebugLine(World, Start, End, GetColor(Point), true, -1, Descriptor->DepthPriority, Descriptor->Thickness);
+	DrawDebugLine(World, Start, Descriptor->bAsOffset ? Start + End : End, GetColor(Point), true, -1, Descriptor->DepthPriority, Descriptor->Thickness);
 }
 
 void FPCGExAttributeDebugDraw::DrawPoint(const UWorld* World, const FVector& Start, const PCGEx::FPointRef& Point) const
 {
 	const FVector End = GetVector(Point);
-	DrawDebugPoint(World, End, GetSize(Point), GetColor(Point), true, -1, Descriptor->DepthPriority);
+	DrawDebugPoint(World, Descriptor->bAsOffset ? Start + End : End, GetSize(Point), GetColor(Point), true, -1, Descriptor->DepthPriority);
 }
 
 void FPCGExAttributeDebugDraw::DrawSingle(const UWorld* World, const FVector& Start, const PCGEx::FPointRef& Point) const
 {
 	const double End = GetSingle(Point);
-	DrawDebugPoint(World, Start, GetSize(Point), End <= 0 ? GetColor(Point) : Descriptor->SecondaryColor, true, -1, Descriptor->DepthPriority);
+	DrawDebugPoint(World, Start, GetSize(Point), End <= 0 ? Descriptor->SecondaryColor : GetColor(Point), true, -1, Descriptor->DepthPriority);
 }
 
 void FPCGExAttributeDebugDraw::DrawLabel(const UWorld* World, const FVector& Start, const PCGEx::FPointRef& Point) const

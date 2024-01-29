@@ -78,7 +78,7 @@ bool FPCGExDebugElement::ExecuteInternal(FPCGContext* InContext) const
 	}
 	
 	FlushPersistentDebugLines(PCGEx::GetWorld(Context));
-	//FlushDebugStrings(PCGEx::GetWorld(Context));
+	FlushDebugStrings(PCGEx::GetWorld(Context));
 
 #endif
 
