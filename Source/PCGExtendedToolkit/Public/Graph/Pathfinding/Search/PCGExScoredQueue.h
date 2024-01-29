@@ -5,21 +5,19 @@ namespace PCGExSearch
 {
 	class TScoredQueue
 	{
-		using FElementType = int32;
-
 		struct FScoredNode
 		{
-			FElementType Id;
+			int32 Id;
 			double Score = 0;
 
 			/** Creates and initializes a new node. */
-			explicit FScoredNode(const FElementType& InItem, const double InScore)
+			explicit FScoredNode(const int32& InItem, const double InScore)
 				: Id(InItem), Score(InScore)
 			{
 			}
 
 			/** Creates and initializes a new node. */
-			explicit FScoredNode(FElementType&& InItem, const double InScore)
+			explicit FScoredNode(int32&& InItem, const double InScore)
 				: Id(MoveTemp(InItem)), Score(InScore)
 			{
 			}
@@ -34,43 +32,10 @@ namespace PCGExSearch
 	public:
 		TArray<double> Scores;
 
-		TScoredQueue(const int32 Size, const FElementType& Item, const double Score)
-		{
-			Scores.SetNum(Size);
-			Enqueue(Item, Score);
-		}
+		TScoredQueue(const int32 Size, const int32& Item, const double Score);
+		~TScoredQueue();
 
-		~TScoredQueue()
-		{
-			std::priority_queue<FScoredNode, std::vector<FScoredNode>, std::greater<FScoredNode>> EmptyQueue;
-			std::swap(InternalQueue, EmptyQueue);
-			Scores.Empty();
-		}
-
-		void Enqueue(const FElementType& Id, const double Score)
-		{
-			Scores[Id] = Score;
-			InternalQueue.push(FScoredNode(Id, Score));
-		}
-
-		bool Dequeue(FElementType& Item, double& OutScore)
-		{
-			TRACE_CPUPROFILER_EVENT_SCOPE(ScoredQueue::Dequeue);
-
-			while (!InternalQueue.empty())
-			{
-				const FScoredNode TopNode = InternalQueue.top();
-				InternalQueue.pop();
-
-				if (TopNode.Score == Scores[TopNode.Id])
-				{
-					Item = TopNode.Id;
-					OutScore = TopNode.Score;
-					return true;
-				}
-			}
-
-			return false;
-		}
+		void Enqueue(const int32& Id, const double Score);
+		bool Dequeue(int32& Item, double& OutScore);
 	};
 }

@@ -125,10 +125,14 @@ protected:
 	void InitSocketContent(TArray<FPCGExSocketDescriptor>& OutSockets) const;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExCreateCustomGraphParamsElement : public FSimplePCGElement
+class PCGEXTENDEDTOOLKIT_API FPCGExCreateCustomGraphParamsElement : public IPCGElement
 {
 protected:
 	template <typename T>
 	T* BuildParams(FPCGContext* Context) const;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
+
+	
+public:
+	virtual FPCGContext* Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node) override;
 };

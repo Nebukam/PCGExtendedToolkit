@@ -226,5 +226,15 @@ bool FPCGExCreateCustomGraphParamsElement::ExecuteInternal(
 	return true;
 }
 
+FPCGContext* FPCGExCreateCustomGraphParamsElement::Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node)
+{
+	FPCGContext* Context = new FPCGContext();
+	Context->InputData = InputData;
+	Context->SourceComponent = SourceComponent;
+	Context->Node = Node;
+
+	return Context;
+}
+
 #undef LOCTEXT_NAMESPACE
 #undef PCGEX_NAMESPACE
