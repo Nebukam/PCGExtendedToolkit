@@ -596,7 +596,7 @@ th, td { font-size: 12px !important; min-width: 120px; padding-top: 0.5rem; padd
 
 @media (min-width: 37.5rem) { th, td { font-size: 14px !important; } }
 
-th[colspan="2"], td[colspan="2"] { border-top: 1px solid #5c5962; }
+th[colspan="2"], td[colspan="2"] { border-top: 1px solid #5c5962; background-color: rgba(0, 0, 0, 0.1) !important; }
 
 th:first-of-type, td:first-of-type { border-left: 0; }
 
