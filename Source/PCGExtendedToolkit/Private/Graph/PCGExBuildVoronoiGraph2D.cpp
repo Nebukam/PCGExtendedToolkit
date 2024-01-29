@@ -50,6 +50,8 @@ bool FPCGExBuildVoronoiGraph2DElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(BuildVoronoiGraph2D)
 
+	PCGEX_FWD(ProjectionSettings)
+
 	PCGEX_VALIDATE_NAME(Settings->HullAttributeName)
 	PCGEX_FWD(GraphBuilderSettings)
 

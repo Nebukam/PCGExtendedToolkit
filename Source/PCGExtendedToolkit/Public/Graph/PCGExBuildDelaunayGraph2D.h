@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 
 #include "PCGExCustomGraphProcessor.h"
+#include "Geometry/PCGExGeo.h"
 
 #include "PCGExBuildDelaunayGraph2D.generated.h"
 
@@ -59,6 +60,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bMarkEdgeOnTouch = false;
 
+	/** Projection settings. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	FPCGExGeo2DProjectionSettings ProjectionSettings;
+
 private:
 	friend class FPCGExBuildDelaunayGraph2DElement;
 };
@@ -70,6 +75,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBuildDelaunayGraph2DContext : public FPCGExP
 	virtual ~FPCGExBuildDelaunayGraph2DContext() override;
 
 	int32 ClusterUIndex = 0;
+
+	FPCGExGeo2DProjectionSettings ProjectionSettings;
 
 	PCGExGeo::TDelaunayTriangulation2* Delaunay = nullptr;
 	PCGExGeo::TConvexHull2* ConvexHull = nullptr;

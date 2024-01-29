@@ -43,12 +43,12 @@ namespace PCGExGeo
 
 	template <typename CompilerSafety = void>
 	static FVector GetV3(TFVtx<3>* Vtx) { return FVector(Vtx->Position[0], Vtx->Position[1], Vtx->Position[2]); }
-	
+
 	template <typename CompilerSafety = void>
 	static FVector GetV3(TFVtx<4>* Vtx) { return FVector(Vtx->Position[0], Vtx->Position[1], Vtx->Position[2]); }
 
 	//
-	
+
 	template <int DIMENSIONS, typename CompilerSafety = void>
 	static FVector GetV3Downscaled(TFVtx<DIMENSIONS>* Vtx) { return FVector::ZeroVector; }
 
@@ -57,12 +57,12 @@ namespace PCGExGeo
 
 	template <typename CompilerSafety = void>
 	static FVector GetV3Downscaled(TFVtx<3>* Vtx) { return FVector(Vtx->Position[0], Vtx->Position[1], 0); }
-	
+
 	template <typename CompilerSafety = void>
 	static FVector GetV3Downscaled(TFVtx<4>* Vtx) { return FVector(Vtx->Position[0], Vtx->Position[1], Vtx->Position[2]); }
 
-#pragma endregion 
-	
+#pragma endregion
+
 	template <int DIMENSIONS>
 	struct PCGEXTENDEDTOOLKIT_API FTriangle
 	{

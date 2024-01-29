@@ -118,7 +118,7 @@ bool FPCGExPathsToEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) c
 			const int32 NextIndex = Index + 1;
 
 			PCGExGraph::FLooseNode* CurrentVtx = Context->LooseNetwork->GetLooseNode(PointIO.GetInPoint(Index));
-			CurrentVtx->Add(static_cast<uint64>(*Context->IOIndices.Find(&PointIO)) | (static_cast<uint64>(Index) << 32));
+			CurrentVtx->Add(PCGExGraph::GetUnsignedHash64(*Context->IOIndices.Find(&PointIO), Index));
 
 			if (PointIO.GetIn()->GetPoints().IsValidIndex(PrevIndex))
 			{
@@ -134,6 +134,18 @@ bool FPCGExPathsToEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) c
 		};
 
 		if (!Context->ProcessCurrentPoints(Initialize, ProcessPoint, true)) { return false; }
+
+		if (Settings->bClosedPath && Context->CurrentIO->GetNum() >= 2)
+		{
+			const PCGExData::FPointIO& PointIO = *Context->CurrentIO;
+			const int32 LastIndex = PointIO.GetNum() - 1;
+			const int32 Hash = PCGExGraph::GetUnsignedHash64(0, LastIndex);
+			PCGExGraph::FLooseNode* StartVtx = Context->LooseNetwork->GetLooseNode(PointIO.GetInPoint(0));
+			PCGExGraph::FLooseNode* EndVtx = Context->LooseNetwork->GetLooseNode(PointIO.GetInPoint(LastIndex));
+			StartVtx->Add(Hash);
+			EndVtx->Add(Hash);
+		}
+
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 

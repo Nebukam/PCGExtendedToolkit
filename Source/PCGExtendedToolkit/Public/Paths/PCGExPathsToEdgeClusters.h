@@ -115,6 +115,10 @@ public:
 	//~End UPCGExPointsProcessorSettings interface
 
 public:
+	/** Consider paths to be closed -- processing will wrap between first and last points. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	bool bClosedPath = false;
+	
 	/** Distance at which points are fused */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0.001))
 	double FuseDistance = 10;

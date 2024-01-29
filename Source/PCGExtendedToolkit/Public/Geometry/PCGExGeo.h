@@ -5,12 +5,25 @@
 
 #include "CoreMinimal.h"
 #include "PCGExGeoPrimtives.h"
+#include "PCGExGeo.generated.h"
 
-UENUM(BlueprintType)
-enum class EPCGExDelaunay2DNormal : uint8
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExGeo2DProjectionSettings
 {
-	Static UMETA(DisplayName = "Static Normal", ToolTip="Static normal"),
-	Local UMETA(DisplayName = "Local Normal", ToolTip="Local normal fetched from point attribute"),
+	GENERATED_BODY()
+
+	/** Normal vector of the 2D projection plane. Defaults to Up for XY projection. Used as fallback when using invalid local normal. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (PCG_Overridable))
+	FVector ProjectionNormal = FVector::UpVector;
+	
+	/** Uses a per-point projection normal. Use carefully as it can easily lead to singularities. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (PCG_Overridable, InlineEditConditionToggle))
+	bool bUseLocalProjectionNormal = false;
+
+	/** Fetch the normal from a local point attribute. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (PCG_Overridable, ShowOnlyInnerProperties, EditCondition="bUseLocalProjectionNormal"))
+	FPCGExInputDescriptor LocalProjectionNormal;
+
 };
 
 UENUM(BlueprintType)
@@ -75,5 +88,4 @@ namespace PCGExGeo
 			(*Vtx)[DIMENSIONS - 1] = SqrLn;
 		}
 	}
-
 }

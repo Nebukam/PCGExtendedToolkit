@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 
 #include "PCGExCustomGraphProcessor.h"
+#include "Geometry/PCGExGeo.h"
 
 #include "PCGExBuildConvexHull2D.generated.h"
 
@@ -55,6 +56,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="!bPrunePoints && bMarkHull"))
 	FName HullAttributeName = "bIsOnHull";
 
+	/** Projection settings. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	FPCGExGeo2DProjectionSettings ProjectionSettings;
+
 private:
 	friend class FPCGExBuildConvexHull2DElement;
 };
@@ -64,10 +69,12 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBuildConvexHull2DContext : public FPCGExPoin
 	friend class FPCGExBuildConvexHull2DElement;
 
 	virtual ~FPCGExBuildConvexHull2DContext() override;
+	
+	FPCGExGeo2DProjectionSettings ProjectionSettings;
 
 	PCGExGeo::TConvexHull2* ConvexHull = nullptr;
 	TSet<int32> HullIndices;
-
+	
 	FPCGExGraphBuilderSettings GraphBuilderSettings;
 	PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
 
