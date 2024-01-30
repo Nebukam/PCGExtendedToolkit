@@ -60,6 +60,8 @@ FPCGExEdgesProcessorContext::~FPCGExEdgesProcessorContext()
 bool FPCGExEdgesProcessorContext::AdvancePointsIO()
 {
 	PCGEX_DELETE(EdgeNumReader)
+	PCGEX_DELETE(CurrentCluster)
+	
 	CurrentEdgesIndex = -1;
 	NodeIndicesMap.Empty();
 
@@ -93,7 +95,7 @@ bool FPCGExEdgesProcessorContext::AdvancePointsIO()
 
 bool FPCGExEdgesProcessorContext::AdvanceEdges(const bool bBuildCluster)
 {
-	PCGEX_DELETE(CurrentCluster);
+	PCGEX_DELETE(CurrentCluster)
 
 	if (bBuildCluster && CurrentEdges) { CurrentEdges->Cleanup(); }
 

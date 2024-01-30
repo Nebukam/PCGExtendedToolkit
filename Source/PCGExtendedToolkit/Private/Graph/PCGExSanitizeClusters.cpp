@@ -49,8 +49,6 @@ bool FPCGExSanitizeClustersElement::ExecuteInternal(FPCGContext* InContext) cons
 
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
-		Context->NodeIndicesMap.Empty();
-
 		if (!Context->AdvancePointsIO()) { Context->Done(); }
 		else
 		{
