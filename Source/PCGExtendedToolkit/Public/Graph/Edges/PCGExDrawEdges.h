@@ -44,6 +44,14 @@ protected:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings", meta=(PCG_Overridable))
 	FColor Color = FColor::Cyan;
 
+	/** Lerp to secondary color based on cluster index */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Debug", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bLerpColor = false;
+
+	/** Lerp to secondary color based on cluster index */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings", meta=(PCG_Overridable, EditCondition="bLerpColor"))
+	FColor SecondaryColor = FColor::Red;
+	
 	/** Draw thickness. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings", meta=(PCG_Overridable, ClampMin=0.01, ClampMax=100))
 	double Thickness = 0.5;
@@ -64,6 +72,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExDrawEdgesContext : public FPCGExEdgesProcess
 {
 	friend class FPCGExDrawEdgesElement;
 
+	double MaxLerp = 1;
+	double CurrentLerp = 0;
+	
 	virtual ~FPCGExDrawEdgesContext() override;
 };
 

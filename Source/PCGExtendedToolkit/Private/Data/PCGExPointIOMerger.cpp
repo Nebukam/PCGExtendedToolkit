@@ -118,10 +118,17 @@ bool FPCGExAttributeMergeTask::ExecuteTask()
 		{
 			using T = decltype(DummyValue);
 
-			PCGEx::TFAttributeReader<T>* Reader = new PCGEx::TFAttributeReader<T>(AttributeName);
-			if (!Reader->Bind(*PointIO)) { return; }
+			PCGEx::FAAttributeIO** WriterPtr = Merger->Writers.Find(AttributeName);
+			if (!WriterPtr) { return; }
 
-			PCGEx::TFAttributeWriter<T>* Writer = static_cast<PCGEx::TFAttributeWriter<T>*>(*Merger->Writers.Find(AttributeName));
+			PCGEx::TFAttributeReader<T>* Reader = new PCGEx::TFAttributeReader<T>(AttributeName);
+			if (!Reader->Bind(*PointIO))
+			{
+				PCGEX_DELETE(Reader)
+				return;
+			}
+
+			PCGEx::TFAttributeWriter<T>* Writer = static_cast<PCGEx::TFAttributeWriter<T>*>(*WriterPtr);
 
 			for (int i = 0; i < NumPoints; i++) { Writer->Values[StartIndex + i] = Reader->Values[i]; }
 
