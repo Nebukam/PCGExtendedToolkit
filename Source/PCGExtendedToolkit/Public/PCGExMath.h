@@ -66,6 +66,11 @@ namespace PCGExMath
 			Add(InStart);
 		}
 
+		explicit FPathMetrics(const TArrayView<FPCGPoint>& Points)
+		{
+			for (const FPCGPoint& Pt : Points) { Add(Pt.Transform.GetLocation()); }
+		}
+		
 		FPathMetrics(const FPathMetrics& Other)
 			: Start(Other.Start),
 			  Last(Other.Last),

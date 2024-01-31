@@ -9,6 +9,13 @@
 #include "Graph/PCGExGraph.h"
 #include "PCGExPathProcessor.generated.h"
 
+UENUM(BlueprintType)
+enum class EPCGExSubdivideMode : uint8
+{
+	Distance UMETA(DisplayName = "Distance", ToolTip="Number of subdivisions depends on segment' length"),
+	Count UMETA(DisplayName = "Count", ToolTip="Number of subdivisions is static"),
+};
+
 /**
  * Calculates the distance between two points (inherently a n*n operation)
  */

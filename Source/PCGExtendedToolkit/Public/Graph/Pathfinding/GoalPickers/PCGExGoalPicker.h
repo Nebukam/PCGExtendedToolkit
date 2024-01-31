@@ -21,7 +21,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExGoalPicker : public UPCGExOperation
 
 public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
-	EPCGExIndexSafety IndexSafety = EPCGExIndexSafety::Wrap;
+	EPCGExIndexSafety IndexSafety = EPCGExIndexSafety::Tile;
 
 	virtual void PrepareForData(const PCGExData::FPointIO& InSeeds, const PCGExData::FPointIO& InGoals);
 	virtual int32 GetGoalIndex(const PCGEx::FPointRef& Seed) const;

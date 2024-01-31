@@ -91,6 +91,7 @@ namespace PCGExData
 	struct FPointIO;
 }
 
+
 UENUM(BlueprintType)
 enum class EPCGExOrderedFieldSelection : uint8
 {
@@ -150,7 +151,7 @@ UENUM(BlueprintType)
 enum class EPCGExIndexSafety : uint8
 {
 	Ignore UMETA(DisplayName = "Ignore", Tooltip="Out of bounds indices are ignored."),
-	Wrap UMETA(DisplayName = "Wrap", Tooltip="Out of bounds indices are wrapped."),
+	Tile UMETA(DisplayName = "Tile", Tooltip="Out of bounds indices are tiled."),
 	Clamp UMETA(DisplayName = "Clamp", Tooltip="Out of bounds indices are clamped."),
 };
 
@@ -355,7 +356,7 @@ namespace PCGEx
 		case EPCGExIndexSafety::Ignore:
 			if (Index < 0 || Index > Limit) { return -1; }
 			break;
-		case EPCGExIndexSafety::Wrap:
+		case EPCGExIndexSafety::Tile:
 			return PCGExMath::Tile(Index, 0, Limit);
 		case EPCGExIndexSafety::Clamp:
 			return FMath::Clamp(Index, 0, Limit);
