@@ -33,6 +33,11 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExInputDescriptor
 	{
 	}
 
+	explicit FPCGExInputDescriptor(const FName InName)
+	{
+		Selector.Update(InName.ToString());
+	}
+
 public:
 	virtual ~FPCGExInputDescriptor()
 	{

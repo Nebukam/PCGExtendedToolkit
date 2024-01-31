@@ -15,6 +15,10 @@ PCGEX_INITIALIZE_ELEMENT(SampleSurfaceGuided)
 FPCGExSampleSurfaceGuidedContext::~FPCGExSampleSurfaceGuidedContext()
 {
 	PCGEX_TERMINATE_ASYNC
+
+	PCGEX_DELETE(SizeGetter)
+	PCGEX_DELETE(DirectionGetter)
+
 	PCGEX_FOREACH_FIELD_SURFACEGUIDED(PCGEX_OUTPUT_DELETE)
 }
 
@@ -33,8 +37,11 @@ bool FPCGExSampleSurfaceGuidedElement::Boot(FPCGContext* InContext) const
 	PCGEX_FWD(bUseLocalSize)
 	PCGEX_FWD(bProjectFailToSize)
 
-	Context->SizeGetter.Capture(Settings->LocalSize);
-	Context->DirectionGetter.Capture(Settings->Direction);
+	Context->SizeGetter = new PCGEx::FLocalSingleFieldGetter();
+	Context->SizeGetter->Capture(Settings->LocalSize);
+
+	Context->DirectionGetter = new PCGEx::FLocalVectorGetter();
+	Context->DirectionGetter->Capture(Settings->Direction);
 
 	PCGEX_FOREACH_FIELD_SURFACEGUIDED(PCGEX_OUTPUT_FWD)
 
@@ -47,14 +54,12 @@ bool FPCGExSampleSurfaceGuidedElement::ExecuteInternal(FPCGContext* InContext) c
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExSampleSurfaceGuidedElement::Execute);
 
-	PCGEX_CONTEXT(SampleSurfaceGuided)
+	PCGEX_CONTEXT_AND_SETTINGS(SampleSurfaceGuided)
 
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }
 		if (Context->bIgnoreSelf) { Context->IgnoredActors.Add(Context->SourceComponent->GetOwner()); }
-		const UPCGExSampleSurfaceGuidedSettings* Settings = Context->GetInputSettings<UPCGExSampleSurfaceGuidedSettings>();
-		check(Settings);
 
 		if (Settings->bIgnoreActors)
 		{
@@ -70,34 +75,39 @@ bool FPCGExSampleSurfaceGuidedElement::ExecuteInternal(FPCGContext* InContext) c
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
 		if (!Context->AdvancePointsIO()) { Context->Done(); }
-		else { Context->SetState(PCGExMT::State_ProcessingPoints); }
+		else
+		{
+			PCGExData::FPointIO& PointIO = *Context->CurrentIO;
+
+			if (!Context->DirectionGetter->Grab(PointIO))
+			{
+				PCGE_LOG(Error, GraphAndLog, FTEXT("Some inputs don't have the desired Direction data."));
+				return false;
+			}
+
+			if (Settings->bUseLocalSize)
+			{
+				if (!Context->SizeGetter->Grab(PointIO))
+				{
+					PCGE_LOG(Error, GraphAndLog, FTEXT("Some inputs don't have the desired Local Size data."));
+				}
+			}
+			PCGEX_FOREACH_FIELD_SURFACEGUIDED(PCGEX_OUTPUT_ACCESSOR_INIT)
+
+			for (int i = 0; i < PointIO.GetNum(); i++) { Context->GetAsyncManager()->Start<FTraceTask>(i, Context->CurrentIO); }
+			Context->SetAsyncState(PCGExMT::State_ProcessingPoints);
+		}
 	}
 
 	if (Context->IsState(PCGExMT::State_ProcessingPoints))
 	{
-		auto Initialize = [&](PCGExData::FPointIO& PointIO)
-		{
-			Context->DirectionGetter.Grab(PointIO);
-			PCGEX_FOREACH_FIELD_SURFACEGUIDED(PCGEX_OUTPUT_ACCESSOR_INIT)
-		};
-
-		auto ProcessPoint = [&](const int32 PointIndex, const PCGExData::FPointIO& PointIO)
-		{
-			Context->GetAsyncManager()->Start<FTraceTask>(PointIndex, Context->CurrentIO);
-		};
-
-		if (!Context->ProcessCurrentPoints(Initialize, ProcessPoint)) { return false; }
-		Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork);
-	}
-
-	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
-	{
 		if (!Context->IsAsyncWorkComplete()) { return false; }
 
 		PCGEX_FOREACH_FIELD_SURFACEGUIDED(PCGEX_OUTPUT_WRITE)
-		Context->CurrentIO->OutputTo(Context);
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
+
+	if (Context->IsDone()) { Context->OutputPoints(); }
 
 	return Context->IsDone();
 }
@@ -113,8 +123,8 @@ bool FTraceTask::ExecuteTask()
 	CollisionParams.bTraceComplex = true;
 	CollisionParams.AddIgnoredActors(Context->IgnoredActors);
 
-	const double Size = Context->bUseLocalSize ? Context->SizeGetter[TaskIndex] : Context->Size;
-	const FVector Trace = Context->DirectionGetter[TaskIndex] * Size;
+	const double Size = Context->SizeGetter->bValid ? (*Context->SizeGetter)[TaskIndex] : Context->Size;
+	const FVector Trace = (*Context->DirectionGetter)[TaskIndex] * Size;
 	const FVector End = Origin + Trace;
 
 	bool bSuccess = false;

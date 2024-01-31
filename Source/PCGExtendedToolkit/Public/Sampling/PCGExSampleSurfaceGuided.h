@@ -45,7 +45,7 @@ public:
 public:
 	/** The direction to use for the trace */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties, FullyExpand=true))
-	FPCGExInputDescriptor Direction;
+	FPCGExInputDescriptor Direction = FPCGExInputDescriptor("$Transform.Forward");
 
 	/** Trace size */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, CLampMin=0.001))
@@ -56,7 +56,7 @@ public:
 	bool bUseLocalSize = false;
 
 	/** Attribute or property to read the local size from. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseLocalSize", ShowOnlyInnerProperties, FullyExpand=true))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseLocalSize"))
 	FPCGExInputDescriptor LocalSize;
 
 	/** Write whether the sampling was sucessful or not to a boolean attribute. */
@@ -141,8 +141,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleSurfaceGuidedContext : public FPCGExPo
 	bool bProjectFailToSize;
 	double Size;
 	bool bUseLocalSize = false;
-	PCGEx::FLocalSingleFieldGetter SizeGetter;
-	PCGEx::FLocalVectorGetter DirectionGetter;
+	PCGEx::FLocalSingleFieldGetter* SizeGetter = nullptr;
+	PCGEx::FLocalVectorGetter* DirectionGetter = nullptr;
 
 	PCGEX_FOREACH_FIELD_SURFACEGUIDED(PCGEX_OUTPUT_DECL)
 };
