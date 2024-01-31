@@ -3,7 +3,6 @@
 
 #include "Paths/PCGExBlendPath.h"
 
-#include "opencv2/gapi/fluid/gfluidbuffer.hpp"
 #include "Paths/SubPoints/DataBlending/PCGExSubPointsBlendInterpolate.h"
 
 #define LOCTEXT_NAMESPACE "PCGExBlendPathElement"
