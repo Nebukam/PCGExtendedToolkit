@@ -28,6 +28,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeDebugDrawDescriptor : public FPCGEx
 
 	FPCGExAttributeDebugDrawDescriptor()
 	{
+		LocalColorAttribute.Selector.Update(TEXT("$Color"));
 	}
 
 #if WITH_EDITOR
