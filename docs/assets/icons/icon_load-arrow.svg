@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">
+  <g id="accent">
+    <g>
+      <polyline points="78.64 49.88 50.78 77.73 22.93 49.88" fill="none" stroke="#708dcc" stroke-linecap="round" stroke-linejoin="round" stroke-width="10"/>
+      <line x1="50.78" y1="22.02" x2="50.78" y2="77.73" fill="none" stroke="#708dcc" stroke-linecap="round" stroke-linejoin="round" stroke-width="10"/>
+    </g>
+  </g>
+</svg>
