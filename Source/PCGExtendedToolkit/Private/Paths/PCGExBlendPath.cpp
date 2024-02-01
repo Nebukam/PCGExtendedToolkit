@@ -37,8 +37,6 @@ bool FPCGExBlendPathElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(BlendPath)
 
-	PCGEX_FWD(SubdivideMethod)
-
 	PCGEX_OPERATION_BIND(Blending, UPCGExSubPointsBlendInterpolate)
 	Context->Blending->bClosedPath = Settings->bClosedPath;
 

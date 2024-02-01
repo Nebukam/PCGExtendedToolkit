@@ -16,7 +16,7 @@ FPCGExSampleSurfaceGuidedContext::~FPCGExSampleSurfaceGuidedContext()
 {
 	PCGEX_TERMINATE_ASYNC
 
-	PCGEX_DELETE(SizeGetter)
+	PCGEX_DELETE(MaxDistanceGetter)
 	PCGEX_DELETE(DirectionGetter)
 
 	PCGEX_FOREACH_FIELD_SURFACEGUIDED(PCGEX_OUTPUT_DELETE)
@@ -33,12 +33,12 @@ bool FPCGExSampleSurfaceGuidedElement::Boot(FPCGContext* InContext) const
 	PCGEX_FWD(CollisionProfileName)
 	PCGEX_FWD(bIgnoreSelf)
 
-	PCGEX_FWD(Size)
-	PCGEX_FWD(bUseLocalSize)
-	PCGEX_FWD(bProjectFailToSize)
+	PCGEX_FWD(MaxDistance)
+	PCGEX_FWD(bUseLocalMaxDistance)
+	PCGEX_FWD(bTraceFailsafe)
 
-	Context->SizeGetter = new PCGEx::FLocalSingleFieldGetter();
-	Context->SizeGetter->Capture(Settings->LocalSize);
+	Context->MaxDistanceGetter = new PCGEx::FLocalSingleFieldGetter();
+	Context->MaxDistanceGetter->Capture(Settings->LocalMaxDistance);
 
 	Context->DirectionGetter = new PCGEx::FLocalVectorGetter();
 	Context->DirectionGetter->Capture(Settings->Direction);
@@ -59,6 +59,7 @@ bool FPCGExSampleSurfaceGuidedElement::ExecuteInternal(FPCGContext* InContext) c
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }
+		
 		if (Context->bIgnoreSelf) { Context->IgnoredActors.Add(Context->SourceComponent->GetOwner()); }
 
 		if (Settings->bIgnoreActors)
@@ -78,20 +79,22 @@ bool FPCGExSampleSurfaceGuidedElement::ExecuteInternal(FPCGContext* InContext) c
 		else
 		{
 			PCGExData::FPointIO& PointIO = *Context->CurrentIO;
-
+			PointIO.CreateOutKeys();
+			
 			if (!Context->DirectionGetter->Grab(PointIO))
 			{
 				PCGE_LOG(Error, GraphAndLog, FTEXT("Some inputs don't have the desired Direction data."));
 				return false;
 			}
 
-			if (Settings->bUseLocalSize)
+			if (Settings->bUseLocalMaxDistance)
 			{
-				if (!Context->SizeGetter->Grab(PointIO))
+				if (!Context->MaxDistanceGetter->Grab(PointIO))
 				{
-					PCGE_LOG(Error, GraphAndLog, FTEXT("Some inputs don't have the desired Local Size data."));
+					PCGE_LOG(Error, GraphAndLog, FTEXT("Some inputs don't have the desired Local Max Distance data."));
 				}
 			}
+			
 			PCGEX_FOREACH_FIELD_SURFACEGUIDED(PCGEX_OUTPUT_ACCESSOR_INIT)
 
 			for (int i = 0; i < PointIO.GetNum(); i++) { Context->GetAsyncManager()->Start<FTraceTask>(i, Context->CurrentIO); }
@@ -123,8 +126,8 @@ bool FTraceTask::ExecuteTask()
 	CollisionParams.bTraceComplex = true;
 	CollisionParams.AddIgnoredActors(Context->IgnoredActors);
 
-	const double Size = Context->SizeGetter->bValid ? (*Context->SizeGetter)[TaskIndex] : Context->Size;
-	const FVector Trace = (*Context->DirectionGetter)[TaskIndex] * Size;
+	const double MaxDistance = Context->MaxDistanceGetter->bValid ? (*Context->MaxDistanceGetter)[TaskIndex] : Context->MaxDistance;
+	const FVector Trace = (*Context->DirectionGetter)[TaskIndex] * MaxDistance;
 	const FVector End = Origin + Trace;
 
 	bool bSuccess = false;
@@ -163,11 +166,11 @@ bool FTraceTask::ExecuteTask()
 	}
 
 
-	if (Context->bProjectFailToSize)
+	if (Context->bTraceFailsafe)
 	{
 		PCGEX_OUTPUT_VALUE(Location, TaskIndex, End)
 		PCGEX_OUTPUT_VALUE(Normal, TaskIndex, Trace.GetSafeNormal()*-1)
-		PCGEX_OUTPUT_VALUE(Distance, TaskIndex, Size)
+		PCGEX_OUTPUT_VALUE(Distance, TaskIndex, MaxDistance)
 	}
 
 	PCGEX_OUTPUT_VALUE(Success, TaskIndex, bSuccess)

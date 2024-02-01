@@ -116,7 +116,7 @@ public:
 
 	bool bValid = false;
 
-	bool Validate(const PCGExData::FPointIO& PointIO);
+	bool Bind(const PCGExData::FPointIO& PointIO);
 
 	double GetSize(const PCGEx::FPointRef& Point) const;
 	FColor GetColor(const PCGEx::FPointRef& Point) const;
