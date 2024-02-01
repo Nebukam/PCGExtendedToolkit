@@ -164,7 +164,7 @@ bool FSampleNavmeshTask::ExecuteTask()
 
 	UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(Context->World);
 
-	if (!NavSys) { return false; }
+	if (!NavSys || !NavSys->GetDefaultNavDataInstance()) { return false; }
 
 	const FPCGPoint* Seed = Context->CurrentIO->TryGetInPoint(Query->SeedIndex);
 	const FPCGPoint* Goal = Context->GoalsPoints->TryGetInPoint(Query->GoalIndex);

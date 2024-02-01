@@ -122,7 +122,7 @@ bool FPCGExPlotNavmeshTask::ExecuteTask()
 
 	UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(Context->World);
 
-	if (!NavSys) { return false; }
+	if (!NavSys || !NavSys->GetDefaultNavDataInstance()) { return false; }
 
 	const int32 NumPlots = PointIO->GetNum();
 
