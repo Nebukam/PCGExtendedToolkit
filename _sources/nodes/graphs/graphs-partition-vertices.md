@@ -7,7 +7,7 @@ subtitle: Create per-cluster Vtx datasets
 color: white
 summary: The **Partition Vertices** splits input vtx into separate output groups, so that each Edge dataset is associated to a unique Vtx dataset (as opposed to a shared Vtx dataset for multiple edge groups)
 splash: icons/icon_graphs-sanitize.svg
-preview_img: docs/splash-sanitize.png
+preview_img: docs/splash-partition-vertices.png
 toc_img: placeholder.jpg
 tagged:
     - graphs
