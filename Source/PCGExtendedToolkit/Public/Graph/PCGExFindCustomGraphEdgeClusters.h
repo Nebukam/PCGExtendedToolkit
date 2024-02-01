@@ -51,24 +51,12 @@ public:
 
 public:
 	/** Edge types to crawl to create a Cluster */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExEdgeType"))
-	uint8 CrawlEdgeTypes = static_cast<uint8>(EPCGExEdgeType::Complete);
-
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
+	FPCGExEdgeCrawlingSettings EdgeCrawlingSettings;
+	
 	/** Graph & Edges output properties */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Graph Output Settings"))
 	FPCGExGraphBuilderSettings GraphBuilderSettings;
-
-	/** Edges will inherit point attributes -- NOT IMPLEMENTED*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	bool bInheritAttributes = false;
-
-	/** Name of the attribute to ouput the unique Cluster identifier to. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FName ClusterIDAttributeName = "ClusterID";
-
-	/** Name of the attribute to output the Cluster size to. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FName ClusterSizeAttributeName = "ClusterSize";
 
 	/** Cleanup graph socket data from output points */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
@@ -84,12 +72,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFindCustomGraphEdgeClustersContext : public 
 
 	virtual ~FPCGExFindCustomGraphEdgeClustersContext() override;
 
-	EPCGExEdgeType CrawlEdgeTypes;
 	bool bInheritAttributes;
-
-	FName ClusterIDAttributeName;
-	FName ClusterSizeAttributeName;
-	FName PointUIDAttributeName;
 
 	FPCGExGraphBuilderSettings GraphBuilderSettings;
 	PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;

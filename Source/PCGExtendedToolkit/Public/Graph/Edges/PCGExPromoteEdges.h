@@ -37,9 +37,11 @@ public:
 
 
 public:
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExEdgeType"))
-	uint8 EdgeType = static_cast<uint8>(EPCGExEdgeType::Complete);
+	/** Type of edge to draw.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	FPCGExEdgeCrawlingSettings EdgeTypesSettings;
 
+	/**  */
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta = (PCG_Overridable, NoResetToDefault, ShowOnlyInnerProperties))
 	TObjectPtr<UPCGExEdgePromotingOperation> Promotion;
 
@@ -52,7 +54,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPromoteEdgesContext : public FPCGExCustomGra
 	friend class FPCGExPromoteEdgesElement;
 
 public:
-	EPCGExEdgeType EdgeType;
 	int32 MaxPossibleEdgesPerPoint = 0;
 	TSet<uint64> UniqueEdges;
 	TArray<PCGExGraph::FUnsignedEdge> Edges;

@@ -51,8 +51,8 @@ public:
 	bool bDrawCustomGraph = true;
 
 	/** Type of edge to draw.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExEdgeType"))
-	uint8 EdgeType = static_cast<uint8>(EPCGExEdgeType::Complete);
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	FPCGExEdgeCrawlingSettings EdgeTypesSettings;
 
 	/** Draw socket cones lines.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)

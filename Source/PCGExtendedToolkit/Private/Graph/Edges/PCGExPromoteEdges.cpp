@@ -41,7 +41,7 @@ bool FPCGExPromoteEdgesElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(PromoteEdges)
 
-	Context->EdgeType = static_cast<EPCGExEdgeType>(Settings->EdgeType);
+	Context->EdgeCrawlingSettings = Settings->EdgeTypesSettings;
 
 	PCGEX_OPERATION_BIND(Promotion, UPCGExEdgePromoteToPoint)
 
@@ -117,7 +117,7 @@ bool FPCGExPromoteEdgesElement::ExecuteInternal(
 	{
 		auto ProcessPoint = [&](const int32 PointIndex, const PCGExData::FPointIO& PointIO)
 		{
-			const int32 EdgeType = static_cast<int32>(Context->EdgeType);
+			const int32 EdgeType = Context->CurrentGraphEdgeCrawlingTypes;
 
 			TArray<PCGExGraph::FUnsignedEdge> Edges;
 			for (const PCGExGraph::FSocketInfos& SocketInfo : Context->SocketInfos)
