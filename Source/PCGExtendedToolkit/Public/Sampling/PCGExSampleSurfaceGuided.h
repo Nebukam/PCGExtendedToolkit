@@ -45,19 +45,19 @@ public:
 public:
 	/** The direction to use for the trace */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties, FullyExpand=true))
-	FPCGExInputDescriptor Direction;
+	FPCGExInputDescriptor Direction = FPCGExInputDescriptor("$Transform.Forward");
 
-	/** Trace size */
+	/** Trace max distance */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, CLampMin=0.001))
-	double Size = 1000;
+	double MaxDistance = 1000;
 
-	/** Use a per-point maximum size*/
+	/** Use a per-point maximum distance*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
-	bool bUseLocalSize = false;
+	bool bUseLocalMaxDistance = false;
 
 	/** Attribute or property to read the local size from. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseLocalSize", ShowOnlyInnerProperties, FullyExpand=true))
-	FPCGExInputDescriptor LocalSize;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseLocalMaxDistance"))
+	FPCGExInputDescriptor LocalMaxDistance;
 
 	/** Write whether the sampling was sucessful or not to a boolean attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
@@ -65,7 +65,7 @@ public:
 
 	/** If the trace fails, use the end of the trace as a hit, but will still be marked as fail. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
-	bool bProjectFailToSize = false;
+	bool bTraceFailsafe = false;
 
 	/** Name of the 'boolean' attribute to write sampling success to.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteSuccess"))
@@ -97,31 +97,32 @@ public:
 	FName DistanceAttributeName = FName("GuidedDistance");
 
 	/** Maximum distance to check for closest surface.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision & Metrics", meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision", meta=(PCG_Overridable))
 	EPCGExCollisionFilterType CollisionType = EPCGExCollisionFilterType::Channel;
 
 	/** Collision channel to check against */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision & Metrics", meta=(PCG_Overridable, EditCondition="CollisionType==EPCGExCollisionFilterType::Channel", EditConditionHides, Bitmask, BitmaskEnum="/Script/Engine.ECollisionChannel"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision", meta=(PCG_Overridable, EditCondition="CollisionType==EPCGExCollisionFilterType::Channel", EditConditionHides, Bitmask, BitmaskEnum="/Script/Engine.ECollisionChannel"))
 	TEnumAsByte<ECollisionChannel> CollisionChannel = ECC_WorldDynamic;
 
 	/** Collision object type to check against */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision & Metrics", meta=(PCG_Overridable, EditCondition="CollisionType==EPCGExCollisionFilterType::ObjectType", EditConditionHides, Bitmask, BitmaskEnum="/Script/Engine.EObjectTypeQuery"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision", meta=(PCG_Overridable, EditCondition="CollisionType==EPCGExCollisionFilterType::ObjectType", EditConditionHides, Bitmask, BitmaskEnum="/Script/Engine.EObjectTypeQuery"))
 	int32 CollisionObjectType = ObjectTypeQuery1;
 
 	/** Collision profile to check against */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision & Metrics", meta=(PCG_Overridable, EditCondition="CollisionType==EPCGExCollisionFilterType::Profile", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision", meta=(PCG_Overridable, EditCondition="CollisionType==EPCGExCollisionFilterType::Profile", EditConditionHides))
 	FName CollisionProfileName = NAME_None;
 
 	/** Ignore this graph' PCG content */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision & Metrics", meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision", meta=(PCG_Overridable))
 	bool bIgnoreSelf = true;
 
 	/** Ignore a procedural selection of actors */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision & Metrics", meta=(PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bIgnoreActors = false;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision & Metrics", meta=(PCG_Overridable, EditCondition="bIgnoreActors"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision", meta=(PCG_Overridable, EditCondition="bIgnoreActors"))
 	FPCGExActorSelectorSettings IgnoredActorSelector;
+	
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExSampleSurfaceGuidedContext : public FPCGExPointsProcessorContext
@@ -138,11 +139,11 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleSurfaceGuidedContext : public FPCGExPo
 	bool bIgnoreSelf = true;
 	TArray<AActor*> IgnoredActors;
 
-	bool bProjectFailToSize;
-	double Size;
-	bool bUseLocalSize = false;
-	PCGEx::FLocalSingleFieldGetter SizeGetter;
-	PCGEx::FLocalVectorGetter DirectionGetter;
+	bool bTraceFailsafe;
+	double MaxDistance;
+	bool bUseLocalMaxDistance = false;
+	PCGEx::FLocalSingleFieldGetter* MaxDistanceGetter = nullptr;
+	PCGEx::FLocalVectorGetter* DirectionGetter = nullptr;
 
 	PCGEX_FOREACH_FIELD_SURFACEGUIDED(PCGEX_OUTPUT_DECL)
 };

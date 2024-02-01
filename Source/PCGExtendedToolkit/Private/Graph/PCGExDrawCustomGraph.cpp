@@ -136,7 +136,7 @@ bool FPCGExDrawCustomGraphElement::ExecuteInternal(FPCGContext* InContext) const
 				if (Settings->bDrawCustomGraph)
 				{
 					if (SocketMetadata.Index == -1) { continue; }
-					if (static_cast<uint8>((SocketMetadata.EdgeType & static_cast<EPCGExEdgeType>(Settings->EdgeType))) == 0) { continue; }
+					if (static_cast<uint8>((SocketMetadata.EdgeType & static_cast<EPCGExEdgeType>(Context->CurrentGraphEdgeCrawlingTypes))) == 0) { continue; }
 
 					const FPCGPoint& PtB = PointIO.GetInPoint(SocketMetadata.Index);
 					FVector End = PtB.Transform.GetLocation();

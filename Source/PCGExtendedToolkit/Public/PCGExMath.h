@@ -66,6 +66,11 @@ namespace PCGExMath
 			Add(InStart);
 		}
 
+		explicit FPathMetrics(const TArrayView<FPCGPoint>& Points)
+		{
+			for (const FPCGPoint& Pt : Points) { Add(Pt.Transform.GetLocation()); }
+		}
+		
 		FPathMetrics(const FPathMetrics& Other)
 			: Start(Other.Start),
 			  Last(Other.Last),
@@ -537,6 +542,9 @@ namespace PCGExMath
 	template <typename T, typename CompilerSafety = void>
 	static T Lerp(const T& A, const T& B, const double& Alpha = 0) { return FMath::Lerp(A, B, Alpha); }
 
+	template <typename CompilerSafety = void>
+	static FColor Lerp(const FColor& A, const FColor& B, const double& Alpha = 0) { return FMath::Lerp(A.ReinterpretAsLinear(), B.ReinterpretAsLinear(), Alpha).ToFColor(false); }
+	
 	template <typename CompilerSafety = void>
 	static FQuat Lerp(const FQuat& A, const FQuat& B, const double& Alpha = 0) { return FQuat::Slerp(A, B, Alpha); }
 

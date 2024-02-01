@@ -42,17 +42,9 @@ bool FPCGExFindCustomGraphEdgeClustersElement::Boot(FPCGContext* InContext) cons
 
 	PCGEX_CONTEXT_AND_SETTINGS(FindCustomGraphEdgeClusters)
 
-	Context->CrawlEdgeTypes = static_cast<EPCGExEdgeType>(Settings->CrawlEdgeTypes);
-
-	PCGEX_FWD(bInheritAttributes)
-
-	PCGEX_FWD(ClusterIDAttributeName)
-	PCGEX_FWD(ClusterSizeAttributeName)
+	Context->EdgeCrawlingSettings = Settings->EdgeCrawlingSettings;
 
 	PCGEX_FWD(GraphBuilderSettings)
-
-	PCGEX_VALIDATE_NAME(Context->ClusterIDAttributeName)
-	PCGEX_VALIDATE_NAME(Context->ClusterSizeAttributeName)
 
 	return true;
 }
@@ -105,7 +97,7 @@ bool FPCGExFindCustomGraphEdgeClustersElement::ExecuteInternal(
 	{
 		auto InsertEdge = [&](const int32 PointIndex, const PCGExData::FPointIO& PointIO)
 		{
-			const int32 EdgeType = static_cast<int32>(Context->CrawlEdgeTypes);
+			const int32 EdgeType = Context->CurrentGraphEdgeCrawlingTypes;
 			TArray<PCGExGraph::FUnsignedEdge> Edges;
 
 			for (const PCGExGraph::FSocketInfos& SocketInfo : Context->SocketInfos)

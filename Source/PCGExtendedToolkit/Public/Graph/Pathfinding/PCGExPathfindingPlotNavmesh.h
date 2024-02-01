@@ -73,7 +73,7 @@ public:
 	double FuseDistance = 10;
 
 	/** Controls how path points blend from seed to goal. */
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta = (NoResetToDefault, ShowOnlyInnerProperties))
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta = (PCG_Overridable, NoResetToDefault, ShowOnlyInnerProperties))
 	TObjectPtr<UPCGExSubPointsBlendOperation> Blending;
 
 	/** Pathfinding mode */

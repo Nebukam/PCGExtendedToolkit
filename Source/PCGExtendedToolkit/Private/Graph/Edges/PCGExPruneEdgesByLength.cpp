@@ -53,8 +53,6 @@ bool FPCGExPruneEdgesByLengthElement::ExecuteInternal(FPCGContext* InContext) co
 
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
-		Context->NodeIndicesMap.Empty();
-
 		if (!Context->AdvancePointsIO()) { Context->Done(); }
 		else
 		{

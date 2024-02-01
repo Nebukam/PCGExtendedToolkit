@@ -58,6 +58,9 @@ bool FPCGExDrawEdgesElement::ExecuteInternal(
 			return true;
 		}
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
+
+		Context->MaxLerp = static_cast<double>(Context->MainEdges->Num());
+
 		return false;
 	}
 
@@ -83,13 +86,21 @@ bool FPCGExDrawEdgesElement::ExecuteInternal(
 		while (Context->AdvanceEdges(true))
 		{
 			if (!Context->CurrentCluster) { continue; }
+
+			double L = Context->CurrentLerp / Context->MaxLerp;
+			FColor Col = Settings->bLerpColor ?
+				             PCGExMath::Lerp(Settings->Color, Settings->SecondaryColor, L) :
+				             Settings->Color;
+
 			for (const PCGExGraph::FIndexedEdge& Edge : Context->CurrentCluster->Edges)
 			{
 				if (!Edge.bValid) { continue; }
 				FVector Start = Context->CurrentCluster->GetNodeFromPointIndex(Edge.Start).Position;
 				FVector End = Context->CurrentCluster->GetNodeFromPointIndex(Edge.End).Position;
-				DrawDebugLine(Context->World, Start, End, Settings->Color, true, -1, Settings->DepthPriority, Settings->Thickness);
+				DrawDebugLine(Context->World, Start, End, Col, true, -1, Settings->DepthPriority, Settings->Thickness);
 			}
+
+			Context->CurrentLerp++;
 		}
 
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);

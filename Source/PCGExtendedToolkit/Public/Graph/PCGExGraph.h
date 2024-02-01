@@ -51,6 +51,41 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGraphBuilderSettings
 	int32 GetMaxClusterSize() const { return bRemoveBigClusters ? MaxClusterSize : TNumericLimits<int32>::Max(); }
 };
 
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExEdgeCrawlingSettingsOverride
+{
+	GENERATED_BODY()
+
+	/** Name of the custom graph params */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	FName Identifier = "GraphIdentifier";
+
+	/** Edge types to crawl for these params */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExEdgeType"))
+	uint8 EdgeTypes = static_cast<uint8>(EPCGExEdgeType::Complete);
+};
+
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExEdgeCrawlingSettings
+{
+	GENERATED_BODY()
+
+	/** Edge types to crawl to create a Cluster */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExEdgeType"))
+	uint8 DefaultEdgeTypes = static_cast<uint8>(EPCGExEdgeType::Complete);
+
+	/** Overrides */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, TitleProperty="{Identifier}"))
+	TArray<FPCGExEdgeCrawlingSettingsOverride> Overrides;
+
+	uint8 GetCrawlingEdgeTypes(const FName Identifier)
+	{
+		if (Overrides.IsEmpty()) { return DefaultEdgeTypes; }
+		for (const FPCGExEdgeCrawlingSettingsOverride& Override : Overrides) { if (Override.Identifier == Identifier) { return Override.EdgeTypes; } }
+		return DefaultEdgeTypes;
+	}
+};
+
 namespace PCGExGraph
 {
 	const FName SourceParamsLabel = TEXT("Graph");

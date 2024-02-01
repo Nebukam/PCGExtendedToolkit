@@ -61,6 +61,7 @@ bool FPCGExCustomGraphProcessorContext::AdvanceGraph(const bool bResetPointsInde
 	{
 		CurrentGraph = Graphs.Params[CurrentParamsIndex];
 		CurrentGraph->GetSocketsInfos(SocketInfos);
+		CurrentGraphEdgeCrawlingTypes = EdgeCrawlingSettings.GetCrawlingEdgeTypes(CurrentGraph->GraphIdentifier);
 		return true;
 	}
 

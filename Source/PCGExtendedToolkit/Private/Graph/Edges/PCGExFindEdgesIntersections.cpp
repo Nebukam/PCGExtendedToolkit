@@ -126,8 +126,6 @@ bool FPCGExFindEdgesIntersectionsElement::ExecuteInternal(FPCGContext* InContext
 
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
-		Context->NodeIndicesMap.Empty();
-
 		if (!Context->AdvancePointsIO()) { Context->Done(); }
 		else
 		{

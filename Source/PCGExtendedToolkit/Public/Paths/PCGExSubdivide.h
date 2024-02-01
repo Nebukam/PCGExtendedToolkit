@@ -17,13 +17,6 @@ namespace PCGExSubdivide
 	constexpr PCGExMT::AsyncState State_BlendingPoints = __COUNTER__;
 }
 
-UENUM(BlueprintType)
-enum class EPCGExSubdivideMode : uint8
-{
-	Distance UMETA(DisplayName = "Distance", ToolTip="Number of subdivisions depends on segment' length"),
-	Count UMETA(DisplayName = "Count", ToolTip="Number of subdivisions is static"),
-};
-
 /**
  * Calculates the distance between two points (inherently a n*n operation)
  */
@@ -62,6 +55,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bClosedPath = false;
 
+	/** Reference for computing the blending interpolation point point */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExSubdivideMode SubdivideMethod = EPCGExSubdivideMode::Distance;
 
@@ -87,9 +81,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSubdivideContext : public FPCGExPathProcesso
 
 	virtual ~FPCGExSubdivideContext() override;
 
-	UPCGExSubPointsBlendOperation* Blending = nullptr;
-
 	EPCGExSubdivideMode SubdivideMethod;
+	UPCGExSubPointsBlendOperation* Blending = nullptr;
+	
 	double Distance;
 	int32 Count;
 	bool bFlagSubPoints;

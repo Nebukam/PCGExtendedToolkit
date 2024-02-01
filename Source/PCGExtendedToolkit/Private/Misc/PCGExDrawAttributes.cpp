@@ -21,7 +21,7 @@ FString FPCGExAttributeDebugDrawDescriptor::GetDisplayName() const
 }
 #endif
 
-bool FPCGExAttributeDebugDraw::Validate(const PCGExData::FPointIO& PointIO)
+bool FPCGExAttributeDebugDraw::Bind(const PCGExData::FPointIO& PointIO)
 {
 	bValid = false;
 
@@ -131,37 +131,48 @@ void FPCGExAttributeDebugDraw::Draw(const UWorld* World, const FVector& Start, c
 
 void FPCGExAttributeDebugDraw::DrawDirection(const UWorld* World, const FVector& Start, const PCGEx::FPointRef& Point) const
 {
+#if WITH_EDITOR
 	const FVector Dir = GetVector(Point) * GetSize(Point);
 	DrawDebugDirectionalArrow(World, Start, Start + Dir, Dir.Length() * 0.05f, GetColor(Point), true, -1, Descriptor->DepthPriority, Descriptor->Thickness);
+#endif
 }
 
 void FPCGExAttributeDebugDraw::DrawConnection(const UWorld* World, const FVector& Start, const PCGEx::FPointRef& Point, const FVector& End) const
 {
+#if WITH_EDITOR
 	DrawDebugLine(World, Start, Descriptor->bAsOffset ? Start + End : End, GetColor(Point), true, -1, Descriptor->DepthPriority, Descriptor->Thickness);
+#endif
 }
 
 void FPCGExAttributeDebugDraw::DrawPoint(const UWorld* World, const FVector& Start, const PCGEx::FPointRef& Point) const
 {
+#if WITH_EDITOR
 	const FVector End = GetVector(Point);
 	DrawDebugPoint(World, Descriptor->bAsOffset ? Start + End : End, GetSize(Point), GetColor(Point), true, -1, Descriptor->DepthPriority);
+#endif
 }
 
 void FPCGExAttributeDebugDraw::DrawSingle(const UWorld* World, const FVector& Start, const PCGEx::FPointRef& Point) const
 {
+#if WITH_EDITOR
 	const double End = GetSingle(Point);
 	DrawDebugPoint(World, Start, GetSize(Point), End <= 0 ? Descriptor->SecondaryColor : GetColor(Point), true, -1, Descriptor->DepthPriority);
+#endif
 }
 
 void FPCGExAttributeDebugDraw::DrawLabel(const UWorld* World, const FVector& Start, const PCGEx::FPointRef& Point) const
 {
+#if WITH_EDITOR
 	const FString Text = TextGetter.SafeGet(Point.Index, ".");
 	DrawDebugString(World, Start, *Text, nullptr, GetColor(Point), 99999.0f, false, GetSize(Point));
+#endif
 }
 
 UPCGExDrawAttributesSettings::UPCGExDrawAttributesSettings(
 	const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+#if WITH_EDITOR
 	DebugSettings.PointScale = 0.0f;
 	if (DebugList.IsEmpty())
 	{
@@ -180,6 +191,7 @@ UPCGExDrawAttributesSettings::UPCGExDrawAttributesSettings(
 		Up.Color = FColor::Blue;
 		Up.Size = 50;
 	}
+#endif
 }
 
 #if WITH_EDITOR
@@ -257,7 +269,7 @@ bool FPCGExDrawAttributesElement::ExecuteInternal(FPCGContext* InContext) const
 	if (Context->IsState(PCGExMT::State_ProcessingPoints))
 	{
 		Context->CurrentIO->CreateInKeys();
-		for (FPCGExAttributeDebugDraw& DebugInfos : Context->DebugList) { DebugInfos.Validate(*Context->CurrentIO); }
+		for (FPCGExAttributeDebugDraw& DebugInfos : Context->DebugList) { DebugInfos.Bind(*Context->CurrentIO); }
 
 		for (int PointIndex = 0; PointIndex < Context->CurrentIO->GetNum(); PointIndex++)
 		{

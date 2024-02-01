@@ -15,6 +15,9 @@ PCGEX_INITIALIZE_ELEMENT(SampleNearestSurface)
 FPCGExSampleNearestSurfaceContext::~FPCGExSampleNearestSurfaceContext()
 {
 	PCGEX_TERMINATE_ASYNC
+
+	PCGEX_DELETE(MaxDistanceGetter)
+
 	PCGEX_FOREACH_FIELD_NEARESTSURFACE(PCGEX_OUTPUT_DELETE)
 }
 
@@ -24,13 +27,15 @@ bool FPCGExSampleNearestSurfaceElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(SampleNearestSurface)
 
-	Context->RangeMax = Settings->MaxDistance;
-
+	PCGEX_FWD(MaxDistance)
 	PCGEX_FWD(CollisionType)
 	PCGEX_FWD(CollisionChannel)
 	PCGEX_FWD(CollisionObjectType)
 	PCGEX_FWD(CollisionProfileName)
 	PCGEX_FWD(bIgnoreSelf)
+
+	Context->MaxDistanceGetter = new PCGEx::FLocalSingleFieldGetter();
+	Context->MaxDistanceGetter->Capture(Settings->LocalMaxDistance);
 
 	PCGEX_FOREACH_FIELD_NEARESTSURFACE(PCGEX_OUTPUT_FWD)
 
@@ -43,15 +48,13 @@ bool FPCGExSampleNearestSurfaceElement::ExecuteInternal(FPCGContext* InContext) 
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExSampleNearestSurfaceElement::Execute);
 
-	PCGEX_CONTEXT(SampleNearestSurface)
+	PCGEX_CONTEXT_AND_SETTINGS(SampleNearestSurface)
 
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }
+		
 		if (Context->bIgnoreSelf) { Context->IgnoredActors.Add(Context->SourceComponent->GetOwner()); }
-
-		const UPCGExSampleNearestSurfaceSettings* Settings = Context->GetInputSettings<UPCGExSampleNearestSurfaceSettings>();
-		check(Settings);
 
 		if (Settings->bIgnoreActors)
 		{
@@ -67,27 +70,27 @@ bool FPCGExSampleNearestSurfaceElement::ExecuteInternal(FPCGContext* InContext) 
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
 		if (!Context->AdvancePointsIO()) { Context->Done(); }
-		else { Context->SetState(PCGExMT::State_ProcessingPoints); }
+		else
+		{
+			PCGExData::FPointIO& PointIO = *Context->CurrentIO;
+			PointIO.CreateOutKeys();
+
+			if (Settings->bUseLocalMaxDistance)
+			{
+				if (!Context->MaxDistanceGetter->Grab(PointIO))
+				{
+					PCGE_LOG(Error, GraphAndLog, FTEXT("Some inputs don't have the desired Local Max Distance data."));
+				}
+			}
+
+			PCGEX_FOREACH_FIELD_NEARESTSURFACE(PCGEX_OUTPUT_ACCESSOR_INIT)
+
+			for (int i = 0; i < PointIO.GetNum(); i++) { Context->GetAsyncManager()->Start<FSweepSphereTask>(i, Context->CurrentIO); }
+			Context->SetAsyncState(PCGExMT::State_ProcessingPoints);
+		}
 	}
 
 	if (Context->IsState(PCGExMT::State_ProcessingPoints))
-	{
-		auto Initialize = [&](PCGExData::FPointIO& PointIO)
-		{
-			PointIO.CreateOutKeys();
-			PCGEX_FOREACH_FIELD_NEARESTSURFACE(PCGEX_OUTPUT_ACCESSOR_INIT)
-		};
-
-		auto ProcessPoint = [&](const int32 PointIndex, const PCGExData::FPointIO& PointIO)
-		{
-			Context->GetAsyncManager()->Start<FSweepSphereTask>(PointIndex, Context->CurrentIO);
-		};
-
-		if (!Context->ProcessCurrentPoints(Initialize, ProcessPoint)) { return false; }
-		Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork);
-	}
-
-	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
 	{
 		if (!Context->IsAsyncWorkComplete()) { return false; }
 
@@ -103,14 +106,14 @@ bool FSweepSphereTask::ExecuteTask()
 {
 	const FPCGExSampleNearestSurfaceContext* Context = Manager->GetContext<FPCGExSampleNearestSurfaceContext>();
 
-
 	const FVector Origin = PointIO->GetInPoint(TaskIndex).Transform.GetLocation();
 
 	FCollisionQueryParams CollisionParams;
 	CollisionParams.bTraceComplex = false;
 	CollisionParams.AddIgnoredActors(Context->IgnoredActors);
 
-	const FCollisionShape CollisionShape = FCollisionShape::MakeSphere(Context->RangeMax);
+	const double MaxDistance = Context->MaxDistanceGetter->bValid ? (*Context->MaxDistanceGetter)[TaskIndex] : Context->MaxDistance;
+	const FCollisionShape CollisionShape = FCollisionShape::MakeSphere(MaxDistance);
 
 	FVector HitLocation;
 	bool bSuccess = false;
