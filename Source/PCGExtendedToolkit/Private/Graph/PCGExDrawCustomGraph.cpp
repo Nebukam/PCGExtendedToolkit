@@ -13,12 +13,15 @@ UPCGExDrawCustomGraphSettings::UPCGExDrawCustomGraphSettings(
 	const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+#if WITH_EDITOR
 	DebugSettings.PointScale = 0.0f;
+#endif
 }
 
 #if WITH_EDITOR
 void UPCGExDrawCustomGraphSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
+	DebugSettings.PointScale = 0.0f;
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
 #endif
@@ -46,9 +49,9 @@ bool FPCGExDrawCustomGraphElement::ExecuteInternal(FPCGContext* InContext) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExDrawCustomGraphElement::Execute);
 
-#if WITH_EDITOR
-
 	PCGEX_CONTEXT_AND_SETTINGS(DrawCustomGraph)
+
+#if WITH_EDITOR
 
 	if (Context->IsSetup())
 	{

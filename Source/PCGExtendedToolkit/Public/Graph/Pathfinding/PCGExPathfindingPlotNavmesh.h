@@ -84,9 +84,6 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	FNavAgentProperties NavAgentProperties;
 
-	/** If left empty, will attempt to fetch the default nav data instance.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	ANavigationData* NavData = nullptr;
 };
 
 
@@ -104,8 +101,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingPlotNavmeshContext : public FPCGE
 	bool bAddPlotPointsToPath = true;
 
 	FNavAgentProperties NavAgentProperties;
-
-	ANavigationData* NavData = nullptr;
 
 	bool bRequireNavigableEndLocation = true;
 	EPCGExPathfindingNavmeshMode PathfindingMode;

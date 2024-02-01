@@ -9,9 +9,11 @@ void UPCGExOperation::BindContext(FPCGExPointsProcessorContext* InContext)
 	Context = InContext;
 }
 
+#if WITH_EDITOR
 void UPCGExOperation::UpdateUserFacingInfos()
 {
 }
+#endif
 
 void UPCGExOperation::Cleanup()
 {

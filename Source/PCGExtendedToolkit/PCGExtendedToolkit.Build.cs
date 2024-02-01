@@ -27,6 +27,7 @@ public class PCGExtendedToolkit : ModuleRules
 			{
 				"Core",
 				"CoreUObject",
+				"AIModule",
 				"NavigationSystem",
 				"StaticMeshDescription",
 				"MeshDescription",

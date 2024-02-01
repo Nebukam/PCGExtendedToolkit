@@ -288,8 +288,10 @@ class PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorElementBase : public FPCGPoint
 public:
 	virtual FPCGContext* Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node) override;
 
+#if WITH_EDITOR
 	virtual bool ShouldLog() const override { return false; }
-
+#endif
+	
 	virtual bool IsCacheable(const UPCGSettings* InSettings) const override
 	{
 		const UPCGExPointsProcessorSettings* Settings = static_cast<const UPCGExPointsProcessorSettings*>(InSettings);

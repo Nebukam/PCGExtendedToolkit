@@ -64,21 +64,6 @@ bool FPCGExPathfindingPlotNavmeshElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_OPERATION_BIND(Blending, UPCGExSubPointsBlendInterpolate)
 
-	if (!Settings->NavData)
-	{
-		if (const UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(Context->World))
-		{
-			ANavigationData* NavData = NavSys->GetDefaultNavDataInstance();
-			Context->NavData = NavData;
-		}
-	}
-
-	if (!Context->NavData)
-	{
-		PCGE_LOG(Error, GraphAndLog, FTEXT("Missing Nav Data"));
-		return false;
-	}
-
 	Context->OutputPaths = new PCGExData::FPointIOGroup();
 
 	PCGEX_FWD(bAddSeedToPath)
@@ -158,7 +143,7 @@ bool FPCGExPlotNavmeshTask::ExecuteTask()
 		///
 
 		FPathFindingQuery PathFindingQuery = FPathFindingQuery(
-			Context->World, *Context->NavData,
+			Context->World, *NavSys->GetDefaultNavDataInstance(),
 			SeedPosition, GoalPosition, nullptr, nullptr,
 			TNumericLimits<FVector::FReal>::Max(),
 			Context->bRequireNavigableEndLocation);

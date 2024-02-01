@@ -43,6 +43,9 @@ public:
 	virtual int32 GetGoalIndex(const PCGEx::FPointRef& Seed) const override;
 	virtual void GetGoalIndices(const PCGEx::FPointRef& Seed, TArray<int32>& OutIndices) const override;
 	virtual bool OutputMultipleGoals() const override;
-
+	
+#if WITH_EDITOR
 	virtual void UpdateUserFacingInfos() override;
+#endif
+	
 };

@@ -64,7 +64,5 @@ public:
 protected:
 	virtual bool Boot(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
-#if WITH_EDITOR
 	static int64 GetFixedIndex(FPCGExConsolidateCustomGraphContext* Context, int64 InIndex);
-#endif
 };

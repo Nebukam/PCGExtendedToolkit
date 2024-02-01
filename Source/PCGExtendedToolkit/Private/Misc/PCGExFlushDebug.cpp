@@ -61,9 +61,10 @@ FPCGContext* FPCGExDebugElement::Initialize(
 
 bool FPCGExDebugElement::ExecuteInternal(FPCGContext* InContext) const
 {
-#if WITH_EDITOR
-
+	
 	PCGEX_CONTEXT_AND_SETTINGS(Debug)
+	
+#if WITH_EDITOR
 	
 	if (!Settings->bPCGExDebug)
 	{

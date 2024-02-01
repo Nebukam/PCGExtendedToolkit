@@ -95,24 +95,9 @@ bool FPCGExPathfindingNavmeshElement::Boot(FPCGContext* InContext) const
 		Context->GoalsPoints = PCGExData::PCGExPointIO::GetPointIO(Context, GoalsSource);
 	}
 
-	if (!Settings->NavData)
-	{
-		if (const UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(Context->World))
-		{
-			ANavigationData* NavData = NavSys->GetDefaultNavDataInstance();
-			Context->NavData = NavData;
-		}
-	}
-
 	if (!Context->GoalsPoints || Context->GoalsPoints->GetNum() == 0)
 	{
 		PCGE_LOG(Error, GraphAndLog, FTEXT("Missing Input Goals."));
-		return false;
-	}
-
-	if (!Context->NavData)
-	{
-		PCGE_LOG(Error, GraphAndLog, FTEXT("Missing Nav Data"));
 		return false;
 	}
 
@@ -187,7 +172,7 @@ bool FSampleNavmeshTask::ExecuteTask()
 	if (!Seed || !Goal) { return false; }
 
 	FPathFindingQuery PathFindingQuery = FPathFindingQuery(
-		Context->World, *Context->NavData,
+		Context->World, *NavSys->GetDefaultNavDataInstance(),
 		Query->SeedPosition, Query->GoalPosition, nullptr, nullptr,
 		TNumericLimits<FVector::FReal>::Max(),
 		Context->bRequireNavigableEndLocation);

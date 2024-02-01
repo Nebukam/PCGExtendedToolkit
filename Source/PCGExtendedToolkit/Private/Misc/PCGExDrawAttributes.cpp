@@ -97,9 +97,9 @@ FVector FPCGExAttributeDebugDraw::GetVector(const PCGEx::FPointRef& Point) const
 
 FVector FPCGExAttributeDebugDraw::GetIndexedPosition(const PCGEx::FPointRef& Point, const UPCGPointData* PointData) const
 {
-	const TArray<FPCGPoint> Points =PointData->GetPoints(); 
+	const TArray<FPCGPoint> Points = PointData->GetPoints();
 	const int64 OutIndex = IndexGetter.SafeGet(Point.Index, -1);
-	if (OutIndex != -1) { return Points[PCGExMath::Tile<int32>(OutIndex, 0, Points.Num()-1)].Transform.GetLocation(); }
+	if (OutIndex != -1) { return Points[PCGExMath::Tile<int32>(OutIndex, 0, Points.Num() - 1)].Transform.GetLocation(); }
 	return Point.Point->Transform.GetLocation();
 }
 
@@ -212,11 +212,7 @@ bool FPCGExDrawAttributesElement::Boot(FPCGContext* InContext) const
 #if WITH_EDITOR
 	PCGEX_CONTEXT_AND_SETTINGS(DrawAttributes)
 
-	if (!Settings->bPCGExDebug)
-	{
-		DisabledPassThroughData(Context);
-		return true;
-	}
+	if (!Settings->bPCGExDebug) { return false; }
 
 	Context->DebugList.Empty();
 	for (const FPCGExAttributeDebugDrawDescriptor& Descriptor : Settings->DebugList)
@@ -244,11 +240,10 @@ bool FPCGExDrawAttributesElement::ExecuteInternal(FPCGContext* InContext) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExDrawAttributesElement::Execute);
 
-#if WITH_EDITOR
-
 	PCGEX_CONTEXT_AND_SETTINGS(DrawAttributes)
 
-	
+#if WITH_EDITOR
+
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context))
@@ -259,7 +254,7 @@ bool FPCGExDrawAttributesElement::ExecuteInternal(FPCGContext* InContext) const
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 		return false;
 	}
-	
+
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
 		if (!Context->AdvancePointsIO()) { Context->Done(); }
