@@ -1,0 +1,30 @@
+
+<div class="card-ctnr {{ include.wrappercss }}" markdown="1">
+{% if include.tagged %}
+    {% if include.reference %}
+        {% assign subpages = site.pages | where: 'parent', include.reference | where_exp: 'page', 'page.tagged contains include.tagged' | sort: "nav_order" %}
+    {% else %}
+        {% assign subpages = site.pages | where: "parent", page.title | where_exp: 'page', 'page.tagged contains include.tagged' | sort: "nav_order" %}
+    {% endif %}
+{% else %}
+    {% if include.reference %}
+        {% assign subpages = site.pages | where: 'parent', include.reference | sort: "nav_order" %}
+    {% else %}
+        {% assign subpages = site.pages | where: "parent", page.title | sort: "nav_order" %}
+    {% endif %}
+{% endif %}
+
+{% for childPage in subpages %}
+{% unless childPage.card_exclude %}
+{% if childPage.card_url %}
+    {% assign url = site.baseurl | append: childPage.card_url %}
+{% else %}
+    {% assign url = site.baseurl | append: childPage.url %}
+{% endif %}
+
+{% include card_layout page=childPage lk=url %}
+
+{% endunless %}
+{% endfor %}
+
+</div>

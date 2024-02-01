@@ -1,0 +1,3 @@
+<div style="text-align:center">
+<img class="item em-preview" src="{{site.baseurl}}/assets/images/{{include.a}}">
+</div>

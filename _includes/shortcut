@@ -1,0 +1,1 @@
+<span class="kb" shortcut="{{ include.keys }}"></span>

@@ -1,0 +1,1 @@
+<a href="{{ site.baseurl }}{% link {{ include.link }} %}"><span class="link-more">{{ include.title }}</span></a>

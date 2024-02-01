@@ -1,0 +1,23 @@
+<div class="card large gradient"><div class="preview" style="--img:url('{{ site.baseurl }}/assets/images/{{ include.page.preview_img }}'); --ico:url('{{ site.baseurl }}/assets/{{ include.page.splash }}');"></div><div class="infos {{ include.page.color | default:'blue' }}" markdown="1">
+
+{% if include.page.card_url == 'none' %}
+## {{ include.page.title }}
+{% else %}
+## [{{ include.page.title }}]({{ include.lk }})
+{: .no_toc }
+{% endif %}
+{{ include.page.subtitle }}
+{: .fs-5 .fw-300 }
+{% if include.page.summary %}
+<div class="summary-excerpt" markdown="1">
+{{ include.page.summary }}
+</div>
+{% endif %}
+
+{% if childPage.card_url == 'none' %}
+<a class="link-more {{ include.page.color | default:'blue' }}"><img class="icon" src="{{ site.baseurl }}/assets/{{ include.page.splash | default:'icons/icon_plus.svg'}}"></a>
+{% else %}
+<a href="{{ include.lk }}" class="link-more {{ include.page.color | default:'blue' }}"><img class="icon" src="{{ site.baseurl }}/assets/{{ include.page.splash | default:'icons/icon_plus.svg'}}"></a>
+{% endif %}
+
+</div></div>

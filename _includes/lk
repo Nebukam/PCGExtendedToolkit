@@ -1,0 +1,1 @@
+{% assign pages = site.pages | where: 'title', include.id %}{% for P in pages %}[<img class="icon emb" src="{{ site.baseurl }}/assets/{{ P.splash | default:'icons/icon_plus.svg'}}">{{ include.t | default:P.title}}]({{site.baseurl}}{{P.url}}{{include.a}}){% endfor %}

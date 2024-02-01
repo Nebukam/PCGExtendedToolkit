@@ -1,0 +1,1 @@
+<video autoplay loop muted playsinline src="{{site.baseurl}}/assets/images/{{include.a}}"></video>

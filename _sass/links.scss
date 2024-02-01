@@ -1,0 +1,152 @@
+//
+// Links box
+//
+
+.icon{
+  &.emb{
+    height: 1em;
+    transform: translateY(0.15em);
+    margin-right: 0.1em;
+  }
+}
+
+.link-more {
+  position: absolute;
+  top: 250px;
+  top: 230px;
+  right: -5px;
+  background-color: $nkmblue-100;
+  padding: 5px 10px;
+  border-radius: 3px 0px 0px 3px;
+  padding-bottom: 0px;
+
+  & .icon{
+    border: none;
+    box-shadow: none;
+  }
+
+  &:hover {
+    background-color: $nkmblue-000;
+  }
+
+  &.red {
+    background-color: $nkmred-100;
+    &:hover {
+      background-color: $nkmred-000;
+    }
+  }
+
+  &.blue {
+    background-color: $nkmblue-100;
+    &:hover {
+      background-color: $nkmblue-000;
+    }
+  }
+
+  &.lowkey {
+    background-color: $grey-dk-100;
+    &:hover {
+      background-color: $grey-dk-100;
+    }
+  }
+
+  &.white {
+
+    color:$grey-dk-300;
+
+    background-color: $grey-lt-200;
+    &:hover {
+      background-color: $grey-lt-100;
+    }
+    & .icon{
+      filter: invert(100%);
+    }
+  }
+}
+
+.link-btn {
+
+  padding: 10px 20px;
+  border-radius: 5px;
+  text-align: center;
+  font-size: large;
+  font-weight: 400;
+  margin-right: 5px;
+  text-decoration: none;
+
+  flex-direction: row;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  align-items: center;
+
+  display: flex;
+  margin-bottom: 10px;
+
+  @include mq(md) {
+    display: inline-flex;
+  }
+
+  &span {
+    flex: 0 1 auto;
+  }
+
+  & .icon {
+    border: none;
+    box-shadow: none;
+    margin-right: 5px;
+  }
+
+  &.red {
+
+    background-color: $nkmred-200;
+    border-top: 1px solid $nkmred-000;
+    border-bottom: 2px solid $nkmred-300;
+
+    &:hover {
+      background-color: $nkmred-100;
+    }
+
+  }
+
+  &.blue {
+
+    background-color: $nkmblue-200;
+    border-top: 1px solid $nkmblue-000;
+    border-bottom: 2px solid $nkmblue-300;
+
+    &:hover {
+      background-color: $nkmblue-100;
+    }
+
+  }
+
+  &.lowkey {
+    background-color: $grey-dk-200;
+    border-top: 1px solid $grey-dk-100;
+    border-bottom: 2px solid $grey-dk-300;
+
+    &:hover {
+      background-color: $grey-dk-100;
+    }
+
+  }
+
+  &.white {
+
+    color:$grey-dk-300;
+
+    background-color: $grey-lt-200;
+    border-top: 1px solid $grey-lt-100;
+    border-bottom: 2px solid $grey-lt-300;
+
+    &:hover {
+      background-color: $grey-lt-100;
+    }
+
+    & .icon{
+      filter: invert(100%);
+    }
+
+  }
+
+}

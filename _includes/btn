@@ -1,0 +1,1 @@
+<span class="kbkey ico"><img src="{{ site.baseurl }}/assets/icons/icon_{{ include.ico }}.svg" width="16px" height="16px">{% if include.label %}{{include.label | prepend: ' '}}{% endif %}</span>

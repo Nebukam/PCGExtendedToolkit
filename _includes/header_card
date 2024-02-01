@@ -1,0 +1,20 @@
+{% if page.splash %}
+<div class="product-header" style="--img:url('{{ site.baseurl }}/assets/{{ page.splash }}');"><div class="infos" markdown="1">
+# {{ page.title }} {% if page.WIP %} ![wip](https://img.shields.io/badge/WIP-c8860e) {% endif %}
+{: .no_toc }
+**{{ page.subtitle }}**  
+{: .fs-6 .fw-300 }
+{{ page.summary }}
+{: .fs-5 .fw-300 }  
+</div></div>
+{% else %}
+
+# {{ page.title }} {% if page.WIP %} ![wip](https://img.shields.io/badge/WIP-c8860e) {% endif %}
+{: .no_toc }
+**{{ page.subtitle }}**  
+{: .fs-6 .fw-300 }
+{{ page.summary }}
+{: .fs-5 .fw-300 }  
+
+{% endif %}
+---

@@ -1,0 +1,1 @@
+![{{include.a}} {{include.f}}]({{site.baseurl}}/assets/images/{{include.a}})

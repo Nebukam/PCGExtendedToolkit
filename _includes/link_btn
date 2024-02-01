@@ -1,0 +1,4 @@
+<a href="{{ include.link }}" class="link-btn {{ include.color }}">
+<img class="icon" src="{{ site.baseurl }}/assets/icons/icon_{{include.icon | default:'action'}}.svg" />
+<span>{{ include.title }}</span>
+</a>
