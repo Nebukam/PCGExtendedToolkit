@@ -40,9 +40,7 @@ public class PCGExtendedToolkit : ModuleRules
 		PrivateDependencyModuleNames.AddRange(
 			new string[]
 			{
-				"Projects", // So that we can use the IPluginManager, required for icons
-				"DetailCustomizations",
-				"PCG"
+				
 			}
 		);
 
@@ -53,10 +51,17 @@ public class PCGExtendedToolkit : ModuleRules
 			}
 		);
 
-		// Include "UnrealEd" only for editor configuration
 		if (Target.bBuildEditor)
 		{
-			PrivateDependencyModuleNames.Add("UnrealEd");
+			// Editor only modules
+			PrivateDependencyModuleNames.AddRange(
+				new string[]
+				{
+					"UnrealEd",
+					"Projects",
+					"DetailCustomizations"
+				}
+			);
 		}
 	}
 }
