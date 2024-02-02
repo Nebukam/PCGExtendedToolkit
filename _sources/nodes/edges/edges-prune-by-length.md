@@ -58,6 +58,12 @@ Absolute lengths = [10, 20, 30, 40, 50, 50, 55, 60, 1200, 500]
 Relative lengths = [0.0083, 0.016, 0.025, 0.03, 0.041, 0.041, 0.045, 0.05, 1, 0.41]
 ```
 
+- [Average](#average-arithmetic-mean)
+- [Median](#median)
+- [Mode](#mode-shortest-or-longest)
+- [Central](#central)
+- [Fixed](#fixed)
+
 ### Average (Arithmetic mean)
 Average mean is, well, the averaged value of all the lengths.  
 

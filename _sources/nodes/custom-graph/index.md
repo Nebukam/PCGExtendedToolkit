@@ -14,7 +14,13 @@ tagged:
 
 {% include header_card %}
 
+Custom graph nodes allow you to build and manipulate "user-defined" graphs using a comprehensive set of spatial rules.  
 
+> Contrary to mathematical graphs built with the {% include lk id='Graphs' %} nodes, **Custom Graphs** have no intrinsinc --nor guaranteed-- properties.
+{: .infos-hl }
+
+See {% include lk id='∷ Custom Graphs' %} for more in-depth documentation & onboarding for custom graphs.
+{: .fs-6 .fw-500 }
 
 ---
 # Nodes

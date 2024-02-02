@@ -5,7 +5,7 @@ grand_parent: Documentation
 title: Inherit First
 subtitle: Copy the first point' values
 color: white
-#summary: Copy the first point' values
+summary: Processed subpoints will inherit from the first properties & attributes. Nothing fancy about it.
 splash: icons/icon_sampling-point.svg
 preview_img: docs/splash-blend-start.png
 toc_img: placeholder.jpg
@@ -14,6 +14,11 @@ tagged:
 nav_order: 2
 ---
 
-{% include header_card %}
+{% include header_card_node %}
 
-{% include img_toc %}
+{% include img a='details/modules/blending-inherit-first.png' %} 
+
+| Property       | Description          |
+|:-------------|:------------------|
+|**Settings**||
+| Blending Settings           | See{% include lk id='Blending' a='#common-properties' %} *(Common properties)* |

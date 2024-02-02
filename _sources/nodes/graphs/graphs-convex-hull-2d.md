@@ -25,12 +25,12 @@ see_also: Working with Graphs
 |**Settings**||
 | Prune Points           | If enabled, `Vtx` that aren't part of the hull are pruned from the output.   |
 | **Hull** Attribute Name           | Name of the attribute to write the "is on hull" flag to.<br>*Disabled if points are pruned, since the output in that case will be exclusively hull points.* |
-|**Projection Settings**| Projection settings allow you to control the projection plane used to compute the graph in 2D. See [Projection Settings](#projection-settings)|
+|**Projection Settings**| Projection settings allow you to control the projection plane used to compute the graph in 2D. See [Projection Settings](#settings-projection)|
 
 > Note that the hull is *optimized* and will ignore points that *lie* on the hull but don't mathematically influence it *(i.e collinear/coplanar points)*.
 {: .warning }
 
-{% include_relative projection-settings.md %}
+{% include_relative settings-projection.md %}
 
 ---
 # Inputs

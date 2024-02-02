@@ -18,6 +18,9 @@ nav_order: 4
 
 {% include header_card_node %}
 
+>Important: Currently, the navigation data used by the node is the one returned by `GetDefaultNavDataInstance()`.
+{: .error }
+
 {% include img a='details/details-pathfinding-navmesh-plot.png' %} 
 
 | Property       | Description          |

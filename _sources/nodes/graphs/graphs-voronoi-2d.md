@@ -28,7 +28,7 @@ WIP: true
 |**Hull Identification**||
 | **Hull** Attribute Name           | Name of the attribute to write the "is on hull" flag to. |
 | Mark Edge on Touch           | If enabled, edges that *connects to a hull point without being on the hull themselves* will be considered as "on hull". |
-|**Projection Settings**| Projection settings allow you to control the projection plane used to compute the graph in 2D. See [Projection Settings](#projection-settings)|
+|**Projection Settings**| Projection settings allow you to control the projection plane used to compute the graph in 2D. See [Projection Settings](#settings-projection)|
 
 > Note that the hull is *optimized* and will ignore points that *lie* on the hull but don't mathematically influence it *(i.e collinear/coplanar points)*.
 {: .warning }
@@ -44,7 +44,7 @@ There are three available methods to drive Voronoi' site position in space.
 | Canon           | Uses the real, computed voronoi site position.<br>**Sites on the outskirts of the graph usually have extreme deformations.**  |
 | Centroid           | Uses the delaunay' triangulation centroid instead of the real position.<br>*This is usually good looking, but can lead to overlapping edges.*  |
 
-{% include_relative projection-settings.md %}
+{% include_relative settings-projection.md %}
 
 ---
 # Inputs

@@ -56,3 +56,7 @@ blending-common-properties
 | Min           | Keep the minimum value (component-wise) encountered during processing |
 | Max           | Keep the maximum value (component-wise) encountered during processing |
 | Copy           | Overwrites the value with the last processed one |
+
+---
+
+{% include img a='details/modules/blendings.png' %} 
