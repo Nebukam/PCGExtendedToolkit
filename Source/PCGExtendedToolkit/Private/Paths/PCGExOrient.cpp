@@ -31,6 +31,7 @@ bool FPCGExOrientElement::Boot(FPCGContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(Orient)
 
 	PCGEX_OPERATION_BIND(Orientation, UPCGExSubPointsOrientAverage)
+	Context->Orientation->bClosedPath = Settings->bClosedPath;
 
 	return true;
 }

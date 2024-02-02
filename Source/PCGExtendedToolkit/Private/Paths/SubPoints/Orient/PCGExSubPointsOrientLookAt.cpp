@@ -4,27 +4,71 @@
 
 #include "Paths/SubPoints/Orient/PCGExSubPointsOrientLookAt.h"
 
+void UPCGExSubPointsOrientLookAt::PrepareForData(PCGExData::FPointIO& InPointIO)
+{
+	PCGEX_DELETE(LookAtGetter)
+	Super::PrepareForData(InPointIO);
+
+	if (LookAt == EPCGExOrientLookAt::Attribute)
+	{
+		LookAtGetter = new PCGEx::FLocalVectorGetter();
+		LookAtGetter->Capture(LookAtSelector);
+		LookAtGetter->Grab(InPointIO);
+	}
+}
+
 void UPCGExSubPointsOrientLookAt::ProcessSubPoints(const PCGEx::FPointRef& Start, const PCGEx::FPointRef& End, TArrayView<FPCGPoint>& SubPoints, const PCGExMath::FPathMetrics& Metrics) const
 {
-	const int32 NumPointsMinusOne = SubPoints.Num() - 1;
+	const int32 NumPoints = SubPoints.Num();
+	const int32 NumPointsMinusOne = NumPoints - 1;
 
-	switch (LookAt)
+	if (bClosedPath)
 	{
-	case EPCGExOrientLookAt::NextPoint:
-		LookAtNext(SubPoints[0], *Start.Point, SubPoints[1]);
-		for (int i = 1; i < NumPointsMinusOne; i++) { LookAtNext(SubPoints[i], SubPoints[i - 1], SubPoints[i + 1]); }
-		LookAtNext(SubPoints.Last(), SubPoints[NumPointsMinusOne - 1], *End.Point);
-		break;
-	case EPCGExOrientLookAt::PreviousPoint:
-		LookAtPrev(SubPoints[0], *Start.Point, SubPoints[1]);
-		for (int i = 1; i < NumPointsMinusOne; i++) { LookAtPrev(SubPoints[i], SubPoints[i - 1], SubPoints[i + 1]); }
-		LookAtPrev(SubPoints.Last(), SubPoints[NumPointsMinusOne - 1], *End.Point);
-		break;
-	case EPCGExOrientLookAt::Attribute:
-		LookAtAttribute(SubPoints[0], *Start.Point, SubPoints[1]);
-		for (int i = 1; i < NumPointsMinusOne; i++) { LookAtAttribute(SubPoints[i], SubPoints[i - 1], SubPoints[i + 1]); }
-		LookAtAttribute(SubPoints.Last(), SubPoints[NumPointsMinusOne - 1], *End.Point);
-		break;
+		switch (LookAt)
+		{
+		case EPCGExOrientLookAt::NextPoint:
+			for (int i = 0; i < NumPoints; i++)
+			{
+				LookAtNext(
+					SubPoints[i],
+					SubPoints[PCGExMath::Tile(i - 1, 0, NumPointsMinusOne)],
+					SubPoints[PCGExMath::Tile(i + 1, 0, NumPointsMinusOne)]);
+			}
+			break;
+		case EPCGExOrientLookAt::PreviousPoint:
+			for (int i = 0; i < NumPoints; i++)
+			{
+				LookAtPrev(
+					SubPoints[i],
+					SubPoints[PCGExMath::Tile(i - 1, 0, NumPointsMinusOne)],
+					SubPoints[PCGExMath::Tile(i + 1, 0, NumPointsMinusOne)]);
+			}
+			break;
+		case EPCGExOrientLookAt::Attribute:
+			if (bAttributeAsOffset) { for (int i = 0; i < NumPoints; i++) { LookAtAttribute(SubPoints[i], Start.Index + i); } }
+			else { for (int i = 0; i < NumPoints; i++) { LookAtAttributeOffset(SubPoints[i], Start.Index + i); } }
+			break;
+		}
+	}
+	else
+	{
+		switch (LookAt)
+		{
+		case EPCGExOrientLookAt::NextPoint:
+			LookAtNext(SubPoints[0], *Start.Point, SubPoints[1]);
+			for (int i = 1; i < NumPointsMinusOne; i++) { LookAtNext(SubPoints[i], SubPoints[i - 1], SubPoints[i + 1]); }
+			LookAtNext(SubPoints.Last(), SubPoints[NumPointsMinusOne - 1], *End.Point);
+			break;
+		case EPCGExOrientLookAt::PreviousPoint:
+			LookAtPrev(SubPoints[0], *Start.Point, SubPoints[1]);
+			for (int i = 1; i < NumPointsMinusOne; i++) { LookAtPrev(SubPoints[i], SubPoints[i - 1], SubPoints[i + 1]); }
+			LookAtPrev(SubPoints.Last(), SubPoints[NumPointsMinusOne - 1], *End.Point);
+			break;
+		case EPCGExOrientLookAt::Attribute:
+			if (bAttributeAsOffset) { for (int i = 0; i < NumPoints; i++) { LookAtAttribute(SubPoints[i], Start.Index + i); } }
+			else { for (int i = 0; i < NumPoints; i++) { LookAtAttributeOffset(SubPoints[i], Start.Index + i); } }
+			break;
+		}
 	}
 }
 
@@ -46,6 +90,22 @@ void UPCGExSubPointsOrientLookAt::LookAtPrev(FPCGPoint& Point, const FPCGPoint& 
 			PCGEx::GetDirection(UpAxis)));
 }
 
-void UPCGExSubPointsOrientLookAt::LookAtAttribute(FPCGPoint& Point, const FPCGPoint& PreviousPoint, const FPCGPoint& NextPoint) const
+void UPCGExSubPointsOrientLookAt::LookAtAttribute(FPCGPoint& Point, const int32 Index) const
 {
+	Point.Transform.SetRotation(
+		PCGEx::MakeDirection(
+			OrientAxis, (*LookAtGetter)[Index], PCGEx::GetDirection(UpAxis)));
+}
+
+void UPCGExSubPointsOrientLookAt::LookAtAttributeOffset(FPCGPoint& Point, const int32 Index) const
+{
+	Point.Transform.SetRotation(
+		PCGEx::MakeDirection(
+			OrientAxis, Point.Transform.GetLocation() + (*LookAtGetter)[Index], PCGEx::GetDirection(UpAxis)));
+}
+
+void UPCGExSubPointsOrientLookAt::Cleanup()
+{
+	PCGEX_DELETE(LookAtGetter)
+	Super::Cleanup();
 }

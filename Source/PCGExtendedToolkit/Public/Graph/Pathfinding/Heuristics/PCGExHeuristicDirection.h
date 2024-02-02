@@ -18,6 +18,12 @@ class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicDirection : public UPCGExHeuristicOp
 	GENERATED_BODY()
 
 public:
+	/** Invert the heuristics so it looks away from the target instead of towards it. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bInvert = false;
+
+	virtual void PrepareForData(PCGExCluster::FCluster* InCluster) override;
+	
 	virtual double GetGlobalScore(
 		const PCGExCluster::FNode& From,
 		const PCGExCluster::FNode& Seed,
@@ -29,4 +35,9 @@ public:
 		const PCGExGraph::FIndexedEdge& Edge,
 		const PCGExCluster::FNode& Seed,
 		const PCGExCluster::FNode& Goal) const override;
+
+protected:
+	double OutMin = 0;
+	double OutMax = 1;
+	
 };

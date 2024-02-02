@@ -24,12 +24,30 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSubPointsOrientLookAt : public UPCGExSubPoint
 	GENERATED_BODY()
 
 public:
+	/** Look at method */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExOrientLookAt LookAt = EPCGExOrientLookAt::NextPoint;
 
+	/** Vector attribute representing a world position */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="LookAt==EPCGExOrientLookAt::Attribute", EditConditionHides))
+	FPCGExInputDescriptor LookAtSelector;
+
+	/** Use attribute value as a world space offset from point position */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="LookAt==EPCGExOrientLookAt::Attribute", EditConditionHides))
+	bool bAttributeAsOffset = false;
+
+	virtual void PrepareForData(PCGExData::FPointIO& InPointIO) override;
+	
 	virtual void ProcessSubPoints(const PCGEx::FPointRef& Start, const PCGEx::FPointRef& End, TArrayView<FPCGPoint>& SubPoints, const PCGExMath::FPathMetrics& Metrics) const override;
 
 	virtual void LookAtNext(FPCGPoint& Point, const FPCGPoint& PreviousPoint, const FPCGPoint& NextPoint) const;
 	virtual void LookAtPrev(FPCGPoint& Point, const FPCGPoint& PreviousPoint, const FPCGPoint& NextPoint) const;
-	virtual void LookAtAttribute(FPCGPoint& Point, const FPCGPoint& PreviousPoint, const FPCGPoint& NextPoint) const;
+	virtual void LookAtAttribute(FPCGPoint& Point, const int32 Index) const;
+	virtual void LookAtAttributeOffset(FPCGPoint& Point, const int32 Index) const;
+
+	virtual void Cleanup() override;
+
+protected:
+	PCGEx::FLocalVectorGetter* LookAtGetter = nullptr;
+	
 };

@@ -21,24 +21,45 @@ void UPCGExMovingAverageSmoothing::InternalDoSmooth(
 
 	const int32 MaxPointIndex = InPoints.Num() - 1;
 
-	for (int i = 0; i <= MaxPointIndex; i++)
+	if (bClosedPath)
 	{
-		int32 Count = 0;
-		PCGEx::FPointRef Target = InPointIO.GetOutPointRef(i);
-		MetadataBlender->PrepareForBlending(Target);
-
-		for (int j = -SafeWindowSize; j <= SafeWindowSize; j++)
+		for (int i = 0; i <= MaxPointIndex; i++)
 		{
-			const int32 Index = bClosedPath ? PCGExMath::Tile(i + j, 0, MaxPointIndex) : FMath::Clamp(i + j, 0, MaxPointIndex);
-			const double Alpha = 1 - (static_cast<double>(FMath::Abs(j)) / SafeWindowSize);
+			int32 Count = 0;
+			PCGEx::FPointRef Target = InPointIO.GetOutPointRef(i);
+			MetadataBlender->PrepareForBlending(Target);
 
-			MetadataBlender->Blend(Target, InPointIO.GetInPointRef(Index), Target, Alpha);
+			for (int j = -SafeWindowSize; j <= SafeWindowSize; j++)
+			{
+				const int32 Index = PCGExMath::Tile(i + j, 0, MaxPointIndex);
+				const double Alpha = 1 - (static_cast<double>(FMath::Abs(j)) / SafeWindowSize);
+				MetadataBlender->Blend(Target, InPointIO.GetInPointRef(Index), Target, Alpha);
+				Count++;
+			}
 
-			Count++;
+			MetadataBlender->CompleteBlending(Target, Count);
 		}
-
-		MetadataBlender->CompleteBlending(Target, Count);
 	}
+	else
+	{
+		for (int i = 0; i <= MaxPointIndex; i++)
+		{
+			int32 Count = 0;
+			PCGEx::FPointRef Target = InPointIO.GetOutPointRef(i);
+			MetadataBlender->PrepareForBlending(Target);
+
+			for (int j = -SafeWindowSize; j <= SafeWindowSize; j++)
+			{
+				const int32 Index = FMath::Clamp(i + j, 0, MaxPointIndex);
+				const double Alpha = 1 - (static_cast<double>(FMath::Abs(j)) / SafeWindowSize);
+				MetadataBlender->Blend(Target, InPointIO.GetInPointRef(Index), Target, Alpha);
+				Count++;
+			}
+
+			MetadataBlender->CompleteBlending(Target, Count);
+		}
+	}
+
 
 	MetadataBlender->Write();
 
