@@ -133,7 +133,7 @@ bool FPCGExBuildVoronoiGraphElement::ExecuteInternal(
 			else
 			{
 				Context->Voronoi->Generate();
-				Context->SetState(PCGExGeo::State_ProcessingVoronoi);
+				Context->SetAsyncState(PCGExGeo::State_ProcessingVoronoi);
 			}
 		}
 		else
@@ -177,12 +177,12 @@ bool FPCGExBuildVoronoiGraphElement::ExecuteInternal(
 		Context->Voronoi->PrepareVoronoi();
 
 		if (Context->bDoAsyncProcessing) { Context->Voronoi->StartAsyncPreprocessing(Context->GetAsyncManager()); }
-		Context->SetState(PCGExGeo::State_ProcessingVoronoi);
+		Context->SetAsyncState(PCGExGeo::State_ProcessingVoronoi);
 	}
 
 	if (Context->IsState(PCGExGeo::State_ProcessingVoronoi))
 	{
-		if (Context->bDoAsyncProcessing && !Context->IsAsyncWorkComplete()) { return false; }
+		if (!Context->IsAsyncWorkComplete()) { return false; }
 
 		if (Context->Voronoi->Regions.IsEmpty())
 		{
