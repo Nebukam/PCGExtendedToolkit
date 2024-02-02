@@ -96,8 +96,12 @@ bool FPCGExWriteIndexElement::ExecuteInternal(FPCGContext* InContext) const
 			Context->IndexAccessor->SetRange(Context->IndicesBuffer);
 			PCGEX_DELETE(Context->IndexAccessor)
 			Context->SetState(PCGExMT::State_ReadyForNextPoints);
-			Context->CurrentIO->OutputTo(Context);
 		}
+	}
+
+	if(Context->IsDone())
+	{
+		Context->OutputPoints();
 	}
 
 	return Context->IsDone();
