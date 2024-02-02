@@ -9,9 +9,8 @@ While there are a bunch of misc (useful!) nodes in this toolkit, its primary goa
 
 ## PCGEx Nodes
 Generally speaking, PCGEx nodes are not "magic". They aim to enhance existing features in a highly modular way, allowing content creators to achieve more without making assumptions about their specific goals. In other words, PCGEx' nodes do very little on their own.  
-Check out the [Full documentation](https://nebukam.github.io/PCGExtendedToolkit/)!
 
-*Note: Most of the nodes are multithreaded or async!*
+**Check out the [Full documentation](https://nebukam.github.io/PCGExtendedToolkit/)!**
 
 ## Getting Started
 * [Installation](https://nebukam.github.io/PCGExtendedToolkit/installation/)
