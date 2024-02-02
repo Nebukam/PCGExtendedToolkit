@@ -33,6 +33,8 @@ Please provide as much information as you can (stack traces, node setup, ...).
 ### Improvement & Feature Requests
 If you have a feature or improvement requestion, please start a discussion [here](https://github.com/Nebukam/PCGExtendedToolkit/discussions/categories/ideas)!  
 
-### Footnotes
+### Footnotes & Credits
 - I am *not* affiliated with Unreal!
 - Delaunay/Voronoi adapted from the excellent [Scrawk' Hull-Delaunay-Voronoi](https://github.com/Scrawk/Hull-Delaunay-Voronoi) repo
+- Photo of Edsger W. Dijkstra from Wikipedia, (c) Hamilton Richards / CC BY-SA 3.0 : [source](https://en.wikipedia.org/wiki/Edsger_W._Dijkstra#/media/File:Edsger_Wybe_Dijkstra.jpg)
+- Photo of Bertran Raphael from Wikipedia, (c) Blogjack / CC BY-SA 3.0 : [source](https://en.wikipedia.org/wiki/Bertram_Raphael#/media/File:Bert_Raphael_2008.JPG)

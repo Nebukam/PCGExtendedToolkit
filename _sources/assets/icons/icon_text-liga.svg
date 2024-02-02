@@ -1,11 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">
-  <g id="main">
-    <rect x="10.85" y="10" width="79.87" height="79.87" fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="5" opacity="0.5"/>
-    <g>
-      <line x1="39.19" y1="38.74" x2="39.19" y2="72.54" fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="10"/>
-      <line x1="28.81" y1="49.47" x2="48.99" y2="49.47" fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="10"/>
-      <line x1="64.06" y1="49.93" x2="64.06" y2="72.63" fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="10"/>
-      <path d="M39.19,38.74A12.44,12.44,0,0,1,62.4,32.52" fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="10"/>
-    </g>
-  </g>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><g id="main"><rect x="10.85" y="10" width="79.87" height="79.87" style="fill:none;stroke:#fff;stroke-linecap:round;stroke-linejoin:round;stroke-width:5px;opacity:0.5"/><line x1="39.19" y1="38.74" x2="39.19" y2="72.54" style="fill:none;stroke:#fff;stroke-linecap:round;stroke-linejoin:round;stroke-width:10px"/><line x1="28.81" y1="49.47" x2="48.99" y2="49.47" style="fill:none;stroke:#fff;stroke-linecap:round;stroke-linejoin:round;stroke-width:10px"/><line x1="64.06" y1="49.93" x2="64.06" y2="72.63" style="fill:none;stroke:#fff;stroke-linecap:round;stroke-linejoin:round;stroke-width:10px"/><path d="M39.19,38.74A12.44,12.44,0,0,1,62.4,32.52" style="fill:none;stroke:#fff;stroke-linecap:round;stroke-linejoin:round;stroke-width:10px"/></g></svg>

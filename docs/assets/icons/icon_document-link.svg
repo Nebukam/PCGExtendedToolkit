@@ -1,10 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">
-  <g id="main">
-    <g opacity="0.5">
-      <path d="M39.26,82.9H19.13V19H53.29l16,16v8.77" fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="5"/>
-      <polygon points="51.98 19 51.98 36.24 69.29 36.24 51.98 19" fill="#fff"/>
-    </g>
-    <path d="M69,63.67l8.9-8.9A7.13,7.13,0,1,1,87.94,64.85" fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="10"/>
-    <path d="M73.68,79.11l-8.52,8.51A7.12,7.12,0,1,1,55.09,77.55" fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="10"/>
-  </g>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><g id="main"><g style="opacity:0.5"><path d="M37.26,80.9H17.13V17H51.29l16,16v8.77" style="fill:none;stroke:#fff;stroke-linecap:round;stroke-linejoin:round;stroke-width:5px"/><polygon points="49.98 17 49.98 34.24 67.29 34.24 49.98 17" style="fill:#fff"/></g><path d="M67,61.67l8.9-8.9A7.13,7.13,0,1,1,85.94,62.85" style="fill:none;stroke:#fff;stroke-linecap:round;stroke-linejoin:round;stroke-width:10px"/><path d="M71.68,77.11l-8.52,8.51A7.12,7.12,0,1,1,53.09,75.55" style="fill:none;stroke:#fff;stroke-linecap:round;stroke-linejoin:round;stroke-width:10px"/></g></svg>

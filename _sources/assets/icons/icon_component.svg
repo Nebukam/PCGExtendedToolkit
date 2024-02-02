@@ -1,9 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">
-  <g id="main">
-    <rect x="67.47" y="22.32" width="12.14" height="12.14" fill="#fff" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="5"/>
-    <rect x="10" y="10.15" width="34.72" height="34.72" rx="6.53" fill="#fff"/>
-    <rect x="67.47" y="64.48" width="12.14" height="12.14" fill="#fff" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="5"/>
-    <rect x="22.18" y="64.48" width="12.14" height="12.14" fill="#fff" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="5"/>
-    <rect x="28.25" y="26.62" width="45.29" height="45.29" fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="5" opacity="0.5"/>
-  </g>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><g id="main"><rect x="67.47" y="22.32" width="12.14" height="12.14" style="fill:#fff;stroke:#fff;stroke-linecap:round;stroke-linejoin:round;stroke-width:5px"/><rect x="10" y="10.15" width="34.72" height="34.72" rx="6.53" style="fill:#fff"/><rect x="67.47" y="64.48" width="12.14" height="12.14" style="fill:#fff;stroke:#fff;stroke-linecap:round;stroke-linejoin:round;stroke-width:5px"/><rect x="22.18" y="64.48" width="12.14" height="12.14" style="fill:#fff;stroke:#fff;stroke-linecap:round;stroke-linejoin:round;stroke-width:5px"/><rect x="28.25" y="26.62" width="45.29" height="45.29" style="fill:none;stroke:#fff;stroke-linecap:round;stroke-linejoin:round;stroke-width:5px;opacity:0.5"/></g></svg>

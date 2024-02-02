@@ -14,6 +14,11 @@ tagged:
 nav_order: 4
 ---
 
-{% include header_card %}
+{% include header_card_node %}
 
-{% include img_toc %}
+{% include img a='details/modules/heuristics-local-distance.png' %} 
+
+| Property       | Description          |
+|:-------------|:------------------|
+|**Settings**||
+| TBD           | See{% include lk id='Smoothing' a='#common-properties' %} *(Common properties)* |

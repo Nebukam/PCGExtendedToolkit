@@ -122,6 +122,7 @@ img {
   height: auto;
 }
 
+
 hr {
   height: 1px;
   padding: 0;
@@ -177,4 +178,15 @@ body, .main, .site-nav{
       border-radius: 3px;
       background-color: rgba(255, 255, 255, 0.5);
   }
+}
+
+.node-splash{
+  background-image: var(--img);
+  background-size: cover;
+  background-position-x: 50%;
+  background-position-y: 50%;
+  height: 100px;
+  //mix-blend-mode: screen;
+  //image-rendering: pixelated;
+  border-radius: 3px;
 }

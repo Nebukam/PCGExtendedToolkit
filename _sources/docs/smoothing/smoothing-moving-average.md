@@ -14,6 +14,11 @@ tagged:
 nav_order: 1
 ---
 
-{% include header_card %}
+{% include header_card_node %}
 
-{% include img_toc %}
+{% include img a='details/modules/smoothing-moving-average.png' %} 
+
+| Property       | Description          |
+|:-------------|:------------------|
+|**Settings**||
+| TBD           | See{% include lk id='Smoothing' a='#common-properties' %} *(Common properties)* |

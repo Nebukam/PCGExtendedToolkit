@@ -3,17 +3,25 @@ layout: page
 parent: Search
 grand_parent: ∷ Pathfinding
 title: A* Star
-subtitle: Subtitle
+subtitle: A* Algorithm
 color: white
 #summary: summary_goes_here
 splash: icons/icon_pathfinding-navmesh.svg
-preview_img: placeholder.jpg
+preview_img: docs/splash-search-astar.png
 toc_img: placeholder.jpg
 tagged: 
     - search
 nav_order: 1
 ---
 
-{% include header_card %}
+{% include header_card_node %}
 
-{% include img_toc %}
+[A* on Wikipedia](https://en.wikipedia.org/wiki/A*_search_algorithm)
+{: .fs-5 .fw-400 }
+
+{% include img a='details/modules/search-astar.png' %} 
+
+| Property       | Description          |
+|:-------------|:------------------|
+|**Settings**||
+| TBD           | See{% include lk id='Smoothing' a='#common-properties' %} *(Common properties)* |

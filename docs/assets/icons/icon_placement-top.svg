@@ -1,16 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">
-  <g id="main">
-    <rect x="17.92" y="17.92" width="64.17" height="64.17" rx="10" fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="5" opacity="0.1"/>
-    <circle cx="82.08" cy="17.92" r="5.94" fill="#fff"/>
-    <circle cx="82.08" cy="82.08" r="5.94" fill="#fff"/>
-    <circle cx="17.92" cy="82.08" r="5.94" fill="#fff"/>
-    <circle cx="17.92" cy="50" r="5.94" fill="#fff"/>
-    <circle cx="82.08" cy="50" r="5.94" fill="#fff"/>
-    <circle cx="50" cy="50" r="5.94" fill="#fff"/>
-    <circle cx="50" cy="82.08" r="5.94" fill="#fff"/>
-    <circle cx="17.92" cy="17.92" r="5.94" fill="#fff"/>
-  </g>
-  <g id="accent">
-    <circle cx="50" cy="17.92" r="13.06" fill="#3ec188"/>
-  </g>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><g id="main"><rect x="17.92" y="17.92" width="64.17" height="64.17" rx="10" style="fill:none;stroke:#fff;stroke-linecap:round;stroke-linejoin:round;stroke-width:5px;opacity:0.1"/><circle cx="82.08" cy="17.92" r="5.94" style="fill:#fff"/><circle cx="82.08" cy="82.08" r="5.94" style="fill:#fff"/><circle cx="17.92" cy="82.08" r="5.94" style="fill:#fff"/><circle cx="17.92" cy="50" r="5.94" style="fill:#fff"/><circle cx="82.08" cy="50" r="5.94" style="fill:#fff"/><circle cx="50" cy="50" r="5.94" style="fill:#fff"/><circle cx="50" cy="82.08" r="5.94" style="fill:#fff"/><circle cx="17.92" cy="17.92" r="5.94" style="fill:#fff"/></g><g id="accent"><circle cx="50" cy="17.92" r="13.06" style="fill:#708dcc"/></g></svg>

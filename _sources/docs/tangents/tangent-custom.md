@@ -14,6 +14,11 @@ tagged:
 nav_order: 2
 ---
 
-{% include header_card %}
+{% include header_card_node %}
 
-{% include img_toc %}
+{% include img a='details/modules/tangent-custom.png' %} 
+
+| Property       | Description          |
+|:-------------|:------------------|
+|**Settings**||
+| TBD           | See{% include lk id='Tangents' a='#common-properties' %} *(Common properties)* |

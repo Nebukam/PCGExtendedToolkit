@@ -18,10 +18,6 @@ tagged:
 - TOC
 {:toc} 
 
-> Warning: Persistent debug draw seems to lock the editor sometimes -- I haven't been able to pin-point *why* or *what* cause this, and it happens at random, without a stack trace.  
-> **Make sure to save often when using these nodes!**
-{: .warning }
-
 ---
 ## Visual Debugging
 

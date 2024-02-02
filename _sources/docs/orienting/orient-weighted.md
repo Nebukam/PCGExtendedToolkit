@@ -14,9 +14,11 @@ tagged:
 nav_order: 1
 ---
 
-{% include header_card %}
+{% include header_card_node %}
 
->This is an overview of the Font Editor.
-{: .comment}
+{% include img a='details/modules/orienting-weighted.png' %} 
 
-{% include img_toc %}
+| Property       | Description          |
+|:-------------|:------------------|
+|**Settings**||
+| TBD           | See{% include lk id='Orienting' a='#common-properties' %} *(Common properties)* |
