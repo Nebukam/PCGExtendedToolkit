@@ -16,9 +16,4 @@ nav_order: 1
 
 {% include header_card_node %}
 
-{% include img a='details/modules/relaxing-laplacian.png' %} 
-
-| Property       | Description          |
-|:-------------|:------------------|
-|**Settings**||
-| TBD           | See{% include lk id='Relaxing' a='#common-properties' %} *(Common properties)* |
+Laplacian Relax has no specific properties.  

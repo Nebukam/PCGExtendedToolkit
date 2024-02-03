@@ -29,6 +29,8 @@ url: "https://nebukam.github.io" # the base hostname & protocol for your site, e
 twitter_username: nebukam
 github_username:  nebukam
 
+destination: ../docs/
+
 # Build settings
 theme: just-the-docs
 color_scheme: dark
