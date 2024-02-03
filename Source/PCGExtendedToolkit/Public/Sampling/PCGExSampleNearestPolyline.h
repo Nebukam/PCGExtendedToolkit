@@ -122,23 +122,23 @@ public:
 	double RangeMin = 0;
 
 	/** Maximum target range. Used as fallback if LocalRangeMax is enabled but missing. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, ForceInlineRow, EditCondition="SampleMethod==EPCGExSampleMethod::WithinRange", ClampMin=0))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, EditCondition="SampleMethod==EPCGExSampleMethod::WithinRange", ClampMin=0))
 	double RangeMax = 300;
 
 	/** Use a per-point minimum range*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, InlineEditConditionToggle, EditCondition="SampleMethod==EPCGExSampleMethod::WithinRange"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, EditCondition="SampleMethod==EPCGExSampleMethod::WithinRange"))
 	bool bUseLocalRangeMin = false;
 
 	/** Attribute or property to read the minimum range from. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, EditCondition="bUseLocalRangeMin && SampleMethod==EPCGExSampleMethod::WithinRange", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, EditCondition="bUseLocalRangeMin && SampleMethod==EPCGExSampleMethod::WithinRange"))
 	FPCGExInputDescriptor LocalRangeMin;
 
 	/** Use a per-point maximum range*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, InlineEditConditionToggle, EditCondition="SampleMethod==EPCGExSampleMethod::WithinRange"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, EditCondition="SampleMethod==EPCGExSampleMethod::WithinRange"))
 	bool bUseLocalRangeMax = false;
 
 	/** Attribute or property to read the maximum range from. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, EditCondition="bUseLocalRangeMax && SampleMethod==EPCGExSampleMethod::WithinRange", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, EditCondition="bUseLocalRangeMax && SampleMethod==EPCGExSampleMethod::WithinRange"))
 	FPCGExInputDescriptor LocalRangeMax;
 
 	/** Weight method used for blending */

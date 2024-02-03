@@ -35,7 +35,6 @@ bool FPCGExSampleSurfaceGuidedElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_FWD(MaxDistance)
 	PCGEX_FWD(bUseLocalMaxDistance)
-	PCGEX_FWD(bTraceFailsafe)
 
 	Context->MaxDistanceGetter = new PCGEx::FLocalSingleFieldGetter();
 	Context->MaxDistanceGetter->Capture(Settings->LocalMaxDistance);
@@ -166,7 +165,7 @@ bool FTraceTask::ExecuteTask()
 	}
 
 
-	if (Context->bTraceFailsafe)
+	if (!bSuccess)
 	{
 		PCGEX_OUTPUT_VALUE(Location, TaskIndex, End)
 		PCGEX_OUTPUT_VALUE(Normal, TaskIndex, Trace.GetSafeNormal()*-1)

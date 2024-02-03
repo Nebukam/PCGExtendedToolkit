@@ -172,7 +172,7 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 bool FPCGExSamplePointTask::ExecuteTask()
 {
 	const FPCGExSampleNearestPointContext* Context = Manager->GetContext<FPCGExSampleNearestPointContext>();
-
+	PCGEX_SETTINGS(SampleNearestPoint)
 
 	const int32 NumTargets = Context->Targets->GetNum();
 	const FVector Origin = PointIO->GetOutPoint(TaskIndex).Transform.GetLocation();
@@ -220,7 +220,14 @@ bool FPCGExSamplePointTask::ExecuteTask()
 	}
 
 	// Compound never got updated, meaning we couldn't find target in range
-	if (TargetsCompoundInfos.UpdateCount <= 0) { return false; }
+	if (TargetsCompoundInfos.UpdateCount <= 0)
+	{
+		double FaileSafeDist = FMath::Sqrt(RangeMax);
+		PCGEX_OUTPUT_VALUE(Success, TaskIndex, false)
+		PCGEX_OUTPUT_VALUE(Distance, TaskIndex, FaileSafeDist)
+		PCGEX_OUTPUT_VALUE(SignedDistance, TaskIndex, FaileSafeDist)
+		return false;
+	}
 
 	// Compute individual target weight
 	if (Context->WeightMethod == EPCGExWeightMethod::FullRange && RangeMax > 0)

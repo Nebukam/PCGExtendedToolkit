@@ -63,10 +63,6 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteSuccess = false;
 
-	/** If the trace fails, use the end of the trace as a hit, but will still be marked as fail. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
-	bool bTraceFailsafe = false;
-
 	/** Name of the 'boolean' attribute to write sampling success to.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteSuccess"))
 	FName SuccessAttributeName = FName("SuccessfullySampled");
@@ -139,7 +135,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleSurfaceGuidedContext : public FPCGExPo
 	bool bIgnoreSelf = true;
 	TArray<AActor*> IgnoredActors;
 
-	bool bTraceFailsafe;
 	double MaxDistance;
 	bool bUseLocalMaxDistance = false;
 	PCGEx::FLocalSingleFieldGetter* MaxDistanceGetter = nullptr;

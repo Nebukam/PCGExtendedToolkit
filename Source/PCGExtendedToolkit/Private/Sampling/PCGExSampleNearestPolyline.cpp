@@ -157,7 +157,7 @@ bool FPCGExSampleNearestPolylineElement::ExecuteInternal(FPCGContext* InContext)
 bool FPCGExSamplePolylineTask::ExecuteTask()
 {
 	const FPCGExSampleNearestPolylineContext* Context = Manager->GetContext<FPCGExSampleNearestPolylineContext>();
-
+	PCGEX_SETTINGS(SampleNearestPolyline)
 
 	const FPCGPoint& Point = PointIO->GetOutPoint(TaskIndex);
 
@@ -176,18 +176,17 @@ bool FPCGExSamplePolylineTask::ExecuteTask()
 	{
 		const double dist = FVector::DistSquared(Origin, Transform.GetLocation());
 
-		if (RangeMax > 0 && (dist < RangeMin || dist > RangeMax)) { return; }
-
 		if (Context->SampleMethod == EPCGExSampleMethod::ClosestTarget ||
 			Context->SampleMethod == EPCGExSampleMethod::FarthestTarget)
 		{
 			TargetsCompoundInfos.UpdateCompound(PCGExPolyLine::FSampleInfos(Transform, dist, Time));
+			return;
 		}
-		else
-		{
-			const PCGExPolyLine::FSampleInfos& Infos = TargetsInfos.Emplace_GetRef(Transform, dist, Time);
-			TargetsCompoundInfos.UpdateCompound(Infos);
-		}
+
+		if (RangeMax > 0 && (dist < RangeMin || dist > RangeMax)) { return; }
+
+		const PCGExPolyLine::FSampleInfos& Infos = TargetsInfos.Emplace_GetRef(Transform, dist, Time);
+		TargetsCompoundInfos.UpdateCompound(Infos);
 	};
 
 	// First: Sample all possible targets
@@ -213,7 +212,10 @@ bool FPCGExSamplePolylineTask::ExecuteTask()
 	// Compound never got updated, meaning we couldn't find target in range
 	if (TargetsCompoundInfos.UpdateCount <= 0)
 	{
+		double FaileSafeDist = FMath::Sqrt(RangeMax);
 		PCGEX_OUTPUT_VALUE(Success, TaskIndex, false)
+		PCGEX_OUTPUT_VALUE(Distance, TaskIndex, FaileSafeDist)
+		PCGEX_OUTPUT_VALUE(SignedDistance, TaskIndex, FaileSafeDist)
 		return false;
 	}
 
