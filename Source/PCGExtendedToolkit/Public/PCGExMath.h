@@ -881,6 +881,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExRemapSettings
 		InMin(Other.InMin),
 		bInMax(Other.bInMax),
 		InMax(Other.InMax),
+		RangeMethod(Other.RangeMethod),
 		Scale(Other.Scale),
 		RemapCurveObj(Other.RemapCurveObj)
 	{
@@ -907,6 +908,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExRemapSettings
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bInMax"))
 	double InMax = 0;
 
+	/** How to remap before sampling the curve. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	EPCGExRangeType RangeMethod = EPCGExRangeType::EffectiveRange;
+	
 	/** Scale output value. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	double Scale = 1;

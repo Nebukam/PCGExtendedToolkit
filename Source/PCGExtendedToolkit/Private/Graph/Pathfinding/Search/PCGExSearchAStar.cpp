@@ -94,6 +94,9 @@ bool UPCGExSearchAStar::FindPath(
 	if (int32 PathIndex = Previous[GoalNode.NodeIndex];
 		PathIndex != -1)
 	{
+
+		PathIndex = GoalNode.NodeIndex;
+		
 		bSuccess = true;
 		TArray<int32> Path;
 		if (ExtraWeights)

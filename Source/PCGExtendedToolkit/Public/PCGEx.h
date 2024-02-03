@@ -169,6 +169,14 @@ enum class EPCGExSelectorType : uint8
 	Direction UMETA(DisplayName = "Direction", ToolTip="Backward from Transform/FQuat/Rotator, or raw vector."),
 };
 
+
+UENUM(BlueprintType)
+enum class EPCGExRangeType : uint8
+{
+	FullRange UMETA(DisplayName = "Full Range", ToolTip="Normalize in the [0..1] range using [0..Max Value] range."),
+	EffectiveRange UMETA(DisplayName = "Effective Range", ToolTip="Remap the input [Min..Max] range to [0..1]."),
+};
+
 namespace PCGEx
 {
 	const FName SourcePointsLabel = TEXT("In");

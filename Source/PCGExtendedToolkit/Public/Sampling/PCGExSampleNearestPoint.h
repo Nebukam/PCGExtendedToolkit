@@ -135,7 +135,7 @@ public:
 
 	/** Weight method used for blending */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta=(PCG_Overridable))
-	EPCGExWeightMethod WeightMethod = EPCGExWeightMethod::FullRange;
+	EPCGExRangeType WeightMethod = EPCGExRangeType::FullRange;
 
 	/** Curve that balances weight over distance */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta=(PCG_Overridable))
@@ -224,7 +224,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestPointContext : public FPCGExPoi
 	PCGExData::FPointIO* Targets = nullptr;
 
 	EPCGExSampleMethod SampleMethod = EPCGExSampleMethod::WithinRange;
-	EPCGExWeightMethod WeightMethod = EPCGExWeightMethod::FullRange;
+	EPCGExRangeType WeightMethod = EPCGExRangeType::FullRange;
 
 	double RangeMin = 0;
 	double RangeMax = 1000;

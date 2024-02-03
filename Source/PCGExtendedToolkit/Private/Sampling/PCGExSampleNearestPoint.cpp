@@ -230,7 +230,7 @@ bool FPCGExSamplePointTask::ExecuteTask()
 	}
 
 	// Compute individual target weight
-	if (Context->WeightMethod == EPCGExWeightMethod::FullRange && RangeMax > 0)
+	if (Context->WeightMethod == EPCGExRangeType::FullRange && RangeMax > 0)
 	{
 		// Reset compounded infos to full range
 		TargetsCompoundInfos.SampledRangeMin = RangeMin;

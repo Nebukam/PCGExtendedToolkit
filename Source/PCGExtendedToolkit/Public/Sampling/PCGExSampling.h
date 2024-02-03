@@ -33,13 +33,6 @@ enum class EPCGExSampleMethod : uint8
 };
 
 UENUM(BlueprintType)
-enum class EPCGExWeightMethod : uint8
-{
-	FullRange UMETA(DisplayName = "Full Range", ToolTip="Weight is sampled using the normalized distance over the full min/max range."),
-	EffectiveRange UMETA(DisplayName = "Effective Range", ToolTip="Weight is sampled using the normalized distance over the min/max of sampled points."),
-};
-
-UENUM(BlueprintType)
 enum class EPCGExAngleRange : uint8
 {
 	URadians UMETA(DisplayName = "Radians (0..+PI)", ToolTip="0..+PI"),
