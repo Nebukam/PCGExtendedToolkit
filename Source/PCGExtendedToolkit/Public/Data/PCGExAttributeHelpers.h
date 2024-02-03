@@ -624,12 +624,12 @@ namespace PCGEx
 		}
 
 		virtual T GetDefaultValue() const = 0;
-		virtual void ResetMinMax() const = 0;
+		virtual void ResetMinMax() = 0;
 
 #define  PCGEX_PRINT_VIRTUAL(_TYPE, _NAME, ...) virtual T Convert(const _TYPE Value) const { return GetDefaultValue(); };
 		PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_PRINT_VIRTUAL)
 	};
-	
+
 #pragma endregion
 
 #pragma region Local Attribute Getter
@@ -637,7 +637,7 @@ namespace PCGEx
 	struct PCGEXTENDEDTOOLKIT_API FLocalSingleFieldGetter : public FAttributeGetter<double>
 	{
 	protected:
-		virtual void ResetMinMax() const override
+		virtual void ResetMinMax() override
 		{
 			Min = TNumericLimits<double>::Max();
 			Max = TNumericLimits<double>::Min();
@@ -723,10 +723,100 @@ namespace PCGEx
 		virtual double Convert(const FName Value) const override { return PCGExMath::ConvertStringToDouble(Value.ToString()); }
 	};
 
+	struct PCGEXTENDEDTOOLKIT_API FLocalSingleIntGetter : public FAttributeGetter<int32>
+	{
+	protected:
+		virtual void ResetMinMax() override
+		{
+			Min = TNumericLimits<double>::Max();
+			Max = TNumericLimits<double>::Min();
+		}
+
+		virtual int32 GetDefaultValue() const override { return 0; }
+
+		virtual int32 Convert(const int32 Value) const override { return Value; }
+		virtual int32 Convert(const int64 Value) const override { return static_cast<int32>(Value); }
+		virtual int32 Convert(const float Value) const override { return Value; }
+		virtual int32 Convert(const double Value) const override { return Value; }
+
+		virtual int32 Convert(const FVector2D Value) const override
+		{
+			switch (Field)
+			{
+			default:
+			case EPCGExSingleField::X:
+				return Value.X;
+			case EPCGExSingleField::Y:
+			case EPCGExSingleField::Z:
+			case EPCGExSingleField::W:
+				return Value.Y;
+			case EPCGExSingleField::Length:
+				return Value.Length();
+			}
+		}
+
+		virtual int32 Convert(const FVector Value) const override
+		{
+			switch (Field)
+			{
+			default:
+			case EPCGExSingleField::X:
+				return Value.X;
+			case EPCGExSingleField::Y:
+				return Value.Y;
+			case EPCGExSingleField::Z:
+			case EPCGExSingleField::W:
+				return Value.Z;
+			case EPCGExSingleField::Length:
+				return Value.Length();
+			}
+		}
+
+		virtual int32 Convert(const FVector4 Value) const override
+		{
+			switch (Field)
+			{
+			default:
+			case EPCGExSingleField::X:
+				return Value.X;
+			case EPCGExSingleField::Y:
+				return Value.Y;
+			case EPCGExSingleField::Z:
+				return Value.Z;
+			case EPCGExSingleField::W:
+				return Value.W;
+			case EPCGExSingleField::Length:
+				return FVector(Value).Length();
+			}
+		}
+
+		virtual int32 Convert(const FQuat Value) const override { return Convert(PCGExMath::GetDirection(Value, Axis)); }
+
+		virtual int32 Convert(const FTransform Value) const override
+		{
+			switch (Component)
+			{
+			default: ;
+			case EPCGExTransformComponent::Position:
+				return Convert(Value.GetLocation());
+			case EPCGExTransformComponent::Rotation:
+				return Convert(Value.GetRotation());
+			case EPCGExTransformComponent::Scale:
+				return Convert(Value.GetScale3D());
+			}
+		}
+
+		virtual int32 Convert(const bool Value) const override { return Value; }
+		virtual int32 Convert(const FRotator Value) const override { return Convert(FVector(Value.Roll, Value.Pitch, Value.Yaw)); }
+		virtual int32 Convert(const FString Value) const override { return PCGExMath::ConvertStringToDouble(Value); }
+		virtual int32 Convert(const FName Value) const override { return PCGExMath::ConvertStringToDouble(Value.ToString()); }
+	};
+
+	
 	struct PCGEXTENDEDTOOLKIT_API FLocalVectorGetter : public FAttributeGetter<FVector>
 	{
 	protected:
-		virtual void ResetMinMax() const override
+		virtual void ResetMinMax() override
 		{
 			Min = FVector(TNumericLimits<double>::Max());
 			Max = FVector(TNumericLimits<double>::Min());
@@ -766,7 +856,7 @@ namespace PCGEx
 	struct PCGEXTENDEDTOOLKIT_API FLocalToStringGetter : public FAttributeGetter<FString>
 	{
 	protected:
-		virtual void ResetMinMax() const override
+		virtual void ResetMinMax() override
 		{
 			Min = TEXT("");
 			Max = TEXT("");

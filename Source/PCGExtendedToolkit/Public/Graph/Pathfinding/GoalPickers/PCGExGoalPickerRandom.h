@@ -7,8 +7,10 @@
 #include "PCGEx.h"
 #include "UObject/Object.h"
 #include "PCGExGoalPicker.h"
+#include "Data/PCGExAttributeHelpers.h"
 #include "PCGExGoalPickerRandom.generated.h"
 
+struct FPCGExInputDescriptor;
 struct FPCGPoint;
 class UPCGPointData;
 
@@ -32,10 +34,23 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	EPCGExGoalPickRandomAmount GoalCount = EPCGExGoalPickRandomAmount::Single;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="GoalCount!=EPCGExGoalPickRandomAmount::Single", EditConditionHides, ClampMin=1))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="GoalCount!=EPCGExGoalPickRandomAmount::Single", ClampMin=1))
 	int32 NumGoals = 5;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="GoalCount!=EPCGExGoalPickRandomAmount::Single"))
+	bool bUseLocalNumGoals = false;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="GoalCount!=EPCGExGoalPickRandomAmount::Single && bUseLocalNumGoals"))
+	FPCGExInputDescriptor LocalNumGoalAttribute;
+
+	virtual void PrepareForData(const PCGExData::FPointIO& InSeeds, const PCGExData::FPointIO& InGoals) override;
 
 	virtual int32 GetGoalIndex(const PCGEx::FPointRef& Seed) const override;
 	virtual void GetGoalIndices(const PCGEx::FPointRef& Seed, TArray<int32>& OutIndices) const override;
 	virtual bool OutputMultipleGoals() const override;
+
+	virtual void Cleanup() override;
+
+protected:
+	PCGEx::FLocalSingleIntGetter* NumGoalsGetter = nullptr;
 };
