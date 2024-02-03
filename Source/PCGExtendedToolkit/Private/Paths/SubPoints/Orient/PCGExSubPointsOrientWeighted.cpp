@@ -31,10 +31,10 @@ void UPCGExSubPointsOrientWeighted::Orient(FPCGPoint& Point, const FPCGPoint& Pr
 	const double Weight = PCGExMath::FApex(Previous, Next, Point.Transform.GetLocation()).Alpha;
 
 	Point.Transform.SetRotation(
-		PCGEx::MakeDirection(
+		PCGExMath::MakeDirection(
 			OrientAxis,
 			FMath::Lerp(DirToPrev, DirToNext, 1 - Weight),
-			PCGEx::GetDirection(UpAxis)));
+			PCGExMath::GetDirection(UpAxis)));
 }
 
 void UPCGExSubPointsOrientWeighted::OrientInvertedWeight(FPCGPoint& Point, const FPCGPoint& PreviousPoint, const FPCGPoint& NextPoint) const
@@ -47,8 +47,8 @@ void UPCGExSubPointsOrientWeighted::OrientInvertedWeight(FPCGPoint& Point, const
 	const double Weight = PCGExMath::FApex(Previous, Next, Point.Transform.GetLocation()).Alpha;
 
 	Point.Transform.SetRotation(
-		PCGEx::MakeDirection(
+		PCGExMath::MakeDirection(
 			OrientAxis,
 			FMath::Lerp(DirToPrev, DirToNext, Weight),
-			PCGEx::GetDirection(UpAxis)));
+			PCGExMath::GetDirection(UpAxis)));
 }

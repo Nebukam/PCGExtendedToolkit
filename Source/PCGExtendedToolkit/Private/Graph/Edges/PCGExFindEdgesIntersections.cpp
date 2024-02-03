@@ -195,7 +195,7 @@ bool FPCGExFindIntersectionsTask::ExecuteTask()
 			{
 				FPCGPoint& NewPoint = MutablePoints.Emplace_GetRef();
 				NewPoint.Transform.SetLocation(Crossing.Center);
-				PCGEx::RandomizeSeed(NewPoint);
+				PCGExMath::RandomizeSeed(NewPoint);
 			}
 		}
 	 */

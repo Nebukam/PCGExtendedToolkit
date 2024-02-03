@@ -7,20 +7,37 @@
 #include "PCGExMath.h"
 #include "Data/PCGPointData.h"
 
+void UPCGExGoalPickerRandom::PrepareForData(const PCGExData::FPointIO& InSeeds, const PCGExData::FPointIO& InGoals)
+{
+	if (bUseLocalNumGoals && !NumGoalsGetter)
+	{
+		NumGoalsGetter = new PCGEx::FLocalSingleIntGetter();
+		NumGoalsGetter->Capture(LocalNumGoalAttribute);
+	}
+
+	if (NumGoalsGetter) { NumGoalsGetter->Grab(InSeeds); }
+
+	Super::PrepareForData(InSeeds, InGoals);
+}
+
 int32 UPCGExGoalPickerRandom::GetGoalIndex(const PCGEx::FPointRef& Seed) const
 {
 	const int32 Index = static_cast<int32>(PCGExMath::Remap(
 		FMath::PerlinNoise3D(PCGExMath::Tile(Seed.Point->Transform.GetLocation() * 0.001, FVector(-1), FVector(1))),
 		-1, 1, 0, MaxGoalIndex));
-	return PCGEx::SanitizeIndex(Index, MaxGoalIndex, IndexSafety);
+	return PCGExMath::SanitizeIndex(Index, MaxGoalIndex, IndexSafety);
 }
 
 void UPCGExGoalPickerRandom::GetGoalIndices(const PCGEx::FPointRef& Seed, TArray<int32>& OutIndices) const
 {
-	int32 Picks = GoalCount == EPCGExGoalPickRandomAmount::Random ?
-		              PCGExMath::Remap(
-			              FMath::PerlinNoise3D(PCGExMath::Tile(Seed.Point->Transform.GetLocation() * 0.001 + NumGoals, FVector(-1), FVector(1))),
-			              -1, 1, 0, NumGoals) : NumGoals;
+	int32 Picks = NumGoalsGetter ? NumGoalsGetter->SafeGet(Seed.Index, NumGoals) : NumGoals;
+
+	if (GoalCount == EPCGExGoalPickRandomAmount::Random)
+	{
+		Picks = PCGExMath::Remap(
+			FMath::PerlinNoise3D(PCGExMath::Tile(Seed.Point->Transform.GetLocation() * 0.001 + Picks, FVector(-1), FVector(1))),
+			-1, 1, 0, Picks);
+	}
 
 	Picks = FMath::Min(1, FMath::Min(Picks, MaxGoalIndex));
 
@@ -29,8 +46,14 @@ void UPCGExGoalPickerRandom::GetGoalIndices(const PCGEx::FPointRef& Seed, TArray
 		int32 Index = static_cast<int32>(PCGExMath::Remap(
 			FMath::PerlinNoise3D(PCGExMath::Tile(Seed.Point->Transform.GetLocation() * 0.001 + i, FVector(-1), FVector(1))),
 			-1, 1, 0, MaxGoalIndex));
-		OutIndices.Add(PCGEx::SanitizeIndex(Index, MaxGoalIndex, IndexSafety));
+		OutIndices.Add(PCGExMath::SanitizeIndex(Index, MaxGoalIndex, IndexSafety));
 	}
 }
 
 bool UPCGExGoalPickerRandom::OutputMultipleGoals() const { return GoalCount != EPCGExGoalPickRandomAmount::Single; }
+
+void UPCGExGoalPickerRandom::Cleanup()
+{
+	PCGEX_DELETE(NumGoalsGetter)
+	Super::Cleanup();
+}

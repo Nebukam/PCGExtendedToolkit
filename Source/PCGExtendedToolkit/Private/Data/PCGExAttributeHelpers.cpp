@@ -65,6 +65,18 @@ namespace PCGEx
 		return false;
 	}
 
+	bool FAttributesInfos::Contains(const FName AttributeName)
+	{
+		for (FAttributeIdentity& Identity : Identities) { if (Identity.Name == AttributeName) { return true; } }
+		return false;
+	}
+
+	FAttributeIdentity* FAttributesInfos::Find(FName AttributeName)
+	{
+		for (FAttributeIdentity& Identity : Identities) { if (Identity.Name == AttributeName) { return &Identity; } }
+		return nullptr;
+	}
+
 	FAttributesInfos* FAttributesInfos::Get(const UPCGPointData* InData)
 	{
 		FAttributesInfos* NewInfos = new FAttributesInfos();

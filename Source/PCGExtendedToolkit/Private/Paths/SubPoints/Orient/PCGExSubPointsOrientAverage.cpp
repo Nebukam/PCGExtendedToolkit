@@ -9,7 +9,7 @@ void UPCGExSubPointsOrientAverage::Orient(FPCGPoint& Point, const FPCGPoint& Pre
 	const FVector Previous = PreviousPoint.Transform.GetLocation();
 	const FVector Next = NextPoint.Transform.GetLocation();
 	Point.Transform.SetRotation(
-		PCGEx::MakeDirection(
+		PCGExMath::MakeDirection(
 			OrientAxis, PCGExMath::FApex(Previous, Next, Point.Transform.GetLocation()).Direction,
-			PCGEx::GetDirection(UpAxis)));
+			PCGExMath::GetDirection(UpAxis)));
 }

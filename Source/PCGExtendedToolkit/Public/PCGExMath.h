@@ -5,6 +5,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGEx.h"
+
+#include "PCGExMath.generated.h"
 
 namespace PCGExMath
 {
@@ -70,7 +73,7 @@ namespace PCGExMath
 		{
 			for (const FPCGPoint& Pt : Points) { Add(Pt.Transform.GetLocation()); }
 		}
-		
+
 		FPathMetrics(const FPathMetrics& Other)
 			: Start(Other.Start),
 			  Last(Other.Last),
@@ -544,7 +547,7 @@ namespace PCGExMath
 
 	template <typename CompilerSafety = void>
 	static FColor Lerp(const FColor& A, const FColor& B, const double& Alpha = 0) { return FMath::Lerp(A.ReinterpretAsLinear(), B.ReinterpretAsLinear(), Alpha).ToFColor(false); }
-	
+
 	template <typename CompilerSafety = void>
 	static FQuat Lerp(const FQuat& A, const FQuat& B, const double& Alpha = 0) { return FQuat::Slerp(A, B, Alpha); }
 
@@ -616,4 +619,311 @@ namespace PCGExMath
 	static T NoBlend(const T& A, const T& B, const double& Alpha = 0) { return A; }
 
 #pragma endregion
+
+#pragma region Component
+
+	template <typename T, typename CompilerSafety = void>
+	static double GetComponent(const T& A, const int32 Index) { return A; }
+
+	template <typename CompilerSafety = void>
+	static double GetComponent(const bool& A, const int32 Index) { return A ? 1 : 0; }
+
+	template <typename CompilerSafety = void>
+	static double GetComponent(const FVector& A, const int32 Index) { return A[Index]; }
+
+	template <typename CompilerSafety = void>
+	static double GetComponent(const FVector2D& A, const int32 Index) { return A[Index]; }
+
+	template <typename CompilerSafety = void>
+	static double GetComponent(const FVector4& A, const int32 Index) { return A[Index]; }
+
+	template <typename CompilerSafety = void>
+	static double GetComponent(const FRotator& A, const int32 Index) { return A.Euler()[Index]; }
+
+	template <typename CompilerSafety = void>
+	static double GetComponent(const FQuat& A, const int32 Index) { return A.Euler()[Index]; }
+
+	template <typename CompilerSafety = void>
+	static double GetComponent(const FTransform& A, const int32 Index) { return A.GetLocation()[Index]; }
+
+	template <typename CompilerSafety = void>
+	static double GetComponent(const FName& A, const int32 Index) { return -1; }
+
+	template <typename CompilerSafety = void>
+	static double GetComponent(const FString& A, const int32 Index) { return -1; }
+
+	////
+
+	template <typename T, typename CompilerSafety = void>
+	static void SetComponent(T& A, const int32 Index, const double InValue) { A = InValue; }
+
+	template <typename CompilerSafety = void>
+	static void SetComponent(bool& A, const int32 Index, const double InValue) { A = InValue <= 0 ? false : true; }
+
+	template <typename CompilerSafety = void>
+	static void SetComponent(FVector& A, const int32 Index, const double InValue) { A[Index] = InValue; }
+
+	template <typename CompilerSafety = void>
+	static void SetComponent(FVector2D& A, const int32 Index, const double InValue) { A[Index] = InValue; }
+
+	template <typename CompilerSafety = void>
+	static void SetComponent(FVector4& A, const int32 Index, const double InValue) { A[Index] = InValue; }
+
+	template <typename CompilerSafety = void>
+	static void SetComponent(FRotator& A, const int32 Index, const double InValue)
+	{
+		FVector Euler = A.Euler();
+		SetComponent(Euler, Index, InValue);
+		A = FRotator::MakeFromEuler(Euler);
+	}
+
+	template <typename CompilerSafety = void>
+	static void SetComponent(FQuat& A, const int32 Index, const double InValue)
+	{
+		FVector Euler = A.Euler();
+		SetComponent(Euler, Index, InValue);
+		A = FQuat::MakeFromEuler(Euler);
+	}
+
+	template <typename CompilerSafety = void>
+	static void SetComponent(FTransform& A, const int32 Index, const double InValue)
+	{
+		FVector Location = A.GetLocation();
+		SetComponent(Location, Index, InValue);
+		A.SetLocation(Location);
+	}
+
+	template <typename CompilerSafety = void>
+	static void SetComponent(FName& A, const int32 Index, const double InValue)
+	{
+	}
+
+	template <typename CompilerSafety = void>
+	static void SetComponent(FString& A, const int32 Index, const double InValue)
+	{
+	}
+
+#pragma endregion
+
+	template <typename T>
+	static T SanitizeIndex(const T& Index, const T& Limit, const EPCGExIndexSafety Method)
+	{
+		switch (Method)
+		{
+		case EPCGExIndexSafety::Ignore:
+			if (Index < 0 || Index > Limit) { return -1; }
+			break;
+		case EPCGExIndexSafety::Tile:
+			return PCGExMath::Tile(Index, 0, Limit);
+		case EPCGExIndexSafety::Clamp:
+			return FMath::Clamp(Index, 0, Limit);
+		default: ;
+		}
+		return Index;
+	}
+
+	static FVector GetDirection(const FQuat& Quat, const EPCGExAxis Dir)
+	{
+		switch (Dir)
+		{
+		default:
+		case EPCGExAxis::Forward:
+			return Quat.GetForwardVector();
+		case EPCGExAxis::Backward:
+			return Quat.GetForwardVector() * -1;
+		case EPCGExAxis::Right:
+			return Quat.GetRightVector();
+		case EPCGExAxis::Left:
+			return Quat.GetRightVector() * -1;
+		case EPCGExAxis::Up:
+			return Quat.GetUpVector();
+		case EPCGExAxis::Down:
+			return Quat.GetUpVector() * -1;
+		case EPCGExAxis::Euler:
+			return Quat.Euler() * -1;
+		}
+	}
+
+	static FVector GetDirection(const EPCGExAxis Dir)
+	{
+		switch (Dir)
+		{
+		default:
+		case EPCGExAxis::Forward:
+			return FVector::ForwardVector;
+		case EPCGExAxis::Backward:
+			return FVector::BackwardVector;
+		case EPCGExAxis::Right:
+			return FVector::RightVector;
+		case EPCGExAxis::Left:
+			return FVector::LeftVector;
+		case EPCGExAxis::Up:
+			return FVector::UpVector;
+		case EPCGExAxis::Down:
+			return FVector::DownVector;
+		case EPCGExAxis::Euler:
+			return FVector::OneVector;
+		}
+	}
+
+	static FQuat MakeDirection(const EPCGExAxis Dir, const FVector& InForward)
+	{
+		switch (Dir)
+		{
+		default:
+		case EPCGExAxis::Forward:
+			return FRotationMatrix::MakeFromX(InForward * -1).ToQuat();
+		case EPCGExAxis::Backward:
+			return FRotationMatrix::MakeFromX(InForward).ToQuat();
+		case EPCGExAxis::Right:
+			return FRotationMatrix::MakeFromY(InForward * -1).ToQuat();
+		case EPCGExAxis::Left:
+			return FRotationMatrix::MakeFromY(InForward).ToQuat();
+		case EPCGExAxis::Up:
+			return FRotationMatrix::MakeFromZ(InForward * -1).ToQuat();
+		case EPCGExAxis::Down:
+			return FRotationMatrix::MakeFromZ(InForward).ToQuat();
+		}
+	}
+
+	static FQuat MakeDirection(const EPCGExAxis Dir, const FVector& InForward, const FVector& InUp)
+	{
+		switch (Dir)
+		{
+		default:
+		case EPCGExAxis::Forward:
+			return FRotationMatrix::MakeFromXZ(InForward * -1, InUp).ToQuat();
+		case EPCGExAxis::Backward:
+			return FRotationMatrix::MakeFromXZ(InForward, InUp).ToQuat();
+		case EPCGExAxis::Right:
+			return FRotationMatrix::MakeFromYZ(InForward * -1, InUp).ToQuat();
+		case EPCGExAxis::Left:
+			return FRotationMatrix::MakeFromYZ(InForward, InUp).ToQuat();
+		case EPCGExAxis::Up:
+			return FRotationMatrix::MakeFromZY(InForward * -1, InUp).ToQuat();
+		case EPCGExAxis::Down:
+			return FRotationMatrix::MakeFromZY(InForward, InUp).ToQuat();
+		}
+	}
+
+	template <typename T>
+	static void Swap(TArray<T>& Array, int32 FirstIndex, int32 SecondIndex)
+	{
+		T* Ptr1 = &Array[FirstIndex];
+		T* Ptr2 = &Array[SecondIndex];
+		std::swap(*Ptr1, *Ptr2);
+	}
+
+	static void RandomizeSeed(FPCGPoint& Point, const FVector& Offset = FVector::ZeroVector)
+	{
+		Point.Seed = static_cast<int32>(PCGExMath::Remap(
+			FMath::PerlinNoise3D(PCGExMath::Tile(Point.Transform.GetLocation() * 0.001 + Offset, FVector(-1), FVector(1))),
+			-1, 1, TNumericLimits<int32>::Min(), TNumericLimits<int32>::Max()));
+	}
 }
+
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExClampSettings
+{
+	GENERATED_BODY()
+
+	FPCGExClampSettings()
+	{
+	}
+
+	FPCGExClampSettings(const FPCGExClampSettings& Other):
+		bClampMin(Other.bClampMin),
+		ClampMin(Other.ClampMin),
+		bClampMax(Other.bClampMax),
+		ClampMax(Other.ClampMax)
+	{
+	}
+
+	/** Clamp minimum value. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
+	bool bClampMin = false;
+
+	/** Clamp minimum value. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bClampMin"))
+	double ClampMin = 0;
+
+	/** Clamp maximum value. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
+	bool bClampMax = false;
+
+	/** Clamp maximum value. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bClampMax"))
+	double ClampMax = 0;
+
+	double GetClampMin(const double InValue) const { return InValue < ClampMin ? ClampMin : InValue; }
+	double GetClampMax(const double InValue) const { return InValue > ClampMax ? ClampMax : InValue; }
+	double GetClampMinMax(const double InValue) const { return InValue > ClampMax ? ClampMax : InValue < ClampMin ? ClampMin : InValue; }
+
+	double GetClampedValue(const double InValue) const
+	{
+		if (bClampMin && InValue < ClampMin) { return ClampMin; }
+		if (bClampMax && InValue > ClampMax) { return ClampMax; }
+		return InValue;
+	}
+};
+
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExRemapSettings
+{
+	GENERATED_BODY()
+
+	FPCGExRemapSettings()
+	{
+	}
+
+	FPCGExRemapSettings(const FPCGExRemapSettings& Other):
+		bInMin(Other.bInMin),
+		InMin(Other.InMin),
+		bInMax(Other.bInMax),
+		InMax(Other.InMax),
+		Scale(Other.Scale),
+		RemapCurveObj(Other.RemapCurveObj)
+	{
+	}
+
+	~FPCGExRemapSettings()
+	{
+		RemapCurveObj = nullptr;
+	}
+
+	/** Fixed In Min value. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
+	bool bInMin = false;
+
+	/** Fixed In Min value. If disabled, will use the lowest input value.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bInMin"))
+	double InMin = 0;
+
+	/** Fixed In Max value. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
+	bool bInMax = false;
+
+	/** Fixed In Max value. If disabled, will use the highest input value.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bInMax"))
+	double InMax = 0;
+
+	/** Scale output value. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	double Scale = 1;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TSoftObjectPtr<UCurveFloat> RemapCurve = TSoftObjectPtr<UCurveFloat>(PCGEx::WeightDistributionLinear);
+
+	TObjectPtr<UCurveFloat> RemapCurveObj = nullptr;
+
+	void LoadCurve()
+	{
+		if (RemapCurve.IsNull()) { RemapCurveObj = TSoftObjectPtr<UCurveFloat>(PCGEx::WeightDistributionLinear).LoadSynchronous(); }
+		else { RemapCurveObj = RemapCurve.LoadSynchronous(); }
+	}
+
+	double GetRemappedValue(double Value) const
+	{
+		return RemapCurveObj->GetFloatValue(PCGExMath::Remap(Value, InMin, InMax, 0, 1)) * Scale;
+	}
+};

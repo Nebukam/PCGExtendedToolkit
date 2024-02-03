@@ -75,33 +75,33 @@ void UPCGExSubPointsOrientLookAt::ProcessSubPoints(const PCGEx::FPointRef& Start
 void UPCGExSubPointsOrientLookAt::LookAtNext(FPCGPoint& Point, const FPCGPoint& PreviousPoint, const FPCGPoint& NextPoint) const
 {
 	Point.Transform.SetRotation(
-		PCGEx::MakeDirection(
+		PCGExMath::MakeDirection(
 			OrientAxis,
 			(Point.Transform.GetLocation() - NextPoint.Transform.GetLocation()),
-			PCGEx::GetDirection(UpAxis)));
+			PCGExMath::GetDirection(UpAxis)));
 }
 
 void UPCGExSubPointsOrientLookAt::LookAtPrev(FPCGPoint& Point, const FPCGPoint& PreviousPoint, const FPCGPoint& NextPoint) const
 {
 	Point.Transform.SetRotation(
-		PCGEx::MakeDirection(
+		PCGExMath::MakeDirection(
 			OrientAxis,
 			(Point.Transform.GetLocation() - PreviousPoint.Transform.GetLocation()),
-			PCGEx::GetDirection(UpAxis)));
+			PCGExMath::GetDirection(UpAxis)));
 }
 
 void UPCGExSubPointsOrientLookAt::LookAtAttribute(FPCGPoint& Point, const int32 Index) const
 {
 	Point.Transform.SetRotation(
-		PCGEx::MakeDirection(
-			OrientAxis, (*LookAtGetter)[Index], PCGEx::GetDirection(UpAxis)));
+		PCGExMath::MakeDirection(
+			OrientAxis, (*LookAtGetter)[Index], PCGExMath::GetDirection(UpAxis)));
 }
 
 void UPCGExSubPointsOrientLookAt::LookAtAttributeOffset(FPCGPoint& Point, const int32 Index) const
 {
 	Point.Transform.SetRotation(
-		PCGEx::MakeDirection(
-			OrientAxis, Point.Transform.GetLocation() + (*LookAtGetter)[Index], PCGEx::GetDirection(UpAxis)));
+		PCGExMath::MakeDirection(
+			OrientAxis, Point.Transform.GetLocation() + (*LookAtGetter)[Index], PCGExMath::GetDirection(UpAxis)));
 }
 
 void UPCGExSubPointsOrientLookAt::Cleanup()

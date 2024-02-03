@@ -32,7 +32,7 @@ FPCGElementPtr UPCGEx##_NAME##Settings::CreateElement() const{	return MakeShared
 #define PCGEX_OPERATION_DEFAULT(_NAME, _TYPE)  // _NAME = NewObject<_TYPE>(this, TEXT(#_NAME)); //ObjectInitializer.CreateDefaultSubobject<_TYPE>(this, TEXT(#_NAME)); // if(!_NAME){_NAME = NewObject<_TYPE>(); _NAME->UpdateUserFacingInfos();}
 #define PCGEX_OPERATION_VALIDATE(_NAME) if(!Settings->_NAME){PCGE_LOG(Error, GraphAndLog, FTEXT("No operation selected for : "#_NAME)); return false;}
 #define PCGEX_OPERATION_BIND(_NAME, _TYPE) PCGEX_OPERATION_VALIDATE(_NAME) Context->_NAME = Context->RegisterOperation<_TYPE>(Settings->_NAME);
-#define PCGEX_VALIDATE_NAME(_NAME) if (!FPCGMetadataAttributeBase::IsValidName(_NAME)){	PCGE_LOG(Error, GraphAndLog, FTEXT("Invalid user-defined attribute name.")); return false;	}
+#define PCGEX_VALIDATE_NAME(_NAME) if (!FPCGMetadataAttributeBase::IsValidName(_NAME) && !_NAME.IsNone()){	PCGE_LOG(Error, GraphAndLog, FTEXT("Invalid user-defined attribute name.")); return false;	}
 #define PCGEX_FWD(_NAME) Context->_NAME = Settings->_NAME;
 #define PCGEX_TERMINATE_ASYNC PCGEX_DELETE(AsyncManager)
 

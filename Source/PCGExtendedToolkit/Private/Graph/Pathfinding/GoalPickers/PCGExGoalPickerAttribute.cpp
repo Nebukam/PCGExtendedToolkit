@@ -29,7 +29,7 @@ void UPCGExGoalPickerAttribute::PrepareForData(const PCGExData::FPointIO& InSeed
 
 int32 UPCGExGoalPickerAttribute::GetGoalIndex(const PCGEx::FPointRef& Seed) const
 {
-	return PCGEx::SanitizeIndex(
+	return PCGExMath::SanitizeIndex(
 		static_cast<int32>(AttributeGetter.SafeGet(Seed.Index, -1)),
 		MaxGoalIndex, IndexSafety);
 }
@@ -40,7 +40,7 @@ void UPCGExGoalPickerAttribute::GetGoalIndices(const PCGEx::FPointRef& Seed, TAr
 	{
 		if (!Getter.bValid) { continue; }
 		OutIndices.Add(
-			PCGEx::SanitizeIndex(
+			PCGExMath::SanitizeIndex(
 				static_cast<int32>(Getter.SafeGet(Seed.Index, -1)),
 				MaxGoalIndex, IndexSafety));
 	}
