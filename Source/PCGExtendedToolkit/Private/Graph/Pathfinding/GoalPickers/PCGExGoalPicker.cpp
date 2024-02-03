@@ -13,7 +13,7 @@ void UPCGExGoalPicker::PrepareForData(const PCGExData::FPointIO& InSeeds, const 
 
 int32 UPCGExGoalPicker::GetGoalIndex(const PCGEx::FPointRef& Seed) const
 {
-	return PCGEx::SanitizeIndex(Seed.Index, MaxGoalIndex, IndexSafety);
+	return PCGExMath::SanitizeIndex(Seed.Index, MaxGoalIndex, IndexSafety);
 }
 
 void UPCGExGoalPicker::GetGoalIndices(const PCGEx::FPointRef& Seed, TArray<int32>& OutIndices) const

@@ -139,7 +139,7 @@ namespace PCGExGeo
 				{
 					FPCGPoint& Point = OutPoints[Cell->Circumcenter->Id];
 					Point.Transform.SetLocation(Cell->GetBestCenter());
-					PCGEx::RandomizeSeed(Point);
+					PCGExMath::RandomizeSeed(Point);
 				}
 				break;
 			case EPCGExCellCenter::Circumcenter:
@@ -147,7 +147,7 @@ namespace PCGExGeo
 				{
 					FPCGPoint& Point = OutPoints[Cell->Circumcenter->Id];
 					Point.Transform.SetLocation(PCGExGeo::GetV3(Cell->Circumcenter));
-					PCGEx::RandomizeSeed(Point);
+					PCGExMath::RandomizeSeed(Point);
 				}
 				break;
 			case EPCGExCellCenter::Centroid:
@@ -155,7 +155,7 @@ namespace PCGExGeo
 				{
 					FPCGPoint& Point = OutPoints[Cell->Circumcenter->Id];
 					Point.Transform.SetLocation(Cell->Centroid);
-					PCGEx::RandomizeSeed(Point);
+					PCGExMath::RandomizeSeed(Point);
 				}
 				break;
 			}

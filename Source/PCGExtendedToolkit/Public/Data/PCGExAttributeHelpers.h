@@ -105,11 +105,10 @@ namespace PCGEx
 		EPCGMetadataTypes UnderlyingType = EPCGMetadataTypes::Unknown;
 
 		FAttributeIdentity(FName InName, EPCGMetadataTypes InUnderlyingType)
-			:Name(InName), UnderlyingType(InUnderlyingType)
+			: Name(InName), UnderlyingType(InUnderlyingType)
 		{
-			
 		}
-		
+
 		FString GetDisplayName() const { return FString(Name.ToString() + FString::Printf(TEXT("( %d )"), UnderlyingType)); }
 		bool operator==(const FAttributeIdentity& Other) const { return Name == Other.Name; }
 
@@ -121,6 +120,8 @@ namespace PCGEx
 	{
 		TArray<FAttributeIdentity> Identities;
 		bool Contains(FName AttributeName, EPCGMetadataTypes Type);
+		bool Contains(FName AttributeName);
+		FAttributeIdentity* Find(FName AttributeName);
 
 		~FAttributesInfos()
 		{
@@ -628,7 +629,7 @@ namespace PCGEx
 #define  PCGEX_PRINT_VIRTUAL(_TYPE, _NAME, ...) virtual T Convert(const _TYPE Value) const { return GetDefaultValue(); };
 		PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_PRINT_VIRTUAL)
 	};
-
+	
 #pragma endregion
 
 #pragma region Local Attribute Getter
@@ -700,7 +701,7 @@ namespace PCGEx
 			}
 		}
 
-		virtual double Convert(const FQuat Value) const override { return Convert(GetDirection(Value, Axis)); }
+		virtual double Convert(const FQuat Value) const override { return Convert(PCGExMath::GetDirection(Value, Axis)); }
 
 		virtual double Convert(const FTransform Value) const override
 		{
@@ -741,7 +742,7 @@ namespace PCGEx
 		virtual FVector Convert(const FVector2D Value) const override { return FVector(Value.X, Value.Y, 0); }
 		virtual FVector Convert(const FVector Value) const override { return Value; }
 		virtual FVector Convert(const FVector4 Value) const override { return FVector(Value); }
-		virtual FVector Convert(const FQuat Value) const override { return GetDirection(Value, Axis); }
+		virtual FVector Convert(const FQuat Value) const override { return PCGExMath::GetDirection(Value, Axis); }
 
 		virtual FVector Convert(const FTransform Value) const override
 		{

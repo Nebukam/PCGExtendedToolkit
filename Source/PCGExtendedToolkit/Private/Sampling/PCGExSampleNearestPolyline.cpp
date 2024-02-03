@@ -241,9 +241,9 @@ bool FPCGExSamplePolylineTask::ExecuteTask()
 		const FQuat Quat = TargetInfos.Transform.GetRotation();
 		WeightedLocation += (TargetLocationOffset * Weight); // Relative to origin
 		WeightedLookAt += (TargetLocationOffset.GetSafeNormal()) * Weight;
-		WeightedNormal += PCGEx::GetDirection(Quat, Context->NormalSource) * Weight; // Use forward as default
-		WeightedSignAxis += PCGEx::GetDirection(Quat, Context->SignAxis) * Weight;
-		WeightedAngleAxis += PCGEx::GetDirection(Quat, Context->AngleAxis) * Weight;
+		WeightedNormal += PCGExMath::GetDirection(Quat, Context->NormalSource) * Weight; // Use forward as default
+		WeightedSignAxis += PCGExMath::GetDirection(Quat, Context->SignAxis) * Weight;
+		WeightedAngleAxis += PCGExMath::GetDirection(Quat, Context->AngleAxis) * Weight;
 		WeightedTime += TargetInfos.Time * Weight;
 		TotalWeight += Weight;
 	};

@@ -41,7 +41,7 @@ bool FPCGExSortPointsElement::ExecuteInternal(FPCGContext* InContext) const
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
 		int32 IOIndex = 0;
-		while (Context->AdvancePointsIO()) { Context->GetAsyncManager()->Start<FPCGExSortPointIO>(IOIndex, Context->CurrentIO); }
+		while (Context->AdvancePointsIO()) { Context->GetAsyncManager()->Start<FPCGExSortPointIO>(IOIndex++, Context->CurrentIO); }
 
 		Context->SetAsyncState(PCGExMT::State_ProcessingPoints);
 	}
@@ -118,9 +118,6 @@ bool FPCGExSortPointIO::ExecuteTask()
 
 	return true;
 }
-
-#undef PCGEX_COMPARE_PROPERTY
-#undef PCGEX_COMPARE_PROPERTY_CASE
 
 #undef LOCTEXT_NAMESPACE
 #undef PCGEX_NAMESPACE

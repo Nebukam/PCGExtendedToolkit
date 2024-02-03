@@ -191,7 +191,7 @@ bool FPCGExWriteSubGraphEdgesTask::ExecuteTask()
 					Vertices[(EdgeEnd->Values[PointIndex] = Graph->Nodes[Edge.End].PointIndex)].Transform.GetLocation(), Graph->EdgePosition));
 		}
 
-		if (Point.Seed == 0) { PCGEx::RandomizeSeed(Point); }
+		if (Point.Seed == 0) { PCGExMath::RandomizeSeed(Point); }
 		PointIndex++;
 	}
 

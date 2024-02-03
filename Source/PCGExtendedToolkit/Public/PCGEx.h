@@ -5,7 +5,6 @@
 
 #include "PCGComponent.h"
 #include "PCGContext.h"
-#include "PCGExMath.h"
 #include "MatchAndSet/PCGMatchAndSetWeighted.h"
 
 #include "PCGEx.generated.h"
@@ -349,107 +348,6 @@ namespace PCGEx
 	}
 
 	template <typename T>
-	static T SanitizeIndex(const T& Index, const T& Limit, const EPCGExIndexSafety Method)
-	{
-		switch (Method)
-		{
-		case EPCGExIndexSafety::Ignore:
-			if (Index < 0 || Index > Limit) { return -1; }
-			break;
-		case EPCGExIndexSafety::Tile:
-			return PCGExMath::Tile(Index, 0, Limit);
-		case EPCGExIndexSafety::Clamp:
-			return FMath::Clamp(Index, 0, Limit);
-		default: ;
-		}
-		return Index;
-	}
-
-	static FVector GetDirection(const FQuat& Quat, const EPCGExAxis Dir)
-	{
-		switch (Dir)
-		{
-		default:
-		case EPCGExAxis::Forward:
-			return Quat.GetForwardVector();
-		case EPCGExAxis::Backward:
-			return Quat.GetForwardVector() * -1;
-		case EPCGExAxis::Right:
-			return Quat.GetRightVector();
-		case EPCGExAxis::Left:
-			return Quat.GetRightVector() * -1;
-		case EPCGExAxis::Up:
-			return Quat.GetUpVector();
-		case EPCGExAxis::Down:
-			return Quat.GetUpVector() * -1;
-		case EPCGExAxis::Euler:
-			return Quat.Euler() * -1;
-		}
-	}
-
-	static FVector GetDirection(const EPCGExAxis Dir)
-	{
-		switch (Dir)
-		{
-		default:
-		case EPCGExAxis::Forward:
-			return FVector::ForwardVector;
-		case EPCGExAxis::Backward:
-			return FVector::BackwardVector;
-		case EPCGExAxis::Right:
-			return FVector::RightVector;
-		case EPCGExAxis::Left:
-			return FVector::LeftVector;
-		case EPCGExAxis::Up:
-			return FVector::UpVector;
-		case EPCGExAxis::Down:
-			return FVector::DownVector;
-		case EPCGExAxis::Euler:
-			return FVector::OneVector;
-		}
-	}
-
-	static FQuat MakeDirection(const EPCGExAxis Dir, const FVector& InForward)
-	{
-		switch (Dir)
-		{
-		default:
-		case EPCGExAxis::Forward:
-			return FRotationMatrix::MakeFromX(InForward * -1).ToQuat();
-		case EPCGExAxis::Backward:
-			return FRotationMatrix::MakeFromX(InForward).ToQuat();
-		case EPCGExAxis::Right:
-			return FRotationMatrix::MakeFromY(InForward * -1).ToQuat();
-		case EPCGExAxis::Left:
-			return FRotationMatrix::MakeFromY(InForward).ToQuat();
-		case EPCGExAxis::Up:
-			return FRotationMatrix::MakeFromZ(InForward * -1).ToQuat();
-		case EPCGExAxis::Down:
-			return FRotationMatrix::MakeFromZ(InForward).ToQuat();
-		}
-	}
-
-	static FQuat MakeDirection(const EPCGExAxis Dir, const FVector& InForward, const FVector& InUp)
-	{
-		switch (Dir)
-		{
-		default:
-		case EPCGExAxis::Forward:
-			return FRotationMatrix::MakeFromXZ(InForward * -1, InUp).ToQuat();
-		case EPCGExAxis::Backward:
-			return FRotationMatrix::MakeFromXZ(InForward, InUp).ToQuat();
-		case EPCGExAxis::Right:
-			return FRotationMatrix::MakeFromYZ(InForward * -1, InUp).ToQuat();
-		case EPCGExAxis::Left:
-			return FRotationMatrix::MakeFromYZ(InForward, InUp).ToQuat();
-		case EPCGExAxis::Up:
-			return FRotationMatrix::MakeFromZY(InForward * -1, InUp).ToQuat();
-		case EPCGExAxis::Down:
-			return FRotationMatrix::MakeFromZY(InForward, InUp).ToQuat();
-		}
-	}
-
-	template <typename T>
 	static void Swap(TArray<T>& Array, int32 FirstIndex, int32 SecondIndex)
 	{
 		T* Ptr1 = &Array[FirstIndex];
@@ -457,10 +355,4 @@ namespace PCGEx
 		std::swap(*Ptr1, *Ptr2);
 	}
 
-	static void RandomizeSeed(FPCGPoint& Point, const FVector& Offset = FVector::ZeroVector)
-	{
-		Point.Seed = static_cast<int32>(PCGExMath::Remap(
-			FMath::PerlinNoise3D(PCGExMath::Tile(Point.Transform.GetLocation() * 0.001 + Offset, FVector(-1), FVector(1))),
-			-1, 1, TNumericLimits<int32>::Min(), TNumericLimits<int32>::Max()));
-	}
 }

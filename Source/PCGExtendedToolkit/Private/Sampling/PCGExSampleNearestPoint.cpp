@@ -248,8 +248,8 @@ bool FPCGExSamplePointTask::ExecuteTask()
 		WeightedLocation += (TargetLocationOffset * Weight); // Relative to origin
 		WeightedLookAt += (TargetLocationOffset.GetSafeNormal()) * Weight;
 		WeightedNormal += Context->NormalGetter[TargetInfos.Index] * Weight;
-		WeightedSignAxis += PCGEx::GetDirection(Target.Transform.GetRotation(), Context->SignAxis) * Weight;
-		WeightedAngleAxis += PCGEx::GetDirection(Target.Transform.GetRotation(), Context->AngleAxis) * Weight;
+		WeightedSignAxis += PCGExMath::GetDirection(Target.Transform.GetRotation(), Context->SignAxis) * Weight;
+		WeightedAngleAxis += PCGExMath::GetDirection(Target.Transform.GetRotation(), Context->AngleAxis) * Weight;
 
 		TotalWeight += Weight;
 	};
