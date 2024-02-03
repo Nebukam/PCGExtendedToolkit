@@ -139,14 +139,13 @@ bool FPCGExRemapPointIO::ExecuteTask()
 	PCGEX_SETTINGS(AttributeRemap);
 
 	FPCGExComponentRemapRule RemapSettings[4];
+	double OriginalRemapMin[4];
+	double OriginalRemapMax[4];
 
-	TArray<TArray<double>*> Data;
-	Data.SetNumUninitialized(Dimensions);
-
-	for (int i = 0; i < Dimensions; i++)
+	for (int i = 0; i < 4; i++)
 	{
-		TArray<double>* NewArray = new TArray<double>();
-		Data[i] = NewArray;
+		OriginalRemapMin[i] = Context->RemapSettings[Context->RemapIndices[i]].RemapSettings.InMin;
+		OriginalRemapMax[i] = Context->RemapSettings[Context->RemapIndices[i]].RemapSettings.InMax;
 	}
 
 	int32 NumPoints = PointIO->GetNum();
@@ -170,8 +169,6 @@ bool FPCGExRemapPointIO::ExecuteTask()
 		{
 			FPCGExComponentRemapRule Rule = FPCGExComponentRemapRule(Context->RemapSettings[Context->RemapIndices[i]]);
 
-			const double InMinOverride = Rule.RemapSettings.InMin;
-			const double InMaxOverride = Rule.RemapSettings.InMax;
 			double VAL;
 
 			for (RawT& V : RawValues)
@@ -183,8 +180,8 @@ bool FPCGExRemapPointIO::ExecuteTask()
 				Rule.RemapSettings.InMax = FMath::Max(Rule.RemapSettings.InMax, VAL);
 			}
 
-			if (Rule.RemapSettings.bInMin) { Rule.RemapSettings.InMin = InMinOverride; }
-			if (Rule.RemapSettings.bInMax) { Rule.RemapSettings.InMax = InMaxOverride; }
+			if (Rule.RemapSettings.bInMin) { Rule.RemapSettings.InMin = OriginalRemapMin[i]; }
+			if (Rule.RemapSettings.bInMax) { Rule.RemapSettings.InMax = OriginalRemapMax[i]; }
 
 			for (RawT& V : RawValues)
 			{
