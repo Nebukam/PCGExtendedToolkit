@@ -34,14 +34,20 @@ void UPCGExEdgeRelaxingOperation::ProcessVertex(const PCGExCluster::FNode& Verte
 {
 }
 
-void UPCGExEdgeRelaxingOperation::WriteActiveBuffer(PCGExData::FPointIO& PointIO, PCGEx::FLocalSingleFieldGetter& Influence)
+void UPCGExEdgeRelaxingOperation::ApplyInfluence(const PCGEx::FLocalSingleFieldGetter& Influence, TArray<FVector>* OverrideBuffer) const
+{
+	if(OverrideBuffer){for (int i = 0; i < WriteBuffer->Num(); i++) { (*WriteBuffer)[i] = FMath::Lerp((*OverrideBuffer)[i], (*WriteBuffer)[i], Influence.SafeGet(i, DefaultInfluence)); }}
+	else{for (int i = 0; i < WriteBuffer->Num(); i++) { (*WriteBuffer)[i] = FMath::Lerp((*ReadBuffer)[i], (*WriteBuffer)[i], Influence.SafeGet(i, DefaultInfluence)); }}
+	
+}
+
+void UPCGExEdgeRelaxingOperation::WriteActiveBuffer(PCGExData::FPointIO& PointIO)
 {
 	TArray<FPCGPoint>& MutablePoints = PointIO.GetOut()->GetMutablePoints();
 	for (int i = 0; i < WriteBuffer->Num(); i++)
 	{
 		FPCGPoint& OutPoint = MutablePoints[i];
-		OutPoint.Transform.SetLocation(
-			FMath::Lerp(OutPoint.Transform.GetLocation(), (*WriteBuffer)[i], Influence.SafeGet(i, DefaultInfluence)));
+		OutPoint.Transform.SetLocation((*WriteBuffer)[i]);
 	}
 }
 

@@ -24,6 +24,7 @@ FPCGExRelaxEdgeClustersContext::~FPCGExRelaxEdgeClustersContext()
 {
 	PCGEX_TERMINATE_ASYNC
 
+	OriginalBuffer.Empty();
 	PrimaryBuffer.Empty();
 	SecondaryBuffer.Empty();
 
@@ -51,7 +52,7 @@ bool FPCGExRelaxEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) con
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExRelaxEdgeClustersElement::Execute);
 
-	PCGEX_CONTEXT(RelaxEdgeClusters)
+	PCGEX_CONTEXT_AND_SETTINGS(RelaxEdgeClusters)
 
 	if (Context->IsSetup())
 	{
@@ -65,15 +66,8 @@ bool FPCGExRelaxEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) con
 
 		if (Context->CurrentIO)
 		{
-			// Dump buffers
-			if (Context->bUseLocalInfluence)
-			{
-				Context->InfluenceGetter.bEnabled = true;
-				Context->InfluenceGetter.Grab(*Context->CurrentIO);
-			}
-			else { Context->InfluenceGetter.bEnabled = false; }
-
-			Context->Relaxing->WriteActiveBuffer(*Context->CurrentIO, Context->InfluenceGetter);
+			if (!Settings->bProgressiveInfluence) { Context->Relaxing->ApplyInfluence(Context->InfluenceGetter, &Context->OriginalBuffer); }
+			Context->Relaxing->WriteActiveBuffer(*Context->CurrentIO);
 		}
 
 		if (!Context->AdvancePointsIO()) { Context->Done(); }
@@ -86,15 +80,22 @@ bool FPCGExRelaxEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) con
 			}
 			else
 			{
+				if (Context->bUseLocalInfluence)
+				{
+					Context->InfluenceGetter.bEnabled = true;
+					Context->InfluenceGetter.Grab(*Context->CurrentIO);
+				}
+				else { Context->InfluenceGetter.bEnabled = false; }
+
 				const TArray<FPCGPoint>& InPoints = Context->CurrentIO->GetIn()->GetPoints();
 				const int32 NumPoints = InPoints.Num();
+				Context->OriginalBuffer.SetNumUninitialized(NumPoints);
 				Context->PrimaryBuffer.SetNumUninitialized(NumPoints);
 				Context->SecondaryBuffer.SetNumUninitialized(NumPoints);
 
 				for (int i = 0; i < NumPoints; i++)
 				{
-					Context->PrimaryBuffer[i] =
-						Context->SecondaryBuffer[i] = InPoints[i].Transform.GetLocation();
+					Context->OriginalBuffer[i] = Context->PrimaryBuffer[i] = Context->SecondaryBuffer[i] = InPoints[i].Transform.GetLocation();
 				}
 
 				Context->Relaxing->PrepareForPointIO(*Context->CurrentIO);
@@ -132,6 +133,7 @@ bool FPCGExRelaxEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) con
 		while (Context->CurrentIteration != Context->Iterations)
 		{
 			if (Context->ProcessCurrentCluster(Initialize, ProcessVertex)) { Context->CurrentIteration++; }
+			if (Settings->bProgressiveInfluence) { Context->Relaxing->ApplyInfluence(Context->InfluenceGetter); }
 			return false;
 		}
 

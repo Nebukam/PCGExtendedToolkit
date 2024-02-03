@@ -44,6 +44,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bUseLocalInfluence"))
 	FPCGExInputDescriptor LocalInfluence;
 
+	/** If enabled, applies influence after each iteration; otherwise applies once at the end of the relaxing.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	bool bProgressiveInfluence = true;
+	
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable, NoResetToDefault, ShowOnlyInnerProperties))
 	TObjectPtr<UPCGExEdgeRelaxingOperation> Relaxing;
 
@@ -62,6 +66,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExRelaxEdgeClustersContext : public FPCGExEdge
 	bool bUseLocalInfluence = false;
 	PCGEx::FLocalSingleFieldGetter InfluenceGetter;
 
+	TArray<FVector> OriginalBuffer;
 	TArray<FVector> PrimaryBuffer;
 	TArray<FVector> SecondaryBuffer;
 
