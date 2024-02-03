@@ -139,14 +139,6 @@ bool FPCGExRemapPointIO::ExecuteTask()
 	PCGEX_SETTINGS(AttributeRemap);
 
 	FPCGExComponentRemapRule RemapSettings[4];
-	double OriginalRemapMin[4];
-	double OriginalRemapMax[4];
-
-	for (int i = 0; i < 4; i++)
-	{
-		OriginalRemapMin[i] = Context->RemapSettings[Context->RemapIndices[i]].RemapSettings.InMin;
-		OriginalRemapMax[i] = Context->RemapSettings[Context->RemapIndices[i]].RemapSettings.InMax;
-	}
 
 	int32 NumPoints = PointIO->GetNum();
 
@@ -169,6 +161,12 @@ bool FPCGExRemapPointIO::ExecuteTask()
 		{
 			FPCGExComponentRemapRule Rule = FPCGExComponentRemapRule(Context->RemapSettings[Context->RemapIndices[i]]);
 
+			const double CachedRMin = Rule.RemapSettings.InMin;
+			const double CachedRMax = Rule.RemapSettings.InMax;
+
+			Rule.RemapSettings.InMin = TNumericLimits<double>::Max();
+			Rule.RemapSettings.InMax = TNumericLimits<double>::Min();
+
 			double VAL;
 
 			for (RawT& V : RawValues)
@@ -176,17 +174,17 @@ bool FPCGExRemapPointIO::ExecuteTask()
 				VAL = Rule.InputClampSettings.GetClampedValue(PCGExMath::GetComponent(V, i));
 				PCGExMath::SetComponent(V, i, VAL);
 
-				Rule.RemapSettings.InMin = FMath::Min(Rule.RemapSettings.InMin, VAL);
-				Rule.RemapSettings.InMax = FMath::Max(Rule.RemapSettings.InMax, VAL);
+				Rule.RemapSettings.InMin = FMath::Min(Rule.RemapSettings.InMin, FMath::Abs(VAL));
+				Rule.RemapSettings.InMax = FMath::Max(Rule.RemapSettings.InMax, FMath::Abs(VAL));
 			}
 
-			if (Rule.RemapSettings.bInMin) { Rule.RemapSettings.InMin = OriginalRemapMin[i]; }
-			if (Rule.RemapSettings.bInMax) { Rule.RemapSettings.InMax = OriginalRemapMax[i]; }
+			if (Rule.RemapSettings.bInMin) { Rule.RemapSettings.InMin = CachedRMin; }
+			if (Rule.RemapSettings.bInMax) { Rule.RemapSettings.InMax = CachedRMax; }
 
 			for (RawT& V : RawValues)
 			{
 				VAL = PCGExMath::GetComponent(V, i);
-				VAL = Rule.RemapSettings.GetRemappedValue(VAL);
+				VAL = Rule.RemapSettings.GetRemappedValue(FMath::Abs(VAL)) * PCGExMath::SignPlus(VAL);
 				VAL = Rule.OutputClampSettings.GetClampedValue(VAL);
 
 				PCGExMath::SetComponent(V, i, VAL);
