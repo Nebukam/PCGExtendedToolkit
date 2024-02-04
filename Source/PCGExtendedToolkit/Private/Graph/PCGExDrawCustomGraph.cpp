@@ -38,6 +38,8 @@ bool FPCGExDrawCustomGraphElement::Boot(FPCGContext* InContext) const
 
 	if (!Settings->bPCGExDebug) { return false; }
 
+	Context->EdgeCrawlingSettings = Settings->EdgeCrawlingSettings;
+
 	Context->GraphSolver = Context->RegisterOperation<UPCGExCustomGraphSolver>();
 
 #endif

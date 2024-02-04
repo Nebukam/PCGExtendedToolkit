@@ -52,7 +52,7 @@ public:
 
 	/** Type of edge to draw.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	FPCGExEdgeCrawlingSettings EdgeTypesSettings;
+	FPCGExEdgeCrawlingSettings EdgeCrawlingSettings;
 
 	/** Draw socket cones lines.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
