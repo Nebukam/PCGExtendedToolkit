@@ -1,7 +1,7 @@
 ---
 layout: page
 parent: Graphs
-grand_parent: Nodes
+grand_parent: All Nodes
 title: Sanitize Clusters
 subtitle: Ensure clusters are clean and complete
 color: white
@@ -29,4 +29,5 @@ nav_order: 8
 
 ---
 # Inputs & Outputs
+## Vtx & Edges
 See {% include lk id='Working with Graphs' %}

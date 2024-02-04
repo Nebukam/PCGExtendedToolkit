@@ -1,7 +1,7 @@
 ---
 layout: page
 parent: Sampling
-grand_parent: Nodes
+grand_parent: All Nodes
 title: Sample Nearest Surface
 subtitle: Sample information from the nearest mesh collision
 color: white

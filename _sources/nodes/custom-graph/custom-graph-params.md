@@ -1,7 +1,7 @@
 ---
 layout: page
 parent: Custom Graphs
-grand_parent: Nodes
+grand_parent: All Nodes
 title: Custom Graph Params
 subtitle: Create params to build a custom graph from.
 color: blue

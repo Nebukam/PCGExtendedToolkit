@@ -21,4 +21,5 @@ nav_order: 1
 | Property       | Description          |
 |:-------------|:------------------|
 |**Settings**||
-| TBD           | See{% include lk id='Orienting' a='#common-properties' %} *(Common properties)* |
+| Orient Axis           | The transform' axis that will be *oriented*. |
+| Up Axis           | The Up axis used for the orientation maths. |

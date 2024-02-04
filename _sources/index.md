@@ -15,7 +15,8 @@ The PCG Extended Toolkit is a free (libre) plugin that extends Unreal Engine' Pr
 </div></div>
 
 --- 
->**This documentation is still heavily work-in-progress!**
+> **This documentation is still heavily work-in-progress!**
+> However, every property already has helpful tooltips in editor ;)
 {: .error }
 
 ---

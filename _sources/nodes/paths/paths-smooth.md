@@ -1,7 +1,7 @@
 ---
 layout: page
 parent: Paths
-grand_parent: Nodes
+grand_parent: All Nodes
 title: Smooth
 subtitle: Smooth points properties and attributes
 color: white
@@ -35,3 +35,14 @@ nav_order: 1
 ## Available {% include lk id='Smoothing' %} modules
 <br>
 {% include card_any tagged="pathsmoothing" %}
+
+---
+# Inputs
+## In
+Any number of point datasets assumed to be paths.
+
+---
+# Outputs
+## Out
+Same as Inputs with the transformation applied.  
+*Reminder that empty inputs will be ignored & pruned*.

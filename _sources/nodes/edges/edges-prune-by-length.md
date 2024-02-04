@@ -1,7 +1,7 @@
 ---
 layout: page
 parent: Edges
-grand_parent: Nodes
+grand_parent: All Nodes
 title: Prune by Length
 subtitle: Remove edges from a graph using length data.
 color: blue
@@ -133,4 +133,5 @@ Measure: `Absolute`, Mean Method: `Fixed`, Mean Value: `42`, Prune Below : `0`.
 
 ---
 # Inputs & Outputs
+## Vtx & Edges
 See {% include lk id='Working with Graphs' %}

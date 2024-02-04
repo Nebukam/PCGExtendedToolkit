@@ -1,7 +1,7 @@
 ---
 layout: page
 parent: Sampling
-grand_parent: Nodes
+grand_parent: All Nodes
 title: Guided Trace
 subtitle: Sample environment using line casting
 color: white

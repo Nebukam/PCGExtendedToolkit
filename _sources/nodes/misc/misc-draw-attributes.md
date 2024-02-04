@@ -1,7 +1,7 @@
 ---
 layout: page
 parent: Misc
-grand_parent: Nodes
+grand_parent: All Nodes
 title: Draw Attributes
 subtitle: Draw lines and points from attributes
 color: red
@@ -116,3 +116,7 @@ The debug color is selected based on the input value: **If the value is `<= 0` t
 ---
 ### ~~Label~~
 >Label is currently not working as expected, despite using engine APIs and not throwing any error when used.
+
+---
+# Inputs & Outputs
+> This nodes forwards its inputs as if it was disabled.  

@@ -1,6 +1,6 @@
 ---
 layout: page
-parent: Nodes
+parent: All Nodes
 title: Paths
 subtitle: Smooth, orient, tangents, ...
 summary: Manipulate points as linear datasets

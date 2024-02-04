@@ -1,7 +1,7 @@
 ---
 layout: page
 parent: Pathfinders
-grand_parent: Nodes
+grand_parent: All Nodes
 title: Edges Pathfinding
 subtitle: Find paths connecting seeds to goals.
 color: white
@@ -46,17 +46,6 @@ nav_order: 1
 <br>
 
 ---
-# Inputs
-## Seeds & Goals
-Each of these input data will be forwarded to the selected `Goal Picker`.  
-
----
-# Outputs
-## Paths
-A point dataset for each path generated.  
-Points in the dataset are ordered linearily from start to end.
-
----
 # Modules
 
 ## Available {% include lk id='Goal Pickers' %} modules
@@ -72,3 +61,14 @@ Points in the dataset are ordered linearily from start to end.
 ## Available {% include lk id='Heuristics' %} modules
 <br>
 {% include card_any tagged="heuristics" %}
+
+---
+# Inputs
+## Seeds & Goals
+Each of these input data will be forwarded to the selected `Goal Picker`.  
+
+---
+# Outputs
+## Paths
+A point dataset for each path generated.  
+Points in the dataset are ordered linearily from start to end.

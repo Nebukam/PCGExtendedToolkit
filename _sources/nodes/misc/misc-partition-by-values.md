@@ -1,7 +1,7 @@
 ---
 layout: page
 parent: Misc
-grand_parent: Nodes
+grand_parent: All Nodes
 title: Partition by Values
 subtitle: Create complex partitions from multiple criteria
 color: white
@@ -96,3 +96,13 @@ Each partition will either have a `0` or `1` unique key, with a maximum of 9 par
 - `1 0 1` = `2`
 - `1 1 1` = `3`
 
+---
+# Inputs
+## In
+A single point dataset.
+
+---
+# Outputs
+## Out
+Depending on selected properties, can be the same as Inputs with the added metadata, or completely new per-partition datasets (*usually more than what went it*).  
+*Reminder that empty inputs will be ignored & pruned*.

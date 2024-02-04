@@ -16,9 +16,11 @@ nav_order: 1
 
 {% include header_card_node %}
 
+
 {% include img a='details/modules/smoothing-moving-average.png' %} 
+{% include img a='docs/smooth/moving.png' %} 
 
 | Property       | Description          |
 |:-------------|:------------------|
 |**Settings**||
-| TBD           | See{% include lk id='Smoothing' a='#common-properties' %} *(Common properties)* |
+| Window Size           | The number of leading & trailing points to sample.<br>*The larger the window, the more uniform the result.* |

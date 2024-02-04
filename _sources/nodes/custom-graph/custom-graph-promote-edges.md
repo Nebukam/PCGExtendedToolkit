@@ -1,7 +1,7 @@
 ---
 layout: page
 parent: Custom Graphs
-grand_parent: Nodes
+grand_parent: All Nodes
 title: Promote Edges
 subtitle: Translate custom graph edge to points or paths.
 color: blue

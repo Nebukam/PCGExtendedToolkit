@@ -1,7 +1,7 @@
 ---
 layout: page
 parent: Misc
-grand_parent: Nodes
+grand_parent: All Nodes
 title: Sort Points
 subtitle: Sort points using any number of properties and attributes
 color: white
@@ -41,3 +41,14 @@ The sorting goes through each rules until it finds a valid comparison (*non-equa
 
 >When selecting a value to compare, keep in mind that it will be broadcasted to a `double` type. This means that if you don't specify which component to use on multi-component type *(`Vectors`, `Transforms`, etc)*, it will default to the first one (`X`).
 {: .warning }
+
+---
+# Inputs
+## In
+Any number of point datasets.
+
+---
+# Outputs
+## Out
+Same as Inputs but re-ordered.  
+*Reminder that empty inputs will be ignored & pruned*.

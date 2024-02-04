@@ -1,7 +1,7 @@
 ---
 layout: page
 parent: Graphs
-grand_parent: Nodes
+grand_parent: All Nodes
 title: Convex Hull 2D
 subtitle: Outputs a 2D convex hull.
 color: blue

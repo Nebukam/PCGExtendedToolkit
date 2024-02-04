@@ -1,7 +1,7 @@
 ---
 layout: page
 parent: Custom Graphs
-grand_parent: Nodes
+grand_parent: All Nodes
 title: Consolidate
 subtitle: Rebuild a custom graph after editing.
 color: blue

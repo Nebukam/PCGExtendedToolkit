@@ -1,6 +1,6 @@
 ---
 layout: page
-parent: Nodes
+parent: All Nodes
 title: Edges
 subtitle: Refinemement, connections, intersections, ...
 summary: Edge-based operations

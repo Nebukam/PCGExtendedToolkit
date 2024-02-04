@@ -1,7 +1,7 @@
 ---
 layout: page
 parent: Custom Graphs
-grand_parent: Nodes
+grand_parent: All Nodes
 title: Find Edge Clusters
 subtitle: Find and creates edge cluster from a custom graph.
 color: blue

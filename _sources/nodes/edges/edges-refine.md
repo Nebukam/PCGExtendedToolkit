@@ -1,7 +1,7 @@
 ---
 layout: page
 parent: Edges
-grand_parent: Nodes
+grand_parent: All Nodes
 title: Refine
 subtitle: Algorithmic edge refinement
 color: blue
@@ -36,3 +36,8 @@ See {% include lk id='Working with Graphs' %}
 ## Available {% include lk id='Refining' %} modules
 <br>
 {% include card_any tagged="edgerefining" %}
+
+---
+# Inputs & Outputs
+## Vtx & Edges
+See {% include lk id='Working with Graphs' %}

@@ -1,6 +1,6 @@
 ---
 layout: page
-parent: Nodes
+parent: All Nodes
 title: Custom Graphs
 subtitle: Custom graph creation from user-defined rules
 summary: Connect points!

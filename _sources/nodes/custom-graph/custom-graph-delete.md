@@ -1,7 +1,7 @@
 ---
 layout: page
 parent: Custom Graphs
-grand_parent: Nodes
+grand_parent: All Nodes
 title: Delete
 subtitle: Delete custom graph attributes.
 color: blue

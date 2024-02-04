@@ -1,7 +1,7 @@
 ---
 layout: page
 parent: Paths
-grand_parent: Nodes
+grand_parent: All Nodes
 title: Subdivide
 subtitle: Create sub-points between existing points
 color: white
@@ -41,3 +41,14 @@ nav_order: 4
 ## {% include lk id='Blending' %}
 <br>
 {% include card_any tagged="blending" %}
+
+---
+# Inputs
+## In
+Any number of point datasets assumed to be paths.
+
+---
+# Outputs
+## Out
+Same as Inputs with the added subdivisions points.  
+*Reminder that empty inputs will be ignored & pruned*.

@@ -1,7 +1,7 @@
 ---
 layout: page
 parent: Graphs
-grand_parent: Nodes
+grand_parent: All Nodes
 title: Partition Vertices
 subtitle: Create per-cluster Vtx datasets
 color: white
@@ -25,8 +25,9 @@ nav_order: 7
 {: .warning }
 
 This node primarily exists to allow certain advanced operations such as easily finding individual convex hull of isolated clusters.  
-This is not a default behavior as doing so increases processing load
+*This is not a default behavior as doing so slightly increases processing times.*
 
 ---
 # Inputs & Outputs
+## Vtx & Edges
 See {% include lk id='Working with Graphs' %}

@@ -1,7 +1,7 @@
 ---
 layout: page
 parent: Edges
-grand_parent: Nodes
+grand_parent: All Nodes
 title: Write Extras
 subtitle: Compute edge extra data from its vertices
 color: white
@@ -29,4 +29,5 @@ nav_order: 4
 
 ---
 # Inputs & Outputs
+## Vtx & Edges
 See {% include lk id='Working with Graphs' %}

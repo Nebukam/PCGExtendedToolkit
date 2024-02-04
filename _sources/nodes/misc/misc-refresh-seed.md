@@ -1,7 +1,7 @@
 ---
 layout: page
 parent: Misc
-grand_parent: Nodes
+grand_parent: All Nodes
 title: Refresh Seed
 subtitle: Refreshes point seeds based on their position.
 color: white
@@ -20,3 +20,14 @@ nav_order: 15
 |:-------------|:------------------|
 |**Settings**||
 | Base           | A value added to the seed calculation to offset the output value.  |
+
+---
+# Inputs
+## In
+Any number of point datasets.
+
+---
+# Outputs
+## Out
+Same as Inputs with the refreshed seed value.    
+*Reminder that empty inputs will be ignored & pruned*.

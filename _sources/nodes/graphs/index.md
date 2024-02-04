@@ -1,6 +1,6 @@
 ---
 layout: page
-parent: Nodes
+parent: All Nodes
 title: Graphs
 subtitle: Delaunay, Voronoi, Convex Hulls, ...
 summary: Graph generation & operations

@@ -1,7 +1,7 @@
 ---
 layout: page
 parent: Paths
-grand_parent: Nodes
+grand_parent: All Nodes
 title: Write Tangents
 subtitle: Subtitle
 color: white
@@ -34,3 +34,14 @@ nav_order: 5
 ## Available {% include lk id='Tangents' %} Modules
 <br>
 {% include card_any tagged="pathstangents" %}
+
+---
+# Inputs
+## In
+Any number of point datasets assumed to be paths.
+
+---
+# Outputs
+## Out
+Same as Inputs with the added metadata.  
+*Reminder that empty inputs will be ignored & pruned*.

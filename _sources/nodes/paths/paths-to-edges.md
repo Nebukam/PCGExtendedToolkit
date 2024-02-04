@@ -1,7 +1,7 @@
 ---
 layout: page
 parent: Paths
-grand_parent: Nodes
+grand_parent: All Nodes
 title: Paths to Edge Clusters
 subtitle: Convert paths to edges clusters.
 color: white
@@ -23,3 +23,14 @@ nav_order: 6
 |**Settings**||
 | Fuse Distance           | This define the distance at this the points are considered to be identical.  |
 | **Graph Output Settings**           | *See {% include lk id='Working with Graphs' a='#graph-output-settings-' %}.* |
+
+---
+# Inputs
+## In
+Any number of point datasets assumed to be paths.
+
+---
+# Outputs
+## Vtx & Edges
+See {% include lk id='Working with Graphs' %}.  
+*Reminder that empty inputs will be ignored & pruned*.

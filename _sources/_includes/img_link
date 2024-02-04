@@ -1,0 +1,1 @@
+<a class="img-link" target="_blank" href="{{site.baseurl}}/assets/images/{{include.a}}">![{{include.a}} {{include.f}}]({{site.baseurl}}/assets/images/{{include.a}})</a>

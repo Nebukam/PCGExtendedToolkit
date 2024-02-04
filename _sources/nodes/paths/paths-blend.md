@@ -1,7 +1,7 @@
 ---
 layout: page
 parent: Paths
-grand_parent: Nodes
+grand_parent: All Nodes
 title: Blend
 subtitle: Blend individual points between from paths' start and end points.
 color: white
@@ -30,3 +30,14 @@ nav_order: 2
 ## Available {% include lk id='Blending' %} Modules
 <br>
 {% include card_any tagged="blending" %}
+
+---
+# Inputs
+## In
+Any number of point datasets assumed to be paths.
+
+---
+# Outputs
+## Out
+Same as Inputs with the transformation applied.  
+*Reminder that empty inputs will be ignored & pruned*.

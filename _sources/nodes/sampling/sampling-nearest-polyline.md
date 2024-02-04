@@ -1,7 +1,7 @@
 ---
 layout: page
 parent: Sampling
-grand_parent: Nodes
+grand_parent: All Nodes
 title: Sample Nearest Polyline
 subtitle: Sample informations from the nearest polyline
 color: white
@@ -65,6 +65,15 @@ nav_order: 3
 | Target Extents          | Reverse the sampling mechanisms so points will sample the targets which `Extents` contains them.<br>**At the time of writing, will only check targets which position in world space is within range.**<br>*It is recommend to use a max range of `0` with this method.* |
 
 {% include_relative settings-weighting.md %}
+
+---
+## Weighting
+
+{% include img a='docs/relax/range.png' %} 
+
+> Note that the `Effective Range` method tends to spread/scale the input set of values -- but allows one to leverage the full range of the curve no matter the min/max input values.  
+> **Hence, using `Full Range` with only high (or low) input value will only sample a very narrow portion of the curve.**
+{: .infos-hl }
 
 ---
 # Inputs

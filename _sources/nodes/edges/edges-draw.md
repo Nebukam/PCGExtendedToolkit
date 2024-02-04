@@ -1,7 +1,7 @@
 ---
 layout: page
 parent: Edges
-grand_parent: Nodes
+grand_parent: All Nodes
 title: Draw Edges
 subtitle: Draw debug edge lines of a given vtx/edge pair.
 color: red
@@ -24,9 +24,11 @@ nav_order: 8
 | Color           | Primary debug color  |
 | Secondary Color           | If enabled, each cluster will have a different color ranging from the primary color to the secondary color, based on the dataset index in the inputs. |
 | Thickness           | Line thickness  |
-| Depth Priority          | Debug draw depth priority. <br>`-1` : draw on top of everything.<br>`0` : Regular depth sorting.<br>`1` : Draw behind everything. |
+| Depth Priority          | Debug draw depth priority. <br>- `-1` : draw on top of everything.<br>- `0` : Regular depth sorting.<br>- `1` : Draw behind everything. |
 
 ---
 # Inputs & Outputs
-This nodes forward its inputs as if it was disabled.  
-See {% include lk id='Working with Graphs' %}.
+> This nodes forwards its inputs as if it was disabled.  
+
+## Vtx & Edges
+See {% include lk id='Working with Graphs' %}

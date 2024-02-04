@@ -16,10 +16,15 @@ has_children: true
 {: .infos-hl }
 
 ## Overview
-
+<br>
+{% include img_link a='docs/customgraph/basic.png' %} 
+<br>
 The basic workflow is as follow:
-1. Define custom graph params using {% include lk id='Custom Graph Params' %}. These params are a list of *sockets* that define an opportunity for connection.
-2. Build a custom graph using the previously defined params, and {% include lk id='Build Custom Graph' %}, using any points.
+1. Define custom graph params using {% include lk id='Custom Graph Params' %}. These params are a list of *sockets*, each of which defines a "probe" for a single connection.
+2. Process points dataset using the previously defined params, and {% include lk id='Build Custom Graph' %}.
+3. You now have an abstract graph -- it's super useful just yet
+4. Push the custom graph a {% include lk id='Find Edge Clusters' %} node so you have `Vtx` and `Edges` to work with the rest of the toolkit!
+
 
 ## How Sockets Works
 

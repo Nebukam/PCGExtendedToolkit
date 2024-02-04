@@ -1,7 +1,7 @@
 ---
 layout: page
 parent: Edges
-grand_parent: Nodes
+grand_parent: All Nodes
 title: Bridge Clusters
 subtitle: Connects clusters together.
 color: blue
@@ -39,4 +39,5 @@ nav_order: 1
 
 ---
 # Inputs & Outputs
+## Vtx & Edges
 See {% include lk id='Working with Graphs' %}

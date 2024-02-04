@@ -1,7 +1,7 @@
 ---
 layout: page
 parent: Pathfinders
-grand_parent: Nodes
+grand_parent: All Nodes
 title: Plot Edges Pathfinding
 subtitle: Find a path that goes through multiple chained points.
 color: white
@@ -45,18 +45,6 @@ nav_order: 2
 > - Enabling `Global Visited Weight` breaks parallelism. Tasks are still ran asynchronously, but each path must wait for the previous one to be computed. Impact is usually negligible, but if you have *lots* of paths, it may take noticeably more time to process.
 
 ---
-# Inputs
-## Plots
-The plot input supports an unlimited amount of points dataset.  
-Each Plot dataset is interpreted as a list of point that must be connected by a single path, in order, then merged into a single consolidated path.
-
----
-# Outputs
-## Paths
-A point dataset for each path generated.  
-Points in the dataset are ordered linearily from start to end.
-
----
 # Modules
 
 ## Available {% include lk id='Search' %} modules
@@ -67,3 +55,15 @@ Points in the dataset are ordered linearily from start to end.
 ## Available {% include lk id='Heuristics' %} modules
 <br>
 {% include card_any tagged="heuristics" %}
+
+---
+# Inputs
+## Plots
+The plot input supports an unlimited amount of points dataset.  
+Each Plot dataset is interpreted as a list of point that must be connected by a single path, in order, then merged into a single consolidated path.
+
+---
+# Outputs
+## Paths
+A point dataset for each path generated.  
+Points in the dataset are ordered linearily from start to end.

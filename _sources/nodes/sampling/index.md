@@ -1,6 +1,6 @@
 ---
 layout: page
-parent: Nodes
+parent: All Nodes
 title: Sampling
 subtitle: Data from nearest points, polylines, surfaces, ...
 summary: Extract data in relation to surroundings

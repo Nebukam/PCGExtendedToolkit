@@ -1,7 +1,7 @@
 ---
 layout: page
 parent: Pathfinders
-grand_parent: Nodes
+grand_parent: All Nodes
 title: Navmesh Pathfinding
 subtitle: Sample the navmesh to find paths
 color: white
@@ -16,7 +16,7 @@ nav_order: 3
 
 {% include header_card_node %}
 
->Important: Currently, the navigation data used by the node is the one returned by `GetDefaultNavDataInstance()`.
+>Important: Currently, the navigation data used by the node is the one returned by `GetDefaultNavDataInstance()`; **hence it requires a navmesh to be built and loaded at the time of execution.**
 {: .error }
 
 {% include img a='details/details-pathfinding-navmesh.png' %} 

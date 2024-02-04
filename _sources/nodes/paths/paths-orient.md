@@ -1,7 +1,7 @@
 ---
 layout: page
 parent: Paths
-grand_parent: Nodes
+grand_parent: All Nodes
 title: Orient
 subtitle: Orient points in relation to their neighbors
 color: white
@@ -30,3 +30,14 @@ nav_order: 2
 ## Available {% include lk id='Orienting' %} Modules
 <br>
 {% include card_any tagged="pathsorient" %}
+
+---
+# Inputs
+## In
+Any number of point datasets assumed to be paths.
+
+---
+# Outputs
+## Out
+Same as Inputs with the transformation applied.  
+*Reminder that empty inputs will be ignored & pruned*.

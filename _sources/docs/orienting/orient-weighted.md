@@ -16,9 +16,17 @@ nav_order: 1
 
 {% include header_card_node %}
 
+
+
+Weighted orientation balances the orientation of the point between the previous and next point based on perpendicular distance.
+{% include img a='docs/orient/weight.png' %}   
 {% include img a='details/modules/orienting-weighted.png' %} 
 
 | Property       | Description          |
 |:-------------|:------------------|
 |**Settings**||
-| TBD           | See{% include lk id='Orienting' a='#common-properties' %} *(Common properties)* |
+| Inverse Weight           | Reverse the orientation weight.<br>*Weight to next will be used for previous, and vice-versa.* |  
+
+|**Orienting**||
+| Orient Axis           | The transform' axis that will be *oriented*. |
+| Up Axis           | The Up axis used for the orientation maths. |

@@ -16,4 +16,8 @@ nav_order: 1
 
 {% include header_card_node %}
 
+
 Laplacian Relax has no specific properties.  
+The basic gist is it iteratively attempts to "uniformize" the distance between each nodes based on neighboring edges.
+
+See [Laplacian Relaxation on Wikipedia](https://en.wikipedia.org/wiki/Relaxation_(iterative_method))

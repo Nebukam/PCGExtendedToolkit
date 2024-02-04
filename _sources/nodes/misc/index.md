@@ -1,6 +1,6 @@
 ---
 layout: page
-parent: Nodes
+parent: All Nodes
 title: Misc
 subtitle: Sort, Partition, Fuse, ...
 summary: Low level utility nodes

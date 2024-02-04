@@ -1,7 +1,7 @@
 ---
 layout: page
 parent: Misc
-grand_parent: Nodes
+grand_parent: All Nodes
 title: Discard Points by Count
 subtitle: Filter point dataset by their point count.
 color: white
@@ -24,3 +24,13 @@ nav_order: 6
 | Min Point Count      | If enabled, does not output data with a point count smaller than the specified amount.  |
 | Max Point Count      | If enabled, does not output data with a point count larger than the specified amount. |
 
+---
+# Inputs
+## In
+Any number of point datasets.
+
+---
+# Outputs
+## Out
+Inputs that passed the filter.
+*Reminder that empty inputs will be ignored & pruned*.

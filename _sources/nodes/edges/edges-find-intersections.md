@@ -1,7 +1,7 @@
 ---
 layout: page
 parent: Edges
-grand_parent: Nodes
+grand_parent: All Nodes
 title: Find Intersections
 subtitle: Find and registers edges intersections inside a cluster.
 color: blue
@@ -19,3 +19,8 @@ WIP: true
 
 > W.I.P Node -- Not available yet.
 {: .warning }
+
+---
+# Inputs & Outputs
+## Vtx & Edges
+See {% include lk id='Working with Graphs' %}

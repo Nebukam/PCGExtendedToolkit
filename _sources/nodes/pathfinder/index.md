@@ -1,6 +1,6 @@
 ---
 layout: page
-parent: Nodes
+parent: All Nodes
 title: Pathfinders
 subtitle: Seed(s)-to-goal(s), Plots, Navmesh, ...
 summary: Find path inside graphs
