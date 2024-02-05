@@ -198,7 +198,7 @@ bool FPCGExRemapPointIO::ExecuteTask()
 			AttributeIn->AllowsInterpolation(), true, true);
 
 		FPCGAttributeAccessor<RawT>* Setter = new FPCGAttributeAccessor<RawT>(AttributeOut, PointIO->GetOut()->Metadata);
-		Setter->SetRange<RawT>(
+		Setter->template SetRange<RawT>(
 			Values, 0, *PointIO->CreateOutKeys(),
 			EPCGAttributeAccessorFlags::AllowBroadcast);
 

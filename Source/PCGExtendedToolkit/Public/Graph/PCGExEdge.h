@@ -63,7 +63,18 @@ namespace PCGExGraph
 			       static_cast<uint64>(A) | (static_cast<uint64>(B) << 32) :
 			       static_cast<uint64>(B) | (static_cast<uint64>(A) << 32);
 	}
+	
+	static uint64 GetHash64(const uint32 A, const uint32 B)
+	{
+		return static_cast<uint64>(A) | (static_cast<uint64>(B) << 32);
+	}
 
+	static void ExpandHash64(const uint64 Hash, uint32& A, uint32& B)
+	{
+		A = static_cast<int32>(Hash & 0xFFFFFFFF);
+		B = static_cast<int32>((Hash >> 32) & 0xFFFFFFFF);
+	}
+	
 	struct PCGEXTENDEDTOOLKIT_API FEdge
 	{
 		uint32 Start = 0;

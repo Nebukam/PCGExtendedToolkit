@@ -47,7 +47,7 @@ FPCGExPathsToEdgeClustersContext::~FPCGExPathsToEdgeClustersContext()
 {
 	PCGEX_TERMINATE_ASYNC
 
-	PCGEX_DELETE(LooseNetwork)
+	PCGEX_DELETE(LooseGraph)
 	PCGEX_DELETE(GraphBuilder)
 }
 
@@ -59,9 +59,8 @@ bool FPCGExPathsToEdgeClustersElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_FWD(GraphBuilderSettings)
 
-	Context->LooseNetwork = new PCGExGraph::FLooseNetwork(Settings->FuseDistance);
-	Context->IOIndices.Empty();
-
+	Context->LooseGraph = new PCGExGraph::FLooseGraph(Settings->FuseDistance);
+	
 	return true;
 }
 
@@ -75,13 +74,6 @@ bool FPCGExPathsToEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) c
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }
-
-		Context->MainPoints->ForEach(
-			[&](PCGExData::FPointIO& PointIO, const int32 Index)
-			{
-				Context->IOIndices.Add(&PointIO, Index);
-			});
-
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
@@ -89,85 +81,51 @@ bool FPCGExPathsToEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) c
 	{
 		if (!Context->AdvancePointsIO())
 		{
-			Context->ConsolidatedPoints = &Context->MainPoints->Emplace_GetRef();
-			Context->ConsolidatedPoints->GetOut()->GetMutablePoints().SetNum(Context->LooseNetwork->Nodes.Num());
-
-			TArray<FPCGPoint>& MutablePoints = Context->ConsolidatedPoints->GetOut()->GetMutablePoints();
-			for (int i = 0; i < MutablePoints.Num(); i++)
-			{
-				MutablePoints[i].Transform.SetLocation(Context->LooseNetwork->Nodes[i]->Center);
-			}
-
-			Context->GraphBuilder = new PCGExGraph::FGraphBuilder(*Context->ConsolidatedPoints, &Context->GraphBuilderSettings, 4);
-			Context->SetState(PCGExGraph::State_ProcessingGraph);
+			Context->ConsolidatedPoints = &Context->MainPoints->Emplace_GetRef(PCGExData::EInit::NewOutput);
+			Context->SetState(PCGExGraph::State_UpdatingLooseCenters);
 		}
-		else { Context->SetState(PCGExMT::State_ProcessingPoints); }
+		else
+		{
+			Context->GetAsyncManager()->Start<FPCGExInsertPathToLooseGraphTask>(
+				Context->CurrentIO->IOIndex, Context->CurrentIO, Context->LooseGraph, Settings->bClosedPath);
+
+			Context->SetAsyncState(PCGExMT::State_ProcessingPoints);
+		}
 	}
 
 	if (Context->IsState(PCGExMT::State_ProcessingPoints))
 	{
-		auto Initialize = [&](PCGExData::FPointIO& PointIO)
-		{
-		};
-
-		auto ProcessPoint = [&](const int32 Index, const PCGExData::FPointIO& PointIO)
-		{
-			if (PointIO.GetNum() < 2) { return; }
-
-			const int32 PrevIndex = Index - 1;
-			const int32 NextIndex = Index + 1;
-
-			PCGExGraph::FLooseNode* CurrentVtx = Context->LooseNetwork->GetLooseNode(PointIO.GetInPoint(Index));
-			CurrentVtx->Add(PCGExGraph::GetUnsignedHash64(*Context->IOIndices.Find(&PointIO), Index));
-
-			if (PointIO.GetIn()->GetPoints().IsValidIndex(PrevIndex))
-			{
-				PCGExGraph::FLooseNode* OtherVtx = Context->LooseNetwork->GetLooseNode(PointIO.GetInPoint(PrevIndex));
-				CurrentVtx->Add(OtherVtx);
-			}
-
-			if (PointIO.GetIn()->GetPoints().IsValidIndex(NextIndex))
-			{
-				PCGExGraph::FLooseNode* OtherVtx = Context->LooseNetwork->GetLooseNode(PointIO.GetInPoint(NextIndex));
-				CurrentVtx->Add(OtherVtx);
-			}
-		};
-
-		if (!Context->ProcessCurrentPoints(Initialize, ProcessPoint, true)) { return false; }
-
-		if (Settings->bClosedPath && Context->CurrentIO->GetNum() >= 2)
-		{
-			const PCGExData::FPointIO& PointIO = *Context->CurrentIO;
-			const int32 LastIndex = PointIO.GetNum() - 1;
-			const int32 Hash = PCGExGraph::GetUnsignedHash64(0, LastIndex);
-			PCGExGraph::FLooseNode* StartVtx = Context->LooseNetwork->GetLooseNode(PointIO.GetInPoint(0));
-			PCGExGraph::FLooseNode* EndVtx = Context->LooseNetwork->GetLooseNode(PointIO.GetInPoint(LastIndex));
-			StartVtx->Add(Hash);
-			EndVtx->Add(Hash);
-		}
-
+		if (!Context->IsAsyncWorkComplete()) { return false; }
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
-	if (Context->IsState(PCGExGraph::State_ProcessingGraph))
+	if (Context->IsState(PCGExGraph::State_UpdatingLooseCenters))
 	{
-		// Build Network
-		auto InsertEdge = [&](const int32 NodeIndex)
+		const int32 NumLooseNodes = Context->LooseGraph->Nodes.Num();
+
+		auto Initialize = [&]()
 		{
-			PCGExGraph::FIndexedEdge NewEdge = PCGExGraph::FIndexedEdge{};
-			const PCGExGraph::FLooseNode* Node = Context->LooseNetwork->Nodes[NodeIndex];
-			for (const int32 OtherNodeIndex : Node->Neighbors)
-			{
-				Context->GraphBuilder->Graph->InsertEdge(Node->Index, OtherNodeIndex, NewEdge);
-			}
+			TArray<FPCGPoint>& MutablePoints = Context->ConsolidatedPoints->GetOut()->GetMutablePoints();
+			MutablePoints.SetNum(NumLooseNodes);
 		};
 
-		if (!Context->Process(InsertEdge, Context->LooseNetwork->Nodes.Num())) { return false; }
-		Context->SetState(PCGExGraph::State_WritingClusters);
-	}
+		auto ProcessNode = [&](int32 Index)
+		{
+			Context->ConsolidatedPoints->GetMutablePoint(Index).Transform.SetLocation(
+				Context->LooseGraph->Nodes[Index]->UpdateCenter(Context->MainPoints));
+		};
 
-	if (Context->IsState(PCGExGraph::State_WritingClusters))
-	{
+		if (!Context->Process(Initialize, ProcessNode, NumLooseNodes)) { return false; }
+
+		TArray<PCGExGraph::FUnsignedEdge> Edges;
+		Context->LooseGraph->GetUniqueEdges(Edges);
+		PCGEX_DELETE(Context->LooseGraph)
+
+		Context->GraphBuilder = new PCGExGraph::FGraphBuilder(*Context->ConsolidatedPoints, &Context->GraphBuilderSettings, 4);
+		Context->GraphBuilder->Graph->InsertEdges(Edges);
+
+		Edges.Empty();
+
 		Context->GraphBuilder->Compile(Context);
 		Context->SetAsyncState(PCGExGraph::State_WaitingOnWritingClusters);
 	}
@@ -185,6 +143,46 @@ bool FPCGExPathsToEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) c
 
 	return Context->IsDone();
 }
+
+bool FPCGExInsertPathToLooseGraphTask::ExecuteTask()
+{
+	const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
+	const int32 NumPoints = InPoints.Num();
+
+	if (NumPoints < 2) { return false; }
+
+	for (int i = 0; i < NumPoints; i++)
+	{
+		PCGExGraph::FLooseNode* CurrentVtx = Graph->GetOrCreateNode(InPoints[i].Transform.GetLocation(), TaskIndex, i);
+		CurrentVtx->AddFuseHash(PCGExGraph::GetHash64(TaskIndex, i));
+
+		if (const int32 PrevIndex = i - 1;
+			InPoints.IsValidIndex(PrevIndex))
+		{
+			PCGExGraph::FLooseNode* OtherVtx = Graph->GetOrCreateNode(InPoints[PrevIndex].Transform.GetLocation(), TaskIndex, PrevIndex);
+			CurrentVtx->Add(OtherVtx);
+		}
+
+		if (const int32 NextIndex = i + 1;
+			InPoints.IsValidIndex(NextIndex))
+		{
+			PCGExGraph::FLooseNode* OtherVtx = Graph->GetOrCreateNode(InPoints[NextIndex].Transform.GetLocation(), TaskIndex, NextIndex);
+			CurrentVtx->Add(OtherVtx);
+		}
+	};
+
+	if (bJoinFirstAndLast)
+	{
+		// Join
+		const int32 LastIndex = NumPoints - 1;
+		Graph->CreateBridge(
+			InPoints[0].Transform.GetLocation(), TaskIndex, 0,
+			InPoints[LastIndex].Transform.GetLocation(), TaskIndex, LastIndex);
+	}
+
+	return true;
+}
+
 
 #undef LOCTEXT_NAMESPACE
 #undef PCGEX_NAMESPACE

@@ -21,7 +21,7 @@ public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(SanitizeClusters, "Edges : Sanitize Clusters", "Ensure the input set of vertex and edges outputs clean, interconnected clusters. May create new clusters, but does not creates nor deletes points/edges.");
-	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorEdge; }
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorGraph; }
 #endif
 
 protected:
@@ -47,9 +47,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSanitizeClustersContext : public FPCGExEdges
 	virtual ~FPCGExSanitizeClustersContext() override;
 
 	TArray<PCGExGraph::FIndexedEdge> IndexedEdges;
-
-	int32 MinClusterSize;
-	int32 MaxClusterSize;
 
 	FPCGExGraphBuilderSettings GraphBuilderSettings;
 	PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;

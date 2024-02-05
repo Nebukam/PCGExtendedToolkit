@@ -297,7 +297,7 @@ public:
 #if WITH_EDITOR
 	virtual bool ShouldLog() const override { return false; }
 #endif
-	
+
 	virtual bool IsCacheable(const UPCGSettings* InSettings) const override
 	{
 		const UPCGExPointsProcessorSettings* Settings = static_cast<const UPCGExPointsProcessorSettings*>(InSettings);
@@ -305,7 +305,6 @@ public:
 	}
 
 	virtual void DisabledPassThroughData(FPCGContext* Context) const override;
-
 protected:
 	virtual FPCGContext* InitializeContext(FPCGExPointsProcessorContext* InContext, const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node) const;
 	virtual bool Boot(FPCGContext* InContext) const;

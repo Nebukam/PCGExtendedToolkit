@@ -45,11 +45,13 @@ namespace PCGExData
 	public:
 		FPCGTaggedData Source; // Source struct
 		FTags* Tags = nullptr;
-
+		int32 IOIndex = 0; 
+		
 		explicit FPointIO(
 			const FName InDefaultOutputLabel,
-			const EInit InInit = EInit::NoOutput)
-			: In(nullptr)
+			const EInit InInit = EInit::NoOutput,
+			const int32 InIndex = -1)
+			: In(nullptr), IOIndex(InIndex)
 		{
 			DefaultOutputLabel = InDefaultOutputLabel;
 			NumInPoints = 0;
@@ -61,8 +63,9 @@ namespace PCGExData
 			const FPCGTaggedData& InSource,
 			const UPCGPointData* InData,
 			const FName InDefaultOutputLabel,
-			const EInit InInit = EInit::NoOutput)
-			: In(InData)
+			const EInit InInit = EInit::NoOutput,
+			const int32 InIndex = -1)
+			: In(InData), IOIndex(InIndex)
 		{
 			DefaultOutputLabel = InDefaultOutputLabel;
 			Source = InSource;

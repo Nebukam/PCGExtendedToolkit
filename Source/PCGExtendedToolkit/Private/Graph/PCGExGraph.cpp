@@ -156,6 +156,75 @@ namespace PCGExGraph
 	}
 }
 
+bool PCGExGraph::FLooseNode::Add(FLooseNode* OtherNode)
+{
+	if (OtherNode->Index == Index) { return false; }
+	if (Neighbors.Contains(OtherNode->Index)) { return true; }
+
+	Neighbors.Add(OtherNode->Index);
+	OtherNode->Add(this);
+	return true;
+}
+
+void PCGExGraph::FLooseNode::AddFuseHash(const uint64 Point)
+{
+	FusedPoints.AddUnique(Point);
+}
+
+FVector PCGExGraph::FLooseNode::UpdateCenter(PCGExData::FPointIOGroup* IOGroup)
+{
+	Center = FVector::ZeroVector;
+	double Divider = 0;
+
+	uint32 IOIndex = 0;
+	uint32 PointIndex = 0;
+
+	for (const uint64 FuseHash : FusedPoints)
+	{
+		Divider++;
+		ExpandHash64(FuseHash, IOIndex, PointIndex);
+		Center += IOGroup->Pairs[IOIndex]->GetInPoint(PointIndex).Transform.GetLocation();
+	}
+
+	Center /= Divider;
+	return Center;
+}
+
+PCGExGraph::FLooseNode* PCGExGraph::FLooseGraph::GetOrCreateNode(const FVector& Position, const int32 IOIndex, const int32 PointIndex)
+{
+	for (FLooseNode* Node : Nodes) { if ((Position - Node->Center).IsNearlyZero(Tolerance)) { return Node; } }
+
+	FLooseNode* NewNode = new FLooseNode(Position, Nodes.Num());
+	NewNode->AddFuseHash(GetHash64(IOIndex, PointIndex));
+	Nodes.Add_GetRef(NewNode);
+	return NewNode;
+}
+
+void PCGExGraph::FLooseGraph::CreateBridge(const FVector& From, const int32 FromIOIndex, const int32 FromPointIndex, const FVector& To, const int32 ToIOIndex, const int32 ToPointIndex)
+{
+	FLooseNode* StartVtx = GetOrCreateNode(From, FromIOIndex, FromPointIndex);
+	FLooseNode* EndVtx = GetOrCreateNode(To, ToIOIndex, ToPointIndex);
+	StartVtx->Add(EndVtx);
+	EndVtx->Add(StartVtx);
+}
+
+void PCGExGraph::FLooseGraph::GetUniqueEdges(TArray<FUnsignedEdge>& OutEdges)
+{
+	OutEdges.Empty(Nodes.Num() * 4);
+	TSet<uint64> UniqueEdges;
+	for (const FLooseNode* Node : Nodes)
+	{
+		for (const int32 OtherNodeIndex : Node->Neighbors)
+		{
+			const uint64 Hash = GetUnsignedHash64(Node->Index, OtherNodeIndex);
+			if (UniqueEdges.Contains(Hash)) { continue; }
+			UniqueEdges.Add(Hash);
+			OutEdges.Emplace(Node->Index, OtherNodeIndex);
+		}
+	}
+	UniqueEdges.Empty();
+}
+
 bool FPCGExWriteSubGraphEdgesTask::ExecuteTask()
 {
 	TArray<FPCGPoint>& MutablePoints = EdgeIO->GetOut()->GetMutablePoints();
@@ -213,7 +282,7 @@ bool FPCGExCompileGraphTask::ExecuteTask()
 		Builder->bCompiledSuccessfully = false;
 		return false;
 	}
-	
+
 	if (Builder->bPrunePoints)
 	{
 		// Rebuild point list with only the one used
@@ -262,7 +331,7 @@ bool FPCGExCompileGraphTask::ExecuteTask()
 
 	PCGEX_DELETE(IndexWriter)
 	PCGEX_DELETE(NumEdgesWriter)
-	
+
 	Builder->bCompiledSuccessfully = true;
 
 	for (PCGExGraph::FSubGraph* SubGraph : Builder->Graph->SubGraphs)
@@ -273,6 +342,14 @@ bool FPCGExCompileGraphTask::ExecuteTask()
 		EdgeIO.Tags->Set(PCGExGraph::Tag_Cluster, Builder->EdgeTagValue);
 		Manager->Start<FPCGExWriteSubGraphEdgesTask>(-1, PointIO, &EdgeIO, Builder->Graph, SubGraph);
 	}
+
+	return true;
+}
+
+bool FPCGExUpdateLooseNodeCentersTask::ExecuteTask()
+{
+	// TODO: Look into plugging blending here?
+	for (PCGExGraph::FLooseNode* Node : Graph->Nodes) { Node->UpdateCenter(IOGroup); }
 
 	return true;
 }
