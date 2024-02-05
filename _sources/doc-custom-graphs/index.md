@@ -25,7 +25,6 @@ The basic workflow is as follow:
 3. You now have an abstract graph -- it's super useful just yet
 4. Push the custom graph a {% include lk id='Find Edge Clusters' %} node so you have `Vtx` and `Edges` to work with the rest of the toolkit!
 
-
 ## How Sockets Works
 
 
