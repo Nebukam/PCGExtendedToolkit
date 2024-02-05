@@ -91,7 +91,7 @@ namespace PCGExGraph
 	const FName SourceSocketOverrideParamsLabel = TEXT("Ctrl Socket");
 	const FName SourceSocketParamsLabel = TEXT("Sockets");
 	const FName OutputSocketParamsLabel = TEXT("Socket");
-	
+
 	const FName SourceParamsLabel = TEXT("Graph");
 	const FName OutputParamsLabel = TEXT("➜");
 
@@ -118,10 +118,13 @@ namespace PCGExGraph
 	constexpr PCGExMT::AsyncState State_WaitingOnWritingClusters = __COUNTER__;
 
 	constexpr PCGExMT::AsyncState State_PromotingEdges = __COUNTER__;
+	constexpr PCGExMT::AsyncState State_UpdatingLooseCenters = __COUNTER__;
 
 #pragma region Graph
 
 	class FGraph;
+
+#pragma region Graph
 
 	struct PCGEXTENDEDTOOLKIT_API FNode
 	{
@@ -144,7 +147,6 @@ namespace PCGExGraph
 
 		void Add(const int32 EdgeIndex);
 	};
-
 
 	struct PCGEXTENDEDTOOLKIT_API FSubGraph
 	{
@@ -291,6 +293,55 @@ namespace PCGExGraph
 		return GetRemappedIndices(const_cast<PCGExData::FPointIO&>(InPointIO), AttributeName, OutIndices);
 	}
 
+#pragma endregion
+
+#pragma region Loose Graph
+
+	struct PCGEXTENDEDTOOLKIT_API FLooseNode
+	{
+		FVector Center;
+		int32 Index;
+
+		TArray<int32> Neighbors;
+		TArray<uint64> FusedPoints; // PointIO Index >> Point Index
+
+		FLooseNode(const FVector& InCenter, const int32 InIndex)
+			: Center(InCenter),
+			  Index(InIndex)
+		{
+			Neighbors.Empty();
+			FusedPoints.Empty();
+		}
+
+		bool Add(FLooseNode* OtherNode);
+		void AddFuseHash(const uint64 Point);
+		FVector UpdateCenter(PCGExData::FPointIOGroup* IOGroup);
+	};
+
+	struct PCGEXTENDEDTOOLKIT_API FLooseGraph
+	{
+		TArray<FLooseNode*> Nodes;
+		double Tolerance;
+
+		explicit FLooseGraph(const double InTolerance)
+			: Tolerance(InTolerance)
+		{
+			Nodes.Empty();
+		}
+
+		~FLooseGraph()
+		{
+			PCGEX_DELETE_TARRAY(Nodes)
+		}
+
+		FLooseNode* GetOrCreateNode(const FVector& Position, const int32 IOIndex, const int32 PointIndex);
+		void CreateBridge(const FVector& From, const int32 FromIOIndex, const int32 FromPointIndex,
+		                  const FVector& To, const int32 ToIOIndex, const int32 ToPointIndex);
+		void GetUniqueEdges(TArray<FUnsignedEdge>& OutEdges);
+	};
+
+#pragma endregion
+
 	static bool IsPointDataVtxReady(const UPCGPointData* PointData)
 	{
 		const FName Tags[] = {Tag_EdgeIndex, Tag_EdgesNum};
@@ -339,7 +390,6 @@ public:
 	virtual bool ExecuteTask() override;
 };
 
-
 class PCGEXTENDEDTOOLKIT_API FPCGExCompileGraphTask : public FPCGExNonAbandonableTask
 {
 public:
@@ -353,6 +403,22 @@ public:
 	PCGExGraph::FGraphBuilder* Builder = nullptr;
 	int32 Min;
 	int32 Max;
+
+	virtual bool ExecuteTask() override;
+};
+
+class PCGEXTENDEDTOOLKIT_API FPCGExUpdateLooseNodeCentersTask : public FPCGExNonAbandonableTask
+{
+public:
+	FPCGExUpdateLooseNodeCentersTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+						   PCGExGraph::FLooseGraph* InGraph, PCGExData::FPointIOGroup* InIOGroup)
+		: FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+		  Graph(InGraph), IOGroup(InIOGroup)
+	{
+	}
+
+	PCGExGraph::FLooseGraph* Graph = nullptr;
+	PCGExData::FPointIOGroup* IOGroup = nullptr;
 
 	virtual bool ExecuteTask() override;
 };

@@ -295,7 +295,7 @@ namespace PCGExData
 		const EInit InitOut)
 	{
 		FWriteScopeLock WriteLock(PairsLock);
-		return *Pairs.Add_GetRef(new FPointIO(Source, In, DefaultOutputLabel, InitOut));
+		return *Pairs.Add_GetRef(new FPointIO(Source, In, DefaultOutputLabel, InitOut, Pairs.Num()));
 	}
 
 	FPointIO& FPointIOGroup::Emplace_GetRef(
@@ -304,13 +304,13 @@ namespace PCGExData
 	{
 		const FPCGTaggedData Source;
 		FWriteScopeLock WriteLock(PairsLock);
-		return *Pairs.Add_GetRef(new FPointIO(Source, In, DefaultOutputLabel, InitOut));
+		return *Pairs.Add_GetRef(new FPointIO(Source, In, DefaultOutputLabel, InitOut, Pairs.Num()));
 	}
 
 	FPointIO& FPointIOGroup::Emplace_GetRef(const EInit InitOut)
 	{
 		FWriteScopeLock WriteLock(PairsLock);
-		return *Pairs.Add_GetRef(new FPointIO(DefaultOutputLabel, InitOut));
+		return *Pairs.Add_GetRef(new FPointIO(DefaultOutputLabel, InitOut, Pairs.Num()));
 	}
 
 	/**

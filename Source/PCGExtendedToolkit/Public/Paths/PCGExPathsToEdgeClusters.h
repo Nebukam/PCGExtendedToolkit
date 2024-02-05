@@ -12,70 +12,7 @@
 
 namespace PCGExGraph
 {
-	struct FEdgeCrossingsHandler;
 	class FGraph;
-
-	struct PCGEXTENDEDTOOLKIT_API FLooseNode
-	{
-		FVector Center;
-		int32 Index;
-
-		TArray<int32> Neighbors;
-		TArray<uint64> FusedPoints;
-
-		FLooseNode(const FVector& InCenter, const int32 InIndex)
-			: Center(InCenter),
-			  Index(InIndex)
-		{
-			Neighbors.Empty();
-			FusedPoints.Empty();
-		}
-
-		bool Add(FLooseNode* OtherNode)
-		{
-			if (OtherNode->Index == Index) { return false; }
-			if (Neighbors.Contains(OtherNode->Index)) { return true; }
-
-			Neighbors.Add(OtherNode->Index);
-			OtherNode->Add(this);
-
-			return true;
-		}
-
-		void Add(const uint64 Point)
-		{
-			FusedPoints.AddUnique(Point);
-		}
-	};
-
-	struct PCGEXTENDEDTOOLKIT_API FLooseNetwork
-	{
-		TArray<FLooseNode*> Nodes;
-
-		double Tolerance;
-
-		explicit FLooseNetwork(const double InTolerance)
-			: Tolerance(InTolerance)
-		{
-			Nodes.Empty();
-		}
-
-		~FLooseNetwork()
-		{
-			PCGEX_DELETE_TARRAY(Nodes)
-		}
-
-		FLooseNode* GetLooseNode(const FPCGPoint& Point)
-		{
-			const FVector Position = Point.Transform.GetLocation();
-
-			for (FLooseNode* LNode : Nodes)
-			{
-				if ((Position - LNode->Center).IsNearlyZero(Tolerance)) { return LNode; }
-			}
-			return Nodes.Add_GetRef(new FLooseNode(Position, Nodes.Num()));
-		}
-	};
 }
 
 /**
@@ -134,9 +71,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathsToEdgeClustersContext : public FPCGExPa
 
 	virtual ~FPCGExPathsToEdgeClustersContext() override;
 
-	PCGExGraph::FLooseNetwork* LooseNetwork;
-	TMap<PCGExData::FPointIO*, int32> IOIndices;
-
+	PCGExGraph::FLooseGraph* LooseGraph;
 	PCGExData::FPointIO* ConsolidatedPoints = nullptr;
 
 	FPCGExGraphBuilderSettings GraphBuilderSettings;
@@ -154,4 +89,21 @@ public:
 protected:
 	virtual bool Boot(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
+};
+
+
+class PCGEXTENDEDTOOLKIT_API FPCGExInsertPathToLooseGraphTask : public FPCGExNonAbandonableTask
+{
+public:
+	FPCGExInsertPathToLooseGraphTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+								 PCGExGraph::FLooseGraph* InGraph, bool bInJoinFirstAndLast)
+		: FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+		  Graph(InGraph), bJoinFirstAndLast(bInJoinFirstAndLast)
+	{
+	}
+
+	PCGExGraph::FLooseGraph* Graph = nullptr;
+	bool bJoinFirstAndLast = false;
+
+	virtual bool ExecuteTask() override;
 };
