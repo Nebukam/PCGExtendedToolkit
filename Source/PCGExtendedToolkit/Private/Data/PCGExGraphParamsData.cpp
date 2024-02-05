@@ -16,6 +16,10 @@ namespace PCGExGraph
 
 	void FSocket::Cleanup()
 	{
+		PCGEX_DELETE(LocalDirectionGetter)
+		PCGEX_DELETE(LocalAngleGetter)
+		PCGEX_DELETE(LocalRadiusGetter)
+
 		PCGEX_DELETE(TargetIndexWriter)
 		PCGEX_DELETE(EdgeTypeWriter)
 		PCGEX_DELETE(TargetIndexReader)
@@ -47,6 +51,25 @@ namespace PCGExGraph
 		const FName NAME_Index = GetSocketPropertyName(SocketPropertyNameIndex);
 		const FName NAME_EdgeType = GetSocketPropertyName(SocketPropertyNameEdgeType);
 
+#define PCGEX_LOCAL_SOCKET_ATT(_NAME, _TYPE)\
+		if(Descriptor.bUseLocal##_NAME)\
+		{\
+			if(!Local##_NAME##Getter){Local##_NAME##Getter = new PCGEx::FLocal##_TYPE##Getter();}\
+			Local##_NAME##Getter->Capture(Descriptor.Local##_NAME);\
+			Local##_NAME##Getter->Grab(PointIO, true);	\
+		}else{ PCGEX_DELETE(Local##_NAME##Getter) }
+
+		PCGEX_LOCAL_SOCKET_ATT(Direction, Vector)
+		PCGEX_LOCAL_SOCKET_ATT(Angle, SingleField)
+		PCGEX_LOCAL_SOCKET_ATT(Radius, SingleField)
+
+		if (LocalAngleGetter && LocalAngleGetter->IsUsable(PointIO.GetNum()) && Descriptor.bLocalAngleIsDegrees)
+		{
+			for (int i = 0; i < LocalAngleGetter->Values.Num(); i++) { LocalAngleGetter->Values[i] = FMath::Cos(LocalAngleGetter->Values[i] * (PI / 180.0)); }
+		}
+
+#undef PCGEX_LOCAL_SOCKET_ATT
+
 		PCGExData::FPointIO& MutablePointIO = const_cast<PCGExData::FPointIO&>(PointIO);
 
 		if (bReadOnly)
@@ -64,13 +87,7 @@ namespace PCGExGraph
 			EdgeTypeWriter->BindAndGet(MutablePointIO);
 		}
 
-		Descriptor.Bounds.LoadCurve();
-	}
-
-	void FSocket::SetData(const PCGMetadataEntryKey MetadataEntry, const FSocketMetadata& SocketMetadata) const
-	{
-		SetTargetIndex(MetadataEntry, SocketMetadata.Index);
-		SetEdgeType(MetadataEntry, SocketMetadata.EdgeType);
+		Descriptor.LoadCurve();
 	}
 
 	void FSocket::SetTargetIndex(const int32 PointIndex, const int32 InValue) const
@@ -108,56 +125,56 @@ namespace PCGExGraph
 		return *(AttributeNameBase.ToString() + Separator + PropertyName.ToString());
 	}
 
-	void FSocketMapping::Initialize(const FName InIdentifier, TArray<FPCGExSocketDescriptor>& InSockets)
-	{
-		Reset();
-		Identifier = InIdentifier;
-		for (FPCGExSocketDescriptor& Descriptor : InSockets)
-		{
-			if (!Descriptor.bEnabled) { continue; }
-
-			MaxDistanceGetters.Emplace_GetRef(Descriptor);
-			LocalDirectionGetters.Emplace_GetRef(Descriptor);
-
-			FSocket& NewSocket = Sockets.Emplace_GetRef(Descriptor);
-			NewSocket.AttributeNameBase = GetCompoundName(Descriptor.SocketName);
-			NewSocket.SocketIndex = NumSockets++;
-			NameToIndexMap.Add(NewSocket.GetName(), NewSocket.SocketIndex);
-		}
-
-		PostProcessSockets();
-	}
-
-	void FSocketMapping::InitializeWithOverrides(const FName InIdentifier, TArray<FPCGExSocketDescriptor>& InSockets, const FPCGExSocketGlobalOverrides& Overrides)
+	void FSocketMapping::Initialize(
+		const FName InIdentifier,
+		TArray<FPCGExSocketDescriptor>& InSockets,
+		const FPCGExSocketGlobalOverrides& Overrides,
+		const FPCGExSocketDescriptor& OverrideSocket)
 	{
 		Reset();
 		Identifier = InIdentifier;
 		const FString PCGExName = TEXT("PCGEx");
+		const bool bDoOverride = Overrides.bEnabled && !OverrideSocket.SocketName.IsNone();
 		for (FPCGExSocketDescriptor& Descriptor : InSockets)
 		{
 			if (!Descriptor.bEnabled) { continue; }
 
-			FProbeDistanceModifier& NewModifier = MaxDistanceGetters.Emplace_GetRef(Descriptor);
-			NewModifier.bEnabled = Overrides.bOverrideAttributeModifier ? Overrides.bApplyAttributeModifier : Descriptor.bApplyAttributeModifier;
-			NewModifier.Descriptor = Overrides.bOverrideAttributeModifier ? Overrides.AttributeModifier : Descriptor.AttributeModifier;
-
-			FLocalDirection& NewLocalDirection = LocalDirectionGetters.Emplace_GetRef(Descriptor);
-			NewLocalDirection.bEnabled = Overrides.bOverrideDirectionVectorFromAttribute ? Overrides.bDirectionVectorFromAttribute : Descriptor.bDirectionVectorFromAttribute;
-			NewLocalDirection.Descriptor = Overrides.bOverrideDirectionVectorFromAttribute ? Overrides.AttributeDirectionVector : Descriptor.AttributeDirectionVector;
-
 			FSocket& NewSocket = Sockets.Emplace_GetRef(Descriptor);
 			NewSocket.AttributeNameBase = GetCompoundName(Descriptor.SocketName);
 			NewSocket.SocketIndex = NumSockets++;
+
 			NameToIndexMap.Add(NewSocket.GetName(), NewSocket.SocketIndex);
 
-			if (Overrides.bOverrideRelativeOrientation) { NewSocket.Descriptor.bRelativeOrientation = Overrides.bRelativeOrientation; }
-			if (Overrides.bOverrideAngle) { NewSocket.Descriptor.Bounds.Angle = Overrides.Angle; }
-			if (Overrides.bOverrideMaxDistance) { NewSocket.Descriptor.Bounds.MaxDistance = Overrides.MaxDistance; }
-			if (Overrides.bOverrideExclusiveBehavior) { NewSocket.Descriptor.bExclusiveBehavior = Overrides.bExclusiveBehavior; }
-			if (Overrides.bOverrideDotOverDistance) { NewSocket.Descriptor.Bounds.DotOverDistance = Overrides.DotOverDistance; }
-			if (Overrides.bOverrideOffsetOrigin) { NewSocket.Descriptor.OffsetOrigin = Overrides.OffsetOrigin; }
+			if (bDoOverride)
+			{
+				//
 
-			NewSocket.Descriptor.Bounds.DotThreshold = FMath::Cos(NewSocket.Descriptor.Bounds.Angle * (PI / 180.0));
+				if (Overrides.bRelativeOrientation) { NewSocket.Descriptor.bRelativeOrientation = OverrideSocket.bRelativeOrientation; }
+
+				if (Overrides.bDirection) { NewSocket.Descriptor.Direction = OverrideSocket.Direction; }
+				if (Overrides.bUseLocalDirection) { NewSocket.Descriptor.bUseLocalDirection = OverrideSocket.bUseLocalDirection; }
+				if (Overrides.bLocalDirection) { NewSocket.Descriptor.LocalDirection = OverrideSocket.LocalDirection; }
+
+				//
+
+				if (Overrides.bAngle) { NewSocket.Descriptor.Angle = OverrideSocket.Angle; }
+				if (Overrides.bUseLocalAngle) { NewSocket.Descriptor.bUseLocalAngle = OverrideSocket.bUseLocalAngle; }
+				if (Overrides.bLocalAngle) { NewSocket.Descriptor.LocalAngle = OverrideSocket.LocalAngle; }
+				if (Overrides.bLocalAngleIsDegrees) { NewSocket.Descriptor.bLocalAngleIsDegrees = OverrideSocket.bLocalAngleIsDegrees; }
+
+				//
+
+				if (Overrides.bRadius) { NewSocket.Descriptor.Radius = OverrideSocket.Radius; }
+				if (Overrides.bUseLocalRadius) { NewSocket.Descriptor.bUseLocalRadius = OverrideSocket.bUseLocalRadius; }
+				if (Overrides.bLocalRadius) { NewSocket.Descriptor.LocalRadius = OverrideSocket.LocalRadius; }
+
+				if (Overrides.bDotOverDistance) { NewSocket.Descriptor.DotOverDistance = OverrideSocket.DotOverDistance; }
+				if (Overrides.bOffsetOrigin) { NewSocket.Descriptor.OffsetOrigin = OverrideSocket.OffsetOrigin; }
+
+				if (Overrides.bMirrorMatchingSockets) { NewSocket.Descriptor.bMirrorMatchingSockets = OverrideSocket.bMirrorMatchingSockets; }
+			}
+
+			NewSocket.Descriptor.DotThreshold = FMath::Cos(NewSocket.Descriptor.Angle * (PI / 180.0));
 		}
 
 		PostProcessSockets();
@@ -174,39 +191,23 @@ namespace PCGExGraph
 		//TODO: Write index per graph instead of per socket
 		//GetRemappedIndices(PointIO, ) GetParamPropertyName(ParamPropertyNameIndex)
 
-
-		for (int i = 0; i < Sockets.Num(); i++)
-		{
-			Sockets[i].PrepareForPointData(PointIO, bReadOnly);
-			MaxDistanceGetters[i].Grab(PointIO);
-			LocalDirectionGetters[i].Grab(PointIO);
-		}
+		for (int i = 0; i < Sockets.Num(); i++) { Sockets[i].PrepareForPointData(PointIO, bReadOnly); }
 	}
 
 	void FSocketMapping::GetSocketsInfos(TArray<FSocketInfos>& OutInfos)
 	{
 		OutInfos.Empty(NumSockets);
-		for (int i = 0; i < NumSockets; i++)
-		{
-			FSocketInfos& Infos = OutInfos.Emplace_GetRef();
-			Infos.Socket = &(Sockets[i]);
-			Infos.MaxDistanceGetter = &(MaxDistanceGetters[i]);
-			Infos.LocalDirectionGetter = &(LocalDirectionGetters[i]);
-		}
+		for (int i = 0; i < NumSockets; i++) { OutInfos.Emplace_GetRef(&(Sockets[i])); }
 	}
 
 	void FSocketMapping::Cleanup()
 	{
 		for (FSocket& Socket : Sockets) { Socket.Cleanup(); }
-		for (FProbeDistanceModifier& Modifier : MaxDistanceGetters) { Modifier.Cleanup(); }
-		for (FLocalDirection& Direction : LocalDirectionGetters) { Direction.Cleanup(); }
 	}
 
 	void FSocketMapping::Reset()
 	{
 		Sockets.Empty();
-		MaxDistanceGetters.Empty();
-		LocalDirectionGetters.Empty();
 	}
 
 	FName FSocketMapping::GetParamPropertyName(const FName PropertyName) const
@@ -258,20 +259,14 @@ void UPCGExGraphParamsData::BeginDestroy()
 
 void UPCGExGraphParamsData::Initialize()
 {
+	PCGEX_DELETE(SocketMapping);
+
 	SocketMapping = new PCGExGraph::FSocketMapping();
-
-	if (bApplyGlobalOverrides) { SocketMapping->InitializeWithOverrides(GraphIdentifier, SocketsDescriptors, GlobalOverrides); }
-	else { SocketMapping->Initialize(GraphIdentifier, SocketsDescriptors); }
-
-	GreatestStaticMaxDistance = 0.0;
-	bHasVariableMaxDistance = false;
-
-	for (const FPCGExSocketDescriptor& Socket : SocketsDescriptors)
-	{
-		if (!Socket.bEnabled) { continue; }
-		if (Socket.bApplyAttributeModifier) { bHasVariableMaxDistance = true; }
-		GreatestStaticMaxDistance = FMath::Max(GreatestStaticMaxDistance, Socket.Bounds.MaxDistance);
-	}
+	SocketMapping->Initialize(
+		GraphIdentifier,
+		SocketsDescriptors,
+		GlobalOverrides,
+		OverrideSocket);
 
 	CachedIndexAttributeName = SocketMapping->GetCompoundName(FName("CachedIndex"));
 }
@@ -279,22 +274,6 @@ void UPCGExGraphParamsData::Initialize()
 void UPCGExGraphParamsData::PrepareForPointData(const PCGExData::FPointIO& PointIO, const bool bReadOnly = true) const
 {
 	SocketMapping->PrepareForPointData(PointIO, bReadOnly);
-}
-
-void UPCGExGraphParamsData::GetSocketsData(const int32 PointIndex, TArray<PCGExGraph::FSocketMetadata>& OutMetadata) const
-{
-	OutMetadata.Reset(SocketMapping->NumSockets);
-	for (const PCGExGraph::FSocket& Socket : SocketMapping->Sockets) { OutMetadata.Add(Socket.GetData(PointIndex)); }
-}
-
-void UPCGExGraphParamsData::SetSocketsData(const int32 PointIndex, TArray<PCGExGraph::FSocketMetadata>& InMetadata) const
-{
-	check(InMetadata.Num() == SocketMapping->NumSockets)
-	for (int i = 0; i < SocketMapping->NumSockets; i++)
-	{
-		PCGExGraph::FSocket& Socket = SocketMapping->Sockets[i];
-		Socket.SetData(PointIndex, InMetadata[i]);
-	}
 }
 
 void UPCGExGraphParamsData::GetSocketsInfos(TArray<PCGExGraph::FSocketInfos>& OutInfos) const
@@ -305,4 +284,14 @@ void UPCGExGraphParamsData::GetSocketsInfos(TArray<PCGExGraph::FSocketInfos>& Ou
 void UPCGExGraphParamsData::Cleanup() const
 {
 	if (SocketMapping) { SocketMapping->Cleanup(); }
+}
+
+UPCGExRoamingSocketParamsData::UPCGExRoamingSocketParamsData(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
+{
+}
+
+void UPCGExRoamingSocketParamsData::BeginDestroy()
+{
+	Super::BeginDestroy();
 }

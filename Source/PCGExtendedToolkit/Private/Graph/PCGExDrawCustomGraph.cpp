@@ -118,7 +118,7 @@ bool FPCGExDrawCustomGraphElement::ExecuteInternal(FPCGContext* InContext) const
 							Context->World,
 							Probe.Origin,
 							Probe.Direction,
-							FMath::Sqrt(Probe.MaxDistance),
+							FMath::Sqrt(Probe.Radius),
 							AngleWidth, AngleWidth, 12,
 							Probe.SocketInfos->Socket->Descriptor.DebugColor,
 							true, -1, 0, .5f);

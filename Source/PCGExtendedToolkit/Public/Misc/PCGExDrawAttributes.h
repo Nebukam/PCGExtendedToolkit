@@ -54,7 +54,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeDebugDrawDescriptor : public FPCGEx
 	float Thickness = 1.0;
 
 	/** Draw size. What it means depends on the selected debug type. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Size", meta=(PCG_Overridable, ClampMin=0.001))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Size", meta=(PCG_Overridable, ClampMin=0.000001))
 	double Size = 100.0;
 
 	/** Fetch the size from a local attribute. The regular Size parameter then act as a scale.*/

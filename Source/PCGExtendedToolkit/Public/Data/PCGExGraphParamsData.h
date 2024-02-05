@@ -7,6 +7,7 @@
 #include "Math/UnrealMathUtility.h"
 
 #include "PCGExAttributeHelpers.h"
+#include "PCGParamData.h"
 #include "Graph/PCGExGraph.h"
 
 #include "PCGExGraphParamsData.generated.h"
@@ -39,60 +40,16 @@ ENUM_CLASS_FLAGS(EPCGExSocketType)
 #pragma region Descriptors
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExSocketBounds
-{
-	GENERATED_BODY()
-
-	FPCGExSocketBounds()
-		: DotOverDistance(PCGEx::DefaultDotOverDistanceCurve)
-	{
-	}
-
-	FPCGExSocketBounds(const FVector& Dir): FPCGExSocketBounds()
-	{
-		Direction = Dir;
-	}
-
-	FPCGExSocketBounds(
-		const FPCGExSocketBounds& Other):
-		Direction(Other.Direction),
-		DotThreshold(Other.DotThreshold),
-		MaxDistance(Other.MaxDistance),
-		DotOverDistance(Other.DotOverDistance)
-	{
-	}
-
-public:
-	/** Slot 'look-at' direction. Used along with DotTolerance. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-	FVector Direction = FVector::UpVector;
-
-	/** Cone threshold. Used along with the direction of the slot when looking for the closest candidate. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta=(Units="Degrees", ClampMin=0, ClampMax=180))
-	double Angle = 45.0; // 0.707f dot
-
-	UPROPERTY(BlueprintReadOnly, meta=(ClampMin=-1, ClampMax=1))
-	double DotThreshold = 0.707;
-
-	/** Maximum sampling distance. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta=(ClampMin=0.0001))
-	double MaxDistance = 1000.0f;
-
-	/** The balance over distance to prioritize closer distance or better alignment. Curve X is normalized distance; Y = 0 means narrower dot wins, Y = 1 means closer distance wins */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TSoftObjectPtr<UCurveFloat> DotOverDistance;
-
-	TObjectPtr<UCurveFloat> DotOverDistanceCurve = nullptr;
-
-	void LoadCurve() { DotOverDistanceCurve = DotOverDistance.LoadSynchronous(); }
-};
-
-USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExSocketDescriptor
 {
 	GENERATED_BODY()
 
 	FPCGExSocketDescriptor()
+	{
+	}
+
+	explicit FPCGExSocketDescriptor(const FName InName):
+		SocketName(InName)
 	{
 	}
 
@@ -106,8 +63,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSocketDescriptor
 		SocketType(InType),
 		DebugColor(InDebugColor)
 	{
-		Bounds.Direction = InDirection;
-		Bounds.Angle = InAngle;
+		Direction = InDirection;
+		Angle = InAngle;
 	}
 
 	FPCGExSocketDescriptor(
@@ -121,59 +78,103 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSocketDescriptor
 		SocketType(InType),
 		DebugColor(InDebugColor)
 	{
-		Bounds.Direction = InDirection;
-		Bounds.Angle = InAngle;
+		Direction = InDirection;
+		Angle = InAngle;
 		MatchingSlots.Add(InMatchingSlot);
 	}
 
 public:
 	/** Name of the attribute to write neighbor index to. */
-	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere)
-	FName SocketName = NAME_None;
+	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta=(PCG_Overridable))
+	FName SocketName = TEXT("SocketName");
 
 	/** Type of socket. */
-	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere)
+	//UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta=(HideInDetailPanel)) // TODO: Implement
 	EPCGExSocketType SocketType = EPCGExSocketType::Any;
 
 	/** Exclusive sockets can only connect to other socket matching */
-	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere)
+	//UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta=(HideInDetailPanel)) // TODO: Implement
 	bool bExclusiveBehavior = false;
 
-	/** Socket spatial definition */
-	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta=(ShowOnlyInnerProperties))
-	FPCGExSocketBounds Bounds;
-
 	/** Whether the orientation of the direction is relative to the point transform or not. */
-	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere)
+	UPROPERTY(BlueprintReadWrite, Category = "Settings|Probing", EditAnywhere, meta=(PCG_Overridable))
 	bool bRelativeOrientation = true;
 
+	/// Bounds
+
+	/** Slot 'look-at' direction. Used along with DotTolerance. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Probing", meta=(PCG_Overridable))
+	FVector Direction = FVector::UpVector;
+
 	/** If true, the direction vector of the socket will be read from a local attribute. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(InlineEditConditionToggle))
-	bool bDirectionVectorFromAttribute = false;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Probing", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bUseLocalDirection = false;
 
-	/** Sibling slots names that are to be considered as a match. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
-	TArray<FName> MatchingSlots;
+	/** Local property or attribute to read Direction from. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Probing", meta = (PCG_Overridable, EditCondition="bUseLocalDirection"))
+	FPCGExInputDescriptor LocalDirection;
 
-	/** Inject this slot as a match to slots referenced in the Matching Slots list. Useful to save time */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
-	bool bMirrorMatchingSockets = true;
+	//
 
-	/** Local attribute to override the direction vector with */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bDirectionVectorFromAttribute", ShowOnlyInnerProperties))
-	FPCGExInputDescriptor AttributeDirectionVector;
+	/** Angular threshold. Used along with the direction of the slot when looking for the closest candidate. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Probing", meta=(PCG_Overridable, Units="Degrees", ClampMin=0, ClampMax=180))
+	double Angle = 45.0; // 0.707f dot
+	double DotThreshold = 0.707f;
 
-	/** If enabled, multiplies the max sampling distance of this socket by the value of a local attribute. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(InlineEditConditionToggle))
-	bool bApplyAttributeModifier = false;
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Probing", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bUseLocalAngle = false;
 
-	/** Local attribute to multiply the max distance by.  */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bApplyAttributeModifier", ShowOnlyInnerProperties))
-	FPCGExInputDescriptor AttributeModifier;
+	/** Local property or attribute to read Angle from. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Probing", meta = (PCG_Overridable, EditCondition="bUseLocalAngle"))
+	FPCGExInputDescriptor LocalAngle;
+
+	/** Enable if the local angle should be read as degrees instead of radians. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Probing", meta = (PCG_Overridable, EditCondition="bUseLocalAngle"))
+	bool bLocalAngleIsDegrees = true;
+
+
+	//
+
+	/** Maximum search radius. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Probing", meta=(PCG_Overridable, ClampMin=0.0001))
+	double Radius = 1000.0f;
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Probing", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bUseLocalRadius = false;
+
+	/** Local property or attribute to read Radius from. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Probing", meta = (PCG_Overridable, EditCondition="bUseLocalRadius"))
+	FPCGExInputDescriptor LocalRadius;
 
 	/** Offset socket origin  */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Probing", meta = (PCG_Overridable))
 	EPCGExExtension OffsetOrigin = EPCGExExtension::None;
+
+	/** The balance over distance to prioritize closer distance or better alignment. Curve X is normalized distance; Y = 0 means narrower dot wins, Y = 1 means closer distance wins */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Settings|Probing")
+	TSoftObjectPtr<UCurveFloat> DotOverDistance =  TSoftObjectPtr<UCurveFloat>(PCGEx::DefaultDotOverDistanceCurve);
+
+	TObjectPtr<UCurveFloat> DotOverDistanceCurve = nullptr;
+
+	void LoadCurve()
+	{
+		if (DotOverDistance.IsNull()) { DotOverDistanceCurve = TSoftObjectPtr<UCurveFloat>(PCGEx::DefaultDotOverDistanceCurve).LoadSynchronous(); }
+		else { DotOverDistanceCurve = DotOverDistance.LoadSynchronous(); }
+	}
+
+	/// Relationships
+
+	/** Sibling slots names that are to be considered as a match. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Relationships")
+	TArray<FName> MatchingSlots;
+
+	/** QoL. Inject this slot as a match to slots referenced in the Matching Slots list. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Relationships")
+	bool bMirrorMatchingSockets = true;
+
+	/// Advanced
 
 	/** Enable/disable this socket. Disabled sockets are omitted during processing. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, AdvancedDisplay)
@@ -190,87 +191,62 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSocketGlobalOverrides
 	GENERATED_BODY()
 
 	FPCGExSocketGlobalOverrides()
-		: DotOverDistance(PCGEx::DefaultDotOverDistanceCurve)
 	{
 	}
 
 public:
-	/** Override all socket orientation. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
-	bool bOverrideRelativeOrientation = false;
+	/** Enables override */
+	bool bEnabled = false;
 
-	/** If true, the direction vector will be affected by the point' world rotation. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bOverrideRelativeOrientation"))
+	UPROPERTY(BlueprintReadWrite, Category = "Probing", EditAnywhere)
 	bool bRelativeOrientation = false;
 
+	/// Bounds
 
-	/** Override all socket bExclusiveBehavior. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
-	bool bOverrideExclusiveBehavior = false;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Probing", meta=(PCG_Overridable))
+	bool bDirection = false;
 
-	/** If true, Input & Outputs can only connect to sockets registered as a Match. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bOverrideExclusiveBehavior"))
-	bool bExclusiveBehavior = false;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Probing", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bUseLocalDirection = false;
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Probing", meta = (PCG_Overridable, EditCondition="bUseLocalDirection"))
+	bool bLocalDirection = false;
 
-	/** Override all socket cone. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
-	bool bOverrideAngle = false;
+	//
 
-	/** Cone threshold. Used along with the direction of the slot when looking for the closest candidate. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bOverrideAngle", ClampMin=0.001, ClampMax=359))
-	double Angle = 45.0; // 0.707f dot
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Probing", meta=(PCG_Overridable))
+	bool bAngle = false;
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Probing", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bUseLocalAngle = false;
 
-	/** Override all socket distance. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
-	bool bOverrideMaxDistance = false;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Probing", meta = (PCG_Overridable, EditCondition="bUseLocalAngle"))
+	bool bLocalAngle = false;
 
-	/** Maximum sampling distance. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bOverrideMaxDistance", ClampMin=0.001))
-	double MaxDistance = 100.0f;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Probing", meta = (PCG_Overridable, EditCondition="bUseLocalAngle"))
+	bool bLocalAngleIsDegrees = false;
 
+	//
 
-	/** Override all socket Read direction vector from local attribute */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(InlineEditConditionToggle))
-	bool bOverrideDirectionVectorFromAttribute = false;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Probing", meta=(PCG_Overridable))
+	bool bRadius = false;
 
-	/** Is the direction vector read from local attributes */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(InlineEditConditionToggle, EditCondition="bOverrideDirectionVectorFromAttribute"))
-	bool bDirectionVectorFromAttribute = false;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Probing", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bUseLocalRadius = false;
 
-	/** Local attribute from which the direction will be read. Must be a FVectorN otherwise will lead to bad results. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bOverrideDirectionVectorFromAttribute", ShowOnlyInnerProperties))
-	FPCGExInputDescriptor AttributeDirectionVector;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Probing", meta = (PCG_Overridable, EditCondition="bUseLocalRadius"))
+	bool bLocalRadius = false;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Probing")
+	bool bDotOverDistance = false;
 
-	/** Override all socket Modifiers. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
-	bool bOverrideAttributeModifier = false;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Probing", meta = (PCG_Overridable))
+	bool bOffsetOrigin = false;
 
-	/** Is the distance modified by local attributes */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bOverrideAttributeModifier", InlineEditConditionToggle))
-	bool bApplyAttributeModifier = false;
+	/// Relationships
 
-	/** Which local attribute is used to factor the distance */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bOverrideAttributeModifier"))
-	FPCGExInputDescriptor AttributeModifier;
-
-	/** Is the distance modified by local attributes */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
-	bool bOverrideDotOverDistance = false;
-
-	/**Curve to balance picking shortest distance over better angle. Only used by certain solvers.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bOverrideDotOverDistance"))
-	TSoftObjectPtr<UCurveFloat> DotOverDistance;
-
-	/** Offset socket origin */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
-	bool bOverrideOffsetOrigin = false;
-
-	/** What property to use for the offset.  */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bOverrideOffsetOrigin"))
-	EPCGExExtension OffsetOrigin = EPCGExExtension::None;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Relationships")
+	bool bMirrorMatchingSockets = false;
 };
 
 #pragma endregion
@@ -301,32 +277,6 @@ namespace PCGExGraph
 		}
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FProbeDistanceModifier : public PCGEx::FLocalSingleFieldGetter
-	{
-		FProbeDistanceModifier()
-		{
-		}
-
-		explicit FProbeDistanceModifier(const FPCGExSocketDescriptor& InDescriptor)
-		{
-			Descriptor = InDescriptor.AttributeModifier;
-			bEnabled = InDescriptor.bApplyAttributeModifier;
-		}
-	};
-
-	struct PCGEXTENDEDTOOLKIT_API FLocalDirection : public PCGEx::FLocalVectorGetter
-	{
-		FLocalDirection()
-		{
-		}
-
-		explicit FLocalDirection(const FPCGExSocketDescriptor& InDescriptor)
-		{
-			Descriptor = InDescriptor.AttributeDirectionVector;
-			bEnabled = InDescriptor.bDirectionVectorFromAttribute;
-		}
-	};
-
 	const FName SocketPropertyNameIndex = FName("Target");
 	const FName SocketPropertyNameEdgeType = FName("EdgeType");
 
@@ -342,7 +292,7 @@ namespace PCGExGraph
 		explicit FSocket(const FPCGExSocketDescriptor& InDescriptor): FSocket()
 		{
 			Descriptor = InDescriptor;
-			Descriptor.Bounds.DotThreshold = FMath::Cos(Descriptor.Bounds.Angle * (PI / 180.0)); //Degrees to dot product
+			Descriptor.DotThreshold = FMath::Cos(Descriptor.Angle * (PI / 180.0)); //Degrees to dot product
 		}
 
 		~FSocket();
@@ -354,6 +304,11 @@ namespace PCGExGraph
 
 	protected:
 		bool bReadOnly = false;
+
+		PCGEx::FLocalVectorGetter* LocalDirectionGetter = nullptr;
+		PCGEx::FLocalSingleFieldGetter* LocalAngleGetter = nullptr;
+		PCGEx::FLocalSingleFieldGetter* LocalRadiusGetter = nullptr;
+
 		PCGEx::TFAttributeWriter<int32>* TargetIndexWriter = nullptr;
 		PCGEx::TFAttributeWriter<int32>* EdgeTypeWriter = nullptr;
 		PCGEx::TFAttributeReader<int32>* TargetIndexReader = nullptr;
@@ -365,16 +320,34 @@ namespace PCGExGraph
 	public:
 		FName GetName() const { return AttributeNameBase; }
 		EPCGExSocketType GetSocketType() const { return Descriptor.SocketType; }
-		bool IsExclusive() const { return Descriptor.bExclusiveBehavior; }
+		//bool IsExclusive() const { return Descriptor.bExclusiveBehavior; }
 		bool Matches(const FSocket* OtherSocket) const { return MatchingSockets.Contains(OtherSocket->SocketIndex); }
 		void DeleteFrom(const UPCGPointData* PointData) const;
 		void Write(bool bDoCleanup = true);
+
 		void PrepareForPointData(const PCGExData::FPointIO& PointIO, const bool ReadOnly = true);
-		void SetData(const PCGMetadataEntryKey MetadataEntry, const FSocketMetadata& SocketMetadata) const;
+
+		void GetDirection(const int32 PointIndex, FVector& OutDirection) const
+		{
+			OutDirection = LocalDirectionGetter ? LocalDirectionGetter->SafeGet(PointIndex, Descriptor.Direction) : Descriptor.Direction;
+		}
+
+		void GetDotThreshold(const int32 PointIndex, double& OutAngle) const
+		{
+			OutAngle = LocalAngleGetter ? LocalAngleGetter->SafeGet(PointIndex, Descriptor.DotThreshold) : Descriptor.DotThreshold;
+		}
+
+		void GetRadius(const int32 PointIndex, double& OutRadius) const
+		{
+			OutRadius = LocalRadiusGetter ? LocalRadiusGetter->SafeGet(PointIndex, Descriptor.Radius) : Descriptor.Radius;
+		}
+
 		void SetTargetIndex(const int32 PointIndex, int32 InValue) const;
 		int32 GetTargetIndex(const int32 PointIndex) const;
+
 		void SetEdgeType(const int32 PointIndex, EPCGExEdgeType InEdgeType) const;
 		EPCGExEdgeType GetEdgeType(const int32 PointIndex) const;
+
 		FSocketMetadata GetData(const int32 PointIndex) const;
 
 		template <typename T>
@@ -410,16 +383,17 @@ namespace PCGExGraph
 	struct PCGEXTENDEDTOOLKIT_API FSocketInfos
 	{
 		FSocket* Socket = nullptr;
-		FProbeDistanceModifier* MaxDistanceGetter = nullptr;
-		FLocalDirection* LocalDirectionGetter = nullptr;
 
 		bool Matches(const FSocketInfos& Other) const { return Socket->Matches(Other.Socket); }
+
+		explicit FSocketInfos(FSocket* InSocket):
+			Socket(InSocket)
+		{
+		}
 
 		~FSocketInfos()
 		{
 			Socket = nullptr;
-			MaxDistanceGetter = nullptr;
-			LocalDirectionGetter = nullptr;
 		}
 	};
 
@@ -440,14 +414,15 @@ namespace PCGExGraph
 	public:
 		FName Identifier = NAME_None;
 		TArray<FSocket> Sockets;
-		TArray<FProbeDistanceModifier> MaxDistanceGetters;
-		TArray<FLocalDirection> LocalDirectionGetters;
 		TMap<FName, int32> NameToIndexMap;
 		TMap<int32, int32> IndexRemap;
 		int32 NumSockets = 0;
 
-		void Initialize(const FName InIdentifier, TArray<FPCGExSocketDescriptor>& InSockets);
-		void InitializeWithOverrides(FName InIdentifier, TArray<FPCGExSocketDescriptor>& InSockets, const FPCGExSocketGlobalOverrides& Overrides);
+		void Initialize(
+			const FName InIdentifier,
+			TArray<FPCGExSocketDescriptor>& InSockets,
+			const FPCGExSocketGlobalOverrides& Overrides,
+			const FPCGExSocketDescriptor& OverrideSocket);
 
 		FName GetCompoundName(FName SecondaryIdentifier) const;
 
@@ -460,7 +435,6 @@ namespace PCGExGraph
 		void PrepareForPointData(const PCGExData::FPointIO& PointIO, const bool bReadOnly = true);
 
 		const TArray<FSocket>& GetSockets() const { return Sockets; }
-		const TArray<FProbeDistanceModifier>& GetModifiers() const { return MaxDistanceGetters; }
 
 		void GetSocketsInfos(TArray<FSocketInfos>& OutInfos);
 		void Cleanup();
@@ -478,17 +452,6 @@ namespace PCGExGraph
 #pragma endregion
 
 #pragma region Edges
-
-	struct PCGEXTENDEDTOOLKIT_API FCachedSocketData
-	{
-		FCachedSocketData()
-		{
-			Neighbors.Empty();
-		}
-
-		int64 Index = -1;
-		TArray<FSocketMetadata> Neighbors;
-	};
 
 	/**
 	 * Assume the edge already is neither None nor Unique, since another socket has been found.
@@ -548,18 +511,34 @@ namespace PCGExGraph
  * 
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
+class PCGEXTENDEDTOOLKIT_API UPCGExRoamingSocketParamsData : public UPCGPointData
+{
+	GENERATED_BODY()
+
+public:
+	UPCGExRoamingSocketParamsData(const FObjectInitializer& ObjectInitializer);
+	virtual EPCGDataType GetDataType() const override { return EPCGDataType::Param; }
+	
+	FPCGExSocketDescriptor Descriptor;
+
+	virtual void BeginDestroy() override;
+};
+
+/**
+ * 
+ */
+UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
 class PCGEXTENDEDTOOLKIT_API UPCGExGraphParamsData : public UPCGPointData
 {
 	GENERATED_BODY()
 
 public:
 	UPCGExGraphParamsData(const FObjectInitializer& ObjectInitializer);
+	virtual EPCGDataType GetDataType() const override { return EPCGDataType::Param; }
 
 	TArray<FPCGExSocketDescriptor> SocketsDescriptors;
-	bool bApplyGlobalOverrides = false;
 	FPCGExSocketGlobalOverrides GlobalOverrides;
-
-	virtual EPCGDataType GetDataType() const override { return EPCGDataType::Param; }
+	FPCGExSocketDescriptor OverrideSocket = FPCGExSocketDescriptor(NAME_None);
 
 	/**
 	 * 
@@ -569,8 +548,6 @@ public:
 	bool HasMatchingGraphData(const UPCGPointData* PointData) const;
 
 	FName GraphIdentifier = "GraphIdentifier";
-	double GreatestStaticMaxDistance = 0.0;
-	bool bHasVariableMaxDistance = false;
 	FName CachedIndexAttributeName;
 	uint64 GraphUID = 0;
 
@@ -590,17 +567,9 @@ public:
 	/**
 	 * Prepare socket mapping for working with a given PointData object.
 	 * @param PointIO
-	 * @param bEnsureEdgeType 
+	 * @param bReadOnly 
 	 */
-	void PrepareForPointData(const PCGExData::FPointIO& PointIO, const bool bEnsureEdgeType) const;
-
-	/**
-		 * Fills an array in order with each' socket metadata registered for a given point.
-		 * Make sure to call PrepareForPointData first.
-		 * @param PointIndex 
-		 * @param OutMetadata 
-		 */
-	void GetSocketsData(const int32 PointIndex, TArray<PCGExGraph::FSocketMetadata>& OutMetadata) const;
+	void PrepareForPointData(const PCGExData::FPointIO& PointIO, const bool bReadOnly) const;
 
 	/**
 	 * 
@@ -633,13 +602,6 @@ public:
 			if (Socket.TryGetEdge(PointIndex, Edge, EdgeFilter)) { OutEdges.AddUnique(Edge); }
 		}
 	}
-
-	/**
-	 * Make sure InMetadata has the same length as the nu
-	 * @param PointIndex 
-	 * @param InMetadata 
-	 */
-	void SetSocketsData(const int32 PointIndex, TArray<PCGExGraph::FSocketMetadata>& InMetadata) const;
 
 	void GetSocketsInfos(TArray<PCGExGraph::FSocketInfos>& OutInfos) const;
 
@@ -700,16 +662,16 @@ namespace PCGExGraph
 				InGraph->GraphUID,
 				InGraph->GraphIdentifier,
 				InGraph->SocketsDescriptors,
-				InGraph->bApplyGlobalOverrides,
-				InGraph->GlobalOverrides);
+				InGraph->GlobalOverrides,
+				InGraph->OverrideSocket);
 		}
 
 		static UPCGExGraphParamsData* NewGraph(
 			const uint64 GraphUID,
 			const FName Identifier,
 			const TArray<FPCGExSocketDescriptor>& Sockets,
-			const bool ApplyGlobalOverrides,
-			const FPCGExSocketGlobalOverrides& GlobalOverrides)
+			const FPCGExSocketGlobalOverrides& GlobalOverrides,
+			const FPCGExSocketDescriptor& OverrideSocket)
 		{
 			UPCGExGraphParamsData* OutParams = NewObject<UPCGExGraphParamsData>();
 
@@ -717,8 +679,8 @@ namespace PCGExGraph
 			OutParams->GraphIdentifier = Identifier;
 
 			OutParams->SocketsDescriptors.Append(Sockets);
-			OutParams->bApplyGlobalOverrides = ApplyGlobalOverrides;
 			OutParams->GlobalOverrides = GlobalOverrides;
+			OutParams->OverrideSocket = OverrideSocket;
 			OutParams->Initialize();
 
 			return OutParams;
@@ -751,4 +713,39 @@ namespace PCGExGraph
 			ParamsSources.Empty();
 		}
 	};
+
+	static void GetUniqueSocketParams(
+		const FPCGContext* Context,
+		const FName Pin,
+		TArray<FPCGExSocketDescriptor>& OutSockets,
+		TArray<FPCGExSocketDescriptor>& OmittedSockets)
+	{
+		OutSockets.Empty();
+		OmittedSockets.Empty();
+
+		TArray<FPCGTaggedData> TaggedData = Context->InputData.GetInputsByPin(Pin);
+		for (const FPCGTaggedData& TData : TaggedData)
+		{
+			const UPCGExRoamingSocketParamsData* SocketData = Cast<UPCGExRoamingSocketParamsData>(TData.Data);
+			if (!SocketData) { continue; }
+			bool bNameOverlap = false;
+
+			for (const FPCGExSocketDescriptor& SocketDescriptor : OutSockets)
+			{
+				if (SocketDescriptor.SocketName == SocketData->Descriptor.SocketName)
+				{
+					bNameOverlap = true;
+					break;
+				}
+			}
+
+			if (bNameOverlap)
+			{
+				OmittedSockets.Add(SocketData->Descriptor);
+				continue;
+			}
+
+			OutSockets.Add(SocketData->Descriptor);
+		}
+	}
 }

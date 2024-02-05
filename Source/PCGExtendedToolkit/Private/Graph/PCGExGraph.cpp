@@ -208,6 +208,12 @@ bool FPCGExCompileGraphTask::ExecuteTask()
 {
 	Builder->Graph->BuildSubGraphs(Min, Max);
 
+	if (Builder->Graph->SubGraphs.IsEmpty())
+	{
+		Builder->bCompiledSuccessfully = false;
+		return false;
+	}
+	
 	if (Builder->bPrunePoints)
 	{
 		// Rebuild point list with only the one used
@@ -256,13 +262,7 @@ bool FPCGExCompileGraphTask::ExecuteTask()
 
 	PCGEX_DELETE(IndexWriter)
 	PCGEX_DELETE(NumEdgesWriter)
-
-	if (Builder->Graph->SubGraphs.IsEmpty())
-	{
-		Builder->bCompiledSuccessfully = false;
-		return false;
-	}
-
+	
 	Builder->bCompiledSuccessfully = true;
 
 	for (PCGExGraph::FSubGraph* SubGraph : Builder->Graph->SubGraphs)

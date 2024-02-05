@@ -66,7 +66,7 @@ public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	bool bCacheResult = false;
-	PCGEX_NODE_INFOS(GraphParams, "Custom Graph : Params", "Builds a collection of PCG-compatible data from the selected actors.")
+	PCGEX_NODE_INFOS(GraphParams, "Custom Graph : Params", "Build a collection of sockets and output a single Custom Graph Params object, all in one place.")
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Param; }
 #endif
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
@@ -111,7 +111,7 @@ public:
 
 	/** Individual socket properties overrides */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bApplyGlobalOverrides"))
-	FPCGExSocketGlobalOverrides GlobalOverrides;
+	FPCGExSocketGlobalOverrides ApplyGlobalOverrides;
 
 	/** An array containing the computed socket names, for easy copy-paste. */
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta=(AdvancedDisplay, TitleProperty="{BaseName}"))
@@ -127,12 +127,14 @@ protected:
 
 class PCGEXTENDEDTOOLKIT_API FPCGExCreateCustomGraphParamsElement : public IPCGElement
 {
+public:
+#if WITH_EDITOR
+	virtual bool ShouldLog() const override { return false; }
+#endif
+
 protected:
-	template <typename T>
-	T* BuildParams(FPCGContext* Context) const;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 
-	
 public:
 	virtual FPCGContext* Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node) override;
 };

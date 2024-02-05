@@ -10,13 +10,30 @@
 #include "PCGExWriteEdgeExtras.generated.h"
 
 #define PCGEX_FOREACH_FIELD_EDGEEXTRAS(MACRO)\
-MACRO(EdgeLength, double)
+MACRO(EdgeLength, double)\
+MACRO(EdgeDirection, FVector)
 
 namespace PCGExDataBlending
 {
 	class FMetadataBlender;
 	struct FPropertiesBlender;
 }
+
+UENUM(BlueprintType)
+enum class EPCGExEdgeDirectionMethod : uint8
+{
+	EndpointsOrder UMETA(DisplayName = "Endpoints Order", ToolTip="Uses the edge' Start & End properties"),
+	EndpointsIndices UMETA(DisplayName = "Endpoints Indices", ToolTip="Uses the edge' Start & End indices"),
+	EndpointsAttribute UMETA(DisplayName = "Endpoints Attribute", ToolTip="Uses a single-component property or attribute value on Start & End points"),
+	EdgeDotAttribute UMETA(DisplayName = "Edge Dot Attribute", ToolTip="Chooses the highest dot product against a vector property or attribute on the edge point"),
+};
+
+UENUM(BlueprintType)
+enum class EPCGExEdgeDirectionChoice : uint8
+{
+	SmallestToGreatest UMETA(DisplayName = "Smallest to Greatest", ToolTip="Direction points from smallest to greatest value"),
+	GreatestToSmallest UMETA(DisplayName = "Greatest to Smallest", ToolTip="Direction points from the greatest to smallest value")
+};
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Edges")
 class PCGEXTENDEDTOOLKIT_API UPCGExWriteEdgeExtrasSettings : public UPCGExEdgesProcessorSettings
@@ -54,7 +71,31 @@ public:
 	/** Name of the 'boolean' attribute to write sampling success to.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteEdgeLength"))
 	FName EdgeLengthAttributeName = FName("EdgeLength");
+	
+	/** Write whether the sampling was sucessful or not to a boolean attribute. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bWriteEdgeDirection = false;
 
+	/** Name of the 'boolean' attribute to write sampling success to.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteEdgeDirection"))
+	FName EdgeDirectionAttributeName = FName("EdgeDirection");
+
+	/** Method to pick the direction amongst various possibilities.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteEdgeDirection"))
+	EPCGExEdgeDirectionMethod DirectionMethod = EPCGExEdgeDirectionMethod::EndpointsOrder;
+
+	/** Attribute picker for the selected Direction Method.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteEdgeDirection && DirectionMethod==EPCGExEdgeDirectionMethod::EndpointsAttribute", EditConditionHides))
+	FPCGExInputDescriptor VtxSourceAttribute;
+
+	/** Attribute picker for the selected Direction Method.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteEdgeDirection && DirectionMethod==EPCGExEdgeDirectionMethod::EdgeDotAttribute", EditConditionHides))
+	FPCGExInputDescriptor EdgeSourceAttribute;
+	
+	/** Further refine the direction method. Not all methods make use of this property.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteEdgeDirection"))
+	EPCGExEdgeDirectionChoice DirectionChoice = EPCGExEdgeDirectionChoice::SmallestToGreatest;
+	
 	/** Edges will inherit point attributes -- NOT IMPLEMENTED*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bBlendAttributes = false;
@@ -76,6 +117,11 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExWriteEdgeExtrasContext : public FPCGExEdgesP
 	PCGExDataBlending::FMetadataBlender* MetadataBlender;
 
 	PCGEX_FOREACH_FIELD_EDGEEXTRAS(PCGEX_OUTPUT_DECL)
+	EPCGExEdgeDirectionMethod DirectionMethod;
+	EPCGExEdgeDirectionChoice DirectionChoice;
+
+	PCGEx::FLocalSingleFieldGetter* VtxDirCompGetter = nullptr;
+	PCGEx::FLocalVectorGetter* EdgeDirCompGetter = nullptr;
 
 	PCGEx::TFAttributeWriter<FVector>* VtxNormalWriter = nullptr;
 };

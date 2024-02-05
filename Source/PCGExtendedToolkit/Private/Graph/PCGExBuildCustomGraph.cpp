@@ -127,31 +127,28 @@ bool FPCGExProbeTask::ExecuteTask()
 {
 	const FPCGExBuildCustomGraphContext* Context = Manager->GetContext<FPCGExBuildCustomGraphContext>();
 
-
 	const PCGEx::FPointRef Point = PCGEx::FPointRef(PointIO->GetOutPoint(TaskIndex), TaskIndex);
 
 	Context->SetCachedIndex(TaskIndex, TaskIndex);
 
 	TArray<PCGExGraph::FSocketProbe> Probes;
-	const double MaxDistance = Context->GraphSolver->PrepareProbesForPoint(Context->SocketInfos, Point, Probes);
+	const double MaxRadius = Context->GraphSolver->PrepareProbesForPoint(Context->SocketInfos, Point, Probes);
 
-	const FBox Box = FBoxCenterAndExtent(Point.Point->Transform.GetLocation(), FVector(MaxDistance)).GetBox();
+	const FBox Box = FBoxCenterAndExtent(Point.Point->Transform.GetLocation(), FVector(MaxRadius)).GetBox();
 
 	const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
 	for (int i = 0; i < InPoints.Num(); i++)
 	{
-		if (const FPCGPoint& Pt = InPoints[i];
-			Box.IsInside(Pt.Transform.GetLocation()))
-		{
-			const PCGEx::FPointRef& OtherPoint = PointIO->GetOutPointRef(i);
-			for (PCGExGraph::FSocketProbe& Probe : Probes) { Context->GraphSolver->ProcessPoint(Probe, OtherPoint); }
-		}
+		if (i == TaskIndex) { continue; }
+		if (const FPCGPoint& Pt = InPoints[i]; !Box.IsInside(Pt.Transform.GetLocation())) { continue; }
+
+		const PCGEx::FPointRef& OtherPoint = PointIO->GetOutPointRef(i);
+		for (PCGExGraph::FSocketProbe& Probe : Probes) { Context->GraphSolver->ProcessPoint(Probe, OtherPoint); }
 	}
 
 	for (PCGExGraph::FSocketProbe& Probe : Probes)
 	{
 		Context->GraphSolver->ResolveProbe(Probe);
-
 		Probe.OutputTo(Point.Index);
 		PCGEX_CLEANUP(Probe)
 	}

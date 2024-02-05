@@ -156,8 +156,15 @@ FPCGElementPtr UPCGExCreateCustomGraphParamsSettings::CreateElement() const { re
 
 TArray<FPCGPinProperties> UPCGExCreateCustomGraphParamsSettings::InputPinProperties() const
 {
-	TArray<FPCGPinProperties> NoInput;
-	return NoInput;
+	TArray<FPCGPinProperties> PinProperties;
+
+	FPCGPinProperties& SocketOverridePin = PinProperties.Emplace_GetRef(PCGExGraph::SourceSocketOverrideParamsLabel, EPCGDataType::Param, false, false);
+
+#if WITH_EDITOR
+	SocketOverridePin.Tooltip = FTEXT("Socket params used as a reference for global overriding.");
+#endif
+
+	return PinProperties;
 }
 
 TArray<FPCGPinProperties> UPCGExCreateCustomGraphParamsSettings::OutputPinProperties() const
@@ -190,39 +197,39 @@ void UPCGExCreateCustomGraphParamsSettings::PostEditChangeProperty(FPropertyChan
 }
 #endif
 
-template <typename T>
-T* FPCGExCreateCustomGraphParamsElement::BuildParams(
-	FPCGContext* Context) const
-{
-	const UPCGExCreateCustomGraphParamsSettings* Settings = Context->GetInputSettings<UPCGExCreateCustomGraphParamsSettings>();
-	check(Settings);
-
-	if (Settings->GraphIdentifier.IsNone() || !FPCGMetadataAttributeBase::IsValidName(Settings->GraphIdentifier.ToString()))
-	{
-		PCGE_LOG(Error, GraphAndLog, FTEXT("Output name is invalid; Cannot be 'None' and can only contain the following special characters:[ ],[_],[-],[/]"));
-		return nullptr;
-	}
-
-	TArray<FPCGTaggedData>& Outputs = Context->OutputData.TaggedData;
-	T* OutParams = PCGExGraph::FGraphInputs::NewGraph(
-		Context->Node->GetUniqueID(),
-		Settings->GraphIdentifier,
-		Settings->GetSockets(),
-		Settings->bApplyGlobalOverrides,
-		Settings->GlobalOverrides);
-
-	FPCGTaggedData& Output = Outputs.Emplace_GetRef();
-	Output.Data = OutParams;
-	Output.bPinlessData = true;
-
-	return OutParams;
-}
-
 bool FPCGExCreateCustomGraphParamsElement::ExecuteInternal(
 	FPCGContext* Context) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExCreateCustomGraphParamsElement::Execute);
-	BuildParams<UPCGExGraphParamsData>(Context);
+
+	const UPCGExCreateCustomGraphParamsSettings* Settings = Context->GetInputSettings<UPCGExCreateCustomGraphParamsSettings>();
+	check(Settings);
+
+	if (!FPCGMetadataAttributeBase::IsValidName(Settings->GraphIdentifier.ToString()) || Settings->GraphIdentifier.IsNone())
+	{
+		PCGE_LOG(Error, GraphAndLog, FTEXT("Graph Identifier is invalid; Cannot be 'None' and can only contain the following special characters:[ ],[_],[-],[/]"));
+		return true;
+	}
+
+	TArray<FPCGExSocketDescriptor> InputSockets;
+	TArray<FPCGExSocketDescriptor> OmittedSockets;
+	PCGExGraph::GetUniqueSocketParams(Context, PCGExGraph::SourceSocketOverrideParamsLabel, InputSockets, OmittedSockets);
+
+	FPCGExSocketGlobalOverrides Overrides = Settings->ApplyGlobalOverrides;
+	Overrides.bEnabled = Settings->bApplyGlobalOverrides;
+
+	TArray<FPCGTaggedData>& Outputs = Context->OutputData.TaggedData;
+	UPCGExGraphParamsData* OutParams = PCGExGraph::FGraphInputs::NewGraph(
+		Context->Node->GetUniqueID(),
+		Settings->GraphIdentifier,
+		Settings->GetSockets(),
+		Overrides,
+		InputSockets.IsEmpty() ? FPCGExSocketDescriptor(NAME_None) : InputSockets[0]);
+
+	FPCGTaggedData& Output = Outputs.Emplace_GetRef();
+	Output.Data = OutParams;
+	Output.Pin = PCGExGraph::OutputParamsLabel;
+
 	return true;
 }
 

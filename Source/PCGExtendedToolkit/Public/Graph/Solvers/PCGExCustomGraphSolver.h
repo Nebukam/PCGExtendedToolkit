@@ -24,16 +24,27 @@ namespace PCGExGraph
 	};
 
 	/** Per-socket temp data structure for processing only*/
-	struct PCGEXTENDEDTOOLKIT_API FSocketProbe : FPCGExSocketBounds
+	struct PCGEXTENDEDTOOLKIT_API FSocketProbe
 	{
+
+		FSocketProbe(): SocketInfos(nullptr)
+		{
+			Candidates.Empty();
+		}
+
 		explicit FSocketProbe(const FSocketInfos* InSocketInfos)
 			: SocketInfos(InSocketInfos)
 		{
 			Candidates.Empty();
 		}
-
+		
 		const FSocketInfos* SocketInfos;
+		
 		FVector Origin = FVector::Zero();
+		FVector Direction = FVector::UpVector;
+		double DotThreshold = 0.707;
+		double Radius = 1000.0f;
+		TObjectPtr<UCurveFloat> DotOverDistanceCurve = nullptr;
 
 		TArray<FPointCandidate> Candidates;
 		FPointCandidate BestCandidate;
@@ -59,6 +70,7 @@ namespace PCGExGraph
 		{
 			Candidates.Empty();
 			SocketInfos = nullptr;
+			DotOverDistanceCurve = nullptr;
 		}
 
 		~FSocketProbe()

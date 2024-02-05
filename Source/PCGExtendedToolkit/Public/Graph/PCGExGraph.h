@@ -88,6 +88,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgeCrawlingSettings
 
 namespace PCGExGraph
 {
+	const FName SourceSocketOverrideParamsLabel = TEXT("Ctrl Socket");
+	const FName SourceSocketParamsLabel = TEXT("Sockets");
+	const FName OutputSocketParamsLabel = TEXT("Socket");
+	
 	const FName SourceParamsLabel = TEXT("Graph");
 	const FName OutputParamsLabel = TEXT("➜");
 

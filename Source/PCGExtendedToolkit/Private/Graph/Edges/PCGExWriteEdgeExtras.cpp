@@ -27,6 +27,8 @@ FPCGExWriteEdgeExtrasContext::~FPCGExWriteEdgeExtrasContext()
 	PCGEX_FOREACH_FIELD_EDGEEXTRAS(PCGEX_OUTPUT_DELETE)
 
 	PCGEX_OUTPUT_DELETE(VtxNormal, FVector)
+	PCGEX_DELETE(VtxDirCompGetter)
+	PCGEX_DELETE(EdgeDirCompGetter)
 
 	PCGEX_DELETE(MetadataBlender)
 }
@@ -45,6 +47,9 @@ bool FPCGExWriteEdgeExtrasElement::Boot(FPCGContext* InContext) const
 	PCGEX_OUTPUT_VALIDATE_NAME(VtxNormal, FVector)
 	PCGEX_OUTPUT_FWD(VtxNormal, FVector)
 
+	PCGEX_FWD(DirectionChoice)
+	PCGEX_FWD(DirectionMethod)
+
 	return true;
 }
 
@@ -53,7 +58,7 @@ bool FPCGExWriteEdgeExtrasElement::ExecuteInternal(
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExWriteEdgeExtrasElement::Execute);
 
-	PCGEX_CONTEXT(WriteEdgeExtras)
+	PCGEX_CONTEXT_AND_SETTINGS(WriteEdgeExtras)
 
 	if (Context->IsSetup())
 	{
@@ -63,6 +68,8 @@ bool FPCGExWriteEdgeExtrasElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
+		PCGEX_DELETE(Context->VtxDirCompGetter)
+
 		if (!Context->AdvancePointsIO()) { Context->Done(); }
 		else
 		{
@@ -73,6 +80,16 @@ bool FPCGExWriteEdgeExtrasElement::ExecuteInternal(
 			}
 			else
 			{
+				if (Settings->bWriteEdgeDirection)
+				{
+					if (Settings->DirectionMethod == EPCGExEdgeDirectionMethod::EndpointsAttribute)
+					{
+						Context->VtxDirCompGetter = new PCGEx::FLocalSingleFieldGetter();
+						Context->VtxDirCompGetter->Capture(Settings->VtxSourceAttribute);
+						Context->VtxDirCompGetter->Grab(*Context->CurrentIO);
+					}
+				}
+
 				PCGExData::FPointIO& PointIO = *Context->CurrentIO;
 				PCGEX_OUTPUT_ACCESSOR_INIT(VtxNormal, FVector)
 				Context->SetState(PCGExGraph::State_ReadyForNextEdges);
@@ -82,6 +99,8 @@ bool FPCGExWriteEdgeExtrasElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExGraph::State_ReadyForNextEdges))
 	{
+		PCGEX_DELETE(Context->EdgeDirCompGetter)
+
 		if (!Context->AdvanceEdges(true))
 		{
 			PCGEX_OUTPUT_WRITE(VtxNormal, FVector)
@@ -93,6 +112,13 @@ bool FPCGExWriteEdgeExtrasElement::ExecuteInternal(
 		{
 			PCGEX_INVALID_CLUSTER_LOG
 			return false;
+		}
+
+		if (Settings->DirectionMethod == EPCGExEdgeDirectionMethod::EdgeDotAttribute)
+		{
+			Context->EdgeDirCompGetter = new PCGEx::FLocalVectorGetter();
+			Context->EdgeDirCompGetter->Capture(Settings->EdgeSourceAttribute);
+			Context->EdgeDirCompGetter->Grab(*Context->CurrentEdges);
 		}
 
 		PCGExData::FPointIO& PointIO = *Context->CurrentEdges;
@@ -129,6 +155,8 @@ bool FPCGExWriteExtrasTask::ExecuteTask()
 		}
 	}
 
+	const bool bAscendingDesired = Context->DirectionChoice == EPCGExEdgeDirectionChoice::SmallestToGreatest;
+
 	const TArray<PCGExGraph::FIndexedEdge>& Edges = Context->CurrentCluster->Edges;
 	for (const PCGExGraph::FIndexedEdge& Edge : Edges)
 	{
@@ -141,10 +169,38 @@ bool FPCGExWriteExtrasTask::ExecuteTask()
 		const FPCGPoint& StartPoint = Context->CurrentIO->GetInPoint(Edge.Start);
 		const FPCGPoint& EndPoint = Context->CurrentIO->GetInPoint(Edge.End);
 
+		if (Context->EdgeDirectionWriter)
+		{
+			FVector DirFrom = StartPoint.Transform.GetLocation();
+			FVector DirTo = EndPoint.Transform.GetLocation();
+			bool bAscending = true; // Default for Context->DirectionMethod == EPCGExEdgeDirectionMethod::EndpointsOrder
+
+			if (Context->DirectionMethod == EPCGExEdgeDirectionMethod::EndpointsAttribute)
+			{
+				bAscending = Context->VtxDirCompGetter->SafeGet(Edge.Start, Edge.Start) < Context->VtxDirCompGetter->SafeGet(Edge.End, Edge.End);
+			}
+			else if (Context->DirectionMethod == EPCGExEdgeDirectionMethod::EdgeDotAttribute)
+			{
+				const FVector CounterDir = Context->EdgeDirCompGetter->SafeGet(Edge.EdgeIndex, FVector::UpVector);
+				const FVector StartEndDir = (EndPoint.Transform.GetLocation() - StartPoint.Transform.GetLocation()).GetSafeNormal();
+				const FVector EndStartDir = (StartPoint.Transform.GetLocation() - EndPoint.Transform.GetLocation()).GetSafeNormal();
+				bAscending = CounterDir.Dot(StartEndDir) < CounterDir.Dot(EndStartDir);
+			}
+			else if (Context->DirectionMethod == EPCGExEdgeDirectionMethod::EndpointsIndices)
+			{
+				bAscending = Edge.Start < Edge.End;
+			}
+
+			const bool bInvert = bAscending != bAscendingDesired;
+			PCGEX_OUTPUT_VALUE(EdgeDirection, Edge.PointIndex, bInvert ? (DirFrom - DirTo).GetSafeNormal() : (DirTo - DirFrom).GetSafeNormal());
+		}
+		
 		PCGEX_OUTPUT_VALUE(EdgeLength, Edge.PointIndex, FVector::Distance(StartPoint.Transform.GetLocation(), EndPoint.Transform.GetLocation()));
 	}
 
+
 	PCGEX_OUTPUT_WRITE(EdgeLength, double)
+	PCGEX_OUTPUT_WRITE(EdgeDirection, FVector)
 	Context->MetadataBlender->Write();
 
 	return true;

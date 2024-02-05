@@ -49,23 +49,28 @@ bool FPCGExSanitizeClustersElement::ExecuteInternal(FPCGContext* InContext) cons
 
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
+		PCGEX_DELETE(Context->GraphBuilder)
+		
 		if (!Context->AdvancePointsIO()) { Context->Done(); }
 		else
 		{
 			if (!Context->TaggedEdges) { return false; }
+			
+			Context->GraphBuilder = new PCGExGraph::FGraphBuilder(*Context->CurrentIO, &Context->GraphBuilderSettings, 6, Context->CurrentEdges);
 			Context->SetState(PCGExGraph::State_ReadyForNextEdges);
 		}
 	}
 
 	if (Context->IsState(PCGExGraph::State_ReadyForNextEdges))
 	{
-		PCGEX_DELETE(Context->GraphBuilder)
 		Context->IndexedEdges.Empty();
+		
 		if (Context->CurrentEdges) { Context->CurrentEdges->Cleanup(); }
 
 		if (!Context->AdvanceEdges(false))
 		{
-			Context->SetState(PCGExMT::State_ReadyForNextPoints);
+			Context->GraphBuilder->Compile(Context);
+			Context->SetAsyncState(PCGExGraph::State_WritingClusters);
 			return false;
 		}
 
@@ -75,27 +80,19 @@ bool FPCGExSanitizeClustersElement::ExecuteInternal(FPCGContext* InContext) cons
 
 	if (Context->IsState(PCGExGraph::State_ProcessingEdges))
 	{
+		Context->SetState(PCGExGraph::State_ReadyForNextEdges);
+
 		BuildIndexedEdges(*Context->CurrentEdges, Context->NodeIndicesMap, Context->IndexedEdges);
-
-		if (Context->IndexedEdges.IsEmpty())
-		{
-			Context->SetState(PCGExGraph::State_ReadyForNextEdges);
-			return false;
-		}
-
-		Context->GraphBuilder = new PCGExGraph::FGraphBuilder(*Context->CurrentIO, &Context->GraphBuilderSettings, 6, Context->CurrentEdges);
-
+		if (Context->IndexedEdges.IsEmpty()) { return false; }
+		
 		Context->GraphBuilder->Graph->InsertEdges(Context->IndexedEdges);
-
-		Context->GraphBuilder->Compile(Context);
-		Context->SetAsyncState(PCGExGraph::State_WritingClusters);
 	}
 
 	if (Context->IsState(PCGExGraph::State_WritingClusters))
 	{
 		if (!Context->IsAsyncWorkComplete()) { return false; }
 		if (Context->GraphBuilder->bCompiledSuccessfully) { Context->GraphBuilder->Write(Context); }
-		Context->SetState(PCGExGraph::State_ReadyForNextEdges);
+		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
 	if (Context->IsDone())
