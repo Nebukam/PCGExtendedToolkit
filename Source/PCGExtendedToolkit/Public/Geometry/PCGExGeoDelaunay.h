@@ -118,7 +118,7 @@ namespace PCGExGeo
 					for (int j = i + 1; j < DIMENSIONS; j++)
 					{
 						const int32 B = Cell->Simplex->Vertices[j]->Id;
-						if (const uint64 Hash = PCGExGraph::GetUnsignedHash64(A, B);
+						if (const uint64 Hash = PCGEx::H64U(A, B);
 							!UniqueEdges.Contains(Hash))
 						{
 							OutEdges.Emplace(A, B);
@@ -148,7 +148,7 @@ namespace PCGExGeo
 					int32 A = -1;
 					int32 B = -1;
 					Triangle.GetLongestEdge(Vertices, A, B);
-					UniqueEdges.Add(PCGExGraph::GetUnsignedHash64(A, B));
+					UniqueEdges.Add(PCGEx::H64U(A, B));
 				}
 			}
 
@@ -160,7 +160,7 @@ namespace PCGExGeo
 					for (int j = i + 1; j < DIMENSIONS; j++)
 					{
 						const int32 B = Cell->Simplex->Vertices[j]->Id;
-						if (const uint64 Hash = PCGExGraph::GetUnsignedHash64(A, B);
+						if (const uint64 Hash = PCGEx::H64U(A, B);
 							!UniqueEdges.Contains(Hash))
 						{
 							OutEdges.Emplace(A, B);

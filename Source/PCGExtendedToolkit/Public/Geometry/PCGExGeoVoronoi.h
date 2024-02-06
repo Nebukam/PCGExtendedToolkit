@@ -45,7 +45,7 @@ namespace PCGExGeo
 			return !(this == Other);
 		}
 
-		uint64 GetUnsignedHash() const { return PCGExGraph::GetUnsignedHash64(From->Circumcenter->Id, To->Circumcenter->Id); }
+		uint64 H64U() const { return PCGEx::H64U(From->Circumcenter->Id, To->Circumcenter->Id); }
 		PCGExGraph::FUnsignedEdge GetUnsignedEdge() const { return PCGExGraph::FUnsignedEdge(From->Circumcenter->Id, To->Circumcenter->Id); }
 	};
 
@@ -115,7 +115,7 @@ namespace PCGExGeo
 				for (const TVoronoiEdge<DIMENSIONS>* Edge : Region->Edges)
 				{
 					if (bPruneOutsideBounds && (!Edge->From->bIsWithinBounds || !Edge->To->bIsWithinBounds)) { continue; }
-					if (const uint64 Hash = Edge->GetUnsignedHash();
+					if (const uint64 Hash = Edge->H64U();
 						!UniqueEdges.Contains(Hash))
 					{
 						OutEdges.Add(Edge->GetUnsignedEdge());

@@ -9,59 +9,6 @@
 
 #include "PCGExFindEdgesIntersections.generated.h"
 
-namespace PCGExGraph
-{
-	struct PCGEXTENDEDTOOLKIT_API FEdgeCrossing
-	{
-		FEdgeCrossing()
-		{
-		}
-
-		int32 EdgeA = -1;
-		int32 EdgeB = -1;
-		FVector Center;
-	};
-
-
-	struct PCGEXTENDEDTOOLKIT_API FEdgeCrossingsHandler
-	{
-		mutable FRWLock CrossingLock;
-
-		FGraph* Graph;
-		double Tolerance;
-		double SquaredTolerance;
-
-		TArray<FBox> SegmentBounds;
-		TArray<FEdgeCrossing> Crossings;
-
-		int32 NumEdges;
-		int32 StartIndex;
-
-		FEdgeCrossingsHandler(FGraph* InGraph, const double InTolerance)
-			: Graph(InGraph),
-			  Tolerance(InTolerance),
-			  SquaredTolerance(InTolerance * InTolerance)
-		{
-			NumEdges = InGraph->Edges.Num();
-			StartIndex = InGraph->Nodes.Num();
-			Crossings.Empty();
-			SegmentBounds.Empty();
-			SegmentBounds.Reserve(NumEdges);
-		}
-
-		~FEdgeCrossingsHandler()
-		{
-			SegmentBounds.Empty();
-			Crossings.Empty();
-			Graph = nullptr;
-		}
-
-		void Prepare(const TArray<FPCGPoint>& InPoints);
-		void ProcessEdge(const int32 EdgeIndex, const TArray<FPCGPoint>& InPoints);
-		void InsertCrossings();
-	};
-}
-
 /**
  * A Base node to process a set of point using GraphParams.
  */

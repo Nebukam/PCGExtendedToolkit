@@ -126,7 +126,7 @@ bool FPCGExPromoteEdgesElement::ExecuteInternal(
 				const int32 InEdgeType = SocketInfo.Socket->GetEdgeTypeReader().Values[PointIndex];
 				if (End == -1 || (InEdgeType & EdgeType) == 0 || PointIndex == End) { continue; }
 
-				uint64 Hash = PCGExGraph::GetUnsignedHash64(PointIndex, End);
+				uint64 Hash = PCGEx::H64U(PointIndex, End);
 				{
 					FReadScopeLock ReadLock(Context->EdgeLock);
 					if (Context->UniqueEdges.Contains(Hash)) { continue; }

@@ -245,7 +245,7 @@ bool FPCGExBridgeEdgeClustersElement::ExecuteInternal(
 			{
 				for (int j = 0; j < NumBounds; j++)
 				{
-					uint64 Hash = PCGExGraph::GetUnsignedHash64(i, j);
+					uint64 Hash = PCGEx::H64U(i, j);
 					if (i == j || UniqueBridges.Contains(Hash)) { continue; }
 					UniqueBridges.Add(Hash);
 					Bridges.Add(new PCGExGraph::FUnsignedEdge(i, j));

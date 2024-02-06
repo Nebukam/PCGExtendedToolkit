@@ -11,6 +11,7 @@
 
 namespace PCGExMath
 {
+	
 	/**
 	 *	 Leave <---.Apex-----> Arrive (Direction)
 	 *		   . '   |    '  .  

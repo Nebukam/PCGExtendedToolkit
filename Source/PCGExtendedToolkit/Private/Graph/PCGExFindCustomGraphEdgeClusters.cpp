@@ -109,7 +109,7 @@ bool FPCGExFindCustomGraphEdgeClustersElement::ExecuteInternal(
 
 				if (End == -1 || PointIndex == End) { continue; }
 				
-				const uint64 Hash = PCGExGraph::GetUnsignedHash64(PointIndex, End);
+				const uint64 Hash = PCGEx::H64U(PointIndex, End);
 
 				const int32 InEdgeType = SocketInfo.Socket->GetEdgeTypeReader().Values[PointIndex];
 				if ((InEdgeType & EdgeType) == 0) { continue; }

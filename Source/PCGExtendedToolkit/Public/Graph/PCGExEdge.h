@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <ThirdParty/hlslcc/hlslcc/src/hlslcc_lib/compiler.h>
+
 #include "CoreMinimal.h"
 
 #include "PCGExMT.h"
@@ -57,24 +59,6 @@ namespace PCGExGraph
 	constexpr PCGExMT::AsyncState State_ProcessingEdges = __COUNTER__;
 	constexpr PCGExMT::AsyncState State_BuildingClusters = __COUNTER__;
 
-	static uint64 GetUnsignedHash64(const uint32 A, const uint32 B)
-	{
-		return A > B ?
-			       static_cast<uint64>(A) | (static_cast<uint64>(B) << 32) :
-			       static_cast<uint64>(B) | (static_cast<uint64>(A) << 32);
-	}
-	
-	static uint64 GetHash64(const uint32 A, const uint32 B)
-	{
-		return static_cast<uint64>(A) | (static_cast<uint64>(B) << 32);
-	}
-
-	static void ExpandHash64(const uint64 Hash, uint32& A, uint32& B)
-	{
-		A = static_cast<int32>(Hash & 0xFFFFFFFF);
-		B = static_cast<int32>((Hash >> 32) & 0xFFFFFFFF);
-	}
-	
 	struct PCGEXTENDEDTOOLKIT_API FEdge
 	{
 		uint32 Start = 0;
@@ -142,7 +126,7 @@ namespace PCGExGraph
 
 		bool operator==(const FUnsignedEdge& Other) const
 		{
-			return GetUnsignedHash() == Other.GetUnsignedHash();
+			return H64U() == Other.H64U();
 		}
 
 		explicit FUnsignedEdge(const uint64 InValue)
@@ -152,7 +136,7 @@ namespace PCGExGraph
 			Type = EPCGExEdgeType::Unknown;
 		}
 
-		uint64 GetUnsignedHash() const { return GetUnsignedHash64(Start, End); }
+		uint64 H64U() const { return PCGEx::H64U(Start, End); }
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FIndexedEdge : public FUnsignedEdge

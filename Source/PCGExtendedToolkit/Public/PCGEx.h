@@ -197,6 +197,24 @@ namespace PCGEx
 	const FSoftObjectPath WeightDistributionExpoInv = FSoftObjectPath(TEXT("/PCGExtendedToolkit/FC_PCGExWeightDistribution_Expo_Inv.FC_PCGExWeightDistribution_Expo_Inv"));
 	const FSoftObjectPath WeightDistributionExpo = FSoftObjectPath(TEXT("/PCGExtendedToolkit/FC_PCGExWeightDistribution_Expo.FC_PCGExWeightDistribution_Expo"));
 
+	// Unsigned uint64 hash
+	static uint64 H64U(const uint32 A, const uint32 B)
+	{
+		return A > B ?
+			       static_cast<uint64>(A) | (static_cast<uint64>(B) << 32) :
+			       static_cast<uint64>(B) | (static_cast<uint64>(A) << 32);
+	}
+
+	// Signed uint64 hash
+	static uint64 H64(const uint32 A, const uint32 B) { return static_cast<uint64>(A) | (static_cast<uint64>(B) << 32); }
+
+	// Expand uint64 hash
+	static void H64(const uint64 Hash, uint32& A, uint32& B)
+	{
+		A = static_cast<int32>(Hash & 0xFFFFFFFF);
+		B = static_cast<int32>((Hash >> 32) & 0xFFFFFFFF);
+	}
+
 #pragma region Field Helpers
 
 	static EPCGMetadataTypes GetPointPropertyTypeId(const EPCGPointProperties Property)
@@ -362,5 +380,4 @@ namespace PCGEx
 		T* Ptr2 = &Array[SecondIndex];
 		std::swap(*Ptr1, *Ptr2);
 	}
-
 }

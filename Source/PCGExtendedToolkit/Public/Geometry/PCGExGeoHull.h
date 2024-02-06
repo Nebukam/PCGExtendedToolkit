@@ -100,7 +100,7 @@ namespace PCGExGeo
 					const int32 A = Simplex->Vertices[i]->Id;
 					const int32 B = Simplex->Vertices[PCGExMath::Tile(i + 1, 0, DIMENSIONS - 1)]->Id;
 
-					if (const uint64 Hash = PCGExGraph::GetUnsignedHash64(A, B);
+					if (const uint64 Hash = PCGEx::H64U(A, B);
 						!UniqueEdges.Contains(Hash))
 					{
 						OutEdges.Emplace(A, B);
@@ -124,7 +124,7 @@ namespace PCGExGeo
 					const int32 A = Simplex->Vertices[i]->Id;
 					const int32 B = Simplex->Vertices[PCGExMath::Tile(i + 1, 0, DIMENSIONS - 1)]->Id;
 
-					if (const uint64 Hash = PCGExGraph::GetUnsignedHash64(A, B);
+					if (const uint64 Hash = PCGEx::H64U(A, B);
 						!UniqueEdges.Contains(Hash))
 					{
 						OutEdges.Emplace(*Remap.Find(A), *Remap.Find(B));

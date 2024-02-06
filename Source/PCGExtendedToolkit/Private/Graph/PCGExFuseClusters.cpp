@@ -20,6 +20,7 @@ FPCGExFuseClustersContext::~FPCGExFuseClustersContext()
 
 	PCGEX_DELETE(LooseGraph)
 	PCGEX_DELETE(GraphBuilder)
+	PCGEX_DELETE(Intersections)
 }
 
 PCGEX_INITIALIZE_ELEMENT(FuseClusters)
@@ -31,13 +32,16 @@ bool FPCGExFuseClustersElement::Boot(FPCGContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(FuseClusters)
 
 	PCGEX_FWD(FuseDistance)
-	PCGEX_FWD(PointToEdgeIntersectionDistance)
-	Context->PointToEdgeIntersectionDistance = FMath::Min(Context->PointToEdgeIntersectionDistance, Context->FuseDistance * 0.5);
+	PCGEX_FWD(PointEdgeTolerance)
+	PCGEX_FWD(EdgeEdgeTolerance)
+
+	Context->PointEdgeTolerance = FMath::Min(Context->PointEdgeTolerance, Context->FuseDistance * 0.5);
+	Context->EdgeEdgeTolerance = FMath::Min(Context->EdgeEdgeTolerance, Context->PointEdgeTolerance * 0.5);
 
 	PCGEX_FWD(GraphBuilderSettings)
 
 	Context->LooseGraph = new PCGExGraph::FLooseGraph(Settings->FuseDistance);
-	
+
 	return true;
 }
 
@@ -119,19 +123,29 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 
 		UniqueEdges.Empty();
 
-		Context->SetState(PCGExGraph::State_WaitingOnWritingClusters);
+		Context->Intersections = new PCGExGraph::FEdgePointIntersectionList(Context->GraphBuilder->Graph, Context->ConsolidatedPoints, Settings->PointEdgeTolerance);
+		Context->Intersections->FindIntersections(Context);
+
+		Context->SetAsyncState(PCGExGraph::State_FindingPointEdgeIntersections);
 	}
 
-	if (Context->IsState(PCGExGraph::State_WaitingOnWritingClusters))
+	if (Context->IsState(PCGExGraph::State_FindingPointEdgeIntersections))
+	{
+		if (!Context->IsAsyncWorkComplete()) { return false; }
+		Context->Intersections->Insert(); // TODO : Async?
+		Context->SetState(PCGExGraph::State_WritingClusters);
+	}
+
+	if (Context->IsState(PCGExGraph::State_WritingClusters))
 	{
 		if (!Context->IsAsyncWorkComplete()) { return false; }
 
 		Context->GraphBuilder->Compile(Context);
-		Context->SetAsyncState(PCGExGraph::State_WritingClusters);
+		Context->SetAsyncState(PCGExGraph::State_WaitingOnWritingClusters);
 		return false;
 	}
 
-	if (Context->IsState(PCGExGraph::State_WritingClusters))
+	if (Context->IsState(PCGExGraph::State_WaitingOnWritingClusters))
 	{
 		if (!Context->IsAsyncWorkComplete()) { return false; }
 

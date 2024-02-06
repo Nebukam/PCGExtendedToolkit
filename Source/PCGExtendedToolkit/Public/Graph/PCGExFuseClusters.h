@@ -39,8 +39,12 @@ public:
 	double FuseDistance = 10;
 
 	/** Distance at which a point is considered lying on a foreign edge. Will be max-clamped to half the FuseDistance */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0))
-	double PointToEdgeIntersectionDistance = 0.001;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Intersections", meta=(PCG_Overridable, ClampMin=0))
+	double PointEdgeTolerance = 0.001;
+
+	/** Distance at which a point is considered lying on a foreign edge. Will be max-clamped to half the FuseDistance */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Intersections", meta=(PCG_Overridable, ClampMin=0))
+	double EdgeEdgeTolerance = 0.001;
 	
 	/** Graph & Edges output properties */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ShowOnlyInnerProperties, DisplayName="Graph Output Settings"))
@@ -55,13 +59,16 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFuseClustersContext : public FPCGExEdgesProc
 	virtual ~FPCGExFuseClustersContext() override;
 
 	double FuseDistance = 0;
-	double PointToEdgeIntersectionDistance = 0;
+	double PointEdgeTolerance = 0;
+	double EdgeEdgeTolerance = 0;
 	
 	PCGExGraph::FLooseGraph* LooseGraph = nullptr;
-	PCGExData::FPointIO* ConsolidatedPoints = nullptr;
+	PCGExData::FPointIO* ConsolidatedPoints = nullptr;	
 		
 	FPCGExGraphBuilderSettings GraphBuilderSettings;
 	PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
+
+	PCGExGraph::FEdgePointIntersectionList* Intersections = nullptr;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExFuseClustersElement : public FPCGExEdgesProcessorElement

@@ -154,7 +154,7 @@ bool FPCGExInsertPathToLooseGraphTask::ExecuteTask()
 	for (int i = 0; i < NumPoints; i++)
 	{
 		PCGExGraph::FLooseNode* CurrentVtx = Graph->GetOrCreateNode(InPoints[i].Transform.GetLocation(), TaskIndex, i);
-		CurrentVtx->AddFuseHash(PCGExGraph::GetHash64(TaskIndex, i));
+		CurrentVtx->AddPointH(PCGEx::H64(TaskIndex, i));
 
 		if (const int32 PrevIndex = i - 1;
 			InPoints.IsValidIndex(PrevIndex))
