@@ -80,6 +80,9 @@ This is a setting block you will see in a form or another on nodes that output s
 
 See the {% include lk id='Sanitize Clusters' %} node for more infos, as it encapsulate the sanitization behavior embedded in many other nodes.
 
+> If you want more fleshed out controls over `Edges` data & positioning, check out {% include lk id='Write Extras' %} Node!
+{: .infos }
+
 ---
 # Important Notes
 
