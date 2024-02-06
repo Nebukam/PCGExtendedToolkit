@@ -15,6 +15,10 @@ PCGExData::EInit UPCGExFindCustomGraphEdgeClustersSettings::GetMainOutputInitMod
 FPCGExFindCustomGraphEdgeClustersContext::~FPCGExFindCustomGraphEdgeClustersContext()
 {
 	PCGEX_TERMINATE_ASYNC
+
+	UniqueEdges.Empty();
+	Edges.Empty();
+
 	PCGEX_DELETE(GraphBuilder)
 }
 
@@ -69,6 +73,7 @@ bool FPCGExFindCustomGraphEdgeClustersElement::ExecuteInternal(
 		if (!Context->AdvancePointsIOAndResetGraph()) { Context->Done(); }
 		else
 		{
+			
 			Context->GraphBuilder = new PCGExGraph::FGraphBuilder(*Context->CurrentIO, &Context->GraphBuilderSettings, Context->MergedInputSocketsNum);
 			Context->SetState(PCGExGraph::State_ReadyForNextGraph);
 		}
@@ -98,22 +103,36 @@ bool FPCGExFindCustomGraphEdgeClustersElement::ExecuteInternal(
 		auto InsertEdge = [&](const int32 PointIndex, const PCGExData::FPointIO& PointIO)
 		{
 			const int32 EdgeType = Context->CurrentGraphEdgeCrawlingTypes;
-			TArray<PCGExGraph::FUnsignedEdge> Edges;
-
 			for (const PCGExGraph::FSocketInfos& SocketInfo : Context->SocketInfos)
 			{
 				const int32 End = SocketInfo.Socket->GetTargetIndexReader().Values[PointIndex];
+
+				if (End == -1 || PointIndex == End) { continue; }
+				
+				const uint64 Hash = PCGExGraph::GetUnsignedHash64(PointIndex, End);
+
 				const int32 InEdgeType = SocketInfo.Socket->GetEdgeTypeReader().Values[PointIndex];
-				if (End == -1 || (InEdgeType & EdgeType) == 0 || PointIndex == End) { continue; }
+				if ((InEdgeType & EdgeType) == 0) { continue; }
 
-				Edges.Emplace(PointIndex, End);
+				{
+					FReadScopeLock ReadLock(Context->UniqueEdgesLock);
+					if (Context->UniqueEdges.Contains(Hash)) { continue; }
+				}
+				{
+					FWriteScopeLock WriteLock(Context->UniqueEdgesLock);
+					Context->UniqueEdges.Add(Hash);
+					Context->Edges.Emplace(PointIndex, End);
+				}
 			}
-
-			Context->GraphBuilder->Graph->InsertEdges(Edges);
-			Edges.Empty();
 		};
 
 		if (!Context->ProcessCurrentPoints(InsertEdge)) { return false; }
+		
+		Context->GraphBuilder->Graph->InsertEdges(Context->Edges);
+		
+		Context->UniqueEdges.Reset();
+		Context->Edges.Reset();
+
 		Context->SetState(PCGExGraph::State_ReadyForNextGraph);
 	}
 

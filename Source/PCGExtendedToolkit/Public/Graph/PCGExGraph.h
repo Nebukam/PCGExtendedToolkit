@@ -342,6 +342,44 @@ namespace PCGExGraph
 
 #pragma endregion
 
+#pragma region Graph intersections
+
+	struct PCGEXTENDEDTOOLKIT_API FSegmentPoint
+	{
+		int32 Index = -1;
+		double Time = -1;		
+	};
+	
+	struct PCGEXTENDEDTOOLKIT_API FEdgePointIntersection
+	{
+		bool bValid = false;
+		int32 EdgeIndex = -1;
+		TArray<FSegmentPoint> CollinearPoints;
+
+		double Length;
+		
+		FVector Start;
+		FVector End;
+
+		explicit FEdgePointIntersection(const int32 InEdgeIndex, const FVector& Start, const FVector& End)
+			: EdgeIndex(InEdgeIndex)
+		{
+			Length = FVector::DistSquared(Start, End);
+			CollinearPoints.Empty();
+		}
+
+		~FEdgePointIntersection()
+		{
+			CollinearPoints.Empty();
+		}
+
+		double GetTime(const FVector& Position, const double SquaredTolerance) const;
+	};
+
+	static FEdgePointIntersection* FindEdgeIntersections(const FGraph* InGraph, const int32 InEdgeIndex);
+
+#pragma endregion
+
 	static bool IsPointDataVtxReady(const UPCGPointData* PointData)
 	{
 		const FName Tags[] = {Tag_EdgeIndex, Tag_EdgesNum};
@@ -411,7 +449,7 @@ class PCGEXTENDEDTOOLKIT_API FPCGExUpdateLooseNodeCentersTask : public FPCGExNon
 {
 public:
 	FPCGExUpdateLooseNodeCentersTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-						   PCGExGraph::FLooseGraph* InGraph, PCGExData::FPointIOGroup* InIOGroup)
+	                                 PCGExGraph::FLooseGraph* InGraph, PCGExData::FPointIOGroup* InIOGroup)
 		: FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
 		  Graph(InGraph), IOGroup(InIOGroup)
 	{

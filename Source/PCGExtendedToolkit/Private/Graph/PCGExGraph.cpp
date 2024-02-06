@@ -225,6 +225,20 @@ void PCGExGraph::FLooseGraph::GetUniqueEdges(TArray<FUnsignedEdge>& OutEdges)
 	UniqueEdges.Empty();
 }
 
+double PCGExGraph::FEdgePointIntersection::GetTime(const FVector& Position, const double SquaredTolerance) const
+{
+	const FVector ClosestPoint = FMath::ClosestPointOnSegment(Position, Start, End);
+	
+	if ((ClosestPoint - Position).IsNearlyZero()) { return -1; }                         // Overlap endpoint
+	if (FVector::DistSquared(ClosestPoint, Position) >= SquaredTolerance) { return -1; } // Too far
+
+	return FVector::DistSquared(Start, ClosestPoint) / Length;
+}
+
+PCGExGraph::FEdgePointIntersection* PCGExGraph::FindEdgeIntersections(const FGraph* InGraph, const int32 InEdgeIndex)
+{
+}
+
 bool FPCGExWriteSubGraphEdgesTask::ExecuteTask()
 {
 	TArray<FPCGPoint>& MutablePoints = EdgeIO->GetOut()->GetMutablePoints();

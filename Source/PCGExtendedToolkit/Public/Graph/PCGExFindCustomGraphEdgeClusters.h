@@ -74,6 +74,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFindCustomGraphEdgeClustersContext : public 
 
 	bool bInheritAttributes;
 
+	mutable FRWLock UniqueEdgesLock;
+	TSet<uint64> UniqueEdges;
+	TArray<PCGExGraph::FUnsignedEdge> Edges;
+	
 	FPCGExGraphBuilderSettings GraphBuilderSettings;
 	PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
 };

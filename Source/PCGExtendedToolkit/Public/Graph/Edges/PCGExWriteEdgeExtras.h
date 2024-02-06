@@ -63,8 +63,24 @@ public:
 	/** Name of the 'normal' vertex attribute to write normal to.*/
 	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteVtxNormal"))
 	FName VtxNormalAttributeName = FName("Normal");
+	
+	/** Method to pick the edge direction amongst various possibilities.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExEdgeDirectionMethod DirectionMethod = EPCGExEdgeDirectionMethod::EndpointsOrder;
 
-	/** Write whether the sampling was sucessful or not to a boolean attribute. */
+	/** Further refine the direction method. Not all methods make use of this property.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExEdgeDirectionChoice DirectionChoice = EPCGExEdgeDirectionChoice::SmallestToGreatest;
+	
+	/** Attribute picker for the selected Direction Method.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="DirectionMethod==EPCGExEdgeDirectionMethod::EndpointsAttribute", EditConditionHides))
+	FPCGExInputDescriptor VtxSourceAttribute;
+
+	/** Attribute picker for the selected Direction Method.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="DirectionMethod==EPCGExEdgeDirectionMethod::EdgeDotAttribute", EditConditionHides))
+	FPCGExInputDescriptor EdgeSourceAttribute;
+
+	/** Output Edge Length. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteEdgeLength = false;
 
@@ -72,7 +88,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteEdgeLength"))
 	FName EdgeLengthAttributeName = FName("EdgeLength");
 	
-	/** Write whether the sampling was sucessful or not to a boolean attribute. */
+	/** Output Edge Direction */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteEdgeDirection = false;
 
@@ -80,28 +96,25 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteEdgeDirection"))
 	FName EdgeDirectionAttributeName = FName("EdgeDirection");
 
-	/** Method to pick the direction amongst various possibilities.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteEdgeDirection"))
-	EPCGExEdgeDirectionMethod DirectionMethod = EPCGExEdgeDirectionMethod::EndpointsOrder;
 
-	/** Attribute picker for the selected Direction Method.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteEdgeDirection && DirectionMethod==EPCGExEdgeDirectionMethod::EndpointsAttribute", EditConditionHides))
-	FPCGExInputDescriptor VtxSourceAttribute;
+	/** Update Edge position as a lerp between endpoints (according to the direction method selected above) */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bWriteEdgePosition = false;
 
-	/** Attribute picker for the selected Direction Method.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteEdgeDirection && DirectionMethod==EPCGExEdgeDirectionMethod::EdgeDotAttribute", EditConditionHides))
-	FPCGExInputDescriptor EdgeSourceAttribute;
-	
-	/** Further refine the direction method. Not all methods make use of this property.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteEdgeDirection"))
-	EPCGExEdgeDirectionChoice DirectionChoice = EPCGExEdgeDirectionChoice::SmallestToGreatest;
+	/** Name of the 'boolean' attribute to write sampling success to.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteEdgePosition"))
+	double EdgePositionLerp = 0.5;
 	
 	/** Edges will inherit point attributes -- NOT IMPLEMENTED*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
-	bool bBlendAttributes = false;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta = (PCG_Overridable))
+	bool bEndpointsBlending = false;
 
+	/** Balance between start/end point*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bEndpointsBlend", ClampMin=0, ClampMax=1))
+	double EndpointsBlending = 0.5;
+	
 	/** Defines how fused point properties and attributes are merged together. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="bBlendAttributes"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(EditCondition="bBlendAttributes"))
 	FPCGExBlendingSettings BlendingSettings = FPCGExBlendingSettings(EPCGExDataBlendingType::Average);
 
 private:
@@ -117,8 +130,14 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExWriteEdgeExtrasContext : public FPCGExEdgesP
 	PCGExDataBlending::FMetadataBlender* MetadataBlender;
 
 	PCGEX_FOREACH_FIELD_EDGEEXTRAS(PCGEX_OUTPUT_DECL)
+	bool bWriteEdgePosition;
+	double EdgePositionLerp;
+	
 	EPCGExEdgeDirectionMethod DirectionMethod;
 	EPCGExEdgeDirectionChoice DirectionChoice;
+
+	bool bEndpointsBlending;
+	double EndpointsBlending;
 
 	PCGEx::FLocalSingleFieldGetter* VtxDirCompGetter = nullptr;
 	PCGEx::FLocalVectorGetter* EdgeDirCompGetter = nullptr;

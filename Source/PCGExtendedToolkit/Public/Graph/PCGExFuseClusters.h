@@ -20,7 +20,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExFuseClustersSettings : public UPCGExEdgesProc
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(FuseClusters, "Edges : Fuse Clusters", "Fuse clusters edges & vertices based on proximity.");
+	PCGEX_NODE_INFOS(FuseClusters, "Graph : Fuse Clusters", "Fuse clusters edges & vertices based on proximity.");
 	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorGraph; }
 #endif
 
