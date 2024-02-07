@@ -47,7 +47,7 @@ public:
 	/** If enabled, applies influence after each iteration; otherwise applies once at the end of the relaxing.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bProgressiveInfluence = true;
-	
+
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable, NoResetToDefault, ShowOnlyInnerProperties))
 	TObjectPtr<UPCGExEdgeRelaxingOperation> Relaxing;
 

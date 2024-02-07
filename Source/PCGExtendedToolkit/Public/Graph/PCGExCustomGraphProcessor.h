@@ -73,7 +73,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExCustomGraphProcessorContext : public FPCGExP
 	bool bValidCurrentGraph = false;
 	FPCGExEdgeCrawlingSettings EdgeCrawlingSettings;
 	uint8 CurrentGraphEdgeCrawlingTypes = static_cast<uint8>(EPCGExEdgeType::Complete);
-	
+
 protected:
 	PCGEx::TFAttributeReader<int32>* CachedIndexReader = nullptr;
 	PCGEx::TFAttributeWriter<int32>* CachedIndexWriter = nullptr;

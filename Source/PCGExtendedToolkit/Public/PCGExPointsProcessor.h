@@ -305,6 +305,7 @@ public:
 	}
 
 	virtual void DisabledPassThroughData(FPCGContext* Context) const override;
+
 protected:
 	virtual FPCGContext* InitializeContext(FPCGExPointsProcessorContext* InContext, const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node) const;
 	virtual bool Boot(FPCGContext* InContext) const;

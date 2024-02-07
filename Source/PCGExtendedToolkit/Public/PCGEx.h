@@ -201,19 +201,23 @@ namespace PCGEx
 	static uint64 H64U(const uint32 A, const uint32 B)
 	{
 		return A > B ?
-			       static_cast<uint64>(A) | (static_cast<uint64>(B) << 32) :
-			       static_cast<uint64>(B) | (static_cast<uint64>(A) << 32);
+			       static_cast<uint64>(A) << 32 | B :
+			       static_cast<uint64>(B) << 32 | A;
 	}
 
 	// Signed uint64 hash
-	static uint64 H64(const uint32 A, const uint32 B) { return static_cast<uint64>(A) | (static_cast<uint64>(B) << 32); }
+	static uint64 H64(const uint32 A, const uint32 B) { return static_cast<uint64>(A) << 32 | B; }
 
 	// Expand uint64 hash
+	static uint32 H64A(const uint64 Hash) { return static_cast<uint32>(Hash >> 32); }
+	static uint32 H64B(const uint64 Hash) { return static_cast<uint32>(Hash); }
+
 	static void H64(const uint64 Hash, uint32& A, uint32& B)
 	{
-		A = static_cast<int32>(Hash & 0xFFFFFFFF);
-		B = static_cast<int32>((Hash >> 32) & 0xFFFFFFFF);
+		A = H64A(Hash);
+		B = H64B(Hash);
 	}
+
 
 #pragma region Field Helpers
 

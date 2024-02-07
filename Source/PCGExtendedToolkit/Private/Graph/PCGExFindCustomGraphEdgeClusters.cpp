@@ -49,6 +49,7 @@ bool FPCGExFindCustomGraphEdgeClustersElement::Boot(FPCGContext* InContext) cons
 	Context->EdgeCrawlingSettings = Settings->EdgeCrawlingSettings;
 
 	PCGEX_FWD(GraphBuilderSettings)
+	Context->GraphBuilderSettings.bRefreshEdgeSeed = true;
 
 	return true;
 }
@@ -73,7 +74,6 @@ bool FPCGExFindCustomGraphEdgeClustersElement::ExecuteInternal(
 		if (!Context->AdvancePointsIOAndResetGraph()) { Context->Done(); }
 		else
 		{
-			
 			Context->GraphBuilder = new PCGExGraph::FGraphBuilder(*Context->CurrentIO, &Context->GraphBuilderSettings, Context->MergedInputSocketsNum);
 			Context->SetState(PCGExGraph::State_ReadyForNextGraph);
 		}
@@ -108,7 +108,7 @@ bool FPCGExFindCustomGraphEdgeClustersElement::ExecuteInternal(
 				const int32 End = SocketInfo.Socket->GetTargetIndexReader().Values[PointIndex];
 
 				if (End == -1 || PointIndex == End) { continue; }
-				
+
 				const uint64 Hash = PCGEx::H64U(PointIndex, End);
 
 				const int32 InEdgeType = SocketInfo.Socket->GetEdgeTypeReader().Values[PointIndex];
@@ -127,9 +127,9 @@ bool FPCGExFindCustomGraphEdgeClustersElement::ExecuteInternal(
 		};
 
 		if (!Context->ProcessCurrentPoints(InsertEdge)) { return false; }
-		
+
 		Context->GraphBuilder->Graph->InsertEdges(Context->Edges);
-		
+
 		Context->UniqueEdges.Reset();
 		Context->Edges.Reset();
 

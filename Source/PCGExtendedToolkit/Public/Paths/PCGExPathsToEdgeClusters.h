@@ -55,10 +55,26 @@ public:
 	/** Consider paths to be closed -- processing will wrap between first and last points. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bClosedPath = false;
-	
+
 	/** Distance at which points are fused */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0.001))
 	double FuseDistance = 10;
+
+	/** Point-Edge intersection */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bDoPointEdgeIntersection;
+
+	/** Point-Edge intersection */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bDoPointEdgeIntersection"))
+	FPCGExPointEdgeIntersectionSettings PointEdgeIntersection;
+
+	/** Edge-Edge intersection */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bDoEdgeEdgeIntersection;
+
+	/** Edge-Edge intersection */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bDoEdgeEdgeIntersection"))
+	FPCGExEdgeEdgeIntersectionSettings EdgeEdgeIntersection;
 
 	/** Graph & Edges output properties */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Graph Output Settings"))
@@ -71,11 +87,18 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathsToEdgeClustersContext : public FPCGExPa
 
 	virtual ~FPCGExPathsToEdgeClustersContext() override;
 
+	double FuseDistance = 0;
+	FPCGExPointEdgeIntersectionSettings PointEdgeSettings;
+	FPCGExEdgeEdgeIntersectionSettings EdgeEdgeSettings;
+
 	PCGExGraph::FLooseGraph* LooseGraph;
 	PCGExData::FPointIO* ConsolidatedPoints = nullptr;
 
 	FPCGExGraphBuilderSettings GraphBuilderSettings;
 	PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
+
+	PCGExGraph::FPointEdgeIntersections* PointEdgeIntersections = nullptr;
+	PCGExGraph::FEdgeEdgeIntersections* EdgeEdgeIntersections = nullptr;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExPathsToEdgeClustersElement : public FPCGExPathProcessorElement
@@ -96,7 +119,7 @@ class PCGEXTENDEDTOOLKIT_API FPCGExInsertPathToLooseGraphTask : public FPCGExNon
 {
 public:
 	FPCGExInsertPathToLooseGraphTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-								 PCGExGraph::FLooseGraph* InGraph, bool bInJoinFirstAndLast)
+	                                 PCGExGraph::FLooseGraph* InGraph, bool bInJoinFirstAndLast)
 		: FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
 		  Graph(InGraph), bJoinFirstAndLast(bInJoinFirstAndLast)
 	{

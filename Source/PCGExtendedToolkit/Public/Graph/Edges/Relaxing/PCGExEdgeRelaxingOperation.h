@@ -36,7 +36,7 @@ public:
 	virtual void WriteActiveBuffer(PCGExData::FPointIO& PointIO);
 
 	double DefaultInfluence = 1;
-	
+
 	virtual void Cleanup() override;
 
 protected:

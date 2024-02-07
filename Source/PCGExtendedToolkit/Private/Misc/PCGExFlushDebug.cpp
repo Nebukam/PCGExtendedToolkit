@@ -61,23 +61,22 @@ FPCGContext* FPCGExDebugElement::Initialize(
 
 bool FPCGExDebugElement::ExecuteInternal(FPCGContext* InContext) const
 {
-	
 	PCGEX_CONTEXT_AND_SETTINGS(Debug)
-	
+
 #if WITH_EDITOR
-	
+
 	if (!Settings->bPCGExDebug)
 	{
 		DisabledPassThroughData(Context);
 		return true;
 	}
 
-	if(Context->bWait)
+	if (Context->bWait)
 	{
 		Context->bWait = false;
 		return false;
 	}
-	
+
 	FlushPersistentDebugLines(PCGEx::GetWorld(Context));
 	FlushDebugStrings(PCGEx::GetWorld(Context));
 

@@ -15,7 +15,7 @@ void UPCGExSubPointsOrientOperation::ProcessSubPoints(const PCGEx::FPointRef& St
 {
 	const int32 NumPoints = SubPoints.Num();
 	const int32 NumPointsMinusOne = NumPoints - 1;
-	
+
 	if (bClosedPath)
 	{
 		for (int i = 0; i < SubPoints.Num(); i++)

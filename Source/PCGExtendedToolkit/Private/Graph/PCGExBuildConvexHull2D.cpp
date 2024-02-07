@@ -61,7 +61,7 @@ bool FPCGExBuildConvexHull2DElement::Boot(FPCGContext* InContext) const
 	PCGEX_VALIDATE_NAME(Settings->HullAttributeName)
 
 	PCGEX_FWD(ProjectionSettings)
-	
+
 	Context->GraphBuilderSettings.bPruneIsolatedPoints = Settings->bPrunePoints;
 
 	Context->PathsIO = new PCGExData::FPointIOGroup();

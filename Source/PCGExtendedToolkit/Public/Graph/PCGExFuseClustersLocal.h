@@ -7,20 +7,20 @@
 #include "PCGExCluster.h"
 #include "PCGExEdgesProcessor.h"
 
-#include "PCGExFuseClusters.generated.h"
+#include "PCGExFuseClustersLocal.generated.h"
 
 /**
  * A Base node to process a set of point using GraphParams.
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
-class PCGEXTENDEDTOOLKIT_API UPCGExFuseClustersSettings : public UPCGExEdgesProcessorSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExFuseClustersLocalSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()
 
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(FuseClusters, "Graph : Fuse Clusters", "Finds Point/Edge and Edge/Edge intersections between all input clusters.");
+	PCGEX_NODE_INFOS(FuseClustersLocal, "Graph : Fuse Clusters Local", "Finds per-cluster Point/Edge and Edge/Edge intersections");
 	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorGraph; }
 #endif
 
@@ -59,19 +59,16 @@ public:
 	FPCGExGraphBuilderSettings GraphBuilderSettings;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExFuseClustersContext : public FPCGExEdgesProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExFuseClustersLocalContext : public FPCGExEdgesProcessorContext
 {
-	friend class UPCGExFuseClustersSettings;
-	friend class FPCGExFuseClustersElement;
+	friend class UPCGExFuseClustersLocalSettings;
+	friend class FPCGExFuseClustersLocalElement;
 
-	virtual ~FPCGExFuseClustersContext() override;
+	virtual ~FPCGExFuseClustersLocalContext() override;
 
 	double FuseDistance = 0;
 	FPCGExPointEdgeIntersectionSettings PointEdgeSettings;
 	FPCGExEdgeEdgeIntersectionSettings EdgeEdgeSettings;
-
-	PCGExGraph::FLooseGraph* LooseGraph = nullptr;
-	PCGExData::FPointIO* ConsolidatedPoints = nullptr;
 
 	FPCGExGraphBuilderSettings GraphBuilderSettings;
 	PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
@@ -80,7 +77,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFuseClustersContext : public FPCGExEdgesProc
 	PCGExGraph::FEdgeEdgeIntersections* EdgeEdgeIntersections = nullptr;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExFuseClustersElement : public FPCGExEdgesProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExFuseClustersLocalElement : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -91,21 +88,4 @@ public:
 protected:
 	virtual bool Boot(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
-};
-
-class PCGEXTENDEDTOOLKIT_API FPCGExFuseClustersInsertLoosePointsTask : public FPCGExNonAbandonableTask
-{
-public:
-	FPCGExFuseClustersInsertLoosePointsTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-	                                        PCGExGraph::FLooseGraph* InGraph, PCGExData::FPointIO* InEdgeIO, TMap<int32, int32>* InNodeIndicesMap)
-		: FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
-		  Graph(InGraph), EdgeIO(InEdgeIO), NodeIndicesMap(InNodeIndicesMap)
-	{
-	}
-
-	PCGExGraph::FLooseGraph* Graph = nullptr;
-	PCGExData::FPointIO* EdgeIO = nullptr;
-	TMap<int32, int32>* NodeIndicesMap = nullptr;
-
-	virtual bool ExecuteTask() override;
 };

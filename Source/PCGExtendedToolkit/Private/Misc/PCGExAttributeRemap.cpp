@@ -181,8 +181,8 @@ bool FPCGExRemapPointIO::ExecuteTask()
 			if (Rule.RemapSettings.bInMin) { Rule.RemapSettings.InMin = CachedRMin; }
 			if (Rule.RemapSettings.bInMax) { Rule.RemapSettings.InMax = CachedRMax; }
 
-			if(Rule.RemapSettings.RangeMethod == EPCGExRangeType::FullRange){ Rule.RemapSettings.InMin = 0; }
-			
+			if (Rule.RemapSettings.RangeMethod == EPCGExRangeType::FullRange) { Rule.RemapSettings.InMin = 0; }
+
 			for (RawT& V : RawValues)
 			{
 				VAL = PCGExMath::GetComponent(V, i);

@@ -197,7 +197,6 @@ bool FPCGExBuildVoronoiGraph2DElement::ExecuteInternal(
 
 		if (Context->bDoAsyncProcessing) { Context->Voronoi->StartAsyncPreprocessing(Context->GetAsyncManager()); }
 		Context->SetAsyncState(PCGExGeo::State_ProcessingVoronoi);
-		
 	}
 
 	if (Context->IsState(PCGExGeo::State_ProcessingVoronoi))

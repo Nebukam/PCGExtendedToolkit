@@ -15,7 +15,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGeo2DProjectionSettings
 	/** Normal vector of the 2D projection plane. Defaults to Up for XY projection. Used as fallback when using invalid local normal. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (PCG_Overridable))
 	FVector ProjectionNormal = FVector::UpVector;
-	
+
 	/** Uses a per-point projection normal. Use carefully as it can easily lead to singularities. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bUseLocalProjectionNormal = false;
@@ -23,7 +23,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGeo2DProjectionSettings
 	/** Fetch the normal from a local point attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (PCG_Overridable, ShowOnlyInnerProperties, EditCondition="bUseLocalProjectionNormal"))
 	FPCGExInputDescriptor LocalProjectionNormal;
-
 };
 
 UENUM(BlueprintType)

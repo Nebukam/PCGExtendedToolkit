@@ -42,14 +42,14 @@ double UPCGExCustomGraphSolver::PrepareProbesForPoint(
 	const int32 NumSockets = SocketInfos.Num();
 	OutProbes.SetNum(NumSockets);
 	double MaxRadius = 0.0;
-	for(int i = 0; i < NumSockets; i++)
+	for (int i = 0; i < NumSockets; i++)
 	{
 		const PCGExGraph::FSocketInfos& CurrentSocketInfos = SocketInfos[i];
 		PCGExGraph::FSocketProbe& NewProbe = OutProbes[i];
-		
-		NewProbe.SocketInfos = &CurrentSocketInfos;		
+
+		NewProbe.SocketInfos = &CurrentSocketInfos;
 		InitializeProbe(NewProbe);
-		
+
 		const double Dist = PrepareProbeForPointSocketPair(Point, NewProbe, CurrentSocketInfos);
 		MaxRadius = FMath::Max(MaxRadius, Dist);
 	}

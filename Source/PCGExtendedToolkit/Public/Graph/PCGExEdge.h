@@ -143,6 +143,7 @@ namespace PCGExGraph
 	{
 		int32 EdgeIndex = -1;
 		int32 PointIndex = -1;
+		int32 IOIndex = -1;
 
 		FIndexedEdge()
 		{
@@ -150,13 +151,13 @@ namespace PCGExGraph
 
 		FIndexedEdge(const FIndexedEdge& Other)
 			: FUnsignedEdge(Other.Start, Other.End),
-			  EdgeIndex(Other.EdgeIndex), PointIndex(Other.PointIndex)
+			  EdgeIndex(Other.EdgeIndex), PointIndex(Other.PointIndex), IOIndex(Other.IOIndex)
 		{
 		}
 
-		FIndexedEdge(const int32 InIndex, const int32 InStart, const int32 InEnd, const int32 InPointIndex = -1)
+		FIndexedEdge(const int32 InIndex, const int32 InStart, const int32 InEnd, const int32 InPointIndex = -1, const int32 InIOIndex = -1)
 			: FUnsignedEdge(InStart, InEnd),
-			  EdgeIndex(InIndex), PointIndex(InPointIndex)
+			  EdgeIndex(InIndex), PointIndex(InPointIndex), IOIndex(InIOIndex)
 		{
 		}
 	};
@@ -191,7 +192,7 @@ namespace PCGExGraph
 				if ((!NodeStartPtr || !NodeEndPtr) ||
 					(*NodeStartPtr == *NodeEndPtr)) { continue; }
 
-				OutEdges.Emplace(EdgeIndex++, *NodeStartPtr, *NodeEndPtr, i);
+				OutEdges.Emplace(EdgeIndex++, *NodeStartPtr, *NodeEndPtr, i, EdgeIO.IOIndex);
 			}
 		}
 		else
@@ -208,7 +209,7 @@ namespace PCGExGraph
 					break;
 				}
 
-				OutEdges.Emplace(EdgeIndex++, *NodeStartPtr, *NodeEndPtr, i);
+				OutEdges.Emplace(EdgeIndex++, *NodeStartPtr, *NodeEndPtr, i, EdgeIO.IOIndex);
 			}
 		}
 

@@ -63,7 +63,7 @@ bool FPCGExRefineEdgesElement::ExecuteInternal(
 
 			Context->Refinement->PrepareForPointIO(Context->CurrentIO);
 
-			Context->GraphBuilder = new PCGExGraph::FGraphBuilder(*Context->CurrentIO, &Context->GraphBuilderSettings, 8);
+			Context->GraphBuilder = new PCGExGraph::FGraphBuilder(*Context->CurrentIO, &Context->GraphBuilderSettings, 8, Context->MainEdges);
 
 			Context->SetState(PCGExGraph::State_ReadyForNextEdges);
 		}

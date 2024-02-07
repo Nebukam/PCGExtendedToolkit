@@ -154,7 +154,7 @@ public:
 
 	/** The balance over distance to prioritize closer distance or better alignment. Curve X is normalized distance; Y = 0 means narrower dot wins, Y = 1 means closer distance wins */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Settings|Probing")
-	TSoftObjectPtr<UCurveFloat> DotOverDistance =  TSoftObjectPtr<UCurveFloat>(PCGEx::DefaultDotOverDistanceCurve);
+	TSoftObjectPtr<UCurveFloat> DotOverDistance = TSoftObjectPtr<UCurveFloat>(PCGEx::DefaultDotOverDistanceCurve);
 
 	TObjectPtr<UCurveFloat> DotOverDistanceCurve = nullptr;
 
@@ -518,7 +518,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExRoamingSocketParamsData : public UPCGPointDat
 public:
 	UPCGExRoamingSocketParamsData(const FObjectInitializer& ObjectInitializer);
 	virtual EPCGDataType GetDataType() const override { return EPCGDataType::Param; }
-	
+
 	FPCGExSocketDescriptor Descriptor;
 
 	virtual void BeginDestroy() override;

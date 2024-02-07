@@ -34,7 +34,7 @@ public:
 	virtual PCGExData::EInit GetEdgeOutputInitMode() const override;
 	//~End UPCGExEdgesProcessorSettings interface
 
-	/** Graph & Edges output properties */
+	/** Graph & Edges output properties. Note that pruning isolated points is ignored. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ShowOnlyInnerProperties, DisplayName="Graph Output Settings"))
 	FPCGExGraphBuilderSettings GraphBuilderSettings;
 };
@@ -63,22 +63,4 @@ public:
 protected:
 	virtual bool Boot(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
-};
-
-class PCGEXTENDEDTOOLKIT_API FPCGExFetchAndInsertEdgesTask : public FPCGExNonAbandonableTask
-{
-public:
-	FPCGExFetchAndInsertEdgesTask(
-		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-		PCGExGraph::FGraphBuilder* InGraphBuilder, PCGExData::FPointIO* InEdgeIO, TMap<int32, int32>* InNodeIndicesMap) :
-		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
-		GraphBuilder(InGraphBuilder), EdgeIO(InEdgeIO), NodeIndicesMap(InNodeIndicesMap)
-	{
-	}
-
-	PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
-	PCGExData::FPointIO* EdgeIO = nullptr;
-	TMap<int32, int32>* NodeIndicesMap = nullptr;
-
-	virtual bool ExecuteTask() override;
 };

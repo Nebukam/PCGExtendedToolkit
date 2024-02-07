@@ -47,7 +47,7 @@ bool FPCGExDrawEdgesElement::ExecuteInternal(
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExDrawEdgesElement::Execute);
 
 	PCGEX_CONTEXT_AND_SETTINGS(DrawEdges)
-	
+
 #if WITH_EDITOR
 
 

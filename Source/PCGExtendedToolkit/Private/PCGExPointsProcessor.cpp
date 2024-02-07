@@ -382,7 +382,7 @@ void FPCGExPointsProcessorElementBase::DisabledPassThroughData(FPCGContext* Cont
 
 	const UPCGExPointsProcessorSettings* Settings = Context->GetInputSettings<UPCGExPointsProcessorSettings>();
 	check(Settings);
-	
+
 	//Forward main points
 	TArray<FPCGTaggedData> MainSources = Context->InputData.GetInputsByPin(Settings->GetMainInputLabel());
 	for (const FPCGTaggedData& TaggedData : MainSources)

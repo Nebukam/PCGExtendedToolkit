@@ -11,7 +11,6 @@
 
 namespace PCGExMath
 {
-	
 	/**
 	 *	 Leave <---.Apex-----> Arrive (Direction)
 	 *		   . '   |    '  .  
@@ -817,8 +816,8 @@ namespace PCGExMath
 
 	static void RandomizeSeed(FPCGPoint& Point, const FVector& Offset = FVector::ZeroVector)
 	{
-		Point.Seed = static_cast<int32>(PCGExMath::Remap(
-			FMath::PerlinNoise3D(PCGExMath::Tile(Point.Transform.GetLocation() * 0.001 + Offset, FVector(-1), FVector(1))),
+		Point.Seed = static_cast<int32>(Remap(
+			FMath::PerlinNoise3D(Tile(Point.Transform.GetLocation() * 0.001 + Offset, FVector(-1), FVector(1))),
 			-1, 1, TNumericLimits<int32>::Min(), TNumericLimits<int32>::Max()));
 	}
 }
@@ -912,7 +911,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExRemapSettings
 	/** How to remap before sampling the curve. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExRangeType RangeMethod = EPCGExRangeType::EffectiveRange;
-	
+
 	/** Scale output value. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	double Scale = 1;

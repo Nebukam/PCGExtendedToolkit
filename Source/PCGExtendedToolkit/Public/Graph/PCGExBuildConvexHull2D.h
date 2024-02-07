@@ -69,12 +69,12 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBuildConvexHull2DContext : public FPCGExPoin
 	friend class FPCGExBuildConvexHull2DElement;
 
 	virtual ~FPCGExBuildConvexHull2DContext() override;
-	
+
 	FPCGExGeo2DProjectionSettings ProjectionSettings;
 
 	PCGExGeo::TConvexHull2* ConvexHull = nullptr;
 	TSet<int32> HullIndices;
-	
+
 	FPCGExGraphBuilderSettings GraphBuilderSettings;
 	PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
 

@@ -26,7 +26,6 @@ namespace PCGExGraph
 	/** Per-socket temp data structure for processing only*/
 	struct PCGEXTENDEDTOOLKIT_API FSocketProbe
 	{
-
 		FSocketProbe(): SocketInfos(nullptr)
 		{
 			Candidates.Empty();
@@ -37,9 +36,9 @@ namespace PCGExGraph
 		{
 			Candidates.Empty();
 		}
-		
+
 		const FSocketInfos* SocketInfos;
-		
+
 		FVector Origin = FVector::Zero();
 		FVector Direction = FVector::UpVector;
 		double DotThreshold = 0.707;

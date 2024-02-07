@@ -59,10 +59,11 @@ public:
 	TArray<FPCGExSocketQualityOfLifeInfos> GeneratedSocketNames;
 
 	TArray<FPCGExSocketDescriptor> InputSockets;
-	
+
 	const TArray<FPCGExSocketDescriptor>& GetSockets() const;
 
 	void RefreshSocketNames();
+
 protected:
 };
 
@@ -71,11 +72,10 @@ class PCGEXTENDEDTOOLKIT_API FPCGExAssembleCustomGraphParamsElement : public IPC
 #if WITH_EDITOR
 	virtual bool ShouldLog() const override { return false; }
 #endif
-	
+
 protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 
-	
 public:
 	virtual FPCGContext* Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node) override;
 };

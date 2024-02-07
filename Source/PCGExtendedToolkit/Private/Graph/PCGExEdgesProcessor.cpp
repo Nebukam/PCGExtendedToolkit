@@ -61,7 +61,7 @@ bool FPCGExEdgesProcessorContext::AdvancePointsIO()
 {
 	PCGEX_DELETE(EdgeNumReader)
 	PCGEX_DELETE(CurrentCluster)
-	
+
 	CurrentEdgesIndex = -1;
 	NodeIndicesMap.Empty();
 
