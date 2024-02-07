@@ -32,16 +32,18 @@ bool FPCGExFuseClustersElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(FuseClusters)
 
-	PCGEX_FWD(FuseDistance)
 	Context->PointEdgeSettings = Settings->PointEdgeIntersection;
 	Context->EdgeEdgeSettings = Settings->EdgeEdgeIntersection;
 
-	Context->PointEdgeSettings.MakeSafeForTolerance(Context->FuseDistance);
-	Context->EdgeEdgeSettings.MakeSafeForTolerance(Context->PointEdgeSettings.Tolerance);
+	Context->PointEdgeSettings.MakeSafeForTolerance(Context->FuseSettings.Tolerance);
+	Context->EdgeEdgeSettings.MakeSafeForTolerance(Context->PointEdgeSettings.FuseSettings.Tolerance);
 
+	PCGEX_FWD(FuseSettings)
+	Context->FuseSettings.Init();
+	
 	PCGEX_FWD(GraphBuilderSettings)
 
-	Context->LooseGraph = new PCGExGraph::FLooseGraph(Settings->FuseDistance);
+	Context->LooseGraph = new PCGExGraph::FLooseGraph(Context->FuseSettings);
 
 	return true;
 }
@@ -204,8 +206,8 @@ bool FPCGExFuseClustersInsertLoosePointsTask::ExecuteTask()
 	for (const PCGExGraph::FIndexedEdge& Edge : IndexedEdges)
 	{
 		Graph->CreateBridge(
-			InPoints[Edge.Start].Transform.GetLocation(), TaskIndex, Edge.Start,
-			InPoints[Edge.End].Transform.GetLocation(), TaskIndex, Edge.End);
+			InPoints[Edge.Start], TaskIndex, Edge.Start,
+			InPoints[Edge.End], TaskIndex, Edge.End);
 	}
 
 	return false;

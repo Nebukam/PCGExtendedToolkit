@@ -184,11 +184,11 @@ namespace PCGExGraph
 		}
 	}
 
-	void FGraphBuilder::Compile(FPCGExPointsProcessorContext* InContext, bool bUpdatePointsOnly) const
+	void FGraphBuilder::Compile(FPCGExPointsProcessorContext* InContext) const
 	{
 		InContext->GetAsyncManager()->Start<FPCGExCompileGraphTask>(
 			-1, PointIO, const_cast<FGraphBuilder*>(this),
-			OutputSettings->GetMinClusterSize(), OutputSettings->GetMaxClusterSize(), bUpdatePointsOnly);
+			OutputSettings->GetMinClusterSize(), OutputSettings->GetMaxClusterSize());
 	}
 
 	void FGraphBuilder::Write(FPCGExPointsProcessorContext* InContext) const
@@ -207,14 +207,14 @@ namespace PCGExGraph
 		return true;
 	}
 
-	void FLooseNode::AddPointH(const uint64 Point)
+	void FLooseNode::AddPointH(const uint64 PointH)
 	{
-		FusedPoints.AddUnique(Point);
+		FusedPoints.AddUnique(PointH);
 	}
 
-	void FLooseNode::AddEdgeH(const uint64 Edge)
+	void FLooseNode::AddEdgeH(const uint64 EdgeH)
 	{
-		FusedEdges.AddUnique(Edge);
+		FusedEdges.AddUnique(EdgeH);
 	}
 
 	FVector FLooseNode::UpdateCenter(PCGExData::FPointIOGroup* IOGroup)
@@ -236,17 +236,32 @@ namespace PCGExGraph
 		return Center;
 	}
 
-	FLooseNode* FLooseGraph::GetOrCreateNode(const FVector& Position, const int32 IOIndex, const int32 PointIndex)
+	FLooseNode* FLooseGraph::GetOrCreateNode(const FPCGPoint& Point, const int32 IOIndex, const int32 PointIndex)
 	{
-		for (FLooseNode* Node : Nodes) { if ((Position - Node->Center).IsNearlyZero(Tolerance)) { return Node; } }
+		const FVector Origin = Point.Transform.GetLocation();
+		
+		if (FuseSettings.bComponentWiseTolerance)
+		{
+			for (FLooseNode* Node : Nodes)
+			{
+				if (FuseSettings.IsWithinToleranceComponentWise(Point, Node->Point)) { return Node; }
+			}
+		}
+		else
+		{
+			for (FLooseNode* Node : Nodes)
+			{
+				if (FuseSettings.IsWithinTolerance(Point, Node->Point)) { return Node; }
+			}
+		}
 
-		FLooseNode* NewNode = new FLooseNode(Position, Nodes.Num());
+		FLooseNode* NewNode = new FLooseNode(Point, Origin, Nodes.Num());
 		NewNode->AddPointH(PCGEx::H64(IOIndex, PointIndex));
 		Nodes.Add_GetRef(NewNode);
 		return NewNode;
 	}
 
-	void FLooseGraph::CreateBridge(const FVector& From, const int32 FromIOIndex, const int32 FromPointIndex, const FVector& To, const int32 ToIOIndex, const int32 ToPointIndex)
+	void FLooseGraph::CreateBridge(const FPCGPoint& From, const int32 FromIOIndex, const int32 FromPointIndex, const FPCGPoint& To, const int32 ToIOIndex, const int32 ToPointIndex)
 	{
 		FLooseNode* StartVtx = GetOrCreateNode(From, FromIOIndex, FromPointIndex);
 		FLooseNode* EndVtx = GetOrCreateNode(To, ToIOIndex, ToPointIndex);
@@ -287,7 +302,7 @@ namespace PCGExGraph
 		FGraph* InGraph,
 		PCGExData::FPointIO* InPointIO,
 		const FPCGExPointEdgeIntersectionSettings& InSettings)
-		: PointIO(InPointIO), Graph(InGraph), bSnapPointsToEdge(InSettings.bSnapOnEdge)
+		: PointIO(InPointIO), Graph(InGraph), Settings(InSettings)
 	{
 		const TArray<FPCGPoint>& Points = InPointIO->GetOutIn()->GetPoints();
 
@@ -301,7 +316,7 @@ namespace PCGExGraph
 				Edge.EdgeIndex,
 				Points[Edge.Start].Transform.GetLocation(),
 				Points[Edge.End].Transform.GetLocation(),
-				InSettings.Tolerance);
+				Settings.FuseSettings.Tolerance);
 		}
 	}
 
@@ -344,7 +359,7 @@ namespace PCGExGraph
 				Graph->InsertEdge(PrevIndex, NodeIndex, NewEdge);
 				PrevIndex = NodeIndex;
 
-				if (bSnapPointsToEdge)
+				if (Settings.bSnapOnEdge)
 				{
 					PointIO->GetMutablePoint(Graph->Nodes[Split.NodeIndex].PointIndex).Transform.SetLocation(Split.ClosestPoint);
 				}
@@ -403,7 +418,7 @@ namespace PCGExGraph
 		FGraph* InGraph,
 		PCGExData::FPointIO* InPointIO,
 		const FPCGExEdgeEdgeIntersectionSettings& InSettings)
-		: PointIO(InPointIO), Graph(InGraph)
+		: PointIO(InPointIO), Graph(InGraph), Settings(InSettings)
 	{
 		const TArray<FPCGPoint>& Points = InPointIO->GetOutIn()->GetPoints();
 
@@ -417,7 +432,7 @@ namespace PCGExGraph
 				Edge.EdgeIndex,
 				Points[Edge.Start].Transform.GetLocation(),
 				Points[Edge.End].Transform.GetLocation(),
-				InSettings.Tolerance);
+				Settings.Tolerance);
 		}
 	}
 
@@ -661,23 +676,9 @@ bool FPCGExCompileGraphTask::ExecuteTask()
 	IndexWriter->BindAndGet(*PointIO);
 	NumEdgesWriter->BindAndGet(*PointIO);
 
-	check(NumEdgesWriter->Values.Num() == Builder->Graph->Nodes.Num()) //Check GetMainOutputInitMode if this fails.
-
 	for (int i = 0; i < IndexWriter->Values.Num(); i++) { IndexWriter->Values[i] = i; }
 
-	if (bUpdatePointsOnly)
-	{
-		for (const PCGExGraph::FNode& Node : Builder->Graph->Nodes) { if (Node.bValid) { NumEdgesWriter->Values[Node.PointIndex] = Node.NumExportedEdges; } }
-	}
-	else
-	{
-		for (const PCGExGraph::FNode& Node : Builder->Graph->Nodes)
-		{
-			if (Node.bValid) { NumEdgesWriter->Values[Node.PointIndex] = Node.NumExportedEdges; }
-			else { NumEdgesWriter->Values[Node.PointIndex] = 0; }
-		}
-	}
-
+	for (const PCGExGraph::FNode& Node : Builder->Graph->Nodes) { if (Node.bValid) { NumEdgesWriter->Values[Node.PointIndex] = Node.NumExportedEdges; } }
 
 	IndexWriter->Write();
 	NumEdgesWriter->Write();

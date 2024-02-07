@@ -34,9 +34,9 @@ public:
 	virtual PCGExData::EInit GetEdgeOutputInitMode() const override;
 	//~End UPCGExEdgesProcessorSettings interface
 
-	/** Distance at which points are fused */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0.0001))
-	double FuseDistance = 10;
+	/** Fuse Settings */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	FPCGExFuseSettingsWithTarget FuseSettings;
 
 	/** Point-Edge intersection */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
@@ -66,7 +66,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFuseClustersContext : public FPCGExEdgesProc
 
 	virtual ~FPCGExFuseClustersContext() override;
 
-	double FuseDistance = 0;
+	FPCGExFuseSettingsWithTarget FuseSettings;
 	FPCGExPointEdgeIntersectionSettings PointEdgeSettings;
 	FPCGExEdgeEdgeIntersectionSettings EdgeEdgeSettings;
 

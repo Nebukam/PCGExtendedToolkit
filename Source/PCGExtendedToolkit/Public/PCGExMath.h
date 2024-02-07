@@ -6,6 +6,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGEx.h"
+#include "Elements/PCGDistance.h"
 
 #include "PCGExMath.generated.h"
 
@@ -820,6 +821,38 @@ namespace PCGExMath
 			FMath::PerlinNoise3D(Tile(Point.Transform.GetLocation() * 0.001 + Offset, FVector(-1), FVector(1))),
 			-1, 1, TNumericLimits<int32>::Min(), TNumericLimits<int32>::Max()));
 	}
+
+	// Stolen from PCGDistance
+	static FVector GetRelationalCenter(
+		const EPCGExDistance Shape,
+		const FPCGPoint& SourcePoint,
+		const FVector& SourceCenter,
+		const FVector& TargetCenter)
+	{
+		if (Shape == EPCGExDistance::SphereBounds)
+		{
+			FVector Dir = TargetCenter - SourceCenter;
+			Dir.Normalize();
+
+			return SourceCenter + Dir * SourcePoint.GetScaledExtents().Length();
+		}
+		else if (Shape == EPCGExDistance::BoxBounds)
+		{
+			const FVector LocalTargetCenter = SourcePoint.Transform.InverseTransformPosition(TargetCenter);
+
+			const double DistanceSquared = ComputeSquaredDistanceFromBoxToPoint(SourcePoint.BoundsMin, SourcePoint.BoundsMax, LocalTargetCenter);
+
+			FVector Dir = -LocalTargetCenter;
+			Dir.Normalize();
+
+			const FVector LocalClosestPoint = LocalTargetCenter + Dir * FMath::Sqrt(DistanceSquared);
+
+			return SourcePoint.Transform.TransformPosition(LocalClosestPoint);
+		}
+
+		// EPCGExDistance::Center
+		return SourceCenter;
+	}
 }
 
 USTRUCT(BlueprintType)
@@ -930,5 +963,205 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExRemapSettings
 	double GetRemappedValue(double Value) const
 	{
 		return RemapCurveObj->GetFloatValue(PCGExMath::Remap(Value, InMin, InMax, 0, 1)) * Scale;
+	}
+};
+
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExFuseSettings
+{
+	GENERATED_BODY()
+
+	FPCGExFuseSettings()
+	{
+		Init();
+	}
+
+	FPCGExFuseSettings(double InTolerance)
+		: Tolerance(InTolerance)
+	{
+		Init();
+	}
+
+	FPCGExFuseSettings(double InTolerance, EPCGExDistance SourceMethod)
+		: Tolerance(InTolerance), SourceDistance(SourceMethod)
+	{
+		Init();
+	}
+
+	/** Fusing distance */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0.0001))
+	double Tolerance = 0.001;
+	double ToleranceSquared = 10;
+
+	/** Uses a per-axis radius, manathan-style */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
+	bool bComponentWiseTolerance = false;
+
+	/** Component-wise radiuses */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bComponentWiseTolerance", EditConditionHides, ClampMin=0.0001))
+	FVector Tolerances = FVector(0.001);
+
+	/** Method used to compute the distance from the source */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExDistance SourceDistance = EPCGExDistance::Center;
+
+	void Init()
+	{
+		ToleranceSquared = Tolerance * Tolerance;
+		Tolerances = FVector(Tolerance);
+	}
+
+	bool IsWithinTolerance(const double DistSquared) const
+	{
+		return FMath::IsWithin<double, double>(DistSquared, 0, ToleranceSquared);
+	}
+	
+	bool IsWithinTolerance(const FVector& Source, const FVector& Target) const
+	{
+		return FMath::IsWithin<double, double>(FVector::DistSquared(Source, Target), 0, ToleranceSquared);
+	}
+
+	bool IsWithinToleranceComponentWise(const FVector& Source, const FVector& Target) const
+	{
+		return (FMath::IsWithin<double, double>(abs(Source.X - Target.X), 0, Tolerance) &&
+			FMath::IsWithin<double, double>(abs(Source.Y - Target.Y), 0, Tolerance) &&
+			FMath::IsWithin<double, double>(abs(Source.Z - Target.Z), 0, Tolerance));
+	}
+
+	///
+	FVector GetSourceCenter(const FPCGPoint& SourcePoint, const FVector& SourceCenter, const FVector& TargetCenter) const
+	{
+		return PCGExMath::GetRelationalCenter(SourceDistance, SourcePoint, SourceCenter, TargetCenter);
+	}
+	
+	double GetSourceDistSquared(const FPCGPoint& SourcePoint, const FVector& SourceCenter, const FVector& TargetCenter) const
+	{
+		return FVector::DistSquared(PCGExMath::GetRelationalCenter(SourceDistance, SourcePoint, SourceCenter, TargetCenter), TargetCenter);
+	}
+
+	bool IsWithinTolerance(const FPCGPoint& SourcePoint, const FVector& SourceCenter, const FVector& TargetCenter) const
+	{
+		return IsWithinTolerance(GetSourceCenter(SourcePoint, SourceCenter, TargetCenter), TargetCenter);
+	}
+
+	bool IsWithinToleranceComponentWise(const FPCGPoint& SourcePoint, const FVector& SourceCenter, const FVector& TargetCenter) const
+	{
+		return IsWithinToleranceComponentWise(GetSourceCenter(SourcePoint, SourceCenter, TargetCenter), TargetCenter);
+	}
+};
+
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExFuseSettingsWithTarget : public FPCGExFuseSettings
+{
+	GENERATED_BODY()
+
+	FPCGExFuseSettingsWithTarget()
+	{
+	}
+
+	FPCGExFuseSettingsWithTarget(double InTolerance)
+		: FPCGExFuseSettings(InTolerance)
+	{
+	}
+
+	FPCGExFuseSettingsWithTarget(double InTolerance, EPCGExDistance SourceMethod)
+		: FPCGExFuseSettings(InTolerance, SourceMethod)
+	{
+	}
+
+	FPCGExFuseSettingsWithTarget(double InTolerance, EPCGExDistance SourceMethod, EPCGExDistance TargetMethod)
+		: FPCGExFuseSettings(InTolerance, SourceMethod), TargetDistance(TargetMethod)
+	{
+	}
+
+	/** Method used to compute the distance to the target */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExDistance TargetDistance = EPCGExDistance::Center;
+
+	void GetCenters(const FPCGPoint& SourcePoint, const FPCGPoint& TargetPoint, FVector& OutSource, FVector& OutTarget) const
+	{
+		OutSource = GetSourceCenter(SourcePoint, SourcePoint.Transform.GetLocation(), TargetPoint.Transform.GetLocation());
+		OutTarget = PCGExMath::GetRelationalCenter(TargetDistance, TargetPoint, TargetPoint.Transform.GetLocation(), OutSource);
+	}
+
+	bool IsWithinTolerance(const FPCGPoint& SourcePoint, const FPCGPoint& TargetPoint) const
+	{
+		FVector A;
+		FVector B;
+		GetCenters(SourcePoint, TargetPoint, A, B);
+		return FPCGExFuseSettings::IsWithinTolerance(A, B);
+	}
+
+	bool IsWithinToleranceComponentWise(const FPCGPoint& SourcePoint, const FPCGPoint& TargetPoint) const
+	{
+		FVector A;
+		FVector B;
+		GetCenters(SourcePoint, TargetPoint, A, B);
+		return FPCGExFuseSettings::IsWithinToleranceComponentWise(A, B);
+	}
+};
+
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExDistanceSettings
+{
+	GENERATED_BODY()
+
+	FPCGExDistanceSettings()
+	{
+	}
+
+	FPCGExDistanceSettings(EPCGExDistance SourceMethod)
+		: SourceDistance(SourceMethod)
+	{
+	}
+
+	/** Method used to compute the distance from the source */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExDistance SourceDistance = EPCGExDistance::Center;
+
+	FVector GetSourceCenter(const FPCGPoint& SourcePoint, const FVector& SourceCenter, const FVector& TargetCenter) const
+	{
+		return PCGExMath::GetRelationalCenter(SourceDistance, SourcePoint, SourceCenter, TargetCenter);
+	}
+
+	double GetSourceDistanceToPosition(const FPCGPoint& SourcePoint, const FVector& SourceCenter, const FVector& TargetCenter) const
+	{
+		return FVector::DistSquared(GetSourceCenter(SourcePoint, SourceCenter, TargetCenter), TargetCenter);
+	}
+};
+
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExDistanceSettingsWithTarget : public FPCGExDistanceSettings
+{
+	GENERATED_BODY()
+
+	FPCGExDistanceSettingsWithTarget()
+	{
+	}
+
+	FPCGExDistanceSettingsWithTarget(EPCGExDistance SourceMethod)
+		: FPCGExDistanceSettings(SourceMethod)
+	{
+	}
+
+	FPCGExDistanceSettingsWithTarget(EPCGExDistance SourceMethod, EPCGExDistance TargetMethod)
+		: FPCGExDistanceSettings(SourceMethod), TargetDistance(TargetMethod)
+	{
+	}
+
+	/** Method used to compute the distance to the target */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExDistance TargetDistance = EPCGExDistance::Center;
+
+	FVector GetTargetCenter(const FPCGPoint& TargetPoint, const FVector& TargetCenter, const FVector& OtherCenter) const
+	{
+		return PCGExMath::GetRelationalCenter(TargetDistance, TargetPoint, TargetCenter, OtherCenter);
+	}
+
+	void GetCenters(const FPCGPoint& SourcePoint, const FPCGPoint& TargetPoint, FVector& OutSource, FVector& OutTarget) const
+	{
+		const FVector TargetLocation = TargetPoint.Transform.GetLocation();
+		OutSource = GetSourceCenter(SourcePoint, SourcePoint.Transform.GetLocation(), TargetLocation);
+		OutTarget = GetTargetCenter(TargetPoint, TargetLocation, OutSource);
 	}
 };

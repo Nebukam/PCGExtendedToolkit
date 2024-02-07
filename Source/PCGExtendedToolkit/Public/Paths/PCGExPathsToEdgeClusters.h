@@ -56,9 +56,9 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bClosedPath = false;
 
-	/** Distance at which points are fused */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0.001))
-	double FuseDistance = 10;
+	/** Fuse Settings */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	FPCGExFuseSettingsWithTarget FuseSettings;
 
 	/** Point-Edge intersection */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
@@ -87,7 +87,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathsToEdgeClustersContext : public FPCGExPa
 
 	virtual ~FPCGExPathsToEdgeClustersContext() override;
 
-	double FuseDistance = 0;
+	FPCGExFuseSettingsWithTarget FuseSettings;
 	FPCGExPointEdgeIntersectionSettings PointEdgeSettings;
 	FPCGExEdgeEdgeIntersectionSettings EdgeEdgeSettings;
 

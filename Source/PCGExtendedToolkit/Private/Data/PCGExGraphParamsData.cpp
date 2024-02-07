@@ -169,7 +169,7 @@ namespace PCGExGraph
 				if (Overrides.bLocalRadius) { NewSocket.Descriptor.LocalRadius = OverrideSocket.LocalRadius; }
 
 				if (Overrides.bDotOverDistance) { NewSocket.Descriptor.DotOverDistance = OverrideSocket.DotOverDistance; }
-				if (Overrides.bOffsetOrigin) { NewSocket.Descriptor.OffsetOrigin = OverrideSocket.OffsetOrigin; }
+				if (Overrides.bOffsetOrigin) { NewSocket.Descriptor.ProbeOrigin = OverrideSocket.ProbeOrigin; }
 
 				if (Overrides.bMirrorMatchingSockets) { NewSocket.Descriptor.bMirrorMatchingSockets = OverrideSocket.bMirrorMatchingSockets; }
 			}

@@ -33,7 +33,8 @@ bool FPCGExFusePointsElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(FusePoints)
 
-	Context->Radius = Settings->Radius * Settings->Radius;
+	PCGEX_FWD(FuseSettings)
+	Context->FuseSettings.Init();
 
 	PCGEX_FWD(bPreserveOrder)
 
@@ -84,21 +85,31 @@ bool FPCGExFuseTask::ExecuteTask()
 	TArray<PCGExFuse::FFusedPoint> FusedPoints;
 	FusedPoints.Reserve(InPoints.Num());
 
-	for (int PointIndex = 0; PointIndex < InPoints.Num(); PointIndex++)
+	TArray<int32> InSorted;
+	InSorted.SetNum(InPoints.Num());
+	int32 Index = 0;
+	for (int32& i : InSorted) { i = Index++; }
+
+	InSorted.Sort([&](const int32 A, const int32 B)
+	{
+		const FVector V = InPoints[A].Transform.GetLocation() - InPoints[B].Transform.GetLocation();
+		return FMath::IsNearlyZero(V.X) ? FMath::IsNearlyZero(V.Y) ? V.Z > 0: V.Y > 0 : V.X > 0;
+	});
+	
+	for (const int32 PointIndex : InSorted)
 	{
 		const FVector PtPosition = InPoints[PointIndex].Transform.GetLocation();
-		double Distance = 0;
+		double DistSquared = 0;
 		PCGExFuse::FFusedPoint* FuseTarget = nullptr;
 
-		if (Settings->bComponentWiseRadius)
+		if (Context->FuseSettings.bComponentWiseTolerance)
 		{
 			for (PCGExFuse::FFusedPoint& FusedPoint : FusedPoints)
 			{
-				if (abs(PtPosition.X - FusedPoint.Position.X) <= Settings->Radiuses.X &&
-					abs(PtPosition.Y - FusedPoint.Position.Y) <= Settings->Radiuses.Y &&
-					abs(PtPosition.Z - FusedPoint.Position.Z) <= Settings->Radiuses.Z)
+				if (FVector SourceCenter = Context->FuseSettings.GetSourceCenter(InPoints[PointIndex], PtPosition, FusedPoint.Position);
+					Context->FuseSettings.IsWithinToleranceComponentWise(SourceCenter, FusedPoint.Position))
 				{
-					Distance = FVector::DistSquared(FusedPoint.Position, PtPosition);
+					DistSquared = FVector::DistSquared(FusedPoint.Position, SourceCenter);
 					FuseTarget = &FusedPoint;
 					break;
 				}
@@ -108,8 +119,8 @@ bool FPCGExFuseTask::ExecuteTask()
 		{
 			for (PCGExFuse::FFusedPoint& FusedPoint : FusedPoints)
 			{
-				Distance = FVector::DistSquared(FusedPoint.Position, PtPosition);
-				if (Distance < Context->Radius)
+				DistSquared = Context->FuseSettings.GetSourceDistSquared(InPoints[PointIndex], PtPosition, FusedPoint.Position);
+				if (Context->FuseSettings.IsWithinTolerance(DistSquared))
 				{
 					FuseTarget = &FusedPoint;
 					break;
@@ -123,7 +134,7 @@ bool FPCGExFuseTask::ExecuteTask()
 		}
 		else
 		{
-			FuseTarget->Add(PointIndex, Distance);
+			FuseTarget->Add(PointIndex, DistSquared);
 		}
 	}
 
@@ -131,7 +142,6 @@ bool FPCGExFuseTask::ExecuteTask()
 	{
 		FusedPoints.Sort([&](const PCGExFuse::FFusedPoint& A, const PCGExFuse::FFusedPoint& B) { return A.Index > B.Index; });
 	}
-
 
 	TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
 	MutablePoints.Reserve(FusedPoints.Num());

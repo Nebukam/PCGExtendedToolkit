@@ -79,18 +79,10 @@ public:
 	//~End UPCGExPointsProcessorSettings interface
 
 public:
-	/** Uses a per-axis radius, manathan-style */
+	/** Fuse settings */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	bool bComponentWiseRadius = false;
-
-	/** Fuse radius */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="!bComponentWiseRadius", EditConditionHides, ClampMin=0.001))
-	double Radius = 10;
-
-	/** Component-wise radiuses */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bComponentWiseRadius", EditConditionHides))
-	FVector Radiuses = FVector(10);
-
+	FPCGExFuseSettings FuseSettings = FPCGExFuseSettings(10);
+	
 	/** Preserve the order of input points */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	bool bPreserveOrder = true;
@@ -109,9 +101,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFusePointsContext : public FPCGExPointsProce
 
 	virtual ~FPCGExFusePointsContext() override;
 
+	FPCGExFuseSettings FuseSettings;
 	bool bPreserveOrder;
-
-	double Radius = 0;
 
 	mutable FRWLock PointsLock;
 };

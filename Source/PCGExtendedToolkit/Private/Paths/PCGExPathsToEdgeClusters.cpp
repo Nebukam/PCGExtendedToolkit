@@ -59,16 +59,18 @@ bool FPCGExPathsToEdgeClustersElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(PathsToEdgeClusters)
 
-	PCGEX_FWD(FuseDistance)
+	PCGEX_FWD(FuseSettings)
+	Context->FuseSettings.Init();
+	
 	Context->PointEdgeSettings = Settings->PointEdgeIntersection;
 	Context->EdgeEdgeSettings = Settings->EdgeEdgeIntersection;
 
-	Context->PointEdgeSettings.MakeSafeForTolerance(Context->FuseDistance);
-	Context->EdgeEdgeSettings.MakeSafeForTolerance(Context->PointEdgeSettings.Tolerance);
+	Context->PointEdgeSettings.MakeSafeForTolerance(Context->FuseSettings.Tolerance);
+	Context->EdgeEdgeSettings.MakeSafeForTolerance(Context->PointEdgeSettings.FuseSettings.Tolerance);
 
 	PCGEX_FWD(GraphBuilderSettings)
 
-	Context->LooseGraph = new PCGExGraph::FLooseGraph(Settings->FuseDistance);
+	Context->LooseGraph = new PCGExGraph::FLooseGraph(Context->FuseSettings);
 
 	return true;
 }
@@ -213,20 +215,20 @@ bool FPCGExInsertPathToLooseGraphTask::ExecuteTask()
 
 	for (int i = 0; i < NumPoints; i++)
 	{
-		PCGExGraph::FLooseNode* CurrentVtx = Graph->GetOrCreateNode(InPoints[i].Transform.GetLocation(), TaskIndex, i);
+		PCGExGraph::FLooseNode* CurrentVtx = Graph->GetOrCreateNode(InPoints[i], TaskIndex, i);
 		CurrentVtx->AddPointH(PCGEx::H64(TaskIndex, i));
 
 		if (const int32 PrevIndex = i - 1;
 			InPoints.IsValidIndex(PrevIndex))
 		{
-			PCGExGraph::FLooseNode* OtherVtx = Graph->GetOrCreateNode(InPoints[PrevIndex].Transform.GetLocation(), TaskIndex, PrevIndex);
+			PCGExGraph::FLooseNode* OtherVtx = Graph->GetOrCreateNode(InPoints[PrevIndex], TaskIndex, PrevIndex);
 			CurrentVtx->Add(OtherVtx);
 		}
 
 		if (const int32 NextIndex = i + 1;
 			InPoints.IsValidIndex(NextIndex))
 		{
-			PCGExGraph::FLooseNode* OtherVtx = Graph->GetOrCreateNode(InPoints[NextIndex].Transform.GetLocation(), TaskIndex, NextIndex);
+			PCGExGraph::FLooseNode* OtherVtx = Graph->GetOrCreateNode(InPoints[NextIndex], TaskIndex, NextIndex);
 			CurrentVtx->Add(OtherVtx);
 		}
 	}
@@ -236,8 +238,8 @@ bool FPCGExInsertPathToLooseGraphTask::ExecuteTask()
 		// Join
 		const int32 LastIndex = NumPoints - 1;
 		Graph->CreateBridge(
-			InPoints[0].Transform.GetLocation(), TaskIndex, 0,
-			InPoints[LastIndex].Transform.GetLocation(), TaskIndex, LastIndex);
+			InPoints[0], TaskIndex, 0,
+			InPoints[LastIndex], TaskIndex, LastIndex);
 	}
 
 	return true;

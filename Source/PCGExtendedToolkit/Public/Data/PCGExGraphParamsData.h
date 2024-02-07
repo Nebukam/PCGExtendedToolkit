@@ -150,7 +150,7 @@ public:
 
 	/** Offset socket origin  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Probing", meta = (PCG_Overridable))
-	EPCGExExtension OffsetOrigin = EPCGExExtension::None;
+	EPCGExDistance ProbeOrigin = EPCGExDistance::Center;
 
 	/** The balance over distance to prioritize closer distance or better alignment. Curve X is normalized distance; Y = 0 means narrower dot wins, Y = 1 means closer distance wins */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Settings|Probing")

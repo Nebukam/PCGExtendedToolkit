@@ -67,6 +67,8 @@ bool FPCGExSampleNearestPointElement::Boot(FPCGContext* InContext) const
 	}
 
 	Context->WeightCurve = Settings->WeightOverDistance.LoadSynchronous();
+	
+	PCGEX_FWD(DistanceSettings)
 
 	PCGEX_FWD(RangeMin)
 	PCGEX_FWD(RangeMax)
@@ -175,7 +177,8 @@ bool FPCGExSamplePointTask::ExecuteTask()
 	PCGEX_SETTINGS(SampleNearestPoint)
 
 	const int32 NumTargets = Context->Targets->GetNum();
-	const FVector Origin = PointIO->GetOutPoint(TaskIndex).Transform.GetLocation();
+	const FPCGPoint& SourcePoint = PointIO->GetOutPoint(TaskIndex);
+	const FVector SourceCenter = SourcePoint.Transform.GetLocation();
 
 	double RangeMin = FMath::Pow(Context->RangeMinGetter.SafeGet(TaskIndex, Context->RangeMin), 2);
 	double RangeMax = FMath::Pow(Context->RangeMaxGetter.SafeGet(TaskIndex, Context->RangeMax), 2);
@@ -188,7 +191,13 @@ bool FPCGExSamplePointTask::ExecuteTask()
 	PCGExNearestPoint::FTargetsCompoundInfos TargetsCompoundInfos;
 	auto ProcessTarget = [&](const PCGEx::FPointRef& Target)
 	{
-		const double Dist = FVector::DistSquared(Origin, Target.Point->Transform.GetLocation());
+
+		FVector A;
+		FVector B;
+
+		Context->DistanceSettings.GetCenters(SourcePoint, *Target.Point, A, B);
+		
+		const double Dist = FVector::DistSquared(A, B);
 
 		if (RangeMax > 0 && (Dist < RangeMin || Dist > RangeMax)) { return; }
 
@@ -206,7 +215,7 @@ bool FPCGExSamplePointTask::ExecuteTask()
 
 	if (RangeMax > 0)
 	{
-		const FBox Box = FBoxCenterAndExtent(Origin, FVector(FMath::Sqrt(RangeMax))).GetBox();
+		const FBox Box = FBoxCenterAndExtent(SourceCenter, FVector(FMath::Sqrt(RangeMax))).GetBox();
 		for (int i = 0; i < NumTargets; i++)
 		{
 			const FPCGPoint& Target = Context->Targets->GetInPoint(i);
@@ -250,7 +259,7 @@ bool FPCGExSamplePointTask::ExecuteTask()
 		(const PCGExNearestPoint::FTargetInfos& TargetInfos, const double Weight)
 	{
 		const FPCGPoint& Target = Context->Targets->GetInPoint(TargetInfos.Index);
-		const FVector TargetLocationOffset = Target.Transform.GetLocation() - Origin;
+		const FVector TargetLocationOffset = Target.Transform.GetLocation() - SourceCenter;
 
 		WeightedLocation += (TargetLocationOffset * Weight); // Relative to origin
 		WeightedLookAt += (TargetLocationOffset.GetSafeNormal()) * Weight;
@@ -290,7 +299,7 @@ bool FPCGExSamplePointTask::ExecuteTask()
 	const double WeightedDistance = WeightedLocation.Length();
 
 	PCGEX_OUTPUT_VALUE(Success, TaskIndex, TargetsCompoundInfos.IsValid())
-	PCGEX_OUTPUT_VALUE(Location, TaskIndex, Origin + WeightedLocation)
+	PCGEX_OUTPUT_VALUE(Location, TaskIndex, SourceCenter + WeightedLocation)
 	PCGEX_OUTPUT_VALUE(LookAt, TaskIndex, WeightedLookAt)
 	PCGEX_OUTPUT_VALUE(Normal, TaskIndex, WeightedNormal)
 	PCGEX_OUTPUT_VALUE(Distance, TaskIndex, WeightedDistance)

@@ -90,7 +90,6 @@ namespace PCGExData
 	struct FPointIO;
 }
 
-
 UENUM(BlueprintType)
 enum class EPCGExOrderedFieldSelection : uint8
 {
@@ -144,6 +143,14 @@ enum class EPCGExExtension : uint8
 	Extents UMETA(DisplayName = "Extents", ToolTip="Extents"),
 	Scale UMETA(DisplayName = "Scale", ToolTip="Scale"),
 	ScaledExtents UMETA(DisplayName = "Scaled Extents", ToolTip="Scaled extents"),
+};
+
+UENUM(BlueprintType)
+enum class EPCGExDistance : uint8
+{
+	Center UMETA(DisplayName = "Center", ToolTip="Center"),
+	SphereBounds UMETA(DisplayName = "Sphere Bounds", ToolTip="Point sphere which radius is scaled extent"),
+	BoxBounds UMETA(DisplayName = "Box Bounds", ToolTip="Point extents"),
 };
 
 UENUM(BlueprintType)
