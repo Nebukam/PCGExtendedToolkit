@@ -19,8 +19,9 @@ class PCGEXTENDEDTOOLKIT_API UPCGExRefineEdgesSettings : public UPCGExEdgesProce
 {
 	GENERATED_BODY()
 
+	//~Begin UObject interface
 public:
-	UPCGExRefineEdgesSettings(const FObjectInitializer& ObjectInitializer);
+	virtual void PostInitProperties() override;
 
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR

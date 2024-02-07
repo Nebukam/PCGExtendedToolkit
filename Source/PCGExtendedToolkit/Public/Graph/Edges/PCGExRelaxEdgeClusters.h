@@ -13,9 +13,11 @@ class PCGEXTENDEDTOOLKIT_API UPCGExRelaxEdgeClustersSettings : public UPCGExEdge
 {
 	GENERATED_BODY()
 
+	//~Begin UObject interface
 public:
-	UPCGExRelaxEdgeClustersSettings(const FObjectInitializer& ObjectInitializer);
-
+	virtual void PostInitProperties() override;
+	//~End UObject interface
+	
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(RelaxEdgeClusters, "Edges : Relax", "Relax point positions using edges connecting them.");

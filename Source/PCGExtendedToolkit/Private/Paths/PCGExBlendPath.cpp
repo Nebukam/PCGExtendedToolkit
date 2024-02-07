@@ -8,12 +8,6 @@
 #define LOCTEXT_NAMESPACE "PCGExBlendPathElement"
 #define PCGEX_NAMESPACE BlendPath
 
-UPCGExBlendPathSettings::UPCGExBlendPathSettings(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
-{
-	PCGEX_OPERATION_DEFAULT(BlendPathing, UPCGExMovingAverageBlendPathing)
-}
-
 #if WITH_EDITOR
 void UPCGExBlendPathSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
@@ -25,6 +19,12 @@ void UPCGExBlendPathSettings::PostEditChangeProperty(FPropertyChangedEvent& Prop
 PCGExData::EInit UPCGExBlendPathSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
 PCGEX_INITIALIZE_ELEMENT(BlendPath)
+
+void UPCGExBlendPathSettings::PostInitProperties()
+{
+	Super::PostInitProperties();
+	PCGEX_OPERATION_DEFAULT(Blending, UPCGExSubPointsBlendInterpolate)
+}
 
 FPCGExBlendPathContext::~FPCGExBlendPathContext()
 {

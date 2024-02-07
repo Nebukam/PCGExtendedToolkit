@@ -18,9 +18,9 @@ PCGExData::EInit UPCGExPromoteEdgesSettings::GetMainOutputInitMode() const
 		       PCGExData::EInit::NewOutput;
 }
 
-UPCGExPromoteEdgesSettings::UPCGExPromoteEdgesSettings(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
+void UPCGExPromoteEdgesSettings::PostInitProperties()
 {
+	Super::PostInitProperties();
 	PCGEX_OPERATION_DEFAULT(Promotion, UPCGExEdgePromoteToPoint)
 }
 

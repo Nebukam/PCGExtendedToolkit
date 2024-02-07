@@ -19,7 +19,6 @@ class PCGEXTENDEDTOOLKIT_API UPCGExBlendPathSettings : public UPCGExPathProcesso
 	GENERATED_BODY()
 
 public:
-	UPCGExBlendPathSettings(const FObjectInitializer& ObjectInitializer);
 
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
@@ -31,6 +30,8 @@ protected:
 	//~End UPCGSettings interface
 
 	//~Begin UObject interface
+	public:
+	virtual void PostInitProperties() override;
 #if WITH_EDITOR
 
 public:

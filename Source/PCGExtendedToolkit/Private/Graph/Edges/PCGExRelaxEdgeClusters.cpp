@@ -9,10 +9,9 @@
 #define LOCTEXT_NAMESPACE "PCGExRelaxEdgeClusters"
 #define PCGEX_NAMESPACE RelaxEdgeClusters
 
-UPCGExRelaxEdgeClustersSettings::UPCGExRelaxEdgeClustersSettings(
-	const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
+void UPCGExRelaxEdgeClustersSettings::PostInitProperties()
 {
+	Super::PostInitProperties();
 	PCGEX_OPERATION_DEFAULT(Relaxing, UPCGExForceDirectedRelaxing)
 }
 

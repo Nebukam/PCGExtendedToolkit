@@ -19,7 +19,6 @@ class PCGEXTENDEDTOOLKIT_API UPCGExPathfindingPlotNavmeshSettings : public UPCGE
 	GENERATED_BODY()
 
 public:
-	UPCGExPathfindingPlotNavmeshSettings(const FObjectInitializer& ObjectInitializer);
 
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
@@ -34,6 +33,8 @@ protected:
 	//~End UPCGSettings interface
 
 	//~Begin UObject interface
+public:
+	virtual void PostInitProperties() override;
 #if WITH_EDITOR
 
 public:

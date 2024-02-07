@@ -14,12 +14,6 @@ FPCGExBuildCustomGraphContext::~FPCGExBuildCustomGraphContext()
 	PCGEX_TERMINATE_ASYNC
 }
 
-UPCGExBuildCustomGraphSettings::UPCGExBuildCustomGraphSettings(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
-{
-	PCGEX_OPERATION_DEFAULT(GraphSolver, UPCGExGraphSolver)
-}
-
 #if WITH_EDITOR
 void UPCGExBuildCustomGraphSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
@@ -31,6 +25,12 @@ void UPCGExBuildCustomGraphSettings::PostEditChangeProperty(FPropertyChangedEven
 FName UPCGExBuildCustomGraphSettings::GetMainInputLabel() const { return PCGEx::SourcePointsLabel; }
 
 PCGEX_INITIALIZE_ELEMENT(BuildCustomGraph)
+
+void UPCGExBuildCustomGraphSettings::PostInitProperties()
+{
+	Super::PostInitProperties();
+	PCGEX_OPERATION_DEFAULT(GraphSolver, UPCGExCustomGraphSolver)
+}
 
 bool FPCGExBuildCustomGraphElement::Boot(FPCGContext* InContext) const
 {

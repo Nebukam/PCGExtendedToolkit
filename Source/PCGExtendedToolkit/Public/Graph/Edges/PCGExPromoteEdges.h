@@ -13,9 +13,6 @@ class PCGEXTENDEDTOOLKIT_API UPCGExPromoteEdgesSettings : public UPCGExCustomGra
 {
 	GENERATED_BODY()
 
-public:
-	UPCGExPromoteEdgesSettings(const FObjectInitializer& ObjectInitializer);
-
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(PromoteEdges, "Custom Graph : Promote Edges", "Promote edges to points or small paths.");
@@ -27,6 +24,10 @@ public:
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings interface
+
+	//~Begin UObject interface
+public:
+	virtual void PostInitProperties() override;
 
 	//~Begin UPCGExPointsProcessorSettings interface
 public:

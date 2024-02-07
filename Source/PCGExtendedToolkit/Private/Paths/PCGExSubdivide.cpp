@@ -8,12 +8,6 @@
 #define LOCTEXT_NAMESPACE "PCGExSubdivideElement"
 #define PCGEX_NAMESPACE Subdivide
 
-UPCGExSubdivideSettings::UPCGExSubdivideSettings(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
-{
-	PCGEX_OPERATION_DEFAULT(Blending, UPCGExSubPointsBlendInterpolate)
-}
-
 #if WITH_EDITOR
 void UPCGExSubdivideSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
@@ -25,6 +19,12 @@ void UPCGExSubdivideSettings::PostEditChangeProperty(FPropertyChangedEvent& Prop
 PCGExData::EInit UPCGExSubdivideSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NewOutput; }
 
 PCGEX_INITIALIZE_ELEMENT(Subdivide)
+
+void UPCGExSubdivideSettings::PostInitProperties()
+{
+	Super::PostInitProperties();
+	PCGEX_OPERATION_DEFAULT(Blending, UPCGExSubPointsBlendInterpolate)
+}
 
 FPCGExSubdivideContext::~FPCGExSubdivideContext()
 {
@@ -45,6 +45,7 @@ bool FPCGExSubdivideElement::Boot(FPCGContext* InContext) const
 	PCGEX_FWD(FlagName)
 
 	PCGEX_OPERATION_BIND(Blending, UPCGExSubPointsBlendInterpolate)
+	
 	Context->Blending->bClosedPath = Settings->bClosedPath;
 
 	if (Context->bFlagSubPoints) { PCGEX_VALIDATE_NAME(Context->FlagName) }

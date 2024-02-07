@@ -14,13 +14,6 @@
 #define LOCTEXT_NAMESPACE "PCGExPathfindingNavmeshElement"
 #define PCGEX_NAMESPACE PathfindingNavmesh
 
-UPCGExPathfindingNavmeshSettings::UPCGExPathfindingNavmeshSettings(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
-{
-	PCGEX_OPERATION_DEFAULT(GoalPicker, UPCGExGoalPickerRandom)
-	PCGEX_OPERATION_DEFAULT(Blending, UPCGExSubPointsBlendInterpolate)
-}
-
 TArray<FPCGPinProperties> UPCGExPathfindingNavmeshSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
@@ -68,6 +61,13 @@ FName UPCGExPathfindingNavmeshSettings::GetMainInputLabel() const { return PCGEx
 FName UPCGExPathfindingNavmeshSettings::GetMainOutputLabel() const { return PCGExGraph::OutputPathsLabel; }
 
 PCGEX_INITIALIZE_ELEMENT(PathfindingNavmesh)
+
+void UPCGExPathfindingNavmeshSettings::PostInitProperties()
+{
+	Super::PostInitProperties();
+	PCGEX_OPERATION_DEFAULT(GoalPicker, UPCGExGoalPickerRandom)
+	PCGEX_OPERATION_DEFAULT(Blending, UPCGExSubPointsBlendInterpolate)
+}
 
 FPCGExPathfindingNavmeshContext::~FPCGExPathfindingNavmeshContext()
 {
