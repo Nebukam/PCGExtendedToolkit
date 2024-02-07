@@ -98,7 +98,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointEdgeIntersectionSettings
 
 	/** Fuse Settings */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExFuseSettingsWithTarget FuseSettings;
+	FPCGExFuseSettings FuseSettings;
 
 	/** When enabled, point will be moved exactly on the edge. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
