@@ -34,7 +34,7 @@ bool FPCGExFusePointsElement::Boot(FPCGContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(FusePoints)
 
 	PCGEX_FWD(FuseSettings)
-	Context->FuseSettings.Init();
+	Context->FuseSettings.FuseSettings.Init();
 
 	PCGEX_FWD(bPreserveOrder)
 
@@ -97,18 +97,19 @@ bool FPCGExFuseTask::ExecuteTask()
 			return FMath::IsNearlyZero(V.X) ? FMath::IsNearlyZero(V.Y) ? V.Z > 0 : V.Y > 0 : V.X > 0;
 		});
 
+	const FPCGExFuseSettings& FSettings = Context->FuseSettings.FuseSettings;
 	for (const int32 PointIndex : InSorted)
 	{
 		const FVector PtPosition = InPoints[PointIndex].Transform.GetLocation();
 		double DistSquared = 0;
 		PCGExFuse::FFusedPoint* FuseTarget = nullptr;
 
-		if (Context->FuseSettings.bComponentWiseTolerance)
+		if (FSettings.bComponentWiseTolerance)
 		{
 			for (PCGExFuse::FFusedPoint& FusedPoint : FusedPoints)
 			{
-				if (FVector SourceCenter = Context->FuseSettings.GetSourceCenter(InPoints[PointIndex], PtPosition, FusedPoint.Position);
-					Context->FuseSettings.IsWithinToleranceComponentWise(SourceCenter, FusedPoint.Position))
+				if (FVector SourceCenter = FSettings.GetSourceCenter(InPoints[PointIndex], PtPosition, FusedPoint.Position);
+					FSettings.IsWithinToleranceComponentWise(SourceCenter, FusedPoint.Position))
 				{
 					DistSquared = FVector::DistSquared(FusedPoint.Position, SourceCenter);
 					FuseTarget = &FusedPoint;
@@ -120,8 +121,8 @@ bool FPCGExFuseTask::ExecuteTask()
 		{
 			for (PCGExFuse::FFusedPoint& FusedPoint : FusedPoints)
 			{
-				DistSquared = Context->FuseSettings.GetSourceDistSquared(InPoints[PointIndex], PtPosition, FusedPoint.Position);
-				if (Context->FuseSettings.IsWithinTolerance(DistSquared))
+				DistSquared = FSettings.GetSourceDistSquared(InPoints[PointIndex], PtPosition, FusedPoint.Position);
+				if (FSettings.IsWithinTolerance(DistSquared))
 				{
 					FuseTarget = &FusedPoint;
 					break;

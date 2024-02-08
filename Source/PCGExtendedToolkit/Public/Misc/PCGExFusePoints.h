@@ -79,9 +79,9 @@ public:
 	//~End UPCGExPointsProcessorSettings interface
 
 public:
-	/** Fuse settings */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FPCGExFuseSettings FuseSettings = FPCGExFuseSettings(10);
+	/** Fuse Settings */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
+	FPCGExPointPointIntersectionSettings FuseSettings;
 
 	/** Preserve the order of input points */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
@@ -101,7 +101,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFusePointsContext : public FPCGExPointsProce
 
 	virtual ~FPCGExFusePointsContext() override;
 
-	FPCGExFuseSettings FuseSettings;
+	FPCGExPointPointIntersectionSettings FuseSettings;
 	bool bPreserveOrder;
 
 	mutable FRWLock PointsLock;

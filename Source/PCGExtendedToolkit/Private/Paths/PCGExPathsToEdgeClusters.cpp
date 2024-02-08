@@ -62,11 +62,11 @@ bool FPCGExPathsToEdgeClustersElement::Boot(FPCGContext* InContext) const
 	PCGEX_FWD(FuseSettings)
 	Context->FuseSettings.Init();
 
-	Context->PointEdgeSettings = Settings->PointEdgeIntersection;
-	Context->EdgeEdgeSettings = Settings->EdgeEdgeIntersection;
+	Context->PointEdgeIntersection = Settings->PointEdgeIntersection;
+	Context->EdgeEdgeIntersection = Settings->EdgeEdgeIntersection;
 
-	Context->PointEdgeSettings.MakeSafeForTolerance(Context->FuseSettings.Tolerance);
-	Context->EdgeEdgeSettings.MakeSafeForTolerance(Context->PointEdgeSettings.FuseSettings.Tolerance);
+	Context->PointEdgeIntersection.MakeSafeForTolerance(Context->FuseSettings.Tolerance);
+	Context->EdgeEdgeIntersection.MakeSafeForTolerance(Context->PointEdgeIntersection.FuseSettings.Tolerance);
 
 	PCGEX_FWD(GraphBuilderSettings)
 
@@ -139,13 +139,13 @@ bool FPCGExPathsToEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) c
 
 		if (Settings->bDoPointEdgeIntersection)
 		{
-			Context->PointEdgeIntersections = new PCGExGraph::FPointEdgeIntersections(Context->GraphBuilder->Graph, Context->ConsolidatedPoints, Context->PointEdgeSettings);
+			Context->PointEdgeIntersections = new PCGExGraph::FPointEdgeIntersections(Context->GraphBuilder->Graph, Context->ConsolidatedPoints, Context->PointEdgeIntersection);
 			Context->PointEdgeIntersections->FindIntersections(Context);
 			Context->SetAsyncState(PCGExGraph::State_FindingPointEdgeIntersections);
 		}
 		else if (Settings->bDoEdgeEdgeIntersection)
 		{
-			Context->EdgeEdgeIntersections = new PCGExGraph::FEdgeEdgeIntersections(Context->GraphBuilder->Graph, Context->ConsolidatedPoints, Context->EdgeEdgeSettings);
+			Context->EdgeEdgeIntersections = new PCGExGraph::FEdgeEdgeIntersections(Context->GraphBuilder->Graph, Context->ConsolidatedPoints, Context->EdgeEdgeIntersection);
 			Context->EdgeEdgeIntersections->FindIntersections(Context);
 			Context->SetAsyncState(PCGExGraph::State_FindingEdgeEdgeIntersections);
 		}
@@ -162,7 +162,7 @@ bool FPCGExPathsToEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) c
 
 		if (Settings->bDoEdgeEdgeIntersection)
 		{
-			Context->EdgeEdgeIntersections = new PCGExGraph::FEdgeEdgeIntersections(Context->GraphBuilder->Graph, Context->ConsolidatedPoints, Context->EdgeEdgeSettings);
+			Context->EdgeEdgeIntersections = new PCGExGraph::FEdgeEdgeIntersections(Context->GraphBuilder->Graph, Context->ConsolidatedPoints, Context->EdgeEdgeIntersection);
 			Context->EdgeEdgeIntersections->FindIntersections(Context);
 			Context->SetAsyncState(PCGExGraph::State_FindingEdgeEdgeIntersections);
 		}

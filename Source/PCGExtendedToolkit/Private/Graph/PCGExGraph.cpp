@@ -635,13 +635,15 @@ bool FPCGExCompileGraphTask::ExecuteTask()
 		Builder->bCompiledSuccessfully = false;
 		return false;
 	}
+	
+	PointIO->Cleanup(); //Ensure fresh keys later on
 
 	if (Builder->bPrunePoints)
 	{
 		// Rebuild point list with only the one used
 		// to know which are used, we need to prune subgraphs first
 		TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
-
+		
 		if (!MutablePoints.IsEmpty())
 		{
 			//Assume points were filled before, and remove them from the current array
@@ -677,7 +679,6 @@ bool FPCGExCompileGraphTask::ExecuteTask()
 	NumEdgesWriter->BindAndGet(*PointIO);
 
 	for (int i = 0; i < IndexWriter->Values.Num(); i++) { IndexWriter->Values[i] = i; }
-
 	for (const PCGExGraph::FNode& Node : Builder->Graph->Nodes) { if (Node.bValid) { NumEdgesWriter->Values[Node.PointIndex] = Node.NumExportedEdges; } }
 
 	IndexWriter->Write();
@@ -718,4 +719,21 @@ bool FPCGExUpdateLooseNodeCentersTask::ExecuteTask()
 	for (PCGExGraph::FLooseNode* Node : Graph->Nodes) { Node->UpdateCenter(IOGroup); }
 
 	return true;
+}
+
+bool FPCGExInsertLoosePointsTask::ExecuteTask()
+{
+	TArray<PCGExGraph::FIndexedEdge> IndexedEdges;
+	if (!BuildIndexedEdges(*EdgeIO, *NodeIndicesMap, IndexedEdges, true) ||
+		IndexedEdges.IsEmpty()) { return false; }
+
+	const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
+	for (const PCGExGraph::FIndexedEdge& Edge : IndexedEdges)
+	{
+		Graph->CreateBridge(
+			InPoints[Edge.Start], TaskIndex, Edge.Start,
+			InPoints[Edge.End], TaskIndex, Edge.End);
+	}
+
+	return false;
 }

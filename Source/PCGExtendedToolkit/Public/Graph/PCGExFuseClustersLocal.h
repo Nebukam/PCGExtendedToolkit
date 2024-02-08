@@ -35,8 +35,8 @@ public:
 	//~End UPCGExEdgesProcessorSettings interface
 
 	/** Fuse Settings */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	FPCGExFuseSettingsWithTarget FuseSettings;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
+	FPCGExPointPointIntersectionSettings PointPointSettings;
 
 	/** Point-Edge intersection */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
@@ -66,12 +66,14 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFuseClustersLocalContext : public FPCGExEdge
 
 	virtual ~FPCGExFuseClustersLocalContext() override;
 
-	FPCGExFuseSettingsWithTarget FuseSettings;
-	FPCGExPointEdgeIntersectionSettings PointEdgeSettings;
-	FPCGExEdgeEdgeIntersectionSettings EdgeEdgeSettings;
+	FPCGExPointPointIntersectionSettings PointPointSettings;
+	FPCGExPointEdgeIntersectionSettings PointEdgeIntersection;
+	FPCGExEdgeEdgeIntersectionSettings EdgeEdgeIntersection;
 
+	PCGExGraph::FLooseGraph* LooseGraph = nullptr;
+	
 	FPCGExGraphBuilderSettings GraphBuilderSettings;
-	PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
+	PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;	
 
 	PCGExGraph::FPointEdgeIntersections* PointEdgeIntersections = nullptr;
 	PCGExGraph::FEdgeEdgeIntersections* EdgeEdgeIntersections = nullptr;

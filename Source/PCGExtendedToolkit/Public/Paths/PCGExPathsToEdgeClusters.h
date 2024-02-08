@@ -88,8 +88,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathsToEdgeClustersContext : public FPCGExPa
 	virtual ~FPCGExPathsToEdgeClustersContext() override;
 
 	FPCGExFuseSettingsWithTarget FuseSettings;
-	FPCGExPointEdgeIntersectionSettings PointEdgeSettings;
-	FPCGExEdgeEdgeIntersectionSettings EdgeEdgeSettings;
+	FPCGExPointEdgeIntersectionSettings PointEdgeIntersection;
+	FPCGExEdgeEdgeIntersectionSettings EdgeEdgeIntersection;
 
 	PCGExGraph::FLooseGraph* LooseGraph;
 	PCGExData::FPointIO* ConsolidatedPoints = nullptr;

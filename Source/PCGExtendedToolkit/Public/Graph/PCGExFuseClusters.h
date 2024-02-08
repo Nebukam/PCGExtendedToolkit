@@ -33,10 +33,10 @@ public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	virtual PCGExData::EInit GetEdgeOutputInitMode() const override;
 	//~End UPCGExEdgesProcessorSettings interface
-
+	
 	/** Fuse Settings */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	FPCGExFuseSettingsWithTarget FuseSettings;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
+	FPCGExPointPointIntersectionSettings PointPointSettings;
 
 	/** Point-Edge intersection */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
@@ -66,9 +66,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFuseClustersContext : public FPCGExEdgesProc
 
 	virtual ~FPCGExFuseClustersContext() override;
 
-	FPCGExFuseSettingsWithTarget FuseSettings;
-	FPCGExPointEdgeIntersectionSettings PointEdgeSettings;
-	FPCGExEdgeEdgeIntersectionSettings EdgeEdgeSettings;
+	FPCGExPointPointIntersectionSettings PointPointSettings;
+	FPCGExPointEdgeIntersectionSettings PointEdgeIntersection;
+	FPCGExEdgeEdgeIntersectionSettings EdgeEdgeIntersection;
 
 	PCGExGraph::FLooseGraph* LooseGraph = nullptr;
 	PCGExData::FPointIO* ConsolidatedPoints = nullptr;
@@ -91,21 +91,4 @@ public:
 protected:
 	virtual bool Boot(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
-};
-
-class PCGEXTENDEDTOOLKIT_API FPCGExFuseClustersInsertLoosePointsTask : public FPCGExNonAbandonableTask
-{
-public:
-	FPCGExFuseClustersInsertLoosePointsTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-	                                        PCGExGraph::FLooseGraph* InGraph, PCGExData::FPointIO* InEdgeIO, TMap<int32, int32>* InNodeIndicesMap)
-		: FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
-		  Graph(InGraph), EdgeIO(InEdgeIO), NodeIndicesMap(InNodeIndicesMap)
-	{
-	}
-
-	PCGExGraph::FLooseGraph* Graph = nullptr;
-	PCGExData::FPointIO* EdgeIO = nullptr;
-	TMap<int32, int32>* NodeIndicesMap = nullptr;
-
-	virtual bool ExecuteTask() override;
 };

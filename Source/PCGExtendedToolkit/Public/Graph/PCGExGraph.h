@@ -8,6 +8,7 @@
 #include "Data/PCGExAttributeHelpers.h"
 #include "PCGExMT.h"
 #include "PCGExEdge.h"
+#include "PCGExSettings.h"
 #include "Data/PCGExData.h"
 
 #include "PCGExGraph.generated.h"
@@ -82,6 +83,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgeCrawlingSettings
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, TitleProperty="{Identifier}"))
 	TArray<FPCGExEdgeCrawlingSettingsOverride> Overrides;
 
+	
 	uint8 GetCrawlingEdgeTypes(const FName Identifier)
 	{
 		if (Overrides.IsEmpty()) { return DefaultEdgeTypes; }
@@ -89,7 +91,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgeCrawlingSettings
 		return DefaultEdgeTypes;
 	}
 };
-
 
 USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExPointEdgeIntersectionSettings
@@ -103,7 +104,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointEdgeIntersectionSettings
 	/** When enabled, point will be moved exactly on the edge. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bSnapOnEdge = false;
-
+	
 	void MakeSafeForTolerance(double FuseTolerance)
 	{
 		FuseSettings.Tolerance = FMath::Clamp(FuseSettings.Tolerance, 0, FuseTolerance * 0.5);
@@ -122,9 +123,33 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgeEdgeIntersectionSettings
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0))
 	double Tolerance = 0.001;
 
-	void MakeSafeForTolerance(double FuseTolerance)
+	/** . */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bUseMinAngle = true;
+
+	/** Min angle. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseMinAngle", Units="Degrees", ClampMin=0, ClampMax=90))
+	double MinAngle = 0;
+	double MinDot = -1;
+
+	/** . */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bUseMaxAngle = true;
+
+	/** Maximum angle. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseMaxAngle", Units="Degrees", ClampMin=0, ClampMax=90))
+	double MaxAngle = 90;
+	double MaxDot = 1;
+
+	void MakeSafeForTolerance(const double FuseTolerance)
 	{
 		Tolerance = FMath::Clamp(Tolerance, 0, FuseTolerance * 0.5);
+	}
+
+	void Init()
+	{
+		MinDot = bUseMinAngle ? FMath::Cos(MinAngle * (PI / 180.0)) : -1;
+		MaxDot = bUseMaxAngle ? FMath::Cos(MaxDot * (PI / 180.0)) : 1;
 	}
 };
 
@@ -301,7 +326,7 @@ namespace PCGExGraph
 			: OutputSettings(InSettings), SourceEdgesIO(InSourceEdges)
 		{
 			PointIO = &InPointIO;
-			PointIO->Tags->Set(Tag_Cluster, PointIO->GetInOut()->UID, EdgeTagValue);
+			PointIO->Tags->Set(Tag_Cluster, PointIO->GetOutIn()->UID, EdgeTagValue);
 
 			const int32 NumNodes = PointIO->GetOutNum();
 
@@ -754,6 +779,23 @@ public:
 
 	PCGExGraph::FLooseGraph* Graph = nullptr;
 	PCGExData::FPointIOGroup* IOGroup = nullptr;
+
+	virtual bool ExecuteTask() override;
+};
+
+class PCGEXTENDEDTOOLKIT_API FPCGExInsertLoosePointsTask : public FPCGExNonAbandonableTask
+{
+public:
+	FPCGExInsertLoosePointsTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+	                            PCGExGraph::FLooseGraph* InGraph, PCGExData::FPointIO* InEdgeIO, TMap<int32, int32>* InNodeIndicesMap)
+		: FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+		  Graph(InGraph), EdgeIO(InEdgeIO), NodeIndicesMap(InNodeIndicesMap)
+	{
+	}
+
+	PCGExGraph::FLooseGraph* Graph = nullptr;
+	PCGExData::FPointIO* EdgeIO = nullptr;
+	TMap<int32, int32>* NodeIndicesMap = nullptr;
 
 	virtual bool ExecuteTask() override;
 };
