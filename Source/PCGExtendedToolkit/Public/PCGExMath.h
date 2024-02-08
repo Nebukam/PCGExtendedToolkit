@@ -836,7 +836,7 @@ namespace PCGExMath
 
 			return SourceCenter + Dir * SourcePoint.GetScaledExtents().Length();
 		}
-		else if (Shape == EPCGExDistance::BoxBounds)
+		if (Shape == EPCGExDistance::BoxBounds)
 		{
 			const FVector LocalTargetCenter = SourcePoint.Transform.InverseTransformPosition(TargetCenter);
 
@@ -1015,7 +1015,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFuseSettings
 	{
 		return FMath::IsWithin<double, double>(DistSquared, 0, ToleranceSquared);
 	}
-	
+
 	bool IsWithinTolerance(const FVector& Source, const FVector& Target) const
 	{
 		return FMath::IsWithin<double, double>(FVector::DistSquared(Source, Target), 0, ToleranceSquared);
@@ -1033,7 +1033,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFuseSettings
 	{
 		return PCGExMath::GetRelationalCenter(SourceDistance, SourcePoint, SourceCenter, TargetCenter);
 	}
-	
+
 	double GetSourceDistSquared(const FPCGPoint& SourcePoint, const FVector& SourceCenter, const FVector& TargetCenter) const
 	{
 		return FVector::DistSquared(PCGExMath::GetRelationalCenter(SourceDistance, SourcePoint, SourceCenter, TargetCenter), TargetCenter);

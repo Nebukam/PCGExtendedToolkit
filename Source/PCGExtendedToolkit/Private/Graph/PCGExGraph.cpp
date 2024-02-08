@@ -239,7 +239,7 @@ namespace PCGExGraph
 	FLooseNode* FLooseGraph::GetOrCreateNode(const FPCGPoint& Point, const int32 IOIndex, const int32 PointIndex)
 	{
 		const FVector Origin = Point.Transform.GetLocation();
-		
+
 		if (FuseSettings.bComponentWiseTolerance)
 		{
 			for (FLooseNode* Node : Nodes)

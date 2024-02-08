@@ -38,7 +38,7 @@ bool FPCGExSmoothElement::Boot(FPCGContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(Smooth)
 
 	PCGEX_OPERATION_BIND(Smoothing, UPCGExMovingAverageSmoothing)
-	
+
 	Context->Smoothing->bClosedPath = Settings->bClosedPath;
 	Context->Smoothing->bPreserveStart = Settings->bPreserveStart;
 	Context->Smoothing->bPreserveEnd = Settings->bPreserveEnd;

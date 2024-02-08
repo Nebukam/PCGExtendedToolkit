@@ -19,7 +19,6 @@ class PCGEXTENDEDTOOLKIT_API UPCGExBlendPathSettings : public UPCGExPathProcesso
 	GENERATED_BODY()
 
 public:
-
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(BlendPath, "Path : Blend", "Blend path individual points between its start and end points.");
@@ -30,7 +29,7 @@ protected:
 	//~End UPCGSettings interface
 
 	//~Begin UObject interface
-	public:
+public:
 	virtual void PostInitProperties() override;
 #if WITH_EDITOR
 

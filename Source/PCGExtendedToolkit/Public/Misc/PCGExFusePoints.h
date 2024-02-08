@@ -82,7 +82,7 @@ public:
 	/** Fuse settings */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExFuseSettings FuseSettings = FPCGExFuseSettings(10);
-	
+
 	/** Preserve the order of input points */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	bool bPreserveOrder = true;

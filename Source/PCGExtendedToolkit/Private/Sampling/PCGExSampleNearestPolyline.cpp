@@ -55,7 +55,7 @@ bool FPCGExSampleNearestPolylineElement::Boot(FPCGContext* InContext) const
 
 	Context->WeightCurve = Settings->WeightOverDistance.LoadSynchronous();
 
-	
+
 	PCGEX_FWD(RangeMin)
 	PCGEX_FWD(RangeMax)
 
@@ -178,7 +178,7 @@ bool FPCGExSamplePolylineTask::ExecuteTask()
 	{
 		const FVector ModifiedOrigin = Context->DistanceSettings.GetSourceCenter(Point, Origin, Transform.GetLocation());
 		const double Dist = FVector::DistSquared(ModifiedOrigin, Transform.GetLocation());
-		
+
 		if (Context->SampleMethod == EPCGExSampleMethod::ClosestTarget ||
 			Context->SampleMethod == EPCGExSampleMethod::FarthestTarget)
 		{

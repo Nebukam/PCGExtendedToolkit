@@ -90,12 +90,13 @@ bool FPCGExFuseTask::ExecuteTask()
 	int32 Index = 0;
 	for (int32& i : InSorted) { i = Index++; }
 
-	InSorted.Sort([&](const int32 A, const int32 B)
-	{
-		const FVector V = InPoints[A].Transform.GetLocation() - InPoints[B].Transform.GetLocation();
-		return FMath::IsNearlyZero(V.X) ? FMath::IsNearlyZero(V.Y) ? V.Z > 0: V.Y > 0 : V.X > 0;
-	});
-	
+	InSorted.Sort(
+		[&](const int32 A, const int32 B)
+		{
+			const FVector V = InPoints[A].Transform.GetLocation() - InPoints[B].Transform.GetLocation();
+			return FMath::IsNearlyZero(V.X) ? FMath::IsNearlyZero(V.Y) ? V.Z > 0 : V.Y > 0 : V.X > 0;
+		});
+
 	for (const int32 PointIndex : InSorted)
 	{
 		const FVector PtPosition = InPoints[PointIndex].Transform.GetLocation();

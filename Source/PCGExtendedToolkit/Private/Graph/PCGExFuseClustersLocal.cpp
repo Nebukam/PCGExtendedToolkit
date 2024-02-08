@@ -33,7 +33,7 @@ bool FPCGExFuseClustersLocalElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_FWD(FuseSettings)
 	Context->FuseSettings.Init();
-	
+
 	Context->PointEdgeSettings = Settings->PointEdgeIntersection;
 	Context->EdgeEdgeSettings = Settings->EdgeEdgeIntersection;
 

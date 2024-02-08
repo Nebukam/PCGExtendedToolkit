@@ -595,7 +595,7 @@ namespace PCGExGraph
 		FGraph* Graph = nullptr;
 
 		const FPCGExEdgeEdgeIntersectionSettings& Settings;
-		
+
 		TArray<FEECrossing*> Crossings;
 		TArray<FEdgeEdgeProxy> Edges;
 		TSet<uint64> CheckedPairs;

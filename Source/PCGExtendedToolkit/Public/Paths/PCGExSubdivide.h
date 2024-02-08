@@ -26,7 +26,6 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSubdivideSettings : public UPCGExPathProcesso
 	GENERATED_BODY()
 
 public:
-
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(Subdivide, "Path : Subdivide", "Subdivide paths segments.");
@@ -39,7 +38,7 @@ protected:
 	//~Begin UObject interface
 public:
 	virtual void PostInitProperties() override;
-	
+
 #if WITH_EDITOR
 
 public:

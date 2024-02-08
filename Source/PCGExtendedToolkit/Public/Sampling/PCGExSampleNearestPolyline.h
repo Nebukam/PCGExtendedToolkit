@@ -177,7 +177,7 @@ public:
 	/** Name of the 'vector' attribute to write sampled Location to.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteScale"))
 	FName ScaleAttributeName = FName("WeightedScale");
-	
+
 	/** Write the sample "look at" direction from the point. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteLookAt = false;
@@ -274,7 +274,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestPolylineContext : public FPCGEx
 	PCGEX_FOREACH_FIELD_NEARESTPOLYLINE(PCGEX_OUTPUT_DECL)
 
 	FPCGExDistanceSettings DistanceSettings;
-	
+
 	EPCGExAxis SignAxis;
 	EPCGExAxis AngleAxis;
 	EPCGExAngleRange AngleRange;

@@ -40,7 +40,7 @@ bool FPCGExFuseClustersElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_FWD(FuseSettings)
 	Context->FuseSettings.Init();
-	
+
 	PCGEX_FWD(GraphBuilderSettings)
 
 	Context->LooseGraph = new PCGExGraph::FLooseGraph(Context->FuseSettings);

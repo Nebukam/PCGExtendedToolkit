@@ -22,7 +22,6 @@ class PCGEXTENDEDTOOLKIT_API UPCGExBuildCustomGraphSettings : public UPCGExCusto
 	GENERATED_BODY()
 
 public:
-
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(BuildCustomGraph, "Custom Graph : Build", "Write graph data to an attribute for each connected Graph Params. `Build Graph` uses the socket information as is.");
@@ -36,7 +35,7 @@ protected:
 	//~Begin UObject interface
 public:
 	virtual void PostInitProperties() override;
-	
+
 #if WITH_EDITOR
 
 public:

@@ -50,7 +50,7 @@ bool FPCGExWriteTangentsElement::Boot(FPCGContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(WriteTangents)
 
 	PCGEX_OPERATION_BIND(Tangents, UPCGExAutoTangents)
-	
+
 	Context->Tangents->ArriveName = Settings->ArriveName;
 	Context->Tangents->LeaveName = Settings->LeaveName;
 

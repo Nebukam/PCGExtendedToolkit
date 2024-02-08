@@ -67,7 +67,7 @@ bool FPCGExSampleNearestPointElement::Boot(FPCGContext* InContext) const
 	}
 
 	Context->WeightCurve = Settings->WeightOverDistance.LoadSynchronous();
-	
+
 	PCGEX_FWD(DistanceSettings)
 
 	PCGEX_FWD(RangeMin)
@@ -191,12 +191,11 @@ bool FPCGExSamplePointTask::ExecuteTask()
 	PCGExNearestPoint::FTargetsCompoundInfos TargetsCompoundInfos;
 	auto ProcessTarget = [&](const PCGEx::FPointRef& Target)
 	{
-
 		FVector A;
 		FVector B;
 
 		Context->DistanceSettings.GetCenters(SourcePoint, *Target.Point, A, B);
-		
+
 		const double Dist = FVector::DistSquared(A, B);
 
 		if (RangeMax > 0 && (Dist < RangeMin || Dist > RangeMax)) { return; }
