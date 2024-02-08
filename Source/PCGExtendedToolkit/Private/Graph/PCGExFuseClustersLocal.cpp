@@ -35,11 +35,15 @@ bool FPCGExFuseClustersLocalElement::Boot(FPCGContext* InContext) const
 	PCGEX_FWD(PointEdgeIntersection)
 	PCGEX_FWD(EdgeEdgeIntersection)
 
+	Context->GraphMetadataSettings.Grab(Context, Context->PointPointSettings);
+	Context->GraphMetadataSettings.Grab(Context, Context->PointEdgeIntersection);
+	Context->GraphMetadataSettings.Grab(Context, Context->EdgeEdgeIntersection);
+	
 	Context->PointPointSettings.FuseSettings.Init();
 	Context->PointEdgeIntersection.MakeSafeForTolerance(Context->PointPointSettings.FuseSettings.Tolerance);
 	Context->EdgeEdgeIntersection.MakeSafeForTolerance(Context->PointEdgeIntersection.FuseSettings.Tolerance);
 	Context->EdgeEdgeIntersection.Init();
-
+	
 	PCGEX_FWD(GraphBuilderSettings)
 
 	return true;
@@ -84,7 +88,7 @@ bool FPCGExFuseClustersLocalElement::ExecuteInternal(FPCGContext* InContext) con
 		}
 
 		Context->CurrentEdges->CreateInKeys();
-		
+
 		// Insert current cluster into loose graph
 		Context->GetAsyncManager()->Start<FPCGExInsertLoosePointsTask>(
 			Context->CurrentIO->IOIndex, Context->CurrentIO,
@@ -146,6 +150,7 @@ bool FPCGExFuseClustersLocalElement::ExecuteInternal(FPCGContext* InContext) con
 		if (!Context->IsAsyncWorkComplete()) { return false; }
 
 		Context->PointEdgeIntersections->Insert(); // TODO : Async?
+		PCGEX_DELETE(Context->PointEdgeIntersections)
 
 		if (Settings->bDoEdgeEdgeIntersection)
 		{
@@ -164,6 +169,7 @@ bool FPCGExFuseClustersLocalElement::ExecuteInternal(FPCGContext* InContext) con
 		if (!Context->IsAsyncWorkComplete()) { return false; }
 
 		Context->EdgeEdgeIntersections->Insert(); // TODO : Async?
+		PCGEX_DELETE(Context->EdgeEdgeIntersections)
 
 		Context->SetAsyncState(PCGExGraph::State_WritingClusters);
 	}
@@ -181,7 +187,7 @@ bool FPCGExFuseClustersLocalElement::ExecuteInternal(FPCGContext* InContext) con
 	{
 		if (!Context->IsAsyncWorkComplete()) { return false; }
 		if (Context->GraphBuilder->bCompiledSuccessfully) { Context->GraphBuilder->Write(Context); }
-		
+
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 

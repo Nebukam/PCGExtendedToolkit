@@ -98,10 +98,7 @@ namespace PCGExSpacePartition
 
 		~TMainCluster()
 		{
-			TArray<uint64> Keys;
-			Clusters.GetKeys(Keys);
-			for (const int64 Key : Keys) { delete *Clusters.Find(Key); }
-			Clusters.Empty();
+			PCGEX_DELETE_TMAP(Clusters, uint64)
 		}
 	};
 }

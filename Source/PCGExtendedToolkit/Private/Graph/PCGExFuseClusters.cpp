@@ -35,7 +35,11 @@ bool FPCGExFuseClustersElement::Boot(FPCGContext* InContext) const
 	PCGEX_FWD(PointPointSettings)
 	PCGEX_FWD(PointEdgeIntersection)
 	PCGEX_FWD(EdgeEdgeIntersection)
-	
+
+	Context->GraphMetadataSettings.Grab(Context, Context->PointPointSettings);
+	Context->GraphMetadataSettings.Grab(Context, Context->PointEdgeIntersection);
+	Context->GraphMetadataSettings.Grab(Context, Context->EdgeEdgeIntersection);
+
 	Context->PointPointSettings.FuseSettings.Init();
 	Context->PointEdgeIntersection.MakeSafeForTolerance(Context->PointPointSettings.FuseSettings.Tolerance);
 	Context->EdgeEdgeIntersection.MakeSafeForTolerance(Context->PointEdgeIntersection.FuseSettings.Tolerance);
@@ -102,8 +106,8 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 	{
 		const int32 NumLooseNodes = Context->LooseGraph->Nodes.Num();
 		TArray<FPCGPoint>& MutablePoints = Context->ConsolidatedPoints->GetOut()->GetMutablePoints();
-		
-		auto Initialize = [&]()		{			MutablePoints.SetNum(NumLooseNodes);		};
+
+		auto Initialize = [&]() { MutablePoints.SetNum(NumLooseNodes); };
 
 		auto ProcessNode = [&](int32 Index)
 		{
@@ -145,6 +149,7 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 		if (!Context->IsAsyncWorkComplete()) { return false; }
 
 		Context->PointEdgeIntersections->Insert(); // TODO : Async?
+		PCGEX_DELETE(Context->PointEdgeIntersections)
 
 		if (Settings->bDoEdgeEdgeIntersection)
 		{
@@ -163,6 +168,7 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 		if (!Context->IsAsyncWorkComplete()) { return false; }
 
 		Context->EdgeEdgeIntersections->Insert(); // TODO : Async?
+		PCGEX_DELETE(Context->EdgeEdgeIntersections)
 
 		Context->SetAsyncState(PCGExGraph::State_WritingClusters);
 	}

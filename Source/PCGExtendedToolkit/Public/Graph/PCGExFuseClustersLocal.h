@@ -71,12 +71,15 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFuseClustersLocalContext : public FPCGExEdge
 	FPCGExEdgeEdgeIntersectionSettings EdgeEdgeIntersection;
 
 	PCGExGraph::FLooseGraph* LooseGraph = nullptr;
-	
+
 	FPCGExGraphBuilderSettings GraphBuilderSettings;
-	PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;	
+	PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
 
 	PCGExGraph::FPointEdgeIntersections* PointEdgeIntersections = nullptr;
 	PCGExGraph::FEdgeEdgeIntersections* EdgeEdgeIntersections = nullptr;
+
+	PCGExGraph::FGraphMetadataSettings GraphMetadataSettings;
+	
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExFuseClustersLocalElement : public FPCGExEdgesProcessorElement

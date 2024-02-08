@@ -201,7 +201,6 @@ bool PCGEx::FBulkAsyncPointLoop::Advance(const TFunction<void(const int32, const
 
 #pragma endregion
 
-
 #pragma region UPCGSettings interface
 
 UPCGExPointsProcessorSettings::UPCGExPointsProcessorSettings(const FObjectInitializer& ObjectInitializer)

@@ -16,12 +16,8 @@
 
 #define PCGEX_DELETE(_VALUE) delete _VALUE; _VALUE = nullptr;
 #define PCGEX_DELETE_TARRAY(_VALUE) for(const auto* Item : _VALUE){ delete Item; } _VALUE.Empty();
+#define PCGEX_DELETE_TMAP(_VALUE, _TYPE){TArray<_TYPE> Keys; _VALUE.GetKeys(Keys); for (const _TYPE Key : Keys) { delete *_VALUE.Find(Key); } _VALUE.Empty(); Keys.Empty(); }
 #define PCGEX_CLEANUP(_VALUE) _VALUE.Cleanup();
-
-#define PCGEX_SORTED_ADD(_TARRAY, _ITEM, _COMPARE)\
-int32 HeapIndex = 0; for (int i = HeapIndex; i >= 0; i--){ if (_COMPARE){ HeapIndex = i + 1; break;	}}\
-if (HeapIndex >= _TARRAY.Num()) { _TARRAY.Add(_ITEM); }\
-else { _TARRAY.Insert(_ITEM, HeapIndex); }
 
 #define PCGEX_FOREACH_SUPPORTEDTYPES(MACRO, ...) \
 MACRO(bool, Boolean, __VA_ARGS__)       \

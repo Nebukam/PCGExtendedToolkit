@@ -57,8 +57,8 @@ public:
 	bool bClosedPath = false;
 
 	/** Fuse Settings */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	FPCGExFuseSettingsWithTarget FuseSettings;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
+	FPCGExPointPointIntersectionSettings FuseSettings;
 
 	/** Point-Edge intersection */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
@@ -75,7 +75,7 @@ public:
 	/** Edge-Edge intersection */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bDoEdgeEdgeIntersection"))
 	FPCGExEdgeEdgeIntersectionSettings EdgeEdgeIntersection;
-
+	
 	/** Graph & Edges output properties */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Graph Output Settings"))
 	FPCGExGraphBuilderSettings GraphBuilderSettings;
@@ -87,7 +87,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathsToEdgeClustersContext : public FPCGExPa
 
 	virtual ~FPCGExPathsToEdgeClustersContext() override;
 
-	FPCGExFuseSettingsWithTarget FuseSettings;
+	FPCGExPointPointIntersectionSettings FuseSettings;
 	FPCGExPointEdgeIntersectionSettings PointEdgeIntersection;
 	FPCGExEdgeEdgeIntersectionSettings EdgeEdgeIntersection;
 
@@ -99,6 +99,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathsToEdgeClustersContext : public FPCGExPa
 
 	PCGExGraph::FPointEdgeIntersections* PointEdgeIntersections = nullptr;
 	PCGExGraph::FEdgeEdgeIntersections* EdgeEdgeIntersections = nullptr;
+
+	PCGExGraph::FGraphMetadataSettings GraphMetadataSettings;
+	
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExPathsToEdgeClustersElement : public FPCGExPathProcessorElement

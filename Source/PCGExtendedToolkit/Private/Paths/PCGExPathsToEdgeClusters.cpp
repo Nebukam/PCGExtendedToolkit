@@ -51,6 +51,7 @@ FPCGExPathsToEdgeClustersContext::~FPCGExPathsToEdgeClustersContext()
 	PCGEX_DELETE(GraphBuilder)
 	PCGEX_DELETE(PointEdgeIntersections)
 	PCGEX_DELETE(EdgeEdgeIntersections)
+	
 }
 
 bool FPCGExPathsToEdgeClustersElement::Boot(FPCGContext* InContext) const
@@ -60,17 +61,19 @@ bool FPCGExPathsToEdgeClustersElement::Boot(FPCGContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(PathsToEdgeClusters)
 
 	PCGEX_FWD(FuseSettings)
-	Context->FuseSettings.Init();
+	Context->FuseSettings.FuseSettings.Init();
+
+	Context->GraphMetadataSettings.Grab(Context, Context->FuseSettings);
 
 	Context->PointEdgeIntersection = Settings->PointEdgeIntersection;
 	Context->EdgeEdgeIntersection = Settings->EdgeEdgeIntersection;
 
-	Context->PointEdgeIntersection.MakeSafeForTolerance(Context->FuseSettings.Tolerance);
+	Context->PointEdgeIntersection.MakeSafeForTolerance(Context->FuseSettings.FuseSettings.Tolerance);
 	Context->EdgeEdgeIntersection.MakeSafeForTolerance(Context->PointEdgeIntersection.FuseSettings.Tolerance);
 
 	PCGEX_FWD(GraphBuilderSettings)
 
-	Context->LooseGraph = new PCGExGraph::FLooseGraph(Context->FuseSettings);
+	Context->LooseGraph = new PCGExGraph::FLooseGraph(Context->FuseSettings.FuseSettings);
 
 	return true;
 }
@@ -158,7 +161,9 @@ bool FPCGExPathsToEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) c
 	if (Context->IsState(PCGExGraph::State_FindingPointEdgeIntersections))
 	{
 		if (!Context->IsAsyncWorkComplete()) { return false; }
+		
 		Context->PointEdgeIntersections->Insert(); // TODO : Async?
+		PCGEX_DELETE(Context->PointEdgeIntersections)
 
 		if (Settings->bDoEdgeEdgeIntersection)
 		{
@@ -177,6 +182,7 @@ bool FPCGExPathsToEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) c
 		if (!Context->IsAsyncWorkComplete()) { return false; }
 
 		Context->EdgeEdgeIntersections->Insert(); // TODO : Async?
+		PCGEX_DELETE(Context->EdgeEdgeIntersections)
 
 		Context->SetAsyncState(PCGExGraph::State_WritingClusters);
 	}

@@ -184,11 +184,12 @@ namespace PCGExGraph
 		}
 	}
 
-	void FGraphBuilder::Compile(FPCGExPointsProcessorContext* InContext) const
+	void FGraphBuilder::Compile(FPCGExPointsProcessorContext* InContext,
+							  FGraphMetadataSettings* MetadataSettings) const
 	{
 		InContext->GetAsyncManager()->Start<FPCGExCompileGraphTask>(
 			-1, PointIO, const_cast<FGraphBuilder*>(this),
-			OutputSettings->GetMinClusterSize(), OutputSettings->GetMaxClusterSize());
+			OutputSettings->GetMinClusterSize(), OutputSettings->GetMaxClusterSize(), MetadataSettings);
 	}
 
 	void FGraphBuilder::Write(FPCGExPointsProcessorContext* InContext) const
@@ -356,6 +357,10 @@ namespace PCGExGraph
 			for (const FPESplit Split : PointEdgeProxy.CollinearPoints)
 			{
 				NodeIndex = Split.NodeIndex;
+
+				FGraphNodeMetadata* NodeMetadata = FGraphNodeMetadata::GetOrCreate(NodeIndex, Graph->NodeMetadata);
+				NodeMetadata->bIntersector = true;
+
 				Graph->InsertEdge(PrevIndex, NodeIndex, NewEdge);
 				PrevIndex = NodeIndex;
 
@@ -497,6 +502,10 @@ namespace PCGExGraph
 			for (const FEECrossing* Crossing : EdgeProxy.Intersections)
 			{
 				NodeIndex = Crossing->NodeIndex;
+
+				FGraphNodeMetadata* NodeMetadata = FGraphNodeMetadata::GetOrCreate(NodeIndex, Graph->NodeMetadata);
+				NodeMetadata->bCrossing = true;
+
 				Graph->InsertEdge(PrevIndex, NodeIndex, NewEdge);
 				PrevIndex = NodeIndex;
 			}
@@ -635,7 +644,7 @@ bool FPCGExCompileGraphTask::ExecuteTask()
 		Builder->bCompiledSuccessfully = false;
 		return false;
 	}
-	
+
 	PointIO->Cleanup(); //Ensure fresh keys later on
 
 	if (Builder->bPrunePoints)
@@ -643,7 +652,7 @@ bool FPCGExCompileGraphTask::ExecuteTask()
 		// Rebuild point list with only the one used
 		// to know which are used, we need to prune subgraphs first
 		TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
-		
+
 		if (!MutablePoints.IsEmpty())
 		{
 			//Assume points were filled before, and remove them from the current array
@@ -686,6 +695,8 @@ bool FPCGExCompileGraphTask::ExecuteTask()
 
 	PCGEX_DELETE(IndexWriter)
 	PCGEX_DELETE(NumEdgesWriter)
+
+	//TODO : Write node metadata, if available
 
 	Builder->bCompiledSuccessfully = true;
 

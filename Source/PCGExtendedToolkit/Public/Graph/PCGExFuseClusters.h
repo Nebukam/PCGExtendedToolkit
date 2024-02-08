@@ -53,7 +53,7 @@ public:
 	/** Edge-Edge intersection */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bDoEdgeEdgeIntersection"))
 	FPCGExEdgeEdgeIntersectionSettings EdgeEdgeIntersection;
-
+		
 	/** Graph & Edges output properties */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Graph Output Settings"))
 	FPCGExGraphBuilderSettings GraphBuilderSettings;
@@ -72,12 +72,15 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFuseClustersContext : public FPCGExEdgesProc
 
 	PCGExGraph::FLooseGraph* LooseGraph = nullptr;
 	PCGExData::FPointIO* ConsolidatedPoints = nullptr;
-
+	
 	FPCGExGraphBuilderSettings GraphBuilderSettings;
 	PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
 
 	PCGExGraph::FPointEdgeIntersections* PointEdgeIntersections = nullptr;
 	PCGExGraph::FEdgeEdgeIntersections* EdgeEdgeIntersections = nullptr;
+	
+	PCGExGraph::FGraphMetadataSettings GraphMetadataSettings;
+	
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExFuseClustersElement : public FPCGExEdgesProcessorElement
