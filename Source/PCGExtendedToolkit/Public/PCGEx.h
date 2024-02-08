@@ -225,6 +225,20 @@ namespace PCGEx
 		B = H64B(Hash);
 	}
 
+	static uint64 H6416(const uint16 A, const uint16 B, const uint16 C, const uint16 D) {
+		return (static_cast<uint64>(A) << 48) |
+			   (static_cast<uint64>(B) << 32) |
+			   (static_cast<uint64>(C) << 16) |
+			   static_cast<uint64>(D);
+	}
+
+	static void H6416(uint64_t H, uint16& A, uint16& B, uint16& C, uint16& D) {
+		A = static_cast<uint16>(H >> 48);
+		B = static_cast<uint16>((H >> 32) & 0xFFFF);
+		C = static_cast<uint16>((H >> 16) & 0xFFFF);
+		D = static_cast<uint16>(H & 0xFFFF);
+	}
+
 
 #pragma region Field Helpers
 

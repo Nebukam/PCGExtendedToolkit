@@ -158,7 +158,7 @@ bool FPCGExFindCustomGraphEdgeClustersElement::ExecuteInternal(
 			Context->MainPoints->ForEach(
 				[&](const PCGExData::FPointIO& PointIO, int32)
 				{
-					auto DeleteSockets = [&](const UPCGExGraphParamsData* Params, int32)
+					auto DeleteSockets = [&](const UPCGExGraphDefinition* Params, int32)
 					{
 						const UPCGPointData* OutData = PointIO.GetOut();
 						for (const PCGExGraph::FSocket& Socket : Params->GetSocketMapping()->Sockets)

@@ -62,6 +62,7 @@ bool FPCGExBuildCustomGraphElement::ExecuteInternal(
 		if (!Context->AdvancePointsIOAndResetGraph()) { Context->Done(); }
 		else
 		{
+			const UPCGPointData::PointOctree& Octree = Context->CurrentIO->GetIn()->GetOctree(); //Force refresh
 			Context->CurrentIO->CreateOutKeys();
 			Context->SetState(PCGExGraph::State_ReadyForNextGraph);
 		}
@@ -82,19 +83,10 @@ bool FPCGExBuildCustomGraphElement::ExecuteInternal(
 			return false;
 		}
 
-		Context->SetState(State_ProbingPoints);
-	}
-
-	// Process params for current points
-
-	if (Context->IsState(State_ProbingPoints))
-	{
-		auto ProcessPoint = [&](const int32 PointIndex, const PCGExData::FPointIO& PointIO)
+		for (int i = 0; i < Context->CurrentIO->GetNum(); i++)
 		{
-			Context->GetAsyncManager()->Start<FPCGExProbeTask>(PointIndex, Context->CurrentIO);
-		};
-
-		if (!Context->ProcessCurrentPoints(ProcessPoint)) { return false; }
+			Context->GetAsyncManager()->Start<FPCGExProbeTask>(i, Context->CurrentIO);
+		}
 
 		Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork);
 	}
@@ -125,6 +117,8 @@ bool FPCGExBuildCustomGraphElement::ExecuteInternal(
 
 bool FPCGExProbeTask::ExecuteTask()
 {
+	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExProbeTask::ExecuteTask);
+
 	const FPCGExBuildCustomGraphContext* Context = Manager->GetContext<FPCGExBuildCustomGraphContext>();
 
 	const PCGEx::FPointRef Point = PCGEx::FPointRef(PointIO->GetOutPoint(TaskIndex), TaskIndex);
@@ -134,16 +128,43 @@ bool FPCGExProbeTask::ExecuteTask()
 	TArray<PCGExGraph::FSocketProbe> Probes;
 	const double MaxRadius = Context->GraphSolver->PrepareProbesForPoint(Context->SocketInfos, Point, Probes);
 
-	const FBox Box = FBoxCenterAndExtent(Point.Point->Transform.GetLocation(), FVector(MaxRadius)).GetBox();
+	const FBoxCenterAndExtent BoxCAE = FBoxCenterAndExtent(Point.Point->Transform.GetLocation(), FVector(MaxRadius));
+	const FBox Box = BoxCAE.GetBox();
 
 	const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
+	const UPCGPointData::PointOctree& Octree = Context->CurrentIO->GetIn()->GetOctree();
+
+	/*
+	auto ProcessPoint = [&](const FPCGPointRef& InPointRef)
+	{
+		const ptrdiff_t PointIndex = InPointRef.Point - InPoints.GetData();
+		if (PointIndex < 0 && PointIndex >= InPoints.Num() || static_cast<int32>(PointIndex) == TaskIndex) { return; }
+
+		const PCGEx::FPointRef& OtherPoint = PointIO->GetOutPointRef(PointIndex);
+		
+		for (PCGExGraph::FSocketProbe& Probe : Probes)
+		{
+			Context->GraphSolver->ProcessPoint(Probe, OtherPoint);
+		}
+
+	};
+	
+	Octree.FindElementsWithBoundsTest(BoxCAE, ProcessPoint);
+	*/
+	
 	for (int i = 0; i < InPoints.Num(); i++)
 	{
-		if (i == TaskIndex) { continue; }
-		if (const FPCGPoint& Pt = InPoints[i]; !Box.IsInside(Pt.Transform.GetLocation())) { continue; }
+		if (const FPCGPoint& Pt = InPoints[i];
+			!Box.IsInside(Pt.Transform.GetLocation())) { continue; }
 
+		if (i == TaskIndex) { continue; }
+		
 		const PCGEx::FPointRef& OtherPoint = PointIO->GetOutPointRef(i);
-		for (PCGExGraph::FSocketProbe& Probe : Probes) { Context->GraphSolver->ProcessPoint(Probe, OtherPoint); }
+		
+		for (PCGExGraph::FSocketProbe& Probe : Probes)
+		{
+			Context->GraphSolver->ProcessPoint(Probe, OtherPoint);
+		}
 	}
 
 	for (PCGExGraph::FSocketProbe& Probe : Probes)

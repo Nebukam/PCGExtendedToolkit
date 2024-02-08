@@ -853,6 +853,7 @@ namespace PCGExMath
 		// EPCGExDistance::Center
 		return SourceCenter;
 	}
+	
 }
 
 USTRUCT(BlueprintType)
@@ -1128,6 +1129,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExDistanceSettings
 	{
 		return FVector::DistSquared(GetSourceCenter(SourcePoint, SourceCenter, TargetCenter), TargetCenter);
 	}
+	
 };
 
 USTRUCT(BlueprintType)

@@ -7,7 +7,7 @@
 #include "PCGExCreateCustomGraphParams.h"
 #include "PCGExPointsProcessor.h"
 
-#include "Data/PCGExGraphParamsData.h"
+#include "Data/PCGExGraphDefinition.h"
 
 #include "PCGExAssembleCustomGraphParams.generated.h"
 

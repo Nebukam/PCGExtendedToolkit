@@ -1,7 +1,7 @@
 ﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Data/PCGExGraphParamsData.h"
+#include "Data/PCGExGraphDefinition.h"
 #include "Data/PCGPointData.h"
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExCustomGraphProcessorContext;
@@ -169,7 +169,7 @@ namespace PCGExGraph
 				if (Overrides.bLocalRadius) { NewSocket.Descriptor.LocalRadius = OverrideSocket.LocalRadius; }
 
 				if (Overrides.bDotOverDistance) { NewSocket.Descriptor.DotOverDistance = OverrideSocket.DotOverDistance; }
-				if (Overrides.bOffsetOrigin) { NewSocket.Descriptor.ProbeOrigin = OverrideSocket.ProbeOrigin; }
+				if (Overrides.bDistanceSettings) { NewSocket.Descriptor.DistanceSettings = OverrideSocket.DistanceSettings; }
 
 				if (Overrides.bMirrorMatchingSockets) { NewSocket.Descriptor.bMirrorMatchingSockets = OverrideSocket.bMirrorMatchingSockets; }
 			}
@@ -233,12 +233,12 @@ namespace PCGExGraph
 	}
 }
 
-UPCGExGraphParamsData::UPCGExGraphParamsData(const FObjectInitializer& ObjectInitializer)
+UPCGExGraphDefinition::UPCGExGraphDefinition(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 }
 
-bool UPCGExGraphParamsData::HasMatchingGraphData(const UPCGPointData* PointData) const
+bool UPCGExGraphDefinition::HasMatchingGraphDefinition(const UPCGPointData* PointData) const
 {
 	// Whether the data has metadata matching this GraphData block or not
 	for (const PCGExGraph::FSocket Socket : SocketMapping->Sockets)
@@ -248,7 +248,7 @@ bool UPCGExGraphParamsData::HasMatchingGraphData(const UPCGPointData* PointData)
 	return true;
 }
 
-void UPCGExGraphParamsData::BeginDestroy()
+void UPCGExGraphDefinition::BeginDestroy()
 {
 	Cleanup();
 
@@ -257,7 +257,7 @@ void UPCGExGraphParamsData::BeginDestroy()
 	Super::BeginDestroy();
 }
 
-void UPCGExGraphParamsData::Initialize()
+void UPCGExGraphDefinition::Initialize()
 {
 	PCGEX_DELETE(SocketMapping);
 
@@ -271,27 +271,27 @@ void UPCGExGraphParamsData::Initialize()
 	CachedIndexAttributeName = SocketMapping->GetCompoundName(FName("CachedIndex"));
 }
 
-void UPCGExGraphParamsData::PrepareForPointData(const PCGExData::FPointIO& PointIO, const bool bReadOnly = true) const
+void UPCGExGraphDefinition::PrepareForPointData(const PCGExData::FPointIO& PointIO, const bool bReadOnly = true) const
 {
 	SocketMapping->PrepareForPointData(PointIO, bReadOnly);
 }
 
-void UPCGExGraphParamsData::GetSocketsInfos(TArray<PCGExGraph::FSocketInfos>& OutInfos) const
+void UPCGExGraphDefinition::GetSocketsInfos(TArray<PCGExGraph::FSocketInfos>& OutInfos) const
 {
 	SocketMapping->GetSocketsInfos(OutInfos);
 }
 
-void UPCGExGraphParamsData::Cleanup() const
+void UPCGExGraphDefinition::Cleanup() const
 {
 	if (SocketMapping) { SocketMapping->Cleanup(); }
 }
 
-UPCGExRoamingSocketParamsData::UPCGExRoamingSocketParamsData(const FObjectInitializer& ObjectInitializer)
+UPCGExSocketDefinition::UPCGExSocketDefinition(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 }
 
-void UPCGExRoamingSocketParamsData::BeginDestroy()
+void UPCGExSocketDefinition::BeginDestroy()
 {
 	Super::BeginDestroy();
 }

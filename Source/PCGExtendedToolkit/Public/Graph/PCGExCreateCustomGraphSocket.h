@@ -6,7 +6,7 @@
 #include "CoreMinimal.h"
 #include "PCGExPointsProcessor.h"
 
-#include "Data/PCGExGraphParamsData.h"
+#include "Data/PCGExGraphDefinition.h"
 
 #include "PCGExCreateCustomGraphSocket.generated.h"
 

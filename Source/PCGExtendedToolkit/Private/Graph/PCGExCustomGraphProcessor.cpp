@@ -3,7 +3,7 @@
 
 #include "Graph/PCGExCustomGraphProcessor.h"
 
-#include "Data/PCGExGraphParamsData.h"
+#include "Data/PCGExGraphDefinition.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
 
@@ -97,6 +97,7 @@ bool FPCGExCustomGraphProcessorContext::PrepareCurrentGraphForPoints(const PCGEx
 {
 	bValidCurrentGraph = false;
 	bReadOnly = ReadOnly;
+
 	if (bReadOnly)
 	{
 		PCGEX_DELETE(CachedIndexWriter)
@@ -144,7 +145,7 @@ bool FPCGExCustomGraphProcessorElement::Boot(FPCGContext* InContext) const
 	}
 
 	Context->MergedInputSocketsNum = 0;
-	for (const UPCGExGraphParamsData* Graph : Context->Graphs.Params) { Context->MergedInputSocketsNum += Graph->GetSocketMapping()->NumSockets; }
+	for (const UPCGExGraphDefinition* Graph : Context->Graphs.Params) { Context->MergedInputSocketsNum += Graph->GetSocketMapping()->NumSockets; }
 
 	return true;
 }

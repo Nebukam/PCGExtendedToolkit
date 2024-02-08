@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExOperation.h"
-#include "Data/PCGExGraphParamsData.h"
+#include "Data/PCGExGraphDefinition.h"
 #include "UObject/Object.h"
 
 #include "PCGExCustomGraphSolver.generated.h"
@@ -70,6 +70,12 @@ namespace PCGExGraph
 			Candidates.Empty();
 			SocketInfos = nullptr;
 			DotOverDistanceCurve = nullptr;
+		}
+
+		FVector GetTargetCenter(const FPCGPoint& TargetPoint) const
+		{
+			return PCGExMath::GetRelationalCenter(SocketInfos->Socket->Descriptor.DistanceSettings.TargetDistance,
+				TargetPoint, TargetPoint.Transform.GetLocation(), Origin);
 		}
 
 		~FSocketProbe()

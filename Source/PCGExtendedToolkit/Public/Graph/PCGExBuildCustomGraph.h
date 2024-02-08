@@ -70,7 +70,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBuildCustomGraphContext : public FPCGExCusto
 	UPCGExCustomGraphSolver* GraphSolver = nullptr;
 	bool bMoveSocketOriginOnPointExtent = false;
 
-	UPCGPointData::PointOctree* Octree = nullptr;
 };
 
 

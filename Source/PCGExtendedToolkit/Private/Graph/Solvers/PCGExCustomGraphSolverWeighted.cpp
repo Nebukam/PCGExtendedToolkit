@@ -13,7 +13,7 @@ bool UPCGExCustomGraphSolverWeighted::ProcessPoint(
 	PCGExGraph::FSocketProbe& Probe,
 	const PCGEx::FPointRef& Point) const
 {
-	const FVector PtPosition = Point.Point->Transform.GetLocation();
+	const FVector PtPosition = Probe.GetTargetCenter(*Point.Point);
 
 	if (!Probe.LooseBounds.IsInside(PtPosition)) { return false; }
 

@@ -11,8 +11,8 @@ void UPCGExCustomGraphSolver::InitializeProbe(PCGExGraph::FSocketProbe& Probe) c
 bool UPCGExCustomGraphSolver::ProcessPoint(
 	PCGExGraph::FSocketProbe& Probe,
 	const PCGEx::FPointRef& Point) const
-{
-	const FVector PtPosition = Point.Point->Transform.GetLocation();
+{	
+	const FVector PtPosition = Probe.GetTargetCenter(*Point.Point);
 
 	if (!Probe.LooseBounds.IsInside(PtPosition)) { return false; }
 
@@ -53,7 +53,7 @@ double UPCGExCustomGraphSolver::PrepareProbesForPoint(
 		const double Dist = PrepareProbeForPointSocketPair(Point, NewProbe, CurrentSocketInfos);
 		MaxRadius = FMath::Max(MaxRadius, Dist);
 	}
-	return MaxRadius;
+	return FMath::Sqrt(MaxRadius);
 }
 
 double UPCGExCustomGraphSolver::PrepareProbeForPointSocketPair(
@@ -66,21 +66,18 @@ double UPCGExCustomGraphSolver::PrepareProbeForPointSocketPair(
 	InSocketInfos.Socket->GetRadius(Point.Index, Probe.Radius);
 
 	const FTransform PtTransform = Point.Point->Transform;
-	const FVector ProbeCenter = PtTransform.GetLocation();
+	const FVector ProbeOrigin = PtTransform.GetLocation();
 
 	if (InSocketInfos.Socket->Descriptor.bRelativeOrientation)
 	{
-		Probe.Direction = PtTransform.Rotator().RotateVector(Probe.Direction);
+		Probe.Direction = PtTransform.TransformVector(Probe.Direction);
 	}
 
 	Probe.Direction.Normalize();
 	Probe.DotOverDistanceCurve = InSocketInfos.Socket->Descriptor.DotOverDistanceCurve;
 
-	Probe.Origin = PCGExMath::GetRelationalCenter(
-		InSocketInfos.Socket->Descriptor.ProbeOrigin,
-		*Point.Point, ProbeCenter, ProbeCenter + Probe.Direction * Probe.Radius);
-
-	Probe.Radius += (Probe.Origin - ProbeCenter).Length();
+	Probe.Origin = InSocketInfos.Socket->Descriptor.DistanceSettings.GetSourceCenter(*Point.Point, ProbeOrigin, ProbeOrigin + Probe.Direction * Probe.Radius);
+	Probe.Radius += (Probe.Origin - ProbeOrigin).Length();
 	Probe.Radius = Probe.Radius * Probe.Radius;
 
 	if (Probe.DotThreshold >= 0) { Probe.LooseBounds = PCGExMath::ConeBox(Probe.Origin, Probe.Direction, Probe.Radius); }

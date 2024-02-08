@@ -60,7 +60,7 @@ bool FPCGExPromoteEdgesElement::ExecuteInternal(
 		if (!Boot(Context)) { return true; }
 
 		Context->MaxPossibleEdgesPerPoint = 0;
-		for (const UPCGExGraphParamsData* Graph : Context->Graphs.Params)
+		for (const UPCGExGraphDefinition* Graph : Context->Graphs.Params)
 		{
 			Context->MaxPossibleEdgesPerPoint += Graph->GetSocketMapping()->NumSockets;
 		}

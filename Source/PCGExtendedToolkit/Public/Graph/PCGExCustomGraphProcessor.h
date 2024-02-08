@@ -5,11 +5,11 @@
 
 #include "CoreMinimal.h"
 #include "PCGExPointsProcessor.h"
-#include "Data/PCGExGraphParamsData.h"
+#include "Data/PCGExGraphDefinition.h"
 
 #include "PCGExCustomGraphProcessor.generated.h"
 
-class UPCGExGraphParamsData;
+class UPCGExGraphDefinition;
 
 #define PCGEX_GRAPH_MISSING_METADATA PCGE_LOG(Warning, GraphAndLog, FText::Format(FTEXT("An input is missing '{0}' graph metadata."), FText::FromName(Context->CurrentGraph->GraphIdentifier)));
 
@@ -49,7 +49,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExCustomGraphProcessorContext : public FPCGExP
 	PCGExGraph::FGraphInputs Graphs;
 	int32 MergedInputSocketsNum = 0;
 
-	UPCGExGraphParamsData* CurrentGraph = nullptr;
+	UPCGExGraphDefinition* CurrentGraph = nullptr;
 
 	bool AdvanceGraph(bool bResetPointsIndex = false);
 	bool AdvancePointsIOAndResetGraph();

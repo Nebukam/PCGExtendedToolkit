@@ -10,7 +10,7 @@
 #include "PCGParamData.h"
 #include "Graph/PCGExGraph.h"
 
-#include "PCGExGraphParamsData.generated.h"
+#include "PCGExGraphDefinition.generated.h"
 
 class UPCGPointData;
 
@@ -102,6 +102,9 @@ public:
 
 	/// Bounds
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Probing", meta=(PCG_Overridable))
+	FPCGExDistanceSettingsWithTarget DistanceSettings;
+	
 	/** Slot 'look-at' direction. Used along with DotTolerance. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Probing", meta=(PCG_Overridable))
 	FVector Direction = FVector::UpVector;
@@ -133,7 +136,6 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Probing", meta = (PCG_Overridable, EditCondition="bUseLocalAngle"))
 	bool bLocalAngleIsDegrees = true;
 
-
 	//
 
 	/** Maximum search radius. */
@@ -147,10 +149,6 @@ public:
 	/** Local property or attribute to read Radius from. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Probing", meta = (PCG_Overridable, EditCondition="bUseLocalRadius"))
 	FPCGExInputDescriptor LocalRadius;
-
-	/** Offset socket origin  */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Probing", meta = (PCG_Overridable))
-	EPCGExDistance ProbeOrigin = EPCGExDistance::Center;
 
 	/** The balance over distance to prioritize closer distance or better alignment. Curve X is normalized distance; Y = 0 means narrower dot wins, Y = 1 means closer distance wins */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Settings|Probing")
@@ -241,7 +239,7 @@ public:
 	bool bDotOverDistance = false;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Probing", meta = (PCG_Overridable))
-	bool bOffsetOrigin = false;
+	bool bDistanceSettings = false;
 
 	/// Relationships
 
@@ -511,12 +509,12 @@ namespace PCGExGraph
  * 
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGExRoamingSocketParamsData : public UPCGPointData
+class PCGEXTENDEDTOOLKIT_API UPCGExSocketDefinition : public UPCGPointData
 {
 	GENERATED_BODY()
 
 public:
-	UPCGExRoamingSocketParamsData(const FObjectInitializer& ObjectInitializer);
+	UPCGExSocketDefinition(const FObjectInitializer& ObjectInitializer);
 	virtual EPCGDataType GetDataType() const override { return EPCGDataType::Param; }
 
 	FPCGExSocketDescriptor Descriptor;
@@ -528,12 +526,12 @@ public:
  * 
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGExGraphParamsData : public UPCGPointData
+class PCGEXTENDEDTOOLKIT_API UPCGExGraphDefinition : public UPCGPointData
 {
 	GENERATED_BODY()
 
 public:
-	UPCGExGraphParamsData(const FObjectInitializer& ObjectInitializer);
+	UPCGExGraphDefinition(const FObjectInitializer& ObjectInitializer);
 	virtual EPCGDataType GetDataType() const override { return EPCGDataType::Param; }
 
 	TArray<FPCGExSocketDescriptor> SocketsDescriptors;
@@ -545,7 +543,7 @@ public:
 	 * @param PointData 
 	 * @return 
 	 */
-	bool HasMatchingGraphData(const UPCGPointData* PointData) const;
+	bool HasMatchingGraphDefinition(const UPCGPointData* PointData) const;
 
 	FName GraphIdentifier = "GraphIdentifier";
 	FName CachedIndexAttributeName;
@@ -630,7 +628,7 @@ namespace PCGExGraph
 		}
 
 	public:
-		TArray<UPCGExGraphParamsData*> Params;
+		TArray<UPCGExGraphDefinition*> Params;
 		TArray<FPCGTaggedData> ParamsSources;
 
 		/**
@@ -645,18 +643,18 @@ namespace PCGExGraph
 			TSet<uint64> UniqueParams;
 			for (FPCGTaggedData& Source : Sources)
 			{
-				const UPCGExGraphParamsData* GraphData = Cast<UPCGExGraphParamsData>(Source.Data);
+				const UPCGExGraphDefinition* GraphData = Cast<UPCGExGraphDefinition>(Source.Data);
 				if (!GraphData) { continue; }
 				if (UniqueParams.Contains(GraphData->GraphUID)) { continue; }
 				UniqueParams.Add(GraphData->GraphUID);
-				Params.Add(const_cast<UPCGExGraphParamsData*>(GraphData));
+				Params.Add(const_cast<UPCGExGraphDefinition*>(GraphData));
 				//Params.Add(CopyGraph(GraphData));
 				ParamsSources.Add(Source);
 			}
 			UniqueParams.Empty();
 		}
 
-		static UPCGExGraphParamsData* CopyGraph(const UPCGExGraphParamsData* InGraph)
+		static UPCGExGraphDefinition* CopyGraph(const UPCGExGraphDefinition* InGraph)
 		{
 			return NewGraph(
 				InGraph->GraphUID,
@@ -666,14 +664,14 @@ namespace PCGExGraph
 				InGraph->OverrideSocket);
 		}
 
-		static UPCGExGraphParamsData* NewGraph(
+		static UPCGExGraphDefinition* NewGraph(
 			const uint64 GraphUID,
 			const FName Identifier,
 			const TArray<FPCGExSocketDescriptor>& Sockets,
 			const FPCGExSocketGlobalOverrides& GlobalOverrides,
 			const FPCGExSocketDescriptor& OverrideSocket)
 		{
-			UPCGExGraphParamsData* OutParams = NewObject<UPCGExGraphParamsData>();
+			UPCGExGraphDefinition* OutParams = NewObject<UPCGExGraphDefinition>();
 
 			OutParams->GraphUID = GraphUID;
 			OutParams->GraphIdentifier = Identifier;
@@ -686,11 +684,11 @@ namespace PCGExGraph
 			return OutParams;
 		}
 
-		void ForEach(FPCGContext* Context, const TFunction<void(UPCGExGraphParamsData*, const int32)>& BodyLoop)
+		void ForEach(FPCGContext* Context, const TFunction<void(UPCGExGraphDefinition*, const int32)>& BodyLoop)
 		{
 			for (int i = 0; i < Params.Num(); i++)
 			{
-				UPCGExGraphParamsData* ParamsData = Params[i]; //TODO : Create "working copies" so we don't start working with destroyed sockets, as params lie early in the graph
+				UPCGExGraphDefinition* ParamsData = Params[i]; //TODO : Create "working copies" so we don't start working with destroyed sockets, as params lie early in the graph
 				BodyLoop(ParamsData, i);
 			}
 		}
@@ -726,7 +724,7 @@ namespace PCGExGraph
 		TArray<FPCGTaggedData> TaggedData = Context->InputData.GetInputsByPin(Pin);
 		for (const FPCGTaggedData& TData : TaggedData)
 		{
-			const UPCGExRoamingSocketParamsData* SocketData = Cast<UPCGExRoamingSocketParamsData>(TData.Data);
+			const UPCGExSocketDefinition* SocketData = Cast<UPCGExSocketDefinition>(TData.Data);
 			if (!SocketData) { continue; }
 			bool bNameOverlap = false;
 

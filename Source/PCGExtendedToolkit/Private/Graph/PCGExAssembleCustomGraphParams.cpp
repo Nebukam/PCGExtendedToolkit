@@ -118,7 +118,7 @@ bool FPCGExAssembleCustomGraphParamsElement::ExecuteInternal(
 	Overrides.bEnabled = Settings->bApplyGlobalOverrides;
 
 	TArray<FPCGTaggedData>& Outputs = Context->OutputData.TaggedData;
-	UPCGExGraphParamsData* OutParams = PCGExGraph::FGraphInputs::NewGraph(
+	UPCGExGraphDefinition* OutParams = PCGExGraph::FGraphInputs::NewGraph(
 		Context->Node->GetUniqueID(),
 		Settings->GraphIdentifier,
 		Settings->GetSockets(),
