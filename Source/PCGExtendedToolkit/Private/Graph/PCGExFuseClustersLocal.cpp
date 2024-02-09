@@ -35,14 +35,16 @@ bool FPCGExFuseClustersLocalElement::Boot(FPCGContext* InContext) const
 	PCGEX_FWD(PointEdgeIntersection)
 	PCGEX_FWD(EdgeEdgeIntersection)
 
+	Context->PointPointSettings.FuseSettings.Init();
+	Context->EdgeEdgeIntersection.Init();
+	
 	Context->GraphMetadataSettings.Grab(Context, Context->PointPointSettings);
 	Context->GraphMetadataSettings.Grab(Context, Context->PointEdgeIntersection);
 	Context->GraphMetadataSettings.Grab(Context, Context->EdgeEdgeIntersection);
-
-	Context->PointPointSettings.FuseSettings.Init();
-	Context->PointEdgeIntersection.MakeSafeForTolerance(Context->PointPointSettings.FuseSettings.Tolerance);
-	Context->EdgeEdgeIntersection.MakeSafeForTolerance(Context->PointEdgeIntersection.FuseSettings.Tolerance);
-	Context->EdgeEdgeIntersection.Init();
+	
+	//Context->PointEdgeIntersection.MakeSafeForTolerance(Context->PointPointSettings.FuseSettings.Tolerance);
+	//Context->EdgeEdgeIntersection.MakeSafeForTolerance(Context->PointEdgeIntersection.FuseSettings.Tolerance);
+	//Context->EdgeEdgeIntersection.Init();
 
 	PCGEX_FWD(GraphBuilderSettings)
 

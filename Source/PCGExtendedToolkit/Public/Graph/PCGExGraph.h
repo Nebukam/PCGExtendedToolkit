@@ -97,6 +97,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointEdgeIntersectionSettings
 {
 	GENERATED_BODY()
 
+	/** If disabled, points will only check edges they aren't mapped to. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0))
+	double bEnableSelfIntersection = true;
+	
 	/** Fuse Settings */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGExFuseSettings FuseSettings;
@@ -127,6 +131,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgeEdgeIntersectionSettings
 {
 	GENERATED_BODY()
 
+	/** If disabled, edges will only be checked against other datasets. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0))
+	double bEnableSelfIntersection = true;
+	
 	/** Distance at which two edges are considered intersecting. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0))
 	double Tolerance = 0.001;
@@ -158,7 +166,19 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgeEdgeIntersectionSettings
 	/** Name of the attribute to flag point as crossing (result of an Edge/Edge intersection) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata", meta=(PCG_Overridable, EditCondition="bWriteCrossing"))
 	FName CrossingAttributeName = "bCrossing";
+	
+	/** Will copy the flag values of attributes from the edges onto the point in order to filter them. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata", meta=(PCG_Overridable))
+	bool bFlagCrossing = false;
 
+	/** Name of an int32 flag to fetch from the first edge */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata|Flags", meta=(PCG_Overridable, EditCondition="bFlagCrossing"))
+	FName FlagA;
+
+	/** Name of an int32 flag to fetch from the second edge */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata|Flags", meta=(PCG_Overridable, EditCondition="bFlagCrossing"))
+	FName FlagB;
+		
 	void MakeSafeForTolerance(const double FuseTolerance)
 	{
 		Tolerance = FMath::Clamp(Tolerance, 0, FuseTolerance * 0.5);
@@ -228,6 +248,10 @@ namespace PCGExGraph
 
 		bool bWriteIntersector = false;
 		FName IntersectorAttributeName = "bIntersector";
+		
+		bool bFlagCrossing = false;
+		FName FlagA = NAME_None;
+		FName FlagB = NAME_None;
 
 		void Grab(const FPCGContext* Context, const FPCGExPointPointIntersectionSettings& Settings)
 		{
@@ -244,7 +268,9 @@ namespace PCGExGraph
 		{
 			bWriteCrossing = Settings.bWriteCrossing;
 			CrossingAttributeName = Settings.CrossingAttributeName;
-			PCGEX_SOFT_VALIDATE_NAME(bWriteCrossing, CrossingAttributeName, Context)
+			bFlagCrossing = Settings.bFlagCrossing;
+			PCGEX_SOFT_VALIDATE_NAME(bFlagCrossing, FlagA, Context)
+			PCGEX_SOFT_VALIDATE_NAME(bFlagCrossing, FlagB, Context)
 		}
 
 		void Grab(const FPCGContext* Context, const FPCGExPointEdgeIntersectionSettings& Settings)
