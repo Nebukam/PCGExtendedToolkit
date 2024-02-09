@@ -3,6 +3,8 @@
 
 #include "Paths/PCGExPathsToEdgeClusters.h"
 
+#include "Graph/PCGExGraph.h"
+
 #define LOCTEXT_NAMESPACE "PCGExPathsToEdgeClustersElement"
 #define PCGEX_NAMESPACE BuildCustomGraph
 
@@ -51,7 +53,6 @@ FPCGExPathsToEdgeClustersContext::~FPCGExPathsToEdgeClustersContext()
 	PCGEX_DELETE(GraphBuilder)
 	PCGEX_DELETE(PointEdgeIntersections)
 	PCGEX_DELETE(EdgeEdgeIntersections)
-	
 }
 
 bool FPCGExPathsToEdgeClustersElement::Boot(FPCGContext* InContext) const
@@ -95,8 +96,9 @@ bool FPCGExPathsToEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) c
 	{
 		if (!Context->AdvancePointsIO())
 		{
+			if (Context->LooseGraph->Nodes.IsEmpty()) { return true; }
 			Context->ConsolidatedPoints = &Context->MainPoints->Emplace_GetRef(PCGExData::EInit::NewOutput);
-			Context->SetState(PCGExGraph::State_UpdatingLooseCenters);
+			Context->SetState(PCGExGraph::State_ProcessingGraph);
 		}
 		else
 		{
@@ -113,7 +115,7 @@ bool FPCGExPathsToEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) c
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
-	if (Context->IsState(PCGExGraph::State_UpdatingLooseCenters))
+	if (Context->IsState(PCGExGraph::State_ProcessingGraph))
 	{
 		const int32 NumLooseNodes = Context->LooseGraph->Nodes.Num();
 
@@ -131,14 +133,15 @@ bool FPCGExPathsToEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) c
 
 		if (!Context->Process(Initialize, ProcessNode, NumLooseNodes)) { return false; }
 
-		TArray<PCGExGraph::FUnsignedEdge> Edges;
-		Context->LooseGraph->GetUniqueEdges(Edges);
+		Context->GraphBuilder = new PCGExGraph::FGraphBuilder(*Context->ConsolidatedPoints, &Context->GraphBuilderSettings, 4);
+
+		TArray<PCGExGraph::FUnsignedEdge> UniqueEdges;
+		Context->LooseGraph->GetUniqueEdges(UniqueEdges);
+		Context->LooseGraph->WriteMetadata(Context->GraphBuilder->Graph->NodeMetadata);
 		PCGEX_DELETE(Context->LooseGraph)
 
-		Context->GraphBuilder = new PCGExGraph::FGraphBuilder(*Context->ConsolidatedPoints, &Context->GraphBuilderSettings, 4);
-		Context->GraphBuilder->Graph->InsertEdges(Edges);
-
-		Edges.Empty();
+		Context->GraphBuilder->Graph->InsertEdges(UniqueEdges);
+		UniqueEdges.Empty();
 
 		if (Settings->bDoPointEdgeIntersection)
 		{
@@ -161,7 +164,7 @@ bool FPCGExPathsToEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) c
 	if (Context->IsState(PCGExGraph::State_FindingPointEdgeIntersections))
 	{
 		if (!Context->IsAsyncWorkComplete()) { return false; }
-		
+
 		Context->PointEdgeIntersections->Insert(); // TODO : Async?
 		PCGEX_DELETE(Context->PointEdgeIntersections)
 
@@ -191,7 +194,7 @@ bool FPCGExPathsToEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) c
 	{
 		if (!Context->IsAsyncWorkComplete()) { return false; }
 
-		Context->GraphBuilder->Compile(Context);
+		Context->GraphBuilder->Compile(Context, &Context->GraphMetadataSettings);
 		Context->SetAsyncState(PCGExGraph::State_WaitingOnWritingClusters);
 		return false;
 	}

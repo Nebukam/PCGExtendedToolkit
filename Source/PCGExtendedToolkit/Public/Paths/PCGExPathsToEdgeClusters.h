@@ -57,7 +57,7 @@ public:
 	bool bClosedPath = false;
 
 	/** Fuse Settings */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGExPointPointIntersectionSettings FuseSettings;
 
 	/** Point-Edge intersection */

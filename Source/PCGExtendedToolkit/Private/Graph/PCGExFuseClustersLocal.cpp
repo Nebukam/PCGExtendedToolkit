@@ -38,12 +38,12 @@ bool FPCGExFuseClustersLocalElement::Boot(FPCGContext* InContext) const
 	Context->GraphMetadataSettings.Grab(Context, Context->PointPointSettings);
 	Context->GraphMetadataSettings.Grab(Context, Context->PointEdgeIntersection);
 	Context->GraphMetadataSettings.Grab(Context, Context->EdgeEdgeIntersection);
-	
+
 	Context->PointPointSettings.FuseSettings.Init();
 	Context->PointEdgeIntersection.MakeSafeForTolerance(Context->PointPointSettings.FuseSettings.Tolerance);
 	Context->EdgeEdgeIntersection.MakeSafeForTolerance(Context->PointEdgeIntersection.FuseSettings.Tolerance);
 	Context->EdgeEdgeIntersection.Init();
-	
+
 	PCGEX_FWD(GraphBuilderSettings)
 
 	return true;
@@ -90,7 +90,7 @@ bool FPCGExFuseClustersLocalElement::ExecuteInternal(FPCGContext* InContext) con
 		Context->CurrentEdges->CreateInKeys();
 
 		// Insert current cluster into loose graph
-		Context->GetAsyncManager()->Start<FPCGExInsertLoosePointsTask>(
+		Context->GetAsyncManager()->Start<FPCGExInsertLooseNodesTask>(
 			Context->CurrentIO->IOIndex, Context->CurrentIO,
 			Context->LooseGraph, Context->CurrentEdges, &Context->NodeIndicesMap);
 
@@ -118,13 +118,14 @@ bool FPCGExFuseClustersLocalElement::ExecuteInternal(FPCGContext* InContext) con
 
 		if (!Context->Process(Initialize, ProcessNode, NumLooseNodes)) { return false; }
 
+		Context->GraphBuilder = new PCGExGraph::FGraphBuilder(*Context->CurrentIO, &Context->GraphBuilderSettings, 6, Context->MainEdges);
+
 		TArray<PCGExGraph::FUnsignedEdge> UniqueEdges;
 		Context->LooseGraph->GetUniqueEdges(UniqueEdges);
+		Context->LooseGraph->WriteMetadata(Context->GraphBuilder->Graph->NodeMetadata);
 		PCGEX_DELETE(Context->LooseGraph)
 
-		Context->GraphBuilder = new PCGExGraph::FGraphBuilder(*Context->CurrentIO, &Context->GraphBuilderSettings, 6, Context->MainEdges);
 		Context->GraphBuilder->Graph->InsertEdges(UniqueEdges);
-
 		UniqueEdges.Empty();
 
 		if (Settings->bDoPointEdgeIntersection)
@@ -178,7 +179,7 @@ bool FPCGExFuseClustersLocalElement::ExecuteInternal(FPCGContext* InContext) con
 	{
 		if (!Context->IsAsyncWorkComplete()) { return false; }
 
-		Context->GraphBuilder->Compile(Context);
+		Context->GraphBuilder->Compile(Context, &Context->GraphMetadataSettings);
 		Context->SetAsyncState(PCGExGraph::State_WaitingOnWritingClusters);
 		return false;
 	}

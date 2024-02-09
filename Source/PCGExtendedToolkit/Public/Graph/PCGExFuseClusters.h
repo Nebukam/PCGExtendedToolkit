@@ -35,7 +35,7 @@ public:
 	//~End UPCGExEdgesProcessorSettings interface
 	
 	/** Fuse Settings */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGExPointPointIntersectionSettings PointPointSettings;
 
 	/** Point-Edge intersection */

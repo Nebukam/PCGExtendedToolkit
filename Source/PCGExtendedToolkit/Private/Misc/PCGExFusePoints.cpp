@@ -36,6 +36,9 @@ bool FPCGExFusePointsElement::Boot(FPCGContext* InContext) const
 	PCGEX_FWD(FuseSettings)
 	Context->FuseSettings.FuseSettings.Init();
 
+	PCGEX_SOFT_VALIDATE_NAME(Context->FuseSettings.bWriteCompounded, Context->FuseSettings.CompoundedAttributeName, Context)
+	PCGEX_SOFT_VALIDATE_NAME(Context->FuseSettings.bWriteCompoundSize, Context->FuseSettings.CompoundSizeAttributeName, Context)
+
 	PCGEX_FWD(bPreserveOrder)
 
 	return true;
@@ -130,14 +133,8 @@ bool FPCGExFuseTask::ExecuteTask()
 			}
 		}
 
-		if (!FuseTarget)
-		{
-			FusedPoints.Emplace_GetRef(PointIndex, PtPosition).Add(PointIndex, 0);
-		}
-		else
-		{
-			FuseTarget->Add(PointIndex, DistSquared);
-		}
+		if (!FuseTarget) { FusedPoints.Emplace_GetRef(PointIndex, PtPosition).Add(PointIndex, 0); }
+		else { FuseTarget->Add(PointIndex, DistSquared); }
 	}
 
 	if (Context->bPreserveOrder)
@@ -176,8 +173,35 @@ bool FPCGExFuseTask::ExecuteTask()
 	}
 
 	MetadataBlender->Write();
-
 	PCGEX_DELETE(MetadataBlender);
+
+	// Write fuse meta after, so we don't blend it
+	if (Context->FuseSettings.bWriteCompounded ||
+		Context->FuseSettings.bWriteCompoundSize)
+	{
+		
+		PCGEx::TFAttributeWriter<bool>* CompoundedWriter = Context->FuseSettings.bWriteCompounded ? new PCGEx::TFAttributeWriter<bool>(Context->FuseSettings.CompoundedAttributeName, false, false) : nullptr;
+		PCGEx::TFAttributeWriter<int32>* CompoundSizeWriter = Context->FuseSettings.bWriteCompoundSize ? new PCGEx::TFAttributeWriter<int32>(Context->FuseSettings.CompoundSizeAttributeName, 0, false) : nullptr;
+
+		if (CompoundedWriter) { CompoundedWriter->BindAndGet(*PointIO); }
+		if (CompoundSizeWriter) { CompoundSizeWriter->BindAndGet(*PointIO); }
+
+		for (int PointIndex = 0; PointIndex < MutablePoints.Num(); PointIndex++)
+		{
+			PCGExFuse::FFusedPoint& FusedPoint = FusedPoints[PointIndex];
+			const int32 NumFused = FusedPoint.Fused.Num();
+
+			if (CompoundedWriter) { CompoundedWriter->Values[PointIndex] = NumFused > 1; }
+			if (CompoundSizeWriter) { CompoundSizeWriter->Values[PointIndex] = NumFused; }
+		}
+
+		if (CompoundedWriter) { CompoundedWriter->Write(); }
+		if (CompoundSizeWriter) { CompoundSizeWriter->Write(); }
+
+		PCGEX_DELETE(CompoundedWriter);
+		PCGEX_DELETE(CompoundSizeWriter);
+	}
+
 	FusedPoints.Empty();
 
 	return true;

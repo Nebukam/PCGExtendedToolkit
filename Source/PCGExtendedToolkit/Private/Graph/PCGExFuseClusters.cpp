@@ -89,7 +89,7 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 		Context->CurrentEdges->CreateInKeys();
 
 		// Insert current cluster into loose graph
-		Context->GetAsyncManager()->Start<FPCGExInsertLoosePointsTask>(
+		Context->GetAsyncManager()->Start<FPCGExInsertLooseNodesTask>(
 			Context->CurrentIO->IOIndex, Context->CurrentIO,
 			Context->LooseGraph, Context->CurrentEdges, &Context->NodeIndicesMap);
 
@@ -117,13 +117,14 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 
 		if (!Context->Process(Initialize, ProcessNode, NumLooseNodes)) { return false; }
 
+		Context->GraphBuilder = new PCGExGraph::FGraphBuilder(*Context->ConsolidatedPoints, &Context->GraphBuilderSettings, 6, Context->MainEdges);
+		
 		TArray<PCGExGraph::FUnsignedEdge> UniqueEdges;
 		Context->LooseGraph->GetUniqueEdges(UniqueEdges);
+		Context->LooseGraph->WriteMetadata(Context->GraphBuilder->Graph->NodeMetadata);
 		PCGEX_DELETE(Context->LooseGraph)
-
-		Context->GraphBuilder = new PCGExGraph::FGraphBuilder(*Context->ConsolidatedPoints, &Context->GraphBuilderSettings, 6, Context->MainEdges);
+		
 		Context->GraphBuilder->Graph->InsertEdges(UniqueEdges);
-
 		UniqueEdges.Empty();
 
 		if (Settings->bDoPointEdgeIntersection)
@@ -177,7 +178,7 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 	{
 		if (!Context->IsAsyncWorkComplete()) { return false; }
 
-		Context->GraphBuilder->Compile(Context);
+		Context->GraphBuilder->Compile(Context, &Context->GraphMetadataSettings);
 		Context->SetAsyncState(PCGExGraph::State_WaitingOnWritingClusters);
 		return false;
 	}

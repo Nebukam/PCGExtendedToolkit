@@ -81,7 +81,7 @@ public:
 
 public:
 	/** Fuse Settings */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGExPointPointIntersectionSettings FuseSettings;
 
 	/** Preserve the order of input points */

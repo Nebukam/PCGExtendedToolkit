@@ -98,7 +98,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointEdgeIntersectionSettings
 	GENERATED_BODY()
 
 	/** Fuse Settings */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGExFuseSettings FuseSettings;
 
 	/** When enabled, point will be moved exactly on the edge. */
@@ -106,11 +106,11 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointEdgeIntersectionSettings
 	bool bSnapOnEdge = false;
 
 	/**  */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteIntersector = false;
 
 	/** Name of the attribute to flag point as intersector (result of an Point/Edge intersection) */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bWriteCrossing"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata", meta=(PCG_Overridable, EditCondition="bWriteIntersector"))
 	FName IntersectorAttributeName = "bIntersector";
 
 	void MakeSafeForTolerance(double FuseTolerance)
@@ -152,11 +152,11 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgeEdgeIntersectionSettings
 	//
 
 	/**  */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteCrossing = false;
 
 	/** Name of the attribute to flag point as crossing (result of an Edge/Edge intersection) */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bWriteCrossing"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata", meta=(PCG_Overridable, EditCondition="bWriteCrossing"))
 	FName CrossingAttributeName = "bCrossing";
 
 	void MakeSafeForTolerance(const double FuseTolerance)
@@ -260,6 +260,8 @@ namespace PCGExGraph
 		int32 NodeIndex;
 		bool bCrossing = false;    // Result of an edge/edge intersection		
 		bool bIntersector = false; // Result of a point/edge intersection
+		bool bCompounded = false;  // Result of a fuse
+		int32 CompoundSize = 0;    // Fuse size
 
 		explicit FGraphNodeMetadata(int32 InNodeIndex)
 			: NodeIndex(InNodeIndex)
@@ -513,6 +515,7 @@ namespace PCGExGraph
 		void CreateBridge(const FPCGPoint& From, const int32 FromIOIndex, const int32 FromPointIndex,
 		                  const FPCGPoint& To, const int32 ToIOIndex, const int32 ToPointIndex);
 		void GetUniqueEdges(TArray<FUnsignedEdge>& OutEdges);
+		void WriteMetadata(TMap<int32, FGraphNodeMetadata*>& OutMetadata);
 	};
 
 #pragma endregion
@@ -761,6 +764,8 @@ namespace PCGExGraph
 	}
 }
 
+#pragma region Intersections tasks
+
 class PCGEXTENDEDTOOLKIT_API FPCGExFindPointEdgeIntersectionsTask : public FPCGExNonAbandonableTask
 {
 public:
@@ -821,6 +826,10 @@ public:
 	virtual bool ExecuteTask() override;
 };
 
+#pragma endregion
+
+#pragma region Graph tasks
+
 class PCGEXTENDEDTOOLKIT_API FPCGExWriteSubGraphEdgesTask : public FPCGExNonAbandonableTask
 {
 public:
@@ -857,27 +866,15 @@ public:
 	virtual bool ExecuteTask() override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExUpdateLooseNodeCentersTask : public FPCGExNonAbandonableTask
+#pragma endregion
+
+#pragma region Loose Graph tasks
+
+class PCGEXTENDEDTOOLKIT_API FPCGExInsertLooseNodesTask : public FPCGExNonAbandonableTask
 {
 public:
-	FPCGExUpdateLooseNodeCentersTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-	                                 PCGExGraph::FLooseGraph* InGraph, PCGExData::FPointIOGroup* InIOGroup)
-		: FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
-		  Graph(InGraph), IOGroup(InIOGroup)
-	{
-	}
-
-	PCGExGraph::FLooseGraph* Graph = nullptr;
-	PCGExData::FPointIOGroup* IOGroup = nullptr;
-
-	virtual bool ExecuteTask() override;
-};
-
-class PCGEXTENDEDTOOLKIT_API FPCGExInsertLoosePointsTask : public FPCGExNonAbandonableTask
-{
-public:
-	FPCGExInsertLoosePointsTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-	                            PCGExGraph::FLooseGraph* InGraph, PCGExData::FPointIO* InEdgeIO, TMap<int32, int32>* InNodeIndicesMap)
+	FPCGExInsertLooseNodesTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+	                           PCGExGraph::FLooseGraph* InGraph, PCGExData::FPointIO* InEdgeIO, TMap<int32, int32>* InNodeIndicesMap)
 		: FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
 		  Graph(InGraph), EdgeIO(InEdgeIO), NodeIndicesMap(InNodeIndicesMap)
 	{
@@ -889,3 +886,5 @@ public:
 
 	virtual bool ExecuteTask() override;
 };
+
+#pragma endregion
