@@ -12,6 +12,11 @@
 #define LOCTEXT_NAMESPACE "PCGExGraph"
 #define PCGEX_NAMESPACE BuildVoronoiGraph
 
+namespace PCGExGeoTask
+{
+	class FLloydRelax3;
+}
+
 int32 UPCGExBuildVoronoiGraphSettings::GetPreferredChunkSize() const { return 32; }
 
 PCGExData::EInit UPCGExBuildVoronoiGraphSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NewOutput; }
@@ -22,6 +27,7 @@ FPCGExBuildVoronoiGraphContext::~FPCGExBuildVoronoiGraphContext()
 
 	PCGEX_DELETE(GraphBuilder)
 
+	ActivePositions.Empty();
 	HullIndices.Empty();
 }
 
@@ -81,6 +87,8 @@ bool FPCGExBuildVoronoiGraphElement::ExecuteInternal(
 				return false;
 			}
 
+			PCGExGeo::PointsToPositions(Context->CurrentIO->GetIn()->GetPoints(), Context->ActivePositions);
+
 			//Context->GraphBuilder = new PCGExGraph::FGraphBuilder(*Context->CurrentIO, &Context->GraphBuilderSettings, 6);
 			Context->GetAsyncManager()->Start<FPCGExVoronoi3Task>(Context->CurrentIO->IOIndex, Context->CurrentIO);
 			Context->SetAsyncState(PCGExGeo::State_ProcessingVoronoi);
@@ -125,15 +133,8 @@ bool FPCGExVoronoi3Task::ExecuteTask()
 
 	PCGExGeo::TVoronoi3* Voronoi = new PCGExGeo::TVoronoi3();
 
-	const TArray<FPCGPoint>& Points = PointIO->GetIn()->GetPoints();
-	const int32 NumPoints = Points.Num();
-
-	TArray<FVector> Positions;
-	Positions.SetNum(NumPoints);
-	for (int i = 0; i < NumPoints; i++) { Positions[i] = Points[i].Transform.GetLocation(); }
-
-	const TArrayView<FVector> View = MakeArrayView(Positions);
-	if (!Voronoi->Process(View))
+	if (const TArrayView<FVector> View = MakeArrayView(Context->ActivePositions);
+		!Voronoi->Process(View))
 	{
 		PCGEX_DELETE(Voronoi)
 		return false;
@@ -148,9 +149,19 @@ bool FPCGExVoronoi3Task::ExecuteTask()
 	{
 		for (int i = 0; i < NumSites; i++) { Centroids[i].Transform.SetLocation(Voronoi->Circumspheres[i].Center); }
 	}
-	else
+	else if (Settings->Method == EPCGExCellCenter::Centroid)
 	{
 		for (int i = 0; i < NumSites; i++) { Centroids[i].Transform.SetLocation(Voronoi->Centroids[i]); }
+	}
+	else if (Settings->Method == EPCGExCellCenter::Balanced)
+	{
+		const FBox Bounds = PointIO->GetOut()->GetBounds().ExpandBy(Settings->ExpandBounds);
+		for (int i = 0; i < NumSites; i++)
+		{
+			FVector Target = Voronoi->Circumspheres[i].Center;
+			if (Bounds.IsInside(Target)) { Centroids[i].Transform.SetLocation(Target); }
+			Centroids[i].Transform.SetLocation(Voronoi->Centroids[i]);
+		}
 	}
 
 

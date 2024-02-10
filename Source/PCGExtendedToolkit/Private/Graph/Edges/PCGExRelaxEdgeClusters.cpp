@@ -23,11 +23,11 @@ FPCGExRelaxEdgeClustersContext::~FPCGExRelaxEdgeClustersContext()
 {
 	PCGEX_TERMINATE_ASYNC
 
+	PCGEX_DELETE(InfluenceGetter)
+
 	OriginalBuffer.Empty();
 	PrimaryBuffer.Empty();
 	SecondaryBuffer.Empty();
-
-	InfluenceGetter.Cleanup();
 }
 
 bool FPCGExRelaxEdgeClustersElement::Boot(FPCGContext* InContext) const
@@ -37,12 +37,12 @@ bool FPCGExRelaxEdgeClustersElement::Boot(FPCGContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(RelaxEdgeClusters)
 
 	Context->Iterations = FMath::Max(Settings->Iterations, 1);
-	PCGEX_FWD(bUseLocalInfluence)
 
 	PCGEX_OPERATION_BIND(Relaxing, UPCGExForceDirectedRelaxing)
 
-	Context->InfluenceGetter.Capture(Settings->LocalInfluence);
-	Context->Relaxing->DefaultInfluence = Settings->Influence;
+	Context->InfluenceGetter = new PCGEx::FLocalSingleFieldGetter();
+	Context->InfluenceGetter->Capture(Settings->InfluenceSettings.LocalInfluence);
+	Context->Relaxing->DefaultInfluence = Settings->InfluenceSettings.Influence;
 
 	return true;
 }
@@ -65,7 +65,7 @@ bool FPCGExRelaxEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) con
 
 		if (Context->CurrentIO)
 		{
-			if (!Settings->bProgressiveInfluence) { Context->Relaxing->ApplyInfluence(Context->InfluenceGetter, &Context->OriginalBuffer); }
+			if (!Settings->InfluenceSettings.bProgressiveInfluence) { Context->Relaxing->ApplyInfluence(*Context->InfluenceGetter, &Context->OriginalBuffer); }
 			Context->Relaxing->WriteActiveBuffer(*Context->CurrentIO);
 		}
 
@@ -81,10 +81,10 @@ bool FPCGExRelaxEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) con
 			{
 				if (Context->bUseLocalInfluence)
 				{
-					Context->InfluenceGetter.bEnabled = true;
-					Context->InfluenceGetter.Grab(*Context->CurrentIO);
+					Context->InfluenceGetter->bEnabled = true;
+					Context->InfluenceGetter->Grab(*Context->CurrentIO);
 				}
-				else { Context->InfluenceGetter.bEnabled = false; }
+				else { Context->InfluenceGetter->bEnabled = false; }
 
 				const TArray<FPCGPoint>& InPoints = Context->CurrentIO->GetIn()->GetPoints();
 				const int32 NumPoints = InPoints.Num();
@@ -132,7 +132,7 @@ bool FPCGExRelaxEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) con
 		while (Context->CurrentIteration != Context->Iterations)
 		{
 			if (Context->ProcessCurrentCluster(Initialize, ProcessVertex)) { Context->CurrentIteration++; }
-			if (Settings->bProgressiveInfluence) { Context->Relaxing->ApplyInfluence(Context->InfluenceGetter); }
+			if (Settings->InfluenceSettings.bProgressiveInfluence) { Context->Relaxing->ApplyInfluence(*Context->InfluenceGetter); }
 			return false;
 		}
 

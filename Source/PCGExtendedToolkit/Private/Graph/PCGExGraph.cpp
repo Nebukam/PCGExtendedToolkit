@@ -82,32 +82,32 @@ namespace PCGExGraph
 		for (const uint64& E : InEdges)
 		{
 			if (UniqueEdges.Contains(E)) { continue; }
-			
+
 			UniqueEdges.Add(E);
 			PCGEx::H64(E, A, B);
 			const int32 EdgeIndex = Edges.Emplace(Edges.Num(), A, B);
 			Nodes[A].Add(EdgeIndex);
 			Nodes[B].Add(EdgeIndex);
 			Edges[EdgeIndex].IOIndex = IOIndex;
-		} 
+		}
 	}
-	
+
 	void FGraph::InsertEdges(const TSet<uint64>& InEdges, int32 IOIndex)
-    	{
-    		FWriteScopeLock WriteLock(GraphLock);
-    		uint32 A;
-    		uint32 B;
-    		for (const uint64& E : InEdges)
-    		{
-    			if (UniqueEdges.Contains(E)) { continue; }
-    			
-    			UniqueEdges.Add(E);
-    			PCGEx::H64(E, A, B);
-    			const int32 EdgeIndex = Edges.Emplace(Edges.Num(), A, B);
-    			Nodes[A].Add(EdgeIndex);
-    			Nodes[B].Add(EdgeIndex);
-    		} 
-    	}
+	{
+		FWriteScopeLock WriteLock(GraphLock);
+		uint32 A;
+		uint32 B;
+		for (const uint64& E : InEdges)
+		{
+			if (UniqueEdges.Contains(E)) { continue; }
+
+			UniqueEdges.Add(E);
+			PCGEx::H64(E, A, B);
+			const int32 EdgeIndex = Edges.Emplace(Edges.Num(), A, B);
+			Nodes[A].Add(EdgeIndex);
+			Nodes[B].Add(EdgeIndex);
+		}
+	}
 
 #define PCGEX_EDGE_INSERT\
 	if (!E.bValid) { continue; } const uint64 Hash = E.H64U(); if (UniqueEdges.Contains(Hash)) { continue; }\
@@ -203,7 +203,7 @@ namespace PCGExGraph
 	void FGraphBuilder::Compile(FPCGExPointsProcessorContext* InContext,
 	                            FGraphMetadataSettings* MetadataSettings) const
 	{
-		InContext->GetAsyncManager()->Start<FPCGExCompileGraphTask>(
+		InContext->GetAsyncManager()->Start<PCGExGraphTask::FPCGExCompileGraphTask>(
 			-1, PointIO, const_cast<FGraphBuilder*>(this),
 			OutputSettings->GetMinClusterSize(), OutputSettings->GetMaxClusterSize(), MetadataSettings);
 	}
@@ -352,7 +352,7 @@ namespace PCGExGraph
 		for (const FIndexedEdge& Edge : Graph->Edges)
 		{
 			if (!Edge.bValid) { continue; }
-			InContext->GetAsyncManager()->Start<FPCGExFindPointEdgeIntersectionsTask>(Edge.EdgeIndex, PointIO, this);
+			InContext->GetAsyncManager()->Start<PCGExGraphTask::FPCGExFindPointEdgeIntersectionsTask>(Edge.EdgeIndex, PointIO, this);
 		}
 	}
 
@@ -475,7 +475,7 @@ namespace PCGExGraph
 		for (const FIndexedEdge& Edge : Graph->Edges)
 		{
 			if (!Edge.bValid) { continue; }
-			InContext->GetAsyncManager()->Start<FPCGExFindEdgeEdgeIntersectionsTask>(Edge.EdgeIndex, PointIO, this);
+			InContext->GetAsyncManager()->Start<PCGExGraphTask::FPCGExFindEdgeEdgeIntersectionsTask>(Edge.EdgeIndex, PointIO, this);
 		}
 	}
 
@@ -568,179 +568,181 @@ namespace PCGExGraph
 	}
 }
 
-bool FPCGExFindPointEdgeIntersectionsTask::ExecuteTask()
+namespace PCGExGraphTask
 {
-	FindCollinearNodes(IntersectionList, TaskIndex, PointIO->GetOutIn()->GetPoints());
-	return true;
-}
-
-bool FPCGExInsertPointEdgeIntersectionsTask::ExecuteTask()
-{
-	IntersectionList->Insert();
-	return true;
-}
-
-bool FPCGExFindEdgeEdgeIntersectionsTask::ExecuteTask()
-{
-	FindOverlappingEdges(IntersectionList, TaskIndex);
-	return true;
-}
-
-bool FPCGExInsertEdgeEdgeIntersectionsTask::ExecuteTask()
-{
-	IntersectionList->Insert();
-	return true;
-}
-
-bool FPCGExWriteSubGraphEdgesTask::ExecuteTask()
-{
-	PCGExData::FPointIO& EdgeIO = *SubGraph->PointIO;
-
-	TArray<FPCGPoint>& MutablePoints = EdgeIO.GetOut()->GetMutablePoints();
-	MutablePoints.SetNum(SubGraph->Edges.Num());
-
-	int32 PointIndex = 0;
-	if (EdgeIO.GetIn())
+	bool FPCGExFindPointEdgeIntersectionsTask::ExecuteTask()
 	{
-		// Copy any existing point properties first
-		const TArray<FPCGPoint>& InPoints = EdgeIO.GetIn()->GetPoints();
+		FindCollinearNodes(IntersectionList, TaskIndex, PointIO->GetOutIn()->GetPoints());
+		return true;
+	}
+
+	bool FPCGExInsertPointEdgeIntersectionsTask::ExecuteTask()
+	{
+		IntersectionList->Insert();
+		return true;
+	}
+
+	bool FPCGExFindEdgeEdgeIntersectionsTask::ExecuteTask()
+	{
+		FindOverlappingEdges(IntersectionList, TaskIndex);
+		return true;
+	}
+
+	bool FPCGExInsertEdgeEdgeIntersectionsTask::ExecuteTask()
+	{
+		IntersectionList->Insert();
+		return true;
+	}
+
+	bool FPCGExWriteSubGraphEdgesTask::ExecuteTask()
+	{
+		PCGExData::FPointIO& EdgeIO = *SubGraph->PointIO;
+
+		TArray<FPCGPoint>& MutablePoints = EdgeIO.GetOut()->GetMutablePoints();
+		MutablePoints.SetNum(SubGraph->Edges.Num());
+
+		int32 PointIndex = 0;
+		if (EdgeIO.GetIn())
+		{
+			// Copy any existing point properties first
+			const TArray<FPCGPoint>& InPoints = EdgeIO.GetIn()->GetPoints();
+			for (const int32 EdgeIndex : SubGraph->Edges)
+			{
+				const int32 EdgePtIndex = Graph->Edges[EdgeIndex].PointIndex;
+				if (InPoints.IsValidIndex(EdgePtIndex)) { MutablePoints[PointIndex] = InPoints[EdgePtIndex]; }
+				PointIndex++;
+			}
+		}
+
+		EdgeIO.CreateOutKeys();
+
+		PCGEx::TFAttributeWriter<int32>* EdgeStart = new PCGEx::TFAttributeWriter<int32>(PCGExGraph::Tag_EdgeStart, -1, false);
+		PCGEx::TFAttributeWriter<int32>* EdgeEnd = new PCGEx::TFAttributeWriter<int32>(PCGExGraph::Tag_EdgeEnd, -1, false);
+
+		EdgeStart->BindAndGet(EdgeIO);
+		EdgeEnd->BindAndGet(EdgeIO);
+
+
+		const TArray<FPCGPoint> Vertices = PointIO->GetOut()->GetPoints();
+
+		PointIndex = 0;
 		for (const int32 EdgeIndex : SubGraph->Edges)
 		{
-			const int32 EdgePtIndex = Graph->Edges[EdgeIndex].PointIndex;
-			if (InPoints.IsValidIndex(EdgePtIndex)) { MutablePoints[PointIndex] = InPoints[EdgePtIndex]; }
+			const PCGExGraph::FIndexedEdge& Edge = Graph->Edges[EdgeIndex];
+			FPCGPoint& Point = MutablePoints[PointIndex];
+
+			EdgeStart->Values[PointIndex] = Graph->Nodes[Edge.Start].PointIndex;
+			EdgeEnd->Values[PointIndex] = Graph->Nodes[Edge.End].PointIndex;
+
+			if (Point.Seed == 0) { PCGExMath::RandomizeSeed(Point); }
 			PointIndex++;
 		}
-	}
 
-	EdgeIO.CreateOutKeys();
-
-	PCGEx::TFAttributeWriter<int32>* EdgeStart = new PCGEx::TFAttributeWriter<int32>(PCGExGraph::Tag_EdgeStart, -1, false);
-	PCGEx::TFAttributeWriter<int32>* EdgeEnd = new PCGEx::TFAttributeWriter<int32>(PCGExGraph::Tag_EdgeEnd, -1, false);
-
-	EdgeStart->BindAndGet(EdgeIO);
-	EdgeEnd->BindAndGet(EdgeIO);
-
-
-	const TArray<FPCGPoint> Vertices = PointIO->GetOut()->GetPoints();
-
-	PointIndex = 0;
-	for (const int32 EdgeIndex : SubGraph->Edges)
-	{
-		const PCGExGraph::FIndexedEdge& Edge = Graph->Edges[EdgeIndex];
-		FPCGPoint& Point = MutablePoints[PointIndex];
-
-		EdgeStart->Values[PointIndex] = Graph->Nodes[Edge.Start].PointIndex;
-		EdgeEnd->Values[PointIndex] = Graph->Nodes[Edge.End].PointIndex;
-
-		if (Point.Seed == 0) { PCGExMath::RandomizeSeed(Point); }
-		PointIndex++;
-	}
-
-	if (Graph->bWriteEdgePosition)
-	{
-		for (int i = 0; i < SubGraph->Edges.Num(); i++)
+		if (Graph->bWriteEdgePosition)
 		{
-			MutablePoints[i].Transform.SetLocation(
-				FMath::Lerp(
-					Vertices[EdgeStart->Values[i]].Transform.GetLocation(),
-					Vertices[EdgeEnd->Values[i]].Transform.GetLocation(),
-					Graph->EdgePosition));
-		}
-	}
-
-	if (Graph->bRefreshEdgeSeed)
-	{
-		const FVector SeedOffset = FVector(EdgeIO.IOIndex);
-		for (FPCGPoint& Point : MutablePoints) { PCGExMath::RandomizeSeed(Point, SeedOffset); }
-	}
-
-	EdgeStart->Write();
-	EdgeEnd->Write();
-
-	PCGEX_DELETE(EdgeStart)
-	PCGEX_DELETE(EdgeEnd)
-
-	return true;
-}
-
-bool FPCGExCompileGraphTask::ExecuteTask()
-{
-	Builder->Graph->BuildSubGraphs(Min, Max);
-
-	if (Builder->Graph->SubGraphs.IsEmpty())
-	{
-		Builder->bCompiledSuccessfully = false;
-		return false;
-	}
-
-	PointIO->Cleanup(); //Ensure fresh keys later on
-
-	TArray<PCGExGraph::FNode>& Nodes = Builder->Graph->Nodes;
-	TArray<int32> ValidNodes;
-	ValidNodes.Reserve(Builder->Graph->Nodes.Num());
-
-	if (Builder->bPrunePoints)
-	{
-		// Rebuild point list with only the one used
-		// to know which are used, we need to prune subgraphs first
-		TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
-
-		if (!MutablePoints.IsEmpty())
-		{
-			//Assume points were filled before, and remove them from the current array
-			TArray<FPCGPoint> PrunedPoints;
-			PrunedPoints.Reserve(MutablePoints.Num());
-
-			for (PCGExGraph::FNode& Node : Nodes)
+			for (int i = 0; i < SubGraph->Edges.Num(); i++)
 			{
-				if (!Node.bValid) { continue; }
-				Node.PointIndex = PrunedPoints.Add(MutablePoints[Node.PointIndex]);
-				ValidNodes.Add(Node.NodeIndex);
+				MutablePoints[i].Transform.SetLocation(
+					FMath::Lerp(
+						Vertices[EdgeStart->Values[i]].Transform.GetLocation(),
+						Vertices[EdgeEnd->Values[i]].Transform.GetLocation(),
+						Graph->EdgePosition));
 			}
+		}
 
-			PointIO->GetOut()->SetPoints(PrunedPoints);
+		if (Graph->bRefreshEdgeSeed)
+		{
+			const FVector SeedOffset = FVector(EdgeIO.IOIndex);
+			for (FPCGPoint& Point : MutablePoints) { PCGExMath::RandomizeSeed(Point, SeedOffset); }
+		}
+
+		EdgeStart->Write();
+		EdgeEnd->Write();
+
+		PCGEX_DELETE(EdgeStart)
+		PCGEX_DELETE(EdgeEnd)
+
+		return true;
+	}
+
+	bool FPCGExCompileGraphTask::ExecuteTask()
+	{
+		Builder->Graph->BuildSubGraphs(Min, Max);
+
+		if (Builder->Graph->SubGraphs.IsEmpty())
+		{
+			Builder->bCompiledSuccessfully = false;
+			return false;
+		}
+
+		PointIO->Cleanup(); //Ensure fresh keys later on
+
+		TArray<PCGExGraph::FNode>& Nodes = Builder->Graph->Nodes;
+		TArray<int32> ValidNodes;
+		ValidNodes.Reserve(Builder->Graph->Nodes.Num());
+
+		if (Builder->bPrunePoints)
+		{
+			// Rebuild point list with only the one used
+			// to know which are used, we need to prune subgraphs first
+			TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
+
+			if (!MutablePoints.IsEmpty())
+			{
+				//Assume points were filled before, and remove them from the current array
+				TArray<FPCGPoint> PrunedPoints;
+				PrunedPoints.Reserve(MutablePoints.Num());
+
+				for (PCGExGraph::FNode& Node : Nodes)
+				{
+					if (!Node.bValid) { continue; }
+					Node.PointIndex = PrunedPoints.Add(MutablePoints[Node.PointIndex]);
+					ValidNodes.Add(Node.NodeIndex);
+				}
+
+				PointIO->GetOut()->SetPoints(PrunedPoints);
+			}
+			else
+			{
+				const int32 NumMaxNodes = Nodes.Num();
+				MutablePoints.Reserve(NumMaxNodes);
+
+				for (PCGExGraph::FNode& Node : Nodes)
+				{
+					if (!Node.bValid) { continue; }
+					Node.PointIndex = MutablePoints.Add(PointIO->GetInPoint(Node.PointIndex));
+					ValidNodes.Add(Node.NodeIndex);
+				}
+			}
 		}
 		else
 		{
-			const int32 NumMaxNodes = Nodes.Num();
-			MutablePoints.Reserve(NumMaxNodes);
-
-			for (PCGExGraph::FNode& Node : Nodes)
-			{
-				if (!Node.bValid) { continue; }
-				Node.PointIndex = MutablePoints.Add(PointIO->GetInPoint(Node.PointIndex));
-				ValidNodes.Add(Node.NodeIndex);
-			}
+			for (const PCGExGraph::FNode& Node : Nodes) { if (Node.bValid) { ValidNodes.Add(Node.NodeIndex); } }
 		}
-	}
-	else
-	{
-		for (const PCGExGraph::FNode& Node : Nodes) { if (Node.bValid) { ValidNodes.Add(Node.NodeIndex); } }
-	}
 
-	///
+		///
 
-	PCGEx::TFAttributeWriter<int32>* IndexWriter = new PCGEx::TFAttributeWriter<int32>(PCGExGraph::Tag_EdgeIndex, -1, false);
-	PCGEx::TFAttributeWriter<int32>* NumEdgesWriter = new PCGEx::TFAttributeWriter<int32>(PCGExGraph::Tag_EdgesNum, 0, false);
+		PCGEx::TFAttributeWriter<int32>* IndexWriter = new PCGEx::TFAttributeWriter<int32>(PCGExGraph::Tag_EdgeIndex, -1, false);
+		PCGEx::TFAttributeWriter<int32>* NumEdgesWriter = new PCGEx::TFAttributeWriter<int32>(PCGExGraph::Tag_EdgesNum, 0, false);
 
-	IndexWriter->BindAndGet(*PointIO);
-	NumEdgesWriter->BindAndGet(*PointIO);
+		IndexWriter->BindAndGet(*PointIO);
+		NumEdgesWriter->BindAndGet(*PointIO);
 
-	for (int i = 0; i < IndexWriter->Values.Num(); i++) { IndexWriter->Values[i] = i; }
-	for (const int32 NodeIndex : ValidNodes)
-	{
-		const PCGExGraph::FNode& Node = Nodes[NodeIndex];
-		NumEdgesWriter->Values[Node.PointIndex] = Node.NumExportedEdges;
-	}
+		for (int i = 0; i < IndexWriter->Values.Num(); i++) { IndexWriter->Values[i] = i; }
+		for (const int32 NodeIndex : ValidNodes)
+		{
+			const PCGExGraph::FNode& Node = Nodes[NodeIndex];
+			NumEdgesWriter->Values[Node.PointIndex] = Node.NumExportedEdges;
+		}
 
-	IndexWriter->Write();
-	NumEdgesWriter->Write();
+		IndexWriter->Write();
+		NumEdgesWriter->Write();
 
-	PCGEX_DELETE(IndexWriter)
-	PCGEX_DELETE(NumEdgesWriter)
+		PCGEX_DELETE(IndexWriter)
+		PCGEX_DELETE(NumEdgesWriter)
 
-	if (MetadataSettings && !Builder->Graph->NodeMetadata.IsEmpty())
-	{
+		if (MetadataSettings && !Builder->Graph->NodeMetadata.IsEmpty())
+		{
 #define PCGEX_METADATA(_NAME, _TYPE, _DEFAULT, _ACCESSOR)\
 {if(MetadataSettings->bWrite##_NAME){\
 PCGEx::TFAttributeWriter<_TYPE>* Writer = MetadataSettings->bWrite##_NAME ? new PCGEx::TFAttributeWriter<_TYPE>(MetadataSettings->_NAME##AttributeName, _DEFAULT, false) : nullptr;\
@@ -750,58 +752,59 @@ Writer->BindAndGet(*PointIO);\
 		if(NodeMeta){Writer->Values[Nodes[NodeIndex].PointIndex] = (*NodeMeta)->_ACCESSOR; }}\
 		Writer->Write(); delete Writer; }}
 
-		PCGEX_METADATA(Compounded, bool, false, bCompounded)
-		PCGEX_METADATA(CompoundSize, int32, 0, CompoundSize)
-		PCGEX_METADATA(Intersector, bool, false, bIntersector)
-		PCGEX_METADATA(Crossing, bool, false, bCrossing)
+			PCGEX_METADATA(Compounded, bool, false, bCompounded)
+			PCGEX_METADATA(CompoundSize, int32, 0, CompoundSize)
+			PCGEX_METADATA(Intersector, bool, false, bIntersector)
+			PCGEX_METADATA(Crossing, bool, false, bCrossing)
 
 #undef PCGEX_METADATA
-	}
-
-	Builder->bCompiledSuccessfully = true;
-
-	int32 SubGraphIndex = 0;
-	for (PCGExGraph::FSubGraph* SubGraph : Builder->Graph->SubGraphs)
-	{
-		PCGExData::FPointIO* EdgeIO;
-
-		if (const int32 IOIndex = SubGraph->GetFirstInIOIndex();
-			Builder->SourceEdgesIO && Builder->SourceEdgesIO->Pairs.IsValidIndex(IOIndex))
-		{
-			EdgeIO = &Builder->EdgesIO->Emplace_GetRef(*Builder->SourceEdgesIO->Pairs[IOIndex], PCGExData::EInit::NewOutput);
-		}
-		else
-		{
-			EdgeIO = &Builder->EdgesIO->Emplace_GetRef(PCGExData::EInit::NewOutput);
 		}
 
-		SubGraph->PointIO = EdgeIO;
-		EdgeIO->Tags->Set(PCGExGraph::Tag_Cluster, Builder->EdgeTagValue);
+		Builder->bCompiledSuccessfully = true;
 
-		Manager->Start<FPCGExWriteSubGraphEdgesTask>(SubGraphIndex++, PointIO, Builder->Graph, SubGraph);
-	}
-
-	return true;
-}
-
-bool FPCGExInsertLooseNodesTask::ExecuteTask()
-{
-	TArray<PCGExGraph::FIndexedEdge> IndexedEdges;
-	if (!BuildIndexedEdges(*EdgeIO, *NodeIndicesMap, IndexedEdges, true) ||
-		IndexedEdges.IsEmpty()) { return false; }
-	/*
-		IndexedEdges.Sort([&](const PCGExGraph::FIndexedEdge& A, const PCGExGraph::FIndexedEdge& B)
+		int32 SubGraphIndex = 0;
+		for (PCGExGraph::FSubGraph* SubGraph : Builder->Graph->SubGraphs)
 		{
-			return A.Start == B.Start ? A.End < B.End : A.Start < B.Start; 
-		});	
-	*/
-	const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
-	for (const PCGExGraph::FIndexedEdge& Edge : IndexedEdges)
-	{
-		Graph->CreateBridge(
-			InPoints[Edge.Start], TaskIndex, Edge.Start,
-			InPoints[Edge.End], TaskIndex, Edge.End);
+			PCGExData::FPointIO* EdgeIO;
+
+			if (const int32 IOIndex = SubGraph->GetFirstInIOIndex();
+				Builder->SourceEdgesIO && Builder->SourceEdgesIO->Pairs.IsValidIndex(IOIndex))
+			{
+				EdgeIO = &Builder->EdgesIO->Emplace_GetRef(*Builder->SourceEdgesIO->Pairs[IOIndex], PCGExData::EInit::NewOutput);
+			}
+			else
+			{
+				EdgeIO = &Builder->EdgesIO->Emplace_GetRef(PCGExData::EInit::NewOutput);
+			}
+
+			SubGraph->PointIO = EdgeIO;
+			EdgeIO->Tags->Set(PCGExGraph::Tag_Cluster, Builder->EdgeTagValue);
+
+			Manager->Start<FPCGExWriteSubGraphEdgesTask>(SubGraphIndex++, PointIO, Builder->Graph, SubGraph);
+		}
+
+		return true;
 	}
 
-	return false;
+	bool FPCGExInsertLooseNodesTask::ExecuteTask()
+	{
+		TArray<PCGExGraph::FIndexedEdge> IndexedEdges;
+		if (!BuildIndexedEdges(*EdgeIO, *NodeIndicesMap, IndexedEdges, true) ||
+			IndexedEdges.IsEmpty()) { return false; }
+		/*
+			IndexedEdges.Sort([&](const PCGExGraph::FIndexedEdge& A, const PCGExGraph::FIndexedEdge& B)
+			{
+				return A.Start == B.Start ? A.End < B.End : A.Start < B.Start; 
+			});	
+		*/
+		const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
+		for (const PCGExGraph::FIndexedEdge& Edge : IndexedEdges)
+		{
+			Graph->CreateBridge(
+				InPoints[Edge.Start], TaskIndex, Edge.Start,
+				InPoints[Edge.End], TaskIndex, Edge.End);
+		}
+
+		return false;
+	}
 }

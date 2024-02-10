@@ -6,6 +6,7 @@
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
 #include "Geometry/PCGExGeoDelaunay.h"
 #include "Geometry/PCGExGeoVoronoi.h"
+#include "Geometry/PCGExVoronoiLloyd.h"
 #include "Graph/PCGExConsolidateCustomGraph.h"
 #include "Graph/PCGExCluster.h"
 
@@ -22,6 +23,7 @@ FPCGExBuildVoronoiGraph2DContext::~FPCGExBuildVoronoiGraph2DContext()
 
 	PCGEX_DELETE(GraphBuilder)
 
+	ActivePositions.Empty();
 	HullIndices.Empty();
 }
 
@@ -84,6 +86,8 @@ bool FPCGExBuildVoronoiGraph2DElement::ExecuteInternal(
 				return false;
 			}
 
+			PCGExGeo::PointsToPositions(Context->CurrentIO->GetIn()->GetPoints(), Context->ActivePositions, Settings->ProjectionSettings);
+
 			Context->GetAsyncManager()->Start<FPCGExVoronoi2Task>(Context->CurrentIO->IOIndex, Context->CurrentIO);
 			Context->SetAsyncState(PCGExGeo::State_ProcessingVoronoi);
 		}
@@ -124,18 +128,11 @@ bool FPCGExVoronoi2Task::ExecuteTask()
 {
 	FPCGExBuildVoronoiGraph2DContext* Context = static_cast<FPCGExBuildVoronoiGraph2DContext*>(Manager->Context);
 	PCGEX_SETTINGS(BuildVoronoiGraph2D)
-	
+
 	PCGExGeo::TVoronoi2* Voronoi = new PCGExGeo::TVoronoi2();
 
-	const TArray<FPCGPoint>& Points = PointIO->GetIn()->GetPoints();
-	const int32 NumPoints = Points.Num();
-
-	TArray<FVector2D> Positions;
-	Positions.SetNum(NumPoints);
-	for (int i = 0; i < NumPoints; i++) { Positions[i] = FVector2D(Points[i].Transform.GetLocation()); }
-
-	const TArrayView<FVector2D> View = MakeArrayView(Positions);
-	if (!Voronoi->Process(View))
+	if (const TArrayView<FVector2D> View = MakeArrayView(Context->ActivePositions);
+		!Voronoi->Process(View))
 	{
 		PCGEX_DELETE(Voronoi)
 		return false;
@@ -160,7 +157,7 @@ bool FPCGExVoronoi2Task::ExecuteTask()
 			Centroids[i].Transform.SetLocation(FVector(Centroid.X, Centroid.Y, 0));
 		}
 	}
-	else
+	else if (Settings->Method == EPCGExCellCenter::Centroid)
 	{
 		for (int i = 0; i < NumSites; i++)
 		{
@@ -168,7 +165,17 @@ bool FPCGExVoronoi2Task::ExecuteTask()
 			Centroids[i].Transform.SetLocation(FVector(Centroid.X, Centroid.Y, 0));
 		}
 	}
-	
+	else if (Settings->Method == EPCGExCellCenter::Balanced)
+	{
+		const FBox Bounds = PointIO->GetOut()->GetBounds().ExpandBy(Settings->ExpandBounds);
+		for (int i = 0; i < NumSites; i++)
+		{
+			FVector Target = FVector(Voronoi->Circumcenters[i].X, Voronoi->Circumcenters[i].Y, 0);
+			if (Bounds.IsInside(Target)) { Centroids[i].Transform.SetLocation(Target); }
+			Centroids[i].Transform.SetLocation(FVector(Voronoi->Centroids[i].X, Voronoi->Centroids[i].Y, 0));
+		}
+	}
+
 	//if (Settings->bMarkHull) { Context->HullIndices.Append(Voronoi->DelaunayHull); }
 	Context->GraphBuilder = new PCGExGraph::FGraphBuilder(*PointIO, &Context->GraphBuilderSettings, 6);
 	Context->GraphBuilder->Graph->InsertEdges(Voronoi->VoronoiEdges, -1);

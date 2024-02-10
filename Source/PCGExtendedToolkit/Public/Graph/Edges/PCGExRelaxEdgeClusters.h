@@ -34,22 +34,11 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ClampMin=1))
 	int32 Iterations = 100;
 
-	/** Draw size. What it means depends on the selected debug type. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=-1, ClampMax=1))
-	double Influence = 1.0;
+	/** Influence Settings*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ShowOnlyInnerProperties))
+	FPCGExInfluenceSettings InfluenceSettings;
 
-	/** Fetch the size from a local attribute. The regular Size parameter then act as a scale.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
-	bool bUseLocalInfluence = false;
-
-	/** Fetch the size from a local attribute. The regular Size parameter then act as a scale.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bUseLocalInfluence"))
-	FPCGExInputDescriptor LocalInfluence;
-
-	/** If enabled, applies influence after each iteration; otherwise applies once at the end of the relaxing.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	bool bProgressiveInfluence = true;
-
+	/** Relaxing arithmetics */
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable, NoResetToDefault, ShowOnlyInnerProperties))
 	TObjectPtr<UPCGExEdgeRelaxingOperation> Relaxing;
 
@@ -66,7 +55,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExRelaxEdgeClustersContext : public FPCGExEdge
 	int32 Iterations = 10;
 	int32 CurrentIteration = 0;
 	bool bUseLocalInfluence = false;
-	PCGEx::FLocalSingleFieldGetter InfluenceGetter;
+	PCGEx::FLocalSingleFieldGetter* InfluenceGetter = nullptr;
 
 	TArray<FVector> OriginalBuffer;
 	TArray<FVector> PrimaryBuffer;

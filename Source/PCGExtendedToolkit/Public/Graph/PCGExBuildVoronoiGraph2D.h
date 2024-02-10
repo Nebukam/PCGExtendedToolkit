@@ -48,13 +48,9 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExCellCenter Method = EPCGExCellCenter::Balanced;
 
-	/** Prune points and cell outside bounds */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
-	bool bPruneOutsideBounds = false;
-
 	/** Prune points and cell outside bounds (computed based on input vertices + optional extension)*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bPruneOutsideBounds"))
-	double BoundsCutoff = 100;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	double ExpandBounds = 100;
 
 	/** Mark points & edges that lie on the hull */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
@@ -73,7 +69,7 @@ public:
 	FPCGExGeo2DProjectionSettings ProjectionSettings;
 
 	/** Graph & Edges output properties. Only available if bPruneOutsideBounds as it otherwise generates a complete graph. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bPruneOutsideBounds", EditConditionHides, DisplayName="Graph Output Settings"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditConditionHides, DisplayName="Graph Output Settings"))
 	FPCGExGraphBuilderSettings GraphBuilderSettings;
 
 private:
@@ -86,8 +82,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBuildVoronoiGraph2DContext : public FPCGExPo
 
 	virtual ~FPCGExBuildVoronoiGraph2DContext() override;
 
-	TSet<int32> HullIndices;
+	TArray<FVector2D> ActivePositions;
 	
+	TSet<int32> HullIndices;
+
 	FPCGExGeo2DProjectionSettings ProjectionSettings;
 
 	FPCGExGraphBuilderSettings GraphBuilderSettings;

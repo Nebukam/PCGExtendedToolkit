@@ -3,14 +3,17 @@
 
 #include "Graph/PCGExBuildDelaunayGraph2D.h"
 
-#include "CompGeom/Delaunay3.h"
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
 #include "Geometry/PCGExGeoDelaunay.h"
-#include "Graph/PCGExConsolidateCustomGraph.h"
 #include "Graph/PCGExCluster.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraph"
 #define PCGEX_NAMESPACE BuildDelaunayGraph2D
+
+namespace PCGExGeoTask
+{
+	class FLloydRelax2;
+}
 
 int32 UPCGExBuildDelaunayGraph2DSettings::GetPreferredChunkSize() const { return 32; }
 
@@ -22,6 +25,7 @@ FPCGExBuildDelaunayGraph2DContext::~FPCGExBuildDelaunayGraph2DContext()
 
 	PCGEX_DELETE(GraphBuilder)
 
+	ActivePositions.Empty();
 	HullIndices.Empty();
 }
 
@@ -50,7 +54,7 @@ bool FPCGExBuildDelaunayGraph2DElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_FWD(ProjectionSettings)
 	Context->GraphBuilderSettings.bPruneIsolatedPoints = false;
-	
+
 	PCGEX_VALIDATE_NAME(Settings->HullAttributeName)
 
 	return true;
@@ -82,6 +86,8 @@ bool FPCGExBuildDelaunayGraph2DElement::ExecuteInternal(
 				PCGE_LOG(Warning, GraphAndLog, FTEXT("(0) Some inputs have too few points to be processed (<= 3)."));
 				return false;
 			}
+
+			PCGExGeo::PointsToPositions(Context->CurrentIO->GetIn()->GetPoints(), Context->ActivePositions, Settings->ProjectionSettings);
 
 			Context->GraphBuilder = new PCGExGraph::FGraphBuilder(*Context->CurrentIO, &Context->GraphBuilderSettings, 6);
 			Context->GetAsyncManager()->Start<FPCGExDelaunay2Task>(Context->CurrentIO->IOIndex, Context->CurrentIO, Context->GraphBuilder->Graph);
@@ -120,7 +126,7 @@ bool FPCGExBuildDelaunayGraph2DElement::ExecuteInternal(
 				HullMarkPointWriter->Write();
 				PCGEX_DELETE(HullMarkPointWriter)
 			}
-			
+
 			Context->GraphBuilder->Write(Context);
 		}
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
@@ -136,28 +142,23 @@ bool FPCGExBuildDelaunayGraph2DElement::ExecuteInternal(
 
 bool FPCGExDelaunay2Task::ExecuteTask()
 {
+	FPCGExBuildDelaunayGraph2DContext* Context = static_cast<FPCGExBuildDelaunayGraph2DContext*>(Manager->Context);
+	PCGEX_SETTINGS(BuildDelaunayGraph2D)
+
 	PCGExGeo::TDelaunay2* Delaunay = new PCGExGeo::TDelaunay2();
 
-	const TArray<FPCGPoint>& Points = PointIO->GetIn()->GetPoints();
-	const int32 NumPoints = Points.Num();
-
-	TArray<FVector2D> Positions;
-	Positions.SetNum(NumPoints);
-	for (int i = 0; i < NumPoints; i++)
-	{
-		const FVector Pos = Points[i].Transform.GetLocation();
-		Positions[i] = FVector2D(Pos.X, Pos.Y);
-	}
-
-	const TArrayView<FVector2D> View = MakeArrayView(Positions);
+	const TArrayView<FVector2D> View = MakeArrayView(Context->ActivePositions);
 	if (!Delaunay->Process(View))
 	{
 		PCGEX_DELETE(Delaunay)
 		return false;
 	}
 
+	if (Settings->bUrquhart) { Delaunay->RemoveLongestEdges(View); }
+	if (Settings->bMarkHull) { Context->HullIndices.Append(Delaunay->DelaunayHull); }
+
 	Graph->InsertEdges(Delaunay->DelaunayEdges, -1);
-	
+
 	PCGEX_DELETE(Delaunay)
 	return true;
 }

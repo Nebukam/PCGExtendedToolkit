@@ -792,127 +792,130 @@ namespace PCGExGraph
 	}
 }
 
+namespace PCGExGraphTask
+{
 #pragma region Intersections tasks
 
-class PCGEXTENDEDTOOLKIT_API FPCGExFindPointEdgeIntersectionsTask : public FPCGExNonAbandonableTask
-{
-public:
-	FPCGExFindPointEdgeIntersectionsTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-	                                     PCGExGraph::FPointEdgeIntersections* InIntersectionList)
-		: FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
-		  IntersectionList(InIntersectionList)
+	class PCGEXTENDEDTOOLKIT_API FPCGExFindPointEdgeIntersectionsTask : public FPCGExNonAbandonableTask
 	{
-	}
+	public:
+		FPCGExFindPointEdgeIntersectionsTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+											 PCGExGraph::FPointEdgeIntersections* InIntersectionList)
+			: FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+			  IntersectionList(InIntersectionList)
+		{
+		}
 
-	PCGExGraph::FPointEdgeIntersections* IntersectionList = nullptr;
-	virtual bool ExecuteTask() override;
-};
+		PCGExGraph::FPointEdgeIntersections* IntersectionList = nullptr;
+		virtual bool ExecuteTask() override;
+	};
 
-class PCGEXTENDEDTOOLKIT_API FPCGExInsertPointEdgeIntersectionsTask : public FPCGExNonAbandonableTask
-{
-public:
-	FPCGExInsertPointEdgeIntersectionsTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-	                                       PCGExGraph::FPointEdgeIntersections* InIntersectionList, TMap<int32, PCGExGraph::FGraphNodeMetadata*>* InOutMetadata)
-		: FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
-		  IntersectionList(InIntersectionList), OutMetadata(InOutMetadata)
+	class PCGEXTENDEDTOOLKIT_API FPCGExInsertPointEdgeIntersectionsTask : public FPCGExNonAbandonableTask
 	{
-	}
+	public:
+		FPCGExInsertPointEdgeIntersectionsTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+											   PCGExGraph::FPointEdgeIntersections* InIntersectionList, TMap<int32, PCGExGraph::FGraphNodeMetadata*>* InOutMetadata)
+			: FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+			  IntersectionList(InIntersectionList), OutMetadata(InOutMetadata)
+		{
+		}
 
-	PCGExGraph::FPointEdgeIntersections* IntersectionList = nullptr;
-	TMap<int32, PCGExGraph::FGraphNodeMetadata*>* OutMetadata = nullptr;
+		PCGExGraph::FPointEdgeIntersections* IntersectionList = nullptr;
+		TMap<int32, PCGExGraph::FGraphNodeMetadata*>* OutMetadata = nullptr;
 
-	virtual bool ExecuteTask() override;
-};
+		virtual bool ExecuteTask() override;
+	};
 
-class PCGEXTENDEDTOOLKIT_API FPCGExFindEdgeEdgeIntersectionsTask : public FPCGExNonAbandonableTask
-{
-public:
-	FPCGExFindEdgeEdgeIntersectionsTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-	                                    PCGExGraph::FEdgeEdgeIntersections* InIntersectionList)
-		: FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
-		  IntersectionList(InIntersectionList)
+	class PCGEXTENDEDTOOLKIT_API FPCGExFindEdgeEdgeIntersectionsTask : public FPCGExNonAbandonableTask
 	{
-	}
+	public:
+		FPCGExFindEdgeEdgeIntersectionsTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+											PCGExGraph::FEdgeEdgeIntersections* InIntersectionList)
+			: FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+			  IntersectionList(InIntersectionList)
+		{
+		}
 
-	PCGExGraph::FEdgeEdgeIntersections* IntersectionList = nullptr;
-	virtual bool ExecuteTask() override;
-};
+		PCGExGraph::FEdgeEdgeIntersections* IntersectionList = nullptr;
+		virtual bool ExecuteTask() override;
+	};
 
-class PCGEXTENDEDTOOLKIT_API FPCGExInsertEdgeEdgeIntersectionsTask : public FPCGExNonAbandonableTask
-{
-public:
-	FPCGExInsertEdgeEdgeIntersectionsTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-	                                      PCGExGraph::FEdgeEdgeIntersections* InIntersectionList, TMap<int32, PCGExGraph::FGraphNodeMetadata*>* InOutMetadata)
-		: FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
-		  IntersectionList(InIntersectionList)
+	class PCGEXTENDEDTOOLKIT_API FPCGExInsertEdgeEdgeIntersectionsTask : public FPCGExNonAbandonableTask
 	{
-	}
+	public:
+		FPCGExInsertEdgeEdgeIntersectionsTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+											  PCGExGraph::FEdgeEdgeIntersections* InIntersectionList, TMap<int32, PCGExGraph::FGraphNodeMetadata*>* InOutMetadata)
+			: FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+			  IntersectionList(InIntersectionList)
+		{
+		}
 
-	PCGExGraph::FEdgeEdgeIntersections* IntersectionList = nullptr;
-	TMap<int32, PCGExGraph::FGraphNodeMetadata*>* OutMetadata = nullptr;
+		PCGExGraph::FEdgeEdgeIntersections* IntersectionList = nullptr;
+		TMap<int32, PCGExGraph::FGraphNodeMetadata*>* OutMetadata = nullptr;
 
-	virtual bool ExecuteTask() override;
-};
+		virtual bool ExecuteTask() override;
+	};
 
 #pragma endregion
 
 #pragma region Graph tasks
 
-class PCGEXTENDEDTOOLKIT_API FPCGExWriteSubGraphEdgesTask : public FPCGExNonAbandonableTask
-{
-public:
-	FPCGExWriteSubGraphEdgesTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-	                             PCGExGraph::FGraph* InGraph, PCGExGraph::FSubGraph* InSubGraph)
-		: FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
-		  Graph(InGraph), SubGraph(InSubGraph)
+	class PCGEXTENDEDTOOLKIT_API FPCGExWriteSubGraphEdgesTask : public FPCGExNonAbandonableTask
 	{
-	}
+	public:
+		FPCGExWriteSubGraphEdgesTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+									 PCGExGraph::FGraph* InGraph, PCGExGraph::FSubGraph* InSubGraph)
+			: FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+			  Graph(InGraph), SubGraph(InSubGraph)
+		{
+		}
 
-	PCGExGraph::FGraph* Graph = nullptr;
-	PCGExGraph::FSubGraph* SubGraph = nullptr;
+		PCGExGraph::FGraph* Graph = nullptr;
+		PCGExGraph::FSubGraph* SubGraph = nullptr;
 
-	virtual bool ExecuteTask() override;
-};
+		virtual bool ExecuteTask() override;
+	};
 
-class PCGEXTENDEDTOOLKIT_API FPCGExCompileGraphTask : public FPCGExNonAbandonableTask
-{
-public:
-	FPCGExCompileGraphTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-	                       PCGExGraph::FGraphBuilder* InGraphBuilder, const int32 InMin = 1, const int32 InMax = TNumericLimits<int32>::Max(),
-	                       PCGExGraph::FGraphMetadataSettings* InMetadataSettings = nullptr)
-		: FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
-		  Builder(InGraphBuilder), Min(InMin), Max(InMax), MetadataSettings(InMetadataSettings)
+	class PCGEXTENDEDTOOLKIT_API FPCGExCompileGraphTask : public FPCGExNonAbandonableTask
 	{
-	}
+	public:
+		FPCGExCompileGraphTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+							   PCGExGraph::FGraphBuilder* InGraphBuilder, const int32 InMin = 1, const int32 InMax = TNumericLimits<int32>::Max(),
+							   PCGExGraph::FGraphMetadataSettings* InMetadataSettings = nullptr)
+			: FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+			  Builder(InGraphBuilder), Min(InMin), Max(InMax), MetadataSettings(InMetadataSettings)
+		{
+		}
 
-	PCGExGraph::FGraphBuilder* Builder = nullptr;
-	int32 Min;
-	int32 Max;
+		PCGExGraph::FGraphBuilder* Builder = nullptr;
+		int32 Min;
+		int32 Max;
 
-	PCGExGraph::FGraphMetadataSettings* MetadataSettings = nullptr;
+		PCGExGraph::FGraphMetadataSettings* MetadataSettings = nullptr;
 
-	virtual bool ExecuteTask() override;
-};
+		virtual bool ExecuteTask() override;
+	};
 
 #pragma endregion
 
 #pragma region Loose Graph tasks
 
-class PCGEXTENDEDTOOLKIT_API FPCGExInsertLooseNodesTask : public FPCGExNonAbandonableTask
-{
-public:
-	FPCGExInsertLooseNodesTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-	                           PCGExGraph::FLooseGraph* InGraph, PCGExData::FPointIO* InEdgeIO, TMap<int32, int32>* InNodeIndicesMap)
-		: FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
-		  Graph(InGraph), EdgeIO(InEdgeIO), NodeIndicesMap(InNodeIndicesMap)
+	class PCGEXTENDEDTOOLKIT_API FPCGExInsertLooseNodesTask : public FPCGExNonAbandonableTask
 	{
-	}
+	public:
+		FPCGExInsertLooseNodesTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+								   PCGExGraph::FLooseGraph* InGraph, PCGExData::FPointIO* InEdgeIO, TMap<int32, int32>* InNodeIndicesMap)
+			: FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+			  Graph(InGraph), EdgeIO(InEdgeIO), NodeIndicesMap(InNodeIndicesMap)
+		{
+		}
 
-	PCGExGraph::FLooseGraph* Graph = nullptr;
-	PCGExData::FPointIO* EdgeIO = nullptr;
-	TMap<int32, int32>* NodeIndicesMap = nullptr;
+		PCGExGraph::FLooseGraph* Graph = nullptr;
+		PCGExData::FPointIO* EdgeIO = nullptr;
+		TMap<int32, int32>* NodeIndicesMap = nullptr;
 
-	virtual bool ExecuteTask() override;
-};
+		virtual bool ExecuteTask() override;
+	};
 
 #pragma endregion
+}

@@ -7,6 +7,7 @@
 #include "CompGeom/Delaunay3.h"
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
 #include "Geometry/PCGExGeoDelaunay.h"
+#include "Geometry/PCGExVoronoiLloyd.h"
 #include "Graph/PCGExConsolidateCustomGraph.h"
 #include "Graph/PCGExCluster.h"
 
@@ -15,7 +16,7 @@
 
 int32 UPCGExBuildDelaunayGraphSettings::GetPreferredChunkSize() const { return 32; }
 
-PCGExData::EInit UPCGExBuildDelaunayGraphSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
+PCGExData::EInit UPCGExBuildDelaunayGraphSettings::GetMainOutputInitMode() const { return bMarkHull ? PCGExData::EInit::DuplicateInput : PCGExData::EInit::Forward; }
 
 FPCGExBuildDelaunayGraphContext::~FPCGExBuildDelaunayGraphContext()
 {
@@ -23,6 +24,7 @@ FPCGExBuildDelaunayGraphContext::~FPCGExBuildDelaunayGraphContext()
 
 	PCGEX_DELETE(GraphBuilder)
 
+	ActivePositions.Empty();
 	HullIndices.Empty();
 }
 
@@ -83,6 +85,8 @@ bool FPCGExBuildDelaunayGraphElement::ExecuteInternal(
 				return false;
 			}
 
+			PCGExGeo::PointsToPositions(Context->CurrentIO->GetIn()->GetPoints(), Context->ActivePositions);
+
 			Context->GraphBuilder = new PCGExGraph::FGraphBuilder(*Context->CurrentIO, &Context->GraphBuilderSettings, 6);
 			Context->GetAsyncManager()->Start<FPCGExDelaunay3Task>(Context->CurrentIO->IOIndex, Context->CurrentIO, Context->GraphBuilder->Graph);
 
@@ -127,14 +131,7 @@ bool FPCGExDelaunay3Task::ExecuteTask()
 
 	PCGExGeo::TDelaunay3* Delaunay = new PCGExGeo::TDelaunay3();
 
-	const TArray<FPCGPoint>& Points = PointIO->GetIn()->GetPoints();
-	const int32 NumPoints = Points.Num();
-
-	TArray<FVector> Positions;
-	Positions.SetNum(NumPoints);
-	for (int i = 0; i < NumPoints; i++) { Positions[i] = Points[i].Transform.GetLocation(); }
-
-	const TArrayView<FVector> View = MakeArrayView(Positions);
+	const TArrayView<FVector> View = MakeArrayView(Context->ActivePositions);
 	if (!Delaunay->Process(View))
 	{
 		PCGEX_DELETE(Delaunay)

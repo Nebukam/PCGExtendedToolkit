@@ -7,6 +7,7 @@
 
 #include "PCGExCustomGraphProcessor.h"
 #include "CompGeom/Delaunay3.h"
+#include "Geometry/PCGExGeo.h"
 
 #include "PCGExBuildDelaunayGraph.generated.h"
 
@@ -43,7 +44,7 @@ public:
 	virtual int32 GetPreferredChunkSize() const override;
 	//~End UPCGExPointsProcessorSettings interface
 
-public:
+public:	
 	/** Output the Urquhart graph of the Delaunay triangulation (removes the longest edge of each Delaunay cell) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bUrquhart = false;
@@ -70,6 +71,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBuildDelaunayGraphContext : public FPCGExPoi
 
 	virtual ~FPCGExBuildDelaunayGraphContext() override;
 
+	TArray<FVector> ActivePositions;
+	
 	TSet<int32> HullIndices;
 	
 	FPCGExGraphBuilderSettings GraphBuilderSettings;

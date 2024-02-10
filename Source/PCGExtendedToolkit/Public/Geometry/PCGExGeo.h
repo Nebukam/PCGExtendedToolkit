@@ -4,7 +4,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExGeoPrimtives.h"
 #include "PCGExGeo.generated.h"
 
 USTRUCT(BlueprintType)
@@ -25,6 +24,26 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGeo2DProjectionSettings
 	FPCGExInputDescriptor LocalProjectionNormal;
 };
 
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExLloydSettings
+{
+	GENERATED_BODY()
+
+	FPCGExLloydSettings()
+	{
+	}
+
+	/** The number of Lloyd iteration to apply prior to generating the graph. Very expensive!*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bLloydRelax"))
+	int32 Iterations = 3;
+
+	/** The influence of each iteration. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bLloydRelax", ClampMin=0, ClampMax=1))
+	double Influence = 1;
+
+	bool IsValid() const { return Iterations > 0 && Influence > 0; }
+};
+
 UENUM(BlueprintType)
 enum class EPCGExCellCenter : uint8
 {
@@ -40,6 +59,7 @@ namespace PCGExGeo
 	constexpr PCGExMT::AsyncState State_ProcessingDelaunayPreprocess = __COUNTER__;
 	constexpr PCGExMT::AsyncState State_ProcessingDelaunay = __COUNTER__;
 	constexpr PCGExMT::AsyncState State_ProcessingVoronoi = __COUNTER__;
+	constexpr PCGExMT::AsyncState State_PreprocessPositions = __COUNTER__;
 
 	static double S_U(
 		const FVector& A, const FVector& B, const FVector& C, const FVector& D,
@@ -163,7 +183,7 @@ namespace PCGExGeo
 				if (LocalDist > Dist)
 				{
 					Dist = LocalDist;
-					Edge = PCGEx::H64(Vtx[i], Vtx[j]);
+					Edge = PCGEx::H64U(Vtx[i], Vtx[j]);
 				}
 			}
 		}
@@ -180,9 +200,28 @@ namespace PCGExGeo
 				if (LocalDist > Dist)
 				{
 					Dist = LocalDist;
-					Edge = PCGEx::H64(Vtx[i], Vtx[j]);
+					Edge = PCGEx::H64U(Vtx[i], Vtx[j]);
 				}
 			}
 		}
+	}
+
+	static void PointsToPositions(const TArray<FPCGPoint>& Points, TArray<FVector2D>& OutPositions, FPCGExGeo2DProjectionSettings ProjectionSettings)
+	{
+		const int32 NumPoints = Points.Num();
+		OutPositions.SetNum(NumPoints);
+		for (int i = 0; i < NumPoints; i++)
+		{
+			const FVector Pos = Points[i].Transform.GetLocation();
+			const FVector2D Proj = FVector2D(Pos.X, Pos.Y);
+			OutPositions[i] = Proj;
+		}
+	}
+
+	static void PointsToPositions(const TArray<FPCGPoint>& Points, TArray<FVector>& OutPositions)
+	{
+		const int32 NumPoints = Points.Num();
+		OutPositions.SetNum(NumPoints);
+		for (int i = 0; i < NumPoints; i++) { OutPositions[i] = Points[i].Transform.GetLocation(); }
 	}
 }
