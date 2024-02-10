@@ -53,7 +53,7 @@ bool FPCGExSampleNearestSurfaceElement::ExecuteInternal(FPCGContext* InContext) 
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }
-		
+
 		if (Context->bIgnoreSelf) { Context->IgnoredActors.Add(Context->SourceComponent->GetOwner()); }
 
 		if (Settings->bIgnoreActors)

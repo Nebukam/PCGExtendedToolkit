@@ -133,6 +133,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, EditCondition="bUseLocalRangeMax", EditConditionHides))
 	FPCGExInputDescriptor LocalRangeMax;
 
+	/** Distance method to be used for source & target points. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
+	FPCGExDistanceSettingsWithTarget DistanceSettings;
+
 	/** Weight method used for blending */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta=(PCG_Overridable))
 	EPCGExRangeType WeightMethod = EPCGExRangeType::FullRange;
@@ -147,7 +151,7 @@ public:
 
 	/** Name of the 'boolean' attribute to write sampling success to.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteSuccess"))
-	FName SuccessAttributeName = FName("SuccessfullySampled");
+	FName SuccessAttributeName = FName("bSamplingSuccess");
 
 	/** Write the sample location. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
@@ -239,6 +243,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestPointContext : public FPCGExPoi
 	TObjectPtr<UCurveFloat> WeightCurve = nullptr;
 
 	PCGEX_FOREACH_FIELD_NEARESTPOINT(PCGEX_OUTPUT_DECL)
+
+	FPCGExDistanceSettingsWithTarget DistanceSettings;
 
 	EPCGExAxis SignAxis;
 	EPCGExAxis AngleAxis;

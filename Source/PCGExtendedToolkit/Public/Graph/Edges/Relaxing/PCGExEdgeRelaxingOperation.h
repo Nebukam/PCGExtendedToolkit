@@ -31,12 +31,12 @@ public:
 	virtual void PrepareForCluster(PCGExData::FPointIO& EdgesIO, PCGExCluster::FCluster* InCluster);
 	virtual void PrepareForIteration(int Iteration, TArray<FVector>* PrimaryBuffer, TArray<FVector>* SecondaryBuffer);
 	virtual void ProcessVertex(const PCGExCluster::FNode& Vertex);
-
+	
 	void ApplyInfluence(const PCGEx::FLocalSingleFieldGetter& Influence, TArray<FVector>* OverrideBuffer = nullptr) const;
 	virtual void WriteActiveBuffer(PCGExData::FPointIO& PointIO);
 
 	double DefaultInfluence = 1;
-	
+
 	virtual void Cleanup() override;
 
 protected:

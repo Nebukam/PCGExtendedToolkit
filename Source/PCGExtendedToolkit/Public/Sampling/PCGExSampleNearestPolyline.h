@@ -7,6 +7,7 @@
 
 #include "PCGExPointsProcessor.h"
 #include "PCGExSampling.h"
+#include "PCGExSettings.h"
 #include "Data/PCGExPolyLineIO.h"
 
 #include "PCGExSampleNearestPolyline.generated.h"
@@ -14,6 +15,7 @@
 #define PCGEX_FOREACH_FIELD_NEARESTPOLYLINE(MACRO)\
 MACRO(Success, bool)\
 MACRO(Location, FVector)\
+MACRO(Scale, FVector)\
 MACRO(LookAt, FVector)\
 MACRO(Normal, FVector)\
 MACRO(Distance, double)\
@@ -141,6 +143,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, EditCondition="bUseLocalRangeMax && SampleMethod==EPCGExSampleMethod::WithinRange"))
 	FPCGExInputDescriptor LocalRangeMax;
 
+	/** Distance method to be used for source points. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
+	FPCGExDistanceSettings DistanceSettings;
+
 	/** Weight method used for blending */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta=(PCG_Overridable))
 	EPCGExRangeType WeightMethod = EPCGExRangeType::FullRange;
@@ -155,7 +161,7 @@ public:
 
 	/** Name of the 'boolean' attribute to write sampling success to.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteSuccess"))
-	FName SuccessAttributeName = FName("SuccessfullySampled");
+	FName SuccessAttributeName = FName("bSamplingSuccess");
 
 	/** Write the sample location. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
@@ -164,6 +170,14 @@ public:
 	/** Name of the 'vector' attribute to write sampled Location to.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteLocation"))
 	FName LocationAttributeName = FName("WeightedLocation");
+
+	/** Write the sample scale. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bWriteScale = false;
+
+	/** Name of the 'vector' attribute to write sampled Location to.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteScale"))
+	FName ScaleAttributeName = FName("WeightedScale");
 
 	/** Write the sample "look at" direction from the point. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
@@ -259,6 +273,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestPolylineContext : public FPCGEx
 	//TODO: Setup target local inputs
 
 	PCGEX_FOREACH_FIELD_NEARESTPOLYLINE(PCGEX_OUTPUT_DECL)
+
+	FPCGExDistanceSettings DistanceSettings;
+
 	EPCGExAxis SignAxis;
 	EPCGExAxis AngleAxis;
 	EPCGExAngleRange AngleRange;

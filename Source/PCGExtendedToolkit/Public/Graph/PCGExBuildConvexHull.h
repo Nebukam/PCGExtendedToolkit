@@ -11,8 +11,7 @@
 
 namespace PCGExGeo
 {
-	class TConvexHull3;
-	class TDelaunayTriangulation3;
+	class TDelaunay3;
 }
 
 /**
@@ -65,11 +64,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBuildConvexHullContext : public FPCGExPoints
 
 	virtual ~FPCGExBuildConvexHullContext() override;
 
-	int32 ClusterUIndex = 0;
-
-	PCGExGeo::TConvexHull3* ConvexHull = nullptr;
 	TSet<int32> HullIndices;
-
+	
 	FPCGExGraphBuilderSettings GraphBuilderSettings;
 	PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
 };
@@ -87,4 +83,20 @@ protected:
 	virtual bool Boot(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 	void WriteEdges(FPCGExBuildConvexHullContext* Context) const;
+};
+
+class PCGEXTENDEDTOOLKIT_API FPCGExConvexHull3Task : public FPCGExNonAbandonableTask
+{
+public:
+	FPCGExConvexHull3Task(
+		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+		PCGExGraph::FGraph* InGraph) :
+		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+		Graph(InGraph)
+	{
+	}
+
+	PCGExGraph::FGraph* Graph = nullptr;
+
+	virtual bool ExecuteTask() override;
 };

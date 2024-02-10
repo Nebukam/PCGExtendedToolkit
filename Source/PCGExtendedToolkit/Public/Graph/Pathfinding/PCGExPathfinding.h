@@ -317,11 +317,9 @@ namespace PCGExPathfinding
 		PCGMetadataEntryKey MetadataEntryKey = -1;
 
 		FPlotPoint(int32 InPlotIndex, const FVector& InPosition, PCGMetadataEntryKey InMetadataEntryKey)
-			:PlotIndex(InPlotIndex), Position(InPosition), MetadataEntryKey(InMetadataEntryKey)
+			: PlotIndex(InPlotIndex), Position(InPosition), MetadataEntryKey(InMetadataEntryKey)
 		{
-			
 		}
-		
 	};
 
 	const FName SourceSeedsLabel = TEXT("Seeds");

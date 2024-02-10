@@ -22,8 +22,6 @@ class PCGEXTENDEDTOOLKIT_API UPCGExPathfindingNavmeshSettings : public UPCGExPoi
 	GENERATED_BODY()
 
 public:
-	UPCGExPathfindingNavmeshSettings(const FObjectInitializer& ObjectInitializer);
-
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(PathfindingNavmesh, "Pathfinding : Navmesh", "Extract paths from navmesh.");
@@ -38,6 +36,9 @@ protected:
 	//~End UPCGSettings interface
 
 	//~Begin UObject interface
+public:
+	virtual void PostInitProperties() override;
+
 #if WITH_EDITOR
 
 public:
@@ -87,7 +88,6 @@ public:
 	/** Nav agent to be used by the nav system. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	FNavAgentProperties NavAgentProperties;
-
 };
 
 

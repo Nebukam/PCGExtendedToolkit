@@ -27,6 +27,7 @@ public class PCGExtendedToolkit : ModuleRules
 			{
 				"Core",
 				"CoreUObject",
+				"GeometryCore",
 				"AIModule",
 				"NavigationSystem",
 				"StaticMeshDescription",
@@ -41,7 +42,7 @@ public class PCGExtendedToolkit : ModuleRules
 		PrivateDependencyModuleNames.AddRange(
 			new string[]
 			{
-				
+				"Voronoi",
 			}
 		);
 

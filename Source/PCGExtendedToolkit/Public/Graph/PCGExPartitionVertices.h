@@ -33,7 +33,6 @@ public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	virtual PCGExData::EInit GetEdgeOutputInitMode() const override;
 	//~End UPCGExEdgesProcessorSettings interface
-
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExPartitionVerticesContext : public FPCGExEdgesProcessorContext
@@ -45,7 +44,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPartitionVerticesContext : public FPCGExEdge
 
 	PCGExData::FPointIOGroup* VtxPartitions = nullptr;
 	TArray<PCGExGraph::FIndexedEdge> IndexedEdges;
-
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExPartitionVerticesElement : public FPCGExEdgesProcessorElement

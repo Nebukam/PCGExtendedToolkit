@@ -3,8 +3,11 @@
 
 #include "Graph/PCGExBuildDelaunayGraph.h"
 
+#include "CompGeom/Delaunay2.h"
+#include "CompGeom/Delaunay3.h"
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
 #include "Geometry/PCGExGeoDelaunay.h"
+#include "Geometry/PCGExVoronoiLloyd.h"
 #include "Graph/PCGExConsolidateCustomGraph.h"
 #include "Graph/PCGExCluster.h"
 
@@ -13,16 +16,15 @@
 
 int32 UPCGExBuildDelaunayGraphSettings::GetPreferredChunkSize() const { return 32; }
 
-PCGExData::EInit UPCGExBuildDelaunayGraphSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
+PCGExData::EInit UPCGExBuildDelaunayGraphSettings::GetMainOutputInitMode() const { return bMarkHull ? PCGExData::EInit::DuplicateInput : PCGExData::EInit::Forward; }
 
 FPCGExBuildDelaunayGraphContext::~FPCGExBuildDelaunayGraphContext()
 {
 	PCGEX_TERMINATE_ASYNC
 
 	PCGEX_DELETE(GraphBuilder)
-	PCGEX_DELETE(Delaunay)
-	PCGEX_DELETE(ConvexHull)
 
+	ActivePositions.Empty();
 	HullIndices.Empty();
 }
 
@@ -72,8 +74,6 @@ bool FPCGExBuildDelaunayGraphElement::ExecuteInternal(
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
 		PCGEX_DELETE(Context->GraphBuilder)
-		PCGEX_DELETE(Context->Delaunay)
-		PCGEX_DELETE(Context->ConvexHull)
 		Context->HullIndices.Empty();
 
 		if (!Context->AdvancePointsIO()) { Context->Done(); }
@@ -85,106 +85,25 @@ bool FPCGExBuildDelaunayGraphElement::ExecuteInternal(
 				return false;
 			}
 
-			if (Settings->bMarkHull)
-			{
-				Context->ConvexHull = new PCGExGeo::TConvexHull3();
-				TArray<PCGExGeo::TFVtx<3>*> HullVertices;
-				GetVerticesFromPoints(Context->CurrentIO->GetIn()->GetPoints(), HullVertices);
+			PCGExGeo::PointsToPositions(Context->CurrentIO->GetIn()->GetPoints(), Context->ActivePositions);
 
-				if (Context->ConvexHull->Prepare(HullVertices))
-				{
-					if (Context->bDoAsyncProcessing) { Context->ConvexHull->StartAsyncProcessing(Context->GetAsyncManager()); }
-					else { Context->ConvexHull->Generate(); }
-				}
-				else
-				{
-					PCGE_LOG(Warning, GraphAndLog, FTEXT("(1) Some inputs generates no results. Are points coplanar? If so, use Delaunay 2D instead."));
-					return false;
-				}
-			}
+			Context->GraphBuilder = new PCGExGraph::FGraphBuilder(*Context->CurrentIO, &Context->GraphBuilderSettings, 6);
+			Context->GetAsyncManager()->Start<FPCGExDelaunay3Task>(Context->CurrentIO->IOIndex, Context->CurrentIO, Context->GraphBuilder->Graph);
 
-			Context->SetAsyncState(PCGExGeo::State_ProcessingHull);
-		}
-	}
-
-	if (Context->IsState(PCGExGeo::State_ProcessingHull))
-	{
-		if (Settings->bMarkHull)
-		{
-			if (!Context->IsAsyncWorkComplete()) { return false; }
-
-			if (Context->bDoAsyncProcessing) { Context->ConvexHull->Finalize(); }
-			Context->ConvexHull->GetHullIndices(Context->HullIndices);
-
-			PCGEx::TFAttributeWriter<bool>* HullMarkPointWriter = new PCGEx::TFAttributeWriter<bool>(Settings->HullAttributeName, false, false);
-			HullMarkPointWriter->BindAndGet(*Context->CurrentIO);
-
-			for (int i = 0; i < Context->CurrentIO->GetNum(); i++) { HullMarkPointWriter->Values[i] = Context->HullIndices.Contains(i); }
-
-			HullMarkPointWriter->Write();
-			PCGEX_DELETE(HullMarkPointWriter)
-			PCGEX_DELETE(Context->ConvexHull)
-		}
-
-		Context->Delaunay = new PCGExGeo::TDelaunayTriangulation3();
-		if (Context->Delaunay->PrepareFrom(Context->CurrentIO->GetIn()->GetPoints()))
-		{
-			if (Context->bDoAsyncProcessing) { Context->Delaunay->Hull->StartAsyncProcessing(Context->GetAsyncManager()); }
-			else { Context->Delaunay->Hull->Generate(); }
-			Context->SetAsyncState(PCGExGeo::State_ProcessingDelaunayHull);
-		}
-		else
-		{
-			Context->SetState(PCGExMT::State_ReadyForNextPoints);
-			PCGE_LOG(Warning, GraphAndLog, FTEXT("(2) Some inputs generates no results. Are points coplanar? If so, use Delaunay 2D instead."));
-			return false;
-		}
-	}
-
-	if (Context->IsState(PCGExGeo::State_ProcessingDelaunayHull))
-	{
-		if (!Context->IsAsyncWorkComplete()) { return false; }
-
-		if (Context->bDoAsyncProcessing)
-		{
-			Context->SetState(PCGExGeo::State_ProcessingDelaunayPreprocess);
-		}
-		else
-		{
-			Context->Delaunay->Generate();
 			Context->SetAsyncState(PCGExGeo::State_ProcessingDelaunay);
 		}
 	}
 
-	if (Context->IsState(PCGExGeo::State_ProcessingDelaunayPreprocess))
-	{
-		auto PreprocessSimplex = [&](const int32 Index) { Context->Delaunay->PreprocessSimplex(Index); };
-		if (!Context->Process(PreprocessSimplex, Context->Delaunay->Hull->Simplices.Num())) { return false; }
-
-		Context->Delaunay->Cells.SetNumUninitialized(Context->Delaunay->NumFinalCells);
-		Context->SetState(PCGExGeo::State_ProcessingDelaunay);
-	}
-
 	if (Context->IsState(PCGExGeo::State_ProcessingDelaunay))
 	{
-		auto ProcessSimplex = [&](const int32 Index) { Context->Delaunay->ProcessSimplex(Index); };
-		if (!Context->Process(ProcessSimplex, Context->Delaunay->NumFinalCells)) { return false; }
+		if (!Context->IsAsyncWorkComplete()) { return false; }
 
-		if (Context->Delaunay->Cells.IsEmpty())
+		if (Context->GraphBuilder->Graph->Edges.IsEmpty())
 		{
+			PCGE_LOG(Warning, GraphAndLog, FTEXT("(1) Some inputs generates no results. Are points coplanar? If so, use Delaunay 2D instead."));
 			Context->SetState(PCGExMT::State_ReadyForNextPoints);
-			PCGE_LOG(Warning, GraphAndLog, FTEXT("(3) Some inputs generates no results. Are points coplanar? If so, use Delaunay 2D instead."));
 			return false;
 		}
-
-		Context->GraphBuilder = new PCGExGraph::FGraphBuilder(*Context->CurrentIO, &Context->GraphBuilderSettings, 8);
-
-		TArray<PCGExGraph::FUnsignedEdge> Edges;
-
-		if (Settings->bUrquhart) { Context->Delaunay->GetUrquhartEdges(Edges); }
-		else { Context->Delaunay->GetUniqueEdges(Edges); }
-
-		Context->GraphBuilder->Graph->InsertEdges(Edges);
 
 		Context->GraphBuilder->Compile(Context);
 		Context->SetAsyncState(PCGExGraph::State_WritingClusters);
@@ -203,6 +122,29 @@ bool FPCGExBuildDelaunayGraphElement::ExecuteInternal(
 	}
 
 	return Context->IsDone();
+}
+
+bool FPCGExDelaunay3Task::ExecuteTask()
+{
+	FPCGExBuildDelaunayGraphContext* Context = static_cast<FPCGExBuildDelaunayGraphContext*>(Manager->Context);
+	PCGEX_SETTINGS(BuildDelaunayGraph)
+
+	PCGExGeo::TDelaunay3* Delaunay = new PCGExGeo::TDelaunay3();
+
+	const TArrayView<FVector> View = MakeArrayView(Context->ActivePositions);
+	if (!Delaunay->Process(View))
+	{
+		PCGEX_DELETE(Delaunay)
+		return false;
+	}
+
+	if (Settings->bUrquhart) { Delaunay->RemoveLongestEdges(View); }
+	if (Settings->bMarkHull) { Context->HullIndices.Append(Delaunay->DelaunayHull); }
+
+	Graph->InsertEdges(Delaunay->DelaunayEdges, -1);
+
+	PCGEX_DELETE(Delaunay)
+	return true;
 }
 
 #undef LOCTEXT_NAMESPACE

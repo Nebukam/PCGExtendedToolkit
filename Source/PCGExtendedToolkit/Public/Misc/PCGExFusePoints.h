@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 
 #include "PCGExPointsProcessor.h"
+#include "PCGExSettings.h"
 #include "Data/PCGExAttributeHelpers.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
 
@@ -79,17 +80,9 @@ public:
 	//~End UPCGExPointsProcessorSettings interface
 
 public:
-	/** Uses a per-axis radius, manathan-style */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	bool bComponentWiseRadius = false;
-
-	/** Fuse radius */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="!bComponentWiseRadius", EditConditionHides, ClampMin=0.001))
-	double Radius = 10;
-
-	/** Component-wise radiuses */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bComponentWiseRadius", EditConditionHides))
-	FVector Radiuses = FVector(10);
+	/** Fuse Settings */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	FPCGExPointPointIntersectionSettings FuseSettings;
 
 	/** Preserve the order of input points */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
@@ -109,9 +102,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFusePointsContext : public FPCGExPointsProce
 
 	virtual ~FPCGExFusePointsContext() override;
 
+	FPCGExPointPointIntersectionSettings FuseSettings;
 	bool bPreserveOrder;
-
-	double Radius = 0;
 
 	mutable FRWLock PointsLock;
 };

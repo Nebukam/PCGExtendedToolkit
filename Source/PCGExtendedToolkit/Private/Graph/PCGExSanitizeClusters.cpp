@@ -3,7 +3,7 @@
 
 #include "Graph/PCGExSanitizeClusters.h"
 
-#include "Data/PCGExGraphParamsData.h"
+#include "Data/PCGExGraphDefinition.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
 
@@ -50,13 +50,13 @@ bool FPCGExSanitizeClustersElement::ExecuteInternal(FPCGContext* InContext) cons
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
 		PCGEX_DELETE(Context->GraphBuilder)
-		
+
 		if (!Context->AdvancePointsIO()) { Context->Done(); }
 		else
 		{
 			if (!Context->TaggedEdges) { return false; }
-			
-			Context->GraphBuilder = new PCGExGraph::FGraphBuilder(*Context->CurrentIO, &Context->GraphBuilderSettings, 6, Context->CurrentEdges);
+
+			Context->GraphBuilder = new PCGExGraph::FGraphBuilder(*Context->CurrentIO, &Context->GraphBuilderSettings, 6, Context->MainEdges);
 			Context->SetState(PCGExGraph::State_ReadyForNextEdges);
 		}
 	}
@@ -64,7 +64,7 @@ bool FPCGExSanitizeClustersElement::ExecuteInternal(FPCGContext* InContext) cons
 	if (Context->IsState(PCGExGraph::State_ReadyForNextEdges))
 	{
 		Context->IndexedEdges.Empty();
-		
+
 		if (Context->CurrentEdges) { Context->CurrentEdges->Cleanup(); }
 
 		if (!Context->AdvanceEdges(false))
@@ -84,7 +84,7 @@ bool FPCGExSanitizeClustersElement::ExecuteInternal(FPCGContext* InContext) cons
 
 		BuildIndexedEdges(*Context->CurrentEdges, Context->NodeIndicesMap, Context->IndexedEdges);
 		if (Context->IndexedEdges.IsEmpty()) { return false; }
-		
+
 		Context->GraphBuilder->Graph->InsertEdges(Context->IndexedEdges);
 	}
 
@@ -101,11 +101,6 @@ bool FPCGExSanitizeClustersElement::ExecuteInternal(FPCGContext* InContext) cons
 	}
 
 	return Context->IsDone();
-}
-
-bool FPCGExFetchAndInsertEdgesTask::ExecuteTask()
-{
-	return false;
 }
 
 #undef LOCTEXT_NAMESPACE

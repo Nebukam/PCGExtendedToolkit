@@ -16,12 +16,8 @@
 
 #define PCGEX_DELETE(_VALUE) delete _VALUE; _VALUE = nullptr;
 #define PCGEX_DELETE_TARRAY(_VALUE) for(const auto* Item : _VALUE){ delete Item; } _VALUE.Empty();
+#define PCGEX_DELETE_TMAP(_VALUE, _TYPE){TArray<_TYPE> Keys; _VALUE.GetKeys(Keys); for (const _TYPE Key : Keys) { delete *_VALUE.Find(Key); } _VALUE.Empty(); Keys.Empty(); }
 #define PCGEX_CLEANUP(_VALUE) _VALUE.Cleanup();
-
-#define PCGEX_SORTED_ADD(_TARRAY, _ITEM, _COMPARE)\
-int32 HeapIndex = 0; for (int i = HeapIndex; i >= 0; i--){ if (_COMPARE){ HeapIndex = i + 1; break;	}}\
-if (HeapIndex >= _TARRAY.Num()) { _TARRAY.Add(_ITEM); }\
-else { _TARRAY.Insert(_ITEM, HeapIndex); }
 
 #define PCGEX_FOREACH_SUPPORTEDTYPES(MACRO, ...) \
 MACRO(bool, Boolean, __VA_ARGS__)       \
@@ -90,7 +86,6 @@ namespace PCGExData
 	struct FPointIO;
 }
 
-
 UENUM(BlueprintType)
 enum class EPCGExOrderedFieldSelection : uint8
 {
@@ -147,6 +142,14 @@ enum class EPCGExExtension : uint8
 };
 
 UENUM(BlueprintType)
+enum class EPCGExDistance : uint8
+{
+	Center UMETA(DisplayName = "Center", ToolTip="Center"),
+	SphereBounds UMETA(DisplayName = "Sphere Bounds", ToolTip="Point sphere which radius is scaled extent"),
+	BoxBounds UMETA(DisplayName = "Box Bounds", ToolTip="Point extents"),
+};
+
+UENUM(BlueprintType)
 enum class EPCGExIndexSafety : uint8
 {
 	Ignore UMETA(DisplayName = "Ignore", Tooltip="Out of bounds indices are ignored."),
@@ -196,6 +199,56 @@ namespace PCGEx
 	const FSoftObjectPath WeightDistributionLinear = FSoftObjectPath(TEXT("/PCGExtendedToolkit/FC_PCGExWeightDistribution_Linear.FC_PCGExWeightDistribution_Linear"));
 	const FSoftObjectPath WeightDistributionExpoInv = FSoftObjectPath(TEXT("/PCGExtendedToolkit/FC_PCGExWeightDistribution_Expo_Inv.FC_PCGExWeightDistribution_Expo_Inv"));
 	const FSoftObjectPath WeightDistributionExpo = FSoftObjectPath(TEXT("/PCGExtendedToolkit/FC_PCGExWeightDistribution_Expo.FC_PCGExWeightDistribution_Expo"));
+
+	// Unsigned uint64 hash
+	static uint64 H64U(const uint32 A, const uint32 B)
+	{
+		return A > B ?
+			       static_cast<uint64>(A) << 32 | B :
+			       static_cast<uint64>(B) << 32 | A;
+	}
+
+	// Signed uint64 hash
+	static uint64 H64(const uint32 A, const uint32 B) { return static_cast<uint64>(A) << 32 | B; }
+
+	// Expand uint64 hash
+	static uint32 H64A(const uint64 Hash) { return static_cast<uint32>(Hash >> 32); }
+	static uint32 H64B(const uint64 Hash) { return static_cast<uint32>(Hash); }
+
+	static void H64(const uint64 Hash, uint32& A, uint32& B)
+	{
+		A = H64A(Hash);
+		B = H64B(Hash);
+	}
+
+	static uint64 H6416(const uint16 A, const uint16 B, const uint16 C, const uint16 D)
+	{
+		return (static_cast<uint64>(A) << 48) |
+			(static_cast<uint64>(B) << 32) |
+			(static_cast<uint64>(C) << 16) |
+			static_cast<uint64>(D);
+	}
+
+	static void H6416(uint64_t H, uint16& A, uint16& B, uint16& C, uint16& D)
+	{
+		A = static_cast<uint16>(H >> 48);
+		B = static_cast<uint16>((H >> 32) & 0xFFFF);
+		C = static_cast<uint16>((H >> 16) & 0xFFFF);
+		D = static_cast<uint16>(H & 0xFFFF);
+	}
+
+	static uint64 H64S(const uint32 A, const uint32 B, const uint32 C)
+	{
+		uint64 H = (static_cast<uint64>(A) << 32) | (static_cast<uint64>(B) << 16) | C;
+
+		H ^= (H >> 23) ^ (H << 37);
+		H *= 0xc4ceb9fe1a85ec53;
+		H ^= (H >> 32);
+
+		return H;
+	}
+
+	static uint64 H64S(int32 ABC[3]) { return H64S(ABC[0], ABC[1], ABC[2]); }
 
 #pragma region Field Helpers
 
@@ -362,5 +415,4 @@ namespace PCGEx
 		T* Ptr2 = &Array[SecondIndex];
 		std::swap(*Ptr1, *Ptr2);
 	}
-
 }

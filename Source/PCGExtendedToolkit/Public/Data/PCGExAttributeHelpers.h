@@ -812,7 +812,7 @@ namespace PCGEx
 		virtual int32 Convert(const FName Value) const override { return PCGExMath::ConvertStringToDouble(Value.ToString()); }
 	};
 
-	
+
 	struct PCGEXTENDEDTOOLKIT_API FLocalVectorGetter : public FAttributeGetter<FVector>
 	{
 	protected:

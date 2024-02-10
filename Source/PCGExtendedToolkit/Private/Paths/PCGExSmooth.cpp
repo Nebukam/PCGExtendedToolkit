@@ -8,12 +8,6 @@
 #define LOCTEXT_NAMESPACE "PCGExSmoothElement"
 #define PCGEX_NAMESPACE Smooth
 
-UPCGExSmoothSettings::UPCGExSmoothSettings(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
-{
-	PCGEX_OPERATION_DEFAULT(Smoothing, UPCGExMovingAverageSmoothing)
-}
-
 #if WITH_EDITOR
 void UPCGExSmoothSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
@@ -25,6 +19,12 @@ void UPCGExSmoothSettings::PostEditChangeProperty(FPropertyChangedEvent& Propert
 PCGExData::EInit UPCGExSmoothSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
 PCGEX_INITIALIZE_ELEMENT(Smooth)
+
+void UPCGExSmoothSettings::PostInitProperties()
+{
+	Super::PostInitProperties();
+	PCGEX_OPERATION_DEFAULT(Smoothing, UPCGExMovingAverageSmoothing)
+}
 
 FPCGExSmoothContext::~FPCGExSmoothContext()
 {
@@ -38,6 +38,7 @@ bool FPCGExSmoothElement::Boot(FPCGContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(Smooth)
 
 	PCGEX_OPERATION_BIND(Smoothing, UPCGExMovingAverageSmoothing)
+
 	Context->Smoothing->bClosedPath = Settings->bClosedPath;
 	Context->Smoothing->bPreserveStart = Settings->bPreserveStart;
 	Context->Smoothing->bPreserveEnd = Settings->bPreserveEnd;

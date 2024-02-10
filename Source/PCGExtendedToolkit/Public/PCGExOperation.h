@@ -18,11 +18,11 @@ class PCGEXTENDEDTOOLKIT_API UPCGExOperation : public UObject
 	//~Begin UPCGExOperation interface
 public:
 	void BindContext(FPCGExPointsProcessorContext* InContext);
-	
+
 #if WITH_EDITOR
 	virtual void UpdateUserFacingInfos();
 #endif
-	
+
 	virtual void Cleanup();
 	virtual void Write();
 

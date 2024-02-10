@@ -7,8 +7,6 @@
 #include "CoreMinimal.h"
 #include "PCGEx.h"
 
-#include "PCGExMath.generated.h"
-
 namespace PCGExMath
 {
 	/**
@@ -212,66 +210,8 @@ namespace PCGExMath
 		return Box;
 	}
 
-	static double S_U(
-		const FVector& A, const FVector& B, const FVector& C, const FVector& D,
-		const FVector& E, const FVector& F, const FVector& G, const FVector& H)
-	{
-		return (A.Z - B.Z) * (C.X * D.Y - D.X * C.Y) - (E.Z - F.Z) * (G.X * H.Y - H.X * G.Y);
-	};
-
-	static double S_D(
-		const int FirstComponent, const int SecondComponent,
-		FVector A, FVector B, FVector C)
-	{
-		return
-			A[FirstComponent] * (B[SecondComponent] - C[SecondComponent]) +
-			B[FirstComponent] * (C[SecondComponent] - A[SecondComponent]) +
-			C[FirstComponent] * (A[SecondComponent] - B[SecondComponent]);
-	};
-
-	static double S_E(
-		const int FirstComponent, const int SecondComponent,
-		const FVector& A, const FVector& B, const FVector& C, const FVector& D,
-		const double RA, const double RB, const double RC, const double RD, const double UVW)
-	{
-		return (RA * S_D(FirstComponent, SecondComponent, B, C, D) - RB * S_D(FirstComponent, SecondComponent, C, D, A) +
-			RC * S_D(FirstComponent, SecondComponent, D, A, B) - RD * S_D(FirstComponent, SecondComponent, A, B, C)) / UVW;
-	};
-
-	static double S_SQ(const FVector& P) { return P.X * P.X + P.Y * P.Y + P.Z * P.Z; };
-
-	static bool FindSphereFrom4Points(const FVector& A, const FVector& B, const FVector& C, const FVector& D, FSphere& OutSphere)
-	{
-		//Shamelessly stolen from https://stackoverflow.com/questions/37449046/how-to-calculate-the-sphere-center-with-4-points
-
-		const double U = S_U(A, B, C, D, B, C, D, A);
-		const double V = S_U(C, D, A, B, D, A, B, C);
-		const double W = S_U(A, C, D, B, B, D, A, C);
-		const double UVW = 2 * (U + V + W);
-
-		if (UVW == 0.0) { return false; } // Coplanar
-
-		constexpr int C_X = 0;
-		constexpr int C_Y = 1;
-		constexpr int C_Z = 2;
-		const double RA = S_SQ(A);
-		const double RB = S_SQ(B);
-		const double RC = S_SQ(C);
-		const double RD = S_SQ(D);
-
-		const FVector Center = FVector(
-			S_E(C_Y, C_Z, A, B, C, D, RA, RB, RC, RD, UVW),
-			S_E(C_Z, C_X, A, B, C, D, RA, RB, RC, RD, UVW),
-			S_E(C_X, C_Y, A, B, C, D, RA, RB, RC, RD, UVW));
-
-		const double radius = FMath::Sqrt(S_SQ(FVector(A - Center)));
-
-		OutSphere = FSphere(Center, radius);
-		return true;
-	}
-
 	template <typename T>
-	static T GetMinMax(const TArray<T>& Values, T& OutMin, T& OutMax)
+	static void GetMinMax(const TArray<T>& Values, T& OutMin, T& OutMax)
 	{
 		OutMin = TNumericLimits<T>::Max();
 		OutMax = TNumericLimits<T>::Min();
@@ -816,119 +756,40 @@ namespace PCGExMath
 
 	static void RandomizeSeed(FPCGPoint& Point, const FVector& Offset = FVector::ZeroVector)
 	{
-		Point.Seed = static_cast<int32>(PCGExMath::Remap(
-			FMath::PerlinNoise3D(PCGExMath::Tile(Point.Transform.GetLocation() * 0.001 + Offset, FVector(-1), FVector(1))),
+		Point.Seed = static_cast<int32>(Remap(
+			FMath::PerlinNoise3D(Tile(Point.Transform.GetLocation() * 0.001 + Offset, FVector(-1), FVector(1))),
 			-1, 1, TNumericLimits<int32>::Min(), TNumericLimits<int32>::Max()));
 	}
+
+	// Stolen from PCGDistance
+	static FVector GetRelationalCenter(
+		const EPCGExDistance Shape,
+		const FPCGPoint& SourcePoint,
+		const FVector& SourceCenter,
+		const FVector& TargetCenter)
+	{
+		if (Shape == EPCGExDistance::SphereBounds)
+		{
+			FVector Dir = TargetCenter - SourceCenter;
+			Dir.Normalize();
+
+			return SourceCenter + Dir * SourcePoint.GetScaledExtents().Length();
+		}
+		if (Shape == EPCGExDistance::BoxBounds)
+		{
+			const FVector LocalTargetCenter = SourcePoint.Transform.InverseTransformPosition(TargetCenter);
+
+			const double DistanceSquared = ComputeSquaredDistanceFromBoxToPoint(SourcePoint.BoundsMin, SourcePoint.BoundsMax, LocalTargetCenter);
+
+			FVector Dir = -LocalTargetCenter;
+			Dir.Normalize();
+
+			const FVector LocalClosestPoint = LocalTargetCenter + Dir * FMath::Sqrt(DistanceSquared);
+
+			return SourcePoint.Transform.TransformPosition(LocalClosestPoint);
+		}
+
+		// EPCGExDistance::Center
+		return SourceCenter;
+	}
 }
-
-USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExClampSettings
-{
-	GENERATED_BODY()
-
-	FPCGExClampSettings()
-	{
-	}
-
-	FPCGExClampSettings(const FPCGExClampSettings& Other):
-		bClampMin(Other.bClampMin),
-		ClampMin(Other.ClampMin),
-		bClampMax(Other.bClampMax),
-		ClampMax(Other.ClampMax)
-	{
-	}
-
-	/** Clamp minimum value. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
-	bool bClampMin = false;
-
-	/** Clamp minimum value. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bClampMin"))
-	double ClampMin = 0;
-
-	/** Clamp maximum value. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
-	bool bClampMax = false;
-
-	/** Clamp maximum value. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bClampMax"))
-	double ClampMax = 0;
-
-	double GetClampMin(const double InValue) const { return InValue < ClampMin ? ClampMin : InValue; }
-	double GetClampMax(const double InValue) const { return InValue > ClampMax ? ClampMax : InValue; }
-	double GetClampMinMax(const double InValue) const { return InValue > ClampMax ? ClampMax : InValue < ClampMin ? ClampMin : InValue; }
-
-	double GetClampedValue(const double InValue) const
-	{
-		if (bClampMin && InValue < ClampMin) { return ClampMin; }
-		if (bClampMax && InValue > ClampMax) { return ClampMax; }
-		return InValue;
-	}
-};
-
-USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExRemapSettings
-{
-	GENERATED_BODY()
-
-	FPCGExRemapSettings()
-	{
-	}
-
-	FPCGExRemapSettings(const FPCGExRemapSettings& Other):
-		bInMin(Other.bInMin),
-		InMin(Other.InMin),
-		bInMax(Other.bInMax),
-		InMax(Other.InMax),
-		RangeMethod(Other.RangeMethod),
-		Scale(Other.Scale),
-		RemapCurveObj(Other.RemapCurveObj)
-	{
-	}
-
-	~FPCGExRemapSettings()
-	{
-		RemapCurveObj = nullptr;
-	}
-
-	/** Fixed In Min value. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
-	bool bInMin = false;
-
-	/** Fixed In Min value. If disabled, will use the lowest input value.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bInMin"))
-	double InMin = 0;
-
-	/** Fixed In Max value. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
-	bool bInMax = false;
-
-	/** Fixed In Max value. If disabled, will use the highest input value.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bInMax"))
-	double InMax = 0;
-
-	/** How to remap before sampling the curve. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	EPCGExRangeType RangeMethod = EPCGExRangeType::EffectiveRange;
-	
-	/** Scale output value. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	double Scale = 1;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TSoftObjectPtr<UCurveFloat> RemapCurve = TSoftObjectPtr<UCurveFloat>(PCGEx::WeightDistributionLinear);
-
-	TObjectPtr<UCurveFloat> RemapCurveObj = nullptr;
-
-	void LoadCurve()
-	{
-		if (RemapCurve.IsNull()) { RemapCurveObj = TSoftObjectPtr<UCurveFloat>(PCGEx::WeightDistributionLinear).LoadSynchronous(); }
-		else { RemapCurveObj = RemapCurve.LoadSynchronous(); }
-	}
-
-	double GetRemappedValue(double Value) const
-	{
-		return RemapCurveObj->GetFloatValue(PCGExMath::Remap(Value, InMin, InMax, 0, 1)) * Scale;
-	}
-};

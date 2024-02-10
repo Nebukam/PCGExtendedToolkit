@@ -3,14 +3,14 @@
 
 #include "Graph/PCGExCopyClusters.h"
 
-#include "Data/PCGExGraphParamsData.h"
+#include "Data/PCGExGraphDefinition.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
 
 #pragma region UPCGSettings interface
 
-PCGExData::EInit UPCGExCopyClustersSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
-PCGExData::EInit UPCGExCopyClustersSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
+PCGExData::EInit UPCGExCopyClustersSettings::GetMainOutputInitMode() const { return PCGExData::EInit::Forward; }
+PCGExData::EInit UPCGExCopyClustersSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::Forward; }
 
 #pragma endregion
 
@@ -54,7 +54,7 @@ bool FPCGExCopyClustersElement::ExecuteInternal(FPCGContext* InContext) const
 
 	Context->OutputPointsAndEdges();
 	Context->Done();
-	
+
 	return Context->IsDone();
 }
 

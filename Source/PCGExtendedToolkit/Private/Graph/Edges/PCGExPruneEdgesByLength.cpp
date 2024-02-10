@@ -3,7 +3,7 @@
 
 #include "Graph/Edges/PCGExPruneEdgesByLength.h"
 
-#include "Data/PCGExGraphParamsData.h"
+#include "Data/PCGExGraphDefinition.h"
 #include "Sampling/PCGExSampling.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
@@ -143,7 +143,7 @@ bool FPCGExPruneEdgesByLengthElement::ExecuteInternal(FPCGContext* InContext) co
 
 	if (Context->IsState(PCGExGraph::State_ProcessingEdges))
 	{
-		Context->GraphBuilder = new PCGExGraph::FGraphBuilder(*Context->CurrentIO, &Context->GraphBuilderSettings, 6, Context->CurrentEdges);
+		Context->GraphBuilder = new PCGExGraph::FGraphBuilder(*Context->CurrentIO, &Context->GraphBuilderSettings, 6, Context->MainEdges);
 
 		for (PCGExGraph::FIndexedEdge& Edge : Context->IndexedEdges)
 		{

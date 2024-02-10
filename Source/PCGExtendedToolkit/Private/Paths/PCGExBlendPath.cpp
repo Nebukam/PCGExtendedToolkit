@@ -8,12 +8,6 @@
 #define LOCTEXT_NAMESPACE "PCGExBlendPathElement"
 #define PCGEX_NAMESPACE BlendPath
 
-UPCGExBlendPathSettings::UPCGExBlendPathSettings(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
-{
-	PCGEX_OPERATION_DEFAULT(BlendPathing, UPCGExMovingAverageBlendPathing)
-}
-
 #if WITH_EDITOR
 void UPCGExBlendPathSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
@@ -25,6 +19,12 @@ void UPCGExBlendPathSettings::PostEditChangeProperty(FPropertyChangedEvent& Prop
 PCGExData::EInit UPCGExBlendPathSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
 PCGEX_INITIALIZE_ELEMENT(BlendPath)
+
+void UPCGExBlendPathSettings::PostInitProperties()
+{
+	Super::PostInitProperties();
+	PCGEX_OPERATION_DEFAULT(Blending, UPCGExSubPointsBlendInterpolate)
+}
 
 FPCGExBlendPathContext::~FPCGExBlendPathContext()
 {
@@ -93,7 +93,7 @@ bool FPCGExBlendPathTask::ExecuteTask()
 	const PCGEx::FPointRef StartPoint = PointIO->GetOutPointRef(0);
 	const PCGEx::FPointRef EndPoint = PointIO->GetOutPointRef(PathPoints.Num() - 1);
 
-	const PCGExMath::FPathMetrics* Metrics = new PCGExMath::FPathMetrics(PathPoints);	
+	const PCGExMath::FPathMetrics* Metrics = new PCGExMath::FPathMetrics(PathPoints);
 	Context->Blending->BlendSubPoints(StartPoint, EndPoint, PathPoints, *Metrics, Blender);
 
 	PCGEX_DELETE(Blender);

@@ -58,7 +58,7 @@ bool FPCGExSampleSurfaceGuidedElement::ExecuteInternal(FPCGContext* InContext) c
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }
-		
+
 		if (Context->bIgnoreSelf) { Context->IgnoredActors.Add(Context->SourceComponent->GetOwner()); }
 
 		if (Settings->bIgnoreActors)
@@ -79,7 +79,7 @@ bool FPCGExSampleSurfaceGuidedElement::ExecuteInternal(FPCGContext* InContext) c
 		{
 			PCGExData::FPointIO& PointIO = *Context->CurrentIO;
 			PointIO.CreateOutKeys();
-			
+
 			if (!Context->DirectionGetter->Grab(PointIO))
 			{
 				PCGE_LOG(Error, GraphAndLog, FTEXT("Some inputs don't have the desired Direction data."));
@@ -93,7 +93,7 @@ bool FPCGExSampleSurfaceGuidedElement::ExecuteInternal(FPCGContext* InContext) c
 					PCGE_LOG(Error, GraphAndLog, FTEXT("Some inputs don't have the desired Local Max Distance data."));
 				}
 			}
-			
+
 			PCGEX_FOREACH_FIELD_SURFACEGUIDED(PCGEX_OUTPUT_ACCESSOR_INIT)
 
 			for (int i = 0; i < PointIO.GetNum(); i++) { Context->GetAsyncManager()->Start<FTraceTask>(i, Context->CurrentIO); }

@@ -185,32 +185,47 @@ bool FPCGExBridgeEdgeClustersElement::ExecuteInternal(
 
 		if (NumBounds <= 4)
 		{
-			if (SafeMethod == EPCGExBridgeClusterMethod::Delaunay) { SafeMethod = EPCGExBridgeClusterMethod::MostEdges; }
+			if (SafeMethod == EPCGExBridgeClusterMethod::Delaunay3D) { SafeMethod = EPCGExBridgeClusterMethod::MostEdges; }
+		}
+		else if (NumBounds <= 3)
+		{
+			if (SafeMethod == EPCGExBridgeClusterMethod::Delaunay2D) { SafeMethod = EPCGExBridgeClusterMethod::MostEdges; }
 		}
 
 		TArray<FBox> Bounds;
 		Bounds.SetNumUninitialized(NumBounds);
 		for (int i = 0; i < NumBounds; i++) { Bounds[i] = Context->BridgedEdges[i]->GetIn()->GetBounds(); }
 
-		TArray<PCGExGraph::FUnsignedEdge*> Bridges;
+		TSet<uint64> Bridges;
 
-		if (SafeMethod == EPCGExBridgeClusterMethod::Delaunay)
+		if (SafeMethod == EPCGExBridgeClusterMethod::Delaunay3D)
 		{
-			PCGExGeo::TDelaunayTriangulation3* Delaunay = new PCGExGeo::TDelaunayTriangulation3();
+			PCGExGeo::TDelaunay3* Delaunay = new PCGExGeo::TDelaunay3();
 
-			TArray<FPCGPoint> Points;
-			Points.SetNum(NumBounds);
-			for (int i = 0; i < NumBounds; i++) { Points[i].Transform.SetLocation(Bounds[i].GetCenter()); }
+			TArray<FVector> Positions;
+			Positions.SetNum(NumBounds);
 
-			if (Delaunay->PrepareFrom(Points))
-			{
-				TArray<PCGExGraph::FUnsignedEdge> DelaunayEdges;
-				Delaunay->Generate();
-				Delaunay->GetUniqueEdges(DelaunayEdges);
+			for (int i = 0; i < NumBounds; i++) { Positions[i] = Bounds[i].GetCenter(); }
 
-				for (const PCGExGraph::FUnsignedEdge& E : DelaunayEdges) { Bridges.Add(new PCGExGraph::FUnsignedEdge(E.Start, E.End)); }
-			}
+			if (Delaunay->Process(Positions)) { Bridges.Append(Delaunay->DelaunayEdges); }
+			else { PCGE_LOG(Warning, GraphAndLog, FTEXT("(1) Delaunay 3D failed. Are points coplanar? If so, use Delaunay 2D instead.")); }
 
+			Positions.Empty();
+			PCGEX_DELETE(Delaunay)
+		}
+		else if (SafeMethod == EPCGExBridgeClusterMethod::Delaunay2D)
+		{
+			PCGExGeo::TDelaunay2* Delaunay = new PCGExGeo::TDelaunay2();
+
+			TArray<FVector2D> Positions;
+			Positions.SetNum(NumBounds);
+
+			for (int i = 0; i < NumBounds; i++) { Positions[i] = FVector2D(Bounds[i].GetCenter()); }
+
+			if (Delaunay->Process(Positions)) { Bridges.Append(Delaunay->DelaunayEdges); }
+			else { PCGE_LOG(Warning, GraphAndLog, FTEXT("(1) Delaunay 2D failed.")); }
+
+			Positions.Empty();
 			PCGEX_DELETE(Delaunay)
 		}
 		else if (SafeMethod == EPCGExBridgeClusterMethod::LeastEdges)
@@ -226,8 +241,8 @@ bool FPCGExBridgeEdgeClustersElement::ExecuteInternal(
 				{
 					if (i == j || VisitedEdges.Contains(j)) { continue; }
 
-					const double Dist = FVector::DistSquared(Bounds[i].GetCenter(), Bounds[j].GetCenter());
-					if (Dist < Distance)
+					if (const double Dist = FVector::DistSquared(Bounds[i].GetCenter(), Bounds[j].GetCenter());
+						Dist < Distance)
 					{
 						ClosestIndex = j;
 						Distance = Dist;
@@ -235,20 +250,18 @@ bool FPCGExBridgeEdgeClustersElement::ExecuteInternal(
 				}
 
 				if (ClosestIndex == -1) { continue; }
-				Bridges.Add(new PCGExGraph::FUnsignedEdge(i, ClosestIndex));
+
+				Bridges.Add(PCGEx::H64(i, ClosestIndex));
 			}
 		}
 		else if (SafeMethod == EPCGExBridgeClusterMethod::MostEdges)
 		{
-			TSet<uint64> UniqueBridges;
 			for (int i = 0; i < NumBounds; i++)
 			{
 				for (int j = 0; j < NumBounds; j++)
 				{
-					uint64 Hash = PCGExGraph::GetUnsignedHash64(i, j);
-					if (i == j || UniqueBridges.Contains(Hash)) { continue; }
-					UniqueBridges.Add(Hash);
-					Bridges.Add(new PCGExGraph::FUnsignedEdge(i, j));
+					if (i == j) { continue; }
+					Bridges.Add(PCGEx::H64U(i, j));
 				}
 			}
 		}
@@ -258,18 +271,19 @@ bool FPCGExBridgeEdgeClustersElement::ExecuteInternal(
 		TArray<FPCGPoint>& MutableEdges = Context->ConsolidatedEdges->GetOut()->GetMutablePoints();
 		UPCGMetadata* Metadata = Context->ConsolidatedEdges->GetOut()->Metadata;
 
-		for (const PCGExGraph::FUnsignedEdge* Bridge : Bridges)
+		for (const uint64 Bridge : Bridges)
 		{
 			FPCGPoint& EdgePoint = MutableEdges.Emplace_GetRef();
 			Metadata->InitializeOnSet(EdgePoint.MetadataEntry);
 
+			uint32 Start;
+			uint32 End;
+			PCGEx::H64(Bridge, Start, End);
+
 			Context->GetAsyncManager()->Start<FPCGExCreateBridgeTask>(
 				MutableEdges.Num() - 1, Context->ConsolidatedEdges,
-				Context->Clusters[Bridge->Start],
-				Context->Clusters[Bridge->End]);
+				Context->Clusters[Start], Context->Clusters[End]);
 		}
-
-		PCGEX_DELETE_TARRAY(Bridges)
 
 		Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork);
 	}

@@ -5,421 +5,285 @@
 
 #include "CoreMinimal.h"
 #include "PCGExGeo.h"
-#include "PCGExGeoHull.h"
-#include "PCGExGeoPrimtives.h"
+#include "CompGeom/Delaunay2.h"
+#include "CompGeom/Delaunay3.h"
 
 namespace PCGExGeo
 {
-	class FPreProcessSimplexTask;
-	class FProcessSimplexTask;
-
-	template <int DIMENSIONS>
-	class PCGEXTENDEDTOOLKIT_API TDelaunayCell
+	struct FDelaunaySite2
 	{
 	public:
-		TFSimplex<DIMENSIONS>* Simplex = nullptr;
-		TFVtx<DIMENSIONS>* Circumcenter = nullptr;
-		double Radius = 0;
-		bool bIsWithinBounds = true;
-		bool bIsOnHull = false;
-		FVector Centroid = FVector::Zero();
+		int32 Id = -1;
+		int32 Vtx[3];
+		int32 Neighbors[3];
+		bool bOnHull = false;
 
-		TDelaunayCell(
-			TFSimplex<DIMENSIONS>* InSimplex,
-			TFVtx<DIMENSIONS>* InCircumcenter,
-			const double InRadius)
+		FDelaunaySite2(const UE::Geometry::FIndex3i& InVtx, const UE::Geometry::FIndex3i& InAdjacency, const int32 InId = -1) : Id(InId)
 		{
-			Simplex = InSimplex;
-			Circumcenter = InCircumcenter;
-			Radius = InRadius;
-			ComputeCentroid();
-		}
-
-		~TDelaunayCell()
-		{
-			Simplex = nullptr;
-			PCGEX_DELETE(Circumcenter)
-			Radius = 0;
-		}
-
-		void ComputeCentroid()
-		{
-			Centroid = FVector::Zero();
-			for (TFVtx<DIMENSIONS>* Vtx : Simplex->Vertices) { Centroid += Vtx->Location; }
-			Centroid /= DIMENSIONS;
-		}
-
-		FVector GetBestCenter() const
-		{
-			if (bIsWithinBounds) { return PCGExGeo::GetV3(Circumcenter); }
-			return Centroid;
-		}
-
-		void ComputeHullQuality()
-		{
-			bIsOnHull = true;
-			for (int i = 0; i < DIMENSIONS - 1; i++)
+			for (int i = 0; i < 3; i++)
 			{
-				if (!Simplex->Vertices[i]->bIsOnHull)
+				Vtx[i] = InVtx[i];
+				Neighbors[i] = InAdjacency[i];
+			}
+		}
+	};
+
+	class PCGEXTENDEDTOOLKIT_API TDelaunay2
+	{
+	public:
+		UE::Geometry::FDelaunay2* Triangulation = nullptr;
+
+		TArray<FDelaunaySite2> Sites;
+
+		TSet<uint64> DelaunayEdges;
+		TSet<int32> DelaunayHull;
+		bool IsValid = false;
+
+		TDelaunay2()
+		{
+		}
+
+		~TDelaunay2()
+		{
+			Clear();
+		}
+
+		void Clear()
+		{
+			PCGEX_DELETE(Triangulation)
+
+			Sites.Empty();
+			DelaunayEdges.Empty();
+			DelaunayHull.Empty();
+
+			IsValid = false;
+		}
+
+		bool Process(const TArrayView<FVector2D>& Positions)
+		{
+			Clear();
+			if (Positions.IsEmpty() || Positions.Num() <= 2) { return false; }
+
+			Triangulation = new UE::Geometry::FDelaunay2();
+
+			if (!Triangulation->Triangulate(Positions))
+			{
+				Clear();
+				return false;
+			}
+
+			IsValid = true;
+
+			TArray<UE::Geometry::FIndex3i> Triangles;
+			TArray<UE::Geometry::FIndex3i> Adjacencies;
+
+			Triangulation->GetTrianglesAndAdjacency(Triangles, Adjacencies);
+
+			const int32 NumSites = Triangles.Num();
+			const int32 NumReserve = NumSites * 3;
+
+			DelaunayEdges.Reserve(NumReserve);
+
+			Sites.SetNumUninitialized(NumSites);
+
+			for (int i = 0; i < NumSites; i++)
+			{
+				FDelaunaySite2& Site = Sites[i] = FDelaunaySite2(Triangles[i], Adjacencies[i], i);
+
+				for (int a = 0; a < 3; a++)
 				{
-					bIsOnHull = false;
+					for (int b = a + 1; b < 3; b++)
+					{
+						const uint64 H = PCGEx::H64U(Site.Vtx[a], Site.Vtx[b]);
+						DelaunayEdges.Add(H);
+
+						if (Site.Neighbors[a] == -1)
+						{
+							Site.bOnHull = true;
+							DelaunayHull.Add(Site.Vtx[a]);
+							DelaunayHull.Add(Site.Vtx[b]);
+						}
+					}
+				}
+			}
+
+			Triangles.Empty();
+			Adjacencies.Empty();
+
+			return IsValid;
+		}
+
+		void RemoveLongestEdges(const TArrayView<FVector2D>& Positions)
+		{
+			uint64 Edge;
+			for (const FDelaunaySite2& Site : Sites)
+			{
+				GetLongestEdge(Positions, Site.Vtx, Edge);
+				DelaunayEdges.Remove(Edge);
+			}
+		}
+	};
+
+	struct FDelaunaySite3
+	{
+	public:
+		int32 Id = -1;
+		int32 Vtx[4];
+		int32 Neighbors[4];
+		uint64 Faces[4];
+		bool bOnHull = false;
+
+		FDelaunaySite3(const FIntVector4& InVtx, const int32 InId = -1) : Id(InId)
+		{
+			for (int i = 0; i < 4; i++)
+			{
+				Vtx[i] = InVtx[i];
+				Neighbors[i] = -1;
+				Faces[i] = 0;
+			}
+
+			std::sort(std::begin(Vtx), std::end(Vtx));
+		}
+
+		void ComputeFaces()
+		{
+			Faces[0] = PCGEx::H64S(Vtx[0], Vtx[1], Vtx[2]);
+			Faces[1] = PCGEx::H64S(Vtx[0], Vtx[1], Vtx[3]);
+			Faces[2] = PCGEx::H64S(Vtx[0], Vtx[2], Vtx[3]);
+			Faces[3] = PCGEx::H64S(Vtx[1], Vtx[2], Vtx[3]);
+		}
+
+		void SetAdjacency(const uint64 Face, const int32 Neighbor)
+		{
+			for (int i = 0; i < 4; i++)
+			{
+				if (Faces[i] == Face)
+				{
+					Neighbors[i] = Neighbor;
 					return;
 				}
 			}
 		}
 	};
 
-	template <int DIMENSIONS, typename T_HULL>
-	class PCGEXTENDEDTOOLKIT_API TDelaunayTriangulation
+	class PCGEXTENDEDTOOLKIT_API TDelaunay3
 	{
-	protected:
-		bool bOwnsVertices = true;
-		FRWLock HullLock;
-		FRWLock AsyncLock;
-
-		TMap<int32, int32> SimpliceIndices;
-
 	public:
-		TConvexHull<DIMENSIONS>* Hull = nullptr;
-		TArray<TFVtx<DIMENSIONS>*> Vertices;
-		TArray<TDelaunayCell<DIMENSIONS>*> Cells;
-		TFVtx<DIMENSIONS>* Centroid = nullptr;
-		int32 NumFinalCells = 0;
-		TSet<int32>* ConvexHullIndices = nullptr;
+		UE::Geometry::FDelaunay3* Tetrahedralization = nullptr;
 
-		FBox Bounds;
-		double BoundsExtension = 0;
-		EPCGExCellCenter CellCenter = EPCGExCellCenter::Circumcenter;
+		TArray<FDelaunaySite3> Sites;
 
-		TDelaunayTriangulation()
+		TSet<uint64> DelaunayEdges;
+		TSet<int32> DelaunayHull;
+
+		bool IsValid = false;
+
+		TDelaunay3()
 		{
 		}
 
-		virtual ~TDelaunayTriangulation()
+		~TDelaunay3()
 		{
-			PCGEX_DELETE_TARRAY(Cells)
-			SimpliceIndices.Empty();
-			if (bOwnsVertices) { PCGEX_DELETE_TARRAY(Vertices) }
-			else { Vertices.Empty(); }
-			PCGEX_DELETE(Centroid)
-			PCGEX_DELETE(Hull)
+			Clear();
 		}
 
-		void GetUniqueEdges(TArray<PCGExGraph::FUnsignedEdge>& OutEdges)
+		void Clear()
 		{
-			TSet<uint64> UniqueEdges;
-			UniqueEdges.Reserve(Cells.Num() * 3);
+			PCGEX_DELETE(Tetrahedralization)
 
-			for (const TDelaunayCell<DIMENSIONS>* Cell : Cells)
+			Sites.Empty();
+			DelaunayEdges.Empty();
+			DelaunayHull.Empty();
+
+			IsValid = false;
+		}
+
+		bool Process(const TArrayView<FVector>& Positions, bool bComputeFaces = false)
+		{
+			Clear();
+			if (Positions.IsEmpty() || Positions.Num() <= 3) { return false; }
+
+			Tetrahedralization = new UE::Geometry::FDelaunay3();
+
+			if (!Tetrahedralization->Triangulate(Positions))
 			{
-				for (int i = 0; i < DIMENSIONS; i++)
-				{
-					const int32 A = Cell->Simplex->Vertices[i]->Id;
-					for (int j = i + 1; j < DIMENSIONS; j++)
-					{
-						const int32 B = Cell->Simplex->Vertices[j]->Id;
-						if (const uint64 Hash = PCGExGraph::GetUnsignedHash64(A, B);
-							!UniqueEdges.Contains(Hash))
-						{
-							OutEdges.Emplace(A, B);
-							UniqueEdges.Add(Hash);
-						}
-					}
-				}
-			}
-
-			UniqueEdges.Empty();
-		}
-
-		void GetUrquhartEdges(TArray<PCGExGraph::FUnsignedEdge>& OutEdges)
-		{
-			TSet<uint64> UniqueEdges;
-			UniqueEdges.Reserve(Cells.Num() * 3);
-
-			TArray<FTriangle<DIMENSIONS>> Triangles;
-			int32 NumTriangles = DIMENSIONS == 3 ? 1 : 3;
-			for (const TDelaunayCell<DIMENSIONS>* Cell : Cells)
-			{
-				//TODO: Refactor this monstrosity
-				Triangles.Reset(NumTriangles);
-				Cell->Simplex->GetTriangles(Triangles);
-				for (const FTriangle<DIMENSIONS>& Triangle : Triangles)
-				{
-					int32 A = -1;
-					int32 B = -1;
-					Triangle.GetLongestEdge(Vertices, A, B);
-					UniqueEdges.Add(PCGExGraph::GetUnsignedHash64(A, B));
-				}
-			}
-
-			for (const TDelaunayCell<DIMENSIONS>* Cell : Cells)
-			{
-				for (int i = 0; i < DIMENSIONS; i++)
-				{
-					const int32 A = Cell->Simplex->Vertices[i]->Id;
-					for (int j = i + 1; j < DIMENSIONS; j++)
-					{
-						const int32 B = Cell->Simplex->Vertices[j]->Id;
-						if (const uint64 Hash = PCGExGraph::GetUnsignedHash64(A, B);
-							!UniqueEdges.Contains(Hash))
-						{
-							OutEdges.Emplace(A, B);
-							UniqueEdges.Add(Hash);
-						}
-					}
-				}
-			}
-
-			UniqueEdges.Empty();
-		}
-
-		bool PrepareFrom(const TArray<FPCGPoint>& InPoints)
-		{
-			bOwnsVertices = true;
-
-			GetUpscaledVerticesFromPoints<DIMENSIONS>(InPoints, Vertices);
-
-			if (Vertices.Num() <= DIMENSIONS) { return false; }
-			ComputeVerticesBounds();
-
-			return InternalPrepare();
-		}
-
-		bool PrepareFrom(const TArray<TFVtx<DIMENSIONS>*>& InVertices)
-		{
-			bOwnsVertices = false;
-
-			if (InVertices.Num() <= DIMENSIONS) { return false; }
-
-			Vertices.Reset(InVertices.Num());
-			Vertices.Append(InVertices);
-			ComputeVerticesBounds();
-
-			for (TFVtx<DIMENSIONS>* Vtx : Vertices) { Vtx->bIsOnHull = ConvexHullIndices->Contains(Vtx->Id); }
-
-			return InternalPrepare();
-		}
-
-		virtual void Generate()
-		{
-			Hull->Generate();
-			PrepareDelaunay();
-
-			for (int i = 0; i < Hull->Simplices.Num(); i++) { PreprocessSimplex(i); }
-
-			Cells.SetNumUninitialized(NumFinalCells);
-			for (int i = 0; i < NumFinalCells; i++) { ProcessSimplex(i); }
-		}
-
-	protected:
-		void PrepareDelaunay()
-		{
-			for (int i = 0; i < DIMENSIONS; i++) { (*Centroid)[i] = Hull->Centroid[i]; }
-
-			NumFinalCells = 0;
-			SimpliceIndices.Empty();
-		}
-
-		void ComputeVerticesBounds()
-		{
-			Bounds = FBox(ForceInit);
-			for (TFVtx<DIMENSIONS>* Vtx : Vertices) { Bounds += Vtx->Location; }
-			Bounds = Bounds.ExpandBy(BoundsExtension);
-		}
-
-		bool InternalPrepare()
-		{
-			PCGEX_DELETE_TARRAY(Cells)
-			PCGEX_DELETE(Centroid)
-			PCGEX_DELETE(Hull)
-
-			if (Vertices.Num() <= DIMENSIONS) { return false; }
-
-			Hull = new T_HULL();
-
-			if (!Hull->Prepare(Vertices))
-			{
-				PCGEX_DELETE(Hull)
+				Clear();
 				return false;
 			}
 
-			Centroid = new TFVtx<DIMENSIONS>();
-			return true;
-		}
+			IsValid = true;
 
-	public:
-		void PreprocessSimplex(int32 Index)
-		{
-			TRACE_CPUPROFILER_EVENT_SCOPE(Delaunay::PreprocessSimplex);
+			TArray<FIntVector4> Tetrahedra = Tetrahedralization->GetTetrahedra();
 
-			TFSimplex<DIMENSIONS>* Simplex = Hull->Simplices[Index];
+			const int32 NumSites = Tetrahedra.Num();
+			const int32 NumReserve = NumSites * 3;
 
-			if (Simplex->Normal[DIMENSIONS - 1] >= 0.0f)
+			DelaunayEdges.Reserve(NumReserve);
+
+			TMap<uint64, int32> Faces;
+			if (bComputeFaces) { Faces.Reserve(NumSites); }
+
+			Sites.SetNumUninitialized(NumSites);
+
+			for (int i = 0; i < NumSites; i++)
 			{
-				FWriteScopeLock WriteLock(HullLock);
-				for (TFSimplex<DIMENSIONS>* Adjacent : Simplex->AdjacentFaces) { if (Adjacent) { Adjacent->Remove(Simplex); } }
-				return;
+				FDelaunaySite3& Site = Sites[i] = FDelaunaySite3(Tetrahedra[i], i);
+
+				for (int a = 0; a < 4; a++)
+				{
+					for (int b = a + 1; b < 4; b++)
+					{
+						DelaunayEdges.Add(PCGEx::H64U(Site.Vtx[a], Site.Vtx[b]));
+					}
+				}
+
+				if (bComputeFaces)
+				{
+					Site.ComputeFaces();
+
+					for (int f = 0; f < 4; f++)
+					{
+						const uint64 FH = Site.Faces[f];
+						if (const int32* NeighborId = Faces.Find(FH))
+						{
+							Faces.Remove(FH);
+							Site.SetAdjacency(FH, *NeighborId);
+							Sites[*NeighborId].SetAdjacency(FH, i);
+						}
+						else
+						{
+							Faces.Add(FH, Site.Id);
+						}
+					}
+				}
 			}
 
+			for (FDelaunaySite3& Site : Sites)
 			{
-				FWriteScopeLock WriteLock(AsyncLock);
-				SimpliceIndices.Add(NumFinalCells++, Index);
-			}
-		}
-
-		void ProcessSimplex(int32 Index)
-		{
-			TRACE_CPUPROFILER_EVENT_SCOPE(Delaunay::ProcessSimplex);
-
-			TFSimplex<DIMENSIONS>* Simplex = Hull->Simplices[*SimpliceIndices.Find(Index)];
-			TDelaunayCell<DIMENSIONS>* Cell = CreateCell(Simplex);
-			Cell->bIsWithinBounds = Bounds.IsInside(CellCenter == EPCGExCellCenter::Centroid ? Cell->Centroid : PCGExGeo::GetV3(Cell->Circumcenter));
-			Cell->Circumcenter->Id = Index;
-			Cell->ComputeHullQuality();
-			Cells[Index] = Cell;
-		}
-
-	protected:
-		virtual TDelaunayCell<DIMENSIONS>* CreateCell(TFSimplex<DIMENSIONS>* Simplex) = 0;
-	};
-
-#pragma region Delaunay2
-
-
-	class PCGEXTENDEDTOOLKIT_API TDelaunayTriangulation2 : public TDelaunayTriangulation<3, TConvexHull3>
-	{
-	public:
-		TDelaunayTriangulation2() : TDelaunayTriangulation()
-		{
-		}
-
-	protected:
-		virtual TDelaunayCell<3>* CreateCell(TFSimplex<3>* Simplex) override
-		{
-			// From MathWorld: http://mathworld.wolfram.com/Circumcircle.html
-			double MTX[3][3];
-
-			auto Determinant = [&]() -> double
-			{
-				const double F00 = MTX[1][1] * MTX[2][2] - MTX[1][2] * MTX[2][1];
-				const double F10 = MTX[1][2] * MTX[2][0] - MTX[1][0] * MTX[2][2];
-				const double F20 = MTX[1][0] * MTX[2][1] - MTX[1][1] * MTX[2][0];
-				return MTX[0][0] * F00 + MTX[0][1] * F10 + MTX[0][2] * F20;
-			};
-
-			// x, y, 1
-			for (int i = 0; i < 3; i++)
-			{
-				TFVtx<3>& V = (*Simplex->Vertices[i]);
-				MTX[i][0] = V[0];
-				MTX[i][1] = V[1];
-				MTX[i][2] = 1;
+				for (int f = 0; f < 4; f++)
+				{
+					if (Site.Neighbors[f] == -1)
+					{
+						Site.bOnHull = true;
+						break;
+					}
+				}
 			}
 
-			const double a = Determinant();
+			Faces.Empty();
+			Tetrahedra.Empty();
 
-			// size, y, 1
-			for (int i = 0; i < 3; i++) { MTX[i][0] = (*Simplex->Vertices[i])[2]; } //->SqrMagnitude();
-			const double DX = -Determinant();
+			return IsValid;
+		}
 
-			// size, x, 1
-			for (int i = 0; i < 3; i++) { MTX[i][1] = (*Simplex->Vertices[i])[0]; }
-			const double DY = Determinant();
-
-			// size, x, y
-			for (int i = 0; i < 3; i++) { MTX[i][2] = (*Simplex->Vertices[i])[1]; }
-			const double c = -Determinant();
-
-			const double s = -1.0f / (2.0f * a);
-
-			TFVtx<3>* CC = new TFVtx<3>();
-			CC->Position[0] = s * DX;
-			CC->Position[1] = s * DY;
-			CC->Position[2] = 0;
-
-			return new TDelaunayCell(
-				Simplex, CC,
-				FMath::Abs(s) * FMath::Sqrt(DX * DX + DY * DY - 4.0 * a * c));
+		void RemoveLongestEdges(const TArrayView<FVector>& Positions)
+		{
+			uint64 Edge;
+			for (const FDelaunaySite3& Site : Sites)
+			{
+				GetLongestEdge(Positions, Site.Vtx, Edge);
+				DelaunayEdges.Remove(Edge);
+			}
 		}
 	};
-
-#pragma endregion
-#pragma region Delaunay3
-
-	class PCGEXTENDEDTOOLKIT_API TDelaunayTriangulation3 : public TDelaunayTriangulation<4, TConvexHull4>
-	{
-	public:
-		TDelaunayTriangulation3() : TDelaunayTriangulation()
-		{
-		}
-
-	protected:
-		virtual TDelaunayCell<4>* CreateCell(TFSimplex<4>* Simplex) override
-		{
-			// From MathWorld: http://mathworld.wolfram.com/Circumsphere.html
-
-			double MTX[4][4];
-
-			auto MINOR = [&](const int R0, const int R1, const int R2, const int C0, const int C1, const int C2) -> double
-			{
-				return
-					MTX[R0][C0] * (MTX[R1][C1] * MTX[R2][C2] - MTX[R2][C1] * MTX[R1][C2]) -
-					MTX[R0][C1] * (MTX[R1][C0] * MTX[R2][C2] - MTX[R2][C0] * MTX[R1][C2]) +
-					MTX[R0][C2] * (MTX[R1][C0] * MTX[R2][C1] - MTX[R2][C0] * MTX[R1][C1]);
-			};
-
-			auto Determinant = [&]()-> double
-			{
-				return (MTX[0][0] * MINOR(1, 2, 3, 1, 2, 3) -
-					MTX[0][1] * MINOR(1, 2, 3, 0, 2, 3) +
-					MTX[0][2] * MINOR(1, 2, 3, 0, 1, 3) -
-					MTX[0][3] * MINOR(1, 2, 3, 0, 1, 2));
-			};
-
-			// x, y, z, 1
-			for (int i = 0; i < 4; i++)
-			{
-				TFVtx<4>& V = (*Simplex->Vertices[i]);
-				MTX[i][0] = V[0];
-				MTX[i][1] = V[1];
-				MTX[i][2] = V[2];
-				MTX[i][3] = 1;
-			}
-			const double a = Determinant();
-
-			// size, y, z, 1
-			for (int i = 0; i < 4; i++) { MTX[i][0] = (*Simplex->Vertices[i])[3]; } //->SqrMagnitude();
-			const double DX = Determinant();
-
-			// size, x, z, 1
-			for (int i = 0; i < 4; i++) { MTX[i][1] = (*Simplex->Vertices[i])[0]; }
-			const double DY = -Determinant();
-
-			// size, x, y, 1
-			for (int i = 0; i < 4; i++) { MTX[i][2] = (*Simplex->Vertices[i])[1]; }
-			const double DZ = Determinant();
-
-			//size, x, y, z
-			for (int i = 0; i < 4; i++) { MTX[i][3] = (*Simplex->Vertices[i])[2]; }
-			const double c = Determinant();
-
-			const double s = 1.0f / (2.0f * a);
-
-			TFVtx<4>* CC = new TFVtx<4>();
-			CC->Position[0] = s * DX;
-			CC->Position[1] = s * DY;
-			CC->Position[2] = s * DZ;
-			CC->Position[3] = 0;
-
-			return new TDelaunayCell(
-				Simplex, CC,
-				FMath::Abs(s) * FMath::Sqrt(DX * DX + DY * DY + DZ * DZ - 4 * a * c));
-		}
-	};
-
-#pragma endregion
-
-#undef PCGEX_DELAUNAY_CLASS_DECL
-#undef PCGEX_DELAUNAY_METHODS
-#undef PCGEX_DELAUNAY_CLASS
 }

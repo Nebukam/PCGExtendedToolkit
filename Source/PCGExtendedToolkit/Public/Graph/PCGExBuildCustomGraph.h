@@ -22,8 +22,6 @@ class PCGEXTENDEDTOOLKIT_API UPCGExBuildCustomGraphSettings : public UPCGExCusto
 	GENERATED_BODY()
 
 public:
-	UPCGExBuildCustomGraphSettings(const FObjectInitializer& ObjectInitializer);
-
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(BuildCustomGraph, "Custom Graph : Build", "Write graph data to an attribute for each connected Graph Params. `Build Graph` uses the socket information as is.");
@@ -35,6 +33,9 @@ protected:
 	//~End UPCGSettings interface
 
 	//~Begin UObject interface
+public:
+	virtual void PostInitProperties() override;
+
 #if WITH_EDITOR
 
 public:
@@ -51,6 +52,14 @@ public:
 	//~End UPCGExPointsProcessorSettings interface
 
 public:
+	/** If enabled, attempts to build a delaunay graph first, and then search through neighbors. */
+	//UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bConnectivityBasedSearch = false;
+
+	/** Connectivity depth search if the delaunay graph could be built */
+	//UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bConnectivityBasedSearch", ClampMin=1, ClampMax=10))
+	int32 SearchDepth = 5;
+
 	/** Ignores candidates weighting pass and always favors the closest one.*/
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable, ShowOnlyInnerProperties, NoResetToDefault))
 	UPCGExCustomGraphSolver* GraphSolver;
@@ -66,10 +75,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBuildCustomGraphContext : public FPCGExCusto
 
 	virtual ~FPCGExBuildCustomGraphContext() override;
 
+	PCGExGraph::FGraph* HelperGraph = nullptr;
+
 	UPCGExCustomGraphSolver* GraphSolver = nullptr;
 	bool bMoveSocketOriginOnPointExtent = false;
-
-	UPCGPointData::PointOctree* Octree = nullptr;
 };
 
 
@@ -84,6 +93,17 @@ public:
 protected:
 	virtual bool Boot(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
+};
+
+class PCGEXTENDEDTOOLKIT_API FPCGExBuildGraphHelperTask : public FPCGExNonAbandonableTask
+{
+public:
+	FPCGExBuildGraphHelperTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO) :
+		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO)
+	{
+	}
+
+	virtual bool ExecuteTask() override;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExProbeTask : public FPCGExNonAbandonableTask

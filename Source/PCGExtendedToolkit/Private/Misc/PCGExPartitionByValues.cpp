@@ -23,10 +23,7 @@ namespace PCGExPartition
 
 	FKPartition::~FKPartition()
 	{
-		TArray<int64> Keys;
-		SubLayers.GetKeys(Keys);
-		for (const int64 Key : Keys) { delete *SubLayers.Find(Key); }
-		SubLayers.Empty();
+		PCGEX_DELETE_TMAP(SubLayers, int64)
 		UniquePartitionKeys.Empty();
 	}
 

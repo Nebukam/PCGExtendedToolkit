@@ -20,8 +20,6 @@ class PCGEXTENDEDTOOLKIT_API UPCGExWriteTangentsSettings : public UPCGExPathProc
 	GENERATED_BODY()
 
 public:
-	UPCGExWriteTangentsSettings(const FObjectInitializer& ObjectInitializer);
-
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(WriteTangents, "Path : Write Tangents", "Computes & writes points tangents.");
@@ -32,6 +30,8 @@ protected:
 	//~End UPCGSettings interface
 
 	//~Begin UObject interface
+public:
+	virtual void PostInitProperties() override;
 #if WITH_EDITOR
 
 public:

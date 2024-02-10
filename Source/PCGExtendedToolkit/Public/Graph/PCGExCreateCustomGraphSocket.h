@@ -6,7 +6,7 @@
 #include "CoreMinimal.h"
 #include "PCGExPointsProcessor.h"
 
-#include "Data/PCGExGraphParamsData.h"
+#include "Data/PCGExGraphDefinition.h"
 
 #include "PCGExCreateCustomGraphSocket.generated.h"
 
@@ -17,14 +17,14 @@ class PCGEXTENDEDTOOLKIT_API UPCGExCreateCustomGraphSocketSettings : public UPCG
 	GENERATED_BODY()
 
 public:
-
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	bool bCacheResult = false;
-	PCGEX_NODE_INFOS_CUSTOM_TASKNAME(GraphParams, "Custom Graph : Socket", "Creates a single socket data object.",
-		Socket.SocketName.IsNone() ? FName(GetDefaultNodeTitle().ToString()) : FName(FString("PCGEx | Socket : ") + Socket.SocketName.ToString()) )
+	PCGEX_NODE_INFOS_CUSTOM_TASKNAME(
+		GraphParams, "Custom Graph : Socket", "Creates a single socket data object.",
+		Socket.SocketName.IsNone() ? FName(GetDefaultNodeTitle().ToString()) : FName(FString("PCGEx | Socket : ") + Socket.SocketName.ToString()))
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Param; }
-	
+
 #endif
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
@@ -41,7 +41,7 @@ public:
 #endif
 	//~End UObject interface
 
-public:	
+public:
 	/** Custom graph socket.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
 	FPCGExSocketDescriptor Socket;
@@ -49,18 +49,16 @@ public:
 
 class PCGEXTENDEDTOOLKIT_API FPCGExCreateCustomGraphSocketElement : public IPCGElement
 {
-
 public:
 #if WITH_EDITOR
 	virtual bool ShouldLog() const override { return false; }
 #endif
-	
+
 protected:
 	template <typename T>
 	T* BuildParams(FPCGContext* Context) const;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 
-	
 public:
 	virtual FPCGContext* Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node) override;
 };

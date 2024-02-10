@@ -19,8 +19,6 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSmoothSettings : public UPCGExPathProcessorSe
 	GENERATED_BODY()
 
 public:
-	UPCGExSmoothSettings(const FObjectInitializer& ObjectInitializer);
-
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(Smooth, "Path : Smooth", "Smooth paths points.");
@@ -31,6 +29,8 @@ protected:
 	//~End UPCGSettings interface
 
 	//~Begin UObject interface
+public:
+	virtual void PostInitProperties() override;
 #if WITH_EDITOR
 
 public:

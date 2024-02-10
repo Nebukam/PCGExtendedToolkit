@@ -276,7 +276,7 @@ bool FPCGExDrawAttributesElement::ExecuteInternal(FPCGContext* InContext) const
 				if (!Drawer.bValid) { continue; }
 				Drawer.Draw(Context->World, Start, Point, Context->CurrentIO->GetIn());
 			}
-		};
+		}
 
 		Context->CurrentIO->Cleanup();
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);

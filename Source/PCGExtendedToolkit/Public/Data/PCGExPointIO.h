@@ -45,8 +45,8 @@ namespace PCGExData
 	public:
 		FPCGTaggedData Source; // Source struct
 		FTags* Tags = nullptr;
-		int32 IOIndex = 0; 
-		
+		int32 IOIndex = 0;
+
 		explicit FPointIO(
 			const FName InDefaultOutputLabel,
 			const EInit InInit = EInit::NoOutput,
@@ -129,6 +129,7 @@ namespace PCGExData
 		 */
 		bool OutputTo(FPCGContext* Context);
 		bool OutputTo(FPCGContext* Context, const int32 MinPointCount, const int32 MaxPointCount);
+		
 	};
 
 	/**

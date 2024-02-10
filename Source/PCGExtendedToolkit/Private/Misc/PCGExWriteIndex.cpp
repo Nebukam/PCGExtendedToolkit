@@ -99,7 +99,7 @@ bool FPCGExWriteIndexElement::ExecuteInternal(FPCGContext* InContext) const
 		}
 	}
 
-	if(Context->IsDone())
+	if (Context->IsDone())
 	{
 		Context->OutputPoints();
 	}

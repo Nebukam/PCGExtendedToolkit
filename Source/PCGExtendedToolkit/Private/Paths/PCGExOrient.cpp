@@ -8,12 +8,6 @@
 #define LOCTEXT_NAMESPACE "PCGExOrientElement"
 #define PCGEX_NAMESPACE Orient
 
-UPCGExOrientSettings::UPCGExOrientSettings(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
-{
-	PCGEX_OPERATION_DEFAULT(Orientation, UPCGExSubPointsOrientAverage)
-}
-
 #if WITH_EDITOR
 void UPCGExOrientSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
@@ -23,6 +17,12 @@ void UPCGExOrientSettings::PostEditChangeProperty(FPropertyChangedEvent& Propert
 #endif
 
 PCGEX_INITIALIZE_ELEMENT(Orient)
+
+void UPCGExOrientSettings::PostInitProperties()
+{
+	Super::PostInitProperties();
+	PCGEX_OPERATION_DEFAULT(Orientation, UPCGExSubPointsOrientAverage)
+}
 
 bool FPCGExOrientElement::Boot(FPCGContext* InContext) const
 {

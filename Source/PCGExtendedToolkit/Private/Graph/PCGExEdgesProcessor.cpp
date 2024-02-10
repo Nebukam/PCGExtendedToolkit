@@ -3,7 +3,7 @@
 
 #include "Graph/PCGExEdgesProcessor.h"
 
-#include "Data/PCGExGraphParamsData.h"
+#include "Data/PCGExGraphDefinition.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraphSettings"
 
@@ -61,7 +61,7 @@ bool FPCGExEdgesProcessorContext::AdvancePointsIO()
 {
 	PCGEX_DELETE(EdgeNumReader)
 	PCGEX_DELETE(CurrentCluster)
-	
+
 	CurrentEdgesIndex = -1;
 	NodeIndicesMap.Empty();
 

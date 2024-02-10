@@ -36,9 +36,8 @@ void UPCGExEdgeRelaxingOperation::ProcessVertex(const PCGExCluster::FNode& Verte
 
 void UPCGExEdgeRelaxingOperation::ApplyInfluence(const PCGEx::FLocalSingleFieldGetter& Influence, TArray<FVector>* OverrideBuffer) const
 {
-	if(OverrideBuffer){for (int i = 0; i < WriteBuffer->Num(); i++) { (*WriteBuffer)[i] = FMath::Lerp((*OverrideBuffer)[i], (*WriteBuffer)[i], Influence.SafeGet(i, DefaultInfluence)); }}
-	else{for (int i = 0; i < WriteBuffer->Num(); i++) { (*WriteBuffer)[i] = FMath::Lerp((*ReadBuffer)[i], (*WriteBuffer)[i], Influence.SafeGet(i, DefaultInfluence)); }}
-	
+	if (OverrideBuffer) { for (int i = 0; i < WriteBuffer->Num(); i++) { (*WriteBuffer)[i] = FMath::Lerp((*OverrideBuffer)[i], (*WriteBuffer)[i], Influence.SafeGet(i, DefaultInfluence)); } }
+	else { for (int i = 0; i < WriteBuffer->Num(); i++) { (*WriteBuffer)[i] = FMath::Lerp((*ReadBuffer)[i], (*WriteBuffer)[i], Influence.SafeGet(i, DefaultInfluence)); } }
 }
 
 void UPCGExEdgeRelaxingOperation::WriteActiveBuffer(PCGExData::FPointIO& PointIO)

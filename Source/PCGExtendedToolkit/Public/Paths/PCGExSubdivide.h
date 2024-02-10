@@ -26,8 +26,6 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSubdivideSettings : public UPCGExPathProcesso
 	GENERATED_BODY()
 
 public:
-	UPCGExSubdivideSettings(const FObjectInitializer& ObjectInitializer);
-
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(Subdivide, "Path : Subdivide", "Subdivide paths segments.");
@@ -38,6 +36,9 @@ protected:
 	//~End UPCGSettings interface
 
 	//~Begin UObject interface
+public:
+	virtual void PostInitProperties() override;
+
 #if WITH_EDITOR
 
 public:
@@ -83,7 +84,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSubdivideContext : public FPCGExPathProcesso
 
 	EPCGExSubdivideMode SubdivideMethod;
 	UPCGExSubPointsBlendOperation* Blending = nullptr;
-	
+
 	double Distance;
 	int32 Count;
 	bool bFlagSubPoints;

@@ -8,12 +8,6 @@
 #define LOCTEXT_NAMESPACE "PCGExWriteTangentsElement"
 #define PCGEX_NAMESPACE BuildCustomGraph
 
-UPCGExWriteTangentsSettings::UPCGExWriteTangentsSettings(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
-{
-	PCGEX_OPERATION_DEFAULT(Tangents, UPCGExAutoTangents)
-}
-
 #if WITH_EDITOR
 void UPCGExWriteTangentsSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
@@ -23,6 +17,12 @@ void UPCGExWriteTangentsSettings::PostEditChangeProperty(FPropertyChangedEvent& 
 #endif
 
 PCGEX_INITIALIZE_ELEMENT(WriteTangents)
+
+void UPCGExWriteTangentsSettings::PostInitProperties()
+{
+	Super::PostInitProperties();
+	PCGEX_OPERATION_DEFAULT(Tangents, UPCGExAutoTangents)
+}
 
 FPCGExWriteTangentsContext::~FPCGExWriteTangentsContext()
 {
@@ -50,6 +50,7 @@ bool FPCGExWriteTangentsElement::Boot(FPCGContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(WriteTangents)
 
 	PCGEX_OPERATION_BIND(Tangents, UPCGExAutoTangents)
+
 	Context->Tangents->ArriveName = Settings->ArriveName;
 	Context->Tangents->LeaveName = Settings->LeaveName;
 

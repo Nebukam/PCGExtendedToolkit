@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <ThirdParty/hlslcc/hlslcc/src/hlslcc_lib/compiler.h>
+
 #include "CoreMinimal.h"
 
 #include "PCGExMT.h"
@@ -57,24 +59,6 @@ namespace PCGExGraph
 	constexpr PCGExMT::AsyncState State_ProcessingEdges = __COUNTER__;
 	constexpr PCGExMT::AsyncState State_BuildingClusters = __COUNTER__;
 
-	static uint64 GetUnsignedHash64(const uint32 A, const uint32 B)
-	{
-		return A > B ?
-			       static_cast<uint64>(A) | (static_cast<uint64>(B) << 32) :
-			       static_cast<uint64>(B) | (static_cast<uint64>(A) << 32);
-	}
-	
-	static uint64 GetHash64(const uint32 A, const uint32 B)
-	{
-		return static_cast<uint64>(A) | (static_cast<uint64>(B) << 32);
-	}
-
-	static void ExpandHash64(const uint64 Hash, uint32& A, uint32& B)
-	{
-		A = static_cast<int32>(Hash & 0xFFFFFFFF);
-		B = static_cast<int32>((Hash >> 32) & 0xFFFFFFFF);
-	}
-	
 	struct PCGEXTENDEDTOOLKIT_API FEdge
 	{
 		uint32 Start = 0;
@@ -142,7 +126,7 @@ namespace PCGExGraph
 
 		bool operator==(const FUnsignedEdge& Other) const
 		{
-			return GetUnsignedHash() == Other.GetUnsignedHash();
+			return H64U() == Other.H64U();
 		}
 
 		explicit FUnsignedEdge(const uint64 InValue)
@@ -152,13 +136,14 @@ namespace PCGExGraph
 			Type = EPCGExEdgeType::Unknown;
 		}
 
-		uint64 GetUnsignedHash() const { return GetUnsignedHash64(Start, End); }
+		uint64 H64U() const { return PCGEx::H64U(Start, End); }
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FIndexedEdge : public FUnsignedEdge
 	{
 		int32 EdgeIndex = -1;
 		int32 PointIndex = -1;
+		int32 IOIndex = -1;
 
 		FIndexedEdge()
 		{
@@ -166,13 +151,13 @@ namespace PCGExGraph
 
 		FIndexedEdge(const FIndexedEdge& Other)
 			: FUnsignedEdge(Other.Start, Other.End),
-			  EdgeIndex(Other.EdgeIndex), PointIndex(Other.PointIndex)
+			  EdgeIndex(Other.EdgeIndex), PointIndex(Other.PointIndex), IOIndex(Other.IOIndex)
 		{
 		}
 
-		FIndexedEdge(const int32 InIndex, const int32 InStart, const int32 InEnd, const int32 InPointIndex = -1)
+		FIndexedEdge(const int32 InIndex, const int32 InStart, const int32 InEnd, const int32 InPointIndex = -1, const int32 InIOIndex = -1)
 			: FUnsignedEdge(InStart, InEnd),
-			  EdgeIndex(InIndex), PointIndex(InPointIndex)
+			  EdgeIndex(InIndex), PointIndex(InPointIndex), IOIndex(InIOIndex)
 		{
 		}
 	};
@@ -207,7 +192,7 @@ namespace PCGExGraph
 				if ((!NodeStartPtr || !NodeEndPtr) ||
 					(*NodeStartPtr == *NodeEndPtr)) { continue; }
 
-				OutEdges.Emplace(EdgeIndex++, *NodeStartPtr, *NodeEndPtr, i);
+				OutEdges.Emplace(EdgeIndex++, *NodeStartPtr, *NodeEndPtr, i, EdgeIO.IOIndex);
 			}
 		}
 		else
@@ -224,7 +209,7 @@ namespace PCGExGraph
 					break;
 				}
 
-				OutEdges.Emplace(EdgeIndex++, *NodeStartPtr, *NodeEndPtr, i);
+				OutEdges.Emplace(EdgeIndex++, *NodeStartPtr, *NodeEndPtr, i, EdgeIO.IOIndex);
 			}
 		}
 

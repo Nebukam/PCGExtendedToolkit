@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExOperation.h"
-#include "Data/PCGExGraphParamsData.h"
+#include "Data/PCGExGraphDefinition.h"
 #include "UObject/Object.h"
 
 #include "PCGExCustomGraphSolver.generated.h"
@@ -26,7 +26,6 @@ namespace PCGExGraph
 	/** Per-socket temp data structure for processing only*/
 	struct PCGEXTENDEDTOOLKIT_API FSocketProbe
 	{
-
 		FSocketProbe(): SocketInfos(nullptr)
 		{
 			Candidates.Empty();
@@ -37,9 +36,9 @@ namespace PCGExGraph
 		{
 			Candidates.Empty();
 		}
-		
+
 		const FSocketInfos* SocketInfos;
-		
+
 		FVector Origin = FVector::Zero();
 		FVector Direction = FVector::UpVector;
 		double DotThreshold = 0.707;
@@ -71,6 +70,12 @@ namespace PCGExGraph
 			Candidates.Empty();
 			SocketInfos = nullptr;
 			DotOverDistanceCurve = nullptr;
+		}
+
+		FVector GetTargetCenter(const FPCGPoint& TargetPoint) const
+		{
+			return PCGExMath::GetRelationalCenter(SocketInfos->Socket->Descriptor.DistanceSettings.TargetDistance,
+				TargetPoint, TargetPoint.Transform.GetLocation(), Origin);
 		}
 
 		~FSocketProbe()

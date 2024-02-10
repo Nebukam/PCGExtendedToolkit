@@ -24,8 +24,6 @@ class PCGEXTENDEDTOOLKIT_API UPCGExPathfindingProcessorSettings : public UPCGExE
 	GENERATED_BODY()
 
 public:
-	UPCGExPathfindingProcessorSettings(const FObjectInitializer& ObjectInitializer);
-
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(PathfindingProcessorSettings, "Pathfinding Processor Settings", "TOOLTIP_TEXT");
@@ -37,6 +35,9 @@ public:
 	//~End UPCGSettings interface
 
 	//~Begin UObject interface
+public:
+	virtual void PostInitProperties() override;
+
 #if WITH_EDITOR
 
 public:

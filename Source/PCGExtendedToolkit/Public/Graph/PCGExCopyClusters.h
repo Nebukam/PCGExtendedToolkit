@@ -33,7 +33,6 @@ public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	virtual PCGExData::EInit GetEdgeOutputInitMode() const override;
 	//~End UPCGExEdgesProcessorSettings interface
-
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExCopyClustersContext : public FPCGExEdgesProcessorContext
@@ -42,7 +41,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExCopyClustersContext : public FPCGExEdgesProc
 	friend class FPCGExCopyClustersElement;
 
 	virtual ~FPCGExCopyClustersContext() override;
-
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExCopyClustersElement : public FPCGExEdgesProcessorElement

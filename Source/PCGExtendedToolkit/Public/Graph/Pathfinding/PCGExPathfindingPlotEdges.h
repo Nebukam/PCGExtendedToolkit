@@ -22,7 +22,6 @@ class PCGEXTENDEDTOOLKIT_API UPCGExPathfindingPlotEdgesSettings : public UPCGExE
 	GENERATED_BODY()
 
 public:
-	UPCGExPathfindingPlotEdgesSettings(const FObjectInitializer& ObjectInitializer);
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(PathfindingPlotEdges, "Pathfinding : Plot Edges", "Extract a single path from edges clusters, going through every seed points in order.");
@@ -36,6 +35,9 @@ protected:
 	//~End UPCGSettings interface
 
 	//~Begin UObject interface
+public:
+	virtual void PostInitProperties() override;
+
 #if WITH_EDITOR
 
 public:

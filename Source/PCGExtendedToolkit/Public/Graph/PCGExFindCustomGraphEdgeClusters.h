@@ -53,7 +53,7 @@ public:
 	/** Edge types to crawl to create a Cluster */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
 	FPCGExEdgeCrawlingSettings EdgeCrawlingSettings;
-	
+
 	/** Graph & Edges output properties */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Graph Output Settings"))
 	FPCGExGraphBuilderSettings GraphBuilderSettings;
@@ -73,6 +73,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFindCustomGraphEdgeClustersContext : public 
 	virtual ~FPCGExFindCustomGraphEdgeClustersContext() override;
 
 	bool bInheritAttributes;
+
+	mutable FRWLock UniqueEdgesLock;
+	TSet<uint64> UniqueEdges;
+	TArray<PCGExGraph::FUnsignedEdge> Edges;
 
 	FPCGExGraphBuilderSettings GraphBuilderSettings;
 	PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;

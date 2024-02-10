@@ -65,7 +65,7 @@ public:
 
 	/** Name of the 'boolean' attribute to write sampling success to.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteSuccess"))
-	FName SuccessAttributeName = FName("SuccessfullySampled");
+	FName SuccessAttributeName = FName("bSamplingSuccess");
 
 	/** Write the sample location. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
@@ -118,7 +118,6 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision", meta=(PCG_Overridable, EditCondition="bIgnoreActors"))
 	FPCGExActorSelectorSettings IgnoredActorSelector;
-	
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExSampleSurfaceGuidedContext : public FPCGExPointsProcessorContext

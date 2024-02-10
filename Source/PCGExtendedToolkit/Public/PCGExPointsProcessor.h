@@ -35,10 +35,11 @@ FPCGElementPtr UPCGEx##_NAME##Settings::CreateElement() const{	return MakeShared
 #define PCGEX_SETTINGS(_NAME) const UPCGEx##_NAME##Settings* Settings = Context->GetInputSettings<UPCGEx##_NAME##Settings>();	check(Settings);
 #define PCGEX_SETTINGS_LOCAL(_NAME) const UPCGEx##_NAME##Settings* Settings = GetInputSettings<UPCGEx##_NAME##Settings>();	check(Settings);
 #define PCGEX_CONTEXT_AND_SETTINGS(_NAME) PCGEX_CONTEXT(_NAME) PCGEX_SETTINGS(_NAME)
-#define PCGEX_OPERATION_DEFAULT(_NAME, _TYPE)  // _NAME = NewObject<_TYPE>(this, TEXT(#_NAME)); //ObjectInitializer.CreateDefaultSubobject<_TYPE>(this, TEXT(#_NAME)); // if(!_NAME){_NAME = NewObject<_TYPE>(); _NAME->UpdateUserFacingInfos();}
+#define PCGEX_OPERATION_DEFAULT(_NAME, _TYPE)  // if(!_NAME){_NAME = NewObject<_TYPE>(this, TEXT(#_NAME), RF_Transactional); _NAME->UpdateUserFacingInfos();} //ObjectInitializer.CreateDefaultSubobject<_TYPE>(this, TEXT(#_NAME));
 #define PCGEX_OPERATION_VALIDATE(_NAME) if(!Settings->_NAME){PCGE_LOG(Error, GraphAndLog, FTEXT("No operation selected for : "#_NAME)); return false;}
 #define PCGEX_OPERATION_BIND(_NAME, _TYPE) PCGEX_OPERATION_VALIDATE(_NAME) Context->_NAME = Context->RegisterOperation<_TYPE>(Settings->_NAME);
 #define PCGEX_VALIDATE_NAME(_NAME) if (!FPCGMetadataAttributeBase::IsValidName(_NAME) || _NAME.IsNone()){	PCGE_LOG(Error, GraphAndLog, FTEXT("Invalid user-defined attribute name for " #_NAME)); return false;	}
+#define PCGEX_SOFT_VALIDATE_NAME(_BOOL, _NAME, _CTX) if(_BOOL){if (!FPCGMetadataAttributeBase::IsValidName(_NAME) || _NAME.IsNone()){ PCGE_LOG_C(Warning, GraphAndLog, _CTX, FTEXT("Invalid user-defined attribute name for " #_NAME)); _BOOL = false; } }
 #define PCGEX_FWD(_NAME) Context->_NAME = Settings->_NAME;
 #define PCGEX_TERMINATE_ASYNC PCGEX_DELETE(AsyncManager)
 
@@ -305,6 +306,7 @@ public:
 	}
 
 	virtual void DisabledPassThroughData(FPCGContext* Context) const override;
+
 protected:
 	virtual FPCGContext* InitializeContext(FPCGExPointsProcessorContext* InContext, const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node) const;
 	virtual bool Boot(FPCGContext* InContext) const;

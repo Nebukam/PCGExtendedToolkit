@@ -14,14 +14,6 @@
 #define LOCTEXT_NAMESPACE "PCGExPathfindingPlotEdgesElement"
 #define PCGEX_NAMESPACE PathfindingPlotEdges
 
-UPCGExPathfindingPlotEdgesSettings::UPCGExPathfindingPlotEdgesSettings(
-	const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
-{
-	PCGEX_OPERATION_DEFAULT(SearchAlgorithm, UPCGExSearchAStar)
-	PCGEX_OPERATION_DEFAULT(Heuristics, UPCGExHeuristicDistance)
-}
-
 #if WITH_EDITOR
 void UPCGExPathfindingPlotEdgesSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
@@ -57,6 +49,13 @@ TArray<FPCGPinProperties> UPCGExPathfindingPlotEdgesSettings::OutputPinPropertie
 }
 
 PCGEX_INITIALIZE_ELEMENT(PathfindingPlotEdges)
+
+void UPCGExPathfindingPlotEdgesSettings::PostInitProperties()
+{
+	Super::PostInitProperties();
+	PCGEX_OPERATION_DEFAULT(SearchAlgorithm, UPCGExSearchAStar)
+	PCGEX_OPERATION_DEFAULT(Heuristics, UPCGExHeuristicDistance)
+}
 
 FPCGExPathfindingPlotEdgesContext::~FPCGExPathfindingPlotEdgesContext()
 {

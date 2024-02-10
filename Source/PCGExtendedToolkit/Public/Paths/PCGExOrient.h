@@ -19,8 +19,6 @@ class PCGEXTENDEDTOOLKIT_API UPCGExOrientSettings : public UPCGExPathProcessorSe
 	GENERATED_BODY()
 
 public:
-	UPCGExOrientSettings(const FObjectInitializer& ObjectInitializer);
-
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(Orient, "Path : Orient", "Orient paths points");
@@ -31,6 +29,8 @@ protected:
 	//~End UPCGSettings interface
 
 	//~Begin UObject interface
+public:
+	virtual void PostInitProperties() override;
 #if WITH_EDITOR
 
 public:

@@ -11,8 +11,8 @@ void UPCGExCustomGraphSolver::InitializeProbe(PCGExGraph::FSocketProbe& Probe) c
 bool UPCGExCustomGraphSolver::ProcessPoint(
 	PCGExGraph::FSocketProbe& Probe,
 	const PCGEx::FPointRef& Point) const
-{
-	const FVector PtPosition = Point.Point->Transform.GetLocation();
+{	
+	const FVector PtPosition = Probe.GetTargetCenter(*Point.Point);
 
 	if (!Probe.LooseBounds.IsInside(PtPosition)) { return false; }
 
@@ -42,18 +42,18 @@ double UPCGExCustomGraphSolver::PrepareProbesForPoint(
 	const int32 NumSockets = SocketInfos.Num();
 	OutProbes.SetNum(NumSockets);
 	double MaxRadius = 0.0;
-	for(int i = 0; i < NumSockets; i++)
+	for (int i = 0; i < NumSockets; i++)
 	{
 		const PCGExGraph::FSocketInfos& CurrentSocketInfos = SocketInfos[i];
 		PCGExGraph::FSocketProbe& NewProbe = OutProbes[i];
-		
-		NewProbe.SocketInfos = &CurrentSocketInfos;		
+
+		NewProbe.SocketInfos = &CurrentSocketInfos;
 		InitializeProbe(NewProbe);
-		
+
 		const double Dist = PrepareProbeForPointSocketPair(Point, NewProbe, CurrentSocketInfos);
 		MaxRadius = FMath::Max(MaxRadius, Dist);
 	}
-	return MaxRadius;
+	return FMath::Sqrt(MaxRadius);
 }
 
 double UPCGExCustomGraphSolver::PrepareProbeForPointSocketPair(
@@ -66,39 +66,18 @@ double UPCGExCustomGraphSolver::PrepareProbeForPointSocketPair(
 	InSocketInfos.Socket->GetRadius(Point.Index, Probe.Radius);
 
 	const FTransform PtTransform = Point.Point->Transform;
-	FVector Origin = PtTransform.GetLocation();
+	const FVector ProbeOrigin = PtTransform.GetLocation();
 
 	if (InSocketInfos.Socket->Descriptor.bRelativeOrientation)
 	{
-		Probe.Direction = PtTransform.Rotator().RotateVector(Probe.Direction);
+		Probe.Direction = PtTransform.TransformVector(Probe.Direction);
 	}
 
 	Probe.Direction.Normalize();
 	Probe.DotOverDistanceCurve = InSocketInfos.Socket->Descriptor.DotOverDistanceCurve;
 
-	FVector Offset = FVector::ZeroVector;
-	switch (InSocketInfos.Socket->Descriptor.OffsetOrigin)
-	{
-	default:
-	case EPCGExExtension::None:
-		break;
-	case EPCGExExtension::Extents:
-		Offset = Probe.Direction * Point.Point->GetExtents();
-		Origin += Offset;
-		break;
-	case EPCGExExtension::Scale:
-		Offset = Probe.Direction * Point.Point->Transform.GetScale3D();
-		Origin += Offset;
-		break;
-	case EPCGExExtension::ScaledExtents:
-		Offset = Probe.Direction * Point.Point->GetScaledExtents();
-		Origin += Offset;
-		break;
-	}
-
-	Probe.Origin = Origin;
-	Probe.Radius += Offset.Length();
-
+	Probe.Origin = InSocketInfos.Socket->Descriptor.DistanceSettings.GetSourceCenter(*Point.Point, ProbeOrigin, ProbeOrigin + Probe.Direction * Probe.Radius);
+	Probe.Radius += (Probe.Origin - ProbeOrigin).Length();
 	Probe.Radius = Probe.Radius * Probe.Radius;
 
 	if (Probe.DotThreshold >= 0) { Probe.LooseBounds = PCGExMath::ConeBox(Probe.Origin, Probe.Direction, Probe.Radius); }

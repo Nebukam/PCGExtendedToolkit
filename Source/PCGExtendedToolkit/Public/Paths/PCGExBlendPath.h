@@ -19,8 +19,6 @@ class PCGEXTENDEDTOOLKIT_API UPCGExBlendPathSettings : public UPCGExPathProcesso
 	GENERATED_BODY()
 
 public:
-	UPCGExBlendPathSettings(const FObjectInitializer& ObjectInitializer);
-
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(BlendPath, "Path : Blend", "Blend path individual points between its start and end points.");
@@ -31,6 +29,8 @@ protected:
 	//~End UPCGSettings interface
 
 	//~Begin UObject interface
+public:
+	virtual void PostInitProperties() override;
 #if WITH_EDITOR
 
 public:
@@ -47,10 +47,9 @@ public:
 	/** Consider paths to be closed -- processing will wrap between first and last points. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bClosedPath = false;
-	
+
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable, ShowOnlyInnerProperties, NoResetToDefault))
 	TObjectPtr<UPCGExSubPointsBlendOperation> Blending;
-	
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExBlendPathContext : public FPCGExPathProcessorContext
@@ -61,7 +60,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBlendPathContext : public FPCGExPathProcesso
 
 	EPCGExSubdivideMode SubdivideMethod;
 	UPCGExSubPointsBlendOperation* Blending = nullptr;
-
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExBlendPathElement : public FPCGExPathProcessorElement

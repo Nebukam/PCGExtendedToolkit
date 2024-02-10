@@ -23,7 +23,7 @@ public:
 	bool bInvert = false;
 
 	virtual void PrepareForData(PCGExCluster::FCluster* InCluster) override;
-	
+
 	virtual double GetGlobalScore(
 		const PCGExCluster::FNode& From,
 		const PCGExCluster::FNode& Seed,
@@ -39,5 +39,4 @@ public:
 protected:
 	double OutMin = 0;
 	double OutMax = 1;
-	
 };

@@ -54,7 +54,7 @@ T* FPCGExCreateCustomGraphSocketElement::BuildParams(
 
 	FPCGTaggedData& Output = Outputs.Emplace_GetRef();
 	Output.Data = OutParams;
-	
+
 	return OutParams;
 }
 
@@ -62,7 +62,7 @@ bool FPCGExCreateCustomGraphSocketElement::ExecuteInternal(
 	FPCGContext* Context) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExCreateCustomGraphSocketElement::Execute);
-	BuildParams<UPCGExRoamingSocketParamsData>(Context);
+	BuildParams<UPCGExSocketDefinition>(Context);
 	return true;
 }
 

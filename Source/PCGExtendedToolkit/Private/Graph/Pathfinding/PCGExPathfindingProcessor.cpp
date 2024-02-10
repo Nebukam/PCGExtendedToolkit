@@ -16,14 +16,6 @@
 
 #pragma region UPCGSettings interface
 
-UPCGExPathfindingProcessorSettings::UPCGExPathfindingProcessorSettings(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
-{
-	PCGEX_OPERATION_DEFAULT(GoalPicker, UPCGExGoalPickerRandom)
-	PCGEX_OPERATION_DEFAULT(SearchAlgorithm, UPCGExSearchAStar)
-	PCGEX_OPERATION_DEFAULT(Heuristics, UPCGExHeuristicDistance)
-}
-
 TArray<FPCGPinProperties> UPCGExPathfindingProcessorSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
@@ -59,6 +51,14 @@ TArray<FPCGPinProperties> UPCGExPathfindingProcessorSettings::OutputPinPropertie
 #endif
 
 	return PinProperties;
+}
+
+void UPCGExPathfindingProcessorSettings::PostInitProperties()
+{
+	Super::PostInitProperties();
+	PCGEX_OPERATION_DEFAULT(GoalPicker, UPCGExGoalPickerRandom)
+	PCGEX_OPERATION_DEFAULT(SearchAlgorithm, UPCGExSearchAStar)
+	PCGEX_OPERATION_DEFAULT(Heuristics, UPCGExHeuristicDistance)
 }
 
 #pragma endregion

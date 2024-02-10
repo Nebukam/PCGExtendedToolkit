@@ -45,7 +45,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeDebugDrawDescriptor : public FPCGEx
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="ExpressedAs==EPCGExDebugExpression::ConnectionToIndex||ExpressedAs==EPCGExDebugExpression::ConnectionToPosition||ExpressedAs==EPCGExDebugExpression::Point", EditConditionHides))
 	bool bAsOffset = false;
-	
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="ExpressedAs==EPCGExDebugExpression::Direction", EditConditionHides))
 	bool bNormalizeBeforeSizing = true;
 
@@ -202,7 +202,7 @@ public:
 		TWeakObjectPtr<UPCGComponent> SourceComponent,
 		const UPCGNode* Node) override;
 
-	virtual bool IsCacheable(const UPCGSettings* InSettings) const override{return true;}
+	virtual bool IsCacheable(const UPCGSettings* InSettings) const override { return true; }
 	virtual bool CanExecuteOnlyOnMainThread(FPCGContext* Context) const override { return true; }
 
 protected:

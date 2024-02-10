@@ -18,9 +18,9 @@ PCGExData::EInit UPCGExPromoteEdgesSettings::GetMainOutputInitMode() const
 		       PCGExData::EInit::NewOutput;
 }
 
-UPCGExPromoteEdgesSettings::UPCGExPromoteEdgesSettings(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
+void UPCGExPromoteEdgesSettings::PostInitProperties()
 {
+	Super::PostInitProperties();
 	PCGEX_OPERATION_DEFAULT(Promotion, UPCGExEdgePromoteToPoint)
 }
 
@@ -60,7 +60,7 @@ bool FPCGExPromoteEdgesElement::ExecuteInternal(
 		if (!Boot(Context)) { return true; }
 
 		Context->MaxPossibleEdgesPerPoint = 0;
-		for (const UPCGExGraphParamsData* Graph : Context->Graphs.Params)
+		for (const UPCGExGraphDefinition* Graph : Context->Graphs.Params)
 		{
 			Context->MaxPossibleEdgesPerPoint += Graph->GetSocketMapping()->NumSockets;
 		}
@@ -126,7 +126,7 @@ bool FPCGExPromoteEdgesElement::ExecuteInternal(
 				const int32 InEdgeType = SocketInfo.Socket->GetEdgeTypeReader().Values[PointIndex];
 				if (End == -1 || (InEdgeType & EdgeType) == 0 || PointIndex == End) { continue; }
 
-				uint64 Hash = PCGExGraph::GetUnsignedHash64(PointIndex, End);
+				uint64 Hash = PCGEx::H64U(PointIndex, End);
 				{
 					FReadScopeLock ReadLock(Context->EdgeLock);
 					if (Context->UniqueEdges.Contains(Hash)) { continue; }
