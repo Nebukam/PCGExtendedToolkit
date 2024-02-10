@@ -128,7 +128,7 @@ bool FPCGExFindCustomGraphEdgeClustersElement::ExecuteInternal(
 
 		if (!Context->ProcessCurrentPoints(InsertEdge)) { return false; }
 
-		Context->GraphBuilder->Graph->InsertEdges(Context->Edges);
+		Context->GraphBuilder->Graph->InsertEdges(Context->Edges, -1);
 
 		Context->UniqueEdges.Reset();
 		Context->Edges.Reset();

@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 
 #include "PCGExCustomGraphProcessor.h"
+#include "CompGeom/Delaunay3.h"
 
 #include "PCGExBuildDelaunayGraph.generated.h"
 
@@ -69,14 +70,11 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBuildDelaunayGraphContext : public FPCGExPoi
 
 	virtual ~FPCGExBuildDelaunayGraphContext() override;
 
-	int32 ClusterUIndex = 0;
-
-	PCGExGeo::TDelaunayTriangulation3* Delaunay = nullptr;
-	PCGExGeo::TConvexHull3* ConvexHull = nullptr;
 	TSet<int32> HullIndices;
-
+	
 	FPCGExGraphBuilderSettings GraphBuilderSettings;
 	PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
+
 };
 
 
@@ -91,4 +89,20 @@ public:
 protected:
 	virtual bool Boot(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
+};
+
+class PCGEXTENDEDTOOLKIT_API FPCGExDelaunay3Task : public FPCGExNonAbandonableTask
+{
+public:
+	FPCGExDelaunay3Task(
+		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+		PCGExGraph::FGraph* InGraph) :
+		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+		Graph(InGraph)
+	{
+	}
+
+	PCGExGraph::FGraph* Graph = nullptr;
+
+	virtual bool ExecuteTask() override;
 };

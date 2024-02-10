@@ -87,10 +87,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBuildVoronoiGraphContext : public FPCGExPoin
 
 	virtual ~FPCGExBuildVoronoiGraphContext() override;
 
-	int32 ClusterUIndex = 0;
-
-	PCGExGeo::TVoronoiMesh3* Voronoi = nullptr;
-	PCGExGeo::TConvexHull3* ConvexHull = nullptr;
 	TSet<int32> HullIndices;
 
 	FPCGExGraphBuilderSettings GraphBuilderSettings;
@@ -109,4 +105,16 @@ public:
 protected:
 	virtual bool Boot(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
+};
+
+class PCGEXTENDEDTOOLKIT_API FPCGExVoronoi3Task : public FPCGExNonAbandonableTask
+{
+public:
+	FPCGExVoronoi3Task(
+		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO) :
+		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO)
+	{
+	}
+
+	virtual bool ExecuteTask() override;
 };

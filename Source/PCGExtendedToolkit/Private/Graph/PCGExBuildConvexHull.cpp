@@ -23,8 +23,6 @@ FPCGExBuildConvexHullContext::~FPCGExBuildConvexHullContext()
 	PCGEX_TERMINATE_ASYNC
 
 	PCGEX_DELETE(GraphBuilder)
-	PCGEX_DELETE(ConvexHull)
-
 	HullIndices.Empty();
 }
 
@@ -74,7 +72,6 @@ bool FPCGExBuildConvexHullElement::ExecuteInternal(
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
 		PCGEX_DELETE(Context->GraphBuilder)
-		PCGEX_DELETE(Context->ConvexHull)
 		Context->HullIndices.Empty();
 
 		if (!Context->AdvancePointsIO()) { Context->Done(); }
@@ -86,21 +83,12 @@ bool FPCGExBuildConvexHullElement::ExecuteInternal(
 				return false;
 			}
 
-			Context->ConvexHull = new PCGExGeo::TConvexHull3();
-			TArray<PCGExGeo::TFVtx<3>*> HullVertices;
-			GetVerticesFromPoints(Context->CurrentIO->GetIn()->GetPoints(), HullVertices);
+			Context->GraphBuilder = new PCGExGraph::FGraphBuilder(*Context->CurrentIO, &Context->GraphBuilderSettings, 6);
+			Context->GetAsyncManager()->Start<FPCGExConvexHull3Task>(Context->CurrentIO->IOIndex, Context->CurrentIO, Context->GraphBuilder->Graph);
 
-			if (Context->ConvexHull->Prepare(HullVertices))
-			{
-				if (Context->bDoAsyncProcessing) { Context->ConvexHull->StartAsyncProcessing(Context->GetAsyncManager()); }
-				else { Context->ConvexHull->Generate(); }
-				Context->SetAsyncState(PCGExGeo::State_ProcessingHull);
-			}
-			else
-			{
-				PCGE_LOG(Warning, GraphAndLog, FTEXT("(1) Some inputs generates no results. Are points coplanar? If so, use Convex Hull 2D instead."));
-				return false;
-			}
+			//PCGE_LOG(Warning, GraphAndLog, FTEXT("(1) Some inputs generates no results. Are points coplanar? If so, use Convex Hull 2D instead."));
+
+			Context->SetAsyncState(PCGExGeo::State_ProcessingHull);
 		}
 	}
 
@@ -108,26 +96,13 @@ bool FPCGExBuildConvexHullElement::ExecuteInternal(
 	{
 		if (!Context->IsAsyncWorkComplete()) { return false; }
 
-		if (Context->bDoAsyncProcessing) { Context->ConvexHull->Finalize(); }
-		Context->ConvexHull->GetHullIndices(Context->HullIndices);
-
-		if (Settings->bMarkHull && !Settings->bPrunePoints)
+		if(Context->GraphBuilder->Graph->Edges.IsEmpty())
 		{
-			PCGEx::TFAttributeWriter<bool>* HullMarkPointWriter = new PCGEx::TFAttributeWriter<bool>(Settings->HullAttributeName, false, false);
-			HullMarkPointWriter->BindAndGet(*Context->CurrentIO);
-
-			for (int i = 0; i < Context->CurrentIO->GetNum(); i++) { HullMarkPointWriter->Values[i] = Context->HullIndices.Contains(i); }
-
-			HullMarkPointWriter->Write();
-			PCGEX_DELETE(HullMarkPointWriter)
+			PCGE_LOG(Warning, GraphAndLog, FTEXT("(1) Some inputs generates no results. Are points coplanar? If so, use Convex Hull 2D instead."));
+			Context->SetState(PCGExMT::State_ReadyForNextPoints);
+			return false;
 		}
-
-		Context->GraphBuilder = new PCGExGraph::FGraphBuilder(*Context->CurrentIO, &Context->GraphBuilderSettings, 6);
-
-		TArray<PCGExGraph::FUnsignedEdge> Edges;
-		Context->ConvexHull->GetUniqueEdges(Edges);
-		Context->GraphBuilder->Graph->InsertEdges(Edges);
-
+		
 		Context->GraphBuilder->Compile(Context);
 		Context->SetAsyncState(PCGExGraph::State_WritingClusters);
 	}
@@ -136,7 +111,21 @@ bool FPCGExBuildConvexHullElement::ExecuteInternal(
 	{
 		if (!Context->IsAsyncWorkComplete()) { return false; }
 
-		if (Context->GraphBuilder->bCompiledSuccessfully) { Context->GraphBuilder->Write(Context); }
+		if (Context->GraphBuilder->bCompiledSuccessfully)
+		{
+			if (Settings->bMarkHull && !Settings->bPrunePoints)
+			{
+				PCGEx::TFAttributeWriter<bool>* HullMarkPointWriter = new PCGEx::TFAttributeWriter<bool>(Settings->HullAttributeName, false, false);
+				HullMarkPointWriter->BindAndGet(*Context->CurrentIO);
+
+				for (int i = 0; i < Context->CurrentIO->GetNum(); i++) { HullMarkPointWriter->Values[i] = Context->HullIndices.Contains(i); }
+
+				HullMarkPointWriter->Write();
+				PCGEX_DELETE(HullMarkPointWriter)
+			}
+
+			Context->GraphBuilder->Write(Context);
+		}
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
@@ -146,6 +135,35 @@ bool FPCGExBuildConvexHullElement::ExecuteInternal(
 	}
 
 	return Context->IsDone();
+}
+
+bool FPCGExConvexHull3Task::ExecuteTask()
+{
+	FPCGExBuildConvexHullContext* Context = static_cast<FPCGExBuildConvexHullContext*>(Manager->Context);
+	PCGEX_SETTINGS(BuildConvexHull)
+
+	PCGExGeo::TDelaunay3* Delaunay = new PCGExGeo::TDelaunay3();
+
+	const TArray<FPCGPoint>& Points = PointIO->GetIn()->GetPoints();
+	const int32 NumPoints = Points.Num();
+
+	TArray<FVector> Positions;
+	Positions.SetNum(NumPoints);
+	for (int i = 0; i < NumPoints; i++) { Positions[i] = Points[i].Transform.GetLocation(); }
+
+	const TArrayView<FVector> View = MakeArrayView(Positions);
+	if (!Delaunay->Process(View))
+	{
+		PCGEX_DELETE(Delaunay)
+		return false;
+	}
+
+	if (Settings->bMarkHull) { Context->HullIndices.Append(Delaunay->DelaunayHull); }
+
+	Graph->InsertEdges(Delaunay->DelaunayEdges, -1);
+
+	PCGEX_DELETE(Delaunay)
+	return true;
 }
 
 #undef LOCTEXT_NAMESPACE

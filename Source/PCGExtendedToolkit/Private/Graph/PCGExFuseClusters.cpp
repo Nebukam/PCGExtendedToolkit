@@ -126,7 +126,7 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 		Context->LooseGraph->WriteMetadata(Context->GraphBuilder->Graph->NodeMetadata);
 		PCGEX_DELETE(Context->LooseGraph)
 		
-		Context->GraphBuilder->Graph->InsertEdges(UniqueEdges);
+		Context->GraphBuilder->Graph->InsertEdges(UniqueEdges, -1);
 		UniqueEdges.Empty();
 
 		if (Settings->bDoPointEdgeIntersection)

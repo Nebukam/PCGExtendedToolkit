@@ -210,64 +210,6 @@ namespace PCGExMath
 		return Box;
 	}
 
-	static double S_U(
-		const FVector& A, const FVector& B, const FVector& C, const FVector& D,
-		const FVector& E, const FVector& F, const FVector& G, const FVector& H)
-	{
-		return (A.Z - B.Z) * (C.X * D.Y - D.X * C.Y) - (E.Z - F.Z) * (G.X * H.Y - H.X * G.Y);
-	};
-
-	static double S_D(
-		const int FirstComponent, const int SecondComponent,
-		FVector A, FVector B, FVector C)
-	{
-		return
-			A[FirstComponent] * (B[SecondComponent] - C[SecondComponent]) +
-			B[FirstComponent] * (C[SecondComponent] - A[SecondComponent]) +
-			C[FirstComponent] * (A[SecondComponent] - B[SecondComponent]);
-	};
-
-	static double S_E(
-		const int FirstComponent, const int SecondComponent,
-		const FVector& A, const FVector& B, const FVector& C, const FVector& D,
-		const double RA, const double RB, const double RC, const double RD, const double UVW)
-	{
-		return (RA * S_D(FirstComponent, SecondComponent, B, C, D) - RB * S_D(FirstComponent, SecondComponent, C, D, A) +
-			RC * S_D(FirstComponent, SecondComponent, D, A, B) - RD * S_D(FirstComponent, SecondComponent, A, B, C)) / UVW;
-	};
-
-	static double S_SQ(const FVector& P) { return P.X * P.X + P.Y * P.Y + P.Z * P.Z; };
-
-	static bool FindSphereFrom4Points(const FVector& A, const FVector& B, const FVector& C, const FVector& D, FSphere& OutSphere)
-	{
-		//Shamelessly stolen from https://stackoverflow.com/questions/37449046/how-to-calculate-the-sphere-center-with-4-points
-
-		const double U = S_U(A, B, C, D, B, C, D, A);
-		const double V = S_U(C, D, A, B, D, A, B, C);
-		const double W = S_U(A, C, D, B, B, D, A, C);
-		const double UVW = 2 * (U + V + W);
-
-		if (UVW == 0.0) { return false; } // Coplanar
-
-		constexpr int C_X = 0;
-		constexpr int C_Y = 1;
-		constexpr int C_Z = 2;
-		const double RA = S_SQ(A);
-		const double RB = S_SQ(B);
-		const double RC = S_SQ(C);
-		const double RD = S_SQ(D);
-
-		const FVector Center = FVector(
-			S_E(C_Y, C_Z, A, B, C, D, RA, RB, RC, RD, UVW),
-			S_E(C_Z, C_X, A, B, C, D, RA, RB, RC, RD, UVW),
-			S_E(C_X, C_Y, A, B, C, D, RA, RB, RC, RD, UVW));
-
-		const double radius = FMath::Sqrt(S_SQ(FVector(A - Center)));
-
-		OutSphere = FSphere(Center, radius);
-		return true;
-	}
-
 	template <typename T>
 	static void GetMinMax(const TArray<T>& Values, T& OutMin, T& OutMax)
 	{

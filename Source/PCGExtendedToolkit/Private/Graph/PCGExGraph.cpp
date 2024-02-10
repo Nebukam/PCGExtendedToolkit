@@ -74,42 +74,59 @@ namespace PCGExGraph
 		return true;
 	}
 
+	void FGraph::InsertEdges(const TArray<uint64>& InEdges, int32 IOIndex)
+	{
+		FWriteScopeLock WriteLock(GraphLock);
+		uint32 A;
+		uint32 B;
+		for (const uint64& E : InEdges)
+		{
+			if (UniqueEdges.Contains(E)) { continue; }
+			
+			UniqueEdges.Add(E);
+			PCGEx::H64(E, A, B);
+			const int32 EdgeIndex = Edges.Emplace(Edges.Num(), A, B);
+			Nodes[A].Add(EdgeIndex);
+			Nodes[B].Add(EdgeIndex);
+			Edges[EdgeIndex].IOIndex = IOIndex;
+		} 
+	}
+	
+	void FGraph::InsertEdges(const TSet<uint64>& InEdges, int32 IOIndex)
+    	{
+    		FWriteScopeLock WriteLock(GraphLock);
+    		uint32 A;
+    		uint32 B;
+    		for (const uint64& E : InEdges)
+    		{
+    			if (UniqueEdges.Contains(E)) { continue; }
+    			
+    			UniqueEdges.Add(E);
+    			PCGEx::H64(E, A, B);
+    			const int32 EdgeIndex = Edges.Emplace(Edges.Num(), A, B);
+    			Nodes[A].Add(EdgeIndex);
+    			Nodes[B].Add(EdgeIndex);
+    		} 
+    	}
+
 #define PCGEX_EDGE_INSERT\
 	if (!E.bValid) { continue; } const uint64 Hash = E.H64U(); if (UniqueEdges.Contains(Hash)) { continue; }\
 	UniqueEdges.Add(Hash); const FIndexedEdge& Edge = Edges.Emplace_GetRef(Edges.Num(), E.Start, E.End);\
 	Nodes[E.Start].Add(Edge.EdgeIndex);	Nodes[E.End].Add(Edge.EdgeIndex);
 
-	void FGraph::InsertEdges(const TArray<FUnsignedEdge>& InEdges)
+	void FGraph::InsertEdges(const TArray<FUnsignedEdge>& InEdges, int32 IOIndex)
 	{
 		FWriteScopeLock WriteLock(GraphLock);
-		for (const FUnsignedEdge& E : InEdges)
-		{
-			//PCGEX_EDGE_INSERT
-			if (!E.bValid) { continue; }
-			const uint64 Hash = E.H64U();
-			if (UniqueEdges.Contains(Hash)) { continue; }
-			UniqueEdges.Add(Hash);
-			const FIndexedEdge& Edge = Edges.Emplace_GetRef(Edges.Num(), E.Start, E.End);
-			Nodes[E.Start].Add(Edge.EdgeIndex);
-			Nodes[E.End].Add(Edge.EdgeIndex);
-		}
+		for (const FUnsignedEdge& E : InEdges) { PCGEX_EDGE_INSERT }
 	}
 
 	void FGraph::InsertEdges(const TArray<FIndexedEdge>& InEdges)
 	{
 		FWriteScopeLock WriteLock(GraphLock);
-		for (const FIndexedEdge& E : InEdges)
-		{
-			//PCGEX_EDGE_INSERT
-			if (!E.bValid) { continue; }
-			const uint64 Hash = E.H64U();
-			if (UniqueEdges.Contains(Hash)) { continue; }
-			UniqueEdges.Add(Hash);
-			const FIndexedEdge& Edge = Edges.Emplace_GetRef(Edges.Num(), E.Start, E.End);
-			Nodes[E.Start].Add(Edge.EdgeIndex);
-			Nodes[E.End].Add(Edge.EdgeIndex);
-		}
+		for (const FIndexedEdge& E : InEdges) { PCGEX_EDGE_INSERT }
 	}
+
+#undef PCGEX_EDGE_INSERT
 
 	TArrayView<FNode> FGraph::AddNodes(const int32 NumNewNodes)
 	{
@@ -125,7 +142,6 @@ namespace PCGExGraph
 		return MakeArrayView(Nodes.GetData() + StartIndex, NumNewNodes);
 	}
 
-#undef PCGEX_EDGE_INSERT
 
 	void FGraph::BuildSubGraphs(const int32 Min, const int32 Max)
 	{
@@ -415,7 +431,7 @@ namespace PCGExGraph
 			End == OtherEdge.End || End == OtherEdge.Start) { return false; }
 
 		// TODO: Check directions/dot
-		
+
 		FVector A;
 		FVector B;
 		FMath::SegmentDistToSegment(

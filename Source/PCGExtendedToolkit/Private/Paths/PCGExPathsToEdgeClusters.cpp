@@ -143,7 +143,7 @@ bool FPCGExPathsToEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) c
 		Context->LooseGraph->WriteMetadata(Context->GraphBuilder->Graph->NodeMetadata);
 		PCGEX_DELETE(Context->LooseGraph)
 
-		Context->GraphBuilder->Graph->InsertEdges(UniqueEdges);
+		Context->GraphBuilder->Graph->InsertEdges(UniqueEdges, -1); //TODO : valid IOIndex from LooseGraph
 		UniqueEdges.Empty();
 
 		if (Settings->bDoPointEdgeIntersection)
