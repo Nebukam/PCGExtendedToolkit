@@ -155,12 +155,12 @@ bool FPCGExVoronoi3Task::ExecuteTask()
 	}
 	else if (Settings->Method == EPCGExCellCenter::Balanced)
 	{
-		const FBox Bounds = PointIO->GetOut()->GetBounds().ExpandBy(Settings->ExpandBounds);
+		const FBox Bounds = PointIO->GetIn()->GetBounds().ExpandBy(Settings->ExpandBounds);
 		for (int i = 0; i < NumSites; i++)
 		{
 			FVector Target = Voronoi->Circumspheres[i].Center;
 			if (Bounds.IsInside(Target)) { Centroids[i].Transform.SetLocation(Target); }
-			Centroids[i].Transform.SetLocation(Voronoi->Centroids[i]);
+			else { Centroids[i].Transform.SetLocation(Voronoi->Centroids[i]); }
 		}
 	}
 
