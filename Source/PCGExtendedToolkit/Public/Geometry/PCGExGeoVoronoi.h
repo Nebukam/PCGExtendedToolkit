@@ -52,8 +52,8 @@ namespace PCGExGeo
 
 			for (FDelaunaySite2& Site : Delaunay->Sites)
 			{
-				GetCentroid(Positions, Site.Vtx, Circumcenters[Site.Id]);
-				GetCircumcenter(Positions, Site.Vtx, Centroids[Site.Id]);
+				GetCircumcenter(Positions, Site.Vtx, Circumcenters[Site.Id]);
+				GetCentroid(Positions, Site.Vtx, Centroids[Site.Id]);
 
 				for (int i = 0; i < 3; i++)
 				{
@@ -61,7 +61,7 @@ namespace PCGExGeo
 
 					if (AdjacentIdx == -1) { continue; }
 
-					VoronoiEdges.Add(PCGEx::H64U(Site.Id, Delaunay->Sites[AdjacentIdx].Id));
+					VoronoiEdges.Add(PCGEx::H64U(Site.Id, AdjacentIdx));
 				}
 			}
 
@@ -129,7 +129,7 @@ namespace PCGExGeo
 						continue;
 					}
 
-					VoronoiEdges.Add(PCGEx::H64U(Site.Id, Delaunay->Sites[AdjacentIdx].Id));
+					VoronoiEdges.Add(PCGEx::H64U(Site.Id, AdjacentIdx));
 				}
 			}
 

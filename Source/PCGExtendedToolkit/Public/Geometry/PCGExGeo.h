@@ -115,39 +115,40 @@ namespace PCGExGeo
 		const FVector2D& B = Positions[Vtx[1]];
 		const FVector2D& C = Positions[Vtx[2]];
 
-		const FVector2D MidAB = (A + B) * 0.5;
-		const FVector2D MidBC = (B + C) * 0.5;
+		// Step 2: Calculate midpoints
+		FVector2D midpoint1 = FMath::Lerp(A, B, 0.5);
+		FVector2D midpoint2 = FMath::Lerp(B, C, 0.5);
+		FVector2D midpoint3 = FMath::Lerp(C, A, 0.5);
 
-		// Slopes of perpendicular bisectors of AB and BC
-		const double SlopeAB = -(B.Y - A.Y) / (B.X - A.X);
-		const double SlopeBC = -(C.Y - B.Y) / (C.X - B.X);
+		// Step 3: Calculate perpendicular bisectors
+		double slope1 = -1 / ((B.Y - A.Y) / (B.X - A.X));
+		double slope2 = -1 / ((C.Y - B.Y) / (C.X - B.X));
+		double slope3 = -1 / ((A.Y - C.Y) / (A.X - C.X));
 
-		// Offsets of perpendicular bisectors
-		const double OffsetAB = MidAB.Y - SlopeAB * MidAB.X;
-		const double OffsetBC = MidBC.Y - SlopeBC * MidBC.X;
+		// Calculate y-intercepts of bisectors
+		double intercept1 = midpoint1.Y - slope1 * midpoint1.X;
+		double intercept2 = midpoint2.Y - slope2 * midpoint2.X;
+		double intercept3 = midpoint3.Y - slope3 * midpoint3.X;
 
-		const double CX = (OffsetBC - OffsetAB) / (SlopeAB - SlopeBC);
+		// Step 4: Find intersection point
+		double circumcenter_x = (intercept2 - intercept1) / (slope1 - slope2);
+		double circumcenter_y = slope1 * circumcenter_x + intercept1;
 
-		OutCircumcenter.X = (OffsetBC - OffsetAB) / (SlopeAB - SlopeBC);
-		OutCircumcenter.Y = SlopeAB * CX + OffsetAB;
+		OutCircumcenter.X = circumcenter_x;
+		OutCircumcenter.Y = circumcenter_y;
 	}
 
 	static void GetCentroid(const TArrayView<FVector>& Positions, const int32 (&Vtx)[4], FVector& OutCentroid)
 	{
 		OutCentroid = FVector::Zero();
-		OutCentroid += Positions[Vtx[0]];
-		OutCentroid += Positions[Vtx[1]];
-		OutCentroid += Positions[Vtx[2]];
-		OutCentroid += Positions[Vtx[3]];
+		for (int i = 0; i < 4; i++) { OutCentroid += Positions[Vtx[i]]; }
 		OutCentroid /= 4;
 	}
 
 	static void GetCentroid(const TArrayView<FVector2D>& Positions, const int32 (&Vtx)[3], FVector2D& OutCentroid)
 	{
 		OutCentroid = FVector2D::Zero();
-		OutCentroid += Positions[Vtx[0]];
-		OutCentroid += Positions[Vtx[1]];
-		OutCentroid += Positions[Vtx[2]];
+		for (int i = 0; i < 3; i++) { OutCentroid += Positions[Vtx[i]]; }
 		OutCentroid /= 3;
 	}
 

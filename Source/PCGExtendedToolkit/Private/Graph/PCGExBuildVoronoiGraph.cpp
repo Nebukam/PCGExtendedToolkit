@@ -91,13 +91,13 @@ bool FPCGExBuildVoronoiGraphElement::ExecuteInternal(
 	{
 		if (!Context->IsAsyncWorkComplete()) { return false; }
 
-		if(Context->GraphBuilder->Graph->Edges.IsEmpty())
+		if (!Context->GraphBuilder || Context->GraphBuilder->Graph->Edges.IsEmpty())
 		{
 			PCGE_LOG(Warning, GraphAndLog, FTEXT("(1) Some inputs generates no results. Are points coplanar? If so, use Convex Hull 2D instead."));
 			Context->SetState(PCGExMT::State_ReadyForNextPoints);
 			return false;
 		}
-		
+
 		Context->GraphBuilder->Compile(Context);
 		Context->SetAsyncState(PCGExGraph::State_WritingClusters);
 	}
@@ -122,7 +122,7 @@ bool FPCGExVoronoi3Task::ExecuteTask()
 {
 	FPCGExBuildVoronoiGraphContext* Context = static_cast<FPCGExBuildVoronoiGraphContext*>(Manager->Context);
 	PCGEX_SETTINGS(BuildVoronoiGraph)
-	
+
 	PCGExGeo::TVoronoi3* Voronoi = new PCGExGeo::TVoronoi3();
 
 	const TArray<FPCGPoint>& Points = PointIO->GetIn()->GetPoints();
@@ -143,8 +143,16 @@ bool FPCGExVoronoi3Task::ExecuteTask()
 
 	const int32 NumSites = Voronoi->Centroids.Num();
 	Centroids.SetNum(NumSites);
-	
-	for (int i = 0; i < NumSites; i++) { Centroids[i].Transform.SetLocation(Voronoi->Centroids[i]); }
+
+	if (Settings->Method == EPCGExCellCenter::Circumcenter)
+	{
+		for (int i = 0; i < NumSites; i++) { Centroids[i].Transform.SetLocation(Voronoi->Circumspheres[i].Center); }
+	}
+	else
+	{
+		for (int i = 0; i < NumSites; i++) { Centroids[i].Transform.SetLocation(Voronoi->Centroids[i]); }
+	}
+
 
 	//if (Settings->bMarkHull) { Context->HullIndices.Append(Voronoi->DelaunayHull); }
 

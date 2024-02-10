@@ -93,7 +93,7 @@ bool FPCGExBuildVoronoiGraph2DElement::ExecuteInternal(
 	{
 		if (!Context->IsAsyncWorkComplete()) { return false; }
 
-		if (Context->GraphBuilder->Graph->Edges.IsEmpty())
+		if (!Context->GraphBuilder || Context->GraphBuilder->Graph->Edges.IsEmpty())
 		{
 			PCGE_LOG(Warning, GraphAndLog, FTEXT("(1) Some inputs generates no results. Are points coplanar? If so, use Convex Hull 2D instead."));
 			Context->SetState(PCGExMT::State_ReadyForNextPoints);
@@ -152,6 +152,23 @@ bool FPCGExVoronoi2Task::ExecuteTask()
 		Centroids[i].Transform.SetLocation(FVector(Centroid.X, Centroid.Y, 0));
 	}
 
+	if (Settings->Method == EPCGExCellCenter::Circumcenter)
+	{
+		for (int i = 0; i < NumSites; i++)
+		{
+			const FVector2D Centroid = Voronoi->Circumcenters[i];
+			Centroids[i].Transform.SetLocation(FVector(Centroid.X, Centroid.Y, 0));
+		}
+	}
+	else
+	{
+		for (int i = 0; i < NumSites; i++)
+		{
+			const FVector2D Centroid = Voronoi->Centroids[i];
+			Centroids[i].Transform.SetLocation(FVector(Centroid.X, Centroid.Y, 0));
+		}
+	}
+	
 	//if (Settings->bMarkHull) { Context->HullIndices.Append(Voronoi->DelaunayHull); }
 	Context->GraphBuilder = new PCGExGraph::FGraphBuilder(*PointIO, &Context->GraphBuilderSettings, 6);
 	Context->GraphBuilder->Graph->InsertEdges(Voronoi->VoronoiEdges, -1);

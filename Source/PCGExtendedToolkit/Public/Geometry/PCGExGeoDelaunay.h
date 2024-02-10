@@ -88,23 +88,20 @@ namespace PCGExGeo
 
 			for (int i = 0; i < NumSites; i++)
 			{
-				const UE::Geometry::FIndex3i& Triangle = Triangles[i];
-				const UE::Geometry::FIndex3i& Adjacency = Adjacencies[i];
-
-				FDelaunaySite2& Site = Sites[i] = FDelaunaySite2(Triangle, Adjacency, i);
+				FDelaunaySite2& Site = Sites[i] = FDelaunaySite2(Triangles[i], Adjacencies[i], i);
 
 				for (int a = 0; a < 3; a++)
 				{
-					for (int b = a; b < 3; b++)
+					for (int b = a + 1; b < 3; b++)
 					{
-						const uint64 H = PCGEx::H64U(Triangle[a], Triangle[b]);
+						const uint64 H = PCGEx::H64U(Site.Vtx[a], Site.Vtx[b]);
 						DelaunayEdges.Add(H);
 
-						if (Adjacency[a] == -1)
+						if (Site.Neighbors[a] == -1)
 						{
 							Site.bOnHull = true;
-							DelaunayHull.Add(Triangle[a]);
-							DelaunayHull.Add(Triangle[b]);
+							DelaunayHull.Add(Site.Vtx[a]);
+							DelaunayHull.Add(Site.Vtx[b]);
 						}
 					}
 				}
@@ -160,7 +157,7 @@ namespace PCGExGeo
 		{
 			for (int i = 0; i < 4; i++)
 			{
-				if (Faces[i] != Face)
+				if (Faces[i] == Face)
 				{
 					Neighbors[i] = Neighbor;
 					return;
@@ -230,10 +227,15 @@ namespace PCGExGeo
 
 			for (int i = 0; i < NumSites; i++)
 			{
-				const FIntVector4& Tetra = Tetrahedra[i];
-				FDelaunaySite3& Site = Sites[i] = FDelaunaySite3(Tetra, i);
+				FDelaunaySite3& Site = Sites[i] = FDelaunaySite3(Tetrahedra[i], i);
 
-				for (int a = 0; a < 4; a++) { for (int b = a; b < 4; b++) { DelaunayEdges.Add(PCGEx::H64U(Tetra[a], Tetra[b])); } }
+				for (int a = 0; a < 4; a++)
+				{
+					for (int b = a + 1; b < 4; b++)
+					{
+						DelaunayEdges.Add(PCGEx::H64U(Site.Vtx[a], Site.Vtx[b]));
+					}
+				}
 
 				if (bComputeFaces)
 				{
