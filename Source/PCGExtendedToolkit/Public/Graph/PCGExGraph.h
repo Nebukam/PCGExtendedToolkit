@@ -416,6 +416,10 @@ namespace PCGExGraph
 			for (const FSubGraph* Cluster : SubGraphs) { delete Cluster; }
 			SubGraphs.Empty();
 		}
+
+		void GetConnectedNodes(int32 FromIndex, TArray<int32>& OutIndices, int32 SearchDepth) const;
+
+		
 	};
 
 	class PCGEXTENDEDTOOLKIT_API FGraphBuilder

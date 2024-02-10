@@ -3,6 +3,9 @@
 
 #include "Graph/PCGExBuildCustomGraph.h"
 
+#include "Geometry/PCGExGeo.h"
+#include "Geometry/PCGExGeoDelaunay.h"
+
 #define LOCTEXT_NAMESPACE "PCGExBuildCustomGraph"
 #define PCGEX_NAMESPACE BuildCustomGraph
 
@@ -12,6 +15,8 @@ PCGExData::EInit UPCGExBuildCustomGraphSettings::GetMainOutputInitMode() const {
 FPCGExBuildCustomGraphContext::~FPCGExBuildCustomGraphContext()
 {
 	PCGEX_TERMINATE_ASYNC
+
+	PCGEX_DELETE(HelperGraph)
 }
 
 #if WITH_EDITOR
@@ -48,7 +53,7 @@ bool FPCGExBuildCustomGraphElement::ExecuteInternal(
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExBuildCustomGraphElement::Execute);
 
-	PCGEX_CONTEXT(BuildCustomGraph)
+	PCGEX_CONTEXT_AND_SETTINGS(BuildCustomGraph)
 
 	if (Context->IsSetup())
 	{
@@ -59,13 +64,29 @@ bool FPCGExBuildCustomGraphElement::ExecuteInternal(
 	// Prep point for param loops
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
+		PCGEX_DELETE(Context->HelperGraph)
+
 		if (!Context->AdvancePointsIOAndResetGraph()) { Context->Done(); }
 		else
 		{
-			const UPCGPointData::PointOctree& Octree = Context->CurrentIO->GetIn()->GetOctree(); //Force refresh
 			Context->CurrentIO->CreateOutKeys();
-			Context->SetState(PCGExGraph::State_ReadyForNextGraph);
+
+			if (Settings->bConnectivityBasedSearch)
+			{
+				Context->GetAsyncManager()->Start<FPCGExBuildGraphHelperTask>(-1, Context->CurrentIO);
+				Context->SetAsyncState(PCGExGeo::State_ProcessingDelaunay);
+			}
+			else
+			{
+				Context->SetAsyncState(PCGExGraph::State_ReadyForNextGraph);
+			}
 		}
+	}
+
+	if (Context->IsState(PCGExGeo::State_ProcessingDelaunay))
+	{
+		if (!Context->IsAsyncWorkComplete()) { return false; }
+		Context->SetState(PCGExGraph::State_ReadyForNextGraph);
 	}
 
 	if (Context->IsState(PCGExGraph::State_ReadyForNextGraph))
@@ -115,11 +136,48 @@ bool FPCGExBuildCustomGraphElement::ExecuteInternal(
 	return Context->IsDone();
 }
 
+bool FPCGExBuildGraphHelperTask::ExecuteTask()
+{
+	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExBuildGraphHelperTask::ExecuteTask);
+
+	FPCGExBuildCustomGraphContext* Context = Manager->GetContext<FPCGExBuildCustomGraphContext>();
+
+	const TArray<FPCGPoint>& Points = PointIO->GetIn()->GetPoints();
+	TArray<FVector> Positions;
+	PCGExGeo::PointsToPositions(Points, Positions);
+
+	// Add a bit of random to avoid collinear/coplanar points
+	const FVector One = FVector(1);
+	const FVector MinusOne = FVector(-1);
+	for (int i = 0; i < Points.Num(); i++)
+	{
+		FVector Pos = Points[i].Transform.GetLocation();
+		const double Size = PCGExMath::Remap(
+			FMath::PerlinNoise3D(PCGExMath::Tile(Pos * 0.001 + i, MinusOne, One)),
+			-0.01, 0.01, TNumericLimits<int32>::Min(), TNumericLimits<int32>::Max());
+
+		Positions[i] = Pos + FVector(Size);
+	}
+
+	PCGExGeo::TDelaunay3* Delaunay = new PCGExGeo::TDelaunay3();
+
+	const TArrayView<FVector> View = MakeArrayView(Positions);
+	if (Delaunay->Process(View))
+	{
+		Context->HelperGraph = new PCGExGraph::FGraph(PointIO->GetNum());
+		Context->HelperGraph->InsertEdges(Delaunay->DelaunayEdges, -1);
+	}
+
+	PCGEX_DELETE(Delaunay)
+	return false;
+}
+
 bool FPCGExProbeTask::ExecuteTask()
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExProbeTask::ExecuteTask);
 
 	const FPCGExBuildCustomGraphContext* Context = Manager->GetContext<FPCGExBuildCustomGraphContext>();
+	PCGEX_SETTINGS(BuildCustomGraph)
 
 	const PCGEx::FPointRef Point = PCGEx::FPointRef(PointIO->GetOutPoint(TaskIndex), TaskIndex);
 
@@ -132,7 +190,7 @@ bool FPCGExProbeTask::ExecuteTask()
 	const FBox Box = BoxCAE.GetBox();
 
 	const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
-	const UPCGPointData::PointOctree& Octree = Context->CurrentIO->GetIn()->GetOctree();
+	//const UPCGPointData::PointOctree& Octree = Context->CurrentIO->GetIn()->GetOctree();
 
 	/*
 	auto ProcessPoint = [&](const FPCGPointRef& InPointRef)
@@ -151,19 +209,46 @@ bool FPCGExProbeTask::ExecuteTask()
 	
 	Octree.FindElementsWithBoundsTest(BoxCAE, ProcessPoint);
 	*/
-	
-	for (int i = 0; i < InPoints.Num(); i++)
-	{
-		if (const FPCGPoint& Pt = InPoints[i];
-			!Box.IsInside(Pt.Transform.GetLocation())) { continue; }
 
-		if (i == TaskIndex) { continue; }
-		
-		const PCGEx::FPointRef& OtherPoint = PointIO->GetOutPointRef(i);
-		
-		for (PCGExGraph::FSocketProbe& Probe : Probes)
+	if (Context->HelperGraph && !Context->HelperGraph->Edges.IsEmpty())
+	{
+		TArray<int32> Neighbors;
+		Neighbors.Reserve(20);
+		Neighbors.Add(TaskIndex);
+
+		Context->HelperGraph->GetConnectedNodes(TaskIndex, Neighbors, Settings->SearchDepth);
+
+		for (const int32 i : Neighbors)
 		{
-			Context->GraphSolver->ProcessPoint(Probe, OtherPoint);
+			if (const FPCGPoint& Pt = InPoints[i];
+				!Box.IsInside(Pt.Transform.GetLocation())) { continue; }
+
+			if (i == TaskIndex) { continue; }
+
+			const PCGEx::FPointRef& OtherPoint = PointIO->GetOutPointRef(i);
+
+			for (PCGExGraph::FSocketProbe& Probe : Probes)
+			{
+				Context->GraphSolver->ProcessPoint(Probe, OtherPoint);
+			}
+		}
+	}
+	else
+	{
+		// Fallback if helper couldn't be built
+		for (int i = 0; i < InPoints.Num(); i++)
+		{
+			if (const FPCGPoint& Pt = InPoints[i];
+				!Box.IsInside(Pt.Transform.GetLocation())) { continue; }
+
+			if (i == TaskIndex) { continue; }
+
+			const PCGEx::FPointRef& OtherPoint = PointIO->GetOutPointRef(i);
+
+			for (PCGExGraph::FSocketProbe& Probe : Probes)
+			{
+				Context->GraphSolver->ProcessPoint(Probe, OtherPoint);
+			}
 		}
 	}
 

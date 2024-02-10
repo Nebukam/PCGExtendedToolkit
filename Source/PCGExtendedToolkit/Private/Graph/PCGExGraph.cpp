@@ -200,6 +200,24 @@ namespace PCGExGraph
 		}
 	}
 
+	void FGraph::GetConnectedNodes(const int32 FromIndex, TArray<int32>& OutIndices, const int32 SearchDepth) const
+	{
+		const int32 NextDepth = SearchDepth - 1;
+		const FNode& RootNode = Nodes[FromIndex];
+
+		for (const int32 EdgeIndex : RootNode.Edges)
+		{
+			const FIndexedEdge& Edge = Edges[EdgeIndex];
+			if (!Edge.bValid) { continue; }
+
+			int32 OtherIndex = Edge.Other(FromIndex);
+			if (OutIndices.Contains(OtherIndex)) { continue; }
+
+			OutIndices.Add(OtherIndex);
+			if (NextDepth > 0) { GetConnectedNodes(OtherIndex, OutIndices, NextDepth); }
+		}
+	}
+
 	void FGraphBuilder::Compile(FPCGExPointsProcessorContext* InContext,
 	                            FGraphMetadataSettings* MetadataSettings) const
 	{
