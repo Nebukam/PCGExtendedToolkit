@@ -723,7 +723,7 @@ namespace PCGEx
 		virtual double Convert(const FName Value) const override { return PCGExMath::ConvertStringToDouble(Value.ToString()); }
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FLocalSingleIntGetter : public FAttributeGetter<int32>
+	struct PCGEXTENDEDTOOLKIT_API FLocalIntegerGetter : public FAttributeGetter<int32>
 	{
 	protected:
 		virtual void ResetMinMax() override
@@ -812,6 +812,94 @@ namespace PCGEx
 		virtual int32 Convert(const FName Value) const override { return PCGExMath::ConvertStringToDouble(Value.ToString()); }
 	};
 
+	struct PCGEXTENDEDTOOLKIT_API FLocalBoolGetter : public FAttributeGetter<bool>
+	{
+	protected:
+		virtual void ResetMinMax() override
+		{
+			Min = false;
+			Max = true;
+		}
+
+		virtual bool GetDefaultValue() const override { return false; }
+
+		virtual bool Convert(const int32 Value) const override { return Value > 0; }
+		virtual bool Convert(const int64 Value) const override { return Value > 0; }
+		virtual bool Convert(const float Value) const override { return Value > 0; }
+		virtual bool Convert(const double Value) const override { return Value > 0; }
+
+		virtual bool Convert(const FVector2D Value) const override
+		{
+			switch (Field)
+			{
+			default:
+			case EPCGExSingleField::X:
+				return Value.X > 0;
+			case EPCGExSingleField::Y:
+			case EPCGExSingleField::Z:
+			case EPCGExSingleField::W:
+				return Value.Y > 0;
+			case EPCGExSingleField::Length:
+				return Value.Length() > 0;
+			}
+		}
+
+		virtual bool Convert(const FVector Value) const override
+		{
+			switch (Field)
+			{
+			default:
+			case EPCGExSingleField::X:
+				return Value.X > 0;
+			case EPCGExSingleField::Y:
+				return Value.Y > 0;
+			case EPCGExSingleField::Z:
+			case EPCGExSingleField::W:
+				return Value.Z > 0;
+			case EPCGExSingleField::Length:
+				return Value.Length() > 0;
+			}
+		}
+
+		virtual bool Convert(const FVector4 Value) const override
+		{
+			switch (Field)
+			{
+			default:
+			case EPCGExSingleField::X:
+				return Value.X > 0;
+			case EPCGExSingleField::Y:
+				return Value.Y > 0;
+			case EPCGExSingleField::Z:
+				return Value.Z > 0;
+			case EPCGExSingleField::W:
+				return Value.W > 0;
+			case EPCGExSingleField::Length:
+				return FVector(Value).Length() > 0;
+			}
+		}
+
+		virtual bool Convert(const FQuat Value) const override { return Convert(PCGExMath::GetDirection(Value, Axis)); }
+
+		virtual bool Convert(const FTransform Value) const override
+		{
+			switch (Component)
+			{
+			default: ;
+			case EPCGExTransformComponent::Position:
+				return Convert(Value.GetLocation());
+			case EPCGExTransformComponent::Rotation:
+				return Convert(Value.GetRotation());
+			case EPCGExTransformComponent::Scale:
+				return Convert(Value.GetScale3D());
+			}
+		}
+
+		virtual bool Convert(const bool Value) const override { return Value; }
+		virtual bool Convert(const FRotator Value) const override { return Convert(FVector(Value.Roll, Value.Pitch, Value.Yaw)); }
+		virtual bool Convert(const FString Value) const override { return Value.Len() == 4; }
+		virtual bool Convert(const FName Value) const override { return Value.ToString().Len() == 4; }
+	};
 
 	struct PCGEXTENDEDTOOLKIT_API FLocalVectorGetter : public FAttributeGetter<FVector>
 	{

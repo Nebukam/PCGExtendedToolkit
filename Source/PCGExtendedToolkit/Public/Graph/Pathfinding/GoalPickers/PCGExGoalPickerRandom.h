@@ -52,5 +52,5 @@ public:
 	virtual void Cleanup() override;
 
 protected:
-	PCGEx::FLocalSingleIntGetter* NumGoalsGetter = nullptr;
+	PCGEx::FLocalIntegerGetter* NumGoalsGetter = nullptr;
 };

@@ -290,7 +290,7 @@ namespace PCGExGraph
 		explicit FSocket(const FPCGExSocketDescriptor& InDescriptor): FSocket()
 		{
 			Descriptor = InDescriptor;
-			Descriptor.DotThreshold = FMath::Cos(Descriptor.Angle * (PI / 180.0)); //Degrees to dot product
+			Descriptor.DotThreshold = PCGExMath::DegreesToDot(Descriptor.Angle);
 		}
 
 		~FSocket();

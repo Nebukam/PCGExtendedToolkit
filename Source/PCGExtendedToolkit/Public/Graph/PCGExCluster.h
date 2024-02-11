@@ -30,7 +30,8 @@ namespace PCGExCluster
 		~FNode();
 
 		void AddConnection(const int32 EdgeIndex, const int32 NodeIndex);
-		bool GetNormal(FCluster* InCluster, FVector& OutNormal);
+		bool GetNormal(FCluster* InCluster, FVector& OutNormal) const;
+		int32 GetEdgeIndex(int32 AdjacentNodeIndex) const;
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FCluster
@@ -58,35 +59,75 @@ namespace PCGExCluster
 			const TArray<int32>& PerNodeEdgeNums);
 
 		void BuildPartialFrom(const TArray<FVector>& Positions, const TSet<uint64>& InEdges);
-		
+
 		int32 FindClosestNode(const FVector& Position) const;
-		
+
 		const FNode& GetNodeFromPointIndex(const int32 Index) const;
 		const PCGExGraph::FIndexedEdge& GetEdgeFromNodeIndices(const int32 A, const int32 B) const;
 		void ComputeEdgeLengths(bool bNormalize = false);
 
 		void GetConnectedNodes(const int32 FromIndex, TArray<int32>& OutIndices, const int32 SearchDepth) const;
-		
+
 	protected:
 		FNode& GetOrCreateNode(const int32 PointIndex, const TArray<FPCGPoint>& InPoints);
 	};
+
+	struct PCGEXTENDEDTOOLKIT_API FNodeChain
+	{
+		int32 First = -1;
+		int32 Last = -1;
+		TArray<int32> Nodes;
+		TArray<int32> Edges;
+
+		FNodeChain()
+		{
+		}
+
+		~FNodeChain()
+		{
+			Nodes.Empty();
+			Edges.Empty();
+		}
+	};
 }
 
-class PCGEXTENDEDTOOLKIT_API FPCGExBuildCluster : public FPCGExNonAbandonableTask
+namespace PCGExClusterTask
 {
-public:
-	FPCGExBuildCluster(
-		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-		PCGExCluster::FCluster* InCluster, PCGExData::FPointIO* InEdgeIO, TMap<int32, int32>* InNodeIndicesMap, TArray<int32>* InPerNodeEdgeNums) :
-		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
-		Cluster(InCluster), EdgeIO(InEdgeIO), NodeIndicesMap(InNodeIndicesMap), PerNodeEdgeNums(InPerNodeEdgeNums)
+	class PCGEXTENDEDTOOLKIT_API FBuildCluster : public FPCGExNonAbandonableTask
 	{
-	}
+	public:
+		FBuildCluster(
+			FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+			PCGExCluster::FCluster* InCluster, PCGExData::FPointIO* InEdgeIO, TMap<int32, int32>* InNodeIndicesMap, TArray<int32>* InPerNodeEdgeNums) :
+			FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+			Cluster(InCluster), EdgeIO(InEdgeIO), NodeIndicesMap(InNodeIndicesMap), PerNodeEdgeNums(InPerNodeEdgeNums)
+		{
+		}
 
-	PCGExCluster::FCluster* Cluster = nullptr;
-	PCGExData::FPointIO* EdgeIO = nullptr;
-	TMap<int32, int32>* NodeIndicesMap = nullptr;
-	TArray<int32>* PerNodeEdgeNums = nullptr;
+		PCGExCluster::FCluster* Cluster = nullptr;
+		PCGExData::FPointIO* EdgeIO = nullptr;
+		TMap<int32, int32>* NodeIndicesMap = nullptr;
+		TArray<int32>* PerNodeEdgeNums = nullptr;
 
-	virtual bool ExecuteTask() override;
-};
+		virtual bool ExecuteTask() override;
+	};
+
+	class PCGEXTENDEDTOOLKIT_API FFindNodeChains : public FPCGExNonAbandonableTask
+	{
+	public:
+		FFindNodeChains(
+			FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+			PCGExCluster::FCluster* InCluster, TSet<int32>* InFixtures, TArray<PCGExCluster::FNodeChain*>* InChains) :
+			FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+			Cluster(InCluster), Fixtures(InFixtures), Chains(InChains)
+		{
+		}
+
+		PCGExCluster::FCluster* Cluster = nullptr;
+		TSet<int32>* Fixtures = nullptr;
+		TArray<PCGExCluster::FNodeChain*>* Chains = nullptr;
+
+		virtual bool ExecuteTask() override;
+	};
+	
+}

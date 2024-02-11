@@ -36,7 +36,7 @@ bool FPCGExFuseCollinearElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(FuseCollinear)
 
-	Context->Threshold = FMath::Cos(Settings->Threshold * (PI / 180.0));
+	Context->Threshold = PCGExMath::DegreesToDot(Settings->Threshold);
 
 	Context->FuseDistance = Settings->FuseDistance * Settings->FuseDistance;
 

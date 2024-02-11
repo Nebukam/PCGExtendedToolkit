@@ -19,7 +19,7 @@ namespace PCGExCluster
 		AdjacentNodes.AddUnique(InNodeIndex);
 	}
 
-	bool FNode::GetNormal(FCluster* InCluster, FVector& OutNormal)
+	bool FNode::GetNormal(FCluster* InCluster, FVector& OutNormal) const
 	{
 		if (AdjacentNodes.IsEmpty()) { return false; }
 
@@ -33,6 +33,12 @@ namespace PCGExCluster
 		OutNormal /= static_cast<double>(AdjacentNodes.Num());
 
 		return true;
+	}
+
+	int32 FNode::GetEdgeIndex(const int32 AdjacentNodeIndex) const
+	{
+		for (int i = 0; i < AdjacentNodes.Num(); i++) { if (AdjacentNodes[i] == AdjacentNodeIndex) { return Edges[i]; } }
+		return -1;
 	}
 
 	FCluster::FCluster()
@@ -144,10 +150,10 @@ namespace PCGExCluster
 		const int32 NumEdges = InEdges.Num();
 		Edges.SetNumUninitialized(NumEdges);
 
-		for(int i = 0; i < Positions.Num(); i++)
+		for (int i = 0; i < Positions.Num(); i++)
 		{
 			FNode& Node = Nodes.Emplace_GetRef();
-			
+
 			Node.PointIndex = i;
 			Node.NodeIndex = i;
 			Node.Position = Positions[i];
@@ -156,7 +162,7 @@ namespace PCGExCluster
 		int32 EdgeIndex = 0;
 		for (const uint64 Edge : InEdges)
 		{
-			uint32 A;			
+			uint32 A;
 			uint32 B;
 			PCGEx::H64(Edge, A, B);
 			FNode& Start = Nodes[A];
@@ -166,7 +172,6 @@ namespace PCGExCluster
 			End.AddConnection(-1, Start.NodeIndex);
 			EdgeIndex++;
 		}
-
 	}
 
 	int32 FCluster::FindClosestNode(const FVector& Position) const
@@ -230,13 +235,21 @@ namespace PCGExCluster
 	}
 }
 
-bool FPCGExBuildCluster::ExecuteTask()
+namespace PCGExClusterTask
 {
-	Cluster->BuildFrom(
-		*EdgeIO,
-		PointIO->GetIn()->GetPoints(),
-		*NodeIndicesMap,
-		*PerNodeEdgeNums);
+	bool FBuildCluster::ExecuteTask()
+	{
+		Cluster->BuildFrom(
+			*EdgeIO,
+			PointIO->GetIn()->GetPoints(),
+			*NodeIndicesMap,
+			*PerNodeEdgeNums);
 
-	return true;
+		return true;
+	}
+
+	bool FFindNodeChains::ExecuteTask()
+	{
+		return true;
+	}
 }

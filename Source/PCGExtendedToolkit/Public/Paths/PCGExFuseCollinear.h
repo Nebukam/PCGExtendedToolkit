@@ -42,6 +42,7 @@ public:
 	//~End UPCGExPointsProcessorSettings interface
 
 public:
+	/** Angular threshold for collinearity. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, Units="Degrees", ClampMin=0, ClampMax=180))
 	double Threshold = 10;
 

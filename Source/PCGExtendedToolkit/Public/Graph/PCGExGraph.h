@@ -99,7 +99,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointEdgeIntersectionSettings
 
 	/** If disabled, points will only check edges they aren't mapped to. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0))
-	double bEnableSelfIntersection = true;
+	bool bEnableSelfIntersection = true;
 
 	/** Fuse Settings */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -133,7 +133,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgeEdgeIntersectionSettings
 
 	/** If disabled, edges will only be checked against other datasets. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0))
-	double bEnableSelfIntersection = true;
+	bool bEnableSelfIntersection = true;
 
 	/** Distance at which two edges are considered intersecting. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0))
@@ -172,11 +172,11 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgeEdgeIntersectionSettings
 	bool bFlagCrossing = false;
 
 	/** Name of an int32 flag to fetch from the first edge */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata|Flags", meta=(PCG_Overridable, EditCondition="bFlagCrossing"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata", meta=(PCG_Overridable, EditCondition="bFlagCrossing"))
 	FName FlagA;
 
 	/** Name of an int32 flag to fetch from the second edge */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata|Flags", meta=(PCG_Overridable, EditCondition="bFlagCrossing"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata", meta=(PCG_Overridable, EditCondition="bFlagCrossing"))
 	FName FlagB;
 
 	void MakeSafeForTolerance(const double FuseTolerance)
@@ -186,8 +186,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgeEdgeIntersectionSettings
 
 	void Init()
 	{
-		MinDot = bUseMinAngle ? FMath::Cos(MinAngle * (PI / 180.0)) : -1;
-		MaxDot = bUseMaxAngle ? FMath::Cos(MaxDot * (PI / 180.0)) : 1;
+		MinDot = bUseMinAngle ? PCGExMath::DegreesToDot(MinAngle) : -1;
+		MaxDot = bUseMaxAngle ? PCGExMath::DegreesToDot(MaxAngle) : 1;
 	}
 };
 

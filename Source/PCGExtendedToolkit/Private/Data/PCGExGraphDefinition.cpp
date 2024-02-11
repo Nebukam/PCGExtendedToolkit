@@ -65,7 +65,7 @@ namespace PCGExGraph
 
 		if (LocalAngleGetter && LocalAngleGetter->IsUsable(PointIO.GetNum()) && Descriptor.bLocalAngleIsDegrees)
 		{
-			for (int i = 0; i < LocalAngleGetter->Values.Num(); i++) { LocalAngleGetter->Values[i] = FMath::Cos(LocalAngleGetter->Values[i] * (PI / 180.0)); }
+			for (int i = 0; i < LocalAngleGetter->Values.Num(); i++) { LocalAngleGetter->Values[i] = PCGExMath::DegreesToDot(LocalAngleGetter->Values[i]); }
 		}
 
 #undef PCGEX_LOCAL_SOCKET_ATT
@@ -174,7 +174,7 @@ namespace PCGExGraph
 				if (Overrides.bMirrorMatchingSockets) { NewSocket.Descriptor.bMirrorMatchingSockets = OverrideSocket.bMirrorMatchingSockets; }
 			}
 
-			NewSocket.Descriptor.DotThreshold = FMath::Cos(NewSocket.Descriptor.Angle * (PI / 180.0));
+			NewSocket.Descriptor.DotThreshold = PCGExMath::DegreesToDot(NewSocket.Descriptor.Angle);
 		}
 
 		PostProcessSockets();

@@ -112,6 +112,11 @@ namespace PCGExMath
 		bool IsLastWithinRange(const FVector& Location, const double Range) const { return DistToLast(Location) < Range; }
 	};
 
+	static double DegreesToDot(const double Angle)
+	{
+		return FMath::Cos(FMath::Clamp(FMath::Abs(Angle), 0, 180.0) * (PI / 180.0));
+	}
+
 	static double ConvertStringToDouble(const FString& StringToConvert)
 	{
 		const TCHAR* CharArray = *StringToConvert;
