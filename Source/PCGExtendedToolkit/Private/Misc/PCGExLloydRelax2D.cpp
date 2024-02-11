@@ -3,7 +3,7 @@
 
 #include "Misc/PCGExLloydRelax2D.h"
 
-#include "Geometry/PCGExVoronoiLloyd.h"
+#include "Geometry/PCGExGeoDelaunay.h"
 
 #define LOCTEXT_NAMESPACE "PCGExLloydRelax2DElement"
 #define PCGEX_NAMESPACE LloydRelax2D
@@ -60,9 +60,9 @@ bool FPCGExLloydRelax2DElement::ExecuteInternal(FPCGContext* InContext) const
 			Context->InfluenceGetter->Grab(*Context->CurrentIO);
 			PCGExGeo::PointsToPositions(Context->CurrentIO->GetIn()->GetPoints(), Context->ActivePositions, Settings->ProjectionSettings);
 
-			Context->GetAsyncManager()->Start<PCGExGeoTask::FLloydRelax2>(
+			Context->GetAsyncManager()->Start<FPCGExLloydRelax2Task>(
 				0, nullptr, &Context->ActivePositions,
-				Settings->InfluenceSettings, Settings->Iterations);
+				&Settings->InfluenceSettings, Settings->Iterations);
 
 
 			Context->SetAsyncState(PCGExMT::State_ProcessingPoints);
@@ -114,6 +114,54 @@ bool FPCGExLloydRelax2DElement::ExecuteInternal(FPCGContext* InContext) const
 	}
 
 	return Context->IsDone();
+}
+
+bool FPCGExLloydRelax2Task::ExecuteTask()
+{
+	NumIterations--;
+
+	PCGExGeo::TDelaunay2* Delaunay = new PCGExGeo::TDelaunay2();
+	TArray<FVector2D>& Positions = *ActivePositions;
+
+	const TArrayView<FVector2D> View = MakeArrayView(Positions);
+	if (!Delaunay->Process(View)) { return false; }
+
+	const int32 NumPoints = Positions.Num();
+
+	TArray<FVector2D> Sum;
+	TArray<double> Counts;
+	Sum.Append(*ActivePositions);
+	Counts.SetNum(NumPoints);
+	for (int i = 0; i < NumPoints; i++) { Counts[i] = 1; }
+
+	FVector2D Centroid;
+	for (const PCGExGeo::FDelaunaySite2& Site : Delaunay->Sites)
+	{
+		PCGExGeo::GetCentroid(Positions, Site.Vtx, Centroid);
+		for (const int32 PtIndex : Site.Vtx)
+		{
+			Counts[PtIndex] += 1;
+			Sum[PtIndex] += Centroid;
+		}
+	}
+
+	if (InfluenceSettings->bProgressiveInfluence && InfluenceGetter)
+	{
+		for (int i = 0; i < NumPoints; i++) { Positions[i] = FMath::Lerp(Positions[i], Sum[i] / Counts[i], InfluenceGetter->SafeGet(i, InfluenceSettings->Influence)); }
+	}
+	else
+	{
+		for (int i = 0; i < NumPoints; i++) { Positions[i] = FMath::Lerp(Positions[i], Sum[i] / Counts[i], InfluenceSettings->Influence); }
+	}
+
+	PCGEX_DELETE(Delaunay)
+
+	if (NumIterations > 0)
+	{
+		Manager->Start<FPCGExLloydRelax2Task>(TaskIndex + 1, PointIO, ActivePositions, InfluenceSettings, NumIterations);
+	}
+
+	return true;
 }
 
 #undef LOCTEXT_NAMESPACE

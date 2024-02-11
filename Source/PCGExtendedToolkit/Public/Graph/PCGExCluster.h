@@ -56,12 +56,17 @@ namespace PCGExCluster
 			const TArray<FPCGPoint>& InNodePoints,
 			const TMap<int32, int32>& InNodeIndicesMap,
 			const TArray<int32>& PerNodeEdgeNums);
-		int32 FindClosestNode(const FVector& Position) const;
 
+		void BuildPartialFrom(const TArray<FVector>& Positions, const TSet<uint64>& InEdges);
+		
+		int32 FindClosestNode(const FVector& Position) const;
+		
 		const FNode& GetNodeFromPointIndex(const int32 Index) const;
 		const PCGExGraph::FIndexedEdge& GetEdgeFromNodeIndices(const int32 A, const int32 B) const;
 		void ComputeEdgeLengths(bool bNormalize = false);
 
+		void GetConnectedNodes(const int32 FromIndex, TArray<int32>& OutIndices, const int32 SearchDepth) const;
+		
 	protected:
 		FNode& GetOrCreateNode(const int32 PointIndex, const TArray<FPCGPoint>& InPoints);
 	};

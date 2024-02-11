@@ -6,8 +6,6 @@
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
 #include "Geometry/PCGExGeoDelaunay.h"
 #include "Geometry/PCGExGeoVoronoi.h"
-#include "Geometry/PCGExVoronoiLloyd.h"
-#include "Graph/PCGExConsolidateCustomGraph.h"
 #include "Graph/PCGExCluster.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraph"

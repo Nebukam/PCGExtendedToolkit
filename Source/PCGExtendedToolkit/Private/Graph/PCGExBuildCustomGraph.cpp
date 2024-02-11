@@ -5,6 +5,7 @@
 
 #include "Geometry/PCGExGeo.h"
 #include "Geometry/PCGExGeoDelaunay.h"
+#include "Graph/PCGExCluster.h"
 
 #define LOCTEXT_NAMESPACE "PCGExBuildCustomGraph"
 #define PCGEX_NAMESPACE BuildCustomGraph
@@ -16,7 +17,7 @@ FPCGExBuildCustomGraphContext::~FPCGExBuildCustomGraphContext()
 {
 	PCGEX_TERMINATE_ASYNC
 
-	PCGEX_DELETE(HelperGraph)
+	PCGEX_DELETE(HelperCluster)
 }
 
 #if WITH_EDITOR
@@ -64,7 +65,7 @@ bool FPCGExBuildCustomGraphElement::ExecuteInternal(
 	// Prep point for param loops
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
-		PCGEX_DELETE(Context->HelperGraph)
+		PCGEX_DELETE(Context->HelperCluster)
 
 		if (!Context->AdvancePointsIOAndResetGraph()) { Context->Done(); }
 		else
@@ -152,10 +153,7 @@ bool FPCGExBuildGraphHelperTask::ExecuteTask()
 	for (int i = 0; i < Points.Num(); i++)
 	{
 		FVector Pos = Points[i].Transform.GetLocation();
-		const double Size = PCGExMath::Remap(
-			FMath::PerlinNoise3D(PCGExMath::Tile(Pos * 0.001 + i, MinusOne, One)),
-			-0.01, 0.01, TNumericLimits<int32>::Min(), TNumericLimits<int32>::Max());
-
+		const double Size = FMath::PerlinNoise3D(PCGExMath::Tile(Pos * 0.001 + i, MinusOne, One)) * 0.01;
 		Positions[i] = Pos + FVector(Size);
 	}
 
@@ -164,8 +162,8 @@ bool FPCGExBuildGraphHelperTask::ExecuteTask()
 	const TArrayView<FVector> View = MakeArrayView(Positions);
 	if (Delaunay->Process(View))
 	{
-		Context->HelperGraph = new PCGExGraph::FGraph(PointIO->GetNum());
-		Context->HelperGraph->InsertEdges(Delaunay->DelaunayEdges, -1);
+		Context->HelperCluster = new PCGExCluster::FCluster();
+		Context->HelperCluster->BuildPartialFrom(Positions, Delaunay->DelaunayEdges);
 	}
 
 	PCGEX_DELETE(Delaunay)
@@ -210,18 +208,18 @@ bool FPCGExProbeTask::ExecuteTask()
 	Octree.FindElementsWithBoundsTest(BoxCAE, ProcessPoint);
 	*/
 
-	if (Context->HelperGraph && !Context->HelperGraph->Edges.IsEmpty())
+	if (Context->HelperCluster && !Context->HelperCluster->Edges.IsEmpty())
 	{
 		TArray<int32> Neighbors;
 		Neighbors.Reserve(20);
 		Neighbors.Add(TaskIndex);
 
-		Context->HelperGraph->GetConnectedNodes(TaskIndex, Neighbors, Settings->SearchDepth);
+		Context->HelperCluster->GetConnectedNodes(TaskIndex, Neighbors, Settings->SearchDepth);
 
 		for (const int32 i : Neighbors)
 		{
-			if (const FPCGPoint& Pt = InPoints[i];
-				!Box.IsInside(Pt.Transform.GetLocation())) { continue; }
+			PCGExCluster::FNode& Node = Context->HelperCluster->Nodes[i];
+			if (!Box.IsInside(Node.Position)) { continue; }
 
 			if (i == TaskIndex) { continue; }
 
