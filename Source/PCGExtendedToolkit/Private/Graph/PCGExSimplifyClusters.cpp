@@ -9,7 +9,7 @@
 
 #pragma region UPCGSettings interface
 
-PCGExData::EInit UPCGExSimplifyClustersSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
+PCGExData::EInit UPCGExSimplifyClustersSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NewOutput; }
 PCGExData::EInit UPCGExSimplifyClustersSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 
 #pragma endregion
@@ -24,8 +24,6 @@ FPCGExSimplifyClustersContext::~FPCGExSimplifyClustersContext()
 	PCGEX_DELETE(IsEdgeFixtureGetter)
 
 	PCGEX_DELETE_TARRAY(Chains)
-
-	NodeFixtures.Empty();
 }
 
 PCGEX_INITIALIZE_ELEMENT(SimplifyClusters)
@@ -84,9 +82,8 @@ bool FPCGExSimplifyClustersElement::ExecuteInternal(FPCGContext* InContext) cons
 
 	if (Context->IsState(PCGExGraph::State_ReadyForNextEdges))
 	{
-		Context->NodeFixtures.Empty();
 		PCGEX_DELETE_TARRAY(Context->Chains)
-		
+
 		if (!Context->AdvanceEdges(true))
 		{
 			Context->SetState(PCGExGraph::State_WritingClusters);
@@ -94,53 +91,6 @@ bool FPCGExSimplifyClustersElement::ExecuteInternal(FPCGContext* InContext) cons
 		}
 
 		if (!Context->CurrentCluster) { return false; }
-
-		const PCGExCluster::FCluster& Cluster = *Context->CurrentCluster;
-
-		if (Context->IsEdgeFixtureGetter &&
-			Context->IsEdgeFixtureGetter->IsUsable(Cluster.Edges.Num()))
-		{
-			Context->IsEdgeFixtureGetter->Grab(*Context->CurrentEdges);
-			const TArray<bool> FixedEdges = Context->IsEdgeFixtureGetter->Values;
-			for (int i = 0; i < FixedEdges.Num(); i++)
-			{
-				if (!FixedEdges[i]) { continue; }
-
-				const PCGExGraph::FIndexedEdge& E = Cluster.Edges[i];
-				Context->NodeFixtures.Add(Cluster.GetNodeFromPointIndex(E.Start).NodeIndex);
-				Context->NodeFixtures.Add(Cluster.GetNodeFromPointIndex(E.End).NodeIndex);
-			}
-		}
-
-		for (const PCGExCluster::FNode& Node : Cluster.Nodes)
-		{
-			if (const int32 NumNeighbors = Node.AdjacentNodes.Num();
-				NumNeighbors <= 1 || NumNeighbors > 2)
-			{
-				Context->NodeFixtures.Add(Node.NodeIndex);
-				continue;
-			}
-
-			if (Context->IsPointFixtureGetter)
-			{
-				if (Context->IsPointFixtureGetter->SafeGet(Node.PointIndex, false))
-				{
-					Context->NodeFixtures.Add(Node.NodeIndex);
-					continue;
-				}
-			}
-
-			if (Settings->bFixBelowThreshold)
-			{
-				const FVector ToPrev = (Node.Position - Cluster.Nodes[Node.AdjacentNodes[0]].Position).GetSafeNormal();
-				const FVector ToNext = (Node.Position - Cluster.Nodes[Node.AdjacentNodes[1]].Position).GetSafeNormal();
-				if (FVector::DotProduct(ToPrev, ToNext) > Context->FixedDotThreshold)
-				{
-					Context->NodeFixtures.Add(Node.NodeIndex);
-					continue;
-				}
-			}
-		}
 
 		// Insert current cluster into loose graph
 		Context->GetAsyncManager()->Start<FPCGExFindClusterChainsTask>(Context->CurrentIO->IOIndex, Context->CurrentIO);
@@ -164,7 +114,7 @@ bool FPCGExSimplifyClustersElement::ExecuteInternal(FPCGContext* InContext) cons
 				Context->CurrentCluster->Nodes[Chain->First].PointIndex,
 				Context->CurrentCluster->Nodes[Chain->Last].PointIndex, NewEdge);
 		}
-		
+
 		Context->SetState(PCGExGraph::State_ReadyForNextEdges);
 	}
 
@@ -197,35 +147,103 @@ bool FPCGExFindClusterChainsTask::ExecuteTask()
 	PCGEX_SETTINGS(SimplifyClusters)
 
 	const TArray<PCGExCluster::FNode>& Nodes = Context->CurrentCluster->Nodes;
+	TSet<int32> NodeFixtures;
 	TSet<int32> VisitedNodes;
-	VisitedNodes.Reserve(Nodes.Num());
+	TArray<int32> Candidates;
+
+	// Find fixtures
+	const PCGExCluster::FCluster& Cluster = *Context->CurrentCluster;
+
+	if (Context->IsEdgeFixtureGetter &&
+		Context->IsEdgeFixtureGetter->IsUsable(Cluster.Edges.Num()))
+	{
+		Context->IsEdgeFixtureGetter->Grab(*Context->CurrentEdges);
+		const TArray<bool> FixedEdges = Context->IsEdgeFixtureGetter->Values;
+		for (int i = 0; i < FixedEdges.Num(); i++)
+		{
+			if (!FixedEdges[i]) { continue; }
+
+			const PCGExGraph::FIndexedEdge& E = Cluster.Edges[i];
+			NodeFixtures.Add(Cluster.GetNodeFromPointIndex(E.Start).NodeIndex);
+			NodeFixtures.Add(Cluster.GetNodeFromPointIndex(E.End).NodeIndex);
+		}
+	}
 
 	for (const PCGExCluster::FNode& Node : Nodes)
 	{
+		if (const int32 NumNeighbors = Node.AdjacentNodes.Num();
+			NumNeighbors <= 1 || NumNeighbors > 2)
+		{
+			if(NumNeighbors == 0)
+			{
+				Context->GraphBuilder->Graph->Nodes[Node.PointIndex].bValid = false;
+			}
+			
+			NodeFixtures.Add(Node.NodeIndex);
+			continue;
+		}
+
+		if (Context->IsPointFixtureGetter)
+		{
+			if (Context->IsPointFixtureGetter->SafeGet(Node.PointIndex, false))
+			{
+				NodeFixtures.Add(Node.NodeIndex);
+				continue;
+			}
+		}
+
+		if (Settings->bFixBelowThreshold)
+		{
+			const FVector A = (Cluster.Nodes[Node.AdjacentNodes[0]].Position - Node.Position).GetSafeNormal();
+			const FVector B = (Node.Position - Cluster.Nodes[Node.AdjacentNodes[1]].Position).GetSafeNormal();
+			if (FVector::DotProduct(A, B) < Context->FixedDotThreshold)
+			{
+				NodeFixtures.Add(Node.NodeIndex);
+				continue;
+			}
+		}
+	}
+
+	// Find starting search points
+	for (const PCGExCluster::FNode& Node : Nodes)
+	{
+		if (!NodeFixtures.Contains(Node.NodeIndex)) { continue; }
+		
+		for (const int32 AdjacentNode : Node.AdjacentNodes)
+		{
+			if (NodeFixtures.Contains(AdjacentNode)) { continue; }
+			Candidates.AddUnique(AdjacentNode);
+		}
+	}
+
+	for (const int32 CandidateIndex : Candidates)
+	{
+		const PCGExCluster::FNode& Node = Nodes[CandidateIndex];
+
 		if (VisitedNodes.Contains(Node.NodeIndex)) { continue; }
 		VisitedNodes.Add(Node.NodeIndex);
 
-		if (Context->NodeFixtures.Contains(Node.NodeIndex)) { continue; } // Skip
+		if (NodeFixtures.Contains(Node.NodeIndex)) { continue; } // Skip
 
 		PCGExCluster::FNodeChain* NewChain = new PCGExCluster::FNodeChain();
 		Context->Chains.Add(NewChain);
 
 		int32 NextNodeIndex = Node.NodeIndex;
-		int32 PrevNodeIndex = Context->NodeFixtures.Contains(Node.AdjacentNodes[0]) ? Node.AdjacentNodes[0] : Node.AdjacentNodes[1];
+		int32 PrevNodeIndex = NodeFixtures.Contains(Node.AdjacentNodes[0]) ? Node.AdjacentNodes[0] : Node.AdjacentNodes[1];
 
 		NewChain->First = PrevNodeIndex;
 		while (NextNodeIndex != -1)
 		{
 			const int32 CurrentNodeIndex = NextNodeIndex;
 			VisitedNodes.Add(CurrentNodeIndex);
-			
+
 			const PCGExCluster::FNode& NextNode = Nodes[CurrentNodeIndex];
 
 			const int32 EdgeIndex = NextNode.GetEdgeIndex(PrevNodeIndex);
 			NewChain->Edges.Add(EdgeIndex);
 			Context->CurrentCluster->Edges[EdgeIndex].bValid = false;
 
-			if (Context->NodeFixtures.Contains(NextNodeIndex))
+			if (NodeFixtures.Contains(NextNodeIndex))
 			{
 				NewChain->Last = NextNodeIndex;
 				break;
@@ -238,7 +256,12 @@ bool FPCGExFindClusterChainsTask::ExecuteTask()
 		}
 
 		for (const int32 Edge : NewChain->Edges) { Context->CurrentCluster->Edges[Edge].bValid = false; }
+		for (const int32 NodeIndex : NewChain->Nodes) { Context->GraphBuilder->Graph->Nodes[Context->CurrentCluster->Nodes[NodeIndex].PointIndex].bValid = false; }
 	}
+
+	NodeFixtures.Empty();
+	VisitedNodes.Empty();
+	Candidates.Empty();
 
 	return true;
 }

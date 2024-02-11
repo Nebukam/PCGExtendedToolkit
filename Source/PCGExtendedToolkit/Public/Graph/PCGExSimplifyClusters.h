@@ -65,8 +65,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSimplifyClustersContext : public FPCGExEdges
 
 	virtual ~FPCGExSimplifyClustersContext() override;
 
-	TSet<int32> NodeFixtures;
-
 	double FixedDotThreshold = 0;
 	
 	PCGEx::FLocalBoolGetter* IsPointFixtureGetter = nullptr;
