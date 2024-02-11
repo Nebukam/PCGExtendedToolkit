@@ -110,7 +110,7 @@ bool FPCGExBridgeEdgeClustersElement::ExecuteInternal(
 					Context->Clusters.Add(NewCluster);
 
 					EdgeIO->CreateInKeys();
-					Context->GetAsyncManager()->Start<FPCGExBuildCluster>(
+					Context->GetAsyncManager()->Start<PCGExClusterTask::FBuildCluster>(
 						-1, Context->CurrentIO,
 						NewCluster, EdgeIO, &Context->NodeIndicesMap, &Context->EdgeNumReader->Values);
 				}

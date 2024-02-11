@@ -11,7 +11,7 @@ void UPCGExGoalPickerRandom::PrepareForData(const PCGExData::FPointIO& InSeeds, 
 {
 	if (bUseLocalNumGoals && !NumGoalsGetter)
 	{
-		NumGoalsGetter = new PCGEx::FLocalSingleIntGetter();
+		NumGoalsGetter = new PCGEx::FLocalIntegerGetter();
 		NumGoalsGetter->Capture(LocalNumGoalAttribute);
 	}
 
