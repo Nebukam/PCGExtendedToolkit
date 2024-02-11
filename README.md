@@ -19,6 +19,3 @@ Generally speaking, PCGEx nodes are not "magic". They aim to enhance existing fe
 
 ### Thanks
 - Kudo to [MikeC] for his reckless experiment with uncooked releases, feedbacks, suggestions. Without him this plugin wouldn't be as useful and stable as it is today.
-
-### Footnotes
-- 3D Delaunay adapted from the excellent [Scrawk' Hull-Delaunay-Voronoi](https://github.com/Scrawk/Hull-Delaunay-Voronoi) repo
