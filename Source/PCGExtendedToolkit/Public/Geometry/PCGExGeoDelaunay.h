@@ -97,12 +97,17 @@ namespace PCGExGeo
 						const uint64 H = PCGEx::H64U(Site.Vtx[a], Site.Vtx[b]);
 						DelaunayEdges.Add(H);
 
-						if (Site.Neighbors[a] == -1)
+						if (Site.Neighbors[b] == -1)
 						{
 							Site.bOnHull = true;
-							DelaunayHull.Add(Site.Vtx[a]);
-							DelaunayHull.Add(Site.Vtx[b]);
 						}
+					}
+
+					if (Site.Neighbors[a] == -1)
+					{
+						Site.bOnHull = true;
+						DelaunayHull.Add(Site.Vtx[a]);
+						DelaunayHull.Add(Site.Vtx[PCGExMath::Tile(a+1, 0, 2)]);
 					}
 				}
 			}
@@ -264,6 +269,18 @@ namespace PCGExGeo
 				{
 					if (Site.Neighbors[f] == -1)
 					{
+						if(f != 3){ DelaunayHull.Add(Site.Vtx[0]); }
+
+						if(f <2 ){ DelaunayHull.Add(Site.Vtx[1]); }
+						else{ DelaunayHull.Add(Site.Vtx[2]); }
+						
+						if(f != 0 ){ DelaunayHull.Add(Site.Vtx[3]); }
+						/*
+						Faces[0] = PCGEx::H64S(Vtx[0], Vtx[1], Vtx[2]);
+						Faces[1] = PCGEx::H64S(Vtx[0], Vtx[1], Vtx[3]);
+						Faces[2] = PCGEx::H64S(Vtx[0], Vtx[2], Vtx[3]);
+						Faces[3] = PCGEx::H64S(Vtx[1], Vtx[2], Vtx[3]);
+						*/
 						Site.bOnHull = true;
 						break;
 					}
