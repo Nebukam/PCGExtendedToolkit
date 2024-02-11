@@ -7,6 +7,7 @@
 
 #include "PCGExPointsProcessor.h"
 #include "PCGExSampling.h"
+#include "PCGExSettings.h"
 
 #include "PCGExSampleNearestPoint.generated.h"
 
@@ -17,7 +18,8 @@ MACRO(LookAt, FVector)\
 MACRO(Normal, FVector)\
 MACRO(Distance, double)\
 MACRO(SignedDistance, double)\
-MACRO(Angle, double)
+MACRO(Angle, double)\
+MACRO(NumSamples, int32)
 
 namespace PCGExNearestPoint
 {
@@ -217,6 +219,15 @@ public:
 	/** Unit/range to output the angle to.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, DisplayName=" └─ Range", EditCondition="bWriteAngle"))
 	EPCGExAngleRange AngleRange = EPCGExAngleRange::PIRadians;
+	
+	/** Write the sampled distance. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bWriteNumSamples = false;
+
+	/** Name of the 'int32' attribute to write the number of sampled neighbors to.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteNumSamples"))
+	FName NumSamplesAttributeName = FName("NumSamples");
+	
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestPointContext : public FPCGExPointsProcessorContext

@@ -176,6 +176,8 @@ bool FPCGExSamplePointTask::ExecuteTask()
 	const FPCGExSampleNearestPointContext* Context = Manager->GetContext<FPCGExSampleNearestPointContext>();
 	PCGEX_SETTINGS(SampleNearestPoint)
 
+	const bool bSingleSample = (Context->SampleMethod == EPCGExSampleMethod::ClosestTarget || Context->SampleMethod == EPCGExSampleMethod::FarthestTarget);
+
 	const int32 NumTargets = Context->Targets->GetNum();
 	const FPCGPoint& SourcePoint = PointIO->GetOutPoint(TaskIndex);
 	const FVector SourceCenter = SourcePoint.Transform.GetLocation();
@@ -234,6 +236,7 @@ bool FPCGExSamplePointTask::ExecuteTask()
 		PCGEX_OUTPUT_VALUE(Success, TaskIndex, false)
 		PCGEX_OUTPUT_VALUE(Distance, TaskIndex, FaileSafeDist)
 		PCGEX_OUTPUT_VALUE(SignedDistance, TaskIndex, FaileSafeDist)
+		PCGEX_OUTPUT_VALUE(NumSamples, TaskIndex, 0)
 		return false;
 	}
 
@@ -269,8 +272,7 @@ bool FPCGExSamplePointTask::ExecuteTask()
 		TotalWeight += Weight;
 	};
 
-	if (Context->SampleMethod == EPCGExSampleMethod::ClosestTarget ||
-		Context->SampleMethod == EPCGExSampleMethod::FarthestTarget)
+	if (bSingleSample)
 	{
 		const PCGExNearestPoint::FTargetInfos& TargetInfos = Context->SampleMethod == EPCGExSampleMethod::ClosestTarget ? TargetsCompoundInfos.Closest : TargetsCompoundInfos.Farthest;
 		const double Weight = Context->WeightCurve->GetFloatValue(TargetsCompoundInfos.GetRangeRatio(TargetInfos.Distance));
@@ -304,6 +306,7 @@ bool FPCGExSamplePointTask::ExecuteTask()
 	PCGEX_OUTPUT_VALUE(Distance, TaskIndex, WeightedDistance)
 	PCGEX_OUTPUT_VALUE(SignedDistance, TaskIndex, FMath::Sign(WeightedSignAxis.Dot(WeightedLookAt)) * WeightedDistance)
 	PCGEX_OUTPUT_VALUE(Angle, TaskIndex, PCGExSampling::GetAngle(Context->AngleRange, WeightedAngleAxis, WeightedLookAt))
+	PCGEX_OUTPUT_VALUE(NumSamples, TaskIndex, bSingleSample ? 1 : TargetsInfos.Num())
 
 	return true;
 }
