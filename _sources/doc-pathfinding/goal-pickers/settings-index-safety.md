@@ -1,5 +1,9 @@
-
 ---
+title: settings-index-safety
+has_children: false
+nav_exclude: true
+---
+
 ## Index Safety
 The index safety property controls how invalid indices are handled.
 

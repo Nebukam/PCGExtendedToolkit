@@ -25,4 +25,4 @@ nav_order: 2
 | **Hull** Attribute Name           | Name of the attribute to write the "is on hull" flag to.<br>*Disabled if points are pruned, since the output in that case will be exclusively hull points.* |
 |**Projection Settings**| Projection settings allow you to control the projection plane used to compute the graph in 2D. See [Projection Settings](#settings-projection)|
 
-{% include_relative settings-edge-types.md %}
+{% include embed id='settings-edge-types' %}

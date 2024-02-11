@@ -48,4 +48,4 @@ While the selected search algorithm is important, {% include lk id='Heuristic Mo
 {% include imgc a='pathfinding/ploting.png' %}  
 
 ---
-{% include_relative all-pathfinding-modules.md %}
+{% include embed id='all-pathfinding-modules' %}

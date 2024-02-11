@@ -30,4 +30,4 @@ nav_order: 1
 >The attribute is fetched on the `Seed` input.
 {: .infos } 
 
-{% include_relative settings-index-safety.md %}
+{% include embed id='settings-index-safety' %}

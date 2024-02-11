@@ -3,9 +3,9 @@ layout: page
 parent: Graphs
 grand_parent: All Nodes
 title: Fuse Clusters
-subtitle: Fuse clusters together and consolidate clusters, if possible.
+subtitle: Fuse clusters together by finding Point/Edge and Edge/Edge intersections.
 color: white
-summary: The **Fuse Clusters** ...
+summary: The **Fuse Clusters** node ...
 splash: icons/icon_graphs-sanitize.svg
 preview_img: placeholder.jpg
 toc_img: placeholder.jpg
@@ -13,7 +13,7 @@ tagged:
     - graphs
 see_also:
     - Working with Graphs
-nav_order: 7
+nav_order: 10
 ---
 
 {% include header_card_node %}

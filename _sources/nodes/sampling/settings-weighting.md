@@ -1,3 +1,8 @@
+---
+title: settings-weighting
+has_children: false
+nav_exclude: true
+---
 
 ## Weighting
 

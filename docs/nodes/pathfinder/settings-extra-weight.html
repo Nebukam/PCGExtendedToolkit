@@ -1,0 +1,33 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html><body>
+<table>
+  <tbody>
+    <tr>
+      <td colspan="2"><strong>Extra Weighting</strong></td>
+      
+    </tr>
+    <tr>
+      <td>Weight up Visited</td>
+      <td>If enabled, points and edges will accumulate additional weight are paths are found.<br>This allows you to make “already in use” points &amp; edges either more or less desirable for the next internal execution.</td>
+    </tr>
+    <tr>
+      <td>Visited Points Weight Factor</td>
+      <td>The weight to add to points that have been visited. This is a multiplier of the Heuristic’ Modifiers <code class="language-plaintext highlighter-rouge">Reference Weight</code>.<br><em>The weight is added each time a point is used.</em>
+</td>
+    </tr>
+    <tr>
+      <td>Visited Edges Weight Factor</td>
+      <td>The weight to add to edges that have been visited. This is a multiplier of the Heuristic’ Modifiers <code class="language-plaintext highlighter-rouge">Reference Weight</code>.<br><em>The weight is added each time an edge is used.</em>
+</td>
+    </tr>
+  </tbody>
+</table>
+
+<blockquote>
+  <p><strong>Important note on weighting up visited <code class="language-plaintext highlighter-rouge">Vtx</code> and <code class="language-plaintext highlighter-rouge">Edges</code>:</strong></p>
+  <ul>
+    <li>The weight is only computed for the pathfinding node and isn’t carried over or cached.</li>
+    <li>Enabling this feature breaks parallelism. Task are still ran asynchronously, but each path must wait for the previous one to be computed. Impact is usually negligible, but if you have <em>lots</em> of paths, it may take noticeably more time to process.</li>
+  </ul>
+</blockquote>
+</body></html>

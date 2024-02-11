@@ -44,7 +44,7 @@ There are three available methods to drive Voronoi' site position in space.
 | Canon           | Uses the real, computed voronoi site position.<br>**Sites on the outskirts of the graph usually have extreme deformations.**  |
 | Centroid           | Uses the delaunay' triangulation centroid instead of the real position.<br>*This is usually good looking, but can lead to overlapping edges.*  |
 
-{% include_relative settings-projection.md %}
+{% include embed id='settings-projection' %}
 
 ---
 # Inputs

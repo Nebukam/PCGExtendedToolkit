@@ -32,7 +32,7 @@ nav_order: 2
 |**Heuristics**| The base heuristics module that will be used during pathfinding.<br>*Each module has individual settings and documentation -- See [Available Heuristics](#available-heuristics-modules).* |
 |**Heuristics Modifiers**| This property group is available no matter what **Heuristics** have been picked.<br>*See {% include lk id='Heuristic Modifiers' %}.*|
   
-{% include_relative settings-statistics.md %}
+{% include embed id='settings-statistics' %}
 
 |**Extra Weighting**||
 |Weight up Visited| If enabled, points and edges will accumulate additional weight are paths are found.<br>This allows you to make "already in use" points & edges either more or less desirable for the next internal execution.<br>*Note that accumulated weight is consolidated between each plot points, as opposed to between each plotted path.* |

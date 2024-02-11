@@ -1,0 +1,1 @@
+{% assign pages = site.pages | where: 'title', include.id %}{% for somePage in pages %} {{ somePage.content }} {% endfor %}

@@ -1,3 +1,8 @@
+---
+title: settings-extra-weight
+has_children: false
+nav_exclude: true
+---
 
 |**Extra Weighting**||
 |Weight up Visited| If enabled, points and edges will accumulate additional weight are paths are found.<br>This allows you to make "already in use" points & edges either more or less desirable for the next internal execution. |

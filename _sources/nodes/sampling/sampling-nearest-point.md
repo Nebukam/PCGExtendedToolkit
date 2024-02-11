@@ -62,7 +62,7 @@ nav_order: 4
 | Farthest Target          | Sample the single farthest target within the specified range. |
 | Target Extents          | Reverse the sampling mechanisms so points will sample the targets which `Extents` contains them.<br>**At the time of writing, will only check targets which position in world space is within range.**<br>*It is recommend to use a max range of `0` with this method.* |
 
-{% include_relative settings-weighting.md %}
+{% include embed id='settings-weighting' %}
 
 ---
 ## Weighting

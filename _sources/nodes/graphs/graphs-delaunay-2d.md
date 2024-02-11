@@ -31,7 +31,7 @@ WIP: true
 > Note that the hull is *optimized* and will ignore points that *lie* on the hull but don't mathematically influence it *(i.e collinear/coplanar points)*.
 {: .warning }
 
-{% include_relative settings-projection.md %}
+{% include embed id='settings-projection' %}
 
 ---
 # Inputs

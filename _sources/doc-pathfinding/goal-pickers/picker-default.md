@@ -26,4 +26,4 @@ Seed index `0` will be matched to goal index `0`, and so on.
 |**Settings**||
 | Index Safety           | Failsafe method if there are more `Seeds` than there are `Goals`.<br>Note that extra `Goals` are simply ignored.<br>*See [Index Safety](#index-safety)* |
 
-{% include_relative settings-index-safety.md %}
+{% include embed id='settings-index-safety' %}

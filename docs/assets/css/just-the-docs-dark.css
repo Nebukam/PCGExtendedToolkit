@@ -124,7 +124,7 @@ video { width: 100%; }
 
 ol, ul, dl, pre, address, blockquote, table, div, hr, form, fieldset, noscript .table-wrapper { margin-top: 0; }
 
-h1, h2, h3, h4, h5, h6 { margin-top: 0; margin-bottom: 1em; font-weight: 500; line-height: 1.25; color: #f2e9e2; }
+h1, h2, h3, h4, h5, h6 { margin-top: 0; margin-bottom: 1em; font-weight: 500; line-height: 1.25; color: #f2e9e2; text-shadow: 0 2px 0px #270149; }
 
 em { opacity: 0.8; }
 
@@ -384,7 +384,7 @@ h1, .text-alpha { font-size: 32px !important; line-height: 1.25; font-weight: 30
 
 @media (min-width: 37.5rem) { h1, .text-alpha { font-size: 36px !important; } }
 
-h2, .text-beta { font-size: 18px !important; }
+h2, .text-beta { font-size: 18px !important; color: #92b8ff; }
 
 @media (min-width: 37.5rem) { h2, .text-beta { font-size: 24px !important; line-height: 1.25; } }
 

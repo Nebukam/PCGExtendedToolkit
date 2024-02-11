@@ -1,3 +1,8 @@
+---
+title: settings-edge-types
+has_children: false
+nav_exclude: true
+---
 
 ## Edge Types Settings
 

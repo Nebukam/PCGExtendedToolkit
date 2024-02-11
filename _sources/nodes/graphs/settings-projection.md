@@ -1,6 +1,5 @@
 ---
-layout: page
-title: Projection Settings
+title: settings-projection
 has_children: false
 nav_exclude: true
 ---

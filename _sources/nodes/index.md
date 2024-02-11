@@ -11,6 +11,6 @@ has_children: true
 
 {% include header_card %}
 
-{% include_relative all-nodes.md %}
+{% include embed id='embed-all-nodes' %}
 
 

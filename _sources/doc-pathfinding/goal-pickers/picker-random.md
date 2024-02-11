@@ -44,4 +44,4 @@ Random will connect to a fixed number of random goals, specified in `Num Goals`.
 Random will connect to a random number of random goals.  
 The number of connection will be between `0` and `Num Goals`
 
-{% include_relative settings-index-safety.md %}
+{% include embed id='settings-index-safety' %}

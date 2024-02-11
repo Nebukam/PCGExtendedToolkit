@@ -22,4 +22,4 @@ The PCG Extended Toolkit is a free (libre) plugin that extends Unreal Engine' Pr
 ---
 # Nodes
 
-{% include_relative nodes/all-nodes.md %}
+{% include embed id='embed-all-nodes' %}
