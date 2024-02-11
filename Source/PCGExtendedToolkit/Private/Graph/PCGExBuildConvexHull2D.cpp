@@ -108,13 +108,13 @@ bool FPCGExBuildConvexHull2DElement::ExecuteInternal(
 	{
 		if (!Context->IsAsyncWorkComplete()) { return false; }
 
-		if(Context->GraphBuilder->Graph->Edges.IsEmpty())
+		if (Context->GraphBuilder->Graph->Edges.IsEmpty())
 		{
 			PCGE_LOG(Warning, GraphAndLog, FTEXT("(1) Some inputs generates no results."));
 			Context->SetState(PCGExMT::State_ReadyForNextPoints);
 			return false;
 		}
-		
+
 		Context->GraphBuilder->Compile(Context);
 		Context->SetAsyncState(PCGExGraph::State_WritingClusters);
 	}
@@ -224,9 +224,27 @@ bool FPCGExConvexHull2Task::ExecuteTask()
 		return false;
 	}
 
-	if (Settings->bMarkHull) { Context->HullIndices.Append(Delaunay->DelaunayHull); }
 
-	Graph->InsertEdges(Delaunay->DelaunayEdges, -1);
+	if (Settings->bPrunePoints)
+	{
+		PCGExGraph::FIndexedEdge E = PCGExGraph::FIndexedEdge{};
+		
+		for (const uint64 Edge : Delaunay->DelaunayEdges)
+		{
+			uint32 A;
+			uint32 B;
+			PCGEx::H64(Edge, A, B);
+			if (!Delaunay->DelaunayHull.Contains(A) ||
+				!Delaunay->DelaunayHull.Contains(B)) { continue; }
+			Graph->InsertEdge(A, B, E);
+		}
+	}
+	else
+	{
+		if (Settings->bMarkHull) { Context->HullIndices.Append(Delaunay->DelaunayHull); }
+		Graph->InsertEdges(Delaunay->DelaunayEdges, -1);
+	}
+
 
 	PCGEX_DELETE(Delaunay)
 	return true;
