@@ -134,6 +134,41 @@ namespace PCGExCluster
 		return bValid;
 	}
 
+	void FCluster::BuildPartialFrom(const TArray<FVector>& Positions, const TSet<uint64>& InEdges)
+	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExCluster::BuildCluster);
+
+		const int32 NumNodes = Positions.Num();
+		Nodes.Reserve(NumNodes);
+
+		const int32 NumEdges = InEdges.Num();
+		Edges.SetNumUninitialized(NumEdges);
+
+		for(int i = 0; i < Positions.Num(); i++)
+		{
+			FNode& Node = Nodes.Emplace_GetRef();
+			
+			Node.PointIndex = i;
+			Node.NodeIndex = i;
+			Node.Position = Positions[i];
+		}
+
+		int32 EdgeIndex = 0;
+		for (const uint64 Edge : InEdges)
+		{
+			uint32 A;			
+			uint32 B;
+			PCGEx::H64(Edge, A, B);
+			FNode& Start = Nodes[A];
+			FNode& End = Nodes[B];
+
+			Start.AddConnection(-1, End.NodeIndex);
+			End.AddConnection(-1, Start.NodeIndex);
+			EdgeIndex++;
+		}
+
+	}
+
 	int32 FCluster::FindClosestNode(const FVector& Position) const
 	{
 		double MaxDistance = TNumericLimits<double>::Max();
@@ -178,6 +213,20 @@ namespace PCGExCluster
 		if (bNormalize) { for (int i = 0; i < NumEdges; i++) { EdgeLengths[i] = PCGExMath::Remap(EdgeLengths[i], Min, Max, 0, 1); } }
 
 		bEdgeLengthsDirty = false;
+	}
+
+	void FCluster::GetConnectedNodes(const int32 FromIndex, TArray<int32>& OutIndices, const int32 SearchDepth) const
+	{
+		const int32 NextDepth = SearchDepth - 1;
+		const FNode& RootNode = Nodes[FromIndex];
+
+		for (const int32 OtherNode : RootNode.AdjacentNodes)
+		{
+			if (OutIndices.Contains(OtherNode)) { continue; }
+
+			OutIndices.Add(OtherNode);
+			if (NextDepth > 0) { GetConnectedNodes(OtherNode, OutIndices, NextDepth); }
+		}
 	}
 }
 

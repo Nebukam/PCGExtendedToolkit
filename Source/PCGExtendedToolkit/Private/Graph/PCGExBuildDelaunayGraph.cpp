@@ -3,12 +3,8 @@
 
 #include "Graph/PCGExBuildDelaunayGraph.h"
 
-#include "CompGeom/Delaunay2.h"
-#include "CompGeom/Delaunay3.h"
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
 #include "Geometry/PCGExGeoDelaunay.h"
-#include "Geometry/PCGExVoronoiLloyd.h"
-#include "Graph/PCGExConsolidateCustomGraph.h"
 #include "Graph/PCGExCluster.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraph"

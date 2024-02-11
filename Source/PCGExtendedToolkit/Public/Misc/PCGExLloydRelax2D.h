@@ -41,11 +41,10 @@ public:
 	/** Influence Settings*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExInfluenceSettings InfluenceSettings;
-	
+
 	/** Projection settings. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExGeo2DProjectionSettings ProjectionSettings;
-	
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExLloydRelax2DContext : public FPCGExPointsProcessorContext
@@ -69,4 +68,23 @@ public:
 protected:
 	virtual bool Boot(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
+};
+
+class PCGEXTENDEDTOOLKIT_API FPCGExLloydRelax2Task : public FPCGExNonAbandonableTask
+{
+public:
+	FPCGExLloydRelax2Task(
+		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+		TArray<FVector2D>* InPositions, const FPCGExInfluenceSettings* InInfluenceSettings, const int32 InNumIterations, PCGEx::FLocalSingleFieldGetter* InInfluenceGetter = nullptr) :
+		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+		ActivePositions(InPositions), InfluenceSettings(InInfluenceSettings), NumIterations(InNumIterations), InfluenceGetter(InInfluenceGetter)
+	{
+	}
+
+	TArray<FVector2D>* ActivePositions = nullptr;
+	const FPCGExInfluenceSettings* InfluenceSettings = nullptr;
+	int32 NumIterations = 0;
+	PCGEx::FLocalSingleFieldGetter* InfluenceGetter = nullptr;
+
+	virtual bool ExecuteTask() override;
 };

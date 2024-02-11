@@ -11,6 +11,11 @@
 
 #include "PCGExBuildCustomGraph.generated.h"
 
+namespace PCGExCluster
+{
+	struct FCluster;
+}
+
 constexpr PCGExMT::AsyncState State_ProbingPoints = __COUNTER__;
 
 /**
@@ -53,11 +58,11 @@ public:
 
 public:
 	/** If enabled, attempts to build a delaunay graph first, and then search through neighbors. */
-	//UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	bool bConnectivityBasedSearch = false;
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bConnectivityBasedSearch = true;
 
 	/** Connectivity depth search if the delaunay graph could be built */
-	//UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bConnectivityBasedSearch", ClampMin=1, ClampMax=10))
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bConnectivityBasedSearch", ClampMin=1, ClampMax=100))
 	int32 SearchDepth = 5;
 
 	/** Ignores candidates weighting pass and always favors the closest one.*/
@@ -75,7 +80,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBuildCustomGraphContext : public FPCGExCusto
 
 	virtual ~FPCGExBuildCustomGraphContext() override;
 
-	PCGExGraph::FGraph* HelperGraph = nullptr;
+	PCGExCluster::FCluster* HelperCluster = nullptr;
 
 	UPCGExCustomGraphSolver* GraphSolver = nullptr;
 	bool bMoveSocketOriginOnPointExtent = false;
