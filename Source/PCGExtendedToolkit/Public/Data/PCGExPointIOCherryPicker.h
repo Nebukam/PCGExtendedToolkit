@@ -23,6 +23,8 @@ public:
 
 	int32 TotalPoints = 0;
 
+	//TODO: 
+
 protected:
 	TMap<FName, PCGEx::FAttributeIdentity> Identities;
 	TMap<FName, PCGEx::FAAttributeIO*> Writers;

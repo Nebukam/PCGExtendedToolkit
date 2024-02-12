@@ -107,7 +107,7 @@ namespace PCGExGeo
 					{
 						Site.bOnHull = true;
 						DelaunayHull.Add(Site.Vtx[a]);
-						DelaunayHull.Add(Site.Vtx[PCGExMath::Tile(a+1, 0, 2)]);
+						DelaunayHull.Add(Site.Vtx[PCGExMath::Tile(a + 1, 0, 2)]);
 					}
 				}
 			}
@@ -127,6 +127,13 @@ namespace PCGExGeo
 				DelaunayEdges.Remove(Edge);
 			}
 		}
+	};
+
+	static int32 MTX[4][3] = {
+		{0, 1, 2},
+		{0, 1, 3},
+		{0, 2, 3},
+		{1, 2, 3}
 	};
 
 	struct FDelaunaySite3
@@ -152,10 +159,7 @@ namespace PCGExGeo
 
 		void ComputeFaces()
 		{
-			Faces[0] = PCGEx::H64S(Vtx[0], Vtx[1], Vtx[2]);
-			Faces[1] = PCGEx::H64S(Vtx[0], Vtx[1], Vtx[3]);
-			Faces[2] = PCGEx::H64S(Vtx[0], Vtx[2], Vtx[3]);
-			Faces[3] = PCGEx::H64S(Vtx[1], Vtx[2], Vtx[3]);
+			for (int i = 0; i < 4; i++) { Faces[i] = PCGEx::H64S(Vtx[MTX[i][0]], Vtx[MTX[i][1]], Vtx[MTX[i][2]]); }
 		}
 
 		void SetAdjacency(const uint64 Face, const int32 Neighbor)
@@ -269,18 +273,7 @@ namespace PCGExGeo
 				{
 					if (Site.Neighbors[f] == -1)
 					{
-						if(f != 3){ DelaunayHull.Add(Site.Vtx[0]); }
-
-						if(f <2 ){ DelaunayHull.Add(Site.Vtx[1]); }
-						else{ DelaunayHull.Add(Site.Vtx[2]); }
-						
-						if(f != 0 ){ DelaunayHull.Add(Site.Vtx[3]); }
-						/*
-						Faces[0] = PCGEx::H64S(Vtx[0], Vtx[1], Vtx[2]);
-						Faces[1] = PCGEx::H64S(Vtx[0], Vtx[1], Vtx[3]);
-						Faces[2] = PCGEx::H64S(Vtx[0], Vtx[2], Vtx[3]);
-						Faces[3] = PCGEx::H64S(Vtx[1], Vtx[2], Vtx[3]);
-						*/
+						for (int fi = 0; fi < 3; fi++) { DelaunayHull.Add(Site.Vtx[MTX[f][fi]]); }
 						Site.bOnHull = true;
 						break;
 					}

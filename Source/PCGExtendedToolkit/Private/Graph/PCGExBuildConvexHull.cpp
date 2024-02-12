@@ -165,8 +165,16 @@ bool FPCGExConvexHull3Task::ExecuteTask()
 			uint32 A;
 			uint32 B;
 			PCGEx::H64(Edge, A, B);
-			if (!Delaunay->DelaunayHull.Contains(A) ||
-				!Delaunay->DelaunayHull.Contains(B)) { continue; }
+			const bool bAIsOnHull = Delaunay->DelaunayHull.Contains(A);
+			const bool bBIsOnHull = Delaunay->DelaunayHull.Contains(B);
+			
+			if (!bAIsOnHull || !bBIsOnHull)
+			{
+				if(!bAIsOnHull){ Context->GraphBuilder->Graph->Nodes[A].bValid = false; }
+				if(!bBIsOnHull){ Context->GraphBuilder->Graph->Nodes[B].bValid = false; }
+				continue;
+			}
+			
 			Graph->InsertEdge(A, B, E);
 		}
 	}
