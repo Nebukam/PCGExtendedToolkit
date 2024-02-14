@@ -104,7 +104,7 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Probing", meta=(PCG_Overridable))
 	FPCGExDistanceSettings DistanceSettings;
-	
+
 	/** Slot 'look-at' direction. Used along with DotTolerance. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Probing", meta=(PCG_Overridable))
 	FVector Direction = FVector::UpVector;

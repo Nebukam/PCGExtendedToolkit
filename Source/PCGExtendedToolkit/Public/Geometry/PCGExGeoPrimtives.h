@@ -85,7 +85,5 @@ namespace PCGExGeo
 		{
 			return Vtx[0] == Vtx[0] && Vtx[1] == Vtx[1] && Vtx[2] == Vtx[2];
 		}
-		
 	};
-
 }

@@ -66,7 +66,7 @@ public:
 	/** Defines how fused point properties and attributes are merged together for fused edges. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	FPCGExBlendingSettings EdgesBlendingSettings;
-	
+
 	/** Graph & Edges output properties */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Graph Output Settings"))
 	FPCGExGraphBuilderSettings GraphBuilderSettings;
@@ -94,7 +94,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFuseClustersLocalContext : public FPCGExEdge
 	PCGExGraph::FGraphMetadataSettings GraphMetadataSettings;
 	PCGExDataBlending::FCompoundBlender* CompoundPointsBlender = nullptr;
 	PCGExDataBlending::FCompoundBlender* CompoundEdgesBlender = nullptr;
-	
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExFuseClustersLocalElement : public FPCGExEdgesProcessorElement

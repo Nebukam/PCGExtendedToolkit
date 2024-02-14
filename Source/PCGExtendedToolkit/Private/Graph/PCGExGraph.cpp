@@ -825,7 +825,7 @@ Writer->BindAndGet(*PointIO);\
 			});
 
 		for (const int32 PointIndex : InSorted) { Graph->GetOrCreateNode(InPoints[PointIndex], PointIO->IOIndex, PointIndex); }
-		
+
 		/*
 		if (Context->bPreserveOrder)
 		{

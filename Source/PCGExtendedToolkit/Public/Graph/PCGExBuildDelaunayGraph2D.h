@@ -43,11 +43,11 @@ public:
 	virtual int32 GetPreferredChunkSize() const override;
 	//~End UPCGExPointsProcessorSettings interface
 
-public:	
+public:
 	/** Output the Urquhart graph of the Delaunay triangulation (removes the longest edge of each Delaunay cell) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bUrquhart = false;
-	
+
 	/** Mark points & edges that lie on the hull */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bMarkHull = true;
@@ -75,9 +75,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBuildDelaunayGraph2DContext : public FPCGExP
 	virtual ~FPCGExBuildDelaunayGraph2DContext() override;
 
 	TArray<FVector2D> ActivePositions;
-	
+
 	TSet<int32> HullIndices;
-	
+
 	FPCGExGeo2DProjectionSettings ProjectionSettings;
 
 	FPCGExGraphBuilderSettings GraphBuilderSettings;

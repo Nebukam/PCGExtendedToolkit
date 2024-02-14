@@ -70,7 +70,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBuildConvexHull2DContext : public FPCGExPoin
 	virtual ~FPCGExBuildConvexHull2DContext() override;
 
 	TSet<int32> HullIndices;
-	
+
 	FPCGExGeo2DProjectionSettings ProjectionSettings;
 
 	FPCGExGraphBuilderSettings GraphBuilderSettings;

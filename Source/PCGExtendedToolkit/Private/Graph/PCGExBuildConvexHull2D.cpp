@@ -228,7 +228,7 @@ bool FPCGExConvexHull2Task::ExecuteTask()
 	if (Settings->bPrunePoints)
 	{
 		PCGExGraph::FIndexedEdge E = PCGExGraph::FIndexedEdge{};
-		
+
 		for (const uint64 Edge : Delaunay->DelaunayEdges)
 		{
 			uint32 A;

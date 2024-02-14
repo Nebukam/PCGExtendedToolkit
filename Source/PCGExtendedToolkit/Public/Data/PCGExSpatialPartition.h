@@ -38,7 +38,7 @@ namespace PCGExSpacePartition
 
 			const TArray<FPCGPoint>& InPoints = InData->GetPoints();
 			const int32 NumPoints = InPoints.Num();
-			for(int i = 0; i < NumPoints; i++)
+			for (int i = 0; i < NumPoints; i++)
 			{
 				//TODO: Find which x/y/z indice the point belongs to.
 				//If the partition doesn't exists, create it.

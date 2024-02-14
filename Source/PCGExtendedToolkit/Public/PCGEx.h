@@ -285,7 +285,7 @@ namespace PCGEx
 			return EPCGMetadataTypes::Unknown;
 		}
 	}
-	
+
 #pragma endregion
 
 	static const TMap<FString, EPCGExTransformComponent> STRMAP_TRANSFORM_FIELD = {

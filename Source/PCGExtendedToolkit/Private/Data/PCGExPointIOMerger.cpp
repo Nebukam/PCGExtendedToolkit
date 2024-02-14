@@ -14,7 +14,7 @@ FPCGExPointIOMerger::FPCGExPointIOMerger(PCGExData::FPointIO& OutData)
 FPCGExPointIOMerger::~FPCGExPointIOMerger()
 {
 	PCGEX_DELETE_TARRAY(WriterList)
-	
+
 	Identities.Empty();
 	AllowsInterpolation.Empty();
 

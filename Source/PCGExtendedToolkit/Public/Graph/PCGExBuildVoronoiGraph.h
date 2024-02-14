@@ -52,7 +52,7 @@ public:
 	/** Method used to find Voronoi cell location */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExCellCenter Method = EPCGExCellCenter::Balanced;
-	
+
 	/** Prune points and cell outside bounds (computed based on input vertices + optional extension)*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	double ExpandBounds = 100;
@@ -84,7 +84,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBuildVoronoiGraphContext : public FPCGExPoin
 	virtual ~FPCGExBuildVoronoiGraphContext() override;
 
 	TArray<FVector> ActivePositions;
-	
+
 	TSet<int32> HullIndices;
 
 	FPCGExGraphBuilderSettings GraphBuilderSettings;
