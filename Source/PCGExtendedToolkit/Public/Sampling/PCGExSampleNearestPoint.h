@@ -137,7 +137,7 @@ public:
 
 	/** Distance method to be used for source & target points. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
-	FPCGExDistanceSettingsWithTarget DistanceSettings;
+	FPCGExDistanceSettings DistanceSettings;
 
 	/** Weight method used for blending */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta=(PCG_Overridable))
@@ -255,7 +255,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestPointContext : public FPCGExPoi
 
 	PCGEX_FOREACH_FIELD_NEARESTPOINT(PCGEX_OUTPUT_DECL)
 
-	FPCGExDistanceSettingsWithTarget DistanceSettings;
+	FPCGExDistanceSettings DistanceSettings;
 
 	EPCGExAxis SignAxis;
 	EPCGExAxis AngleAxis;

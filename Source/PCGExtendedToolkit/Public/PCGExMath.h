@@ -766,35 +766,40 @@ namespace PCGExMath
 			-1, 1, TNumericLimits<int32>::Min(), TNumericLimits<int32>::Max()));
 	}
 
+#pragma region Spatialized distances
+	
 	// Stolen from PCGDistance
-	static FVector GetRelationalCenter(
+	static FVector GetSpatializedCenter(
 		const EPCGExDistance Shape,
-		const FPCGPoint& SourcePoint,
-		const FVector& SourceCenter,
-		const FVector& TargetCenter)
+		const FPCGPoint& FromPoint,
+		const FVector& FromCenter,
+		const FVector& ToCenter)
 	{
 		if (Shape == EPCGExDistance::SphereBounds)
 		{
-			FVector Dir = TargetCenter - SourceCenter;
+			FVector Dir = ToCenter - FromCenter;
 			Dir.Normalize();
 
-			return SourceCenter + Dir * SourcePoint.GetScaledExtents().Length();
+			return FromCenter + Dir * FromPoint.GetScaledExtents().Length();
 		}
 		if (Shape == EPCGExDistance::BoxBounds)
 		{
-			const FVector LocalTargetCenter = SourcePoint.Transform.InverseTransformPosition(TargetCenter);
+			const FVector LocalTargetCenter = FromPoint.Transform.InverseTransformPosition(ToCenter);
 
-			const double DistanceSquared = ComputeSquaredDistanceFromBoxToPoint(SourcePoint.BoundsMin, SourcePoint.BoundsMax, LocalTargetCenter);
+			const double DistanceSquared = ComputeSquaredDistanceFromBoxToPoint(FromPoint.BoundsMin, FromPoint.BoundsMax, LocalTargetCenter);
 
 			FVector Dir = -LocalTargetCenter;
 			Dir.Normalize();
 
 			const FVector LocalClosestPoint = LocalTargetCenter + Dir * FMath::Sqrt(DistanceSquared);
 
-			return SourcePoint.Transform.TransformPosition(LocalClosestPoint);
+			return FromPoint.Transform.TransformPosition(LocalClosestPoint);
 		}
 
 		// EPCGExDistance::Center
-		return SourceCenter;
+		return FromCenter;
 	}
+	
+#pragma endregion
+	
 }

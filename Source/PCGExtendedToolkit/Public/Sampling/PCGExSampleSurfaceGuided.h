@@ -73,7 +73,7 @@ public:
 
 	/** Name of the 'vector' attribute to write sampled Location to.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteLocation"))
-	FName LocationAttributeName = FName("GuidedLocation");
+	FName LocationAttributeName = FName("TracedLocation");
 
 	/** Write the sampled normal. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
@@ -81,7 +81,7 @@ public:
 
 	/** Name of the 'vector' attribute to write sampled Normal to.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteNormal"))
-	FName NormalAttributeName = FName("GuidedNormal");
+	FName NormalAttributeName = FName("TracedNormal");
 
 
 	/** Write the sampled distance. */
@@ -90,7 +90,7 @@ public:
 
 	/** Name of the 'double' attribute to write sampled distance to.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteDistance"))
-	FName DistanceAttributeName = FName("GuidedDistance");
+	FName DistanceAttributeName = FName("TracedDistance");
 
 	/** Maximum distance to check for closest surface.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision", meta=(PCG_Overridable))

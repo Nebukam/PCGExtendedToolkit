@@ -4,6 +4,8 @@
 
 #pragma once
 
+#define PCGEX_SOFT_VALIDATE_NAME_SETTINGS(_BOOL, _NAME, _CTX) if(_BOOL){if (!FPCGMetadataAttributeBase::IsValidName(_NAME) || _NAME.IsNone()){ PCGE_LOG_C(Warning, GraphAndLog, _CTX, FTEXT("Invalid user-defined attribute name for " #_NAME)); _BOOL = false; } }
+
 #include "CoreMinimal.h"
 #include "PCGEx.h"
 #include "PCGExMath.h"
@@ -146,35 +148,70 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExInfluenceSettings
 	/** If enabled, applies influence after each iteration; otherwise applies once at the end of the relaxing.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bProgressiveInfluence = true;
-	
 };
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExFuseSettings
+struct PCGEXTENDEDTOOLKIT_API FPCGExDistanceSettings
 {
 	GENERATED_BODY()
 
-	FPCGExFuseSettings()
+	FPCGExDistanceSettings()
 	{
-		Init();
 	}
 
-	FPCGExFuseSettings(double InTolerance)
+	explicit FPCGExDistanceSettings(const EPCGExDistance SourceMethod, const EPCGExDistance TargetMethod)
+		: Source(SourceMethod), Target(TargetMethod)
+	{
+	}
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
+	EPCGExDistance Source = EPCGExDistance::Center;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
+	EPCGExDistance Target = EPCGExDistance::Center;
+
+	FVector GetSourceCenter(const FPCGPoint& FromPoint, const FVector& FromCenter, const FVector& ToCenter) const
+	{
+		return PCGExMath::GetSpatializedCenter(Source, FromPoint, FromCenter, ToCenter);
+	}
+
+	FVector GetTargetCenter(const FPCGPoint& FromPoint, const FVector& FromCenter, const FVector& ToCenter) const
+	{
+		return PCGExMath::GetSpatializedCenter(Target, FromPoint, FromCenter, ToCenter);
+	}
+	
+	void GetCenters(const FPCGPoint& SourcePoint, const FPCGPoint& TargetPoint, FVector& OutSource, FVector& OutTarget) const
+	{
+		const FVector TargetLocation = TargetPoint.Transform.GetLocation();
+		OutSource = PCGExMath::GetSpatializedCenter(Source, SourcePoint, SourcePoint.Transform.GetLocation(), TargetLocation);
+		OutTarget = PCGExMath::GetSpatializedCenter(Target, TargetPoint, TargetLocation, OutSource);
+	}
+
+	double GetDistance(const FPCGPoint& SourcePoint, const FPCGPoint& TargetPoint) const
+	{
+		const FVector TargetLocation = TargetPoint.Transform.GetLocation();
+		const FVector OutSource = PCGExMath::GetSpatializedCenter(Source, SourcePoint, SourcePoint.Transform.GetLocation(), TargetLocation);
+		return FVector::DistSquared(OutSource, PCGExMath::GetSpatializedCenter(Target, TargetPoint, TargetLocation, OutSource));
+	}
+};
+
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExFuseSettingsBase
+{
+	GENERATED_BODY()
+
+	FPCGExFuseSettingsBase()
+	{
+	}
+
+	explicit FPCGExFuseSettingsBase(double InTolerance)
 		: Tolerance(InTolerance)
 	{
-		Init();
-	}
-
-	FPCGExFuseSettings(double InTolerance, EPCGExDistance SourceMethod)
-		: Tolerance(InTolerance), SourceDistance(SourceMethod)
-	{
-		Init();
 	}
 
 	/** Fusing distance */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0.0001))
 	double Tolerance = 0.001;
-	double ToleranceSquared = 10;
 
 	/** Uses a per-axis radius, manathan-style */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
@@ -183,10 +220,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFuseSettings
 	/** Component-wise radiuses */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bComponentWiseTolerance", EditConditionHides, ClampMin=0.0001))
 	FVector Tolerances = FVector(0.001);
-
-	/** Method used to compute the distance from the source */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExDistance SourceDistance = EPCGExDistance::Center;
 
 	/** Method used to compute the distance from the source */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
@@ -199,20 +232,14 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFuseSettings
 	PCGEx::FLocalSingleFieldGetter* LocalToleranceGetter = nullptr;
 	PCGEx::FLocalVectorGetter* LocalToleranceVectorGetter = nullptr;
 
-	void Init()
-	{
-		ToleranceSquared = Tolerance * Tolerance;
-		Tolerances = FVector(Tolerance);
-	}
-
 	bool IsWithinTolerance(const double DistSquared) const
 	{
-		return FMath::IsWithin<double, double>(DistSquared, 0, ToleranceSquared);
+		return FMath::IsWithin<double, double>(DistSquared, 0, Tolerance*Tolerance);
 	}
 
 	bool IsWithinTolerance(const FVector& Source, const FVector& Target) const
 	{
-		return FMath::IsWithin<double, double>(FVector::DistSquared(Source, Target), 0, ToleranceSquared);
+		return FMath::IsWithin<double, double>(FVector::DistSquared(Source, Target), 0, Tolerance*Tolerance);
 	}
 
 	bool IsWithinToleranceComponentWise(const FVector& Source, const FVector& Target) const
@@ -221,62 +248,83 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFuseSettings
 			FMath::IsWithin<double, double>(abs(Source.Y - Target.Y), 0, Tolerance) &&
 			FMath::IsWithin<double, double>(abs(Source.Z - Target.Z), 0, Tolerance));
 	}
+};
 
-	///
-	FVector GetSourceCenter(const FPCGPoint& SourcePoint, const FVector& SourceCenter, const FVector& TargetCenter) const
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExSourceFuseSettings : public FPCGExFuseSettingsBase
+{
+	GENERATED_BODY()
+
+	FPCGExSourceFuseSettings() :
+		FPCGExFuseSettingsBase()
 	{
-		return PCGExMath::GetRelationalCenter(SourceDistance, SourcePoint, SourceCenter, TargetCenter);
+		
 	}
 
+	explicit FPCGExSourceFuseSettings(double InTolerance)
+		: FPCGExFuseSettingsBase(InTolerance)
+	{
+		
+	}
+
+	explicit FPCGExSourceFuseSettings(const double InTolerance, const EPCGExDistance SourceMethod)
+		: FPCGExFuseSettingsBase(InTolerance), SourceDistance(SourceMethod)
+	{
+		
+	}
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExDistance SourceDistance = EPCGExDistance::Center;
+
+	///
 	double GetSourceDistSquared(const FPCGPoint& SourcePoint, const FVector& SourceCenter, const FVector& TargetCenter) const
 	{
-		return FVector::DistSquared(PCGExMath::GetRelationalCenter(SourceDistance, SourcePoint, SourceCenter, TargetCenter), TargetCenter);
+		return FVector::DistSquared(PCGExMath::GetSpatializedCenter(SourceDistance, SourcePoint, SourceCenter, TargetCenter), TargetCenter);
 	}
 
 	bool IsWithinTolerance(const FPCGPoint& SourcePoint, const FVector& SourceCenter, const FVector& TargetCenter) const
 	{
-		return IsWithinTolerance(GetSourceCenter(SourcePoint, SourceCenter, TargetCenter), TargetCenter);
+		return FPCGExFuseSettingsBase::IsWithinTolerance(PCGExMath::GetSpatializedCenter(SourceDistance, SourcePoint, SourceCenter, TargetCenter), TargetCenter);
 	}
 
 	bool IsWithinToleranceComponentWise(const FPCGPoint& SourcePoint, const FVector& SourceCenter, const FVector& TargetCenter) const
 	{
-		return IsWithinToleranceComponentWise(GetSourceCenter(SourcePoint, SourceCenter, TargetCenter), TargetCenter);
+		return FPCGExFuseSettingsBase::IsWithinToleranceComponentWise(PCGExMath::GetSpatializedCenter(SourceDistance, SourcePoint, SourceCenter, TargetCenter), TargetCenter);
 	}
 };
 
-
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExFuseSettingsWithTarget : public FPCGExFuseSettings
+struct PCGEXTENDEDTOOLKIT_API FPCGExFuseSettings : public FPCGExSourceFuseSettings
 {
 	GENERATED_BODY()
 
-	FPCGExFuseSettingsWithTarget()
+	FPCGExFuseSettings() :
+		FPCGExSourceFuseSettings()
 	{
 	}
 
-	FPCGExFuseSettingsWithTarget(double InTolerance)
-		: FPCGExFuseSettings(InTolerance)
+	explicit FPCGExFuseSettings(const double InTolerance)
+		: FPCGExSourceFuseSettings(InTolerance)
 	{
 	}
 
-	FPCGExFuseSettingsWithTarget(double InTolerance, EPCGExDistance SourceMethod)
-		: FPCGExFuseSettings(InTolerance, SourceMethod)
+	explicit FPCGExFuseSettings(const double InTolerance, const EPCGExDistance SourceMethod)
+		: FPCGExSourceFuseSettings(InTolerance, SourceMethod)
 	{
 	}
 
-	FPCGExFuseSettingsWithTarget(double InTolerance, EPCGExDistance SourceMethod, EPCGExDistance TargetMethod)
-		: FPCGExFuseSettings(InTolerance, SourceMethod), TargetDistance(TargetMethod)
+	explicit FPCGExFuseSettings(const double InTolerance, const EPCGExDistance SourceMethod, const EPCGExDistance TargetMethod)
+		: FPCGExSourceFuseSettings(InTolerance, SourceMethod)
 	{
 	}
 
-	/** Method used to compute the distance to the target */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExDistance TargetDistance = EPCGExDistance::Center;
 
 	void GetCenters(const FPCGPoint& SourcePoint, const FPCGPoint& TargetPoint, FVector& OutSource, FVector& OutTarget) const
 	{
-		OutSource = GetSourceCenter(SourcePoint, SourcePoint.Transform.GetLocation(), TargetPoint.Transform.GetLocation());
-		OutTarget = PCGExMath::GetRelationalCenter(TargetDistance, TargetPoint, TargetPoint.Transform.GetLocation(), OutSource);
+		OutSource = PCGExMath::GetSpatializedCenter(SourceDistance, SourcePoint, SourcePoint.Transform.GetLocation(), TargetPoint.Transform.GetLocation());
+		OutTarget = PCGExMath::GetSpatializedCenter(TargetDistance, TargetPoint, TargetPoint.Transform.GetLocation(), OutSource);
 	}
 
 	bool IsWithinTolerance(const FPCGPoint& SourcePoint, const FPCGPoint& TargetPoint) const
@@ -284,7 +332,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFuseSettingsWithTarget : public FPCGExFuseSe
 		FVector A;
 		FVector B;
 		GetCenters(SourcePoint, TargetPoint, A, B);
-		return FPCGExFuseSettings::IsWithinTolerance(A, B);
+		return FPCGExFuseSettingsBase::IsWithinTolerance(A, B);
 	}
 
 	bool IsWithinToleranceComponentWise(const FPCGPoint& SourcePoint, const FPCGPoint& TargetPoint) const
@@ -292,72 +340,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFuseSettingsWithTarget : public FPCGExFuseSe
 		FVector A;
 		FVector B;
 		GetCenters(SourcePoint, TargetPoint, A, B);
-		return FPCGExFuseSettings::IsWithinToleranceComponentWise(A, B);
-	}
-};
-
-USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExDistanceSettings
-{
-	GENERATED_BODY()
-
-	FPCGExDistanceSettings()
-	{
-	}
-
-	FPCGExDistanceSettings(EPCGExDistance SourceMethod)
-		: SourceDistance(SourceMethod)
-	{
-	}
-
-	/** Method used to compute the distance from the source */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExDistance SourceDistance = EPCGExDistance::Center;
-
-	FVector GetSourceCenter(const FPCGPoint& SourcePoint, const FVector& SourceCenter, const FVector& TargetCenter) const
-	{
-		return PCGExMath::GetRelationalCenter(SourceDistance, SourcePoint, SourceCenter, TargetCenter);
-	}
-
-	double GetSourceDistanceToPosition(const FPCGPoint& SourcePoint, const FVector& SourceCenter, const FVector& TargetCenter) const
-	{
-		return FVector::DistSquared(GetSourceCenter(SourcePoint, SourceCenter, TargetCenter), TargetCenter);
-	}
-};
-
-USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExDistanceSettingsWithTarget : public FPCGExDistanceSettings
-{
-	GENERATED_BODY()
-
-	FPCGExDistanceSettingsWithTarget()
-	{
-	}
-
-	FPCGExDistanceSettingsWithTarget(EPCGExDistance SourceMethod)
-		: FPCGExDistanceSettings(SourceMethod)
-	{
-	}
-
-	FPCGExDistanceSettingsWithTarget(EPCGExDistance SourceMethod, EPCGExDistance TargetMethod)
-		: FPCGExDistanceSettings(SourceMethod), TargetDistance(TargetMethod)
-	{
-	}
-
-	/** Method used to compute the distance to the target */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExDistance TargetDistance = EPCGExDistance::Center;
-
-	FVector GetTargetCenter(const FPCGPoint& TargetPoint, const FVector& TargetCenter, const FVector& OtherCenter) const
-	{
-		return PCGExMath::GetRelationalCenter(TargetDistance, TargetPoint, TargetCenter, OtherCenter);
-	}
-
-	void GetCenters(const FPCGPoint& SourcePoint, const FPCGPoint& TargetPoint, FVector& OutSource, FVector& OutTarget) const
-	{
-		const FVector TargetLocation = TargetPoint.Transform.GetLocation();
-		OutSource = GetSourceCenter(SourcePoint, SourcePoint.Transform.GetLocation(), TargetLocation);
-		OutTarget = GetTargetCenter(TargetPoint, TargetLocation, OutSource);
+		return FPCGExFuseSettingsBase::IsWithinToleranceComponentWise(A, B);
 	}
 };
 
@@ -367,8 +350,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointPointIntersectionSettings
 	GENERATED_BODY()
 
 	/** Fuse Settings */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	FPCGExFuseSettingsWithTarget FuseSettings;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
+	FPCGExFuseSettings FuseSettings;
 
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata", meta=(PCG_Overridable, InlineEditConditionToggle))
@@ -385,4 +368,134 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointPointIntersectionSettings
 	/** Name of the attribute to mark the number of fused point held */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata", meta=(PCG_Overridable, EditCondition="bWriteCompoundSize"))
 	FName CompoundSizeAttributeName = "CompoundSize";
+
 };
+
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExPointEdgeIntersectionSettings
+{
+	GENERATED_BODY()
+
+	/** If disabled, points will only check edges they aren't mapped to. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0))
+	bool bEnableSelfIntersection = true;
+
+	/** Fuse Settings */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
+	FPCGExSourceFuseSettings FuseSettings;
+
+	/** When enabled, point will be moved exactly on the edge. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bSnapOnEdge = false;
+
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bWriteIntersector = false;
+
+	/** Name of the attribute to flag point as intersector (result of an Point/Edge intersection) */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata", meta=(PCG_Overridable, EditCondition="bWriteIntersector"))
+	FName IntersectorAttributeName = "bIntersector";
+
+	void MakeSafeForTolerance(double FuseTolerance)
+	{
+		FuseSettings.Tolerance = FMath::Clamp(FuseSettings.Tolerance, 0, FuseTolerance * 0.5);
+		FuseSettings.Tolerances.X = FMath::Clamp(FuseSettings.Tolerances.X, 0, FuseTolerance * 0.5);
+		FuseSettings.Tolerances.Y = FMath::Clamp(FuseSettings.Tolerances.Y, 0, FuseTolerance * 0.5);
+		FuseSettings.Tolerances.Z = FMath::Clamp(FuseSettings.Tolerances.Z, 0, FuseTolerance * 0.5);
+	}
+};
+
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExEdgeEdgeIntersectionSettings
+{
+	GENERATED_BODY()
+
+	/** If disabled, edges will only be checked against other datasets. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0))
+	bool bEnableSelfIntersection = true;
+
+	/** Distance at which two edges are considered intersecting. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0))
+	double Tolerance = 0.001;
+
+	/** . */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bUseMinAngle = true;
+
+	/** Min angle. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseMinAngle", Units="Degrees", ClampMin=0, ClampMax=90))
+	double MinAngle = 0;
+	double MinDot = -1;
+
+	/** . */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bUseMaxAngle = true;
+
+	/** Maximum angle. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseMaxAngle", Units="Degrees", ClampMin=0, ClampMax=90))
+	double MaxAngle = 90;
+	double MaxDot = 1;
+
+	//
+
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bWriteCrossing = false;
+
+	/** Name of the attribute to flag point as crossing (result of an Edge/Edge intersection) */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata", meta=(PCG_Overridable, EditCondition="bWriteCrossing"))
+	FName CrossingAttributeName = "bCrossing";
+
+	/** Will copy the flag values of attributes from the edges onto the point in order to filter them. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata", meta=(PCG_Overridable))
+	bool bFlagCrossing = false;
+
+	/** Name of an int32 flag to fetch from the first edge */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata", meta=(PCG_Overridable, EditCondition="bFlagCrossing"))
+	FName FlagA;
+
+	/** Name of an int32 flag to fetch from the second edge */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata", meta=(PCG_Overridable, EditCondition="bFlagCrossing"))
+	FName FlagB;
+
+	void MakeSafeForTolerance(const double FuseTolerance)
+	{
+		Tolerance = FMath::Clamp(Tolerance, 0, FuseTolerance * 0.5);
+	}
+
+	void ComputeDot()
+	{
+		MinDot = bUseMinAngle ? PCGExMath::DegreesToDot(MinAngle) : -1;
+		MaxDot = bUseMaxAngle ? PCGExMath::DegreesToDot(MaxAngle) : 1;
+	}
+};
+
+
+namespace PCGExSettings
+{
+#pragma region Distance Settings
+
+	static FPCGExDistanceSettings GetDistanceSettings(const EPCGExDistance InDistance)
+	{
+		return FPCGExDistanceSettings(InDistance, InDistance);
+	}
+
+	static FPCGExDistanceSettings GetDistanceSettings(const FPCGExPointPointIntersectionSettings& InSettings)
+	{
+		return FPCGExDistanceSettings(InSettings.FuseSettings.SourceDistance, InSettings.FuseSettings.TargetDistance);
+	}
+
+	static FPCGExDistanceSettings GetDistanceSettings(const FPCGExPointEdgeIntersectionSettings& InSettings)
+	{
+		return FPCGExDistanceSettings(InSettings.FuseSettings.SourceDistance, EPCGExDistance::Center);
+	}
+
+	static FPCGExDistanceSettings GetDistanceSettings(const FPCGExEdgeEdgeIntersectionSettings& InSettings)
+	{
+		return FPCGExDistanceSettings(EPCGExDistance::Center, EPCGExDistance::Center);
+	}
+
+#pragma endregion
+}
+
+#undef PCGEX_SOFT_VALIDATE_NAME_SETTINGS

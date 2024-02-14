@@ -103,7 +103,7 @@ public:
 	/// Bounds
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Probing", meta=(PCG_Overridable))
-	FPCGExDistanceSettingsWithTarget DistanceSettings;
+	FPCGExDistanceSettings DistanceSettings;
 	
 	/** Slot 'look-at' direction. Used along with DotTolerance. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Probing", meta=(PCG_Overridable))

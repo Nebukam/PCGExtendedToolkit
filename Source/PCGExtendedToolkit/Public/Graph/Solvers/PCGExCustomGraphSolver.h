@@ -48,7 +48,7 @@ namespace PCGExGraph
 		TArray<FPointCandidate> Candidates;
 		FPointCandidate BestCandidate;
 
-		FBox LooseBounds;
+		FBox CompoundBounds;
 
 		double IndexedRating = TNumericLimits<double>::Max();
 		double IndexedDistanceRating = 0;
@@ -74,7 +74,7 @@ namespace PCGExGraph
 
 		FVector GetTargetCenter(const FPCGPoint& TargetPoint) const
 		{
-			return PCGExMath::GetRelationalCenter(SocketInfos->Socket->Descriptor.DistanceSettings.TargetDistance,
+			return SocketInfos->Socket->Descriptor.DistanceSettings.GetTargetCenter(
 				TargetPoint, TargetPoint.Transform.GetLocation(), Origin);
 		}
 

@@ -377,11 +377,12 @@ namespace PCGExPathfinding
 class PCGEXTENDEDTOOLKIT_API FPCGExCompileModifiersTask : public FPCGExNonAbandonableTask
 {
 public:
-	FPCGExCompileModifiersTask(
-		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-		PCGExData::FPointIO* InEdgeIO, FPCGExHeuristicModifiersSettings* InModifiers) :
+	FPCGExCompileModifiersTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+	                           PCGExData::FPointIO* InEdgeIO,
+	                           FPCGExHeuristicModifiersSettings* InModifiers) :
 		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
-		EdgeIO(InEdgeIO), Modifiers(InModifiers)
+		EdgeIO(InEdgeIO),
+		Modifiers(InModifiers)
 	{
 	}
 
@@ -398,11 +399,12 @@ public:
 class PCGEXTENDEDTOOLKIT_API FPCGExPathfindingTask : public FPCGExNonAbandonableTask
 {
 public:
-	FPCGExPathfindingTask(
-		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-		PCGExPathfinding::FPathQuery* InQuery, PCGExPathfinding::FExtraWeights* InGlobalExtraWeights = nullptr) :
+	FPCGExPathfindingTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+	                      PCGExPathfinding::FPathQuery* InQuery,
+	                      PCGExPathfinding::FExtraWeights* InGlobalExtraWeights = nullptr) :
 		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
-		Query(InQuery), GlobalExtraWeights(InGlobalExtraWeights)
+		Query(InQuery),
+		GlobalExtraWeights(InGlobalExtraWeights)
 	{
 	}
 

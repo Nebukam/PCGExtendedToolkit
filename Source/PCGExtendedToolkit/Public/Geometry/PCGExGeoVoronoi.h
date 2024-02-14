@@ -141,11 +141,12 @@ namespace PCGExGeo
 	class PCGEXTENDEDTOOLKIT_API FPCGExLloydRelax3Task : public FPCGExNonAbandonableTask
 	{
 	public:
-		FPCGExLloydRelax3Task(
-			FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-			TArray<FVector>* InPositions, const int32 InNumIterations) :
+		FPCGExLloydRelax3Task(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+		                      TArray<FVector>* InPositions,
+		                      const int32 InNumIterations) :
 			FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
-			ActivePositions(InPositions), NumIterations(InNumIterations)
+			ActivePositions(InPositions),
+			NumIterations(InNumIterations)
 		{
 		}
 
@@ -166,12 +167,12 @@ namespace PCGExGeo
 			for (int i = 0; i < NumSites; i++) { Positions[i] = Voronoi->Centroids[i]; }
 
 			PCGEX_DELETE(Voronoi)
-			
+
 			if (NumIterations > 0)
 			{
-				Manager->Start<FPCGExLloydRelax3Task>(TaskIndex+1, PointIO, ActivePositions, NumIterations);
+				Manager->Start<FPCGExLloydRelax3Task>(TaskIndex + 1, PointIO, ActivePositions, NumIterations);
 			}
-			
+
 			return true;
 		}
 	};

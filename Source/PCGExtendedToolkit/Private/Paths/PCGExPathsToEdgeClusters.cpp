@@ -2,15 +2,11 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Paths/PCGExPathsToEdgeClusters.h"
-
 #include "Graph/PCGExGraph.h"
+#include "Data/Blending/PCGExCompoundBlender.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPathsToEdgeClustersElement"
 #define PCGEX_NAMESPACE BuildCustomGraph
-
-namespace PCGExGraph
-{
-}
 
 UPCGExPathsToEdgeClustersSettings::UPCGExPathsToEdgeClustersSettings(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -49,10 +45,12 @@ FPCGExPathsToEdgeClustersContext::~FPCGExPathsToEdgeClustersContext()
 {
 	PCGEX_TERMINATE_ASYNC
 
-	PCGEX_DELETE(LooseGraph)
+	PCGEX_DELETE(CompoundGraph)
 	PCGEX_DELETE(GraphBuilder)
 	PCGEX_DELETE(PointEdgeIntersections)
 	PCGEX_DELETE(EdgeEdgeIntersections)
+
+	PCGEX_DELETE(CompoundPointsBlender)
 }
 
 bool FPCGExPathsToEdgeClustersElement::Boot(FPCGContext* InContext) const
@@ -61,23 +59,22 @@ bool FPCGExPathsToEdgeClustersElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(PathsToEdgeClusters)
 
-	PCGEX_FWD(FuseSettings)
-	PCGEX_FWD(PointEdgeIntersection)
-	PCGEX_FWD(EdgeEdgeIntersection)
-	
-	Context->FuseSettings.FuseSettings.Init();
-	Context->EdgeEdgeIntersection.Init();
+	PCGEX_FWD(PointPointIntersectionSettings)
+	PCGEX_FWD(PointEdgeIntersectionSettings)
+	PCGEX_FWD(EdgeEdgeIntersectionSettings)
 
-	Context->GraphMetadataSettings.Grab(Context, Context->FuseSettings);
-	Context->GraphMetadataSettings.Grab(Context, Context->PointEdgeIntersection);
-	Context->GraphMetadataSettings.Grab(Context, Context->EdgeEdgeIntersection);
+	Context->EdgeEdgeIntersectionSettings.ComputeDot();
 
-	//Context->PointEdgeIntersection.MakeSafeForTolerance(Context->FuseSettings.FuseSettings.Tolerance);
-	//Context->EdgeEdgeIntersection.MakeSafeForTolerance(Context->PointEdgeIntersection.FuseSettings.Tolerance);
+	Context->GraphMetadataSettings.Grab(Context, Context->PointPointIntersectionSettings);
+	Context->GraphMetadataSettings.Grab(Context, Context->PointEdgeIntersectionSettings);
+	Context->GraphMetadataSettings.Grab(Context, Context->EdgeEdgeIntersectionSettings);
+
+	Context->CompoundPointsBlender = new PCGExDataBlending::FCompoundBlender(const_cast<FPCGExBlendingSettings*>(&Settings->PointsBlendingSettings));
+	Context->CompoundPointsBlender->AddSources(*Context->MainPoints);
 
 	PCGEX_FWD(GraphBuilderSettings)
 
-	Context->LooseGraph = new PCGExGraph::FLooseGraph(Context->FuseSettings.FuseSettings);
+	Context->CompoundGraph = new PCGExGraph::FCompoundGraph(Context->PointPointIntersectionSettings.FuseSettings);
 
 	return true;
 }
@@ -99,14 +96,16 @@ bool FPCGExPathsToEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) c
 	{
 		if (!Context->AdvancePointsIO())
 		{
-			if (Context->LooseGraph->Nodes.IsEmpty()) { return true; }
+			if (Context->CompoundGraph->Nodes.IsEmpty()) { return true; }
 			Context->ConsolidatedPoints = &Context->MainPoints->Emplace_GetRef(PCGExData::EInit::NewOutput);
 			Context->SetState(PCGExGraph::State_ProcessingGraph);
 		}
 		else
 		{
-			Context->GetAsyncManager()->Start<FPCGExInsertPathToLooseGraphTask>(
-				Context->CurrentIO->IOIndex, Context->CurrentIO, Context->LooseGraph, Settings->bClosedPath);
+			// Fuse points
+
+			Context->GetAsyncManager()->Start<FPCGExInsertPathToCompoundGraphTask>(
+				Context->CurrentIO->IOIndex, Context->CurrentIO, Context->CompoundGraph, Settings->bClosedPath);
 
 			Context->SetAsyncState(PCGExMT::State_ProcessingPoints);
 		}
@@ -115,46 +114,67 @@ bool FPCGExPathsToEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) c
 	if (Context->IsState(PCGExMT::State_ProcessingPoints))
 	{
 		if (!Context->IsAsyncWorkComplete()) { return false; }
+
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
 	if (Context->IsState(PCGExGraph::State_ProcessingGraph))
 	{
-		const int32 NumLooseNodes = Context->LooseGraph->Nodes.Num();
+		// Create consolidated set of points from
+
+		const int32 NumCompoundNodes = Context->CompoundGraph->Nodes.Num();
+		const TArray<PCGExData::FPointIO*>& Sources = Context->MainPoints->Pairs;
 
 		auto Initialize = [&]()
 		{
 			TArray<FPCGPoint>& MutablePoints = Context->ConsolidatedPoints->GetOut()->GetMutablePoints();
-			MutablePoints.SetNum(NumLooseNodes);
+			MutablePoints.SetNum(NumCompoundNodes);
 		};
 
 		auto ProcessNode = [&](int32 Index)
 		{
 			Context->ConsolidatedPoints->GetMutablePoint(Index).Transform.SetLocation(
-				Context->LooseGraph->Nodes[Index]->UpdateCenter(Context->MainPoints));
+				Context->CompoundGraph->Nodes[Index]->UpdateCenter(Context->CompoundGraph->PointsCompounds, Context->MainPoints));
 		};
 
-		if (!Context->Process(Initialize, ProcessNode, NumLooseNodes)) { return false; }
+		if (!Context->Process(Initialize, ProcessNode, NumCompoundNodes)) { return false; }
+
+		// Initiate merging
+
+		Context->CompoundPointsBlender->Merge(
+			Context->GetAsyncManager(), Context->ConsolidatedPoints,
+			Context->CompoundGraph->PointsCompounds, PCGExSettings::GetDistanceSettings(Context->PointPointIntersectionSettings));
+
+		Context->SetAsyncState(PCGExData::State_MergingData);
+	}
+
+	if (Context->IsState(PCGExData::State_MergingData))
+	{
+		if (!Context->IsAsyncWorkComplete()) { return false; }
+
+		Context->CompoundPointsBlender->Write();
+
+		// Build final graph from compound graph
 
 		Context->GraphBuilder = new PCGExGraph::FGraphBuilder(*Context->ConsolidatedPoints, &Context->GraphBuilderSettings, 4);
 
 		TArray<PCGExGraph::FUnsignedEdge> UniqueEdges;
-		Context->LooseGraph->GetUniqueEdges(UniqueEdges);
-		Context->LooseGraph->WriteMetadata(Context->GraphBuilder->Graph->NodeMetadata);
-		PCGEX_DELETE(Context->LooseGraph)
+		Context->CompoundGraph->GetUniqueEdges(UniqueEdges);
+		Context->CompoundGraph->WriteMetadata(Context->GraphBuilder->Graph->NodeMetadata);
+		PCGEX_DELETE(Context->CompoundGraph)
 
-		Context->GraphBuilder->Graph->InsertEdges(UniqueEdges, -1); //TODO : valid IOIndex from LooseGraph
+		Context->GraphBuilder->Graph->InsertEdges(UniqueEdges, -1); //TODO : valid IOIndex from CompoundGraph
 		UniqueEdges.Empty();
 
 		if (Settings->bDoPointEdgeIntersection)
 		{
-			Context->PointEdgeIntersections = new PCGExGraph::FPointEdgeIntersections(Context->GraphBuilder->Graph, Context->ConsolidatedPoints, Context->PointEdgeIntersection);
+			Context->PointEdgeIntersections = new PCGExGraph::FPointEdgeIntersections(Context->GraphBuilder->Graph, Context->ConsolidatedPoints, Context->PointEdgeIntersectionSettings);
 			Context->PointEdgeIntersections->FindIntersections(Context);
 			Context->SetAsyncState(PCGExGraph::State_FindingPointEdgeIntersections);
 		}
 		else if (Settings->bDoEdgeEdgeIntersection)
 		{
-			Context->EdgeEdgeIntersections = new PCGExGraph::FEdgeEdgeIntersections(Context->GraphBuilder->Graph, Context->ConsolidatedPoints, Context->EdgeEdgeIntersection);
+			Context->EdgeEdgeIntersections = new PCGExGraph::FEdgeEdgeIntersections(Context->GraphBuilder->Graph, Context->ConsolidatedPoints, Context->EdgeEdgeIntersectionSettings);
 			Context->EdgeEdgeIntersections->FindIntersections(Context);
 			Context->SetAsyncState(PCGExGraph::State_FindingEdgeEdgeIntersections);
 		}
@@ -173,7 +193,7 @@ bool FPCGExPathsToEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) c
 
 		if (Settings->bDoEdgeEdgeIntersection)
 		{
-			Context->EdgeEdgeIntersections = new PCGExGraph::FEdgeEdgeIntersections(Context->GraphBuilder->Graph, Context->ConsolidatedPoints, Context->EdgeEdgeIntersection);
+			Context->EdgeEdgeIntersections = new PCGExGraph::FEdgeEdgeIntersections(Context->GraphBuilder->Graph, Context->ConsolidatedPoints, Context->EdgeEdgeIntersectionSettings);
 			Context->EdgeEdgeIntersections->FindIntersections(Context);
 			Context->SetAsyncState(PCGExGraph::State_FindingEdgeEdgeIntersections);
 		}
@@ -218,7 +238,7 @@ bool FPCGExPathsToEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) c
 	return Context->IsDone();
 }
 
-bool FPCGExInsertPathToLooseGraphTask::ExecuteTask()
+bool FPCGExInsertPathToCompoundGraphTask::ExecuteTask()
 {
 	const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
 	const int32 NumPoints = InPoints.Num();
@@ -227,20 +247,19 @@ bool FPCGExInsertPathToLooseGraphTask::ExecuteTask()
 
 	for (int i = 0; i < NumPoints; i++)
 	{
-		PCGExGraph::FLooseNode* CurrentVtx = Graph->GetOrCreateNode(InPoints[i], TaskIndex, i);
-		CurrentVtx->AddPointH(PCGEx::H64(TaskIndex, i));
+		PCGExGraph::FCompoundNode* CurrentVtx = Graph->GetOrCreateNode(InPoints[i], TaskIndex, i);
 
 		if (const int32 PrevIndex = i - 1;
 			InPoints.IsValidIndex(PrevIndex))
 		{
-			PCGExGraph::FLooseNode* OtherVtx = Graph->GetOrCreateNode(InPoints[PrevIndex], TaskIndex, PrevIndex);
+			PCGExGraph::FCompoundNode* OtherVtx = Graph->GetOrCreateNode(InPoints[PrevIndex], TaskIndex, PrevIndex);
 			CurrentVtx->Add(OtherVtx);
 		}
 
 		if (const int32 NextIndex = i + 1;
 			InPoints.IsValidIndex(NextIndex))
 		{
-			PCGExGraph::FLooseNode* OtherVtx = Graph->GetOrCreateNode(InPoints[NextIndex], TaskIndex, NextIndex);
+			PCGExGraph::FCompoundNode* OtherVtx = Graph->GetOrCreateNode(InPoints[NextIndex], TaskIndex, NextIndex);
 			CurrentVtx->Add(OtherVtx);
 		}
 	}

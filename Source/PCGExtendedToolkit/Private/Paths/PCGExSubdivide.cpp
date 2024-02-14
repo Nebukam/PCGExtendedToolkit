@@ -155,6 +155,8 @@ bool FPCGExSubdivideElement::ExecuteInternal(FPCGContext* InContext) const
 			Context->Blending->ProcessSubPoints(
 				PCGEx::FPointRef(StartPoint, StartIndex), PCGEx::FPointRef(*EndPtr, EndIndex),
 				View, Context->MilestonesMetrics[Index]);
+
+			for (FPCGPoint& Pt : View) { PCGExMath::RandomizeSeed(Pt); }
 		};
 
 		if (!Context->Process(Initialize, ProcessMilestone, Context->Milestones.Num())) { return false; }

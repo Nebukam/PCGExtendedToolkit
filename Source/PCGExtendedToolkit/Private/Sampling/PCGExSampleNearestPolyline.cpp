@@ -176,7 +176,7 @@ bool FPCGExSamplePolylineTask::ExecuteTask()
 	FVector Origin = Point.Transform.GetLocation();
 	auto ProcessTarget = [&](const FTransform& Transform, const double& Time)
 	{
-		const FVector ModifiedOrigin = Context->DistanceSettings.GetSourceCenter(Point, Origin, Transform.GetLocation());
+		const FVector ModifiedOrigin = PCGExMath::GetSpatializedCenter(Context->DistanceSettings, Point, Origin, Transform.GetLocation());
 		const double Dist = FVector::DistSquared(ModifiedOrigin, Transform.GetLocation());
 
 		if (Context->SampleMethod == EPCGExSampleMethod::ClosestTarget ||

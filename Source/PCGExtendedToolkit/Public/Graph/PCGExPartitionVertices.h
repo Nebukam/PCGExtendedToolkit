@@ -62,11 +62,12 @@ protected:
 class PCGEXTENDEDTOOLKIT_API FPCGExCreateVtxPartitionTask : public FPCGExNonAbandonableTask
 {
 public:
-	FPCGExCreateVtxPartitionTask(
-		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-		PCGExData::FPointIO* InEdgeIO, TMap<int32, int32>* InNodeIndicesMap) :
+	FPCGExCreateVtxPartitionTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+	                             PCGExData::FPointIO* InEdgeIO,
+	                             TMap<int32, int32>* InNodeIndicesMap) :
 		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
-		EdgeIO(InEdgeIO), NodeIndicesMap(InNodeIndicesMap)
+		EdgeIO(InEdgeIO),
+		NodeIndicesMap(InNodeIndicesMap)
 	{
 	}
 

@@ -252,6 +252,7 @@ namespace PCGEx
 
 #pragma region Field Helpers
 
+#pragma region Meta types
 	static EPCGMetadataTypes GetPointPropertyTypeId(const EPCGPointProperties Property)
 	{
 		switch (Property)
@@ -284,6 +285,8 @@ namespace PCGEx
 			return EPCGMetadataTypes::Unknown;
 		}
 	}
+	
+#pragma endregion
 
 	static const TMap<FString, EPCGExTransformComponent> STRMAP_TRANSFORM_FIELD = {
 		{TEXT("POSITION"), EPCGExTransformComponent::Position},

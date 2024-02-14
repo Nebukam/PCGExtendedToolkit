@@ -145,7 +145,7 @@ public:
 
 	/** Distance method to be used for source points. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
-	FPCGExDistanceSettings DistanceSettings;
+	EPCGExDistance DistanceSettings;
 
 	/** Weight method used for blending */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta=(PCG_Overridable))
@@ -274,7 +274,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestPolylineContext : public FPCGEx
 
 	PCGEX_FOREACH_FIELD_NEARESTPOLYLINE(PCGEX_OUTPUT_DECL)
 
-	FPCGExDistanceSettings DistanceSettings;
+	EPCGExDistance DistanceSettings;
 
 	EPCGExAxis SignAxis;
 	EPCGExAxis AngleAxis;

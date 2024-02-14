@@ -15,7 +15,7 @@ bool UPCGExCustomGraphSolverWeighted::ProcessPoint(
 {
 	const FVector PtPosition = Probe.GetTargetCenter(*Point.Point);
 
-	if (!Probe.LooseBounds.IsInside(PtPosition)) { return false; }
+	if (!Probe.CompoundBounds.IsInside(PtPosition)) { return false; }
 
 	const double PtDistance = FVector::DistSquared(Probe.Origin, PtPosition);
 	if (PtDistance > Probe.Radius) { return false; }

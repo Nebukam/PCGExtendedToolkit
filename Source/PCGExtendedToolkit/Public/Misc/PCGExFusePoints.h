@@ -7,10 +7,16 @@
 
 #include "PCGExPointsProcessor.h"
 #include "PCGExSettings.h"
-#include "Data/PCGExAttributeHelpers.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
+#include "Graph/PCGExGraph.h"
 
 #include "PCGExFusePoints.generated.h"
+
+
+namespace PCGExGraph
+{
+	struct FCompoundGraph;
+}
 
 namespace PCGExFuse
 {
@@ -81,8 +87,8 @@ public:
 
 public:
 	/** Fuse Settings */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	FPCGExPointPointIntersectionSettings FuseSettings;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Point/Point Settings"))
+	FPCGExPointPointIntersectionSettings PointPointIntersectionSettings;
 
 	/** Preserve the order of input points */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
@@ -102,7 +108,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFusePointsContext : public FPCGExPointsProce
 
 	virtual ~FPCGExFusePointsContext() override;
 
-	FPCGExPointPointIntersectionSettings FuseSettings;
+	FPCGExPointPointIntersectionSettings PointPointIntersectionSettings;
+	
+	PCGExGraph::FGraphMetadataSettings GraphMetadataSettings;
+	PCGExGraph::FCompoundGraph* CompoundGraph = nullptr;
 	bool bPreserveOrder;
 
 	mutable FRWLock PointsLock;
@@ -118,15 +127,4 @@ class PCGEXTENDEDTOOLKIT_API FPCGExFusePointsElement : public FPCGExPointsProces
 protected:
 	virtual bool Boot(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
-};
-
-class PCGEXTENDEDTOOLKIT_API FPCGExFuseTask : public FPCGExNonAbandonableTask
-{
-public:
-	FPCGExFuseTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO) :
-		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO)
-	{
-	}
-
-	virtual bool ExecuteTask() override;
 };

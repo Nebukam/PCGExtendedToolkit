@@ -55,6 +55,10 @@ public:
 	/** If enabled, fetches a local edge property or attribute as boolean. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseLocalEdgeMark"))
 	FPCGExInputDescriptor EdgeFixAttribute;
+
+	/** If enabled, prune dead ends. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bPruneDeadEnds = false;
 	
 };
 

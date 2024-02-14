@@ -10,6 +10,11 @@
 #include "Graph/PCGExGraph.h"
 #include "PCGExPathsToEdgeClusters.generated.h"
 
+namespace PCGExDataBlending
+{
+	class FCompoundBlender;
+}
+
 namespace PCGExGraph
 {
 	class FGraph;
@@ -57,25 +62,29 @@ public:
 	bool bClosedPath = false;
 
 	/** Fuse Settings */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	FPCGExPointPointIntersectionSettings FuseSettings;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Point/Point"))
+	FPCGExPointPointIntersectionSettings PointPointIntersectionSettings;
 
 	/** Point-Edge intersection */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bDoPointEdgeIntersection;
 
 	/** Point-Edge intersection */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bDoPointEdgeIntersection"))
-	FPCGExPointEdgeIntersectionSettings PointEdgeIntersection;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Point/Edge", EditCondition="bDoPointEdgeIntersection"))
+	FPCGExPointEdgeIntersectionSettings PointEdgeIntersectionSettings;
 
 	/** Edge-Edge intersection */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bDoEdgeEdgeIntersection;
 
 	/** Edge-Edge intersection */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bDoEdgeEdgeIntersection"))
-	FPCGExEdgeEdgeIntersectionSettings EdgeEdgeIntersection;
-	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Edge/Edge", EditCondition="bDoEdgeEdgeIntersection"))
+	FPCGExEdgeEdgeIntersectionSettings EdgeEdgeIntersectionSettings;
+
+	/** Defines how fused point properties and attributes are merged together for fused points. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	FPCGExBlendingSettings PointsBlendingSettings;
+
 	/** Graph & Edges output properties */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Graph Output Settings"))
 	FPCGExGraphBuilderSettings GraphBuilderSettings;
@@ -87,11 +96,13 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathsToEdgeClustersContext : public FPCGExPa
 
 	virtual ~FPCGExPathsToEdgeClustersContext() override;
 
-	FPCGExPointPointIntersectionSettings FuseSettings;
-	FPCGExPointEdgeIntersectionSettings PointEdgeIntersection;
-	FPCGExEdgeEdgeIntersectionSettings EdgeEdgeIntersection;
+	FPCGExPointPointIntersectionSettings PointPointIntersectionSettings;
+	FPCGExPointEdgeIntersectionSettings PointEdgeIntersectionSettings;
+	FPCGExEdgeEdgeIntersectionSettings EdgeEdgeIntersectionSettings;
 
-	PCGExGraph::FLooseGraph* LooseGraph;
+	PCGExGraph::FCompoundGraph* CompoundGraph;
+	PCGExDataBlending::FCompoundBlender* CompoundPointsBlender = nullptr;
+
 	PCGExData::FPointIO* ConsolidatedPoints = nullptr;
 
 	FPCGExGraphBuilderSettings GraphBuilderSettings;
@@ -101,7 +112,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathsToEdgeClustersContext : public FPCGExPa
 	PCGExGraph::FEdgeEdgeIntersections* EdgeEdgeIntersections = nullptr;
 
 	PCGExGraph::FGraphMetadataSettings GraphMetadataSettings;
-	
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExPathsToEdgeClustersElement : public FPCGExPathProcessorElement
@@ -118,17 +128,19 @@ protected:
 };
 
 
-class PCGEXTENDEDTOOLKIT_API FPCGExInsertPathToLooseGraphTask : public FPCGExNonAbandonableTask
+class PCGEXTENDEDTOOLKIT_API FPCGExInsertPathToCompoundGraphTask : public FPCGExNonAbandonableTask
 {
 public:
-	FPCGExInsertPathToLooseGraphTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-	                                 PCGExGraph::FLooseGraph* InGraph, bool bInJoinFirstAndLast)
+	FPCGExInsertPathToCompoundGraphTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+	                                    PCGExGraph::FCompoundGraph* InGraph,
+	                                    bool bInJoinFirstAndLast)
 		: FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
-		  Graph(InGraph), bJoinFirstAndLast(bInJoinFirstAndLast)
+		  Graph(InGraph),
+		  bJoinFirstAndLast(bInJoinFirstAndLast)
 	{
 	}
 
-	PCGExGraph::FLooseGraph* Graph = nullptr;
+	PCGExGraph::FCompoundGraph* Graph = nullptr;
 	bool bJoinFirstAndLast = false;
 
 	virtual bool ExecuteTask() override;

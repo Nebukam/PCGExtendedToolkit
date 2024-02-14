@@ -312,6 +312,7 @@ namespace PCGEx
 	{
 	public:
 		FName Name = NAME_None;
+		int16 UnderlyingType = static_cast<int16>(EPCGMetadataTypes::Unknown);
 
 		explicit FAAttributeIO(const FName InName):
 			Name(InName)
@@ -391,6 +392,7 @@ namespace PCGEx
 			this->Accessor = FAttributeAccessor<T>::FindOrCreate(
 				PointIO, this->Name, DefaultValue,
 				bAllowsInterpolation, bOverrideParent, bOverwriteIfTypeMismatch);
+			this->UnderlyingType = PointIO.GetOut()->Metadata->GetConstAttribute(this->Name)->GetTypeId();
 			return true;
 		}
 
@@ -430,6 +432,7 @@ namespace PCGEx
 			if (!this->Accessor) { return false; }
 			this->SetNum(PointIO.GetNum());
 			this->Accessor->GetRange(this->Values);
+			this->UnderlyingType = PointIO.GetIn()->Metadata->GetConstAttribute(this->Name)->GetTypeId();
 			return true;
 		}
 	};
