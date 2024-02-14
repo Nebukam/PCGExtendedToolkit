@@ -41,7 +41,7 @@ public:
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bFixBelowThreshold = false;
-
+	
 	/** If enabled, uses an angular threshold below which nodes are merged. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bFixBelowThreshold", Units="Degrees", ClampMin=0, ClampMax=180))
 	double AngularThreshold = 10;
@@ -52,7 +52,9 @@ public:
 	/** If enabled, fetches a local node property or attribute as boolean. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseLocalNodeMark"))
 	FPCGExInputDescriptor NodeFixAttribute;
-
+	
+	// TODO : Support attribute inversion
+	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bUseLocalEdgeMark = false;
 
@@ -63,6 +65,8 @@ public:
 	/** If enabled, prune dead ends. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="!bOperateOnDeadEndsOnly"))
 	bool bPruneDeadEnds = false;
+
+	//TODO : Support local dead end pruning mark?
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExSimplifyClustersContext : public FPCGExEdgesProcessorContext
