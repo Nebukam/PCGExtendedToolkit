@@ -204,7 +204,7 @@ namespace PCGExDataBlending
 			{
 				const FDataBlendingOperationBase* Operation = Merger->CachedOperations[i][j];
 				if (!Operation) { continue; } //Unsupported blend
-				
+
 				Operation->PrepareOperation(TaskIndex);
 
 				for (int k = 0; k < NumPoints; k++)

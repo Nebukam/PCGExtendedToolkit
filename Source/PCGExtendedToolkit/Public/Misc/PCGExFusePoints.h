@@ -109,7 +109,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFusePointsContext : public FPCGExPointsProce
 	virtual ~FPCGExFusePointsContext() override;
 
 	FPCGExPointPointIntersectionSettings PointPointIntersectionSettings;
-	
+
 	PCGExGraph::FGraphMetadataSettings GraphMetadataSettings;
 	PCGExGraph::FCompoundGraph* CompoundGraph = nullptr;
 	bool bPreserveOrder;

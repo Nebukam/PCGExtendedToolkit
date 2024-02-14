@@ -179,7 +179,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExDistanceSettings
 	{
 		return PCGExMath::GetSpatializedCenter(Target, FromPoint, FromCenter, ToCenter);
 	}
-	
+
 	void GetCenters(const FPCGPoint& SourcePoint, const FPCGPoint& TargetPoint, FVector& OutSource, FVector& OutTarget) const
 	{
 		const FVector TargetLocation = TargetPoint.Transform.GetLocation();
@@ -234,12 +234,12 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFuseSettingsBase
 
 	bool IsWithinTolerance(const double DistSquared) const
 	{
-		return FMath::IsWithin<double, double>(DistSquared, 0, Tolerance*Tolerance);
+		return FMath::IsWithin<double, double>(DistSquared, 0, Tolerance * Tolerance);
 	}
 
 	bool IsWithinTolerance(const FVector& Source, const FVector& Target) const
 	{
-		return FMath::IsWithin<double, double>(FVector::DistSquared(Source, Target), 0, Tolerance*Tolerance);
+		return FMath::IsWithin<double, double>(FVector::DistSquared(Source, Target), 0, Tolerance * Tolerance);
 	}
 
 	bool IsWithinToleranceComponentWise(const FVector& Source, const FVector& Target) const
@@ -258,19 +258,16 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSourceFuseSettings : public FPCGExFuseSettin
 	FPCGExSourceFuseSettings() :
 		FPCGExFuseSettingsBase()
 	{
-		
 	}
 
 	explicit FPCGExSourceFuseSettings(double InTolerance)
 		: FPCGExFuseSettingsBase(InTolerance)
 	{
-		
 	}
 
 	explicit FPCGExSourceFuseSettings(const double InTolerance, const EPCGExDistance SourceMethod)
 		: FPCGExFuseSettingsBase(InTolerance), SourceDistance(SourceMethod)
 	{
-		
 	}
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -368,7 +365,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointPointIntersectionSettings
 	/** Name of the attribute to mark the number of fused point held */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata", meta=(PCG_Overridable, EditCondition="bWriteCompoundSize"))
 	FName CompoundSizeAttributeName = "CompoundSize";
-
 };
 
 USTRUCT(BlueprintType)

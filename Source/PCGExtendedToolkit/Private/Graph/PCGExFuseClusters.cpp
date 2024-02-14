@@ -41,7 +41,7 @@ bool FPCGExFuseClustersElement::Boot(FPCGContext* InContext) const
 	PCGEX_FWD(EdgeEdgeIntersectionSettings)
 
 	Context->EdgeEdgeIntersectionSettings.ComputeDot();
-	
+
 	Context->GraphMetadataSettings.Grab(Context, Context->PointPointIntersectionSettings);
 	Context->GraphMetadataSettings.Grab(Context, Context->PointEdgeIntersectionSettings);
 	Context->GraphMetadataSettings.Grab(Context, Context->EdgeEdgeIntersectionSettings);
@@ -98,7 +98,7 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 
 		// Insert current edges into loose graph
 		// Note that since we're building from edges only, this skips isolated points altogether
-		
+
 		Context->GetAsyncManager()->Start<PCGExGraphTask::FBuildCompoundGraphFromEdges>(
 			Context->CurrentIO->IOIndex, Context->CurrentIO,
 			Context->CompoundGraph, Context->CurrentEdges, &Context->NodeIndicesMap);
@@ -115,7 +115,7 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 	if (Context->IsState(PCGExGraph::State_ProcessingGraph))
 	{
 		// Create consolidated nodes from compound graph
-		
+
 		const int32 NumCompoundNodes = Context->CompoundGraph->Nodes.Num();
 		TArray<FPCGPoint>& MutablePoints = Context->ConsolidatedPoints->GetOut()->GetMutablePoints();
 
@@ -130,10 +130,11 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 		if (!Context->Process(Initialize, ProcessNode, NumCompoundNodes)) { return false; }
 
 		// Initiate merging
-		
-		Context->CompoundPointsBlender->Merge(Context->GetAsyncManager(), Context->ConsolidatedPoints,
+
+		Context->CompoundPointsBlender->Merge(
+			Context->GetAsyncManager(), Context->ConsolidatedPoints,
 			Context->CompoundGraph->PointsCompounds, PCGExSettings::GetDistanceSettings(Context->PointPointIntersectionSettings));
-		
+
 		Context->SetAsyncState(PCGExData::State_MergingData);
 	}
 
@@ -142,7 +143,7 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 		if (!Context->IsAsyncWorkComplete()) { return false; }
 
 		Context->CompoundPointsBlender->Write();
-		
+
 		Context->GraphBuilder = new PCGExGraph::FGraphBuilder(*Context->ConsolidatedPoints, &Context->GraphBuilderSettings, 6, Context->MainEdges);
 
 		TArray<PCGExGraph::FUnsignedEdge> UniqueEdges;
@@ -152,7 +153,7 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 
 		Context->GraphBuilder->Graph->InsertEdges(UniqueEdges, -1);
 		UniqueEdges.Empty();
-		
+
 		if (Settings->bDoPointEdgeIntersection)
 		{
 			Context->PointEdgeIntersections = new PCGExGraph::FPointEdgeIntersections(Context->GraphBuilder->Graph, Context->ConsolidatedPoints, Context->PointEdgeIntersectionSettings);

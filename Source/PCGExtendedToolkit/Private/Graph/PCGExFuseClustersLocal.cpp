@@ -128,6 +128,20 @@ bool FPCGExFuseClustersLocalElement::ExecuteInternal(FPCGContext* InContext) con
 		};
 
 		if (!Context->Process(Initialize, ProcessNode, NumCompoundNodes)) { return false; }
+		// Initiate merging
+
+		Context->CompoundPointsBlender->Merge(
+			Context->GetAsyncManager(), Context->CurrentIO,
+			Context->CompoundGraph->PointsCompounds, PCGExSettings::GetDistanceSettings(Context->PointPointIntersectionSettings));
+
+		Context->SetAsyncState(PCGExData::State_MergingData);
+	}
+
+	if (Context->IsState(PCGExData::State_MergingData))
+	{
+		if (!Context->IsAsyncWorkComplete()) { return false; }
+
+		Context->CompoundPointsBlender->Write();
 
 		Context->GraphBuilder = new PCGExGraph::FGraphBuilder(*Context->CurrentIO, &Context->GraphBuilderSettings, 6, Context->MainEdges);
 

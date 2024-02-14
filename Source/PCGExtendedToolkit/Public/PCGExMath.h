@@ -767,7 +767,7 @@ namespace PCGExMath
 	}
 
 #pragma region Spatialized distances
-	
+
 	// Stolen from PCGDistance
 	static FVector GetSpatializedCenter(
 		const EPCGExDistance Shape,
@@ -799,7 +799,6 @@ namespace PCGExMath
 		// EPCGExDistance::Center
 		return FromCenter;
 	}
-	
+
 #pragma endregion
-	
 }

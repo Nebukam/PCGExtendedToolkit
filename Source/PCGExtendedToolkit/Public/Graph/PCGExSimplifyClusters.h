@@ -34,32 +34,35 @@ public:
 	virtual PCGExData::EInit GetEdgeOutputInitMode() const override;
 	//~End UPCGExEdgesProcessorSettings interface
 
+	/** If enabled, only check for dead ends. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bOperateOnDeadEndsOnly = false;
+
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bFixBelowThreshold = false;
-	
+
 	/** If enabled, uses an angular threshold below which nodes are merged. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bFixBelowThreshold", Units="Degrees", ClampMin=0, ClampMax=180))
 	double AngularThreshold = 10;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bUseLocalNodeMark = false;
-	
+
 	/** If enabled, fetches a local node property or attribute as boolean. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseLocalNodeMark"))
 	FPCGExInputDescriptor NodeFixAttribute;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bUseLocalEdgeMark = false;
-	
+
 	/** If enabled, fetches a local edge property or attribute as boolean. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseLocalEdgeMark"))
 	FPCGExInputDescriptor EdgeFixAttribute;
 
 	/** If enabled, prune dead ends. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="!bOperateOnDeadEndsOnly"))
 	bool bPruneDeadEnds = false;
-	
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExSimplifyClustersContext : public FPCGExEdgesProcessorContext
@@ -70,17 +73,16 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSimplifyClustersContext : public FPCGExEdges
 	virtual ~FPCGExSimplifyClustersContext() override;
 
 	double FixedDotThreshold = 0;
-	
+
 	PCGEx::FLocalBoolGetter* IsPointFixtureGetter = nullptr;
 	PCGEx::FLocalBoolGetter* IsEdgeFixtureGetter = nullptr;
-	
+
 	FPCGExGraphBuilderSettings GraphBuilderSettings;
 	PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
 
 	TArray<PCGExCluster::FNodeChain*> Chains;
 
 	//PCGExGraph::FGraphMetadataSettings GraphMetadataSettings;
-	
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExSimplifyClustersElement : public FPCGExEdgesProcessorElement

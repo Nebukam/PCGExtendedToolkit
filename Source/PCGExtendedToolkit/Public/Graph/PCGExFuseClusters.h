@@ -38,7 +38,7 @@ public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	virtual PCGExData::EInit GetEdgeOutputInitMode() const override;
 	//~End UPCGExEdgesProcessorSettings interface
-	
+
 	/** Fuse Settings */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Point/Point Settings"))
 	FPCGExPointPointIntersectionSettings PointPointIntersectionSettings;
@@ -66,7 +66,7 @@ public:
 	/** Defines how fused point properties and attributes are merged together for fused edges. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	FPCGExBlendingSettings EdgesBlendingSettings;
-	
+
 	/** Graph & Edges output properties */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Graph Output Settings"))
 	FPCGExGraphBuilderSettings GraphBuilderSettings;
@@ -85,17 +85,16 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFuseClustersContext : public FPCGExEdgesProc
 
 	PCGExGraph::FCompoundGraph* CompoundGraph = nullptr;
 	PCGExData::FPointIO* ConsolidatedPoints = nullptr;
-	
+
 	FPCGExGraphBuilderSettings GraphBuilderSettings;
 	PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
 
 	PCGExGraph::FPointEdgeIntersections* PointEdgeIntersections = nullptr;
 	PCGExGraph::FEdgeEdgeIntersections* EdgeEdgeIntersections = nullptr;
-	
+
 	PCGExGraph::FGraphMetadataSettings GraphMetadataSettings;
 	PCGExDataBlending::FCompoundBlender* CompoundPointsBlender = nullptr;
 	PCGExDataBlending::FCompoundBlender* CompoundEdgesBlender = nullptr;
-	
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExFuseClustersElement : public FPCGExEdgesProcessorElement
