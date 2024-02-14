@@ -295,14 +295,31 @@ namespace PCGExGraph
 		return NewNode;
 	}
 
-	void FCompoundGraph::CreateBridge(const FPCGPoint& From, const int32 FromIOIndex, const int32 FromPointIndex, const FPCGPoint& To, const int32 ToIOIndex, const int32 ToPointIndex)
+	PCGExData::FIdxCompound* FCompoundGraph::CreateBridge(const FPCGPoint& From, const int32 FromIOIndex, const int32 FromPointIndex, const FPCGPoint& To, const int32 ToIOIndex, const int32 ToPointIndex, const int32 EdgeIOIndex, const int32 EdgePointIndex)
 	{
 		FCompoundNode* StartVtx = GetOrCreateNode(From, FromIOIndex, FromPointIndex);
 		FCompoundNode* EndVtx = GetOrCreateNode(To, ToIOIndex, ToPointIndex);
+		PCGExData::FIdxCompound* EdgeIdx = nullptr;
 
 		StartVtx->Add(EndVtx);
 		EndVtx->Add(StartVtx);
-		//TODO : register edge idx
+
+		if (EdgeIOIndex == -1) { return EdgeIdx; } // Skip edge management
+
+		const uint64 H = PCGEx::H64U(StartVtx->Index, EndVtx->Index);
+		if (const FIndexedEdge* Edge = Edges.Find(H))
+		{
+			EdgeIdx = EdgesCompounds->Compounds[Edge->EdgeIndex];
+			EdgeIdx->Add(EdgeIOIndex, EdgePointIndex);
+		}
+		else
+		{
+			EdgeIdx = EdgesCompounds->New();
+			Edges.Add(H, FIndexedEdge(Edges.Num(), StartVtx->Index, EndVtx->Index));
+			EdgeIdx->Add(EdgeIOIndex, EdgePointIndex);
+		}
+
+		return EdgeIdx;
 	}
 
 	void FCompoundGraph::GetUniqueEdges(TArray<FUnsignedEdge>& OutEdges)
@@ -851,7 +868,7 @@ Writer->BindAndGet(*PointIO);\
 		{
 			Graph->CreateBridge(
 				InPoints[Edge.Start], TaskIndex, Edge.Start,
-				InPoints[Edge.End], TaskIndex, Edge.End);
+				InPoints[Edge.End], TaskIndex, Edge.End, EdgeIO->IOIndex, Edge.PointIndex);
 		}
 
 		return true;

@@ -135,10 +135,12 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 			Context->GetAsyncManager(), Context->ConsolidatedPoints,
 			Context->CompoundGraph->PointsCompounds, PCGExSettings::GetDistanceSettings(Context->PointPointIntersectionSettings));
 
-		Context->SetAsyncState(PCGExData::State_MergingData);
+		Context->SetAsyncState(PCGExGraph::State_MergingPointCompounds);
 	}
 
-	if (Context->IsState(PCGExData::State_MergingData))
+	//TODO : Merge edges, need to create a dummy PointIO for FGraphBuilder
+	
+	if (Context->IsState(PCGExGraph::State_MergingPointCompounds))
 	{
 		if (!Context->IsAsyncWorkComplete()) { return false; }
 

@@ -155,6 +155,11 @@ bool FPCGExFindClusterChainsTask::ExecuteTask()
 	TSet<int32> VisitedNodes;
 	TArray<int32> Candidates;
 
+	bool bPruneDeadEnds = Settings->bOperateOnDeadEndsOnly || Settings->bPruneDeadEnds;
+	TSet<int32> DeadEnds;
+
+	if (bPruneDeadEnds) { DeadEnds.Reserve(ClusterNodes.Num() / 2); }
+
 	// Find fixtures
 	const PCGExCluster::FCluster& Cluster = *Context->CurrentCluster;
 
@@ -165,24 +170,21 @@ bool FPCGExFindClusterChainsTask::ExecuteTask()
 		const TArray<bool> FixedEdges = Context->IsEdgeFixtureGetter->Values;
 		for (int i = 0; i < FixedEdges.Num(); i++)
 		{
-			if (!FixedEdges[i]) { continue; }
+			if (bool bFix = FixedEdges[i]; !bFix || (bFix && Settings->bInvertEdgeFixAttribute)) { continue; }
 
 			const PCGExGraph::FIndexedEdge& E = Cluster.Edges[i];
+
 			NodeFixtures.Add(Cluster.GetNodeFromPointIndex(E.Start).NodeIndex);
 			NodeFixtures.Add(Cluster.GetNodeFromPointIndex(E.End).NodeIndex);
 		}
 	}
 
-	bool bPruneDeadEnds = Settings->bOperateOnDeadEndsOnly || Settings->bPruneDeadEnds;
-
-	TSet<int32> DeadEnds;
-	if (bPruneDeadEnds) { DeadEnds.Reserve(ClusterNodes.Num() / 2); }
 
 	for (const PCGExCluster::FNode& Node : ClusterNodes)
 	{
 		if (Context->IsPointFixtureGetter)
 		{
-			if (Context->IsPointFixtureGetter->SafeGet(Node.PointIndex, false))
+			if (bool bFix = Context->IsPointFixtureGetter->SafeGet(Node.PointIndex, false); !bFix || (bFix && Settings->bInvertEdgeFixAttribute))
 			{
 				NodeFixtures.Add(Node.NodeIndex);
 				continue;

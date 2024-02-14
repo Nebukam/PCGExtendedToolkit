@@ -53,7 +53,8 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseLocalNodeMark"))
 	FPCGExInputDescriptor NodeFixAttribute;
 	
-	// TODO : Support attribute inversion
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseLocalNodeMark"))
+	bool bInvertNodeFixAttribute = false;
 	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bUseLocalEdgeMark = false;
@@ -62,11 +63,13 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseLocalEdgeMark"))
 	FPCGExInputDescriptor EdgeFixAttribute;
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseLocalEdgeMark"))
+	bool bInvertEdgeFixAttribute = false;
+	
 	/** If enabled, prune dead ends. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="!bOperateOnDeadEndsOnly"))
 	bool bPruneDeadEnds = false;
 
-	//TODO : Support local dead end pruning mark?
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExSimplifyClustersContext : public FPCGExEdgesProcessorContext

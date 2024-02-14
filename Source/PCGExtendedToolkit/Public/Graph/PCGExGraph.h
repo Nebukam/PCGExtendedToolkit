@@ -131,6 +131,9 @@ namespace PCGExGraph
 
 	constexpr PCGExMT::AsyncState State_PromotingEdges = __COUNTER__;
 	constexpr PCGExMT::AsyncState State_UpdatingCompoundCenters = __COUNTER__;
+	
+	constexpr PCGExMT::AsyncState State_MergingPointCompounds = __COUNTER__;
+	constexpr PCGExMT::AsyncState State_MergingEdgeCompounds = __COUNTER__;
 
 	class FGraph;
 
@@ -425,12 +428,14 @@ namespace PCGExGraph
 		PCGExData::FIdxCompoundList* PointsCompounds = nullptr;
 		PCGExData::FIdxCompoundList* EdgesCompounds = nullptr;
 		TArray<FCompoundNode*> Nodes;
+		TMap<uint64, FIndexedEdge> Edges;
 		const FPCGExFuseSettings FuseSettings;
 
 		explicit FCompoundGraph(const FPCGExFuseSettings& InFuseSettings)
 			: FuseSettings(InFuseSettings)
 		{
 			Nodes.Empty();
+			Edges.Empty();
 			PointsCompounds = new PCGExData::FIdxCompoundList();
 			EdgesCompounds = new PCGExData::FIdxCompoundList();
 		}
@@ -440,11 +445,13 @@ namespace PCGExGraph
 			PCGEX_DELETE_TARRAY(Nodes)
 			PCGEX_DELETE(PointsCompounds)
 			PCGEX_DELETE(EdgesCompounds)
+			Edges.Empty();
 		}
 
 		FCompoundNode* GetOrCreateNode(const FPCGPoint& Point, const int32 IOIndex, const int32 PointIndex);
-		void CreateBridge(const FPCGPoint& From, const int32 FromIOIndex, const int32 FromPointIndex,
-		                  const FPCGPoint& To, const int32 ToIOIndex, const int32 ToPointIndex);
+		PCGExData::FIdxCompound* CreateBridge(const FPCGPoint& From, const int32 FromIOIndex, const int32 FromPointIndex,
+		                                      const FPCGPoint& To, const int32 ToIOIndex, const int32 ToPointIndex,
+		                                      const int32 EdgeIOIndex = -1, const int32 EdgePointIndex = -1);
 		void GetUniqueEdges(TArray<FUnsignedEdge>& OutEdges);
 		void WriteMetadata(TMap<int32, FGraphNodeMetadata*>& OutMetadata);
 	};
