@@ -724,7 +724,6 @@ namespace PCGEx
 		virtual double Convert(const FRotator Value) const override { return Convert(FVector(Value.Roll, Value.Pitch, Value.Yaw)); }
 		virtual double Convert(const FString Value) const override { return PCGExMath::ConvertStringToDouble(Value); }
 		virtual double Convert(const FName Value) const override { return PCGExMath::ConvertStringToDouble(Value.ToString()); }
-		
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FLocalIntegerGetter : public FAttributeGetter<int32>

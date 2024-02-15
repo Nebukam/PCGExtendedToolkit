@@ -137,5 +137,4 @@ namespace PCGExGeo
 			return IsValid;
 		}
 	};
-
 }
