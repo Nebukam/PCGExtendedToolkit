@@ -356,9 +356,6 @@ namespace PCGExGraph
 			NodeMeta->CompoundSize = Node->Neighbors.Num();
 			NodeMeta->bCompounded = NodeMeta->CompoundSize > 1;
 		}
-
-		//TODO : Write edge metadata as well
-		
 	}
 
 	bool FPointEdgeProxy::FindSplit(const FVector& Position, FPESplit& OutSplit) const
@@ -432,11 +429,14 @@ namespace PCGExGraph
 			{
 				NodeIndex = Split.NodeIndex;
 
-				FGraphNodeMetadata* NodeMetadata = FGraphNodeMetadata::GetOrCreate(NodeIndex, Graph->NodeMetadata);
-				NodeMetadata->bIntersector = true;
-
 				Graph->InsertEdge(PrevIndex, NodeIndex, NewEdge);
 				PrevIndex = NodeIndex;
+
+				FGraphNodeMetadata* NodeMetadata = FGraphNodeMetadata::GetOrCreate(NodeIndex, Graph->NodeMetadata);
+				NodeMetadata->Type = EPCGExIntersectionType::PointEdge;
+
+				FGraphEdgeMetadata* EdgeMetadata = FGraphEdgeMetadata::GetOrCreate(NewEdge.EdgeIndex, SplitEdge.EdgeIndex, Graph->EdgeMetadata);
+				EdgeMetadata->Type = EPCGExIntersectionType::PointEdge;
 
 				if (Settings.bSnapOnEdge)
 				{
@@ -579,12 +579,14 @@ namespace PCGExGraph
 			for (const FEECrossing* Crossing : EdgeProxy.Intersections)
 			{
 				NodeIndex = Crossing->NodeIndex;
-
-				FGraphNodeMetadata* NodeMetadata = FGraphNodeMetadata::GetOrCreate(NodeIndex, Graph->NodeMetadata);
-				NodeMetadata->bCrossing = true;
-
 				Graph->InsertEdge(PrevIndex, NodeIndex, NewEdge);
 				PrevIndex = NodeIndex;
+
+				FGraphNodeMetadata* NodeMetadata = FGraphNodeMetadata::GetOrCreate(NodeIndex, Graph->NodeMetadata);
+				NodeMetadata->Type = EPCGExIntersectionType::EdgeEdge;
+
+				FGraphEdgeMetadata* EdgeMetadata = FGraphEdgeMetadata::GetOrCreate(NewEdge.EdgeIndex, EdgeProxy.EdgeIndex, Graph->EdgeMetadata);
+				EdgeMetadata->Type = EPCGExIntersectionType::EdgeEdge;
 			}
 
 			Graph->InsertEdge(NodeIndex, LastIndex, NewEdge); // Insert last edge
@@ -670,7 +672,6 @@ namespace PCGExGraphTask
 		EdgeStart->BindAndGet(EdgeIO);
 		EdgeEnd->BindAndGet(EdgeIO);
 
-
 		const TArray<FPCGPoint> Vertices = PointIO->GetOut()->GetPoints();
 
 		PointIndex = 0;
@@ -683,6 +684,16 @@ namespace PCGExGraphTask
 			EdgeEnd->Values[PointIndex] = Graph->Nodes[Edge.End].PointIndex;
 
 			if (Point.Seed == 0) { PCGExMath::RandomizeSeed(Point); }
+
+			PCGExGraph::FGraphEdgeMetadata** EdgeMetaPtr = Graph->EdgeMetadata.Find(EdgeIndex);
+			if (EdgeMetaPtr)
+			{
+				PCGExGraph::FGraphEdgeMetadata* EdgeMeta = *EdgeMetaPtr;
+				//if()
+				//int32 ParentCompoundIndex = PCGExGraph::FGraphEdgeMetadata::GetParentIndex();
+				//TODO: Handle edge metadata	
+			}
+
 			PointIndex++;
 		}
 
@@ -709,6 +720,23 @@ namespace PCGExGraphTask
 
 		PCGEX_DELETE(EdgeStart)
 		PCGEX_DELETE(EdgeEnd)
+
+		if (MetadataSettings &&
+			!Graph->EdgeMetadata.IsEmpty() &&
+			!Graph->NodeMetadata.IsEmpty())
+		{
+			if (MetadataSettings->bFlagCrossing)
+			{
+				// Need to go through each point and add flags matching edges
+				for (const int32 NodeIndex : SubGraph->Nodes)
+				{
+					PCGExGraph::FNode Node = Graph->Nodes[NodeIndex];
+					PCGExGraph::FGraphNodeMetadata** NodeMetaPtr = Graph->NodeMetadata.Find(NodeIndex);
+
+					if (!NodeMetaPtr || (*NodeMetaPtr)->Type != EPCGExIntersectionType::EdgeEdge) { continue; }
+				}
+			}
+		}
 
 		return true;
 	}
@@ -802,8 +830,8 @@ Writer->BindAndGet(*PointIO);\
 
 			PCGEX_METADATA(Compounded, bool, false, bCompounded)
 			PCGEX_METADATA(CompoundSize, int32, 0, CompoundSize)
-			PCGEX_METADATA(Intersector, bool, false, bIntersector)
-			PCGEX_METADATA(Crossing, bool, false, bCrossing)
+			PCGEX_METADATA(Intersector, bool, false, IsIntersector())
+			PCGEX_METADATA(Crossing, bool, false, IsCrossing())
 
 #undef PCGEX_METADATA
 		}
@@ -828,7 +856,7 @@ Writer->BindAndGet(*PointIO);\
 			SubGraph->PointIO = EdgeIO;
 			EdgeIO->Tags->Set(PCGExGraph::Tag_Cluster, Builder->EdgeTagValue);
 
-			Manager->Start<FWriteSubGraphEdges>(SubGraphIndex++, PointIO, Builder->Graph, SubGraph);
+			Manager->Start<FWriteSubGraphEdges>(SubGraphIndex++, PointIO, Builder->Graph, SubGraph, MetadataSettings);
 		}
 
 		return true;
@@ -837,8 +865,6 @@ Writer->BindAndGet(*PointIO);\
 	bool FBuildCompoundGraphFromPoints::ExecuteTask()
 	{
 		PointIO->CreateInKeys();
-
-		// TODO: refactor to use CompoundGraph
 
 		const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
 

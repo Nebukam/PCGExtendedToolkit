@@ -23,7 +23,7 @@ FPCGExFuseClustersContext::~FPCGExFuseClustersContext()
 	PCGEX_DELETE(GraphBuilder)
 	PCGEX_DELETE(PointEdgeIntersections)
 	PCGEX_DELETE(EdgeEdgeIntersections)
-	
+
 	PCGEX_DELETE(CompoundPointsBlender)
 	PCGEX_DELETE(CompoundEdgesBlender)
 }
@@ -139,7 +139,7 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 	}
 
 	//TODO : Merge edges, need to create a dummy PointIO for FGraphBuilder
-	
+
 	if (Context->IsState(PCGExGraph::State_MergingPointCompounds))
 	{
 		if (!Context->IsAsyncWorkComplete()) { return false; }

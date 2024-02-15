@@ -222,7 +222,8 @@ bool FPCGExBridgeEdgeClustersElement::ExecuteInternal(
 
 			for (int i = 0; i < NumBounds; i++) { Positions[i] = Bounds[i].GetCenter(); }
 
-			if (Delaunay->Process(Positions)) { Bridges.Append(Delaunay->DelaunayEdges); }
+			const FPCGExGeo2DProjectionSettings ProjectionSettings; // TODO : Expose
+			if (Delaunay->Process(Positions, ProjectionSettings)) { Bridges.Append(Delaunay->DelaunayEdges); }
 			else { PCGE_LOG(Warning, GraphAndLog, FTEXT("(1) Delaunay 2D failed.")); }
 
 			Positions.Empty();

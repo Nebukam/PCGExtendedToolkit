@@ -124,7 +124,8 @@ bool FPCGExLloydRelax2Task::ExecuteTask()
 	TArray<FVector>& Positions = *ActivePositions;
 
 	const TArrayView<FVector> View = MakeArrayView(Positions);
-	if (!Delaunay->Process(View)) { return false; }
+	const FPCGExGeo2DProjectionSettings ProjectionSettings; // TODO : Expose
+	if (!Delaunay->Process(View, ProjectionSettings)) { return false; }
 
 	const int32 NumPoints = Positions.Num();
 

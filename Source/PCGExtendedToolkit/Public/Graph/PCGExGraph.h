@@ -16,6 +16,14 @@
 
 struct FPCGExPointsProcessorContext;
 
+UENUM(BlueprintType)
+enum class EPCGExIntersectionType : uint8
+{
+	Unknown UMETA(DisplayName = "Unknown", ToolTip="Unknown"),
+	PointEdge UMETA(DisplayName = "Point/Edge", ToolTip="Point/Edge Intersection."),
+	EdgeEdge UMETA(DisplayName = "Edge/Edge", ToolTip="Edge/Edge Intersection."),
+};
+
 USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExGraphBuilderSettings
 {
@@ -188,15 +196,17 @@ namespace PCGExGraph
 	struct PCGEXTENDEDTOOLKIT_API FGraphNodeMetadata
 	{
 		int32 NodeIndex;
-		bool bCrossing = false;    // Result of an edge/edge intersection		
-		bool bIntersector = false; // Result of a point/edge intersection
-		bool bCompounded = false;  // Result of a fuse
-		int32 CompoundSize = 0;    // Fuse size
+		EPCGExIntersectionType Type = EPCGExIntersectionType::PointEdge;
+		bool bCompounded = false; // Represents multiple nodes
+		int32 CompoundSize = 0; // Fuse size
 
 		explicit FGraphNodeMetadata(int32 InNodeIndex)
 			: NodeIndex(InNodeIndex)
 		{
 		}
+
+		bool IsIntersector() const { return Type == EPCGExIntersectionType::PointEdge; }
+		bool IsCrossing() const { return Type == EPCGExIntersectionType::EdgeEdge; }
 
 		static FGraphNodeMetadata* GetOrCreate(const int32 NodeIndex, TMap<int32, FGraphNodeMetadata*>& InMetadata)
 		{
@@ -212,6 +222,7 @@ namespace PCGExGraph
 	{
 		int32 EdgeIndex;
 		int32 ParentIndex;
+		EPCGExIntersectionType Type = EPCGExIntersectionType::Unknown;
 
 		explicit FGraphEdgeMetadata(int32 InEdgeIndex, int32 InParentIndex)
 			: EdgeIndex(InEdgeIndex), ParentIndex(InParentIndex)
@@ -225,6 +236,19 @@ namespace PCGExGraph
 			FGraphEdgeMetadata* NewMetadata = new FGraphEdgeMetadata(EdgeIndex, ParentIndex);
 			InMetadata.Add(EdgeIndex, NewMetadata);
 			return NewMetadata;
+		}
+
+		static int32 GetParentIndex(const int32 EdgeIndex, TMap<int32, FGraphEdgeMetadata*>& InMetadata)
+		{
+			int32 ParentIndex = -1;
+			FGraphEdgeMetadata** Parent = InMetadata.Find(EdgeIndex);
+			while (Parent)
+			{
+				ParentIndex = (*Parent)->EdgeIndex;
+				Parent = InMetadata.Find(EdgeIndex);
+			}
+
+			return ParentIndex;
 		}
 	};
 
@@ -285,6 +309,7 @@ namespace PCGExGraph
 
 		TArray<FNode> Nodes;
 		TMap<int32, FGraphNodeMetadata*> NodeMetadata;
+		TMap<int32, FGraphEdgeMetadata*> EdgeMetadata;
 
 		TArray<FIndexedEdge> Edges;
 
@@ -332,6 +357,7 @@ namespace PCGExGraph
 		~FGraph()
 		{
 			PCGEX_DELETE_TMAP(NodeMetadata, int32)
+			PCGEX_DELETE_TMAP(EdgeMetadata, int32)
 
 			Nodes.Empty();
 			UniqueEdges.Empty();
@@ -744,16 +770,13 @@ namespace PCGExGraphTask
 	{
 	public:
 		FInsertPointEdgeIntersections(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-		                              PCGExGraph::FPointEdgeIntersections* InIntersectionList,
-		                              TMap<int32, PCGExGraph::FGraphNodeMetadata*>* InOutMetadata)
+		                              PCGExGraph::FPointEdgeIntersections* InIntersectionList)
 			: FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
-			  IntersectionList(InIntersectionList),
-			  OutMetadata(InOutMetadata)
+			  IntersectionList(InIntersectionList)
 		{
 		}
 
 		PCGExGraph::FPointEdgeIntersections* IntersectionList = nullptr;
-		TMap<int32, PCGExGraph::FGraphNodeMetadata*>* OutMetadata = nullptr;
 
 		virtual bool ExecuteTask() override;
 	};
@@ -797,15 +820,19 @@ namespace PCGExGraphTask
 	public:
 		FWriteSubGraphEdges(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
 		                    PCGExGraph::FGraph* InGraph,
-		                    PCGExGraph::FSubGraph* InSubGraph)
+		                    PCGExGraph::FSubGraph* InSubGraph,
+		                    PCGExGraph::FGraphMetadataSettings* InMetadataSettings = nullptr)
 			: FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
 			  Graph(InGraph),
-			  SubGraph(InSubGraph)
+			  SubGraph(InSubGraph),
+			  MetadataSettings(InMetadataSettings)
 		{
 		}
 
 		PCGExGraph::FGraph* Graph = nullptr;
 		PCGExGraph::FSubGraph* SubGraph = nullptr;
+
+		PCGExGraph::FGraphMetadataSettings* MetadataSettings = nullptr;
 
 		virtual bool ExecuteTask() override;
 	};
@@ -814,10 +841,15 @@ namespace PCGExGraphTask
 	{
 	public:
 		FCompileGraph(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-		              PCGExGraph::FGraphBuilder* InGraphBuilder, const int32 InMin = 1, const int32 InMax = TNumericLimits<int32>::Max(),
+		              PCGExGraph::FGraphBuilder* InGraphBuilder,
+		              const int32 InMin = 1,
+		              const int32 InMax = TNumericLimits<int32>::Max(),
 		              PCGExGraph::FGraphMetadataSettings* InMetadataSettings = nullptr)
 			: FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
-			  Builder(InGraphBuilder), Min(InMin), Max(InMax), MetadataSettings(InMetadataSettings)
+			  Builder(InGraphBuilder),
+			  Min(InMin),
+			  Max(InMax),
+			  MetadataSettings(InMetadataSettings)
 		{
 		}
 

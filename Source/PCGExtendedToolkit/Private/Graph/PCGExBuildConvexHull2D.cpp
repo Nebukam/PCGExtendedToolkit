@@ -210,7 +210,7 @@ bool FPCGExConvexHull2Task::ExecuteTask()
 	PCGExGeo::PointsToPositions(Context->CurrentIO->GetIn()->GetPoints(), Positions);
 
 	const TArrayView<FVector> View = MakeArrayView(Positions);
-	if (!Delaunay->Process(View))
+	if (!Delaunay->Process(View, Context->ProjectionSettings))
 	{
 		PCGEX_DELETE(Delaunay)
 		return false;
