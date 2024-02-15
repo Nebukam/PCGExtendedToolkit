@@ -19,6 +19,7 @@
 #define PCGEX_DELETE_TMAP(_VALUE, _TYPE){TArray<_TYPE> Keys; _VALUE.GetKeys(Keys); for (const _TYPE Key : Keys) { delete *_VALUE.Find(Key); } _VALUE.Empty(); Keys.Empty(); }
 #define PCGEX_CLEANUP(_VALUE) _VALUE.Cleanup();
 
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION == 3
 #define PCGEX_FOREACH_SUPPORTEDTYPES(MACRO, ...) \
 MACRO(bool, Boolean, __VA_ARGS__)       \
 MACRO(int32, Integer32, __VA_ARGS__)      \
@@ -33,6 +34,24 @@ MACRO(FRotator, Rotator, __VA_ARGS__)   \
 MACRO(FTransform, Transform, __VA_ARGS__) \
 MACRO(FString, String, __VA_ARGS__)    \
 MACRO(FName, Name, __VA_ARGS__)
+#else
+#define PCGEX_FOREACH_SUPPORTEDTYPES(MACRO, ...) \
+MACRO(bool, Boolean, __VA_ARGS__)       \
+MACRO(int32, Integer32, __VA_ARGS__)      \
+MACRO(int64, Integer64, __VA_ARGS__)      \
+MACRO(float, Float, __VA_ARGS__)      \
+MACRO(double, Double, __VA_ARGS__)     \
+MACRO(FVector2D, Vector2, __VA_ARGS__)  \
+MACRO(FVector, Vector, __VA_ARGS__)    \
+MACRO(FVector4, Vector4, __VA_ARGS__)   \
+MACRO(FQuat, Quaternion, __VA_ARGS__)      \
+MACRO(FRotator, Rotator, __VA_ARGS__)   \
+MACRO(FTransform, Transform, __VA_ARGS__) \
+MACRO(FString, String, __VA_ARGS__)    \
+MACRO(FName, Name, __VA_ARGS__)\
+MACRO(FSoftObjectPath, SoftObjectPath, __VA_ARGS__)\
+MACRO(FSoftClassPath, SoftClassPath, __VA_ARGS__)
+#endif
 
 /**
  * Enum, Point.[Getter]

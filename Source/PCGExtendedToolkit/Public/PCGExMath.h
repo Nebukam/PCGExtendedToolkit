@@ -9,6 +9,9 @@
 
 namespace PCGExMath
 {
+
+#pragma region basics
+	
 	/**
 	 *	 Leave <---.Apex-----> Arrive (Direction)
 	 *		   . '   |    '  .  
@@ -313,16 +316,18 @@ namespace PCGExMath
 		return Mode;
 	}
 
+#pragma endregion
+	
 #pragma region Add
-
+	
 	template <typename T, typename CompilerSafety = void>
-	static T Add(const T& A, const T& B, const double& Alpha = 0) { return A + B; }
+	static T Add(const T& A, const T& B) { return A + B; } // Default, unhandled behavior.
 
 	template <typename CompilerSafety = void>
-	static bool Add(const bool& A, const bool& B, const double& Alpha = 0) { return B ? true : A; }
+	static bool Add(const bool& A, const bool& B) { return B ? true : A; }
 
 	template <typename CompilerSafety = void>
-	static FTransform Add(const FTransform& A, const FTransform& B, const double& Alpha = 0)
+	static FTransform Add(const FTransform& A, const FTransform& B)
 	{
 		return FTransform(
 			A.GetRotation() + B.GetRotation(),
@@ -331,23 +336,30 @@ namespace PCGExMath
 	}
 
 	template <typename CompilerSafety = void>
-	static FString Add(const FString& A, const FString& B, const double& Alpha = 0) { return A < B ? B : A; }
+	static FString Add(const FString& A, const FString& B) { return A < B ? B : A; }
 
 	template <typename CompilerSafety = void>
-	static FName Add(const FName& A, const FName& B, const double& Alpha = 0) { return A.ToString() < B.ToString() ? B : A; }
+	static FName Add(const FName& A, const FName& B) { return A.ToString() < B.ToString() ? B : A; }
 
+	// Unhandled, but needs to be supported as property
+	template <typename CompilerSafety = void>
+	static FSoftObjectPath Add(const FSoftObjectPath& A, const FSoftObjectPath& B) { return B; }
+	
+	template <typename CompilerSafety = void>
+	static FSoftClassPath Add(const FSoftClassPath& A, const FSoftClassPath& B) { return B; }
+	
 #pragma endregion
 
 #pragma region Sub
 
 	template <typename T, typename CompilerSafety = void>
-	static T Sub(const T& A, const T& B, const double& Alpha = 0) { return A - B; }
+	static T Sub(const T& A, const T& B) { return A - B; }
 
 	template <typename CompilerSafety = void>
-	static bool Sub(const bool& A, const bool& B, const double& Alpha = 0) { return B ? true : A; }
+	static bool Sub(const bool& A, const bool& B) { return B ? true : A; }
 
 	template <typename CompilerSafety = void>
-	static FTransform Sub(const FTransform& A, const FTransform& B, const double& Alpha = 0)
+	static FTransform Sub(const FTransform& A, const FTransform& B)
 	{
 		return FTransform(
 			A.GetRotation() - B.GetRotation(),
@@ -356,20 +368,27 @@ namespace PCGExMath
 	}
 
 	template <typename CompilerSafety = void>
-	static FString Sub(const FString& A, const FString& B, const double& Alpha = 0) { return A < B ? A : B; }
+	static FString Sub(const FString& A, const FString& B) { return A < B ? A : B; }
 
 	template <typename CompilerSafety = void>
-	static FName Sub(const FName& A, const FName& B, const double& Alpha = 0) { return A.ToString() < B.ToString() ? A : B; }
+	static FName Sub(const FName& A, const FName& B) { return A.ToString() < B.ToString() ? A : B; }
 
+	// Unhandled, but needs to be supported as property
+	template <typename CompilerSafety = void>
+	static FSoftObjectPath Sub(const FSoftObjectPath& A, const FSoftObjectPath& B) { return A; }
+	
+	template <typename CompilerSafety = void>
+	static FSoftClassPath Sub(const FSoftClassPath& A, const FSoftClassPath& B) { return A; }
+	
 #pragma endregion
 
 #pragma region Min
 
 	template <typename T, typename CompilerSafety = void>
-	static T Min(const T& A, const T& B, const double& Alpha = 0) { return FMath::Min(A, B); }
+	static T Min(const T& A, const T& B) { return FMath::Min(A, B); }
 
 	template <typename CompilerSafety = void>
-	static FVector2D Min(const FVector2D& A, const FVector2D& B, const double& Alpha = 0)
+	static FVector2D Min(const FVector2D& A, const FVector2D& B)
 	{
 		return FVector2D(
 			FMath::Min(A.X, B.X),
@@ -377,7 +396,7 @@ namespace PCGExMath
 	}
 
 	template <typename CompilerSafety = void>
-	static FVector Min(const FVector& A, const FVector& B, const double& Alpha = 0)
+	static FVector Min(const FVector& A, const FVector& B)
 	{
 		return FVector(
 			FMath::Min(A.X, B.X),
@@ -386,7 +405,7 @@ namespace PCGExMath
 	}
 
 	template <typename CompilerSafety = void>
-	static FVector4 Min(const FVector4& A, const FVector4& B, const double& Alpha = 0)
+	static FVector4 Min(const FVector4& A, const FVector4& B)
 	{
 		return FVector4(
 			FMath::Min(A.X, B.X),
@@ -396,7 +415,7 @@ namespace PCGExMath
 	}
 
 	template <typename CompilerSafety = void>
-	static FRotator Min(const FRotator& A, const FRotator& B, const double& Alpha = 0)
+	static FRotator Min(const FRotator& A, const FRotator& B)
 	{
 		return FRotator(
 			FMath::Min(A.Pitch, B.Pitch),
@@ -405,10 +424,10 @@ namespace PCGExMath
 	}
 
 	template <typename CompilerSafety = void>
-	static FQuat Min(const FQuat& A, const FQuat& B, const double& Alpha = 0) { return Min(A.Rotator(), B.Rotator()).Quaternion(); }
+	static FQuat Min(const FQuat& A, const FQuat& B) { return Min(A.Rotator(), B.Rotator()).Quaternion(); }
 
 	template <typename CompilerSafety = void>
-	static FTransform Min(const FTransform& A, const FTransform& B, const double& Alpha = 0)
+	static FTransform Min(const FTransform& A, const FTransform& B)
 	{
 		return FTransform(
 			Min(A.GetRotation(), B.GetRotation()),
@@ -417,20 +436,27 @@ namespace PCGExMath
 	}
 
 	template <typename CompilerSafety = void>
-	static FString Min(const FString& A, const FString& B, const double& Alpha = 0) { return A > B ? B : A; }
+	static FString Min(const FString& A, const FString& B) { return A > B ? B : A; }
 
 	template <typename CompilerSafety = void>
-	static FName Min(const FName& A, const FName& B, const double& Alpha = 0) { return A.ToString() > B.ToString() ? B : A; }
+	static FName Min(const FName& A, const FName& B) { return A.ToString() > B.ToString() ? B : A; }
 
+	// Unhandled, but needs to be supported as property
+	template <typename CompilerSafety = void>
+	static FSoftObjectPath Min(const FSoftObjectPath& A, const FSoftObjectPath& B) { return A; }
+	
+	template <typename CompilerSafety = void>
+	static FSoftClassPath Min(const FSoftClassPath& A, const FSoftClassPath& B) { return A; }
+	
 #pragma endregion
 
 #pragma region Max
 
 	template <typename T, typename CompilerSafety = void>
-	static T Max(const T& A, const T& B, const double& Alpha = 0) { return FMath::Max(A, B); }
+	static T Max(const T& A, const T& B) { return FMath::Max(A, B); }
 
 	template <typename CompilerSafety = void>
-	static FVector2D Max(const FVector2D& A, const FVector2D& B, const double& Alpha = 0)
+	static FVector2D Max(const FVector2D& A, const FVector2D& B)
 	{
 		return FVector2D(
 			FMath::Max(A.X, B.X),
@@ -438,7 +464,7 @@ namespace PCGExMath
 	}
 
 	template <typename CompilerSafety = void>
-	static FVector Max(const FVector& A, const FVector& B, const double& Alpha = 0)
+	static FVector Max(const FVector& A, const FVector& B)
 	{
 		return FVector(
 			FMath::Max(A.X, B.X),
@@ -447,7 +473,7 @@ namespace PCGExMath
 	}
 
 	template <typename CompilerSafety = void>
-	static FVector4 Max(const FVector4& A, const FVector4& B, const double& Alpha = 0)
+	static FVector4 Max(const FVector4& A, const FVector4& B)
 	{
 		return FVector4(
 			FMath::Max(A.X, B.X),
@@ -457,7 +483,7 @@ namespace PCGExMath
 	}
 
 	template <typename CompilerSafety = void>
-	static FRotator Max(const FRotator& A, const FRotator& B, const double& Alpha = 0)
+	static FRotator Max(const FRotator& A, const FRotator& B)
 	{
 		return FRotator(
 			FMath::Max(A.Pitch, B.Pitch),
@@ -466,10 +492,10 @@ namespace PCGExMath
 	}
 
 	template <typename CompilerSafety = void>
-	static FQuat Max(const FQuat& A, const FQuat& B, const double& Alpha = 0) { return Max(A.Rotator(), B.Rotator()).Quaternion(); }
+	static FQuat Max(const FQuat& A, const FQuat& B) { return Max(A.Rotator(), B.Rotator()).Quaternion(); }
 
 	template <typename CompilerSafety = void>
-	static FTransform Max(const FTransform& A, const FTransform& B, const double& Alpha = 0)
+	static FTransform Max(const FTransform& A, const FTransform& B)
 	{
 		return FTransform(
 			Max(A.GetRotation(), B.GetRotation()),
@@ -478,11 +504,18 @@ namespace PCGExMath
 	}
 
 	template <typename CompilerSafety = void>
-	static FString Max(const FString& A, const FString& B, const double& Alpha = 0) { return A > B ? A : B; }
+	static FString Max(const FString& A, const FString& B) { return A > B ? A : B; }
 
 	template <typename CompilerSafety = void>
-	static FName Max(const FName& A, const FName& B, const double& Alpha = 0) { return A.ToString() > B.ToString() ? A : B; }
+	static FName Max(const FName& A, const FName& B) { return A.ToString() > B.ToString() ? A : B; }
 
+	// Unhandled, but needs to be supported as property
+	template <typename CompilerSafety = void>
+	static FSoftObjectPath Max(const FSoftObjectPath& A, const FSoftObjectPath& B) { return B; }
+	
+	template <typename CompilerSafety = void>
+	static FSoftClassPath Max(const FSoftClassPath& A, const FSoftClassPath& B) { return B; }
+	
 #pragma endregion
 
 #pragma region Lerp
@@ -505,11 +538,14 @@ namespace PCGExMath
 			Lerp(A.GetScale3D(), B.GetScale3D(), Alpha));
 	}
 
-	template <typename CompilerSafety = void>
-	static FString Lerp(const FString& A, const FString& B, const double& Alpha = 0) { return Alpha > 0.5 ? B : A; }
-
-	template <typename CompilerSafety = void>
-	static FName Lerp(const FName& A, const FName& B, const double& Alpha = 0) { return Alpha > 0.5 ? B : A; }
+#define PCGEX_UNSUPPORTED_LERP(_TYPE) template <typename CompilerSafety = void> static _TYPE Lerp(const _TYPE& A, const _TYPE& B, const double& Alpha = 0) { return Alpha > 0.5 ? B : A; }
+	
+	PCGEX_UNSUPPORTED_LERP(FString)
+	PCGEX_UNSUPPORTED_LERP(FName)
+	PCGEX_UNSUPPORTED_LERP(FSoftObjectPath)
+	PCGEX_UNSUPPORTED_LERP(FSoftClassPath)
+	
+#undef PCGEX_UNSUPPORTED_LERP
 
 #pragma endregion
 
@@ -517,9 +553,6 @@ namespace PCGExMath
 
 	template <typename T, typename CompilerSafety = void>
 	static T Div(const T& A, const double Divider) { return A / Divider; }
-
-	template <typename CompilerSafety = void>
-	static bool Div(const bool& A, const double Divider) { return A; }
 
 	template <typename CompilerSafety = void>
 	static FRotator Div(const FRotator& A, const double Divider)
@@ -532,8 +565,7 @@ namespace PCGExMath
 
 	template <typename CompilerSafety = void>
 	static FQuat Div(const FQuat& A, const double Divider) { return Div(A.Rotator(), Divider).Quaternion(); }
-
-
+	
 	template <typename CompilerSafety = void>
 	static FTransform Div(const FTransform& A, const double Divider)
 	{
@@ -543,11 +575,16 @@ namespace PCGExMath
 			A.GetScale3D() / Divider);
 	}
 
-	template <typename CompilerSafety = void>
-	static FString Div(const FString& A, const double Divider) { return A; }
-
-	template <typename CompilerSafety = void>
-	static FName Div(const FName& A, const double Divider) { return A; }
+#define PCGEX_UNSUPPORTED_DIV(_TYPE) template <typename CompilerSafety = void> static _TYPE Div(const _TYPE& A, const double Divider) { return A; }
+	
+	PCGEX_UNSUPPORTED_DIV(bool)
+	PCGEX_UNSUPPORTED_DIV(FString)
+	PCGEX_UNSUPPORTED_DIV(FName)
+	PCGEX_UNSUPPORTED_DIV(FSoftObjectPath)
+	PCGEX_UNSUPPORTED_DIV(FSoftClassPath)
+	
+#undef PCGEX_UNSUPPORTED_DIV
+	
 
 #pragma endregion
 

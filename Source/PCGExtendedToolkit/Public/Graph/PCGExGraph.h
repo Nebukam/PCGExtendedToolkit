@@ -131,7 +131,7 @@ namespace PCGExGraph
 
 	constexpr PCGExMT::AsyncState State_PromotingEdges = __COUNTER__;
 	constexpr PCGExMT::AsyncState State_UpdatingCompoundCenters = __COUNTER__;
-	
+
 	constexpr PCGExMT::AsyncState State_MergingPointCompounds = __COUNTER__;
 	constexpr PCGExMT::AsyncState State_MergingEdgeCompounds = __COUNTER__;
 
@@ -204,6 +204,26 @@ namespace PCGExGraph
 
 			FGraphNodeMetadata* NewMetadata = new FGraphNodeMetadata(NodeIndex);
 			InMetadata.Add(NodeIndex, NewMetadata);
+			return NewMetadata;
+		}
+	};
+
+	struct PCGEXTENDEDTOOLKIT_API FGraphEdgeMetadata
+	{
+		int32 EdgeIndex;
+		int32 ParentIndex;
+
+		explicit FGraphEdgeMetadata(int32 InEdgeIndex, int32 InParentIndex)
+			: EdgeIndex(InEdgeIndex), ParentIndex(InParentIndex)
+		{
+		}
+
+		static FGraphEdgeMetadata* GetOrCreate(const int32 EdgeIndex, const int32 ParentIndex, TMap<int32, FGraphEdgeMetadata*>& InMetadata)
+		{
+			if (FGraphEdgeMetadata** MetadataPtr = InMetadata.Find(EdgeIndex)) { return *MetadataPtr; }
+
+			FGraphEdgeMetadata* NewMetadata = new FGraphEdgeMetadata(EdgeIndex, ParentIndex);
+			InMetadata.Add(EdgeIndex, NewMetadata);
 			return NewMetadata;
 		}
 	};

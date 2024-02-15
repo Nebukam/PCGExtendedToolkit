@@ -23,7 +23,7 @@ FPCGExFuseClustersContext::~FPCGExFuseClustersContext()
 	PCGEX_DELETE(GraphBuilder)
 	PCGEX_DELETE(PointEdgeIntersections)
 	PCGEX_DELETE(EdgeEdgeIntersections)
-
+	
 	PCGEX_DELETE(CompoundPointsBlender)
 	PCGEX_DELETE(CompoundEdgesBlender)
 }
@@ -158,6 +158,7 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 
 		if (Settings->bDoPointEdgeIntersection)
 		{
+			// TODO: Point/edge intersection needs to keep track of original edge IO/Index
 			Context->PointEdgeIntersections = new PCGExGraph::FPointEdgeIntersections(Context->GraphBuilder->Graph, Context->ConsolidatedPoints, Context->PointEdgeIntersectionSettings);
 			Context->PointEdgeIntersections->FindIntersections(Context);
 			Context->SetAsyncState(PCGExGraph::State_FindingPointEdgeIntersections);
@@ -183,6 +184,8 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 
 		if (Settings->bDoEdgeEdgeIntersection)
 		{
+			// TODO : How to retrieve original edge IO/Index for tagging? :/
+			// Can be consoldated from CompoundGraph' EdgeIdxCompoupnds + GraphMetadata...?
 			Context->EdgeEdgeIntersections = new PCGExGraph::FEdgeEdgeIntersections(Context->GraphBuilder->Graph, Context->ConsolidatedPoints, Context->EdgeEdgeIntersectionSettings);
 			Context->EdgeEdgeIntersections->FindIntersections(Context);
 			Context->SetAsyncState(PCGExGraph::State_FindingEdgeEdgeIntersections);

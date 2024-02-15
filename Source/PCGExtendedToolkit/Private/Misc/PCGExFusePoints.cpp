@@ -81,8 +81,7 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 		// Build output points from compound graph
 		const int32 NumCompoundNodes = Context->CompoundGraph->Nodes.Num();
 		TArray<FPCGPoint>& MutablePoints = Context->CurrentIO->GetOut()->GetMutablePoints();
-
-		auto Initialize = [&]() { MutablePoints.SetNum(NumCompoundNodes); };
+		if (MutablePoints.Num() != NumCompoundNodes) { MutablePoints.SetNum(NumCompoundNodes); }
 
 		auto ProcessNode = [&](int32 Index)
 		{
@@ -90,7 +89,7 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 			MutablePoints[Index].Transform.SetLocation(CompoundNode->UpdateCenter(Context->CompoundGraph->PointsCompounds, Context->MainPoints));
 		};
 
-		if (!Context->Process(Initialize, ProcessNode, NumCompoundNodes)) { return false; }
+		if (!Context->Process(ProcessNode, NumCompoundNodes)) { return false; }
 
 		Context->SetAsyncState(PCGExData::State_MergingData);
 	}

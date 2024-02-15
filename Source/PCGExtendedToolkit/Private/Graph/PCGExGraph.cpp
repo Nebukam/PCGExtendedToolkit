@@ -16,7 +16,7 @@ namespace PCGExGraph
 		Nodes.Add(Edge.End);
 
 		Edges.Add(Edge.EdgeIndex);
-		if (Edge.IOIndex != -1) { EdgesInIOIndices.Add(Edge.IOIndex); }
+		if (Edge.IOIndex >= 0) { EdgesInIOIndices.Add(Edge.IOIndex); }
 	}
 
 	void FSubGraph::Invalidate(FGraph* InGraph)
@@ -106,6 +106,7 @@ namespace PCGExGraph
 			const int32 EdgeIndex = Edges.Emplace(Edges.Num(), A, B);
 			Nodes[A].Add(EdgeIndex);
 			Nodes[B].Add(EdgeIndex);
+			Edges[EdgeIndex].IOIndex = IOIndex;
 		}
 	}
 
@@ -117,13 +118,21 @@ namespace PCGExGraph
 	void FGraph::InsertEdges(const TArray<FUnsignedEdge>& InEdges, int32 IOIndex)
 	{
 		FWriteScopeLock WriteLock(GraphLock);
-		for (const FUnsignedEdge& E : InEdges) { PCGEX_EDGE_INSERT }
+		for (const FUnsignedEdge& E : InEdges)
+		{
+			PCGEX_EDGE_INSERT
+			Edges[Edge.EdgeIndex].IOIndex = IOIndex;
+		}
 	}
 
 	void FGraph::InsertEdges(const TArray<FIndexedEdge>& InEdges)
 	{
 		FWriteScopeLock WriteLock(GraphLock);
-		for (const FIndexedEdge& E : InEdges) { PCGEX_EDGE_INSERT }
+		for (const FIndexedEdge& E : InEdges)
+		{
+			PCGEX_EDGE_INSERT
+			Edges[Edge.EdgeIndex].IOIndex = E.IOIndex;
+		}
 	}
 
 #undef PCGEX_EDGE_INSERT
@@ -347,6 +356,9 @@ namespace PCGExGraph
 			NodeMeta->CompoundSize = Node->Neighbors.Num();
 			NodeMeta->bCompounded = NodeMeta->CompoundSize > 1;
 		}
+
+		//TODO : Write edge metadata as well
+		
 	}
 
 	bool FPointEdgeProxy::FindSplit(const FVector& Position, FPESplit& OutSplit) const
