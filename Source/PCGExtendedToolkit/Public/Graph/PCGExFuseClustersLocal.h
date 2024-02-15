@@ -60,15 +60,15 @@ public:
 	FPCGExEdgeEdgeIntersectionSettings EdgeEdgeIntersectionSettings;
 
 	/** Defines how fused point properties and attributes are merged together for fused points. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Blending")
 	FPCGExBlendingSettings PointsBlendingSettings;
 
 	/** Defines how fused point properties and attributes are merged together for fused edges. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Blending")
 	FPCGExBlendingSettings EdgesBlendingSettings;
 
 	/** Graph & Edges output properties */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Graph Output Settings"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta = (PCG_Overridable, DisplayName="Graph Output Settings", ShowOnlyInnerProperties))
 	FPCGExGraphBuilderSettings GraphBuilderSettings;
 };
 

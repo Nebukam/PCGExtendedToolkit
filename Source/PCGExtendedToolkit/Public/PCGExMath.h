@@ -628,12 +628,15 @@ namespace PCGExMath
 	template <typename CompilerSafety = void>
 	static double GetComponent(const FTransform& A, const int32 Index) { return A.GetLocation()[Index]; }
 
-	template <typename CompilerSafety = void>
-	static double GetComponent(const FName& A, const int32 Index) { return -1; }
-
-	template <typename CompilerSafety = void>
-	static double GetComponent(const FString& A, const int32 Index) { return -1; }
-
+#define PCGEX_UNSUPPORTED_GET_COMPONENT(_TYPE) template <typename CompilerSafety = void> static double GetComponent(const _TYPE& A, const int32 Index) { return -1; }
+    	
+	PCGEX_UNSUPPORTED_GET_COMPONENT(FString)
+	PCGEX_UNSUPPORTED_GET_COMPONENT(FName)
+	PCGEX_UNSUPPORTED_GET_COMPONENT(FSoftObjectPath)
+	PCGEX_UNSUPPORTED_GET_COMPONENT(FSoftClassPath)
+    	
+#undef PCGEX_UNSUPPORTED_GET_COMPONENT
+	
 	////
 
 	template <typename T, typename CompilerSafety = void>
@@ -675,16 +678,15 @@ namespace PCGExMath
 		A.SetLocation(Location);
 	}
 
-	template <typename CompilerSafety = void>
-	static void SetComponent(FName& A, const int32 Index, const double InValue)
-	{
-	}
-
-	template <typename CompilerSafety = void>
-	static void SetComponent(FString& A, const int32 Index, const double InValue)
-	{
-	}
-
+	#define PCGEX_UNSUPPORTED_SET_COMPONENT(_TYPE) template <typename CompilerSafety = void> static void SetComponent(_TYPE& A, const int32 Index, const double InValue)	{}
+    	
+    	PCGEX_UNSUPPORTED_SET_COMPONENT(FString)
+    	PCGEX_UNSUPPORTED_SET_COMPONENT(FName)
+    	PCGEX_UNSUPPORTED_SET_COMPONENT(FSoftObjectPath)
+    	PCGEX_UNSUPPORTED_SET_COMPONENT(FSoftClassPath)
+    	
+    #undef PCGEX_UNSUPPORTED_SET_COMPONENT
+	
 #pragma endregion
 
 	template <typename T>
