@@ -146,7 +146,7 @@ bool FPCGExDelaunay2Task::ExecuteTask()
 
 	TArray<FVector> ActivePositions;
 	PCGExGeo::PointsToPositions(Context->CurrentIO->GetIn()->GetPoints(), ActivePositions);
-	
+
 	const TArrayView<FVector> View = MakeArrayView(ActivePositions);
 	if (!Delaunay->Process(View, Context->ProjectionSettings))
 	{
@@ -154,7 +154,7 @@ bool FPCGExDelaunay2Task::ExecuteTask()
 		PCGEX_DELETE(Delaunay)
 		return false;
 	}
-	
+
 	if (Settings->bUrquhart) { Delaunay->RemoveLongestEdges(View); }
 	if (Settings->bMarkHull) { Context->HullIndices.Append(Delaunay->DelaunayHull); }
 

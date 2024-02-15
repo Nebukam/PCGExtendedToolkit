@@ -7,11 +7,16 @@
 #include "CoreMinimal.h"
 #include "PCGEx.h"
 
+#define PCGEX_UNSUPPORTED_STRING_TYPES(MACRO)\
+MACRO(FString)\
+MACRO(FName)\
+MACRO(FSoftObjectPath)\
+MACRO(FSoftClassPath)
+
 namespace PCGExMath
 {
-
 #pragma region basics
-	
+
 	/**
 	 *	 Leave <---.Apex-----> Arrive (Direction)
 	 *		   . '   |    '  .  
@@ -317,9 +322,9 @@ namespace PCGExMath
 	}
 
 #pragma endregion
-	
+
 #pragma region Add
-	
+
 	template <typename T, typename CompilerSafety = void>
 	static T Add(const T& A, const T& B) { return A + B; } // Default, unhandled behavior.
 
@@ -344,10 +349,10 @@ namespace PCGExMath
 	// Unhandled, but needs to be supported as property
 	template <typename CompilerSafety = void>
 	static FSoftObjectPath Add(const FSoftObjectPath& A, const FSoftObjectPath& B) { return B; }
-	
+
 	template <typename CompilerSafety = void>
 	static FSoftClassPath Add(const FSoftClassPath& A, const FSoftClassPath& B) { return B; }
-	
+
 #pragma endregion
 
 #pragma region Sub
@@ -376,10 +381,10 @@ namespace PCGExMath
 	// Unhandled, but needs to be supported as property
 	template <typename CompilerSafety = void>
 	static FSoftObjectPath Sub(const FSoftObjectPath& A, const FSoftObjectPath& B) { return A; }
-	
+
 	template <typename CompilerSafety = void>
 	static FSoftClassPath Sub(const FSoftClassPath& A, const FSoftClassPath& B) { return A; }
-	
+
 #pragma endregion
 
 #pragma region Min
@@ -444,10 +449,10 @@ namespace PCGExMath
 	// Unhandled, but needs to be supported as property
 	template <typename CompilerSafety = void>
 	static FSoftObjectPath Min(const FSoftObjectPath& A, const FSoftObjectPath& B) { return A; }
-	
+
 	template <typename CompilerSafety = void>
 	static FSoftClassPath Min(const FSoftClassPath& A, const FSoftClassPath& B) { return A; }
-	
+
 #pragma endregion
 
 #pragma region Max
@@ -512,10 +517,10 @@ namespace PCGExMath
 	// Unhandled, but needs to be supported as property
 	template <typename CompilerSafety = void>
 	static FSoftObjectPath Max(const FSoftObjectPath& A, const FSoftObjectPath& B) { return B; }
-	
+
 	template <typename CompilerSafety = void>
 	static FSoftClassPath Max(const FSoftClassPath& A, const FSoftClassPath& B) { return B; }
-	
+
 #pragma endregion
 
 #pragma region Lerp
@@ -539,12 +544,7 @@ namespace PCGExMath
 	}
 
 #define PCGEX_UNSUPPORTED_LERP(_TYPE) template <typename CompilerSafety = void> static _TYPE Lerp(const _TYPE& A, const _TYPE& B, const double& Alpha = 0) { return Alpha > 0.5 ? B : A; }
-	
-	PCGEX_UNSUPPORTED_LERP(FString)
-	PCGEX_UNSUPPORTED_LERP(FName)
-	PCGEX_UNSUPPORTED_LERP(FSoftObjectPath)
-	PCGEX_UNSUPPORTED_LERP(FSoftClassPath)
-	
+	PCGEX_UNSUPPORTED_STRING_TYPES(PCGEX_UNSUPPORTED_LERP)
 #undef PCGEX_UNSUPPORTED_LERP
 
 #pragma endregion
@@ -565,7 +565,7 @@ namespace PCGExMath
 
 	template <typename CompilerSafety = void>
 	static FQuat Div(const FQuat& A, const double Divider) { return Div(A.Rotator(), Divider).Quaternion(); }
-	
+
 	template <typename CompilerSafety = void>
 	static FTransform Div(const FTransform& A, const double Divider)
 	{
@@ -576,15 +576,10 @@ namespace PCGExMath
 	}
 
 #define PCGEX_UNSUPPORTED_DIV(_TYPE) template <typename CompilerSafety = void> static _TYPE Div(const _TYPE& A, const double Divider) { return A; }
-	
+	PCGEX_UNSUPPORTED_STRING_TYPES(PCGEX_UNSUPPORTED_DIV)
 	PCGEX_UNSUPPORTED_DIV(bool)
-	PCGEX_UNSUPPORTED_DIV(FString)
-	PCGEX_UNSUPPORTED_DIV(FName)
-	PCGEX_UNSUPPORTED_DIV(FSoftObjectPath)
-	PCGEX_UNSUPPORTED_DIV(FSoftClassPath)
-	
 #undef PCGEX_UNSUPPORTED_DIV
-	
+
 
 #pragma endregion
 
@@ -629,14 +624,9 @@ namespace PCGExMath
 	static double GetComponent(const FTransform& A, const int32 Index) { return A.GetLocation()[Index]; }
 
 #define PCGEX_UNSUPPORTED_GET_COMPONENT(_TYPE) template <typename CompilerSafety = void> static double GetComponent(const _TYPE& A, const int32 Index) { return -1; }
-    	
-	PCGEX_UNSUPPORTED_GET_COMPONENT(FString)
-	PCGEX_UNSUPPORTED_GET_COMPONENT(FName)
-	PCGEX_UNSUPPORTED_GET_COMPONENT(FSoftObjectPath)
-	PCGEX_UNSUPPORTED_GET_COMPONENT(FSoftClassPath)
-    	
+	PCGEX_UNSUPPORTED_STRING_TYPES(PCGEX_UNSUPPORTED_GET_COMPONENT)
 #undef PCGEX_UNSUPPORTED_GET_COMPONENT
-	
+
 	////
 
 	template <typename T, typename CompilerSafety = void>
@@ -678,15 +668,10 @@ namespace PCGExMath
 		A.SetLocation(Location);
 	}
 
-	#define PCGEX_UNSUPPORTED_SET_COMPONENT(_TYPE) template <typename CompilerSafety = void> static void SetComponent(_TYPE& A, const int32 Index, const double InValue)	{}
-    	
-    	PCGEX_UNSUPPORTED_SET_COMPONENT(FString)
-    	PCGEX_UNSUPPORTED_SET_COMPONENT(FName)
-    	PCGEX_UNSUPPORTED_SET_COMPONENT(FSoftObjectPath)
-    	PCGEX_UNSUPPORTED_SET_COMPONENT(FSoftClassPath)
-    	
-    #undef PCGEX_UNSUPPORTED_SET_COMPONENT
-	
+#define PCGEX_UNSUPPORTED_SET_COMPONENT(_TYPE) template <typename CompilerSafety = void> static void SetComponent(_TYPE& A, const int32 Index, const double InValue)	{}
+	PCGEX_UNSUPPORTED_STRING_TYPES(PCGEX_UNSUPPORTED_SET_COMPONENT)
+#undef PCGEX_UNSUPPORTED_SET_COMPONENT
+
 #pragma endregion
 
 	template <typename T>
@@ -841,3 +826,5 @@ namespace PCGExMath
 
 #pragma endregion
 }
+
+#undef PCGEX_UNSUPPORTED_STRING_TYPES

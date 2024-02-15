@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 #include <queue>
-#include <vector> 
+#include <vector>
 
 namespace PCGExSearch
 {
