@@ -205,26 +205,17 @@ bool FPCGExConvexHull2Task::ExecuteTask()
 	PCGEX_SETTINGS(BuildConvexHull2D)
 
 	PCGExGeo::TDelaunay2* Delaunay = new PCGExGeo::TDelaunay2();
+	
+	TArray<FVector> Positions;
+	PCGExGeo::PointsToPositions(Context->CurrentIO->GetIn()->GetPoints(), Positions);
 
-	const TArray<FPCGPoint>& Points = PointIO->GetIn()->GetPoints();
-	const int32 NumPoints = Points.Num();
-
-	TArray<FVector2D> Positions;
-	Positions.SetNum(NumPoints);
-	for (int i = 0; i < NumPoints; i++)
-	{
-		const FVector Pos = Points[i].Transform.GetLocation();
-		Positions[i] = FVector2D(Pos.X, Pos.Y);
-	}
-
-	const TArrayView<FVector2D> View = MakeArrayView(Positions);
+	const TArrayView<FVector> View = MakeArrayView(Positions);
 	if (!Delaunay->Process(View))
 	{
 		PCGEX_DELETE(Delaunay)
 		return false;
 	}
-
-
+	
 	if (Settings->bPrunePoints)
 	{
 		PCGExGraph::FIndexedEdge E = PCGExGraph::FIndexedEdge{};

@@ -59,18 +59,27 @@ namespace PCGExGeo
 			IsValid = false;
 		}
 
-		bool Process(const TArrayView<FVector2D>& Positions)
+		bool Process(const TArrayView<FVector>& Positions, const FPCGExGeo2DProjectionSettings& ProjectionSettings)
 		{
 			Clear();
-			if (Positions.IsEmpty() || Positions.Num() <= 2) { return false; }
+
+			const int32 NumPositions = Positions.Num();
+			if (Positions.IsEmpty() || NumPositions <= 2) { return false; }
+			
+			TArray<FVector2D> Positions2D;
+			Positions2D.SetNum(NumPositions);
+			for (int i = 0; i < NumPositions; i++) { Positions2D[i] = FVector2D(Positions[i]); }
 
 			Triangulation = new UE::Geometry::FDelaunay2();
 
-			if (!Triangulation->Triangulate(Positions))
+			if (!Triangulation->Triangulate(Positions2D))
 			{
+				Positions2D.Empty();
 				Clear();
 				return false;
 			}
+			
+			Positions2D.Empty();
 
 			IsValid = true;
 
@@ -118,7 +127,7 @@ namespace PCGExGeo
 			return IsValid;
 		}
 
-		void RemoveLongestEdges(const TArrayView<FVector2D>& Positions)
+		void RemoveLongestEdges(const TArrayView<FVector>& Positions)
 		{
 			uint64 Edge;
 			for (const FDelaunaySite2& Site : Sites)

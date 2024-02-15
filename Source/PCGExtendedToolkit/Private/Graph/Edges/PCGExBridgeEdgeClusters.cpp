@@ -217,10 +217,10 @@ bool FPCGExBridgeEdgeClustersElement::ExecuteInternal(
 		{
 			PCGExGeo::TDelaunay2* Delaunay = new PCGExGeo::TDelaunay2();
 
-			TArray<FVector2D> Positions;
+			TArray<FVector> Positions;
 			Positions.SetNum(NumBounds);
 
-			for (int i = 0; i < NumBounds; i++) { Positions[i] = FVector2D(Bounds[i].GetCenter()); }
+			for (int i = 0; i < NumBounds; i++) { Positions[i] = Bounds[i].GetCenter(); }
 
 			if (Delaunay->Process(Positions)) { Bridges.Append(Delaunay->DelaunayEdges); }
 			else { PCGE_LOG(Warning, GraphAndLog, FTEXT("(1) Delaunay 2D failed.")); }

@@ -21,7 +21,6 @@ FPCGExBuildVoronoiGraph2DContext::~FPCGExBuildVoronoiGraph2DContext()
 
 	PCGEX_DELETE(GraphBuilder)
 
-	ActivePositions.Empty();
 	HullIndices.Empty();
 }
 
@@ -84,8 +83,6 @@ bool FPCGExBuildVoronoiGraph2DElement::ExecuteInternal(
 				return false;
 			}
 
-			PCGExGeo::PointsToPositions(Context->CurrentIO->GetIn()->GetPoints(), Context->ActivePositions, Settings->ProjectionSettings);
-
 			Context->GetAsyncManager()->Start<FPCGExVoronoi2Task>(Context->CurrentIO->IOIndex, Context->CurrentIO);
 			Context->SetAsyncState(PCGExGeo::State_ProcessingVoronoi);
 		}
@@ -129,48 +126,40 @@ bool FPCGExVoronoi2Task::ExecuteTask()
 
 	PCGExGeo::TVoronoi2* Voronoi = new PCGExGeo::TVoronoi2();
 
-	if (const TArrayView<FVector2D> View = MakeArrayView(Context->ActivePositions);
-		!Voronoi->Process(View))
+	TArray<FVector> ActivePositions;
+	PCGExGeo::PointsToPositions(Context->CurrentIO->GetIn()->GetPoints(), ActivePositions);
+
+	if (const TArrayView<FVector> View = MakeArrayView(ActivePositions);
+		!Voronoi->Process(View, Context->ProjectionSettings))
 	{
+		ActivePositions.Empty();
 		PCGEX_DELETE(Voronoi)
 		return false;
 	}
+
+	ActivePositions.Empty();
 
 	TArray<FPCGPoint>& Centroids = PointIO->GetOut()->GetMutablePoints();
 
 	const int32 NumSites = Voronoi->Centroids.Num();
 	Centroids.SetNum(NumSites);
 
-	for (int i = 0; i < NumSites; i++)
-	{
-		const FVector2D Centroid = Voronoi->Centroids[i];
-		Centroids[i].Transform.SetLocation(FVector(Centroid.X, Centroid.Y, 0));
-	}
-
 	if (Settings->Method == EPCGExCellCenter::Circumcenter)
 	{
-		for (int i = 0; i < NumSites; i++)
-		{
-			const FVector2D Centroid = Voronoi->Circumcenters[i];
-			Centroids[i].Transform.SetLocation(FVector(Centroid.X, Centroid.Y, 0));
-		}
+		for (int i = 0; i < NumSites; i++) { Centroids[i].Transform.SetLocation(Voronoi->Circumcenters[i]); }
 	}
 	else if (Settings->Method == EPCGExCellCenter::Centroid)
 	{
-		for (int i = 0; i < NumSites; i++)
-		{
-			const FVector2D Centroid = Voronoi->Centroids[i];
-			Centroids[i].Transform.SetLocation(FVector(Centroid.X, Centroid.Y, 0));
-		}
+		for (int i = 0; i < NumSites; i++) { Centroids[i].Transform.SetLocation(Voronoi->Centroids[i]); }
 	}
 	else if (Settings->Method == EPCGExCellCenter::Balanced)
 	{
 		const FBox Bounds = PointIO->GetIn()->GetBounds().ExpandBy(Settings->ExpandBounds);
 		for (int i = 0; i < NumSites; i++)
 		{
-			FVector Target = FVector(Voronoi->Circumcenters[i].X, Voronoi->Circumcenters[i].Y, 0);
+			FVector Target = Voronoi->Circumcenters[i];
 			if (Bounds.IsInside(Target)) { Centroids[i].Transform.SetLocation(Target); }
-			else { Centroids[i].Transform.SetLocation(FVector(Voronoi->Centroids[i].X, Voronoi->Centroids[i].Y, 0)); }
+			else { Centroids[i].Transform.SetLocation(Voronoi->Centroids[i]); }
 		}
 	}
 

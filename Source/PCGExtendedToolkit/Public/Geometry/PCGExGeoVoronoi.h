@@ -14,8 +14,8 @@ namespace PCGExGeo
 	public:
 		TDelaunay2* Delaunay = nullptr;
 		TSet<uint64> VoronoiEdges;
-		TArray<FVector2D> Circumcenters;
-		TArray<FVector2D> Centroids;
+		TArray<FVector> Circumcenters;
+		TArray<FVector> Centroids;
 
 		bool IsValid = false;
 
@@ -35,12 +35,12 @@ namespace PCGExGeo
 			IsValid = false;
 		}
 
-		bool Process(const TArrayView<FVector2D>& Positions)
+		bool Process(const TArrayView<FVector>& Positions, const FPCGExGeo2DProjectionSettings& ProjectionSettings)
 		{
 			Clear();
 
 			Delaunay = new TDelaunay2();
-			if (!Delaunay->Process(Positions))
+			if (!Delaunay->Process(Positions, ProjectionSettings))
 			{
 				Clear();
 				return IsValid;
@@ -138,42 +138,4 @@ namespace PCGExGeo
 		}
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FPCGExLloydRelax3Task : public FPCGExNonAbandonableTask
-	{
-	public:
-		FPCGExLloydRelax3Task(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-		                      TArray<FVector>* InPositions,
-		                      const int32 InNumIterations) :
-			FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
-			ActivePositions(InPositions),
-			NumIterations(InNumIterations)
-		{
-		}
-
-		TArray<FVector>* ActivePositions = nullptr;
-		int32 NumIterations = 0;
-
-		virtual bool ExecuteTask() override
-		{
-			TVoronoi3* Voronoi = new TVoronoi3();
-			TArray<FVector>& Positions = *ActivePositions;
-			const TArrayView<FVector> View = MakeArrayView(Positions);
-
-			NumIterations--;
-
-			if (!Voronoi->Process(View)) { return false; }
-
-			const int32 NumSites = Voronoi->Delaunay->Sites.Num();
-			for (int i = 0; i < NumSites; i++) { Positions[i] = Voronoi->Centroids[i]; }
-
-			PCGEX_DELETE(Voronoi)
-
-			if (NumIterations > 0)
-			{
-				Manager->Start<FPCGExLloydRelax3Task>(TaskIndex + 1, PointIO, ActivePositions, NumIterations);
-			}
-
-			return true;
-		}
-	};
 }

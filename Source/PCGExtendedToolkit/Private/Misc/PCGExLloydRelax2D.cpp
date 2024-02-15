@@ -58,7 +58,7 @@ bool FPCGExLloydRelax2DElement::ExecuteInternal(FPCGContext* InContext) const
 
 			Context->CurrentIO->CreateInKeys();
 			Context->InfluenceGetter->Grab(*Context->CurrentIO);
-			PCGExGeo::PointsToPositions(Context->CurrentIO->GetIn()->GetPoints(), Context->ActivePositions, Settings->ProjectionSettings);
+			PCGExGeo::PointsToPositions(Context->CurrentIO->GetIn()->GetPoints(), Context->ActivePositions);
 
 			Context->GetAsyncManager()->Start<FPCGExLloydRelax2Task>(
 				0, nullptr, &Context->ActivePositions,
@@ -121,20 +121,20 @@ bool FPCGExLloydRelax2Task::ExecuteTask()
 	NumIterations--;
 
 	PCGExGeo::TDelaunay2* Delaunay = new PCGExGeo::TDelaunay2();
-	TArray<FVector2D>& Positions = *ActivePositions;
+	TArray<FVector>& Positions = *ActivePositions;
 
-	const TArrayView<FVector2D> View = MakeArrayView(Positions);
+	const TArrayView<FVector> View = MakeArrayView(Positions);
 	if (!Delaunay->Process(View)) { return false; }
 
 	const int32 NumPoints = Positions.Num();
 
-	TArray<FVector2D> Sum;
+	TArray<FVector> Sum;
 	TArray<double> Counts;
 	Sum.Append(*ActivePositions);
 	Counts.SetNum(NumPoints);
 	for (int i = 0; i < NumPoints; i++) { Counts[i] = 1; }
 
-	FVector2D Centroid;
+	FVector Centroid;
 	for (const PCGExGeo::FDelaunaySite2& Site : Delaunay->Sites)
 	{
 		PCGExGeo::GetCentroid(Positions, Site.Vtx, Centroid);

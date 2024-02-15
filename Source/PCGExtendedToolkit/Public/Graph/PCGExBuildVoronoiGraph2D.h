@@ -82,8 +82,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBuildVoronoiGraph2DContext : public FPCGExPo
 
 	virtual ~FPCGExBuildVoronoiGraph2DContext() override;
 
-	TArray<FVector2D> ActivePositions;
-
 	TSet<int32> HullIndices;
 
 	FPCGExGeo2DProjectionSettings ProjectionSettings;

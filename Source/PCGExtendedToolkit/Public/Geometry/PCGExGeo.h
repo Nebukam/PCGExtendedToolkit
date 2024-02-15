@@ -129,33 +129,31 @@ namespace PCGExGeo
 			OutSphere);
 	}
 
-	static void GetCircumcenter(const TArrayView<FVector2D>& Positions, const int32 (&Vtx)[3], FVector2D& OutCircumcenter)
+	static void GetCircumcenter(const TArrayView<FVector>& Positions, const int32 (&Vtx)[3], FVector& OutCircumcenter)
 	{
-		const FVector2D& A = Positions[Vtx[0]];
-		const FVector2D& B = Positions[Vtx[1]];
-		const FVector2D& C = Positions[Vtx[2]];
+		const FVector& A = Positions[Vtx[0]];
+		const FVector& B = Positions[Vtx[1]];
+		const FVector& C = Positions[Vtx[2]];
 
 		// Step 2: Calculate midpoints
-		FVector2D midpoint1 = FMath::Lerp(A, B, 0.5);
-		FVector2D midpoint2 = FMath::Lerp(B, C, 0.5);
-		FVector2D midpoint3 = FMath::Lerp(C, A, 0.5);
+		const FVector midpoint1 = FMath::Lerp(A, B, 0.5);
+		const FVector midpoint2 = FMath::Lerp(B, C, 0.5);
 
 		// Step 3: Calculate perpendicular bisectors
-		double slope1 = -1 / ((B.Y - A.Y) / (B.X - A.X));
-		double slope2 = -1 / ((C.Y - B.Y) / (C.X - B.X));
-		double slope3 = -1 / ((A.Y - C.Y) / (A.X - C.X));
+		const double slope1 = -1 / ((B.Y - A.Y) / (B.X - A.X));
+		const double slope2 = -1 / ((C.Y - B.Y) / (C.X - B.X));
 
 		// Calculate y-intercepts of bisectors
-		double intercept1 = midpoint1.Y - slope1 * midpoint1.X;
-		double intercept2 = midpoint2.Y - slope2 * midpoint2.X;
-		double intercept3 = midpoint3.Y - slope3 * midpoint3.X;
+		const double intercept1 = midpoint1.Y - slope1 * midpoint1.X;
+		const double intercept2 = midpoint2.Y - slope2 * midpoint2.X;
 
 		// Step 4: Find intersection point
-		double circumcenter_x = (intercept2 - intercept1) / (slope1 - slope2);
-		double circumcenter_y = slope1 * circumcenter_x + intercept1;
+		const double circumcenter_x = (intercept2 - intercept1) / (slope1 - slope2);
+		const double circumcenter_y = slope1 * circumcenter_x + intercept1;
 
 		OutCircumcenter.X = circumcenter_x;
 		OutCircumcenter.Y = circumcenter_y;
+		OutCircumcenter.Z = (A.Z + B.Z + C.Z) / 3;
 	}
 
 	static void GetCentroid(const TArrayView<FVector>& Positions, const int32 (&Vtx)[4], FVector& OutCentroid)
@@ -165,21 +163,21 @@ namespace PCGExGeo
 		OutCentroid /= 4;
 	}
 
-	static void GetCentroid(const TArrayView<FVector2D>& Positions, const int32 (&Vtx)[3], FVector2D& OutCentroid)
+	static void GetCentroid(const TArrayView<FVector>& Positions, const int32 (&Vtx)[3], FVector& OutCentroid)
 	{
-		OutCentroid = FVector2D::Zero();
+		OutCentroid = FVector::Zero();
 		for (int i = 0; i < 3; i++) { OutCentroid += Positions[Vtx[i]]; }
 		OutCentroid /= 3;
 	}
 
-	static void GetLongestEdge(const TArrayView<FVector2D>& Positions, const int32 (&Vtx)[3], uint64& Edge)
+	static void GetLongestEdge(const TArrayView<FVector>& Positions, const int32 (&Vtx)[3], uint64& Edge)
 	{
 		double Dist = TNumericLimits<double>::Min();
 		for (int i = 0; i < 3; i++)
 		{
 			for (int j = i + 1; j < 3; j++)
 			{
-				const double LocalDist = FVector2D::DistSquared(Positions[Vtx[i]], Positions[Vtx[j]]);
+				const double LocalDist = FVector::DistSquared(Positions[Vtx[i]], Positions[Vtx[j]]);
 				if (LocalDist > Dist)
 				{
 					Dist = LocalDist;
@@ -203,18 +201,6 @@ namespace PCGExGeo
 					Edge = PCGEx::H64U(Vtx[i], Vtx[j]);
 				}
 			}
-		}
-	}
-
-	static void PointsToPositions(const TArray<FPCGPoint>& Points, TArray<FVector2D>& OutPositions, FPCGExGeo2DProjectionSettings ProjectionSettings)
-	{
-		const int32 NumPoints = Points.Num();
-		OutPositions.SetNum(NumPoints);
-		for (int i = 0; i < NumPoints; i++)
-		{
-			const FVector Pos = Points[i].Transform.GetLocation();
-			const FVector2D Proj = FVector2D(Pos.X, Pos.Y);
-			OutPositions[i] = Proj;
 		}
 	}
 
