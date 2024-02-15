@@ -1,5 +1,7 @@
 ﻿#pragma once
-#include "PCGEx.h"
+
+#include <queue>
+#include <vector> 
 
 namespace PCGExSearch
 {

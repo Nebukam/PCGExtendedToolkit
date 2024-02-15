@@ -25,7 +25,6 @@ FPCGExBuildDelaunayGraph2DContext::~FPCGExBuildDelaunayGraph2DContext()
 
 	PCGEX_DELETE(GraphBuilder)
 
-	ActivePositions.Empty();
 	HullIndices.Empty();
 }
 
@@ -87,8 +86,6 @@ bool FPCGExBuildDelaunayGraph2DElement::ExecuteInternal(
 				return false;
 			}
 
-			PCGExGeo::PointsToPositions(Context->CurrentIO->GetIn()->GetPoints(), Context->ActivePositions, Settings->ProjectionSettings);
-
 			Context->GraphBuilder = new PCGExGraph::FGraphBuilder(*Context->CurrentIO, &Context->GraphBuilderSettings, 6);
 			Context->GetAsyncManager()->Start<FPCGExDelaunay2Task>(Context->CurrentIO->IOIndex, Context->CurrentIO, Context->GraphBuilder->Graph);
 
@@ -147,18 +144,23 @@ bool FPCGExDelaunay2Task::ExecuteTask()
 
 	PCGExGeo::TDelaunay2* Delaunay = new PCGExGeo::TDelaunay2();
 
-	const TArrayView<FVector2D> View = MakeArrayView(Context->ActivePositions);
-	if (!Delaunay->Process(View))
+	TArray<FVector> ActivePositions;
+	PCGExGeo::PointsToPositions(Context->CurrentIO->GetIn()->GetPoints(), ActivePositions);
+	
+	const TArrayView<FVector> View = MakeArrayView(ActivePositions);
+	if (!Delaunay->Process(View, Context->ProjectionSettings))
 	{
+		ActivePositions.Empty();
 		PCGEX_DELETE(Delaunay)
 		return false;
 	}
-
+	
 	if (Settings->bUrquhart) { Delaunay->RemoveLongestEdges(View); }
 	if (Settings->bMarkHull) { Context->HullIndices.Append(Delaunay->DelaunayHull); }
 
 	Graph->InsertEdges(Delaunay->DelaunayEdges, -1);
 
+	ActivePositions.Empty();
 	PCGEX_DELETE(Delaunay)
 	return true;
 }

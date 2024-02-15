@@ -74,8 +74,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBuildDelaunayGraph2DContext : public FPCGExP
 
 	virtual ~FPCGExBuildDelaunayGraph2DContext() override;
 
-	TArray<FVector2D> ActivePositions;
-
 	TSet<int32> HullIndices;
 
 	FPCGExGeo2DProjectionSettings ProjectionSettings;

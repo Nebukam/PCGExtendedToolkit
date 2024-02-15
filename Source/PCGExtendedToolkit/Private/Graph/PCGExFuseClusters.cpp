@@ -221,6 +221,7 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 
 		if (Context->GraphBuilder->bCompiledSuccessfully)
 		{
+			// Blend edges metadata
 			Context->GraphBuilder->Write(Context);
 			Context->OutputPoints();
 		}
