@@ -153,7 +153,6 @@ namespace PCGExGraph
 			: FUnsignedEdge(Other.Start, Other.End),
 			  EdgeIndex(Other.EdgeIndex), PointIndex(Other.PointIndex), IOIndex(Other.IOIndex)
 		{
-			
 		}
 
 		FIndexedEdge(const int32 InIndex, const int32 InStart, const int32 InEnd, const int32 InPointIndex = -1, const int32 InIOIndex = -1)

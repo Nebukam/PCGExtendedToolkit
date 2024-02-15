@@ -13,8 +13,7 @@ FPCGExPointIOMerger::FPCGExPointIOMerger(PCGExData::FPointIO& OutData)
 
 FPCGExPointIOMerger::~FPCGExPointIOMerger()
 {
-	for (const PCGEx::FAAttributeIO* Writer : WriterList) { delete Writer; }
-	Writers.Empty();
+	PCGEX_DELETE_TARRAY(WriterList)
 
 	Identities.Empty();
 	AllowsInterpolation.Empty();

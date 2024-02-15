@@ -4,6 +4,8 @@
 #pragma once
 
 #include "PCGEx.h"
+#include "PCGExMT.h"
+#include "PCGExSettings.h"
 #include "Data/PCGExAttributeHelpers.h"
 
 #include "PCGExDataBlending.generated.h"
@@ -29,6 +31,19 @@ MACRO(FQuat, Rotation, Quaternion,Transform.GetRotation()) \
 MACRO(FVector, Scale, Vector, Transform.GetScale3D()) \
 MACRO(float, Steepness, Float,Steepness) \
 MACRO(int32, Seed, Integer32,Seed)
+
+namespace PCGExGraph
+{
+	struct FGraphMetadataSettings;
+}
+
+struct FPCGExDistanceSettings;
+struct FPCGExPointPointIntersectionSettings;
+
+namespace PCGExData
+{
+	struct FIdxCompoundList;
+}
 
 UENUM(BlueprintType)
 enum class EPCGExDataBlendingType : uint8
@@ -147,12 +162,14 @@ namespace PCGExDataBlending
 		FName GetAttributeName() const { return AttributeName; }
 
 		virtual void PrepareForData(PCGExData::FPointIO& InPrimaryData, const PCGExData::FPointIO& InSecondaryData, bool bSecondaryIn = true);
+		virtual void PrepareForData(PCGEx::FAAttributeIO* InWriter, const PCGExData::FPointIO& InSecondaryData, bool bSecondaryIn = true);
 
 		virtual bool GetRequiresPreparation() const;
 		virtual bool GetRequiresFinalization() const;
 
 		virtual void PrepareOperation(const int32 WriteIndex) const;
 		virtual void DoOperation(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, const int32 WriteIndex, const double Alpha = 0) const;
+		virtual void DoOperation(const int32 PrimaryReadIndex, const FPCGPoint& SrcPoint, const int32 WriteIndex, const double Alpha = 0) const = 0;
 		virtual void FinalizeOperation(const int32 WriteIndex, double Alpha) const;
 
 		virtual void PrepareRangeOperation(const int32 StartIndex, const int32 Count) const = 0;
@@ -167,6 +184,7 @@ namespace PCGExDataBlending
 		virtual void Write() = 0;
 
 	protected:
+		bool bOwnsWriter = true;
 		bool bInterpolationAllowed = true;
 		FName AttributeName = NAME_None;
 	};
@@ -177,9 +195,13 @@ namespace PCGExDataBlending
 	protected:
 		void Cleanup()
 		{
+			TypedAttribute = nullptr;
 			if (Reader == Writer) { Reader = nullptr; }
-			PCGEX_DELETE(Writer)
+			if (bOwnsWriter) { PCGEX_DELETE(Writer) }
+
 			PCGEX_DELETE(Reader)
+
+			bOwnsWriter = false;
 		}
 
 	public:
@@ -188,9 +210,25 @@ namespace PCGExDataBlending
 			Cleanup();
 		}
 
+		virtual void PrepareForData(PCGEx::FAAttributeIO* InWriter, const PCGExData::FPointIO& InSecondaryData, const bool bSecondaryIn) override
+		{
+			Cleanup();
+			bOwnsWriter = false;
+			Writer = static_cast<PCGEx::TFAttributeWriter<T>*>(InWriter);
+
+			bInterpolationAllowed = Writer->GetAllowsInterpolation();
+
+			FPCGMetadataAttributeBase* Attribute = bSecondaryIn ? InSecondaryData.GetIn()->Metadata->GetMutableAttribute(AttributeName) : InSecondaryData.GetOut()->Metadata->GetMutableAttribute(AttributeName);
+			if (Attribute && Attribute->GetTypeId() == Writer->UnderlyingType) { TypedAttribute = static_cast<FPCGMetadataAttribute<T>*>(Attribute); }
+			else { TypedAttribute = nullptr; }
+
+			FDataBlendingOperationBase::PrepareForData(InWriter, InSecondaryData, bSecondaryIn);
+		}
+
 		virtual void PrepareForData(PCGExData::FPointIO& InPrimaryData, const PCGExData::FPointIO& InSecondaryData, const bool bSecondaryIn) override
 		{
 			Cleanup();
+			bOwnsWriter = true;
 			Writer = new PCGEx::TFAttributeWriter<T>(AttributeName);
 			Writer->BindAndGet(InPrimaryData);
 
@@ -206,7 +244,11 @@ namespace PCGExDataBlending
 
 			bInterpolationAllowed = Writer->GetAllowsInterpolation() && Reader->GetAllowsInterpolation();
 
-			FDataBlendingOperationBase::PrepareForData(InPrimaryData, InSecondaryData);
+			FPCGMetadataAttributeBase* Attribute = bSecondaryIn ? InSecondaryData.GetIn()->Metadata->GetMutableAttribute(AttributeName) : InSecondaryData.GetOut()->Metadata->GetMutableAttribute(AttributeName);
+			if (Attribute && Attribute->GetTypeId() == Writer->UnderlyingType) { TypedAttribute = static_cast<FPCGMetadataAttribute<T>*>(Attribute); }
+			else { TypedAttribute = nullptr; }
+
+			FDataBlendingOperationBase::PrepareForData(InPrimaryData, InSecondaryData, bSecondaryIn);
 		}
 
 #define PCGEX_TEMP_VALUES TArrayView<T> View = MakeArrayView(Writer->Values.GetData() + StartIndex, Count);
@@ -252,6 +294,14 @@ namespace PCGExDataBlending
 			}
 		}
 
+
+		virtual void DoOperation(const int32 PrimaryReadIndex, const FPCGPoint& SrcPoint, const int32 WriteIndex, const double Alpha = 0) const override
+		{
+			const T A = (*Writer)[PrimaryReadIndex];
+			const T B = TypedAttribute ? TypedAttribute->GetValueFromItemKey(SrcPoint.MetadataEntry) : A;
+			(*Writer)[WriteIndex] = SingleOperation(A, B, Alpha);
+		}
+
 		virtual void FinalizeValuesRangeOperation(TArrayView<T>& Values, const TArrayView<double>& Alphas) const
 		{
 			if (!bInterpolationAllowed) { return; }
@@ -288,7 +338,56 @@ namespace PCGExDataBlending
 		virtual void Write() override { Writer->Write(); }
 
 	protected:
+		FPCGMetadataAttribute<T>* TypedAttribute = nullptr;
 		PCGEx::TFAttributeWriter<T>* Writer = nullptr;
 		PCGEx::FAttributeIOBase<T>* Reader = nullptr;
+	};
+}
+
+namespace PCGExDataBlendingTask
+{
+	class PCGEXTENDEDTOOLKIT_API FBlendCompoundedIO : public FPCGExNonAbandonableTask
+	{
+	public:
+		FBlendCompoundedIO(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+		                   PCGExData::FPointIO* InTargetIO,
+		                   FPCGExBlendingSettings* InBlendingSettings,
+		                   PCGExData::FIdxCompoundList* InCompoundList,
+		                   const FPCGExDistanceSettings& InDistSettings,
+		                   PCGExGraph::FGraphMetadataSettings* InMetadataSettings = nullptr) :
+			FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+			TargetIO(InTargetIO),
+			BlendingSettings(InBlendingSettings),
+			CompoundList(InCompoundList),
+			DistSettings(InDistSettings),
+			MetadataSettings(InMetadataSettings)
+		{
+		}
+
+		PCGExData::FPointIO* TargetIO = nullptr;
+		FPCGExBlendingSettings* BlendingSettings = nullptr;
+		PCGExData::FIdxCompoundList* CompoundList = nullptr;
+		FPCGExDistanceSettings DistSettings;
+		PCGExGraph::FGraphMetadataSettings* MetadataSettings = nullptr;
+
+		virtual bool ExecuteTask() override;
+	};
+
+	class PCGEXTENDEDTOOLKIT_API FWriteFuseMetadata : public FPCGExNonAbandonableTask
+	{
+	public:
+		FWriteFuseMetadata(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+		                   PCGExGraph::FGraphMetadataSettings* InMetadataSettings,
+		                   PCGExData::FIdxCompoundList* InCompoundList) :
+			FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+			MetadataSettings(InMetadataSettings),
+			CompoundList(InCompoundList)
+		{
+		}
+
+		PCGExGraph::FGraphMetadataSettings* MetadataSettings = nullptr;
+		PCGExData::FIdxCompoundList* CompoundList = nullptr;
+
+		virtual bool ExecuteTask() override;
 	};
 }

@@ -11,10 +11,10 @@ void UPCGExCustomGraphSolver::InitializeProbe(PCGExGraph::FSocketProbe& Probe) c
 bool UPCGExCustomGraphSolver::ProcessPoint(
 	PCGExGraph::FSocketProbe& Probe,
 	const PCGEx::FPointRef& Point) const
-{	
+{
 	const FVector PtPosition = Probe.GetTargetCenter(*Point.Point);
 
-	if (!Probe.LooseBounds.IsInside(PtPosition)) { return false; }
+	if (!Probe.CompoundBounds.IsInside(PtPosition)) { return false; }
 
 	const double PtDistance = FVector::DistSquared(Probe.Origin, PtPosition);
 	if (PtDistance > Probe.Radius) { return false; }
@@ -76,12 +76,13 @@ double UPCGExCustomGraphSolver::PrepareProbeForPointSocketPair(
 	Probe.Direction.Normalize();
 	Probe.DotOverDistanceCurve = InSocketInfos.Socket->Descriptor.DotOverDistanceCurve;
 
-	Probe.Origin = InSocketInfos.Socket->Descriptor.DistanceSettings.GetSourceCenter(*Point.Point, ProbeOrigin, ProbeOrigin + Probe.Direction * Probe.Radius);
+	Probe.Origin = InSocketInfos.Socket->Descriptor.DistanceSettings.GetSourceCenter(
+		*Point.Point, ProbeOrigin, ProbeOrigin + Probe.Direction * Probe.Radius);
 	Probe.Radius += (Probe.Origin - ProbeOrigin).Length();
 	Probe.Radius = Probe.Radius * Probe.Radius;
 
-	if (Probe.DotThreshold >= 0) { Probe.LooseBounds = PCGExMath::ConeBox(Probe.Origin, Probe.Direction, Probe.Radius); }
-	else { Probe.LooseBounds = FBoxCenterAndExtent(Probe.Origin, FVector(Probe.Radius)).GetBox(); }
+	if (Probe.DotThreshold >= 0) { Probe.CompoundBounds = PCGExMath::ConeBox(Probe.Origin, Probe.Direction, Probe.Radius); }
+	else { Probe.CompoundBounds = FBoxCenterAndExtent(Probe.Origin, FVector(Probe.Radius)).GetBox(); }
 
 	return Probe.Radius;
 }

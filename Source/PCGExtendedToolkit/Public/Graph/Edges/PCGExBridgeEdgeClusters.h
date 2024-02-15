@@ -91,10 +91,12 @@ protected:
 class PCGEXTENDEDTOOLKIT_API FPCGExCreateBridgeTask : public FPCGExNonAbandonableTask
 {
 public:
-	FPCGExCreateBridgeTask(
-		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO, PCGExCluster::FCluster* A, PCGExCluster::FCluster* B) :
+	FPCGExCreateBridgeTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+	                       PCGExCluster::FCluster* A,
+	                       PCGExCluster::FCluster* B) :
 		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
-		ClusterA(A), ClusterB(B)
+		ClusterA(A),
+		ClusterB(B)
 	{
 	}
 

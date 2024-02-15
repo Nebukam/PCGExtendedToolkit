@@ -131,8 +131,8 @@ bool FPCGExDrawCustomGraphElement::ExecuteInternal(FPCGContext* InContext) const
 					{
 						DrawDebugBox(
 							Context->World,
-							Probe.LooseBounds.GetCenter(),
-							Probe.LooseBounds.GetExtent(),
+							Probe.CompoundBounds.GetCenter(),
+							Probe.CompoundBounds.GetExtent(),
 							Probe.SocketInfos->Socket->Descriptor.DebugColor,
 							true, -1, 0, .5f);
 					}

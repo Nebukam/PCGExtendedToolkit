@@ -96,11 +96,16 @@ namespace PCGExClusterTask
 	class PCGEXTENDEDTOOLKIT_API FBuildCluster : public FPCGExNonAbandonableTask
 	{
 	public:
-		FBuildCluster(
-			FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-			PCGExCluster::FCluster* InCluster, PCGExData::FPointIO* InEdgeIO, TMap<int32, int32>* InNodeIndicesMap, TArray<int32>* InPerNodeEdgeNums) :
+		FBuildCluster(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+		              PCGExCluster::FCluster* InCluster,
+		              PCGExData::FPointIO* InEdgeIO,
+		              TMap<int32, int32>* InNodeIndicesMap,
+		              TArray<int32>* InPerNodeEdgeNums) :
 			FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
-			Cluster(InCluster), EdgeIO(InEdgeIO), NodeIndicesMap(InNodeIndicesMap), PerNodeEdgeNums(InPerNodeEdgeNums)
+			Cluster(InCluster),
+			EdgeIO(InEdgeIO),
+			NodeIndicesMap(InNodeIndicesMap),
+			PerNodeEdgeNums(InPerNodeEdgeNums)
 		{
 		}
 
@@ -115,11 +120,14 @@ namespace PCGExClusterTask
 	class PCGEXTENDEDTOOLKIT_API FFindNodeChains : public FPCGExNonAbandonableTask
 	{
 	public:
-		FFindNodeChains(
-			FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-			PCGExCluster::FCluster* InCluster, TSet<int32>* InFixtures, TArray<PCGExCluster::FNodeChain*>* InChains) :
+		FFindNodeChains(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+		                PCGExCluster::FCluster* InCluster,
+		                TSet<int32>* InFixtures,
+		                TArray<PCGExCluster::FNodeChain*>* InChains) :
 			FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
-			Cluster(InCluster), Fixtures(InFixtures), Chains(InChains)
+			Cluster(InCluster),
+			Fixtures(InFixtures),
+			Chains(InChains)
 		{
 		}
 
@@ -129,5 +137,4 @@ namespace PCGExClusterTask
 
 		virtual bool ExecuteTask() override;
 	};
-	
 }

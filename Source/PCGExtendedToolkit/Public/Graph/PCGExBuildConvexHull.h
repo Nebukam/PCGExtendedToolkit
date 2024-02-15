@@ -65,7 +65,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBuildConvexHullContext : public FPCGExPoints
 	virtual ~FPCGExBuildConvexHullContext() override;
 
 	TSet<int32> HullIndices;
-	
+
 	FPCGExGraphBuilderSettings GraphBuilderSettings;
 	PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
 };

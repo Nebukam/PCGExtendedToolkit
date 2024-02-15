@@ -312,6 +312,7 @@ namespace PCGEx
 	{
 	public:
 		FName Name = NAME_None;
+		int16 UnderlyingType = static_cast<int16>(EPCGMetadataTypes::Unknown);
 
 		explicit FAAttributeIO(const FName InName):
 			Name(InName)
@@ -391,6 +392,7 @@ namespace PCGEx
 			this->Accessor = FAttributeAccessor<T>::FindOrCreate(
 				PointIO, this->Name, DefaultValue,
 				bAllowsInterpolation, bOverrideParent, bOverwriteIfTypeMismatch);
+			this->UnderlyingType = PointIO.GetOut()->Metadata->GetConstAttribute(this->Name)->GetTypeId();
 			return true;
 		}
 
@@ -430,6 +432,7 @@ namespace PCGEx
 			if (!this->Accessor) { return false; }
 			this->SetNum(PointIO.GetNum());
 			this->Accessor->GetRange(this->Values);
+			this->UnderlyingType = PointIO.GetIn()->Metadata->GetConstAttribute(this->Name)->GetTypeId();
 			return true;
 		}
 	};
@@ -721,6 +724,7 @@ namespace PCGEx
 		virtual double Convert(const FRotator Value) const override { return Convert(FVector(Value.Roll, Value.Pitch, Value.Yaw)); }
 		virtual double Convert(const FString Value) const override { return PCGExMath::ConvertStringToDouble(Value); }
 		virtual double Convert(const FName Value) const override { return PCGExMath::ConvertStringToDouble(Value.ToString()); }
+		
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FLocalIntegerGetter : public FAttributeGetter<int32>
@@ -937,8 +941,6 @@ namespace PCGEx
 		}
 
 		virtual FVector Convert(const FRotator Value) const override { return Value.Vector(); }
-		virtual FVector Convert(const FString Value) const override { return GetDefaultValue(); }
-		virtual FVector Convert(const FName Value) const override { return GetDefaultValue(); }
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FLocalToStringGetter : public FAttributeGetter<FString>

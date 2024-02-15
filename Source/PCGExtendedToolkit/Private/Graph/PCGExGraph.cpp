@@ -16,7 +16,7 @@ namespace PCGExGraph
 		Nodes.Add(Edge.End);
 
 		Edges.Add(Edge.EdgeIndex);
-		if (Edge.IOIndex != -1) { EdgesInIOIndices.Add(Edge.IOIndex); }
+		if (Edge.IOIndex >= 0) { EdgesInIOIndices.Add(Edge.IOIndex); }
 	}
 
 	void FSubGraph::Invalidate(FGraph* InGraph)
@@ -106,6 +106,7 @@ namespace PCGExGraph
 			const int32 EdgeIndex = Edges.Emplace(Edges.Num(), A, B);
 			Nodes[A].Add(EdgeIndex);
 			Nodes[B].Add(EdgeIndex);
+			Edges[EdgeIndex].IOIndex = IOIndex;
 		}
 	}
 
@@ -117,13 +118,21 @@ namespace PCGExGraph
 	void FGraph::InsertEdges(const TArray<FUnsignedEdge>& InEdges, int32 IOIndex)
 	{
 		FWriteScopeLock WriteLock(GraphLock);
-		for (const FUnsignedEdge& E : InEdges) { PCGEX_EDGE_INSERT }
+		for (const FUnsignedEdge& E : InEdges)
+		{
+			PCGEX_EDGE_INSERT
+			Edges[Edge.EdgeIndex].IOIndex = IOIndex;
+		}
 	}
 
 	void FGraph::InsertEdges(const TArray<FIndexedEdge>& InEdges)
 	{
 		FWriteScopeLock WriteLock(GraphLock);
-		for (const FIndexedEdge& E : InEdges) { PCGEX_EDGE_INSERT }
+		for (const FIndexedEdge& E : InEdges)
+		{
+			PCGEX_EDGE_INSERT
+			Edges[Edge.EdgeIndex].IOIndex = E.IOIndex;
+		}
 	}
 
 #undef PCGEX_EDGE_INSERT
@@ -221,7 +230,7 @@ namespace PCGExGraph
 	void FGraphBuilder::Compile(FPCGExPointsProcessorContext* InContext,
 	                            FGraphMetadataSettings* MetadataSettings) const
 	{
-		InContext->GetAsyncManager()->Start<PCGExGraphTask::FPCGExCompileGraphTask>(
+		InContext->GetAsyncManager()->Start<PCGExGraphTask::FCompileGraph>(
 			-1, PointIO, const_cast<FGraphBuilder*>(this),
 			OutputSettings->GetMinClusterSize(), OutputSettings->GetMaxClusterSize(), MetadataSettings);
 	}
@@ -232,7 +241,7 @@ namespace PCGExGraph
 	}
 
 
-	bool FLooseNode::Add(FLooseNode* OtherNode)
+	bool FCompoundNode::Add(FCompoundNode* OtherNode)
 	{
 		if (OtherNode->Index == Index) { return false; }
 		if (Neighbors.Contains(OtherNode->Index)) { return true; }
@@ -242,17 +251,7 @@ namespace PCGExGraph
 		return true;
 	}
 
-	void FLooseNode::AddPointH(const uint64 PointH)
-	{
-		FusedPoints.AddUnique(PointH);
-	}
-
-	void FLooseNode::AddEdgeH(const uint64 EdgeH)
-	{
-		FusedEdges.AddUnique(EdgeH);
-	}
-
-	FVector FLooseNode::UpdateCenter(PCGExData::FPointIOGroup* IOGroup)
+	FVector FCompoundNode::UpdateCenter(PCGExData::FIdxCompoundList* PointsCompounds, PCGExData::FPointIOGroup* IOGroup)
 	{
 		Center = FVector::ZeroVector;
 		double Divider = 0;
@@ -260,7 +259,8 @@ namespace PCGExGraph
 		uint32 IOIndex = 0;
 		uint32 PointIndex = 0;
 
-		for (const uint64 FuseHash : FusedPoints)
+		PCGExData::FIdxCompound* Compound = (*PointsCompounds)[Index];
+		for (const uint64 FuseHash : Compound->CompoundedPoints)
 		{
 			Divider++;
 			PCGEx::H64(FuseHash, IOIndex, PointIndex);
@@ -271,44 +271,71 @@ namespace PCGExGraph
 		return Center;
 	}
 
-	FLooseNode* FLooseGraph::GetOrCreateNode(const FPCGPoint& Point, const int32 IOIndex, const int32 PointIndex)
+	FCompoundNode* FCompoundGraph::GetOrCreateNode(const FPCGPoint& Point, const int32 IOIndex, const int32 PointIndex)
 	{
 		const FVector Origin = Point.Transform.GetLocation();
 
 		if (FuseSettings.bComponentWiseTolerance)
 		{
-			for (FLooseNode* Node : Nodes)
+			for (FCompoundNode* Node : Nodes)
 			{
-				if (FuseSettings.IsWithinToleranceComponentWise(Point, Node->Point)) { return Node; }
+				if (FuseSettings.IsWithinToleranceComponentWise(Point, Node->Point))
+				{
+					PointsCompounds->Add(Node->Index, IOIndex, PointIndex);
+					return Node;
+				}
 			}
 		}
 		else
 		{
-			for (FLooseNode* Node : Nodes)
+			for (FCompoundNode* Node : Nodes)
 			{
-				if (FuseSettings.IsWithinTolerance(Point, Node->Point)) { return Node; }
+				if (FuseSettings.IsWithinTolerance(Point, Node->Point))
+				{
+					PointsCompounds->Add(Node->Index, IOIndex, PointIndex);
+					return Node;
+				}
 			}
 		}
 
-		FLooseNode* NewNode = new FLooseNode(Point, Origin, Nodes.Num());
-		NewNode->AddPointH(PCGEx::H64(IOIndex, PointIndex));
-		Nodes.Add_GetRef(NewNode);
+		FCompoundNode* NewNode = new FCompoundNode(Point, Origin, Nodes.Num());
+		Nodes.Add(NewNode);
+		PointsCompounds->New()->Add(IOIndex, PointIndex);
 		return NewNode;
 	}
 
-	void FLooseGraph::CreateBridge(const FPCGPoint& From, const int32 FromIOIndex, const int32 FromPointIndex, const FPCGPoint& To, const int32 ToIOIndex, const int32 ToPointIndex)
+	PCGExData::FIdxCompound* FCompoundGraph::CreateBridge(const FPCGPoint& From, const int32 FromIOIndex, const int32 FromPointIndex, const FPCGPoint& To, const int32 ToIOIndex, const int32 ToPointIndex, const int32 EdgeIOIndex, const int32 EdgePointIndex)
 	{
-		FLooseNode* StartVtx = GetOrCreateNode(From, FromIOIndex, FromPointIndex);
-		FLooseNode* EndVtx = GetOrCreateNode(To, ToIOIndex, ToPointIndex);
+		FCompoundNode* StartVtx = GetOrCreateNode(From, FromIOIndex, FromPointIndex);
+		FCompoundNode* EndVtx = GetOrCreateNode(To, ToIOIndex, ToPointIndex);
+		PCGExData::FIdxCompound* EdgeIdx = nullptr;
+
 		StartVtx->Add(EndVtx);
 		EndVtx->Add(StartVtx);
+
+		if (EdgeIOIndex == -1) { return EdgeIdx; } // Skip edge management
+
+		const uint64 H = PCGEx::H64U(StartVtx->Index, EndVtx->Index);
+		if (const FIndexedEdge* Edge = Edges.Find(H))
+		{
+			EdgeIdx = EdgesCompounds->Compounds[Edge->EdgeIndex];
+			EdgeIdx->Add(EdgeIOIndex, EdgePointIndex);
+		}
+		else
+		{
+			EdgeIdx = EdgesCompounds->New();
+			Edges.Add(H, FIndexedEdge(Edges.Num(), StartVtx->Index, EndVtx->Index));
+			EdgeIdx->Add(EdgeIOIndex, EdgePointIndex);
+		}
+
+		return EdgeIdx;
 	}
 
-	void FLooseGraph::GetUniqueEdges(TArray<FUnsignedEdge>& OutEdges)
+	void FCompoundGraph::GetUniqueEdges(TArray<FUnsignedEdge>& OutEdges)
 	{
 		OutEdges.Empty(Nodes.Num() * 4);
 		TSet<uint64> UniqueEdges;
-		for (const FLooseNode* Node : Nodes)
+		for (const FCompoundNode* Node : Nodes)
 		{
 			for (const int32 OtherNodeIndex : Node->Neighbors)
 			{
@@ -321,14 +348,17 @@ namespace PCGExGraph
 		UniqueEdges.Empty();
 	}
 
-	void FLooseGraph::WriteMetadata(TMap<int32, FGraphNodeMetadata*>& OutMetadata)
+	void FCompoundGraph::WriteMetadata(TMap<int32, FGraphNodeMetadata*>& OutMetadata)
 	{
-		for (const FLooseNode* Node : Nodes)
+		for (const FCompoundNode* Node : Nodes)
 		{
 			FGraphNodeMetadata* NodeMeta = FGraphNodeMetadata::GetOrCreate(Node->Index, OutMetadata);
 			NodeMeta->CompoundSize = Node->Neighbors.Num();
 			NodeMeta->bCompounded = NodeMeta->CompoundSize > 1;
 		}
+
+		//TODO : Write edge metadata as well
+		
 	}
 
 	bool FPointEdgeProxy::FindSplit(const FVector& Position, FPESplit& OutSplit) const
@@ -370,7 +400,7 @@ namespace PCGExGraph
 		for (const FIndexedEdge& Edge : Graph->Edges)
 		{
 			if (!Edge.bValid) { continue; }
-			InContext->GetAsyncManager()->Start<PCGExGraphTask::FPCGExFindPointEdgeIntersectionsTask>(Edge.EdgeIndex, PointIO, this);
+			InContext->GetAsyncManager()->Start<PCGExGraphTask::FFindPointEdgeIntersections>(Edge.EdgeIndex, PointIO, this);
 		}
 	}
 
@@ -493,7 +523,7 @@ namespace PCGExGraph
 		for (const FIndexedEdge& Edge : Graph->Edges)
 		{
 			if (!Edge.bValid) { continue; }
-			InContext->GetAsyncManager()->Start<PCGExGraphTask::FPCGExFindEdgeEdgeIntersectionsTask>(Edge.EdgeIndex, PointIO, this);
+			InContext->GetAsyncManager()->Start<PCGExGraphTask::FFindEdgeEdgeIntersections>(Edge.EdgeIndex, PointIO, this);
 		}
 	}
 
@@ -588,31 +618,31 @@ namespace PCGExGraph
 
 namespace PCGExGraphTask
 {
-	bool FPCGExFindPointEdgeIntersectionsTask::ExecuteTask()
+	bool FFindPointEdgeIntersections::ExecuteTask()
 	{
 		FindCollinearNodes(IntersectionList, TaskIndex, PointIO->GetOutIn()->GetPoints());
 		return true;
 	}
 
-	bool FPCGExInsertPointEdgeIntersectionsTask::ExecuteTask()
+	bool FInsertPointEdgeIntersections::ExecuteTask()
 	{
 		IntersectionList->Insert();
 		return true;
 	}
 
-	bool FPCGExFindEdgeEdgeIntersectionsTask::ExecuteTask()
+	bool FFindEdgeEdgeIntersections::ExecuteTask()
 	{
 		FindOverlappingEdges(IntersectionList, TaskIndex);
 		return true;
 	}
 
-	bool FPCGExInsertEdgeEdgeIntersectionsTask::ExecuteTask()
+	bool FInsertEdgeEdgeIntersections::ExecuteTask()
 	{
 		IntersectionList->Insert();
 		return true;
 	}
 
-	bool FPCGExWriteSubGraphEdgesTask::ExecuteTask()
+	bool FWriteSubGraphEdges::ExecuteTask()
 	{
 		PCGExData::FPointIO& EdgeIO = *SubGraph->PointIO;
 
@@ -683,7 +713,7 @@ namespace PCGExGraphTask
 		return true;
 	}
 
-	bool FPCGExCompileGraphTask::ExecuteTask()
+	bool FCompileGraph::ExecuteTask()
 	{
 		Builder->Graph->BuildSubGraphs(Min, Max);
 
@@ -798,13 +828,43 @@ Writer->BindAndGet(*PointIO);\
 			SubGraph->PointIO = EdgeIO;
 			EdgeIO->Tags->Set(PCGExGraph::Tag_Cluster, Builder->EdgeTagValue);
 
-			Manager->Start<FPCGExWriteSubGraphEdgesTask>(SubGraphIndex++, PointIO, Builder->Graph, SubGraph);
+			Manager->Start<FWriteSubGraphEdges>(SubGraphIndex++, PointIO, Builder->Graph, SubGraph);
 		}
 
 		return true;
 	}
 
-	bool FPCGExInsertLooseNodesTask::ExecuteTask()
+	bool FBuildCompoundGraphFromPoints::ExecuteTask()
+	{
+		PointIO->CreateInKeys();
+
+		// TODO: refactor to use CompoundGraph
+
+		const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
+
+		TArray<int32> InSorted;
+		InSorted.SetNum(InPoints.Num());
+		for (int i = 0; i < InSorted.Num(); i++) { InSorted[i] = i; }
+
+		InSorted.Sort(
+			[&](const int32 A, const int32 B)
+			{
+				const FVector V = InPoints[A].Transform.GetLocation() - InPoints[B].Transform.GetLocation();
+				return FMath::IsNearlyZero(V.X) ? FMath::IsNearlyZero(V.Y) ? V.Z > 0 : V.Y > 0 : V.X > 0;
+			});
+
+		for (const int32 PointIndex : InSorted) { Graph->GetOrCreateNode(InPoints[PointIndex], PointIO->IOIndex, PointIndex); }
+
+		/*
+		if (Context->bPreserveOrder)
+		{
+			FusedPoints.Sort([&](const PCGExFuse::FFusedPoint& A, const PCGExFuse::FFusedPoint& B) { return A.Index > B.Index; });
+		}
+		*/
+		return true;
+	}
+
+	bool FBuildCompoundGraphFromEdges::ExecuteTask()
 	{
 		TArray<PCGExGraph::FIndexedEdge> IndexedEdges;
 		if (!BuildIndexedEdges(*EdgeIO, *NodeIndicesMap, IndexedEdges, true) ||
@@ -820,9 +880,9 @@ Writer->BindAndGet(*PointIO);\
 		{
 			Graph->CreateBridge(
 				InPoints[Edge.Start], TaskIndex, Edge.Start,
-				InPoints[Edge.End], TaskIndex, Edge.End);
+				InPoints[Edge.End], TaskIndex, Edge.End, EdgeIO->IOIndex, Edge.PointIndex);
 		}
 
-		return false;
+		return true;
 	}
 }

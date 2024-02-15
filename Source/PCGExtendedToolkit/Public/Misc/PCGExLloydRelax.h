@@ -69,11 +69,16 @@ protected:
 class PCGEXTENDEDTOOLKIT_API FPCGExLloydRelax3Task : public FPCGExNonAbandonableTask
 {
 public:
-	FPCGExLloydRelax3Task(
-		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-		TArray<FVector>* InPositions, const FPCGExInfluenceSettings* InInfluenceSettings, const int32 InNumIterations, PCGEx::FLocalSingleFieldGetter* InInfluenceGetter = nullptr) :
+	FPCGExLloydRelax3Task(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+	                      TArray<FVector>* InPositions,
+	                      const FPCGExInfluenceSettings* InInfluenceSettings,
+	                      const int32 InNumIterations,
+	                      PCGEx::FLocalSingleFieldGetter* InInfluenceGetter = nullptr) :
 		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
-		ActivePositions(InPositions), InfluenceSettings(InInfluenceSettings), NumIterations(InNumIterations), InfluenceGetter(InInfluenceGetter)
+		ActivePositions(InPositions),
+		InfluenceSettings(InInfluenceSettings),
+		NumIterations(InNumIterations),
+		InfluenceGetter(InInfluenceGetter)
 	{
 	}
 

@@ -47,12 +47,12 @@ if(_NAME##Blending == EPCGExDataBlendingType::Average){bAverage##_NAME=true; bRe
 #define PCGEX_BLEND_PROPDECL(_TYPE, _NAME, _FUNC, _ACCESSOR)\
 _TYPE Target##_NAME = Target._ACCESSOR;\
 switch (_NAME##Blending) {\
-case EPCGExDataBlendingType::None:		Target##_NAME = PCGExMath::NoBlend(A._ACCESSOR, B._ACCESSOR, Alpha); break;\
-case EPCGExDataBlendingType::Average:	Target##_NAME = PCGExMath::Add(A._ACCESSOR, B._ACCESSOR, Alpha);break;\
+case EPCGExDataBlendingType::None:		Target##_NAME = PCGExMath::NoBlend(A._ACCESSOR, B._ACCESSOR); break;\
+case EPCGExDataBlendingType::Average:	Target##_NAME = PCGExMath::Add(A._ACCESSOR, B._ACCESSOR);break;\
 case EPCGExDataBlendingType::Weight:	Target##_NAME = PCGExMath::Lerp(A._ACCESSOR, B._ACCESSOR, Alpha);break;\
-case EPCGExDataBlendingType::Min:		Target##_NAME = PCGExMath::Min(A._ACCESSOR, B._ACCESSOR, Alpha);break;\
-case EPCGExDataBlendingType::Max:		Target##_NAME = PCGExMath::Max(A._ACCESSOR, B._ACCESSOR, Alpha);break;\
-case EPCGExDataBlendingType::Copy:		Target##_NAME = PCGExMath::Copy(A._ACCESSOR, B._ACCESSOR, Alpha);break;}
+case EPCGExDataBlendingType::Min:		Target##_NAME = PCGExMath::Min(A._ACCESSOR, B._ACCESSOR);break;\
+case EPCGExDataBlendingType::Max:		Target##_NAME = PCGExMath::Max(A._ACCESSOR, B._ACCESSOR);break;\
+case EPCGExDataBlendingType::Copy:		Target##_NAME = PCGExMath::Copy(A._ACCESSOR, B._ACCESSOR);break;}
 
 		PCGEX_FOREACH_BLENDINIT_POINTPROPERTY(PCGEX_BLEND_PROPDECL)
 #undef PCGEX_BLEND_PROPDECL

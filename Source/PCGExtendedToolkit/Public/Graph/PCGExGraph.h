@@ -92,105 +92,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgeCrawlingSettings
 	}
 };
 
-USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExPointEdgeIntersectionSettings
-{
-	GENERATED_BODY()
-
-	/** If disabled, points will only check edges they aren't mapped to. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0))
-	bool bEnableSelfIntersection = true;
-
-	/** Fuse Settings */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	FPCGExFuseSettings FuseSettings;
-
-	/** When enabled, point will be moved exactly on the edge. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	bool bSnapOnEdge = false;
-
-	/**  */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata", meta=(PCG_Overridable, InlineEditConditionToggle))
-	bool bWriteIntersector = false;
-
-	/** Name of the attribute to flag point as intersector (result of an Point/Edge intersection) */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata", meta=(PCG_Overridable, EditCondition="bWriteIntersector"))
-	FName IntersectorAttributeName = "bIntersector";
-
-	void MakeSafeForTolerance(double FuseTolerance)
-	{
-		FuseSettings.Tolerance = FMath::Clamp(FuseSettings.Tolerance, 0, FuseTolerance * 0.5);
-		FuseSettings.Tolerances.X = FMath::Clamp(FuseSettings.Tolerances.X, 0, FuseTolerance * 0.5);
-		FuseSettings.Tolerances.Y = FMath::Clamp(FuseSettings.Tolerances.Y, 0, FuseTolerance * 0.5);
-		FuseSettings.Tolerances.Z = FMath::Clamp(FuseSettings.Tolerances.Z, 0, FuseTolerance * 0.5);
-	}
-};
-
-USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExEdgeEdgeIntersectionSettings
-{
-	GENERATED_BODY()
-
-	/** If disabled, edges will only be checked against other datasets. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0))
-	bool bEnableSelfIntersection = true;
-
-	/** Distance at which two edges are considered intersecting. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0))
-	double Tolerance = 0.001;
-
-	/** . */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
-	bool bUseMinAngle = true;
-
-	/** Min angle. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseMinAngle", Units="Degrees", ClampMin=0, ClampMax=90))
-	double MinAngle = 0;
-	double MinDot = -1;
-
-	/** . */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
-	bool bUseMaxAngle = true;
-
-	/** Maximum angle. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseMaxAngle", Units="Degrees", ClampMin=0, ClampMax=90))
-	double MaxAngle = 90;
-	double MaxDot = 1;
-
-	//
-
-	/**  */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata", meta=(PCG_Overridable, InlineEditConditionToggle))
-	bool bWriteCrossing = false;
-
-	/** Name of the attribute to flag point as crossing (result of an Edge/Edge intersection) */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata", meta=(PCG_Overridable, EditCondition="bWriteCrossing"))
-	FName CrossingAttributeName = "bCrossing";
-
-	/** Will copy the flag values of attributes from the edges onto the point in order to filter them. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata", meta=(PCG_Overridable))
-	bool bFlagCrossing = false;
-
-	/** Name of an int32 flag to fetch from the first edge */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata", meta=(PCG_Overridable, EditCondition="bFlagCrossing"))
-	FName FlagA;
-
-	/** Name of an int32 flag to fetch from the second edge */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata", meta=(PCG_Overridable, EditCondition="bFlagCrossing"))
-	FName FlagB;
-
-	void MakeSafeForTolerance(const double FuseTolerance)
-	{
-		Tolerance = FMath::Clamp(Tolerance, 0, FuseTolerance * 0.5);
-	}
-
-	void Init()
-	{
-		MinDot = bUseMinAngle ? PCGExMath::DegreesToDot(MinAngle) : -1;
-		MaxDot = bUseMaxAngle ? PCGExMath::DegreesToDot(MaxAngle) : 1;
-	}
-};
-
 namespace PCGExGraph
 {
 	const FName SourceSocketOverrideParamsLabel = TEXT("Ctrl Socket");
@@ -229,7 +130,10 @@ namespace PCGExGraph
 	constexpr PCGExMT::AsyncState State_InsertingEdgeEdgeIntersections = __COUNTER__;
 
 	constexpr PCGExMT::AsyncState State_PromotingEdges = __COUNTER__;
-	constexpr PCGExMT::AsyncState State_UpdatingLooseCenters = __COUNTER__;
+	constexpr PCGExMT::AsyncState State_UpdatingCompoundCenters = __COUNTER__;
+
+	constexpr PCGExMT::AsyncState State_MergingPointCompounds = __COUNTER__;
+	constexpr PCGExMT::AsyncState State_MergingEdgeCompounds = __COUNTER__;
 
 	class FGraph;
 
@@ -300,6 +204,26 @@ namespace PCGExGraph
 
 			FGraphNodeMetadata* NewMetadata = new FGraphNodeMetadata(NodeIndex);
 			InMetadata.Add(NodeIndex, NewMetadata);
+			return NewMetadata;
+		}
+	};
+
+	struct PCGEXTENDEDTOOLKIT_API FGraphEdgeMetadata
+	{
+		int32 EdgeIndex;
+		int32 ParentIndex;
+
+		explicit FGraphEdgeMetadata(int32 InEdgeIndex, int32 InParentIndex)
+			: EdgeIndex(InEdgeIndex), ParentIndex(InParentIndex)
+		{
+		}
+
+		static FGraphEdgeMetadata* GetOrCreate(const int32 EdgeIndex, const int32 ParentIndex, TMap<int32, FGraphEdgeMetadata*>& InMetadata)
+		{
+			if (FGraphEdgeMetadata** MetadataPtr = InMetadata.Find(EdgeIndex)) { return *MetadataPtr; }
+
+			FGraphEdgeMetadata* NewMetadata = new FGraphEdgeMetadata(EdgeIndex, ParentIndex);
+			InMetadata.Add(EdgeIndex, NewMetadata);
 			return NewMetadata;
 		}
 	};
@@ -418,8 +342,6 @@ namespace PCGExGraph
 		}
 
 		void GetConnectedNodes(int32 FromIndex, TArray<int32>& OutIndices, int32 SearchDepth) const;
-
-		
 	};
 
 	class PCGEXTENDEDTOOLKIT_API FGraphBuilder
@@ -493,59 +415,63 @@ namespace PCGExGraph
 
 #pragma endregion
 
-#pragma region Loose Graph
+#pragma region Compound Graph
 
-	struct PCGEXTENDEDTOOLKIT_API FLooseNode
+	struct PCGEXTENDEDTOOLKIT_API FCompoundNode
 	{
 		const FPCGPoint Point;
 		FVector Center;
 		int32 Index;
 
-		TArray<int32> Neighbors;
-		TArray<uint64> FusedPoints; // PointIO Index >> Point Index
-		TArray<uint64> FusedEdges;  // PointIO Index >> Edge Index
+		TArray<int32> Neighbors; // PointIO Index >> Edge Index
 
-		FLooseNode(const FPCGPoint& InPoint, const FVector& InCenter, const int32 InIndex)
+		FCompoundNode(const FPCGPoint& InPoint, const FVector& InCenter, const int32 InIndex)
 			: Point(InPoint),
 			  Center(InCenter),
 			  Index(InIndex)
 		{
 			Neighbors.Empty();
-			FusedPoints.Empty();
 		}
 
-		~FLooseNode()
+		~FCompoundNode()
 		{
-			FusedPoints.Empty();
-			FusedEdges.Empty();
+			Neighbors.Empty();
 		}
 
-		bool Add(FLooseNode* OtherNode);
-		void AddPointH(const uint64 PointH);
-		void AddEdgeH(const uint64 EdgeH);
+		bool Add(FCompoundNode* OtherNode);
 
-		FVector UpdateCenter(PCGExData::FPointIOGroup* IOGroup);
+		FVector UpdateCenter(PCGExData::FIdxCompoundList* PointsCompounds, PCGExData::FPointIOGroup* IOGroup);
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FLooseGraph
+	struct PCGEXTENDEDTOOLKIT_API FCompoundGraph
 	{
-		TArray<FLooseNode*> Nodes;
-		const FPCGExFuseSettingsWithTarget FuseSettings;
+		PCGExData::FIdxCompoundList* PointsCompounds = nullptr;
+		PCGExData::FIdxCompoundList* EdgesCompounds = nullptr;
+		TArray<FCompoundNode*> Nodes;
+		TMap<uint64, FIndexedEdge> Edges;
+		const FPCGExFuseSettings FuseSettings;
 
-		explicit FLooseGraph(const FPCGExFuseSettingsWithTarget& InFuseSettings)
+		explicit FCompoundGraph(const FPCGExFuseSettings& InFuseSettings)
 			: FuseSettings(InFuseSettings)
 		{
 			Nodes.Empty();
+			Edges.Empty();
+			PointsCompounds = new PCGExData::FIdxCompoundList();
+			EdgesCompounds = new PCGExData::FIdxCompoundList();
 		}
 
-		~FLooseGraph()
+		~FCompoundGraph()
 		{
 			PCGEX_DELETE_TARRAY(Nodes)
+			PCGEX_DELETE(PointsCompounds)
+			PCGEX_DELETE(EdgesCompounds)
+			Edges.Empty();
 		}
 
-		FLooseNode* GetOrCreateNode(const FPCGPoint& Point, const int32 IOIndex, const int32 PointIndex);
-		void CreateBridge(const FPCGPoint& From, const int32 FromIOIndex, const int32 FromPointIndex,
-		                  const FPCGPoint& To, const int32 ToIOIndex, const int32 ToPointIndex);
+		FCompoundNode* GetOrCreateNode(const FPCGPoint& Point, const int32 IOIndex, const int32 PointIndex);
+		PCGExData::FIdxCompound* CreateBridge(const FPCGPoint& From, const int32 FromIOIndex, const int32 FromPointIndex,
+		                                      const FPCGPoint& To, const int32 ToIOIndex, const int32 ToPointIndex,
+		                                      const int32 EdgeIOIndex = -1, const int32 EdgePointIndex = -1);
 		void GetUniqueEdges(TArray<FUnsignedEdge>& OutEdges);
 		void WriteMetadata(TMap<int32, FGraphNodeMetadata*>& OutMetadata);
 	};
@@ -800,11 +726,11 @@ namespace PCGExGraphTask
 {
 #pragma region Intersections tasks
 
-	class PCGEXTENDEDTOOLKIT_API FPCGExFindPointEdgeIntersectionsTask : public FPCGExNonAbandonableTask
+	class PCGEXTENDEDTOOLKIT_API FFindPointEdgeIntersections : public FPCGExNonAbandonableTask
 	{
 	public:
-		FPCGExFindPointEdgeIntersectionsTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-											 PCGExGraph::FPointEdgeIntersections* InIntersectionList)
+		FFindPointEdgeIntersections(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+		                            PCGExGraph::FPointEdgeIntersections* InIntersectionList)
 			: FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
 			  IntersectionList(InIntersectionList)
 		{
@@ -814,13 +740,15 @@ namespace PCGExGraphTask
 		virtual bool ExecuteTask() override;
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FPCGExInsertPointEdgeIntersectionsTask : public FPCGExNonAbandonableTask
+	class PCGEXTENDEDTOOLKIT_API FInsertPointEdgeIntersections : public FPCGExNonAbandonableTask
 	{
 	public:
-		FPCGExInsertPointEdgeIntersectionsTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-											   PCGExGraph::FPointEdgeIntersections* InIntersectionList, TMap<int32, PCGExGraph::FGraphNodeMetadata*>* InOutMetadata)
+		FInsertPointEdgeIntersections(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+		                              PCGExGraph::FPointEdgeIntersections* InIntersectionList,
+		                              TMap<int32, PCGExGraph::FGraphNodeMetadata*>* InOutMetadata)
 			: FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
-			  IntersectionList(InIntersectionList), OutMetadata(InOutMetadata)
+			  IntersectionList(InIntersectionList),
+			  OutMetadata(InOutMetadata)
 		{
 		}
 
@@ -830,11 +758,11 @@ namespace PCGExGraphTask
 		virtual bool ExecuteTask() override;
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FPCGExFindEdgeEdgeIntersectionsTask : public FPCGExNonAbandonableTask
+	class PCGEXTENDEDTOOLKIT_API FFindEdgeEdgeIntersections : public FPCGExNonAbandonableTask
 	{
 	public:
-		FPCGExFindEdgeEdgeIntersectionsTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-											PCGExGraph::FEdgeEdgeIntersections* InIntersectionList)
+		FFindEdgeEdgeIntersections(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+		                           PCGExGraph::FEdgeEdgeIntersections* InIntersectionList)
 			: FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
 			  IntersectionList(InIntersectionList)
 		{
@@ -844,11 +772,11 @@ namespace PCGExGraphTask
 		virtual bool ExecuteTask() override;
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FPCGExInsertEdgeEdgeIntersectionsTask : public FPCGExNonAbandonableTask
+	class PCGEXTENDEDTOOLKIT_API FInsertEdgeEdgeIntersections : public FPCGExNonAbandonableTask
 	{
 	public:
-		FPCGExInsertEdgeEdgeIntersectionsTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-											  PCGExGraph::FEdgeEdgeIntersections* InIntersectionList, TMap<int32, PCGExGraph::FGraphNodeMetadata*>* InOutMetadata)
+		FInsertEdgeEdgeIntersections(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+		                             PCGExGraph::FEdgeEdgeIntersections* InIntersectionList, TMap<int32, PCGExGraph::FGraphNodeMetadata*>* InOutMetadata)
 			: FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
 			  IntersectionList(InIntersectionList)
 		{
@@ -864,13 +792,15 @@ namespace PCGExGraphTask
 
 #pragma region Graph tasks
 
-	class PCGEXTENDEDTOOLKIT_API FPCGExWriteSubGraphEdgesTask : public FPCGExNonAbandonableTask
+	class PCGEXTENDEDTOOLKIT_API FWriteSubGraphEdges : public FPCGExNonAbandonableTask
 	{
 	public:
-		FPCGExWriteSubGraphEdgesTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-									 PCGExGraph::FGraph* InGraph, PCGExGraph::FSubGraph* InSubGraph)
+		FWriteSubGraphEdges(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+		                    PCGExGraph::FGraph* InGraph,
+		                    PCGExGraph::FSubGraph* InSubGraph)
 			: FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
-			  Graph(InGraph), SubGraph(InSubGraph)
+			  Graph(InGraph),
+			  SubGraph(InSubGraph)
 		{
 		}
 
@@ -880,12 +810,12 @@ namespace PCGExGraphTask
 		virtual bool ExecuteTask() override;
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FPCGExCompileGraphTask : public FPCGExNonAbandonableTask
+	class PCGEXTENDEDTOOLKIT_API FCompileGraph : public FPCGExNonAbandonableTask
 	{
 	public:
-		FPCGExCompileGraphTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-							   PCGExGraph::FGraphBuilder* InGraphBuilder, const int32 InMin = 1, const int32 InMax = TNumericLimits<int32>::Max(),
-							   PCGExGraph::FGraphMetadataSettings* InMetadataSettings = nullptr)
+		FCompileGraph(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+		              PCGExGraph::FGraphBuilder* InGraphBuilder, const int32 InMin = 1, const int32 InMax = TNumericLimits<int32>::Max(),
+		              PCGExGraph::FGraphMetadataSettings* InMetadataSettings = nullptr)
 			: FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
 			  Builder(InGraphBuilder), Min(InMin), Max(InMax), MetadataSettings(InMetadataSettings)
 		{
@@ -902,19 +832,38 @@ namespace PCGExGraphTask
 
 #pragma endregion
 
-#pragma region Loose Graph tasks
+#pragma region Compound Graph tasks
 
-	class PCGEXTENDEDTOOLKIT_API FPCGExInsertLooseNodesTask : public FPCGExNonAbandonableTask
+	class PCGEXTENDEDTOOLKIT_API FBuildCompoundGraphFromPoints : public FPCGExNonAbandonableTask
 	{
 	public:
-		FPCGExInsertLooseNodesTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-								   PCGExGraph::FLooseGraph* InGraph, PCGExData::FPointIO* InEdgeIO, TMap<int32, int32>* InNodeIndicesMap)
+		FBuildCompoundGraphFromPoints(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+		                              PCGExGraph::FCompoundGraph* InGraph)
 			: FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
-			  Graph(InGraph), EdgeIO(InEdgeIO), NodeIndicesMap(InNodeIndicesMap)
+			  Graph(InGraph)
 		{
 		}
 
-		PCGExGraph::FLooseGraph* Graph = nullptr;
+		PCGExGraph::FCompoundGraph* Graph = nullptr;
+
+		virtual bool ExecuteTask() override;
+	};
+
+	class PCGEXTENDEDTOOLKIT_API FBuildCompoundGraphFromEdges : public FPCGExNonAbandonableTask
+	{
+	public:
+		FBuildCompoundGraphFromEdges(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+		                             PCGExGraph::FCompoundGraph* InGraph,
+		                             PCGExData::FPointIO* InEdgeIO,
+		                             TMap<int32, int32>* InNodeIndicesMap)
+			: FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+			  Graph(InGraph),
+			  EdgeIO(InEdgeIO),
+			  NodeIndicesMap(InNodeIndicesMap)
+		{
+		}
+
+		PCGExGraph::FCompoundGraph* Graph = nullptr;
 		PCGExData::FPointIO* EdgeIO = nullptr;
 		TMap<int32, int32>* NodeIndicesMap = nullptr;
 

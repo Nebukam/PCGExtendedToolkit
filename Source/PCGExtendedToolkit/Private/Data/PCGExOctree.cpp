@@ -2,6 +2,6 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 
-#include "..\..\Public\Data\PCGExSpatialPartition.h"
+#include "Data/PCGExSpatialPartition.h"
 
 //TODO : Implement fast octree for graph sampling.
