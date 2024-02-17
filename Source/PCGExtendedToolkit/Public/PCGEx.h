@@ -6,6 +6,7 @@
 #include "PCGComponent.h"
 #include "PCGContext.h"
 #include "MatchAndSet/PCGMatchAndSetWeighted.h"
+#include "Metadata/PCGMetadataAttribute.h"
 
 #include "PCGEx.generated.h"
 
@@ -218,6 +219,22 @@ namespace PCGEx
 	const FSoftObjectPath WeightDistributionLinear = FSoftObjectPath(TEXT("/PCGExtendedToolkit/FC_PCGExWeightDistribution_Linear.FC_PCGExWeightDistribution_Linear"));
 	const FSoftObjectPath WeightDistributionExpoInv = FSoftObjectPath(TEXT("/PCGExtendedToolkit/FC_PCGExWeightDistribution_Expo_Inv.FC_PCGExWeightDistribution_Expo_Inv"));
 	const FSoftObjectPath WeightDistributionExpo = FSoftObjectPath(TEXT("/PCGExtendedToolkit/FC_PCGExWeightDistribution_Expo.FC_PCGExWeightDistribution_Expo"));
+
+	static bool IsValidName(FName Name) { return FPCGMetadataAttributeBase::IsValidName(Name) && !Name.IsNone(); }
+	
+	static FName GetCompoundName(const FName A, const FName B)
+	{
+		// PCGEx/A/B
+		const FString Separator = TEXT("/");
+		return *(TEXT("PCGEx") + Separator + A.ToString() + Separator + B.ToString());
+	}
+
+	static FName GetCompoundName(const FName A, const FName B, const FName C)
+	{
+		// PCGEx/A/B/C
+		const FString Separator = TEXT("/");
+		return *(TEXT("PCGEx") + Separator + A.ToString() + Separator + B.ToString() + Separator + C.ToString());
+	}
 
 	// Unsigned uint64 hash
 	static uint64 H64U(const uint32 A, const uint32 B)

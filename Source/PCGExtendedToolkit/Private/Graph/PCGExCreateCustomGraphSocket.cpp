@@ -35,34 +35,27 @@ void UPCGExCreateCustomGraphSocketSettings::PostEditChangeProperty(FPropertyChan
 }
 #endif
 
-template <typename T>
-T* FPCGExCreateCustomGraphSocketElement::BuildParams(
-	FPCGContext* Context) const
-{
-	const UPCGExCreateCustomGraphSocketSettings* Settings = Context->GetInputSettings<UPCGExCreateCustomGraphSocketSettings>();
-	check(Settings);
-
-	if (Settings->Socket.SocketName.IsNone() || !FPCGMetadataAttributeBase::IsValidName(Settings->Socket.SocketName.ToString()))
-	{
-		PCGE_LOG(Error, GraphAndLog, FTEXT("Output name is invalid; Cannot be 'None' and can only contain the following special characters:[ ],[_],[-],[/]"));
-		return nullptr;
-	}
-
-	TArray<FPCGTaggedData>& Outputs = Context->OutputData.TaggedData;
-	T* OutParams = NewObject<T>();
-	OutParams->Descriptor = FPCGExSocketDescriptor(Settings->Socket);
-
-	FPCGTaggedData& Output = Outputs.Emplace_GetRef();
-	Output.Data = OutParams;
-
-	return OutParams;
-}
-
 bool FPCGExCreateCustomGraphSocketElement::ExecuteInternal(
 	FPCGContext* Context) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExCreateCustomGraphSocketElement::Execute);
-	BuildParams<UPCGExSocketDefinition>(Context);
+
+	PCGEX_SETTINGS(CreateCustomGraphSocket)
+
+	if (Settings->Socket.SocketName.IsNone() || !FPCGMetadataAttributeBase::IsValidName(Settings->Socket.SocketName.ToString()))
+	{
+		PCGE_LOG(Error, GraphAndLog, FTEXT("Output name is invalid; Cannot be 'None' and can only contain the following special characters:[ ],[_],[-],[/]"));
+		return false;
+	}
+
+	TArray<FPCGTaggedData>& Outputs = Context->OutputData.TaggedData;
+	UPCGExSocketDefinition* OutParams = NewObject<UPCGExSocketDefinition>();
+	OutParams->Descriptor = FPCGExSocketDescriptor(Settings->Socket);
+
+	FPCGTaggedData& Output = Outputs.Emplace_GetRef();
+	Output.Data = OutParams;
+	Output.Pin = PCGExGraph::OutputSocketParamsLabel;
+	
 	return true;
 }
 

@@ -28,6 +28,17 @@ namespace PCGExDataBlending
 	};
 
 	template <typename T>
+	class PCGEXTENDEDTOOLKIT_API FDataBlendingSum final : public FDataBlendingOperation<T>
+	{
+	public:
+		virtual bool GetRequiresPreparation() const override { return true; }
+		virtual bool GetRequiresFinalization() const override { return false; }
+
+		virtual void SinglePrepare(T& A) const override { A = this->Writer->GetDefaultValue(); }
+		virtual T SingleOperation(T A, T B, double Alpha) const override { return PCGExMath::Add(A, B); }
+	};
+
+	template <typename T>
 	class PCGEXTENDEDTOOLKIT_API FDataBlendingMax final : public FDataBlendingOperation<T>
 	{
 	public:

@@ -34,7 +34,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExFindCustomGraphEdgeClustersSettings : public 
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(FindCustomGraphEdgeClusters, "Custom Graph : Find Edge Clusters", "Create partitions from interconnected points. Each Cluster is the result of all input graphs combined.");
+	PCGEX_NODE_INFOS(FindCustomGraphEdgeClusters, "Custom Graph : Find Clusters", "Create clusters from interconnected points. Each Cluster is the result of all input graphs combined.");
 #endif
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 

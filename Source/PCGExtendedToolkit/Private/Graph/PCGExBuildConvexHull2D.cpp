@@ -205,7 +205,7 @@ bool FPCGExConvexHull2Task::ExecuteTask()
 	PCGEX_SETTINGS(BuildConvexHull2D)
 
 	PCGExGeo::TDelaunay2* Delaunay = new PCGExGeo::TDelaunay2();
-	
+
 	TArray<FVector> Positions;
 	PCGExGeo::PointsToPositions(Context->CurrentIO->GetIn()->GetPoints(), Positions);
 
@@ -215,7 +215,7 @@ bool FPCGExConvexHull2Task::ExecuteTask()
 		PCGEX_DELETE(Delaunay)
 		return false;
 	}
-	
+
 	if (Settings->bPrunePoints)
 	{
 		PCGExGraph::FIndexedEdge E = PCGExGraph::FIndexedEdge{};

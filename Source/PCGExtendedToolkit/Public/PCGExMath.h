@@ -448,10 +448,10 @@ namespace PCGExMath
 
 	// Unhandled, but needs to be supported as property
 	template <typename CompilerSafety = void>
-	static FSoftObjectPath Min(const FSoftObjectPath& A, const FSoftObjectPath& B) { return A; }
+	static FSoftObjectPath Min(const FSoftObjectPath& A, const FSoftObjectPath& B) { return A.ToString() > B.ToString() ? B : A; }
 
 	template <typename CompilerSafety = void>
-	static FSoftClassPath Min(const FSoftClassPath& A, const FSoftClassPath& B) { return A; }
+	static FSoftClassPath Min(const FSoftClassPath& A, const FSoftClassPath& B) { return A.ToString() > B.ToString() ? B : A; }
 
 #pragma endregion
 
@@ -516,10 +516,10 @@ namespace PCGExMath
 
 	// Unhandled, but needs to be supported as property
 	template <typename CompilerSafety = void>
-	static FSoftObjectPath Max(const FSoftObjectPath& A, const FSoftObjectPath& B) { return B; }
+	static FSoftObjectPath Max(const FSoftObjectPath& A, const FSoftObjectPath& B) { return A.ToString() > B.ToString() ? A : B; }
 
 	template <typename CompilerSafety = void>
-	static FSoftClassPath Max(const FSoftClassPath& A, const FSoftClassPath& B) { return B; }
+	static FSoftClassPath Max(const FSoftClassPath& A, const FSoftClassPath& B) { return A.ToString() > B.ToString() ? A : B; }
 
 #pragma endregion
 

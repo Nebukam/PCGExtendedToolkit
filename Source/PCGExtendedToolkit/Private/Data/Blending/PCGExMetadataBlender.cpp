@@ -170,6 +170,7 @@ namespace PCGExDataBlending
 
 		TArray<PCGEx::FAttributeIdentity> Identities;
 		PCGEx::FAttributeIdentity::Get(InPrimaryData.GetOut(), Identities);
+		BlendingSettings->Filter(Identities);
 
 		if (&InSecondaryData != &InPrimaryData)
 		{

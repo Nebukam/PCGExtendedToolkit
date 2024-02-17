@@ -32,6 +32,14 @@ MACRO(FVector, Scale, Vector, Transform.GetScale3D()) \
 MACRO(float, Steepness, Float,Steepness) \
 MACRO(int32, Seed, Integer32,Seed)
 
+UENUM(BlueprintType)
+enum class EPCGExBlendingFilter : uint8
+{
+	All UMETA(DisplayName = "Blend All", ToolTip="Blend all attributes"),
+	Exclude UMETA(DisplayName = "Exclude", ToolTip="Exclude attributes listed in filters and blend all others"),
+	Include UMETA(DisplayName = "Include", ToolTip="Only blend attributes listed in filters"),
+};
+
 namespace PCGExGraph
 {
 	struct FGraphMetadataSettings;
@@ -54,6 +62,7 @@ enum class EPCGExDataBlendingType : uint8
 	Min     = 3 UMETA(DisplayName = "Min", ToolTip="Component-wise MIN operation"),
 	Max     = 4 UMETA(DisplayName = "Max", ToolTip="Component-wise MAX operation"),
 	Copy    = 5 UMETA(DisplayName = "Copy", ToolTip = "Copy incoming data"),
+	Sum    = 6 UMETA(DisplayName = "Sum", ToolTip = "Sum of all the data"),
 };
 
 USTRUCT(BlueprintType)
@@ -138,6 +147,12 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBlendingSettings
 	}
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	EPCGExBlendingFilter BlendingFilter = EPCGExBlendingFilter::All;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="BlendingFilter!=EPCGExBlendingFilter::All", EditConditionHides))
+	TArray<FName> FilteredAttributes;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	EPCGExDataBlendingType DefaultBlending = EPCGExDataBlendingType::Weight;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Setting)
@@ -145,6 +160,26 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBlendingSettings
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	TMap<FName, EPCGExDataBlendingType> AttributesOverrides;
+
+	bool CanBlend(FName AttributeName) const
+	{
+		if (BlendingFilter == EPCGExBlendingFilter::All) { return true; }
+		if (FilteredAttributes.Contains(AttributeName)) { return BlendingFilter == EPCGExBlendingFilter::Include ? true : false; }
+		else { return BlendingFilter == EPCGExBlendingFilter::Exclude ? false : true; }
+	}
+
+	void Filter(TArray<PCGEx::FAttributeIdentity>& Identities)
+	{
+		if (BlendingFilter == EPCGExBlendingFilter::All) { return; }
+		for (int i = 0; i < Identities.Num(); i++)
+		{
+			if (!CanBlend(Identities[i].Name))
+			{
+				Identities.RemoveAt(i);
+				i--;
+			}
+		}
+	}
 };
 
 

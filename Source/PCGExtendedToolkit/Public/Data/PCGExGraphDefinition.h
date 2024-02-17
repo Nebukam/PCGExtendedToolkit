@@ -14,6 +14,13 @@
 
 class UPCGPointData;
 
+UENUM(BlueprintType)
+enum class EPCGExSocketStateMode : uint8
+{
+	AnyOf UMETA(DisplayName = "Any of", ToolTip="Any of the selection"),
+	Only UMETA(DisplayName = "Only", ToolTip="Only the selection")
+};
+
 struct FPCGExPointsProcessorContext;
 ENUM_CLASS_FLAGS(EPCGExEdgeType)
 
@@ -181,6 +188,45 @@ public:
 	/** Debug color for arrows. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, AdvancedDisplay)
 	FColor DebugColor = FColor::Red;
+};
+
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExSocketConditionDescriptor
+{
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bEnabled = true;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	FName SocketName;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Must be ..."))
+	EPCGExSocketStateMode MustBeMode = EPCGExSocketStateMode::AnyOf;
+
+	/** Edge types to crawl to create a Cluster */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExEdgeType", EditCondition="MustBeMode==EPCGExSocketStateMode::AnyOf", EditConditionHides))
+	uint8 MustBeAnyOf = static_cast<uint8>(EPCGExEdgeType::Complete);
+
+	/** Edge types to crawl to create a Cluster */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="MustBeMode==EPCGExSocketStateMode::Only", EditConditionHides))
+	EPCGExEdgeType MustBeExactly = EPCGExEdgeType::Complete;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Must NOT be ..."))
+	EPCGExSocketStateMode MustNodeBeMode = EPCGExSocketStateMode::Only;
+
+	/** Edge types to crawl to create a Cluster */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExEdgeType", EditCondition="MustNodeBeMode==EPCGExSocketStateMode::AnyOf", EditConditionHides))
+	uint8 MustNotBeAnyOf = static_cast<uint8>(EPCGExEdgeType::Unknown);
+
+	/** Edge types to crawl to create a Cluster */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="MustNodeBeMode==EPCGExSocketStateMode::Only", EditConditionHides))
+	EPCGExEdgeType MustNotBeExactly = EPCGExEdgeType::Unknown;
+
+	void Populate(const FPCGExSocketDescriptor& Descriptor)
+	{
+		SocketName = Descriptor.SocketName;
+	}
 };
 
 USTRUCT(BlueprintType)
@@ -422,8 +468,6 @@ namespace PCGExGraph
 			const FPCGExSocketGlobalOverrides& Overrides,
 			const FPCGExSocketDescriptor& OverrideSocket);
 
-		FName GetCompoundName(FName SecondaryIdentifier) const;
-
 		/**
 		 * Prepare socket mapping for working with a given PointData object.
 		 * Each socket will cache Attribute & accessors
@@ -526,6 +570,29 @@ public:
  * 
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
+class PCGEXTENDEDTOOLKIT_API UPCGExSocketStateDefinition : public UPCGPointData
+{
+	GENERATED_BODY()
+
+public:
+	UPCGExSocketStateDefinition(const FObjectInitializer& ObjectInitializer);
+	virtual EPCGDataType GetDataType() const override { return EPCGDataType::Param; }
+
+	FName StateName = NAME_None;
+	int32 StateId = 0;
+
+	TArray<FPCGExSocketConditionDescriptor> Conditions;
+	TArray<TObjectPtr<UPCGParamData>> IfAttributes;
+	TArray<TObjectPtr<UPCGParamData>> ElseAttributes;
+
+	virtual void BeginDestroy() override;
+};
+
+
+/**
+ * 
+ */
+UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
 class PCGEXTENDEDTOOLKIT_API UPCGExGraphDefinition : public UPCGPointData
 {
 	GENERATED_BODY()
@@ -548,6 +615,9 @@ public:
 	FName GraphIdentifier = "GraphIdentifier";
 	FName CachedIndexAttributeName;
 	uint64 GraphUID = 0;
+
+	bool ContainsNamedSocked(FName InName) const;
+	void AddSocketNames(TSet<FName>& OutUniqueNames) const;
 
 	virtual void BeginDestroy() override;
 
@@ -608,6 +678,44 @@ public:
 
 namespace PCGExGraph
 {
+	struct PCGEXTENDEDTOOLKIT_API FSingleStateMapping
+	{
+		FSingleStateMapping(UPCGExSocketStateDefinition* InDefinition, const UPCGExGraphDefinition* Graph, PCGExData::FPointIO* InPointIO):
+			Definition(InDefinition)
+		{
+			const int32 NumConditions = InDefinition->Conditions.Num();
+			int32 NumValid = 0;
+			UPCGMetadata* Metadata = InPointIO->GetIn()->Metadata;
+			for (const FPCGExSocketConditionDescriptor& Condition : InDefinition->Conditions)
+			{
+				const FName SocketEdgeTypeName = PCGEx::GetCompoundName(Graph->GraphIdentifier, Condition.SocketName, PCGExGraph::SocketPropertyNameEdgeType);
+				if (FPCGMetadataAttributeBase* AttBase = Metadata->GetMutableAttribute(SocketEdgeTypeName))
+				{
+					FPCGMetadataAttribute<int32>* TypedAtt = static_cast<FPCGMetadataAttribute<int32>*>(AttBase);
+					Attributes.Add(TypedAtt);
+					NumValid++;
+				}
+				else
+				{
+					Attributes.Add(nullptr);
+				}
+			}
+
+			bValid = NumValid > 0;
+			bPartial = (NumConditions != NumValid);
+		}
+
+		bool bValid = true;
+		bool bPartial = false;
+		UPCGExSocketStateDefinition* Definition = nullptr;
+		TArray<FPCGMetadataAttribute<int32>*> Attributes;
+
+		~FSingleStateMapping()
+		{
+			Attributes.Empty();
+		}
+	};
+
 	struct PCGEXTENDEDTOOLKIT_API FGraphInputs
 	{
 		FGraphInputs()

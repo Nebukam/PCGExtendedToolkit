@@ -733,7 +733,9 @@ namespace PCGExGraphTask
 					PCGExGraph::FNode Node = Graph->Nodes[NodeIndex];
 					PCGExGraph::FGraphNodeMetadata** NodeMetaPtr = Graph->NodeMetadata.Find(NodeIndex);
 
-					if (!NodeMetaPtr || (*NodeMetaPtr)->Type != EPCGExIntersectionType::EdgeEdge) { continue; }
+					if (!NodeMetaPtr || (*NodeMetaPtr)->Type != EPCGExIntersectionType::EdgeEdge)
+					{
+					}
 				}
 			}
 		}

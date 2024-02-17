@@ -11,6 +11,7 @@
 
 #include "PCGExAssembleCustomGraphParams.generated.h"
 
+
 /** Outputs a single GraphParam to be consumed by other nodes */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
 class PCGEXTENDEDTOOLKIT_API UPCGExAssembleCustomGraphParamsSettings : public UPCGSettings
@@ -55,10 +56,14 @@ public:
 	FPCGExSocketGlobalOverrides GlobalOverrides;
 
 	/** An array containing the computed socket names, for easy copy-paste. */
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta=(AdvancedDisplay, TitleProperty="{BaseName}"))
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, EditFixedSize, Category = Settings, meta=(AdvancedDisplay, TitleProperty="{BaseName}"))
 	TArray<FPCGExSocketQualityOfLifeInfos> GeneratedSocketNames;
 
 	TArray<FPCGExSocketDescriptor> InputSockets;
+
+	/** An array containing the computed socket names, for easy copy-paste. */
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, EditFixedSize, Category = Settings, meta=(AdvancedDisplay, TitleProperty="{BaseName}"))
+	TArray<FPCGExSocketQualityOfLifeInfos> SocketNames;
 
 	const TArray<FPCGExSocketDescriptor>& GetSockets() const;
 

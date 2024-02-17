@@ -105,6 +105,11 @@ namespace PCGExGraph
 	const FName SourceSocketOverrideParamsLabel = TEXT("Ctrl Socket");
 	const FName SourceSocketParamsLabel = TEXT("Sockets");
 	const FName OutputSocketParamsLabel = TEXT("Socket");
+	
+	const FName SourceSocketStateLabel = TEXT("SocketStates");
+	const FName SourceIfAttributesLabel = TEXT("If");
+	const FName SourceElseAttributesLabel = TEXT("Else");
+	const FName OutputSocketStateLabel = TEXT("SocketState");
 
 	const FName SourceParamsLabel = TEXT("Graph");
 	const FName OutputParamsLabel = TEXT("➜");
@@ -198,7 +203,7 @@ namespace PCGExGraph
 		int32 NodeIndex;
 		EPCGExIntersectionType Type = EPCGExIntersectionType::PointEdge;
 		bool bCompounded = false; // Represents multiple nodes
-		int32 CompoundSize = 0; // Fuse size
+		int32 CompoundSize = 0;   // Fuse size
 
 		explicit FGraphNodeMetadata(int32 InNodeIndex)
 			: NodeIndex(InNodeIndex)
