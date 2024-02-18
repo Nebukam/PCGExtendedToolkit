@@ -9,6 +9,11 @@
 
 #include "PCGExFuseClusters.generated.h"
 
+namespace PCGExSpacePartition
+{
+	struct TRoot;
+}
+
 namespace PCGExDataBlending
 {
 	class FCompoundBlender;

@@ -183,6 +183,9 @@ namespace PCGExData
 
 		void ForEach(const TFunction<void(FPointIO&, const int32)>& BodyLoop);
 
+		FBox GetInBounds();
+		FBox GetOutBounds();
+
 		void Flush();
 	};
 

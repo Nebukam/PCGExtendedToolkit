@@ -21,7 +21,7 @@ public:
 #if WITH_EDITOR
 	bool bCacheResult = false;
 	PCGEX_NODE_INFOS_CUSTOM_TASKNAME(
-	GraphParams, "Socket State", "Creates a socket state configuration from any number of sockets and attributes.",
+		GraphParams, "Socket State", "Creates a socket state configuration from any number of sockets and attributes.",
 		StateName.IsNone() ? FName(GetDefaultNodeTitle().ToString()) : FName(FString("PCGEx | State : ") + StateName.ToString()))
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Param; }
 
@@ -45,11 +45,11 @@ public:
 	/** State name.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FName StateName = NAME_None;
-	
+
 	/** State ID.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	int32 StateId = 0;
-	
+
 	/** Custom graph socket.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	TArray<FPCGExSocketConditionDescriptor> Conditions;

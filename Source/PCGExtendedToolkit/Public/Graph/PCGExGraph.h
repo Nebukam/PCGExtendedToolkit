@@ -479,6 +479,48 @@ namespace PCGExGraph
 		FVector UpdateCenter(PCGExData::FIdxCompoundList* PointsCompounds, PCGExData::FPointIOGroup* IOGroup);
 	};
 
+	struct PCGEXTENDEDTOOLKIT_API FCompoundNodeRef
+	{
+		FCompoundNodeRef(const FCompoundNode* InNode)
+		{
+			Node = InNode;
+			Bounds = InNode->Point.GetDensityBounds();
+		}
+
+		const FCompoundNode* Node;
+		FBoxSphereBounds Bounds;
+	};
+
+	struct PCGEXTENDEDTOOLKIT_API FCompoundNodeRefSemantics
+	{
+		enum { MaxElementsPerLeaf = 16 };
+
+		enum { MinInclusiveElementsPerNode = 7 };
+
+		enum { MaxNodeDepth = 12 };
+
+		typedef TInlineAllocator<MaxElementsPerLeaf> ElementAllocator;
+
+		FORCEINLINE static const FBoxSphereBounds& GetBoundingBox(const FCompoundNodeRef& InNode)
+		{
+			return InNode.Bounds;
+		}
+
+		FORCEINLINE static const bool AreElementsEqual(const FCompoundNodeRef& A, const FCompoundNodeRef& B)
+		{
+			return A.Node->Index == B.Node->Index;
+		}
+
+		FORCEINLINE static void ApplyOffset(FCompoundNodeRef& InNode)
+		{
+			ensureMsgf(false, TEXT("Not implemented"));
+		}
+
+		FORCEINLINE static void SetElementId(const FCompoundNodeRef& Element, FOctreeElementId2 OctreeElementID)
+		{
+		}
+	};
+
 	struct PCGEXTENDEDTOOLKIT_API FCompoundGraph
 	{
 		PCGExData::FIdxCompoundList* PointsCompounds = nullptr;
@@ -486,6 +528,9 @@ namespace PCGExGraph
 		TArray<FCompoundNode*> Nodes;
 		TMap<uint64, FIndexedEdge> Edges;
 		const FPCGExFuseSettings FuseSettings;
+
+		typedef TOctree2<FCompoundNodeRef, FCompoundNodeRefSemantics> NodeOctree;
+		mutable NodeOctree Octree;
 
 		explicit FCompoundGraph(const FPCGExFuseSettings& InFuseSettings)
 			: FuseSettings(InFuseSettings)
@@ -754,6 +799,42 @@ namespace PCGExGraph
 				!AttributeCheck || AttributeCheck->GetTypeId() != I32) { return false; }
 		}
 
+		return true;
+	}
+
+	static bool GetReducedVtxIndices(PCGExData::FPointIO& InEdges, const TMap<int32, int32>* NodeIndicesMap, TArray<int32>& OutVtxIndices, int32& OutEdgeNum)
+	{
+		PCGEx::TFAttributeReader<int32>* StartIndexReader = new PCGEx::TFAttributeReader<int32>(PCGExGraph::Tag_EdgeStart);
+		PCGEx::TFAttributeReader<int32>* EndIndexReader = new PCGEx::TFAttributeReader<int32>(PCGExGraph::Tag_EdgeEnd);
+		const bool bStart = StartIndexReader->Bind(InEdges);
+		const bool bEnd = EndIndexReader->Bind(InEdges);
+
+		if (!bStart || !bEnd ||
+			StartIndexReader->Values.Num() != EndIndexReader->Values.Num())
+		{
+			PCGEX_DELETE(StartIndexReader)
+			PCGEX_DELETE(EndIndexReader)
+			return false;
+		}
+
+		OutEdgeNum = StartIndexReader->Values.Num();
+
+		OutVtxIndices.Empty();
+		OutVtxIndices.Reserve(OutEdgeNum * 2);
+
+		for (int i = 0; i < OutEdgeNum; i++)
+		{
+			const int32* NodeStartPtr = NodeIndicesMap->Find(StartIndexReader->Values[i]);
+			const int32* NodeEndPtr = NodeIndicesMap->Find(EndIndexReader->Values[i]);
+
+			if (!NodeStartPtr || !NodeEndPtr || (*NodeStartPtr == *NodeEndPtr)) { continue; }
+
+			OutVtxIndices.AddUnique(*NodeStartPtr);
+			OutVtxIndices.AddUnique(*NodeEndPtr);
+		}
+
+		PCGEX_DELETE(StartIndexReader)
+		PCGEX_DELETE(EndIndexReader)
 		return true;
 	}
 }

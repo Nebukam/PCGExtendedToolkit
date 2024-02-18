@@ -90,50 +90,15 @@ bool FPCGExPartitionVerticesElement::ExecuteInternal(FPCGContext* InContext) con
 
 bool FPCGExCreateVtxPartitionTask::ExecuteTask()
 {
-	const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
-	TArray<FPCGPoint>& OutPoints = PointIO->GetOut()->GetMutablePoints();
 
-	PCGEx::TFAttributeReader<int32>* StartIndexReader = new PCGEx::TFAttributeReader<int32>(PCGExGraph::Tag_EdgeStart);
-	if (!StartIndexReader->Bind(*EdgeIO))
-	{
-		PCGEX_DELETE(StartIndexReader)
-		return false;
-	}
+	TArray<int32> ReducedVtxIndices;
 
-	PCGEx::TFAttributeReader<int32>* EndIndexReader = new PCGEx::TFAttributeReader<int32>(PCGExGraph::Tag_EdgeEnd);
-	if (!EndIndexReader->Bind(*EdgeIO))
-	{
-		PCGEX_DELETE(StartIndexReader)
-		PCGEX_DELETE(EndIndexReader)
-		return false;
-	}
+	int32 NumEdges = 0;
+	if (!PCGExGraph::GetReducedVtxIndices(*EdgeIO, NodeIndicesMap, ReducedVtxIndices, NumEdges)) { return false; }
 
-	TSet<int32> UniqueIndices;
-	UniqueIndices.Reserve(StartIndexReader->Values.Num());
-
-#define PCGEX_PUSH_VTX(_PTR)\
-	if (!UniqueIndices.Contains(*_PTR))	{\
-		OutPoints.Add(InPoints[*_PTR]);\
-		UniqueIndices.Add(*_PTR);}
-
-	for (int i = 0; i < EdgeIO->GetNum(); i++)
-	{
-		const int32* NodeStartPtr = NodeIndicesMap->Find(StartIndexReader->Values[i]);
-		const int32* NodeEndPtr = NodeIndicesMap->Find(EndIndexReader->Values[i]);
-
-		if ((!NodeStartPtr || !NodeEndPtr) ||
-			(*NodeStartPtr == *NodeEndPtr)) { continue; }
-
-		PCGEX_PUSH_VTX(NodeStartPtr)
-		PCGEX_PUSH_VTX(NodeEndPtr)
-	}
-
-#undef PCGEX_PUSH_VTX
-
-	UniqueIndices.Empty();
-
-	PCGEX_DELETE(StartIndexReader)
-	PCGEX_DELETE(EndIndexReader)
+	const TArrayView<int32> View = MakeArrayView(ReducedVtxIndices);	
+	PCGEx::CopyPoints(*PointIO, *PointIO, View);
+	PointIO->GetOut()->Metadata->Flatten();
 
 	return true;
 }

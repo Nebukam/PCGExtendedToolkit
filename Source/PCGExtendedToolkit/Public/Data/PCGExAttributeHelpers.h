@@ -635,6 +635,65 @@ namespace PCGEx
 
 #pragma endregion
 
+#pragma region attribute copy
+
+	static void CopyPoints(
+		const PCGExData::FPointIO& Source,
+		const PCGExData::FPointIO& Target,
+		const TArrayView<int32>& SourceIndices,
+		const int32 TargetIndex = 0)
+	{
+		const int32 NumIndices = SourceIndices.Num();
+		const TArray<FPCGPoint>& SourcePoints = Source.GetIn()->GetPoints();
+		TArray<FPCGPoint>& TargetPoints = Target.GetOut()->GetMutablePoints();
+
+		for (int i = 0; i < NumIndices; i++)
+		{
+			const int32 WriteIndex = TargetIndex + i;
+			const PCGMetadataEntryKey Key = TargetPoints[WriteIndex].MetadataEntry;
+
+			const FPCGPoint& SourcePt = SourcePoints[SourceIndices[i]];
+			FPCGPoint& TargetPt = TargetPoints[WriteIndex] = SourcePt;
+			TargetPt.MetadataEntry = Key;
+		}
+	}
+
+	static void CopyValues(
+		FAttributeIdentity Identity,
+		const PCGExData::FPointIO& Source,
+		PCGExData::FPointIO& Target,
+		const TArrayView<int32>& SourceIndices,
+		const int32 TargetIndex = 0)
+	{
+		PCGMetadataAttribute::CallbackWithRightType(
+			static_cast<uint16>(Identity.UnderlyingType),
+			[&](auto DummyValue) -> void
+			{
+				using T = decltype(DummyValue);
+				TArray<T> RawValues;
+
+				const FPCGMetadataAttribute<T>* SourceAttribute = Source.GetIn()->Metadata->GetConstTypedAttribute<T>(Identity.Name);
+				TFAttributeWriter<T>* Writer = new TFAttributeWriter<T>(
+					Identity.Name,
+					SourceAttribute->GetValueFromItemKey(PCGInvalidEntryKey),
+					SourceAttribute->AllowsInterpolation());
+
+				Writer->BindAndGet(Target);
+
+				const TArray<FPCGPoint>& SourcePoints = Source.GetIn()->GetPoints();
+				const int32 NumIndices = SourceIndices.Num();
+				for (int i = 0; i < NumIndices; i++)
+				{
+					Writer->Values[TargetIndex + i] = SourceAttribute->GetValueFromItemKey(SourcePoints[SourceIndices[i]].MetadataEntry);
+				}
+
+				Writer->Write();
+				PCGEX_DELETE(Writer)
+			});
+	}
+
+#pragma endregion
+
 #pragma region Local Attribute Getter
 
 	struct PCGEXTENDEDTOOLKIT_API FLocalSingleFieldGetter : public FAttributeGetter<double>

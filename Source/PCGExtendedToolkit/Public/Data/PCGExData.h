@@ -128,7 +128,7 @@ namespace PCGExData
 	{
 		FString OutId;
 		PointIO.Tags->Set(IdName.ToString(), Id, OutId);
-		if (PointIO.GetOut()) { PCGExData::WriteMark(PointIO.GetOut()->Metadata, IdName, Id); }
+		if (PointIO.GetOut()) { WriteMark(PointIO.GetOut()->Metadata, IdName, Id); }
 	}
 
 	static UPCGPointData* GetMutablePointData(FPCGContext* Context, const FPCGTaggedData& Source)

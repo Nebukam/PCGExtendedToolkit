@@ -39,7 +39,7 @@ public:
 	/** Write the name of the state to an attribute */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bWriteStateName = true;
-	
+
 	/** Name of the attribute to write state name to */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bWriteStateName"))
 	FName StateNameAttributeName = "State";
@@ -48,11 +48,11 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bWriteStateName"))
 	FName StatelessName = "None";
 
-	
+
 	/** Write the value of the state to an attribute */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bWriteStateValue = true;
-	
+
 	/** Name of the attribute to write state name to */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bWriteStateValue"))
 	FName StateValueAttributeName = "StateId";
@@ -60,7 +60,7 @@ public:
 	/** Name of the state to write if no conditions are met */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bWriteStateValue"))
 	int32 StatelessValue = -1;
-	
+
 	/** Cleanup graph socket data from output points */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bDeleteCustomGraphData = false;
@@ -81,7 +81,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExApplySocketStatesContext : public FPCGExCust
 
 	PCGEx::TFAttributeWriter<FName>* StateNameWriter = nullptr;
 	PCGEx::TFAttributeWriter<int32>* StateValueWriter = nullptr;
-	
 };
 
 

@@ -59,7 +59,7 @@ bool FPCGExCreateCustomGraphSocketStateElement::ExecuteInternal(
 	if (!PCGEx::IsValidName(Settings->StateName))
 	{
 		PCGE_LOG(Error, GraphAndLog, FTEXT("State name is invalid; Cannot be 'None' and can only contain the following special characters:[ ],[_],[-],[/]"));
-		return true;;
+		return true;
 	}
 
 	UPCGExSocketStateDefinition* OutState = NewObject<UPCGExSocketStateDefinition>();
@@ -94,7 +94,7 @@ bool FPCGExCreateCustomGraphSocketStateElement::ExecuteInternal(
 		OutState->Conditions.Add(Descriptor);
 	}
 
-	if(OutState->Conditions.IsEmpty())
+	if (OutState->Conditions.IsEmpty())
 	{
 		OutState->ConditionalBeginDestroy();
 		return true;

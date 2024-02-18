@@ -55,7 +55,7 @@ bool FPCGExCreateCustomGraphSocketElement::ExecuteInternal(
 	FPCGTaggedData& Output = Outputs.Emplace_GetRef();
 	Output.Data = OutParams;
 	Output.Pin = PCGExGraph::OutputSocketParamsLabel;
-	
+
 	return true;
 }
 

@@ -20,11 +20,11 @@ public:
 	PCGEX_NODE_INFOS(UnpackClusters, "Graph : Unpack Clusters", "Restores vtx/edge clusters from packed dataset.");
 	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorGraph; }
 #endif
-virtual FName GetMainInputLabel() const override;
+	virtual FName GetMainInputLabel() const override;
 	virtual FName GetMainOutputLabel() const override;
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
-	
+
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings interface

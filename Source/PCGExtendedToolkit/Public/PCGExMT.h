@@ -9,7 +9,6 @@
 
 namespace PCGExMT
 {
-	
 	constexpr int32 GAsyncLoop_XS = 32;
 	constexpr int32 GAsyncLoop_S = 64;
 	constexpr int32 GAsyncLoop_M = 256;

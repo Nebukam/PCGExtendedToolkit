@@ -166,7 +166,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBlendingSettings
 	{
 		if (BlendingFilter == EPCGExBlendingFilter::All) { return true; }
 		if (FilteredAttributes.Contains(AttributeName)) { return BlendingFilter == EPCGExBlendingFilter::Include ? true : false; }
-		else { return BlendingFilter == EPCGExBlendingFilter::Exclude ? false : true; }
+		return BlendingFilter == EPCGExBlendingFilter::Exclude ? false : true;
 	}
 
 	void Filter(TArray<PCGEx::FAttributeIdentity>& Identities)

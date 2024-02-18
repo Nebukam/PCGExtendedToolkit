@@ -338,6 +338,20 @@ namespace PCGExData
 		for (int i = 0; i < Pairs.Num(); i++) { BodyLoop(*Pairs[i], i); }
 	}
 
+	FBox FPointIOGroup::GetInBounds()
+	{
+		FBox Bounds = FBox(ForceInit);
+		for (FPointIO* IO : Pairs) { Bounds += IO->GetIn()->GetBounds(); }
+		return Bounds;
+	}
+
+	FBox FPointIOGroup::GetOutBounds()
+	{
+		FBox Bounds = FBox(ForceInit);
+		for (FPointIO* IO : Pairs) { Bounds += IO->GetOut()->GetBounds(); }
+		return Bounds;
+	}
+
 	void FPointIOGroup::Flush()
 	{
 		PCGEX_DELETE_TARRAY(Pairs)

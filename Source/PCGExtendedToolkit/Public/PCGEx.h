@@ -221,7 +221,7 @@ namespace PCGEx
 	const FSoftObjectPath WeightDistributionExpo = FSoftObjectPath(TEXT("/PCGExtendedToolkit/FC_PCGExWeightDistribution_Expo.FC_PCGExWeightDistribution_Expo"));
 
 	static bool IsValidName(FName Name) { return FPCGMetadataAttributeBase::IsValidName(Name) && !Name.IsNone(); }
-	
+
 	static FName GetCompoundName(const FName A, const FName B)
 	{
 		// PCGEx/A/B

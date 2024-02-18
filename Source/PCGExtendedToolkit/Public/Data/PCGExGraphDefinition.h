@@ -688,7 +688,7 @@ namespace PCGExGraph
 			UPCGMetadata* Metadata = InPointIO->GetIn()->Metadata;
 			for (const FPCGExSocketConditionDescriptor& Condition : InDefinition->Conditions)
 			{
-				const FName SocketEdgeTypeName = PCGEx::GetCompoundName(Graph->GraphIdentifier, Condition.SocketName, PCGExGraph::SocketPropertyNameEdgeType);
+				const FName SocketEdgeTypeName = PCGEx::GetCompoundName(Graph->GraphIdentifier, Condition.SocketName, SocketPropertyNameEdgeType);
 				if (FPCGMetadataAttributeBase* AttBase = Metadata->GetMutableAttribute(SocketEdgeTypeName))
 				{
 					FPCGMetadataAttribute<int32>* TypedAtt = static_cast<FPCGMetadataAttribute<int32>*>(AttBase);

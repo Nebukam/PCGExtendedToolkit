@@ -274,32 +274,54 @@ namespace PCGExGraph
 	FCompoundNode* FCompoundGraph::GetOrCreateNode(const FPCGPoint& Point, const int32 IOIndex, const int32 PointIndex)
 	{
 		const FVector Origin = Point.Transform.GetLocation();
-
+		int32 Index = -1;
 		if (FuseSettings.bComponentWiseTolerance)
 		{
-			for (FCompoundNode* Node : Nodes)
-			{
-				if (FuseSettings.IsWithinToleranceComponentWise(Point, Node->Point))
+			FBoxCenterAndExtent Box = FBoxCenterAndExtent(Origin, FuseSettings.Tolerances);
+			Octree.FindFirstElementWithBoundsTest(
+				Box, [&](const FCompoundNodeRef& NodeRef)
 				{
-					PointsCompounds->Add(Node->Index, IOIndex, PointIndex);
-					return Node;
-				}
+					const FCompoundNode* Node = NodeRef.Node;
+					if (FuseSettings.IsWithinToleranceComponentWise(Point, Node->Point))
+					{
+						Index = Node->Index;
+						return false;
+					}
+					return true;
+				});
+
+			if (Index != -1)
+			{
+				PointsCompounds->Add(Index, IOIndex, PointIndex);
+				return Nodes[Index];
 			}
 		}
 		else
 		{
-			for (FCompoundNode* Node : Nodes)
-			{
-				if (FuseSettings.IsWithinTolerance(Point, Node->Point))
+			FBoxCenterAndExtent Box = FBoxCenterAndExtent(Origin, FVector(FuseSettings.Tolerance));
+			Octree.FindFirstElementWithBoundsTest(
+				Box, [&](const FCompoundNodeRef& NodeRef)
 				{
-					PointsCompounds->Add(Node->Index, IOIndex, PointIndex);
-					return Node;
-				}
+					const FCompoundNode* Node = NodeRef.Node;
+					if (FuseSettings.IsWithinToleranceComponentWise(Point, Node->Point))
+					{
+						Index = Node->Index;
+						return false;
+					}
+					return true;
+				});
+
+			if (Index != -1)
+			{
+				PointsCompounds->Add(Index, IOIndex, PointIndex);
+				return Nodes[Index];
 			}
 		}
 
 		FCompoundNode* NewNode = new FCompoundNode(Point, Origin, Nodes.Num());
 		Nodes.Add(NewNode);
+
+		Octree.AddElement(FCompoundNodeRef(NewNode));
 		PointsCompounds->New()->Add(IOIndex, PointIndex);
 		return NewNode;
 	}
@@ -417,7 +439,7 @@ namespace PCGExGraph
 
 			FIndexedEdge& SplitEdge = Graph->Edges[PointEdgeProxy.EdgeIndex];
 			SplitEdge.bValid = false; // Invalidate existing edge
-			PointEdgeProxy.CollinearPoints.Sort([](const FPESplit& A, const FPESplit& B) { return A.Time<B.Time; });
+			PointEdgeProxy.CollinearPoints.Sort([](const FPESplit& A, const FPESplit& B) { return A.Time < B.Time; });
 
 			const int32 FirstIndex = SplitEdge.Start;
 			const int32 LastIndex = SplitEdge.End;
@@ -802,7 +824,7 @@ namespace PCGExGraphTask
 
 		PCGEx::TFAttributeWriter<int32>* IndexWriter = new PCGEx::TFAttributeWriter<int32>(PCGExGraph::Tag_EdgeIndex, -1, false);
 		PCGEx::TFAttributeWriter<int32>* NumEdgesWriter = new PCGEx::TFAttributeWriter<int32>(PCGExGraph::Tag_EdgesNum, 0, false);
-				
+
 		IndexWriter->BindAndGet(*PointIO);
 		NumEdgesWriter->BindAndGet(*PointIO);
 
@@ -842,7 +864,7 @@ Writer->BindAndGet(*PointIO);\
 
 		PCGEx::TFAttributeWriter<int64>* NumClusterIdWriter = new PCGEx::TFAttributeWriter<int64>(PCGExGraph::Tag_ClusterId, -1, false);
 		NumClusterIdWriter->BindAndGet(*PointIO);
-		
+
 		int32 SubGraphIndex = 0;
 		for (PCGExGraph::FSubGraph* SubGraph : Builder->Graph->SubGraphs)
 		{
@@ -860,25 +882,25 @@ Writer->BindAndGet(*PointIO);\
 
 			const int64 ClusterId = EdgeIO->GetOut()->UID;
 			SubGraph->PointIO = EdgeIO;
-			
+
 			EdgeIO->Tags->Set(PCGExGraph::TagStr_ClusterPair, Builder->PairIdStr);
 			PCGExData::WriteMark(EdgeIO->GetOut()->Metadata, PCGExGraph::Tag_ClusterId, ClusterId);
 
-			for(const int32 EdgeIndex : SubGraph->Edges)
+			for (const int32 EdgeIndex : SubGraph->Edges)
 			{
 				PCGExGraph::FIndexedEdge& Edge = Builder->Graph->Edges[EdgeIndex];
 				NumClusterIdWriter->Values[Builder->Graph->Nodes[Edge.Start].PointIndex] = ClusterId;
 				NumClusterIdWriter->Values[Builder->Graph->Nodes[Edge.End].PointIndex] = ClusterId;
 			}
-			
+
 			Manager->Start<FWriteSubGraphEdges>(SubGraphIndex++, PointIO, Builder->Graph, SubGraph, MetadataSettings);
 		}
 
 		NumClusterIdWriter->Write();
-		
+
 		PointIO->Tags->Set(PCGExGraph::TagStr_ClusterPair, Builder->PairIdStr);
 		PCGEX_DELETE(NumClusterIdWriter)
-		
+
 		return true;
 	}
 
