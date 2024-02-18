@@ -87,7 +87,7 @@ bool FPCGExPackClustersElement::ExecuteInternal(
 			for (PCGExData::FPointIO* EdgeIO : Context->TaggedEdges->Entries)
 			{
 				EdgeIO->CreateInKeys();
-				PCGExData::FPointIO& PackedIO = Context->PackedClusters->Emplace_GetRef(*EdgeIO, PCGExData::EInit::DuplicateInput); // Pack from edges
+				PCGExData::FPointIO& PackedIO = Context->PackedClusters->Emplace_GetRef(); // Pack from edges
 				Context->GetAsyncManager()->Start<FPCGExPackClusterTask>(PackedIO.IOIndex, &PackedIO, Context->CurrentIO, EdgeIO);
 			}
 
@@ -113,6 +113,7 @@ bool FPCGExPackClusterTask::ExecuteTask()
 {
 	FPCGExPackClustersContext* Context = Manager->GetContext<FPCGExPackClustersContext>();
 
+	const int32 VtxStartIndex = InEdges->GetNum();
 	TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
 
 	PCGEx::TFAttributeReader<int32>* StartIndexReader = new PCGEx::TFAttributeReader<int32>(PCGExGraph::Tag_EdgeStart);
@@ -124,9 +125,12 @@ bool FPCGExPackClusterTask::ExecuteTask()
 
 	TArray<int32> SourceVtx;
 	SourceVtx.Reserve(NumEdges * 2);
-
+	MutablePoints.SetNum(NumEdges);
+	
 	for (int i = 0; i < NumEdges; i++)
 	{
+		MutablePoints[i] = InEdges->GetInPoint(i);
+		MutablePoints[i].MetadataEntry = PCGInvalidEntryKey;
 		SourceVtx.AddUnique(*Context->NodeIndicesMap.Find(StartIndexReader->Values[i]));
 		SourceVtx.AddUnique(*Context->NodeIndicesMap.Find(EndIndexReader->Values[i]));
 	}
@@ -134,17 +138,41 @@ bool FPCGExPackClusterTask::ExecuteTask()
 	PCGEX_DELETE(StartIndexReader)
 	PCGEX_DELETE(EndIndexReader)
 
-	const int32 VtxStartIndex = MutablePoints.Num();
-	MutablePoints.SetNum(VtxStartIndex + SourceVtx.Num());
+	MutablePoints.SetNum(NumEdges + SourceVtx.Num());
+	PointIO->CreateOutKeys();
+	
+	PCGEx::FAttributesInfos* EdgeAttInfos = PCGEx::FAttributesInfos::Get(InEdges->GetIn());
+
+	for (const PCGEx::FAttributeIdentity& Identity : EdgeAttInfos->Identities)
+	{
+		PCGMetadataAttribute::CallbackWithRightType(
+			static_cast<uint16>(Identity.UnderlyingType),
+			[&](auto DummyValue) -> void
+			{
+				using T = decltype(DummyValue);
+				TArray<T> RawValues;
+
+				const FPCGMetadataAttribute<T>* Source = InEdges->GetIn()->Metadata->GetConstTypedAttribute<T>(Identity.Name);
+				PCGEx::TFAttributeWriter<T>* Writer = new PCGEx::TFAttributeWriter<T>(Identity.Name, Source->GetValueFromItemKey(PCGInvalidEntryKey), Source->AllowsInterpolation());
+				Writer->BindAndGet(*PointIO);
+
+				for (int i = 0; i < NumEdges; i++) { Writer->Values[i] = Source->GetValueFromItemKey(InEdges->GetInPoint(i).MetadataEntry); }
+
+				Writer->Write();
+				PCGEX_DELETE(Writer)
+			});
+	}
+
+	PCGEX_DELETE(EdgeAttInfos)
 
 	for (int i = 0; i < SourceVtx.Num(); i++)
 	{
-		int32 WriteIndex = VtxStartIndex + i;
+		const int32 WriteIndex = VtxStartIndex + i;
+		const PCGMetadataEntryKey Key = MutablePoints[WriteIndex].MetadataEntry;
 
-		FPCGPoint OriginalVtx = InVtx->GetInPoint(SourceVtx[i]);
-		FPCGPoint PackedVtx = MutablePoints[WriteIndex] = OriginalVtx;
-		PackedVtx.MetadataEntry = PCGInvalidEntryKey;
-		PointIO->GetOut()->Metadata->InitializeOnSet(PackedVtx.MetadataEntry);
+		const FPCGPoint& OriginalVtx = InVtx->GetInPoint(SourceVtx[i]);
+		FPCGPoint& PackedVtx = MutablePoints[WriteIndex] = OriginalVtx;
+		PackedVtx.MetadataEntry = Key;
 	}
 
 	for (const PCGEx::FAttributeIdentity& Identity : Context->VtxAttributes->Identities)

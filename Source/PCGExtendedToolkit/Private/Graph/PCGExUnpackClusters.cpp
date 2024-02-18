@@ -87,7 +87,6 @@ bool FPCGExUnpackClustersElement::ExecuteInternal(
 		{
 			PCGExData::FPointIO& PackedIO = *Context->CurrentIO;
 
-			//TODO: Read info from attributes
 			const FPCGMetadataAttribute<int32>* EdgeCount = PackedIO.GetIn()->Metadata->GetConstTypedAttribute<int32>(PCGExGraph::Tag_PackedClusterEdgeCount);
 			if (!EdgeCount)
 			{
@@ -105,22 +104,24 @@ bool FPCGExUnpackClustersElement::ExecuteInternal(
 			}
 
 			PCGExData::FPointIO& NewEdges = Context->OutEdges->Emplace_GetRef(PackedIO, PCGExData::EInit::DuplicateInput);
-			TArray<FPCGPoint>& MutablePoints = NewEdges.GetOut()->GetMutablePoints();
-			MutablePoints.RemoveAt(NumEdges, NumVtx);
+			TArray<FPCGPoint> MutableEdgePoints = NewEdges.GetOut()->GetMutablePoints();
+			MutableEdgePoints.RemoveAt(NumEdges, NumVtx);
+			NewEdges.GetOut()->SetPoints(MutableEdgePoints);
 			UPCGMetadata* Metadata = NewEdges.GetOut()->Metadata;
 			Metadata->DeleteAttribute(PCGExGraph::Tag_PackedClusterEdgeCount);
 			Metadata->DeleteAttribute(PCGExGraph::Tag_PackedClusterPointCount);
 			Metadata->DeleteAttribute(PCGExGraph::Tag_EdgesNum);
+			Metadata->DeleteAttribute(PCGExGraph::Tag_EdgeIndex);
 
 			PCGExData::FPointIO& NewVtx = Context->OutPoints->Emplace_GetRef(PackedIO, PCGExData::EInit::DuplicateInput);
-			MutablePoints = NewVtx.GetOut()->GetMutablePoints();
-			MutablePoints.RemoveAt(0, NumEdges);
+			TArray<FPCGPoint> MutableVtxPoints = NewVtx.GetOut()->GetMutablePoints();
+			MutableVtxPoints.RemoveAt(0, NumEdges);
+			NewVtx.GetOut()->SetPoints(MutableVtxPoints);
 			Metadata = NewVtx.GetOut()->Metadata;
 			Metadata->DeleteAttribute(PCGExGraph::Tag_PackedClusterEdgeCount);
 			Metadata->DeleteAttribute(PCGExGraph::Tag_PackedClusterPointCount);
 			Metadata->DeleteAttribute(PCGExGraph::Tag_EdgeStart);
 			Metadata->DeleteAttribute(PCGExGraph::Tag_EdgeEnd);
-			Metadata->DeleteAttribute(PCGExGraph::Tag_EdgeIndex);
 
 			FString OutPairId;
 			PackedIO.Tags->GetValue(PCGExGraph::TagStr_ClusterPair, OutPairId);
