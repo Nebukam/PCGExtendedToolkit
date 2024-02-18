@@ -417,7 +417,7 @@ namespace PCGExGraph
 
 			FIndexedEdge& SplitEdge = Graph->Edges[PointEdgeProxy.EdgeIndex];
 			SplitEdge.bValid = false; // Invalidate existing edge
-			PointEdgeProxy.CollinearPoints.Sort([](const FPESplit& A, const FPESplit& B) { return A.Time < B.Time; });
+			PointEdgeProxy.CollinearPoints.Sort([](const FPESplit& A, const FPESplit& B) { return A.Time<B.Time; });
 
 			const int32 FirstIndex = SplitEdge.Start;
 			const int32 LastIndex = SplitEdge.End;
@@ -802,7 +802,7 @@ namespace PCGExGraphTask
 
 		PCGEx::TFAttributeWriter<int32>* IndexWriter = new PCGEx::TFAttributeWriter<int32>(PCGExGraph::Tag_EdgeIndex, -1, false);
 		PCGEx::TFAttributeWriter<int32>* NumEdgesWriter = new PCGEx::TFAttributeWriter<int32>(PCGExGraph::Tag_EdgesNum, 0, false);
-
+				
 		IndexWriter->BindAndGet(*PointIO);
 		NumEdgesWriter->BindAndGet(*PointIO);
 
@@ -840,6 +840,9 @@ Writer->BindAndGet(*PointIO);\
 
 		Builder->bCompiledSuccessfully = true;
 
+		PCGEx::TFAttributeWriter<int64>* NumClusterIdWriter = new PCGEx::TFAttributeWriter<int64>(PCGExGraph::Tag_ClusterId, -1, false);
+		NumClusterIdWriter->BindAndGet(*PointIO);
+		
 		int32 SubGraphIndex = 0;
 		for (PCGExGraph::FSubGraph* SubGraph : Builder->Graph->SubGraphs)
 		{
@@ -855,16 +858,31 @@ Writer->BindAndGet(*PointIO);\
 				EdgeIO = &Builder->EdgesIO->Emplace_GetRef(PCGExData::EInit::NewOutput);
 			}
 
+			const int64 ClusterId = EdgeIO->GetOut()->UID;
 			SubGraph->PointIO = EdgeIO;
-			EdgeIO->Tags->Set(PCGExGraph::Tag_Cluster, Builder->EdgeTagValue);
+			
+			EdgeIO->Tags->Set(PCGExGraph::TagStr_ClusterPair, Builder->PairIdStr);
+			PCGExData::WriteMark(EdgeIO->GetOut()->Metadata, PCGExGraph::Tag_ClusterId, ClusterId);
 
+			for(const int32 EdgeIndex : SubGraph->Edges)
+			{
+				PCGExGraph::FIndexedEdge& Edge = Builder->Graph->Edges[EdgeIndex];
+				NumClusterIdWriter->Values[Builder->Graph->Nodes[Edge.Start].PointIndex] = ClusterId;
+				NumClusterIdWriter->Values[Builder->Graph->Nodes[Edge.End].PointIndex] = ClusterId;
+			}
+			
 			Manager->Start<FWriteSubGraphEdges>(SubGraphIndex++, PointIO, Builder->Graph, SubGraph, MetadataSettings);
 		}
 
+		NumClusterIdWriter->Write();
+		
+		PointIO->Tags->Set(PCGExGraph::TagStr_ClusterPair, Builder->PairIdStr);
+		PCGEX_DELETE(NumClusterIdWriter)
+		
 		return true;
 	}
 
-	bool FBuildCompoundGraphFromPoints::ExecuteTask()
+	bool FCompoundGraphInsertPoints::ExecuteTask()
 	{
 		PointIO->CreateInKeys();
 
@@ -892,7 +910,7 @@ Writer->BindAndGet(*PointIO);\
 		return true;
 	}
 
-	bool FBuildCompoundGraphFromEdges::ExecuteTask()
+	bool FCompoundGraphInsertEdges::ExecuteTask()
 	{
 		TArray<PCGExGraph::FIndexedEdge> IndexedEdges;
 		if (!BuildIndexedEdges(*EdgeIO, *NodeIndicesMap, IndexedEdges, true) ||

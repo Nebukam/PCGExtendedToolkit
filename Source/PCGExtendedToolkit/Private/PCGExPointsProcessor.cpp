@@ -253,7 +253,7 @@ bool UPCGExPointsProcessorSettings::GetMainAcceptMultipleData() const { return t
 
 PCGExData::EInit UPCGExPointsProcessorSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NewOutput; }
 
-int32 UPCGExPointsProcessorSettings::GetPreferredChunkSize() const { return 256; }
+int32 UPCGExPointsProcessorSettings::GetPreferredChunkSize() const { return PCGExMT::GAsyncLoop_M; }
 
 FPCGExPointsProcessorContext::~FPCGExPointsProcessorContext()
 {

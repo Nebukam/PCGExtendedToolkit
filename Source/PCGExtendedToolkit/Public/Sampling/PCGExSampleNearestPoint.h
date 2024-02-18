@@ -8,6 +8,7 @@
 #include "PCGExPointsProcessor.h"
 #include "PCGExSampling.h"
 #include "PCGExSettings.h"
+#include "Data/Blending/PCGExDataBlending.h"
 
 #include "PCGExSampleNearestPoint.generated.h"
 
@@ -147,6 +148,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta=(PCG_Overridable))
 	TSoftObjectPtr<UCurveFloat> WeightOverDistance;
 
+	/** Attribute to sample from the targets */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Attributes", meta=(PCG_Overridable))
+	TMap<FName, EPCGExDataBlendingType> TargetAttributes;
+	
 	/** Write whether the sampling was sucessful or not to a boolean attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteSuccess = false;
@@ -239,6 +244,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestPointContext : public FPCGExPoi
 
 	EPCGExSampleMethod SampleMethod = EPCGExSampleMethod::WithinRange;
 	EPCGExRangeType WeightMethod = EPCGExRangeType::FullRange;
+
+	TArray<PCGExDataBlending::FDataBlendingOperationBase*> BlendOps;
 
 	double RangeMin = 0;
 	double RangeMax = 1000;

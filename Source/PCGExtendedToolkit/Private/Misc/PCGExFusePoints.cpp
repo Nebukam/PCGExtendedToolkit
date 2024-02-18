@@ -67,7 +67,7 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 		{
 			// Fuse points into compound graph
 			Context->CompoundGraph = new PCGExGraph::FCompoundGraph(Context->PointPointIntersectionSettings.FuseSettings);
-			Context->GetAsyncManager()->Start<PCGExGraphTask::FBuildCompoundGraphFromPoints>(
+			Context->GetAsyncManager()->Start<PCGExGraphTask::FCompoundGraphInsertPoints>(
 				Context->CurrentIO->IOIndex, Context->CurrentIO, Context->CompoundGraph);
 
 			Context->SetAsyncState(PCGExMT::State_ProcessingPoints);

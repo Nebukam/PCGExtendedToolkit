@@ -6,7 +6,7 @@
 
 #define LOCTEXT_NAMESPACE "PCGExConsolidateCustomGraph"
 
-int32 UPCGExConsolidateCustomGraphSettings::GetPreferredChunkSize() const { return 32; }
+int32 UPCGExConsolidateCustomGraphSettings::GetPreferredChunkSize() const { return PCGExMT::GAsyncLoop_L; }
 
 PCGExData::EInit UPCGExConsolidateCustomGraphSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 

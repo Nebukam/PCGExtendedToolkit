@@ -46,6 +46,9 @@ namespace PCGExGraph
 {
 	const FName SourceEdgesLabel = TEXT("Edges");
 	const FName OutputEdgesLabel = TEXT("Edges");
+	
+	const FName SourcePackedClustersLabel = TEXT("Packed Clusters");
+	const FName OutputPackedClustersLabel = TEXT("Packed Clusters");
 
 	const FName Tag_EdgeStart = TEXT("PCGEx/EdgeStart");
 	const FName Tag_EdgeEnd = TEXT("PCGEx/EdgeEnd");
@@ -53,7 +56,9 @@ namespace PCGExGraph
 	const FName Tag_EdgesNum = TEXT("PCGEx/CachedEdgeNum");
 	const FName Tag_ClusterIndex = TEXT("PCGEx/ClusterIndex");
 
-	const FString Tag_Cluster = FString(TEXT("PCGEx/Cluster"));
+	const FName Tag_ClusterPair = TEXT("PCGEx/ClusterPair");
+	const FString TagStr_ClusterPair = Tag_ClusterPair.ToString();
+	const FName Tag_ClusterId = TEXT("PCGEx/ClusterId");
 
 	constexpr PCGExMT::AsyncState State_ReadyForNextEdges = __COUNTER__;
 	constexpr PCGExMT::AsyncState State_ProcessingEdges = __COUNTER__;

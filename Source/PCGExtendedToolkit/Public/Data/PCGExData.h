@@ -124,6 +124,13 @@ namespace PCGExData
 		return TryReadMark(PointIO.GetIn() ? PointIO.GetIn()->Metadata : PointIO.GetOut()->Metadata, MarkID, OutMark);
 	}
 
+	static void WriteId(const FPointIO& PointIO, const FName IdName, const int64 Id)
+	{
+		FString OutId;
+		PointIO.Tags->Set(IdName.ToString(), Id, OutId);
+		if (PointIO.GetOut()) { PCGExData::WriteMark(PointIO.GetOut()->Metadata, IdName, Id); }
+	}
+
 	static UPCGPointData* GetMutablePointData(FPCGContext* Context, const FPCGTaggedData& Source)
 	{
 		const UPCGSpatialData* SpatialData = Cast<UPCGSpatialData>(Source.Data);

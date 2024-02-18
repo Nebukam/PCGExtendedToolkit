@@ -355,6 +355,28 @@ namespace PCGExMath
 
 #pragma endregion
 
+#pragma region Add
+
+	template <typename T, typename CompilerSafety = void>
+	static T WeightedAdd(const T& A, const T& B, const double Weight = 1) { return A + B * Weight; } // Default, unhandled behavior.
+
+	template <typename CompilerSafety = void>
+	static FTransform WeightedAdd(const FTransform& A, const FTransform& B, const double Weight)
+	{
+		return FTransform(
+			WeightedAdd(A.GetRotation(), B.GetRotation(), Weight),
+			WeightedAdd(A.GetLocation(), B.GetLocation(), Weight),
+			WeightedAdd(A.GetScale3D(), B.GetScale3D(), Weight));
+	}
+
+#define PCGEX_UNSUPPORTED_WEIGHTED_ADD(_TYPE) template <typename CompilerSafety = void> static _TYPE WeightedAdd(const _TYPE& A, const _TYPE& B, const double Weight) { return A; }
+	PCGEX_UNSUPPORTED_STRING_TYPES(PCGEX_UNSUPPORTED_WEIGHTED_ADD)
+	PCGEX_UNSUPPORTED_WEIGHTED_ADD(bool)
+#undef PCGEX_UNSUPPORTED_WEIGHTED_ADD
+
+#pragma endregion
+
+
 #pragma region Sub
 
 	template <typename T, typename CompilerSafety = void>

@@ -23,7 +23,6 @@ public:
 	PCGEX_NODE_INFOS(ApplySocketStates, "Custom Graph : Apply States", "Applies socket states and attributes. Basically a glorified if/else to streamline identification of user-defined conditions within a graph.");
 #endif
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
-	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
@@ -38,37 +37,32 @@ public:
 
 public:
 	/** Write the name of the state to an attribute */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bWriteStateName = true;
 	
 	/** Name of the attribute to write state name to */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="bWriteStateName"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bWriteStateName"))
 	FName StateNameAttributeName = "State";
 
 	/** Name of the state to write if no conditions are met */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="bWriteStateName && !bMarkStatelessPoints"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bWriteStateName"))
 	FName StatelessName = "None";
 
 	
 	/** Write the value of the state to an attribute */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bWriteStateValue = true;
 	
 	/** Name of the attribute to write state name to */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="bWriteStateValue"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bWriteStateValue"))
 	FName StateValueAttributeName = "StateId";
 
 	/** Name of the state to write if no conditions are met */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="bWriteStateValue && !bMarkStatelessPoints"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bWriteStateValue"))
 	int32 StatelessValue = -1;
-
-	
-	/** Remove stateless points from the output */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="!bMarkStatelessPoints"))
-	bool bPruneStatelessPoints = true;
 	
 	/** Cleanup graph socket data from output points */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bDeleteCustomGraphData = false;
 
 private:
@@ -84,6 +78,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExApplySocketStatesContext : public FPCGExCust
 	TArray<TObjectPtr<UPCGExSocketStateDefinition>> StateDefinitions;
 	TArray<PCGExGraph::FSingleStateMapping*> StateMappings;
 	TArray<TArray<bool>*> States;
+
+	PCGEx::TFAttributeWriter<FName>* StateNameWriter = nullptr;
+	PCGEx::TFAttributeWriter<int32>* StateValueWriter = nullptr;
 	
 };
 

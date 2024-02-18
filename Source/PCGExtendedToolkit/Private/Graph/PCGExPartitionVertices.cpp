@@ -61,9 +61,9 @@ bool FPCGExPartitionVerticesElement::ExecuteInternal(FPCGContext* InContext) con
 				PCGExData::FPointIO& PointPartitionIO = Context->VtxPartitions->Emplace_GetRef(*Context->CurrentIO, PCGExData::EInit::NewOutput);
 				PCGExData::FPointIO* EdgeIO = Context->TaggedEdges->Entries[i];
 
-				FString ClusterID;
-				PointPartitionIO.Tags->Set(PCGExGraph::Tag_Cluster, PointPartitionIO.GetOut()->UID, ClusterID);
-				EdgeIO->Tags->Set(PCGExGraph::Tag_Cluster, ClusterID);
+				FString OutId;
+				PointPartitionIO.Tags->Set(PCGExGraph::TagStr_ClusterPair, PointPartitionIO.GetOut()->UID, OutId);
+				EdgeIO->Tags->Set(PCGExGraph::TagStr_ClusterPair, OutId);
 
 				EdgeIO->CreateInKeys();
 				Context->GetAsyncManager()->Start<FPCGExCreateVtxPartitionTask>(i, &PointPartitionIO, EdgeIO, &Context->NodeIndicesMap);

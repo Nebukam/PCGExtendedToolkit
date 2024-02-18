@@ -12,6 +12,7 @@ namespace PCGExDataBlending
 	class PCGEXTENDEDTOOLKIT_API FDataBlendingAverage final : public FDataBlendingOperation<T>
 	{
 	public:
+		virtual bool GetIsInterpolation() const override { return true; }
 		virtual bool GetRequiresPreparation() const override { return true; }
 		virtual bool GetRequiresFinalization() const override { return true; }
 
@@ -31,11 +32,24 @@ namespace PCGExDataBlending
 	class PCGEXTENDEDTOOLKIT_API FDataBlendingSum final : public FDataBlendingOperation<T>
 	{
 	public:
+		virtual bool GetIsInterpolation() const override { return true; }
 		virtual bool GetRequiresPreparation() const override { return true; }
 		virtual bool GetRequiresFinalization() const override { return false; }
 
 		virtual void SinglePrepare(T& A) const override { A = this->Writer->GetDefaultValue(); }
 		virtual T SingleOperation(T A, T B, double Alpha) const override { return PCGExMath::Add(A, B); }
+	};
+
+	template <typename T>
+	class PCGEXTENDEDTOOLKIT_API FDataBlendingWeightedSum final : public FDataBlendingOperation<T>
+	{
+	public:
+		virtual bool GetIsInterpolation() const override { return true; }
+		virtual bool GetRequiresPreparation() const override { return true; }
+		virtual bool GetRequiresFinalization() const override { return false; }
+
+		virtual void SinglePrepare(T& A) const override { A = this->Writer->GetDefaultValue(); }
+		virtual T SingleOperation(T A, T B, double Alpha) const override { return PCGExMath::WeightedAdd(A, B, Alpha); }
 	};
 
 	template <typename T>
@@ -56,6 +70,7 @@ namespace PCGExDataBlending
 	class PCGEXTENDEDTOOLKIT_API FDataBlendingWeight final : public FDataBlendingOperation<T>
 	{
 	public:
+		virtual bool GetIsInterpolation() const override { return true; }
 		virtual T SingleOperation(T A, T B, double Alpha) const override { return PCGExMath::Lerp(A, B, Alpha); }
 	};
 
@@ -63,6 +78,6 @@ namespace PCGExDataBlending
 	class PCGEXTENDEDTOOLKIT_API FDataBlendingNone final : public FDataBlendingOperation<T>
 	{
 	public:
-		virtual T SingleOperation(T A, T B, double Alpha) const override { return B; }
+		virtual T SingleOperation(T A, T B, double Alpha) const override { return A; }
 	};
 }

@@ -8,25 +8,9 @@
 #define LOCTEXT_NAMESPACE "PCGExGraph"
 #define PCGEX_NAMESPACE ApplySocketStates
 
-int32 UPCGExApplySocketStatesSettings::GetPreferredChunkSize() const { return 32; }
+int32 UPCGExApplySocketStatesSettings::GetPreferredChunkSize() const { return PCGExMT::GAsyncLoop_M; }
 
-PCGExData::EInit UPCGExApplySocketStatesSettings::GetMainOutputInitMode() const { return bPruneStatelessPoints ? PCGExData::EInit::NewOutput : PCGExData::EInit::DuplicateInput; }
-
-FPCGExApplySocketStatesContext::~FPCGExApplySocketStatesContext()
-{
-	PCGEX_TERMINATE_ASYNC
-
-	StateDefinitions.Empty();
-	PCGEX_DELETE_TARRAY(StateMappings)
-
-	for (TArray<bool>* Array : States)
-	{
-		Array->Empty();
-		delete Array;
-	}
-
-	States.Empty();
-}
+PCGExData::EInit UPCGExApplySocketStatesSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
 TArray<FPCGPinProperties> UPCGExApplySocketStatesSettings::InputPinProperties() const
 {
@@ -40,21 +24,28 @@ TArray<FPCGPinProperties> UPCGExApplySocketStatesSettings::InputPinProperties() 
 	return PinProperties;
 }
 
-TArray<FPCGPinProperties> UPCGExApplySocketStatesSettings::OutputPinProperties() const
+FName UPCGExApplySocketStatesSettings::GetMainOutputLabel() const { return PCGExGraph::OutputVerticesLabel; }
+
+
+FPCGExApplySocketStatesContext::~FPCGExApplySocketStatesContext()
 {
-	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
-	PinProperties.Pop(); //Remove graph output
-	FPCGPinProperties& PinClustersOutput = PinProperties.Emplace_GetRef(PCGExGraph::OutputEdgesLabel, EPCGDataType::Point);
+	PCGEX_TERMINATE_ASYNC
 
-#if WITH_EDITOR
-	PinClustersOutput.Tooltip = FTEXT("Point data representing edges.");
-#endif
+	PCGEX_DELETE(StateNameWriter)
+	PCGEX_DELETE(StateValueWriter)
 
+	StateDefinitions.Empty();
+	PCGEX_DELETE_TARRAY(StateMappings)
 
-	return PinProperties;
+	for (TArray<bool>* Array : States)
+	{
+		Array->Empty();
+		delete Array;
+	}
+
+	States.Empty();
 }
 
-FName UPCGExApplySocketStatesSettings::GetMainOutputLabel() const { return PCGExGraph::OutputVerticesLabel; }
 
 PCGEX_INITIALIZE_ELEMENT(ApplySocketStates)
 
@@ -73,7 +64,11 @@ bool FPCGExApplySocketStatesElement::Boot(FPCGContext* InContext) const
 	{
 		if (TObjectPtr<UPCGExSocketStateDefinition> State = Cast<UPCGExSocketStateDefinition>(InputState.Data))
 		{
-			//
+			if (State->Conditions.IsEmpty())
+			{
+				PCGE_LOG(Warning, GraphAndLog, FText::Format(FTEXT("State '{0}' has no conditions and will be ignored."), FText::FromName(State->StateName)));
+				continue;
+			}
 			Context->States.Add(new TArray<bool>());
 			Context->StateDefinitions.Add(State);
 		}
@@ -81,7 +76,7 @@ bool FPCGExApplySocketStatesElement::Boot(FPCGContext* InContext) const
 
 	if (Context->StateDefinitions.IsEmpty())
 	{
-		PCGE_LOG(Error, GraphAndLog, FTEXT("Missing socket states."));
+		PCGE_LOG(Error, GraphAndLog, FTEXT("Missing valid socket states."));
 		return false;
 	}
 
@@ -120,7 +115,7 @@ bool FPCGExApplySocketStatesElement::ExecuteInternal(
 	{
 		PCGEX_DELETE_TARRAY(Context->StateMappings)
 
-		if (!Context->AdvanceGraph()) { Context->SetState(PCGExGraph::State_WritingClusters); }
+		if (!Context->AdvanceGraph()) { Context->SetState(PCGExMT::State_ReadyForNextPoints); }
 		else
 		{
 			Context->CurrentIO->CreateInKeys();
@@ -156,13 +151,13 @@ bool FPCGExApplySocketStatesElement::ExecuteInternal(
 				PCGE_LOG(Warning, GraphAndLog, FText::Format(FTEXT("Some required state data is missing from '{0}'. Results may be incorrect."), FText::FromName(Context->CurrentGraph->GraphIdentifier)));
 			}
 
-			Context->SetState(PCGExGraph::State_BuildCustomGraph);
+			Context->SetState(PCGExGraph::State_ProcessingGraph);
 		}
 	}
 
 	// -> Process current points with current graph
 
-	if (Context->IsState(PCGExGraph::State_BuildCustomGraph))
+	if (Context->IsState(PCGExGraph::State_ProcessingGraph))
 	{
 		const TArray<FPCGPoint>& InPoints = Context->CurrentIO->GetIn()->GetPoints();
 		const int32 NumMappings = Context->StateMappings.Num();
@@ -183,7 +178,7 @@ bool FPCGExApplySocketStatesElement::ExecuteInternal(
 					if (!Attribute) { continue; }
 
 					int32 EdgeValue = Attribute->GetValueFromItemKey(Key);
-					const FPCGExSocketConditionDescriptor& Condition = Mapping->Definition->Conditions[i];
+					const FPCGExSocketConditionDescriptor& Condition = Mapping->Definition->Conditions[j];
 
 					// TODO : Check if condition is met 
 				}
@@ -197,12 +192,12 @@ bool FPCGExApplySocketStatesElement::ExecuteInternal(
 		Context->SetState(PCGExMT::State_ProcessingPoints);
 	}
 
-	if(Context->IsState(PCGExMT::State_ProcessingPoints))
+	if (Context->IsState(PCGExMT::State_ProcessingPoints))
 	{
 		// TODO : Apply & write states
-		Context->SetState(PCGExMT::State_ReadyForNextPoints);		
+		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
-	
+
 	if (Context->IsDone())
 	{
 		if (Settings->bDeleteCustomGraphData)

@@ -15,8 +15,6 @@ namespace PCGExGeoTask
 	class FLloydRelax2;
 }
 
-int32 UPCGExBuildDelaunayGraph2DSettings::GetPreferredChunkSize() const { return 32; }
-
 PCGExData::EInit UPCGExBuildDelaunayGraph2DSettings::GetMainOutputInitMode() const { return bMarkHull ? PCGExData::EInit::DuplicateInput : PCGExData::EInit::Forward; }
 
 FPCGExBuildDelaunayGraph2DContext::~FPCGExBuildDelaunayGraph2DContext()

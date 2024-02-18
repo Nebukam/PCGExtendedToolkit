@@ -99,7 +99,7 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 		// Insert current edges into loose graph
 		// Note that since we're building from edges only, this skips isolated points altogether
 
-		Context->GetAsyncManager()->Start<PCGExGraphTask::FBuildCompoundGraphFromEdges>(
+		Context->GetAsyncManager()->Start<PCGExGraphTask::FCompoundGraphInsertEdges>(
 			Context->CurrentIO->IOIndex, Context->CurrentIO,
 			Context->CompoundGraph, Context->CurrentEdges, &Context->NodeIndicesMap);
 

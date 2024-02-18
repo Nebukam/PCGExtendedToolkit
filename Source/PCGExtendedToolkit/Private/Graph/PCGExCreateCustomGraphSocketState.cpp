@@ -94,6 +94,12 @@ bool FPCGExCreateCustomGraphSocketStateElement::ExecuteInternal(
 		OutState->Conditions.Add(Descriptor);
 	}
 
+	if(OutState->Conditions.IsEmpty())
+	{
+		OutState->ConditionalBeginDestroy();
+		return true;
+	}
+
 	FPCGTaggedData& Output = Outputs.Emplace_GetRef();
 	Output.Data = OutState;
 	Output.Pin = PCGExGraph::OutputSocketStateLabel;

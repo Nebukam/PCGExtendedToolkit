@@ -8,7 +8,7 @@
 
 PCGExData::EInit UPCGExSampleNearestSurfaceSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
-int32 UPCGExSampleNearestSurfaceSettings::GetPreferredChunkSize() const { return 32; }
+int32 UPCGExSampleNearestSurfaceSettings::GetPreferredChunkSize() const { return PCGExMT::GAsyncLoop_L; }
 
 PCGEX_INITIALIZE_ELEMENT(SampleNearestSurface)
 

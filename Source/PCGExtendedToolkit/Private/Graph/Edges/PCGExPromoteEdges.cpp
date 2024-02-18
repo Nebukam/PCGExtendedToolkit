@@ -9,7 +9,7 @@
 #define LOCTEXT_NAMESPACE "PCGExEdgesToPaths"
 #define PCGEX_NAMESPACE PromoteEdges
 
-int32 UPCGExPromoteEdgesSettings::GetPreferredChunkSize() const { return 32; }
+int32 UPCGExPromoteEdgesSettings::GetPreferredChunkSize() const { return PCGExMT::GAsyncLoop_XS; }
 
 PCGExData::EInit UPCGExPromoteEdgesSettings::GetMainOutputInitMode() const
 {

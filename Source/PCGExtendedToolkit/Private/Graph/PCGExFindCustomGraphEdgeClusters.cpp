@@ -8,7 +8,7 @@
 #define LOCTEXT_NAMESPACE "PCGExGraph"
 #define PCGEX_NAMESPACE FindCustomGraphEdgeClusters
 
-int32 UPCGExFindCustomGraphEdgeClustersSettings::GetPreferredChunkSize() const { return 32; }
+int32 UPCGExFindCustomGraphEdgeClustersSettings::GetPreferredChunkSize() const { return PCGExMT::GAsyncLoop_M; }
 
 PCGExData::EInit UPCGExFindCustomGraphEdgeClustersSettings::GetMainOutputInitMode() const { return GraphBuilderSettings.bPruneIsolatedPoints ? PCGExData::EInit::NewOutput : PCGExData::EInit::DuplicateInput; }
 

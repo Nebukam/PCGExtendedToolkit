@@ -105,7 +105,7 @@ namespace PCGExGraph
 	const FName SourceSocketOverrideParamsLabel = TEXT("Ctrl Socket");
 	const FName SourceSocketParamsLabel = TEXT("Sockets");
 	const FName OutputSocketParamsLabel = TEXT("Socket");
-	
+
 	const FName SourceSocketStateLabel = TEXT("SocketStates");
 	const FName SourceIfAttributesLabel = TEXT("If");
 	const FName SourceElseAttributesLabel = TEXT("Else");
@@ -122,6 +122,9 @@ namespace PCGExGraph
 
 	const FName SourcePathsLabel = TEXT("Paths");
 	const FName OutputPathsLabel = TEXT("Paths");
+
+	const FName Tag_PackedClusterPointCount = TEXT("PCGEx/PackedClusterPointCount");
+	const FName Tag_PackedClusterEdgeCount = TEXT("PCGEx/PackedClusterEdgeCount");
 
 	constexpr PCGExMT::AsyncState State_ReadyForNextGraph = __COUNTER__;
 	constexpr PCGExMT::AsyncState State_ProcessingGraph = __COUNTER__;
@@ -381,7 +384,8 @@ namespace PCGExGraph
 		FPCGExGraphBuilderSettings* OutputSettings = nullptr;
 
 		bool bPrunePoints = false;
-		FString EdgeTagValue;
+		int64 PairId;
+		FString PairIdStr;
 
 		PCGExData::FPointIO* PointIO = nullptr;
 
@@ -396,7 +400,8 @@ namespace PCGExGraph
 			: OutputSettings(InSettings), SourceEdgesIO(InSourceEdges)
 		{
 			PointIO = &InPointIO;
-			PointIO->Tags->Set(Tag_Cluster, PointIO->GetOutIn()->UID, EdgeTagValue);
+			PairId = PointIO->GetOutIn()->UID;
+			PointIO->Tags->Set(PCGExGraph::TagStr_ClusterPair, PairId, PairIdStr);
 
 			const int32 NumNodes = PointIO->GetOutNum();
 
@@ -871,11 +876,11 @@ namespace PCGExGraphTask
 
 #pragma region Compound Graph tasks
 
-	class PCGEXTENDEDTOOLKIT_API FBuildCompoundGraphFromPoints : public FPCGExNonAbandonableTask
+	class PCGEXTENDEDTOOLKIT_API FCompoundGraphInsertPoints : public FPCGExNonAbandonableTask
 	{
 	public:
-		FBuildCompoundGraphFromPoints(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-		                              PCGExGraph::FCompoundGraph* InGraph)
+		FCompoundGraphInsertPoints(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+		                           PCGExGraph::FCompoundGraph* InGraph)
 			: FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
 			  Graph(InGraph)
 		{
@@ -886,13 +891,13 @@ namespace PCGExGraphTask
 		virtual bool ExecuteTask() override;
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FBuildCompoundGraphFromEdges : public FPCGExNonAbandonableTask
+	class PCGEXTENDEDTOOLKIT_API FCompoundGraphInsertEdges : public FPCGExNonAbandonableTask
 	{
 	public:
-		FBuildCompoundGraphFromEdges(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-		                             PCGExGraph::FCompoundGraph* InGraph,
-		                             PCGExData::FPointIO* InEdgeIO,
-		                             TMap<int32, int32>* InNodeIndicesMap)
+		FCompoundGraphInsertEdges(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+		                          PCGExGraph::FCompoundGraph* InGraph,
+		                          PCGExData::FPointIO* InEdgeIO,
+		                          TMap<int32, int32>* InNodeIndicesMap)
 			: FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
 			  Graph(InGraph),
 			  EdgeIO(InEdgeIO),

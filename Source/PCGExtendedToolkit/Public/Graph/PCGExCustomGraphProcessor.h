@@ -11,7 +11,7 @@
 
 class UPCGExGraphDefinition;
 
-#define PCGEX_GRAPH_MISSING_METADATA PCGE_LOG(Warning, GraphAndLog, FText::Format(FTEXT("An input is missing '{0}' graph metadata."), FText::FromName(Context->CurrentGraph->GraphIdentifier)));
+#define PCGEX_GRAPH_MISSING_METADATA PCGE_LOG(Warning, GraphAndLog, FText::Format(FTEXT("Metadata missing on '{0}' graph."), FText::FromName(Context->CurrentGraph->GraphIdentifier)));
 
 /**
  * A Base node to process a set of point using GraphParams.

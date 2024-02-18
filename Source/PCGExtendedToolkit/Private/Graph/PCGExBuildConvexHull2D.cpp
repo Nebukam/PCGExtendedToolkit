@@ -10,8 +10,6 @@
 #define LOCTEXT_NAMESPACE "PCGExGraph"
 #define PCGEX_NAMESPACE BuildConvexHull2D
 
-int32 UPCGExBuildConvexHull2DSettings::GetPreferredChunkSize() const { return 32; }
-
 PCGExData::EInit UPCGExBuildConvexHull2DSettings::GetMainOutputInitMode() const
 {
 	return bPrunePoints ? PCGExData::EInit::NewOutput : bMarkHull ? PCGExData::EInit::DuplicateInput : PCGExData::EInit::Forward;

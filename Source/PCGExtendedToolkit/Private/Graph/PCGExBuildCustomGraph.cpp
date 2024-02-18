@@ -10,7 +10,7 @@
 #define LOCTEXT_NAMESPACE "PCGExBuildCustomGraph"
 #define PCGEX_NAMESPACE BuildCustomGraph
 
-int32 UPCGExBuildCustomGraphSettings::GetPreferredChunkSize() const { return 32; }
+int32 UPCGExBuildCustomGraphSettings::GetPreferredChunkSize() const { return PCGExMT::GAsyncLoop_M; }
 PCGExData::EInit UPCGExBuildCustomGraphSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
 FPCGExBuildCustomGraphContext::~FPCGExBuildCustomGraphContext()
