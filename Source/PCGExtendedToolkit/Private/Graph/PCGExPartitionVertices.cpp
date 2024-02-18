@@ -90,13 +90,12 @@ bool FPCGExPartitionVerticesElement::ExecuteInternal(FPCGContext* InContext) con
 
 bool FPCGExCreateVtxPartitionTask::ExecuteTask()
 {
-
 	TArray<int32> ReducedVtxIndices;
 
 	int32 NumEdges = 0;
 	if (!PCGExGraph::GetReducedVtxIndices(*EdgeIO, NodeIndicesMap, ReducedVtxIndices, NumEdges)) { return false; }
 
-	const TArrayView<int32> View = MakeArrayView(ReducedVtxIndices);	
+	const TArrayView<int32> View = MakeArrayView(ReducedVtxIndices);
 	PCGEx::CopyPoints(*PointIO, *PointIO, View);
 	PointIO->GetOut()->Metadata->Flatten();
 

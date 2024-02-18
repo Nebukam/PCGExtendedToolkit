@@ -279,9 +279,8 @@ namespace PCGExGraph
 		{
 			FBoxCenterAndExtent Box = FBoxCenterAndExtent(Origin, FuseSettings.Tolerances);
 			Octree.FindFirstElementWithBoundsTest(
-				Box, [&](const FCompoundNodeRef& NodeRef)
+				Box, [&](const FCompoundNode* Node)
 				{
-					const FCompoundNode* Node = NodeRef.Node;
 					if (FuseSettings.IsWithinToleranceComponentWise(Point, Node->Point))
 					{
 						Index = Node->Index;
@@ -300,9 +299,8 @@ namespace PCGExGraph
 		{
 			FBoxCenterAndExtent Box = FBoxCenterAndExtent(Origin, FVector(FuseSettings.Tolerance));
 			Octree.FindFirstElementWithBoundsTest(
-				Box, [&](const FCompoundNodeRef& NodeRef)
+				Box, [&](const FCompoundNode* Node)
 				{
-					const FCompoundNode* Node = NodeRef.Node;
 					if (FuseSettings.IsWithinToleranceComponentWise(Point, Node->Point))
 					{
 						Index = Node->Index;
@@ -321,7 +319,7 @@ namespace PCGExGraph
 		FCompoundNode* NewNode = new FCompoundNode(Point, Origin, Nodes.Num());
 		Nodes.Add(NewNode);
 
-		Octree.AddElement(FCompoundNodeRef(NewNode));
+		Octree.AddElement(NewNode);
 		PointsCompounds->New()->Add(IOIndex, PointIndex);
 		return NewNode;
 	}

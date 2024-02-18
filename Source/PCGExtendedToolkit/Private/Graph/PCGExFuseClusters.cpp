@@ -18,7 +18,7 @@ PCGExData::EInit UPCGExFuseClustersSettings::GetEdgeOutputInitMode() const { ret
 FPCGExFuseClustersContext::~FPCGExFuseClustersContext()
 {
 	PCGEX_TERMINATE_ASYNC
-	
+
 	PCGEX_DELETE(CompoundGraph)
 	PCGEX_DELETE(GraphBuilder)
 	PCGEX_DELETE(PointEdgeIntersections)

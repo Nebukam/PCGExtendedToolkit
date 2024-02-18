@@ -401,7 +401,7 @@ namespace PCGExGraph
 		{
 			PointIO = &InPointIO;
 			PairId = PointIO->GetOutIn()->UID;
-			PointIO->Tags->Set(PCGExGraph::TagStr_ClusterPair, PairId, PairIdStr);
+			PointIO->Tags->Set(TagStr_ClusterPair, PairId, PairIdStr);
 
 			const int32 NumNodes = PointIO->GetOutNum();
 
@@ -457,6 +457,7 @@ namespace PCGExGraph
 	{
 		const FPCGPoint Point;
 		FVector Center;
+		FBoxSphereBounds Bounds;
 		int32 Index;
 
 		TArray<int32> Neighbors; // PointIO Index >> Edge Index
@@ -467,6 +468,7 @@ namespace PCGExGraph
 			  Index(InIndex)
 		{
 			Neighbors.Empty();
+			Bounds = FBoxSphereBounds(InPoint.GetLocalBounds().TransformBy(InPoint.Transform));
 		}
 
 		~FCompoundNode()
@@ -479,44 +481,32 @@ namespace PCGExGraph
 		FVector UpdateCenter(PCGExData::FIdxCompoundList* PointsCompounds, PCGExData::FPointIOGroup* IOGroup);
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FCompoundNodeRef
-	{
-		FCompoundNodeRef(const FCompoundNode* InNode)
-		{
-			Node = InNode;
-			Bounds = InNode->Point.GetDensityBounds();
-		}
-
-		const FCompoundNode* Node;
-		FBoxSphereBounds Bounds;
-	};
-
-	struct PCGEXTENDEDTOOLKIT_API FCompoundNodeRefSemantics
+	struct PCGEXTENDEDTOOLKIT_API FCompoundNodeSemantics
 	{
 		enum { MaxElementsPerLeaf = 16 };
 
 		enum { MinInclusiveElementsPerNode = 7 };
 
-		enum { MaxNodeDepth = 12 };
+		enum { MaxNodeDepth = 24 };
 
-		typedef TInlineAllocator<MaxElementsPerLeaf> ElementAllocator;
+		using ElementAllocator = TInlineAllocator<MaxElementsPerLeaf>;
 
-		FORCEINLINE static const FBoxSphereBounds& GetBoundingBox(const FCompoundNodeRef& InNode)
+		FORCEINLINE static const FBoxSphereBounds& GetBoundingBox(const FCompoundNode* InNode)
 		{
-			return InNode.Bounds;
+			return InNode->Bounds;
 		}
 
-		FORCEINLINE static const bool AreElementsEqual(const FCompoundNodeRef& A, const FCompoundNodeRef& B)
+		FORCEINLINE static const bool AreElementsEqual(const FCompoundNode* A, const FCompoundNode* B)
 		{
-			return A.Node->Index == B.Node->Index;
+			return A->Index == B->Index;
 		}
 
-		FORCEINLINE static void ApplyOffset(FCompoundNodeRef& InNode)
+		FORCEINLINE static void ApplyOffset(FCompoundNode& InNode)
 		{
 			ensureMsgf(false, TEXT("Not implemented"));
 		}
 
-		FORCEINLINE static void SetElementId(const FCompoundNodeRef& Element, FOctreeElementId2 OctreeElementID)
+		FORCEINLINE static void SetElementId(const FCompoundNode* Element, FOctreeElementId2 OctreeElementID)
 		{
 		}
 	};
@@ -529,7 +519,7 @@ namespace PCGExGraph
 		TMap<uint64, FIndexedEdge> Edges;
 		const FPCGExFuseSettings FuseSettings;
 
-		typedef TOctree2<FCompoundNodeRef, FCompoundNodeRefSemantics> NodeOctree;
+		using NodeOctree = TOctree2<FCompoundNode*, FCompoundNodeSemantics>;
 		mutable NodeOctree Octree;
 
 		explicit FCompoundGraph(const FPCGExFuseSettings& InFuseSettings)
@@ -804,8 +794,8 @@ namespace PCGExGraph
 
 	static bool GetReducedVtxIndices(PCGExData::FPointIO& InEdges, const TMap<int32, int32>* NodeIndicesMap, TArray<int32>& OutVtxIndices, int32& OutEdgeNum)
 	{
-		PCGEx::TFAttributeReader<int32>* StartIndexReader = new PCGEx::TFAttributeReader<int32>(PCGExGraph::Tag_EdgeStart);
-		PCGEx::TFAttributeReader<int32>* EndIndexReader = new PCGEx::TFAttributeReader<int32>(PCGExGraph::Tag_EdgeEnd);
+		PCGEx::TFAttributeReader<int32>* StartIndexReader = new PCGEx::TFAttributeReader<int32>(Tag_EdgeStart);
+		PCGEx::TFAttributeReader<int32>* EndIndexReader = new PCGEx::TFAttributeReader<int32>(Tag_EdgeEnd);
 		const bool bStart = StartIndexReader->Bind(InEdges);
 		const bool bEnd = EndIndexReader->Bind(InEdges);
 

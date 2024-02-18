@@ -46,7 +46,7 @@ bool FPCGExCopyClustersElement::ExecuteInternal(FPCGContext* InContext) const
 	{
 		FString OutId;
 		Context->CurrentIO->Tags->Set(PCGExGraph::TagStr_ClusterPair, Context->CurrentIO->GetOut()->UID, OutId);
-		
+
 		if (!Context->TaggedEdges) { continue; }
 
 		for (const PCGExData::FPointIO* Entry : Context->TaggedEdges->Entries) { Entry->Tags->Set(PCGExGraph::TagStr_ClusterPair, OutId); }
