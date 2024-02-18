@@ -161,20 +161,19 @@ bool FPCGExPathsToEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) c
 		TArray<PCGExGraph::FUnsignedEdge> UniqueEdges;
 		Context->CompoundGraph->GetUniqueEdges(UniqueEdges);
 		Context->CompoundGraph->WriteMetadata(Context->GraphBuilder->Graph->NodeMetadata);
-		PCGEX_DELETE(Context->CompoundGraph)
-
+		
 		Context->GraphBuilder->Graph->InsertEdges(UniqueEdges, -1); //TODO : valid IOIndex from CompoundGraph
 		UniqueEdges.Empty();
 
 		if (Settings->bDoPointEdgeIntersection)
 		{
-			Context->PointEdgeIntersections = new PCGExGraph::FPointEdgeIntersections(Context->GraphBuilder->Graph, Context->ConsolidatedPoints, Context->PointEdgeIntersectionSettings);
+			Context->PointEdgeIntersections = new PCGExGraph::FPointEdgeIntersections(Context->GraphBuilder->Graph, Context->CompoundGraph, Context->ConsolidatedPoints, Context->PointEdgeIntersectionSettings);
 			Context->PointEdgeIntersections->FindIntersections(Context);
 			Context->SetAsyncState(PCGExGraph::State_FindingPointEdgeIntersections);
 		}
 		else if (Settings->bDoEdgeEdgeIntersection)
 		{
-			Context->EdgeEdgeIntersections = new PCGExGraph::FEdgeEdgeIntersections(Context->GraphBuilder->Graph, Context->ConsolidatedPoints, Context->EdgeEdgeIntersectionSettings);
+			Context->EdgeEdgeIntersections = new PCGExGraph::FEdgeEdgeIntersections(Context->GraphBuilder->Graph, Context->CompoundGraph, Context->ConsolidatedPoints, Context->EdgeEdgeIntersectionSettings);
 			Context->EdgeEdgeIntersections->FindIntersections(Context);
 			Context->SetAsyncState(PCGExGraph::State_FindingEdgeEdgeIntersections);
 		}
@@ -193,7 +192,7 @@ bool FPCGExPathsToEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) c
 
 		if (Settings->bDoEdgeEdgeIntersection)
 		{
-			Context->EdgeEdgeIntersections = new PCGExGraph::FEdgeEdgeIntersections(Context->GraphBuilder->Graph, Context->ConsolidatedPoints, Context->EdgeEdgeIntersectionSettings);
+			Context->EdgeEdgeIntersections = new PCGExGraph::FEdgeEdgeIntersections(Context->GraphBuilder->Graph, Context->CompoundGraph, Context->ConsolidatedPoints, Context->EdgeEdgeIntersectionSettings);
 			Context->EdgeEdgeIntersections->FindIntersections(Context);
 			Context->SetAsyncState(PCGExGraph::State_FindingEdgeEdgeIntersections);
 		}

@@ -258,6 +258,19 @@ namespace PCGExGraph
 
 			return ParentIndex;
 		}
+
+		static FGraphEdgeMetadata* GetParentMeta(const int32 EdgeIndex, TMap<int32, FGraphEdgeMetadata*>& InMetadata)
+		{
+			FGraphEdgeMetadata** EdgeMetaPtr = InMetadata.Find(EdgeIndex);
+			FGraphEdgeMetadata* ParentEdge = nullptr;
+			while (EdgeMetaPtr)
+			{
+				ParentEdge = *EdgeMetaPtr;
+				EdgeMetaPtr = InMetadata.Find(ParentEdge->EdgeIndex);
+			}
+
+			return ParentEdge;
+		}
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FNode
@@ -487,7 +500,7 @@ namespace PCGExGraph
 
 		enum { MinInclusiveElementsPerNode = 7 };
 
-		enum { MaxNodeDepth = 24 };
+		enum { MaxNodeDepth = 12 };
 
 		using ElementAllocator = TInlineAllocator<MaxElementsPerLeaf>;
 
@@ -620,12 +633,14 @@ namespace PCGExGraph
 		mutable FRWLock InsertionLock;
 		PCGExData::FPointIO* PointIO = nullptr;
 		FGraph* Graph = nullptr;
+		FCompoundGraph* CompoundGraph = nullptr;
 
 		const FPCGExPointEdgeIntersectionSettings Settings;
 		TArray<FPointEdgeProxy> Edges;
 
 		FPointEdgeIntersections(
 			FGraph* InGraph,
+			FCompoundGraph* InCompoundGraph,
 			PCGExData::FPointIO* InPointIO,
 			const FPCGExPointEdgeIntersectionSettings& InSettings);
 
@@ -733,6 +748,7 @@ namespace PCGExGraph
 		mutable FRWLock InsertionLock;
 		PCGExData::FPointIO* PointIO = nullptr;
 		FGraph* Graph = nullptr;
+		FCompoundGraph* CompoundGraph = nullptr;
 
 		const FPCGExEdgeEdgeIntersectionSettings& Settings;
 
@@ -742,6 +758,7 @@ namespace PCGExGraph
 
 		FEdgeEdgeIntersections(
 			FGraph* InGraph,
+			FCompoundGraph* InCompoundGraph,
 			PCGExData::FPointIO* InPointIO,
 			const FPCGExEdgeEdgeIntersectionSettings& InSettings);
 

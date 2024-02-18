@@ -392,9 +392,10 @@ namespace PCGExGraph
 
 	FPointEdgeIntersections::FPointEdgeIntersections(
 		FGraph* InGraph,
+		FCompoundGraph* InCompoundGraph,
 		PCGExData::FPointIO* InPointIO,
 		const FPCGExPointEdgeIntersectionSettings& InSettings)
-		: PointIO(InPointIO), Graph(InGraph), Settings(InSettings)
+		: PointIO(InPointIO), Graph(InGraph), CompoundGraph(InCompoundGraph), Settings(InSettings)
 	{
 		const TArray<FPCGPoint>& Points = InPointIO->GetOutIn()->GetPoints();
 
@@ -414,10 +415,40 @@ namespace PCGExGraph
 
 	void FPointEdgeIntersections::FindIntersections(FPCGExPointsProcessorContext* InContext)
 	{
-		for (const FIndexedEdge& Edge : Graph->Edges)
+		if (Settings.bEnableSelfIntersection || !CompoundGraph)
 		{
-			if (!Edge.bValid) { continue; }
-			InContext->GetAsyncManager()->Start<PCGExGraphTask::FFindPointEdgeIntersections>(Edge.EdgeIndex, PointIO, this);
+			for (const FIndexedEdge& Edge : Graph->Edges)
+			{
+				if (!Edge.bValid) { continue; }
+				InContext->GetAsyncManager()->Start<PCGExGraphTask::FFindPointEdgeIntersections>(Edge.EdgeIndex, PointIO, this);
+			}
+		}
+		else
+		{
+			const int32 IOIndex = PointIO->IOIndex;
+			for (const FIndexedEdge& Edge : Graph->Edges)
+			{
+				if (!Edge.bValid) { continue; }
+				if (Edge.IOIndex == IOIndex) { continue; }
+
+				bool bInterself = false;
+				int32 CIndex = FGraphEdgeMetadata::GetParentIndex(Edge.EdgeIndex, Graph->EdgeMetadata);
+				if (CIndex == -1) { CIndex = Edge.EdgeIndex; }
+
+				for (const TArray<uint64>& Hashes = CompoundGraph->EdgesCompounds->Compounds[CIndex]->CompoundedPoints;
+					 const uint64 H : Hashes)
+				{
+					if (PCGEx::H64A(H) == IOIndex)
+					{
+						bInterself = true;
+						break;
+					}
+				}
+				
+				if (bInterself) { continue; }
+
+				InContext->GetAsyncManager()->Start<PCGExGraphTask::FFindPointEdgeIntersections>(Edge.EdgeIndex, PointIO, this);
+			}
 		}
 	}
 
@@ -518,9 +549,10 @@ namespace PCGExGraph
 
 	FEdgeEdgeIntersections::FEdgeEdgeIntersections(
 		FGraph* InGraph,
+		FCompoundGraph* InCompoundGraph,
 		PCGExData::FPointIO* InPointIO,
 		const FPCGExEdgeEdgeIntersectionSettings& InSettings)
-		: PointIO(InPointIO), Graph(InGraph), Settings(InSettings)
+		: PointIO(InPointIO), Graph(InGraph), CompoundGraph(InCompoundGraph), Settings(InSettings)
 	{
 		const TArray<FPCGPoint>& Points = InPointIO->GetOutIn()->GetPoints();
 
@@ -540,10 +572,41 @@ namespace PCGExGraph
 
 	void FEdgeEdgeIntersections::FindIntersections(FPCGExPointsProcessorContext* InContext)
 	{
-		for (const FIndexedEdge& Edge : Graph->Edges)
+		if (Settings.bEnableSelfIntersection || !CompoundGraph)
 		{
-			if (!Edge.bValid) { continue; }
-			InContext->GetAsyncManager()->Start<PCGExGraphTask::FFindEdgeEdgeIntersections>(Edge.EdgeIndex, PointIO, this);
+			for (const FIndexedEdge& Edge : Graph->Edges)
+			{
+				if (!Edge.bValid) { continue; }
+				InContext->GetAsyncManager()->Start<PCGExGraphTask::FFindEdgeEdgeIntersections>(Edge.EdgeIndex, PointIO, this);
+			}
+		}
+		else
+		{
+			const int32 IOIndex = PointIO->IOIndex;
+			for (const FIndexedEdge& Edge : Graph->Edges)
+			{
+				if (!Edge.bValid) { continue; }
+				if (Edge.IOIndex == IOIndex) { continue; }
+
+				bool bInterself = false;
+				int32 CIndex = FGraphEdgeMetadata::GetParentIndex(Edge.EdgeIndex, Graph->EdgeMetadata);
+				if (CIndex == -1) { CIndex = Edge.EdgeIndex; }
+
+				for (const TArray<uint64>& Hashes = CompoundGraph->EdgesCompounds->Compounds[CIndex]->CompoundedPoints;
+				     const uint64 H : Hashes)
+				{
+					if (PCGEx::H64A(H) == IOIndex)
+					{
+						bInterself = true;
+						break;
+					}
+				}
+				
+				if (bInterself) { continue; }
+				
+
+				InContext->GetAsyncManager()->Start<PCGExGraphTask::FFindEdgeEdgeIntersections>(Edge.EdgeIndex, PointIO, this);
+			}
 		}
 	}
 
