@@ -246,7 +246,7 @@ namespace PCGExGraph
 			return NewMetadata;
 		}
 
-		static int32 GetParentIndex(const int32 EdgeIndex, TMap<int32, FGraphEdgeMetadata*>& InMetadata)
+		static int32 GetRootIndex(const int32 EdgeIndex, TMap<int32, FGraphEdgeMetadata*>& InMetadata)
 		{
 			int32 ParentIndex = -1;
 			FGraphEdgeMetadata** Parent = InMetadata.Find(EdgeIndex);
@@ -256,20 +256,7 @@ namespace PCGExGraph
 				Parent = InMetadata.Find(EdgeIndex);
 			}
 
-			return ParentIndex;
-		}
-
-		static FGraphEdgeMetadata* GetParentMeta(const int32 EdgeIndex, TMap<int32, FGraphEdgeMetadata*>& InMetadata)
-		{
-			FGraphEdgeMetadata** EdgeMetaPtr = InMetadata.Find(EdgeIndex);
-			FGraphEdgeMetadata* ParentEdge = nullptr;
-			while (EdgeMetaPtr)
-			{
-				ParentEdge = *EdgeMetaPtr;
-				EdgeMetaPtr = InMetadata.Find(ParentEdge->EdgeIndex);
-			}
-
-			return ParentEdge;
+			return ParentIndex == -1 ? EdgeIndex : ParentIndex;
 		}
 	};
 

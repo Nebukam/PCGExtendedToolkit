@@ -28,6 +28,19 @@ namespace PCGExData
 			Weights.Empty();
 		}
 
+		bool ContainsIOIndex(int32 IOIndex)
+		{
+			for (const uint64 H : CompoundedPoints)
+			{
+				uint32 A;
+				uint32 B;
+				PCGEx::H64(H, A, B);
+				if (A == IOIndex) { return true; }
+			}
+			return false;
+		}
+
+
 		void ComputeWeights(const TArray<FPointIO*>& Sources, const FPCGPoint& Target, const FPCGExDistanceSettings& DistSettings)
 		{
 			Weights.SetNum(CompoundedPoints.Num());
@@ -88,6 +101,20 @@ namespace PCGExData
 		uint64 Add(const int32 Index, const int32 IOIndex, const int32 PointIndex)
 		{
 			return Compounds[Index]->Add(IOIndex, PointIndex);
+		}
+
+		void GetIOIndices(const int32 Index, TArray<int32>& OutIOIndices)
+		{
+			FIdxCompound* Compound = Compounds[Index];
+			OutIOIndices.SetNum(Compound->Num());
+			for (int i = 0; i < OutIOIndices.Num(); i++) { OutIOIndices[i] = PCGEx::H64A(Compound->CompoundedPoints[i]); }
+		}
+
+		bool HasIOIndexOverlap(int32 Idx, const TArray<int32>& InIndices)
+		{
+			FIdxCompound* OtherComp = Compounds[Idx];
+			for (const int32 IOIndex : InIndices) { if (OtherComp->ContainsIOIndex(IOIndex)) { return true; } }
+			return false;
 		}
 
 		FIdxCompound* operator[](int32 Index) const { return this->Compounds[Index]; }
