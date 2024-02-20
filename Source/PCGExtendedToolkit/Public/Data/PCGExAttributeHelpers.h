@@ -476,6 +476,10 @@ namespace PCGEx
 		bool bEnabled = true;
 		bool bValid = false;
 
+		EPCGPointProperties PointProperty = EPCGPointProperties::Position;
+		EPCGAttributePropertySelection Selection = EPCGAttributePropertySelection::Attribute;
+		FPCGMetadataAttributeBase* Attribute = nullptr;
+
 		bool IsUsable(int32 NumEntries) { return bEnabled && bValid && Values.Num() >= NumEntries; }
 
 		FPCGExInputDescriptor Descriptor;
@@ -510,10 +514,10 @@ namespace PCGEx
 			ProcessExtraNames(ExtraNames);
 
 			int32 NumPoints = PointIO.GetNum();
-			const EPCGAttributePropertySelection Selection = Selector.GetSelection();
+			Selection = Selector.GetSelection();
 			if (Selection == EPCGAttributePropertySelection::Attribute)
 			{
-				const FPCGMetadataAttributeBase* Attribute = InData->Metadata->GetConstAttribute(Selector.GetName());
+				Attribute = InData->Metadata->GetMutableAttribute(Selector.GetName());
 				if (!Attribute) { return false; }
 
 				PCGMetadataAttribute::CallbackWithRightType(
@@ -563,17 +567,51 @@ namespace PCGEx
 						T V = Convert(InPoints[i]._ACCESSOR); Min = PCGExMath::Min(V, Min); Max = PCGExMath::Max(V, Max); Values[i] = V;\
 					} } else { for (int i = 0; i < NumPoints; i++) { Values[i] = Convert(InPoints[i]._ACCESSOR); } } break;
 
-				switch (Descriptor.Selector.GetPointProperty())
-				{
-				PCGEX_FOREACH_POINTPROPERTY(PCGEX_GET_BY_ACCESSOR)
-				}
-
+				switch (Descriptor.Selector.GetPointProperty()) { PCGEX_FOREACH_POINTPROPERTY(PCGEX_GET_BY_ACCESSOR) }
+#undef PCGEX_GET_BY_ACCESSOR
 				bValid = true;
 			}
 			else
 			{
 				//TODO: Support extra properties
 			}
+
+			return bValid;
+		}
+
+		/**
+		 * Build and validate a property/attribute accessor for the selected
+		 * @param PointIO
+		 * @param bCaptureMinMax 
+		 */
+		bool SoftGrab(const PCGExData::FPointIO& PointIO)
+		{
+			Cleanup();
+
+			bNormalized = false;
+			bValid = false;
+			if (!bEnabled) { return false; }
+
+			const UPCGPointData* InData = PointIO.GetIn();
+
+			TArray<FString> ExtraNames;
+			const FPCGAttributePropertyInputSelector Selector = CopyAndFixLast(Descriptor.Selector, InData, ExtraNames);
+			if (!Selector.IsValid()) { return false; }
+
+			ProcessExtraNames(ExtraNames);
+
+			Selection = Selector.GetSelection();
+			if (Selection == EPCGAttributePropertySelection::Attribute)
+			{
+				Attribute = InData->Metadata->GetMutableAttribute(Selector.GetName());
+				bValid = Attribute ? true : false;
+			}
+			else if (Selection == EPCGAttributePropertySelection::PointProperty)
+			{
+				PointProperty = Selector.GetPointProperty();
+				bValid = true;
+			}
+			else { bValid = false; }
 
 			return bValid;
 		}
@@ -598,6 +636,32 @@ namespace PCGEx
 			UpdateMinMax();
 			T Range = PCGExMath::Sub(Max, Min);
 			for (int i = 0; i < Values.Num(); i++) { Values[i] = PCGExMath::Div(Values[i], Range); }
+		}
+
+		const T& SoftGet(const FPCGPoint& Point, const T& fallback)
+		{
+			if (!bValid) { return fallback; }
+
+			if (Selection == EPCGAttributePropertySelection::Attribute)
+			{
+				return PCGMetadataAttribute::CallbackWithRightType(
+					Attribute->GetTypeId(),
+					[&](auto DummyValue) -> T
+					{
+						using RawT = decltype(DummyValue);
+						FPCGMetadataAttribute<RawT>* TypedAttribute = static_cast<FPCGMetadataAttribute<RawT>*>(Attribute);
+						return Convert(TypedAttribute->GetValueFromItemKey(Point.MetadataEntry));
+					});
+			}
+
+			if (Selection == EPCGAttributePropertySelection::PointProperty)
+			{
+#define PCGEX_GET_BY_ACCESSOR(_ENUM, _ACCESSOR) case _ENUM: return Convert(Point._ACCESSOR); break;
+				switch (PointProperty) { PCGEX_FOREACH_POINTPROPERTY(PCGEX_GET_BY_ACCESSOR) }
+#undef PCGEX_GET_BY_ACCESSOR
+			}
+
+			return fallback;
 		}
 
 		const T& SafeGet(const int32 Index, const T& fallback) const { return (!bValid || !bEnabled) ? fallback : Values[Index]; }

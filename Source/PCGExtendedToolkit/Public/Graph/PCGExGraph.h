@@ -490,7 +490,7 @@ namespace PCGExGraph
 		enum { MaxNodeDepth = 12 };
 
 		using ElementAllocator = TInlineAllocator<MaxElementsPerLeaf>;
-
+		
 		FORCEINLINE static const FBoxSphereBounds& GetBoundingBox(const FCompoundNode* InNode)
 		{
 			return InNode->Bounds;
@@ -498,7 +498,7 @@ namespace PCGExGraph
 
 		FORCEINLINE static const bool AreElementsEqual(const FCompoundNode* A, const FCompoundNode* B)
 		{
-			return A->Index == B->Index;
+			return A == B;
 		}
 
 		FORCEINLINE static void ApplyOffset(FCompoundNode& InNode)
@@ -520,15 +520,18 @@ namespace PCGExGraph
 		const FPCGExFuseSettings FuseSettings;
 
 		using NodeOctree = TOctree2<FCompoundNode*, FCompoundNodeSemantics>;
+
+		mutable FRWLock OctreeLock;
 		mutable NodeOctree Octree;
 
-		explicit FCompoundGraph(const FPCGExFuseSettings& InFuseSettings)
+		explicit FCompoundGraph(const FPCGExFuseSettings& InFuseSettings, FBox Bounds)
 			: FuseSettings(InFuseSettings)
 		{
 			Nodes.Empty();
 			Edges.Empty();
 			PointsCompounds = new PCGExData::FIdxCompoundList();
 			EdgesCompounds = new PCGExData::FIdxCompoundList();
+			Octree = NodeOctree(Bounds.GetCenter(), Bounds.GetExtent().Length());
 		}
 
 		~FCompoundGraph()

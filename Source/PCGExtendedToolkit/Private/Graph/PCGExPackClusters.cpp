@@ -97,7 +97,7 @@ bool FPCGExPackClustersElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
 	{
-		if (!Context->IsAsyncWorkComplete()) { return false; }
+		PCGEX_WAIT_ASYNC
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
@@ -119,7 +119,6 @@ bool FPCGExPackClusterTask::ExecuteTask()
 	if (!PCGExGraph::GetReducedVtxIndices(*InEdges, &Context->NodeIndicesMap, ReducedVtxIndices, NumEdges)) { return false; }
 
 	TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
-	PointIO->GetOut()->Metadata->Flatten();
 	MutablePoints.SetNum(NumEdges + ReducedVtxIndices.Num());
 
 	PointIO->Cleanup();
@@ -137,7 +136,8 @@ bool FPCGExPackClusterTask::ExecuteTask()
 
 	FString OutPairId;
 	PointIO->Tags->Set(PCGExGraph::TagStr_ClusterPair, InEdges->GetIn()->UID, OutPairId);
-
+	PointIO->Flatten();
+	
 	InEdges->Cleanup();
 
 	return true;

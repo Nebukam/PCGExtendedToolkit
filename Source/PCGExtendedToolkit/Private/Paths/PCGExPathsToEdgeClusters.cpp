@@ -74,7 +74,7 @@ bool FPCGExPathsToEdgeClustersElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_FWD(GraphBuilderSettings)
 
-	Context->CompoundGraph = new PCGExGraph::FCompoundGraph(Context->PointPointIntersectionSettings.FuseSettings);
+	Context->CompoundGraph = new PCGExGraph::FCompoundGraph(Context->PointPointIntersectionSettings.FuseSettings, Context->MainPoints->GetInBounds().ExpandBy(10));
 
 	return true;
 }

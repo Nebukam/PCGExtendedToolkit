@@ -136,7 +136,7 @@ bool FPCGExUnpackClustersElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
 	{
-		if (!Context->IsAsyncWorkComplete()) { return false; }
+		PCGEX_WAIT_ASYNC
 		Context->Done();
 	}
 

@@ -92,7 +92,7 @@ bool FPCGExSampleNearestSurfaceElement::ExecuteInternal(FPCGContext* InContext) 
 
 	if (Context->IsState(PCGExMT::State_ProcessingPoints))
 	{
-		if (!Context->IsAsyncWorkComplete()) { return false; }
+		PCGEX_WAIT_ASYNC
 
 		PCGEX_FOREACH_FIELD_NEARESTSURFACE(PCGEX_OUTPUT_WRITE)
 		Context->CurrentIO->OutputTo(Context);

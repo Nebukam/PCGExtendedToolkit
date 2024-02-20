@@ -39,14 +39,14 @@ bool FPCGExRefreshSeedElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsState(PCGExMT::State_ProcessingPoints))
 	{
-		const FVector BaseOffset = FVector(Settings->Base + Context->CurrentPointsIndex) * 0.001;
+		const FVector BaseOffset = FVector(Settings->Base + Context->CurrentPointIOIndex) * 0.001;
 		for (int i = 0; i < Context->CurrentIO->GetNum(); i++) { PCGExMath::RandomizeSeed(Context->CurrentIO->GetMutablePoint(i), BaseOffset); }
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
 	if (Context->IsDone())
 	{
-		Context->OutputPoints();
+		Context->OutputPoints(false);
 	}
 
 	return Context->IsDone();

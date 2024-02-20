@@ -53,7 +53,7 @@ FPCGExCustomGraphProcessorContext::~FPCGExCustomGraphProcessorContext()
 
 bool FPCGExCustomGraphProcessorContext::AdvanceGraph(const bool bResetPointsIndex)
 {
-	if (bResetPointsIndex) { CurrentPointsIndex = -1; }
+	if (bResetPointsIndex) { CurrentPointIOIndex = -1; }
 
 	if (CurrentGraph) { CurrentGraph->Cleanup(); }
 

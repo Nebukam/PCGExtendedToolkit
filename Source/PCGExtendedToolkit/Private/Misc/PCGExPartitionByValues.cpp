@@ -310,6 +310,7 @@ bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* InContext) con
 
 			if (Settings->bWriteKeySum) { PCGExData::WriteMark<int64>(OutData->Metadata, Settings->KeySumAttributeName, Sum); }
 
+			OutData->Metadata->Flatten();			
 			FPCGTaggedData* TaggedData = Context->Output(OutData, Context->MainPoints->DefaultOutputLabel);
 			Tags->Dump(TaggedData->Tags);
 			PCGEX_DELETE(Tags)

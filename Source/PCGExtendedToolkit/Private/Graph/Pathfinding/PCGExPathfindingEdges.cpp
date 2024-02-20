@@ -118,7 +118,7 @@ bool FPCGExPathfindingEdgesElement::ExecuteInternal(FPCGContext* InContext) cons
 
 	if (Context->IsState(PCGExGraph::State_ProcessingEdges))
 	{
-		if (!Context->IsAsyncWorkComplete()) { return false; }
+		PCGEX_WAIT_ASYNC
 
 		PCGEX_DELETE(Context->GlobalExtraWeights)
 		Context->Heuristics->PrepareForData(Context->CurrentCluster);
@@ -165,13 +165,13 @@ bool FPCGExPathfindingEdgesElement::ExecuteInternal(FPCGContext* InContext) cons
 
 	if (Context->IsState(PCGExPathfinding::State_WaitingPathfinding))
 	{
-		if (!Context->IsAsyncWorkComplete()) { return false; }
+		PCGEX_WAIT_ASYNC
 		Context->SetState(PCGExPathfinding::State_Pathfinding);
 	}
 
 	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
 	{
-		if (!Context->IsAsyncWorkComplete()) { return false; }
+		PCGEX_WAIT_ASYNC
 		Context->SetState(PCGExGraph::State_ReadyForNextEdges);
 	}
 
@@ -214,6 +214,8 @@ bool FSampleClusterPathTask::ExecuteTask()
 	for (const int32 VtxIndex : Path) { MutablePoints.Add(InPoints[Cluster->Nodes[VtxIndex].PointIndex]); }
 	if (Context->bAddGoalToPath) { MutablePoints.Add_GetRef(Goal).MetadataEntry = PCGInvalidEntryKey; }
 
+	OutData->Metadata->Flatten();
+	
 	return true;
 }
 

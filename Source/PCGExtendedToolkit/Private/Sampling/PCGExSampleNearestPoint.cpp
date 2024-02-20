@@ -191,7 +191,7 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 
 	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
 	{
-		if (!Context->IsAsyncWorkComplete()) { return false; }
+		PCGEX_WAIT_ASYNC
 
 		for (PCGExDataBlending::FDataBlendingOperationBase* Op : Context->BlendOps) { Op->Write(); }
 

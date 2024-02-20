@@ -277,7 +277,8 @@ namespace PCGExGraph
 		int32 Index = -1;
 		if (FuseSettings.bComponentWiseTolerance)
 		{
-			FBoxCenterAndExtent Box = FBoxCenterAndExtent(Origin, FuseSettings.Tolerances);
+			FReadScopeLock ReadLock(OctreeLock);
+			const FBoxCenterAndExtent Box = FBoxCenterAndExtent(Origin, FuseSettings.Tolerances);
 			Octree.FindFirstElementWithBoundsTest(
 				Box, [&](const FCompoundNode* Node)
 				{
@@ -297,7 +298,8 @@ namespace PCGExGraph
 		}
 		else
 		{
-			FBoxCenterAndExtent Box = FBoxCenterAndExtent(Origin, FVector(FuseSettings.Tolerance));
+			FReadScopeLock ReadLock(OctreeLock);
+			const FBoxCenterAndExtent Box = FBoxCenterAndExtent(Origin, FVector(FuseSettings.Tolerance));
 			Octree.FindFirstElementWithBoundsTest(
 				Box, [&](const FCompoundNode* Node)
 				{
@@ -316,11 +318,16 @@ namespace PCGExGraph
 			}
 		}
 
-		FCompoundNode* NewNode = new FCompoundNode(Point, Origin, Nodes.Num());
-		Nodes.Add(NewNode);
+		FCompoundNode* NewNode;
 
-		Octree.AddElement(NewNode);
-		PointsCompounds->New()->Add(IOIndex, PointIndex);
+		{
+			FWriteScopeLock WriteLock(OctreeLock);
+			NewNode = new FCompoundNode(Point, Origin, Nodes.Num());
+			Nodes.Add(NewNode);
+			Octree.AddElement(NewNode);
+			PointsCompounds->New()->Add(IOIndex, PointIndex);
+		}
+
 		return NewNode;
 	}
 
@@ -816,6 +823,8 @@ namespace PCGExGraphTask
 				}
 			}
 		}
+
+		EdgeIO.Flatten();
 
 		return true;
 	}

@@ -275,9 +275,9 @@ bool FPCGExPointsProcessorContext::AdvancePointsIO()
 {
 	if (CurrentIO) { CurrentIO->Cleanup(); }
 
-	if (MainPoints->Pairs.IsValidIndex(++CurrentPointsIndex))
+	if (MainPoints->Pairs.IsValidIndex(++CurrentPointIOIndex))
 	{
-		CurrentIO = MainPoints->Pairs[CurrentPointsIndex];
+		CurrentIO = MainPoints->Pairs[CurrentPointIOIndex];
 		return true;
 	}
 	CurrentIO = nullptr;

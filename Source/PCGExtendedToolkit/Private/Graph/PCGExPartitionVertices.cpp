@@ -75,7 +75,7 @@ bool FPCGExPartitionVerticesElement::ExecuteInternal(FPCGContext* InContext) con
 
 	if (Context->IsState(PCGExGraph::State_ProcessingEdges))
 	{
-		if (!Context->IsAsyncWorkComplete()) { return false; }
+		PCGEX_WAIT_ASYNC
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
@@ -97,7 +97,8 @@ bool FPCGExCreateVtxPartitionTask::ExecuteTask()
 
 	const TArrayView<int32> View = MakeArrayView(ReducedVtxIndices);
 	PCGEx::CopyPoints(*PointIO, *PointIO, View);
-	PointIO->GetOut()->Metadata->Flatten();
+	
+	PointIO->Flatten();
 
 	return true;
 }

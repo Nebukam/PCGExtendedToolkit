@@ -238,6 +238,8 @@ namespace PCGExData
 		return false;
 	}
 
+	void FPointIO::Flatten() const { if (Out && In != Out) { Out->Metadata->Flatten(); } }
+
 	FPointIOGroup::FPointIOGroup()
 	{
 	}
@@ -315,7 +317,8 @@ namespace PCGExData
 
 	/**
 	 * Write valid outputs to Context' tagged data
-	 * @param Context 
+	 * @param Context
+	 * @param bFlatten 
 	 */
 	void FPointIOGroup::OutputTo(FPCGContext* Context)
 	{
@@ -326,7 +329,8 @@ namespace PCGExData
 	 * Write valid outputs to Context' tagged data
 	 * @param Context
 	 * @param MinPointCount
-	 * @param MaxPointCount 
+	 * @param MaxPointCount
+	 * @param bFlatten 
 	 */
 	void FPointIOGroup::OutputTo(FPCGContext* Context, const int32 MinPointCount, const int32 MaxPointCount)
 	{

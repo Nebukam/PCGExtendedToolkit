@@ -104,7 +104,7 @@ bool FPCGExBuildConvexHull2DElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExGeo::State_ProcessingHull))
 	{
-		if (!Context->IsAsyncWorkComplete()) { return false; }
+		PCGEX_WAIT_ASYNC
 
 		if (Context->GraphBuilder->Graph->Edges.IsEmpty())
 		{
@@ -119,7 +119,7 @@ bool FPCGExBuildConvexHull2DElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExGraph::State_WritingClusters))
 	{
-		if (!Context->IsAsyncWorkComplete()) { return false; }
+		PCGEX_WAIT_ASYNC
 		if (Context->GraphBuilder->bCompiledSuccessfully)
 		{
 			if (Settings->bMarkHull && !Settings->bPrunePoints)
@@ -141,7 +141,7 @@ bool FPCGExBuildConvexHull2DElement::ExecuteInternal(
 
 	if (Context->IsDone())
 	{
-		Context->OutputPoints();
+		Context->OutputPoints(Settings->bPrunePoints);
 		Context->PathsIO->OutputTo(Context);
 	}
 

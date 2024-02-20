@@ -124,7 +124,7 @@ bool FPCGExAttributeRemapElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsState(PCGExMT::State_ProcessingPoints))
 	{
-		if (!Context->IsAsyncWorkComplete()) { return false; }
+		PCGEX_WAIT_ASYNC
 
 		Context->OutputPoints();
 		Context->Done();

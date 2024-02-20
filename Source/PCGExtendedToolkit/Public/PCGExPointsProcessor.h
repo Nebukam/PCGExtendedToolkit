@@ -43,6 +43,8 @@ FPCGElementPtr UPCGEx##_NAME##Settings::CreateElement() const{	return MakeShared
 #define PCGEX_FWD(_NAME) Context->_NAME = Settings->_NAME;
 #define PCGEX_TERMINATE_ASYNC PCGEX_DELETE(AsyncManager)
 
+#define PCGEX_WAIT_ASYNC if (!Context->IsAsyncWorkComplete()) {return false;}
+
 struct FPCGExPointsProcessorContext;
 
 namespace PCGEx
@@ -216,7 +218,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : public FPCGContext
 	int32 ChunkSize = 0;
 	bool bDoAsyncProcessing = true;
 
-	void OutputPoints() { MainPoints->OutputTo(this); }
+	void OutputPoints(const bool bFlatten = false) { MainPoints->OutputTo(this); }
 
 	bool BulkProcessMainPoints(TFunction<void(PCGExData::FPointIO&)>&& Initialize, TFunction<void(const int32, const PCGExData::FPointIO&)>&& LoopBody);
 	bool ProcessCurrentPoints(TFunction<void(PCGExData::FPointIO&)>&& Initialize, TFunction<void(const int32, const PCGExData::FPointIO&)>&& LoopBody, bool bForceSync = false);
@@ -278,7 +280,7 @@ protected:
 	PCGEx::FBulkAsyncPointLoop BulkAsyncPointLoop;
 
 	PCGExMT::AsyncState CurrentState;
-	int32 CurrentPointsIndex = -1;
+	int32 CurrentPointIOIndex = -1;
 
 	TArray<UPCGExOperation*> ProcessorOperations;
 	TSet<UPCGExOperation*> OwnedProcessorOperations;
