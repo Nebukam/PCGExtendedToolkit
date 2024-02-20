@@ -23,37 +23,37 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExClampSettings
 	}
 
 	FPCGExClampSettings(const FPCGExClampSettings& Other):
-		bClampMin(Other.bClampMin),
-		ClampMin(Other.ClampMin),
-		bClampMax(Other.bClampMax),
-		ClampMax(Other.ClampMax)
+		bApplyClampMin(Other.bApplyClampMin),
+		ClampMinValue(Other.ClampMinValue),
+		bApplyClampMax(Other.bApplyClampMax),
+		ClampMaxValue(Other.ClampMaxValue)
 	{
 	}
 
 	/** Clamp minimum value. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
-	bool bClampMin = false;
+	bool bApplyClampMin = false;
 
 	/** Clamp minimum value. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bClampMin"))
-	double ClampMin = 0;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bApplyClampMin"))
+	double ClampMinValue = 0;
 
 	/** Clamp maximum value. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
-	bool bClampMax = false;
+	bool bApplyClampMax = false;
 
 	/** Clamp maximum value. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bClampMax"))
-	double ClampMax = 0;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bApplyClampMax"))
+	double ClampMaxValue = 0;
 
-	double GetClampMin(const double InValue) const { return InValue < ClampMin ? ClampMin : InValue; }
-	double GetClampMax(const double InValue) const { return InValue > ClampMax ? ClampMax : InValue; }
-	double GetClampMinMax(const double InValue) const { return InValue > ClampMax ? ClampMax : InValue < ClampMin ? ClampMin : InValue; }
+	double GetClampMin(const double InValue) const { return InValue < ClampMinValue ? ClampMinValue : InValue; }
+	double GetClampMax(const double InValue) const { return InValue > ClampMaxValue ? ClampMaxValue : InValue; }
+	double GetClampMinMax(const double InValue) const { return InValue > ClampMaxValue ? ClampMaxValue : InValue < ClampMinValue ? ClampMinValue : InValue; }
 
 	double GetClampedValue(const double InValue) const
 	{
-		if (bClampMin && InValue < ClampMin) { return ClampMin; }
-		if (bClampMax && InValue > ClampMax) { return ClampMax; }
+		if (bApplyClampMin && InValue < ClampMinValue) { return ClampMinValue; }
+		if (bApplyClampMax && InValue > ClampMaxValue) { return ClampMaxValue; }
 		return InValue;
 	}
 };

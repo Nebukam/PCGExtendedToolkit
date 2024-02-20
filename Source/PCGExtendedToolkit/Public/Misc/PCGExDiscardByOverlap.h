@@ -23,8 +23,16 @@ enum class EPCGExOverlapTestMode : uint8
 UENUM(BlueprintType)
 enum class EPCGExOverlapPruningOrder : uint8
 {
-	OverlapCount UMETA(DisplayName = "Overlap Count", ToolTip="Removes high overlap count first"),
-	OverlapAmount UMETA(DisplayName = "Overlap Amount", ToolTip="Removes larger overlap area first"),
+	OverlapCount UMETA(DisplayName = "Overlap Count", ToolTip="Dataset overlap count"),
+	OverlapAmount UMETA(DisplayName = "Overlap Amount", ToolTip="Volume overlap"),
+};
+
+UENUM(BlueprintType)
+enum class EPCGExExpandPointsBoundsMode : uint8
+{
+	None UMETA(DisplayName = "Don't expand", ToolTip="Use vanilla point bounds"),
+	Static UMETA(DisplayName = "Static value", ToolTip="Expand point bounds by a static value"),
+	Attribute UMETA(DisplayName = "Local attribute", ToolTip="Expand point bounds by a local attribute"),
 };
 
 namespace PCGExDiscardByOverlap
@@ -33,6 +41,55 @@ namespace PCGExDiscardByOverlap
 	constexpr PCGExMT::AsyncState State_PreciseOverlap = __COUNTER__;
 	constexpr PCGExMT::AsyncState State_ProcessFastOverlap = __COUNTER__;
 	constexpr PCGExMT::AsyncState State_ProcessPreciseOverlap = __COUNTER__;
+
+	static void SortOverlapCount(TArray<PCGExPointsToBounds::FBounds*>& IOBounds,
+	                          const EPCGExSortDirection Order)
+	{
+		IOBounds.Sort(
+			[&](const PCGExPointsToBounds::FBounds& A, const PCGExPointsToBounds::FBounds& B)
+			{
+				return Order == EPCGExSortDirection::Ascending ?
+					       A.Overlaps.Num() < B.Overlaps.Num() :
+					       A.Overlaps.Num() < B.Overlaps.Num();
+			});
+	}
+
+	static void SortFastAmount(TArray<PCGExPointsToBounds::FBounds*>& IOBounds,
+	                           const EPCGExSortDirection Order)
+	{
+		IOBounds.Sort(
+			[&](const PCGExPointsToBounds::FBounds& A, const PCGExPointsToBounds::FBounds& B)
+			{
+				return Order == EPCGExSortDirection::Ascending ?
+					       A.FastOverlapAmount < B.FastOverlapAmount :
+					       A.FastOverlapAmount < B.FastOverlapAmount;
+			});
+	}
+
+	static void SortPreciseCount(TArray<PCGExPointsToBounds::FBounds*>& IOBounds,
+	                             const EPCGExSortDirection Order)
+	{
+		IOBounds.Sort(
+			[&](const PCGExPointsToBounds::FBounds& A, const PCGExPointsToBounds::FBounds& B)
+			{
+				return Order == EPCGExSortDirection::Ascending ?
+						   A.TotalPreciseOverlapCount < B.TotalPreciseOverlapCount :
+						   A.TotalPreciseOverlapCount < B.TotalPreciseOverlapCount;
+			});
+	}
+
+	static void SortPreciseAmount(TArray<PCGExPointsToBounds::FBounds*>& IOBounds, const EPCGExSortDirection Order)
+	{
+		IOBounds.Sort(
+			[&](const PCGExPointsToBounds::FBounds& A, const PCGExPointsToBounds::FBounds& B)
+			{
+				return Order == EPCGExSortDirection::Ascending ?
+					       A.TotalPreciseOverlapAmount < B.TotalPreciseOverlapAmount :
+					       A.TotalPreciseOverlapAmount < B.TotalPreciseOverlapAmount;
+			});
+	}
+	
+
 }
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
@@ -45,7 +102,7 @@ public:
 
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(DiscardByOverlap, "Points to Bounds", "Merge points group to a single point representing their bounds.");
+	PCGEX_NODE_INFOS(DiscardByOverlap, "Discard By Overlap", "Discard entire datasets based on how they overlap with each other.");
 #endif
 
 protected:
@@ -78,9 +135,25 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExOverlapPruningOrder PruningOrder = EPCGExOverlapPruningOrder::OverlapCount;
 
+	/** Static value to be used as bound expansion */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="TestMode==EPCGExOverlapTestMode::Precise", EditConditionHides))
+	bool bUsePerPointsValues = false;
+	
 	/** Pruning order & prioritization */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExSortDirection Order = EPCGExSortDirection::Ascending;
+
+	/** Expand local point bounds when doing precise testing */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExExpandPointsBoundsMode ExpansionMode = EPCGExExpandPointsBoundsMode::None;
+
+	/** Static value to be used as bound expansion */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="ExpansionMode==EPCGExExpandPointsBoundsMode::Static", EditConditionHides))
+	double ExpansionValue = 10;
+
+	/** Local point value to be used as bound expansion */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="ExpansionMode==EPCGExExpandPointsBoundsMode::Attribute", EditConditionHides))
+	FPCGExInputDescriptor ExpansionLocalValue;
 
 private:
 	friend class FPCGExDiscardByOverlapElement;
@@ -92,6 +165,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExDiscardByOverlapContext : public FPCGExPoint
 	virtual ~FPCGExDiscardByOverlapContext() override;
 
 	TArray<PCGExPointsToBounds::FBounds*> IOBounds;
+
+	void OutputFBounds(const PCGExPointsToBounds::FBounds* Bounds, const int32 RemoveAt = -1);
+	static void RemoveFBounds(const PCGExPointsToBounds::FBounds* Bounds, TArray<PCGExPointsToBounds::FBounds*>& OutAffectedBounds);
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExDiscardByOverlapElement : public FPCGExPointsProcessorElementBase

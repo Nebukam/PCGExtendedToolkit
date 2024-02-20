@@ -16,7 +16,7 @@ class FPCGExComputeIOBounds;
 UENUM(BlueprintType)
 enum class EPCGExPointBoundsSource : uint8
 {
-	DensityBounds UMETA(DisplayName = "Density Bounds (Box)", ToolTip="TBD"),
+	DensityBounds UMETA(DisplayName = "Density Bounds", ToolTip="TBD"),
 	ScaledExtents UMETA(DisplayName = "Scaled Extents", ToolTip="TBD"),
 	Extents UMETA(DisplayName = "Extents", ToolTip="TBD")
 };
@@ -29,24 +29,47 @@ namespace PCGExPointsToBounds
 	{
 		FBox Bounds = FBox(ForceInit);
 		PCGExData::FPointIO* PointIO;
-		bool bValid = true;
-		
+
+		TSet<FBounds*> Overlaps;
 		TMap<FBounds*, FBox> FastOverlaps;
 		TMap<FBounds*, double> PreciseOverlapAmount;
 		TMap<FBounds*, int32> PreciseOverlapCount;
 
-		double LooseOverlapAmount = 0;
+		double FastVolume = 0;
+		double FastOverlapAmount = 0;
+		double PreciseVolume = 0;
+
+		double TotalPreciseOverlapAmount = 0;
+		int32 TotalPreciseOverlapCount = 0;
 
 		explicit FBounds(PCGExData::FPointIO* InPointIO):
 			PointIO(InPointIO)
 		{
+			Overlaps.Empty();
 			FastOverlaps.Empty();
 			PreciseOverlapAmount.Empty();
 			PreciseOverlapCount.Empty();
 		}
 
+		void RemoveOverlap(const FBounds* OtherBounds)
+		{
+			if (!Overlaps.Contains(OtherBounds)) { return; }
+
+			Overlaps.Remove(OtherBounds);
+			FastOverlaps.Remove(OtherBounds);
+
+			if (PreciseOverlapAmount.Contains(OtherBounds))
+			{
+				TotalPreciseOverlapAmount -= *PreciseOverlapAmount.Find(OtherBounds);
+				TotalPreciseOverlapCount -= *PreciseOverlapCount.Find(OtherBounds);
+				PreciseOverlapAmount.Remove(OtherBounds);
+				PreciseOverlapCount.Remove(OtherBounds);
+			}
+		}
+
 		~FBounds()
 		{
+			Overlaps.Empty();
 			FastOverlaps.Empty();
 			PreciseOverlapAmount.Empty();
 			PreciseOverlapCount.Empty();
@@ -64,6 +87,23 @@ namespace PCGExPointsToBounds
 			PCGExPointsToBounds::FBounds* Bounds = new PCGExPointsToBounds::FBounds(PointIO);
 			OutBounds.Add(Bounds);
 			Manager->Start<FPCGExComputeIOBounds>(PointIO->IOIndex, PointIO, BoundsSource, Bounds);
+		}
+	}
+
+	static FBox GetBounds(const FPCGPoint& Point, EPCGExPointBoundsSource Source)
+	{
+		switch (Source)
+		{
+		default: ;
+		case EPCGExPointBoundsSource::DensityBounds:
+			return Point.GetDensityBounds().GetBox();
+			break;
+		case EPCGExPointBoundsSource::ScaledExtents:
+			return FBoxCenterAndExtent(Point.Transform.GetLocation(), Point.GetScaledExtents()).GetBox();
+			break;
+		case EPCGExPointBoundsSource::Extents:
+			return FBoxCenterAndExtent(Point.Transform.GetLocation(), Point.GetExtents()).GetBox();
+			break;
 		}
 	}
 }

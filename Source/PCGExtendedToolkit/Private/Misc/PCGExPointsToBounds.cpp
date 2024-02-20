@@ -135,13 +135,28 @@ bool FPCGExComputeIOBounds::ExecuteTask()
 	{
 	default: ;
 	case EPCGExPointBoundsSource::DensityBounds:
-		for (const FPCGPoint& Pt : InPoints) { Bounds->Bounds += Pt.GetDensityBounds().GetBox(); }
+		for (const FPCGPoint& Pt : InPoints)
+		{
+			const FBox Box = Pt.GetDensityBounds().GetBox();
+			Bounds->Bounds += Box;
+			Bounds->FastVolume += Box.GetExtent().Length();
+		}
 		break;
 	case EPCGExPointBoundsSource::ScaledExtents:
-		for (const FPCGPoint& Pt : InPoints) { Bounds->Bounds += FBoxCenterAndExtent(Pt.Transform.GetLocation(), Pt.GetScaledExtents()).GetBox(); }
+		for (const FPCGPoint& Pt : InPoints)
+		{
+			const FBox Box = FBoxCenterAndExtent(Pt.Transform.GetLocation(), Pt.GetScaledExtents()).GetBox();
+			Bounds->Bounds += Box;
+			Bounds->FastVolume += Box.GetExtent().Length();
+		}
 		break;
 	case EPCGExPointBoundsSource::Extents:
-		for (const FPCGPoint& Pt : InPoints) { Bounds->Bounds += FBoxCenterAndExtent(Pt.Transform.GetLocation(), Pt.GetExtents()).GetBox(); }
+		for (const FPCGPoint& Pt : InPoints)
+		{
+			const FBox Box = FBoxCenterAndExtent(Pt.Transform.GetLocation(), Pt.GetExtents()).GetBox();
+			Bounds->Bounds += Box;
+			Bounds->FastVolume += Box.GetExtent().Length();
+		}
 		break;
 	}
 

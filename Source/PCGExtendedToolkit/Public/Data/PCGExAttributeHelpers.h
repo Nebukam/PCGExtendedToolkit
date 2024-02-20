@@ -638,8 +638,10 @@ namespace PCGEx
 			for (int i = 0; i < Values.Num(); i++) { Values[i] = PCGExMath::Div(Values[i], Range); }
 		}
 
-		const T& SoftGet(const FPCGPoint& Point, const T& fallback)
+		T SoftGet(const FPCGPoint& Point, const T& fallback)
 		{
+			// Note: This function is SUPER SLOW and should only be used for cherry picking
+			
 			if (!bValid) { return fallback; }
 
 			if (Selection == EPCGAttributePropertySelection::Attribute)
@@ -664,7 +666,7 @@ namespace PCGEx
 			return fallback;
 		}
 
-		const T& SafeGet(const int32 Index, const T& fallback) const { return (!bValid || !bEnabled) ? fallback : Values[Index]; }
+		T SafeGet(const int32 Index, const T& fallback) const { return (!bValid || !bEnabled) ? fallback : Values[Index]; }
 		T& operator[](int32 Index) { return Values[Index]; }
 		T operator[](int32 Index) const { return bValid ? Values[Index] : GetDefaultValue(); }
 
