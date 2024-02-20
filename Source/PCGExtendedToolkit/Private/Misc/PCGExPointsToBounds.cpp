@@ -62,9 +62,7 @@ bool FPCGExPointsToBoundsElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsState(PCGExPointsToBounds::State_ComputeBounds))
 	{
-		PCGExPointsToBounds::ComputeBounds(
-			Context->GetAsyncManager(), Context->MainPoints,
-			Context->IOBounds, Settings->BoundsSource, &Settings->LocalBoundsSource);
+		PCGExPointsToBounds::ComputeBounds(Context->GetAsyncManager(), Context->MainPoints, Context->IOBounds, Settings->BoundsSource);
 		Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork);
 	}
 
@@ -133,50 +131,18 @@ bool FPCGExComputeIOBounds::ExecuteTask()
 {
 	const TArray<FPCGPoint>& InPoints = Bounds->PointIO->GetIn()->GetPoints();
 
-	if (BoundsSource == EPCGExPointBoundsSource::LocalExtents && LocalInputDescriptor)
+	switch (BoundsSource)
 	{
-		PCGEx::FLocalVectorGetter* LocalExtents = new PCGEx::FLocalVectorGetter();
-		LocalExtents->Capture(*LocalInputDescriptor);
-		LocalExtents->Grab(*PointIO);
-		for (int i = 0; i < InPoints.Num(); i++)
-		{
-			const FPCGPoint& Pt = InPoints[i];
-			Bounds->Bounds += FBoxCenterAndExtent(Pt.Transform.GetLocation(), LocalExtents->SafeGet(i, FVector::OneVector)).GetBox();
-		}
-
-		PCGEX_DELETE(LocalExtents)
-	}
-	else if (BoundsSource == EPCGExPointBoundsSource::LocalRadius && LocalInputDescriptor)
-	{
-		PCGEx::FLocalSingleFieldGetter* LocalRadius = new PCGEx::FLocalSingleFieldGetter();
-		LocalRadius->Capture(*LocalInputDescriptor);
-		LocalRadius->Grab(*PointIO);
-		for (int i = 0; i < InPoints.Num(); i++)
-		{
-			const FPCGPoint& Pt = InPoints[i];
-			Bounds->Bounds += FBoxCenterAndExtent(Pt.Transform.GetLocation(), FVector(LocalRadius->SafeGet(i, 1))).GetBox();
-		}
-
-		PCGEX_DELETE(LocalRadius)
-	}
-	else
-	{
-		switch (BoundsSource)
-		{
-		default: ;
-		case EPCGExPointBoundsSource::DensityBoundsSphere:
-			for (const FPCGPoint& Pt : InPoints) { Bounds->Bounds += Pt.GetDensityBounds().GetBox(); }
-			break;
-		case EPCGExPointBoundsSource::DensityBounds:
-			for (const FPCGPoint& Pt : InPoints) { Bounds->Bounds += Pt.GetDensityBounds().GetBox(); }
-			break;
-		case EPCGExPointBoundsSource::ScaledExtents:
-			for (const FPCGPoint& Pt : InPoints) { Bounds->Bounds += Pt.GetDensityBounds().GetBox(); }
-			break;
-		case EPCGExPointBoundsSource::Extents:
-			for (const FPCGPoint& Pt : InPoints) { Bounds->Bounds += Pt.GetDensityBounds().GetBox(); }
-			break;
-		}
+	default: ;
+	case EPCGExPointBoundsSource::DensityBounds:
+		for (const FPCGPoint& Pt : InPoints) { Bounds->Bounds += Pt.GetDensityBounds().GetBox(); }
+		break;
+	case EPCGExPointBoundsSource::ScaledExtents:
+		for (const FPCGPoint& Pt : InPoints) { Bounds->Bounds += FBoxCenterAndExtent(Pt.Transform.GetLocation(), Pt.GetScaledExtents()).GetBox(); }
+		break;
+	case EPCGExPointBoundsSource::Extents:
+		for (const FPCGPoint& Pt : InPoints) { Bounds->Bounds += FBoxCenterAndExtent(Pt.Transform.GetLocation(), Pt.GetExtents()).GetBox(); }
+		break;
 	}
 
 	return true;
