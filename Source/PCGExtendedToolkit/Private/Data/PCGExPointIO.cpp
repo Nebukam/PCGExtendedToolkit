@@ -238,6 +238,13 @@ namespace PCGExData
 		return false;
 	}
 
+	void FPointIO::Flatten() const
+	{
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
+		if (Out && In != Out) { Out->Metadata->Flatten(); }
+#endif
+	}
+
 	FPointIOGroup::FPointIOGroup()
 	{
 	}
@@ -315,7 +322,8 @@ namespace PCGExData
 
 	/**
 	 * Write valid outputs to Context' tagged data
-	 * @param Context 
+	 * @param Context
+	 * @param bFlatten 
 	 */
 	void FPointIOGroup::OutputTo(FPCGContext* Context)
 	{
@@ -326,7 +334,8 @@ namespace PCGExData
 	 * Write valid outputs to Context' tagged data
 	 * @param Context
 	 * @param MinPointCount
-	 * @param MaxPointCount 
+	 * @param MaxPointCount
+	 * @param bFlatten 
 	 */
 	void FPointIOGroup::OutputTo(FPCGContext* Context, const int32 MinPointCount, const int32 MaxPointCount)
 	{
@@ -336,6 +345,20 @@ namespace PCGExData
 	void FPointIOGroup::ForEach(const TFunction<void(FPointIO&, const int32)>& BodyLoop)
 	{
 		for (int i = 0; i < Pairs.Num(); i++) { BodyLoop(*Pairs[i], i); }
+	}
+
+	FBox FPointIOGroup::GetInBounds()
+	{
+		FBox Bounds = FBox(ForceInit);
+		for (FPointIO* IO : Pairs) { Bounds += IO->GetIn()->GetBounds(); }
+		return Bounds;
+	}
+
+	FBox FPointIOGroup::GetOutBounds()
+	{
+		FBox Bounds = FBox(ForceInit);
+		for (FPointIO* IO : Pairs) { Bounds += IO->GetOut()->GetBounds(); }
+		return Bounds;
 	}
 
 	void FPointIOGroup::Flush()

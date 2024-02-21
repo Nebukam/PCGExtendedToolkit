@@ -2,23 +2,22 @@
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Misc/PCGExPointsToBounds.h"
+#include "Misc/PCGExPointsToBounds.h"
 
 #include "Data/PCGExData.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPointsToBoundsElement"
 #define PCGEX_NAMESPACE PointsToBounds
 
-#define PCGEX_WRITE_MARK(_NAME, _VALUE)\
-if(Settings->bWrite##_NAME){if(FPCGMetadataAttributeBase::IsValidName(Settings->_NAME##AttributeName)){\
-PCGExData::WriteMark(OutData->Metadata, FName(Settings->_NAME##AttributeName), _VALUE);\
-}else{PCGE_LOG(Error, GraphAndLog, FTEXT("Invalid attribute name "#_NAME));}}
-
 PCGExData::EInit UPCGExPointsToBoundsSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NewOutput; }
 
 FPCGExPointsToBoundsContext::~FPCGExPointsToBoundsContext()
 {
+	PCGEX_TERMINATE_ASYNC
+
 	OutPoints = nullptr;
 	PCGEX_DELETE(MetadataBlender)
+	PCGEX_DELETE_TARRAY(IOBounds)
 }
 
 UPCGExPointsToBoundsSettings::UPCGExPointsToBoundsSettings(const FObjectInitializer& ObjectInitializer)
@@ -40,6 +39,9 @@ bool FPCGExPointsToBoundsElement::Boot(FPCGContext* InContext) const
 	if (!FPCGExPointsProcessorElementBase::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(PointsToBounds)
+	PCGEX_FWD(bWritePointsCount)
+
+	PCGEX_SOFT_VALIDATE_NAME(Context->bWritePointsCount, Settings->PointsCountAttributeName, Context)
 
 	Context->MetadataBlender = new PCGExDataBlending::FMetadataBlender(const_cast<FPCGExBlendingSettings*>(&Settings->BlendingSettings));
 
@@ -55,6 +57,18 @@ bool FPCGExPointsToBoundsElement::ExecuteInternal(FPCGContext* InContext) const
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }
+		Context->SetState(PCGExPointsToBounds::State_ComputeBounds);
+	}
+
+	if (Context->IsState(PCGExPointsToBounds::State_ComputeBounds))
+	{
+		PCGExPointsToBounds::ComputeBounds(Context->GetAsyncManager(), Context->MainPoints, Context->IOBounds, Settings->BoundsSource);
+		Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork);
+	}
+
+	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
+	{
+		PCGEX_WAIT_ASYNC
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
@@ -66,17 +80,18 @@ bool FPCGExPointsToBoundsElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsState(PCGExMT::State_ProcessingPoints))
 	{
+		
 		const TArray<FPCGPoint>& InPoints = Context->GetCurrentIn()->GetPoints();
 		UPCGPointData* OutData = Context->GetCurrentOut();
 		TArray<FPCGPoint>& MutablePoints = OutData->GetMutablePoints();
-		MutablePoints.Add(InPoints[0]);
+		MutablePoints.Emplace();
 
-		Context->MetadataBlender->PrepareForData(*Context->CurrentIO);
-		const double AverageDivider = InPoints.Num();
+		if (Settings->bBlendProperties) { Context->MetadataBlender->PrepareForData(*Context->CurrentIO); }
+		const double NumPoints = InPoints.Num();
 
-		FBox Box = FBox(ForceInit);
-		for (int i = 0; i < AverageDivider; i++) { Box += InPoints[i].Transform.GetLocation(); }
+		const PCGExPointsToBounds::FBounds* Bounds = Context->IOBounds[Context->CurrentPointIOIndex];
 
+		const FBox& Box = Bounds->Bounds;
 		const FVector Center = Box.GetCenter();
 		const double SqrDist = Box.GetExtent().SquaredLength();
 
@@ -84,33 +99,74 @@ bool FPCGExPointsToBoundsElement::ExecuteInternal(FPCGContext* InContext) const
 		MutablePoints[0].BoundsMin = Box.Min - Center;
 		MutablePoints[0].BoundsMax = Box.Max - Center;
 
-		const PCGEx::FPointRef Target = Context->CurrentIO->GetOutPointRef(0);
-		Context->MetadataBlender->PrepareForBlending(Target);
-
-		for (int i = 0; i < AverageDivider; i++)
+		if (Settings->bBlendProperties)
 		{
-			FVector Location = InPoints[i].Transform.GetLocation();
-			const double Weight = FVector::DistSquared(Center, Location) / SqrDist;
-			Context->MetadataBlender->Blend(Target, Context->CurrentIO->GetInPointRef(i), Target, Weight);
+			const PCGEx::FPointRef Target = Context->CurrentIO->GetOutPointRef(0);
+			Context->MetadataBlender->PrepareForBlending(Target);
+
+			for (int i = 0; i < NumPoints; i++)
+			{
+				FVector Location = InPoints[i].Transform.GetLocation();
+				const double Weight = FVector::DistSquared(Center, Location) / SqrDist;
+				Context->MetadataBlender->Blend(Target, Context->CurrentIO->GetInPointRef(i), Target, Weight);
+			}
+
+			Context->MetadataBlender->CompleteBlending(Target, NumPoints);
+
+			MutablePoints[0].Transform.SetLocation(Center);
+			MutablePoints[0].BoundsMin = Box.Min - Center;
+			MutablePoints[0].BoundsMax = Box.Max - Center;
+
+			Context->MetadataBlender->Write();
 		}
 
-		Context->MetadataBlender->CompleteBlending(Target, AverageDivider);
+		if (Settings->bWritePointsCount) { PCGExData::WriteMark(OutData->Metadata, Settings->PointsCountAttributeName, NumPoints); }
 
-		MutablePoints[0].Transform.SetLocation(Center);
-		MutablePoints[0].BoundsMin = Box.Min - Center;
-		MutablePoints[0].BoundsMax = Box.Max - Center;
-
-		PCGEX_WRITE_MARK(PointsCount, AverageDivider)
-
-		Context->MetadataBlender->Write();
-
+		Context->CurrentIO->Flatten();
 		Context->CurrentIO->OutputTo(Context);
+
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
 	return Context->IsDone();
 }
-#undef PCGEX_WRITE_MARK
+
+bool FPCGExComputeIOBounds::ExecuteTask()
+{
+	const TArray<FPCGPoint>& InPoints = Bounds->PointIO->GetIn()->GetPoints();
+
+	switch (BoundsSource)
+	{
+	default: ;
+	case EPCGExPointBoundsSource::DensityBounds:
+		for (const FPCGPoint& Pt : InPoints)
+		{
+			const FBox Box = Pt.GetDensityBounds().GetBox();
+			Bounds->Bounds += Box;
+			Bounds->FastVolume += Box.GetExtent().Length();
+		}
+		break;
+	case EPCGExPointBoundsSource::ScaledExtents:
+		for (const FPCGPoint& Pt : InPoints)
+		{
+			const FBox Box = FBoxCenterAndExtent(Pt.Transform.GetLocation(), Pt.GetScaledExtents()).GetBox();
+			Bounds->Bounds += Box;
+			Bounds->FastVolume += Box.GetExtent().Length();
+		}
+		break;
+	case EPCGExPointBoundsSource::Extents:
+		for (const FPCGPoint& Pt : InPoints)
+		{
+			const FBox Box = FBoxCenterAndExtent(Pt.Transform.GetLocation(), Pt.GetExtents()).GetBox();
+			Bounds->Bounds += Box;
+			Bounds->FastVolume += Box.GetExtent().Length();
+		}
+		break;
+	}
+
+	return true;
+}
+
 
 #undef LOCTEXT_NAMESPACE
 #undef PCGEX_NAMESPACE

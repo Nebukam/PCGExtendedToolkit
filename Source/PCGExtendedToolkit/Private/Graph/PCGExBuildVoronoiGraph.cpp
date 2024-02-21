@@ -16,8 +16,6 @@ namespace PCGExGeoTask
 	class FLloydRelax3;
 }
 
-int32 UPCGExBuildVoronoiGraphSettings::GetPreferredChunkSize() const { return 32; }
-
 PCGExData::EInit UPCGExBuildVoronoiGraphSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NewOutput; }
 
 FPCGExBuildVoronoiGraphContext::~FPCGExBuildVoronoiGraphContext()

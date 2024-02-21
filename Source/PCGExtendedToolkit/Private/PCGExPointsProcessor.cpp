@@ -253,7 +253,7 @@ bool UPCGExPointsProcessorSettings::GetMainAcceptMultipleData() const { return t
 
 PCGExData::EInit UPCGExPointsProcessorSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NewOutput; }
 
-int32 UPCGExPointsProcessorSettings::GetPreferredChunkSize() const { return 256; }
+int32 UPCGExPointsProcessorSettings::GetPreferredChunkSize() const { return PCGExMT::GAsyncLoop_M; }
 
 FPCGExPointsProcessorContext::~FPCGExPointsProcessorContext()
 {
@@ -275,9 +275,9 @@ bool FPCGExPointsProcessorContext::AdvancePointsIO()
 {
 	if (CurrentIO) { CurrentIO->Cleanup(); }
 
-	if (MainPoints->Pairs.IsValidIndex(++CurrentPointsIndex))
+	if (MainPoints->Pairs.IsValidIndex(++CurrentPointIOIndex))
 	{
-		CurrentIO = MainPoints->Pairs[CurrentPointsIndex];
+		CurrentIO = MainPoints->Pairs[CurrentPointIOIndex];
 		return true;
 	}
 	CurrentIO = nullptr;

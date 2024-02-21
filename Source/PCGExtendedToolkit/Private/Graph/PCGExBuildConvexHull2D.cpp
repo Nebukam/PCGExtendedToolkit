@@ -10,8 +10,6 @@
 #define LOCTEXT_NAMESPACE "PCGExGraph"
 #define PCGEX_NAMESPACE BuildConvexHull2D
 
-int32 UPCGExBuildConvexHull2DSettings::GetPreferredChunkSize() const { return 32; }
-
 PCGExData::EInit UPCGExBuildConvexHull2DSettings::GetMainOutputInitMode() const
 {
 	return bPrunePoints ? PCGExData::EInit::NewOutput : bMarkHull ? PCGExData::EInit::DuplicateInput : PCGExData::EInit::Forward;
@@ -106,7 +104,7 @@ bool FPCGExBuildConvexHull2DElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExGeo::State_ProcessingHull))
 	{
-		if (!Context->IsAsyncWorkComplete()) { return false; }
+		PCGEX_WAIT_ASYNC
 
 		if (Context->GraphBuilder->Graph->Edges.IsEmpty())
 		{
@@ -121,7 +119,7 @@ bool FPCGExBuildConvexHull2DElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExGraph::State_WritingClusters))
 	{
-		if (!Context->IsAsyncWorkComplete()) { return false; }
+		PCGEX_WAIT_ASYNC
 		if (Context->GraphBuilder->bCompiledSuccessfully)
 		{
 			if (Settings->bMarkHull && !Settings->bPrunePoints)
@@ -143,7 +141,7 @@ bool FPCGExBuildConvexHull2DElement::ExecuteInternal(
 
 	if (Context->IsDone())
 	{
-		Context->OutputPoints();
+		Context->OutputPoints(Settings->bPrunePoints);
 		Context->PathsIO->OutputTo(Context);
 	}
 
@@ -205,7 +203,7 @@ bool FPCGExConvexHull2Task::ExecuteTask()
 	PCGEX_SETTINGS(BuildConvexHull2D)
 
 	PCGExGeo::TDelaunay2* Delaunay = new PCGExGeo::TDelaunay2();
-	
+
 	TArray<FVector> Positions;
 	PCGExGeo::PointsToPositions(Context->CurrentIO->GetIn()->GetPoints(), Positions);
 
@@ -215,7 +213,7 @@ bool FPCGExConvexHull2Task::ExecuteTask()
 		PCGEX_DELETE(Delaunay)
 		return false;
 	}
-	
+
 	if (Settings->bPrunePoints)
 	{
 		PCGExGraph::FIndexedEdge E = PCGExGraph::FIndexedEdge{};

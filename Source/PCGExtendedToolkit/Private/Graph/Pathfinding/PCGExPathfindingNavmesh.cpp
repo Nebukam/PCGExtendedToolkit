@@ -55,7 +55,6 @@ void UPCGExPathfindingNavmeshSettings::PostEditChangeProperty(FPropertyChangedEv
 #endif
 
 PCGExData::EInit UPCGExPathfindingNavmeshSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
-int32 UPCGExPathfindingNavmeshSettings::GetPreferredChunkSize() const { return 32; }
 
 FName UPCGExPathfindingNavmeshSettings::GetMainInputLabel() const { return PCGExPathfinding::SourceSeedsLabel; }
 FName UPCGExPathfindingNavmeshSettings::GetMainOutputLabel() const { return PCGExGraph::OutputPathsLabel; }
@@ -149,7 +148,7 @@ bool FPCGExPathfindingNavmeshElement::ExecuteInternal(FPCGContext* InContext) co
 
 	if (Context->IsState(PCGExPathfinding::State_Pathfinding))
 	{
-		if (!Context->IsAsyncWorkComplete()) { return false; }
+		PCGEX_WAIT_ASYNC
 		Context->OutputPaths->OutputTo(Context);
 		Context->Done();
 	}
@@ -247,6 +246,8 @@ bool FSampleNavmeshTask::ExecuteTask()
 	if (!Context->bAddSeedToPath) { MutablePoints.RemoveAt(0); }
 	if (!Context->bAddGoalToPath) { MutablePoints.Pop(); }
 
+	PathPoints.Flatten();
+	
 	return true;
 }
 

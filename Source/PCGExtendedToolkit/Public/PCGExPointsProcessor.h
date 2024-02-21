@@ -38,10 +38,12 @@ FPCGElementPtr UPCGEx##_NAME##Settings::CreateElement() const{	return MakeShared
 #define PCGEX_OPERATION_DEFAULT(_NAME, _TYPE)  // if(!_NAME){_NAME = NewObject<_TYPE>(this, TEXT(#_NAME), RF_Transactional); _NAME->UpdateUserFacingInfos();} //ObjectInitializer.CreateDefaultSubobject<_TYPE>(this, TEXT(#_NAME));
 #define PCGEX_OPERATION_VALIDATE(_NAME) if(!Settings->_NAME){PCGE_LOG(Error, GraphAndLog, FTEXT("No operation selected for : "#_NAME)); return false;}
 #define PCGEX_OPERATION_BIND(_NAME, _TYPE) PCGEX_OPERATION_VALIDATE(_NAME) Context->_NAME = Context->RegisterOperation<_TYPE>(Settings->_NAME);
-#define PCGEX_VALIDATE_NAME(_NAME) if (!FPCGMetadataAttributeBase::IsValidName(_NAME) || _NAME.IsNone()){	PCGE_LOG(Error, GraphAndLog, FTEXT("Invalid user-defined attribute name for " #_NAME)); return false;	}
-#define PCGEX_SOFT_VALIDATE_NAME(_BOOL, _NAME, _CTX) if(_BOOL){if (!FPCGMetadataAttributeBase::IsValidName(_NAME) || _NAME.IsNone()){ PCGE_LOG_C(Warning, GraphAndLog, _CTX, FTEXT("Invalid user-defined attribute name for " #_NAME)); _BOOL = false; } }
+#define PCGEX_VALIDATE_NAME(_NAME) if (!PCGEx::IsValidName(_NAME)){	PCGE_LOG(Error, GraphAndLog, FTEXT("Invalid user-defined attribute name for " #_NAME)); return false;	}
+#define PCGEX_SOFT_VALIDATE_NAME(_BOOL, _NAME, _CTX) if(_BOOL){if (!PCGEx::IsValidName(_NAME)){ PCGE_LOG_C(Warning, GraphAndLog, _CTX, FTEXT("Invalid user-defined attribute name for " #_NAME)); _BOOL = false; } }
 #define PCGEX_FWD(_NAME) Context->_NAME = Settings->_NAME;
 #define PCGEX_TERMINATE_ASYNC PCGEX_DELETE(AsyncManager)
+
+#define PCGEX_WAIT_ASYNC if (!Context->IsAsyncWorkComplete()) {return false;}
 
 struct FPCGExPointsProcessorContext;
 
@@ -216,7 +218,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : public FPCGContext
 	int32 ChunkSize = 0;
 	bool bDoAsyncProcessing = true;
 
-	void OutputPoints() { MainPoints->OutputTo(this); }
+	void OutputPoints(const bool bFlatten = false) { MainPoints->OutputTo(this); }
 
 	bool BulkProcessMainPoints(TFunction<void(PCGExData::FPointIO&)>&& Initialize, TFunction<void(const int32, const PCGExData::FPointIO&)>&& LoopBody);
 	bool ProcessCurrentPoints(TFunction<void(PCGExData::FPointIO&)>&& Initialize, TFunction<void(const int32, const PCGExData::FPointIO&)>&& LoopBody, bool bForceSync = false);
@@ -278,7 +280,7 @@ protected:
 	PCGEx::FBulkAsyncPointLoop BulkAsyncPointLoop;
 
 	PCGExMT::AsyncState CurrentState;
-	int32 CurrentPointsIndex = -1;
+	int32 CurrentPointIOIndex = -1;
 
 	TArray<UPCGExOperation*> ProcessorOperations;
 	TSet<UPCGExOperation*> OwnedProcessorOperations;

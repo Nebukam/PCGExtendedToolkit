@@ -6,8 +6,6 @@
 #define LOCTEXT_NAMESPACE "PCGExDeleteCustomGraph"
 #define PCGEX_NAMESPACE DeleteCustomGraph
 
-int32 UPCGExDeleteCustomGraphSettings::GetPreferredChunkSize() const { return 32; }
-
 TArray<FPCGPinProperties> UPCGExDeleteCustomGraphSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();

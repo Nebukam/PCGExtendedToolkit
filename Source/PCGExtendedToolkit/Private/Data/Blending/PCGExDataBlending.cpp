@@ -23,6 +23,8 @@ namespace PCGExDataBlending
 	{
 	}
 
+	bool FDataBlendingOperationBase::GetIsInterpolation() const { return false; }
+
 	bool FDataBlendingOperationBase::GetRequiresFinalization() const { return false; }
 
 	void FDataBlendingOperationBase::PrepareOperation(const int32 WriteIndex) const

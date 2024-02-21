@@ -106,6 +106,11 @@ namespace PCGExGraph
 	const FName SourceSocketParamsLabel = TEXT("Sockets");
 	const FName OutputSocketParamsLabel = TEXT("Socket");
 
+	const FName SourceSocketStateLabel = TEXT("SocketStates");
+	const FName SourceIfAttributesLabel = TEXT("If");
+	const FName SourceElseAttributesLabel = TEXT("Else");
+	const FName OutputSocketStateLabel = TEXT("SocketState");
+
 	const FName SourceParamsLabel = TEXT("Graph");
 	const FName OutputParamsLabel = TEXT("➜");
 
@@ -117,6 +122,9 @@ namespace PCGExGraph
 
 	const FName SourcePathsLabel = TEXT("Paths");
 	const FName OutputPathsLabel = TEXT("Paths");
+
+	const FName Tag_PackedClusterPointCount = TEXT("PCGEx/PackedClusterPointCount");
+	const FName Tag_PackedClusterEdgeCount = TEXT("PCGEx/PackedClusterEdgeCount");
 
 	constexpr PCGExMT::AsyncState State_ReadyForNextGraph = __COUNTER__;
 	constexpr PCGExMT::AsyncState State_ProcessingGraph = __COUNTER__;
@@ -198,7 +206,7 @@ namespace PCGExGraph
 		int32 NodeIndex;
 		EPCGExIntersectionType Type = EPCGExIntersectionType::PointEdge;
 		bool bCompounded = false; // Represents multiple nodes
-		int32 CompoundSize = 0; // Fuse size
+		int32 CompoundSize = 0;   // Fuse size
 
 		explicit FGraphNodeMetadata(int32 InNodeIndex)
 			: NodeIndex(InNodeIndex)
@@ -238,7 +246,7 @@ namespace PCGExGraph
 			return NewMetadata;
 		}
 
-		static int32 GetParentIndex(const int32 EdgeIndex, TMap<int32, FGraphEdgeMetadata*>& InMetadata)
+		static int32 GetRootIndex(const int32 EdgeIndex, TMap<int32, FGraphEdgeMetadata*>& InMetadata)
 		{
 			int32 ParentIndex = -1;
 			FGraphEdgeMetadata** Parent = InMetadata.Find(EdgeIndex);
@@ -248,7 +256,7 @@ namespace PCGExGraph
 				Parent = InMetadata.Find(EdgeIndex);
 			}
 
-			return ParentIndex;
+			return ParentIndex == -1 ? EdgeIndex : ParentIndex;
 		}
 	};
 
@@ -376,7 +384,8 @@ namespace PCGExGraph
 		FPCGExGraphBuilderSettings* OutputSettings = nullptr;
 
 		bool bPrunePoints = false;
-		FString EdgeTagValue;
+		int64 PairId;
+		FString PairIdStr;
 
 		PCGExData::FPointIO* PointIO = nullptr;
 
@@ -391,7 +400,8 @@ namespace PCGExGraph
 			: OutputSettings(InSettings), SourceEdgesIO(InSourceEdges)
 		{
 			PointIO = &InPointIO;
-			PointIO->Tags->Set(Tag_Cluster, PointIO->GetOutIn()->UID, EdgeTagValue);
+			PairId = PointIO->GetOutIn()->UID;
+			PointIO->Tags->Set(TagStr_ClusterPair, PairId, PairIdStr);
 
 			const int32 NumNodes = PointIO->GetOutNum();
 
@@ -447,6 +457,7 @@ namespace PCGExGraph
 	{
 		const FPCGPoint Point;
 		FVector Center;
+		FBoxSphereBounds Bounds;
 		int32 Index;
 
 		TArray<int32> Neighbors; // PointIO Index >> Edge Index
@@ -457,6 +468,7 @@ namespace PCGExGraph
 			  Index(InIndex)
 		{
 			Neighbors.Empty();
+			Bounds = FBoxSphereBounds(InPoint.GetLocalBounds().TransformBy(InPoint.Transform));
 		}
 
 		~FCompoundNode()
@@ -469,6 +481,36 @@ namespace PCGExGraph
 		FVector UpdateCenter(PCGExData::FIdxCompoundList* PointsCompounds, PCGExData::FPointIOGroup* IOGroup);
 	};
 
+	struct PCGEXTENDEDTOOLKIT_API FCompoundNodeSemantics
+	{
+		enum { MaxElementsPerLeaf = 16 };
+
+		enum { MinInclusiveElementsPerNode = 7 };
+
+		enum { MaxNodeDepth = 12 };
+
+		using ElementAllocator = TInlineAllocator<MaxElementsPerLeaf>;
+		
+		FORCEINLINE static const FBoxSphereBounds& GetBoundingBox(const FCompoundNode* InNode)
+		{
+			return InNode->Bounds;
+		}
+
+		FORCEINLINE static const bool AreElementsEqual(const FCompoundNode* A, const FCompoundNode* B)
+		{
+			return A == B;
+		}
+
+		FORCEINLINE static void ApplyOffset(FCompoundNode& InNode)
+		{
+			ensureMsgf(false, TEXT("Not implemented"));
+		}
+
+		FORCEINLINE static void SetElementId(const FCompoundNode* Element, FOctreeElementId2 OctreeElementID)
+		{
+		}
+	};
+
 	struct PCGEXTENDEDTOOLKIT_API FCompoundGraph
 	{
 		PCGExData::FIdxCompoundList* PointsCompounds = nullptr;
@@ -477,13 +519,19 @@ namespace PCGExGraph
 		TMap<uint64, FIndexedEdge> Edges;
 		const FPCGExFuseSettings FuseSettings;
 
-		explicit FCompoundGraph(const FPCGExFuseSettings& InFuseSettings)
+		using NodeOctree = TOctree2<FCompoundNode*, FCompoundNodeSemantics>;
+
+		mutable FRWLock OctreeLock;
+		mutable NodeOctree Octree;
+
+		explicit FCompoundGraph(const FPCGExFuseSettings& InFuseSettings, FBox Bounds)
 			: FuseSettings(InFuseSettings)
 		{
 			Nodes.Empty();
 			Edges.Empty();
 			PointsCompounds = new PCGExData::FIdxCompoundList();
 			EdgesCompounds = new PCGExData::FIdxCompoundList();
+			Octree = NodeOctree(Bounds.GetCenter(), Bounds.GetExtent().Length());
 		}
 
 		~FCompoundGraph()
@@ -575,12 +623,14 @@ namespace PCGExGraph
 		mutable FRWLock InsertionLock;
 		PCGExData::FPointIO* PointIO = nullptr;
 		FGraph* Graph = nullptr;
+		FCompoundGraph* CompoundGraph = nullptr;
 
 		const FPCGExPointEdgeIntersectionSettings Settings;
 		TArray<FPointEdgeProxy> Edges;
 
 		FPointEdgeIntersections(
 			FGraph* InGraph,
+			FCompoundGraph* InCompoundGraph,
 			PCGExData::FPointIO* InPointIO,
 			const FPCGExPointEdgeIntersectionSettings& InSettings);
 
@@ -688,6 +738,7 @@ namespace PCGExGraph
 		mutable FRWLock InsertionLock;
 		PCGExData::FPointIO* PointIO = nullptr;
 		FGraph* Graph = nullptr;
+		FCompoundGraph* CompoundGraph = nullptr;
 
 		const FPCGExEdgeEdgeIntersectionSettings& Settings;
 
@@ -697,6 +748,7 @@ namespace PCGExGraph
 
 		FEdgeEdgeIntersections(
 			FGraph* InGraph,
+			FCompoundGraph* InCompoundGraph,
 			PCGExData::FPointIO* InPointIO,
 			const FPCGExEdgeEdgeIntersectionSettings& InSettings);
 
@@ -744,6 +796,42 @@ namespace PCGExGraph
 				!AttributeCheck || AttributeCheck->GetTypeId() != I32) { return false; }
 		}
 
+		return true;
+	}
+
+	static bool GetReducedVtxIndices(PCGExData::FPointIO& InEdges, const TMap<int32, int32>* NodeIndicesMap, TArray<int32>& OutVtxIndices, int32& OutEdgeNum)
+	{
+		PCGEx::TFAttributeReader<int32>* StartIndexReader = new PCGEx::TFAttributeReader<int32>(Tag_EdgeStart);
+		PCGEx::TFAttributeReader<int32>* EndIndexReader = new PCGEx::TFAttributeReader<int32>(Tag_EdgeEnd);
+		const bool bStart = StartIndexReader->Bind(InEdges);
+		const bool bEnd = EndIndexReader->Bind(InEdges);
+
+		if (!bStart || !bEnd ||
+			StartIndexReader->Values.Num() != EndIndexReader->Values.Num())
+		{
+			PCGEX_DELETE(StartIndexReader)
+			PCGEX_DELETE(EndIndexReader)
+			return false;
+		}
+
+		OutEdgeNum = StartIndexReader->Values.Num();
+
+		OutVtxIndices.Empty();
+		OutVtxIndices.Reserve(OutEdgeNum * 2);
+
+		for (int i = 0; i < OutEdgeNum; i++)
+		{
+			const int32* NodeStartPtr = NodeIndicesMap->Find(StartIndexReader->Values[i]);
+			const int32* NodeEndPtr = NodeIndicesMap->Find(EndIndexReader->Values[i]);
+
+			if (!NodeStartPtr || !NodeEndPtr || (*NodeStartPtr == *NodeEndPtr)) { continue; }
+
+			OutVtxIndices.AddUnique(*NodeStartPtr);
+			OutVtxIndices.AddUnique(*NodeEndPtr);
+		}
+
+		PCGEX_DELETE(StartIndexReader)
+		PCGEX_DELETE(EndIndexReader)
 		return true;
 	}
 }
@@ -866,11 +954,11 @@ namespace PCGExGraphTask
 
 #pragma region Compound Graph tasks
 
-	class PCGEXTENDEDTOOLKIT_API FBuildCompoundGraphFromPoints : public FPCGExNonAbandonableTask
+	class PCGEXTENDEDTOOLKIT_API FCompoundGraphInsertPoints : public FPCGExNonAbandonableTask
 	{
 	public:
-		FBuildCompoundGraphFromPoints(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-		                              PCGExGraph::FCompoundGraph* InGraph)
+		FCompoundGraphInsertPoints(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+		                           PCGExGraph::FCompoundGraph* InGraph)
 			: FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
 			  Graph(InGraph)
 		{
@@ -881,13 +969,13 @@ namespace PCGExGraphTask
 		virtual bool ExecuteTask() override;
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FBuildCompoundGraphFromEdges : public FPCGExNonAbandonableTask
+	class PCGEXTENDEDTOOLKIT_API FCompoundGraphInsertEdges : public FPCGExNonAbandonableTask
 	{
 	public:
-		FBuildCompoundGraphFromEdges(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-		                             PCGExGraph::FCompoundGraph* InGraph,
-		                             PCGExData::FPointIO* InEdgeIO,
-		                             TMap<int32, int32>* InNodeIndicesMap)
+		FCompoundGraphInsertEdges(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+		                          PCGExGraph::FCompoundGraph* InGraph,
+		                          PCGExData::FPointIO* InEdgeIO,
+		                          TMap<int32, int32>* InNodeIndicesMap)
 			: FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
 			  Graph(InGraph),
 			  EdgeIO(InEdgeIO),

@@ -28,6 +28,19 @@ namespace PCGExData
 			Weights.Empty();
 		}
 
+		bool ContainsIOIndex(int32 IOIndex)
+		{
+			for (const uint64 H : CompoundedPoints)
+			{
+				uint32 A;
+				uint32 B;
+				PCGEx::H64(H, A, B);
+				if (A == IOIndex) { return true; }
+			}
+			return false;
+		}
+
+
 		void ComputeWeights(const TArray<FPointIO*>& Sources, const FPCGPoint& Target, const FPCGExDistanceSettings& DistSettings)
 		{
 			Weights.SetNum(CompoundedPoints.Num());
@@ -90,6 +103,20 @@ namespace PCGExData
 			return Compounds[Index]->Add(IOIndex, PointIndex);
 		}
 
+		void GetIOIndices(const int32 Index, TArray<int32>& OutIOIndices)
+		{
+			FIdxCompound* Compound = Compounds[Index];
+			OutIOIndices.SetNum(Compound->Num());
+			for (int i = 0; i < OutIOIndices.Num(); i++) { OutIOIndices[i] = PCGEx::H64A(Compound->CompoundedPoints[i]); }
+		}
+
+		bool HasIOIndexOverlap(int32 Idx, const TArray<int32>& InIndices)
+		{
+			FIdxCompound* OtherComp = Compounds[Idx];
+			for (const int32 IOIndex : InIndices) { if (OtherComp->ContainsIOIndex(IOIndex)) { return true; } }
+			return false;
+		}
+
 		FIdxCompound* operator[](int32 Index) const { return this->Compounds[Index]; }
 	};
 
@@ -124,6 +151,13 @@ namespace PCGExData
 		return TryReadMark(PointIO.GetIn() ? PointIO.GetIn()->Metadata : PointIO.GetOut()->Metadata, MarkID, OutMark);
 	}
 
+	static void WriteId(const FPointIO& PointIO, const FName IdName, const int64 Id)
+	{
+		FString OutId;
+		PointIO.Tags->Set(IdName.ToString(), Id, OutId);
+		if (PointIO.GetOut()) { WriteMark(PointIO.GetOut()->Metadata, IdName, Id); }
+	}
+
 	static UPCGPointData* GetMutablePointData(FPCGContext* Context, const FPCGTaggedData& Source)
 	{
 		const UPCGSpatialData* SpatialData = Cast<UPCGSpatialData>(Source.Data);
@@ -148,7 +182,8 @@ PCGEX_BLEND_CASE(Copy)\
 PCGEX_BLEND_CASE(Average)\
 PCGEX_BLEND_CASE(Weight)\
 PCGEX_BLEND_CASE(Min)\
-PCGEX_BLEND_CASE(Max)
+PCGEX_BLEND_CASE(Max)\
+PCGEX_BLEND_CASE(Sum)
 
 		FDataBlendingOperationBase* NewOperation = nullptr;
 

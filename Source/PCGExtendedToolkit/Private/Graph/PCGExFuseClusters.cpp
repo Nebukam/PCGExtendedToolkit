@@ -48,7 +48,7 @@ bool FPCGExFuseClustersElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_FWD(GraphBuilderSettings)
 
-	Context->CompoundGraph = new PCGExGraph::FCompoundGraph(Context->PointPointIntersectionSettings.FuseSettings);
+	Context->CompoundGraph = new PCGExGraph::FCompoundGraph(Context->PointPointIntersectionSettings.FuseSettings, Context->MainPoints->GetInBounds().ExpandBy(10));
 
 	Context->CompoundPointsBlender = new PCGExDataBlending::FCompoundBlender(const_cast<FPCGExBlendingSettings*>(&Settings->PointsBlendingSettings));
 	Context->CompoundPointsBlender->AddSources(*Context->MainPoints);
@@ -99,7 +99,7 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 		// Insert current edges into loose graph
 		// Note that since we're building from edges only, this skips isolated points altogether
 
-		Context->GetAsyncManager()->Start<PCGExGraphTask::FBuildCompoundGraphFromEdges>(
+		Context->GetAsyncManager()->Start<PCGExGraphTask::FCompoundGraphInsertEdges>(
 			Context->CurrentIO->IOIndex, Context->CurrentIO,
 			Context->CompoundGraph, Context->CurrentEdges, &Context->NodeIndicesMap);
 
@@ -108,7 +108,7 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsState(PCGExGraph::State_ProcessingEdges))
 	{
-		if (!Context->IsAsyncWorkComplete()) { return false; }
+		PCGEX_WAIT_ASYNC
 		Context->SetState(PCGExGraph::State_ReadyForNextEdges);
 	}
 
@@ -142,7 +142,7 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsState(PCGExGraph::State_MergingPointCompounds))
 	{
-		if (!Context->IsAsyncWorkComplete()) { return false; }
+		PCGEX_WAIT_ASYNC
 
 		Context->CompoundPointsBlender->Write();
 
@@ -151,21 +151,20 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 		TArray<PCGExGraph::FUnsignedEdge> UniqueEdges;
 		Context->CompoundGraph->GetUniqueEdges(UniqueEdges);
 		Context->CompoundGraph->WriteMetadata(Context->GraphBuilder->Graph->NodeMetadata);
-		PCGEX_DELETE(Context->CompoundGraph)
-
+		
 		Context->GraphBuilder->Graph->InsertEdges(UniqueEdges, -1);
 		UniqueEdges.Empty();
 
 		if (Settings->bDoPointEdgeIntersection)
 		{
 			// TODO: Point/edge intersection needs to keep track of original edge IO/Index
-			Context->PointEdgeIntersections = new PCGExGraph::FPointEdgeIntersections(Context->GraphBuilder->Graph, Context->ConsolidatedPoints, Context->PointEdgeIntersectionSettings);
+			Context->PointEdgeIntersections = new PCGExGraph::FPointEdgeIntersections(Context->GraphBuilder->Graph, Context->CompoundGraph, Context->ConsolidatedPoints, Context->PointEdgeIntersectionSettings);
 			Context->PointEdgeIntersections->FindIntersections(Context);
 			Context->SetAsyncState(PCGExGraph::State_FindingPointEdgeIntersections);
 		}
 		else if (Settings->bDoEdgeEdgeIntersection)
 		{
-			Context->EdgeEdgeIntersections = new PCGExGraph::FEdgeEdgeIntersections(Context->GraphBuilder->Graph, Context->ConsolidatedPoints, Context->EdgeEdgeIntersectionSettings);
+			Context->EdgeEdgeIntersections = new PCGExGraph::FEdgeEdgeIntersections(Context->GraphBuilder->Graph, Context->CompoundGraph,Context->ConsolidatedPoints, Context->EdgeEdgeIntersectionSettings);
 			Context->EdgeEdgeIntersections->FindIntersections(Context);
 			Context->SetAsyncState(PCGExGraph::State_FindingEdgeEdgeIntersections);
 		}
@@ -177,7 +176,7 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsState(PCGExGraph::State_FindingPointEdgeIntersections))
 	{
-		if (!Context->IsAsyncWorkComplete()) { return false; }
+		PCGEX_WAIT_ASYNC
 
 		Context->PointEdgeIntersections->Insert(); // TODO : Async?
 		PCGEX_DELETE(Context->PointEdgeIntersections)
@@ -186,7 +185,7 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 		{
 			// TODO : How to retrieve original edge IO/Index for tagging? :/
 			// Can be consoldated from CompoundGraph' EdgeIdxCompoupnds + GraphMetadata...?
-			Context->EdgeEdgeIntersections = new PCGExGraph::FEdgeEdgeIntersections(Context->GraphBuilder->Graph, Context->ConsolidatedPoints, Context->EdgeEdgeIntersectionSettings);
+			Context->EdgeEdgeIntersections = new PCGExGraph::FEdgeEdgeIntersections(Context->GraphBuilder->Graph, Context->CompoundGraph,Context->ConsolidatedPoints, Context->EdgeEdgeIntersectionSettings);
 			Context->EdgeEdgeIntersections->FindIntersections(Context);
 			Context->SetAsyncState(PCGExGraph::State_FindingEdgeEdgeIntersections);
 		}
@@ -198,7 +197,7 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsState(PCGExGraph::State_FindingEdgeEdgeIntersections))
 	{
-		if (!Context->IsAsyncWorkComplete()) { return false; }
+		PCGEX_WAIT_ASYNC
 
 		Context->EdgeEdgeIntersections->Insert(); // TODO : Async?
 		PCGEX_DELETE(Context->EdgeEdgeIntersections)
@@ -208,7 +207,7 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsState(PCGExGraph::State_WritingClusters))
 	{
-		if (!Context->IsAsyncWorkComplete()) { return false; }
+		PCGEX_WAIT_ASYNC
 
 		Context->GraphBuilder->Compile(Context, &Context->GraphMetadataSettings);
 		Context->SetAsyncState(PCGExGraph::State_WaitingOnWritingClusters);
@@ -217,11 +216,11 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsState(PCGExGraph::State_WaitingOnWritingClusters))
 	{
-		if (!Context->IsAsyncWorkComplete()) { return false; }
+		PCGEX_WAIT_ASYNC
 
 		if (Context->GraphBuilder->bCompiledSuccessfully)
 		{
-			// Blend edges metadata
+			Context->GraphBuilder->PointIO->Flatten();
 			Context->GraphBuilder->Write(Context);
 			Context->OutputPoints();
 		}

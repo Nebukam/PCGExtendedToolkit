@@ -274,33 +274,60 @@ namespace PCGExGraph
 	FCompoundNode* FCompoundGraph::GetOrCreateNode(const FPCGPoint& Point, const int32 IOIndex, const int32 PointIndex)
 	{
 		const FVector Origin = Point.Transform.GetLocation();
-
+		int32 Index = -1;
 		if (FuseSettings.bComponentWiseTolerance)
 		{
-			for (FCompoundNode* Node : Nodes)
-			{
-				if (FuseSettings.IsWithinToleranceComponentWise(Point, Node->Point))
+			FReadScopeLock ReadLock(OctreeLock);
+			const FBoxCenterAndExtent Box = FBoxCenterAndExtent(Origin, FuseSettings.Tolerances);
+			Octree.FindFirstElementWithBoundsTest(
+				Box, [&](const FCompoundNode* Node)
 				{
-					PointsCompounds->Add(Node->Index, IOIndex, PointIndex);
-					return Node;
-				}
+					if (FuseSettings.IsWithinToleranceComponentWise(Point, Node->Point))
+					{
+						Index = Node->Index;
+						return false;
+					}
+					return true;
+				});
+
+			if (Index != -1)
+			{
+				PointsCompounds->Add(Index, IOIndex, PointIndex);
+				return Nodes[Index];
 			}
 		}
 		else
 		{
-			for (FCompoundNode* Node : Nodes)
-			{
-				if (FuseSettings.IsWithinTolerance(Point, Node->Point))
+			FReadScopeLock ReadLock(OctreeLock);
+			const FBoxCenterAndExtent Box = FBoxCenterAndExtent(Origin, FVector(FuseSettings.Tolerance));
+			Octree.FindFirstElementWithBoundsTest(
+				Box, [&](const FCompoundNode* Node)
 				{
-					PointsCompounds->Add(Node->Index, IOIndex, PointIndex);
-					return Node;
-				}
+					if (FuseSettings.IsWithinToleranceComponentWise(Point, Node->Point))
+					{
+						Index = Node->Index;
+						return false;
+					}
+					return true;
+				});
+
+			if (Index != -1)
+			{
+				PointsCompounds->Add(Index, IOIndex, PointIndex);
+				return Nodes[Index];
 			}
 		}
 
-		FCompoundNode* NewNode = new FCompoundNode(Point, Origin, Nodes.Num());
-		Nodes.Add(NewNode);
-		PointsCompounds->New()->Add(IOIndex, PointIndex);
+		FCompoundNode* NewNode;
+
+		{
+			FWriteScopeLock WriteLock(OctreeLock);
+			NewNode = new FCompoundNode(Point, Origin, Nodes.Num());
+			Nodes.Add(NewNode);
+			Octree.AddElement(NewNode);
+			PointsCompounds->New()->Add(IOIndex, PointIndex);
+		}
+
 		return NewNode;
 	}
 
@@ -372,9 +399,10 @@ namespace PCGExGraph
 
 	FPointEdgeIntersections::FPointEdgeIntersections(
 		FGraph* InGraph,
+		FCompoundGraph* InCompoundGraph,
 		PCGExData::FPointIO* InPointIO,
 		const FPCGExPointEdgeIntersectionSettings& InSettings)
-		: PointIO(InPointIO), Graph(InGraph), Settings(InSettings)
+		: PointIO(InPointIO), Graph(InGraph), CompoundGraph(InCompoundGraph), Settings(InSettings)
 	{
 		const TArray<FPCGPoint>& Points = InPointIO->GetOutIn()->GetPoints();
 
@@ -457,18 +485,44 @@ namespace PCGExGraph
 		const FIndexedEdge& IEdge = InIntersections->Graph->Edges[EdgeIndex];
 		FPESplit Split = FPESplit{};
 
-		for (const FNode& Node : InIntersections->Graph->Nodes)
+		if (!InIntersections->Settings.bEnableSelfIntersection)
 		{
-			if (!Node.bValid) { continue; }
+			TArray<int32> IOIndices;
+			InIntersections->CompoundGraph->EdgesCompounds->GetIOIndices(
+				FGraphEdgeMetadata::GetRootIndex(Edge.EdgeIndex, InIntersections->Graph->EdgeMetadata), IOIndices);
 
-			FVector Position = Points[Node.PointIndex].Transform.GetLocation();
-
-			if (!Edge.Box.IsInside(Position)) { continue; }
-			if (IEdge.Start == Node.PointIndex || IEdge.End == Node.PointIndex) { continue; }
-			if (Edge.FindSplit(Position, Split))
+			for (const FNode& Node : InIntersections->Graph->Nodes)
 			{
+				if (!Node.bValid) { continue; }
+
+				FVector Position = Points[Node.PointIndex].Transform.GetLocation();
+
+				if (!Edge.Box.IsInside(Position)) { continue; }
+				if (IEdge.Start == Node.PointIndex || IEdge.End == Node.PointIndex) { continue; }
+				if (!Edge.FindSplit(Position, Split)) { continue; }
+
+				// Check overlap last as it's the most expensive op
+				if (InIntersections->CompoundGraph->PointsCompounds->HasIOIndexOverlap(Node.NodeIndex, IOIndices)) { continue; }
+
 				Split.NodeIndex = Node.NodeIndex;
 				InIntersections->Add(EdgeIndex, Split);
+			}
+		}
+		else
+		{
+			for (const FNode& Node : InIntersections->Graph->Nodes)
+			{
+				if (!Node.bValid) { continue; }
+
+				FVector Position = Points[Node.PointIndex].Transform.GetLocation();
+
+				if (!Edge.Box.IsInside(Position)) { continue; }
+				if (IEdge.Start == Node.PointIndex || IEdge.End == Node.PointIndex) { continue; }
+				if (Edge.FindSplit(Position, Split))
+				{
+					Split.NodeIndex = Node.NodeIndex;
+					InIntersections->Add(EdgeIndex, Split);
+				}
 			}
 		}
 	}
@@ -498,9 +552,10 @@ namespace PCGExGraph
 
 	FEdgeEdgeIntersections::FEdgeEdgeIntersections(
 		FGraph* InGraph,
+		FCompoundGraph* InCompoundGraph,
 		PCGExData::FPointIO* InPointIO,
 		const FPCGExEdgeEdgeIntersectionSettings& InSettings)
-		: PointIO(InPointIO), Graph(InGraph), Settings(InSettings)
+		: PointIO(InPointIO), Graph(InGraph), CompoundGraph(InCompoundGraph), Settings(InSettings)
 	{
 		const TArray<FPCGPoint>& Points = InPointIO->GetOutIn()->GetPoints();
 
@@ -600,19 +655,48 @@ namespace PCGExGraph
 		const FEdgeEdgeProxy& Edge = InIntersections->Edges[EdgeIndex];
 		FEESplit Split = FEESplit{};
 
-		for (const FEdgeEdgeProxy& OtherEdge : InIntersections->Edges)
+		if (!InIntersections->Settings.bEnableSelfIntersection)
 		{
-			if (OtherEdge.EdgeIndex == -1 || &Edge == &OtherEdge) { continue; }
-			if (!Edge.Box.Intersect(OtherEdge.Box)) { continue; }
+			TArray<int32> IOIndices;
+			InIntersections->CompoundGraph->EdgesCompounds->GetIOIndices(
+				FGraphEdgeMetadata::GetRootIndex(Edge.EdgeIndex, InIntersections->Graph->EdgeMetadata), IOIndices);
 
+			for (const FEdgeEdgeProxy& OtherEdge : InIntersections->Edges)
 			{
-				FReadScopeLock ReadLock(InIntersections->InsertionLock);
-				if (InIntersections->CheckedPairs.Contains(PCGEx::H64U(EdgeIndex, OtherEdge.EdgeIndex))) { continue; }
-			}
+				if (OtherEdge.EdgeIndex == -1 || &Edge == &OtherEdge) { continue; }
+				if (!Edge.Box.Intersect(OtherEdge.Box)) { continue; }
 
-			if (Edge.FindSplit(OtherEdge, Split))
-			{
+				{
+					FReadScopeLock ReadLock(InIntersections->InsertionLock);
+					if (InIntersections->CheckedPairs.Contains(PCGEx::H64U(EdgeIndex, OtherEdge.EdgeIndex))) { continue; }
+				}
+
+				if (!Edge.FindSplit(OtherEdge, Split)) { continue; }
+
+				// Check overlap last as it's the most expensive op
+				if (InIntersections->CompoundGraph->EdgesCompounds->HasIOIndexOverlap(
+					FGraphEdgeMetadata::GetRootIndex(OtherEdge.EdgeIndex, InIntersections->Graph->EdgeMetadata),
+					IOIndices)) { continue; }
+
 				InIntersections->Add(EdgeIndex, OtherEdge.EdgeIndex, Split);
+			}
+		}
+		else
+		{
+			for (const FEdgeEdgeProxy& OtherEdge : InIntersections->Edges)
+			{
+				if (OtherEdge.EdgeIndex == -1 || &Edge == &OtherEdge) { continue; }
+				if (!Edge.Box.Intersect(OtherEdge.Box)) { continue; }
+
+				{
+					FReadScopeLock ReadLock(InIntersections->InsertionLock);
+					if (InIntersections->CheckedPairs.Contains(PCGEx::H64U(EdgeIndex, OtherEdge.EdgeIndex))) { continue; }
+				}
+
+				if (Edge.FindSplit(OtherEdge, Split))
+				{
+					InIntersections->Add(EdgeIndex, OtherEdge.EdgeIndex, Split);
+				}
 			}
 		}
 	}
@@ -733,10 +817,14 @@ namespace PCGExGraphTask
 					PCGExGraph::FNode Node = Graph->Nodes[NodeIndex];
 					PCGExGraph::FGraphNodeMetadata** NodeMetaPtr = Graph->NodeMetadata.Find(NodeIndex);
 
-					if (!NodeMetaPtr || (*NodeMetaPtr)->Type != EPCGExIntersectionType::EdgeEdge) { continue; }
+					if (!NodeMetaPtr || (*NodeMetaPtr)->Type != EPCGExIntersectionType::EdgeEdge)
+					{
+					}
 				}
 			}
 		}
+
+		EdgeIO.Flatten();
 
 		return true;
 	}
@@ -838,6 +926,9 @@ Writer->BindAndGet(*PointIO);\
 
 		Builder->bCompiledSuccessfully = true;
 
+		PCGEx::TFAttributeWriter<int64>* NumClusterIdWriter = new PCGEx::TFAttributeWriter<int64>(PCGExGraph::Tag_ClusterId, -1, false);
+		NumClusterIdWriter->BindAndGet(*PointIO);
+
 		int32 SubGraphIndex = 0;
 		for (PCGExGraph::FSubGraph* SubGraph : Builder->Graph->SubGraphs)
 		{
@@ -853,16 +944,31 @@ Writer->BindAndGet(*PointIO);\
 				EdgeIO = &Builder->EdgesIO->Emplace_GetRef(PCGExData::EInit::NewOutput);
 			}
 
+			const int64 ClusterId = EdgeIO->GetOut()->UID;
 			SubGraph->PointIO = EdgeIO;
-			EdgeIO->Tags->Set(PCGExGraph::Tag_Cluster, Builder->EdgeTagValue);
+
+			EdgeIO->Tags->Set(PCGExGraph::TagStr_ClusterPair, Builder->PairIdStr);
+			PCGExData::WriteMark(EdgeIO->GetOut()->Metadata, PCGExGraph::Tag_ClusterId, ClusterId);
+
+			for (const int32 EdgeIndex : SubGraph->Edges)
+			{
+				PCGExGraph::FIndexedEdge& Edge = Builder->Graph->Edges[EdgeIndex];
+				NumClusterIdWriter->Values[Builder->Graph->Nodes[Edge.Start].PointIndex] = ClusterId;
+				NumClusterIdWriter->Values[Builder->Graph->Nodes[Edge.End].PointIndex] = ClusterId;
+			}
 
 			Manager->Start<FWriteSubGraphEdges>(SubGraphIndex++, PointIO, Builder->Graph, SubGraph, MetadataSettings);
 		}
 
+		NumClusterIdWriter->Write();
+
+		PointIO->Tags->Set(PCGExGraph::TagStr_ClusterPair, Builder->PairIdStr);
+		PCGEX_DELETE(NumClusterIdWriter)
+
 		return true;
 	}
 
-	bool FBuildCompoundGraphFromPoints::ExecuteTask()
+	bool FCompoundGraphInsertPoints::ExecuteTask()
 	{
 		PointIO->CreateInKeys();
 
@@ -890,7 +996,7 @@ Writer->BindAndGet(*PointIO);\
 		return true;
 	}
 
-	bool FBuildCompoundGraphFromEdges::ExecuteTask()
+	bool FCompoundGraphInsertEdges::ExecuteTask()
 	{
 		TArray<PCGExGraph::FIndexedEdge> IndexedEdges;
 		if (!BuildIndexedEdges(*EdgeIO, *NodeIndicesMap, IndexedEdges, true) ||

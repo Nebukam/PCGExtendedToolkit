@@ -30,7 +30,7 @@ TArray<FPCGPinProperties> UPCGExSampleNearestPolylineSettings::InputPinPropertie
 
 PCGExData::EInit UPCGExSampleNearestPolylineSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
-int32 UPCGExSampleNearestPolylineSettings::GetPreferredChunkSize() const { return 32; }
+int32 UPCGExSampleNearestPolylineSettings::GetPreferredChunkSize() const { return PCGExMT::GAsyncLoop_L; }
 
 PCGEX_INITIALIZE_ELEMENT(SampleNearestPolyline)
 
@@ -146,7 +146,7 @@ bool FPCGExSampleNearestPolylineElement::ExecuteInternal(FPCGContext* InContext)
 
 	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
 	{
-		if (!Context->IsAsyncWorkComplete()) { return false; }
+		PCGEX_WAIT_ASYNC
 
 		PCGEX_FOREACH_FIELD_NEARESTPOLYLINE(PCGEX_OUTPUT_WRITE)
 		Context->CurrentIO->OutputTo(Context);

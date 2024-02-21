@@ -476,6 +476,10 @@ namespace PCGEx
 		bool bEnabled = true;
 		bool bValid = false;
 
+		EPCGPointProperties PointProperty = EPCGPointProperties::Position;
+		EPCGAttributePropertySelection Selection = EPCGAttributePropertySelection::Attribute;
+		FPCGMetadataAttributeBase* Attribute = nullptr;
+
 		bool IsUsable(int32 NumEntries) { return bEnabled && bValid && Values.Num() >= NumEntries; }
 
 		FPCGExInputDescriptor Descriptor;
@@ -510,10 +514,10 @@ namespace PCGEx
 			ProcessExtraNames(ExtraNames);
 
 			int32 NumPoints = PointIO.GetNum();
-			const EPCGAttributePropertySelection Selection = Selector.GetSelection();
+			Selection = Selector.GetSelection();
 			if (Selection == EPCGAttributePropertySelection::Attribute)
 			{
-				const FPCGMetadataAttributeBase* Attribute = InData->Metadata->GetConstAttribute(Selector.GetName());
+				Attribute = InData->Metadata->GetMutableAttribute(Selector.GetName());
 				if (!Attribute) { return false; }
 
 				PCGMetadataAttribute::CallbackWithRightType(
@@ -563,17 +567,51 @@ namespace PCGEx
 						T V = Convert(InPoints[i]._ACCESSOR); Min = PCGExMath::Min(V, Min); Max = PCGExMath::Max(V, Max); Values[i] = V;\
 					} } else { for (int i = 0; i < NumPoints; i++) { Values[i] = Convert(InPoints[i]._ACCESSOR); } } break;
 
-				switch (Descriptor.Selector.GetPointProperty())
-				{
-				PCGEX_FOREACH_POINTPROPERTY(PCGEX_GET_BY_ACCESSOR)
-				}
-
+				switch (Descriptor.Selector.GetPointProperty()) { PCGEX_FOREACH_POINTPROPERTY(PCGEX_GET_BY_ACCESSOR) }
+#undef PCGEX_GET_BY_ACCESSOR
 				bValid = true;
 			}
 			else
 			{
 				//TODO: Support extra properties
 			}
+
+			return bValid;
+		}
+
+		/**
+		 * Build and validate a property/attribute accessor for the selected
+		 * @param PointIO
+		 * @param bCaptureMinMax 
+		 */
+		bool SoftGrab(const PCGExData::FPointIO& PointIO)
+		{
+			Cleanup();
+
+			bNormalized = false;
+			bValid = false;
+			if (!bEnabled) { return false; }
+
+			const UPCGPointData* InData = PointIO.GetIn();
+
+			TArray<FString> ExtraNames;
+			const FPCGAttributePropertyInputSelector Selector = CopyAndFixLast(Descriptor.Selector, InData, ExtraNames);
+			if (!Selector.IsValid()) { return false; }
+
+			ProcessExtraNames(ExtraNames);
+
+			Selection = Selector.GetSelection();
+			if (Selection == EPCGAttributePropertySelection::Attribute)
+			{
+				Attribute = InData->Metadata->GetMutableAttribute(Selector.GetName());
+				bValid = Attribute ? true : false;
+			}
+			else if (Selection == EPCGAttributePropertySelection::PointProperty)
+			{
+				PointProperty = Selector.GetPointProperty();
+				bValid = true;
+			}
+			else { bValid = false; }
 
 			return bValid;
 		}
@@ -600,7 +638,35 @@ namespace PCGEx
 			for (int i = 0; i < Values.Num(); i++) { Values[i] = PCGExMath::Div(Values[i], Range); }
 		}
 
-		const T& SafeGet(const int32 Index, const T& fallback) const { return (!bValid || !bEnabled) ? fallback : Values[Index]; }
+		T SoftGet(const FPCGPoint& Point, const T& fallback)
+		{
+			// Note: This function is SUPER SLOW and should only be used for cherry picking
+
+			if (!bValid) { return fallback; }
+
+			if (Selection == EPCGAttributePropertySelection::Attribute)
+			{
+				return PCGMetadataAttribute::CallbackWithRightType(
+					Attribute->GetTypeId(),
+					[&](auto DummyValue) -> T
+					{
+						using RawT = decltype(DummyValue);
+						FPCGMetadataAttribute<RawT>* TypedAttribute = static_cast<FPCGMetadataAttribute<RawT>*>(Attribute);
+						return Convert(TypedAttribute->GetValueFromItemKey(Point.MetadataEntry));
+					});
+			}
+
+			if (Selection == EPCGAttributePropertySelection::PointProperty)
+			{
+#define PCGEX_GET_BY_ACCESSOR(_ENUM, _ACCESSOR) case _ENUM: return Convert(Point._ACCESSOR); break;
+				switch (PointProperty) { PCGEX_FOREACH_POINTPROPERTY(PCGEX_GET_BY_ACCESSOR) }
+#undef PCGEX_GET_BY_ACCESSOR
+			}
+
+			return fallback;
+		}
+
+		T SafeGet(const int32 Index, const T& fallback) const { return (!bValid || !bEnabled) ? fallback : Values[Index]; }
 		T& operator[](int32 Index) { return Values[Index]; }
 		T operator[](int32 Index) const { return bValid ? Values[Index] : GetDefaultValue(); }
 
@@ -632,6 +698,65 @@ namespace PCGEx
 #define  PCGEX_PRINT_VIRTUAL(_TYPE, _NAME, ...) virtual T Convert(const _TYPE Value) const { return GetDefaultValue(); };
 		PCGEX_FOREACH_SUPPORTEDTYPES(PCGEX_PRINT_VIRTUAL)
 	};
+
+#pragma endregion
+
+#pragma region attribute copy
+
+	static void CopyPoints(
+		const PCGExData::FPointIO& Source,
+		const PCGExData::FPointIO& Target,
+		const TArrayView<int32>& SourceIndices,
+		const int32 TargetIndex = 0)
+	{
+		const int32 NumIndices = SourceIndices.Num();
+		const TArray<FPCGPoint>& SourcePoints = Source.GetIn()->GetPoints();
+		TArray<FPCGPoint>& TargetPoints = Target.GetOut()->GetMutablePoints();
+
+		for (int i = 0; i < NumIndices; i++)
+		{
+			const int32 WriteIndex = TargetIndex + i;
+			const PCGMetadataEntryKey Key = TargetPoints[WriteIndex].MetadataEntry;
+
+			const FPCGPoint& SourcePt = SourcePoints[SourceIndices[i]];
+			FPCGPoint& TargetPt = TargetPoints[WriteIndex] = SourcePt;
+			TargetPt.MetadataEntry = Key;
+		}
+	}
+
+	static void CopyValues(
+		FAttributeIdentity Identity,
+		const PCGExData::FPointIO& Source,
+		PCGExData::FPointIO& Target,
+		const TArrayView<int32>& SourceIndices,
+		const int32 TargetIndex = 0)
+	{
+		PCGMetadataAttribute::CallbackWithRightType(
+			static_cast<uint16>(Identity.UnderlyingType),
+			[&](auto DummyValue) -> void
+			{
+				using T = decltype(DummyValue);
+				TArray<T> RawValues;
+
+				const FPCGMetadataAttribute<T>* SourceAttribute = Source.GetIn()->Metadata->GetConstTypedAttribute<T>(Identity.Name);
+				TFAttributeWriter<T>* Writer = new TFAttributeWriter<T>(
+					Identity.Name,
+					SourceAttribute->GetValueFromItemKey(PCGInvalidEntryKey),
+					SourceAttribute->AllowsInterpolation());
+
+				Writer->BindAndGet(Target);
+
+				const TArray<FPCGPoint>& SourcePoints = Source.GetIn()->GetPoints();
+				const int32 NumIndices = SourceIndices.Num();
+				for (int i = 0; i < NumIndices; i++)
+				{
+					Writer->Values[TargetIndex + i] = SourceAttribute->GetValueFromItemKey(SourcePoints[SourceIndices[i]].MetadataEntry);
+				}
+
+				Writer->Write();
+				PCGEX_DELETE(Writer)
+			});
+	}
 
 #pragma endregion
 

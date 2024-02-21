@@ -140,7 +140,7 @@ namespace PCGExGraph
 			if (!Descriptor.bEnabled) { continue; }
 
 			FSocket& NewSocket = Sockets.Emplace_GetRef(Descriptor);
-			NewSocket.AttributeNameBase = GetCompoundName(Descriptor.SocketName);
+			NewSocket.AttributeNameBase = PCGEx::GetCompoundName(Identifier, Descriptor.SocketName);
 			NewSocket.SocketIndex = NumSockets++;
 
 			NameToIndexMap.Add(NewSocket.GetName(), NewSocket.SocketIndex);
@@ -180,12 +180,6 @@ namespace PCGExGraph
 		PostProcessSockets();
 	}
 
-	FName FSocketMapping::GetCompoundName(const FName SecondaryIdentifier) const
-	{
-		const FString Separator = TEXT("/");
-		return *(TEXT("PCGEx") + Separator + Identifier.ToString() + Separator + SecondaryIdentifier.ToString()); // PCGEx/ParamsIdentifier/SocketIdentifier
-	}
-
 	void FSocketMapping::PrepareForPointData(const PCGExData::FPointIO& PointIO, const bool bReadOnly)
 	{
 		//TODO: Write index per graph instead of per socket
@@ -222,7 +216,7 @@ namespace PCGExGraph
 		{
 			for (const FName MatchingSocketName : Socket.Descriptor.MatchingSlots)
 			{
-				FName OtherSocketName = GetCompoundName(MatchingSocketName);
+				FName OtherSocketName = PCGEx::GetCompoundName(Identifier, MatchingSocketName);
 				if (const int32* Index = NameToIndexMap.Find(OtherSocketName))
 				{
 					Socket.MatchingSockets.Add(*Index);
@@ -232,6 +226,7 @@ namespace PCGExGraph
 		}
 	}
 }
+
 
 UPCGExGraphDefinition::UPCGExGraphDefinition(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -246,6 +241,17 @@ bool UPCGExGraphDefinition::HasMatchingGraphDefinition(const UPCGPointData* Poin
 		if (!PointData->Metadata->HasAttribute(Socket.GetName())) { return false; }
 	}
 	return true;
+}
+
+bool UPCGExGraphDefinition::ContainsNamedSocked(const FName InName) const
+{
+	for (const FPCGExSocketDescriptor& Socket : SocketsDescriptors) { if (Socket.SocketName == InName) { return true; } }
+	return false;
+}
+
+void UPCGExGraphDefinition::AddSocketNames(TSet<FName>& OutUniqueNames) const
+{
+	for (const FPCGExSocketDescriptor& Socket : SocketsDescriptors) { OutUniqueNames.Add(Socket.SocketName); }
 }
 
 void UPCGExGraphDefinition::BeginDestroy()
@@ -268,7 +274,7 @@ void UPCGExGraphDefinition::Initialize()
 		GlobalOverrides,
 		OverrideSocket);
 
-	CachedIndexAttributeName = SocketMapping->GetCompoundName(FName("CachedIndex"));
+	CachedIndexAttributeName = PCGEx::GetCompoundName(GraphIdentifier, FName("CachedIndex"));
 }
 
 void UPCGExGraphDefinition::PrepareForPointData(const PCGExData::FPointIO& PointIO, const bool bReadOnly = true) const
@@ -293,5 +299,17 @@ UPCGExSocketDefinition::UPCGExSocketDefinition(const FObjectInitializer& ObjectI
 
 void UPCGExSocketDefinition::BeginDestroy()
 {
+	Super::BeginDestroy();
+}
+
+UPCGExSocketStateDefinition::UPCGExSocketStateDefinition(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
+{
+}
+
+void UPCGExSocketStateDefinition::BeginDestroy()
+{
+	Conditions.Empty();
+	IfAttributes.Empty();
 	Super::BeginDestroy();
 }

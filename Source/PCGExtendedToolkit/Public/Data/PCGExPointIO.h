@@ -125,10 +125,14 @@ namespace PCGExData
 		bool IsEnabled() const { return bEnabled; }
 		/**
 		 * Write valid outputs to Context' tagged data
-		 * @param Context 
+		 * @param Context
+		 * @param bFlatten 
 		 */
 		bool OutputTo(FPCGContext* Context);
 		bool OutputTo(FPCGContext* Context, const int32 MinPointCount, const int32 MaxPointCount);
+
+		void Flatten() const;
+		
 	};
 
 	/**
@@ -182,6 +186,9 @@ namespace PCGExData
 		void OutputTo(FPCGContext* Context, const int32 MinPointCount, const int32 MaxPointCount);
 
 		void ForEach(const TFunction<void(FPointIO&, const int32)>& BodyLoop);
+
+		FBox GetInBounds();
+		FBox GetOutBounds();
 
 		void Flush();
 	};

@@ -114,7 +114,7 @@ public:
 	FPCGExSocketGlobalOverrides ApplyGlobalOverrides;
 
 	/** An array containing the computed socket names, for easy copy-paste. */
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta=(AdvancedDisplay, TitleProperty="{BaseName}"))
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, EditFixedSize, Category = Settings, meta=(AdvancedDisplay, TitleProperty="{BaseName}"))
 	TArray<FPCGExSocketQualityOfLifeInfos> GeneratedSocketNames;
 
 	const TArray<FPCGExSocketDescriptor>& GetSockets() const;

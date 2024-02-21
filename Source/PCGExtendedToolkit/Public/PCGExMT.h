@@ -9,6 +9,13 @@
 
 namespace PCGExMT
 {
+	constexpr int32 GAsyncLoop_XS = 32;
+	constexpr int32 GAsyncLoop_S = 64;
+	constexpr int32 GAsyncLoop_M = 256;
+	constexpr int32 GAsyncLoop_L = 512;
+	constexpr int32 GAsyncLoop_XL = 1024;
+
+
 	using AsyncState = int64;
 
 	constexpr AsyncState State_Setup = __COUNTER__;

@@ -37,7 +37,7 @@ namespace PCGExData
 					continue;
 				}
 
-				check(!Tags.Contains(InKey)) // Should not contain duplicate tag with different value
+				//check(!Tags.Contains(InKey)) // Should not contain duplicate tag with different value
 
 				Tags.Add(InKey, InValue);
 			}

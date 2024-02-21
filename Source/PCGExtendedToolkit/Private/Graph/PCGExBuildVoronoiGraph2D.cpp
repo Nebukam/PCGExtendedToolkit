@@ -11,8 +11,6 @@
 #define LOCTEXT_NAMESPACE "PCGExGraph"
 #define PCGEX_NAMESPACE BuildVoronoiGraph2D
 
-int32 UPCGExBuildVoronoiGraph2DSettings::GetPreferredChunkSize() const { return 32; }
-
 PCGExData::EInit UPCGExBuildVoronoiGraph2DSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NewOutput; }
 
 FPCGExBuildVoronoiGraph2DContext::~FPCGExBuildVoronoiGraph2DContext()

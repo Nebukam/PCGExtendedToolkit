@@ -12,7 +12,7 @@ namespace PCGExDataBlending
 {
 	struct PCGEXTENDEDTOOLKIT_API FPropertiesBlender
 	{
-#define PCGEX_BLEND_FUNCREF(_TYPE, _NAME, ...) bool bAverage##_NAME = false; EPCGExDataBlendingType _NAME##Blending = EPCGExDataBlendingType::Weight;
+#define PCGEX_BLEND_FUNCREF(_TYPE, _NAME, ...) bool bReset##_NAME = false; EPCGExDataBlendingType _NAME##Blending = EPCGExDataBlendingType::Weight;
 		PCGEX_FOREACH_BLEND_POINTPROPERTY(PCGEX_BLEND_FUNCREF)
 #undef PCGEX_BLEND_FUNCREF
 
@@ -27,7 +27,7 @@ namespace PCGExDataBlending
 		explicit FPropertiesBlender(const FPCGExBlendingSettings& Settings);
 
 		FPropertiesBlender(const FPropertiesBlender& Other):
-#define PCGEX_BLEND_COPY(_TYPE, _NAME, ...) bAverage##_NAME(Other.bAverage##_NAME), _NAME##Blending(Other._NAME##Blending),
+#define PCGEX_BLEND_COPY(_TYPE, _NAME, ...) bReset##_NAME(Other.bReset##_NAME), _NAME##Blending(Other._NAME##Blending),
 			PCGEX_FOREACH_BLEND_POINTPROPERTY(PCGEX_BLEND_COPY)
 #undef PCGEX_BLEND_COPY
 			DefaultBlending(Other.DefaultBlending),

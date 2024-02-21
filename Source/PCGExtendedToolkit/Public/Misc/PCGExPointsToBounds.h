@@ -11,24 +11,131 @@
 
 #include "PCGExPointsToBounds.generated.h"
 
-#define PCGEX_FUSE_FOREACH_POINTPROPERTYNAME(MACRO)\
-MACRO(Density) \
-MACRO(Extents) \
-MACRO(Color) \
-MACRO(Position) \
-MACRO(Rotation)\
-MACRO(Scale) \
-MACRO(Steepness) \
-MACRO(Seed)
+class FPCGExComputeIOBounds;
 
-#define PCGEX_FUSE_UPROPERTY(_NAME)\
-UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Overrides", meta = (InlineEditConditionToggle))\
-bool bOverride##_NAME = false;\
-UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Overrides", meta = (EditCondition="bOverride" #_NAME))\
-EPCGExDataBlendingType _NAME##Blending = EPCGExDataBlendingType::Skip;
+UENUM(BlueprintType)
+enum class EPCGExPointBoundsSource : uint8
+{
+	DensityBounds UMETA(DisplayName = "Density Bounds", ToolTip="TBD"),
+	ScaledExtents UMETA(DisplayName = "Scaled Extents", ToolTip="TBD"),
+	Extents UMETA(DisplayName = "Extents", ToolTip="TBD")
+};
 
-#define PCGEX_FUSE_CONTEXT(_NAME)\
-EPCGExDataBlendingType _NAME##Blending;
+namespace PCGExPointsToBounds
+{
+	constexpr PCGExMT::AsyncState State_ComputeBounds = __COUNTER__;
+
+	struct PCGEXTENDEDTOOLKIT_API FBounds
+	{
+		FBox Bounds = FBox(ForceInit);
+		PCGExData::FPointIO* PointIO;
+
+		TSet<FBounds*> Overlaps;
+
+		TMap<FBounds*, FBox> FastOverlaps;
+		TMap<FBounds*, int32> PreciseOverlapCount;
+		TMap<FBounds*, double> PreciseOverlapAmount;
+
+		double FastVolume = 0;
+		double FastOverlapAmount = 0;
+		double PreciseVolume = 0;
+
+		double TotalPreciseOverlapAmount = 0;
+		int32 TotalPreciseOverlapCount = 0;
+
+		mutable FRWLock OverlapLock;
+
+		explicit FBounds(PCGExData::FPointIO* InPointIO):
+			PointIO(InPointIO)
+		{
+			Overlaps.Empty();
+			FastOverlaps.Empty();
+			PreciseOverlapAmount.Empty();
+			PreciseOverlapCount.Empty();
+		}
+
+		void RemoveOverlap(const FBounds* OtherBounds)
+		{
+			FWriteScopeLock WriteLock(OverlapLock);
+
+			if (!Overlaps.Contains(OtherBounds)) { return; }
+
+			Overlaps.Remove(OtherBounds);
+			FastOverlaps.Remove(OtherBounds);
+
+			if (PreciseOverlapAmount.Contains(OtherBounds))
+			{
+				TotalPreciseOverlapAmount -= *PreciseOverlapAmount.Find(OtherBounds);
+				TotalPreciseOverlapCount -= *PreciseOverlapCount.Find(OtherBounds);
+				PreciseOverlapAmount.Remove(OtherBounds);
+				PreciseOverlapCount.Remove(OtherBounds);
+			}
+		}
+
+		bool OverlapsWith(const FBounds* OtherBounds) const
+		{
+			FReadScopeLock ReadLock(OverlapLock);
+			return Overlaps.Contains(OtherBounds);
+		}
+
+		void AddPreciseOverlap(FBounds* OtherBounds, const int32 InCount, const double InAmount)
+		{
+			if (OverlapsWith(OtherBounds)) { return; }
+			
+			{
+				FWriteScopeLock WriteLock(OverlapLock);
+				Overlaps.Add(OtherBounds);
+
+				PreciseOverlapCount.Add(OtherBounds, InCount);
+				PreciseOverlapAmount.Add(OtherBounds, InAmount);
+
+				TotalPreciseOverlapCount += InCount;
+				TotalPreciseOverlapAmount += InAmount;
+			}
+			
+			OtherBounds->AddPreciseOverlap(this, InCount, InAmount);
+		}
+
+		~FBounds()
+		{
+			Overlaps.Empty();
+			FastOverlaps.Empty();
+			PreciseOverlapAmount.Empty();
+			PreciseOverlapCount.Empty();
+		}
+	};
+
+	static void ComputeBounds(
+		FPCGExAsyncManager* Manager,
+		PCGExData::FPointIOGroup* IOGroup,
+		TArray<FBounds*>& OutBounds,
+		const EPCGExPointBoundsSource BoundsSource)
+	{
+		for (PCGExData::FPointIO* PointIO : IOGroup->Pairs)
+		{
+			PCGExPointsToBounds::FBounds* Bounds = new PCGExPointsToBounds::FBounds(PointIO);
+			OutBounds.Add(Bounds);
+			Manager->Start<FPCGExComputeIOBounds>(PointIO->IOIndex, PointIO, BoundsSource, Bounds);
+		}
+	}
+
+	static FBox GetBounds(const FPCGPoint& Point, EPCGExPointBoundsSource Source)
+	{
+		switch (Source)
+		{
+		default: ;
+		case EPCGExPointBoundsSource::DensityBounds:
+			return Point.GetDensityBounds().GetBox();
+			break;
+		case EPCGExPointBoundsSource::ScaledExtents:
+			return FBoxCenterAndExtent(Point.Transform.GetLocation(), Point.GetScaledExtents()).GetBox();
+			break;
+		case EPCGExPointBoundsSource::Extents:
+			return FBoxCenterAndExtent(Point.Transform.GetLocation(), Point.GetExtents()).GetBox();
+			break;
+		}
+	}
+}
 
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
@@ -62,9 +169,17 @@ public:
 	//~End UPCGExPointsProcessorSettings interface
 
 public:
+	/** Overlap overlap test mode */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExPointBoundsSource BoundsSource = EPCGExPointBoundsSource::ScaledExtents;
+
+	/** Bound point is the result of its contents */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(InlineEditConditionToggle))
+	bool bBlendProperties = false;
+
 	/** Defines how fused point properties and attributes are merged into the final point. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
-	FPCGExBlendingSettings BlendingSettings;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="bBlendProperties"))
+	FPCGExBlendingSettings BlendingSettings = FPCGExBlendingSettings(EPCGExDataBlendingType::None);
 
 	/** Write point counts */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(InlineEditConditionToggle))
@@ -84,7 +199,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsToBoundsContext : public FPCGExPointsP
 
 	virtual ~FPCGExPointsToBoundsContext() override;
 
-	bool bPreserveOrder;
+	TArray<PCGExPointsToBounds::FBounds*> IOBounds;
+
+	bool bWritePointsCount;
 
 	PCGExDataBlending::FMetadataBlender* MetadataBlender;
 
@@ -103,6 +220,18 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-#undef PCGEX_FUSE_FOREACH_POINTPROPERTYNAME
-#undef PCGEX_FUSE_UPROPERTY
-#undef PCGEX_FUSE_CONTEXT
+class PCGEXTENDEDTOOLKIT_API FPCGExComputeIOBounds : public FPCGExNonAbandonableTask
+{
+public:
+	FPCGExComputeIOBounds(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+	                      EPCGExPointBoundsSource InBoundsSource, PCGExPointsToBounds::FBounds* InBounds) :
+		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+		BoundsSource(InBoundsSource), Bounds(InBounds)
+	{
+	}
+
+	EPCGExPointBoundsSource BoundsSource = EPCGExPointBoundsSource::ScaledExtents;
+	PCGExPointsToBounds::FBounds* Bounds = nullptr;
+
+	virtual bool ExecuteTask() override;
+};

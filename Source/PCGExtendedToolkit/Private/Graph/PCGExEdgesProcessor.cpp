@@ -67,15 +67,16 @@ bool FPCGExEdgesProcessorContext::AdvancePointsIO()
 
 	if (!FPCGExPointsProcessorContext::AdvancePointsIO()) { return false; }
 
-	if (FString CurrentTagValue;
-		CurrentIO->Tags->GetValue(PCGExGraph::Tag_Cluster, CurrentTagValue))
+	if (FString CurrentPairId;
+		CurrentIO->Tags->GetValue(PCGExGraph::TagStr_ClusterPair, CurrentPairId))
 	{
-		FString UpdatedClusterTag;
-		CurrentIO->Tags->Set(PCGExGraph::Tag_Cluster, CurrentIO->GetOutIn()->UID, UpdatedClusterTag);
-		TaggedEdges = InputDictionary->GetEntries(CurrentTagValue);
-		if (!TaggedEdges->Entries.IsEmpty())
+		FString OutId;
+		CurrentIO->Tags->Set(PCGExGraph::TagStr_ClusterPair, CurrentIO->GetOutIn()->UID, OutId);
+
+		TaggedEdges = InputDictionary->GetEntries(CurrentPairId);
+		if (TaggedEdges && !TaggedEdges->Entries.IsEmpty())
 		{
-			for (const PCGExData::FPointIO* EdgeIO : TaggedEdges->Entries) { EdgeIO->Tags->Set(PCGExGraph::Tag_Cluster, UpdatedClusterTag); }
+			for (const PCGExData::FPointIO* EdgeIO : TaggedEdges->Entries) { EdgeIO->Tags->Set(PCGExGraph::TagStr_ClusterPair, OutId); }
 		}
 		else { TaggedEdges = nullptr; }
 	}
@@ -175,7 +176,7 @@ FPCGContext* FPCGExEdgesProcessorElement::InitializeContext(
 
 	if (!Settings->bEnabled) { return Context; }
 
-	Context->InputDictionary = new PCGExData::FPointIOTaggedDictionary(PCGExGraph::Tag_Cluster);
+	Context->InputDictionary = new PCGExData::FPointIOTaggedDictionary(PCGExGraph::TagStr_ClusterPair);
 	Context->MainPoints->ForEach(
 		[&](PCGExData::FPointIO& PointIO, int32)
 		{

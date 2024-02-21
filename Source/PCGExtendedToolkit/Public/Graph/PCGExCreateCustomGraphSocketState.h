@@ -8,11 +8,11 @@
 
 #include "Data/PCGExGraphDefinition.h"
 
-#include "PCGExCreateCustomGraphSocket.generated.h"
+#include "PCGExCreateCustomGraphSocketState.generated.h"
 
 /** Outputs a single GraphParam to be consumed by other nodes */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
-class PCGEXTENDEDTOOLKIT_API UPCGExCreateCustomGraphSocketSettings : public UPCGSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExCreateCustomGraphSocketStateSettings : public UPCGSettings
 {
 	GENERATED_BODY()
 
@@ -21,8 +21,8 @@ public:
 #if WITH_EDITOR
 	bool bCacheResult = false;
 	PCGEX_NODE_INFOS_CUSTOM_TASKNAME(
-		GraphParams, "Socket", "Creates a single socket data object.",
-		Socket.SocketName.IsNone() ? FName(GetDefaultNodeTitle().ToString()) : FName(FString("PCGEx | Socket : ") + Socket.SocketName.ToString()))
+		GraphParams, "Socket State", "Creates a socket state configuration from any number of sockets and attributes.",
+		StateName.IsNone() ? FName(GetDefaultNodeTitle().ToString()) : FName(FString("PCGEx | State : ") + StateName.ToString()))
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Param; }
 
 #endif
@@ -42,12 +42,20 @@ public:
 	//~End UObject interface
 
 public:
+	/** State name.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	FName StateName = NAME_None;
+
+	/** State ID.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	int32 StateId = 0;
+
 	/** Custom graph socket.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExSocketDescriptor Socket;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	TArray<FPCGExSocketConditionDescriptor> Conditions;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExCreateCustomGraphSocketElement : public IPCGElement
+class PCGEXTENDEDTOOLKIT_API FPCGExCreateCustomGraphSocketStateElement : public IPCGElement
 {
 public:
 #if WITH_EDITOR

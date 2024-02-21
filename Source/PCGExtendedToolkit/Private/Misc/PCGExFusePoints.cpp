@@ -66,8 +66,8 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 		else
 		{
 			// Fuse points into compound graph
-			Context->CompoundGraph = new PCGExGraph::FCompoundGraph(Context->PointPointIntersectionSettings.FuseSettings);
-			Context->GetAsyncManager()->Start<PCGExGraphTask::FBuildCompoundGraphFromPoints>(
+			Context->CompoundGraph = new PCGExGraph::FCompoundGraph(Context->PointPointIntersectionSettings.FuseSettings, Context->CurrentIO->GetIn()->GetBounds().ExpandBy(10));
+			Context->GetAsyncManager()->Start<PCGExGraphTask::FCompoundGraphInsertPoints>(
 				Context->CurrentIO->IOIndex, Context->CurrentIO, Context->CompoundGraph);
 
 			Context->SetAsyncState(PCGExMT::State_ProcessingPoints);
@@ -76,7 +76,7 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsState(PCGExMT::State_ProcessingPoints))
 	{
-		if (!Context->IsAsyncWorkComplete()) { return false; }
+		PCGEX_WAIT_ASYNC
 
 		// Build output points from compound graph
 		const int32 NumCompoundNodes = Context->CompoundGraph->Nodes.Num();
@@ -96,7 +96,7 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsState(PCGExData::State_MergingData))
 	{
-		if (!Context->IsAsyncWorkComplete()) { return false; }
+		PCGEX_WAIT_ASYNC
 
 		FPCGExPointPointIntersectionSettings* ISettings = const_cast<FPCGExPointPointIntersectionSettings*>(&Settings->PointPointIntersectionSettings);
 
@@ -110,8 +110,10 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
 	{
-		if (!Context->IsAsyncWorkComplete()) { return false; }
+		PCGEX_WAIT_ASYNC
 
+		Context->CurrentIO->Flatten();
+		
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 		return false;
 	}

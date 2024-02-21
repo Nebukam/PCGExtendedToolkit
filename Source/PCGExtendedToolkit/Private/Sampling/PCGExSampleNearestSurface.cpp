@@ -8,7 +8,7 @@
 
 PCGExData::EInit UPCGExSampleNearestSurfaceSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
-int32 UPCGExSampleNearestSurfaceSettings::GetPreferredChunkSize() const { return 32; }
+int32 UPCGExSampleNearestSurfaceSettings::GetPreferredChunkSize() const { return PCGExMT::GAsyncLoop_L; }
 
 PCGEX_INITIALIZE_ELEMENT(SampleNearestSurface)
 
@@ -92,7 +92,7 @@ bool FPCGExSampleNearestSurfaceElement::ExecuteInternal(FPCGContext* InContext) 
 
 	if (Context->IsState(PCGExMT::State_ProcessingPoints))
 	{
-		if (!Context->IsAsyncWorkComplete()) { return false; }
+		PCGEX_WAIT_ASYNC
 
 		PCGEX_FOREACH_FIELD_NEARESTSURFACE(PCGEX_OUTPUT_WRITE)
 		Context->CurrentIO->OutputTo(Context);
