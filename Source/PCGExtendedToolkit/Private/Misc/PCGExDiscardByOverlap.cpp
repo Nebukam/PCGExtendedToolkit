@@ -100,7 +100,8 @@ bool FPCGExDiscardByOverlapElement::ExecuteInternal(FPCGContext* InContext) cons
 				if (Bounds->Bounds.Intersect(OtherBounds->Bounds))
 				{
 					FBox Overlap = Bounds->Bounds.Overlap(OtherBounds->Bounds);
-					Bounds->FastOverlapAmount += Overlap.GetExtent().Length();
+					const double L = Overlap.GetExtent().Length();
+					Bounds->FastOverlapAmount += L - FMath::Fmod(L, Settings->AmountFMod);
 					Bounds->FastOverlaps.Add(OtherBounds, Overlap);
 					Bounds->Overlaps.Add(OtherBounds);
 				}
@@ -287,7 +288,7 @@ bool FPCGExComputePreciseOverlap::ExecuteTask()
 				if (!LocalBox.Intersect(OtherBox)) { continue; }
 
 				OverlapCount++;
-				double L = LocalBox.Overlap(OtherBox).GetExtent().Length();
+				const double L = LocalBox.Overlap(OtherBox).GetExtent().Length();
 				OverlapAmount += L - FMath::Fmod(L, Settings->AmountFMod);
 			}
 		};

@@ -138,7 +138,7 @@ public:
 	EPCGExOverlapPruningOrder PruningOrder = EPCGExOverlapPruningOrder::OverlapCount;
 
 	/** Static value to be used as bound expansion */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=0))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=1))
 	double AmountFMod = 10;
 	
 	/** Static value to be used as bound expansion */
