@@ -641,7 +641,7 @@ namespace PCGEx
 		T SoftGet(const FPCGPoint& Point, const T& fallback)
 		{
 			// Note: This function is SUPER SLOW and should only be used for cherry picking
-			
+
 			if (!bValid) { return fallback; }
 
 			if (Selection == EPCGAttributePropertySelection::Attribute)

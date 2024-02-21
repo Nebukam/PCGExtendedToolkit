@@ -238,7 +238,12 @@ namespace PCGExData
 		return false;
 	}
 
-	void FPointIO::Flatten() const { if (Out && In != Out) { Out->Metadata->Flatten(); } }
+	void FPointIO::Flatten() const
+	{
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
+		if (Out && In != Out) { Out->Metadata->Flatten(); }
+#endif
+	}
 
 	FPointIOGroup::FPointIOGroup()
 	{

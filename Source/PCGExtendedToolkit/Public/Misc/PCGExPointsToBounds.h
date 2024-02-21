@@ -31,9 +31,10 @@ namespace PCGExPointsToBounds
 		PCGExData::FPointIO* PointIO;
 
 		TSet<FBounds*> Overlaps;
+
 		TMap<FBounds*, FBox> FastOverlaps;
-		TMap<FBounds*, double> PreciseOverlapAmount;
 		TMap<FBounds*, int32> PreciseOverlapCount;
+		TMap<FBounds*, double> PreciseOverlapAmount;
 
 		double FastVolume = 0;
 		double FastOverlapAmount = 0;
@@ -41,6 +42,8 @@ namespace PCGExPointsToBounds
 
 		double TotalPreciseOverlapAmount = 0;
 		int32 TotalPreciseOverlapCount = 0;
+
+		mutable FRWLock OverlapLock;
 
 		explicit FBounds(PCGExData::FPointIO* InPointIO):
 			PointIO(InPointIO)
@@ -53,6 +56,8 @@ namespace PCGExPointsToBounds
 
 		void RemoveOverlap(const FBounds* OtherBounds)
 		{
+			FWriteScopeLock WriteLock(OverlapLock);
+
 			if (!Overlaps.Contains(OtherBounds)) { return; }
 
 			Overlaps.Remove(OtherBounds);
@@ -67,6 +72,30 @@ namespace PCGExPointsToBounds
 			}
 		}
 
+		bool OverlapsWith(const FBounds* OtherBounds) const
+		{
+			FReadScopeLock ReadLock(OverlapLock);
+			return Overlaps.Contains(OtherBounds);
+		}
+
+		void AddPreciseOverlap(FBounds* OtherBounds, const int32 InCount, const double InAmount)
+		{
+			if (OverlapsWith(OtherBounds)) { return; }
+			
+			{
+				FWriteScopeLock WriteLock(OverlapLock);
+				Overlaps.Add(OtherBounds);
+
+				PreciseOverlapCount.Add(OtherBounds, InCount);
+				PreciseOverlapAmount.Add(OtherBounds, InAmount);
+
+				TotalPreciseOverlapCount += InCount;
+				TotalPreciseOverlapAmount += InAmount;
+			}
+			
+			OtherBounds->AddPreciseOverlap(this, InCount, InAmount);
+		}
+
 		~FBounds()
 		{
 			Overlaps.Empty();
@@ -79,7 +108,7 @@ namespace PCGExPointsToBounds
 	static void ComputeBounds(
 		FPCGExAsyncManager* Manager,
 		PCGExData::FPointIOGroup* IOGroup,
-		TArray<FBounds*> OutBounds,
+		TArray<FBounds*>& OutBounds,
 		const EPCGExPointBoundsSource BoundsSource)
 	{
 		for (PCGExData::FPointIO* PointIO : IOGroup->Pairs)
@@ -144,9 +173,13 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExPointBoundsSource BoundsSource = EPCGExPointBoundsSource::ScaledExtents;
 
+	/** Bound point is the result of its contents */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(InlineEditConditionToggle))
+	bool bBlendProperties = false;
+
 	/** Defines how fused point properties and attributes are merged into the final point. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
-	FPCGExBlendingSettings BlendingSettings;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="bBlendProperties"))
+	FPCGExBlendingSettings BlendingSettings = FPCGExBlendingSettings(EPCGExDataBlendingType::None);
 
 	/** Write point counts */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(InlineEditConditionToggle))

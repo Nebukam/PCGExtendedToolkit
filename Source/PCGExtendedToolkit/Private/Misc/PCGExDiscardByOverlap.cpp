@@ -113,7 +113,7 @@ bool FPCGExDiscardByOverlapElement::ExecuteInternal(FPCGContext* InContext) cons
 		for (int i = 0; i < Context->IOBounds.Num(); i++)
 		{
 			const PCGExPointsToBounds::FBounds* Bounds = Context->IOBounds[i];
-			if (Bounds->FastOverlaps.IsEmpty())
+			if (Bounds->Overlaps.IsEmpty())
 			{
 				Context->OutputFBounds(Bounds, i);
 				i--;
@@ -130,7 +130,7 @@ bool FPCGExDiscardByOverlapElement::ExecuteInternal(FPCGContext* InContext) cons
 		else
 		{
 			for (PCGExPointsToBounds::FBounds* Bounds : Context->IOBounds) { Bounds->Overlaps.Empty(); }
-			
+
 			// Compute precise overlap
 			for (PCGExPointsToBounds::FBounds* Bounds : Context->IOBounds)
 			{
@@ -158,7 +158,7 @@ bool FPCGExDiscardByOverlapElement::ExecuteInternal(FPCGContext* InContext) cons
 
 		if (Context->IOBounds.IsEmpty()) { return true; }
 
-		Context->SetAsyncState(PCGExDiscardByOverlap::State_ProcessPreciseOverlap);
+		Context->SetState(PCGExDiscardByOverlap::State_ProcessPreciseOverlap);
 	}
 
 	if (Context->IsState(PCGExDiscardByOverlap::State_ProcessFastOverlap))
@@ -194,7 +194,6 @@ bool FPCGExDiscardByOverlapElement::ExecuteInternal(FPCGContext* InContext) cons
 
 	if (Context->IsState(PCGExDiscardByOverlap::State_ProcessPreciseOverlap))
 	{
-		
 		auto SortBounds = [&]()
 		{
 			if (Settings->PruningOrder == EPCGExOverlapPruningOrder::OverlapCount)
@@ -204,7 +203,7 @@ bool FPCGExDiscardByOverlapElement::ExecuteInternal(FPCGContext* InContext) cons
 			}
 			else { PCGExDiscardByOverlap::SortPreciseAmount(Context->IOBounds, Settings->Order); }
 		};
-
+		
 		SortBounds();
 
 		while (!Context->IOBounds.IsEmpty())
@@ -216,8 +215,13 @@ bool FPCGExDiscardByOverlapElement::ExecuteInternal(FPCGContext* InContext) cons
 
 			for (PCGExPointsToBounds::FBounds* AffectedBound : AffectedBounds)
 			{
-				if (AffectedBound->Overlaps.IsEmpty()) { Context->OutputFBounds(AffectedBound, Context->IOBounds.IndexOfByKey(AffectedBound)); }
+				if (AffectedBound->Overlaps.IsEmpty())
+				{
+					Context->OutputFBounds(AffectedBound, Context->IOBounds.IndexOfByKey(AffectedBound));
+				}
 			}
+
+			AffectedBounds.Empty();
 
 			if (Context->IOBounds.IsEmpty()) { break; }
 
@@ -233,80 +237,66 @@ bool FPCGExDiscardByOverlapElement::ExecuteInternal(FPCGContext* InContext) cons
 
 bool FPCGExComputePreciseOverlap::ExecuteTask()
 {
+	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExComputePreciseOverlap::ExecuteTask);
+	
 	FPCGExDiscardByOverlapContext* Context = static_cast<FPCGExDiscardByOverlapContext*>(Manager->Context);
 	PCGEX_SETTINGS(DiscardByOverlap)
 
-	const TArray<FPCGPoint>& InPoints = Bounds->PointIO->GetIn()->GetPoints();
-	TArray<PCGExPointsToBounds::FBounds*> NonOverlappingBounds;
+	const TArray<FPCGPoint>& LocalPoints = Bounds->PointIO->GetIn()->GetPoints();
 
 	const double StaticExpansion = Settings->ExpansionMode == EPCGExExpandPointsBoundsMode::Static ? Settings->ExpansionValue : 0;
-	PCGEx::FLocalSingleFieldGetter* LocalBoundsExpansion = new PCGEx::FLocalSingleFieldGetter();
-	LocalBoundsExpansion->Capture(Settings->ExpansionLocalValue);
-	LocalBoundsExpansion->SoftGrab(*Bounds->PointIO);
+
+	PCGEx::FLocalSingleFieldGetter* BoundsExpansion = new PCGEx::FLocalSingleFieldGetter();
+	BoundsExpansion->Capture(Settings->ExpansionLocalValue);
+	BoundsExpansion->SoftGrab(*Bounds->PointIO);
 
 	for (const TPair<PCGExPointsToBounds::FBounds*, FBox> Overlap : Bounds->FastOverlaps)
 	{
-		if (Bounds->PreciseOverlapAmount.Find(Overlap.Key)) { continue; } // Already processed
-
-		const TArray<FPCGPoint>& OtherPoints = Overlap.Key->PointIO->GetIn()->GetPoints();
-		const UPCGPointData::PointOctree& Octree = Bounds->PointIO->GetIn()->GetOctree();
-
-		TArray<int32> OtherIndices;
-
-		auto ProcessOtherPoint = [&](const FPCGPointRef& InPointRef)
+		PCGExPointsToBounds::FBounds* OtherBounds = Overlap.Key;
+		if (Bounds->OverlapsWith(OtherBounds)) { continue; } // Already processed
+		
+		TArray<FBox> LocalBounds;
+		auto ProcessLocalPoints = [&](const FPCGPointRef& LocalPointRef)
 		{
-			const ptrdiff_t PointIndex = InPointRef.Point - OtherPoints.GetData();
-			if (PointIndex < 0 && PointIndex >= OtherPoints.Num()) { return; }
-			OtherIndices.Add(PointIndex);
+			const ptrdiff_t LocalIndex = LocalPointRef.Point - LocalPoints.GetData();
+			if (LocalIndex < 0 && LocalIndex >= LocalPoints.Num()) { return; }
+
+			const FPCGPoint& Pt = LocalPoints[LocalIndex];
+			//LocalBounds.Add(PCGExPointsToBounds::GetBounds(Pt, BoundsSource).ExpandBy(BoundsExpansion->SoftGet(Pt, StaticExpansion)));
+			LocalBounds.Add(PCGExPointsToBounds::GetBounds(Pt, BoundsSource));
 		};
 
-		const UPCGPointData::PointOctree& OtherOctree = Overlap.Key->PointIO->GetIn()->GetOctree();
-		OtherOctree.FindElementsWithBoundsTest(Overlap.Value, ProcessOtherPoint);
+		Bounds->PointIO->GetIn()->GetOctree().FindElementsWithBoundsTest(Overlap.Value, ProcessLocalPoints);
 
-		if (OtherIndices.IsEmpty())
+		if (LocalBounds.IsEmpty()) { continue; } // No overlap with this key
+
+		int32 OverlapCount = 0;
+		double OverlapAmount = 0;
+
+		const TArray<FPCGPoint>& OtherPoints = OtherBounds->PointIO->GetIn()->GetPoints();
+
+		auto ProcessOtherPoint = [&](const FPCGPointRef& OtherPointRef)
 		{
-			// No overlap with this key
-			NonOverlappingBounds.Add(Overlap.Key);
-			continue;
-		}
+			const ptrdiff_t OtherPointIndex = OtherPointRef.Point - OtherPoints.GetData();
+			if (OtherPointIndex < 0 && OtherPointIndex >= OtherPoints.Num()) { return; }
 
-		int32 CurrentOverlapCount = 0;
-		double CurrentOverlapAmount = 0;
+			const FBox OtherBox = PCGExPointsToBounds::GetBounds(OtherPoints[OtherPointIndex], BoundsSource);
 
-		auto ProcessPoint = [&](const FPCGPointRef& InPointRef)
-		{
-			const ptrdiff_t PointIndex = InPointRef.Point - OtherPoints.GetData();
-			if (PointIndex < 0 && PointIndex >= OtherPoints.Num()) { return; }
-
-			const FBox A = PCGExPointsToBounds::GetBounds(InPoints[PointIndex], BoundsSource).ExpandBy(LocalBoundsExpansion->SoftGet(*InPointRef.Point, StaticExpansion));;
-
-			for (const int32 OtherIndex : OtherIndices)
+			for (const FBox LocalBox : LocalBounds)
 			{
-				const FBox B = PCGExPointsToBounds::GetBounds(OtherPoints[OtherIndex], BoundsSource);
+				if (!LocalBox.Intersect(OtherBox)) { continue; }
 
-				if (!A.Intersect(B)) { continue; }
-
-				CurrentOverlapCount++;
-				CurrentOverlapAmount += A.Overlap(B).GetExtent().Length();
+				OverlapCount++;
+				double L = LocalBox.Overlap(OtherBox).GetExtent().Length();
+				OverlapAmount += L - FMath::Fmod(L, Settings->AmountFMod);
 			}
 		};
 
-		Octree.FindElementsWithBoundsTest(Overlap.Value, ProcessPoint);
+		OtherBounds->PointIO->GetIn()->GetOctree().FindElementsWithBoundsTest(Overlap.Value, ProcessOtherPoint);
 
-		if (CurrentOverlapCount == 0)
-		{
-			// No overlap with this key
-			NonOverlappingBounds.Add(Overlap.Key);
-			continue;
-		}
+		if (OverlapCount == 0) { continue; } // No overlap with this key
 
-		Bounds->Overlaps.Add(Overlap.Key);
-
-		Bounds->PreciseOverlapCount.Add(Overlap.Key, CurrentOverlapCount);
-		Bounds->PreciseOverlapAmount.Add(Overlap.Key, CurrentOverlapAmount);
-
-		Bounds->TotalPreciseOverlapCount += CurrentOverlapCount;
-		Bounds->TotalPreciseOverlapAmount += CurrentOverlapAmount;
+		Bounds->AddPreciseOverlap(OtherBounds, OverlapCount, OverlapAmount);
 	}
 
 	return true;

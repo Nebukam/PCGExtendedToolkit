@@ -80,13 +80,14 @@ bool FPCGExPointsToBoundsElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsState(PCGExMT::State_ProcessingPoints))
 	{
+		
 		const TArray<FPCGPoint>& InPoints = Context->GetCurrentIn()->GetPoints();
 		UPCGPointData* OutData = Context->GetCurrentOut();
 		TArray<FPCGPoint>& MutablePoints = OutData->GetMutablePoints();
-		MutablePoints.Add(InPoints[0]);
+		MutablePoints.Emplace();
 
-		Context->MetadataBlender->PrepareForData(*Context->CurrentIO);
-		const double AverageDivider = InPoints.Num();
+		if (Settings->bBlendProperties) { Context->MetadataBlender->PrepareForData(*Context->CurrentIO); }
+		const double NumPoints = InPoints.Num();
 
 		const PCGExPointsToBounds::FBounds* Bounds = Context->IOBounds[Context->CurrentPointIOIndex];
 
@@ -98,25 +99,28 @@ bool FPCGExPointsToBoundsElement::ExecuteInternal(FPCGContext* InContext) const
 		MutablePoints[0].BoundsMin = Box.Min - Center;
 		MutablePoints[0].BoundsMax = Box.Max - Center;
 
-		const PCGEx::FPointRef Target = Context->CurrentIO->GetOutPointRef(0);
-		Context->MetadataBlender->PrepareForBlending(Target);
-
-		for (int i = 0; i < AverageDivider; i++)
+		if (Settings->bBlendProperties)
 		{
-			FVector Location = InPoints[i].Transform.GetLocation();
-			const double Weight = FVector::DistSquared(Center, Location) / SqrDist;
-			Context->MetadataBlender->Blend(Target, Context->CurrentIO->GetInPointRef(i), Target, Weight);
+			const PCGEx::FPointRef Target = Context->CurrentIO->GetOutPointRef(0);
+			Context->MetadataBlender->PrepareForBlending(Target);
+
+			for (int i = 0; i < NumPoints; i++)
+			{
+				FVector Location = InPoints[i].Transform.GetLocation();
+				const double Weight = FVector::DistSquared(Center, Location) / SqrDist;
+				Context->MetadataBlender->Blend(Target, Context->CurrentIO->GetInPointRef(i), Target, Weight);
+			}
+
+			Context->MetadataBlender->CompleteBlending(Target, NumPoints);
+
+			MutablePoints[0].Transform.SetLocation(Center);
+			MutablePoints[0].BoundsMin = Box.Min - Center;
+			MutablePoints[0].BoundsMax = Box.Max - Center;
+
+			Context->MetadataBlender->Write();
 		}
 
-		Context->MetadataBlender->CompleteBlending(Target, AverageDivider);
-
-		MutablePoints[0].Transform.SetLocation(Center);
-		MutablePoints[0].BoundsMin = Box.Min - Center;
-		MutablePoints[0].BoundsMax = Box.Max - Center;
-
-		if (Settings->bWritePointsCount) { PCGExData::WriteMark(OutData->Metadata, Settings->PointsCountAttributeName, AverageDivider); }
-
-		Context->MetadataBlender->Write();
+		if (Settings->bWritePointsCount) { PCGExData::WriteMark(OutData->Metadata, Settings->PointsCountAttributeName, NumPoints); }
 
 		Context->CurrentIO->Flatten();
 		Context->CurrentIO->OutputTo(Context);

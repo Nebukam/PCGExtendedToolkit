@@ -112,7 +112,7 @@ bool FPCGExUnpackClustersElement::ExecuteInternal(
 			Metadata->DeleteAttribute(PCGExGraph::Tag_PackedClusterPointCount);
 			Metadata->DeleteAttribute(PCGExGraph::Tag_EdgesNum);
 			Metadata->DeleteAttribute(PCGExGraph::Tag_EdgeIndex);
-			Metadata->Flatten();
+			NewEdges.Flatten();
 
 			PCGExData::FPointIO& NewVtx = Context->OutPoints->Emplace_GetRef(PackedIO, PCGExData::EInit::DuplicateInput);
 			TArray<FPCGPoint> MutableVtxPoints = NewVtx.GetOut()->GetMutablePoints();
@@ -123,7 +123,7 @@ bool FPCGExUnpackClustersElement::ExecuteInternal(
 			Metadata->DeleteAttribute(PCGExGraph::Tag_PackedClusterPointCount);
 			Metadata->DeleteAttribute(PCGExGraph::Tag_EdgeStart);
 			Metadata->DeleteAttribute(PCGExGraph::Tag_EdgeEnd);
-			Metadata->Flatten();
+			NewVtx.Flatten();
 
 			FString OutPairId;
 			PackedIO.Tags->GetValue(PCGExGraph::TagStr_ClusterPair, OutPairId);

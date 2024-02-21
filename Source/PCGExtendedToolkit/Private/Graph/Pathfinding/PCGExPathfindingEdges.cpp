@@ -214,7 +214,7 @@ bool FSampleClusterPathTask::ExecuteTask()
 	for (const int32 VtxIndex : Path) { MutablePoints.Add(InPoints[Cluster->Nodes[VtxIndex].PointIndex]); }
 	if (Context->bAddGoalToPath) { MutablePoints.Add_GetRef(Goal).MetadataEntry = PCGInvalidEntryKey; }
 
-	OutData->Metadata->Flatten();
+	PathPoints.Flatten();
 	
 	return true;
 }
