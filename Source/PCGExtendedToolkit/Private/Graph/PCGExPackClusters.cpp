@@ -82,7 +82,7 @@ bool FPCGExPackClustersElement::ExecuteInternal(
 				return false;
 			}
 
-			Context->VtxAttributes = PCGEx::FAttributesInfos::Get(Context->CurrentIO->GetIn());
+			Context->VtxAttributes = PCGEx::FAttributesInfos::Get(Context->CurrentIO->GetIn()->Metadata);
 
 			for (PCGExData::FPointIO* EdgeIO : Context->TaggedEdges->Entries)
 			{

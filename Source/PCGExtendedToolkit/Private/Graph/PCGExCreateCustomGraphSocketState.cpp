@@ -67,16 +67,25 @@ bool FPCGExCreateCustomGraphSocketStateElement::ExecuteInternal(
 	const TArray<FPCGTaggedData>& IfPin = Context->InputData.GetInputsByPin(PCGExGraph::SourceIfAttributesLabel);
 	for (const FPCGTaggedData& TaggedData : IfPin)
 	{
-		if (UPCGParamData* IfData = Cast<UPCGParamData>(TaggedData.Data)) { OutState->IfAttributes.Add(IfData); }
+		if (UPCGParamData* IfData = Cast<UPCGParamData>(TaggedData.Data))
+		{
+			OutState->IfAttributes.Add(IfData);
+			OutState->IfInfos.Add(PCGEx::FAttributesInfos::Get(IfData->Metadata));
+		}
 	}
 
 	OutState->StateName = Settings->StateName;
 	OutState->StateId = Settings->StateId;
+	OutState->Priority = Settings->Priority;
 
 	const TArray<FPCGTaggedData>& ElsePin = Context->InputData.GetInputsByPin(PCGExGraph::SourceElseAttributesLabel);
 	for (const FPCGTaggedData& TaggedData : ElsePin)
 	{
-		if (UPCGParamData* ElseData = Cast<UPCGParamData>(TaggedData.Data)) { OutState->ElseAttributes.Add(ElseData); }
+		if (UPCGParamData* ElseData = Cast<UPCGParamData>(TaggedData.Data))
+		{
+			OutState->ElseAttributes.Add(ElseData);
+			OutState->ElseInfos.Add(PCGEx::FAttributesInfos::Get(ElseData->Metadata));
+		}
 	}
 
 	TArray<FPCGTaggedData>& Outputs = Context->OutputData.TaggedData;

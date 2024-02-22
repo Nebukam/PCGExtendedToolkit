@@ -310,6 +310,152 @@ UPCGExSocketStateDefinition::UPCGExSocketStateDefinition(const FObjectInitialize
 void UPCGExSocketStateDefinition::BeginDestroy()
 {
 	Conditions.Empty();
+
 	IfAttributes.Empty();
+	ElseAttributes.Empty();
+
+	PCGEX_DELETE_TARRAY(IfInfos)
+	PCGEX_DELETE_TARRAY(ElseInfos)
+
 	Super::BeginDestroy();
+}
+
+void PCGExGraph::FSingleStateMapping::Capture(const FGraphInputs* GraphInputs, PCGExData::FPointIO* InPointIO)
+{
+	for (const UPCGExGraphDefinition* Graph : GraphInputs->Params) { Capture(Graph, InPointIO); }
+}
+
+void PCGExGraph::FSingleStateMapping::Capture(const UPCGExGraphDefinition* Graph, const PCGExData::FPointIO* InPointIO)
+{
+	const int32 NumConditions = Definition->Conditions.Num();
+	int32 NumEnabledConditions = 0;
+	UPCGMetadata* Metadata = InPointIO->GetIn()->Metadata;
+	for (int i = 0; i < NumConditions; i++)
+	{
+		if (Attributes[i]) { continue; } // Spot already taken by another graph
+
+		const FPCGExSocketConditionDescriptor& Condition = Definition->Conditions[i];
+		if (!Condition.bEnabled) { continue; }
+
+		NumEnabledConditions++;
+
+		const FName SocketEdgeTypeName = PCGEx::GetCompoundName(Graph->GraphIdentifier, Condition.SocketName, SocketPropertyNameEdgeType);
+		if (FPCGMetadataAttributeBase* AttBase = Metadata->GetMutableAttribute(SocketEdgeTypeName);
+			AttBase && AttBase->GetTypeId() == static_cast<int16>(EPCGMetadataTypes::Integer32))
+		{
+			FPCGMetadataAttribute<int32>* TypedAtt = static_cast<FPCGMetadataAttribute<int32>*>(AttBase);
+			Attributes[i] = TypedAtt;
+		}
+	}
+
+	int32 NumValid = 0;
+	for (int i = 0; i < Attributes.Num(); i++) { NumValid += Attributes[i] ? 1 : 0; }
+
+	bValid = NumValid > 0;
+	bPartial = (NumEnabledConditions != NumValid);
+}
+
+void PCGExGraph::FSingleStateMapping::Grab(PCGExData::FPointIO* PointIO)
+{
+	for (int i = 0; i < Attributes.Num(); i++)
+	{
+		if (!Attributes[i]) { continue; }
+		PCGEx::TFAttributeReader<int32>* Reader = new PCGEx::TFAttributeReader<int32>(Attributes[i]->Name);
+		Readers[i] = Reader;
+		Reader->Bind(*PointIO);
+	}
+}
+
+bool PCGExGraph::FSingleStateMapping::Test(const int32 InIndex) const
+{
+	for (int i = 0; i < Definition->Conditions.Num(); i++)
+	{
+		PCGEx::TFAttributeReader<int32>* Reader = Readers[i];
+		if (!Reader) { continue; }
+		if (!Definition->Conditions[i].MeetCondition(Reader->Values[InIndex])) { return false; }
+	}
+
+	return true;
+}
+
+void PCGExGraph::FSingleStateMapping::PrepareData(const PCGExData::FPointIO* PointIO, TArray<bool>* States)
+{
+	const int32 NumPoints = States->Num();
+
+	bool bNeedIfs = (*States)[0];
+	bool bNeedElses = !bNeedIfs;
+
+	if (!bNeedIfs)
+	{
+		for (int p = 0; p < NumPoints; p++)
+		{
+			if ((*States)[p])
+			{
+				bNeedIfs = true;
+				break;
+			}
+		}
+	}
+
+	if (!bNeedElses)
+	{
+		for (int p = 0; p < NumPoints; p++)
+		{
+			if (!(*States)[p])
+			{
+				bNeedElses = true;
+				break;
+			}
+		}
+	}
+
+	InIfAttributes.Empty();
+	InElseAttributes.Empty();
+
+	OutIfAttributes.Empty();
+	OutElseAttributes.Empty();
+
+	UPCGMetadata* Metadata = PointIO->GetOut()->Metadata;
+
+	auto CreatePlaceholderAttributes = [&](
+		TArray<PCGEx::FAttributesInfos*>& InfosList,
+		TArray<FPCGMetadataAttributeBase*>& InAttributes,
+		TArray<FPCGMetadataAttributeBase*>& OutAttributes)
+	{
+		for (PCGEx::FAttributesInfos* Infos : InfosList)
+		{
+			for (FPCGMetadataAttributeBase* Att : Infos->Attributes)
+			{
+				InAttributes.Add(Att);
+				
+				PCGMetadataAttribute::CallbackWithRightType(
+					Att->GetTypeId(),
+					[&](auto DummyValue) -> void
+					{
+						using RawT = decltype(DummyValue);
+
+						FPCGMetadataAttributeBase* OutAttribute = Metadata->GetMutableAttribute(Att->Name);
+
+						if (OutAttribute)
+						{
+							if (OutAttribute->GetTypeId() != Att->GetTypeId()) { OutAttributes.Add(nullptr); }
+							else { OutAttributes.Add(OutAttribute); }
+							return;
+						}
+
+						const FPCGMetadataAttribute<RawT>* TypedInAttribute = static_cast<FPCGMetadataAttribute<RawT>*>(Att);
+						FPCGMetadataAttribute<RawT>* TypedOutAttribute = Metadata->FindOrCreateAttribute(
+							Att->Name,
+							TypedInAttribute->GetValue(PCGInvalidEntryKey),
+							TypedInAttribute->AllowsInterpolation());
+
+						OutAttributes.Add(TypedOutAttribute);
+					});
+			}
+		}
+	};
+
+	if (bNeedIfs) { CreatePlaceholderAttributes(Definition->IfInfos, InIfAttributes, OutIfAttributes); }
+	if (bNeedElses) { CreatePlaceholderAttributes(Definition->ElseInfos, InElseAttributes, OutElseAttributes); }
+	
 }

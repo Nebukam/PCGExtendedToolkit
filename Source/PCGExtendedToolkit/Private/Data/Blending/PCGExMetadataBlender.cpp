@@ -169,7 +169,7 @@ namespace PCGExDataBlending
 
 
 		TArray<PCGEx::FAttributeIdentity> Identities;
-		PCGEx::FAttributeIdentity::Get(InPrimaryData.GetOut(), Identities);
+		PCGEx::FAttributeIdentity::Get(InPrimaryData.GetOut()->Metadata, Identities);
 		BlendingSettings->Filter(Identities);
 
 		if (&InSecondaryData != &InPrimaryData)
@@ -178,8 +178,8 @@ namespace PCGExDataBlending
 			TArray<FName> SecondaryNames;
 			TMap<FName, PCGEx::FAttributeIdentity> PrimaryIdentityMap;
 			TMap<FName, PCGEx::FAttributeIdentity> SecondaryIdentityMap;
-			PCGEx::FAttributeIdentity::Get(InPrimaryData.GetOut(), PrimaryNames, PrimaryIdentityMap);
-			PCGEx::FAttributeIdentity::Get(InSecondaryData.GetIn(), SecondaryNames, SecondaryIdentityMap);
+			PCGEx::FAttributeIdentity::Get(InPrimaryData.GetOut()->Metadata, PrimaryNames, PrimaryIdentityMap);
+			PCGEx::FAttributeIdentity::Get(InSecondaryData.GetIn()->Metadata, SecondaryNames, SecondaryIdentityMap);
 
 			for (FName PrimaryName : PrimaryNames)
 			{

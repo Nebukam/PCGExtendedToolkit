@@ -23,6 +23,7 @@ public:
 	PCGEX_NODE_INFOS(ApplySocketStates, "Custom Graph : Apply States", "Applies socket states and attributes. Basically a glorified if/else to streamline identification of user-defined conditions within a graph.");
 #endif
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
+	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
@@ -30,7 +31,6 @@ protected:
 
 	//~Begin UPCGExPointsProcessorSettings interface
 public:
-	virtual FName GetMainOutputLabel() const override;
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	virtual int32 GetPreferredChunkSize() const override;
 	//~End UPCGExPointsProcessorSettings interface
@@ -57,6 +57,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bWriteStateValue"))
 	FName StateValueAttributeName = "StateId";
 
+	/** If enabled, will also write each state as a boolean attribute. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bWriteEachStateIndividually = false;
+
 	/** Name of the state to write if no conditions are met */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bWriteStateValue"))
 	int32 StatelessValue = -1;
@@ -78,6 +82,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExApplySocketStatesContext : public FPCGExCust
 	TArray<TObjectPtr<UPCGExSocketStateDefinition>> StateDefinitions;
 	TArray<PCGExGraph::FSingleStateMapping*> StateMappings;
 	TArray<TArray<bool>*> States;
+	TArray<int32> HighestState;
 
 	PCGEx::TFAttributeWriter<FName>* StateNameWriter = nullptr;
 	PCGEx::TFAttributeWriter<int32>* StateValueWriter = nullptr;
@@ -106,5 +111,20 @@ public:
 	{
 	}
 
+	virtual bool ExecuteTask() override;
+};
+
+class PCGEXTENDEDTOOLKIT_API FPCGExWriteIndividualStateTask : public FPCGExNonAbandonableTask
+{
+public:
+	FPCGExWriteIndividualStateTask(
+		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+		PCGExGraph::FSingleStateMapping* InMapping) :
+		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+		Mapping(InMapping)
+	{
+	}
+
+	PCGExGraph::FSingleStateMapping* Mapping = nullptr;
 	virtual bool ExecuteTask() override;
 };

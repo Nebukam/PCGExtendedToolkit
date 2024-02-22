@@ -605,6 +605,41 @@ namespace PCGExMath
 
 #pragma endregion
 
+#pragma region Divide
+
+	template <typename T, typename CompilerSafety = void>
+	static T Mult(const T& A, const T& B) { return A * B; }
+
+	template <typename CompilerSafety = void>
+	static FRotator Mult(const FRotator& A, const FRotator& B)
+	{
+		return FRotator(
+			A.Pitch * B.Pitch,
+			A.Yaw * B.Yaw,
+			A.Roll * B.Roll);
+	}
+
+	template <typename CompilerSafety = void>
+	static FQuat Mult(const FQuat& A, const FQuat& B) { return Mult(A.Rotator(), B.Rotator()).Quaternion(); }
+
+	template <typename CompilerSafety = void>
+	static FTransform Mult(const FTransform& A, const FTransform& B)
+	{
+		return FTransform(
+			Mult(A.GetRotation(), B.GetRotation()),
+			Mult(A.GetLocation(), B.GetLocation()),
+			Mult(A.GetScale3D(), B.GetScale3D()));
+	}
+
+#define PCGEX_UNSUPPORTED_MULT(_TYPE) template <typename CompilerSafety = void> static _TYPE Mult(const _TYPE& A, const _TYPE& B) { return A; }
+	PCGEX_UNSUPPORTED_STRING_TYPES(PCGEX_UNSUPPORTED_MULT)
+	PCGEX_UNSUPPORTED_MULT(bool)
+#undef PCGEX_UNSUPPORTED_MULT
+
+
+#pragma endregion
+
+
 #pragma region Copy
 
 	template <typename T>
