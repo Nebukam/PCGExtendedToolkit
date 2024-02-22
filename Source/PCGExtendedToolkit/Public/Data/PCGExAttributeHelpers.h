@@ -112,13 +112,14 @@ namespace PCGEx
 		FString GetDisplayName() const { return FString(Name.ToString() + FString::Printf(TEXT("( %d )"), UnderlyingType)); }
 		bool operator==(const FAttributeIdentity& Other) const { return Name == Other.Name; }
 
-		static void Get(const UPCGPointData* InData, TArray<FAttributeIdentity>& OutIdentities);
-		static void Get(const UPCGPointData* InData, TArray<FName>& OutNames, TMap<FName, FAttributeIdentity>& OutIdentities);
+		static void Get(const UPCGMetadata* InMetadata, TArray<FAttributeIdentity>& OutIdentities);
+		static void Get(const UPCGMetadata* InMetadata, TArray<FName>& OutNames, TMap<FName, FAttributeIdentity>& OutIdentities);
 	};
 
 	struct FAttributesInfos
 	{
 		TArray<FAttributeIdentity> Identities;
+		TArray<FPCGMetadataAttributeBase*> Attributes;
 		bool Contains(FName AttributeName, EPCGMetadataTypes Type);
 		bool Contains(FName AttributeName);
 		FAttributeIdentity* Find(FName AttributeName);
@@ -126,9 +127,10 @@ namespace PCGEx
 		~FAttributesInfos()
 		{
 			Identities.Empty();
+			Attributes.Empty();
 		}
 
-		static FAttributesInfos* Get(const UPCGPointData* InData);
+		static FAttributesInfos* Get(const UPCGMetadata* InMetadata);
 	};
 
 #pragma endregion

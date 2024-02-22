@@ -55,7 +55,7 @@ namespace PCGExDataBlending
 		Sources.Add(&InData);
 
 		TArray<PCGEx::FAttributeIdentity> TempSrcIdentities;
-		PCGEx::FAttributeIdentity::Get(InData.GetIn(), TempSrcIdentities);
+		PCGEx::FAttributeIdentity::Get(InData.GetIn()->Metadata, TempSrcIdentities);
 		BlendingSettings->Filter(TempSrcIdentities);
 
 		TMap<FName, FPCGMetadataAttributeBase*>* SrcAttMap = new TMap<FName, FPCGMetadataAttributeBase*>();

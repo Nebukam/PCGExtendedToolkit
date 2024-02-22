@@ -67,7 +67,7 @@ bool FPCGExSampleNearestPointElement::Boot(FPCGContext* InContext) const
 				Context->Targets = PCGExData::PCGExPointIO::GetPointIO(Context, Target);
 				// Prepare blend ops, if any
 
-				PCGEx::FAttributesInfos* AttInfos = PCGEx::FAttributesInfos::Get(Context->Targets->GetIn());
+				PCGEx::FAttributesInfos* AttInfos = PCGEx::FAttributesInfos::Get(Context->Targets->GetIn()->Metadata);
 
 				for (const TPair<FName, EPCGExDataBlendingType>& BlendPair : Settings->TargetAttributes)
 				{

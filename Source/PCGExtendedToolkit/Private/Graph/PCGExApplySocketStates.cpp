@@ -24,8 +24,12 @@ TArray<FPCGPinProperties> UPCGExApplySocketStatesSettings::InputPinProperties() 
 	return PinProperties;
 }
 
-FName UPCGExApplySocketStatesSettings::GetMainOutputLabel() const { return PCGExGraph::OutputVerticesLabel; }
-
+TArray<FPCGPinProperties> UPCGExApplySocketStatesSettings::OutputPinProperties() const
+{
+	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
+	if (bDeleteCustomGraphData) { PinProperties.Pop(); }
+	return PinProperties;
+}
 
 FPCGExApplySocketStatesContext::~FPCGExApplySocketStatesContext()
 {
@@ -35,6 +39,7 @@ FPCGExApplySocketStatesContext::~FPCGExApplySocketStatesContext()
 	PCGEX_DELETE(StateValueWriter)
 
 	StateDefinitions.Empty();
+	HighestState.Empty();
 	PCGEX_DELETE_TARRAY(StateMappings)
 
 	for (TArray<bool>* Array : States)
@@ -60,19 +65,32 @@ bool FPCGExApplySocketStatesElement::Boot(FPCGContext* InContext) const
 	TSet<FName> UniqueSocketNames;
 	for (const UPCGExGraphDefinition* GraphDefinition : Context->Graphs.Params) { GraphDefinition->AddSocketNames(UniqueSocketNames); }
 
+
+	TSet<FName> UniqueStatesNames;
 	for (const FPCGTaggedData& InputState : Inputs)
 	{
 		if (TObjectPtr<UPCGExSocketStateDefinition> State = Cast<UPCGExSocketStateDefinition>(InputState.Data))
 		{
+			if (UniqueStatesNames.Contains(State->StateName))
+			{
+				PCGE_LOG(Warning, GraphAndLog, FText::Format(FTEXT("State '{0}' has the same name as another state, it will be ignored."), FText::FromName(State->StateName)));
+				continue;
+			}
+
 			if (State->Conditions.IsEmpty())
 			{
 				PCGE_LOG(Warning, GraphAndLog, FText::Format(FTEXT("State '{0}' has no conditions and will be ignored."), FText::FromName(State->StateName)));
 				continue;
 			}
+
 			Context->States.Add(new TArray<bool>());
+			UniqueStatesNames.Add(State->StateName);
 			Context->StateDefinitions.Add(State);
 		}
 	}
+
+	UniqueSocketNames.Empty();
+	UniqueStatesNames.Empty();
 
 	if (Context->StateDefinitions.IsEmpty())
 	{
@@ -98,34 +116,25 @@ bool FPCGExApplySocketStatesElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
-		if (!Context->AdvancePointsIOAndResetGraph()) { Context->Done(); }
+		PCGEX_DELETE_TARRAY(Context->States)
+
+		if (!Context->AdvancePointsIO()) { Context->Done(); }
 		else
 		{
 			const int32 NumPoints = Context->CurrentIO->GetNum();
 			for (TArray<bool>* Array : Context->States)
 			{
-				Array->Reset(NumPoints);
-				Array->SetNum(NumPoints);
+				Array->Empty();
+				delete Array;
 			}
-			Context->SetState(PCGExGraph::State_ReadyForNextGraph);
-		}
-	}
 
-	if (Context->IsState(PCGExGraph::State_ReadyForNextGraph))
-	{
-		PCGEX_DELETE_TARRAY(Context->StateMappings)
+			Context->States.Empty();
 
-		if (!Context->AdvanceGraph()) { Context->SetState(PCGExMT::State_ReadyForNextPoints); }
-		else
-		{
-			Context->CurrentIO->CreateInKeys();
-
-			int32 NumValid = 0;
-			int32 NumPartial = 0;
-			const int32 NumStates = Context->StateDefinitions.Num();
+			int32 MappingIndex = 0;
 			for (UPCGExSocketStateDefinition* Def : Context->StateDefinitions)
 			{
-				PCGExGraph::FSingleStateMapping* Mapping = new PCGExGraph::FSingleStateMapping(Def, Context->CurrentGraph, Context->CurrentIO);
+				PCGExGraph::FSingleStateMapping* Mapping = new PCGExGraph::FSingleStateMapping(Def);
+				Mapping->Capture(&Context->Graphs, Context->CurrentIO);
 
 				if (!Mapping->bValid)
 				{
@@ -135,66 +144,132 @@ bool FPCGExApplySocketStatesElement::ExecuteInternal(
 				else
 				{
 					Context->StateMappings.Add(Mapping);
-					NumValid++;
-					if (Mapping->bPartial) { NumPartial++; }
+					Mapping->Index = MappingIndex++;
+					TArray<bool>* Array = new TArray<bool>();
+					Array->SetNum(NumPoints);
+					Context->States.Add(Array);
 				}
 			}
 
-			if (NumValid != NumStates)
+			if (Context->StateMappings.IsEmpty())
 			{
-				PCGEX_GRAPH_MISSING_METADATA
+				PCGE_LOG(Warning, GraphAndLog, FTEXT("Some input points could not be used with any graph."));
 				return false;
 			}
 
-			if (NumValid < NumStates || NumPartial > 0)
+			bool bHasPartials = false;
+			for (const PCGExGraph::FSingleStateMapping* StateMapping : Context->StateMappings) { if (StateMapping->bPartial) { bHasPartials = true; } }
+			if (bHasPartials)
 			{
-				PCGE_LOG(Warning, GraphAndLog, FText::Format(FTEXT("Some required state data is missing from '{0}'. Results may be incorrect."), FText::FromName(Context->CurrentGraph->GraphIdentifier)));
+				PCGE_LOG(Warning, GraphAndLog, FTEXT("Some input points only have partial metadata."));
 			}
 
-			Context->SetState(PCGExGraph::State_ProcessingGraph);
-		}
-	}
+			Context->HighestState.SetNum(NumPoints);
 
-	// -> Process current points with current graph
-
-	if (Context->IsState(PCGExGraph::State_ProcessingGraph))
-	{
-		const TArray<FPCGPoint>& InPoints = Context->CurrentIO->GetIn()->GetPoints();
-		const int32 NumMappings = Context->StateMappings.Num();
-		auto ProcessPoint = [&](const int32 PointIndex, const PCGExData::FPointIO& PointIO)
-		{
-			PCGMetadataEntryKey Key = InPoints[PointIndex].MetadataEntry;
-
-			for (int i = 0; i < NumMappings; i++)
-			{
-				bool bValidState = false;
-				PCGExGraph::FSingleStateMapping* Mapping = Context->StateMappings[i];
-				if (!Mapping) { continue; }
-
-				const int32 NumConditions = Mapping->Definition->Conditions.Num();
-				for (int j = 0; j < NumConditions; j++)
+			// Sort mappings so higher priorities come last, as they have to potential to override values.
+			Context->StateMappings.Sort(
+				[&](const PCGExGraph::FSingleStateMapping& A, const PCGExGraph::FSingleStateMapping& B)
 				{
-					const FPCGMetadataAttribute<int32>* Attribute = Mapping->Attributes[j];
-					if (!Attribute) { continue; }
+					return A.Definition->Priority < B.Definition->Priority;
+				});
 
-					int32 EdgeValue = Attribute->GetValueFromItemKey(Key);
-					const FPCGExSocketConditionDescriptor& Condition = Mapping->Definition->Conditions[j];
+			Context->CurrentIO->CreateInKeys();
+			for (PCGExGraph::FSingleStateMapping* StateMapping : Context->StateMappings) { StateMapping->Grab(Context->CurrentIO); }
 
-					// TODO : Check if condition is met 
-				}
-
-				(*Context->States[i])[PointIndex] = bValidState;
-			}
-		};
-
-		if (!Context->ProcessCurrentPoints(ProcessPoint)) { return false; }
-
-		Context->SetState(PCGExMT::State_ProcessingPoints);
+			Context->SetState(PCGExMT::State_ProcessingPoints);
+		}
 	}
 
 	if (Context->IsState(PCGExMT::State_ProcessingPoints))
 	{
-		// TODO : Apply & write states
+		const int32 NumStates = Context->StateMappings.Num();
+		auto ProcessPoint = [&](const int32 Index, const PCGExData::FPointIO& PointIO)
+		{
+			int32 HighestState = -1;
+
+			for (int i = 0; i < NumStates; i++)
+			{
+				const PCGExGraph::FSingleStateMapping* Mapping = Context->StateMappings[i];
+				const bool bValue = Mapping->Test(Index);
+				(*Context->States[i])[Index] = bValue;
+				if (bValue) { HighestState = i; }
+			}
+
+			Context->HighestState[Index] = HighestState;
+		};
+
+		if (!Context->ProcessCurrentPoints(ProcessPoint)) { return false; }
+
+		Context->SetState(PCGExGraph::State_WritingMainState);
+	}
+
+	if (Context->IsState(PCGExGraph::State_WritingMainState))
+	{
+		const int32 NumPoints = Context->CurrentIO->GetOutNum();
+
+		if (Settings->bWriteStateName)
+		{
+			PCGEx::TFAttributeWriter<FName>* StateNameWriter = new PCGEx::TFAttributeWriter<FName>(Settings->StateNameAttributeName, Settings->StatelessName, false);
+			StateNameWriter->BindAndGet(*Context->CurrentIO);
+			for (int i = 0; i < NumPoints; i++)
+			{
+				if (const int32 HighestStateId = Context->HighestState[i]; HighestStateId != -1) { StateNameWriter->Values[i] = Context->StateMappings[HighestStateId]->Definition->StateName; }
+				else { StateNameWriter->Values[i] = Settings->StatelessName; }
+			}
+			StateNameWriter->Write();
+			PCGEX_DELETE(StateNameWriter)
+		}
+
+		if (Settings->bWriteStateValue)
+		{
+			PCGEx::TFAttributeWriter<int32>* StateValueWriter = new PCGEx::TFAttributeWriter<int32>(Settings->StateValueAttributeName, Settings->StatelessValue, false);
+			StateValueWriter->BindAndGet(*Context->CurrentIO);
+			for (int i = 0; i < NumPoints; i++)
+			{
+				if (const int32 HighestStateId = Context->HighestState[i]; HighestStateId != -1) { StateValueWriter->Values[i] = Context->StateMappings[HighestStateId]->Definition->StateId; }
+				else { StateValueWriter->Values[i] = Settings->StatelessValue; }
+			}
+			StateValueWriter->Write();
+			PCGEX_DELETE(StateValueWriter)
+		}
+
+		if (Settings->bWriteEachStateIndividually)
+		{
+			for (int i = 0; i < Context->StateMappings.Num(); i++)
+			{
+				Context->GetAsyncManager()->Start<FPCGExWriteIndividualStateTask>(i, Context->CurrentIO, Context->StateMappings[i]);
+			}
+
+			Context->SetAsyncState(PCGExGraph::State_WritingIndividualStates);
+		}
+		else
+		{
+			Context->SetState(PCGExGraph::State_WritingStatesAttributes);
+		}
+	}
+
+	if (Context->IsState(PCGExGraph::State_WritingIndividualStates))
+	{
+		PCGEX_WAIT_ASYNC
+		Context->SetState(PCGExGraph::State_WritingStatesAttributes);
+	}
+
+	if (Context->IsState(PCGExGraph::State_WritingStatesAttributes))
+	{
+		const int32 NumPoints = Context->CurrentIO->GetOutNum();
+
+		for (PCGExGraph::FSingleStateMapping* Mapping : Context->StateMappings)
+		{
+			Mapping->PrepareData(Context->CurrentIO, Context->States[Mapping->Index]);
+		}
+
+		for (int i = 0; i < NumPoints; i++) { Context->GetAsyncManager()->Start<FPCGExEvaluatePointTask>(i, Context->CurrentIO); }
+		Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork);
+	}
+
+	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
+	{
+		PCGEX_WAIT_ASYNC
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
@@ -208,16 +283,18 @@ bool FPCGExApplySocketStatesElement::ExecuteInternal(
 					auto DeleteSockets = [&](const UPCGExGraphDefinition* Params, int32)
 					{
 						const UPCGPointData* OutData = PointIO.GetOut();
-						for (const PCGExGraph::FSocket& Socket : Params->GetSocketMapping()->Sockets)
-						{
-							Socket.DeleteFrom(OutData);
-						}
+						for (const PCGExGraph::FSocket& Socket : Params->GetSocketMapping()->Sockets) { Socket.DeleteFrom(OutData); }
 						OutData->Metadata->DeleteAttribute(Params->CachedIndexAttributeName);
 					};
 					Context->Graphs.ForEach(Context, DeleteSockets);
 				});
+
+			Context->OutputPoints();
 		}
-		Context->OutputPoints();
+		else
+		{
+			Context->OutputPointsAndGraphParams();
+		}
 	}
 
 	return Context->IsDone();
@@ -225,6 +302,53 @@ bool FPCGExApplySocketStatesElement::ExecuteInternal(
 
 bool FPCGExEvaluatePointTask::ExecuteTask()
 {
+	FPCGExApplySocketStatesContext* Context = static_cast<FPCGExApplySocketStatesContext*>(Manager->Context);
+	PCGEX_SETTINGS(ApplySocketStates)
+
+	const PCGMetadataEntryKey Key = PointIO->GetOutPoint(TaskIndex).MetadataEntry;
+
+	auto ForwardValues = [&](
+		TArray<FPCGMetadataAttributeBase*>& In,
+		TArray<FPCGMetadataAttributeBase*>& Out)
+	{
+		for (int i = 0; i < Out.Num(); i++)
+		{
+			FPCGMetadataAttributeBase* OutAtt = Out[i];
+			if (!OutAtt) { continue; }
+			PCGMetadataAttribute::CallbackWithRightType(
+				OutAtt->GetTypeId(),
+				[&](auto DummyValue) -> void
+				{
+					using RawT = decltype(DummyValue);
+					const FPCGMetadataAttribute<RawT>* TypedInAtt = static_cast<FPCGMetadataAttribute<RawT>*>(In[i]);
+					FPCGMetadataAttribute<RawT>* TypedOutAtt = static_cast<FPCGMetadataAttribute<RawT>*>(OutAtt);
+					TypedOutAtt->SetValue(Key, TypedInAtt->GetValueFromItemKey(PCGInvalidEntryKey));
+				});
+		}
+	};
+
+	for (PCGExGraph::FSingleStateMapping* Mapping : Context->StateMappings)
+	{
+		if ((*Context->States[Mapping->Index])[TaskIndex]) { ForwardValues(Mapping->InIfAttributes, Mapping->OutIfAttributes); }
+		else { ForwardValues(Mapping->InElseAttributes, Mapping->OutElseAttributes); }
+	}
+
+	return true;
+}
+
+bool FPCGExWriteIndividualStateTask::ExecuteTask()
+{
+	FPCGExApplySocketStatesContext* Context = static_cast<FPCGExApplySocketStatesContext*>(Manager->Context);
+	PCGEX_SETTINGS(ApplySocketStates)
+
+	PCGEx::TFAttributeWriter<bool>* StateWriter = new PCGEx::TFAttributeWriter<bool>(Mapping->Definition->StateName);
+	StateWriter->BindAndGet(*PointIO);
+
+	const int32 NumPoints = PointIO->GetOutNum();
+	for (int i = 0; i < NumPoints; i++) { StateWriter->Values[i] = (*Context->States[TaskIndex])[i]; }
+	StateWriter->Write();
+
+	PCGEX_DELETE(StateWriter)
 	return true;
 }
 

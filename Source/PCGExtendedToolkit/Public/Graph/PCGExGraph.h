@@ -151,6 +151,10 @@ namespace PCGExGraph
 	constexpr PCGExMT::AsyncState State_MergingPointCompounds = __COUNTER__;
 	constexpr PCGExMT::AsyncState State_MergingEdgeCompounds = __COUNTER__;
 
+	constexpr PCGExMT::AsyncState State_WritingMainState = __COUNTER__;
+	constexpr PCGExMT::AsyncState State_WritingStatesAttributes = __COUNTER__;
+	constexpr PCGExMT::AsyncState State_WritingIndividualStates = __COUNTER__;
+
 	class FGraph;
 
 #pragma region Graph
@@ -490,7 +494,7 @@ namespace PCGExGraph
 		enum { MaxNodeDepth = 12 };
 
 		using ElementAllocator = TInlineAllocator<MaxElementsPerLeaf>;
-		
+
 		FORCEINLINE static const FBoxSphereBounds& GetBoundingBox(const FCompoundNode* InNode)
 		{
 			return InNode->Bounds;

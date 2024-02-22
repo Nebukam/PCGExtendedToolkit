@@ -30,7 +30,7 @@ void FPCGExPointIOMerger::Append(PCGExData::FPointIO& InData)
 	MergedPoints.Add(&InData);
 
 	TArray<PCGEx::FAttributeIdentity> NewIdentities;
-	PCGEx::FAttributeIdentity::Get(InData.GetIn(), NewIdentities);
+	PCGEx::FAttributeIdentity::Get(InData.GetIn()->Metadata, NewIdentities);
 	for (PCGEx::FAttributeIdentity& NewIdentity : NewIdentities)
 	{
 		if (Identities.Find(NewIdentity.Name)) { continue; } //TODO: Will likely create issues if there is an attribute mismatch, resolve during merge.

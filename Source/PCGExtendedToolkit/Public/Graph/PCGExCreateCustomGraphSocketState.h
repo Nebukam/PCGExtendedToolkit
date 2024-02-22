@@ -50,8 +50,12 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	int32 StateId = 0;
 
-	/** Custom graph socket.*/
+	/** State priority for conflict resolution.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	int32 Priority = 0;
+
+	/** Custom graph socket.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, TitleProperty="{SocketName}"))
 	TArray<FPCGExSocketConditionDescriptor> Conditions;
 };
 

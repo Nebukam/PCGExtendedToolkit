@@ -33,24 +33,21 @@ bool FPCGExInputDescriptor::Validate(const UPCGPointData* InData)
 
 namespace PCGEx
 {
-	void FAttributeIdentity::Get(const UPCGPointData* InData, TArray<FAttributeIdentity>& OutIdentities)
+	void FAttributeIdentity::Get(const UPCGMetadata* InMetadata, TArray<FAttributeIdentity>& OutIdentities)
 	{
-		if (!InData->Metadata) { return; }
+		if (!InMetadata) { return; }
 		TArray<FName> Names;
 		TArray<EPCGMetadataTypes> Types;
-		InData->Metadata->GetAttributes(Names, Types);
+		InMetadata->GetAttributes(Names, Types);
 		const int32 NumAttributes = Names.Num();
-		for (int i = 0; i < NumAttributes; i++)
-		{
-			OutIdentities.AddUnique(FAttributeIdentity(Names[i], Types[i]));
-		}
+		for (int i = 0; i < NumAttributes; i++) { OutIdentities.AddUnique(FAttributeIdentity(Names[i], Types[i])); }
 	}
 
-	void FAttributeIdentity::Get(const UPCGPointData* InData, TArray<FName>& OutNames, TMap<FName, FAttributeIdentity>& OutIdentities)
+	void FAttributeIdentity::Get(const UPCGMetadata* InMetadata, TArray<FName>& OutNames, TMap<FName, FAttributeIdentity>& OutIdentities)
 	{
-		if (!InData->Metadata) { return; }
+		if (!InMetadata) { return; }
 		TArray<EPCGMetadataTypes> Types;
-		InData->Metadata->GetAttributes(OutNames, Types);
+		InMetadata->GetAttributes(OutNames, Types);
 		const int32 NumAttributes = OutNames.Num();
 		for (int i = 0; i < NumAttributes; i++)
 		{
@@ -77,10 +74,18 @@ namespace PCGEx
 		return nullptr;
 	}
 
-	FAttributesInfos* FAttributesInfos::Get(const UPCGPointData* InData)
+	FAttributesInfos* FAttributesInfos::Get(const UPCGMetadata* InMetadata)
 	{
 		FAttributesInfos* NewInfos = new FAttributesInfos();
-		FAttributeIdentity::Get(InData, NewInfos->Identities);
+		FAttributeIdentity::Get(InMetadata, NewInfos->Identities);
+		if(InMetadata)
+		{
+			UPCGMetadata* MutableData = const_cast<UPCGMetadata*>(InMetadata);
+			for(const FAttributeIdentity& Identity : NewInfos->Identities)
+			{
+				NewInfos->Attributes.Add(MutableData->GetMutableAttribute(Identity.Name));
+			}
+		}
 		return NewInfos;
 	}
 }

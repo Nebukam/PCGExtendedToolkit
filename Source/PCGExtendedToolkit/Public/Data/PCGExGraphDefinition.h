@@ -18,7 +18,7 @@ UENUM(BlueprintType)
 enum class EPCGExSocketStateMode : uint8
 {
 	AnyOf UMETA(DisplayName = "Any of", ToolTip="Any of the selection"),
-	Only UMETA(DisplayName = "Only", ToolTip="Only the selection")
+	Exactly UMETA(DisplayName = "Exactly", ToolTip="Exactly the selection")
 };
 
 struct FPCGExPointsProcessorContext;
@@ -213,7 +213,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSocketConditionDescriptor
 	EPCGExEdgeType MustBeExactly = EPCGExEdgeType::Complete;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Must NOT be ..."))
-	EPCGExSocketStateMode MustNodeBeMode = EPCGExSocketStateMode::Only;
+	EPCGExSocketStateMode MustNotBeMode = EPCGExSocketStateMode::Exactly;
 
 	/** Edge types to crawl to create a Cluster */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExEdgeType", EditCondition="MustNodeBeMode==EPCGExSocketStateMode::AnyOf", EditConditionHides))
@@ -226,6 +226,33 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSocketConditionDescriptor
 	void Populate(const FPCGExSocketDescriptor& Descriptor)
 	{
 		SocketName = Descriptor.SocketName;
+	}
+
+	bool MeetCondition(int32 InValue) const
+	{
+		switch (MustBeMode)
+		{
+		default: ;
+		case EPCGExSocketStateMode::AnyOf:
+			if (static_cast<uint8>(static_cast<uint8>(InValue) & MustBeAnyOf) == 0) { return false; }
+			break;
+		case EPCGExSocketStateMode::Exactly:
+			if (static_cast<EPCGExEdgeType>(InValue) != MustBeExactly) { return false; }
+			break;
+		}
+
+		switch (MustNotBeMode)
+		{
+		case EPCGExSocketStateMode::AnyOf:
+			if (static_cast<uint8>(static_cast<uint8>(InValue) & MustNotBeAnyOf) != 0) { return false; }
+			break;
+		default: ;
+		case EPCGExSocketStateMode::Exactly:
+			if (static_cast<EPCGExEdgeType>(InValue) == MustNotBeExactly) { return false; }
+			break;
+		}
+
+		return true;
 	}
 };
 
@@ -580,10 +607,15 @@ public:
 
 	FName StateName = NAME_None;
 	int32 StateId = 0;
+	int32 Priority = 0;
 
 	TArray<FPCGExSocketConditionDescriptor> Conditions;
+
 	TArray<TObjectPtr<UPCGParamData>> IfAttributes;
+	TArray<PCGEx::FAttributesInfos*> IfInfos;
+	
 	TArray<TObjectPtr<UPCGParamData>> ElseAttributes;
+	TArray<PCGEx::FAttributesInfos*> ElseInfos;
 
 	virtual void BeginDestroy() override;
 };
@@ -678,44 +710,6 @@ public:
 
 namespace PCGExGraph
 {
-	struct PCGEXTENDEDTOOLKIT_API FSingleStateMapping
-	{
-		FSingleStateMapping(UPCGExSocketStateDefinition* InDefinition, const UPCGExGraphDefinition* Graph, PCGExData::FPointIO* InPointIO):
-			Definition(InDefinition)
-		{
-			const int32 NumConditions = InDefinition->Conditions.Num();
-			int32 NumValid = 0;
-			UPCGMetadata* Metadata = InPointIO->GetIn()->Metadata;
-			for (const FPCGExSocketConditionDescriptor& Condition : InDefinition->Conditions)
-			{
-				const FName SocketEdgeTypeName = PCGEx::GetCompoundName(Graph->GraphIdentifier, Condition.SocketName, SocketPropertyNameEdgeType);
-				if (FPCGMetadataAttributeBase* AttBase = Metadata->GetMutableAttribute(SocketEdgeTypeName))
-				{
-					FPCGMetadataAttribute<int32>* TypedAtt = static_cast<FPCGMetadataAttribute<int32>*>(AttBase);
-					Attributes.Add(TypedAtt);
-					NumValid++;
-				}
-				else
-				{
-					Attributes.Add(nullptr);
-				}
-			}
-
-			bValid = NumValid > 0;
-			bPartial = (NumConditions != NumValid);
-		}
-
-		bool bValid = true;
-		bool bPartial = false;
-		UPCGExSocketStateDefinition* Definition = nullptr;
-		TArray<FPCGMetadataAttribute<int32>*> Attributes;
-
-		~FSingleStateMapping()
-		{
-			Attributes.Empty();
-		}
-	};
-
 	struct PCGEXTENDEDTOOLKIT_API FGraphInputs
 	{
 		FGraphInputs()
@@ -854,4 +848,54 @@ namespace PCGExGraph
 			OutSockets.Add(SocketData->Descriptor);
 		}
 	}
+
+	struct PCGEXTENDEDTOOLKIT_API FSingleStateMapping
+	{
+		FSingleStateMapping(UPCGExSocketStateDefinition* InDefinition):
+			Definition(InDefinition)
+		{
+			const int32 NumConditions = InDefinition->Conditions.Num();
+			Attributes.SetNum(Definition->Conditions.Num());
+			Readers.SetNum(Definition->Conditions.Num());
+			for (int i = 0; i < NumConditions; i++)
+			{
+				Attributes[i] = nullptr;
+				Readers[i] = nullptr;
+			}
+		}
+
+		TArray<FPCGMetadataAttributeBase*> InIfAttributes;
+		TArray<FPCGMetadataAttributeBase*> InElseAttributes;
+		
+		TArray<FPCGMetadataAttributeBase*> OutIfAttributes;
+		TArray<FPCGMetadataAttributeBase*> OutElseAttributes;
+
+		bool bValid = true;
+		bool bPartial = false;
+		int32 Index = 0;
+		
+		UPCGExSocketStateDefinition* Definition = nullptr;
+		TArray<FPCGMetadataAttribute<int32>*> Attributes;
+		TArray<PCGEx::TFAttributeReader<int32>*> Readers;
+		
+		void Capture(const FGraphInputs* GraphInputs, PCGExData::FPointIO* InPointIO);
+		void Capture(const UPCGExGraphDefinition* Graph, const PCGExData::FPointIO* InPointIO);
+
+		void Grab(PCGExData::FPointIO* PointIO);
+		bool Test(const int32 Index) const;
+
+		void PrepareData(const PCGExData::FPointIO* PointIO, TArray<bool>* States);
+
+		~FSingleStateMapping()
+		{
+			InIfAttributes.Empty();
+			InElseAttributes.Empty();
+			
+			OutIfAttributes.Empty();
+			OutElseAttributes.Empty();
+			
+			Attributes.Empty();
+			PCGEX_DELETE_TARRAY(Readers)
+		}
+	};
 }
