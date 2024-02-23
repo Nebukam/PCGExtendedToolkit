@@ -62,7 +62,7 @@ bool FPCGExPointsToBoundsElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsState(PCGExPointsToBounds::State_ComputeBounds))
 	{
-		PCGExPointsToBounds::ComputeBounds(Context->GetAsyncManager(), Context->MainPoints, Context->IOBounds, Settings->BoundsSource);
+		ComputeBounds(Context->GetAsyncManager(), Context->MainPoints, Context->IOBounds, Settings->BoundsSource);
 		Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork);
 	}
 
@@ -80,7 +80,6 @@ bool FPCGExPointsToBoundsElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsState(PCGExMT::State_ProcessingPoints))
 	{
-		
 		const TArray<FPCGPoint>& InPoints = Context->GetCurrentIn()->GetPoints();
 		UPCGPointData* OutData = Context->GetCurrentOut();
 		TArray<FPCGPoint>& MutablePoints = OutData->GetMutablePoints();

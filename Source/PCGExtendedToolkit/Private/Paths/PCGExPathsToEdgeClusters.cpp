@@ -161,7 +161,7 @@ bool FPCGExPathsToEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) c
 		TArray<PCGExGraph::FUnsignedEdge> UniqueEdges;
 		Context->CompoundGraph->GetUniqueEdges(UniqueEdges);
 		Context->CompoundGraph->WriteMetadata(Context->GraphBuilder->Graph->NodeMetadata);
-		
+
 		Context->GraphBuilder->Graph->InsertEdges(UniqueEdges, -1); //TODO : valid IOIndex from CompoundGraph
 		UniqueEdges.Empty();
 

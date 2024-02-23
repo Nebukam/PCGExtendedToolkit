@@ -215,7 +215,7 @@ bool FSampleClusterPathTask::ExecuteTask()
 	if (Context->bAddGoalToPath) { MutablePoints.Add_GetRef(Goal).MetadataEntry = PCGInvalidEntryKey; }
 
 	PathPoints.Flatten();
-	
+
 	return true;
 }
 

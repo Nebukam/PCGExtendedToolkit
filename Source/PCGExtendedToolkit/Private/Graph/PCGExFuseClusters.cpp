@@ -151,7 +151,7 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 		TArray<PCGExGraph::FUnsignedEdge> UniqueEdges;
 		Context->CompoundGraph->GetUniqueEdges(UniqueEdges);
 		Context->CompoundGraph->WriteMetadata(Context->GraphBuilder->Graph->NodeMetadata);
-		
+
 		Context->GraphBuilder->Graph->InsertEdges(UniqueEdges, -1);
 		UniqueEdges.Empty();
 
@@ -164,7 +164,7 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 		}
 		else if (Settings->bDoEdgeEdgeIntersection)
 		{
-			Context->EdgeEdgeIntersections = new PCGExGraph::FEdgeEdgeIntersections(Context->GraphBuilder->Graph, Context->CompoundGraph,Context->ConsolidatedPoints, Context->EdgeEdgeIntersectionSettings);
+			Context->EdgeEdgeIntersections = new PCGExGraph::FEdgeEdgeIntersections(Context->GraphBuilder->Graph, Context->CompoundGraph, Context->ConsolidatedPoints, Context->EdgeEdgeIntersectionSettings);
 			Context->EdgeEdgeIntersections->FindIntersections(Context);
 			Context->SetAsyncState(PCGExGraph::State_FindingEdgeEdgeIntersections);
 		}
@@ -185,7 +185,7 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 		{
 			// TODO : How to retrieve original edge IO/Index for tagging? :/
 			// Can be consoldated from CompoundGraph' EdgeIdxCompoupnds + GraphMetadata...?
-			Context->EdgeEdgeIntersections = new PCGExGraph::FEdgeEdgeIntersections(Context->GraphBuilder->Graph, Context->CompoundGraph,Context->ConsolidatedPoints, Context->EdgeEdgeIntersectionSettings);
+			Context->EdgeEdgeIntersections = new PCGExGraph::FEdgeEdgeIntersections(Context->GraphBuilder->Graph, Context->CompoundGraph, Context->ConsolidatedPoints, Context->EdgeEdgeIntersectionSettings);
 			Context->EdgeEdgeIntersections->FindIntersections(Context);
 			Context->SetAsyncState(PCGExGraph::State_FindingEdgeEdgeIntersections);
 		}

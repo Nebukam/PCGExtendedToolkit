@@ -140,7 +140,7 @@ public:
 	/** Static value to be used as bound expansion */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=1))
 	double AmountFMod = 10;
-	
+
 	/** Static value to be used as bound expansion */
 	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="TestMode==EPCGExOverlapTestMode::Precise", EditConditionHides))
 	bool bUsePerPointsValues = false;

@@ -113,7 +113,7 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 		PCGEX_WAIT_ASYNC
 
 		Context->CurrentIO->Flatten();
-		
+
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 		return false;
 	}

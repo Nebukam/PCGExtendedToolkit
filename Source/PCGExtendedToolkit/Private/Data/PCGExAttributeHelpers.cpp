@@ -78,10 +78,10 @@ namespace PCGEx
 	{
 		FAttributesInfos* NewInfos = new FAttributesInfos();
 		FAttributeIdentity::Get(InMetadata, NewInfos->Identities);
-		if(InMetadata)
+		if (InMetadata)
 		{
 			UPCGMetadata* MutableData = const_cast<UPCGMetadata*>(InMetadata);
-			for(const FAttributeIdentity& Identity : NewInfos->Identities)
+			for (const FAttributeIdentity& Identity : NewInfos->Identities)
 			{
 				NewInfos->Attributes.Add(MutableData->GetMutableAttribute(Identity.Name));
 			}

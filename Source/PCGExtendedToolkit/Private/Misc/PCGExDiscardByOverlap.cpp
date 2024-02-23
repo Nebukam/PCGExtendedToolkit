@@ -79,7 +79,7 @@ bool FPCGExDiscardByOverlapElement::ExecuteInternal(FPCGContext* InContext) cons
 
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
-		PCGExPointsToBounds::ComputeBounds(Context->GetAsyncManager(), Context->MainPoints, Context->IOBounds, Settings->BoundsSource);
+		ComputeBounds(Context->GetAsyncManager(), Context->MainPoints, Context->IOBounds, Settings->BoundsSource);
 		Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork);
 	}
 
@@ -204,7 +204,7 @@ bool FPCGExDiscardByOverlapElement::ExecuteInternal(FPCGContext* InContext) cons
 			}
 			else { PCGExDiscardByOverlap::SortPreciseAmount(Context->IOBounds, Settings->Order); }
 		};
-		
+
 		SortBounds();
 
 		while (!Context->IOBounds.IsEmpty())
@@ -239,7 +239,7 @@ bool FPCGExDiscardByOverlapElement::ExecuteInternal(FPCGContext* InContext) cons
 bool FPCGExComputePreciseOverlap::ExecuteTask()
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExComputePreciseOverlap::ExecuteTask);
-	
+
 	FPCGExDiscardByOverlapContext* Context = static_cast<FPCGExDiscardByOverlapContext*>(Manager->Context);
 	PCGEX_SETTINGS(DiscardByOverlap)
 
@@ -255,7 +255,7 @@ bool FPCGExComputePreciseOverlap::ExecuteTask()
 	{
 		PCGExPointsToBounds::FBounds* OtherBounds = Overlap.Key;
 		if (Bounds->OverlapsWith(OtherBounds)) { continue; } // Already processed
-		
+
 		TArray<FBox> LocalBounds;
 		auto ProcessLocalPoints = [&](const FPCGPointRef& LocalPointRef)
 		{
