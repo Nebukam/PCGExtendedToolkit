@@ -195,7 +195,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : public FPCGContext
 	UWorld* World = nullptr;
 
 	mutable FRWLock ContextLock;
-	PCGExData::FPointIOGroup* MainPoints = nullptr;
+	PCGExData::FPointIOCollection* MainPoints = nullptr;
 
 	PCGExData::FPointIO* CurrentIO = nullptr;
 

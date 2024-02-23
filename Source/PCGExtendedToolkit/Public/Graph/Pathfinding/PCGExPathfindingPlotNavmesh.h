@@ -91,7 +91,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingPlotNavmeshContext : public FPCGE
 
 	virtual ~FPCGExPathfindingPlotNavmeshContext() override;
 
-	PCGExData::FPointIOGroup* OutputPaths = nullptr;
+	PCGExData::FPointIOCollection* OutputPaths = nullptr;
 	UPCGExSubPointsBlendOperation* Blending = nullptr;
 
 	bool bAddSeedToPath = true;

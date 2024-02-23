@@ -24,7 +24,7 @@ namespace PCGExDataBlending
 		void Cleanup();
 
 		void AddSource(PCGExData::FPointIO& InData);
-		void AddSources(const PCGExData::FPointIOGroup& InDataGroup);
+		void AddSources(const PCGExData::FPointIOCollection& InDataGroup);
 		void Merge(FPCGExAsyncManager* AsyncManager, PCGExData::FPointIO* TargetData, PCGExData::FIdxCompoundList* CompoundList, const FPCGExDistanceSettings& DistSettings);
 		void Write();
 

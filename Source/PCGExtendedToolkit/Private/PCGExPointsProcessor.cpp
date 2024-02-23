@@ -419,7 +419,7 @@ FPCGContext* FPCGExPointsProcessorElementBase::InitializeContext(
 	InContext->AsyncPointLoop = InContext->MakeLoop<PCGEx::FAsyncPointLoop>();
 	InContext->BulkAsyncPointLoop = InContext->MakeLoop<PCGEx::FBulkAsyncPointLoop>();
 
-	InContext->MainPoints = new PCGExData::FPointIOGroup();
+	InContext->MainPoints = new PCGExData::FPointIOCollection();
 	InContext->MainPoints->DefaultOutputLabel = Settings->GetMainOutputLabel();
 
 	if (!Settings->bEnabled) { return InContext; }

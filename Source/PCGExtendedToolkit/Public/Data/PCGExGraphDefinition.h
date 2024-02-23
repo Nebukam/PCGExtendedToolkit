@@ -613,7 +613,7 @@ public:
 
 	TArray<TObjectPtr<UPCGParamData>> IfAttributes;
 	TArray<PCGEx::FAttributesInfos*> IfInfos;
-	
+
 	TArray<TObjectPtr<UPCGParamData>> ElseAttributes;
 	TArray<PCGEx::FAttributesInfos*> ElseInfos;
 
@@ -866,18 +866,20 @@ namespace PCGExGraph
 
 		TArray<FPCGMetadataAttributeBase*> InIfAttributes;
 		TArray<FPCGMetadataAttributeBase*> InElseAttributes;
-		
+
 		TArray<FPCGMetadataAttributeBase*> OutIfAttributes;
 		TArray<FPCGMetadataAttributeBase*> OutElseAttributes;
 
 		bool bValid = true;
 		bool bPartial = false;
 		int32 Index = 0;
-		
+
+		TSet<FString> OverlappingAttributes;
+
 		UPCGExSocketStateDefinition* Definition = nullptr;
 		TArray<FPCGMetadataAttribute<int32>*> Attributes;
 		TArray<PCGEx::TFAttributeReader<int32>*> Readers;
-		
+
 		void Capture(const FGraphInputs* GraphInputs, PCGExData::FPointIO* InPointIO);
 		void Capture(const UPCGExGraphDefinition* Graph, const PCGExData::FPointIO* InPointIO);
 
@@ -888,12 +890,14 @@ namespace PCGExGraph
 
 		~FSingleStateMapping()
 		{
+			OverlappingAttributes.Empty();
+
 			InIfAttributes.Empty();
 			InElseAttributes.Empty();
-			
+
 			OutIfAttributes.Empty();
 			OutElseAttributes.Empty();
-			
+
 			Attributes.Empty();
 			PCGEX_DELETE_TARRAY(Readers)
 		}

@@ -69,7 +69,7 @@ bool FPCGExApplySocketStatesElement::Boot(FPCGContext* InContext) const
 	TSet<FName> UniqueStatesNames;
 	for (const FPCGTaggedData& InputState : Inputs)
 	{
-		if (TObjectPtr<UPCGExSocketStateDefinition> State = Cast<UPCGExSocketStateDefinition>(InputState.Data))
+		if (const UPCGExSocketStateDefinition* State = Cast<UPCGExSocketStateDefinition>(InputState.Data))
 		{
 			if (UniqueStatesNames.Contains(State->StateName))
 			{
@@ -85,7 +85,7 @@ bool FPCGExApplySocketStatesElement::Boot(FPCGContext* InContext) const
 
 			Context->States.Add(new TArray<bool>());
 			UniqueStatesNames.Add(State->StateName);
-			Context->StateDefinitions.Add(State);
+			Context->StateDefinitions.Add(const_cast<UPCGExSocketStateDefinition*>(State));
 		}
 	}
 
@@ -261,6 +261,11 @@ bool FPCGExApplySocketStatesElement::ExecuteInternal(
 		for (PCGExGraph::FSingleStateMapping* Mapping : Context->StateMappings)
 		{
 			Mapping->PrepareData(Context->CurrentIO, Context->States[Mapping->Index]);
+			if (!Mapping->OverlappingAttributes.IsEmpty())
+			{
+				FString Names = FString::Join(Mapping->OverlappingAttributes.Array(), TEXT(", "));
+				PCGE_LOG(Warning, GraphAndLog, FText::Format(FTEXT("Some If/Else attributes ({0}) have the same name but different types, this will have unexpected results."), FText::FromString(Names)));
+			}
 		}
 
 		for (int i = 0; i < NumPoints; i++) { Context->GetAsyncManager()->Start<FPCGExEvaluatePointTask>(i, Context->CurrentIO); }

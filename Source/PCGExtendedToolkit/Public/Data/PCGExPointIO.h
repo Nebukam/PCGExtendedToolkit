@@ -27,7 +27,7 @@ namespace PCGExData
 	 */
 	struct PCGEXTENDEDTOOLKIT_API FPointIO
 	{
-		friend class FPointIOGroup;
+		friend class FPointIOCollection;
 
 	protected:
 		mutable FRWLock PointsLock;
@@ -132,23 +132,22 @@ namespace PCGExData
 		bool OutputTo(FPCGContext* Context, const int32 MinPointCount, const int32 MaxPointCount);
 
 		void Flatten() const;
-		
 	};
 
 	/**
 	 * 
 	 */
-	class PCGEXTENDEDTOOLKIT_API FPointIOGroup
+	class PCGEXTENDEDTOOLKIT_API FPointIOCollection
 	{
 	protected:
 		mutable FRWLock PairsLock;
 
 	public:
-		FPointIOGroup();
-		FPointIOGroup(FPCGContext* Context, FName InputLabel, EInit InitOut = EInit::NoOutput);
-		FPointIOGroup(FPCGContext* Context, TArray<FPCGTaggedData>& Sources, EInit InitOut = EInit::NoOutput);
+		FPointIOCollection();
+		FPointIOCollection(FPCGContext* Context, FName InputLabel, EInit InitOut = EInit::NoOutput);
+		FPointIOCollection(FPCGContext* Context, TArray<FPCGTaggedData>& Sources, EInit InitOut = EInit::NoOutput);
 
-		~FPointIOGroup();
+		~FPointIOCollection();
 
 		FName DefaultOutputLabel = PCGEx::OutputPointsLabel;
 		TArray<FPointIO*> Pairs;

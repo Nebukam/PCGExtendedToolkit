@@ -96,7 +96,7 @@ namespace PCGExDataBlending
 		TempSrcIdentities.Empty();
 	}
 
-	void FCompoundBlender::AddSources(const PCGExData::FPointIOGroup& InDataGroup)
+	void FCompoundBlender::AddSources(const PCGExData::FPointIOCollection& InDataGroup)
 	{
 		for (PCGExData::FPointIO* IOPair : InDataGroup.Pairs) { AddSource(*IOPair); }
 	}

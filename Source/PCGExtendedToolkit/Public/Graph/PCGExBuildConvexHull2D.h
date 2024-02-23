@@ -75,7 +75,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBuildConvexHull2DContext : public FPCGExPoin
 	FPCGExGraphBuilderSettings GraphBuilderSettings;
 	PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
 
-	PCGExData::FPointIOGroup* PathsIO;
+	PCGExData::FPointIOCollection* PathsIO;
 
 protected:
 	void BuildPath() const;

@@ -245,29 +245,29 @@ namespace PCGExData
 #endif
 	}
 
-	FPointIOGroup::FPointIOGroup()
+	FPointIOCollection::FPointIOCollection()
 	{
 	}
 
-	FPointIOGroup::FPointIOGroup(FPCGContext* Context, const FName InputLabel, const EInit InitOut)
-		: FPointIOGroup()
+	FPointIOCollection::FPointIOCollection(FPCGContext* Context, const FName InputLabel, const EInit InitOut)
+		: FPointIOCollection()
 	{
 		TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(InputLabel);
 		Initialize(Context, Sources, InitOut);
 	}
 
-	FPointIOGroup::FPointIOGroup(FPCGContext* Context, TArray<FPCGTaggedData>& Sources, const EInit InitOut)
-		: FPointIOGroup()
+	FPointIOCollection::FPointIOCollection(FPCGContext* Context, TArray<FPCGTaggedData>& Sources, const EInit InitOut)
+		: FPointIOCollection()
 	{
 		Initialize(Context, Sources, InitOut);
 	}
 
-	FPointIOGroup::~FPointIOGroup()
+	FPointIOCollection::~FPointIOCollection()
 	{
 		Flush();
 	}
 
-	void FPointIOGroup::Initialize(
+	void FPointIOCollection::Initialize(
 		FPCGContext* Context, TArray<FPCGTaggedData>& Sources,
 		const EInit InitOut)
 	{
@@ -286,7 +286,7 @@ namespace PCGExData
 		UniqueData.Empty();
 	}
 
-	FPointIO& FPointIOGroup::Emplace_GetRef(
+	FPointIO& FPointIOCollection::Emplace_GetRef(
 		const FPointIO& PointIO,
 		const EInit InitOut)
 	{
@@ -296,7 +296,7 @@ namespace PCGExData
 		return Branch;
 	}
 
-	FPointIO& FPointIOGroup::Emplace_GetRef(
+	FPointIO& FPointIOCollection::Emplace_GetRef(
 		const FPCGTaggedData& Source,
 		const UPCGPointData* In,
 		const EInit InitOut)
@@ -305,7 +305,7 @@ namespace PCGExData
 		return *Pairs.Add_GetRef(new FPointIO(Source, In, DefaultOutputLabel, InitOut, Pairs.Num()));
 	}
 
-	FPointIO& FPointIOGroup::Emplace_GetRef(
+	FPointIO& FPointIOCollection::Emplace_GetRef(
 		const UPCGPointData* In,
 		const EInit InitOut)
 	{
@@ -314,7 +314,7 @@ namespace PCGExData
 		return *Pairs.Add_GetRef(new FPointIO(Source, In, DefaultOutputLabel, InitOut, Pairs.Num()));
 	}
 
-	FPointIO& FPointIOGroup::Emplace_GetRef(const EInit InitOut)
+	FPointIO& FPointIOCollection::Emplace_GetRef(const EInit InitOut)
 	{
 		FWriteScopeLock WriteLock(PairsLock);
 		return *Pairs.Add_GetRef(new FPointIO(DefaultOutputLabel, InitOut, Pairs.Num()));
@@ -325,7 +325,7 @@ namespace PCGExData
 	 * @param Context
 	 * @param bFlatten 
 	 */
-	void FPointIOGroup::OutputTo(FPCGContext* Context)
+	void FPointIOCollection::OutputTo(FPCGContext* Context)
 	{
 		for (FPointIO* Pair : Pairs) { Pair->OutputTo(Context); }
 	}
@@ -337,31 +337,31 @@ namespace PCGExData
 	 * @param MaxPointCount
 	 * @param bFlatten 
 	 */
-	void FPointIOGroup::OutputTo(FPCGContext* Context, const int32 MinPointCount, const int32 MaxPointCount)
+	void FPointIOCollection::OutputTo(FPCGContext* Context, const int32 MinPointCount, const int32 MaxPointCount)
 	{
 		for (FPointIO* Pair : Pairs) { Pair->OutputTo(Context, MinPointCount, MaxPointCount); }
 	}
 
-	void FPointIOGroup::ForEach(const TFunction<void(FPointIO&, const int32)>& BodyLoop)
+	void FPointIOCollection::ForEach(const TFunction<void(FPointIO&, const int32)>& BodyLoop)
 	{
 		for (int i = 0; i < Pairs.Num(); i++) { BodyLoop(*Pairs[i], i); }
 	}
 
-	FBox FPointIOGroup::GetInBounds()
+	FBox FPointIOCollection::GetInBounds()
 	{
 		FBox Bounds = FBox(ForceInit);
 		for (FPointIO* IO : Pairs) { Bounds += IO->GetIn()->GetBounds(); }
 		return Bounds;
 	}
 
-	FBox FPointIOGroup::GetOutBounds()
+	FBox FPointIOCollection::GetOutBounds()
 	{
 		FBox Bounds = FBox(ForceInit);
 		for (FPointIO* IO : Pairs) { Bounds += IO->GetOut()->GetBounds(); }
 		return Bounds;
 	}
 
-	void FPointIOGroup::Flush()
+	void FPointIOCollection::Flush()
 	{
 		PCGEX_DELETE_TARRAY(Pairs)
 	}

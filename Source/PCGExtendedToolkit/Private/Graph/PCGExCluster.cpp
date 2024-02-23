@@ -4,6 +4,7 @@
 #include "Graph/PCGExCluster.h"
 
 #include "Data/PCGExAttributeHelpers.h"
+#include "Geometry/PCGExGeo.h"
 
 namespace PCGExCluster
 {
@@ -174,21 +175,63 @@ namespace PCGExCluster
 		}
 	}
 
-	int32 FCluster::FindClosestNode(const FVector& Position) const
+	int32 FCluster::FindClosestNode(const FVector& Position, const int32 MinNeighbors) const
 	{
 		double MaxDistance = TNumericLimits<double>::Max();
 		int32 ClosestIndex = -1;
-		for (const FNode& Vtx : Nodes)
+		for (const FNode& Node : Nodes)
 		{
-			const double Dist = FVector::DistSquared(Position, Vtx.Position);
+			if (Node.AdjacentNodes.Num() < MinNeighbors) { continue; }
+			const double Dist = FVector::DistSquared(Position, Node.Position);
 			if (Dist < MaxDistance)
 			{
 				MaxDistance = Dist;
-				ClosestIndex = Vtx.NodeIndex;
+				ClosestIndex = Node.NodeIndex;
 			}
 		}
 
 		return ClosestIndex;
+	}
+
+	int32 FCluster::FindClosestNeighbor(const int32 NodeIndex, const FVector& Position, int32 MinNeighborCount) const
+	{
+		const FNode& Node = Nodes[NodeIndex];
+		int32 Result = -1;
+		double LastDist = TNumericLimits<double>::Max();
+
+		for (const int32 OtherIndex : Node.AdjacentNodes)
+		{
+			if (Nodes[OtherIndex].AdjacentNodes.Num() < MinNeighborCount) { continue; }
+			if (const double Dist = FMath::PointDistToSegmentSquared(Position, Node.Position, Nodes[OtherIndex].Position);
+				Dist < LastDist)
+			{
+				LastDist = Dist;
+				Result = OtherIndex;
+			}
+		}
+
+		return Result;
+	}
+
+	int32 FCluster::FindClosestNeighbor(const int32 NodeIndex, const FVector& Position, const TSet<int32>& Exclusion, int32 MinNeighborCount) const
+	{
+		const FNode& Node = Nodes[NodeIndex];
+		int32 Result = -1;
+		double LastDist = TNumericLimits<double>::Max();
+
+		for (const int32 OtherIndex : Node.AdjacentNodes)
+		{
+			if (Nodes[OtherIndex].AdjacentNodes.Num() < MinNeighborCount) { continue; }
+			if (Exclusion.Contains(OtherIndex)) { continue; }
+			if (const double Dist = FMath::PointDistToSegmentSquared(Position, Node.Position, Nodes[OtherIndex].Position);
+				Dist < LastDist)
+			{
+				LastDist = Dist;
+				Result = OtherIndex;
+			}
+		}
+
+		return Result;
 	}
 
 	const FNode& FCluster::GetNodeFromPointIndex(const int32 Index) const { return Nodes[*PointIndexMap.Find(Index)]; }
@@ -231,6 +274,187 @@ namespace PCGExCluster
 
 			OutIndices.Add(OtherNode);
 			if (NextDepth > 0) { GetConnectedNodes(OtherNode, OutIndices, NextDepth); }
+		}
+	}
+
+	FVector FCluster::GetEdgeDirection(const int32 FromIndex, const int32 ToIndex) const
+	{
+		return (Nodes[FromIndex].Position - Nodes[ToIndex].Position).GetSafeNormal();
+	}
+
+	FVector FCluster::GetCentroid(const int32 NodeIndex) const
+	{
+		const FNode& Node = Nodes[NodeIndex];
+		FVector Centroid = FVector::ZeroVector;
+		for (const int32 OtherIndex : Node.AdjacentNodes) { Centroid += Nodes[OtherIndex].Position; }
+		return Centroid / static_cast<double>(Node.AdjacentNodes.Num());
+	}
+
+	FVector FCluster::GetCentroid(const int32 NodeIndex, const TSet<int32>& Exclusion) const
+	{
+		const FNode& Node = Nodes[NodeIndex];
+		double Divider = 0;
+
+		FVector Centroid = FVector::ZeroVector;
+
+		for (const int32 OtherIndex : Node.AdjacentNodes)
+		{
+			if (Exclusion.Contains(OtherIndex)) { continue; }
+			Centroid += Nodes[OtherIndex].Position;
+			Divider++;
+		}
+
+		return Centroid / Divider;
+	}
+
+	int32 FCluster::FindClosestNeighborInDirection(const int32 NodeIndex, const FVector& Direction, const int32 MinNeighbors) const
+	{
+		const FNode& Node = Nodes[NodeIndex];
+		int32 Result = -1;
+		double LastDot = -1;
+
+		for (const int32 OtherIndex : Node.AdjacentNodes)
+		{
+			if (Nodes[OtherIndex].AdjacentNodes.Num() < MinNeighbors) { continue; }
+			if (const double Dot = FVector::DotProduct(Direction, (Node.Position - Nodes[OtherIndex].Position).GetSafeNormal());
+				Dot > LastDot)
+			{
+				LastDot = Dot;
+				Result = OtherIndex;
+			}
+		}
+
+		return Result;
+	}
+
+	int32 FCluster::FindClosestNeighborInDirection(const int32 NodeIndex, const FVector& Direction, const TSet<int32>& Exclusion, const int32 MinNeighbors) const
+	{
+		const FNode& Node = Nodes[NodeIndex];
+		int32 Result = -1;
+		double LastDot = -1;
+
+		for (const int32 OtherIndex : Node.AdjacentNodes)
+		{
+			if (Nodes[OtherIndex].AdjacentNodes.Num() < MinNeighbors) { continue; }
+			if (Exclusion.Contains(OtherIndex)) { continue; }
+			if (const double Dot = FVector::DotProduct(Direction, (Node.Position - Nodes[OtherIndex].Position).GetSafeNormal());
+				Dot > LastDot)
+			{
+				LastDot = Dot;
+				Result = OtherIndex;
+			}
+		}
+
+		return Result;
+	}
+
+	int32 FCluster::FindClosestNeighborInDirection(const int32 NodeIndex, const FVector& Direction, const FVector& Guide, const int32 MinNeighbors) const
+	{
+		const FNode& Node = Nodes[NodeIndex];
+		int32 Result = -1;
+		double LastDot = -1;
+		double LastDist = TNumericLimits<double>::Max();
+
+		for (const int32 OtherIndex : Node.AdjacentNodes)
+		{
+			const FNode& OtherNode = Nodes[OtherIndex];
+			if (OtherNode.AdjacentNodes.Num() < MinNeighbors) { continue; }
+
+			const double Dot = FVector::DotProduct(Direction, (Node.Position - OtherNode.Position).GetSafeNormal());
+
+			if (Dot > LastDot)
+			{
+				if (FMath::IsNearlyEqual(LastDot, Dot, 0.2))
+				{
+					if (const double Dist = FMath::PointDistToSegmentSquared(Guide, Node.Position, OtherNode.Position);
+						Dist < LastDist)
+					{
+						LastDist = Dist;
+						LastDot = Dot;
+						Result = OtherIndex;
+					}
+				}
+				else
+				{
+					LastDot = Dot;
+					Result = OtherIndex;
+				}
+			}
+		}
+
+		return Result;
+	}
+
+	int32 FCluster::FindClosestNeighborInDirection(const int32 NodeIndex, const FVector& Direction, const FVector& Guide, const TSet<int32>& Exclusion, const int32 MinNeighbors) const
+	{
+		const FNode& Node = Nodes[NodeIndex];
+		int32 Result = -1;
+		double LastDot = -1;
+		double LastDist = TNumericLimits<double>::Max();
+
+		for (const int32 OtherIndex : Node.AdjacentNodes)
+		{
+			const FNode& OtherNode = Nodes[OtherIndex];
+			if (OtherNode.AdjacentNodes.Num() < MinNeighbors) { continue; }
+			if (Exclusion.Contains(OtherIndex)) { continue; }
+
+			const double Dot = FVector::DotProduct(Direction, (Node.Position - OtherNode.Position).GetSafeNormal());
+
+			if (Dot > LastDot)
+			{
+				if (FMath::IsNearlyEqual(LastDot, Dot, 0.2))
+				{
+					if (const double Dist = FMath::PointDistToSegmentSquared(Guide, Node.Position, OtherNode.Position);
+						Dist < LastDist)
+					{
+						LastDist = Dist;
+						LastDot = Dot;
+						Result = OtherIndex;
+					}
+				}
+				else
+				{
+					LastDot = Dot;
+					Result = OtherIndex;
+				}
+			}
+		}
+
+		return Result;
+	}
+
+	int32 FCluster::FindClosestNeighborLeft(const int32 NodeIndex, const FVector& Direction, const TSet<int32>& Exclusion, const int32 MinNeighbors) const
+	{
+		const FNode& Node = Nodes[NodeIndex];
+		int32 Result = -1;
+		double LastAngle = TNumericLimits<double>::Max();
+
+		for (const int32 OtherIndex : Node.AdjacentNodes)
+		{
+			const FNode& OtherNode = Nodes[OtherIndex];
+
+			if (OtherNode.AdjacentNodes.Num() < MinNeighbors) { continue; }
+
+			if (Exclusion.Contains(OtherIndex)) { continue; }
+
+			const double Angle = PCGExMath::GetAngle(Direction, (Node.Position - OtherNode.Position).GetSafeNormal());
+
+			if (Angle < LastAngle)
+			{
+				LastAngle = Angle;
+				Result = OtherIndex;
+			}
+		}
+
+		return Result;
+	}
+
+	void FCluster::ProjectNodes(const FPCGExGeo2DProjectionSettings& ProjectionSettings)
+	{
+		for (FNode& Node : Nodes)
+		{
+			const FVector V = ProjectionSettings.ProjectionTransform.InverseTransformPosition(Node.Position);
+			Node.Position = FVector(V.X, V.Y, 0);
 		}
 	}
 }

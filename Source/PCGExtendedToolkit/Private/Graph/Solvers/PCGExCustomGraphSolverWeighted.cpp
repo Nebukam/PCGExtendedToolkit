@@ -45,7 +45,7 @@ void UPCGExCustomGraphSolverWeighted::ResolveProbe(PCGExGraph::FSocketProbe& Pro
 	{
 		const double DotRating = 1 - PCGExMath::Remap(Candidate.Dot, Probe.ProbedDotMin, Probe.ProbedDotMax);
 		const double DistanceRating = PCGExMath::Remap(Candidate.Distance, Probe.ProbedDistanceMin, Probe.ProbedDistanceMax);
-		const double DotWeight = FMathf::Clamp(Probe.DotOverDistanceCurve->GetFloatValue(DistanceRating), 0, 1);
+		const double DotWeight = FMath::Clamp(Probe.DotOverDistanceCurve->GetFloatValue(DistanceRating), 0, 1);
 		const double Rating = (DotRating * DotWeight) + (DistanceRating * (1 - DotWeight));
 
 		bool bBetterCandidate = false;

@@ -8,6 +8,7 @@
 #include "PCGExEdge.h"
 #include "PCGExGraph.h"
 #include "Data/PCGExAttributeHelpers.h"
+#include "Geometry/PCGExGeo.h"
 
 namespace PCGExCluster
 {
@@ -60,14 +61,30 @@ namespace PCGExCluster
 
 		void BuildPartialFrom(const TArray<FVector>& Positions, const TSet<uint64>& InEdges);
 
-		int32 FindClosestNode(const FVector& Position) const;
+		int32 FindClosestNode(const FVector& Position, const int32 MinNeighbors = 0) const;
+
+		int32 FindClosestNeighbor(const int32 NodeIndex, const FVector& Position, int32 MinNeighborCount = 1) const;
+		int32 FindClosestNeighbor(const int32 NodeIndex, const FVector& Position, const TSet<int32>& Exclusion, int32 MinNeighborCount = 1) const;
 
 		const FNode& GetNodeFromPointIndex(const int32 Index) const;
 		const PCGExGraph::FIndexedEdge& GetEdgeFromNodeIndices(const int32 A, const int32 B) const;
 		void ComputeEdgeLengths(bool bNormalize = false);
 
 		void GetConnectedNodes(const int32 FromIndex, TArray<int32>& OutIndices, const int32 SearchDepth) const;
+		
+		FVector GetEdgeDirection(const int32 FromIndex, const int32 ToIndex) const;
+		FVector GetCentroid(const int32 NodeIndex) const;
+		FVector GetCentroid(const int32 NodeIndex, const TSet<int32>& Exclusion) const;
+		
+		int32 FindClosestNeighborInDirection(const int32 NodeIndex, const FVector& Direction, int32 MinNeighborCount = 1) const;
+		int32 FindClosestNeighborInDirection(const int32 NodeIndex, const FVector& Direction, const TSet<int32>& Exclusion, int32 MinNeighborCount = 1) const;
+		int32 FindClosestNeighborInDirection(const int32 NodeIndex, const FVector& Direction, const FVector& Guide, int32 MinNeighborCount = 1) const;
+		int32 FindClosestNeighborInDirection(const int32 NodeIndex, const FVector& Direction, const FVector& Guide, const TSet<int32>& Exclusion, int32 MinNeighborCount = 1) const;
 
+		int32 FindClosestNeighborLeft(const int32 NodeIndex, const FVector& Direction, const TSet<int32>& Exclusion, const int32 MinNeighbors) const;
+		
+		void ProjectNodes(const FPCGExGeo2DProjectionSettings& ProjectionSettings);
+		
 	protected:
 		FNode& GetOrCreateNode(const int32 PointIndex, const TArray<FPCGPoint>& InPoints);
 	};

@@ -395,12 +395,12 @@ namespace PCGExGraph
 
 		FGraph* Graph = nullptr;
 
-		PCGExData::FPointIOGroup* EdgesIO = nullptr;
-		PCGExData::FPointIOGroup* SourceEdgesIO = nullptr;
+		PCGExData::FPointIOCollection* EdgesIO = nullptr;
+		PCGExData::FPointIOCollection* SourceEdgesIO = nullptr;
 
 		bool bCompiledSuccessfully = false;
 
-		FGraphBuilder(PCGExData::FPointIO& InPointIO, FPCGExGraphBuilderSettings* InSettings, const int32 NumEdgeReserve = 6, PCGExData::FPointIOGroup* InSourceEdges = nullptr)
+		FGraphBuilder(PCGExData::FPointIO& InPointIO, FPCGExGraphBuilderSettings* InSettings, const int32 NumEdgeReserve = 6, PCGExData::FPointIOCollection* InSourceEdges = nullptr)
 			: OutputSettings(InSettings), SourceEdgesIO(InSourceEdges)
 		{
 			PointIO = &InPointIO;
@@ -414,7 +414,7 @@ namespace PCGExGraph
 			Graph->EdgePosition = OutputSettings->EdgePosition;
 			Graph->bRefreshEdgeSeed = OutputSettings->bRefreshEdgeSeed;
 
-			EdgesIO = new PCGExData::FPointIOGroup();
+			EdgesIO = new PCGExData::FPointIOCollection();
 			EdgesIO->DefaultOutputLabel = OutputEdgesLabel;
 
 			bPrunePoints = OutputSettings->bPruneIsolatedPoints;
@@ -482,7 +482,7 @@ namespace PCGExGraph
 
 		bool Add(FCompoundNode* OtherNode);
 
-		FVector UpdateCenter(PCGExData::FIdxCompoundList* PointsCompounds, PCGExData::FPointIOGroup* IOGroup);
+		FVector UpdateCenter(PCGExData::FIdxCompoundList* PointsCompounds, PCGExData::FPointIOCollection* IOGroup);
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FCompoundNodeSemantics

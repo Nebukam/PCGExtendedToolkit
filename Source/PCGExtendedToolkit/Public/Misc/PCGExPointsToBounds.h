@@ -81,7 +81,7 @@ namespace PCGExPointsToBounds
 		void AddPreciseOverlap(FBounds* OtherBounds, const int32 InCount, const double InAmount)
 		{
 			if (OverlapsWith(OtherBounds)) { return; }
-			
+
 			{
 				FWriteScopeLock WriteLock(OverlapLock);
 				Overlaps.Add(OtherBounds);
@@ -92,7 +92,7 @@ namespace PCGExPointsToBounds
 				TotalPreciseOverlapCount += InCount;
 				TotalPreciseOverlapAmount += InAmount;
 			}
-			
+
 			OtherBounds->AddPreciseOverlap(this, InCount, InAmount);
 		}
 
@@ -107,13 +107,13 @@ namespace PCGExPointsToBounds
 
 	static void ComputeBounds(
 		FPCGExAsyncManager* Manager,
-		PCGExData::FPointIOGroup* IOGroup,
+		PCGExData::FPointIOCollection* IOGroup,
 		TArray<FBounds*>& OutBounds,
 		const EPCGExPointBoundsSource BoundsSource)
 	{
 		for (PCGExData::FPointIO* PointIO : IOGroup->Pairs)
 		{
-			PCGExPointsToBounds::FBounds* Bounds = new PCGExPointsToBounds::FBounds(PointIO);
+			FBounds* Bounds = new FBounds(PointIO);
 			OutBounds.Add(Bounds);
 			Manager->Start<FPCGExComputeIOBounds>(PointIO->IOIndex, PointIO, BoundsSource, Bounds);
 		}

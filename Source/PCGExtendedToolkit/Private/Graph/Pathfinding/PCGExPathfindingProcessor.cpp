@@ -161,7 +161,7 @@ FPCGContext* FPCGExPathfindingProcessorElement::InitializeContext(
 		}
 	}
 
-	Context->OutputPaths = new PCGExData::FPointIOGroup();
+	Context->OutputPaths = new PCGExData::FPointIOCollection();
 
 	PCGEX_FWD(bAddSeedToPath)
 	PCGEX_FWD(bAddGoalToPath)

@@ -63,7 +63,7 @@ bool FPCGExPathfindingPlotNavmeshElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_OPERATION_BIND(Blending, UPCGExSubPointsBlendInterpolate)
 
-	Context->OutputPaths = new PCGExData::FPointIOGroup();
+	Context->OutputPaths = new PCGExData::FPointIOCollection();
 
 	PCGEX_FWD(bAddSeedToPath)
 	PCGEX_FWD(bAddGoalToPath)
@@ -260,7 +260,7 @@ bool FPCGExPlotNavmeshTask::ExecuteTask()
 	if (!Context->bAddGoalToPath) { MutablePoints.Pop(); }
 
 	PathPoints.Flatten();
-	
+
 	return true;
 }
 

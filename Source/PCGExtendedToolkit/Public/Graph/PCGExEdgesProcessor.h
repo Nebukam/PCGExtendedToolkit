@@ -49,7 +49,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgesProcessorContext : public FPCGExPointsP
 
 	virtual ~FPCGExEdgesProcessorContext() override;
 
-	PCGExData::FPointIOGroup* MainEdges = nullptr;
+	PCGExData::FPointIOCollection* MainEdges = nullptr;
 	PCGExData::FPointIO* CurrentEdges = nullptr;
 
 	PCGExData::FPointIOTaggedDictionary* InputDictionary = nullptr;

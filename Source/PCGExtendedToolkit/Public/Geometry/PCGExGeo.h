@@ -4,6 +4,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGEx.h"
+#include "PCGExMT.h"
+#include "Data/PCGExAttributeHelpers.h"
 #include "PCGExGeo.generated.h"
 
 USTRUCT(BlueprintType)
@@ -12,16 +15,44 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGeo2DProjectionSettings
 	GENERATED_BODY()
 
 	/** Normal vector of the 2D projection plane. Defaults to Up for XY projection. Used as fallback when using invalid local normal. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (PCG_Overridable))
-	FVector ProjectionNormal = FVector::UpVector;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (PCG_Overridable, ShowOnlyInnerProperties))
+	FTransform ProjectionTransform = FTransform::Identity;
 
-	/** Uses a per-point projection normal. Use carefully as it can easily lead to singularities. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (PCG_Overridable, InlineEditConditionToggle))
-	bool bUseLocalProjectionNormal = false;
+	void Project(const TArrayView<FVector>& InPositions, TArray<FVector>& OutPositions) const
+	{
+		const int32 NumVectors = InPositions.Num();
+		OutPositions.SetNum(NumVectors);
 
-	/** Fetch the normal from a local point attribute. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (PCG_Overridable, ShowOnlyInnerProperties, EditCondition="bUseLocalProjectionNormal"))
-	FPCGExInputDescriptor LocalProjectionNormal;
+		for (int i = 0; i < NumVectors; i++)
+		{
+			const FVector V = ProjectionTransform.InverseTransformPosition(InPositions[i]);
+			OutPositions[i] = FVector(V.X, V.Y, 0);
+		}
+	}
+
+	void Project(const TArrayView<FVector>& InPositions, TArray<FVector2D>& OutPositions) const
+	{
+		const int32 NumVectors = InPositions.Num();
+		OutPositions.SetNum(NumVectors);
+
+		for (int i = 0; i < NumVectors; i++)
+		{
+			const FVector V = ProjectionTransform.InverseTransformPosition(InPositions[i]);
+			OutPositions[i] = FVector2D(V.X, V.Y);
+		}
+	}
+
+	void Project(const TArray<FPCGPoint>& InPoints, TArray<FVector>* OutPositions) const
+	{
+		const int32 NumVectors = InPoints.Num();
+		OutPositions->SetNum(NumVectors);
+
+		for (int i = 0; i < NumVectors; i++)
+		{
+			const FVector V = ProjectionTransform.InverseTransformPosition(InPoints[i].Transform.GetLocation());
+			(*OutPositions)[i] = FVector(V.X, V.Y, 0);
+		}
+	}
 };
 
 USTRUCT(BlueprintType)

@@ -46,7 +46,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPackClustersContext : public FPCGExEdgesProc
 	virtual ~FPCGExPackClustersContext() override;
 
 	PCGEx::FAttributesInfos* VtxAttributes;
-	PCGExData::FPointIOGroup* PackedClusters = nullptr;
+	PCGExData::FPointIOCollection* PackedClusters = nullptr;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExPackClustersElement : public FPCGExEdgesProcessorElement

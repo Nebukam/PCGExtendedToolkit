@@ -100,7 +100,7 @@ bool FPCGExPathfindingNavmeshElement::Boot(FPCGContext* InContext) const
 		return false;
 	}
 
-	Context->OutputPaths = new PCGExData::FPointIOGroup();
+	Context->OutputPaths = new PCGExData::FPointIOCollection();
 
 	PCGEX_FWD(bAddSeedToPath)
 	PCGEX_FWD(bAddGoalToPath)
@@ -247,7 +247,7 @@ bool FSampleNavmeshTask::ExecuteTask()
 	if (!Context->bAddGoalToPath) { MutablePoints.Pop(); }
 
 	PathPoints.Flatten();
-	
+
 	return true;
 }
 

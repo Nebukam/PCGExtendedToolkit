@@ -59,10 +59,10 @@ bool FPCGExUnpackClustersElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(UnpackClusters)
 
-	Context->OutPoints = new PCGExData::FPointIOGroup();
+	Context->OutPoints = new PCGExData::FPointIOCollection();
 	Context->OutPoints->DefaultOutputLabel = PCGExGraph::OutputVerticesLabel;
 
-	Context->OutEdges = new PCGExData::FPointIOGroup();
+	Context->OutEdges = new PCGExData::FPointIOCollection();
 	Context->OutEdges->DefaultOutputLabel = PCGExGraph::OutputEdgesLabel;
 
 	return true;

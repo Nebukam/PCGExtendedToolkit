@@ -103,7 +103,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingProcessorContext : public FPCGExE
 
 	PCGExData::FPointIO* SeedsPoints = nullptr;
 	PCGExData::FPointIO* GoalsPoints = nullptr;
-	PCGExData::FPointIOGroup* OutputPaths = nullptr;
+	PCGExData::FPointIOCollection* OutputPaths = nullptr;
 
 	UPCGExGoalPicker* GoalPicker = nullptr;
 	UPCGExSearchOperation* SearchAlgorithm = nullptr;

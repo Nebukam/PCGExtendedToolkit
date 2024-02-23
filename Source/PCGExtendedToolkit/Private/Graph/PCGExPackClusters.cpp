@@ -49,7 +49,7 @@ bool FPCGExPackClustersElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(PackClusters)
 
-	Context->PackedClusters = new PCGExData::FPointIOGroup();
+	Context->PackedClusters = new PCGExData::FPointIOCollection();
 	Context->PackedClusters->DefaultOutputLabel = PCGExGraph::OutputPackedClustersLabel;
 
 	return true;
@@ -137,7 +137,7 @@ bool FPCGExPackClusterTask::ExecuteTask()
 	FString OutPairId;
 	PointIO->Tags->Set(PCGExGraph::TagStr_ClusterPair, InEdges->GetIn()->UID, OutPairId);
 	PointIO->Flatten();
-	
+
 	InEdges->Cleanup();
 
 	return true;

@@ -31,7 +31,7 @@ bool FPCGExPartitionVerticesElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(PartitionVertices)
 
-	Context->VtxPartitions = new PCGExData::FPointIOGroup();
+	Context->VtxPartitions = new PCGExData::FPointIOCollection();
 	Context->VtxPartitions->DefaultOutputLabel = PCGExGraph::OutputVerticesLabel;
 
 	return true;
@@ -97,7 +97,7 @@ bool FPCGExCreateVtxPartitionTask::ExecuteTask()
 
 	const TArrayView<int32> View = MakeArrayView(ReducedVtxIndices);
 	PCGEx::CopyPoints(*PointIO, *PointIO, View);
-	
+
 	PointIO->Flatten();
 
 	return true;

@@ -98,8 +98,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingPlotEdgesContext : public FPCGExE
 
 	virtual ~FPCGExPathfindingPlotEdgesContext() override;
 
-	PCGExData::FPointIOGroup* Plots = nullptr;
-	PCGExData::FPointIOGroup* OutputPaths = nullptr;
+	PCGExData::FPointIOCollection* Plots = nullptr;
+	PCGExData::FPointIOCollection* OutputPaths = nullptr;
 
 	UPCGExHeuristicOperation* Heuristics = nullptr;
 	UPCGExSearchOperation* SearchAlgorithm = nullptr;

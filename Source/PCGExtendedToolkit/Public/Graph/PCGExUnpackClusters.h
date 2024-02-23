@@ -44,8 +44,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExUnpackClustersContext : public FPCGExPointsP
 
 	virtual ~FPCGExUnpackClustersContext() override;
 
-	PCGExData::FPointIOGroup* OutPoints = nullptr;
-	PCGExData::FPointIOGroup* OutEdges = nullptr;
+	PCGExData::FPointIOCollection* OutPoints = nullptr;
+	PCGExData::FPointIOCollection* OutEdges = nullptr;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExUnpackClustersElement : public FPCGExPointsProcessorElementBase

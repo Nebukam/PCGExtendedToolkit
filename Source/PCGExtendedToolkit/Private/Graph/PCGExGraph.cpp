@@ -251,7 +251,7 @@ namespace PCGExGraph
 		return true;
 	}
 
-	FVector FCompoundNode::UpdateCenter(PCGExData::FIdxCompoundList* PointsCompounds, PCGExData::FPointIOGroup* IOGroup)
+	FVector FCompoundNode::UpdateCenter(PCGExData::FIdxCompoundList* PointsCompounds, PCGExData::FPointIOCollection* IOGroup)
 	{
 		Center = FVector::ZeroVector;
 		double Divider = 0;

@@ -63,12 +63,10 @@ namespace PCGExGeo
 		{
 			Clear();
 
-			const int32 NumPositions = Positions.Num();
-			if (Positions.IsEmpty() || NumPositions <= 2) { return false; }
+			if (const int32 NumPositions = Positions.Num(); Positions.IsEmpty() || NumPositions <= 2) { return false; }
 
 			TArray<FVector2D> Positions2D;
-			Positions2D.SetNum(NumPositions);
-			for (int i = 0; i < NumPositions; i++) { Positions2D[i] = FVector2D(Positions[i]); }
+			ProjectionSettings.Project(Positions, Positions2D);
 
 			Triangulation = new UE::Geometry::FDelaunay2();
 

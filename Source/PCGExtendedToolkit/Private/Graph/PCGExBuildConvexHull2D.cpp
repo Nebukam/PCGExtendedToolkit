@@ -60,7 +60,7 @@ bool FPCGExBuildConvexHull2DElement::Boot(FPCGContext* InContext) const
 
 	Context->GraphBuilderSettings.bPruneIsolatedPoints = Settings->bPrunePoints;
 
-	Context->PathsIO = new PCGExData::FPointIOGroup();
+	Context->PathsIO = new PCGExData::FPointIOCollection();
 	Context->PathsIO->DefaultOutputLabel = PCGExGraph::OutputPathsLabel;
 
 	return true;

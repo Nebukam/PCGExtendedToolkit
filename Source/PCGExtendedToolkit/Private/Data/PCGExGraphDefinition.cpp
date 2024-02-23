@@ -382,6 +382,8 @@ void PCGExGraph::FSingleStateMapping::PrepareData(const PCGExData::FPointIO* Poi
 {
 	const int32 NumPoints = States->Num();
 
+	OverlappingAttributes.Empty();
+
 	bool bNeedIfs = (*States)[0];
 	bool bNeedElses = !bNeedIfs;
 
@@ -427,7 +429,7 @@ void PCGExGraph::FSingleStateMapping::PrepareData(const PCGExData::FPointIO* Poi
 			for (FPCGMetadataAttributeBase* Att : Infos->Attributes)
 			{
 				InAttributes.Add(Att);
-				
+
 				PCGMetadataAttribute::CallbackWithRightType(
 					Att->GetTypeId(),
 					[&](auto DummyValue) -> void
@@ -438,7 +440,11 @@ void PCGExGraph::FSingleStateMapping::PrepareData(const PCGExData::FPointIO* Poi
 
 						if (OutAttribute)
 						{
-							if (OutAttribute->GetTypeId() != Att->GetTypeId()) { OutAttributes.Add(nullptr); }
+							if (OutAttribute->GetTypeId() != Att->GetTypeId())
+							{
+								OverlappingAttributes.Add(Att->Name.ToString());
+								OutAttributes.Add(nullptr);
+							}
 							else { OutAttributes.Add(OutAttribute); }
 							return;
 						}
@@ -457,5 +463,4 @@ void PCGExGraph::FSingleStateMapping::PrepareData(const PCGExData::FPointIO* Poi
 
 	if (bNeedIfs) { CreatePlaceholderAttributes(Definition->IfInfos, InIfAttributes, OutIfAttributes); }
 	if (bNeedElses) { CreatePlaceholderAttributes(Definition->ElseInfos, InElseAttributes, OutElseAttributes); }
-	
 }

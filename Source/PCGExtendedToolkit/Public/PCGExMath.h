@@ -605,7 +605,7 @@ namespace PCGExMath
 
 #pragma endregion
 
-#pragma region Divide
+#pragma region Mult
 
 	template <typename T, typename CompilerSafety = void>
 	static T Mult(const T& A, const T& B) { return A * B; }
@@ -845,6 +845,18 @@ namespace PCGExMath
 		Point.Seed = static_cast<int32>(Remap(
 			FMath::PerlinNoise3D(Tile(Point.Transform.GetLocation() * 0.001 + Offset, FVector(-1), FVector(1))),
 			-1, 1, TNumericLimits<int32>::Min(), TNumericLimits<int32>::Max()));
+	}
+
+	static FVector GetNormal(const FVector& A, const FVector& B, const FVector& C)
+	{
+		return FVector::CrossProduct((B - A), (C - A)).GetSafeNormal();
+	}
+
+	static double GetAngle(const FVector& A, const FVector& B)
+	{
+		const double MainDot = A.Dot(B);
+		if (FVector::CrossProduct(A, B).Z < 0) { return (PI * 2) - FMath::Atan2(FVector::CrossProduct(A, B).Size(), MainDot); }
+		return FMath::Atan2(FVector::CrossProduct(A, B).Size(), MainDot);
 	}
 
 #pragma region Spatialized distances

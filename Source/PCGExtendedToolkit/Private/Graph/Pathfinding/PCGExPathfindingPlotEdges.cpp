@@ -86,8 +86,8 @@ bool FPCGExPathfindingPlotEdgesElement::Boot(FPCGContext* InContext) const
 	PCGEX_FWD(VisitedPointsWeightFactor)
 	PCGEX_FWD(VisitedEdgesWeightFactor)
 
-	Context->OutputPaths = new PCGExData::FPointIOGroup();
-	Context->Plots = new PCGExData::FPointIOGroup();
+	Context->OutputPaths = new PCGExData::FPointIOCollection();
+	Context->Plots = new PCGExData::FPointIOCollection();
 
 	TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(PCGExPathfinding::SourcePlotsLabel);
 	Context->Plots->Initialize(InContext, Sources, PCGExData::EInit::NoOutput);
