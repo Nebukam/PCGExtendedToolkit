@@ -73,7 +73,6 @@ bool FPCGExFindContoursElement::Boot(FPCGContext* InContext) const
 	{
 		TArray<FVector>* SeedsArray = new TArray<FVector>();
 		Context->ProjectedSeeds.Add(SeedsArray);
-
 		Settings->ProjectionSettings.Project(SeedIO->GetIn()->GetPoints(), SeedsArray);
 	}
 

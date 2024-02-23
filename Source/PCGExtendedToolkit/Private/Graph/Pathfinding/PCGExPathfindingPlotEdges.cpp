@@ -270,7 +270,7 @@ bool FPCGExPlotClusterPathTask::ExecuteTask()
 	int32 LastIndex = -1;
 	for (const int32 VtxIndex : Path)
 	{
-		if (VtxIndex < -1) // Plot point
+		if (VtxIndex < 0) // Plot point
 		{
 			MutablePoints.Add_GetRef(PointIO->GetInPoint((VtxIndex * -1) - 1)).MetadataEntry = PCGInvalidEntryKey;
 			continue;

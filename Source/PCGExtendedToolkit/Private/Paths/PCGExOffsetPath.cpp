@@ -87,7 +87,7 @@ bool FPCGExOffsetPathTask::ExecuteTask()
 	const FVector StaticUp = Settings->UpVector;
 	PCGEx::FLocalVectorGetter* Up = new PCGEx::FLocalVectorGetter();
 
-	if (Settings->bUseLocalOffset)
+	if (Settings->bUseLocalUpVector)
 	{
 		Up->Capture(Settings->LocalUpVector);
 		Up->Grab(*PointIO);
@@ -96,7 +96,7 @@ bool FPCGExOffsetPathTask::ExecuteTask()
 	Positions.SetNum(NumPoints);
 	Normals.SetNum(NumPoints);
 
-	for (int i = 0; i < NumPoints; i++) { Positions[i] = Positions[i] = InPoints[i].Transform.GetLocation(); }
+	for (int i = 0; i < NumPoints; i++) { Positions[i] = InPoints[i].Transform.GetLocation(); }
 
 	auto NRM = [&](const int32 A, const int32 B, const int32 C)-> FVector
 	{
@@ -104,20 +104,22 @@ bool FPCGExOffsetPathTask::ExecuteTask()
 		const FVector VB = Positions[B];
 		const FVector VC = Positions[C];
 		const FVector UpAverage = ((Up->SafeGet(A, StaticUp) + Up->SafeGet(B, StaticUp) + Up->SafeGet(C, StaticUp)) / 3).GetSafeNormal();
-		return FMath::Lerp(PCGExMath::GetNormal(VA, VB, VB + UpAverage), PCGExMath::GetNormal(VB, VC, VC + UpAverage), 0.5);
+		return FMath::Lerp(PCGExMath::GetNormal(VA, VB, VB + UpAverage), PCGExMath::GetNormal(VB, VC, VC + UpAverage), 0.5).GetSafeNormal();
 	};
 
-	for (int i = 1; i < NumPoints - 1; i++) { Normals[i] = NRM(i - 1, i, i + 1); }
+	const int32 LastIndex = NumPoints - 1;
+
+	for (int i = 1; i < LastIndex; i++) { Normals[i] = NRM(i - 1, i, i + 1); }
 
 	if (Settings->bClosedPath)
 	{
-		Normals[0] = NRM(NumPoints - 1, 0, 1);
-		Normals[NumPoints - 1] = NRM(NumPoints - 2, NumPoints - 1, 0);
+		Normals[0] = NRM(LastIndex, 0, 1);
+		Normals[LastIndex] = NRM(NumPoints - 2, LastIndex, 0);
 	}
 	else
 	{
 		Normals[0] = NRM(0, 0, 1);
-		Normals[NumPoints - 1] = NRM(NumPoints - 2, NumPoints - 1, NumPoints - 1);
+		Normals[LastIndex] = NRM(NumPoints - 2, LastIndex, LastIndex);
 	}
 
 	const double StaticOffset = Settings->Offset;
