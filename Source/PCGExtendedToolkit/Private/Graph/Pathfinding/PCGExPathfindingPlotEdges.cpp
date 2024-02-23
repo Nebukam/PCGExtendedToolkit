@@ -97,6 +97,8 @@ bool FPCGExPathfindingPlotEdgesElement::Boot(FPCGContext* InContext) const
 		PCGE_LOG(Error, GraphAndLog, FTEXT("Missing Plots Points."));
 		return false;
 	}
+	
+	Context->SearchAlgorithm->SearchMode = Settings->NodePickingMode;
 
 	Context->HeuristicsModifiers = const_cast<FPCGExHeuristicModifiersSettings*>(&Settings->HeuristicsModifiers);
 	Context->HeuristicsModifiers->LoadCurves();
@@ -148,6 +150,8 @@ bool FPCGExPathfindingPlotEdgesElement::ExecuteInternal(FPCGContext* InContext) 
 			return false;
 		}
 
+		Context->SearchAlgorithm->PreprocessCluster(Context->CurrentCluster);
+		
 		Context->GetAsyncManager()->Start<FPCGExCompileModifiersTask>(0, Context->CurrentIO, Context->CurrentEdges, Context->HeuristicsModifiers);
 		Context->SetAsyncState(PCGExGraph::State_ProcessingEdges);
 	}
@@ -174,7 +178,11 @@ bool FPCGExPathfindingPlotEdgesElement::ExecuteInternal(FPCGContext* InContext) 
 			Context->Plots->ForEach(
 				[&](PCGExData::FPointIO& PlotIO, const int32 Index)
 				{
-					if (PlotIO.GetNum() < 2) { return; }
+					if (PlotIO.GetNum() < 2)
+					{
+						PCGE_LOG(Warning, GraphAndLog, FTEXT("A plot has less than 2 points and will have no output."));
+						return;
+					}
 					Context->GetAsyncManager()->Start<FPCGExPlotClusterPathTask>(Index, &PlotIO);
 				});
 

@@ -4,6 +4,10 @@
 
 #include "Graph/Pathfinding/Search/PCGExSearchOperation.h"
 
+void UPCGExSearchOperation::PreprocessCluster(PCGExCluster::FCluster* Cluster)
+{
+}
+
 bool UPCGExSearchOperation::FindPath(
 	const PCGExCluster::FCluster* Cluster,
 	const FVector& SeedPosition,

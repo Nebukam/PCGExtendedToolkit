@@ -112,6 +112,8 @@ bool FPCGExPathfindingEdgesElement::ExecuteInternal(FPCGContext* InContext) cons
 			return false;
 		}
 
+		Context->SearchAlgorithm->PreprocessCluster(Context->CurrentCluster);
+		
 		Context->GetAsyncManager()->Start<FPCGExCompileModifiersTask>(0, Context->CurrentIO, Context->CurrentEdges, Context->HeuristicsModifiers);
 		Context->SetAsyncState(PCGExGraph::State_ProcessingEdges);
 	}

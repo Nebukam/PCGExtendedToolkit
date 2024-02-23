@@ -65,15 +65,15 @@ bool FPCGExFindContoursElement::Boot(FPCGContext* InContext) const
 	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(FindContours)
-	
+
 	Context->Seeds = new PCGExData::FPointIOCollection(Context, PCGExPathfinding::SourceSeedsLabel);
 	if (Context->Seeds->Pairs.IsEmpty()) { return false; }
-	
+
 	for (const PCGExData::FPointIO* SeedIO : Context->Seeds->Pairs)
 	{
 		TArray<FVector>* SeedsArray = new TArray<FVector>();
 		Context->ProjectedSeeds.Add(SeedsArray);
-		
+
 		Settings->ProjectionSettings.Project(SeedIO->GetIn()->GetPoints(), SeedsArray);
 	}
 
@@ -161,7 +161,7 @@ bool FPCGExFindContourTask::ExecuteTask()
 	}
 
 	const FVector Guide = Guides[0];
-	const int32 StartNodeIndex = Cluster->FindClosestNode(Guide, 2);
+	const int32 StartNodeIndex = Cluster->FindClosestNode(Guide, Settings->NodePickingMode, 2);
 
 	if (StartNodeIndex == -1)
 	{
@@ -172,7 +172,7 @@ bool FPCGExFindContourTask::ExecuteTask()
 	const FVector InitialDir = PCGExMath::GetNormal(Cluster->Nodes[StartNodeIndex].Position, Guide, Guide + FVector::UpVector);
 	const int32 NextToStartIndex = Cluster->FindClosestNeighborInDirection(StartNodeIndex, InitialDir, 2);
 
-	if (StartNodeIndex == -1)
+	if (NextToStartIndex == -1)
 	{
 		// Fail. Either single-node or single-edge cluster
 		return false;
@@ -188,28 +188,30 @@ bool FPCGExFindContourTask::ExecuteTask()
 	Path.Add(NextToStartIndex);
 	Visited.Add(NextToStartIndex);
 
-	auto Move = [&](const TSet<int32>& InVisited)
-	{
-		const FVector DirToPreviousIndex = Cluster->GetEdgeDirection(NextIndex, PreviousIndex);
-		PreviousIndex = NextIndex;
-		NextIndex = Cluster->FindClosestNeighborLeft(NextIndex, DirToPreviousIndex, InVisited, 2);
-	};
-	
-	const TSet<int32> TempSet = {PreviousIndex, NextIndex};
-	Move(TempSet);
+
+	TSet<int32> Exclusion = {PreviousIndex, NextIndex};
+	FVector DirToPreviousIndex = Cluster->GetEdgeDirection(NextIndex, PreviousIndex);
+	PreviousIndex = NextIndex;
+	NextIndex = Cluster->FindClosestNeighborLeft(NextIndex, DirToPreviousIndex, Exclusion, 2);
+
 
 	while (NextIndex != -1)
 	{
 		if (NextIndex == StartNodeIndex) { break; } // Contour closed gracefully
 
+		const PCGExCluster::FNode& CurrentNode = Cluster->Nodes[NextIndex];
+
 		Path.Add(NextIndex);
-		Visited.Add(NextIndex);
+		//Visited.Add(NextIndex);
 
-		//TODO: Skip neighbors that lead to dead ends
-		
-		if (Cluster->Nodes[NextIndex].AdjacentNodes.Contains(StartNodeIndex)) { break; } // End is in the immediate vicinity
+		if (CurrentNode.AdjacentNodes.Contains(StartNodeIndex)) { break; } // End is in the immediate vicinity
 
-		Move(Visited);
+		Exclusion.Empty();
+		if (CurrentNode.AdjacentNodes.Num() > 1) { Exclusion.Add(PreviousIndex); }
+
+		DirToPreviousIndex = Cluster->GetEdgeDirection(NextIndex, PreviousIndex);
+		PreviousIndex = NextIndex;
+		NextIndex = Cluster->FindClosestNeighborLeft(NextIndex, DirToPreviousIndex, Exclusion, 1);
 	}
 
 	TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();

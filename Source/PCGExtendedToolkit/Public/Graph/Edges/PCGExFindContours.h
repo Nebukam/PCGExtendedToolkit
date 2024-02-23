@@ -58,6 +58,10 @@ public:
 
 	virtual PCGExData::EInit GetEdgeOutputInitMode() const override;
 
+	/** Drives how the seed nodes are selected within the graph. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExClusterClosestSearchMode NodePickingMode = EPCGExClusterClosestSearchMode::Node;
+	
 	/** Projection settings. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExGeo2DProjectionSettings ProjectionSettings;

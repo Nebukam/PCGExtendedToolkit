@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExOperation.h"
+#include "Graph/PCGExCluster.h"
 #include "UObject/Object.h"
 #include "PCGExSearchOperation.generated.h"
 
@@ -30,6 +31,9 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSearchOperation : public UPCGExOperation
 	GENERATED_BODY()
 
 public:
+	EPCGExClusterClosestSearchMode SearchMode = EPCGExClusterClosestSearchMode::Node;
+	
+	virtual void PreprocessCluster(PCGExCluster::FCluster* Cluster);
 	virtual bool FindPath(
 		const PCGExCluster::FCluster* Cluster,
 		const FVector& SeedPosition,

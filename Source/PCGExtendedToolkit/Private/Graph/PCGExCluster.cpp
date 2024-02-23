@@ -175,6 +175,18 @@ namespace PCGExCluster
 		}
 	}
 
+	int32 FCluster::FindClosestNode(const FVector& Position, EPCGExClusterClosestSearchMode Mode, const int32 MinNeighbors) const
+	{
+		switch (Mode)
+		{
+		default: ;
+		case EPCGExClusterClosestSearchMode::Node:
+			return FindClosestNode(Position, MinNeighbors);
+		case EPCGExClusterClosestSearchMode::Edge:
+			return FindClosestNodeFromEdge(Position, MinNeighbors);
+		}
+	}
+
 	int32 FCluster::FindClosestNode(const FVector& Position, const int32 MinNeighbors) const
 	{
 		double MaxDistance = TNumericLimits<double>::Max();
@@ -192,6 +204,35 @@ namespace PCGExCluster
 
 		return ClosestIndex;
 	}
+
+	int32 FCluster::FindClosestNodeFromEdge(const FVector& Position, const int32 MinNeighbors) const
+	{
+		double MaxDistance = TNumericLimits<double>::Max();
+		int32 ClosestIndex = -1;
+
+		for (const PCGExGraph::FIndexedEdge& Edge : Edges)
+		{
+			const FNode& Start = Nodes[*PointIndexMap.Find(Edge.Start)];
+			const FNode& End = Nodes[*PointIndexMap.Find(Edge.End)];
+			const double Dist = FMath::PointDistToSegmentSquared(Position, Start.Position, End.Position);
+			if (Dist < MaxDistance)
+			{
+				MaxDistance = Dist;
+				ClosestIndex = Edge.EdgeIndex;
+			}
+		}
+
+		if (ClosestIndex == -1) { return -1; }
+
+		const PCGExGraph::FIndexedEdge& Edge = Edges[ClosestIndex];
+		const FNode& Start = Nodes[*PointIndexMap.Find(Edge.Start)];
+		const FNode& End = Nodes[*PointIndexMap.Find(Edge.End)];
+
+		ClosestIndex = FVector::DistSquared(Position, Start.Position) < FVector::DistSquared(Position, End.Position) ? Start.NodeIndex : End.NodeIndex;
+
+		return ClosestIndex;
+	}
+
 
 	int32 FCluster::FindClosestNeighbor(const int32 NodeIndex, const FVector& Position, int32 MinNeighborCount) const
 	{
@@ -290,23 +331,6 @@ namespace PCGExCluster
 		return Centroid / static_cast<double>(Node.AdjacentNodes.Num());
 	}
 
-	FVector FCluster::GetCentroid(const int32 NodeIndex, const TSet<int32>& Exclusion) const
-	{
-		const FNode& Node = Nodes[NodeIndex];
-		double Divider = 0;
-
-		FVector Centroid = FVector::ZeroVector;
-
-		for (const int32 OtherIndex : Node.AdjacentNodes)
-		{
-			if (Exclusion.Contains(OtherIndex)) { continue; }
-			Centroid += Nodes[OtherIndex].Position;
-			Divider++;
-		}
-
-		return Centroid / Divider;
-	}
-
 	int32 FCluster::FindClosestNeighborInDirection(const int32 NodeIndex, const FVector& Direction, const int32 MinNeighbors) const
 	{
 		const FNode& Node = Nodes[NodeIndex];
@@ -327,102 +351,6 @@ namespace PCGExCluster
 		return Result;
 	}
 
-	int32 FCluster::FindClosestNeighborInDirection(const int32 NodeIndex, const FVector& Direction, const TSet<int32>& Exclusion, const int32 MinNeighbors) const
-	{
-		const FNode& Node = Nodes[NodeIndex];
-		int32 Result = -1;
-		double LastDot = -1;
-
-		for (const int32 OtherIndex : Node.AdjacentNodes)
-		{
-			if (Nodes[OtherIndex].AdjacentNodes.Num() < MinNeighbors) { continue; }
-			if (Exclusion.Contains(OtherIndex)) { continue; }
-			if (const double Dot = FVector::DotProduct(Direction, (Node.Position - Nodes[OtherIndex].Position).GetSafeNormal());
-				Dot > LastDot)
-			{
-				LastDot = Dot;
-				Result = OtherIndex;
-			}
-		}
-
-		return Result;
-	}
-
-	int32 FCluster::FindClosestNeighborInDirection(const int32 NodeIndex, const FVector& Direction, const FVector& Guide, const int32 MinNeighbors) const
-	{
-		const FNode& Node = Nodes[NodeIndex];
-		int32 Result = -1;
-		double LastDot = -1;
-		double LastDist = TNumericLimits<double>::Max();
-
-		for (const int32 OtherIndex : Node.AdjacentNodes)
-		{
-			const FNode& OtherNode = Nodes[OtherIndex];
-			if (OtherNode.AdjacentNodes.Num() < MinNeighbors) { continue; }
-
-			const double Dot = FVector::DotProduct(Direction, (Node.Position - OtherNode.Position).GetSafeNormal());
-
-			if (Dot > LastDot)
-			{
-				if (FMath::IsNearlyEqual(LastDot, Dot, 0.2))
-				{
-					if (const double Dist = FMath::PointDistToSegmentSquared(Guide, Node.Position, OtherNode.Position);
-						Dist < LastDist)
-					{
-						LastDist = Dist;
-						LastDot = Dot;
-						Result = OtherIndex;
-					}
-				}
-				else
-				{
-					LastDot = Dot;
-					Result = OtherIndex;
-				}
-			}
-		}
-
-		return Result;
-	}
-
-	int32 FCluster::FindClosestNeighborInDirection(const int32 NodeIndex, const FVector& Direction, const FVector& Guide, const TSet<int32>& Exclusion, const int32 MinNeighbors) const
-	{
-		const FNode& Node = Nodes[NodeIndex];
-		int32 Result = -1;
-		double LastDot = -1;
-		double LastDist = TNumericLimits<double>::Max();
-
-		for (const int32 OtherIndex : Node.AdjacentNodes)
-		{
-			const FNode& OtherNode = Nodes[OtherIndex];
-			if (OtherNode.AdjacentNodes.Num() < MinNeighbors) { continue; }
-			if (Exclusion.Contains(OtherIndex)) { continue; }
-
-			const double Dot = FVector::DotProduct(Direction, (Node.Position - OtherNode.Position).GetSafeNormal());
-
-			if (Dot > LastDot)
-			{
-				if (FMath::IsNearlyEqual(LastDot, Dot, 0.2))
-				{
-					if (const double Dist = FMath::PointDistToSegmentSquared(Guide, Node.Position, OtherNode.Position);
-						Dist < LastDist)
-					{
-						LastDist = Dist;
-						LastDot = Dot;
-						Result = OtherIndex;
-					}
-				}
-				else
-				{
-					LastDot = Dot;
-					Result = OtherIndex;
-				}
-			}
-		}
-
-		return Result;
-	}
-
 	int32 FCluster::FindClosestNeighborLeft(const int32 NodeIndex, const FVector& Direction, const TSet<int32>& Exclusion, const int32 MinNeighbors) const
 	{
 		const FNode& Node = Nodes[NodeIndex];
@@ -436,6 +364,30 @@ namespace PCGExCluster
 			if (OtherNode.AdjacentNodes.Num() < MinNeighbors) { continue; }
 
 			if (Exclusion.Contains(OtherIndex)) { continue; }
+
+			const double Angle = PCGExMath::GetAngle(Direction, (Node.Position - OtherNode.Position).GetSafeNormal());
+
+			if (Angle < LastAngle)
+			{
+				LastAngle = Angle;
+				Result = OtherIndex;
+			}
+		}
+
+		return Result;
+	}
+
+	int32 FCluster::FindClosestNeighborLeft(const int32 NodeIndex, const FVector& Direction, const int32 MinNeighbors) const
+	{
+		const FNode& Node = Nodes[NodeIndex];
+		int32 Result = -1;
+		double LastAngle = TNumericLimits<double>::Max();
+
+		for (const int32 OtherIndex : Node.AdjacentNodes)
+		{
+			const FNode& OtherNode = Nodes[OtherIndex];
+
+			if (OtherNode.AdjacentNodes.Num() < MinNeighbors) { continue; }
 
 			const double Angle = PCGExMath::GetAngle(Direction, (Node.Position - OtherNode.Position).GetSafeNormal());
 

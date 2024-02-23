@@ -15,9 +15,14 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGeo2DProjectionSettings
 	GENERATED_BODY()
 
 	/** Normal vector of the 2D projection plane. Defaults to Up for XY projection. Used as fallback when using invalid local normal. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (PCG_Overridable, ShowOnlyInnerProperties))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ShowOnlyInnerProperties))
 	FTransform ProjectionTransform = FTransform::Identity;
 
+	FVector Project(const FVector& InPosition) const
+	{
+		return ProjectionTransform.InverseTransformPosition(InPosition);
+	}
+	
 	void Project(const TArrayView<FVector>& InPositions, TArray<FVector>& OutPositions) const
 	{
 		const int32 NumVectors = InPositions.Num();

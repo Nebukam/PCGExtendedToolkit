@@ -7,21 +7,21 @@
 #include "PCGExPathProcessor.h"
 
 #include "PCGExPointsProcessor.h"
-#include "Smoothing/PCGExSmoothingOperation.h"
-#include "PCGExSmooth.generated.h"
+#include "Geometry/PCGExGeo.h"
+#include "PCGExOffsetPath.generated.h"
 
 /**
  * Calculates the distance between two points (inherently a n*n operation)
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
-class PCGEXTENDEDTOOLKIT_API UPCGExSmoothSettings : public UPCGExPathProcessorSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExOffsetPathSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()
 
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(Smooth, "Path : Smooth", "Smooth paths points.");
+	PCGEX_NODE_INFOS(OffsetPath, "Path : Offset", "Offset paths points.");
 #endif
 
 protected:
@@ -48,38 +48,41 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bClosedPath = false;
 
+	/** Offset size.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	bool bPreserveStart = false;
+	double Offset = 1.0;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	bool bPreserveEnd = false;
-
-	/** The amount of smoothing applied. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=-1, ClampMax=1))
-	double Influence = 1.0;
-
-	/** Fetch the influence from a local attribute.*/
+	/** Fetch the size from a local attribute. The regular Size parameter then act as a scale.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
-	bool bUseLocalInfluence = false;
+	bool bUseLocalOffset = false;
 
-	/** Fetch the influence from a local attribute.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bUseLocalInfluence"))
-	FPCGExInputDescriptor LocalInfluence;
+	/** Fetch the size from a local attribute. The regular Size parameter then act as a scale.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bUseLocalOffset"))
+	FPCGExInputDescriptor LocalOffset;
 
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable, NoResetToDefault, ShowOnlyInnerProperties))
-	TObjectPtr<UPCGExSmoothingOperation> Smoothing;
+	/** Up vector used to calculate Offset direction.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	FVector UpVector = FVector::UpVector;
+	
+	/** Fetch the Up vector from a local point attribute. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
+	bool bUseLocalUpVector = false;
+
+	/** Fetch the Up vector from a local point attribute. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bUseLocalOffset"))
+	FPCGExInputDescriptor LocalUpVector;
+	
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExSmoothContext : public FPCGExPathProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExOffsetPathContext : public FPCGExPathProcessorContext
 {
-	friend class FPCGExSmoothElement;
+	friend class FPCGExOffsetPathElement;
 
-	virtual ~FPCGExSmoothContext() override;
+	virtual ~FPCGExOffsetPathContext() override;
 
-	UPCGExSmoothingOperation* Smoothing = nullptr;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExSmoothElement : public FPCGExPathProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExOffsetPathElement : public FPCGExPathProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -92,10 +95,10 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExSmoothTask : public FPCGExNonAbandonableTask
+class PCGEXTENDEDTOOLKIT_API FPCGExOffsetPathTask : public FPCGExNonAbandonableTask
 {
 public:
-	FPCGExSmoothTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO) :
+	FPCGExOffsetPathTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO) :
 		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO)
 	{
 	}

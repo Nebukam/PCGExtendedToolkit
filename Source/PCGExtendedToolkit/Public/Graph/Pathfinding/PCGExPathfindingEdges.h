@@ -42,6 +42,7 @@ public:
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
 	//~End UObject interface
+	
 };
 
 

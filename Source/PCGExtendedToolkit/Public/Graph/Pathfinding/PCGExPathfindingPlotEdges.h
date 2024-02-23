@@ -59,6 +59,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	bool bAddPlotPointsToPath = true;
 
+	/** Drives how the seed & goal points are selected within the graph. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExClusterClosestSearchMode NodePickingMode = EPCGExClusterClosestSearchMode::Node;
+	
 	/** Search algorithm. */
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta = (PCG_Overridable, NoResetToDefault, ShowOnlyInnerProperties))
 	TObjectPtr<UPCGExSearchOperation> SearchAlgorithm;
