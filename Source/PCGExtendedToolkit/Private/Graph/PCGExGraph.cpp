@@ -197,7 +197,7 @@ namespace PCGExGraph
 				}
 			}
 
-			if (!FMath::IsWithin(SubGraph->Edges.Num(), Min, Max))
+			if (!FMath::IsWithin(SubGraph->Edges.Num(), FMath::Max(Min, 1), FMath::Min(Max, 1)))
 			{
 				SubGraph->Invalidate(this); // Will invalidate isolated points
 				delete SubGraph;
