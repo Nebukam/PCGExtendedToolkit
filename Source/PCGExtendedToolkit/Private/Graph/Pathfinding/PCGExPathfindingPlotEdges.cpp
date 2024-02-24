@@ -284,6 +284,8 @@ bool FPCGExPlotClusterPathTask::ExecuteTask()
 
 	if (ExtraWeights != GlobalExtraWeights) { PCGEX_DELETE(ExtraWeights) }
 
+	PathPoints.Tags->Append(PointIO->Tags);
+
 	return true;
 }
 

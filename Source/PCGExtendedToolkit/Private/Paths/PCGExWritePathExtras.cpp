@@ -43,6 +43,7 @@ bool FPCGExWritePathExtrasElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_OUTPUT_VALIDATE_NAME_NOWRITER_SOFT(PathLength)
 	PCGEX_OUTPUT_VALIDATE_NAME_NOWRITER_SOFT(PathDirection)
+	PCGEX_OUTPUT_VALIDATE_NAME_NOWRITER_SOFT(PathCentroid)
 
 	return true;
 }
@@ -65,10 +66,10 @@ bool FPCGExWritePathExtrasElement::ExecuteInternal(FPCGContext* InContext) const
 		else
 		{
 			if (Context->CurrentIO->GetNum() < 2) { return false; }
-			
+
 			PCGExData::FPointIO& PointIO = *Context->CurrentIO;
 			PointIO.InitializeOutput(PCGExData::EInit::DuplicateInput);
-			
+
 			PCGEX_FOREACH_FIELD_PATHEXTRAS(PCGEX_OUTPUT_ACCESSOR_INIT)
 
 			Context->CurrentIO->CreateInKeys();
@@ -130,6 +131,7 @@ bool FPCGExWritePathExtrasTask::ExecuteTask()
 
 	const int32 LastIndex = NumPoints - 1;
 	FVector PathDir = FVector::ZeroVector;
+	FVector PathCentroid = FVector::ZeroVector;
 
 	PCGEX_OUTPUT_VALUE(DirectionToNext, 0, (Positions[0] - Positions[1]).GetSafeNormal());
 	PCGEX_OUTPUT_VALUE(DirectionToPrev, 0, (Positions[1] - Positions[0]).GetSafeNormal());
@@ -144,7 +146,7 @@ bool FPCGExWritePathExtrasTask::ExecuteTask()
 		PCGEX_OUTPUT_VALUE(DirectionToNext, i, (Positions[i] - Positions[i+1]).GetSafeNormal());
 		PCGEX_OUTPUT_VALUE(DirectionToPrev, i, (Positions[i-1] - Positions[i]).GetSafeNormal());
 		PCGEX_OUTPUT_VALUE(DistanceToStart, i, TraversedDistance);
-		PathDir += (Positions[i] - Positions[i+1]);
+		PathDir += (Positions[i] - Positions[i + 1]);
 	}
 
 	PCGEX_OUTPUT_VALUE(DirectionToNext, LastIndex, (Positions[LastIndex-1] - Positions[LastIndex]).GetSafeNormal());
@@ -167,23 +169,20 @@ bool FPCGExWritePathExtrasTask::ExecuteTask()
 	PCGExMath::FPathMetrics SecondMetrics = PCGExMath::FPathMetrics(Positions[0]);
 
 	const double SqrtLength = FMath::Sqrt(Metrics.Length);
-	
-	for (int i = 1; i < LastIndex; i++)
+
+	for (int i = 0; i < NumPoints; i++)
 	{
 		const double TraversedDistance = FMath::Sqrt(SecondMetrics.Add(Positions[i]));
 		PCGEX_OUTPUT_VALUE(PointTime, i, TraversedDistance / SqrtLength);
 		PCGEX_OUTPUT_VALUE(DistanceToEnd, i, SqrtLength - TraversedDistance);
+		PathCentroid += Positions[i];
 	}
 
-	if (Context->bWritePathLength)
-	{
-		PCGExData::WriteMark(PointIO->GetOut()->Metadata, Settings->PathLengthAttributeName, SqrtLength);
-	}
+	UPCGMetadata* Meta = PointIO->GetOut()->Metadata;
 
-	if (Context->bWritePathDirection)
-	{
-		PCGExData::WriteMark(PointIO->GetOut()->Metadata, Settings->PathDirectionAttributeName, (PathDir / Positions.Num()).GetSafeNormal());
-	}
+	if (Context->bWritePathLength) { PCGExData::WriteMark(Meta, Settings->PathLengthAttributeName, SqrtLength); }
+	if (Context->bWritePathDirection) { PCGExData::WriteMark(Meta, Settings->PathDirectionAttributeName, (PathDir / NumPoints).GetSafeNormal()); }
+	if (Context->bWritePathCentroid) { PCGExData::WriteMark(Meta, Settings->PathCentroidAttributeName, (PathCentroid / NumPoints).GetSafeNormal()); }
 
 	return true;
 }

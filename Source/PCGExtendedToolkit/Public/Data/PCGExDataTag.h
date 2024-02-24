@@ -49,6 +49,12 @@ namespace PCGExData
 			Reset(InTags);
 		}
 
+		void Append(const FTags* InTags)
+		{
+			Tags.Append(InTags->Tags);
+			RawTags.Append(InTags->RawTags);
+		}
+		
 		void Reset()
 		{
 			RawTags.Empty();

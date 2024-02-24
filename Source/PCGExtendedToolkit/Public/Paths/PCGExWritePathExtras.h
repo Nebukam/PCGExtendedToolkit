@@ -86,6 +86,14 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Path", meta=(PCG_Overridable, EditCondition="bWritePathDirection"))
 	FName PathDirectionAttributeName = FName("PathDirection");
 
+	/** Output averaged path direction. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Path", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bWritePathCentroid = false;
+
+	/** Name of the 'FVector' attribute to write averaged direction to.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Path", meta=(PCG_Overridable, EditCondition="bWritePathCentroid"))
+	FName PathCentroidAttributeName = FName("PathCentroid");
+
 	///
 
 	/** Output distance to next. */
@@ -131,7 +139,7 @@ public:
 	/** Name of the 'double' attribute to write distance to start to.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Points", meta=(PCG_Overridable, EditCondition="bWritePointTime"))
 	FName PointTimeAttributeName = FName("PointTime");
-	
+
 
 	/** Output point normal. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output - Points", meta=(PCG_Overridable, InlineEditConditionToggle))
@@ -165,12 +173,12 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExWritePathExtrasContext : public FPCGExPathPr
 	friend class FPCGExWritePathExtrasElement;
 
 	virtual ~FPCGExWritePathExtrasContext() override;
-	
+
 	PCGEX_FOREACH_FIELD_PATHEXTRAS(PCGEX_OUTPUT_DECL)
-	
+
 	bool bWritePathLength = false;
 	bool bWritePathDirection = false;
-	
+	bool bWritePathCentroid = false;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExWritePathExtrasElement : public FPCGExPathProcessorElement
