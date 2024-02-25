@@ -79,6 +79,8 @@ bool FPCGExFindContoursElement::Boot(FPCGContext* InContext) const
 	Context->Paths = new PCGExData::FPointIOCollection();
 	Context->Paths->DefaultOutputLabel = PCGExGraph::OutputPathsLabel;
 
+	PCGEX_FWD(ProjectionSettings)
+	
 	return true;
 }
 
@@ -121,7 +123,12 @@ bool FPCGExFindContoursElement::ExecuteInternal(
 
 		if (!Context->CurrentCluster) { return false; } // Corrupted or invalid cluster
 
-		Context->CurrentCluster->ProjectNodes(Settings->ProjectionSettings);
+		Context->SetState(PCGExCluster::State_ProjectingCluster);
+	}
+
+	if (Context->IsState(PCGExCluster::State_ProjectingCluster))
+	{
+		if (!Context->ProjectCluster()) { return false; }
 
 		for (int i = 0; i < Context->Seeds->Pairs.Num(); i++)
 		{
@@ -189,10 +196,8 @@ bool FPCGExFindContourTask::ExecuteTask()
 
 
 	TSet<int32> Exclusion = {PreviousIndex, NextIndex};
-	FVector DirToPreviousIndex = Cluster->GetEdgeDirection(NextIndex, PreviousIndex);
-	PreviousIndex = NextIndex;
-	NextIndex = Cluster->FindClosestNeighborLeft(NextIndex, DirToPreviousIndex, Exclusion, 2);
-
+	PreviousIndex = NextToStartIndex;
+	NextIndex = Context->ClusterProjection->FindNextAdjacentNode(Settings->OrientationMode, NextToStartIndex, StartNodeIndex, Exclusion, 2);
 
 	while (NextIndex != -1)
 	{
@@ -201,16 +206,15 @@ bool FPCGExFindContourTask::ExecuteTask()
 		const PCGExCluster::FNode& CurrentNode = Cluster->Nodes[NextIndex];
 
 		Path.Add(NextIndex);
-		//Visited.Add(NextIndex);
 
 		if (CurrentNode.AdjacentNodes.Contains(StartNodeIndex)) { break; } // End is in the immediate vicinity
 
 		Exclusion.Empty();
 		if (CurrentNode.AdjacentNodes.Num() > 1) { Exclusion.Add(PreviousIndex); }
 
-		DirToPreviousIndex = Cluster->GetEdgeDirection(NextIndex, PreviousIndex);
+		const int32 FromIndex = PreviousIndex;
 		PreviousIndex = NextIndex;
-		NextIndex = Cluster->FindClosestNeighborLeft(NextIndex, DirToPreviousIndex, Exclusion, 1);
+		NextIndex = Context->ClusterProjection->FindNextAdjacentNode(Settings->OrientationMode, NextIndex, FromIndex, Exclusion, 1);
 	}
 
 	TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();

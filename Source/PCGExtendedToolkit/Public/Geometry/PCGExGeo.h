@@ -14,15 +14,81 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGeo2DProjectionSettings
 {
 	GENERATED_BODY()
 
+	FPCGExGeo2DProjectionSettings()
+	{
+	}
+
+	explicit FPCGExGeo2DProjectionSettings(const FPCGExGeo2DProjectionSettings& Other)
+		: bSupportLocalNormal(Other.bLocalProjectionNormal),
+		  ProjectionNormal(Other.ProjectionNormal),
+		  bLocalProjectionNormal(Other.bLocalProjectionNormal),
+		  LocalNormal(Other.LocalNormal)
+	{
+	}
+
+	explicit FPCGExGeo2DProjectionSettings(bool InSupportLocalNormal)
+		: bSupportLocalNormal(InSupportLocalNormal)
+	{
+	}
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_NotOverridable, HideInDetailPanel, Hidden, EditConditionHides, EditCondition="false"))
+	bool bSupportLocalNormal = true;
+
 	/** Normal vector of the 2D projection plane. Defaults to Up for XY projection. Used as fallback when using invalid local normal. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ShowOnlyInnerProperties))
-	FTransform ProjectionTransform = FTransform::Identity;
+	FVector ProjectionNormal = FVector::UpVector;
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bSupportLocalNormal", EditConditionHides))
+	bool bLocalProjectionNormal = false;
+
+	/** Local attribute to fetch projection normal from */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bSupportLocalNormal&&bLocalProjectionNormal", EditConditionHides))
+	FPCGExInputDescriptor LocalNormal;
+
+	FMatrix DefaultMatrix = FMatrix::Identity;
+	PCGEx::FLocalVectorGetter* NormalGetter = nullptr;
+
+	void Init(const PCGExData::FPointIO* PointIO = nullptr)
+	{
+		Cleanup();
+
+		DefaultMatrix = FRotationMatrix::MakeFromZ(ProjectionNormal.GetSafeNormal());
+
+		if (!bSupportLocalNormal) { bLocalProjectionNormal = false; }
+		if (bLocalProjectionNormal && PointIO)
+		{
+			if (!NormalGetter)
+			{
+				NormalGetter = new PCGEx::FLocalVectorGetter();
+				NormalGetter->Capture(LocalNormal);
+			}
+
+			if (!NormalGetter->Grab(*PointIO)) { PCGEX_DELETE(NormalGetter) }
+		}
+	}
+
+	void Cleanup()
+	{
+		PCGEX_DELETE(NormalGetter)
+	}
+
+	~FPCGExGeo2DProjectionSettings()
+	{
+		Cleanup();
+	}
+
+	FVector Project(const FVector& InPosition, const int32 PointIndex) const
+	{
+		return NormalGetter ? FRotationMatrix::MakeFromZ(NormalGetter->SafeGet(PointIndex, ProjectionNormal).GetSafeNormal()).InverseTransformPosition(InPosition) :
+			       DefaultMatrix.InverseTransformPosition(InPosition);
+	}
 
 	FVector Project(const FVector& InPosition) const
 	{
-		return ProjectionTransform.InverseTransformPosition(InPosition);
+		return DefaultMatrix.InverseTransformPosition(InPosition);
 	}
-	
+
 	void Project(const TArrayView<FVector>& InPositions, TArray<FVector>& OutPositions) const
 	{
 		const int32 NumVectors = InPositions.Num();
@@ -30,8 +96,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGeo2DProjectionSettings
 
 		for (int i = 0; i < NumVectors; i++)
 		{
-			const FVector V = ProjectionTransform.InverseTransformPosition(InPositions[i]);
-			OutPositions[i] = FVector(V.X, V.Y, 0);
+			//const FVector V = DefaultMatrix.InverseTransformPosition(InPositions[i]);
+			OutPositions[i] = DefaultMatrix.InverseTransformPosition(InPositions[i]); //FVector(V.X, V.Y, 0);
 		}
 	}
 
@@ -42,7 +108,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGeo2DProjectionSettings
 
 		for (int i = 0; i < NumVectors; i++)
 		{
-			const FVector V = ProjectionTransform.InverseTransformPosition(InPositions[i]);
+			const FVector V = DefaultMatrix.InverseTransformPosition(InPositions[i]);
 			OutPositions[i] = FVector2D(V.X, V.Y);
 		}
 	}
@@ -54,8 +120,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGeo2DProjectionSettings
 
 		for (int i = 0; i < NumVectors; i++)
 		{
-			const FVector V = ProjectionTransform.InverseTransformPosition(InPoints[i].Transform.GetLocation());
-			(*OutPositions)[i] = FVector(V.X, V.Y, 0);
+			//const FVector V = DefaultMatrix.InverseTransformPosition(InPoints[i].Transform.GetLocation());
+			(*OutPositions)[i] = DefaultMatrix.InverseTransformPosition(InPoints[i].Transform.GetLocation()); //FVector(V.X, V.Y, 0);
 		}
 	}
 };
@@ -167,30 +233,52 @@ namespace PCGExGeo
 
 	static void GetCircumcenter(const TArrayView<FVector>& Positions, const int32 (&Vtx)[3], FVector& OutCircumcenter)
 	{
+		// Calculate midpoints of two sides
+		const FVector& A = Positions[Vtx[0]];
+		const FVector& B = Positions[Vtx[1]];
+		const FVector& C = Positions[Vtx[2]];
+
+
+		FVector AC = C - A;
+		FVector AB = B - A;
+		FVector ABxAC = AB.Cross(AC);
+
+		// this is the vector from a TO the circumsphere center
+		FVector ToCircumsphereCenter = (ABxAC.Cross(AB) * AC.SquaredLength() + AC.Cross(ABxAC) * AB.SquaredLength()) / (2 * ABxAC.SquaredLength());
+		float Radius = ToCircumsphereCenter.Length();
+
+		// The 3 space coords of the circumsphere center then:
+		OutCircumcenter = A + ToCircumsphereCenter;
+	}
+
+	/*
+	static void GetCircumcenter(const TArrayView<FVector>& Positions, const int32 (&Vtx)[3], FVector& OutCircumcenter)
+	{
 		const FVector& A = Positions[Vtx[0]];
 		const FVector& B = Positions[Vtx[1]];
 		const FVector& C = Positions[Vtx[2]];
 
 		// Step 2: Calculate midpoints
-		const FVector midpoint1 = FMath::Lerp(A, B, 0.5);
-		const FVector midpoint2 = FMath::Lerp(B, C, 0.5);
+		const FVector M1 = FMath::Lerp(A, B, 0.5);
+		const FVector M2 = FMath::Lerp(B, C, 0.5);
 
 		// Step 3: Calculate perpendicular bisectors
-		const double slope1 = -1 / ((B.Y - A.Y) / (B.X - A.X));
-		const double slope2 = -1 / ((C.Y - B.Y) / (C.X - B.X));
+		const double S1 = -1 / ((B.Y - A.Y) / (B.X - A.X));
+		const double S2 = -1 / ((C.Y - B.Y) / (C.X - B.X));
 
 		// Calculate y-intercepts of bisectors
-		const double intercept1 = midpoint1.Y - slope1 * midpoint1.X;
-		const double intercept2 = midpoint2.Y - slope2 * midpoint2.X;
+		const double I1 = M1.Y - S1 * M1.X;
+		const double I2 = M2.Y - S2 * M2.X;
 
 		// Step 4: Find intersection point
-		const double circumcenter_x = (intercept2 - intercept1) / (slope1 - slope2);
-		const double circumcenter_y = slope1 * circumcenter_x + intercept1;
+		const double CX = (I2 - I1) / (S1 - S2);
+		const double CY = S1 * CX + I1;
 
-		OutCircumcenter.X = circumcenter_x;
-		OutCircumcenter.Y = circumcenter_y;
+		OutCircumcenter.X = CX;
+		OutCircumcenter.Y = CY;
 		OutCircumcenter.Z = (A.Z + B.Z + C.Z) / 3;
 	}
+	*/
 
 	static void GetCentroid(const TArrayView<FVector>& Positions, const int32 (&Vtx)[4], FVector& OutCentroid)
 	{

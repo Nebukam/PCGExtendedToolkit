@@ -8,14 +8,9 @@
 #include "Graph/Pathfinding/PCGExPathfinding.h"
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicOperation.h"
 
-void UPCGExSearchContours::PreprocessCluster(PCGExCluster::FCluster* Cluster)
-{
-	Super::PreprocessCluster(Cluster);
-	Cluster->ProjectNodes(ProjectionSettings);
-}
+bool UPCGExSearchContours::GetRequiresProjection() { return true; }
 
 bool UPCGExSearchContours::FindPath(
-	const PCGExCluster::FCluster* Cluster,
 	const FVector& SeedPosition,
 	const FVector& GoalPosition,
 	const UPCGExHeuristicOperation* Heuristics,
@@ -23,17 +18,17 @@ bool UPCGExSearchContours::FindPath(
 	TArray<int32>& OutPath,
 	PCGExPathfinding::FExtraWeights* ExtraWeights)
 {
-	const FVector SeedPositionProj = ProjectionSettings.Project(SeedPosition);
-	const FVector GoalPositionProj = ProjectionSettings.Project(GoalPosition);
+	//const FVector SeedPositionProj = ProjectionSettings->Project(SeedPosition);
+	//const FVector GoalPositionProj = ProjectionSettings->Project(GoalPosition);
 
-	const int32 StartNodeIndex = Cluster->FindClosestNode(SeedPositionProj, SearchMode, 2);
-	const int32 EndNodeIndex = Cluster->FindClosestNode(GoalPositionProj, SearchMode, 1);
+	const int32 StartNodeIndex = Cluster->FindClosestNode(SeedPosition, SearchMode, 2);
+	const int32 EndNodeIndex = Cluster->FindClosestNode(GoalPosition, SearchMode, 1);
 
 	if (StartNodeIndex == EndNodeIndex || StartNodeIndex == -1 || EndNodeIndex == -1) { return false; }
 
 	TRACE_CPUPROFILER_EVENT_SCOPE(UPCGExSearchContours::FindContours);
 
-	const FVector InitialDir = PCGExMath::GetNormal(Cluster->Nodes[StartNodeIndex].Position, SeedPositionProj, SeedPositionProj + FVector::UpVector);
+	const FVector InitialDir = PCGExMath::GetNormal(Cluster->Nodes[StartNodeIndex].Position, SeedPosition, SeedPosition + FVector::UpVector);
 	const int32 NextToStartIndex = Cluster->FindClosestNeighborInDirection(StartNodeIndex, InitialDir, 2);
 
 	if (NextToStartIndex == -1)
@@ -49,10 +44,8 @@ bool UPCGExSearchContours::FindPath(
 	OutPath.Add(NextToStartIndex);
 
 	TSet<int32> Exclusion = {PreviousIndex, NextIndex};
-	FVector DirToPreviousIndex = Cluster->GetEdgeDirection(NextIndex, PreviousIndex);
-	PreviousIndex = NextIndex;
-	NextIndex = Cluster->FindClosestNeighborLeft(NextIndex, DirToPreviousIndex, Exclusion, 2);
-
+	PreviousIndex = NextToStartIndex;
+	NextIndex = Projection->FindNextAdjacentNode(OrientationMode, NextToStartIndex, StartNodeIndex, Exclusion, 2);
 
 	int32 EndIndex = -1;
 
@@ -93,9 +86,9 @@ bool UPCGExSearchContours::FindPath(
 		Exclusion.Empty();
 		if (CurrentNode.AdjacentNodes.Num() > 1) { Exclusion.Add(PreviousIndex); }
 
-		DirToPreviousIndex = Cluster->GetEdgeDirection(NextIndex, PreviousIndex);
+		const int32 FromIndex = PreviousIndex;
 		PreviousIndex = NextIndex;
-		NextIndex = Cluster->FindClosestNeighborLeft(NextIndex, DirToPreviousIndex, Exclusion, 1);
+		NextIndex = Projection->FindNextAdjacentNode(OrientationMode, NextIndex, FromIndex, Exclusion, 1);
 	}
 
 	OutPath.Add(EndIndex);

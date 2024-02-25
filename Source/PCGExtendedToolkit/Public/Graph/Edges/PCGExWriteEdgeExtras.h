@@ -57,11 +57,11 @@ protected:
 
 public:
 	/** Write normal from edges on vertices. */
-	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteVtxNormal = false;
 
 	/** Name of the 'normal' vertex attribute to write normal to.*/
-	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteVtxNormal"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteVtxNormal"))
 	FName VtxNormalAttributeName = FName("Normal");
 
 	/** Method to pick the edge direction amongst various possibilities.*/
@@ -117,6 +117,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(EditCondition="bBlendAttributes"))
 	FPCGExBlendingSettings BlendingSettings = FPCGExBlendingSettings(EPCGExDataBlendingType::Average);
 
+	/** Projection settings used for normal calculations. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	FPCGExGeo2DProjectionSettings ProjectionSettings;
+
 private:
 	friend class FPCGExWriteEdgeExtrasElement;
 };
@@ -127,6 +131,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExWriteEdgeExtrasContext : public FPCGExEdgesP
 
 	virtual ~FPCGExWriteEdgeExtrasContext() override;
 
+	FPCGExGeo2DProjectionSettings ProjectionSettings;
+	
 	PCGExDataBlending::FMetadataBlender* MetadataBlender;
 
 	PCGEX_FOREACH_FIELD_EDGEEXTRAS(PCGEX_OUTPUT_DECL)
@@ -163,10 +169,14 @@ class PCGEXTENDEDTOOLKIT_API FPCGExWriteExtrasTask : public FPCGExNonAbandonable
 {
 public:
 	FPCGExWriteExtrasTask(
-		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO) :
-		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO)
+		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+		FPCGExGeo2DProjectionSettings* InProjectionSettings) :
+		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+		ProjectionSettings(InProjectionSettings)
 	{
 	}
 
 	virtual bool ExecuteTask() override;
+
+	FPCGExGeo2DProjectionSettings* ProjectionSettings = nullptr;
 };

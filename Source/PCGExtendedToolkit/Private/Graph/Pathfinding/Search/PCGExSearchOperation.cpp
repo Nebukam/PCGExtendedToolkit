@@ -4,12 +4,15 @@
 
 #include "Graph/Pathfinding/Search/PCGExSearchOperation.h"
 
-void UPCGExSearchOperation::PreprocessCluster(PCGExCluster::FCluster* Cluster)
+bool UPCGExSearchOperation::GetRequiresProjection() { return false; }
+
+void UPCGExSearchOperation::PrepareForCluster(PCGExCluster::FCluster* InCluster, PCGExCluster::FClusterProjection* InProjection)
 {
+	Cluster = InCluster;
+	Projection = InProjection;
 }
 
 bool UPCGExSearchOperation::FindPath(
-	const PCGExCluster::FCluster* Cluster,
 	const FVector& SeedPosition,
 	const FVector& GoalPosition,
 	const UPCGExHeuristicOperation* Heuristics,

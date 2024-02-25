@@ -23,6 +23,8 @@ FPCGExBuildConvexHull2DContext::~FPCGExBuildConvexHull2DContext()
 	PCGEX_DELETE(PathsIO)
 
 	HullIndices.Empty();
+
+	ProjectionSettings.Cleanup();
 }
 
 TArray<FPCGPinProperties> UPCGExBuildConvexHull2DSettings::OutputPinProperties() const
@@ -56,12 +58,12 @@ bool FPCGExBuildConvexHull2DElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_VALIDATE_NAME(Settings->HullAttributeName)
 
-	PCGEX_FWD(ProjectionSettings)
-
 	Context->GraphBuilderSettings.bPruneIsolatedPoints = Settings->bPrunePoints;
 
 	Context->PathsIO = new PCGExData::FPointIOCollection();
 	Context->PathsIO->DefaultOutputLabel = PCGExGraph::OutputPathsLabel;
+	
+	PCGEX_FWD(ProjectionSettings)
 
 	return true;
 }
@@ -93,6 +95,8 @@ bool FPCGExBuildConvexHull2DElement::ExecuteInternal(
 				return false;
 			}
 
+			Context->ProjectionSettings.Init(Context->CurrentIO);
+			
 			Context->GraphBuilder = new PCGExGraph::FGraphBuilder(*Context->CurrentIO, &Context->GraphBuilderSettings, 6);
 			Context->GetAsyncManager()->Start<FPCGExConvexHull2Task>(Context->CurrentIO->IOIndex, Context->CurrentIO, Context->GraphBuilder->Graph);
 

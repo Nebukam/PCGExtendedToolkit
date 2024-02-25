@@ -62,7 +62,7 @@ bool FPCGExLloydRelaxElement::ExecuteInternal(FPCGContext* InContext) const
 
 			Context->GetAsyncManager()->Start<FPCGExLloydRelax3Task>(
 				0, nullptr, &Context->ActivePositions,
-				&Settings->InfluenceSettings, Settings->Iterations);
+				&Settings->InfluenceSettings, Settings->Iterations, Context->InfluenceGetter);
 
 
 			Context->SetAsyncState(PCGExMT::State_ProcessingPoints);

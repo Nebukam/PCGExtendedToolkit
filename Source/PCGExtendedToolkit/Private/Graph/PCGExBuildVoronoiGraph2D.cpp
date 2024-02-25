@@ -20,6 +20,8 @@ FPCGExBuildVoronoiGraph2DContext::~FPCGExBuildVoronoiGraph2DContext()
 	PCGEX_DELETE(GraphBuilder)
 
 	HullIndices.Empty();
+
+	ProjectionSettings.Cleanup();
 }
 
 TArray<FPCGPinProperties> UPCGExBuildVoronoiGraph2DSettings::OutputPinProperties() const
@@ -30,8 +32,7 @@ TArray<FPCGPinProperties> UPCGExBuildVoronoiGraph2DSettings::OutputPinProperties
 #if WITH_EDITOR
 	PinClustersOutput.Tooltip = FTEXT("Point data representing edges.");
 #endif
-
-
+	
 	return PinProperties;
 }
 
@@ -45,10 +46,10 @@ bool FPCGExBuildVoronoiGraph2DElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(BuildVoronoiGraph2D)
 
-	PCGEX_FWD(ProjectionSettings)
-
 	PCGEX_VALIDATE_NAME(Settings->HullAttributeName)
 	PCGEX_FWD(GraphBuilderSettings)
+	
+	PCGEX_FWD(ProjectionSettings)
 
 	return true;
 }
@@ -81,6 +82,8 @@ bool FPCGExBuildVoronoiGraph2DElement::ExecuteInternal(
 				return false;
 			}
 
+			Context->ProjectionSettings.Init(Context->CurrentIO);
+			
 			Context->GetAsyncManager()->Start<FPCGExVoronoi2Task>(Context->CurrentIO->IOIndex, Context->CurrentIO);
 			Context->SetAsyncState(PCGExGeo::State_ProcessingVoronoi);
 		}

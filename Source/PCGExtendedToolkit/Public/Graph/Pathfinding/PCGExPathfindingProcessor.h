@@ -97,6 +97,11 @@ public:
 	/** Output various statistics. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	FPCGExPathStatistics Statistics;
+
+	/** Projection settings, used by some algorithms. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	FPCGExGeo2DProjectionSettings ProjectionSettings;
+	
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingProcessorContext : public FPCGExEdgesProcessorContext
@@ -114,11 +119,12 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingProcessorContext : public FPCGExE
 	UPCGExHeuristicOperation* Heuristics = nullptr;
 	FPCGExHeuristicModifiersSettings* HeuristicsModifiers = nullptr;
 	//UPCGExSubPointsBlendOperation* Blending = nullptr;
-
+	
 	bool bAddSeedToPath = true;
 	bool bAddGoalToPath = true;
 
 	PCGExPathfinding::FExtraWeights* GlobalExtraWeights = nullptr;
+	
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExPathfindingProcessorElement : public FPCGExEdgesProcessorElement

@@ -46,6 +46,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	EPCGExBridgeClusterMethod BridgeMethod = EPCGExBridgeClusterMethod::Delaunay3D;
 
+	/** Projection settings. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="BridgeMethod==EPCGExBridgeClusterMethod::Delaunay2D", EditConditionHides))
+	FPCGExGeo2DProjectionSettings ProjectionSettings = FPCGExGeo2DProjectionSettings(false);
+
 private:
 	friend class FPCGExBridgeEdgeClustersElement;
 };
@@ -58,6 +62,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBridgeEdgeClustersContext : public FPCGExEdg
 	virtual ~FPCGExBridgeEdgeClustersContext() override;
 
 	EPCGExBridgeClusterMethod BridgeMethod;
+	FPCGExGeo2DProjectionSettings ProjectionSettings;
 
 	int32 TotalPoints = -1;
 	PCGExData::FPointIO* ConsolidatedEdges = nullptr;

@@ -10,7 +10,6 @@
 #include "Graph/Pathfinding/Search/PCGExScoredQueue.h"
 
 bool UPCGExSearchAStar::FindPath(
-	const PCGExCluster::FCluster* Cluster,
 	const FVector& SeedPosition,
 	const FVector& GoalPosition,
 	const UPCGExHeuristicOperation* Heuristics,

@@ -61,6 +61,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgesProcessorContext : public FPCGExPointsP
 	bool AdvanceEdges(bool bBuildCluster); // Advance edges within current points
 
 	PCGExCluster::FCluster* CurrentCluster = nullptr;
+	PCGExCluster::FClusterProjection* ClusterProjection = nullptr;
+
+	bool ProjectCluster();
 
 	void OutputPointsAndEdges();
 
@@ -75,6 +78,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgesProcessorContext : public FPCGExPointsP
 
 	template <class LoopBodyFunc>
 	bool ProcessCurrentCluster(LoopBodyFunc&& LoopBody, bool bForceSync = false) { return Process(LoopBody, CurrentCluster->Nodes.Num(), bForceSync); }
+
+	FPCGExGeo2DProjectionSettings ProjectionSettings;
 
 protected:
 	int32 CurrentEdgesIndex = -1;

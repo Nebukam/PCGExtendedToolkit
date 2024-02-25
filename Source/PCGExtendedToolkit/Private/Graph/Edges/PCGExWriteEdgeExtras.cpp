@@ -31,6 +31,8 @@ FPCGExWriteEdgeExtrasContext::~FPCGExWriteEdgeExtrasContext()
 	PCGEX_DELETE(EdgeDirCompGetter)
 
 	PCGEX_DELETE(MetadataBlender)
+
+	ProjectionSettings.Cleanup();
 }
 
 bool FPCGExWriteEdgeExtrasElement::Boot(FPCGContext* InContext) const
@@ -60,6 +62,8 @@ bool FPCGExWriteEdgeExtrasElement::Boot(FPCGContext* InContext) const
 		Context->MetadataBlender = new PCGExDataBlending::FMetadataBlender(const_cast<FPCGExBlendingSettings*>(&Settings->BlendingSettings));
 	}
 
+	PCGEX_FWD(ProjectionSettings)
+
 	return true;
 }
 
@@ -86,21 +90,22 @@ bool FPCGExWriteEdgeExtrasElement::ExecuteInternal(
 			if (!Context->TaggedEdges)
 			{
 				PCGE_LOG(Warning, GraphAndLog, FTEXT("Some input points have no bound edges."));
-				Context->SetState(PCGExMT::State_ReadyForNextPoints);
+				return false;
 			}
-			else
-			{
-				if (Settings->DirectionMethod == EPCGExEdgeDirectionMethod::EndpointsAttribute)
-				{
-					Context->VtxDirCompGetter = new PCGEx::FLocalSingleFieldGetter();
-					Context->VtxDirCompGetter->Capture(Settings->VtxSourceAttribute);
-					Context->VtxDirCompGetter->Grab(*Context->CurrentIO);
-				}
 
-				PCGExData::FPointIO& PointIO = *Context->CurrentIO;
-				PCGEX_OUTPUT_ACCESSOR_INIT(VtxNormal, FVector)
-				Context->SetState(PCGExGraph::State_ReadyForNextEdges);
+			Context->ProjectionSettings.Init(Context->CurrentIO);
+			
+			if (Settings->DirectionMethod == EPCGExEdgeDirectionMethod::EndpointsAttribute)
+			{
+				Context->VtxDirCompGetter = new PCGEx::FLocalSingleFieldGetter();
+				Context->VtxDirCompGetter->Capture(Settings->VtxSourceAttribute);
+				Context->VtxDirCompGetter->Grab(*Context->CurrentIO);
 			}
+
+			PCGExData::FPointIO& PointIO = *Context->CurrentIO;
+			PCGEX_OUTPUT_ACCESSOR_INIT(VtxNormal, FVector)
+
+			Context->SetState(PCGExGraph::State_ReadyForNextEdges);
 		}
 	}
 
@@ -132,7 +137,7 @@ bool FPCGExWriteEdgeExtrasElement::ExecuteInternal(
 		PCGEX_FOREACH_FIELD_EDGEEXTRAS(PCGEX_OUTPUT_ACCESSOR_INIT)
 
 		if (Context->MetadataBlender) { Context->MetadataBlender->PrepareForData(PointIO, *Context->CurrentIO); }
-		Context->GetAsyncManager()->Start<FPCGExWriteExtrasTask>(-1, &PointIO);
+		Context->GetAsyncManager()->Start<FPCGExWriteExtrasTask>(-1, &PointIO, &Context->ProjectionSettings);
 		Context->SetAsyncState(PCGExGraph::State_ProcessingEdges);
 	}
 
@@ -154,12 +159,16 @@ bool FPCGExWriteExtrasTask::ExecuteTask()
 
 	if (Context->VtxNormalWriter)
 	{
-		for (PCGExCluster::FNode& Vtx : Context->CurrentCluster->Nodes)
+		PCGExCluster::FClusterProjection* ProjectedCluster = new PCGExCluster::FClusterProjection(Context->CurrentCluster, ProjectionSettings);
+		ProjectedCluster->Build();
+
+		for (PCGExCluster::FNodeProjection& Vtx : ProjectedCluster->Nodes)
 		{
-			FVector Normal;
-			if (!Vtx.GetNormal(Context->CurrentCluster, Normal)) { continue; }
-			Context->VtxNormalWriter->Values[Vtx.PointIndex] = Normal;
+			Vtx.ComputeNormal(Context->CurrentCluster);
+			Context->VtxNormalWriter->Values[Vtx.Node->NodeIndex] = Vtx.Normal;
 		}
+
+		PCGEX_DELETE(ProjectedCluster)
 	}
 
 	const bool bAscendingDesired = Context->DirectionChoice == EPCGExEdgeDirectionChoice::SmallestToGreatest;

@@ -41,7 +41,7 @@ FPCGExBridgeEdgeClustersContext::~FPCGExBridgeEdgeClustersContext()
 	PCGEX_DELETE(GraphBuilder)
 
 	PCGEX_DELETE_TARRAY(Clusters)
-
+	ProjectionSettings.Cleanup();
 
 	BridgedEdges.Empty();
 	BridgedClusters.Empty();
@@ -55,7 +55,8 @@ bool FPCGExBridgeEdgeClustersElement::Boot(FPCGContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(BridgeEdgeClusters)
 
 	PCGEX_FWD(BridgeMethod)
-
+	PCGEX_FWD(ProjectionSettings)
+	
 	return true;
 }
 
@@ -222,8 +223,7 @@ bool FPCGExBridgeEdgeClustersElement::ExecuteInternal(
 
 			for (int i = 0; i < NumBounds; i++) { Positions[i] = Bounds[i].GetCenter(); }
 
-			const FPCGExGeo2DProjectionSettings ProjectionSettings; // TODO : Expose
-			if (Delaunay->Process(Positions, ProjectionSettings)) { Bridges.Append(Delaunay->DelaunayEdges); }
+			if (Delaunay->Process(Positions, Context->ProjectionSettings)) { Bridges.Append(Delaunay->DelaunayEdges); }
 			else { PCGE_LOG(Warning, GraphAndLog, FTEXT("(1) Delaunay 2D failed.")); }
 
 			Positions.Empty();

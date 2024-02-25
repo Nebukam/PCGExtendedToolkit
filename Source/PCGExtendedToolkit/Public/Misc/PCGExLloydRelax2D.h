@@ -52,7 +52,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExLloydRelax2DContext : public FPCGExPointsPro
 	friend class FPCGExLloydRelax2DElement;
 
 	virtual ~FPCGExLloydRelax2DContext() override;
-
+	
+	FPCGExGeo2DProjectionSettings ProjectionSettings;
 	PCGEx::FLocalSingleFieldGetter* InfluenceGetter = nullptr;
 	TArray<FVector> ActivePositions;
 };
@@ -77,12 +78,14 @@ public:
 	                      TArray<FVector>* InPositions,
 	                      const FPCGExInfluenceSettings* InInfluenceSettings,
 	                      const int32 InNumIterations,
-	                      PCGEx::FLocalSingleFieldGetter* InInfluenceGetter = nullptr) :
+	                      PCGEx::FLocalSingleFieldGetter* InInfluenceGetter = nullptr,
+	                      FPCGExGeo2DProjectionSettings* InProjectionSettings = nullptr) :
 		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
 		ActivePositions(InPositions),
 		InfluenceSettings(InInfluenceSettings),
 		NumIterations(InNumIterations),
-		InfluenceGetter(InInfluenceGetter)
+		InfluenceGetter(InInfluenceGetter),
+		ProjectionSettings(InProjectionSettings)
 	{
 	}
 
@@ -90,6 +93,7 @@ public:
 	const FPCGExInfluenceSettings* InfluenceSettings = nullptr;
 	int32 NumIterations = 0;
 	PCGEx::FLocalSingleFieldGetter* InfluenceGetter = nullptr;
+	FPCGExGeo2DProjectionSettings* ProjectionSettings = nullptr;
 
 	virtual bool ExecuteTask() override;
 };

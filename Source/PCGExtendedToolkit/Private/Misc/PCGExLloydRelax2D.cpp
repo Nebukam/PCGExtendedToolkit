@@ -17,6 +17,7 @@ FPCGExLloydRelax2DContext::~FPCGExLloydRelax2DContext()
 	PCGEX_TERMINATE_ASYNC
 
 	PCGEX_DELETE(InfluenceGetter)
+	ProjectionSettings.Cleanup();
 
 	ActivePositions.Empty();
 }
@@ -29,6 +30,8 @@ bool FPCGExLloydRelax2DElement::Boot(FPCGContext* InContext) const
 
 	Context->InfluenceGetter = new PCGEx::FLocalSingleFieldGetter();
 	Context->InfluenceGetter->Capture(Settings->InfluenceSettings.LocalInfluence);
+
+	PCGEX_FWD(ProjectionSettings)
 
 	return true;
 }
@@ -60,9 +63,11 @@ bool FPCGExLloydRelax2DElement::ExecuteInternal(FPCGContext* InContext) const
 			Context->InfluenceGetter->Grab(*Context->CurrentIO);
 			PCGExGeo::PointsToPositions(Context->CurrentIO->GetIn()->GetPoints(), Context->ActivePositions);
 
+			Context->ProjectionSettings.Init(Context->CurrentIO);
+
 			Context->GetAsyncManager()->Start<FPCGExLloydRelax2Task>(
 				0, nullptr, &Context->ActivePositions,
-				&Settings->InfluenceSettings, Settings->Iterations);
+				&Settings->InfluenceSettings, Settings->Iterations, Context->InfluenceGetter, &Context->ProjectionSettings);
 
 
 			Context->SetAsyncState(PCGExMT::State_ProcessingPoints);
@@ -72,8 +77,6 @@ bool FPCGExLloydRelax2DElement::ExecuteInternal(FPCGContext* InContext) const
 	if (Context->IsState(PCGExMT::State_ProcessingPoints))
 	{
 		if (!Context->IsAsyncWorkComplete()) { return false; }
-
-		//TODO : De-project points
 
 		TArray<FPCGPoint>& MutablePoints = Context->CurrentIO->GetOut()->GetMutablePoints();
 
@@ -124,8 +127,7 @@ bool FPCGExLloydRelax2Task::ExecuteTask()
 	TArray<FVector>& Positions = *ActivePositions;
 
 	const TArrayView<FVector> View = MakeArrayView(Positions);
-	const FPCGExGeo2DProjectionSettings ProjectionSettings; // TODO : Expose
-	if (!Delaunay->Process(View, ProjectionSettings)) { return false; }
+	if (!Delaunay->Process(View, *ProjectionSettings)) { return false; }
 
 	const int32 NumPoints = Positions.Num();
 
@@ -159,7 +161,7 @@ bool FPCGExLloydRelax2Task::ExecuteTask()
 
 	if (NumIterations > 0)
 	{
-		Manager->Start<FPCGExLloydRelax2Task>(TaskIndex + 1, PointIO, ActivePositions, InfluenceSettings, NumIterations);
+		Manager->Start<FPCGExLloydRelax2Task>(TaskIndex + 1, PointIO, ActivePositions, InfluenceSettings, NumIterations, InfluenceGetter, ProjectionSettings);
 	}
 
 	return true;

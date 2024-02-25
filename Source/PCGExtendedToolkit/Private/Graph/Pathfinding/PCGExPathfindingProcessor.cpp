@@ -90,6 +90,9 @@ FPCGExPathfindingProcessorContext::~FPCGExPathfindingProcessorContext()
 	PCGEX_DELETE(SeedsPoints)
 	PCGEX_DELETE(GoalsPoints)
 	PCGEX_DELETE(OutputPaths)
+
+	ProjectionSettings.Cleanup();
+
 }
 
 bool FPCGExPathfindingProcessorElement::Boot(FPCGContext* InContext) const
@@ -127,6 +130,8 @@ bool FPCGExPathfindingProcessorElement::Boot(FPCGContext* InContext) const
 	Context->HeuristicsModifiers->LoadCurves();
 	Context->Heuristics->ReferenceWeight = Context->HeuristicsModifiers->ReferenceWeight;
 
+	PCGEX_FWD(ProjectionSettings)
+	
 	return true;
 }
 

@@ -25,7 +25,6 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSearchDijkstra : public UPCGExSearchOperation
 
 public:
 	virtual bool FindPath(
-		const PCGExCluster::FCluster* Cluster,
 		const FVector& SeedPosition,
 		const FVector& GoalPosition,
 		const UPCGExHeuristicOperation* Heuristics,

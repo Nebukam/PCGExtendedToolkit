@@ -19,8 +19,18 @@ enum class EPCGExClusterClosestSearchMode : uint8
 	Edge UMETA(DisplayName = "Closest edge", ToolTip="Proximity to edge, then endpoint"),
 };
 
+UENUM(BlueprintType)
+enum class EPCGExClusterSearchOrientationMode : uint8
+{
+	CCW UMETA(DisplayName = "Counter Clockwise"),
+	CW UMETA(DisplayName = "Clockwise"),
+};
+
+
 namespace PCGExCluster
 {
+	constexpr PCGExMT::AsyncState State_ProjectingCluster = __COUNTER__;
+
 	struct FCluster;
 
 	struct PCGEXTENDEDTOOLKIT_API FNode : public PCGExGraph::FNode
@@ -40,7 +50,7 @@ namespace PCGExCluster
 		~FNode();
 
 		void AddConnection(const int32 EdgeIndex, const int32 NodeIndex);
-		bool GetNormal(FCluster* InCluster, FVector& OutNormal) const;
+		FVector GetCentroid(FCluster* InCluster) const;
 		int32 GetEdgeIndex(int32 AdjacentNodeIndex) const;
 	};
 
@@ -85,16 +95,44 @@ namespace PCGExCluster
 
 		FVector GetEdgeDirection(const int32 FromIndex, const int32 ToIndex) const;
 		FVector GetCentroid(const int32 NodeIndex) const;
-		
+
 		int32 FindClosestNeighborInDirection(const int32 NodeIndex, const FVector& Direction, int32 MinNeighborCount = 1) const;
-		
-		int32 FindClosestNeighborLeft(const int32 NodeIndex, const FVector& Direction, const TSet<int32>& Exclusion, const int32 MinNeighbors) const;
-		int32 FindClosestNeighborLeft(const int32 NodeIndex, const FVector& Direction,const int32 MinNeighbors) const;
 
 		void ProjectNodes(const FPCGExGeo2DProjectionSettings& ProjectionSettings);
 
 	protected:
 		FNode& GetOrCreateNode(const int32 PointIndex, const TArray<FPCGPoint>& InPoints);
+	};
+
+	struct PCGEXTENDEDTOOLKIT_API FNodeProjection
+	{
+		FNode* Node = nullptr;
+		FVector Normal = FVector::UpVector;
+		TArray<int32> SortedAdjacency;
+
+		FNodeProjection(FNode* InNode);
+
+		void Project(FCluster* InCluster, const FPCGExGeo2DProjectionSettings* ProjectionSettings);
+		void ComputeNormal(FCluster* InCluster);
+		int32 GetAdjacencyIndex(int32 NodeIndex) const;
+
+		~FNodeProjection();
+	};
+
+	struct PCGEXTENDEDTOOLKIT_API FClusterProjection
+	{
+		FCluster* Cluster = nullptr;
+		FPCGExGeo2DProjectionSettings* ProjectionSettings = nullptr;
+		TArray<FNodeProjection> Nodes;
+
+		FClusterProjection(FCluster* InCluster, FPCGExGeo2DProjectionSettings* InProjectionSettings);
+
+		~FClusterProjection();
+
+		void Build();
+		int32 FindNextAdjacentNode(EPCGExClusterSearchOrientationMode Orient, int32 NodeIndex, int32 From, const TSet<int32>& Exclusion, const int32 MinNeighbors);
+		int32 FindNextAdjacentNodeCCW(int32 NodeIndex, int32 From, const TSet<int32>& Exclusion, const int32 MinNeighbors);
+		int32 FindNextAdjacentNodeCW(int32 NodeIndex, int32 From, const TSet<int32>& Exclusion, const int32 MinNeighbors);
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FNodeChain
@@ -159,6 +197,23 @@ namespace PCGExClusterTask
 		PCGExCluster::FCluster* Cluster = nullptr;
 		TSet<int32>* Fixtures = nullptr;
 		TArray<PCGExCluster::FNodeChain*>* Chains = nullptr;
+
+		virtual bool ExecuteTask() override;
+	};
+
+	class PCGEXTENDEDTOOLKIT_API FProjectCluster : public FPCGExNonAbandonableTask
+	{
+	public:
+		FProjectCluster(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+		                PCGExCluster::FCluster* InCluster, PCGExCluster::FClusterProjection* InProjection) :
+			FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+			Cluster(InCluster),
+			Projection(InProjection)
+		{
+		}
+
+		PCGExCluster::FCluster* Cluster = nullptr;
+		PCGExCluster::FClusterProjection* Projection = nullptr;
 
 		virtual bool ExecuteTask() override;
 	};

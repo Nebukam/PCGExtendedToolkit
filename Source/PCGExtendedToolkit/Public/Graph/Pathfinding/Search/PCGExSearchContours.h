@@ -25,17 +25,17 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSearchContours : public UPCGExSearchOperation
 	GENERATED_BODY()
 
 public:
-	/** Projection settings. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FPCGExGeo2DProjectionSettings ProjectionSettings;
+	/** Drives how the seed nodes are selected within the graph. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExClusterSearchOrientationMode OrientationMode = EPCGExClusterSearchOrientationMode::CW;
 	
-	virtual void PreprocessCluster(PCGExCluster::FCluster* Cluster) override;
+	virtual bool GetRequiresProjection() override;
 	virtual bool FindPath(
-		const PCGExCluster::FCluster* Cluster,
 		const FVector& SeedPosition,
 		const FVector& GoalPosition,
 		const UPCGExHeuristicOperation* Heuristics,
 		const FPCGExHeuristicModifiersSettings* Modifiers,
 		TArray<int32>& OutPath,
 		PCGExPathfinding::FExtraWeights* ExtraWeights) override;
+	
 };

@@ -139,58 +139,44 @@ namespace PCGExMath
 	}
 
 	template <typename T, typename CompilerSafety = void>
-	static T Tile(const T Value, const T InMin, const T InMax, const bool bSafe = false)
+	static T Tile(const T Value, const T Min, const T Max)
 	{
-		T Min = InMin;
-		T Max = InMax;
+		if (FMath::IsWithin(Value, Min, Max)) { return Value; }
+
 		T OutValue = Value;
 		T Range = Max - Min + 1;
 
-		if (bSafe)
-		{
-			// Ensure the range is positive
-			Min = FMath::Min(InMin, InMax);
-			Max = FMath::Max(InMin, InMax);
-			Range = Max - Min + 1;
-		}
-
-		// Wrap the value within the specified range
 		OutValue = FMath::Fmod(static_cast<double>(OutValue - Min), static_cast<double>(Range));
-
-		// Handle negative results
 		if (OutValue < 0) { OutValue += Range; }
 
-		// Shift back to the original range
-		OutValue += Min;
-
-		return OutValue;
+		return OutValue + Min;
 	}
 
 	template <typename CompilerSafety = void>
-	static FVector2D Tile(const FVector2D Value, const FVector2D Min, const FVector2D Max, const bool bSafe = false)
+	static FVector2D Tile(const FVector2D Value, const FVector2D Min, const FVector2D Max)
 	{
 		return FVector2D(
-			Tile(Value.X, Min.X, Max.X, bSafe),
-			Tile(Value.Y, Min.Y, Max.Y, bSafe));
+			Tile(Value.X, Min.X, Max.X),
+			Tile(Value.Y, Min.Y, Max.Y));
 	}
 
 	template <typename CompilerSafety = void>
-	static FVector Tile(const FVector Value, const FVector Min, const FVector Max, const bool bSafe = false)
+	static FVector Tile(const FVector Value, const FVector Min, const FVector Max)
 	{
 		return FVector(
-			Tile(Value.X, Min.X, Max.X, bSafe),
-			Tile(Value.Y, Min.Y, Max.Y, bSafe),
-			Tile(Value.Z, Min.Z, Max.Z, bSafe));
+			Tile(Value.X, Min.X, Max.X),
+			Tile(Value.Y, Min.Y, Max.Y),
+			Tile(Value.Z, Min.Z, Max.Z));
 	}
 
 	template <typename CompilerSafety = void>
-	static FVector4 Tile(const FVector4 Value, const FVector4 Min, const FVector4 Max, const bool bSafe = false)
+	static FVector4 Tile(const FVector4 Value, const FVector4 Min, const FVector4 Max)
 	{
 		return FVector4(
-			Tile(Value.X, Min.X, Max.X, bSafe),
-			Tile(Value.Y, Min.Y, Max.Y, bSafe),
-			Tile(Value.Z, Min.Z, Max.Z, bSafe),
-			Tile(Value.W, Min.W, Max.W, bSafe));
+			Tile(Value.X, Min.X, Max.X),
+			Tile(Value.Y, Min.Y, Max.Y),
+			Tile(Value.Z, Min.Z, Max.Z),
+			Tile(Value.W, Min.W, Max.W));
 	}
 
 	template <typename T>
@@ -854,9 +840,9 @@ namespace PCGExMath
 
 	static double GetAngle(const FVector& A, const FVector& B)
 	{
-		const double MainDot = A.Dot(B);
-		if (FVector::CrossProduct(A, B).Z < 0) { return (PI * 2) - FMath::Atan2(FVector::CrossProduct(A, B).Size(), MainDot); }
-		return FMath::Atan2(FVector::CrossProduct(A, B).Size(), MainDot);
+		const FVector Cross = FVector::CrossProduct(A, B);
+		const double Atan2 = FMath::Atan2(Cross.Size(), A.Dot(B));
+		return Cross.Z < 0 ? (PI * 2) - Atan2 : Atan2;
 	}
 
 #pragma region Spatialized distances

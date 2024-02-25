@@ -97,12 +97,14 @@ bool FPCGExPathfindingPlotEdgesElement::Boot(FPCGContext* InContext) const
 		PCGE_LOG(Error, GraphAndLog, FTEXT("Missing Plots Points."));
 		return false;
 	}
-	
+
 	Context->SearchAlgorithm->SearchMode = Settings->NodePickingMode;
 
 	Context->HeuristicsModifiers = const_cast<FPCGExHeuristicModifiersSettings*>(&Settings->HeuristicsModifiers);
 	Context->HeuristicsModifiers->LoadCurves();
 	Context->Heuristics->ReferenceWeight = Context->HeuristicsModifiers->ReferenceWeight;
+
+	PCGEX_FWD(ProjectionSettings)
 
 	return true;
 }
@@ -150,8 +152,17 @@ bool FPCGExPathfindingPlotEdgesElement::ExecuteInternal(FPCGContext* InContext) 
 			return false;
 		}
 
-		Context->SearchAlgorithm->PreprocessCluster(Context->CurrentCluster);
-		
+		Context->SetState(PCGExCluster::State_ProjectingCluster);
+	}
+
+	if (Context->IsState(PCGExCluster::State_ProjectingCluster))
+	{
+		if (Context->SearchAlgorithm->GetRequiresProjection())
+		{
+			if (!Context->ProjectCluster()) { return false; }
+		}
+
+		Context->SearchAlgorithm->PrepareForCluster(Context->CurrentCluster, Context->ClusterProjection);
 		Context->GetAsyncManager()->Start<FPCGExCompileModifiersTask>(0, Context->CurrentIO, Context->CurrentEdges, Context->HeuristicsModifiers);
 		Context->SetAsyncState(PCGExGraph::State_ProcessingEdges);
 	}
@@ -248,7 +259,7 @@ bool FPCGExPlotClusterPathTask::ExecuteTask()
 		FVector GoalPosition = PointIO->GetInPoint(i).Transform.GetLocation();
 
 		if (!Context->SearchAlgorithm->FindPath(
-			Context->CurrentCluster, SeedPosition, GoalPosition,
+			SeedPosition, GoalPosition,
 			Context->Heuristics, Context->HeuristicsModifiers, Path, ExtraWeights))
 		{
 			// Failed

@@ -52,8 +52,10 @@ FPCGExEdgesProcessorContext::~FPCGExEdgesProcessorContext()
 	PCGEX_DELETE(InputDictionary)
 	PCGEX_DELETE(MainEdges)
 	PCGEX_DELETE(CurrentCluster)
+	PCGEX_DELETE(ClusterProjection)
 
 	NodeIndicesMap.Empty();
+	ProjectionSettings.Cleanup();
 }
 
 
@@ -61,6 +63,7 @@ bool FPCGExEdgesProcessorContext::AdvancePointsIO()
 {
 	PCGEX_DELETE(EdgeNumReader)
 	PCGEX_DELETE(CurrentCluster)
+	PCGEX_DELETE(ClusterProjection)
 
 	CurrentEdgesIndex = -1;
 	NodeIndicesMap.Empty();
@@ -86,6 +89,8 @@ bool FPCGExEdgesProcessorContext::AdvancePointsIO()
 	{
 		CurrentIO->CreateInKeys();
 
+		ProjectionSettings.Init(CurrentIO);
+		
 		PCGExGraph::GetRemappedIndices(*CurrentIO, PCGExGraph::Tag_EdgeIndex, NodeIndicesMap);
 		EdgeNumReader = new PCGEx::TFAttributeReader<int32>(PCGExGraph::Tag_EdgesNum);
 		EdgeNumReader->Bind(*CurrentIO);
@@ -97,6 +102,7 @@ bool FPCGExEdgesProcessorContext::AdvancePointsIO()
 bool FPCGExEdgesProcessorContext::AdvanceEdges(const bool bBuildCluster)
 {
 	PCGEX_DELETE(CurrentCluster)
+	PCGEX_DELETE(ClusterProjection)
 
 	if (bBuildCluster && CurrentEdges) { CurrentEdges->Cleanup(); }
 
@@ -124,6 +130,21 @@ bool FPCGExEdgesProcessorContext::AdvanceEdges(const bool bBuildCluster)
 
 	CurrentEdges = nullptr;
 	return false;
+}
+
+bool FPCGExEdgesProcessorContext::ProjectCluster()
+{
+	const int32 NumNodes = CurrentCluster->Nodes.Num();
+
+	auto Initialize = [&]()
+	{
+		PCGEX_DELETE(ClusterProjection)
+		ClusterProjection = new PCGExCluster::FClusterProjection(CurrentCluster, &ProjectionSettings);
+	};
+
+	auto ProjectSinglePoint = [&](int32 Index) { ClusterProjection->Nodes[Index].Project(CurrentCluster, &ProjectionSettings); };
+
+	return Process(Initialize, ProjectSinglePoint, NumNodes);
 }
 
 void FPCGExEdgesProcessorContext::OutputPointsAndEdges()

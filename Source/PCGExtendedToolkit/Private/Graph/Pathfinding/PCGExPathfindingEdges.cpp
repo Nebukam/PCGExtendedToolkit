@@ -77,6 +77,7 @@ bool FPCGExPathfindingEdgesElement::ExecuteInternal(FPCGContext* InContext) cons
 			else
 			{
 				PCGEX_DELETE_TARRAY(Context->PathBuffer)
+
 				Context->GoalPicker->PrepareForData(*Context->SeedsPoints, *Context->GoalsPoints);
 				Context->SetState(PCGExMT::State_ProcessingPoints);
 			}
@@ -112,8 +113,17 @@ bool FPCGExPathfindingEdgesElement::ExecuteInternal(FPCGContext* InContext) cons
 			return false;
 		}
 
-		Context->SearchAlgorithm->PreprocessCluster(Context->CurrentCluster);
-		
+		Context->SetState(PCGExCluster::State_ProjectingCluster);
+	}
+
+	if (Context->IsState(PCGExCluster::State_ProjectingCluster))
+	{
+		if (Context->SearchAlgorithm->GetRequiresProjection())
+		{
+			if (!Context->ProjectCluster()) { return false; }
+		}
+
+		Context->SearchAlgorithm->PrepareForCluster(Context->CurrentCluster, Context->ClusterProjection);
 		Context->GetAsyncManager()->Start<FPCGExCompileModifiersTask>(0, Context->CurrentIO, Context->CurrentEdges, Context->HeuristicsModifiers);
 		Context->SetAsyncState(PCGExGraph::State_ProcessingEdges);
 	}
@@ -198,7 +208,7 @@ bool FSampleClusterPathTask::ExecuteTask()
 
 	//Note: Can silently fail
 	if (!Context->SearchAlgorithm->FindPath(
-		Context->CurrentCluster, Query->SeedPosition, Query->GoalPosition,
+		Query->SeedPosition, Query->GoalPosition,
 		Context->Heuristics, Context->HeuristicsModifiers, Path, GlobalExtraWeights))
 	{
 		// Failed
