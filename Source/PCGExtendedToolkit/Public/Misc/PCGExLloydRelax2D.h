@@ -52,7 +52,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExLloydRelax2DContext : public FPCGExPointsPro
 	friend class FPCGExLloydRelax2DElement;
 
 	virtual ~FPCGExLloydRelax2DContext() override;
-	
+
 	FPCGExGeo2DProjectionSettings ProjectionSettings;
 	PCGEx::FLocalSingleFieldGetter* InfluenceGetter = nullptr;
 	TArray<FVector> ActivePositions;

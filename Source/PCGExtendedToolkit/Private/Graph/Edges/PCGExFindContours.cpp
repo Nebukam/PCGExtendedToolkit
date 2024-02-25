@@ -80,7 +80,7 @@ bool FPCGExFindContoursElement::Boot(FPCGContext* InContext) const
 	Context->Paths->DefaultOutputLabel = PCGExGraph::OutputPathsLabel;
 
 	PCGEX_FWD(ProjectionSettings)
-	
+
 	return true;
 }
 

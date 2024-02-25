@@ -101,7 +101,7 @@ namespace PCGExCluster
 		for (int i = 0; i < NumNodes; i++)
 		{
 			Sort[i] = i;
-			FVector Direction = ProjectionSettings->Project((Node->Position - InCluster->Nodes[Node->AdjacentNodes[i]].Position), Node->PointIndex);;
+			FVector Direction = ProjectionSettings->Project((Node->Position - InCluster->Nodes[Node->AdjacentNodes[i]].Position), Node->PointIndex);
 			Direction.Z = 0;
 			Angles[i] = PCGExMath::GetAngle(FVector::ForwardVector, Direction.GetSafeNormal());
 		}

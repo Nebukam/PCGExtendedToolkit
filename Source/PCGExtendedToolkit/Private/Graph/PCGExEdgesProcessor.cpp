@@ -90,7 +90,7 @@ bool FPCGExEdgesProcessorContext::AdvancePointsIO()
 		CurrentIO->CreateInKeys();
 
 		ProjectionSettings.Init(CurrentIO);
-		
+
 		PCGExGraph::GetRemappedIndices(*CurrentIO, PCGExGraph::Tag_EdgeIndex, NodeIndicesMap);
 		EdgeNumReader = new PCGEx::TFAttributeReader<int32>(PCGExGraph::Tag_EdgesNum);
 		EdgeNumReader->Bind(*CurrentIO);

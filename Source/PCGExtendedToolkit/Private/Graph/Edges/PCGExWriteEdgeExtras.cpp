@@ -94,7 +94,7 @@ bool FPCGExWriteEdgeExtrasElement::ExecuteInternal(
 			}
 
 			Context->ProjectionSettings.Init(Context->CurrentIO);
-			
+
 			if (Settings->DirectionMethod == EPCGExEdgeDirectionMethod::EndpointsAttribute)
 			{
 				Context->VtxDirCompGetter = new PCGEx::FLocalSingleFieldGetter();

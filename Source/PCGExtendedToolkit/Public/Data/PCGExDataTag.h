@@ -54,7 +54,7 @@ namespace PCGExData
 			Tags.Append(InTags->Tags);
 			RawTags.Append(InTags->RawTags);
 		}
-		
+
 		void Reset()
 		{
 			RawTags.Empty();

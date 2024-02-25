@@ -24,7 +24,7 @@ FPCGExBuildDelaunayGraph2DContext::~FPCGExBuildDelaunayGraph2DContext()
 	PCGEX_DELETE(GraphBuilder)
 
 	HullIndices.Empty();
-	
+
 	ProjectionSettings.Cleanup();
 }
 
@@ -56,7 +56,7 @@ bool FPCGExBuildDelaunayGraph2DElement::Boot(FPCGContext* InContext) const
 	PCGEX_VALIDATE_NAME(Settings->HullAttributeName)
 
 	PCGEX_FWD(ProjectionSettings)
-	
+
 	return true;
 }
 
@@ -88,7 +88,7 @@ bool FPCGExBuildDelaunayGraph2DElement::ExecuteInternal(
 			}
 
 			Context->ProjectionSettings.Init(Context->CurrentIO);
-			
+
 			Context->GraphBuilder = new PCGExGraph::FGraphBuilder(*Context->CurrentIO, &Context->GraphBuilderSettings, 6);
 			Context->GetAsyncManager()->Start<FPCGExDelaunay2Task>(Context->CurrentIO->IOIndex, Context->CurrentIO, Context->GraphBuilder->Graph);
 

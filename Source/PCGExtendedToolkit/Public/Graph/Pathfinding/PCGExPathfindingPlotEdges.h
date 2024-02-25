@@ -123,7 +123,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingPlotEdgesContext : public FPCGExE
 	bool bAddSeedToPath = true;
 	bool bAddGoalToPath = true;
 	bool bAddPlotPointsToPath = true;
-
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExPathfindingPlotEdgesElement : public FPCGExEdgesProcessorElement

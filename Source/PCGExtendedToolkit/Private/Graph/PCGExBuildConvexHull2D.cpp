@@ -62,7 +62,7 @@ bool FPCGExBuildConvexHull2DElement::Boot(FPCGContext* InContext) const
 
 	Context->PathsIO = new PCGExData::FPointIOCollection();
 	Context->PathsIO->DefaultOutputLabel = PCGExGraph::OutputPathsLabel;
-	
+
 	PCGEX_FWD(ProjectionSettings)
 
 	return true;
@@ -96,7 +96,7 @@ bool FPCGExBuildConvexHull2DElement::ExecuteInternal(
 			}
 
 			Context->ProjectionSettings.Init(Context->CurrentIO);
-			
+
 			Context->GraphBuilder = new PCGExGraph::FGraphBuilder(*Context->CurrentIO, &Context->GraphBuilderSettings, 6);
 			Context->GetAsyncManager()->Start<FPCGExConvexHull2Task>(Context->CurrentIO->IOIndex, Context->CurrentIO, Context->GraphBuilder->Graph);
 

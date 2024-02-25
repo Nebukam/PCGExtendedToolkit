@@ -92,7 +92,6 @@ FPCGExPathfindingProcessorContext::~FPCGExPathfindingProcessorContext()
 	PCGEX_DELETE(OutputPaths)
 
 	ProjectionSettings.Cleanup();
-
 }
 
 bool FPCGExPathfindingProcessorElement::Boot(FPCGContext* InContext) const
@@ -125,13 +124,13 @@ bool FPCGExPathfindingProcessorElement::Boot(FPCGContext* InContext) const
 	}
 
 	Context->SearchAlgorithm->SearchMode = Settings->NodePickingMode;
-	
+
 	Context->HeuristicsModifiers = const_cast<FPCGExHeuristicModifiersSettings*>(&Settings->HeuristicsModifiers);
 	Context->HeuristicsModifiers->LoadCurves();
 	Context->Heuristics->ReferenceWeight = Context->HeuristicsModifiers->ReferenceWeight;
 
 	PCGEX_FWD(ProjectionSettings)
-	
+
 	return true;
 }
 

@@ -32,7 +32,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSearchOperation : public UPCGExOperation
 
 public:
 	EPCGExClusterClosestSearchMode SearchMode = EPCGExClusterClosestSearchMode::Node;
-	
+
 	PCGExCluster::FCluster* Cluster = nullptr;
 	PCGExCluster::FClusterProjection* Projection = nullptr;
 

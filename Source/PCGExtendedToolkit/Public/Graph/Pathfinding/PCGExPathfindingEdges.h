@@ -42,7 +42,6 @@ public:
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
 	//~End UObject interface
-	
 };
 
 
@@ -51,7 +50,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingEdgesContext : public FPCGExPathf
 	friend class FPCGExPathfindingEdgesElement;
 
 	virtual ~FPCGExPathfindingEdgesContext() override;
-	
+
 	int32 CurrentPathBufferIndex = -1;
 	TArray<PCGExPathfinding::FPathQuery*> PathBuffer;
 };

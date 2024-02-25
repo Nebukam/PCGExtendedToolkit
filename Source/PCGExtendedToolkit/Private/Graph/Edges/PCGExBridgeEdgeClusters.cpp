@@ -56,7 +56,7 @@ bool FPCGExBridgeEdgeClustersElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_FWD(BridgeMethod)
 	PCGEX_FWD(ProjectionSettings)
-	
+
 	return true;
 }
 

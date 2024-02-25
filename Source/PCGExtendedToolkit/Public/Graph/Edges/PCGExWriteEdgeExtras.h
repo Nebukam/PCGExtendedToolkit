@@ -132,7 +132,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExWriteEdgeExtrasContext : public FPCGExEdgesP
 	virtual ~FPCGExWriteEdgeExtrasContext() override;
 
 	FPCGExGeo2DProjectionSettings ProjectionSettings;
-	
+
 	PCGExDataBlending::FMetadataBlender* MetadataBlender;
 
 	PCGEX_FOREACH_FIELD_EDGEEXTRAS(PCGEX_OUTPUT_DECL)
