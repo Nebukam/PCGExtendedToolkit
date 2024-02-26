@@ -106,7 +106,7 @@ namespace PCGExDataState
 			}
 
 			bValid = !Handlers.IsEmpty();
-			
+
 			if (!bValid) { return; }
 
 			// Sort mappings so higher priorities come last, as they have to potential to override values.
@@ -137,6 +137,44 @@ namespace PCGExDataState
 
 	protected:
 	};
+
+	template <typename T_DEF>
+	static bool GetInputStates(FPCGContext* InContext, const FName InLabel, TArray<TObjectPtr<T_DEF>>& OutStates)
+	{
+		const TArray<FPCGTaggedData>& Inputs = InContext->InputData.GetInputsByPin(InLabel);
+
+		TSet<FName> UniqueStatesNames;
+		for (const FPCGTaggedData& InputState : Inputs)
+		{
+			if (const T_DEF* State = Cast<T_DEF>(InputState.Data))
+			{
+				if (UniqueStatesNames.Contains(State->StateName))
+				{
+					PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("State '{0}' has the same name as another state, it will be ignored."), FText::FromName(State->StateName)));
+					continue;
+				}
+
+				if (State->Tests.IsEmpty())
+				{
+					PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("State '{0}' has no conditions and will be ignored."), FText::FromName(State->StateName)));
+					continue;
+				}
+
+				UniqueStatesNames.Add(State->StateName);
+				OutStates.Add(const_cast<T_DEF*>(State));
+			}
+		}
+
+		UniqueStatesNames.Empty();
+
+		if (OutStates.IsEmpty())
+		{
+			PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Missing valid node states."));
+			return false;
+		}
+
+		return true;
+	}
 }
 
 namespace PCGExDataStateTask

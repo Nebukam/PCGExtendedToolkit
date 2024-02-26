@@ -398,15 +398,19 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAdjacencyTestDescriptor
 	EPCGExRelativeRoundingMode RoundingMode = EPCGExRelativeRoundingMode::Round;
 
 	/** Operand A for testing -- Will be broadcasted to `double` under the hood. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(ShowOnlyInnerProperties))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(ShowOnlyInnerProperties, DisplayName="Operand A (First)"))
 	FPCGExInputDescriptor OperandA;
 
 	/** Comparison */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	EPCGExComparison Comparison = EPCGExComparison::NearlyEqual;
 
+	/** Source of the Operand B value -- either the neighboring point, or the edge connecting to that point. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	EPCGExGraphValueSource OperandBSource = EPCGExGraphValueSource::Point;
+
 	/** Operand B for testing -- Will be broadcasted to `double` under the hood. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(ShowOnlyInnerProperties))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(ShowOnlyInnerProperties, DisplayName="Operand B (Neighbor)"))
 	FPCGExInputDescriptor OperandB;
 
 #if WITH_EDITOR

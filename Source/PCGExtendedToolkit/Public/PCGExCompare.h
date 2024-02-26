@@ -23,14 +23,14 @@ MACRO(FSoftClassPath)
 UENUM(BlueprintType)
 enum class EPCGExComparison : uint8
 {
-	StrictlyEqual UMETA(DisplayName = "A == B", Tooltip="Operand A Strictly Equal to Operand B"),
-	StrictlyNotEqual UMETA(DisplayName = "A != B", Tooltip="Operand A Strictly Not Equal to Operand B"),
-	EqualOrGreater UMETA(DisplayName = "A >= B", Tooltip="Operand A Equal or Greater to Operand B"),
-	EqualOrSmaller UMETA(DisplayName = "A <= B", Tooltip="Operand A Equal or Smaller to Operand B"),
-	StrictlyGreater UMETA(DisplayName = "A > B", Tooltip="Operand A Strictly Greater to Operand B"),
-	StrictlySmaller UMETA(DisplayName = "A < B", Tooltip="Operand A Strictly Smaller to Operand B"),
-	NearlyEqual UMETA(DisplayName = "A ~= B", Tooltip="Operand A Nearly Equal to Operand B"),
-	NearlyNotEqual UMETA(DisplayName = "A !~= B", Tooltip="Operand A Nearly Not Equal to Operand B"),
+	StrictlyEqual UMETA(DisplayName = " == ", Tooltip="Operand A Strictly Equal to Operand B"),
+	StrictlyNotEqual UMETA(DisplayName = " != ", Tooltip="Operand A Strictly Not Equal to Operand B"),
+	EqualOrGreater UMETA(DisplayName = " >= ", Tooltip="Operand A Equal or Greater to Operand B"),
+	EqualOrSmaller UMETA(DisplayName = " <= ", Tooltip="Operand A Equal or Smaller to Operand B"),
+	StrictlyGreater UMETA(DisplayName = " > ", Tooltip="Operand A Strictly Greater to Operand B"),
+	StrictlySmaller UMETA(DisplayName = " < ", Tooltip="Operand A Strictly Smaller to Operand B"),
+	NearlyEqual UMETA(DisplayName = " ~= ", Tooltip="Operand A Nearly Equal to Operand B"),
+	NearlyNotEqual UMETA(DisplayName = " !~= ", Tooltip="Operand A Nearly Not Equal to Operand B"),
 };
 
 namespace PCGExCompare

@@ -46,13 +46,6 @@ enum class EPCGExHeuristicScoreMode : uint8
 	HigherIsBetter UMETA(DisplayName = "Higher is Better", Tooltip="Higher values are considered more desirable."),
 };
 
-UENUM(BlueprintType)
-enum class EPCGExHeuristicScoreSource : uint8
-{
-	Point UMETA(DisplayName = "Point", Tooltip="Value is fetched from the point being evaluated."),
-	Edge UMETA(DisplayName = "Edge", Tooltip="Value is fetched from the edge connecting to the point being evaluated."),
-};
-
 USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicModifier : public FPCGExInputDescriptor
 {
@@ -73,7 +66,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicModifier : public FPCGExInputDescri
 
 	/** Read the data from either vertices or edges */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-3))
-	EPCGExHeuristicScoreSource Source = EPCGExHeuristicScoreSource::Point;
+	EPCGExGraphValueSource Source = EPCGExGraphValueSource::Point;
 
 	/** Modifier weight. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1, ClampMin="0.001"))
@@ -187,7 +180,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicModifiersSettings
 
 			bool bModifierGrabbed;
 			bool bLocalWeightGrabbed = false;
-			if (Modifier.Source == EPCGExHeuristicScoreSource::Point)
+			if (Modifier.Source == EPCGExGraphValueSource::Point)
 			{
 				if (!bUpdatePoints) { continue; }
 				bModifierGrabbed = ModifierGetter->Grab(InPoints, true);

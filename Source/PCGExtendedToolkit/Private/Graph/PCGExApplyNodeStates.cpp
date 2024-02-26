@@ -1,37 +1,32 @@
 ﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Graph/PCGExApplySocketStates.h"
+#include "Graph/PCGExApplyNodeStates.h"
 
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
+#include "Graph/PCGExCluster.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraph"
-#define PCGEX_NAMESPACE ApplySocketStates
+#define PCGEX_NAMESPACE ApplyNodeStates
 
-int32 UPCGExApplySocketStatesSettings::GetPreferredChunkSize() const { return PCGExMT::GAsyncLoop_M; }
+int32 UPCGExApplyNodeStatesSettings::GetPreferredChunkSize() const { return PCGExMT::GAsyncLoop_M; }
 
-PCGExData::EInit UPCGExApplySocketStatesSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
+PCGExData::EInit UPCGExApplyNodeStatesSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
+PCGExData::EInit UPCGExApplyNodeStatesSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
-TArray<FPCGPinProperties> UPCGExApplySocketStatesSettings::InputPinProperties() const
+TArray<FPCGPinProperties> UPCGExApplyNodeStatesSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	FPCGPinProperties& PinStateParams = PinProperties.Emplace_GetRef(PCGExGraph::SourceSocketStateLabel, EPCGDataType::Param);
+	FPCGPinProperties& PinStateParams = PinProperties.Emplace_GetRef(PCGExGraph::SourceNodeStateLabel, EPCGDataType::Param);
 
 #if WITH_EDITOR
-	PinStateParams.Tooltip = FTEXT("Socket states.");
+	PinStateParams.Tooltip = FTEXT("Node states.");
 #endif
 
 	return PinProperties;
 }
 
-TArray<FPCGPinProperties> UPCGExApplySocketStatesSettings::OutputPinProperties() const
-{
-	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
-	if (bDeleteCustomGraphData) { PinProperties.Pop(); }
-	return PinProperties;
-}
-
-FPCGExApplySocketStatesContext::~FPCGExApplySocketStatesContext()
+FPCGExApplyNodeStatesContext::~FPCGExApplyNodeStatesContext()
 {
 	PCGEX_TERMINATE_ASYNC
 	PCGEX_DELETE(StatesManager)
@@ -39,26 +34,26 @@ FPCGExApplySocketStatesContext::~FPCGExApplySocketStatesContext()
 }
 
 
-PCGEX_INITIALIZE_ELEMENT(ApplySocketStates)
+PCGEX_INITIALIZE_ELEMENT(ApplyNodeStates)
 
-bool FPCGExApplySocketStatesElement::Boot(FPCGContext* InContext) const
+bool FPCGExApplyNodeStatesElement::Boot(FPCGContext* InContext) const
 {
-	if (!FPCGExCustomGraphProcessorElement::Boot(InContext)) { return false; }
+	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
 
-	PCGEX_CONTEXT_AND_SETTINGS(ApplySocketStates)
+	PCGEX_CONTEXT_AND_SETTINGS(ApplyNodeStates)
 
 	return PCGExDataState::GetInputStates(
 		Context,
-		PCGExGraph::SourceSocketStateLabel,
+		PCGExGraph::SourceNodeStateLabel,
 		Context->StateDefinitions);
 }
 
-bool FPCGExApplySocketStatesElement::ExecuteInternal(
+bool FPCGExApplyNodeStatesElement::ExecuteInternal(
 	FPCGContext* InContext) const
 {
-	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExApplySocketStatesElement::Execute);
+	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExApplyNodeStatesElement::Execute);
 
-	PCGEX_CONTEXT_AND_SETTINGS(ApplySocketStates)
+	PCGEX_CONTEXT_AND_SETTINGS(ApplyNodeStates)
 
 	if (Context->IsSetup())
 	{
@@ -74,11 +69,12 @@ bool FPCGExApplySocketStatesElement::ExecuteInternal(
 		else
 		{
 			Context->StatesManager = new PCGExDataState::AStatesManager(Context->CurrentIO);
-			Context->StatesManager->Register<UPCGExSocketStateDefinition, PCGExGraph::FSocketStateHandler>(
+			Context->StatesManager->Register<UPCGExNodeStateDefinition, PCGExCluster::FNodeStateHandler>(
 				Context->StateDefinitions,
-				[&](PCGExGraph::FSocketStateHandler* Handler)
+				[&](PCGExCluster::FNodeStateHandler* Handler)
 				{
-					Handler->Capture(&Context->Graphs, Context->CurrentIO);
+					//TODO: Capture cluster VTX
+					//Handler->Capture(&Context->Graphs, Context->CurrentIO);
 				});
 
 			if (!Context->StatesManager->bValid)
@@ -146,26 +142,7 @@ bool FPCGExApplySocketStatesElement::ExecuteInternal(
 
 	if (Context->IsDone())
 	{
-		if (Settings->bDeleteCustomGraphData)
-		{
-			Context->MainPoints->ForEach(
-				[&](const PCGExData::FPointIO& PointIO, int32)
-				{
-					auto DeleteSockets = [&](const UPCGExGraphDefinition* Params, int32)
-					{
-						const UPCGPointData* OutData = PointIO.GetOut();
-						for (const PCGExGraph::FSocket& Socket : Params->GetSocketMapping()->Sockets) { Socket.DeleteFrom(OutData); }
-						OutData->Metadata->DeleteAttribute(Params->CachedIndexAttributeName);
-					};
-					Context->Graphs.ForEach(Context, DeleteSockets);
-				});
-
-			Context->OutputPoints();
-		}
-		else
-		{
-			Context->OutputPointsAndGraphParams();
-		}
+		Context->OutputPoints();
 	}
 
 	return Context->IsDone();

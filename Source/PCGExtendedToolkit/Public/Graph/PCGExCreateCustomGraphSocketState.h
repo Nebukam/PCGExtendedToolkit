@@ -44,7 +44,7 @@ public:
 public:
 	/** State name.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	FName StateName = NAME_None;
+	FName StateName = NAME_Default;
 
 	/** State ID.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
