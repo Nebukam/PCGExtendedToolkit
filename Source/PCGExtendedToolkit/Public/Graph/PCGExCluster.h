@@ -8,6 +8,7 @@
 #include "PCGExEdge.h"
 #include "PCGExGraph.h"
 #include "Data/PCGExAttributeHelpers.h"
+#include "Data/PCGExGraphDefinition.h"
 #include "Geometry/PCGExGeo.h"
 
 #include "PCGExCluster.generated.h"
@@ -151,6 +152,52 @@ namespace PCGExCluster
 			Nodes.Empty();
 			Edges.Empty();
 		}
+	};
+
+
+	class PCGEXTENDEDTOOLKIT_API FNodeTestHandler
+	{
+	public:
+		explicit FNodeTestHandler(UPCGExAdjacencyTestDefinition* InDefinition)
+			: Definition(InDefinition)
+		{
+		}
+
+		virtual ~FNodeTestHandler()
+		{
+			Definition = nullptr;
+			PCGEX_DELETE(OperandAGetter)
+			PCGEX_DELETE(OperandBGetter)
+		}
+
+		UPCGExAdjacencyTestDefinition* Definition = nullptr;
+		PCGEx::FLocalSingleFieldGetter* OperandAGetter = nullptr;
+		PCGEx::FLocalSingleFieldGetter* OperandBGetter = nullptr;
+
+		virtual bool Test(const int32 PointIndex) const;
+		
+	};
+
+	class PCGEXTENDEDTOOLKIT_API FNodeStateHandler : public PCGExDataState::AStateHandler
+	{
+	public:
+		explicit  FNodeStateHandler(UPCGExNodeStateDefinition* InDefinition);
+
+		UPCGExNodeStateDefinition* Definition = nullptr;
+		TArray<FNodeTestHandler*> TestHandlers;
+
+		void Capture(FCluster* InCluster);
+		virtual bool Test(const int32 PointIndex) const override;
+
+		virtual ~FNodeStateHandler() override
+		{
+			PCGEX_DELETE_TARRAY(TestHandlers)
+		}
+
+	protected:
+		PCGExData::FPointIO* LastPoints = nullptr;
+		FCluster* Cluster = nullptr;
+		
 	};
 }
 

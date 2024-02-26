@@ -53,7 +53,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGeo2DProjectionSettings
 	{
 		Cleanup();
 
-		DefaultMatrix = FRotationMatrix::MakeFromZ(ProjectionNormal.GetSafeNormal());
+		ProjectionNormal = ProjectionNormal.GetSafeNormal();
+		DefaultMatrix = FRotationMatrix::MakeFromZ(ProjectionNormal);
 
 		if (!bSupportLocalNormal) { bLocalProjectionNormal = false; }
 		if (bLocalProjectionNormal && PointIO)

@@ -57,13 +57,13 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bWriteStateValue"))
 	FName StateValueAttributeName = "StateId";
 
-	/** If enabled, will also write each state as a boolean attribute. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	bool bWriteEachStateIndividually = false;
-
 	/** Name of the state to write if no conditions are met */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bWriteStateValue"))
 	int32 StatelessValue = -1;
+
+	/** If enabled, will also write each state as a boolean attribute. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bWriteEachStateIndividually = false;
 
 	/** Cleanup graph socket data from output points */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -80,12 +80,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExApplySocketStatesContext : public FPCGExCust
 	virtual ~FPCGExApplySocketStatesContext() override;
 
 	TArray<TObjectPtr<UPCGExSocketStateDefinition>> StateDefinitions;
-	TArray<PCGExGraph::FSingleStateMapping*> StateMappings;
-	TArray<TArray<bool>*> States;
-	TArray<int32> HighestState;
-
-	PCGEx::TFAttributeWriter<FName>* StateNameWriter = nullptr;
-	PCGEx::TFAttributeWriter<int32>* StateValueWriter = nullptr;
+	PCGExDataState::AStatesManager* StatesManager = nullptr;
+	
 };
 
 
@@ -100,31 +96,4 @@ public:
 protected:
 	virtual bool Boot(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
-};
-
-class PCGEXTENDEDTOOLKIT_API FPCGExEvaluatePointTask : public FPCGExNonAbandonableTask
-{
-public:
-	FPCGExEvaluatePointTask(
-		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO) :
-		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO)
-	{
-	}
-
-	virtual bool ExecuteTask() override;
-};
-
-class PCGEXTENDEDTOOLKIT_API FPCGExWriteIndividualStateTask : public FPCGExNonAbandonableTask
-{
-public:
-	FPCGExWriteIndividualStateTask(
-		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-		PCGExGraph::FSingleStateMapping* InMapping) :
-		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
-		Mapping(InMapping)
-	{
-	}
-
-	PCGExGraph::FSingleStateMapping* Mapping = nullptr;
-	virtual bool ExecuteTask() override;
 };

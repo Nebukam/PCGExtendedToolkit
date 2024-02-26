@@ -9,12 +9,28 @@
 #include "Blending/PCGExDataBlendingOperations.h"
 #include "Data/PCGPointData.h"
 #include "UObject/Object.h"
-//#include "PCGExData.generated.h"
+
+#include "PCGExData.generated.h"
+
+
+/**
+ * 
+ */
+UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
+class PCGEXTENDEDTOOLKIT_API UPCGExParamDataBase : public UPCGPointData
+{
+	GENERATED_BODY()
+
+public:
+	virtual EPCGDataType GetDataType() const override { return EPCGDataType::Param; }
+};
 
 namespace PCGExData
 {
 	constexpr PCGExMT::AsyncState State_MergingData = __COUNTER__;
 
+#pragma region Compound
+	
 	struct PCGEXTENDEDTOOLKIT_API FIdxCompound
 	{
 		TArray<uint64> CompoundedPoints;
@@ -28,57 +44,11 @@ namespace PCGExData
 			Weights.Empty();
 		}
 
-		bool ContainsIOIndex(int32 IOIndex)
-		{
-			for (const uint64 H : CompoundedPoints)
-			{
-				uint32 A;
-				uint32 B;
-				PCGEx::H64(H, A, B);
-				if (A == IOIndex) { return true; }
-			}
-			return false;
-		}
+		bool ContainsIOIndex(int32 IOIndex);
+		void ComputeWeights(const TArray<FPointIO*>& Sources, const FPCGPoint& Target, const FPCGExDistanceSettings& DistSettings);
+		void ComputeWeights(const TArray<FPCGPoint>& SourcePoints, const FPCGPoint& Target, const FPCGExDistanceSettings& DistSettings);
 
-
-		void ComputeWeights(const TArray<FPointIO*>& Sources, const FPCGPoint& Target, const FPCGExDistanceSettings& DistSettings)
-		{
-			Weights.SetNum(CompoundedPoints.Num());
-
-			double MaxDist = TNumericLimits<double>::Min();
-			for (int i = 0; i < CompoundedPoints.Num(); i++)
-			{
-				uint32 IOIndex;
-				uint32 PtIndex;
-				PCGEx::H64(CompoundedPoints[i], IOIndex, PtIndex);
-
-				Weights[i] = DistSettings.GetDistance(Sources[IOIndex]->GetInPoint(PtIndex), Target);
-				MaxDist = FMath::Max(MaxDist, Weights[i]);
-			}
-
-			for (double& Weight : Weights) { Weight = 1 - (Weight / MaxDist); }
-		}
-
-		void ComputeWeights(const TArray<FPCGPoint>& SourcePoints, const FPCGPoint& Target, const FPCGExDistanceSettings& DistSettings)
-		{
-			Weights.SetNum(CompoundedPoints.Num());
-
-			double MaxDist = TNumericLimits<double>::Min();
-			for (int i = 0; i < CompoundedPoints.Num(); i++)
-			{
-				Weights[i] = DistSettings.GetDistance(Target, SourcePoints[PCGEx::H64B(CompoundedPoints[i])]);
-				MaxDist = FMath::Max(MaxDist, Weights[i]);
-			}
-
-			for (double& Weight : Weights) { Weight = 1 - (Weight / MaxDist); }
-		}
-
-		uint64 Add(const int32 IOIndex, const int32 PointIndex)
-		{
-			const uint64 H = PCGEx::H64(IOIndex, PointIndex);
-			CompoundedPoints.AddUnique(H);
-			return H;
-		}
+		uint64 Add(const int32 IOIndex, const int32 PointIndex);
 
 		int32 Num() const { return CompoundedPoints.Num(); }
 		uint64 operator[](const int32 Index) const { return this->CompoundedPoints[Index]; }
@@ -91,35 +61,19 @@ namespace PCGExData
 		FIdxCompoundList() { Compounds.Empty(); }
 		~FIdxCompoundList() { PCGEX_DELETE_TARRAY(Compounds) }
 
-		FIdxCompound* New()
-		{
-			FIdxCompound* NewPointCompound = new FIdxCompound();
-			Compounds.Add(NewPointCompound);
-			return NewPointCompound;
-		}
+		FIdxCompound* New();
 
-		uint64 Add(const int32 Index, const int32 IOIndex, const int32 PointIndex)
-		{
-			return Compounds[Index]->Add(IOIndex, PointIndex);
-		}
-
-		void GetIOIndices(const int32 Index, TArray<int32>& OutIOIndices)
-		{
-			FIdxCompound* Compound = Compounds[Index];
-			OutIOIndices.SetNum(Compound->Num());
-			for (int i = 0; i < OutIOIndices.Num(); i++) { OutIOIndices[i] = PCGEx::H64A(Compound->CompoundedPoints[i]); }
-		}
-
-		bool HasIOIndexOverlap(int32 Idx, const TArray<int32>& InIndices)
-		{
-			FIdxCompound* OtherComp = Compounds[Idx];
-			for (const int32 IOIndex : InIndices) { if (OtherComp->ContainsIOIndex(IOIndex)) { return true; } }
-			return false;
-		}
+		uint64 Add(const int32 Index, const int32 IOIndex, const int32 PointIndex);
+		void GetIOIndices(const int32 Index, TArray<int32>& OutIOIndices);
+		bool HasIOIndexOverlap(int32 Idx, const TArray<int32>& InIndices);
 
 		FIdxCompound* operator[](int32 Index) const { return this->Compounds[Index]; }
 	};
 
+#pragma endregion 
+
+#pragma region Data Marking
+	
 	template <typename T>
 	static FPCGMetadataAttribute<T>* WriteMark(UPCGMetadata* Metadata, const FName MarkID, T MarkValue)
 	{
@@ -168,6 +122,9 @@ namespace PCGExData
 
 		return const_cast<UPCGPointData*>(PointData);
 	}
+
+#pragma endregion
+
 }
 
 namespace PCGExDataBlending

@@ -8,6 +8,8 @@
 
 namespace PCGExData
 {
+#pragma region FPointIO
+
 	void FPointIO::InitializeOutput(const EInit InitOut)
 	{
 		switch (InitOut)
@@ -67,7 +69,6 @@ namespace PCGExData
 		for (int i = 0; i < PointList.Num(); i++) { InMap.Add(PointList[i].MetadataEntry, i); }
 	}
 
-
 	FPCGAttributeAccessorKeysPoints* FPointIO::CreateOutKeys()
 	{
 		if (!OutKeys)
@@ -102,7 +103,6 @@ namespace PCGExData
 			for (int i = 0; i < PointList.Num(); i++) { InMap.Add(PointList[i].MetadataEntry, i); }
 		}
 	}
-
 
 	void FPointIO::InitPoint(FPCGPoint& Point, const PCGMetadataEntryKey FromKey) const
 	{
@@ -157,10 +157,7 @@ namespace PCGExData
 		InitPoint(Point, FromPoint);
 	}
 
-	UPCGPointData* FPointIO::NewEmptyOutput() const
-	{
-		return PCGExPointIO::NewEmptyPointData(In);
-	}
+	UPCGPointData* FPointIO::NewEmptyOutput() const { return PCGExPointIO::NewEmptyPointData(In); }
 
 	UPCGPointData* FPointIO::NewEmptyOutput(FPCGContext* Context, const FName PinLabel) const
 	{
@@ -245,6 +242,10 @@ namespace PCGExData
 #endif
 	}
 
+#pragma endregion
+
+#pragma region FPointIOCollection
+
 	FPointIOCollection::FPointIOCollection()
 	{
 	}
@@ -262,10 +263,7 @@ namespace PCGExData
 		Initialize(Context, Sources, InitOut);
 	}
 
-	FPointIOCollection::~FPointIOCollection()
-	{
-		Flush();
-	}
+	FPointIOCollection::~FPointIOCollection() { Flush(); }
 
 	void FPointIOCollection::Initialize(
 		FPCGContext* Context, TArray<FPCGTaggedData>& Sources,
@@ -366,6 +364,10 @@ namespace PCGExData
 		PCGEX_DELETE_TARRAY(Pairs)
 	}
 
+#pragma endregion
+
+#pragma region FPointIOTaggedEntries
+	
 	void FPointIOTaggedEntries::Add(FPointIO* Value)
 	{
 		Entries.AddUnique(Value);
@@ -413,4 +415,7 @@ namespace PCGExData
 		if (const int32* Index = TagMap.Find(Key)) { return Entries[*Index]; }
 		return nullptr;
 	}
+
+#pragma endregion 
+	
 }

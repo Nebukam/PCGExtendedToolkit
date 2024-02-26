@@ -10,6 +10,9 @@
 
 namespace PCGExData
 {
+
+#pragma region FPolyLineIO
+	
 	FPolyLineIO::FPolyLineIO(const UPCGPolyLineData& InPolyline)
 		: In(&InPolyline)
 	{
@@ -96,6 +99,10 @@ namespace PCGExData
 		TotalClosedLength = TotalLength + FVector::Distance(Segments[0].Start, Segments.Last().End);
 	}
 
+#pragma endregion 
+	
+#pragma region FPolyLineIOGroup
+	
 	FPolyLineIOGroup::FPolyLineIOGroup()
 	{
 	}
@@ -225,4 +232,7 @@ namespace PCGExData
 			PostInitFunc(NewPointIO);
 		}
 	}
+
+#pragma endregion 
+	
 }

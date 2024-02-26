@@ -8,6 +8,8 @@
 
 namespace PCGExCluster
 {
+#pragma region FNode
+
 	FNode::~FNode()
 	{
 		AdjacentNodes.Empty();
@@ -46,6 +48,10 @@ namespace PCGExCluster
 		return -1;
 	}
 
+#pragma endregion
+
+#pragma region FCluster
+
 	FCluster::FCluster()
 	{
 		PointIndexMap.Empty();
@@ -78,135 +84,6 @@ namespace PCGExCluster
 		Bounds += Node.Position;
 
 		return Node;
-	}
-
-	FNodeProjection::FNodeProjection(FNode* InNode)
-		: Node(InNode)
-	{
-	}
-
-	void FNodeProjection::Project(FCluster* InCluster, const FPCGExGeo2DProjectionSettings* ProjectionSettings)
-	{
-		Normal = FVector::UpVector;
-
-		const int32 NumNodes = Node->AdjacentNodes.Num();
-		SortedAdjacency.SetNum(NumNodes);
-
-		TArray<int32> Sort;
-		TArray<double> Angles;
-
-		Sort.SetNum(NumNodes);
-		Angles.SetNum(NumNodes);
-
-		for (int i = 0; i < NumNodes; i++)
-		{
-			Sort[i] = i;
-			FVector Direction = ProjectionSettings->Project((Node->Position - InCluster->Nodes[Node->AdjacentNodes[i]].Position), Node->PointIndex);
-			Direction.Z = 0;
-			Angles[i] = PCGExMath::GetAngle(FVector::ForwardVector, Direction.GetSafeNormal());
-		}
-
-		Sort.Sort([&](const int32& A, const int32& B) { return Angles[A] > Angles[B]; });
-		for (int i = 0; i < NumNodes; i++) { SortedAdjacency[i] = Node->AdjacentNodes[Sort[i]]; }
-
-		Sort.Empty();
-		Angles.Empty();
-	}
-
-	void FNodeProjection::ComputeNormal(FCluster* InCluster)
-	{
-		Normal = FVector::ZeroVector;
-
-		if (SortedAdjacency.IsEmpty())
-		{
-			Normal = FVector::UpVector;
-			return;
-		}
-
-		Normal = PCGExMath::GetNormal(InCluster->Nodes[SortedAdjacency.Last()].Position, Node->Position, InCluster->Nodes[SortedAdjacency[0]].Position);
-
-		if (SortedAdjacency.Num() < 2) { return; }
-
-		for (int i = 0; i < SortedAdjacency.Num() - 1; i++)
-		{
-			Normal += PCGExMath::GetNormal(InCluster->Nodes[SortedAdjacency[i]].Position, Node->Position, InCluster->Nodes[SortedAdjacency[i + 1]].Position);
-		}
-
-		Normal /= SortedAdjacency.Num();
-	}
-
-	int32 FNodeProjection::GetAdjacencyIndex(const int32 NodeIndex) const
-	{
-		for (int i = 0; i < SortedAdjacency.Num(); i++) { if (SortedAdjacency[i] == NodeIndex) { return i; } }
-		return -1;
-	}
-
-	FNodeProjection::~FNodeProjection()
-	{
-		SortedAdjacency.Empty();
-	}
-
-	FClusterProjection::FClusterProjection(FCluster* InCluster, FPCGExGeo2DProjectionSettings* InProjectionSettings)
-		: Cluster(InCluster), ProjectionSettings(InProjectionSettings)
-	{
-		Nodes.Reserve(Cluster->Nodes.Num());
-		for (FNode& Node : Cluster->Nodes) { Nodes.Emplace(&Node); }
-	}
-
-	FClusterProjection::~FClusterProjection()
-	{
-		Nodes.Empty();
-	}
-
-	void FClusterProjection::Build()
-	{
-		for (FNodeProjection& PNode : Nodes) { PNode.Project(Cluster, ProjectionSettings); }
-	}
-
-	int32 FClusterProjection::FindNextAdjacentNode(EPCGExClusterSearchOrientationMode Orient, int32 NodeIndex, int32 From, const TSet<int32>& Exclusion, const int32 MinNeighbors)
-	{
-		if (Orient == EPCGExClusterSearchOrientationMode::CW) { return FindNextAdjacentNodeCW(NodeIndex, From, Exclusion, MinNeighbors); }
-		return FindNextAdjacentNodeCCW(NodeIndex, From, Exclusion, MinNeighbors);
-	}
-
-	int32 FClusterProjection::FindNextAdjacentNodeCCW(const int32 NodeIndex, const int32 From, const TSet<int32>& Exclusion, const int32 MinNeighbors)
-	{
-		const FNodeProjection& Project = Nodes[NodeIndex];
-		const int32 StartIndex = Project.GetAdjacencyIndex(From);
-		if (StartIndex == -1) { return -1; }
-
-		const int32 NumNodes = Project.SortedAdjacency.Num();
-		for (int i = 0; i < NumNodes; i++)
-		{
-			const int32 NextIndex = Project.SortedAdjacency[PCGExMath::Tile(StartIndex + i + 1, 0, NumNodes - 1)];
-			if ((NextIndex == From && NumNodes > 1) ||
-				Exclusion.Contains(NextIndex) ||
-				Cluster->Nodes[NextIndex].AdjacentNodes.Num() < MinNeighbors) { continue; }
-
-			return NextIndex;
-		}
-
-		return -1;
-	}
-
-	int32 FClusterProjection::FindNextAdjacentNodeCW(const int32 NodeIndex, const int32 From, const TSet<int32>& Exclusion, const int32 MinNeighbors)
-	{
-		const FNodeProjection& Project = Nodes[NodeIndex];
-		const int32 StartIndex = Project.GetAdjacencyIndex(From);
-		if (StartIndex == -1) { return -1; }
-
-		const int32 NumNodes = Project.SortedAdjacency.Num();
-		for (int i = 0; i < NumNodes; i++)
-		{
-			const int32 NextIndex = Project.SortedAdjacency[PCGExMath::Tile(StartIndex - i - 1, 0, NumNodes - 1)];
-			if ((NextIndex == From && NumNodes > 1) ||
-				Exclusion.Contains(NextIndex) ||
-				Cluster->Nodes[NextIndex].AdjacentNodes.Num() < MinNeighbors) { continue; }
-
-			return NextIndex;
-		}
-
-		return -1;
 	}
 
 	bool FCluster::BuildFrom(
@@ -366,7 +243,6 @@ namespace PCGExCluster
 		return ClosestIndex;
 	}
 
-
 	int32 FCluster::FindClosestNeighbor(const int32 NodeIndex, const FVector& Position, int32 MinNeighborCount) const
 	{
 		const FNode& Node = Nodes[NodeIndex];
@@ -492,6 +368,182 @@ namespace PCGExCluster
 			Node.Position = FVector(V.X, V.Y, 0);
 		}
 	}
+
+#pragma endregion
+
+#pragma region FNodeProjection
+
+	FNodeProjection::FNodeProjection(FNode* InNode)
+		: Node(InNode)
+	{
+	}
+
+	void FNodeProjection::Project(FCluster* InCluster, const FPCGExGeo2DProjectionSettings* ProjectionSettings)
+	{
+		Normal = FVector::UpVector;
+
+		const int32 NumNodes = Node->AdjacentNodes.Num();
+		SortedAdjacency.SetNum(NumNodes);
+
+		TArray<int32> Sort;
+		TArray<double> Angles;
+
+		Sort.SetNum(NumNodes);
+		Angles.SetNum(NumNodes);
+
+		for (int i = 0; i < NumNodes; i++)
+		{
+			Sort[i] = i;
+			FVector Direction = ProjectionSettings->Project((Node->Position - InCluster->Nodes[Node->AdjacentNodes[i]].Position), Node->PointIndex);
+			Direction.Z = 0;
+			Angles[i] = PCGExMath::GetAngle(FVector::ForwardVector, Direction.GetSafeNormal());
+		}
+
+		Sort.Sort([&](const int32& A, const int32& B) { return Angles[A] > Angles[B]; });
+		for (int i = 0; i < NumNodes; i++) { SortedAdjacency[i] = Node->AdjacentNodes[Sort[i]]; }
+
+		Sort.Empty();
+		Angles.Empty();
+	}
+
+	void FNodeProjection::ComputeNormal(FCluster* InCluster)
+	{
+		Normal = FVector::ZeroVector;
+
+		if (SortedAdjacency.IsEmpty())
+		{
+			Normal = FVector::UpVector;
+			return;
+		}
+
+		Normal = PCGExMath::GetNormal(InCluster->Nodes[SortedAdjacency.Last()].Position, Node->Position, InCluster->Nodes[SortedAdjacency[0]].Position);
+
+		if (SortedAdjacency.Num() < 2) { return; }
+
+		for (int i = 0; i < SortedAdjacency.Num() - 1; i++)
+		{
+			Normal += PCGExMath::GetNormal(InCluster->Nodes[SortedAdjacency[i]].Position, Node->Position, InCluster->Nodes[SortedAdjacency[i + 1]].Position);
+		}
+
+		Normal /= SortedAdjacency.Num();
+	}
+
+	int32 FNodeProjection::GetAdjacencyIndex(const int32 NodeIndex) const
+	{
+		for (int i = 0; i < SortedAdjacency.Num(); i++) { if (SortedAdjacency[i] == NodeIndex) { return i; } }
+		return -1;
+	}
+
+	FNodeProjection::~FNodeProjection()
+	{
+		SortedAdjacency.Empty();
+	}
+
+#pragma endregion
+
+#pragma region FClusterProjection
+
+	FClusterProjection::FClusterProjection(FCluster* InCluster, FPCGExGeo2DProjectionSettings* InProjectionSettings)
+		: Cluster(InCluster), ProjectionSettings(InProjectionSettings)
+	{
+		Nodes.Reserve(Cluster->Nodes.Num());
+		for (FNode& Node : Cluster->Nodes) { Nodes.Emplace(&Node); }
+	}
+
+	FClusterProjection::~FClusterProjection()
+	{
+		Nodes.Empty();
+	}
+
+	void FClusterProjection::Build()
+	{
+		for (FNodeProjection& PNode
+		     :
+		     Nodes
+		)
+		{
+			PNode.Project(Cluster, ProjectionSettings);
+		}
+	}
+
+	int32 FClusterProjection::FindNextAdjacentNode(EPCGExClusterSearchOrientationMode Orient, int32 NodeIndex, int32 From, const TSet<int32>& Exclusion, const int32 MinNeighbors)
+	{
+		if (Orient == EPCGExClusterSearchOrientationMode::CW) { return FindNextAdjacentNodeCW(NodeIndex, From, Exclusion, MinNeighbors); }
+		return FindNextAdjacentNodeCCW(NodeIndex, From, Exclusion, MinNeighbors);
+	}
+
+	int32 FClusterProjection::FindNextAdjacentNodeCCW(const int32 NodeIndex, const int32 From, const TSet<int32>& Exclusion, const int32 MinNeighbors)
+	{
+		const FNodeProjection& Project = Nodes[NodeIndex];
+		const int32 StartIndex = Project.GetAdjacencyIndex(From);
+		if (StartIndex == -1) { return -1; }
+
+		const int32 NumNodes = Project.SortedAdjacency.Num();
+		for (int i = 0; i < NumNodes; i++)
+		{
+			const int32 NextIndex = Project.SortedAdjacency[PCGExMath::Tile(StartIndex + i + 1, 0, NumNodes - 1)];
+			if ((NextIndex == From && NumNodes > 1) ||
+				Exclusion.Contains(NextIndex) ||
+				Cluster->Nodes[NextIndex].AdjacentNodes.Num() < MinNeighbors) { continue; }
+
+			return NextIndex;
+		}
+
+		return -1;
+	}
+
+	int32 FClusterProjection::FindNextAdjacentNodeCW(const int32 NodeIndex, const int32 From, const TSet<int32>& Exclusion, const int32 MinNeighbors)
+	{
+		const FNodeProjection& Project = Nodes[NodeIndex];
+		const int32 StartIndex = Project.GetAdjacencyIndex(From);
+		if (StartIndex == -1) { return -1; }
+
+		const int32 NumNodes = Project.SortedAdjacency.Num();
+		for (int i = 0; i < NumNodes; i++)
+		{
+			const int32 NextIndex = Project.SortedAdjacency[PCGExMath::Tile(StartIndex - i - 1, 0, NumNodes - 1)];
+			if ((NextIndex == From && NumNodes > 1) ||
+				Exclusion.Contains(NextIndex) ||
+				Cluster->Nodes[NextIndex].AdjacentNodes.Num() < MinNeighbors) { continue; }
+
+			return NextIndex;
+		}
+
+		return -1;
+	}
+
+#pragma endregion
+
+#pragma region FNodeStateHandler
+
+	bool FNodeTestHandler::Test(const int32 PointIndex) const
+	{
+		return true;
+	}
+
+	FNodeStateHandler::FNodeStateHandler(UPCGExNodeStateDefinition* InDefinition)
+		: AStateHandler(InDefinition)
+	{
+		Definition = InDefinition;
+
+		const int32 NumConditions = InDefinition->Tests.Num();
+		TestHandlers.SetNumUninitialized(NumConditions);
+
+		for (int i = 0; i < NumConditions; i++) { TestHandlers[i] = new FNodeTestHandler(InDefinition->Tests[i]); }
+	}
+
+	void FNodeStateHandler::Capture(FCluster* InCluster)
+	{
+		Cluster = InCluster;
+	}
+
+	bool FNodeStateHandler::Test(const int32 PointIndex) const
+	{
+		for (const FNodeTestHandler* Test : TestHandlers) { if (!Test->Test(PointIndex)) { return false; } }
+		return true;
+	}
+
+#pragma endregion
 }
 
 namespace PCGExClusterTask

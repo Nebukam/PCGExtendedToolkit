@@ -8,11 +8,11 @@
 
 #include "Data/PCGExGraphDefinition.h"
 
-#include "PCGExCreateCustomGraphSocketState.generated.h"
+#include "PCGExCreateNodeTest.generated.h"
 
 /** Outputs a single GraphParam to be consumed by other nodes */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
-class PCGEXTENDEDTOOLKIT_API UPCGExCreateCustomGraphSocketStateSettings : public UPCGSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExCreateNodeTestSettings : public UPCGSettings
 {
 	GENERATED_BODY()
 
@@ -21,8 +21,8 @@ public:
 #if WITH_EDITOR
 	bool bCacheResult = false;
 	PCGEX_NODE_INFOS_CUSTOM_TASKNAME(
-		GraphSocketState, "Socket State Definition", "Creates a socket state configuration from any number of sockets and attributes.",
-		StateName.IsNone() ? FName(GetDefaultNodeTitle().ToString()) : FName(FString("PCGEx | SS : ") + StateName.ToString()))
+		NodeTest, "Node Test Definition", "Creates a single node test condition to be used by a Node State.",
+		FName(FString(Descriptor.GetDisplayName())))
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Param; }
 
 #endif
@@ -42,24 +42,12 @@ public:
 	//~End UObject interface
 
 public:
-	/** State name.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	FName StateName = NAME_None;
-
-	/** State ID.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	int32 StateId = 0;
-
-	/** State priority for conflict resolution.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	int32 Priority = 0;
-
-	/** List of tests to perform */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, TitleProperty="{SocketName}"))
-	TArray<FPCGExSocketTestDescriptor> Tests;
+	/** Test Descriptor.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
+	FPCGExAdjacencyTestDescriptor Descriptor;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExCreateCustomGraphSocketStateElement : public IPCGElement
+class PCGEXTENDEDTOOLKIT_API FPCGExCreateNodeTestElement : public IPCGElement
 {
 public:
 #if WITH_EDITOR

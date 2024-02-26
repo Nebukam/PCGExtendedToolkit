@@ -8,11 +8,11 @@
 
 #include "Data/PCGExGraphDefinition.h"
 
-#include "PCGExCreateCustomGraphSocketState.generated.h"
+#include "PCGExCreateNodeState.generated.h"
 
 /** Outputs a single GraphParam to be consumed by other nodes */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
-class PCGEXTENDEDTOOLKIT_API UPCGExCreateCustomGraphSocketStateSettings : public UPCGSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExCreateNodeStateSettings : public UPCGSettings
 {
 	GENERATED_BODY()
 
@@ -21,8 +21,8 @@ public:
 #if WITH_EDITOR
 	bool bCacheResult = false;
 	PCGEX_NODE_INFOS_CUSTOM_TASKNAME(
-		GraphSocketState, "Socket State Definition", "Creates a socket state configuration from any number of sockets and attributes.",
-		StateName.IsNone() ? FName(GetDefaultNodeTitle().ToString()) : FName(FString("PCGEx | SS : ") + StateName.ToString()))
+		NodeState, "Node State Definition", "Creates a node state configuration.",
+		StateName.IsNone() ? FName(GetDefaultNodeTitle().ToString()) : FName(FString("PCGEx | NS : ") + StateName.ToString()))
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Param; }
 
 #endif
@@ -54,12 +54,9 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	int32 Priority = 0;
 
-	/** List of tests to perform */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, TitleProperty="{SocketName}"))
-	TArray<FPCGExSocketTestDescriptor> Tests;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExCreateCustomGraphSocketStateElement : public IPCGElement
+class PCGEXTENDEDTOOLKIT_API FPCGExCreateNodeStateElement : public IPCGElement
 {
 public:
 #if WITH_EDITOR

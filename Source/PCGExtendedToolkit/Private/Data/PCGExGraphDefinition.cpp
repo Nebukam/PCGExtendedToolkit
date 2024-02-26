@@ -8,6 +8,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExCustomGraphProcessorContext;
 
 namespace PCGExGraph
 {
+#pragma region FSocket
+
 	FSocket::~FSocket()
 	{
 		MatchingSockets.Empty();
@@ -125,6 +127,10 @@ namespace PCGExGraph
 		return *(AttributeNameBase.ToString() + Separator + PropertyName.ToString());
 	}
 
+#pragma endregion
+
+#pragma region FSocketMapping
+
 	void FSocketMapping::Initialize(
 		const FName InIdentifier,
 		TArray<FPCGExSocketDescriptor>& InSockets,
@@ -225,8 +231,20 @@ namespace PCGExGraph
 			}
 		}
 	}
+
+#pragma endregion
 }
 
+#pragma region UPCGExNodeStateDefinition
+
+void UPCGExNodeStateDefinition::BeginDestroy()
+{
+	Super::BeginDestroy();
+}
+
+#pragma endregion
+
+#pragma region UPCGExGraphDefinition
 
 UPCGExGraphDefinition::UPCGExGraphDefinition(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -292,175 +310,155 @@ void UPCGExGraphDefinition::Cleanup() const
 	if (SocketMapping) { SocketMapping->Cleanup(); }
 }
 
-UPCGExSocketDefinition::UPCGExSocketDefinition(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
+#pragma endregion
+
+#if WITH_EDITOR
+FString FPCGExAdjacencyTestDescriptor::GetDisplayName() const
 {
+	FString DisplayName = OperandA.GetDisplayName();
+
+	switch (Comparison)
+	{
+	case EPCGExComparison::StrictlyEqual:
+		DisplayName += " == ";
+		break;
+	case EPCGExComparison::StrictlyNotEqual:
+		DisplayName += " != ";
+		break;
+	case EPCGExComparison::EqualOrGreater:
+		DisplayName += " >= ";
+		break;
+	case EPCGExComparison::EqualOrSmaller:
+		DisplayName += " <= ";
+		break;
+	case EPCGExComparison::StrictlyGreater:
+		DisplayName += " > ";
+		break;
+	case EPCGExComparison::StrictlySmaller:
+		DisplayName += " < ";
+		break;
+	case EPCGExComparison::NearlyEqual:
+		DisplayName += " ~= ";
+		break;
+	case EPCGExComparison::NearlyNotEqual:
+		DisplayName += " !~= ";
+		break;
+	default: DisplayName += " ?? ";
+	}
+
+	DisplayName += OperandB.GetDisplayName();
+	DisplayName += TEXT(" (");
+
+	switch (Mode)
+	{
+	case EPCGExAdjacencyTestMode::All:
+		DisplayName += TEXT("All");
+		break;
+	case EPCGExAdjacencyTestMode::Some:
+		DisplayName += TEXT("Some");
+		break;
+	default: ;
+	}
+
+	DisplayName += TEXT(")");
+	return DisplayName;
 }
+#endif
 
 void UPCGExSocketDefinition::BeginDestroy()
 {
 	Super::BeginDestroy();
 }
 
-UPCGExSocketStateDefinition::UPCGExSocketStateDefinition(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
+void UPCGExAdjacencyTestDefinition::BeginDestroy()
 {
+	Super::BeginDestroy();
 }
 
 void UPCGExSocketStateDefinition::BeginDestroy()
 {
-	Conditions.Empty();
-
-	IfAttributes.Empty();
-	ElseAttributes.Empty();
-
-	PCGEX_DELETE_TARRAY(IfInfos)
-	PCGEX_DELETE_TARRAY(ElseInfos)
-
+	Tests.Empty();
 	Super::BeginDestroy();
 }
 
-void PCGExGraph::FSingleStateMapping::Capture(const FGraphInputs* GraphInputs, PCGExData::FPointIO* InPointIO)
+namespace PCGExGraph
 {
-	for (const UPCGExGraphDefinition* Graph : GraphInputs->Params) { Capture(Graph, InPointIO); }
-}
+#pragma region FSocketStateHandler
 
-void PCGExGraph::FSingleStateMapping::Capture(const UPCGExGraphDefinition* Graph, const PCGExData::FPointIO* InPointIO)
-{
-	const int32 NumConditions = Definition->Conditions.Num();
-	int32 NumEnabledConditions = 0;
-	UPCGMetadata* Metadata = InPointIO->GetIn()->Metadata;
-	for (int i = 0; i < NumConditions; i++)
+	FSocketStateHandler::FSocketStateHandler(UPCGExSocketStateDefinition* InDefinition)
+		: AStateHandler(InDefinition)
 	{
-		if (Attributes[i]) { continue; } // Spot already taken by another graph
+		Definition = InDefinition;
 
-		const FPCGExSocketConditionDescriptor& Condition = Definition->Conditions[i];
-		if (!Condition.bEnabled) { continue; }
-
-		NumEnabledConditions++;
-
-		const FName SocketEdgeTypeName = PCGEx::GetCompoundName(Graph->GraphIdentifier, Condition.SocketName, SocketPropertyNameEdgeType);
-		if (FPCGMetadataAttributeBase* AttBase = Metadata->GetMutableAttribute(SocketEdgeTypeName);
-			AttBase && AttBase->GetTypeId() == static_cast<int16>(EPCGMetadataTypes::Integer32))
+		const int32 NumTests = InDefinition->Tests.Num();
+		EdgeTypeAttributes.SetNum(Definition->Tests.Num());
+		EdgeTypeReaders.SetNum(Definition->Tests.Num());
+		for (int i = 0; i < NumTests; i++)
 		{
-			FPCGMetadataAttribute<int32>* TypedAtt = static_cast<FPCGMetadataAttribute<int32>*>(AttBase);
-			Attributes[i] = TypedAtt;
+			EdgeTypeAttributes[i] = nullptr;
+			EdgeTypeReaders[i] = nullptr;
 		}
 	}
 
-	int32 NumValid = 0;
-	for (int i = 0; i < Attributes.Num(); i++) { NumValid += Attributes[i] ? 1 : 0; }
-
-	bValid = NumValid > 0;
-	bPartial = (NumEnabledConditions != NumValid);
-}
-
-void PCGExGraph::FSingleStateMapping::Grab(PCGExData::FPointIO* PointIO)
-{
-	for (int i = 0; i < Attributes.Num(); i++)
+	void FSocketStateHandler::Capture(const FGraphInputs* GraphInputs, PCGExData::FPointIO* InPointIO)
 	{
-		if (!Attributes[i]) { continue; }
-		PCGEx::TFAttributeReader<int32>* Reader = new PCGEx::TFAttributeReader<int32>(Attributes[i]->Name);
-		Readers[i] = Reader;
-		Reader->Bind(*PointIO);
-	}
-}
-
-bool PCGExGraph::FSingleStateMapping::Test(const int32 InIndex) const
-{
-	for (int i = 0; i < Definition->Conditions.Num(); i++)
-	{
-		PCGEx::TFAttributeReader<int32>* Reader = Readers[i];
-		if (!Reader) { continue; }
-		if (!Definition->Conditions[i].MeetCondition(Reader->Values[InIndex])) { return false; }
+		for (const UPCGExGraphDefinition* Graph : GraphInputs->Params) { Capture(Graph, InPointIO); }
 	}
 
-	return true;
-}
-
-void PCGExGraph::FSingleStateMapping::PrepareData(const PCGExData::FPointIO* PointIO, TArray<bool>* States)
-{
-	const int32 NumPoints = States->Num();
-
-	OverlappingAttributes.Empty();
-
-	bool bNeedIfs = (*States)[0];
-	bool bNeedElses = !bNeedIfs;
-
-	if (!bNeedIfs)
+	void FSocketStateHandler::Capture(const UPCGExGraphDefinition* Graph, const PCGExData::FPointIO* InPointIO)
 	{
-		for (int p = 0; p < NumPoints; p++)
+		const int32 NumConditions = Definition->Tests.Num();
+		int32 NumEnabledConditions = 0;
+		UPCGMetadata* Metadata = InPointIO->GetIn()->Metadata;
+		for (int i = 0; i < NumConditions; i++)
 		{
-			if ((*States)[p])
+			if (EdgeTypeAttributes[i]) { continue; } // Spot already taken by another graph
+
+			const FPCGExSocketTestDescriptor& Condition = Definition->Tests[i];
+			if (!Condition.bEnabled) { continue; }
+
+			NumEnabledConditions++;
+
+			const FName SocketEdgeTypeName = PCGEx::GetCompoundName(Graph->GraphIdentifier, Condition.SocketName, SocketPropertyNameEdgeType);
+			if (FPCGMetadataAttributeBase* AttBase = Metadata->GetMutableAttribute(SocketEdgeTypeName);
+				AttBase && AttBase->GetTypeId() == static_cast<int16>(EPCGMetadataTypes::Integer32))
 			{
-				bNeedIfs = true;
-				break;
+				FPCGMetadataAttribute<int32>* TypedAtt = static_cast<FPCGMetadataAttribute<int32>*>(AttBase);
+				EdgeTypeAttributes[i] = TypedAtt;
 			}
 		}
+
+		int32 NumValid = 0;
+		for (int i = 0; i < EdgeTypeAttributes.Num(); i++) { NumValid += EdgeTypeAttributes[i] ? 1 : 0; }
+
+		bValid = NumValid > 0;
+		bPartial = (NumEnabledConditions != NumValid);
 	}
 
-	if (!bNeedElses)
+	void FSocketStateHandler::PrepareForTesting(PCGExData::FPointIO* PointIO)
 	{
-		for (int p = 0; p < NumPoints; p++)
+		AStateHandler::PrepareForTesting(PointIO);
+
+		for (int i = 0; i < EdgeTypeAttributes.Num(); i++)
 		{
-			if (!(*States)[p])
-			{
-				bNeedElses = true;
-				break;
-			}
+			if (!EdgeTypeAttributes[i]) { continue; }
+			PCGEx::TFAttributeReader<int32>* Reader = new PCGEx::TFAttributeReader<int32>(EdgeTypeAttributes[i]->Name);
+			EdgeTypeReaders[i] = Reader;
+			Reader->Bind(*PointIO);
 		}
 	}
 
-	InIfAttributes.Empty();
-	InElseAttributes.Empty();
-
-	OutIfAttributes.Empty();
-	OutElseAttributes.Empty();
-
-	UPCGMetadata* Metadata = PointIO->GetOut()->Metadata;
-
-	auto CreatePlaceholderAttributes = [&](
-		TArray<PCGEx::FAttributesInfos*>& InfosList,
-		TArray<FPCGMetadataAttributeBase*>& InAttributes,
-		TArray<FPCGMetadataAttributeBase*>& OutAttributes)
+	bool FSocketStateHandler::Test(const int32 PointIndex) const
 	{
-		for (PCGEx::FAttributesInfos* Infos : InfosList)
+		for (int i = 0; i < Definition->Tests.Num(); i++)
 		{
-			for (FPCGMetadataAttributeBase* Att : Infos->Attributes)
-			{
-				InAttributes.Add(Att);
-
-				PCGMetadataAttribute::CallbackWithRightType(
-					Att->GetTypeId(),
-					[&](auto DummyValue) -> void
-					{
-						using RawT = decltype(DummyValue);
-
-						FPCGMetadataAttributeBase* OutAttribute = Metadata->GetMutableAttribute(Att->Name);
-
-						if (OutAttribute)
-						{
-							if (OutAttribute->GetTypeId() != Att->GetTypeId())
-							{
-								OverlappingAttributes.Add(Att->Name.ToString());
-								OutAttributes.Add(nullptr);
-							}
-							else { OutAttributes.Add(OutAttribute); }
-							return;
-						}
-
-						const FPCGMetadataAttribute<RawT>* TypedInAttribute = static_cast<FPCGMetadataAttribute<RawT>*>(Att);
-						FPCGMetadataAttribute<RawT>* TypedOutAttribute = Metadata->FindOrCreateAttribute(
-							Att->Name,
-							TypedInAttribute->GetValue(PCGInvalidEntryKey),
-							TypedInAttribute->AllowsInterpolation());
-
-						OutAttributes.Add(TypedOutAttribute);
-					});
-			}
+			PCGEx::TFAttributeReader<int32>* Reader = EdgeTypeReaders[i];
+			if (!Reader) { continue; }
+			if (!Definition->Tests[i].MeetCondition(Reader->Values[PointIndex])) { return false; }
 		}
-	};
 
-	if (bNeedIfs) { CreatePlaceholderAttributes(Definition->IfInfos, InIfAttributes, OutIfAttributes); }
-	if (bNeedElses) { CreatePlaceholderAttributes(Definition->ElseInfos, InElseAttributes, OutElseAttributes); }
+		return true;
+	}
+
+#pragma endregion
 }

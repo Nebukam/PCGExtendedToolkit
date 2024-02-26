@@ -7,6 +7,8 @@
 #include "Math/UnrealMathUtility.h"
 
 #include "PCGExAttributeHelpers.h"
+#include "PCGExCompare.h"
+#include "PCGExDataState.h"
 #include "PCGParamData.h"
 #include "Graph/PCGExGraph.h"
 
@@ -27,8 +29,8 @@ ENUM_CLASS_FLAGS(EPCGExEdgeType)
 UENUM(BlueprintType, meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor="true"))
 enum class EPCGExTangentType : uint8
 {
-	Custom      = 0 UMETA(DisplayName = "Custom", Tooltip="Custom Attributes."),
-	Extrapolate = 0 UMETA(DisplayName = "Extrapolate", Tooltip="Extrapolate from neighbors position and direction"),
+	Custom UMETA(DisplayName = "Custom", Tooltip="Custom Attributes."),
+	Extrapolate UMETA(DisplayName = "Extrapolate", Tooltip="Extrapolate from neighbors position and direction"),
 };
 
 ENUM_CLASS_FLAGS(EPCGExTangentType)
@@ -43,6 +45,48 @@ enum class EPCGExSocketType : uint8
 };
 
 ENUM_CLASS_FLAGS(EPCGExSocketType)
+
+UENUM(BlueprintType)
+enum class EPCGExAdjacencyTestMode : uint8
+{
+	All UMETA(DisplayName = "All", Tooltip="Test a condition using all adjacent nodes."),
+	Some UMETA(DisplayName = "Some", Tooltip="Test a condition using some adjacent nodes only.")
+};
+
+UENUM(BlueprintType)
+enum class EPCGExAdjacencyGatherMode : uint8
+{
+	Individual UMETA(DisplayName = "Individual", Tooltip="Test individual nodes"),
+	Average UMETA(DisplayName = "Average", Tooltip="Average value"),
+	Min UMETA(DisplayName = "Min", Tooltip="Min value"),
+	Max UMETA(DisplayName = "Max", Tooltip="Max value"),
+	Sum UMETA(DisplayName = "Sum", Tooltip="Sum value"),
+};
+
+UENUM(BlueprintType)
+enum class EPCGExAdjacencySubsetMode : uint8
+{
+	AtLeast UMETA(DisplayName = "At Least", Tooltip="Requirements must be met by at least X adjacent nodes."),
+	AtMost UMETA(DisplayName = "At Most", Tooltip="Requirements must be met by at most X adjacent nodes."),
+	Exactly UMETA(DisplayName = "Exactly", Tooltip="Requirements must be met by exactly X adjacent nodes, no more, no less.")
+};
+
+UENUM(BlueprintType)
+enum class EPCGExAdjacencySubsetMeasureMode : uint8
+{
+	AbsoluteStatic UMETA(DisplayName = "Absolute Static", Tooltip="Uses an absolute unique value."),
+	AbsoluteLocal UMETA(DisplayName = "Absolute Local", Tooltip="Uses an absolute value fetched from a node attribute."),
+	RelativeStatic UMETA(DisplayName = "Relative Static", Tooltip="Uses a relative unique value."),
+	RelativeLocal UMETA(DisplayName = "Relative Local", Tooltip="Uses a relative value fetches from a node attribute.")
+};
+
+UENUM(BlueprintType)
+enum class EPCGExRelativeRoundingMode : uint8
+{
+	Round UMETA(DisplayName = "Round", Tooltip="Rounds value to closest integer (0.1 = 0, 0.9 = 1)"),
+	Floor UMETA(DisplayName = "Floor", Tooltip="Rounds value to closest smaller integer (0.1 = 0, 0.9 = 0)"),
+	Ceil UMETA(DisplayName = "Ceil", Tooltip="Rounds value to closest highest integer (0.1 = 1, 0.9 = 1)"),
+};
 
 #pragma region Descriptors
 
@@ -191,7 +235,7 @@ public:
 };
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExSocketConditionDescriptor
+struct PCGEXTENDEDTOOLKIT_API FPCGExSocketTestDescriptor
 {
 	GENERATED_BODY()
 
@@ -209,18 +253,18 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSocketConditionDescriptor
 	uint8 MustBeAnyOf = static_cast<uint8>(EPCGExEdgeType::Complete);
 
 	/** Edge types to crawl to create a Cluster */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="MustBeMode==EPCGExSocketStateMode::Only", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="MustBeMode==EPCGExSocketStateMode::Exactly", EditConditionHides))
 	EPCGExEdgeType MustBeExactly = EPCGExEdgeType::Complete;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Must NOT be ..."))
 	EPCGExSocketStateMode MustNotBeMode = EPCGExSocketStateMode::Exactly;
 
 	/** Edge types to crawl to create a Cluster */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExEdgeType", EditCondition="MustNodeBeMode==EPCGExSocketStateMode::AnyOf", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, Bitmask, BitmaskEnum="/Script/PCGExtendedToolkit.EPCGExEdgeType", EditCondition="MustNotBeMode==EPCGExSocketStateMode::AnyOf", EditConditionHides))
 	uint8 MustNotBeAnyOf = static_cast<uint8>(EPCGExEdgeType::Unknown);
 
 	/** Edge types to crawl to create a Cluster */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="MustNodeBeMode==EPCGExSocketStateMode::Only", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="MustNotBeMode==EPCGExSocketStateMode::Exactly", EditConditionHides))
 	EPCGExEdgeType MustNotBeExactly = EPCGExEdgeType::Unknown;
 
 	void Populate(const FPCGExSocketDescriptor& Descriptor)
@@ -318,6 +362,56 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Relationships")
 	bool bMirrorMatchingSockets = false;
+};
+
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExAdjacencyTestDescriptor
+{
+	GENERATED_BODY()
+
+	FPCGExAdjacencyTestDescriptor()
+	{
+	}
+
+	/** How should adjacency be observed. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	EPCGExAdjacencyTestMode Mode = EPCGExAdjacencyTestMode::All;
+
+	/** How to consolidate value for testing. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="Mode==EPCGExAdjacencyTestMode::All", EditConditionHides))
+	EPCGExAdjacencyGatherMode Consolidation = EPCGExAdjacencyGatherMode::Average;
+
+	/** How should adjacency be observed. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="Mode==EPCGExAdjacencyTestMode::Some", EditConditionHides))
+	EPCGExAdjacencySubsetMode SubsetMode = EPCGExAdjacencySubsetMode::AtLeast;
+
+	/** Define the nodes subset' size that must meet requirements. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="Mode==EPCGExAdjacencyTestMode::Some", EditConditionHides))
+	EPCGExAdjacencySubsetMeasureMode SubsetMeasure = EPCGExAdjacencySubsetMeasureMode::AbsoluteStatic;
+
+	/** Local measure attribute */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="Mode==EPCGExAdjacencyTestMode::Some && (SubsetMeasure==EPCGExAdjacencySubsetMeasureMode::AbsoluteLocal||SubsetMeasure==EPCGExAdjacencySubsetMeasureMode::RelativeLocal)", EditConditionHides))
+	FPCGExInputDescriptor LocalMeasure;
+
+	/** Rounding mode for relative measures */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="Mode==EPCGExAdjacencyTestMode::Some && (SubsetMeasure==EPCGExAdjacencySubsetMeasureMode::RelativeStatic||SubsetMeasure==EPCGExAdjacencySubsetMeasureMode::RelativeLocal)", EditConditionHides))
+	EPCGExRelativeRoundingMode RoundingMode = EPCGExRelativeRoundingMode::Round;
+
+	/** Operand A for testing -- Will be broadcasted to `double` under the hood. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(ShowOnlyInnerProperties))
+	FPCGExInputDescriptor OperandA;
+
+	/** Comparison */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	EPCGExComparison Comparison = EPCGExComparison::NearlyEqual;
+
+	/** Operand B for testing -- Will be broadcasted to `double` under the hood. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(ShowOnlyInnerProperties))
+	FPCGExInputDescriptor OperandB;
+
+#if WITH_EDITOR
+	FString GetDisplayName() const;
+#endif
 };
 
 #pragma endregion
@@ -575,19 +669,15 @@ namespace PCGExGraph
 #pragma endregion
 }
 
-
 /**
  * 
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGExSocketDefinition : public UPCGPointData
+class PCGEXTENDEDTOOLKIT_API UPCGExSocketDefinition : public UPCGExParamDataBase
 {
 	GENERATED_BODY()
 
 public:
-	UPCGExSocketDefinition(const FObjectInitializer& ObjectInitializer);
-	virtual EPCGDataType GetDataType() const override { return EPCGDataType::Param; }
-
 	FPCGExSocketDescriptor Descriptor;
 
 	virtual void BeginDestroy() override;
@@ -597,26 +687,39 @@ public:
  * 
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGExSocketStateDefinition : public UPCGPointData
+class PCGEXTENDEDTOOLKIT_API UPCGExAdjacencyTestDefinition : public UPCGExParamDataBase
 {
 	GENERATED_BODY()
 
 public:
-	UPCGExSocketStateDefinition(const FObjectInitializer& ObjectInitializer);
-	virtual EPCGDataType GetDataType() const override { return EPCGDataType::Param; }
+	FPCGExAdjacencyTestDescriptor Descriptor;
+	virtual void BeginDestroy() override;
+};
 
-	FName StateName = NAME_None;
-	int32 StateId = 0;
-	int32 Priority = 0;
 
-	TArray<FPCGExSocketConditionDescriptor> Conditions;
+/**
+ * 
+ */
+UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
+class PCGEXTENDEDTOOLKIT_API UPCGExSocketStateDefinition : public UPCGExStateDefinitionBase
+{
+	GENERATED_BODY()
 
-	TArray<TObjectPtr<UPCGParamData>> IfAttributes;
-	TArray<PCGEx::FAttributesInfos*> IfInfos;
+public:
+	TArray<FPCGExSocketTestDescriptor> Tests;
+	virtual void BeginDestroy() override;
+};
 
-	TArray<TObjectPtr<UPCGParamData>> ElseAttributes;
-	TArray<PCGEx::FAttributesInfos*> ElseInfos;
+/**
+ * 
+ */
+UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
+class PCGEXTENDEDTOOLKIT_API UPCGExNodeStateDefinition : public UPCGExStateDefinitionBase
+{
+	GENERATED_BODY()
 
+public:
+	TArray<UPCGExAdjacencyTestDefinition*> Tests;
 	virtual void BeginDestroy() override;
 };
 
@@ -849,57 +952,26 @@ namespace PCGExGraph
 		}
 	}
 
-	struct PCGEXTENDEDTOOLKIT_API FSingleStateMapping
+	class PCGEXTENDEDTOOLKIT_API FSocketStateHandler : public PCGExDataState::AStateHandler
 	{
-		FSingleStateMapping(UPCGExSocketStateDefinition* InDefinition):
-			Definition(InDefinition)
-		{
-			const int32 NumConditions = InDefinition->Conditions.Num();
-			Attributes.SetNum(Definition->Conditions.Num());
-			Readers.SetNum(Definition->Conditions.Num());
-			for (int i = 0; i < NumConditions; i++)
-			{
-				Attributes[i] = nullptr;
-				Readers[i] = nullptr;
-			}
-		}
-
-		TArray<FPCGMetadataAttributeBase*> InIfAttributes;
-		TArray<FPCGMetadataAttributeBase*> InElseAttributes;
-
-		TArray<FPCGMetadataAttributeBase*> OutIfAttributes;
-		TArray<FPCGMetadataAttributeBase*> OutElseAttributes;
-
-		bool bValid = true;
-		bool bPartial = false;
-		int32 Index = 0;
-
-		TSet<FString> OverlappingAttributes;
+	public:
+		explicit FSocketStateHandler(UPCGExSocketStateDefinition* InDefinition);
 
 		UPCGExSocketStateDefinition* Definition = nullptr;
-		TArray<FPCGMetadataAttribute<int32>*> Attributes;
-		TArray<PCGEx::TFAttributeReader<int32>*> Readers;
+		TArray<FPCGMetadataAttribute<int32>*> EdgeTypeAttributes;
+		TArray<PCGEx::TFAttributeReader<int32>*> EdgeTypeReaders;
 
 		void Capture(const FGraphInputs* GraphInputs, PCGExData::FPointIO* InPointIO);
 		void Capture(const UPCGExGraphDefinition* Graph, const PCGExData::FPointIO* InPointIO);
 
-		void Grab(PCGExData::FPointIO* PointIO);
-		bool Test(const int32 Index) const;
+		virtual void PrepareForTesting(PCGExData::FPointIO* PointIO) override;
 
-		void PrepareData(const PCGExData::FPointIO* PointIO, TArray<bool>* States);
+		virtual bool Test(const int32 PointIndex) const override;
 
-		~FSingleStateMapping()
+		virtual ~FSocketStateHandler() override
 		{
-			OverlappingAttributes.Empty();
-
-			InIfAttributes.Empty();
-			InElseAttributes.Empty();
-
-			OutIfAttributes.Empty();
-			OutElseAttributes.Empty();
-
-			Attributes.Empty();
-			PCGEX_DELETE_TARRAY(Readers)
+			EdgeTypeAttributes.Empty();
+			PCGEX_DELETE_TARRAY(EdgeTypeReaders)
 		}
 	};
 }
