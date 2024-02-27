@@ -17,8 +17,8 @@ bool UPCGExSearchDijkstra::FindPath(
 	TArray<int32>& OutPath,
 	PCGExPathfinding::FExtraWeights* ExtraWeights)
 {
-	const PCGExCluster::FNode& SeedNode = Cluster->Nodes[Cluster->FindClosestNode(SeedPosition, SearchMode)];
-	const PCGExCluster::FNode& GoalNode = Cluster->Nodes[Cluster->FindClosestNode(GoalPosition, SearchMode)];
+	const PCGExCluster::FNode& SeedNode = Cluster->Nodes[Cluster->FindClosestNode(SeedPosition, SearchMode, 1)];
+	const PCGExCluster::FNode& GoalNode = Cluster->Nodes[Cluster->FindClosestNode(GoalPosition, SearchMode, 1)];
 
 	if (SeedNode.NodeIndex == GoalNode.NodeIndex) { return false; }
 

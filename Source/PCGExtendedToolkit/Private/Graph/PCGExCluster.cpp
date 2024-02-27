@@ -360,15 +360,6 @@ namespace PCGExCluster
 		return Result;
 	}
 
-	void FCluster::ProjectNodes(const FPCGExGeo2DProjectionSettings& ProjectionSettings)
-	{
-		for (FNode& Node : Nodes)
-		{
-			const FVector V = ProjectionSettings.Project(Node.Position, Node.PointIndex);
-			Node.Position = FVector(V.X, V.Y, 0);
-		}
-	}
-
 #pragma endregion
 
 #pragma region FNodeProjection

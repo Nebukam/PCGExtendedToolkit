@@ -99,8 +99,6 @@ namespace PCGExCluster
 
 		int32 FindClosestNeighborInDirection(const int32 NodeIndex, const FVector& Direction, int32 MinNeighborCount = 1) const;
 
-		void ProjectNodes(const FPCGExGeo2DProjectionSettings& ProjectionSettings);
-
 	protected:
 		FNode& GetOrCreateNode(const int32 PointIndex, const TArray<FPCGPoint>& InPoints);
 	};
