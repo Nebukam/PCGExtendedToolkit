@@ -136,8 +136,7 @@ namespace PCGExGraph
 
 		explicit FUnsignedEdge(const uint64 InValue)
 		{
-			Start = static_cast<uint32>(InValue & 0xFFFFFFFF);
-			End = static_cast<uint32>((InValue >> 32) & 0xFFFFFFFF);
+			PCGEx::H64(InValue, Start, End);
 			Type = EPCGExEdgeType::Unknown;
 		}
 
@@ -169,14 +168,14 @@ namespace PCGExGraph
 
 	static bool BuildIndexedEdges(
 		const PCGExData::FPointIO& EdgeIO,
-		const TMap<int32, int32>& NodeIndicesMap,
+		const TMap<int64, int32>& NodeIndicesMap,
 		TArray<FIndexedEdge>& OutEdges,
 		bool bInvalidateOnError = false)
 	{
 		//EdgeIO.CreateInKeys();
 
-		PCGEx::TFAttributeReader<int32>* StartIndexReader = new PCGEx::TFAttributeReader<int32>(Tag_EdgeStart);
-		PCGEx::TFAttributeReader<int32>* EndIndexReader = new PCGEx::TFAttributeReader<int32>(Tag_EdgeEnd);
+		PCGEx::TFAttributeReader<int64>* StartIndexReader = new PCGEx::TFAttributeReader<int64>(Tag_EdgeStart);
+		PCGEx::TFAttributeReader<int64>* EndIndexReader = new PCGEx::TFAttributeReader<int64>(Tag_EdgeEnd);
 
 		if (!StartIndexReader->Bind(const_cast<PCGExData::FPointIO&>(EdgeIO))) { return false; }
 		if (!EndIndexReader->Bind(const_cast<PCGExData::FPointIO&>(EdgeIO))) { return false; }
@@ -195,7 +194,10 @@ namespace PCGExGraph
 				const int32* NodeEndPtr = NodeIndicesMap.Find(EndIndexReader->Values[i]);
 
 				if ((!NodeStartPtr || !NodeEndPtr) ||
-					(*NodeStartPtr == *NodeEndPtr)) { continue; }
+					(*NodeStartPtr == -1) || (*NodeEndPtr == -1))
+				{
+					continue;
+				}
 
 				OutEdges.Emplace(EdgeIndex++, *NodeStartPtr, *NodeEndPtr, i, EdgeIO.IOIndex);
 			}
@@ -208,7 +210,7 @@ namespace PCGExGraph
 				const int32* NodeEndPtr = NodeIndicesMap.Find(EndIndexReader->Values[i]);
 
 				if ((!NodeStartPtr || !NodeEndPtr) ||
-					(*NodeStartPtr == *NodeEndPtr))
+					(*NodeStartPtr == -1) || (*NodeEndPtr == -1))
 				{
 					bValid = false;
 					break;

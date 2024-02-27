@@ -210,7 +210,8 @@ bool FPCGExSamplePointTask::ExecuteTask()
 
 	const bool bSingleSample = (Context->SampleMethod == EPCGExSampleMethod::ClosestTarget || Context->SampleMethod == EPCGExSampleMethod::FarthestTarget);
 
-	const int32 NumTargets = Context->Targets->GetNum();
+	const TArray<FPCGPoint>& TargetPoints = Context->Targets->GetIn()->GetPoints();
+	const int32 NumTargets = TargetPoints.Num();
 	const FPCGPoint& SourcePoint = PointIO->GetOutPoint(TaskIndex);
 	const FVector SourceCenter = SourcePoint.Transform.GetLocation();
 
@@ -223,12 +224,12 @@ bool FPCGExSamplePointTask::ExecuteTask()
 	TargetsInfos.Reserve(Context->Targets->GetNum());
 
 	PCGExNearestPoint::FTargetsCompoundInfos TargetsCompoundInfos;
-	auto ProcessTarget = [&](const PCGEx::FPointRef& Target)
+	auto ProcessTarget = [&](const int32 PointIndex, const FPCGPoint& Target)
 	{
 		FVector A;
 		FVector B;
 
-		Context->DistanceSettings.GetCenters(SourcePoint, *Target.Point, A, B);
+		Context->DistanceSettings.GetCenters(SourcePoint, Target, A, B);
 
 		const double Dist = FVector::DistSquared(A, B);
 
@@ -237,11 +238,11 @@ bool FPCGExSamplePointTask::ExecuteTask()
 		if (Context->SampleMethod == EPCGExSampleMethod::ClosestTarget ||
 			Context->SampleMethod == EPCGExSampleMethod::FarthestTarget)
 		{
-			TargetsCompoundInfos.UpdateCompound(PCGExNearestPoint::FTargetInfos(Target.Index, Dist));
+			TargetsCompoundInfos.UpdateCompound(PCGExNearestPoint::FTargetInfos(PointIndex, Dist));
 		}
 		else
 		{
-			const PCGExNearestPoint::FTargetInfos& Infos = TargetsInfos.Emplace_GetRef(Target.Index, Dist);
+			const PCGExNearestPoint::FTargetInfos& Infos = TargetsInfos.Emplace_GetRef(PointIndex, Dist);
 			TargetsCompoundInfos.UpdateCompound(Infos);
 		}
 	};
@@ -249,16 +250,20 @@ bool FPCGExSamplePointTask::ExecuteTask()
 	if (RangeMax > 0)
 	{
 		const FBox Box = FBoxCenterAndExtent(SourceCenter, FVector(FMath::Sqrt(RangeMax))).GetBox();
-		for (int i = 0; i < NumTargets; i++)
+		auto ProcessNeighbor = [&](const FPCGPointRef& InPointRef)
 		{
-			const FPCGPoint& Target = Context->Targets->GetInPoint(i);
-			//TODO: Target locations can be cached
-			if (Box.IsInside(Target.Transform.GetLocation())) { ProcessTarget(PCGEx::FPointRef(Target, i)); }
-		}
+			const ptrdiff_t PointIndex = InPointRef.Point - TargetPoints.GetData();
+			if (!TargetPoints.IsValidIndex(PointIndex) || PointIndex == TaskIndex) { return; }
+
+			ProcessTarget(PointIndex, TargetPoints[PointIndex]);
+		};
+
+		const UPCGPointData::PointOctree& Octree = Context->Targets->GetIn()->GetOctree();
+		Octree.FindElementsWithBoundsTest(Box, ProcessNeighbor);
 	}
 	else
 	{
-		for (int i = 0; i < NumTargets; i++) { ProcessTarget(Context->Targets->GetInPointRef(i)); }
+		for (int i = 0; i < NumTargets; i++) { ProcessTarget(i, TargetPoints[i]); }
 	}
 
 	// Compound never got updated, meaning we couldn't find target in range

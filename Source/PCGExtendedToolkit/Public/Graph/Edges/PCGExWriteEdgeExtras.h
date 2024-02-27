@@ -149,6 +149,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExWriteEdgeExtrasContext : public FPCGExEdgesP
 	PCGEx::FLocalVectorGetter* EdgeDirCompGetter = nullptr;
 
 	PCGEx::TFAttributeWriter<FVector>* VtxNormalWriter = nullptr;
+
+	bool bAscendingDesired = true;
+	double StartWeight = 0;
+	double EndWeight = 1;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExWriteEdgeExtrasElement : public FPCGExEdgesProcessorElement
@@ -162,21 +166,4 @@ public:
 protected:
 	virtual bool Boot(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
-};
-
-
-class PCGEXTENDEDTOOLKIT_API FPCGExWriteExtrasTask : public FPCGExNonAbandonableTask
-{
-public:
-	FPCGExWriteExtrasTask(
-		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-		FPCGExGeo2DProjectionSettings* InProjectionSettings) :
-		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
-		ProjectionSettings(InProjectionSettings)
-	{
-	}
-
-	virtual bool ExecuteTask() override;
-
-	FPCGExGeo2DProjectionSettings* ProjectionSettings = nullptr;
 };

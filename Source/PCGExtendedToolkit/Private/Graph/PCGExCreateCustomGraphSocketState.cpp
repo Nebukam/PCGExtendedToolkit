@@ -64,6 +64,10 @@ bool FPCGExCreateCustomGraphSocketStateElement::ExecuteInternal(
 
 	UPCGExSocketStateDefinition* OutState = NewObject<UPCGExSocketStateDefinition>();
 
+	OutState->StateName = Settings->StateName;
+	OutState->StateId = Settings->StateId;
+	OutState->Priority = Settings->Priority;
+
 	const TArray<FPCGTaggedData>& IfPin = Context->InputData.GetInputsByPin(PCGExGraph::SourceIfAttributesLabel);
 	for (const FPCGTaggedData& TaggedData : IfPin)
 	{
@@ -73,10 +77,6 @@ bool FPCGExCreateCustomGraphSocketStateElement::ExecuteInternal(
 			OutState->IfInfos.Add(PCGEx::FAttributesInfos::Get(IfData->Metadata));
 		}
 	}
-
-	OutState->StateName = Settings->StateName;
-	OutState->StateId = Settings->StateId;
-	OutState->Priority = Settings->Priority;
 
 	const TArray<FPCGTaggedData>& ElsePin = Context->InputData.GetInputsByPin(PCGExGraph::SourceElseAttributesLabel);
 	for (const FPCGTaggedData& TaggedData : ElsePin)
@@ -88,9 +88,7 @@ bool FPCGExCreateCustomGraphSocketStateElement::ExecuteInternal(
 		}
 	}
 
-	TArray<FPCGTaggedData>& Outputs = Context->OutputData.TaggedData;
-
-	for (const FPCGExSocketConditionDescriptor& Descriptor : Settings->Conditions)
+	for (const FPCGExSocketTestDescriptor& Descriptor : Settings->Tests)
 	{
 		if (!Descriptor.bEnabled) { continue; }
 
@@ -100,16 +98,16 @@ bool FPCGExCreateCustomGraphSocketStateElement::ExecuteInternal(
 			continue;
 		}
 
-		OutState->Conditions.Add(Descriptor);
+		OutState->Tests.Add(Descriptor);
 	}
 
-	if (OutState->Conditions.IsEmpty())
+	if (OutState->Tests.IsEmpty())
 	{
 		OutState->ConditionalBeginDestroy();
 		return true;
 	}
 
-	FPCGTaggedData& Output = Outputs.Emplace_GetRef();
+	FPCGTaggedData& Output = Context->OutputData.TaggedData.Emplace_GetRef();
 	Output.Data = OutState;
 	Output.Pin = PCGExGraph::OutputSocketStateLabel;
 

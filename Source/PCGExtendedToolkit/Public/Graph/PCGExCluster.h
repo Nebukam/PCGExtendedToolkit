@@ -8,6 +8,7 @@
 #include "PCGExEdge.h"
 #include "PCGExGraph.h"
 #include "Data/PCGExAttributeHelpers.h"
+#include "Data/PCGExGraphDefinition.h"
 #include "Geometry/PCGExGeo.h"
 
 #include "PCGExCluster.generated.h"
@@ -75,7 +76,7 @@ namespace PCGExCluster
 		bool BuildFrom(
 			const PCGExData::FPointIO& EdgeIO,
 			const TArray<FPCGPoint>& InNodePoints,
-			const TMap<int32, int32>& InNodeIndicesMap,
+			const TMap<int64, int32>& InNodeIndicesMap,
 			const TArray<int32>& PerNodeEdgeNums);
 
 		void BuildPartialFrom(const TArray<FVector>& Positions, const TSet<uint64>& InEdges);
@@ -97,8 +98,6 @@ namespace PCGExCluster
 		FVector GetCentroid(const int32 NodeIndex) const;
 
 		int32 FindClosestNeighborInDirection(const int32 NodeIndex, const FVector& Direction, int32 MinNeighborCount = 1) const;
-
-		void ProjectNodes(const FPCGExGeo2DProjectionSettings& ProjectionSettings);
 
 	protected:
 		FNode& GetOrCreateNode(const int32 PointIndex, const TArray<FPCGPoint>& InPoints);
@@ -152,6 +151,50 @@ namespace PCGExCluster
 			Edges.Empty();
 		}
 	};
+
+
+	class PCGEXTENDEDTOOLKIT_API FNodeTestHandler
+	{
+	public:
+		explicit FNodeTestHandler(UPCGExAdjacencyTestDefinition* InDefinition)
+			: Definition(InDefinition)
+		{
+		}
+
+		virtual ~FNodeTestHandler()
+		{
+			Definition = nullptr;
+			PCGEX_DELETE(OperandAGetter)
+			PCGEX_DELETE(OperandBGetter)
+		}
+
+		UPCGExAdjacencyTestDefinition* Definition = nullptr;
+		PCGEx::FLocalSingleFieldGetter* OperandAGetter = nullptr;
+		PCGEx::FLocalSingleFieldGetter* OperandBGetter = nullptr;
+
+		virtual bool Test(const int32 PointIndex) const;
+	};
+
+	class PCGEXTENDEDTOOLKIT_API FNodeStateHandler : public PCGExDataState::AStateHandler
+	{
+	public:
+		explicit FNodeStateHandler(UPCGExNodeStateDefinition* InDefinition);
+
+		UPCGExNodeStateDefinition* Definition = nullptr;
+		TArray<FNodeTestHandler*> TestHandlers;
+
+		void Capture(FCluster* InCluster);
+		virtual bool Test(const int32 PointIndex) const override;
+
+		virtual ~FNodeStateHandler() override
+		{
+			PCGEX_DELETE_TARRAY(TestHandlers)
+		}
+
+	protected:
+		PCGExData::FPointIO* LastPoints = nullptr;
+		FCluster* Cluster = nullptr;
+	};
 }
 
 namespace PCGExClusterTask
@@ -162,7 +205,7 @@ namespace PCGExClusterTask
 		FBuildCluster(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
 		              PCGExCluster::FCluster* InCluster,
 		              PCGExData::FPointIO* InEdgeIO,
-		              TMap<int32, int32>* InNodeIndicesMap,
+		              TMap<int64, int32>* InNodeIndicesMap,
 		              TArray<int32>* InPerNodeEdgeNums) :
 			FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
 			Cluster(InCluster),
@@ -174,7 +217,7 @@ namespace PCGExClusterTask
 
 		PCGExCluster::FCluster* Cluster = nullptr;
 		PCGExData::FPointIO* EdgeIO = nullptr;
-		TMap<int32, int32>* NodeIndicesMap = nullptr;
+		TMap<int64, int32>* NodeIndicesMap = nullptr;
 		TArray<int32>* PerNodeEdgeNums = nullptr;
 
 		virtual bool ExecuteTask() override;

@@ -4,27 +4,26 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExCreateCustomGraphParams.h"
 #include "PCGExPointsProcessor.h"
 
 #include "Data/PCGExGraphDefinition.h"
 
-#include "PCGExAssembleCustomGraphParams.generated.h"
+#include "PCGExGatherSockets.generated.h"
 
 
 /** Outputs a single GraphParam to be consumed by other nodes */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
-class PCGEXTENDEDTOOLKIT_API UPCGExAssembleCustomGraphParamsSettings : public UPCGSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExGatherSocketsSettings : public UPCGSettings
 {
 	GENERATED_BODY()
 
 public:
-	UPCGExAssembleCustomGraphParamsSettings(const FObjectInitializer& ObjectInitializer);
+	UPCGExGatherSocketsSettings(const FObjectInitializer& ObjectInitializer);
 
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	bool bCacheResult = false;
-	PCGEX_NODE_INFOS(GraphParams, "Custom Graph : Assemble Params", "Assembles Roaming Sockets Params into a single, consolidated Custom Graph Params object.")
+	PCGEX_NODE_INFOS(GraphParams, "Custom Graph : Gather Sockets", "Assembles Sockets Params into a single, consolidated Custom Graph Sockets object.")
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Param; }
 #endif
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
@@ -72,7 +71,7 @@ public:
 protected:
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExAssembleCustomGraphParamsElement : public IPCGElement
+class PCGEXTENDEDTOOLKIT_API FPCGExGatherSocketsElement : public IPCGElement
 {
 #if WITH_EDITOR
 	virtual bool ShouldLog() const override { return false; }

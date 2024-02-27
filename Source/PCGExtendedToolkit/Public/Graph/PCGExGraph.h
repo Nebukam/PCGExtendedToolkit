@@ -17,6 +17,13 @@
 struct FPCGExPointsProcessorContext;
 
 UENUM(BlueprintType)
+enum class EPCGExGraphValueSource : uint8
+{
+	Point UMETA(DisplayName = "Point", Tooltip="Value is fetched from the point being evaluated."),
+	Edge UMETA(DisplayName = "Edge", Tooltip="Value is fetched from the edge connecting to the point being evaluated."),
+};
+
+UENUM(BlueprintType)
 enum class EPCGExIntersectionType : uint8
 {
 	Unknown UMETA(DisplayName = "Unknown", ToolTip="Unknown"),
@@ -106,10 +113,16 @@ namespace PCGExGraph
 	const FName SourceSocketParamsLabel = TEXT("Sockets");
 	const FName OutputSocketParamsLabel = TEXT("Socket");
 
-	const FName SourceSocketStateLabel = TEXT("SocketStates");
+	const FName OutputTestLabel = TEXT("Test");
+	const FName SourceTestsLabel = TEXT("Tests");
 	const FName SourceIfAttributesLabel = TEXT("If");
 	const FName SourceElseAttributesLabel = TEXT("Else");
+
 	const FName OutputSocketStateLabel = TEXT("SocketState");
+	const FName SourceSocketStateLabel = TEXT("SocketStates");
+
+	const FName OutputNodeStateLabel = TEXT("NodeState");
+	const FName SourceNodeStateLabel = TEXT("NodeStates");
 
 	const FName SourceParamsLabel = TEXT("Graph");
 	const FName OutputParamsLabel = TEXT("➜");
@@ -430,11 +443,11 @@ namespace PCGExGraph
 		}
 	};
 
-	static bool GetRemappedIndices(PCGExData::FPointIO& InPointIO, const FName AttributeName, TMap<int32, int32>& OutIndices)
+	static bool GetRemappedIndices(PCGExData::FPointIO& InPointIO, const FName AttributeName, TMap<int64, int32>& OutIndices)
 	{
 		OutIndices.Empty();
 
-		PCGEx::TFAttributeReader<int32>* IndexReader = new PCGEx::TFAttributeReader<int32>(AttributeName);
+		PCGEx::TFAttributeReader<int64>* IndexReader = new PCGEx::TFAttributeReader<int64>(AttributeName);
 		if (!IndexReader->Bind(InPointIO))
 		{
 			PCGEX_DELETE(IndexReader)
@@ -448,7 +461,7 @@ namespace PCGExGraph
 		return true;
 	}
 
-	static bool GetRemappedIndices(const PCGExData::FPointIO& InPointIO, const FName AttributeName, TMap<int32, int32>& OutIndices)
+	static bool GetRemappedIndices(const PCGExData::FPointIO& InPointIO, const FName AttributeName, TMap<int64, int32>& OutIndices)
 	{
 		return GetRemappedIndices(const_cast<PCGExData::FPointIO&>(InPointIO), AttributeName, OutIndices);
 	}
@@ -778,12 +791,13 @@ namespace PCGExGraph
 	static bool IsPointDataVtxReady(const UPCGPointData* PointData)
 	{
 		const FName Tags[] = {Tag_EdgeIndex, Tag_EdgesNum};
+		constexpr int16 I64 = static_cast<uint16>(EPCGMetadataTypes::Integer64);
 		constexpr int16 I32 = static_cast<uint16>(EPCGMetadataTypes::Integer32);
 
 		for (const FName Name : Tags)
 		{
 			if (const FPCGMetadataAttributeBase* AttributeCheck = PointData->Metadata->GetMutableAttribute(Name);
-				!AttributeCheck || AttributeCheck->GetTypeId() != I32) { return false; }
+				!AttributeCheck || (AttributeCheck->GetTypeId() != I64 && AttributeCheck->GetTypeId() != I32)) { return false; }
 		}
 
 		return true;
@@ -792,21 +806,22 @@ namespace PCGExGraph
 	static bool IsPointDataEdgeReady(const UPCGPointData* PointData)
 	{
 		const FName Tags[] = {Tag_EdgeStart, Tag_EdgeEnd};
+		constexpr int16 I64 = static_cast<uint16>(EPCGMetadataTypes::Integer64);
 		constexpr int16 I32 = static_cast<uint16>(EPCGMetadataTypes::Integer32);
 
 		for (const FName Name : Tags)
 		{
 			if (const FPCGMetadataAttributeBase* AttributeCheck = PointData->Metadata->GetMutableAttribute(Name);
-				!AttributeCheck || AttributeCheck->GetTypeId() != I32) { return false; }
+				!AttributeCheck || (AttributeCheck->GetTypeId() != I64 && AttributeCheck->GetTypeId() != I32)) { return false; }
 		}
 
 		return true;
 	}
 
-	static bool GetReducedVtxIndices(PCGExData::FPointIO& InEdges, const TMap<int32, int32>* NodeIndicesMap, TArray<int32>& OutVtxIndices, int32& OutEdgeNum)
+	static bool GetReducedVtxIndices(PCGExData::FPointIO& InEdges, const TMap<int64, int32>* NodeIndicesMap, TArray<int32>& OutVtxIndices, int32& OutEdgeNum)
 	{
-		PCGEx::TFAttributeReader<int32>* StartIndexReader = new PCGEx::TFAttributeReader<int32>(Tag_EdgeStart);
-		PCGEx::TFAttributeReader<int32>* EndIndexReader = new PCGEx::TFAttributeReader<int32>(Tag_EdgeEnd);
+		PCGEx::TFAttributeReader<int64>* StartIndexReader = new PCGEx::TFAttributeReader<int64>(Tag_EdgeStart);
+		PCGEx::TFAttributeReader<int64>* EndIndexReader = new PCGEx::TFAttributeReader<int64>(Tag_EdgeEnd);
 		const bool bStart = StartIndexReader->Bind(InEdges);
 		const bool bEnd = EndIndexReader->Bind(InEdges);
 
@@ -837,6 +852,16 @@ namespace PCGExGraph
 		PCGEX_DELETE(StartIndexReader)
 		PCGEX_DELETE(EndIndexReader)
 		return true;
+	}
+
+	static void CleanupVtxData(PCGExData::FPointIO* PointIO)
+	{
+		UPCGMetadata* Metadata = PointIO->GetOut()->Metadata;
+		PointIO->Tags->Remove(TagStr_ClusterPair);
+		Metadata->DeleteAttribute(Tag_EdgesNum);
+		Metadata->DeleteAttribute(Tag_EdgeIndex);
+		Metadata->DeleteAttribute(Tag_EdgeStart);
+		Metadata->DeleteAttribute(Tag_EdgeEnd);
 	}
 }
 
@@ -979,7 +1004,7 @@ namespace PCGExGraphTask
 		FCompoundGraphInsertEdges(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
 		                          PCGExGraph::FCompoundGraph* InGraph,
 		                          PCGExData::FPointIO* InEdgeIO,
-		                          TMap<int32, int32>* InNodeIndicesMap)
+		                          TMap<int64, int32>* InNodeIndicesMap)
 			: FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
 			  Graph(InGraph),
 			  EdgeIO(InEdgeIO),
@@ -989,7 +1014,7 @@ namespace PCGExGraphTask
 
 		PCGExGraph::FCompoundGraph* Graph = nullptr;
 		PCGExData::FPointIO* EdgeIO = nullptr;
-		TMap<int32, int32>* NodeIndicesMap = nullptr;
+		TMap<int64, int32>* NodeIndicesMap = nullptr;
 
 		virtual bool ExecuteTask() override;
 	};

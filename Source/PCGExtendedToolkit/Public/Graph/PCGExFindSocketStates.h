@@ -7,20 +7,20 @@
 
 #include "PCGExCustomGraphProcessor.h"
 
-#include "PCGExApplySocketStates.generated.h"
+#include "PCGExFindSocketStates.generated.h"
 
 /**
  * Calculates the distance between two points (inherently a n*n operation)
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
-class PCGEXTENDEDTOOLKIT_API UPCGExApplySocketStatesSettings : public UPCGExCustomGraphProcessorSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExFindSocketStatesSettings : public UPCGExCustomGraphProcessorSettings
 {
 	GENERATED_BODY()
 
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(ApplySocketStates, "Custom Graph : Apply States", "Applies socket states and attributes. Basically a glorified if/else to streamline identification of user-defined conditions within a graph.");
+	PCGEX_NODE_INFOS(FindSocketStates, "Custom Graph : Find Socket States", "Find & writes socket states and attributes. Basically a glorified if/else to streamline identification of user-defined conditions within a graph.");
 #endif
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
@@ -57,39 +57,34 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bWriteStateValue"))
 	FName StateValueAttributeName = "StateId";
 
-	/** If enabled, will also write each state as a boolean attribute. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	bool bWriteEachStateIndividually = false;
-
 	/** Name of the state to write if no conditions are met */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bWriteStateValue"))
 	int32 StatelessValue = -1;
+
+	/** If enabled, will also write each state as a boolean attribute. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bWriteEachStateIndividually = false;
 
 	/** Cleanup graph socket data from output points */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bDeleteCustomGraphData = false;
 
 private:
-	friend class FPCGExApplySocketStatesElement;
+	friend class FPCGExFindSocketStatesElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExApplySocketStatesContext : public FPCGExCustomGraphProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExFindSocketStatesContext : public FPCGExCustomGraphProcessorContext
 {
-	friend class FPCGExApplySocketStatesElement;
+	friend class FPCGExFindSocketStatesElement;
 
-	virtual ~FPCGExApplySocketStatesContext() override;
+	virtual ~FPCGExFindSocketStatesContext() override;
 
 	TArray<TObjectPtr<UPCGExSocketStateDefinition>> StateDefinitions;
-	TArray<PCGExGraph::FSingleStateMapping*> StateMappings;
-	TArray<TArray<bool>*> States;
-	TArray<int32> HighestState;
-
-	PCGEx::TFAttributeWriter<FName>* StateNameWriter = nullptr;
-	PCGEx::TFAttributeWriter<int32>* StateValueWriter = nullptr;
+	PCGExDataState::AStatesManager* StatesManager = nullptr;
 };
 
 
-class PCGEXTENDEDTOOLKIT_API FPCGExApplySocketStatesElement : public FPCGExCustomGraphProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExFindSocketStatesElement : public FPCGExCustomGraphProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -100,31 +95,4 @@ public:
 protected:
 	virtual bool Boot(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
-};
-
-class PCGEXTENDEDTOOLKIT_API FPCGExEvaluatePointTask : public FPCGExNonAbandonableTask
-{
-public:
-	FPCGExEvaluatePointTask(
-		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO) :
-		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO)
-	{
-	}
-
-	virtual bool ExecuteTask() override;
-};
-
-class PCGEXTENDEDTOOLKIT_API FPCGExWriteIndividualStateTask : public FPCGExNonAbandonableTask
-{
-public:
-	FPCGExWriteIndividualStateTask(
-		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-		PCGExGraph::FSingleStateMapping* InMapping) :
-		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
-		Mapping(InMapping)
-	{
-	}
-
-	PCGExGraph::FSingleStateMapping* Mapping = nullptr;
-	virtual bool ExecuteTask() override;
 };

@@ -21,7 +21,7 @@ public:
 #if WITH_EDITOR
 	bool bCacheResult = false;
 	PCGEX_NODE_INFOS_CUSTOM_TASKNAME(
-		GraphParams, "Socket", "Creates a single socket data object.",
+		GraphSocket, "Socket Definition", "Creates a single socket data object.",
 		Socket.SocketName.IsNone() ? FName(GetDefaultNodeTitle().ToString()) : FName(FString("PCGEx | Socket : ") + Socket.SocketName.ToString()))
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Param; }
 
