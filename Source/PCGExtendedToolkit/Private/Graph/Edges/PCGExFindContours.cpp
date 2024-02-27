@@ -218,7 +218,7 @@ bool FPCGExFindContourTask::ExecuteTask()
 	}
 
 	PCGExGraph::CleanupVtxData(PointIO);
-	
+
 	TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
 	const TArray<FPCGPoint>& OriginPoints = PointIO->GetIn()->GetPoints();
 	MutablePoints.SetNum(Path.Num());

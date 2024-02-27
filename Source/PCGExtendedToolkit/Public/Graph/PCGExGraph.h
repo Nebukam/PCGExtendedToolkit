@@ -109,7 +109,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgeCrawlingSettings
 
 namespace PCGExGraph
 {
-	
 	const FName SourceSocketOverrideParamsLabel = TEXT("Ctrl Socket");
 	const FName SourceSocketParamsLabel = TEXT("Sockets");
 	const FName OutputSocketParamsLabel = TEXT("Socket");
@@ -175,7 +174,6 @@ namespace PCGExGraph
 
 	struct PCGEXTENDEDTOOLKIT_API FGraphMetadataSettings
 	{
-		
 		bool bWriteCompounded = false;
 		FName CompoundedAttributeName = "bCompounded";
 
@@ -859,13 +857,12 @@ namespace PCGExGraph
 	static void CleanupVtxData(PCGExData::FPointIO* PointIO)
 	{
 		UPCGMetadata* Metadata = PointIO->GetOut()->Metadata;
-		PointIO->Tags->Remove(PCGExGraph::TagStr_ClusterPair);
+		PointIO->Tags->Remove(TagStr_ClusterPair);
 		Metadata->DeleteAttribute(Tag_EdgesNum);
 		Metadata->DeleteAttribute(Tag_EdgeIndex);
 		Metadata->DeleteAttribute(Tag_EdgeStart);
 		Metadata->DeleteAttribute(Tag_EdgeEnd);
 	}
-	
 }
 
 namespace PCGExGraphTask

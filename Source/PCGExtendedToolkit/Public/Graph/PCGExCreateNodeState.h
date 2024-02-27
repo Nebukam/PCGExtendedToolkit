@@ -53,7 +53,6 @@ public:
 	/** State priority for conflict resolution.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	int32 Priority = 0;
-
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExCreateNodeStateElement : public IPCGElement

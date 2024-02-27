@@ -121,7 +121,7 @@ bool FPCGExBuildCustomGraphElement::ExecuteInternal(
 			auto ProcessPoint = [&](const FPCGPointRef& InPointRef)
 			{
 				const ptrdiff_t OtherPointIndex = InPointRef.Point - InPoints.GetData();
-				
+
 				if (!InPoints.IsValidIndex(static_cast<int32>(OtherPointIndex)) ||
 					static_cast<int32>(OtherPointIndex) == PointIndex) { return; }
 

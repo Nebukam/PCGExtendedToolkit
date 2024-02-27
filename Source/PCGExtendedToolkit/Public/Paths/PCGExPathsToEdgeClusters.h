@@ -64,7 +64,7 @@ public:
 	/** Consider paths to be closed -- processing will wrap between first and last points. */
 	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bFusePaths = true;
-	
+
 	/** Fuse Settings */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Point/Point", EditCondition="bFusePaths"))
 	FPCGExPointPointIntersectionSettings PointPointIntersectionSettings;

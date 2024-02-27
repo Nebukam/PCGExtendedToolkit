@@ -79,7 +79,7 @@ double UPCGExCustomGraphSolver::PrepareProbeForPointSocketPair(
 	Probe.Origin = InSocketInfos.Socket->Descriptor.DistanceSettings.GetSourceCenter(
 		*Point.Point, ProbeOrigin, ProbeOrigin + Probe.Direction * Probe.Radius);
 	Probe.Radius += (Probe.Origin - ProbeOrigin).Length();
-	
+
 	if (Probe.DotThreshold >= 0) { Probe.CompoundBounds = PCGExMath::ConeBox(Probe.Origin, Probe.Direction, Probe.Radius); }
 	else { Probe.CompoundBounds = FBoxCenterAndExtent(Probe.Origin, FVector(Probe.Radius)).GetBox(); }
 

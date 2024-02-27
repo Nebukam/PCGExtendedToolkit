@@ -5,9 +5,8 @@
 
 namespace PCGExData
 {
-	
 #pragma region FIdxCompound
-	
+
 	bool FIdxCompound::ContainsIOIndex(int32 IOIndex)
 	{
 		for (const uint64 H : CompoundedPoints)
@@ -62,7 +61,7 @@ namespace PCGExData
 #pragma endregion
 
 #pragma region FIdxCompoundList
-	
+
 	FIdxCompound* FIdxCompoundList::New()
 	{
 		FIdxCompound* NewPointCompound = new FIdxCompound();
@@ -90,5 +89,4 @@ namespace PCGExData
 	}
 
 #pragma endregion
-	
 }

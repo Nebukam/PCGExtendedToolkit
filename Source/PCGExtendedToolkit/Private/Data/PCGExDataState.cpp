@@ -199,7 +199,7 @@ namespace PCGExDataState
 	void AStatesManager::WriteStateAttributes(FPCGExAsyncManager* AsyncManager)
 	{
 		WritePrepareForStateAttributes(AsyncManager->Context);
-		
+
 		const int32 NumPoints = PointIO->GetNum();
 		for (int i = 0; i < NumPoints; i++) { AsyncManager->Start<PCGExDataStateTask::FWriteStateAttribute>(i, PointIO, this); }
 	}

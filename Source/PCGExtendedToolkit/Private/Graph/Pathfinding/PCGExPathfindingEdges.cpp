@@ -219,7 +219,7 @@ bool FSampleClusterPathTask::ExecuteTask()
 	UPCGPointData* OutData = PathPoints.GetOut();
 
 	PCGExGraph::CleanupVtxData(&PathPoints);
-	
+
 	TArray<FPCGPoint>& MutablePoints = OutData->GetMutablePoints();
 	const TArray<FPCGPoint>& InPoints = Context->GetCurrentIn()->GetPoints();
 

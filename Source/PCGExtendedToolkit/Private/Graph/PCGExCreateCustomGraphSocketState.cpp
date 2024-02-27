@@ -67,7 +67,7 @@ bool FPCGExCreateCustomGraphSocketStateElement::ExecuteInternal(
 	OutState->StateName = Settings->StateName;
 	OutState->StateId = Settings->StateId;
 	OutState->Priority = Settings->Priority;
-	
+
 	const TArray<FPCGTaggedData>& IfPin = Context->InputData.GetInputsByPin(PCGExGraph::SourceIfAttributesLabel);
 	for (const FPCGTaggedData& TaggedData : IfPin)
 	{

@@ -175,13 +175,12 @@ namespace PCGExCluster
 		PCGEx::FLocalSingleFieldGetter* OperandBGetter = nullptr;
 
 		virtual bool Test(const int32 PointIndex) const;
-		
 	};
 
 	class PCGEXTENDEDTOOLKIT_API FNodeStateHandler : public PCGExDataState::AStateHandler
 	{
 	public:
-		explicit  FNodeStateHandler(UPCGExNodeStateDefinition* InDefinition);
+		explicit FNodeStateHandler(UPCGExNodeStateDefinition* InDefinition);
 
 		UPCGExNodeStateDefinition* Definition = nullptr;
 		TArray<FNodeTestHandler*> TestHandlers;
@@ -197,7 +196,6 @@ namespace PCGExCluster
 	protected:
 		PCGExData::FPointIO* LastPoints = nullptr;
 		FCluster* Cluster = nullptr;
-		
 	};
 }
 

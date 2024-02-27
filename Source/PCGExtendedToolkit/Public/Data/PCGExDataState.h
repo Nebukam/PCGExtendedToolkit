@@ -128,7 +128,7 @@ namespace PCGExDataState
 		void WriteStateNames(FName AttributeName, FName DefaultValue);
 		void WriteStateValues(FName AttributeName, int32 DefaultValue);
 		void WriteStateIndividualStates(FPCGExAsyncManager* AsyncManager);
-		
+
 		void WritePrepareForStateAttributes(const FPCGContext* InContext);
 		void WriteStateAttributes(FPCGExAsyncManager* AsyncManager);
 		void WriteStateAttributes(const int32 PointIndex);

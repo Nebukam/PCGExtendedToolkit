@@ -367,7 +367,7 @@ namespace PCGExData
 #pragma endregion
 
 #pragma region FPointIOTaggedEntries
-	
+
 	void FPointIOTaggedEntries::Add(FPointIO* Value)
 	{
 		Entries.AddUnique(Value);
@@ -416,6 +416,5 @@ namespace PCGExData
 		return nullptr;
 	}
 
-#pragma endregion 
-	
+#pragma endregion
 }

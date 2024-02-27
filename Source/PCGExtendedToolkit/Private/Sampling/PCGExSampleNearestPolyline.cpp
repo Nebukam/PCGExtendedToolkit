@@ -274,7 +274,7 @@ bool FPCGExSampleNearestPolylineElement::ExecuteInternal(FPCGContext* InContext)
 		};
 
 		if (!Context->ProcessCurrentPoints(Initialize, ProcessPoint)) { return false; }
-		
+
 		PCGEX_FOREACH_FIELD_NEARESTPOLYLINE(PCGEX_OUTPUT_WRITE)
 		Context->CurrentIO->OutputTo(Context);
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);

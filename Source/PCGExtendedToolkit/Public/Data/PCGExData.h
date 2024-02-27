@@ -30,7 +30,7 @@ namespace PCGExData
 	constexpr PCGExMT::AsyncState State_MergingData = __COUNTER__;
 
 #pragma region Compound
-	
+
 	struct PCGEXTENDEDTOOLKIT_API FIdxCompound
 	{
 		TArray<uint64> CompoundedPoints;
@@ -70,10 +70,10 @@ namespace PCGExData
 		FIdxCompound* operator[](int32 Index) const { return this->Compounds[Index]; }
 	};
 
-#pragma endregion 
+#pragma endregion
 
 #pragma region Data Marking
-	
+
 	template <typename T>
 	static FPCGMetadataAttribute<T>* WriteMark(UPCGMetadata* Metadata, const FName MarkID, T MarkValue)
 	{
@@ -124,7 +124,6 @@ namespace PCGExData
 	}
 
 #pragma endregion
-
 }
 
 namespace PCGExDataBlending

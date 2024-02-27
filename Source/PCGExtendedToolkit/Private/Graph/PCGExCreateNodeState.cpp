@@ -32,7 +32,7 @@ TArray<FPCGPinProperties> UPCGExCreateNodeStateSettings::InputPinProperties() co
 #if WITH_EDITOR
 	ElsePin.Tooltip = FTEXT("Attributes & values associated with this state when conditions are not met.");
 #endif
-	
+
 	return PinProperties;
 }
 
@@ -69,13 +69,13 @@ bool FPCGExCreateNodeStateElement::ExecuteInternal(
 	}
 
 	UPCGExNodeStateDefinition* OutState = NewObject<UPCGExNodeStateDefinition>();
-	
+
 	OutState->StateName = Settings->StateName;
 	OutState->StateId = Settings->StateId;
 	OutState->Priority = Settings->Priority;
 
 	TArray<UPCGExAdjacencyTestDefinition*> TestDefinitions;
-	
+
 	const TArray<FPCGTaggedData>& TestPin = Context->InputData.GetInputsByPin(PCGExGraph::SourceTestsLabel);
 	for (const FPCGTaggedData& TaggedData : TestPin)
 	{
@@ -85,14 +85,14 @@ bool FPCGExCreateNodeStateElement::ExecuteInternal(
 		}
 	}
 
-	if(TestDefinitions.IsEmpty())
+	if (TestDefinitions.IsEmpty())
 	{
 		OutState->ConditionalBeginDestroy();
 		OutState->Tests.Append(TestDefinitions);
 		PCGE_LOG(Error, GraphAndLog, FTEXT("No test data."));
 		return true;
 	}
-	
+
 	const TArray<FPCGTaggedData>& IfPin = Context->InputData.GetInputsByPin(PCGExGraph::SourceIfAttributesLabel);
 	for (const FPCGTaggedData& TaggedData : IfPin)
 	{
@@ -101,7 +101,7 @@ bool FPCGExCreateNodeStateElement::ExecuteInternal(
 			OutState->IfAttributes.Add(const_cast<UPCGParamData*>(IfData));
 			OutState->IfInfos.Add(PCGEx::FAttributesInfos::Get(IfData->Metadata));
 		}
-	}	
+	}
 
 	const TArray<FPCGTaggedData>& ElsePin = Context->InputData.GetInputsByPin(PCGExGraph::SourceElseAttributesLabel);
 	for (const FPCGTaggedData& TaggedData : ElsePin)
