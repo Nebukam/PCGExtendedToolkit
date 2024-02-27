@@ -8,20 +8,20 @@
 #include "PCGExCustomGraphProcessor.h"
 #include "PCGExEdgesProcessor.h"
 
-#include "PCGExApplyNodeStates.generated.h"
+#include "PCGExFindNodeStates.generated.h"
 
 /**
  * Calculates the distance between two points (inherently a n*n operation)
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
-class PCGEXTENDEDTOOLKIT_API UPCGExApplyNodeStatesSettings : public UPCGExEdgesProcessorSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExFindNodeStatesSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()
 
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(ApplyNodeStates, "Graph : Apply Node States", "Applies node states and attributes. Basically a glorified if/else to streamline identification of user-defined conditions within a graph.");
+	PCGEX_NODE_INFOS(FindNodeStates, "Graph : Find Node States", "Find & writes node states and attributes. Basically a glorified if/else to streamline identification of user-defined conditions within a graph.");
 #endif
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 
@@ -67,22 +67,21 @@ public:
 	bool bWriteEachStateIndividually = false;
 
 private:
-	friend class FPCGExApplyNodeStatesElement;
+	friend class FPCGExFindNodeStatesElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExApplyNodeStatesContext : public FPCGExCustomGraphProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExFindNodeStatesContext : public FPCGExCustomGraphProcessorContext
 {
-	friend class FPCGExApplyNodeStatesElement;
+	friend class FPCGExFindNodeStatesElement;
 
-	virtual ~FPCGExApplyNodeStatesContext() override;
+	virtual ~FPCGExFindNodeStatesContext() override;
 
 	TArray<TObjectPtr<UPCGExNodeStateDefinition>> StateDefinitions;
 	PCGExDataState::AStatesManager* StatesManager = nullptr;
-	
 };
 
 
-class PCGEXTENDEDTOOLKIT_API FPCGExApplyNodeStatesElement : public FPCGExEdgesProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExFindNodeStatesElement : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

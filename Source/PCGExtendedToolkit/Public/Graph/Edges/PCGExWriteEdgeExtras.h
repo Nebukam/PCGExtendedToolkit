@@ -149,6 +149,11 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExWriteEdgeExtrasContext : public FPCGExEdgesP
 	PCGEx::FLocalVectorGetter* EdgeDirCompGetter = nullptr;
 
 	PCGEx::TFAttributeWriter<FVector>* VtxNormalWriter = nullptr;
+
+	bool bAscendingDesired = true;
+    double StartWeight = 0;
+    double EndWeight = 1;
+	
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExWriteEdgeExtrasElement : public FPCGExEdgesProcessorElement

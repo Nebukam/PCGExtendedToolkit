@@ -1,18 +1,18 @@
 ﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Graph/PCGExApplySocketStates.h"
+#include "Graph/PCGExFindSocketStates.h"
 
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraph"
-#define PCGEX_NAMESPACE ApplySocketStates
+#define PCGEX_NAMESPACE FindSocketStates
 
-int32 UPCGExApplySocketStatesSettings::GetPreferredChunkSize() const { return PCGExMT::GAsyncLoop_M; }
+int32 UPCGExFindSocketStatesSettings::GetPreferredChunkSize() const { return PCGExMT::GAsyncLoop_M; }
 
-PCGExData::EInit UPCGExApplySocketStatesSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
+PCGExData::EInit UPCGExFindSocketStatesSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
-TArray<FPCGPinProperties> UPCGExApplySocketStatesSettings::InputPinProperties() const
+TArray<FPCGPinProperties> UPCGExFindSocketStatesSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 	FPCGPinProperties& PinStateParams = PinProperties.Emplace_GetRef(PCGExGraph::SourceSocketStateLabel, EPCGDataType::Param);
@@ -24,14 +24,14 @@ TArray<FPCGPinProperties> UPCGExApplySocketStatesSettings::InputPinProperties() 
 	return PinProperties;
 }
 
-TArray<FPCGPinProperties> UPCGExApplySocketStatesSettings::OutputPinProperties() const
+TArray<FPCGPinProperties> UPCGExFindSocketStatesSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
 	if (bDeleteCustomGraphData) { PinProperties.Pop(); }
 	return PinProperties;
 }
 
-FPCGExApplySocketStatesContext::~FPCGExApplySocketStatesContext()
+FPCGExFindSocketStatesContext::~FPCGExFindSocketStatesContext()
 {
 	PCGEX_TERMINATE_ASYNC
 	PCGEX_DELETE(StatesManager)
@@ -39,13 +39,13 @@ FPCGExApplySocketStatesContext::~FPCGExApplySocketStatesContext()
 }
 
 
-PCGEX_INITIALIZE_ELEMENT(ApplySocketStates)
+PCGEX_INITIALIZE_ELEMENT(FindSocketStates)
 
-bool FPCGExApplySocketStatesElement::Boot(FPCGContext* InContext) const
+bool FPCGExFindSocketStatesElement::Boot(FPCGContext* InContext) const
 {
 	if (!FPCGExCustomGraphProcessorElement::Boot(InContext)) { return false; }
 
-	PCGEX_CONTEXT_AND_SETTINGS(ApplySocketStates)
+	PCGEX_CONTEXT_AND_SETTINGS(FindSocketStates)
 
 	return PCGExDataState::GetInputStates(
 		Context,
@@ -53,12 +53,12 @@ bool FPCGExApplySocketStatesElement::Boot(FPCGContext* InContext) const
 		Context->StateDefinitions);
 }
 
-bool FPCGExApplySocketStatesElement::ExecuteInternal(
+bool FPCGExFindSocketStatesElement::ExecuteInternal(
 	FPCGContext* InContext) const
 {
-	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExApplySocketStatesElement::Execute);
+	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExFindSocketStatesElement::Execute);
 
-	PCGEX_CONTEXT_AND_SETTINGS(ApplySocketStates)
+	PCGEX_CONTEXT_AND_SETTINGS(FindSocketStates)
 
 	if (Context->IsSetup())
 	{
@@ -134,13 +134,18 @@ bool FPCGExApplySocketStatesElement::ExecuteInternal(
 	if (Context->IsState(PCGExGraph::State_WritingStatesAttributes))
 	{
 		PCGEX_WAIT_ASYNC
-		Context->StatesManager->WriteStateAttributes(Context->GetAsyncManager());
-		Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork);
-	}
 
-	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
-	{
-		PCGEX_WAIT_ASYNC
+		auto Initialize = [&](PCGExData::FPointIO& PointIO)
+		{
+			Context->StatesManager->WritePrepareForStateAttributes(Context);
+		};
+
+		auto ProcessPoint = [&](const int32 PointIndex, const PCGExData::FPointIO& PointIO)
+		{
+			Context->StatesManager->WriteStateAttributes(PointIndex);
+		};
+
+		if (!Context->ProcessCurrentPoints(Initialize, ProcessPoint)) { return false; }
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 

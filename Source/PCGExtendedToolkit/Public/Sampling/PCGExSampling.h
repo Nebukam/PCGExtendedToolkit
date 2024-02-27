@@ -30,10 +30,9 @@ PCGEX_DELETE(Context->_NAME##Writer)}
 UENUM(BlueprintType)
 enum class EPCGExSampleMethod : uint8
 {
-	WithinRange UMETA(DisplayName = "Within Range", ToolTip="Use RangeMax = 0 to include all targets"),
+	WithinRange UMETA(DisplayName = "All (Within range)", ToolTip="Use RangeMax = 0 to include all targets"),
 	ClosestTarget UMETA(DisplayName = "Closest Target", ToolTip="Picks & process the closest target only"),
 	FarthestTarget UMETA(DisplayName = "Farthest Target", ToolTip="Picks & process the farthest target only"),
-	TargetsExtents UMETA(DisplayName = "Targets Extents", ToolTip="Pick targets if the point is inside their extents"),
 };
 
 UENUM(BlueprintType)

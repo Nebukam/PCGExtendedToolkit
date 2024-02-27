@@ -7,20 +7,20 @@
 
 #include "PCGExCustomGraphProcessor.h"
 
-#include "PCGExApplySocketStates.generated.h"
+#include "PCGExFindSocketStates.generated.h"
 
 /**
  * Calculates the distance between two points (inherently a n*n operation)
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
-class PCGEXTENDEDTOOLKIT_API UPCGExApplySocketStatesSettings : public UPCGExCustomGraphProcessorSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExFindSocketStatesSettings : public UPCGExCustomGraphProcessorSettings
 {
 	GENERATED_BODY()
 
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(ApplySocketStates, "Custom Graph : Apply States", "Applies socket states and attributes. Basically a glorified if/else to streamline identification of user-defined conditions within a graph.");
+	PCGEX_NODE_INFOS(FindSocketStates, "Custom Graph : Find Socket States", "Find & writes socket states and attributes. Basically a glorified if/else to streamline identification of user-defined conditions within a graph.");
 #endif
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
@@ -70,14 +70,14 @@ public:
 	bool bDeleteCustomGraphData = false;
 
 private:
-	friend class FPCGExApplySocketStatesElement;
+	friend class FPCGExFindSocketStatesElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExApplySocketStatesContext : public FPCGExCustomGraphProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExFindSocketStatesContext : public FPCGExCustomGraphProcessorContext
 {
-	friend class FPCGExApplySocketStatesElement;
+	friend class FPCGExFindSocketStatesElement;
 
-	virtual ~FPCGExApplySocketStatesContext() override;
+	virtual ~FPCGExFindSocketStatesContext() override;
 
 	TArray<TObjectPtr<UPCGExSocketStateDefinition>> StateDefinitions;
 	PCGExDataState::AStatesManager* StatesManager = nullptr;
@@ -85,7 +85,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExApplySocketStatesContext : public FPCGExCust
 };
 
 
-class PCGEXTENDEDTOOLKIT_API FPCGExApplySocketStatesElement : public FPCGExCustomGraphProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExFindSocketStatesElement : public FPCGExCustomGraphProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

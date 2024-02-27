@@ -91,6 +91,12 @@ namespace PCGExData
 			Tags.Add(Key, OutValue);
 		}
 
+		void Remove(const FString& Key)
+		{
+			Tags.Remove(Key);
+			RawTags.Remove(Key);
+		}
+
 		bool GetValue(const FString& Key, FString& OutValue)
 		{
 			if (FString* Value = Tags.Find(Key))

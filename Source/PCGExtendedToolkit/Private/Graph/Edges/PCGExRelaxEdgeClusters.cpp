@@ -123,15 +123,16 @@ bool FPCGExRelaxEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) con
 			Context->Relaxing->PrepareForIteration(Context->CurrentIteration, &Context->PrimaryBuffer, &Context->SecondaryBuffer);
 		};
 
-		auto ProcessVertex = [&](const int32 VertexIndex)
+		auto ProcessNode = [&](const int32 NodeIndex)
 		{
-			const PCGExCluster::FNode& Vtx = Context->CurrentCluster->Nodes[VertexIndex];
+			const PCGExCluster::FNode& Vtx = Context->CurrentCluster->Nodes[NodeIndex];
 			Context->Relaxing->ProcessVertex(Vtx);
 		};
 
 		while (Context->CurrentIteration != Context->Iterations)
 		{
-			if (Context->ProcessCurrentCluster(Initialize, ProcessVertex)) { Context->CurrentIteration++; }
+			if (!Context->ProcessCurrentCluster(Initialize, ProcessNode)) { return false; }
+			Context->CurrentIteration++;
 			if (Settings->InfluenceSettings.bProgressiveInfluence) { Context->Relaxing->ApplyInfluence(*Context->InfluenceGetter); }
 			return false;
 		}

@@ -76,7 +76,7 @@ namespace PCGExCluster
 		bool BuildFrom(
 			const PCGExData::FPointIO& EdgeIO,
 			const TArray<FPCGPoint>& InNodePoints,
-			const TMap<int32, int32>& InNodeIndicesMap,
+			const TMap<int64, int32>& InNodeIndicesMap,
 			const TArray<int32>& PerNodeEdgeNums);
 
 		void BuildPartialFrom(const TArray<FVector>& Positions, const TSet<uint64>& InEdges);
@@ -209,7 +209,7 @@ namespace PCGExClusterTask
 		FBuildCluster(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
 		              PCGExCluster::FCluster* InCluster,
 		              PCGExData::FPointIO* InEdgeIO,
-		              TMap<int32, int32>* InNodeIndicesMap,
+		              TMap<int64, int32>* InNodeIndicesMap,
 		              TArray<int32>* InPerNodeEdgeNums) :
 			FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
 			Cluster(InCluster),
@@ -221,7 +221,7 @@ namespace PCGExClusterTask
 
 		PCGExCluster::FCluster* Cluster = nullptr;
 		PCGExData::FPointIO* EdgeIO = nullptr;
-		TMap<int32, int32>* NodeIndicesMap = nullptr;
+		TMap<int64, int32>* NodeIndicesMap = nullptr;
 		TArray<int32>* PerNodeEdgeNums = nullptr;
 
 		virtual bool ExecuteTask() override;

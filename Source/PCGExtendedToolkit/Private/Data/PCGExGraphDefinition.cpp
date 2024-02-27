@@ -157,9 +157,7 @@ namespace PCGExGraph
 
 				if (Overrides.bRelativeOrientation) { NewSocket.Descriptor.bRelativeOrientation = OverrideSocket.bRelativeOrientation; }
 
-				if (Overrides.bDirection) { NewSocket.Descriptor.Direction = OverrideSocket.Direction; }
 				if (Overrides.bUseLocalDirection) { NewSocket.Descriptor.bUseLocalDirection = OverrideSocket.bUseLocalDirection; }
-				if (Overrides.bLocalDirection) { NewSocket.Descriptor.LocalDirection = OverrideSocket.LocalDirection; }
 
 				//
 
@@ -180,6 +178,7 @@ namespace PCGExGraph
 				if (Overrides.bMirrorMatchingSockets) { NewSocket.Descriptor.bMirrorMatchingSockets = OverrideSocket.bMirrorMatchingSockets; }
 			}
 
+			NewSocket.Descriptor.Direction.Normalize();
 			NewSocket.Descriptor.DotThreshold = PCGExMath::DegreesToDot(NewSocket.Descriptor.Angle);
 		}
 

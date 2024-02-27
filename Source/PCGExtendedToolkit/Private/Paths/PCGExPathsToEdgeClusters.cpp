@@ -33,7 +33,7 @@ void UPCGExPathsToEdgeClustersSettings::PostEditChangeProperty(FPropertyChangedE
 }
 #endif
 
-PCGExData::EInit UPCGExPathsToEdgeClustersSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
+PCGExData::EInit UPCGExPathsToEdgeClustersSettings::GetMainOutputInitMode() const { return bFusePaths ? PCGExData::EInit::NoOutput : PCGExData::EInit::DuplicateInput; }
 
 FName UPCGExPathsToEdgeClustersSettings::GetMainInputLabel() const { return PCGExGraph::SourcePathsLabel; }
 
@@ -96,25 +96,65 @@ bool FPCGExPathsToEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) c
 	{
 		if (!Context->AdvancePointsIO())
 		{
-			if (Context->CompoundGraph->Nodes.IsEmpty()) { return true; }
-			Context->ConsolidatedPoints = &Context->MainPoints->Emplace_GetRef(PCGExData::EInit::NewOutput);
-			Context->SetState(PCGExGraph::State_ProcessingGraph);
+			if (Settings->bFusePaths)
+			{
+				if (Context->CompoundGraph->Nodes.IsEmpty()) { return true; }
+				Context->ConsolidatedPoints = &Context->MainPoints->Emplace_GetRef(PCGExData::EInit::NewOutput);
+				Context->SetState(PCGExGraph::State_ProcessingGraph);
+			}
+			else
+			{
+				PCGEX_DELETE(Context->GraphBuilder)
+				Context->Done();
+			}
 		}
 		else
 		{
-			// Fuse points
+			if (Settings->bFusePaths)
+			{
+				Context->GetAsyncManager()->Start<FPCGExInsertPathToCompoundGraphTask>(
+					Context->CurrentIO->IOIndex, Context->CurrentIO, Context->CompoundGraph, Settings->bClosedPath);
 
-			Context->GetAsyncManager()->Start<FPCGExInsertPathToCompoundGraphTask>(
-				Context->CurrentIO->IOIndex, Context->CurrentIO, Context->CompoundGraph, Settings->bClosedPath);
+				Context->SetAsyncState(PCGExMT::State_ProcessingPoints);
+			}
+			else
+			{
+				PCGEX_DELETE(Context->GraphBuilder)
 
-			Context->SetAsyncState(PCGExMT::State_ProcessingPoints);
+				//TODO: Create one graph per path
+				const TArray<FPCGPoint>& InPoints = Context->CurrentIO->GetIn()->GetPoints();
+				const int32 NumPoints = InPoints.Num();
+
+				if (NumPoints < 2) { return false; }
+
+				Context->GraphBuilder = new PCGExGraph::FGraphBuilder(*Context->CurrentIO, &Context->GraphBuilderSettings, 2);
+				TArray<PCGExGraph::FUnsignedEdge> Edges;
+
+				Edges.SetNum(Settings->bClosedPath ? NumPoints : NumPoints - 1);
+
+				for (int i = 0; i < Edges.Num(); i++)
+				{
+					Edges[i].Start = i;
+					Edges[i].End = i + 1;
+				}
+
+				if (Settings->bClosedPath)
+				{
+					Edges.Last().Start = NumPoints - 1;
+					Edges.Last().End = 0;
+				}
+
+				Context->GraphBuilder->Graph->InsertEdges(Edges, -1);
+				Edges.Empty();
+
+				Context->SetState(PCGExGraph::State_WritingClusters);
+			}
 		}
 	}
 
 	if (Context->IsState(PCGExMT::State_ProcessingPoints))
 	{
 		if (!Context->IsAsyncWorkComplete()) { return false; }
-
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
@@ -225,13 +265,15 @@ bool FPCGExPathsToEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) c
 	{
 		if (!Context->IsAsyncWorkComplete()) { return false; }
 
-		if (Context->GraphBuilder->bCompiledSuccessfully)
-		{
-			Context->GraphBuilder->Write(Context);
-			Context->OutputPoints();
-		}
+		if (Context->GraphBuilder->bCompiledSuccessfully) { Context->GraphBuilder->Write(Context); }
 
-		Context->Done();
+		if (Settings->bFusePaths) { Context->Done(); }
+		else { Context->SetState(PCGExMT::State_ReadyForNextPoints); }
+	}
+
+	if (Context->IsDone())
+	{
+		Context->OutputPoints();
 	}
 
 	return Context->IsDone();

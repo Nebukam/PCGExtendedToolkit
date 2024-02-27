@@ -1,22 +1,21 @@
 ﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Graph/PCGExAssembleCustomGraphParams.h"
+#include "Graph/PCGExGatherSockets.h"
 
 #include "PCGPin.h"
-#include "Graph/PCGExCreateCustomGraphParams.h"
 
-#define LOCTEXT_NAMESPACE "PCGExAssembleCustomGraphParams"
-#define PCGEX_NAMESPACE AssembleCustomGraphParams
+#define LOCTEXT_NAMESPACE "PCGExGatherSockets"
+#define PCGEX_NAMESPACE GatherSockets
 
-UPCGExAssembleCustomGraphParamsSettings::UPCGExAssembleCustomGraphParamsSettings(
+UPCGExGatherSocketsSettings::UPCGExGatherSocketsSettings(
 	const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 	RefreshSocketNames();
 }
 
-void UPCGExAssembleCustomGraphParamsSettings::RefreshSocketNames()
+void UPCGExGatherSocketsSettings::RefreshSocketNames()
 {
 	GeneratedSocketNames.Empty();
 	for (const FPCGExSocketDescriptor& Socket : InputSockets)
@@ -26,11 +25,11 @@ void UPCGExAssembleCustomGraphParamsSettings::RefreshSocketNames()
 	}
 }
 
-const TArray<FPCGExSocketDescriptor>& UPCGExAssembleCustomGraphParamsSettings::GetSockets() const { return InputSockets; }
+const TArray<FPCGExSocketDescriptor>& UPCGExGatherSocketsSettings::GetSockets() const { return InputSockets; }
 
-FPCGElementPtr UPCGExAssembleCustomGraphParamsSettings::CreateElement() const { return MakeShared<FPCGExAssembleCustomGraphParamsElement>(); }
+FPCGElementPtr UPCGExGatherSocketsSettings::CreateElement() const { return MakeShared<FPCGExGatherSocketsElement>(); }
 
-TArray<FPCGPinProperties> UPCGExAssembleCustomGraphParamsSettings::InputPinProperties() const
+TArray<FPCGPinProperties> UPCGExGatherSocketsSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
 	FPCGPinProperties& SocketsPin = PinProperties.Emplace_GetRef(PCGExGraph::SourceSocketParamsLabel, EPCGDataType::Param, true, true);
@@ -48,7 +47,7 @@ TArray<FPCGPinProperties> UPCGExAssembleCustomGraphParamsSettings::InputPinPrope
 	return PinProperties;
 }
 
-TArray<FPCGPinProperties> UPCGExAssembleCustomGraphParamsSettings::OutputPinProperties() const
+TArray<FPCGPinProperties> UPCGExGatherSocketsSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
 	FPCGPinProperties& PinPropertyOutput = PinProperties.Emplace_GetRef(PCGExGraph::SourceParamsLabel, EPCGDataType::Param, false, false);
@@ -61,19 +60,19 @@ TArray<FPCGPinProperties> UPCGExAssembleCustomGraphParamsSettings::OutputPinProp
 }
 
 #if WITH_EDITOR
-void UPCGExAssembleCustomGraphParamsSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+void UPCGExGatherSocketsSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	RefreshSocketNames();
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
 #endif
 
-bool FPCGExAssembleCustomGraphParamsElement::ExecuteInternal(
+bool FPCGExGatherSocketsElement::ExecuteInternal(
 	FPCGContext* Context) const
 {
-	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExAssembleCustomGraphParamsElement::Execute);
+	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExGatherSocketsElement::Execute);
 
-	UPCGExAssembleCustomGraphParamsSettings* Settings = const_cast<UPCGExAssembleCustomGraphParamsSettings*>(Context->GetInputSettings<UPCGExAssembleCustomGraphParamsSettings>());
+	UPCGExGatherSocketsSettings* Settings = const_cast<UPCGExGatherSocketsSettings*>(Context->GetInputSettings<UPCGExGatherSocketsSettings>());
 
 	if (Settings->GraphIdentifier.IsNone() || !FPCGMetadataAttributeBase::IsValidName(Settings->GraphIdentifier.ToString()))
 	{
@@ -132,7 +131,7 @@ bool FPCGExAssembleCustomGraphParamsElement::ExecuteInternal(
 	return true;
 }
 
-FPCGContext* FPCGExAssembleCustomGraphParamsElement::Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node)
+FPCGContext* FPCGExGatherSocketsElement::Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node)
 {
 	FPCGContext* Context = new FPCGContext();
 	Context->InputData = InputData;

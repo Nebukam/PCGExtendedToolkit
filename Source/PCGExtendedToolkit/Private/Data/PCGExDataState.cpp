@@ -147,16 +147,15 @@ namespace PCGExDataState
 
 		PCGEx::TFAttributeWriter<FName>* StateNameWriter = new PCGEx::TFAttributeWriter<FName>(AttributeName, DefaultValue, false);
 		StateNameWriter->BindAndGet(*PointIO);
-		
+
 		for (int i = 0; i < NumPoints; i++)
 		{
 			if (const int32 HighestStateId = HighestState[i]; HighestStateId != -1) { StateNameWriter->Values[i] = Handlers[HighestStateId]->ADefinition->StateName; }
 			else { StateNameWriter->Values[i] = DefaultValue; }
 		}
-		
-		StateNameWriter->Write();		
+
+		StateNameWriter->Write();
 		PCGEX_DELETE(StateNameWriter)
-		
 	}
 
 	void AStatesManager::WriteStateValues(const FName AttributeName, const int32 DefaultValue)
@@ -165,16 +164,15 @@ namespace PCGExDataState
 
 		PCGEx::TFAttributeWriter<int32>* StateValueWriter = new PCGEx::TFAttributeWriter<int32>(AttributeName, DefaultValue, false);
 		StateValueWriter->BindAndGet(*PointIO);
-		
+
 		for (int i = 0; i < NumPoints; i++)
 		{
 			if (const int32 HighestStateId = HighestState[i]; HighestStateId != -1) { StateValueWriter->Values[i] = Handlers[HighestStateId]->ADefinition->StateId; }
 			else { StateValueWriter->Values[i] = DefaultValue; }
 		}
-		
-		StateValueWriter->Write();		
+
+		StateValueWriter->Write();
 		PCGEX_DELETE(StateValueWriter)
-		
 	}
 
 	void AStatesManager::WriteStateIndividualStates(FPCGExAsyncManager* AsyncManager)
@@ -182,7 +180,7 @@ namespace PCGExDataState
 		for (AStateHandler* Handler : Handlers) { AsyncManager->Start<PCGExDataStateTask::FWriteIndividualState>(Handler->Index, PointIO, Handler); }
 	}
 
-	void AStatesManager::WriteStateAttributes(FPCGExAsyncManager* AsyncManager)
+	void AStatesManager::WritePrepareForStateAttributes(const FPCGContext* InContext)
 	{
 		const int32 NumPoints = PointIO->GetNum();
 
@@ -193,11 +191,48 @@ namespace PCGExDataState
 			if (!Handler->OverlappingAttributes.IsEmpty())
 			{
 				FString Names = FString::Join(Handler->OverlappingAttributes.Array(), TEXT(", "));
-				PCGE_LOG_C(Warning, GraphAndLog, AsyncManager->Context, FText::Format(FTEXT("Some If/Else attributes ({0}) have the same name but different types, this will have unexpected results."), FText::FromString(Names)));
+				PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("Some If/Else attributes ({0}) have the same name but different types, this will have unexpected results."), FText::FromString(Names)));
 			}
 		}
+	}
 
+	void AStatesManager::WriteStateAttributes(FPCGExAsyncManager* AsyncManager)
+	{
+		WritePrepareForStateAttributes(AsyncManager->Context);
+		
+		const int32 NumPoints = PointIO->GetNum();
 		for (int i = 0; i < NumPoints; i++) { AsyncManager->Start<PCGExDataStateTask::FWriteStateAttribute>(i, PointIO, this); }
+	}
+
+	void AStatesManager::WriteStateAttributes(const int32 PointIndex)
+	{
+		const PCGMetadataEntryKey Key = PointIO->GetOutPoint(PointIndex).MetadataEntry;
+
+		auto ForwardValues = [&](
+			TArray<FPCGMetadataAttributeBase*>& In,
+			TArray<FPCGMetadataAttributeBase*>& Out)
+		{
+			for (int i = 0; i < Out.Num(); i++)
+			{
+				FPCGMetadataAttributeBase* OutAtt = Out[i];
+				if (!OutAtt) { continue; }
+				PCGMetadataAttribute::CallbackWithRightType(
+					OutAtt->GetTypeId(),
+					[&](auto DummyValue) -> void
+					{
+						using RawT = decltype(DummyValue);
+						const FPCGMetadataAttribute<RawT>* TypedInAtt = static_cast<FPCGMetadataAttribute<RawT>*>(In[i]);
+						FPCGMetadataAttribute<RawT>* TypedOutAtt = static_cast<FPCGMetadataAttribute<RawT>*>(OutAtt);
+						TypedOutAtt->SetValue(Key, TypedInAtt->GetValueFromItemKey(PCGInvalidEntryKey));
+					});
+			}
+		};
+
+		for (AStateHandler* Handler : Handlers)
+		{
+			if (Handler->Results[PointIndex]) { ForwardValues(Handler->InIfAttributes, Handler->OutIfAttributes); }
+			else { ForwardValues(Handler->InElseAttributes, Handler->OutElseAttributes); }
+		}
 	}
 }
 
@@ -206,6 +241,8 @@ namespace PCGExDataStateTask
 	bool FWriteStateAttribute::ExecuteTask()
 	{
 		const PCGMetadataEntryKey Key = PointIO->GetOutPoint(TaskIndex).MetadataEntry;
+
+		TRACE_CPUPROFILER_EVENT_SCOPE(FWriteStateAttribute::ExecuteTask);
 
 		auto ForwardValues = [&](
 			TArray<FPCGMetadataAttributeBase*>& In,
@@ -238,6 +275,8 @@ namespace PCGExDataStateTask
 
 	bool FWriteIndividualState::ExecuteTask()
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(FWriteIndividualState::ExecuteTask);
+
 		PCGEx::TFAttributeWriter<bool>* StateWriter = new PCGEx::TFAttributeWriter<bool>(Handler->ADefinition->StateName);
 		StateWriter->BindAndGet(*PointIO);
 

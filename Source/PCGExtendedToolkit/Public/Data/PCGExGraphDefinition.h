@@ -191,7 +191,7 @@ public:
 
 	/** Maximum search radius. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Probing", meta=(PCG_Overridable, ClampMin=0.0001))
-	double Radius = 1000.0f;
+	double Radius = 100.0f;
 
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Probing", meta=(PCG_Overridable, InlineEditConditionToggle))
@@ -318,16 +318,8 @@ public:
 
 	/// Bounds
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Probing", meta=(PCG_Overridable))
-	bool bDirection = false;
-
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Probing", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bUseLocalDirection = false;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Probing", meta = (PCG_Overridable, EditCondition="bUseLocalDirection"))
-	bool bLocalDirection = false;
-
-	//
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Probing", meta=(PCG_Overridable))
 	bool bAngle = false;
@@ -498,7 +490,7 @@ namespace PCGExGraph
 
 		void GetDirection(const int32 PointIndex, FVector& OutDirection) const
 		{
-			OutDirection = LocalDirectionGetter ? LocalDirectionGetter->SafeGet(PointIndex, Descriptor.Direction) : Descriptor.Direction;
+			OutDirection = LocalDirectionGetter ? LocalDirectionGetter->SafeGet(PointIndex, Descriptor.Direction).GetSafeNormal() : Descriptor.Direction;
 		}
 
 		void GetDotThreshold(const int32 PointIndex, double& OutAngle) const
@@ -979,3 +971,31 @@ namespace PCGExGraph
 		}
 	};
 }
+
+
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExSocketQualityOfLifeInfos
+{
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	FString BaseName;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	FString FullName;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	FString IndexAttribute;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	FString EdgeTypeAttribute;
+
+	void Populate(const FName Identifier, const FPCGExSocketDescriptor& Descriptor)
+	{
+		BaseName = Descriptor.SocketName.ToString();
+		const FString Separator = TEXT("/");
+		FullName = *(TEXT("PCGEx") + Separator + Identifier.ToString() + Separator + BaseName);
+		IndexAttribute = *(FullName + Separator + PCGExGraph::SocketPropertyNameIndex.ToString());
+		EdgeTypeAttribute = *(FullName + Separator + PCGExGraph::SocketPropertyNameEdgeType.ToString());
+	}
+};

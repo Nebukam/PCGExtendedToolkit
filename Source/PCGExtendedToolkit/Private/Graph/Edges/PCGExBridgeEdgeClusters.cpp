@@ -329,9 +329,9 @@ bool FPCGExCreateBridgeTask::ExecuteTask()
 	UPCGMetadata* EdgeMetadata = Context->ConsolidatedEdges->GetOut()->Metadata;
 	UPCGMetadata* PointMetadata = Context->CurrentIO->GetOut()->Metadata;
 
-	FPCGMetadataAttribute<int32>* StartIndexAtt = static_cast<FPCGMetadataAttribute<int32>*>(EdgeMetadata->GetMutableAttribute(PCGExGraph::Tag_EdgeStart));
-	FPCGMetadataAttribute<int32>* EndIndexAtt = static_cast<FPCGMetadataAttribute<int32>*>(EdgeMetadata->GetMutableAttribute(PCGExGraph::Tag_EdgeEnd));
-	FPCGMetadataAttribute<int32>* EdgeIndexAtt = static_cast<FPCGMetadataAttribute<int32>*>(PointMetadata->GetMutableAttribute(PCGExGraph::Tag_EdgeIndex));
+	FPCGMetadataAttribute<int64>* StartIndexAtt = static_cast<FPCGMetadataAttribute<int64>*>(EdgeMetadata->GetMutableAttribute(PCGExGraph::Tag_EdgeStart));
+	FPCGMetadataAttribute<int64>* EndIndexAtt = static_cast<FPCGMetadataAttribute<int64>*>(EdgeMetadata->GetMutableAttribute(PCGExGraph::Tag_EdgeEnd));
+	FPCGMetadataAttribute<int64>* EdgeIndexAtt = static_cast<FPCGMetadataAttribute<int64>*>(PointMetadata->GetMutableAttribute(PCGExGraph::Tag_EdgeIndex));
 
 	FPCGPoint& EdgePoint = PointIO->GetOut()->GetMutablePoints()[TaskIndex];
 

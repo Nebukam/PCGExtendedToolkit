@@ -57,10 +57,6 @@ public:
 	//~End UPCGExPointsProcessorSettings interface
 
 public:
-	/** If enabled, attempts to build a delaunay graph first, and then search through neighbors. */
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	bool bConnectivityBasedSearch = true;
-
 	/** Connectivity depth search if the delaunay graph could be built */
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bConnectivityBasedSearch", ClampMin=1, ClampMax=100))
 	int32 SearchDepth = 5;
@@ -80,10 +76,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBuildCustomGraphContext : public FPCGExCusto
 
 	virtual ~FPCGExBuildCustomGraphContext() override;
 
-	PCGExCluster::FCluster* HelperCluster = nullptr;
-
 	UPCGExCustomGraphSolver* GraphSolver = nullptr;
-	bool bMoveSocketOriginOnPointExtent = false;
 };
 
 
@@ -98,17 +91,6 @@ public:
 protected:
 	virtual bool Boot(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
-};
-
-class PCGEXTENDEDTOOLKIT_API FPCGExBuildGraphHelperTask : public FPCGExNonAbandonableTask
-{
-public:
-	FPCGExBuildGraphHelperTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO) :
-		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO)
-	{
-	}
-
-	virtual bool ExecuteTask() override;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExProbeTask : public FPCGExNonAbandonableTask

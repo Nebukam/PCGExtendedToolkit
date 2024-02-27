@@ -215,8 +215,11 @@ bool FSampleClusterPathTask::ExecuteTask()
 		return false;
 	}
 
-	const PCGExData::FPointIO& PathPoints = Context->OutputPaths->Emplace_GetRef(Context->GetCurrentIn(), PCGExData::EInit::NewOutput);
+	PCGExData::FPointIO& PathPoints = Context->OutputPaths->Emplace_GetRef(Context->GetCurrentIn(), PCGExData::EInit::NewOutput);
 	UPCGPointData* OutData = PathPoints.GetOut();
+
+	PCGExGraph::CleanupVtxData(&PathPoints);
+	
 	TArray<FPCGPoint>& MutablePoints = OutData->GetMutablePoints();
 	const TArray<FPCGPoint>& InPoints = Context->GetCurrentIn()->GetPoints();
 

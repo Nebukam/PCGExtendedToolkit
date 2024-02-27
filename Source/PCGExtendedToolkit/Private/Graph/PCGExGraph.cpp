@@ -750,8 +750,8 @@ namespace PCGExGraphTask
 
 		EdgeIO.CreateOutKeys();
 
-		PCGEx::TFAttributeWriter<int32>* EdgeStart = new PCGEx::TFAttributeWriter<int32>(PCGExGraph::Tag_EdgeStart, -1, false);
-		PCGEx::TFAttributeWriter<int32>* EdgeEnd = new PCGEx::TFAttributeWriter<int32>(PCGExGraph::Tag_EdgeEnd, -1, false);
+		PCGEx::TFAttributeWriter<int64>* EdgeStart = new PCGEx::TFAttributeWriter<int64>(PCGExGraph::Tag_EdgeStart, -1, false);
+		PCGEx::TFAttributeWriter<int64>* EdgeEnd = new PCGEx::TFAttributeWriter<int64>(PCGExGraph::Tag_EdgeEnd, -1, false);
 
 		EdgeStart->BindAndGet(EdgeIO);
 		EdgeEnd->BindAndGet(EdgeIO);
@@ -764,8 +764,8 @@ namespace PCGExGraphTask
 			const PCGExGraph::FIndexedEdge& Edge = Graph->Edges[EdgeIndex];
 			FPCGPoint& Point = MutablePoints[PointIndex];
 
-			EdgeStart->Values[PointIndex] = Graph->Nodes[Edge.Start].PointIndex;
-			EdgeEnd->Values[PointIndex] = Graph->Nodes[Edge.End].PointIndex;
+			EdgeStart->Values[PointIndex] = Vertices[Graph->Nodes[Edge.Start].PointIndex].MetadataEntry;
+			EdgeEnd->Values[PointIndex] = Vertices[Graph->Nodes[Edge.End].PointIndex].MetadataEntry;
 
 			if (Point.Seed == 0) { PCGExMath::RandomizeSeed(Point); }
 
@@ -785,10 +785,11 @@ namespace PCGExGraphTask
 		{
 			for (int i = 0; i < SubGraph->Edges.Num(); i++)
 			{
+				const PCGExGraph::FIndexedEdge& Edge = Graph->Edges[i];
 				MutablePoints[i].Transform.SetLocation(
 					FMath::Lerp(
-						Vertices[EdgeStart->Values[i]].Transform.GetLocation(),
-						Vertices[EdgeEnd->Values[i]].Transform.GetLocation(),
+						Vertices[Graph->Nodes[Edge.Start].PointIndex].Transform.GetLocation(),
+						Vertices[Graph->Nodes[Edge.End].PointIndex].Transform.GetLocation(),
 						Graph->EdgePosition));
 			}
 		}
@@ -886,13 +887,15 @@ namespace PCGExGraphTask
 
 		///
 
-		PCGEx::TFAttributeWriter<int32>* IndexWriter = new PCGEx::TFAttributeWriter<int32>(PCGExGraph::Tag_EdgeIndex, -1, false);
+		PCGEx::TFAttributeWriter<int64>* IndexWriter = new PCGEx::TFAttributeWriter<int64>(PCGExGraph::Tag_EdgeIndex, -1, false);
 		PCGEx::TFAttributeWriter<int32>* NumEdgesWriter = new PCGEx::TFAttributeWriter<int32>(PCGExGraph::Tag_EdgesNum, 0, false);
 
 		IndexWriter->BindAndGet(*PointIO);
 		NumEdgesWriter->BindAndGet(*PointIO);
-
-		for (int i = 0; i < IndexWriter->Values.Num(); i++) { IndexWriter->Values[i] = i; }
+		
+		IndexWriter->Write(); //Ensure valid MetadataEntry
+		
+		for (int i = 0; i < IndexWriter->Values.Num(); i++) { IndexWriter->Values[i] = PointIO->GetOutPoint(i).MetadataEntry; }
 		for (const int32 NodeIndex : ValidNodes)
 		{
 			const PCGExGraph::FNode& Node = Nodes[NodeIndex];

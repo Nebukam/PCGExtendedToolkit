@@ -89,7 +89,7 @@ namespace PCGExCluster
 	bool FCluster::BuildFrom(
 		const PCGExData::FPointIO& EdgeIO,
 		const TArray<FPCGPoint>& InNodePoints,
-		const TMap<int32, int32>& InNodeIndicesMap,
+		const TMap<int64, int32>& InNodeIndicesMap,
 		const TArray<int32>& PerNodeEdgeNums)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExCluster::BuildCluster);
@@ -140,7 +140,7 @@ namespace PCGExCluster
 
 		for (FNode& Node : Nodes)
 		{
-			if (PerNodeEdgeNums[Node.PointIndex] != Node.AdjacentNodes.Num())
+			if (PerNodeEdgeNums[Node.PointIndex] > Node.AdjacentNodes.Num()) // We care about removed connections, not new ones 
 			{
 				bInvalidCluster = true;
 				break;

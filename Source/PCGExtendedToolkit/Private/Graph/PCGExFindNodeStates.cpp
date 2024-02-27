@@ -1,20 +1,20 @@
 ﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Graph/PCGExApplyNodeStates.h"
+#include "Graph/PCGExFindNodeStates.h"
 
 #include "Elements/Metadata/PCGMetadataElementCommon.h"
 #include "Graph/PCGExCluster.h"
 
 #define LOCTEXT_NAMESPACE "PCGExGraph"
-#define PCGEX_NAMESPACE ApplyNodeStates
+#define PCGEX_NAMESPACE FindNodeStates
 
-int32 UPCGExApplyNodeStatesSettings::GetPreferredChunkSize() const { return PCGExMT::GAsyncLoop_M; }
+int32 UPCGExFindNodeStatesSettings::GetPreferredChunkSize() const { return PCGExMT::GAsyncLoop_M; }
 
-PCGExData::EInit UPCGExApplyNodeStatesSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
-PCGExData::EInit UPCGExApplyNodeStatesSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
+PCGExData::EInit UPCGExFindNodeStatesSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
+PCGExData::EInit UPCGExFindNodeStatesSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::Forward; }
 
-TArray<FPCGPinProperties> UPCGExApplyNodeStatesSettings::InputPinProperties() const
+TArray<FPCGPinProperties> UPCGExFindNodeStatesSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 	FPCGPinProperties& PinStateParams = PinProperties.Emplace_GetRef(PCGExGraph::SourceNodeStateLabel, EPCGDataType::Param);
@@ -26,7 +26,7 @@ TArray<FPCGPinProperties> UPCGExApplyNodeStatesSettings::InputPinProperties() co
 	return PinProperties;
 }
 
-FPCGExApplyNodeStatesContext::~FPCGExApplyNodeStatesContext()
+FPCGExFindNodeStatesContext::~FPCGExFindNodeStatesContext()
 {
 	PCGEX_TERMINATE_ASYNC
 	PCGEX_DELETE(StatesManager)
@@ -34,13 +34,13 @@ FPCGExApplyNodeStatesContext::~FPCGExApplyNodeStatesContext()
 }
 
 
-PCGEX_INITIALIZE_ELEMENT(ApplyNodeStates)
+PCGEX_INITIALIZE_ELEMENT(FindNodeStates)
 
-bool FPCGExApplyNodeStatesElement::Boot(FPCGContext* InContext) const
+bool FPCGExFindNodeStatesElement::Boot(FPCGContext* InContext) const
 {
 	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
 
-	PCGEX_CONTEXT_AND_SETTINGS(ApplyNodeStates)
+	PCGEX_CONTEXT_AND_SETTINGS(FindNodeStates)
 
 	return PCGExDataState::GetInputStates(
 		Context,
@@ -48,12 +48,12 @@ bool FPCGExApplyNodeStatesElement::Boot(FPCGContext* InContext) const
 		Context->StateDefinitions);
 }
 
-bool FPCGExApplyNodeStatesElement::ExecuteInternal(
+bool FPCGExFindNodeStatesElement::ExecuteInternal(
 	FPCGContext* InContext) const
 {
-	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExApplyNodeStatesElement::Execute);
+	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExFindNodeStatesElement::Execute);
 
-	PCGEX_CONTEXT_AND_SETTINGS(ApplyNodeStates)
+	PCGEX_CONTEXT_AND_SETTINGS(FindNodeStates)
 
 	if (Context->IsSetup())
 	{
@@ -130,13 +130,18 @@ bool FPCGExApplyNodeStatesElement::ExecuteInternal(
 	if (Context->IsState(PCGExGraph::State_WritingStatesAttributes))
 	{
 		PCGEX_WAIT_ASYNC
-		Context->StatesManager->WriteStateAttributes(Context->GetAsyncManager());
-		Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork);
-	}
 
-	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
-	{
-		PCGEX_WAIT_ASYNC
+		auto Initialize = [&](PCGExData::FPointIO& PointIO)
+		{
+			Context->StatesManager->WritePrepareForStateAttributes(Context);
+		};
+
+		auto ProcessPoint = [&](const int32 PointIndex, const PCGExData::FPointIO& PointIO)
+		{
+			Context->StatesManager->WriteStateAttributes(PointIndex);
+		};
+
+		if (!Context->ProcessCurrentPoints(Initialize, ProcessPoint)) { return false; }
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 

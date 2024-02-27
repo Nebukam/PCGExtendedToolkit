@@ -141,7 +141,7 @@ bool FPCGExFindContoursElement::ExecuteInternal(
 	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
 	{
 		if (!Context->IsAsyncWorkComplete()) { return false; }
-		Context->SetState(PCGExMT::State_ReadyForNextPoints);
+		Context->SetState(PCGExGraph::State_ReadyForNextEdges);
 	}
 
 	if (Context->IsDone())
@@ -217,6 +217,8 @@ bool FPCGExFindContourTask::ExecuteTask()
 		NextIndex = Context->ClusterProjection->FindNextAdjacentNode(Settings->OrientationMode, NextIndex, FromIndex, Exclusion, 1);
 	}
 
+	PCGExGraph::CleanupVtxData(PointIO);
+	
 	TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
 	const TArray<FPCGPoint>& OriginPoints = PointIO->GetIn()->GetPoints();
 	MutablePoints.SetNum(Path.Num());

@@ -260,7 +260,7 @@ bool FPCGExComputePreciseOverlap::ExecuteTask()
 		auto ProcessLocalPoints = [&](const FPCGPointRef& LocalPointRef)
 		{
 			const ptrdiff_t LocalIndex = LocalPointRef.Point - LocalPoints.GetData();
-			if (LocalIndex < 0 && LocalIndex >= LocalPoints.Num()) { return; }
+			if (!LocalPoints.IsValidIndex(LocalIndex)) { return; }
 
 			const FPCGPoint& Pt = LocalPoints[LocalIndex];
 			//LocalBounds.Add(PCGExPointsToBounds::GetBounds(Pt, BoundsSource).ExpandBy(BoundsExpansion->SoftGet(Pt, StaticExpansion)));
@@ -279,7 +279,7 @@ bool FPCGExComputePreciseOverlap::ExecuteTask()
 		auto ProcessOtherPoint = [&](const FPCGPointRef& OtherPointRef)
 		{
 			const ptrdiff_t OtherPointIndex = OtherPointRef.Point - OtherPoints.GetData();
-			if (OtherPointIndex < 0 && OtherPointIndex >= OtherPoints.Num()) { return; }
+			if (!OtherPoints.IsValidIndex(OtherPointIndex)) { return; }
 
 			const FBox OtherBox = PCGExPointsToBounds::GetBounds(OtherPoints[OtherPointIndex], BoundsSource);
 

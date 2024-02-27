@@ -42,7 +42,7 @@ namespace PCGExGraph
 		FVector Origin = FVector::Zero();
 		FVector Direction = FVector::UpVector;
 		double DotThreshold = 0.707;
-		double Radius = 1000.0f;
+		double Radius = 100.0f;
 		TObjectPtr<UCurveFloat> DotOverDistanceCurve = nullptr;
 
 		TArray<FPointCandidate> Candidates;

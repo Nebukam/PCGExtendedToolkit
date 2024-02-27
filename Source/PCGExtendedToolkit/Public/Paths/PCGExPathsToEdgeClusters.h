@@ -61,8 +61,12 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bClosedPath = false;
 
+	/** Consider paths to be closed -- processing will wrap between first and last points. */
+	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	bool bFusePaths = true;
+	
 	/** Fuse Settings */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Point/Point"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Point/Point", EditCondition="bFusePaths"))
 	FPCGExPointPointIntersectionSettings PointPointIntersectionSettings;
 
 	/** Point-Edge intersection */
@@ -70,7 +74,7 @@ public:
 	bool bDoPointEdgeIntersection;
 
 	/** Point-Edge intersection */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Point/Edge", EditCondition="bDoPointEdgeIntersection"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Point/Edge", EditCondition="bFusePaths && bDoPointEdgeIntersection"))
 	FPCGExPointEdgeIntersectionSettings PointEdgeIntersectionSettings;
 
 	/** Edge-Edge intersection */
@@ -78,7 +82,7 @@ public:
 	bool bDoEdgeEdgeIntersection;
 
 	/** Edge-Edge intersection */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Edge/Edge", EditCondition="bDoEdgeEdgeIntersection"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Edge/Edge", EditCondition="bFusePaths && bDoEdgeEdgeIntersection"))
 	FPCGExEdgeEdgeIntersectionSettings EdgeEdgeIntersectionSettings;
 
 	/** Defines how fused point properties and attributes are merged together for fused points. */

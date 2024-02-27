@@ -270,8 +270,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestPolylineContext : public FPCGEx
 
 	TObjectPtr<UCurveFloat> WeightCurve = nullptr;
 
-	//TODO: Setup target local inputs
-
 	PCGEX_FOREACH_FIELD_NEARESTPOLYLINE(PCGEX_OUTPUT_DECL)
 
 	EPCGExDistance DistanceSettings;
@@ -292,15 +290,4 @@ public:
 protected:
 	virtual bool Boot(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
-};
-
-class PCGEXTENDEDTOOLKIT_API FPCGExSamplePolylineTask : public FPCGExNonAbandonableTask
-{
-public:
-	FPCGExSamplePolylineTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO) :
-		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO)
-	{
-	}
-
-	virtual bool ExecuteTask() override;
 };
