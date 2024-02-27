@@ -559,6 +559,9 @@ namespace PCGExGraph
 			Edges.Empty();
 		}
 
+		int32 NumNodes() const { return PointsCompounds->Num(); }
+		int32 NumEdges() const { return EdgesCompounds->Num(); }
+
 		FCompoundNode* GetOrCreateNode(const FPCGPoint& Point, const int32 IOIndex, const int32 PointIndex);
 		PCGExData::FIdxCompound* CreateBridge(const FPCGPoint& From, const int32 FromIOIndex, const int32 FromPointIndex,
 		                                      const FPCGPoint& To, const int32 ToIOIndex, const int32 ToPointIndex,

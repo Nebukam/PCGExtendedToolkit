@@ -9,13 +9,6 @@
 
 #include "PCGExFindContours.generated.h"
 
-UENUM(BlueprintType)
-enum class EPCGExContourOrientation : uint8
-{
-	Left UMETA(DisplayName = "Lefty", ToolTip="Selects first lefty edge"),
-	Right UMETA(DisplayName = "Righty", ToolTip="Selects first righty edge"),
-};
-
 namespace PCGExContours
 {
 	struct PCGEXTENDEDTOOLKIT_API FCandidate

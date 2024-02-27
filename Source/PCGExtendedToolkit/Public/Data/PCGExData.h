@@ -61,6 +61,8 @@ namespace PCGExData
 		FIdxCompoundList() { Compounds.Empty(); }
 		~FIdxCompoundList() { PCGEX_DELETE_TARRAY(Compounds) }
 
+		int32 Num() const { return Compounds.Num(); }
+		
 		FIdxCompound* New();
 
 		uint64 Add(const int32 Index, const int32 IOIndex, const int32 PointIndex);

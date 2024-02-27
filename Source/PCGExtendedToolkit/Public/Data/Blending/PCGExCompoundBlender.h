@@ -25,7 +25,11 @@ namespace PCGExDataBlending
 
 		void AddSource(PCGExData::FPointIO& InData);
 		void AddSources(const PCGExData::FPointIOCollection& InDataGroup);
+
+		void PrepareMerge(PCGExData::FPointIO* TargetData, PCGExData::FIdxCompoundList* CompoundList);
 		void Merge(FPCGExAsyncManager* AsyncManager, PCGExData::FPointIO* TargetData, PCGExData::FIdxCompoundList* CompoundList, const FPCGExDistanceSettings& DistSettings);
+		void MergeSingle(const int32 CompoundIndex, const FPCGExDistanceSettings& DistSettings);
+
 		void Write();
 
 	protected:
@@ -41,6 +45,9 @@ namespace PCGExDataBlending
 		TArray<TArray<FDataBlendingOperationBase*>> CachedOperations;
 
 		TArray<PCGEx::FAAttributeIO*> Writers;
+
+		PCGExData::FIdxCompoundList* CurrentCompoundList = nullptr;
+		PCGExData::FPointIO* CurrentTargetData = nullptr;
 	};
 
 	class PCGEXTENDEDTOOLKIT_API FPCGExCompoundBlendTask : public FPCGExNonAbandonableTask
@@ -48,18 +55,15 @@ namespace PCGExDataBlending
 	public:
 		FPCGExCompoundBlendTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
 		                        FCompoundBlender* InMerger,
-		                        PCGExData::FIdxCompoundList* InCompoundList,
 		                        const FPCGExDistanceSettings& InDistSettings)
 			: FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
 			  Merger(InMerger),
-			  CompoundList(InCompoundList),
 			  DistSettings(InDistSettings)
 
 		{
 		}
 
 		FCompoundBlender* Merger = nullptr;
-		PCGExData::FIdxCompoundList* CompoundList = nullptr;
 		FPCGExDistanceSettings DistSettings;
 
 
@@ -71,17 +75,14 @@ namespace PCGExDataBlending
 	public:
 		FPCGExCompoundedPointBlendTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
 		                               FCompoundBlender* InMerger,
-		                               PCGExData::FIdxCompoundList* InCompoundList,
 		                               const FPCGExDistanceSettings& InDistSettings)
 			: FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
 			  Merger(InMerger),
-			  CompoundList(InCompoundList),
 			  DistSettings(InDistSettings)
 		{
 		}
 
 		FCompoundBlender* Merger = nullptr;
-		PCGExData::FIdxCompoundList* CompoundList = nullptr;
 		FPCGExDistanceSettings DistSettings;
 
 		virtual bool ExecuteTask() override;

@@ -101,15 +101,16 @@ namespace PCGExDataBlending
 		for (PCGExData::FPointIO* IOPair : InDataGroup.Pairs) { AddSource(*IOPair); }
 	}
 
-	void FCompoundBlender::Merge(
-		FPCGExAsyncManager* AsyncManager,
+	void FCompoundBlender::PrepareMerge(
 		PCGExData::FPointIO* TargetData,
-		PCGExData::FIdxCompoundList* CompoundList,
-		const FPCGExDistanceSettings& DistSettings)
+		PCGExData::FIdxCompoundList* CompoundList)
 	{
 		Cleanup();
 
-		TargetData->CreateOutKeys();
+		CurrentCompoundList = CompoundList;
+		CurrentTargetData = TargetData;
+
+		CurrentTargetData->CreateOutKeys();
 
 		// Create blending operations
 
@@ -124,7 +125,7 @@ namespace PCGExDataBlending
 				{
 					using T = decltype(DummyValue);
 					PCGEx::TFAttributeWriter<T>* Writer = new PCGEx::TFAttributeWriter<T>(Identity.Name, T{}, *AllowsInterpolation.Find(Identity.Name));
-					Writer->BindAndGet(*TargetData);
+					Writer->BindAndGet(*CurrentTargetData);
 
 					Writers.Add(Writer);
 
@@ -159,9 +160,51 @@ namespace PCGExDataBlending
 				CachedOperations.Pop().Empty();
 			}
 		}
+	}
 
+	void FCompoundBlender::Merge(
+		FPCGExAsyncManager* AsyncManager,
+		PCGExData::FPointIO* TargetData,
+		PCGExData::FIdxCompoundList* CompoundList,
+		const FPCGExDistanceSettings& DistSettings)
+	{
+		PrepareMerge(TargetData, CompoundList);
 		FCompoundBlender* Merger = this;
-		AsyncManager->Start<FPCGExCompoundBlendTask>(-1, TargetData, Merger, CompoundList, DistSettings);
+		AsyncManager->Start<FPCGExCompoundBlendTask>(-1, TargetData, Merger, DistSettings);
+	}
+
+	void FCompoundBlender::MergeSingle(const int32 CompoundIndex, const FPCGExDistanceSettings& DistSettings)
+	{
+		PCGExData::FIdxCompound* Compound = (*CurrentCompoundList)[CompoundIndex];
+		Compound->ComputeWeights(Sources, CurrentTargetData->GetOutPoint(CompoundIndex), DistSettings);
+
+		const int32 NumPoints = Compound->Num();
+
+		//TODO : Point properties merge!
+		
+		//For each attribute, for each source, for each compounded point
+		for (int i = 0; i < UniqueIdentitiesList.Num(); i++)
+		{
+			for (int j = 0; j < PerSourceOpsMap.Num(); j++)
+			{
+				const FDataBlendingOperationBase* Operation = CachedOperations[i][j];
+				if (!Operation) { continue; } //Unsupported blend
+
+				Operation->PrepareOperation(CompoundIndex);
+
+				for (int k = 0; k < NumPoints; k++)
+				{
+					uint32 IOIndex;
+					uint32 PtIndex;
+					PCGEx::H64((*Compound)[k], IOIndex, PtIndex);
+					Operation->DoOperation(
+						CompoundIndex, Sources[IOIndex]->GetInPoint(PtIndex),
+						CompoundIndex, Compound->Weights[k]);
+				}
+
+				Operation->FinalizeOperation(CompoundIndex, NumPoints);
+			}
+		}
 	}
 
 	void FCompoundBlender::Write()
@@ -178,50 +221,22 @@ namespace PCGExDataBlending
 					delete Writers[i];
 				});
 		}
+
 		Writers.Empty();
 	}
 
 	bool FPCGExCompoundBlendTask::ExecuteTask()
 	{
-		for (int i = 0; i < CompoundList->Compounds.Num(); i++)
+		for (int i = 0; i < Merger->CurrentCompoundList->Compounds.Num(); i++)
 		{
-			Manager->Start<FPCGExCompoundedPointBlendTask>(i, PointIO, Merger, CompoundList, DistSettings);
+			Manager->Start<FPCGExCompoundedPointBlendTask>(i, PointIO, Merger, DistSettings);
 		}
 		return true;
 	}
 
 	bool FPCGExCompoundedPointBlendTask::ExecuteTask()
 	{
-		PCGExData::FIdxCompound& Compound = *(*CompoundList)[TaskIndex];
-		Compound.ComputeWeights(Merger->Sources, PointIO->GetOutPoint(TaskIndex), DistSettings);
-
-		// Merge
-		const int32 NumPoints = Compound.Num();
-
-		//For each attribute, for each source, for each compounded point
-		for (int i = 0; i < Merger->UniqueIdentitiesList.Num(); i++)
-		{
-			for (int j = 0; j < Merger->PerSourceOpsMap.Num(); j++)
-			{
-				const FDataBlendingOperationBase* Operation = Merger->CachedOperations[i][j];
-				if (!Operation) { continue; } //Unsupported blend
-
-				Operation->PrepareOperation(TaskIndex);
-
-				for (int k = 0; k < NumPoints; k++)
-				{
-					uint32 IOIndex;
-					uint32 PtIndex;
-					PCGEx::H64(Compound[k], IOIndex, PtIndex);
-					Operation->DoOperation(
-						TaskIndex, Merger->Sources[IOIndex]->GetInPoint(PtIndex),
-						TaskIndex, Compound.Weights[k]);
-				}
-
-				Operation->FinalizeOperation(TaskIndex, NumPoints);
-			}
-		}
-
+		Merger->MergeSingle(TaskIndex, DistSettings);
 		return true;
 	}
 }

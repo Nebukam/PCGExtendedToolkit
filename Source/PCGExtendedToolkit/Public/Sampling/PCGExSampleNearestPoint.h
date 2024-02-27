@@ -148,7 +148,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta=(PCG_Overridable))
 	TSoftObjectPtr<UCurveFloat> WeightOverDistance;
 
-	/** Attribute to sample from the targets */
+	/** Attributes to sample from the targets */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Attributes", meta=(PCG_Overridable))
 	TMap<FName, EPCGExDataBlendingType> TargetAttributes;
 

@@ -130,18 +130,21 @@ bool FPCGExFuseClustersLocalElement::ExecuteInternal(FPCGContext* InContext) con
 		if (!Context->Process(Initialize, ProcessNode, NumCompoundNodes)) { return false; }
 		// Initiate merging
 
-		Context->CompoundPointsBlender->Merge(
-			Context->GetAsyncManager(), Context->CurrentIO,
-			Context->CompoundGraph->PointsCompounds, PCGExSettings::GetDistanceSettings(Context->PointPointIntersectionSettings));
-
-		Context->SetAsyncState(PCGExGraph::State_MergingPointCompounds);
+		// Initiate merging
+		Context->CompoundPointsBlender->PrepareMerge(Context->CurrentIO, Context->CompoundGraph->PointsCompounds);
+		Context->SetState(PCGExGraph::State_MergingPointCompounds);
 	}
 
 	//TODO : Merge edges, need to create a dummy PointIO for FGraphBuilder
 
 	if (Context->IsState(PCGExGraph::State_MergingPointCompounds))
 	{
-		if (!Context->IsAsyncWorkComplete()) { return false; }
+		auto MergeCompound = [&](const int32 CompoundIndex)
+		{
+			Context->CompoundPointsBlender->MergeSingle(CompoundIndex, PCGExSettings::GetDistanceSettings(Context->PointPointIntersectionSettings));
+		};
+
+		if (!Context->Process(MergeCompound, Context->CompoundGraph->NumNodes())) { return false; }
 
 		Context->CompoundPointsBlender->Write();
 

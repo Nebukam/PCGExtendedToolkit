@@ -130,17 +130,19 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 		if (!Context->Process(Initialize, ProcessNode, NumCompoundNodes)) { return false; }
 
 		// Initiate merging
-
-		Context->CompoundPointsBlender->Merge(
-			Context->GetAsyncManager(), Context->ConsolidatedPoints,
-			Context->CompoundGraph->PointsCompounds, PCGExSettings::GetDistanceSettings(Context->PointPointIntersectionSettings));
-
-		Context->SetAsyncState(PCGExGraph::State_MergingPointCompounds);
+		Context->CompoundPointsBlender->PrepareMerge(Context->ConsolidatedPoints, Context->CompoundGraph->PointsCompounds);
+		Context->SetState(PCGExGraph::State_MergingPointCompounds);
 	}
 
 	if (Context->IsState(PCGExGraph::State_MergingPointCompounds))
 	{
-		PCGEX_WAIT_ASYNC
+
+		auto MergeCompound = [&](const int32 CompoundIndex)
+		{
+			Context->CompoundPointsBlender->MergeSingle(CompoundIndex, PCGExSettings::GetDistanceSettings(Context->PointPointIntersectionSettings));
+		};
+
+		if (!Context->Process(MergeCompound, Context->CompoundGraph->NumNodes())) { return false; }
 
 		Context->CompoundPointsBlender->Write();
 
