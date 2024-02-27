@@ -2,8 +2,8 @@
 layout: page
 parent: Custom Graphs
 grand_parent: All Nodes
-title: Apply Sockets State
-subtitle: Write socket states data to points.
+title: Gather Sockets
+subtitle: Gather sockets params to build Graph params.
 color: blue
 #summary: summary_goes_here
 splash: icons/icon_custom-graphs-build.svg
@@ -16,7 +16,7 @@ nav_order: 2
 
 {% include header_card_node %}
 
-{% include img a='details/details-customgraph-apply-socket-state.png' %} 
+{% include img a='details/details-customgraph-assemble.png' %} 
 
 | Property       | Description          |
 |:-------------|:------------------|

@@ -2,8 +2,8 @@
 layout: page
 parent: Custom Graphs
 grand_parent: All Nodes
-title: Assemble Sockets
-subtitle: Assemble Custom Graph Params from individual socket data.
+title: Find Sockets State
+subtitle: Find & writes socket states data to points.
 color: blue
 #summary: summary_goes_here
 splash: icons/icon_custom-graphs-build.svg
@@ -16,7 +16,7 @@ nav_order: 2
 
 {% include header_card_node %}
 
-{% include img a='details/details-customgraph-assemble.png' %} 
+{% include img a='details/details-customgraph-apply-socket-state.png' %} 
 
 | Property       | Description          |
 |:-------------|:------------------|

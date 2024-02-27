@@ -1,179 +1,182 @@
 <!DOCTYPE html>
 <html lang="en-US"> <head>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"> <meta charset="UTF-8"> <meta http-equiv="X-UA-Compatible" content="IE=Edge"> <!-- Global site tag (gtag.js) - Google Analytics --> <script async src="https://www.googletagmanager.com/gtag/js?id=G-JN3F3DRBLQ"></script> <script> window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} gtag('js', new Date()); gtag('config', 'G-JN3F3DRBLQ'); </script> <title>Sort Points - PCGExtendedToolkit</title> <link rel="shortcut icon" href="/PCGExtendedToolkit/favicon.ico" type="image/x-icon"> <link rel="stylesheet" href="/PCGExtendedToolkit/assets/css/just-the-docs-default.css"> <script type="text/javascript" src="/PCGExtendedToolkit/assets/js/vendor/lunr.min.js"></script> <script type="text/javascript" src="/PCGExtendedToolkit/assets/js/just-the-docs.js"></script> <meta name="viewport" content="width=device-width, initial-scale=1"> <!-- Begin Jekyll SEO tag v2.7.1 --> <title>Sort Points | PCGExtendedToolkit</title> <meta name="generator" content="Jekyll v4.2.1"> <meta property="og:title" content="Sort Points"> <meta property="og:locale" content="en_US"> <meta name="description" content="Free (libre) plugin that extends Unreal’ native PCG toolkit to work with complex graph, pathfinding and more!"> <meta property="og:description" content="Free (libre) plugin that extends Unreal’ native PCG toolkit to work with complex graph, pathfinding and more!"> <link rel="canonical" href="https://nebukam.github.io/PCGExtendedToolkit/nodes/misc/misc-sort-points.html"> <meta property="og:url" content="https://nebukam.github.io/PCGExtendedToolkit/nodes/misc/misc-sort-points.html"> <meta property="og:site_name" content="PCGExtendedToolkit"> <meta property="og:image" content="https://nebukam.github.io/PCGExtendedToolkit/assets/images/splash.png"> <meta name="twitter:card" content="summary_large_image"> <meta property="twitter:image" content="https://nebukam.github.io/PCGExtendedToolkit/assets/images/splash.png"> <meta property="twitter:title" content="Sort Points"> <script type="application/ld+json"> {"publisher":{"@type":"Organization","logo":{"@type":"ImageObject","url":"https://nebukam.github.io/PCGExtendedToolkit/assets/images/splash.png"}},"@type":"WebPage","image":"https://nebukam.github.io/PCGExtendedToolkit/assets/images/splash.png","url":"https://nebukam.github.io/PCGExtendedToolkit/nodes/misc/misc-sort-points.html","headline":"Sort Points","description":"Free (libre) plugin that extends Unreal’ native PCG toolkit to work with complex graph, pathfinding and more!","@context":"https://schema.org"}</script> <!-- End Jekyll SEO tag --> <script async defer src="https://buttons.github.io/buttons.js"></script> </head> <body> <svg xmlns="http://www.w3.org/2000/svg" style="display: none;"> <symbol id="svg-link" viewbox="0 0 24 24"> <title>Link</title> <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-link"> <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path> </svg> </symbol> <symbol id="svg-search" viewbox="0 0 24 24"> <title>Search</title> <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-search"> <circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line> </svg> </symbol> <symbol id="svg-menu" viewbox="0 0 24 24"> <title>Menu</title> <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-menu"> <line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line> </svg> </symbol> <symbol id="svg-arrow-right" viewbox="0 0 24 24"> <title>Expand</title> <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </symbol> <symbol id="svg-doc" viewbox="0 0 24 24"> <title>Document</title> <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file"> <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline> </svg> </symbol> </svg> <div class="side-bar"> <div class="site-header"> <a href="https://nebukam.github.io/PCGExtendedToolkit/" class="site-title lh-tight"> <div class="site-logo"></div> </a> <a href="#" id="menu-button" class="site-button"> <svg viewbox="0 0 24 24" class="icon"><use xlink:href="#svg-menu"></use></svg> </a> </div> <nav role="navigation" aria-label="Main" id="site-nav" class="site-nav"> <ul class="nav-list">
-<li class="nav-list-item nav-lowkey"><a href="https://nebukam.github.io/PCGExtendedToolkit/" class="nav-list-link">PCG Extended Toolkit</a></li>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"> <meta charset="UTF-8"> <meta http-equiv="X-UA-Compatible" content="IE=Edge"> <!-- Global site tag (gtag.js) - Google Analytics --> <script async src="https://www.googletagmanager.com/gtag/js?id=G-JN3F3DRBLQ"></script> <script> window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} gtag('js', new Date()); gtag('config', 'G-JN3F3DRBLQ'); </script> <title>Sort Points - PCGExtendedToolkit</title> <link rel="shortcut icon" href="/PCGExtendedToolkit/favicon.ico" type="image/x-icon"> <link rel="stylesheet" href="/PCGExtendedToolkit/assets/css/just-the-docs-default.css"> <script type="text/javascript" src="/PCGExtendedToolkit/assets/js/vendor/lunr.min.js"></script> <script type="text/javascript" src="/PCGExtendedToolkit/assets/js/just-the-docs.js"></script> <meta name="viewport" content="width=device-width, initial-scale=1"> <!-- Begin Jekyll SEO tag v2.7.1 --> <title>Sort Points | PCGExtendedToolkit</title> <meta name="generator" content="Jekyll v4.2.1"> <meta property="og:title" content="Sort Points"> <meta property="og:locale" content="en_US"> <meta name="description" content="Free (libre) plugin that extends Unreal’ native PCG toolkit to work with complex graph, pathfinding and more!"> <meta property="og:description" content="Free (libre) plugin that extends Unreal’ native PCG toolkit to work with complex graph, pathfinding and more!"> <link rel="canonical" href="http://localhost:4000/PCGExtendedToolkit/nodes/misc/misc-sort-points.html"> <meta property="og:url" content="http://localhost:4000/PCGExtendedToolkit/nodes/misc/misc-sort-points.html"> <meta property="og:site_name" content="PCGExtendedToolkit"> <meta property="og:image" content="http://localhost:4000/PCGExtendedToolkit/assets/images/splash.png"> <meta name="twitter:card" content="summary_large_image"> <meta property="twitter:image" content="http://localhost:4000/PCGExtendedToolkit/assets/images/splash.png"> <meta property="twitter:title" content="Sort Points"> <script type="application/ld+json"> {"@type":"WebPage","publisher":{"@type":"Organization","logo":{"@type":"ImageObject","url":"http://localhost:4000/PCGExtendedToolkit/assets/images/splash.png"}},"headline":"Sort Points","image":"http://localhost:4000/PCGExtendedToolkit/assets/images/splash.png","url":"http://localhost:4000/PCGExtendedToolkit/nodes/misc/misc-sort-points.html","description":"Free (libre) plugin that extends Unreal’ native PCG toolkit to work with complex graph, pathfinding and more!","@context":"https://schema.org"}</script> <!-- End Jekyll SEO tag --> <script async defer src="https://buttons.github.io/buttons.js"></script> </head> <body> <svg xmlns="http://www.w3.org/2000/svg" style="display: none;"> <symbol id="svg-link" viewbox="0 0 24 24"> <title>Link</title> <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-link"> <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path> </svg> </symbol> <symbol id="svg-search" viewbox="0 0 24 24"> <title>Search</title> <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-search"> <circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line> </svg> </symbol> <symbol id="svg-menu" viewbox="0 0 24 24"> <title>Menu</title> <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-menu"> <line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line> </svg> </symbol> <symbol id="svg-arrow-right" viewbox="0 0 24 24"> <title>Expand</title> <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </symbol> <symbol id="svg-doc" viewbox="0 0 24 24"> <title>Document</title> <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file"> <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline> </svg> </symbol> </svg> <div class="side-bar"> <div class="site-header"> <a href="http://localhost:4000/PCGExtendedToolkit/" class="site-title lh-tight"> <div class="site-logo"></div> </a> <a href="#" id="menu-button" class="site-button"> <svg viewbox="0 0 24 24" class="icon"><use xlink:href="#svg-menu"></use></svg> </a> </div> <nav role="navigation" aria-label="Main" id="site-nav" class="site-nav"> <ul class="nav-list">
+<li class="nav-list-item nav-lowkey"><a href="http://localhost:4000/PCGExtendedToolkit/" class="nav-list-link">PCG Extended Toolkit</a></li>
 <li class="nav-list-item nav-group">
-<a href="#" class="nav-list-expander"><svg viewbox="0 0 24 24"><use xlink:href="#svg-arrow-right"></use></svg></a><a href="https://nebukam.github.io/PCGExtendedToolkit/installation/" class="nav-list-link">Installation</a><ul class="nav-list "><li class="nav-list-item "><a href="https://nebukam.github.io/PCGExtendedToolkit/installation/finding-nodes.html" class="nav-list-link">Finding Nodes</a></li></ul>
+<a href="#" class="nav-list-expander"><svg viewbox="0 0 24 24"><use xlink:href="#svg-arrow-right"></use></svg></a><a href="http://localhost:4000/PCGExtendedToolkit/installation/" class="nav-list-link">Installation</a><ul class="nav-list "><li class="nav-list-item "><a href="http://localhost:4000/PCGExtendedToolkit/installation/finding-nodes.html" class="nav-list-link">Finding Nodes</a></li></ul>
 </li>
 <li class="nav-list-item nav-group">
-<a href="#" class="nav-list-expander"><svg viewbox="0 0 24 24"><use xlink:href="#svg-arrow-right"></use></svg></a><a href="https://nebukam.github.io/PCGExtendedToolkit/docs/" class="nav-list-link">Documentation</a><ul class="nav-list ">
-<li class="nav-list-item "><a href="https://nebukam.github.io/PCGExtendedToolkit/docs/pcgex-node.html" class="nav-list-link">PCGEx Nodes</a></li>
-<li class="nav-list-item "><a href="https://nebukam.github.io/PCGExtendedToolkit/docs/pcgex-attribute-selectors.html" class="nav-list-link">Attribute Selectors</a></li>
-<li class="nav-list-item "><a href="https://nebukam.github.io/PCGExtendedToolkit/docs/working-with-graphs.html" class="nav-list-link">Working with Graphs</a></li>
+<a href="#" class="nav-list-expander"><svg viewbox="0 0 24 24"><use xlink:href="#svg-arrow-right"></use></svg></a><a href="http://localhost:4000/PCGExtendedToolkit/docs/" class="nav-list-link">Documentation</a><ul class="nav-list ">
+<li class="nav-list-item "><a href="http://localhost:4000/PCGExtendedToolkit/docs/pcgex-node.html" class="nav-list-link">PCGEx Nodes</a></li>
+<li class="nav-list-item "><a href="http://localhost:4000/PCGExtendedToolkit/docs/pcgex-attribute-selectors.html" class="nav-list-link">Attribute Selectors</a></li>
+<li class="nav-list-item "><a href="http://localhost:4000/PCGExtendedToolkit/docs/working-with-graphs.html" class="nav-list-link">Working with Graphs</a></li>
 <li class="nav-list-item ">
-<a href="#" class="nav-list-expander"><svg viewbox="0 0 24 24"><use xlink:href="#svg-arrow-right"></use></svg></a><a href="https://nebukam.github.io/PCGExtendedToolkit/docs/blending/" class="nav-list-link">Blending</a><ul class="nav-list">
-<li class="nav-list-item "> <a href="https://nebukam.github.io/PCGExtendedToolkit/docs/blending/blending-interpolate.html" class="nav-list-link">Interpolate</a> </li>
-<li class="nav-list-item "> <a href="https://nebukam.github.io/PCGExtendedToolkit/docs/blending/blending-inherit-start.html" class="nav-list-link">Inherit First</a> </li>
-<li class="nav-list-item "> <a href="https://nebukam.github.io/PCGExtendedToolkit/docs/blending/blending-inherit-end.html" class="nav-list-link">Inherit Last</a> </li>
+<a href="#" class="nav-list-expander"><svg viewbox="0 0 24 24"><use xlink:href="#svg-arrow-right"></use></svg></a><a href="http://localhost:4000/PCGExtendedToolkit/docs/smoothing/" class="nav-list-link">Smoothing</a><ul class="nav-list">
+<li class="nav-list-item "> <a href="http://localhost:4000/PCGExtendedToolkit/docs/smoothing/smoothing-radius.html" class="nav-list-link">Radius</a> </li>
+<li class="nav-list-item "> <a href="http://localhost:4000/PCGExtendedToolkit/docs/smoothing/smoothing-moving-average.html" class="nav-list-link">Moving Average</a> </li>
 </ul>
 </li>
 <li class="nav-list-item ">
-<a href="#" class="nav-list-expander"><svg viewbox="0 0 24 24"><use xlink:href="#svg-arrow-right"></use></svg></a><a href="https://nebukam.github.io/PCGExtendedToolkit/docs/smoothing/" class="nav-list-link">Smoothing</a><ul class="nav-list">
-<li class="nav-list-item "> <a href="https://nebukam.github.io/PCGExtendedToolkit/docs/smoothing/smoothing-radius.html" class="nav-list-link">Radius</a> </li>
-<li class="nav-list-item "> <a href="https://nebukam.github.io/PCGExtendedToolkit/docs/smoothing/smoothing-moving-average.html" class="nav-list-link">Moving Average</a> </li>
+<a href="#" class="nav-list-expander"><svg viewbox="0 0 24 24"><use xlink:href="#svg-arrow-right"></use></svg></a><a href="http://localhost:4000/PCGExtendedToolkit/docs/orienting/" class="nav-list-link">Orienting</a><ul class="nav-list">
+<li class="nav-list-item "> <a href="http://localhost:4000/PCGExtendedToolkit/docs/orienting/orient-average.html" class="nav-list-link">Average</a> </li>
+<li class="nav-list-item "> <a href="http://localhost:4000/PCGExtendedToolkit/docs/orienting/orient-lookat.html" class="nav-list-link">LookAt</a> </li>
+<li class="nav-list-item "> <a href="http://localhost:4000/PCGExtendedToolkit/docs/orienting/orient-weighted.html" class="nav-list-link">Weighted</a> </li>
 </ul>
 </li>
 <li class="nav-list-item ">
-<a href="#" class="nav-list-expander"><svg viewbox="0 0 24 24"><use xlink:href="#svg-arrow-right"></use></svg></a><a href="https://nebukam.github.io/PCGExtendedToolkit/docs/relaxing/" class="nav-list-link">Relaxing</a><ul class="nav-list">
-<li class="nav-list-item "> <a href="https://nebukam.github.io/PCGExtendedToolkit/docs/relaxing/relax-laplacian.html" class="nav-list-link">Laplacian</a> </li>
-<li class="nav-list-item "> <a href="https://nebukam.github.io/PCGExtendedToolkit/docs/relaxing/relax-force-directed.html" class="nav-list-link">Force Directed</a> </li>
+<a href="#" class="nav-list-expander"><svg viewbox="0 0 24 24"><use xlink:href="#svg-arrow-right"></use></svg></a><a href="http://localhost:4000/PCGExtendedToolkit/docs/tangents/" class="nav-list-link">Tangents</a><ul class="nav-list">
+<li class="nav-list-item "> <a href="http://localhost:4000/PCGExtendedToolkit/docs/tangents/tangent-auto.html" class="nav-list-link">Auto Tangents</a> </li>
+<li class="nav-list-item "> <a href="http://localhost:4000/PCGExtendedToolkit/docs/tangents/tangent-custom.html" class="nav-list-link">Custom Tangents</a> </li>
 </ul>
 </li>
 <li class="nav-list-item ">
-<a href="#" class="nav-list-expander"><svg viewbox="0 0 24 24"><use xlink:href="#svg-arrow-right"></use></svg></a><a href="https://nebukam.github.io/PCGExtendedToolkit/docs/orienting/" class="nav-list-link">Orienting</a><ul class="nav-list">
-<li class="nav-list-item "> <a href="https://nebukam.github.io/PCGExtendedToolkit/docs/orienting/orient-average.html" class="nav-list-link">Average</a> </li>
-<li class="nav-list-item "> <a href="https://nebukam.github.io/PCGExtendedToolkit/docs/orienting/orient-lookat.html" class="nav-list-link">LookAt</a> </li>
-<li class="nav-list-item "> <a href="https://nebukam.github.io/PCGExtendedToolkit/docs/orienting/orient-weighted.html" class="nav-list-link">Weighted</a> </li>
+<a href="#" class="nav-list-expander"><svg viewbox="0 0 24 24"><use xlink:href="#svg-arrow-right"></use></svg></a><a href="http://localhost:4000/PCGExtendedToolkit/docs/relaxing/" class="nav-list-link">Relaxing</a><ul class="nav-list">
+<li class="nav-list-item "> <a href="http://localhost:4000/PCGExtendedToolkit/docs/relaxing/relax-laplacian.html" class="nav-list-link">Laplacian</a> </li>
+<li class="nav-list-item "> <a href="http://localhost:4000/PCGExtendedToolkit/docs/relaxing/relax-force-directed.html" class="nav-list-link">Force Directed</a> </li>
 </ul>
 </li>
 <li class="nav-list-item ">
-<a href="#" class="nav-list-expander"><svg viewbox="0 0 24 24"><use xlink:href="#svg-arrow-right"></use></svg></a><a href="https://nebukam.github.io/PCGExtendedToolkit/docs/tangents/" class="nav-list-link">Tangents</a><ul class="nav-list">
-<li class="nav-list-item "> <a href="https://nebukam.github.io/PCGExtendedToolkit/docs/tangents/tangent-auto.html" class="nav-list-link">Auto Tangents</a> </li>
-<li class="nav-list-item "> <a href="https://nebukam.github.io/PCGExtendedToolkit/docs/tangents/tangent-custom.html" class="nav-list-link">Custom Tangents</a> </li>
+<a href="#" class="nav-list-expander"><svg viewbox="0 0 24 24"><use xlink:href="#svg-arrow-right"></use></svg></a><a href="http://localhost:4000/PCGExtendedToolkit/docs/blending/" class="nav-list-link">Blending</a><ul class="nav-list">
+<li class="nav-list-item "> <a href="http://localhost:4000/PCGExtendedToolkit/docs/blending/blending-interpolate.html" class="nav-list-link">Interpolate</a> </li>
+<li class="nav-list-item "> <a href="http://localhost:4000/PCGExtendedToolkit/docs/blending/blending-inherit-start.html" class="nav-list-link">Inherit First</a> </li>
+<li class="nav-list-item "> <a href="http://localhost:4000/PCGExtendedToolkit/docs/blending/blending-inherit-end.html" class="nav-list-link">Inherit Last</a> </li>
 </ul>
 </li>
 <li class="nav-list-item ">
-<a href="#" class="nav-list-expander"><svg viewbox="0 0 24 24"><use xlink:href="#svg-arrow-right"></use></svg></a><a href="https://nebukam.github.io/PCGExtendedToolkit/docs/refining/" class="nav-list-link">Refining</a><ul class="nav-list"><li class="nav-list-item "> <a href="https://nebukam.github.io/PCGExtendedToolkit/docs/refining/prim-mst.html" class="nav-list-link">Minimum Spanning Tree</a> </li></ul>
+<a href="#" class="nav-list-expander"><svg viewbox="0 0 24 24"><use xlink:href="#svg-arrow-right"></use></svg></a><a href="http://localhost:4000/PCGExtendedToolkit/docs/refining/" class="nav-list-link">Refining</a><ul class="nav-list"><li class="nav-list-item "> <a href="http://localhost:4000/PCGExtendedToolkit/docs/refining/prim-mst.html" class="nav-list-link">Minimum Spanning Tree</a> </li></ul>
 </li>
-<li class="nav-list-item "><a href="https://nebukam.github.io/PCGExtendedToolkit/docs/debug.html" class="nav-list-link">Debug</a></li>
+<li class="nav-list-item "><a href="http://localhost:4000/PCGExtendedToolkit/docs/debug.html" class="nav-list-link">Debug</a></li>
 </ul>
 </li>
 <li class="nav-list-item active nav-group">
-<a href="#" class="nav-list-expander"><svg viewbox="0 0 24 24"><use xlink:href="#svg-arrow-right"></use></svg></a><a href="https://nebukam.github.io/PCGExtendedToolkit/nodes/" class="nav-list-link">All Nodes</a><ul class="nav-list ">
+<a href="#" class="nav-list-expander"><svg viewbox="0 0 24 24"><use xlink:href="#svg-arrow-right"></use></svg></a><a href="http://localhost:4000/PCGExtendedToolkit/nodes/" class="nav-list-link">All Nodes</a><ul class="nav-list ">
 <li class="nav-list-item ">
-<a href="#" class="nav-list-expander"><svg viewbox="0 0 24 24"><use xlink:href="#svg-arrow-right"></use></svg></a><a href="https://nebukam.github.io/PCGExtendedToolkit/nodes/graphs/" class="nav-list-link">Graphs</a><ul class="nav-list">
-<li class="nav-list-item "> <a href="https://nebukam.github.io/PCGExtendedToolkit/nodes/graphs/graphs-convex-hull-3d.html" class="nav-list-link">Convex Hull 3D</a> </li>
-<li class="nav-list-item "> <a href="https://nebukam.github.io/PCGExtendedToolkit/nodes/graphs/graphs-delaunay-3d.html" class="nav-list-link">Delaunay 3D</a> </li>
-<li class="nav-list-item "> <a href="https://nebukam.github.io/PCGExtendedToolkit/nodes/graphs/graphs-voronoi-3d.html" class="nav-list-link">Voronoi 3D</a> </li>
-<li class="nav-list-item "> <a href="https://nebukam.github.io/PCGExtendedToolkit/nodes/graphs/graphs-convex-hull-2d.html" class="nav-list-link">Convex Hull 2D <img src="https://img.shields.io/badge/WIP-c8860e" style="scale:65%; translate: 0 15%;"> </a> </li>
-<li class="nav-list-item "> <a href="https://nebukam.github.io/PCGExtendedToolkit/nodes/graphs/graphs-delaunay-2d.html" class="nav-list-link">Delaunay 2D <img src="https://img.shields.io/badge/WIP-c8860e" style="scale:65%; translate: 0 15%;"> </a> </li>
-<li class="nav-list-item "> <a href="https://nebukam.github.io/PCGExtendedToolkit/nodes/graphs/graphs-voronoi-2d.html" class="nav-list-link">Voronoi 2D <img src="https://img.shields.io/badge/WIP-c8860e" style="scale:65%; translate: 0 15%;"> </a> </li>
-<li class="nav-list-item "> <a href="https://nebukam.github.io/PCGExtendedToolkit/nodes/graphs/graphs-partition-vertices.html" class="nav-list-link">Partition Vertices</a> </li>
-<li class="nav-list-item "> <a href="https://nebukam.github.io/PCGExtendedToolkit/nodes/graphs/graphs-sanitize-clusters.html" class="nav-list-link">Sanitize Clusters</a> </li>
-<li class="nav-list-item "> <a href="https://nebukam.github.io/PCGExtendedToolkit/nodes/graphs/graphs-fuse-clusters-local.html" class="nav-list-link">Fuse Clusters Local</a> </li>
-<li class="nav-list-item "> <a href="https://nebukam.github.io/PCGExtendedToolkit/nodes/graphs/graphs-fuse-clusters.html" class="nav-list-link">Fuse Clusters</a> </li>
-<li class="nav-list-item "> <a href="https://nebukam.github.io/PCGExtendedToolkit/nodes/graphs/graphs-copy-clusters.html" class="nav-list-link">Copy Clusters</a> </li>
+<a href="#" class="nav-list-expander"><svg viewbox="0 0 24 24"><use xlink:href="#svg-arrow-right"></use></svg></a><a href="http://localhost:4000/PCGExtendedToolkit/nodes/graphs/" class="nav-list-link">Graphs</a><ul class="nav-list">
+<li class="nav-list-item "> <a href="http://localhost:4000/PCGExtendedToolkit/nodes/graphs/graphs-convex-hull-3d.html" class="nav-list-link">Convex Hull 3D</a> </li>
+<li class="nav-list-item "> <a href="http://localhost:4000/PCGExtendedToolkit/nodes/graphs/graphs-delaunay-3d.html" class="nav-list-link">Delaunay 3D</a> </li>
+<li class="nav-list-item "> <a href="http://localhost:4000/PCGExtendedToolkit/nodes/graphs/graphs-voronoi-3d.html" class="nav-list-link">Voronoi 3D</a> </li>
+<li class="nav-list-item "> <a href="http://localhost:4000/PCGExtendedToolkit/nodes/graphs/graphs-convex-hull-2d.html" class="nav-list-link">Convex Hull 2D <img src="https://img.shields.io/badge/WIP-c8860e" style="scale:65%; translate: 0 15%;"> </a> </li>
+<li class="nav-list-item "> <a href="http://localhost:4000/PCGExtendedToolkit/nodes/graphs/graphs-delaunay-2d.html" class="nav-list-link">Delaunay 2D <img src="https://img.shields.io/badge/WIP-c8860e" style="scale:65%; translate: 0 15%;"> </a> </li>
+<li class="nav-list-item "> <a href="http://localhost:4000/PCGExtendedToolkit/nodes/graphs/graphs-voronoi-2d.html" class="nav-list-link">Voronoi 2D <img src="https://img.shields.io/badge/WIP-c8860e" style="scale:65%; translate: 0 15%;"> </a> </li>
+<li class="nav-list-item "> <a href="http://localhost:4000/PCGExtendedToolkit/nodes/graphs/graphs-partition-vertices.html" class="nav-list-link">Partition Vertices</a> </li>
+<li class="nav-list-item "> <a href="http://localhost:4000/PCGExtendedToolkit/nodes/graphs/graphs-sanitize-clusters.html" class="nav-list-link">Sanitize Clusters</a> </li>
+<li class="nav-list-item "> <a href="http://localhost:4000/PCGExtendedToolkit/nodes/graphs/graphs-fuse-clusters-local.html" class="nav-list-link">Fuse Clusters Local</a> </li>
+<li class="nav-list-item "> <a href="http://localhost:4000/PCGExtendedToolkit/nodes/graphs/graphs-fuse-clusters.html" class="nav-list-link">Fuse Clusters</a> </li>
+<li class="nav-list-item "> <a href="http://localhost:4000/PCGExtendedToolkit/nodes/graphs/graphs-copy-clusters.html" class="nav-list-link">Copy Clusters</a> </li>
 </ul>
 </li>
 <li class="nav-list-item ">
-<a href="#" class="nav-list-expander"><svg viewbox="0 0 24 24"><use xlink:href="#svg-arrow-right"></use></svg></a><a href="https://nebukam.github.io/PCGExtendedToolkit/nodes/edges/" class="nav-list-link">Edges</a><ul class="nav-list">
-<li class="nav-list-item "> <a href="https://nebukam.github.io/PCGExtendedToolkit/nodes/edges/edges-bridge-clusters.html" class="nav-list-link">Bridge Clusters</a> </li>
-<li class="nav-list-item "> <a href="https://nebukam.github.io/PCGExtendedToolkit/nodes/edges/edges-refine.html" class="nav-list-link">Refine</a> </li>
-<li class="nav-list-item "> <a href="https://nebukam.github.io/PCGExtendedToolkit/nodes/edges/edges-relax.html" class="nav-list-link">Relax</a> </li>
-<li class="nav-list-item "> <a href="https://nebukam.github.io/PCGExtendedToolkit/nodes/edges/edges-write-extras.html" class="nav-list-link">Write Extras</a> </li>
-<li class="nav-list-item "> <a href="https://nebukam.github.io/PCGExtendedToolkit/nodes/edges/edges-prune-by-length.html" class="nav-list-link">Prune by Length</a> </li>
-<li class="nav-list-item "> <a href="https://nebukam.github.io/PCGExtendedToolkit/nodes/edges/edges-draw.html" class="nav-list-link">Draw Edges</a> </li>
+<a href="#" class="nav-list-expander"><svg viewbox="0 0 24 24"><use xlink:href="#svg-arrow-right"></use></svg></a><a href="http://localhost:4000/PCGExtendedToolkit/nodes/edges/" class="nav-list-link">Edges</a><ul class="nav-list">
+<li class="nav-list-item "> <a href="http://localhost:4000/PCGExtendedToolkit/nodes/edges/edges-bridge-clusters.html" class="nav-list-link">Bridge Clusters</a> </li>
+<li class="nav-list-item "> <a href="http://localhost:4000/PCGExtendedToolkit/nodes/edges/edges-refine.html" class="nav-list-link">Refine</a> </li>
+<li class="nav-list-item "> <a href="http://localhost:4000/PCGExtendedToolkit/nodes/edges/edges-relax.html" class="nav-list-link">Relax</a> </li>
+<li class="nav-list-item "> <a href="http://localhost:4000/PCGExtendedToolkit/nodes/paths/paths-write-extras.html" class="nav-list-link">Write Paths Extras</a> </li>
+<li class="nav-list-item "> <a href="http://localhost:4000/PCGExtendedToolkit/nodes/edges/edges-write-extras.html" class="nav-list-link">Write Edge Extras</a> </li>
+<li class="nav-list-item "> <a href="http://localhost:4000/PCGExtendedToolkit/nodes/edges/edges-find-contours.html" class="nav-list-link">Find Contours</a> </li>
+<li class="nav-list-item "> <a href="http://localhost:4000/PCGExtendedToolkit/nodes/edges/edges-prune-by-length.html" class="nav-list-link">Prune by Length</a> </li>
+<li class="nav-list-item "> <a href="http://localhost:4000/PCGExtendedToolkit/nodes/edges/edges-draw.html" class="nav-list-link">Draw Edges</a> </li>
 </ul>
 </li>
 <li class="nav-list-item ">
-<a href="#" class="nav-list-expander"><svg viewbox="0 0 24 24"><use xlink:href="#svg-arrow-right"></use></svg></a><a href="https://nebukam.github.io/PCGExtendedToolkit/nodes/pathfinder/" class="nav-list-link">Pathfinders</a><ul class="nav-list">
-<li class="nav-list-item "> <a href="https://nebukam.github.io/PCGExtendedToolkit/nodes/pathfinder/pathfinding-edges.html" class="nav-list-link">Edges Pathfinding</a> </li>
-<li class="nav-list-item "> <a href="https://nebukam.github.io/PCGExtendedToolkit/nodes/pathfinder/pathfinding-edges-plot.html" class="nav-list-link">Plot Edges Pathfinding</a> </li>
-<li class="nav-list-item "> <a href="https://nebukam.github.io/PCGExtendedToolkit/nodes/pathfinder/pathfinding-navmesh.html" class="nav-list-link">Navmesh Pathfinding</a> </li>
-<li class="nav-list-item "> <a href="https://nebukam.github.io/PCGExtendedToolkit/nodes/pathfinder/pathfinding-navmesh-plot.html" class="nav-list-link">Plot Navmesh Pathfinding</a> </li>
+<a href="#" class="nav-list-expander"><svg viewbox="0 0 24 24"><use xlink:href="#svg-arrow-right"></use></svg></a><a href="http://localhost:4000/PCGExtendedToolkit/nodes/pathfinder/" class="nav-list-link">Pathfinders</a><ul class="nav-list">
+<li class="nav-list-item "> <a href="http://localhost:4000/PCGExtendedToolkit/nodes/pathfinder/pathfinding-edges.html" class="nav-list-link">Edges Pathfinding</a> </li>
+<li class="nav-list-item "> <a href="http://localhost:4000/PCGExtendedToolkit/nodes/pathfinder/pathfinding-edges-plot.html" class="nav-list-link">Plot Edges Pathfinding</a> </li>
+<li class="nav-list-item "> <a href="http://localhost:4000/PCGExtendedToolkit/nodes/pathfinder/pathfinding-navmesh.html" class="nav-list-link">Navmesh Pathfinding</a> </li>
+<li class="nav-list-item "> <a href="http://localhost:4000/PCGExtendedToolkit/nodes/pathfinder/pathfinding-navmesh-plot.html" class="nav-list-link">Plot Navmesh Pathfinding</a> </li>
 </ul>
 </li>
 <li class="nav-list-item ">
-<a href="#" class="nav-list-expander"><svg viewbox="0 0 24 24"><use xlink:href="#svg-arrow-right"></use></svg></a><a href="https://nebukam.github.io/PCGExtendedToolkit/nodes/sampling/" class="nav-list-link">Sampling</a><ul class="nav-list">
-<li class="nav-list-item "> <a href="https://nebukam.github.io/PCGExtendedToolkit/nodes/sampling/sampling-nearest-surface.html" class="nav-list-link">Sample Nearest Surface</a> </li>
-<li class="nav-list-item "> <a href="https://nebukam.github.io/PCGExtendedToolkit/nodes/sampling/sampling-surface-guided.html" class="nav-list-link">Guided Trace</a> </li>
-<li class="nav-list-item "> <a href="https://nebukam.github.io/PCGExtendedToolkit/nodes/sampling/sampling-nearest-polyline.html" class="nav-list-link">Sample Nearest Polyline</a> </li>
-<li class="nav-list-item "> <a href="https://nebukam.github.io/PCGExtendedToolkit/nodes/sampling/sampling-nearest-point.html" class="nav-list-link">Sample Nearest Points</a> </li>
+<a href="#" class="nav-list-expander"><svg viewbox="0 0 24 24"><use xlink:href="#svg-arrow-right"></use></svg></a><a href="http://localhost:4000/PCGExtendedToolkit/nodes/sampling/" class="nav-list-link">Sampling</a><ul class="nav-list">
+<li class="nav-list-item "> <a href="http://localhost:4000/PCGExtendedToolkit/nodes/sampling/sampling-nearest-surface.html" class="nav-list-link">Sample Nearest Surface</a> </li>
+<li class="nav-list-item "> <a href="http://localhost:4000/PCGExtendedToolkit/nodes/sampling/sampling-surface-guided.html" class="nav-list-link">Guided Trace</a> </li>
+<li class="nav-list-item "> <a href="http://localhost:4000/PCGExtendedToolkit/nodes/sampling/sampling-nearest-polyline.html" class="nav-list-link">Sample Nearest Polyline</a> </li>
+<li class="nav-list-item "> <a href="http://localhost:4000/PCGExtendedToolkit/nodes/sampling/sampling-nearest-point.html" class="nav-list-link">Sample Nearest Points</a> </li>
 </ul>
 </li>
 <li class="nav-list-item active">
-<a href="#" class="nav-list-expander"><svg viewbox="0 0 24 24"><use xlink:href="#svg-arrow-right"></use></svg></a><a href="https://nebukam.github.io/PCGExtendedToolkit/nodes/misc/" class="nav-list-link">Misc</a><ul class="nav-list">
-<li class="nav-list-item active"> <a href="https://nebukam.github.io/PCGExtendedToolkit/nodes/misc/misc-sort-points.html" class="nav-list-link active">Sort Points</a> </li>
-<li class="nav-list-item "> <a href="https://nebukam.github.io/PCGExtendedToolkit/nodes/misc/misc-partition-by-values.html" class="nav-list-link">Partition by Values</a> </li>
-<li class="nav-list-item "> <a href="https://nebukam.github.io/PCGExtendedToolkit/nodes/misc/misc-fuse-points.html" class="nav-list-link">Fuse Points</a> </li>
-<li class="nav-list-item "> <a href="https://nebukam.github.io/PCGExtendedToolkit/nodes/misc/misc-draw-attributes.html" class="nav-list-link">Draw Attributes</a> </li>
-<li class="nav-list-item "> <a href="https://nebukam.github.io/PCGExtendedToolkit/nodes/misc/misc-points-to-bounds.html" class="nav-list-link">Points to Bounds</a> </li>
-<li class="nav-list-item "> <a href="https://nebukam.github.io/PCGExtendedToolkit/nodes/misc/misc-discard-points-by-count.html" class="nav-list-link">Discard Points by Count</a> </li>
-<li class="nav-list-item "> <a href="https://nebukam.github.io/PCGExtendedToolkit/nodes/misc/misc-discard-points-by-overlap.html" class="nav-list-link">Discard Points by Overlap</a> </li>
-<li class="nav-list-item "> <a href="https://nebukam.github.io/PCGExtendedToolkit/nodes/misc/misc-lloyd-relax-3d.html" class="nav-list-link">3D Lloyd Relaxation</a> </li>
-<li class="nav-list-item "> <a href="https://nebukam.github.io/PCGExtendedToolkit/nodes/misc/misc-attribute-remap.html" class="nav-list-link">Attribute Remap</a> </li>
-<li class="nav-list-item "> <a href="https://nebukam.github.io/PCGExtendedToolkit/nodes/misc/misc-lloyd-relax-2d.html" class="nav-list-link">2D Lloyd Relaxation</a> </li>
-<li class="nav-list-item "> <a href="https://nebukam.github.io/PCGExtendedToolkit/nodes/misc/misc-write-index.html" class="nav-list-link">Write Index</a> </li>
-<li class="nav-list-item "> <a href="https://nebukam.github.io/PCGExtendedToolkit/nodes/misc/misc-flush-debug.html" class="nav-list-link">Flush Debug</a> </li>
-<li class="nav-list-item "> <a href="https://nebukam.github.io/PCGExtendedToolkit/nodes/misc/misc-refresh-seed.html" class="nav-list-link">Refresh Seed</a> </li>
+<a href="#" class="nav-list-expander"><svg viewbox="0 0 24 24"><use xlink:href="#svg-arrow-right"></use></svg></a><a href="http://localhost:4000/PCGExtendedToolkit/nodes/misc/" class="nav-list-link">Misc</a><ul class="nav-list">
+<li class="nav-list-item active"> <a href="http://localhost:4000/PCGExtendedToolkit/nodes/misc/misc-sort-points.html" class="nav-list-link active">Sort Points</a> </li>
+<li class="nav-list-item "> <a href="http://localhost:4000/PCGExtendedToolkit/nodes/misc/misc-partition-by-values.html" class="nav-list-link">Partition by Values</a> </li>
+<li class="nav-list-item "> <a href="http://localhost:4000/PCGExtendedToolkit/nodes/misc/misc-fuse-points.html" class="nav-list-link">Fuse Points</a> </li>
+<li class="nav-list-item "> <a href="http://localhost:4000/PCGExtendedToolkit/nodes/misc/misc-draw-attributes.html" class="nav-list-link">Draw Attributes</a> </li>
+<li class="nav-list-item "> <a href="http://localhost:4000/PCGExtendedToolkit/nodes/misc/misc-points-to-bounds.html" class="nav-list-link">Points to Bounds</a> </li>
+<li class="nav-list-item "> <a href="http://localhost:4000/PCGExtendedToolkit/nodes/misc/misc-discard-points-by-overlap.html" class="nav-list-link">Discard Points by Overlap</a> </li>
+<li class="nav-list-item "> <a href="http://localhost:4000/PCGExtendedToolkit/nodes/misc/misc-discard-points-by-count.html" class="nav-list-link">Discard Points by Count</a> </li>
+<li class="nav-list-item "> <a href="http://localhost:4000/PCGExtendedToolkit/nodes/misc/misc-attribute-remap.html" class="nav-list-link">Attribute Remap</a> </li>
+<li class="nav-list-item "> <a href="http://localhost:4000/PCGExtendedToolkit/nodes/misc/misc-lloyd-relax-2d.html" class="nav-list-link">2D Lloyd Relaxation</a> </li>
+<li class="nav-list-item "> <a href="http://localhost:4000/PCGExtendedToolkit/nodes/misc/misc-write-index.html" class="nav-list-link">Write Index</a> </li>
+<li class="nav-list-item "> <a href="http://localhost:4000/PCGExtendedToolkit/nodes/misc/misc-lloyd-relax-3d.html" class="nav-list-link">3D Lloyd Relaxation</a> </li>
+<li class="nav-list-item "> <a href="http://localhost:4000/PCGExtendedToolkit/nodes/misc/misc-flush-debug.html" class="nav-list-link">Flush Debug</a> </li>
+<li class="nav-list-item "> <a href="http://localhost:4000/PCGExtendedToolkit/nodes/misc/misc-refresh-seed.html" class="nav-list-link">Refresh Seed</a> </li>
 </ul>
 </li>
 <li class="nav-list-item ">
-<a href="#" class="nav-list-expander"><svg viewbox="0 0 24 24"><use xlink:href="#svg-arrow-right"></use></svg></a><a href="https://nebukam.github.io/PCGExtendedToolkit/nodes/paths/" class="nav-list-link">Paths</a><ul class="nav-list">
-<li class="nav-list-item "> <a href="https://nebukam.github.io/PCGExtendedToolkit/nodes/paths/paths-smooth.html" class="nav-list-link">Smooth</a> </li>
-<li class="nav-list-item "> <a href="https://nebukam.github.io/PCGExtendedToolkit/nodes/paths/paths-blend.html" class="nav-list-link">Blend</a> </li>
-<li class="nav-list-item "> <a href="https://nebukam.github.io/PCGExtendedToolkit/nodes/paths/paths-orient.html" class="nav-list-link">Orient</a> </li>
-<li class="nav-list-item "> <a href="https://nebukam.github.io/PCGExtendedToolkit/nodes/paths/paths-fuse-collinear.html" class="nav-list-link">Fuse Collinear</a> </li>
-<li class="nav-list-item "> <a href="https://nebukam.github.io/PCGExtendedToolkit/nodes/paths/paths-subdivide.html" class="nav-list-link">Subdivide</a> </li>
-<li class="nav-list-item "> <a href="https://nebukam.github.io/PCGExtendedToolkit/nodes/paths/paths-write-tangents.html" class="nav-list-link">Write Tangents</a> </li>
-<li class="nav-list-item "> <a href="https://nebukam.github.io/PCGExtendedToolkit/nodes/paths/paths-to-edges.html" class="nav-list-link">Paths to Edge Clusters</a> </li>
+<a href="#" class="nav-list-expander"><svg viewbox="0 0 24 24"><use xlink:href="#svg-arrow-right"></use></svg></a><a href="http://localhost:4000/PCGExtendedToolkit/nodes/paths/" class="nav-list-link">Paths</a><ul class="nav-list">
+<li class="nav-list-item "> <a href="http://localhost:4000/PCGExtendedToolkit/nodes/paths/paths-smooth.html" class="nav-list-link">Smooth</a> </li>
+<li class="nav-list-item "> <a href="http://localhost:4000/PCGExtendedToolkit/nodes/paths/paths-blend.html" class="nav-list-link">Blend</a> </li>
+<li class="nav-list-item "> <a href="http://localhost:4000/PCGExtendedToolkit/nodes/paths/paths-orient.html" class="nav-list-link">Orient</a> </li>
+<li class="nav-list-item "> <a href="http://localhost:4000/PCGExtendedToolkit/nodes/paths/paths-fuse-collinear.html" class="nav-list-link">Fuse Collinear</a> </li>
+<li class="nav-list-item "> <a href="http://localhost:4000/PCGExtendedToolkit/nodes/paths/paths-subdivide.html" class="nav-list-link">Subdivide</a> </li>
+<li class="nav-list-item "> <a href="http://localhost:4000/PCGExtendedToolkit/nodes/paths/paths-write-tangents.html" class="nav-list-link">Write Tangents</a> </li>
+<li class="nav-list-item "> <a href="http://localhost:4000/PCGExtendedToolkit/nodes/paths/paths-to-edges.html" class="nav-list-link">Paths to Edge Clusters</a> </li>
 </ul>
 </li>
 <li class="nav-list-item ">
-<a href="#" class="nav-list-expander"><svg viewbox="0 0 24 24"><use xlink:href="#svg-arrow-right"></use></svg></a><a href="https://nebukam.github.io/PCGExtendedToolkit/nodes/custom-graph/" class="nav-list-link">Custom Graphs</a><ul class="nav-list">
-<li class="nav-list-item "> <a href="https://nebukam.github.io/PCGExtendedToolkit/nodes/custom-graph/custom-graph-params.html" class="nav-list-link">Custom Graph Params</a> </li>
-<li class="nav-list-item "> <a href="https://nebukam.github.io/PCGExtendedToolkit/nodes/custom-graph/custom-graph-build.html" class="nav-list-link">Build Custom Graph</a> </li>
-<li class="nav-list-item "> <a href="https://nebukam.github.io/PCGExtendedToolkit/nodes/custom-graph/custom-graph-assemble.html" class="nav-list-link">Assemble Sockets</a> </li>
-<li class="nav-list-item "> <a href="https://nebukam.github.io/PCGExtendedToolkit/nodes/custom-graph/custom-graph-apply-socket-state.html" class="nav-list-link">Apply Sockets State</a> </li>
-<li class="nav-list-item "> <a href="https://nebukam.github.io/PCGExtendedToolkit/nodes/custom-graph/custom-graph-socket.html" class="nav-list-link">Socket</a> </li>
-<li class="nav-list-item "> <a href="https://nebukam.github.io/PCGExtendedToolkit/nodes/custom-graph/custom-graph-socket-state.html" class="nav-list-link">Sockets State</a> </li>
-<li class="nav-list-item "> <a href="https://nebukam.github.io/PCGExtendedToolkit/nodes/custom-graph/custom-graph-find-edge-clusters.html" class="nav-list-link">Find Edge Clusters</a> </li>
-<li class="nav-list-item "> <a href="https://nebukam.github.io/PCGExtendedToolkit/nodes/custom-graph/custom-graph-draw.html" class="nav-list-link">Draw Custom Graph</a> </li>
-<li class="nav-list-item "> <a href="https://nebukam.github.io/PCGExtendedToolkit/nodes/custom-graph/custom-graph-consolidate.html" class="nav-list-link">Consolidate</a> </li>
-<li class="nav-list-item "> <a href="https://nebukam.github.io/PCGExtendedToolkit/nodes/custom-graph/custom-graph-delete.html" class="nav-list-link">Delete</a> </li>
-<li class="nav-list-item "> <a href="https://nebukam.github.io/PCGExtendedToolkit/nodes/custom-graph/custom-graph-promote-edges.html" class="nav-list-link">Promote Edges</a> </li>
+<a href="#" class="nav-list-expander"><svg viewbox="0 0 24 24"><use xlink:href="#svg-arrow-right"></use></svg></a><a href="http://localhost:4000/PCGExtendedToolkit/nodes/custom-graph/" class="nav-list-link">Custom Graphs</a><ul class="nav-list">
+<li class="nav-list-item "> <a href="http://localhost:4000/PCGExtendedToolkit/nodes/custom-graph/custom-graph-params.html" class="nav-list-link">Custom Graph Params</a> </li>
+<li class="nav-list-item "> <a href="http://localhost:4000/PCGExtendedToolkit/nodes/custom-graph/custom-graph-socket.html" class="nav-list-link">Socket</a> </li>
+<li class="nav-list-item "> <a href="http://localhost:4000/PCGExtendedToolkit/nodes/custom-graph/custom-graph-socket-state.html" class="nav-list-link">Sockets State</a> </li>
+<li class="nav-list-item "> <a href="http://localhost:4000/PCGExtendedToolkit/nodes/custom-graph/custom-graph-gather-sockets.html" class="nav-list-link">Gather Sockets</a> </li>
+<li class="nav-list-item "> <a href="http://localhost:4000/PCGExtendedToolkit/nodes/custom-graph/custom-graph-find-socket-state.html" class="nav-list-link">Find Sockets State</a> </li>
+<li class="nav-list-item "> <a href="http://localhost:4000/PCGExtendedToolkit/nodes/custom-graph/custom-graph-build.html" class="nav-list-link">Build Custom Graph</a> </li>
+<li class="nav-list-item "> <a href="http://localhost:4000/PCGExtendedToolkit/nodes/custom-graph/custom-graph-find-edge-clusters.html" class="nav-list-link">Find Edge Clusters</a> </li>
+<li class="nav-list-item "> <a href="http://localhost:4000/PCGExtendedToolkit/nodes/custom-graph/custom-graph-draw.html" class="nav-list-link">Draw Custom Graph</a> </li>
+<li class="nav-list-item "> <a href="http://localhost:4000/PCGExtendedToolkit/nodes/custom-graph/custom-graph-consolidate.html" class="nav-list-link">Consolidate</a> </li>
+<li class="nav-list-item "> <a href="http://localhost:4000/PCGExtendedToolkit/nodes/custom-graph/custom-graph-delete.html" class="nav-list-link">Delete</a> </li>
+<li class="nav-list-item "> <a href="http://localhost:4000/PCGExtendedToolkit/nodes/custom-graph/custom-graph-promote-edges.html" class="nav-list-link">Promote Edges</a> </li>
 </ul>
 </li>
 </ul>
 </li>
 <li class="nav-list-item nav-group">
-<a href="#" class="nav-list-expander"><svg viewbox="0 0 24 24"><use xlink:href="#svg-arrow-right"></use></svg></a><a href="https://nebukam.github.io/PCGExtendedToolkit/doc-pathfinding/" class="nav-list-link">∷ Pathfinding</a><ul class="nav-list ">
-<li class="nav-list-item ">
-<a href="#" class="nav-list-expander"><svg viewbox="0 0 24 24"><use xlink:href="#svg-arrow-right"></use></svg></a><a href="https://nebukam.github.io/PCGExtendedToolkit/doc-pathfinding/goal-pickers/" class="nav-list-link">Goal Pickers</a><ul class="nav-list">
-<li class="nav-list-item "> <a href="https://nebukam.github.io/PCGExtendedToolkit/doc-pathfinding/goal-pickers/picker-random.html" class="nav-list-link">Random</a> </li>
-<li class="nav-list-item "> <a href="https://nebukam.github.io/PCGExtendedToolkit/doc-pathfinding/goal-pickers/picker-default.html" class="nav-list-link">Default</a> </li>
-<li class="nav-list-item "> <a href="https://nebukam.github.io/PCGExtendedToolkit/doc-pathfinding/goal-pickers/picker-attribute.html" class="nav-list-link">Goal from Attribute</a> </li>
-</ul>
-</li>
-<li class="nav-list-item ">
-<a href="#" class="nav-list-expander"><svg viewbox="0 0 24 24"><use xlink:href="#svg-arrow-right"></use></svg></a><a href="https://nebukam.github.io/PCGExtendedToolkit/doc-pathfinding/search/" class="nav-list-link">Search</a><ul class="nav-list">
-<li class="nav-list-item "> <a href="https://nebukam.github.io/PCGExtendedToolkit/doc-pathfinding/search/search-djikstra.html" class="nav-list-link">Dijkstra</a> </li>
-<li class="nav-list-item "> <a href="https://nebukam.github.io/PCGExtendedToolkit/doc-pathfinding/search/search-astar.html" class="nav-list-link">A* Star</a> </li>
-</ul>
-</li>
-<li class="nav-list-item ">
-<a href="#" class="nav-list-expander"><svg viewbox="0 0 24 24"><use xlink:href="#svg-arrow-right"></use></svg></a><a href="https://nebukam.github.io/PCGExtendedToolkit/doc-pathfinding/heuristics/" class="nav-list-link">Heuristics</a><ul class="nav-list">
-<li class="nav-list-item "> <a href="https://nebukam.github.io/PCGExtendedToolkit/doc-pathfinding/heuristics/modifiers.html" class="nav-list-link">Heuristic Modifiers</a> </li>
-<li class="nav-list-item "> <a href="https://nebukam.github.io/PCGExtendedToolkit/doc-pathfinding/heuristics/heuristic-modifiers-only.html" class="nav-list-link">Modifiers Only</a> </li>
-<li class="nav-list-item "> <a href="https://nebukam.github.io/PCGExtendedToolkit/doc-pathfinding/heuristics/heuristic-distance.html" class="nav-list-link">Shortest Distance</a> </li>
-<li class="nav-list-item "> <a href="https://nebukam.github.io/PCGExtendedToolkit/doc-pathfinding/heuristics/heuristic-direction.html" class="nav-list-link">Direction</a> </li>
-<li class="nav-list-item "> <a href="https://nebukam.github.io/PCGExtendedToolkit/doc-pathfinding/heuristics/heuristic-local-distance.html" class="nav-list-link">Local Distance</a> </li>
-<li class="nav-list-item "> <a href="https://nebukam.github.io/PCGExtendedToolkit/doc-pathfinding/heuristics/heuristic-node-count.html" class="nav-list-link">Least Nodes</a> </li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="nav-list-item nav-group">
-<a href="#" class="nav-list-expander"><svg viewbox="0 0 24 24"><use xlink:href="#svg-arrow-right"></use></svg></a><a href="https://nebukam.github.io/PCGExtendedToolkit/doc-custom-graphs/" class="nav-list-link">∷ Custom Graphs</a><ul class="nav-list "><li class="nav-list-item ">
-<a href="#" class="nav-list-expander"><svg viewbox="0 0 24 24"><use xlink:href="#svg-arrow-right"></use></svg></a><a href="https://nebukam.github.io/PCGExtendedToolkit/doc-custom-graphs/graph-solvers/" class="nav-list-link">Graph Solvers</a><ul class="nav-list"></ul>
+<a href="#" class="nav-list-expander"><svg viewbox="0 0 24 24"><use xlink:href="#svg-arrow-right"></use></svg></a><a href="http://localhost:4000/PCGExtendedToolkit/doc-custom-graphs/" class="nav-list-link">∷ Custom Graphs</a><ul class="nav-list "><li class="nav-list-item ">
+<a href="#" class="nav-list-expander"><svg viewbox="0 0 24 24"><use xlink:href="#svg-arrow-right"></use></svg></a><a href="http://localhost:4000/PCGExtendedToolkit/doc-custom-graphs/graph-solvers/" class="nav-list-link">Graph Solvers</a><ul class="nav-list"></ul>
 </li></ul>
 </li>
-<li class="nav-list-item nav-lowkey"><a href="https://nebukam.github.io/PCGExtendedToolkit/FAQ.html" class="nav-list-link">F.A.Q</a></li>
 <li class="nav-list-item nav-group">
-<a href="#" class="nav-list-expander"><svg viewbox="0 0 24 24"><use xlink:href="#svg-arrow-right"></use></svg></a><a href="https://nebukam.github.io/PCGExtendedToolkit/guides/" class="nav-list-link">Guides</a><ul class="nav-list "></ul>
+<a href="#" class="nav-list-expander"><svg viewbox="0 0 24 24"><use xlink:href="#svg-arrow-right"></use></svg></a><a href="http://localhost:4000/PCGExtendedToolkit/doc-pathfinding/" class="nav-list-link">∷ Pathfinding</a><ul class="nav-list ">
+<li class="nav-list-item ">
+<a href="#" class="nav-list-expander"><svg viewbox="0 0 24 24"><use xlink:href="#svg-arrow-right"></use></svg></a><a href="http://localhost:4000/PCGExtendedToolkit/doc-pathfinding/goal-pickers/" class="nav-list-link">Goal Pickers</a><ul class="nav-list">
+<li class="nav-list-item "> <a href="http://localhost:4000/PCGExtendedToolkit/doc-pathfinding/goal-pickers/picker-random.html" class="nav-list-link">Random</a> </li>
+<li class="nav-list-item "> <a href="http://localhost:4000/PCGExtendedToolkit/doc-pathfinding/goal-pickers/picker-default.html" class="nav-list-link">Default</a> </li>
+<li class="nav-list-item "> <a href="http://localhost:4000/PCGExtendedToolkit/doc-pathfinding/goal-pickers/picker-attribute.html" class="nav-list-link">Goal from Attribute</a> </li>
+</ul>
 </li>
-<li class="nav-list-item nav-lowkey"><a href="https://nebukam.github.io/PCGExtendedToolkit/about/" class="nav-list-link">About</a></li>
-</ul> </nav> <footer class="site-footer"> Based on <a href="https://github.com/pmarsceill/just-the-docs">Just the Docs</a> for Jekyll. </footer> </div> <div class="main" id="top"> <div id="main-header" class="main-header"> <div class="search"> <div class="search-input-wrap"> <input type="text" id="search-input" class="search-input" tabindex="0" placeholder="Search PCGExtendedToolkit" aria-label="Search PCGExtendedToolkit" autocomplete="off"> <label for="search-input" class="search-label"><svg viewbox="0 0 24 24" class="search-icon"><use xlink:href="#svg-search"></use></svg></label> </div> <div id="search-results" class="search-results"></div> </div> <nav aria-label="Auxiliary" class="aux-nav"> <ul class="aux-nav-list"> <li class="aux-nav-list-item"> <a href="https://twitter.com/nebukam" class="site-button"> Twitter </a> </li> <li class="aux-nav-list-item"> <a href="https://ca.linkedin.com/in/timothelapetite/en" class="site-button"> LinkedIn </a> </li> </ul> </nav> </div> <div id="main-content-wrap" class="main-content-wrap"> <nav aria-label="Breadcrumb" class="breadcrumb-nav"> <ol class="breadcrumb-nav-list"> <li class="breadcrumb-nav-list-item"><a href="https://nebukam.github.io/PCGExtendedToolkit/nodes/all-nodes.html">All Nodes</a></li> <li class="breadcrumb-nav-list-item"><a href="https://nebukam.github.io/PCGExtendedToolkit/nodes/misc/">Misc</a></li> <li class="breadcrumb-nav-list-item"><span>Sort Points</span></li> </ol> </nav> <div id="main-content" class="main-content" role="main"> <div class="product-header" style="--img:url('/PCGExtendedToolkit/assets/icons/icon_misc-sort-points.svg');"><div class="infos"> <h1 class="no_toc" id="sort-points"> <a href="#sort-points" class="anchor-heading" aria-labelledby="sort-points"><svg viewbox="0 0 16 16" aria-hidden="true"><use xlink:href="#svg-link"></use></svg></a> Sort Points </h1> <p class="fs-6 fw-300"><strong>Sort points using any number of properties and attributes</strong></p> <p class="fs-5 fw-300">The <strong>Sort Points</strong> node organize points based on rules. Key elements include sorting direction (ascending/descending) and rules defined in a specific order. Each rule compares a selected attribute with a tolerance for equality. Note the warning on comparing values, emphasizing the default use of the first component for multi-component types.</p> </div></div>
+<li class="nav-list-item ">
+<a href="#" class="nav-list-expander"><svg viewbox="0 0 24 24"><use xlink:href="#svg-arrow-right"></use></svg></a><a href="http://localhost:4000/PCGExtendedToolkit/doc-pathfinding/search/" class="nav-list-link">Search</a><ul class="nav-list">
+<li class="nav-list-item "> <a href="http://localhost:4000/PCGExtendedToolkit/doc-pathfinding/search/search-djikstra.html" class="nav-list-link">Dijkstra</a> </li>
+<li class="nav-list-item "> <a href="http://localhost:4000/PCGExtendedToolkit/doc-pathfinding/search/search-contours.html" class="nav-list-link">A* Star</a> </li>
+<li class="nav-list-item "> <a href="http://localhost:4000/PCGExtendedToolkit/doc-pathfinding/search/search-astar.html" class="nav-list-link">A* Star</a> </li>
+</ul>
+</li>
+<li class="nav-list-item ">
+<a href="#" class="nav-list-expander"><svg viewbox="0 0 24 24"><use xlink:href="#svg-arrow-right"></use></svg></a><a href="http://localhost:4000/PCGExtendedToolkit/doc-pathfinding/heuristics/" class="nav-list-link">Heuristics</a><ul class="nav-list">
+<li class="nav-list-item "> <a href="http://localhost:4000/PCGExtendedToolkit/doc-pathfinding/heuristics/modifiers.html" class="nav-list-link">Heuristic Modifiers</a> </li>
+<li class="nav-list-item "> <a href="http://localhost:4000/PCGExtendedToolkit/doc-pathfinding/heuristics/heuristic-modifiers-only.html" class="nav-list-link">Modifiers Only</a> </li>
+<li class="nav-list-item "> <a href="http://localhost:4000/PCGExtendedToolkit/doc-pathfinding/heuristics/heuristic-distance.html" class="nav-list-link">Shortest Distance</a> </li>
+<li class="nav-list-item "> <a href="http://localhost:4000/PCGExtendedToolkit/doc-pathfinding/heuristics/heuristic-direction.html" class="nav-list-link">Direction</a> </li>
+<li class="nav-list-item "> <a href="http://localhost:4000/PCGExtendedToolkit/doc-pathfinding/heuristics/heuristic-local-distance.html" class="nav-list-link">Local Distance</a> </li>
+<li class="nav-list-item "> <a href="http://localhost:4000/PCGExtendedToolkit/doc-pathfinding/heuristics/heuristic-node-count.html" class="nav-list-link">Least Nodes</a> </li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="nav-list-item nav-lowkey"><a href="http://localhost:4000/PCGExtendedToolkit/FAQ.html" class="nav-list-link">F.A.Q</a></li>
+<li class="nav-list-item nav-group">
+<a href="#" class="nav-list-expander"><svg viewbox="0 0 24 24"><use xlink:href="#svg-arrow-right"></use></svg></a><a href="http://localhost:4000/PCGExtendedToolkit/guides/" class="nav-list-link">Guides</a><ul class="nav-list "></ul>
+</li>
+<li class="nav-list-item nav-lowkey"><a href="http://localhost:4000/PCGExtendedToolkit/about/" class="nav-list-link">About</a></li>
+</ul> </nav> <footer class="site-footer"> Based on <a href="https://github.com/pmarsceill/just-the-docs">Just the Docs</a> for Jekyll. </footer> </div> <div class="main" id="top"> <div id="main-header" class="main-header"> <div class="search"> <div class="search-input-wrap"> <input type="text" id="search-input" class="search-input" tabindex="0" placeholder="Search PCGExtendedToolkit" aria-label="Search PCGExtendedToolkit" autocomplete="off"> <label for="search-input" class="search-label"><svg viewbox="0 0 24 24" class="search-icon"><use xlink:href="#svg-search"></use></svg></label> </div> <div id="search-results" class="search-results"></div> </div> <nav aria-label="Auxiliary" class="aux-nav"> <ul class="aux-nav-list"> <li class="aux-nav-list-item"> <a href="https://twitter.com/nebukam" class="site-button"> Twitter </a> </li> <li class="aux-nav-list-item"> <a href="https://ca.linkedin.com/in/timothelapetite/en" class="site-button"> LinkedIn </a> </li> </ul> </nav> </div> <div id="main-content-wrap" class="main-content-wrap"> <nav aria-label="Breadcrumb" class="breadcrumb-nav"> <ol class="breadcrumb-nav-list"> <li class="breadcrumb-nav-list-item"><a href="http://localhost:4000/PCGExtendedToolkit/nodes/all-nodes.html">All Nodes</a></li> <li class="breadcrumb-nav-list-item"><a href="http://localhost:4000/PCGExtendedToolkit/nodes/misc/">Misc</a></li> <li class="breadcrumb-nav-list-item"><span>Sort Points</span></li> </ol> </nav> <div id="main-content" class="main-content" role="main"> <div class="product-header" style="--img:url('/PCGExtendedToolkit/assets/icons/icon_misc-sort-points.svg');"><div class="infos"> <h1 class="no_toc" id="sort-points"> <a href="#sort-points" class="anchor-heading" aria-labelledby="sort-points"><svg viewbox="0 0 16 16" aria-hidden="true"><use xlink:href="#svg-link"></use></svg></a> Sort Points </h1> <p class="fs-6 fw-300"><strong>Sort points using any number of properties and attributes</strong></p> <p class="fs-5 fw-300">The <strong>Sort Points</strong> node organize points based on rules. Key elements include sorting direction (ascending/descending) and rules defined in a specific order. Each rule compares a selected attribute with a tolerance for equality. Note the warning on comparing values, emphasizing the default use of the first component for multi-component types.</p> </div></div>
 <hr> <h4 class="no_toc" id="table-of-content"> <a href="#table-of-content" class="anchor-heading" aria-labelledby="table-of-content"><svg viewbox="0 0 16 16" aria-hidden="true"><use xlink:href="#svg-link"></use></svg></a> Table of content </h4> <ul id="markdown-toc"> <li>
 <a href="#properties" id="markdown-toc-properties">Properties</a> <ul> <li><a href="#rules-ordering" id="markdown-toc-rules-ordering">Rules ordering</a></li> <li><a href="#sorting-rule" id="markdown-toc-sorting-rule">Sorting Rule</a></li> </ul> </li> <li>
 <a href="#inputs" id="markdown-toc-inputs">Inputs</a> <ul> <li><a href="#in" id="markdown-toc-in">In</a></li> </ul> </li> <li>

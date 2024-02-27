@@ -2,7 +2,7 @@
 layout: page
 parent: Edges
 grand_parent: All Nodes
-title: Write Extras
+title: Write Edge Extras
 subtitle: Compute edge extra data from its vertices
 color: white
 #summary: summary_goes_here
