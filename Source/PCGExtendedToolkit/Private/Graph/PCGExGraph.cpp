@@ -767,14 +767,16 @@ namespace PCGExGraphTask
 
 		if (Graph->bWriteEdgePosition)
 		{
-			for (int i = 0; i < SubGraph->Edges.Num(); i++)
+			PointIndex = 0;
+			for (const int32 EdgeIndex : SubGraph->Edges)
 			{
-				const PCGExGraph::FIndexedEdge& Edge = Graph->Edges[i];
-				MutablePoints[i].Transform.SetLocation(
+				const PCGExGraph::FIndexedEdge& Edge = Graph->Edges[EdgeIndex];
+				MutablePoints[PointIndex].Transform.SetLocation(
 					FMath::Lerp(
 						Vertices[Graph->Nodes[Edge.Start].PointIndex].Transform.GetLocation(),
 						Vertices[Graph->Nodes[Edge.End].PointIndex].Transform.GetLocation(),
 						Graph->EdgePosition));
+				PointIndex++;
 			}
 		}
 
