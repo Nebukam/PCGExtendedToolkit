@@ -14,86 +14,72 @@ namespace PCGExDataBlending
 	{
 		BlendingSettings = InBlendingSettings;
 		Sources.Empty();
-		UniqueIdentitiesMap.Empty();
+		IOIndices.Empty();
+		AttributeSourceMaps.Empty();
 	}
 
 	FCompoundBlender::~FCompoundBlender()
 	{
-		Cleanup();
-
-		UniqueIdentitiesMap.Empty();
-		UniqueIdentitiesList.Empty();
-		AllowsInterpolation.Empty();
-
-		for (TMap<FName, FPCGMetadataAttributeBase*>* List : PerSourceAttMap)
-		{
-			List->Empty();
-			delete List;
-		}
-
 		Sources.Empty();
-		PerSourceAttMap.Empty();
-
-		for (TMap<FName, FDataBlendingOperationBase*>* List : PerSourceOpsMap)
-		{
-			PCGEX_DELETE_TMAP((*List), FName)
-			delete List;
-		}
-
-		PerSourceOpsMap.Empty();
-	}
-
-	void FCompoundBlender::Cleanup()
-	{
-		PCGEX_DELETE_TARRAY(Writers)
-		for (int i = 0; i < CachedOperations.Num(); i++) { CachedOperations[i].Empty(); }
-		CachedOperations.Empty();
+		PCGEX_DELETE_TARRAY(AttributeSourceMaps)
 	}
 
 	void FCompoundBlender::AddSource(PCGExData::FPointIO& InData)
 	{
-		Sources.Add(&InData);
+		const int32 SourceIdx = Sources.Add(&InData);
+		const int32 NumSources = Sources.Num();
+		IOIndices.Add(InData.IOIndex, SourceIdx);
 
-		TArray<PCGEx::FAttributeIdentity> TempSrcIdentities;
-		PCGEx::FAttributeIdentity::Get(InData.GetIn()->Metadata, TempSrcIdentities);
-		BlendingSettings->Filter(TempSrcIdentities);
+		for (FAttributeSourceMap* SrcMap : AttributeSourceMaps) { SrcMap->SetNum(NumSources); }
 
-		TMap<FName, FPCGMetadataAttributeBase*>* SrcAttMap = new TMap<FName, FPCGMetadataAttributeBase*>();
-		PerSourceAttMap.Add(SrcAttMap);
-
-		TMap<FName, FDataBlendingOperationBase*>* SrcOpsMap = new TMap<FName, FDataBlendingOperationBase*>();
-		PerSourceOpsMap.Add(SrcOpsMap);
+		TArray<PCGEx::FAttributeIdentity> SourceAttributes;
+		PCGEx::FAttributeIdentity::Get(InData.GetIn()->Metadata, SourceAttributes);
+		BlendingSettings->Filter(SourceAttributes);
 
 		UPCGMetadata* SourceMetadata = InData.GetIn()->Metadata;
 
-		for (PCGEx::FAttributeIdentity& Identity : TempSrcIdentities)
+		for (const PCGEx::FAttributeIdentity& Identity : SourceAttributes)
 		{
-			FPCGMetadataAttributeBase* Attribute = SourceMetadata->GetMutableAttribute(Identity.Name);
-			if (!Attribute) { continue; }
+			FPCGMetadataAttributeBase* SourceAttribute = SourceMetadata->GetMutableAttribute(Identity.Name);
+			if (!SourceAttribute) { continue; }
 
-			if (const PCGEx::FAttributeIdentity* ExistingIdentity = UniqueIdentitiesMap.Find(Identity.Name))
+			FAttributeSourceMap* Map = nullptr;
+			const EPCGExDataBlendingType* BlendTypePtr = BlendingSettings->AttributesOverrides.Find(Identity.Name);
+
+			// Search for an existing attribute map
+
+			for (FAttributeSourceMap* SrcMap : AttributeSourceMaps)
 			{
-				if (Identity.UnderlyingType != ExistingIdentity->UnderlyingType)
+				if (SrcMap->Identity.Name == Identity.Name)
 				{
-					// Type mismatch, ignore
+					Map = SrcMap;
+					break;
+				}
+			}
+
+			if (Map)
+			{
+				if (Identity.UnderlyingType != Map->Identity.UnderlyingType)
+				{
+					// Type mismatch, ignore for this source
+					//TODO : Support broadcasting
 					continue;
 				}
 			}
 			else
 			{
-				UniqueIdentitiesMap.Add(Identity.Name, Identity);
-				UniqueIdentitiesList.Add(Identity);
-				AllowsInterpolation.Add(Identity.Name, InData.GetIn()->Metadata->GetConstAttribute(Identity.Name)->AllowsInterpolation());
+				Map = new FAttributeSourceMap(Identity);
+				Map->SetNum(NumSources);
+				Map->TargetBlendOp = CreateOperation(BlendTypePtr ? *BlendTypePtr : BlendingSettings->DefaultBlending, Identity);
 			}
 
-			SrcAttMap->Add(Identity.Name, Attribute);
-			const EPCGExDataBlendingType* TypePtr = BlendingSettings->AttributesOverrides.Find(Identity.Name);
-			SrcOpsMap->Add(Identity.Name, CreateOperation(TypePtr ? *TypePtr : BlendingSettings->DefaultBlending, Identity));
+			Map->Attributes[SourceIdx] = SourceAttribute;
+			Map->BlendOps[SourceIdx] = CreateOperation(BlendTypePtr ? *BlendTypePtr : BlendingSettings->DefaultBlending, Identity);
+
+			if (!SourceAttribute->AllowsInterpolation()) { Map->AllowsInterpolation = false; }
 		}
 
 		InData.CreateInKeys();
-
-		TempSrcIdentities.Empty();
 	}
 
 	void FCompoundBlender::AddSources(const PCGExData::FPointIOCollection& InDataGroup)
@@ -105,60 +91,32 @@ namespace PCGExDataBlending
 		PCGExData::FPointIO* TargetData,
 		PCGExData::FIdxCompoundList* CompoundList)
 	{
-		Cleanup();
-
 		CurrentCompoundList = CompoundList;
 		CurrentTargetData = TargetData;
 
 		CurrentTargetData->CreateOutKeys();
 
 		// Create blending operations
-
-		for (const PCGEx::FAttributeIdentity& Identity : UniqueIdentitiesList)
+		for (FAttributeSourceMap* SrcMap : AttributeSourceMaps)
 		{
-			TArray<FDataBlendingOperationBase*>& Ops = CachedOperations.Emplace_GetRef();
-			Ops.SetNumUninitialized(Sources.Num());
+			PCGEX_DELETE(SrcMap->Writer)
 
-			int32 OpsCount = 0;
 			PCGMetadataAttribute::CallbackWithRightType(
-				static_cast<uint16>(Identity.UnderlyingType), [&](auto DummyValue)
+				static_cast<uint16>(SrcMap->Identity.UnderlyingType), [&](auto DummyValue)
 				{
 					using T = decltype(DummyValue);
-					PCGEx::TFAttributeWriter<T>* Writer = new PCGEx::TFAttributeWriter<T>(Identity.Name, T{}, *AllowsInterpolation.Find(Identity.Name));
+					PCGEx::TFAttributeWriter<T>* Writer = new PCGEx::TFAttributeWriter<T>(SrcMap->Identity.Name, T{}, SrcMap->AllowsInterpolation);
 					Writer->BindAndGet(*CurrentTargetData);
 
-					Writers.Add(Writer);
+					SrcMap->Writer = Writer;
 
 					for (int i = 0; i < Sources.Num(); i++)
 					{
-						PCGExData::FPointIO* Source = Sources[i];
-						TMap<FName, FDataBlendingOperationBase*>* OpsMap = PerSourceOpsMap[i];
-
-						// Prepare each operation with this writer/source pair
-						if (FDataBlendingOperationBase** OperationPtr = OpsMap->Find(Identity.Name))
-						{
-							(*OperationPtr)->PrepareForData(Writer, *Source);
-							Ops[i] = *OperationPtr;
-							OpsCount++;
-						}
-						else
-						{
-							Ops[i] = nullptr;
-						}
+						if (FDataBlendingOperationBase* SrcOp = SrcMap->BlendOps[i]) { SrcOp->PrepareForData(Writer, *Sources[i]); }
 					}
 
-					if (OpsCount == 0)
-					{
-						Writers.Pop();
-						PCGEX_DELETE(Writer)
-					}
+					SrcMap->TargetBlendOp->PrepareForData(Writer, *TargetData);
 				});
-
-			if (OpsCount == 0)
-			{
-				// No operation added for attribute, remove it from the cache
-				CachedOperations.Pop().Empty();
-			}
 		}
 	}
 
@@ -178,51 +136,47 @@ namespace PCGExDataBlending
 		PCGExData::FIdxCompound* Compound = (*CurrentCompoundList)[CompoundIndex];
 		Compound->ComputeWeights(Sources, CurrentTargetData->GetOutPoint(CompoundIndex), DistSettings);
 
-		const int32 NumPoints = Compound->Num();
+		const int32 NumCompounded = Compound->Num();
 
 		//TODO : Point properties merge!
-		
-		//For each attribute, for each source, for each compounded point
-		for (int i = 0; i < UniqueIdentitiesList.Num(); i++)
+
+		for (const FAttributeSourceMap* SrcMap : AttributeSourceMaps)
 		{
-			for (int j = 0; j < PerSourceOpsMap.Num(); j++)
+			SrcMap->TargetBlendOp->PrepareOperation(CompoundIndex);
+
+			for (int k = 0; k < NumCompounded; k++)
 			{
-				const FDataBlendingOperationBase* Operation = CachedOperations[i][j];
-				if (!Operation) { continue; } //Unsupported blend
+				uint32 IOIndex;
+				uint32 PtIndex;
+				PCGEx::H64((*Compound)[k], IOIndex, PtIndex);
 
-				Operation->PrepareOperation(CompoundIndex);
+				const int32* IOIdx = IOIndices.Find(IOIndex);
+				if (!IOIdx) { continue; }
 
-				for (int k = 0; k < NumPoints; k++)
-				{
-					uint32 IOIndex;
-					uint32 PtIndex;
-					PCGEx::H64((*Compound)[k], IOIndex, PtIndex);
-					Operation->DoOperation(
-						CompoundIndex, Sources[IOIndex]->GetInPoint(PtIndex),
-						CompoundIndex, Compound->Weights[k]);
-				}
+				const FDataBlendingOperationBase* Operation = SrcMap->BlendOps[*IOIdx];
+				if (!Operation) { continue; }
 
-				Operation->FinalizeOperation(CompoundIndex, NumPoints);
+				Operation->DoOperation(
+					CompoundIndex, Sources[*IOIdx]->GetInPoint(PtIndex),
+					CompoundIndex, Compound->Weights[k]);
 			}
+
+			SrcMap->TargetBlendOp->FinalizeOperation(CompoundIndex, NumCompounded);
 		}
 	}
 
 	void FCompoundBlender::Write()
 	{
-		for (int i = 0; i < UniqueIdentitiesList.Num(); i++)
+		for (FAttributeSourceMap* SrcMap : AttributeSourceMaps)
 		{
-			const PCGEx::FAttributeIdentity& Identity = UniqueIdentitiesList[i];
-
 			PCGMetadataAttribute::CallbackWithRightType(
-				static_cast<uint16>(Identity.UnderlyingType), [&](auto DummyValue)
+				static_cast<uint16>(SrcMap->Identity.UnderlyingType), [&](auto DummyValue)
 				{
 					using T = decltype(DummyValue);
-					static_cast<PCGEx::TFAttributeWriter<T>*>(Writers[i])->Write();
-					delete Writers[i];
+					static_cast<PCGEx::TFAttributeWriter<T>*>(SrcMap->Writer)->Write();
+					PCGEX_DELETE(SrcMap->Writer)
 				});
 		}
-
-		Writers.Empty();
 	}
 
 	bool FPCGExCompoundBlendTask::ExecuteTask()

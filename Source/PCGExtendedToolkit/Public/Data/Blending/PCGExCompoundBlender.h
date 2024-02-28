@@ -12,6 +12,60 @@
 
 namespace PCGExDataBlending
 {
+	struct PCGEXTENDEDTOOLKIT_API FAttributeSourceMap
+	{
+		TArray<FPCGMetadataAttributeBase*> Attributes;
+		TArray<FDataBlendingOperationBase*> BlendOps;
+		PCGEx::FAttributeIdentity Identity;
+		bool AllowsInterpolation = true;
+
+		FDataBlendingOperationBase* TargetBlendOp = nullptr;
+		PCGEx::FAAttributeIO* Writer = nullptr;
+
+		explicit FAttributeSourceMap(const PCGEx::FAttributeIdentity InIdentity)
+			: Identity(InIdentity)
+		{
+			Attributes.Empty();
+			BlendOps.Empty();
+		}
+
+		~FAttributeSourceMap()
+		{
+			PCGEX_DELETE(TargetBlendOp)
+
+			for (int i = 0; i < BlendOps.Num(); i++)
+			{
+				FDataBlendingOperationBase* Op = BlendOps[i];
+				if (!Op) { continue; }
+				PCGEX_DELETE(Op)
+			}
+
+			Attributes.Empty();
+			BlendOps.Empty();
+		}
+
+		template <typename T>
+		FPCGMetadataAttribute<T>* Get(const int32 SourceIndex)
+		{
+			FPCGMetadataAttributeBase* Att = Attributes[SourceIndex];
+			if (!Att) { return nullptr; }
+			return static_cast<FPCGMetadataAttribute<T>*>(Att);
+		}
+
+		void SetNum(const int32 InNum)
+		{
+			const int32 Diff = InNum - Attributes.Num();
+			Attributes.SetNum(InNum);
+			BlendOps.SetNum(InNum);
+
+			for (int i = 0; i < Diff; i++)
+			{
+				Attributes[Attributes.Num() - 1 - i] = nullptr;
+				BlendOps[BlendOps.Num() - 1 - i] = nullptr;
+			}
+		}
+	};
+
 	class PCGEXTENDEDTOOLKIT_API FCompoundBlender
 	{
 		friend class FPCGExCompoundBlendTask;
@@ -20,8 +74,6 @@ namespace PCGExDataBlending
 	public:
 		explicit FCompoundBlender(FPCGExBlendingSettings* InBlendingSettings);
 		virtual ~FCompoundBlender();
-
-		void Cleanup();
 
 		void AddSource(PCGExData::FPointIO& InData);
 		void AddSources(const PCGExData::FPointIOCollection& InDataGroup);
@@ -35,17 +87,10 @@ namespace PCGExDataBlending
 	protected:
 		FPCGExBlendingSettings* BlendingSettings = nullptr;
 
-		TMap<FName, PCGEx::FAttributeIdentity> UniqueIdentitiesMap;
-		TMap<FName, bool> AllowsInterpolation;
-		TArray<PCGEx::FAttributeIdentity> UniqueIdentitiesList;
-
+		TArray<FAttributeSourceMap*> AttributeSourceMaps;
+		TMap<int32, int32> IOIndices;
 		TArray<PCGExData::FPointIO*> Sources;
-		TArray<TMap<FName, FPCGMetadataAttributeBase*>*> PerSourceAttMap;
-		TArray<TMap<FName, FDataBlendingOperationBase*>*> PerSourceOpsMap;
-		TArray<TArray<FDataBlendingOperationBase*>> CachedOperations;
-
-		TArray<PCGEx::FAAttributeIO*> Writers;
-
+		
 		PCGExData::FIdxCompoundList* CurrentCompoundList = nullptr;
 		PCGExData::FPointIO* CurrentTargetData = nullptr;
 	};

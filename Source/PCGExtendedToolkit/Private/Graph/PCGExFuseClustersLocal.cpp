@@ -117,9 +117,17 @@ bool FPCGExFuseClustersLocalElement::ExecuteInternal(FPCGContext* InContext) con
 	if (Context->IsState(PCGExGraph::State_ProcessingGraph))
 	{
 		const int32 NumCompoundNodes = Context->CompoundGraph->Nodes.Num();
+
+		if (NumCompoundNodes == 0)
+		{
+			PCGE_LOG(Error, GraphAndLog, FTEXT("Compound graph is empty at least one Vtx/Edge pair. They are probably corrupted."));
+			Context->SetState(PCGExMT::State_ReadyForNextPoints);
+			return false;
+		}
+
 		TArray<FPCGPoint>& MutablePoints = Context->CurrentIO->GetOut()->GetMutablePoints();
 
-		auto Initialize = [&]() { MutablePoints.SetNum(NumCompoundNodes); };
+		auto Initialize = [&]() { Context->CurrentIO->SetNumInitialized(NumCompoundNodes, true); };
 
 		auto ProcessNode = [&](int32 Index)
 		{
@@ -128,7 +136,6 @@ bool FPCGExFuseClustersLocalElement::ExecuteInternal(FPCGContext* InContext) con
 		};
 
 		if (!Context->Process(Initialize, ProcessNode, NumCompoundNodes)) { return false; }
-		// Initiate merging
 
 		// Initiate merging
 		Context->CompoundPointsBlender->PrepareMerge(Context->CurrentIO, Context->CompoundGraph->PointsCompounds);
@@ -160,14 +167,12 @@ bool FPCGExFuseClustersLocalElement::ExecuteInternal(FPCGContext* InContext) con
 		if (Settings->bDoPointEdgeIntersection)
 		{
 			Context->PointEdgeIntersections = new PCGExGraph::FPointEdgeIntersections(Context->GraphBuilder->Graph, Context->CompoundGraph, Context->CurrentIO, Context->PointEdgeIntersectionSettings);
-			Context->PointEdgeIntersections->FindIntersections(Context);
-			Context->SetAsyncState(PCGExGraph::State_FindingPointEdgeIntersections);
+			Context->SetState(PCGExGraph::State_FindingPointEdgeIntersections);
 		}
 		else if (Settings->bDoEdgeEdgeIntersection)
 		{
 			Context->EdgeEdgeIntersections = new PCGExGraph::FEdgeEdgeIntersections(Context->GraphBuilder->Graph, Context->CompoundGraph, Context->CurrentIO, Context->EdgeEdgeIntersectionSettings);
-			Context->EdgeEdgeIntersections->FindIntersections(Context);
-			Context->SetAsyncState(PCGExGraph::State_FindingEdgeEdgeIntersections);
+			Context->SetState(PCGExGraph::State_FindingEdgeEdgeIntersections);
 		}
 		else
 		{
@@ -177,7 +182,14 @@ bool FPCGExFuseClustersLocalElement::ExecuteInternal(FPCGContext* InContext) con
 
 	if (Context->IsState(PCGExGraph::State_FindingPointEdgeIntersections))
 	{
-		if (!Context->IsAsyncWorkComplete()) { return false; }
+		auto PointEdge = [&](const int32 EdgeIndex)
+		{
+			const PCGExGraph::FIndexedEdge& Edge = Context->GraphBuilder->Graph->Edges[EdgeIndex];
+			if (!Edge.bValid) { return; }
+			FindCollinearNodes(Context->PointEdgeIntersections, EdgeIndex, Context->CurrentIO->GetOut());
+		};
+
+		if (!Context->Process(PointEdge, Context->GraphBuilder->Graph->Edges.Num())) { return false; }
 
 		Context->PointEdgeIntersections->Insert(); // TODO : Async?
 		PCGEX_DELETE(Context->PointEdgeIntersections)
@@ -185,8 +197,7 @@ bool FPCGExFuseClustersLocalElement::ExecuteInternal(FPCGContext* InContext) con
 		if (Settings->bDoEdgeEdgeIntersection)
 		{
 			Context->EdgeEdgeIntersections = new PCGExGraph::FEdgeEdgeIntersections(Context->GraphBuilder->Graph, Context->CompoundGraph, Context->CurrentIO, Context->EdgeEdgeIntersectionSettings);
-			Context->EdgeEdgeIntersections->FindIntersections(Context);
-			Context->SetAsyncState(PCGExGraph::State_FindingEdgeEdgeIntersections);
+			Context->SetState(PCGExGraph::State_FindingEdgeEdgeIntersections);
 		}
 		else
 		{
@@ -196,7 +207,14 @@ bool FPCGExFuseClustersLocalElement::ExecuteInternal(FPCGContext* InContext) con
 
 	if (Context->IsState(PCGExGraph::State_FindingEdgeEdgeIntersections))
 	{
-		if (!Context->IsAsyncWorkComplete()) { return false; }
+		auto EdgeEdge = [&](const int32 EdgeIndex)
+		{
+			const PCGExGraph::FIndexedEdge& Edge = Context->GraphBuilder->Graph->Edges[EdgeIndex];
+			if (!Edge.bValid) { return; }
+			FindOverlappingEdges(Context->EdgeEdgeIntersections, EdgeIndex);
+		};
+
+		if (!Context->Process(EdgeEdge, Context->GraphBuilder->Graph->Edges.Num())) { return false; }
 
 		Context->EdgeEdgeIntersections->Insert(); // TODO : Async?
 		PCGEX_DELETE(Context->EdgeEdgeIntersections)

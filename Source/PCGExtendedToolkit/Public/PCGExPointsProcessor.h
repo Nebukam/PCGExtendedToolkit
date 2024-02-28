@@ -240,6 +240,18 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : public FPCGContext
 		return AsyncLoop.Advance(LoopBody);
 	}
 
+	template <class LoopBodyFunc>
+	void ParallelProcess(LoopBodyFunc&& LoopBody, const int32 NumIterations)
+	{
+		ParallelProcess([&](){}, LoopBody, NumIterations);
+	}
+
+	template <class InitializeFunc, class LoopBodyFunc>
+	void ParallelProcess(InitializeFunc&& Initialize, LoopBodyFunc&& LoopBody, const int32 NumIterations)
+	{
+		GetAsyncManager()->Start<FPCGExParallelLoopTask>(-1, nullptr, Initialize, LoopBody, NumIterations, ChunkSize);
+	}
+
 	void Output(FPCGTaggedData& OutTaggedData, UPCGData* OutData, const FName OutputLabel);
 	FPCGTaggedData* Output(UPCGData* OutData, const FName OutputLabel);
 	void Output(PCGExData::FPointIO& PointIO);

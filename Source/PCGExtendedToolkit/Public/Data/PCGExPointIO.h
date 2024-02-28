@@ -113,6 +113,8 @@ namespace PCGExData
 		void AddPoint(FPCGPoint& Point, int32& OutIndex, bool bInit) const;
 		void AddPoint(FPCGPoint& Point, int32& OutIndex, const FPCGPoint& FromPoint) const;
 
+		void SetNumInitialized(const int32 NumPoints, const bool bForceInit = false) const;
+		
 		UPCGPointData* NewEmptyOutput() const;
 		UPCGPointData* NewEmptyOutput(FPCGContext* Context, FName PinLabel = NAME_None) const;
 

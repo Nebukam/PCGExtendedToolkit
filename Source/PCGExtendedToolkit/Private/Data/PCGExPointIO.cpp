@@ -157,6 +157,27 @@ namespace PCGExData
 		InitPoint(Point, FromPoint);
 	}
 
+	void FPointIO::SetNumInitialized(const int32 NumPoints, const bool bForceInit) const
+	{
+		TArray<FPCGPoint>& MutablePoints = Out->GetMutablePoints();
+		MutablePoints.SetNum(NumPoints);
+		if (bForceInit)
+		{
+			for (int i = 0; i < NumPoints; i++)
+			{
+				Out->Metadata->InitializeOnSet(MutablePoints[i].MetadataEntry);
+			}
+		}
+		else
+		{
+			for (int i = 0; i < NumPoints; i++)
+			{
+				if (MutablePoints[i].MetadataEntry != PCGInvalidEntryKey) { continue; }
+				Out->Metadata->InitializeOnSet(MutablePoints[i].MetadataEntry);
+			}
+		}
+	}
+
 	UPCGPointData* FPointIO::NewEmptyOutput() const { return PCGExPointIO::NewEmptyPointData(In); }
 
 	UPCGPointData* FPointIO::NewEmptyOutput(FPCGContext* Context, const FName PinLabel) const

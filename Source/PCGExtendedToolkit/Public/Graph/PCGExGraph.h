@@ -536,13 +536,13 @@ namespace PCGExGraph
 		TMap<uint64, FIndexedEdge> Edges;
 		const FPCGExFuseSettings FuseSettings;
 
+		FBox Bounds;
 		using NodeOctree = TOctree2<FCompoundNode*, FCompoundNodeSemantics>;
-
-		mutable FRWLock OctreeLock;
 		mutable NodeOctree Octree;
+		mutable FRWLock OctreeLock;
 
-		explicit FCompoundGraph(const FPCGExFuseSettings& InFuseSettings, FBox Bounds)
-			: FuseSettings(InFuseSettings)
+		explicit FCompoundGraph(const FPCGExFuseSettings& InFuseSettings, const FBox& InBounds)
+			: FuseSettings(InFuseSettings), Bounds(InBounds)
 		{
 			Nodes.Empty();
 			Edges.Empty();
@@ -563,9 +563,13 @@ namespace PCGExGraph
 		int32 NumEdges() const { return EdgesCompounds->Num(); }
 
 		FCompoundNode* GetOrCreateNode(const FPCGPoint& Point, const int32 IOIndex, const int32 PointIndex);
+		FCompoundNode* GetOrCreateNodeUnsafe(const FPCGPoint& Point, const int32 IOIndex, const int32 PointIndex);
 		PCGExData::FIdxCompound* CreateBridge(const FPCGPoint& From, const int32 FromIOIndex, const int32 FromPointIndex,
 		                                      const FPCGPoint& To, const int32 ToIOIndex, const int32 ToPointIndex,
 		                                      const int32 EdgeIOIndex = -1, const int32 EdgePointIndex = -1);
+		PCGExData::FIdxCompound* CreateBridgeUnsafe(const FPCGPoint& From, const int32 FromIOIndex, const int32 FromPointIndex,
+		                                            const FPCGPoint& To, const int32 ToIOIndex, const int32 ToPointIndex,
+		                                            const int32 EdgeIOIndex = -1, const int32 EdgePointIndex = -1);
 		void GetUniqueEdges(TArray<FUnsignedEdge>& OutEdges);
 		void WriteMetadata(TMap<int32, FGraphNodeMetadata*>& OutMetadata);
 	};
@@ -668,7 +672,107 @@ namespace PCGExGraph
 	static void FindCollinearNodes(
 		FPointEdgeIntersections* InIntersections,
 		const int32 EdgeIndex,
-		const TArray<FPCGPoint>& Points);
+		const UPCGPointData* PointsData)
+	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(FindCollinearNodes);
+
+		const TArray<FPCGPoint>& Points = PointsData->GetPoints();
+
+		const FPointEdgeProxy& Edge = InIntersections->Edges[EdgeIndex];
+		const FIndexedEdge& IEdge = InIntersections->Graph->Edges[EdgeIndex];
+		FPESplit Split = FPESplit{};
+
+		if (!InIntersections->Settings.bEnableSelfIntersection)
+		{
+			TArray<int32> IOIndices;
+			InIntersections->CompoundGraph->EdgesCompounds->GetIOIndices(
+				FGraphEdgeMetadata::GetRootIndex(Edge.EdgeIndex, InIntersections->Graph->EdgeMetadata), IOIndices);
+
+			auto ProcessPointRef = [&](const FPCGPointRef& PointRef)
+			{
+				const ptrdiff_t PointIndex = PointRef.Point - Points.GetData();
+
+				if (!Points.IsValidIndex(static_cast<int32>(PointIndex))) { return; }
+				const FNode& Node = InIntersections->Graph->Nodes[PointIndex];
+
+				if (!Node.bValid) { return; }
+
+				const FVector Position = Points[Node.PointIndex].Transform.GetLocation();
+
+				if (!Edge.Box.IsInside(Position)) { return; }
+				if (IEdge.Start == Node.PointIndex || IEdge.End == Node.PointIndex) { return; }
+				if (!Edge.FindSplit(Position, Split)) { return; }
+
+				// Check overlap last as it's the most expensive op
+				if (InIntersections->CompoundGraph->PointsCompounds->HasIOIndexOverlap(Node.NodeIndex, IOIndices)) { return; }
+
+				Split.NodeIndex = Node.NodeIndex;
+				InIntersections->Add(EdgeIndex, Split);
+			};
+
+			PointsData->GetOctree().FindElementsWithBoundsTest(Edge.Box, ProcessPointRef);
+
+			/*
+			for (const FNode& Node : InIntersections->Graph->Nodes)
+			{
+				if (!Node.bValid) { continue; }
+
+				FVector Position = Points[Node.PointIndex].Transform.GetLocation();
+
+				if (!Edge.Box.IsInside(Position)) { continue; }
+				if (IEdge.Start == Node.PointIndex || IEdge.End == Node.PointIndex) { continue; }
+				if (!Edge.FindSplit(Position, Split)) { continue; }
+
+				// Check overlap last as it's the most expensive op
+				if (InIntersections->CompoundGraph->PointsCompounds->HasIOIndexOverlap(Node.NodeIndex, IOIndices)) { continue; }
+
+				Split.NodeIndex = Node.NodeIndex;
+				InIntersections->Add(EdgeIndex, Split);
+			}
+			*/
+		}
+		else
+		{
+			auto ProcessPointRef = [&](const FPCGPointRef& PointRef)
+			{
+				const ptrdiff_t PointIndex = PointRef.Point - Points.GetData();
+
+				if (!Points.IsValidIndex(static_cast<int32>(PointIndex))) { return; }
+				const FNode& Node = InIntersections->Graph->Nodes[PointIndex];
+
+				if (!Node.bValid) { return; }
+
+				const FVector Position = Points[Node.PointIndex].Transform.GetLocation();
+
+				if (!Edge.Box.IsInside(Position)) { return; }
+				if (IEdge.Start == Node.PointIndex || IEdge.End == Node.PointIndex) { return; }
+				if (Edge.FindSplit(Position, Split))
+				{
+					Split.NodeIndex = Node.NodeIndex;
+					InIntersections->Add(EdgeIndex, Split);
+				}
+			};
+
+			PointsData->GetOctree().FindElementsWithBoundsTest(Edge.Box, ProcessPointRef);
+
+			/*
+			for (const FNode& Node : InIntersections->Graph->Nodes)
+			{
+				if (!Node.bValid) { continue; }
+
+				FVector Position = Points[Node.PointIndex].Transform.GetLocation();
+
+				if (!Edge.Box.IsInside(Position)) { continue; }
+				if (IEdge.Start == Node.PointIndex || IEdge.End == Node.PointIndex) { continue; }
+				if (Edge.FindSplit(Position, Split))
+				{
+					Split.NodeIndex = Node.NodeIndex;
+					InIntersections->Add(EdgeIndex, Split);
+				}
+			}
+			*/
+		}
+	}
 
 #pragma endregion
 
@@ -706,6 +810,7 @@ namespace PCGExGraph
 		double LengthSquared = -1;
 		double ToleranceSquared = -1;
 		FBox Box = FBox(NoInit);
+		FBoxSphereBounds FSBounds = FBoxSphereBounds{};
 
 		FVector Start = FVector::ZeroVector;
 		FVector End = FVector::ZeroVector;
@@ -743,6 +848,7 @@ namespace PCGExGraph
 			Box = Box.ExpandBy(Tolerance);
 
 			LengthSquared = FVector::DistSquared(Start, End);
+			FSBounds = Box;
 		}
 
 		~FEdgeEdgeProxy()
@@ -751,6 +857,36 @@ namespace PCGExGraph
 		}
 
 		bool FindSplit(const FEdgeEdgeProxy& OtherEdge, FEESplit& OutSplit) const;
+	};
+
+	struct PCGEXTENDEDTOOLKIT_API FEdgeEdgeProxySemantics
+	{
+		enum { MaxElementsPerLeaf = 16 };
+
+		enum { MinInclusiveElementsPerNode = 7 };
+
+		enum { MaxNodeDepth = 12 };
+
+		using ElementAllocator = TInlineAllocator<MaxElementsPerLeaf>;
+
+		FORCEINLINE static const FBoxSphereBounds& GetBoundingBox(const FEdgeEdgeProxy* InEdge)
+		{
+			return InEdge->FSBounds;
+		}
+
+		FORCEINLINE static const bool AreElementsEqual(const FEdgeEdgeProxy* A, const FEdgeEdgeProxy* B)
+		{
+			return A == B;
+		}
+
+		FORCEINLINE static void ApplyOffset(FEdgeEdgeProxy& InEdge)
+		{
+			ensureMsgf(false, TEXT("Not implemented"));
+		}
+
+		FORCEINLINE static void SetElementId(const FEdgeEdgeProxy* Element, FOctreeElementId2 OctreeElementID)
+		{
+		}
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FEdgeEdgeIntersections
@@ -765,6 +901,9 @@ namespace PCGExGraph
 		TArray<FEECrossing*> Crossings;
 		TArray<FEdgeEdgeProxy> Edges;
 		TSet<uint64> CheckedPairs;
+
+		using TEdgeOctree = TOctree2<FEdgeEdgeProxy*, FEdgeEdgeProxySemantics>;
+		mutable TEdgeOctree Octree;
 
 		FEdgeEdgeIntersections(
 			FGraph* InGraph,
@@ -787,7 +926,108 @@ namespace PCGExGraph
 
 	static void FindOverlappingEdges(
 		FEdgeEdgeIntersections* InIntersections,
-		const int32 EdgeIndex);
+		const int32 EdgeIndex)
+	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(FindOverlappingEdges);
+
+		const FEdgeEdgeProxy& Edge = InIntersections->Edges[EdgeIndex];
+		FEESplit Split = FEESplit{};
+
+		if (!InIntersections->Settings.bEnableSelfIntersection)
+		{
+			TArray<int32> IOIndices;
+			InIntersections->CompoundGraph->EdgesCompounds->GetIOIndices(
+				FGraphEdgeMetadata::GetRootIndex(Edge.EdgeIndex, InIntersections->Graph->EdgeMetadata), IOIndices);
+
+			auto ProcessEdge = [&](const FEdgeEdgeProxy* Proxy)
+			{
+				const FEdgeEdgeProxy& OtherEdge = *Proxy;
+				
+				if (OtherEdge.EdgeIndex == -1 || &Edge == &OtherEdge) { return; }
+				if (!Edge.Box.Intersect(OtherEdge.Box)) { return; }
+
+				{
+					FReadScopeLock ReadLock(InIntersections->InsertionLock);
+					if (InIntersections->CheckedPairs.Contains(PCGEx::H64U(EdgeIndex, OtherEdge.EdgeIndex))) { return; }
+				}
+
+				if (!Edge.FindSplit(OtherEdge, Split)) { return; }
+
+				// Check overlap last as it's the most expensive op
+				if (InIntersections->CompoundGraph->EdgesCompounds->HasIOIndexOverlap(
+					FGraphEdgeMetadata::GetRootIndex(OtherEdge.EdgeIndex, InIntersections->Graph->EdgeMetadata),
+					IOIndices)) { return; }
+
+				InIntersections->Add(EdgeIndex, OtherEdge.EdgeIndex, Split);
+			};
+			
+			InIntersections->Octree.FindElementsWithBoundsTest(Edge.Box, ProcessEdge);
+
+			/*
+			for (const FEdgeEdgeProxy& OtherEdge : InIntersections->Edges)
+			{
+				if (OtherEdge.EdgeIndex == -1 || &Edge == &OtherEdge) { continue; }
+				if (!Edge.Box.Intersect(OtherEdge.Box)) { continue; }
+
+				{
+					FReadScopeLock ReadLock(InIntersections->InsertionLock);
+					if (InIntersections->CheckedPairs.Contains(PCGEx::H64U(EdgeIndex, OtherEdge.EdgeIndex))) { continue; }
+				}
+
+				if (!Edge.FindSplit(OtherEdge, Split)) { continue; }
+
+				// Check overlap last as it's the most expensive op
+				if (InIntersections->CompoundGraph->EdgesCompounds->HasIOIndexOverlap(
+					FGraphEdgeMetadata::GetRootIndex(OtherEdge.EdgeIndex, InIntersections->Graph->EdgeMetadata),
+					IOIndices)) { continue; }
+
+				InIntersections->Add(EdgeIndex, OtherEdge.EdgeIndex, Split);
+			}
+			*/
+			
+		}
+		else
+		{
+
+			auto ProcessEdge = [&](const FEdgeEdgeProxy* Proxy)
+			{
+				const FEdgeEdgeProxy& OtherEdge = *Proxy;
+				
+				if (OtherEdge.EdgeIndex == -1 || &Edge == &OtherEdge) { return; }
+				if (!Edge.Box.Intersect(OtherEdge.Box)) { return; }
+
+				{
+					FReadScopeLock ReadLock(InIntersections->InsertionLock);
+					if (InIntersections->CheckedPairs.Contains(PCGEx::H64U(EdgeIndex, OtherEdge.EdgeIndex))) { return; }
+				}
+
+				if (Edge.FindSplit(OtherEdge, Split))
+				{
+					InIntersections->Add(EdgeIndex, OtherEdge.EdgeIndex, Split);
+				}
+			};
+			
+			InIntersections->Octree.FindElementsWithBoundsTest(Edge.Box, ProcessEdge);
+
+			/*
+			for (const FEdgeEdgeProxy& OtherEdge : InIntersections->Edges)
+			{
+				if (OtherEdge.EdgeIndex == -1 || &Edge == &OtherEdge) { continue; }
+				if (!Edge.Box.Intersect(OtherEdge.Box)) { continue; }
+
+				{
+					FReadScopeLock ReadLock(InIntersections->InsertionLock);
+					if (InIntersections->CheckedPairs.Contains(PCGEx::H64U(EdgeIndex, OtherEdge.EdgeIndex))) { continue; }
+				}
+
+				if (Edge.FindSplit(OtherEdge, Split))
+				{
+					InIntersections->Add(EdgeIndex, OtherEdge.EdgeIndex, Split);
+				}
+			}
+			*/
+		}
+	}
 
 #pragma endregion
 
