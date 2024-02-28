@@ -111,7 +111,11 @@ bool FPCGExFilterClustersElement::ExecuteInternal(
 			return false;
 		}
 
-		if (!Context->CurrentCluster) { return false; }
+		if (!Context->CurrentCluster)
+		{
+			PCGEX_INVALID_CLUSTER_LOG
+			return false;
+		}
 
 		Context->CurrentEdgeMap->Add(Context->CurrentEdges->IOIndex);
 
