@@ -90,7 +90,7 @@ namespace PCGExDataBlending
 		TArray<FAttributeSourceMap*> AttributeSourceMaps;
 		TMap<int32, int32> IOIndices;
 		TArray<PCGExData::FPointIO*> Sources;
-		
+
 		PCGExData::FIdxCompoundList* CurrentCompoundList = nullptr;
 		PCGExData::FPointIO* CurrentTargetData = nullptr;
 	};

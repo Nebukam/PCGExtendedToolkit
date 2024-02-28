@@ -18,7 +18,6 @@ bool UPCGExSearchContours::FindPath(
 	TArray<int32>& OutPath,
 	PCGExPathfinding::FExtraWeights* ExtraWeights)
 {
-	
 	const int32 StartNodeIndex = Cluster->FindClosestNode(SeedPosition, SearchMode, 2);
 	const int32 EndNodeIndex = Cluster->FindClosestNode(GoalPosition, SearchMode, 1);
 

@@ -117,13 +117,13 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 		// Create consolidated nodes from compound graph
 		const int32 NumCompoundNodes = Context->CompoundGraph->Nodes.Num();
 
-		if(NumCompoundNodes == 0)
+		if (NumCompoundNodes == 0)
 		{
 			PCGE_LOG(Error, GraphAndLog, FTEXT("Compound graph is empty. Vtx/Edge pairs are probably corrupted."));
 			Context->Done();
 			return false;
 		}
-		
+
 		TArray<FPCGPoint>& MutablePoints = Context->ConsolidatedPoints->GetOut()->GetMutablePoints();
 
 		auto Initialize = [&]() { Context->ConsolidatedPoints->SetNumInitialized(NumCompoundNodes, true); };
@@ -179,7 +179,6 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsState(PCGExGraph::State_FindingPointEdgeIntersections))
 	{
-
 		auto PointEdge = [&](const int32 EdgeIndex)
 		{
 			const PCGExGraph::FIndexedEdge& Edge = Context->GraphBuilder->Graph->Edges[EdgeIndex];
@@ -188,7 +187,7 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 		};
 
 		if (!Context->Process(PointEdge, Context->GraphBuilder->Graph->Edges.Num())) { return false; }
-		
+
 		Context->PointEdgeIntersections->Insert(); // TODO : Async?
 		PCGEX_DELETE(Context->PointEdgeIntersections)
 

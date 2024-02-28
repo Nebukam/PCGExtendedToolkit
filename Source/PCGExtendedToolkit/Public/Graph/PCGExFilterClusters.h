@@ -23,7 +23,7 @@ namespace PCGExFilterCluster
 		int32 VtxIndex = -1;
 		int32 EdgesIndex = -1;
 		double ClosestDistance = TNumericLimits<double>::Max();
-		
+
 		FVector Position;
 
 		FSelector(const FVector& InPosition)
@@ -83,7 +83,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFilterClustersContext : public FPCGExEdgesPr
 
 	TMap<int32, TSet<int32>*> VtxEdgeMap;
 	TSet<int32>* CurrentEdgeMap = nullptr;
-	
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExFilterClustersElement : public FPCGExEdgesProcessorElement

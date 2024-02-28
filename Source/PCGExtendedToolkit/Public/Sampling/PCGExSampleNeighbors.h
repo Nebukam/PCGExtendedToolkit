@@ -63,7 +63,7 @@ public:
 	/** Attributes to sample from the neighboring edges */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Attributes", meta=(PCG_Overridable))
 	TMap<FName, EPCGExDataBlendingType> EdgeAttributes;
-	
+
 private:
 	friend class FPCGExSampleNeighborsElement;
 };
@@ -73,7 +73,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNeighborsContext : public FPCGExEdgesP
 	friend class FPCGExSampleNeighborsElement;
 
 	virtual ~FPCGExSampleNeighborsContext() override;
-
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExSampleNeighborsElement : public FPCGExEdgesProcessorElement

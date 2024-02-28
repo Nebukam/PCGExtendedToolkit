@@ -38,7 +38,7 @@ public:
 	/** Distance weight. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bAddDistanceHeuristic", ClampMin="0.001"))
 	double DistanceWeight = 10;
-	
+
 	virtual void PrepareForData(PCGExCluster::FCluster* InCluster) override;
 
 	virtual double GetGlobalScore(

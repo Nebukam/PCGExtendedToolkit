@@ -341,7 +341,7 @@ public:
 	TBodyFunc&& BodyFunc;
 	int32 NumIterations = 0;
 
-	virtual bool ExecuteTask()
+	virtual bool ExecuteTask() override
 	{
 		for (int i = 0; i < NumIterations; i++) { BodyFunc(TaskIndex + i); }
 		return true;
@@ -371,7 +371,7 @@ public:
 	int32 NumIterations = 0;
 	int32 ChunkSize = 0;
 
-	virtual bool ExecuteTask()
+	virtual bool ExecuteTask() override
 	{
 		InitFunc();
 

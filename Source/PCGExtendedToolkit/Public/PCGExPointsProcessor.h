@@ -243,7 +243,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : public FPCGContext
 	template <class LoopBodyFunc>
 	void ParallelProcess(LoopBodyFunc&& LoopBody, const int32 NumIterations)
 	{
-		ParallelProcess([&](){}, LoopBody, NumIterations);
+		ParallelProcess(
+			[&]()
+			{
+			}, LoopBody, NumIterations);
 	}
 
 	template <class InitializeFunc, class LoopBodyFunc>

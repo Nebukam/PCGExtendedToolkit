@@ -942,7 +942,7 @@ namespace PCGExGraph
 			auto ProcessEdge = [&](const FEdgeEdgeProxy* Proxy)
 			{
 				const FEdgeEdgeProxy& OtherEdge = *Proxy;
-				
+
 				if (OtherEdge.EdgeIndex == -1 || &Edge == &OtherEdge) { return; }
 				if (!Edge.Box.Intersect(OtherEdge.Box)) { return; }
 
@@ -960,7 +960,7 @@ namespace PCGExGraph
 
 				InIntersections->Add(EdgeIndex, OtherEdge.EdgeIndex, Split);
 			};
-			
+
 			InIntersections->Octree.FindElementsWithBoundsTest(Edge.Box, ProcessEdge);
 
 			/*
@@ -984,15 +984,13 @@ namespace PCGExGraph
 				InIntersections->Add(EdgeIndex, OtherEdge.EdgeIndex, Split);
 			}
 			*/
-			
 		}
 		else
 		{
-
 			auto ProcessEdge = [&](const FEdgeEdgeProxy* Proxy)
 			{
 				const FEdgeEdgeProxy& OtherEdge = *Proxy;
-				
+
 				if (OtherEdge.EdgeIndex == -1 || &Edge == &OtherEdge) { return; }
 				if (!Edge.Box.Intersect(OtherEdge.Box)) { return; }
 
@@ -1006,7 +1004,7 @@ namespace PCGExGraph
 					InIntersections->Add(EdgeIndex, OtherEdge.EdgeIndex, Split);
 				}
 			};
-			
+
 			InIntersections->Octree.FindElementsWithBoundsTest(Edge.Box, ProcessEdge);
 
 			/*

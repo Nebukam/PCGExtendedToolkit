@@ -595,7 +595,7 @@ namespace PCGExGraph
 		Edges.SetNum(NumEdges);
 
 		Octree = TEdgeOctree(InCompoundGraph->Bounds.GetCenter(), InCompoundGraph->Bounds.GetExtent().Length() + (Settings.Tolerance * 2));
-		
+
 		for (const FIndexedEdge& Edge : InGraph->Edges)
 		{
 			if (!Edge.bValid) { continue; }
@@ -604,7 +604,7 @@ namespace PCGExGraph
 				Points[Edge.Start].Transform.GetLocation(),
 				Points[Edge.End].Transform.GetLocation(),
 				Settings.Tolerance);
-			
+
 			Octree.AddElement(&Edges[Edge.EdgeIndex]);
 		}
 	}

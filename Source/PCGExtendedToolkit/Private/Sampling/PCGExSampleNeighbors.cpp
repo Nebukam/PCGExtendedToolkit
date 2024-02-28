@@ -22,7 +22,6 @@ PCGEX_INITIALIZE_ELEMENT(SampleNeighbors)
 FPCGExSampleNeighborsContext::~FPCGExSampleNeighborsContext()
 {
 	PCGEX_TERMINATE_ASYNC
-
 }
 
 
