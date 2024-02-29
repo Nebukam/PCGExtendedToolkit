@@ -24,6 +24,7 @@ public:
 		GraphSocket, "Socket Definition", "Creates a single socket data object.",
 		Socket.SocketName.IsNone() ? FName(GetDefaultNodeTitle().ToString()) : FName(FString("PCGEx | Socket : ") + Socket.SocketName.ToString()))
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Param; }
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorExParam; }
 
 #endif
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;

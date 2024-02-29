@@ -28,7 +28,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeDebugDrawDescriptor : public FPCGEx
 
 	FPCGExAttributeDebugDrawDescriptor()
 	{
-		LocalColorAttribute.Selector.Update(TEXT("$Color"));
+		LocalColorAttribute.Update(TEXT("$Color"));
 	}
 
 #if WITH_EDITOR
@@ -63,7 +63,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeDebugDrawDescriptor : public FPCGEx
 
 	/** Fetch the size from a local attribute. The regular Size parameter then act as a scale.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Size", meta = (PCG_Overridable, EditCondition="bSizeFromAttribute"))
-	FPCGExInputDescriptor LocalSizeAttribute;
+	FPCGAttributePropertyInputSelector LocalSizeAttribute;
 
 	/** Draw color. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Color", meta=(PCG_Overridable))
@@ -78,7 +78,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeDebugDrawDescriptor : public FPCGEx
 
 	/** Fetch the color from a local attribute.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Color", meta = (PCG_Overridable, EditCondition="bColorFromAttribute"))
-	FPCGExInputDescriptor LocalColorAttribute;
+	FPCGAttributePropertyInputSelector LocalColorAttribute;
 
 	/** Basically divides input values by 255*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Color", meta = (PCG_Overridable, EditCondition="bColorFromAttribute"))

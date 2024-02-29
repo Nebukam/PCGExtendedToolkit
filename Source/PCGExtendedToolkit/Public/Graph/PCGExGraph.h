@@ -113,16 +113,8 @@ namespace PCGExGraph
 	const FName SourceSocketParamsLabel = TEXT("Sockets");
 	const FName OutputSocketParamsLabel = TEXT("Socket");
 
-	const FName OutputTestLabel = TEXT("Test");
-	const FName SourceTestsLabel = TEXT("Tests");
-	const FName SourceIfAttributesLabel = TEXT("If");
-	const FName SourceElseAttributesLabel = TEXT("Else");
-
 	const FName OutputSocketStateLabel = TEXT("SocketState");
 	const FName SourceSocketStateLabel = TEXT("SocketStates");
-
-	const FName OutputNodeStateLabel = TEXT("NodeState");
-	const FName SourceNodeStateLabel = TEXT("NodeStates");
 
 	const FName SourceParamsLabel = TEXT("Graph");
 	const FName OutputParamsLabel = TEXT("➜");

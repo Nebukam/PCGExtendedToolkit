@@ -44,7 +44,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGeo2DProjectionSettings
 
 	/** Local attribute to fetch projection normal from */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bSupportLocalNormal&&bLocalProjectionNormal", EditConditionHides))
-	FPCGExInputDescriptor LocalNormal;
+	FPCGAttributePropertyInputSelector LocalNormal;
 
 	FMatrix DefaultMatrix = FMatrix::Identity;
 	PCGEx::FLocalVectorGetter* NormalGetter = nullptr;

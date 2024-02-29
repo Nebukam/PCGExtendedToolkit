@@ -58,7 +58,7 @@ public:
 
 	/** Fetch the size from a local attribute. The regular Size parameter then act as a scale.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bUseLocalOffset"))
-	FPCGExInputDescriptor LocalOffset;
+	FPCGAttributePropertyInputSelector LocalOffset;
 
 	/** Up vector used to calculate Offset direction.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -70,7 +70,7 @@ public:
 
 	/** Fetch the Up vector from a local point attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bUseLocalOffset"))
-	FPCGExInputDescriptor LocalUpVector;
+	FPCGAttributePropertyInputSelector LocalUpVector;
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExOffsetPathContext : public FPCGExPathProcessorContext

@@ -27,6 +27,11 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExInputDescriptor
 	{
 	}
 
+	explicit FPCGExInputDescriptor(const FPCGAttributePropertyInputSelector& InSelector)
+		: Selector(InSelector)
+	{
+	}
+
 	explicit FPCGExInputDescriptor(const FPCGExInputDescriptor& Other)
 		: Selector(Other.Selector),
 		  Attribute(Other.Attribute)
@@ -673,6 +678,7 @@ namespace PCGEx
 		T operator[](int32 Index) const { return bValid ? Values[Index] : GetDefaultValue(); }
 
 		virtual void Capture(const FPCGExInputDescriptor& InDescriptor) { Descriptor = InDescriptor; }
+		virtual void Capture(const FPCGAttributePropertyInputSelector& InDescriptor) { Capture(FPCGExInputDescriptor(Descriptor)); }
 
 	protected:
 		virtual void ProcessExtraNames(const TArray<FString>& ExtraNames)

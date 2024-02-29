@@ -73,12 +73,13 @@ bool FPCGExFindSocketStatesElement::ExecuteInternal(
 		if (!Context->AdvancePointsIO()) { Context->Done(); }
 		else
 		{
-			Context->StatesManager = new PCGExDataState::AStatesManager(Context->CurrentIO);
-			Context->StatesManager->Register<UPCGExSocketStateDefinition, PCGExGraph::FSocketStateHandler>(
+			Context->StatesManager = new PCGExDataState::TStatesManager(Context->CurrentIO);
+			Context->StatesManager->Register<UPCGExSocketStateDefinition>(
 				Context->StateDefinitions,
-				[&](PCGExGraph::FSocketStateHandler* Handler)
+				[&](PCGExDataFilter::TFilterHandler* Handler)
 				{
-					Handler->Capture(&Context->Graphs, Context->CurrentIO);
+					PCGExGraph::FSocketStateHandler* SocketHandler = static_cast<PCGExGraph::FSocketStateHandler*>(Handler);
+					SocketHandler->CaptureGraph(&Context->Graphs, Context->CurrentIO);
 				});
 
 			if (!Context->StatesManager->bValid)

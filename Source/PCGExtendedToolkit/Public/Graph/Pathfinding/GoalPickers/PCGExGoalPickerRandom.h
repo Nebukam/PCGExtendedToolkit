@@ -41,7 +41,7 @@ public:
 	bool bUseLocalNumGoals = false;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="GoalCount!=EPCGExGoalPickRandomAmount::Single && bUseLocalNumGoals"))
-	FPCGExInputDescriptor LocalNumGoalAttribute;
+	FPCGAttributePropertyInputSelector LocalNumGoalAttribute;
 
 	virtual void PrepareForData(const PCGExData::FPointIO& InSeeds, const PCGExData::FPointIO& InGoals) override;
 

@@ -74,11 +74,11 @@ public:
 
 	/** Attribute picker for the selected Direction Method.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="DirectionMethod==EPCGExEdgeDirectionMethod::EndpointsAttribute", EditConditionHides))
-	FPCGExInputDescriptor VtxSourceAttribute;
+	FPCGAttributePropertyInputSelector VtxSourceAttribute;
 
 	/** Attribute picker for the selected Direction Method.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="DirectionMethod==EPCGExEdgeDirectionMethod::EdgeDotAttribute", EditConditionHides))
-	FPCGExInputDescriptor EdgeSourceAttribute;
+	FPCGAttributePropertyInputSelector EdgeSourceAttribute;
 
 	/** Output Edge Length. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))

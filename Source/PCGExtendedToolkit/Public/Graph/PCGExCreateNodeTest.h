@@ -24,6 +24,7 @@ public:
 		NodeTest, "Node Test Definition", "Creates a single node test condition to be used by a Node State.",
 		FName(FString(Descriptor.GetDisplayName())))
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Param; }
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorFilter; }
 
 #endif
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;

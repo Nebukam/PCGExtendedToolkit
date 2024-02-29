@@ -78,7 +78,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicModifier : public FPCGExInputDescri
 
 	/** Attribute to fetch local weight from. This value will be scaled by the base weight. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta=(PCG_Overridable, EditCondition="bUseLocalWeight", DisplayPriority=1))
-	FPCGExInputDescriptor LocalWeightAttribute;
+	FPCGAttributePropertyInputSelector LocalWeightAttribute;
 
 	/** Curve the value will be remapped over. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta=(PCG_Overridable))

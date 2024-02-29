@@ -56,7 +56,7 @@ public:
 
 	/** Attribute or property to read the local max distance from. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseLocalMaxDistance"))
-	FPCGExInputDescriptor LocalMaxDistance;
+	FPCGAttributePropertyInputSelector LocalMaxDistance;
 
 	/** Write whether the sampling was successful or not to a boolean attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))

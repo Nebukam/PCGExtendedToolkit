@@ -133,7 +133,7 @@ public:
 
 	/** Attribute or property to read the minimum range from. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, EditCondition="bUseLocalRangeMin", EditConditionHides))
-	FPCGExInputDescriptor LocalRangeMin;
+	FPCGAttributePropertyInputSelector LocalRangeMin;
 
 	/** Use a per-point maximum range*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, InlineEditConditionToggle))
@@ -141,7 +141,7 @@ public:
 
 	/** Attribute or property to read the maximum range from. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable, EditCondition="bUseLocalRangeMax", EditConditionHides))
-	FPCGExInputDescriptor LocalRangeMax;
+	FPCGAttributePropertyInputSelector LocalRangeMax;
 
 	/** Distance method to be used for source points. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))

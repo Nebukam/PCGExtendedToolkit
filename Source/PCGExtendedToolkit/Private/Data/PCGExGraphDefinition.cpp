@@ -314,7 +314,7 @@ void UPCGExGraphDefinition::Cleanup() const
 #if WITH_EDITOR
 FString FPCGExAdjacencyTestDescriptor::GetDisplayName() const
 {
-	FString DisplayName = OperandA.GetDisplayName();
+	FString DisplayName = OperandA.GetName().ToString();
 
 	switch (Comparison)
 	{
@@ -345,7 +345,7 @@ FString FPCGExAdjacencyTestDescriptor::GetDisplayName() const
 	default: DisplayName += " ?? ";
 	}
 
-	DisplayName += OperandB.GetDisplayName();
+	DisplayName += OperandB.GetName().ToString();
 	DisplayName += TEXT(" (");
 
 	switch (Mode)
@@ -374,6 +374,11 @@ void UPCGExAdjacencyTestDefinition::BeginDestroy()
 	Super::BeginDestroy();
 }
 
+PCGExDataFilter::TFilterHandler* UPCGExSocketStateDefinition::CreateHandler() const
+{
+	return new PCGExGraph::FSocketStateHandler(this);
+}
+
 void UPCGExSocketStateDefinition::BeginDestroy()
 {
 	Tests.Empty();
@@ -384,14 +389,12 @@ namespace PCGExGraph
 {
 #pragma region FSocketStateHandler
 
-	FSocketStateHandler::FSocketStateHandler(UPCGExSocketStateDefinition* InDefinition)
-		: AStateHandler(InDefinition)
+	FSocketStateHandler::FSocketStateHandler(const UPCGExSocketStateDefinition* InDefinition)
+		: TStateHandler(InDefinition), SocketStateDefinition(InDefinition)
 	{
-		Definition = InDefinition;
-
 		const int32 NumTests = InDefinition->Tests.Num();
-		EdgeTypeAttributes.SetNum(Definition->Tests.Num());
-		EdgeTypeReaders.SetNum(Definition->Tests.Num());
+		EdgeTypeAttributes.SetNumUninitialized(NumTests);
+		EdgeTypeReaders.SetNumUninitialized(NumTests);
 		for (int i = 0; i < NumTests; i++)
 		{
 			EdgeTypeAttributes[i] = nullptr;
@@ -399,21 +402,21 @@ namespace PCGExGraph
 		}
 	}
 
-	void FSocketStateHandler::Capture(const FGraphInputs* GraphInputs, PCGExData::FPointIO* InPointIO)
+	void FSocketStateHandler::CaptureGraph(const FGraphInputs* GraphInputs, const PCGExData::FPointIO* InPointIO)
 	{
-		for (const UPCGExGraphDefinition* Graph : GraphInputs->Params) { Capture(Graph, InPointIO); }
+		for (const UPCGExGraphDefinition* Graph : GraphInputs->Params) { CaptureGraph(Graph, InPointIO); }
 	}
 
-	void FSocketStateHandler::Capture(const UPCGExGraphDefinition* Graph, const PCGExData::FPointIO* InPointIO)
+	void FSocketStateHandler::CaptureGraph(const UPCGExGraphDefinition* Graph, const PCGExData::FPointIO* InPointIO)
 	{
-		const int32 NumConditions = Definition->Tests.Num();
+		const int32 NumConditions = SocketStateDefinition->Tests.Num();
 		int32 NumEnabledConditions = 0;
 		UPCGMetadata* Metadata = InPointIO->GetIn()->Metadata;
 		for (int i = 0; i < NumConditions; i++)
 		{
 			if (EdgeTypeAttributes[i]) { continue; } // Spot already taken by another graph
 
-			const FPCGExSocketTestDescriptor& Condition = Definition->Tests[i];
+			const FPCGExSocketTestDescriptor& Condition = SocketStateDefinition->Tests[i];
 			if (!Condition.bEnabled) { continue; }
 
 			NumEnabledConditions++;
@@ -428,7 +431,7 @@ namespace PCGExGraph
 		}
 
 		int32 NumValid = 0;
-		for (int i = 0; i < EdgeTypeAttributes.Num(); i++) { NumValid += EdgeTypeAttributes[i] ? 1 : 0; }
+		for (int i = 0; i < EdgeTypeAttributes.Num(); i++) { if (EdgeTypeAttributes[i]) { NumValid++; } }
 
 		bValid = NumValid > 0;
 		bPartial = (NumEnabledConditions != NumValid);
@@ -436,7 +439,7 @@ namespace PCGExGraph
 
 	void FSocketStateHandler::PrepareForTesting(PCGExData::FPointIO* PointIO)
 	{
-		AStateHandler::PrepareForTesting(PointIO);
+		TStateHandler::PrepareForTesting(PointIO);
 
 		for (int i = 0; i < EdgeTypeAttributes.Num(); i++)
 		{
@@ -449,11 +452,11 @@ namespace PCGExGraph
 
 	bool FSocketStateHandler::Test(const int32 PointIndex) const
 	{
-		for (int i = 0; i < Definition->Tests.Num(); i++)
+		for (int i = 0; i < SocketStateDefinition->Tests.Num(); i++)
 		{
 			PCGEx::TFAttributeReader<int32>* Reader = EdgeTypeReaders[i];
 			if (!Reader) { continue; }
-			if (!Definition->Tests[i].MeetCondition(Reader->Values[PointIndex])) { return false; }
+			if (!SocketStateDefinition->Tests[i].MeetCondition(Reader->Values[PointIndex])) { return false; }
 		}
 
 		return true;

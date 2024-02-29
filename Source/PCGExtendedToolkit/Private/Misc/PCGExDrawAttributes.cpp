@@ -54,7 +54,7 @@ bool FPCGExAttributeDebugDraw::Bind(const PCGExData::FPointIO& PointIO)
 		SizeGetter.Capture(Descriptor->LocalSizeAttribute);
 		SizeGetter.Grab(PointIO);
 
-		ColorGetter.Descriptor = Descriptor->LocalColorAttribute;
+		ColorGetter.Capture(Descriptor->LocalColorAttribute);
 		ColorGetter.Grab(PointIO);
 	}
 	else

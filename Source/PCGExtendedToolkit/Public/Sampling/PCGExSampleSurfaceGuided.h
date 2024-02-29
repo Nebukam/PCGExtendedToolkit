@@ -45,7 +45,7 @@ public:
 public:
 	/** The direction to use for the trace */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties, FullyExpand=true))
-	FPCGExInputDescriptor Direction = FPCGExInputDescriptor("$Transform.Forward");
+	FPCGAttributePropertyInputSelector Direction;
 
 	/** Trace max distance */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, CLampMin=0.001))
@@ -57,7 +57,7 @@ public:
 
 	/** Attribute or property to read the local size from. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseLocalMaxDistance"))
-	FPCGExInputDescriptor LocalMaxDistance;
+	FPCGAttributePropertyInputSelector LocalMaxDistance;
 
 	/** Write whether the sampling was sucessful or not to a boolean attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))

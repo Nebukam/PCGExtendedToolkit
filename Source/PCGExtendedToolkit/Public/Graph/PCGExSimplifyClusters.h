@@ -51,7 +51,7 @@ public:
 
 	/** If enabled, fetches a local node property or attribute as boolean. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseLocalNodeMark"))
-	FPCGExInputDescriptor NodeFixAttribute;
+	FPCGAttributePropertyInputSelector NodeFixAttribute;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseLocalNodeMark"))
 	bool bInvertNodeFixAttribute = false;
@@ -61,7 +61,7 @@ public:
 
 	/** If enabled, fetches a local edge property or attribute as boolean. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseLocalEdgeMark"))
-	FPCGExInputDescriptor EdgeFixAttribute;
+	FPCGAttributePropertyInputSelector EdgeFixAttribute;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseLocalEdgeMark"))
 	bool bInvertEdgeFixAttribute = false;
