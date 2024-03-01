@@ -21,6 +21,7 @@ public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(FindSocketStates, "Custom Graph : Find Socket States", "Find & writes socket states and attributes. Basically a glorified if/else to streamline identification of user-defined conditions within a graph.");
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorFilter; }
 #endif
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
@@ -80,7 +81,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFindSocketStatesContext : public FPCGExCusto
 	virtual ~FPCGExFindSocketStatesContext() override;
 
 	TArray<TObjectPtr<UPCGExSocketStateDefinition>> StateDefinitions;
-	PCGExDataState::AStatesManager* StatesManager = nullptr;
+	PCGExDataState::TStatesManager* StatesManager = nullptr;
 };
 
 

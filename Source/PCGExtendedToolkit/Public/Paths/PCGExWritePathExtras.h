@@ -66,7 +66,7 @@ public:
 
 	/** Fetch the Up vector from a local point attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Normal", meta = (PCG_Overridable, EditCondition="bUseLocalOffset"))
-	FPCGExInputDescriptor LocalUpVector;
+	FPCGAttributePropertyInputSelector LocalUpVector;
 
 
 	/** Output Path Length. */

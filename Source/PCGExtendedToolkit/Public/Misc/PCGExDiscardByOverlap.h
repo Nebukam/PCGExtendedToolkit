@@ -159,7 +159,7 @@ public:
 
 	/** Local point value to be used as bound expansion */
 	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="ExpansionMode==EPCGExExpandPointsBoundsMode::Attribute", EditConditionHides))
-	FPCGExInputDescriptor ExpansionLocalValue;
+	FPCGAttributePropertyInputSelector ExpansionLocalValue;
 
 private:
 	friend class FPCGExDiscardByOverlapElement;

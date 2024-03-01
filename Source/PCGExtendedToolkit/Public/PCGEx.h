@@ -19,6 +19,7 @@
 #define PCGEX_DELETE_TARRAY(_VALUE) for(const auto* Item : _VALUE){ delete Item; } _VALUE.Empty();
 #define PCGEX_DELETE_TMAP(_VALUE, _TYPE){TArray<_TYPE> Keys; _VALUE.GetKeys(Keys); for (const _TYPE Key : Keys) { delete *_VALUE.Find(Key); } _VALUE.Empty(); Keys.Empty(); }
 #define PCGEX_CLEANUP(_VALUE) _VALUE.Cleanup();
+#define PCGEX_TRIM(_VALUE) _VALUE.SetNum(_VALUE.Num());
 
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION == 3
 #define PCGEX_FOREACH_SUPPORTEDTYPES(MACRO, ...) \
@@ -208,6 +209,8 @@ namespace PCGEx
 
 	constexpr FLinearColor NodeColorDebug = FLinearColor(1.0f, 0.0f, 0.0f, 1.0f);
 	constexpr FLinearColor NodeColorGraph = FLinearColor(80.0f / 255.0f, 241.0f / 255.0f, 168.0f / 255.0f, 1.0f);
+	constexpr FLinearColor NodeColorExParam = FLinearColor(254.0f / 255.0f, 132.0f / 255.0f, 0.1f / 255.0f, 1.0f);
+	constexpr FLinearColor NodeColorFilter = FLinearColor(21.0f / 255.0f, 193.0f / 255.0f, 33.0f / 255.0f, 1.0f);
 	constexpr FLinearColor NodeColorPathfinding = FLinearColor(80.0f / 255.0f, 241.0f / 255.0f, 100.0f / 255.0f, 1.0f);
 	constexpr FLinearColor NodeColorEdge = FLinearColor(100.0f / 255.0f, 241.0f / 255.0f, 100.0f / 255.0f, 1.0f);
 	constexpr FLinearColor NodeColorPath = FLinearColor(50.0f / 255.0f, 150.0f / 255.0f, 241.0f / 255.0f, 1.0f);

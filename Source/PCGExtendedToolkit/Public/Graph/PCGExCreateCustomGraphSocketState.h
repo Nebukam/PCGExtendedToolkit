@@ -24,6 +24,7 @@ public:
 		GraphSocketState, "Socket State Definition", "Creates a socket state configuration from any number of sockets and attributes.",
 		StateName.IsNone() ? FName(GetDefaultNodeTitle().ToString()) : FName(FString("PCGEx | SS : ") + StateName.ToString()))
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Param; }
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorFilter; }
 
 #endif
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;

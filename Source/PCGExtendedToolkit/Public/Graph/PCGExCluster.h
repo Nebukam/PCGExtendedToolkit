@@ -30,6 +30,9 @@ enum class EPCGExClusterSearchOrientationMode : uint8
 
 namespace PCGExCluster
 {
+	const FName OutputNodeStateLabel = TEXT("NodeState");
+	const FName SourceNodeStateLabel = TEXT("NodeStates");
+
 	constexpr PCGExMT::AsyncState State_ProjectingCluster = __COUNTER__;
 
 	struct FCluster;
@@ -175,7 +178,7 @@ namespace PCGExCluster
 		virtual bool Test(const int32 PointIndex) const;
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FNodeStateHandler : public PCGExDataState::AStateHandler
+	class PCGEXTENDEDTOOLKIT_API FNodeStateHandler : public PCGExDataState::TStateHandler
 	{
 	public:
 		explicit FNodeStateHandler(UPCGExNodeStateDefinition* InDefinition);
@@ -183,7 +186,7 @@ namespace PCGExCluster
 		UPCGExNodeStateDefinition* Definition = nullptr;
 		TArray<FNodeTestHandler*> TestHandlers;
 
-		void Capture(FCluster* InCluster);
+		void CaptureCluster(FCluster* InCluster);
 		virtual bool Test(const int32 PointIndex) const override;
 
 		virtual ~FNodeStateHandler() override

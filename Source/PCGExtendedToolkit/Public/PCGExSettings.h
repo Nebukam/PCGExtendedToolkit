@@ -143,7 +143,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExInfluenceSettings
 
 	/** Fetch the size from a local attribute. The regular Size parameter then act as a scale.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bUseLocalInfluence"))
-	FPCGExInputDescriptor LocalInfluence;
+	FPCGAttributePropertyInputSelector LocalInfluence;
 
 	/** If enabled, applies influence after each iteration; otherwise applies once at the end of the relaxing.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
@@ -227,7 +227,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFuseSettingsBase
 
 	/** Method used to compute the distance from the source */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseLocalTolerance"))
-	FPCGExInputDescriptor LocalTolerance;
+	FPCGAttributePropertyInputSelector LocalTolerance;
 
 	PCGEx::FLocalSingleFieldGetter* LocalToleranceGetter = nullptr;
 	PCGEx::FLocalVectorGetter* LocalToleranceVectorGetter = nullptr;

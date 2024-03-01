@@ -20,7 +20,7 @@ TArray<FPCGPinProperties> UPCGExCreateNodeTestSettings::InputPinProperties() con
 TArray<FPCGPinProperties> UPCGExCreateNodeTestSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	FPCGPinProperties& PinPropertyOutput = PinProperties.Emplace_GetRef(PCGExGraph::OutputTestLabel, EPCGDataType::Param, false, false);
+	FPCGPinProperties& PinPropertyOutput = PinProperties.Emplace_GetRef(PCGExDataState::OutputTestLabel, EPCGDataType::Param, false, false);
 
 #if WITH_EDITOR
 	PinPropertyOutput.Tooltip = FTEXT("Outputs a single test definition to be used by a node state.");

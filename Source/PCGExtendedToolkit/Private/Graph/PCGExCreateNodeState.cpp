@@ -4,6 +4,7 @@
 #include "Graph/PCGExCreateNodeState.h"
 
 #include "PCGPin.h"
+#include "Graph/PCGExCluster.h"
 #include "Graph/PCGExGraph.h"
 
 #define LOCTEXT_NAMESPACE "PCGExCreateNodeState"
@@ -15,19 +16,19 @@ TArray<FPCGPinProperties> UPCGExCreateNodeStateSettings::InputPinProperties() co
 {
 	TArray<FPCGPinProperties> PinProperties;
 
-	FPCGPinProperties& InTestsPin = PinProperties.Emplace_GetRef(PCGExGraph::SourceTestsLabel, EPCGDataType::Param, true, true);
+	FPCGPinProperties& InTestsPin = PinProperties.Emplace_GetRef(PCGExDataState::SourceTestsLabel, EPCGDataType::Param, true, true);
 
 #if WITH_EDITOR
 	InTestsPin.Tooltip = FTEXT("Tests performed to validate or invalidate this state.");
 #endif
 
-	FPCGPinProperties& IfPin = PinProperties.Emplace_GetRef(PCGExGraph::SourceIfAttributesLabel, EPCGDataType::Param, true, true);
+	FPCGPinProperties& IfPin = PinProperties.Emplace_GetRef(PCGExDataState::SourceIfAttributesLabel, EPCGDataType::Param, true, true);
 
 #if WITH_EDITOR
 	IfPin.Tooltip = FTEXT("Attributes & values associated with this state when conditions are met.");
 #endif
 
-	FPCGPinProperties& ElsePin = PinProperties.Emplace_GetRef(PCGExGraph::SourceElseAttributesLabel, EPCGDataType::Param, true, true);
+	FPCGPinProperties& ElsePin = PinProperties.Emplace_GetRef(PCGExDataState::SourceElseAttributesLabel, EPCGDataType::Param, true, true);
 
 #if WITH_EDITOR
 	ElsePin.Tooltip = FTEXT("Attributes & values associated with this state when conditions are not met.");
@@ -39,7 +40,7 @@ TArray<FPCGPinProperties> UPCGExCreateNodeStateSettings::InputPinProperties() co
 TArray<FPCGPinProperties> UPCGExCreateNodeStateSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	FPCGPinProperties& OutStatePin = PinProperties.Emplace_GetRef(PCGExGraph::OutputNodeStateLabel, EPCGDataType::Param, false, false);
+	FPCGPinProperties& OutStatePin = PinProperties.Emplace_GetRef(PCGExCluster::OutputNodeStateLabel, EPCGDataType::Param, false, false);
 
 #if WITH_EDITOR
 	OutStatePin.Tooltip = FTEXT("Outputs a single node state.");
@@ -76,7 +77,7 @@ bool FPCGExCreateNodeStateElement::ExecuteInternal(
 
 	TArray<UPCGExAdjacencyTestDefinition*> TestDefinitions;
 
-	const TArray<FPCGTaggedData>& TestPin = Context->InputData.GetInputsByPin(PCGExGraph::SourceTestsLabel);
+	const TArray<FPCGTaggedData>& TestPin = Context->InputData.GetInputsByPin(PCGExDataState::SourceTestsLabel);
 	for (const FPCGTaggedData& TaggedData : TestPin)
 	{
 		if (const UPCGExAdjacencyTestDefinition* TestData = Cast<UPCGExAdjacencyTestDefinition>(TaggedData.Data))
@@ -93,7 +94,7 @@ bool FPCGExCreateNodeStateElement::ExecuteInternal(
 		return true;
 	}
 
-	const TArray<FPCGTaggedData>& IfPin = Context->InputData.GetInputsByPin(PCGExGraph::SourceIfAttributesLabel);
+	const TArray<FPCGTaggedData>& IfPin = Context->InputData.GetInputsByPin(PCGExDataState::SourceIfAttributesLabel);
 	for (const FPCGTaggedData& TaggedData : IfPin)
 	{
 		if (const UPCGParamData* IfData = Cast<UPCGParamData>(TaggedData.Data))
@@ -103,7 +104,7 @@ bool FPCGExCreateNodeStateElement::ExecuteInternal(
 		}
 	}
 
-	const TArray<FPCGTaggedData>& ElsePin = Context->InputData.GetInputsByPin(PCGExGraph::SourceElseAttributesLabel);
+	const TArray<FPCGTaggedData>& ElsePin = Context->InputData.GetInputsByPin(PCGExDataState::SourceElseAttributesLabel);
 	for (const FPCGTaggedData& TaggedData : ElsePin)
 	{
 		if (const UPCGParamData* ElseData = Cast<UPCGParamData>(TaggedData.Data))

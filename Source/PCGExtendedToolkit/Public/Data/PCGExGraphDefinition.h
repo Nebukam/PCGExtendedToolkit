@@ -166,7 +166,7 @@ public:
 
 	/** Local property or attribute to read Direction from. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Probing", meta = (PCG_Overridable, EditCondition="bUseLocalDirection"))
-	FPCGExInputDescriptor LocalDirection;
+	FPCGAttributePropertyInputSelector LocalDirection;
 
 	//
 
@@ -181,7 +181,7 @@ public:
 
 	/** Local property or attribute to read Angle from. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Probing", meta = (PCG_Overridable, EditCondition="bUseLocalAngle"))
-	FPCGExInputDescriptor LocalAngle;
+	FPCGAttributePropertyInputSelector LocalAngle;
 
 	/** Enable if the local angle should be read as degrees instead of radians. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Probing", meta = (PCG_Overridable, EditCondition="bUseLocalAngle"))
@@ -199,7 +199,7 @@ public:
 
 	/** Local property or attribute to read Radius from. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Probing", meta = (PCG_Overridable, EditCondition="bUseLocalRadius"))
-	FPCGExInputDescriptor LocalRadius;
+	FPCGAttributePropertyInputSelector LocalRadius;
 
 	/** The balance over distance to prioritize closer distance or better alignment. Curve X is normalized distance; Y = 0 means narrower dot wins, Y = 1 means closer distance wins */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Settings|Probing")
@@ -383,7 +383,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAdjacencyTestDescriptor
 
 	/** Local measure attribute */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="Mode==EPCGExAdjacencyTestMode::Some && (SubsetMeasure==EPCGExAdjacencySubsetMeasureMode::AbsoluteLocal||SubsetMeasure==EPCGExAdjacencySubsetMeasureMode::RelativeLocal)", EditConditionHides))
-	FPCGExInputDescriptor LocalMeasure;
+	FPCGAttributePropertyInputSelector LocalMeasure;
 
 	/** Rounding mode for relative measures */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="Mode==EPCGExAdjacencyTestMode::Some && (SubsetMeasure==EPCGExAdjacencySubsetMeasureMode::RelativeStatic||SubsetMeasure==EPCGExAdjacencySubsetMeasureMode::RelativeLocal)", EditConditionHides))
@@ -391,7 +391,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAdjacencyTestDescriptor
 
 	/** Operand A for testing -- Will be broadcasted to `double` under the hood. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(ShowOnlyInnerProperties, DisplayName="Operand A (First)"))
-	FPCGExInputDescriptor OperandA;
+	FPCGAttributePropertyInputSelector OperandA;
 
 	/** Comparison */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
@@ -403,7 +403,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAdjacencyTestDescriptor
 
 	/** Operand B for testing -- Will be broadcasted to `double` under the hood. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(ShowOnlyInnerProperties, DisplayName="Operand B (Neighbor)"))
-	FPCGExInputDescriptor OperandB;
+	FPCGAttributePropertyInputSelector OperandB;
 
 #if WITH_EDITOR
 	FString GetDisplayName() const;
@@ -703,6 +703,9 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSocketStateDefinition : public UPCGExStateDef
 
 public:
 	TArray<FPCGExSocketTestDescriptor> Tests;
+
+	virtual PCGExDataFilter::TFilterHandler* CreateHandler() const override;
+	
 	virtual void BeginDestroy() override;
 };
 
@@ -948,17 +951,17 @@ namespace PCGExGraph
 		}
 	}
 
-	class PCGEXTENDEDTOOLKIT_API FSocketStateHandler : public PCGExDataState::AStateHandler
+	class PCGEXTENDEDTOOLKIT_API FSocketStateHandler : public PCGExDataState::TStateHandler
 	{
 	public:
-		explicit FSocketStateHandler(UPCGExSocketStateDefinition* InDefinition);
+		explicit FSocketStateHandler(const UPCGExSocketStateDefinition* InDefinition);
 
-		UPCGExSocketStateDefinition* Definition = nullptr;
+		const UPCGExSocketStateDefinition* SocketStateDefinition = nullptr;
 		TArray<FPCGMetadataAttribute<int32>*> EdgeTypeAttributes;
 		TArray<PCGEx::TFAttributeReader<int32>*> EdgeTypeReaders;
 
-		void Capture(const FGraphInputs* GraphInputs, PCGExData::FPointIO* InPointIO);
-		void Capture(const UPCGExGraphDefinition* Graph, const PCGExData::FPointIO* InPointIO);
+		void CaptureGraph(const FGraphInputs* GraphInputs, const PCGExData::FPointIO* InPointIO);
+		void CaptureGraph(const UPCGExGraphDefinition* Graph, const PCGExData::FPointIO* InPointIO);
 
 		virtual void PrepareForTesting(PCGExData::FPointIO* PointIO) override;
 

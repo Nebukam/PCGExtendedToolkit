@@ -7,11 +7,31 @@
 #include "CoreMinimal.h"
 #include "PCGEx.h"
 
+#include "PCGExMath.generated.h"
+
 #define PCGEX_UNSUPPORTED_STRING_TYPES(MACRO)\
 MACRO(FString)\
 MACRO(FName)\
 MACRO(FSoftObjectPath)\
 MACRO(FSoftClassPath)
+
+UENUM(BlueprintType)
+enum class EPCGExMeanMeasure : uint8
+{
+	Relative UMETA(DisplayName = "Relative", ToolTip="Input value will be normalized between 0..1"),
+	Absolute UMETA(DisplayName = "Absolute", ToolTip="Raw value will be used."),
+};
+
+UENUM(BlueprintType)
+enum class EPCGExMeanMethod : uint8
+{
+	Average UMETA(DisplayName = "Average", ToolTip="Average"),
+	Median UMETA(DisplayName = "Median", ToolTip="Median"),
+	ModeMin UMETA(DisplayName = "Mode (Highest)", ToolTip="Mode length (~= highest most common value)"),
+	ModeMax UMETA(DisplayName = "Mode (Lowest)", ToolTip="Mode length (~= lowest most common value)"),
+	Central UMETA(DisplayName = "Central", ToolTip="Central uses the middle value between Min/Max input values."),
+	Fixed UMETA(DisplayName = "Fixed", ToolTip="Fixed threshold"),
+};
 
 namespace PCGExMath
 {

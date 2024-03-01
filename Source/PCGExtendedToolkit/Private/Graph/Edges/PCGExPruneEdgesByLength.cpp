@@ -93,7 +93,7 @@ bool FPCGExPruneEdgesByLengthElement::ExecuteInternal(FPCGContext* InContext) co
 			SumEdgeLength += EdgeLength;
 		}
 
-		if (Settings->Measure == EPCGExEdgeLengthMeasure::Relative)
+		if (Settings->Measure == EPCGExMeanMeasure::Relative)
 		{
 			double RelativeMinEdgeLength = TNumericLimits<double>::Max();
 			double RelativeMaxEdgeLength = TNumericLimits<double>::Min();
@@ -112,28 +112,28 @@ bool FPCGExPruneEdgesByLengthElement::ExecuteInternal(FPCGContext* InContext) co
 		switch (Settings->MeanMethod)
 		{
 		default:
-		case EPCGExEdgeMeanMethod::Average:
+		case EPCGExMeanMethod::Average:
 			Context->ReferenceValue = SumEdgeLength / Context->EdgeLength.Num();
 			break;
-		case EPCGExEdgeMeanMethod::Median:
+		case EPCGExMeanMethod::Median:
 			Context->ReferenceValue = PCGExMath::GetMedian(Context->EdgeLength);
 			break;
-		case EPCGExEdgeMeanMethod::Fixed:
+		case EPCGExMeanMethod::Fixed:
 			Context->ReferenceValue = Settings->MeanValue;
 			break;
-		case EPCGExEdgeMeanMethod::ModeMin:
+		case EPCGExMeanMethod::ModeMin:
 			Context->ReferenceValue = PCGExMath::GetMode(Context->EdgeLength, false, Settings->ModeTolerance);
 			break;
-		case EPCGExEdgeMeanMethod::ModeMax:
+		case EPCGExMeanMethod::ModeMax:
 			Context->ReferenceValue = PCGExMath::GetMode(Context->EdgeLength, true, Settings->ModeTolerance);
 			break;
-		case EPCGExEdgeMeanMethod::Central:
+		case EPCGExMeanMethod::Central:
 			Context->ReferenceValue = MinEdgeLength + (MaxEdgeLength - MinEdgeLength) * 0.5;
 			break;
 		}
 
-		double RMin = Settings->bPruneBelowMean ? Context->ReferenceValue - Settings->PruneBelow : 0;
-		double RMax = Settings->bPruneAboveMean ? Context->ReferenceValue + Settings->PruneAbove : TNumericLimits<double>::Max();
+		const double RMin = Settings->bPruneBelowMean ? Context->ReferenceValue - Settings->PruneBelow : 0;
+		const double RMax = Settings->bPruneAboveMean ? Context->ReferenceValue + Settings->PruneAbove : TNumericLimits<double>::Max();
 
 		Context->ReferenceMin = FMath::Min(RMin, RMax);
 		Context->ReferenceMax = FMath::Max(RMin, RMax);

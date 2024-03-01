@@ -322,10 +322,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExComparisonSettings
 	}
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FPCGExInputDescriptor OperandA;
+	FPCGAttributePropertyInputSelector OperandA;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FPCGExInputDescriptor OperandB;
+	FPCGAttributePropertyInputSelector OperandB;
 
 	/** Comparison method. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))

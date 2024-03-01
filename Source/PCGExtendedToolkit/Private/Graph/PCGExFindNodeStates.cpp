@@ -17,7 +17,7 @@ PCGExData::EInit UPCGExFindNodeStatesSettings::GetEdgeOutputInitMode() const { r
 TArray<FPCGPinProperties> UPCGExFindNodeStatesSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	FPCGPinProperties& PinStateParams = PinProperties.Emplace_GetRef(PCGExGraph::SourceNodeStateLabel, EPCGDataType::Param);
+	FPCGPinProperties& PinStateParams = PinProperties.Emplace_GetRef(PCGExCluster::SourceNodeStateLabel, EPCGDataType::Param);
 
 #if WITH_EDITOR
 	PinStateParams.Tooltip = FTEXT("Node states.");
@@ -44,7 +44,7 @@ bool FPCGExFindNodeStatesElement::Boot(FPCGContext* InContext) const
 
 	return PCGExDataState::GetInputStates(
 		Context,
-		PCGExGraph::SourceNodeStateLabel,
+		PCGExCluster::SourceNodeStateLabel,
 		Context->StateDefinitions);
 }
 
@@ -68,11 +68,12 @@ bool FPCGExFindNodeStatesElement::ExecuteInternal(
 		if (!Context->AdvancePointsIO()) { Context->Done(); }
 		else
 		{
-			Context->StatesManager = new PCGExDataState::AStatesManager(Context->CurrentIO);
-			Context->StatesManager->Register<UPCGExNodeStateDefinition, PCGExCluster::FNodeStateHandler>(
+			Context->StatesManager = new PCGExDataState::TStatesManager(Context->CurrentIO);
+			Context->StatesManager->Register<UPCGExNodeStateDefinition>(
 				Context->StateDefinitions,
-				[&](PCGExCluster::FNodeStateHandler* Handler)
+				[&](PCGExDataFilter::TFilterHandler* Handler)
 				{
+					PCGExCluster::FNodeStateHandler* SocketHandler = static_cast<PCGExCluster::FNodeStateHandler*>(Handler);
 					//TODO: Capture cluster VTX
 					//Handler->Capture(&Context->Graphs, Context->CurrentIO);
 				});

@@ -8,6 +8,7 @@
 #include "UObject/Object.h"
 
 #include "PCGExData.h"
+#include "PCGExDataFilter.h"
 
 #include "PCGExDataState.generated.h"
 
@@ -15,14 +16,13 @@
  * 
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGExStateDefinitionBase : public UPCGExParamDataBase
+class PCGEXTENDEDTOOLKIT_API UPCGExStateDefinitionBase : public UPCGExFilterDefinitionBase
 {
 	GENERATED_BODY()
 
 public:
 	FName StateName = NAME_None;
 	int32 StateId = 0;
-	int32 Priority = 0;
 
 	TArray<TObjectPtr<UPCGParamData>> IfAttributes;
 	TArray<PCGEx::FAttributesInfos*> IfInfos;
@@ -30,42 +30,44 @@ public:
 	TArray<TObjectPtr<UPCGParamData>> ElseAttributes;
 	TArray<PCGEx::FAttributesInfos*> ElseInfos;
 
+	virtual PCGExDataFilter::TFilterHandler* CreateHandler() const override;
+
 	virtual void BeginDestroy() override;
 };
 
 namespace PCGExDataState
 {
-	class PCGEXTENDEDTOOLKIT_API AStateHandler
+
+	const FName OutputTestLabel = TEXT("Test");
+	const FName SourceTestsLabel = TEXT("Tests");
+	const FName SourceIfAttributesLabel = TEXT("If");
+	const FName SourceElseAttributesLabel = TEXT("Else");
+	
+	class PCGEXTENDEDTOOLKIT_API TStateHandler : public PCGExDataFilter::TFilterHandler
 	{
 	public:
-		explicit AStateHandler(UPCGExStateDefinitionBase* InDefinition):
-			ADefinition(InDefinition)
-		{
-		}
-
 		TArray<FPCGMetadataAttributeBase*> InIfAttributes;
 		TArray<FPCGMetadataAttributeBase*> InElseAttributes;
 
 		TArray<FPCGMetadataAttributeBase*> OutIfAttributes;
 		TArray<FPCGMetadataAttributeBase*> OutElseAttributes;
 
-		bool bValid = true;
 		bool bPartial = false;
-		int32 Index = 0;
 
 		TSet<FString> OverlappingAttributes;
-		UPCGExStateDefinitionBase* ADefinition = nullptr;
 
-		TArray<bool> Results;
+		explicit TStateHandler(const UPCGExStateDefinitionBase* InDefinition)
+			: TFilterHandler(InDefinition), StateDefinition(InDefinition)
+		{
+		}
 
-		virtual bool Test(const int32 PointIndex) const;
-
-		virtual void PrepareForTesting(PCGExData::FPointIO* PointIO);
+		const UPCGExStateDefinitionBase* StateDefinition;
+		
+		virtual bool Test(const int32 PointIndex) const override;
 		virtual void PrepareForWriting(PCGExData::FPointIO* PointIO);
 
-		virtual ~AStateHandler()
+		virtual ~TStateHandler() override
 		{
-			Results.Empty();
 			OverlappingAttributes.Empty();
 
 			InIfAttributes.Empty();
@@ -76,69 +78,35 @@ namespace PCGExDataState
 		}
 	};
 
-	class PCGEXTENDEDTOOLKIT_API AStatesManager
+	class PCGEXTENDEDTOOLKIT_API TStatesManager : public PCGExDataFilter::TFilterManager
 	{
 	public:
-		AStatesManager(PCGExData::FPointIO* InPointIO);
-
-		TArray<AStateHandler*> Handlers;
 		TArray<int32> HighestState;
-		bool bValid = false;
 		bool bHasPartials = false;
 
-		PCGExData::FPointIO* PointIO = nullptr;
-
-		template <typename T_DEF, typename T_HANDLER, class CaptureFunc>
-		void Register(TArray<TObjectPtr<T_DEF>> Definitions, CaptureFunc&& Capture)
+		explicit TStatesManager(PCGExData::FPointIO* InPointIO)
+			: TFilterManager(InPointIO)
 		{
-			for (T_DEF* Def : Definitions)
-			{
-				T_HANDLER* Handler = new T_HANDLER(Def);
-				Capture(Handler);
-
-				if (!Handler->bValid)
-				{
-					delete Handler;
-					continue;
-				}
-
-				Handlers.Add(Handler);
-			}
-
-			bValid = !Handlers.IsEmpty();
-
-			if (!bValid) { return; }
-
-			// Sort mappings so higher priorities come last, as they have to potential to override values.
-			Handlers.Sort([&](const AStateHandler& A, const AStateHandler& B) { return A.ADefinition->Priority < B.ADefinition->Priority; });
-
-			// Update index & partials
-			bHasPartials = false;
-			for (int i = 0; i < Handlers.Num(); i++)
-			{
-				Handlers[i]->Index = i;
-				if (Handlers[i]->bPartial) { bHasPartials = true; }
-			}
 		}
 
-		void PrepareForTesting();
+		virtual void PrepareForTesting() override;
 
-		void Test(const int32 PointIndex);
+		virtual void Test(const int32 PointIndex) override;
 
 		void WriteStateNames(FName AttributeName, FName DefaultValue);
 		void WriteStateValues(FName AttributeName, int32 DefaultValue);
 		void WriteStateIndividualStates(FPCGExAsyncManager* AsyncManager);
 
 		void WritePrepareForStateAttributes(const FPCGContext* InContext);
-		void WriteStateAttributes(FPCGExAsyncManager* AsyncManager);
 		void WriteStateAttributes(const int32 PointIndex);
 
-		~AStatesManager()
+		virtual ~TStatesManager() override
 		{
 			PCGEX_DELETE_TARRAY(Handlers)
 		}
 
 	protected:
+		virtual void PostProcessHandler(PCGExDataFilter::TFilterHandler* Handler) override;
 	};
 
 	template <typename T_DEF>
@@ -182,34 +150,18 @@ namespace PCGExDataState
 
 namespace PCGExDataStateTask
 {
-	class PCGEXTENDEDTOOLKIT_API FWriteStateAttribute : public FPCGExNonAbandonableTask
-	{
-	public:
-		FWriteStateAttribute(
-			FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-			PCGExDataState::AStatesManager* InStateManager) :
-			FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
-			StateManager(InStateManager)
-		{
-		}
-
-		PCGExDataState::AStatesManager* StateManager = nullptr;
-
-		virtual bool ExecuteTask() override;
-	};
-
 	class PCGEXTENDEDTOOLKIT_API FWriteIndividualState : public FPCGExNonAbandonableTask
 	{
 	public:
 		FWriteIndividualState(
 			FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-			PCGExDataState::AStateHandler* InHandler) :
+			PCGExDataState::TStateHandler* InHandler) :
 			FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
 			Handler(InHandler)
 		{
 		}
 
-		PCGExDataState::AStateHandler* Handler = nullptr;
+		PCGExDataState::TStateHandler* Handler = nullptr;
 
 		virtual bool ExecuteTask() override;
 	};

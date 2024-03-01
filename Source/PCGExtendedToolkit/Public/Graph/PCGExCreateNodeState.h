@@ -24,6 +24,7 @@ public:
 		NodeState, "Node State Definition", "Creates a node state configuration.",
 		StateName.IsNone() ? FName(GetDefaultNodeTitle().ToString()) : FName(FString("PCGEx | NS : ") + StateName.ToString()))
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Param; }
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorFilter; }
 
 #endif
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;

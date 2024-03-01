@@ -44,7 +44,7 @@ bool FPCGExSmoothElement::Boot(FPCGContext* InContext) const
 	Context->Smoothing->bPreserveEnd = Settings->bPreserveEnd;
 	Context->Smoothing->FixedInfluence = Settings->Influence;
 	Context->Smoothing->bUseLocalInfluence = Settings->bUseLocalInfluence;
-	Context->Smoothing->InfluenceDescriptor = Settings->LocalInfluence;
+	Context->Smoothing->InfluenceDescriptor = FPCGExInputDescriptor(Settings->LocalInfluence);
 
 	return true;
 }

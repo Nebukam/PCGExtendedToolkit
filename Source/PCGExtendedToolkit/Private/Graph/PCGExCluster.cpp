@@ -156,14 +156,14 @@ namespace PCGExCluster
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExCluster::BuildCluster);
 
 		const int32 NumNodes = Positions.Num();
-		Nodes.Reserve(NumNodes);
+		Nodes.SetNum(NumNodes);
 
 		const int32 NumEdges = InEdges.Num();
 		Edges.SetNumUninitialized(NumEdges);
 
-		for (int i = 0; i < Positions.Num(); i++)
+		for (int i = 0; i < NumNodes; i++)
 		{
-			FNode& Node = Nodes.Emplace_GetRef();
+			FNode& Node = Nodes[i];
 
 			Node.PointIndex = i;
 			Node.NodeIndex = i;
@@ -513,7 +513,7 @@ namespace PCGExCluster
 	}
 
 	FNodeStateHandler::FNodeStateHandler(UPCGExNodeStateDefinition* InDefinition)
-		: AStateHandler(InDefinition)
+		: TStateHandler(InDefinition)
 	{
 		Definition = InDefinition;
 
@@ -523,7 +523,7 @@ namespace PCGExCluster
 		for (int i = 0; i < NumConditions; i++) { TestHandlers[i] = new FNodeTestHandler(InDefinition->Tests[i]); }
 	}
 
-	void FNodeStateHandler::Capture(FCluster* InCluster)
+	void FNodeStateHandler::CaptureCluster(FCluster* InCluster)
 	{
 		Cluster = InCluster;
 	}

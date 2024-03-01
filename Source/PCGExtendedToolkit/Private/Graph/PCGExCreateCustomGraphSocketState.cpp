@@ -15,13 +15,13 @@ TArray<FPCGPinProperties> UPCGExCreateCustomGraphSocketStateSettings::InputPinPr
 {
 	TArray<FPCGPinProperties> PinProperties;
 
-	FPCGPinProperties& IfPin = PinProperties.Emplace_GetRef(PCGExGraph::SourceIfAttributesLabel, EPCGDataType::Param, true, true);
+	FPCGPinProperties& IfPin = PinProperties.Emplace_GetRef(PCGExDataState::SourceIfAttributesLabel, EPCGDataType::Param, true, true);
 
 #if WITH_EDITOR
 	IfPin.Tooltip = FTEXT("Attributes & values associated with this state when conditions are met.");
 #endif
 
-	FPCGPinProperties& ElsePin = PinProperties.Emplace_GetRef(PCGExGraph::SourceElseAttributesLabel, EPCGDataType::Param, true, true);
+	FPCGPinProperties& ElsePin = PinProperties.Emplace_GetRef(PCGExDataState::SourceElseAttributesLabel, EPCGDataType::Param, true, true);
 
 #if WITH_EDITOR
 	ElsePin.Tooltip = FTEXT("Attributes & values associated with this state when conditions are not met.");
@@ -68,7 +68,7 @@ bool FPCGExCreateCustomGraphSocketStateElement::ExecuteInternal(
 	OutState->StateId = Settings->StateId;
 	OutState->Priority = Settings->Priority;
 
-	const TArray<FPCGTaggedData>& IfPin = Context->InputData.GetInputsByPin(PCGExGraph::SourceIfAttributesLabel);
+	const TArray<FPCGTaggedData>& IfPin = Context->InputData.GetInputsByPin(PCGExDataState::SourceIfAttributesLabel);
 	for (const FPCGTaggedData& TaggedData : IfPin)
 	{
 		if (const UPCGParamData* IfData = Cast<UPCGParamData>(TaggedData.Data))
@@ -78,7 +78,7 @@ bool FPCGExCreateCustomGraphSocketStateElement::ExecuteInternal(
 		}
 	}
 
-	const TArray<FPCGTaggedData>& ElsePin = Context->InputData.GetInputsByPin(PCGExGraph::SourceElseAttributesLabel);
+	const TArray<FPCGTaggedData>& ElsePin = Context->InputData.GetInputsByPin(PCGExDataState::SourceElseAttributesLabel);
 	for (const FPCGTaggedData& TaggedData : ElsePin)
 	{
 		if (const UPCGParamData* ElseData = Cast<UPCGParamData>(TaggedData.Data))

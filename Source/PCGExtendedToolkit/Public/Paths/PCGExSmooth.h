@@ -64,7 +64,7 @@ public:
 
 	/** Fetch the influence from a local attribute.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bUseLocalInfluence"))
-	FPCGExInputDescriptor LocalInfluence;
+	FPCGAttributePropertyInputSelector LocalInfluence;
 
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta=(PCG_Overridable, NoResetToDefault, ShowOnlyInnerProperties))
 	TObjectPtr<UPCGExSmoothingOperation> Smoothing;

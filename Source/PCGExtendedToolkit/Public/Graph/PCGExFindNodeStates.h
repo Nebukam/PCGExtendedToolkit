@@ -77,7 +77,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFindNodeStatesContext : public FPCGExCustomG
 	virtual ~FPCGExFindNodeStatesContext() override;
 
 	TArray<TObjectPtr<UPCGExNodeStateDefinition>> StateDefinitions;
-	PCGExDataState::AStatesManager* StatesManager = nullptr;
+	PCGExDataState::TStatesManager* StatesManager = nullptr;
 };
 
 

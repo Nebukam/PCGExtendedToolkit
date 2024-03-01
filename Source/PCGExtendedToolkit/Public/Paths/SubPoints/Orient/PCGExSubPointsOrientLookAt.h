@@ -30,7 +30,7 @@ public:
 
 	/** Vector attribute representing a world position */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="LookAt==EPCGExOrientLookAt::Attribute", EditConditionHides))
-	FPCGExInputDescriptor LookAtSelector;
+	FPCGAttributePropertyInputSelector LookAtSelector;
 
 	/** Use attribute value as a world space offset from point position */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="LookAt==EPCGExOrientLookAt::Attribute", EditConditionHides))
