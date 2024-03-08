@@ -28,14 +28,14 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExInputDescriptor
 	}
 
 	explicit FPCGExInputDescriptor(const FPCGAttributePropertyInputSelector& InSelector)
-		: Selector(InSelector)
 	{
+		Selector.ImportFromOtherSelector(InSelector);
 	}
 
 	explicit FPCGExInputDescriptor(const FPCGExInputDescriptor& Other)
-		: Selector(Other.Selector),
-		  Attribute(Other.Attribute)
+		: Attribute(Other.Attribute)
 	{
+		Selector.ImportFromOtherSelector(Other.Selector);
 	}
 
 	explicit FPCGExInputDescriptor(const FName InName)
@@ -678,7 +678,7 @@ namespace PCGEx
 		T operator[](int32 Index) const { return bValid ? Values[Index] : GetDefaultValue(); }
 
 		virtual void Capture(const FPCGExInputDescriptor& InDescriptor) { Descriptor = InDescriptor; }
-		virtual void Capture(const FPCGAttributePropertyInputSelector& InDescriptor) { Capture(FPCGExInputDescriptor(Descriptor)); }
+		virtual void Capture(const FPCGAttributePropertyInputSelector& InDescriptor) { Capture(FPCGExInputDescriptor(InDescriptor)); }
 
 	protected:
 		virtual void ProcessExtraNames(const TArray<FString>& ExtraNames)
@@ -722,13 +722,14 @@ namespace PCGEx
 		const TArray<FPCGPoint>& SourcePoints = Source.GetIn()->GetPoints();
 		TArray<FPCGPoint>& TargetPoints = Target.GetOut()->GetMutablePoints();
 
-		if(bKeepSourceMetadataEntry)
+		if (bKeepSourceMetadataEntry)
 		{
 			for (int i = 0; i < NumIndices; i++)
 			{
-				TargetPoints[ TargetIndex + i] = SourcePoints[SourceIndices[i]];
+				TargetPoints[TargetIndex + i] = SourcePoints[SourceIndices[i]];
 			}
-		}else
+		}
+		else
 		{
 			for (int i = 0; i < NumIndices; i++)
 			{
@@ -740,7 +741,6 @@ namespace PCGEx
 				TargetPt.MetadataEntry = Key;
 			}
 		}
-		
 	}
 
 	static void CopyValues(
