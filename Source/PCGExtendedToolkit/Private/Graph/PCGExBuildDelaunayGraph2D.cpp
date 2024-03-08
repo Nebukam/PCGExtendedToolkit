@@ -15,7 +15,7 @@ namespace PCGExGeoTask
 	class FLloydRelax2;
 }
 
-PCGExData::EInit UPCGExBuildDelaunayGraph2DSettings::GetMainOutputInitMode() const { return bMarkHull ? PCGExData::EInit::DuplicateInput : PCGExData::EInit::Forward; }
+PCGExData::EInit UPCGExBuildDelaunayGraph2DSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
 FPCGExBuildDelaunayGraph2DContext::~FPCGExBuildDelaunayGraph2DContext()
 {

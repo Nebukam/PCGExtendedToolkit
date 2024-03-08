@@ -10,7 +10,7 @@
 #define LOCTEXT_NAMESPACE "PCGExGraph"
 #define PCGEX_NAMESPACE BuildDelaunayGraph
 
-PCGExData::EInit UPCGExBuildDelaunayGraphSettings::GetMainOutputInitMode() const { return bMarkHull ? PCGExData::EInit::DuplicateInput : PCGExData::EInit::Forward; }
+PCGExData::EInit UPCGExBuildDelaunayGraphSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
 FPCGExBuildDelaunayGraphContext::~FPCGExBuildDelaunayGraphContext()
 {

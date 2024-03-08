@@ -715,21 +715,32 @@ namespace PCGEx
 		const PCGExData::FPointIO& Source,
 		const PCGExData::FPointIO& Target,
 		const TArrayView<int32>& SourceIndices,
-		const int32 TargetIndex = 0)
+		const int32 TargetIndex = 0,
+		const bool bKeepSourceMetadataEntry = false)
 	{
 		const int32 NumIndices = SourceIndices.Num();
 		const TArray<FPCGPoint>& SourcePoints = Source.GetIn()->GetPoints();
 		TArray<FPCGPoint>& TargetPoints = Target.GetOut()->GetMutablePoints();
 
-		for (int i = 0; i < NumIndices; i++)
+		if(bKeepSourceMetadataEntry)
 		{
-			const int32 WriteIndex = TargetIndex + i;
-			const PCGMetadataEntryKey Key = TargetPoints[WriteIndex].MetadataEntry;
+			for (int i = 0; i < NumIndices; i++)
+			{
+				TargetPoints[ TargetIndex + i] = SourcePoints[SourceIndices[i]];
+			}
+		}else
+		{
+			for (int i = 0; i < NumIndices; i++)
+			{
+				const int32 WriteIndex = TargetIndex + i;
+				const PCGMetadataEntryKey Key = TargetPoints[WriteIndex].MetadataEntry;
 
-			const FPCGPoint& SourcePt = SourcePoints[SourceIndices[i]];
-			FPCGPoint& TargetPt = TargetPoints[WriteIndex] = SourcePt;
-			TargetPt.MetadataEntry = Key;
+				const FPCGPoint& SourcePt = SourcePoints[SourceIndices[i]];
+				FPCGPoint& TargetPt = TargetPoints[WriteIndex] = SourcePt;
+				TargetPt.MetadataEntry = Key;
+			}
 		}
+		
 	}
 
 	static void CopyValues(

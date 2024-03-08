@@ -10,10 +10,7 @@
 #define LOCTEXT_NAMESPACE "PCGExGraph"
 #define PCGEX_NAMESPACE BuildConvexHull2D
 
-PCGExData::EInit UPCGExBuildConvexHull2DSettings::GetMainOutputInitMode() const
-{
-	return bPrunePoints ? PCGExData::EInit::NewOutput : bMarkHull ? PCGExData::EInit::DuplicateInput : PCGExData::EInit::Forward;
-}
+PCGExData::EInit UPCGExBuildConvexHull2DSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
 FPCGExBuildConvexHull2DContext::~FPCGExBuildConvexHull2DContext()
 {

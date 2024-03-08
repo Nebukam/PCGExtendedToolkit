@@ -271,6 +271,7 @@ bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* InContext) con
 		auto CreatePartition = [&](const int32 Index)
 		{
 			PCGExData::FTags* Tags = new PCGExData::FTags();
+			Tags->Append(Context->CurrentIO->Tags);
 			PCGExPartition::FKPartition* Partition = Context->Partitions[Index];
 			const UPCGPointData* InData = Context->GetCurrentIn();
 			UPCGPointData* OutData = NewObject<UPCGPointData>();
