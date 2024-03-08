@@ -132,6 +132,7 @@ namespace PCGExGraph
 		{
 			PCGEX_EDGE_INSERT
 			Edges[Edge.EdgeIndex].IOIndex = E.IOIndex;
+			Edges[Edge.EdgeIndex].PointIndex = E.PointIndex;
 		}
 	}
 
