@@ -163,6 +163,7 @@ namespace PCGExGeo
 	constexpr PCGExMT::AsyncState State_ProcessingDelaunay = __COUNTER__;
 	constexpr PCGExMT::AsyncState State_ProcessingVoronoi = __COUNTER__;
 	constexpr PCGExMT::AsyncState State_PreprocessPositions = __COUNTER__;
+	constexpr PCGExMT::AsyncState State_ProcessingProjectedPoints = __COUNTER__;
 
 	static double S_U(
 		const FVector& A, const FVector& B, const FVector& C, const FVector& D,

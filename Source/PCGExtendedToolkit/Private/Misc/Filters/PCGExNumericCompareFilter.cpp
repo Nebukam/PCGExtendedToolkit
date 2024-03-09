@@ -56,7 +56,7 @@ void PCGExPointsFilter::TNumericComparisonHandler::Capture(const PCGExData::FPoi
 {
 	bValid = true;
 
-	OperandA = new PCGEx::FLocalSingleFieldGetter();	
+	OperandA = new PCGEx::FLocalSingleFieldGetter();
 	OperandA->Capture(CompareFilter->OperandA);
 	OperandA->Grab(*PointIO, false);
 	if (!OperandA->IsUsable(PointIO->GetNum())) { bValid = false; }

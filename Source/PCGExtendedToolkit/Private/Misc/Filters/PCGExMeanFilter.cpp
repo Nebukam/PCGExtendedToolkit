@@ -43,7 +43,7 @@ void PCGExPointsFilter::TMeanHandler::PrepareForTesting(PCGExData::FPointIO* Poi
 	Results.SetNum(NumPoints);
 
 	double SumValue = 0;
-	
+
 	for (int i = 0; i < NumPoints; i++)
 	{
 		Results[i] = false;
@@ -94,7 +94,6 @@ void PCGExPointsFilter::TMeanHandler::PrepareForTesting(PCGExData::FPointIO* Poi
 
 	ReferenceMin = FMath::Min(RMin, RMax);
 	ReferenceMax = FMath::Max(RMin, RMax);
-	
 }
 
 #define LOCTEXT_NAMESPACE "PCGExMeanFilterDefinition"

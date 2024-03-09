@@ -61,7 +61,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExUberFilterContext : public FPCGExPointsProce
 
 	PCGExData::FPointIOCollection* Inside = nullptr;
 	PCGExData::FPointIOCollection* Outside = nullptr;
-	
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExUberFilterElement : public FPCGExPointsProcessorElementBase

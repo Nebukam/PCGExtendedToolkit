@@ -9,10 +9,11 @@
 #include "PCGExSampling.h"
 #include "PCGExSettings.h"
 #include "Data/Blending/PCGExDataBlending.h"
+#include "Geometry/PCGExGeo.h"
 
-#include "PCGExSampleNearestPoint.generated.h"
+#include "PCGExSampleProjectedNearestPoint.generated.h"
 
-#define PCGEX_FOREACH_FIELD_NEARESTPOINT(MACRO)\
+#define PCGEX_FOREACH_FIELD_PROJECTNEARESTPOINT(MACRO)\
 MACRO(Success, bool)\
 MACRO(Location, FVector)\
 MACRO(LookAt, FVector)\
@@ -22,78 +23,17 @@ MACRO(SignedDistance, double)\
 MACRO(Angle, double)\
 MACRO(NumSamples, int32)
 
-namespace PCGExNearestPoint
-{
-	struct PCGEXTENDEDTOOLKIT_API FTargetInfos
-	{
-		FTargetInfos()
-		{
-		}
-
-		FTargetInfos(const int32 InIndex, const double InDistance):
-			Index(InIndex), Distance(InDistance)
-		{
-		}
-
-		int32 Index = -1;
-		double Distance = 0;
-	};
-
-	struct PCGEXTENDEDTOOLKIT_API FTargetsCompoundInfos
-	{
-		FTargetsCompoundInfos()
-		{
-		}
-
-		int32 NumTargets = 0;
-		double TotalWeight = 0;
-		double SampledRangeMin = TNumericLimits<double>::Max();
-		double SampledRangeMax = 0;
-		double SampledRangeWidth = 0;
-		int32 UpdateCount = 0;
-
-		FTargetInfos Closest;
-		FTargetInfos Farthest;
-
-		void UpdateCompound(const FTargetInfos& Infos)
-		{
-			UpdateCount++;
-
-			if (Infos.Distance < SampledRangeMin)
-			{
-				Closest = Infos;
-				SampledRangeMin = Infos.Distance;
-			}
-
-			if (Infos.Distance > SampledRangeMax)
-			{
-				Farthest = Infos;
-				SampledRangeMax = Infos.Distance;
-			}
-
-			SampledRangeWidth = SampledRangeMax - SampledRangeMin;
-		}
-
-		double GetRangeRatio(const double Distance) const
-		{
-			return (Distance - SampledRangeMin) / SampledRangeWidth;
-		}
-
-		bool IsValid() const { return UpdateCount > 0; }
-	};
-}
-
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class PCGEXTENDEDTOOLKIT_API UPCGExSampleNearestPointSettings : public UPCGExPointsProcessorSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExSampleProjectedNearestPointSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
 public:
-	UPCGExSampleNearestPointSettings(const FObjectInitializer& ObjectInitializer);
+	UPCGExSampleProjectedNearestPointSettings(const FObjectInitializer& ObjectInitializer);
 
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(SampleNearestPoint, "Sample : Nearest Point", "Sample nearest target points.");
+	PCGEX_NODE_INFOS(SampleProjectedNearestPoint, "Sample : Projected Nearest Point", "Sample nearest target points on a projection plane");
 #endif
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 
@@ -108,6 +48,10 @@ public:
 	//~End UPCGExPointsProcessorSettings interface
 
 public:
+	/** Projection settings. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	FPCGExGeo2DProjectionSettings ProjectionSettings;
+
 	/** Sampling method.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
 	EPCGExSampleMethod SampleMethod = EPCGExSampleMethod::WithinRange;
@@ -234,11 +178,11 @@ public:
 	FName NumSamplesAttributeName = FName("NumSamples");
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestPointContext : public FPCGExPointsProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExSampleProjectedNearestPointContext : public FPCGExPointsProcessorContext
 {
-	friend class FPCGExSampleNearestPointElement;
+	friend class FPCGExSampleProjectedNearestPointElement;
 
-	virtual ~FPCGExSampleNearestPointContext() override;
+	virtual ~FPCGExSampleProjectedNearestPointContext() override;
 
 	PCGExData::FPointIO* Targets = nullptr;
 
@@ -246,6 +190,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestPointContext : public FPCGExPoi
 	EPCGExRangeType WeightMethod = EPCGExRangeType::FullRange;
 
 	TArray<PCGExDataBlending::FDataBlendingOperationBase*> BlendOps;
+	TArray<FPCGPoint> ProjectedIO;
 
 	double RangeMin = 0;
 	double RangeMax = 1000;
@@ -259,16 +204,17 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestPointContext : public FPCGExPoi
 
 	TObjectPtr<UCurveFloat> WeightCurve = nullptr;
 
-	PCGEX_FOREACH_FIELD_NEARESTPOINT(PCGEX_OUTPUT_DECL)
+	PCGEX_FOREACH_FIELD_PROJECTNEARESTPOINT(PCGEX_OUTPUT_DECL)
 
 	FPCGExDistanceSettings DistanceSettings;
+	FPCGExGeo2DProjectionSettings ProjectionSettings;
 
 	EPCGExAxis SignAxis;
 	EPCGExAxis AngleAxis;
 	EPCGExAngleRange AngleRange;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestPointElement : public FPCGExPointsProcessorElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExSampleProjectedNearestPointElement : public FPCGExPointsProcessorElementBase
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -281,10 +227,10 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExSamplePointTask : public FPCGExNonAbandonableTask
+class PCGEXTENDEDTOOLKIT_API FPCGExSampleProjectedPointTask : public FPCGExNonAbandonableTask
 {
 public:
-	FPCGExSamplePointTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO) :
+	FPCGExSampleProjectedPointTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO) :
 		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO)
 	{
 	}

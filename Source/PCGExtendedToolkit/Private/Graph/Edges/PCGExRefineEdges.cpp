@@ -81,7 +81,7 @@ bool FPCGExRefineEdgesElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExGraph::State_ProcessingEdges))
 	{
-		if (!Context->IsAsyncWorkComplete()) { return false; }
+		PCGEX_WAIT_ASYNC
 
 		Context->GraphBuilder->Compile(Context);
 		Context->SetAsyncState(PCGExGraph::State_WaitingOnWritingClusters);
@@ -89,7 +89,7 @@ bool FPCGExRefineEdgesElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExGraph::State_WaitingOnWritingClusters))
 	{
-		if (!Context->IsAsyncWorkComplete()) { return false; }
+		PCGEX_WAIT_ASYNC
 
 		if (Context->GraphBuilder->bCompiledSuccessfully) { Context->GraphBuilder->Write(Context); }
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);

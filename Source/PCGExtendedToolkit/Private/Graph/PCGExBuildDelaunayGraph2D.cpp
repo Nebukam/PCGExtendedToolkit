@@ -98,7 +98,7 @@ bool FPCGExBuildDelaunayGraph2DElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExGeo::State_ProcessingDelaunay))
 	{
-		if (!Context->IsAsyncWorkComplete()) { return false; }
+		PCGEX_WAIT_ASYNC
 
 		if (Context->GraphBuilder->Graph->Edges.IsEmpty())
 		{
@@ -113,7 +113,8 @@ bool FPCGExBuildDelaunayGraph2DElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExGraph::State_WritingClusters))
 	{
-		if (!Context->IsAsyncWorkComplete()) { return false; }
+		PCGEX_WAIT_ASYNC
+
 		if (Context->GraphBuilder->bCompiledSuccessfully)
 		{
 			if (Settings->bMarkHull)

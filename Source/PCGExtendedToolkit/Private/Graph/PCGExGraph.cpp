@@ -872,7 +872,7 @@ namespace PCGExGraphTask
 			for (const PCGExGraph::FNode& Node : Nodes) { if (Node.bValid) { ValidNodes.Add(Node.NodeIndex); } }
 		}
 
-		PointIO->SetNumInitialized(PointIO->GetOutNum());
+		PointIO->SetNumInitialized(PointIO->GetOutNum(), true);
 
 		PCGEx::TFAttributeWriter<int64>* IndexWriter = new PCGEx::TFAttributeWriter<int64>(PCGExGraph::Tag_EdgeIndex, -1, false);
 		PCGEx::TFAttributeWriter<int32>* NumEdgesWriter = new PCGEx::TFAttributeWriter<int32>(PCGExGraph::Tag_EdgesNum, 0, false);

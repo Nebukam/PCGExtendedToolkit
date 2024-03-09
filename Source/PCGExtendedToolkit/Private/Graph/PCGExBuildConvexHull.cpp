@@ -88,7 +88,7 @@ bool FPCGExBuildConvexHullElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExGeo::State_ProcessingHull))
 	{
-		if (!Context->IsAsyncWorkComplete()) { return false; }
+		PCGEX_WAIT_ASYNC
 
 		if (Context->GraphBuilder->Graph->Edges.IsEmpty())
 		{
@@ -103,7 +103,7 @@ bool FPCGExBuildConvexHullElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExGraph::State_WritingClusters))
 	{
-		if (!Context->IsAsyncWorkComplete()) { return false; }
+		PCGEX_WAIT_ASYNC
 
 		if (Context->GraphBuilder->bCompiledSuccessfully)
 		{

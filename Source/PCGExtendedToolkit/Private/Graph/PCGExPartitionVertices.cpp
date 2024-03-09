@@ -94,10 +94,10 @@ bool FPCGExCreateVtxPartitionTask::ExecuteTask()
 
 	int32 NumEdges = 0;
 	if (!PCGExGraph::GetReducedVtxIndices(*EdgeIO, NodeIndicesMap, ReducedVtxIndices, NumEdges)) { return false; }
-		
+
 	const TArrayView<int32> View = MakeArrayView(ReducedVtxIndices);
 
-	PointIO->GetOut()->GetMutablePoints().SetNum(View.Num());	
+	PointIO->GetOut()->GetMutablePoints().SetNum(View.Num());
 	PCGEx::CopyPoints(*PointIO, *PointIO, View, 0, true);
 
 	PointIO->Flatten();

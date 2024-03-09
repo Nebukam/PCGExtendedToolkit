@@ -94,7 +94,7 @@ bool FPCGExBuildVoronoiGraphElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExGeo::State_ProcessingVoronoi))
 	{
-		if (!Context->IsAsyncWorkComplete()) { return false; }
+		PCGEX_WAIT_ASYNC
 
 		if (!Context->GraphBuilder || Context->GraphBuilder->Graph->Edges.IsEmpty())
 		{
@@ -109,7 +109,7 @@ bool FPCGExBuildVoronoiGraphElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExGraph::State_WritingClusters))
 	{
-		if (!Context->IsAsyncWorkComplete()) { return false; }
+		PCGEX_WAIT_ASYNC
 
 		if (Context->GraphBuilder->bCompiledSuccessfully) { Context->GraphBuilder->Write(Context); }
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);

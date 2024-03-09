@@ -37,12 +37,11 @@ public:
 
 namespace PCGExDataState
 {
-
 	const FName OutputTestLabel = TEXT("Test");
 	const FName SourceTestsLabel = TEXT("Tests");
 	const FName SourceIfAttributesLabel = TEXT("If");
 	const FName SourceElseAttributesLabel = TEXT("Else");
-	
+
 	class PCGEXTENDEDTOOLKIT_API TStateHandler : public PCGExDataFilter::TFilterHandler
 	{
 	public:
@@ -62,7 +61,7 @@ namespace PCGExDataState
 		}
 
 		const UPCGExStateDefinitionBase* StateDefinition;
-		
+
 		virtual bool Test(const int32 PointIndex) const override;
 		virtual void PrepareForWriting(PCGExData::FPointIO* PointIO);
 

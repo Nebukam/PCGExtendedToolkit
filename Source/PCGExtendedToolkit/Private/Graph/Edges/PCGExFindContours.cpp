@@ -140,7 +140,7 @@ bool FPCGExFindContoursElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
 	{
-		if (!Context->IsAsyncWorkComplete()) { return false; }
+		PCGEX_WAIT_ASYNC
 		Context->SetState(PCGExGraph::State_ReadyForNextEdges);
 	}
 

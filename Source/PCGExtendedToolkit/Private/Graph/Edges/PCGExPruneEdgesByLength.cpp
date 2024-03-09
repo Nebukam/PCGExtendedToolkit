@@ -157,7 +157,7 @@ bool FPCGExPruneEdgesByLengthElement::ExecuteInternal(FPCGContext* InContext) co
 
 	if (Context->IsState(PCGExGraph::State_WritingClusters))
 	{
-		if (!Context->IsAsyncWorkComplete()) { return false; }
+		PCGEX_WAIT_ASYNC
 		if (Context->GraphBuilder->bCompiledSuccessfully)
 		{
 			if (Settings->bWriteMean)

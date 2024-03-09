@@ -21,7 +21,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExNumericCompareFilterDescriptor
 	FPCGExNumericCompareFilterDescriptor()
 	{
 	}
-	
+
 	/** Operand A for testing -- Will be broadcasted to `double` under the hood. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGAttributePropertyInputSelector OperandA;
@@ -33,7 +33,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExNumericCompareFilterDescriptor
 	/** Type of OperandB */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExOperandType CompareAgainst = EPCGExOperandType::Attribute;
-	
+
 	/** Operand B for testing -- Will be broadcasted to `double` under the hood. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="CompareAgainst==EPCGExOperandType::Attribute", EditConditionHides))
 	FPCGAttributePropertyInputSelector OperandB;
@@ -41,7 +41,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExNumericCompareFilterDescriptor
 	/** Operand B for testing -- Will be broadcasted to `double` under the hood. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="CompareAgainst==EPCGExOperandType::Constant", EditConditionHides))
 	double OperandBConstant = 0;
-	
+
 	/** Rounding mode for relative measures */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Comparison==EPCGExComparison::NearlyEqual || Comparison==EPCGExComparison::NearlyNotEqual", EditConditionHides))
 	double Tolerance = 0.001;

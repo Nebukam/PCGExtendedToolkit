@@ -69,17 +69,16 @@ namespace PCGExDataFilter
 				break;
 			}
 		}
-		
+
 		Results[PointIndex] = bPass;
 	}
 
 	void TDirectFilterManager::PrepareForTesting()
 	{
 		for (TFilterHandler* Handler : Handlers) { Handler->PrepareForTesting(PointIO); }
-		
+
 		const int32 NumPoints = PointIO->GetNum();
 		Results.SetNum(NumPoints);
 		for (int i = 0; i < NumPoints; i++) { Results[i] = true; }
 	}
-	
 }

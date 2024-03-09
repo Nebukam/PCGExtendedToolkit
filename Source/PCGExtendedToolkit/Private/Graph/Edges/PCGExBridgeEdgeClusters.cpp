@@ -123,7 +123,7 @@ bool FPCGExBridgeEdgeClustersElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExGraph::State_BuildingClusters))
 	{
-		if (!Context->IsAsyncWorkComplete()) { return false; }
+		PCGEX_WAIT_ASYNC
 
 		PCGExData::FPointIO* Head = nullptr;
 		Context->BridgedEdges.Reset(Context->Clusters.Num());
@@ -171,7 +171,7 @@ bool FPCGExBridgeEdgeClustersElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExData::State_MergingData))
 	{
-		if (!Context->IsAsyncWorkComplete()) { return false; }
+		PCGEX_WAIT_ASYNC
 
 		Context->Merger->Write();
 		PCGEX_DELETE(Context->Merger);
@@ -291,7 +291,7 @@ bool FPCGExBridgeEdgeClustersElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
 	{
-		if (!Context->IsAsyncWorkComplete()) { return false; }
+		PCGEX_WAIT_ASYNC
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 

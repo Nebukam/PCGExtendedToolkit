@@ -12,7 +12,7 @@
 
 TArray<FPCGPinProperties> UPCGExUberFilterSettings::InputPinProperties() const
 {
-	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();;
+	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 
 	FPCGPinProperties& FiltersPin = PinProperties.Emplace_GetRef(PCGExDataFilter::SourceFiltersLabel, EPCGDataType::Param, true, true);
 

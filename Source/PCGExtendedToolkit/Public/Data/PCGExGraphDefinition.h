@@ -705,7 +705,7 @@ public:
 	TArray<FPCGExSocketTestDescriptor> Tests;
 
 	virtual PCGExDataFilter::TFilterHandler* CreateHandler() const override;
-	
+
 	virtual void BeginDestroy() override;
 };
 

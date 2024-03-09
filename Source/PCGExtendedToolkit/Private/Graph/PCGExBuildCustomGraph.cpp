@@ -73,7 +73,7 @@ bool FPCGExBuildCustomGraphElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExGeo::State_ProcessingDelaunay))
 	{
-		if (!Context->IsAsyncWorkComplete()) { return false; }
+		PCGEX_WAIT_ASYNC
 		Context->SetState(PCGExGraph::State_ReadyForNextGraph);
 	}
 
@@ -103,7 +103,7 @@ bool FPCGExBuildCustomGraphElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
 	{
-		//if (!Context->IsAsyncWorkComplete()) { return false; }
+		//PCGEX_WAIT_ASYNC
 
 		auto ProcessProbe = [&](const int32 PointIndex, const PCGExData::FPointIO& PointIO)
 		{

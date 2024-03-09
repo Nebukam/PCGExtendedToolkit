@@ -116,12 +116,12 @@ namespace PCGExPointsFilter
 		double ReferenceValue;
 		double ReferenceMin;
 		double ReferenceMax;
-		
+
 		virtual void Capture(const PCGExData::FPointIO* PointIO) override;
 		virtual bool Test(const int32 PointIndex) const override;
 
 		virtual void PrepareForTesting(PCGExData::FPointIO* PointIO) override;
-		
+
 		virtual ~TMeanHandler() override
 		{
 			MeanFilter = nullptr;
