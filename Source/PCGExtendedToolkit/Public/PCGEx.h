@@ -154,6 +154,17 @@ enum class EPCGExAxis : uint8
 };
 
 UENUM(BlueprintType)
+enum class EPCGExAxisAlign : uint8
+{
+	Forward UMETA(DisplayName = "Forward", ToolTip="..."),
+	Backward UMETA(DisplayName = "Backward", ToolTip="..."),
+	Right UMETA(DisplayName = "Right", ToolTip="..."),
+	Left UMETA(DisplayName = "Left", ToolTip="..."),
+	Up UMETA(DisplayName = "Up", ToolTip="..."),
+	Down UMETA(DisplayName = "Down", ToolTip="..."),
+};
+
+UENUM(BlueprintType)
 enum class EPCGExExtension : uint8
 {
 	None UMETA(DisplayName = "None", ToolTip="No Extension"),

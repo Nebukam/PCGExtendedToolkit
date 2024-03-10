@@ -43,7 +43,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMeanFilterDescriptor
 
 	/** Exclude if value is below a specific threshold. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
-	bool bExcludeBelowMean = false;
+	bool bDoExcludeBelowMean = false;
 
 	/** Minimum value threshold. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bExcludeBelowMean"))
@@ -51,7 +51,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMeanFilterDescriptor
 
 	/** Exclude if value is above a specific threshold. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
-	bool bExcludeAboveMean = false;
+	bool bDoExcludeAboveMean = false;
 
 	/** Maximum threshold. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bExcludeAboveMean"))
@@ -89,9 +89,9 @@ public:
 		MeanMethod = Descriptor.MeanMethod;
 		MeanValue = Descriptor.MeanValue;
 		ModeTolerance = Descriptor.ModeTolerance;
-		bPruneBelowMean = Descriptor.bExcludeBelowMean;
+		bPruneBelowMean = Descriptor.bDoExcludeBelowMean;
 		PruneBelow = Descriptor.ExcludeBelow;
-		bPruneAboveMean = Descriptor.bExcludeAboveMean;
+		bPruneAboveMean = Descriptor.bDoExcludeAboveMean;
 		PruneAbove = Descriptor.ExcludeAbove;
 	}
 

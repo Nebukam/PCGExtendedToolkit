@@ -9,7 +9,7 @@ void UPCGExSubPointsBlendInheritEnd::BlendSubPoints(
 	const PCGEx::FPointRef& StartPoint,
 	const PCGEx::FPointRef& EndPoint,
 	TArrayView<FPCGPoint>& SubPoints,
-	const PCGExMath::FPathMetrics& Metrics,
+	const PCGExMath::FPathMetricsSquared& Metrics,
 	const PCGExDataBlending::FMetadataBlender* InBlender) const
 {
 	const int32 NumPoints = SubPoints.Num();

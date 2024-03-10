@@ -36,6 +36,14 @@ enum class EPCGExSampleMethod : uint8
 };
 
 UENUM(BlueprintType)
+enum class EPCGExSampleSource : uint8
+{
+	Source UMETA(DisplayName = "Source", ToolTip="Read value on source"),
+	Target UMETA(DisplayName = "Target", ToolTip="Read value on target"),
+	Constant UMETA(DisplayName = "Constant", ToolTip="Read constant"),
+};
+
+UENUM(BlueprintType)
 enum class EPCGExAngleRange : uint8
 {
 	URadians UMETA(DisplayName = "Radians (0..+PI)", ToolTip="0..+PI"),

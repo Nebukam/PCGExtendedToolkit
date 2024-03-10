@@ -14,7 +14,7 @@ UPCGExSampleProjectedNearestPointSettings::UPCGExSampleProjectedNearestPointSett
 	const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	if (NormalSource.GetName() == FName("@Last")) { NormalSource.Update(TEXT("$Transform")); }
+	if (LookAtUpSource.GetName() == FName("@Last")) { LookAtUpSource.Update(TEXT("$Transform.Up")); }
 	if (!WeightOverDistance) { WeightOverDistance = PCGEx::WeightDistributionLinearInv; }
 }
 
@@ -42,9 +42,10 @@ FPCGExSampleProjectedNearestPointContext::~FPCGExSampleProjectedNearestPointCont
 
 	PCGEX_CLEANUP(RangeMinGetter)
 	PCGEX_CLEANUP(RangeMaxGetter)
-	PCGEX_CLEANUP(NormalGetter)
+	PCGEX_CLEANUP(LookAtUpGetter)
 
 	PCGEX_DELETE(Targets)
+	PCGEX_DELETE(ProjectedOctree)
 
 	PCGEX_DELETE_TARRAY(BlendOps)
 
@@ -130,10 +131,13 @@ bool FPCGExSampleProjectedNearestPointElement::Boot(FPCGContext* InContext) cons
 
 	PCGEX_FOREACH_FIELD_PROJECTNEARESTPOINT(PCGEX_OUTPUT_VALIDATE_NAME)
 
-	if (Context->NormalWriter)
+	if (Settings->bWriteLookAtTransform && Settings->LookAtUpSelection != EPCGExSampleSource::Constant)
 	{
-		Context->NormalGetter.Capture(Settings->NormalSource);
-		if (!Context->NormalGetter.Grab(*Context->Targets)) { PCGE_LOG(Warning, GraphAndLog, FTEXT("Normal source is invalid.")); }
+		Context->LookAtUpGetter.Capture(Settings->LookAtUpSource);
+		if (Settings->LookAtUpSelection == EPCGExSampleSource::Target)
+		{
+			if (!Context->LookAtUpGetter.Grab(*Context->Targets)) { PCGE_LOG(Warning, GraphAndLog, FTEXT("LookUp is invalid on target.")); }
+		}
 	}
 
 	return true;
@@ -143,7 +147,7 @@ bool FPCGExSampleProjectedNearestPointElement::ExecuteInternal(FPCGContext* InCo
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExSampleProjectedNearestPointElement::Execute);
 
-	PCGEX_CONTEXT(SampleProjectedNearestPoint)
+	PCGEX_CONTEXT_AND_SETTINGS(SampleProjectedNearestPoint)
 
 	if (Context->IsSetup())
 	{
@@ -158,6 +162,8 @@ bool FPCGExSampleProjectedNearestPointElement::ExecuteInternal(FPCGContext* InCo
 		{
 			Context->CurrentIO->CreateOutKeys();
 			Context->Targets->CreateInKeys();
+
+			PCGEX_DELETE(Context->ProjectedOctree)
 
 			Context->ProjectionSettings.Init(Context->CurrentIO);
 
@@ -174,7 +180,16 @@ bool FPCGExSampleProjectedNearestPointElement::ExecuteInternal(FPCGContext* InCo
 	{
 		auto Initialize = [&](PCGExData::FPointIO& PointIO)
 		{
-			Context->ProjectedIO.SetNum(PointIO.GetNum());
+			if (Settings->bWriteLookAtTransform)
+			{
+				if (Settings->LookAtUpSelection == EPCGExSampleSource::Source &&
+					!Context->LookAtUpGetter.Grab(PointIO))
+				{
+					PCGE_LOG(Warning, GraphAndLog, FTEXT("LookUp is invalid on source."));
+				}
+			}
+
+			Context->ProjectedIO.SetNumUninitialized(PointIO.GetNum());
 		};
 
 		auto ProcessPoint = [&](const int32 ReadIndex, const PCGExData::FPointIO& PointIO)
@@ -186,6 +201,12 @@ bool FPCGExSampleProjectedNearestPointElement::ExecuteInternal(FPCGContext* InCo
 		};
 
 		if (!Context->ProcessCurrentPoints(Initialize, ProcessPoint)) { return false; }
+
+		FBox OctreeBounds = FBox(ForceInit);
+		for (const FPCGPoint& Pt : Context->ProjectedIO) { OctreeBounds += Pt.Transform.GetLocation(); }
+		Context->ProjectedOctree = new TOctree2<FPCGPointRef, FPCGPointRefSemantics>(OctreeBounds.GetCenter(), OctreeBounds.GetExtent().Length());
+		for (const FPCGPoint& Pt : Context->ProjectedIO) { Context->ProjectedOctree->AddElement(FPCGPointRef(Pt)); }
+
 		Context->SetState(PCGExMT::State_ProcessingPoints);
 	}
 
@@ -238,8 +259,9 @@ bool FPCGExSampleProjectedPointTask::ExecuteTask()
 
 	const TArray<FPCGPoint>& TargetPoints = Context->Targets->GetIn()->GetPoints();
 	const int32 NumTargets = Context->ProjectedIO.Num();
-	const FPCGPoint& SourcePoint = Context->ProjectedIO[TaskIndex];
-	const FVector SourceCenter = SourcePoint.Transform.GetLocation();
+	const FPCGPoint& SourcePoint = TargetPoints[TaskIndex];
+	const FPCGPoint& ProjectedSourcePoint = Context->ProjectedIO[TaskIndex];
+	const FVector ProjectedSourceCenter = ProjectedSourcePoint.Transform.GetLocation();
 
 	double RangeMin = FMath::Pow(Context->RangeMinGetter.SafeGet(TaskIndex, Context->RangeMin), 2);
 	double RangeMax = FMath::Pow(Context->RangeMaxGetter.SafeGet(TaskIndex, Context->RangeMax), 2);
@@ -255,7 +277,7 @@ bool FPCGExSampleProjectedPointTask::ExecuteTask()
 		FVector A;
 		FVector B;
 
-		Context->DistanceSettings.GetCenters(SourcePoint, Target, A, B);
+		Context->DistanceSettings.GetCenters(ProjectedSourcePoint, Target, A, B);
 
 		const double Dist = FVector::DistSquared(A, B);
 
@@ -275,7 +297,7 @@ bool FPCGExSampleProjectedPointTask::ExecuteTask()
 
 	if (RangeMax > 0)
 	{
-		const FBox Box = FBoxCenterAndExtent(SourceCenter, FVector(FMath::Sqrt(RangeMax))).GetBox();
+		const FBox Box = FBoxCenterAndExtent(ProjectedSourceCenter, FVector(FMath::Sqrt(RangeMax))).GetBox();
 		auto ProcessNeighbor = [&](const FPCGPointRef& InPointRef)
 		{
 			const ptrdiff_t PointIndex = InPointRef.Point - TargetPoints.GetData();
@@ -284,8 +306,7 @@ bool FPCGExSampleProjectedPointTask::ExecuteTask()
 			ProcessTarget(PointIndex, Context->ProjectedIO[PointIndex]);
 		};
 
-		const UPCGPointData::PointOctree& Octree = Context->Targets->GetIn()->GetOctree();
-		Octree.FindElementsWithBoundsTest(Box, ProcessNeighbor);
+		Context->ProjectedOctree->FindElementsWithBoundsTest(Box, ProcessNeighbor);
 	}
 	else
 	{
@@ -295,10 +316,12 @@ bool FPCGExSampleProjectedPointTask::ExecuteTask()
 	// Compound never got updated, meaning we couldn't find target in range
 	if (TargetsCompoundInfos.UpdateCount <= 0)
 	{
-		double FaileSafeDist = FMath::Sqrt(RangeMax);
+		double FailSafeDist = FMath::Sqrt(RangeMax);
 		PCGEX_OUTPUT_VALUE(Success, TaskIndex, false)
-		PCGEX_OUTPUT_VALUE(Distance, TaskIndex, FaileSafeDist)
-		PCGEX_OUTPUT_VALUE(SignedDistance, TaskIndex, FaileSafeDist)
+		PCGEX_OUTPUT_VALUE(Transform, TaskIndex, ProjectedSourcePoint.Transform)
+		PCGEX_OUTPUT_VALUE(LookAtTransform, TaskIndex, SourcePoint.Transform)
+		PCGEX_OUTPUT_VALUE(Distance, TaskIndex, FailSafeDist)
+		PCGEX_OUTPUT_VALUE(SignedDistance, TaskIndex, FailSafeDist)
 		PCGEX_OUTPUT_VALUE(NumSamples, TaskIndex, 0)
 		return false;
 	}
@@ -312,9 +335,13 @@ bool FPCGExSampleProjectedPointTask::ExecuteTask()
 		TargetsCompoundInfos.SampledRangeWidth = RangeMax - RangeMin;
 	}
 
-	FVector WeightedLocation = FVector::Zero();
-	FVector WeightedLookAt = FVector::Zero();
-	FVector WeightedNormal = FVector::Zero();
+	FTransform WeightedTransform = FTransform::Identity;
+	WeightedTransform.SetScale3D(FVector::ZeroVector);
+
+	FVector WeightedUp = Settings->LookAtUpSelection == EPCGExSampleSource::Source ?
+		                     Context->LookAtUpGetter.SafeGet(TaskIndex, Context->SafeUpVector) :
+		                     Context->SafeUpVector;
+	FVector WeightedProjectedPosition = FVector::Zero();
 	FVector WeightedSignAxis = FVector::Zero();
 	FVector WeightedAngleAxis = FVector::Zero();
 	double TotalWeight = 0;
@@ -324,11 +351,15 @@ bool FPCGExSampleProjectedPointTask::ExecuteTask()
 		(const PCGExNearestPoint::FTargetInfos& TargetInfos, const double Weight)
 	{
 		const FPCGPoint& Target = Context->Targets->GetInPoint(TargetInfos.Index);
-		const FVector TargetLocationOffset = Target.Transform.GetLocation() - SourceCenter;
 
-		WeightedLocation += (TargetLocationOffset * Weight); // Relative to origin
-		WeightedLookAt += (TargetLocationOffset.GetSafeNormal()) * Weight;
-		WeightedNormal += Context->NormalGetter[TargetInfos.Index] * Weight;
+		WeightedTransform.SetRotation(WeightedTransform.GetRotation() + (Target.Transform.GetRotation() * Weight));
+		WeightedTransform.SetScale3D(WeightedTransform.GetScale3D() + (Target.Transform.GetScale3D() * Weight));
+		WeightedTransform.SetLocation(WeightedTransform.GetLocation() + (Target.Transform.GetLocation() * Weight));
+
+		WeightedProjectedPosition += Context->ProjectedIO[TargetInfos.Index].Transform.GetLocation();
+
+		if (Settings->LookAtUpSelection == EPCGExSampleSource::Target) { WeightedUp += Context->LookAtUpGetter.SafeGet(TargetInfos.Index, Context->SafeUpVector) * Weight; }
+
 		WeightedSignAxis += PCGExMath::GetDirection(Target.Transform.GetRotation(), Context->SignAxis) * Weight;
 		WeightedAngleAxis += PCGExMath::GetDirection(Target.Transform.GetRotation(), Context->AngleAxis) * Weight;
 
@@ -361,22 +392,25 @@ bool FPCGExSampleProjectedPointTask::ExecuteTask()
 
 	if (TotalWeight != 0) // Dodge NaN
 	{
-		WeightedLocation /= TotalWeight;
-		WeightedLookAt /= TotalWeight;
+		WeightedProjectedPosition /= TotalWeight;
+		WeightedUp /= TotalWeight;
+
+		WeightedTransform.SetRotation(WeightedTransform.GetRotation() / TotalWeight);
+		WeightedTransform.SetScale3D(WeightedTransform.GetScale3D() / TotalWeight);
+		WeightedTransform.SetLocation(WeightedTransform.GetLocation() / TotalWeight);
 	}
 
-	WeightedLookAt.Normalize();
-	WeightedNormal.Normalize();
+	WeightedUp.Normalize();
 
-	const double WeightedDistance = WeightedLocation.Length();
+	FVector LookAt = (ProjectedSourcePoint.Transform.GetLocation() - WeightedProjectedPosition).GetSafeNormal();
+	const double WeightedDistance = FVector::Dist(ProjectedSourcePoint.Transform.GetLocation(), WeightedProjectedPosition);
 
 	PCGEX_OUTPUT_VALUE(Success, TaskIndex, TargetsCompoundInfos.IsValid())
-	PCGEX_OUTPUT_VALUE(Location, TaskIndex, SourceCenter + WeightedLocation)
-	PCGEX_OUTPUT_VALUE(LookAt, TaskIndex, WeightedLookAt)
-	PCGEX_OUTPUT_VALUE(Normal, TaskIndex, WeightedNormal)
+	PCGEX_OUTPUT_VALUE(Transform, TaskIndex, WeightedTransform)
+	PCGEX_OUTPUT_VALUE(LookAtTransform, TaskIndex, PCGExMath::MakeLookAtTransform(LookAt, WeightedUp, Settings->LookAtAxisAlign))
 	PCGEX_OUTPUT_VALUE(Distance, TaskIndex, WeightedDistance)
-	PCGEX_OUTPUT_VALUE(SignedDistance, TaskIndex, FMath::Sign(WeightedSignAxis.Dot(WeightedLookAt)) * WeightedDistance)
-	PCGEX_OUTPUT_VALUE(Angle, TaskIndex, PCGExSampling::GetAngle(Context->AngleRange, WeightedAngleAxis, WeightedLookAt))
+	PCGEX_OUTPUT_VALUE(SignedDistance, TaskIndex, FMath::Sign(WeightedSignAxis.Dot(LookAt)) * WeightedDistance)
+	PCGEX_OUTPUT_VALUE(Angle, TaskIndex, PCGExSampling::GetAngle(Context->AngleRange, WeightedAngleAxis, LookAt))
 	PCGEX_OUTPUT_VALUE(NumSamples, TaskIndex, Divider)
 
 	return true;

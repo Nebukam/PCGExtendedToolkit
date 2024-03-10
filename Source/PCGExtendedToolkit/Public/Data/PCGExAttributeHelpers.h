@@ -683,18 +683,14 @@ namespace PCGEx
 	protected:
 		virtual void ProcessExtraNames(const TArray<FString>& ExtraNames)
 		{
-			if (Descriptor.Selector.GetName() == TEXT("Transform"))
+			if (GetAxisSelection(ExtraNames, Axis))
 			{
-				if (GetAxisSelection(ExtraNames, Axis) &&
-					!GetComponentSelection(ExtraNames, Component))
-				{
-					// Only axis is set, assume rotation instead of position
-					Component = EPCGExTransformComponent::Rotation;
-				}
+				// Only axis is set, assume rotation instead of position
+				if (!GetComponentSelection(ExtraNames, Component)) { Component = EPCGExTransformComponent::Rotation; }
 			}
 			else
 			{
-				GetAxisSelection(ExtraNames, Axis);
+				GetComponentSelection(ExtraNames, Component);
 			}
 
 			GetFieldSelection(ExtraNames, Field);

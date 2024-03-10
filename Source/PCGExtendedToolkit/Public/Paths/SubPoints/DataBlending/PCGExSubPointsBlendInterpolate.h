@@ -36,7 +36,7 @@ public:
 		const PCGEx::FPointRef& StartPoint,
 		const PCGEx::FPointRef& EndPoint,
 		TArrayView<FPCGPoint>& SubPoints,
-		const PCGExMath::FPathMetrics& Metrics,
+		const PCGExMath::FPathMetricsSquared& Metrics,
 		const PCGExDataBlending::FMetadataBlender* InBlender) const override;
 
 	virtual PCGExDataBlending::FMetadataBlender* CreateBlender(PCGExData::FPointIO& InPrimaryIO, const PCGExData::FPointIO& InSecondaryIO, bool bSecondaryIn) override;

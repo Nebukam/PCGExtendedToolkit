@@ -295,7 +295,7 @@ namespace PCGExCluster
 		const int32 NumEdges = Edges.Num();
 		double Min = TNumericLimits<double>::Max();
 		double Max = TNumericLimits<double>::Min();
-		EdgeLengths.SetNum(NumEdges);
+		EdgeLengths.SetNumUninitialized(NumEdges);
 
 		for (int i = 0; i < NumEdges; i++)
 		{

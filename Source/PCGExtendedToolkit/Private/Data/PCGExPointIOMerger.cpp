@@ -53,7 +53,7 @@ void FPCGExPointIOMerger::Merge(FPCGExAsyncManager* AsyncManager, const bool Cle
 	bCleanupInputs = CleanupInputs;
 
 	TArray<FPCGPoint>& MutablePoints = MergedData->GetOut()->GetMutablePoints();
-	MutablePoints.SetNum(TotalPoints);
+	MutablePoints.SetNumUninitialized(TotalPoints);
 
 	int32 StartIndex = 0;
 

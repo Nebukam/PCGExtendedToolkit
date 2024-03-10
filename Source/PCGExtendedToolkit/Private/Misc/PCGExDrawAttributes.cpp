@@ -51,11 +51,25 @@ bool FPCGExAttributeDebugDraw::Bind(const PCGExData::FPointIO& PointIO)
 
 	if (bValid)
 	{
-		SizeGetter.Capture(Descriptor->LocalSizeAttribute);
-		SizeGetter.Grab(PointIO);
+		if (Descriptor->bSizeFromAttribute)
+		{
+			SizeGetter.Capture(Descriptor->LocalSizeAttribute);
+			SizeGetter.Grab(PointIO);
+		}
+		else
+		{
+			SizeGetter.bValid = false;
+		}
 
-		ColorGetter.Capture(Descriptor->LocalColorAttribute);
-		ColorGetter.Grab(PointIO);
+		if (Descriptor->bColorFromAttribute)
+		{
+			ColorGetter.Capture(Descriptor->LocalColorAttribute);
+			ColorGetter.Grab(PointIO);
+		}
+		else
+		{
+			ColorGetter.bValid = false;
+		}
 	}
 	else
 	{

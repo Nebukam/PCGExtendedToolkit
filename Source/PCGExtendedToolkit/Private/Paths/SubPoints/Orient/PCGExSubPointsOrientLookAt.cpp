@@ -17,7 +17,7 @@ void UPCGExSubPointsOrientLookAt::PrepareForData(PCGExData::FPointIO& InPointIO)
 	}
 }
 
-void UPCGExSubPointsOrientLookAt::ProcessSubPoints(const PCGEx::FPointRef& Start, const PCGEx::FPointRef& End, TArrayView<FPCGPoint>& SubPoints, const PCGExMath::FPathMetrics& Metrics) const
+void UPCGExSubPointsOrientLookAt::ProcessSubPoints(const PCGEx::FPointRef& Start, const PCGEx::FPointRef& End, TArrayView<FPCGPoint>& SubPoints, const PCGExMath::FPathMetricsSquared& Metrics) const
 {
 	const int32 NumPoints = SubPoints.Num();
 	const int32 NumPointsMinusOne = NumPoints - 1;

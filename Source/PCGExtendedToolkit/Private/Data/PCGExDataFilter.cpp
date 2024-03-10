@@ -26,7 +26,7 @@ namespace PCGExDataFilter
 	void TFilterHandler::PrepareForTesting(PCGExData::FPointIO* PointIO)
 	{
 		const int32 NumPoints = PointIO->GetNum();
-		Results.SetNum(NumPoints);
+		Results.SetNumUninitialized(NumPoints);
 		for (int i = 0; i < NumPoints; i++) { Results[i] = false; }
 	}
 
@@ -78,7 +78,7 @@ namespace PCGExDataFilter
 		for (TFilterHandler* Handler : Handlers) { Handler->PrepareForTesting(PointIO); }
 
 		const int32 NumPoints = PointIO->GetNum();
-		Results.SetNum(NumPoints);
+		Results.SetNumUninitialized(NumPoints);
 		for (int i = 0; i < NumPoints; i++) { Results[i] = true; }
 	}
 }

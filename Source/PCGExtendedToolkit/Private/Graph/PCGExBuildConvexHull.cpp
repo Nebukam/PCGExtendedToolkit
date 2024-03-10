@@ -142,7 +142,7 @@ bool FPCGExConvexHull3Task::ExecuteTask()
 	const int32 NumPoints = Points.Num();
 
 	TArray<FVector> Positions;
-	Positions.SetNum(NumPoints);
+	Positions.SetNumUninitialized(NumPoints);
 	for (int i = 0; i < NumPoints; i++) { Positions[i] = Points[i].Transform.GetLocation(); }
 
 	const TArrayView<FVector> View = MakeArrayView(Positions);

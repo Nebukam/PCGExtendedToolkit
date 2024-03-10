@@ -84,23 +84,23 @@ namespace PCGExMath
 		static FApex FromEndOnly(const FVector& End, const FVector& InApex) { return FApex(InApex, End, InApex); }
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FPathMetrics
+	struct PCGEXTENDEDTOOLKIT_API FPathMetricsSquared
 	{
-		FPathMetrics()
+		FPathMetricsSquared()
 		{
 		}
 
-		explicit FPathMetrics(const FVector& InStart)
+		explicit FPathMetricsSquared(const FVector& InStart)
 		{
 			Add(InStart);
 		}
 
-		explicit FPathMetrics(const TArrayView<FPCGPoint>& Points)
+		explicit FPathMetricsSquared(const TArrayView<FPCGPoint>& Points)
 		{
 			for (const FPCGPoint& Pt : Points) { Add(Pt.Transform.GetLocation()); }
 		}
 
-		FPathMetrics(const FPathMetrics& Other)
+		FPathMetricsSquared(const FPathMetricsSquared& Other)
 			: Start(Other.Start),
 			  Last(Other.Last),
 			  Length(Other.Length),
@@ -140,6 +140,64 @@ namespace PCGExMath
 		bool IsLastWithinRange(const FVector& Location, const double Range) const { return DistToLast(Location) < Range; }
 	};
 
+	
+	struct PCGEXTENDEDTOOLKIT_API FPathMetrics
+	{
+		FPathMetrics()
+		{
+		}
+
+		explicit FPathMetrics(const FVector& InStart)
+		{
+			Add(InStart);
+		}
+
+		explicit FPathMetrics(const TArrayView<FPCGPoint>& Points)
+		{
+			for (const FPCGPoint& Pt : Points) { Add(Pt.Transform.GetLocation()); }
+		}
+
+		FPathMetrics(const FPathMetricsSquared& Other)
+			: Start(Other.Start),
+			  Last(Other.Last),
+			  Length(Other.Length),
+			  Count(Other.Count)
+		{
+		}
+
+		FVector Start;
+		FVector Last;
+		double Length = -1;
+		int32 Count = 0;
+
+		void Reset(const FVector& InStart)
+		{
+			Start = InStart;
+			Last = InStart;
+			Length = 0;
+			Count = 1;
+		}
+
+		double Add(const FVector& Location)
+		{
+			if (Length == -1)
+			{
+				Reset(Location);
+				return 0;
+			}
+			Length += DistToLast(Location);
+			Last = Location;
+			Count++;
+			return Length;
+		}
+
+		bool IsValid() const { return Length > 0; }
+		double GetTime(const double Distance) const { return (!Distance || !Length) ? 0 : Distance / Length; }
+		double DistToLast(const FVector& Location) const { return FVector::Dist(Last, Location); }
+		bool IsLastWithinRange(const FVector& Location, const double Range) const { return DistToLast(Location) < Range; }
+	};
+
+	
 	static double DegreesToDot(const double Angle)
 	{
 		return FMath::Cos(FMath::Clamp(FMath::Abs(Angle), 0, 180.0) * (PI / 180.0));
@@ -856,6 +914,26 @@ namespace PCGExMath
 	static FVector GetNormal(const FVector& A, const FVector& B, const FVector& C)
 	{
 		return FVector::CrossProduct((B - A), (C - A)).GetSafeNormal();
+	}
+
+	static FTransform MakeLookAtTransform(const FVector& LookAt, const FVector& LookUp, const EPCGExAxisAlign AlignAxis)
+	{
+		switch (AlignAxis)
+		{
+		case EPCGExAxisAlign::Forward:
+			return FTransform(FRotationMatrix::MakeFromXZ(LookAt * -1, LookUp));
+		case EPCGExAxisAlign::Backward:
+			return FTransform(FRotationMatrix::MakeFromXZ(LookAt, LookUp));
+		case EPCGExAxisAlign::Right:
+			return FTransform(FRotationMatrix::MakeFromYZ(LookAt * -1, LookUp));
+		case EPCGExAxisAlign::Left:
+			return FTransform(FRotationMatrix::MakeFromYZ(LookAt, LookUp));
+		case EPCGExAxisAlign::Up:
+			return FTransform(FRotationMatrix::MakeFromZY(LookAt * -1, LookUp));
+		case EPCGExAxisAlign::Down:
+			return FTransform(FRotationMatrix::MakeFromZY(LookAt, LookUp));
+		default: return FTransform::Identity;
+		}
 	}
 
 	static double GetAngle(const FVector& A, const FVector& B)

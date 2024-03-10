@@ -118,7 +118,7 @@ namespace PCGExDataState
 	void TStatesManager::PrepareForTesting()
 	{
 		const int32 NumPoints = PointIO->GetNum();
-		HighestState.SetNum(NumPoints);
+		HighestState.SetNumUninitialized(NumPoints);
 		for (int i = 0; i < NumPoints; i++) { HighestState[i] = -1; }
 
 		TFilterManager::PrepareForTesting();

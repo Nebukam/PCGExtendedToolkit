@@ -14,14 +14,13 @@
 
 #define PCGEX_FOREACH_FIELD_NEARESTPOLYLINE(MACRO)\
 MACRO(Success, bool)\
-MACRO(Location, FVector)\
-MACRO(Scale, FVector)\
-MACRO(LookAt, FVector)\
-MACRO(Normal, FVector)\
+MACRO(Transform, FTransform)\
+MACRO(LookAtTransform, FTransform)\
 MACRO(Distance, double)\
 MACRO(SignedDistance, double)\
 MACRO(Angle, double)\
-MACRO(Time, double)
+MACRO(Time, double)\
+MACRO(NumSamples, int32)
 
 namespace PCGExPolyLine
 {
@@ -163,42 +162,46 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteSuccess"))
 	FName SuccessAttributeName = FName("bSamplingSuccess");
 
-	/** Write the sample location. */
+	/** Write the sampled transform. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
-	bool bWriteLocation = false;
+	bool bWriteTransform = false;
 
-	/** Name of the 'vector' attribute to write sampled Location to.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteLocation"))
-	FName LocationAttributeName = FName("WeightedLocation");
+	/** Name of the 'transform' attribute to write sampled Transform to.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteTransform"))
+	FName TransformAttributeName = FName("WeightedTransform");
 
-	/** Write the sample scale. */
+
+
+	/** Write the sampled transform. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
-	bool bWriteScale = false;
+	bool bWriteLookAtTransform = false;
 
-	/** Name of the 'vector' attribute to write sampled Location to.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteScale"))
-	FName ScaleAttributeName = FName("WeightedScale");
+	/** Name of the 'transform' attribute to write sampled Transform to.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteLookAtTransform"))
+	FName LookAtTransformAttributeName = FName("WeightedLookAt");
 
-	/** Write the sample "look at" direction from the point. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
-	bool bWriteLookAt = false;
+	/** The axis to align transform the look at vector to.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, DisplayName=" └─ Align", EditCondition="bWriteLookAtTransform", EditConditionHides))
+	EPCGExAxisAlign LookAtAxisAlign = EPCGExAxisAlign::Forward;
+	
+	/** Up vector source.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, DisplayName=" └─ Use Up from...", EditCondition="bWriteLookAtTransform", EditConditionHides))
+	EPCGExSampleSource LookAtUpSelection;
+	
+	/** The attribute or property on selected source to use as Up vector for the look at transform.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, DisplayName=" └─ Up Vector", EditCondition="bWriteLookAtTransform && LookAtUpSelection==EPCGExSampleSource::Source", EditConditionHides))
+	FPCGAttributePropertyInputSelector LookAtUpSource;
 
-	/** Name of the 'vector' attribute to write sampled LookAt to.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteLookAt"))
-	FName LookAtAttributeName = FName("WeightedLookAt");
+	/** The axis on the target to use as Up vector for the look at transform.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, DisplayName=" └─ Up Vector", EditCondition="bWriteLookAtTransform && LookAtUpSelection==EPCGExSampleSource::Target", EditConditionHides))
+	EPCGExAxis LookAtUpAxis = EPCGExAxis::Up;
+	
+	/** The constant to use as Up vector for the look at transform.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, DisplayName=" └─ Up Vector", EditCondition="bWriteLookAtTransform && LookAtUpSelection==EPCGExSampleSource::Constant", EditConditionHides))
+	FVector LookAtUpConstant = FVector::UpVector;
 
-	/** Write the sampled normal. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
-	bool bWriteNormal = false;
 
-	/** Name of the 'vector' attribute to write sampled Normal to.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteNormal"))
-	FName NormalAttributeName = FName("WeightedNormal");
-
-	/** The attribute or property on the targets that is to be considered their "Normal".*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, DisplayName=" └─ Source", EditCondition="bWriteNormal"))
-	EPCGExAxis NormalSource = EPCGExAxis::Forward;
-
+	
 	/** Write the sampled distance. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteDistance = false;
@@ -216,7 +219,7 @@ public:
 	FName SignedDistanceAttributeName = FName("WeightedSignedDistance");
 
 	/** Axis to use to calculate the distance' sign*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, DisplayName=" └─ Axis", EditCondition="bWriteSignedDistance"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, DisplayName=" └─ Axis", EditCondition="bWriteSignedDistance", EditConditionHides))
 	EPCGExAxis SignAxis = EPCGExAxis::Forward;
 
 	/** Write the sampled angle. */
@@ -228,11 +231,11 @@ public:
 	FName AngleAttributeName = FName("WeightedAngle");
 
 	/** Axis to use to calculate the angle*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, DisplayName=" └─ Axis", EditCondition="bWriteAngle"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, DisplayName=" └─ Axis", EditCondition="bWriteAngle", EditConditionHides))
 	EPCGExAxis AngleAxis = EPCGExAxis::Forward;
 
 	/** Unit/range to output the angle to.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, DisplayName=" └─ Range", EditCondition="bWriteAngle"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, DisplayName=" └─ Range", EditCondition="bWriteAngle", EditConditionHides))
 	EPCGExAngleRange AngleRange = EPCGExAngleRange::PIRadians;
 
 	/** Write the sampled time (spline space). */
@@ -242,6 +245,15 @@ public:
 	/** Name of the 'double' attribute to write sampled spline Time to.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteTime"))
 	FName TimeAttributeName = FName("WeightedTime");
+
+	/** Write the sampled distance. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bWriteNumSamples = false;
+
+	/** Name of the 'int32' attribute to write the number of sampled neighbors to.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteNumSamples"))
+	FName NumSamplesAttributeName = FName("NumSamples");
+	
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestPolylineContext : public FPCGExPointsProcessorContext
@@ -255,8 +267,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestPolylineContext : public FPCGEx
 	EPCGExSampleMethod SampleMethod = EPCGExSampleMethod::WithinRange;
 	EPCGExRangeType WeightMethod = EPCGExRangeType::FullRange;
 
-	EPCGExAxis NormalSource;
-
 	double RangeMin = 0;
 	double RangeMax = 1000;
 
@@ -267,6 +277,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestPolylineContext : public FPCGEx
 
 	PCGEx::FLocalSingleFieldGetter RangeMinGetter;
 	PCGEx::FLocalSingleFieldGetter RangeMaxGetter;
+	PCGEx::FLocalVectorGetter LookAtUpGetter;
+
+	FVector SafeUpVector = FVector::UpVector;
 
 	TObjectPtr<UCurveFloat> WeightCurve = nullptr;
 

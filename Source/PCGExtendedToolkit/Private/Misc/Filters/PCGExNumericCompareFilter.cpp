@@ -37,7 +37,17 @@ FString FPCGExNumericCompareFilterDescriptor::GetDisplayName() const
 	default: DisplayName += " ?? ";
 	}
 
-	DisplayName += OperandB.GetName().ToString();
+	switch (CompareAgainst)
+	{
+	default:
+	case EPCGExOperandType::Attribute:
+		DisplayName += OperandB.GetName().ToString();
+		break;
+	case EPCGExOperandType::Constant:
+		DisplayName += FString::Printf(TEXT("%.3f"), (static_cast<int32>(1000 * OperandBConstant) / 1000.0));
+		break;
+	}
+
 	return DisplayName;
 }
 #endif

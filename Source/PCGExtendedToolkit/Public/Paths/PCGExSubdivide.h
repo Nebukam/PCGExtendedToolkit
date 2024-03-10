@@ -93,7 +93,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSubdivideContext : public FPCGExPathProcesso
 	FPCGMetadataAttribute<bool>* FlagAttribute = nullptr;
 
 	TArray<int32> Milestones;
-	TArray<PCGExMath::FPathMetrics> MilestonesMetrics;
+	TArray<PCGExMath::FPathMetricsSquared> MilestonesMetrics;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExSubdivideElement : public FPCGExPathProcessorElement

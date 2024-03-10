@@ -211,7 +211,7 @@ namespace PCGExData
 		for (FPCGTaggedData& Source : Sources)
 		{
 			const UPCGPolyLineData* MutablePolyLineData = GetMutablePolyLineData(Source);
-			if (!MutablePolyLineData || MutablePolyLineData->GetNumSegments() == 0) { continue; }
+			if (!MutablePolyLineData || MutablePolyLineData->GetNumSegments() <= 0) { continue; }
 			Emplace_GetRef(Source, MutablePolyLineData);
 		}
 	}

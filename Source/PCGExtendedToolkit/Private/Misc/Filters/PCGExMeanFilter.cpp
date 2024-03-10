@@ -6,7 +6,37 @@
 #if WITH_EDITOR
 FString FPCGExMeanFilterDescriptor::GetDisplayName() const
 {
-	FString DisplayName = TEXT("PCGEx | Filter : Mean");
+	FString DisplayName = "";
+
+	if (bDoExcludeBelowMean) { DisplayName += FString::Printf(TEXT("< %.3f "), (static_cast<int32>(1000 * ExcludeBelow) / 1000.0)) ; }
+	if (bDoExcludeBelowMean && bDoExcludeAboveMean) { DisplayName += "&& "; }
+	if (bDoExcludeAboveMean) { DisplayName += FString::Printf(TEXT("> %.3f "), (static_cast<int32>(1000 * ExcludeAbove) / 1000.0)); }
+
+	DisplayName += Target.GetName().ToString() + "' ";
+
+	switch (MeanMethod)
+	{
+	case EPCGExMeanMethod::Average:
+		DisplayName += "' Average";
+		break;
+	case EPCGExMeanMethod::Median:
+		DisplayName += "' Median";
+		break;
+	case EPCGExMeanMethod::ModeMin:
+		DisplayName += "' Mode (min)";
+		break;
+	case EPCGExMeanMethod::ModeMax:
+		DisplayName += "' Mode (max)";
+		break;
+	case EPCGExMeanMethod::Central:
+		DisplayName += "' Central";
+		break;
+	case EPCGExMeanMethod::Fixed:
+		DisplayName += FString::Printf(TEXT(" %.3f"), (static_cast<int32>(1000 * MeanValue) / 1000.0));
+		break;
+	default: ;
+	}
+
 	return DisplayName;
 }
 #endif

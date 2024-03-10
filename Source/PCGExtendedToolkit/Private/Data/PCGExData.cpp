@@ -21,7 +21,7 @@ namespace PCGExData
 
 	void FIdxCompound::ComputeWeights(const TArray<FPointIO*>& Sources, const FPCGPoint& Target, const FPCGExDistanceSettings& DistSettings)
 	{
-		Weights.SetNum(CompoundedPoints.Num());
+		Weights.SetNumUninitialized(CompoundedPoints.Num());
 
 		double MaxDist = TNumericLimits<double>::Min();
 		for (int i = 0; i < CompoundedPoints.Num(); i++)
@@ -39,7 +39,7 @@ namespace PCGExData
 
 	void FIdxCompound::ComputeWeights(const TArray<FPCGPoint>& SourcePoints, const FPCGPoint& Target, const FPCGExDistanceSettings& DistSettings)
 	{
-		Weights.SetNum(CompoundedPoints.Num());
+		Weights.SetNumUninitialized(CompoundedPoints.Num());
 
 		double MaxDist = TNumericLimits<double>::Min();
 		for (int i = 0; i < CompoundedPoints.Num(); i++)
@@ -77,7 +77,7 @@ namespace PCGExData
 	void FIdxCompoundList::GetIOIndices(const int32 Index, TArray<int32>& OutIOIndices)
 	{
 		FIdxCompound* Compound = Compounds[Index];
-		OutIOIndices.SetNum(Compound->Num());
+		OutIOIndices.SetNumUninitialized(Compound->Num());
 		for (int i = 0; i < OutIOIndices.Num(); i++) { OutIOIndices[i] = PCGEx::H64A(Compound->CompoundedPoints[i]); }
 	}
 

@@ -79,7 +79,7 @@ bool FPCGExSubdivideElement::ExecuteInternal(FPCGContext* InContext) const
 			Context->Milestones.Empty();
 			Context->Milestones.Add(0);
 			Context->MilestonesMetrics.Empty();
-			Context->MilestonesMetrics.Add(PCGExMath::FPathMetrics{});
+			Context->MilestonesMetrics.Add(PCGExMath::FPathMetricsSquared{});
 			if (Context->bFlagSubPoints) { Context->FlagAttribute = PointIO.GetOut()->Metadata->FindOrCreateAttribute(Context->FlagName, false, false); }
 		};
 
@@ -96,7 +96,7 @@ bool FPCGExSubdivideElement::ExecuteInternal(FPCGContext* InContext) const
 			const FVector StartPos = StartPoint.Transform.GetLocation();
 			const FVector EndPos = EndPtr->Transform.GetLocation();
 			const FVector Dir = (EndPos - StartPos).GetSafeNormal();
-			PCGExMath::FPathMetrics& Metrics = Context->MilestonesMetrics.Last();
+			PCGExMath::FPathMetricsSquared& Metrics = Context->MilestonesMetrics.Last();
 
 			const double Distance = FVector::Distance(StartPos, EndPos);
 			const int32 NumSubdivisions = Context->SubdivideMethod == EPCGExSubdivideMode::Count ?

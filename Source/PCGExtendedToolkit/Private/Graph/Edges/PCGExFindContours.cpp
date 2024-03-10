@@ -221,7 +221,7 @@ bool FPCGExFindContourTask::ExecuteTask()
 
 	TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
 	const TArray<FPCGPoint>& OriginPoints = PointIO->GetIn()->GetPoints();
-	MutablePoints.SetNum(Path.Num());
+	MutablePoints.SetNumUninitialized(Path.Num());
 	for (int i = 0; i < Path.Num(); i++) { MutablePoints[i] = OriginPoints[Cluster->Nodes[Path[i]].PointIndex]; }
 
 	return true;
