@@ -23,4 +23,8 @@ public:
 
 	virtual void Orient(FPCGPoint& Point, const FPCGPoint& PreviousPoint, const FPCGPoint& NextPoint) const override;
 	virtual void OrientInvertedWeight(FPCGPoint& Point, const FPCGPoint& PreviousPoint, const FPCGPoint& NextPoint) const;
+
+protected:
+	virtual void ApplyOverrides() override;
+	
 };

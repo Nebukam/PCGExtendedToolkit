@@ -40,3 +40,9 @@ double UPCGExHeuristicDirection::GetEdgeScore(
 	const double Dot = (FVector::DotProduct((From.Position - To.Position).GetSafeNormal(), (From.Position - Goal.Position).GetSafeNormal()) * -1);
 	return PCGExMath::Remap(Dot, -1, 1, OutMin, OutMax) * ReferenceWeight;
 }
+
+void UPCGExHeuristicDirection::ApplyOverrides()
+{
+	Super::ApplyOverrides();
+	PCGEX_OVERRIDE_OP_PROPERTY(bInvert, FName(TEXT("Heuristics/Invert")), EPCGMetadataTypes::Boolean);
+}

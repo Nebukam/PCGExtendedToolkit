@@ -115,3 +115,9 @@ void UPCGExSubPointsOrientLookAt::Cleanup()
 	PCGEX_DELETE(LookAtGetter)
 	Super::Cleanup();
 }
+
+void UPCGExSubPointsOrientLookAt::ApplyOverrides()
+{
+	Super::ApplyOverrides();
+	PCGEX_OVERRIDE_OP_PROPERTY(bAttributeAsOffset, FName(TEXT("Orient/AttributeAsOffset")), EPCGMetadataTypes::Boolean);
+}

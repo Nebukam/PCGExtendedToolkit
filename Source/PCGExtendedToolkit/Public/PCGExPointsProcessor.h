@@ -11,6 +11,7 @@
 #include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExPointIO.h"
 #include "PCGExOperation.h"
+#include "Helpers/PCGGraphParametersHelpers.h"
 
 #include "PCGExPointsProcessor.generated.h"
 #define PCGEX_NODE_INFOS(_SHORTNAME, _NAME, _TOOLTIP)\
@@ -149,6 +150,7 @@ public:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 	virtual bool OnlyPassThroughOneEdgeWhenDisabled() const override;
+
 	//~End UPCGSettings interface
 
 	//~Begin UObject interface
@@ -281,7 +283,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : public FPCGContext
 		else
 		{
 			RetValue = static_cast<T*>(Operation);
-			
+			PCGEX_SETTINGS_LOCAL(PointsProcessor)
+			//Settings->
+			//UPCGGraphParametersHelpers::GetInt32Parameter(Con)
 		}
 		RetValue->BindContext(this);
 		return RetValue;

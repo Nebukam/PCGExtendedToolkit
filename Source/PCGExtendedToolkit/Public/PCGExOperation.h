@@ -4,9 +4,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Data/PCGExAttributeHelpers.h"
 #include "UObject/Object.h"
 #include "PCGExOperation.generated.h"
 
+#define PCGEX_OVERRIDE_OP_PROPERTY(_ACCESSOR, _NAME, _TYPE) _ACCESSOR = this->GetOverrideValue(_NAME, _ACCESSOR, _TYPE);
+
+class FPCGMetadataAttributeBase;
 struct FPCGExPointsProcessorContext;
 /**
  * 
@@ -30,5 +34,18 @@ public:
 
 protected:
 	FPCGExPointsProcessorContext* Context = nullptr;
+	TMap<FName, FPCGMetadataAttributeBase*> PossibleOverrides;
+
+	virtual void ApplyOverrides();
+	
+	template <typename T>
+	T GetOverrideValue(const FName Name, const T Fallback, const EPCGMetadataTypes InType)
+	{
+		FPCGMetadataAttributeBase** Att = PossibleOverrides.Find(Name);
+		if (!Att || (*Att)->GetTypeId() != static_cast<int16>(InType)) { return Fallback; }
+		FPCGMetadataAttribute<T>* TypedAttribute = static_cast<FPCGMetadataAttribute<T>*>(*Att);
+		return TypedAttribute->GetValue(PCGInvalidEntryKey);
+	}
+
 	//~End UPCGExOperation interface
 };

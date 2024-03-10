@@ -65,3 +65,9 @@ void UPCGExMovingAverageSmoothing::InternalDoSmooth(
 
 	PCGEX_DELETE(MetadataBlender)
 }
+
+void UPCGExMovingAverageSmoothing::ApplyOverrides()
+{
+	Super::ApplyOverrides();
+	PCGEX_OVERRIDE_OP_PROPERTY(WindowSize, FName(TEXT("Smoothing/WindowSize")), EPCGMetadataTypes::Double);
+}

@@ -45,3 +45,9 @@ void UPCGExRadiusSmoothing::InternalDoSmooth(
 
 	PCGEX_DELETE(MetadataBlender)
 }
+
+void UPCGExRadiusSmoothing::ApplyOverrides()
+{
+	Super::ApplyOverrides();
+	PCGEX_OVERRIDE_OP_PROPERTY(BlendRadius, FName(TEXT("Smoothing/BlendRadius")), EPCGMetadataTypes::Double);
+}

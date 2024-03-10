@@ -56,4 +56,7 @@ public:
 protected:
 	FVector UpwardVector = FVector::UpVector;
 	TObjectPtr<UCurveFloat> ScoreCurveObj;
+
+	void ApplyOverrides() override;
+	
 };

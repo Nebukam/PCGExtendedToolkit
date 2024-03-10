@@ -49,4 +49,5 @@ public:
 
 protected:
 	PCGEx::FLocalVectorGetter* LookAtGetter = nullptr;
+	virtual void ApplyOverrides() override;
 };

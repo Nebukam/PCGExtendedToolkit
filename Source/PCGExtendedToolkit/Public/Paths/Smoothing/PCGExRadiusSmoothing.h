@@ -25,4 +25,8 @@ public:
 	FPCGExBlendingSettings BlendingSettings = FPCGExBlendingSettings(EPCGExDataBlendingType::Weight);
 
 	virtual void InternalDoSmooth(PCGExData::FPointIO& InPointIO) override;
+
+protected:
+	virtual void ApplyOverrides() override;
+	
 };

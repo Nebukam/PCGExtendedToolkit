@@ -40,3 +40,9 @@ void UPCGExAutoTangents::ProcessPoint(const PCGEx::FPointRef& MainPoint, const P
 	OutArrive = Apex.TowardStart;
 	OutLeave = Apex.TowardEnd * -1;
 }
+
+void UPCGExAutoTangents::ApplyOverrides()
+{
+	Super::ApplyOverrides();
+	PCGEX_OVERRIDE_OP_PROPERTY(Scale, FName(TEXT("Tangents/Scale")), EPCGMetadataTypes::Double);
+}

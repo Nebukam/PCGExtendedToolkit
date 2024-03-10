@@ -43,4 +43,5 @@ public:
 
 protected:
 	virtual EPCGExDataBlendingType GetDefaultBlending() override;
+	virtual void ApplyOverrides() override;
 };

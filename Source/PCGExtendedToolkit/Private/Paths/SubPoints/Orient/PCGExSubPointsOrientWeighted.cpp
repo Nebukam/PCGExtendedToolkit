@@ -52,3 +52,9 @@ void UPCGExSubPointsOrientWeighted::OrientInvertedWeight(FPCGPoint& Point, const
 			FMath::Lerp(DirToPrev, DirToNext, Weight),
 			PCGExMath::GetDirection(UpAxis)));
 }
+
+void UPCGExSubPointsOrientWeighted::ApplyOverrides()
+{
+	Super::ApplyOverrides();
+	PCGEX_OVERRIDE_OP_PROPERTY(bInverseWeight, FName(TEXT("Orient/InverseWeight")), EPCGMetadataTypes::Boolean);
+}

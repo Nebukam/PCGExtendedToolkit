@@ -9,6 +9,12 @@ EPCGExDataBlendingType UPCGExSubPointsBlendInterpolate::GetDefaultBlending()
 	return EPCGExDataBlendingType::Weight;
 }
 
+void UPCGExSubPointsBlendInterpolate::ApplyOverrides()
+{
+	Super::ApplyOverrides();
+	PCGEX_OVERRIDE_OP_PROPERTY(Alpha, FName(TEXT("Blending/Alpha")), EPCGMetadataTypes::Double);
+}
+
 void UPCGExSubPointsBlendInterpolate::BlendSubPoints(
 	const PCGEx::FPointRef& StartPoint,
 	const PCGEx::FPointRef& EndPoint,

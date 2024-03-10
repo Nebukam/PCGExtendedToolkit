@@ -36,3 +36,12 @@ double UPCGExHeuristicSteepness::GetEdgeScore(
 	return FMath::Max(0, ScoreCurveObj->GetFloatValue((bInvert ? 1 - Dot : Dot))) * ReferenceWeight
 	       + bAddDistanceHeuristic ? ((Super::GetEdgeScore(From, To, Edge, Seed, Goal) / ReferenceWeight) * DistanceWeight) : 0;
 }
+
+void UPCGExHeuristicSteepness::ApplyOverrides()
+{
+	Super::ApplyOverrides();
+	PCGEX_OVERRIDE_OP_PROPERTY(bInvert, FName(TEXT("Heuristics/Invert")), EPCGMetadataTypes::Boolean);
+	PCGEX_OVERRIDE_OP_PROPERTY(UpVector, FName(TEXT("Heuristics/UpVector")), EPCGMetadataTypes::Vector);
+	PCGEX_OVERRIDE_OP_PROPERTY(bAddDistanceHeuristic, FName(TEXT("Heuristics/AddDistanceHeuristic")), EPCGMetadataTypes::Boolean);
+	PCGEX_OVERRIDE_OP_PROPERTY(DistanceWeight, FName(TEXT("Heuristics/DistanceWeight")), EPCGMetadataTypes::Double);
+}

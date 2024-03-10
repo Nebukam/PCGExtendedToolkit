@@ -39,4 +39,7 @@ public:
 protected:
 	double OutMin = 0;
 	double OutMax = 1;
+
+	virtual void ApplyOverrides() override;
+	
 };

@@ -53,4 +53,5 @@ public:
 
 protected:
 	PCGEx::FLocalIntegerGetter* NumGoalsGetter = nullptr;
+	virtual void ApplyOverrides() override;
 };
