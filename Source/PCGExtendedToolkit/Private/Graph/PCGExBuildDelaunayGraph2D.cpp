@@ -81,7 +81,7 @@ bool FPCGExBuildDelaunayGraph2DElement::ExecuteInternal(
 		if (!Context->AdvancePointsIO()) { Context->Done(); }
 		else
 		{
-			if (Context->CurrentIO->GetNum() <= 4)
+			if (Context->CurrentIO->GetNum() <= 3)
 			{
 				PCGE_LOG(Warning, GraphAndLog, FTEXT("(0) Some inputs have too few points to be processed (<= 3)."));
 				return false;
