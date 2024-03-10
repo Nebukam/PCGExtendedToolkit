@@ -259,7 +259,7 @@ bool FPCGExSampleProjectedPointTask::ExecuteTask()
 
 	const TArray<FPCGPoint>& TargetPoints = Context->Targets->GetIn()->GetPoints();
 	const int32 NumTargets = Context->ProjectedIO.Num();
-	const FPCGPoint& SourcePoint = TargetPoints[TaskIndex];
+	const FPCGPoint& SourcePoint = PointIO->GetInPoint(TaskIndex);
 	const FPCGPoint& ProjectedSourcePoint = Context->ProjectedIO[TaskIndex];
 	const FVector ProjectedSourceCenter = ProjectedSourcePoint.Transform.GetLocation();
 
