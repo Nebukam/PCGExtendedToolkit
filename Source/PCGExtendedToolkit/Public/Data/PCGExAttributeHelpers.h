@@ -674,7 +674,6 @@ namespace PCGEx
 		}
 
 		T SafeGet(const int32 Index, const T& fallback) const { return (!bValid || !bEnabled) ? fallback : Values[Index]; }
-		T& operator[](int32 Index) { return Values[Index]; }
 		T operator[](int32 Index) const { return bValid ? Values[Index] : GetDefaultValue(); }
 
 		virtual void Capture(const FPCGExInputDescriptor& InDescriptor) { Descriptor = InDescriptor; }
