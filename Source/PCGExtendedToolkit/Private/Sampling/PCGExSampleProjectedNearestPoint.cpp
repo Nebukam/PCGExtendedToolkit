@@ -45,13 +45,14 @@ FPCGExSampleProjectedNearestPointContext::~FPCGExSampleProjectedNearestPointCont
 	PCGEX_CLEANUP(LookAtUpGetter)
 
 	PCGEX_DELETE(Targets)
-	PCGEX_DELETE(ProjectedOctree)
+	PCGEX_DELETE(ProjectedTargetOctree)
 
 	PCGEX_DELETE_TARRAY(BlendOps)
 
 	PCGEX_FOREACH_FIELD_PROJECTNEARESTPOINT(PCGEX_OUTPUT_DELETE)
 
-	ProjectedIO.Empty();
+	ProjectedSourceIO.Empty();
+	ProjectedTargetIO.Empty();
 	ProjectionSettings.Cleanup();
 }
 
@@ -140,6 +141,8 @@ bool FPCGExSampleProjectedNearestPointElement::Boot(FPCGContext* InContext) cons
 		}
 	}
 
+	Context->Targets->CreateInKeys();
+
 	return true;
 }
 
@@ -152,6 +155,34 @@ bool FPCGExSampleProjectedNearestPointElement::ExecuteInternal(FPCGContext* InCo
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }
+		
+		Context->Targets->CreateInKeys();
+		Context->ProjectionSettings.Init(Context->Targets);
+		Context->SetState(PCGExGeo::State_ProcessingProjectedPoints);
+	}
+
+	if(Context->IsState(PCGExGeo::State_ProcessingProjectedPoints))
+	{
+		auto Initialize = [&]()
+		{
+			Context->ProjectedTargetIO.SetNumUninitialized(Context->Targets->GetNum());
+		};
+
+		auto ProcessPoint = [&](const int32 ReadIndex)
+		{
+			FPCGPoint& Pt = Context->ProjectedTargetIO[ReadIndex] = Context->Targets->GetInPoint(ReadIndex);
+			FVector Pos = Context->ProjectionSettings.Project(Pt.Transform.GetLocation());
+			Pos.Z = 0;
+			Pt.Transform.SetLocation(Pos);
+		};
+
+		if (!Context->Process(Initialize, ProcessPoint, Context->Targets->GetNum())) { return false; }
+
+		FBox OctreeBounds = FBox(ForceInit);
+		for (const FPCGPoint& Pt : Context->ProjectedTargetIO) { OctreeBounds += Pt.Transform.GetLocation(); }
+		Context->ProjectedTargetOctree = new TOctree2<FPCGPointRef, FPCGPointRefSemantics>(OctreeBounds.GetCenter(), OctreeBounds.GetExtent().Length());
+		for (const FPCGPoint& Pt : Context->ProjectedTargetIO) { Context->ProjectedTargetOctree->AddElement(FPCGPointRef(Pt)); }
+		
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
@@ -161,10 +192,6 @@ bool FPCGExSampleProjectedNearestPointElement::ExecuteInternal(FPCGContext* InCo
 		else
 		{
 			Context->CurrentIO->CreateOutKeys();
-			Context->Targets->CreateInKeys();
-
-			PCGEX_DELETE(Context->ProjectedOctree)
-
 			Context->ProjectionSettings.Init(Context->CurrentIO);
 
 			for (PCGExDataBlending::FDataBlendingOperationBase* Op : Context->BlendOps)
@@ -189,23 +216,18 @@ bool FPCGExSampleProjectedNearestPointElement::ExecuteInternal(FPCGContext* InCo
 				}
 			}
 
-			Context->ProjectedIO.SetNumUninitialized(PointIO.GetNum());
+			Context->ProjectedSourceIO.SetNumUninitialized(PointIO.GetNum());
 		};
 
 		auto ProcessPoint = [&](const int32 ReadIndex, const PCGExData::FPointIO& PointIO)
 		{
-			FPCGPoint& Pt = Context->ProjectedIO[ReadIndex] = PointIO.GetInPoint(ReadIndex);
+			FPCGPoint& Pt = Context->ProjectedSourceIO[ReadIndex] = PointIO.GetInPoint(ReadIndex);
 			FVector Pos = Context->ProjectionSettings.Project(Pt.Transform.GetLocation());
 			Pos.Z = 0;
 			Pt.Transform.SetLocation(Pos);
 		};
 
 		if (!Context->ProcessCurrentPoints(Initialize, ProcessPoint)) { return false; }
-
-		FBox OctreeBounds = FBox(ForceInit);
-		for (const FPCGPoint& Pt : Context->ProjectedIO) { OctreeBounds += Pt.Transform.GetLocation(); }
-		Context->ProjectedOctree = new TOctree2<FPCGPointRef, FPCGPointRefSemantics>(OctreeBounds.GetCenter(), OctreeBounds.GetExtent().Length());
-		for (const FPCGPoint& Pt : Context->ProjectedIO) { Context->ProjectedOctree->AddElement(FPCGPointRef(Pt)); }
 
 		Context->SetState(PCGExMT::State_ProcessingPoints);
 	}
@@ -258,9 +280,9 @@ bool FPCGExSampleProjectedPointTask::ExecuteTask()
 	const bool bSingleSample = (Context->SampleMethod == EPCGExSampleMethod::ClosestTarget || Context->SampleMethod == EPCGExSampleMethod::FarthestTarget);
 
 	const TArray<FPCGPoint>& TargetPoints = Context->Targets->GetIn()->GetPoints();
-	const int32 NumTargets = Context->ProjectedIO.Num();
+	const int32 NumTargets = Context->ProjectedTargetIO.Num();
 	const FPCGPoint& SourcePoint = PointIO->GetInPoint(TaskIndex);
-	const FPCGPoint& ProjectedSourcePoint = Context->ProjectedIO[TaskIndex];
+	const FPCGPoint& ProjectedSourcePoint = Context->ProjectedSourceIO[TaskIndex];
 	const FVector ProjectedSourceCenter = ProjectedSourcePoint.Transform.GetLocation();
 
 	double RangeMin = FMath::Pow(Context->RangeMinGetter.SafeGet(TaskIndex, Context->RangeMin), 2);
@@ -300,17 +322,17 @@ bool FPCGExSampleProjectedPointTask::ExecuteTask()
 		const FBox Box = FBoxCenterAndExtent(ProjectedSourceCenter, FVector(FMath::Sqrt(RangeMax))).GetBox();
 		auto ProcessNeighbor = [&](const FPCGPointRef& InPointRef)
 		{
-			const ptrdiff_t PointIndex = InPointRef.Point - TargetPoints.GetData();
-			if (!Context->ProjectedIO.IsValidIndex(PointIndex) || PointIndex == TaskIndex) { return; }
+			const ptrdiff_t PointIndex = InPointRef.Point - Context->ProjectedTargetIO.GetData();
+			if (!Context->ProjectedTargetIO.IsValidIndex(PointIndex)) { return; }
 
-			ProcessTarget(PointIndex, Context->ProjectedIO[PointIndex]);
+			ProcessTarget(PointIndex, Context->ProjectedTargetIO[PointIndex]);
 		};
 
-		Context->ProjectedOctree->FindElementsWithBoundsTest(Box, ProcessNeighbor);
+		Context->ProjectedTargetOctree->FindElementsWithBoundsTest(Box, ProcessNeighbor);
 	}
 	else
 	{
-		for (int i = 0; i < NumTargets; i++) { ProcessTarget(i, Context->ProjectedIO[i]); }
+		for (int i = 0; i < NumTargets; i++) { ProcessTarget(i, Context->ProjectedTargetIO[i]); }
 	}
 
 	// Compound never got updated, meaning we couldn't find target in range
@@ -356,7 +378,7 @@ bool FPCGExSampleProjectedPointTask::ExecuteTask()
 		WeightedTransform.SetScale3D(WeightedTransform.GetScale3D() + (Target.Transform.GetScale3D() * Weight));
 		WeightedTransform.SetLocation(WeightedTransform.GetLocation() + (Target.Transform.GetLocation() * Weight));
 
-		WeightedProjectedPosition += Context->ProjectedIO[TargetInfos.Index].Transform.GetLocation();
+		WeightedProjectedPosition += Context->ProjectedSourceIO[TargetInfos.Index].Transform.GetLocation();
 
 		if (Settings->LookAtUpSelection == EPCGExSampleSource::Target) { WeightedUp += Context->LookAtUpGetter.SafeGet(TargetInfos.Index, Context->SafeUpVector) * Weight; }
 

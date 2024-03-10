@@ -265,7 +265,7 @@ bool FPCGExSamplePointTask::ExecuteTask()
 		auto ProcessNeighbor = [&](const FPCGPointRef& InPointRef)
 		{
 			const ptrdiff_t PointIndex = InPointRef.Point - TargetPoints.GetData();
-			if (!TargetPoints.IsValidIndex(PointIndex) || PointIndex == TaskIndex) { return; }
+			if (!TargetPoints.IsValidIndex(PointIndex)) { return; }
 
 			ProcessTarget(PointIndex, TargetPoints[PointIndex]);
 		};

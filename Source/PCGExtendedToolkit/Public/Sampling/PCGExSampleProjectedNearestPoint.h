@@ -197,7 +197,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleProjectedNearestPointContext : public 
 	EPCGExRangeType WeightMethod = EPCGExRangeType::FullRange;
 
 	TArray<PCGExDataBlending::FDataBlendingOperationBase*> BlendOps;
-	TArray<FPCGPoint> ProjectedIO;
+	TArray<FPCGPoint> ProjectedSourceIO;
+	TArray<FPCGPoint> ProjectedTargetIO;
 
 	double RangeMin = 0;
 	double RangeMax = 1000;
@@ -218,7 +219,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleProjectedNearestPointContext : public 
 	FPCGExDistanceSettings DistanceSettings;
 	FPCGExGeo2DProjectionSettings ProjectionSettings;
 
-	PointOctree* ProjectedOctree = nullptr;
+	PointOctree* ProjectedTargetOctree = nullptr;
 
 	EPCGExAxis SignAxis;
 	EPCGExAxis AngleAxis;
