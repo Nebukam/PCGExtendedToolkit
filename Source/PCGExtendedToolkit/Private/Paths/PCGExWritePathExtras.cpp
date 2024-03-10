@@ -66,7 +66,11 @@ bool FPCGExWritePathExtrasElement::ExecuteInternal(FPCGContext* InContext) const
 		if (!Context->AdvancePointsIO()) { Context->Done(); }
 		else
 		{
-			if (Context->CurrentIO->GetNum() < 2) { return false; }
+			if (Context->CurrentIO->GetNum() < 2)
+			{
+				PCGE_LOG(Warning, GraphAndLog, FTEXT("Some inputs have less that the than 2 points and will be discarded."));
+				return false;
+			}
 
 			PCGExData::FPointIO& PointIO = *Context->CurrentIO;
 			PointIO.InitializeOutput(PCGExData::EInit::DuplicateInput);

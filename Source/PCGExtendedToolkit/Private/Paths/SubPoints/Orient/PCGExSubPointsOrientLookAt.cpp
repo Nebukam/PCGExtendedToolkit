@@ -4,6 +4,8 @@
 
 #include "Paths/SubPoints/Orient/PCGExSubPointsOrientLookAt.h"
 
+#include "PCGExPointsProcessor.h"
+
 void UPCGExSubPointsOrientLookAt::PrepareForData(PCGExData::FPointIO& InPointIO)
 {
 	PCGEX_DELETE(LookAtGetter)
@@ -13,7 +15,11 @@ void UPCGExSubPointsOrientLookAt::PrepareForData(PCGExData::FPointIO& InPointIO)
 	{
 		LookAtGetter = new PCGEx::FLocalVectorGetter();
 		LookAtGetter->Capture(LookAtSelector);
-		LookAtGetter->Grab(InPointIO);
+		if(!LookAtGetter->Grab(InPointIO))
+		{
+			PCGE_LOG_C(Warning, GraphAndLog, Context, FText::Format(FTEXT("LookAt Attribute ({0}) is not valid."), FText::FromString(LookAtSelector.GetName().ToString())));
+		}
+		
 	}
 }
 

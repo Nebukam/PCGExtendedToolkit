@@ -4,6 +4,8 @@
 
 #include "PCGExOperation.h"
 
+#include "PCGExPointsProcessor.h"
+
 void UPCGExOperation::BindContext(FPCGExPointsProcessorContext* InContext)
 {
 	Context = InContext;

@@ -281,6 +281,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : public FPCGContext
 		else
 		{
 			RetValue = static_cast<T*>(Operation);
+			
 		}
 		RetValue->BindContext(this);
 		return RetValue;

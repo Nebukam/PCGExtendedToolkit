@@ -473,6 +473,7 @@ namespace PCGEx
 		}
 
 		EPCGExTransformComponent Component = EPCGExTransformComponent::Position;
+		bool bUseAxis = false;
 		EPCGExAxis Axis = EPCGExAxis::Forward;
 		EPCGExSingleField Field = EPCGExSingleField::X;
 
@@ -684,11 +685,14 @@ namespace PCGEx
 		{
 			if (GetAxisSelection(ExtraNames, Axis))
 			{
+				bUseAxis = true;
+				// An axis is set, treat as vector.
 				// Only axis is set, assume rotation instead of position
 				if (!GetComponentSelection(ExtraNames, Component)) { Component = EPCGExTransformComponent::Rotation; }
 			}
 			else
 			{
+				bUseAxis = false;
 				GetComponentSelection(ExtraNames, Component);
 			}
 
@@ -843,7 +847,23 @@ namespace PCGEx
 			}
 		}
 
-		virtual double Convert(const FQuat Value) const override { return Convert(PCGExMath::GetDirection(Value, Axis)); }
+		virtual double Convert(const FQuat Value) const override
+		{
+			if (bUseAxis) { return Convert(PCGExMath::GetDirection(Value, Axis)); }
+			switch (Field)
+			{
+			default:
+			case EPCGExSingleField::X:
+				return Value.X;
+			case EPCGExSingleField::Y:
+				return Value.Y;
+			case EPCGExSingleField::Z:
+			case EPCGExSingleField::W:
+				return Value.Z;
+			case EPCGExSingleField::Length:
+				return GetDefaultValue();
+			}
+		}
 
 		virtual double Convert(const FTransform Value) const override
 		{
@@ -860,7 +880,7 @@ namespace PCGEx
 		}
 
 		virtual double Convert(const bool Value) const override { return Value; }
-		virtual double Convert(const FRotator Value) const override { return Convert(FVector(Value.Roll, Value.Pitch, Value.Yaw)); }
+		virtual double Convert(const FRotator Value) const override { return Convert(FVector(Value.Pitch, Value.Yaw, Value.Roll)); }
 		virtual double Convert(const FString Value) const override { return PCGExMath::ConvertStringToDouble(Value); }
 		virtual double Convert(const FName Value) const override { return PCGExMath::ConvertStringToDouble(Value.ToString()); }
 	};
@@ -932,7 +952,23 @@ namespace PCGEx
 			}
 		}
 
-		virtual int32 Convert(const FQuat Value) const override { return Convert(PCGExMath::GetDirection(Value, Axis)); }
+		virtual int32 Convert(const FQuat Value) const override
+		{
+			if (bUseAxis) { return Convert(PCGExMath::GetDirection(Value, Axis)); }
+			switch (Field)
+			{
+			default:
+			case EPCGExSingleField::X:
+				return Value.X;
+			case EPCGExSingleField::Y:
+				return Value.Y;
+			case EPCGExSingleField::Z:
+			case EPCGExSingleField::W:
+				return Value.Z;
+			case EPCGExSingleField::Length:
+				return GetDefaultValue();
+			}
+		}
 
 		virtual int32 Convert(const FTransform Value) const override
 		{
@@ -949,7 +985,7 @@ namespace PCGEx
 		}
 
 		virtual int32 Convert(const bool Value) const override { return Value; }
-		virtual int32 Convert(const FRotator Value) const override { return Convert(FVector(Value.Roll, Value.Pitch, Value.Yaw)); }
+		virtual int32 Convert(const FRotator Value) const override { return Convert(FVector(Value.Pitch, Value.Yaw, Value.Roll)); }
 		virtual int32 Convert(const FString Value) const override { return PCGExMath::ConvertStringToDouble(Value); }
 		virtual int32 Convert(const FName Value) const override { return PCGExMath::ConvertStringToDouble(Value.ToString()); }
 	};
@@ -1021,7 +1057,23 @@ namespace PCGEx
 			}
 		}
 
-		virtual bool Convert(const FQuat Value) const override { return Convert(PCGExMath::GetDirection(Value, Axis)); }
+		virtual bool Convert(const FQuat Value) const override
+		{
+			if (bUseAxis) { return Convert(PCGExMath::GetDirection(Value, Axis)); }
+			switch (Field)
+			{
+			default:
+			case EPCGExSingleField::X:
+				return Value.X > 0;
+			case EPCGExSingleField::Y:
+				return Value.Y > 0;
+			case EPCGExSingleField::Z:
+			case EPCGExSingleField::W:
+				return Value.Z > 0;
+			case EPCGExSingleField::Length:
+				return GetDefaultValue();
+			}
+		}
 
 		virtual bool Convert(const FTransform Value) const override
 		{
@@ -1038,7 +1090,7 @@ namespace PCGEx
 		}
 
 		virtual bool Convert(const bool Value) const override { return Value; }
-		virtual bool Convert(const FRotator Value) const override { return Convert(FVector(Value.Roll, Value.Pitch, Value.Yaw)); }
+		virtual bool Convert(const FRotator Value) const override { return Convert(FVector(Value.Pitch, Value.Yaw, Value.Roll)); }
 		virtual bool Convert(const FString Value) const override { return Value.Len() == 4; }
 		virtual bool Convert(const FName Value) const override { return Value.ToString().Len() == 4; }
 	};
