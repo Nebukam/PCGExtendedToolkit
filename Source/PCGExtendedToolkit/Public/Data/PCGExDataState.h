@@ -24,11 +24,11 @@ public:
 	FName StateName = NAME_None;
 	int32 StateId = 0;
 
-	TArray<TObjectPtr<UPCGParamData>> IfAttributes;
-	TArray<PCGEx::FAttributesInfos*> IfInfos;
+	TArray<TObjectPtr<UPCGParamData>> ValidStateAttributes;
+	TArray<PCGEx::FAttributesInfos*> ValidStateAttributesInfos;
 
-	TArray<TObjectPtr<UPCGParamData>> ElseAttributes;
-	TArray<PCGEx::FAttributesInfos*> ElseInfos;
+	TArray<TObjectPtr<UPCGParamData>> InvalidStateAttributes;
+	TArray<PCGEx::FAttributesInfos*> InvalidStateAttributesInfos;
 
 	virtual PCGExDataFilter::TFilterHandler* CreateHandler() const override;
 
@@ -39,17 +39,17 @@ namespace PCGExDataState
 {
 	const FName OutputTestLabel = TEXT("Test");
 	const FName SourceTestsLabel = TEXT("Tests");
-	const FName SourceIfAttributesLabel = TEXT("If");
-	const FName SourceElseAttributesLabel = TEXT("Else");
+	const FName SourceValidStateAttributesLabel = TEXT("ValidStateAttributes");
+	const FName SourceInvalidStateAttributesLabel = TEXT("InvalidStateAttributes");
 
 	class PCGEXTENDEDTOOLKIT_API TStateHandler : public PCGExDataFilter::TFilterHandler
 	{
 	public:
-		TArray<FPCGMetadataAttributeBase*> InIfAttributes;
-		TArray<FPCGMetadataAttributeBase*> InElseAttributes;
+		TArray<FPCGMetadataAttributeBase*> InValidStateAttributes;
+		TArray<FPCGMetadataAttributeBase*> InInvalidStateAttributes;
 
-		TArray<FPCGMetadataAttributeBase*> OutIfAttributes;
-		TArray<FPCGMetadataAttributeBase*> OutElseAttributes;
+		TArray<FPCGMetadataAttributeBase*> OutValidStateAttributes;
+		TArray<FPCGMetadataAttributeBase*> OutInvalidStateAttributes;
 
 		bool bPartial = false;
 
@@ -69,11 +69,11 @@ namespace PCGExDataState
 		{
 			OverlappingAttributes.Empty();
 
-			InIfAttributes.Empty();
-			InElseAttributes.Empty();
+			InValidStateAttributes.Empty();
+			InInvalidStateAttributes.Empty();
 
-			OutIfAttributes.Empty();
-			OutElseAttributes.Empty();
+			OutValidStateAttributes.Empty();
+			OutInvalidStateAttributes.Empty();
 		}
 	};
 

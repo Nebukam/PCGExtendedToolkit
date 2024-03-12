@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExPointsProcessor.h"
+#include "Data/PCGExCreateState.h"
 
 #include "Data/PCGExGraphDefinition.h"
 
@@ -12,7 +13,7 @@
 
 /** Outputs a single GraphParam to be consumed by other nodes */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
-class PCGEXTENDEDTOOLKIT_API UPCGExCreateCustomGraphSocketStateSettings : public UPCGSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExCreateCustomGraphSocketStateSettings : public UPCGExCreateStateSettings
 {
 	GENERATED_BODY()
 
@@ -23,12 +24,9 @@ public:
 	PCGEX_NODE_INFOS_CUSTOM_TASKNAME(
 		GraphSocketState, "Socket State Definition", "Creates a socket state configuration from any number of sockets and attributes.",
 		StateName.IsNone() ? FName(GetDefaultNodeTitle().ToString()) : FName(FString("PCGEx | SS : ") + StateName.ToString()))
-	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Param; }
-	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorFilter; }
 
 #endif
-	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
-	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
+	virtual FName GetMainOutputLabel() const override;
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
@@ -43,33 +41,13 @@ public:
 	//~End UObject interface
 
 public:
-	/** State name.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	FName StateName = NAME_Default;
-
-	/** State ID.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	int32 StateId = 0;
-
-	/** State priority for conflict resolution.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	int32 Priority = 0;
-
 	/** List of tests to perform */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, TitleProperty="{SocketName}"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, TitleProperty="{SocketName}", DisplayPriority=-1))
 	TArray<FPCGExSocketTestDescriptor> Tests;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExCreateCustomGraphSocketStateElement : public IPCGElement
+class PCGEXTENDEDTOOLKIT_API FPCGExCreateCustomGraphSocketStateElement : public FPCGExCreateStateElement
 {
-public:
-#if WITH_EDITOR
-	virtual bool ShouldLog() const override { return false; }
-#endif
-
 protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
-
-public:
-	virtual FPCGContext* Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node) override;
 };

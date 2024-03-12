@@ -11,11 +11,11 @@ PCGExDataFilter::TFilterHandler* UPCGExStateDefinitionBase::CreateHandler() cons
 
 void UPCGExStateDefinitionBase::BeginDestroy()
 {
-	IfAttributes.Empty();
-	ElseAttributes.Empty();
+	ValidStateAttributes.Empty();
+	InvalidStateAttributes.Empty();
 
-	PCGEX_DELETE_TARRAY(IfInfos)
-	PCGEX_DELETE_TARRAY(ElseInfos)
+	PCGEX_DELETE_TARRAY(ValidStateAttributesInfos)
+	PCGEX_DELETE_TARRAY(InvalidStateAttributesInfos)
 
 	Super::BeginDestroy();
 }
@@ -60,11 +60,11 @@ namespace PCGExDataState
 			}
 		}
 
-		InIfAttributes.Empty();
-		InElseAttributes.Empty();
+		InValidStateAttributes.Empty();
+		InInvalidStateAttributes.Empty();
 
-		OutIfAttributes.Empty();
-		OutElseAttributes.Empty();
+		OutValidStateAttributes.Empty();
+		OutInvalidStateAttributes.Empty();
 
 		UPCGMetadata* Metadata = PointIO->GetOut()->Metadata;
 
@@ -110,8 +110,8 @@ namespace PCGExDataState
 			}
 		};
 
-		if (bNeedIfs) { CreatePlaceholderAttributes(StateDefinition->IfInfos, InIfAttributes, OutIfAttributes); }
-		if (bNeedElses) { CreatePlaceholderAttributes(StateDefinition->ElseInfos, InElseAttributes, OutElseAttributes); }
+		if (bNeedIfs) { CreatePlaceholderAttributes(StateDefinition->ValidStateAttributesInfos, InValidStateAttributes, OutValidStateAttributes); }
+		if (bNeedElses) { CreatePlaceholderAttributes(StateDefinition->InvalidStateAttributesInfos, InInvalidStateAttributes, OutInvalidStateAttributes); }
 	}
 
 
@@ -230,8 +230,8 @@ namespace PCGExDataState
 		for (PCGExDataFilter::TFilterHandler* Handler : Handlers)
 		{
 			TStateHandler* StateHandler = static_cast<TStateHandler*>(Handler);
-			if (Handler->Results[PointIndex]) { ForwardValues(StateHandler->InIfAttributes, StateHandler->OutIfAttributes); }
-			else { ForwardValues(StateHandler->InElseAttributes, StateHandler->OutElseAttributes); }
+			if (Handler->Results[PointIndex]) { ForwardValues(StateHandler->InValidStateAttributes, StateHandler->OutValidStateAttributes); }
+			else { ForwardValues(StateHandler->InInvalidStateAttributes, StateHandler->OutInvalidStateAttributes); }
 		}
 	}
 

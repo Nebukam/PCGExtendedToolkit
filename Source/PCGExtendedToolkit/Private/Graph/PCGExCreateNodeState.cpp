@@ -10,44 +10,24 @@
 #define LOCTEXT_NAMESPACE "PCGExCreateNodeState"
 #define PCGEX_NAMESPACE CreateNodeState
 
-FPCGElementPtr UPCGExCreateNodeStateSettings::CreateElement() const { return MakeShared<FPCGExCreateNodeStateElement>(); }
+FName UPCGExCreateNodeStateSettings::GetMainOutputLabel() const { return PCGExCluster::OutputNodeStateLabel; }
 
 TArray<FPCGPinProperties> UPCGExCreateNodeStateSettings::InputPinProperties() const
 {
-	TArray<FPCGPinProperties> PinProperties;
-
-	FPCGPinProperties& InTestsPin = PinProperties.Emplace_GetRef(PCGExDataState::SourceTestsLabel, EPCGDataType::Param, true, true);
+	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
+	FPCGPinProperties& InTestsPin = PinProperties.EmplaceAt_GetRef(0, PCGExDataState::SourceTestsLabel, EPCGDataType::Param, true, true);
 
 #if WITH_EDITOR
 	InTestsPin.Tooltip = FTEXT("Tests performed to validate or invalidate this state.");
 #endif
-
-	FPCGPinProperties& IfPin = PinProperties.Emplace_GetRef(PCGExDataState::SourceIfAttributesLabel, EPCGDataType::Param, true, true);
-
-#if WITH_EDITOR
-	IfPin.Tooltip = FTEXT("Attributes & values associated with this state when conditions are met.");
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
+	InTestsPin.SetRequiredPin();
 #endif
-
-	FPCGPinProperties& ElsePin = PinProperties.Emplace_GetRef(PCGExDataState::SourceElseAttributesLabel, EPCGDataType::Param, true, true);
-
-#if WITH_EDITOR
-	ElsePin.Tooltip = FTEXT("Attributes & values associated with this state when conditions are not met.");
-#endif
-
 	return PinProperties;
 }
 
-TArray<FPCGPinProperties> UPCGExCreateNodeStateSettings::OutputPinProperties() const
-{
-	TArray<FPCGPinProperties> PinProperties;
-	FPCGPinProperties& OutStatePin = PinProperties.Emplace_GetRef(PCGExCluster::OutputNodeStateLabel, EPCGDataType::Param, false, false);
 
-#if WITH_EDITOR
-	OutStatePin.Tooltip = FTEXT("Outputs a single node state.");
-#endif
-
-	return PinProperties;
-}
+FPCGElementPtr UPCGExCreateNodeStateSettings::CreateElement() const { return MakeShared<FPCGExCreateNodeStateElement>(); }
 
 #if WITH_EDITOR
 void UPCGExCreateNodeStateSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
@@ -63,17 +43,9 @@ bool FPCGExCreateNodeStateElement::ExecuteInternal(
 
 	PCGEX_SETTINGS(CreateNodeState)
 
-	if (!PCGEx::IsValidName(Settings->StateName))
-	{
-		PCGE_LOG(Error, GraphAndLog, FTEXT("State name is invalid; Cannot be 'None' and can only contain the following special characters:[ ],[_],[-],[/]"));
-		return true;
-	}
+	if (!Boot(Context)) { return true; }
 
-	UPCGExNodeStateDefinition* OutState = NewObject<UPCGExNodeStateDefinition>();
-
-	OutState->StateName = Settings->StateName;
-	OutState->StateId = Settings->StateId;
-	OutState->Priority = Settings->Priority;
+	UPCGExNodeStateDefinition* OutState = CreateStateDefinition<UPCGExNodeStateDefinition>(Context);
 
 	TArray<UPCGExAdjacencyTestDefinition*> TestDefinitions;
 
@@ -94,47 +66,15 @@ bool FPCGExCreateNodeStateElement::ExecuteInternal(
 		return true;
 	}
 
-	const TArray<FPCGTaggedData>& IfPin = Context->InputData.GetInputsByPin(PCGExDataState::SourceIfAttributesLabel);
-	for (const FPCGTaggedData& TaggedData : IfPin)
-	{
-		if (const UPCGParamData* IfData = Cast<UPCGParamData>(TaggedData.Data))
-		{
-			OutState->IfAttributes.Add(const_cast<UPCGParamData*>(IfData));
-			OutState->IfInfos.Add(PCGEx::FAttributesInfos::Get(IfData->Metadata));
-		}
-	}
-
-	const TArray<FPCGTaggedData>& ElsePin = Context->InputData.GetInputsByPin(PCGExDataState::SourceElseAttributesLabel);
-	for (const FPCGTaggedData& TaggedData : ElsePin)
-	{
-		if (const UPCGParamData* ElseData = Cast<UPCGParamData>(TaggedData.Data))
-		{
-			OutState->ElseAttributes.Add(const_cast<UPCGParamData*>(ElseData));
-			OutState->ElseInfos.Add(PCGEx::FAttributesInfos::Get(ElseData->Metadata));
-		}
-	}
-
 	if (OutState->Tests.IsEmpty())
 	{
 		OutState->ConditionalBeginDestroy();
 		return true;
 	}
 
-	FPCGTaggedData& Output = Context->OutputData.TaggedData.Emplace_GetRef();
-	Output.Data = OutState;
-	Output.Pin = PCGExGraph::OutputSocketStateLabel;
+	OutputState(Context, OutState);
 
 	return true;
-}
-
-FPCGContext* FPCGExCreateNodeStateElement::Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node)
-{
-	FPCGContext* Context = new FPCGContext();
-	Context->InputData = InputData;
-	Context->SourceComponent = SourceComponent;
-	Context->Node = Node;
-
-	return Context;
 }
 
 #undef LOCTEXT_NAMESPACE
