@@ -17,5 +17,5 @@ double UPCGExHeuristicLocalDistance::GetEdgeScore(
 	const PCGExCluster::FNode& Seed,
 	const PCGExCluster::FNode& Goal) const
 {
-	return Cluster->EdgeLengths[Edge.EdgeIndex] * ReferenceWeight;
+	return FMath::Max(0, ScoreCurveObj->GetFloatValue(Cluster->EdgeLengths[Edge.EdgeIndex])) * ReferenceWeight;
 }

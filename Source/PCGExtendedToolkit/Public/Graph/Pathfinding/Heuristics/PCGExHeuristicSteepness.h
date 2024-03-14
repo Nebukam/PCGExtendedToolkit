@@ -27,17 +27,9 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FVector UpVector = FVector::UpVector;
 
-	/** Curve the value will be remapped over. */
+	/** Curve the steepness value will be remapped over. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	TSoftObjectPtr<UCurveFloat> ScoreCurve;
-
-	/** Adds result from Shortest Distance heuristics. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	bool bAddDistanceHeuristic = true;
-
-	/** Distance weight. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bAddDistanceHeuristic", ClampMin="0.001"))
-	double DistanceWeight = 10;
+	TSoftObjectPtr<UCurveFloat> SteepnessScoreCurve = TSoftObjectPtr<UCurveFloat>(PCGEx::SteepnessWeightCurve);
 
 	virtual void PrepareForData(PCGExCluster::FCluster* InCluster) override;
 
@@ -55,7 +47,10 @@ public:
 
 protected:
 	FVector UpwardVector = FVector::UpVector;
-	TObjectPtr<UCurveFloat> ScoreCurveObj;
+	TObjectPtr<UCurveFloat> SteepnessScoreCurveObj;
+	double ReverseWeight = 1.0;
+
+	double GetDot(const FVector& From, const FVector& To) const;
 
 	void ApplyOverrides() override;
 	

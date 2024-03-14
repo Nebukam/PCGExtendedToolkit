@@ -27,7 +27,7 @@ double UPCGExHeuristicDirection::GetGlobalScore(
 {
 	const FVector Dir = (Seed.Position - Goal.Position).GetSafeNormal();
 	const double Dot = FVector::DotProduct(Dir, (From.Position - Goal.Position).GetSafeNormal()) * -1;
-	return PCGExMath::Remap(Dot, -1, 1, OutMin, OutMax) * ReferenceWeight;
+	return FMath::Max(0, ScoreCurveObj->GetFloatValue(PCGExMath::Remap(Dot, -1, 1, OutMin, OutMax))) * ReferenceWeight;
 }
 
 double UPCGExHeuristicDirection::GetEdgeScore(
@@ -38,7 +38,7 @@ double UPCGExHeuristicDirection::GetEdgeScore(
 	const PCGExCluster::FNode& Goal) const
 {
 	const double Dot = (FVector::DotProduct((From.Position - To.Position).GetSafeNormal(), (From.Position - Goal.Position).GetSafeNormal()) * -1);
-	return PCGExMath::Remap(Dot, -1, 1, OutMin, OutMax) * ReferenceWeight;
+	return FMath::Max(0, ScoreCurveObj->GetFloatValue(PCGExMath::Remap(Dot, -1, 1, OutMin, OutMax))) * ReferenceWeight;
 }
 
 void UPCGExHeuristicDirection::ApplyOverrides()

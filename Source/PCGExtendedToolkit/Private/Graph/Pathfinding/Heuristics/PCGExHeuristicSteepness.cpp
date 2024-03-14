@@ -9,8 +9,10 @@ void UPCGExHeuristicSteepness::PrepareForData(PCGExCluster::FCluster* InCluster)
 {
 	UpwardVector = UpVector.GetSafeNormal();
 
-	if (ScoreCurve.IsNull()) { ScoreCurveObj = TSoftObjectPtr<UCurveFloat>(PCGEx::WeightDistributionLinear).LoadSynchronous(); }
-	else { ScoreCurveObj = ScoreCurve.LoadSynchronous(); }
+	if (SteepnessScoreCurve.IsNull()) { SteepnessScoreCurveObj = TSoftObjectPtr<UCurveFloat>(PCGEx::WeightDistributionLinear).LoadSynchronous(); }
+	else { SteepnessScoreCurveObj = SteepnessScoreCurve.LoadSynchronous(); }
+
+	ReverseWeight = 1 / ReferenceWeight;
 
 	Super::PrepareForData(InCluster);
 }
@@ -20,9 +22,10 @@ double UPCGExHeuristicSteepness::GetGlobalScore(
 	const PCGExCluster::FNode& Seed,
 	const PCGExCluster::FNode& Goal) const
 {
-	const double Dot = FMath::Abs(FVector::DotProduct((From.Position - Goal.Position).GetSafeNormal(), UpwardVector));
-	return FMath::Max(0, ScoreCurveObj->GetFloatValue((bInvert ? 1 - Dot : Dot))) * ReferenceWeight
-	       + bAddDistanceHeuristic ? ((Super::GetGlobalScore(From, Seed, Goal) / ReferenceWeight) * DistanceWeight) : 0;
+	const double Dot = GetDot(From.Position, Goal.Position);
+	const double SampledDot = FMath::Max(0, SteepnessScoreCurveObj->GetFloatValue(Dot)) * ReferenceWeight;
+	const double Super = Super::GetGlobalScore(From, Seed, Goal) * ReverseWeight; 
+	return SampledDot + Super;
 }
 
 double UPCGExHeuristicSteepness::GetEdgeScore(
@@ -32,9 +35,17 @@ double UPCGExHeuristicSteepness::GetEdgeScore(
 	const PCGExCluster::FNode& Seed,
 	const PCGExCluster::FNode& Goal) const
 {
-	const double Dot = FMath::Abs(FVector::DotProduct((From.Position - To.Position).GetSafeNormal(), UpwardVector));
-	return FMath::Max(0, ScoreCurveObj->GetFloatValue((bInvert ? 1 - Dot : Dot))) * ReferenceWeight
-	       + bAddDistanceHeuristic ? ((Super::GetEdgeScore(From, To, Edge, Seed, Goal) / ReferenceWeight) * DistanceWeight) : 0;
+	const double Dot = GetDot(From.Position, To.Position);
+	const double SampledDot = FMath::Max(0, SteepnessScoreCurveObj->GetFloatValue(Dot)) * ReferenceWeight;
+	const double Super = Super::GetEdgeScore(From, To, Edge, Seed, Goal) * ReverseWeight; 
+	return SampledDot + Super;
+}
+
+double UPCGExHeuristicSteepness::GetDot(const FVector& From, const FVector& To) const
+{
+	return bInvert ?
+		       1 - FMath::Abs(FVector::DotProduct((From - To).GetSafeNormal(), UpwardVector)) :
+		       FMath::Abs(FVector::DotProduct((From - To).GetSafeNormal(), UpwardVector));
 }
 
 void UPCGExHeuristicSteepness::ApplyOverrides()
@@ -42,6 +53,4 @@ void UPCGExHeuristicSteepness::ApplyOverrides()
 	Super::ApplyOverrides();
 	PCGEX_OVERRIDE_OP_PROPERTY(bInvert, FName(TEXT("Heuristics/Invert")), EPCGMetadataTypes::Boolean);
 	PCGEX_OVERRIDE_OP_PROPERTY(UpVector, FName(TEXT("Heuristics/UpVector")), EPCGMetadataTypes::Vector);
-	PCGEX_OVERRIDE_OP_PROPERTY(bAddDistanceHeuristic, FName(TEXT("Heuristics/AddDistanceHeuristic")), EPCGMetadataTypes::Boolean);
-	PCGEX_OVERRIDE_OP_PROPERTY(DistanceWeight, FName(TEXT("Heuristics/DistanceWeight")), EPCGMetadataTypes::Double);
 }
