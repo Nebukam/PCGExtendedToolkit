@@ -24,8 +24,8 @@ double UPCGExHeuristicSteepness::GetGlobalScore(
 {
 	const double Dot = GetDot(From.Position, Goal.Position);
 	const double SampledDot = FMath::Max(0, SteepnessScoreCurveObj->GetFloatValue(Dot)) * ReferenceWeight;
-	const double Super = Super::GetGlobalScore(From, Seed, Goal) * ReverseWeight; 
-	return SampledDot + Super;
+	const double Super = Super::GetGlobalScore(From, Seed, Goal); 
+	return (SampledDot + Super)*0.5;
 }
 
 double UPCGExHeuristicSteepness::GetEdgeScore(
@@ -37,8 +37,8 @@ double UPCGExHeuristicSteepness::GetEdgeScore(
 {
 	const double Dot = GetDot(From.Position, To.Position);
 	const double SampledDot = FMath::Max(0, SteepnessScoreCurveObj->GetFloatValue(Dot)) * ReferenceWeight;
-	const double Super = Super::GetEdgeScore(From, To, Edge, Seed, Goal) * ReverseWeight; 
-	return SampledDot + Super;
+	const double Super = Super::GetEdgeScore(From, To, Edge, Seed, Goal); 
+	return (SampledDot + Super) * 0.5;
 }
 
 double UPCGExHeuristicSteepness::GetDot(const FVector& From, const FVector& To) const
