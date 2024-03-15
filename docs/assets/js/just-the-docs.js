@@ -53,7 +53,7 @@ function initNav() {
 
 function initSearch() {
   var request = new XMLHttpRequest();
-  request.open('GET', 'https://nebukam.github.io/PCGExtendedToolkit/assets/js/search-data.json', true);
+  request.open('GET', 'http://localhost:4000/PCGExtendedToolkit/assets/js/search-data.json', true);
 
   request.onload = function(){
     if (request.status >= 200 && request.status < 400) {
@@ -430,7 +430,7 @@ jtd.getTheme = function() {
 
 jtd.setTheme = function(theme) {
   var cssFile = document.querySelector('[rel="stylesheet"]');
-  cssFile.setAttribute('href', 'https://nebukam.github.io/PCGExtendedToolkit/assets/css/just-the-docs-' + theme + '.css');
+  cssFile.setAttribute('href', 'http://localhost:4000/PCGExtendedToolkit/assets/css/just-the-docs-' + theme + '.css');
 }
 
 // Document ready
@@ -466,3 +466,9 @@ for(let i = 0; i < kbs.length; i++){
     });
     kb.innerHTML = html.join('+');
 }
+
+function ToClipboard(element) {
+    var text = element.getElementsByClassName("dl-content")[0].innerText;
+    navigator.clipboard.writeText(text);
+    alert("Copied the text: " + text);
+  }

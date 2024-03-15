@@ -12,7 +12,6 @@ toc_img: placeholder.jpg
 tagged: 
     - graphs
 nav_order: 4
-WIP: true
 see_also: Working with Graphs
 ---
 

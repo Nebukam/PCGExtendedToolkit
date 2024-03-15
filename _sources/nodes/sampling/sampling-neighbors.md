@@ -2,7 +2,7 @@
 layout: page
 parent: Sampling
 grand_parent: All Nodes
-title: Sample Neighbors
+title: Sample Neighbours
 subtitle: Sample points based on edge connections
 color: white
 #summary: The **Sample Nearest Points** node explore points within a range using various methods. Define sampling range, weight targets, and obtain useful attributes.

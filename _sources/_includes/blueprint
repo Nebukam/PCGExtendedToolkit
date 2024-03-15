@@ -1,0 +1,2 @@
+<iframe src="https://blueprintue.com/render/{{include.id}}/" scrolling="no" allowfullscreen class="blueprint-ue" style="height:{{include.height | default:'350px'}}"></iframe>
+<p class="blueprint-ue-lk"><a href="https://blueprintue.com/blueprint/{{include.id}}/">See on Blueprint-ue</a></p>

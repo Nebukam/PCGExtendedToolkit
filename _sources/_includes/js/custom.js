@@ -22,3 +22,9 @@ for(let i = 0; i < kbs.length; i++){
     });
     kb.innerHTML = html.join('+');
 }
+
+function ToClipboard(element) {
+    var text = element.getElementsByClassName("dl-content")[0].innerText;
+    navigator.clipboard.writeText(text);
+    alert("Copied the text: " + text);
+  }

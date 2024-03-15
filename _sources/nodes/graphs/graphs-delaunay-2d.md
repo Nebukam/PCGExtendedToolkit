@@ -12,7 +12,6 @@ toc_img: placeholder.jpg
 tagged: 
     - graphs
 nav_order: 5
-WIP: true
 ---
 
 {% include header_card_node %}
