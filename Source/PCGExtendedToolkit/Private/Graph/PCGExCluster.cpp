@@ -80,6 +80,9 @@ namespace PCGExCluster
 		PointIndexMap.Empty();
 		Edges.Empty();
 		EdgeLengths.Empty();
+
+		PCGEX_DELETE(NodeOctree)
+		PCGEX_DELETE(EdgeOctree)
 	}
 
 	FNode& FCluster::GetOrCreateNode(const int32 PointIndex, const TArray<FPCGPoint>& InPoints)
@@ -197,6 +200,18 @@ namespace PCGExCluster
 			End.AddConnection(-1, Start.NodeIndex);
 			EdgeIndex++;
 		}
+	}
+
+	void FCluster::RebuildNodeOctree()
+	{
+		PCGEX_DELETE(NodeOctree)
+		NodeOctree = new ClusterItemOctree(Bounds.GetCenter(), Bounds.GetExtent().Length());
+	}
+
+	void FCluster::RebuildEdgeOctree()
+	{
+		PCGEX_DELETE(EdgeOctree)
+		EdgeOctree = new ClusterItemOctree(Bounds.GetCenter(), Bounds.GetExtent().Length());
 	}
 
 	int32 FCluster::FindClosestNode(const FVector& Position, EPCGExClusterClosestSearchMode Mode, const int32 MinNeighbors) const
