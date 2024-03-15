@@ -714,111 +714,12 @@ namespace PCGExGraphTask
 
 	bool FWriteSubGraphEdges::ExecuteTask()
 	{
-		PCGExData::FPointIO& EdgeIO = *SubGraph->PointIO;
-
-		TArray<FPCGPoint>& MutablePoints = EdgeIO.GetOut()->GetMutablePoints();
-		MutablePoints.SetNum(SubGraph->Edges.Num());
-
-		int32 PointIndex = 0;
-		if (EdgeIO.GetIn())
-		{
-			// Copy any existing point properties first
-			const TArray<FPCGPoint>& InPoints = EdgeIO.GetIn()->GetPoints();
-			for (const int32 EdgeIndex : SubGraph->Edges)
-			{
-				const int32 EdgePtIndex = Graph->Edges[EdgeIndex].PointIndex;
-				if (InPoints.IsValidIndex(EdgePtIndex)) { MutablePoints[PointIndex] = InPoints[EdgePtIndex]; }
-				PointIndex++;
-			}
-		}
-
-		EdgeIO.SetNumInitialized(SubGraph->Edges.Num());
-		EdgeIO.CreateOutKeys();
-
-		PCGEx::TFAttributeWriter<int64>* EdgeStart = new PCGEx::TFAttributeWriter<int64>(PCGExGraph::Tag_EdgeStart, -1, false);
-		PCGEx::TFAttributeWriter<int64>* EdgeEnd = new PCGEx::TFAttributeWriter<int64>(PCGExGraph::Tag_EdgeEnd, -1, false);
-
-		EdgeStart->BindAndGet(EdgeIO);
-		EdgeEnd->BindAndGet(EdgeIO);
-
-		const TArray<FPCGPoint> Vertices = PointIO->GetOut()->GetPoints();
-
-		PointIndex = 0;
-		for (const int32 EdgeIndex : SubGraph->Edges)
-		{
-			const PCGExGraph::FIndexedEdge& Edge = Graph->Edges[EdgeIndex];
-			FPCGPoint& Point = MutablePoints[PointIndex];
-
-			EdgeStart->Values[PointIndex] = Vertices[Graph->Nodes[Edge.Start].PointIndex].MetadataEntry;
-			EdgeEnd->Values[PointIndex] = Vertices[Graph->Nodes[Edge.End].PointIndex].MetadataEntry;
-
-			if (Point.Seed == 0) { PCGExMath::RandomizeSeed(Point); }
-
-			PCGExGraph::FGraphEdgeMetadata** EdgeMetaPtr = Graph->EdgeMetadata.Find(EdgeIndex);
-			if (EdgeMetaPtr)
-			{
-				PCGExGraph::FGraphEdgeMetadata* EdgeMeta = *EdgeMetaPtr;
-				//if()
-				//int32 ParentCompoundIndex = PCGExGraph::FGraphEdgeMetadata::GetParentIndex();
-				//TODO: Handle edge metadata	
-			}
-
-			PointIndex++;
-		}
-
-		if (Graph->bWriteEdgePosition)
-		{
-			PointIndex = 0;
-			for (const int32 EdgeIndex : SubGraph->Edges)
-			{
-				const PCGExGraph::FIndexedEdge& Edge = Graph->Edges[EdgeIndex];
-				MutablePoints[PointIndex].Transform.SetLocation(
-					FMath::Lerp(
-						Vertices[Graph->Nodes[Edge.Start].PointIndex].Transform.GetLocation(),
-						Vertices[Graph->Nodes[Edge.End].PointIndex].Transform.GetLocation(),
-						Graph->EdgePosition));
-				PointIndex++;
-			}
-		}
-
-		if (Graph->bRefreshEdgeSeed)
-		{
-			const FVector SeedOffset = FVector(EdgeIO.IOIndex);
-			for (FPCGPoint& Point : MutablePoints) { PCGExMath::RandomizeSeed(Point, SeedOffset); }
-		}
-
-		EdgeStart->Write();
-		EdgeEnd->Write();
-
-		PCGEX_DELETE(EdgeStart)
-		PCGEX_DELETE(EdgeEnd)
-
-		if (MetadataSettings &&
-			!Graph->EdgeMetadata.IsEmpty() &&
-			!Graph->NodeMetadata.IsEmpty())
-		{
-			if (MetadataSettings->bFlagCrossing)
-			{
-				// Need to go through each point and add flags matching edges
-				for (const int32 NodeIndex : SubGraph->Nodes)
-				{
-					PCGExGraph::FNode Node = Graph->Nodes[NodeIndex];
-					PCGExGraph::FGraphNodeMetadata** NodeMetaPtr = Graph->NodeMetadata.Find(NodeIndex);
-
-					if (!NodeMetaPtr || (*NodeMetaPtr)->Type != EPCGExIntersectionType::EdgeEdge)
-					{
-					}
-				}
-			}
-		}
-
-		EdgeIO.Flatten();
-
+		WriteSubGraphEdges(PointIO->GetOut()->GetPoints(), Graph, SubGraph, MetadataSettings);
 		return true;
 	}
 
 	bool FCompileGraph::ExecuteTask()
-	{
+	{		
 		Builder->Graph->BuildSubGraphs(Min, Max);
 
 		if (Builder->Graph->SubGraphs.IsEmpty())
@@ -945,7 +846,8 @@ Writer->BindAndGet(*PointIO);\
 				NumClusterIdWriter->Values[Builder->Graph->Nodes[Edge.End].PointIndex] = ClusterId;
 			}
 
-			Manager->Start<FWriteSubGraphEdges>(SubGraphIndex++, PointIO, Builder->Graph, SubGraph, MetadataSettings);
+			//Manager->Start<FWriteSubGraphEdges>(SubGraphIndex++, PointIO, Builder->Graph, SubGraph, MetadataSettings);
+			WriteSubGraphEdges(PointIO->GetOut()->GetPoints(), Builder->Graph, SubGraph, MetadataSettings);
 		}
 
 		NumClusterIdWriter->Write();

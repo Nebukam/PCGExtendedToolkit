@@ -63,29 +63,19 @@ bool FPCGExSanitizeClustersElement::ExecuteInternal(FPCGContext* InContext) cons
 
 	if (Context->IsState(PCGExGraph::State_ReadyForNextEdges))
 	{
-		Context->IndexedEdges.Empty();
-
-		if (Context->CurrentEdges) { Context->CurrentEdges->Cleanup(); }
-
-		if (!Context->AdvanceEdges(false))
+		while (Context->AdvanceEdges(false))
 		{
-			Context->GraphBuilder->Compile(Context);
-			Context->SetAsyncState(PCGExGraph::State_WritingClusters);
-			return false;
+			Context->IndexedEdges.Empty();
+			Context->CurrentEdges->CreateInKeys();
+
+			BuildIndexedEdges(*Context->CurrentEdges, Context->NodeIndicesMap, Context->IndexedEdges);
+			if (!Context->IndexedEdges.IsEmpty()) { Context->GraphBuilder->Graph->InsertEdges(Context->IndexedEdges); }
+
+			Context->CurrentEdges->Cleanup();
 		}
 
-		Context->CurrentEdges->CreateInKeys();
-		Context->SetState(PCGExGraph::State_ProcessingEdges);
-	}
-
-	if (Context->IsState(PCGExGraph::State_ProcessingEdges))
-	{
-		Context->SetState(PCGExGraph::State_ReadyForNextEdges);
-
-		BuildIndexedEdges(*Context->CurrentEdges, Context->NodeIndicesMap, Context->IndexedEdges);
-		if (Context->IndexedEdges.IsEmpty()) { return false; }
-
-		Context->GraphBuilder->Graph->InsertEdges(Context->IndexedEdges);
+		Context->GraphBuilder->Compile(Context);
+		Context->SetAsyncState(PCGExGraph::State_WritingClusters);
 	}
 
 	if (Context->IsState(PCGExGraph::State_WritingClusters))
@@ -97,7 +87,7 @@ bool FPCGExSanitizeClustersElement::ExecuteInternal(FPCGContext* InContext) cons
 
 	if (Context->IsDone())
 	{
-		Context->OutputPointsAndEdges();
+		Context->OutputPoints();
 	}
 
 	return Context->IsDone();
