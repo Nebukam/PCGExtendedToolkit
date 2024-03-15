@@ -36,6 +36,7 @@ FPCGExFindSocketStatesContext::~FPCGExFindSocketStatesContext()
 	PCGEX_TERMINATE_ASYNC
 	PCGEX_DELETE(StatesManager)
 	StateDefinitions.Empty();
+	PointIndices.Empty();
 }
 
 
@@ -73,6 +74,8 @@ bool FPCGExFindSocketStatesElement::ExecuteInternal(
 		if (!Context->AdvancePointsIO()) { Context->Done(); }
 		else
 		{
+			PCGEx::ArrayOfIndices(Context->PointIndices, Context->CurrentIO->GetNum());
+
 			Context->StatesManager = new PCGExDataState::TStatesManager(Context->CurrentIO);
 			Context->StatesManager->Register<UPCGExSocketStateDefinition>(
 				Context->StateDefinitions,
@@ -113,17 +116,17 @@ bool FPCGExFindSocketStatesElement::ExecuteInternal(
 	{
 		if (Settings->bWriteStateName)
 		{
-			Context->StatesManager->WriteStateNames(Settings->StateNameAttributeName, Settings->StatelessName);
+			Context->StatesManager->WriteStateNames(Settings->StateNameAttributeName, Settings->StatelessName, Context->PointIndices);
 		}
 
 		if (Settings->bWriteStateValue)
 		{
-			Context->StatesManager->WriteStateValues(Settings->StateValueAttributeName, Settings->StatelessValue);
+			Context->StatesManager->WriteStateValues(Settings->StateValueAttributeName, Settings->StatelessValue, Context->PointIndices);
 		}
 
 		if (Settings->bWriteEachStateIndividually)
 		{
-			Context->StatesManager->WriteStateIndividualStates(Context->GetAsyncManager());
+			Context->StatesManager->WriteStateIndividualStates(Context->GetAsyncManager(), Context->PointIndices);
 			Context->SetAsyncState(PCGExGraph::State_WritingStatesAttributes);
 		}
 		else

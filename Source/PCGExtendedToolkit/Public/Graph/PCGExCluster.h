@@ -27,12 +27,36 @@ enum class EPCGExClusterSearchOrientationMode : uint8
 	CW UMETA(DisplayName = "Clockwise"),
 };
 
+/**
+ * 
+ */
+UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
+class PCGEXTENDEDTOOLKIT_API UPCGExClusterFilterDefinitionBase : public UPCGExFilterDefinitionBase
+{
+	GENERATED_BODY()
+};
+
+/**
+ * 
+ */
+UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
+class PCGEXTENDEDTOOLKIT_API UPCGExNodeStateDefinition : public UPCGExStateDefinitionBase
+{
+	GENERATED_BODY()
+
+public:	
+	TArray<UPCGExFilterDefinitionBase*> Tests;
+	virtual PCGExDataFilter::TFilterHandler* CreateHandler() const override;
+	virtual void BeginDestroy() override;
+};
+
 
 namespace PCGExCluster
 {
 	const FName OutputNodeStateLabel = TEXT("NodeState");
 	const FName SourceNodeStateLabel = TEXT("NodeStates");
 
+	constexpr PCGExMT::AsyncState State_ProcessingCluster = __COUNTER__;
 	constexpr PCGExMT::AsyncState State_ProjectingCluster = __COUNTER__;
 
 	struct FCluster;
@@ -95,6 +119,7 @@ namespace PCGExCluster
 		const PCGExGraph::FIndexedEdge& GetEdgeFromNodeIndices(const int32 A, const int32 B) const;
 		void ComputeEdgeLengths(bool bNormalize = false);
 
+		void GetNodePointIndices(TArray<int32>& OutIndices);
 		void GetConnectedNodes(const int32 FromIndex, TArray<int32>& OutIndices, const int32 SearchDepth) const;
 
 		FVector GetEdgeDirection(const int32 FromIndex, const int32 ToIndex) const;
@@ -155,43 +180,38 @@ namespace PCGExCluster
 		}
 	};
 
-
-	class PCGEXTENDEDTOOLKIT_API FNodeTestHandler
+	class PCGEXTENDEDTOOLKIT_API TClusterFilterHandler : public PCGExDataFilter::TFilterHandler
 	{
 	public:
-		explicit FNodeTestHandler(UPCGExAdjacencyTestDefinition* InDefinition)
-			: Definition(InDefinition)
+		explicit TClusterFilterHandler(const UPCGExClusterFilterDefinitionBase* InDefinition)
+			: TFilterHandler(InDefinition)
 		{
+			bValid = false;
 		}
 
-		virtual ~FNodeTestHandler()
-		{
-			Definition = nullptr;
-			PCGEX_DELETE(OperandAGetter)
-			PCGEX_DELETE(OperandBGetter)
-		}
-
-		UPCGExAdjacencyTestDefinition* Definition = nullptr;
-		PCGEx::FLocalSingleFieldGetter* OperandAGetter = nullptr;
-		PCGEx::FLocalSingleFieldGetter* OperandBGetter = nullptr;
-
-		virtual bool Test(const int32 PointIndex) const;
+		const FCluster* TestedCluster = nullptr;
+		
+		void CaptureCluster(const FCluster* InCluster);
+		virtual void Capture(const PCGExData::FPointIO* PointIO) override;
+		virtual void CaptureEdges(const PCGExData::FPointIO* EdgeIO);
 	};
 
 	class PCGEXTENDEDTOOLKIT_API FNodeStateHandler : public PCGExDataState::TStateHandler
 	{
 	public:
-		explicit FNodeStateHandler(UPCGExNodeStateDefinition* InDefinition);
+		explicit FNodeStateHandler(const UPCGExNodeStateDefinition* InDefinition);
 
-		UPCGExNodeStateDefinition* Definition = nullptr;
-		TArray<FNodeTestHandler*> TestHandlers;
-
+		const UPCGExNodeStateDefinition* NodeStateDefinition = nullptr;
+		TArray<TFilterHandler*> FilterHandlers;
+		TArray<TClusterFilterHandler*> ClusterFilterHandlers;
+		
 		void CaptureCluster(FCluster* InCluster);
 		virtual bool Test(const int32 PointIndex) const override;
 
 		virtual ~FNodeStateHandler() override
 		{
-			PCGEX_DELETE_TARRAY(TestHandlers)
+			PCGEX_DELETE_TARRAY(FilterHandlers)
+			PCGEX_DELETE_TARRAY(ClusterFilterHandlers)
 		}
 
 	protected:

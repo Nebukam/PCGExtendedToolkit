@@ -31,6 +31,7 @@ FPCGExFindNodeStatesContext::~FPCGExFindNodeStatesContext()
 	PCGEX_TERMINATE_ASYNC
 	PCGEX_DELETE(StatesManager)
 	StateDefinitions.Empty();
+	NodeIndices.Empty();
 }
 
 
@@ -63,44 +64,60 @@ bool FPCGExFindNodeStatesElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
-		PCGEX_DELETE(Context->StatesManager)
-
 		if (!Context->AdvancePointsIO()) { Context->Done(); }
-		else
-		{
-			Context->StatesManager = new PCGExDataState::TStatesManager(Context->CurrentIO);
-			Context->StatesManager->Register<UPCGExNodeStateDefinition>(
-				Context->StateDefinitions,
-				[&](PCGExDataFilter::TFilterHandler* Handler)
-				{
-					PCGExCluster::FNodeStateHandler* SocketHandler = static_cast<PCGExCluster::FNodeStateHandler*>(Handler);
-					//TODO: Capture cluster VTX
-					//Handler->Capture(&Context->Graphs, Context->CurrentIO);
-				});
-
-			if (!Context->StatesManager->bValid)
-			{
-				PCGE_LOG(Warning, GraphAndLog, FTEXT("Some input points could not be used with any graph."));
-				return false;
-			}
-
-			if (Context->StatesManager->bHasPartials)
-			{
-				PCGE_LOG(Warning, GraphAndLog, FTEXT("Some input points only have partial metadata."));
-			}
-
-			Context->CurrentIO->CreateInKeys();
-			Context->StatesManager->PrepareForTesting();
-
-			Context->SetState(PCGExMT::State_ProcessingPoints);
-		}
+		else { Context->SetState(PCGExGraph::State_ReadyForNextEdges); }
 	}
 
-	if (Context->IsState(PCGExMT::State_ProcessingPoints))
+	if (Context->IsState(PCGExGraph::State_ReadyForNextEdges))
 	{
-		auto ProcessPoint = [&](const int32 Index, const PCGExData::FPointIO& PointIO) { Context->StatesManager->Test(Index); };
+		PCGEX_DELETE(Context->StatesManager)
+		Context->NodeIndices.Empty();
 
-		if (!Context->ProcessCurrentPoints(ProcessPoint)) { return false; }
+		if (!Context->AdvanceEdges(true))
+		{
+			Context->SetState(PCGExMT::State_ReadyForNextPoints);
+			return false;
+		}
+
+		if (!Context->CurrentCluster)
+		{
+			PCGEX_INVALID_CLUSTER_LOG
+			return false;
+		}
+
+		Context->CurrentCluster->GetNodePointIndices(Context->NodeIndices);
+		Context->StatesManager = new PCGExDataState::TStatesManager(Context->CurrentIO);
+		Context->StatesManager->Register<UPCGExNodeStateDefinition>(
+			Context->StateDefinitions,
+			[&](PCGExDataFilter::TFilterHandler* Handler)
+			{
+				PCGExCluster::FNodeStateHandler* NodeStateHandler = static_cast<PCGExCluster::FNodeStateHandler*>(Handler);
+				NodeStateHandler->CaptureCluster(Context->CurrentCluster);
+			});
+
+		if (!Context->StatesManager->bValid)
+		{
+			PCGE_LOG(Warning, GraphAndLog, FTEXT("Some input points could not be used with any graph."));
+			return false;
+		}
+
+		if (Context->StatesManager->bHasPartials)
+		{
+			PCGE_LOG(Warning, GraphAndLog, FTEXT("Some input points only have partial metadata."));
+		}
+
+		Context->CurrentIO->CreateInKeys();
+		Context->StatesManager->PrepareForTesting();
+
+		Context->SetState(PCGExCluster::State_ProcessingCluster);
+		
+	}
+
+	if (Context->IsState(PCGExCluster::State_ProcessingCluster))
+	{
+		auto ProcessNode = [&](const int32 Index) { Context->StatesManager->Test(Context->CurrentCluster->Nodes[Index].PointIndex); };
+
+		if (!Context->Process(ProcessNode, Context->CurrentCluster->Nodes.Num())) { return false; }
 
 		Context->SetState(PCGExGraph::State_WritingMainState);
 	}
@@ -109,17 +126,17 @@ bool FPCGExFindNodeStatesElement::ExecuteInternal(
 	{
 		if (Settings->bWriteStateName)
 		{
-			Context->StatesManager->WriteStateNames(Settings->StateNameAttributeName, Settings->StatelessName);
+			Context->StatesManager->WriteStateNames(Settings->StateNameAttributeName, Settings->StatelessName, Context->NodeIndices);
 		}
 
 		if (Settings->bWriteStateValue)
 		{
-			Context->StatesManager->WriteStateValues(Settings->StateValueAttributeName, Settings->StatelessValue);
+			Context->StatesManager->WriteStateValues(Settings->StateValueAttributeName, Settings->StatelessValue, Context->NodeIndices);
 		}
 
 		if (Settings->bWriteEachStateIndividually)
 		{
-			Context->StatesManager->WriteStateIndividualStates(Context->GetAsyncManager());
+			Context->StatesManager->WriteStateIndividualStates(Context->GetAsyncManager(), Context->NodeIndices);
 			Context->SetAsyncState(PCGExGraph::State_WritingStatesAttributes);
 		}
 		else
@@ -148,7 +165,7 @@ bool FPCGExFindNodeStatesElement::ExecuteInternal(
 
 	if (Context->IsDone())
 	{
-		Context->OutputPoints();
+		Context->OutputPointsAndEdges();
 	}
 
 	return Context->IsDone();

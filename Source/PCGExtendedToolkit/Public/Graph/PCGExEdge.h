@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include <ThirdParty/hlslcc/hlslcc/src/hlslcc_lib/compiler.h>
-
 #include "CoreMinimal.h"
 
 #include "PCGExMT.h"
@@ -177,8 +175,19 @@ namespace PCGExGraph
 		PCGEx::TFAttributeReader<int64>* StartIndexReader = new PCGEx::TFAttributeReader<int64>(Tag_EdgeStart);
 		PCGEx::TFAttributeReader<int64>* EndIndexReader = new PCGEx::TFAttributeReader<int64>(Tag_EdgeEnd);
 
-		if (!StartIndexReader->Bind(const_cast<PCGExData::FPointIO&>(EdgeIO))) { return false; }
-		if (!EndIndexReader->Bind(const_cast<PCGExData::FPointIO&>(EdgeIO))) { return false; }
+		if (!StartIndexReader->Bind(const_cast<PCGExData::FPointIO&>(EdgeIO)))
+		{
+			PCGEX_DELETE(StartIndexReader)
+			PCGEX_DELETE(EndIndexReader)
+			return false;
+		}
+		
+		if (!EndIndexReader->Bind(const_cast<PCGExData::FPointIO&>(EdgeIO)))
+		{
+			PCGEX_DELETE(StartIndexReader)
+			PCGEX_DELETE(EndIndexReader)
+			return false;
+		}
 
 		bool bValid = true;
 		const int32 NumEdges = EdgeIO.GetNum();

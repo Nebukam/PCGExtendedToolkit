@@ -234,14 +234,7 @@ namespace PCGExGraph
 #pragma endregion
 }
 
-#pragma region UPCGExNodeStateDefinition
 
-void UPCGExNodeStateDefinition::BeginDestroy()
-{
-	Super::BeginDestroy();
-}
-
-#pragma endregion
 
 #pragma region UPCGExGraphDefinition
 
@@ -311,65 +304,7 @@ void UPCGExGraphDefinition::Cleanup() const
 
 #pragma endregion
 
-#if WITH_EDITOR
-FString FPCGExAdjacencyTestDescriptor::GetDisplayName() const
-{
-	FString DisplayName = OperandA.GetName().ToString();
-
-	switch (Comparison)
-	{
-	case EPCGExComparison::StrictlyEqual:
-		DisplayName += " == ";
-		break;
-	case EPCGExComparison::StrictlyNotEqual:
-		DisplayName += " != ";
-		break;
-	case EPCGExComparison::EqualOrGreater:
-		DisplayName += " >= ";
-		break;
-	case EPCGExComparison::EqualOrSmaller:
-		DisplayName += " <= ";
-		break;
-	case EPCGExComparison::StrictlyGreater:
-		DisplayName += " > ";
-		break;
-	case EPCGExComparison::StrictlySmaller:
-		DisplayName += " < ";
-		break;
-	case EPCGExComparison::NearlyEqual:
-		DisplayName += " ~= ";
-		break;
-	case EPCGExComparison::NearlyNotEqual:
-		DisplayName += " !~= ";
-		break;
-	default: DisplayName += " ?? ";
-	}
-
-	DisplayName += OperandB.GetName().ToString();
-	DisplayName += TEXT(" (");
-
-	switch (Mode)
-	{
-	case EPCGExAdjacencyTestMode::All:
-		DisplayName += TEXT("All");
-		break;
-	case EPCGExAdjacencyTestMode::Some:
-		DisplayName += TEXT("Some");
-		break;
-	default: ;
-	}
-
-	DisplayName += TEXT(")");
-	return DisplayName;
-}
-#endif
-
 void UPCGExSocketDefinition::BeginDestroy()
-{
-	Super::BeginDestroy();
-}
-
-void UPCGExAdjacencyTestDefinition::BeginDestroy()
 {
 	Super::BeginDestroy();
 }

@@ -237,6 +237,12 @@ namespace PCGEx
 
 	static bool IsValidName(FName Name) { return FPCGMetadataAttributeBase::IsValidName(Name) && !Name.IsNone(); }
 
+	static void ArrayOfIndices(TArray<int32>& OutArray, int32 Num)
+	{
+		OutArray.SetNum(Num);
+		for (int i = 0; i < Num; i++) { OutArray[i] = i; }
+	}
+
 	static FName GetCompoundName(const FName A, const FName B)
 	{
 		// PCGEx/A/B
