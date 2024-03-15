@@ -847,7 +847,7 @@ namespace PCGExGraphTask
 
 				for (PCGExGraph::FNode& Node : Nodes)
 				{
-					if (!Node.bValid) { continue; }
+					if (!Node.bValid || Node.Edges.IsEmpty()) { continue; }
 					Node.PointIndex = PrunedPoints.Add(MutablePoints[Node.PointIndex]);
 					ValidNodes.Add(Node.NodeIndex);
 				}
@@ -861,7 +861,7 @@ namespace PCGExGraphTask
 
 				for (PCGExGraph::FNode& Node : Nodes)
 				{
-					if (!Node.bValid) { continue; }
+					if (!Node.bValid|| Node.Edges.IsEmpty()) { continue; }
 					Node.PointIndex = MutablePoints.Add(PointIO->GetInPoint(Node.PointIndex));
 					ValidNodes.Add(Node.NodeIndex);
 				}
