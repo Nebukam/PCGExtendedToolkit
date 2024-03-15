@@ -15,7 +15,7 @@ FName UPCGExCreateNodeStateSettings::GetMainOutputLabel() const { return PCGExCl
 TArray<FPCGPinProperties> UPCGExCreateNodeStateSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	FPCGPinProperties& InTestsPin = PinProperties.EmplaceAt_GetRef(0, PCGExDataState::SourceTestsLabel, EPCGDataType::Param, true, true);
+	FPCGPinProperties& InTestsPin = PinProperties.EmplaceAt_GetRef(0, PCGExDataState::SourceFiltersLabel, EPCGDataType::Param, true, true);
 
 #if WITH_EDITOR
 	InTestsPin.Tooltip = FTEXT("Tests performed to validate or invalidate this state.");
@@ -47,23 +47,25 @@ bool FPCGExCreateNodeStateElement::ExecuteInternal(
 
 	UPCGExNodeStateDefinition* OutState = CreateStateDefinition<UPCGExNodeStateDefinition>(Context);
 
-	TArray<UPCGExAdjacencyTestDefinition*> TestDefinitions;
+	TArray<UPCGExFilterDefinitionBase*> FilterDefinitions;
 
-	const TArray<FPCGTaggedData>& TestPin = Context->InputData.GetInputsByPin(PCGExDataState::SourceTestsLabel);
+	const TArray<FPCGTaggedData>& TestPin = Context->InputData.GetInputsByPin(PCGExDataState::SourceFiltersLabel);
 	for (const FPCGTaggedData& TaggedData : TestPin)
 	{
-		if (const UPCGExAdjacencyTestDefinition* TestData = Cast<UPCGExAdjacencyTestDefinition>(TaggedData.Data))
+		if (const UPCGExFilterDefinitionBase* TestData = Cast<UPCGExFilterDefinitionBase>(TaggedData.Data))
 		{
-			TestDefinitions.Add(const_cast<UPCGExAdjacencyTestDefinition*>(TestData));
+			FilterDefinitions.Add(const_cast<UPCGExFilterDefinitionBase*>(TestData));
 		}
 	}
 
-	if (TestDefinitions.IsEmpty())
+	if (FilterDefinitions.IsEmpty())
 	{
 		OutState->ConditionalBeginDestroy();
-		OutState->Tests.Append(TestDefinitions);
 		PCGE_LOG(Error, GraphAndLog, FTEXT("No test data."));
 		return true;
+	}else
+	{
+		OutState->Tests.Append(FilterDefinitions);
 	}
 
 	if (OutState->Tests.IsEmpty())

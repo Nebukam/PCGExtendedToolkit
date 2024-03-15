@@ -6,6 +6,20 @@
 #include "Data/PCGExAttributeHelpers.h"
 #include "Geometry/PCGExGeo.h"
 
+#pragma region UPCGExNodeStateDefinition
+
+PCGExDataFilter::TFilterHandler* UPCGExNodeStateDefinition::CreateHandler() const
+{
+	return new PCGExCluster::FNodeStateHandler(this);
+}
+
+void UPCGExNodeStateDefinition::BeginDestroy()
+{
+	Super::BeginDestroy();
+}
+
+#pragma endregion
+
 namespace PCGExCluster
 {
 #pragma region FNode
@@ -313,6 +327,13 @@ namespace PCGExCluster
 		bEdgeLengthsDirty = false;
 	}
 
+	void FCluster::GetNodePointIndices(TArray<int32>& OutIndices)
+	{
+		int32 Offset = OutIndices.Num();
+		OutIndices.SetNum(Offset + Nodes.Num());
+		for (const FNode& Node : Nodes) { OutIndices[Offset++] = Node.PointIndex; }
+	}
+
 	void FCluster::GetConnectedNodes(const int32 FromIndex, TArray<int32>& OutIndices, const int32 SearchDepth) const
 	{
 		const int32 NextDepth = SearchDepth - 1;
@@ -507,30 +528,56 @@ namespace PCGExCluster
 
 #pragma region FNodeStateHandler
 
-	bool FNodeTestHandler::Test(const int32 PointIndex) const
+	void TClusterFilterHandler::CaptureCluster(const FCluster* InCluster)
 	{
-		return true;
+		bValid = true;
+		TestedCluster = InCluster;
+		Capture(InCluster->PointsIO);
+		CaptureEdges(InCluster->EdgesIO);
 	}
 
-	FNodeStateHandler::FNodeStateHandler(UPCGExNodeStateDefinition* InDefinition)
-		: TStateHandler(InDefinition)
+	void TClusterFilterHandler::Capture(const PCGExData::FPointIO* PointIO)
 	{
-		Definition = InDefinition;
+		//TFilterHandler::Capture(PointIO); //Do not call Super:: as it sets bValid to true.
+	}
 
+	void TClusterFilterHandler::CaptureEdges(const PCGExData::FPointIO* EdgeIO)
+	{
+	}
+
+	FNodeStateHandler::FNodeStateHandler(const UPCGExNodeStateDefinition* InDefinition)
+		: TStateHandler(InDefinition), NodeStateDefinition(InDefinition)
+	{
 		const int32 NumConditions = InDefinition->Tests.Num();
-		TestHandlers.SetNumUninitialized(NumConditions);
 
-		for (int i = 0; i < NumConditions; i++) { TestHandlers[i] = new FNodeTestHandler(InDefinition->Tests[i]); }
+		FilterHandlers.Empty();
+		ClusterFilterHandlers.Empty();
+
+		for (int i = 0; i < NumConditions; i++)
+		{
+			TFilterHandler* Handler = InDefinition->Tests[i]->CreateHandler();
+			if (TClusterFilterHandler* ClusterHandler = dynamic_cast<TClusterFilterHandler*>(Handler)) { ClusterFilterHandlers.Add(ClusterHandler); }
+			else { FilterHandlers.Add(Handler); }
+		}
 	}
 
 	void FNodeStateHandler::CaptureCluster(FCluster* InCluster)
 	{
 		Cluster = InCluster;
+		for (TFilterHandler* Test : FilterHandlers) { Test->Capture(Cluster->PointsIO); }
+		for (TClusterFilterHandler* Test : ClusterFilterHandlers) { Test->CaptureCluster(Cluster); }
 	}
 
 	bool FNodeStateHandler::Test(const int32 PointIndex) const
 	{
-		for (const FNodeTestHandler* Test : TestHandlers) { if (!Test->Test(PointIndex)) { return false; } }
+		if (!FilterHandlers.IsEmpty())
+		{
+			const int32 PtIndex = Cluster->GetNodeFromPointIndex(PointIndex).PointIndex; // We get a node index from the FindNode
+			for (const TFilterHandler* Test : FilterHandlers) { if (!Test->Test(PtIndex)) { return false; } }
+		}
+
+		for (const TClusterFilterHandler* Test : ClusterFilterHandlers) { if (!Test->Test(PointIndex)) { return false; } }
+
 		return true;
 	}
 

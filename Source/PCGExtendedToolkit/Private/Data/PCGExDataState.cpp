@@ -139,14 +139,12 @@ namespace PCGExDataState
 		HighestState[PointIndex] = HState;
 	}
 
-	void TStatesManager::WriteStateNames(const FName AttributeName, const FName DefaultValue)
+	void TStatesManager::WriteStateNames(const FName AttributeName, const FName DefaultValue, const TArray<int32>& InIndices)
 	{
-		const int32 NumPoints = PointIO->GetOutNum();
-
 		PCGEx::TFAttributeWriter<FName>* StateNameWriter = new PCGEx::TFAttributeWriter<FName>(AttributeName, DefaultValue, false);
 		StateNameWriter->BindAndGet(*PointIO);
 
-		for (int i = 0; i < NumPoints; i++)
+		for (const int32 i : InIndices)
 		{
 			if (const int32 HighestStateId = HighestState[i]; HighestStateId != -1)
 			{
@@ -160,14 +158,12 @@ namespace PCGExDataState
 		PCGEX_DELETE(StateNameWriter)
 	}
 
-	void TStatesManager::WriteStateValues(const FName AttributeName, const int32 DefaultValue)
+	void TStatesManager::WriteStateValues(const FName AttributeName, const int32 DefaultValue, const TArray<int32>& InIndices)
 	{
-		const int32 NumPoints = PointIO->GetOutNum();
-
 		PCGEx::TFAttributeWriter<int32>* StateValueWriter = new PCGEx::TFAttributeWriter<int32>(AttributeName, DefaultValue, false);
 		StateValueWriter->BindAndGet(*PointIO);
 
-		for (int i = 0; i < NumPoints; i++)
+		for (const int32 i : InIndices)
 		{
 			if (const int32 HighestStateId = HighestState[i]; HighestStateId != -1)
 			{
@@ -181,9 +177,14 @@ namespace PCGExDataState
 		PCGEX_DELETE(StateValueWriter)
 	}
 
-	void TStatesManager::WriteStateIndividualStates(FPCGExAsyncManager* AsyncManager)
+	void TStatesManager::WriteStateIndividualStates(FPCGExAsyncManager* AsyncManager, const TArray<int32>& InIndices)
 	{
-		for (PCGExDataFilter::TFilterHandler* Handler : Handlers) { AsyncManager->Start<PCGExDataStateTask::FWriteIndividualState>(Handler->Index, PointIO, static_cast<TStateHandler*>(Handler)); }
+		for (PCGExDataFilter::TFilterHandler* Handler : Handlers)
+		{
+			AsyncManager->Start<PCGExDataStateTask::FWriteIndividualState>(
+				Handler->Index, PointIO,
+				static_cast<TStateHandler*>(Handler), &InIndices);
+		}
 	}
 
 	void TStatesManager::WritePrepareForStateAttributes(const FPCGContext* InContext)
@@ -252,8 +253,7 @@ namespace PCGExDataStateTask
 		PCGEx::TFAttributeWriter<bool>* StateWriter = new PCGEx::TFAttributeWriter<bool>(static_cast<const UPCGExStateDefinitionBase*>(Handler->Definition)->StateName);
 		StateWriter->BindAndGet(*PointIO);
 
-		const int32 NumPoints = PointIO->GetOutNum();
-		for (int i = 0; i < NumPoints; i++) { StateWriter->Values[i] = Handler->Results[i]; }
+		for (int32 i : (*InIndices)) { StateWriter->Values[i] = Handler->Results[i]; }
 		StateWriter->Write();
 
 		PCGEX_DELETE(StateWriter)

@@ -7,8 +7,6 @@
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGExCreateState.h"
 
-#include "Data/PCGExGraphDefinition.h"
-
 #include "PCGExCreateNodeState.generated.h"
 
 /** Outputs a single GraphParam to be consumed by other nodes */

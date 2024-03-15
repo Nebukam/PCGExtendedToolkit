@@ -70,7 +70,7 @@ private:
 	friend class FPCGExFindNodeStatesElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExFindNodeStatesContext : public FPCGExCustomGraphProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExFindNodeStatesContext : public FPCGExEdgesProcessorContext
 {
 	friend class FPCGExFindNodeStatesElement;
 
@@ -78,6 +78,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFindNodeStatesContext : public FPCGExCustomG
 
 	TArray<TObjectPtr<UPCGExNodeStateDefinition>> StateDefinitions;
 	PCGExDataState::TStatesManager* StatesManager = nullptr;
+	TArray<int32> NodeIndices;
 };
 
 

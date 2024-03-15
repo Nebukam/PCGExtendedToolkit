@@ -37,8 +37,8 @@ public:
 
 namespace PCGExDataState
 {
-	const FName OutputTestLabel = TEXT("Test");
-	const FName SourceTestsLabel = TEXT("Tests");
+	const FName OutputFilterLabel = TEXT("Filter");
+	const FName SourceFiltersLabel = TEXT("Filters");
 	const FName SourceValidStateAttributesLabel = TEXT("ValidStateAttributes");
 	const FName SourceInvalidStateAttributesLabel = TEXT("InvalidStateAttributes");
 
@@ -92,9 +92,9 @@ namespace PCGExDataState
 
 		virtual void Test(const int32 PointIndex) override;
 
-		void WriteStateNames(FName AttributeName, FName DefaultValue);
-		void WriteStateValues(FName AttributeName, int32 DefaultValue);
-		void WriteStateIndividualStates(FPCGExAsyncManager* AsyncManager);
+		void WriteStateNames(FName AttributeName, FName DefaultValue, const TArray<int32>& InIndices);
+		void WriteStateValues(FName AttributeName, int32 DefaultValue, const TArray<int32>& InIndices);
+		void WriteStateIndividualStates(FPCGExAsyncManager* AsyncManager, const TArray<int32>& InIndices);
 
 		void WritePrepareForStateAttributes(const FPCGContext* InContext);
 		void WriteStateAttributes(const int32 PointIndex);
@@ -154,13 +154,14 @@ namespace PCGExDataStateTask
 	public:
 		FWriteIndividualState(
 			FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-			PCGExDataState::TStateHandler* InHandler) :
+			PCGExDataState::TStateHandler* InHandler, const TArray<int32>* InInIndices) :
 			FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
-			Handler(InHandler)
+			Handler(InHandler), InIndices(InInIndices)
 		{
 		}
 
 		PCGExDataState::TStateHandler* Handler = nullptr;
+		const TArray<int32>* InIndices = nullptr;
 
 		virtual bool ExecuteTask() override;
 	};

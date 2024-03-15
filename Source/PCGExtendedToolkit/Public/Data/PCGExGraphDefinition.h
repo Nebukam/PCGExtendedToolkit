@@ -356,60 +356,6 @@ public:
 	bool bMirrorMatchingSockets = false;
 };
 
-USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExAdjacencyTestDescriptor
-{
-	GENERATED_BODY()
-
-	FPCGExAdjacencyTestDescriptor()
-	{
-	}
-
-	/** How should adjacency be observed. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
-	EPCGExAdjacencyTestMode Mode = EPCGExAdjacencyTestMode::All;
-
-	/** How to consolidate value for testing. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="Mode==EPCGExAdjacencyTestMode::All", EditConditionHides))
-	EPCGExAdjacencyGatherMode Consolidation = EPCGExAdjacencyGatherMode::Average;
-
-	/** How should adjacency be observed. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="Mode==EPCGExAdjacencyTestMode::Some", EditConditionHides))
-	EPCGExAdjacencySubsetMode SubsetMode = EPCGExAdjacencySubsetMode::AtLeast;
-
-	/** Define the nodes subset' size that must meet requirements. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="Mode==EPCGExAdjacencyTestMode::Some", EditConditionHides))
-	EPCGExAdjacencySubsetMeasureMode SubsetMeasure = EPCGExAdjacencySubsetMeasureMode::AbsoluteStatic;
-
-	/** Local measure attribute */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="Mode==EPCGExAdjacencyTestMode::Some && (SubsetMeasure==EPCGExAdjacencySubsetMeasureMode::AbsoluteLocal||SubsetMeasure==EPCGExAdjacencySubsetMeasureMode::RelativeLocal)", EditConditionHides))
-	FPCGAttributePropertyInputSelector LocalMeasure;
-
-	/** Rounding mode for relative measures */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="Mode==EPCGExAdjacencyTestMode::Some && (SubsetMeasure==EPCGExAdjacencySubsetMeasureMode::RelativeStatic||SubsetMeasure==EPCGExAdjacencySubsetMeasureMode::RelativeLocal)", EditConditionHides))
-	EPCGExRelativeRoundingMode RoundingMode = EPCGExRelativeRoundingMode::Round;
-
-	/** Operand A for testing -- Will be broadcasted to `double` under the hood. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(ShowOnlyInnerProperties, DisplayName="Operand A (First)"))
-	FPCGAttributePropertyInputSelector OperandA;
-
-	/** Comparison */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
-	EPCGExComparison Comparison = EPCGExComparison::NearlyEqual;
-
-	/** Source of the Operand B value -- either the neighboring point, or the edge connecting to that point. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
-	EPCGExGraphValueSource OperandBSource = EPCGExGraphValueSource::Point;
-
-	/** Operand B for testing -- Will be broadcasted to `double` under the hood. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(ShowOnlyInnerProperties, DisplayName="Operand B (Neighbor)"))
-	FPCGAttributePropertyInputSelector OperandB;
-
-#if WITH_EDITOR
-	FString GetDisplayName() const;
-#endif
-};
-
 #pragma endregion
 
 namespace PCGExGraph
@@ -683,20 +629,6 @@ public:
  * 
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGExAdjacencyTestDefinition : public UPCGExParamDataBase
-{
-	GENERATED_BODY()
-
-public:
-	FPCGExAdjacencyTestDescriptor Descriptor;
-	virtual void BeginDestroy() override;
-};
-
-
-/**
- * 
- */
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
 class PCGEXTENDEDTOOLKIT_API UPCGExSocketStateDefinition : public UPCGExStateDefinitionBase
 {
 	GENERATED_BODY()
@@ -708,20 +640,6 @@ public:
 
 	virtual void BeginDestroy() override;
 };
-
-/**
- * 
- */
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGExNodeStateDefinition : public UPCGExStateDefinitionBase
-{
-	GENERATED_BODY()
-
-public:
-	TArray<UPCGExAdjacencyTestDefinition*> Tests;
-	virtual void BeginDestroy() override;
-};
-
 
 /**
  * 

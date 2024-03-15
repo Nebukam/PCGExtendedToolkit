@@ -124,6 +124,11 @@ bool FPCGExEdgesProcessorContext::AdvanceEdges(const bool bBuildCluster)
 			// Bad cluster/edges.
 			PCGEX_DELETE(CurrentCluster)
 		}
+		else
+		{
+			CurrentCluster->PointsIO = CurrentIO;
+			CurrentCluster->EdgesIO = CurrentEdges;
+		}
 
 		return true;
 	}

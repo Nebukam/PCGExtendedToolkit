@@ -82,6 +82,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFindSocketStatesContext : public FPCGExCusto
 
 	TArray<TObjectPtr<UPCGExSocketStateDefinition>> StateDefinitions;
 	PCGExDataState::TStatesManager* StatesManager = nullptr;
+	TArray<int32> PointIndices;
 };
 
 
