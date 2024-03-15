@@ -10,7 +10,7 @@
 #define LOCTEXT_NAMESPACE "PCGExGraph"
 #define PCGEX_NAMESPACE BuildConvexHull2D
 
-PCGExData::EInit UPCGExBuildConvexHull2DSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
+PCGExData::EInit UPCGExBuildConvexHull2DSettings::GetMainOutputInitMode() const { return bPrunePoints ? PCGExData::EInit::NewOutput : PCGExData::EInit::DuplicateInput; }
 
 FPCGExBuildConvexHull2DContext::~FPCGExBuildConvexHull2DContext()
 {
@@ -215,24 +215,22 @@ bool FPCGExConvexHull2Task::ExecuteTask()
 		return false;
 	}
 
-	if (Settings->bPrunePoints)
-	{
-		PCGExGraph::FIndexedEdge E = PCGExGraph::FIndexedEdge{};
-
-		for (const uint64 Edge : Delaunay->DelaunayEdges)
-		{
-			uint32 A;
-			uint32 B;
-			PCGEx::H64(Edge, A, B);
-			if (!Delaunay->DelaunayHull.Contains(A) ||
-				!Delaunay->DelaunayHull.Contains(B)) { continue; }
-			Graph->InsertEdge(A, B, E);
-		}
-	}
-	else
+	if (!Settings->bPrunePoints)
 	{
 		if (Settings->bMarkHull) { Context->HullIndices.Append(Delaunay->DelaunayHull); }
 		Graph->InsertEdges(Delaunay->DelaunayEdges, -1);
+	}
+
+	PCGExGraph::FIndexedEdge E = PCGExGraph::FIndexedEdge{};
+
+	for (const uint64 Edge : Delaunay->DelaunayEdges)
+	{
+		uint32 A;
+		uint32 B;
+		PCGEx::H64(Edge, A, B);
+		if (!Delaunay->DelaunayHull.Contains(A) ||
+			!Delaunay->DelaunayHull.Contains(B)) { continue; }
+		Graph->InsertEdge(A, B, E);
 	}
 
 

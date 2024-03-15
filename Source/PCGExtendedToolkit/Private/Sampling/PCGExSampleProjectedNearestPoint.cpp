@@ -378,7 +378,7 @@ bool FPCGExSampleProjectedPointTask::ExecuteTask()
 		WeightedTransform.SetScale3D(WeightedTransform.GetScale3D() + (Target.Transform.GetScale3D() * Weight));
 		WeightedTransform.SetLocation(WeightedTransform.GetLocation() + (Target.Transform.GetLocation() * Weight));
 
-		WeightedProjectedPosition += Context->ProjectedSourceIO[TargetInfos.Index].Transform.GetLocation();
+		WeightedProjectedPosition += Context->ProjectedTargetIO[TargetInfos.Index].Transform.GetLocation();
 
 		if (Settings->LookAtUpSelection == EPCGExSampleSource::Target) { WeightedUp += Context->LookAtUpGetter.SafeGet(TargetInfos.Index, Context->SafeUpVector) * Weight; }
 
