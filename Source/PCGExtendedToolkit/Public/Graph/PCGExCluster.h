@@ -59,6 +59,48 @@ namespace PCGExCluster
 	constexpr PCGExMT::AsyncState State_ProcessingCluster = __COUNTER__;
 	constexpr PCGExMT::AsyncState State_ProjectingCluster = __COUNTER__;
 
+	struct PCGEXTENDEDTOOLKIT_API FClusterItemRef
+	{
+		int32 ItemIndex;
+		FBoxSphereBounds Bounds;
+		
+		FClusterItemRef(int32 InItemIndex, const FBoxSphereBounds& InBounds)
+			: ItemIndex(InItemIndex), Bounds(InBounds)
+		{
+			
+		}
+	};
+	
+	struct PCGEXTENDEDTOOLKIT_API FClusterItemRefSemantics
+	{
+		enum { MaxElementsPerLeaf = 16 };
+
+		enum { MinInclusiveElementsPerNode = 7 };
+
+		enum { MaxNodeDepth = 12 };
+
+		using ElementAllocator = TInlineAllocator<MaxElementsPerLeaf>;
+
+		FORCEINLINE static const FBoxSphereBounds& GetBoundingBox(const FClusterItemRef& InNode)
+		{
+			return InNode.Bounds;
+		}
+
+		FORCEINLINE static const bool AreElementsEqual(const FClusterItemRef& A, const FClusterItemRef& B)
+		{
+			return A.ItemIndex == B.ItemIndex;
+		}
+
+		FORCEINLINE static void ApplyOffset(FClusterItemRef& InNode)
+		{
+			ensureMsgf(false, TEXT("Not implemented"));
+		}
+
+		FORCEINLINE static void SetElementId(const FClusterItemRef& Element, FOctreeElementId2 OctreeElementID)
+		{
+		}
+	};
+	
 	struct FCluster;
 
 	struct PCGEXTENDEDTOOLKIT_API FNode : public PCGExGraph::FNode
@@ -81,7 +123,7 @@ namespace PCGExCluster
 		FVector GetCentroid(FCluster* InCluster) const;
 		int32 GetEdgeIndex(int32 AdjacentNodeIndex) const;
 	};
-
+		
 	struct PCGEXTENDEDTOOLKIT_API FCluster
 	{
 		bool bEdgeLengthsDirty = true;
@@ -96,6 +138,11 @@ namespace PCGExCluster
 
 		PCGExData::FPointIO* PointsIO = nullptr;
 		PCGExData::FPointIO* EdgesIO = nullptr;
+
+		typedef TOctree2<FClusterItemRef, FClusterItemRefSemantics> ClusterItemOctree;
+		ClusterItemOctree* NodeOctree = nullptr;
+		ClusterItemOctree* EdgeOctree = nullptr;
+		
 		FCluster();
 
 		~FCluster();
@@ -108,6 +155,10 @@ namespace PCGExCluster
 
 		void BuildPartialFrom(const TArray<FVector>& Positions, const TSet<uint64>& InEdges);
 
+		void RebuildNodeOctree();
+		void RebuildEdgeOctree();
+		void RebuildOctree(EPCGExClusterClosestSearchMode Mode);
+		
 		int32 FindClosestNode(const FVector& Position, EPCGExClusterClosestSearchMode Mode, const int32 MinNeighbors = 0) const;
 		int32 FindClosestNode(const FVector& Position, const int32 MinNeighbors = 0) const;
 		int32 FindClosestNodeFromEdge(const FVector& Position, const int32 MinNeighbors = 0) const;

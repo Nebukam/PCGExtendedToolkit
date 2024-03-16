@@ -80,6 +80,9 @@ namespace PCGExCluster
 		PointIndexMap.Empty();
 		Edges.Empty();
 		EdgeLengths.Empty();
+
+		PCGEX_DELETE(NodeOctree)
+		PCGEX_DELETE(EdgeOctree)
 	}
 
 	FNode& FCluster::GetOrCreateNode(const int32 PointIndex, const TArray<FPCGPoint>& InPoints)
@@ -199,6 +202,51 @@ namespace PCGExCluster
 		}
 	}
 
+	void FCluster::RebuildNodeOctree()
+	{
+		PCGEX_DELETE(NodeOctree)
+		NodeOctree = new ClusterItemOctree(Bounds.GetCenter(), Bounds.GetExtent().Length());
+		for (const FNode& Node : Nodes)
+		{
+			NodeOctree->AddElement(FClusterItemRef(Node.NodeIndex, FBoxSphereBounds(FSphere(Node.Position, 0))));
+		}
+	}
+
+	void FCluster::RebuildEdgeOctree()
+	{
+		PCGEX_DELETE(EdgeOctree)
+		EdgeOctree = new ClusterItemOctree(Bounds.GetCenter(), Bounds.GetExtent().Length());
+		for (const PCGExGraph::FIndexedEdge& Edge : Edges)
+		{
+			const FNode& Start = Nodes[*PointIndexMap.Find(Edge.Start)];
+			const FNode& End = Nodes[*PointIndexMap.Find(Edge.End)];
+			EdgeOctree->AddElement(
+					FClusterItemRef(
+							Edge.EdgeIndex,
+							FBoxSphereBounds(
+									FSphere(
+										FMath::Lerp(Start.Position, End.Position, 0.5),
+										FVector::Dist(Start.Position, End.Position) * 0.5)
+								)
+						)
+				);
+		}
+	}
+
+	void FCluster::RebuildOctree(const EPCGExClusterClosestSearchMode Mode)
+	{
+		switch (Mode)
+		{
+		case EPCGExClusterClosestSearchMode::Node:
+			RebuildNodeOctree();
+			break;
+		case EPCGExClusterClosestSearchMode::Edge:
+			RebuildEdgeOctree();
+			break;
+		default: ;
+		}
+	}
+
 	int32 FCluster::FindClosestNode(const FVector& Position, EPCGExClusterClosestSearchMode Mode, const int32 MinNeighbors) const
 	{
 		switch (Mode)
@@ -215,14 +263,34 @@ namespace PCGExCluster
 	{
 		double MaxDistance = TNumericLimits<double>::Max();
 		int32 ClosestIndex = -1;
-		for (const FNode& Node : Nodes)
+
+		if (NodeOctree)
 		{
-			if (Node.AdjacentNodes.Num() < MinNeighbors) { continue; }
-			const double Dist = FVector::DistSquared(Position, Node.Position);
-			if (Dist < MaxDistance)
+			auto ProcessCandidate = [&](const FClusterItemRef& Item)
 			{
-				MaxDistance = Dist;
-				ClosestIndex = Node.NodeIndex;
+				const FNode& Node = Nodes[Item.ItemIndex];
+				if (Node.AdjacentNodes.Num() < MinNeighbors) { return; }
+				const double Dist = FVector::DistSquared(Position, Node.Position);
+				if (Dist < MaxDistance)
+				{
+					MaxDistance = Dist;
+					ClosestIndex = Node.NodeIndex;
+				}
+			};
+
+			NodeOctree->FindNearbyElements(Position, ProcessCandidate);
+		}
+		else
+		{
+			for (const FNode& Node : Nodes)
+			{
+				if (Node.AdjacentNodes.Num() < MinNeighbors) { continue; }
+				const double Dist = FVector::DistSquared(Position, Node.Position);
+				if (Dist < MaxDistance)
+				{
+					MaxDistance = Dist;
+					ClosestIndex = Node.NodeIndex;
+				}
 			}
 		}
 
@@ -234,15 +302,35 @@ namespace PCGExCluster
 		double MaxDistance = TNumericLimits<double>::Max();
 		int32 ClosestIndex = -1;
 
-		for (const PCGExGraph::FIndexedEdge& Edge : Edges)
+		if (EdgeOctree)
 		{
-			const FNode& Start = Nodes[*PointIndexMap.Find(Edge.Start)];
-			const FNode& End = Nodes[*PointIndexMap.Find(Edge.End)];
-			const double Dist = FMath::PointDistToSegmentSquared(Position, Start.Position, End.Position);
-			if (Dist < MaxDistance)
+			auto ProcessCandidate = [&](const FClusterItemRef& Item)
 			{
-				MaxDistance = Dist;
-				ClosestIndex = Edge.EdgeIndex;
+				const PCGExGraph::FIndexedEdge& Edge = Edges[Item.ItemIndex];
+				const FNode& Start = Nodes[*PointIndexMap.Find(Edge.Start)];
+				const FNode& End = Nodes[*PointIndexMap.Find(Edge.End)];
+				const double Dist = FMath::PointDistToSegmentSquared(Position, Start.Position, End.Position);
+				if (Dist < MaxDistance)
+				{
+					MaxDistance = Dist;
+					ClosestIndex = Edge.EdgeIndex;
+				}
+			};
+
+			EdgeOctree->FindNearbyElements(Position, ProcessCandidate);
+		}
+		else
+		{
+			for (const PCGExGraph::FIndexedEdge& Edge : Edges)
+			{
+				const FNode& Start = Nodes[*PointIndexMap.Find(Edge.Start)];
+				const FNode& End = Nodes[*PointIndexMap.Find(Edge.End)];
+				const double Dist = FMath::PointDistToSegmentSquared(Position, Start.Position, End.Position);
+				if (Dist < MaxDistance)
+				{
+					MaxDistance = Dist;
+					ClosestIndex = Edge.EdgeIndex;
+				}
 			}
 		}
 
@@ -263,14 +351,32 @@ namespace PCGExCluster
 		int32 Result = -1;
 		double LastDist = TNumericLimits<double>::Max();
 
-		for (const int32 OtherIndex : Node.AdjacentNodes)
+		if (NodeOctree)
 		{
-			if (Nodes[OtherIndex].AdjacentNodes.Num() < MinNeighborCount) { continue; }
-			if (const double Dist = FMath::PointDistToSegmentSquared(Position, Node.Position, Nodes[OtherIndex].Position);
-				Dist < LastDist)
+			auto ProcessCandidate = [&](const FClusterItemRef& Item)
 			{
-				LastDist = Dist;
-				Result = OtherIndex;
+				if (Nodes[Item.ItemIndex].AdjacentNodes.Num() < MinNeighborCount) { return; }
+				if (const double Dist = FMath::PointDistToSegmentSquared(Position, Node.Position, Nodes[Item.ItemIndex].Position);
+					Dist < LastDist)
+				{
+					LastDist = Dist;
+					Result = Item.ItemIndex;
+				}
+			};
+
+			NodeOctree->FindNearbyElements(Position, ProcessCandidate);
+		}
+		else
+		{
+			for (const int32 OtherIndex : Node.AdjacentNodes)
+			{
+				if (Nodes[OtherIndex].AdjacentNodes.Num() < MinNeighborCount) { continue; }
+				if (const double Dist = FMath::PointDistToSegmentSquared(Position, Node.Position, Nodes[OtherIndex].Position);
+					Dist < LastDist)
+				{
+					LastDist = Dist;
+					Result = OtherIndex;
+				}
 			}
 		}
 
@@ -283,15 +389,34 @@ namespace PCGExCluster
 		int32 Result = -1;
 		double LastDist = TNumericLimits<double>::Max();
 
-		for (const int32 OtherIndex : Node.AdjacentNodes)
+		if (NodeOctree)
 		{
-			if (Nodes[OtherIndex].AdjacentNodes.Num() < MinNeighborCount) { continue; }
-			if (Exclusion.Contains(OtherIndex)) { continue; }
-			if (const double Dist = FMath::PointDistToSegmentSquared(Position, Node.Position, Nodes[OtherIndex].Position);
-				Dist < LastDist)
+			auto ProcessCandidate = [&](const FClusterItemRef& Item)
 			{
-				LastDist = Dist;
-				Result = OtherIndex;
+				if (Nodes[Item.ItemIndex].AdjacentNodes.Num() < MinNeighborCount) { return; }
+				if (Exclusion.Contains(Item.ItemIndex)) { return; }
+				if (const double Dist = FMath::PointDistToSegmentSquared(Position, Node.Position, Nodes[Item.ItemIndex].Position);
+					Dist < LastDist)
+				{
+					LastDist = Dist;
+					Result = Item.ItemIndex;
+				}
+			};
+
+			NodeOctree->FindNearbyElements(Position, ProcessCandidate);
+		}
+		else
+		{
+			for (const int32 OtherIndex : Node.AdjacentNodes)
+			{
+				if (Nodes[OtherIndex].AdjacentNodes.Num() < MinNeighborCount) { continue; }
+				if (Exclusion.Contains(OtherIndex)) { continue; }
+				if (const double Dist = FMath::PointDistToSegmentSquared(Position, Node.Position, Nodes[OtherIndex].Position);
+					Dist < LastDist)
+				{
+					LastDist = Dist;
+					Result = OtherIndex;
+				}
 			}
 		}
 

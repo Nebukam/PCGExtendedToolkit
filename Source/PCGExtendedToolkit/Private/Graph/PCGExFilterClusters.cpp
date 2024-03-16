@@ -83,65 +83,53 @@ bool FPCGExFilterClustersElement::ExecuteInternal(
 		if (!Boot(Context)) { return true; }
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
-
+	
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
-		if (!Context->AdvancePointsIO()) { Context->Done(); }
-		else
+
+		while(Context->AdvancePointsIO())
 		{
 			if (!Context->TaggedEdges)
 			{
 				PCGE_LOG(Warning, GraphAndLog, FTEXT("Some input points have no associated edges."));
 				Context->SetState(PCGExMT::State_ReadyForNextPoints);
-				return false;
+				continue;
 			}
 
 			Context->CurrentEdgeMap = new TSet<int32>();
 			Context->VtxEdgeMap.Add(Context->CurrentIO->IOIndex, Context->CurrentEdgeMap);
 
-			Context->SetState(PCGExGraph::State_ReadyForNextEdges);
-		}
-	}
+			while(Context->AdvanceEdges(true))
+			{
+				if (!Context->CurrentCluster)
+				{
+					PCGEX_INVALID_CLUSTER_LOG
+					continue;
+				}
 
-	if (Context->IsState(PCGExGraph::State_ReadyForNextEdges))
-	{
-		if (!Context->AdvanceEdges(true))
-		{
-			Context->SetState(PCGExMT::State_ReadyForNextPoints);
-			return false;
-		}
+				Context->CurrentCluster->RebuildOctree(Settings->SearchMode);
+				Context->CurrentEdgeMap->Add(Context->CurrentEdges->IOIndex);
 
-		if (!Context->CurrentCluster)
-		{
-			PCGEX_INVALID_CLUSTER_LOG
-			return false;
-		}
+				for (PCGExFilterCluster::FSelector& Selector : Context->Selectors)
+				{
+					const int32 ClosestNodeIndex = Context->CurrentCluster->FindClosestNode(Selector.Position, Settings->SearchMode);
+					if (ClosestNodeIndex == -1) { continue; }
 
-		Context->CurrentEdgeMap->Add(Context->CurrentEdges->IOIndex);
+					PCGExCluster::FNode& ClosestNode = Context->CurrentCluster->Nodes[ClosestNodeIndex];
 
-		for (PCGExFilterCluster::FSelector& Selector : Context->Selectors)
-		{
-			const int32 ClosestNodeIndex = Context->CurrentCluster->FindClosestNode(Selector.Position, Settings->SearchMode);
-			if (ClosestNodeIndex == -1) { continue; }
+					const double Dist = FVector::DistSquared(ClosestNode.Position, Selector.Position);
+					if (Dist > Selector.ClosestDistance) { continue; }
 
-			PCGExCluster::FNode& ClosestNode = Context->CurrentCluster->Nodes[ClosestNodeIndex];
-
-			const double Dist = FVector::DistSquared(ClosestNode.Position, Selector.Position);
-			if (Dist > Selector.ClosestDistance) { continue; }
-
-			Selector.ClosestDistance = Dist;
-			Selector.VtxIndex = Context->CurrentIO->IOIndex;
-			Selector.EdgesIndex = Context->CurrentEdges->IOIndex;
+					Selector.ClosestDistance = Dist;
+					Selector.VtxIndex = Context->CurrentIO->IOIndex;
+					Selector.EdgesIndex = Context->CurrentEdges->IOIndex;
+				}
+			}
+	
 		}
 
-		Context->SetState(PCGExGraph::State_ReadyForNextEdges);
-		return false;
-	}
-
-	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
-	{
-		PCGEX_WAIT_ASYNC
-		Context->SetState(PCGExMT::State_ReadyForNextPoints);
+		Context->Done();
+		
 	}
 
 	if (Context->IsDone())
