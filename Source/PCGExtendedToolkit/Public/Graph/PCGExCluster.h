@@ -157,6 +157,7 @@ namespace PCGExCluster
 
 		void RebuildNodeOctree();
 		void RebuildEdgeOctree();
+		void RebuildOctree(EPCGExClusterClosestSearchMode Mode);
 		
 		int32 FindClosestNode(const FVector& Position, EPCGExClusterClosestSearchMode Mode, const int32 MinNeighbors = 0) const;
 		int32 FindClosestNode(const FVector& Position, const int32 MinNeighbors = 0) const;

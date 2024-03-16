@@ -152,6 +152,8 @@ bool FPCGExPathfindingPlotEdgesElement::ExecuteInternal(FPCGContext* InContext) 
 			return false;
 		}
 
+		if (Settings->bUseOctreeSearch) { Context->CurrentCluster->RebuildOctree(Settings->NodePickingMode); }
+
 		Context->SetState(PCGExCluster::State_ProjectingCluster);
 	}
 
