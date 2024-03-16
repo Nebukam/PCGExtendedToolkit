@@ -168,9 +168,9 @@ class PCGEXTENDEDTOOLKIT_API UPCGExNodeAdjacencyFilterSettings : public UPCGExCr
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_TASKNAME(
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
 		NodeAdjacencyFilter, "Cluster Filter : Adjacency", "Numeric comparison of adjacent values, testing either adjacent nodes or connected edges.",
-		FName(FString(Descriptor.GetDisplayName())))
+		FName(Descriptor.GetDisplayName()))
 
 #endif
 

@@ -20,9 +20,9 @@ public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	bool bCacheResult = false;
-	PCGEX_NODE_INFOS_CUSTOM_TASKNAME(
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
 		GraphSocket, "Socket Definition", "Creates a single socket data object.",
-		Socket.SocketName.IsNone() ? FName(GetDefaultNodeTitle().ToString()) : FName(FString("PCGEx | Socket : ") + Socket.SocketName.ToString()))
+		Socket.SocketName)
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Param; }
 	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorExParam; }
 

@@ -18,9 +18,9 @@ class PCGEXTENDEDTOOLKIT_API UPCGExCreateNodeStateSettings : public UPCGExCreate
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_TASKNAME(
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
 		NodeState, "Node State Definition", "Creates a node state configuration.",
-		StateName.IsNone() ? FName(GetDefaultNodeTitle().ToString()) : FName(FString("PCGEx | NS : ") + StateName.ToString()))
+		StateName)
 #endif
 	virtual FName GetMainOutputLabel() const override;
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
@@ -44,5 +44,4 @@ class PCGEXTENDEDTOOLKIT_API FPCGExCreateNodeStateElement : public FPCGExCreateS
 {
 protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
-
 };

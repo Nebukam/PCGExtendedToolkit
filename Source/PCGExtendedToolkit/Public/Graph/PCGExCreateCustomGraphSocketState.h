@@ -21,9 +21,9 @@ public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	bool bCacheResult = false;
-	PCGEX_NODE_INFOS_CUSTOM_TASKNAME(
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
 		GraphSocketState, "Socket State Definition", "Creates a socket state configuration from any number of sockets and attributes.",
-		StateName.IsNone() ? FName(GetDefaultNodeTitle().ToString()) : FName(FString("PCGEx | SS : ") + StateName.ToString()))
+		StateName)
 
 #endif
 	virtual FName GetMainOutputLabel() const override;

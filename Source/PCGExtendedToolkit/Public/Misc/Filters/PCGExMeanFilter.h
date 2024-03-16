@@ -141,9 +141,9 @@ public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	bool bCacheResult = false;
-	PCGEX_NODE_INFOS_CUSTOM_TASKNAME(
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
 		MeanFilterDefinition, "Filter : Mean", "Creates a filter definition that compares values against their mean.",
-		FName(FString(Descriptor.GetDisplayName())))
+		FName(Descriptor.GetDisplayName()))
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Param; }
 	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorFilter; }
 #endif

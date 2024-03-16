@@ -20,11 +20,20 @@ virtual FName AdditionalTaskName() const override{ return bCacheResult ? FName(F
 virtual FText GetDefaultNodeTitle() const override { return NSLOCTEXT("PCGEx" #_SHORTNAME, "NodeTitle", "PCGEx | " _NAME);} \
 virtual FText GetNodeTooltipText() const override{ return NSLOCTEXT("PCGEx" #_SHORTNAME "Tooltip", "NodeTooltip", _TOOLTIP); }
 
-#define PCGEX_NODE_INFOS_CUSTOM_TASKNAME(_SHORTNAME, _NAME, _TOOLTIP, _TASK_NAME)\
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION == 3
+#define PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(_SHORTNAME, _NAME, _TOOLTIP, _TASK_NAME)\
 virtual FName GetDefaultNodeName() const override { return FName(TEXT(#_SHORTNAME)); } \
-virtual FName AdditionalTaskName() const override{ return _TASK_NAME; }\
+virtual FName AdditionalTaskName() const override{ return _TASK_NAME.IsNone() ? FName(GetDefaultNodeTitle().ToString()) : FName(FString(GetDefaultNodeTitle().ToString() + "\r" + _TASK_NAME.ToString())); }\
 virtual FText GetDefaultNodeTitle() const override { return NSLOCTEXT("PCGEx" #_SHORTNAME, "NodeTitle", "PCGEx | " _NAME);} \
 virtual FText GetNodeTooltipText() const override{ return NSLOCTEXT("PCGEx" #_SHORTNAME "Tooltip", "NodeTooltip", _TOOLTIP); }
+#else
+#define PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(_SHORTNAME, _NAME, _TOOLTIP, _TASK_NAME)\
+virtual FName GetDefaultNodeName() const override { return FName(TEXT(#_SHORTNAME)); } \
+virtual FName AdditionalTaskName() const override{ return _TASK_NAME.IsNone() ? FName(GetDefaultNodeTitle().ToString()) : _TASK_NAME.ToString(); }\
+virtual FString GetAdditionalTitleInformation() const override{ return _TASK_NAME.IsNone() ? FString() : FName(GetDefaultNodeTitle().ToString()); }
+virtual FText GetDefaultNodeTitle() const override { return NSLOCTEXT("PCGEx" #_SHORTNAME, "NodeTitle", "PCGEx | " _NAME);} \
+virtual FText GetNodeTooltipText() const override{ return NSLOCTEXT("PCGEx" #_SHORTNAME "Tooltip", "NodeTooltip", _TOOLTIP); }
+#endif
 
 #define PCGEX_INITIALIZE_CONTEXT(_NAME)\
 FPCGContext* FPCGEx##_NAME##Element::Initialize( const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node)\

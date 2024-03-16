@@ -111,9 +111,9 @@ class PCGEXTENDEDTOOLKIT_API UPCGExNodeNeighborsCountFilterSettings : public UPC
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_TASKNAME(
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
 		NodeNeighborsCountFilter, "Cluster Filter : Neighbors Count", "Check against the node' neighbor count.",
-		FName(FString(Descriptor.GetDisplayName())))
+		FName(Descriptor.GetDisplayName()))
 
 #endif
 
