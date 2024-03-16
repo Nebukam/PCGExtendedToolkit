@@ -37,6 +37,10 @@ public:
 	//~End UPCGExPointsProcessorSettings interface
 
 public:
+	/** Allow overlaping states to overlap. Useful if you want to evaluate multiple conditions separately and output the same final state */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bAllowStateOverlap = false;
+	
 	/** Write the name of the state to an attribute */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bWriteStateName = true;

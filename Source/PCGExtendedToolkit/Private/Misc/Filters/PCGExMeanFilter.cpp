@@ -51,7 +51,7 @@ void UPCGExMeanFilterDefinition::BeginDestroy()
 	Super::BeginDestroy();
 }
 
-void PCGExPointsFilter::TMeanHandler::Capture(const PCGExData::FPointIO* PointIO)
+void PCGExPointsFilter::TMeanHandler::Capture(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO)
 {
 	Target = new PCGEx::FLocalSingleFieldGetter();
 
@@ -59,7 +59,11 @@ void PCGExPointsFilter::TMeanHandler::Capture(const PCGExData::FPointIO* PointIO
 	Target->Grab(*PointIO, true);
 	bValid = Target->IsUsable(PointIO->GetNum());
 
-	if (!bValid) { PCGEX_DELETE(Target) }
+	if (!bValid)
+	{
+		PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Target attribute: {0}."), FText::FromName(MeanFilter->Target.GetName())));
+		PCGEX_DELETE(Target)
+	}
 }
 
 bool PCGExPointsFilter::TMeanHandler::Test(const int32 PointIndex) const

@@ -44,9 +44,8 @@ bool FPCGExFindNodeStatesElement::Boot(FPCGContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(FindNodeStates)
 
 	return PCGExDataState::GetInputStates(
-		Context,
-		PCGExCluster::SourceNodeStateLabel,
-		Context->StateDefinitions);
+		Context, PCGExCluster::SourceNodeStateLabel,
+		Context->StateDefinitions, Settings->bAllowStateOverlap);
 }
 
 bool FPCGExFindNodeStatesElement::ExecuteInternal(
@@ -88,11 +87,10 @@ bool FPCGExFindNodeStatesElement::ExecuteInternal(
 		Context->CurrentCluster->GetNodePointIndices(Context->NodeIndices);
 		Context->StatesManager = new PCGExDataState::TStatesManager(Context->CurrentIO);
 		Context->StatesManager->Register<UPCGExNodeStateDefinition>(
-			Context->StateDefinitions,
-			[&](PCGExDataFilter::TFilterHandler* Handler)
+			Context, Context->StateDefinitions, [&](PCGExDataFilter::TFilterHandler* Handler)
 			{
 				PCGExCluster::FNodeStateHandler* NodeStateHandler = static_cast<PCGExCluster::FNodeStateHandler*>(Handler);
-				NodeStateHandler->CaptureCluster(Context->CurrentCluster);
+				NodeStateHandler->CaptureCluster(Context, Context->CurrentCluster);
 			});
 
 		if (!Context->StatesManager->bValid)
@@ -110,7 +108,6 @@ bool FPCGExFindNodeStatesElement::ExecuteInternal(
 		Context->StatesManager->PrepareForTesting();
 
 		Context->SetState(PCGExCluster::State_ProcessingCluster);
-		
 	}
 
 	if (Context->IsState(PCGExCluster::State_ProcessingCluster))

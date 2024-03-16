@@ -35,6 +35,31 @@ enum class EPCGExComparison : uint8
 
 namespace PCGExCompare
 {
+	static FString ToString(const EPCGExComparison Comparison)
+	{
+		switch (Comparison)
+		{
+		case EPCGExComparison::StrictlyEqual:
+			return " == ";
+		case EPCGExComparison::StrictlyNotEqual:
+			return " != ";
+		case EPCGExComparison::EqualOrGreater:
+			return " >= ";
+		case EPCGExComparison::EqualOrSmaller:
+			return " <= ";
+		case EPCGExComparison::StrictlyGreater:
+			return " > ";
+		case EPCGExComparison::StrictlySmaller:
+			return " < ";
+		case EPCGExComparison::NearlyEqual:
+			return " ~= ";
+		case EPCGExComparison::NearlyNotEqual:
+			return " !~= ";
+		default: return " ?? ";
+		}
+	}
+
+
 #pragma region StrictlyEqual
 
 	template <typename T, typename CompilerSafety = void>

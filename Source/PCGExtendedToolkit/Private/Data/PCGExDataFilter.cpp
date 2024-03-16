@@ -16,7 +16,7 @@ PCGExDataFilter::TFilterHandler* UPCGExFilterDefinitionBase::CreateHandler() con
 
 namespace PCGExDataFilter
 {
-	void TFilterHandler::Capture(const PCGExData::FPointIO* PointIO)
+	void TFilterHandler::Capture(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO)
 	{
 		bValid = true;
 	}

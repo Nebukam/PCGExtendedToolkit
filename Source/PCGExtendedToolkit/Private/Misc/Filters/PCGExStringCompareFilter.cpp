@@ -58,23 +58,30 @@ void UPCGExStringCompareFilterDefinition::BeginDestroy()
 	Super::BeginDestroy();
 }
 
-void PCGExPointsFilter::TStringComparisonHandler::Capture(const PCGExData::FPointIO* PointIO)
+void PCGExPointsFilter::TStringComparisonHandler::Capture(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO)
 {
 	bValid = true;
 
 	OperandA = new PCGEx::TFAttributeReader<FString>(CompareFilter->OperandA.GetName());
-	if (!OperandA->Bind(*const_cast<PCGExData::FPointIO*>(PointIO))) { bValid = false; }
+	bValid = OperandA->Bind(*const_cast<PCGExData::FPointIO*>(PointIO));
+
+	if (!bValid)
+	{
+		PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand A attribute: {0}."), FText::FromName(CompareFilter->OperandA.GetName())));
+		PCGEX_DELETE(OperandA)
+		return;
+	}
 
 	if (CompareFilter->CompareAgainst == EPCGExOperandType::Attribute)
 	{
 		OperandB = new PCGEx::TFAttributeReader<FString>(CompareFilter->OperandB.GetName());
-		if (!OperandB->Bind(*const_cast<PCGExData::FPointIO*>(PointIO))) { bValid = false; }
-	}
+		bValid = OperandB->Bind(*const_cast<PCGExData::FPointIO*>(PointIO));
 
-	if (!bValid)
-	{
-		PCGEX_DELETE(OperandA)
-		PCGEX_DELETE(OperandB)
+		if (!bValid)
+		{
+			PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand B attribute: {0}."), FText::FromName(CompareFilter->OperandB.GetName())));
+			PCGEX_DELETE(OperandB)
+		}
 	}
 }
 

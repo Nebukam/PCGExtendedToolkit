@@ -109,7 +109,7 @@ namespace PCGExDataState
 	};
 
 	template <typename T_DEF>
-	static bool GetInputStates(FPCGContext* InContext, const FName InLabel, TArray<TObjectPtr<T_DEF>>& OutStates)
+	static bool GetInputStates(FPCGContext* InContext, const FName InLabel, TArray<TObjectPtr<T_DEF>>& OutStates, bool bAllowDuplicateNames)
 	{
 		const TArray<FPCGTaggedData>& Inputs = InContext->InputData.GetInputsByPin(InLabel);
 
@@ -118,7 +118,7 @@ namespace PCGExDataState
 		{
 			if (const T_DEF* State = Cast<T_DEF>(InputState.Data))
 			{
-				if (UniqueStatesNames.Contains(State->StateName))
+				if (UniqueStatesNames.Contains(State->StateName) && !bAllowDuplicateNames)
 				{
 					PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("State '{0}' has the same name as another state, it will be ignored."), FText::FromName(State->StateName)));
 					continue;

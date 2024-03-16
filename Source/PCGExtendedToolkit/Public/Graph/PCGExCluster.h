@@ -44,7 +44,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExNodeStateDefinition : public UPCGExStateDefin
 {
 	GENERATED_BODY()
 
-public:	
+public:
 	TArray<UPCGExFilterDefinitionBase*> Tests;
 	virtual PCGExDataFilter::TFilterHandler* CreateHandler() const override;
 	virtual void BeginDestroy() override;
@@ -63,14 +63,13 @@ namespace PCGExCluster
 	{
 		int32 ItemIndex;
 		FBoxSphereBounds Bounds;
-		
+
 		FClusterItemRef(int32 InItemIndex, const FBoxSphereBounds& InBounds)
 			: ItemIndex(InItemIndex), Bounds(InBounds)
 		{
-			
 		}
 	};
-	
+
 	struct PCGEXTENDEDTOOLKIT_API FClusterItemRefSemantics
 	{
 		enum { MaxElementsPerLeaf = 16 };
@@ -100,7 +99,7 @@ namespace PCGExCluster
 		{
 		}
 	};
-	
+
 	struct FCluster;
 
 	struct PCGEXTENDEDTOOLKIT_API FNode : public PCGExGraph::FNode
@@ -123,7 +122,7 @@ namespace PCGExCluster
 		FVector GetCentroid(FCluster* InCluster) const;
 		int32 GetEdgeIndex(int32 AdjacentNodeIndex) const;
 	};
-		
+
 	struct PCGEXTENDEDTOOLKIT_API FCluster
 	{
 		bool bEdgeLengthsDirty = true;
@@ -142,7 +141,7 @@ namespace PCGExCluster
 		typedef TOctree2<FClusterItemRef, FClusterItemRefSemantics> ClusterItemOctree;
 		ClusterItemOctree* NodeOctree = nullptr;
 		ClusterItemOctree* EdgeOctree = nullptr;
-		
+
 		FCluster();
 
 		~FCluster();
@@ -158,7 +157,7 @@ namespace PCGExCluster
 		void RebuildNodeOctree();
 		void RebuildEdgeOctree();
 		void RebuildOctree(EPCGExClusterClosestSearchMode Mode);
-		
+
 		int32 FindClosestNode(const FVector& Position, EPCGExClusterClosestSearchMode Mode, const int32 MinNeighbors = 0) const;
 		int32 FindClosestNode(const FVector& Position, const int32 MinNeighbors = 0) const;
 		int32 FindClosestNodeFromEdge(const FVector& Position, const int32 MinNeighbors = 0) const;
@@ -240,11 +239,12 @@ namespace PCGExCluster
 			bValid = false;
 		}
 
-		const FCluster* TestedCluster = nullptr;
-		
-		void CaptureCluster(const FCluster* InCluster);
-		virtual void Capture(const PCGExData::FPointIO* PointIO) override;
-		virtual void CaptureEdges(const PCGExData::FPointIO* EdgeIO);
+		const FCluster* CapturedCluster = nullptr;
+
+		virtual void CaptureCluster(const FPCGContext* InContext, const FCluster* InCluster);
+		virtual void Capture(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO) override;
+		virtual void CaptureEdges(const FPCGContext* InContext, const PCGExData::FPointIO* EdgeIO);
+		virtual void PrepareForTesting(PCGExData::FPointIO* PointIO) override;
 	};
 
 	class PCGEXTENDEDTOOLKIT_API FNodeStateHandler : public PCGExDataState::TStateHandler
@@ -255,10 +255,11 @@ namespace PCGExCluster
 		const UPCGExNodeStateDefinition* NodeStateDefinition = nullptr;
 		TArray<TFilterHandler*> FilterHandlers;
 		TArray<TClusterFilterHandler*> ClusterFilterHandlers;
-		
-		void CaptureCluster(FCluster* InCluster);
-		virtual bool Test(const int32 PointIndex) const override;
 
+		void CaptureCluster(const FPCGContext* InContext, FCluster* InCluster);
+		virtual bool Test(const int32 PointIndex) const override;
+		virtual void PrepareForTesting(PCGExData::FPointIO* PointIO) override;
+		
 		virtual ~FNodeStateHandler() override
 		{
 			PCGEX_DELETE_TARRAY(FilterHandlers)

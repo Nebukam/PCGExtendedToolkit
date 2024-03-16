@@ -22,7 +22,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAdjacencyFilterDescriptor
 	{
 	}
 
-	/** How should adjacency be observed. */
+	/** How many adjacent items should be tested. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	EPCGExAdjacencyTestMode Mode = EPCGExAdjacencyTestMode::All;
 
@@ -42,14 +42,22 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAdjacencyFilterDescriptor
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="Mode==EPCGExAdjacencyTestMode::Some && (SubsetMeasure==EPCGExAdjacencySubsetMeasureMode::AbsoluteLocal||SubsetMeasure==EPCGExAdjacencySubsetMeasureMode::RelativeLocal)", EditConditionHides))
 	FPCGAttributePropertyInputSelector LocalMeasure;
 
-	/** Rounding mode for relative measures */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="Mode==EPCGExAdjacencyTestMode::Some && (SubsetMeasure==EPCGExAdjacencySubsetMeasureMode::RelativeStatic||SubsetMeasure==EPCGExAdjacencySubsetMeasureMode::RelativeLocal)", EditConditionHides))
-	EPCGExRelativeRoundingMode RoundingMode = EPCGExRelativeRoundingMode::Round;
-
+	/** Local measure attribute */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="Mode==EPCGExAdjacencyTestMode::Some && (SubsetMeasure==EPCGExAdjacencySubsetMeasureMode::AbsoluteStatic||SubsetMeasure==EPCGExAdjacencySubsetMeasureMode::RelativeStatic)", EditConditionHides))
+	double StaticMeasure;
+	
+	/** Type of OperandA */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExOperandType CompareAgainst = EPCGExOperandType::Attribute;
+	
 	/** Operand A for testing -- Will be broadcasted to `double` under the hood. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(ShowOnlyInnerProperties, DisplayName="Operand A (First)"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="CompareAgainst==EPCGExOperandType::Attribute", EditConditionHides, ShowOnlyInnerProperties, DisplayName="Operand A (First)"))
 	FPCGAttributePropertyInputSelector OperandA;
 
+	/** Constant Operand A for testing. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="CompareAgainst==EPCGExOperandType::Constant", EditConditionHides))
+	double OperandAConstant = 0;
+	
 	/** Comparison */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	EPCGExComparison Comparison = EPCGExComparison::NearlyEqual;
@@ -61,6 +69,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAdjacencyFilterDescriptor
 	/** Operand B for testing -- Will be broadcasted to `double` under the hood. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(ShowOnlyInnerProperties, DisplayName="Operand B (Neighbor)"))
 	FPCGAttributePropertyInputSelector OperandB;
+
+	/** Rounding mode for near measures */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Comparison==EPCGExComparison::NearlyEqual || Comparison==EPCGExComparison::NearlyNotEqual", EditConditionHides))
+	double Tolerance = 0.001;
 
 #if WITH_EDITOR
 	FString GetDisplayName() const;
@@ -81,11 +93,14 @@ public:
 	EPCGExAdjacencySubsetMode SubsetMode = EPCGExAdjacencySubsetMode::AtLeast;
 	EPCGExAdjacencySubsetMeasureMode SubsetMeasure = EPCGExAdjacencySubsetMeasureMode::AbsoluteStatic;
 	FPCGAttributePropertyInputSelector LocalMeasure;
-	EPCGExRelativeRoundingMode RoundingMode = EPCGExRelativeRoundingMode::Round;
+	double StaticMeasure;
+	EPCGExOperandType CompareAgainst = EPCGExOperandType::Attribute;
 	FPCGAttributePropertyInputSelector OperandA;
+	double OperandAConstant = 0;
 	EPCGExComparison Comparison = EPCGExComparison::NearlyEqual;
 	EPCGExGraphValueSource OperandBSource = EPCGExGraphValueSource::Point;
 	FPCGAttributePropertyInputSelector OperandB;
+	double Tolerance = 0.001;
 
 	void ApplyDescriptor(const FPCGExAdjacencyFilterDescriptor& Descriptor)
 	{
@@ -94,11 +109,14 @@ public:
 		SubsetMode = Descriptor.SubsetMode;
 		SubsetMeasure = Descriptor.SubsetMeasure;
 		LocalMeasure = Descriptor.LocalMeasure;
-		RoundingMode = Descriptor.RoundingMode;
+		StaticMeasure = Descriptor.StaticMeasure;
+		CompareAgainst = Descriptor.CompareAgainst;
 		OperandA = Descriptor.OperandA;
+		OperandAConstant = Descriptor.OperandAConstant;
 		Comparison = Descriptor.Comparison;
 		OperandBSource = Descriptor.OperandBSource;
 		OperandB = Descriptor.OperandB;
+		Tolerance = Descriptor.Tolerance;
 	}
 
 	virtual PCGExDataFilter::TFilterHandler* CreateHandler() const override;
@@ -117,13 +135,26 @@ namespace PCGExNodeAdjacency
 
 		const UPCGExAdjacencyFilterDefinition* AdjacencyFilter;
 
-		PCGEx::FLocalVectorGetter* OperandA = nullptr;
-		PCGEx::FLocalVectorGetter* OperandB = nullptr;
+		TArray<double> CachedMeasure;
+		
+		bool bUseAbsoluteMeasure = false;
+		bool bUseLocalMeasure = false;
+		PCGEx::FLocalSingleFieldGetter* LocalMeasure = nullptr;
+		PCGEx::FLocalSingleFieldGetter* OperandA = nullptr;
+		PCGEx::FLocalSingleFieldGetter* OperandB = nullptr;
 
-		virtual void Capture(const PCGExData::FPointIO* PointIO) override;
-		virtual void CaptureEdges(const PCGExData::FPointIO* EdgeIO) override;
+		virtual void Capture(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO) override;
+		virtual void CaptureEdges(const FPCGContext* InContext, const PCGExData::FPointIO* EdgeIO) override;
 
+		virtual void PrepareForTesting(PCGExData::FPointIO* PointIO) override;
 		virtual bool Test(const int32 PointIndex) const override;
+
+		virtual ~TAdjacencyFilterHandler() override
+		{
+			PCGEX_DELETE(LocalMeasure)
+			PCGEX_DELETE(OperandA)
+			PCGEX_DELETE(OperandB)
+		}
 	};
 }
 

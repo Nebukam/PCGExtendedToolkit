@@ -25,27 +25,34 @@ void UPCGExDotFilterDefinition::BeginDestroy()
 	Super::BeginDestroy();
 }
 
-void PCGExPointsFilter::TDotHandler::Capture(const PCGExData::FPointIO* PointIO)
+void PCGExPointsFilter::TDotHandler::Capture(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO)
 {
 	bValid = true;
 
 	OperandA = new PCGEx::FLocalVectorGetter();
 	OperandA->Capture(DotFilter->OperandA);
 	OperandA->Grab(*PointIO, false);
-	if (!OperandA->IsUsable(PointIO->GetNum())) { bValid = false; }
+	bValid = OperandA->IsUsable(PointIO->GetNum());
+
+	if (!bValid)
+	{
+		PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand A attribute: {0}."), FText::FromName(DotFilter->OperandA.GetName())));
+		PCGEX_DELETE(OperandA)
+		return;
+	}
 
 	if (DotFilter->CompareAgainst == EPCGExOperandType::Attribute)
 	{
 		OperandB = new PCGEx::FLocalVectorGetter();
 		OperandB->Capture(DotFilter->OperandB);
 		OperandB->Grab(*PointIO, false);
-		if (!OperandB->IsUsable(PointIO->GetNum())) { bValid = false; }
-	}
+		bValid = OperandB->IsUsable(PointIO->GetNum());
 
-	if (!bValid)
-	{
-		PCGEX_DELETE(OperandA)
-		PCGEX_DELETE(OperandB)
+		if (!bValid)
+		{
+			PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand B attribute: {0}."), FText::FromName(DotFilter->OperandB.GetName())));
+			PCGEX_DELETE(OperandB)
+		}
 	}
 }
 

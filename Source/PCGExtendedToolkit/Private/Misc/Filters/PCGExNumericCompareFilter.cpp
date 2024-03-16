@@ -6,47 +6,10 @@
 #if WITH_EDITOR
 FString FPCGExNumericCompareFilterDescriptor::GetDisplayName() const
 {
-	FString DisplayName = OperandA.GetName().ToString();
+	FString DisplayName = OperandA.GetName().ToString() + PCGExCompare::ToString(Comparison);
 
-	switch (Comparison)
-	{
-	case EPCGExComparison::StrictlyEqual:
-		DisplayName += " == ";
-		break;
-	case EPCGExComparison::StrictlyNotEqual:
-		DisplayName += " != ";
-		break;
-	case EPCGExComparison::EqualOrGreater:
-		DisplayName += " >= ";
-		break;
-	case EPCGExComparison::EqualOrSmaller:
-		DisplayName += " <= ";
-		break;
-	case EPCGExComparison::StrictlyGreater:
-		DisplayName += " > ";
-		break;
-	case EPCGExComparison::StrictlySmaller:
-		DisplayName += " < ";
-		break;
-	case EPCGExComparison::NearlyEqual:
-		DisplayName += " ~= ";
-		break;
-	case EPCGExComparison::NearlyNotEqual:
-		DisplayName += " !~= ";
-		break;
-	default: DisplayName += " ?? ";
-	}
-
-	switch (CompareAgainst)
-	{
-	default:
-	case EPCGExOperandType::Attribute:
-		DisplayName += OperandB.GetName().ToString();
-		break;
-	case EPCGExOperandType::Constant:
-		DisplayName += FString::Printf(TEXT("%.3f"), (static_cast<int32>(1000 * OperandBConstant) / 1000.0));
-		break;
-	}
+	if (CompareAgainst == EPCGExOperandType::Attribute) { DisplayName += OperandB.GetName().ToString(); }
+	else { DisplayName += FString::Printf(TEXT("%.3f"), (static_cast<int32>(1000 * OperandBConstant) / 1000.0)); }
 
 	return DisplayName;
 }
@@ -62,27 +25,34 @@ void UPCGExNumericCompareFilterDefinition::BeginDestroy()
 	Super::BeginDestroy();
 }
 
-void PCGExPointsFilter::TNumericComparisonHandler::Capture(const PCGExData::FPointIO* PointIO)
+void PCGExPointsFilter::TNumericComparisonHandler::Capture(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO)
 {
 	bValid = true;
 
 	OperandA = new PCGEx::FLocalSingleFieldGetter();
 	OperandA->Capture(CompareFilter->OperandA);
 	OperandA->Grab(*PointIO, false);
-	if (!OperandA->IsUsable(PointIO->GetNum())) { bValid = false; }
+	bValid = OperandA->IsUsable(PointIO->GetNum());
+
+	if (!bValid)
+	{
+		PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand A attribute: {0}."), FText::FromName(CompareFilter->OperandA.GetName())));
+		PCGEX_DELETE(OperandA)
+		return;
+	}
 
 	if (CompareFilter->CompareAgainst == EPCGExOperandType::Attribute)
 	{
 		OperandB = new PCGEx::FLocalSingleFieldGetter();
 		OperandB->Capture(CompareFilter->OperandB);
 		OperandB->Grab(*PointIO, false);
-		if (!OperandB->IsUsable(PointIO->GetNum())) { bValid = false; }
-	}
+		bValid = OperandB->IsUsable(PointIO->GetNum());
 
-	if (!bValid)
-	{
-		PCGEX_DELETE(OperandA)
-		PCGEX_DELETE(OperandB)
+		if (!bValid)
+		{
+			PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand B attribute: {0}."), FText::FromName(CompareFilter->OperandB.GetName())));
+			PCGEX_DELETE(OperandB)
+		}
 	}
 }
 
@@ -90,27 +60,7 @@ bool PCGExPointsFilter::TNumericComparisonHandler::Test(const int32 PointIndex) 
 {
 	const double A = OperandA->Values[PointIndex];
 	const double B = CompareFilter->CompareAgainst == EPCGExOperandType::Attribute ? OperandB->Values[PointIndex] : CompareFilter->OperandBConstant;
-
-	switch (CompareFilter->Comparison)
-	{
-	case EPCGExComparison::StrictlyEqual:
-		return A == B;
-	case EPCGExComparison::StrictlyNotEqual:
-		return A != B;
-	case EPCGExComparison::EqualOrGreater:
-		return A >= B;
-	case EPCGExComparison::EqualOrSmaller:
-		return A <= B;
-	case EPCGExComparison::StrictlyGreater:
-		return A > B;
-	case EPCGExComparison::StrictlySmaller:
-		return A < B;
-	case EPCGExComparison::NearlyEqual:
-		return FMath::IsNearlyEqual(A, B, CompareFilter->Tolerance);
-	case EPCGExComparison::NearlyNotEqual:
-		return !FMath::IsNearlyEqual(A, B, CompareFilter->Tolerance);
-	default: return false;
-	}
+	return PCGExCompare::Compare(CompareFilter->Comparison, A, B, CompareFilter->Tolerance);
 }
 
 namespace PCGExCompareFilter

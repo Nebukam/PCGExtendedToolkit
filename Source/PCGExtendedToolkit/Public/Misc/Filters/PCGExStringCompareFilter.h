@@ -105,7 +105,7 @@ namespace PCGExPointsFilter
 		PCGEx::TFAttributeReader<FString>* OperandA = nullptr;
 		PCGEx::TFAttributeReader<FString>* OperandB = nullptr;
 
-		virtual void Capture(const PCGExData::FPointIO* PointIO) override;
+		virtual void Capture(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO) override;
 		virtual bool Test(const int32 PointIndex) const override;
 
 		virtual ~TStringComparisonHandler() override

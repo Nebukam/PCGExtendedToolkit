@@ -20,8 +20,8 @@ namespace PCGExDataFilter
 UENUM(BlueprintType)
 enum class EPCGExOperandType : uint8
 {
-	Attribute UMETA(DisplayName = "Attribute", ToolTip="Uses an attribute as second operand."),
-	Constant UMETA(DisplayName = "Constant", ToolTip="Uses a constant as second operand."),
+	Attribute UMETA(DisplayName = "Attribute", ToolTip="Use a local attribute value."),
+	Constant UMETA(DisplayName = "Constant", ToolTip="Use a constant, static value."),
 };
 
 /**
@@ -62,7 +62,7 @@ namespace PCGExDataFilter
 		int32 Index = 0;
 		bool bValid = true;
 
-		virtual void Capture(const PCGExData::FPointIO* PointIO);
+		virtual void Capture(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO);
 		virtual bool Test(const int32 PointIndex) const;
 		virtual void PrepareForTesting(PCGExData::FPointIO* PointIO);
 
@@ -83,13 +83,13 @@ namespace PCGExDataFilter
 		PCGExData::FPointIO* PointIO = nullptr;
 
 		template <typename T_DEF>
-		void Register(const TArray<TObjectPtr<T_DEF>>& Definitions, PCGExData::FPointIO* PointIO)
+		void Register(const FPCGContext* InContext, const TArray<TObjectPtr<T_DEF>>& Definitions, PCGExData::FPointIO* PointIO)
 		{
-			Register(Definitions, [&](TFilterHandler* Handler) { Handler->Capture(PointIO); });
+			Register(InContext, Definitions, [&](TFilterHandler* Handler) { Handler->Capture(InContext, PointIO); });
 		}
 
 		template <typename T_DEF, class CaptureFunc>
-		void Register(const TArray<TObjectPtr<T_DEF>>& Definitions, CaptureFunc&& CaptureFn)
+		void Register(const FPCGContext* InContext, const TArray<TObjectPtr<T_DEF>>& Definitions, CaptureFunc&& CaptureFn)
 		{
 			for (T_DEF* Def : Definitions)
 			{
