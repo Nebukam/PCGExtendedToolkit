@@ -1,7 +1,7 @@
 ---
 layout: page
 parent: Heuristics
-grand_parent: ∷ Pathfinding
+grand_parent: Pathfinding
 title: Least Nodes
 subtitle: Subtitle
 color: white

@@ -1,6 +1,6 @@
 ---
 layout: page
-parent: Installation
+parent: ∷ Installation
 title: Finding Nodes
 subtitle: Where and how to find nodes once in Unreal
 #summary: Summary it is!

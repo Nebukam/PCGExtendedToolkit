@@ -1,12 +1,12 @@
 ---
 layout: page
-title: ∷ Pathfinding
+title: Pathfinding
 subtitle: Modules & Documentation
 summary: This section is dedicated to broader pathfinding topics & modules. Node specifics can be found on their dedicated node page.
 color: white
 splash: icons/icon_cat-pathfinding.svg
 preview_img: placeholder.jpg
-nav_order: 5
+nav_order: 30
 has_children: true
 ---
 

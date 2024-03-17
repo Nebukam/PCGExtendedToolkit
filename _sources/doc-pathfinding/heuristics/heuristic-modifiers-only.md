@@ -1,7 +1,7 @@
 ---
 layout: page
 parent: Heuristics
-grand_parent: ∷ Pathfinding
+grand_parent: Pathfinding
 title: Modifiers Only
 subtitle: Subtitle
 color: white

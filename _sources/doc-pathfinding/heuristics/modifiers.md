@@ -1,7 +1,7 @@
 ---
 layout: page
 parent: Heuristics
-grand_parent: ∷ Pathfinding
+grand_parent: Pathfinding
 title: Heuristic Modifiers
 subtitle: How to use heuristic modifiers
 #summary: A summary of the informations & parameters available on every PCGEx node.
@@ -48,7 +48,7 @@ The heuristic modifiers are available on all edge-based pathfinding nodes.
 | Property       | Description          |
 |:-------------|:------------------|
 | Enabled           | If disabled, this modifier will be ignored by the pathfinding process. *This is basically a QoL toggle to facilitate experimentation and better understand the impact of a specific modifier when they start pilling up.*  |
-| Source           | Source define if the attribute value of the modifier is fetched from the `Vtx` point data, or from the `Edge` point data.<br>*See {% include lk id='∷ Pathfinding' %}.* |
+| Source           | Source define if the attribute value of the modifier is fetched from the `Vtx` point data, or from the `Edge` point data.<br>*See {% include lk id='Pathfinding' %}.* |
 | **Weight**          | The weight of a modifier represent its final maximum value. |
 | Selector          | Attribute to read modifier value from. Reads a `double`.<br>*See {% include lk id='Attribute Selectors' %}.* |
 | Local Weight          | If enabled, the weight used for the modifier is fetched from a local attribute (same `Source`` as base value), allowing for per-point weight. |

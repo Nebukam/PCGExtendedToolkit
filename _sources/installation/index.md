@@ -1,6 +1,6 @@
 ---
 layout: page
-title: Installation
+title: ∷ Installation
 subtitle: How to install
 summary: The best way is to clone the repo as a submodule; though you can also download sources as a .zip to ensure long term stability.
 splash: icons/icon_directory-download.svg

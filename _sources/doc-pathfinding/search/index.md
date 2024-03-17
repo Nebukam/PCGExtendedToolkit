@@ -1,13 +1,13 @@
 ---
 layout: page
-parent: ∷ Pathfinding
+parent: Pathfinding
 title: Search
 subtitle: An inventory of the available heuristics modules.
 color: white
 #summary: summary_goes_here
 splash: icons/icon_pathfinding-navmesh.svg
 preview_img: placeholder.jpg
-nav_order: 2
+nav_order: 10
 has_children: true
 tagged: 
     - module

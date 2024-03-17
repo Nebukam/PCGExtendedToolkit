@@ -1,0 +1,53 @@
+---
+layout: page
+parent: Pathfinding
+#grand_parent: All Nodes
+title: Plot Navmesh Pathfinding
+subtitle: Sample the navmesh to find a path that goes through multiple chained points.
+color: white
+#summary: Each Plot dataset is interpreted as a list of point that must be connected by a single path, in order, then merged into a single consolidated path.
+splash: icons/icon_pathfinding-navmesh-plot.svg
+preview_img: docs/splash-navmesh-plot.png
+toc_img: placeholder.jpg
+tagged: 
+    - node
+    - pathfinder
+see_also: 
+    - Blending
+nav_order: 4
+---
+
+{% include header_card_node %}
+
+>Important: Currently, the navigation data used by the node is the one returned by `GetDefaultNavDataInstance()`; **hence it requires a navmesh to be built and loaded at the time of execution.**
+{: .error }
+
+{% include img a='details/details-pathfinding-navmesh-plot.png' %} 
+
+| Property       | Description          |
+|:-------------|:------------------|
+|**Settings**||
+| Add Seed to Path           | Prepends the *seed position* at the beginning of the output path.<br>*This will create a point with the position of the seed.* |
+| Add Goal to Path           | Appends the *goal position* at the end of the output path.<br>*This will create a point with the position of the goal.* |
+| Add Plot Points to Path           | Include plot points positions as part of the output path. |
+| Require Naviguable End Location           | Ensures the picked goal is close enough to an naviguable location, otherwise doesn't generate a path. |
+
+|**Post-processing**||
+| Fuse Distance          | Fuse points in the sampled path that are too close together.<br>*The navigation system may sometimes generate intricate paths which points that are very close to each other, which may or may not be suitable for your usecase. This settings gives you a bit of control over that.*|
+| **Blending**          | Controls how data is blended on the path points between the `Seed` and `Goal` point.<br>*See {% include lk id='Blending' %}.*|
+
+> Remaining properties are [Unreal' navigation system](https://docs.unrealengine.com/4.27/en-US/InteractiveExperiences/ArtificialIntelligence/NavigationSystem/) query specifics.
+> **Despite using the right API, they seem to be ignored for the most part, which is something I need to look into.**
+{: .warning }
+
+---
+# Inputs
+## Plots
+The plot input supports an unlimited amount of points dataset.  
+Each Plot dataset is interpreted as a list of point that must be connected by a single path, in order, then merged into a single consolidated path.
+
+---
+# Outputs
+## Paths
+A point dataset for each path generated.  
+Points in the dataset are ordered linearily from start to end.

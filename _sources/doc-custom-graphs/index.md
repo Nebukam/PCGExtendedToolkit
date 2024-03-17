@@ -1,12 +1,12 @@
 ---
 layout: page
-title: ∷ Custom Graphs
-subtitle: Modules & Documentation
-summary: This section is dedicated to broader custom graph topics & modules. Node specifics can be found on their dedicated node page.
+title: Custom Graphs
+subtitle: Custom graph creation from user-defined rules
+summary: Establish connections between points using entierely custom rules.
 color: white
 splash: icons/icon_cat-custom-graphs.svg
 preview_img: placeholder.jpg
-nav_order: 5
+nav_order: 22
 has_children: true
 ---
 
