@@ -27,6 +27,16 @@ nav_order: 7
 | Output Attribute Name           | Name of the attribute to write the point index to. |
 
 ---
+## Available cluster-specific filter nodes
+<br>
+{% include card_any tagged="clusterfilter" %}
+
+---
+## Available filter nodes
+<br>
+{% include card_any tagged="filter" %}
+
+---
 # Inputs
 ## In
 Any number of point datasets.

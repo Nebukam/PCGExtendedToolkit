@@ -34,20 +34,12 @@ nav_order: 3
 >Note that while the default `Influence` is clamped, the local influence **is purposefully not clamped**, allowing for undershooting or overshooting the influence' interpolation between the relaxed and original position.
 {: .comment }
 
-{% include img_link a='docs/relax/comparison.png' %} 
-
 ---
-# Inputs & Outputs
-See {% include lk id='Working with Graphs' %}
-
----
-# Modules
-
-> Note that the differences are very subtle between the available algorithms. I personally recommend going with {% include lk id='Laplacian' %}.
-
-## Available {% include lk id='Relaxing' %} modules
+## Relaxing modules
 <br>
 {% include card_any tagged="relax" %}
+
+{% include img_link a='docs/relax/comparison.png' %} 
 
 ---
 # Inputs & Outputs

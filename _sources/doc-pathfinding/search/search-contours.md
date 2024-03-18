@@ -2,7 +2,7 @@
 layout: page
 parent: Search
 grand_parent: Pathfinding
-title: A* Star
+title: Contours
 subtitle: Contours
 color: white
 #summary: summary_goes_here

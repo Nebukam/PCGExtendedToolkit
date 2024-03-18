@@ -31,9 +31,7 @@ nav_order: 5
 > The name used for `Arrive` & `Leave` should be used as custom tangent attributes when using the `Create Spline` PCG Node.
 
 ---
-# Modules
-
-## Available {% include lk id='Tangents' %} Modules
+## Tangents modules
 <br>
 {% include card_any tagged="pathstangents" %}
 

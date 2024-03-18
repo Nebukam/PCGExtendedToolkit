@@ -14,9 +14,9 @@ tagged:
 {% include header_card %}
 
 > This section contains simple graph generators and utilities. Make sure to check out {% include lk id='Working with Graphs' %} first.  
-> It is tightly related to {% include lk id='Edges' %} and {% include lk id='Pathfinders' %}
+> It is tightly related to {% include lk id='Edges' %} and {% include lk id='Pathfinding' %}
 
 ---
-# Nodes
+## Graphs Nodes
 <br>
-{% include card_childs tagged="graphs" %}
+{% include card_childs tagged='node' %}

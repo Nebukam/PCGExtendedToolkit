@@ -12,10 +12,10 @@ has_children: true
 
 {% include header_card %}
 
-> Pathfinding modules for {% include lk id='Pathfinders' %} nodes. Key steps include heuristic computation, goal picking, and search algorithms finding the best path based on weighted connections. Heuristic modifiers heavily influence outcomes. Note: Plot nodes handle point datasets differently, finding a path through each point in order.
+> Pathfinding modules for {% include lk id='Pathfinding' %} nodes. Key steps include heuristic computation, goal picking, and search algorithms finding the best path based on weighted connections. Heuristic modifiers heavily influence outcomes. Note: Plot nodes handle point datasets differently, finding a path through each point in order.
 
 ---
-## {% include lk id='Pathfinders' %}  
+## {% include lk id='Pathfinding' %}  
 <br>  
 <div class="card-ctnr duo" markdown="1">
 {% include card_single reference="Edges Pathfinding" %}
@@ -46,6 +46,11 @@ While the selected search algorithm is important, {% include lk id='Heuristic Mo
 {: .comment }
 
 {% include imgc a='pathfinding/ploting.png' %}  
+
+---
+## Pathfinding Nodes
+<br>
+{% include card_childs tagged='node' %}
 
 ---
 {% include embed id='all-pathfinding-modules' %}

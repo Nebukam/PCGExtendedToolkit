@@ -1,7 +1,7 @@
 ---
 layout: page
 title: About
-nav_order: 201
+nav_order: 301
 splash: images/vatar.png
 permalink: /about/
 ---

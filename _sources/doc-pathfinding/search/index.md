@@ -2,7 +2,7 @@
 layout: page
 parent: Pathfinding
 title: Search
-subtitle: An inventory of the available heuristics modules.
+subtitle: An inventory of the available search modules.
 color: white
 #summary: summary_goes_here
 splash: icons/icon_pathfinding-navmesh.svg

@@ -5,7 +5,7 @@ subtitle: Frequently Asked Questions
 #summary: This section is dedicated to broader & shared documentation topics. Node specifics can be found on the dedicated node page.
 splash: icons/icon_view-grid.svg
 preview_img: placeholder.jpg
-nav_order: 200
+nav_order: 300
 ---
 
 {% include header_card %}

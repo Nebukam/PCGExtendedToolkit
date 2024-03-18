@@ -17,6 +17,6 @@ tagged:
 > **Paths are assumed to be a linearily-ordered list of points; most likely used to generate a spline.** 
 
 ---
-# Nodes
+## Paths Nodes
 <br>
-{% include card_childs tagged="paths" %}
+{% include card_childs tagged='node' %}

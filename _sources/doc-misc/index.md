@@ -32,4 +32,6 @@ The basic workflow is as follow:
 
 
 ---
-{% include card_deep_childs parent="Graph Solvers" %}
+## Misc Nodes
+<br>
+{% include card_childs tagged='node' %}

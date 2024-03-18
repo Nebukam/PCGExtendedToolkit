@@ -14,9 +14,9 @@ tagged:
 {% include header_card %}
 
 > This section contains edge-specific operations. Make sure to check out {% include lk id='Working with Graphs' %} first.  
-> It is tightly related to {% include lk id='Graphs' %} and {% include lk id='Pathfinders' %}
+> It is tightly related to {% include lk id='Graphs' %} and {% include lk id='Pathfinding' %}
 
 ---
-# Nodes
+## Edges Nodes
 <br>
-{% include card_childs tagged="edges" %}
+{% include card_childs tagged='node' %}

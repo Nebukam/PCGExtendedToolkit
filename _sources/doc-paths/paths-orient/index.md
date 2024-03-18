@@ -27,9 +27,7 @@ nav_order: 2
 | **Orientation**           | This property lets you select which kind of orientation arithmetics you want to apply to the input paths.<br>*See [Available Orientation Modules](#available-orienting-modules).*|
 
 ---
-# Modules
-
-## Available {% include lk id='Orienting' %} Modules
+## Orientation modules
 <br>
 {% include card_any tagged="pathsorient" %}
 

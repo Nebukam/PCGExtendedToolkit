@@ -30,4 +30,6 @@ The basic workflow is as follow:
 
 
 ---
-{% include card_deep_childs parent="Graph Solvers" %}
+## Custom Graph Nodes
+<br>
+{% include card_childs tagged='node' %}

@@ -17,6 +17,6 @@ tagged:
 > *They're mostly helpers/boilerplate code to sample and write data to attribute without providing immediate mean of using of the results.*
 
 ---
-# Nodes
+## Sampling Nodes
 <br>
-{% include card_childs tagged="sampling" %}
+{% include card_childs tagged='node' %}

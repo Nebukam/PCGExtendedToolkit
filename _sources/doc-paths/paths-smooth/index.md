@@ -32,9 +32,7 @@ nav_order: 1
 | **Smoothing**           | This property lets you select which kind of smoothing you want to apply to the input paths.<br>*See [Available Smoothing Modules](#available-smoothing-modules).*|
 
 ---
-# Modules
-
-## Available {% include lk id='Smoothing' %} modules
+## Smoothing modules
 <br>
 {% include card_any tagged="pathsmoothing" %}
 

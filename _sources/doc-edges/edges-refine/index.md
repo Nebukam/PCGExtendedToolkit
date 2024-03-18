@@ -29,13 +29,7 @@ nav_order: 2
 | **Graph Output Settings**           | *See {% include lk id='Working with Graphs' a='#graph-output-settings-' %}.* |
 
 ---
-# Inputs & Outputs
-See {% include lk id='Working with Graphs' %}
-
----
-# Modules
-
-## Available {% include lk id='Refining' %} modules
+## Refining modules
 <br>
 {% include card_any tagged="edgerefining" %}
 
