@@ -4,7 +4,7 @@
 ![PCGEx](/Resources/Icon128.png)
 
 # What is it?
- The PCG Extended Toolkit is a plugin for [Unreal engine 5](https://www.unrealengine.com/en-US/) (5.3.x) that contains a collection of **low-level PCG Graph elements** offering additional ways to manipulate and control PCG Data.
+ The PCG Extended Toolkit is a plugin for [Unreal engine 5](https://www.unrealengine.com/en-US/) (5.3.x, 5.4) that contains a collection of **low-level PCG Graph elements** offering additional ways to manipulate and control PCG Data.
 
 While there are a bunch of misc (useful!) nodes in this toolkit, its primary goal revolves around manipulating relationships between points through graphs (Delaunay, Voronoi, Minimum Spanning Tree etc); and then extract more concrete informations from these networks to, for example, build splines, paths, general flow-related creative stuffs that may otherwise be harder to achieve.
 
