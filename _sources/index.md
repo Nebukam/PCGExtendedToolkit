@@ -20,6 +20,39 @@ The PCG Extended Toolkit is a free (libre) plugin that extends Unreal Engine' Pr
 {: .error }
 
 ---
-# Nodes
+# All Nodes
 
-{% include embed id='embed-all-nodes' %}
+---
+## Graphs Nodes
+<br>
+{% include card_childs reference="Graphs" tagged='graphs' %}
+
+---
+## Custom Graph Nodes
+<br>
+{% include card_childs reference="Custom Graphs" tagged='customgraph' %}
+
+---
+## Edges Nodes
+<br>
+{% include card_childs reference="Edges" tagged='edges' %}
+
+---
+## Pathfinding Nodes
+<br>
+{% include card_childs reference="Pathfinding" tagged='pathfinder' %}
+
+---
+## Paths Nodes
+<br>
+{% include card_childs reference="Paths" tagged='paths' %}
+
+---
+## Misc Nodes
+<br>
+{% include card_childs reference="Misc" tagged='misc' %}
+
+---
+## Sampling Nodes
+<br>
+{% include card_childs reference="Sampling" tagged='sampling' %}
