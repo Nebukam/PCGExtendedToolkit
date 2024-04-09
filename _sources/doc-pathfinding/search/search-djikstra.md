@@ -21,7 +21,5 @@ nav_order: 1
 
 {% include img a='details/modules/search-Dijkstra.png' %} 
 
-| Property       | Description          |
-|:-------------|:------------------|
-|**Settings**||
-| TBD           | See{% include lk id='Smoothing' a='#common-properties' %} *(Common properties)* |
+> DOC TDB
+{: .warning }

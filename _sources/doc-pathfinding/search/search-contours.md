@@ -18,3 +18,6 @@ nav_order: 1
 
 Contrary to regular search algorithms, **Contours** only traverse edge contours and **ignores modifiers**.
 {: .warning }
+
+> DOC TDB
+{: .warning }

@@ -18,7 +18,5 @@ nav_order: 4
 
 {% include img a='details/modules/heuristics-local-distance.png' %} 
 
-| Property       | Description          |
-|:-------------|:------------------|
-|**Settings**||
-| TBD           | See{% include lk id='Smoothing' a='#common-properties' %} *(Common properties)* |
+> DOC TDB
+{: .warning }

@@ -19,6 +19,9 @@ nav_order: 4
 
 {% include img a='details/details-edge-extras.png' %} 
 
+> DOC TDB
+{: .warning }
+
 | Property       | Description          |
 |:-------------|:------------------|
 |**Blending Settings**| When enabled, the edge will inherit properties and attributes from its `Start` and `End` point.<br>It uses {% include lk id='Interpolate' %} blending under the hood. |

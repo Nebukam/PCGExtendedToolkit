@@ -19,6 +19,9 @@ nav_order: 4
 
 {% include header_card_node %}
 
+> DOC TDB
+{: .warning }
+
 {% include img a='details/details-edge-extras.png' %} 
 
 | Property       | Description          |
