@@ -83,13 +83,13 @@ namespace PCGExDataFilter
 		PCGExData::FPointIO* PointIO = nullptr;
 
 		template <typename T_DEF>
-		void Register(const FPCGContext* InContext, const TArray<TObjectPtr<T_DEF>>& Definitions, PCGExData::FPointIO* PointIO)
+		void ProcessDefinitionsForPointIO(const FPCGContext* InContext, const TArray<TObjectPtr<T_DEF>>& Definitions, PCGExData::FPointIO* PointIO)
 		{
-			Register(InContext, Definitions, [&](TFilterHandler* Handler) { Handler->Capture(InContext, PointIO); });
+			ProcessDefinitions(InContext, Definitions, [&](TFilterHandler* Handler) { Handler->Capture(InContext, PointIO); });
 		}
 
 		template <typename T_DEF, class CaptureFunc>
-		void Register(const FPCGContext* InContext, const TArray<TObjectPtr<T_DEF>>& Definitions, CaptureFunc&& CaptureFn)
+		void ProcessDefinitions(const FPCGContext* InContext, const TArray<TObjectPtr<T_DEF>>& Definitions, CaptureFunc&& CaptureFn)
 		{
 			for (T_DEF* Def : Definitions)
 			{
