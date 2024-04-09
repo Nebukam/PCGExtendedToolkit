@@ -85,13 +85,6 @@ void UPCGExEdgeRefinePrimMST::Process(PCGExCluster::FCluster* InCluster, PCGExGr
 
 void UPCGExEdgeRefinePrimMST::Cleanup()
 {
-	HeuristicsModifiers.Cleanup();
-
-	if(HeuristicsOperation)
-	{
-		HeuristicsOperation->Cleanup();
-		HeuristicsOperation = nullptr;
-	}
-	
+	HeuristicsModifiers.Cleanup();	
 	Super::Cleanup();
 }
