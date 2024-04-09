@@ -89,7 +89,7 @@ void UPCGExEdgeRefinePrimMST::Cleanup()
 
 	if(HeuristicsOperation)
 	{
-		HeuristicsOperation->ConditionalBeginDestroy();
+		HeuristicsOperation->Cleanup();
 		HeuristicsOperation = nullptr;
 	}
 	
