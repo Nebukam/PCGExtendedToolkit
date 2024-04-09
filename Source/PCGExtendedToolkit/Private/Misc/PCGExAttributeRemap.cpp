@@ -68,7 +68,7 @@ bool FPCGExAttributeRemapElement::ExecuteInternal(FPCGContext* InContext) const
 				continue;
 			}
 
-			int32 Dimensions = -1;
+			int32 Dimensions;
 			switch (AttIdentity->UnderlyingType)
 			{
 			case EPCGMetadataTypes::Float:

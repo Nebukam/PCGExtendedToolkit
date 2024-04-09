@@ -247,7 +247,7 @@ namespace PCGExCluster
 		}
 	}
 
-	int32 FCluster::FindClosestNode(const FVector& Position, EPCGExClusterClosestSearchMode Mode, const int32 MinNeighbors) const
+	int32 FCluster::FindClosestNode(const FVector& Position, const EPCGExClusterClosestSearchMode Mode, const int32 MinNeighbors) const
 	{
 		switch (Mode)
 		{
@@ -345,7 +345,7 @@ namespace PCGExCluster
 		return ClosestIndex;
 	}
 
-	int32 FCluster::FindClosestNeighbor(const int32 NodeIndex, const FVector& Position, int32 MinNeighborCount) const
+	int32 FCluster::FindClosestNeighbor(const int32 NodeIndex, const FVector& Position, const int32 MinNeighborCount) const
 	{
 		const FNode& Node = Nodes[NodeIndex];
 		int32 Result = -1;
@@ -383,7 +383,7 @@ namespace PCGExCluster
 		return Result;
 	}
 
-	int32 FCluster::FindClosestNeighbor(const int32 NodeIndex, const FVector& Position, const TSet<int32>& Exclusion, int32 MinNeighborCount) const
+	int32 FCluster::FindClosestNeighbor(const int32 NodeIndex, const FVector& Position, const TSet<int32>& Exclusion, const int32 MinNeighborCount) const
 	{
 		const FNode& Node = Nodes[NodeIndex];
 		int32 Result = -1;
@@ -486,7 +486,7 @@ namespace PCGExCluster
 		return Centroid / static_cast<double>(Node.AdjacentNodes.Num());
 	}
 
-	int32 FCluster::FindClosestNeighborInDirection(const int32 NodeIndex, const FVector& Direction, const int32 MinNeighbors) const
+	int32 FCluster::FindClosestNeighborInDirection(const int32 NodeIndex, const FVector& Direction, const int32 MinNeighborCount) const
 	{
 		const FNode& Node = Nodes[NodeIndex];
 		int32 Result = -1;
@@ -494,7 +494,7 @@ namespace PCGExCluster
 
 		for (const int32 OtherIndex : Node.AdjacentNodes)
 		{
-			if (Nodes[OtherIndex].AdjacentNodes.Num() < MinNeighbors) { continue; }
+			if (Nodes[OtherIndex].AdjacentNodes.Num() < MinNeighborCount) { continue; }
 			if (const double Dot = FVector::DotProduct(Direction, (Node.Position - Nodes[OtherIndex].Position).GetSafeNormal());
 				Dot > LastDot)
 			{
@@ -603,7 +603,7 @@ namespace PCGExCluster
 		}
 	}
 
-	int32 FClusterProjection::FindNextAdjacentNode(EPCGExClusterSearchOrientationMode Orient, int32 NodeIndex, int32 From, const TSet<int32>& Exclusion, const int32 MinNeighbors)
+	int32 FClusterProjection::FindNextAdjacentNode(const EPCGExClusterSearchOrientationMode Orient, const int32 NodeIndex, const int32 From, const TSet<int32>& Exclusion, const int32 MinNeighbors)
 	{
 		if (Orient == EPCGExClusterSearchOrientationMode::CW) { return FindNextAdjacentNodeCW(NodeIndex, From, Exclusion, MinNeighbors); }
 		return FindNextAdjacentNodeCCW(NodeIndex, From, Exclusion, MinNeighbors);

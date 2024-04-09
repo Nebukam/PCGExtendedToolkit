@@ -89,7 +89,7 @@ namespace PCGExDataBlending
 	{
 		for (const FDataBlendingOperationBase* Op : Attributes) { Op->DoRangeOperation(A.Index, B.Index, StartIndex, Count, Alphas); }
 		if (!bBlendProperties) { return; }
-		TArrayView<FPCGPoint> View = MakeArrayView(PrimaryPoints->GetData() + StartIndex, Count);
+		const TArrayView<FPCGPoint> View = MakeArrayView(PrimaryPoints->GetData() + StartIndex, Count);
 		PropertiesBlender->BlendRange(*A.Point, *B.Point, View, Alphas);
 	}
 
@@ -119,7 +119,7 @@ namespace PCGExDataBlending
 		}
 
 		if (!bBlendProperties) { return; }
-		TArrayView<FPCGPoint> View = MakeArrayView(PrimaryPoints->GetData() + StartIndex, Count);
+		const TArrayView<FPCGPoint> View = MakeArrayView(PrimaryPoints->GetData() + StartIndex, Count);
 		PropertiesBlender->BlendRangeOnce(*A.Point, *B.Point, View, Alphas);
 	}
 

@@ -15,11 +15,10 @@ void UPCGExSubPointsOrientLookAt::PrepareForData(PCGExData::FPointIO& InPointIO)
 	{
 		LookAtGetter = new PCGEx::FLocalVectorGetter();
 		LookAtGetter->Capture(LookAtSelector);
-		if(!LookAtGetter->Grab(InPointIO))
+		if (!LookAtGetter->Grab(InPointIO))
 		{
 			PCGE_LOG_C(Warning, GraphAndLog, Context, FText::Format(FTEXT("LookAt Attribute ({0}) is not valid."), FText::FromString(LookAtSelector.GetName().ToString())));
 		}
-		
 	}
 }
 

@@ -51,7 +51,6 @@ public:
 	/** State priority for conflict resolution.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	int32 Priority = 0;
-
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExCreateStateElement : public IPCGElement
@@ -64,12 +63,11 @@ public:
 protected:
 	virtual bool Boot(FPCGContext* Context) const;
 
-	template<typename T>
+	template <typename T>
 	T* CreateStateDefinition(const FPCGContext* Context) const
 	{
-
 		PCGEX_SETTINGS(CreateState)
-		
+
 		T* OutState = NewObject<T>();
 
 		OutState->StateName = Settings->StateName;
@@ -98,17 +96,17 @@ protected:
 
 		return OutState;
 	}
-	
-	template<typename T>
+
+	template <typename T>
 	static void OutputState(FPCGContext* Context, T* State)
 	{
 		PCGEX_SETTINGS(CreateState)
-		
+
 		FPCGTaggedData& Output = Context->OutputData.TaggedData.Emplace_GetRef();
 		Output.Data = State;
 		Output.Pin = Settings->GetMainOutputLabel();
 	}
-	
+
 public:
 	virtual FPCGContext* Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node) override;
 };

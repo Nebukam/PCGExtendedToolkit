@@ -147,7 +147,7 @@ bool FPCGExEdgesProcessorContext::ProjectCluster()
 		ClusterProjection = new PCGExCluster::FClusterProjection(CurrentCluster, &ProjectionSettings);
 	};
 
-	auto ProjectSinglePoint = [&](int32 Index) { ClusterProjection->Nodes[Index].Project(CurrentCluster, &ProjectionSettings); };
+	auto ProjectSinglePoint = [&](const int32 Index) { ClusterProjection->Nodes[Index].Project(CurrentCluster, &ProjectionSettings); };
 
 	return Process(Initialize, ProjectSinglePoint, NumNodes);
 }

@@ -331,7 +331,7 @@ public:
 	FPCGExLoopChunkTask(
 		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
 		TBodyFunc&& InBodyFunc,
-		int32 InNumIterations) :
+		const int32 InNumIterations) :
 		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
 		BodyFunc(InBodyFunc),
 		NumIterations(InNumIterations)
@@ -356,8 +356,8 @@ public:
 		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
 		TInitFunc&& InInitFunc,
 		TBodyFunc&& InBodyFunc,
-		int32 InNumIterations,
-		int32 InChunkSize) :
+		const int32 InNumIterations,
+		const int32 InChunkSize) :
 		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
 		InitFunc(InInitFunc),
 		BodyFunc(InBodyFunc),

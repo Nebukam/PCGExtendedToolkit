@@ -74,7 +74,7 @@ namespace PCGExGraph
 		return true;
 	}
 
-	void FGraph::InsertEdges(const TArray<uint64>& InEdges, int32 IOIndex)
+	void FGraph::InsertEdges(const TArray<uint64>& InEdges, const int32 InIOIndex)
 	{
 		FWriteScopeLock WriteLock(GraphLock);
 		uint32 A;
@@ -88,11 +88,11 @@ namespace PCGExGraph
 			const int32 EdgeIndex = Edges.Emplace(Edges.Num(), A, B);
 			Nodes[A].Add(EdgeIndex);
 			Nodes[B].Add(EdgeIndex);
-			Edges[EdgeIndex].IOIndex = IOIndex;
+			Edges[EdgeIndex].IOIndex = InIOIndex;
 		}
 	}
 
-	void FGraph::InsertEdges(const TSet<uint64>& InEdges, int32 IOIndex)
+	void FGraph::InsertEdges(const TSet<uint64>& InEdges, const int32 InIOIndex)
 	{
 		FWriteScopeLock WriteLock(GraphLock);
 		uint32 A;
@@ -106,7 +106,7 @@ namespace PCGExGraph
 			const int32 EdgeIndex = Edges.Emplace(Edges.Num(), A, B);
 			Nodes[A].Add(EdgeIndex);
 			Nodes[B].Add(EdgeIndex);
-			Edges[EdgeIndex].IOIndex = IOIndex;
+			Edges[EdgeIndex].IOIndex = InIOIndex;
 		}
 	}
 
@@ -115,13 +115,13 @@ namespace PCGExGraph
 	UniqueEdges.Add(Hash); const FIndexedEdge& Edge = Edges.Emplace_GetRef(Edges.Num(), E.Start, E.End);\
 	Nodes[E.Start].Add(Edge.EdgeIndex);	Nodes[E.End].Add(Edge.EdgeIndex);
 
-	void FGraph::InsertEdges(const TArray<FUnsignedEdge>& InEdges, int32 IOIndex)
+	void FGraph::InsertEdges(const TArray<FUnsignedEdge>& InEdges, const int32 InIOIndex)
 	{
 		FWriteScopeLock WriteLock(GraphLock);
 		for (const FUnsignedEdge& E : InEdges)
 		{
 			PCGEX_EDGE_INSERT
-			Edges[Edge.EdgeIndex].IOIndex = IOIndex;
+			Edges[Edge.EdgeIndex].IOIndex = InIOIndex;
 		}
 	}
 
@@ -184,7 +184,7 @@ namespace PCGExGraph
 				FNode& Node = Nodes[NextIndex];
 				Node.NumExportedEdges = 0;
 
-				for (int32 E : Node.Edges)
+				for (const int32 E : Node.Edges)
 				{
 					const FIndexedEdge& Edge = Edges[E];
 					if (!Edge.bValid) { continue; }
@@ -252,7 +252,7 @@ namespace PCGExGraph
 		return true;
 	}
 
-	FVector FCompoundNode::UpdateCenter(PCGExData::FIdxCompoundList* PointsCompounds, PCGExData::FPointIOCollection* IOGroup)
+	FVector FCompoundNode::UpdateCenter(const PCGExData::FIdxCompoundList* PointsCompounds, PCGExData::FPointIOCollection* IOGroup)
 	{
 		Center = FVector::ZeroVector;
 		double Divider = 0;
@@ -377,9 +377,7 @@ namespace PCGExGraph
 			}
 		}
 
-		FCompoundNode* NewNode;
-
-		NewNode = new FCompoundNode(Point, Origin, Nodes.Num());
+		FCompoundNode* NewNode = new FCompoundNode(Point, Origin, Nodes.Num());
 		Nodes.Add(NewNode);
 		Octree.AddElement(NewNode);
 		PointsCompounds->New()->Add(IOIndex, PointIndex);
@@ -719,7 +717,7 @@ namespace PCGExGraphTask
 	}
 
 	bool FCompileGraph::ExecuteTask()
-	{		
+	{
 		Builder->Graph->BuildSubGraphs(Min, Max);
 
 		if (Builder->Graph->SubGraphs.IsEmpty())
@@ -762,7 +760,7 @@ namespace PCGExGraphTask
 
 				for (PCGExGraph::FNode& Node : Nodes)
 				{
-					if (!Node.bValid|| Node.Edges.IsEmpty()) { continue; }
+					if (!Node.bValid || Node.Edges.IsEmpty()) { continue; }
 					Node.PointIndex = MutablePoints.Add(PointIO->GetInPoint(Node.PointIndex));
 					ValidNodes.Add(Node.NodeIndex);
 				}
@@ -841,7 +839,7 @@ Writer->BindAndGet(*PointIO);\
 
 			for (const int32 EdgeIndex : SubGraph->Edges)
 			{
-				PCGExGraph::FIndexedEdge& Edge = Builder->Graph->Edges[EdgeIndex];
+				const PCGExGraph::FIndexedEdge& Edge = Builder->Graph->Edges[EdgeIndex];
 				NumClusterIdWriter->Values[Builder->Graph->Nodes[Edge.Start].PointIndex] = ClusterId;
 				NumClusterIdWriter->Values[Builder->Graph->Nodes[Edge.End].PointIndex] = ClusterId;
 			}

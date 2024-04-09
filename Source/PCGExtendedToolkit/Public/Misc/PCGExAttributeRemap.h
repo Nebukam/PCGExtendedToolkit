@@ -124,7 +124,7 @@ class PCGEXTENDEDTOOLKIT_API FPCGExRemapPointIO : public FPCGExNonAbandonableTas
 {
 public:
 	FPCGExRemapPointIO(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-	                   EPCGMetadataTypes InDataType,
+	                   const EPCGMetadataTypes InDataType,
 	                   const int32 InDimensions) :
 		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
 		DataType(InDataType),

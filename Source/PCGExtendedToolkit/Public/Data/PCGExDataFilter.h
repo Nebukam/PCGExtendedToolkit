@@ -75,7 +75,7 @@ namespace PCGExDataFilter
 	class PCGEXTENDEDTOOLKIT_API TFilterManager
 	{
 	public:
-		TFilterManager(PCGExData::FPointIO* InPointIO);
+		explicit TFilterManager(PCGExData::FPointIO* InPointIO);
 
 		TArray<TFilterHandler*> Handlers;
 		bool bValid = false;
@@ -83,18 +83,18 @@ namespace PCGExDataFilter
 		PCGExData::FPointIO* PointIO = nullptr;
 
 		template <typename T_DEF>
-		void ProcessDefinitionsForPointIO(const FPCGContext* InContext, const TArray<TObjectPtr<T_DEF>>& Definitions, PCGExData::FPointIO* PointIO)
+		void Register(const FPCGContext* InContext, const TArray<TObjectPtr<T_DEF>>& InDefinitions, PCGExData::FPointIO* InPointIO)
 		{
-			ProcessDefinitions(InContext, Definitions, [&](TFilterHandler* Handler) { Handler->Capture(InContext, PointIO); });
+			Register(InContext, InDefinitions, [&](TFilterHandler* Handler) { Handler->Capture(InContext, InPointIO); });
 		}
 
 		template <typename T_DEF, class CaptureFunc>
-		void ProcessDefinitions(const FPCGContext* InContext, const TArray<TObjectPtr<T_DEF>>& Definitions, CaptureFunc&& CaptureFn)
+		void Register(const FPCGContext* InContext, const TArray<TObjectPtr<T_DEF>>& InDefinitions, CaptureFunc&& InCaptureFn)
 		{
-			for (T_DEF* Def : Definitions)
+			for (T_DEF* Def : InDefinitions)
 			{
 				TFilterHandler* Handler = Def->CreateHandler();
-				CaptureFn(Handler);
+				InCaptureFn(Handler);
 
 				if (!Handler->bValid)
 				{
@@ -136,7 +136,7 @@ namespace PCGExDataFilter
 	class PCGEXTENDEDTOOLKIT_API TDirectFilterManager : public TFilterManager
 	{
 	public:
-		TDirectFilterManager(PCGExData::FPointIO* InPointIO);
+		explicit TDirectFilterManager(PCGExData::FPointIO* InPointIO);
 
 		TArray<bool> Results;
 

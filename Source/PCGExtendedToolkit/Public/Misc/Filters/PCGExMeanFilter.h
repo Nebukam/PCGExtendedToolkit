@@ -113,9 +113,9 @@ namespace PCGExPointsFilter
 
 		PCGEx::FLocalSingleFieldGetter* Target = nullptr;
 
-		double ReferenceValue;
-		double ReferenceMin;
-		double ReferenceMax;
+		double ReferenceValue = 0;
+		double ReferenceMin = 0;
+		double ReferenceMax = 0;
 
 		virtual void Capture(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO) override;
 		virtual bool Test(const int32 PointIndex) const override;

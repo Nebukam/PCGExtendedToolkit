@@ -155,13 +155,13 @@ bool FPCGExSampleProjectedNearestPointElement::ExecuteInternal(FPCGContext* InCo
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }
-		
+
 		Context->Targets->CreateInKeys();
 		Context->ProjectionSettings.Init(Context->Targets);
 		Context->SetState(PCGExGeo::State_ProcessingProjectedPoints);
 	}
 
-	if(Context->IsState(PCGExGeo::State_ProcessingProjectedPoints))
+	if (Context->IsState(PCGExGeo::State_ProcessingProjectedPoints))
 	{
 		auto Initialize = [&]()
 		{
@@ -182,7 +182,7 @@ bool FPCGExSampleProjectedNearestPointElement::ExecuteInternal(FPCGContext* InCo
 		for (const FPCGPoint& Pt : Context->ProjectedTargetIO) { OctreeBounds += Pt.Transform.GetLocation(); }
 		Context->ProjectedTargetOctree = new TOctree2<FPCGPointRef, FPCGPointRefSemantics>(OctreeBounds.GetCenter(), OctreeBounds.GetExtent().Length());
 		for (const FPCGPoint& Pt : Context->ProjectedTargetIO) { Context->ProjectedTargetOctree->AddElement(FPCGPointRef(Pt)); }
-		
+
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
@@ -205,7 +205,7 @@ bool FPCGExSampleProjectedNearestPointElement::ExecuteInternal(FPCGContext* InCo
 
 	if (Context->IsState(PCGExGeo::State_PreprocessPositions))
 	{
-		auto Initialize = [&](PCGExData::FPointIO& PointIO)
+		auto Initialize = [&](const PCGExData::FPointIO& PointIO)
 		{
 			if (Settings->bWriteLookAtTransform)
 			{

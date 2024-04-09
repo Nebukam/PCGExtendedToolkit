@@ -175,8 +175,8 @@ bool FPCGExWriteEdgeExtrasElement::ExecuteInternal(
 			const FPCGPoint& StartPoint = Context->CurrentIO->GetInPoint(Edge.Start);
 			const FPCGPoint& EndPoint = Context->CurrentIO->GetInPoint(Edge.End);
 
-			FVector DirFrom = StartPoint.Transform.GetLocation();
-			FVector DirTo = EndPoint.Transform.GetLocation();
+			const FVector DirFrom = StartPoint.Transform.GetLocation();
+			const FVector DirTo = EndPoint.Transform.GetLocation();
 			bool bAscending = true; // Default for Context->DirectionMethod == EPCGExEdgeDirectionMethod::EndpointsOrder
 
 			if (Context->DirectionMethod == EPCGExEdgeDirectionMethod::EndpointsAttribute)
@@ -197,7 +197,7 @@ bool FPCGExWriteEdgeExtrasElement::ExecuteInternal(
 
 			const bool bInvert = bAscending != Context->bAscendingDesired;
 
-			PCGEx::FPointRef Target = Context->CurrentEdges->GetOutPointRef(Edge.PointIndex);
+			const PCGEx::FPointRef Target = Context->CurrentEdges->GetOutPointRef(Edge.PointIndex);
 			if (Context->MetadataBlender)
 			{
 				Context->MetadataBlender->PrepareForBlending(Target);

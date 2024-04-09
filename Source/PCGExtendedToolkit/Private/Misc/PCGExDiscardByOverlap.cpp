@@ -240,7 +240,7 @@ bool FPCGExComputePreciseOverlap::ExecuteTask()
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExComputePreciseOverlap::ExecuteTask);
 
-	FPCGExDiscardByOverlapContext* Context = static_cast<FPCGExDiscardByOverlapContext*>(Manager->Context);
+	const FPCGExDiscardByOverlapContext* Context = static_cast<FPCGExDiscardByOverlapContext*>(Manager->Context);
 	PCGEX_SETTINGS(DiscardByOverlap)
 
 	const TArray<FPCGPoint>& LocalPoints = Bounds->PointIO->GetIn()->GetPoints();

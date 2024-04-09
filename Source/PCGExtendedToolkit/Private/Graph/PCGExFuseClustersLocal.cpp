@@ -129,7 +129,7 @@ bool FPCGExFuseClustersLocalElement::ExecuteInternal(FPCGContext* InContext) con
 
 		auto Initialize = [&]() { Context->CurrentIO->SetNumInitialized(NumCompoundNodes, true); };
 
-		auto ProcessNode = [&](int32 Index)
+		auto ProcessNode = [&](const int32 Index)
 		{
 			PCGExGraph::FCompoundNode* CompoundNode = Context->CompoundGraph->Nodes[Index];
 			MutablePoints[Index].Transform.SetLocation(CompoundNode->UpdateCenter(Context->CompoundGraph->PointsCompounds, Context->MainPoints));

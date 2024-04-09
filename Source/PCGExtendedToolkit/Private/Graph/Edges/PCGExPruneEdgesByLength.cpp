@@ -163,7 +163,7 @@ bool FPCGExPruneEdgesByLengthElement::ExecuteInternal(FPCGContext* InContext) co
 			if (Settings->bWriteMean)
 			{
 				Context->GraphBuilder->EdgesIO->ForEach(
-					[&](PCGExData::FPointIO& PointIO, int32 Index)
+					[&](const PCGExData::FPointIO& PointIO, int32 Index)
 					{
 						PCGExData::WriteMark(PointIO.GetOut()->Metadata, Settings->MeanAttributeName, Context->ReferenceValue);
 					});

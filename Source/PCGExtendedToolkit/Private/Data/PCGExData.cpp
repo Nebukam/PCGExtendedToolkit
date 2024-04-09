@@ -7,14 +7,14 @@ namespace PCGExData
 {
 #pragma region FIdxCompound
 
-	bool FIdxCompound::ContainsIOIndex(int32 IOIndex)
+	bool FIdxCompound::ContainsIOIndex(const int32 InIOIndex)
 	{
 		for (const uint64 H : CompoundedPoints)
 		{
 			uint32 A;
 			uint32 B;
 			PCGEx::H64(H, A, B);
-			if (A == IOIndex) { return true; }
+			if (A == InIOIndex) { return true; }
 		}
 		return false;
 	}
@@ -81,9 +81,9 @@ namespace PCGExData
 		for (int i = 0; i < OutIOIndices.Num(); i++) { OutIOIndices[i] = PCGEx::H64A(Compound->CompoundedPoints[i]); }
 	}
 
-	bool FIdxCompoundList::HasIOIndexOverlap(int32 Idx, const TArray<int32>& InIndices)
+	bool FIdxCompoundList::HasIOIndexOverlap(const int32 InIdx, const TArray<int32>& InIndices)
 	{
-		FIdxCompound* OtherComp = Compounds[Idx];
+		FIdxCompound* OtherComp = Compounds[InIdx];
 		for (const int32 IOIndex : InIndices) { if (OtherComp->ContainsIOIndex(IOIndex)) { return true; } }
 		return false;
 	}

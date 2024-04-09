@@ -121,7 +121,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicModifiersSettings
 		for (FPCGExHeuristicModifier& Modifier : Modifiers)
 		{
 			if (!Modifier.bEnabled) { continue; }
-			if (Modifier.ScoreCurve.IsNull()) { Modifier.ScoreCurveObj = TSoftObjectPtr<UCurveFloat>(PCGEx::WeightDistributionLinear).LoadSynchronous(); }
+			if (!Modifier.ScoreCurve || Modifier.ScoreCurve.IsNull()) { Modifier.ScoreCurveObj = TSoftObjectPtr<UCurveFloat>(PCGEx::WeightDistributionLinear).LoadSynchronous(); }
 			else { Modifier.ScoreCurveObj = Modifier.ScoreCurve.LoadSynchronous(); }
 		}
 	}
@@ -309,7 +309,7 @@ namespace PCGExPathfinding
 		FVector Position;
 		PCGMetadataEntryKey MetadataEntryKey = -1;
 
-		FPlotPoint(int32 InPlotIndex, const FVector& InPosition, PCGMetadataEntryKey InMetadataEntryKey)
+		FPlotPoint(const int32 InPlotIndex, const FVector& InPosition, const PCGMetadataEntryKey InMetadataEntryKey)
 			: PlotIndex(InPlotIndex), Position(InPosition), MetadataEntryKey(InMetadataEntryKey)
 		{
 		}

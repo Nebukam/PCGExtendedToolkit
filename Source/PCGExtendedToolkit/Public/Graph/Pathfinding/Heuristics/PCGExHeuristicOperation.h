@@ -21,7 +21,7 @@ public:
 	/** Curve the value will be remapped over. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	TSoftObjectPtr<UCurveFloat> ScoreCurve = TSoftObjectPtr<UCurveFloat>(PCGEx::WeightDistributionLinear);
-	
+
 	double ReferenceWeight = 100;
 
 	virtual void PrepareForData(PCGExCluster::FCluster* InCluster);

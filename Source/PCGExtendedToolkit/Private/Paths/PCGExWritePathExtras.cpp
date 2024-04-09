@@ -135,7 +135,6 @@ bool FPCGExWritePathExtrasTask::ExecuteTask()
 	PCGExMath::FPathMetrics Metrics = PCGExMath::FPathMetrics(Positions[0]);
 
 	const int32 LastIndex = NumPoints - 1;
-	FVector PathDir = FVector::ZeroVector;
 	FVector PathCentroid = FVector::ZeroVector;
 
 	PCGEX_OUTPUT_VALUE(DirectionToNext, 0, (Positions[0] - Positions[1]).GetSafeNormal());
@@ -145,7 +144,7 @@ bool FPCGExWritePathExtrasTask::ExecuteTask()
 	PCGEX_OUTPUT_VALUE(DistanceToNext, 0, FVector::Dist(Positions[0], Positions[1]));
 	PCGEX_OUTPUT_VALUE(DistanceToPrev, 0, 0);
 
-	PathDir = (Positions[0] - Positions[1]);
+	FVector PathDir = (Positions[0] - Positions[1]);
 
 	for (int i = 1; i < LastIndex; i++)
 	{

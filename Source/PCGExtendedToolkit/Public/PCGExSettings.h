@@ -114,11 +114,11 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExRemapSettings
 
 	void LoadCurve()
 	{
-		if (RemapCurve.IsNull()) { RemapCurveObj = TSoftObjectPtr<UCurveFloat>(PCGEx::WeightDistributionLinear).LoadSynchronous(); }
+		if (!RemapCurve || RemapCurve.IsNull()) { RemapCurveObj = TSoftObjectPtr<UCurveFloat>(PCGEx::WeightDistributionLinear).LoadSynchronous(); }
 		else { RemapCurveObj = RemapCurve.LoadSynchronous(); }
 	}
 
-	double GetRemappedValue(double Value) const
+	double GetRemappedValue(const double Value) const
 	{
 		return RemapCurveObj->GetFloatValue(PCGExMath::Remap(Value, InMin, InMax, 0, 1)) * Scale;
 	}
@@ -204,7 +204,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFuseSettingsBase
 	{
 	}
 
-	explicit FPCGExFuseSettingsBase(double InTolerance)
+	explicit FPCGExFuseSettingsBase(const double InTolerance)
 		: Tolerance(InTolerance)
 	{
 	}
@@ -260,7 +260,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSourceFuseSettings : public FPCGExFuseSettin
 	{
 	}
 
-	explicit FPCGExSourceFuseSettings(double InTolerance)
+	explicit FPCGExSourceFuseSettings(const double InTolerance)
 		: FPCGExFuseSettingsBase(InTolerance)
 	{
 	}
@@ -392,7 +392,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointEdgeIntersectionSettings
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata", meta=(PCG_Overridable, EditCondition="bWriteIntersector"))
 	FName IntersectorAttributeName = "bIntersector";
 
-	void MakeSafeForTolerance(double FuseTolerance)
+	void MakeSafeForTolerance(const double FuseTolerance)
 	{
 		FuseSettings.Tolerance = FMath::Clamp(FuseSettings.Tolerance, 0, FuseTolerance * 0.5);
 		FuseSettings.Tolerances.X = FMath::Clamp(FuseSettings.Tolerances.X, 0, FuseTolerance * 0.5);

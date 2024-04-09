@@ -85,9 +85,7 @@ namespace PCGExDataState
 						{
 							using RawT = decltype(DummyValue);
 
-							FPCGMetadataAttributeBase* OutAttribute = Metadata->GetMutableAttribute(Att->Name);
-
-							if (OutAttribute)
+							if (FPCGMetadataAttributeBase* OutAttribute = Metadata->GetMutableAttribute(Att->Name))
 							{
 								if (OutAttribute->GetTypeId() != Att->GetTypeId())
 								{
@@ -253,7 +251,7 @@ namespace PCGExDataStateTask
 		PCGEx::TFAttributeWriter<bool>* StateWriter = new PCGEx::TFAttributeWriter<bool>(static_cast<const UPCGExStateDefinitionBase*>(Handler->Definition)->StateName);
 		StateWriter->BindAndGet(*PointIO);
 
-		for (int32 i : (*InIndices)) { StateWriter->Values[i] = Handler->Results[i]; }
+		for (const int32 i : (*InIndices)) { StateWriter->Values[i] = Handler->Results[i]; }
 		StateWriter->Write();
 
 		PCGEX_DELETE(StateWriter)

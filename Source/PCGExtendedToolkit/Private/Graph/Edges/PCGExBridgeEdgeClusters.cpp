@@ -17,7 +17,7 @@ UPCGExBridgeEdgeClustersSettings::UPCGExBridgeEdgeClustersSettings(
 
 PCGExData::EInit UPCGExBridgeEdgeClustersSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 
-void FPCGExBridgeEdgeClustersContext::BumpEdgeNum(const FPCGPoint& A, const FPCGPoint& B)
+void FPCGExBridgeEdgeClustersContext::BumpEdgeNum(const FPCGPoint& A, const FPCGPoint& B) const
 {
 	FWriteScopeLock WriteScopeLock(NumEdgeLock);
 
@@ -331,7 +331,7 @@ bool FPCGExCreateBridgeTask::ExecuteTask()
 
 	FPCGMetadataAttribute<int64>* StartIndexAtt = static_cast<FPCGMetadataAttribute<int64>*>(EdgeMetadata->GetMutableAttribute(PCGExGraph::Tag_EdgeStart));
 	FPCGMetadataAttribute<int64>* EndIndexAtt = static_cast<FPCGMetadataAttribute<int64>*>(EdgeMetadata->GetMutableAttribute(PCGExGraph::Tag_EdgeEnd));
-	FPCGMetadataAttribute<int64>* EdgeIndexAtt = static_cast<FPCGMetadataAttribute<int64>*>(PointMetadata->GetMutableAttribute(PCGExGraph::Tag_EdgeIndex));
+	const FPCGMetadataAttribute<int64>* EdgeIndexAtt = static_cast<FPCGMetadataAttribute<int64>*>(PointMetadata->GetMutableAttribute(PCGExGraph::Tag_EdgeIndex));
 
 	FPCGPoint& EdgePoint = PointIO->GetOut()->GetMutablePoints()[TaskIndex];
 

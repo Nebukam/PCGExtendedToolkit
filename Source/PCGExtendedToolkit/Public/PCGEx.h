@@ -235,12 +235,12 @@ namespace PCGEx
 	const FSoftObjectPath WeightDistributionExpo = FSoftObjectPath(TEXT("/PCGExtendedToolkit/Curves/FC_PCGExWeightDistribution_Expo.FC_PCGExWeightDistribution_Expo"));
 	const FSoftObjectPath SteepnessWeightCurve = FSoftObjectPath(TEXT("/PCGExtendedToolkit/Curves/FC_PCGExSteepness_Default.FC_PCGExSteepness_Default"));
 
-	static bool IsValidName(FName Name) { return FPCGMetadataAttributeBase::IsValidName(Name) && !Name.IsNone(); }
+	static bool IsValidName(const FName Name) { return FPCGMetadataAttributeBase::IsValidName(Name) && !Name.IsNone(); }
 
-	static void ArrayOfIndices(TArray<int32>& OutArray, int32 Num)
+	static void ArrayOfIndices(TArray<int32>& OutArray, const int32 InNum)
 	{
-		OutArray.SetNum(Num);
-		for (int i = 0; i < Num; i++) { OutArray[i] = i; }
+		OutArray.SetNum(InNum);
+		for (int i = 0; i < InNum; i++) { OutArray[i] = i; }
 	}
 
 	static FName GetCompoundName(const FName A, const FName B)
@@ -286,7 +286,7 @@ namespace PCGEx
 			static_cast<uint64>(D);
 	}
 
-	static void H6416(uint64_t H, uint16& A, uint16& B, uint16& C, uint16& D)
+	static void H6416(const uint64_t H, uint16& A, uint16& B, uint16& C, uint16& D)
 	{
 		A = static_cast<uint16>(H >> 48);
 		B = static_cast<uint16>((H >> 32) & 0xFFFF);

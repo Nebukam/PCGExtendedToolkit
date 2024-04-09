@@ -52,6 +52,5 @@ protected:
 
 	double GetDot(const FVector& From, const FVector& To) const;
 
-	void ApplyOverrides() override;
-	
+	virtual void ApplyOverrides() override;
 };

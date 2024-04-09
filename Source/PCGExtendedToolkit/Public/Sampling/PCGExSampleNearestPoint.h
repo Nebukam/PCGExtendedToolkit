@@ -168,7 +168,6 @@ public:
 	FName TransformAttributeName = FName("WeightedTransform");
 
 
-	
 	/** Write the sampled transform. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteLookAtTransform = false;
@@ -180,11 +179,11 @@ public:
 	/** The axis to align transform the look at vector to.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, DisplayName=" └─ Align", EditCondition="bWriteLookAtTransform", EditConditionHides))
 	EPCGExAxisAlign LookAtAxisAlign = EPCGExAxisAlign::Forward;
-	
+
 	/** Up vector source.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, DisplayName=" └─ Use Up from...", EditCondition="bWriteLookAtTransform", EditConditionHides))
 	EPCGExSampleSource LookAtUpSelection;
-	
+
 	/** The attribute or property on selected source to use as Up vector for the look at transform.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, DisplayName=" └─ Up Vector", EditCondition="bWriteLookAtTransform && LookAtUpSelection!=EPCGExSampleSource::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector LookAtUpSource;
@@ -194,7 +193,6 @@ public:
 	FVector LookAtUpConstant = FVector::UpVector;
 
 
-	
 	/** Write the sampled distance. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteDistance = false;

@@ -123,7 +123,7 @@ public:
 	/** The axis to align transform the look at vector to.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, DisplayName=" └─ Align", EditCondition="bWriteLookAtTransform", EditConditionHides))
 	EPCGExAxisAlign LookAtAxisAlign = EPCGExAxisAlign::Forward;
-	
+
 	/** Up vector source.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, DisplayName=" └─ Use Up from...", EditCondition="bWriteLookAtTransform", EditConditionHides))
 	EPCGExSampleSource LookAtUpSelection;
@@ -136,7 +136,6 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, DisplayName=" └─ Up Vector", EditCondition="bWriteLookAtTransform && LookAtUpSelection==EPCGExSampleSource::Constant", EditConditionHides))
 	FVector LookAtUpConstant = FVector::UpVector;
 
-	
 
 	/** Write the sampled distance. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
@@ -187,7 +186,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleProjectedNearestPointContext : public 
 {
 	friend class FPCGExSampleProjectedNearestPointElement;
 
-	typedef TOctree2<FPCGPointRef, FPCGPointRefSemantics> PointOctree;
+	using PointOctree = TOctree2<FPCGPointRef, FPCGPointRefSemantics>;
 
 	virtual ~FPCGExSampleProjectedNearestPointContext() override;
 

@@ -209,7 +209,7 @@ public:
 
 	void LoadCurve()
 	{
-		if (DotOverDistance.IsNull()) { DotOverDistanceCurve = TSoftObjectPtr<UCurveFloat>(PCGEx::DefaultDotOverDistanceCurve).LoadSynchronous(); }
+		if (!DotOverDistance || DotOverDistance.IsNull()) { DotOverDistanceCurve = TSoftObjectPtr<UCurveFloat>(PCGEx::DefaultDotOverDistanceCurve).LoadSynchronous(); }
 		else { DotOverDistanceCurve = DotOverDistance.LoadSynchronous(); }
 	}
 

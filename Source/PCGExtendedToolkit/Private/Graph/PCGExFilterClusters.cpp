@@ -83,11 +83,10 @@ bool FPCGExFilterClustersElement::ExecuteInternal(
 		if (!Boot(Context)) { return true; }
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
-	
+
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
-
-		while(Context->AdvancePointsIO())
+		while (Context->AdvancePointsIO())
 		{
 			if (!Context->TaggedEdges)
 			{
@@ -99,7 +98,7 @@ bool FPCGExFilterClustersElement::ExecuteInternal(
 			Context->CurrentEdgeMap = new TSet<int32>();
 			Context->VtxEdgeMap.Add(Context->CurrentIO->IOIndex, Context->CurrentEdgeMap);
 
-			while(Context->AdvanceEdges(true))
+			while (Context->AdvanceEdges(true))
 			{
 				if (!Context->CurrentCluster)
 				{
@@ -125,11 +124,9 @@ bool FPCGExFilterClustersElement::ExecuteInternal(
 					Selector.EdgesIndex = Context->CurrentEdges->IOIndex;
 				}
 			}
-	
 		}
 
 		Context->Done();
-		
 	}
 
 	if (Context->IsDone())
