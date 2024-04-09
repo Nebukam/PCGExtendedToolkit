@@ -35,7 +35,7 @@ namespace PCGExDataBlending
 
 			for (int i = 0; i < BlendOps.Num(); i++)
 			{
-				FDataBlendingOperationBase* Op = BlendOps[i];
+				const FDataBlendingOperationBase* Op = BlendOps[i];
 				if (!Op) { continue; }
 				PCGEX_DELETE(Op)
 			}

@@ -13,14 +13,19 @@ void UPCGExEdgeRefinePrimMST::PrepareForPointIO(PCGExData::FPointIO* InPointIO)
 	Super::PrepareForPointIO(InPointIO);
 }
 
-void UPCGExEdgeRefinePrimMST::Process(PCGExCluster::FCluster* InCluster, PCGExGraph::FGraph* InGraph, PCGExData::FPointIO* InEdgesIO)
+void UPCGExEdgeRefinePrimMST::PreProcess(PCGExCluster::FCluster* InCluster, PCGExGraph::FGraph* InGraph, PCGExData::FPointIO* InEdgesIO)
 {
-	const TObjectPtr<UPCGExHeuristicLocalDistance> Heuristics = NewObject<UPCGExHeuristicLocalDistance>();
+	Super::PreProcess(InCluster, InGraph, InEdgesIO);
+
+	if (!HeuristicsOperation) { HeuristicsOperation = NewObject<UPCGExHeuristicLocalDistance>(); }
 
 	HeuristicsModifiers.PrepareForData(*PointIO, *InEdgesIO);
-	Heuristics->ReferenceWeight = HeuristicsModifiers.ReferenceWeight;
-	Heuristics->PrepareForData(InCluster);
+	HeuristicsOperation->ReferenceWeight = HeuristicsModifiers.ReferenceWeight;
+	HeuristicsOperation->PrepareForData(InCluster);
+}
 
+void UPCGExEdgeRefinePrimMST::Process(PCGExCluster::FCluster* InCluster, PCGExGraph::FGraph* InGraph, PCGExData::FPointIO* InEdgesIO)
+{
 	const PCGExCluster::FNode* NoNode = new PCGExCluster::FNode();
 	const int32 NumNodes = InCluster->Nodes.Num();
 
@@ -54,7 +59,7 @@ void UPCGExEdgeRefinePrimMST::Process(PCGExCluster::FCluster* InCluster, PCGExGr
 			const PCGExCluster::FNode& AdjacentNode = InCluster->Nodes[AdjacentIndex];
 			const PCGExGraph::FIndexedEdge& Edge = InCluster->GetEdgeFromNodeIndices(CurrentNodeIndex, AdjacentIndex);
 
-			double Score = Heuristics->GetEdgeScore(Current, AdjacentNode, Edge, *NoNode, *NoNode);
+			double Score = HeuristicsOperation->GetEdgeScore(Current, AdjacentNode, Edge, *NoNode, *NoNode);
 			Score += HeuristicsModifiers.GetScore(AdjacentNode.PointIndex, Edge.PointIndex);
 
 			if (Score >= ScoredQueue->Scores[AdjacentIndex]) { continue; }
@@ -81,5 +86,12 @@ void UPCGExEdgeRefinePrimMST::Process(PCGExCluster::FCluster* InCluster, PCGExGr
 void UPCGExEdgeRefinePrimMST::Cleanup()
 {
 	HeuristicsModifiers.Cleanup();
+
+	if(HeuristicsOperation)
+	{
+		HeuristicsOperation->ConditionalBeginDestroy();
+		HeuristicsOperation = nullptr;
+	}
+	
 	Super::Cleanup();
 }

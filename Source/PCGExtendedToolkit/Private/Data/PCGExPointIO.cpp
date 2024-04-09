@@ -342,7 +342,6 @@ namespace PCGExData
 	/**
 	 * Write valid outputs to Context' tagged data
 	 * @param Context
-	 * @param bFlatten 
 	 */
 	void FPointIOCollection::OutputTo(FPCGContext* Context)
 	{
@@ -354,7 +353,6 @@ namespace PCGExData
 	 * @param Context
 	 * @param MinPointCount
 	 * @param MaxPointCount
-	 * @param bFlatten 
 	 */
 	void FPointIOCollection::OutputTo(FPCGContext* Context, const int32 MinPointCount, const int32 MaxPointCount)
 	{
@@ -369,14 +367,14 @@ namespace PCGExData
 	FBox FPointIOCollection::GetInBounds()
 	{
 		FBox Bounds = FBox(ForceInit);
-		for (FPointIO* IO : Pairs) { Bounds += IO->GetIn()->GetBounds(); }
+		for (const FPointIO* IO : Pairs) { Bounds += IO->GetIn()->GetBounds(); }
 		return Bounds;
 	}
 
 	FBox FPointIOCollection::GetOutBounds()
 	{
 		FBox Bounds = FBox(ForceInit);
-		for (FPointIO* IO : Pairs) { Bounds += IO->GetOut()->GetBounds(); }
+		for (const FPointIO* IO : Pairs) { Bounds += IO->GetOut()->GetBounds(); }
 		return Bounds;
 	}
 
@@ -405,7 +403,7 @@ namespace PCGExData
 		}
 
 		bool bFoundDupe = false;
-		for (FPointIOTaggedEntries* Binding : Entries)
+		for (const FPointIOTaggedEntries* Binding : Entries)
 		{
 			// TagValue shouldn't exist already
 			if (Binding->TagValue == TagValue) { return false; }

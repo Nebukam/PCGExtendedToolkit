@@ -217,7 +217,7 @@ namespace PCGExGraph
 		bool bCompounded = false; // Represents multiple nodes
 		int32 CompoundSize = 0;   // Fuse size
 
-		explicit FGraphNodeMetadata(int32 InNodeIndex)
+		explicit FGraphNodeMetadata(const int32 InNodeIndex)
 			: NodeIndex(InNodeIndex)
 		{
 		}
@@ -241,7 +241,7 @@ namespace PCGExGraph
 		int32 ParentIndex;
 		EPCGExIntersectionType Type = EPCGExIntersectionType::Unknown;
 
-		explicit FGraphEdgeMetadata(int32 InEdgeIndex, int32 InParentIndex)
+		explicit FGraphEdgeMetadata(const int32 InEdgeIndex, const int32 InParentIndex)
 			: EdgeIndex(InEdgeIndex), ParentIndex(InParentIndex)
 		{
 		}
@@ -339,7 +339,7 @@ namespace PCGExGraph
 
 		bool bRefreshEdgeSeed = false;
 
-		FGraph(const int32 InNumNodes, const int32 InNumEdgesReserve = 10)
+		explicit FGraph(const int32 InNumNodes, const int32 InNumEdgesReserve = 10)
 			: NumEdgesReserve(InNumEdgesReserve)
 		{
 			Nodes.SetNum(InNumNodes);
@@ -353,9 +353,9 @@ namespace PCGExGraph
 
 		bool InsertEdge(const int32 A, const int32 B, FIndexedEdge& OutEdge);
 		bool InsertEdge(const FIndexedEdge& Edge);
-		void InsertEdges(const TSet<uint64>& InEdges, int32 IOIndex);
-		void InsertEdges(const TArray<uint64>& InEdges, int32 IOIndex);
-		void InsertEdges(const TArray<FUnsignedEdge>& InEdges, int32 IOIndex);
+		void InsertEdges(const TSet<uint64>& InEdges, int32 InIOIndex);
+		void InsertEdges(const TArray<uint64>& InEdges, int32 InIOIndex);
+		void InsertEdges(const TArray<FUnsignedEdge>& InEdges, int32 InIOIndex);
 		void InsertEdges(const TArray<FIndexedEdge>& InEdges);
 
 		TArrayView<FNode> AddNodes(const int32 NumNewNodes);
@@ -487,7 +487,7 @@ namespace PCGExGraph
 
 		bool Add(FCompoundNode* OtherNode);
 
-		FVector UpdateCenter(PCGExData::FIdxCompoundList* PointsCompounds, PCGExData::FPointIOCollection* IOGroup);
+		FVector UpdateCenter(const PCGExData::FIdxCompoundList* PointsCompounds, PCGExData::FPointIOCollection* IOGroup);
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FCompoundNodeSemantics
@@ -787,7 +787,7 @@ namespace PCGExGraph
 		{
 		}
 
-		double GetTime(int32 EdgeIndex) const { return EdgeIndex == EdgeA ? Split.TimeA : Split.TimeB; }
+		double GetTime(const int32 EdgeIndex) const { return EdgeIndex == EdgeA ? Split.TimeA : Split.TimeB; }
 
 		bool operator==(const FEECrossing& Other) const { return NodeIndex == Other.NodeIndex; }
 	};
@@ -1085,7 +1085,7 @@ namespace PCGExGraph
 		return true;
 	}
 
-	static void CleanupVtxData(PCGExData::FPointIO* PointIO)
+	static void CleanupVtxData(const PCGExData::FPointIO* PointIO)
 	{
 		UPCGMetadata* Metadata = PointIO->GetOut()->Metadata;
 		PointIO->Tags->Remove(TagStr_ClusterPair);
@@ -1209,8 +1209,7 @@ namespace PCGExGraphTask
 
 			if (Point.Seed == 0) { PCGExMath::RandomizeSeed(Point); }
 
-			PCGExGraph::FGraphEdgeMetadata** EdgeMetaPtr = Graph->EdgeMetadata.Find(EdgeIndex);
-			if (EdgeMetaPtr)
+			if (PCGExGraph::FGraphEdgeMetadata** EdgeMetaPtr = Graph->EdgeMetadata.Find(EdgeIndex))
 			{
 				PCGExGraph::FGraphEdgeMetadata* EdgeMeta = *EdgeMetaPtr;
 				//if()

@@ -53,7 +53,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSingleTangentParams
 		PCGEX_CLEANUP(DirectionGetter)
 		PCGEX_CLEANUP(ScaleGetter)
 	}
-	
 };
 
 /**

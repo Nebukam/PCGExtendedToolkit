@@ -119,7 +119,7 @@ namespace PCGExPointsToBounds
 		}
 	}
 
-	static FBox GetBounds(const FPCGPoint& Point, EPCGExPointBoundsSource Source)
+	static FBox GetBounds(const FPCGPoint& Point, const EPCGExPointBoundsSource Source)
 	{
 		switch (Source)
 		{
@@ -224,7 +224,7 @@ class PCGEXTENDEDTOOLKIT_API FPCGExComputeIOBounds : public FPCGExNonAbandonable
 {
 public:
 	FPCGExComputeIOBounds(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-	                      EPCGExPointBoundsSource InBoundsSource, PCGExPointsToBounds::FBounds* InBounds) :
+	                      const EPCGExPointBoundsSource InBoundsSource, PCGExPointsToBounds::FBounds* InBounds) :
 		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
 		BoundsSource(InBoundsSource), Bounds(InBounds)
 	{

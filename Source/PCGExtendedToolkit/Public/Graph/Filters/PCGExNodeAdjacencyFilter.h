@@ -8,7 +8,7 @@
 
 #include "Data/PCGExGraphDefinition.h"
 #include "Graph/PCGExCluster.h"
-#include "..\PCGExCreateNodeFilter.h"
+#include "../PCGExCreateNodeFilter.h"
 
 #include "PCGExNodeAdjacencyFilter.generated.h"
 
@@ -42,14 +42,14 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAdjacencyFilterDescriptor
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="Mode==EPCGExAdjacencyTestMode::Some && (SubsetMeasure==EPCGExAdjacencySubsetMeasureMode::AbsoluteLocal||SubsetMeasure==EPCGExAdjacencySubsetMeasureMode::RelativeLocal)", EditConditionHides))
 	FPCGAttributePropertyInputSelector LocalMeasure;
 
-	/** Local measure attribute */
+	/** Constant Local measure value */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="Mode==EPCGExAdjacencyTestMode::Some && (SubsetMeasure==EPCGExAdjacencySubsetMeasureMode::AbsoluteStatic||SubsetMeasure==EPCGExAdjacencySubsetMeasureMode::RelativeStatic)", EditConditionHides))
-	double StaticMeasure;
-	
+	double StaticMeasure = 0;
+
 	/** Type of OperandA */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExOperandType CompareAgainst = EPCGExOperandType::Attribute;
-	
+
 	/** Operand A for testing -- Will be broadcasted to `double` under the hood. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="CompareAgainst==EPCGExOperandType::Attribute", EditConditionHides, ShowOnlyInnerProperties, DisplayName="Operand A (First)"))
 	FPCGAttributePropertyInputSelector OperandA;
@@ -57,7 +57,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAdjacencyFilterDescriptor
 	/** Constant Operand A for testing. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="CompareAgainst==EPCGExOperandType::Constant", EditConditionHides))
 	double OperandAConstant = 0;
-	
+
 	/** Comparison */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	EPCGExComparison Comparison = EPCGExComparison::NearlyEqual;
@@ -136,7 +136,7 @@ namespace PCGExNodeAdjacency
 		const UPCGExAdjacencyFilterDefinition* AdjacencyFilter;
 
 		TArray<double> CachedMeasure;
-		
+
 		bool bUseAbsoluteMeasure = false;
 		bool bUseLocalMeasure = false;
 		PCGEx::FLocalSingleFieldGetter* LocalMeasure = nullptr;

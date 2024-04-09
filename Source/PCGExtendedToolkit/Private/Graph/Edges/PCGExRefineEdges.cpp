@@ -71,10 +71,22 @@ bool FPCGExRefineEdgesElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExGraph::State_ReadyForNextEdges))
 	{
-		while (Context->AdvanceEdges(false))
+		if (!Context->AdvanceEdges(true))
 		{
-			Context->CurrentEdges->CreateInKeys();
-			Context->GetAsyncManager()->Start<FPCGExRefineEdgesTask>(-1, Context->CurrentIO, Context->CurrentEdges);
+			Context->GraphBuilder->Compile(Context);
+			Context->SetAsyncState(PCGExGraph::State_WaitingOnWritingClusters);
+		}
+		else
+		{
+			if (!Context->CurrentCluster)
+			{
+				PCGEX_INVALID_CLUSTER_LOG
+				return false;
+			}
+
+			Context->Refinement->PreProcess(Context->CurrentCluster, Context->GraphBuilder->Graph, Context->CurrentEdges);
+			
+			Context->GetAsyncManager()->Start<FPCGExRefineEdgesTask>(-1, Context->CurrentIO, Context->CurrentCluster, Context->CurrentEdges);
 			Context->SetAsyncState(PCGExGraph::State_ProcessingEdges);
 		}
 	}
@@ -83,8 +95,8 @@ bool FPCGExRefineEdgesElement::ExecuteInternal(
 	{
 		PCGEX_WAIT_ASYNC
 
-		Context->GraphBuilder->Compile(Context);
-		Context->SetAsyncState(PCGExGraph::State_WaitingOnWritingClusters);
+		Context->SetState(PCGExGraph::State_ReadyForNextEdges);
+		return false;
 	}
 
 	if (Context->IsState(PCGExGraph::State_WaitingOnWritingClusters))
@@ -105,25 +117,8 @@ bool FPCGExRefineEdgesElement::ExecuteInternal(
 
 bool FPCGExRefineEdgesTask::ExecuteTask()
 {
-	FPCGExRefineEdgesContext* Context = Manager->GetContext<FPCGExRefineEdgesContext>();
-
-	// Build cluster first
-
-	PCGExCluster::FCluster* Cluster = new PCGExCluster::FCluster();
-
-	if (!Cluster->BuildFrom(
-		*EdgeIO,
-		PointIO->GetIn()->GetPoints(),
-		Context->NodeIndicesMap,
-		Context->EdgeNumReader->Values))
-	{
-		// Bad cluster/edges.
-		PCGEX_DELETE(Cluster)
-		return false;
-	}
-
+	const FPCGExRefineEdgesContext* Context = Manager->GetContext<FPCGExRefineEdgesContext>();
 	Context->Refinement->Process(Cluster, Context->GraphBuilder->Graph, EdgeIO);
-
 	return false;
 }
 

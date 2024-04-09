@@ -137,7 +137,7 @@ class PCGEXTENDEDTOOLKIT_API FPCGExInsertPathToCompoundGraphTask : public FPCGEx
 public:
 	FPCGExInsertPathToCompoundGraphTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
 	                                    PCGExGraph::FCompoundGraph* InGraph,
-	                                    bool bInJoinFirstAndLast)
+	                                    const bool bInJoinFirstAndLast)
 		: FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
 		  Graph(InGraph),
 		  bJoinFirstAndLast(bInJoinFirstAndLast)

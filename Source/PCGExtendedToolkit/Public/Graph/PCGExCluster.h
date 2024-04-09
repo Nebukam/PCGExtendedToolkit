@@ -64,7 +64,7 @@ namespace PCGExCluster
 		int32 ItemIndex;
 		FBoxSphereBounds Bounds;
 
-		FClusterItemRef(int32 InItemIndex, const FBoxSphereBounds& InBounds)
+		FClusterItemRef(const int32 InItemIndex, const FBoxSphereBounds& InBounds)
 			: ItemIndex(InItemIndex), Bounds(InBounds)
 		{
 		}
@@ -118,7 +118,7 @@ namespace PCGExCluster
 
 		~FNode();
 
-		void AddConnection(const int32 EdgeIndex, const int32 NodeIndex);
+		void AddConnection(const int32 InEdgeIndex, const int32 InNodeIndex);
 		FVector GetCentroid(FCluster* InCluster) const;
 		int32 GetEdgeIndex(int32 AdjacentNodeIndex) const;
 	};
@@ -138,7 +138,7 @@ namespace PCGExCluster
 		PCGExData::FPointIO* PointsIO = nullptr;
 		PCGExData::FPointIO* EdgesIO = nullptr;
 
-		typedef TOctree2<FClusterItemRef, FClusterItemRefSemantics> ClusterItemOctree;
+		using ClusterItemOctree = TOctree2<FClusterItemRef, FClusterItemRefSemantics>;
 		ClusterItemOctree* NodeOctree = nullptr;
 		ClusterItemOctree* EdgeOctree = nullptr;
 
@@ -187,7 +187,7 @@ namespace PCGExCluster
 		FVector Normal = FVector::UpVector;
 		TArray<int32> SortedAdjacency;
 
-		FNodeProjection(FNode* InNode);
+		explicit FNodeProjection(FNode* InNode);
 
 		void Project(FCluster* InCluster, const FPCGExGeo2DProjectionSettings* ProjectionSettings);
 		void ComputeNormal(FCluster* InCluster);
@@ -259,7 +259,7 @@ namespace PCGExCluster
 		void CaptureCluster(const FPCGContext* InContext, FCluster* InCluster);
 		virtual bool Test(const int32 PointIndex) const override;
 		virtual void PrepareForTesting(PCGExData::FPointIO* PointIO) override;
-		
+
 		virtual ~FNodeStateHandler() override
 		{
 			PCGEX_DELETE_TARRAY(FilterHandlers)

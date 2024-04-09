@@ -162,14 +162,14 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBlendingSettings
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	TMap<FName, EPCGExDataBlendingType> AttributesOverrides;
 
-	bool CanBlend(FName AttributeName) const
+	bool CanBlend(const FName AttributeName) const
 	{
 		if (BlendingFilter == EPCGExBlendingFilter::All) { return true; }
 		if (FilteredAttributes.Contains(AttributeName)) { return BlendingFilter == EPCGExBlendingFilter::Include ? true : false; }
 		return BlendingFilter == EPCGExBlendingFilter::Exclude ? false : true;
 	}
 
-	void Filter(TArray<PCGEx::FAttributeIdentity>& Identities)
+	void Filter(TArray<PCGEx::FAttributeIdentity>& Identities) const
 	{
 		if (BlendingFilter == EPCGExBlendingFilter::All) { return; }
 		for (int i = 0; i < Identities.Num(); i++)

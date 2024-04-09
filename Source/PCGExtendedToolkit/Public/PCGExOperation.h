@@ -37,7 +37,7 @@ protected:
 	TMap<FName, FPCGMetadataAttributeBase*> PossibleOverrides;
 
 	virtual void ApplyOverrides();
-	
+
 	template <typename T>
 	T GetOverrideValue(const FName Name, const T Fallback, const EPCGMetadataTypes InType)
 	{

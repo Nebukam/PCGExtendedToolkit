@@ -68,7 +68,7 @@ namespace PCGEx
 		return false;
 	}
 
-	FAttributeIdentity* FAttributesInfos::Find(FName AttributeName)
+	FAttributeIdentity* FAttributesInfos::Find(const FName AttributeName)
 	{
 		for (FAttributeIdentity& Identity : Identities) { if (Identity.Name == AttributeName) { return &Identity; } }
 		return nullptr;

@@ -44,7 +44,7 @@ namespace PCGExData
 			Weights.Empty();
 		}
 
-		bool ContainsIOIndex(int32 IOIndex);
+		bool ContainsIOIndex(int32 InIOIndex);
 		void ComputeWeights(const TArray<FPointIO*>& Sources, const FPCGPoint& Target, const FPCGExDistanceSettings& DistSettings);
 		void ComputeWeights(const TArray<FPCGPoint>& SourcePoints, const FPCGPoint& Target, const FPCGExDistanceSettings& DistSettings);
 
@@ -67,9 +67,9 @@ namespace PCGExData
 
 		uint64 Add(const int32 Index, const int32 IOIndex, const int32 PointIndex);
 		void GetIOIndices(const int32 Index, TArray<int32>& OutIOIndices);
-		bool HasIOIndexOverlap(int32 Idx, const TArray<int32>& InIndices);
+		bool HasIOIndexOverlap(int32 InIdx, const TArray<int32>& InIndices);
 
-		FIdxCompound* operator[](int32 Index) const { return this->Compounds[Index]; }
+		FIdxCompound* operator[](const int32 Index) const { return this->Compounds[Index]; }
 	};
 
 #pragma endregion

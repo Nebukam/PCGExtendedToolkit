@@ -167,7 +167,7 @@ bool FPCGExPathsToEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) c
 
 		auto Initialize = [&]() { Context->ConsolidatedPoints->SetNumInitialized(NumCompoundNodes, true); };
 
-		auto ProcessNode = [&](int32 Index)
+		auto ProcessNode = [&](const int32 Index)
 		{
 			Context->ConsolidatedPoints->GetMutablePoint(Index).Transform.SetLocation(
 				Context->CompoundGraph->Nodes[Index]->UpdateCenter(Context->CompoundGraph->PointsCompounds, Context->MainPoints));

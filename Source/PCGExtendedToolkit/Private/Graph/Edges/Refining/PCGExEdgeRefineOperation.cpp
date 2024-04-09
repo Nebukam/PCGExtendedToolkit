@@ -9,6 +9,10 @@ void UPCGExEdgeRefineOperation::PrepareForPointIO(PCGExData::FPointIO* InPointIO
 	PointIO = InPointIO;
 }
 
+void UPCGExEdgeRefineOperation::PreProcess(PCGExCluster::FCluster* InCluster, PCGExGraph::FGraph* InGraph, PCGExData::FPointIO* InEdgesIO)
+{
+}
+
 void UPCGExEdgeRefineOperation::Process(PCGExCluster::FCluster* InCluster, PCGExGraph::FGraph* InGraph, PCGExData::FPointIO* InEdgesIO)
 {
 }

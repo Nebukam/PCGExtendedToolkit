@@ -45,7 +45,7 @@ bool UPCGExSearchAStar::FindPath(
 
 	for (int i = 0; i < Cluster->Nodes.Num(); i++)
 	{
-		double GS = Heuristics->GetGlobalScore(Cluster->Nodes[i], SeedNode, GoalNode);
+		const double GS = Heuristics->GetGlobalScore(Cluster->Nodes[i], SeedNode, GoalNode);
 		MinGScore = FMath::Min(MinGScore, GS);
 		MaxGScore = FMath::Max(MaxGScore, GS);
 	}

@@ -109,7 +109,7 @@ namespace PCGExDataState
 	};
 
 	template <typename T_DEF>
-	static bool GetInputStates(FPCGContext* InContext, const FName InLabel, TArray<TObjectPtr<T_DEF>>& OutStates, bool bAllowDuplicateNames)
+	static bool GetInputStates(FPCGContext* InContext, const FName InLabel, TArray<TObjectPtr<T_DEF>>& OutStates, const bool bAllowDuplicateNames)
 	{
 		const TArray<FPCGTaggedData>& Inputs = InContext->InputData.GetInputsByPin(InLabel);
 

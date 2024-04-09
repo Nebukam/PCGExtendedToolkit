@@ -8,6 +8,7 @@
 #include "Graph/Pathfinding/PCGExPathfinding.h"
 #include "PCGExEdgeRefinePrimMST.generated.h"
 
+class UPCGExHeuristicLocalDistance;
 class UPCGExHeuristicDistance;
 
 namespace PCGExCluster
@@ -26,10 +27,14 @@ class PCGEXTENDEDTOOLKIT_API UPCGExEdgeRefinePrimMST : public UPCGExEdgeRefineOp
 
 public:
 	virtual void PrepareForPointIO(PCGExData::FPointIO* InPointIO) override;
+	virtual void PreProcess(PCGExCluster::FCluster* InCluster, PCGExGraph::FGraph* InGraph, PCGExData::FPointIO* InEdgesIO) override;
 	virtual void Process(PCGExCluster::FCluster* InCluster, PCGExGraph::FGraph* InGraph, PCGExData::FPointIO* InEdgesIO) override;
 
 	virtual void Cleanup() override;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGExHeuristicModifiersSettings HeuristicsModifiers;
+
+protected:
+	TObjectPtr<UPCGExHeuristicLocalDistance> HeuristicsOperation = nullptr;
 };

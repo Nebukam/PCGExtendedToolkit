@@ -133,7 +133,7 @@ namespace PCGExNodeAdjacency
 		{
 			const int32 NumNodes = CapturedCluster->Nodes.Num();
 			CachedMeasure.SetNumUninitialized(NumNodes);
-			
+
 			if (bUseLocalMeasure)
 			{
 				if (bUseAbsoluteMeasure)
@@ -183,7 +183,7 @@ namespace PCGExNodeAdjacency
 
 			return true;
 		}
-		
+
 		const double MeasureReference = CachedMeasure[PointIndex];
 
 		if (AdjacencyFilter->SubsetMode == EPCGExAdjacencySubsetMode::AtLeast && bUseAbsoluteMeasure)

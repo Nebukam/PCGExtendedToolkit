@@ -140,7 +140,7 @@ namespace PCGExMath
 		bool IsLastWithinRange(const FVector& Location, const double Range) const { return DistToLast(Location) < Range; }
 	};
 
-	
+
 	struct PCGEXTENDEDTOOLKIT_API FPathMetrics
 	{
 		FPathMetrics()
@@ -157,7 +157,7 @@ namespace PCGExMath
 			for (const FPCGPoint& Pt : Points) { Add(Pt.Transform.GetLocation()); }
 		}
 
-		FPathMetrics(const FPathMetricsSquared& Other)
+		explicit FPathMetrics(const FPathMetricsSquared& Other)
 			: Start(Other.Start),
 			  Last(Other.Last),
 			  Length(Other.Length),
@@ -197,7 +197,7 @@ namespace PCGExMath
 		bool IsLastWithinRange(const FVector& Location, const double Range) const { return DistToLast(Location) < Range; }
 	};
 
-	
+
 	static double DegreesToDot(const double Angle)
 	{
 		return FMath::Cos(FMath::Clamp(FMath::Abs(Angle), 0, 180.0) * (PI / 180.0));
@@ -310,7 +310,7 @@ namespace PCGExMath
 	}
 
 	template <typename T>
-	static void Remap(TArray<T> Values, bool bZeroMin = false, T Range = 1)
+	static void Remap(TArray<T> Values, const bool bZeroMin = false, T Range = 1)
 	{
 		T Min;
 		T Max;
@@ -356,7 +356,7 @@ namespace PCGExMath
 		return Median;
 	}
 
-	static double GetMode(const TArray<double>& Values, bool bHighest, uint32 Tolerance = 5)
+	static double GetMode(const TArray<double>& Values, const bool bHighest, const uint32 Tolerance = 5)
 	{
 		TMap<double, int32> Map;
 		int32 LastCount = 0;

@@ -63,10 +63,8 @@ bool FPCGExCreateNodeStateElement::ExecuteInternal(
 		OutState->ConditionalBeginDestroy();
 		PCGE_LOG(Error, GraphAndLog, FTEXT("No test data."));
 		return true;
-	}else
-	{
-		OutState->Tests.Append(FilterDefinitions);
 	}
+	OutState->Tests.Append(FilterDefinitions);
 
 	if (OutState->Tests.IsEmpty())
 	{

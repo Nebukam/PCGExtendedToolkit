@@ -168,7 +168,7 @@ namespace PCGExGraph
 		const PCGExData::FPointIO& EdgeIO,
 		const TMap<int64, int32>& NodeIndicesMap,
 		TArray<FIndexedEdge>& OutEdges,
-		bool bInvalidateOnError = false)
+		const bool bInvalidateOnError = false)
 	{
 		//EdgeIO.CreateInKeys();
 
@@ -181,7 +181,7 @@ namespace PCGExGraph
 			PCGEX_DELETE(EndIndexReader)
 			return false;
 		}
-		
+
 		if (!EndIndexReader->Bind(const_cast<PCGExData::FPointIO&>(EdgeIO)))
 		{
 			PCGEX_DELETE(StartIndexReader)

@@ -83,7 +83,7 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 		TArray<FPCGPoint>& MutablePoints = Context->CurrentIO->GetOut()->GetMutablePoints();
 		if (MutablePoints.Num() != NumCompoundNodes) { MutablePoints.SetNum(NumCompoundNodes); }
 
-		auto ProcessNode = [&](int32 Index)
+		auto ProcessNode = [&](const int32 Index)
 		{
 			PCGExGraph::FCompoundNode* CompoundNode = Context->CompoundGraph->Nodes[Index];
 			MutablePoints[Index].Transform.SetLocation(CompoundNode->UpdateCenter(Context->CompoundGraph->PointsCompounds, Context->MainPoints));
@@ -98,7 +98,7 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 	{
 		PCGEX_WAIT_ASYNC
 
-		FPCGExPointPointIntersectionSettings* ISettings = const_cast<FPCGExPointPointIntersectionSettings*>(&Settings->PointPointIntersectionSettings);
+		const FPCGExPointPointIntersectionSettings* ISettings = const_cast<FPCGExPointPointIntersectionSettings*>(&Settings->PointPointIntersectionSettings);
 
 		// Blend attributes & properties
 		Context->GetAsyncManager()->Start<PCGExDataBlendingTask::FBlendCompoundedIO>(

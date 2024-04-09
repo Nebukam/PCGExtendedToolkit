@@ -26,7 +26,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGeo2DProjectionSettings
 	{
 	}
 
-	explicit FPCGExGeo2DProjectionSettings(bool InSupportLocalNormal)
+	explicit FPCGExGeo2DProjectionSettings(const bool InSupportLocalNormal)
 		: bSupportLocalNormal(InSupportLocalNormal)
 	{
 	}
@@ -241,12 +241,12 @@ namespace PCGExGeo
 		const FVector& C = Positions[Vtx[2]];
 
 
-		FVector AC = C - A;
-		FVector AB = B - A;
-		FVector ABxAC = AB.Cross(AC);
+		const FVector AC = C - A;
+		const FVector AB = B - A;
+		const FVector ABxAC = AB.Cross(AC);
 
 		// this is the vector from a TO the circumsphere center
-		FVector ToCircumsphereCenter = (ABxAC.Cross(AB) * AC.SquaredLength() + AC.Cross(ABxAC) * AB.SquaredLength()) / (2 * ABxAC.SquaredLength());
+		const FVector ToCircumsphereCenter = (ABxAC.Cross(AB) * AC.SquaredLength() + AC.Cross(ABxAC) * AB.SquaredLength()) / (2 * ABxAC.SquaredLength());
 		float Radius = ToCircumsphereCenter.Length();
 
 		// The 3 space coords of the circumsphere center then:

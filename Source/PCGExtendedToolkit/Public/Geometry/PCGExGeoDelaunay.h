@@ -152,7 +152,7 @@ namespace PCGExGeo
 		uint64 Faces[4];
 		bool bOnHull = false;
 
-		FDelaunaySite3(const FIntVector4& InVtx, const int32 InId = -1) : Id(InId)
+		explicit FDelaunaySite3(const FIntVector4& InVtx, const int32 InId = -1) : Id(InId)
 		{
 			for (int i = 0; i < 4; i++)
 			{
@@ -214,7 +214,7 @@ namespace PCGExGeo
 			IsValid = false;
 		}
 
-		bool Process(const TArrayView<FVector>& Positions, bool bComputeFaces = false)
+		bool Process(const TArrayView<FVector>& Positions, const bool bComputeFaces = false)
 		{
 			Clear();
 			if (Positions.IsEmpty() || Positions.Num() <= 3) { return false; }

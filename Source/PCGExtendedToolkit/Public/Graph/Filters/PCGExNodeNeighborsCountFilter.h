@@ -8,7 +8,7 @@
 
 #include "Data/PCGExGraphDefinition.h"
 #include "Graph/PCGExCluster.h"
-#include "..\PCGExCreateNodeFilter.h"
+#include "../PCGExCreateNodeFilter.h"
 
 #include "PCGExNodeNeighborsCountFilter.generated.h"
 
@@ -21,15 +21,15 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExNeighborsCountFilterDescriptor
 	FPCGExNeighborsCountFilterDescriptor()
 	{
 	}
-	
+
 	/** Comparison */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	EPCGExComparison Comparison = EPCGExComparison::NearlyEqual;
-	
+
 	/** Type of Count */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExOperandType CompareAgainst = EPCGExOperandType::Attribute;
-	
+
 	/** Operand A for testing -- Will be broadcasted to `double` under the hood. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="CompareAgainst==EPCGExOperandType::Attribute", EditConditionHides, ShowOnlyInnerProperties, DisplayName="Operand A (First)"))
 	FPCGAttributePropertyInputSelector LocalCount;
@@ -37,7 +37,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExNeighborsCountFilterDescriptor
 	/** Constant Operand A for testing. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="CompareAgainst==EPCGExOperandType::Constant", EditConditionHides))
 	int32 Count = 0;
-	
+
 	/** Rounding mode for near measures */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Comparison==EPCGExComparison::NearlyEqual || Comparison==EPCGExComparison::NearlyNotEqual", EditConditionHides))
 	double Tolerance = 0.001;
@@ -86,7 +86,7 @@ namespace PCGExNodeNeighborsCount
 		}
 
 		const UPCGExNeighborsCountFilterDefinition* NeighborsCountFilter;
-		
+
 		PCGEx::FLocalSingleFieldGetter* LocalCount = nullptr;
 
 		virtual void Capture(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO) override;

@@ -111,7 +111,7 @@ bool FPCGExPackClustersElement::ExecuteInternal(
 
 bool FPCGExPackClusterTask::ExecuteTask()
 {
-	FPCGExPackClustersContext* Context = Manager->GetContext<FPCGExPackClustersContext>();
+	const FPCGExPackClustersContext* Context = Manager->GetContext<FPCGExPackClustersContext>();
 
 	int32 NumEdges = 0;
 	TArray<int32> ReducedVtxIndices;

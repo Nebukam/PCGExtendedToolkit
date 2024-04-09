@@ -109,7 +109,7 @@ namespace PCGEx
 		FName Name = NAME_None;
 		EPCGMetadataTypes UnderlyingType = EPCGMetadataTypes::Unknown;
 
-		FAttributeIdentity(FName InName, EPCGMetadataTypes InUnderlyingType)
+		FAttributeIdentity(const FName InName, const EPCGMetadataTypes InUnderlyingType)
 			: Name(InName), UnderlyingType(InUnderlyingType)
 		{
 		}
@@ -502,7 +502,7 @@ namespace PCGEx
 		 * @param PointIO
 		 * @param bCaptureMinMax 
 		 */
-		bool Grab(const PCGExData::FPointIO& PointIO, bool bCaptureMinMax = false)
+		bool Grab(const PCGExData::FPointIO& PointIO, const bool bCaptureMinMax = false)
 		{
 			Cleanup();
 
@@ -590,7 +590,6 @@ namespace PCGEx
 		/**
 		 * Build and validate a property/attribute accessor for the selected
 		 * @param PointIO
-		 * @param bCaptureMinMax 
 		 */
 		bool SoftGrab(const PCGExData::FPointIO& PointIO)
 		{

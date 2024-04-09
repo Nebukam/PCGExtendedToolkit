@@ -77,7 +77,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBridgeEdgeClustersContext : public FPCGExEdg
 
 protected:
 	mutable FRWLock NumEdgeLock;
-	void BumpEdgeNum(const FPCGPoint& A, const FPCGPoint& B);
+	void BumpEdgeNum(const FPCGPoint& A, const FPCGPoint& B) const;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExBridgeEdgeClustersElement : public FPCGExEdgesProcessorElement

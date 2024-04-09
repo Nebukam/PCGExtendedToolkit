@@ -26,7 +26,7 @@ namespace PCGExFilterCluster
 
 		FVector Position;
 
-		FSelector(const FVector& InPosition)
+		explicit FSelector(const FVector& InPosition)
 			: Position(InPosition)
 		{
 		}
@@ -70,7 +70,7 @@ public:
 	/** Whether or not to search for closest node using an octree. Depending on your dataset, enabling this may be either much faster, or slightly slower. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	bool bUseOctreeSearch = false;
-	
+
 private:
 	friend class FPCGExFilterClustersElement;
 };

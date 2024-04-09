@@ -28,5 +28,4 @@ public:
 
 protected:
 	virtual void ApplyOverrides() override;
-	
 };

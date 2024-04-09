@@ -92,7 +92,7 @@ bool FPCGExUberFilterElement::ExecuteInternal(FPCGContext* InContext) const
 		else
 		{
 			Context->FilterManager = new PCGExDataFilter::TDirectFilterManager(Context->CurrentIO);
-			Context->FilterManager->ProcessDefinitionsForPointIO<UPCGExFilterDefinitionBase>(Context, Context->FilterDefinitions, Context->CurrentIO);
+			Context->FilterManager->Register<UPCGExFilterDefinitionBase>(Context, Context->FilterDefinitions, Context->CurrentIO);
 
 			if (!Context->FilterManager->bValid)
 			{

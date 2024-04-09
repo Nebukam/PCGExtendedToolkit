@@ -8,7 +8,7 @@ FString FPCGExMeanFilterDescriptor::GetDisplayName() const
 {
 	FString DisplayName = "";
 
-	if (bDoExcludeBelowMean) { DisplayName += FString::Printf(TEXT("< %.3f "), (static_cast<int32>(1000 * ExcludeBelow) / 1000.0)) ; }
+	if (bDoExcludeBelowMean) { DisplayName += FString::Printf(TEXT("< %.3f "), (static_cast<int32>(1000 * ExcludeBelow) / 1000.0)); }
 	if (bDoExcludeBelowMean && bDoExcludeAboveMean) { DisplayName += "&& "; }
 	if (bDoExcludeAboveMean) { DisplayName += FString::Printf(TEXT("> %.3f "), (static_cast<int32>(1000 * ExcludeAbove) / 1000.0)); }
 
