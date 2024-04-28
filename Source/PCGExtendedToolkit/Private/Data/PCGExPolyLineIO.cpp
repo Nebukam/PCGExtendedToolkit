@@ -181,10 +181,14 @@ namespace PCGExData
 		{
 			return const_cast<UPCGPolyLineData*>(LineData);
 		}
+		
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION == 3 
 		if (const UPCGSplineProjectionData* SplineProjectionData = Cast<const UPCGSplineProjectionData>(InSpatialData))
 		{
 			return const_cast<UPCGSplineData*>(SplineProjectionData->GetSpline());
 		}
+#endif
+
 		if (const UPCGIntersectionData* Intersection = Cast<const UPCGIntersectionData>(InSpatialData))
 		{
 			if (const UPCGPolyLineData* IntersectionA = GetMutablePolyLineData(Intersection->A))
