@@ -3,6 +3,10 @@
 
 #include "Sampling/PCGExSampleNearestSurface.h"
 
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3 
+#include "Engine/OverlapResult.h"
+#endif
+
 #define LOCTEXT_NAMESPACE "PCGExSampleNearestSurfaceElement"
 #define PCGEX_NAMESPACE SampleNearestSurface
 
