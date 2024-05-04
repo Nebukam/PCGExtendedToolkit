@@ -1,4 +1,4 @@
-﻿// Copyright Timothé Lapetite 2024
+// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #pragma once
@@ -65,6 +65,10 @@ namespace PCGExDataFilter
 		virtual void Capture(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO);
 		virtual bool Test(const int32 PointIndex) const;
 		virtual void PrepareForTesting(PCGExData::FPointIO* PointIO);
+
+		#if !PLATFORM_WINDOWS
+		virtual bool IsClusterFilter() const { return false; }
+		#endif
 
 		virtual ~TFilterHandler()
 		{
