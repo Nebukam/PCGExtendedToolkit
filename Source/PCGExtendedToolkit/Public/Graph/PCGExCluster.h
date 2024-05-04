@@ -1,4 +1,4 @@
-﻿// Copyright Timothé Lapetite 2024
+// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #pragma once
@@ -245,6 +245,10 @@ namespace PCGExCluster
 		virtual void Capture(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO) override;
 		virtual void CaptureEdges(const FPCGContext* InContext, const PCGExData::FPointIO* EdgeIO);
 		virtual void PrepareForTesting(PCGExData::FPointIO* PointIO) override;
+
+		#if !PLATFORM_WINDOWS
+		virtual bool IsClusterFilter() const override { return true; }
+		#endif
 	};
 
 	class PCGEXTENDEDTOOLKIT_API FNodeStateHandler : public PCGExDataState::TStateHandler

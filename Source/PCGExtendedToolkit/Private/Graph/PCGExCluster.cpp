@@ -690,9 +690,20 @@ namespace PCGExCluster
 
 		for (int i = 0; i < NumConditions; i++)
 		{
-			TFilterHandler* Handler = InDefinition->Tests[i]->CreateHandler();
-			if (TClusterFilterHandler* ClusterHandler = dynamic_cast<TClusterFilterHandler*>(Handler)) { ClusterFilterHandlers.Add(ClusterHandler); }
-			else { FilterHandlers.Add(Handler); }
+			if(TFilterHandler* Handler = InDefinition->Tests[i]->CreateHandler())
+			{
+			#if PLATFORM_WINDOWS
+				if (TClusterFilterHandler* ClusterHandler = dynamic_cast<TClusterFilterHandler*>(Handler)) { ClusterFilterHandlers.Add(ClusterHandler); }
+				else { FilterHandlers.Add(Handler); }
+			#else
+				if (Handler->IsClusterFilter()) { ClusterFilterHandlers.Add(static_cast<TClusterFilterHandler*>(Handler)); }
+				else { FilterHandlers.Add(Handler); }
+			#endif
+			}
+			else
+			{
+				//Exception catch
+			}
 		}
 	}
 
