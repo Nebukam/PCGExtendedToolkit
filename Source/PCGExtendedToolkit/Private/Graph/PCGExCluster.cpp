@@ -1,4 +1,4 @@
-// Copyright Timothé Lapetite 2024
+﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
 #include "Graph/PCGExCluster.h"
@@ -690,8 +690,8 @@ namespace PCGExCluster
 
 		for (int i = 0; i < NumConditions; i++)
 		{
-			TFilterHandler* Handler = InDefinition->Tests[i]->CreateHandler();
-
+			if(TFilterHandler* Handler = InDefinition->Tests[i]->CreateHandler())
+			{
 			#if PLATFORM_WINDOWS
 				if (TClusterFilterHandler* ClusterHandler = dynamic_cast<TClusterFilterHandler*>(Handler)) { ClusterFilterHandlers.Add(ClusterHandler); }
 				else { FilterHandlers.Add(Handler); }
@@ -699,6 +699,11 @@ namespace PCGExCluster
 				if (Handler->IsClusterFilter()) { ClusterFilterHandlers.Add(static_cast<TClusterFilterHandler*>(Handler)); }
 				else { FilterHandlers.Add(Handler); }
 			#endif
+			}
+			else
+			{
+				//Exception catch
+			}
 		}
 	}
 
