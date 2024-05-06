@@ -47,15 +47,16 @@ bool FPCGExOrientElement::ExecuteInternal(FPCGContext* InContext) const
 		if (!Boot(Context)) { return true; }
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
-
+	
 	Context->MainPoints->ForEach(
 		[&](PCGExData::FPointIO& PointIO, int32)
 		{
 			if (PointIO.GetNum() <= 1) { return; }
 			Context->Orientation->PrepareForData(PointIO);
 			Context->Orientation->ProcessPoints(PointIO.GetOut());
-			Context->Output(PointIO);
 		});
+
+	Context->OutputPoints();
 
 	return true;
 }

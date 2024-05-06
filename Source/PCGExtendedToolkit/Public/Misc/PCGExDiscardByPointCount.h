@@ -38,8 +38,8 @@ public:
 	bool bRemoveBelow = false;
 
 	/** Discarded if point count is less than */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bRemoveBelow", ClampMin=2))
-	int32 MinPointCount = 2;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bRemoveBelow", ClampMin=1))
+	int32 MinPointCount = 1;
 
 	/** Don't output Clusters if they have more points than a specified amount. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
