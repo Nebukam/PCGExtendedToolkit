@@ -619,7 +619,7 @@ namespace PCGExMath
 
 	template <typename CompilerSafety = void>
 	static FQuat Lerp(const FQuat& A, const FQuat& B, const double& Alpha = 0) { return FQuat::Slerp(A, B, Alpha); }
-
+	
 	template <typename CompilerSafety = void>
 	static FTransform Lerp(const FTransform& A, const FTransform& B, const double& Alpha = 0)
 	{
@@ -631,6 +631,7 @@ namespace PCGExMath
 
 #define PCGEX_UNSUPPORTED_LERP(_TYPE) template <typename CompilerSafety = void> static _TYPE Lerp(const _TYPE& A, const _TYPE& B, const double& Alpha = 0) { return Alpha > 0.5 ? B : A; }
 	PCGEX_UNSUPPORTED_STRING_TYPES(PCGEX_UNSUPPORTED_LERP)
+	PCGEX_UNSUPPORTED_LERP(bool)
 #undef PCGEX_UNSUPPORTED_LERP
 
 #pragma endregion
