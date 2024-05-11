@@ -53,14 +53,16 @@ bool FPCGExLloydRelax2DElement::ExecuteInternal(FPCGContext* InContext) const
 		if (!Context->AdvancePointsIO()) { Context->Done(); }
 		else
 		{
-			if (Context->CurrentIO->GetNum() <= 4)
+			if (Context->CurrentIO->GetNum() <= 3)
 			{
 				PCGE_LOG(Warning, GraphAndLog, FTEXT("(0) Some inputs have too few points to be processed (<= 3)."));
 				return false;
 			}
 
 			Context->CurrentIO->CreateInKeys();
-			Context->InfluenceGetter->Grab(*Context->CurrentIO);
+			
+			if (Settings->InfluenceSettings.bUseLocalInfluence) { Context->InfluenceGetter->Grab(*Context->CurrentIO); }
+
 			PCGExGeo::PointsToPositions(Context->CurrentIO->GetIn()->GetPoints(), Context->ActivePositions);
 
 			Context->ProjectionSettings.Init(Context->CurrentIO);
