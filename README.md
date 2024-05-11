@@ -4,19 +4,16 @@
 ![PCGEx](/Resources/Icon128.png)
 
 # What is it?
- The PCG Extended Toolkit is a plugin for [Unreal engine 5](https://www.unrealengine.com/en-US/) (5.3.x, 5.4) that contains a collection of **low-level PCG Graph elements** offering additional ways to manipulate and control PCG Data.
+### The PCG Extended Toolkit is a plugin for [Unreal engine 5](https://www.unrealengine.com/en-US/) (5.3.x, 5.4) that contains a collection of **low-level PCG Graph elements** offering additional ways to manipulate and control PCG Data in unique ways. Its primary focus is to create spatial relationships between points, and build around them.
 
-While there are a bunch of misc (useful!) nodes in this toolkit, its primary goal revolves around manipulating relationships between points through graphs (Delaunay, Voronoi, Minimum Spanning Tree etc); and then extract more concrete informations from these networks to, for example, build splines, paths, general flow-related creative stuffs that may otherwise be harder to achieve.
-
-## PCGEx Nodes
-Generally speaking, PCGEx nodes are not "magic". They aim to enhance existing features in a highly modular way, allowing content creators to achieve more without making assumptions about their specific goals. In other words, PCGEx' nodes do very little on their own.  
-
-**Check out the [Full documentation](https://nebukam.github.io/PCGExtendedToolkit/)!**
+PCGEx allows you to create edge-based structures from points dataset, inside of which you can do pathfinding to generate splines; relax positions, attributes, flag specific types of connections, and much much more. 
+It also comes with a set of lower-level, more generic features to manipulate attributes & points with a performance boost that can be up to 150x faster than vanilla PCG Nodes; as well as highly granular parameters & tweaks.
 
 ## Getting Started
-* [Installation](https://nebukam.github.io/PCGExtendedToolkit/installation/)
-* [All Nodes](https://nebukam.github.io/PCGExtendedToolkit/nodes/)
-* [Examples & Guides](https://nebukam.github.io/PCGExtendedToolkit/guides/)
+* **[Example Project](https://github.com/Nebukam/PCGExExampleProject)**
+* **[Full documentation](https://nebukam.github.io/PCGExtendedToolkit/)**
+* [Installation](https://nebukam.github.io/PCGExtendedToolkit/installation/) in your own project
+* Overview of [All the Nodes](https://nebukam.github.io/PCGExtendedToolkit/nodes/)
 
 ### Thanks
 - Kudo to [MikeC] for his reckless experiment with uncooked releases, feedbacks, suggestions. Without him this plugin wouldn't be as useful and stable as it is today.
