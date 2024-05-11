@@ -15,6 +15,8 @@ It also comes with a set of lower-level, more generic features to manipulate att
 * [Installation](https://nebukam.github.io/PCGExtendedToolkit/installation/) in your own project
 * Overview of [All the Nodes](https://nebukam.github.io/PCGExtendedToolkit/nodes/)
 
+Question & support : [head to github discussions](https://github.com/Nebukam/PCGExtendedToolkit/discussions)!
+
 ### Thanks
 - Kudo to [MikeC] for his reckless experiment with uncooked releases, feedbacks, suggestions. Without him this plugin wouldn't be as useful and stable as it is today.
 - [@MaximeDup](https://github.com/MaximeDup) for making this properly compile on Mac
