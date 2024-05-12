@@ -17,7 +17,7 @@ void UPCGExEdgeRefinePrimMST::PreProcess(PCGExCluster::FCluster* InCluster, PCGE
 {
 	Super::PreProcess(InCluster, InGraph, InEdgesIO);
 
-	if (!HeuristicsOperation) { HeuristicsOperation = NewObject<UPCGExHeuristicLocalDistance>(); }
+	HeuristicsOperation = NewObject<UPCGExHeuristicLocalDistance>(); // Leak?
 
 	HeuristicsModifiers.PrepareForData(*PointIO, *InEdgesIO);
 	HeuristicsOperation->ReferenceWeight = HeuristicsModifiers.ReferenceWeight;
@@ -85,6 +85,6 @@ void UPCGExEdgeRefinePrimMST::Process(PCGExCluster::FCluster* InCluster, PCGExGr
 
 void UPCGExEdgeRefinePrimMST::Cleanup()
 {
-	HeuristicsModifiers.Cleanup();	
+	HeuristicsModifiers.Cleanup();
 	Super::Cleanup();
 }
