@@ -96,7 +96,7 @@ int32 FPCGExCustomGraphProcessorContext::GetCachedIndex(const int32 PointIndex) 
 void FPCGExCustomGraphProcessorContext::WriteSocketInfos() const
 {
 	CachedIndexWriter->Write();
-	for (const PCGExGraph::FSocketInfos& SocketInfos : SocketInfos) { SocketInfos.Socket->Write(); }
+	for (const PCGExGraph::FSocketInfos& Infos : SocketInfos) { Infos.Socket->Write(); }
 }
 
 bool FPCGExCustomGraphProcessorContext::PrepareCurrentGraphForPoints(const PCGExData::FPointIO& PointIO, const bool ReadOnly)
