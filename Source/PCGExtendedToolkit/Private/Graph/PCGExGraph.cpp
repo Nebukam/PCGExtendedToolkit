@@ -111,7 +111,8 @@ namespace PCGExGraph
 	}
 
 #define PCGEX_EDGE_INSERT\
-	if (!E.bValid) { continue; } const uint64 Hash = E.H64U(); if (UniqueEdges.Contains(Hash)) { continue; }\
+	if (!E.bValid || !Nodes.IsValidIndex(E.Start) || !Nodes.IsValidIndex(E.End)) { continue; }\
+	const uint64 Hash = E.H64U(); if (UniqueEdges.Contains(Hash)) { continue; }\
 	UniqueEdges.Add(Hash); const FIndexedEdge& Edge = Edges.Emplace_GetRef(Edges.Num(), E.Start, E.End);\
 	Nodes[E.Start].Add(Edge.EdgeIndex);	Nodes[E.End].Add(Edge.EdgeIndex);
 
