@@ -154,7 +154,8 @@ bool FPCGExBuildCustomGraphElement::ExecuteInternal(
 		};
 
 		if (!Context->ProcessCurrentPoints(ProcessPointEdgeType)) { return false; }
-		for (const PCGExGraph::FSocketInfos& SocketInfos : Context->SocketInfos) { SocketInfos.Socket->Write(); }
+
+		Context->WriteSocketInfos();		
 		Context->SetState(PCGExGraph::State_ReadyForNextGraph);
 	}
 

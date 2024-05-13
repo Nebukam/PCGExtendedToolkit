@@ -18,8 +18,6 @@ bool FPCGExConsolidateCustomGraphElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(ConsolidateCustomGraph)
 
-	PCGEX_FWD(bConsolidateEdgeType)
-
 	return true;
 }
 
@@ -101,7 +99,7 @@ bool FPCGExConsolidateCustomGraphElement::ExecuteInternal(
 		};
 
 		if (!Context->ProcessCurrentPoints(ConsolidatePoint)) { return false; }
-		Context->SetState(Context->bConsolidateEdgeType ? PCGExGraph::State_FindingEdgeTypes : PCGExMT::State_ReadyForNextPoints);
+		Context->SetState(PCGExGraph::State_FindingEdgeTypes);
 	}
 
 	// Optional 3rd Pass on points - Recompute edges type
@@ -114,6 +112,8 @@ bool FPCGExConsolidateCustomGraphElement::ExecuteInternal(
 		};
 
 		if (!Context->ProcessCurrentPoints(ConsolidateEdgesType)) { return false; }
+
+		Context->WriteSocketInfos();
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 

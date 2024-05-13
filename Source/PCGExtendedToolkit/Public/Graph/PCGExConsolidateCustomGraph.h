@@ -33,10 +33,6 @@ public:
 	virtual int32 GetPreferredChunkSize() const override;
 	//~End UPCGExPointsProcessorSettings interface
 
-	/** Compute edge types internally. If you don't need edge types, set it to false to save some cycles.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
-	bool bConsolidateEdgeType = true;
-
 private:
 	friend class FPCGExConsolidateCustomGraphElement;
 };
@@ -46,8 +42,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExConsolidateCustomGraphContext : public FPCGE
 	friend class FPCGExConsolidateCustomGraphElement;
 
 public:
-	bool bConsolidateEdgeType;
-
 	TMap<int64, int64> IndicesRemap;
 	mutable FRWLock IndicesLock;
 };
