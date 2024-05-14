@@ -112,7 +112,7 @@ bool FPCGExFindNodeStatesElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExCluster::State_ProcessingCluster))
 	{
-		auto ProcessNode = [&](const int32 Index) { Context->StatesManager->Test(Index); }; // Cluster filters expect node index, regular filter point index is handled internally
+		auto ProcessNode = [&](const int32 Index) { Context->StatesManager->Test(Context->CurrentCluster->Nodes[Index].PointIndex); };
 
 		if (!Context->Process(ProcessNode, Context->CurrentCluster->Nodes.Num())) { return false; }
 

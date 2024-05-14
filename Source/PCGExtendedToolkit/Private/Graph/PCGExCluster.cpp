@@ -137,7 +137,7 @@ namespace PCGExCluster
 		EdgeList.Sort(
 			[](const PCGExGraph::FIndexedEdge& A, const PCGExGraph::FIndexedEdge& B)
 			{
-				return A.Start == B.Start ? A.End < B.End : A.Start < B.Start;
+				return A.Start == B.Start ? A.End<B.End : A.Start<B.Start;
 			});
 
 		for (int i = 0; i < NumEdges; i++)
@@ -690,15 +690,15 @@ namespace PCGExCluster
 
 		for (int i = 0; i < NumConditions; i++)
 		{
-			if(TFilterHandler* Handler = InDefinition->Tests[i]->CreateHandler())
+			if (TFilterHandler* Handler = InDefinition->Tests[i]->CreateHandler())
 			{
-			#if PLATFORM_WINDOWS
+#if PLATFORM_WINDOWS
 				if (TClusterFilterHandler* ClusterHandler = dynamic_cast<TClusterFilterHandler*>(Handler)) { ClusterFilterHandlers.Add(ClusterHandler); }
 				else { FilterHandlers.Add(Handler); }
-			#else
+#else
 				if (Handler->IsClusterFilter()) { ClusterFilterHandlers.Add(static_cast<TClusterFilterHandler*>(Handler)); }
 				else { FilterHandlers.Add(Handler); }
-			#endif
+#endif
 			}
 			else
 			{
@@ -747,11 +747,11 @@ namespace PCGExCluster
 	{
 		if (!FilterHandlers.IsEmpty())
 		{
-			const int32 PtIndex = Cluster->GetNodeFromPointIndex(PointIndex).PointIndex; // We get a node index from the FindNode
-			for (const TFilterHandler* Test : FilterHandlers) { if (!Test->Test(PtIndex)) { return false; } }
+			for (const TFilterHandler* Test : FilterHandlers) { if (!Test->Test(PointIndex)) { return false; } }
 		}
 
-		for (const TClusterFilterHandler* Test : ClusterFilterHandlers) { if (!Test->Test(PointIndex)) { return false; } }
+		const int32 NodeIndex = Cluster->GetNodeFromPointIndex(PointIndex).NodeIndex; // We get a point index from the FindNode
+		for (const TClusterFilterHandler* Test : ClusterFilterHandlers) { if (!Test->Test(NodeIndex)) { return false; } }
 
 		return true;
 	}
