@@ -16,7 +16,7 @@
 
 class UPCGPointData;
 
-UENUM(BlueprintType)
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Socket State Mode"))
 enum class EPCGExSocketStateMode : uint8
 {
 	AnyOf UMETA(DisplayName = "Any of", ToolTip="Any of the selection"),
@@ -26,7 +26,7 @@ enum class EPCGExSocketStateMode : uint8
 struct FPCGExPointsProcessorContext;
 ENUM_CLASS_FLAGS(EPCGExEdgeType)
 
-UENUM(BlueprintType, meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor="true"))
+UENUM(BlueprintType, meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor="true", DisplayName="[PCGEx] Tangent Type"))
 enum class EPCGExTangentType : uint8
 {
 	Custom UMETA(DisplayName = "Custom", Tooltip="Custom Attributes."),
@@ -35,7 +35,7 @@ enum class EPCGExTangentType : uint8
 
 ENUM_CLASS_FLAGS(EPCGExTangentType)
 
-UENUM(BlueprintType, meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor="true"))
+UENUM(BlueprintType, meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor="true", DisplayName="[PCGEx] Socket Type"))
 enum class EPCGExSocketType : uint8
 {
 	None   = 0 UMETA(DisplayName = "None", Tooltip="This socket has no particular type."),
@@ -46,14 +46,14 @@ enum class EPCGExSocketType : uint8
 
 ENUM_CLASS_FLAGS(EPCGExSocketType)
 
-UENUM(BlueprintType)
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Adjacency Test Mode"))
 enum class EPCGExAdjacencyTestMode : uint8
 {
 	All UMETA(DisplayName = "All", Tooltip="Test a condition using all adjacent nodes."),
 	Some UMETA(DisplayName = "Some", Tooltip="Test a condition using some adjacent nodes only.")
 };
 
-UENUM(BlueprintType)
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Adjacency Gather Mode"))
 enum class EPCGExAdjacencyGatherMode : uint8
 {
 	Individual UMETA(DisplayName = "Individual", Tooltip="Test individual nodes"),
@@ -63,7 +63,7 @@ enum class EPCGExAdjacencyGatherMode : uint8
 	Sum UMETA(DisplayName = "Sum", Tooltip="Sum value"),
 };
 
-UENUM(BlueprintType)
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Adjacency Subset Mode"))
 enum class EPCGExAdjacencySubsetMode : uint8
 {
 	AtLeast UMETA(DisplayName = "At Least", Tooltip="Requirements must be met by at least X adjacent nodes."),
@@ -71,7 +71,7 @@ enum class EPCGExAdjacencySubsetMode : uint8
 	Exactly UMETA(DisplayName = "Exactly", Tooltip="Requirements must be met by exactly X adjacent nodes, no more, no less.")
 };
 
-UENUM(BlueprintType)
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Adjacency Subset Measure Mode"))
 enum class EPCGExAdjacencySubsetMeasureMode : uint8
 {
 	AbsoluteStatic UMETA(DisplayName = "Absolute Static", Tooltip="Uses an absolute unique value."),
@@ -80,7 +80,7 @@ enum class EPCGExAdjacencySubsetMeasureMode : uint8
 	RelativeLocal UMETA(DisplayName = "Relative Local", Tooltip="Uses a relative value fetches from a node attribute.")
 };
 
-UENUM(BlueprintType)
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Relative Rounding Mode"))
 enum class EPCGExRelativeRoundingMode : uint8
 {
 	Round UMETA(DisplayName = "Round", Tooltip="Rounds value to closest integer (0.1 = 0, 0.9 = 1)"),

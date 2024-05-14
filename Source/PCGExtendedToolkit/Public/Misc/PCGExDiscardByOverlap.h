@@ -13,21 +13,21 @@
 
 #include "PCGExDiscardByOverlap.generated.h"
 
-UENUM(BlueprintType)
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Overlap Test Mode"))
 enum class EPCGExOverlapTestMode : uint8
 {
 	Fast UMETA(DisplayName = "Fast", ToolTip="Only test using datasets' overall bounds"),
 	Precise UMETA(DisplayName = "Precise", ToolTip="Test every points' bounds"),
 };
 
-UENUM(BlueprintType)
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Overlap Pruning Order"))
 enum class EPCGExOverlapPruningOrder : uint8
 {
 	OverlapCount UMETA(DisplayName = "Count > Amount", ToolTip="Overlap count"),
 	OverlapAmount UMETA(DisplayName = "Amount > Count", ToolTip="Overlap amount"),
 };
 
-UENUM(BlueprintType)
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Expand Points Bounds Mode"))
 enum class EPCGExExpandPointsBoundsMode : uint8
 {
 	None UMETA(DisplayName = "Don't expand", ToolTip="Use vanilla point bounds"),

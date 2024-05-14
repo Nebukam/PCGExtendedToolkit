@@ -15,7 +15,7 @@ namespace PCGExGraph
 	struct FEdgeCrossingsHandler;
 }
 
-UENUM(BlueprintType)
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Roaming Resolve Method"))
 enum class EPCGExRoamingResolveMethod : uint8
 {
 	Overlap UMETA(DisplayName = "Overlap", ToolTip="Roaming nodes with unidirectional connections will create their own overlapping Clusters."),

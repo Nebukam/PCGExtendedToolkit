@@ -9,7 +9,7 @@
 
 class FPCGExPointIOMerger;
 
-UENUM(BlueprintType)
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Bridge Cluster Mode"))
 enum class EPCGExBridgeClusterMethod : uint8
 {
 	Delaunay3D UMETA(DisplayName = "Delaunay 3D", ToolTip="Uses Delaunay 3D graph to find connections."),

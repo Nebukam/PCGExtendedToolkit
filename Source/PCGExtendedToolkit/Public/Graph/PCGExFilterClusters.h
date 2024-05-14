@@ -9,7 +9,7 @@
 
 class FPCGExPointIOMerger;
 
-UENUM(BlueprintType)
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Cluster Filter Mode"))
 enum class EPCGExClusterFilterMode : uint8
 {
 	Keep UMETA(DisplayName = "Keep", ToolTip="Keeps only selected clusters"),

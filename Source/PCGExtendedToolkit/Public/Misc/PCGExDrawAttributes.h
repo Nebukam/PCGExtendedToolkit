@@ -10,7 +10,7 @@
 
 #include "PCGExDrawAttributes.generated.h"
 
-UENUM(BlueprintType)
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Debug Expression"))
 enum class EPCGExDebugExpression : uint8
 {
 	Direction UMETA(DisplayName = "Direction", ToolTip="Attribute is treated as a Normal."),

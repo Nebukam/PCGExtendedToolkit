@@ -9,7 +9,7 @@
 #include "Graph/PCGExGraph.h"
 #include "PCGExPathProcessor.generated.h"
 
-UENUM(BlueprintType)
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Subdivide Mode"))
 enum class EPCGExSubdivideMode : uint8
 {
 	Distance UMETA(DisplayName = "Distance", ToolTip="Number of subdivisions depends on segment' length"),

@@ -13,14 +13,14 @@
 
 #include "PCGExCluster.generated.h"
 
-UENUM(BlueprintType)
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Cluster Closest Search Mode"))
 enum class EPCGExClusterClosestSearchMode : uint8
 {
 	Node UMETA(DisplayName = "Closest node", ToolTip="Proximity to node position"),
 	Edge UMETA(DisplayName = "Closest edge", ToolTip="Proximity to edge, then endpoint"),
 };
 
-UENUM(BlueprintType)
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] CLuster Search Orientation Mode"))
 enum class EPCGExClusterSearchOrientationMode : uint8
 {
 	CCW UMETA(DisplayName = "Counter Clockwise"),

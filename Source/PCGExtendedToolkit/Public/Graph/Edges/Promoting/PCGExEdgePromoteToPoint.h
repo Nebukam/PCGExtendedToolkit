@@ -10,7 +10,7 @@
 /**
  * 
  */
-UCLASS(BlueprintType, DisplayName = "Promote To Points")
+UCLASS(BlueprintType, meta=(DisplayName="Edges To Points"))
 class PCGEXTENDEDTOOLKIT_API UPCGExEdgePromoteToPoint : public UPCGExEdgePromotingOperation
 {
 	GENERATED_BODY()

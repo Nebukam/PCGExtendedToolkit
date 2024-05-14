@@ -20,7 +20,7 @@ namespace PCGExCluster
 /**
  * 
  */
-UCLASS(BlueprintType, DisplayName = "MST (Prim)")
+UCLASS(BlueprintType, meta=(DisplayName="MST (Prim)"))
 class PCGEXTENDEDTOOLKIT_API UPCGExEdgeRefinePrimMST : public UPCGExEdgeRefineOperation
 {
 	GENERATED_BODY()

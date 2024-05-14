@@ -11,14 +11,14 @@
 
 #include "PCGExPathfinding.generated.h"
 
-UENUM(BlueprintType)
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Pathfinding Navmesh Mode"))
 enum class EPCGExPathfindingNavmeshMode : uint8
 {
 	Regular UMETA(DisplayName = "Regular", ToolTip="Regular pathfinding"),
 	Hierarchical UMETA(DisplayName = "HIerarchical", ToolTip="Cell-based pathfinding"),
 };
 
-UENUM(BlueprintType)
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Pathfinding Goal Pick Method"))
 enum class EPCGExPathfindingGoalPickMethod : uint8
 {
 	SeedIndex UMETA(DisplayName = "Seed Index", Tooltip="Uses the seed index as goal index."),
@@ -28,7 +28,7 @@ enum class EPCGExPathfindingGoalPickMethod : uint8
 	All UMETA(DisplayName = "All", Tooltip="Each seed will create a path for each goal."),
 };
 
-UENUM(BlueprintType)
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Path Point Orientation"))
 enum class EPCGExPathPointOrientation : uint8
 {
 	None UMETA(DisplayName = "None", Tooltip="No orientation is applied to the point"),
@@ -39,7 +39,7 @@ enum class EPCGExPathPointOrientation : uint8
 };
 
 
-UENUM(BlueprintType)
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Heuristic Score Mode"))
 enum class EPCGExHeuristicScoreMode : uint8
 {
 	LowerIsBetter UMETA(DisplayName = "Lower is Better", Tooltip="Lower values are considered more desirable."),

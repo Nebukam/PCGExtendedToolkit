@@ -15,14 +15,14 @@ MACRO(FName)\
 MACRO(FSoftObjectPath)\
 MACRO(FSoftClassPath)
 
-UENUM(BlueprintType)
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Mean Measure"))
 enum class EPCGExMeanMeasure : uint8
 {
 	Relative UMETA(DisplayName = "Relative", ToolTip="Input value will be normalized between 0..1"),
 	Absolute UMETA(DisplayName = "Absolute", ToolTip="Raw value will be used."),
 };
 
-UENUM(BlueprintType)
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Mean Method"))
 enum class EPCGExMeanMethod : uint8
 {
 	Average UMETA(DisplayName = "Average", ToolTip="Average"),

@@ -19,7 +19,7 @@ namespace PCGExDataBlending
 	struct FPropertiesBlender;
 }
 
-UENUM(BlueprintType)
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Edge Direction Mode"))
 enum class EPCGExEdgeDirectionMethod : uint8
 {
 	EndpointsOrder UMETA(DisplayName = "Endpoints Order", ToolTip="Uses the edge' Start & End properties"),
@@ -28,7 +28,7 @@ enum class EPCGExEdgeDirectionMethod : uint8
 	EdgeDotAttribute UMETA(DisplayName = "Edge Dot Attribute", ToolTip="Chooses the highest dot product against a vector property or attribute on the edge point"),
 };
 
-UENUM(BlueprintType)
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Edge Direction Choice"))
 enum class EPCGExEdgeDirectionChoice : uint8
 {
 	SmallestToGreatest UMETA(DisplayName = "Smallest to Greatest", ToolTip="Direction points from smallest to greatest value"),

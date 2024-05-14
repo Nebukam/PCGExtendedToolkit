@@ -10,7 +10,7 @@
 /**
  * 
  */
-UCLASS(DisplayName = "Force Directed")
+UCLASS(meta=(DisplayName="Force Directed"))
 class PCGEXTENDEDTOOLKIT_API UPCGExForceDirectedRelaxing : public UPCGExEdgeRelaxingOperation
 {
 	GENERATED_BODY()

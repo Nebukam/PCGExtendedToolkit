@@ -32,7 +32,7 @@ MACRO(FVector, Scale, Vector, Transform.GetScale3D()) \
 MACRO(float, Steepness, Float,Steepness) \
 MACRO(int32, Seed, Integer32,Seed)
 
-UENUM(BlueprintType)
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Blending Filter"))
 enum class EPCGExBlendingFilter : uint8
 {
 	All UMETA(DisplayName = "Blend All", ToolTip="Blend all attributes"),
@@ -53,7 +53,7 @@ namespace PCGExData
 	struct FIdxCompoundList;
 }
 
-UENUM(BlueprintType)
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Data Blending Type"))
 enum class EPCGExDataBlendingType : uint8
 {
 	None        = 0 UMETA(DisplayName = "None", ToolTip="No blending is applied, keep the original value."),

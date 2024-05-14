@@ -10,7 +10,7 @@
 
 #include "PCGExEdge.generated.h"
 
-UENUM(BlueprintType, meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor="true"))
+UENUM(BlueprintType, meta=(Bitflags, UseEnumValuesAsMaskValuesInEditor="true", DisplayName="[PCGEx] Edge Type"))
 enum class EPCGExEdgeType : uint8
 {
 	Unknown  = 0 UMETA(DisplayName = "Unknown", Tooltip="Unknown type."),

@@ -147,7 +147,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExLloydSettings
 	bool IsValid() const { return Iterations > 0 && Influence > 0; }
 };
 
-UENUM(BlueprintType)
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Cell Center"))
 enum class EPCGExCellCenter : uint8
 {
 	Balanced UMETA(DisplayName = "Balanced", ToolTip="Pick centroid if circumcenter is out of bounds, otherwise uses circumcenter."),

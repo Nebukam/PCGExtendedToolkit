@@ -12,7 +12,7 @@
 struct FPCGPoint;
 class UPCGPointData;
 
-UENUM(BlueprintType)
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Goal Pick Attribute - Amount"))
 enum class EPCGExGoalPickAttributeAmount : uint8
 {
 	Single UMETA(DisplayName = "Single Attribute", Tooltip="Single attribute"),

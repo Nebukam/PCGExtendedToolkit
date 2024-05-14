@@ -27,7 +27,7 @@ PCGEX_DELETE(Context->_NAME##Writer)}
 #define PCGEX_OUTPUT_ACCESSOR_INIT(_NAME, _TYPE) if(Context->_NAME##Writer){Context->_NAME##Writer->BindAndGet(PointIO);}
 #define PCGEX_OUTPUT_DELETE(_NAME, _TYPE) PCGEX_DELETE(_NAME##Writer)
 
-UENUM(BlueprintType)
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Sample Method"))
 enum class EPCGExSampleMethod : uint8
 {
 	WithinRange UMETA(DisplayName = "All (Within range)", ToolTip="Use RangeMax = 0 to include all targets"),
@@ -35,7 +35,7 @@ enum class EPCGExSampleMethod : uint8
 	FarthestTarget UMETA(DisplayName = "Farthest Target", ToolTip="Picks & process the farthest target only"),
 };
 
-UENUM(BlueprintType)
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Sample Source"))
 enum class EPCGExSampleSource : uint8
 {
 	Source UMETA(DisplayName = "Source", ToolTip="Read value on source"),
@@ -43,7 +43,7 @@ enum class EPCGExSampleSource : uint8
 	Constant UMETA(DisplayName = "Constant", ToolTip="Read constant"),
 };
 
-UENUM(BlueprintType)
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Angle Range"))
 enum class EPCGExAngleRange : uint8
 {
 	URadians UMETA(DisplayName = "Radians (0..+PI)", ToolTip="0..+PI"),

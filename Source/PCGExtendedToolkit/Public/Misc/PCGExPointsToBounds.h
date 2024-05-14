@@ -13,7 +13,7 @@
 
 class FPCGExComputeIOBounds;
 
-UENUM(BlueprintType)
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Point Bounds Source"))
 enum class EPCGExPointBoundsSource : uint8
 {
 	DensityBounds UMETA(DisplayName = "Density Bounds", ToolTip="TBD"),

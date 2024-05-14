@@ -7,7 +7,7 @@
 #include "PCGExSubPointsOrientOperation.h"
 #include "PCGExSubPointsOrientLookAt.generated.h"
 
-UENUM(BlueprintType)
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Orient Look At Mode"))
 enum class EPCGExOrientLookAt : uint8
 {
 	NextPoint UMETA(DisplayName = "Next Point", ToolTip="Look at next point in path"),

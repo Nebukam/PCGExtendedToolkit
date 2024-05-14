@@ -12,7 +12,7 @@
 
 #include "PCGExStringCompareFilter.generated.h"
 
-UENUM(BlueprintType)
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] String Comparison"))
 enum class EPCGExStringComparison : uint8
 {
 	StrictlyEqual UMETA(DisplayName = " == ", Tooltip="Operand A Strictly Equal to Operand B"),

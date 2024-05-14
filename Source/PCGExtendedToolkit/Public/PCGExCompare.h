@@ -20,7 +20,7 @@ MACRO(FSoftClassPath)
 MACRO(FSoftObjectPath)\
 MACRO(FSoftClassPath)
 
-UENUM(BlueprintType)
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Comparison"))
 enum class EPCGExComparison : uint8
 {
 	StrictlyEqual UMETA(DisplayName = " == ", Tooltip="Operand A Strictly Equal to Operand B"),

@@ -9,7 +9,7 @@
 
 #include "PCGExSubPointsBlendInterpolate.generated.h"
 
-UENUM(BlueprintType)
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Path Blend Over Mode"))
 enum class EPCGExPathBlendOver : uint8
 {
 	Distance UMETA(DisplayName = "Distance", ToolTip="Lerp is based on distance over total length"),
