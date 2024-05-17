@@ -48,7 +48,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	int32 StateId = 0;
 
-	/** State priority for conflict resolution.*/
+	/** State priority for conflict resolution. Higher values are applied last as to override lower-priority states.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	int32 Priority = 0;
 };

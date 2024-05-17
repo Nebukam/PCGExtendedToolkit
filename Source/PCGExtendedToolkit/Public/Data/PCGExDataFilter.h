@@ -66,9 +66,9 @@ namespace PCGExDataFilter
 		virtual bool Test(const int32 PointIndex) const;
 		virtual void PrepareForTesting(PCGExData::FPointIO* PointIO);
 
-		#if !PLATFORM_WINDOWS
+#if !PLATFORM_WINDOWS
 		virtual bool IsClusterFilter() const { return false; }
-		#endif
+#endif
 
 		virtual ~TFilterHandler()
 		{
