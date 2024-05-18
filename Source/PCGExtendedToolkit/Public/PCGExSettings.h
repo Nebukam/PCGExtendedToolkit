@@ -75,8 +75,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExRemapSettings
 		InMax(Other.InMax),
 		RangeMethod(Other.RangeMethod),
 		Scale(Other.Scale),
-		TruncateOutput(Other.TruncateOutput),
-		RemapCurveObj(Other.RemapCurveObj)
+		RemapCurveObj(Other.RemapCurveObj),
+		TruncateOutput(Other.TruncateOutput)
 	{
 	}
 
