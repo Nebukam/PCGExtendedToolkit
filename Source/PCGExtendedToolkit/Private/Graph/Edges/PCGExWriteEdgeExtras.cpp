@@ -5,9 +5,16 @@
 
 #include "Data/Blending/PCGExMetadataBlender.h"
 #include "Graph/Edges/Promoting/PCGExEdgePromoteToPoint.h"
+#include "Kismet/KismetMathLibrary.h"
 
 #define LOCTEXT_NAMESPACE "PCGExEdgesToPaths"
 #define PCGEX_NAMESPACE WriteEdgeExtras
+
+#define PCGEX_FOREACH_EDGE_AXIS(MACRO)\
+MACRO(X)\
+MACRO(Y)\
+MACRO(Z)
+
 
 UPCGExWriteEdgeExtrasSettings::UPCGExWriteEdgeExtrasSettings(
 	const FObjectInitializer& ObjectInitializer)
@@ -30,6 +37,11 @@ FPCGExWriteEdgeExtrasContext::~FPCGExWriteEdgeExtrasContext()
 	PCGEX_DELETE(VtxDirCompGetter)
 	PCGEX_DELETE(EdgeDirCompGetter)
 
+	PCGEX_DELETE(SolidificationLerpGetter)
+	PCGEX_DELETE(SolidificationRadX)
+	PCGEX_DELETE(SolidificationRadY)
+	PCGEX_DELETE(SolidificationRadZ)
+
 	PCGEX_DELETE(MetadataBlender)
 
 	ProjectionSettings.Cleanup();
@@ -41,6 +53,7 @@ bool FPCGExWriteEdgeExtrasElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(WriteEdgeExtras)
 
+	Context->bSolidify = Settings->SolidificationAxis != EPCGExMinimalAxis::None;
 
 	PCGEX_FOREACH_FIELD_EDGEEXTRAS(PCGEX_OUTPUT_VALIDATE_NAME)
 	PCGEX_FOREACH_FIELD_EDGEEXTRAS(PCGEX_OUTPUT_FWD)
@@ -84,6 +97,10 @@ bool FPCGExWriteEdgeExtrasElement::ExecuteInternal(
 	{
 		PCGEX_DELETE(Context->VtxDirCompGetter)
 
+#define PCGEX_CLEAN_LOCAL_PT_GETTER(_AXIS) if (Settings->bWriteRadius##_AXIS && Settings->Radius##_AXIS##Source == EPCGExGraphValueSource::Point) { PCGEX_DELETE(Context->SolidificationRad##_AXIS); }
+		PCGEX_FOREACH_EDGE_AXIS(PCGEX_CLEAN_LOCAL_PT_GETTER)
+#undef PCGEX_CLEAN_LOCAL_PT_GETTER
+
 		if (!Context->AdvancePointsIO()) { Context->Done(); }
 		else
 		{
@@ -95,12 +112,24 @@ bool FPCGExWriteEdgeExtrasElement::ExecuteInternal(
 
 			Context->ProjectionSettings.Init(Context->CurrentIO);
 
-			if (Settings->DirectionMethod == EPCGExEdgeDirectionMethod::EndpointsAttribute)
+#define PCGEX_CREATE_LOCAL_GETTER(_TEST, _GETTER, _SOURCE)\
+			if (_TEST){\
+				Context->_GETTER = new PCGEx::FLocalSingleFieldGetter();\
+				Context->_GETTER->Capture(Settings->_SOURCE);\
+				Context->_GETTER->Grab(*Context->CurrentIO);}
+
+			PCGEX_CREATE_LOCAL_GETTER(
+				Settings->DirectionMethod == EPCGExEdgeDirectionMethod::EndpointsAttribute,
+				VtxDirCompGetter, VtxSourceAttribute)
+
+			if (Context->bSolidify)
 			{
-				Context->VtxDirCompGetter = new PCGEx::FLocalSingleFieldGetter();
-				Context->VtxDirCompGetter->Capture(Settings->VtxSourceAttribute);
-				Context->VtxDirCompGetter->Grab(*Context->CurrentIO);
+#define PCGEX_CREATE_LOCAL_AXIS_GETTER(_AXIS) PCGEX_CREATE_LOCAL_GETTER(Settings->bWriteRadius##_AXIS && Settings->Radius##_AXIS##Source == EPCGExGraphValueSource::Point, SolidificationRad##_AXIS, Radius##_AXIS##SourceAttribute)
+				PCGEX_FOREACH_EDGE_AXIS(PCGEX_CREATE_LOCAL_AXIS_GETTER)
+#undef PCGEX_CREATE_LOCAL_AXIS_GETTER
 			}
+
+#undef PCGEX_CREATE_LOCAL_GETTER
 
 			PCGExData::FPointIO& PointIO = *Context->CurrentIO;
 			PCGEX_OUTPUT_ACCESSOR_INIT(VtxNormal, FVector)
@@ -113,6 +142,15 @@ bool FPCGExWriteEdgeExtrasElement::ExecuteInternal(
 	{
 		PCGEX_DELETE(Context->EdgeDirCompGetter)
 
+		if (Context->bSolidify)
+		{
+#define PCGEX_CLEAN_LOCAL_EDGE_GETTER(_AXIS) if (Settings->bWriteRadius##_AXIS && Settings->Radius##_AXIS##Source == EPCGExGraphValueSource::Edge) { PCGEX_DELETE(Context->SolidificationRad##_AXIS); }
+			PCGEX_FOREACH_EDGE_AXIS(PCGEX_CLEAN_LOCAL_EDGE_GETTER)
+#undef PCGEX_CLEAN_LOCAL_EDGE_GETTER
+
+			PCGEX_DELETE(Context->SolidificationLerpGetter)
+		}
+
 		if (!Context->AdvanceEdges(true))
 		{
 			PCGEX_OUTPUT_WRITE(VtxNormal, FVector)
@@ -124,6 +162,32 @@ bool FPCGExWriteEdgeExtrasElement::ExecuteInternal(
 		{
 			PCGEX_INVALID_CLUSTER_LOG
 			return false;
+		}
+
+		if (Context->bSolidify)
+		{
+#define PCGEX_CREATE_LOCAL_AXIS_GETTER(_AXIS)\
+if (Settings->bWriteRadius##_AXIS && Settings->Radius##_AXIS##Source == EPCGExGraphValueSource::Edge) {\
+Context->SolidificationRad##_AXIS = new PCGEx::FLocalSingleFieldGetter();\
+Context->SolidificationRad##_AXIS->Capture(Settings->Radius##_AXIS##SourceAttribute);\
+Context->SolidificationRad##_AXIS->Grab(*Context->CurrentEdges); }
+			PCGEX_FOREACH_EDGE_AXIS(PCGEX_CREATE_LOCAL_AXIS_GETTER)
+#undef PCGEX_CREATE_LOCAL_AXIS_GETTER
+
+			Context->SolidificationLerpGetter = new PCGEx::FLocalSingleFieldGetter();
+
+			if (Settings->SolidificationLerpOperand == EPCGExOperandType::Attribute)
+			{
+				Context->SolidificationLerpGetter->Capture(Settings->SolidificationLerpAttribute);
+				if (!Context->SolidificationLerpGetter->Grab(*Context->CurrentEdges))
+				{
+					PCGE_LOG(Warning, GraphAndLog, FText::Format(FTEXT("Some edges don't have the specified SolidificationEdgeLerp Attribute {0}."), FText::FromName(Settings->SolidificationLerpAttribute.GetName())));
+				}
+			}
+			else
+			{
+				Context->SolidificationLerpGetter->bEnabled = false;
+			}
 		}
 
 		if (Settings->DirectionMethod == EPCGExEdgeDirectionMethod::EdgeDotAttribute)
@@ -172,16 +236,20 @@ bool FPCGExWriteEdgeExtrasElement::ExecuteInternal(
 		auto ProcessEdge = [&](const int32 EdgeIndex)
 		{
 			const PCGExGraph::FIndexedEdge& Edge = Context->CurrentCluster->Edges[EdgeIndex];
-			const FPCGPoint& StartPoint = Context->CurrentIO->GetInPoint(Edge.Start);
-			const FPCGPoint& EndPoint = Context->CurrentIO->GetInPoint(Edge.End);
 
-			const FVector DirFrom = StartPoint.Transform.GetLocation();
-			const FVector DirTo = EndPoint.Transform.GetLocation();
+			uint32 EdgeStartPtIndex = Edge.Start;
+			uint32 EdgeEndPtIndex = Edge.End;
+
+			const FPCGPoint& StartPoint = Context->CurrentIO->GetInPoint(EdgeStartPtIndex);
+			const FPCGPoint& EndPoint = Context->CurrentIO->GetInPoint(EdgeEndPtIndex);
+
+			FVector DirFrom = StartPoint.Transform.GetLocation();
+			FVector DirTo = EndPoint.Transform.GetLocation();
 			bool bAscending = true; // Default for Context->DirectionMethod == EPCGExEdgeDirectionMethod::EndpointsOrder
 
 			if (Context->DirectionMethod == EPCGExEdgeDirectionMethod::EndpointsAttribute)
 			{
-				bAscending = Context->VtxDirCompGetter->SafeGet(Edge.Start, Edge.Start) < Context->VtxDirCompGetter->SafeGet(Edge.End, Edge.End);
+				bAscending = Context->VtxDirCompGetter->SafeGet(EdgeStartPtIndex, EdgeStartPtIndex) < Context->VtxDirCompGetter->SafeGet(EdgeEndPtIndex, EdgeEndPtIndex);
 			}
 			else if (Context->DirectionMethod == EPCGExEdgeDirectionMethod::EdgeDotAttribute)
 			{
@@ -192,40 +260,85 @@ bool FPCGExWriteEdgeExtrasElement::ExecuteInternal(
 			}
 			else if (Context->DirectionMethod == EPCGExEdgeDirectionMethod::EndpointsIndices)
 			{
-				bAscending = Edge.Start < Edge.End;
+				bAscending = (EdgeStartPtIndex < EdgeEndPtIndex);
 			}
 
 			const bool bInvert = bAscending != Context->bAscendingDesired;
 
+			if (bInvert)
+			{
+				std::swap(DirTo, DirFrom);
+				std::swap(EdgeStartPtIndex, EdgeEndPtIndex);
+			}
+
 			const PCGEx::FPointRef Target = Context->CurrentEdges->GetOutPointRef(Edge.PointIndex);
+
 			if (Context->MetadataBlender)
 			{
 				Context->MetadataBlender->PrepareForBlending(Target);
-				if (bInvert)
-				{
-					Context->MetadataBlender->Blend(Target, Context->CurrentIO->GetInPointRef(Edge.End), Target, Context->StartWeight);
-					Context->MetadataBlender->Blend(Target, Context->CurrentIO->GetInPointRef(Edge.Start), Target, Context->EndWeight);
-				}
-				else
-				{
-					Context->MetadataBlender->Blend(Target, Context->CurrentIO->GetInPointRef(Edge.Start), Target, Context->StartWeight);
-					Context->MetadataBlender->Blend(Target, Context->CurrentIO->GetInPointRef(Edge.End), Target, Context->EndWeight);
-				}
-
+				Context->MetadataBlender->Blend(Target, Context->CurrentIO->GetInPointRef(EdgeStartPtIndex), Target, Context->StartWeight);
+				Context->MetadataBlender->Blend(Target, Context->CurrentIO->GetInPointRef(EdgeEndPtIndex), Target, Context->EndWeight);
 				Context->MetadataBlender->CompleteBlending(Target, 2);
 			}
 
-			if (bInvert)
+			const FVector EdgeDirection = (DirFrom - DirTo).GetSafeNormal();
+			const double EdgeLength = FVector::Distance(DirFrom, DirTo);
+
+			PCGEX_OUTPUT_VALUE(EdgeDirection, Edge.PointIndex, EdgeDirection);
+			PCGEX_OUTPUT_VALUE(EdgeLength, Edge.PointIndex, EdgeLength);
+
+			FPCGPoint& MutableTarget = Context->CurrentEdges->GetMutablePoint(Edge.PointIndex);
+			
+			if (Context->bSolidify)
 			{
-				PCGEX_OUTPUT_VALUE(EdgeDirection, Edge.PointIndex, (DirTo - DirFrom).GetSafeNormal());
-				PCGEX_OUTPUT_VALUE(EdgeLength, Edge.PointIndex, FVector::Distance(DirFrom, DirTo));
-				if (Context->bWriteEdgePosition) { const_cast<FPCGPoint*>(Target.Point)->Transform.SetLocation(FMath::Lerp(DirFrom, DirTo, Context->EdgePositionLerp)); }
+				FRotator EdgeRot;
+				FVector Extents = MutableTarget.GetExtents();
+				FVector TargetBoundsMin = MutableTarget.BoundsMin;
+				FVector TargetBoundsMax = MutableTarget.BoundsMax;
+
+				const double EdgeLerp = FMath::Clamp(Context->SolidificationLerpGetter->SafeGet(Edge.PointIndex, Settings->SolidificationLerpConstant), 0, 1);
+				const double EdgeLerpInv = 1 - EdgeLerp;
+				bool bProcessAxis;
+
+#define PCGEX_SOLIDIFY_DIMENSION(_AXIS)\
+				bProcessAxis = Settings->bWriteRadius##_AXIS || Settings->SolidificationAxis == EPCGExMinimalAxis::_AXIS;\
+				if (bProcessAxis){\
+					if (Settings->SolidificationAxis == EPCGExMinimalAxis::_AXIS){\
+						TargetBoundsMin._AXIS = -EdgeLength * EdgeLerpInv;\
+						TargetBoundsMax._AXIS = EdgeLength * EdgeLerp;\
+					}else if (Context->SolidificationRad##_AXIS->bEnabled){\
+						double Rad = Extents._AXIS;\
+						if (Settings->Radius##_AXIS##Source == EPCGExGraphValueSource::Point) { Rad = FMath::Lerp(Context->SolidificationRad##_AXIS->SafeGet(EdgeStartPtIndex, Rad), Context->SolidificationRad##_AXIS->SafeGet(EdgeEndPtIndex, Rad), EdgeLerp); }\
+						else { Rad = Context->SolidificationRad##_AXIS->SafeGet(Edge.PointIndex, Rad); }\
+						TargetBoundsMin._AXIS = -Rad;\
+						TargetBoundsMax._AXIS = Rad;\
+					}}
+
+				PCGEX_FOREACH_EDGE_AXIS(PCGEX_SOLIDIFY_DIMENSION)
+#undef PCGEX_SOLIDIFY_DIMENSION
+
+				MutableTarget.BoundsMin = TargetBoundsMin;
+				MutableTarget.BoundsMax = TargetBoundsMax;
+
+				switch (Settings->SolidificationAxis)
+				{
+				default:
+				case EPCGExMinimalAxis::X:
+					EdgeRot = UKismetMathLibrary::MakeRotFromX(EdgeDirection);
+					break;
+				case EPCGExMinimalAxis::Y:
+					EdgeRot = UKismetMathLibrary::MakeRotFromY(EdgeDirection);
+					break;
+				case EPCGExMinimalAxis::Z:
+					EdgeRot = UKismetMathLibrary::MakeRotFromZ(EdgeDirection);
+					break;
+				}
+
+				MutableTarget.Transform = FTransform(EdgeRot, FMath::Lerp(DirTo, DirFrom, EdgeLerp), MutableTarget.Transform.GetScale3D());
 			}
-			else
+			else if (Context->bWriteEdgePosition)
 			{
-				PCGEX_OUTPUT_VALUE(EdgeDirection, Edge.PointIndex, (DirFrom - DirTo).GetSafeNormal());
-				PCGEX_OUTPUT_VALUE(EdgeLength, Edge.PointIndex, FVector::Distance(DirFrom, DirTo));
-				if (Context->bWriteEdgePosition) { const_cast<FPCGPoint*>(Target.Point)->Transform.SetLocation(FMath::Lerp(DirTo, DirFrom, Context->EdgePositionLerp)); }
+				MutableTarget.Transform.SetLocation(FMath::Lerp(DirTo, DirFrom, Context->EdgePositionLerp));
 			}
 		};
 
@@ -243,5 +356,6 @@ bool FPCGExWriteEdgeExtrasElement::ExecuteInternal(
 	return Context->IsDone();
 }
 
+#undef PCGEX_FOREACH_EDGE_AXIS
 #undef LOCTEXT_NAMESPACE
 #undef PCGEX_NAMESPACE

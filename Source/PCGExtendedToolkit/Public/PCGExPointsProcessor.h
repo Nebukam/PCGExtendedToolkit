@@ -267,9 +267,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : public FPCGContext
 		GetAsyncManager()->Start<FPCGExParallelLoopTask>(-1, nullptr, Initialize, LoopBody, NumIterations, ChunkSize);
 	}
 
-	void Output(FPCGTaggedData& OutTaggedData, UPCGData* OutData, const FName OutputLabel);
 	FPCGTaggedData* Output(UPCGData* OutData, const FName OutputLabel);
-	void Output(PCGExData::FPointIO& PointIO);
 
 	template <typename T>
 	T MakeLoop()

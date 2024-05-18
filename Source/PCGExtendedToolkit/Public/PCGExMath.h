@@ -619,7 +619,7 @@ namespace PCGExMath
 
 	template <typename CompilerSafety = void>
 	static FQuat Lerp(const FQuat& A, const FQuat& B, const double& Alpha = 0) { return FQuat::Slerp(A, B, Alpha); }
-	
+
 	template <typename CompilerSafety = void>
 	static FTransform Lerp(const FTransform& A, const FTransform& B, const double& Alpha = 0)
 	{

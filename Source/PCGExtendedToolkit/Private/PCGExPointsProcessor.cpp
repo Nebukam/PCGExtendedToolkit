@@ -315,14 +315,6 @@ bool FPCGExPointsProcessorContext::ProcessCurrentPoints(TFunction<void(const int
 	return bForceSync ? ChunkedPointLoop.Advance(std::move(LoopBody)) : AsyncPointLoop.Advance(std::move(LoopBody));
 }
 
-void FPCGExPointsProcessorContext::Output(FPCGTaggedData& OutTaggedData, UPCGData* OutData, const FName OutputLabel)
-{
-	FWriteScopeLock WriteLock(ContextLock);
-	FPCGTaggedData& OutputRef = OutputData.TaggedData.Emplace_GetRef(OutTaggedData);
-	OutputRef.Data = OutData;
-	OutputRef.Pin = OutputLabel;
-}
-
 FPCGTaggedData* FPCGExPointsProcessorContext::Output(UPCGData* OutData, const FName OutputLabel)
 {
 	FWriteScopeLock WriteLock(ContextLock);
@@ -330,20 +322,6 @@ FPCGTaggedData* FPCGExPointsProcessorContext::Output(UPCGData* OutData, const FN
 	OutputRef.Data = OutData;
 	OutputRef.Pin = OutputLabel;
 	return &OutputRef;
-}
-
-void FPCGExPointsProcessorContext::Output(PCGExData::FPointIO& PointIO)
-{
-	UPCGPointData* OutData = PointIO.GetOut();
-	if (!OutData || OutData->GetPoints().Num() == 0) { return; }
-
-	FWriteScopeLock WriteLock(ContextLock);
-
-	FPCGTaggedData& OutputRef = OutputData.TaggedData.Emplace_GetRef();
-	OutputRef.Data = OutData;
-	OutputRef.Pin = PointIO.DefaultOutputLabel;
-
-	PointIO.Cleanup();
 }
 
 FPCGExAsyncManager* FPCGExPointsProcessorContext::GetAsyncManager()

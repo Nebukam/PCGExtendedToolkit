@@ -96,30 +96,83 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteEdgeDirection"))
 	FName EdgeDirectionAttributeName = FName("EdgeDirection");
 
-
-	/** Update Edge position as a lerp between endpoints (according to the direction method selected above) */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
-	bool bWriteEdgePosition = false;
-
-	/** Name of the 'boolean' attribute to write sampling success to.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteEdgePosition"))
-	double EdgePositionLerp = 0.5;
-
 	/** Edges will inherit point attributes -- NOT IMPLEMENTED*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta = (PCG_Overridable))
 	bool bEndpointsBlending = false;
 
 	/** Balance between start/end point*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bEndpointsBlend", ClampMin=0, ClampMax=1))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bEndpointsBlending", ClampMin=0, ClampMax=1))
 	double EndpointsBlending = 0.5;
-
+	
 	/** Defines how fused point properties and attributes are merged together. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(EditCondition="bBlendAttributes"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(EditCondition="bEndpointsBlending"))
 	FPCGExBlendingSettings BlendingSettings = FPCGExBlendingSettings(EPCGExDataBlendingType::Average);
 
 	/** Projection settings used for normal calculations. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExGeo2DProjectionSettings ProjectionSettings;
+
+
+	/** Update Edge position as a lerp between endpoints (according to the direction method selected above) */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bWriteEdgePosition = false;
+
+	/** Position position lerp between start & end points*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification", meta=(PCG_Overridable, EditCondition="bWriteEdgePosition && SolidificationAxis == EPCGExMinimalAxis::None", ClampMin=0, ClampMax=1))
+	double EdgePositionLerp = 0.5;
+
+	/** Align the edge point to the edge direction over the selected axis. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification", meta = (PCG_Overridable))
+	EPCGExMinimalAxis SolidificationAxis = EPCGExMinimalAxis::None;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification", meta=(PCG_Overridable, EditCondition="SolidificationAxis != EPCGExMinimalAxis::None"))
+	EPCGExOperandType SolidificationLerpOperand = EPCGExOperandType::Constant;
+	
+	/** Solidification Lerp constant.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification", meta=(PCG_Overridable, EditCondition="SolidificationLerpOperand == EPCGExOperandType::Constant && SolidificationAxis != EPCGExMinimalAxis::None", EditConditionHides))
+	double SolidificationLerpConstant = 0.5;
+
+	/** Solidification Lerp attribute (read from Edge).*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification", meta=(PCG_Overridable, EditCondition="SolidificationLerpOperand == EPCGExOperandType::Attribute && SolidificationAxis != EPCGExMinimalAxis::None", EditConditionHides))
+	FPCGAttributePropertyInputSelector SolidificationLerpAttribute;
+	
+	// Edge radiuses
+
+	/** Whether or not to write the edge extents over the local X axis.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification|Radiuses", meta=(PCG_Overridable, EditCondition="SolidificationAxis != EPCGExMinimalAxis::X && SolidificationAxis != EPCGExMinimalAxis::None", EditConditionHides))
+	bool bWriteRadiusX = false;
+
+	/** Source from which to fetch the Radius X value */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification|Radiuses", meta=(PCG_Overridable, EditCondition="bWriteRadiusX && SolidificationAxis != EPCGExMinimalAxis::X && SolidificationAxis != EPCGExMinimalAxis::None", EditConditionHides))
+	EPCGExGraphValueSource RadiusXSource = EPCGExGraphValueSource::Point;
+
+	/** Attribute read on edge endpoints */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification|Radiuses", meta = (PCG_Overridable, EditCondition="bWriteRadiusX && SolidificationAxis != EPCGExMinimalAxis::X && SolidificationAxis != EPCGExMinimalAxis::None", EditConditionHides))
+	FPCGAttributePropertyInputSelector RadiusXSourceAttribute;
+
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification|Radiuses", meta=(PCG_Overridable, EditCondition="SolidificationAxis != EPCGExMinimalAxis::Y && SolidificationAxis != EPCGExMinimalAxis::None", EditConditionHides))
+	bool bWriteRadiusY = false;
+
+	/** Source from which to fetch the Radius Y value */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification|Radiuses", meta=(PCG_Overridable, EditCondition="bWriteRadiusY && SolidificationAxis != EPCGExMinimalAxis::Y && SolidificationAxis != EPCGExMinimalAxis::None", EditConditionHides))
+	EPCGExGraphValueSource RadiusYSource = EPCGExGraphValueSource::Point;
+
+	/** Attribute read on edge endpoints */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification|Radiuses", meta = (PCG_Overridable, EditCondition="bWriteRadiusY && SolidificationAxis != EPCGExMinimalAxis::Y && SolidificationAxis != EPCGExMinimalAxis::None", EditConditionHides))
+	FPCGAttributePropertyInputSelector RadiusYSourceAttribute;
+
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification|Radiuses", meta=(PCG_Overridable, EditCondition="SolidificationAxis != EPCGExMinimalAxis::Z && SolidificationAxis != EPCGExMinimalAxis::None", EditConditionHides))
+	bool bWriteRadiusZ = false;
+
+	/** Source from which to fetch the Radius Z value */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification|Radiuses", meta=(PCG_Overridable, EditCondition="bWriteRadiusZ && SolidificationAxis != EPCGExMinimalAxis::Z && SolidificationAxis != EPCGExMinimalAxis::None", EditConditionHides))
+	EPCGExGraphValueSource RadiusZSource = EPCGExGraphValueSource::Point;
+
+	/** Attribute read on edge endpoints */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification|Radiuses", meta = (PCG_Overridable, EditCondition="bWriteRadiusZ && SolidificationAxis != EPCGExMinimalAxis::Z && SolidificationAxis != EPCGExMinimalAxis::None", EditConditionHides))
+	FPCGAttributePropertyInputSelector RadiusZSourceAttribute;
 
 private:
 	friend class FPCGExWriteEdgeExtrasElement;
@@ -142,11 +195,17 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExWriteEdgeExtrasContext : public FPCGExEdgesP
 	EPCGExEdgeDirectionMethod DirectionMethod;
 	EPCGExEdgeDirectionChoice DirectionChoice;
 
+	bool bSolidify;
 	bool bEndpointsBlending;
 	double EndpointsBlending;
 
 	PCGEx::FLocalSingleFieldGetter* VtxDirCompGetter = nullptr;
 	PCGEx::FLocalVectorGetter* EdgeDirCompGetter = nullptr;
+	
+	PCGEx::FLocalSingleFieldGetter* SolidificationLerpGetter = nullptr;
+	PCGEx::FLocalSingleFieldGetter* SolidificationRadX = nullptr;
+	PCGEx::FLocalSingleFieldGetter* SolidificationRadY = nullptr;
+	PCGEx::FLocalSingleFieldGetter* SolidificationRadZ = nullptr;
 
 	PCGEx::TFAttributeWriter<FVector>* VtxNormalWriter = nullptr;
 

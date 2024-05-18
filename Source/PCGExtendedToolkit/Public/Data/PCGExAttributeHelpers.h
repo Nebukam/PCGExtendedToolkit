@@ -52,7 +52,7 @@ public:
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, meta = (HideInDetailPanel, Hidden, EditConditionHides, EditCondition="false"))
 	FString TitlePropertyName;
 
-	/** Attribute or $Property. \n Supports sub-selector like Attribute.X, $Position.Y, $Transform.Backward, QuatAttribute.Up etc. */
+	/** Attribute or $Property. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayPriority=0))
 	FPCGAttributePropertyInputSelector Selector;
 

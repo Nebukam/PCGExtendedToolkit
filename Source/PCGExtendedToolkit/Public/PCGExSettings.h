@@ -10,6 +10,7 @@
 #include "PCGEx.h"
 #include "PCGExMath.h"
 #include "Data/PCGExAttributeHelpers.h"
+#include "Kismet/KismetMathLibrary.h"
 
 #include "PCGExSettings.generated.h"
 
@@ -74,6 +75,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExRemapSettings
 		InMax(Other.InMax),
 		RangeMethod(Other.RangeMethod),
 		Scale(Other.Scale),
+		TruncateOutput(Other.TruncateOutput),
 		RemapCurveObj(Other.RemapCurveObj)
 	{
 	}
@@ -112,6 +114,11 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExRemapSettings
 
 	TObjectPtr<UCurveFloat> RemapCurveObj = nullptr;
 
+
+	/** Whether and how to truncate output value. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	EPCGExTruncateMode TruncateOutput = EPCGExTruncateMode::None;
+
 	void LoadCurve()
 	{
 		if (!RemapCurve || RemapCurve.IsNull()) { RemapCurveObj = TSoftObjectPtr<UCurveFloat>(PCGEx::WeightDistributionLinear).LoadSynchronous(); }
@@ -120,7 +127,20 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExRemapSettings
 
 	double GetRemappedValue(const double Value) const
 	{
-		return RemapCurveObj->GetFloatValue(PCGExMath::Remap(Value, InMin, InMax, 0, 1)) * Scale;
+		double OutValue = RemapCurveObj->GetFloatValue(PCGExMath::Remap(Value, InMin, InMax, 0, 1)) * Scale;
+		switch (TruncateOutput) {
+		case EPCGExTruncateMode::Round:
+			OutValue = FMath::RoundToInt(OutValue);
+			break;
+		case EPCGExTruncateMode::Ceil:
+			OutValue = FMath::CeilToDouble(OutValue);
+			break;
+		case EPCGExTruncateMode::Floor:
+			OutValue = FMath::FloorToDouble(OutValue);
+			break;
+		}
+		return OutValue;
+		
 	}
 };
 

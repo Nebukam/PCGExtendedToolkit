@@ -131,6 +131,15 @@ enum class EPCGExTransformComponent : uint8
 	Scale UMETA(DisplayName = "Scale", ToolTip="Scale component."),
 };
 
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Minimal Axis"))
+enum class EPCGExMinimalAxis : uint8
+{
+	None UMETA(DisplayName = "None", ToolTip="None"),
+	X UMETA(DisplayName = "X", ToolTip="X Axis"),
+	Y UMETA(DisplayName = "Y", ToolTip="Y Axis"),
+	Z UMETA(DisplayName = "Z", ToolTip="Z Axis"),
+};
+
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Single Component Selector"))
 enum class EPCGExSingleField : uint8
 {
@@ -210,6 +219,15 @@ enum class EPCGExRangeType : uint8
 {
 	FullRange UMETA(DisplayName = "Full Range", ToolTip="Normalize in the [0..1] range using [0..Max Value] range."),
 	EffectiveRange UMETA(DisplayName = "Effective Range", ToolTip="Remap the input [Min..Max] range to [0..1]."),
+};
+
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Truncate Mode"))
+enum class EPCGExTruncateMode : uint8
+{
+	None UMETA(DisplayName = "None", ToolTip="None"),
+	Round UMETA(DisplayName = "Round", ToolTip="Round"),
+	Ceil UMETA(DisplayName = "Ceil", ToolTip="Ceil"),
+	Floor UMETA(DisplayName = "Floor", ToolTip="Floor"),
 };
 
 namespace PCGEx
