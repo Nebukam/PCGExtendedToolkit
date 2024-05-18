@@ -88,7 +88,7 @@ bool UPCGExSearchContours::FindPath(
 		NextIndex = Projection->FindNextAdjacentNode(OrientationMode, NextIndex, FromIndex, Exclusion, 1);
 	}
 
-	OutPath.Add(EndIndex);
+	if (EndIndex != -1) { OutPath.Add(EndIndex); }
 
 	return true;
 }
