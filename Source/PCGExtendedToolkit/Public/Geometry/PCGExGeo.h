@@ -53,7 +53,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGeo2DProjectionSettings
 	{
 		Cleanup();
 
-		ProjectionNormal = ProjectionNormal.GetSafeNormal();
+		ProjectionNormal = ProjectionNormal.GetSafeNormal(1E-08, FVector::UpVector);
 		DefaultMatrix = FRotationMatrix::MakeFromZ(ProjectionNormal);
 
 		if (!bSupportLocalNormal) { bLocalProjectionNormal = false; }
@@ -81,7 +81,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGeo2DProjectionSettings
 
 	FVector Project(const FVector& InPosition, const int32 PointIndex) const
 	{
-		return NormalGetter ? FRotationMatrix::MakeFromZ(NormalGetter->SafeGet(PointIndex, ProjectionNormal).GetSafeNormal()).InverseTransformPosition(InPosition) :
+		return NormalGetter ? FRotationMatrix::MakeFromZ(NormalGetter->SafeGet(PointIndex, ProjectionNormal).GetSafeNormal(1E-08, FVector::UpVector)).InverseTransformPosition(InPosition) :
 			       DefaultMatrix.InverseTransformPosition(InPosition);
 	}
 
