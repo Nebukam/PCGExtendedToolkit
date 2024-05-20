@@ -13,7 +13,7 @@ It also comes with a set of lower-level, more generic features to manipulate att
 * **[Example Project](https://github.com/Nebukam/PCGExExampleProject)**
 * **[Full documentation](https://nebukam.github.io/PCGExtendedToolkit/)**
 * [Installation](https://nebukam.github.io/PCGExtendedToolkit/installation/) in your own project
-* Overview of [All the Nodes](https://nebukam.github.io/PCGExtendedToolkit/nodes/)
+* Overview of [All the Nodes](https://nebukam.github.io/PCGExtendedToolkit/all-nodes.html)
 
 Question & support : [head to github discussions](https://github.com/Nebukam/PCGExtendedToolkit/discussions)!
 
