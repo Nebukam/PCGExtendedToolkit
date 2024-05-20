@@ -20,7 +20,8 @@ UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Socket State Mode"))
 enum class EPCGExSocketStateMode : uint8
 {
 	AnyOf UMETA(DisplayName = "Any of", ToolTip="Any of the selection"),
-	Exactly UMETA(DisplayName = "Exactly", ToolTip="Exactly the selection")
+	Exactly UMETA(DisplayName = "Exactly", ToolTip="Exactly the selection"),
+	Ignore UMETA(DisplayName = "Ignore", ToolTip="Ignore (Always pass)")
 };
 
 struct FPCGExPointsProcessorContext;
@@ -276,7 +277,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSocketTestDescriptor
 	{
 		switch (MustBeMode)
 		{
-		default: ;
+		default: break;
 		case EPCGExSocketStateMode::AnyOf:
 			if (static_cast<uint8>(static_cast<uint8>(InValue) & MustBeAnyOf) == 0) { return false; }
 			break;
@@ -287,10 +288,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSocketTestDescriptor
 
 		switch (MustNotBeMode)
 		{
+		default: break;
 		case EPCGExSocketStateMode::AnyOf:
 			if (static_cast<uint8>(static_cast<uint8>(InValue) & MustNotBeAnyOf) != 0) { return false; }
 			break;
-		default: ;
 		case EPCGExSocketStateMode::Exactly:
 			if (static_cast<EPCGExEdgeType>(InValue) == MustNotBeExactly) { return false; }
 			break;

@@ -91,7 +91,7 @@ bool FPCGExFindSocketStatesElement::ExecuteInternal(
 
 			if (Context->StatesManager->bHasPartials)
 			{
-				PCGE_LOG(Warning, GraphAndLog, FTEXT("Some input points only have partial metadata."));
+				PCGE_LOG(Warning, GraphAndLog, FTEXT("Some input points only have partial metadata, checks relying on those will be skipped."));
 			}
 
 			Context->CurrentIO->CreateInKeys();
