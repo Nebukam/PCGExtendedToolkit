@@ -147,14 +147,19 @@ bool FPCGExFilterClustersElement::ExecuteInternal(
 				if (!SelectedVtx.Contains(VtxIO->IOIndex))
 				{
 					// Ensure all edges are omitted first
-					TSet<int32>& BoundEdges = **Context->VtxEdgeMap.Find(VtxIO->IOIndex);
+					TSet<int32>** BoundEdgesPtr = Context->VtxEdgeMap.Find(VtxIO->IOIndex);
 					bool bKeep = false;
-					for (const int32 E : BoundEdges)
+
+					if(BoundEdgesPtr)
 					{
-						if (SelectedEdges.Contains(E))
+						TSet<int32>& BoundEdges = **BoundEdgesPtr;
+						for (const int32 E : BoundEdges)
 						{
-							bKeep = true;
-							break;
+							if (SelectedEdges.Contains(E))
+							{
+								bKeep = true;
+								break;
+							}
 						}
 					}
 
