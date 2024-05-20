@@ -919,7 +919,7 @@
   },"153": {
     "doc": "Write Edge Extras",
     "title": "Properties",
-    "content": ". DOC TDB . | Property | Description | . | **Blending Settings** | When enabled, the edge will inherit properties and attributes from its Start and End point.It uses Interpolate blending under the hood. | . | **Output** | |   | . | **Edge Length** Attribute Name | When enabled, the length of the edge will be written to the specified attribute.*The length of an edge is the distance between its start and end point.* | . ",
+    "content": ". DOC TDB . | Property | Description | . | **Blending Settings** | When enabled, the edge will inherit properties and attributes from its Start and End point.It uses Interpolate blending under the hood. | . | **Output** | |   | . | **Edge Length** Attribute Name | When enabled, the length of the edge will be written to the specified attribute.*The length of an edge is the distance between its start and end point.* | . DOC TDB . ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-edges/edges-write-extras.html#properties",
     "relUrl": "/doc-edges/edges-write-extras.html#properties"
   },"154": {
@@ -1117,7 +1117,7 @@
   },"186": {
     "doc": "Convex Hull 3D",
     "title": "Convex Hull 3D",
-    "content": "Outputs a 3D convex hull. The Convex Hull 3D Outputs the edges/graph of a 3D convex hull. Prune points to exclude non-hull vertices. Specify attributes and projection settings for customization. Table of content . | Properties | Inputs . | In | . | Outputs . | Vtx &amp; Edges | . | . ",
+    "content": "Outputs a 3D convex hull. The Convex Hull 3D Outputs the edges/graph of a 3D convex hull. Prune points to exclude non-hull vertices. Specify attributes and projection settings for customization. Related . | Working with Graphs | . Table of content . | Properties | Inputs . | In | . | Outputs . | Vtx &amp; Edges | . | . ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-graphs/graphs-convex-hull-3d.html#convex-hull-3d",
     "relUrl": "/doc-graphs/graphs-convex-hull-3d.html#convex-hull-3d"
   },"187": {
@@ -1189,7 +1189,7 @@
   },"198": {
     "doc": "Delaunay 2D",
     "title": "Delaunay 2D",
-    "content": "Outputs a 2D Delaunay triangulation. Output a 2D Delaunay triangulation with options like Urquhart graph, hull identification, and projection settings. Table of content . | Properties | Projection Settings | Inputs . | In | . | Outputs . | Vtx &amp; Edges | . | . ",
+    "content": "Outputs a 2D Delaunay triangulation. Output a 2D Delaunay triangulation with options like Urquhart graph, hull identification, and projection settings. ★ See Example Project @ EdgesAndGraphs/PCGEx_Graph_Delaunay-2D . Related . | Working with Graphs | . Table of content . | Properties | Projection Settings | Inputs . | In | . | Outputs . | Vtx &amp; Edges | . | . ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-graphs/graphs-delaunay-2d.html#delaunay-2d",
     "relUrl": "/doc-graphs/graphs-delaunay-2d.html#delaunay-2d"
   },"199": {
@@ -1237,7 +1237,7 @@
   },"206": {
     "doc": "Delaunay 3D",
     "title": "Delaunay 3D",
-    "content": "Outputs a 3D Delaunay tetrahedralization. Output a 3D Delaunay tetrahedralization with options like Urquhart graph, hull identification, and projection settings. Table of content . | Properties | Inputs . | In | . | Outputs . | Vtx &amp; Edges | . | . ",
+    "content": "Outputs a 3D Delaunay tetrahedralization. Output a 3D Delaunay tetrahedralization with options like Urquhart graph, hull identification, and projection settings. ★ See Example Project @ EdgesAndGraphs/PCGEx_Graph_Delaunay-3D . Related . | Working with Graphs | . Table of content . | Properties | Inputs . | In | . | Outputs . | Vtx &amp; Edges | . | . ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-graphs/graphs-delaunay-3d.html#delaunay-3d",
     "relUrl": "/doc-graphs/graphs-delaunay-3d.html#delaunay-3d"
   },"207": {
@@ -1303,7 +1303,7 @@
   },"217": {
     "doc": "Fuse Clusters Local",
     "title": "Properties",
-    "content": ". Current implementation is WIP: all attributes from the inputs are not forwarded to the output graph. ",
+    "content": ". Current implementation is WIP: not all attributes from the inputs are not forwarded to the output graph. ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-graphs/graphs-fuse-clusters-local.html#properties",
     "relUrl": "/doc-graphs/graphs-fuse-clusters-local.html#properties"
   },"218": {
@@ -1333,7 +1333,7 @@
   },"222": {
     "doc": "Fuse Clusters",
     "title": "Properties",
-    "content": ". Current implementation is WIP: all attributes from the inputs are not forwarded to the output graph. ",
+    "content": ". Current implementation is WIP: not all attributes from the inputs are not forwarded to the output graph. ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-graphs/graphs-fuse-clusters.html#properties",
     "relUrl": "/doc-graphs/graphs-fuse-clusters.html#properties"
   },"223": {
@@ -1417,7 +1417,7 @@
   },"236": {
     "doc": "Voronoi 2D",
     "title": "Voronoi 2D",
-    "content": "Outputs a 2D Voronoi graph. The Voronoi 2D node outputs a 2D Voronoi graph with options like balanced, canon, or centroid positioning. Adjust bounds, prune sites, and mark edges on the hull. Table of content . | Properties | Method | Projection Settings | Inputs . | In | . | Outputs . | Vtx &amp; Edges | . | . ",
+    "content": "Outputs a 2D Voronoi graph. The Voronoi 2D node outputs a 2D Voronoi graph with options like balanced, canon, or centroid positioning. Adjust bounds, prune sites, and mark edges on the hull. ★ See Example Project @ EdgesAndGraphs/PCGEx_Graph_Voronoi-2D . Related . | Working with Graphs | . Table of content . | Properties | Method | Projection Settings | Inputs . | In | . | Outputs . | Vtx &amp; Edges | . | . ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-graphs/graphs-voronoi-2d.html#voronoi-2d",
     "relUrl": "/doc-graphs/graphs-voronoi-2d.html#voronoi-2d"
   },"237": {
@@ -1471,7 +1471,7 @@
   },"245": {
     "doc": "Voronoi 3D",
     "title": "Voronoi 3D",
-    "content": "Outputs a 3D Voronoi graph. The Voronoi 3D node outputs a 3D Voronoi graph with options like balanced, canon, or centroid positioning. Adjust bounds, prune sites, and mark edges on the hull. Table of content . | Properties | Method | Inputs . | In | . | Outputs . | Vtx &amp; Edges | . | . ",
+    "content": "Outputs a 3D Voronoi graph. The Voronoi 3D node outputs a 3D Voronoi graph with options like balanced, canon, or centroid positioning. Adjust bounds, prune sites, and mark edges on the hull. ★ See Example Project @ EdgesAndGraphs/PCGEx_Graph_Voronoi-3D . Related . | Working with Graphs | . Table of content . | Properties | Method | Inputs . | In | . | Outputs . | Vtx &amp; Edges | . | . ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/doc-graphs/graphs-voronoi-3d.html#voronoi-3d",
     "relUrl": "/doc-graphs/graphs-voronoi-3d.html#voronoi-3d"
   },"246": {
@@ -2593,7 +2593,7 @@
   },"432": {
     "doc": "PCG Extended Toolkit",
     "title": "PCGEx PCGExtendedToolkit",
-    "content": "The PCG Extended Toolkit is a free (libre) plugin that extends Unreal Engine’ Procedural Content Generation pipeline, with a focus on building graphs &amp; pathfinding.   Installation Guides Documentation . This documentation is still heavily work-in-progress! However, every property already has helpful tooltips in editor ;) . ",
+    "content": "The PCG Extended Toolkit is a free (libre) plugin that extends Unreal Engine’ Procedural Content Generation pipeline, with a focus on building graphs &amp; pathfinding.   Installation Guides Documentation . This documentation is still heavily work-in-progress! However, every property already has helpful tooltips in editor ;) . Make sure to check the Example Project on github . ",
     "url": "https://nebukam.github.io/PCGExtendedToolkit/#pcgex-pcgextendedtoolkit",
     "relUrl": "/#pcgex-pcgextendedtoolkit"
   },"433": {

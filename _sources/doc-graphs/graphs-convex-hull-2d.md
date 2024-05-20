@@ -13,7 +13,8 @@ tagged:
     - node
     - graphs
 nav_order: 4
-see_also: Working with Graphs
+see_also:
+    - Working with Graphs
 ---
 
 {% include header_card_node %}

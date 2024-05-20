@@ -19,6 +19,9 @@ The PCG Extended Toolkit is a free (libre) plugin that extends Unreal Engine' Pr
 > However, every property already has helpful tooltips in editor ;)
 {: .error }
 
+> **Make sure to check the [Example Project](https://github.com/Nebukam/PCGExExampleProject) on github**
+{: .infos-hl }
+
 ---
 # All Nodes
 

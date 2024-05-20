@@ -31,6 +31,9 @@ nav_order: 4
 | **Output**           ||
 | **Edge Length** Attribute Name           | When enabled, the `length` of the edge will be written to the specified attribute.<br>*The length of an edge is the distance between its start and end point.* |
 
+> DOC TDB
+{: .warning }
+
 ---
 # Inputs & Outputs
 ## Vtx & Edges

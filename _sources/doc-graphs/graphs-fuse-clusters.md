@@ -21,7 +21,7 @@ nav_order: 10
 
 {% include img a='details/details-graph-fuse-clusters.png' %} 
 
-> Current implementation is **WIP**: all attributes from the inputs are not forwarded to the output graph.
+> Current implementation is **WIP**: not all attributes from the inputs are not forwarded to the output graph.
 {: .error }
 
 ---

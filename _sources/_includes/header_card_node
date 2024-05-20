@@ -1,5 +1,9 @@
 {% include header_card %}
 
+{% if page.example %}
+<span class="example">★</span> See Example Project @ **{{ page.example }}**
+{% endif %}
+
 {% if page.see_also %}
 #### Related
 {: .no_toc }
