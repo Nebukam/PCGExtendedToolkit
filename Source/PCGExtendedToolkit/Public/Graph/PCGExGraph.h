@@ -37,35 +37,35 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGraphBuilderSettings
 	GENERATED_BODY()
 
 	/** Removes roaming points from the output, and keeps only points that are part of an cluster. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta = (PCG_Overridable))
 	bool bPruneIsolatedPoints = true;
 
 	/** Don't output Clusters if they have less points than a specified amount. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteEdgePosition = true;
 
 	/** Edge position interpolation between start and end point positions. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (PCG_Overridable, EditCondition="bWriteEdgePosition"))
+	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta = (PCG_Overridable, EditCondition="bWriteEdgePosition"))
 	double EdgePosition = 0.5;
 
 	/** Don't output Clusters if they have less points than a specified amount. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bRemoveSmallClusters = false;
 
 	/** Minimum points threshold */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (PCG_Overridable, EditCondition="bRemoveSmallClusters", ClampMin=2))
+	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta = (PCG_Overridable, EditCondition="bRemoveSmallClusters", ClampMin=2))
 	int32 MinClusterSize = 3;
 
 	/** Don't output Clusters if they have more points than a specified amount. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bRemoveBigClusters = false;
 
 	/** Maximum points threshold */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (PCG_Overridable, EditCondition="bRemoveBigClusters", ClampMin=2))
+	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta = (PCG_Overridable, EditCondition="bRemoveBigClusters", ClampMin=2))
 	int32 MaxClusterSize = 500;
 
 	/** Refresh Edge Seed. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta = (PCG_Overridable))
 	bool bRefreshEdgeSeed = false;
 
 	int32 GetMinClusterSize() const { return bRemoveSmallClusters ? MinClusterSize : 0; }

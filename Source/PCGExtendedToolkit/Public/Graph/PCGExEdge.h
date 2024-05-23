@@ -27,16 +27,16 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExDebugEdgeSettings
 {
 	GENERATED_BODY()
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere)
 	FColor ValidEdgeColor = FColor::Cyan;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta=(ClampMin=0.1, ClampMax=10))
+	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta=(ClampMin=0.1, ClampMax=10))
 	double ValidEdgeThickness = 0.5;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere)
 	FColor InvalidEdgeColor = FColor::Red;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta=(ClampMin=0.1, ClampMax=10))
+	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta=(ClampMin=0.1, ClampMax=10))
 	double InvalidEdgeThickness = 0.5;
 };
 
