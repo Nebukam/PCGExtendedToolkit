@@ -34,7 +34,7 @@ public:
 	FPCGExInputDescriptor InfluenceDescriptor;
 
 protected:
-	FPCGExBlendingSettings InfluenceSettings = FPCGExBlendingSettings(EPCGExDataBlendingType::Weight);
+	FPCGExBlendingSettings InfluenceSettings = FPCGExBlendingSettings(EPCGExDataBlendingType::Average);
 	virtual void InternalDoSmooth(
 		PCGExData::FPointIO& InPointIO);
 };

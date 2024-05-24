@@ -71,6 +71,7 @@ namespace PCGExDataBlending
 				Map = new FAttributeSourceMap(Identity);
 				Map->SetNum(NumSources);
 				Map->TargetBlendOp = CreateOperation(BlendTypePtr ? *BlendTypePtr : BlendingSettings->DefaultBlending, Identity);
+				AttributeSourceMaps.Add(Map);
 			}
 
 			Map->Attributes[SourceIdx] = SourceAttribute;
@@ -115,7 +116,7 @@ namespace PCGExDataBlending
 						if (FDataBlendingOperationBase* SrcOp = SrcMap->BlendOps[i]) { SrcOp->PrepareForData(Writer, *Sources[i]); }
 					}
 
-					SrcMap->TargetBlendOp->PrepareForData(Writer, *TargetData);
+					SrcMap->TargetBlendOp->PrepareForData(Writer, *TargetData, false);
 				});
 		}
 	}

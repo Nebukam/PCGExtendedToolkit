@@ -23,7 +23,7 @@ namespace PCGExData
 	{
 		Weights.SetNumUninitialized(CompoundedPoints.Num());
 
-		double MaxDist = TNumericLimits<double>::Min();
+		double DistSum = 0;
 		for (int i = 0; i < CompoundedPoints.Num(); i++)
 		{
 			uint32 IOIndex;
@@ -31,24 +31,32 @@ namespace PCGExData
 			PCGEx::H64(CompoundedPoints[i], IOIndex, PtIndex);
 
 			Weights[i] = DistSettings.GetDistance(Sources[IOIndex]->GetInPoint(PtIndex), Target);
-			MaxDist = FMath::Max(MaxDist, Weights[i]);
+			DistSum += Weights[i];
 		}
 
-		for (double& Weight : Weights) { Weight = 1 - (Weight / MaxDist); }
+		if(DistSum == 0)
+		{
+			const double StaticWeight = 1 / static_cast<double>(CompoundedPoints.Num());
+			for (double& Weight : Weights) { Weight = StaticWeight; }
+			return;
+		}
+
+		for (double& Weight : Weights) { Weight = 1 - (Weight / DistSum); }
+		
 	}
 
 	void FIdxCompound::ComputeWeights(const TArray<FPCGPoint>& SourcePoints, const FPCGPoint& Target, const FPCGExDistanceSettings& DistSettings)
 	{
 		Weights.SetNumUninitialized(CompoundedPoints.Num());
 
-		double MaxDist = TNumericLimits<double>::Min();
+		double DistSum = 0;
 		for (int i = 0; i < CompoundedPoints.Num(); i++)
 		{
 			Weights[i] = DistSettings.GetDistance(Target, SourcePoints[PCGEx::H64B(CompoundedPoints[i])]);
-			MaxDist = FMath::Max(MaxDist, Weights[i]);
+			DistSum += Weights[i];
 		}
 
-		for (double& Weight : Weights) { Weight = 1 - (Weight / MaxDist); }
+		for (double& Weight : Weights) { Weight = 1 - (Weight / DistSum); }
 	}
 
 	uint64 FIdxCompound::Add(const int32 IOIndex, const int32 PointIndex)

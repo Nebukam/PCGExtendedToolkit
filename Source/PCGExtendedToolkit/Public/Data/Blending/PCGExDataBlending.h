@@ -77,55 +77,55 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointPropertyBlendingOverrides
 	bool bOverrideDensity = false;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (DisplayName="Density", EditCondition="bOverrideDensity"))
-	EPCGExDataBlendingType DensityBlending = EPCGExDataBlendingType::Weight;
+	EPCGExDataBlendingType DensityBlending = EPCGExDataBlendingType::Average;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (InlineEditConditionToggle))
 	bool bOverrideBoundsMin = false;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (DisplayName="BoundsMin", EditCondition="bOverrideBoundsMin"))
-	EPCGExDataBlendingType BoundsMinBlending = EPCGExDataBlendingType::Weight;
+	EPCGExDataBlendingType BoundsMinBlending = EPCGExDataBlendingType::Average;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (InlineEditConditionToggle))
 	bool bOverrideBoundsMax = false;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (DisplayName="BoundsMax", EditCondition="bOverrideBoundsMax"))
-	EPCGExDataBlendingType BoundsMaxBlending = EPCGExDataBlendingType::Weight;
+	EPCGExDataBlendingType BoundsMaxBlending = EPCGExDataBlendingType::Average;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (InlineEditConditionToggle))
 	bool bOverrideColor = false;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (DisplayName="Color", EditCondition="bOverrideColor"))
-	EPCGExDataBlendingType ColorBlending = EPCGExDataBlendingType::Weight;
+	EPCGExDataBlendingType ColorBlending = EPCGExDataBlendingType::Average;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (InlineEditConditionToggle))
 	bool bOverridePosition = false;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (DisplayName="Position", EditCondition="bOverridePosition"))
-	EPCGExDataBlendingType PositionBlending = EPCGExDataBlendingType::Weight;
+	EPCGExDataBlendingType PositionBlending = EPCGExDataBlendingType::Average;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (InlineEditConditionToggle))
 	bool bOverrideRotation = false;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (DisplayName="Rotation", EditCondition="bOverrideRotation"))
-	EPCGExDataBlendingType RotationBlending = EPCGExDataBlendingType::Weight;
+	EPCGExDataBlendingType RotationBlending = EPCGExDataBlendingType::Average;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (InlineEditConditionToggle))
 	bool bOverrideScale = false;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (DisplayName="Scale", EditCondition="bOverrideScale"))
-	EPCGExDataBlendingType ScaleBlending = EPCGExDataBlendingType::Weight;
+	EPCGExDataBlendingType ScaleBlending = EPCGExDataBlendingType::Average;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (InlineEditConditionToggle))
 	bool bOverrideSteepness = false;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (DisplayName="Steepness", EditCondition="bOverrideSteepness"))
-	EPCGExDataBlendingType SteepnessBlending = EPCGExDataBlendingType::Weight;
+	EPCGExDataBlendingType SteepnessBlending = EPCGExDataBlendingType::Average;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (InlineEditConditionToggle))
 	bool bOverrideSeed = false;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (DisplayName="Seed", EditCondition="bOverrideSeed"))
-	EPCGExDataBlendingType SeedBlending = EPCGExDataBlendingType::Weight;
+	EPCGExDataBlendingType SeedBlending = EPCGExDataBlendingType::Average;
 
 #pragma endregion
 };
@@ -154,7 +154,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBlendingSettings
 	TArray<FName> FilteredAttributes;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
-	EPCGExDataBlendingType DefaultBlending = EPCGExDataBlendingType::Weight;
+	EPCGExDataBlendingType DefaultBlending = EPCGExDataBlendingType::Average;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Setting)
 	FPCGExPointPropertyBlendingOverrides PropertiesOverrides;

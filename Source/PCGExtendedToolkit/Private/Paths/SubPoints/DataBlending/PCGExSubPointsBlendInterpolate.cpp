@@ -6,7 +6,7 @@
 
 EPCGExDataBlendingType UPCGExSubPointsBlendInterpolate::GetDefaultBlending()
 {
-	return EPCGExDataBlendingType::Weight;
+	return EPCGExDataBlendingType::Average;
 }
 
 void UPCGExSubPointsBlendInterpolate::ApplyOverrides()

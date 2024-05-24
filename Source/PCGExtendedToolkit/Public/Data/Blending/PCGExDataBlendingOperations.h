@@ -71,7 +71,12 @@ namespace PCGExDataBlending
 	{
 	public:
 		virtual bool GetIsInterpolation() const override { return true; }
-		virtual T SingleOperation(T A, T B, double Alpha) const override { return PCGExMath::Lerp(A, B, Alpha); }
+		virtual bool GetRequiresPreparation() const override { return true; }
+		virtual bool GetRequiresFinalization() const override { return true; }
+
+		virtual void SinglePrepare(T& A) const override { A = this->Writer->GetDefaultValue(); }
+		virtual T SingleOperation(T A, T B, double Alpha) const override { return PCGExMath::WeightedAdd(A, B, Alpha); } // PCGExMath::Lerp(A, B, Alpha); }
+		virtual void SingleFinalize(T& A, double Alpha) const override { A = PCGExMath::Div(A, Alpha); }
 	};
 
 	template <typename T>

@@ -22,7 +22,7 @@ public:
 
 	/** Defines how fused point properties and attributes are merged together. */
 	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
-	FPCGExBlendingSettings BlendingSettings = FPCGExBlendingSettings(EPCGExDataBlendingType::Weight);
+	FPCGExBlendingSettings BlendingSettings = FPCGExBlendingSettings(EPCGExDataBlendingType::Average);
 
 	virtual void InternalDoSmooth(PCGExData::FPointIO& InPointIO) override;
 

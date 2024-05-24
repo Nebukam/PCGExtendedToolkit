@@ -9,7 +9,7 @@
 
 EPCGExDataBlendingType UPCGExSubPointsBlendOperation::GetDefaultBlending()
 {
-	return EPCGExDataBlendingType::Weight;
+	return EPCGExDataBlendingType::Average;
 }
 
 void UPCGExSubPointsBlendOperation::PrepareForData(PCGExData::FPointIO& InPointIO)

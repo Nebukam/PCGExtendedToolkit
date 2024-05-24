@@ -16,7 +16,7 @@ namespace PCGExDataBlending
 		PCGEX_FOREACH_BLEND_POINTPROPERTY(PCGEX_BLEND_FUNCREF)
 #undef PCGEX_BLEND_FUNCREF
 
-		EPCGExDataBlendingType DefaultBlending = EPCGExDataBlendingType::Weight;
+		EPCGExDataBlendingType DefaultBlending = EPCGExDataBlendingType::Average;
 
 		bool bRequiresPrepare = false;
 
