@@ -33,13 +33,9 @@ public class PCGExtendedToolkit : ModuleRules
 				"Core",
 				"CoreUObject",
 				"GeometryCore",
-				"AIModule",
 				"NavigationSystem",
-				"StaticMeshDescription",
-				"MeshDescription",
 				"Engine",
 				"PCG",
-				"PCGGeometryScriptInterop",
 			}
 		);
 
@@ -64,9 +60,6 @@ public class PCGExtendedToolkit : ModuleRules
 			PrivateDependencyModuleNames.AddRange(
 				new string[]
 				{
-					"UnrealEd",
-					"Projects",
-					"DetailCustomizations"
 				}
 			);
 		}
