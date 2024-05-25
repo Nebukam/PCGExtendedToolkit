@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "Runtime/Launch/Resources/Version.h"
 #include "PCGComponent.h"
 #include "PCGContext.h"
 #include "MatchAndSet/PCGMatchAndSetWeighted.h"
