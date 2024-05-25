@@ -178,8 +178,8 @@ bool FPCGExRemapPointIO::ExecuteTask()
 				Rule.RemapSettings.InMax = FMath::Max(Rule.RemapSettings.InMax, FMath::Abs(VAL));
 			}
 
-			if (Rule.RemapSettings.bInMin) { Rule.RemapSettings.InMin = CachedRMin; }
-			if (Rule.RemapSettings.bInMax) { Rule.RemapSettings.InMax = CachedRMax; }
+			if (Rule.RemapSettings.bUseInMin) { Rule.RemapSettings.InMin = CachedRMin; }
+			if (Rule.RemapSettings.bUseInMax) { Rule.RemapSettings.InMax = CachedRMax; }
 
 			if (Rule.RemapSettings.RangeMethod == EPCGExRangeType::FullRange) { Rule.RemapSettings.InMin = 0; }
 

@@ -69,9 +69,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExRemapSettings
 	}
 
 	FPCGExRemapSettings(const FPCGExRemapSettings& Other):
-		bInMin(Other.bInMin),
+		bUseInMin(Other.bUseInMin),
 		InMin(Other.InMin),
-		bInMax(Other.bInMax),
+		bUseInMax(Other.bUseInMax),
 		InMax(Other.InMax),
 		RangeMethod(Other.RangeMethod),
 		Scale(Other.Scale),
@@ -87,18 +87,18 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExRemapSettings
 
 	/** Fixed In Min value. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
-	bool bInMin = false;
+	bool bUseInMin = false;
 
 	/** Fixed In Min value. If disabled, will use the lowest input value.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bInMin"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bUseInMin"))
 	double InMin = 0;
 
 	/** Fixed In Max value. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
-	bool bInMax = false;
+	bool bUseInMax = false;
 
 	/** Fixed In Max value. If disabled, will use the highest input value.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bInMax"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bUseInMax"))
 	double InMax = 0;
 
 	/** How to remap before sampling the curve. */
