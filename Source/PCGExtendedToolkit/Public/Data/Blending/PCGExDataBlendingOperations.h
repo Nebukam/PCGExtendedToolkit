@@ -54,14 +54,12 @@ namespace PCGExDataBlending
 		{
 			const T A = (*this->Writer)[PrimaryReadIndex];
 			const T B = this->TypedAttribute ? this->TypedAttribute->GetValueFromItemKey(SrcPoint.MetadataEntry) : A;
-
 			if (this->InitializedIndices && !this->InitializedIndices->Contains(WriteIndex))
 			{
 				this->InitializedIndices->Add(WriteIndex);
 				(*this->Writer)[WriteIndex] = B;
 				return;
 			}
-
 			(*this->Writer)[WriteIndex] = SingleOperation(A, B, Weight);
 		}
 
@@ -76,11 +74,9 @@ namespace PCGExDataBlending
 					(*this->Writer)[i] = this->Reader->Values[i];
 					continue;
 				}
-
 				this->Writer->Values[i] = SingleOperation(this->Writer->Values[i], this->Reader->Values[i], Weights[i]);
 			}
 		}
-		
 	};
 
 	template <typename T>
@@ -94,14 +90,12 @@ namespace PCGExDataBlending
 		{
 			const T A = (*this->Writer)[PrimaryReadIndex];
 			const T B = this->TypedAttribute ? this->TypedAttribute->GetValueFromItemKey(SrcPoint.MetadataEntry) : A;
-
-			if (this->InitializedIndices && !this->InitializedIndices->Contains(PrimaryReadIndex))
+			if (this->InitializedIndices && !this->InitializedIndices->Contains(WriteIndex))
 			{
-				this->InitializedIndices->Add(PrimaryReadIndex);
+				this->InitializedIndices->Add(WriteIndex);
 				(*this->Writer)[WriteIndex] = B;
 				return;
 			}
-
 			(*this->Writer)[WriteIndex] = SingleOperation(A, B, Weight);
 		}
 
@@ -116,11 +110,9 @@ namespace PCGExDataBlending
 					(*this->Writer)[i] = this->Reader->Values[i];
 					continue;
 				}
-
 				this->Writer->Values[i] = SingleOperation(this->Writer->Values[i], this->Reader->Values[i], Weights[i]);
 			}
 		}
-		
 	};
 
 	template <typename T>
@@ -163,5 +155,33 @@ namespace PCGExDataBlending
 	{
 	public:
 		virtual T SingleOperation(T A, T B, double Weight) const override { return A; }
+
+		virtual void DoOperation(const int32 PrimaryReadIndex, const FPCGPoint& SrcPoint, const int32 WriteIndex, const double Weight = 0) const override
+		{
+			const T A = (*this->Writer)[PrimaryReadIndex];
+			const T B = this->TypedAttribute ? this->TypedAttribute->GetValueFromItemKey(SrcPoint.MetadataEntry) : A;
+			if (this->InitializedIndices && !this->InitializedIndices->Contains(WriteIndex))
+			{
+				this->InitializedIndices->Add(WriteIndex);
+				(*this->Writer)[WriteIndex] = B;
+				return;
+			}
+			(*this->Writer)[WriteIndex] = SingleOperation(A, B, Weight);
+		}
+
+		virtual void BlendEachPrimaryToSecondary(const TArrayView<double>& Weights) const override
+		{
+			if (!this->bInterpolationAllowed) { return; }
+			for (int i = 0; i < this->Writer->Values.Num(); i++)
+			{
+				if (this->InitializedIndices && !this->InitializedIndices->Contains(i))
+				{
+					this->InitializedIndices->Add(i);
+					(*this->Writer)[i] = this->Reader->Values[i];
+					continue;
+				}
+				this->Writer->Values[i] = SingleOperation(this->Writer->Values[i], this->Reader->Values[i], Weights[i]);
+			}
+		}
 	};
 }

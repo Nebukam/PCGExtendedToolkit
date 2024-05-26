@@ -396,6 +396,9 @@ namespace PCGExMath
 	static bool Add(const bool& A, const bool& B) { return B ? true : A; }
 
 	template <typename CompilerSafety = void>
+	static FQuat Add(const FQuat& A, const FQuat& B) { return (A.Rotator() + B.Rotator()).Quaternion(); }
+
+	template <typename CompilerSafety = void>
 	static FTransform Add(const FTransform& A, const FTransform& B)
 	{
 		return FTransform(
@@ -461,10 +464,16 @@ namespace PCGExMath
 	static bool Sub(const bool& A, const bool& B) { return B ? true : A; }
 
 	template <typename CompilerSafety = void>
+	static FRotator Sub(const FRotator& A, const FRotator& B) { return B - A; }
+
+	template <typename CompilerSafety = void>
+	static FQuat Sub(const FQuat& A, const FQuat& B) { return Sub(A.Rotator(), B.Rotator()).Quaternion(); }
+
+	template <typename CompilerSafety = void>
 	static FTransform Sub(const FTransform& A, const FTransform& B)
 	{
 		return FTransform(
-			A.GetRotation() - B.GetRotation(),
+			Sub(A.GetRotation(), B.GetRotation()),
 			A.GetLocation() - B.GetLocation(),
 			A.GetScale3D() - B.GetScale3D());
 	}
@@ -824,7 +833,7 @@ namespace PCGExMath
 		static constexpr ValueType Min() { return false; }
 		static constexpr ValueType Max() { return true; }
 	};
-	
+
 	template <>
 	struct TLimits<int32>
 	{
@@ -848,7 +857,7 @@ namespace PCGExMath
 		static constexpr ValueType Min() { return TNumericLimits<float>::Min(); }
 		static constexpr ValueType Max() { return TNumericLimits<float>::Max(); }
 	};
-	
+
 	template <>
 	struct TLimits<double>
 	{
@@ -864,7 +873,7 @@ namespace PCGExMath
 		static ValueType Min() { return FVector2D(TLimits<double>::Min()); }
 		static ValueType Max() { return FVector2D(TLimits<double>::Max()); }
 	};
-	
+
 	template <>
 	struct TLimits<FVector>
 	{
@@ -872,7 +881,7 @@ namespace PCGExMath
 		static ValueType Min() { return FVector(TLimits<double>::Min()); }
 		static ValueType Max() { return FVector(TLimits<double>::Max()); }
 	};
-	
+
 	template <>
 	struct TLimits<FVector4>
 	{
@@ -904,7 +913,7 @@ namespace PCGExMath
 		static ValueType Min() { return FTransform::Identity; }
 		static ValueType Max() { return FTransform::Identity; }
 	};
-	
+
 	template <>
 	struct TLimits<FString>
 	{
@@ -936,7 +945,7 @@ namespace PCGExMath
 		static ValueType Min() { return FSoftObjectPath(); }
 		static ValueType Max() { return FSoftObjectPath(); }
 	};
-	
+
 #pragma endregion
 
 	template <typename T>
