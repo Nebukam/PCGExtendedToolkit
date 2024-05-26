@@ -81,7 +81,7 @@ bool FPCGExBuildCustomGraphElement::ExecuteInternal(
 	{
 		if (!Context->AdvanceGraph())
 		{
-			Context->CurrentIO->Cleanup();
+			Context->CurrentIO->CleanupKeys();
 			Context->SetState(PCGExMT::State_ReadyForNextPoints);
 			return false;
 		}
@@ -155,7 +155,7 @@ bool FPCGExBuildCustomGraphElement::ExecuteInternal(
 
 		if (!Context->ProcessCurrentPoints(ProcessPointEdgeType)) { return false; }
 
-		Context->WriteSocketInfos();		
+		Context->WriteSocketInfos();
 		Context->SetState(PCGExGraph::State_ReadyForNextGraph);
 	}
 

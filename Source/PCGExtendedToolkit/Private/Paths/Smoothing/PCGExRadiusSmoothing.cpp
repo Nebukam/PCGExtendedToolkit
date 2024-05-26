@@ -26,19 +26,21 @@ void UPCGExRadiusSmoothing::InternalDoSmooth(
 		PCGEx::FPointRef Target = InPointIO.GetOutPointRef(i);
 		MetadataBlender->PrepareForBlending(Target);
 
+		double TotalWeight = 0;
 		for (int j = 0; j <= MaxPointIndex; j++)
 		{
 			const FPCGPoint& InPoint = InPoints[j];
 			const double Dist = FVector::DistSquared(Origin, InPoint.Transform.GetLocation());
 			if (Dist <= RadiusSquared)
 			{
-				const double Alpha = 1 - (Dist / RadiusSquared);
-				MetadataBlender->Blend(Target, InPointIO.GetInPointRef(j), Target, Alpha);
+				const double Weight = 1 - (Dist / RadiusSquared);
+				MetadataBlender->Blend(Target, InPointIO.GetInPointRef(j), Target, Weight);
 				Count++;
+				TotalWeight += Weight;
 			}
 		}
 
-		MetadataBlender->CompleteBlending(Target, Count);
+		MetadataBlender->CompleteBlending(Target, Count, TotalWeight);
 	}
 
 	MetadataBlender->Write();

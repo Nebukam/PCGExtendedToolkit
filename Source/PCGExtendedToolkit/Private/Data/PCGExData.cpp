@@ -34,7 +34,7 @@ namespace PCGExData
 			DistSum += Weights[i];
 		}
 
-		if(DistSum == 0)
+		if (DistSum == 0)
 		{
 			const double StaticWeight = 1 / static_cast<double>(CompoundedPoints.Num());
 			for (double& Weight : Weights) { Weight = StaticWeight; }
@@ -42,7 +42,6 @@ namespace PCGExData
 		}
 
 		for (double& Weight : Weights) { Weight = 1 - (Weight / DistSum); }
-		
 	}
 
 	void FIdxCompound::ComputeWeights(const TArray<FPCGPoint>& SourcePoints, const FPCGPoint& Target, const FPCGExDistanceSettings& DistSettings)

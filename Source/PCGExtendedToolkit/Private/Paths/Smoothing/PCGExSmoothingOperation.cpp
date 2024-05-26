@@ -47,7 +47,7 @@ void UPCGExSmoothingOperation::DoSmooth(PCGExData::FPointIO& InPointIO)
 
 	PCGExDataBlending::FMetadataBlender* MetadataLerp = new PCGExDataBlending::FMetadataBlender(&InfluenceSettings);
 	MetadataLerp->PrepareForData(InPointIO);
-	MetadataLerp->FullBlendToOne(Influences);
+	MetadataLerp->BlendEachPrimaryToSecondary(Influences);
 	MetadataLerp->Write();
 
 	PCGEX_DELETE(MetadataLerp)

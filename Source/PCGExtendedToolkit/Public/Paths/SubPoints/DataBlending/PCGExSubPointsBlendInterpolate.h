@@ -30,7 +30,7 @@ public:
 	EPCGExPathBlendOver BlendOver = EPCGExPathBlendOver::Distance;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="BlendOver==EPCGExPathBlendOver::Fixed", EditConditionHides))
-	double Alpha = 0.5;
+	double Weight = 0.5;
 
 	virtual void BlendSubPoints(
 		const PCGEx::FPointRef& StartPoint,
@@ -39,7 +39,7 @@ public:
 		const PCGExMath::FPathMetricsSquared& Metrics,
 		const PCGExDataBlending::FMetadataBlender* InBlender) const override;
 
-	virtual PCGExDataBlending::FMetadataBlender* CreateBlender(PCGExData::FPointIO& InPrimaryIO, const PCGExData::FPointIO& InSecondaryIO, bool bSecondaryIn) override;
+	virtual PCGExDataBlending::FMetadataBlender* CreateBlender(PCGExData::FPointIO& InPrimaryIO, const PCGExData::FPointIO& InSecondaryIO, const PCGExData::ESource SecondarySource) override;
 
 protected:
 	virtual EPCGExDataBlendingType GetDefaultBlending() override;

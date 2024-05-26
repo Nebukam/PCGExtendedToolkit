@@ -29,15 +29,18 @@ void UPCGExMovingAverageSmoothing::InternalDoSmooth(
 			PCGEx::FPointRef Target = InPointIO.GetOutPointRef(i);
 			MetadataBlender->PrepareForBlending(Target);
 
+			double TotalWeight = 0;
+
 			for (int j = -SafeWindowSize; j <= SafeWindowSize; j++)
 			{
 				const int32 Index = PCGExMath::Tile(i + j, 0, MaxPointIndex);
 				const double Alpha = 1 - (static_cast<double>(FMath::Abs(j)) / SafeWindowSize);
 				MetadataBlender->Blend(Target, InPointIO.GetInPointRef(Index), Target, Alpha);
 				Count++;
+				TotalWeight += Alpha;
 			}
 
-			MetadataBlender->CompleteBlending(Target, Count);
+			MetadataBlender->CompleteBlending(Target, Count, TotalWeight);
 		}
 	}
 	else
@@ -48,15 +51,20 @@ void UPCGExMovingAverageSmoothing::InternalDoSmooth(
 			PCGEx::FPointRef Target = InPointIO.GetOutPointRef(i);
 			MetadataBlender->PrepareForBlending(Target);
 
+			double TotalWeight = 0;
+
 			for (int j = -SafeWindowSize; j <= SafeWindowSize; j++)
 			{
-				const int32 Index = FMath::Clamp(i + j, 0, MaxPointIndex);
-				const double Alpha = 1 - (static_cast<double>(FMath::Abs(j)) / SafeWindowSize);
-				MetadataBlender->Blend(Target, InPointIO.GetInPointRef(Index), Target, Alpha);
+				const int32 Index = i + j;
+				if (!InPoints.IsValidIndex(Index)) { continue; }
+
+				const double Weight = 1 - (static_cast<double>(FMath::Abs(j)) / SafeWindowSize);
+				MetadataBlender->Blend(Target, InPointIO.GetInPointRef(Index), Target, Weight);
 				Count++;
+				TotalWeight += Weight;
 			}
 
-			MetadataBlender->CompleteBlending(Target, Count);
+			MetadataBlender->CompleteBlending(Target, Count, TotalWeight);
 		}
 	}
 

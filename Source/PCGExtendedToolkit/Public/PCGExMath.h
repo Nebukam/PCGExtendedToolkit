@@ -396,6 +396,9 @@ namespace PCGExMath
 	static bool Add(const bool& A, const bool& B) { return B ? true : A; }
 
 	template <typename CompilerSafety = void>
+	static FQuat Add(const FQuat& A, const FQuat& B) { return (A.Rotator() + B.Rotator()).Quaternion(); }
+
+	template <typename CompilerSafety = void>
 	static FTransform Add(const FTransform& A, const FTransform& B)
 	{
 		return FTransform(
@@ -419,10 +422,22 @@ namespace PCGExMath
 
 #pragma endregion
 
-#pragma region Add
+#pragma region WeightedAdd
 
 	template <typename T, typename CompilerSafety = void>
 	static T WeightedAdd(const T& A, const T& B, const double Weight = 1) { return A + B * Weight; } // Default, unhandled behavior.
+
+	template <typename CompilerSafety = void>
+	static FRotator WeightedAdd(const FRotator& A, const FRotator& B, const double Weight)
+	{
+		return FRotator(
+			A.Pitch + B.Pitch * Weight,
+			A.Yaw + B.Yaw * Weight,
+			A.Roll + B.Roll * Weight);
+	}
+
+	template <typename CompilerSafety = void>
+	static FQuat WeightedAdd(const FQuat& A, const FQuat& B, const double Weight) { return WeightedAdd(A.Rotator(), B.Rotator(), Weight).Quaternion(); }
 
 	template <typename CompilerSafety = void>
 	static FTransform WeightedAdd(const FTransform& A, const FTransform& B, const double Weight)
@@ -440,7 +455,6 @@ namespace PCGExMath
 
 #pragma endregion
 
-
 #pragma region Sub
 
 	template <typename T, typename CompilerSafety = void>
@@ -450,10 +464,16 @@ namespace PCGExMath
 	static bool Sub(const bool& A, const bool& B) { return B ? true : A; }
 
 	template <typename CompilerSafety = void>
+	static FRotator Sub(const FRotator& A, const FRotator& B) { return B - A; }
+
+	template <typename CompilerSafety = void>
+	static FQuat Sub(const FQuat& A, const FQuat& B) { return Sub(A.Rotator(), B.Rotator()).Quaternion(); }
+
+	template <typename CompilerSafety = void>
 	static FTransform Sub(const FTransform& A, const FTransform& B)
 	{
 		return FTransform(
-			A.GetRotation() - B.GetRotation(),
+			Sub(A.GetRotation(), B.GetRotation()),
 			A.GetLocation() - B.GetLocation(),
 			A.GetScale3D() - B.GetScale3D());
 	}
@@ -704,7 +724,6 @@ namespace PCGExMath
 
 #pragma endregion
 
-
 #pragma region Copy
 
 	template <typename T>
@@ -793,6 +812,139 @@ namespace PCGExMath
 #define PCGEX_UNSUPPORTED_SET_COMPONENT(_TYPE) template <typename CompilerSafety = void> static void SetComponent(_TYPE& A, const int32 Index, const double InValue)	{}
 	PCGEX_UNSUPPORTED_STRING_TYPES(PCGEX_UNSUPPORTED_SET_COMPONENT)
 #undef PCGEX_UNSUPPORTED_SET_COMPONENT
+
+#pragma endregion
+
+#pragma region Limits
+
+	template <typename ValueType>
+	struct TLimits;
+
+	template <typename ValueType>
+	struct TLimits<const ValueType>
+		: public TLimits<ValueType>
+	{
+	};
+
+	template <>
+	struct TLimits<bool>
+	{
+		typedef bool ValueType;
+		static constexpr ValueType Min() { return false; }
+		static constexpr ValueType Max() { return true; }
+	};
+
+	template <>
+	struct TLimits<int32>
+	{
+		typedef int32 ValueType;
+		static constexpr ValueType Min() { return TNumericLimits<int32>::Min(); }
+		static constexpr ValueType Max() { return TNumericLimits<int32>::Max(); }
+	};
+
+	template <>
+	struct TLimits<int64>
+	{
+		typedef int64 ValueType;
+		static constexpr ValueType Min() { return TNumericLimits<int64>::Min(); }
+		static constexpr ValueType Max() { return TNumericLimits<int64>::Max(); }
+	};
+
+	template <>
+	struct TLimits<float>
+	{
+		typedef float ValueType;
+		static constexpr ValueType Min() { return TNumericLimits<float>::Min(); }
+		static constexpr ValueType Max() { return TNumericLimits<float>::Max(); }
+	};
+
+	template <>
+	struct TLimits<double>
+	{
+		typedef double ValueType;
+		static constexpr ValueType Min() { return TNumericLimits<double>::Min(); }
+		static constexpr ValueType Max() { return TNumericLimits<double>::Max(); }
+	};
+
+	template <>
+	struct TLimits<FVector2D>
+	{
+		typedef FVector2D ValueType;
+		static ValueType Min() { return FVector2D(TLimits<double>::Min()); }
+		static ValueType Max() { return FVector2D(TLimits<double>::Max()); }
+	};
+
+	template <>
+	struct TLimits<FVector>
+	{
+		typedef FVector ValueType;
+		static ValueType Min() { return FVector(TLimits<double>::Min()); }
+		static ValueType Max() { return FVector(TLimits<double>::Max()); }
+	};
+
+	template <>
+	struct TLimits<FVector4>
+	{
+		typedef FVector4 ValueType;
+		static ValueType Min() { return FVector4(TLimits<double>::Min()); }
+		static ValueType Max() { return FVector4(TLimits<double>::Max()); }
+	};
+
+	template <>
+	struct TLimits<FRotator>
+	{
+		typedef FRotator ValueType;
+		static ValueType Min() { return FRotator(TLimits<double>::Min(), TLimits<double>::Min(), TLimits<double>::Min()); }
+		static ValueType Max() { return FRotator(TLimits<double>::Max(), TLimits<double>::Max(), TLimits<double>::Max()); }
+	};
+
+	template <>
+	struct TLimits<FQuat>
+	{
+		typedef FQuat ValueType;
+		static ValueType Min() { return TLimits<FRotator>::Min().Quaternion(); }
+		static ValueType Max() { return TLimits<FRotator>::Max().Quaternion(); }
+	};
+
+	template <>
+	struct TLimits<FTransform>
+	{
+		typedef FTransform ValueType;
+		static ValueType Min() { return FTransform::Identity; }
+		static ValueType Max() { return FTransform::Identity; }
+	};
+
+	template <>
+	struct TLimits<FString>
+	{
+		typedef FString ValueType;
+		static ValueType Min() { return TEXT(""); }
+		static ValueType Max() { return TEXT(""); }
+	};
+
+	template <>
+	struct TLimits<FName>
+	{
+		typedef FName ValueType;
+		static ValueType Min() { return NAME_None; }
+		static ValueType Max() { return NAME_None; }
+	};
+
+	template <>
+	struct TLimits<FSoftClassPath>
+	{
+		typedef FSoftClassPath ValueType;
+		static ValueType Min() { return FSoftClassPath(); }
+		static ValueType Max() { return FSoftClassPath(); }
+	};
+
+	template <>
+	struct TLimits<FSoftObjectPath>
+	{
+		typedef FSoftObjectPath ValueType;
+		static ValueType Min() { return FSoftObjectPath(); }
+		static ValueType Max() { return FSoftObjectPath(); }
+	};
 
 #pragma endregion
 

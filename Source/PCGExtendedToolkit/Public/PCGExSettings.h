@@ -128,7 +128,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExRemapSettings
 	double GetRemappedValue(const double Value) const
 	{
 		double OutValue = RemapCurveObj->GetFloatValue(PCGExMath::Remap(Value, InMin, InMax, 0, 1)) * Scale;
-		switch (TruncateOutput) {
+		switch (TruncateOutput)
+		{
 		case EPCGExTruncateMode::Round:
 			OutValue = FMath::RoundToInt(OutValue);
 			break;
@@ -140,7 +141,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExRemapSettings
 			break;
 		}
 		return OutValue;
-		
 	}
 };
 

@@ -103,14 +103,17 @@ bool FPCGExPointsToBoundsElement::ExecuteInternal(FPCGContext* InContext) const
 			const PCGEx::FPointRef Target = Context->CurrentIO->GetOutPointRef(0);
 			Context->MetadataBlender->PrepareForBlending(Target);
 
+			double TotalWeight = 0;
+
 			for (int i = 0; i < NumPoints; i++)
 			{
 				FVector Location = InPoints[i].Transform.GetLocation();
 				const double Weight = FVector::DistSquared(Center, Location) / SqrDist;
 				Context->MetadataBlender->Blend(Target, Context->CurrentIO->GetInPointRef(i), Target, Weight);
+				TotalWeight += Weight;
 			}
 
-			Context->MetadataBlender->CompleteBlending(Target, NumPoints);
+			Context->MetadataBlender->CompleteBlending(Target, NumPoints, TotalWeight);
 
 			MutablePoints[0].Transform.SetLocation(Center);
 			MutablePoints[0].BoundsMin = Box.Min - Center;

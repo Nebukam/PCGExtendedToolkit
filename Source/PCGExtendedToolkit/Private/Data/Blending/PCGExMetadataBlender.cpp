@@ -24,22 +24,22 @@ namespace PCGExDataBlending
 		BlendingSettings = ReferenceBlender->BlendingSettings;
 	}
 
-	void FMetadataBlender::PrepareForData(PCGExData::FPointIO& InData)
+	void FMetadataBlender::PrepareForData(PCGExData::FPointIO& InData, const PCGExData::ESource SecondarySource)
 	{
-		InternalPrepareForData(InData, InData, true);
+		InternalPrepareForData(InData, InData, SecondarySource);
 	}
 
 	void FMetadataBlender::PrepareForData(
 		PCGExData::FPointIO& InPrimaryData, const PCGExData::FPointIO& InSecondaryData,
-		const bool bSecondaryIn)
+		const PCGExData::ESource SecondarySource)
 	{
-		InternalPrepareForData(InPrimaryData, InSecondaryData, bSecondaryIn);
+		InternalPrepareForData(InPrimaryData, InSecondaryData, SecondarySource);
 	}
 
 	FMetadataBlender* FMetadataBlender::Copy(PCGExData::FPointIO& InPrimaryData, const PCGExData::FPointIO& InSecondaryData) const
 	{
 		FMetadataBlender* Copy = new FMetadataBlender(this);
-		Copy->PrepareForData(InPrimaryData, InSecondaryData, true);
+		Copy->PrepareForData(InPrimaryData, InSecondaryData, PCGExData::ESource::Out);
 		return Copy;
 	}
 
@@ -54,29 +54,30 @@ namespace PCGExDataBlending
 		const PCGEx::FPointRef& A,
 		const PCGEx::FPointRef& B,
 		const PCGEx::FPointRef& Target,
-		const double Alpha) const
+		const double Weight) const
 	{
-		for (const FDataBlendingOperationBase* Op : Attributes) { Op->DoOperation(A.Index, B.Index, Target.Index, Alpha); }
+		for (const FDataBlendingOperationBase* Op : Attributes) { Op->DoOperation(A.Index, B.Index, Target.Index, Weight); }
 		if (!bBlendProperties) { return; }
-		PropertiesBlender->Blend(*A.Point, *B.Point, Target.MutablePoint(), Alpha);
+		PropertiesBlender->Blend(*A.Point, *B.Point, Target.MutablePoint(), Weight);
 	}
 
 	void FMetadataBlender::CompleteBlending(
 		const PCGEx::FPointRef& Target,
-		const double Alpha) const
+		const int32 Count,
+		const double TotalWeight) const
 	{
-		for (const FDataBlendingOperationBase* Op : AttributesToBeCompleted) { Op->FinalizeOperation(Target.Index, Alpha); }
+		for (const FDataBlendingOperationBase* Op : AttributesToBeCompleted) { Op->FinalizeOperation(Target.Index, Count, TotalWeight); }
 		if (!bBlendProperties || !PropertiesBlender->bRequiresPrepare) { return; }
-		PropertiesBlender->CompleteBlending(Target.MutablePoint(), Alpha);
+		PropertiesBlender->CompleteBlending(Target.MutablePoint(), Count, TotalWeight);
 	}
 
 	void FMetadataBlender::PrepareRangeForBlending(
 		const int32 StartIndex,
-		const int32 Count) const
+		const int32 Range) const
 	{
-		for (const FDataBlendingOperationBase* Op : AttributesToBePrepared) { Op->PrepareRangeOperation(StartIndex, Count); }
+		for (const FDataBlendingOperationBase* Op : AttributesToBePrepared) { Op->PrepareRangeOperation(StartIndex, Range); }
 		if (!bBlendProperties) { return; }
-		const TArrayView<FPCGPoint> View = MakeArrayView(PrimaryPoints->GetData() + StartIndex, Count);
+		const TArrayView<FPCGPoint> View = MakeArrayView(PrimaryPoints->GetData() + StartIndex, Range);
 		PropertiesBlender->PrepareRangeBlending(View, (*PrimaryPoints)[StartIndex]);
 	}
 
@@ -84,52 +85,58 @@ namespace PCGExDataBlending
 		const PCGEx::FPointRef& A,
 		const PCGEx::FPointRef& B,
 		const int32 StartIndex,
-		const int32 Count,
-		const TArrayView<double>& Alphas) const
+		const int32 Range,
+		const TArrayView<double>& Weights) const
 	{
-		for (const FDataBlendingOperationBase* Op : Attributes) { Op->DoRangeOperation(A.Index, B.Index, StartIndex, Count, Alphas); }
+		for (const FDataBlendingOperationBase* Op : Attributes) { Op->DoRangeOperation(A.Index, B.Index, StartIndex, Weights); }
 		if (!bBlendProperties) { return; }
-		const TArrayView<FPCGPoint> View = MakeArrayView(PrimaryPoints->GetData() + StartIndex, Count);
-		PropertiesBlender->BlendRange(*A.Point, *B.Point, View, Alphas);
+		const TArrayView<FPCGPoint> View = MakeArrayView(PrimaryPoints->GetData() + StartIndex, Range);
+		PropertiesBlender->BlendRange(*A.Point, *B.Point, View, Weights);
 	}
 
 	void FMetadataBlender::CompleteRangeBlending(
 		const int32 StartIndex,
-		const int32 Count,
-		const TArrayView<double>& Alphas) const
+		const int32 Range,
+		const TArrayView<int32>& Counts,
+		const TArrayView<double>& TotalWeights) const
 	{
-		for (const FDataBlendingOperationBase* Op : AttributesToBePrepared) { Op->FinalizeRangeOperation(StartIndex, Count, Alphas); }
+		for (const FDataBlendingOperationBase* Op : AttributesToBePrepared) { Op->FinalizeRangeOperation(StartIndex, Counts, TotalWeights); }
 		if (!bBlendProperties) { return; }
-		const TArrayView<FPCGPoint> View = MakeArrayView(PrimaryPoints->GetData() + StartIndex, Count);
-		PropertiesBlender->CompleteRangeBlending(View, 2);
+		const TArrayView<FPCGPoint> View = MakeArrayView(PrimaryPoints->GetData() + StartIndex, Range);
+		PropertiesBlender->CompleteRangeBlending(View, Counts, TotalWeights);
 	}
 
-	void FMetadataBlender::BlendRangeOnce(
-		const PCGEx::FPointRef& A,
-		const PCGEx::FPointRef& B,
+	void FMetadataBlender::BlendRangeFromTo(
+		const PCGEx::FPointRef& From,
+		const PCGEx::FPointRef& To,
 		const int32 StartIndex,
-		const int32 Count,
-		const TArrayView<double>& Alphas) const
+		const TArrayView<double>& Weights) const
 	{
+		TArray<int32> Counts;
+		Counts.SetNumUninitialized(Weights.Num());
+		for (int32& C : Counts) { C = 2; }
+
+		const int32 Range = Weights.Num();
+
 		for (const FDataBlendingOperationBase* Op : AttributesToBePrepared)
 		{
-			Op->PrepareRangeOperation(StartIndex, Count);
-			Op->DoRangeOperation(A.Index, B.Index, StartIndex, Count, Alphas);
-			Op->FinalizeRangeOperation(StartIndex, Count, Alphas);
+			Op->PrepareRangeOperation(StartIndex, Range);
+			Op->DoRangeOperation(From.Index, To.Index, StartIndex, Weights);
+			Op->FinalizeRangeOperation(StartIndex, Counts, Weights);
 		}
 
 		if (!bBlendProperties) { return; }
-		const TArrayView<FPCGPoint> View = MakeArrayView(PrimaryPoints->GetData() + StartIndex, Count);
-		PropertiesBlender->BlendRangeOnce(*A.Point, *B.Point, View, Alphas);
+		const TArrayView<FPCGPoint> View = MakeArrayView(PrimaryPoints->GetData() + StartIndex, Range);
+		PropertiesBlender->BlendRangeFromTo(*From.Point, *To.Point, View, Weights);
 	}
 
-	void FMetadataBlender::FullBlendToOne(const TArrayView<double>& Alphas) const
+	void FMetadataBlender::BlendEachPrimaryToSecondary(const TArrayView<double>& Weights) const
 	{
-		for (const FDataBlendingOperationBase* Op : AttributesToBePrepared) { Op->FullBlendToOne(Alphas); }
+		for (const FDataBlendingOperationBase* Op : AttributesToBePrepared) { Op->BlendEachPrimaryToSecondary(Weights); }
 		if (!bBlendProperties) { return; }
 		for (int i = 0; i < PrimaryPoints->Num(); i++)
 		{
-			PropertiesBlender->BlendOnce((*PrimaryPoints)[i], (*SecondaryPoints)[i], (*PrimaryPoints)[i], Alphas[i]);
+			PropertiesBlender->BlendOnce((*PrimaryPoints)[i], (*SecondaryPoints)[i], (*PrimaryPoints)[i], Weights[i]);
 		}
 	}
 
@@ -152,21 +159,23 @@ namespace PCGExDataBlending
 		SecondaryPoints = nullptr;
 	}
 
+	void FMetadataBlender::InitializeFromScratch()
+	{
+		for (FDataBlendingOperationBase* Op : Attributes) { Op->InitializeFromScratch(); }
+	}
+
 	void FMetadataBlender::InternalPrepareForData(
-		PCGExData::FPointIO& InPrimaryData, const PCGExData::FPointIO& InSecondaryData, const bool bSecondaryIn)
+		PCGExData::FPointIO& InPrimaryData, const PCGExData::FPointIO& InSecondaryData, const PCGExData::ESource SecondarySource)
 	{
 		Flush();
 
 		PropertiesBlender = new FPropertiesBlender(*BlendingSettings);
 
 		InPrimaryData.CreateOutKeys();
-		const_cast<PCGExData::FPointIO&>(InSecondaryData).CreateInKeys(); //Ugh
+		const_cast<PCGExData::FPointIO&>(InSecondaryData).CreateKeys(SecondarySource);
 
 		PrimaryPoints = &InPrimaryData.GetOut()->GetMutablePoints();
-		SecondaryPoints = bSecondaryIn ?
-			                  const_cast<TArray<FPCGPoint>*>(&InSecondaryData.GetIn()->GetPoints()) :
-			                  &InSecondaryData.GetOut()->GetMutablePoints();
-
+		SecondaryPoints = const_cast<TArray<FPCGPoint>*>(&InSecondaryData.GetData(SecondarySource)->GetPoints());
 
 		TArray<PCGEx::FAttributeIdentity> Identities;
 		PCGEx::FAttributeIdentity::Get(InPrimaryData.GetOut()->Metadata, Identities);
@@ -179,7 +188,7 @@ namespace PCGExDataBlending
 			TMap<FName, PCGEx::FAttributeIdentity> PrimaryIdentityMap;
 			TMap<FName, PCGEx::FAttributeIdentity> SecondaryIdentityMap;
 			PCGEx::FAttributeIdentity::Get(InPrimaryData.GetOut()->Metadata, PrimaryNames, PrimaryIdentityMap);
-			PCGEx::FAttributeIdentity::Get(InSecondaryData.GetIn()->Metadata, SecondaryNames, SecondaryIdentityMap);
+			PCGEx::FAttributeIdentity::Get(InSecondaryData.GetData(SecondarySource)->Metadata, SecondaryNames, SecondaryIdentityMap);
 
 			for (FName PrimaryName : PrimaryNames)
 			{
@@ -225,7 +234,7 @@ namespace PCGExDataBlending
 			if (Op->GetRequiresPreparation()) { AttributesToBePrepared.Add(Op); }
 			if (Op->GetRequiresFinalization()) { AttributesToBeCompleted.Add(Op); }
 
-			Op->PrepareForData(InPrimaryData, InSecondaryData, bSecondaryIn);
+			Op->PrepareForData(InPrimaryData, InSecondaryData, SecondarySource);
 		}
 	}
 }

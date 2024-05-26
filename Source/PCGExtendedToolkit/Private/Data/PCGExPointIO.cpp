@@ -36,6 +36,7 @@ namespace PCGExData
 		}
 	}
 
+	const UPCGPointData* FPointIO::GetData(const ESource InSource) const { return InSource == ESource::In ? In : Out; }
 	const UPCGPointData* FPointIO::GetIn() const { return In; }
 	UPCGPointData* FPointIO::GetOut() const { return Out; }
 	const UPCGPointData* FPointIO::GetOutIn() const { return Out ? Out : In; }
@@ -104,6 +105,16 @@ namespace PCGExData
 		}
 	}
 
+	FPCGAttributeAccessorKeysPoints* FPointIO::CreateKeys(ESource InSource)
+	{
+		return InSource == ESource::In ? CreateInKeys() : CreateOutKeys();
+	}
+
+	FPCGAttributeAccessorKeysPoints* FPointIO::GetKeys(ESource InSource) const
+	{
+		return InSource == ESource::In ? GetInKeys() : GetOutKeys();
+	}
+
 	void FPointIO::InitPoint(FPCGPoint& Point, const PCGMetadataEntryKey FromKey) const
 	{
 		Out->Metadata->InitializeOnSet(Point.MetadataEntry, FromKey, In->Metadata);
@@ -123,8 +134,8 @@ namespace PCGExData
 	{
 		FWriteScopeLock WriteLock(PointsLock);
 		TArray<FPCGPoint>& MutablePoints = Out->GetMutablePoints();
+		OutIndex = MutablePoints.Num();
 		FPCGPoint& Pt = MutablePoints.Add_GetRef(FromPoint);
-		OutIndex = MutablePoints.Num() - 1;
 		InitPoint(Pt, FromPoint);
 		return Pt;
 	}
@@ -186,7 +197,7 @@ namespace PCGExData
 		return OutData;
 	}
 
-	void FPointIO::Cleanup()
+	void FPointIO::CleanupKeys()
 	{
 		if (!RootIO) { PCGEX_DELETE(InKeys) }
 		else { InKeys = nullptr; }
@@ -196,7 +207,7 @@ namespace PCGExData
 
 	FPointIO::~FPointIO()
 	{
-		Cleanup();
+		CleanupKeys();
 
 		PCGEX_DELETE(Tags)
 
@@ -221,7 +232,7 @@ namespace PCGExData
 			TaggedOutput->Pin = DefaultOutputLabel;
 			Tags->Dump(TaggedOutput->Tags);
 
-			Cleanup();
+			CleanupKeys();
 			return true;
 		}
 
@@ -231,7 +242,7 @@ namespace PCGExData
 			Out = nullptr;
 		}
 
-		Cleanup();
+		CleanupKeys();
 		return false;
 	}
 
@@ -244,7 +255,7 @@ namespace PCGExData
 			if ((MinPointCount >= 0 && OutNumPoints < MinPointCount) ||
 				(MaxPointCount >= 0 && OutNumPoints > MaxPointCount))
 			{
-				Cleanup();
+				CleanupKeys();
 				Out->ConditionalBeginDestroy();
 				Out = nullptr;
 			}

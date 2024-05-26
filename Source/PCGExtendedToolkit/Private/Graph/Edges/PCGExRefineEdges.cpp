@@ -85,7 +85,7 @@ bool FPCGExRefineEdgesElement::ExecuteInternal(
 			}
 
 			Context->Refinement->PreProcess(Context->CurrentCluster, Context->GraphBuilder->Graph, Context->CurrentEdges);
-			
+
 			Context->GetAsyncManager()->Start<FPCGExRefineEdgesTask>(-1, Context->CurrentIO, Context->CurrentCluster, Context->CurrentEdges);
 			Context->SetAsyncState(PCGExGraph::State_ProcessingEdges);
 		}

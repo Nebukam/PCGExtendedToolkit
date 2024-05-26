@@ -181,8 +181,8 @@ namespace PCGExData
 		{
 			return const_cast<UPCGPolyLineData*>(LineData);
 		}
-		
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION == 3 
+
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION == 3
 		if (const UPCGSplineProjectionData* SplineProjectionData = Cast<const UPCGSplineProjectionData>(InSpatialData))
 		{
 			return const_cast<UPCGSplineData*>(SplineProjectionData->GetSpline());

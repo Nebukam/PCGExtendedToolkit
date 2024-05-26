@@ -139,9 +139,11 @@ PCGEX_BLEND_CASE(None)\
 PCGEX_BLEND_CASE(Copy)\
 PCGEX_BLEND_CASE(Average)\
 PCGEX_BLEND_CASE(Weight)\
+PCGEX_BLEND_CASE(WeightedSum)\
 PCGEX_BLEND_CASE(Min)\
 PCGEX_BLEND_CASE(Max)\
-PCGEX_BLEND_CASE(Sum)
+PCGEX_BLEND_CASE(Sum)\
+PCGEX_BLEND_CASE(Lerp)
 
 		FDataBlendingOperationBase* NewOperation = nullptr;
 

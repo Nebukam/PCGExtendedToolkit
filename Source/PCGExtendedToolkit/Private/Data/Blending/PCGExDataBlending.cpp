@@ -13,14 +13,17 @@ namespace PCGExDataBlending
 {
 	FDataBlendingOperationBase::~FDataBlendingOperationBase()
 	{
+		PCGEX_DELETE(InitializedIndices)
 	}
 
-	void FDataBlendingOperationBase::PrepareForData(PCGExData::FPointIO& InPrimaryData, const PCGExData::FPointIO& InSecondaryData, bool bSecondaryIn)
+	void FDataBlendingOperationBase::PrepareForData(PCGExData::FPointIO& InPrimaryData, const PCGExData::FPointIO& InSecondaryData, const PCGExData::ESource SecondarySource)
 	{
+		PCGEX_DELETE(InitializedIndices)
 	}
 
-	void FDataBlendingOperationBase::PrepareForData(PCGEx::FAAttributeIO* InWriter, const PCGExData::FPointIO& InSecondaryData, bool bSecondaryIn)
+	void FDataBlendingOperationBase::PrepareForData(PCGEx::FAAttributeIO* InWriter, const PCGExData::FPointIO& InSecondaryData, const PCGExData::ESource SecondarySource)
 	{
+		PCGEX_DELETE(InitializedIndices)
 	}
 
 	bool FDataBlendingOperationBase::GetIsInterpolation() const { return false; }
@@ -32,20 +35,22 @@ namespace PCGExDataBlending
 		PrepareRangeOperation(WriteIndex, 1);
 	}
 
-	void FDataBlendingOperationBase::DoOperation(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, const int32 WriteIndex, const double Alpha) const
+	void FDataBlendingOperationBase::DoOperation(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, const int32 WriteIndex, const double Weight) const
 	{
-		TArray<double> Alphas = {Alpha};
-		DoRangeOperation(PrimaryReadIndex, SecondaryReadIndex, WriteIndex, 1, Alphas);
+		TArray<double> Weights = {Weight};
+		DoRangeOperation(PrimaryReadIndex, SecondaryReadIndex, WriteIndex, Weights);
 	}
 
-	void FDataBlendingOperationBase::FinalizeOperation(const int32 WriteIndex, const double Alpha) const
+	void FDataBlendingOperationBase::FinalizeOperation(const int32 WriteIndex, const int32 Count, const double TotalWeight) const
 	{
-		TArray<double> Alphas = {Alpha};
-		FinalizeRangeOperation(WriteIndex, 1, Alphas);
+		TArray<double> Weights = {TotalWeight};
+		TArray<int32> Counts = {Count};
+		FinalizeRangeOperation(WriteIndex, Counts, Weights);
 	}
 
-	void FDataBlendingOperationBase::FullBlendToOne(const TArrayView<double>& Alphas) const
+	void FDataBlendingOperationBase::BlendEachPrimaryToSecondary(const TArrayView<double>& Weights) const
 	{
+		// TODO : Implement
 	}
 
 	void FDataBlendingOperationBase::ResetToDefault(const int32 WriteIndex) const
@@ -80,13 +85,17 @@ namespace PCGExDataBlendingTask
 
 			MetadataBlender->PrepareForBlending(Target);
 
+			double TotalWeight = 0;
+
 			for (int j = 0; j < Idx->CompoundedPoints.Num(); j++)
 			{
 				const uint32 SourceIndex = PCGEx::H64B(Idx->CompoundedPoints[j]);
-				MetadataBlender->Blend(Target, PointIO->GetInPointRef(SourceIndex), Target, Idx->Weights[j]);
+				const double Weight = Idx->Weights[j];
+				MetadataBlender->Blend(Target, PointIO->GetInPointRef(SourceIndex), Target, Weight);
+				TotalWeight += Weight;
 			}
 
-			MetadataBlender->CompleteBlending(Target, Idx->CompoundedPoints.Num());
+			MetadataBlender->CompleteBlending(Target, TotalWeight, Idx->CompoundedPoints.Num());
 		}
 
 		MetadataBlender->Write();

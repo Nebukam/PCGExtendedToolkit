@@ -39,15 +39,15 @@ namespace PCGExDataBlending
 		void Init(const FPCGExPointPropertyBlendingOverrides& BlendingOverrides, EPCGExDataBlendingType InDefaultBlending);
 
 		void PrepareBlending(FPCGPoint& Target, const FPCGPoint& Default) const;
-		void Blend(const FPCGPoint& A, const FPCGPoint& B, FPCGPoint& Target, double Alpha) const;
-		void CompleteBlending(FPCGPoint& Target, const double Alpha) const;
+		void Blend(const FPCGPoint& A, const FPCGPoint& B, FPCGPoint& Target, double Weight) const;
+		void CompleteBlending(FPCGPoint& Target, const int32 Count, const double TotalWeight) const;
 
-		void BlendOnce(const FPCGPoint& A, const FPCGPoint& B, FPCGPoint& Target, double Alpha) const;
+		void BlendOnce(const FPCGPoint& A, const FPCGPoint& B, FPCGPoint& Target, double Weight) const;
 
 		void PrepareRangeBlending(const TArrayView<FPCGPoint>& Targets, const FPCGPoint& Default) const;
-		void BlendRange(const FPCGPoint& From, const FPCGPoint& To, const TArrayView<FPCGPoint>& Targets, const TArrayView<double>& Alphas) const;
-		void CompleteRangeBlending(const TArrayView<FPCGPoint>& Targets, const double Alpha) const;
+		void BlendRange(const FPCGPoint& From, const FPCGPoint& To, const TArrayView<FPCGPoint>& Targets, const TArrayView<double>& Weights) const;
+		void CompleteRangeBlending(const TArrayView<FPCGPoint>& Targets, const TArrayView<int32>& Counts, const TArrayView<double>& TotalWeights) const;
 
-		void BlendRangeOnce(const FPCGPoint& A, const FPCGPoint& B, const TArrayView<FPCGPoint>& Targets, const TArrayView<double>& Alphas) const;
+		void BlendRangeFromTo(const FPCGPoint& From, const FPCGPoint& To, const TArrayView<FPCGPoint>& Targets, const TArrayView<double>& Weights) const;
 	};
 }

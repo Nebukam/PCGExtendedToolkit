@@ -88,7 +88,7 @@ bool FPCGExBlendPathTask::ExecuteTask()
 
 	if (PathPoints.IsEmpty()) { return false; }
 
-	const PCGExDataBlending::FMetadataBlender* Blender = Context->Blending->CreateBlender(*PointIO, *PointIO, true);
+	const PCGExDataBlending::FMetadataBlender* Blender = Context->Blending->CreateBlender(*PointIO, *PointIO);
 
 	const PCGEx::FPointRef StartPoint = PointIO->GetOutPointRef(0);
 	const PCGEx::FPointRef EndPoint = PointIO->GetOutPointRef(PathPoints.Num() - 1);

@@ -121,7 +121,7 @@ bool FPCGExPackClusterTask::ExecuteTask()
 	TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
 	MutablePoints.SetNum(NumEdges + ReducedVtxIndices.Num());
 
-	PointIO->Cleanup();
+	PointIO->CleanupKeys();
 	PointIO->CreateOutKeys();
 
 	const TArrayView<int32> View = MakeArrayView(ReducedVtxIndices);
@@ -138,7 +138,7 @@ bool FPCGExPackClusterTask::ExecuteTask()
 	PointIO->Tags->Set(PCGExGraph::TagStr_ClusterPair, InEdges->GetIn()->UID, OutPairId);
 	PointIO->Flatten();
 
-	InEdges->Cleanup();
+	InEdges->CleanupKeys();
 
 	return true;
 }

@@ -278,7 +278,7 @@ Context->SolidificationRad##_AXIS->Grab(*Context->CurrentEdges); }
 				Context->MetadataBlender->PrepareForBlending(Target);
 				Context->MetadataBlender->Blend(Target, Context->CurrentIO->GetInPointRef(EdgeStartPtIndex), Target, Context->StartWeight);
 				Context->MetadataBlender->Blend(Target, Context->CurrentIO->GetInPointRef(EdgeEndPtIndex), Target, Context->EndWeight);
-				Context->MetadataBlender->CompleteBlending(Target, 2);
+				Context->MetadataBlender->CompleteBlending(Target, 2, Context->StartWeight + Context->EndWeight);
 			}
 
 			const FVector EdgeDirection = (DirFrom - DirTo).GetSafeNormal();
@@ -288,7 +288,7 @@ Context->SolidificationRad##_AXIS->Grab(*Context->CurrentEdges); }
 			PCGEX_OUTPUT_VALUE(EdgeLength, Edge.PointIndex, EdgeLength);
 
 			FPCGPoint& MutableTarget = Context->CurrentEdges->GetMutablePoint(Edge.PointIndex);
-			
+
 			if (Context->bSolidify)
 			{
 				FRotator EdgeRot;

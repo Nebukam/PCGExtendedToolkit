@@ -58,12 +58,13 @@ enum class EPCGExDataBlendingType : uint8
 {
 	None        = 0 UMETA(DisplayName = "None", ToolTip="No blending is applied, keep the original value."),
 	Average     = 1 UMETA(DisplayName = "Average", ToolTip="Average all sampled values."),
-	Weight      = 2 UMETA(DisplayName = "Weight", ToolTip="Translates to basic interpolation in most use cases."),
+	Weight      = 2 UMETA(DisplayName = "Weight", ToolTip="Weights based on distance to blend targets. If the results are unexpected, try 'Lerp' instead"),
 	Min         = 3 UMETA(DisplayName = "Min", ToolTip="Component-wise MIN operation"),
 	Max         = 4 UMETA(DisplayName = "Max", ToolTip="Component-wise MAX operation"),
 	Copy        = 5 UMETA(DisplayName = "Copy", ToolTip = "Copy incoming data"),
 	Sum         = 6 UMETA(DisplayName = "Sum", ToolTip = "Sum of all the data"),
 	WeightedSum = 7 UMETA(DisplayName = "Weighted Sum", ToolTip = "Sum of all the data, weighted"),
+	Lerp        = 8 UMETA(DisplayName = "Lerp", ToolTip="Uses weight as lerp. If the results are unexpected, try 'Weight' instead."),
 };
 
 USTRUCT(BlueprintType)
@@ -139,7 +140,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBlendingSettings
 	{
 	}
 
-	FPCGExBlendingSettings(const EPCGExDataBlendingType InDefaultBlending):
+	explicit FPCGExBlendingSettings(const EPCGExDataBlendingType InDefaultBlending):
 		DefaultBlending(InDefaultBlending)
 	{
 #define PCGEX_SET_DEFAULT_POINTPROPERTY(_TYPE, _NAME, _TYPENAME) PropertiesOverrides._NAME##Blending = InDefaultBlending;
@@ -164,9 +165,16 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBlendingSettings
 
 	bool CanBlend(const FName AttributeName) const
 	{
-		if (BlendingFilter == EPCGExBlendingFilter::All) { return true; }
-		if (FilteredAttributes.Contains(AttributeName)) { return BlendingFilter == EPCGExBlendingFilter::Include ? true : false; }
-		return BlendingFilter == EPCGExBlendingFilter::Exclude ? false : true;
+		switch (BlendingFilter)
+		{
+		default: ;
+		case EPCGExBlendingFilter::All:
+			return true;
+		case EPCGExBlendingFilter::Exclude:
+			return !FilteredAttributes.Contains(AttributeName);
+		case EPCGExBlendingFilter::Include:
+			return FilteredAttributes.Contains(AttributeName);
+		}
 	}
 
 	void Filter(TArray<PCGEx::FAttributeIdentity>& Identities) const
@@ -194,26 +202,30 @@ namespace PCGExDataBlending
 	public:
 		virtual ~FDataBlendingOperationBase();
 
+		virtual EPCGExDataBlendingType GetBlendingType() const = 0;
+
 		void SetAttributeName(const FName InName) { AttributeName = InName; }
 		FName GetAttributeName() const { return AttributeName; }
 
-		virtual void PrepareForData(PCGExData::FPointIO& InPrimaryData, const PCGExData::FPointIO& InSecondaryData, bool bSecondaryIn = true);
-		virtual void PrepareForData(PCGEx::FAAttributeIO* InWriter, const PCGExData::FPointIO& InSecondaryData, bool bSecondaryIn = true);
+		virtual void PrepareForData(PCGExData::FPointIO& InPrimaryData, const PCGExData::FPointIO& InSecondaryData, const PCGExData::ESource SecondarySource = PCGExData::ESource::In);
+		virtual void PrepareForData(PCGEx::FAAttributeIO* InWriter, const PCGExData::FPointIO& InSecondaryData, const PCGExData::ESource SecondarySource = PCGExData::ESource::In);
+
+		virtual void InitializeFromScratch() = 0;
 
 		virtual bool GetIsInterpolation() const;
 		virtual bool GetRequiresPreparation() const;
 		virtual bool GetRequiresFinalization() const;
 
 		virtual void PrepareOperation(const int32 WriteIndex) const;
-		virtual void DoOperation(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, const int32 WriteIndex, const double Alpha = 0) const;
-		virtual void DoOperation(const int32 PrimaryReadIndex, const FPCGPoint& SrcPoint, const int32 WriteIndex, const double Alpha = 0) const = 0;
-		virtual void FinalizeOperation(const int32 WriteIndex, double Alpha) const;
+		virtual void DoOperation(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, const int32 WriteIndex, const double Weight = 1) const;
+		virtual void DoOperation(const int32 PrimaryReadIndex, const FPCGPoint& SrcPoint, const int32 WriteIndex, const double Weight = 1) const = 0;
+		virtual void FinalizeOperation(const int32 WriteIndex, const int32 Count, const double TotalWeight) const;
 
-		virtual void PrepareRangeOperation(const int32 StartIndex, const int32 Count) const = 0;
-		virtual void DoRangeOperation(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, const int32 StartIndex, const int32 Count, const TArrayView<double>& Alphas) const = 0;
-		virtual void FinalizeRangeOperation(const int32 StartIndex, const int32 Count, const TArrayView<double>& Alphas) const = 0;
+		virtual void PrepareRangeOperation(const int32 StartIndex, const int32 Range) const = 0;
+		virtual void DoRangeOperation(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, const int32 StartIndex, const TArrayView<double>& Weights) const = 0;
+		virtual void FinalizeRangeOperation(const int32 StartIndex, const TArrayView<int32>& Counts, const TArrayView<double>& TotalWeights) const = 0;
 
-		virtual void FullBlendToOne(const TArrayView<double>& Alphas) const;
+		virtual void BlendEachPrimaryToSecondary(const TArrayView<double>& Weights) const;
 
 		virtual void ResetToDefault(int32 WriteIndex) const;
 		virtual void ResetRangeToDefault(int32 StartIndex, int32 Count) const;
@@ -224,6 +236,7 @@ namespace PCGExDataBlending
 		bool bOwnsWriter = true;
 		bool bInterpolationAllowed = true;
 		FName AttributeName = NAME_None;
+		TSet<int32>* InitializedIndices = nullptr;
 	};
 
 	template <typename T>
@@ -247,7 +260,9 @@ namespace PCGExDataBlending
 			Cleanup();
 		}
 
-		virtual void PrepareForData(PCGEx::FAAttributeIO* InWriter, const PCGExData::FPointIO& InSecondaryData, const bool bSecondaryIn) override
+		virtual EPCGExDataBlendingType GetBlendingType() const override { return EPCGExDataBlendingType::None; };
+
+		virtual void PrepareForData(PCGEx::FAAttributeIO* InWriter, const PCGExData::FPointIO& InSecondaryData, const PCGExData::ESource SecondarySource) override
 		{
 			Cleanup();
 			bOwnsWriter = false;
@@ -255,24 +270,24 @@ namespace PCGExDataBlending
 
 			bInterpolationAllowed = Writer->GetAllowsInterpolation();
 
-			FPCGMetadataAttributeBase* Attribute = bSecondaryIn ? InSecondaryData.GetIn()->Metadata->GetMutableAttribute(AttributeName) : InSecondaryData.GetOut()->Metadata->GetMutableAttribute(AttributeName);
+			FPCGMetadataAttributeBase* Attribute = InSecondaryData.GetData(SecondarySource)->Metadata->GetMutableAttribute(AttributeName);
 			if (Attribute && Attribute->GetTypeId() == Writer->UnderlyingType) { TypedAttribute = static_cast<FPCGMetadataAttribute<T>*>(Attribute); }
 			else { TypedAttribute = nullptr; }
 
-			FDataBlendingOperationBase::PrepareForData(InWriter, InSecondaryData, bSecondaryIn);
+			FDataBlendingOperationBase::PrepareForData(InWriter, InSecondaryData, SecondarySource);
 		}
 
-		virtual void PrepareForData(PCGExData::FPointIO& InPrimaryData, const PCGExData::FPointIO& InSecondaryData, const bool bSecondaryIn) override
+		virtual void PrepareForData(PCGExData::FPointIO& InPrimaryData, const PCGExData::FPointIO& InSecondaryData, const PCGExData::ESource SecondarySource) override
 		{
 			Cleanup();
 			bOwnsWriter = true;
 
-			FPCGMetadataAttributeBase* Attribute = bSecondaryIn ? InSecondaryData.GetIn()->Metadata->GetMutableAttribute(AttributeName) : InSecondaryData.GetOut()->Metadata->GetMutableAttribute(AttributeName);
+			FPCGMetadataAttributeBase* Attribute = InSecondaryData.GetData(SecondarySource)->Metadata->GetMutableAttribute(AttributeName);
 
 			Writer = new PCGEx::TFAttributeWriter<T>(AttributeName, T{}, Attribute ? Attribute->AllowsInterpolation() : true);
 			Writer->BindAndGet(InPrimaryData);
 
-			if (&InPrimaryData == &InSecondaryData && !bSecondaryIn)
+			if (&InPrimaryData == &InSecondaryData && SecondarySource == PCGExData::ESource::Out)
 			{
 				Reader = Writer;
 			}
@@ -287,37 +302,33 @@ namespace PCGExDataBlending
 			if (Attribute && Attribute->GetTypeId() == Writer->UnderlyingType) { TypedAttribute = static_cast<FPCGMetadataAttribute<T>*>(Attribute); }
 			else { TypedAttribute = nullptr; }
 
-			FDataBlendingOperationBase::PrepareForData(InPrimaryData, InSecondaryData, bSecondaryIn);
+			FDataBlendingOperationBase::PrepareForData(InPrimaryData, InSecondaryData, SecondarySource);
 		}
 
-#define PCGEX_TEMP_VALUES TArrayView<T> View = MakeArrayView(Writer->Values.GetData() + StartIndex, Count);
-
-		virtual void PrepareRangeOperation(const int32 StartIndex, const int32 Count) const override
+		virtual void PrepareRangeOperation(const int32 StartIndex, const int32 Range) const override
 		{
-			PCGEX_TEMP_VALUES
+			TArrayView<T> View = MakeArrayView(Writer->Values.GetData() + StartIndex, Range);
 			PrepareValuesRangeOperation(View, StartIndex);
 		}
 
-		virtual void DoRangeOperation(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, const int32 StartIndex, const int32 Count, const TArrayView<double>& Alphas) const override
+		virtual void DoRangeOperation(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, const int32 StartIndex, const TArrayView<double>& Weights) const override
 		{
-			PCGEX_TEMP_VALUES
-			DoValuesRangeOperation(PrimaryReadIndex, SecondaryReadIndex, View, Alphas);
+			TArrayView<T> View = MakeArrayView(Writer->Values.GetData() + StartIndex, Weights.Num());
+			DoValuesRangeOperation(PrimaryReadIndex, SecondaryReadIndex, View, Weights);
 		}
 
-		virtual void FinalizeRangeOperation(const int32 StartIndex, const int32 Count, const TArrayView<double>& Alphas) const override
+		virtual void FinalizeRangeOperation(const int32 StartIndex, const TArrayView<int32>& Counts, const TArrayView<double>& TotalWeights) const override
 		{
-			PCGEX_TEMP_VALUES
-			FinalizeValuesRangeOperation(View, Alphas);
+			TArrayView<T> View = MakeArrayView(Writer->Values.GetData() + StartIndex, Counts.Num());
+			FinalizeValuesRangeOperation(View, Counts, TotalWeights);
 		}
-
-#undef PCGEX_TEMP_VALUES
 
 		virtual void PrepareValuesRangeOperation(TArrayView<T>& Values, const int32 StartIndex) const
 		{
 			for (int i = 0; i < Values.Num(); i++) { SinglePrepare(Values[i]); }
 		}
 
-		virtual void DoValuesRangeOperation(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, TArrayView<T>& Values, const TArrayView<double>& Alphas) const
+		virtual void DoValuesRangeOperation(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, TArrayView<T>& Values, const TArrayView<double>& Weights) const
 		{
 			if (!bInterpolationAllowed && GetIsInterpolation())
 			{
@@ -329,37 +340,40 @@ namespace PCGExDataBlending
 			{
 				const T A = (*Writer)[PrimaryReadIndex];
 				const T B = (*Reader)[SecondaryReadIndex];
-				for (int i = 0; i < Values.Num(); i++) { Values[i] = SingleOperation(A, B, Alphas[i]); }
+				for (int i = 0; i < Values.Num(); i++) { Values[i] = SingleOperation(A, B, Weights[i]); }
 			}
 		}
 
 
-		virtual void DoOperation(const int32 PrimaryReadIndex, const FPCGPoint& SrcPoint, const int32 WriteIndex, const double Alpha = 0) const override
+		virtual void DoOperation(const int32 PrimaryReadIndex, const FPCGPoint& SrcPoint, const int32 WriteIndex, const double Weight = 0) const override
 		{
 			const T A = (*Writer)[PrimaryReadIndex];
 			const T B = TypedAttribute ? TypedAttribute->GetValueFromItemKey(SrcPoint.MetadataEntry) : A;
-			(*Writer)[WriteIndex] = SingleOperation(A, B, Alpha);
+			(*Writer)[WriteIndex] = SingleOperation(A, B, Weight);
 		}
 
-		virtual void FinalizeValuesRangeOperation(TArrayView<T>& Values, const TArrayView<double>& Alphas) const
+		virtual void FinalizeValuesRangeOperation(TArrayView<T>& Values, const TArrayView<int32>& Counts, const TArrayView<double>& Weights) const
 		{
 			if (!bInterpolationAllowed) { return; }
-			for (int i = 0; i < Values.Num(); i++) { SingleFinalize(Values[i], Alphas[i]); }
+			for (int i = 0; i < Values.Num(); i++) { SingleFinalize(Values[i], Counts[i], Weights[i]); }
 		}
 
-		virtual void FullBlendToOne(const TArrayView<double>& Alphas) const override
+		virtual void BlendEachPrimaryToSecondary(const TArrayView<double>& Weights) const override
 		{
 			if (!bInterpolationAllowed) { return; }
-			for (int i = 0; i < Writer->Values.Num(); i++) { Writer->Values[i] = SingleOperation(Writer->Values[i], Reader->Values[i], Alphas[i]); }
+			for (int i = 0; i < Writer->Values.Num(); i++)
+			{
+				Writer->Values[i] = SingleOperation(Writer->Values[i], Reader->Values[i], Weights[i]);
+			}
 		}
 
 		virtual void SinglePrepare(T& A) const
 		{
 		};
 
-		virtual T SingleOperation(T A, T B, double Alpha) const = 0;
+		virtual T SingleOperation(T A, T B, double Weight) const = 0;
 
-		virtual void SingleFinalize(T& A, double Alpha) const
+		virtual void SingleFinalize(T& A, const int32 Count, const double Weight) const
 		{
 		};
 
@@ -375,6 +389,11 @@ namespace PCGExDataBlending
 		virtual T GetSecondaryValue(const int32 Index) const { return (*Reader)[Index]; }
 
 		virtual void Write() override { Writer->Write(); }
+
+		virtual void InitializeFromScratch() override
+		{
+			this->InitializedIndices = new TSet<int32>();
+		}
 
 	protected:
 		FPCGMetadataAttribute<T>* TypedAttribute = nullptr;

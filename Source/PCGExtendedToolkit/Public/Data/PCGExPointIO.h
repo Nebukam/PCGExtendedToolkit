@@ -22,6 +22,12 @@ namespace PCGExData
 		Forward UMETA(DisplayName = "Forward Input Object")
 	};
 
+	enum class ESource : uint8
+	{
+		In,
+		Out
+	};
+
 	/**
 	 * 
 	 */
@@ -78,6 +84,7 @@ namespace PCGExData
 
 		~FPointIO();
 
+		const UPCGPointData* GetData(const ESource InSource) const;
 		const UPCGPointData* GetIn() const;
 		UPCGPointData* GetOut() const;
 		const UPCGPointData* GetOutIn() const;
@@ -85,6 +92,7 @@ namespace PCGExData
 
 		int32 GetNum() const;
 		int32 GetOutNum() const;
+
 		FPCGAttributeAccessorKeysPoints* CreateInKeys();
 		FPCGAttributeAccessorKeysPoints* GetInKeys() const;
 		void PrintInKeysMap(TMap<PCGMetadataEntryKey, int32>& InMap);
@@ -92,6 +100,9 @@ namespace PCGExData
 		FPCGAttributeAccessorKeysPoints* CreateOutKeys();
 		FPCGAttributeAccessorKeysPoints* GetOutKeys() const;
 		void PrintOutKeysMap(TMap<PCGMetadataEntryKey, int32>& InMap, bool bInitializeOnSet);
+
+		FPCGAttributeAccessorKeysPoints* CreateKeys(ESource InSource);
+		FPCGAttributeAccessorKeysPoints* GetKeys(ESource InSource) const;
 
 		FName DefaultOutputLabel = PCGEx::OutputPointsLabel;
 
@@ -118,7 +129,7 @@ namespace PCGExData
 		UPCGPointData* NewEmptyOutput() const;
 		UPCGPointData* NewEmptyOutput(FPCGContext* Context, FName PinLabel = NAME_None) const;
 
-		void Cleanup();
+		void CleanupKeys();
 
 		FPointIO& Branch();
 

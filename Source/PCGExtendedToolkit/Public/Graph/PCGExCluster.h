@@ -246,9 +246,9 @@ namespace PCGExCluster
 		virtual void CaptureEdges(const FPCGContext* InContext, const PCGExData::FPointIO* EdgeIO);
 		virtual void PrepareForTesting(PCGExData::FPointIO* PointIO) override;
 
-		#if !PLATFORM_WINDOWS
+#if !PLATFORM_WINDOWS
 		virtual bool IsClusterFilter() const override { return true; }
-		#endif
+#endif
 	};
 
 	class PCGEXTENDEDTOOLKIT_API FNodeStateHandler : public PCGExDataState::TStateHandler

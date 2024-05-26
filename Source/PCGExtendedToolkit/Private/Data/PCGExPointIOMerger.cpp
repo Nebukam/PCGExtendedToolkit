@@ -18,10 +18,10 @@ FPCGExPointIOMerger::~FPCGExPointIOMerger()
 	Identities.Empty();
 	AllowsInterpolation.Empty();
 
-	if (bCleanupInputs) { for (PCGExData::FPointIO* PointIO : MergedPoints) { PointIO->Cleanup(); } }
+	if (bCleanupInputs) { for (PCGExData::FPointIO* PointIO : MergedPoints) { PointIO->CleanupKeys(); } }
 	MergedPoints.Empty();
 
-	MergedData->Cleanup();
+	MergedData->CleanupKeys();
 	MergedData = nullptr;
 }
 
