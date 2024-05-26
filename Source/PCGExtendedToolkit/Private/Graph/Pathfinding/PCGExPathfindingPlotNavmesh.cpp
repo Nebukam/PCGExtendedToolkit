@@ -232,7 +232,7 @@ bool FPCGExPlotNavmeshTask::ExecuteTask()
 	PathLocations.Empty();
 
 	PCGExDataBlending::FMetadataBlender* TempBlender =
-		Context->Blending->CreateBlender(PathPoints, PathPoints, false);
+		Context->Blending->CreateBlender(PathPoints, PathPoints, PCGExData::ESource::Out);
 
 	for (int i = 0; i < Milestones.Num() - 1; i++)
 	{

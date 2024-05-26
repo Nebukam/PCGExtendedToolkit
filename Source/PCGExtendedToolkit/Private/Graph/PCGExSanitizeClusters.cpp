@@ -71,7 +71,7 @@ bool FPCGExSanitizeClustersElement::ExecuteInternal(FPCGContext* InContext) cons
 			BuildIndexedEdges(*Context->CurrentEdges, Context->NodeIndicesMap, Context->IndexedEdges);
 			if (!Context->IndexedEdges.IsEmpty()) { Context->GraphBuilder->Graph->InsertEdges(Context->IndexedEdges); }
 
-			Context->CurrentEdges->Cleanup();
+			Context->CurrentEdges->CleanupKeys();
 		}
 
 		Context->GraphBuilder->Compile(Context);

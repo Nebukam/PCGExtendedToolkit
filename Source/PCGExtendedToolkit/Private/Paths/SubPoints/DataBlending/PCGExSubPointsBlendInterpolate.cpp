@@ -6,13 +6,13 @@
 
 EPCGExDataBlendingType UPCGExSubPointsBlendInterpolate::GetDefaultBlending()
 {
-	return EPCGExDataBlendingType::Average;
+	return EPCGExDataBlendingType::Lerp;
 }
 
 void UPCGExSubPointsBlendInterpolate::ApplyOverrides()
 {
 	Super::ApplyOverrides();
-	PCGEX_OVERRIDE_OP_PROPERTY(Alpha, FName(TEXT("Blending/Alpha")), EPCGMetadataTypes::Double);
+	PCGEX_OVERRIDE_OP_PROPERTY(Weight, FName(TEXT("Blending/Weight")), EPCGMetadataTypes::Double);
 }
 
 void UPCGExSubPointsBlendInterpolate::BlendSubPoints(
@@ -27,62 +27,52 @@ void UPCGExSubPointsBlendInterpolate::BlendSubPoints(
 	EPCGExPathBlendOver SafeBlendOver = BlendOver;
 	if (BlendOver == EPCGExPathBlendOver::Distance && !Metrics.IsValid()) { SafeBlendOver = EPCGExPathBlendOver::Index; }
 
-	TArray<double> Alphas;
+	TArray<double> Weights;
 	TArray<FVector> Locations;
 
-	Alphas.Reserve(NumPoints);
-	Locations.Reserve(NumPoints);
+	Weights.SetNumUninitialized(NumPoints);
+	Locations.SetNumUninitialized(NumPoints);
 
 	if (SafeBlendOver == EPCGExPathBlendOver::Distance)
 	{
 		PCGExMath::FPathMetricsSquared PathMetrics = PCGExMath::FPathMetricsSquared(StartPoint.Point->Transform.GetLocation());
-		for (const FPCGPoint& Point : SubPoints)
+		for (int i = 0; i < NumPoints; i++)
 		{
-			const FVector Location = Point.Transform.GetLocation();
-			Locations.Add(Location);
-			Alphas.Add(Metrics.GetTime(PathMetrics.Add(Location)));
+			const FVector Location = SubPoints[i].Transform.GetLocation();
+			Locations[i] = Location;
+			Weights[i] = Metrics.GetTime(PathMetrics.Add(Location));
 		}
 	}
 	else if (SafeBlendOver == EPCGExPathBlendOver::Index)
 	{
 		for (int i = 0; i < NumPoints; i++)
 		{
-			Locations.Add(SubPoints[i].Transform.GetLocation());
-			Alphas.Add(static_cast<double>(i + 1) / static_cast<double>(Metrics.Count));
+			Locations[i] = SubPoints[i].Transform.GetLocation();
+			Weights[i] = static_cast<double>(i) / NumPoints;
 		}
 	}
 	else if (SafeBlendOver == EPCGExPathBlendOver::Fixed)
 	{
-		for (const FPCGPoint& Point : SubPoints)
+		for (int i = 0; i < NumPoints; i++)
 		{
-			Locations.Add(Point.Transform.GetLocation());
-			Alphas.Add(Alpha);
+			Locations[i] = SubPoints[i].Transform.GetLocation();
+			Weights[i] = Weight;
 		}
 	}
 
-	/*
-		FString str = TEXT("-> ");
-		for (double Al : Alphas)
-		{
-			str += FString::Printf(TEXT("%f | "), Al);
-		}
-	
-		str += FString::Printf(TEXT(" // %f"), Metrics.Length);
-		str += FString::Printf(TEXT(" // %d"), Metrics.Count);
-		
-		UE_LOG(LogTemp, Warning, TEXT("%s"), *str);
-	*/
-
-	InBlender->BlendRangeOnce(StartPoint, EndPoint, StartPoint.Index, NumPoints, Alphas);
+	InBlender->BlendRangeFromTo(StartPoint, EndPoint, StartPoint.Index, Weights);
 
 	// Restore pre-blend position
 	for (int i = 0; i < NumPoints; i++) { SubPoints[i].Transform.SetLocation(Locations[i]); }
 }
 
-PCGExDataBlending::FMetadataBlender* UPCGExSubPointsBlendInterpolate::CreateBlender(PCGExData::FPointIO& InPrimaryIO, const PCGExData::FPointIO& InSecondaryIO, const bool bSecondaryIn)
+PCGExDataBlending::FMetadataBlender* UPCGExSubPointsBlendInterpolate::CreateBlender(
+	PCGExData::FPointIO& InPrimaryIO,
+	const PCGExData::FPointIO& InSecondaryIO,
+	const PCGExData::ESource SecondarySource)
 {
 	PCGExDataBlending::FMetadataBlender* NewBlender = new PCGExDataBlending::FMetadataBlender(&BlendingSettings);
-	NewBlender->PrepareForData(InPrimaryIO, InSecondaryIO, bSecondaryIn);
+	NewBlender->PrepareForData(InPrimaryIO, InSecondaryIO, SecondarySource);
 
 	return NewBlender;
 }

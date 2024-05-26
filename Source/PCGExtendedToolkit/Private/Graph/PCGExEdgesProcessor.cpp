@@ -104,7 +104,7 @@ bool FPCGExEdgesProcessorContext::AdvanceEdges(const bool bBuildCluster)
 	PCGEX_DELETE(CurrentCluster)
 	PCGEX_DELETE(ClusterProjection)
 
-	if (bBuildCluster && CurrentEdges) { CurrentEdges->Cleanup(); }
+	if (bBuildCluster && CurrentEdges) { CurrentEdges->CleanupKeys(); }
 
 	if (TaggedEdges && TaggedEdges->Entries.IsValidIndex(++CurrentEdgesIndex))
 	{

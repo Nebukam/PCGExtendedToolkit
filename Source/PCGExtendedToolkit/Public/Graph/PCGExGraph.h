@@ -11,6 +11,7 @@
 #include "PCGExPointsProcessor.h"
 #include "PCGExSettings.h"
 #include "Data/PCGExData.h"
+#include "Data/Blending/PCGExMetadataBlender.h"
 
 #include "PCGExGraph.generated.h"
 
@@ -155,6 +156,8 @@ namespace PCGExGraph
 
 	constexpr PCGExMT::AsyncState State_MergingPointCompounds = __COUNTER__;
 	constexpr PCGExMT::AsyncState State_MergingEdgeCompounds = __COUNTER__;
+	constexpr PCGExMT::AsyncState State_BlendingPointEdgeCrossings = __COUNTER__;
+	constexpr PCGExMT::AsyncState State_BlendingEdgeEdgeCrossings = __COUNTER__;
 
 	constexpr PCGExMT::AsyncState State_WritingMainState = __COUNTER__;
 	constexpr PCGExMT::AsyncState State_WritingStatesAttributes = __COUNTER__;
@@ -655,6 +658,8 @@ namespace PCGExGraph
 		void Add(const int32 EdgeIndex, const FPESplit& Split);
 		void Insert();
 
+		void BlendIntersection(const int32 Index, const PCGExDataBlending::FMetadataBlender* Blender) const;
+		
 		~FPointEdgeIntersections()
 		{
 			Edges.Empty();
@@ -702,24 +707,6 @@ namespace PCGExGraph
 
 			PointsData->GetOctree().FindElementsWithBoundsTest(Edge.Box, ProcessPointRef);
 
-			/*
-			for (const FNode& Node : InIntersections->Graph->Nodes)
-			{
-				if (!Node.bValid) { continue; }
-
-				FVector Position = Points[Node.PointIndex].Transform.GetLocation();
-
-				if (!Edge.Box.IsInside(Position)) { continue; }
-				if (IEdge.Start == Node.PointIndex || IEdge.End == Node.PointIndex) { continue; }
-				if (!Edge.FindSplit(Position, Split)) { continue; }
-
-				// Check overlap last as it's the most expensive op
-				if (InIntersections->CompoundGraph->PointsCompounds->HasIOIndexOverlap(Node.NodeIndex, IOIndices)) { continue; }
-
-				Split.NodeIndex = Node.NodeIndex;
-				InIntersections->Add(EdgeIndex, Split);
-			}
-			*/
 		}
 		else
 		{
@@ -745,22 +732,6 @@ namespace PCGExGraph
 
 			PointsData->GetOctree().FindElementsWithBoundsTest(Edge.Box, ProcessPointRef);
 
-			/*
-			for (const FNode& Node : InIntersections->Graph->Nodes)
-			{
-				if (!Node.bValid) { continue; }
-
-				FVector Position = Points[Node.PointIndex].Transform.GetLocation();
-
-				if (!Edge.Box.IsInside(Position)) { continue; }
-				if (IEdge.Start == Node.PointIndex || IEdge.End == Node.PointIndex) { continue; }
-				if (Edge.FindSplit(Position, Split))
-				{
-					Split.NodeIndex = Node.NodeIndex;
-					InIntersections->Add(EdgeIndex, Split);
-				}
-			}
-			*/
 		}
 	}
 
@@ -906,12 +877,15 @@ namespace PCGExGraph
 		void Add(const int32 EdgeIndex, const int32 OtherEdgeIndex, const FEESplit& Split);
 		void Insert();
 
+		void BlendIntersection(const int32 Index, const PCGExDataBlending::FMetadataBlender* Blender) const;
+		
 		~FEdgeEdgeIntersections()
 		{
 			CheckedPairs.Empty();
 			Edges.Empty();
 			PCGEX_DELETE_TARRAY(Crossings)
 		}
+		
 	};
 
 	static void FindOverlappingEdges(

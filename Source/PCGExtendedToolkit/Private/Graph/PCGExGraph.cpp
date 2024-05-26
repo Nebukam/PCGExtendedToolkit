@@ -559,6 +559,33 @@ namespace PCGExGraph
 		}
 	}
 
+	void FPointEdgeIntersections::BlendIntersection(const int32 Index, const PCGExDataBlending::FMetadataBlender* Blender) const
+	{
+		const FPointEdgeProxy& PointEdgeProxy = Edges[Index];
+
+		if (PointEdgeProxy.CollinearPoints.IsEmpty()) { return;; }
+
+		const FIndexedEdge& SplitEdge = Graph->Edges[PointEdgeProxy.EdgeIndex];
+
+		const PCGEx::FPointRef A = PointIO->GetOutPointRef(SplitEdge.Start);
+		const PCGEx::FPointRef B = PointIO->GetOutPointRef(SplitEdge.End);
+
+		for (const FPESplit Split : PointEdgeProxy.CollinearPoints)
+		{
+			const PCGEx::FPointRef Target = PointIO->GetOutPointRef(Graph->Nodes[Split.NodeIndex].PointIndex);
+			FPCGPoint& Pt = PointIO->GetMutablePoint(Target.Index);
+			
+			FVector PreBlendLocation = Pt.Transform.GetLocation();
+
+			Blender->PrepareForBlending(Target);
+			Blender->Blend(A, B, Target, 0.5);
+			Blender->CompleteBlending(Target, 2, 1);
+			
+			Pt.Transform.SetLocation(PreBlendLocation);
+			
+		}
+	}
+
 	bool FEdgeEdgeProxy::FindSplit(const FEdgeEdgeProxy& OtherEdge, FEESplit& OutSplit) const
 	{
 		if (!Box.Intersect(OtherEdge.Box) || Start == OtherEdge.Start || Start == OtherEdge.End ||
@@ -643,10 +670,9 @@ namespace PCGExGraph
 
 		TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
 		MutablePoints.SetNum(Graph->Nodes.Num());
-		for (int i = 0; i < NewNodes.Num(); i++)
-		{
-			MutablePoints[NewNodes[i].NodeIndex].Transform.SetLocation(Crossings[i]->Split.Center);
-		}
+
+		// Now handled by intersection blending
+		//for (int i = 0; i < NewNodes.Num(); i++) { MutablePoints[NewNodes[i].NodeIndex].Transform.SetLocation(Crossings[i]->Split.Center); }
 
 		for (FEdgeEdgeProxy& EdgeProxy : Edges)
 		{
@@ -682,6 +708,28 @@ namespace PCGExGraph
 
 			Graph->InsertEdge(NodeIndex, LastIndex, NewEdge); // Insert last edge
 		}
+	}
+
+	void FEdgeEdgeIntersections::BlendIntersection(const int32 Index, const PCGExDataBlending::FMetadataBlender* Blender) const
+	{
+		const FEECrossing* Crossing = Crossings[Index];
+
+		const PCGEx::FPointRef Target = PointIO->GetOutPointRef(Graph->Nodes[Crossing->NodeIndex].PointIndex);
+		Blender->PrepareForBlending(Target);
+
+		const PCGEx::FPointRef A1 = PointIO->GetOutPointRef(Graph->Nodes[Graph->Edges[Crossing->EdgeA].Start].PointIndex);
+		const PCGEx::FPointRef A2 = PointIO->GetOutPointRef(Graph->Nodes[Graph->Edges[Crossing->EdgeA].End].PointIndex);
+		const PCGEx::FPointRef B1 = PointIO->GetOutPointRef(Graph->Nodes[Graph->Edges[Crossing->EdgeB].Start].PointIndex);
+		const PCGEx::FPointRef B2 = PointIO->GetOutPointRef(Graph->Nodes[Graph->Edges[Crossing->EdgeB].End].PointIndex);
+
+		Blender->Blend(Target, A1, Target, Crossing->Split.TimeA);
+		Blender->Blend(Target, A2, Target, 1 - Crossing->Split.TimeA);
+		Blender->Blend(Target, B1, Target, Crossing->Split.TimeB);
+		Blender->Blend(Target, B2, Target, 1 - Crossing->Split.TimeB);
+
+		Blender->CompleteBlending(Target, 4, 2);
+
+		PointIO->GetMutablePoint(Target.Index).Transform.SetLocation(Crossing->Split.Center);
 	}
 }
 
@@ -727,7 +775,7 @@ namespace PCGExGraphTask
 			return false;
 		}
 
-		PointIO->Cleanup(); //Ensure fresh keys later on
+		PointIO->CleanupKeys(); //Ensure fresh keys later on
 
 		TArray<PCGExGraph::FNode>& Nodes = Builder->Graph->Nodes;
 		TArray<int32> ValidNodes;

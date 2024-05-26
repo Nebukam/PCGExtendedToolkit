@@ -347,9 +347,15 @@ bool FPCGExSamplePointTask::ExecuteTask()
 		}
 	}
 
-	double Divider = bSingleSample ? 1 : TargetsInfos.Num();
+	double Count = bSingleSample ? 1 : TargetsInfos.Num();
 
-	for (PCGExDataBlending::FDataBlendingOperationBase* Op : Context->BlendOps) { if (Op->GetRequiresFinalization()) { Op->FinalizeOperation(TaskIndex, Divider); } }
+	for (PCGExDataBlending::FDataBlendingOperationBase* Op : Context->BlendOps)
+	{
+		if (Op->GetRequiresFinalization())
+		{
+			Op->FinalizeOperation(TaskIndex, Count, TotalWeight);
+		}
+	}
 
 	if (TotalWeight != 0) // Dodge NaN
 	{
@@ -371,7 +377,7 @@ bool FPCGExSamplePointTask::ExecuteTask()
 	PCGEX_OUTPUT_VALUE(Distance, TaskIndex, WeightedDistance)
 	PCGEX_OUTPUT_VALUE(SignedDistance, TaskIndex, FMath::Sign(WeightedSignAxis.Dot(LookAt)) * WeightedDistance)
 	PCGEX_OUTPUT_VALUE(Angle, TaskIndex, PCGExSampling::GetAngle(Context->AngleRange, WeightedAngleAxis, LookAt))
-	PCGEX_OUTPUT_VALUE(NumSamples, TaskIndex, Divider)
+	PCGEX_OUTPUT_VALUE(NumSamples, TaskIndex, Count)
 
 	return true;
 }

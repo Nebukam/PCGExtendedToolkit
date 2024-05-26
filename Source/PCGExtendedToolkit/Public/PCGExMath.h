@@ -419,10 +419,22 @@ namespace PCGExMath
 
 #pragma endregion
 
-#pragma region Add
+#pragma region WeightedAdd
 
 	template <typename T, typename CompilerSafety = void>
 	static T WeightedAdd(const T& A, const T& B, const double Weight = 1) { return A + B * Weight; } // Default, unhandled behavior.
+
+	template <typename CompilerSafety = void>
+	static FRotator WeightedAdd(const FRotator& A, const FRotator& B, const double Weight)
+	{
+		return FRotator(
+			A.Pitch + B.Pitch * Weight,
+			A.Yaw + B.Yaw * Weight,
+			A.Roll + B.Roll * Weight);
+	}
+
+	template <typename CompilerSafety = void>
+	static FQuat WeightedAdd(const FQuat& A, const FQuat& B, const double Weight) { return WeightedAdd(A.Rotator(), B.Rotator(), Weight).Quaternion(); }
 
 	template <typename CompilerSafety = void>
 	static FTransform WeightedAdd(const FTransform& A, const FTransform& B, const double Weight)
@@ -439,7 +451,6 @@ namespace PCGExMath
 #undef PCGEX_UNSUPPORTED_WEIGHTED_ADD
 
 #pragma endregion
-
 
 #pragma region Sub
 
@@ -703,7 +714,6 @@ namespace PCGExMath
 
 
 #pragma endregion
-
 
 #pragma region Copy
 

@@ -292,7 +292,7 @@ bool FPCGExDrawAttributesElement::ExecuteInternal(FPCGContext* InContext) const
 			}
 		}
 
-		Context->CurrentIO->Cleanup();
+		Context->CurrentIO->CleanupKeys();
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 

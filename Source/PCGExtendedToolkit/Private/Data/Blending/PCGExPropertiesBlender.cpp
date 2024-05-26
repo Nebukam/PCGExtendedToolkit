@@ -23,7 +23,7 @@ namespace PCGExDataBlending
 #define PCGEX_BLEND_FUNCASSIGN(_TYPE, _NAME, _FUNC)\
 bReset##_NAME = false;\
 _NAME##Blending = BlendingOverrides.bOverride##_NAME ? BlendingOverrides._NAME##Blending : DefaultBlending;\
-if(_NAME##Blending == EPCGExDataBlendingType::Average || _NAME##Blending == EPCGExDataBlendingType::Sum || _NAME##Blending == EPCGExDataBlendingType::WeightedSum){bReset##_NAME=true; bRequiresPrepare = true;}
+if(_NAME##Blending == EPCGExDataBlendingType::Average || _NAME##Blending == EPCGExDataBlendingType::Sum || _NAME##Blending == EPCGExDataBlendingType::WeightedSum|| _NAME##Blending == EPCGExDataBlendingType::Weight){bReset##_NAME=true; bRequiresPrepare = true;}
 
 		PCGEX_FOREACH_BLEND_POINTPROPERTY(PCGEX_BLEND_FUNCASSIGN)
 #undef PCGEX_BLEND_FUNCASSIGN
@@ -42,19 +42,20 @@ if(_NAME##Blending == EPCGExDataBlendingType::Average || _NAME##Blending == EPCG
 		Target.Seed = bResetSeed ? 0 : Default.Seed;
 	}
 
-	void FPropertiesBlender::Blend(const FPCGPoint& A, const FPCGPoint& B, FPCGPoint& Target, double Alpha) const
+	void FPropertiesBlender::Blend(const FPCGPoint& A, const FPCGPoint& B, FPCGPoint& Target, double Weight) const
 	{
 #define PCGEX_BLEND_PROPDECL(_TYPE, _NAME, _FUNC, _ACCESSOR)\
 _TYPE Target##_NAME = Target._ACCESSOR;\
 switch (_NAME##Blending) {\
 case EPCGExDataBlendingType::None:			Target##_NAME = PCGExMath::NoBlend(A._ACCESSOR, B._ACCESSOR); break;\
 case EPCGExDataBlendingType::Average:		Target##_NAME = PCGExMath::Add(A._ACCESSOR, B._ACCESSOR);break;\
-case EPCGExDataBlendingType::Weight:		Target##_NAME = PCGExMath::Lerp(A._ACCESSOR, B._ACCESSOR, Alpha);break;\
 case EPCGExDataBlendingType::Min:			Target##_NAME = PCGExMath::Min(A._ACCESSOR, B._ACCESSOR);break;\
 case EPCGExDataBlendingType::Max:			Target##_NAME = PCGExMath::Max(A._ACCESSOR, B._ACCESSOR);break;\
 case EPCGExDataBlendingType::Copy:			Target##_NAME = PCGExMath::Copy(A._ACCESSOR, B._ACCESSOR);break;\
 case EPCGExDataBlendingType::Sum:			Target##_NAME = PCGExMath::Add(A._ACCESSOR, B._ACCESSOR);break;\
-case EPCGExDataBlendingType::WeightedSum:	Target##_NAME = PCGExMath::WeightedAdd(A._ACCESSOR, B._ACCESSOR, Alpha);break;}
+case EPCGExDataBlendingType::Weight:		Target##_NAME = PCGExMath::WeightedAdd(A._ACCESSOR, B._ACCESSOR, Weight);break;\
+case EPCGExDataBlendingType::WeightedSum:	Target##_NAME = PCGExMath::WeightedAdd(A._ACCESSOR, B._ACCESSOR, Weight);break;\
+case EPCGExDataBlendingType::Lerp:	Target##_NAME = PCGExMath::Lerp(A._ACCESSOR, B._ACCESSOR, Weight);break;}
 
 		PCGEX_FOREACH_BLENDINIT_POINTPROPERTY(PCGEX_BLEND_PROPDECL)
 #undef PCGEX_BLEND_PROPDECL
@@ -70,30 +71,47 @@ case EPCGExDataBlendingType::WeightedSum:	Target##_NAME = PCGExMath::WeightedAdd
 		Target.Seed = TargetSeed;
 	}
 
-	void FPropertiesBlender::CompleteBlending(FPCGPoint& Target, const double Alpha) const
+	void FPropertiesBlender::CompleteBlending(FPCGPoint& Target, const int32 Count, const double TotalWeight) const
 	{
-		if (DensityBlending == EPCGExDataBlendingType::Average) { Target.Density = PCGExMath::Div(Target.Density, Alpha); }
-		if (BoundsMinBlending == EPCGExDataBlendingType::Average) { Target.BoundsMin = PCGExMath::Div(Target.BoundsMin, Alpha); }
-		if (BoundsMaxBlending == EPCGExDataBlendingType::Average) { Target.BoundsMax = PCGExMath::Div(Target.BoundsMax, Alpha); }
-		if (ColorBlending == EPCGExDataBlendingType::Average) { Target.Color = PCGExMath::Div(Target.Color, Alpha); }
-		if (PositionBlending == EPCGExDataBlendingType::Average) { Target.Transform.SetLocation(PCGExMath::Div(Target.Transform.GetLocation(), Alpha)); }
-		if (RotationBlending == EPCGExDataBlendingType::Average) { Target.Transform.SetRotation(PCGExMath::Div(Target.Transform.GetRotation(), Alpha)); }
-		if (ScaleBlending == EPCGExDataBlendingType::Average) { Target.Transform.SetScale3D(PCGExMath::Div(Target.Transform.GetScale3D(), Alpha)); }
-		if (SteepnessBlending == EPCGExDataBlendingType::Average) { Target.Steepness = PCGExMath::Div(Target.Steepness, Alpha); }
-		if (SeedBlending == EPCGExDataBlendingType::Average) { Target.Seed = PCGExMath::Div(Target.Seed, Alpha); }
+		if (DensityBlending == EPCGExDataBlendingType::Average) { Target.Density = PCGExMath::Div(Target.Density, Count); }
+		else if (DensityBlending == EPCGExDataBlendingType::Weight) { Target.Density = PCGExMath::Div(Target.Density, TotalWeight); }
+
+		if (BoundsMinBlending == EPCGExDataBlendingType::Average) { Target.BoundsMin = PCGExMath::Div(Target.BoundsMin, Count); }
+		else if (BoundsMinBlending == EPCGExDataBlendingType::Weight) { Target.BoundsMin = PCGExMath::Div(Target.BoundsMin, TotalWeight); }
+
+		if (BoundsMaxBlending == EPCGExDataBlendingType::Average) { Target.BoundsMax = PCGExMath::Div(Target.BoundsMax, Count); }
+		else if (BoundsMaxBlending == EPCGExDataBlendingType::Weight) { Target.BoundsMax = PCGExMath::Div(Target.BoundsMax, TotalWeight); }
+
+		if (ColorBlending == EPCGExDataBlendingType::Average) { Target.Color = PCGExMath::Div(Target.Color, Count); }
+		else if (ColorBlending == EPCGExDataBlendingType::Weight) { Target.Color = PCGExMath::Div(Target.Color, TotalWeight); }
+
+		if (PositionBlending == EPCGExDataBlendingType::Average) { Target.Transform.SetLocation(PCGExMath::Div(Target.Transform.GetLocation(), Count)); }
+		else if (PositionBlending == EPCGExDataBlendingType::Weight) { Target.Transform.SetLocation(PCGExMath::Div(Target.Transform.GetLocation(), TotalWeight)); }
+
+		if (RotationBlending == EPCGExDataBlendingType::Average) { Target.Transform.SetRotation(PCGExMath::Div(Target.Transform.GetRotation(), Count)); }
+		else if (RotationBlending == EPCGExDataBlendingType::Weight) { Target.Transform.SetRotation(PCGExMath::Div(Target.Transform.GetRotation(), TotalWeight)); }
+
+		if (ScaleBlending == EPCGExDataBlendingType::Average) { Target.Transform.SetScale3D(PCGExMath::Div(Target.Transform.GetScale3D(), Count)); }
+		else if (ScaleBlending == EPCGExDataBlendingType::Weight) { Target.Transform.SetScale3D(PCGExMath::Div(Target.Transform.GetScale3D(), TotalWeight)); }
+
+		if (SteepnessBlending == EPCGExDataBlendingType::Average) { Target.Steepness = PCGExMath::Div(Target.Steepness, Count); }
+		else if (SteepnessBlending == EPCGExDataBlendingType::Weight) { Target.Steepness = PCGExMath::Div(Target.Steepness, TotalWeight); }
+
+		if (SeedBlending == EPCGExDataBlendingType::Average) { Target.Seed = PCGExMath::Div(Target.Seed, Count); }
+		else if (SeedBlending == EPCGExDataBlendingType::Weight) { Target.Seed = PCGExMath::Div(Target.Seed, TotalWeight); }
 	}
 
-	void FPropertiesBlender::BlendOnce(const FPCGPoint& A, const FPCGPoint& B, FPCGPoint& Target, const double Alpha) const
+	void FPropertiesBlender::BlendOnce(const FPCGPoint& A, const FPCGPoint& B, FPCGPoint& Target, const double Weight) const
 	{
 		if (bRequiresPrepare)
 		{
 			PrepareBlending(Target, A);
-			Blend(A, B, Target, Alpha);
-			CompleteBlending(Target, 2);
+			Blend(A, B, Target, Weight);
+			CompleteBlending(Target, 2, 1);
 		}
 		else
 		{
-			Blend(A, B, Target, Alpha);
+			Blend(A, B, Target, Weight);
 		}
 	}
 
@@ -102,31 +120,31 @@ case EPCGExDataBlendingType::WeightedSum:	Target##_NAME = PCGExMath::WeightedAdd
 		for (FPCGPoint& Target : Targets) { PrepareBlending(Target, Default); }
 	}
 
-	void FPropertiesBlender::BlendRange(const FPCGPoint& From, const FPCGPoint& To, const TArrayView<FPCGPoint>& Targets, const TArrayView<double>& Alphas) const
+	void FPropertiesBlender::BlendRange(const FPCGPoint& From, const FPCGPoint& To, const TArrayView<FPCGPoint>& Targets, const TArrayView<double>& Weights) const
 	{
-		for (int i = 0; i < Targets.Num(); i++) { Blend(From, To, Targets[i], Alphas[i]); }
+		for (int i = 0; i < Targets.Num(); i++) { Blend(From, To, Targets[i], Weights[i]); }
 	}
 
-	void FPropertiesBlender::CompleteRangeBlending(const TArrayView<FPCGPoint>& Targets, const double Alpha) const
+	void FPropertiesBlender::CompleteRangeBlending(const TArrayView<FPCGPoint>& Targets, const TArrayView<int32>& Counts, const TArrayView<double>& TotalWeights) const
 	{
-		for (FPCGPoint& Target : Targets) { CompleteBlending(Target, Alpha); }
+		for (int i = 0; i < Targets.Num(); i++) { CompleteBlending(Targets[i], Counts[i], TotalWeights[i]); }
 	}
 
-	void FPropertiesBlender::BlendRangeOnce(const FPCGPoint& A, const FPCGPoint& B, const TArrayView<FPCGPoint>& Targets, const TArrayView<double>& Alphas) const
+	void FPropertiesBlender::BlendRangeFromTo(const FPCGPoint& From, const FPCGPoint& To, const TArrayView<FPCGPoint>& Targets, const TArrayView<double>& Weights) const
 	{
 		if (bRequiresPrepare)
 		{
 			for (int i = 0; i < Targets.Num(); i++)
 			{
 				FPCGPoint& Target = Targets[i];
-				PrepareBlending(Target, A);
-				Blend(A, B, Target, Alphas[i]);
-				CompleteBlending(Target, 2);
+				PrepareBlending(Target, From);
+				Blend(From, To, Target, Weights[i]);
+				CompleteBlending(Target, 2, 1);
 			}
 		}
 		else
 		{
-			BlendRange(A, B, Targets, Alphas);
+			BlendRange(From, To, Targets, Weights);
 		}
 	}
 }

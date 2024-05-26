@@ -116,7 +116,7 @@ namespace PCGExDataBlending
 						if (FDataBlendingOperationBase* SrcOp = SrcMap->BlendOps[i]) { SrcOp->PrepareForData(Writer, *Sources[i]); }
 					}
 
-					SrcMap->TargetBlendOp->PrepareForData(Writer, *TargetData, false);
+					SrcMap->TargetBlendOp->PrepareForData(Writer, *TargetData, PCGExData::ESource::Out);
 				});
 		}
 	}
@@ -145,6 +145,9 @@ namespace PCGExDataBlending
 		{
 			SrcMap->TargetBlendOp->PrepareOperation(CompoundIndex);
 
+			int32 ValidCompounds = 0;
+			double TotalWeight = 0;
+
 			for (int k = 0; k < NumCompounded; k++)
 			{
 				uint32 IOIndex;
@@ -157,12 +160,19 @@ namespace PCGExDataBlending
 				const FDataBlendingOperationBase* Operation = SrcMap->BlendOps[*IOIdx];
 				if (!Operation) { continue; }
 
+				const double Weight = Compound->Weights[k];
+							
 				Operation->DoOperation(
 					CompoundIndex, Sources[*IOIdx]->GetInPoint(PtIndex),
-					CompoundIndex, Compound->Weights[k]);
+					CompoundIndex, Weight);
+
+				ValidCompounds++;
+				TotalWeight += Weight;
 			}
 
-			SrcMap->TargetBlendOp->FinalizeOperation(CompoundIndex, NumCompounded);
+			if (ValidCompounds == 0) { continue; } // No valid attribute to merge on any compounded source
+
+			SrcMap->TargetBlendOp->FinalizeOperation(CompoundIndex, ValidCompounds, TotalWeight);
 		}
 	}
 

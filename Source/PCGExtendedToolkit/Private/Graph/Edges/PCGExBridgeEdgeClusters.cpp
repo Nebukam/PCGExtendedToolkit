@@ -136,7 +136,7 @@ bool FPCGExBridgeEdgeClustersElement::ExecuteInternal(
 
 			if (!Cluster->bValid)
 			{
-				Context->TaggedEdges->Entries[i]->Cleanup();
+				Context->TaggedEdges->Entries[i]->CleanupKeys();
 				continue;
 			}
 
