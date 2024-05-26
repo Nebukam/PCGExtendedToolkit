@@ -161,7 +161,7 @@ namespace PCGExDataBlending
 				if (!Operation) { continue; }
 
 				const double Weight = Compound->Weights[k];
-							
+
 				Operation->DoOperation(
 					CompoundIndex, Sources[*IOIdx]->GetInPoint(PtIndex),
 					CompoundIndex, Weight);

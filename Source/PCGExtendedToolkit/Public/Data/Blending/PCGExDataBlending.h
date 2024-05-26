@@ -165,7 +165,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBlendingSettings
 
 	bool CanBlend(const FName AttributeName) const
 	{
-		switch (BlendingFilter) {
+		switch (BlendingFilter)
+		{
 		default: ;
 		case EPCGExBlendingFilter::All:
 			return true;

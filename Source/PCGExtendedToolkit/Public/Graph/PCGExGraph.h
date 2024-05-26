@@ -659,7 +659,7 @@ namespace PCGExGraph
 		void Insert();
 
 		void BlendIntersection(const int32 Index, const PCGExDataBlending::FMetadataBlender* Blender) const;
-		
+
 		~FPointEdgeIntersections()
 		{
 			Edges.Empty();
@@ -706,7 +706,6 @@ namespace PCGExGraph
 			};
 
 			PointsData->GetOctree().FindElementsWithBoundsTest(Edge.Box, ProcessPointRef);
-
 		}
 		else
 		{
@@ -731,7 +730,6 @@ namespace PCGExGraph
 			};
 
 			PointsData->GetOctree().FindElementsWithBoundsTest(Edge.Box, ProcessPointRef);
-
 		}
 	}
 
@@ -878,14 +876,13 @@ namespace PCGExGraph
 		void Insert();
 
 		void BlendIntersection(const int32 Index, const PCGExDataBlending::FMetadataBlender* Blender) const;
-		
+
 		~FEdgeEdgeIntersections()
 		{
 			CheckedPairs.Empty();
 			Edges.Empty();
 			PCGEX_DELETE_TARRAY(Crossings)
 		}
-		
 	};
 
 	static void FindOverlappingEdges(

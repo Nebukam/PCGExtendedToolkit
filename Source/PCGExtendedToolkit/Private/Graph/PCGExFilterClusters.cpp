@@ -150,7 +150,7 @@ bool FPCGExFilterClustersElement::ExecuteInternal(
 					TSet<int32>** BoundEdgesPtr = Context->VtxEdgeMap.Find(VtxIO->IOIndex);
 					bool bKeep = false;
 
-					if(BoundEdgesPtr)
+					if (BoundEdgesPtr)
 					{
 						TSet<int32>& BoundEdges = **BoundEdgesPtr;
 						for (const int32 E : BoundEdges)

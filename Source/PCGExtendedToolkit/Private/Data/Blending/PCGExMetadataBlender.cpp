@@ -112,13 +112,12 @@ namespace PCGExDataBlending
 		const int32 StartIndex,
 		const TArrayView<double>& Weights) const
 	{
-		
 		TArray<int32> Counts;
 		Counts.SetNumUninitialized(Weights.Num());
 		for (int32& C : Counts) { C = 2; }
 
 		const int32 Range = Weights.Num();
-		
+
 		for (const FDataBlendingOperationBase* Op : AttributesToBePrepared)
 		{
 			Op->PrepareRangeOperation(StartIndex, Range);

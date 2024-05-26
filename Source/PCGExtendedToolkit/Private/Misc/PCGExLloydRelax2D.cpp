@@ -60,7 +60,7 @@ bool FPCGExLloydRelax2DElement::ExecuteInternal(FPCGContext* InContext) const
 			}
 
 			Context->CurrentIO->CreateInKeys();
-			
+
 			if (Settings->InfluenceSettings.bUseLocalInfluence) { Context->InfluenceGetter->Grab(*Context->CurrentIO); }
 
 			PCGExGeo::PointsToPositions(Context->CurrentIO->GetIn()->GetPoints(), Context->ActivePositions);

@@ -59,7 +59,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExCustomGraphProcessorContext : public FPCGExP
 	void SetCachedIndex(const int32 PointIndex, const int32 Index) const;
 	int32 GetCachedIndex(const int32 PointIndex) const;
 	void WriteSocketInfos() const;
-	
+
 	TArray<PCGExGraph::FSocketInfos> SocketInfos;
 
 	bool PrepareCurrentGraphForPoints(const PCGExData::FPointIO& PointIO, const bool ReadOnly = true);

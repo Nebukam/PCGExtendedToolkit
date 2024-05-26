@@ -47,7 +47,7 @@ bool FPCGExOrientElement::ExecuteInternal(FPCGContext* InContext) const
 		if (!Boot(Context)) { return true; }
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
-	
+
 	Context->MainPoints->ForEach(
 		[&](PCGExData::FPointIO& PointIO, int32)
 		{

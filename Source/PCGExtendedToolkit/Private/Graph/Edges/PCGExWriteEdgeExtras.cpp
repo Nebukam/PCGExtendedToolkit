@@ -288,7 +288,7 @@ Context->SolidificationRad##_AXIS->Grab(*Context->CurrentEdges); }
 			PCGEX_OUTPUT_VALUE(EdgeLength, Edge.PointIndex, EdgeLength);
 
 			FPCGPoint& MutableTarget = Context->CurrentEdges->GetMutablePoint(Edge.PointIndex);
-			
+
 			if (Context->bSolidify)
 			{
 				FRotator EdgeRot;

@@ -190,7 +190,7 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 
 		if (!Context->Process(PointEdge, Context->GraphBuilder->Graph->Edges.Num())) { return false; }
 
-		Context->PointEdgeIntersections->Insert(); // TODO : Async?
+		Context->PointEdgeIntersections->Insert();  // TODO : Async?
 		Context->ConsolidatedPoints->CleanupKeys(); // Required for later blending as point count has changed
 
 		Context->SetState(PCGExGraph::State_BlendingPointEdgeCrossings);
@@ -212,7 +212,7 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 
 		if (!Context->Process(Initialize, BlendPointEdgeMetadata, Context->PointEdgeIntersections->Edges.Num())) { return false; }
 
-		if(Context->MetadataBlender){ Context->MetadataBlender->Write(); }
+		if (Context->MetadataBlender) { Context->MetadataBlender->Write(); }
 
 		PCGEX_DELETE(Context->PointEdgeIntersections)
 		PCGEX_DELETE(Context->MetadataBlender)
@@ -239,7 +239,7 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 
 		if (!Context->Process(EdgeEdge, Context->GraphBuilder->Graph->Edges.Num())) { return false; }
 
-		Context->EdgeEdgeIntersections->Insert(); // TODO : Async?
+		Context->EdgeEdgeIntersections->Insert();   // TODO : Async?
 		Context->ConsolidatedPoints->CleanupKeys(); // Required for later blending as point count has changed
 
 		Context->SetState(PCGExGraph::State_BlendingEdgeEdgeCrossings);
@@ -259,7 +259,7 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 
 		if (!Context->Process(Initialize, BlendCrossingMetadata, Context->EdgeEdgeIntersections->Crossings.Num())) { return false; }
 
-		if(Context->MetadataBlender){ Context->MetadataBlender->Write(); }
+		if (Context->MetadataBlender) { Context->MetadataBlender->Write(); }
 
 		PCGEX_DELETE(Context->EdgeEdgeIntersections)
 		PCGEX_DELETE(Context->MetadataBlender)

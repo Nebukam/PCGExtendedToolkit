@@ -57,7 +57,7 @@ void UPCGExMovingAverageSmoothing::InternalDoSmooth(
 			{
 				const int32 Index = i + j;
 				if (!InPoints.IsValidIndex(Index)) { continue; }
-				
+
 				const double Weight = 1 - (static_cast<double>(FMath::Abs(j)) / SafeWindowSize);
 				MetadataBlender->Blend(Target, InPointIO.GetInPointRef(Index), Target, Weight);
 				Count++;

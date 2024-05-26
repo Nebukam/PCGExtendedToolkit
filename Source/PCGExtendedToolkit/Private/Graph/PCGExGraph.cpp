@@ -563,7 +563,7 @@ namespace PCGExGraph
 	{
 		const FPointEdgeProxy& PointEdgeProxy = Edges[Index];
 
-		if (PointEdgeProxy.CollinearPoints.IsEmpty()) { return;; }
+		if (PointEdgeProxy.CollinearPoints.IsEmpty()) { return; }
 
 		const FIndexedEdge& SplitEdge = Graph->Edges[PointEdgeProxy.EdgeIndex];
 
@@ -574,15 +574,14 @@ namespace PCGExGraph
 		{
 			const PCGEx::FPointRef Target = PointIO->GetOutPointRef(Graph->Nodes[Split.NodeIndex].PointIndex);
 			FPCGPoint& Pt = PointIO->GetMutablePoint(Target.Index);
-			
+
 			FVector PreBlendLocation = Pt.Transform.GetLocation();
 
 			Blender->PrepareForBlending(Target);
 			Blender->Blend(A, B, Target, 0.5);
 			Blender->CompleteBlending(Target, 2, 1);
-			
+
 			Pt.Transform.SetLocation(PreBlendLocation);
-			
 		}
 	}
 

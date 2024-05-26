@@ -76,9 +76,9 @@ bool FPCGExSubdivideElement::ExecuteInternal(FPCGContext* InContext) const
 	{
 		auto Initialize = [&](const PCGExData::FPointIO& PointIO)
 		{
-			Context->Milestones.Empty();			
+			Context->Milestones.Empty();
 			Context->MilestonesMetrics.Empty();
-						
+
 			if (Context->bFlagSubPoints)
 			{
 				Context->FlagAttribute = PointIO.GetOut()->Metadata->FindOrCreateAttribute(Context->FlagName, false, false);
@@ -95,7 +95,7 @@ bool FPCGExSubdivideElement::ExecuteInternal(FPCGContext* InContext) const
 
 			Context->Milestones.Add(LastIndex);
 			PCGExMath::FPathMetricsSquared& Metrics = Context->MilestonesMetrics.Emplace_GetRef();
-			
+
 			if (!EndPtr) { return; }
 
 			const FVector StartPos = StartPoint.Transform.GetLocation();
@@ -123,7 +123,6 @@ bool FPCGExSubdivideElement::ExecuteInternal(FPCGContext* InContext) const
 			}
 
 			Metrics.Add(EndPos);
-
 		};
 
 		if (!Context->ProcessCurrentPoints(Initialize, ProcessPoint, true)) { return false; }
@@ -148,7 +147,7 @@ bool FPCGExSubdivideElement::ExecuteInternal(FPCGContext* InContext) const
 			const int32 Range = EndIndex - StartIndex;
 
 			if (Range <= 0) { return; } // No sub points
-						
+
 			TArray<FPCGPoint>& MutablePoints = PointIO.GetOut()->GetMutablePoints();
 			TArrayView<FPCGPoint> View = MakeArrayView(MutablePoints.GetData() + StartIndex, Range);
 

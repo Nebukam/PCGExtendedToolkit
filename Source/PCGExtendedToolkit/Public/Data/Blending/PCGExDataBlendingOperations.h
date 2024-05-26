@@ -66,7 +66,7 @@ namespace PCGExDataBlending
 		virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::WeightedAdd(A, B, Weight); } // PCGExMath::Lerp(A, B, Alpha); }
 		virtual void SingleFinalize(T& A, const int32 Count, const double Weight) const override { A = PCGExMath::Div(A, Weight); }
 	};
-	
+
 	template <typename T>
 	class PCGEXTENDEDTOOLKIT_API FDataBlendingWeightedSum final : public FDataBlendingOperation<T>
 	{
@@ -78,14 +78,14 @@ namespace PCGExDataBlending
 		virtual void SinglePrepare(T& A) const override { A = this->Writer->GetDefaultValue(); }
 		virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::WeightedAdd(A, B, Weight); }
 	};
-	
+
 	template <typename T>
 	class PCGEXTENDEDTOOLKIT_API FDataBlendingLerp final : public FDataBlendingOperation<T>
 	{
 	public:
 		virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::Lerp(A, B, Weight); }
 	};
-	
+
 	template <typename T>
 	class PCGEXTENDEDTOOLKIT_API FDataBlendingNone final : public FDataBlendingOperation<T>
 	{

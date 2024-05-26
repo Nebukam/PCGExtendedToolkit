@@ -137,7 +137,7 @@ namespace PCGExCluster
 		EdgeList.Sort(
 			[](const PCGExGraph::FIndexedEdge& A, const PCGExGraph::FIndexedEdge& B)
 			{
-				return A.Start == B.Start ? A.End<B.End : A.Start<B.Start;
+				return A.Start == B.Start ? A.End < B.End : A.Start < B.Start;
 			});
 
 		for (int i = 0; i < NumEdges; i++)

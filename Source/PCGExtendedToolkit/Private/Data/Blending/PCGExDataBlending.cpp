@@ -77,7 +77,7 @@ namespace PCGExDataBlendingTask
 		{
 			PCGExData::FIdxCompound* Idx = CompoundList->Compounds[i];
 			const PCGEx::FPointRef Target = TargetIO->GetOutPointRef(i);
-			
+
 			Idx->ComputeWeights(SourcePoints, *Target.Point, DistSettings);
 
 			MetadataBlender->PrepareForBlending(Target);

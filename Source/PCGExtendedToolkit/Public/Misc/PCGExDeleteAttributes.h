@@ -32,7 +32,6 @@ public:
 	/** List of attributes to delete. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	TSet<FName> AttributeNames;
-
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExDeleteAttributesContext : public FPCGExPointsProcessorContext
@@ -40,7 +39,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExDeleteAttributesContext : public FPCGExPoint
 	friend class FPCGExDeleteAttributesElement;
 
 	virtual ~FPCGExDeleteAttributesContext() override;
-
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExDeleteAttributesElement : public FPCGExPointsProcessorElementBase

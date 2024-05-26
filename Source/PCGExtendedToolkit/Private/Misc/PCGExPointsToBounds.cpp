@@ -104,7 +104,7 @@ bool FPCGExPointsToBoundsElement::ExecuteInternal(FPCGContext* InContext) const
 			Context->MetadataBlender->PrepareForBlending(Target);
 
 			double TotalWeight = 0;
-			
+
 			for (int i = 0; i < NumPoints; i++)
 			{
 				FVector Location = InPoints[i].Transform.GetLocation();
