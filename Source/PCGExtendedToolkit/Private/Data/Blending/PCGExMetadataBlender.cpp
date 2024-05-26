@@ -159,6 +159,11 @@ namespace PCGExDataBlending
 		SecondaryPoints = nullptr;
 	}
 
+	void FMetadataBlender::InitializeFromScratch()
+	{
+		for (FDataBlendingOperationBase* Op : Attributes) { Op->InitializeFromScratch(); }
+	}
+
 	void FMetadataBlender::InternalPrepareForData(
 		PCGExData::FPointIO& InPrimaryData, const PCGExData::FPointIO& InSecondaryData, const PCGExData::ESource SecondarySource)
 	{

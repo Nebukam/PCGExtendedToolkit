@@ -13,14 +13,17 @@ namespace PCGExDataBlending
 {
 	FDataBlendingOperationBase::~FDataBlendingOperationBase()
 	{
+		PCGEX_DELETE(InitializedIndices)
 	}
 
 	void FDataBlendingOperationBase::PrepareForData(PCGExData::FPointIO& InPrimaryData, const PCGExData::FPointIO& InSecondaryData, const PCGExData::ESource SecondarySource)
 	{
+		PCGEX_DELETE(InitializedIndices)
 	}
 
 	void FDataBlendingOperationBase::PrepareForData(PCGEx::FAAttributeIO* InWriter, const PCGExData::FPointIO& InSecondaryData, const PCGExData::ESource SecondarySource)
 	{
+		PCGEX_DELETE(InitializedIndices)
 	}
 
 	bool FDataBlendingOperationBase::GetIsInterpolation() const { return false; }

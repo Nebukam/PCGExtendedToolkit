@@ -12,6 +12,7 @@ namespace PCGExDataBlending
 	class PCGEXTENDEDTOOLKIT_API FDataBlendingAverage final : public FDataBlendingOperation<T>
 	{
 	public:
+		virtual EPCGExDataBlendingType GetBlendingType() const override { return EPCGExDataBlendingType::Average; };
 		virtual bool GetIsInterpolation() const override { return true; }
 		virtual bool GetRequiresPreparation() const override { return true; }
 		virtual bool GetRequiresFinalization() const override { return true; }
@@ -25,6 +26,7 @@ namespace PCGExDataBlending
 	class PCGEXTENDEDTOOLKIT_API FDataBlendingCopy final : public FDataBlendingOperation<T>
 	{
 	public:
+		virtual EPCGExDataBlendingType GetBlendingType() const override { return EPCGExDataBlendingType::Copy; };
 		virtual T SingleOperation(T A, T B, double Weight) const override { return B; }
 	};
 
@@ -32,6 +34,7 @@ namespace PCGExDataBlending
 	class PCGEXTENDEDTOOLKIT_API FDataBlendingSum final : public FDataBlendingOperation<T>
 	{
 	public:
+		virtual EPCGExDataBlendingType GetBlendingType() const override { return EPCGExDataBlendingType::Sum; };
 		virtual bool GetIsInterpolation() const override { return true; }
 		virtual bool GetRequiresPreparation() const override { return true; }
 		virtual bool GetRequiresFinalization() const override { return false; }
@@ -44,20 +47,87 @@ namespace PCGExDataBlending
 	class PCGEXTENDEDTOOLKIT_API FDataBlendingMax final : public FDataBlendingOperation<T>
 	{
 	public:
+		virtual EPCGExDataBlendingType GetBlendingType() const override { return EPCGExDataBlendingType::Max; };
 		virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::Max(A, B); }
+
+		virtual void DoOperation(const int32 PrimaryReadIndex, const FPCGPoint& SrcPoint, const int32 WriteIndex, const double Weight = 0) const override
+		{
+			const T A = (*this->Writer)[PrimaryReadIndex];
+			const T B = this->TypedAttribute ? this->TypedAttribute->GetValueFromItemKey(SrcPoint.MetadataEntry) : A;
+
+			if (this->InitializedIndices && !this->InitializedIndices->Contains(WriteIndex))
+			{
+				this->InitializedIndices->Add(WriteIndex);
+				(*this->Writer)[WriteIndex] = B;
+				return;
+			}
+
+			(*this->Writer)[WriteIndex] = SingleOperation(A, B, Weight);
+		}
+
+		virtual void BlendEachPrimaryToSecondary(const TArrayView<double>& Weights) const override
+		{
+			if (!this->bInterpolationAllowed) { return; }
+			for (int i = 0; i < this->Writer->Values.Num(); i++)
+			{
+				if (this->InitializedIndices && !this->InitializedIndices->Contains(i))
+				{
+					this->InitializedIndices->Add(i);
+					(*this->Writer)[i] = this->Reader->Values[i];
+					continue;
+				}
+
+				this->Writer->Values[i] = SingleOperation(this->Writer->Values[i], this->Reader->Values[i], Weights[i]);
+			}
+		}
+		
 	};
 
 	template <typename T>
 	class PCGEXTENDEDTOOLKIT_API FDataBlendingMin final : public FDataBlendingOperation<T>
 	{
 	public:
+		virtual EPCGExDataBlendingType GetBlendingType() const override { return EPCGExDataBlendingType::Min; };
 		virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::Min(A, B); }
+
+		virtual void DoOperation(const int32 PrimaryReadIndex, const FPCGPoint& SrcPoint, const int32 WriteIndex, const double Weight = 0) const override
+		{
+			const T A = (*this->Writer)[PrimaryReadIndex];
+			const T B = this->TypedAttribute ? this->TypedAttribute->GetValueFromItemKey(SrcPoint.MetadataEntry) : A;
+
+			if (this->InitializedIndices && !this->InitializedIndices->Contains(PrimaryReadIndex))
+			{
+				this->InitializedIndices->Add(PrimaryReadIndex);
+				(*this->Writer)[WriteIndex] = B;
+				return;
+			}
+
+			(*this->Writer)[WriteIndex] = SingleOperation(A, B, Weight);
+		}
+
+		virtual void BlendEachPrimaryToSecondary(const TArrayView<double>& Weights) const override
+		{
+			if (!this->bInterpolationAllowed) { return; }
+			for (int i = 0; i < this->Writer->Values.Num(); i++)
+			{
+				if (this->InitializedIndices && !this->InitializedIndices->Contains(i))
+				{
+					this->InitializedIndices->Add(i);
+					(*this->Writer)[i] = this->Reader->Values[i];
+					continue;
+				}
+
+				this->Writer->Values[i] = SingleOperation(this->Writer->Values[i], this->Reader->Values[i], Weights[i]);
+			}
+		}
+		
 	};
 
 	template <typename T>
 	class PCGEXTENDEDTOOLKIT_API FDataBlendingWeight final : public FDataBlendingOperation<T>
 	{
 	public:
+		virtual EPCGExDataBlendingType GetBlendingType() const override { return EPCGExDataBlendingType::Weight; };
 		virtual bool GetIsInterpolation() const override { return true; }
 		virtual bool GetRequiresPreparation() const override { return true; }
 		virtual bool GetRequiresFinalization() const override { return true; }
@@ -71,6 +141,7 @@ namespace PCGExDataBlending
 	class PCGEXTENDEDTOOLKIT_API FDataBlendingWeightedSum final : public FDataBlendingOperation<T>
 	{
 	public:
+		virtual EPCGExDataBlendingType GetBlendingType() const override { return EPCGExDataBlendingType::WeightedSum; };
 		virtual bool GetIsInterpolation() const override { return true; }
 		virtual bool GetRequiresPreparation() const override { return true; }
 		virtual bool GetRequiresFinalization() const override { return false; }
@@ -83,6 +154,7 @@ namespace PCGExDataBlending
 	class PCGEXTENDEDTOOLKIT_API FDataBlendingLerp final : public FDataBlendingOperation<T>
 	{
 	public:
+		virtual EPCGExDataBlendingType GetBlendingType() const override { return EPCGExDataBlendingType::Lerp; };
 		virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::Lerp(A, B, Weight); }
 	};
 

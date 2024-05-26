@@ -202,11 +202,15 @@ namespace PCGExDataBlending
 	public:
 		virtual ~FDataBlendingOperationBase();
 
+		virtual EPCGExDataBlendingType GetBlendingType() const = 0;
+
 		void SetAttributeName(const FName InName) { AttributeName = InName; }
 		FName GetAttributeName() const { return AttributeName; }
 
 		virtual void PrepareForData(PCGExData::FPointIO& InPrimaryData, const PCGExData::FPointIO& InSecondaryData, const PCGExData::ESource SecondarySource = PCGExData::ESource::In);
 		virtual void PrepareForData(PCGEx::FAAttributeIO* InWriter, const PCGExData::FPointIO& InSecondaryData, const PCGExData::ESource SecondarySource = PCGExData::ESource::In);
+
+		virtual void InitializeFromScratch() = 0;
 
 		virtual bool GetIsInterpolation() const;
 		virtual bool GetRequiresPreparation() const;
@@ -232,6 +236,7 @@ namespace PCGExDataBlending
 		bool bOwnsWriter = true;
 		bool bInterpolationAllowed = true;
 		FName AttributeName = NAME_None;
+		TSet<int32>* InitializedIndices = nullptr;
 	};
 
 	template <typename T>
@@ -254,6 +259,8 @@ namespace PCGExDataBlending
 		{
 			Cleanup();
 		}
+
+		virtual EPCGExDataBlendingType GetBlendingType() const override { return EPCGExDataBlendingType::None; };
 
 		virtual void PrepareForData(PCGEx::FAAttributeIO* InWriter, const PCGExData::FPointIO& InSecondaryData, const PCGExData::ESource SecondarySource) override
 		{
@@ -354,7 +361,10 @@ namespace PCGExDataBlending
 		virtual void BlendEachPrimaryToSecondary(const TArrayView<double>& Weights) const override
 		{
 			if (!bInterpolationAllowed) { return; }
-			for (int i = 0; i < Writer->Values.Num(); i++) { Writer->Values[i] = SingleOperation(Writer->Values[i], Reader->Values[i], Weights[i]); }
+			for (int i = 0; i < Writer->Values.Num(); i++)
+			{
+				Writer->Values[i] = SingleOperation(Writer->Values[i], Reader->Values[i], Weights[i]);
+			}
 		}
 
 		virtual void SinglePrepare(T& A) const
@@ -379,6 +389,11 @@ namespace PCGExDataBlending
 		virtual T GetSecondaryValue(const int32 Index) const { return (*Reader)[Index]; }
 
 		virtual void Write() override { Writer->Write(); }
+
+		virtual void InitializeFromScratch() override
+		{
+			this->InitializedIndices = new TSet<int32>();
+		}
 
 	protected:
 		FPCGMetadataAttribute<T>* TypedAttribute = nullptr;

@@ -49,6 +49,8 @@ namespace PCGExDataBlending
 		void Write(bool bFlush = true);
 		void Flush();
 
+		void InitializeFromScratch();
+
 	protected:
 		FPCGExBlendingSettings* BlendingSettings = nullptr;
 		FPropertiesBlender* PropertiesBlender = nullptr;

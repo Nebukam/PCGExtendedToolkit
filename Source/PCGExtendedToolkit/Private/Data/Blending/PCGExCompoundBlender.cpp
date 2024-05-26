@@ -106,6 +106,9 @@ namespace PCGExDataBlending
 				static_cast<uint16>(SrcMap->Identity.UnderlyingType), [&](auto DummyValue)
 				{
 					using T = decltype(DummyValue);
+
+					bool bAttributeWasPresent = TargetData->GetOut()->Metadata->HasAttribute(SrcMap->Identity.Name);
+
 					PCGEx::TFAttributeWriter<T>* Writer = new PCGEx::TFAttributeWriter<T>(SrcMap->Identity.Name, T{}, SrcMap->AllowsInterpolation);
 					Writer->BindAndGet(*CurrentTargetData);
 
@@ -117,6 +120,7 @@ namespace PCGExDataBlending
 					}
 
 					SrcMap->TargetBlendOp->PrepareForData(Writer, *TargetData, PCGExData::ESource::Out);
+					SrcMap->TargetBlendOp->InitializeFromScratch(); // Hmmmm maybe not
 				});
 		}
 	}
