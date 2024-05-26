@@ -72,15 +72,6 @@ enum class EPCGExAdjacencySubsetMode : uint8
 	Exactly UMETA(DisplayName = "Exactly", Tooltip="Requirements must be met by exactly X adjacent nodes, no more, no less.")
 };
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Adjacency Subset Measure Mode"))
-enum class EPCGExAdjacencySubsetMeasureMode : uint8
-{
-	AbsoluteStatic UMETA(DisplayName = "Absolute Static", Tooltip="Uses an absolute unique value."),
-	AbsoluteLocal UMETA(DisplayName = "Absolute Local", Tooltip="Uses an absolute value fetched from a node attribute."),
-	RelativeStatic UMETA(DisplayName = "Relative Static", Tooltip="Uses a relative unique value."),
-	RelativeLocal UMETA(DisplayName = "Relative Local", Tooltip="Uses a relative value fetches from a node attribute.")
-};
-
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Relative Rounding Mode"))
 enum class EPCGExRelativeRoundingMode : uint8
 {

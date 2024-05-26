@@ -113,7 +113,20 @@ bool FPCGExPathfindingEdgesElement::ExecuteInternal(FPCGContext* InContext) cons
 			return false;
 		}
 
-		if (Settings->bUseOctreeSearch) { Context->CurrentCluster->RebuildOctree(Settings->NodePickingMode); }
+		if (Settings->bUseOctreeSearch)
+		{
+			if(Settings->SeedPicking.PickingMethod == EPCGExClusterClosestSearchMode::Node ||
+				Settings->GoalPicking.PickingMethod == EPCGExClusterClosestSearchMode::Node)
+			{
+				Context->CurrentCluster->RebuildOctree(EPCGExClusterClosestSearchMode::Node);
+			}
+
+			if(Settings->SeedPicking.PickingMethod == EPCGExClusterClosestSearchMode::Edge ||
+				Settings->GoalPicking.PickingMethod == EPCGExClusterClosestSearchMode::Edge)
+			{
+				Context->CurrentCluster->RebuildOctree(EPCGExClusterClosestSearchMode::Edge);
+			}
+		}
 
 		Context->SetState(PCGExCluster::State_ProjectingCluster);
 	}
@@ -199,7 +212,9 @@ bool FPCGExPathfindingEdgesElement::ExecuteInternal(FPCGContext* InContext) cons
 
 bool FSampleClusterPathTask::ExecuteTask()
 {
+
 	const FPCGExPathfindingEdgesContext* Context = Manager->GetContext<FPCGExPathfindingEdgesContext>();
+	PCGEX_SETTINGS(PathfindingEdges)
 
 	const FPCGPoint& Seed = Context->SeedsPoints->GetInPoint(Query->SeedIndex);
 	const FPCGPoint& Goal = Context->GoalsPoints->GetInPoint(Query->GoalIndex);
@@ -210,8 +225,8 @@ bool FSampleClusterPathTask::ExecuteTask()
 
 	//Note: Can silently fail
 	if (!Context->SearchAlgorithm->FindPath(
-		Query->SeedPosition, Query->GoalPosition,
-		Context->Heuristics, Context->HeuristicsModifiers, Path, GlobalExtraWeights))
+		Query->SeedPosition, &Settings->SeedPicking,
+		Query->GoalPosition, &Settings->GoalPicking, Context->Heuristics, Context->HeuristicsModifiers, Path, GlobalExtraWeights))
 	{
 		// Failed
 		return false;

@@ -5,7 +5,9 @@
 
 #include "CoreMinimal.h"
 #include "PCGExPointsProcessor.h"
+#include "PCGExSettings.h"
 
+#include "PCGExSettings.h"
 #include "Data/PCGExGraphDefinition.h"
 #include "Graph/PCGExCluster.h"
 #include "../PCGExCreateNodeFilter.h"
@@ -36,15 +38,19 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAdjacencyFilterDescriptor
 
 	/** Define the nodes subset' size that must meet requirements. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="Mode==EPCGExAdjacencyTestMode::Some", EditConditionHides))
-	EPCGExAdjacencySubsetMeasureMode SubsetMeasure = EPCGExAdjacencySubsetMeasureMode::AbsoluteStatic;
+	EPCGExMeanMeasure SubsetMeasure = EPCGExMeanMeasure::Absolute;
 
+	/** Define the nodes subset' size that must meet requirements. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="Mode==EPCGExAdjacencyTestMode::Some", EditConditionHides))
+	EPCGExFetchType SubsetSource = EPCGExFetchType::Constant;
+	
 	/** Local measure attribute */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="Mode==EPCGExAdjacencyTestMode::Some && (SubsetMeasure==EPCGExAdjacencySubsetMeasureMode::AbsoluteLocal||SubsetMeasure==EPCGExAdjacencySubsetMeasureMode::RelativeLocal)", EditConditionHides))
 	FPCGAttributePropertyInputSelector LocalMeasure;
 
 	/** Constant Local measure value */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="Mode==EPCGExAdjacencyTestMode::Some && (SubsetMeasure==EPCGExAdjacencySubsetMeasureMode::AbsoluteStatic||SubsetMeasure==EPCGExAdjacencySubsetMeasureMode::RelativeStatic)", EditConditionHides))
-	double StaticMeasure = 0;
+	double ConstantMeasure = 0;
 
 	/** Type of OperandA */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -91,9 +97,10 @@ public:
 	EPCGExAdjacencyTestMode Mode = EPCGExAdjacencyTestMode::All;
 	EPCGExAdjacencyGatherMode Consolidation = EPCGExAdjacencyGatherMode::Average;
 	EPCGExAdjacencySubsetMode SubsetMode = EPCGExAdjacencySubsetMode::AtLeast;
-	EPCGExAdjacencySubsetMeasureMode SubsetMeasure = EPCGExAdjacencySubsetMeasureMode::AbsoluteStatic;
+	EPCGExMeanMeasure MeasureType = EPCGExMeanMeasure::Absolute;
+	EPCGExFetchType MeasureSource = EPCGExFetchType::Constant;
 	FPCGAttributePropertyInputSelector LocalMeasure;
-	double StaticMeasure;
+	double ConstantMeasure;
 	EPCGExOperandType CompareAgainst = EPCGExOperandType::Attribute;
 	FPCGAttributePropertyInputSelector OperandA;
 	double OperandAConstant = 0;
@@ -107,9 +114,10 @@ public:
 		Mode = Descriptor.Mode;
 		Consolidation = Descriptor.Consolidation;
 		SubsetMode = Descriptor.SubsetMode;
-		SubsetMeasure = Descriptor.SubsetMeasure;
+		MeasureType = Descriptor.SubsetMeasure;
+		MeasureSource = Descriptor.SubsetSource;
 		LocalMeasure = Descriptor.LocalMeasure;
-		StaticMeasure = Descriptor.StaticMeasure;
+		ConstantMeasure = Descriptor.ConstantMeasure;
 		CompareAgainst = Descriptor.CompareAgainst;
 		OperandA = Descriptor.OperandA;
 		OperandAConstant = Descriptor.OperandAConstant;

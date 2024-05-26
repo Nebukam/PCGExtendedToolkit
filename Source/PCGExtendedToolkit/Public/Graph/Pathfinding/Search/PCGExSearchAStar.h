@@ -26,9 +26,9 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSearchAStar : public UPCGExSearchOperation
 public:
 	virtual bool FindPath(
 		const FVector& SeedPosition,
+		const FPCGExNodeSelectionSettings* SeedSelection,
 		const FVector& GoalPosition,
+		const FPCGExNodeSelectionSettings* GoalSelection,
 		const UPCGExHeuristicOperation* Heuristics,
-		const FPCGExHeuristicModifiersSettings* Modifiers,
-		TArray<int32>& OutPath,
-		PCGExPathfinding::FExtraWeights* ExtraWeights = nullptr) override;
+		const FPCGExHeuristicModifiersSettings* Modifiers, TArray<int32>& OutPath, PCGExPathfinding::FExtraWeights* ExtraWeights = nullptr) override;
 };

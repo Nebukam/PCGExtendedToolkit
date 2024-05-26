@@ -31,8 +31,6 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSearchOperation : public UPCGExOperation
 	GENERATED_BODY()
 
 public:
-	EPCGExClusterClosestSearchMode SearchMode = EPCGExClusterClosestSearchMode::Node;
-
 	PCGExCluster::FCluster* Cluster = nullptr;
 	PCGExCluster::FClusterProjection* Projection = nullptr;
 
@@ -40,9 +38,9 @@ public:
 	virtual void PrepareForCluster(PCGExCluster::FCluster* InCluster, PCGExCluster::FClusterProjection* InProjection = nullptr);
 	virtual bool FindPath(
 		const FVector& SeedPosition,
+		const FPCGExNodeSelectionSettings* SeedSelection,
 		const FVector& GoalPosition,
+		const FPCGExNodeSelectionSettings* GoalSelection,
 		const UPCGExHeuristicOperation* Heuristics,
-		const FPCGExHeuristicModifiersSettings* Modifiers,
-		TArray<int32>& OutPath,
-		PCGExPathfinding::FExtraWeights* ExtraWeights = nullptr);
+		const FPCGExHeuristicModifiersSettings* Modifiers, TArray<int32>& OutPath, PCGExPathfinding::FExtraWeights* ExtraWeights = nullptr);
 };

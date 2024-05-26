@@ -11,14 +11,17 @@
 
 bool UPCGExSearchDijkstra::FindPath(
 	const FVector& SeedPosition,
+	const FPCGExNodeSelectionSettings* SeedSelection,
 	const FVector& GoalPosition,
+	const FPCGExNodeSelectionSettings* GoalSelection,
 	const UPCGExHeuristicOperation* Heuristics,
-	const FPCGExHeuristicModifiersSettings* Modifiers,
-	TArray<int32>& OutPath,
-	PCGExPathfinding::FExtraWeights* ExtraWeights)
+	const FPCGExHeuristicModifiersSettings* Modifiers, TArray<int32>& OutPath, PCGExPathfinding::FExtraWeights* ExtraWeights)
 {
-	const PCGExCluster::FNode& SeedNode = Cluster->Nodes[Cluster->FindClosestNode(SeedPosition, SearchMode, 1)];
-	const PCGExCluster::FNode& GoalNode = Cluster->Nodes[Cluster->FindClosestNode(GoalPosition, SearchMode, 1)];
+	const PCGExCluster::FNode& SeedNode = Cluster->Nodes[Cluster->FindClosestNode(SeedPosition, SeedSelection->PickingMethod, 1)];
+	if (!SeedSelection->WithinDistance(SeedNode.Position, SeedPosition)) { return false; }
+
+	const PCGExCluster::FNode& GoalNode = Cluster->Nodes[Cluster->FindClosestNode(GoalPosition, GoalSelection->PickingMethod, 1)];
+	if (GoalSelection->WithinDistance(GoalNode.Position, GoalPosition)) { return false; }
 
 	if (SeedNode.NodeIndex == GoalNode.NodeIndex) { return false; }
 

@@ -98,8 +98,6 @@ bool FPCGExPathfindingPlotEdgesElement::Boot(FPCGContext* InContext) const
 		return false;
 	}
 
-	Context->SearchAlgorithm->SearchMode = Settings->NodePickingMode;
-
 	Context->HeuristicsModifiers = const_cast<FPCGExHeuristicModifiersSettings*>(&Settings->HeuristicsModifiers);
 	Context->HeuristicsModifiers->LoadCurves();
 	Context->Heuristics->ReferenceWeight = Context->HeuristicsModifiers->ReferenceWeight;
@@ -152,7 +150,20 @@ bool FPCGExPathfindingPlotEdgesElement::ExecuteInternal(FPCGContext* InContext) 
 			return false;
 		}
 
-		if (Settings->bUseOctreeSearch) { Context->CurrentCluster->RebuildOctree(Settings->NodePickingMode); }
+		if (Settings->bUseOctreeSearch)
+		{
+			if(Settings->SeedPicking.PickingMethod == EPCGExClusterClosestSearchMode::Node ||
+				Settings->GoalPicking.PickingMethod == EPCGExClusterClosestSearchMode::Node)
+			{
+				Context->CurrentCluster->RebuildOctree(EPCGExClusterClosestSearchMode::Node);
+			}
+
+			if(Settings->SeedPicking.PickingMethod == EPCGExClusterClosestSearchMode::Edge ||
+				Settings->GoalPicking.PickingMethod == EPCGExClusterClosestSearchMode::Edge)
+			{
+				Context->CurrentCluster->RebuildOctree(EPCGExClusterClosestSearchMode::Edge);
+			}
+		}
 
 		Context->SetState(PCGExCluster::State_ProjectingCluster);
 	}
@@ -240,7 +251,8 @@ bool FPCGExPathfindingPlotEdgesElement::ExecuteInternal(FPCGContext* InContext) 
 bool FPCGExPlotClusterPathTask::ExecuteTask()
 {
 	const FPCGExPathfindingPlotEdgesContext* Context = Manager->GetContext<FPCGExPathfindingPlotEdgesContext>();
-
+	PCGEX_SETTINGS(PathfindingPlotEdges)
+	
 	const PCGExCluster::FCluster* Cluster = Context->CurrentCluster;
 	TArray<int32> Path;
 
@@ -261,8 +273,8 @@ bool FPCGExPlotClusterPathTask::ExecuteTask()
 		FVector GoalPosition = PointIO->GetInPoint(i).Transform.GetLocation();
 
 		if (!Context->SearchAlgorithm->FindPath(
-			SeedPosition, GoalPosition,
-			Context->Heuristics, Context->HeuristicsModifiers, Path, ExtraWeights))
+			SeedPosition, &Settings->SeedPicking,
+			GoalPosition, &Settings->GoalPicking, Context->Heuristics, Context->HeuristicsModifiers, Path, ExtraWeights))
 		{
 			// Failed
 		}

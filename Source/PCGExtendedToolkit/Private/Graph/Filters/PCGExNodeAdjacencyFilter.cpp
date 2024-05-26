@@ -48,19 +48,8 @@ namespace PCGExNodeAdjacency
 {
 	void TAdjacencyFilterHandler::Capture(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO)
 	{
-		if (AdjacencyFilter->SubsetMeasure == EPCGExAdjacencySubsetMeasureMode::AbsoluteStatic ||
-			AdjacencyFilter->SubsetMeasure == EPCGExAdjacencySubsetMeasureMode::AbsoluteLocal)
-		{
-			bUseAbsoluteMeasure = true;
-		}
-		else { bUseAbsoluteMeasure = false; }
-
-		if (AdjacencyFilter->SubsetMeasure == EPCGExAdjacencySubsetMeasureMode::AbsoluteLocal ||
-			AdjacencyFilter->SubsetMeasure == EPCGExAdjacencySubsetMeasureMode::RelativeLocal)
-		{
-			bUseLocalMeasure = true;
-		}
-		else { bUseLocalMeasure = false; }
+		bUseAbsoluteMeasure = AdjacencyFilter->MeasureType == EPCGExMeanMeasure::Absolute;
+		bUseLocalMeasure = AdjacencyFilter->MeasureSource == EPCGExFetchType::Attribute;
 
 		if (AdjacencyFilter->CompareAgainst == EPCGExOperandType::Attribute)
 		{
@@ -78,8 +67,7 @@ namespace PCGExNodeAdjacency
 			}
 		}
 
-		if (AdjacencyFilter->SubsetMeasure == EPCGExAdjacencySubsetMeasureMode::AbsoluteLocal ||
-			AdjacencyFilter->SubsetMeasure == EPCGExAdjacencySubsetMeasureMode::AbsoluteLocal)
+		if (bUseLocalMeasure)
 		{
 			LocalMeasure = new PCGEx::FLocalSingleFieldGetter();
 			LocalMeasure->Capture(AdjacencyFilter->LocalMeasure);
@@ -153,14 +141,14 @@ namespace PCGExNodeAdjacency
 			{
 				if (bUseAbsoluteMeasure)
 				{
-					for (int i = 0; i < NumNodes; i++) { CachedMeasure[i] = AdjacencyFilter->StaticMeasure; }
+					for (int i = 0; i < NumNodes; i++) { CachedMeasure[i] = AdjacencyFilter->ConstantMeasure; }
 				}
 				else
 				{
 					for (int i = 0; i < NumNodes; i++)
 					{
 						const PCGExCluster::FNode& Node = CapturedCluster->Nodes[i];
-						CachedMeasure[i] = AdjacencyFilter->StaticMeasure * Node.AdjacentNodes.Num();
+						CachedMeasure[i] = AdjacencyFilter->ConstantMeasure * Node.AdjacentNodes.Num();
 					}
 				}
 			}

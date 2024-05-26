@@ -167,7 +167,7 @@ bool FPCGExFindContourTask::ExecuteTask()
 	}
 
 	const FVector Guide = Guides[0];
-	const int32 StartNodeIndex = Cluster->FindClosestNode(Guide, Settings->NodePickingMode, 2);
+	const int32 StartNodeIndex = Cluster->FindClosestNode(Guide, Settings->SeedPicking.PickingMethod, 2);
 
 	if (StartNodeIndex == -1)
 	{
@@ -175,7 +175,14 @@ bool FPCGExFindContourTask::ExecuteTask()
 		return false;
 	}
 
-	const FVector InitialDir = PCGExMath::GetNormal(Cluster->Nodes[StartNodeIndex].Position, Guide, Guide + FVector::UpVector);
+	const FVector SeedPosition = Cluster->Nodes[StartNodeIndex].Position;
+	if(Settings->SeedPicking.MaxDistance > 0 && FVector::Distance(SeedPosition, Guide) > Settings->SeedPicking.MaxDistance)
+	{
+		// Fail. Not within radius.
+		return false;
+	}
+	
+	const FVector InitialDir = PCGExMath::GetNormal(SeedPosition, Guide, Guide + FVector::UpVector);
 	const int32 NextToStartIndex = Cluster->FindClosestNeighborInDirection(StartNodeIndex, InitialDir, 2);
 
 	if (NextToStartIndex == -1)

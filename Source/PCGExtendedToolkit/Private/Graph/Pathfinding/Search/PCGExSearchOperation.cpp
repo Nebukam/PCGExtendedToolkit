@@ -14,11 +14,11 @@ void UPCGExSearchOperation::PrepareForCluster(PCGExCluster::FCluster* InCluster,
 
 bool UPCGExSearchOperation::FindPath(
 	const FVector& SeedPosition,
+	const FPCGExNodeSelectionSettings* SeedSelection,
 	const FVector& GoalPosition,
+	const FPCGExNodeSelectionSettings* GoalSelection,
 	const UPCGExHeuristicOperation* Heuristics,
-	const FPCGExHeuristicModifiersSettings* Modifiers,
-	TArray<int32>& OutPath,
-	PCGExPathfinding::FExtraWeights* ExtraWeights)
+	const FPCGExHeuristicModifiersSettings* Modifiers, TArray<int32>& OutPath, PCGExPathfinding::FExtraWeights* ExtraWeights)
 {
 	return false;
 }

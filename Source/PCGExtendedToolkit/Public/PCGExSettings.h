@@ -14,6 +14,13 @@
 
 #include "PCGExSettings.generated.h"
 
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Fetch Type"))
+enum class EPCGExFetchType : uint8
+{
+	Constant UMETA(DisplayName = "Constant", Tooltip="Constant."),
+	Attribute UMETA(DisplayName = "Attribute", Tooltip="Attribute."),
+};
+
 USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExClampSettings
 {
@@ -485,7 +492,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgeEdgeIntersectionSettings
 		MaxDot = bUseMaxAngle ? PCGExMath::DegreesToDot(MaxAngle) : 1;
 	}
 };
-
 
 namespace PCGExSettings
 {

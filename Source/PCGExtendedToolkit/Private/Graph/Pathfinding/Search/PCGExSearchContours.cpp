@@ -12,16 +12,19 @@ bool UPCGExSearchContours::GetRequiresProjection() { return true; }
 
 bool UPCGExSearchContours::FindPath(
 	const FVector& SeedPosition,
+	const FPCGExNodeSelectionSettings* SeedSelection,
 	const FVector& GoalPosition,
+	const FPCGExNodeSelectionSettings* GoalSelection,
 	const UPCGExHeuristicOperation* Heuristics,
-	const FPCGExHeuristicModifiersSettings* Modifiers,
-	TArray<int32>& OutPath,
-	PCGExPathfinding::FExtraWeights* ExtraWeights)
+	const FPCGExHeuristicModifiersSettings* Modifiers, TArray<int32>& OutPath, PCGExPathfinding::FExtraWeights* ExtraWeights)
 {
-	const int32 StartNodeIndex = Cluster->FindClosestNode(SeedPosition, SearchMode, 2);
-	const int32 EndNodeIndex = Cluster->FindClosestNode(GoalPosition, SearchMode, 1);
+	const int32 StartNodeIndex = Cluster->FindClosestNode(SeedPosition, SeedSelection->PickingMethod, 2);
+	const int32 EndNodeIndex = Cluster->FindClosestNode(GoalPosition, GoalSelection->PickingMethod, 1);
 
 	if (StartNodeIndex == EndNodeIndex || StartNodeIndex == -1 || EndNodeIndex == -1) { return false; }
+
+	if (!SeedSelection->WithinDistance(Cluster->Nodes[StartNodeIndex].Position, SeedPosition)) { return false; }
+	if (GoalSelection->WithinDistance(Cluster->Nodes[EndNodeIndex].Position, GoalPosition)) { return false; }
 
 	TRACE_CPUPROFILER_EVENT_SCOPE(UPCGExSearchContours::FindContours);
 
