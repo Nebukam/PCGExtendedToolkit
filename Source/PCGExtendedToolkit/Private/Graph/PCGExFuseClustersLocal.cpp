@@ -258,9 +258,7 @@ bool FPCGExFuseClustersLocalElement::ExecuteInternal(FPCGContext* InContext) con
 			Context->MetadataBlender->PrepareForData(*Context->CurrentIO, PCGExData::ESource::Out);
 		};
 
-		auto BlendCrossingMetadata = [&](const int32 Index)
-		{
-		};
+		auto BlendCrossingMetadata = [&](const int32 Index) { Context->EdgeEdgeIntersections->BlendIntersection(Index, Context->MetadataBlender); };
 
 		if (!Context->Process(Initialize, BlendCrossingMetadata, Context->EdgeEdgeIntersections->Crossings.Num())) { return false; }
 
