@@ -73,7 +73,6 @@ bool FPCGExWriteIndexElement::ExecuteInternal(FPCGContext* InContext) const
 			Context->NormalizedIndexAccessor->SetRange(Context->NormalizedIndicesBuffer);
 			PCGEX_DELETE(Context->NormalizedIndexAccessor)
 			Context->SetState(PCGExMT::State_ReadyForNextPoints);
-			Context->CurrentIO->OutputTo(Context);
 		}
 		else
 		{

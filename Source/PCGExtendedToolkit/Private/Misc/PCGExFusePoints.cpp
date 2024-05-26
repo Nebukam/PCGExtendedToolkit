@@ -4,6 +4,7 @@
 #include "Misc/PCGExFusePoints.h"
 
 #include "Graph/PCGExGraph.h"
+#include "Graph/PCGExIntersections.h"
 
 #define LOCTEXT_NAMESPACE "PCGExFusePointsElement"
 #define PCGEX_NAMESPACE FusePoints

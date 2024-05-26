@@ -44,75 +44,19 @@ namespace PCGExDataBlending
 	};
 
 	template <typename T>
-	class PCGEXTENDEDTOOLKIT_API FDataBlendingMax final : public FDataBlendingOperation<T>
+	class PCGEXTENDEDTOOLKIT_API FDataBlendingMax final : public FDataBlendingOperationWithScratchCheck<T>
 	{
 	public:
 		virtual EPCGExDataBlendingType GetBlendingType() const override { return EPCGExDataBlendingType::Max; };
 		virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::Max(A, B); }
-
-		virtual void DoOperation(const int32 PrimaryReadIndex, const FPCGPoint& SrcPoint, const int32 WriteIndex, const double Weight = 0) const override
-		{
-			const T A = (*this->Writer)[PrimaryReadIndex];
-			const T B = this->TypedAttribute ? this->TypedAttribute->GetValueFromItemKey(SrcPoint.MetadataEntry) : A;
-			if (this->InitializedIndices && !this->InitializedIndices->Contains(WriteIndex))
-			{
-				this->InitializedIndices->Add(WriteIndex);
-				(*this->Writer)[WriteIndex] = B;
-				return;
-			}
-			(*this->Writer)[WriteIndex] = SingleOperation(A, B, Weight);
-		}
-
-		virtual void BlendEachPrimaryToSecondary(const TArrayView<double>& Weights) const override
-		{
-			if (!this->bInterpolationAllowed) { return; }
-			for (int i = 0; i < this->Writer->Values.Num(); i++)
-			{
-				if (this->InitializedIndices && !this->InitializedIndices->Contains(i))
-				{
-					this->InitializedIndices->Add(i);
-					(*this->Writer)[i] = this->Reader->Values[i];
-					continue;
-				}
-				this->Writer->Values[i] = SingleOperation(this->Writer->Values[i], this->Reader->Values[i], Weights[i]);
-			}
-		}
 	};
 
 	template <typename T>
-	class PCGEXTENDEDTOOLKIT_API FDataBlendingMin final : public FDataBlendingOperation<T>
+	class PCGEXTENDEDTOOLKIT_API FDataBlendingMin final : public FDataBlendingOperationWithScratchCheck<T>
 	{
 	public:
 		virtual EPCGExDataBlendingType GetBlendingType() const override { return EPCGExDataBlendingType::Min; };
 		virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::Min(A, B); }
-
-		virtual void DoOperation(const int32 PrimaryReadIndex, const FPCGPoint& SrcPoint, const int32 WriteIndex, const double Weight = 0) const override
-		{
-			const T A = (*this->Writer)[PrimaryReadIndex];
-			const T B = this->TypedAttribute ? this->TypedAttribute->GetValueFromItemKey(SrcPoint.MetadataEntry) : A;
-			if (this->InitializedIndices && !this->InitializedIndices->Contains(WriteIndex))
-			{
-				this->InitializedIndices->Add(WriteIndex);
-				(*this->Writer)[WriteIndex] = B;
-				return;
-			}
-			(*this->Writer)[WriteIndex] = SingleOperation(A, B, Weight);
-		}
-
-		virtual void BlendEachPrimaryToSecondary(const TArrayView<double>& Weights) const override
-		{
-			if (!this->bInterpolationAllowed) { return; }
-			for (int i = 0; i < this->Writer->Values.Num(); i++)
-			{
-				if (this->InitializedIndices && !this->InitializedIndices->Contains(i))
-				{
-					this->InitializedIndices->Add(i);
-					(*this->Writer)[i] = this->Reader->Values[i];
-					continue;
-				}
-				this->Writer->Values[i] = SingleOperation(this->Writer->Values[i], this->Reader->Values[i], Weights[i]);
-			}
-		}
 	};
 
 	template <typename T>
@@ -151,37 +95,10 @@ namespace PCGExDataBlending
 	};
 
 	template <typename T>
-	class PCGEXTENDEDTOOLKIT_API FDataBlendingNone final : public FDataBlendingOperation<T>
+	class PCGEXTENDEDTOOLKIT_API FDataBlendingNone final : public FDataBlendingOperationWithScratchCheck<T>
 	{
 	public:
 		virtual T SingleOperation(T A, T B, double Weight) const override { return A; }
 
-		virtual void DoOperation(const int32 PrimaryReadIndex, const FPCGPoint& SrcPoint, const int32 WriteIndex, const double Weight = 0) const override
-		{
-			const T A = (*this->Writer)[PrimaryReadIndex];
-			const T B = this->TypedAttribute ? this->TypedAttribute->GetValueFromItemKey(SrcPoint.MetadataEntry) : A;
-			if (this->InitializedIndices && !this->InitializedIndices->Contains(WriteIndex))
-			{
-				this->InitializedIndices->Add(WriteIndex);
-				(*this->Writer)[WriteIndex] = B;
-				return;
-			}
-			(*this->Writer)[WriteIndex] = SingleOperation(A, B, Weight);
-		}
-
-		virtual void BlendEachPrimaryToSecondary(const TArrayView<double>& Weights) const override
-		{
-			if (!this->bInterpolationAllowed) { return; }
-			for (int i = 0; i < this->Writer->Values.Num(); i++)
-			{
-				if (this->InitializedIndices && !this->InitializedIndices->Contains(i))
-				{
-					this->InitializedIndices->Add(i);
-					(*this->Writer)[i] = this->Reader->Values[i];
-					continue;
-				}
-				this->Writer->Values[i] = SingleOperation(this->Writer->Values[i], this->Reader->Values[i], Weights[i]);
-			}
-		}
 	};
 }

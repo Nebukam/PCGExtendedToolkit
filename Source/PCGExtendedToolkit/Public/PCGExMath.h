@@ -396,7 +396,10 @@ namespace PCGExMath
 	static bool Add(const bool& A, const bool& B) { return B ? true : A; }
 
 	template <typename CompilerSafety = void>
-	static FQuat Add(const FQuat& A, const FQuat& B) { return (A.Rotator() + B.Rotator()).Quaternion(); }
+	static FRotator Add(const FRotator& A, const FRotator& B) { return A + B; }
+
+	template <typename CompilerSafety = void>
+	static FQuat Add(const FQuat& A, const FQuat& B) { return Add(A.Rotator(), B.Rotator()).Quaternion(); }
 
 	template <typename CompilerSafety = void>
 	static FTransform Add(const FTransform& A, const FTransform& B)

@@ -96,13 +96,13 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteEdgeDirection"))
 	FName EdgeDirectionAttributeName = FName("EdgeDirection");
 
-	/** Edges will inherit point attributes -- NOT IMPLEMENTED*/
+	/** Edges will inherit point attributes*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta = (PCG_Overridable))
 	bool bEndpointsBlending = false;
 
-	/** Balance between start/end point*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bEndpointsBlending", ClampMin=0, ClampMax=1))
-	double EndpointsBlending = 0.5;
+	/** Balance between start/end point ( When enabled, this value will be overriden by EdgePositionLerp, and Solidification, in that order. )*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bEndpointsBlending && !bWriteEdgePosition && SolidificationAxis == EPCGExMinimalAxis::None  )", ClampMin=0, ClampMax=1))
+	double EndpointsWeights = 0.5;
 
 	/** Defines how fused point properties and attributes are merged together. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(EditCondition="bEndpointsBlending"))
@@ -114,7 +114,7 @@ public:
 
 
 	/** Update Edge position as a lerp between endpoints (according to the direction method selected above) */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification", meta=(PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification", meta=(PCG_Overridable))
 	bool bWriteEdgePosition = false;
 
 	/** Position position lerp between start & end points*/
@@ -197,7 +197,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExWriteEdgeExtrasContext : public FPCGExEdgesP
 
 	bool bSolidify;
 	bool bEndpointsBlending;
-	double EndpointsBlending;
+	double EndpointsWeights;
 
 	PCGEx::FLocalSingleFieldGetter* VtxDirCompGetter = nullptr;
 	PCGEx::FLocalVectorGetter* EdgeDirCompGetter = nullptr;

@@ -9,6 +9,13 @@
 
 #include "PCGExFuseClustersLocal.generated.h"
 
+namespace PCGExGraph
+{
+	struct FEdgeEdgeIntersections;
+	struct FPointEdgeIntersections;
+	struct FCompoundGraph;
+}
+
 namespace PCGExDataBlending
 {
 	class FMetadataBlender;
@@ -95,10 +102,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFuseClustersLocalContext : public FPCGExEdge
 	friend class FPCGExFuseClustersLocalElement;
 
 	virtual ~FPCGExFuseClustersLocalContext() override;
-
-	FPCGExPointPointIntersectionSettings PointPointIntersectionSettings;
-	FPCGExPointEdgeIntersectionSettings PointEdgeIntersectionSettings;
-	FPCGExEdgeEdgeIntersectionSettings EdgeEdgeIntersectionSettings;
 
 	PCGExGraph::FCompoundGraph* CompoundGraph = nullptr;
 

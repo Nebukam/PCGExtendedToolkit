@@ -9,6 +9,13 @@
 
 #include "PCGExFuseClusters.generated.h"
 
+namespace PCGExGraph
+{
+	struct FEdgeEdgeIntersections;
+	struct FPointEdgeIntersections;
+	struct FCompoundGraph;
+}
+
 namespace PCGExSpacePartition
 {
 	struct TRoot;
@@ -49,7 +56,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Point/Point Settings"))
 	FPCGExPointPointIntersectionSettings PointPointIntersectionSettings;
 
-	/** Find Point-Edge intersection (points on edges)*/
+	/** Find Point-Edge intersection */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bFindPointEdgeIntersections;
 
@@ -57,11 +64,11 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Point/Edge Settings", EditCondition="bFindPointEdgeIntersections"))
 	FPCGExPointEdgeIntersectionSettings PointEdgeIntersectionSettings;
 
-	/** Find Edge-Edge intersection (edge crossings)*/
+	/** Find Edge-Edge intersection */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bFindEdgeEdgeIntersections;
 
-	/** Edge-Edge intersection settings */
+	/** Edge-Edge intersection */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Edge/Edge Settings", EditCondition="bFindEdgeEdgeIntersections"))
 	FPCGExEdgeEdgeIntersectionSettings EdgeEdgeIntersectionSettings;
 
@@ -100,10 +107,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFuseClustersContext : public FPCGExEdgesProc
 	friend class FPCGExFuseClustersElement;
 
 	virtual ~FPCGExFuseClustersContext() override;
-
-	FPCGExPointPointIntersectionSettings PointPointIntersectionSettings;
-	FPCGExPointEdgeIntersectionSettings PointEdgeIntersectionSettings;
-	FPCGExEdgeEdgeIntersectionSettings EdgeEdgeIntersectionSettings;
 
 	PCGExGraph::FCompoundGraph* CompoundGraph = nullptr;
 	PCGExData::FPointIO* ConsolidatedPoints = nullptr;

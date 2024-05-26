@@ -8,6 +8,7 @@
 
 #include "PCGExPointsProcessor.h"
 #include "Graph/PCGExGraph.h"
+#include "Graph/PCGExIntersections.h"
 #include "PCGExPathsToEdgeClusters.generated.h"
 
 namespace PCGExDataBlending
@@ -18,6 +19,9 @@ namespace PCGExDataBlending
 
 namespace PCGExGraph
 {
+	struct FEdgeEdgeIntersections;
+	struct FPointEdgeIntersections;
+	struct FCompoundGraph;
 	class FGraph;
 }
 
@@ -120,10 +124,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathsToEdgeClustersContext : public FPCGExPa
 	friend class FPCGExPathsToEdgeClustersElement;
 
 	virtual ~FPCGExPathsToEdgeClustersContext() override;
-
-	FPCGExPointPointIntersectionSettings PointPointIntersectionSettings;
-	FPCGExPointEdgeIntersectionSettings PointEdgeIntersectionSettings;
-	FPCGExEdgeEdgeIntersectionSettings EdgeEdgeIntersectionSettings;
 
 	PCGExGraph::FCompoundGraph* CompoundGraph;
 	PCGExDataBlending::FCompoundBlender* CompoundPointsBlender = nullptr;

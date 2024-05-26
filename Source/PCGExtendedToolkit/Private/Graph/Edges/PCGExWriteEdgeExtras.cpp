@@ -68,7 +68,7 @@ bool FPCGExWriteEdgeExtrasElement::Boot(FPCGContext* InContext) const
 	PCGEX_FWD(EdgePositionLerp)
 
 	PCGEX_FWD(bEndpointsBlending)
-	PCGEX_FWD(EndpointsBlending)
+	PCGEX_FWD(EndpointsWeights)
 
 	if (Context->bEndpointsBlending)
 	{
@@ -200,9 +200,11 @@ Context->SolidificationRad##_AXIS->Grab(*Context->CurrentEdges); }
 		PCGExData::FPointIO& PointIO = *Context->CurrentEdges;
 		PCGEX_FOREACH_FIELD_EDGEEXTRAS(PCGEX_OUTPUT_ACCESSOR_INIT)
 
-		if (Context->MetadataBlender) { Context->MetadataBlender->PrepareForData(PointIO, *Context->CurrentIO); }
-		//Context->GetAsyncManager()->Start<FPCGExWriteExtrasTask>(-1, &PointIO, &Context->ProjectionSettings);
-		//Context->SetAsyncState(PCGExGraph::State_ProcessingEdges);
+		if (Context->MetadataBlender)
+		{
+			Context->MetadataBlender->PrepareForData(*Context->CurrentEdges, *Context->CurrentIO);
+			Context->MetadataBlender->InitializeFromScratch();
+		}
 
 		///
 
@@ -221,7 +223,7 @@ Context->SolidificationRad##_AXIS->Grab(*Context->CurrentEdges); }
 		}
 
 		Context->bAscendingDesired = Context->DirectionChoice == EPCGExEdgeDirectionChoice::SmallestToGreatest;
-		Context->StartWeight = FMath::Clamp(Context->EndpointsBlending, 0, 1);
+		Context->StartWeight = FMath::Clamp(Context->EndpointsWeights, 0, 1);
 		Context->EndWeight = 1 - Context->StartWeight;
 
 
@@ -242,6 +244,9 @@ Context->SolidificationRad##_AXIS->Grab(*Context->CurrentEdges); }
 
 			const FPCGPoint& StartPoint = Context->CurrentIO->GetInPoint(EdgeStartPtIndex);
 			const FPCGPoint& EndPoint = Context->CurrentIO->GetInPoint(EdgeEndPtIndex);
+
+			double BlendWeightStart = Context->StartWeight;
+			double BlendWeightEnd = Context->EndWeight;
 
 			FVector DirFrom = StartPoint.Transform.GetLocation();
 			FVector DirTo = EndPoint.Transform.GetLocation();
@@ -269,16 +274,6 @@ Context->SolidificationRad##_AXIS->Grab(*Context->CurrentEdges); }
 			{
 				std::swap(DirTo, DirFrom);
 				std::swap(EdgeStartPtIndex, EdgeEndPtIndex);
-			}
-
-			const PCGEx::FPointRef Target = Context->CurrentEdges->GetOutPointRef(Edge.PointIndex);
-
-			if (Context->MetadataBlender)
-			{
-				Context->MetadataBlender->PrepareForBlending(Target);
-				Context->MetadataBlender->Blend(Target, Context->CurrentIO->GetInPointRef(EdgeStartPtIndex), Target, Context->StartWeight);
-				Context->MetadataBlender->Blend(Target, Context->CurrentIO->GetInPointRef(EdgeEndPtIndex), Target, Context->EndWeight);
-				Context->MetadataBlender->CompleteBlending(Target, 2, Context->StartWeight + Context->EndWeight);
 			}
 
 			const FVector EdgeDirection = (DirFrom - DirTo).GetSafeNormal();
@@ -335,10 +330,25 @@ Context->SolidificationRad##_AXIS->Grab(*Context->CurrentEdges); }
 				}
 
 				MutableTarget.Transform = FTransform(EdgeRot, FMath::Lerp(DirTo, DirFrom, EdgeLerp), MutableTarget.Transform.GetScale3D());
+
+				BlendWeightStart = EdgeLerp;
+				BlendWeightEnd = 1 - EdgeLerp;
 			}
 			else if (Context->bWriteEdgePosition)
 			{
 				MutableTarget.Transform.SetLocation(FMath::Lerp(DirTo, DirFrom, Context->EdgePositionLerp));
+				BlendWeightStart = Context->EdgePositionLerp;
+				BlendWeightEnd = 1 - Context->EdgePositionLerp;
+			}
+
+			if (Context->MetadataBlender)
+			{
+				
+				const PCGEx::FPointRef Target = Context->CurrentEdges->GetOutPointRef(Edge.PointIndex);
+				Context->MetadataBlender->PrepareForBlending(Target);
+				Context->MetadataBlender->Blend(Target, Context->CurrentIO->GetInPointRef(EdgeStartPtIndex), Target, BlendWeightStart);
+				Context->MetadataBlender->Blend(Target, Context->CurrentIO->GetInPointRef(EdgeEndPtIndex), Target, BlendWeightEnd);
+				Context->MetadataBlender->CompleteBlending(Target, 2, BlendWeightStart + BlendWeightEnd);
 			}
 		};
 
