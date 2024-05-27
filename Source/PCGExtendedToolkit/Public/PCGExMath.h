@@ -451,7 +451,7 @@ namespace PCGExMath
 			WeightedAdd(A.GetScale3D(), B.GetScale3D(), Weight));
 	}
 
-#define PCGEX_UNSUPPORTED_WEIGHTED_ADD(_TYPE) template <typename CompilerSafety = void> static _TYPE WeightedAdd(const _TYPE& A, const _TYPE& B, const double Weight) { return A; }
+#define PCGEX_UNSUPPORTED_WEIGHTED_ADD(_TYPE) template <typename CompilerSafety = void> static _TYPE WeightedAdd(const _TYPE& A, const _TYPE& B, const double Weight) { return B; }
 	PCGEX_UNSUPPORTED_STRING_TYPES(PCGEX_UNSUPPORTED_WEIGHTED_ADD)
 	PCGEX_UNSUPPORTED_WEIGHTED_ADD(bool)
 #undef PCGEX_UNSUPPORTED_WEIGHTED_ADD

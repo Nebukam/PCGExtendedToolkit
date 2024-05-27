@@ -3,6 +3,7 @@
 
 #include "Misc/PCGExFusePoints.h"
 
+#include "Data/Blending/PCGExCompoundBlender.h"
 #include "Graph/PCGExGraph.h"
 #include "Graph/PCGExIntersections.h"
 
@@ -38,9 +39,7 @@ bool FPCGExFusePointsElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(FusePoints)
 
-	PCGEX_FWD(PointPointIntersectionSettings)
-
-	Context->GraphMetadataSettings.Grab(Context, Context->PointPointIntersectionSettings);
+	Context->GraphMetadataSettings.Grab(Context, Settings->PointPointIntersectionSettings);
 
 	PCGEX_FWD(bPreserveOrder)
 
@@ -62,12 +61,17 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
 		PCGEX_DELETE(Context->CompoundGraph)
+		PCGEX_DELETE(Context->CompoundPointsBlender)
 
 		if (!Context->AdvancePointsIO()) { Context->Done(); }
 		else
 		{
+			Context->CompoundPointsBlender = new PCGExDataBlending::FCompoundBlender(const_cast<FPCGExBlendingSettings*>(&Settings->BlendingSettings));
+			Context->CompoundPointsBlender->AddSources(*Context->MainPoints);
+
 			// Fuse points into compound graph
-			Context->CompoundGraph = new PCGExGraph::FCompoundGraph(Context->PointPointIntersectionSettings.FuseSettings, Context->CurrentIO->GetIn()->GetBounds().ExpandBy(10));
+
+			Context->CompoundGraph = new PCGExGraph::FCompoundGraph(Settings->PointPointIntersectionSettings.FuseSettings, Context->CurrentIO->GetIn()->GetBounds().ExpandBy(10));
 			Context->GetAsyncManager()->Start<PCGExGraphTask::FCompoundGraphInsertPoints>(
 				Context->CurrentIO->IOIndex, Context->CurrentIO, Context->CompoundGraph);
 
@@ -81,37 +85,42 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 
 		// Build output points from compound graph
 		const int32 NumCompoundNodes = Context->CompoundGraph->Nodes.Num();
+
 		TArray<FPCGPoint>& MutablePoints = Context->CurrentIO->GetOut()->GetMutablePoints();
-		if (MutablePoints.Num() != NumCompoundNodes) { MutablePoints.SetNum(NumCompoundNodes); }
+
+		auto Initialize = [&]() { MutablePoints.SetNumUninitialized(NumCompoundNodes); };
 
 		auto ProcessNode = [&](const int32 Index)
 		{
 			PCGExGraph::FCompoundNode* CompoundNode = Context->CompoundGraph->Nodes[Index];
+			MutablePoints[Index] = CompoundNode->Point;
 			MutablePoints[Index].Transform.SetLocation(CompoundNode->UpdateCenter(Context->CompoundGraph->PointsCompounds, Context->MainPoints));
 		};
 
-		if (!Context->Process(ProcessNode, NumCompoundNodes)) { return false; }
+		if (!Context->Process(Initialize, ProcessNode, NumCompoundNodes)) { return false; }
 
-		Context->SetAsyncState(PCGExData::State_MergingData);
+		// Initiate merging
+		Context->CompoundPointsBlender->PrepareMerge(Context->CurrentIO, Context->CompoundGraph->PointsCompounds);
+		Context->SetState(PCGExData::State_MergingData);
 	}
 
 	if (Context->IsState(PCGExData::State_MergingData))
 	{
-		PCGEX_WAIT_ASYNC
+		auto MergeCompound = [&](const int32 CompoundIndex)
+		{
+			Context->CompoundPointsBlender->MergeSingle(CompoundIndex, PCGExSettings::GetDistanceSettings(Settings->PointPointIntersectionSettings));
+		};
 
-		const FPCGExPointPointIntersectionSettings* ISettings = const_cast<FPCGExPointPointIntersectionSettings*>(&Settings->PointPointIntersectionSettings);
+		if (!Context->Process(MergeCompound, Context->CompoundGraph->NumNodes())) { return false; }
 
+		Context->CompoundPointsBlender->Write();
+
+		/*
 		// Blend attributes & properties
 		Context->GetAsyncManager()->Start<PCGExDataBlendingTask::FBlendCompoundedIO>(
 			Context->CurrentIO->IOIndex, Context->CurrentIO, Context->CurrentIO, const_cast<FPCGExBlendingSettings*>(&Settings->BlendingSettings),
 			Context->CompoundGraph->PointsCompounds, PCGExSettings::GetDistanceSettings(*ISettings), &Context->GraphMetadataSettings);
-
-		Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork);
-	}
-
-	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
-	{
-		PCGEX_WAIT_ASYNC
+*/
 
 		Context->CurrentIO->Flatten();
 

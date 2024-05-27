@@ -12,6 +12,11 @@
 
 namespace PCGExDataBlending
 {
+	struct FPropertiesBlender;
+}
+
+namespace PCGExDataBlending
+{
 	struct PCGEXTENDEDTOOLKIT_API FAttributeSourceMap
 	{
 		TArray<FPCGMetadataAttributeBase*> Attributes;
@@ -93,6 +98,7 @@ namespace PCGExDataBlending
 
 		PCGExData::FIdxCompoundList* CurrentCompoundList = nullptr;
 		PCGExData::FPointIO* CurrentTargetData = nullptr;
+		FPropertiesBlender* PropertiesBlender = nullptr;
 	};
 
 	class PCGEXTENDEDTOOLKIT_API FPCGExCompoundBlendTask : public FPCGExNonAbandonableTask

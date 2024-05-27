@@ -7,6 +7,7 @@
 #include "Data/Blending/PCGExCompoundBlender.h"
 
 #include "Data/PCGExData.h"
+#include "Data/Blending/PCGExPropertiesBlender.h"
 
 namespace PCGExDataBlending
 {
@@ -21,6 +22,7 @@ namespace PCGExDataBlending
 	FCompoundBlender::~FCompoundBlender()
 	{
 		Sources.Empty();
+		PCGEX_DELETE(PropertiesBlender)
 		PCGEX_DELETE_TARRAY(AttributeSourceMaps)
 	}
 
@@ -95,6 +97,9 @@ namespace PCGExDataBlending
 		CurrentCompoundList = CompoundList;
 		CurrentTargetData = TargetData;
 
+		PCGEX_DELETE(PropertiesBlender)
+		PropertiesBlender = new FPropertiesBlender(*BlendingSettings);
+		
 		CurrentTargetData->CreateOutKeys();
 
 		// Create blending operations
@@ -143,15 +148,42 @@ namespace PCGExDataBlending
 
 		const int32 NumCompounded = Compound->Num();
 
-		//TODO : Point properties merge!
+		int32 ValidCompounds = 0;
+		double TotalWeight = 0;
+
+		// Blend Properties
+
+		FPCGPoint& Target = CurrentTargetData->GetMutablePoint(CompoundIndex);
+		PropertiesBlender->PrepareBlending(Target, Target);
+		
+		for (int k = 0; k < NumCompounded; k++)
+		{
+			uint32 IOIndex;
+			uint32 PtIndex;
+			PCGEx::H64((*Compound)[k], IOIndex, PtIndex);
+
+			const int32* IOIdx = IOIndices.Find(IOIndex);
+			if (!IOIdx) { continue; }
+
+			const double Weight = Compound->Weights[k];
+
+			PropertiesBlender->Blend(Target, Sources[*IOIdx]->GetInPoint(PtIndex), Target, Weight);
+			
+			ValidCompounds++;
+			TotalWeight += Weight;
+		}
+
+		PropertiesBlender->CompleteBlending(Target, ValidCompounds, TotalWeight);
+
+		// Blend Attributes
 
 		for (const FAttributeSourceMap* SrcMap : AttributeSourceMaps)
 		{
 			SrcMap->TargetBlendOp->PrepareOperation(CompoundIndex);
 
-			int32 ValidCompounds = 0;
-			double TotalWeight = 0;
-
+			ValidCompounds = 0;
+			TotalWeight = 0;
+			
 			for (int k = 0; k < NumCompounded; k++)
 			{
 				uint32 IOIndex;

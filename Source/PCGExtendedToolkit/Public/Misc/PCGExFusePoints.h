@@ -13,6 +13,11 @@
 #include "PCGExFusePoints.generated.h"
 
 
+namespace PCGExDataBlending
+{
+	class FCompoundBlender;
+}
+
 namespace PCGExGraph
 {
 	struct FCompoundGraph;
@@ -108,10 +113,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFusePointsContext : public FPCGExPointsProce
 
 	virtual ~FPCGExFusePointsContext() override;
 
-	FPCGExPointPointIntersectionSettings PointPointIntersectionSettings;
-
 	PCGExGraph::FGraphMetadataSettings GraphMetadataSettings;
 	PCGExGraph::FCompoundGraph* CompoundGraph = nullptr;
+	PCGExDataBlending::FCompoundBlender* CompoundPointsBlender = nullptr;
+	
 	bool bPreserveOrder;
 
 	mutable FRWLock PointsLock;
