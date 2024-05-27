@@ -39,7 +39,7 @@ void UPCGExPathfindingGrowPathsSettings::PostEditChangeProperty(FPropertyChanged
 
 int32 PCGExGrow::FGrowth::FindNextGrowthNodeIndex()
 {
-	if (Iteration + 1 > MaxIterations)
+	if (Iteration + 1 > SoftMaxIterations)
 	{
 		NextGrowthIndex = -1;
 		return NextGrowthIndex;
@@ -63,7 +63,7 @@ int32 PCGExGrow::FGrowth::FindNextGrowthNodeIndex()
 			continue;
 		}
 
-		if (const double Score = Context->GetGrowthScore(
+		if (const double Score = GetGrowthScore(
 				CurrentNode, OtherNode, Context->CurrentCluster->Edges[EdgeIndex]);
 			Score < BestScore)
 		{
@@ -95,13 +95,40 @@ bool PCGExGrow::FGrowth::Grow()
 	Iteration++;
 	Path.Add(NextGrowthIndex);
 	LastGrowthIndex = NextGrowthIndex;
+
+	if (Settings->NumIterations == EPCGExGrowthValueSource::VtxAttribute)
+	{
+		if (Settings->NumIterationsUpdateMode == EPCGExGrowthUpdateMode::SetEachIteration)
+		{
+			SoftMaxIterations = Context->NumIterationsGetter->SafeGet(NextNode.PointIndex, MaxIterations);
+		}
+		else if (Settings->NumIterationsUpdateMode == EPCGExGrowthUpdateMode::AddEachIteration)
+		{
+			SoftMaxIterations += Context->NumIterationsGetter->SafeGet(NextNode.PointIndex, 0);
+		}
+	}
+
+	if (Settings->GrowthDirection == EPCGExGrowthValueSource::VtxAttribute)
+	{
+		if (Settings->GrowthDirectionUpdateMode == EPCGExGrowthUpdateMode::SetEachIteration)
+		{
+			GrowthDirection = Context->GrowthDirectionGetter->SafeGet(NextNode.PointIndex, GrowthDirection);
+		}
+		else if (Settings->GrowthDirectionUpdateMode == EPCGExGrowthUpdateMode::AddEachIteration)
+		{
+			GrowthDirection = (GrowthDirection + Context->GrowthDirectionGetter->SafeGet(NextNode.PointIndex, GrowthDirection)).GetSafeNormal();
+		}
+	}
+
+	GoalNode->Position = NextNode.Position + GrowthDirection * 10000;
+
 	return true;
 }
 
 void PCGExGrow::FGrowth::Write()
 {
-	PCGExData::FPointIO& VtxPoints = *Context->CurrentIO;
-	PCGExData::FPointIO& PathPoints = Context->OutputPaths->Emplace_GetRef(VtxPoints.GetIn(), PCGExData::EInit::NewOutput);
+	const PCGExData::FPointIO& VtxPoints = *Context->CurrentIO;
+	const PCGExData::FPointIO& PathPoints = Context->OutputPaths->Emplace_GetRef(VtxPoints.GetIn(), PCGExData::EInit::NewOutput);
 	UPCGPointData* OutData = PathPoints.GetOut();
 
 	PCGExGraph::CleanupVtxData(&PathPoints);
@@ -117,6 +144,21 @@ void PCGExGrow::FGrowth::Write()
 	}
 
 	PathPoints.Tags->Append(VtxPoints.Tags);
+}
+
+void PCGExGrow::FGrowth::Init()
+{
+	SeedNode = &Context->CurrentCluster->Nodes[LastGrowthIndex];
+	GoalNode = new PCGExCluster::FNode();
+	GoalNode->Position = SeedNode->Position + GrowthDirection * 100;
+	Metrics.Reset(SeedNode->Position);
+}
+
+double PCGExGrow::FGrowth::GetGrowthScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& To, const PCGExGraph::FIndexedEdge& Edge) const
+{
+	return Context->Heuristics->GetEdgeScore(From, To, Edge, *SeedNode, *GoalNode) +
+		Context->HeuristicsModifiers->GetScore(To.PointIndex, Edge.PointIndex) +
+		(Context->GlobalExtraWeights ? Context->GlobalExtraWeights->GetExtraWeight(From.NodeIndex, Edge.EdgeIndex) : 0);
 }
 
 TArray<FPCGPinProperties> UPCGExPathfindingGrowPathsSettings::InputPinProperties() const
@@ -142,16 +184,6 @@ TArray<FPCGPinProperties> UPCGExPathfindingGrowPathsSettings::OutputPinPropertie
 #endif
 
 	return PinProperties;
-}
-
-double FPCGExPathfindingGrowPathsContext::GetGrowthScore(
-	const PCGExCluster::FNode& From,
-	const PCGExCluster::FNode& To,
-	const PCGExGraph::FIndexedEdge& Edge) const
-{
-	return Heuristics->GetEdgeScore(From, To, Edge, From, To) +
-		HeuristicsModifiers->GetScore(To.PointIndex, Edge.PointIndex) +
-		(GlobalExtraWeights ? GlobalExtraWeights->GetExtraWeight(From.NodeIndex, Edge.EdgeIndex) : 0);
 }
 
 PCGEX_INITIALIZE_ELEMENT(PathfindingGrowPaths)
@@ -410,11 +442,8 @@ bool FPCGExPathfindingGrowPathsElement::ExecuteInternal(FPCGContext* InContext) 
 
 			for (int j = 0; j < GrowthNumBranches; j++)
 			{
-				PCGExGrow::FGrowth* NewGrowth = new PCGExGrow::FGrowth(Context, Settings, NumIterations, Node.NodeIndex);
-
+				PCGExGrow::FGrowth* NewGrowth = new PCGExGrow::FGrowth(Context, Settings, NumIterations, Node.NodeIndex, GrowthDirection);
 				NewGrowth->MaxDistance = GrowthMaxDistance;
-				NewGrowth->GrowthDirection = GrowthDirection;
-				NewGrowth->Metrics.Reset(Node.Position);
 
 				if (!(NewGrowth->FindNextGrowthNodeIndex() != -1 && NewGrowth->Grow()))
 				{

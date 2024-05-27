@@ -44,8 +44,11 @@ namespace PCGExGrow
 	public:
 		const FPCGExPathfindingGrowPathsContext* Context = nullptr;
 		const UPCGExPathfindingGrowPathsSettings* Settings = nullptr;
+		const PCGExCluster::FNode* SeedNode = nullptr;
+		PCGExCluster::FNode* GoalNode = nullptr;
 
 		int32 MaxIterations = 0;
+		int32 SoftMaxIterations = 0;
 		int32 Iteration = 0;
 		int32 LastGrowthIndex = 0;
 		int32 NextGrowthIndex = 0;
@@ -60,17 +63,21 @@ namespace PCGExGrow
 		FGrowth(
 			const FPCGExPathfindingGrowPathsContext* InContext,
 			const UPCGExPathfindingGrowPathsSettings* InSettings,
-			int32 InMaxIterations,
-			int32 InLastGrowthIndex) :
+			const int32 InMaxIterations,
+			const int32 InLastGrowthIndex,
+			const FVector& InGrowthDirection) :
 			Context(InContext),
 			Settings(InSettings),
 			MaxIterations(InMaxIterations),
-			LastGrowthIndex(InLastGrowthIndex)
+			LastGrowthIndex(InLastGrowthIndex),
+			GrowthDirection(InGrowthDirection)
 		{
+			SoftMaxIterations = InMaxIterations;
 			Path.Reserve(MaxIterations);
 			Path.Add(InLastGrowthIndex);
+			Init();
 		}
-
+		
 		int32 FindNextGrowthNodeIndex();
 		bool Grow(); // return false if too far or couldn't connect for [reasons]
 		void Write();
@@ -78,7 +85,15 @@ namespace PCGExGrow
 		~FGrowth()
 		{
 			Path.Empty();
+			PCGEX_DELETE(GoalNode)
 		}
+
+	protected:
+		void Init();
+		double GetGrowthScore(
+			const PCGExCluster::FNode& From,
+			const PCGExCluster::FNode& To,
+			const PCGExGraph::FIndexedEdge& Edge) const;
 	};
 }
 
@@ -136,7 +151,7 @@ public:
 
 
 	/** How to update the number of iteration for each seed. \n Note: No matter what is selected, will never exceed the Max iteration. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Growth")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Growth", meta = (PCG_Overridable, EditCondition="NumIterations != EPCGExGrowthValueSource::Constant && NumIterations == EPCGExGrowthValueSource::VtxAttribute", EditConditionHides))
 	EPCGExGrowthUpdateMode NumIterationsUpdateMode = EPCGExGrowthUpdateMode::Once;
 
 	/** The maximum number of growth started by a given seed. */
@@ -147,22 +162,19 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Growth")
 	EPCGExMeanMeasure SeedNumBranchesMean = EPCGExMeanMeasure::Absolute;
 
-	/** Num branches attribute name. (will be broadcasted to int32) */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Growth", meta = (PCG_Overridable, EditCondition="SeedNumBranches != EPCGExGrowthValueSource::Constant", EditConditionHides))
-	FPCGAttributePropertyInputSelector NumBranchesAttribute;
-
 	/** Num branches constant */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Growth", meta = (PCG_Overridable, EditCondition="SeedNumBranches == EPCGExGrowthValueSource::Constant", EditConditionHides))
 	int32 NumBranchesConstant = 1;
+	
+	/** Num branches attribute name. (will be broadcasted to int32) */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Growth", meta = (PCG_Overridable, EditCondition="SeedNumBranches != EPCGExGrowthValueSource::Constant", EditConditionHides))
+	FPCGAttributePropertyInputSelector NumBranchesAttribute;
+	
 
 
 	/** The maximum number of growth iterations for a given seed. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Growth")
 	EPCGExGrowthValueSource GrowthDirection = EPCGExGrowthValueSource::Constant;
-
-	/** How to update the number of iteration for each seed. \n Note: No matter what is selected, will never exceed the Max iteration. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Growth")
-	EPCGExGrowthUpdateMode GrowthDirectionUpdateMode = EPCGExGrowthUpdateMode::Once;
 
 	/** Growth direction attribute name. (will be broadcasted to a FVector) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Growth", meta = (PCG_Overridable, EditCondition="GrowthDirection != EPCGExGrowthValueSource::Constant", EditConditionHides))
@@ -172,6 +184,11 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Growth", meta = (PCG_Overridable, EditCondition="GrowthDirection == EPCGExGrowthValueSource::Constant", EditConditionHides))
 	FVector GrowthDirectionConstant = FVector::UpVector;
 
+	/** How to update the number of iteration for each seed. \n Note: No matter what is selected, will never exceed the Max iteration. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Growth")
+	EPCGExGrowthUpdateMode GrowthDirectionUpdateMode = EPCGExGrowthUpdateMode::Once;
+
+	
 	/** The maximum growth distance for a given seed. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Growth")
 	EPCGExGrowthValueSource GrowthMaxDistance = EPCGExGrowthValueSource::Constant;
@@ -246,11 +263,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingGrowPathsContext : public FPCGExE
 
 	TArray<PCGExGrow::FGrowth*> Growths;
 	TArray<PCGExGrow::FGrowth*> QueuedGrowths;
-
-	double GetGrowthScore(
-		const PCGExCluster::FNode& From,
-		const PCGExCluster::FNode& To,
-		const PCGExGraph::FIndexedEdge& Edge) const;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExPathfindingGrowPathsElement : public FPCGExEdgesProcessorElement
