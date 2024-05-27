@@ -50,6 +50,9 @@ FPCGExFindContoursContext::~FPCGExFindContoursContext()
 	PCGEX_DELETE(Seeds)
 	PCGEX_DELETE(Paths)
 
+	PCGEX_DELETE_TARRAY(SeedTagGetters)
+	PCGEX_DELETE_TARRAY(SeedForwardHandlers)
+
 	for (TArray<FVector>* Array : ProjectedSeeds)
 	{
 		Array->Empty();
@@ -74,6 +77,17 @@ bool FPCGExFindContoursElement::Boot(FPCGContext* InContext) const
 		TArray<FVector>* SeedsArray = new TArray<FVector>();
 		Context->ProjectedSeeds.Add(SeedsArray);
 		Settings->ProjectionSettings.Project(SeedIO->GetIn()->GetPoints(), SeedsArray);
+
+		if (Settings->bUseSeedAttributeToTagPath)
+		{
+			PCGEx::FLocalToStringGetter* NewTagGetter = new PCGEx::FLocalToStringGetter();
+			NewTagGetter->Capture(Settings->SeedTagAttribute);
+			NewTagGetter->SoftGrab(*SeedIO);
+			Context->SeedTagGetters.Add(NewTagGetter);
+		}
+
+		PCGExDataBlending::FDataForwardHandler* NewForwardHandler = new PCGExDataBlending::FDataForwardHandler(&Settings->SeedForwardAttributes, SeedIO);
+		Context->SeedForwardHandlers.Add(NewForwardHandler);
 	}
 
 	Context->Paths = new PCGExData::FPointIOCollection();
@@ -176,12 +190,12 @@ bool FPCGExFindContourTask::ExecuteTask()
 	}
 
 	const FVector SeedPosition = Cluster->Nodes[StartNodeIndex].Position;
-	if(Settings->SeedPicking.MaxDistance > 0 && FVector::Distance(SeedPosition, Guide) > Settings->SeedPicking.MaxDistance)
+	if (!Settings->SeedPicking.WithinDistance(SeedPosition, Guide))
 	{
 		// Fail. Not within radius.
 		return false;
 	}
-	
+
 	const FVector InitialDir = PCGExMath::GetNormal(SeedPosition, Guide, Guide + FVector::UpVector);
 	const int32 NextToStartIndex = Cluster->FindClosestNeighborInDirection(StartNodeIndex, InitialDir, 2);
 
@@ -230,6 +244,17 @@ bool FPCGExFindContourTask::ExecuteTask()
 	const TArray<FPCGPoint>& OriginPoints = PointIO->GetIn()->GetPoints();
 	MutablePoints.SetNumUninitialized(Path.Num());
 	for (int i = 0; i < Path.Num(); i++) { MutablePoints[i] = OriginPoints[Cluster->Nodes[Path[i]].PointIndex]; }
+
+	if (Settings->bUseSeedAttributeToTagPath)
+	{
+		PCGEx::FLocalToStringGetter* TagGetter = Context->SeedTagGetters[TaskIndex];
+		if (TagGetter->bEnabled)
+		{
+			for (int i = 0; i < Guides.Num(); i++) { PointIO->Tags->RawTags.Add(TagGetter->SoftGet(Context->Seeds->Pairs[TaskIndex]->GetInPoint(i), TEXT(""))); }
+		}
+
+		Context->SeedForwardHandlers[TaskIndex]->Forward(0, PointIO);
+	}
 
 	return true;
 }

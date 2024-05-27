@@ -9,8 +9,7 @@ void UPCGExHeuristicSteepness::PrepareForData(PCGExCluster::FCluster* InCluster)
 {
 	UpwardVector = UpVector.GetSafeNormal();
 
-	if (!SteepnessScoreCurve || SteepnessScoreCurve.IsNull()) { SteepnessScoreCurveObj = TSoftObjectPtr<UCurveFloat>(PCGEx::WeightDistributionLinear).LoadSynchronous(); }
-	else { SteepnessScoreCurveObj = SteepnessScoreCurve.LoadSynchronous(); }
+	PCGEX_LOAD_SOFTOBJECT(UCurveFloat, SteepnessScoreCurve, SteepnessScoreCurveObj, PCGEx::WeightDistributionLinear)
 
 	ReverseWeight = 1 / ReferenceWeight;
 

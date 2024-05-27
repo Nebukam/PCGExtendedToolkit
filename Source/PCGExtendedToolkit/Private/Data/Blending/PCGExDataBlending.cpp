@@ -11,6 +11,36 @@
 
 namespace PCGExDataBlending
 {
+	FDataForwardHandler::~FDataForwardHandler()
+	{
+	}
+
+	FDataForwardHandler::FDataForwardHandler(const FPCGExForwardSettings* InSettings, const PCGExData::FPointIO* InSourceIO):
+		Settings(InSettings), SourceIO(InSourceIO)
+	{
+		if (!Settings->bEnabled) { return; }
+
+		PCGEx::FAttributeIdentity::Get(InSourceIO->GetIn()->Metadata, Identities);
+		Settings->Filter(Identities);
+	}
+
+	void FDataForwardHandler::Forward(int32 SourceIndex, PCGExData::FPointIO* Target)
+	{
+		if (Identities.IsEmpty()) { return; }
+		for (const PCGEx::FAttributeIdentity& Identity : Identities)
+		{
+			PCGMetadataAttribute::CallbackWithRightType(
+				static_cast<uint16>(Identity.UnderlyingType), [&](auto DummyValue)
+				{
+					using T = decltype(DummyValue);
+					const FPCGMetadataAttribute<T>* SourceAtt = SourceIO->GetIn()->Metadata->GetConstTypedAttribute<T>(Identity.Name);
+					FPCGMetadataAttribute<T>* Mark = Target->GetOut()->Metadata->FindOrCreateAttribute<T>(Identity.Name, SourceAtt->GetValueFromItemKey(PCGInvalidEntryKey), SourceAtt->AllowsInterpolation(), true, true);
+					Mark->ClearEntries();
+					Mark->SetDefaultValue(SourceAtt->GetValueFromItemKey(SourceIO->GetInPoint(SourceIndex).MetadataEntry));
+				});
+		}
+	}
+
 	FDataBlendingOperationBase::~FDataBlendingOperationBase()
 	{
 		PCGEX_DELETE(InitializedIndices)

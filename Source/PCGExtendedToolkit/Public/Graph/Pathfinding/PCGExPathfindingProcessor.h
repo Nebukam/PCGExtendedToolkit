@@ -73,7 +73,7 @@ public:
 	/** Drive how a goal selects a node. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Node Picking", meta=(PCG_Overridable))
 	FPCGExNodeSelectionSettings GoalPicking;
-	
+
 	/** Search algorithm. */
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta = (PCG_Overridable, NoResetToDefault, ShowOnlyInnerProperties))
 	TObjectPtr<UPCGExSearchOperation> SearchAlgorithm;
@@ -98,22 +98,30 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Extra Weighting", meta=(EditCondition="bWeightUpVisited"))
 	double VisitedEdgesWeightFactor = 1;
 
-	/** Use a seed attribute value to tag output paths. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging")
+	/** Use a Seed attribute value to tag output paths. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding")
 	bool bUseSeedAttributeToTagPath;
 
-	/** Output various statistics. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(EditCondition="bUseSeedAttributeToTagPath"))
+	/** Which Seed attribute to use as tag. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(EditCondition="bUseSeedAttributeToTagPath"))
 	FPCGAttributePropertyInputSelector SeedTagAttribute;
 
-	/** Use a seed attribute value to tag output paths. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging")
+	/** Which Seed attributes to forward on paths. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding")
+	FPCGExForwardSettings SeedForwardAttributes;
+
+	/** Use a Goal attribute value to tag output paths. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding")
 	bool bUseGoalAttributeToTagPath;
 
-	/** Output various statistics. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(EditCondition="bUseGoalAttributeToTagPath"))
+	/** Which Goal attribute to use as tag. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(EditCondition="bUseGoalAttributeToTagPath"))
 	FPCGAttributePropertyInputSelector GoalTagAttribute;
-	
+
+	/** Which Goal attributes to forward on paths. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding")
+	FPCGExForwardSettings GoalForwardAttributes;
+
 	/** Output various statistics. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Advanced")
 	FPCGExPathStatistics Statistics;
@@ -144,6 +152,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingProcessorContext : public FPCGExE
 
 	PCGEx::FLocalToStringGetter* SeedTagValueGetter = nullptr;
 	PCGEx::FLocalToStringGetter* GoalTagValueGetter = nullptr;
+
+	PCGExDataBlending::FDataForwardHandler* SeedForwardHandler = nullptr;
+	PCGExDataBlending::FDataForwardHandler* GoalForwardHandler = nullptr;
 	//UPCGExSubPointsBlendOperation* Blending = nullptr;
 
 	bool bAddSeedToPath = true;

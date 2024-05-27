@@ -35,9 +35,9 @@ MACRO(int32, Seed, Integer32,Seed)
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Blending Filter"))
 enum class EPCGExBlendingFilter : uint8
 {
-	All UMETA(DisplayName = "Blend All", ToolTip="Blend all attributes"),
-	Exclude UMETA(DisplayName = "Exclude", ToolTip="Exclude attributes listed in filters and blend all others"),
-	Include UMETA(DisplayName = "Include", ToolTip="Only blend attributes listed in filters"),
+	All UMETA(DisplayName = "All", ToolTip="All attributes"),
+	Exclude UMETA(DisplayName = "Exclude", ToolTip="Exclude listed attributes"),
+	Include UMETA(DisplayName = "Include", ToolTip="Only listed attributes"),
 };
 
 namespace PCGExGraph
@@ -65,6 +65,54 @@ enum class EPCGExDataBlendingType : uint8
 	Sum         = 6 UMETA(DisplayName = "Sum", ToolTip = "Sum of all the data"),
 	WeightedSum = 7 UMETA(DisplayName = "Weighted Sum", ToolTip = "Sum of all the data, weighted"),
 	Lerp        = 8 UMETA(DisplayName = "Lerp", ToolTip="Uses weight as lerp. If the results are unexpected, try 'Weight' instead."),
+};
+
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExForwardSettings
+{
+	GENERATED_BODY()
+
+	FPCGExForwardSettings()
+	{
+	}
+
+	/** Is forwarding enabled. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	bool bEnabled = false;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bEnabled"))
+	EPCGExBlendingFilter FilterAttributes = EPCGExBlendingFilter::Include;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bEnabled && FilterAttributes!=EPCGExBlendingFilter::All", EditConditionHides))
+	TArray<FName> FilteredAttributes;
+
+	bool CanProcess(const FName AttributeName) const
+	{
+		switch (FilterAttributes)
+		{
+		default: ;
+		case EPCGExBlendingFilter::All:
+			return true;
+		case EPCGExBlendingFilter::Exclude:
+			return !FilteredAttributes.Contains(AttributeName);
+		case EPCGExBlendingFilter::Include:
+			return FilteredAttributes.Contains(AttributeName);
+		}
+	}
+
+	void Filter(TArray<PCGEx::FAttributeIdentity>& Identities) const
+	{
+		if (FilterAttributes == EPCGExBlendingFilter::All) { return; }
+		for (int i = 0; i < Identities.Num(); i++)
+		{
+			if (!CanProcess(Identities[i].Name))
+			{
+				Identities.RemoveAt(i);
+				i--;
+			}
+		}
+	}
+	
 };
 
 USTRUCT(BlueprintType)
@@ -194,6 +242,19 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBlendingSettings
 
 namespace PCGExDataBlending
 {
+
+	class PCGEXTENDEDTOOLKIT_API FDataForwardHandler
+	{
+		const FPCGExForwardSettings* Settings = nullptr;
+		const PCGExData::FPointIO* SourceIO = nullptr;
+		TArray<PCGEx::FAttributeIdentity> Identities;
+	public:
+		~FDataForwardHandler();
+		explicit FDataForwardHandler(const FPCGExForwardSettings* InSettings, const PCGExData::FPointIO* InSourceIO);
+		void Forward(int32 SourceIndex, PCGExData::FPointIO* Target);
+	};
+
+	
 	/**
 	 * 
 	 */
@@ -404,7 +465,6 @@ namespace PCGExDataBlending
 	template <typename T>
 	class PCGEXTENDEDTOOLKIT_API FDataBlendingOperationWithScratchCheck : public FDataBlendingOperation<T>
 	{
-
 		virtual void DoValuesRangeOperation(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, TArrayView<T>& Values, const TArrayView<double>& Weights) const
 		{
 			if (!this->bInterpolationAllowed && this->GetIsInterpolation())
@@ -423,14 +483,14 @@ namespace PCGExDataBlending
 					this->InitializedIndices->Add(PrimaryReadIndex);
 					A = B;
 				}
-				
+
 				for (int i = 0; i < Values.Num(); i++)
-				{					
+				{
 					Values[i] = this->SingleOperation(A, B, Weights[i]);
 				}
 			}
 		}
-		
+
 		virtual void DoOperation(const int32 PrimaryReadIndex, const FPCGPoint& SrcPoint, const int32 WriteIndex, const double Weight = 0) const override
 		{
 			const T A = (*this->Writer)[PrimaryReadIndex];

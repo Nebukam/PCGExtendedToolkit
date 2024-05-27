@@ -90,9 +90,12 @@ FPCGExPathfindingProcessorContext::~FPCGExPathfindingProcessorContext()
 	PCGEX_DELETE(SeedsPoints)
 	PCGEX_DELETE(GoalsPoints)
 	PCGEX_DELETE(OutputPaths)
-	
+
 	PCGEX_DELETE(SeedTagValueGetter)
 	PCGEX_DELETE(GoalTagValueGetter)
+
+	PCGEX_DELETE(SeedForwardHandler)
+	PCGEX_DELETE(GoalForwardHandler)
 
 	ProjectionSettings.Cleanup();
 }
@@ -140,7 +143,7 @@ bool FPCGExPathfindingProcessorElement::Boot(FPCGContext* InContext) const
 			return false;
 		}
 	}
-	
+
 	if (Settings->bUseGoalAttributeToTagPath)
 	{
 		Context->GoalTagValueGetter = new PCGEx::FLocalToStringGetter();
@@ -151,8 +154,11 @@ bool FPCGExPathfindingProcessorElement::Boot(FPCGContext* InContext) const
 			return false;
 		}
 	}
-	
+
 	PCGEX_FWD(ProjectionSettings)
+
+	Context->SeedForwardHandler = new PCGExDataBlending::FDataForwardHandler(&Settings->SeedForwardAttributes, Context->SeedsPoints);
+	Context->GoalForwardHandler = new PCGExDataBlending::FDataForwardHandler(&Settings->GoalForwardAttributes, Context->GoalsPoints);
 
 	return true;
 }

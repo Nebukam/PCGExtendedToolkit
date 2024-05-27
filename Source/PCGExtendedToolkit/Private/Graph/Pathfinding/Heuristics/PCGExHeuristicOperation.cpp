@@ -8,8 +8,8 @@ void UPCGExHeuristicOperation::PrepareForData(PCGExCluster::FCluster* InCluster)
 {
 	Cluster = InCluster;
 
-	if (!ScoreCurve || ScoreCurve.IsNull()) { ScoreCurveObj = TSoftObjectPtr<UCurveFloat>(PCGEx::WeightDistributionLinear).LoadSynchronous(); }
-	else { ScoreCurveObj = ScoreCurve.LoadSynchronous(); }
+	PCGEX_LOAD_SOFTOBJECT(UCurveFloat, ScoreCurve, ScoreCurveObj, PCGEx::WeightDistributionLinear)
+
 }
 
 double UPCGExHeuristicOperation::GetGlobalScore(

@@ -143,7 +143,7 @@ bool PCGExGrow::FGrowth::Grow()
 void PCGExGrow::FGrowth::Write()
 {
 	const PCGExData::FPointIO& VtxPoints = *Context->CurrentIO;
-	const PCGExData::FPointIO& PathPoints = Context->OutputPaths->Emplace_GetRef(VtxPoints.GetIn(), PCGExData::EInit::NewOutput);
+	PCGExData::FPointIO& PathPoints = Context->OutputPaths->Emplace_GetRef(VtxPoints.GetIn(), PCGExData::EInit::NewOutput);
 	UPCGPointData* OutData = PathPoints.GetOut();
 
 	PCGExGraph::CleanupVtxData(&PathPoints);
@@ -165,6 +165,9 @@ void PCGExGrow::FGrowth::Write()
 	{
 		PathPoints.Tags->RawTags.Add(Context->TagValueGetter->SoftGet(Context->SeedsPoints->GetInPoint(SeedPointIndex), TEXT("")));
 	}
+
+	Context->SeedForwardHandler->Forward(SeedPointIndex, &PathPoints);
+	
 }
 
 void PCGExGrow::FGrowth::Init()
@@ -292,6 +295,12 @@ bool FPCGExPathfindingGrowPathsElement::Boot(FPCGContext* InContext) const
 		PCGEX_GROWTH_GRAB_SINGLE_FIELD(GrowthMaxDistance, *Context->SeedsPoints)
 	}
 
+	Context->GrowthStopGetter = new PCGEx::FLocalBoolGetter();
+	Context->GrowthStopGetter->Capture(Settings->GrowthStopAttribute);
+
+	Context->NoGrowthGetter = new PCGEx::FLocalBoolGetter();
+	Context->NoGrowthGetter->Capture(Settings->NoGrowthAttribute);
+
 	if (Settings->bUseSeedAttributeToTagPath)
 	{
 		Context->TagValueGetter = new PCGEx::FLocalToStringGetter();
@@ -302,12 +311,8 @@ bool FPCGExPathfindingGrowPathsElement::Boot(FPCGContext* InContext) const
 			return false;
 		}
 	}
-
-	Context->GrowthStopGetter = new PCGEx::FLocalBoolGetter();
-	Context->GrowthStopGetter->Capture(Settings->GrowthStopAttribute);
-
-	Context->NoGrowthGetter = new PCGEx::FLocalBoolGetter();
-	Context->NoGrowthGetter->Capture(Settings->NoGrowthAttribute);
+	
+	Context->SeedForwardHandler = new PCGExDataBlending::FDataForwardHandler(&Settings->SeedForwardAttributes, Context->SeedsPoints);
 
 	return true;
 }
@@ -554,64 +559,6 @@ bool FPCGExPathfindingGrowPathsElement::ExecuteInternal(FPCGContext* InContext) 
 	return Context->IsDone();
 }
 
-/*
-bool FPCGExPlotClusterPathTask::ExecuteTask()
-{
-	const FPCGExPathfindingGrowPathsContext* Context = Manager->GetContext<FPCGExPathfindingGrowPathsContext>();
-
-	const PCGExCluster::FCluster* Cluster = Context->CurrentCluster;
-	TArray<int32> Path;
-
-	PCGExPathfinding::FExtraWeights* ExtraWeights = GlobalExtraWeights;
-	if (Context->bWeightUpVisited && !ExtraWeights)
-	{
-		ExtraWeights = new PCGExPathfinding::FExtraWeights(
-			Cluster,
-			Context->VisitedPointsWeightFactor,
-			Context->VisitedEdgesWeightFactor);
-	}
-
-	const int32 NumPlots = PointIO->GetNum();
-
-	for (int i = 1; i < NumPlots; i++)
-	{
-		FVector SeedPosition = PointIO->GetInPoint(i - 1).Transform.GetLocation();
-		FVector GoalPosition = PointIO->GetInPoint(i).Transform.GetLocation();
-
-		SeedPosition = GoalPosition;
-	}
-
-	PCGExData::FPointIO& PathPoints = Context->OutputPaths->Emplace_GetRef(Context->GetCurrentIn(), PCGExData::EInit::NewOutput);
-	UPCGPointData* OutData = PathPoints.GetOut();
-
-	PCGExGraph::CleanupVtxData(&PathPoints);
-
-	TArray<FPCGPoint>& MutablePoints = OutData->GetMutablePoints();
-	const TArray<FPCGPoint>& InPoints = Context->GetCurrentIn()->GetPoints();
-
-	MutablePoints.Reserve(Path.Num() + 2);
-
-	int32 LastIndex = -1;
-	for (const int32 VtxIndex : Path)
-	{
-		if (VtxIndex < 0) // Plot point
-		{
-			MutablePoints.Add_GetRef(PointIO->GetInPoint((VtxIndex * -1) - 1)).MetadataEntry = PCGInvalidEntryKey;
-			continue;
-		}
-
-		if (LastIndex == VtxIndex) { continue; } //Skip duplicates
-		MutablePoints.Add(InPoints[Cluster->Nodes[VtxIndex].PointIndex]);
-		LastIndex = VtxIndex;
-	}
-
-	if (ExtraWeights != GlobalExtraWeights) { PCGEX_DELETE(ExtraWeights) }
-
-	PathPoints.Tags->Append(PointIO->Tags);
-
-	return true;
-}
-*/
 
 #undef PCGEX_GROWTH_GRAB_SINGLE_FIELD
 #undef PCGEX_GROWTH_GRAB_VECTOR_FIELD

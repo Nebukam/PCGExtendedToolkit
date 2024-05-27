@@ -248,6 +248,9 @@ bool FSampleClusterPathTask::ExecuteTask()
 	if (Settings->bUseSeedAttributeToTagPath) { PathPoints.Tags->RawTags.Add(Context->SeedTagValueGetter->SoftGet(Seed, TEXT(""))); }
 	if (Settings->bUseGoalAttributeToTagPath) { PathPoints.Tags->RawTags.Add(Context->GoalTagValueGetter->SoftGet(Goal, TEXT(""))); }
 
+	Context->SeedForwardHandler->Forward(Query->SeedIndex, &PathPoints);
+	Context->GoalForwardHandler->Forward(Query->GoalIndex, &PathPoints);
+	
 	PathPoints.Flatten();
 
 	return true;

@@ -54,7 +54,7 @@ public:
 	/** Drive how a seed selects a node. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGExNodeSelectionSettings SeedPicking;
-	
+
 	/** Drives how the seed nodes are selected within the graph. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExClusterSearchOrientationMode OrientationMode = EPCGExClusterSearchOrientationMode::CW;
@@ -62,6 +62,18 @@ public:
 	/** Projection settings. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExGeo2DProjectionSettings ProjectionSettings;
+
+	/** Use a seed attribute value to tag output paths. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding")
+	bool bUseSeedAttributeToTagPath;
+
+	/** Which Seed attribute to use as tag. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(EditCondition="bUseSeedAttributeToTagPath"))
+	FPCGAttributePropertyInputSelector SeedTagAttribute;
+
+	/** Which Seed attributes to forward on paths. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding")
+	FPCGExForwardSettings SeedForwardAttributes;
 
 private:
 	friend class FPCGExFindContoursElement;
@@ -76,6 +88,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFindContoursContext : public FPCGExEdgesProc
 
 	PCGExData::FPointIOCollection* Seeds;
 	PCGExData::FPointIOCollection* Paths;
+
+	TArray<PCGEx::FLocalToStringGetter*> SeedTagGetters;
+	TArray<PCGExDataBlending::FDataForwardHandler*> SeedForwardHandlers;
 
 	TArray<TArray<FVector>*> ProjectedSeeds;
 };

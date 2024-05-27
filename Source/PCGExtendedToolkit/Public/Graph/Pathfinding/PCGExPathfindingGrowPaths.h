@@ -252,15 +252,18 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Extra Weighting", meta=(EditCondition="bWeightUpVisited"))
 	double VisitedStopThreshold = -1;
 
-	/** Use a seed attribute value to tag output paths. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging")
+	/** Use a Seed attribute value to tag output paths. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding")
 	bool bUseSeedAttributeToTagPath;
 
-	/** Output various statistics. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(EditCondition="bUseSeedAttributeToTagPath"))
+	/** Which Seed attribute to use as tag. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(EditCondition="bUseSeedAttributeToTagPath"))
 	FPCGAttributePropertyInputSelector SeedTagAttribute;
 
-
+	/** Which Seed attributes to forward on paths. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding")
+	FPCGExForwardSettings SeedForwardAttributes;
+	
 	/** Output various statistics. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Advanced")
 	FPCGExPathStatistics Statistics;
@@ -287,7 +290,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingGrowPathsContext : public FPCGExE
 	PCGEx::FLocalSingleFieldGetter* NumIterationsGetter = nullptr;
 	PCGEx::FLocalVectorGetter* GrowthDirectionGetter = nullptr;
 	PCGEx::FLocalSingleFieldGetter* GrowthMaxDistanceGetter = nullptr;
-	PCGEx::FLocalToStringGetter* TagValueGetter = nullptr;
+	
 
 	PCGEx::FLocalBoolGetter* GrowthStopGetter = nullptr;
 	PCGEx::FLocalBoolGetter* NoGrowthGetter = nullptr;
@@ -300,6 +303,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingGrowPathsContext : public FPCGExE
 
 	TArray<PCGExGrow::FGrowth*> Growths;
 	TArray<PCGExGrow::FGrowth*> QueuedGrowths;
+	
+	PCGEx::FLocalToStringGetter* TagValueGetter = nullptr;
+	PCGExDataBlending::FDataForwardHandler* SeedForwardHandler = nullptr;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExPathfindingGrowPathsElement : public FPCGExEdgesProcessorElement
