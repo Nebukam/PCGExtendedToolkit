@@ -21,7 +21,7 @@ bool UPCGExSearchAStar::FindPath(
 	if (!SeedSelection->WithinDistance(SeedNode.Position, SeedPosition)) { return false; }
 
 	const PCGExCluster::FNode& GoalNode = Cluster->Nodes[Cluster->FindClosestNode(GoalPosition, GoalSelection->PickingMethod, 1)];
-	if (GoalSelection->WithinDistance(GoalNode.Position, GoalPosition)) { return false; }
+	if (!GoalSelection->WithinDistance(GoalNode.Position, GoalPosition)) { return false; }
 
 	if (SeedNode.NodeIndex == GoalNode.NodeIndex) { return false; }
 

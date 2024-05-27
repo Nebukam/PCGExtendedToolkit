@@ -24,7 +24,7 @@ bool UPCGExSearchContours::FindPath(
 	if (StartNodeIndex == EndNodeIndex || StartNodeIndex == -1 || EndNodeIndex == -1) { return false; }
 
 	if (!SeedSelection->WithinDistance(Cluster->Nodes[StartNodeIndex].Position, SeedPosition)) { return false; }
-	if (GoalSelection->WithinDistance(Cluster->Nodes[EndNodeIndex].Position, GoalPosition)) { return false; }
+	if (!GoalSelection->WithinDistance(Cluster->Nodes[EndNodeIndex].Position, GoalPosition)) { return false; }
 
 	TRACE_CPUPROFILER_EVENT_SCOPE(UPCGExSearchContours::FindContours);
 
