@@ -34,9 +34,11 @@ namespace PCGExDataBlending
 				{
 					using T = decltype(DummyValue);
 					const FPCGMetadataAttribute<T>* SourceAtt = SourceIO->GetIn()->Metadata->GetConstTypedAttribute<T>(Identity.Name);
-					FPCGMetadataAttribute<T>* Mark = Target->GetOut()->Metadata->FindOrCreateAttribute<T>(Identity.Name, SourceAtt->GetValueFromItemKey(PCGInvalidEntryKey), SourceAtt->AllowsInterpolation(), true, true);
-					Mark->ClearEntries();
-					Mark->SetDefaultValue(SourceAtt->GetValueFromItemKey(SourceIO->GetInPoint(SourceIndex).MetadataEntry));
+					Target->GetOut()->Metadata->DeleteAttribute(Identity.Name);
+					FPCGMetadataAttribute<T>* Mark = Target->GetOut()->Metadata->FindOrCreateAttribute<T>(
+						Identity.Name,
+						SourceAtt->GetValueFromItemKey(SourceIO->GetInPoint(SourceIndex).MetadataEntry),
+						SourceAtt->AllowsInterpolation(), true, true);
 				});
 		}
 	}
