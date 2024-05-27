@@ -128,8 +128,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExRemapSettings
 
 	void LoadCurve()
 	{
-		if (!RemapCurve || RemapCurve.IsNull()) { RemapCurveObj = TSoftObjectPtr<UCurveFloat>(PCGEx::WeightDistributionLinear).LoadSynchronous(); }
-		else { RemapCurveObj = RemapCurve.LoadSynchronous(); }
+		PCGEX_LOAD_SOFTOBJECT(UCurveFloat, RemapCurve, RemapCurveObj, PCGEx::WeightDistributionLinear)
 	}
 
 	double GetRemappedValue(const double Value) const

@@ -201,8 +201,7 @@ public:
 
 	void LoadCurve()
 	{
-		if (!DotOverDistance || DotOverDistance.IsNull()) { DotOverDistanceCurve = TSoftObjectPtr<UCurveFloat>(PCGEx::DefaultDotOverDistanceCurve).LoadSynchronous(); }
-		else { DotOverDistanceCurve = DotOverDistance.LoadSynchronous(); }
+		PCGEX_LOAD_SOFTOBJECT(UCurveFloat, DotOverDistance, DotOverDistanceCurve, PCGEx::DefaultDotOverDistanceCurve)
 	}
 
 	/// Relationships

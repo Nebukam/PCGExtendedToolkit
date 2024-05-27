@@ -121,8 +121,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicModifiersSettings
 		for (FPCGExHeuristicModifier& Modifier : Modifiers)
 		{
 			if (!Modifier.bEnabled) { continue; }
-			if (!Modifier.ScoreCurve || Modifier.ScoreCurve.IsNull()) { Modifier.ScoreCurveObj = TSoftObjectPtr<UCurveFloat>(PCGEx::WeightDistributionLinear).LoadSynchronous(); }
-			else { Modifier.ScoreCurveObj = Modifier.ScoreCurve.LoadSynchronous(); }
+			PCGEX_LOAD_SOFTOBJECT(UCurveFloat, Modifier.ScoreCurve, Modifier.ScoreCurveObj, PCGEx::WeightDistributionLinear)
 		}
 	}
 
