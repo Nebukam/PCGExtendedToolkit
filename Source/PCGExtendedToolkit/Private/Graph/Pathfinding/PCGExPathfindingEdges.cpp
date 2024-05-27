@@ -115,13 +115,13 @@ bool FPCGExPathfindingEdgesElement::ExecuteInternal(FPCGContext* InContext) cons
 
 		if (Settings->bUseOctreeSearch)
 		{
-			if(Settings->SeedPicking.PickingMethod == EPCGExClusterClosestSearchMode::Node ||
+			if (Settings->SeedPicking.PickingMethod == EPCGExClusterClosestSearchMode::Node ||
 				Settings->GoalPicking.PickingMethod == EPCGExClusterClosestSearchMode::Node)
 			{
 				Context->CurrentCluster->RebuildOctree(EPCGExClusterClosestSearchMode::Node);
 			}
 
-			if(Settings->SeedPicking.PickingMethod == EPCGExClusterClosestSearchMode::Edge ||
+			if (Settings->SeedPicking.PickingMethod == EPCGExClusterClosestSearchMode::Edge ||
 				Settings->GoalPicking.PickingMethod == EPCGExClusterClosestSearchMode::Edge)
 			{
 				Context->CurrentCluster->RebuildOctree(EPCGExClusterClosestSearchMode::Edge);
@@ -212,7 +212,6 @@ bool FPCGExPathfindingEdgesElement::ExecuteInternal(FPCGContext* InContext) cons
 
 bool FSampleClusterPathTask::ExecuteTask()
 {
-
 	const FPCGExPathfindingEdgesContext* Context = Manager->GetContext<FPCGExPathfindingEdgesContext>();
 	PCGEX_SETTINGS(PathfindingEdges)
 
@@ -245,6 +244,9 @@ bool FSampleClusterPathTask::ExecuteTask()
 	if (Context->bAddSeedToPath) { MutablePoints.Add_GetRef(Seed).MetadataEntry = PCGInvalidEntryKey; }
 	for (const int32 VtxIndex : Path) { MutablePoints.Add(InPoints[Cluster->Nodes[VtxIndex].PointIndex]); }
 	if (Context->bAddGoalToPath) { MutablePoints.Add_GetRef(Goal).MetadataEntry = PCGInvalidEntryKey; }
+
+	if (Settings->bUseSeedAttributeToTagPath) { PathPoints.Tags->RawTags.Add(Context->SeedTagValueGetter->SoftGet(Seed, TEXT(""))); }
+	if (Settings->bUseGoalAttributeToTagPath) { PathPoints.Tags->RawTags.Add(Context->GoalTagValueGetter->SoftGet(Goal, TEXT(""))); }
 
 	PathPoints.Flatten();
 

@@ -47,6 +47,7 @@ namespace PCGExGrow
 		const PCGExCluster::FNode* SeedNode = nullptr;
 		PCGExCluster::FNode* GoalNode = nullptr;
 
+		int32 SeedPointIndex = -1;
 		int32 MaxIterations = 0;
 		int32 SoftMaxIterations = 0;
 		int32 Iteration = 0;
@@ -77,7 +78,7 @@ namespace PCGExGrow
 			Path.Add(InLastGrowthIndex);
 			Init();
 		}
-		
+
 		int32 FindNextGrowthNodeIndex();
 		bool Grow(); // return false if too far or couldn't connect for [reasons]
 		void Write();
@@ -165,11 +166,10 @@ public:
 	/** Num branches constant */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Growth", meta = (PCG_Overridable, EditCondition="SeedNumBranches == EPCGExGrowthValueSource::Constant", EditConditionHides))
 	int32 NumBranchesConstant = 1;
-	
+
 	/** Num branches attribute name. (will be broadcasted to int32) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Growth", meta = (PCG_Overridable, EditCondition="SeedNumBranches != EPCGExGrowthValueSource::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector NumBranchesAttribute;
-	
 
 
 	/** The maximum number of growth iterations for a given seed. */
@@ -188,7 +188,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Growth")
 	EPCGExGrowthUpdateMode GrowthDirectionUpdateMode = EPCGExGrowthUpdateMode::Once;
 
-	
+
 	/** The maximum growth distance for a given seed. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Growth")
 	EPCGExGrowthValueSource GrowthMaxDistance = EPCGExGrowthValueSource::Constant;
@@ -200,6 +200,30 @@ public:
 	/** Max growth distance constant */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Growth", meta = (PCG_Overridable, EditCondition="GrowthMaxDistance == EPCGExGrowthValueSource::Constant", EditConditionHides))
 	double GrowthMaxDistanceConstant = 500;
+
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Growth|Limits", meta = (PCG_Overridable))
+	bool bUseGrowthStop = false;
+	
+	/** An attribute read on the Vtx as a boolean. If true and this node is used in a path, the path stops there. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Growth|Limits", meta = (PCG_Overridable, EditCondition="bUseGrowthStop"))
+	FPCGAttributePropertyInputSelector GrowthStopAttribute;
+
+	/** Inverse Growth Stop behavior */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Growth|Limits", meta = (PCG_Overridable, EditCondition="bUseGrowthStop"))
+	bool bInvertGrowthStop = false;
+
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Growth|Limits", meta = (PCG_Overridable))
+	bool bUseNoGrowth = false;
+	
+	/** An attribute read on the Vtx as a boolean. If true, this point will never be grown on, but may be still used as seed. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Growth|Limits", meta = (PCG_Overridable, EditCondition="bUseNoGrowth"))
+	FPCGAttributePropertyInputSelector NoGrowthAttribute;
+
+	/** Inverse No Growth behavior */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Growth|Limits", meta = (PCG_Overridable, EditCondition="bUseNoGrowth"))
+	bool bInvertNoGrowth = false;
 
 	/** Drive how a seed selects a node. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Heuristics", meta=(PCG_Overridable))
@@ -228,6 +252,15 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Extra Weighting", meta=(EditCondition="bWeightUpVisited"))
 	double VisitedStopThreshold = -1;
 
+	/** Use a seed attribute value to tag output paths. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging")
+	bool bUseSeedAttributeToTagPath;
+
+	/** Output various statistics. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging", meta=(EditCondition="bUseSeedAttributeToTagPath"))
+	FPCGAttributePropertyInputSelector SeedTagAttribute;
+
+
 	/** Output various statistics. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Advanced")
 	FPCGExPathStatistics Statistics;
@@ -254,6 +287,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingGrowPathsContext : public FPCGExE
 	PCGEx::FLocalSingleFieldGetter* NumIterationsGetter = nullptr;
 	PCGEx::FLocalVectorGetter* GrowthDirectionGetter = nullptr;
 	PCGEx::FLocalSingleFieldGetter* GrowthMaxDistanceGetter = nullptr;
+	PCGEx::FLocalToStringGetter* TagValueGetter = nullptr;
+
+	PCGEx::FLocalBoolGetter* GrowthStopGetter = nullptr;
+	PCGEx::FLocalBoolGetter* NoGrowthGetter = nullptr;
 
 	int32 CurrentPlotIndex = -1;
 	bool bWeightUpVisited = true;

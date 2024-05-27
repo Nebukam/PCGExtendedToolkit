@@ -90,6 +90,9 @@ FPCGExPathfindingProcessorContext::~FPCGExPathfindingProcessorContext()
 	PCGEX_DELETE(SeedsPoints)
 	PCGEX_DELETE(GoalsPoints)
 	PCGEX_DELETE(OutputPaths)
+	
+	PCGEX_DELETE(SeedTagValueGetter)
+	PCGEX_DELETE(GoalTagValueGetter)
 
 	ProjectionSettings.Cleanup();
 }
@@ -127,6 +130,28 @@ bool FPCGExPathfindingProcessorElement::Boot(FPCGContext* InContext) const
 	Context->HeuristicsModifiers->LoadCurves();
 	Context->Heuristics->ReferenceWeight = Context->HeuristicsModifiers->ReferenceWeight;
 
+	if (Settings->bUseSeedAttributeToTagPath)
+	{
+		Context->SeedTagValueGetter = new PCGEx::FLocalToStringGetter();
+		Context->SeedTagValueGetter->Capture(Settings->SeedTagAttribute);
+		if (!Context->SeedTagValueGetter->SoftGrab(*Context->SeedsPoints))
+		{
+			PCGE_LOG(Error, GraphAndLog, FTEXT("Missing specified Attribute to Tag on Seed points."));
+			return false;
+		}
+	}
+	
+	if (Settings->bUseGoalAttributeToTagPath)
+	{
+		Context->GoalTagValueGetter = new PCGEx::FLocalToStringGetter();
+		Context->GoalTagValueGetter->Capture(Settings->GoalTagAttribute);
+		if (!Context->GoalTagValueGetter->SoftGrab(*Context->GoalsPoints))
+		{
+			PCGE_LOG(Error, GraphAndLog, FTEXT("Missing specified Attribute to Tag on Goal points."));
+			return false;
+		}
+	}
+	
 	PCGEX_FWD(ProjectionSettings)
 
 	return true;

@@ -1148,14 +1148,20 @@ namespace PCGEx
 		virtual FString Convert(const int64 Value) const override { return FString::Printf(TEXT("%lld"), Value); }
 		virtual FString Convert(const float Value) const override { return FString::Printf(TEXT("%f"), Value); }
 		virtual FString Convert(const double Value) const override { return FString::Printf(TEXT("%lf"), Value); }
-		virtual FString Convert(const FVector2D Value) const override { return FString::Printf(TEXT("%s"), *Value.ToString()); }
-		virtual FString Convert(const FVector Value) const override { return FString::Printf(TEXT("%s"), *Value.ToString()); }
-		virtual FString Convert(const FVector4 Value) const override { return FString::Printf(TEXT("%s"), *Value.ToString()); }
-		virtual FString Convert(const FQuat Value) const override { return FString::Printf(TEXT("%s"), *Value.ToString()); }
-		virtual FString Convert(const FTransform Value) const override { return FString::Printf(TEXT("%s"), *Value.ToString()); }
-		virtual FString Convert(const FRotator Value) const override { return FString::Printf(TEXT("%s"), *Value.ToString()); }
-		virtual FString Convert(const FString Value) const override { return FString::Printf(TEXT("%s"), *Value); }
-		virtual FString Convert(const FName Value) const override { return FString::Printf(TEXT("%s"), *Value.ToString()); }
+		virtual FString Convert(const FVector2D Value) const override { return *Value.ToString(); }
+		virtual FString Convert(const FVector Value) const override { return *Value.ToString(); }
+		virtual FString Convert(const FVector4 Value) const override { return *Value.ToString(); }
+		virtual FString Convert(const FQuat Value) const override { return *Value.ToString(); }
+		virtual FString Convert(const FTransform Value) const override { return *Value.ToString(); }
+		virtual FString Convert(const FRotator Value) const override { return *Value.ToString(); }
+		virtual FString Convert(const FString Value) const override { return *Value; }
+		virtual FString Convert(const FName Value) const override { return *Value.ToString(); }
+		
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
+		virtual FString Convert(const FSoftClassPath Value) const override { return Value.ToString(); }
+		virtual FString Convert(const FSoftObjectPath Value) const override { return Value.ToString(); }
+#endif
+		
 	};
 
 #pragma endregion
