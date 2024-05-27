@@ -143,7 +143,8 @@ void PCGExGrow::FGrowth::Write()
 		MutablePoints.Add(InPoints[Context->CurrentCluster->Nodes[VtxIndex].PointIndex]);
 	}
 
-	PathPoints.Tags->Append(VtxPoints.Tags);
+	PathPoints.Flatten();
+	PathPoints.Tags->Append(VtxPoints.Tags);	
 }
 
 void PCGExGrow::FGrowth::Init()
