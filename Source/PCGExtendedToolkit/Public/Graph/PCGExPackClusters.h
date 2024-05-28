@@ -34,6 +34,10 @@ public:
 
 	virtual PCGExData::EInit GetEdgeOutputInitMode() const override;
 
+	/** Flatten packed metadata \n Depending on your setup this is a tradeoff between memory and speed.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bFlatten = false;
+
 private:
 	friend class FPCGExPackClustersElement;
 };

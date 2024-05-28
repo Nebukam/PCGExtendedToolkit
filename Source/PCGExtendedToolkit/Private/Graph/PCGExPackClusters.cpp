@@ -113,6 +113,8 @@ bool FPCGExPackClusterTask::ExecuteTask()
 {
 	const FPCGExPackClustersContext* Context = Manager->GetContext<FPCGExPackClustersContext>();
 
+	PCGEX_SETTINGS(PackClusters)
+
 	int32 NumEdges = 0;
 	TArray<int32> ReducedVtxIndices;
 
@@ -136,7 +138,7 @@ bool FPCGExPackClusterTask::ExecuteTask()
 
 	FString OutPairId;
 	PointIO->Tags->Set(PCGExGraph::TagStr_ClusterPair, InEdges->GetIn()->UID, OutPairId);
-	PointIO->Flatten();
+	if (Settings->bFlatten) { PointIO->Flatten(); }
 
 	InEdges->CleanupKeys();
 

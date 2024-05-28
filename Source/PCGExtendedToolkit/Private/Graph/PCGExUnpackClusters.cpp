@@ -73,7 +73,7 @@ bool FPCGExUnpackClustersElement::ExecuteInternal(
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExUnpackClustersElement::Execute);
 
-	PCGEX_CONTEXT(UnpackClusters)
+	PCGEX_CONTEXT_AND_SETTINGS(UnpackClusters)
 
 	if (Context->IsSetup())
 	{
@@ -112,7 +112,7 @@ bool FPCGExUnpackClustersElement::ExecuteInternal(
 			Metadata->DeleteAttribute(PCGExGraph::Tag_PackedClusterPointCount);
 			Metadata->DeleteAttribute(PCGExGraph::Tag_EdgesNum);
 			Metadata->DeleteAttribute(PCGExGraph::Tag_EdgeIndex);
-			NewEdges.Flatten();
+			if (Settings->bFlatten) { NewEdges.Flatten(); }
 
 			PCGExData::FPointIO& NewVtx = Context->OutPoints->Emplace_GetRef(PackedIO, PCGExData::EInit::DuplicateInput);
 			TArray<FPCGPoint> MutableVtxPoints = NewVtx.GetOut()->GetMutablePoints();
@@ -123,7 +123,7 @@ bool FPCGExUnpackClustersElement::ExecuteInternal(
 			Metadata->DeleteAttribute(PCGExGraph::Tag_PackedClusterPointCount);
 			Metadata->DeleteAttribute(PCGExGraph::Tag_EdgeStart);
 			Metadata->DeleteAttribute(PCGExGraph::Tag_EdgeEnd);
-			NewVtx.Flatten();
+			if (Settings->bFlatten) { NewVtx.Flatten(); }
 
 			FString OutPairId;
 			PackedIO.Tags->GetValue(PCGExGraph::TagStr_ClusterPair, OutPairId);
