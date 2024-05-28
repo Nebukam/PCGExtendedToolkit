@@ -102,7 +102,12 @@ namespace PCGExMT
 					}, true, ChunkSize);
 			}
 
-			if (CurrentIndex == -1) { CurrentIndex = 0; }
+			if (CurrentIndex == -1)
+			{
+				Initialize();
+				CurrentIndex = 0;
+			}
+			
 			const int32 ChunkNumIterations = FMath::Min(NumIterations - CurrentIndex, GetCurrentChunkSize());
 			if (ChunkNumIterations <= 0)
 			{
