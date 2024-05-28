@@ -30,6 +30,12 @@ namespace PCGExDataFilter
 		for (int i = 0; i < NumPoints; i++) { Results[i] = false; }
 	}
 
+	void TFilterHandler::PrepareForTesting(PCGExData::FPointIO* PointIO, const TArrayView<int32>& PointIndices)
+	{
+		if (const int32 NumPoints = PointIO->GetNum(); Results.Num() != NumPoints) { Results.SetNumUninitialized(NumPoints); }
+		for (const int32 i : PointIndices) { Results[i] = false; }
+	}
+
 	TFilterManager::TFilterManager(PCGExData::FPointIO* InPointIO)
 		: PointIO(InPointIO)
 	{
@@ -38,6 +44,11 @@ namespace PCGExDataFilter
 	void TFilterManager::PrepareForTesting()
 	{
 		for (TFilterHandler* Handler : Handlers) { Handler->PrepareForTesting(PointIO); }
+	}
+
+	void TFilterManager::PrepareForTesting(const TArrayView<int32>& PointIndices)
+	{
+		for (TFilterHandler* Handler : Handlers) { Handler->PrepareForTesting(PointIO, PointIndices); }
 	}
 
 	void TFilterManager::Test(const int32 PointIndex)

@@ -43,7 +43,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAdjacencyFilterDescriptor
 	/** Define the nodes subset' size that must meet requirements. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="Mode==EPCGExAdjacencyTestMode::Some", EditConditionHides))
 	EPCGExFetchType SubsetSource = EPCGExFetchType::Constant;
-	
+
 	/** Local measure attribute */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="Mode==EPCGExAdjacencyTestMode::Some && (SubsetMeasure==EPCGExAdjacencySubsetMeasureMode::AbsoluteLocal||SubsetMeasure==EPCGExAdjacencySubsetMeasureMode::RelativeLocal)", EditConditionHides))
 	FPCGAttributePropertyInputSelector LocalMeasure;

@@ -122,9 +122,22 @@ namespace PCGExDataState
 		TFilterManager::PrepareForTesting();
 	}
 
+	void TStatesManager::PrepareForTesting(const TArrayView<int32>& PointIndices)
+	{
+		if (const int32 NumPoints = PointIO->GetNum(); HighestState.Num() != NumPoints) { HighestState.SetNumUninitialized(NumPoints); }
+		for (const int32 i : PointIndices) { HighestState[i] = -1; }
+
+		TFilterManager::PrepareForTesting(PointIndices);
+	}
+
 	void TStatesManager::Test(const int32 PointIndex)
 	{
 		int32 HState = -1;
+
+		if (PointIndex == 2174)
+		{
+			HighestState[PointIndex] = -1;
+		}
 
 		for (PCGExDataFilter::TFilterHandler* Handler : Handlers)
 		{
@@ -137,7 +150,7 @@ namespace PCGExDataState
 		HighestState[PointIndex] = HState;
 	}
 
-	void TStatesManager::WriteStateNames(const FName AttributeName, const FName DefaultValue, const TArray<int32>& InIndices)
+	void TStatesManager::WriteStateNames(const FName AttributeName, const FName DefaultValue, const TArrayView<int32>& InIndices)
 	{
 		PCGEx::TFAttributeWriter<FName>* StateNameWriter = new PCGEx::TFAttributeWriter<FName>(AttributeName, DefaultValue, false);
 		StateNameWriter->BindAndGet(*PointIO);
@@ -156,7 +169,7 @@ namespace PCGExDataState
 		PCGEX_DELETE(StateNameWriter)
 	}
 
-	void TStatesManager::WriteStateValues(const FName AttributeName, const int32 DefaultValue, const TArray<int32>& InIndices)
+	void TStatesManager::WriteStateValues(const FName AttributeName, const int32 DefaultValue, const TArrayView<int32>& InIndices)
 	{
 		PCGEx::TFAttributeWriter<int32>* StateValueWriter = new PCGEx::TFAttributeWriter<int32>(AttributeName, DefaultValue, false);
 		StateValueWriter->BindAndGet(*PointIO);
@@ -175,7 +188,7 @@ namespace PCGExDataState
 		PCGEX_DELETE(StateValueWriter)
 	}
 
-	void TStatesManager::WriteStateIndividualStates(FPCGExAsyncManager* AsyncManager, const TArray<int32>& InIndices)
+	void TStatesManager::WriteStateIndividualStates(FPCGExAsyncManager* AsyncManager, const TArrayView<int32>& InIndices)
 	{
 		for (PCGExDataFilter::TFilterHandler* Handler : Handlers)
 		{

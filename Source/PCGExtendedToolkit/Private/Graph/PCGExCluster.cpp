@@ -750,8 +750,11 @@ namespace PCGExCluster
 			for (const TFilterHandler* Test : FilterHandlers) { if (!Test->Test(PointIndex)) { return false; } }
 		}
 
-		const int32 NodeIndex = Cluster->GetNodeFromPointIndex(PointIndex).NodeIndex; // We get a point index from the FindNode
-		for (const TClusterFilterHandler* Test : ClusterFilterHandlers) { if (!Test->Test(NodeIndex)) { return false; } }
+		if (!ClusterFilterHandlers.IsEmpty())
+		{
+			const int32 NodeIndex = Cluster->GetNodeFromPointIndex(PointIndex).NodeIndex; // We get a point index from the FindNode
+			for (const TClusterFilterHandler* Test : ClusterFilterHandlers) { if (!Test->Test(NodeIndex)) { return false; } }
+		}
 
 		return true;
 	}

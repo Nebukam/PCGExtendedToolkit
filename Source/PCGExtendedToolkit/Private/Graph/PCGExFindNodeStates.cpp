@@ -105,16 +105,16 @@ bool FPCGExFindNodeStatesElement::ExecuteInternal(
 		}
 
 		Context->CurrentIO->CreateInKeys();
-		Context->StatesManager->PrepareForTesting();
+		Context->StatesManager->PrepareForTesting(Context->NodeIndices);
 
 		Context->SetState(PCGExCluster::State_ProcessingCluster);
 	}
 
 	if (Context->IsState(PCGExCluster::State_ProcessingCluster))
 	{
-		auto ProcessNode = [&](const int32 Index) { Context->StatesManager->Test(Context->CurrentCluster->Nodes[Index].PointIndex); };
+		auto ProcessNode = [&](const int32 Index) { Context->StatesManager->Test(Context->NodeIndices[Index]); };
 
-		if (!Context->Process(ProcessNode, Context->CurrentCluster->Nodes.Num())) { return false; }
+		if (!Context->Process(ProcessNode, Context->NodeIndices.Num())) { return false; }
 
 		Context->SetState(PCGExGraph::State_WritingMainState);
 	}
@@ -138,7 +138,7 @@ bool FPCGExFindNodeStatesElement::ExecuteInternal(
 		}
 		else
 		{
-			Context->SetState(PCGExGraph::State_WritingStatesAttributes);
+			Context->SetAsyncState(PCGExGraph::State_WritingStatesAttributes);
 		}
 	}
 
@@ -157,7 +157,7 @@ bool FPCGExFindNodeStatesElement::ExecuteInternal(
 		};
 
 		if (!Context->ProcessCurrentPoints(Initialize, ProcessPoint)) { return false; }
-		Context->SetState(PCGExMT::State_ReadyForNextPoints);
+		Context->SetState(PCGExGraph::State_ReadyForNextEdges);
 	}
 
 	if (Context->IsDone())

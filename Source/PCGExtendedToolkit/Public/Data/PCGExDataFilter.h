@@ -65,6 +65,7 @@ namespace PCGExDataFilter
 		virtual void Capture(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO);
 		virtual bool Test(const int32 PointIndex) const;
 		virtual void PrepareForTesting(PCGExData::FPointIO* PointIO);
+		virtual void PrepareForTesting(PCGExData::FPointIO* PointIO, const TArrayView<int32>& PointIndices);
 
 #if !PLATFORM_WINDOWS
 		virtual bool IsClusterFilter() const { return false; }
@@ -125,6 +126,7 @@ namespace PCGExDataFilter
 		}
 
 		virtual void PrepareForTesting();
+		virtual void PrepareForTesting(const TArrayView<int32>& PointIndices);
 
 		virtual void Test(const int32 PointIndex);
 

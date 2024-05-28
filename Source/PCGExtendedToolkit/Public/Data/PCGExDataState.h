@@ -89,12 +89,13 @@ namespace PCGExDataState
 		}
 
 		virtual void PrepareForTesting() override;
+		virtual void PrepareForTesting(const TArrayView<int32>& PointIndices) override;
 
 		virtual void Test(const int32 PointIndex) override;
 
-		void WriteStateNames(FName AttributeName, FName DefaultValue, const TArray<int32>& InIndices);
-		void WriteStateValues(FName AttributeName, int32 DefaultValue, const TArray<int32>& InIndices);
-		void WriteStateIndividualStates(FPCGExAsyncManager* AsyncManager, const TArray<int32>& InIndices);
+		void WriteStateNames(FName AttributeName, FName DefaultValue, const TArrayView<int32>& InIndices);
+		void WriteStateValues(FName AttributeName, int32 DefaultValue, const TArrayView<int32>& InIndices);
+		void WriteStateIndividualStates(FPCGExAsyncManager* AsyncManager, const TArrayView<int32>& InIndices);
 
 		void WritePrepareForStateAttributes(const FPCGContext* InContext);
 		void WriteStateAttributes(const int32 PointIndex);
@@ -154,14 +155,14 @@ namespace PCGExDataStateTask
 	public:
 		FWriteIndividualState(
 			FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-			PCGExDataState::TStateHandler* InHandler, const TArray<int32>* InInIndices) :
+			PCGExDataState::TStateHandler* InHandler, const TArrayView<int32>* InInIndices) :
 			FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
 			Handler(InHandler), InIndices(InInIndices)
 		{
 		}
 
 		PCGExDataState::TStateHandler* Handler = nullptr;
-		const TArray<int32>* InIndices = nullptr;
+		const TArrayView<int32>* InIndices = nullptr;
 
 		virtual bool ExecuteTask() override;
 	};
