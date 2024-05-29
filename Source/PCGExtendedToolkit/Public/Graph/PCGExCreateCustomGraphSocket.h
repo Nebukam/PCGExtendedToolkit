@@ -24,13 +24,13 @@ public:
 		GraphSocket, "Socket Definition", "Creates a single socket data object.",
 		Socket.SocketName)
 	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorExParam; }
-#endif	
+#endif
 	//~End UPCGSettings
 
 public:
 	virtual FName GetMainOutputLabel() const override;
 	virtual UPCGExParamFactoryBase* CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
-	
+
 	/** Custom graph socket.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
 	FPCGExSocketDescriptor Socket;

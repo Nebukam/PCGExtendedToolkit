@@ -99,6 +99,5 @@ namespace PCGExDataBlending
 	{
 	public:
 		virtual T SingleOperation(T A, T B, double Weight) const override { return A; }
-
 	};
 }

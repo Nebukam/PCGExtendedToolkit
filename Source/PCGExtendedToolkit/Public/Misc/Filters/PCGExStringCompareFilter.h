@@ -56,7 +56,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExStringCompareFilterDescriptor
 	/** Operand B for testing -- Will be broadcasted to `double` under the hood. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="CompareAgainst==EPCGExOperandType::Constant", EditConditionHides))
 	FString OperandBConstant = TEXT("PCGEx");
-
 };
 
 
@@ -141,5 +140,4 @@ public:
 #if WITH_EDITOR
 	virtual FString GetDisplayName() const override;
 #endif
-	
 };

@@ -183,7 +183,7 @@ bool FPCGExFuseClustersLocalElement::ExecuteInternal(FPCGContext* InContext) con
 		{
 			const PCGExGraph::FIndexedEdge& Edge = Context->GraphBuilder->Graph->Edges[EdgeIndex];
 			if (!Edge.bValid) { return; }
-			PCGExGraph::FindCollinearNodes(Context->PointEdgeIntersections, EdgeIndex, Context->CurrentIO->GetOut());
+			FindCollinearNodes(Context->PointEdgeIntersections, EdgeIndex, Context->CurrentIO->GetOut());
 		};
 
 		if (!Context->Process(PointEdge, Context->GraphBuilder->Graph->Edges.Num())) { return false; }
@@ -233,7 +233,7 @@ bool FPCGExFuseClustersLocalElement::ExecuteInternal(FPCGContext* InContext) con
 		{
 			const PCGExGraph::FIndexedEdge& Edge = Context->GraphBuilder->Graph->Edges[EdgeIndex];
 			if (!Edge.bValid) { return; }
-			PCGExGraph::FindOverlappingEdges(Context->EdgeEdgeIntersections, EdgeIndex);
+			FindOverlappingEdges(Context->EdgeEdgeIntersections, EdgeIndex);
 		};
 
 		if (!Context->Process(EdgeEdge, Context->GraphBuilder->Graph->Edges.Num())) { return false; }

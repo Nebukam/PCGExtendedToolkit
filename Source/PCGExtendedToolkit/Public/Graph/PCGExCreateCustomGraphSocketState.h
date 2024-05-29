@@ -27,8 +27,8 @@ public:
 #endif
 	virtual FName GetMainOutputLabel() const override;
 	//~End UPCGSettings
-	
-public:	
+
+public:
 	/** List of tests to perform */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, TitleProperty="{SocketName}", DisplayPriority=-1))
 	TArray<FPCGExSocketTestDescriptor> Tests;

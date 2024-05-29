@@ -152,13 +152,13 @@ bool FPCGExPathfindingPlotEdgesElement::ExecuteInternal(FPCGContext* InContext) 
 
 		if (Settings->bUseOctreeSearch)
 		{
-			if(Settings->SeedPicking.PickingMethod == EPCGExClusterClosestSearchMode::Node ||
+			if (Settings->SeedPicking.PickingMethod == EPCGExClusterClosestSearchMode::Node ||
 				Settings->GoalPicking.PickingMethod == EPCGExClusterClosestSearchMode::Node)
 			{
 				Context->CurrentCluster->RebuildOctree(EPCGExClusterClosestSearchMode::Node);
 			}
 
-			if(Settings->SeedPicking.PickingMethod == EPCGExClusterClosestSearchMode::Edge ||
+			if (Settings->SeedPicking.PickingMethod == EPCGExClusterClosestSearchMode::Edge ||
 				Settings->GoalPicking.PickingMethod == EPCGExClusterClosestSearchMode::Edge)
 			{
 				Context->CurrentCluster->RebuildOctree(EPCGExClusterClosestSearchMode::Edge);
@@ -252,7 +252,7 @@ bool FPCGExPlotClusterPathTask::ExecuteTask()
 {
 	const FPCGExPathfindingPlotEdgesContext* Context = Manager->GetContext<FPCGExPathfindingPlotEdgesContext>();
 	PCGEX_SETTINGS(PathfindingPlotEdges)
-	
+
 	const PCGExCluster::FCluster* Cluster = Context->CurrentCluster;
 	TArray<int32> Path;
 

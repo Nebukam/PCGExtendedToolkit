@@ -57,7 +57,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMeanFilterDescriptor
 	/** Maximum threshold. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bExcludeAboveMean"))
 	double ExcludeAbove = 0.2;
-
 };
 
 /**
@@ -93,7 +92,6 @@ public:
 	}
 
 	virtual PCGExDataFilter::TFilter* CreateFilter() const override;
-	
 };
 
 namespace PCGExPointsFilter
@@ -150,9 +148,8 @@ public:
 
 public:
 	virtual UPCGExParamFactoryBase* CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
-	
+
 #if WITH_EDITOR
 	virtual FString GetDisplayName() const override;
 #endif
-	
 };

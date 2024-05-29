@@ -204,7 +204,7 @@ public:
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Growth|Limits", meta = (PCG_Overridable))
 	bool bUseGrowthStop = false;
-	
+
 	/** An attribute read on the Vtx as a boolean. If true and this node is used in a path, the path stops there. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Growth|Limits", meta = (PCG_Overridable, EditCondition="bUseGrowthStop"))
 	FPCGAttributePropertyInputSelector GrowthStopAttribute;
@@ -216,7 +216,7 @@ public:
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Growth|Limits", meta = (PCG_Overridable))
 	bool bUseNoGrowth = false;
-	
+
 	/** An attribute read on the Vtx as a boolean. If true, this point will never be grown on, but may be still used as seed. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Growth|Limits", meta = (PCG_Overridable, EditCondition="bUseNoGrowth"))
 	FPCGAttributePropertyInputSelector NoGrowthAttribute;
@@ -263,7 +263,7 @@ public:
 	/** Which Seed attributes to forward on paths. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding")
 	FPCGExForwardSettings SeedForwardAttributes;
-	
+
 	/** Output various statistics. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Advanced")
 	FPCGExPathStatistics Statistics;
@@ -290,7 +290,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingGrowPathsContext : public FPCGExE
 	PCGEx::FLocalSingleFieldGetter* NumIterationsGetter = nullptr;
 	PCGEx::FLocalVectorGetter* GrowthDirectionGetter = nullptr;
 	PCGEx::FLocalSingleFieldGetter* GrowthMaxDistanceGetter = nullptr;
-	
+
 
 	PCGEx::FLocalBoolGetter* GrowthStopGetter = nullptr;
 	PCGEx::FLocalBoolGetter* NoGrowthGetter = nullptr;
@@ -303,7 +303,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingGrowPathsContext : public FPCGExE
 
 	TArray<PCGExGrow::FGrowth*> Growths;
 	TArray<PCGExGrow::FGrowth*> QueuedGrowths;
-	
+
 	PCGEx::FLocalToStringGetter* TagValueGetter = nullptr;
 	PCGExDataBlending::FDataForwardHandler* SeedForwardHandler = nullptr;
 };

@@ -250,7 +250,7 @@ bool FSampleClusterPathTask::ExecuteTask()
 
 	Context->SeedForwardHandler->Forward(Query->SeedIndex, &PathPoints);
 	Context->GoalForwardHandler->Forward(Query->GoalIndex, &PathPoints);
-	
+
 	PathPoints.Flatten();
 
 	return true;

@@ -77,7 +77,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAdjacencyFilterDescriptor
 	/** Rounding mode for near measures */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Comparison==EPCGExComparison::NearlyEqual || Comparison==EPCGExComparison::NearlyNotEqual", EditConditionHides))
 	double Tolerance = 0.001;
-
 };
 
 /**
@@ -179,12 +178,11 @@ public:
 	/** Test Descriptor.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
 	FPCGExAdjacencyFilterDescriptor Descriptor;
-	
+
 public:
 	virtual UPCGExParamFactoryBase* CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
 
 #if WITH_EDITOR
 	virtual FString GetDisplayName() const override;
 #endif
-	
 };

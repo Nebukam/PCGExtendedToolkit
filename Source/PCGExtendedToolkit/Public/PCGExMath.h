@@ -832,7 +832,7 @@ namespace PCGExMath
 	template <>
 	struct TLimits<bool>
 	{
-		typedef bool ValueType;
+		using ValueType = bool;
 		static constexpr ValueType Min() { return false; }
 		static constexpr ValueType Max() { return true; }
 	};
@@ -840,7 +840,7 @@ namespace PCGExMath
 	template <>
 	struct TLimits<int32>
 	{
-		typedef int32 ValueType;
+		using ValueType = int32;
 		static constexpr ValueType Min() { return TNumericLimits<int32>::Min(); }
 		static constexpr ValueType Max() { return TNumericLimits<int32>::Max(); }
 	};
@@ -848,7 +848,7 @@ namespace PCGExMath
 	template <>
 	struct TLimits<int64>
 	{
-		typedef int64 ValueType;
+		using ValueType = int64;
 		static constexpr ValueType Min() { return TNumericLimits<int64>::Min(); }
 		static constexpr ValueType Max() { return TNumericLimits<int64>::Max(); }
 	};
@@ -856,7 +856,7 @@ namespace PCGExMath
 	template <>
 	struct TLimits<float>
 	{
-		typedef float ValueType;
+		using ValueType = float;
 		static constexpr ValueType Min() { return TNumericLimits<float>::Min(); }
 		static constexpr ValueType Max() { return TNumericLimits<float>::Max(); }
 	};
@@ -864,7 +864,7 @@ namespace PCGExMath
 	template <>
 	struct TLimits<double>
 	{
-		typedef double ValueType;
+		using ValueType = double;
 		static constexpr ValueType Min() { return TNumericLimits<double>::Min(); }
 		static constexpr ValueType Max() { return TNumericLimits<double>::Max(); }
 	};
@@ -872,7 +872,7 @@ namespace PCGExMath
 	template <>
 	struct TLimits<FVector2D>
 	{
-		typedef FVector2D ValueType;
+		using ValueType = FVector2D;
 		static ValueType Min() { return FVector2D(TLimits<double>::Min()); }
 		static ValueType Max() { return FVector2D(TLimits<double>::Max()); }
 	};
@@ -880,7 +880,7 @@ namespace PCGExMath
 	template <>
 	struct TLimits<FVector>
 	{
-		typedef FVector ValueType;
+		using ValueType = FVector;
 		static ValueType Min() { return FVector(TLimits<double>::Min()); }
 		static ValueType Max() { return FVector(TLimits<double>::Max()); }
 	};
@@ -888,7 +888,7 @@ namespace PCGExMath
 	template <>
 	struct TLimits<FVector4>
 	{
-		typedef FVector4 ValueType;
+		using ValueType = FVector4;
 		static ValueType Min() { return FVector4(TLimits<double>::Min()); }
 		static ValueType Max() { return FVector4(TLimits<double>::Max()); }
 	};
@@ -896,7 +896,7 @@ namespace PCGExMath
 	template <>
 	struct TLimits<FRotator>
 	{
-		typedef FRotator ValueType;
+		using ValueType = FRotator;
 		static ValueType Min() { return FRotator(TLimits<double>::Min(), TLimits<double>::Min(), TLimits<double>::Min()); }
 		static ValueType Max() { return FRotator(TLimits<double>::Max(), TLimits<double>::Max(), TLimits<double>::Max()); }
 	};
@@ -904,7 +904,7 @@ namespace PCGExMath
 	template <>
 	struct TLimits<FQuat>
 	{
-		typedef FQuat ValueType;
+		using ValueType = FQuat;
 		static ValueType Min() { return TLimits<FRotator>::Min().Quaternion(); }
 		static ValueType Max() { return TLimits<FRotator>::Max().Quaternion(); }
 	};
@@ -912,7 +912,7 @@ namespace PCGExMath
 	template <>
 	struct TLimits<FTransform>
 	{
-		typedef FTransform ValueType;
+		using ValueType = FTransform;
 		static ValueType Min() { return FTransform::Identity; }
 		static ValueType Max() { return FTransform::Identity; }
 	};
@@ -920,7 +920,7 @@ namespace PCGExMath
 	template <>
 	struct TLimits<FString>
 	{
-		typedef FString ValueType;
+		using ValueType = FString;
 		static ValueType Min() { return TEXT(""); }
 		static ValueType Max() { return TEXT(""); }
 	};
@@ -928,7 +928,7 @@ namespace PCGExMath
 	template <>
 	struct TLimits<FName>
 	{
-		typedef FName ValueType;
+		using ValueType = FName;
 		static ValueType Min() { return NAME_None; }
 		static ValueType Max() { return NAME_None; }
 	};
@@ -936,7 +936,7 @@ namespace PCGExMath
 	template <>
 	struct TLimits<FSoftClassPath>
 	{
-		typedef FSoftClassPath ValueType;
+		using ValueType = FSoftClassPath;
 		static ValueType Min() { return FSoftClassPath(); }
 		static ValueType Max() { return FSoftClassPath(); }
 	};
@@ -944,7 +944,7 @@ namespace PCGExMath
 	template <>
 	struct TLimits<FSoftObjectPath>
 	{
-		typedef FSoftObjectPath ValueType;
+		using ValueType = FSoftObjectPath;
 		static ValueType Min() { return FSoftObjectPath(); }
 		static ValueType Max() { return FSoftObjectPath(); }
 	};

@@ -543,7 +543,6 @@ namespace PCGExGraph
 	}
 
 #pragma endregion
-	
 }
 
 namespace PCGExGraphTask

@@ -612,7 +612,6 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSocketFactory : public UPCGExParamFactoryBase
 
 public:
 	FPCGExSocketDescriptor Descriptor;
-
 };
 
 /**

@@ -343,7 +343,6 @@ Context->SolidificationRad##_AXIS->Grab(*Context->CurrentEdges); }
 
 			if (Context->MetadataBlender)
 			{
-				
 				const PCGEx::FPointRef Target = Context->CurrentEdges->GetOutPointRef(Edge.PointIndex);
 				Context->MetadataBlender->PrepareForBlending(Target);
 				Context->MetadataBlender->Blend(Target, Context->CurrentIO->GetInPointRef(EdgeStartPtIndex), Target, BlendWeightStart);
