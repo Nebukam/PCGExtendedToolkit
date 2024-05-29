@@ -8,7 +8,6 @@
 
 namespace PCGExGraph
 {
-	
 	bool FCompoundNode::Add(FCompoundNode* OtherNode)
 	{
 		if (OtherNode->Index == Index) { return false; }

@@ -9,7 +9,6 @@ void UPCGExHeuristicOperation::PrepareForData(PCGExCluster::FCluster* InCluster)
 	Cluster = InCluster;
 
 	PCGEX_LOAD_SOFTOBJECT(UCurveFloat, ScoreCurve, ScoreCurveObj, PCGEx::WeightDistributionLinear)
-
 }
 
 double UPCGExHeuristicOperation::GetGlobalScore(

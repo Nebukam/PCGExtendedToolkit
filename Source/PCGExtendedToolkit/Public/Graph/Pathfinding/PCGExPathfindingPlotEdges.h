@@ -66,7 +66,7 @@ public:
 	/** Drive how a goal selects a node. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Node Picking", meta=(PCG_Overridable))
 	FPCGExNodeSelectionSettings GoalPicking;
-	
+
 	/** Search algorithm. */
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Settings|Node Picking", Instanced, meta = (PCG_Overridable, NoResetToDefault, ShowOnlyInnerProperties))
 	TObjectPtr<UPCGExSearchOperation> SearchAlgorithm;

@@ -107,7 +107,7 @@ namespace PCGExMT
 				Initialize();
 				CurrentIndex = 0;
 			}
-			
+
 			const int32 ChunkNumIterations = FMath::Min(NumIterations - CurrentIndex, GetCurrentChunkSize());
 			if (ChunkNumIterations <= 0)
 			{

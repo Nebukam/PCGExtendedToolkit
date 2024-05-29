@@ -116,7 +116,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFusePointsContext : public FPCGExPointsProce
 	PCGExGraph::FGraphMetadataSettings GraphMetadataSettings;
 	PCGExGraph::FCompoundGraph* CompoundGraph = nullptr;
 	PCGExDataBlending::FCompoundBlender* CompoundPointsBlender = nullptr;
-	
+
 	bool bPreserveOrder;
 
 	mutable FRWLock PointsLock;

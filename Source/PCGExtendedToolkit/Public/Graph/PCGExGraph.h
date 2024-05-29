@@ -542,7 +542,6 @@ namespace PCGExGraph
 
 namespace PCGExGraphTask
 {
-
 #pragma region Graph tasks
 
 	static void WriteSubGraphEdges(
@@ -699,5 +698,4 @@ namespace PCGExGraphTask
 	};
 
 #pragma endregion
-
 }

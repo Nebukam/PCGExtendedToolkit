@@ -112,7 +112,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExForwardSettings
 			}
 		}
 	}
-	
 };
 
 USTRUCT(BlueprintType)
@@ -242,19 +241,19 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBlendingSettings
 
 namespace PCGExDataBlending
 {
-
 	class PCGEXTENDEDTOOLKIT_API FDataForwardHandler
 	{
 		const FPCGExForwardSettings* Settings = nullptr;
 		const PCGExData::FPointIO* SourceIO = nullptr;
 		TArray<PCGEx::FAttributeIdentity> Identities;
+
 	public:
 		~FDataForwardHandler();
 		explicit FDataForwardHandler(const FPCGExForwardSettings* InSettings, const PCGExData::FPointIO* InSourceIO);
 		void Forward(int32 SourceIndex, PCGExData::FPointIO* Target);
 	};
 
-	
+
 	/**
 	 * 
 	 */
@@ -465,7 +464,7 @@ namespace PCGExDataBlending
 	template <typename T>
 	class PCGEXTENDEDTOOLKIT_API FDataBlendingOperationWithScratchCheck : public FDataBlendingOperation<T>
 	{
-		virtual void DoValuesRangeOperation(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, TArrayView<T>& Values, const TArrayView<double>& Weights) const
+		virtual void DoValuesRangeOperation(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, TArrayView<T>& Values, const TArrayView<double>& Weights) const override
 		{
 			if (!this->bInterpolationAllowed && this->GetIsInterpolation())
 			{

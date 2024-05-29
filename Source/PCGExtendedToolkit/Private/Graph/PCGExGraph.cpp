@@ -241,12 +241,10 @@ namespace PCGExGraph
 	{
 		EdgesIO->OutputTo(InContext);
 	}
-
 }
 
 namespace PCGExGraphTask
 {
-	
 	bool FWriteSubGraphEdges::ExecuteTask()
 	{
 		WriteSubGraphEdges(PointIO->GetOut()->GetPoints(), Graph, SubGraph, MetadataSettings);
@@ -392,5 +390,4 @@ Writer->BindAndGet(*PointIO);\
 
 		return true;
 	}
-
 }

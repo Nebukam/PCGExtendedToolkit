@@ -99,7 +99,7 @@ namespace PCGExDataBlending
 
 		PCGEX_DELETE(PropertiesBlender)
 		PropertiesBlender = new FPropertiesBlender(*BlendingSettings);
-		
+
 		CurrentTargetData->CreateOutKeys();
 
 		// Create blending operations
@@ -155,7 +155,7 @@ namespace PCGExDataBlending
 
 		FPCGPoint& Target = CurrentTargetData->GetMutablePoint(CompoundIndex);
 		PropertiesBlender->PrepareBlending(Target, Target);
-		
+
 		for (int k = 0; k < NumCompounded; k++)
 		{
 			uint32 IOIndex;
@@ -168,7 +168,7 @@ namespace PCGExDataBlending
 			const double Weight = Compound->Weights[k];
 
 			PropertiesBlender->Blend(Target, Sources[*IOIdx]->GetInPoint(PtIndex), Target, Weight);
-			
+
 			ValidCompounds++;
 			TotalWeight += Weight;
 		}
@@ -183,7 +183,7 @@ namespace PCGExDataBlending
 
 			ValidCompounds = 0;
 			TotalWeight = 0;
-			
+
 			for (int k = 0; k < NumCompounded; k++)
 			{
 				uint32 IOIndex;

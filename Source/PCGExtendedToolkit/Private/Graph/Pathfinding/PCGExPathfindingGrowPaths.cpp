@@ -1,7 +1,7 @@
 ﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "..\..\..\Public\Graph\Pathfinding\PCGExPathfindingGrowPaths.h"
+#include "Graph/Pathfinding/PCGExPathfindingGrowPaths.h"
 
 #include "PCGExPointsProcessor.h"
 #include "Graph/PCGExGraph.h"
@@ -167,7 +167,6 @@ void PCGExGrow::FGrowth::Write()
 	}
 
 	Context->SeedForwardHandler->Forward(SeedPointIndex, &PathPoints);
-	
 }
 
 void PCGExGrow::FGrowth::Init()
@@ -311,7 +310,7 @@ bool FPCGExPathfindingGrowPathsElement::Boot(FPCGContext* InContext) const
 			return false;
 		}
 	}
-	
+
 	Context->SeedForwardHandler = new PCGExDataBlending::FDataForwardHandler(&Settings->SeedForwardAttributes, Context->SeedsPoints);
 
 	return true;
