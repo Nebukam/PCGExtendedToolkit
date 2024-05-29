@@ -1,0 +1,57 @@
+﻿// Copyright Timothé Lapetite 2024
+// Released under the MIT license https://opensource.org/license/MIT/
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "PCGExPointsProcessor.h"
+
+#include "Data/PCGExGraphDefinition.h"
+
+#include "PCGExHeuristicsFactoryProvider.generated.h"
+
+class UPCGExHeuristicOperation;
+
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicDescriptorBase
+{
+	GENERATED_BODY()
+
+	FPCGExHeuristicDescriptorBase()
+	{
+	}
+
+	/** The weight factor for this heuristic. Used as a multiplier to the pathfinding Reference Weight value.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	double WeightFactor = 1;
+};
+
+UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
+class PCGEXTENDEDTOOLKIT_API UPCGHeuristicsFactoryBase : public UPCGExParamFactoryBase
+{
+	GENERATED_BODY()
+
+public:
+	virtual UPCGExHeuristicOperation* CreateOperation() const;
+};
+
+UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
+class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicsFactoryProviderSettings : public UPCGExFactoryProviderSettings
+{
+	GENERATED_BODY()
+
+public:
+	//~Begin UPCGSettings interface
+#if WITH_EDITOR
+	PCGEX_NODE_INFOS(NodeFilter, "Heuristics Definition", "Creates a single heuristic computational node, to be used with pathfinding nodes.")
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorHeuristics; }
+#endif
+	//~End UPCGSettings
+
+	virtual FName GetMainOutputLabel() const override;
+	virtual UPCGExParamFactoryBase* CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
+
+#if WITH_EDITOR
+	virtual FString GetDisplayName() const override;
+#endif
+};

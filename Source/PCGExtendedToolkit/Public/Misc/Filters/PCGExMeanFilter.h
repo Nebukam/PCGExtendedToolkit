@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExCompare.h"
+#include "PCGExFilterFactoryProvider.h"
 #include "UObject/Object.h"
 
 #include "Data/PCGExDataFilter.h"
@@ -57,17 +58,13 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMeanFilterDescriptor
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bExcludeAboveMean"))
 	double ExcludeAbove = 0.2;
 
-#if WITH_EDITOR
-	FString GetDisplayName() const;
-#endif
 };
-
 
 /**
  * 
  */
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGExMeanFilterDefinition : public UPCGExFilterDefinitionBase
+UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
+class PCGEXTENDEDTOOLKIT_API UPCGExMeanFilterFactory : public UPCGExFilterFactoryBase
 {
 	GENERATED_BODY()
 
@@ -95,21 +92,21 @@ public:
 		PruneAbove = Descriptor.ExcludeAbove;
 	}
 
-	virtual PCGExDataFilter::TFilterHandler* CreateHandler() const override;
-	virtual void BeginDestroy() override;
+	virtual PCGExDataFilter::TFilter* CreateFilter() const override;
+	
 };
 
 namespace PCGExPointsFilter
 {
-	class PCGEXTENDEDTOOLKIT_API TMeanHandler : public PCGExDataFilter::TFilterHandler
+	class PCGEXTENDEDTOOLKIT_API TMeanFilter : public PCGExDataFilter::TFilter
 	{
 	public:
-		explicit TMeanHandler(const UPCGExMeanFilterDefinition* InDefinition)
-			: TFilterHandler(InDefinition), MeanFilter(InDefinition)
+		explicit TMeanFilter(const UPCGExMeanFilterFactory* InFactory)
+			: TFilter(InFactory), TypedFilterFactory(InFactory)
 		{
 		}
 
-		const UPCGExMeanFilterDefinition* MeanFilter;
+		const UPCGExMeanFilterFactory* TypedFilterFactory;
 
 		PCGEx::FLocalSingleFieldGetter* Target = nullptr;
 
@@ -122,9 +119,9 @@ namespace PCGExPointsFilter
 
 		virtual void PrepareForTesting(PCGExData::FPointIO* PointIO) override;
 
-		virtual ~TMeanHandler() override
+		virtual ~TMeanFilter() override
 		{
-			MeanFilter = nullptr;
+			TypedFilterFactory = nullptr;
 			PCGEX_DELETE(Target)
 		}
 	};
@@ -132,45 +129,30 @@ namespace PCGExPointsFilter
 
 ///
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
-class PCGEXTENDEDTOOLKIT_API UPCGExMeanFilterDefinitionSettings : public UPCGSettings
+UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
+class PCGEXTENDEDTOOLKIT_API UPCGExMeanFilterProviderSettings : public UPCGExFilterProviderSettings
 {
 	GENERATED_BODY()
 
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	bool bCacheResult = false;
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
 		MeanFilterDefinition, "Filter : Mean", "Creates a filter definition that compares values against their mean.",
-		FName(Descriptor.GetDisplayName()))
-	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Param; }
-	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorFilter; }
+		FName(GetDisplayName()))
 #endif
-
-	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
-	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
-
-protected:
-	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
 
 public:
-	/** State name.*/
+	/** Filter Descriptor.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
 	FPCGExMeanFilterDescriptor Descriptor;
-};
 
-class PCGEXTENDEDTOOLKIT_API FPCGExMeanFilterDefinitionElement : public IPCGElement
-{
 public:
+	virtual UPCGExParamFactoryBase* CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
+	
 #if WITH_EDITOR
-	virtual bool ShouldLog() const override { return false; }
+	virtual FString GetDisplayName() const override;
 #endif
-
-protected:
-	virtual bool ExecuteInternal(FPCGContext* Context) const override;
-
-public:
-	virtual FPCGContext* Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node) override;
+	
 };

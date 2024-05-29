@@ -10,21 +10,6 @@
 #include "Data/PCGPointData.h"
 #include "UObject/Object.h"
 
-#include "PCGExData.generated.h"
-
-
-/**
- * 
- */
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGExParamDataBase : public UPCGPointData
-{
-	GENERATED_BODY()
-
-public:
-	virtual EPCGDataType GetDataType() const override { return EPCGDataType::Param; }
-};
-
 namespace PCGExData
 {
 	constexpr PCGExMT::AsyncState State_MergingData = __COUNTER__;

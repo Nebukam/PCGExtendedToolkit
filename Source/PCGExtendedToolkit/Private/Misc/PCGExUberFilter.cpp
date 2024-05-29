@@ -68,7 +68,7 @@ bool FPCGExUberFilterElement::Boot(FPCGContext* InContext) const
 	return PCGExDataFilter::GetInputFilters(
 		Context,
 		PCGExDataFilter::SourceFiltersLabel,
-		Context->FilterDefinitions);
+		Context->Factories);
 }
 
 bool FPCGExUberFilterElement::ExecuteInternal(FPCGContext* InContext) const
@@ -92,7 +92,7 @@ bool FPCGExUberFilterElement::ExecuteInternal(FPCGContext* InContext) const
 		else
 		{
 			Context->FilterManager = new PCGExDataFilter::TDirectFilterManager(Context->CurrentIO);
-			Context->FilterManager->Register<UPCGExFilterDefinitionBase>(Context, Context->FilterDefinitions, Context->CurrentIO);
+			Context->FilterManager->Register<UPCGExFilterFactoryBase>(Context, Context->Factories, Context->CurrentIO);
 
 			if (!Context->FilterManager->bValid)
 			{

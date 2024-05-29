@@ -3,121 +3,68 @@
 
 #include "Misc/Filters/PCGExDotFilter.h"
 
-#if WITH_EDITOR
-FString FPCGExDotFilterDescriptor::GetDisplayName() const
+PCGExDataFilter::TFilter* UPCGExDotFilterFactory::CreateFilter() const
 {
-	FString DisplayName = OperandA.GetName().ToString() + " . ";
-
-	if (CompareAgainst == EPCGExOperandType::Attribute) { DisplayName += OperandB.GetName().ToString(); }
-	else { DisplayName += " (Constant)"; }
-
-	return DisplayName;
-}
-#endif
-
-PCGExDataFilter::TFilterHandler* UPCGExDotFilterDefinition::CreateHandler() const
-{
-	return new PCGExPointsFilter::TDotHandler(this);
+	return new PCGExPointsFilter::TDotFilter(this);
 }
 
-void UPCGExDotFilterDefinition::BeginDestroy()
-{
-	Super::BeginDestroy();
-}
-
-void PCGExPointsFilter::TDotHandler::Capture(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO)
+void PCGExPointsFilter::TDotFilter::Capture(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO)
 {
 	bValid = true;
 
 	OperandA = new PCGEx::FLocalVectorGetter();
-	OperandA->Capture(DotFilter->OperandA);
+	OperandA->Capture(TypedFilterFactory->OperandA);
 	OperandA->Grab(*PointIO, false);
 	bValid = OperandA->IsUsable(PointIO->GetNum());
 
 	if (!bValid)
 	{
-		PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand A attribute: {0}."), FText::FromName(DotFilter->OperandA.GetName())));
+		PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand A attribute: {0}."), FText::FromName(TypedFilterFactory->OperandA.GetName())));
 		PCGEX_DELETE(OperandA)
 		return;
 	}
 
-	if (DotFilter->CompareAgainst == EPCGExOperandType::Attribute)
+	if (TypedFilterFactory->CompareAgainst == EPCGExOperandType::Attribute)
 	{
 		OperandB = new PCGEx::FLocalVectorGetter();
-		OperandB->Capture(DotFilter->OperandB);
+		OperandB->Capture(TypedFilterFactory->OperandB);
 		OperandB->Grab(*PointIO, false);
 		bValid = OperandB->IsUsable(PointIO->GetNum());
 
 		if (!bValid)
 		{
-			PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand B attribute: {0}."), FText::FromName(DotFilter->OperandB.GetName())));
+			PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand B attribute: {0}."), FText::FromName(TypedFilterFactory->OperandB.GetName())));
 			PCGEX_DELETE(OperandB)
 		}
 	}
 }
 
-bool PCGExPointsFilter::TDotHandler::Test(const int32 PointIndex) const
+bool PCGExPointsFilter::TDotFilter::Test(const int32 PointIndex) const
 {
 	const FVector A = OperandA->Values[PointIndex];
-	const FVector B = DotFilter->CompareAgainst == EPCGExOperandType::Attribute ? OperandB->Values[PointIndex] : DotFilter->OperandBConstant;
+	const FVector B = TypedFilterFactory->CompareAgainst == EPCGExOperandType::Attribute ? OperandB->Values[PointIndex] : TypedFilterFactory->OperandBConstant;
 
-	const double Dot = DotFilter->bUnsignedDot ? FMath::Abs(FVector::DotProduct(A, B)) : FVector::DotProduct(A, B);
+	const double Dot = TypedFilterFactory->bUnsignedDot ? FMath::Abs(FVector::DotProduct(A, B)) : FVector::DotProduct(A, B);
 
-	if (DotFilter->bExcludeAboveDot && Dot > DotFilter->ExcludeAbove) { return false; }
-	if (DotFilter->bExcludeBelowDot && Dot < DotFilter->ExcludeBelow) { return false; }
+	if (TypedFilterFactory->bExcludeAboveDot && Dot > TypedFilterFactory->ExcludeAbove) { return false; }
+	if (TypedFilterFactory->bExcludeBelowDot && Dot < TypedFilterFactory->ExcludeBelow) { return false; }
 
 	return true;
 }
 
 #define LOCTEXT_NAMESPACE "PCGExDotFilterDefinition"
-#define PCGEX_NAMESPACE DotFilterDefinition
+#define PCGEX_NAMESPACE PCGExDotFilterDefinition
 
-FPCGElementPtr UPCGExDotFilterDefinitionSettings::CreateElement() const { return MakeShared<FPCGExDotFilterDefinitionElement>(); }
+PCGEX_CREATE_FILTER_FACTORY(Dot)
 
-TArray<FPCGPinProperties> UPCGExDotFilterDefinitionSettings::InputPinProperties() const
+FString UPCGExDotFilterProviderSettings::GetDisplayName() const
 {
-	TArray<FPCGPinProperties> PinProperties;
-	return PinProperties;
-}
+	FString DisplayName = Descriptor.OperandA.GetName().ToString() + " . ";
 
-TArray<FPCGPinProperties> UPCGExDotFilterDefinitionSettings::OutputPinProperties() const
-{
-	TArray<FPCGPinProperties> PinProperties;
-	FPCGPinProperties& PinPropertyOutput = PinProperties.Emplace_GetRef(PCGExDataFilter::OutputFilterLabel, EPCGDataType::Param, false, false);
+	if (Descriptor.CompareAgainst == EPCGExOperandType::Attribute) { DisplayName += Descriptor.OperandB.GetName().ToString(); }
+	else { DisplayName += " (Constant)"; }
 
-#if WITH_EDITOR
-	PinPropertyOutput.Tooltip = FTEXT("Outputs a single filter definition.");
-#endif
-
-	return PinProperties;
-}
-
-bool FPCGExDotFilterDefinitionElement::ExecuteInternal(
-	FPCGContext* Context) const
-{
-	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExDotFilterDefinitionElement::Execute);
-
-	PCGEX_SETTINGS(DotFilterDefinition)
-
-	UPCGExDotFilterDefinition* OutFilter = NewObject<UPCGExDotFilterDefinition>();
-
-	OutFilter->Priority = 0;
-	OutFilter->ApplyDescriptor(Settings->Descriptor);
-
-	FPCGTaggedData& Output = Context->OutputData.TaggedData.Emplace_GetRef();
-	Output.Data = OutFilter;
-	Output.Pin = PCGExDataFilter::OutputFilterLabel;
-
-	return true;
-}
-
-FPCGContext* FPCGExDotFilterDefinitionElement::Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node)
-{
-	FPCGContext* Context = new FPCGContext();
-	Context->InputData = InputData;
-	Context->SourceComponent = SourceComponent;
-	Context->Node = Node;
-	return Context;
+	return DisplayName;
 }
 
 #undef LOCTEXT_NAMESPACE

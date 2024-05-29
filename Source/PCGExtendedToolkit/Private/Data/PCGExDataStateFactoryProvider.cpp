@@ -1,7 +1,7 @@
 ﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Data/PCGExCreateState.h"
+#include "Data/PCGExDataStateFactoryProvider.h"
 
 #include "PCGPin.h"
 #include "Graph/PCGExGraph.h"
@@ -9,9 +9,7 @@
 #define LOCTEXT_NAMESPACE "PCGExCreateState"
 #define PCGEX_NAMESPACE CreateState
 
-FName UPCGExCreateStateSettings::GetMainOutputLabel() const { return NAME_None; }
-
-TArray<FPCGPinProperties> UPCGExCreateStateSettings::InputPinProperties() const
+TArray<FPCGPinProperties> UPCGExStateFactoryProviderSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
 
@@ -36,7 +34,7 @@ TArray<FPCGPinProperties> UPCGExCreateStateSettings::InputPinProperties() const
 	return PinProperties;
 }
 
-TArray<FPCGPinProperties> UPCGExCreateStateSettings::OutputPinProperties() const
+TArray<FPCGPinProperties> UPCGExStateFactoryProviderSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
 	FPCGPinProperties& PinPropertyOutput = PinProperties.Emplace_GetRef(GetMainOutputLabel(), EPCGDataType::Param, false, false);
@@ -48,34 +46,20 @@ TArray<FPCGPinProperties> UPCGExCreateStateSettings::OutputPinProperties() const
 	return PinProperties;
 }
 
-#if WITH_EDITOR
-void UPCGExCreateStateSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+UPCGExParamFactoryBase* UPCGExStateFactoryProviderSettings::CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const
 {
-	Super::PostEditChangeProperty(PropertyChangedEvent);
+	return Super::CreateFactory(InContext, InFactory);
 }
-#endif
 
-bool FPCGExCreateStateElement::Boot(FPCGContext* Context) const
+bool UPCGExStateFactoryProviderSettings::ValidateStateName(const FPCGContext* Context) const
 {
-	PCGEX_SETTINGS(CreateState)
-
-	if (!PCGEx::IsValidName(Settings->StateName))
+	if (!PCGEx::IsValidName(StateName))
 	{
-		PCGE_LOG(Error, GraphAndLog, FTEXT("State name is invalid; Cannot be 'None' and can only contain the following special characters:[ ],[_],[-],[/]"));
+		PCGE_LOG_C(Error, GraphAndLog, Context, FTEXT("State name is invalid; Cannot be 'None' and can only contain the following special characters:[ ],[_],[-],[/]"));
 		return false;
 	}
 
 	return true;
-}
-
-FPCGContext* FPCGExCreateStateElement::Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node)
-{
-	FPCGContext* Context = new FPCGContext();
-	Context->InputData = InputData;
-	Context->SourceComponent = SourceComponent;
-	Context->Node = Node;
-
-	return Context;
 }
 
 #undef LOCTEXT_NAMESPACE

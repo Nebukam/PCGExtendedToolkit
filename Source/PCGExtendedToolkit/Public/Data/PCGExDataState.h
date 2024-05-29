@@ -16,7 +16,7 @@
  * 
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGExStateDefinitionBase : public UPCGExFilterDefinitionBase
+class PCGEXTENDEDTOOLKIT_API UPCGExDataStateFactoryBase : public UPCGExFilterFactoryBase
 {
 	GENERATED_BODY()
 
@@ -30,7 +30,7 @@ public:
 	TArray<TObjectPtr<UPCGParamData>> InvalidStateAttributes;
 	TArray<PCGEx::FAttributesInfos*> InvalidStateAttributesInfos;
 
-	virtual PCGExDataFilter::TFilterHandler* CreateHandler() const override;
+	virtual PCGExDataFilter::TFilter* CreateFilter() const override;
 
 	virtual void BeginDestroy() override;
 };
@@ -42,7 +42,7 @@ namespace PCGExDataState
 	const FName SourceValidStateAttributesLabel = TEXT("ValidStateAttributes");
 	const FName SourceInvalidStateAttributesLabel = TEXT("InvalidStateAttributes");
 
-	class PCGEXTENDEDTOOLKIT_API TStateHandler : public PCGExDataFilter::TFilterHandler
+	class PCGEXTENDEDTOOLKIT_API TDataState : public PCGExDataFilter::TFilter
 	{
 	public:
 		TArray<FPCGMetadataAttributeBase*> InValidStateAttributes;
@@ -55,17 +55,17 @@ namespace PCGExDataState
 
 		TSet<FString> OverlappingAttributes;
 
-		explicit TStateHandler(const UPCGExStateDefinitionBase* InDefinition)
-			: TFilterHandler(InDefinition), StateDefinition(InDefinition)
+		explicit TDataState(const UPCGExDataStateFactoryBase* InDefinition)
+			: TFilter(InDefinition), StateDefinition(InDefinition)
 		{
 		}
 
-		const UPCGExStateDefinitionBase* StateDefinition;
+		const UPCGExDataStateFactoryBase* StateDefinition;
 
 		virtual bool Test(const int32 PointIndex) const override;
 		virtual void PrepareForWriting(PCGExData::FPointIO* PointIO);
 
-		virtual ~TStateHandler() override
+		virtual ~TDataState() override
 		{
 			OverlappingAttributes.Empty();
 
@@ -93,9 +93,9 @@ namespace PCGExDataState
 
 		virtual void Test(const int32 PointIndex) override;
 
-		void WriteStateNames(FName AttributeName, FName DefaultValue, const TArrayView<int32>& InIndices);
-		void WriteStateValues(FName AttributeName, int32 DefaultValue, const TArrayView<int32>& InIndices);
-		void WriteStateIndividualStates(FPCGExAsyncManager* AsyncManager, const TArrayView<int32>& InIndices);
+		void WriteStateNames(FName AttributeName, FName DefaultValue, const TArray<int32>& InIndices);
+		void WriteStateValues(FName AttributeName, int32 DefaultValue, const TArray<int32>& InIndices);
+		void WriteStateIndividualStates(FPCGExAsyncManager* AsyncManager, const TArray<int32>& InIndices);
 
 		void WritePrepareForStateAttributes(const FPCGContext* InContext);
 		void WriteStateAttributes(const int32 PointIndex);
@@ -106,7 +106,7 @@ namespace PCGExDataState
 		}
 
 	protected:
-		virtual void PostProcessHandler(PCGExDataFilter::TFilterHandler* Handler) override;
+		virtual void PostProcessHandler(PCGExDataFilter::TFilter* Handler) override;
 	};
 
 	template <typename T_DEF>
@@ -125,7 +125,7 @@ namespace PCGExDataState
 					continue;
 				}
 
-				if (State->Tests.IsEmpty())
+				if (State->Filters.IsEmpty())
 				{
 					PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("State '{0}' has no conditions and will be ignored."), FText::FromName(State->StateName)));
 					continue;
@@ -155,14 +155,14 @@ namespace PCGExDataStateTask
 	public:
 		FWriteIndividualState(
 			FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-			PCGExDataState::TStateHandler* InHandler, const TArrayView<int32>* InInIndices) :
+			PCGExDataState::TDataState* InHandler, const TArray<int32>* InInIndices) :
 			FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
 			Handler(InHandler), InIndices(InInIndices)
 		{
 		}
 
-		PCGExDataState::TStateHandler* Handler = nullptr;
-		const TArrayView<int32>* InIndices = nullptr;
+		PCGExDataState::TDataState* Handler = nullptr;
+		const TArray<int32>* InIndices = nullptr;
 
 		virtual bool ExecuteTask() override;
 	};

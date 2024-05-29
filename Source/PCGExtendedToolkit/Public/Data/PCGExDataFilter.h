@@ -6,15 +6,14 @@
 #include "CoreMinimal.h"
 #include "Blending/PCGExDataBlending.h"
 #include "UObject/Object.h"
-
 #include "PCGExData.h"
-#include "Data/PCGExData.h"
+#include "PCGExFactoryProvider.h"
 
 #include "PCGExDataFilter.generated.h"
 
 namespace PCGExDataFilter
 {
-	class TFilterHandler;
+	class TFilter;
 }
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Operand Type"))
@@ -27,16 +26,14 @@ enum class EPCGExOperandType : uint8
 /**
  * 
  */
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGExFilterDefinitionBase : public UPCGExParamDataBase
+UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
+class PCGEXTENDEDTOOLKIT_API UPCGExFilterFactoryBase : public UPCGExParamFactoryBase
 {
 	GENERATED_BODY()
 
 public:
 	int32 Priority = 0;
-
-	virtual void BeginDestroy() override;
-	virtual PCGExDataFilter::TFilterHandler* CreateHandler() const;
+	virtual PCGExDataFilter::TFilter* CreateFilter() const;
 };
 
 namespace PCGExDataFilter
@@ -48,15 +45,15 @@ namespace PCGExDataFilter
 	const FName OutputInsideFiltersLabel = TEXT("Inside");
 	const FName OutputOutsideFiltersLabel = TEXT("Outside");
 
-	class PCGEXTENDEDTOOLKIT_API TFilterHandler
+	class PCGEXTENDEDTOOLKIT_API TFilter
 	{
 	public:
-		explicit TFilterHandler(const UPCGExFilterDefinitionBase* InDefinition):
-			Definition(InDefinition)
+		explicit TFilter(const UPCGExFilterFactoryBase* InFactory):
+			Factory(InFactory)
 		{
 		}
 
-		const UPCGExFilterDefinitionBase* Definition;
+		const UPCGExFilterFactoryBase* Factory;
 		TArray<bool> Results;
 
 		int32 Index = 0;
@@ -71,7 +68,7 @@ namespace PCGExDataFilter
 		virtual bool IsClusterFilter() const { return false; }
 #endif
 
-		virtual ~TFilterHandler()
+		virtual ~TFilter()
 		{
 			Results.Empty();
 		}
@@ -82,7 +79,7 @@ namespace PCGExDataFilter
 	public:
 		explicit TFilterManager(PCGExData::FPointIO* InPointIO);
 
-		TArray<TFilterHandler*> Handlers;
+		TArray<TFilter*> Handlers;
 		bool bValid = false;
 
 		PCGExData::FPointIO* PointIO = nullptr;
@@ -90,7 +87,7 @@ namespace PCGExDataFilter
 		template <typename T_DEF>
 		void Register(const FPCGContext* InContext, const TArray<TObjectPtr<T_DEF>>& InDefinitions, PCGExData::FPointIO* InPointIO)
 		{
-			Register(InContext, InDefinitions, [&](TFilterHandler* Handler) { Handler->Capture(InContext, InPointIO); });
+			Register(InContext, InDefinitions, [&](TFilter* Handler) { Handler->Capture(InContext, InPointIO); });
 		}
 
 		template <typename T_DEF, class CaptureFunc>
@@ -98,7 +95,7 @@ namespace PCGExDataFilter
 		{
 			for (T_DEF* Def : InDefinitions)
 			{
-				TFilterHandler* Handler = Def->CreateHandler();
+				TFilter* Handler = Def->CreateFilter();
 				InCaptureFn(Handler);
 
 				if (!Handler->bValid)
@@ -115,7 +112,7 @@ namespace PCGExDataFilter
 			if (!bValid) { return; }
 
 			// Sort mappings so higher priorities come last, as they have to potential to override values.
-			Handlers.Sort([&](const TFilterHandler& A, const TFilterHandler& B) { return A.Definition->Priority < B.Definition->Priority; });
+			Handlers.Sort([&](const TFilter& A, const TFilter& B) { return A.Factory->Priority < B.Factory->Priority; });
 
 			// Update index & partials
 			for (int i = 0; i < Handlers.Num(); i++)
@@ -136,7 +133,7 @@ namespace PCGExDataFilter
 		}
 
 	protected:
-		virtual void PostProcessHandler(TFilterHandler* Handler);
+		virtual void PostProcessHandler(TFilter* Handler);
 	};
 
 	class PCGEXTENDEDTOOLKIT_API TDirectFilterManager : public TFilterManager

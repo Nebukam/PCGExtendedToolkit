@@ -265,6 +265,11 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathStatistics
 
 namespace PCGExPathfinding
 {
+
+	const FName OutputHeuristicsLabel = TEXT("Heuristics");
+	const FName OutputModifiersLabel = TEXT("Modifiers");
+	const FName InputHeuristicsLabel = TEXT("Heuristics");
+	
 	struct PCGEXTENDEDTOOLKIT_API FExtraWeights
 	{
 		TArray<double> NodeExtraWeight;

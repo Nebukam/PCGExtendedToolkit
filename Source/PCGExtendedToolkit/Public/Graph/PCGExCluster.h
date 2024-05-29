@@ -65,7 +65,7 @@ enum class EPCGExClusterSearchOrientationMode : uint8
  * 
  */
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGExClusterFilterDefinitionBase : public UPCGExFilterDefinitionBase
+class PCGEXTENDEDTOOLKIT_API UPCGExClusterFilterFactoryBase : public UPCGExFilterFactoryBase
 {
 	GENERATED_BODY()
 };
@@ -74,13 +74,13 @@ class PCGEXTENDEDTOOLKIT_API UPCGExClusterFilterDefinitionBase : public UPCGExFi
  * 
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGExNodeStateDefinition : public UPCGExStateDefinitionBase
+class PCGEXTENDEDTOOLKIT_API UPCGExNodeStateFactory : public UPCGExDataStateFactoryBase
 {
 	GENERATED_BODY()
 
 public:
-	TArray<UPCGExFilterDefinitionBase*> Tests;
-	virtual PCGExDataFilter::TFilterHandler* CreateHandler() const override;
+	TArray<UPCGExFilterFactoryBase*> Filters;
+	virtual PCGExDataFilter::TFilter* CreateFilter() const override;
 	virtual void BeginDestroy() override;
 };
 
@@ -264,11 +264,11 @@ namespace PCGExCluster
 		}
 	};
 
-	class PCGEXTENDEDTOOLKIT_API TClusterFilterHandler : public PCGExDataFilter::TFilterHandler
+	class PCGEXTENDEDTOOLKIT_API TClusterFilter : public PCGExDataFilter::TFilter
 	{
 	public:
-		explicit TClusterFilterHandler(const UPCGExClusterFilterDefinitionBase* InDefinition)
-			: TFilterHandler(InDefinition)
+		explicit TClusterFilter(const UPCGExClusterFilterFactoryBase* InDefinition)
+			: TFilter(InDefinition)
 		{
 			bValid = false;
 		}
@@ -285,14 +285,14 @@ namespace PCGExCluster
 #endif
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FNodeStateHandler : public PCGExDataState::TStateHandler
+	class PCGEXTENDEDTOOLKIT_API FNodeStateHandler : public PCGExDataState::TDataState
 	{
 	public:
-		explicit FNodeStateHandler(const UPCGExNodeStateDefinition* InDefinition);
+		explicit FNodeStateHandler(const UPCGExNodeStateFactory* InDefinition);
 
-		const UPCGExNodeStateDefinition* NodeStateDefinition = nullptr;
-		TArray<TFilterHandler*> FilterHandlers;
-		TArray<TClusterFilterHandler*> ClusterFilterHandlers;
+		const UPCGExNodeStateFactory* NodeStateDefinition = nullptr;
+		TArray<TFilter*> FilterHandlers;
+		TArray<TClusterFilter*> ClusterFilterHandlers;
 
 		void CaptureCluster(const FPCGContext* InContext, FCluster* InCluster);
 		virtual bool Test(const int32 PointIndex) const override;

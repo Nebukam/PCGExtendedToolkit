@@ -76,8 +76,8 @@ bool FPCGExFindSocketStatesElement::ExecuteInternal(
 			PCGEx::ArrayOfIndices(Context->PointIndices, Context->CurrentIO->GetNum());
 
 			Context->StatesManager = new PCGExDataState::TStatesManager(Context->CurrentIO);
-			Context->StatesManager->Register<UPCGExSocketStateDefinition>(
-				Context, Context->StateDefinitions, [&](PCGExDataFilter::TFilterHandler* Handler)
+			Context->StatesManager->Register<UPCGExSocketStateFactory>(
+				Context, Context->StateDefinitions, [&](PCGExDataFilter::TFilter* Handler)
 				{
 					PCGExGraph::FSocketStateHandler* SocketHandler = static_cast<PCGExGraph::FSocketStateHandler*>(Handler);
 					SocketHandler->CaptureGraph(&Context->Graphs, Context->CurrentIO);

@@ -3,34 +3,28 @@
 
 #include "Data/PCGExDataFilter.h"
 
-
-void UPCGExFilterDefinitionBase::BeginDestroy()
-{
-	Super::BeginDestroy();
-}
-
-PCGExDataFilter::TFilterHandler* UPCGExFilterDefinitionBase::CreateHandler() const
+PCGExDataFilter::TFilter* UPCGExFilterFactoryBase::CreateFilter() const
 {
 	return nullptr;
 }
 
 namespace PCGExDataFilter
 {
-	void TFilterHandler::Capture(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO)
+	void TFilter::Capture(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO)
 	{
 		bValid = true;
 	}
 
-	bool TFilterHandler::Test(const int32 PointIndex) const { return true; }
+	bool TFilter::Test(const int32 PointIndex) const { return true; }
 
-	void TFilterHandler::PrepareForTesting(PCGExData::FPointIO* PointIO)
+	void TFilter::PrepareForTesting(PCGExData::FPointIO* PointIO)
 	{
 		const int32 NumPoints = PointIO->GetNum();
 		Results.SetNumUninitialized(NumPoints);
 		for (int i = 0; i < NumPoints; i++) { Results[i] = false; }
 	}
 
-	void TFilterHandler::PrepareForTesting(PCGExData::FPointIO* PointIO, const TArrayView<int32>& PointIndices)
+	void TFilter::PrepareForTesting(PCGExData::FPointIO* PointIO, const TArrayView<int32>& PointIndices)
 	{
 		if (const int32 NumPoints = PointIO->GetNum(); Results.Num() != NumPoints) { Results.SetNumUninitialized(NumPoints); }
 		for (const int32 i : PointIndices) { Results[i] = false; }
@@ -43,24 +37,24 @@ namespace PCGExDataFilter
 
 	void TFilterManager::PrepareForTesting()
 	{
-		for (TFilterHandler* Handler : Handlers) { Handler->PrepareForTesting(PointIO); }
+		for (TFilter* Handler : Handlers) { Handler->PrepareForTesting(PointIO); }
 	}
 
 	void TFilterManager::PrepareForTesting(const TArrayView<int32>& PointIndices)
 	{
-		for (TFilterHandler* Handler : Handlers) { Handler->PrepareForTesting(PointIO, PointIndices); }
+		for (TFilter* Handler : Handlers) { Handler->PrepareForTesting(PointIO, PointIndices); }
 	}
 
 	void TFilterManager::Test(const int32 PointIndex)
 	{
-		for (TFilterHandler* Handler : Handlers)
+		for (TFilter* Handler : Handlers)
 		{
 			const bool bValue = Handler->Test(PointIndex);
 			Handler->Results[PointIndex] = bValue;
 		}
 	}
 
-	void TFilterManager::PostProcessHandler(TFilterHandler* Handler)
+	void TFilterManager::PostProcessHandler(TFilter* Handler)
 	{
 	}
 
@@ -72,7 +66,7 @@ namespace PCGExDataFilter
 	void TDirectFilterManager::Test(const int32 PointIndex)
 	{
 		bool bPass = true;
-		for (const TFilterHandler* Handler : Handlers)
+		for (const TFilter* Handler : Handlers)
 		{
 			if (!Handler->Test(PointIndex))
 			{
@@ -86,7 +80,7 @@ namespace PCGExDataFilter
 
 	void TDirectFilterManager::PrepareForTesting()
 	{
-		for (TFilterHandler* Handler : Handlers) { Handler->PrepareForTesting(PointIO); }
+		for (TFilter* Handler : Handlers) { Handler->PrepareForTesting(PointIO); }
 
 		const int32 NumPoints = PointIO->GetNum();
 		Results.SetNumUninitialized(NumPoints);
