@@ -250,7 +250,7 @@ public:
 
 	/** Visited weight threshold over which the growth is stopped if that's the only available option. -1 ignores.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Extra Weighting", meta=(EditCondition="bWeightUpVisited"))
-	double VisitedStopThreshold = -1; 
+	double VisitedStopThreshold = -1;
 
 	/** Use a Seed attribute value to tag output paths. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding")
@@ -282,7 +282,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingGrowPathsContext : public FPCGExE
 
 	PCGExData::FPointIO* SeedsPoints = nullptr;
 	PCGExData::FPointIOCollection* OutputPaths = nullptr;
-	
+
 	PCGExHeuristics::THeuristicsHandler* HeuristicsHandler = nullptr;
 
 	PCGEx::FLocalSingleFieldGetter* NumBranchesGetter = nullptr;

@@ -4,7 +4,7 @@
 
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicSteepness.h"
 
-void UPCGExHeuristicSteepness::PrepareForData(PCGExCluster::FCluster* InCluster)
+void UPCGExHeuristicSteepness::PrepareForCluster(PCGExCluster::FCluster* InCluster)
 {
 	UpwardVector = UpVector.GetSafeNormal();
 
@@ -12,7 +12,7 @@ void UPCGExHeuristicSteepness::PrepareForData(PCGExCluster::FCluster* InCluster)
 
 	ReverseWeight = 1 / ReferenceWeight;
 
-	Super::PrepareForData(InCluster);
+	Super::PrepareForCluster(InCluster);
 }
 
 double UPCGExHeuristicSteepness::GetGlobalScore(
@@ -22,8 +22,7 @@ double UPCGExHeuristicSteepness::GetGlobalScore(
 {
 	const double Dot = GetDot(From.Position, Goal.Position);
 	const double SampledDot = FMath::Max(0, SteepnessScoreCurveObj->GetFloatValue(Dot)) * ReferenceWeight;
-	const double Super = Super::GetGlobalScore(From, Seed, Goal);
-	return (SampledDot + Super) * 0.5;
+	return SampledDot;
 }
 
 double UPCGExHeuristicSteepness::GetEdgeScore(
@@ -35,8 +34,7 @@ double UPCGExHeuristicSteepness::GetEdgeScore(
 {
 	const double Dot = GetDot(From.Position, To.Position);
 	const double SampledDot = FMath::Max(0, SteepnessScoreCurveObj->GetFloatValue(Dot)) * ReferenceWeight;
-	const double Super = Super::GetEdgeScore(From, To, Edge, Seed, Goal);
-	return (SampledDot + Super) * 0.5;
+	return SampledDot;
 }
 
 double UPCGExHeuristicSteepness::GetDot(const FVector& From, const FVector& To) const

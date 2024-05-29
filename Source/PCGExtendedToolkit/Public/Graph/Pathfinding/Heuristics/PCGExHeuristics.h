@@ -226,6 +226,7 @@ namespace PCGExHeuristics
 	struct PCGEXTENDEDTOOLKIT_API FLocalFeedbackHandler
 	{
 		TArray<UPCGExHeuristicFeedback*> Feedbacks;
+		double TotalWeight = 0;
 
 		FLocalFeedbackHandler()
 		{
@@ -242,12 +243,20 @@ namespace PCGExHeuristics
 			Feedbacks.Empty();
 		}
 
+		double GetGlobalScore(
+			const PCGExCluster::FNode& From,
+			const PCGExCluster::FNode& Seed,
+			const PCGExCluster::FNode& Goal) const;
+
 		double GetEdgeScore(
 			const PCGExCluster::FNode& From,
 			const PCGExCluster::FNode& To,
 			const PCGExGraph::FIndexedEdge& Edge,
 			const PCGExCluster::FNode& Seed,
 			const PCGExCluster::FNode& Goal) const;
+
+		void FeedbackPointScore(const PCGExCluster::FNode& Node);
+		void FeedbackScore(const PCGExCluster::FNode& Node, const PCGExGraph::FIndexedEdge& Edge);
 	};
 
 	class PCGEXTENDEDTOOLKIT_API THeuristicsHandler
@@ -260,13 +269,14 @@ namespace PCGExHeuristics
 
 		PCGExCluster::FCluster* CurrentCluster = nullptr;
 
+		double ReferenceWeight = 100;
 		double HeuristicsWeight = 0;
 		double ModifiersWeight = 0;
 		double TotalWeight = 0;
 
 		bool HasGlobalFeedback() const { return !Feedbacks.IsEmpty(); };
 
-		explicit THeuristicsHandler(FPCGExPointsProcessorContext* InContext);
+		explicit THeuristicsHandler(FPCGExPointsProcessorContext* InContext, double InReferenceWeight = 100);
 		explicit THeuristicsHandler(UPCGExHeuristicOperation* InSingleOperation);
 		~THeuristicsHandler();
 

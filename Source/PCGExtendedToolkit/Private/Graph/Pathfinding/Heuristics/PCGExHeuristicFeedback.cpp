@@ -3,12 +3,9 @@
 
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicFeedback.h"
 
-void UPCGExHeuristicFeedback::PrepareForData(PCGExCluster::FCluster* InCluster)
+void UPCGExHeuristicFeedback::PrepareForCluster(PCGExCluster::FCluster* InCluster)
 {
-	Super::PrepareForData(InCluster);
-
-	NodeExtraWeight.SetNumZeroed(InCluster->Nodes.Num());
-	EdgeExtraWeight.SetNumZeroed(InCluster->Edges.Num());
+	Super::PrepareForCluster(InCluster);
 }
 
 double UPCGExHeuristicFeedback::GetGlobalScore(
@@ -16,7 +13,7 @@ double UPCGExHeuristicFeedback::GetGlobalScore(
 	const PCGExCluster::FNode& Seed,
 	const PCGExCluster::FNode& Goal) const
 {
-	return 0;
+	return NodeExtraWeight[From.NodeIndex];
 }
 
 double UPCGExHeuristicFeedback::GetEdgeScore(
@@ -26,19 +23,24 @@ double UPCGExHeuristicFeedback::GetEdgeScore(
 	const PCGExCluster::FNode& Seed,
 	const PCGExCluster::FNode& Goal) const
 {
-	return NodeExtraWeight[To.NodeIndex] + EdgeExtraWeight[Edge.EdgeIndex];
+	const double* NodePtr = NodeExtraWeight.Find(To.NodeIndex);
+	const double* EdgePtr = EdgeExtraWeight.Find(Edge.EdgeIndex);
+
+	return (NodePtr ? *NodePtr : 0) + (EdgePtr ? *EdgePtr : 0);
 }
 
 void UPCGExHeuristicFeedback::FeedbackPointScore(const PCGExCluster::FNode& Node)
 {
-	//TODO: Switch to map instead of array, will be slower but more memory efficient
-	NodeExtraWeight[Node.PointIndex] += 1; //TODO : Implement
+	double& NodeWeight = NodeExtraWeight.FindOrAdd(Node.PointIndex);
+	NodeWeight += ReferenceWeight * NodeScale;
 }
 
 void UPCGExHeuristicFeedback::FeedbackScore(const PCGExCluster::FNode& Node, const PCGExGraph::FIndexedEdge& Edge)
 {
-	NodeExtraWeight[Node.PointIndex] += 1; //TODO : Implement
-	EdgeExtraWeight[Edge.EdgeIndex] += 1;  //TODO : Implement
+	double& NodeWeight = NodeExtraWeight.FindOrAdd(Node.PointIndex);
+	double& EdgeWeight = NodeExtraWeight.FindOrAdd(Edge.EdgeIndex);
+	NodeWeight += ReferenceWeight * NodeScale;
+	EdgeWeight += ReferenceWeight * EdgeScale;
 }
 
 void UPCGExHeuristicFeedback::Cleanup()
@@ -60,5 +62,6 @@ UPCGExParamFactoryBase* UPCGExHeuristicFeedbackProviderSettings::CreateFactory(F
 {
 	UPCGHeuristicsFactoryFeedback* NewHeuristics = NewObject<UPCGHeuristicsFactoryFeedback>();
 	NewHeuristics->WeightFactor = Descriptor.WeightFactor;
+	NewHeuristics->Descriptor = Descriptor;
 	return Super::CreateFactory(InContext, NewHeuristics);
 }

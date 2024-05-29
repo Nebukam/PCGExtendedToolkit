@@ -28,10 +28,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicDescriptorSteepness : public FPCGEx
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FVector UpVector = FVector::UpVector;
 
-	/** Curve the steepness value will be remapped over. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	TSoftObjectPtr<UCurveFloat> SteepnessScoreCurve = TSoftObjectPtr<UCurveFloat>(PCGEx::SteepnessWeightCurve);
-
 };
 
 /**
@@ -51,18 +47,14 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FVector UpVector = FVector::UpVector;
 
-	/** Curve the steepness value will be remapped over. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	TSoftObjectPtr<UCurveFloat> SteepnessScoreCurve = TSoftObjectPtr<UCurveFloat>(PCGEx::SteepnessWeightCurve);
+	virtual void PrepareForCluster(PCGExCluster::FCluster* InCluster) override;
 
-	virtual void PrepareForData(PCGExCluster::FCluster* InCluster) override;
-
-	virtual double GetGlobalScore(
+	virtual FORCEINLINE double GetGlobalScore(
 		const PCGExCluster::FNode& From,
 		const PCGExCluster::FNode& Seed,
 		const PCGExCluster::FNode& Goal) const override;
 
-	virtual double GetEdgeScore(
+	virtual FORCEINLINE double GetEdgeScore(
 		const PCGExCluster::FNode& From,
 		const PCGExCluster::FNode& To,
 		const PCGExGraph::FIndexedEdge& Edge,
@@ -71,7 +63,6 @@ public:
 
 protected:
 	FVector UpwardVector = FVector::UpVector;
-	TObjectPtr<UCurveFloat> SteepnessScoreCurveObj;
 	double ReverseWeight = 1.0;
 
 	double GetDot(const FVector& From, const FVector& To) const;

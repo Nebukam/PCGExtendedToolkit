@@ -4,7 +4,7 @@
 
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicOperation.h"
 
-void UPCGExHeuristicOperation::PrepareForData(PCGExCluster::FCluster* InCluster)
+void UPCGExHeuristicOperation::PrepareForCluster(PCGExCluster::FCluster* InCluster)
 {
 	Cluster = InCluster;
 	PCGEX_LOAD_SOFTOBJECT(UCurveFloat, ScoreCurve, ScoreCurveObj, PCGEx::WeightDistributionLinear)
@@ -15,7 +15,7 @@ double UPCGExHeuristicOperation::GetGlobalScore(
 	const PCGExCluster::FNode& Seed,
 	const PCGExCluster::FNode& Goal) const
 {
-	return 0;
+	return ReferenceWeight;
 }
 
 double UPCGExHeuristicOperation::GetEdgeScore(
@@ -25,7 +25,7 @@ double UPCGExHeuristicOperation::GetEdgeScore(
 	const PCGExCluster::FNode& Seed,
 	const PCGExCluster::FNode& Goal) const
 {
-	return 1;
+	return ReferenceWeight;
 }
 
 void UPCGExHeuristicOperation::Cleanup()

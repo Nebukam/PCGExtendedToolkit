@@ -13,31 +13,15 @@
 TArray<FPCGPinProperties> UPCGExUberFilterSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-
-	FPCGPinProperties& FiltersPin = PinProperties.Emplace_GetRef(PCGExDataFilter::SourceFiltersLabel, EPCGDataType::Param, true, true);
-
-#if WITH_EDITOR
-	FiltersPin.Tooltip = FTEXT("Filters.");
-#endif
-
+	PCGEX_PIN_PARAMS(PCGExDataFilter::SourceFiltersLabel, "Filters.")
 	return PinProperties;
 }
 
 TArray<FPCGPinProperties> UPCGExUberFilterSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	FPCGPinProperties& InsideFiltersPin = PinProperties.Emplace_GetRef(PCGExDataFilter::OutputInsideFiltersLabel, EPCGDataType::Point, true, true);
-
-#if WITH_EDITOR
-	InsideFiltersPin.Tooltip = FTEXT("Points that passed the filters.");
-#endif
-
-	FPCGPinProperties& OutsideFiltersPin = PinProperties.Emplace_GetRef(PCGExDataFilter::OutputOutsideFiltersLabel, EPCGDataType::Point, true, true);
-
-#if WITH_EDITOR
-	OutsideFiltersPin.Tooltip = FTEXT("Points that didn't pass the filters.");
-#endif
-
+	PCGEX_PIN_POINTS(PCGExDataFilter::OutputInsideFiltersLabel, "Points that passed the filters.")
+	PCGEX_PIN_POINTS(PCGExDataFilter::OutputOutsideFiltersLabel, "Points that didn't pass the filters.")
 	return PinProperties;
 }
 

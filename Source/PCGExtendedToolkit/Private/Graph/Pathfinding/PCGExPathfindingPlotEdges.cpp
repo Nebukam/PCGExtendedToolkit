@@ -26,25 +26,15 @@ void UPCGExPathfindingPlotEdgesSettings::PostEditChangeProperty(FPropertyChanged
 TArray<FPCGPinProperties> UPCGExPathfindingPlotEdgesSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-
-	FPCGPinProperties& PinPropertySeeds = PinProperties.Emplace_GetRef(PCGExPathfinding::SourcePlotsLabel, EPCGDataType::Point, true, true);
-
-#if WITH_EDITOR
-	PinPropertySeeds.Tooltip = FTEXT("Plot points for pathfinding.");
-#endif
-
+	PCGEX_PIN_POINTS(PCGExPathfinding::SourcePlotsLabel, "Plot points for pathfinding.")
+	PCGEX_PIN_PARAMS(PCGExPathfinding::SourceHeuristicsLabel, "Heuristics.")	
 	return PinProperties;
 }
 
 TArray<FPCGPinProperties> UPCGExPathfindingPlotEdgesSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	FPCGPinProperties& PinPathsOutput = PinProperties.Emplace_GetRef(PCGExGraph::OutputPathsLabel, EPCGDataType::Point);
-
-#if WITH_EDITOR
-	PinPathsOutput.Tooltip = FTEXT("Paths output.");
-#endif
-
+	PCGEX_PIN_POINTS(PCGExGraph::OutputPathsLabel, "Paths output.")
 	return PinProperties;
 }
 
@@ -93,7 +83,6 @@ bool FPCGExPathfindingPlotEdgesElement::Boot(FPCGContext* InContext) const
 	}
 
 	Context->HeuristicsHandler = new PCGExHeuristics::THeuristicsHandler(Context);
-	//TODO: Check and throw if handler is empty
 
 	PCGEX_FWD(ProjectionSettings)
 
@@ -179,7 +168,7 @@ bool FPCGExPathfindingPlotEdgesElement::ExecuteInternal(FPCGContext* InContext) 
 
 		Context->HeuristicsHandler->CompleteClusterPreparation();
 
-		if (Context->HeuristicsHandler->HasGlobalFeedback)
+		if (Context->HeuristicsHandler->HasGlobalFeedback())
 		{
 			Context->CurrentPlotIndex = -1;
 			Context->SetAsyncState(PCGExPathfinding::State_Pathfinding);

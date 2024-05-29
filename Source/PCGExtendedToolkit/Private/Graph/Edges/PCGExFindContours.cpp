@@ -17,24 +17,14 @@ UPCGExFindContoursSettings::UPCGExFindContoursSettings(
 TArray<FPCGPinProperties> UPCGExFindContoursSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	FPCGPinProperties& PinEdgesInput = PinProperties.Emplace_GetRef(PCGExPathfinding::SourceSeedsLabel, EPCGDataType::Point);
-
-#if WITH_EDITOR
-	PinEdgesInput.Tooltip = FTEXT("Seeds associated with the main input points");
-#endif
-
+	PCGEX_PIN_POINTS(PCGExPathfinding::SourceSeedsLabel, "Seeds associated with the main input points")	
 	return PinProperties;
 }
 
 TArray<FPCGPinProperties> UPCGExFindContoursSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	FPCGPinProperties& PinEdgesOutput = PinProperties.Emplace_GetRef(PCGExGraph::OutputPathsLabel, EPCGDataType::Point);
-
-#if WITH_EDITOR
-	PinEdgesOutput.Tooltip = FTEXT("Contours");
-#endif
-
+	PCGEX_PIN_POINTS(PCGExGraph::OutputPathsLabel, "Contours")
 	return PinProperties;
 }
 

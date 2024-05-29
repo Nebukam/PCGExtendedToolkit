@@ -18,7 +18,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicLocalDistance : public UPCGExHeurist
 	GENERATED_BODY()
 
 public:
-	virtual void PrepareForData(PCGExCluster::FCluster* InCluster) override;
+	virtual void PrepareForCluster(PCGExCluster::FCluster* InCluster) override;
 
 	virtual double GetEdgeScore(
 		const PCGExCluster::FNode& From,

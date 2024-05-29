@@ -71,9 +71,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathStatistics
 
 namespace PCGExPathfinding
 {
+	const FName SourceHeuristicsLabel = TEXT("Heuristics");
 	const FName OutputHeuristicsLabel = TEXT("Heuristics");
 	const FName OutputModifiersLabel = TEXT("Modifiers");
-	const FName InputHeuristicsLabel = TEXT("Heuristics");
 
 	struct PCGEXTENDEDTOOLKIT_API FExtraWeights //TODO: Deprecate
 	{

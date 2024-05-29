@@ -24,14 +24,14 @@ public:
 
 	double ReferenceWeight = 100;
 
-	virtual void PrepareForData(PCGExCluster::FCluster* InCluster);
+	virtual void PrepareForCluster(PCGExCluster::FCluster* InCluster);
 
-	virtual double GetGlobalScore(
+	virtual FORCEINLINE double GetGlobalScore(
 		const PCGExCluster::FNode& From,
 		const PCGExCluster::FNode& Seed,
 		const PCGExCluster::FNode& Goal) const;
 
-	virtual double GetEdgeScore(
+	virtual FORCEINLINE double GetEdgeScore(
 		const PCGExCluster::FNode& From,
 		const PCGExCluster::FNode& To,
 		const PCGExGraph::FIndexedEdge& Edge,

@@ -85,7 +85,7 @@ bool UPCGExSearchAStar::FindPath(
 			GScore[AdjacentIndex] = TentativeGScore;
 
 			const double GS = PCGExMath::Remap(Heuristics->GetGlobalScore(AdjacentNode, SeedNode, GoalNode), MinGScore, MaxGScore, 0, 1);
-			const double FScore = TentativeGScore + GS * Heuristics->ReferenceWeight; //TODO: Remap global score as weight
+			const double FScore = TentativeGScore + GS * Heuristics->ReferenceWeight; //TODO: Need to weight this properly
 
 			ScoredQueue->Enqueue(AdjacentIndex, FScore);
 		}

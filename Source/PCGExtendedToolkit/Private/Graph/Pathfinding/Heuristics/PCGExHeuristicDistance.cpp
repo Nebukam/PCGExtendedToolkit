@@ -4,10 +4,10 @@
 
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicDistance.h"
 
-void UPCGExHeuristicDistance::PrepareForData(PCGExCluster::FCluster* InCluster)
+void UPCGExHeuristicDistance::PrepareForCluster(PCGExCluster::FCluster* InCluster)
 {
 	MaxDistSquared = FVector::DistSquared(InCluster->Bounds.Min, InCluster->Bounds.Max);
-	Super::PrepareForData(InCluster);
+	Super::PrepareForCluster(InCluster);
 }
 
 double UPCGExHeuristicDistance::GetGlobalScore(

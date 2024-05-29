@@ -3,7 +3,7 @@
 
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicDirection.h"
 
-void UPCGExHeuristicDirection::PrepareForData(PCGExCluster::FCluster* InCluster)
+void UPCGExHeuristicDirection::PrepareForCluster(PCGExCluster::FCluster* InCluster)
 {
 	if (bInvert)
 	{
@@ -15,7 +15,7 @@ void UPCGExHeuristicDirection::PrepareForData(PCGExCluster::FCluster* InCluster)
 		OutMin = 0;
 		OutMax = 1;
 	}
-	Super::PrepareForData(InCluster);
+	Super::PrepareForCluster(InCluster);
 }
 
 double UPCGExHeuristicDirection::GetGlobalScore(

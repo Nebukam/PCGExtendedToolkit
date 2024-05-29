@@ -10,15 +10,39 @@
 
 namespace PCGExHeuristics
 {
-	PCGExHeuristics::THeuristicsHandler::THeuristicsHandler(FPCGExPointsProcessorContext* InContext)
+	double FLocalFeedbackHandler::GetGlobalScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal) const
 	{
-		const TArray<FPCGTaggedData>& Inputs = InContext->InputData.GetInputsByPin(PCGExPathfinding::InputHeuristicsLabel);
+		double GScore = 0;
+		for (const UPCGExHeuristicFeedback* Feedback : Feedbacks) { GScore += Feedback->GetGlobalScore(From, Seed, Goal); }
+		return GScore;
+	}
 
+	double FLocalFeedbackHandler::GetEdgeScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& To, const PCGExGraph::FIndexedEdge& Edge, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal) const
+	{
+		double EScore = 0;
+		for (const UPCGExHeuristicFeedback* Feedback : Feedbacks) { EScore += Feedback->GetEdgeScore(From, To, Edge, Seed, Goal); }
+		return EScore;
+	}
+
+	void FLocalFeedbackHandler::FeedbackPointScore(const PCGExCluster::FNode& Node)
+	{
+		for (UPCGExHeuristicFeedback* Feedback : Feedbacks) { Feedback->FeedbackPointScore(Node); }
+	}
+
+	void FLocalFeedbackHandler::FeedbackScore(const PCGExCluster::FNode& Node, const PCGExGraph::FIndexedEdge& Edge)
+	{
+		for (UPCGExHeuristicFeedback* Feedback : Feedbacks) { Feedback->FeedbackScore(Node, Edge); }
+	}
+
+	PCGExHeuristics::THeuristicsHandler::THeuristicsHandler(FPCGExPointsProcessorContext* InContext, double InReferenceWeight):
+		ReferenceWeight(InReferenceWeight)
+	{
 		TotalWeight = 0;
 		HeuristicsModifiers = new FPCGExHeuristicModifiersSettings();
+		HeuristicsModifiers->ReferenceWeight = ReferenceWeight;
 
+		const TArray<FPCGTaggedData>& Inputs = InContext->InputData.GetInputsByPin(PCGExPathfinding::SourceHeuristicsLabel);
 		TArray<FPCGExHeuristicModifierDescriptor> ModifierDescriptors;
-
 
 		for (const FPCGTaggedData& InputState : Inputs)
 		{
@@ -30,14 +54,12 @@ namespace PCGExHeuristics
 				{
 					if (FeedbackFactory->IsGlobal())
 					{
-						HasGlobalFeedback = true;
 						Operation = OperationFactory->CreateOperation();
 						UPCGExHeuristicFeedback* Feedback = Cast<UPCGExHeuristicFeedback>(Operation);
 						Feedbacks.Add(Feedback);
 					}
 					else
 					{
-						bHasLocalFeedback = true;
 						LocalFeedbackFactories.Add(OperationFactory);
 						continue;
 					}
@@ -48,6 +70,7 @@ namespace PCGExHeuristics
 				}
 
 				Operations.Add(Operation);
+				Operation->ReferenceWeight = ReferenceWeight;
 				InContext->RegisterOperation<UPCGExHeuristicOperation>(Operation);
 				HeuristicsWeight += OperationFactory->WeightFactor;
 			}
@@ -84,12 +107,13 @@ namespace PCGExHeuristics
 		}
 
 		Operations.Empty();
+		Feedbacks.Empty();
 	}
 
 	void PCGExHeuristics::THeuristicsHandler::PrepareForCluster(FPCGExAsyncManager* AsyncManager, PCGExCluster::FCluster* InCluster)
 	{
 		CurrentCluster = InCluster;
-		for (UPCGExHeuristicOperation* Operation : Operations) { Operation->PrepareForData(InCluster); }
+		for (UPCGExHeuristicOperation* Operation : Operations) { Operation->PrepareForCluster(InCluster); }
 
 		//HeuristicsModifiers->PrepareForData(*InCluster->PointsIO, *InCluster->EdgesIO); 
 		AsyncManager->Start<PCGExHeuristicsTasks::FCompileModifiers>(0, InCluster->PointsIO, InCluster->EdgesIO, HeuristicsModifiers);
@@ -109,7 +133,8 @@ namespace PCGExHeuristics
 	{
 		double GScore = 0;
 		for (const UPCGExHeuristicOperation* Op : Operations) { GScore += Op->GetGlobalScore(From, Seed, Goal); }
-		return GScore / HeuristicsWeight;
+		if (LocalFeedback) { return (GScore + LocalFeedback->GetGlobalScore(From, Seed, Goal)) / (TotalWeight + LocalFeedback->TotalWeight); }
+		return GScore / TotalWeight;
 	}
 
 	double PCGExHeuristics::THeuristicsHandler::GetEdgeScore(
@@ -123,7 +148,8 @@ namespace PCGExHeuristics
 		double EScore = 0;
 		for (const UPCGExHeuristicOperation* Op : Operations) { EScore += Op->GetEdgeScore(From, To, Edge, Seed, Goal); }
 		EScore += HeuristicsModifiers->GetScore(To.PointIndex, Edge.EdgeIndex);
-		return EScore / TotalWeight;
+		if (LocalFeedback) { return (EScore + LocalFeedback->GetEdgeScore(From, To, Edge, Seed, Goal)) / (TotalWeight + LocalFeedback->TotalWeight); }
+		else { return EScore / TotalWeight; }
 	}
 
 	void PCGExHeuristics::THeuristicsHandler::FeedbackPointScore(const PCGExCluster::FNode& Node)
@@ -140,6 +166,15 @@ namespace PCGExHeuristics
 	{
 		if (!LocalFeedbackFactories.IsEmpty()) { return nullptr; }
 		PCGExHeuristics::FLocalFeedbackHandler* NewLocalFeedbackHandler = new FLocalFeedbackHandler();
-		return new FLocalFeedbackHandler();
+
+		for (const UPCGHeuristicsFactoryBase* Factory : LocalFeedbackFactories)
+		{
+			UPCGExHeuristicFeedback* Feedback = Cast<UPCGExHeuristicFeedback>(Factory->CreateOperation());
+			NewLocalFeedbackHandler->Feedbacks.Add(Feedback);
+			NewLocalFeedbackHandler->TotalWeight += Factory->WeightFactor;
+			Feedback->PrepareForCluster(InCluster);
+		}
+
+		return NewLocalFeedbackHandler;
 	}
 }

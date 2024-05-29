@@ -17,12 +17,7 @@ PCGExData::EInit UPCGExFindNodeStatesSettings::GetEdgeOutputInitMode() const { r
 TArray<FPCGPinProperties> UPCGExFindNodeStatesSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	FPCGPinProperties& PinStateParams = PinProperties.Emplace_GetRef(PCGExCluster::SourceNodeStateLabel, EPCGDataType::Param);
-
-#if WITH_EDITOR
-	PinStateParams.Tooltip = FTEXT("Node states.");
-#endif
-
+	PCGEX_PIN_PARAMS(PCGExCluster::SourceNodeStateLabel, "Node states.")
 	return PinProperties;
 }
 

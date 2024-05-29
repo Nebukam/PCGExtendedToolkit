@@ -4,10 +4,10 @@
 
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicLocalDistance.h"
 
-void UPCGExHeuristicLocalDistance::PrepareForData(PCGExCluster::FCluster* InCluster)
+void UPCGExHeuristicLocalDistance::PrepareForCluster(PCGExCluster::FCluster* InCluster)
 {
 	InCluster->ComputeEdgeLengths(true);
-	Super::PrepareForData(InCluster);
+	Super::PrepareForCluster(InCluster);
 }
 
 double UPCGExHeuristicLocalDistance::GetEdgeScore(

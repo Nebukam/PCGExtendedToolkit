@@ -184,13 +184,8 @@ double PCGExGrow::FGrowth::GetGrowthScore(const PCGExCluster::FNode& From, const
 TArray<FPCGPinProperties> UPCGExPathfindingGrowPathsSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-
-	FPCGPinProperties& PinPropertySeeds = PinProperties.Emplace_GetRef(PCGExPathfinding::SourceSeedsLabel, EPCGDataType::Point, false, false);
-
-#if WITH_EDITOR
-	PinPropertySeeds.Tooltip = FTEXT("Seed points to start growth from.");
-#endif
-
+	PCGEX_PIN_POINT(PCGExPathfinding::SourceSeedsLabel, "Seed points to start growth from.")
+	PCGEX_PIN_PARAMS(PCGExPathfinding::SourceHeuristicsLabel, "Heuristics.")	
 	return PinProperties;
 }
 
@@ -257,8 +252,7 @@ bool FPCGExPathfindingGrowPathsElement::Boot(FPCGContext* InContext) const
 	}
 
 	Context->HeuristicsHandler = new PCGExHeuristics::THeuristicsHandler(Context);
-	//TODO: Check and throw if handler is empty
-	
+
 	Context->OutputPaths = new PCGExData::FPointIOCollection();
 
 	if (Settings->NumIterations == EPCGExGrowthValueSource::SeedAttribute)

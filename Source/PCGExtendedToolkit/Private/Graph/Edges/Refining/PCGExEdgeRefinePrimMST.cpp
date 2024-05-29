@@ -21,7 +21,7 @@ void UPCGExEdgeRefinePrimMST::PreProcess(PCGExCluster::FCluster* InCluster, PCGE
 
 	HeuristicsModifiers.PrepareForData(*PointIO, *InEdgesIO);
 	HeuristicsOperation->ReferenceWeight = HeuristicsModifiers.ReferenceWeight;
-	HeuristicsOperation->PrepareForData(InCluster);
+	HeuristicsOperation->PrepareForCluster(InCluster);
 }
 
 void UPCGExEdgeRefinePrimMST::Process(PCGExCluster::FCluster* InCluster, PCGExGraph::FGraph* InGraph, PCGExData::FPointIO* InEdgesIO)

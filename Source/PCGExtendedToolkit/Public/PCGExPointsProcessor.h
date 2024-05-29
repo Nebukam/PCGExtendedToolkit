@@ -57,6 +57,36 @@ FPCGElementPtr UPCGEx##_NAME##Settings::CreateElement() const{	return MakeShared
 
 #define PCGEX_WAIT_ASYNC if (!Context->IsAsyncWorkComplete()) {return false;}
 
+#if WITH_EDITOR
+#define PCGEX_PIN_POINTS(_LABEL, _TOOLTIP) PinProperties.Emplace_GetRef(_LABEL, EPCGDataType::Point).Tooltip = FTEXT(_TOOLTIP);
+#else
+#define PCGEX_PIN_POINTS(_LABEL, _TOOLTIP) PinProperties.Emplace_GetRef(_LABEL, EPCGDataType::Point);
+#endif
+
+#if WITH_EDITOR
+#define PCGEX_PIN_POLYLINES(_LABEL, _TOOLTIP) PinProperties.Emplace_GetRef(_LABEL, EPCGDataType::PolyLine).Tooltip = FTEXT(_TOOLTIP);
+#else
+#define PCGEX_PIN_POLYLINES(_LABEL, _TOOLTIP) PinProperties.Emplace_GetRef(_LABEL, EPCGDataType::PolyLine);
+#endif
+
+#if WITH_EDITOR
+#define PCGEX_PIN_PARAMS(_LABEL, _TOOLTIP) PinProperties.Emplace_GetRef(_LABEL, EPCGDataType::Param).Tooltip = FTEXT(_TOOLTIP);
+#else
+#define PCGEX_PIN_PARAMS(_LABEL, _TOOLTIP) PinProperties.Emplace_GetRef(_LABEL, EPCGDataType::Param);
+#endif
+
+#if WITH_EDITOR
+#define PCGEX_PIN_POINT(_LABEL, _TOOLTIP) PinProperties.Emplace_GetRef(_LABEL, EPCGDataType::Point, false, false).Tooltip = FTEXT(_TOOLTIP);
+#else
+#define PCGEX_PIN_POINT(_LABEL, _TOOLTIP) PinProperties.Emplace_GetRef(_LABEL, EPCGDataType::Point, false, false);
+#endif
+
+#if WITH_EDITOR
+#define PCGEX_PIN_PARAM(_LABEL, _TOOLTIP) PinProperties.Emplace_GetRef(_LABEL, EPCGDataType::Param, false, false).Tooltip = FTEXT(_TOOLTIP);
+#else
+#define PCGEX_PIN_PARAM(_LABEL, _TOOLTIP) PinProperties.Emplace_GetRef(_LABEL, EPCGDataType::Param, false, false);
+#endif
+
 struct FPCGExPointsProcessorContext;
 
 namespace PCGEx
