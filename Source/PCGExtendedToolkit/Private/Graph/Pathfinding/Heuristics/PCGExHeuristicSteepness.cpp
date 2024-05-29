@@ -61,5 +61,7 @@ UPCGExHeuristicOperation* UPCGHeuristicsFactorySteepness::CreateOperation() cons
 
 UPCGExParamFactoryBase* UPCGExHeuristicsSteepnessProviderSettings::CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const
 {
-	return NewObject<UPCGHeuristicsFactorySteepness>();
+	UPCGHeuristicsFactorySteepness* NewHeuristics = NewObject<UPCGHeuristicsFactorySteepness>();
+	NewHeuristics->WeightFactor = Descriptor.WeightFactor;
+	return Super::CreateFactory(InContext, NewHeuristics);
 }

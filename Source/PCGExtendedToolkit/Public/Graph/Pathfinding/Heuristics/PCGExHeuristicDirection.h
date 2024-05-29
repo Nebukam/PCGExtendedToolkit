@@ -25,7 +25,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicDescriptorDirection : public FPCGEx
 	bool bInvert = false;
 };
 
-
 /**
  * 
  */

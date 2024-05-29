@@ -84,9 +84,8 @@ FPCGExPathfindingProcessorContext::~FPCGExPathfindingProcessorContext()
 {
 	PCGEX_TERMINATE_ASYNC
 
-	if (HeuristicsModifiers) { HeuristicsModifiers->Cleanup(); }
-
-	PCGEX_DELETE(GlobalExtraWeights)
+	PCGEX_DELETE(HeuristicsHandler)
+	
 	PCGEX_DELETE(SeedsPoints)
 	PCGEX_DELETE(GoalsPoints)
 	PCGEX_DELETE(OutputPaths)
@@ -105,11 +104,12 @@ bool FPCGExPathfindingProcessorElement::Boot(FPCGContext* InContext) const
 	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(PathfindingProcessor)
-
+	
 	PCGEX_OPERATION_BIND(GoalPicker, UPCGExGoalPickerRandom)
 	PCGEX_OPERATION_BIND(SearchAlgorithm, UPCGExSearchAStar)
-	PCGEX_OPERATION_BIND(Heuristics, UPCGExHeuristicDistance)
-	//PCGEX_OPERATION_BIND(Blending, UPCGExSubPointsBlendInterpolate)
+
+	Context->HeuristicsHandler = new PCGExHeuristics::THeuristicsHandler(Context);
+	//TODO: Check and throw if handler is empty
 
 	if (Settings->GetRequiresSeeds())
 	{
@@ -128,10 +128,6 @@ bool FPCGExPathfindingProcessorElement::Boot(FPCGContext* InContext) const
 			return false;
 		}
 	}
-
-	Context->HeuristicsModifiers = const_cast<FPCGExHeuristicModifiersSettings*>(&Settings->HeuristicsModifiers);
-	Context->HeuristicsModifiers->LoadCurves();
-	Context->Heuristics->ReferenceWeight = Context->HeuristicsModifiers->ReferenceWeight;
 
 	if (Settings->bUseSeedAttributeToTagPath)
 	{

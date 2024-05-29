@@ -80,7 +80,7 @@ public:
 
 	/** Add weight to points that are already part of the growing path */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Extra Weighting")
-	bool bWeightUpVisited = false;
+	bool bWeightUpVisited = false; // TODO: Deprecate
 
 	/** Weight to add to points that are already part of the plotted path. This is a multplier of the Reference Weight.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Extra Weighting", meta=(EditCondition="bWeightUpVisited"))

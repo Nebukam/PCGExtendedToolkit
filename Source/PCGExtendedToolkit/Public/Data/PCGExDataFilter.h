@@ -64,10 +64,6 @@ namespace PCGExDataFilter
 		virtual void PrepareForTesting(PCGExData::FPointIO* PointIO);
 		virtual void PrepareForTesting(PCGExData::FPointIO* PointIO, const TArrayView<int32>& PointIndices);
 
-#if !PLATFORM_WINDOWS
-		virtual bool IsClusterFilter() const { return false; }
-#endif
-
 		virtual ~TFilter()
 		{
 			Results.Empty();

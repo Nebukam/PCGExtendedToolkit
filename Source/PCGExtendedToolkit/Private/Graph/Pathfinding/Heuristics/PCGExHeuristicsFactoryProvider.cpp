@@ -16,7 +16,7 @@ FName UPCGExHeuristicsFactoryProviderSettings::GetMainOutputLabel() const { retu
 
 UPCGExParamFactoryBase* UPCGExHeuristicsFactoryProviderSettings::CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const
 {
-	return Super::CreateFactory(InContext, InFactory);
+	return InFactory;
 }
 
 FString UPCGExHeuristicsFactoryProviderSettings::GetDisplayName() const

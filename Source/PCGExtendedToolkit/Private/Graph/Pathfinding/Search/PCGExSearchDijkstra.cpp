@@ -5,8 +5,7 @@
 #include "Graph/Pathfinding/Search/PCGExSearchDijkstra.h"
 
 #include "Graph/PCGExCluster.h"
-#include "Graph/Pathfinding/PCGExPathfinding.h"
-#include "Graph/Pathfinding/Heuristics/PCGExHeuristicOperation.h"
+#include "Graph/Pathfinding/Heuristics/PCGExHeuristics.h"
 #include "Graph/Pathfinding/Search/PCGExScoredQueue.h"
 
 bool UPCGExSearchDijkstra::FindPath(
@@ -14,8 +13,8 @@ bool UPCGExSearchDijkstra::FindPath(
 	const FPCGExNodeSelectionSettings* SeedSelection,
 	const FVector& GoalPosition,
 	const FPCGExNodeSelectionSettings* GoalSelection,
-	const UPCGExHeuristicOperation* Heuristics,
-	const FPCGExHeuristicModifiersSettings* Modifiers, TArray<int32>& OutPath, PCGExPathfinding::FExtraWeights* ExtraWeights)
+	PCGExHeuristics::THeuristicsHandler* Heuristics,
+	TArray<int32>& OutPath)
 {
 	const PCGExCluster::FNode& SeedNode = Cluster->Nodes[Cluster->FindClosestNode(SeedPosition, SeedSelection->PickingMethod, 1)];
 	if (!SeedSelection->WithinDistance(SeedNode.Position, SeedPosition)) { return false; }
@@ -63,10 +62,7 @@ bool UPCGExSearchDijkstra::FindPath(
 			const PCGExCluster::FNode& AdjacentNode = Cluster->Nodes[AdjacentIndex];
 			const PCGExGraph::FIndexedEdge& Edge = Cluster->GetEdgeFromNodeIndices(CurrentNodeIndex, AdjacentIndex);
 
-			const double ExtraWeight = +ExtraWeights ? ExtraWeights->GetExtraWeight(CurrentNodeIndex, Edge.EdgeIndex) : 0;
-			const double ScoreMod = Modifiers->GetScore(AdjacentNode.PointIndex, Edge.PointIndex) + ExtraWeight;
-			const double AltScore = CurrentScore + Heuristics->GetEdgeScore(Current, AdjacentNode, Edge, SeedNode, GoalNode) + ScoreMod;
-
+			const double AltScore = CurrentScore + Heuristics->GetEdgeScore(Current, AdjacentNode, Edge, SeedNode, GoalNode);
 			const double PreviousScore = ScoredQueue->Scores[AdjacentIndex];
 			if (PreviousScore != -1 && AltScore > PreviousScore) { continue; }
 
@@ -78,30 +74,19 @@ bool UPCGExSearchDijkstra::FindPath(
 	TArray<int32> Path;
 	int32 PathIndex = GoalNode.NodeIndex;
 
-	if (ExtraWeights)
+	while (PathIndex != -1)
 	{
-		const double ExtraNodeWeight = Heuristics->ReferenceWeight * ExtraWeights->NodeScale;
-		const double ExtraEdgeWeight = Heuristics->ReferenceWeight * ExtraWeights->EdgeScale;
-		while (PathIndex != -1)
-		{
-			const int32 CurrentIndex = PathIndex;
-			ExtraWeights->AddPointWeight(CurrentIndex, ExtraNodeWeight);
-			Path.Add(CurrentIndex);
-			PathIndex = Previous[PathIndex];
+		const int32 CurrentIndex = PathIndex;
+		Path.Add(CurrentIndex);
+		PathIndex = Previous[PathIndex];
 
-			if (PathIndex != -1)
-			{
-				const PCGExGraph::FIndexedEdge& Edge = Cluster->GetEdgeFromNodeIndices(CurrentIndex, PathIndex);
-				ExtraWeights->AddEdgeWeight(Edge.EdgeIndex, ExtraEdgeWeight);
-			}
-		}
-	}
-	else
-	{
-		while (PathIndex != -1)
+		if (PathIndex != -1)
 		{
-			Path.Add(PathIndex);
-			PathIndex = Previous[PathIndex];
+			Heuristics->FeedbackScore(Cluster->Nodes[CurrentIndex], Cluster->GetEdgeFromNodeIndices(CurrentIndex, PathIndex));
+		}
+		else
+		{
+			Heuristics->FeedbackPointScore(Cluster->Nodes[CurrentIndex]);
 		}
 	}
 

@@ -17,5 +17,7 @@ UPCGExHeuristicOperation* UPCGHeuristicsFactoryLeastNodes::CreateOperation() con
 
 UPCGExParamFactoryBase* UPCGExHeuristicsLeastNodesProviderSettings::CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const
 {
-	return NewObject<UPCGHeuristicsFactoryLeastNodes>();
+	UPCGHeuristicsFactoryLeastNodes* NewHeuristics = NewObject<UPCGHeuristicsFactoryLeastNodes>();
+	NewHeuristics->WeightFactor = Descriptor.WeightFactor;
+	return Super::CreateFactory(InContext, NewHeuristics);
 }

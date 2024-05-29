@@ -26,5 +26,7 @@ UPCGExHeuristicOperation* UPCGHeuristicsFactoryShortestDistance::CreateOperation
 
 UPCGExParamFactoryBase* UPCGExHeuristicsShortestDistanceProviderSettings::CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const
 {
-	return NewObject<UPCGHeuristicsFactoryShortestDistance>();
+	UPCGHeuristicsFactoryShortestDistance* NewHeuristics = NewObject<UPCGHeuristicsFactoryShortestDistance>();
+	NewHeuristics->WeightFactor = Descriptor.WeightFactor;
+	return Super::CreateFactory(InContext, NewHeuristics);
 }

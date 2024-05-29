@@ -274,7 +274,7 @@ bool FPCGExPlotClusterPathTask::ExecuteTask()
 
 		if (!Context->SearchAlgorithm->FindPath(
 			SeedPosition, &Settings->SeedPicking,
-			GoalPosition, &Settings->GoalPicking, Context->Heuristics, Context->HeuristicsModifiers, Path, ExtraWeights))
+			GoalPosition, &Settings->GoalPicking, Context->Heuristics, Path))
 		{
 			// Failed
 		}

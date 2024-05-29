@@ -54,5 +54,7 @@ UPCGExHeuristicOperation* UPCGHeuristicsFactoryDirection::CreateOperation() cons
 
 UPCGExParamFactoryBase* UPCGExHeuristicsDirectionProviderSettings::CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const
 {
-	return NewObject<UPCGHeuristicsFactoryDirection>();
+	UPCGHeuristicsFactoryDirection* NewHeuristics = NewObject<UPCGHeuristicsFactoryDirection>();
+	NewHeuristics->WeightFactor = Descriptor.WeightFactor;
+	return Super::CreateFactory(InContext, NewHeuristics);
 }

@@ -692,13 +692,8 @@ namespace PCGExCluster
 		{
 			if (TFilter* Handler = InDefinition->Filters[i]->CreateFilter())
 			{
-#if PLATFORM_WINDOWS
-				if (TClusterFilter* ClusterHandler = dynamic_cast<TClusterFilter*>(Handler)) { ClusterFilterHandlers.Add(ClusterHandler); }
-				else { FilterHandlers.Add(Handler); }
-#else
-				if (Handler->IsClusterFilter()) { ClusterFilterHandlers.Add(static_cast<TClusterFilterHandler*>(Handler)); }
-				else { FilterHandlers.Add(Handler); }
-#endif
+				if (TClusterFilter* ClusterHandler = static_cast<TClusterFilter*>(Handler)) { ClusterFilterHandlers.Add(ClusterHandler); }
+				else { FilterHandlers.Add(Handler);}
 			}
 			else
 			{

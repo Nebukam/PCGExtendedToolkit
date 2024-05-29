@@ -19,7 +19,6 @@ class PCGEXTENDEDTOOLKIT_API UPCGExCreateCustomGraphSocketSettings : public UPCG
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	bool bCacheResult = false;
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
 		GraphSocket, "Socket Definition", "Creates a single socket data object.",
 		Socket.SocketName)

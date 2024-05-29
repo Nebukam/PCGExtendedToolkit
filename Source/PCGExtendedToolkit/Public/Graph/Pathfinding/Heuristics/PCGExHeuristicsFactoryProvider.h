@@ -21,9 +21,14 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicDescriptorBase
 	{
 	}
 
-	/** The weight factor for this heuristic. Used as a multiplier to the pathfinding Reference Weight value.*/
+	/** Invert the heuristics so it looks away from the target instead of towards it. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bInvert = false;
+	
+	/** The weight factor for this heuristic.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1))
 	double WeightFactor = 1;
+
 };
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
@@ -33,6 +38,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGHeuristicsFactoryBase : public UPCGExParamFacto
 
 public:
 	virtual UPCGExHeuristicOperation* CreateOperation() const;
+	double WeightFactor = 1;
 };
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
@@ -54,4 +60,5 @@ public:
 #if WITH_EDITOR
 	virtual FString GetDisplayName() const override;
 #endif
+
 };

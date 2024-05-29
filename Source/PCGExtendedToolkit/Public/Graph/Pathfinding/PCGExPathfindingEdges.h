@@ -73,8 +73,8 @@ class PCGEXTENDEDTOOLKIT_API FSampleClusterPathTask : public FPCGExPathfindingTa
 {
 public:
 	FSampleClusterPathTask(
-		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO, PCGExPathfinding::FPathQuery* InQuery, PCGExPathfinding::FExtraWeights* InGlobalExtraWeights = nullptr) :
-		FPCGExPathfindingTask(InManager, InTaskIndex, InPointIO, InQuery, InGlobalExtraWeights)
+		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO, PCGExPathfinding::FPathQuery* InQuery) :
+		FPCGExPathfindingTask(InManager, InTaskIndex, InPointIO, InQuery)
 	{
 	}
 
