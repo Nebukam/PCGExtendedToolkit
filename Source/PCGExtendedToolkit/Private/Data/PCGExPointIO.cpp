@@ -238,8 +238,7 @@ namespace PCGExData
 
 		if (Out)
 		{
-			Out->ConditionalBeginDestroy();
-			Out = nullptr;
+			PCGEX_DELETE_UOBJECT(Out)
 		}
 
 		CleanupKeys();
@@ -256,8 +255,7 @@ namespace PCGExData
 				(MaxPointCount >= 0 && OutNumPoints > MaxPointCount))
 			{
 				CleanupKeys();
-				Out->ConditionalBeginDestroy();
-				Out = nullptr;
+				PCGEX_DELETE_UOBJECT(Out)
 			}
 			else
 			{

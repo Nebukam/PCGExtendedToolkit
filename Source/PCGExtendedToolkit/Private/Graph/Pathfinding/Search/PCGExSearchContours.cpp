@@ -15,7 +15,7 @@ bool UPCGExSearchContours::FindPath(
 	const FVector& GoalPosition,
 	const FPCGExNodeSelectionSettings* GoalSelection,
 	PCGExHeuristics::THeuristicsHandler* Heuristics,
-	TArray<int32>& OutPath)
+	TArray<int32>& OutPath, PCGExHeuristics::FLocalFeedbackHandler* LocalFeedback)
 {
 	const int32 StartNodeIndex = Cluster->FindClosestNode(SeedPosition, SeedSelection->PickingMethod, 2);
 	const int32 EndNodeIndex = Cluster->FindClosestNode(GoalPosition, GoalSelection->PickingMethod, 1);

@@ -37,8 +37,6 @@ PCGExData::EInit UPCGExPathfindingEdgesSettings::GetEdgeOutputInitMode() const {
 FPCGExPathfindingEdgesContext::~FPCGExPathfindingEdgesContext()
 {
 	PCGEX_TERMINATE_ASYNC
-
-	PCGEX_DELETE(GlobalExtraWeights)
 	PCGEX_DELETE_TARRAY(PathBuffer)
 }
 
@@ -139,7 +137,7 @@ bool FPCGExPathfindingEdgesElement::ExecuteInternal(FPCGContext* InContext) cons
 		}
 
 		Context->SearchAlgorithm->PrepareForCluster(Context->CurrentCluster, Context->ClusterProjection);
-		Context->HeuristicsHandler->PrepareForData(Context->GetAsyncManager(), Context->CurrentCluster);
+		Context->HeuristicsHandler->PrepareForCluster(Context->GetAsyncManager(), Context->CurrentCluster);
 		Context->SetAsyncState(PCGExGraph::State_ProcessingEdges);
 	}
 
@@ -147,7 +145,9 @@ bool FPCGExPathfindingEdgesElement::ExecuteInternal(FPCGContext* InContext) cons
 	{
 		PCGEX_WAIT_ASYNC
 
-		if (Context->HeuristicsHandler->bHasGlobalFeedback)
+		Context->HeuristicsHandler->CompleteClusterPreparation();
+
+		if (Context->HeuristicsHandler->HasGlobalFeedback)
 		{
 			Context->CurrentPathBufferIndex = -1;
 			Context->SetAsyncState(PCGExPathfinding::State_Pathfinding);

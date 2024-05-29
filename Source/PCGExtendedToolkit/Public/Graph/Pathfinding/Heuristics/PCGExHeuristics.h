@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExCreateHeuristicsModifier.h"
+#include "PCGExHeuristicFeedback.h"
 #include "PCGExHeuristicsFactoryProvider.h"
 #include "PCGExPointsProcessor.h"
 
@@ -222,31 +223,24 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicModifiersSettings
 
 namespace PCGExHeuristics
 {
-	class PCGEXTENDEDTOOLKIT_API THeuristicsHandler
+	struct PCGEXTENDEDTOOLKIT_API FLocalFeedbackHandler
 	{
-	public:
-		FPCGExHeuristicModifiersSettings* HeuristicsModifiers = nullptr;
-		TArray<UPCGExHeuristicOperation*> Operations;
 		TArray<UPCGExHeuristicFeedback*> Feedbacks;
 
-		PCGExCluster::FCluster* CurrentCluster = nullptr;
-		
-		double HeuristicsWeight = 0;
-		double ModifiersWeight = 0;
-		double TotalWeight = 0;		
+		FLocalFeedbackHandler()
+		{
+		}
 
-		bool bHasGlobalFeedback = false;
-		
-		explicit THeuristicsHandler(FPCGExPointsProcessorContext* InContext);
-		explicit THeuristicsHandler(UPCGExHeuristicOperation* InSingleOperation);
-		~THeuristicsHandler();
+		~FLocalFeedbackHandler()
+		{
+			for (UPCGExHeuristicFeedback* Feedback : Feedbacks)
+			{
+				Feedback->Cleanup();
+				PCGEX_DELETE_UOBJECT(Feedback)
+			}
 
-		void PrepareForData(FPCGExAsyncManager* AsyncManager, PCGExCluster::FCluster* InCluster);
-		
-		double GetGlobalScore(
-		const PCGExCluster::FNode& From,
-		const PCGExCluster::FNode& Seed,
-		const PCGExCluster::FNode& Goal) const;
+			Feedbacks.Empty();
+		}
 
 		double GetEdgeScore(
 			const PCGExCluster::FNode& From,
@@ -254,10 +248,49 @@ namespace PCGExHeuristics
 			const PCGExGraph::FIndexedEdge& Edge,
 			const PCGExCluster::FNode& Seed,
 			const PCGExCluster::FNode& Goal) const;
+	};
+
+	class PCGEXTENDEDTOOLKIT_API THeuristicsHandler
+	{
+	public:
+		FPCGExHeuristicModifiersSettings* HeuristicsModifiers = nullptr;
+		TArray<UPCGExHeuristicOperation*> Operations;
+		TArray<UPCGExHeuristicFeedback*> Feedbacks;
+		TArray<UPCGHeuristicsFactoryBase*> LocalFeedbackFactories;
+
+		PCGExCluster::FCluster* CurrentCluster = nullptr;
+
+		double HeuristicsWeight = 0;
+		double ModifiersWeight = 0;
+		double TotalWeight = 0;
+
+		bool HasGlobalFeedback() const { return !Feedbacks.IsEmpty(); };
+
+		explicit THeuristicsHandler(FPCGExPointsProcessorContext* InContext);
+		explicit THeuristicsHandler(UPCGExHeuristicOperation* InSingleOperation);
+		~THeuristicsHandler();
+
+		void PrepareForCluster(FPCGExAsyncManager* AsyncManager, PCGExCluster::FCluster* InCluster);
+		void CompleteClusterPreparation();
+
+		double GetGlobalScore(
+			const PCGExCluster::FNode& From,
+			const PCGExCluster::FNode& Seed,
+			const PCGExCluster::FNode& Goal,
+			const FLocalFeedbackHandler* LocalFeedback = nullptr) const;
+
+		double GetEdgeScore(
+			const PCGExCluster::FNode& From,
+			const PCGExCluster::FNode& To,
+			const PCGExGraph::FIndexedEdge& Edge,
+			const PCGExCluster::FNode& Seed,
+			const PCGExCluster::FNode& Goal,
+			const FLocalFeedbackHandler* LocalFeedback = nullptr) const;
 
 		void FeedbackPointScore(const PCGExCluster::FNode& Node);
 		void FeedbackScore(const PCGExCluster::FNode& Node, const PCGExGraph::FIndexedEdge& Edge);
-		
+
+		FLocalFeedbackHandler* MakeLocalFeedbackHandler(PCGExCluster::FCluster* InCluster);
 	};
 }
 
@@ -267,8 +300,8 @@ namespace PCGExHeuristicsTasks
 	{
 	public:
 		FCompileModifiers(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-		                           PCGExData::FPointIO* InEdgeIO,
-		                           FPCGExHeuristicModifiersSettings* InModifiers) :
+		                  PCGExData::FPointIO* InEdgeIO,
+		                  FPCGExHeuristicModifiersSettings* InModifiers) :
 			FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
 			EdgeIO(InEdgeIO),
 			Modifiers(InModifiers)

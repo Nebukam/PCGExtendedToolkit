@@ -43,5 +43,6 @@ public:
 		const FVector& GoalPosition,
 		const FPCGExNodeSelectionSettings* GoalSelection,
 		PCGExHeuristics::THeuristicsHandler* Heuristics,
-		TArray<int32>& OutPath);
+		TArray<int32>& OutPath,
+		PCGExHeuristics::FLocalFeedbackHandler* LocalFeedback = nullptr);
 };

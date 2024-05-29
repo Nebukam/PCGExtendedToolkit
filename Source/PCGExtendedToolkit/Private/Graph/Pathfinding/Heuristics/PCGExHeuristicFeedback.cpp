@@ -31,20 +31,20 @@ double UPCGExHeuristicFeedback::GetEdgeScore(
 
 void UPCGExHeuristicFeedback::FeedbackPointScore(const PCGExCluster::FNode& Node)
 {
+	//TODO: Switch to map instead of array, will be slower but more memory efficient
 	NodeExtraWeight[Node.PointIndex] += 1; //TODO : Implement
 }
 
 void UPCGExHeuristicFeedback::FeedbackScore(const PCGExCluster::FNode& Node, const PCGExGraph::FIndexedEdge& Edge)
 {
 	NodeExtraWeight[Node.PointIndex] += 1; //TODO : Implement
-	EdgeExtraWeight[Edge.EdgeIndex] += 1; //TODO : Implement
+	EdgeExtraWeight[Edge.EdgeIndex] += 1;  //TODO : Implement
 }
 
 void UPCGExHeuristicFeedback::Cleanup()
 {
 	NodeExtraWeight.Empty();
 	EdgeExtraWeight.Empty();
-	
 	Super::Cleanup();
 }
 
@@ -53,7 +53,6 @@ UPCGExHeuristicOperation* UPCGHeuristicsFactoryFeedback::CreateOperation() const
 	UPCGExHeuristicFeedback* NewOperation = NewObject<UPCGExHeuristicFeedback>();
 	NewOperation->NodeScale = Descriptor.VisitedPointsWeightFactor;
 	NewOperation->EdgeScale = Descriptor.VisitedEdgesWeightFactor;
-	NewOperation->bGlobalFeedback = Descriptor.bGlobalFeedback;
 	return NewOperation;
 }
 

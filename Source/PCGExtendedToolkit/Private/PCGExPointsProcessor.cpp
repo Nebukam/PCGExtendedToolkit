@@ -261,7 +261,7 @@ FPCGExPointsProcessorContext::~FPCGExPointsProcessorContext()
 	PCGEX_TERMINATE_ASYNC
 
 	CleanupOperations();
-	for (UPCGExOperation* Operation : OwnedProcessorOperations) { Operation->ConditionalBeginDestroy(); }
+	for (UPCGExOperation* Operation : OwnedProcessorOperations) { PCGEX_DELETE_UOBJECT(Operation) }
 
 	ProcessorOperations.Empty();
 	OwnedProcessorOperations.Empty();

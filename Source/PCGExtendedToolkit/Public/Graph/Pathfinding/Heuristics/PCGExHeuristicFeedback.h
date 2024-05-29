@@ -20,7 +20,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicDescriptorFeedback : public FPCGExH
 		FPCGExHeuristicDescriptorBase()
 	{
 	}
-	
+
 	/** Weight to add to points that are already part of the plotted path. This is a multplier of the Reference Weight.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	double VisitedPointsWeightFactor = 1;
@@ -28,17 +28,12 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicDescriptorFeedback : public FPCGExH
 	/** Weight to add to edges that are already part of the plotted path. This is a multplier of the Reference Weight.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	double VisitedEdgesWeightFactor = 1;
-
-	/** Shares visited weight between pathfinding queries. Slow as it break parallelism. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	bool bGlobalFeedback = true;
-	
 };
 
 /**
  * 
  */
-UCLASS(DisplayName = "Feedback")
+UCLASS(Abstract, DisplayName = "Feedback")
 class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicFeedback : public UPCGExHeuristicOperation
 {
 	GENERATED_BODY()
@@ -50,8 +45,6 @@ public:
 	double NodeScale = 1;
 	double EdgeScale = 1;
 
-	bool bGlobalFeedback = true;
-	
 	virtual void PrepareForData(PCGExCluster::FCluster* InCluster) override;
 
 	virtual double GetGlobalScore(
@@ -80,8 +73,9 @@ class PCGEXTENDEDTOOLKIT_API UPCGHeuristicsFactoryFeedback : public UPCGHeuristi
 	GENERATED_BODY()
 
 public:
+	virtual bool IsGlobal() const { return false; }
+	
 	FPCGExHeuristicDescriptorFeedback Descriptor;
-
 	virtual UPCGExHeuristicOperation* CreateOperation() const override;
 };
 
@@ -102,5 +96,4 @@ public:
 	FPCGExHeuristicDescriptorFeedback Descriptor;
 
 	virtual UPCGExParamFactoryBase* CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
-	
 };
