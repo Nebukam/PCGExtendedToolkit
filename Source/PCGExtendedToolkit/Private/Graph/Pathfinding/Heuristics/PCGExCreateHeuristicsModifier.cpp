@@ -12,7 +12,12 @@ FName UPCGExCreateHeuristicsModifierSettings::GetMainOutputLabel() const { retur
 
 UPCGExParamFactoryBase* UPCGExCreateHeuristicsModifierSettings::CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const
 {
-	return Super::CreateFactory(InContext, InFactory);
+	UPCGHeuristicsModiferFactory* NewModifier = NewObject<UPCGHeuristicsModiferFactory>();
+	NewModifier->Descriptor = Descriptor;
+
+	PCGEX_LOAD_SOFTOBJECT(UCurveFloat, NewModifier->Descriptor.ScoreCurve, NewModifier->Descriptor.ScoreCurveObj, PCGEx::WeightDistributionLinear)
+	
+	return NewModifier;
 }
 
 FString UPCGExCreateHeuristicsModifierSettings::GetDisplayName() const

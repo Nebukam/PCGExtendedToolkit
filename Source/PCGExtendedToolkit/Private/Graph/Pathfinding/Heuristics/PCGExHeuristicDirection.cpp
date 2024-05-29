@@ -1,9 +1,7 @@
 ﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
-
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicDirection.h"
-
 
 void UPCGExHeuristicDirection::PrepareForData(PCGExCluster::FCluster* InCluster)
 {
@@ -45,4 +43,16 @@ void UPCGExHeuristicDirection::ApplyOverrides()
 {
 	Super::ApplyOverrides();
 	PCGEX_OVERRIDE_OP_PROPERTY(bInvert, FName(TEXT("Heuristics/Invert")), EPCGMetadataTypes::Boolean);
+}
+
+UPCGExHeuristicOperation* UPCGHeuristicsFactoryDirection::CreateOperation() const
+{
+	UPCGExHeuristicDirection* NewOperation = NewObject<UPCGExHeuristicDirection>();
+	NewOperation->bInvert = Descriptor.bInvert;
+	return NewOperation;
+}
+
+UPCGExParamFactoryBase* UPCGExHeuristicsDirectionProviderSettings::CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const
+{
+	return NewObject<UPCGHeuristicsFactoryDirection>();
 }

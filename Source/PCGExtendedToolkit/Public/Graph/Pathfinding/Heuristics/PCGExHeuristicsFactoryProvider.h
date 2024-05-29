@@ -22,7 +22,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicDescriptorBase
 	}
 
 	/** The weight factor for this heuristic. Used as a multiplier to the pathfinding Reference Weight value.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1))
 	double WeightFactor = 1;
 };
 

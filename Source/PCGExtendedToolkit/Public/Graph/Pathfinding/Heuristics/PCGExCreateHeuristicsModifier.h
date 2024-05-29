@@ -29,7 +29,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicModifierDescriptor : public FPCGExH
 	EPCGExGraphValueSource Source = EPCGExGraphValueSource::Point;
 
 	/** Fetch weight from attribute. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bUseLocalWeightFactor = false;
 
 	/** Attribute to fetch local weight from. This value will be scaled by the base weight. */
@@ -43,12 +43,13 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicModifierDescriptor : public FPCGExH
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGHeuristicsModiferFactory : public UPCGExParamDataBase
+class PCGEXTENDEDTOOLKIT_API UPCGHeuristicsModiferFactory : public UPCGExParamFactoryBase
 {
 	GENERATED_BODY()
 
 public:
-	//virtual UPCGExHeuristicOperation* CreateOperation() const;
+	FPCGExHeuristicModifierDescriptor Descriptor;
+	
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
@@ -59,7 +60,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExCreateHeuristicsModifierSettings : public UPC
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(NodeFilter, "Heuristics Modifer", "Creates a single heuristic modifier settings bloc.")
+	PCGEX_NODE_INFOS(NodeFilter, "Heuristics : Modifier", "Creates a single heuristic modifier settings bloc.")
 	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorHeuristics; }
 
 #endif
@@ -71,4 +72,8 @@ public:
 #if WITH_EDITOR
 	virtual FString GetDisplayName() const override;
 #endif
+
+	/** Modifier properties */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
+	FPCGExHeuristicModifierDescriptor Descriptor;
 };

@@ -8,3 +8,14 @@ double UPCGExHeuristicNodeCount::GetEdgeScore(const PCGExCluster::FNode& From, c
 {
 	return ReferenceWeight;
 }
+
+UPCGExHeuristicOperation* UPCGHeuristicsFactoryLeastNodes::CreateOperation() const
+{
+	UPCGExHeuristicNodeCount* NewOperation = NewObject<UPCGExHeuristicNodeCount>();
+	return NewOperation;
+}
+
+UPCGExParamFactoryBase* UPCGExHeuristicsLeastNodesProviderSettings::CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const
+{
+	return NewObject<UPCGHeuristicsFactoryLeastNodes>();
+}

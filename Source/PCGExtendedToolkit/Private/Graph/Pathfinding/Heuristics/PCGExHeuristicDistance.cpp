@@ -17,3 +17,14 @@ double UPCGExHeuristicDistance::GetGlobalScore(
 {
 	return (FVector::DistSquared(From.Position, Goal.Position) / MaxDistSquared) * ReferenceWeight;
 }
+
+UPCGExHeuristicOperation* UPCGHeuristicsFactoryShortestDistance::CreateOperation() const
+{
+	UPCGExHeuristicDistance* NewOperation = NewObject<UPCGExHeuristicDistance>();
+	return NewOperation;
+}
+
+UPCGExParamFactoryBase* UPCGExHeuristicsShortestDistanceProviderSettings::CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const
+{
+	return NewObject<UPCGHeuristicsFactoryShortestDistance>();
+}

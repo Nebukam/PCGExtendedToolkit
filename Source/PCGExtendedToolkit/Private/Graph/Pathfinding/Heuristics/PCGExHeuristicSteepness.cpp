@@ -4,7 +4,6 @@
 
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicSteepness.h"
 
-
 void UPCGExHeuristicSteepness::PrepareForData(PCGExCluster::FCluster* InCluster)
 {
 	UpwardVector = UpVector.GetSafeNormal();
@@ -52,4 +51,15 @@ void UPCGExHeuristicSteepness::ApplyOverrides()
 	Super::ApplyOverrides();
 	PCGEX_OVERRIDE_OP_PROPERTY(bInvert, FName(TEXT("Heuristics/Invert")), EPCGMetadataTypes::Boolean);
 	PCGEX_OVERRIDE_OP_PROPERTY(UpVector, FName(TEXT("Heuristics/UpVector")), EPCGMetadataTypes::Vector);
+}
+
+UPCGExHeuristicOperation* UPCGHeuristicsFactorySteepness::CreateOperation() const
+{
+	UPCGExHeuristicSteepness* NewOperation = NewObject<UPCGExHeuristicSteepness>();
+	return NewOperation;
+}
+
+UPCGExParamFactoryBase* UPCGExHeuristicsSteepnessProviderSettings::CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const
+{
+	return NewObject<UPCGHeuristicsFactorySteepness>();
 }
