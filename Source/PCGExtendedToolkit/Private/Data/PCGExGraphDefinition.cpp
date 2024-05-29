@@ -245,7 +245,7 @@ UPCGExGraphDefinition::UPCGExGraphDefinition(const FObjectInitializer& ObjectIni
 bool UPCGExGraphDefinition::HasMatchingGraphDefinition(const UPCGPointData* PointData) const
 {
 	// Whether the data has metadata matching this GraphData block or not
-	for (const PCGExGraph::FSocket Socket : SocketMapping->Sockets)
+	for (const PCGExGraph::FSocket& Socket : SocketMapping->Sockets)
 	{
 		if (!PointData->Metadata->HasAttribute(Socket.GetName())) { return false; }
 	}
