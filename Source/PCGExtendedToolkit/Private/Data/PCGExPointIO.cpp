@@ -236,9 +236,10 @@ namespace PCGExData
 			return true;
 		}
 
-		if (Out)
+		if (Out && Out != In)
 		{
 			PCGEX_DELETE_UOBJECT(Out)
+			Out = nullptr;
 		}
 
 		CleanupKeys();
@@ -255,7 +256,8 @@ namespace PCGExData
 				(MaxPointCount >= 0 && OutNumPoints > MaxPointCount))
 			{
 				CleanupKeys();
-				PCGEX_DELETE_UOBJECT(Out)
+				if (Out != In) { PCGEX_DELETE_UOBJECT(Out) }
+				Out = nullptr;
 			}
 			else
 			{

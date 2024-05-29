@@ -64,7 +64,6 @@ bool FPCGExPathfindingPlotEdgesElement::Boot(FPCGContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(PathfindingPlotEdges)
 
 	PCGEX_OPERATION_BIND(SearchAlgorithm, UPCGExSearchAStar)
-	PCGEX_OPERATION_BIND(Heuristics, UPCGExHeuristicDistance)
 
 	PCGEX_FWD(bAddSeedToPath)
 	PCGEX_FWD(bAddGoalToPath)

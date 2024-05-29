@@ -133,13 +133,15 @@ namespace PCGExCluster
 		Edges.SetNumUninitialized(NumEdges);
 		EdgeIndexMap.Reserve(NumEdges);
 
-		//We need to sort edges in order to have deterministic processing of the clusters
+		/*
+		//We use to need to sort cluster to get deterministic results but it seems not to be the case anymore
 		EdgeList.Sort(
 			[](const PCGExGraph::FIndexedEdge& A, const PCGExGraph::FIndexedEdge& B)
 			{
 				return A.Start == B.Start ? A.End < B.End : A.Start < B.Start;
 			});
-
+		*/
+		
 		for (int i = 0; i < NumEdges; i++)
 		{
 			PCGExGraph::FIndexedEdge& SortedEdge = (Edges[i] = EdgeList[i]);

@@ -18,6 +18,16 @@ double UPCGExHeuristicDistance::GetGlobalScore(
 	return (FVector::DistSquared(From.Position, Goal.Position) / MaxDistSquared) * ReferenceWeight;
 }
 
+double UPCGExHeuristicDistance::GetEdgeScore(
+	const PCGExCluster::FNode& From,
+	const PCGExCluster::FNode& To,
+	const PCGExGraph::FIndexedEdge& Edge,
+	const PCGExCluster::FNode& Seed,
+	const PCGExCluster::FNode& Goal) const
+{
+	return FMath::Max(0, ScoreCurveObj->GetFloatValue(Cluster->EdgeLengths[Edge.EdgeIndex])) * ReferenceWeight;
+}
+
 UPCGExHeuristicOperation* UPCGHeuristicsFactoryShortestDistance::CreateOperation() const
 {
 	UPCGExHeuristicDistance* NewOperation = NewObject<UPCGExHeuristicDistance>();

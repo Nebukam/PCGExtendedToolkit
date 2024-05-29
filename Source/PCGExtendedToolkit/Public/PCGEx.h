@@ -17,7 +17,7 @@
 #define FSTRING(_TEXT) FString(_TEXT)
 
 #define PCGEX_DELETE(_VALUE) if(_VALUE){ delete _VALUE; _VALUE = nullptr; }
-#define PCGEX_DELETE_UOBJECT(_VALUE) if(_VALUE){ _VALUE->MarkAsGarbage(); _VALUE = nullptr; } // ConditionalBeginDestroy
+#define PCGEX_DELETE_UOBJECT(_VALUE) if(_VALUE){ if (_VALUE->IsRooted()){_VALUE->RemoveFromRoot();} _VALUE->MarkAsGarbage(); _VALUE = nullptr; } // ConditionalBeginDestroy
 #define PCGEX_DELETE_TARRAY(_VALUE) for(const auto* Item : _VALUE){ delete Item; } _VALUE.Empty();
 #define PCGEX_DELETE_TMAP(_VALUE, _TYPE){TArray<_TYPE> Keys; _VALUE.GetKeys(Keys); for (const _TYPE Key : Keys) { delete *_VALUE.Find(Key); } _VALUE.Empty(); Keys.Empty(); }
 #define PCGEX_CLEANUP(_VALUE) _VALUE.Cleanup();

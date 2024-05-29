@@ -8,6 +8,7 @@
 #include "GoalPickers/PCGExGoalPicker.h"
 
 #include "Graph/PCGExEdgesProcessor.h"
+#include "Heuristics/PCGExHeuristics.h"
 
 #include "PCGExPathfindingProcessor.generated.h"
 

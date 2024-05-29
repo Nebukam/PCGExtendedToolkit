@@ -61,7 +61,6 @@ namespace PCGExHeuristics
 					else
 					{
 						LocalFeedbackFactories.Add(OperationFactory);
-						continue;
 					}
 				}
 				else
@@ -70,7 +69,7 @@ namespace PCGExHeuristics
 				}
 
 				Operations.Add(Operation);
-				Operation->ReferenceWeight = ReferenceWeight;
+				Operation->ReferenceWeight = ReferenceWeight * OperationFactory->WeightFactor;
 				InContext->RegisterOperation<UPCGExHeuristicOperation>(Operation);
 				HeuristicsWeight += OperationFactory->WeightFactor;
 			}
@@ -84,7 +83,8 @@ namespace PCGExHeuristics
 		if (Operations.IsEmpty() && HeuristicsModifiers->Modifiers.IsEmpty())
 		{
 			PCGE_LOG_C(Warning, GraphAndLog, InContext, FTEXT("Missing valid heuristics. Will use Shortest Distance as default."));
-			UPCGExHeuristicOperation* DefaultHeuristics = Cast<UPCGExHeuristicOperation>(NewObject<UPCGHeuristicsFactoryShortestDistance>());
+			UPCGExHeuristicDistance* DefaultHeuristics = NewObject<UPCGExHeuristicDistance>();
+			DefaultHeuristics->ReferenceWeight = ReferenceWeight;
 			Operations.Add(DefaultHeuristics);
 			HeuristicsWeight += 1;
 		}
@@ -112,14 +112,20 @@ namespace PCGExHeuristics
 
 	bool PCGExHeuristics::THeuristicsHandler::PrepareForCluster(FPCGExAsyncManager* AsyncManager, PCGExCluster::FCluster* InCluster)
 	{
+		InCluster->ComputeEdgeLengths(true);
+		
 		CurrentCluster = InCluster;
 		for (UPCGExHeuristicOperation* Operation : Operations)
 		{
-			Operation->Cleanup();
 			Operation->PrepareForCluster(InCluster);
 		}
 
-		if (HeuristicsModifiers->Modifiers.IsEmpty()) { return false; }
+		if (HeuristicsModifiers->Modifiers.IsEmpty())
+		{
+			HeuristicsModifiers->PrepareForData(*InCluster->PointsIO, *InCluster->EdgesIO);
+			return false;
+		}
+
 		AsyncManager->Start<PCGExHeuristicsTasks::FCompileModifiers>(0, InCluster->PointsIO, InCluster->EdgesIO, HeuristicsModifiers);
 
 		return true;
@@ -176,8 +182,11 @@ namespace PCGExHeuristics
 		for (const UPCGHeuristicsFactoryBase* Factory : LocalFeedbackFactories)
 		{
 			UPCGExHeuristicFeedback* Feedback = Cast<UPCGExHeuristicFeedback>(Factory->CreateOperation());
+			Feedback->ReferenceWeight = ReferenceWeight * Factory->WeightFactor;
+			
 			NewLocalFeedbackHandler->Feedbacks.Add(Feedback);
 			NewLocalFeedbackHandler->TotalWeight += Factory->WeightFactor;
+			
 			Feedback->PrepareForCluster(InCluster);
 		}
 

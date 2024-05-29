@@ -7,9 +7,8 @@
 #include "Graph/PCGExGraph.h"
 #include "PCGExPathfinding.cpp"
 #include "Graph/Pathfinding/GoalPickers/PCGExGoalPickerRandom.h"
-#include "Algo/Reverse.h"
-#include "Graph/Pathfinding/Heuristics/PCGExHeuristicDistance.h"
 #include "Graph/Pathfinding/Search/PCGExSearchOperation.h"
+#include "Algo/Reverse.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPathfindingEdgesElement"
 #define PCGEX_NAMESPACE PathfindingEdges

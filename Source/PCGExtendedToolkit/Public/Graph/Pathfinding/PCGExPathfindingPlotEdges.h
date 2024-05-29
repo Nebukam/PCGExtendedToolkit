@@ -69,7 +69,7 @@ public:
 	FPCGExNodeSelectionSettings GoalPicking;
 
 	/** Search algorithm. */
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Settings|Node Picking", Instanced, meta = (PCG_Overridable, NoResetToDefault, ShowOnlyInnerProperties))
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta = (PCG_Overridable, NoResetToDefault, ShowOnlyInnerProperties))
 	TObjectPtr<UPCGExSearchOperation> SearchAlgorithm;
 
 	/** Controls how heuristic are calculated. */
@@ -118,7 +118,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingPlotEdgesContext : public FPCGExE
 	PCGExData::FPointIOCollection* Plots = nullptr;
 	PCGExData::FPointIOCollection* OutputPaths = nullptr;
 
-	UPCGExHeuristicOperation* Heuristics = nullptr;
 	UPCGExSearchOperation* SearchAlgorithm = nullptr;
 	PCGExHeuristics::THeuristicsHandler* HeuristicsHandler = nullptr;
 
