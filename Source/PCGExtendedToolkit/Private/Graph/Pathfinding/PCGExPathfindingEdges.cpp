@@ -147,7 +147,7 @@ bool FPCGExPathfindingEdgesElement::ExecuteInternal(FPCGContext* InContext) cons
 
 		Context->HeuristicsHandler->CompleteClusterPreparation();
 
-		if (Context->HeuristicsHandler->HasGlobalFeedback)
+		if (Context->HeuristicsHandler->HasGlobalFeedback())
 		{
 			Context->CurrentPathBufferIndex = -1;
 			Context->SetAsyncState(PCGExPathfinding::State_Pathfinding);

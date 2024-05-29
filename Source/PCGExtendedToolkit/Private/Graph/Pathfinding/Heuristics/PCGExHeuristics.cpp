@@ -110,13 +110,19 @@ namespace PCGExHeuristics
 		Feedbacks.Empty();
 	}
 
-	void PCGExHeuristics::THeuristicsHandler::PrepareForCluster(FPCGExAsyncManager* AsyncManager, PCGExCluster::FCluster* InCluster)
+	bool PCGExHeuristics::THeuristicsHandler::PrepareForCluster(FPCGExAsyncManager* AsyncManager, PCGExCluster::FCluster* InCluster)
 	{
 		CurrentCluster = InCluster;
-		for (UPCGExHeuristicOperation* Operation : Operations) { Operation->PrepareForCluster(InCluster); }
+		for (UPCGExHeuristicOperation* Operation : Operations)
+		{
+			Operation->Cleanup();
+			Operation->PrepareForCluster(InCluster);
+		}
 
-		//HeuristicsModifiers->PrepareForData(*InCluster->PointsIO, *InCluster->EdgesIO); 
+		if (HeuristicsModifiers->Modifiers.IsEmpty()) { return false; }
 		AsyncManager->Start<PCGExHeuristicsTasks::FCompileModifiers>(0, InCluster->PointsIO, InCluster->EdgesIO, HeuristicsModifiers);
+
+		return true;
 	}
 
 	void PCGExHeuristics::THeuristicsHandler::CompleteClusterPreparation()

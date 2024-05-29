@@ -280,7 +280,7 @@ namespace PCGExHeuristics
 		explicit THeuristicsHandler(UPCGExHeuristicOperation* InSingleOperation);
 		~THeuristicsHandler();
 
-		void PrepareForCluster(FPCGExAsyncManager* AsyncManager, PCGExCluster::FCluster* InCluster);
+		bool PrepareForCluster(FPCGExAsyncManager* AsyncManager, PCGExCluster::FCluster* InCluster);
 		void CompleteClusterPreparation();
 
 		double GetGlobalScore(

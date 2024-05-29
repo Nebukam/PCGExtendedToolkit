@@ -7,11 +7,6 @@
 void UPCGExHeuristicSteepness::PrepareForCluster(PCGExCluster::FCluster* InCluster)
 {
 	UpwardVector = UpVector.GetSafeNormal();
-
-	PCGEX_LOAD_SOFTOBJECT(UCurveFloat, SteepnessScoreCurve, SteepnessScoreCurveObj, PCGEx::WeightDistributionLinear)
-
-	ReverseWeight = 1 / ReferenceWeight;
-
 	Super::PrepareForCluster(InCluster);
 }
 
@@ -21,7 +16,7 @@ double UPCGExHeuristicSteepness::GetGlobalScore(
 	const PCGExCluster::FNode& Goal) const
 {
 	const double Dot = GetDot(From.Position, Goal.Position);
-	const double SampledDot = FMath::Max(0, SteepnessScoreCurveObj->GetFloatValue(Dot)) * ReferenceWeight;
+	const double SampledDot = FMath::Max(0, ScoreCurveObj->GetFloatValue(Dot)) * ReferenceWeight;
 	return SampledDot;
 }
 
@@ -33,7 +28,7 @@ double UPCGExHeuristicSteepness::GetEdgeScore(
 	const PCGExCluster::FNode& Goal) const
 {
 	const double Dot = GetDot(From.Position, To.Position);
-	const double SampledDot = FMath::Max(0, SteepnessScoreCurveObj->GetFloatValue(Dot)) * ReferenceWeight;
+	const double SampledDot = FMath::Max(0, ScoreCurveObj->GetFloatValue(Dot)) * ReferenceWeight;
 	return SampledDot;
 }
 

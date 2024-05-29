@@ -19,10 +19,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicDescriptorDirection : public FPCGEx
 		FPCGExHeuristicDescriptorBase()
 	{
 	}
-
-	/** Invert the heuristics so it looks away from the target instead of towards it. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	bool bInvert = false;
+	
 };
 
 /**

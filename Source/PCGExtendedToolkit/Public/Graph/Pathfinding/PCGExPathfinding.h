@@ -5,10 +5,8 @@
 
 #include "CoreMinimal.h"
 #include "PCGExMT.h"
-#include "PCGExPointsProcessor.h"
 #include "GoalPickers/PCGExGoalPicker.h"
 #include "Graph/PCGExCluster.h"
-#include "Heuristics/PCGExHeuristics.h"
 
 #include "PCGExPathfinding.generated.h"
 
@@ -71,6 +69,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathStatistics
 
 namespace PCGExPathfinding
 {
+
+	constexpr PCGExMT::AsyncState State_ProcessingHeuristics = __COUNTER__;
+	
 	const FName SourceHeuristicsLabel = TEXT("Heuristics");
 	const FName OutputHeuristicsLabel = TEXT("Heuristics");
 	const FName OutputModifiersLabel = TEXT("Modifiers");

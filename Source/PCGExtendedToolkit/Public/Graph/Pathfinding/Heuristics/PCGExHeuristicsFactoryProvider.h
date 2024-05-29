@@ -21,14 +21,14 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicDescriptorBase
 	{
 	}
 
-	/** Invert the heuristics so it looks away from the target instead of towards it. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	bool bInvert = false;
-	
 	/** The weight factor for this heuristic.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1))
 	double WeightFactor = 1;
 
+	/** Invert the heuristics so it looks away from the target instead of towards it. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1))
+	bool bInvert = false;
+	
 };
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
@@ -60,5 +60,4 @@ public:
 #if WITH_EDITOR
 	virtual FString GetDisplayName() const override;
 #endif
-
 };

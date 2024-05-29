@@ -22,6 +22,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	TSoftObjectPtr<UCurveFloat> ScoreCurve = TSoftObjectPtr<UCurveFloat>(PCGEx::WeightDistributionLinear);
 
+	bool bInvert = false;
 	double ReferenceWeight = 100;
 
 	virtual void PrepareForCluster(PCGExCluster::FCluster* InCluster);

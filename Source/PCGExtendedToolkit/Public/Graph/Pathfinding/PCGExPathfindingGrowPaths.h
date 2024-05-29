@@ -11,6 +11,11 @@
 
 #include "PCGExPathfindingGrowPaths.generated.h"
 
+namespace PCGExHeuristics
+{
+	class THeuristicsHandler;
+}
+
 struct FPCGExPathfindingGrowPathsContext;
 class UPCGExPathfindingGrowPathsSettings;
 

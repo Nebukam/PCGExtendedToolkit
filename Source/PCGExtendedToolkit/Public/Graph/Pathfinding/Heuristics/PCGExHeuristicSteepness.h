@@ -20,10 +20,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicDescriptorSteepness : public FPCGEx
 	{
 	}
 
-	/** Invert the heuristics so it looks away from the target instead of towards it. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	bool bInvert = false;
-
 	/** Vector pointing in the "up" direction. Mirrored. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FVector UpVector = FVector::UpVector;
@@ -39,10 +35,6 @@ class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicSteepness : public UPCGExHeuristicDi
 	GENERATED_BODY()
 
 public:
-	/** Invert the heuristics so it looks away from the target instead of towards it. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	bool bInvert = false;
-
 	/** Vector pointing in the "up" direction. Mirrored. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FVector UpVector = FVector::UpVector;
@@ -63,7 +55,6 @@ public:
 
 protected:
 	FVector UpwardVector = FVector::UpVector;
-	double ReverseWeight = 1.0;
 
 	double GetDot(const FVector& From, const FVector& To) const;
 
