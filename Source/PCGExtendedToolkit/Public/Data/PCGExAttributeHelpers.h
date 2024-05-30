@@ -645,7 +645,7 @@ namespace PCGEx
 			for (int i = 0; i < Values.Num(); i++) { Values[i] = PCGExMath::Div(Values[i], Range); }
 		}
 
-		T SoftGet(const FPCGPoint& Point, const T& fallback)
+		FORCEINLINE T SoftGet(const FPCGPoint& Point, const T& fallback)
 		{
 			// Note: This function is SUPER SLOW and should only be used for cherry picking
 
@@ -673,8 +673,8 @@ namespace PCGEx
 			return fallback;
 		}
 
-		T SafeGet(const int32 Index, const T& fallback) const { return (!bValid || !bEnabled) ? fallback : Values[Index]; }
-		T operator[](int32 Index) const { return bValid ? Values[Index] : GetDefaultValue(); }
+		FORCEINLINE T SafeGet(const int32 Index, const T& fallback) const { return (!bValid || !bEnabled) ? fallback : Values[Index]; }
+		FORCEINLINE T operator[](int32 Index) const { return bValid ? Values[Index] : GetDefaultValue(); }
 
 		virtual void Capture(const FPCGExInputDescriptor& InDescriptor) { Descriptor = InDescriptor; }
 		virtual void Capture(const FPCGAttributePropertyInputSelector& InDescriptor) { Capture(FPCGExInputDescriptor(InDescriptor)); }

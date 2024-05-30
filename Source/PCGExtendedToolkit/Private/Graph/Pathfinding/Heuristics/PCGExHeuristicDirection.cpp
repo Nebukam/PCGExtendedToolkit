@@ -36,7 +36,7 @@ double UPCGExHeuristicDirection::GetEdgeScore(
 	const PCGExCluster::FNode& Goal) const
 {
 	const double Dot = (FVector::DotProduct((From.Position - To.Position).GetSafeNormal(), (From.Position - Goal.Position).GetSafeNormal()) * -1);
-	return FMath::Max(0, ScoreCurveObj->GetFloatValue(PCGExMath::Remap(Dot, -1, 1, OutMin, OutMax))) * ReferenceWeight;
+	return FMath::Max(0, ScoreCurveObj->GetFloatValue(PCGExMath::Remap(Dot, -1, 1, OutMin, OutMax))) * ReferenceWeight * GetWeightFactor(To.PointIndex, Edge.PointIndex);
 }
 
 UPCGExHeuristicOperation* UPCGHeuristicsFactoryDirection::CreateOperation() const

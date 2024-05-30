@@ -17,7 +17,10 @@
 #define PCGEX_FORWARD_HEURISTIC_DESCRIPTOR \
 	NewOperation->WeightFactor = Descriptor.WeightFactor; \
 	NewOperation->bInvert = Descriptor.bInvert; \
-	NewOperation->ScoreCurve = Descriptor.ScoreCurve;
+	NewOperation->ScoreCurve = Descriptor.ScoreCurve; \
+	NewOperation->bUseLocalWeightMultiplier = Descriptor.bUseLocalWeightMultiplier; \
+	NewOperation->LocalWeightMultiplierSource = Descriptor.LocalWeightMultiplierSource; \
+	NewOperation->WeightMultiplierAttribute = Descriptor.WeightMultiplierAttribute;
 
 class UPCGExHeuristicOperation;
 
@@ -40,9 +43,21 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicDescriptorBase
 	bool bInvert = false;
 
 	/** Curve the value will be remapped over. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1))
 	TSoftObjectPtr<UCurveFloat> ScoreCurve;
 	TObjectPtr<UCurveFloat> ScoreCurveObj;
+	
+	/** Use a local attribute  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1))
+	bool bUseLocalWeightMultiplier = false;
+
+	/** Local multiplier attribute source */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1, EditCondition="bUseLocalWeightMultiplier", EditConditionHides))
+	EPCGExGraphValueSource LocalWeightMultiplierSource = EPCGExGraphValueSource::Point;
+	
+	/** Attribute to read multiplier value from. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1, EditCondition="bUseLocalWeightMultiplier", EditConditionHides))
+	FPCGAttributePropertyInputSelector WeightMultiplierAttribute;
 };
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")

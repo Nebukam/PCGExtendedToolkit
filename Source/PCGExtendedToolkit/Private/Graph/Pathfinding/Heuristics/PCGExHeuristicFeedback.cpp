@@ -28,7 +28,7 @@ double UPCGExHeuristicFeedback::GetEdgeScore(
 	const double* NodePtr = NodeExtraWeight.Find(To.NodeIndex);
 	const double* EdgePtr = EdgeExtraWeight.Find(Edge.EdgeIndex);
 
-	return (NodePtr ? SampleCurve(*NodePtr / MaxNodeWeight) * ReferenceWeight : 0) + (EdgePtr ? SampleCurve(*EdgePtr / MaxEdgeWeight) * ReferenceWeight : 0);
+	return ((NodePtr ? SampleCurve(*NodePtr / MaxNodeWeight) * ReferenceWeight : 0) + (EdgePtr ? SampleCurve(*EdgePtr / MaxEdgeWeight) * ReferenceWeight : 0)) * GetWeightFactor(To.PointIndex, Edge.PointIndex);
 }
 
 void UPCGExHeuristicFeedback::FeedbackPointScore(const PCGExCluster::FNode& Node)

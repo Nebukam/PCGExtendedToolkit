@@ -25,7 +25,7 @@ double UPCGExHeuristicSteepness::GetEdgeScore(
 	const PCGExCluster::FNode& Seed,
 	const PCGExCluster::FNode& Goal) const
 {
-	return SampleCurve(GetDot(From.Position, To.Position)) * ReferenceWeight;
+	return SampleCurve(GetDot(From.Position, To.Position)) * ReferenceWeight * GetWeightFactor(To.PointIndex, Edge.PointIndex);
 }
 
 double UPCGExHeuristicSteepness::GetDot(const FVector& From, const FVector& To) const

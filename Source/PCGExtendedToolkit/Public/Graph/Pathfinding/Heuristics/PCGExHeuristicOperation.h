@@ -25,6 +25,9 @@ public:
 	bool bInvert = false;
 	double ReferenceWeight = 1;
 	double WeightFactor = 1;
+	bool bUseLocalWeightMultiplier = false;
+	EPCGExGraphValueSource LocalWeightMultiplierSource = EPCGExGraphValueSource::Point;
+	FPCGAttributePropertyInputSelector WeightMultiplierAttribute;
 
 	virtual void PrepareForCluster(PCGExCluster::FCluster* InCluster);
 
@@ -45,6 +48,10 @@ public:
 protected:
 	PCGExCluster::FCluster* Cluster = nullptr;
 	TObjectPtr<UCurveFloat> ScoreCurveObj;
+	TArray<double> LocalWeightMultiplier;
 
 	FORCEINLINE virtual double SampleCurve(const double InTime) const;
+
+	FORCEINLINE double GetWeightFactor(const int32 PointIndex, const int32 EdgeIndex) const;
+	
 };
