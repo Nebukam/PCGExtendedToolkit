@@ -245,7 +245,7 @@ namespace PCGEx
 
 	constexpr FLinearColor NodeColorDebug = FLinearColor(1.0f, 0.0f, 0.0f, 1.0f);
 	constexpr FLinearColor NodeColorSampler = FLinearColor(162.0f / 255.0f, 245.0f / 255.0f, 7.0f / 255.0f, 1.0f);
-	constexpr FLinearColor NodeColorGraph = FLinearColor(245.0f / 255.0f, 114.0f / 255.0f, 7.0f / 255.0f, 1.0f);
+	constexpr FLinearColor NodeColorGraph = FLinearColor(114.0f / 255.0f, 100.0f / 255.0f, 241.0f / 255.0f, 1.0f);
 	constexpr FLinearColor NodeColorExParam = FLinearColor(254.0f / 255.0f, 132.0f / 255.0f, 0.1f / 255.0f, 1.0f);
 	constexpr FLinearColor NodeColorFilterHub = FLinearColor(3.0f / 255.0f, 252.0f / 255.0f, 98.0f / 255.0f, -1.0f);
 	constexpr FLinearColor NodeColorFilter = FLinearColor(14.0f / 255.0f, 140.0f / 255.0f, 77.0f / 255.0f, 1.0f);
