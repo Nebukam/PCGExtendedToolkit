@@ -39,7 +39,7 @@ namespace PCGExHeuristics
 
 		for (const FPCGTaggedData& InputState : Inputs)
 		{
-			if (UPCGHeuristicsFactoryBase* OperationFactory = Cast<UPCGHeuristicsFactoryBase>(InputState.Data))
+			if (const UPCGHeuristicsFactoryBase* OperationFactory = Cast<UPCGHeuristicsFactoryBase>(InputState.Data))
 			{
 				UPCGExHeuristicOperation* Operation = nullptr;
 

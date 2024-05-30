@@ -64,7 +64,7 @@ namespace PCGExHeuristics
 	public:
 		TArray<UPCGExHeuristicOperation*> Operations;
 		TArray<UPCGExHeuristicFeedback*> Feedbacks;
-		TArray<UPCGHeuristicsFactoryBase*> LocalFeedbackFactories;
+		TArray<const UPCGHeuristicsFactoryBase*> LocalFeedbackFactories;
 
 		PCGExCluster::FCluster* CurrentCluster = nullptr;
 

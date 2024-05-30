@@ -5,6 +5,7 @@
 #include "Graph/Edges/Refining/PCGExEdgeRefinePrimMST.h"
 
 #include "Graph/PCGExCluster.h"
+#include "Graph/Pathfinding/Heuristics/PCGExHeuristics.h"
 #include "Graph/Pathfinding/Search/PCGExScoredQueue.h"
 
 void UPCGExEdgeRefinePrimMST::Process(
