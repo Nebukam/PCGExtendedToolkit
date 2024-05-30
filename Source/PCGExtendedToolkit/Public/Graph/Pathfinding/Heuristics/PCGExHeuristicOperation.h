@@ -45,6 +45,6 @@ public:
 protected:
 	PCGExCluster::FCluster* Cluster = nullptr;
 	TObjectPtr<UCurveFloat> ScoreCurveObj;
-	
+
 	FORCEINLINE virtual double SampleCurve(const double InTime) const;
 };

@@ -51,7 +51,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicFeedback : public UPCGExHeuristicOpe
 public:
 	double NodeScale = 1;
 	double EdgeScale = 1;
-	
+
 	virtual void PrepareForCluster(PCGExCluster::FCluster* InCluster) override;
 
 	virtual FORCEINLINE double GetGlobalScore(
@@ -81,7 +81,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGHeuristicsFactoryFeedback : public UPCGHeuristi
 
 public:
 	virtual bool IsGlobal() const { return Descriptor.bGlobalFeedback; }
-	
+
 	FPCGExHeuristicDescriptorFeedback Descriptor;
 	virtual UPCGExHeuristicOperation* CreateOperation() const override;
 };
@@ -94,7 +94,8 @@ class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicFeedbackProviderSettings : public UP
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(NodeFilter, "Heuristics : Feedback", "Heuristics based on visited score feedback.",
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
+		HeuristicsFeedback, "Heuristics : Feedback", "Heuristics based on visited score feedback.",
 		FName(GetDisplayName()))
 #endif
 	//~End UPCGSettings
@@ -108,5 +109,4 @@ public:
 #if WITH_EDITOR
 	virtual FString GetDisplayName() const override;
 #endif
-	
 };

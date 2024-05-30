@@ -31,14 +31,15 @@ double UPCGExHeuristicDistance::GetEdgeScore(
 UPCGExHeuristicOperation* UPCGHeuristicsFactoryShortestDistance::CreateOperation() const
 {
 	UPCGExHeuristicDistance* NewOperation = NewObject<UPCGExHeuristicDistance>();
+	PCGEX_FORWARD_HEURISTIC_DESCRIPTOR
 	return NewOperation;
 }
 
 UPCGExParamFactoryBase* UPCGExHeuristicsShortestDistanceProviderSettings::CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const
 {
-	UPCGHeuristicsFactoryShortestDistance* NewHeuristics = NewObject<UPCGHeuristicsFactoryShortestDistance>();
-	NewHeuristics->WeightFactor = Descriptor.WeightFactor;
-	return Super::CreateFactory(InContext, NewHeuristics);
+	UPCGHeuristicsFactoryShortestDistance* NewFactory = NewObject<UPCGHeuristicsFactoryShortestDistance>();
+	PCGEX_FORWARD_HEURISTIC_FACTORY
+	return Super::CreateFactory(InContext, NewFactory);
 }
 
 #if WITH_EDITOR

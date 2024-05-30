@@ -183,7 +183,7 @@ TArray<FPCGPinProperties> UPCGExPathfindingGrowPathsSettings::InputPinProperties
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 	PCGEX_PIN_POINT(PCGExPathfinding::SourceSeedsLabel, "Seed points to start growth from.")
-	PCGEX_PIN_PARAMS(PCGExPathfinding::SourceHeuristicsLabel, "Heuristics.")	
+	PCGEX_PIN_PARAMS(PCGExPathfinding::SourceHeuristicsLabel, "Heuristics.")
 	return PinProperties;
 }
 

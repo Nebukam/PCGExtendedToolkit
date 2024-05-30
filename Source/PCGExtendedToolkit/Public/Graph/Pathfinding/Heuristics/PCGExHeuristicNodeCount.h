@@ -19,7 +19,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicDescriptorLeastNodes : public FPCGE
 		FPCGExHeuristicDescriptorBase()
 	{
 	}
-
 };
 
 /**
@@ -48,7 +47,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGHeuristicsFactoryLeastNodes : public UPCGHeuris
 
 public:
 	FPCGExHeuristicDescriptorLeastNodes Descriptor;
-	
+
 	virtual UPCGExHeuristicOperation* CreateOperation() const override;
 };
 
@@ -59,8 +58,9 @@ class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicsLeastNodesProviderSettings : public
 
 public:
 	//~Begin UPCGSettings interface
-	#if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(NodeFilter, "Heuristics : Least Nodes", "Heuristics based on node count.",
+#if WITH_EDITOR
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
+		HeuristicsLeastNodes, "Heuristics : Least Nodes", "Heuristics based on node count.",
 		FName(GetDisplayName()))
 #endif
 	//~End UPCGSettings

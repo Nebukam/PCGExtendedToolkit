@@ -129,16 +129,15 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingProcessorContext : public FPCGExE
 	UPCGExGoalPicker* GoalPicker = nullptr;
 	UPCGExSearchOperation* SearchAlgorithm = nullptr;
 	PCGExHeuristics::THeuristicsHandler* HeuristicsHandler = nullptr;
-	
+
 	PCGEx::FLocalToStringGetter* SeedTagValueGetter = nullptr;
 	PCGEx::FLocalToStringGetter* GoalTagValueGetter = nullptr;
 
 	PCGExDataBlending::FDataForwardHandler* SeedForwardHandler = nullptr;
 	PCGExDataBlending::FDataForwardHandler* GoalForwardHandler = nullptr;
-	
+
 	bool bAddSeedToPath = true;
 	bool bAddGoalToPath = true;
-	
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExPathfindingProcessorElement : public FPCGExEdgesProcessorElement

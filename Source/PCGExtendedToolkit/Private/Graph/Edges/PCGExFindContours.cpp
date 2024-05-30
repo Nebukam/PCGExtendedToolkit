@@ -17,7 +17,7 @@ UPCGExFindContoursSettings::UPCGExFindContoursSettings(
 TArray<FPCGPinProperties> UPCGExFindContoursSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_POINTS(PCGExPathfinding::SourceSeedsLabel, "Seeds associated with the main input points")	
+	PCGEX_PIN_POINTS(PCGExPathfinding::SourceSeedsLabel, "Seeds associated with the main input points")
 	return PinProperties;
 }
 

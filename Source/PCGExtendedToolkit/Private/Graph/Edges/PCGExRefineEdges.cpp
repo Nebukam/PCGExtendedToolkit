@@ -112,10 +112,10 @@ bool FPCGExRefineEdgesElement::ExecuteInternal(
 		PCGEX_WAIT_ASYNC
 
 		Context->HeuristicsHandler->CompleteClusterPreparation();
-		
+
 		Context->GetAsyncManager()->Start<FPCGExRefineEdgesTask>(-1, Context->CurrentIO, Context->CurrentCluster, Context->CurrentEdges);
 		Context->SetAsyncState(PCGExGraph::State_ProcessingEdges);
-		
+
 		return false;
 	}
 

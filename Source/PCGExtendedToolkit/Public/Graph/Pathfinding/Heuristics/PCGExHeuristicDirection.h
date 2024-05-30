@@ -19,7 +19,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicDescriptorDirection : public FPCGEx
 		FPCGExHeuristicDescriptorBase()
 	{
 	}
-	
 };
 
 /**
@@ -31,9 +30,6 @@ class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicDirection : public UPCGExHeuristicOp
 	GENERATED_BODY()
 
 public:
-	/** Invert the heuristics so it looks away from the target instead of towards it. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	bool bInvert = false;
 
 	virtual void PrepareForCluster(PCGExCluster::FCluster* InCluster) override;
 
@@ -52,7 +48,6 @@ public:
 protected:
 	double OutMin = 0;
 	double OutMax = 1;
-
 };
 
 ////
@@ -76,16 +71,18 @@ class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicsDirectionProviderSettings : public 
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(NodeFilter, "Heuristics : Direction", "Heuristics based on direction.",
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
+		HeuristicsDirection, "Heuristics : Direction", "Heuristics based on direction.",
 		FName(GetDisplayName()))
 #endif
 	//~End UPCGSettings
 
+	virtual UPCGExParamFactoryBase* CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
+	
 	/** Filter Descriptor.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
 	FPCGExHeuristicDescriptorDirection Descriptor;
 
-	virtual UPCGExParamFactoryBase* CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
 
 #if WITH_EDITOR
 	virtual FString GetDisplayName() const override;

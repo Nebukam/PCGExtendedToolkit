@@ -42,22 +42,22 @@ double UPCGExHeuristicDirection::GetEdgeScore(
 UPCGExHeuristicOperation* UPCGHeuristicsFactoryDirection::CreateOperation() const
 {
 	UPCGExHeuristicDirection* NewOperation = NewObject<UPCGExHeuristicDirection>();
-	NewOperation->bInvert = Descriptor.bInvert;
+	PCGEX_FORWARD_HEURISTIC_DESCRIPTOR
 	return NewOperation;
 }
 
 UPCGExParamFactoryBase* UPCGExHeuristicsDirectionProviderSettings::CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const
 {
-	UPCGHeuristicsFactoryDirection* NewHeuristics = NewObject<UPCGHeuristicsFactoryDirection>();
-	NewHeuristics->WeightFactor = Descriptor.WeightFactor;
-	return Super::CreateFactory(InContext, NewHeuristics);
+	UPCGHeuristicsFactoryDirection* NewFactory = NewObject<UPCGHeuristicsFactoryDirection>();
+	PCGEX_FORWARD_HEURISTIC_FACTORY
+	return Super::CreateFactory(InContext, NewFactory);
 }
 
 #if WITH_EDITOR
 FString UPCGExHeuristicsDirectionProviderSettings::GetDisplayName() const
 {
 	return GetDefaultNodeName().ToString()
-	+ TEXT(" @ ")
-	+  FString::Printf(TEXT("%.3f"), (static_cast<int32>(1000 * Descriptor.WeightFactor) / 1000.0));
+		+ TEXT(" @ ")
+		+ FString::Printf(TEXT("%.3f"), (static_cast<int32>(1000 * Descriptor.WeightFactor) / 1000.0));
 }
 #endif

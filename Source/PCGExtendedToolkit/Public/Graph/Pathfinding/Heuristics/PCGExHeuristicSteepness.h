@@ -56,7 +56,6 @@ protected:
 	FVector UpwardVector = FVector::UpVector;
 
 	double GetDot(const FVector& From, const FVector& To) const;
-
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
@@ -78,7 +77,8 @@ class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicsSteepnessProviderSettings : public 
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(NodeFilter, "Heuristics : Steepness", "Heuristics based on steepness.",
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
+		HeuristicsSteepness, "Heuristics : Steepness", "Heuristics based on steepness.",
 		FName(GetDisplayName()))
 #endif
 	//~End UPCGSettings

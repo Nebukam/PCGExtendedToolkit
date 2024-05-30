@@ -38,6 +38,7 @@ double UPCGExHeuristicSteepness::GetDot(const FVector& From, const FVector& To) 
 UPCGExHeuristicOperation* UPCGHeuristicsFactorySteepness::CreateOperation() const
 {
 	UPCGExHeuristicSteepness* NewOperation = NewObject<UPCGExHeuristicSteepness>();
+	PCGEX_FORWARD_HEURISTIC_DESCRIPTOR
 	return NewOperation;
 }
 

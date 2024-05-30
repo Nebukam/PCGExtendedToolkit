@@ -141,7 +141,7 @@ namespace PCGExCluster
 				return A.Start == B.Start ? A.End < B.End : A.Start < B.Start;
 			});
 		*/
-		
+
 		for (int i = 0; i < NumEdges; i++)
 		{
 			PCGExGraph::FIndexedEdge& SortedEdge = (Edges[i] = EdgeList[i]);
@@ -696,7 +696,7 @@ namespace PCGExCluster
 			if (TFilter* Handler = InDefinition->Filters[i]->CreateFilter())
 			{
 				if (TClusterFilter* ClusterHandler = static_cast<TClusterFilter*>(Handler)) { ClusterFilterHandlers.Add(ClusterHandler); }
-				else { FilterHandlers.Add(Handler);}
+				else { FilterHandlers.Add(Handler); }
 			}
 			else
 			{

@@ -36,5 +36,5 @@ void UPCGExHeuristicOperation::Cleanup()
 
 double UPCGExHeuristicOperation::SampleCurve(const double InTime) const
 {
-	return  FMath::Max(0, ScoreCurveObj->GetFloatValue(bInvert ? 1 - InTime : InTime));
+	return FMath::Max(0, ScoreCurveObj->GetFloatValue(bInvert ? 1 - InTime : InTime));
 }

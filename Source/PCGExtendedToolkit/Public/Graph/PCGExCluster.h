@@ -279,7 +279,6 @@ namespace PCGExCluster
 		virtual void Capture(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO) override;
 		virtual void CaptureEdges(const FPCGContext* InContext, const PCGExData::FPointIO* EdgeIO);
 		virtual void PrepareForTesting(PCGExData::FPointIO* PointIO) override;
-
 	};
 
 	class PCGEXTENDEDTOOLKIT_API FNodeStateHandler : public PCGExDataState::TDataState

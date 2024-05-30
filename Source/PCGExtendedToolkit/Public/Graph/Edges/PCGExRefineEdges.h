@@ -62,7 +62,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExRefineEdgesContext : public FPCGExEdgesProce
 	virtual ~FPCGExRefineEdgesContext() override;
 
 	PCGExHeuristics::THeuristicsHandler* HeuristicsHandler = nullptr;
-	
+
 	UPCGExEdgeRefineOperation* Refinement;
 
 	FPCGExGraphBuilderSettings GraphBuilderSettings;

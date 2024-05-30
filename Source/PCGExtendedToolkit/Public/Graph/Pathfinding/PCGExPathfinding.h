@@ -69,9 +69,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathStatistics
 
 namespace PCGExPathfinding
 {
-
 	constexpr PCGExMT::AsyncState State_ProcessingHeuristics = __COUNTER__;
-	
+
 	const FName SourceHeuristicsLabel = TEXT("Heuristics");
 	const FName OutputHeuristicsLabel = TEXT("Heuristics");
 	const FName OutputModifiersLabel = TEXT("Modifiers");

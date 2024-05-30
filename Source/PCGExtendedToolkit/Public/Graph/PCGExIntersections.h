@@ -114,11 +114,11 @@ namespace PCGExGraph
 		FORCEINLINE FCompoundNode* GetOrCreateNode(const FPCGPoint& Point, const int32 IOIndex, const int32 PointIndex);
 		FORCEINLINE FCompoundNode* GetOrCreateNodeUnsafe(const FPCGPoint& Point, const int32 IOIndex, const int32 PointIndex);
 		FORCEINLINE PCGExData::FIdxCompound* CreateBridge(const FPCGPoint& From, const int32 FromIOIndex, const int32 FromPointIndex,
-		                                      const FPCGPoint& To, const int32 ToIOIndex, const int32 ToPointIndex,
-		                                      const int32 EdgeIOIndex = -1, const int32 EdgePointIndex = -1);
+		                                                  const FPCGPoint& To, const int32 ToIOIndex, const int32 ToPointIndex,
+		                                                  const int32 EdgeIOIndex = -1, const int32 EdgePointIndex = -1);
 		FORCEINLINE PCGExData::FIdxCompound* CreateBridgeUnsafe(const FPCGPoint& From, const int32 FromIOIndex, const int32 FromPointIndex,
-		                                            const FPCGPoint& To, const int32 ToIOIndex, const int32 ToPointIndex,
-		                                            const int32 EdgeIOIndex = -1, const int32 EdgePointIndex = -1);
+		                                                        const FPCGPoint& To, const int32 ToIOIndex, const int32 ToPointIndex,
+		                                                        const int32 EdgeIOIndex = -1, const int32 EdgePointIndex = -1);
 		void GetUniqueEdges(TArray<FUnsignedEdge>& OutEdges);
 		void WriteMetadata(TMap<int32, FGraphNodeMetadata*>& OutMetadata);
 	};
@@ -477,7 +477,6 @@ namespace PCGExGraph
 			};
 
 			InIntersections->Octree.FindElementsWithBoundsTest(Edge.Box, ProcessEdge);
-
 		}
 		else
 		{
@@ -500,7 +499,6 @@ namespace PCGExGraph
 			};
 
 			InIntersections->Octree.FindElementsWithBoundsTest(Edge.Box, ProcessEdge);
-
 		}
 	}
 

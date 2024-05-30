@@ -10,6 +10,15 @@
 
 #include "PCGExHeuristicsFactoryProvider.generated.h"
 
+#define PCGEX_FORWARD_HEURISTIC_FACTORY \
+	NewFactory->WeightFactor = Descriptor.WeightFactor; \
+	NewFactory->Descriptor = Descriptor;
+
+#define PCGEX_FORWARD_HEURISTIC_DESCRIPTOR \
+	NewOperation->WeightFactor = Descriptor.WeightFactor; \
+	NewOperation->bInvert = Descriptor.bInvert; \
+	NewOperation->ScoreCurve = Descriptor.ScoreCurve;
+
 class UPCGExHeuristicOperation;
 
 USTRUCT(BlueprintType)
@@ -17,7 +26,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicDescriptorBase
 {
 	GENERATED_BODY()
 
-	FPCGExHeuristicDescriptorBase()
+	FPCGExHeuristicDescriptorBase():
+		ScoreCurve(PCGEx::WeightDistributionLinear)
 	{
 	}
 
@@ -28,7 +38,11 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicDescriptorBase
 	/** Invert the heuristics so it looks away from the target instead of towards it. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1))
 	bool bInvert = false;
-	
+
+	/** Curve the value will be remapped over. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	TSoftObjectPtr<UCurveFloat> ScoreCurve;
+	TObjectPtr<UCurveFloat> ScoreCurveObj;
 };
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
@@ -56,5 +70,4 @@ public:
 
 	virtual FName GetMainOutputLabel() const override;
 	virtual UPCGExParamFactoryBase* CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
-
 };
