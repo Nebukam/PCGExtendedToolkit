@@ -39,7 +39,7 @@ namespace PCGExPartition
 		int32 GetSubPartitionsNum();
 
 		FKPartition* GetPartition(int64 Key, FPCGExFilter::FRule* InRule);
-		void Add(const int64 Index);
+		FORCEINLINE void Add(const int64 Index);
 		void Register(TArray<FKPartition*>& Partitions);
 
 		void SortPartitions();

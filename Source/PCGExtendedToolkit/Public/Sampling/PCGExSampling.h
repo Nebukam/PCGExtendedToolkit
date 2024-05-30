@@ -59,7 +59,7 @@ namespace PCGExSampling
 	const FName SourceIgnoreActorsLabel = TEXT("InIgnoreActors");
 	const FName OutputSampledActorsLabel = TEXT("OutSampledActors");
 
-	static double GetAngle(const EPCGExAngleRange Mode, const FVector& A, const FVector& B)
+	FORCEINLINE static double GetAngle(const EPCGExAngleRange Mode, const FVector& A, const FVector& B)
 	{
 		double OutAngle = 0;
 

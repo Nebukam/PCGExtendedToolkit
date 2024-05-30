@@ -56,7 +56,7 @@ namespace PCGExPolyLine
 		FSampleInfos Closest;
 		FSampleInfos Farthest;
 
-		void UpdateCompound(const FSampleInfos& Infos)
+		FORCEINLINE void UpdateCompound(const FSampleInfos& Infos)
 		{
 			UpdateCount++;
 
@@ -75,7 +75,7 @@ namespace PCGExPolyLine
 			SampledRangeWidth = SampledRangeMax - SampledRangeMin;
 		}
 
-		double GetRangeRatio(const double Distance) const
+		FORCEINLINE double GetRangeRatio(const double Distance) const
 		{
 			return (Distance - SampledRangeMin) / SampledRangeWidth;
 		}

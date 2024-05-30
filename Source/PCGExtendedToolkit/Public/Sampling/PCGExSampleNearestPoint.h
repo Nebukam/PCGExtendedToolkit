@@ -54,7 +54,7 @@ namespace PCGExNearestPoint
 		FTargetInfos Closest;
 		FTargetInfos Farthest;
 
-		void UpdateCompound(const FTargetInfos& Infos)
+		FORCEINLINE void UpdateCompound(const FTargetInfos& Infos)
 		{
 			UpdateCount++;
 
@@ -73,7 +73,7 @@ namespace PCGExNearestPoint
 			SampledRangeWidth = SampledRangeMax - SampledRangeMin;
 		}
 
-		double GetRangeRatio(const double Distance) const
+		FORCEINLINE double GetRangeRatio(const double Distance) const
 		{
 			return (Distance - SampledRangeMin) / SampledRangeWidth;
 		}

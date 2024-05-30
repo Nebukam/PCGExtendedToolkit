@@ -58,7 +58,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExClampSettings
 	double GetClampMax(const double InValue) const { return InValue > ClampMaxValue ? ClampMaxValue : InValue; }
 	double GetClampMinMax(const double InValue) const { return InValue > ClampMaxValue ? ClampMaxValue : InValue < ClampMinValue ? ClampMinValue : InValue; }
 
-	double GetClampedValue(const double InValue) const
+	FORCEINLINE double GetClampedValue(const double InValue) const
 	{
 		if (bApplyClampMin && InValue < ClampMinValue) { return ClampMinValue; }
 		if (bApplyClampMax && InValue > ClampMaxValue) { return ClampMaxValue; }
@@ -131,7 +131,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExRemapSettings
 		PCGEX_LOAD_SOFTOBJECT(UCurveFloat, RemapCurve, RemapCurveObj, PCGEx::WeightDistributionLinear)
 	}
 
-	double GetRemappedValue(const double Value) const
+	FORCEINLINE double GetRemappedValue(const double Value) const
 	{
 		double OutValue = RemapCurveObj->GetFloatValue(PCGExMath::Remap(Value, InMin, InMax, 0, 1)) * Scale;
 		switch (TruncateOutput)

@@ -50,7 +50,7 @@ namespace PCGExFuse
 			Distances.Empty();
 		}
 
-		void Add(const int32 InIndex, const double Distance)
+		FORCEINLINE void Add(const int32 InIndex, const double Distance)
 		{
 			FWriteScopeLock WriteLock(IndicesLock);
 			Fused.Add(InIndex);
