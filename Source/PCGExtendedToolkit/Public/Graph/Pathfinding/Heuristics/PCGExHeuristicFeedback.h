@@ -37,7 +37,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicDescriptorFeedback : public FPCGExH
 /**
  * 
  */
-UCLASS(Abstract, DisplayName = "Feedback")
+UCLASS(DisplayName = "Feedback")
 class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicFeedback : public UPCGExHeuristicOperation
 {
 	GENERATED_BODY()

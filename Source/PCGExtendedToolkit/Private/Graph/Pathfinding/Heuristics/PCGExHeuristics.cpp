@@ -64,7 +64,7 @@ namespace PCGExHeuristics
 
 				Operations.Add(Operation);
 				Operation->WeightFactor = OperationFactory->WeightFactor;
-				Operation->ReferenceWeight = ReferenceWeight;
+				Operation->ReferenceWeight = ReferenceWeight * Operation->WeightFactor;
 				InContext->RegisterOperation<UPCGExHeuristicOperation>(Operation);
 			}
 		}
