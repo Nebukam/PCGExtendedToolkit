@@ -24,7 +24,6 @@ void UPCGExPathfindingEdgesSettings::PostEditChangeProperty(FPropertyChangedEven
 {
 	if (GoalPicker) { GoalPicker->UpdateUserFacingInfos(); }
 	if (SearchAlgorithm) { SearchAlgorithm->UpdateUserFacingInfos(); }
-	HeuristicsModifiers.UpdateUserFacingInfos();
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
 #endif

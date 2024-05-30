@@ -23,18 +23,23 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicModifierDescriptor : public FPCGExH
 		ScoreCurve(PCGEx::WeightDistributionLinear)
 	{
 	}
-
+	
 	/** Read the data from either vertices or edges */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExGraphValueSource Source = EPCGExGraphValueSource::Point;
 
-	/** Fetch weight from attribute. */
+	/** Attribute to read modifier value from. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	bool bUseLocalWeightFactor = false;
+	FPCGAttributePropertyInputSelector Attribute;
+
+	/*
+	/** Fetch weight from attribute. */
+	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	//bool bUseLocalWeightFactor = false;
 
 	/** Attribute to fetch local weight from. This value will be scaled by the base weight. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseLocalWeight"))
-	FPCGAttributePropertyInputSelector WeightFactorAttribute;
+	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bUseLocalWeightFactor"))
+	//FPCGAttributePropertyInputSelector WeightFactorAttribute;
 
 	/** Curve the value will be remapped over. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -60,7 +65,8 @@ class PCGEXTENDEDTOOLKIT_API UPCGExCreateHeuristicsModifierSettings : public UPC
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(NodeFilter, "Heuristics : Modifier", "Creates a single heuristic modifier settings bloc.")
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(NodeFilter, "Heuristics : Modifier", "Creates a single heuristic modifier settings bloc.",
+		FName(GetDisplayName()))
 	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorHeuristics; }
 
 #endif
@@ -68,12 +74,13 @@ public:
 
 	virtual FName GetMainOutputLabel() const override;
 	virtual UPCGExParamFactoryBase* CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
+	
+	/** Modifier properties */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
+	FPCGExHeuristicModifierDescriptor Descriptor;
 
 #if WITH_EDITOR
 	virtual FString GetDisplayName() const override;
 #endif
 
-	/** Modifier properties */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExHeuristicModifierDescriptor Descriptor;
 };

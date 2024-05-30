@@ -20,11 +20,14 @@ UPCGExParamFactoryBase* UPCGExCreateHeuristicsModifierSettings::CreateFactory(FP
 	return NewModifier;
 }
 
+#if WITH_EDITOR
 FString UPCGExCreateHeuristicsModifierSettings::GetDisplayName() const
 {
-	// TODO: Grab attribute name
-	return Super::GetDisplayName();
+	return Descriptor.Attribute.GetName().ToString()
+	+ TEXT(" @ ")
+	+  FString::Printf(TEXT("%.3f"), (static_cast<int32>(1000 * Descriptor.WeightFactor) / 1000.0));
 }
+#endif
 
 #undef LOCTEXT_NAMESPACE
 #undef PCGEX_NAMESPACE

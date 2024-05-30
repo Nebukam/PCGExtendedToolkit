@@ -31,8 +31,6 @@ if (!Context->_NAME##Getter->Grab(_SOURCE)){\
 #if WITH_EDITOR
 void UPCGExPathfindingGrowPathsSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
-	if (Heuristics) { Heuristics->UpdateUserFacingInfos(); }
-	HeuristicsModifiers.UpdateUserFacingInfos();
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
 #endif

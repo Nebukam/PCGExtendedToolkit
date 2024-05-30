@@ -449,7 +449,8 @@ namespace PCGExCluster
 			Max = FMath::Max(Dist, Max);
 		}
 
-		if (bNormalize) { for (int i = 0; i < NumEdges; i++) { EdgeLengths[i] = PCGExMath::Remap(EdgeLengths[i], Min, Max, 0, 1); } }
+		//Normalized to 0 instead of min
+		if (bNormalize) { for (int i = 0; i < NumEdges; i++) { EdgeLengths[i] = PCGExMath::Remap(EdgeLengths[i], 0, Max, 0, 1); } }
 
 		bEdgeLengthsDirty = false;
 	}

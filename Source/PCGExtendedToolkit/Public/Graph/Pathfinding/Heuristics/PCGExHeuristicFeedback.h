@@ -45,6 +45,9 @@ class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicFeedback : public UPCGExHeuristicOpe
 	TMap<int32, double> NodeExtraWeight;
 	TMap<int32, double> EdgeExtraWeight;
 
+	double MaxNodeWeight = 0;
+	double MaxEdgeWeight = 0;
+
 public:
 	double NodeScale = 1;
 	double EdgeScale = 1;
@@ -91,7 +94,8 @@ class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicFeedbackProviderSettings : public UP
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(NodeFilter, "Heuristics : Feedback", "Heuristics based on visited score feedback.")
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(NodeFilter, "Heuristics : Feedback", "Heuristics based on visited score feedback.",
+		FName(GetDisplayName()))
 #endif
 	//~End UPCGSettings
 
@@ -100,4 +104,9 @@ public:
 	FPCGExHeuristicDescriptorFeedback Descriptor;
 
 	virtual UPCGExParamFactoryBase* CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
+
+#if WITH_EDITOR
+	virtual FString GetDisplayName() const override;
+#endif
+	
 };

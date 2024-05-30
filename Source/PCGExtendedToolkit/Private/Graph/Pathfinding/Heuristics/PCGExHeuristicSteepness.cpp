@@ -15,9 +15,7 @@ double UPCGExHeuristicSteepness::GetGlobalScore(
 	const PCGExCluster::FNode& Seed,
 	const PCGExCluster::FNode& Goal) const
 {
-	const double Dot = GetDot(From.Position, Goal.Position);
-	const double SampledDot = FMath::Max(0, ScoreCurveObj->GetFloatValue(Dot)) * ReferenceWeight;
-	return SampledDot;
+	return SampleCurve(GetDot(From.Position, Goal.Position)) * ReferenceWeight;
 }
 
 double UPCGExHeuristicSteepness::GetEdgeScore(
@@ -27,23 +25,14 @@ double UPCGExHeuristicSteepness::GetEdgeScore(
 	const PCGExCluster::FNode& Seed,
 	const PCGExCluster::FNode& Goal) const
 {
-	const double Dot = GetDot(From.Position, To.Position);
-	const double SampledDot = FMath::Max(0, ScoreCurveObj->GetFloatValue(Dot)) * ReferenceWeight;
-	return SampledDot;
+	return SampleCurve(GetDot(From.Position, To.Position)) * ReferenceWeight;
 }
 
 double UPCGExHeuristicSteepness::GetDot(const FVector& From, const FVector& To) const
 {
 	return bInvert ?
-		       1 - FMath::Abs(FVector::DotProduct((From - To).GetSafeNormal(), UpwardVector)) :
+		       FMath::Abs(FVector::DotProduct((To - From).GetSafeNormal(), UpwardVector)) :
 		       FMath::Abs(FVector::DotProduct((From - To).GetSafeNormal(), UpwardVector));
-}
-
-void UPCGExHeuristicSteepness::ApplyOverrides()
-{
-	Super::ApplyOverrides();
-	PCGEX_OVERRIDE_OP_PROPERTY(bInvert, FName(TEXT("Heuristics/Invert")), EPCGMetadataTypes::Boolean);
-	PCGEX_OVERRIDE_OP_PROPERTY(UpVector, FName(TEXT("Heuristics/UpVector")), EPCGMetadataTypes::Vector);
 }
 
 UPCGExHeuristicOperation* UPCGHeuristicsFactorySteepness::CreateOperation() const
@@ -58,3 +47,12 @@ UPCGExParamFactoryBase* UPCGExHeuristicsSteepnessProviderSettings::CreateFactory
 	NewHeuristics->WeightFactor = Descriptor.WeightFactor;
 	return Super::CreateFactory(InContext, NewHeuristics);
 }
+
+#if WITH_EDITOR
+FString UPCGExHeuristicsSteepnessProviderSettings::GetDisplayName() const
+{
+	return GetDefaultNodeName().ToString()
+		+ TEXT(" @ ")
+		+ FString::Printf(TEXT("%.3f"), (static_cast<int32>(1000 * Descriptor.WeightFactor) / 1000.0));
+}
+#endif

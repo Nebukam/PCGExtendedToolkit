@@ -235,25 +235,6 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Heuristics", meta=(PCG_Overridable))
 	FPCGExNodeSelectionSettings SeedPicking = FPCGExNodeSelectionSettings(200);
 
-	/** Controls how heuristic are calculated for next growth. (Lower score is better)*/
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Settings|Heuristics", Instanced, meta = (PCG_Overridable, NoResetToDefault, ShowOnlyInnerProperties))
-	TObjectPtr<UPCGExHeuristicOperation> Heuristics; // TODO: Deprecate
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Heuristics", meta=(PCG_Overridable))
-	FPCGExHeuristicModifiersSettings HeuristicsModifiers; // TODO: Deprecate
-
-	/** Add weight to points that are already part of the growing path */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Extra Weighting")
-	bool bWeightUpVisited = true; // TODO: Deprecate
-
-	/** Weight to add to points that are already part of the plotted path. This is a multplier of the Reference Weight.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Extra Weighting", meta=(EditCondition="bWeightUpVisited"))
-	double VisitedPointsWeightFactor = 1; // TODO: Deprecate
-
-	/** Weight to add to edges that are already part of the plotted path. This is a multplier of the Reference Weight.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Extra Weighting", meta=(EditCondition="bWeightUpVisited"))
-	double VisitedEdgesWeightFactor = 1; // TODO: Deprecate
-
 	/** Visited weight threshold over which the growth is stopped if that's the only available option. -1 ignores.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Extra Weighting", meta=(EditCondition="bWeightUpVisited"))
 	double VisitedStopThreshold = -1;

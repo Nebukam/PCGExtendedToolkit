@@ -6,8 +6,8 @@
 
 void UPCGExHeuristicDistance::PrepareForCluster(PCGExCluster::FCluster* InCluster)
 {
-	MaxDistSquared = FVector::DistSquared(InCluster->Bounds.Min, InCluster->Bounds.Max);
 	Super::PrepareForCluster(InCluster);
+	MaxDistSquared = FVector::DistSquared(InCluster->Bounds.Min, InCluster->Bounds.Max);
 }
 
 double UPCGExHeuristicDistance::GetGlobalScore(
@@ -15,7 +15,7 @@ double UPCGExHeuristicDistance::GetGlobalScore(
 	const PCGExCluster::FNode& Seed,
 	const PCGExCluster::FNode& Goal) const
 {
-	return (FVector::DistSquared(From.Position, Goal.Position) / MaxDistSquared) * ReferenceWeight;
+	return SampleCurve(FVector::DistSquared(From.Position, Goal.Position) / MaxDistSquared) * ReferenceWeight;
 }
 
 double UPCGExHeuristicDistance::GetEdgeScore(
@@ -25,7 +25,7 @@ double UPCGExHeuristicDistance::GetEdgeScore(
 	const PCGExCluster::FNode& Seed,
 	const PCGExCluster::FNode& Goal) const
 {
-	return FMath::Max(0, ScoreCurveObj->GetFloatValue(Cluster->EdgeLengths[Edge.EdgeIndex])) * ReferenceWeight;
+	return SampleCurve(Cluster->EdgeLengths[Edge.EdgeIndex]) * ReferenceWeight;
 }
 
 UPCGExHeuristicOperation* UPCGHeuristicsFactoryShortestDistance::CreateOperation() const
@@ -40,3 +40,12 @@ UPCGExParamFactoryBase* UPCGExHeuristicsShortestDistanceProviderSettings::Create
 	NewHeuristics->WeightFactor = Descriptor.WeightFactor;
 	return Super::CreateFactory(InContext, NewHeuristics);
 }
+
+#if WITH_EDITOR
+FString UPCGExHeuristicsShortestDistanceProviderSettings::GetDisplayName() const
+{
+	return GetDefaultNodeName().ToString()
+		+ TEXT(" @ ")
+		+ FString::Printf(TEXT("%.3f"), (static_cast<int32>(1000 * Descriptor.WeightFactor) / 1000.0));
+}
+#endif

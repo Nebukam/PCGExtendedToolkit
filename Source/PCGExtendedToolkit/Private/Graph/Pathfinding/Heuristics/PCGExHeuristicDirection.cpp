@@ -39,12 +39,6 @@ double UPCGExHeuristicDirection::GetEdgeScore(
 	return FMath::Max(0, ScoreCurveObj->GetFloatValue(PCGExMath::Remap(Dot, -1, 1, OutMin, OutMax))) * ReferenceWeight;
 }
 
-void UPCGExHeuristicDirection::ApplyOverrides()
-{
-	Super::ApplyOverrides();
-	PCGEX_OVERRIDE_OP_PROPERTY(bInvert, FName(TEXT("Heuristics/Invert")), EPCGMetadataTypes::Boolean);
-}
-
 UPCGExHeuristicOperation* UPCGHeuristicsFactoryDirection::CreateOperation() const
 {
 	UPCGExHeuristicDirection* NewOperation = NewObject<UPCGExHeuristicDirection>();
@@ -58,3 +52,12 @@ UPCGExParamFactoryBase* UPCGExHeuristicsDirectionProviderSettings::CreateFactory
 	NewHeuristics->WeightFactor = Descriptor.WeightFactor;
 	return Super::CreateFactory(InContext, NewHeuristics);
 }
+
+#if WITH_EDITOR
+FString UPCGExHeuristicsDirectionProviderSettings::GetDisplayName() const
+{
+	return GetDefaultNodeName().ToString()
+	+ TEXT(" @ ")
+	+  FString::Printf(TEXT("%.3f"), (static_cast<int32>(1000 * Descriptor.WeightFactor) / 1000.0));
+}
+#endif

@@ -19,10 +19,5 @@ UPCGExParamFactoryBase* UPCGExHeuristicsFactoryProviderSettings::CreateFactory(F
 	return InFactory;
 }
 
-FString UPCGExHeuristicsFactoryProviderSettings::GetDisplayName() const
-{
-	return Super::GetDisplayName();
-}
-
 #undef LOCTEXT_NAMESPACE
 #undef PCGEX_NAMESPACE

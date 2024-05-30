@@ -69,7 +69,8 @@ class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicsShortestDistanceProviderSettings : 
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(NodeFilter, "Heuristics : Shortest Distance", "Heuristics based on distance.")
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(NodeFilter, "Heuristics : Shortest Distance", "Heuristics based on distance.",
+		FName(GetDisplayName()))
 #endif
 	//~End UPCGSettings
 
@@ -78,4 +79,8 @@ public:
 	FPCGExHeuristicDescriptorShortestDistance Descriptor;
 
 	virtual UPCGExParamFactoryBase* CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
+
+#if WITH_EDITOR
+	virtual FString GetDisplayName() const override;
+#endif
 };

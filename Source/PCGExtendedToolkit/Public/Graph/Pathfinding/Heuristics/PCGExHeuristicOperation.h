@@ -23,16 +23,17 @@ public:
 	TSoftObjectPtr<UCurveFloat> ScoreCurve = TSoftObjectPtr<UCurveFloat>(PCGEx::WeightDistributionLinear);
 
 	bool bInvert = false;
-	double ReferenceWeight = 100;
+	double ReferenceWeight = 1;
+	double WeightFactor = 1;
 
 	virtual void PrepareForCluster(PCGExCluster::FCluster* InCluster);
 
-	virtual FORCEINLINE double GetGlobalScore(
+	FORCEINLINE virtual double GetGlobalScore(
 		const PCGExCluster::FNode& From,
 		const PCGExCluster::FNode& Seed,
 		const PCGExCluster::FNode& Goal) const;
 
-	virtual FORCEINLINE double GetEdgeScore(
+	FORCEINLINE virtual double GetEdgeScore(
 		const PCGExCluster::FNode& From,
 		const PCGExCluster::FNode& To,
 		const PCGExGraph::FIndexedEdge& Edge,
@@ -44,4 +45,6 @@ public:
 protected:
 	PCGExCluster::FCluster* Cluster = nullptr;
 	TObjectPtr<UCurveFloat> ScoreCurveObj;
+	
+	FORCEINLINE virtual double SampleCurve(const double InTime) const;
 };

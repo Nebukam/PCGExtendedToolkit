@@ -60,7 +60,8 @@ class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicsLeastNodesProviderSettings : public
 public:
 	//~Begin UPCGSettings interface
 	#if WITH_EDITOR
-	PCGEX_NODE_INFOS(NodeFilter, "Heuristics : Least Nodes", "Heuristics based on node count.")
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(NodeFilter, "Heuristics : Least Nodes", "Heuristics based on node count.",
+		FName(GetDisplayName()))
 #endif
 	//~End UPCGSettings
 
@@ -69,4 +70,8 @@ public:
 	FPCGExHeuristicDescriptorLeastNodes Descriptor;
 
 	virtual UPCGExParamFactoryBase* CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
+
+#if WITH_EDITOR
+	virtual FString GetDisplayName() const override;
+#endif
 };

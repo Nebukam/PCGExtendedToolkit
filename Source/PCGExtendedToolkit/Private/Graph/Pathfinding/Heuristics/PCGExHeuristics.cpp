@@ -37,8 +37,7 @@ namespace PCGExHeuristics
 	PCGExHeuristics::THeuristicsHandler::THeuristicsHandler(FPCGExPointsProcessorContext* InContext, double InReferenceWeight):
 		ReferenceWeight(InReferenceWeight)
 	{
-		TotalWeight = 0;
-		HeuristicsModifiers = new FPCGExHeuristicModifiersSettings();
+		HeuristicsModifiers = new FModifiersSettings();
 		HeuristicsModifiers->ReferenceWeight = ReferenceWeight;
 
 		const TArray<FPCGTaggedData>& Inputs = InContext->InputData.GetInputsByPin(PCGExPathfinding::SourceHeuristicsLabel);
@@ -50,7 +49,7 @@ namespace PCGExHeuristics
 			{
 				UPCGExHeuristicOperation* Operation = nullptr;
 
-				if (UPCGHeuristicsFactoryFeedback* FeedbackFactory = Cast<UPCGHeuristicsFactoryFeedback>(Operation))
+				if (const UPCGHeuristicsFactoryFeedback* FeedbackFactory = Cast<UPCGHeuristicsFactoryFeedback>(Operation))
 				{
 					if (FeedbackFactory->IsGlobal())
 					{
@@ -69,16 +68,17 @@ namespace PCGExHeuristics
 				}
 
 				Operations.Add(Operation);
-				Operation->ReferenceWeight = ReferenceWeight * OperationFactory->WeightFactor;
+				Operation->WeightFactor = OperationFactory->WeightFactor;
+				Operation->ReferenceWeight = ReferenceWeight;
 				InContext->RegisterOperation<UPCGExHeuristicOperation>(Operation);
-				HeuristicsWeight += OperationFactory->WeightFactor;
 			}
-			else if (UPCGHeuristicsModiferFactory* ModifierFactory = Cast<UPCGHeuristicsModiferFactory>(InputState.Data))
+			else if (const UPCGHeuristicsModiferFactory* ModifierFactory = Cast<UPCGHeuristicsModiferFactory>(InputState.Data))
 			{
-				HeuristicsModifiers->Modifiers.Add(FPCGExHeuristicModifier(ModifierFactory->Descriptor));
-				PCGEX_LOAD_SOFTOBJECT(UCurveFloat, ModifierFactory->Descriptor.ScoreCurve, ModifierFactory->Descriptor.ScoreCurveObj, PCGEx::WeightDistributionLinear);
+				HeuristicsModifiers->Modifiers.Add(ModifierFactory->Descriptor);
 			}
 		}
+
+		HeuristicsModifiers->LoadCurves();
 
 		if (Operations.IsEmpty() && HeuristicsModifiers->Modifiers.IsEmpty())
 		{
@@ -86,14 +86,12 @@ namespace PCGExHeuristics
 			UPCGExHeuristicDistance* DefaultHeuristics = NewObject<UPCGExHeuristicDistance>();
 			DefaultHeuristics->ReferenceWeight = ReferenceWeight;
 			Operations.Add(DefaultHeuristics);
-			HeuristicsWeight += 1;
 		}
 	}
 
 	PCGExHeuristics::THeuristicsHandler::THeuristicsHandler(UPCGExHeuristicOperation* InSingleOperation)
 	{
 		Operations.Add(InSingleOperation);
-		HeuristicsWeight = 1;
 	}
 
 	PCGExHeuristics::THeuristicsHandler::~THeuristicsHandler()
@@ -113,7 +111,7 @@ namespace PCGExHeuristics
 	bool PCGExHeuristics::THeuristicsHandler::PrepareForCluster(FPCGExAsyncManager* AsyncManager, PCGExCluster::FCluster* InCluster)
 	{
 		InCluster->ComputeEdgeLengths(true);
-		
+
 		CurrentCluster = InCluster;
 		for (UPCGExHeuristicOperation* Operation : Operations)
 		{
@@ -133,8 +131,9 @@ namespace PCGExHeuristics
 
 	void PCGExHeuristics::THeuristicsHandler::CompleteClusterPreparation()
 	{
-		// Recompute weights
-		TotalWeight = HeuristicsWeight;
+		TotalWeight = 0;
+		for (const UPCGExHeuristicOperation* Op : Operations) { TotalWeight += Op->WeightFactor; }
+		TotalWeight += HeuristicsModifiers->TotalWeight;
 	}
 
 	double PCGExHeuristics::THeuristicsHandler::GetGlobalScore(
@@ -161,7 +160,7 @@ namespace PCGExHeuristics
 		for (const UPCGExHeuristicOperation* Op : Operations) { EScore += Op->GetEdgeScore(From, To, Edge, Seed, Goal); }
 		EScore += HeuristicsModifiers->GetScore(To.PointIndex, Edge.EdgeIndex);
 		if (LocalFeedback) { return (EScore + LocalFeedback->GetEdgeScore(From, To, Edge, Seed, Goal)) / (TotalWeight + LocalFeedback->TotalWeight); }
-		else { return EScore / TotalWeight; }
+		return EScore / TotalWeight;
 	}
 
 	void PCGExHeuristics::THeuristicsHandler::FeedbackPointScore(const PCGExCluster::FNode& Node)
@@ -183,10 +182,10 @@ namespace PCGExHeuristics
 		{
 			UPCGExHeuristicFeedback* Feedback = Cast<UPCGExHeuristicFeedback>(Factory->CreateOperation());
 			Feedback->ReferenceWeight = ReferenceWeight * Factory->WeightFactor;
-			
+
 			NewLocalFeedbackHandler->Feedbacks.Add(Feedback);
 			NewLocalFeedbackHandler->TotalWeight += Factory->WeightFactor;
-			
+
 			Feedback->PrepareForCluster(InCluster);
 		}
 

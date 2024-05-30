@@ -21,3 +21,12 @@ UPCGExParamFactoryBase* UPCGExHeuristicsLeastNodesProviderSettings::CreateFactor
 	NewHeuristics->WeightFactor = Descriptor.WeightFactor;
 	return Super::CreateFactory(InContext, NewHeuristics);
 }
+
+#if WITH_EDITOR
+FString UPCGExHeuristicsLeastNodesProviderSettings::GetDisplayName() const
+{
+	return GetDefaultNodeName().ToString()
+	+ TEXT(" @ ")
+	+  FString::Printf(TEXT("%.3f"), (static_cast<int32>(1000 * Descriptor.WeightFactor) / 1000.0));
+}
+#endif

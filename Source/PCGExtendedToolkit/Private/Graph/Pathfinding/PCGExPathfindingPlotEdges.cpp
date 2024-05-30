@@ -17,8 +17,6 @@
 #if WITH_EDITOR
 void UPCGExPathfindingPlotEdgesSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
-	if (Heuristics) { Heuristics->UpdateUserFacingInfos(); }
-	HeuristicsModifiers.UpdateUserFacingInfos();
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
 #endif

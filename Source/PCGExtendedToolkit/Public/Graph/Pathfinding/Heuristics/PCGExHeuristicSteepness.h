@@ -23,7 +23,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicDescriptorSteepness : public FPCGEx
 	/** Vector pointing in the "up" direction. Mirrored. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FVector UpVector = FVector::UpVector;
-
 };
 
 /**
@@ -58,7 +57,6 @@ protected:
 
 	double GetDot(const FVector& From, const FVector& To) const;
 
-	virtual void ApplyOverrides() override;
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
@@ -68,7 +66,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGHeuristicsFactorySteepness : public UPCGHeurist
 
 public:
 	FPCGExHeuristicDescriptorSteepness Descriptor;
-	
+
 	virtual UPCGExHeuristicOperation* CreateOperation() const override;
 };
 
@@ -79,8 +77,9 @@ class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicsSteepnessProviderSettings : public 
 
 public:
 	//~Begin UPCGSettings interface
-	#if WITH_EDITOR
-	PCGEX_NODE_INFOS(NodeFilter, "Heuristics : Steepness", "Heuristics based on steepness.")
+#if WITH_EDITOR
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(NodeFilter, "Heuristics : Steepness", "Heuristics based on steepness.",
+		FName(GetDisplayName()))
 #endif
 	//~End UPCGSettings
 
@@ -89,4 +88,8 @@ public:
 	FPCGExHeuristicDescriptorSteepness Descriptor;
 
 	virtual UPCGExParamFactoryBase* CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
+
+#if WITH_EDITOR
+	virtual FString GetDisplayName() const override;
+#endif
 };

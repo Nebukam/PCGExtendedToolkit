@@ -405,7 +405,7 @@ namespace PCGExDataBlending
 		}
 
 
-		virtual void DoOperation(const int32 PrimaryReadIndex, const FPCGPoint& SrcPoint, const int32 WriteIndex, const double Weight = 0) const override
+		FORCEINLINE virtual void DoOperation(const int32 PrimaryReadIndex, const FPCGPoint& SrcPoint, const int32 WriteIndex, const double Weight = 0) const override
 		{
 			const T A = (*Writer)[PrimaryReadIndex];
 			const T B = TypedAttribute ? TypedAttribute->GetValueFromItemKey(SrcPoint.MetadataEntry) : A;
@@ -427,17 +427,17 @@ namespace PCGExDataBlending
 			}
 		}
 
-		virtual void SinglePrepare(T& A) const
+		FORCEINLINE virtual void SinglePrepare(T& A) const
 		{
 		};
 
-		virtual T SingleOperation(T A, T B, double Weight) const = 0;
+		FORCEINLINE virtual T SingleOperation(T A, T B, double Weight) const = 0;
 
-		virtual void SingleFinalize(T& A, const int32 Count, const double Weight) const
+		FORCEINLINE virtual void SingleFinalize(T& A, const int32 Count, const double Weight) const
 		{
 		};
 
-		virtual void ResetToDefault(const int32 WriteIndex) const override { ResetRangeToDefault(WriteIndex, 1); }
+		FORCEINLINE virtual void ResetToDefault(const int32 WriteIndex) const override { ResetRangeToDefault(WriteIndex, 1); }
 
 		virtual void ResetRangeToDefault(const int32 StartIndex, const int32 Count) const override
 		{
@@ -445,8 +445,8 @@ namespace PCGExDataBlending
 			for (int i = 0; i < Count; i++) { Writer->Values[StartIndex + i] = DefaultValue; }
 		}
 
-		virtual T GetPrimaryValue(const int32 Index) const { return (*Writer)[Index]; }
-		virtual T GetSecondaryValue(const int32 Index) const { return (*Reader)[Index]; }
+		FORCEINLINE virtual T GetPrimaryValue(const int32 Index) const { return (*Writer)[Index]; }
+		FORCEINLINE virtual T GetSecondaryValue(const int32 Index) const { return (*Reader)[Index]; }
 
 		virtual void Write() override { Writer->Write(); }
 
@@ -490,7 +490,7 @@ namespace PCGExDataBlending
 			}
 		}
 
-		virtual void DoOperation(const int32 PrimaryReadIndex, const FPCGPoint& SrcPoint, const int32 WriteIndex, const double Weight = 0) const override
+		FORCEINLINE virtual void DoOperation(const int32 PrimaryReadIndex, const FPCGPoint& SrcPoint, const int32 WriteIndex, const double Weight = 0) const override
 		{
 			const T A = (*this->Writer)[PrimaryReadIndex];
 			const T B = this->TypedAttribute ? this->TypedAttribute->GetValueFromItemKey(SrcPoint.MetadataEntry) : A;

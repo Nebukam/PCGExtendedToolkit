@@ -47,8 +47,6 @@ void UPCGExPathfindingProcessorSettings::PostEditChangeProperty(FPropertyChanged
 {
 	if (GoalPicker) { GoalPicker->UpdateUserFacingInfos(); }
 	if (SearchAlgorithm) { SearchAlgorithm->UpdateUserFacingInfos(); }
-	if (Heuristics) { Heuristics->UpdateUserFacingInfos(); }
-	//if (Blending) { Blending->UpdateUserFacingInfos(); }
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
 #endif

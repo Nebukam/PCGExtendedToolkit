@@ -15,7 +15,7 @@ double UPCGExHeuristicOperation::GetGlobalScore(
 	const PCGExCluster::FNode& Seed,
 	const PCGExCluster::FNode& Goal) const
 {
-	return ReferenceWeight;
+	return 0;
 }
 
 double UPCGExHeuristicOperation::GetEdgeScore(
@@ -25,11 +25,16 @@ double UPCGExHeuristicOperation::GetEdgeScore(
 	const PCGExCluster::FNode& Seed,
 	const PCGExCluster::FNode& Goal) const
 {
-	return ReferenceWeight;
+	return 0;
 }
 
 void UPCGExHeuristicOperation::Cleanup()
 {
 	Cluster = nullptr;
 	Super::Cleanup();
+}
+
+double UPCGExHeuristicOperation::SampleCurve(const double InTime) const
+{
+	return  FMath::Max(0, ScoreCurveObj->GetFloatValue(bInvert ? 1 - InTime : InTime));
 }

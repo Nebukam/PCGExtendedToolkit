@@ -71,30 +71,7 @@ public:
 	/** Search algorithm. */
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta = (PCG_Overridable, NoResetToDefault, ShowOnlyInnerProperties))
 	TObjectPtr<UPCGExSearchOperation> SearchAlgorithm;
-
-	/** Controls how heuristic are calculated. */
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta = (PCG_Overridable, NoResetToDefault, ShowOnlyInnerProperties))
-	TObjectPtr<UPCGExHeuristicOperation> Heuristics; // TODO: Deprecate
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	FPCGExHeuristicModifiersSettings HeuristicsModifiers; // TODO: Deprecate
-
-	/** Add weight to points that are already part of the growing path */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Extra Weighting")
-	bool bWeightUpVisited = false; // TODO: Deprecate
-
-	/** Weight to add to points that are already part of the plotted path. This is a multplier of the Reference Weight.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Extra Weighting", meta=(EditCondition="bWeightUpVisited"))
-	double VisitedPointsWeightFactor = 1; // TODO: Deprecate
-
-	/** Weight to add to edges that are already part of the plotted path. This is a multplier of the Reference Weight.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Extra Weighting", meta=(EditCondition="bWeightUpVisited"))
-	double VisitedEdgesWeightFactor = 1; // TODO: Deprecate
-
-	/** Shares visited weight between pathfinding queries. Slow as it break parallelism. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Extra Weighting", meta=(EditCondition="bWeightUpVisited"))
-	bool bGlobalVisitedWeight = true; // TODO: Deprecate
-
+	
 	/** Output various statistics. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	FPCGExPathStatistics Statistics;

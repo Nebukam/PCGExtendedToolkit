@@ -53,7 +53,6 @@ protected:
 	double OutMin = 0;
 	double OutMax = 1;
 
-	virtual void ApplyOverrides() override;
 };
 
 ////
@@ -77,7 +76,8 @@ class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicsDirectionProviderSettings : public 
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(NodeFilter, "Heuristics : Direction", "Heuristics based on direction.")
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(NodeFilter, "Heuristics : Direction", "Heuristics based on direction.",
+		FName(GetDisplayName()))
 #endif
 	//~End UPCGSettings
 
@@ -86,4 +86,8 @@ public:
 	FPCGExHeuristicDescriptorDirection Descriptor;
 
 	virtual UPCGExParamFactoryBase* CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
+
+#if WITH_EDITOR
+	virtual FString GetDisplayName() const override;
+#endif
 };
