@@ -55,7 +55,7 @@ public:
 protected:
 	FVector UpwardVector = FVector::UpVector;
 
-	double GetDot(const FVector& From, const FVector& To) const;
+	FORCEINLINE double GetDot(const FVector& From, const FVector& To) const;
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
