@@ -15,12 +15,7 @@ PCGExData::EInit UPCGExFindSocketStatesSettings::GetMainOutputInitMode() const {
 TArray<FPCGPinProperties> UPCGExFindSocketStatesSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	FPCGPinProperties& PinStateParams = PinProperties.Emplace_GetRef(PCGExGraph::SourceSocketStateLabel, EPCGDataType::Param);
-
-#if WITH_EDITOR
-	PinStateParams.Tooltip = FTEXT("Socket states.");
-#endif
-
+	PCGEX_PIN_PARAMS(PCGExGraph::SourceSocketStateLabel, "Socket states.", false, {})	
 	return PinProperties;
 }
 

@@ -35,6 +35,7 @@ public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(SampleNeighbors, "Sample : Neighbors", "Sample graph node' neighbors values.");
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorSampler; }
 #endif
 
 protected:

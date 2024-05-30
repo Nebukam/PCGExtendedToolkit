@@ -15,6 +15,7 @@ FName UPCGExCreateNodeStateSettings::GetMainOutputLabel() const { return PCGExCl
 TArray<FPCGPinProperties> UPCGExCreateNodeStateSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
+
 	FPCGPinProperties& InTestsPin = PinProperties.EmplaceAt_GetRef(0, PCGExDataState::SourceFiltersLabel, EPCGDataType::Param, true, true);
 
 #if WITH_EDITOR
@@ -23,6 +24,7 @@ TArray<FPCGPinProperties> UPCGExCreateNodeStateSettings::InputPinProperties() co
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
 	InTestsPin.SetRequiredPin();
 #endif
+
 	return PinProperties;
 }
 

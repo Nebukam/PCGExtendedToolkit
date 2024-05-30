@@ -33,6 +33,7 @@ public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(SampleNearestSurface, "Sample : Nearest Surface", "Find the closest point on the nearest collidable surface.");
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorSampler; }
 #endif
 
 protected:

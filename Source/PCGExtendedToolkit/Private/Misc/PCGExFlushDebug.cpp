@@ -20,6 +20,7 @@ UPCGExDebugSettings::UPCGExDebugSettings(
 TArray<FPCGPinProperties> UPCGExDebugSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
+
 	FPCGPinProperties& PinPropertySource = PinProperties.Emplace_GetRef(PCGEx::SourcePointsLabel, EPCGDataType::Any, true, true);
 
 #if WITH_EDITOR

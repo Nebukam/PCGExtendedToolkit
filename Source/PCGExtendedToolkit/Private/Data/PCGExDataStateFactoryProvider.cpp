@@ -12,37 +12,15 @@
 TArray<FPCGPinProperties> UPCGExStateFactoryProviderSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-
-	FPCGPinProperties& ValidStatePin = PinProperties.Emplace_GetRef(PCGExDataState::SourceValidStateAttributesLabel, EPCGDataType::Param, true, true);
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
-	ValidStatePin.SetAdvancedPin();
-#endif
-
-#if WITH_EDITOR
-	ValidStatePin.Tooltip = FTEXT("Attributes & values associated with this state when conditions are met.");
-#endif
-
-	FPCGPinProperties& InvalidStatePin = PinProperties.Emplace_GetRef(PCGExDataState::SourceInvalidStateAttributesLabel, EPCGDataType::Param, true, true);
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
-	InvalidStatePin.SetAdvancedPin();
-#endif
-
-#if WITH_EDITOR
-	InvalidStatePin.Tooltip = FTEXT("Attributes & values associated with this state when conditions are not met.");
-#endif
-
+	PCGEX_PIN_PARAMS(PCGExDataState::SourceValidStateAttributesLabel, "Attributes & values associated with this state when conditions are met.", true, {})
+	PCGEX_PIN_PARAMS(PCGExDataState::SourceInvalidStateAttributesLabel, "Attributes & values associated with this state when conditions are not met.", true, {})
 	return PinProperties;
 }
 
 TArray<FPCGPinProperties> UPCGExStateFactoryProviderSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	FPCGPinProperties& PinPropertyOutput = PinProperties.Emplace_GetRef(GetMainOutputLabel(), EPCGDataType::Param, false, false);
-
-#if WITH_EDITOR
-	PinPropertyOutput.Tooltip = FTEXT("Outputs a single state.");
-#endif
-
+	PCGEX_PIN_PARAM(GetMainOutputLabel(), "Outputs a single state.", false, {})
 	return PinProperties;
 }
 

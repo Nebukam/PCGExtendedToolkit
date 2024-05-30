@@ -41,6 +41,8 @@ bool FPCGExSampleNeighborsElement::ExecuteInternal(
 
 	PCGEX_CONTEXT_AND_SETTINGS(SampleNeighbors)
 
+	PCGE_LOG(Error, GraphAndLog, FTEXT("NODE NOT IMPLEMENTED"));
+	
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }

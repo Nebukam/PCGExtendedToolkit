@@ -71,6 +71,7 @@ public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(FusePoints, "Fuse Points", "Fuse points based on distance.");
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorMisc; }
 #endif
 
 protected:

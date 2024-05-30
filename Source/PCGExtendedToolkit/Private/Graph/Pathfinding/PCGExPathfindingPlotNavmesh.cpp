@@ -17,12 +17,7 @@
 TArray<FPCGPinProperties> UPCGExPathfindingPlotNavmeshSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	FPCGPinProperties& PinPathsOutput = PinProperties.Emplace_GetRef(PCGExGraph::OutputPathsLabel, EPCGDataType::Point);
-
-#if WITH_EDITOR
-	PinPathsOutput.Tooltip = FTEXT("Paths output.");
-#endif
-
+	PCGEX_PIN_POINTS(PCGExGraph::OutputPathsLabel, "Paths output.", false, {})	
 	return PinProperties;
 }
 

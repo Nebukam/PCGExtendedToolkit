@@ -22,12 +22,7 @@ PCGExData::EInit UPCGExPackClustersSettings::GetEdgeOutputInitMode() const { ret
 TArray<FPCGPinProperties> UPCGExPackClustersSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	FPCGPinProperties& PinEdgesOutput = PinProperties.Emplace_GetRef(PCGExGraph::OutputPackedClustersLabel, EPCGDataType::Point);
-
-#if WITH_EDITOR
-	PinEdgesOutput.Tooltip = FTEXT("Individually packed clusters");
-#endif
-
+	PCGEX_PIN_POINTS(PCGExGraph::OutputPackedClustersLabel, "Individually packed clusters", false, {})	
 	return PinProperties;
 }
 

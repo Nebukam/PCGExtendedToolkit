@@ -27,7 +27,7 @@ public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(UberFilter, "Uber Filter", "Filter points based on multiple rules & conditions.");
-	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorFilter; }
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorFilterHub; }
 #endif
 
 protected:

@@ -13,15 +13,15 @@
 TArray<FPCGPinProperties> UPCGExUberFilterSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_PARAMS(PCGExDataFilter::SourceFiltersLabel, "Filters.")
+	PCGEX_PIN_PARAMS(PCGExDataFilter::SourceFiltersLabel, "Filters.", false, {})
 	return PinProperties;
 }
 
 TArray<FPCGPinProperties> UPCGExUberFilterSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_POINTS(PCGExDataFilter::OutputInsideFiltersLabel, "Points that passed the filters.")
-	PCGEX_PIN_POINTS(PCGExDataFilter::OutputOutsideFiltersLabel, "Points that didn't pass the filters.")
+	PCGEX_PIN_POINTS(PCGExDataFilter::OutputInsideFiltersLabel, "Points that passed the filters.", false, {})
+	PCGEX_PIN_POINTS(PCGExDataFilter::OutputOutsideFiltersLabel, "Points that didn't pass the filters.", false, {})
 	return PinProperties;
 }
 

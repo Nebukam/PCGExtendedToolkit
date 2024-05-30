@@ -13,14 +13,14 @@
 TArray<FPCGPinProperties> UPCGExCustomGraphProcessorSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_PARAMS(PCGExGraph::SourceParamsLabel, "Graph Params. Data is de-duped internally.")
+	PCGEX_PIN_PARAMS(PCGExGraph::SourceSingleGraphLabel, "Graph Params. Data is de-duped internally.", false, {})
 	return PinProperties;
 }
 
 TArray<FPCGPinProperties> UPCGExCustomGraphProcessorSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
-	PCGEX_PIN_PARAMS(PCGExGraph::OutputParamsLabel, "Graph Params forwarding. Data is de-duped internally.")
+	PCGEX_PIN_PARAMS(PCGExGraph::OutputForwardGraphsLabel, "Graph Params forwarding. Data is de-duped internally.", false, {})
 	return PinProperties;
 }
 
@@ -118,13 +118,13 @@ void FPCGExCustomGraphProcessorElement::DisabledPassThroughData(FPCGContext* Con
 	FPCGExPointsProcessorElementBase::DisabledPassThroughData(Context);
 
 	//Forward edges
-	TArray<FPCGTaggedData> GraphsSources = Context->InputData.GetInputsByPin(PCGExGraph::SourceParamsLabel);
+	TArray<FPCGTaggedData> GraphsSources = Context->InputData.GetInputsByPin(PCGExGraph::SourceSingleGraphLabel);
 	for (const FPCGTaggedData& TaggedData : GraphsSources)
 	{
 		FPCGTaggedData& TaggedDataCopy = Context->OutputData.TaggedData.Emplace_GetRef();
 		TaggedDataCopy.Data = TaggedData.Data;
 		TaggedDataCopy.Tags.Append(TaggedData.Tags);
-		TaggedDataCopy.Pin = PCGExGraph::OutputParamsLabel;
+		TaggedDataCopy.Pin = PCGExGraph::OutputForwardGraphsLabel;
 	}
 }
 
@@ -158,7 +158,7 @@ FPCGContext* FPCGExCustomGraphProcessorElement::InitializeContext(
 
 	if (!Settings->bEnabled) { return Context; }
 
-	TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(PCGExGraph::SourceParamsLabel);
+	TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(PCGExGraph::SourceSingleGraphLabel);
 	Context->Graphs.Initialize(InContext, Sources);
 
 	return Context;

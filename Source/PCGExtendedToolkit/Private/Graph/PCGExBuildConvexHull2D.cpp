@@ -27,19 +27,8 @@ FPCGExBuildConvexHull2DContext::~FPCGExBuildConvexHull2DContext()
 TArray<FPCGPinProperties> UPCGExBuildConvexHull2DSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
-
-	FPCGPinProperties& PinClustersOutput = PinProperties.Emplace_GetRef(PCGExGraph::OutputEdgesLabel, EPCGDataType::Point);
-
-#if WITH_EDITOR
-	PinClustersOutput.Tooltip = FTEXT("Point data representing edges.");
-#endif
-
-	FPCGPinProperties& PinPathsOutput = PinProperties.Emplace_GetRef(PCGExGraph::OutputPathsLabel, EPCGDataType::Point);
-
-#if WITH_EDITOR
-	PinPathsOutput.Tooltip = FTEXT("Point data representing closed convex hull paths.");
-#endif
-
+	PCGEX_PIN_POINTS(PCGExGraph::OutputEdgesLabel, "Point data representing edges.", false, {})
+	PCGEX_PIN_POINTS(PCGExGraph::OutputPathsLabel, "Point data representing closed convex hull paths.", false, {})
 	return PinProperties;
 }
 

@@ -58,34 +58,28 @@ FPCGElementPtr UPCGEx##_NAME##Settings::CreateElement() const{	return MakeShared
 #define PCGEX_WAIT_ASYNC if (!Context->IsAsyncWorkComplete()) {return false;}
 
 #if WITH_EDITOR
-#define PCGEX_PIN_POINTS(_LABEL, _TOOLTIP) PinProperties.Emplace_GetRef(_LABEL, EPCGDataType::Point).Tooltip = FTEXT(_TOOLTIP);
+#define PCGEX_PIN_TOOLTIP(_TOOLTIP) Pin.Tooltip = FTEXT(_TOOLTIP);
 #else
-#define PCGEX_PIN_POINTS(_LABEL, _TOOLTIP) PinProperties.Emplace_GetRef(_LABEL, EPCGDataType::Point);
+#define PCGEX_PIN_TOOLTIP(_TOOLTIP) {}
 #endif
 
-#if WITH_EDITOR
-#define PCGEX_PIN_POLYLINES(_LABEL, _TOOLTIP) PinProperties.Emplace_GetRef(_LABEL, EPCGDataType::PolyLine).Tooltip = FTEXT(_TOOLTIP);
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
+#define PCGEX_PIN_ADVANCED(_TOGGLE) if(_TOGGLE){ Pin.SetAdvancedPin(); }else{ Pin.SetRequiredPin(); }
 #else
-#define PCGEX_PIN_POLYLINES(_LABEL, _TOOLTIP) PinProperties.Emplace_GetRef(_LABEL, EPCGDataType::PolyLine);
+#define PCGEX_PIN_ADVANCED(_TOGGLE) Pin.bAdvancedPin = _TOGGLE;
 #endif
 
-#if WITH_EDITOR
-#define PCGEX_PIN_PARAMS(_LABEL, _TOOLTIP) PinProperties.Emplace_GetRef(_LABEL, EPCGDataType::Param).Tooltip = FTEXT(_TOOLTIP);
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
+#define PCGEX_PIN_REQUIRED Pin.SetAdvancedPin();
 #else
-#define PCGEX_PIN_PARAMS(_LABEL, _TOOLTIP) PinProperties.Emplace_GetRef(_LABEL, EPCGDataType::Param);
+#define PCGEX_PIN_REQUIRED Pin.bAdvancedPin = true;
 #endif
 
-#if WITH_EDITOR
-#define PCGEX_PIN_POINT(_LABEL, _TOOLTIP) PinProperties.Emplace_GetRef(_LABEL, EPCGDataType::Point, false, false).Tooltip = FTEXT(_TOOLTIP);
-#else
-#define PCGEX_PIN_POINT(_LABEL, _TOOLTIP) PinProperties.Emplace_GetRef(_LABEL, EPCGDataType::Point, false, false);
-#endif
-
-#if WITH_EDITOR
-#define PCGEX_PIN_PARAM(_LABEL, _TOOLTIP) PinProperties.Emplace_GetRef(_LABEL, EPCGDataType::Param, false, false).Tooltip = FTEXT(_TOOLTIP);
-#else
-#define PCGEX_PIN_PARAM(_LABEL, _TOOLTIP) PinProperties.Emplace_GetRef(_LABEL, EPCGDataType::Param, false, false);
-#endif
+#define PCGEX_PIN_POINTS(_LABEL, _TOOLTIP, _ADVANCED, _EXTRA) { FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(_LABEL, EPCGDataType::Point); PCGEX_PIN_TOOLTIP(_TOOLTIP) PCGEX_PIN_ADVANCED(_ADVANCED) _EXTRA }
+#define PCGEX_PIN_POLYLINES(_LABEL, _TOOLTIP, _ADVANCED, _EXTRA) { FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(_LABEL, EPCGDataType::PolyLine); PCGEX_PIN_TOOLTIP(_TOOLTIP) PCGEX_PIN_ADVANCED(_ADVANCED) _EXTRA }
+#define PCGEX_PIN_PARAMS(_LABEL, _TOOLTIP, _ADVANCED, _EXTRA) { FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(_LABEL, EPCGDataType::Param); PCGEX_PIN_TOOLTIP(_TOOLTIP) PCGEX_PIN_ADVANCED(_ADVANCED) _EXTRA }
+#define PCGEX_PIN_POINT(_LABEL, _TOOLTIP, _ADVANCED, _EXTRA) { FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(_LABEL, EPCGDataType::Point, false, false); PCGEX_PIN_TOOLTIP(_TOOLTIP) PCGEX_PIN_ADVANCED(_ADVANCED) _EXTRA }
+#define PCGEX_PIN_PARAM(_LABEL, _TOOLTIP, _ADVANCED, _EXTRA) { FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(_LABEL, EPCGDataType::Param, false, false); PCGEX_PIN_TOOLTIP(_TOOLTIP) PCGEX_PIN_ADVANCED(_ADVANCED) _EXTRA }
 
 struct FPCGExPointsProcessorContext;
 

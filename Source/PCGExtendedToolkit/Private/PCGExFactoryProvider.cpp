@@ -15,12 +15,7 @@ TArray<FPCGPinProperties> UPCGExFactoryProviderSettings::InputPinProperties() co
 TArray<FPCGPinProperties> UPCGExFactoryProviderSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	FPCGPinProperties& PinPropertyOutput = PinProperties.Emplace_GetRef(GetMainOutputLabel(), EPCGDataType::Param, false, false);
-
-#if WITH_EDITOR
-	PinPropertyOutput.Tooltip = FTEXT("Outputs a single filter definition.");
-#endif
-
+	PCGEX_PIN_PARAM(GetMainOutputLabel(), GetMainOutputLabel().ToString(), false, {})
 	return PinProperties;
 }
 

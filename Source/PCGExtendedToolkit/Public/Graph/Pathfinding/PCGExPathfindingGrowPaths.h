@@ -119,6 +119,7 @@ public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(PathfindingGrowPaths, "Pathfinding : Grow Paths", "Grow paths from seeds.");
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorPathfinding; }
 #endif
 
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;

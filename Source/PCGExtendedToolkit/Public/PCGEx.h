@@ -244,15 +244,17 @@ namespace PCGEx
 	const FName OutputPointsLabel = TEXT("Out");
 
 	constexpr FLinearColor NodeColorDebug = FLinearColor(1.0f, 0.0f, 0.0f, 1.0f);
-	constexpr FLinearColor NodeColorGraph = FLinearColor(80.0f / 255.0f, 241.0f / 255.0f, 168.0f / 255.0f, 1.0f);
+	constexpr FLinearColor NodeColorSampler = FLinearColor(162.0f / 255.0f, 245.0f / 255.0f, 7.0f / 255.0f, 1.0f);
+	constexpr FLinearColor NodeColorGraph = FLinearColor(245.0f / 255.0f, 114.0f / 255.0f, 7.0f / 255.0f, 1.0f);
 	constexpr FLinearColor NodeColorExParam = FLinearColor(254.0f / 255.0f, 132.0f / 255.0f, 0.1f / 255.0f, 1.0f);
-	constexpr FLinearColor NodeColorFilter = FLinearColor(21.0f / 255.0f, 193.0f / 255.0f, 33.0f / 255.0f, 1.0f);
-	constexpr FLinearColor NodeColorHeuristics = FLinearColor(200.0f / 255.0f, 193.0f / 255.0f, 33.0f / 255.0f, 1.0f);
-	constexpr FLinearColor NodeColorPathfinding = FLinearColor(35.0f / 255.0f, 253.0f / 255.0f, 100.0f / 255.0f, 1.0f);
+	constexpr FLinearColor NodeColorFilterHub = FLinearColor(3.0f / 255.0f, 252.0f / 255.0f, 98.0f / 255.0f, -1.0f);
+	constexpr FLinearColor NodeColorFilter = FLinearColor(14.0f / 255.0f, 140.0f / 255.0f, 77.0f / 255.0f, 1.0f);
+	constexpr FLinearColor NodeColorHeuristics = FLinearColor(126.0f / 255.0f, 14.0f / 255.0f, 140.0f / 255.0f, 1.0f);
+	constexpr FLinearColor NodeColorPathfinding = FLinearColor(79.0f / 255.0f, 14.0f / 255.0f, 140.0f / 255.0f, 1.0f);
 	constexpr FLinearColor NodeColorEdge = FLinearColor(100.0f / 255.0f, 241.0f / 255.0f, 100.0f / 255.0f, 1.0f);
 	constexpr FLinearColor NodeColorPath = FLinearColor(50.0f / 255.0f, 150.0f / 255.0f, 241.0f / 255.0f, 1.0f);
 	constexpr FLinearColor NodeColorPrimitives = FLinearColor(35.0f / 255.0f, 253.0f / 255.0f, 113.0f / 255.0f, 1.0f);
-	constexpr FLinearColor NodeColorWhite = FLinearColor(1.0f, 1.0f, 1.0f, 1.0f);
+	constexpr FLinearColor NodeColorMisc = FLinearColor(1.0f, 1.0f, 1.0f, 1.0f);
 
 	const FSoftObjectPath DefaultDotOverDistanceCurve = FSoftObjectPath(TEXT("/PCGExtendedToolkit/Curves/FC_PCGExGraphBalance_DistanceOnly.FC_PCGExGraphBalance_DistanceOnly"));
 	const FSoftObjectPath WeightDistributionLinearInv = FSoftObjectPath(TEXT("/PCGExtendedToolkit/Curves/FC_PCGExWeightDistribution_Linear_Inv.FC_PCGExWeightDistribution_Linear_Inv"));

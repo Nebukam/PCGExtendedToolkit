@@ -807,7 +807,7 @@ namespace PCGExGraph
 			for (int i = 0; i < ParamsSources.Num(); i++)
 			{
 				FPCGTaggedData& OutputRef = Context->OutputData.TaggedData.Add_GetRef(ParamsSources[i]);
-				OutputRef.Pin = OutputParamsLabel;
+				OutputRef.Pin = OutputForwardGraphsLabel;
 				OutputRef.Data = Params[i];
 			}
 		}
