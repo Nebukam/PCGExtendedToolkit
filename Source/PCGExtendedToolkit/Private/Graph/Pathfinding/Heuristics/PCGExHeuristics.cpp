@@ -107,8 +107,8 @@ namespace PCGExHeuristics
 
 	void THeuristicsHandler::CompleteClusterPreparation()
 	{
-		TotalWeight = 0;
-		for (const UPCGExHeuristicOperation* Op : Operations) { TotalWeight += Op->WeightFactor; }
+		TotalStaticWeight = 0;
+		for (const UPCGExHeuristicOperation* Op : Operations) { TotalStaticWeight += Op->WeightFactor; }
 	}
 
 	double THeuristicsHandler::GetGlobalScore(
@@ -117,10 +117,11 @@ namespace PCGExHeuristics
 		const PCGExCluster::FNode& Goal,
 		const FLocalFeedbackHandler* LocalFeedback) const
 	{
+		//TODO : Account for custom weight here
 		double GScore = 0;
 		for (const UPCGExHeuristicOperation* Op : Operations) { GScore += Op->GetGlobalScore(From, Seed, Goal); }
-		if (LocalFeedback) { return (GScore + LocalFeedback->GetGlobalScore(From, Seed, Goal)) / (TotalWeight + LocalFeedback->TotalWeight); }
-		return GScore / TotalWeight;
+		if (LocalFeedback) { return (GScore + LocalFeedback->GetGlobalScore(From, Seed, Goal)) / (TotalStaticWeight + LocalFeedback->TotalWeight); }
+		return GScore / TotalStaticWeight;
 	}
 
 	double THeuristicsHandler::GetEdgeScore(
@@ -131,10 +132,11 @@ namespace PCGExHeuristics
 		const PCGExCluster::FNode& Goal,
 		const FLocalFeedbackHandler* LocalFeedback) const
 	{
+		//TODO : Account for custom weight here
 		double EScore = 0;
 		for (const UPCGExHeuristicOperation* Op : Operations) { EScore += Op->GetEdgeScore(From, To, Edge, Seed, Goal); }
-		if (LocalFeedback) { return (EScore + LocalFeedback->GetEdgeScore(From, To, Edge, Seed, Goal)) / (TotalWeight + LocalFeedback->TotalWeight); }
-		return EScore / TotalWeight;
+		if (LocalFeedback) { return (EScore + LocalFeedback->GetEdgeScore(From, To, Edge, Seed, Goal)) / (TotalStaticWeight + LocalFeedback->TotalWeight); }
+		return EScore / TotalStaticWeight;
 	}
 
 	void THeuristicsHandler::FeedbackPointScore(const PCGExCluster::FNode& Node)

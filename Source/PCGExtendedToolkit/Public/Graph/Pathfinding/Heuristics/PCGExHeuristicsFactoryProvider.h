@@ -47,16 +47,16 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicDescriptorBase
 	TSoftObjectPtr<UCurveFloat> ScoreCurve;
 	TObjectPtr<UCurveFloat> ScoreCurveObj;
 	
-	/** Use a local attribute  */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1))
+	/** Use a local attribute */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Local Weight", meta=(PCG_Overridable))
 	bool bUseLocalWeightMultiplier = false;
 
 	/** Local multiplier attribute source */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1, EditCondition="bUseLocalWeightMultiplier", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Local Weight", meta=(PCG_Overridable, EditCondition="bUseLocalWeightMultiplier", EditConditionHides))
 	EPCGExGraphValueSource LocalWeightMultiplierSource = EPCGExGraphValueSource::Point;
 	
 	/** Attribute to read multiplier value from. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1, EditCondition="bUseLocalWeightMultiplier", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Local Weight", meta=(PCG_Overridable, EditCondition="bUseLocalWeightMultiplier", EditConditionHides))
 	FPCGAttributePropertyInputSelector WeightMultiplierAttribute;
 };
 

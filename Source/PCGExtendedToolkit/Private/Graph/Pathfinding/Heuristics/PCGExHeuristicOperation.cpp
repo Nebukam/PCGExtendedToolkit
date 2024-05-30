@@ -11,6 +11,7 @@ void UPCGExHeuristicOperation::PrepareForCluster(PCGExCluster::FCluster* InClust
 
 	LocalWeightMultiplier.Empty();
 
+	bHasCustomLocalWeightMultiplier = false;
 	if (bUseLocalWeightMultiplier)
 	{
 		const PCGExData::FPointIO* PointIO = LocalWeightMultiplierSource == EPCGExGraphValueSource::Point ? InCluster->PointsIO : InCluster->EdgesIO;
@@ -23,8 +24,9 @@ void UPCGExHeuristicOperation::PrepareForCluster(PCGExCluster::FCluster* InClust
 		{
 			LocalWeightMultiplier.SetNumZeroed(NumPoints);
 			for (int i = 0; i < NumPoints; i++) { LocalWeightMultiplier[i] = Getter->Values[i]; }
+			bHasCustomLocalWeightMultiplier = true;
 		}
-		
+
 		PCGEX_DELETE(Getter)
 	}
 }

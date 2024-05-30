@@ -65,7 +65,7 @@ double UPCGExHeuristicAttribute::GetEdgeScore(
 	const PCGExCluster::FNode& Seed,
 	const PCGExCluster::FNode& Goal) const
 {
-	return CachedScores[Source == EPCGExGraphValueSource::Edge ? Edge.PointIndex : To.PointIndex] * GetWeightFactor(To.PointIndex, Edge.PointIndex);
+	return CachedScores[Source == EPCGExGraphValueSource::Edge ? Edge.PointIndex : To.PointIndex];
 }
 
 void UPCGExHeuristicAttribute::Cleanup()

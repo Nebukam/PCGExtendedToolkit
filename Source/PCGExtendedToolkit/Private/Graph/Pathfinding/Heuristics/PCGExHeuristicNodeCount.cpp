@@ -6,7 +6,7 @@
 
 double UPCGExHeuristicNodeCount::GetEdgeScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& To, const PCGExGraph::FIndexedEdge& Edge, const PCGExCluster::FNode& Seed, const PCGExCluster::FNode& Goal) const
 {
-	return ReferenceWeight * GetWeightFactor(To.PointIndex, Edge.PointIndex);
+	return ReferenceWeight;
 }
 
 UPCGExHeuristicOperation* UPCGHeuristicsFactoryLeastNodes::CreateOperation() const

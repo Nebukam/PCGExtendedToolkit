@@ -69,7 +69,7 @@ namespace PCGExHeuristics
 		PCGExCluster::FCluster* CurrentCluster = nullptr;
 
 		double ReferenceWeight = 1;
-		double TotalWeight = 0;
+		double TotalStaticWeight = 0;
 
 		bool HasGlobalFeedback() const { return !Feedbacks.IsEmpty(); };
 

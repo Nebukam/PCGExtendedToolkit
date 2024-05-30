@@ -28,6 +28,8 @@ public:
 	bool bUseLocalWeightMultiplier = false;
 	EPCGExGraphValueSource LocalWeightMultiplierSource = EPCGExGraphValueSource::Point;
 	FPCGAttributePropertyInputSelector WeightMultiplierAttribute;
+	
+	bool bHasCustomLocalWeightMultiplier = false;
 
 	virtual void PrepareForCluster(PCGExCluster::FCluster* InCluster);
 
