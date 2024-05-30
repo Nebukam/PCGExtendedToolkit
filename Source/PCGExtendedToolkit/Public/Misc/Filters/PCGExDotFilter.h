@@ -114,7 +114,7 @@ namespace PCGExPointsFilter
 		PCGEx::FLocalVectorGetter* OperandB = nullptr;
 
 		virtual void Capture(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO) override;
-		virtual bool Test(const int32 PointIndex) const override;
+		FORCEINLINE virtual bool Test(const int32 PointIndex) const override;
 
 		virtual ~TDotFilter() override
 		{

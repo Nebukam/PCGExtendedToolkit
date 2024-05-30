@@ -284,7 +284,7 @@ namespace PCGEx
 	}
 
 	// Unsigned uint64 hash
-	static uint64 H64U(const uint32 A, const uint32 B)
+	FORCEINLINE static uint64 H64U(const uint32 A, const uint32 B)
 	{
 		return A > B ?
 			       static_cast<uint64>(A) << 32 | B :
@@ -292,19 +292,19 @@ namespace PCGEx
 	}
 
 	// Signed uint64 hash
-	static uint64 H64(const uint32 A, const uint32 B) { return static_cast<uint64>(A) << 32 | B; }
+	FORCEINLINE static uint64 H64(const uint32 A, const uint32 B) { return static_cast<uint64>(A) << 32 | B; }
 
 	// Expand uint64 hash
-	static uint32 H64A(const uint64 Hash) { return static_cast<uint32>(Hash >> 32); }
-	static uint32 H64B(const uint64 Hash) { return static_cast<uint32>(Hash); }
+	FORCEINLINE static uint32 H64A(const uint64 Hash) { return static_cast<uint32>(Hash >> 32); }
+	FORCEINLINE static uint32 H64B(const uint64 Hash) { return static_cast<uint32>(Hash); }
 
-	static void H64(const uint64 Hash, uint32& A, uint32& B)
+	FORCEINLINE static void H64(const uint64 Hash, uint32& A, uint32& B)
 	{
 		A = H64A(Hash);
 		B = H64B(Hash);
 	}
 
-	static uint64 H6416(const uint16 A, const uint16 B, const uint16 C, const uint16 D)
+	FORCEINLINE static uint64 H6416(const uint16 A, const uint16 B, const uint16 C, const uint16 D)
 	{
 		return (static_cast<uint64>(A) << 48) |
 			(static_cast<uint64>(B) << 32) |
@@ -312,7 +312,7 @@ namespace PCGEx
 			static_cast<uint64>(D);
 	}
 
-	static void H6416(const uint64_t H, uint16& A, uint16& B, uint16& C, uint16& D)
+	FORCEINLINE static void H6416(const uint64_t H, uint16& A, uint16& B, uint16& C, uint16& D)
 	{
 		A = static_cast<uint16>(H >> 48);
 		B = static_cast<uint16>((H >> 32) & 0xFFFF);
@@ -320,7 +320,7 @@ namespace PCGEx
 		D = static_cast<uint16>(H & 0xFFFF);
 	}
 
-	static uint64 H64S(const uint32 A, const uint32 B, const uint32 C)
+	FORCEINLINE static uint64 H64S(const uint32 A, const uint32 B, const uint32 C)
 	{
 		uint64 H = (static_cast<uint64>(A) << 32) | (static_cast<uint64>(B) << 16) | C;
 
@@ -331,7 +331,7 @@ namespace PCGEx
 		return H;
 	}
 
-	static uint64 H64S(int32 ABC[3]) { return H64S(ABC[0], ABC[1], ABC[2]); }
+	FORCEINLINE static uint64 H64S(int32 ABC[3]) { return H64S(ABC[0], ABC[1], ABC[2]); }
 
 #pragma region Field Helpers
 

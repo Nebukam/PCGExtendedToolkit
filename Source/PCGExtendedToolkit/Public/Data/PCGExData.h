@@ -50,9 +50,9 @@ namespace PCGExData
 
 		FIdxCompound* New();
 
-		uint64 Add(const int32 Index, const int32 IOIndex, const int32 PointIndex);
+		FORCEINLINE uint64 Add(const int32 Index, const int32 IOIndex, const int32 PointIndex);
 		void GetIOIndices(const int32 Index, TArray<int32>& OutIOIndices);
-		bool HasIOIndexOverlap(int32 InIdx, const TArray<int32>& InIndices);
+		FORCEINLINE bool HasIOIndexOverlap(int32 InIdx, const TArray<int32>& InIndices);
 
 		FIdxCompound* operator[](const int32 Index) const { return this->Compounds[Index]; }
 	};

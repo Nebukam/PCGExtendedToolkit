@@ -196,24 +196,24 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExDistanceSettings
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
 	EPCGExDistance Target = EPCGExDistance::Center;
 
-	FVector GetSourceCenter(const FPCGPoint& FromPoint, const FVector& FromCenter, const FVector& ToCenter) const
+	FORCEINLINE FVector GetSourceCenter(const FPCGPoint& FromPoint, const FVector& FromCenter, const FVector& ToCenter) const
 	{
 		return PCGExMath::GetSpatializedCenter(Source, FromPoint, FromCenter, ToCenter);
 	}
 
-	FVector GetTargetCenter(const FPCGPoint& FromPoint, const FVector& FromCenter, const FVector& ToCenter) const
+	FORCEINLINE FVector GetTargetCenter(const FPCGPoint& FromPoint, const FVector& FromCenter, const FVector& ToCenter) const
 	{
 		return PCGExMath::GetSpatializedCenter(Target, FromPoint, FromCenter, ToCenter);
 	}
 
-	void GetCenters(const FPCGPoint& SourcePoint, const FPCGPoint& TargetPoint, FVector& OutSource, FVector& OutTarget) const
+	FORCEINLINE void GetCenters(const FPCGPoint& SourcePoint, const FPCGPoint& TargetPoint, FVector& OutSource, FVector& OutTarget) const
 	{
 		const FVector TargetLocation = TargetPoint.Transform.GetLocation();
 		OutSource = PCGExMath::GetSpatializedCenter(Source, SourcePoint, SourcePoint.Transform.GetLocation(), TargetLocation);
 		OutTarget = PCGExMath::GetSpatializedCenter(Target, TargetPoint, TargetLocation, OutSource);
 	}
 
-	double GetDistance(const FPCGPoint& SourcePoint, const FPCGPoint& TargetPoint) const
+	FORCEINLINE double GetDistance(const FPCGPoint& SourcePoint, const FPCGPoint& TargetPoint) const
 	{
 		const FVector TargetLocation = TargetPoint.Transform.GetLocation();
 		const FVector OutSource = PCGExMath::GetSpatializedCenter(Source, SourcePoint, SourcePoint.Transform.GetLocation(), TargetLocation);

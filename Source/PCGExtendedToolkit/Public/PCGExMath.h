@@ -1102,7 +1102,7 @@ namespace PCGExMath
 #pragma region Spatialized distances
 
 	// Stolen from PCGDistance
-	static FVector GetSpatializedCenter(
+	FORCEINLINE static FVector GetSpatializedCenter(
 		const EPCGExDistance Shape,
 		const FPCGPoint& FromPoint,
 		const FVector& FromCenter,

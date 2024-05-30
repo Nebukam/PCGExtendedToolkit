@@ -113,7 +113,7 @@ namespace PCGExPointsFilter
 		double ReferenceMax = 0;
 
 		virtual void Capture(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO) override;
-		virtual bool Test(const int32 PointIndex) const override;
+		FORCEINLINE virtual bool Test(const int32 PointIndex) const override;
 
 		virtual void PrepareForTesting(PCGExData::FPointIO* PointIO) override;
 

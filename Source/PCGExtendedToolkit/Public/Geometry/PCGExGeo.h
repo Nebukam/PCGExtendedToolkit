@@ -79,13 +79,13 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGeo2DProjectionSettings
 		Cleanup();
 	}
 
-	FVector Project(const FVector& InPosition, const int32 PointIndex) const
+	FORCEINLINE FVector Project(const FVector& InPosition, const int32 PointIndex) const
 	{
 		return NormalGetter ? FRotationMatrix::MakeFromZ(NormalGetter->SafeGet(PointIndex, ProjectionNormal).GetSafeNormal(1E-08, FVector::UpVector)).InverseTransformPosition(InPosition) :
 			       DefaultMatrix.InverseTransformPosition(InPosition);
 	}
 
-	FVector Project(const FVector& InPosition) const
+	FORCEINLINE FVector Project(const FVector& InPosition) const
 	{
 		return DefaultMatrix.InverseTransformPosition(InPosition);
 	}
@@ -144,7 +144,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExLloydSettings
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bLloydRelax", ClampMin=0, ClampMax=1))
 	double Influence = 1;
 
-	bool IsValid() const { return Iterations > 0 && Influence > 0; }
+	FORCEINLINE bool IsValid() const { return Iterations > 0 && Influence > 0; }
 };
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Cell Center"))

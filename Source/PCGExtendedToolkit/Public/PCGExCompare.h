@@ -63,39 +63,39 @@ namespace PCGExCompare
 #pragma region StrictlyEqual
 
 	template <typename T, typename CompilerSafety = void>
-	static bool StrictlyEqual(const T& A, const T& B) { return A == B; }
+	FORCEINLINE static bool StrictlyEqual(const T& A, const T& B) { return A == B; }
 
 #pragma endregion
 
 #pragma region StrictlyNotEqual
 
 	template <typename T, typename CompilerSafety = void>
-	static bool StrictlyNotEqual(const T& A, const T& B) { return A != B; }
+	FORCEINLINE static bool StrictlyNotEqual(const T& A, const T& B) { return A != B; }
 
 #pragma endregion
 
 #pragma region EqualOrGreater
 
 	template <typename T, typename CompilerSafety = void>
-	static bool EqualOrGreater(const T& A, const T& B) { return A >= B; }
+	FORCEINLINE static bool EqualOrGreater(const T& A, const T& B) { return A >= B; }
 
 	template <typename CompilerSafety = void>
-	static bool EqualOrGreater(const FVector2D& A, const FVector2D& B) { return A.SquaredLength() >= B.SquaredLength(); }
+	FORCEINLINE static bool EqualOrGreater(const FVector2D& A, const FVector2D& B) { return A.SquaredLength() >= B.SquaredLength(); }
 
 	template <typename CompilerSafety = void>
-	static bool EqualOrGreater(const FVector& A, const FVector& B) { return A.SquaredLength() >= B.SquaredLength(); }
+	FORCEINLINE static bool EqualOrGreater(const FVector& A, const FVector& B) { return A.SquaredLength() >= B.SquaredLength(); }
 
 	template <typename CompilerSafety = void>
-	static bool EqualOrGreater(const FVector4& A, const FVector4& B) { return FVector(A).SquaredLength() >= FVector(B).SquaredLength(); }
+	FORCEINLINE static bool EqualOrGreater(const FVector4& A, const FVector4& B) { return FVector(A).SquaredLength() >= FVector(B).SquaredLength(); }
 
 	template <typename CompilerSafety = void>
-	static bool EqualOrGreater(const FRotator& A, const FRotator& B) { return A.Euler().SquaredLength() >= B.Euler().SquaredLength(); }
+	FORCEINLINE static bool EqualOrGreater(const FRotator& A, const FRotator& B) { return A.Euler().SquaredLength() >= B.Euler().SquaredLength(); }
 
 	template <typename CompilerSafety = void>
-	static bool EqualOrGreater(const FQuat& A, const FQuat& B) { return A.Euler().SquaredLength() >= B.Euler().SquaredLength(); }
+	FORCEINLINE static bool EqualOrGreater(const FQuat& A, const FQuat& B) { return A.Euler().SquaredLength() >= B.Euler().SquaredLength(); }
 
 	template <typename CompilerSafety = void>
-	static bool EqualOrGreater(const FTransform& A, const FTransform& B)
+	FORCEINLINE static bool EqualOrGreater(const FTransform& A, const FTransform& B)
 	{
 		return (
 			EqualOrGreater(A.GetLocation(), B.GetLocation()) &&
@@ -104,10 +104,10 @@ namespace PCGExCompare
 	}
 
 	template <typename CompilerSafety = void>
-	static bool EqualOrGreater(const FString& A, const FString& B) { return A.Len() >= B.Len(); }
+	FORCEINLINE static bool EqualOrGreater(const FString& A, const FString& B) { return A.Len() >= B.Len(); }
 
 	template <typename CompilerSafety = void>
-	static bool EqualOrGreater(const FName& A, const FName& B) { return EqualOrGreater(A.ToString(), B.ToString()); }
+	FORCEINLINE static bool EqualOrGreater(const FName& A, const FName& B) { return EqualOrGreater(A.ToString(), B.ToString()); }
 
 #define PCGEX_UNSUPPORTED_EOG(_TYPE) template <typename CompilerSafety = void> static bool EqualOrGreater(const _TYPE& A, const _TYPE& B) { return false; }
 	PCGEX_UNSUPPORTED_PATH_TYPES(PCGEX_UNSUPPORTED_EOG)
@@ -118,25 +118,25 @@ namespace PCGExCompare
 #pragma region EqualOrSmaller
 
 	template <typename T, typename CompilerSafety = void>
-	static bool EqualOrSmaller(const T& A, const T& B) { return A <= B; }
+	FORCEINLINE static bool EqualOrSmaller(const T& A, const T& B) { return A <= B; }
 
 	template <typename CompilerSafety = void>
-	static bool EqualOrSmaller(const FVector2D& A, const FVector2D& B) { return A.SquaredLength() <= B.SquaredLength(); }
+	FORCEINLINE static bool EqualOrSmaller(const FVector2D& A, const FVector2D& B) { return A.SquaredLength() <= B.SquaredLength(); }
 
 	template <typename CompilerSafety = void>
-	static bool EqualOrSmaller(const FVector& A, const FVector& B) { return A.SquaredLength() <= B.SquaredLength(); }
+	FORCEINLINE static bool EqualOrSmaller(const FVector& A, const FVector& B) { return A.SquaredLength() <= B.SquaredLength(); }
 
 	template <typename CompilerSafety = void>
-	static bool EqualOrSmaller(const FVector4& A, const FVector4& B) { return FVector(A).SquaredLength() <= FVector(B).SquaredLength(); }
+	FORCEINLINE static bool EqualOrSmaller(const FVector4& A, const FVector4& B) { return FVector(A).SquaredLength() <= FVector(B).SquaredLength(); }
 
 	template <typename CompilerSafety = void>
-	static bool EqualOrSmaller(const FRotator& A, const FRotator& B) { return A.Euler().SquaredLength() <= B.Euler().SquaredLength(); }
+	FORCEINLINE static bool EqualOrSmaller(const FRotator& A, const FRotator& B) { return A.Euler().SquaredLength() <= B.Euler().SquaredLength(); }
 
 	template <typename CompilerSafety = void>
-	static bool EqualOrSmaller(const FQuat& A, const FQuat& B) { return A.Euler().SquaredLength() <= B.Euler().SquaredLength(); }
+	FORCEINLINE static bool EqualOrSmaller(const FQuat& A, const FQuat& B) { return A.Euler().SquaredLength() <= B.Euler().SquaredLength(); }
 
 	template <typename CompilerSafety = void>
-	static bool EqualOrSmaller(const FTransform& A, const FTransform& B)
+	FORCEINLINE static bool EqualOrSmaller(const FTransform& A, const FTransform& B)
 	{
 		return (
 			EqualOrSmaller(A.GetLocation(), B.GetLocation()) &&
@@ -145,10 +145,10 @@ namespace PCGExCompare
 	}
 
 	template <typename CompilerSafety = void>
-	static bool EqualOrSmaller(const FString& A, const FString& B) { return A.Len() <= B.Len(); }
+	FORCEINLINE static bool EqualOrSmaller(const FString& A, const FString& B) { return A.Len() <= B.Len(); }
 
 	template <typename CompilerSafety = void>
-	static bool EqualOrSmaller(const FName& A, const FName& B) { return EqualOrSmaller(A.ToString(), B.ToString()); }
+	FORCEINLINE static bool EqualOrSmaller(const FName& A, const FName& B) { return EqualOrSmaller(A.ToString(), B.ToString()); }
 
 #define PCGEX_UNSUPPORTED_EOS(_TYPE) template <typename CompilerSafety = void> static bool EqualOrSmaller(const _TYPE& A, const _TYPE& B) { return false; }
 	PCGEX_UNSUPPORTED_PATH_TYPES(PCGEX_UNSUPPORTED_EOS)
@@ -159,25 +159,25 @@ namespace PCGExCompare
 #pragma region EqualOrSmaller
 
 	template <typename T, typename CompilerSafety = void>
-	static bool StrictlyGreater(const T& A, const T& B) { return A > B; }
+	FORCEINLINE static bool StrictlyGreater(const T& A, const T& B) { return A > B; }
 
 	template <typename CompilerSafety = void>
-	static bool StrictlyGreater(const FVector2D& A, const FVector2D& B) { return A.SquaredLength() > B.SquaredLength(); }
+	FORCEINLINE static bool StrictlyGreater(const FVector2D& A, const FVector2D& B) { return A.SquaredLength() > B.SquaredLength(); }
 
 	template <typename CompilerSafety = void>
-	static bool StrictlyGreater(const FVector& A, const FVector& B) { return A.SquaredLength() > B.SquaredLength(); }
+	FORCEINLINE static bool StrictlyGreater(const FVector& A, const FVector& B) { return A.SquaredLength() > B.SquaredLength(); }
 
 	template <typename CompilerSafety = void>
-	static bool StrictlyGreater(const FVector4& A, const FVector4& B) { return FVector(A).SquaredLength() > FVector(B).SquaredLength(); }
+	FORCEINLINE static bool StrictlyGreater(const FVector4& A, const FVector4& B) { return FVector(A).SquaredLength() > FVector(B).SquaredLength(); }
 
 	template <typename CompilerSafety = void>
-	static bool StrictlyGreater(const FRotator& A, const FRotator& B) { return A.Euler().SquaredLength() > B.Euler().SquaredLength(); }
+	FORCEINLINE static bool StrictlyGreater(const FRotator& A, const FRotator& B) { return A.Euler().SquaredLength() > B.Euler().SquaredLength(); }
 
 	template <typename CompilerSafety = void>
-	static bool StrictlyGreater(const FQuat& A, const FQuat& B) { return A.Euler().SquaredLength() > B.Euler().SquaredLength(); }
+	FORCEINLINE static bool StrictlyGreater(const FQuat& A, const FQuat& B) { return A.Euler().SquaredLength() > B.Euler().SquaredLength(); }
 
 	template <typename CompilerSafety = void>
-	static bool StrictlyGreater(const FTransform& A, const FTransform& B)
+	FORCEINLINE static bool StrictlyGreater(const FTransform& A, const FTransform& B)
 	{
 		return (
 			StrictlyGreater(A.GetLocation(), B.GetLocation()) &&
@@ -186,10 +186,10 @@ namespace PCGExCompare
 	}
 
 	template <typename CompilerSafety = void>
-	static bool StrictlyGreater(const FString& A, const FString& B) { return A.Len() > B.Len(); }
+	FORCEINLINE static bool StrictlyGreater(const FString& A, const FString& B) { return A.Len() > B.Len(); }
 
 	template <typename CompilerSafety = void>
-	static bool StrictlyGreater(const FName& A, const FName& B) { return StrictlyGreater(A.ToString(), B.ToString()); }
+	FORCEINLINE static bool StrictlyGreater(const FName& A, const FName& B) { return StrictlyGreater(A.ToString(), B.ToString()); }
 
 #define PCGEX_UNSUPPORTED_SG(_TYPE) template <typename CompilerSafety = void> static bool StrictlyGreater(const _TYPE& A, const _TYPE& B) { return false; }
 	PCGEX_UNSUPPORTED_PATH_TYPES(PCGEX_UNSUPPORTED_SG)
@@ -200,25 +200,25 @@ namespace PCGExCompare
 #pragma region StrictlySmaller
 
 	template <typename T, typename CompilerSafety = void>
-	static bool StrictlySmaller(const T& A, const T& B) { return A < B; }
+	FORCEINLINE static bool StrictlySmaller(const T& A, const T& B) { return A < B; }
 
 	template <typename CompilerSafety = void>
-	static bool StrictlySmaller(const FVector2D& A, const FVector2D& B) { return A.SquaredLength() < B.SquaredLength(); }
+	FORCEINLINE static bool StrictlySmaller(const FVector2D& A, const FVector2D& B) { return A.SquaredLength() < B.SquaredLength(); }
 
 	template <typename CompilerSafety = void>
-	static bool StrictlySmaller(const FVector& A, const FVector& B) { return A.SquaredLength() < B.SquaredLength(); }
+	FORCEINLINE static bool StrictlySmaller(const FVector& A, const FVector& B) { return A.SquaredLength() < B.SquaredLength(); }
 
 	template <typename CompilerSafety = void>
-	static bool StrictlySmaller(const FVector4& A, const FVector4& B) { return FVector(A).SquaredLength() < FVector(B).SquaredLength(); }
+	FORCEINLINE static bool StrictlySmaller(const FVector4& A, const FVector4& B) { return FVector(A).SquaredLength() < FVector(B).SquaredLength(); }
 
 	template <typename CompilerSafety = void>
-	static bool StrictlySmaller(const FRotator& A, const FRotator& B) { return A.Euler().SquaredLength() < B.Euler().SquaredLength(); }
+	FORCEINLINE static bool StrictlySmaller(const FRotator& A, const FRotator& B) { return A.Euler().SquaredLength() < B.Euler().SquaredLength(); }
 
 	template <typename CompilerSafety = void>
-	static bool StrictlySmaller(const FQuat& A, const FQuat& B) { return A.Euler().SquaredLength() < B.Euler().SquaredLength(); }
+	FORCEINLINE static bool StrictlySmaller(const FQuat& A, const FQuat& B) { return A.Euler().SquaredLength() < B.Euler().SquaredLength(); }
 
 	template <typename CompilerSafety = void>
-	static bool StrictlySmaller(const FTransform& A, const FTransform& B)
+	FORCEINLINE static bool StrictlySmaller(const FTransform& A, const FTransform& B)
 	{
 		return (
 			StrictlySmaller(A.GetLocation(), B.GetLocation()) &&
@@ -227,10 +227,10 @@ namespace PCGExCompare
 	}
 
 	template <typename CompilerSafety = void>
-	static bool StrictlySmaller(const FString& A, const FString& B) { return A.Len() < B.Len(); }
+	FORCEINLINE static bool StrictlySmaller(const FString& A, const FString& B) { return A.Len() < B.Len(); }
 
 	template <typename CompilerSafety = void>
-	static bool StrictlySmaller(const FName& A, const FName& B) { return EqualOrSmaller(A.ToString(), B.ToString()); }
+	FORCEINLINE static bool StrictlySmaller(const FName& A, const FName& B) { return EqualOrSmaller(A.ToString(), B.ToString()); }
 
 #define PCGEX_UNSUPPORTED_SS(_TYPE) template <typename CompilerSafety = void> static bool StrictlySmaller(const _TYPE& A, const _TYPE& B) { return false; }
 	PCGEX_UNSUPPORTED_PATH_TYPES(PCGEX_UNSUPPORTED_SS)
@@ -241,10 +241,10 @@ namespace PCGExCompare
 #pragma region NearlyEqual
 
 	template <typename T, typename CompilerSafety = void>
-	static bool NearlyEqual(const T& A, const T& B, const double Tolerance = 0.001) { return FMath::IsNearlyEqual(A, B, Tolerance); }
+	FORCEINLINE static bool NearlyEqual(const T& A, const T& B, const double Tolerance = 0.001) { return FMath::IsNearlyEqual(A, B, Tolerance); }
 
 	template <typename CompilerSafety = void>
-	static bool NearlyEqual(const FVector2D& A, const FVector2D& B, const double Tolerance)
+	FORCEINLINE static bool NearlyEqual(const FVector2D& A, const FVector2D& B, const double Tolerance)
 	{
 		return (
 			NearlyEqual(A.X, B.X, Tolerance) &&
@@ -252,7 +252,7 @@ namespace PCGExCompare
 	}
 
 	template <typename CompilerSafety = void>
-	static bool NearlyEqual(const FVector& A, const FVector& B, const double Tolerance)
+	FORCEINLINE static bool NearlyEqual(const FVector& A, const FVector& B, const double Tolerance)
 	{
 		return (
 			NearlyEqual(A.X, B.X, Tolerance) &&
@@ -261,7 +261,7 @@ namespace PCGExCompare
 	}
 
 	template <typename CompilerSafety = void>
-	static bool NearlyEqual(const FVector4& A, const FVector4& B, const double Tolerance)
+	FORCEINLINE static bool NearlyEqual(const FVector4& A, const FVector4& B, const double Tolerance)
 	{
 		return (
 			NearlyEqual(A.X, B.X, Tolerance) &&
@@ -271,13 +271,13 @@ namespace PCGExCompare
 	}
 
 	template <typename CompilerSafety = void>
-	static bool NearlyEqual(const FRotator& A, const FRotator& B, const double Tolerance) { return NearlyEqual(A.Euler(), B.Euler(), Tolerance); }
+	FORCEINLINE static bool NearlyEqual(const FRotator& A, const FRotator& B, const double Tolerance) { return NearlyEqual(A.Euler(), B.Euler(), Tolerance); }
 
 	template <typename CompilerSafety = void>
-	static bool NearlyEqual(const FQuat& A, const FQuat& B, const double Tolerance) { return NearlyEqual(A.Euler(), B.Euler(), Tolerance); }
+	FORCEINLINE static bool NearlyEqual(const FQuat& A, const FQuat& B, const double Tolerance) { return NearlyEqual(A.Euler(), B.Euler(), Tolerance); }
 
 	template <typename CompilerSafety = void>
-	static bool NearlyEqual(const FTransform& A, const FTransform& B, const double Tolerance)
+	FORCEINLINE static bool NearlyEqual(const FTransform& A, const FTransform& B, const double Tolerance)
 	{
 		return (
 			NearlyEqual(A.GetLocation(), B.GetLocation(), Tolerance) &&
@@ -286,10 +286,10 @@ namespace PCGExCompare
 	}
 
 	template <typename CompilerSafety = void>
-	static bool NearlyEqual(const FString& A, const FString& B, const double Tolerance) { return NearlyEqual(A.Len(), B.Len(), Tolerance); }
+	FORCEINLINE static bool NearlyEqual(const FString& A, const FString& B, const double Tolerance) { return NearlyEqual(A.Len(), B.Len(), Tolerance); }
 
 	template <typename CompilerSafety = void>
-	static bool NearlyEqual(const FName& A, const FName& B, const double Tolerance) { return NearlyEqual(A.ToString(), B.ToString(), Tolerance); }
+	FORCEINLINE static bool NearlyEqual(const FName& A, const FName& B, const double Tolerance) { return NearlyEqual(A.ToString(), B.ToString(), Tolerance); }
 
 #define PCGEX_UNSUPPORTED_NE(_TYPE) template <typename CompilerSafety = void> static bool NearlyEqual(const _TYPE& A, const _TYPE& B, const double Tolerance) { return false; }
 	PCGEX_UNSUPPORTED_PATH_TYPES(PCGEX_UNSUPPORTED_NE)
@@ -300,12 +300,12 @@ namespace PCGExCompare
 #pragma region NearlyNotEqual
 
 	template <typename T, typename CompilerSafety = void>
-	static bool NearlyNotEqual(const T& A, const T& B, const double Tolerance) { return !NearlyEqual(A, B, Tolerance); }
+	FORCEINLINE static bool NearlyNotEqual(const T& A, const T& B, const double Tolerance) { return !NearlyEqual(A, B, Tolerance); }
 
 #pragma endregion
 
 	template <typename T>
-	static bool Compare(const EPCGExComparison Method, const T& A, const T& B, const double Tolerance = 0.001)
+	FORCEINLINE static bool Compare(const EPCGExComparison Method, const T& A, const T& B, const double Tolerance = 0.001)
 	{
 		switch (Method)
 		{

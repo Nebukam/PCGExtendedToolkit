@@ -47,7 +47,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExNodeSelectionSettings
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	double MaxDistance = -1;
 
-	bool WithinDistance(const FVector& NodePosition, const FVector& TargetPosition) const
+	FORCEINLINE bool WithinDistance(const FVector& NodePosition, const FVector& TargetPosition) const
 	{
 		if (MaxDistance <= 0) { return true; }
 		return FVector::Distance(NodePosition, TargetPosition) < MaxDistance;
@@ -152,9 +152,9 @@ namespace PCGExCluster
 
 		~FNode();
 
-		void AddConnection(const int32 InEdgeIndex, const int32 InNodeIndex);
-		FVector GetCentroid(FCluster* InCluster) const;
-		int32 GetEdgeIndex(int32 AdjacentNodeIndex) const;
+		FORCEINLINE void AddConnection(const int32 InEdgeIndex, const int32 InNodeIndex);
+		FORCEINLINE FVector GetCentroid(FCluster* InCluster) const;
+		FORCEINLINE int32 GetEdgeIndex(int32 AdjacentNodeIndex) const;
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FCluster
@@ -225,7 +225,7 @@ namespace PCGExCluster
 
 		void Project(FCluster* InCluster, const FPCGExGeo2DProjectionSettings* ProjectionSettings);
 		void ComputeNormal(FCluster* InCluster);
-		int32 GetAdjacencyIndex(int32 NodeIndex) const;
+		FORCEINLINE int32 GetAdjacencyIndex(int32 NodeIndex) const;
 
 		~FNodeProjection();
 	};
@@ -241,9 +241,9 @@ namespace PCGExCluster
 		~FClusterProjection();
 
 		void Build();
-		int32 FindNextAdjacentNode(EPCGExClusterSearchOrientationMode Orient, int32 NodeIndex, int32 From, const TSet<int32>& Exclusion, const int32 MinNeighbors);
-		int32 FindNextAdjacentNodeCCW(int32 NodeIndex, int32 From, const TSet<int32>& Exclusion, const int32 MinNeighbors);
-		int32 FindNextAdjacentNodeCW(int32 NodeIndex, int32 From, const TSet<int32>& Exclusion, const int32 MinNeighbors);
+		FORCEINLINE int32 FindNextAdjacentNode(EPCGExClusterSearchOrientationMode Orient, int32 NodeIndex, int32 From, const TSet<int32>& Exclusion, const int32 MinNeighbors);
+		FORCEINLINE int32 FindNextAdjacentNodeCCW(int32 NodeIndex, int32 From, const TSet<int32>& Exclusion, const int32 MinNeighbors);
+		FORCEINLINE int32 FindNextAdjacentNodeCW(int32 NodeIndex, int32 From, const TSet<int32>& Exclusion, const int32 MinNeighbors);
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FNodeChain
@@ -292,7 +292,7 @@ namespace PCGExCluster
 		TArray<TClusterFilter*> ClusterFilterHandlers;
 
 		void CaptureCluster(const FPCGContext* InContext, FCluster* InCluster);
-		virtual bool Test(const int32 PointIndex) const override;
+		FORCEINLINE virtual bool Test(const int32 PointIndex) const override;
 		virtual void PrepareForTesting(PCGExData::FPointIO* PointIO) override;
 
 		virtual ~FNodeStateHandler() override

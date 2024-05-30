@@ -15,7 +15,7 @@ namespace PCGExDataFilter
 		bValid = true;
 	}
 
-	bool TFilter::Test(const int32 PointIndex) const { return true; }
+	FORCEINLINE bool TFilter::Test(const int32 PointIndex) const { return true; }
 
 	void TFilter::PrepareForTesting(PCGExData::FPointIO* PointIO)
 	{
