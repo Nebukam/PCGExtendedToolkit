@@ -47,13 +47,13 @@ public:
 
 	virtual void Cleanup() override;
 
+	FORCEINLINE double GetCustomWeightMultiplier(const int32 PointIndex, const int32 EdgeIndex) const;
+	
 protected:
 	PCGExCluster::FCluster* Cluster = nullptr;
 	TObjectPtr<UCurveFloat> ScoreCurveObj;
 	TArray<double> LocalWeightMultiplier;
 
 	FORCEINLINE virtual double SampleCurve(const double InTime) const;
-
-	FORCEINLINE double GetWeightFactor(const int32 PointIndex, const int32 EdgeIndex) const;
 	
 };

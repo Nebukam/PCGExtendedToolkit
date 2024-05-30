@@ -49,6 +49,12 @@ double UPCGExHeuristicOperation::GetEdgeScore(
 	return 0;
 }
 
+double UPCGExHeuristicOperation::GetCustomWeightMultiplier(const int32 PointIndex, const int32 EdgeIndex) const
+{
+	if (!bUseLocalWeightMultiplier || LocalWeightMultiplier.IsEmpty()) { return 1; }
+	return FMath::Abs(LocalWeightMultiplier[LocalWeightMultiplierSource == EPCGExGraphValueSource::Point ? PointIndex : EdgeIndex]);
+}
+
 void UPCGExHeuristicOperation::Cleanup()
 {
 	Cluster = nullptr;
@@ -61,8 +67,3 @@ double UPCGExHeuristicOperation::SampleCurve(const double InTime) const
 	return FMath::Max(0, ScoreCurveObj->GetFloatValue(bInvert ? 1 - InTime : InTime));
 }
 
-double UPCGExHeuristicOperation::GetWeightFactor(const int32 PointIndex, const int32 EdgeIndex) const
-{
-	if (!bUseLocalWeightMultiplier || LocalWeightMultiplier.IsEmpty()) { return 1; }
-	return FMath::Abs(LocalWeightMultiplier[LocalWeightMultiplierSource == EPCGExGraphValueSource::Point ? PointIndex : EdgeIndex]);
-}

@@ -84,7 +84,6 @@ namespace PCGExHeuristics
 
 	THeuristicsHandler::~THeuristicsHandler()
 	{
-
 		for (UPCGExHeuristicOperation* Operation : Operations)
 		{
 			Operation->Cleanup();
@@ -100,7 +99,12 @@ namespace PCGExHeuristics
 		InCluster->ComputeEdgeLengths(true);
 
 		CurrentCluster = InCluster;
-		for (UPCGExHeuristicOperation* Operation : Operations) { Operation->PrepareForCluster(InCluster); }
+		bUseDynamicWeight = false;
+		for (UPCGExHeuristicOperation* Operation : Operations)
+		{
+			Operation->PrepareForCluster(InCluster);
+			if (Operation->bHasCustomLocalWeightMultiplier) { bUseDynamicWeight = true; }
+		}
 
 		return true;
 	}
@@ -134,9 +138,22 @@ namespace PCGExHeuristics
 	{
 		//TODO : Account for custom weight here
 		double EScore = 0;
-		for (const UPCGExHeuristicOperation* Op : Operations) { EScore += Op->GetEdgeScore(From, To, Edge, Seed, Goal); }
-		if (LocalFeedback) { return (EScore + LocalFeedback->GetEdgeScore(From, To, Edge, Seed, Goal)) / (TotalStaticWeight + LocalFeedback->TotalWeight); }
-		return EScore / TotalStaticWeight;
+		if (!bUseDynamicWeight)
+		{
+			for (const UPCGExHeuristicOperation* Op : Operations) { EScore += Op->GetEdgeScore(From, To, Edge, Seed, Goal); }
+			if (LocalFeedback) { return (EScore + LocalFeedback->GetEdgeScore(From, To, Edge, Seed, Goal)) / (TotalStaticWeight + LocalFeedback->TotalWeight); }
+			return EScore / TotalStaticWeight;
+		}
+
+		double DynamicWeight = 0;
+		for (const UPCGExHeuristicOperation* Op : Operations)
+		{
+			EScore += Op->GetEdgeScore(From, To, Edge, Seed, Goal);
+			DynamicWeight += (Op->WeightFactor * Op->GetCustomWeightMultiplier(To.PointIndex, Edge.PointIndex));
+		}
+		if (LocalFeedback) { return (EScore + LocalFeedback->GetEdgeScore(From, To, Edge, Seed, Goal)) / (DynamicWeight + LocalFeedback->TotalWeight); }
+		return EScore / DynamicWeight;
+		
 	}
 
 	void THeuristicsHandler::FeedbackPointScore(const PCGExCluster::FNode& Node)
