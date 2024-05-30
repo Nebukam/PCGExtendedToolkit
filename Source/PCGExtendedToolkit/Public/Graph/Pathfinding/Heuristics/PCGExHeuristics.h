@@ -73,7 +73,7 @@ namespace PCGExHeuristics
 
 		bool HasGlobalFeedback() const { return !Feedbacks.IsEmpty(); };
 
-		explicit THeuristicsHandler(FPCGExPointsProcessorContext* InContext, double InReferenceWeight = 100);
+		explicit THeuristicsHandler(FPCGExPointsProcessorContext* InContext);
 		explicit THeuristicsHandler(UPCGExHeuristicOperation* InSingleOperation);
 		~THeuristicsHandler();
 

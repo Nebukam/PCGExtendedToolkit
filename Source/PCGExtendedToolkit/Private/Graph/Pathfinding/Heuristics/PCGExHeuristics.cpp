@@ -33,8 +33,7 @@ namespace PCGExHeuristics
 		for (UPCGExHeuristicFeedback* Feedback : Feedbacks) { Feedback->FeedbackScore(Node, Edge); }
 	}
 
-	THeuristicsHandler::THeuristicsHandler(FPCGExPointsProcessorContext* InContext, double InReferenceWeight):
-		ReferenceWeight(InReferenceWeight)
+	THeuristicsHandler::THeuristicsHandler(FPCGExPointsProcessorContext* InContext)
 	{
 		const TArray<FPCGTaggedData>& Inputs = InContext->InputData.GetInputsByPin(PCGExPathfinding::SourceHeuristicsLabel);
 

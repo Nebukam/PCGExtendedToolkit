@@ -30,9 +30,7 @@ double UPCGExHeuristicSteepness::GetEdgeScore(
 
 double UPCGExHeuristicSteepness::GetDot(const FVector& From, const FVector& To) const
 {
-	return bInvert ?
-		       1-FMath::Abs(FVector::DotProduct((From - To).GetSafeNormal(), UpwardVector)) :
-		       FMath::Abs(FVector::DotProduct((From - To).GetSafeNormal(), UpwardVector));
+	return FMath::Abs(FVector::DotProduct((From - To).GetSafeNormal(), UpwardVector));
 }
 
 UPCGExHeuristicOperation* UPCGHeuristicsFactorySteepness::CreateOperation() const
