@@ -81,13 +81,13 @@ namespace PCGExHeuristics
 		bool PrepareForCluster(FPCGExAsyncManager* AsyncManager, PCGExCluster::FCluster* InCluster);
 		void CompleteClusterPreparation();
 
-		double GetGlobalScore(
+		FORCEINLINE double GetGlobalScore(
 			const PCGExCluster::FNode& From,
 			const PCGExCluster::FNode& Seed,
 			const PCGExCluster::FNode& Goal,
 			const FLocalFeedbackHandler* LocalFeedback = nullptr) const;
 
-		double GetEdgeScore(
+		FORCEINLINE double GetEdgeScore(
 			const PCGExCluster::FNode& From,
 			const PCGExCluster::FNode& To,
 			const PCGExGraph::FIndexedEdge& Edge,
@@ -95,8 +95,8 @@ namespace PCGExHeuristics
 			const PCGExCluster::FNode& Goal,
 			const FLocalFeedbackHandler* LocalFeedback = nullptr) const;
 
-		void FeedbackPointScore(const PCGExCluster::FNode& Node);
-		void FeedbackScore(const PCGExCluster::FNode& Node, const PCGExGraph::FIndexedEdge& Edge);
+		FORCEINLINE void FeedbackPointScore(const PCGExCluster::FNode& Node);
+		FORCEINLINE void FeedbackScore(const PCGExCluster::FNode& Node, const PCGExGraph::FIndexedEdge& Edge);
 
 		FLocalFeedbackHandler* MakeLocalFeedbackHandler(PCGExCluster::FCluster* InCluster);
 	};

@@ -40,12 +40,12 @@ public:
 
 	virtual void PrepareForCluster(PCGExCluster::FCluster* InCluster) override;
 
-	virtual FORCEINLINE double GetGlobalScore(
+	FORCEINLINE virtual double GetGlobalScore(
 		const PCGExCluster::FNode& From,
 		const PCGExCluster::FNode& Seed,
 		const PCGExCluster::FNode& Goal) const override;
 
-	virtual FORCEINLINE double GetEdgeScore(
+	FORCEINLINE virtual double GetEdgeScore(
 		const PCGExCluster::FNode& From,
 		const PCGExCluster::FNode& To,
 		const PCGExGraph::FIndexedEdge& Edge,

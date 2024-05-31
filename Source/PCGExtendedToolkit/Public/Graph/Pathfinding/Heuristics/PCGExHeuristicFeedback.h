@@ -54,20 +54,20 @@ public:
 
 	virtual void PrepareForCluster(PCGExCluster::FCluster* InCluster) override;
 
-	virtual FORCEINLINE double GetGlobalScore(
+	FORCEINLINE virtual double GetGlobalScore(
 		const PCGExCluster::FNode& From,
 		const PCGExCluster::FNode& Seed,
 		const PCGExCluster::FNode& Goal) const override;
 
-	virtual FORCEINLINE double GetEdgeScore(
+	FORCEINLINE virtual double GetEdgeScore(
 		const PCGExCluster::FNode& From,
 		const PCGExCluster::FNode& To,
 		const PCGExGraph::FIndexedEdge& Edge,
 		const PCGExCluster::FNode& Seed,
 		const PCGExCluster::FNode& Goal) const override;
 
-	void FeedbackPointScore(const PCGExCluster::FNode& Node);
-	void FeedbackScore(const PCGExCluster::FNode& Node, const PCGExGraph::FIndexedEdge& Edge);
+	FORCEINLINE void FeedbackPointScore(const PCGExCluster::FNode& Node);
+	FORCEINLINE void FeedbackScore(const PCGExCluster::FNode& Node, const PCGExGraph::FIndexedEdge& Edge);
 
 	virtual void Cleanup() override;
 };
