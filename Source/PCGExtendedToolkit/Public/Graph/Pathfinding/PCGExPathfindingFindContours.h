@@ -7,7 +7,7 @@
 #include "Geometry/PCGExGeo.h"
 #include "Graph/PCGExEdgesProcessor.h"
 
-#include "PCGExFindContours.generated.h"
+#include "PCGExPathfindingFindContours.generated.h"
 
 namespace PCGExContours
 {
@@ -34,7 +34,8 @@ public:
 
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(FindContours, "Edges : Find Contours", "Attempts to find a closed contour of connected edges around seed points.");
+	PCGEX_NODE_INFOS(FindContours, "Pathfinding : Find Contours", "Attempts to find a closed contour of connected edges around seed points.");
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorPathfinding; }
 #endif
 
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;

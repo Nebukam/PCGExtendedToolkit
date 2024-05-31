@@ -256,12 +256,12 @@ namespace PCGEx
 	constexpr FLinearColor NodeColorSocket = FLinearColor(0.171875,0.681472,1.000000,1.000000);
 	constexpr FLinearColor NodeColorSocketState = FLinearColor(0.000000,0.249991,0.406250,1.000000);
 	
-	constexpr FLinearColor NodeColorEdge = FLinearColor(1.000000,0.000000,0.147106,1.000000);
-	constexpr FLinearColor NodeColorClusterState = FLinearColor(0.447917,0.000000,0.065891,1.000000);
+	constexpr FLinearColor NodeColorPathfinding = FLinearColor(1.000000,0.000000,0.147106,1.000000);
+	constexpr FLinearColor NodeColorHeuristics = FLinearColor(0.447917,0.000000,0.065891,1.000000);
 	constexpr FLinearColor NodeColorClusterFilter = FLinearColor(1.000000,0.442708,0.524689,1.000000);
 	
-	constexpr FLinearColor NodeColorPathfinding = FLinearColor(0.000000,1.000000,0.670588,1.000000);
-	constexpr FLinearColor NodeColorHeuristics = FLinearColor(0.421875,1.000000,0.642595,1.000000);
+	constexpr FLinearColor NodeColorEdge = FLinearColor(0.000000,1.000000,0.670588,1.000000);
+	constexpr FLinearColor NodeColorClusterState = FLinearColor(0.421875,1.000000,0.642595,1.000000);
 	constexpr FLinearColor NodeColorPath = FLinearColor(0.000000,0.239583,0.160662,1.000000);
 	
 	constexpr FLinearColor NodeColorFilterHub = FLinearColor(0.226841,1.000000,0.000000,1.000000);
