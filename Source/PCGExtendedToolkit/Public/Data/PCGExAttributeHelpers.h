@@ -344,13 +344,14 @@ namespace PCGEx
 			Values.Empty();
 		}
 
-		T GetDefaultValue() const { return Accessor->GetDefaultValue(); }
+		FORCEINLINE T GetDefaultValue() const { return Accessor->GetDefaultValue(); }
+		FORCEINLINE T GetZeroedValue() const { return T{}; }
 		bool GetAllowsInterpolation() const { return Accessor->GetAllowsInterpolation(); }
 
 		void SetNum(int32 Num) { Values.SetNumZeroed(Num); }
 		virtual bool Bind(PCGExData::FPointIO& PointIO) = 0;
 
-		T operator[](int32 Index) const { return this->Values[Index]; }
+		FORCEINLINE T operator[](int32 Index) const { return this->Values[Index]; }
 
 		bool IsValid() { return Accessor != nullptr; }
 

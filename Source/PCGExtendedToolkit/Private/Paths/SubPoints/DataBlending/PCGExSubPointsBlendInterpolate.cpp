@@ -24,8 +24,8 @@ void UPCGExSubPointsBlendInterpolate::BlendSubPoints(
 {
 	const int32 NumPoints = SubPoints.Num();
 
-	EPCGExPathBlendOver SafeBlendOver = BlendOver;
-	if (BlendOver == EPCGExPathBlendOver::Distance && !Metrics.IsValid()) { SafeBlendOver = EPCGExPathBlendOver::Index; }
+	EPCGExBlendOver SafeBlendOver = BlendOver;
+	if (BlendOver == EPCGExBlendOver::Distance && !Metrics.IsValid()) { SafeBlendOver = EPCGExBlendOver::Index; }
 
 	TArray<double> Weights;
 	TArray<FVector> Locations;
@@ -33,7 +33,7 @@ void UPCGExSubPointsBlendInterpolate::BlendSubPoints(
 	Weights.SetNumUninitialized(NumPoints);
 	Locations.SetNumUninitialized(NumPoints);
 
-	if (SafeBlendOver == EPCGExPathBlendOver::Distance)
+	if (SafeBlendOver == EPCGExBlendOver::Distance)
 	{
 		PCGExMath::FPathMetricsSquared PathMetrics = PCGExMath::FPathMetricsSquared(StartPoint.Point->Transform.GetLocation());
 		for (int i = 0; i < NumPoints; i++)
@@ -43,7 +43,7 @@ void UPCGExSubPointsBlendInterpolate::BlendSubPoints(
 			Weights[i] = Metrics.GetTime(PathMetrics.Add(Location));
 		}
 	}
-	else if (SafeBlendOver == EPCGExPathBlendOver::Index)
+	else if (SafeBlendOver == EPCGExBlendOver::Index)
 	{
 		for (int i = 0; i < NumPoints; i++)
 		{
@@ -51,7 +51,7 @@ void UPCGExSubPointsBlendInterpolate::BlendSubPoints(
 			Weights[i] = static_cast<double>(i) / NumPoints;
 		}
 	}
-	else if (SafeBlendOver == EPCGExPathBlendOver::Fixed)
+	else if (SafeBlendOver == EPCGExBlendOver::Fixed)
 	{
 		for (int i = 0; i < NumPoints; i++)
 		{

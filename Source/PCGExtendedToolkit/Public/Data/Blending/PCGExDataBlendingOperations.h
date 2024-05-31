@@ -17,7 +17,7 @@ namespace PCGExDataBlending
 		virtual bool GetRequiresPreparation() const override { return true; }
 		virtual bool GetRequiresFinalization() const override { return true; }
 
-		FORCEINLINE virtual void SinglePrepare(T& A) const override { A = this->Writer->GetDefaultValue(); }
+		FORCEINLINE virtual void SinglePrepare(T& A) const override { A = this->Writer->GetZeroedValue(); }
 		FORCEINLINE virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::Add(A, B); }
 		FORCEINLINE virtual void SingleFinalize(T& A, const int32 Count, const double Weight) const override { A = PCGExMath::Div(A, static_cast<double>(Count)); }
 	};
@@ -39,7 +39,7 @@ namespace PCGExDataBlending
 		virtual bool GetRequiresPreparation() const override { return true; }
 		virtual bool GetRequiresFinalization() const override { return false; }
 
-		FORCEINLINE virtual void SinglePrepare(T& A) const override { A = this->Writer->GetDefaultValue(); }
+		FORCEINLINE virtual void SinglePrepare(T& A) const override { A = this->Writer->GetZeroedValue(); }
 		FORCEINLINE virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::Add(A, B); }
 	};
 
@@ -68,7 +68,7 @@ namespace PCGExDataBlending
 		virtual bool GetRequiresPreparation() const override { return true; }
 		virtual bool GetRequiresFinalization() const override { return true; }
 
-		FORCEINLINE virtual void SinglePrepare(T& A) const override { A = this->Writer->GetDefaultValue(); }
+		FORCEINLINE virtual void SinglePrepare(T& A) const override { A = this->Writer->GetZeroedValue(); }
 		FORCEINLINE virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::WeightedAdd(A, B, Weight); } // PCGExMath::Lerp(A, B, Alpha); }
 		FORCEINLINE virtual void SingleFinalize(T& A, const int32 Count, const double Weight) const override { A = PCGExMath::Div(A, Weight); }
 	};
@@ -82,7 +82,7 @@ namespace PCGExDataBlending
 		virtual bool GetRequiresPreparation() const override { return true; }
 		virtual bool GetRequiresFinalization() const override { return false; }
 
-		FORCEINLINE virtual void SinglePrepare(T& A) const override { A = this->Writer->GetDefaultValue(); }
+		FORCEINLINE virtual void SinglePrepare(T& A) const override { A = this->Writer->GetZeroedValue(); }
 		FORCEINLINE virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::WeightedAdd(A, B, Weight); }
 	};
 
