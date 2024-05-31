@@ -243,19 +243,35 @@ namespace PCGEx
 	const FName SourceTargetsLabel = TEXT("InTargets");
 	const FName OutputPointsLabel = TEXT("Out");
 
+	
 	constexpr FLinearColor NodeColorDebug = FLinearColor(1.0f, 0.0f, 0.0f, 1.0f);
-	constexpr FLinearColor NodeColorSampler = FLinearColor(162.0f / 255.0f, 245.0f / 255.0f, 7.0f / 255.0f, 1.0f);
-	constexpr FLinearColor NodeColorGraph = FLinearColor(114.0f / 255.0f, 100.0f / 255.0f, 241.0f / 255.0f, 1.0f);
-	constexpr FLinearColor NodeColorExParam = FLinearColor(254.0f / 255.0f, 132.0f / 255.0f, 0.1f / 255.0f, 1.0f);
-	constexpr FLinearColor NodeColorFilterHub = FLinearColor(3.0f / 255.0f, 252.0f / 255.0f, 98.0f / 255.0f, -1.0f);
-	constexpr FLinearColor NodeColorFilter = FLinearColor(14.0f / 255.0f, 140.0f / 255.0f, 77.0f / 255.0f, 1.0f);
-	constexpr FLinearColor NodeColorHeuristics = FLinearColor(126.0f / 255.0f, 14.0f / 255.0f, 140.0f / 255.0f, 1.0f);
-	constexpr FLinearColor NodeColorPathfinding = FLinearColor(79.0f / 255.0f, 14.0f / 255.0f, 140.0f / 255.0f, 1.0f);
-	constexpr FLinearColor NodeColorEdge = FLinearColor(100.0f / 255.0f, 241.0f / 255.0f, 100.0f / 255.0f, 1.0f);
-	constexpr FLinearColor NodeColorPath = FLinearColor(50.0f / 255.0f, 150.0f / 255.0f, 241.0f / 255.0f, 1.0f);
+	constexpr FLinearColor NodeColorMisc = FLinearColor(0.958333,0.961800,1.000000,1.000000);
+	constexpr FLinearColor NodeColorMiscWrite = FLinearColor(1.000000,0.316174,0.000000,1.000000);
+	constexpr FLinearColor NodeColorMiscAdd = FLinearColor(0.000000,1.000000,0.298310,1.000000);
+	constexpr FLinearColor NodeColorMiscRemove = FLinearColor(1.000000,0.087291,0.000000,1.000000);
+	
+	constexpr FLinearColor NodeColorSampler = FLinearColor(1.000000,0.316174,0.000000,1.000000);
+	
+	constexpr FLinearColor NodeColorGraph = FLinearColor(0.000000,0.615363,1.000000,1.000000);
+	constexpr FLinearColor NodeColorSocket = FLinearColor(0.171875,0.681472,1.000000,1.000000);
+	constexpr FLinearColor NodeColorSocketState = FLinearColor(0.000000,0.249991,0.406250,1.000000);
+	
+	constexpr FLinearColor NodeColorEdge = FLinearColor(1.000000,0.000000,0.147106,1.000000);
+	constexpr FLinearColor NodeColorClusterState = FLinearColor(0.447917,0.000000,0.065891,1.000000);
+	constexpr FLinearColor NodeColorClusterFilter = FLinearColor(1.000000,0.442708,0.524689,1.000000);
+	
+	constexpr FLinearColor NodeColorPathfinding = FLinearColor(0.000000,1.000000,0.670588,1.000000);
+	constexpr FLinearColor NodeColorHeuristics = FLinearColor(0.421875,1.000000,0.642595,1.000000);
+	constexpr FLinearColor NodeColorPath = FLinearColor(0.000000,0.239583,0.160662,1.000000);
+	
+	constexpr FLinearColor NodeColorFilterHub = FLinearColor(0.226841,1.000000,0.000000,1.000000);
+	constexpr FLinearColor NodeColorFilter = FLinearColor(0.312910,0.744792,0.186198,1.000000);
+	
+	
 	constexpr FLinearColor NodeColorPrimitives = FLinearColor(35.0f / 255.0f, 253.0f / 255.0f, 113.0f / 255.0f, 1.0f);
-	constexpr FLinearColor NodeColorMisc = FLinearColor(1.0f, 1.0f, 1.0f, 1.0f);
 
+	
+	
 	const FSoftObjectPath DefaultDotOverDistanceCurve = FSoftObjectPath(TEXT("/PCGExtendedToolkit/Curves/FC_PCGExGraphBalance_DistanceOnly.FC_PCGExGraphBalance_DistanceOnly"));
 	const FSoftObjectPath WeightDistributionLinearInv = FSoftObjectPath(TEXT("/PCGExtendedToolkit/Curves/FC_PCGExWeightDistribution_Linear_Inv.FC_PCGExWeightDistribution_Linear_Inv"));
 	const FSoftObjectPath WeightDistributionLinear = FSoftObjectPath(TEXT("/PCGExtendedToolkit/Curves/FC_PCGExWeightDistribution_Linear.FC_PCGExWeightDistribution_Linear"));
