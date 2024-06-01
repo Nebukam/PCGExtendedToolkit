@@ -12,8 +12,8 @@
 TArray<FPCGPinProperties> UPCGExStateFactoryProviderSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_PARAMS(PCGExDataState::SourceValidStateAttributesLabel, "Attributes & values associated with this state when conditions are met.", Required, {})
-	PCGEX_PIN_PARAMS(PCGExDataState::SourceInvalidStateAttributesLabel, "Attributes & values associated with this state when conditions are not met.", Required, {})
+	PCGEX_PIN_PARAMS(PCGExDataState::SourceValidStateAttributesLabel, "Attributes & values associated with this state when conditions are met.", Advanced, {})
+	PCGEX_PIN_PARAMS(PCGExDataState::SourceInvalidStateAttributesLabel, "Attributes & values associated with this state when conditions are not met.", Advanced, {})
 	return PinProperties;
 }
 
