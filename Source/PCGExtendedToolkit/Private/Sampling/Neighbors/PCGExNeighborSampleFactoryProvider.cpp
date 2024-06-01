@@ -11,7 +11,7 @@
 #if WITH_EDITOR
 FString UPCGExNeighborSampleProviderSettings::GetDisplayName() const
 {
-	return SamplerSettings.SourceAttribute.ToString();
+	return TEXT(""); //SamplerSettings.SourceAttribute.ToString();
 }
 #endif
 
@@ -24,14 +24,25 @@ UPCGExNeighborSampleOperation* UPCGNeighborSamplerFactoryBase::CreateOperation()
 	NewOperation->MaxDepth = Descriptor.MaxDepth;
 	NewOperation->MaxDistance = Descriptor.MaxDistance;
 	NewOperation->FixedBlend = Descriptor.FixedBlend;
-	PCGEX_LOAD_SOFTOBJECT(UCurveFloat, Descriptor.WeightOverDistanceCurve, NewOperation->WeightCurveObj, PCGEx::WeightDistributionLinear)
+	PCGEX_LOAD_SOFTOBJECT(UCurveFloat, Descriptor.WeightCurve, NewOperation->WeightCurveObj, PCGEx::WeightDistributionLinear)
 	NewOperation->NeighborSource = Descriptor.NeighborSource;
-	NewOperation->SourceAttribute = Descriptor.SourceAttribute;
-	NewOperation->bOutputToNewAttribute = Descriptor.bOutputToNewAttribute;
-	NewOperation->TargetAttribute = Descriptor.TargetAttribute;
+	NewOperation->SourceAttributes = Descriptor.SourceAttributes;
+	//NewOperation->bOutputToNewAttribute = Descriptor.bOutputToNewAttribute;
+	//NewOperation->TargetAttribute = Descriptor.TargetAttribute;
 	NewOperation->Blending = Descriptor.Blending;
 
+	if (!FilterFactories.IsEmpty()) { NewOperation->PointFilters = new PCGExCluster::FNodeStateHandler(this); }
+	if (UsableValueFiltersOwner) { NewOperation->UsableValueFilters = new PCGExCluster::FNodeStateHandler(UsableValueFiltersOwner); }
+
 	return NewOperation;
+}
+
+TArray<FPCGPinProperties> UPCGExNeighborSampleProviderSettings::InputPinProperties() const
+{
+	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
+	PCGEX_PIN_PARAMS(PCGExNeighborSample::SourcePointFilters, "Filters used to check which node will be processed by the sampler or not.", Normal, {})
+	PCGEX_PIN_PARAMS(PCGExNeighborSample::SourceUseValueIfFilters, "Filters used to check if a node can be used as a value source or not.", Advanced, {})
+	return PinProperties;
 }
 
 FName UPCGExNeighborSampleProviderSettings::GetMainOutputLabel() const { return PCGExNeighborSample::OutputSamplerLabel; }
@@ -43,8 +54,17 @@ UPCGExParamFactoryBase* UPCGExNeighborSampleProviderSettings::CreateFactory(FPCG
 		InFactory = NewObject<UPCGNeighborSamplerFactoryBase>();
 	}
 
-	UPCGNeighborSamplerFactoryBase* NewFactory = Cast<UPCGNeighborSamplerFactoryBase>(InFactory);
-	NewFactory->Descriptor = SamplerSettings;
+	UPCGNeighborSamplerFactoryBase* SamplerFactory = Cast<UPCGNeighborSamplerFactoryBase>(InFactory);
+	SamplerFactory->Descriptor = SamplerSettings;
+
+	PCGExDataFilter::GetInputFilters(InContext, PCGExNeighborSample::SourcePointFilters, SamplerFactory->FilterFactories, false);
+
+	TArray<UPCGExFilterFactoryBase*> FilterFactories;
+	if (PCGExDataFilter::GetInputFilters(InContext, PCGExNeighborSample::SourceUseValueIfFilters, FilterFactories, false))
+	{
+		SamplerFactory->UsableValueFiltersOwner = NewObject<UPCGExNodeStateFactory>();
+		SamplerFactory->UsableValueFiltersOwner->FilterFactories.Append(FilterFactories);
+	}
 
 	return InFactory;
 }

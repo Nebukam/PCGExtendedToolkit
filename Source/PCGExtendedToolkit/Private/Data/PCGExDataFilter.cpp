@@ -10,12 +10,14 @@ PCGExDataFilter::TFilter* UPCGExFilterFactoryBase::CreateFilter() const
 
 namespace PCGExDataFilter
 {
+	EType TFilter::GetFilterType() const { return EType::Default; }
+
 	void TFilter::Capture(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO)
 	{
 		bValid = true;
 	}
 
-	FORCEINLINE bool TFilter::Test(const int32 PointIndex) const { return true; }
+	bool TFilter::Test(const int32 PointIndex) const { return true; }
 
 	void TFilter::PrepareForTesting(PCGExData::FPointIO* PointIO)
 	{
@@ -47,23 +49,19 @@ namespace PCGExDataFilter
 
 	void TFilterManager::Test(const int32 PointIndex)
 	{
-		for (TFilter* Handler : Handlers)
-		{
-			const bool bValue = Handler->Test(PointIndex);
-			Handler->Results[PointIndex] = bValue;
-		}
+		for (TFilter* Handler : Handlers) { Handler->Results[PointIndex] = Handler->Test(PointIndex); }
 	}
 
 	void TFilterManager::PostProcessHandler(TFilter* Handler)
 	{
 	}
 
-	TDirectFilterManager::TDirectFilterManager(PCGExData::FPointIO* InPointIO)
+	TEarlyExitFilterManager::TEarlyExitFilterManager(PCGExData::FPointIO* InPointIO)
 		: TFilterManager(InPointIO)
 	{
 	}
 
-	void TDirectFilterManager::Test(const int32 PointIndex)
+	void TEarlyExitFilterManager::Test(const int32 PointIndex)
 	{
 		bool bPass = true;
 		for (const TFilter* Handler : Handlers)
@@ -78,7 +76,7 @@ namespace PCGExDataFilter
 		Results[PointIndex] = bPass;
 	}
 
-	void TDirectFilterManager::PrepareForTesting()
+	void TEarlyExitFilterManager::PrepareForTesting()
 	{
 		for (TFilter* Handler : Handlers) { Handler->PrepareForTesting(PointIO); }
 

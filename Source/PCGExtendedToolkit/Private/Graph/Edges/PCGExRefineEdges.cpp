@@ -19,7 +19,7 @@ void UPCGExRefineEdgesSettings::PostInitProperties()
 TArray<FPCGPinProperties> UPCGExRefineEdgesSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_PARAMS(PCGExPathfinding::SourceHeuristicsLabel, "Heuristics may be used by some refinements, such as MST.", false, {})
+	PCGEX_PIN_PARAMS(PCGExPathfinding::SourceHeuristicsLabel, "Heuristics may be used by some refinements, such as MST.", Required, {})
 	return PinProperties;
 }
 

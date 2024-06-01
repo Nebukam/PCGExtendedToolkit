@@ -22,7 +22,7 @@ PCGExData::EInit UPCGExPackClustersSettings::GetEdgeOutputInitMode() const { ret
 TArray<FPCGPinProperties> UPCGExPackClustersSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_POINTS(PCGExGraph::OutputPackedClustersLabel, "Individually packed clusters", false, {})	
+	PCGEX_PIN_POINTS(PCGExGraph::OutputPackedClustersLabel, "Individually packed clusters", Required, {})	
 	return PinProperties;
 }
 

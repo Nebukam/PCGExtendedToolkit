@@ -38,6 +38,13 @@ public:
 
 namespace PCGExDataFilter
 {
+
+	enum class EType : uint8
+	{
+		Default = 0,
+		Cluster
+	};
+	
 	constexpr PCGExMT::AsyncState State_FilteringPoints = __COUNTER__;
 
 	const FName OutputFilterLabel = TEXT("Filter");
@@ -59,8 +66,10 @@ namespace PCGExDataFilter
 		int32 Index = 0;
 		bool bValid = true;
 
+		FORCEINLINE virtual EType GetFilterType() const;
+		
 		virtual void Capture(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO);
-		virtual bool Test(const int32 PointIndex) const;
+		FORCEINLINE virtual bool Test(const int32 PointIndex) const;
 		virtual void PrepareForTesting(PCGExData::FPointIO* PointIO);
 		virtual void PrepareForTesting(PCGExData::FPointIO* PointIO, const TArrayView<int32>& PointIndices);
 
@@ -132,10 +141,10 @@ namespace PCGExDataFilter
 		virtual void PostProcessHandler(TFilter* Handler);
 	};
 
-	class PCGEXTENDEDTOOLKIT_API TDirectFilterManager : public TFilterManager
+	class PCGEXTENDEDTOOLKIT_API TEarlyExitFilterManager : public TFilterManager
 	{
 	public:
-		explicit TDirectFilterManager(PCGExData::FPointIO* InPointIO);
+		explicit TEarlyExitFilterManager(PCGExData::FPointIO* InPointIO);
 
 		TArray<bool> Results;
 
@@ -144,7 +153,7 @@ namespace PCGExDataFilter
 	};
 
 	template <typename T_DEF>
-	static bool GetInputFilters(FPCGContext* InContext, const FName InLabel, TArray<TObjectPtr<T_DEF>>& OutFilters)
+	static bool GetInputFilters(FPCGContext* InContext, const FName InLabel, TArray<TObjectPtr<T_DEF>>& OutFilters, const bool bThrowError = true)
 	{
 		const TArray<FPCGTaggedData>& Inputs = InContext->InputData.GetInputsByPin(InLabel);
 
@@ -161,7 +170,32 @@ namespace PCGExDataFilter
 
 		if (OutFilters.IsEmpty())
 		{
-			PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Missing valid filters."));
+			if (bThrowError) { PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Missing valid filters.")); }
+			return false;
+		}
+
+		return true;
+	}
+
+	template <typename T_DEF>
+	static bool GetInputFilters(FPCGContext* InContext, const FName InLabel, TArray<T_DEF*>& OutFilters, const bool bThrowError = true)
+	{
+		const TArray<FPCGTaggedData>& Inputs = InContext->InputData.GetInputsByPin(InLabel);
+
+		TSet<FName> UniqueStatesNames;
+		for (const FPCGTaggedData& InputState : Inputs)
+		{
+			if (const T_DEF* State = Cast<T_DEF>(InputState.Data))
+			{
+				OutFilters.AddUnique(const_cast<T_DEF*>(State));
+			}
+		}
+
+		UniqueStatesNames.Empty();
+
+		if (OutFilters.IsEmpty())
+		{
+			if (bThrowError) { PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Missing valid filters.")); }
 			return false;
 		}
 

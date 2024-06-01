@@ -32,25 +32,11 @@ UPCGExParamFactoryBase* UPCGExCreateNodeStateSettings::CreateFactory(FPCGContext
 {
 	if (!ValidateStateName(Context)) { return nullptr; }
 
-	TArray<UPCGExFilterFactoryBase*> FilterFactories;
-
-	const TArray<FPCGTaggedData>& TestPin = Context->InputData.GetInputsByPin(PCGExDataState::SourceFiltersLabel);
-	for (const FPCGTaggedData& TaggedData : TestPin)
-	{
-		if (const UPCGExFilterFactoryBase* TestFactory = Cast<UPCGExFilterFactoryBase>(TaggedData.Data))
-		{
-			FilterFactories.Add(const_cast<UPCGExFilterFactoryBase*>(TestFactory));
-		}
-	}
-
-	if (FilterFactories.IsEmpty())
-	{
-		PCGE_LOG_C(Error, GraphAndLog, Context, FTEXT("No test data."));
-		return nullptr;
-	}
+	TArray<TObjectPtr<UPCGExFilterFactoryBase>> FilterFactories;
+	if (!PCGExDataFilter::GetInputFilters(Context, PCGExDataState::SourceFiltersLabel, FilterFactories)) { return nullptr; }
 
 	UPCGExNodeStateFactory* OutState = CreateStateDefinition<UPCGExNodeStateFactory>(Context);
-	OutState->Filters.Append(FilterFactories);
+	OutState->FilterFactories.Append(FilterFactories);
 
 	return OutState;
 }

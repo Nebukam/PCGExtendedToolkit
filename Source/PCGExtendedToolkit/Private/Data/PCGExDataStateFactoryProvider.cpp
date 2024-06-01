@@ -12,15 +12,15 @@
 TArray<FPCGPinProperties> UPCGExStateFactoryProviderSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_PARAMS(PCGExDataState::SourceValidStateAttributesLabel, "Attributes & values associated with this state when conditions are met.", true, {})
-	PCGEX_PIN_PARAMS(PCGExDataState::SourceInvalidStateAttributesLabel, "Attributes & values associated with this state when conditions are not met.", true, {})
+	PCGEX_PIN_PARAMS(PCGExDataState::SourceValidStateAttributesLabel, "Attributes & values associated with this state when conditions are met.", Required, {})
+	PCGEX_PIN_PARAMS(PCGExDataState::SourceInvalidStateAttributesLabel, "Attributes & values associated with this state when conditions are not met.", Required, {})
 	return PinProperties;
 }
 
 TArray<FPCGPinProperties> UPCGExStateFactoryProviderSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_PARAM(GetMainOutputLabel(), "Outputs a single state.", false, {})
+	PCGEX_PIN_PARAM(GetMainOutputLabel(), "Outputs a single state.", Required, {})
 	return PinProperties;
 }
 

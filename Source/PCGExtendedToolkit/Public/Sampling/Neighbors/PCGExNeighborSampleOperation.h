@@ -19,8 +19,12 @@ class PCGEXTENDEDTOOLKIT_API UPCGExNeighborSampleOperation : public UPCGExOperat
 	GENERATED_BODY()
 
 public:
+
+	PCGExCluster::FNodeStateHandler* PointFilters = nullptr;
+	PCGExCluster::FNodeStateHandler* UsableValueFilters = nullptr;
+	
 	PCGExDataBlending::FMetadataBlender* Blender = nullptr;
-	PCGExDataBlending::FDataBlendingOperationBase* BlendOp = nullptr;
+	TArray<PCGExDataBlending::FDataBlendingOperationBase*> BlendOps;
 	
 	EPCGExRangeType RangeType = EPCGExRangeType::FullRange;
 	EPCGExBlendOver BlendOver = EPCGExBlendOver::Index;
@@ -29,20 +33,18 @@ public:
 	double FixedBlend = 1;
 	TObjectPtr<UCurveFloat> WeightCurveObj = nullptr;
 	EPCGExGraphValueSource NeighborSource = EPCGExGraphValueSource::Point;
-	FName SourceAttribute;
-	bool bOutputToNewAttribute = false;
-	FName TargetAttribute;
+	TSet<FName> SourceAttributes;
+	//bool bOutputToNewAttribute = false;
+	//FName TargetAttribute;
 	EPCGExDataBlendingType Blending = EPCGExDataBlendingType::Average;
 
 	virtual void PrepareForCluster(PCGExCluster::FCluster* InCluster);
 
 	FORCEINLINE virtual void ProcessNodeForPoints(
-		const PCGEx::FPointRef& Target,
-		const PCGExCluster::FNode& Node) const;
+		const int32 InNodeIndex) const;
 	
 	FORCEINLINE virtual void ProcessNodeForEdges(
-		const PCGEx::FPointRef& Target,
-		const PCGExCluster::FNode& Node) const;
+		const int32 InNodeIndex) const;
 
 	virtual void Cleanup() override;
 
@@ -50,15 +52,4 @@ protected:
 	PCGExCluster::FCluster* Cluster = nullptr;
 
 	FORCEINLINE virtual double SampleCurve(const double InTime) const;
-	FORCEINLINE void GrabNeighbors(
-		const PCGExCluster::FNode& From,
-		TArray<int32>& OutNeighbors,
-		const TSet<int32>& Visited) const;
-	
-	FORCEINLINE void GrabNeighborsEdges(
-		const PCGExCluster::FNode& From,
-		TArray<int32>& OutNeighbors,
-		TArray<int32>& OutNeighborsEdges,
-		const TSet<int32>& Visited,
-		const TSet<int32>& VisitedEdges) const;
 };

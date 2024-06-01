@@ -220,8 +220,8 @@ TArray<FPCGPinProperties> UPCGExPointsProcessorSettings::InputPinProperties() co
 {
 	TArray<FPCGPinProperties> PinProperties;
 
-	if(GetMainAcceptMultipleData()){ PCGEX_PIN_POINTS(GetMainInputLabel(), "The point data to be processed.", false, {}) }
-	else{PCGEX_PIN_POINT(GetMainInputLabel(), "The point data to be processed.", false, {})}
+	if(GetMainAcceptMultipleData()){ PCGEX_PIN_POINTS(GetMainInputLabel(), "The point data to be processed.", Required, {}) }
+	else{PCGEX_PIN_POINT(GetMainInputLabel(), "The point data to be processed.", Required, {})}
 
 	return PinProperties;
 }
@@ -229,7 +229,7 @@ TArray<FPCGPinProperties> UPCGExPointsProcessorSettings::InputPinProperties() co
 TArray<FPCGPinProperties> UPCGExPointsProcessorSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_POINTS(GetMainOutputLabel(), "The processed points.", false, {})
+	PCGEX_PIN_POINTS(GetMainOutputLabel(), "The processed points.", Required, {})
 	return PinProperties;
 }
 

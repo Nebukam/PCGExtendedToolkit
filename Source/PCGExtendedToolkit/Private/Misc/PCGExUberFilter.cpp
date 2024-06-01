@@ -13,15 +13,15 @@
 TArray<FPCGPinProperties> UPCGExUberFilterSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_PARAMS(PCGExDataFilter::SourceFiltersLabel, "Filters.", false, {})
+	PCGEX_PIN_PARAMS(PCGExDataFilter::SourceFiltersLabel, "Filters.", Required, {})
 	return PinProperties;
 }
 
 TArray<FPCGPinProperties> UPCGExUberFilterSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_POINTS(PCGExDataFilter::OutputInsideFiltersLabel, "Points that passed the filters.", false, {})
-	PCGEX_PIN_POINTS(PCGExDataFilter::OutputOutsideFiltersLabel, "Points that didn't pass the filters.", false, {})
+	PCGEX_PIN_POINTS(PCGExDataFilter::OutputInsideFiltersLabel, "Points that passed the filters.", Required, {})
+	PCGEX_PIN_POINTS(PCGExDataFilter::OutputOutsideFiltersLabel, "Points that didn't pass the filters.", Required, {})
 	return PinProperties;
 }
 
@@ -75,7 +75,7 @@ bool FPCGExUberFilterElement::ExecuteInternal(FPCGContext* InContext) const
 		if (!Context->AdvancePointsIO()) { Context->Done(); }
 		else
 		{
-			Context->FilterManager = new PCGExDataFilter::TDirectFilterManager(Context->CurrentIO);
+			Context->FilterManager = new PCGExDataFilter::TEarlyExitFilterManager(Context->CurrentIO);
 			Context->FilterManager->Register<UPCGExFilterFactoryBase>(Context, Context->Factories, Context->CurrentIO);
 
 			if (!Context->FilterManager->bValid)

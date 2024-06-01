@@ -55,14 +55,14 @@ namespace PCGExDataState
 
 		TSet<FString> OverlappingAttributes;
 
-		explicit TDataState(const UPCGExDataStateFactoryBase* InDefinition)
-			: TFilter(InDefinition), StateDefinition(InDefinition)
+		explicit TDataState(const UPCGExDataStateFactoryBase* InFactory)
+			: TFilter(InFactory), StateFactory(InFactory)
 		{
 		}
 
-		const UPCGExDataStateFactoryBase* StateDefinition;
+		const UPCGExDataStateFactoryBase* StateFactory;
 
-		virtual bool Test(const int32 PointIndex) const override;
+		FORCEINLINE virtual bool Test(const int32 PointIndex) const override;
 		virtual void PrepareForWriting(PCGExData::FPointIO* PointIO);
 
 		virtual ~TDataState() override
@@ -125,7 +125,7 @@ namespace PCGExDataState
 					continue;
 				}
 
-				if (State->Filters.IsEmpty())
+				if (State->FilterFactories.IsEmpty())
 				{
 					PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("State '{0}' has no conditions and will be ignored."), FText::FromName(State->StateName)));
 					continue;

@@ -15,7 +15,7 @@ TArray<FPCGPinProperties> UPCGExFactoryProviderSettings::InputPinProperties() co
 TArray<FPCGPinProperties> UPCGExFactoryProviderSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_PARAM(GetMainOutputLabel(), GetMainOutputLabel().ToString(), false, {})
+	PCGEX_PIN_PARAM(GetMainOutputLabel(), GetMainOutputLabel().ToString(), Required, {})
 	return PinProperties;
 }
 

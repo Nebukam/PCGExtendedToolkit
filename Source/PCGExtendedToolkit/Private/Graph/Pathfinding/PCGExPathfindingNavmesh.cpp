@@ -17,15 +17,15 @@
 TArray<FPCGPinProperties> UPCGExPathfindingNavmeshSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_POINT(PCGExPathfinding::SourceSeedsLabel, "Seeds points for pathfinding.", false, {})
-	PCGEX_PIN_POINT(PCGExPathfinding::SourceGoalsLabel, "Goals points for pathfinding.", false, {})
+	PCGEX_PIN_POINT(PCGExPathfinding::SourceSeedsLabel, "Seeds points for pathfinding.", Required, {})
+	PCGEX_PIN_POINT(PCGExPathfinding::SourceGoalsLabel, "Goals points for pathfinding.", Required, {})
 	return PinProperties;
 }
 
 TArray<FPCGPinProperties> UPCGExPathfindingNavmeshSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_POINTS(PCGExGraph::OutputPathsLabel, "Paths output.", false, {})
+	PCGEX_PIN_POINTS(PCGExGraph::OutputPathsLabel, "Paths output.", Required, {})
 	return PinProperties;
 }
 

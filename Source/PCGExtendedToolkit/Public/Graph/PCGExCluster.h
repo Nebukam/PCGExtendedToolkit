@@ -79,7 +79,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExNodeStateFactory : public UPCGExDataStateFact
 	GENERATED_BODY()
 
 public:
-	TArray<UPCGExFilterFactoryBase*> Filters;
+	TArray<UPCGExFilterFactoryBase*> FilterFactories;
 	virtual PCGExDataFilter::TFilter* CreateFilter() const override;
 	virtual void BeginDestroy() override;
 };
@@ -204,8 +204,12 @@ namespace PCGExCluster
 		void ComputeEdgeLengths(bool bNormalize = false);
 
 		void GetNodePointIndices(TArray<int32>& OutIndices);
-		void GetConnectedNodes(const int32 FromIndex, TArray<int32>& OutIndices, const int32 SearchDepth) const;
+		FORCEINLINE void GetConnectedNodes(const int32 FromIndex, TArray<int32>& OutIndices, const int32 SearchDepth) const;
+		FORCEINLINE void GetConnectedNodes(const int32 FromIndex, TArray<int32>& OutIndices, const int32 SearchDepth, const TSet<int32>& Skip) const;
 
+		FORCEINLINE void GetConnectedEdges(const int32 FromNodeIndex, TArray<int32>& OutNodeIndices, TArray<int32>& OutEdgeIndices, const int32 SearchDepth) const;
+		FORCEINLINE void GetConnectedEdges(const int32 FromNodeIndex, TArray<int32>& OutNodeIndices, TArray<int32>& OutEdgeIndices, const int32 SearchDepth, const TSet<int32>& SkipNodes, const TSet<int32>& SkipEdges) const;
+		
 		FORCEINLINE FVector GetEdgeDirection(const int32 FromIndex, const int32 ToIndex) const;
 		FORCEINLINE FVector GetCentroid(const int32 NodeIndex) const;
 
@@ -267,13 +271,15 @@ namespace PCGExCluster
 	class PCGEXTENDEDTOOLKIT_API TClusterFilter : public PCGExDataFilter::TFilter
 	{
 	public:
-		explicit TClusterFilter(const UPCGExClusterFilterFactoryBase* InDefinition)
-			: TFilter(InDefinition)
+		explicit TClusterFilter(const UPCGExClusterFilterFactoryBase* InFactory)
+			: TFilter(InFactory)
 		{
 			bValid = false;
 		}
 
 		const FCluster* CapturedCluster = nullptr;
+
+		FORCEINLINE virtual PCGExDataFilter::EType GetFilterType() const override;
 
 		virtual void CaptureCluster(const FPCGContext* InContext, const FCluster* InCluster);
 		virtual void Capture(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO) override;
@@ -284,13 +290,13 @@ namespace PCGExCluster
 	class PCGEXTENDEDTOOLKIT_API FNodeStateHandler : public PCGExDataState::TDataState
 	{
 	public:
-		explicit FNodeStateHandler(const UPCGExNodeStateFactory* InDefinition);
+		explicit FNodeStateHandler(const UPCGExNodeStateFactory* InFactory);
 
 		const UPCGExNodeStateFactory* NodeStateDefinition = nullptr;
 		TArray<TFilter*> FilterHandlers;
 		TArray<TClusterFilter*> ClusterFilterHandlers;
 
-		void CaptureCluster(const FPCGContext* InContext, FCluster* InCluster);
+		virtual void CaptureCluster(const FPCGContext* InContext, FCluster* InCluster);
 		FORCEINLINE virtual bool Test(const int32 PointIndex) const override;
 		virtual void PrepareForTesting(PCGExData::FPointIO* PointIO) override;
 
@@ -304,6 +310,8 @@ namespace PCGExCluster
 		PCGExData::FPointIO* LastPoints = nullptr;
 		FCluster* Cluster = nullptr;
 	};
+
+
 }
 
 namespace PCGExClusterTask

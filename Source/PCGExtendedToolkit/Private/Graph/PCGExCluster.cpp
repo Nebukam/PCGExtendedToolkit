@@ -15,6 +15,7 @@ PCGExDataFilter::TFilter* UPCGExNodeStateFactory::CreateFilter() const
 
 void UPCGExNodeStateFactory::BeginDestroy()
 {
+	FilterFactories.Empty();
 	Super::BeginDestroy();
 }
 
@@ -476,6 +477,60 @@ namespace PCGExCluster
 		}
 	}
 
+	void FCluster::GetConnectedNodes(const int32 FromIndex, TArray<int32>& OutIndices, const int32 SearchDepth, const TSet<int32>& Skip) const
+	{
+		const int32 NextDepth = SearchDepth - 1;
+		const FNode& RootNode = Nodes[FromIndex];
+
+		for (const int32 OtherNode : RootNode.AdjacentNodes)
+		{
+			if (Skip.Contains(OtherNode) || OutIndices.Contains(OtherNode)) { continue; }
+
+			OutIndices.Add(OtherNode);
+			if (NextDepth > 0) { GetConnectedNodes(OtherNode, OutIndices, NextDepth, Skip); }
+		}
+	}
+
+	void FCluster::GetConnectedEdges(const int32 FromNodeIndex, TArray<int32>& OutNodeIndices, TArray<int32>& OutEdgeIndices, const int32 SearchDepth) const
+	{
+		const int32 NextDepth = SearchDepth - 1;
+		const FNode& RootNode = Nodes[FromNodeIndex];
+
+		for (const int32 OtherNode : RootNode.AdjacentNodes)
+		{
+			if (OutNodeIndices.Contains(OtherNode)) { continue; }
+
+			const int32* EdgeIndex = EdgeIndexMap.Find(PCGEx::H64U(FromNodeIndex, OtherNode));
+
+			if (!EdgeIndex || OutEdgeIndices.Contains(*EdgeIndex)) { continue; }
+
+			OutNodeIndices.Add(OtherNode);
+			OutEdgeIndices.Add(*EdgeIndex);
+
+			if (NextDepth > 0) { GetConnectedEdges(OtherNode, OutNodeIndices, OutEdgeIndices, NextDepth); }
+		}
+	}
+
+	void FCluster::GetConnectedEdges(const int32 FromNodeIndex, TArray<int32>& OutNodeIndices, TArray<int32>& OutEdgeIndices, const int32 SearchDepth, const TSet<int32>& SkipNodes, const TSet<int32>& SkipEdges) const
+	{
+		const int32 NextDepth = SearchDepth - 1;
+		const FNode& RootNode = Nodes[FromNodeIndex];
+
+		for (const int32 OtherNode : RootNode.AdjacentNodes)
+		{
+			if (SkipNodes.Contains(OtherNode) || OutNodeIndices.Contains(OtherNode)) { continue; }
+
+			const int32* EdgeIndex = EdgeIndexMap.Find(PCGEx::H64U(FromNodeIndex, OtherNode));
+
+			if (!EdgeIndex || SkipEdges.Contains(*EdgeIndex) || OutEdgeIndices.Contains(*EdgeIndex)) { continue; }
+
+			OutNodeIndices.Add(OtherNode);
+			OutEdgeIndices.Add(*EdgeIndex);
+
+			if (NextDepth > 0) { GetConnectedEdges(OtherNode, OutNodeIndices, OutEdgeIndices, NextDepth, SkipNodes, SkipEdges); }
+		}
+	}
+
 	FVector FCluster::GetEdgeDirection(const int32 FromIndex, const int32 ToIndex) const
 	{
 		return (Nodes[FromIndex].Position - Nodes[ToIndex].Position).GetSafeNormal();
@@ -656,6 +711,8 @@ namespace PCGExCluster
 
 #pragma region FNodeStateHandler
 
+	PCGExDataFilter::EType TClusterFilter::GetFilterType() const { return PCGExDataFilter::EType::Cluster; }
+
 	void TClusterFilter::CaptureCluster(const FPCGContext* InContext, const FCluster* InCluster)
 	{
 		bValid = true;
@@ -683,19 +740,19 @@ namespace PCGExCluster
 		for (int i = 0; i < NumNodes; i++) { Results[i] = false; }
 	}
 
-	FNodeStateHandler::FNodeStateHandler(const UPCGExNodeStateFactory* InDefinition)
-		: TDataState(InDefinition), NodeStateDefinition(InDefinition)
+	FNodeStateHandler::FNodeStateHandler(const UPCGExNodeStateFactory* InFactory)
+		: TDataState(InFactory), NodeStateDefinition(InFactory)
 	{
-		const int32 NumConditions = InDefinition->Filters.Num();
+		const int32 NumConditions = InFactory->FilterFactories.Num();
 
 		FilterHandlers.Empty();
 		ClusterFilterHandlers.Empty();
 
 		for (int i = 0; i < NumConditions; i++)
 		{
-			if (TFilter* Handler = InDefinition->Filters[i]->CreateFilter())
+			if (TFilter* Handler = InFactory->FilterFactories[i]->CreateFilter())
 			{
-				if (TClusterFilter* ClusterHandler = static_cast<TClusterFilter*>(Handler)) { ClusterFilterHandlers.Add(ClusterHandler); }
+				if (Handler->GetFilterType() == PCGExDataFilter::EType::Cluster) { ClusterFilterHandlers.Add(static_cast<TClusterFilter*>(Handler)); }
 				else { FilterHandlers.Add(Handler); }
 			}
 			else

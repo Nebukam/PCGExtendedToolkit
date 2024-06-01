@@ -22,14 +22,14 @@ bool UPCGExEdgesProcessorSettings::GetMainAcceptMultipleData() const { return tr
 TArray<FPCGPinProperties> UPCGExEdgesProcessorSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_POINTS(PCGExGraph::SourceEdgesLabel, "Edges associated with the main input points", false, {})
+	PCGEX_PIN_POINTS(PCGExGraph::SourceEdgesLabel, "Edges associated with the main input points", Required, {})
 	return PinProperties;
 }
 
 TArray<FPCGPinProperties> UPCGExEdgesProcessorSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
-	PCGEX_PIN_POINTS(PCGExGraph::OutputEdgesLabel, "Edges associated with the main output points", false, {})
+	PCGEX_PIN_POINTS(PCGExGraph::OutputEdgesLabel, "Edges associated with the main output points", Required, {})
 	return PinProperties;
 }
 

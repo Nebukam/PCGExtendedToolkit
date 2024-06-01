@@ -32,15 +32,15 @@ FPCGElementPtr UPCGExGatherSocketsSettings::CreateElement() const { return MakeS
 TArray<FPCGPinProperties> UPCGExGatherSocketsSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_PARAMS(PCGExGraph::SourceSocketParamsLabel, "Socket params to assemble into a consolidated Custom Graph Params object.", false, {})
-	PCGEX_PIN_PARAM(PCGExGraph::SourceSocketOverrideParamsLabel, "Socket params used as a reference for global overriding.", true, {})
+	PCGEX_PIN_PARAMS(PCGExGraph::SourceSocketParamsLabel, "Socket params to assemble into a consolidated Custom Graph Params object.", Required, {})
+	PCGEX_PIN_PARAM(PCGExGraph::SourceSocketOverrideParamsLabel, "Socket params used as a reference for global overriding.", Advanced, {})
 	return PinProperties;
 }
 
 TArray<FPCGPinProperties> UPCGExGatherSocketsSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_PARAM(PCGExGraph::SourceSingleGraphLabel, "Outputs a unified graph param object.", false, {})	
+	PCGEX_PIN_PARAM(PCGExGraph::SourceSingleGraphLabel, "Outputs a unified graph param object.", Required, {})	
 	return PinProperties;
 }
 

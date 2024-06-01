@@ -8,6 +8,7 @@
 
 #include "PCGExFactoryProvider.h"
 #include "Data/Blending/PCGExDataBlending.h"
+#include "Graph/PCGExCluster.h"
 #include "Graph/PCGExGraph.h"
 
 #include "PCGExNeighborSampleFactoryProvider.generated.h"
@@ -18,6 +19,9 @@ namespace PCGExNeighborSample
 {
 	const FName SourceSamplersLabel = TEXT("Samplers");
 	const FName OutputSamplerLabel = TEXT("Sampler");
+	
+	const FName SourcePointFilters = TEXT("PointFilters");
+	const FName SourceUseValueIfFilters = TEXT("UsableValueFilters");
 }
 
 USTRUCT(BlueprintType)
@@ -64,7 +68,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSamplerDescriptorBase
 	GENERATED_BODY()
 
 	FPCGExSamplerDescriptorBase():
-		WeightOverDistanceCurve(PCGEx::WeightDistributionLinear)
+		WeightCurve(PCGEx::WeightDistributionLinear)
 	{
 	}
 
@@ -90,7 +94,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSamplerDescriptorBase
 
 	/** Curve over which the blending weight will be remapped  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	TSoftObjectPtr<UCurveFloat> WeightOverDistanceCurve = TSoftObjectPtr<UCurveFloat>(PCGEx::WeightDistributionLinear);
+	TSoftObjectPtr<UCurveFloat> WeightCurve = TSoftObjectPtr<UCurveFloat>(PCGEx::WeightDistributionLinear);
 
 	/** Which type of neighbor to sample */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -98,15 +102,15 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSamplerDescriptorBase
 
 	/** Attribute to sample */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	FName SourceAttribute;
+	TSet<FName> SourceAttributes;
 
 	/** Whether to write the sampled attribute to another one (as opposed to overwriting the source) */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
-	bool bOutputToNewAttribute = false;
+	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
+	//bool bOutputToNewAttribute = false;
 
 	/** Target attribute to write the sampled result to */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bOutputToNewAttribute"))
-	FName TargetAttribute;
+	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bOutputToNewAttribute"))
+	//FName TargetAttribute;
 
 	/** How to blend neighbors */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -114,12 +118,13 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSamplerDescriptorBase
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGNeighborSamplerFactoryBase : public UPCGExParamFactoryBase
+class PCGEXTENDEDTOOLKIT_API UPCGNeighborSamplerFactoryBase : public UPCGExNodeStateFactory
 {
 	GENERATED_BODY()
 
 public:
 	FPCGExSamplerDescriptorBase Descriptor;
+	UPCGExNodeStateFactory* UsableValueFiltersOwner = nullptr;
 	virtual UPCGExNeighborSampleOperation* CreateOperation() const;
 };
 
@@ -131,10 +136,16 @@ class PCGEXTENDEDTOOLKIT_API UPCGExNeighborSampleProviderSettings : public UPCGE
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
+	PCGEX_NODE_INFOS(
+		NeighborSampleDefinition, "Sampler : Neighbor", "Create a single neighbor attribute sampler, to be used by a Sample Neighbors node.")
+	/*
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
 		NeighborSampleDefinition, "Sampler : Neighbor", "Create a single neighbor attribute sampler, to be used by a Sample Neighbors node.",
 		FName(GetDisplayName()))
+	*/
 	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorSamplerNeighbor; }
+
+	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 #endif
 	//~End UPCGSettings
 

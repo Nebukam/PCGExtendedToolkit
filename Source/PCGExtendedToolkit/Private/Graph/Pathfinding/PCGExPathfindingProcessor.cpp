@@ -19,16 +19,16 @@
 TArray<FPCGPinProperties> UPCGExPathfindingProcessorSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	if (GetRequiresSeeds()) { PCGEX_PIN_POINT(PCGExPathfinding::SourceSeedsLabel, "Seeds points for pathfinding.", false, {}) }
-	if (GetRequiresGoals()) { PCGEX_PIN_POINT(PCGExPathfinding::SourceGoalsLabel, "Goals points for pathfinding.", false, {}) }
-	PCGEX_PIN_PARAMS(PCGExPathfinding::SourceHeuristicsLabel, "Heuristics.", false, {})
+	if (GetRequiresSeeds()) { PCGEX_PIN_POINT(PCGExPathfinding::SourceSeedsLabel, "Seeds points for pathfinding.", Required, {}) }
+	if (GetRequiresGoals()) { PCGEX_PIN_POINT(PCGExPathfinding::SourceGoalsLabel, "Goals points for pathfinding.", Required, {}) }
+	PCGEX_PIN_PARAMS(PCGExPathfinding::SourceHeuristicsLabel, "Heuristics.", Normal, {})
 	return PinProperties;
 }
 
 TArray<FPCGPinProperties> UPCGExPathfindingProcessorSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_POINTS(PCGExGraph::OutputPathsLabel, "Paths output.", false, {})
+	PCGEX_PIN_POINTS(PCGExGraph::OutputPathsLabel, "Paths output.", Required, {})
 	return PinProperties;
 }
 

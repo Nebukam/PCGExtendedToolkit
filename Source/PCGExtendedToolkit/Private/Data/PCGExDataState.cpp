@@ -108,8 +108,8 @@ namespace PCGExDataState
 			}
 		};
 
-		if (bNeedIfs) { CreatePlaceholderAttributes(StateDefinition->ValidStateAttributesInfos, InValidStateAttributes, OutValidStateAttributes); }
-		if (bNeedElses) { CreatePlaceholderAttributes(StateDefinition->InvalidStateAttributesInfos, InInvalidStateAttributes, OutInvalidStateAttributes); }
+		if (bNeedIfs) { CreatePlaceholderAttributes(StateFactory->ValidStateAttributesInfos, InValidStateAttributes, OutValidStateAttributes); }
+		if (bNeedElses) { CreatePlaceholderAttributes(StateFactory->InvalidStateAttributesInfos, InInvalidStateAttributes, OutInvalidStateAttributes); }
 	}
 
 

@@ -76,6 +76,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExRemapSettings
 	}
 
 	FPCGExRemapSettings(const FPCGExRemapSettings& Other):
+		bUseAbsoluteRange(Other.bUseAbsoluteRange),
+		bPreserveSign(Other.bPreserveSign),
 		bUseInMin(Other.bUseInMin),
 		InMin(Other.InMin),
 		bUseInMax(Other.bUseInMax),
@@ -83,7 +85,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExRemapSettings
 		RangeMethod(Other.RangeMethod),
 		Scale(Other.Scale),
 		RemapCurveObj(Other.RemapCurveObj),
-		TruncateOutput(Other.TruncateOutput)
+		TruncateOutput(Other.TruncateOutput),
+		PostTruncateScale(Other.PostTruncateScale)
 	{
 	}
 
@@ -92,6 +95,14 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExRemapSettings
 		RemapCurveObj = nullptr;
 	}
 
+	/** Whether or not to use only positive values to compute range.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	bool bUseAbsoluteRange = true;
+
+	/** Whether or not to preserve value sign when using absolute range.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bUseAbsoluteRange"))
+	bool bPreserveSign = true;
+	
 	/** Fixed In Min value. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bUseInMin = false;
@@ -118,7 +129,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExRemapSettings
 
 	UPROPERTY(EditAnywhere, Category = Settings, BlueprintReadWrite)
 	TSoftObjectPtr<UCurveFloat> RemapCurve = TSoftObjectPtr<UCurveFloat>(PCGEx::WeightDistributionLinear);
-
 	TObjectPtr<UCurveFloat> RemapCurveObj = nullptr;
 
 
@@ -126,24 +136,28 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExRemapSettings
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExTruncateMode TruncateOutput = EPCGExTruncateMode::None;
 
+	/** Scale the value after it's been truncated. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="TruncateOutput != EPCGExTruncateMode::None", EditConditionHides))
+	double PostTruncateScale = 1;
+	
 	void LoadCurve()
 	{
 		PCGEX_LOAD_SOFTOBJECT(UCurveFloat, RemapCurve, RemapCurveObj, PCGEx::WeightDistributionLinear)
 	}
 
 	FORCEINLINE double GetRemappedValue(const double Value) const
-	{
+	{ 
 		double OutValue = RemapCurveObj->GetFloatValue(PCGExMath::Remap(Value, InMin, InMax, 0, 1)) * Scale;
 		switch (TruncateOutput)
 		{
 		case EPCGExTruncateMode::Round:
-			OutValue = FMath::RoundToInt(OutValue);
+			OutValue = FMath::RoundToInt(OutValue) * PostTruncateScale;
 			break;
 		case EPCGExTruncateMode::Ceil:
-			OutValue = FMath::CeilToDouble(OutValue);
+			OutValue = FMath::CeilToDouble(OutValue) * PostTruncateScale;
 			break;
 		case EPCGExTruncateMode::Floor:
-			OutValue = FMath::FloorToDouble(OutValue);
+			OutValue = FMath::FloorToDouble(OutValue) * PostTruncateScale;
 			break;
 		}
 		return OutValue;

@@ -24,15 +24,15 @@ void UPCGExPathfindingPlotEdgesSettings::PostEditChangeProperty(FPropertyChanged
 TArray<FPCGPinProperties> UPCGExPathfindingPlotEdgesSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_POINTS(PCGExPathfinding::SourcePlotsLabel, "Plot points for pathfinding.", false, {})
-	PCGEX_PIN_PARAMS(PCGExPathfinding::SourceHeuristicsLabel, "Heuristics.", false, {})
+	PCGEX_PIN_POINTS(PCGExPathfinding::SourcePlotsLabel, "Plot points for pathfinding.", Required, {})
+	PCGEX_PIN_PARAMS(PCGExPathfinding::SourceHeuristicsLabel, "Heuristics.", Normal, {})
 	return PinProperties;
 }
 
 TArray<FPCGPinProperties> UPCGExPathfindingPlotEdgesSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_POINTS(PCGExGraph::OutputPathsLabel, "Paths output.", false, {})
+	PCGEX_PIN_POINTS(PCGExGraph::OutputPathsLabel, "Paths output.", Required, {})
 	return PinProperties;
 }
 

@@ -72,6 +72,20 @@ namespace PCGEx
 		return nullptr;
 	}
 
+	bool FAttributesInfos::FindMissing(const TSet<FName>& Checklist, TSet<FName>& OutMissing)
+	{
+		bool bAnyMissing = false;
+		for (const FName& Id : Checklist)
+		{
+			if (!Contains(Id) || !PCGEx::IsValidName(Id))
+			{
+				OutMissing.Add(Id);
+				bAnyMissing = true;
+			}
+		}
+		return bAnyMissing;
+	}
+
 	FAttributesInfos* FAttributesInfos::Get(const UPCGMetadata* InMetadata)
 	{
 		FAttributesInfos* NewInfos = new FAttributesInfos();

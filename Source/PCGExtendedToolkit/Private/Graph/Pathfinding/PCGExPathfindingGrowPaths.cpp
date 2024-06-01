@@ -182,15 +182,15 @@ double PCGExGrow::FGrowth::GetGrowthScore(const PCGExCluster::FNode& From, const
 TArray<FPCGPinProperties> UPCGExPathfindingGrowPathsSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_POINT(PCGExPathfinding::SourceSeedsLabel, "Seed points to start growth from.", false, {})
-	PCGEX_PIN_PARAMS(PCGExPathfinding::SourceHeuristicsLabel, "Heuristics.", false, {})
+	PCGEX_PIN_POINT(PCGExPathfinding::SourceSeedsLabel, "Seed points to start growth from.", Required, {})
+	PCGEX_PIN_PARAMS(PCGExPathfinding::SourceHeuristicsLabel, "Heuristics.", Normal, {})
 	return PinProperties;
 }
 
 TArray<FPCGPinProperties> UPCGExPathfindingGrowPathsSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_POINTS(PCGExGraph::OutputPathsLabel, "Paths output.", false, {})
+	PCGEX_PIN_POINTS(PCGExGraph::OutputPathsLabel, "Paths output.", Required, {})
 	return PinProperties;
 }
 

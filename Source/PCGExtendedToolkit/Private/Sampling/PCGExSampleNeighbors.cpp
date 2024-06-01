@@ -19,7 +19,7 @@ UPCGExSampleNeighborsSettings::UPCGExSampleNeighborsSettings(
 TArray<FPCGPinProperties> UPCGExSampleNeighborsSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_PARAMS(PCGExNeighborSample::SourceSamplersLabel, "Neighbor samplers.", false, {})
+	PCGEX_PIN_PARAMS(PCGExNeighborSample::SourceSamplersLabel, "Neighbor samplers.", Required, {})
 	return PinProperties;
 }
 
@@ -32,6 +32,8 @@ bool FPCGExSampleNeighborsContext::PrepareSettings(
 	const PCGExData::FPointIO& FromPointIO,
 	EPCGExGraphValueSource Source) const
 {
+	PCGEx::FAttributesInfos* AttributesInfos = PCGEx::FAttributesInfos::Get(FromPointIO.GetIn()->Metadata);
+
 	OutSettings = FPCGExBlendingSettings(EPCGExDataBlendingType::None);
 	OutSettings.BlendingFilter = EPCGExBlendingFilter::Include;
 
@@ -44,28 +46,38 @@ bool FPCGExSampleNeighborsContext::PrepareSettings(
 	{
 		if (Operation->NeighborSource != Source) { continue; }
 
-		bool bAttributeExists = false;
-		for (PCGEx::FAttributeIdentity Identity : OutIdentities)
+		if (Operation->SourceAttributes.IsEmpty())
 		{
-			if (Identity.Name == Operation->SourceAttribute)
-			{
-				bAttributeExists = true;
-				break;
-			}
-		}
-
-		if (!bAttributeExists)
-		{
-			PCGE_LOG_C(Warning, GraphAndLog, this, FText::Format(FTEXT("Missing source attribute: {0}."), FText::FromName(Operation->SourceAttribute)));
+			PCGE_LOG_C(Warning, GraphAndLog, this, FTEXT("No source attribute set."));
 			continue;
 		}
 
-		OutSettings.AttributesOverrides.Add(Operation->SourceAttribute, Operation->Blending);
-		OutSettings.FilteredAttributes.Add(Operation->SourceAttribute);
+		TSet<FName> MissingAttributes;
+		const bool HasMissingAttributes = AttributesInfos->FindMissing(Operation->SourceAttributes, MissingAttributes);
+
+		if (MissingAttributes.Num() == Operation->SourceAttributes.Num())
+		{
+			PCGE_LOG_C(Warning, GraphAndLog, this, FTEXT("Missing all source attribute."));
+			continue;
+		}
+
+		for (const FName& Id : Operation->SourceAttributes)
+		{
+			if (MissingAttributes.Contains(Id))
+			{
+				PCGE_LOG_C(Warning, GraphAndLog, this, FText::Format(FTEXT("Missing source attribute: {0}."), FText::FromName(Id)));
+				continue;
+			}
+
+			OutSettings.AttributesOverrides.Add(Id, Operation->Blending);
+			OutSettings.FilteredAttributes.Add(Id);
+		}
+
 		OutOperations.Add(Operation);
 	}
 
 	return !OutSettings.FilteredAttributes.IsEmpty();
+	PCGEX_DELETE(AttributesInfos)
 }
 
 PCGEX_INITIALIZE_ELEMENT(SampleNeighbors)
@@ -98,18 +110,19 @@ bool FPCGExSampleNeighborsElement::Boot(FPCGContext* InContext) const
 	{
 		if (const UPCGNeighborSamplerFactoryBase* OperationFactory = Cast<UPCGNeighborSamplerFactoryBase>(InputState.Data))
 		{
-			if (!PCGEx::IsValidName(OperationFactory->Descriptor.SourceAttribute))
+			for (const FName& Id : OperationFactory->Descriptor.SourceAttributes)
 			{
-				PCGE_LOG(Warning, GraphAndLog, FTEXT("A source sampler name is invalid and will be ignored."));
-				continue;
+				if (!PCGEx::IsValidName(Id)) { PCGE_LOG(Warning, GraphAndLog, FTEXT("A source sampler contains invalid source attributes.")); }
 			}
 
+			/*
 			if (OperationFactory->Descriptor.bOutputToNewAttribute &&
 				!PCGEx::IsValidName(OperationFactory->Descriptor.TargetAttribute))
 			{
 				PCGE_LOG(Warning, GraphAndLog, FTEXT("A target sampler name is invalid and will be ignored."));
 				continue;
 			}
+			*/
 
 			UPCGExNeighborSampleOperation* Operation = OperationFactory->CreateOperation();
 			Context->SamplingOperations.Add(Operation);
@@ -200,10 +213,6 @@ bool FPCGExSampleNeighborsElement::ExecuteInternal(
 		Context->SetState(PCGExData::State_MergingData);
 	}
 
-#define PCGEX_NODE_TARGET \
-	const PCGExCluster::FNode& Node = Context->CurrentCluster->Nodes[NodeIndex]; \
-	PCGEx::FPointRef Target = Context->CurrentIO->GetOutPointRef(Node.PointIndex);
-
 	if (Context->IsState(PCGExData::State_MergingData))
 	{
 		auto Initialize = [&]()
@@ -223,19 +232,11 @@ bool FPCGExSampleNeighborsElement::ExecuteInternal(
 
 		auto ProcessNode = [&](const int32 NodeIndex)
 		{
-			PCGEX_NODE_TARGET
-			for (const UPCGExNeighborSampleOperation* Operation : Context->PointPointOperations) { Operation->ProcessNodeForPoints(Target, Node); }
-			for (const UPCGExNeighborSampleOperation* Operation : Context->PointEdgeOperations) { Operation->ProcessNodeForEdges(Target, Node); }
+			for (const UPCGExNeighborSampleOperation* Operation : Context->PointPointOperations) { Operation->ProcessNodeForPoints(NodeIndex); }
+			for (const UPCGExNeighborSampleOperation* Operation : Context->PointEdgeOperations) { Operation->ProcessNodeForEdges(NodeIndex); }
 		};
 
-		/*
-		Initialize();
-		
-		for(int i = 0; i < Context->CurrentCluster->Nodes.Num(); i++)		{			Context->GetAsyncManager()->Start<FPCGExSampleNeighborTask>(i, Context->CurrentIO);		}
-
-		Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork);
-		*/
-		if (!Context->Process(Initialize, ProcessNode, Context->CurrentCluster->Nodes.Num())) { return false; }
+		if (!Context->Process(Initialize, ProcessNode, Context->CurrentCluster->Nodes.Num(), true)) { return false; }
 
 		if (Context->BlenderFromEdges) { Context->BlenderFromEdges->Write(); }
 
@@ -244,10 +245,7 @@ bool FPCGExSampleNeighborsElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
 	{
-		PCGEX_WAIT_ASYNC
-
 		if (Context->BlenderFromEdges) { Context->BlenderFromEdges->Write(); }
-
 		Context->SetState(PCGExGraph::State_ReadyForNextEdges);
 	}
 
@@ -263,16 +261,11 @@ bool FPCGExSampleNeighborTask::ExecuteTask()
 {
 	const FPCGExSampleNeighborsContext* Context = Manager->GetContext<FPCGExSampleNeighborsContext>();
 
-	const PCGExCluster::FNode& Node = Context->CurrentCluster->Nodes[TaskIndex];
-	const PCGEx::FPointRef Target = Context->CurrentIO->GetOutPointRef(Node.PointIndex);
-
-	for (const UPCGExNeighborSampleOperation* Operation : Context->PointPointOperations) { Operation->ProcessNodeForPoints(Target, Node); }
-	for (const UPCGExNeighborSampleOperation* Operation : Context->PointEdgeOperations) { Operation->ProcessNodeForEdges(Target, Node); }
+	for (const UPCGExNeighborSampleOperation* Operation : Context->PointPointOperations) { Operation->ProcessNodeForPoints(TaskIndex); }
+	for (const UPCGExNeighborSampleOperation* Operation : Context->PointEdgeOperations) { Operation->ProcessNodeForEdges(TaskIndex); }
 
 	return true;
 }
-
-#undef PCGEX_NODE_TARGET
 
 #undef LOCTEXT_NAMESPACE
 #undef PCGEX_NAMESPACE

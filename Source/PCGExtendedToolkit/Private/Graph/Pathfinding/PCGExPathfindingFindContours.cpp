@@ -17,14 +17,14 @@ UPCGExFindContoursSettings::UPCGExFindContoursSettings(
 TArray<FPCGPinProperties> UPCGExFindContoursSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_POINTS(PCGExPathfinding::SourceSeedsLabel, "Seeds associated with the main input points", false, {})
+	PCGEX_PIN_POINTS(PCGExPathfinding::SourceSeedsLabel, "Seeds associated with the main input points", Required, {})
 	return PinProperties;
 }
 
 TArray<FPCGPinProperties> UPCGExFindContoursSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_POINTS(PCGExGraph::OutputPathsLabel, "Contours", false, {})
+	PCGEX_PIN_POINTS(PCGExGraph::OutputPathsLabel, "Contours", Required, {})
 	return PinProperties;
 }
 

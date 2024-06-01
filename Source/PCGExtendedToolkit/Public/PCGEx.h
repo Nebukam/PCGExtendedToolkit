@@ -24,6 +24,15 @@
 #define PCGEX_TRIM(_VALUE) _VALUE.SetNum(_VALUE.Num());
 
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION == 3
+enum class EPCGPinStatus : uint8
+{
+	Normal = 0,
+	Required,
+	Advanced
+};
+#endif
+
+#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION == 3
 #define PCGEX_FOREACH_SUPPORTEDTYPES(MACRO, ...) \
 MACRO(bool, Boolean, __VA_ARGS__)       \
 MACRO(int32, Integer32, __VA_ARGS__)      \

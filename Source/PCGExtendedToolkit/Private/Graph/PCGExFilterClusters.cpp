@@ -21,7 +21,7 @@ PCGExData::EInit UPCGExFilterClustersSettings::GetMainOutputInitMode() const { r
 TArray<FPCGPinProperties> UPCGExFilterClustersSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_POINT(PCGEx::SourceTargetsLabel, "Target points used to test for proximity", false, {})
+	PCGEX_PIN_POINT(PCGEx::SourceTargetsLabel, "Target points used to test for proximity", Required, {})
 	return PinProperties;
 }
 

@@ -13,14 +13,14 @@
 TArray<FPCGPinProperties> UPCGExCustomGraphProcessorSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_PARAMS(PCGExGraph::SourceSingleGraphLabel, "Graph Params. Data is de-duped internally.", false, {})
+	PCGEX_PIN_PARAMS(PCGExGraph::SourceSingleGraphLabel, "Graph Params. Data is de-duped internally.", Required, {})
 	return PinProperties;
 }
 
 TArray<FPCGPinProperties> UPCGExCustomGraphProcessorSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
-	PCGEX_PIN_PARAMS(PCGExGraph::OutputForwardGraphsLabel, "Graph Params forwarding. Data is de-duped internally.", false, {})
+	PCGEX_PIN_PARAMS(PCGExGraph::OutputForwardGraphsLabel, "Graph Params forwarding. Data is de-duped internally.", Required, {})
 	return PinProperties;
 }
 

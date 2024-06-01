@@ -20,7 +20,7 @@ UPCGExSampleNearestPointSettings::UPCGExSampleNearestPointSettings(
 TArray<FPCGPinProperties> UPCGExSampleNearestPointSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_POINT(PCGEx::SourceTargetsLabel, "The point data set to check against.", false, {})
+	PCGEX_PIN_POINT(PCGEx::SourceTargetsLabel, "The point data set to check against.", Required, {})
 	return PinProperties;
 }
 

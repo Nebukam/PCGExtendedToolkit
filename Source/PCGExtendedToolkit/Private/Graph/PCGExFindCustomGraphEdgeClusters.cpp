@@ -27,7 +27,7 @@ TArray<FPCGPinProperties> UPCGExFindCustomGraphEdgeClustersSettings::OutputPinPr
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
 	PinProperties.Pop(); //Remove graph output
 
-	PCGEX_PIN_POINTS(PCGExGraph::OutputEdgesLabel, "Point data representing edges.", false, {})
+	PCGEX_PIN_POINTS(PCGExGraph::OutputEdgesLabel, "Point data representing edges.", Required, {})
 	
 	return PinProperties;
 }
