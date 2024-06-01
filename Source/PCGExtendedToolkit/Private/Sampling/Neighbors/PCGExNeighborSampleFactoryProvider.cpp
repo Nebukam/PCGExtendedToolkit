@@ -46,7 +46,7 @@ UPCGExNeighborSampleOperation* UPCGNeighborSamplerFactoryBase::CreateOperation()
 TArray<FPCGPinProperties> UPCGExNeighborSampleProviderSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_PARAMS(PCGExNeighborSample::SourcePointFilters, "Filters used to check which node will be processed by the sampler or not.", Normal, {})
+	PCGEX_PIN_PARAMS(PCGExNeighborSample::SourcePointFilters, "Filters used to check which node will be processed by the sampler or not.", Advanced, {})
 	PCGEX_PIN_PARAMS(PCGExNeighborSample::SourceUseValueIfFilters, "Filters used to check if a node can be used as a value source or not.", Advanced, {})
 	return PinProperties;
 }
