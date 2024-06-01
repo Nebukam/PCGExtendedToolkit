@@ -3,7 +3,7 @@ layout: page
 parent: Heuristics
 grand_parent: Pathfinding
 title: Steepness
-subtitle: Subtitle
+subtitle: Favor flat paths
 color: white
 #summary: summary_goes_here
 splash: icons/icon_component.svg

@@ -2,7 +2,7 @@
 layout: page
 parent: Custom Graphs
 grand_parent: All Nodes
-title: Consolidate
+title: Sanitize Custom Graph
 subtitle: Rebuild a custom graph after editing.
 color: blue
 #summary: summary_goes_here

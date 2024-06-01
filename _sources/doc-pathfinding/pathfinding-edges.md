@@ -19,6 +19,9 @@ nav_order: 1
 
 {% include header_card_node %}
 
+> DOC TDB -- Heuristics underwent a thorough refactor that isn't documented yet. Each heuristic has its own node and they can be combined into the heuristic input of the pathfinding node. See the example project!
+{: .warning }
+
 {% include img a='details/details-pathfinding-edges.png' %} 
 
 | Property       | Description          |
@@ -32,7 +35,7 @@ nav_order: 1
 |**Modules**||
 |**Search Algorithm**| The search algorithm that will be used to solve pathfinding.<br>*Each module has individual settings and documentation -- See [Available Search Algorithms](#available-search-modules).* |
 |**Heuristics**| The base heuristics module that will be used during pathfinding.<br>*Each module has individual settings and documentation -- See [Available Heuristics](#available-heuristics-modules).* |
-|**Heuristics Modifiers**| This property group is available no matter what **Heuristics** have been picked.<br>*See {% include lk id='Heuristic Modifiers' %}.*|
+|**Heuristics Modifiers**| This property group is available no matter what **Heuristics** have been picked.<br>*See {% include lk id='Heuristic Attribute' %}.*|
 
 {% include embed id='settings-statistics' %}
 

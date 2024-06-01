@@ -28,4 +28,4 @@ This module offers an implementation of [Prim's algorithm](https://en.wikipedia.
 
 | Property       | Description          |
 |:-------------|:------------------|
-| Heuristics Modifiers           | See {% include lk id='Heuristic Modifiers' %}.|
+| Heuristics Modifiers           | See {% include lk id='Heuristic Attribute' %}.|

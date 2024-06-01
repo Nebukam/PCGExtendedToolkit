@@ -2,8 +2,8 @@
 layout: page
 parent: Heuristics
 grand_parent: Pathfinding
-title: Heuristic Modifiers
-subtitle: How to use heuristic modifiers
+title: Heuristic Attribute
+subtitle: Attribute-driven heuristics
 #summary: A summary of the informations & parameters available on every PCGEx node.
 splash: icons/icon_component.svg
 preview_img: docs/splash-heuristic-modifiers.png
@@ -13,7 +13,10 @@ nav_order: -1
 
 {% include header_card %}
 
-Heuristics modifier allows fine-grained and precise control over pathfinding constraints.
+> DOC TDB -- Heuristics underwent a thorough refactor that isn't documented yet. See the example project!
+{: .warning }
+
+Heuristics Attribute allows fine-grained and precise control over pathfinding constraints by leveraging user-defined attributes.
 {: .fs-5 .fw-400 } 
 
 >When dealing with modifiers, keep in mind that **lower values are considered better** than higher ones by the {% include lk id='Search' %} algorithms.
@@ -27,9 +30,6 @@ Heuristics modifier allows fine-grained and precise control over pathfinding con
 ---
 
 {% include imgc a='pathfinding/heuristic-modifier-list.png' %} 
-
-The heuristic modifiers are available on all edge-based pathfinding nodes.
-{: .infos-hl }
 
 ## Properties
 
