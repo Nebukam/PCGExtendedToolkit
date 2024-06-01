@@ -54,7 +54,7 @@ namespace PCGExNearestPoint
 		FTargetInfos Closest;
 		FTargetInfos Farthest;
 
-		void UpdateCompound(const FTargetInfos& Infos)
+		FORCEINLINE void UpdateCompound(const FTargetInfos& Infos)
 		{
 			UpdateCount++;
 
@@ -73,7 +73,7 @@ namespace PCGExNearestPoint
 			SampledRangeWidth = SampledRangeMax - SampledRangeMin;
 		}
 
-		double GetRangeRatio(const double Distance) const
+		FORCEINLINE double GetRangeRatio(const double Distance) const
 		{
 			return (Distance - SampledRangeMin) / SampledRangeWidth;
 		}
@@ -93,6 +93,7 @@ public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(SampleNearestPoint, "Sample : Nearest Point", "Sample nearest target points.");
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorSampler; }
 #endif
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 

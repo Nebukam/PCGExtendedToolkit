@@ -39,7 +39,7 @@ namespace PCGExPartition
 		int32 GetSubPartitionsNum();
 
 		FKPartition* GetPartition(int64 Key, FPCGExFilter::FRule* InRule);
-		void Add(const int64 Index);
+		FORCEINLINE void Add(const int64 Index);
 		void Register(TArray<FKPartition*>& Partitions);
 
 		void SortPartitions();
@@ -59,6 +59,7 @@ public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(PartitionByValues, "Partition by Values", "Outputs separate buckets of points based on an attribute' value. Each bucket is named after a unique attribute value. Note that it is recommended to use a Merge before.");
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorMiscAdd; }
 #endif
 
 protected:

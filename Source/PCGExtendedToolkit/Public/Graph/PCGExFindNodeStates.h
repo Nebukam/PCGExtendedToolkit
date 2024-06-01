@@ -80,7 +80,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFindNodeStatesContext : public FPCGExEdgesPr
 
 	virtual ~FPCGExFindNodeStatesContext() override;
 
-	TArray<TObjectPtr<UPCGExNodeStateDefinition>> StateDefinitions;
+	TArray<TObjectPtr<UPCGExNodeStateFactory>> StateDefinitions;
 	PCGExDataState::TStatesManager* StatesManager = nullptr;
 	TArray<int32> NodeIndices;
 };

@@ -28,7 +28,8 @@ public:
 
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(BridgeEdgeClusters, "Edges : Bridge Clusters", "Connects isolated edge clusters by their closest vertices.");
+	PCGEX_NODE_INFOS(BridgeEdgeClusters, "Graph : Bridge Clusters", "Connects isolated edge clusters by their closest vertices.");
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorGraph; }
 #endif
 
 protected:

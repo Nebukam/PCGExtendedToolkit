@@ -39,6 +39,7 @@ public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(PathsToEdgeClusters, "Path : To Edge Clusters", "Merge paths to edge clusters for glorious pathfinding inception");
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorGraphGen; }
 #endif
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 

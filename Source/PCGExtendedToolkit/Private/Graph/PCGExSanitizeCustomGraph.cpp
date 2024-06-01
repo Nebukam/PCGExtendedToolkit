@@ -1,7 +1,7 @@
 ﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Graph/PCGExConsolidateCustomGraph.h"
+#include "..\..\Public\Graph\PCGExSanitizeCustomGraph.h"
 #define PCGEX_NAMESPACE ConsolidateCustomGraph
 
 #define LOCTEXT_NAMESPACE "PCGExConsolidateCustomGraph"

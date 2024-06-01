@@ -56,7 +56,7 @@ namespace PCGExPolyLine
 		FSampleInfos Closest;
 		FSampleInfos Farthest;
 
-		void UpdateCompound(const FSampleInfos& Infos)
+		FORCEINLINE void UpdateCompound(const FSampleInfos& Infos)
 		{
 			UpdateCount++;
 
@@ -75,7 +75,7 @@ namespace PCGExPolyLine
 			SampledRangeWidth = SampledRangeMax - SampledRangeMin;
 		}
 
-		double GetRangeRatio(const double Distance) const
+		FORCEINLINE double GetRangeRatio(const double Distance) const
 		{
 			return (Distance - SampledRangeMin) / SampledRangeWidth;
 		}
@@ -99,6 +99,7 @@ public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(SampleNearestPolyline, "Sample : Nearest Polyline", "Find the closest transform on nearest polylines.");
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorSampler; }
 #endif
 
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;

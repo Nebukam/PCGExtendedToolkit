@@ -20,6 +20,7 @@ public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(RefreshSeed, "Refresh Seed", "Refresh point seed based on position.");
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorMiscWrite; }
 #endif
 
 protected:

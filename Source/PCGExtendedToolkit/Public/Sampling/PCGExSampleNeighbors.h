@@ -9,6 +9,8 @@
 
 #include "PCGExSampleNeighbors.generated.h"
 
+class UPCGExNeighborSampleOperation;
+
 namespace PCGExContours
 {
 	struct PCGEXTENDEDTOOLKIT_API FCandidate
@@ -35,34 +37,18 @@ public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(SampleNeighbors, "Sample : Neighbors", "Sample graph node' neighbors values.");
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorSampler; }
 #endif
+
+	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings interface
 
-	//~Begin UPCGExPointsProcessorSettings interface
 public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
-	//~End UPCGExPointsProcessorSettings interface
-
 	virtual PCGExData::EInit GetEdgeOutputInitMode() const override;
-
-	/** Distance method to be used for node & neighbors points. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
-	FPCGExDistanceSettings DistanceSettings;
-
-	/** Curve that balances weight over distance */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Weighting", meta=(PCG_Overridable))
-	TSoftObjectPtr<UCurveFloat> WeightOverDistance;
-
-	/** Attributes to sample from the neighboring vtx */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Attributes", meta=(PCG_Overridable))
-	TMap<FName, EPCGExDataBlendingType> VtxAttributes;
-
-	/** Attributes to sample from the neighboring edges */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Attributes", meta=(PCG_Overridable))
-	TMap<FName, EPCGExDataBlendingType> EdgeAttributes;
 
 private:
 	friend class FPCGExSampleNeighborsElement;
@@ -71,8 +57,23 @@ private:
 struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNeighborsContext : public FPCGExEdgesProcessorContext
 {
 	friend class FPCGExSampleNeighborsElement;
-
 	virtual ~FPCGExSampleNeighborsContext() override;
+
+	TArray<UPCGExNeighborSampleOperation*> SamplingOperations;
+	TArray<UPCGExNeighborSampleOperation*> PointPointOperations;
+	TArray<UPCGExNeighborSampleOperation*> PointEdgeOperations;
+
+	FPCGExBlendingSettings PointPointBlendingSettings;
+	FPCGExBlendingSettings PointEdgeBlendingSettings;
+
+	PCGExDataBlending::FMetadataBlender* BlenderFromPoints = nullptr;
+	PCGExDataBlending::FMetadataBlender* BlenderFromEdges = nullptr;
+
+	bool PrepareSettings(
+		FPCGExBlendingSettings& OutSettings,
+		TArray<UPCGExNeighborSampleOperation*>& OutOperations,
+		const PCGExData::FPointIO& FromPointIO,
+		EPCGExGraphValueSource Source) const;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExSampleNeighborsElement : public FPCGExEdgesProcessorElement
@@ -87,3 +88,15 @@ protected:
 	virtual bool Boot(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
+
+class PCGEXTENDEDTOOLKIT_API FPCGExSampleNeighborTask : public FPCGExNonAbandonableTask
+{
+public:
+	FPCGExSampleNeighborTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO) :
+		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO)
+	{
+	}
+
+	virtual bool ExecuteTask() override;
+};
+

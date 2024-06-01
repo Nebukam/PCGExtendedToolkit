@@ -8,38 +8,28 @@
 
 #include "Data/PCGExGraphDefinition.h"
 
-#include "PCGExCreateState.generated.h"
+#include "PCGExDataStateFactoryProvider.generated.h"
 
 /** Outputs a single GraphParam to be consumed by other nodes */
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
-class PCGEXTENDEDTOOLKIT_API UPCGExCreateStateSettings : public UPCGSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExStateFactoryProviderSettings : public UPCGExFactoryProviderSettings
 {
 	GENERATED_BODY()
 
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	bool bCacheResult = false;
-	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Param; }
-	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorFilter; }
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorFilterHub; }
 
 #endif
-	virtual FName GetMainOutputLabel() const;
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 
-protected:
 	//~End UPCGSettings
 
-	//~Begin UObject interface
-#if WITH_EDITOR
-
 public:
-	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
-#endif
-	//~End UObject interface
+	virtual UPCGExParamFactoryBase* CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory = nullptr) const override;
 
-public:
 	/** State name.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FName StateName = NAME_Default;
@@ -51,22 +41,14 @@ public:
 	/** State priority for conflict resolution. Higher values are applied last as to override lower-priority states.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	int32 Priority = 0;
-};
-
-class PCGEXTENDEDTOOLKIT_API FPCGExCreateStateElement : public IPCGElement
-{
-public:
-#if WITH_EDITOR
-	virtual bool ShouldLog() const override { return false; }
-#endif
 
 protected:
-	virtual bool Boot(FPCGContext* Context) const;
+	bool ValidateStateName(const FPCGContext* Context) const;
 
 	template <typename T>
 	T* CreateStateDefinition(const FPCGContext* Context) const
 	{
-		PCGEX_SETTINGS(CreateState)
+		PCGEX_SETTINGS(StateFactoryProvider)
 
 		T* OutState = NewObject<T>();
 
@@ -96,17 +78,4 @@ protected:
 
 		return OutState;
 	}
-
-	template <typename T>
-	static void OutputState(FPCGContext* Context, T* State)
-	{
-		PCGEX_SETTINGS(CreateState)
-
-		FPCGTaggedData& Output = Context->OutputData.TaggedData.Emplace_GetRef();
-		Output.Data = State;
-		Output.Pin = Settings->GetMainOutputLabel();
-	}
-
-public:
-	virtual FPCGContext* Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node) override;
 };

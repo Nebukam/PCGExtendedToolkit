@@ -18,6 +18,8 @@ namespace PCGExDataBlending
 	public:
 		bool bBlendProperties = true;
 
+		TMap<FName, FDataBlendingOperationBase*> OperationIdMap;
+		
 		virtual ~FMetadataBlender();
 
 		explicit FMetadataBlender(FPCGExBlendingSettings* InBlendingSettings);

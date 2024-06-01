@@ -8,6 +8,11 @@
 #include "Data/PCGExPointIO.h"
 #include "PCGExEdgeRefineOperation.generated.h"
 
+namespace PCGExHeuristics
+{
+	class THeuristicsHandler;
+}
+
 namespace PCGExGraph
 {
 	class FGraph;
@@ -29,7 +34,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExEdgeRefineOperation : public UPCGExOperation
 public:
 	virtual void PrepareForPointIO(PCGExData::FPointIO* InPointIO);
 	virtual void PreProcess(PCGExCluster::FCluster* InCluster, PCGExGraph::FGraph* InGraph, PCGExData::FPointIO* InEdgesIO);
-	virtual void Process(PCGExCluster::FCluster* InCluster, PCGExGraph::FGraph* InGraph, PCGExData::FPointIO* InEdgesIO);
+	virtual void Process(PCGExCluster::FCluster* InCluster, PCGExGraph::FGraph* InGraph, PCGExData::FPointIO* InEdgesIO, PCGExHeuristics::THeuristicsHandler* InHeuristics);
 
 	virtual void Cleanup() override;
 

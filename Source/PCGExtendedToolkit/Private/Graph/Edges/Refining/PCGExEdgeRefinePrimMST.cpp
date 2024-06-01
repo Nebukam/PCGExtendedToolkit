@@ -5,26 +5,14 @@
 #include "Graph/Edges/Refining/PCGExEdgeRefinePrimMST.h"
 
 #include "Graph/PCGExCluster.h"
-#include "Graph/Pathfinding/Heuristics/PCGExHeuristicLocalDistance.h"
+#include "Graph/Pathfinding/Heuristics/PCGExHeuristics.h"
 #include "Graph/Pathfinding/Search/PCGExScoredQueue.h"
 
-void UPCGExEdgeRefinePrimMST::PrepareForPointIO(PCGExData::FPointIO* InPointIO)
-{
-	Super::PrepareForPointIO(InPointIO);
-}
-
-void UPCGExEdgeRefinePrimMST::PreProcess(PCGExCluster::FCluster* InCluster, PCGExGraph::FGraph* InGraph, PCGExData::FPointIO* InEdgesIO)
-{
-	Super::PreProcess(InCluster, InGraph, InEdgesIO);
-
-	HeuristicsOperation = NewObject<UPCGExHeuristicLocalDistance>(); // Leak?
-
-	HeuristicsModifiers.PrepareForData(*PointIO, *InEdgesIO);
-	HeuristicsOperation->ReferenceWeight = HeuristicsModifiers.ReferenceWeight;
-	HeuristicsOperation->PrepareForData(InCluster);
-}
-
-void UPCGExEdgeRefinePrimMST::Process(PCGExCluster::FCluster* InCluster, PCGExGraph::FGraph* InGraph, PCGExData::FPointIO* InEdgesIO)
+void UPCGExEdgeRefinePrimMST::Process(
+	PCGExCluster::FCluster* InCluster,
+	PCGExGraph::FGraph* InGraph,
+	PCGExData::FPointIO* InEdgesIO,
+	PCGExHeuristics::THeuristicsHandler* InHeuristics)
 {
 	const PCGExCluster::FNode* NoNode = new PCGExCluster::FNode();
 	const int32 NumNodes = InCluster->Nodes.Num();
@@ -59,8 +47,7 @@ void UPCGExEdgeRefinePrimMST::Process(PCGExCluster::FCluster* InCluster, PCGExGr
 			const PCGExCluster::FNode& AdjacentNode = InCluster->Nodes[AdjacentIndex];
 			const PCGExGraph::FIndexedEdge& Edge = InCluster->GetEdgeFromNodeIndices(CurrentNodeIndex, AdjacentIndex);
 
-			double Score = HeuristicsOperation->GetEdgeScore(Current, AdjacentNode, Edge, *NoNode, *NoNode);
-			Score += HeuristicsModifiers.GetScore(AdjacentNode.PointIndex, Edge.PointIndex);
+			const double Score = InHeuristics->GetEdgeScore(Current, AdjacentNode, Edge, *NoNode, *NoNode);
 
 			if (Score >= ScoredQueue->Scores[AdjacentIndex]) { continue; }
 
@@ -81,10 +68,4 @@ void UPCGExEdgeRefinePrimMST::Process(PCGExCluster::FCluster* InCluster, PCGExGr
 	Parent.Empty();
 	PCGEX_DELETE(ScoredQueue)
 	PCGEX_DELETE(NoNode)
-}
-
-void UPCGExEdgeRefinePrimMST::Cleanup()
-{
-	HeuristicsModifiers.Cleanup();
-	Super::Cleanup();
 }

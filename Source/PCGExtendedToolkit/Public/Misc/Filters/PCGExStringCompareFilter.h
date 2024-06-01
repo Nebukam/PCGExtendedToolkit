@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExCompare.h"
+#include "PCGExFilterFactoryProvider.h"
 #include "UObject/Object.h"
 
 #include "Data/PCGExDataFilter.h"
@@ -55,18 +56,14 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExStringCompareFilterDescriptor
 	/** Operand B for testing -- Will be broadcasted to `double` under the hood. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="CompareAgainst==EPCGExOperandType::Constant", EditConditionHides))
 	FString OperandBConstant = TEXT("PCGEx");
-
-#if WITH_EDITOR
-	FString GetDisplayName() const;
-#endif
 };
 
 
 /**
  * 
  */
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGExStringCompareFilterDefinition : public UPCGExFilterDefinitionBase
+UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
+class PCGEXTENDEDTOOLKIT_API UPCGExStringCompareFilterFactory : public UPCGExFilterFactoryBase
 {
 	GENERATED_BODY()
 
@@ -86,31 +83,30 @@ public:
 		OperandBConstant = Descriptor.OperandBConstant;
 	}
 
-	virtual PCGExDataFilter::TFilterHandler* CreateHandler() const override;
-	virtual void BeginDestroy() override;
+	virtual PCGExDataFilter::TFilter* CreateFilter() const override;
 };
 
 namespace PCGExPointsFilter
 {
-	class PCGEXTENDEDTOOLKIT_API TStringComparisonHandler : public PCGExDataFilter::TFilterHandler
+	class PCGEXTENDEDTOOLKIT_API TStringCompareFilter : public PCGExDataFilter::TFilter
 	{
 	public:
-		explicit TStringComparisonHandler(const UPCGExStringCompareFilterDefinition* InDefinition)
-			: TFilterHandler(InDefinition), CompareFilter(InDefinition)
+		explicit TStringCompareFilter(const UPCGExStringCompareFilterFactory* InFactory)
+			: TFilter(InFactory), TypedFilterFactory(InFactory)
 		{
 		}
 
-		const UPCGExStringCompareFilterDefinition* CompareFilter;
+		const UPCGExStringCompareFilterFactory* TypedFilterFactory;
 
 		PCGEx::TFAttributeReader<FString>* OperandA = nullptr;
 		PCGEx::TFAttributeReader<FString>* OperandB = nullptr;
 
 		virtual void Capture(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO) override;
-		virtual bool Test(const int32 PointIndex) const override;
+		FORCEINLINE virtual bool Test(const int32 PointIndex) const override;
 
-		virtual ~TStringComparisonHandler() override
+		virtual ~TStringCompareFilter() override
 		{
-			CompareFilter = nullptr;
+			TypedFilterFactory = nullptr;
 			PCGEX_DELETE(OperandA)
 			PCGEX_DELETE(OperandB)
 		}
@@ -119,45 +115,29 @@ namespace PCGExPointsFilter
 
 ///
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
-class PCGEXTENDEDTOOLKIT_API UPCGExStringCompareFilterDefinitionSettings : public UPCGSettings
+UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
+class PCGEXTENDEDTOOLKIT_API UPCGExStringCompareFilterProviderSettings : public UPCGExFilterProviderSettings
 {
 	GENERATED_BODY()
 
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	bool bCacheResult = false;
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
 		CompareFilterDefinition, "Filter : String Compare", "Creates a filter definition that compares two attribute values.",
-		FName(Descriptor.GetDisplayName()))
-	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Param; }
-	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorFilter; }
+		FName(GetDisplayName()))
 #endif
-
-	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
-	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
-
-protected:
-	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
 
 public:
 	/** State name.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
 	FPCGExStringCompareFilterDescriptor Descriptor;
-};
 
-class PCGEXTENDEDTOOLKIT_API FPCGExStringCompareFilterDefinitionElement : public IPCGElement
-{
 public:
+	virtual UPCGExParamFactoryBase* CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
+
 #if WITH_EDITOR
-	virtual bool ShouldLog() const override { return false; }
+	virtual FString GetDisplayName() const override;
 #endif
-
-protected:
-	virtual bool ExecuteInternal(FPCGContext* Context) const override;
-
-public:
-	virtual FPCGContext* Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node) override;
 };

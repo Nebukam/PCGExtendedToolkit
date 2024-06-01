@@ -106,23 +106,23 @@ namespace PCGExData
 
 		FName DefaultOutputLabel = PCGEx::OutputPointsLabel;
 
-		const FPCGPoint& GetInPoint(const int32 Index) const { return In->GetPoints()[Index]; }
-		const FPCGPoint& GetOutPoint(const int32 Index) const { return Out->GetPoints()[Index]; }
-		FPCGPoint& GetMutablePoint(const int32 Index) const { return Out->GetMutablePoints()[Index]; }
+		FORCEINLINE const FPCGPoint& GetInPoint(const int32 Index) const { return In->GetPoints()[Index]; }
+		FORCEINLINE const FPCGPoint& GetOutPoint(const int32 Index) const { return Out->GetPoints()[Index]; }
+		FORCEINLINE FPCGPoint& GetMutablePoint(const int32 Index) const { return Out->GetMutablePoints()[Index]; }
 
-		PCGEx::FPointRef GetInPointRef(const int32 Index) const { return PCGEx::FPointRef(In->GetPoints()[Index], Index); }
-		PCGEx::FPointRef GetOutPointRef(const int32 Index) const { return PCGEx::FPointRef(Out->GetPoints()[Index], Index); }
+		FORCEINLINE PCGEx::FPointRef GetInPointRef(const int32 Index) const { return PCGEx::FPointRef(In->GetPoints()[Index], Index); }
+		FORCEINLINE PCGEx::FPointRef GetOutPointRef(const int32 Index) const { return PCGEx::FPointRef(Out->GetPoints()[Index], Index); }
 
-		const FPCGPoint* TryGetInPoint(const int32 Index) const { return In && In->GetPoints().IsValidIndex(Index) ? &In->GetPoints()[Index] : nullptr; }
-		const FPCGPoint* TryGetOutPoint(const int32 Index) const { return Out && Out->GetPoints().IsValidIndex(Index) ? &Out->GetPoints()[Index] : nullptr; }
+		FORCEINLINE const FPCGPoint* TryGetInPoint(const int32 Index) const { return In && In->GetPoints().IsValidIndex(Index) ? &In->GetPoints()[Index] : nullptr; }
+		FORCEINLINE const FPCGPoint* TryGetOutPoint(const int32 Index) const { return Out && Out->GetPoints().IsValidIndex(Index) ? &Out->GetPoints()[Index] : nullptr; }
 
-		void InitPoint(FPCGPoint& Point, PCGMetadataEntryKey FromKey) const;
-		void InitPoint(FPCGPoint& Point, const FPCGPoint& FromPoint) const;
-		void InitPoint(FPCGPoint& Point) const;
-		FPCGPoint& CopyPoint(const FPCGPoint& FromPoint, int32& OutIndex) const;
-		FPCGPoint& NewPoint(int32& OutIndex) const;
-		void AddPoint(FPCGPoint& Point, int32& OutIndex, bool bInit) const;
-		void AddPoint(FPCGPoint& Point, int32& OutIndex, const FPCGPoint& FromPoint) const;
+		FORCEINLINE void InitPoint(FPCGPoint& Point, PCGMetadataEntryKey FromKey) const;
+		FORCEINLINE void InitPoint(FPCGPoint& Point, const FPCGPoint& FromPoint) const;
+		FORCEINLINE void InitPoint(FPCGPoint& Point) const;
+		FORCEINLINE FPCGPoint& CopyPoint(const FPCGPoint& FromPoint, int32& OutIndex) const;
+		FORCEINLINE FPCGPoint& NewPoint(int32& OutIndex) const;
+		FORCEINLINE void AddPoint(FPCGPoint& Point, int32& OutIndex, bool bInit) const;
+		FORCEINLINE void AddPoint(FPCGPoint& Point, int32& OutIndex, const FPCGPoint& FromPoint) const;
 
 		void SetNumInitialized(const int32 NumPoints, const bool bForceInit = false) const;
 

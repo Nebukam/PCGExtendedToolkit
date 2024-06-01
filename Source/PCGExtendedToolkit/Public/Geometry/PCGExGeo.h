@@ -79,13 +79,13 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGeo2DProjectionSettings
 		Cleanup();
 	}
 
-	FVector Project(const FVector& InPosition, const int32 PointIndex) const
+	FORCEINLINE FVector Project(const FVector& InPosition, const int32 PointIndex) const
 	{
 		return NormalGetter ? FRotationMatrix::MakeFromZ(NormalGetter->SafeGet(PointIndex, ProjectionNormal).GetSafeNormal(1E-08, FVector::UpVector)).InverseTransformPosition(InPosition) :
 			       DefaultMatrix.InverseTransformPosition(InPosition);
 	}
 
-	FVector Project(const FVector& InPosition) const
+	FORCEINLINE FVector Project(const FVector& InPosition) const
 	{
 		return DefaultMatrix.InverseTransformPosition(InPosition);
 	}
@@ -144,7 +144,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExLloydSettings
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bLloydRelax", ClampMin=0, ClampMax=1))
 	double Influence = 1;
 
-	bool IsValid() const { return Iterations > 0 && Influence > 0; }
+	FORCEINLINE bool IsValid() const { return Iterations > 0 && Influence > 0; }
 };
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Cell Center"))
@@ -165,14 +165,14 @@ namespace PCGExGeo
 	constexpr PCGExMT::AsyncState State_PreprocessPositions = __COUNTER__;
 	constexpr PCGExMT::AsyncState State_ProcessingProjectedPoints = __COUNTER__;
 
-	static double S_U(
+	FORCEINLINE static double S_U(
 		const FVector& A, const FVector& B, const FVector& C, const FVector& D,
 		const FVector& E, const FVector& F, const FVector& G, const FVector& H)
 	{
 		return (A.Z - B.Z) * (C.X * D.Y - D.X * C.Y) - (E.Z - F.Z) * (G.X * H.Y - H.X * G.Y);
 	};
 
-	static double S_D(
+	FORCEINLINE static double S_D(
 		const int FirstComponent, const int SecondComponent,
 		FVector A, FVector B, FVector C)
 	{
@@ -182,7 +182,7 @@ namespace PCGExGeo
 			C[FirstComponent] * (A[SecondComponent] - B[SecondComponent]);
 	};
 
-	static double S_E(
+	FORCEINLINE static double S_E(
 		const int FirstComponent, const int SecondComponent,
 		const FVector& A, const FVector& B, const FVector& C, const FVector& D,
 		const double RA, const double RB, const double RC, const double RD, const double UVW)
@@ -193,7 +193,7 @@ namespace PCGExGeo
 
 	static double S_SQ(const FVector& P) { return P.X * P.X + P.Y * P.Y + P.Z * P.Z; };
 
-	static bool FindSphereFrom4Points(const FVector& A, const FVector& B, const FVector& C, const FVector& D, FSphere& OutSphere)
+	FORCEINLINE static bool FindSphereFrom4Points(const FVector& A, const FVector& B, const FVector& C, const FVector& D, FSphere& OutSphere)
 	{
 		//Shamelessly stolen from https://stackoverflow.com/questions/37449046/how-to-calculate-the-sphere-center-with-4-points
 
@@ -223,7 +223,7 @@ namespace PCGExGeo
 		return true;
 	}
 
-	static bool FindSphereFrom4Points(const TArrayView<FVector>& Positions, const int32 (&Vtx)[4], FSphere& OutSphere)
+	FORCEINLINE static bool FindSphereFrom4Points(const TArrayView<FVector>& Positions, const int32 (&Vtx)[4], FSphere& OutSphere)
 	{
 		return FindSphereFrom4Points(
 			Positions[Vtx[0]],
@@ -233,7 +233,7 @@ namespace PCGExGeo
 			OutSphere);
 	}
 
-	static void GetCircumcenter(const TArrayView<FVector>& Positions, const int32 (&Vtx)[3], FVector& OutCircumcenter)
+	FORCEINLINE static void GetCircumcenter(const TArrayView<FVector>& Positions, const int32 (&Vtx)[3], FVector& OutCircumcenter)
 	{
 		// Calculate midpoints of two sides
 		const FVector& A = Positions[Vtx[0]];
@@ -282,21 +282,21 @@ namespace PCGExGeo
 	}
 	*/
 
-	static void GetCentroid(const TArrayView<FVector>& Positions, const int32 (&Vtx)[4], FVector& OutCentroid)
+	FORCEINLINE static void GetCentroid(const TArrayView<FVector>& Positions, const int32 (&Vtx)[4], FVector& OutCentroid)
 	{
 		OutCentroid = FVector::Zero();
 		for (int i = 0; i < 4; i++) { OutCentroid += Positions[Vtx[i]]; }
 		OutCentroid /= 4;
 	}
 
-	static void GetCentroid(const TArrayView<FVector>& Positions, const int32 (&Vtx)[3], FVector& OutCentroid)
+	FORCEINLINE static void GetCentroid(const TArrayView<FVector>& Positions, const int32 (&Vtx)[3], FVector& OutCentroid)
 	{
 		OutCentroid = FVector::Zero();
 		for (int i = 0; i < 3; i++) { OutCentroid += Positions[Vtx[i]]; }
 		OutCentroid /= 3;
 	}
 
-	static void GetLongestEdge(const TArrayView<FVector>& Positions, const int32 (&Vtx)[3], uint64& Edge)
+	FORCEINLINE static void GetLongestEdge(const TArrayView<FVector>& Positions, const int32 (&Vtx)[3], uint64& Edge)
 	{
 		double Dist = TNumericLimits<double>::Min();
 		for (int i = 0; i < 3; i++)
@@ -313,7 +313,7 @@ namespace PCGExGeo
 		}
 	}
 
-	static void GetLongestEdge(const TArrayView<FVector>& Positions, const int32 (&Vtx)[4], uint64& Edge)
+	FORCEINLINE static void GetLongestEdge(const TArrayView<FVector>& Positions, const int32 (&Vtx)[4], uint64& Edge)
 	{
 		double Dist = TNumericLimits<double>::Min();
 		for (int i = 0; i < 4; i++)
@@ -330,7 +330,7 @@ namespace PCGExGeo
 		}
 	}
 
-	static void PointsToPositions(const TArray<FPCGPoint>& Points, TArray<FVector>& OutPositions)
+	FORCEINLINE static void PointsToPositions(const TArray<FPCGPoint>& Points, TArray<FVector>& OutPositions)
 	{
 		const int32 NumPoints = Points.Num();
 		OutPositions.SetNum(NumPoints);

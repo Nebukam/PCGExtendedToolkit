@@ -19,37 +19,16 @@
 TArray<FPCGPinProperties> UPCGExPathfindingProcessorSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-
-	if (GetRequiresSeeds())
-	{
-		FPCGPinProperties& PinPropertySeeds = PinProperties.Emplace_GetRef(PCGExPathfinding::SourceSeedsLabel, EPCGDataType::Point, false, false);
-
-#if WITH_EDITOR
-		PinPropertySeeds.Tooltip = FTEXT("Seeds points for pathfinding.");
-#endif
-	}
-
-	if (GetRequiresGoals())
-	{
-		FPCGPinProperties& PinPropertyGoals = PinProperties.Emplace_GetRef(PCGExPathfinding::SourceGoalsLabel, EPCGDataType::Point, false, false);
-
-#if WITH_EDITOR
-		PinPropertyGoals.Tooltip = FTEXT("Goals points for pathfinding.");
-#endif
-	}
-
+	if (GetRequiresSeeds()) { PCGEX_PIN_POINT(PCGExPathfinding::SourceSeedsLabel, "Seeds points for pathfinding.", false, {}) }
+	if (GetRequiresGoals()) { PCGEX_PIN_POINT(PCGExPathfinding::SourceGoalsLabel, "Goals points for pathfinding.", false, {}) }
+	PCGEX_PIN_PARAMS(PCGExPathfinding::SourceHeuristicsLabel, "Heuristics.", false, {})
 	return PinProperties;
 }
 
 TArray<FPCGPinProperties> UPCGExPathfindingProcessorSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	FPCGPinProperties& PinPathsOutput = PinProperties.Emplace_GetRef(PCGExGraph::OutputPathsLabel, EPCGDataType::Point);
-
-#if WITH_EDITOR
-	PinPathsOutput.Tooltip = FTEXT("Paths output.");
-#endif
-
+	PCGEX_PIN_POINTS(PCGExGraph::OutputPathsLabel, "Paths output.", false, {})
 	return PinProperties;
 }
 
@@ -68,8 +47,6 @@ void UPCGExPathfindingProcessorSettings::PostEditChangeProperty(FPropertyChanged
 {
 	if (GoalPicker) { GoalPicker->UpdateUserFacingInfos(); }
 	if (SearchAlgorithm) { SearchAlgorithm->UpdateUserFacingInfos(); }
-	if (Heuristics) { Heuristics->UpdateUserFacingInfos(); }
-	//if (Blending) { Blending->UpdateUserFacingInfos(); }
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
 #endif
@@ -84,9 +61,8 @@ FPCGExPathfindingProcessorContext::~FPCGExPathfindingProcessorContext()
 {
 	PCGEX_TERMINATE_ASYNC
 
-	if (HeuristicsModifiers) { HeuristicsModifiers->Cleanup(); }
+	PCGEX_DELETE(HeuristicsHandler)
 
-	PCGEX_DELETE(GlobalExtraWeights)
 	PCGEX_DELETE(SeedsPoints)
 	PCGEX_DELETE(GoalsPoints)
 	PCGEX_DELETE(OutputPaths)
@@ -108,8 +84,8 @@ bool FPCGExPathfindingProcessorElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_OPERATION_BIND(GoalPicker, UPCGExGoalPickerRandom)
 	PCGEX_OPERATION_BIND(SearchAlgorithm, UPCGExSearchAStar)
-	PCGEX_OPERATION_BIND(Heuristics, UPCGExHeuristicDistance)
-	//PCGEX_OPERATION_BIND(Blending, UPCGExSubPointsBlendInterpolate)
+
+	Context->HeuristicsHandler = new PCGExHeuristics::THeuristicsHandler(Context);
 
 	if (Settings->GetRequiresSeeds())
 	{
@@ -128,10 +104,6 @@ bool FPCGExPathfindingProcessorElement::Boot(FPCGContext* InContext) const
 			return false;
 		}
 	}
-
-	Context->HeuristicsModifiers = const_cast<FPCGExHeuristicModifiersSettings*>(&Settings->HeuristicsModifiers);
-	Context->HeuristicsModifiers->LoadCurves();
-	Context->Heuristics->ReferenceWeight = Context->HeuristicsModifiers->ReferenceWeight;
 
 	if (Settings->bUseSeedAttributeToTagPath)
 	{

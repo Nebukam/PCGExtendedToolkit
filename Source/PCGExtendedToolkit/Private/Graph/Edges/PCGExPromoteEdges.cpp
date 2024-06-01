@@ -176,7 +176,7 @@ bool FPCGExPromoteEdgesElement::ExecuteInternal(
 			}
 			else
 			{
-				OutData->ConditionalBeginDestroy(); // Ugh
+				PCGEX_DELETE_UOBJECT(OutData)
 			}
 		};
 

@@ -606,29 +606,25 @@ namespace PCGExGraph
  * 
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGExSocketDefinition : public UPCGExParamDataBase
+class PCGEXTENDEDTOOLKIT_API UPCGExSocketFactory : public UPCGExParamFactoryBase
 {
 	GENERATED_BODY()
 
 public:
 	FPCGExSocketDescriptor Descriptor;
-
-	virtual void BeginDestroy() override;
 };
 
 /**
  * 
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGExSocketStateDefinition : public UPCGExStateDefinitionBase
+class PCGEXTENDEDTOOLKIT_API UPCGExSocketStateFactory : public UPCGExDataStateFactoryBase
 {
 	GENERATED_BODY()
 
 public:
-	TArray<FPCGExSocketTestDescriptor> Tests;
-
-	virtual PCGExDataFilter::TFilterHandler* CreateHandler() const override;
-
+	TArray<FPCGExSocketTestDescriptor> Filters;
+	virtual PCGExDataFilter::TFilter* CreateFilter() const override;
 	virtual void BeginDestroy() override;
 };
 
@@ -811,7 +807,7 @@ namespace PCGExGraph
 			for (int i = 0; i < ParamsSources.Num(); i++)
 			{
 				FPCGTaggedData& OutputRef = Context->OutputData.TaggedData.Add_GetRef(ParamsSources[i]);
-				OutputRef.Pin = OutputParamsLabel;
+				OutputRef.Pin = OutputForwardGraphsLabel;
 				OutputRef.Data = Params[i];
 			}
 		}
@@ -837,7 +833,7 @@ namespace PCGExGraph
 		TArray<FPCGTaggedData> TaggedData = Context->InputData.GetInputsByPin(Pin);
 		for (const FPCGTaggedData& TData : TaggedData)
 		{
-			const UPCGExSocketDefinition* SocketData = Cast<UPCGExSocketDefinition>(TData.Data);
+			const UPCGExSocketFactory* SocketData = Cast<UPCGExSocketFactory>(TData.Data);
 			if (!SocketData) { continue; }
 			bool bNameOverlap = false;
 
@@ -860,12 +856,12 @@ namespace PCGExGraph
 		}
 	}
 
-	class PCGEXTENDEDTOOLKIT_API FSocketStateHandler : public PCGExDataState::TStateHandler
+	class PCGEXTENDEDTOOLKIT_API FSocketStateHandler : public PCGExDataState::TDataState
 	{
 	public:
-		explicit FSocketStateHandler(const UPCGExSocketStateDefinition* InDefinition);
+		explicit FSocketStateHandler(const UPCGExSocketStateFactory* InDefinition);
 
-		const UPCGExSocketStateDefinition* SocketStateDefinition = nullptr;
+		const UPCGExSocketStateFactory* SocketStateDefinition = nullptr;
 		TArray<FPCGMetadataAttribute<int32>*> EdgeTypeAttributes;
 		TArray<PCGEx::TFAttributeReader<int32>*> EdgeTypeReaders;
 

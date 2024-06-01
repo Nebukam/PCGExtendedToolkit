@@ -1,11 +1,9 @@
 ﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
-
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicDirection.h"
 
-
-void UPCGExHeuristicDirection::PrepareForData(PCGExCluster::FCluster* InCluster)
+void UPCGExHeuristicDirection::PrepareForCluster(PCGExCluster::FCluster* InCluster)
 {
 	if (bInvert)
 	{
@@ -17,7 +15,7 @@ void UPCGExHeuristicDirection::PrepareForData(PCGExCluster::FCluster* InCluster)
 		OutMin = 0;
 		OutMax = 1;
 	}
-	Super::PrepareForData(InCluster);
+	Super::PrepareForCluster(InCluster);
 }
 
 double UPCGExHeuristicDirection::GetGlobalScore(
@@ -41,8 +39,25 @@ double UPCGExHeuristicDirection::GetEdgeScore(
 	return FMath::Max(0, ScoreCurveObj->GetFloatValue(PCGExMath::Remap(Dot, -1, 1, OutMin, OutMax))) * ReferenceWeight;
 }
 
-void UPCGExHeuristicDirection::ApplyOverrides()
+UPCGExHeuristicOperation* UPCGHeuristicsFactoryDirection::CreateOperation() const
 {
-	Super::ApplyOverrides();
-	PCGEX_OVERRIDE_OP_PROPERTY(bInvert, FName(TEXT("Heuristics/Invert")), EPCGMetadataTypes::Boolean);
+	UPCGExHeuristicDirection* NewOperation = NewObject<UPCGExHeuristicDirection>();
+	PCGEX_FORWARD_HEURISTIC_DESCRIPTOR
+	return NewOperation;
 }
+
+UPCGExParamFactoryBase* UPCGExHeuristicsDirectionProviderSettings::CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const
+{
+	UPCGHeuristicsFactoryDirection* NewFactory = NewObject<UPCGHeuristicsFactoryDirection>();
+	PCGEX_FORWARD_HEURISTIC_FACTORY
+	return Super::CreateFactory(InContext, NewFactory);
+}
+
+#if WITH_EDITOR
+FString UPCGExHeuristicsDirectionProviderSettings::GetDisplayName() const
+{
+	return GetDefaultNodeName().ToString()
+		+ TEXT(" @ ")
+		+ FString::Printf(TEXT("%.3f"), (static_cast<int32>(1000 * Descriptor.WeightFactor) / 1000.0));
+}
+#endif

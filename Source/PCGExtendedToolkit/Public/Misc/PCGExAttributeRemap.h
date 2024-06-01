@@ -48,6 +48,7 @@ public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(AttributeRemap, "Attribute Remap", "Remap a single property or attribute.");
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorMiscWrite; }
 #endif
 
 protected:

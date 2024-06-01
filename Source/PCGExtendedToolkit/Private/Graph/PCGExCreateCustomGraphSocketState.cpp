@@ -11,48 +11,30 @@
 
 FName UPCGExCreateCustomGraphSocketStateSettings::GetMainOutputLabel() const { return PCGExGraph::OutputSocketStateLabel; }
 
-FPCGElementPtr UPCGExCreateCustomGraphSocketStateSettings::CreateElement() const { return MakeShared<FPCGExCreateCustomGraphSocketStateElement>(); }
-
-#if WITH_EDITOR
-void UPCGExCreateCustomGraphSocketStateSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+UPCGExParamFactoryBase* UPCGExCreateCustomGraphSocketStateSettings::CreateFactory(FPCGContext* Context, UPCGExParamFactoryBase* InFactory) const
 {
-	Super::PostEditChangeProperty(PropertyChangedEvent);
-}
-#endif
+	if (!ValidateStateName(Context)) { return nullptr; }
 
-bool FPCGExCreateCustomGraphSocketStateElement::ExecuteInternal(
-	FPCGContext* Context) const
-{
-	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExCreateCustomGraphSocketStateElement::Execute);
+	TArray<FPCGExSocketTestDescriptor> ValidDescriptors;
 
-	PCGEX_SETTINGS(CreateCustomGraphSocketState)
-
-	if (!Boot(Context)) { return true; }
-
-	UPCGExSocketStateDefinition* OutState = CreateStateDefinition<UPCGExSocketStateDefinition>(Context);
-
-	for (const FPCGExSocketTestDescriptor& Descriptor : Settings->Tests)
+	for (const FPCGExSocketTestDescriptor& Descriptor : Tests)
 	{
 		if (!Descriptor.bEnabled) { continue; }
-
 		if (Descriptor.SocketName.IsNone() || !FPCGMetadataAttributeBase::IsValidName(Descriptor.SocketName.ToString()))
 		{
-			PCGE_LOG(Error, GraphAndLog, FTEXT("A socket name is invalid; Cannot be 'None' and can only contain the following special characters:[ ],[_],[-],[/]"));
+			PCGE_LOG_C(Error, GraphAndLog, Context, FTEXT("A socket name is invalid; Cannot be 'None' and can only contain the following special characters:[ ],[_],[-],[/]"));
 			continue;
 		}
 
-		OutState->Tests.Add(Descriptor);
+		ValidDescriptors.Add(Descriptor);
 	}
 
-	if (OutState->Tests.IsEmpty())
-	{
-		OutState->ConditionalBeginDestroy();
-		return true;
-	}
+	if (ValidDescriptors.IsEmpty()) { return nullptr; }
 
-	OutputState(Context, OutState);
+	UPCGExSocketStateFactory* OutState = CreateStateDefinition<UPCGExSocketStateFactory>(Context);
+	OutState->Filters.Append(ValidDescriptors);
 
-	return true;
+	return OutState;
 }
 
 #undef LOCTEXT_NAMESPACE

@@ -17,6 +17,7 @@
 #define FSTRING(_TEXT) FString(_TEXT)
 
 #define PCGEX_DELETE(_VALUE) if(_VALUE){ delete _VALUE; _VALUE = nullptr; }
+#define PCGEX_DELETE_UOBJECT(_VALUE) if(_VALUE){ if (_VALUE->IsRooted()){_VALUE->RemoveFromRoot();} _VALUE->MarkAsGarbage(); _VALUE = nullptr; } // ConditionalBeginDestroy
 #define PCGEX_DELETE_TARRAY(_VALUE) for(const auto* Item : _VALUE){ delete Item; } _VALUE.Empty();
 #define PCGEX_DELETE_TMAP(_VALUE, _TYPE){TArray<_TYPE> Keys; _VALUE.GetKeys(Keys); for (const _TYPE Key : Keys) { delete *_VALUE.Find(Key); } _VALUE.Empty(); Keys.Empty(); }
 #define PCGEX_CLEANUP(_VALUE) _VALUE.Cleanup();
@@ -242,16 +243,38 @@ namespace PCGEx
 	const FName SourceTargetsLabel = TEXT("InTargets");
 	const FName OutputPointsLabel = TEXT("Out");
 
+	
 	constexpr FLinearColor NodeColorDebug = FLinearColor(1.0f, 0.0f, 0.0f, 1.0f);
-	constexpr FLinearColor NodeColorGraph = FLinearColor(80.0f / 255.0f, 241.0f / 255.0f, 168.0f / 255.0f, 1.0f);
-	constexpr FLinearColor NodeColorExParam = FLinearColor(254.0f / 255.0f, 132.0f / 255.0f, 0.1f / 255.0f, 1.0f);
-	constexpr FLinearColor NodeColorFilter = FLinearColor(21.0f / 255.0f, 193.0f / 255.0f, 33.0f / 255.0f, 1.0f);
-	constexpr FLinearColor NodeColorPathfinding = FLinearColor(80.0f / 255.0f, 241.0f / 255.0f, 100.0f / 255.0f, 1.0f);
-	constexpr FLinearColor NodeColorEdge = FLinearColor(100.0f / 255.0f, 241.0f / 255.0f, 100.0f / 255.0f, 1.0f);
-	constexpr FLinearColor NodeColorPath = FLinearColor(50.0f / 255.0f, 150.0f / 255.0f, 241.0f / 255.0f, 1.0f);
+	constexpr FLinearColor NodeColorMisc = FLinearColor(0.958333,0.961800,1.000000,1.000000);
+	constexpr FLinearColor NodeColorMiscWrite = FLinearColor(1.000000,0.316174,0.000000,1.000000);
+	constexpr FLinearColor NodeColorMiscAdd = FLinearColor(0.000000,1.000000,0.298310,1.000000);
+	constexpr FLinearColor NodeColorMiscRemove = FLinearColor(0.05,0.01,0.01,1.000000);
+	
+	constexpr FLinearColor NodeColorSampler = FLinearColor(1.000000,0.000000,0.147106,1.000000);
+	constexpr FLinearColor NodeColorSamplerNeighbor = FLinearColor(0.447917,0.000000,0.065891,1.000000);
+	
+	constexpr FLinearColor NodeColorGraphGen = FLinearColor(0.000000,0.318537,1.000000,1.000000);
+	constexpr FLinearColor NodeColorGraph = FLinearColor(0.000000,0.615363,1.000000,1.000000);
+	constexpr FLinearColor NodeColorSocket = FLinearColor(0.171875,0.681472,1.000000,1.000000);
+	constexpr FLinearColor NodeColorSocketState = FLinearColor(0.000000,0.249991,0.406250,1.000000);
+	
+	constexpr FLinearColor NodeColorPathfinding = FLinearColor(0.000000,1.000000,0.670588,1.000000);
+	constexpr FLinearColor NodeColorHeuristics = FLinearColor(0.243896,0.578125,0.371500,1.000000);
+	constexpr FLinearColor NodeColorHeuristicsAtt = FLinearColor(0.497929,0.515625,0.246587,1.000000);
+	constexpr FLinearColor NodeColorClusterFilter = FLinearColor(0.351486,0.744792,0.647392,1.000000);
+	
+	constexpr FLinearColor NodeColorEdge = FLinearColor(0.000000,0.670117,0.760417,1.000000);
+	constexpr FLinearColor NodeColorClusterState = FLinearColor(0.000000,0.249991,0.406250,1.000000);
+	constexpr FLinearColor NodeColorPath = FLinearColor(0.000000,0.239583,0.160662,1.000000);
+	
+	constexpr FLinearColor NodeColorFilterHub = FLinearColor(0.226841,1.000000,0.000000,1.000000);
+	constexpr FLinearColor NodeColorFilter = FLinearColor(0.312910,0.744792,0.186198,1.000000);
+	
+	
 	constexpr FLinearColor NodeColorPrimitives = FLinearColor(35.0f / 255.0f, 253.0f / 255.0f, 113.0f / 255.0f, 1.0f);
-	constexpr FLinearColor NodeColorWhite = FLinearColor(1.0f, 1.0f, 1.0f, 1.0f);
 
+	
+	
 	const FSoftObjectPath DefaultDotOverDistanceCurve = FSoftObjectPath(TEXT("/PCGExtendedToolkit/Curves/FC_PCGExGraphBalance_DistanceOnly.FC_PCGExGraphBalance_DistanceOnly"));
 	const FSoftObjectPath WeightDistributionLinearInv = FSoftObjectPath(TEXT("/PCGExtendedToolkit/Curves/FC_PCGExWeightDistribution_Linear_Inv.FC_PCGExWeightDistribution_Linear_Inv"));
 	const FSoftObjectPath WeightDistributionLinear = FSoftObjectPath(TEXT("/PCGExtendedToolkit/Curves/FC_PCGExWeightDistribution_Linear.FC_PCGExWeightDistribution_Linear"));
@@ -282,7 +305,7 @@ namespace PCGEx
 	}
 
 	// Unsigned uint64 hash
-	static uint64 H64U(const uint32 A, const uint32 B)
+	FORCEINLINE static uint64 H64U(const uint32 A, const uint32 B)
 	{
 		return A > B ?
 			       static_cast<uint64>(A) << 32 | B :
@@ -290,19 +313,19 @@ namespace PCGEx
 	}
 
 	// Signed uint64 hash
-	static uint64 H64(const uint32 A, const uint32 B) { return static_cast<uint64>(A) << 32 | B; }
+	FORCEINLINE static uint64 H64(const uint32 A, const uint32 B) { return static_cast<uint64>(A) << 32 | B; }
 
 	// Expand uint64 hash
-	static uint32 H64A(const uint64 Hash) { return static_cast<uint32>(Hash >> 32); }
-	static uint32 H64B(const uint64 Hash) { return static_cast<uint32>(Hash); }
+	FORCEINLINE static uint32 H64A(const uint64 Hash) { return static_cast<uint32>(Hash >> 32); }
+	FORCEINLINE static uint32 H64B(const uint64 Hash) { return static_cast<uint32>(Hash); }
 
-	static void H64(const uint64 Hash, uint32& A, uint32& B)
+	FORCEINLINE static void H64(const uint64 Hash, uint32& A, uint32& B)
 	{
 		A = H64A(Hash);
 		B = H64B(Hash);
 	}
 
-	static uint64 H6416(const uint16 A, const uint16 B, const uint16 C, const uint16 D)
+	FORCEINLINE static uint64 H6416(const uint16 A, const uint16 B, const uint16 C, const uint16 D)
 	{
 		return (static_cast<uint64>(A) << 48) |
 			(static_cast<uint64>(B) << 32) |
@@ -310,7 +333,7 @@ namespace PCGEx
 			static_cast<uint64>(D);
 	}
 
-	static void H6416(const uint64_t H, uint16& A, uint16& B, uint16& C, uint16& D)
+	FORCEINLINE static void H6416(const uint64_t H, uint16& A, uint16& B, uint16& C, uint16& D)
 	{
 		A = static_cast<uint16>(H >> 48);
 		B = static_cast<uint16>((H >> 32) & 0xFFFF);
@@ -318,7 +341,7 @@ namespace PCGEx
 		D = static_cast<uint16>(H & 0xFFFF);
 	}
 
-	static uint64 H64S(const uint32 A, const uint32 B, const uint32 C)
+	FORCEINLINE static uint64 H64S(const uint32 A, const uint32 B, const uint32 C)
 	{
 		uint64 H = (static_cast<uint64>(A) << 32) | (static_cast<uint64>(B) << 16) | C;
 
@@ -329,7 +352,7 @@ namespace PCGEx
 		return H;
 	}
 
-	static uint64 H64S(int32 ABC[3]) { return H64S(ABC[0], ABC[1], ABC[2]); }
+	FORCEINLINE static uint64 H64S(int32 ABC[3]) { return H64S(ABC[0], ABC[1], ABC[2]); }
 
 #pragma region Field Helpers
 

@@ -10,6 +10,21 @@
 #include "Graph/PCGExCluster.h"
 #include "PCGExHeuristicSteepness.generated.h"
 
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicDescriptorSteepness : public FPCGExHeuristicDescriptorBase
+{
+	GENERATED_BODY()
+
+	FPCGExHeuristicDescriptorSteepness() :
+		FPCGExHeuristicDescriptorBase()
+	{
+	}
+
+	/** Vector pointing in the "up" direction. Mirrored. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	FVector UpVector = FVector::UpVector;
+};
+
 /**
  * 
  */
@@ -19,26 +34,18 @@ class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicSteepness : public UPCGExHeuristicDi
 	GENERATED_BODY()
 
 public:
-	/** Invert the heuristics so it looks away from the target instead of towards it. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	bool bInvert = false;
-
 	/** Vector pointing in the "up" direction. Mirrored. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FVector UpVector = FVector::UpVector;
 
-	/** Curve the steepness value will be remapped over. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	TSoftObjectPtr<UCurveFloat> SteepnessScoreCurve = TSoftObjectPtr<UCurveFloat>(PCGEx::SteepnessWeightCurve);
+	virtual void PrepareForCluster(PCGExCluster::FCluster* InCluster) override;
 
-	virtual void PrepareForData(PCGExCluster::FCluster* InCluster) override;
-
-	virtual double GetGlobalScore(
+	FORCEINLINE virtual double GetGlobalScore(
 		const PCGExCluster::FNode& From,
 		const PCGExCluster::FNode& Seed,
 		const PCGExCluster::FNode& Goal) const override;
 
-	virtual double GetEdgeScore(
+	FORCEINLINE virtual double GetEdgeScore(
 		const PCGExCluster::FNode& From,
 		const PCGExCluster::FNode& To,
 		const PCGExGraph::FIndexedEdge& Edge,
@@ -47,10 +54,42 @@ public:
 
 protected:
 	FVector UpwardVector = FVector::UpVector;
-	TObjectPtr<UCurveFloat> SteepnessScoreCurveObj;
-	double ReverseWeight = 1.0;
 
-	double GetDot(const FVector& From, const FVector& To) const;
+	FORCEINLINE double GetDot(const FVector& From, const FVector& To) const;
+};
 
-	virtual void ApplyOverrides() override;
+UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
+class PCGEXTENDEDTOOLKIT_API UPCGHeuristicsFactorySteepness : public UPCGHeuristicsFactoryBase
+{
+	GENERATED_BODY()
+
+public:
+	FPCGExHeuristicDescriptorSteepness Descriptor;
+
+	virtual UPCGExHeuristicOperation* CreateOperation() const override;
+};
+
+UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
+class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicsSteepnessProviderSettings : public UPCGExHeuristicsFactoryProviderSettings
+{
+	GENERATED_BODY()
+
+public:
+	//~Begin UPCGSettings interface
+#if WITH_EDITOR
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
+		HeuristicsSteepness, "Heuristics : Steepness", "Heuristics based on steepness.",
+		FName(GetDisplayName()))
+#endif
+	//~End UPCGSettings
+
+	/** Filter Descriptor.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
+	FPCGExHeuristicDescriptorSteepness Descriptor;
+
+	virtual UPCGExParamFactoryBase* CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
+
+#if WITH_EDITOR
+	virtual FString GetDisplayName() const override;
+#endif
 };

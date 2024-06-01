@@ -169,7 +169,7 @@ namespace PCGExGeo
 			for (int i = 0; i < 4; i++) { Faces[i] = PCGEx::H64S(Vtx[MTX[i][0]], Vtx[MTX[i][1]], Vtx[MTX[i][2]]); }
 		}
 
-		void SetAdjacency(const uint64 Face, const int32 Neighbor)
+		FORCEINLINE void SetAdjacency(const uint64 Face, const int32 Neighbor)
 		{
 			for (int i = 0; i < 4; i++)
 			{

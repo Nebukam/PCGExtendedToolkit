@@ -21,24 +21,14 @@ FName UPCGExUnpackClustersSettings::GetMainOutputLabel() const { return PCGExGra
 TArray<FPCGPinProperties> UPCGExUnpackClustersSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	FPCGPinProperties& PinEdgesInput = PinProperties.Emplace_GetRef(PCGExGraph::SourcePackedClustersLabel, EPCGDataType::Point);
-
-#if WITH_EDITOR
-	PinEdgesInput.Tooltip = FTEXT("Packed clusters");
-#endif
-
+	PCGEX_PIN_POINTS(PCGExGraph::SourcePackedClustersLabel, "Packed clusters", false, {})
 	return PinProperties;
 }
 
 TArray<FPCGPinProperties> UPCGExUnpackClustersSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
-	FPCGPinProperties& PinEdgesOutput = PinProperties.Emplace_GetRef(PCGExGraph::OutputEdgesLabel, EPCGDataType::Point);
-
-#if WITH_EDITOR
-	PinEdgesOutput.Tooltip = FTEXT("Edges associated with the main output points");
-#endif
-
+	PCGEX_PIN_POINTS(PCGExGraph::OutputEdgesLabel, "Edges associated with the main output points", false, {})
 	return PinProperties;
 }
 

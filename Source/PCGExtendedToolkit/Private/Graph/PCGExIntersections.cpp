@@ -532,13 +532,15 @@ namespace PCGExGraphTask
 		TArray<int32> InSorted;
 		InSorted.SetNum(InPoints.Num());
 		for (int i = 0; i < InSorted.Num(); i++) { InSorted[i] = i; }
-
+		
+		/*
 		InSorted.Sort(
 			[&](const int32 A, const int32 B)
 			{
 				const FVector V = InPoints[A].Transform.GetLocation() - InPoints[B].Transform.GetLocation();
 				return FMath::IsNearlyZero(V.X) ? FMath::IsNearlyZero(V.Y) ? V.Z > 0 : V.Y > 0 : V.X > 0;
 			});
+		*/
 
 		for (const int32 PointIndex : InSorted) { Graph->GetOrCreateNode(InPoints[PointIndex], PointIO->IOIndex, PointIndex); }
 

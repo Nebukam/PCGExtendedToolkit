@@ -32,30 +32,15 @@ FPCGElementPtr UPCGExGatherSocketsSettings::CreateElement() const { return MakeS
 TArray<FPCGPinProperties> UPCGExGatherSocketsSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	FPCGPinProperties& SocketsPin = PinProperties.Emplace_GetRef(PCGExGraph::SourceSocketParamsLabel, EPCGDataType::Param, true, true);
-
-#if WITH_EDITOR
-	SocketsPin.Tooltip = FTEXT("Socket params to assemble into a consolidated Custom Graph Params object.");
-#endif
-
-	FPCGPinProperties& SocketOverridePin = PinProperties.Emplace_GetRef(PCGExGraph::SourceSocketOverrideParamsLabel, EPCGDataType::Param, false, false);
-
-#if WITH_EDITOR
-	SocketOverridePin.Tooltip = FTEXT("Socket params used as a reference for global overriding.");
-#endif
-
+	PCGEX_PIN_PARAMS(PCGExGraph::SourceSocketParamsLabel, "Socket params to assemble into a consolidated Custom Graph Params object.", false, {})
+	PCGEX_PIN_PARAM(PCGExGraph::SourceSocketOverrideParamsLabel, "Socket params used as a reference for global overriding.", true, {})
 	return PinProperties;
 }
 
 TArray<FPCGPinProperties> UPCGExGatherSocketsSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	FPCGPinProperties& PinPropertyOutput = PinProperties.Emplace_GetRef(PCGExGraph::SourceParamsLabel, EPCGDataType::Param, false, false);
-
-#if WITH_EDITOR
-	PinPropertyOutput.Tooltip = FTEXT("Outputs Directional Sampling parameters to be used with other nodes.");
-#endif
-
+	PCGEX_PIN_PARAM(PCGExGraph::SourceSingleGraphLabel, "Outputs a unified graph param object.", false, {})	
 	return PinProperties;
 }
 
@@ -126,7 +111,7 @@ bool FPCGExGatherSocketsElement::ExecuteInternal(
 
 	FPCGTaggedData& Output = Outputs.Emplace_GetRef();
 	Output.Data = OutParams;
-	Output.Pin = PCGExGraph::OutputParamsLabel;
+	Output.Pin = PCGExGraph::OutputForwardGraphsLabel;
 
 	return true;
 }

@@ -13,31 +13,15 @@
 TArray<FPCGPinProperties> UPCGExUberFilterSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-
-	FPCGPinProperties& FiltersPin = PinProperties.Emplace_GetRef(PCGExDataFilter::SourceFiltersLabel, EPCGDataType::Param, true, true);
-
-#if WITH_EDITOR
-	FiltersPin.Tooltip = FTEXT("Filters.");
-#endif
-
+	PCGEX_PIN_PARAMS(PCGExDataFilter::SourceFiltersLabel, "Filters.", false, {})
 	return PinProperties;
 }
 
 TArray<FPCGPinProperties> UPCGExUberFilterSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	FPCGPinProperties& InsideFiltersPin = PinProperties.Emplace_GetRef(PCGExDataFilter::OutputInsideFiltersLabel, EPCGDataType::Point, true, true);
-
-#if WITH_EDITOR
-	InsideFiltersPin.Tooltip = FTEXT("Points that passed the filters.");
-#endif
-
-	FPCGPinProperties& OutsideFiltersPin = PinProperties.Emplace_GetRef(PCGExDataFilter::OutputOutsideFiltersLabel, EPCGDataType::Point, true, true);
-
-#if WITH_EDITOR
-	OutsideFiltersPin.Tooltip = FTEXT("Points that didn't pass the filters.");
-#endif
-
+	PCGEX_PIN_POINTS(PCGExDataFilter::OutputInsideFiltersLabel, "Points that passed the filters.", false, {})
+	PCGEX_PIN_POINTS(PCGExDataFilter::OutputOutsideFiltersLabel, "Points that didn't pass the filters.", false, {})
 	return PinProperties;
 }
 
@@ -68,7 +52,7 @@ bool FPCGExUberFilterElement::Boot(FPCGContext* InContext) const
 	return PCGExDataFilter::GetInputFilters(
 		Context,
 		PCGExDataFilter::SourceFiltersLabel,
-		Context->FilterDefinitions);
+		Context->Factories);
 }
 
 bool FPCGExUberFilterElement::ExecuteInternal(FPCGContext* InContext) const
@@ -92,7 +76,7 @@ bool FPCGExUberFilterElement::ExecuteInternal(FPCGContext* InContext) const
 		else
 		{
 			Context->FilterManager = new PCGExDataFilter::TDirectFilterManager(Context->CurrentIO);
-			Context->FilterManager->Register<UPCGExFilterDefinitionBase>(Context, Context->FilterDefinitions, Context->CurrentIO);
+			Context->FilterManager->Register<UPCGExFilterFactoryBase>(Context, Context->Factories, Context->CurrentIO);
 
 			if (!Context->FilterManager->bValid)
 			{

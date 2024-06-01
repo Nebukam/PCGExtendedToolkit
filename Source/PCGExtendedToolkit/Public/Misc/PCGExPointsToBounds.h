@@ -149,6 +149,7 @@ public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(PointsToBounds, "Points to Bounds", "Merge points group to a single point representing their bounds.");
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorMiscAdd; }
 #endif
 
 protected:

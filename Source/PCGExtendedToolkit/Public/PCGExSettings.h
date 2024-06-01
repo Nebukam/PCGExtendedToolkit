@@ -58,7 +58,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExClampSettings
 	double GetClampMax(const double InValue) const { return InValue > ClampMaxValue ? ClampMaxValue : InValue; }
 	double GetClampMinMax(const double InValue) const { return InValue > ClampMaxValue ? ClampMaxValue : InValue < ClampMinValue ? ClampMinValue : InValue; }
 
-	double GetClampedValue(const double InValue) const
+	FORCEINLINE double GetClampedValue(const double InValue) const
 	{
 		if (bApplyClampMin && InValue < ClampMinValue) { return ClampMinValue; }
 		if (bApplyClampMax && InValue > ClampMaxValue) { return ClampMaxValue; }
@@ -131,7 +131,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExRemapSettings
 		PCGEX_LOAD_SOFTOBJECT(UCurveFloat, RemapCurve, RemapCurveObj, PCGEx::WeightDistributionLinear)
 	}
 
-	double GetRemappedValue(const double Value) const
+	FORCEINLINE double GetRemappedValue(const double Value) const
 	{
 		double OutValue = RemapCurveObj->GetFloatValue(PCGExMath::Remap(Value, InMin, InMax, 0, 1)) * Scale;
 		switch (TruncateOutput)
@@ -196,24 +196,24 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExDistanceSettings
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
 	EPCGExDistance Target = EPCGExDistance::Center;
 
-	FVector GetSourceCenter(const FPCGPoint& FromPoint, const FVector& FromCenter, const FVector& ToCenter) const
+	FORCEINLINE FVector GetSourceCenter(const FPCGPoint& FromPoint, const FVector& FromCenter, const FVector& ToCenter) const
 	{
 		return PCGExMath::GetSpatializedCenter(Source, FromPoint, FromCenter, ToCenter);
 	}
 
-	FVector GetTargetCenter(const FPCGPoint& FromPoint, const FVector& FromCenter, const FVector& ToCenter) const
+	FORCEINLINE FVector GetTargetCenter(const FPCGPoint& FromPoint, const FVector& FromCenter, const FVector& ToCenter) const
 	{
 		return PCGExMath::GetSpatializedCenter(Target, FromPoint, FromCenter, ToCenter);
 	}
 
-	void GetCenters(const FPCGPoint& SourcePoint, const FPCGPoint& TargetPoint, FVector& OutSource, FVector& OutTarget) const
+	FORCEINLINE void GetCenters(const FPCGPoint& SourcePoint, const FPCGPoint& TargetPoint, FVector& OutSource, FVector& OutTarget) const
 	{
 		const FVector TargetLocation = TargetPoint.Transform.GetLocation();
 		OutSource = PCGExMath::GetSpatializedCenter(Source, SourcePoint, SourcePoint.Transform.GetLocation(), TargetLocation);
 		OutTarget = PCGExMath::GetSpatializedCenter(Target, TargetPoint, TargetLocation, OutSource);
 	}
 
-	double GetDistance(const FPCGPoint& SourcePoint, const FPCGPoint& TargetPoint) const
+	FORCEINLINE double GetDistance(const FPCGPoint& SourcePoint, const FPCGPoint& TargetPoint) const
 	{
 		const FVector TargetLocation = TargetPoint.Transform.GetLocation();
 		const FVector OutSource = PCGExMath::GetSpatializedCenter(Source, SourcePoint, SourcePoint.Transform.GetLocation(), TargetLocation);

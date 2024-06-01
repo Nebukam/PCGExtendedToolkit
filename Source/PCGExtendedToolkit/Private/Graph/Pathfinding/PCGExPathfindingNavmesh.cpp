@@ -17,31 +17,15 @@
 TArray<FPCGPinProperties> UPCGExPathfindingNavmeshSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-
-	FPCGPinProperties& PinPropertySeeds = PinProperties.Emplace_GetRef(PCGExPathfinding::SourceSeedsLabel, EPCGDataType::Point, false, false);
-
-#if WITH_EDITOR
-	PinPropertySeeds.Tooltip = FTEXT("Seeds points for pathfinding.");
-#endif
-
-	FPCGPinProperties& PinPropertyGoals = PinProperties.Emplace_GetRef(PCGExPathfinding::SourceGoalsLabel, EPCGDataType::Point, false, false);
-
-#if WITH_EDITOR
-	PinPropertyGoals.Tooltip = FTEXT("Goals points for pathfinding.");
-#endif
-
+	PCGEX_PIN_POINT(PCGExPathfinding::SourceSeedsLabel, "Seeds points for pathfinding.", false, {})
+	PCGEX_PIN_POINT(PCGExPathfinding::SourceGoalsLabel, "Goals points for pathfinding.", false, {})
 	return PinProperties;
 }
 
 TArray<FPCGPinProperties> UPCGExPathfindingNavmeshSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	FPCGPinProperties& PinPathsOutput = PinProperties.Emplace_GetRef(PCGExGraph::OutputPathsLabel, EPCGDataType::Point);
-
-#if WITH_EDITOR
-	PinPathsOutput.Tooltip = FTEXT("Paths output.");
-#endif
-
+	PCGEX_PIN_POINTS(PCGExGraph::OutputPathsLabel, "Paths output.", false, {})
 	return PinProperties;
 }
 

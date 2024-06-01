@@ -4,10 +4,22 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExHeuristicsFactoryProvider.h"
 #include "UObject/Object.h"
 #include "PCGExHeuristicOperation.h"
 #include "Graph/PCGExCluster.h"
 #include "PCGExHeuristicDirection.generated.h"
+
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicDescriptorDirection : public FPCGExHeuristicDescriptorBase
+{
+	GENERATED_BODY()
+
+	FPCGExHeuristicDescriptorDirection() :
+		FPCGExHeuristicDescriptorBase()
+	{
+	}
+};
 
 /**
  * 
@@ -18,18 +30,15 @@ class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicDirection : public UPCGExHeuristicOp
 	GENERATED_BODY()
 
 public:
-	/** Invert the heuristics so it looks away from the target instead of towards it. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	bool bInvert = false;
 
-	virtual void PrepareForData(PCGExCluster::FCluster* InCluster) override;
+	virtual void PrepareForCluster(PCGExCluster::FCluster* InCluster) override;
 
-	virtual double GetGlobalScore(
+	FORCEINLINE virtual double GetGlobalScore(
 		const PCGExCluster::FNode& From,
 		const PCGExCluster::FNode& Seed,
 		const PCGExCluster::FNode& Goal) const override;
 
-	virtual double GetEdgeScore(
+	FORCEINLINE virtual double GetEdgeScore(
 		const PCGExCluster::FNode& From,
 		const PCGExCluster::FNode& To,
 		const PCGExGraph::FIndexedEdge& Edge,
@@ -39,6 +48,43 @@ public:
 protected:
 	double OutMin = 0;
 	double OutMax = 1;
+};
 
-	virtual void ApplyOverrides() override;
+////
+
+UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
+class PCGEXTENDEDTOOLKIT_API UPCGHeuristicsFactoryDirection : public UPCGHeuristicsFactoryBase
+{
+	GENERATED_BODY()
+
+public:
+	FPCGExHeuristicDescriptorDirection Descriptor;
+
+	virtual UPCGExHeuristicOperation* CreateOperation() const override;
+};
+
+UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
+class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicsDirectionProviderSettings : public UPCGExHeuristicsFactoryProviderSettings
+{
+	GENERATED_BODY()
+
+public:
+	//~Begin UPCGSettings interface
+#if WITH_EDITOR
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
+		HeuristicsDirection, "Heuristics : Direction", "Heuristics based on direction.",
+		FName(GetDisplayName()))
+#endif
+	//~End UPCGSettings
+
+	virtual UPCGExParamFactoryBase* CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
+	
+	/** Filter Descriptor.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
+	FPCGExHeuristicDescriptorDirection Descriptor;
+
+
+#if WITH_EDITOR
+	virtual FString GetDisplayName() const override;
+#endif
 };

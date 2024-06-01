@@ -117,8 +117,8 @@ namespace PCGExGraph
 	const FName OutputSocketStateLabel = TEXT("SocketState");
 	const FName SourceSocketStateLabel = TEXT("SocketStates");
 
-	const FName SourceParamsLabel = TEXT("Graph");
-	const FName OutputParamsLabel = TEXT("➜");
+	const FName SourceSingleGraphLabel = TEXT("Graph");
+	const FName OutputForwardGraphsLabel = TEXT("➜");
 
 	const FName SourceGraphsLabel = TEXT("In");
 	const FName OutputGraphsLabel = TEXT("Out");
@@ -249,7 +249,7 @@ namespace PCGExGraph
 		{
 		}
 
-		static FGraphEdgeMetadata* GetOrCreate(const int32 EdgeIndex, const int32 ParentIndex, TMap<int32, FGraphEdgeMetadata*>& InMetadata)
+		FORCEINLINE static FGraphEdgeMetadata* GetOrCreate(const int32 EdgeIndex, const int32 ParentIndex, TMap<int32, FGraphEdgeMetadata*>& InMetadata)
 		{
 			if (FGraphEdgeMetadata** MetadataPtr = InMetadata.Find(EdgeIndex)) { return *MetadataPtr; }
 
@@ -258,7 +258,7 @@ namespace PCGExGraph
 			return NewMetadata;
 		}
 
-		static int32 GetRootIndex(const int32 EdgeIndex, TMap<int32, FGraphEdgeMetadata*>& InMetadata)
+		FORCEINLINE static int32 GetRootIndex(const int32 EdgeIndex, TMap<int32, FGraphEdgeMetadata*>& InMetadata)
 		{
 			int32 ParentIndex = -1;
 			FGraphEdgeMetadata** Parent = InMetadata.Find(EdgeIndex);

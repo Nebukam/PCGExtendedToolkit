@@ -15,6 +15,7 @@ FName UPCGExCreateNodeStateSettings::GetMainOutputLabel() const { return PCGExCl
 TArray<FPCGPinProperties> UPCGExCreateNodeStateSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
+
 	FPCGPinProperties& InTestsPin = PinProperties.EmplaceAt_GetRef(0, PCGExDataState::SourceFiltersLabel, EPCGDataType::Param, true, true);
 
 #if WITH_EDITOR
@@ -23,58 +24,35 @@ TArray<FPCGPinProperties> UPCGExCreateNodeStateSettings::InputPinProperties() co
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
 	InTestsPin.SetRequiredPin();
 #endif
+
 	return PinProperties;
 }
 
-
-FPCGElementPtr UPCGExCreateNodeStateSettings::CreateElement() const { return MakeShared<FPCGExCreateNodeStateElement>(); }
-
-#if WITH_EDITOR
-void UPCGExCreateNodeStateSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+UPCGExParamFactoryBase* UPCGExCreateNodeStateSettings::CreateFactory(FPCGContext* Context, UPCGExParamFactoryBase* InFactory) const
 {
-	Super::PostEditChangeProperty(PropertyChangedEvent);
-}
-#endif
+	if (!ValidateStateName(Context)) { return nullptr; }
 
-bool FPCGExCreateNodeStateElement::ExecuteInternal(
-	FPCGContext* Context) const
-{
-	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExCreateNodeStateElement::Execute);
-
-	PCGEX_SETTINGS(CreateNodeState)
-
-	if (!Boot(Context)) { return true; }
-
-	UPCGExNodeStateDefinition* OutState = CreateStateDefinition<UPCGExNodeStateDefinition>(Context);
-
-	TArray<UPCGExFilterDefinitionBase*> FilterDefinitions;
+	TArray<UPCGExFilterFactoryBase*> FilterFactories;
 
 	const TArray<FPCGTaggedData>& TestPin = Context->InputData.GetInputsByPin(PCGExDataState::SourceFiltersLabel);
 	for (const FPCGTaggedData& TaggedData : TestPin)
 	{
-		if (const UPCGExFilterDefinitionBase* TestData = Cast<UPCGExFilterDefinitionBase>(TaggedData.Data))
+		if (const UPCGExFilterFactoryBase* TestFactory = Cast<UPCGExFilterFactoryBase>(TaggedData.Data))
 		{
-			FilterDefinitions.Add(const_cast<UPCGExFilterDefinitionBase*>(TestData));
+			FilterFactories.Add(const_cast<UPCGExFilterFactoryBase*>(TestFactory));
 		}
 	}
 
-	if (FilterDefinitions.IsEmpty())
+	if (FilterFactories.IsEmpty())
 	{
-		OutState->ConditionalBeginDestroy();
-		PCGE_LOG(Error, GraphAndLog, FTEXT("No test data."));
-		return true;
-	}
-	OutState->Tests.Append(FilterDefinitions);
-
-	if (OutState->Tests.IsEmpty())
-	{
-		OutState->ConditionalBeginDestroy();
-		return true;
+		PCGE_LOG_C(Error, GraphAndLog, Context, FTEXT("No test data."));
+		return nullptr;
 	}
 
-	OutputState(Context, OutState);
+	UPCGExNodeStateFactory* OutState = CreateStateDefinition<UPCGExNodeStateFactory>(Context);
+	OutState->Filters.Append(FilterFactories);
 
-	return true;
+	return OutState;
 }
 
 #undef LOCTEXT_NAMESPACE

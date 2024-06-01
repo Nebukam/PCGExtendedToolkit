@@ -138,7 +138,7 @@ namespace PCGExGraph
 			Type = EPCGExEdgeType::Unknown;
 		}
 
-		uint64 H64U() const { return PCGEx::H64U(Start, End); }
+		FORCEINLINE uint64 H64U() const { return PCGEx::H64U(Start, End); }
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FIndexedEdge : public FUnsignedEdge

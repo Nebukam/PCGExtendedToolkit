@@ -8,6 +8,7 @@
 #include "PCGExPathfinding.h"
 #include "PCGExPointsProcessor.h"
 #include "Graph/PCGExEdgesProcessor.h"
+#include "Heuristics/PCGExHeuristics.h"
 
 #include "PCGExPathfindingPlotEdges.generated.h"
 
@@ -26,6 +27,7 @@ public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(PathfindingPlotEdges, "Pathfinding : Plot Edges", "Extract a single path from edges clusters, going through every seed points in order.");
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorPathfinding; }
 #endif
 
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
@@ -68,31 +70,8 @@ public:
 	FPCGExNodeSelectionSettings GoalPicking;
 
 	/** Search algorithm. */
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Settings|Node Picking", Instanced, meta = (PCG_Overridable, NoResetToDefault, ShowOnlyInnerProperties))
-	TObjectPtr<UPCGExSearchOperation> SearchAlgorithm;
-
-	/** Controls how heuristic are calculated. */
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta = (PCG_Overridable, NoResetToDefault, ShowOnlyInnerProperties))
-	TObjectPtr<UPCGExHeuristicOperation> Heuristics;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	FPCGExHeuristicModifiersSettings HeuristicsModifiers;
-
-	/** Add weight to points that are already part of the growing path */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Extra Weighting")
-	bool bWeightUpVisited = false;
-
-	/** Weight to add to points that are already part of the plotted path. This is a multplier of the Reference Weight.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Extra Weighting", meta=(EditCondition="bWeightUpVisited"))
-	double VisitedPointsWeightFactor = 1;
-
-	/** Weight to add to edges that are already part of the plotted path. This is a multplier of the Reference Weight.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Extra Weighting", meta=(EditCondition="bWeightUpVisited"))
-	double VisitedEdgesWeightFactor = 1;
-
-	/** Shares visited weight between pathfinding queries. Slow as it break parallelism. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Extra Weighting", meta=(EditCondition="bWeightUpVisited"))
-	bool bGlobalVisitedWeight = true;
+	TObjectPtr<UPCGExSearchOperation> SearchAlgorithm;
 
 	/** Output various statistics. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
@@ -117,16 +96,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingPlotEdgesContext : public FPCGExE
 	PCGExData::FPointIOCollection* Plots = nullptr;
 	PCGExData::FPointIOCollection* OutputPaths = nullptr;
 
-	UPCGExHeuristicOperation* Heuristics = nullptr;
 	UPCGExSearchOperation* SearchAlgorithm = nullptr;
-	FPCGExHeuristicModifiersSettings* HeuristicsModifiers = nullptr;
-	//UPCGExSubPointsBlendOperation* Blending = nullptr;
+	PCGExHeuristics::THeuristicsHandler* HeuristicsHandler = nullptr;
 
 	int32 CurrentPlotIndex = -1;
-	bool bWeightUpVisited = true;
-	double VisitedPointsWeightFactor = 1;
-	double VisitedEdgesWeightFactor = 1;
-	PCGExPathfinding::FExtraWeights* GlobalExtraWeights = nullptr;
 
 	bool bAddSeedToPath = true;
 	bool bAddGoalToPath = true;

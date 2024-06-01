@@ -4,16 +4,10 @@
 
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicSteepness.h"
 
-
-void UPCGExHeuristicSteepness::PrepareForData(PCGExCluster::FCluster* InCluster)
+void UPCGExHeuristicSteepness::PrepareForCluster(PCGExCluster::FCluster* InCluster)
 {
 	UpwardVector = UpVector.GetSafeNormal();
-
-	PCGEX_LOAD_SOFTOBJECT(UCurveFloat, SteepnessScoreCurve, SteepnessScoreCurveObj, PCGEx::WeightDistributionLinear)
-
-	ReverseWeight = 1 / ReferenceWeight;
-
-	Super::PrepareForData(InCluster);
+	Super::PrepareForCluster(InCluster);
 }
 
 double UPCGExHeuristicSteepness::GetGlobalScore(
@@ -21,10 +15,7 @@ double UPCGExHeuristicSteepness::GetGlobalScore(
 	const PCGExCluster::FNode& Seed,
 	const PCGExCluster::FNode& Goal) const
 {
-	const double Dot = GetDot(From.Position, Goal.Position);
-	const double SampledDot = FMath::Max(0, SteepnessScoreCurveObj->GetFloatValue(Dot)) * ReferenceWeight;
-	const double Super = Super::GetGlobalScore(From, Seed, Goal);
-	return (SampledDot + Super) * 0.5;
+	return SampleCurve(GetDot(From.Position, Goal.Position)) * ReferenceWeight;
 }
 
 double UPCGExHeuristicSteepness::GetEdgeScore(
@@ -34,22 +25,33 @@ double UPCGExHeuristicSteepness::GetEdgeScore(
 	const PCGExCluster::FNode& Seed,
 	const PCGExCluster::FNode& Goal) const
 {
-	const double Dot = GetDot(From.Position, To.Position);
-	const double SampledDot = FMath::Max(0, SteepnessScoreCurveObj->GetFloatValue(Dot)) * ReferenceWeight;
-	const double Super = Super::GetEdgeScore(From, To, Edge, Seed, Goal);
-	return (SampledDot + Super) * 0.5;
+	return SampleCurve(GetDot(From.Position, To.Position)) * ReferenceWeight;
 }
 
 double UPCGExHeuristicSteepness::GetDot(const FVector& From, const FVector& To) const
 {
-	return bInvert ?
-		       1 - FMath::Abs(FVector::DotProduct((From - To).GetSafeNormal(), UpwardVector)) :
-		       FMath::Abs(FVector::DotProduct((From - To).GetSafeNormal(), UpwardVector));
+	return FMath::Abs(FVector::DotProduct((From - To).GetSafeNormal(), UpwardVector));
 }
 
-void UPCGExHeuristicSteepness::ApplyOverrides()
+UPCGExHeuristicOperation* UPCGHeuristicsFactorySteepness::CreateOperation() const
 {
-	Super::ApplyOverrides();
-	PCGEX_OVERRIDE_OP_PROPERTY(bInvert, FName(TEXT("Heuristics/Invert")), EPCGMetadataTypes::Boolean);
-	PCGEX_OVERRIDE_OP_PROPERTY(UpVector, FName(TEXT("Heuristics/UpVector")), EPCGMetadataTypes::Vector);
+	UPCGExHeuristicSteepness* NewOperation = NewObject<UPCGExHeuristicSteepness>();
+	PCGEX_FORWARD_HEURISTIC_DESCRIPTOR
+	return NewOperation;
 }
+
+UPCGExParamFactoryBase* UPCGExHeuristicsSteepnessProviderSettings::CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const
+{
+	UPCGHeuristicsFactorySteepness* NewFactory = NewObject<UPCGHeuristicsFactorySteepness>();
+	PCGEX_FORWARD_HEURISTIC_FACTORY
+	return Super::CreateFactory(InContext, NewFactory);
+}
+
+#if WITH_EDITOR
+FString UPCGExHeuristicsSteepnessProviderSettings::GetDisplayName() const
+{
+	return GetDefaultNodeName().ToString()
+		+ TEXT(" @ ")
+		+ FString::Printf(TEXT("%.3f"), (static_cast<int32>(1000 * Descriptor.WeightFactor) / 1000.0));
+}
+#endif

@@ -4,13 +4,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExPointsProcessor.h"
 
 #include "Data/PCGExGraphDefinition.h"
 #include "Graph/PCGExCluster.h"
-#include "../PCGExCreateNodeFilter.h"
+#include "Misc/Filters/PCGExFilterFactoryProvider.h"
 
-#include "PCGExNodeNeighborsCountFilter.generated.h"
+#include "PCGExNeighborsCountFilter.generated.h"
 
 
 USTRUCT(BlueprintType)
@@ -41,17 +40,13 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExNeighborsCountFilterDescriptor
 	/** Rounding mode for near measures */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="Comparison==EPCGExComparison::NearlyEqual || Comparison==EPCGExComparison::NearlyNotEqual", EditConditionHides))
 	double Tolerance = 0.001;
-
-#if WITH_EDITOR
-	FString GetDisplayName() const;
-#endif
 };
 
 /**
  * 
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGExNeighborsCountFilterDefinition : public UPCGExClusterFilterDefinitionBase
+class PCGEXTENDEDTOOLKIT_API UPCGExNeighborsCountFilterFactory : public UPCGExClusterFilterFactoryBase
 {
 	GENERATED_BODY()
 
@@ -71,30 +66,29 @@ public:
 		Tolerance = Descriptor.Tolerance;
 	}
 
-	virtual PCGExDataFilter::TFilterHandler* CreateHandler() const override;
-	virtual void BeginDestroy() override;
+	virtual PCGExDataFilter::TFilter* CreateFilter() const override;
 };
 
 namespace PCGExNodeNeighborsCount
 {
-	class PCGEXTENDEDTOOLKIT_API TNeighborsCountFilterHandler : public PCGExCluster::TClusterFilterHandler
+	class PCGEXTENDEDTOOLKIT_API TNeighborsCountFilter : public PCGExCluster::TClusterFilter
 	{
 	public:
-		explicit TNeighborsCountFilterHandler(const UPCGExNeighborsCountFilterDefinition* InDefinition)
-			: TClusterFilterHandler(InDefinition), NeighborsCountFilter(InDefinition)
+		explicit TNeighborsCountFilter(const UPCGExNeighborsCountFilterFactory* InFactory)
+			: TClusterFilter(InFactory), TypedFilterFactory(InFactory)
 		{
 		}
 
-		const UPCGExNeighborsCountFilterDefinition* NeighborsCountFilter;
+		const UPCGExNeighborsCountFilterFactory* TypedFilterFactory;
 
 		PCGEx::FLocalSingleFieldGetter* LocalCount = nullptr;
 
 		virtual void Capture(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO) override;
 		virtual void CaptureEdges(const FPCGContext* InContext, const PCGExData::FPointIO* EdgeIO) override;
 
-		virtual bool Test(const int32 PointIndex) const override;
+		FORCEINLINE virtual bool Test(const int32 PointIndex) const override;
 
-		virtual ~TNeighborsCountFilterHandler() override
+		virtual ~TNeighborsCountFilter() override
 		{
 			PCGEX_DELETE(LocalCount)
 		}
@@ -104,7 +98,7 @@ namespace PCGExNodeNeighborsCount
 
 /** Outputs a single GraphParam to be consumed by other nodes */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
-class PCGEXTENDEDTOOLKIT_API UPCGExNodeNeighborsCountFilterSettings : public UPCGExCreateNodeFilterSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExNeighborsCountFilterProviderSettings : public UPCGExFilterProviderSettings
 {
 	GENERATED_BODY()
 
@@ -113,30 +107,20 @@ public:
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
 		NodeNeighborsCountFilter, "Cluster Filter : Neighbors Count", "Check against the node' neighbor count.",
-		FName(Descriptor.GetDisplayName()))
-
+		FName(GetDisplayName()))
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorClusterFilter; }
 #endif
-
-protected:
-	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
-
-	//~Begin UObject interface
-#if WITH_EDITOR
-
-public:
-	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
-#endif
-	//~End UObject interface
 
 public:
 	/** Test Descriptor.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
 	FPCGExNeighborsCountFilterDescriptor Descriptor;
-};
 
-class PCGEXTENDEDTOOLKIT_API FPCGExNodeNeighborsCountFilterElement : public FPCGExCreateNodeFilterElement
-{
-protected:
-	virtual bool ExecuteInternal(FPCGContext* Context) const override;
+public:
+	virtual UPCGExParamFactoryBase* CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
+
+#if WITH_EDITOR
+	virtual FString GetDisplayName() const override;
+#endif
 };

@@ -25,19 +25,19 @@ namespace PCGExGeo
 		{
 		}
 
-		void Set(const int ABC[3])
+		FORCEINLINE void Set(const int ABC[3])
 		{
 			Vtx[0] = ABC[0];
 			Vtx[1] = ABC[1];
 			Vtx[2] = ABC[2];
 		}
 
-		bool Equals(const int32 A, const int32 B, const int32 C) const
+		FORCEINLINE bool Equals(const int32 A, const int32 B, const int32 C) const
 		{
 			return Vtx[0] == A && Vtx[1] == B && Vtx[2] == C;
 		}
 
-		bool ContainsEdge(const uint64 Edge) const
+		FORCEINLINE bool ContainsEdge(const uint64 Edge) const
 		{
 			uint32 A;
 			uint32 B;
@@ -48,7 +48,7 @@ namespace PCGExGeo
 				(Vtx[0] == A && Vtx[2] == B);
 		}
 
-		bool ContainsEdge(const int32 A, const int32 B) const
+		FORCEINLINE bool ContainsEdge(const int32 A, const int32 B) const
 		{
 			return
 				(Vtx[0] == A && Vtx[1] == B) ||
@@ -56,7 +56,7 @@ namespace PCGExGeo
 				(Vtx[0] == A && Vtx[2] == B);
 		}
 
-		void GetLongestEdge(const TArrayView<FVector>& Positions, uint64& Edge) const
+		FORCEINLINE void GetLongestEdge(const TArrayView<FVector>& Positions, uint64& Edge) const
 		{
 			const double L[3] = {
 				FVector::DistSquared(Positions[Vtx[0]], Positions[Vtx[1]]),
@@ -69,7 +69,7 @@ namespace PCGExGeo
 			else { Edge = PCGEx::H64U(L[1], L[2]); }
 		}
 
-		void GetLongestEdge(const TArrayView<FVector2D>& Positions, uint64& Edge) const
+		FORCEINLINE void GetLongestEdge(const TArrayView<FVector2D>& Positions, uint64& Edge) const
 		{
 			const double L[3] = {
 				FVector2D::DistSquared(Positions[Vtx[0]], Positions[Vtx[1]]),

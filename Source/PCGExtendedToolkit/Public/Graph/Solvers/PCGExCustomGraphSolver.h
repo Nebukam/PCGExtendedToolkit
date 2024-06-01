@@ -72,7 +72,7 @@ namespace PCGExGraph
 			DotOverDistanceCurve = nullptr;
 		}
 
-		FVector GetTargetCenter(const FPCGPoint& TargetPoint) const
+		FORCEINLINE FVector GetTargetCenter(const FPCGPoint& TargetPoint) const
 		{
 			return SocketInfos->Socket->Descriptor.DistanceSettings.GetTargetCenter(
 				TargetPoint, TargetPoint.Transform.GetLocation(), Origin);
@@ -94,10 +94,10 @@ class PCGEXTENDEDTOOLKIT_API UPCGExCustomGraphSolver : public UPCGExOperation
 	GENERATED_BODY()
 
 public:
-	virtual void InitializeProbe(PCGExGraph::FSocketProbe& Probe) const;
-	virtual bool ProcessPoint(PCGExGraph::FSocketProbe& Probe, const PCGEx::FPointRef& Point) const;
-	virtual void ResolveProbe(PCGExGraph::FSocketProbe& Probe) const;
+	FORCEINLINE virtual void InitializeProbe(PCGExGraph::FSocketProbe& Probe) const;
+	FORCEINLINE virtual bool ProcessPoint(PCGExGraph::FSocketProbe& Probe, const PCGEx::FPointRef& Point) const;
+	FORCEINLINE virtual void ResolveProbe(PCGExGraph::FSocketProbe& Probe) const;
 
-	virtual double PrepareProbesForPoint(const TArray<PCGExGraph::FSocketInfos>& SocketInfos, const PCGEx::FPointRef& Point, TArray<PCGExGraph::FSocketProbe>& OutProbes) const;
-	virtual double PrepareProbeForPointSocketPair(const PCGEx::FPointRef& Point, PCGExGraph::FSocketProbe& Probe, const PCGExGraph::FSocketInfos& InSocketInfos) const;
+	FORCEINLINE virtual double PrepareProbesForPoint(const TArray<PCGExGraph::FSocketInfos>& SocketInfos, const PCGEx::FPointRef& Point, TArray<PCGExGraph::FSocketProbe>& OutProbes) const;
+	FORCEINLINE virtual double PrepareProbeForPointSocketPair(const PCGEx::FPointRef& Point, PCGExGraph::FSocketProbe& Probe, const PCGExGraph::FSocketInfos& InSocketInfos) const;
 };

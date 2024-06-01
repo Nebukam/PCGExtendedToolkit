@@ -8,6 +8,11 @@
 #include "UObject/Object.h"
 #include "PCGExSearchAStar.generated.h"
 
+namespace PCGExHeuristics
+{
+	class THeuristicsHandler;
+}
+
 namespace PCGExCluster
 {
 	struct FCluster;
@@ -29,6 +34,6 @@ public:
 		const FPCGExNodeSelectionSettings* SeedSelection,
 		const FVector& GoalPosition,
 		const FPCGExNodeSelectionSettings* GoalSelection,
-		const UPCGExHeuristicOperation* Heuristics,
-		const FPCGExHeuristicModifiersSettings* Modifiers, TArray<int32>& OutPath, PCGExPathfinding::FExtraWeights* ExtraWeights = nullptr) override;
+		PCGExHeuristics::THeuristicsHandler* Heuristics,
+		TArray<int32>& OutPath, PCGExHeuristics::FLocalFeedbackHandler* LocalFeedback) override;
 };

@@ -8,6 +8,7 @@
 #include "GoalPickers/PCGExGoalPicker.h"
 
 #include "Graph/PCGExEdgesProcessor.h"
+#include "Heuristics/PCGExHeuristics.h"
 
 #include "PCGExPathfindingProcessor.generated.h"
 
@@ -78,26 +79,6 @@ public:
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta = (PCG_Overridable, NoResetToDefault, ShowOnlyInnerProperties))
 	TObjectPtr<UPCGExSearchOperation> SearchAlgorithm;
 
-	/** Controls how heuristic are calculated. */
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta = (PCG_Overridable, NoResetToDefault, ShowOnlyInnerProperties))
-	TObjectPtr<UPCGExHeuristicOperation> Heuristics;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	FPCGExHeuristicModifiersSettings HeuristicsModifiers;
-	//~End UPCGExPathfindingProcessorSettings interface
-
-	/** Add weight to points that have already been visited. Slow as it break parallelism. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Extra Weighting")
-	bool bWeightUpVisited = false;
-
-	/** Weight to add to points that are already part of the plotted path. This is a multplier of the Reference Weight.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Extra Weighting", meta=(EditCondition="bWeightUpVisited"))
-	double VisitedPointsWeightFactor = 1;
-
-	/** Weight to add to edges that are already part of the plotted path. This is a multplier of the Reference Weight.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Extra Weighting", meta=(EditCondition="bWeightUpVisited"))
-	double VisitedEdgesWeightFactor = 1;
-
 	/** Use a Seed attribute value to tag output paths. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding")
 	bool bUseSeedAttributeToTagPath;
@@ -147,20 +128,16 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingProcessorContext : public FPCGExE
 
 	UPCGExGoalPicker* GoalPicker = nullptr;
 	UPCGExSearchOperation* SearchAlgorithm = nullptr;
-	UPCGExHeuristicOperation* Heuristics = nullptr;
-	FPCGExHeuristicModifiersSettings* HeuristicsModifiers = nullptr;
+	PCGExHeuristics::THeuristicsHandler* HeuristicsHandler = nullptr;
 
 	PCGEx::FLocalToStringGetter* SeedTagValueGetter = nullptr;
 	PCGEx::FLocalToStringGetter* GoalTagValueGetter = nullptr;
 
 	PCGExDataBlending::FDataForwardHandler* SeedForwardHandler = nullptr;
 	PCGExDataBlending::FDataForwardHandler* GoalForwardHandler = nullptr;
-	//UPCGExSubPointsBlendOperation* Blending = nullptr;
 
 	bool bAddSeedToPath = true;
 	bool bAddGoalToPath = true;
-
-	PCGExPathfinding::FExtraWeights* GlobalExtraWeights = nullptr;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExPathfindingProcessorElement : public FPCGExEdgesProcessorElement

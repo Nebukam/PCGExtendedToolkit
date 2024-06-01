@@ -27,7 +27,7 @@ public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(UberFilter, "Uber Filter", "Filter points based on multiple rules & conditions.");
-	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorFilter; }
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorFilterHub; }
 #endif
 
 protected:
@@ -56,7 +56,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExUberFilterContext : public FPCGExPointsProce
 	friend class FPCGExUberFilterElement;
 	virtual ~FPCGExUberFilterContext() override;
 
-	TArray<TObjectPtr<UPCGExFilterDefinitionBase>> FilterDefinitions;
+	TArray<TObjectPtr<UPCGExFilterFactoryBase>> Factories;
 	PCGExDataFilter::TDirectFilterManager* FilterManager = nullptr;
 
 	PCGExData::FPointIOCollection* Inside = nullptr;

@@ -5,8 +5,7 @@
 #include "Graph/Pathfinding/Search/PCGExSearchAStar.h"
 
 #include "Graph/PCGExCluster.h"
-#include "Graph/Pathfinding/PCGExPathfinding.h"
-#include "Graph/Pathfinding/Heuristics/PCGExHeuristicOperation.h"
+#include "Graph/Pathfinding/Heuristics/PCGExHeuristics.h"
 #include "Graph/Pathfinding/Search/PCGExScoredQueue.h"
 
 bool UPCGExSearchAStar::FindPath(
@@ -14,8 +13,8 @@ bool UPCGExSearchAStar::FindPath(
 	const FPCGExNodeSelectionSettings* SeedSelection,
 	const FVector& GoalPosition,
 	const FPCGExNodeSelectionSettings* GoalSelection,
-	const UPCGExHeuristicOperation* Heuristics,
-	const FPCGExHeuristicModifiersSettings* Modifiers, TArray<int32>& OutPath, PCGExPathfinding::FExtraWeights* ExtraWeights)
+	PCGExHeuristics::THeuristicsHandler* Heuristics,
+	TArray<int32>& OutPath, PCGExHeuristics::FLocalFeedbackHandler* LocalFeedback)
 {
 	const PCGExCluster::FNode& SeedNode = Cluster->Nodes[Cluster->FindClosestNode(SeedPosition, SeedSelection->PickingMethod, 1)];
 	if (!SeedSelection->WithinDistance(SeedNode.Position, SeedPosition)) { return false; }
@@ -76,9 +75,8 @@ bool UPCGExSearchAStar::FindPath(
 			const PCGExCluster::FNode& AdjacentNode = Cluster->Nodes[AdjacentIndex];
 			const PCGExGraph::FIndexedEdge& Edge = Cluster->GetEdgeFromNodeIndices(CurrentNodeIndex, AdjacentIndex);
 
-			const double ExtraWeight = +ExtraWeights ? ExtraWeights->GetExtraWeight(CurrentNodeIndex, Edge.EdgeIndex) : 0;
-			const double ScoreMod = Modifiers->GetScore(AdjacentNode.PointIndex, Edge.PointIndex);
-			const double TentativeGScore = CurrentGScore + Heuristics->GetEdgeScore(Current, AdjacentNode, Edge, SeedNode, GoalNode) + ScoreMod;
+			const double EScore = Heuristics->GetEdgeScore(Current, AdjacentNode, Edge, SeedNode, GoalNode, LocalFeedback);
+			const double TentativeGScore = CurrentGScore + EScore;
 
 			const double PreviousGScore = GScore[AdjacentIndex];
 			if (PreviousGScore != -1 && TentativeGScore >= PreviousGScore) { continue; }
@@ -87,7 +85,7 @@ bool UPCGExSearchAStar::FindPath(
 			GScore[AdjacentIndex] = TentativeGScore;
 
 			const double GS = PCGExMath::Remap(Heuristics->GetGlobalScore(AdjacentNode, SeedNode, GoalNode), MinGScore, MaxGScore, 0, 1);
-			const double FScore = TentativeGScore + GS * Heuristics->ReferenceWeight;
+			const double FScore = TentativeGScore + GS * Heuristics->ReferenceWeight; //TODO: Need to weight this properly
 
 			ScoredQueue->Enqueue(AdjacentIndex, FScore);
 		}
@@ -100,32 +98,27 @@ bool UPCGExSearchAStar::FindPath(
 
 		bSuccess = true;
 		TArray<int32> Path;
-		if (ExtraWeights)
-		{
-			const double ExtraNodeWeight = Heuristics->ReferenceWeight * ExtraWeights->NodeScale;
-			const double ExtraEdgeWeight = Heuristics->ReferenceWeight * ExtraWeights->EdgeScale;
-			while (PathIndex != -1)
-			{
-				const int32 CurrentIndex = PathIndex;
-				ExtraWeights->AddPointWeight(CurrentIndex, ExtraNodeWeight);
-				Path.Add(CurrentIndex);
-				PathIndex = Previous[PathIndex];
 
-				if (PathIndex != -1)
-				{
-					const PCGExGraph::FIndexedEdge& Edge = Cluster->GetEdgeFromNodeIndices(CurrentIndex, PathIndex);
-					ExtraWeights->AddEdgeWeight(Edge.EdgeIndex, ExtraEdgeWeight);
-				}
-			}
-		}
-		else
+		while (PathIndex != -1)
 		{
-			while (PathIndex != -1)
+			const int32 CurrentIndex = PathIndex;
+			Path.Add(CurrentIndex);
+			PathIndex = Previous[PathIndex];
+
+			const PCGExCluster::FNode& N = Cluster->Nodes[CurrentIndex];
+			if (PathIndex != -1)
 			{
-				Path.Add(PathIndex);
-				PathIndex = Previous[PathIndex];
+				const PCGExGraph::FIndexedEdge& E = Cluster->GetEdgeFromNodeIndices(CurrentIndex, PathIndex);
+				Heuristics->FeedbackScore(N, E);
+				if (LocalFeedback) { Heuristics->FeedbackScore(N, E); }
+			}
+			else
+			{
+				Heuristics->FeedbackPointScore(N);
+				if (LocalFeedback) { Heuristics->FeedbackPointScore(N); }
 			}
 		}
+
 		Algo::Reverse(Path);
 		OutPath.Append(Path);
 	}

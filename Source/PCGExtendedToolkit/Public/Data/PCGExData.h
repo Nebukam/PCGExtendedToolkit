@@ -10,21 +10,6 @@
 #include "Data/PCGPointData.h"
 #include "UObject/Object.h"
 
-#include "PCGExData.generated.h"
-
-
-/**
- * 
- */
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGExParamDataBase : public UPCGPointData
-{
-	GENERATED_BODY()
-
-public:
-	virtual EPCGDataType GetDataType() const override { return EPCGDataType::Param; }
-};
-
 namespace PCGExData
 {
 	constexpr PCGExMT::AsyncState State_MergingData = __COUNTER__;
@@ -65,9 +50,9 @@ namespace PCGExData
 
 		FIdxCompound* New();
 
-		uint64 Add(const int32 Index, const int32 IOIndex, const int32 PointIndex);
+		FORCEINLINE uint64 Add(const int32 Index, const int32 IOIndex, const int32 PointIndex);
 		void GetIOIndices(const int32 Index, TArray<int32>& OutIOIndices);
-		bool HasIOIndexOverlap(int32 InIdx, const TArray<int32>& InIndices);
+		FORCEINLINE bool HasIOIndexOverlap(int32 InIdx, const TArray<int32>& InIndices);
 
 		FIdxCompound* operator[](const int32 Index) const { return this->Compounds[Index]; }
 	};

@@ -8,8 +8,14 @@
 #include "PCGExPathfinding.h"
 #include "PCGExPointsProcessor.h"
 #include "Graph/PCGExEdgesProcessor.h"
+#include "Heuristics/PCGExHeuristics.h"
 
 #include "PCGExPathfindingGrowPaths.generated.h"
+
+namespace PCGExHeuristics
+{
+	class THeuristicsHandler;
+}
 
 struct FPCGExPathfindingGrowPathsContext;
 class UPCGExPathfindingGrowPathsSettings;
@@ -113,6 +119,7 @@ public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(PathfindingGrowPaths, "Pathfinding : Grow Paths", "Grow paths from seeds.");
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorPathfinding; }
 #endif
 
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
@@ -229,25 +236,6 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Heuristics", meta=(PCG_Overridable))
 	FPCGExNodeSelectionSettings SeedPicking = FPCGExNodeSelectionSettings(200);
 
-	/** Controls how heuristic are calculated for next growth. (Lower score is better)*/
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Settings|Heuristics", Instanced, meta = (PCG_Overridable, NoResetToDefault, ShowOnlyInnerProperties))
-	TObjectPtr<UPCGExHeuristicOperation> Heuristics;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Heuristics", meta=(PCG_Overridable))
-	FPCGExHeuristicModifiersSettings HeuristicsModifiers;
-
-	/** Add weight to points that are already part of the growing path */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Extra Weighting")
-	bool bWeightUpVisited = true;
-
-	/** Weight to add to points that are already part of the plotted path. This is a multplier of the Reference Weight.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Extra Weighting", meta=(EditCondition="bWeightUpVisited"))
-	double VisitedPointsWeightFactor = 1;
-
-	/** Weight to add to edges that are already part of the plotted path. This is a multplier of the Reference Weight.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Extra Weighting", meta=(EditCondition="bWeightUpVisited"))
-	double VisitedEdgesWeightFactor = 1;
-
 	/** Visited weight threshold over which the growth is stopped if that's the only available option. -1 ignores.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Extra Weighting", meta=(EditCondition="bWeightUpVisited"))
 	double VisitedStopThreshold = -1;
@@ -283,8 +271,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingGrowPathsContext : public FPCGExE
 	PCGExData::FPointIO* SeedsPoints = nullptr;
 	PCGExData::FPointIOCollection* OutputPaths = nullptr;
 
-	UPCGExHeuristicOperation* Heuristics = nullptr;
-	FPCGExHeuristicModifiersSettings* HeuristicsModifiers = nullptr;
+	PCGExHeuristics::THeuristicsHandler* HeuristicsHandler = nullptr;
 
 	PCGEx::FLocalSingleFieldGetter* NumBranchesGetter = nullptr;
 	PCGEx::FLocalSingleFieldGetter* NumIterationsGetter = nullptr;
@@ -296,10 +283,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingGrowPathsContext : public FPCGExE
 	PCGEx::FLocalBoolGetter* NoGrowthGetter = nullptr;
 
 	int32 CurrentPlotIndex = -1;
-	bool bWeightUpVisited = true;
-	double VisitedPointsWeightFactor = 1;
-	double VisitedEdgesWeightFactor = 1;
-	PCGExPathfinding::FExtraWeights* GlobalExtraWeights = nullptr;
 
 	TArray<PCGExGrow::FGrowth*> Growths;
 	TArray<PCGExGrow::FGrowth*> QueuedGrowths;

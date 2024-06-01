@@ -7,9 +7,9 @@
 #include "Graph/PCGExGraph.h"
 #include "PCGExPathfinding.cpp"
 #include "Graph/Pathfinding/GoalPickers/PCGExGoalPickerRandom.h"
-#include "Algo/Reverse.h"
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicDistance.h"
 #include "Graph/Pathfinding/Search/PCGExSearchAStar.h"
+#include "Algo/Reverse.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPathfindingGrowPathsElement"
 #define PCGEX_NAMESPACE PathfindingGrowPaths
@@ -31,8 +31,6 @@ if (!Context->_NAME##Getter->Grab(_SOURCE)){\
 #if WITH_EDITOR
 void UPCGExPathfindingGrowPathsSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
-	if (Heuristics) { Heuristics->UpdateUserFacingInfos(); }
-	HeuristicsModifiers.UpdateUserFacingInfos();
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
 #endif
@@ -65,11 +63,14 @@ int32 PCGExGrow::FGrowth::FindNextGrowthNodeIndex()
 
 		if (Path.Contains(AdjacentNodeIndex)) { continue; }
 
+		/*
+		// TODO : Implement
 		if (Settings->VisitedStopThreshold > 0 && Context->GlobalExtraWeights &&
 			Context->GlobalExtraWeights->GetExtraWeight(AdjacentNodeIndex, EdgeIndex) > Settings->VisitedStopThreshold)
 		{
 			continue;
 		}
+		*/
 
 		if (const double Score = GetGrowthScore(
 				CurrentNode, OtherNode, Context->CurrentCluster->Edges[EdgeIndex]);
@@ -94,11 +95,7 @@ bool PCGExGrow::FGrowth::Grow()
 	Metrics.Add(NextNode.Position);
 	if (MaxDistance > 0 && Metrics.Length > MaxDistance) { return false; }
 
-	if (Context->GlobalExtraWeights)
-	{
-		Context->GlobalExtraWeights->AddPointWeight(NextGrowthIndex, Context->Heuristics->ReferenceWeight * Settings->VisitedPointsWeightFactor);
-		Context->GlobalExtraWeights->AddEdgeWeight(CurrentNode.GetEdgeIndex(NextNode.NodeIndex), Context->Heuristics->ReferenceWeight * Settings->VisitedEdgesWeightFactor);
-	}
+	Context->HeuristicsHandler->FeedbackScore(NextNode, Context->CurrentCluster->Edges[CurrentNode.GetEdgeIndex(NextNode.NodeIndex)]);
 
 	Iteration++;
 	Path.Add(NextGrowthIndex);
@@ -179,33 +176,21 @@ void PCGExGrow::FGrowth::Init()
 
 double PCGExGrow::FGrowth::GetGrowthScore(const PCGExCluster::FNode& From, const PCGExCluster::FNode& To, const PCGExGraph::FIndexedEdge& Edge) const
 {
-	return Context->Heuristics->GetEdgeScore(From, To, Edge, *SeedNode, *GoalNode) +
-		Context->HeuristicsModifiers->GetScore(To.PointIndex, Edge.PointIndex) +
-		(Context->GlobalExtraWeights ? Context->GlobalExtraWeights->GetExtraWeight(From.NodeIndex, Edge.EdgeIndex) : 0);
+	return Context->HeuristicsHandler->GetEdgeScore(From, To, Edge, *SeedNode, *GoalNode);
 }
 
 TArray<FPCGPinProperties> UPCGExPathfindingGrowPathsSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-
-	FPCGPinProperties& PinPropertySeeds = PinProperties.Emplace_GetRef(PCGExPathfinding::SourceSeedsLabel, EPCGDataType::Point, false, false);
-
-#if WITH_EDITOR
-	PinPropertySeeds.Tooltip = FTEXT("Seed points to start growth from.");
-#endif
-
+	PCGEX_PIN_POINT(PCGExPathfinding::SourceSeedsLabel, "Seed points to start growth from.", false, {})
+	PCGEX_PIN_PARAMS(PCGExPathfinding::SourceHeuristicsLabel, "Heuristics.", false, {})
 	return PinProperties;
 }
 
 TArray<FPCGPinProperties> UPCGExPathfindingGrowPathsSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	FPCGPinProperties& PinPathsOutput = PinProperties.Emplace_GetRef(PCGExGraph::OutputPathsLabel, EPCGDataType::Point);
-
-#if WITH_EDITOR
-	PinPathsOutput.Tooltip = FTEXT("Paths output.");
-#endif
-
+	PCGEX_PIN_POINTS(PCGExGraph::OutputPathsLabel, "Paths output.", false, {})
 	return PinProperties;
 }
 
@@ -222,11 +207,10 @@ FPCGExPathfindingGrowPathsContext::~FPCGExPathfindingGrowPathsContext()
 {
 	PCGEX_TERMINATE_ASYNC
 
-	if (HeuristicsModifiers) { HeuristicsModifiers->Cleanup(); }
+	PCGEX_DELETE(HeuristicsHandler)
 
 	PCGEX_DELETE_TARRAY(Growths)
 
-	PCGEX_DELETE(GlobalExtraWeights)
 	PCGEX_DELETE(SeedsPoints)
 	PCGEX_DELETE(OutputPaths)
 
@@ -260,19 +244,9 @@ bool FPCGExPathfindingGrowPathsElement::Boot(FPCGContext* InContext) const
 		return false;
 	}
 
-	PCGEX_OPERATION_BIND(Heuristics, UPCGExHeuristicDistance)
-
-	PCGEX_FWD(bWeightUpVisited)
-	PCGEX_FWD(VisitedPointsWeightFactor)
-	PCGEX_FWD(VisitedEdgesWeightFactor)
+	Context->HeuristicsHandler = new PCGExHeuristics::THeuristicsHandler(Context);
 
 	Context->OutputPaths = new PCGExData::FPointIOCollection();
-
-	Context->HeuristicsModifiers = const_cast<FPCGExHeuristicModifiersSettings*>(&Settings->HeuristicsModifiers);
-	Context->HeuristicsModifiers->LoadCurves();
-
-	Context->Heuristics->ReferenceWeight = Context->HeuristicsModifiers->ReferenceWeight;
-
 
 	if (Settings->NumIterations == EPCGExGrowthValueSource::SeedAttribute)
 	{
@@ -372,7 +346,6 @@ bool FPCGExPathfindingGrowPathsElement::ExecuteInternal(FPCGContext* InContext) 
 
 	if (Context->IsState(PCGExGraph::State_ReadyForNextEdges))
 	{
-		PCGEX_DELETE(Context->GlobalExtraWeights);
 		PCGEX_DELETE_TARRAY(Context->Growths)
 		Context->QueuedGrowths.Empty();
 
@@ -390,7 +363,7 @@ bool FPCGExPathfindingGrowPathsElement::ExecuteInternal(FPCGContext* InContext) 
 
 		if (Settings->bUseOctreeSearch) { Context->CurrentCluster->RebuildOctree(Settings->SeedPicking.PickingMethod); }
 
-		Context->GetAsyncManager()->Start<FPCGExCompileModifiersTask>(0, Context->CurrentIO, Context->CurrentEdges, Context->HeuristicsModifiers);
+		Context->HeuristicsHandler->PrepareForCluster(Context->GetAsyncManager(), Context->CurrentCluster);
 		Context->SetAsyncState(PCGExGraph::State_ProcessingEdges);
 	}
 
@@ -398,15 +371,7 @@ bool FPCGExPathfindingGrowPathsElement::ExecuteInternal(FPCGContext* InContext) 
 	{
 		PCGEX_WAIT_ASYNC
 
-		Context->Heuristics->PrepareForData(Context->CurrentCluster);
-
-		if (Settings->bWeightUpVisited)
-		{
-			Context->GlobalExtraWeights = new PCGExPathfinding::FExtraWeights(
-				Context->CurrentCluster,
-				Context->VisitedPointsWeightFactor,
-				Context->VisitedEdgesWeightFactor);
-		}
+		Context->HeuristicsHandler->CompleteClusterPreparation();
 
 		// Find all growth points
 		const int32 SeedCount = Context->SeedsPoints->GetNum();

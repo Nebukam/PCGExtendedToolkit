@@ -16,7 +16,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExCustomGraphSolverWeighted : public UPCGExCust
 	GENERATED_BODY()
 
 public:
-	virtual void InitializeProbe(PCGExGraph::FSocketProbe& Probe) const override;
-	virtual bool ProcessPoint(PCGExGraph::FSocketProbe& Probe, const PCGEx::FPointRef& Point) const override;
-	virtual void ResolveProbe(PCGExGraph::FSocketProbe& Probe) const override;
+	FORCEINLINE virtual void InitializeProbe(PCGExGraph::FSocketProbe& Probe) const override;
+	FORCEINLINE virtual bool ProcessPoint(PCGExGraph::FSocketProbe& Probe, const PCGEx::FPointRef& Point) const override;
+	FORCEINLINE virtual void ResolveProbe(PCGExGraph::FSocketProbe& Probe) const override;
 };

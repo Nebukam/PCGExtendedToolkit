@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 #include "PCGExOperation.h"
 #include "Graph/PCGExCluster.h"
+#include "Graph/Pathfinding/Heuristics/PCGExHeuristics.h"
 #include "UObject/Object.h"
 #include "PCGExSearchOperation.generated.h"
 
@@ -41,6 +42,7 @@ public:
 		const FPCGExNodeSelectionSettings* SeedSelection,
 		const FVector& GoalPosition,
 		const FPCGExNodeSelectionSettings* GoalSelection,
-		const UPCGExHeuristicOperation* Heuristics,
-		const FPCGExHeuristicModifiersSettings* Modifiers, TArray<int32>& OutPath, PCGExPathfinding::FExtraWeights* ExtraWeights = nullptr);
+		PCGExHeuristics::THeuristicsHandler* Heuristics,
+		TArray<int32>& OutPath,
+		PCGExHeuristics::FLocalFeedbackHandler* LocalFeedback = nullptr);
 };

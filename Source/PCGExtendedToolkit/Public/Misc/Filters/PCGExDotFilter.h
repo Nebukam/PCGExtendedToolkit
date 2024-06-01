@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExFilterFactoryProvider.h"
 #include "UObject/Object.h"
 
 #include "Data/PCGExDataFilter.h"
@@ -62,12 +63,11 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExDotFilterDescriptor
 #endif
 };
 
-
 /**
  * 
  */
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGExDotFilterDefinition : public UPCGExFilterDefinitionBase
+UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
+class PCGEXTENDEDTOOLKIT_API UPCGExDotFilterFactory : public UPCGExFilterFactoryBase
 {
 	GENERATED_BODY()
 
@@ -95,31 +95,30 @@ public:
 		ExcludeAbove = Descriptor.ExcludeAbove;
 	}
 
-	virtual PCGExDataFilter::TFilterHandler* CreateHandler() const override;
-	virtual void BeginDestroy() override;
+	virtual PCGExDataFilter::TFilter* CreateFilter() const override;
 };
 
 namespace PCGExPointsFilter
 {
-	class PCGEXTENDEDTOOLKIT_API TDotHandler : public PCGExDataFilter::TFilterHandler
+	class PCGEXTENDEDTOOLKIT_API TDotFilter : public PCGExDataFilter::TFilter
 	{
 	public:
-		explicit TDotHandler(const UPCGExDotFilterDefinition* InDefinition)
-			: TFilterHandler(InDefinition), DotFilter(InDefinition)
+		explicit TDotFilter(const UPCGExDotFilterFactory* InFactory)
+			: TFilter(InFactory), TypedFilterFactory(InFactory)
 		{
 		}
 
-		const UPCGExDotFilterDefinition* DotFilter;
+		const UPCGExDotFilterFactory* TypedFilterFactory;
 
 		PCGEx::FLocalVectorGetter* OperandA = nullptr;
 		PCGEx::FLocalVectorGetter* OperandB = nullptr;
 
 		virtual void Capture(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO) override;
-		virtual bool Test(const int32 PointIndex) const override;
+		FORCEINLINE virtual bool Test(const int32 PointIndex) const override;
 
-		virtual ~TDotHandler() override
+		virtual ~TDotFilter() override
 		{
-			DotFilter = nullptr;
+			TypedFilterFactory = nullptr;
 			PCGEX_DELETE(OperandA)
 			PCGEX_DELETE(OperandB)
 		}
@@ -128,45 +127,29 @@ namespace PCGExPointsFilter
 
 ///
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
-class PCGEXTENDEDTOOLKIT_API UPCGExDotFilterDefinitionSettings : public UPCGSettings
+UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
+class PCGEXTENDEDTOOLKIT_API UPCGExDotFilterProviderSettings : public UPCGExFilterProviderSettings
 {
 	GENERATED_BODY()
 
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	bool bCacheResult = false;
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
 		DotFilterDefinition, "Filter : Dot", "Creates a filter definition that compares dot value of two vectors.",
-		FName(Descriptor.GetDisplayName()))
-	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Param; }
-	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorFilter; }
+		FName(GetDisplayName()))
 #endif
-
-	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
-	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
-
-protected:
-	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
 
 public:
-	/** State name.*/
+	/** Filter Descriptor.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
 	FPCGExDotFilterDescriptor Descriptor;
-};
 
-class PCGEXTENDEDTOOLKIT_API FPCGExDotFilterDefinitionElement : public IPCGElement
-{
 public:
+	virtual UPCGExParamFactoryBase* CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
+
 #if WITH_EDITOR
-	virtual bool ShouldLog() const override { return false; }
+	virtual FString GetDisplayName() const override;
 #endif
-
-protected:
-	virtual bool ExecuteInternal(FPCGContext* Context) const override;
-
-public:
-	virtual FPCGContext* Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node) override;
 };

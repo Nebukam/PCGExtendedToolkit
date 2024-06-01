@@ -17,8 +17,6 @@
 #if WITH_EDITOR
 void UPCGExPathfindingPlotEdgesSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
-	if (Heuristics) { Heuristics->UpdateUserFacingInfos(); }
-	HeuristicsModifiers.UpdateUserFacingInfos();
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
 #endif
@@ -26,25 +24,15 @@ void UPCGExPathfindingPlotEdgesSettings::PostEditChangeProperty(FPropertyChanged
 TArray<FPCGPinProperties> UPCGExPathfindingPlotEdgesSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-
-	FPCGPinProperties& PinPropertySeeds = PinProperties.Emplace_GetRef(PCGExPathfinding::SourcePlotsLabel, EPCGDataType::Point, true, true);
-
-#if WITH_EDITOR
-	PinPropertySeeds.Tooltip = FTEXT("Plot points for pathfinding.");
-#endif
-
+	PCGEX_PIN_POINTS(PCGExPathfinding::SourcePlotsLabel, "Plot points for pathfinding.", false, {})
+	PCGEX_PIN_PARAMS(PCGExPathfinding::SourceHeuristicsLabel, "Heuristics.", false, {})
 	return PinProperties;
 }
 
 TArray<FPCGPinProperties> UPCGExPathfindingPlotEdgesSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	FPCGPinProperties& PinPathsOutput = PinProperties.Emplace_GetRef(PCGExGraph::OutputPathsLabel, EPCGDataType::Point);
-
-#if WITH_EDITOR
-	PinPathsOutput.Tooltip = FTEXT("Paths output.");
-#endif
-
+	PCGEX_PIN_POINTS(PCGExGraph::OutputPathsLabel, "Paths output.", false, {})
 	return PinProperties;
 }
 
@@ -61,9 +49,7 @@ FPCGExPathfindingPlotEdgesContext::~FPCGExPathfindingPlotEdgesContext()
 {
 	PCGEX_TERMINATE_ASYNC
 
-	if (HeuristicsModifiers) { HeuristicsModifiers->Cleanup(); }
-
-	PCGEX_DELETE(GlobalExtraWeights)
+	PCGEX_DELETE(HeuristicsHandler)
 	PCGEX_DELETE(Plots)
 	PCGEX_DELETE(OutputPaths)
 }
@@ -76,15 +62,10 @@ bool FPCGExPathfindingPlotEdgesElement::Boot(FPCGContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(PathfindingPlotEdges)
 
 	PCGEX_OPERATION_BIND(SearchAlgorithm, UPCGExSearchAStar)
-	PCGEX_OPERATION_BIND(Heuristics, UPCGExHeuristicDistance)
 
 	PCGEX_FWD(bAddSeedToPath)
 	PCGEX_FWD(bAddGoalToPath)
 	PCGEX_FWD(bAddPlotPointsToPath)
-
-	PCGEX_FWD(bWeightUpVisited)
-	PCGEX_FWD(VisitedPointsWeightFactor)
-	PCGEX_FWD(VisitedEdgesWeightFactor)
 
 	Context->OutputPaths = new PCGExData::FPointIOCollection();
 	Context->Plots = new PCGExData::FPointIOCollection();
@@ -98,9 +79,7 @@ bool FPCGExPathfindingPlotEdgesElement::Boot(FPCGContext* InContext) const
 		return false;
 	}
 
-	Context->HeuristicsModifiers = const_cast<FPCGExHeuristicModifiersSettings*>(&Settings->HeuristicsModifiers);
-	Context->HeuristicsModifiers->LoadCurves();
-	Context->Heuristics->ReferenceWeight = Context->HeuristicsModifiers->ReferenceWeight;
+	Context->HeuristicsHandler = new PCGExHeuristics::THeuristicsHandler(Context);
 
 	PCGEX_FWD(ProjectionSettings)
 
@@ -176,7 +155,7 @@ bool FPCGExPathfindingPlotEdgesElement::ExecuteInternal(FPCGContext* InContext) 
 		}
 
 		Context->SearchAlgorithm->PrepareForCluster(Context->CurrentCluster, Context->ClusterProjection);
-		Context->GetAsyncManager()->Start<FPCGExCompileModifiersTask>(0, Context->CurrentIO, Context->CurrentEdges, Context->HeuristicsModifiers);
+		Context->HeuristicsHandler->PrepareForCluster(Context->GetAsyncManager(), Context->CurrentCluster);
 		Context->SetAsyncState(PCGExGraph::State_ProcessingEdges);
 	}
 
@@ -184,16 +163,10 @@ bool FPCGExPathfindingPlotEdgesElement::ExecuteInternal(FPCGContext* InContext) 
 	{
 		PCGEX_WAIT_ASYNC
 
-		PCGEX_DELETE(Context->GlobalExtraWeights);
-		Context->Heuristics->PrepareForData(Context->CurrentCluster);
+		Context->HeuristicsHandler->CompleteClusterPreparation();
 
-		if (Settings->bWeightUpVisited && Settings->bGlobalVisitedWeight)
+		if (Context->HeuristicsHandler->HasGlobalFeedback())
 		{
-			Context->GlobalExtraWeights = new PCGExPathfinding::FExtraWeights(
-				Context->CurrentCluster,
-				Context->VisitedPointsWeightFactor,
-				Context->VisitedEdgesWeightFactor);
-
 			Context->CurrentPlotIndex = -1;
 			Context->SetAsyncState(PCGExPathfinding::State_Pathfinding);
 		}
@@ -227,7 +200,7 @@ bool FPCGExPathfindingPlotEdgesElement::ExecuteInternal(FPCGContext* InContext) 
 		PCGExData::FPointIO* PlotIO = Context->Plots->Pairs[Context->CurrentPlotIndex];
 		if (PlotIO->GetNum() < 2) { return false; }
 
-		Context->GetAsyncManager()->Start<FPCGExPlotClusterPathTask>(Context->CurrentPlotIndex, PlotIO, Context->GlobalExtraWeights);
+		Context->GetAsyncManager()->Start<FPCGExPlotClusterPathTask>(Context->CurrentPlotIndex, PlotIO);
 		Context->SetAsyncState(PCGExPathfinding::State_WaitingPathfinding);
 	}
 
@@ -253,17 +226,11 @@ bool FPCGExPlotClusterPathTask::ExecuteTask()
 	const FPCGExPathfindingPlotEdgesContext* Context = Manager->GetContext<FPCGExPathfindingPlotEdgesContext>();
 	PCGEX_SETTINGS(PathfindingPlotEdges)
 
+	// TODO : Implement path-scoped extra weight management
+	PCGExHeuristics::FLocalFeedbackHandler* LocalFeedbackHandler = Context->HeuristicsHandler->MakeLocalFeedbackHandler(Context->CurrentCluster);
+
 	const PCGExCluster::FCluster* Cluster = Context->CurrentCluster;
 	TArray<int32> Path;
-
-	PCGExPathfinding::FExtraWeights* ExtraWeights = GlobalExtraWeights;
-	if (Context->bWeightUpVisited && !ExtraWeights)
-	{
-		ExtraWeights = new PCGExPathfinding::FExtraWeights(
-			Cluster,
-			Context->VisitedPointsWeightFactor,
-			Context->VisitedEdgesWeightFactor);
-	}
 
 	const int32 NumPlots = PointIO->GetNum();
 
@@ -274,7 +241,7 @@ bool FPCGExPlotClusterPathTask::ExecuteTask()
 
 		if (!Context->SearchAlgorithm->FindPath(
 			SeedPosition, &Settings->SeedPicking,
-			GoalPosition, &Settings->GoalPicking, Context->Heuristics, Context->HeuristicsModifiers, Path, ExtraWeights))
+			GoalPosition, &Settings->GoalPicking, Context->HeuristicsHandler, Path, LocalFeedbackHandler))
 		{
 			// Failed
 		}
@@ -310,9 +277,9 @@ bool FPCGExPlotClusterPathTask::ExecuteTask()
 	}
 	if (Context->bAddGoalToPath) { MutablePoints.Add_GetRef(PointIO->GetInPoint(PointIO->GetNum() - 1)).MetadataEntry = PCGInvalidEntryKey; }
 
-	if (ExtraWeights != GlobalExtraWeights) { PCGEX_DELETE(ExtraWeights) }
-
 	PathPoints.Tags->Append(PointIO->Tags);
+
+	PCGEX_DELETE(LocalFeedbackHandler)
 
 	return true;
 }

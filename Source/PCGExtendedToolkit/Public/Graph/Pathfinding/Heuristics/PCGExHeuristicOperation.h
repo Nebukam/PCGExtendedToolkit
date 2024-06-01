@@ -22,16 +22,23 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	TSoftObjectPtr<UCurveFloat> ScoreCurve = TSoftObjectPtr<UCurveFloat>(PCGEx::WeightDistributionLinear);
 
-	double ReferenceWeight = 100;
+	bool bInvert = false;
+	double ReferenceWeight = 1;
+	double WeightFactor = 1;
+	bool bUseLocalWeightMultiplier = false;
+	EPCGExGraphValueSource LocalWeightMultiplierSource = EPCGExGraphValueSource::Point;
+	FPCGAttributePropertyInputSelector WeightMultiplierAttribute;
+	
+	bool bHasCustomLocalWeightMultiplier = false;
 
-	virtual void PrepareForData(PCGExCluster::FCluster* InCluster);
+	virtual void PrepareForCluster(PCGExCluster::FCluster* InCluster);
 
-	virtual double GetGlobalScore(
+	FORCEINLINE virtual double GetGlobalScore(
 		const PCGExCluster::FNode& From,
 		const PCGExCluster::FNode& Seed,
 		const PCGExCluster::FNode& Goal) const;
 
-	virtual double GetEdgeScore(
+	FORCEINLINE virtual double GetEdgeScore(
 		const PCGExCluster::FNode& From,
 		const PCGExCluster::FNode& To,
 		const PCGExGraph::FIndexedEdge& Edge,
@@ -40,7 +47,13 @@ public:
 
 	virtual void Cleanup() override;
 
+	FORCEINLINE double GetCustomWeightMultiplier(const int32 PointIndex, const int32 EdgeIndex) const;
+	
 protected:
 	PCGExCluster::FCluster* Cluster = nullptr;
 	TObjectPtr<UCurveFloat> ScoreCurveObj;
+	TArray<double> LocalWeightMultiplier;
+
+	FORCEINLINE virtual double SampleCurve(const double InTime) const;
+	
 };

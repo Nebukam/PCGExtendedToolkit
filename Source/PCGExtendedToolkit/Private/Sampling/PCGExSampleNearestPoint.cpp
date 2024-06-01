@@ -20,12 +20,7 @@ UPCGExSampleNearestPointSettings::UPCGExSampleNearestPointSettings(
 TArray<FPCGPinProperties> UPCGExSampleNearestPointSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	FPCGPinProperties& PinPropertySourceTargets = PinProperties.Emplace_GetRef(PCGEx::SourceTargetsLabel, EPCGDataType::Point, false, false);
-
-#if WITH_EDITOR
-	PinPropertySourceTargets.Tooltip = FTEXT("The point data set to check against.");
-#endif
-
+	PCGEX_PIN_POINT(PCGEx::SourceTargetsLabel, "The point data set to check against.", false, {})
 	return PinProperties;
 }
 

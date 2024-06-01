@@ -8,6 +8,11 @@
 #include "Refining/PCGExEdgeRefineOperation.h"
 #include "PCGExRefineEdges.generated.h"
 
+namespace PCGExHeuristics
+{
+	class THeuristicsHandler;
+}
+
 namespace PCGExGraph
 {
 	class FGraphBuilder;
@@ -27,6 +32,7 @@ public:
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(RefineEdges, "Edges : Refine", "Refine edges according to special rules.");
 #endif
+	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
@@ -54,6 +60,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExRefineEdgesContext : public FPCGExEdgesProce
 	friend class FPCGExRefineEdgesElement;
 
 	virtual ~FPCGExRefineEdgesContext() override;
+
+	PCGExHeuristics::THeuristicsHandler* HeuristicsHandler = nullptr;
 
 	UPCGExEdgeRefineOperation* Refinement;
 

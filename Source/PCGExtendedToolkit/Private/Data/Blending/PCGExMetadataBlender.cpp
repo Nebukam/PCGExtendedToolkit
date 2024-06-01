@@ -148,8 +148,10 @@ namespace PCGExDataBlending
 
 	void FMetadataBlender::Flush()
 	{
+		OperationIdMap.Empty();
+		
 		PCGEX_DELETE(PropertiesBlender)
-
+		
 		PCGEX_DELETE_TARRAY(Attributes)
 
 		AttributesToBePrepared.Empty();
@@ -229,6 +231,8 @@ namespace PCGExDataBlending
 			FDataBlendingOperationBase* Op = CreateOperation(TypePtr ? *TypePtr : BlendingSettings->DefaultBlending, Identity);
 
 			if (!Op) { continue; }
+
+			OperationIdMap.Add(Identity.Name, Op);
 
 			Attributes.Add(Op);
 			if (Op->GetRequiresPreparation()) { AttributesToBePrepared.Add(Op); }

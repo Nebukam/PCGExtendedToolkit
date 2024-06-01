@@ -17,12 +17,7 @@ UPCGExSampleNearestPolylineSettings::UPCGExSampleNearestPolylineSettings(
 TArray<FPCGPinProperties> UPCGExSampleNearestPolylineSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	FPCGPinProperties& PinPropertySourceTargets = PinProperties.Emplace_GetRef(PCGEx::SourceTargetsLabel, EPCGDataType::PolyLine, true, true);
-
-#if WITH_EDITOR
-	PinPropertySourceTargets.Tooltip = FTEXT("The point data set to check against.");
-#endif
-
+	PCGEX_PIN_POLYLINES(PCGEx::SourceTargetsLabel, "The spline data set to check against.", false, {})
 	return PinProperties;
 }
 

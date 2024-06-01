@@ -12,52 +12,25 @@
 
 /** Outputs a single GraphParam to be consumed by other nodes */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph|Params")
-class PCGEXTENDEDTOOLKIT_API UPCGExCreateCustomGraphSocketSettings : public UPCGSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExCreateCustomGraphSocketSettings : public UPCGExFactoryProviderSettings
 {
 	GENERATED_BODY()
 
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	bool bCacheResult = false;
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
 		GraphSocket, "Socket Definition", "Creates a single socket data object.",
 		Socket.SocketName)
-	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Param; }
-	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorExParam; }
-
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorGraph; }
 #endif
-	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
-	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
-
-protected:
-	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings
 
-	//~Begin UObject interface
-#if WITH_EDITOR
-
 public:
-	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
-#endif
-	//~End UObject interface
+	virtual FName GetMainOutputLabel() const override;
+	virtual UPCGExParamFactoryBase* CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
 
-public:
 	/** Custom graph socket.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
 	FPCGExSocketDescriptor Socket;
-};
-
-class PCGEXTENDEDTOOLKIT_API FPCGExCreateCustomGraphSocketElement : public IPCGElement
-{
-public:
-#if WITH_EDITOR
-	virtual bool ShouldLog() const override { return false; }
-#endif
-
-protected:
-	virtual bool ExecuteInternal(FPCGContext* Context) const override;
-
-public:
-	virtual FPCGContext* Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node) override;
 };

@@ -3,64 +3,47 @@
 
 #include "Misc/Filters/PCGExNumericCompareFilter.h"
 
-#if WITH_EDITOR
-FString FPCGExNumericCompareFilterDescriptor::GetDisplayName() const
+PCGExDataFilter::TFilter* UPCGExNumericCompareFilterFactory::CreateFilter() const
 {
-	FString DisplayName = OperandA.GetName().ToString() + PCGExCompare::ToString(Comparison);
-
-	if (CompareAgainst == EPCGExOperandType::Attribute) { DisplayName += OperandB.GetName().ToString(); }
-	else { DisplayName += FString::Printf(TEXT("%.3f"), (static_cast<int32>(1000 * OperandBConstant) / 1000.0)); }
-
-	return DisplayName;
-}
-#endif
-
-PCGExDataFilter::TFilterHandler* UPCGExNumericCompareFilterDefinition::CreateHandler() const
-{
-	return new PCGExPointsFilter::TNumericComparisonHandler(this);
+	return new PCGExPointsFilter::TNumericComparisonFilter(this);
 }
 
-void UPCGExNumericCompareFilterDefinition::BeginDestroy()
-{
-	Super::BeginDestroy();
-}
-
-void PCGExPointsFilter::TNumericComparisonHandler::Capture(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO)
+void PCGExPointsFilter::TNumericComparisonFilter::Capture(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO)
 {
 	bValid = true;
 
 	OperandA = new PCGEx::FLocalSingleFieldGetter();
-	OperandA->Capture(CompareFilter->OperandA);
+	OperandA->Capture(TypedFilterFactory->OperandA);
 	OperandA->Grab(*PointIO, false);
 	bValid = OperandA->IsUsable(PointIO->GetNum());
 
 	if (!bValid)
 	{
-		PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand A attribute: {0}."), FText::FromName(CompareFilter->OperandA.GetName())));
+		PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand A attribute: {0}."), FText::FromName(TypedFilterFactory->OperandA.GetName())));
 		PCGEX_DELETE(OperandA)
 		return;
 	}
 
-	if (CompareFilter->CompareAgainst == EPCGExOperandType::Attribute)
+	if (TypedFilterFactory->CompareAgainst == EPCGExOperandType::Attribute)
 	{
 		OperandB = new PCGEx::FLocalSingleFieldGetter();
-		OperandB->Capture(CompareFilter->OperandB);
+		OperandB->Capture(TypedFilterFactory->OperandB);
 		OperandB->Grab(*PointIO, false);
 		bValid = OperandB->IsUsable(PointIO->GetNum());
 
 		if (!bValid)
 		{
-			PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand B attribute: {0}."), FText::FromName(CompareFilter->OperandB.GetName())));
+			PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand B attribute: {0}."), FText::FromName(TypedFilterFactory->OperandB.GetName())));
 			PCGEX_DELETE(OperandB)
 		}
 	}
 }
 
-bool PCGExPointsFilter::TNumericComparisonHandler::Test(const int32 PointIndex) const
+bool PCGExPointsFilter::TNumericComparisonFilter::Test(const int32 PointIndex) const
 {
 	const double A = OperandA->Values[PointIndex];
-	const double B = CompareFilter->CompareAgainst == EPCGExOperandType::Attribute ? OperandB->Values[PointIndex] : CompareFilter->OperandBConstant;
-	return PCGExCompare::Compare(CompareFilter->Comparison, A, B, CompareFilter->Tolerance);
+	const double B = TypedFilterFactory->CompareAgainst == EPCGExOperandType::Attribute ? OperandB->Values[PointIndex] : TypedFilterFactory->OperandBConstant;
+	return PCGExCompare::Compare(TypedFilterFactory->Comparison, A, B, TypedFilterFactory->Tolerance);
 }
 
 namespace PCGExCompareFilter
@@ -70,53 +53,19 @@ namespace PCGExCompareFilter
 #define LOCTEXT_NAMESPACE "PCGExCompareFilterDefinition"
 #define PCGEX_NAMESPACE CompareFilterDefinition
 
-FPCGElementPtr UPCGExNumericCompareFilterDefinitionSettings::CreateElement() const { return MakeShared<FPCGExNumericCompareFilterDefinitionElement>(); }
-
-TArray<FPCGPinProperties> UPCGExNumericCompareFilterDefinitionSettings::InputPinProperties() const
-{
-	TArray<FPCGPinProperties> PinProperties;
-	return PinProperties;
-}
-
-TArray<FPCGPinProperties> UPCGExNumericCompareFilterDefinitionSettings::OutputPinProperties() const
-{
-	TArray<FPCGPinProperties> PinProperties;
-	FPCGPinProperties& PinPropertyOutput = PinProperties.Emplace_GetRef(PCGExDataFilter::OutputFilterLabel, EPCGDataType::Param, false, false);
+PCGEX_CREATE_FILTER_FACTORY(NumericCompare)
 
 #if WITH_EDITOR
-	PinPropertyOutput.Tooltip = FTEXT("Outputs a single filter definition.");
+FString UPCGExNumericCompareFilterProviderSettings::GetDisplayName() const
+{
+	FString DisplayName = Descriptor.OperandA.GetName().ToString() + PCGExCompare::ToString(Descriptor.Comparison);
+
+	if (Descriptor.CompareAgainst == EPCGExOperandType::Attribute) { DisplayName += Descriptor.OperandB.GetName().ToString(); }
+	else { DisplayName += FString::Printf(TEXT("%.3f"), (static_cast<int32>(1000 * Descriptor.OperandBConstant) / 1000.0)); }
+
+	return DisplayName;
+}
 #endif
-
-	return PinProperties;
-}
-
-bool FPCGExNumericCompareFilterDefinitionElement::ExecuteInternal(
-	FPCGContext* Context) const
-{
-	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExCompareFilterDefinitionElement::Execute);
-
-	PCGEX_SETTINGS(NumericCompareFilterDefinition)
-
-	UPCGExNumericCompareFilterDefinition* OutFilter = NewObject<UPCGExNumericCompareFilterDefinition>();
-
-	OutFilter->Priority = 0;
-	OutFilter->ApplyDescriptor(Settings->Descriptor);
-
-	FPCGTaggedData& Output = Context->OutputData.TaggedData.Emplace_GetRef();
-	Output.Data = OutFilter;
-	Output.Pin = PCGExDataFilter::OutputFilterLabel;
-
-	return true;
-}
-
-FPCGContext* FPCGExNumericCompareFilterDefinitionElement::Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node)
-{
-	FPCGContext* Context = new FPCGContext();
-	Context->InputData = InputData;
-	Context->SourceComponent = SourceComponent;
-	Context->Node = Node;
-	return Context;
-}
 
 #undef LOCTEXT_NAMESPACE
 #undef PCGEX_NAMESPACE

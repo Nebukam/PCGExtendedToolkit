@@ -44,6 +44,7 @@ public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(FilterClusters, "Graph : Filter Clusters", "Filter clusters based on proximity to targets.");
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorGraph; }
 #endif
 
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;

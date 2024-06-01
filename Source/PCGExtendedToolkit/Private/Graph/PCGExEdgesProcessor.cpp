@@ -22,24 +22,14 @@ bool UPCGExEdgesProcessorSettings::GetMainAcceptMultipleData() const { return tr
 TArray<FPCGPinProperties> UPCGExEdgesProcessorSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	FPCGPinProperties& PinEdgesInput = PinProperties.Emplace_GetRef(PCGExGraph::SourceEdgesLabel, EPCGDataType::Point);
-
-#if WITH_EDITOR
-	PinEdgesInput.Tooltip = FTEXT("Edges associated with the main input points");
-#endif
-
+	PCGEX_PIN_POINTS(PCGExGraph::SourceEdgesLabel, "Edges associated with the main input points", false, {})
 	return PinProperties;
 }
 
 TArray<FPCGPinProperties> UPCGExEdgesProcessorSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
-	FPCGPinProperties& PinEdgesOutput = PinProperties.Emplace_GetRef(PCGExGraph::OutputEdgesLabel, EPCGDataType::Point);
-
-#if WITH_EDITOR
-	PinEdgesOutput.Tooltip = FTEXT("Edges associated with the main output points");
-#endif
-
+	PCGEX_PIN_POINTS(PCGExGraph::OutputEdgesLabel, "Edges associated with the main output points", false, {})
 	return PinProperties;
 }
 

@@ -32,6 +32,14 @@ MACRO(FVector, Scale, Vector, Transform.GetScale3D()) \
 MACRO(float, Steepness, Float,Steepness) \
 MACRO(int32, Seed, Integer32,Seed)
 
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Blend Over Mode"))
+enum class EPCGExBlendOver : uint8
+{
+	Distance UMETA(DisplayName = "Distance", ToolTip="Blend is based on distance over max distance"),
+	Index UMETA(DisplayName = "Count", ToolTip="Blend is based on index over total count"),
+	Fixed UMETA(DisplayName = "Fixed", ToolTip="Fixed blend lerp/weight value"),
+};
+
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Blending Filter"))
 enum class EPCGExBlendingFilter : uint8
 {
@@ -272,20 +280,20 @@ namespace PCGExDataBlending
 
 		virtual void InitializeFromScratch() = 0;
 
-		virtual bool GetIsInterpolation() const;
-		virtual bool GetRequiresPreparation() const;
-		virtual bool GetRequiresFinalization() const;
+		FORCEINLINE virtual bool GetIsInterpolation() const;
+		FORCEINLINE virtual bool GetRequiresPreparation() const;
+		FORCEINLINE virtual bool GetRequiresFinalization() const;
 
-		virtual void PrepareOperation(const int32 WriteIndex) const;
-		virtual void DoOperation(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, const int32 WriteIndex, const double Weight = 1) const;
-		virtual void DoOperation(const int32 PrimaryReadIndex, const FPCGPoint& SrcPoint, const int32 WriteIndex, const double Weight = 1) const = 0;
-		virtual void FinalizeOperation(const int32 WriteIndex, const int32 Count, const double TotalWeight) const;
+		FORCEINLINE virtual void PrepareOperation(const int32 WriteIndex) const;
+		FORCEINLINE virtual void DoOperation(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, const int32 WriteIndex, const double Weight = 1) const;
+		FORCEINLINE virtual void DoOperation(const int32 PrimaryReadIndex, const FPCGPoint& SrcPoint, const int32 WriteIndex, const double Weight = 1) const = 0;
+		FORCEINLINE virtual void FinalizeOperation(const int32 WriteIndex, const int32 Count, const double TotalWeight) const;
 
-		virtual void PrepareRangeOperation(const int32 StartIndex, const int32 Range) const = 0;
-		virtual void DoRangeOperation(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, const int32 StartIndex, const TArrayView<double>& Weights) const = 0;
-		virtual void FinalizeRangeOperation(const int32 StartIndex, const TArrayView<int32>& Counts, const TArrayView<double>& TotalWeights) const = 0;
+		FORCEINLINE virtual void PrepareRangeOperation(const int32 StartIndex, const int32 Range) const = 0;
+		FORCEINLINE virtual void DoRangeOperation(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, const int32 StartIndex, const TArrayView<double>& Weights) const = 0;
+		FORCEINLINE virtual void FinalizeRangeOperation(const int32 StartIndex, const TArrayView<int32>& Counts, const TArrayView<double>& TotalWeights) const = 0;
 
-		virtual void BlendEachPrimaryToSecondary(const TArrayView<double>& Weights) const;
+		FORCEINLINE virtual void BlendEachPrimaryToSecondary(const TArrayView<double>& Weights) const;
 
 		virtual void ResetToDefault(int32 WriteIndex) const;
 		virtual void ResetRangeToDefault(int32 StartIndex, int32 Count) const;
@@ -371,24 +379,24 @@ namespace PCGExDataBlending
 			PrepareValuesRangeOperation(View, StartIndex);
 		}
 
-		virtual void DoRangeOperation(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, const int32 StartIndex, const TArrayView<double>& Weights) const override
+		FORCEINLINE virtual void DoRangeOperation(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, const int32 StartIndex, const TArrayView<double>& Weights) const override
 		{
 			TArrayView<T> View = MakeArrayView(Writer->Values.GetData() + StartIndex, Weights.Num());
 			DoValuesRangeOperation(PrimaryReadIndex, SecondaryReadIndex, View, Weights);
 		}
 
-		virtual void FinalizeRangeOperation(const int32 StartIndex, const TArrayView<int32>& Counts, const TArrayView<double>& TotalWeights) const override
+		FORCEINLINE virtual void FinalizeRangeOperation(const int32 StartIndex, const TArrayView<int32>& Counts, const TArrayView<double>& TotalWeights) const override
 		{
 			TArrayView<T> View = MakeArrayView(Writer->Values.GetData() + StartIndex, Counts.Num());
 			FinalizeValuesRangeOperation(View, Counts, TotalWeights);
 		}
 
-		virtual void PrepareValuesRangeOperation(TArrayView<T>& Values, const int32 StartIndex) const
+		FORCEINLINE virtual void PrepareValuesRangeOperation(TArrayView<T>& Values, const int32 StartIndex) const
 		{
 			for (int i = 0; i < Values.Num(); i++) { SinglePrepare(Values[i]); }
 		}
 
-		virtual void DoValuesRangeOperation(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, TArrayView<T>& Values, const TArrayView<double>& Weights) const
+		FORCEINLINE virtual void DoValuesRangeOperation(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, TArrayView<T>& Values, const TArrayView<double>& Weights) const
 		{
 			if (!bInterpolationAllowed && GetIsInterpolation())
 			{
@@ -405,20 +413,20 @@ namespace PCGExDataBlending
 		}
 
 
-		virtual void DoOperation(const int32 PrimaryReadIndex, const FPCGPoint& SrcPoint, const int32 WriteIndex, const double Weight = 0) const override
+		FORCEINLINE virtual void DoOperation(const int32 PrimaryReadIndex, const FPCGPoint& SrcPoint, const int32 WriteIndex, const double Weight = 0) const override
 		{
 			const T A = (*Writer)[PrimaryReadIndex];
 			const T B = TypedAttribute ? TypedAttribute->GetValueFromItemKey(SrcPoint.MetadataEntry) : A;
 			(*Writer)[WriteIndex] = SingleOperation(A, B, Weight);
 		}
 
-		virtual void FinalizeValuesRangeOperation(TArrayView<T>& Values, const TArrayView<int32>& Counts, const TArrayView<double>& Weights) const
+		FORCEINLINE virtual void FinalizeValuesRangeOperation(TArrayView<T>& Values, const TArrayView<int32>& Counts, const TArrayView<double>& Weights) const
 		{
 			if (!bInterpolationAllowed) { return; }
 			for (int i = 0; i < Values.Num(); i++) { SingleFinalize(Values[i], Counts[i], Weights[i]); }
 		}
 
-		virtual void BlendEachPrimaryToSecondary(const TArrayView<double>& Weights) const override
+		FORCEINLINE virtual void BlendEachPrimaryToSecondary(const TArrayView<double>& Weights) const override
 		{
 			if (!bInterpolationAllowed) { return; }
 			for (int i = 0; i < Writer->Values.Num(); i++)
@@ -427,17 +435,17 @@ namespace PCGExDataBlending
 			}
 		}
 
-		virtual void SinglePrepare(T& A) const
+		FORCEINLINE virtual void SinglePrepare(T& A) const
 		{
 		};
 
-		virtual T SingleOperation(T A, T B, double Weight) const = 0;
+		FORCEINLINE virtual T SingleOperation(T A, T B, double Weight) const = 0;
 
-		virtual void SingleFinalize(T& A, const int32 Count, const double Weight) const
+		FORCEINLINE virtual void SingleFinalize(T& A, const int32 Count, const double Weight) const
 		{
 		};
 
-		virtual void ResetToDefault(const int32 WriteIndex) const override { ResetRangeToDefault(WriteIndex, 1); }
+		FORCEINLINE virtual void ResetToDefault(const int32 WriteIndex) const override { ResetRangeToDefault(WriteIndex, 1); }
 
 		virtual void ResetRangeToDefault(const int32 StartIndex, const int32 Count) const override
 		{
@@ -445,8 +453,8 @@ namespace PCGExDataBlending
 			for (int i = 0; i < Count; i++) { Writer->Values[StartIndex + i] = DefaultValue; }
 		}
 
-		virtual T GetPrimaryValue(const int32 Index) const { return (*Writer)[Index]; }
-		virtual T GetSecondaryValue(const int32 Index) const { return (*Reader)[Index]; }
+		FORCEINLINE virtual T GetPrimaryValue(const int32 Index) const { return (*Writer)[Index]; }
+		FORCEINLINE virtual T GetSecondaryValue(const int32 Index) const { return (*Reader)[Index]; }
 
 		virtual void Write() override { Writer->Write(); }
 
@@ -490,7 +498,7 @@ namespace PCGExDataBlending
 			}
 		}
 
-		virtual void DoOperation(const int32 PrimaryReadIndex, const FPCGPoint& SrcPoint, const int32 WriteIndex, const double Weight = 0) const override
+		FORCEINLINE virtual void DoOperation(const int32 PrimaryReadIndex, const FPCGPoint& SrcPoint, const int32 WriteIndex, const double Weight = 0) const override
 		{
 			const T A = (*this->Writer)[PrimaryReadIndex];
 			const T B = this->TypedAttribute ? this->TypedAttribute->GetValueFromItemKey(SrcPoint.MetadataEntry) : A;

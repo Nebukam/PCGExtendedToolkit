@@ -9,14 +9,6 @@
 
 #include "PCGExSubPointsBlendInterpolate.generated.h"
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Path Blend Over Mode"))
-enum class EPCGExPathBlendOver : uint8
-{
-	Distance UMETA(DisplayName = "Distance", ToolTip="Lerp is based on distance over total length"),
-	Index UMETA(DisplayName = "Count", ToolTip="Lerp is based on point index over total count"),
-	Fixed UMETA(DisplayName = "Fixed", ToolTip="Fixed Lerp value"),
-};
-
 /**
  * 
  */
@@ -27,7 +19,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSubPointsBlendInterpolate : public UPCGExSubP
 
 public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExPathBlendOver BlendOver = EPCGExPathBlendOver::Distance;
+	EPCGExBlendOver BlendOver = EPCGExBlendOver::Distance;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="BlendOver==EPCGExPathBlendOver::Fixed", EditConditionHides))
 	double Weight = 0.5;

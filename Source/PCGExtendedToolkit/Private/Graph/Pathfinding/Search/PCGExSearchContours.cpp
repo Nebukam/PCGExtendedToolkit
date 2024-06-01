@@ -5,8 +5,7 @@
 #include "Graph/Pathfinding/Search/PCGExSearchContours.h"
 
 #include "Graph/PCGExCluster.h"
-#include "Graph/Pathfinding/PCGExPathfinding.h"
-#include "Graph/Pathfinding/Heuristics/PCGExHeuristicOperation.h"
+#include "Graph/Pathfinding/Heuristics/PCGExHeuristics.h"
 
 bool UPCGExSearchContours::GetRequiresProjection() { return true; }
 
@@ -15,8 +14,8 @@ bool UPCGExSearchContours::FindPath(
 	const FPCGExNodeSelectionSettings* SeedSelection,
 	const FVector& GoalPosition,
 	const FPCGExNodeSelectionSettings* GoalSelection,
-	const UPCGExHeuristicOperation* Heuristics,
-	const FPCGExHeuristicModifiersSettings* Modifiers, TArray<int32>& OutPath, PCGExPathfinding::FExtraWeights* ExtraWeights)
+	PCGExHeuristics::THeuristicsHandler* Heuristics,
+	TArray<int32>& OutPath, PCGExHeuristics::FLocalFeedbackHandler* LocalFeedback)
 {
 	const int32 StartNodeIndex = Cluster->FindClosestNode(SeedPosition, SeedSelection->PickingMethod, 2);
 	const int32 EndNodeIndex = Cluster->FindClosestNode(GoalPosition, GoalSelection->PickingMethod, 1);

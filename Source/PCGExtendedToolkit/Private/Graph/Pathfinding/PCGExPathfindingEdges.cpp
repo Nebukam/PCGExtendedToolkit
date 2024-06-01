@@ -7,9 +7,8 @@
 #include "Graph/PCGExGraph.h"
 #include "PCGExPathfinding.cpp"
 #include "Graph/Pathfinding/GoalPickers/PCGExGoalPickerRandom.h"
-#include "Algo/Reverse.h"
-#include "Graph/Pathfinding/Heuristics/PCGExHeuristicDistance.h"
 #include "Graph/Pathfinding/Search/PCGExSearchOperation.h"
+#include "Algo/Reverse.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPathfindingEdgesElement"
 #define PCGEX_NAMESPACE PathfindingEdges
@@ -25,7 +24,6 @@ void UPCGExPathfindingEdgesSettings::PostEditChangeProperty(FPropertyChangedEven
 {
 	if (GoalPicker) { GoalPicker->UpdateUserFacingInfos(); }
 	if (SearchAlgorithm) { SearchAlgorithm->UpdateUserFacingInfos(); }
-	HeuristicsModifiers.UpdateUserFacingInfos();
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
 #endif
@@ -37,8 +35,6 @@ PCGExData::EInit UPCGExPathfindingEdgesSettings::GetEdgeOutputInitMode() const {
 FPCGExPathfindingEdgesContext::~FPCGExPathfindingEdgesContext()
 {
 	PCGEX_TERMINATE_ASYNC
-
-	PCGEX_DELETE(GlobalExtraWeights)
 	PCGEX_DELETE_TARRAY(PathBuffer)
 }
 
@@ -139,7 +135,7 @@ bool FPCGExPathfindingEdgesElement::ExecuteInternal(FPCGContext* InContext) cons
 		}
 
 		Context->SearchAlgorithm->PrepareForCluster(Context->CurrentCluster, Context->ClusterProjection);
-		Context->GetAsyncManager()->Start<FPCGExCompileModifiersTask>(0, Context->CurrentIO, Context->CurrentEdges, Context->HeuristicsModifiers);
+		Context->HeuristicsHandler->PrepareForCluster(Context->GetAsyncManager(), Context->CurrentCluster);
 		Context->SetAsyncState(PCGExGraph::State_ProcessingEdges);
 	}
 
@@ -147,16 +143,10 @@ bool FPCGExPathfindingEdgesElement::ExecuteInternal(FPCGContext* InContext) cons
 	{
 		PCGEX_WAIT_ASYNC
 
-		PCGEX_DELETE(Context->GlobalExtraWeights)
-		Context->Heuristics->PrepareForData(Context->CurrentCluster);
+		Context->HeuristicsHandler->CompleteClusterPreparation();
 
-		if (Settings->bWeightUpVisited)
+		if (Context->HeuristicsHandler->HasGlobalFeedback())
 		{
-			Context->GlobalExtraWeights = new PCGExPathfinding::FExtraWeights(
-				Context->CurrentCluster,
-				Settings->VisitedPointsWeightFactor,
-				Settings->VisitedEdgesWeightFactor);
-
 			Context->CurrentPathBufferIndex = -1;
 			Context->SetAsyncState(PCGExPathfinding::State_Pathfinding);
 		}
@@ -182,10 +172,8 @@ bool FPCGExPathfindingEdgesElement::ExecuteInternal(FPCGContext* InContext) cons
 		}
 
 		Context->GetAsyncManager()->Start<FSampleClusterPathTask>(
-			Context->CurrentPathBufferIndex,
-			Context->CurrentIO,
-			Context->PathBuffer[Context->CurrentPathBufferIndex],
-			Context->GlobalExtraWeights);
+			Context->CurrentPathBufferIndex, Context->CurrentIO,
+			Context->PathBuffer[Context->CurrentPathBufferIndex]);
 
 		Context->SetAsyncState(PCGExPathfinding::State_WaitingPathfinding);
 	}
@@ -225,7 +213,7 @@ bool FSampleClusterPathTask::ExecuteTask()
 	//Note: Can silently fail
 	if (!Context->SearchAlgorithm->FindPath(
 		Query->SeedPosition, &Settings->SeedPicking,
-		Query->GoalPosition, &Settings->GoalPicking, Context->Heuristics, Context->HeuristicsModifiers, Path, GlobalExtraWeights))
+		Query->GoalPosition, &Settings->GoalPicking, Context->HeuristicsHandler, Path))
 	{
 		// Failed
 		return false;

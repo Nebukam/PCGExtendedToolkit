@@ -112,7 +112,7 @@ namespace FPCGExFilter
 		double Upscale = 1.0;
 		double Offset = 0.0;
 
-		int64 Filter(const int32 Index) const
+		FORCEINLINE int64 Filter(const int32 Index) const
 		{
 			const double Upscaled = Values[Index] * Upscale + (Offset);
 			const double Filtered = (Upscaled - FMath::Fmod(Upscaled, FilterSize)) / FilterSize + PCGExMath::SignPlus(Upscaled);

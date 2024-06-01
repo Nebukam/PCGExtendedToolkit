@@ -7,7 +7,7 @@
 
 #include "PCGExCustomGraphProcessor.h"
 
-#include "PCGExConsolidateCustomGraph.generated.h"
+#include "PCGExSanitizeCustomGraph.generated.h"
 
 /**
  * Calculates the distance between two points (inherently a n*n operation)
@@ -20,7 +20,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExConsolidateCustomGraphSettings : public UPCGE
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(ConsolidateCustomGraph, "Custom Graph : Consolidate", "Repairs and consolidate graph indices after points have been removed post graph-building.");
+	PCGEX_NODE_INFOS(SanitizeCustomGraph, "Custom Graph : Sanitize", "Repairs and consolidate graph indices after points have been removed post graph-building.");
 #endif
 
 protected:

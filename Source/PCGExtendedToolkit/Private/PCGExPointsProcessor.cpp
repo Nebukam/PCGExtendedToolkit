@@ -219,12 +219,9 @@ void UPCGExPointsProcessorSettings::PostEditChangeProperty(FPropertyChangedEvent
 TArray<FPCGPinProperties> UPCGExPointsProcessorSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	bool bAcceptMultiple = GetMainAcceptMultipleData();
-	FPCGPinProperties& PinPropertySource = PinProperties.Emplace_GetRef(GetMainInputLabel(), EPCGDataType::Point, bAcceptMultiple, bAcceptMultiple);
 
-#if WITH_EDITOR
-	PinPropertySource.Tooltip = FTEXT("The point data to be processed.");
-#endif
+	if(GetMainAcceptMultipleData()){ PCGEX_PIN_POINTS(GetMainInputLabel(), "The point data to be processed.", false, {}) }
+	else{PCGEX_PIN_POINT(GetMainInputLabel(), "The point data to be processed.", false, {})}
 
 	return PinProperties;
 }
@@ -232,12 +229,7 @@ TArray<FPCGPinProperties> UPCGExPointsProcessorSettings::InputPinProperties() co
 TArray<FPCGPinProperties> UPCGExPointsProcessorSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	FPCGPinProperties& PinPointsOutput = PinProperties.Emplace_GetRef(GetMainOutputLabel(), EPCGDataType::Point);
-
-#if WITH_EDITOR
-	PinPointsOutput.Tooltip = FTEXT("The processed points.");
-#endif
-
+	PCGEX_PIN_POINTS(GetMainOutputLabel(), "The processed points.", false, {})
 	return PinProperties;
 }
 
@@ -261,7 +253,7 @@ FPCGExPointsProcessorContext::~FPCGExPointsProcessorContext()
 	PCGEX_TERMINATE_ASYNC
 
 	CleanupOperations();
-	for (UPCGExOperation* Operation : OwnedProcessorOperations) { Operation->ConditionalBeginDestroy(); }
+	for (UPCGExOperation* Operation : OwnedProcessorOperations) { PCGEX_DELETE_UOBJECT(Operation) }
 
 	ProcessorOperations.Empty();
 	OwnedProcessorOperations.Empty();

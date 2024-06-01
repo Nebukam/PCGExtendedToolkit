@@ -5,6 +5,7 @@
 
 #include "Graph/PCGExGraph.h"
 #include "Graph/Edges/Refining/PCGExEdgeRefinePrimMST.h"
+#include "Graph/Pathfinding/Heuristics/PCGExHeuristics.h"
 
 #define LOCTEXT_NAMESPACE "PCGExRefineEdges"
 #define PCGEX_NAMESPACE RefineEdges
@@ -13,6 +14,13 @@ void UPCGExRefineEdgesSettings::PostInitProperties()
 {
 	Super::PostInitProperties();
 	PCGEX_OPERATION_DEFAULT(Refinement, UPCGExEdgeRefinePrimMST)
+}
+
+TArray<FPCGPinProperties> UPCGExRefineEdgesSettings::InputPinProperties() const
+{
+	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
+	PCGEX_PIN_PARAMS(PCGExPathfinding::SourceHeuristicsLabel, "Heuristics may be used by some refinements, such as MST.", false, {})
+	return PinProperties;
 }
 
 PCGExData::EInit UPCGExRefineEdgesSettings::GetMainOutputInitMode() const { return GraphBuilderSettings.bPruneIsolatedPoints ? PCGExData::EInit::NewOutput : PCGExData::EInit::DuplicateInput; }
@@ -24,6 +32,7 @@ FPCGExRefineEdgesContext::~FPCGExRefineEdgesContext()
 {
 	PCGEX_TERMINATE_ASYNC
 
+	PCGEX_DELETE(HeuristicsHandler)
 	PCGEX_DELETE(GraphBuilder)
 }
 
@@ -35,6 +44,8 @@ bool FPCGExRefineEdgesElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_OPERATION_BIND(Refinement, UPCGExEdgeRefinePrimMST)
 	PCGEX_FWD(GraphBuilderSettings)
+
+	Context->HeuristicsHandler = new PCGExHeuristics::THeuristicsHandler(Context);
 
 	return true;
 }
@@ -62,9 +73,7 @@ bool FPCGExRefineEdgesElement::ExecuteInternal(
 			if (!Context->TaggedEdges) { return false; }
 
 			Context->Refinement->PrepareForPointIO(Context->CurrentIO);
-
 			Context->GraphBuilder = new PCGExGraph::FGraphBuilder(*Context->CurrentIO, &Context->GraphBuilderSettings, 8, Context->MainEdges);
-
 			Context->SetState(PCGExGraph::State_ReadyForNextEdges);
 		}
 	}
@@ -86,9 +95,28 @@ bool FPCGExRefineEdgesElement::ExecuteInternal(
 
 			Context->Refinement->PreProcess(Context->CurrentCluster, Context->GraphBuilder->Graph, Context->CurrentEdges);
 
-			Context->GetAsyncManager()->Start<FPCGExRefineEdgesTask>(-1, Context->CurrentIO, Context->CurrentCluster, Context->CurrentEdges);
-			Context->SetAsyncState(PCGExGraph::State_ProcessingEdges);
+			if (!Context->HeuristicsHandler->PrepareForCluster(Context->GetAsyncManager(), Context->CurrentCluster))
+			{
+				Context->GetAsyncManager()->Start<FPCGExRefineEdgesTask>(-1, Context->CurrentIO, Context->CurrentCluster, Context->CurrentEdges);
+				Context->SetAsyncState(PCGExGraph::State_ProcessingEdges);
+			}
+			else
+			{
+				Context->SetAsyncState(PCGExPathfinding::State_ProcessingHeuristics);
+			}
 		}
+	}
+
+	if (Context->IsState(PCGExPathfinding::State_ProcessingHeuristics))
+	{
+		PCGEX_WAIT_ASYNC
+
+		Context->HeuristicsHandler->CompleteClusterPreparation();
+
+		Context->GetAsyncManager()->Start<FPCGExRefineEdgesTask>(-1, Context->CurrentIO, Context->CurrentCluster, Context->CurrentEdges);
+		Context->SetAsyncState(PCGExGraph::State_ProcessingEdges);
+
+		return false;
 	}
 
 	if (Context->IsState(PCGExGraph::State_ProcessingEdges))
@@ -118,7 +146,7 @@ bool FPCGExRefineEdgesElement::ExecuteInternal(
 bool FPCGExRefineEdgesTask::ExecuteTask()
 {
 	const FPCGExRefineEdgesContext* Context = Manager->GetContext<FPCGExRefineEdgesContext>();
-	Context->Refinement->Process(Cluster, Context->GraphBuilder->Graph, EdgeIO);
+	Context->Refinement->Process(Cluster, Context->GraphBuilder->Graph, EdgeIO, Context->HeuristicsHandler);
 	return false;
 }
 

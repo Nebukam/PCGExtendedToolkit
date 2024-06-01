@@ -17,12 +17,7 @@ PCGExData::EInit UPCGExFindNodeStatesSettings::GetEdgeOutputInitMode() const { r
 TArray<FPCGPinProperties> UPCGExFindNodeStatesSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	FPCGPinProperties& PinStateParams = PinProperties.Emplace_GetRef(PCGExCluster::SourceNodeStateLabel, EPCGDataType::Param);
-
-#if WITH_EDITOR
-	PinStateParams.Tooltip = FTEXT("Node states.");
-#endif
-
+	PCGEX_PIN_PARAMS(PCGExCluster::SourceNodeStateLabel, "Node states.", false, {})
 	return PinProperties;
 }
 
@@ -86,8 +81,8 @@ bool FPCGExFindNodeStatesElement::ExecuteInternal(
 
 		Context->CurrentCluster->GetNodePointIndices(Context->NodeIndices);
 		Context->StatesManager = new PCGExDataState::TStatesManager(Context->CurrentIO);
-		Context->StatesManager->Register<UPCGExNodeStateDefinition>(
-			Context, Context->StateDefinitions, [&](PCGExDataFilter::TFilterHandler* Handler)
+		Context->StatesManager->Register<UPCGExNodeStateFactory>(
+			Context, Context->StateDefinitions, [&](PCGExDataFilter::TFilter* Handler)
 			{
 				PCGExCluster::FNodeStateHandler* NodeStateHandler = static_cast<PCGExCluster::FNodeStateHandler*>(Handler);
 				NodeStateHandler->CaptureCluster(Context, Context->CurrentCluster);

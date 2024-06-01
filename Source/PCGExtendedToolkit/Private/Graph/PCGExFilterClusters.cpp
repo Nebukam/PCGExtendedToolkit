@@ -21,12 +21,7 @@ PCGExData::EInit UPCGExFilterClustersSettings::GetMainOutputInitMode() const { r
 TArray<FPCGPinProperties> UPCGExFilterClustersSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	FPCGPinProperties& PinEdgesInput = PinProperties.Emplace_GetRef(PCGEx::SourceTargetsLabel, EPCGDataType::Point, false, false);
-
-#if WITH_EDITOR
-	PinEdgesInput.Tooltip = FTEXT("Target points used to test for proximity");
-#endif
-
+	PCGEX_PIN_POINT(PCGEx::SourceTargetsLabel, "Target points used to test for proximity", false, {})
 	return PinProperties;
 }
 

@@ -8,12 +8,12 @@
 
 #pragma region UPCGExNodeStateDefinition
 
-PCGExDataFilter::TFilterHandler* UPCGExNodeStateDefinition::CreateHandler() const
+PCGExDataFilter::TFilter* UPCGExNodeStateFactory::CreateFilter() const
 {
 	return new PCGExCluster::FNodeStateHandler(this);
 }
 
-void UPCGExNodeStateDefinition::BeginDestroy()
+void UPCGExNodeStateFactory::BeginDestroy()
 {
 	Super::BeginDestroy();
 }
@@ -133,12 +133,14 @@ namespace PCGExCluster
 		Edges.SetNumUninitialized(NumEdges);
 		EdgeIndexMap.Reserve(NumEdges);
 
-		//We need to sort edges in order to have deterministic processing of the clusters
+		/*
+		//We use to need to sort cluster to get deterministic results but it seems not to be the case anymore
 		EdgeList.Sort(
 			[](const PCGExGraph::FIndexedEdge& A, const PCGExGraph::FIndexedEdge& B)
 			{
 				return A.Start == B.Start ? A.End < B.End : A.Start < B.Start;
 			});
+		*/
 
 		for (int i = 0; i < NumEdges; i++)
 		{
@@ -447,7 +449,8 @@ namespace PCGExCluster
 			Max = FMath::Max(Dist, Max);
 		}
 
-		if (bNormalize) { for (int i = 0; i < NumEdges; i++) { EdgeLengths[i] = PCGExMath::Remap(EdgeLengths[i], Min, Max, 0, 1); } }
+		//Normalized to 0 instead of min
+		if (bNormalize) { for (int i = 0; i < NumEdges; i++) { EdgeLengths[i] = PCGExMath::Remap(EdgeLengths[i], 0, Max, 0, 1); } }
 
 		bEdgeLengthsDirty = false;
 	}
@@ -653,7 +656,7 @@ namespace PCGExCluster
 
 #pragma region FNodeStateHandler
 
-	void TClusterFilterHandler::CaptureCluster(const FPCGContext* InContext, const FCluster* InCluster)
+	void TClusterFilter::CaptureCluster(const FPCGContext* InContext, const FCluster* InCluster)
 	{
 		bValid = true;
 		CapturedCluster = InCluster;
@@ -662,43 +665,38 @@ namespace PCGExCluster
 		if (bValid) { CaptureEdges(InContext, InCluster->EdgesIO); } // Only capture edges if we could capture nodes
 	}
 
-	void TClusterFilterHandler::Capture(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO)
+	void TClusterFilter::Capture(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO)
 	{
 		// Do not call Super:: as it sets bValid to true, and we want CaptureCluster to have control
 		// This is the filter is invalid if used somewhere that doesn't initialize clusters.
 		//TFilterHandler::Capture(PointIO);
 	}
 
-	void TClusterFilterHandler::CaptureEdges(const FPCGContext* InContext, const PCGExData::FPointIO* EdgeIO)
+	void TClusterFilter::CaptureEdges(const FPCGContext* InContext, const PCGExData::FPointIO* EdgeIO)
 	{
 	}
 
-	void TClusterFilterHandler::PrepareForTesting(PCGExData::FPointIO* PointIO)
+	void TClusterFilter::PrepareForTesting(PCGExData::FPointIO* PointIO)
 	{
 		const int32 NumNodes = CapturedCluster->Nodes.Num();
 		Results.SetNumUninitialized(NumNodes);
 		for (int i = 0; i < NumNodes; i++) { Results[i] = false; }
 	}
 
-	FNodeStateHandler::FNodeStateHandler(const UPCGExNodeStateDefinition* InDefinition)
-		: TStateHandler(InDefinition), NodeStateDefinition(InDefinition)
+	FNodeStateHandler::FNodeStateHandler(const UPCGExNodeStateFactory* InDefinition)
+		: TDataState(InDefinition), NodeStateDefinition(InDefinition)
 	{
-		const int32 NumConditions = InDefinition->Tests.Num();
+		const int32 NumConditions = InDefinition->Filters.Num();
 
 		FilterHandlers.Empty();
 		ClusterFilterHandlers.Empty();
 
 		for (int i = 0; i < NumConditions; i++)
 		{
-			if (TFilterHandler* Handler = InDefinition->Tests[i]->CreateHandler())
+			if (TFilter* Handler = InDefinition->Filters[i]->CreateFilter())
 			{
-#if PLATFORM_WINDOWS
-				if (TClusterFilterHandler* ClusterHandler = dynamic_cast<TClusterFilterHandler*>(Handler)) { ClusterFilterHandlers.Add(ClusterHandler); }
+				if (TClusterFilter* ClusterHandler = static_cast<TClusterFilter*>(Handler)) { ClusterFilterHandlers.Add(ClusterHandler); }
 				else { FilterHandlers.Add(Handler); }
-#else
-				if (Handler->IsClusterFilter()) { ClusterFilterHandlers.Add(static_cast<TClusterFilterHandler*>(Handler)); }
-				else { FilterHandlers.Add(Handler); }
-#endif
 			}
 			else
 			{
@@ -710,28 +708,28 @@ namespace PCGExCluster
 	void FNodeStateHandler::CaptureCluster(const FPCGContext* InContext, FCluster* InCluster)
 	{
 		Cluster = InCluster;
-		TArray<TFilterHandler*> InvalidTests;
-		TArray<TClusterFilterHandler*> InvalidClusterTests;
+		TArray<TFilter*> InvalidTests;
+		TArray<TClusterFilter*> InvalidClusterTests;
 
-		for (TFilterHandler* Test : FilterHandlers)
+		for (TFilter* Test : FilterHandlers)
 		{
 			Test->Capture(InContext, Cluster->PointsIO);
 			if (!Test->bValid) { InvalidTests.Add(Test); }
 		}
 
-		for (TFilterHandler* Filter : InvalidTests)
+		for (TFilter* Filter : InvalidTests)
 		{
 			FilterHandlers.Remove(Filter);
 			delete Filter;
 		}
 
-		for (TClusterFilterHandler* Test : ClusterFilterHandlers)
+		for (TClusterFilter* Test : ClusterFilterHandlers)
 		{
 			Test->CaptureCluster(InContext, Cluster);
 			if (!Test->bValid) { InvalidClusterTests.Add(Test); }
 		}
 
-		for (TClusterFilterHandler* Filter : InvalidClusterTests)
+		for (TClusterFilter* Filter : InvalidClusterTests)
 		{
 			ClusterFilterHandlers.Remove(Filter);
 			delete Filter;
@@ -747,13 +745,13 @@ namespace PCGExCluster
 	{
 		if (!FilterHandlers.IsEmpty())
 		{
-			for (const TFilterHandler* Test : FilterHandlers) { if (!Test->Test(PointIndex)) { return false; } }
+			for (const TFilter* Test : FilterHandlers) { if (!Test->Test(PointIndex)) { return false; } }
 		}
 
 		if (!ClusterFilterHandlers.IsEmpty())
 		{
 			const int32 NodeIndex = Cluster->GetNodeFromPointIndex(PointIndex).NodeIndex; // We get a point index from the FindNode
-			for (const TClusterFilterHandler* Test : ClusterFilterHandlers) { if (!Test->Test(NodeIndex)) { return false; } }
+			for (const TClusterFilter* Test : ClusterFilterHandlers) { if (!Test->Test(NodeIndex)) { return false; } }
 		}
 
 		return true;
@@ -761,9 +759,9 @@ namespace PCGExCluster
 
 	void FNodeStateHandler::PrepareForTesting(PCGExData::FPointIO* PointIO)
 	{
-		TStateHandler::PrepareForTesting(PointIO);
-		for (TFilterHandler* Test : FilterHandlers) { Test->PrepareForTesting(PointIO); }
-		for (TClusterFilterHandler* Test : ClusterFilterHandlers) { Test->PrepareForTesting(PointIO); }
+		TDataState::PrepareForTesting(PointIO);
+		for (TFilter* Test : FilterHandlers) { Test->PrepareForTesting(PointIO); }
+		for (TClusterFilter* Test : ClusterFilterHandlers) { Test->PrepareForTesting(PointIO); }
 	}
 
 #pragma endregion

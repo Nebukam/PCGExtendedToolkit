@@ -17,6 +17,7 @@ public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(WriteIndex, "Write Index", "Write the current point index to an attribute.");
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorMiscWrite; }
 #endif
 
 protected:

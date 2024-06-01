@@ -22,6 +22,7 @@ public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(LloydRelax2D, "Lloyd Relax 2D", "Applies Lloyd relaxation to the input points.");
+	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorMisc; }
 #endif
 
 protected:

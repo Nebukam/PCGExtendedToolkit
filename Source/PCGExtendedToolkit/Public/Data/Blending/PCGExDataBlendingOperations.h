@@ -17,9 +17,9 @@ namespace PCGExDataBlending
 		virtual bool GetRequiresPreparation() const override { return true; }
 		virtual bool GetRequiresFinalization() const override { return true; }
 
-		virtual void SinglePrepare(T& A) const override { A = this->Writer->GetDefaultValue(); }
-		virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::Add(A, B); }
-		virtual void SingleFinalize(T& A, const int32 Count, const double Weight) const override { A = PCGExMath::Div(A, static_cast<double>(Count)); }
+		FORCEINLINE virtual void SinglePrepare(T& A) const override { A = this->Writer->GetZeroedValue(); }
+		FORCEINLINE virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::Add(A, B); }
+		FORCEINLINE virtual void SingleFinalize(T& A, const int32 Count, const double Weight) const override { A = PCGExMath::Div(A, static_cast<double>(Count)); }
 	};
 
 	template <typename T>
@@ -39,8 +39,8 @@ namespace PCGExDataBlending
 		virtual bool GetRequiresPreparation() const override { return true; }
 		virtual bool GetRequiresFinalization() const override { return false; }
 
-		virtual void SinglePrepare(T& A) const override { A = this->Writer->GetDefaultValue(); }
-		virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::Add(A, B); }
+		FORCEINLINE virtual void SinglePrepare(T& A) const override { A = this->Writer->GetZeroedValue(); }
+		FORCEINLINE virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::Add(A, B); }
 	};
 
 	template <typename T>
@@ -48,7 +48,7 @@ namespace PCGExDataBlending
 	{
 	public:
 		virtual EPCGExDataBlendingType GetBlendingType() const override { return EPCGExDataBlendingType::Max; };
-		virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::Max(A, B); }
+		FORCEINLINE virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::Max(A, B); }
 	};
 
 	template <typename T>
@@ -56,7 +56,7 @@ namespace PCGExDataBlending
 	{
 	public:
 		virtual EPCGExDataBlendingType GetBlendingType() const override { return EPCGExDataBlendingType::Min; };
-		virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::Min(A, B); }
+		FORCEINLINE virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::Min(A, B); }
 	};
 
 	template <typename T>
@@ -68,9 +68,9 @@ namespace PCGExDataBlending
 		virtual bool GetRequiresPreparation() const override { return true; }
 		virtual bool GetRequiresFinalization() const override { return true; }
 
-		virtual void SinglePrepare(T& A) const override { A = this->Writer->GetDefaultValue(); }
-		virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::WeightedAdd(A, B, Weight); } // PCGExMath::Lerp(A, B, Alpha); }
-		virtual void SingleFinalize(T& A, const int32 Count, const double Weight) const override { A = PCGExMath::Div(A, Weight); }
+		FORCEINLINE virtual void SinglePrepare(T& A) const override { A = this->Writer->GetZeroedValue(); }
+		FORCEINLINE virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::WeightedAdd(A, B, Weight); } // PCGExMath::Lerp(A, B, Alpha); }
+		FORCEINLINE virtual void SingleFinalize(T& A, const int32 Count, const double Weight) const override { A = PCGExMath::Div(A, Weight); }
 	};
 
 	template <typename T>
@@ -82,8 +82,8 @@ namespace PCGExDataBlending
 		virtual bool GetRequiresPreparation() const override { return true; }
 		virtual bool GetRequiresFinalization() const override { return false; }
 
-		virtual void SinglePrepare(T& A) const override { A = this->Writer->GetDefaultValue(); }
-		virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::WeightedAdd(A, B, Weight); }
+		FORCEINLINE virtual void SinglePrepare(T& A) const override { A = this->Writer->GetZeroedValue(); }
+		FORCEINLINE virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::WeightedAdd(A, B, Weight); }
 	};
 
 	template <typename T>
@@ -91,13 +91,13 @@ namespace PCGExDataBlending
 	{
 	public:
 		virtual EPCGExDataBlendingType GetBlendingType() const override { return EPCGExDataBlendingType::Lerp; };
-		virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::Lerp(A, B, Weight); }
+		FORCEINLINE virtual T SingleOperation(T A, T B, double Weight) const override { return PCGExMath::Lerp(A, B, Weight); }
 	};
 
 	template <typename T>
 	class PCGEXTENDEDTOOLKIT_API FDataBlendingNone final : public FDataBlendingOperationWithScratchCheck<T>
 	{
 	public:
-		virtual T SingleOperation(T A, T B, double Weight) const override { return A; }
+		FORCEINLINE virtual T SingleOperation(T A, T B, double Weight) const override { return A; }
 	};
 }
