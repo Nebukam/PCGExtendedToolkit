@@ -16,6 +16,8 @@ PCGExDataFilter::TFilter* UPCGExAdjacencyFilterFactory::CreateFilter() const
 
 namespace PCGExNodeAdjacency
 {
+	PCGExDataFilter::EType TAdjacencyFilter::GetFilterType() const{ return PCGExDataFilter::EType::Cluster; }
+
 	void TAdjacencyFilter::Capture(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO)
 	{
 		bUseAbsoluteMeasure = TypedFilterFactory->MeasureType == EPCGExMeanMeasure::Absolute;

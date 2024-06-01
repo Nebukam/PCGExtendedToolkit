@@ -14,6 +14,8 @@ PCGExDataFilter::TFilter* UPCGExNeighborsCountFilterFactory::CreateFilter() cons
 
 namespace PCGExNodeNeighborsCount
 {
+	PCGExDataFilter::EType TNeighborsCountFilter::GetFilterType() const { return PCGExDataFilter::EType::Cluster; }
+
 	void TNeighborsCountFilter::Capture(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO)
 	{
 		if (TypedFilterFactory->CompareAgainst == EPCGExOperandType::Attribute)

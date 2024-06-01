@@ -144,6 +144,8 @@ namespace PCGExNodeAdjacency
 		PCGEx::FLocalSingleFieldGetter* OperandA = nullptr;
 		PCGEx::FLocalSingleFieldGetter* OperandB = nullptr;
 
+		virtual PCGExDataFilter::EType GetFilterType() const override;
+		
 		virtual void Capture(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO) override;
 		virtual void CaptureEdges(const FPCGContext* InContext, const PCGExData::FPointIO* EdgeIO) override;
 
