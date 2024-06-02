@@ -4,6 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExEditorSettings.h"
 #include "Graph/PCGExEdgesProcessor.h"
 #include "PCGExDrawEdges.generated.h"
 
@@ -28,7 +29,7 @@ public:
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(DrawEdges, "Draw Edges", "Draws debug edges");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Debug; }
-	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorDebug; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExEditorSettings>()->NodeColorDebug; }
 #endif
 
 protected:

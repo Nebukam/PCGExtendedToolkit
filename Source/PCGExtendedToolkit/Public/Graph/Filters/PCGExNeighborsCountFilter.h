@@ -110,7 +110,7 @@ public:
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
 		NodeNeighborsCountFilter, "Cluster Filter : Neighbors Count", "Check against the node' neighbor count.",
 		FName(GetDisplayName()))
-	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorClusterFilter; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExEditorSettings>()->NodeColorClusterFilter; }
 #endif
 	//~End UPCGSettings
 

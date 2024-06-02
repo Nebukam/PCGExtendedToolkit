@@ -24,7 +24,7 @@ public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(PrimitiveProcessor, "PrimitiveProcessor", "TOOLTIP");
-	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorPrimitives; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExEditorSettings>()->NodeColorPrimitives; }
 #endif
 
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;

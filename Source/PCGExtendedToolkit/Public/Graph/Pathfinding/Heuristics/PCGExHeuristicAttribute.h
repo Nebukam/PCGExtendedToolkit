@@ -91,7 +91,7 @@ public:
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
 		HeuristicsAttribute, "Heuristics : Attribute", "Read a vtx or edge attribute as an heuristic value.",
 		FName(GetDisplayName()))
-	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorHeuristicsAtt; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExEditorSettings>()->NodeColorHeuristicsAtt; }
 	
 #endif
 	//~End UPCGSettings

@@ -35,7 +35,7 @@ public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(FindCustomGraphEdgeClusters, "Custom Graph : Find Clusters", "Create clusters from interconnected points. Each Cluster is the result of all input graphs combined.");
-	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorGraphGen; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExEditorSettings>()->NodeColorGraphGen; }
 #endif
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 

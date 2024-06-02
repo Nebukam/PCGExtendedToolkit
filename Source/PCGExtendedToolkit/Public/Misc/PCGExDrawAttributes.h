@@ -153,7 +153,7 @@ public:
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(DrawAttributes, "Draw Attributes", "Draw debug attributes. Toggle debug OFF (D) before disabling this node (E)! Warning: this node will clear persistent debug lines before it!");
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Debug; }
-	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorDebug; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExEditorSettings>()->NodeColorDebug; }
 #endif
 
 protected:

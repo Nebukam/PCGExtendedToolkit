@@ -17,7 +17,7 @@ public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(DeleteAttributes, "Delete Attributes", "Delete the specified list of attributes.");
-	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorMiscRemove; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExEditorSettings>()->NodeColorMiscRemove; }
 #endif
 
 protected:

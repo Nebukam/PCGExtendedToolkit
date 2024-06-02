@@ -83,8 +83,8 @@ namespace PCGExDataState
 		TArray<int32> HighestState;
 		bool bHasPartials = false;
 
-		explicit TStatesManager(PCGExData::FPointIO* InPointIO, const TSet<PCGExDataFilter::EFactoryType>& InSupportedTypes)
-			: TFilterManager(InPointIO, InSupportedTypes)
+		explicit TStatesManager(PCGExData::FPointIO* InPointIO)
+			: TFilterManager(InPointIO)
 		{
 		}
 
@@ -110,15 +110,21 @@ namespace PCGExDataState
 	};
 
 	template <typename T_DEF>
-	static bool GetInputStates(FPCGContext* InContext, const FName InLabel, TArray<TObjectPtr<T_DEF>>& OutStates, const bool bAllowDuplicateNames)
+	static bool GetInputStateFactories(FPCGContext* InContext, const FName InLabel, TArray<T_DEF*>& OutStates, const TSet<PCGExDataFilter::EFactoryType>& Types, const bool bAllowDuplicateNames)
 	{
 		const TArray<FPCGTaggedData>& Inputs = InContext->InputData.GetInputsByPin(InLabel);
 
 		TSet<FName> UniqueStatesNames;
-		for (const FPCGTaggedData& InputState : Inputs)
+		for (const FPCGTaggedData& TaggedData : Inputs)
 		{
-			if (const T_DEF* State = Cast<T_DEF>(InputState.Data))
+			if (const T_DEF* State = Cast<T_DEF>(TaggedData.Data))
 			{
+				if (!Types.Contains(State->GetFactoryType()))
+				{
+					PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("State '{0}' is not supported."), FText::FromName(State->StateName)));
+					continue;
+				}
+
 				if (UniqueStatesNames.Contains(State->StateName) && !bAllowDuplicateNames)
 				{
 					PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("State '{0}' has the same name as another state, it will be ignored."), FText::FromName(State->StateName)));
@@ -133,6 +139,10 @@ namespace PCGExDataState
 
 				UniqueStatesNames.Add(State->StateName);
 				OutStates.Add(const_cast<T_DEF*>(State));
+			}
+			else
+			{
+				PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("State '{0}' is not supported."), FText::FromString(TaggedData.Data->GetClass()->GetName())));
 			}
 		}
 

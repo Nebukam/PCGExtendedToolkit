@@ -22,7 +22,7 @@ public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(PCGExPathfindingPlotNavmesh, "Pathfinding : Plot Navmesh", "Extract a single paths from navmesh, going through each seed points in order.");
-	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorPathfinding; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExEditorSettings>()->NodeColorPathfinding; }
 #endif
 
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;

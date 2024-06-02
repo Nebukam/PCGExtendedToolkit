@@ -37,8 +37,8 @@ namespace PCGExDataFilter
 		for (const int32 i : PointIndices) { Results[i] = false; }
 	}
 
-	TFilterManager::TFilterManager(PCGExData::FPointIO* InPointIO, const TSet<PCGExDataFilter::EFactoryType>& InSupportedTypes)
-		: SupportedFactoryTypes(InSupportedTypes), PointIO(InPointIO)
+	TFilterManager::TFilterManager(PCGExData::FPointIO* InPointIO)
+		: PointIO(InPointIO)
 	{
 	}
 
@@ -61,8 +61,8 @@ namespace PCGExDataFilter
 	{
 	}
 
-	TEarlyExitFilterManager::TEarlyExitFilterManager(PCGExData::FPointIO* InPointIO, const TSet<PCGExDataFilter::EFactoryType>& InSupportedTypes)
-		: TFilterManager(InPointIO, InSupportedTypes)
+	TEarlyExitFilterManager::TEarlyExitFilterManager(PCGExData::FPointIO* InPointIO)
+		: TFilterManager(InPointIO)
 	{
 	}
 

@@ -28,7 +28,7 @@ public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(BuildVoronoiGraph2D, "Graph : Voronoi 2D", "Create a 2D Voronoi graph for each input dataset.");
-	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorGraphGen; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExEditorSettings>()->NodeColorGraphGen; }
 #endif
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 

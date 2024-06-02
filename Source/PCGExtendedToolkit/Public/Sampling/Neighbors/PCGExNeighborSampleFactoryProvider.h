@@ -139,7 +139,7 @@ public:
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
 		NeighborSampler, "Attribute Sampler", "Create a single neighbor attribute sampler, to be used by a Sample Neighbors node.",
 		FName(GetDisplayName()))
-	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorSamplerNeighbor; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExEditorSettings>()->NodeColorSamplerNeighbor; }
 
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 #endif

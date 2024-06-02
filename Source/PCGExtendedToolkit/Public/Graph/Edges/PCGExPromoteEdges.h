@@ -16,7 +16,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExPromoteEdgesSettings : public UPCGExCustomGra
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(PromoteEdges, "Custom Graph : Promote Edges", "Promote edges to points or small paths.");
-	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorPathfinding; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExEditorSettings>()->NodeColorPathfinding; }
 #endif
 
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;

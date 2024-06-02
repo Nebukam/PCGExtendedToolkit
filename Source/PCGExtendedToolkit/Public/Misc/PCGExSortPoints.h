@@ -78,7 +78,7 @@ public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(SortPoints, "Sort Points", "Sort the source points according to specific rules.");
-	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorMiscWrite; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExEditorSettings>()->NodeColorMiscWrite; }
 #endif
 
 protected:

@@ -21,7 +21,7 @@ public:
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
 		NodeState, "Node State Definition", "Creates a node state configuration.",
 		StateName)
-	virtual FLinearColor GetNodeTitleColor() const override { return PCGEx::NodeColorClusterState; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExEditorSettings>()->NodeColorClusterState; }
 #endif
 	virtual FName GetMainOutputLabel() const override;
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;

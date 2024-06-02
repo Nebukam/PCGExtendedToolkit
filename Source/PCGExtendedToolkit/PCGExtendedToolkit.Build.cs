@@ -43,7 +43,8 @@ public class PCGExtendedToolkit : ModuleRules
 		PrivateDependencyModuleNames.AddRange(
 			new string[]
 			{
-				"Voronoi",
+				"Settings",
+				"Voronoi"
 			}
 		);
 

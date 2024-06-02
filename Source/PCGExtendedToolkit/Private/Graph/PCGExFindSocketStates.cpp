@@ -43,9 +43,9 @@ bool FPCGExFindSocketStatesElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(FindSocketStates)
 
-	return PCGExDataState::GetInputStates(
+	return PCGExDataState::GetInputStateFactories(
 		Context, PCGExGraph::SourceSocketStateLabel,
-		Context->StateDefinitions, Settings->bAllowStateOverlap);
+		Context->StateDefinitions, {PCGExDataFilter::EFactoryType::SocketState}, Settings->bAllowStateOverlap);
 }
 
 bool FPCGExFindSocketStatesElement::ExecuteInternal(
@@ -70,7 +70,7 @@ bool FPCGExFindSocketStatesElement::ExecuteInternal(
 		{
 			PCGEx::ArrayOfIndices(Context->PointIndices, Context->CurrentIO->GetNum());
 
-			Context->StatesManager = new PCGExDataState::TStatesManager(Context->CurrentIO, {PCGExDataFilter::EFactoryType::SocketState});
+			Context->StatesManager = new PCGExDataState::TStatesManager(Context->CurrentIO);
 			Context->StatesManager->Register<UPCGExSocketStateFactory>(
 				Context, Context->StateDefinitions, [&](PCGExDataFilter::TFilter* Handler)
 				{

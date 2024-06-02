@@ -98,9 +98,8 @@ namespace PCGExDataFilter
 	class PCGEXTENDEDTOOLKIT_API TFilterManager
 	{
 	public:
-		explicit TFilterManager(PCGExData::FPointIO* InPointIO, const TSet<PCGExDataFilter::EFactoryType>& InSupportedTypes);
+		explicit TFilterManager(PCGExData::FPointIO* InPointIO);
 
-		TSet<PCGExDataFilter::EFactoryType> SupportedFactoryTypes;
 		TArray<TFilter*> Handlers;
 		bool bValid = false;
 
@@ -117,8 +116,6 @@ namespace PCGExDataFilter
 		{
 			for (T_DEF* Factory : InFactories)
 			{
-				if (!SupportedFactoryTypes.Contains(Factory->GetFactoryType())) { continue; }
-
 				TFilter* Handler = Factory->CreateFilter();
 				InCaptureFn(Handler);
 
@@ -163,7 +160,7 @@ namespace PCGExDataFilter
 	class PCGEXTENDEDTOOLKIT_API TEarlyExitFilterManager : public TFilterManager
 	{
 	public:
-		explicit TEarlyExitFilterManager(PCGExData::FPointIO* InPointIO, const TSet<PCGExDataFilter::EFactoryType>& InSupportedTypes);
+		explicit TEarlyExitFilterManager(PCGExData::FPointIO* InPointIO);
 
 		TArray<bool> Results;
 
@@ -172,28 +169,32 @@ namespace PCGExDataFilter
 	};
 
 	template <typename T_DEF>
-	static bool GetInputFilters(FPCGContext* InContext, const FName InLabel, TArray<T_DEF*>& OutFilters, const TSet<PCGExDataFilter::EFactoryType>& Types, const bool bThrowError = true)
+	static bool GetInputFactories(FPCGContext* InContext, const FName InLabel, TArray<T_DEF*>& OutFactories, const TSet<PCGExDataFilter::EFactoryType>& Types, const bool bThrowError = true)
 	{
 		const TArray<FPCGTaggedData>& Inputs = InContext->InputData.GetInputsByPin(InLabel);
 
 		TSet<FName> UniqueStatesNames;
-		for (const FPCGTaggedData& InputState : Inputs)
+		for (const FPCGTaggedData& TaggedData : Inputs)
 		{
-			if (const T_DEF* State = Cast<T_DEF>(InputState.Data))
+			if (const T_DEF* State = Cast<T_DEF>(TaggedData.Data))
 			{
 				if (!Types.Contains(State->GetFactoryType()))
 				{
-					if (bThrowError) { PCGE_LOG_C(Warning, GraphAndLog, InContext, FTEXT("Some inputs are not supported by this node.")); }
+					PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("Input '{0}' is not supported."), FText::FromString(State->GetClass()->GetName())));
 					continue;
 				}
-				
-				OutFilters.AddUnique(const_cast<T_DEF*>(State));
+
+				OutFactories.AddUnique(const_cast<T_DEF*>(State));
+			}
+			else
+			{
+				PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("Input '{0}' is not supported."), FText::FromString(TaggedData.Data->GetClass()->GetName())));
 			}
 		}
 
 		UniqueStatesNames.Empty();
 
-		if (OutFilters.IsEmpty())
+		if (OutFactories.IsEmpty())
 		{
 			if (bThrowError) { PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Missing valid filters.")); }
 			return false;
