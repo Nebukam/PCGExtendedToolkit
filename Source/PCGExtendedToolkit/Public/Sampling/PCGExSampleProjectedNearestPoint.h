@@ -22,6 +22,18 @@ MACRO(SignedDistance, double)\
 MACRO(Angle, double)\
 MACRO(NumSamples, int32)
 
+namespace PCGExDataBlending
+{
+	struct FPropertiesBlender;
+}
+
+class UPCGExFilterFactoryBase;
+
+namespace PCGExDataFilter
+{
+	class TEarlyExitFilterManager;
+}
+
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
 class PCGEXTENDEDTOOLKIT_API UPCGExSampleProjectedNearestPointSettings : public UPCGExPointsProcessorSettings
 {
@@ -181,6 +193,15 @@ public:
 	/** Name of the 'int32' attribute to write the number of sampled neighbors to.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteNumSamples"))
 	FName NumSamplesAttributeName = FName("NumSamples");
+
+	/** Write the sampled distance. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bBlendPointProperties = false;
+	
+	/** The constant to use as Up vector for the look at transform.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bBlendPointProperties"))
+	FPCGExBlendingSettings PointPropertiesBlendingSettings = FPCGExBlendingSettings(EPCGExDataBlendingType::None);
+	
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExSampleProjectedNearestPointContext : public FPCGExPointsProcessorContext
@@ -193,22 +214,21 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleProjectedNearestPointContext : public 
 
 	PCGExData::FPointIO* Targets = nullptr;
 
-	EPCGExSampleMethod SampleMethod = EPCGExSampleMethod::WithinRange;
-	EPCGExRangeType WeightMethod = EPCGExRangeType::FullRange;
+	TArray<UPCGExFilterFactoryBase*> PointFilterFactories;
+	PCGExDataFilter::TEarlyExitFilterManager* PointFilterManager = nullptr;
+
+	TArray<UPCGExFilterFactoryBase*> ValueFilterFactories;
+	PCGExDataFilter::TEarlyExitFilterManager* ValueFilterManager = nullptr;
 
 	TArray<PCGExDataBlending::FDataBlendingOperationBase*> BlendOps;
+	PCGExDataBlending::FPropertiesBlender* PropertiesBlender = nullptr;
+	
 	TArray<FPCGPoint> ProjectedSourceIO;
 	TArray<FPCGPoint> ProjectedTargetIO;
 
-	double RangeMin = 0;
-	double RangeMax = 1000;
-
-	bool bUseLocalRangeMin = false;
-	bool bUseLocalRangeMax = false;
-
-	PCGEx::FLocalSingleFieldGetter RangeMinGetter;
-	PCGEx::FLocalSingleFieldGetter RangeMaxGetter;
-	PCGEx::FLocalVectorGetter LookAtUpGetter;
+	PCGEx::FLocalSingleFieldGetter* RangeMinGetter;
+	PCGEx::FLocalSingleFieldGetter* RangeMaxGetter;
+	PCGEx::FLocalVectorGetter* LookAtUpGetter;
 
 	FVector SafeUpVector = FVector::UpVector;
 
@@ -216,14 +236,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleProjectedNearestPointContext : public 
 
 	PCGEX_FOREACH_FIELD_PROJECTNEARESTPOINT(PCGEX_OUTPUT_DECL)
 
-	FPCGExDistanceSettings DistanceSettings;
 	FPCGExGeo2DProjectionSettings ProjectionSettings;
-
 	PointOctree* ProjectedTargetOctree = nullptr;
 
-	EPCGExAxis SignAxis;
-	EPCGExAxis AngleAxis;
-	EPCGExAngleRange AngleRange;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExSampleProjectedNearestPointElement : public FPCGExPointsProcessorElementBase

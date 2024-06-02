@@ -17,6 +17,13 @@ MACRO(Location, FVector)\
 MACRO(Normal, FVector)\
 MACRO(Distance, double)
 
+class UPCGExFilterFactoryBase;
+
+namespace PCGExDataFilter
+{
+	class TEarlyExitFilterManager;
+}
+
 /**
  * Use PCGExSampling to manipulate the outgoing attributes instead of handling everything here.
  * This way we can multi-thread the various calculations instead of mixing everything along with async/game thread collision
@@ -33,6 +40,8 @@ public:
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExEditorSettings>()->NodeColorSampler; }
 #endif
 
+	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
+	
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings interface
@@ -127,16 +136,11 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleSurfaceGuidedContext : public FPCGExPo
 
 	virtual ~FPCGExSampleSurfaceGuidedContext() override;
 
-	EPCGExCollisionFilterType CollisionType = EPCGExCollisionFilterType::Channel;
-	TEnumAsByte<ECollisionChannel> CollisionChannel;
-	int32 CollisionObjectType;
-	FName CollisionProfileName;
-
-	bool bIgnoreSelf = true;
+	TArray<UPCGExFilterFactoryBase*> PointFilterFactories;
+	PCGExDataFilter::TEarlyExitFilterManager* PointFilterManager = nullptr;
+	
 	TArray<AActor*> IgnoredActors;
 
-	double MaxDistance;
-	bool bUseLocalMaxDistance = false;
 	PCGEx::FLocalSingleFieldGetter* MaxDistanceGetter = nullptr;
 	PCGEx::FLocalVectorGetter* DirectionGetter = nullptr;
 

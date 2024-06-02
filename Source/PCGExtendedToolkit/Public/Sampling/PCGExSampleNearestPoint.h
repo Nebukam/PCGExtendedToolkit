@@ -268,9 +268,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestPointContext : public FPCGExPoi
 
 	PCGExData::FPointIO* Targets = nullptr;
 
-	EPCGExSampleMethod SampleMethod = EPCGExSampleMethod::WithinRange;
-	EPCGExRangeType WeightMethod = EPCGExRangeType::FullRange;
-
 	TArray<UPCGExFilterFactoryBase*> PointFilterFactories;
 	PCGExDataFilter::TEarlyExitFilterManager* PointFilterManager = nullptr;
 
@@ -280,15 +277,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestPointContext : public FPCGExPoi
 	TArray<PCGExDataBlending::FDataBlendingOperationBase*> BlendOps;
 	PCGExDataBlending::FPropertiesBlender* PropertiesBlender = nullptr;
 	
-	double RangeMin = 0;
-	double RangeMax = 1000;
-
-	bool bUseLocalRangeMin = false;
-	bool bUseLocalRangeMax = false;
-
-	PCGEx::FLocalSingleFieldGetter RangeMinGetter;
-	PCGEx::FLocalSingleFieldGetter RangeMaxGetter;
-	PCGEx::FLocalVectorGetter LookAtUpGetter;
+	PCGEx::FLocalSingleFieldGetter* RangeMinGetter;
+	PCGEx::FLocalSingleFieldGetter* RangeMaxGetter;
+	PCGEx::FLocalVectorGetter* LookAtUpGetter;
 
 	FVector SafeUpVector = FVector::UpVector;
 
@@ -296,11 +287,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestPointContext : public FPCGExPoi
 
 	PCGEX_FOREACH_FIELD_NEARESTPOINT(PCGEX_OUTPUT_DECL)
 
-	FPCGExDistanceSettings DistanceSettings;
-
-	EPCGExAxis SignAxis;
-	EPCGExAxis AngleAxis;
-	EPCGExAngleRange AngleRange;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestPointElement : public FPCGExPointsProcessorElementBase

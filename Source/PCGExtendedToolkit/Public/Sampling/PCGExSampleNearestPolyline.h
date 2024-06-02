@@ -22,6 +22,13 @@ MACRO(Angle, double)\
 MACRO(Time, double)\
 MACRO(NumSamples, int32)
 
+class UPCGExFilterFactoryBase;
+
+namespace PCGExDataFilter
+{
+	class TEarlyExitFilterManager;
+}
+
 namespace PCGExPolyLine
 {
 	struct PCGEXTENDEDTOOLKIT_API FSampleInfos
@@ -262,32 +269,21 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestPolylineContext : public FPCGEx
 
 	PCGExData::FPolyLineIOGroup* Targets = nullptr;
 
-	EPCGExSampleMethod SampleMethod = EPCGExSampleMethod::WithinRange;
-	EPCGExRangeType WeightMethod = EPCGExRangeType::FullRange;
-
-	double RangeMin = 0;
-	double RangeMax = 1000;
-
-	bool bUseLocalRangeMin = false;
-	bool bUseLocalRangeMax = false;
-
+	TArray<UPCGExFilterFactoryBase*> PointFilterFactories;
+	PCGExDataFilter::TEarlyExitFilterManager* PointFilterManager = nullptr;
+	
 	int64 NumTargets = 0;
 
-	PCGEx::FLocalSingleFieldGetter RangeMinGetter;
-	PCGEx::FLocalSingleFieldGetter RangeMaxGetter;
-	PCGEx::FLocalVectorGetter LookAtUpGetter;
+	PCGEx::FLocalSingleFieldGetter* RangeMinGetter;
+	PCGEx::FLocalSingleFieldGetter* RangeMaxGetter;
+	PCGEx::FLocalVectorGetter* LookAtUpGetter;
 
 	FVector SafeUpVector = FVector::UpVector;
 
 	TObjectPtr<UCurveFloat> WeightCurve = nullptr;
 
 	PCGEX_FOREACH_FIELD_NEARESTPOLYLINE(PCGEX_OUTPUT_DECL)
-
-	EPCGExDistance DistanceSettings;
-
-	EPCGExAxis SignAxis;
-	EPCGExAxis AngleAxis;
-	EPCGExAngleRange AngleRange;
+	
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestPolylineElement : public FPCGExPointsProcessorElementBase

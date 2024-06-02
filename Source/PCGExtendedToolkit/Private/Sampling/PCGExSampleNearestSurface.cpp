@@ -3,12 +3,21 @@
 
 #include "Sampling/PCGExSampleNearestSurface.h"
 
+#include "Data/PCGExDataFilter.h"
+
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
 #include "Engine/OverlapResult.h"
 #endif
 
 #define LOCTEXT_NAMESPACE "PCGExSampleNearestSurfaceElement"
 #define PCGEX_NAMESPACE SampleNearestSurface
+
+TArray<FPCGPinProperties> UPCGExSampleNearestSurfaceSettings::InputPinProperties() const
+{
+	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
+	PCGEX_PIN_PARAMS(PCGEx::SourcePointFilters, "Filter which points will be processed.", Advanced, {})
+	return PinProperties;
+}
 
 PCGExData::EInit UPCGExSampleNearestSurfaceSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
@@ -19,6 +28,9 @@ PCGEX_INITIALIZE_ELEMENT(SampleNearestSurface)
 FPCGExSampleNearestSurfaceContext::~FPCGExSampleNearestSurfaceContext()
 {
 	PCGEX_TERMINATE_ASYNC
+
+	PCGEX_DELETE(PointFilterManager)
+	PointFilterFactories.Empty();
 
 	PCGEX_DELETE(MaxDistanceGetter)
 
@@ -31,19 +43,14 @@ bool FPCGExSampleNearestSurfaceElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(SampleNearestSurface)
 
-	PCGEX_FWD(MaxDistance)
-	PCGEX_FWD(CollisionType)
-	PCGEX_FWD(CollisionChannel)
-	PCGEX_FWD(CollisionObjectType)
-	PCGEX_FWD(CollisionProfileName)
-	PCGEX_FWD(bIgnoreSelf)
-
 	Context->MaxDistanceGetter = new PCGEx::FLocalSingleFieldGetter();
 	Context->MaxDistanceGetter->Capture(Settings->LocalMaxDistance);
 
 	PCGEX_FOREACH_FIELD_NEARESTSURFACE(PCGEX_OUTPUT_FWD)
 
 	PCGEX_FOREACH_FIELD_NEARESTSURFACE(PCGEX_OUTPUT_VALIDATE_NAME)
+
+	PCGExDataFilter::GetInputFactories(InContext, PCGEx::SourcePointFilters, Context->PointFilterFactories, {PCGExFactories::EType::Filter}, false);
 
 	return true;
 }
@@ -58,7 +65,7 @@ bool FPCGExSampleNearestSurfaceElement::ExecuteInternal(FPCGContext* InContext) 
 	{
 		if (!Boot(Context)) { return true; }
 
-		if (Context->bIgnoreSelf) { Context->IgnoredActors.Add(Context->SourceComponent->GetOwner()); }
+		if (Settings->bIgnoreSelf) { Context->IgnoredActors.Add(Context->SourceComponent->GetOwner()); }
 
 		if (Settings->bIgnoreActors)
 		{
@@ -76,25 +83,52 @@ bool FPCGExSampleNearestSurfaceElement::ExecuteInternal(FPCGContext* InContext) 
 		if (!Context->AdvancePointsIO()) { Context->Done(); }
 		else
 		{
-			PCGExData::FPointIO& PointIO = *Context->CurrentIO;
-			PointIO.CreateOutKeys();
-
-			if (Settings->bUseLocalMaxDistance)
-			{
-				if (!Context->MaxDistanceGetter->Grab(PointIO))
-				{
-					PCGE_LOG(Error, GraphAndLog, FTEXT("Some inputs don't have the desired Local Max Distance data."));
-				}
-			}
-
-			PCGEX_FOREACH_FIELD_NEARESTSURFACE(PCGEX_OUTPUT_ACCESSOR_INIT)
-
-			for (int i = 0; i < PointIO.GetNum(); i++) { Context->GetAsyncManager()->Start<FSweepSphereTask>(i, Context->CurrentIO); }
-			Context->SetAsyncState(PCGExMT::State_ProcessingPoints);
+			if (!Context->PointFilterFactories.IsEmpty()) { Context->SetState(PCGExDataFilter::State_FilteringPoints); }
+			else { Context->SetState(PCGExMT::State_ProcessingPoints); }
 		}
 	}
 
+	if (Context->IsState(PCGExDataFilter::State_FilteringPoints))
+	{
+		auto Initialize = [&](const PCGExData::FPointIO& PointIO)
+		{
+			PCGEX_DELETE(Context->PointFilterManager)
+			Context->PointFilterManager = new PCGExDataFilter::TEarlyExitFilterManager(&PointIO);
+			Context->PointFilterManager->Register<UPCGExFilterFactoryBase>(Context, Context->PointFilterFactories, &PointIO);
+		};
+
+		auto ProcessPoint = [&](const int32 PointIndex, const PCGExData::FPointIO& PointIO) { Context->PointFilterManager->Test(PointIndex); };
+
+		if (!Context->ProcessCurrentPoints(Initialize, ProcessPoint)) { return false; }
+
+		Context->SetState(PCGExMT::State_ProcessingPoints);
+	}
+
 	if (Context->IsState(PCGExMT::State_ProcessingPoints))
+	{
+		PCGExData::FPointIO& PointIO = *Context->CurrentIO;
+		PointIO.CreateOutKeys();
+
+		if (Settings->bUseLocalMaxDistance)
+		{
+			if (!Context->MaxDistanceGetter->Grab(PointIO))
+			{
+				PCGE_LOG(Error, GraphAndLog, FTEXT("Some inputs don't have the desired Local Max Distance data."));
+			}
+		}
+
+		PCGEX_FOREACH_FIELD_NEARESTSURFACE(PCGEX_OUTPUT_ACCESSOR_INIT)
+
+		for (int i = 0; i < PointIO.GetNum(); i++)
+		{
+			if (Context->PointFilterManager && !Context->PointFilterManager->Results[i]) { continue; }
+			Context->GetAsyncManager()->Start<FSweepSphereTask>(i, Context->CurrentIO);
+		}
+		
+		Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork);
+	}
+
+	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
 	{
 		PCGEX_WAIT_ASYNC
 
@@ -109,6 +143,7 @@ bool FPCGExSampleNearestSurfaceElement::ExecuteInternal(FPCGContext* InContext) 
 bool FSweepSphereTask::ExecuteTask()
 {
 	const FPCGExSampleNearestSurfaceContext* Context = Manager->GetContext<FPCGExSampleNearestSurfaceContext>();
+	PCGEX_SETTINGS(SampleNearestSurface)
 
 	const FVector Origin = PointIO->GetInPoint(TaskIndex).Transform.GetLocation();
 
@@ -116,7 +151,7 @@ bool FSweepSphereTask::ExecuteTask()
 	CollisionParams.bTraceComplex = false;
 	CollisionParams.AddIgnoredActors(Context->IgnoredActors);
 
-	const double MaxDistance = Context->MaxDistanceGetter->bValid ? (*Context->MaxDistanceGetter)[TaskIndex] : Context->MaxDistance;
+	const double MaxDistance = Context->MaxDistanceGetter->bValid ? (*Context->MaxDistanceGetter)[TaskIndex] : Settings->MaxDistance;
 	const FCollisionShape CollisionShape = FCollisionShape::MakeSphere(MaxDistance);
 
 	FVector HitLocation;
@@ -157,22 +192,22 @@ bool FSweepSphereTask::ExecuteTask()
 	};
 
 
-	switch (Context->CollisionType)
+	switch (Settings->CollisionType)
 	{
 	case EPCGExCollisionFilterType::Channel:
-		if (Context->World->OverlapMultiByChannel(OutOverlaps, Origin, FQuat::Identity, Context->CollisionChannel, CollisionShape, CollisionParams))
+		if (Context->World->OverlapMultiByChannel(OutOverlaps, Origin, FQuat::Identity, Settings->CollisionChannel, CollisionShape, CollisionParams))
 		{
 			ProcessOverlapResults();
 		}
 		break;
 	case EPCGExCollisionFilterType::ObjectType:
-		if (Context->World->OverlapMultiByObjectType(OutOverlaps, Origin, FQuat::Identity, FCollisionObjectQueryParams(Context->CollisionObjectType), CollisionShape, CollisionParams))
+		if (Context->World->OverlapMultiByObjectType(OutOverlaps, Origin, FQuat::Identity, FCollisionObjectQueryParams(Settings->CollisionObjectType), CollisionShape, CollisionParams))
 		{
 			ProcessOverlapResults();
 		}
 		break;
 	case EPCGExCollisionFilterType::Profile:
-		if (Context->World->OverlapMultiByProfile(OutOverlaps, Origin, FQuat::Identity, Context->CollisionProfileName, CollisionShape, CollisionParams))
+		if (Context->World->OverlapMultiByProfile(OutOverlaps, Origin, FQuat::Identity, Settings->CollisionProfileName, CollisionShape, CollisionParams))
 		{
 			ProcessOverlapResults();
 		}

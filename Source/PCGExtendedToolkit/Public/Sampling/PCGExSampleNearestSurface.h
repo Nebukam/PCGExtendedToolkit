@@ -20,6 +20,13 @@ MACRO(LookAt, FVector)\
 MACRO(Normal, FVector)\
 MACRO(Distance, double)
 
+class UPCGExFilterFactoryBase;
+
+namespace PCGExDataFilter
+{
+	class TEarlyExitFilterManager;
+}
+
 /**
  * Use PCGExSampling to manipulate the outgoing attributes instead of handling everything here.
  * This way we can multi-thread the various calculations instead of mixing everything along with async/game thread collision
@@ -35,6 +42,8 @@ public:
 	PCGEX_NODE_INFOS(SampleNearestSurface, "Sample : Nearest Surface", "Find the closest point on the nearest collidable surface.");
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExEditorSettings>()->NodeColorSampler; }
 #endif
+
+	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
@@ -135,17 +144,12 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestSurfaceContext : public FPCGExP
 
 	virtual ~FPCGExSampleNearestSurfaceContext() override;
 
-	double MaxDistance = 1000;
-
-	EPCGExCollisionFilterType CollisionType = EPCGExCollisionFilterType::Channel;
-	TEnumAsByte<ECollisionChannel> CollisionChannel;
-	FName CollisionProfileName;
-	int32 CollisionObjectType;
-
+	TArray<UPCGExFilterFactoryBase*> PointFilterFactories;
+	PCGExDataFilter::TEarlyExitFilterManager* PointFilterManager = nullptr;
+	
 	bool bUseLocalMaxDistance = false;
 	PCGEx::FLocalSingleFieldGetter* MaxDistanceGetter = nullptr;
 
-	bool bIgnoreSelf = true;
 	TArray<AActor*> IgnoredActors;
 
 	PCGEX_FOREACH_FIELD_NEARESTSURFACE(PCGEX_OUTPUT_DECL)

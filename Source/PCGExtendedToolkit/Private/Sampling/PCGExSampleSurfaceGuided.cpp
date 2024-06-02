@@ -3,8 +3,17 @@
 
 #include "Sampling/PCGExSampleSurfaceGuided.h"
 
+#include "Data/PCGExDataFilter.h"
+
 #define LOCTEXT_NAMESPACE "PCGExSampleSurfaceGuidedElement"
 #define PCGEX_NAMESPACE SampleSurfaceGuided
+
+TArray<FPCGPinProperties> UPCGExSampleSurfaceGuidedSettings::InputPinProperties() const
+{
+	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
+	PCGEX_PIN_PARAMS(PCGEx::SourcePointFilters, "Filter which points will be processed.", Advanced, {})
+	return PinProperties;
+}
 
 PCGExData::EInit UPCGExSampleSurfaceGuidedSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
@@ -15,6 +24,9 @@ PCGEX_INITIALIZE_ELEMENT(SampleSurfaceGuided)
 FPCGExSampleSurfaceGuidedContext::~FPCGExSampleSurfaceGuidedContext()
 {
 	PCGEX_TERMINATE_ASYNC
+
+	PCGEX_DELETE(PointFilterManager)
+	PointFilterFactories.Empty();
 
 	PCGEX_DELETE(MaxDistanceGetter)
 	PCGEX_DELETE(DirectionGetter)
@@ -28,14 +40,6 @@ bool FPCGExSampleSurfaceGuidedElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(SampleSurfaceGuided)
 
-	PCGEX_FWD(CollisionChannel)
-	PCGEX_FWD(CollisionObjectType)
-	PCGEX_FWD(CollisionProfileName)
-	PCGEX_FWD(bIgnoreSelf)
-
-	PCGEX_FWD(MaxDistance)
-	PCGEX_FWD(bUseLocalMaxDistance)
-
 	Context->MaxDistanceGetter = new PCGEx::FLocalSingleFieldGetter();
 	Context->MaxDistanceGetter->Capture(Settings->LocalMaxDistance);
 
@@ -45,6 +49,8 @@ bool FPCGExSampleSurfaceGuidedElement::Boot(FPCGContext* InContext) const
 	PCGEX_FOREACH_FIELD_SURFACEGUIDED(PCGEX_OUTPUT_FWD)
 
 	PCGEX_FOREACH_FIELD_SURFACEGUIDED(PCGEX_OUTPUT_VALIDATE_NAME)
+
+	PCGExDataFilter::GetInputFactories(InContext, PCGEx::SourcePointFilters, Context->PointFilterFactories, {PCGExFactories::EType::Filter}, false);
 
 	return true;
 }
@@ -59,7 +65,7 @@ bool FPCGExSampleSurfaceGuidedElement::ExecuteInternal(FPCGContext* InContext) c
 	{
 		if (!Boot(Context)) { return true; }
 
-		if (Context->bIgnoreSelf) { Context->IgnoredActors.Add(Context->SourceComponent->GetOwner()); }
+		if (Settings->bIgnoreSelf) { Context->IgnoredActors.Add(Context->SourceComponent->GetOwner()); }
 
 		if (Settings->bIgnoreActors)
 		{
@@ -77,31 +83,58 @@ bool FPCGExSampleSurfaceGuidedElement::ExecuteInternal(FPCGContext* InContext) c
 		if (!Context->AdvancePointsIO()) { Context->Done(); }
 		else
 		{
-			PCGExData::FPointIO& PointIO = *Context->CurrentIO;
-			PointIO.CreateOutKeys();
-
-			if (!Context->DirectionGetter->Grab(PointIO))
-			{
-				PCGE_LOG(Error, GraphAndLog, FTEXT("Some inputs don't have the desired Direction data."));
-				return false;
-			}
-
-			if (Settings->bUseLocalMaxDistance)
-			{
-				if (!Context->MaxDistanceGetter->Grab(PointIO))
-				{
-					PCGE_LOG(Error, GraphAndLog, FTEXT("Some inputs don't have the desired Local Max Distance data."));
-				}
-			}
-
-			PCGEX_FOREACH_FIELD_SURFACEGUIDED(PCGEX_OUTPUT_ACCESSOR_INIT)
-
-			for (int i = 0; i < PointIO.GetNum(); i++) { Context->GetAsyncManager()->Start<FTraceTask>(i, Context->CurrentIO); }
-			Context->SetAsyncState(PCGExMT::State_ProcessingPoints);
+			if (!Context->PointFilterFactories.IsEmpty()) { Context->SetState(PCGExDataFilter::State_FilteringPoints); }
+			else { Context->SetState(PCGExMT::State_ProcessingPoints); }
 		}
 	}
 
+	if (Context->IsState(PCGExDataFilter::State_FilteringPoints))
+	{
+		auto Initialize = [&](const PCGExData::FPointIO& PointIO)
+		{
+			PCGEX_DELETE(Context->PointFilterManager)
+			Context->PointFilterManager = new PCGExDataFilter::TEarlyExitFilterManager(&PointIO);
+			Context->PointFilterManager->Register<UPCGExFilterFactoryBase>(Context, Context->PointFilterFactories, &PointIO);
+		};
+
+		auto ProcessPoint = [&](const int32 PointIndex, const PCGExData::FPointIO& PointIO) { Context->PointFilterManager->Test(PointIndex); };
+
+		if (!Context->ProcessCurrentPoints(Initialize, ProcessPoint)) { return false; }
+
+		Context->SetState(PCGExMT::State_ProcessingPoints);
+	}
+
 	if (Context->IsState(PCGExMT::State_ProcessingPoints))
+	{
+		PCGExData::FPointIO& PointIO = *Context->CurrentIO;
+		PointIO.CreateOutKeys();
+
+		if (!Context->DirectionGetter->Grab(PointIO))
+		{
+			PCGE_LOG(Error, GraphAndLog, FTEXT("Some inputs don't have the desired Direction data."));
+			return false;
+		}
+
+		if (Settings->bUseLocalMaxDistance)
+		{
+			if (!Context->MaxDistanceGetter->Grab(PointIO))
+			{
+				PCGE_LOG(Error, GraphAndLog, FTEXT("Some inputs don't have the desired Local Max Distance data."));
+			}
+		}
+
+		PCGEX_FOREACH_FIELD_SURFACEGUIDED(PCGEX_OUTPUT_ACCESSOR_INIT)
+
+		for (int i = 0; i < PointIO.GetNum(); i++)
+		{
+			if (Context->PointFilterManager && !Context->PointFilterManager->Results[i]) { continue; }
+			Context->GetAsyncManager()->Start<FTraceTask>(i, Context->CurrentIO);
+		}
+
+		Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork);
+	}
+
+	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
 	{
 		PCGEX_WAIT_ASYNC
 
@@ -117,7 +150,7 @@ bool FPCGExSampleSurfaceGuidedElement::ExecuteInternal(FPCGContext* InContext) c
 bool FTraceTask::ExecuteTask()
 {
 	const FPCGExSampleSurfaceGuidedContext* Context = Manager->GetContext<FPCGExSampleSurfaceGuidedContext>();
-
+	PCGEX_SETTINGS(SampleSurfaceGuided)
 
 	const FVector Origin = PointIO->GetInPoint(TaskIndex).Transform.GetLocation();
 
@@ -125,7 +158,7 @@ bool FTraceTask::ExecuteTask()
 	CollisionParams.bTraceComplex = true;
 	CollisionParams.AddIgnoredActors(Context->IgnoredActors);
 
-	const double MaxDistance = Context->MaxDistanceGetter->bValid ? (*Context->MaxDistanceGetter)[TaskIndex] : Context->MaxDistance;
+	const double MaxDistance = Context->MaxDistanceGetter->SafeGet(TaskIndex, Settings->MaxDistance);
 	const FVector Trace = (*Context->DirectionGetter)[TaskIndex] * MaxDistance;
 	const FVector End = Origin + Trace;
 
@@ -141,22 +174,22 @@ bool FTraceTask::ExecuteTask()
 	};
 
 
-	switch (Context->CollisionType)
+	switch (Settings->CollisionType)
 	{
 	case EPCGExCollisionFilterType::Channel:
-		if (Context->World->LineTraceSingleByChannel(HitResult, Origin, End, Context->CollisionChannel, CollisionParams))
+		if (Context->World->LineTraceSingleByChannel(HitResult, Origin, End, Settings->CollisionChannel, CollisionParams))
 		{
 			ProcessTraceResult();
 		}
 		break;
 	case EPCGExCollisionFilterType::ObjectType:
-		if (Context->World->LineTraceSingleByObjectType(HitResult, Origin, End, FCollisionObjectQueryParams(Context->CollisionObjectType), CollisionParams))
+		if (Context->World->LineTraceSingleByObjectType(HitResult, Origin, End, FCollisionObjectQueryParams(Settings->CollisionObjectType), CollisionParams))
 		{
 			ProcessTraceResult();
 		}
 		break;
 	case EPCGExCollisionFilterType::Profile:
-		if (Context->World->LineTraceSingleByProfile(HitResult, Origin, End, Context->CollisionProfileName, CollisionParams))
+		if (Context->World->LineTraceSingleByProfile(HitResult, Origin, End, Settings->CollisionProfileName, CollisionParams))
 		{
 			ProcessTraceResult();
 		}
