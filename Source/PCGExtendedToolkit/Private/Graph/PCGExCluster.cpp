@@ -743,7 +743,7 @@ namespace PCGExCluster
 	{
 	}
 
-	void TClusterFilter::PrepareForTesting(PCGExData::FPointIO* PointIO)
+	void TClusterFilter::PrepareForTesting(const PCGExData::FPointIO* PointIO)
 	{
 		const int32 NumNodes = CapturedCluster->Nodes.Num();
 		Results.SetNumUninitialized(NumNodes);
@@ -824,7 +824,7 @@ namespace PCGExCluster
 		return true;
 	}
 
-	void FNodeStateHandler::PrepareForTesting(PCGExData::FPointIO* PointIO)
+	void FNodeStateHandler::PrepareForTesting(const PCGExData::FPointIO* PointIO)
 	{
 		TDataState::PrepareForTesting(PointIO);
 		for (TFilter* Test : FilterHandlers) { Test->PrepareForTesting(PointIO); }

@@ -11,7 +11,7 @@
 #if WITH_EDITOR
 void UPCGExSmoothSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
-	if (Smoothing) { Smoothing->UpdateUserFacingInfos(); }
+	if (SmoothingMethod) { SmoothingMethod->UpdateUserFacingInfos(); }
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
 #endif
@@ -36,15 +36,7 @@ bool FPCGExSmoothElement::Boot(FPCGContext* InContext) const
 	if (!FPCGExPathProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(Smooth)
-
-	PCGEX_OPERATION_BIND(Smoothing, UPCGExMovingAverageSmoothing)
-
-	Context->Smoothing->bClosedPath = Settings->bClosedPath;
-	Context->Smoothing->bPreserveStart = Settings->bPreserveStart;
-	Context->Smoothing->bPreserveEnd = Settings->bPreserveEnd;
-	Context->Smoothing->FixedInfluence = Settings->Influence;
-	Context->Smoothing->bUseLocalInfluence = Settings->bUseLocalInfluence;
-	Context->Smoothing->InfluenceDescriptor = FPCGExInputDescriptor(Settings->LocalInfluence);
+	PCGEX_OPERATION_BIND(SmoothingMethod, UPCGExMovingAverageSmoothing)
 
 	return true;
 }
@@ -64,6 +56,7 @@ bool FPCGExSmoothElement::ExecuteInternal(FPCGContext* InContext) const
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
 		int32 Index = 0;
+
 		Context->MainPoints->ForEach(
 			[&](PCGExData::FPointIO& PointIO, const int32)
 			{
@@ -90,7 +83,55 @@ bool FPCGExSmoothElement::ExecuteInternal(FPCGContext* InContext) const
 bool FPCGExSmoothTask::ExecuteTask()
 {
 	const FPCGExSmoothContext* Context = Manager->GetContext<FPCGExSmoothContext>();
-	Context->Smoothing->DoSmooth(*PointIO);
+	PCGEX_SETTINGS(Smooth)
+
+	TArray<double> Influence;
+	TArray<double> SmoothingAmount;
+	Influence.SetNum(PointIO->GetNum());
+	SmoothingAmount.SetNum(PointIO->GetNum());
+
+	if (Settings->InfluenceType == EPCGExFetchType::Attribute)
+	{
+		PCGEx::FLocalSingleFieldGetter* InfluenceGetter = new PCGEx::FLocalSingleFieldGetter();
+		InfluenceGetter->Capture(Settings->InfluenceAttribute);
+		if (!InfluenceGetter->Grab(*PointIO))
+		{
+			PCGEX_DELETE(InfluenceGetter)
+			PCGE_LOG_C(Error, GraphAndLog, Context, FText::Format(FTEXT("Input missing influence attribute: {0}."), FText::FromName(Settings->InfluenceAttribute.GetName())));
+			return false;
+		}
+
+		for (int i = 0; i < Influence.Num(); i++) { Influence[i] = InfluenceGetter->Values[i]; }
+		PCGEX_DELETE(InfluenceGetter)
+	}
+	else
+	{
+		for (int i = 0; i < Influence.Num(); i++) { Influence[i] = Settings->InfluenceConstant; }
+	}
+
+	if (Settings->SmoothingAmountType == EPCGExFetchType::Attribute)
+	{
+		PCGEx::FLocalSingleFieldGetter* SmoothingAmountGetter = new PCGEx::FLocalSingleFieldGetter();
+		SmoothingAmountGetter->Capture(Settings->InfluenceAttribute);
+		if (!SmoothingAmountGetter->Grab(*PointIO))
+		{
+			PCGEX_DELETE(SmoothingAmountGetter)
+			PCGE_LOG_C(Error, GraphAndLog, Context, FText::Format(FTEXT("Input missing smoothing amount attribute: {0}."), FText::FromName(Settings->InfluenceAttribute.GetName())));
+			return false;
+		}
+
+		for (int i = 0; i < SmoothingAmount.Num(); i++) { SmoothingAmount[i] = FMath::Clamp(SmoothingAmountGetter->Values[i], 0, TNumericLimits<double>::Max()) * Settings->ScaleSmoothingAmountAttribute; }
+		PCGEX_DELETE(SmoothingAmountGetter)
+	}
+	else
+	{
+		for (int i = 0; i < SmoothingAmount.Num(); i++) { SmoothingAmount[i] = Settings->SmoothingAmountConstant; }
+	}
+
+	if (Settings->bPreserveStart) { Influence[0] = 0; }
+	if (Settings->bPreserveEnd) { Influence[Influence.Num() - 1] = 0; }
+
+	Context->SmoothingMethod->DoSmooth(*PointIO, &SmoothingAmount, &Influence, Settings->bClosedPath, &Settings->BlendingSettings);
 	return true;
 }
 

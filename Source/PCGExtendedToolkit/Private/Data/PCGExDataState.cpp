@@ -153,7 +153,7 @@ namespace PCGExDataState
 	void TStatesManager::WriteStateNames(const FName AttributeName, const FName DefaultValue, const TArray<int32>& InIndices)
 	{
 		PCGEx::TFAttributeWriter<FName>* StateNameWriter = new PCGEx::TFAttributeWriter<FName>(AttributeName, DefaultValue, false);
-		StateNameWriter->BindAndGet(*PointIO);
+		StateNameWriter->BindAndGet(const_cast<PCGExData::FPointIO&>(*PointIO));
 
 		for (const int32 i : InIndices)
 		{
@@ -172,7 +172,7 @@ namespace PCGExDataState
 	void TStatesManager::WriteStateValues(const FName AttributeName, const int32 DefaultValue, const TArray<int32>& InIndices)
 	{
 		PCGEx::TFAttributeWriter<int32>* StateValueWriter = new PCGEx::TFAttributeWriter<int32>(AttributeName, DefaultValue, false);
-		StateValueWriter->BindAndGet(*PointIO);
+		StateValueWriter->BindAndGet(const_cast<PCGExData::FPointIO&>(*PointIO));
 
 		for (const int32 i : InIndices)
 		{
@@ -193,7 +193,7 @@ namespace PCGExDataState
 		for (PCGExDataFilter::TFilter* Handler : Handlers)
 		{
 			AsyncManager->Start<PCGExDataStateTask::FWriteIndividualState>(
-				Handler->Index, PointIO,
+				Handler->Index, const_cast<PCGExData::FPointIO*>(PointIO),
 				static_cast<TDataState*>(Handler), &InIndices);
 		}
 	}
@@ -205,7 +205,7 @@ namespace PCGExDataState
 		for (PCGExDataFilter::TFilter* Handler : Handlers)
 		{
 			TDataState* StateHandler = static_cast<TDataState*>(Handler);
-			StateHandler->PrepareForWriting(PointIO);
+			StateHandler->PrepareForWriting(const_cast<PCGExData::FPointIO*>(PointIO));
 
 			if (!StateHandler->OverlappingAttributes.IsEmpty())
 			{

@@ -8,14 +8,11 @@
 #include "Data/Blending/PCGExDataBlending.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
 
-void UPCGExMovingAverageSmoothing::InternalDoSmooth(
-	PCGExData::FPointIO& InPointIO)
+void UPCGExMovingAverageSmoothing::DoSmooth(PCGExData::FPointIO& InPointIO, const TArray<double>* Smoothing, const TArray<double>* Influence, const bool bClosedPath, const FPCGExBlendingSettings* BlendingSettings)
 {
-	const double SafeWindowSize = FMath::Max(2, WindowSize);
-
 	const TArray<FPCGPoint>& InPoints = InPointIO.GetIn()->GetPoints();
 
-	PCGExDataBlending::FMetadataBlender* MetadataBlender = new PCGExDataBlending::FMetadataBlender(&BlendingSettings);
+	PCGExDataBlending::FMetadataBlender* MetadataBlender = new PCGExDataBlending::FMetadataBlender(const_cast<FPCGExBlendingSettings*>(BlendingSettings));
 
 	MetadataBlender->PrepareForData(InPointIO);
 
@@ -25,6 +22,13 @@ void UPCGExMovingAverageSmoothing::InternalDoSmooth(
 	{
 		for (int i = 0; i <= MaxPointIndex; i++)
 		{
+			const int32 SmoothingAmount = (*Smoothing)[i];
+			const double InfluenceAmount = (*Influence)[i];
+
+			if (SmoothingAmount == 0 || InfluenceAmount == 0) { continue; }
+
+			const double SafeWindowSize = FMath::Max(2, SmoothingAmount);
+
 			int32 Count = 0;
 			PCGEx::FPointRef Target = InPointIO.GetOutPointRef(i);
 			MetadataBlender->PrepareForBlending(Target);
@@ -34,10 +38,10 @@ void UPCGExMovingAverageSmoothing::InternalDoSmooth(
 			for (int j = -SafeWindowSize; j <= SafeWindowSize; j++)
 			{
 				const int32 Index = PCGExMath::Tile(i + j, 0, MaxPointIndex);
-				const double Alpha = 1 - (static_cast<double>(FMath::Abs(j)) / SafeWindowSize);
-				MetadataBlender->Blend(Target, InPointIO.GetInPointRef(Index), Target, Alpha);
+				const double Weight = (1 - (static_cast<double>(FMath::Abs(j)) / SafeWindowSize)) * InfluenceAmount;
+				MetadataBlender->Blend(Target, InPointIO.GetInPointRef(Index), Target, Weight);
 				Count++;
-				TotalWeight += Alpha;
+				TotalWeight += Weight;
 			}
 
 			MetadataBlender->CompleteBlending(Target, Count, TotalWeight);
@@ -47,6 +51,13 @@ void UPCGExMovingAverageSmoothing::InternalDoSmooth(
 	{
 		for (int i = 0; i <= MaxPointIndex; i++)
 		{
+			const int32 SmoothingAmount = (*Smoothing)[i];
+			const double InfluenceAmount = (*Influence)[i];
+
+			if (SmoothingAmount == 0 || InfluenceAmount == 0) { continue; }
+
+			const double SafeWindowSize = FMath::Max(2, SmoothingAmount);
+
 			int32 Count = 0;
 			PCGEx::FPointRef Target = InPointIO.GetOutPointRef(i);
 			MetadataBlender->PrepareForBlending(Target);
@@ -58,7 +69,7 @@ void UPCGExMovingAverageSmoothing::InternalDoSmooth(
 				const int32 Index = i + j;
 				if (!InPoints.IsValidIndex(Index)) { continue; }
 
-				const double Weight = 1 - (static_cast<double>(FMath::Abs(j)) / SafeWindowSize);
+				const double Weight = (1 - (static_cast<double>(FMath::Abs(j)) / SafeWindowSize)) * InfluenceAmount;
 				MetadataBlender->Blend(Target, InPointIO.GetInPointRef(Index), Target, Weight);
 				Count++;
 				TotalWeight += Weight;
@@ -67,15 +78,8 @@ void UPCGExMovingAverageSmoothing::InternalDoSmooth(
 			MetadataBlender->CompleteBlending(Target, Count, TotalWeight);
 		}
 	}
-
-
+	
 	MetadataBlender->Write();
 
 	PCGEX_DELETE(MetadataBlender)
-}
-
-void UPCGExMovingAverageSmoothing::ApplyOverrides()
-{
-	Super::ApplyOverrides();
-	PCGEX_OVERRIDE_OP_PROPERTY(WindowSize, FName(TEXT("Smoothing/WindowSize")), EPCGMetadataTypes::Double);
 }

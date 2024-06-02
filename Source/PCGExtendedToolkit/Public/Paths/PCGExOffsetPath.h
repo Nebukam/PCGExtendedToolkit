@@ -48,29 +48,30 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bClosedPath = false;
 
+	/** Offset type.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	EPCGExFetchType OffsetType = EPCGExFetchType::Constant;
+
 	/** Offset size.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	double Offset = 1.0;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="OffsetType == EPCGExFetchType::Constant"))
+	double OffsetConstant = 1.0;
 
-	/** Fetch the size from a local attribute. The regular Size parameter then act as a scale.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
-	bool bUseLocalOffset = false;
+	/** Fetch the offset size from a local attribute. The regular Size parameter then act as a scale.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="OffsetType == EPCGExFetchType::Attribute"))
+	FPCGAttributePropertyInputSelector OffsetAttribute;
 
-	/** Fetch the size from a local attribute. The regular Size parameter then act as a scale.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bUseLocalOffset"))
-	FPCGAttributePropertyInputSelector LocalOffset;
+	/** Up Vector type.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	EPCGExFetchType UpVectorType = EPCGExFetchType::Constant;
 
 	/** Up vector used to calculate Offset direction.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	FVector UpVector = FVector::UpVector;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="UpVectorType == EPCGExFetchType::Constant"))
+	FVector UpVectorConstant = FVector::UpVector;
 
 	/** Fetch the Up vector from a local point attribute. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
-	bool bUseLocalUpVector = false;
-
-	/** Fetch the Up vector from a local point attribute. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bUseLocalOffset"))
-	FPCGAttributePropertyInputSelector LocalUpVector;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="UpVectorType == EPCGExFetchType::Attribute"))
+	FPCGAttributePropertyInputSelector UpVectorAttribute;
+	
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExOffsetPathContext : public FPCGExPathProcessorContext

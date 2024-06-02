@@ -8,18 +8,22 @@
 #include "Data/Blending/PCGExDataBlending.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
 
-void UPCGExRadiusSmoothing::InternalDoSmooth(
-	PCGExData::FPointIO& InPointIO)
+
+void UPCGExRadiusSmoothing::DoSmooth(PCGExData::FPointIO& InPointIO, const TArray<double>* Smoothing, const TArray<double>* Influence, const bool bClosedPath, const FPCGExBlendingSettings* BlendingSettings)
 {
 	const TArray<FPCGPoint>& InPoints = InPointIO.GetIn()->GetPoints();
 
-	PCGExDataBlending::FMetadataBlender* MetadataBlender = new PCGExDataBlending::FMetadataBlender(&BlendingSettings);
+	PCGExDataBlending::FMetadataBlender* MetadataBlender = new PCGExDataBlending::FMetadataBlender(const_cast<FPCGExBlendingSettings*>(BlendingSettings));
 	MetadataBlender->PrepareForData(InPointIO);
 
-	const double RadiusSquared = BlendRadius * BlendRadius;
 	const int32 MaxPointIndex = InPoints.Num() - 1;
 	for (int i = 0; i <= MaxPointIndex; i++)
 	{
+		const double RadiusSquared = (*Smoothing)[i] * (*Smoothing)[i];
+		const double SmoothingInfluence = (*Influence)[i];
+
+		if (SmoothingInfluence == 0) { continue; }
+
 		FVector Origin = InPoints[i].Transform.GetLocation();
 		int32 Count = 0;
 
@@ -33,7 +37,7 @@ void UPCGExRadiusSmoothing::InternalDoSmooth(
 			const double Dist = FVector::DistSquared(Origin, InPoint.Transform.GetLocation());
 			if (Dist <= RadiusSquared)
 			{
-				const double Weight = 1 - (Dist / RadiusSquared);
+				const double Weight = (1 - (Dist / RadiusSquared)) * SmoothingInfluence;
 				MetadataBlender->Blend(Target, InPointIO.GetInPointRef(j), Target, Weight);
 				Count++;
 				TotalWeight += Weight;
@@ -46,10 +50,4 @@ void UPCGExRadiusSmoothing::InternalDoSmooth(
 	MetadataBlender->Write();
 
 	PCGEX_DELETE(MetadataBlender)
-}
-
-void UPCGExRadiusSmoothing::ApplyOverrides()
-{
-	Super::ApplyOverrides();
-	PCGEX_OVERRIDE_OP_PROPERTY(BlendRadius, FName(TEXT("Smoothing/BlendRadius")), EPCGMetadataTypes::Double);
 }

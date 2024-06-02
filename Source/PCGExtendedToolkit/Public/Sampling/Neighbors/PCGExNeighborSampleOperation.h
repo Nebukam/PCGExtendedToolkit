@@ -20,8 +20,8 @@ class PCGEXTENDEDTOOLKIT_API UPCGExNeighborSampleOperation : public UPCGExOperat
 
 public:
 
-	PCGExCluster::FNodeStateHandler* PointFilters = nullptr;
-	PCGExCluster::FNodeStateHandler* UsableValueFilters = nullptr;
+	PCGExCluster::FNodeStateHandler* PointState = nullptr;
+	PCGExCluster::FNodeStateHandler* ValueState = nullptr;
 	
 	PCGExDataBlending::FMetadataBlender* Blender = nullptr;
 	TArray<PCGExDataBlending::FDataBlendingOperationBase*> BlendOps;
@@ -37,7 +37,7 @@ public:
 	//bool bOutputToNewAttribute = false;
 	//FName TargetAttribute;
 	EPCGExDataBlendingType Blending = EPCGExDataBlendingType::Average;
-
+	
 	virtual void PrepareForCluster(PCGExCluster::FCluster* InCluster);
 
 	FORCEINLINE virtual void ProcessNodeForPoints(

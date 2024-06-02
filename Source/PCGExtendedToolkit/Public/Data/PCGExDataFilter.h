@@ -14,6 +14,7 @@
 namespace PCGExDataFilter
 {
 	class TFilter;
+	
 }
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Operand Type"))
@@ -75,8 +76,8 @@ namespace PCGExDataFilter
 
 		virtual void Capture(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO);
 		FORCEINLINE virtual bool Test(const int32 PointIndex) const;
-		virtual void PrepareForTesting(PCGExData::FPointIO* PointIO);
-		virtual void PrepareForTesting(PCGExData::FPointIO* PointIO, const TArrayView<int32>& PointIndices);
+		virtual void PrepareForTesting(const PCGExData::FPointIO* PointIO);
+		virtual void PrepareForTesting(const PCGExData::FPointIO* PointIO, const TArrayView<int32>& PointIndices);
 
 		virtual ~TFilter()
 		{
@@ -87,21 +88,21 @@ namespace PCGExDataFilter
 	class PCGEXTENDEDTOOLKIT_API TFilterManager
 	{
 	public:
-		explicit TFilterManager(PCGExData::FPointIO* InPointIO);
+		explicit TFilterManager(const PCGExData::FPointIO* InPointIO);
 
 		TArray<TFilter*> Handlers;
 		bool bValid = false;
 
-		PCGExData::FPointIO* PointIO = nullptr;
+		const PCGExData::FPointIO* PointIO = nullptr;
 
 		template <typename T_DEF>
-		void Register(const FPCGContext* InContext, const TArray<T_DEF*>& InDefinitions, PCGExData::FPointIO* InPointIO)
+		void Register(const FPCGContext* InContext, const TArray<T_DEF*>& InDefinitions, const PCGExData::FPointIO* InPointIO)
 		{
-			Register(InContext, InDefinitions, [&](TFilter* Handler) { Handler->Capture(InContext, InPointIO); });
+			RegisterAndCapture(InContext, InDefinitions, [&](TFilter* Handler) { Handler->Capture(InContext, InPointIO); });
 		}
 
 		template <typename T_DEF, class CaptureFunc>
-		void Register(const FPCGContext* InContext, const TArray<T_DEF*>& InFactories, CaptureFunc&& InCaptureFn)
+		void RegisterAndCapture(const FPCGContext* InContext, const TArray<T_DEF*>& InFactories, CaptureFunc&& InCaptureFn)
 		{
 			for (T_DEF* Factory : InFactories)
 			{
@@ -149,7 +150,7 @@ namespace PCGExDataFilter
 	class PCGEXTENDEDTOOLKIT_API TEarlyExitFilterManager : public TFilterManager
 	{
 	public:
-		explicit TEarlyExitFilterManager(PCGExData::FPointIO* InPointIO);
+		explicit TEarlyExitFilterManager(const PCGExData::FPointIO* InPointIO);
 
 		TArray<bool> Results;
 

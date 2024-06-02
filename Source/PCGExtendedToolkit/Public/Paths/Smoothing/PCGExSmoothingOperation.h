@@ -24,17 +24,9 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSmoothingOperation : public UPCGExOperation
 	GENERATED_BODY()
 
 public:
-	virtual void DoSmooth(PCGExData::FPointIO& InPointIO);
-
-	bool bClosedPath = false;
-	bool bPreserveStart = true;
-	bool bPreserveEnd = true;
-	double FixedInfluence = 1.0;
-	bool bUseLocalInfluence = false;
-	FPCGExInputDescriptor InfluenceDescriptor;
-
-protected:
-	FPCGExBlendingSettings InfluenceSettings = FPCGExBlendingSettings(EPCGExDataBlendingType::Lerp);
-	virtual void InternalDoSmooth(
-		PCGExData::FPointIO& InPointIO);
+	virtual void DoSmooth(
+		PCGExData::FPointIO& InPointIO,
+		const TArray<double>* Smoothing,
+		const TArray<double>* Influence,
+		const bool bClosedPath, const FPCGExBlendingSettings* BlendingSettings);
 };

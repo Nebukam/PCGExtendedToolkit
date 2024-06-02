@@ -28,7 +28,7 @@ bool PCGExPointsFilter::TMeanFilter::Test(const int32 PointIndex) const
 	return FMath::IsWithin(Target->Values[PointIndex], ReferenceMin, ReferenceMax);
 }
 
-void PCGExPointsFilter::TMeanFilter::PrepareForTesting(PCGExData::FPointIO* PointIO)
+void PCGExPointsFilter::TMeanFilter::PrepareForTesting(const PCGExData::FPointIO* PointIO)
 {
 	const int32 NumPoints = PointIO->GetNum();
 	Results.SetNum(NumPoints);

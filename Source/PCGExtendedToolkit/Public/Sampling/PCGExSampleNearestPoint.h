@@ -21,6 +21,15 @@ MACRO(SignedDistance, double)\
 MACRO(Angle, double)\
 MACRO(NumSamples, int32)
 
+class UPCGExFilterFactoryBase;
+
+namespace PCGExDataFilter
+{
+	class TEarlyExitFilterManager;
+}
+
+class UPCGExNodeStateFactory;
+
 namespace PCGExNearestPoint
 {
 	struct PCGEXTENDEDTOOLKIT_API FTargetInfos
@@ -250,6 +259,12 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestPointContext : public FPCGExPoi
 	EPCGExSampleMethod SampleMethod = EPCGExSampleMethod::WithinRange;
 	EPCGExRangeType WeightMethod = EPCGExRangeType::FullRange;
 
+	TArray<UPCGExFilterFactoryBase*> PointFilterFactories;
+	PCGExDataFilter::TEarlyExitFilterManager* PointFilterManager = nullptr;
+
+	TArray<UPCGExFilterFactoryBase*> ValueFilterFactories;
+	PCGExDataFilter::TEarlyExitFilterManager* ValueFilterManager = nullptr;
+	
 	TArray<PCGExDataBlending::FDataBlendingOperationBase*> BlendOps;
 
 	double RangeMin = 0;

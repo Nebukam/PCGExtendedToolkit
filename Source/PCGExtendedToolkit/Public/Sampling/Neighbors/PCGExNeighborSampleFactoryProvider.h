@@ -19,9 +19,6 @@ namespace PCGExNeighborSample
 {
 	const FName SourceSamplersLabel = TEXT("Samplers");
 	const FName OutputSamplerLabel = TEXT("Sampler");
-	
-	const FName SourcePointFilters = TEXT("PointFilters");
-	const FName SourceUseValueIfFilters = TEXT("UsableValueFilters");
 }
 
 USTRUCT(BlueprintType)
@@ -124,7 +121,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGNeighborSamplerFactoryBase : public UPCGExNodeS
 
 public:
 	FPCGExSamplerDescriptorBase Descriptor;
-	UPCGExNodeStateFactory* UsableValueFiltersOwner = nullptr;
+	UPCGExNodeStateFactory* ValueStateFactory = nullptr;
 	virtual UPCGExNeighborSampleOperation* CreateOperation() const;
 };
 

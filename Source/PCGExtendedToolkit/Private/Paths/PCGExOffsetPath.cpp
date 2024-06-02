@@ -83,15 +83,50 @@ bool FPCGExOffsetPathTask::ExecuteTask()
 	const int32 NumPoints = InPoints.Num();
 	TArray<FVector> Positions;
 	TArray<FVector> Normals;
+	TArray<double> OffsetSize;
+	TArray<FVector> Up;
 
-	const FVector StaticUp = Settings->UpVector;
-	PCGEx::FLocalVectorGetter* Up = new PCGEx::FLocalVectorGetter();
+	OffsetSize.SetNum(InPoints.Num());
+	Up.SetNum(InPoints.Num());
 
-	if (Settings->bUseLocalUpVector)
+	if (Settings->OffsetType == EPCGExFetchType::Attribute)
 	{
-		Up->Capture(Settings->LocalUpVector);
-		Up->Grab(*PointIO);
+		PCGEx::FLocalSingleFieldGetter* OffsetGetter = new PCGEx::FLocalSingleFieldGetter();
+		OffsetGetter->Capture(Settings->OffsetAttribute);
+		if (!OffsetGetter->Grab(*PointIO))
+		{
+			PCGEX_DELETE(OffsetGetter)
+			PCGE_LOG_C(Error, GraphAndLog, Context, FText::Format(FTEXT("Input missing offset size attribute: {0}."), FText::FromName(Settings->OffsetAttribute.GetName())));
+			return false;
+		}
+
+		for (int i = 0; i < OffsetSize.Num(); i++) { OffsetSize[i] = OffsetGetter->Values[i]; }
+		PCGEX_DELETE(OffsetGetter)
 	}
+	else
+	{
+		for (int i = 0; i < OffsetSize.Num(); i++) { OffsetSize[i] = Settings->OffsetConstant; }
+	}
+
+	if (Settings->UpVectorType == EPCGExFetchType::Attribute)
+	{
+		PCGEx::FLocalVectorGetter* UpGetter = new PCGEx::FLocalVectorGetter();
+		UpGetter->Capture(Settings->UpVectorAttribute);
+		if (!UpGetter->Grab(*PointIO))
+		{
+			PCGEX_DELETE(UpGetter)
+			PCGE_LOG_C(Error, GraphAndLog, Context, FText::Format(FTEXT("Input missing UpVector attribute: {0}."), FText::FromName(Settings->UpVectorAttribute.GetName())));
+			return false;
+		}
+
+		for (int i = 0; i < Up.Num(); i++) { Up[i] = UpGetter->Values[i]; }
+		PCGEX_DELETE(UpGetter)
+	}
+	else
+	{
+		for (int i = 0; i < Up.Num(); i++) { Up[i] = Settings->UpVectorConstant; }
+	}
+
 
 	Positions.SetNum(NumPoints);
 	Normals.SetNum(NumPoints);
@@ -103,7 +138,7 @@ bool FPCGExOffsetPathTask::ExecuteTask()
 		const FVector VA = Positions[A];
 		const FVector VB = Positions[B];
 		const FVector VC = Positions[C];
-		const FVector UpAverage = ((Up->SafeGet(A, StaticUp) + Up->SafeGet(B, StaticUp) + Up->SafeGet(C, StaticUp)) / 3).GetSafeNormal();
+		const FVector UpAverage = ((Up[A] + Up[B] + Up[C]) / 3).GetSafeNormal();
 		return FMath::Lerp(PCGExMath::GetNormal(VA, VB, VB + UpAverage), PCGExMath::GetNormal(VB, VC, VC + UpAverage), 0.5).GetSafeNormal();
 	};
 
@@ -122,19 +157,10 @@ bool FPCGExOffsetPathTask::ExecuteTask()
 		Normals[LastIndex] = NRM(NumPoints - 2, LastIndex, LastIndex);
 	}
 
-	const double StaticOffset = Settings->Offset;
-	PCGEx::FLocalSingleFieldGetter* Offset = new PCGEx::FLocalSingleFieldGetter();
-
-	if (Settings->bUseLocalOffset)
-	{
-		Offset->Capture(Settings->LocalOffset);
-		Offset->Grab(*PointIO);
-	}
-
 	TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
 	for (int i = 0; i < NumPoints; i++)
 	{
-		MutablePoints[i].Transform.SetLocation(Positions[i] + (Normals[i].GetSafeNormal() * Offset->SafeGet(i, StaticOffset)));
+		MutablePoints[i].Transform.SetLocation(Positions[i] + (Normals[i].GetSafeNormal() * OffsetSize[i]));
 	}
 
 	return true;

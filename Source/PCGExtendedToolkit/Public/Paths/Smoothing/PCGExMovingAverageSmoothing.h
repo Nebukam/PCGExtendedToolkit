@@ -17,15 +17,12 @@ class PCGEXTENDEDTOOLKIT_API UPCGExMovingAverageSmoothing : public UPCGExSmoothi
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin =2))
-	double WindowSize = 5;
+	
+	virtual void DoSmooth(
+		PCGExData::FPointIO& InPointIO,
+		const TArray<double>* Smoothing,
+		const TArray<double>* Influence,
+		const bool bClosedPath,
+		const FPCGExBlendingSettings* BlendingSettings) override;
 
-	/** Defines how fused point properties and attributes are merged together. */
-	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
-	FPCGExBlendingSettings BlendingSettings = FPCGExBlendingSettings(EPCGExDataBlendingType::Average);
-
-	virtual void InternalDoSmooth(PCGExData::FPointIO& InPointIO) override;
-
-protected:
-	virtual void ApplyOverrides() override;
 };

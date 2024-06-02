@@ -3,8 +3,11 @@
 
 #include "Sampling/PCGExSampleNearestPoint.h"
 
+#include "PCGExFactoryProvider.h"
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGExData.h"
+#include "Graph/PCGExCluster.h"
+#include "Sampling/Neighbors/PCGExNeighborSampleFactoryProvider.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSampleNearestPointElement"
 #define PCGEX_NAMESPACE SampleNearestPoint
@@ -21,6 +24,8 @@ TArray<FPCGPinProperties> UPCGExSampleNearestPointSettings::InputPinProperties()
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 	PCGEX_PIN_POINT(PCGEx::SourceTargetsLabel, "The point data set to check against.", Required, {})
+	PCGEX_PIN_PARAMS(PCGEx::SourcePointFilters, "Filter which points will be processed.", Advanced, {})
+	PCGEX_PIN_PARAMS(PCGEx::SourceUseValueIfFilters, "Filter which points values will be processed.", Advanced, {})
 	return PinProperties;
 }
 
@@ -129,6 +134,9 @@ bool FPCGExSampleNearestPointElement::Boot(FPCGContext* InContext) const
 		}
 	}
 
+	PCGExDataFilter::GetInputFactories(InContext, PCGEx::SourcePointFilters, Context->PointFilterFactories, {PCGExFactories::EType::Filter}, false);
+	PCGExDataFilter::GetInputFactories(InContext, PCGEx::SourceUseValueIfFilters, Context->ValueFilterFactories, {PCGExFactories::EType::Filter}, false);
+
 	return true;
 }
 
@@ -157,8 +165,42 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 				Op->PrepareForData(*Context->CurrentIO, *Context->Targets);
 			}
 
-			Context->SetState(PCGExMT::State_ProcessingPoints);
+			if (!Context->PointFilterFactories.IsEmpty() || !Context->ValueFilterFactories.IsEmpty())
+			{
+				Context->SetState(PCGExDataFilter::State_FilteringPoints);
+			}
+			else
+			{
+				Context->SetState(PCGExMT::State_ProcessingPoints);
+			}
 		}
+	}
+
+	if (Context->IsState(PCGExDataFilter::State_FilteringPoints))
+	{
+		auto Initialize = [&](const PCGExData::FPointIO& PointIO)
+		{
+			if (!Context->PointFilterFactories.IsEmpty())
+			{
+				Context->PointFilterManager = new PCGExDataFilter::TEarlyExitFilterManager(&PointIO);
+				Context->PointFilterManager->Register<UPCGExFilterFactoryBase>(Context, Context->PointFilterFactories, &PointIO);
+			}
+			if (!Context->ValueFilterFactories.IsEmpty())
+			{
+				Context->ValueFilterManager = new PCGExDataFilter::TEarlyExitFilterManager(&PointIO);
+				Context->ValueFilterManager->Register<UPCGExFilterFactoryBase>(Context, Context->ValueFilterFactories, &PointIO);
+			}
+		};
+
+		auto ProcessPoint = [&](const int32 PointIndex, const PCGExData::FPointIO& PointIO)
+		{
+			if (Context->PointFilterManager) { Context->PointFilterManager->Test(PointIndex); }
+			if (Context->ValueFilterManager) { Context->ValueFilterManager->Test(PointIndex); }
+		};
+
+		if (!Context->ProcessCurrentPoints(Initialize, ProcessPoint)) { return false; }
+
+		Context->SetState(PCGExMT::State_ProcessingPoints);
 	}
 
 	if (Context->IsState(PCGExMT::State_ProcessingPoints))
@@ -215,6 +257,8 @@ bool FPCGExSamplePointTask::ExecuteTask()
 	const FPCGExSampleNearestPointContext* Context = Manager->GetContext<FPCGExSampleNearestPointContext>();
 	PCGEX_SETTINGS(SampleNearestPoint)
 
+	if (Context->PointFilterManager && !Context->PointFilterManager->Results[TaskIndex]) { return false; }
+
 	const bool bSingleSample = (Context->SampleMethod == EPCGExSampleMethod::ClosestTarget || Context->SampleMethod == EPCGExSampleMethod::FarthestTarget);
 
 	const TArray<FPCGPoint>& TargetPoints = Context->Targets->GetIn()->GetPoints();
@@ -233,6 +277,8 @@ bool FPCGExSamplePointTask::ExecuteTask()
 	PCGExNearestPoint::FTargetsCompoundInfos TargetsCompoundInfos;
 	auto ProcessTarget = [&](const int32 PointIndex, const FPCGPoint& Target)
 	{
+		if (Context->ValueFilterManager && !Context->ValueFilterManager->Results[PointIndex]) { return; }
+
 		FVector A;
 		FVector B;
 

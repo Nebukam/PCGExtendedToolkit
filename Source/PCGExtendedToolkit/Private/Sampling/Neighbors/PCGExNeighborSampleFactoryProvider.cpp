@@ -37,8 +37,8 @@ UPCGExNeighborSampleOperation* UPCGNeighborSamplerFactoryBase::CreateOperation()
 	//NewOperation->TargetAttribute = Descriptor.TargetAttribute;
 	NewOperation->Blending = Descriptor.Blending;
 
-	if (!FilterFactories.IsEmpty()) { NewOperation->PointFilters = new PCGExCluster::FNodeStateHandler(this); }
-	if (UsableValueFiltersOwner) { NewOperation->UsableValueFilters = new PCGExCluster::FNodeStateHandler(UsableValueFiltersOwner); }
+	if (!FilterFactories.IsEmpty()) { NewOperation->PointState = new PCGExCluster::FNodeStateHandler(this); }
+	if (ValueStateFactory) { NewOperation->ValueState = new PCGExCluster::FNodeStateHandler(ValueStateFactory); }
 
 	return NewOperation;
 }
@@ -46,8 +46,8 @@ UPCGExNeighborSampleOperation* UPCGNeighborSamplerFactoryBase::CreateOperation()
 TArray<FPCGPinProperties> UPCGExNeighborSampleProviderSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_PARAMS(PCGExNeighborSample::SourcePointFilters, "Filters used to check which node will be processed by the sampler or not.", Advanced, {})
-	PCGEX_PIN_PARAMS(PCGExNeighborSample::SourceUseValueIfFilters, "Filters used to check if a node can be used as a value source or not.", Advanced, {})
+	PCGEX_PIN_PARAMS(PCGEx::SourcePointFilters, "Filters used to check which node will be processed by the sampler or not.", Advanced, {})
+	PCGEX_PIN_PARAMS(PCGEx::SourceUseValueIfFilters, "Filters used to check if a node can be used as a value source or not.", Advanced, {})
 	return PinProperties;
 }
 
@@ -62,13 +62,13 @@ UPCGExParamFactoryBase* UPCGExNeighborSampleProviderSettings::CreateFactory(FPCG
 
 	UPCGNeighborSamplerFactoryBase* SamplerFactory = Cast<UPCGNeighborSamplerFactoryBase>(InFactory);
 	SamplerFactory->Descriptor = SamplerSettings;
-	PCGExDataFilter::GetInputFactories(InContext, PCGExNeighborSample::SourcePointFilters, SamplerFactory->FilterFactories,  PCGExFactories::ClusterFilters, false);
+	PCGExDataFilter::GetInputFactories(InContext, PCGEx::SourcePointFilters, SamplerFactory->FilterFactories,  PCGExFactories::ClusterFilters, false);
 
 	TArray<UPCGExFilterFactoryBase*> FilterFactories;
-	if (PCGExDataFilter::GetInputFactories(InContext, PCGExNeighborSample::SourceUseValueIfFilters, FilterFactories, PCGExFactories::ClusterFilters, false))
+	if (PCGExDataFilter::GetInputFactories(InContext, PCGEx::SourceUseValueIfFilters, FilterFactories, PCGExFactories::ClusterFilters, false))
 	{
-		SamplerFactory->UsableValueFiltersOwner = NewObject<UPCGExNodeStateFactory>();
-		SamplerFactory->UsableValueFiltersOwner->FilterFactories.Append(FilterFactories);
+		SamplerFactory->ValueStateFactory = NewObject<UPCGExNodeStateFactory>();
+		SamplerFactory->ValueStateFactory->FilterFactories.Append(FilterFactories);
 	}
 
 	return InFactory;
