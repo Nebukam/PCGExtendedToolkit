@@ -37,24 +37,23 @@ namespace PCGExHeuristics
 	{
 		const TArray<FPCGTaggedData>& Inputs = InContext->InputData.GetInputsByPin(PCGExPathfinding::SourceHeuristicsLabel);
 
-		for (const FPCGTaggedData& InputState : Inputs)
+		TArray<UPCGHeuristicsFactoryBase*> InputFactories;
+		if (PCGExDataFilter::GetInputFactories(InContext, PCGExPathfinding::SourceHeuristicsLabel, InputFactories, {PCGExDataFilter::EFactoryType::Heuristics}, false))
 		{
-			if (const UPCGHeuristicsFactoryBase* OperationFactory = Cast<UPCGHeuristicsFactoryBase>(InputState.Data))
+			for (const UPCGHeuristicsFactoryBase* OperationFactory : InputFactories)
 			{
 				UPCGExHeuristicOperation* Operation = nullptr;
 
-				if (const UPCGHeuristicsFactoryFeedback* FeedbackFactory = Cast<UPCGHeuristicsFactoryFeedback>(Operation))
+				if (const UPCGHeuristicsFactoryFeedback* FeedbackFactory = Cast<UPCGHeuristicsFactoryFeedback>(OperationFactory))
 				{
-					if (FeedbackFactory->IsGlobal())
-					{
-						Operation = OperationFactory->CreateOperation();
-						UPCGExHeuristicFeedback* Feedback = Cast<UPCGExHeuristicFeedback>(Operation);
-						Feedbacks.Add(Feedback);
-					}
-					else
+					if (!FeedbackFactory->IsGlobal())
 					{
 						LocalFeedbackFactories.Add(OperationFactory);
+						continue;
 					}
+
+					Operation = OperationFactory->CreateOperation();
+					Feedbacks.Add(Cast<UPCGExHeuristicFeedback>(Operation));
 				}
 				else
 				{
@@ -70,7 +69,7 @@ namespace PCGExHeuristics
 
 		if (Operations.IsEmpty())
 		{
-			PCGE_LOG_C(Warning, GraphAndLog, InContext, FTEXT("Missing valid heuristics. Will use Shortest Distance as default."));
+			PCGE_LOG_C(Warning, GraphAndLog, InContext, FTEXT("Missing valid heuristics. Will use Shortest Distance as default. (Local feedback heuristics don't count)"));
 			UPCGExHeuristicDistance* DefaultHeuristics = NewObject<UPCGExHeuristicDistance>();
 			DefaultHeuristics->ReferenceWeight = ReferenceWeight;
 			Operations.Add(DefaultHeuristics);
@@ -153,7 +152,6 @@ namespace PCGExHeuristics
 		}
 		if (LocalFeedback) { return (EScore + LocalFeedback->GetEdgeScore(From, To, Edge, Seed, Goal)) / (DynamicWeight + LocalFeedback->TotalWeight); }
 		return EScore / DynamicWeight;
-		
 	}
 
 	void THeuristicsHandler::FeedbackPointScore(const PCGExCluster::FNode& Node)

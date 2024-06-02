@@ -32,7 +32,8 @@ namespace PCGExDataFilter
 		ClusterFilter,
 		NodeState,
 		SocketState,
-		Sampler
+		Sampler,
+		Heuristics
 	};
 
 	enum class EType : uint8
