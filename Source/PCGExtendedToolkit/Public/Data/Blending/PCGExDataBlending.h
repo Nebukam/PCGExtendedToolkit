@@ -187,6 +187,33 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointPropertyBlendingOverrides
 };
 
 USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExPropertiesBlendingSettings
+{
+	GENERATED_BODY()
+
+	FPCGExPropertiesBlendingSettings()
+	{
+	}
+
+	explicit FPCGExPropertiesBlendingSettings(const EPCGExDataBlendingType InDefaultBlending):
+		DefaultBlending(InDefaultBlending)
+	{
+#define PCGEX_SET_DEFAULT_POINTPROPERTY(_TYPE, _NAME, _TYPENAME) PropertiesOverrides._NAME##Blending = InDefaultBlending;
+		PCGEX_FOREACH_BLEND_POINTPROPERTY(PCGEX_SET_DEFAULT_POINTPROPERTY)
+#undef PCGEX_SET_DEFAULT_POINTPROPERTY
+	}
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	EPCGExDataBlendingType DefaultBlending = EPCGExDataBlendingType::Average;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Setting)
+	FPCGExPointPropertyBlendingOverrides PropertiesOverrides;
+
+};
+
+
+
+USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExBlendingSettings
 {
 	GENERATED_BODY()
@@ -201,6 +228,12 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBlendingSettings
 #define PCGEX_SET_DEFAULT_POINTPROPERTY(_TYPE, _NAME, _TYPENAME) PropertiesOverrides._NAME##Blending = InDefaultBlending;
 		PCGEX_FOREACH_BLEND_POINTPROPERTY(PCGEX_SET_DEFAULT_POINTPROPERTY)
 #undef PCGEX_SET_DEFAULT_POINTPROPERTY
+	}
+
+	explicit FPCGExBlendingSettings(const FPCGExPropertiesBlendingSettings& InPropertiesBlendingSettings):
+		DefaultBlending(InPropertiesBlendingSettings.DefaultBlending)
+	{
+		PropertiesOverrides = InPropertiesBlendingSettings.PropertiesOverrides;
 	}
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
@@ -245,7 +278,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBlendingSettings
 		}
 	}
 };
-
 
 namespace PCGExDataBlending
 {
