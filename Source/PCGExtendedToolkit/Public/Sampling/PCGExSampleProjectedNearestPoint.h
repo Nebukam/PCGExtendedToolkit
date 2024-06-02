@@ -105,8 +105,16 @@ public:
 	TSoftObjectPtr<UCurveFloat> WeightOverDistance;
 
 	/** Attributes to sample from the targets */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Attributes", meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Blending", meta=(PCG_Overridable))
 	TMap<FName, EPCGExDataBlendingType> TargetAttributes;
+
+	/** Write the sampled distance. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Blending", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bBlendPointProperties = false;
+	
+	/** The constant to use as Up vector for the look at transform.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Blending", meta=(PCG_Overridable, EditCondition="bBlendPointProperties"))
+	FPCGExBlendingSettings PointPropertiesBlendingSettings = FPCGExBlendingSettings(EPCGExDataBlendingType::None);
 
 	/** Write whether the sampling was sucessful or not to a boolean attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
@@ -193,14 +201,6 @@ public:
 	/** Name of the 'int32' attribute to write the number of sampled neighbors to.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteNumSamples"))
 	FName NumSamplesAttributeName = FName("NumSamples");
-
-	/** Write the sampled distance. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
-	bool bBlendPointProperties = false;
-	
-	/** The constant to use as Up vector for the look at transform.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bBlendPointProperties"))
-	FPCGExBlendingSettings PointPropertiesBlendingSettings = FPCGExBlendingSettings(EPCGExDataBlendingType::None);
 	
 };
 
