@@ -44,6 +44,7 @@ FPCGExSampleNearestPointContext::~FPCGExSampleNearestPointContext()
 	PCGEX_CLEANUP(LookAtUpGetter)
 
 	PCGEX_DELETE(Targets)
+	PCGEX_DELETE(PropertiesBlender)
 
 	PCGEX_DELETE_TARRAY(BlendOps)
 
@@ -137,6 +138,11 @@ bool FPCGExSampleNearestPointElement::Boot(FPCGContext* InContext) const
 	PCGExDataFilter::GetInputFactories(InContext, PCGEx::SourcePointFilters, Context->PointFilterFactories, {PCGExFactories::EType::Filter}, false);
 	PCGExDataFilter::GetInputFactories(InContext, PCGEx::SourceUseValueIfFilters, Context->ValueFilterFactories, {PCGExFactories::EType::Filter}, false);
 
+	if(Settings->bBlendPointProperties)
+	{
+		Context->PropertiesBlender = new PCGExDataBlending::FPropertiesBlender(Settings->PointPropertiesBlendingSettings);
+	}
+	
 	return true;
 }
 
@@ -263,7 +269,8 @@ bool FPCGExSamplePointTask::ExecuteTask()
 
 	const TArray<FPCGPoint>& TargetPoints = Context->Targets->GetIn()->GetPoints();
 	const int32 NumTargets = TargetPoints.Num();
-	const FPCGPoint& SourcePoint = PointIO->GetOutPoint(TaskIndex);
+	FPCGPoint& SourcePoint = PointIO->GetMutablePoint(TaskIndex);
+	FPCGPoint SourcePointBlendCopy = PointIO->GetOutPoint(TaskIndex);
 	const FVector SourceCenter = SourcePoint.Transform.GetLocation();
 
 	double RangeMin = FMath::Pow(Context->RangeMinGetter.SafeGet(TaskIndex, Context->RangeMin), 2);
@@ -298,6 +305,7 @@ bool FPCGExSamplePointTask::ExecuteTask()
 			const PCGExNearestPoint::FTargetInfos& Infos = TargetsInfos.Emplace_GetRef(PointIndex, Dist);
 			TargetsCompoundInfos.UpdateCompound(Infos);
 		}
+
 	};
 
 	if (RangeMax > 0)
@@ -367,9 +375,11 @@ bool FPCGExSamplePointTask::ExecuteTask()
 
 		TotalWeight += Weight;
 
+		if(Context->PropertiesBlender){ Context->PropertiesBlender->Blend(SourcePointBlendCopy, Target, SourcePointBlendCopy, Weight); }
 		for (const PCGExDataBlending::FDataBlendingOperationBase* Op : Context->BlendOps) { Op->DoOperation(TaskIndex, TargetInfos.Index, TaskIndex, Weight); }
 	};
 
+	if(Context->PropertiesBlender){ Context->PropertiesBlender->PrepareBlending(SourcePointBlendCopy, SourcePointBlendCopy); }
 	for (PCGExDataBlending::FDataBlendingOperationBase* Op : Context->BlendOps) { if (Op->GetRequiresPreparation()) { Op->PrepareOperation(TaskIndex); } }
 
 	if (bSingleSample)
@@ -390,6 +400,12 @@ bool FPCGExSamplePointTask::ExecuteTask()
 
 	double Count = bSingleSample ? 1 : TargetsInfos.Num();
 
+	if(Context->PropertiesBlender)
+	{
+		Context->PropertiesBlender->CompleteBlending(SourcePointBlendCopy, Count, TotalWeight);
+		SourcePoint = SourcePointBlendCopy;
+	}
+	
 	for (PCGExDataBlending::FDataBlendingOperationBase* Op : Context->BlendOps)
 	{
 		if (Op->GetRequiresFinalization())

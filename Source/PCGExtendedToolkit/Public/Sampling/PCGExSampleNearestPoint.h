@@ -21,6 +21,11 @@ MACRO(SignedDistance, double)\
 MACRO(Angle, double)\
 MACRO(NumSamples, int32)
 
+namespace PCGExDataBlending
+{
+	struct FPropertiesBlender;
+}
+
 class UPCGExFilterFactoryBase;
 
 namespace PCGExDataFilter
@@ -202,7 +207,6 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, DisplayName=" └─ Up Vector", EditCondition="bWriteLookAtTransform && LookAtUpSelection==EPCGExSampleSource::Constant", EditConditionHides))
 	FVector LookAtUpConstant = FVector::UpVector;
 
-
 	/** Write the sampled distance. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteDistance = false;
@@ -242,10 +246,18 @@ public:
 	/** Write the sampled distance. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteNumSamples = false;
-
+	
 	/** Name of the 'int32' attribute to write the number of sampled neighbors to.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteNumSamples"))
 	FName NumSamplesAttributeName = FName("NumSamples");
+
+	/** Write the sampled distance. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bBlendPointProperties = false;
+	
+	/** The constant to use as Up vector for the look at transform.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bBlendPointProperties"))
+	FPCGExBlendingSettings PointPropertiesBlendingSettings = FPCGExBlendingSettings(EPCGExDataBlendingType::None);
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestPointContext : public FPCGExPointsProcessorContext
@@ -266,7 +278,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestPointContext : public FPCGExPoi
 	PCGExDataFilter::TEarlyExitFilterManager* ValueFilterManager = nullptr;
 	
 	TArray<PCGExDataBlending::FDataBlendingOperationBase*> BlendOps;
-
+	PCGExDataBlending::FPropertiesBlender* PropertiesBlender = nullptr;
+	
 	double RangeMin = 0;
 	double RangeMax = 1000;
 
