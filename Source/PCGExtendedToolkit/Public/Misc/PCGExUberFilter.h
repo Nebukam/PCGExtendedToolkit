@@ -56,7 +56,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExUberFilterContext : public FPCGExPointsProce
 	friend class FPCGExUberFilterElement;
 	virtual ~FPCGExUberFilterContext() override;
 
-	TArray<TObjectPtr<UPCGExFilterFactoryBase>> Factories;
+	TArray<UPCGExFilterFactoryBase*> Factories;
 	PCGExDataFilter::TEarlyExitFilterManager* FilterManager = nullptr;
 
 	PCGExData::FPointIOCollection* Inside = nullptr;

@@ -46,7 +46,7 @@ protected:
 	bool ValidateStateName(const FPCGContext* Context) const;
 
 	template <typename T>
-	T* CreateStateDefinition(const FPCGContext* Context) const
+	T* CreateStateFactory(const FPCGContext* Context) const
 	{
 		PCGEX_SETTINGS(StateFactoryProvider)
 

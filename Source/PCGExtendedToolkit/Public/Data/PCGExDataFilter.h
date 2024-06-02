@@ -23,6 +23,27 @@ enum class EPCGExOperandType : uint8
 	Constant UMETA(DisplayName = "Constant", ToolTip="Use a constant, static value."),
 };
 
+namespace PCGExDataFilter
+{
+	enum class EFactoryType : uint8
+	{
+		Default = 0,
+		Filter,
+		ClusterFilter,
+		NodeState,
+		SocketState,
+		Sampler
+	};
+
+	enum class EType : uint8
+	{
+		Default = 0,
+		Cluster
+	};
+
+	static inline TSet<EFactoryType> ClusterFilters = {EFactoryType::Filter, EFactoryType::ClusterFilter};
+}
+
 /**
  * 
  */
@@ -32,19 +53,14 @@ class PCGEXTENDEDTOOLKIT_API UPCGExFilterFactoryBase : public UPCGExParamFactory
 	GENERATED_BODY()
 
 public:
+	FORCEINLINE virtual PCGExDataFilter::EFactoryType GetFactoryType() const;
+
 	int32 Priority = 0;
 	virtual PCGExDataFilter::TFilter* CreateFilter() const;
 };
 
 namespace PCGExDataFilter
 {
-
-	enum class EType : uint8
-	{
-		Default = 0,
-		Cluster
-	};
-	
 	constexpr PCGExMT::AsyncState State_FilteringPoints = __COUNTER__;
 
 	const FName OutputFilterLabel = TEXT("Filter");
@@ -67,7 +83,7 @@ namespace PCGExDataFilter
 		bool bValid = true;
 
 		FORCEINLINE virtual EType GetFilterType() const;
-		
+
 		virtual void Capture(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO);
 		FORCEINLINE virtual bool Test(const int32 PointIndex) const;
 		virtual void PrepareForTesting(PCGExData::FPointIO* PointIO);
@@ -82,25 +98,28 @@ namespace PCGExDataFilter
 	class PCGEXTENDEDTOOLKIT_API TFilterManager
 	{
 	public:
-		explicit TFilterManager(PCGExData::FPointIO* InPointIO);
+		explicit TFilterManager(PCGExData::FPointIO* InPointIO, const TSet<PCGExDataFilter::EFactoryType>& InSupportedTypes);
 
+		TSet<PCGExDataFilter::EFactoryType> SupportedFactoryTypes;
 		TArray<TFilter*> Handlers;
 		bool bValid = false;
 
 		PCGExData::FPointIO* PointIO = nullptr;
 
 		template <typename T_DEF>
-		void Register(const FPCGContext* InContext, const TArray<TObjectPtr<T_DEF>>& InDefinitions, PCGExData::FPointIO* InPointIO)
+		void Register(const FPCGContext* InContext, const TArray<T_DEF*>& InDefinitions, PCGExData::FPointIO* InPointIO)
 		{
 			Register(InContext, InDefinitions, [&](TFilter* Handler) { Handler->Capture(InContext, InPointIO); });
 		}
 
 		template <typename T_DEF, class CaptureFunc>
-		void Register(const FPCGContext* InContext, const TArray<TObjectPtr<T_DEF>>& InDefinitions, CaptureFunc&& InCaptureFn)
+		void Register(const FPCGContext* InContext, const TArray<T_DEF*>& InFactories, CaptureFunc&& InCaptureFn)
 		{
-			for (T_DEF* Def : InDefinitions)
+			for (T_DEF* Factory : InFactories)
 			{
-				TFilter* Handler = Def->CreateFilter();
+				if (!SupportedFactoryTypes.Contains(Factory->GetFactoryType())) { continue; }
+
+				TFilter* Handler = Factory->CreateFilter();
 				InCaptureFn(Handler);
 
 				if (!Handler->bValid)
@@ -144,7 +163,7 @@ namespace PCGExDataFilter
 	class PCGEXTENDEDTOOLKIT_API TEarlyExitFilterManager : public TFilterManager
 	{
 	public:
-		explicit TEarlyExitFilterManager(PCGExData::FPointIO* InPointIO);
+		explicit TEarlyExitFilterManager(PCGExData::FPointIO* InPointIO, const TSet<PCGExDataFilter::EFactoryType>& InSupportedTypes);
 
 		TArray<bool> Results;
 
@@ -153,7 +172,7 @@ namespace PCGExDataFilter
 	};
 
 	template <typename T_DEF>
-	static bool GetInputFilters(FPCGContext* InContext, const FName InLabel, TArray<TObjectPtr<T_DEF>>& OutFilters, const bool bThrowError = true)
+	static bool GetInputFilters(FPCGContext* InContext, const FName InLabel, TArray<T_DEF*>& OutFilters, const TSet<PCGExDataFilter::EFactoryType>& Types, const bool bThrowError = true)
 	{
 		const TArray<FPCGTaggedData>& Inputs = InContext->InputData.GetInputsByPin(InLabel);
 
@@ -162,31 +181,12 @@ namespace PCGExDataFilter
 		{
 			if (const T_DEF* State = Cast<T_DEF>(InputState.Data))
 			{
-				OutFilters.AddUnique(const_cast<T_DEF*>(State));
-			}
-		}
-
-		UniqueStatesNames.Empty();
-
-		if (OutFilters.IsEmpty())
-		{
-			if (bThrowError) { PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Missing valid filters.")); }
-			return false;
-		}
-
-		return true;
-	}
-
-	template <typename T_DEF>
-	static bool GetInputFilters(FPCGContext* InContext, const FName InLabel, TArray<T_DEF*>& OutFilters, const bool bThrowError = true)
-	{
-		const TArray<FPCGTaggedData>& Inputs = InContext->InputData.GetInputsByPin(InLabel);
-
-		TSet<FName> UniqueStatesNames;
-		for (const FPCGTaggedData& InputState : Inputs)
-		{
-			if (const T_DEF* State = Cast<T_DEF>(InputState.Data))
-			{
+				if (!Types.Contains(State->GetFactoryType()))
+				{
+					if (bThrowError) { PCGE_LOG_C(Warning, GraphAndLog, InContext, FTEXT("Some inputs are not supported by this node.")); }
+					continue;
+				}
+				
 				OutFilters.AddUnique(const_cast<T_DEF*>(State));
 			}
 		}

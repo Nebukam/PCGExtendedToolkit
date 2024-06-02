@@ -70,7 +70,7 @@ bool FPCGExFindSocketStatesElement::ExecuteInternal(
 		{
 			PCGEx::ArrayOfIndices(Context->PointIndices, Context->CurrentIO->GetNum());
 
-			Context->StatesManager = new PCGExDataState::TStatesManager(Context->CurrentIO);
+			Context->StatesManager = new PCGExDataState::TStatesManager(Context->CurrentIO, {PCGExDataFilter::EFactoryType::SocketState});
 			Context->StatesManager->Register<UPCGExSocketStateFactory>(
 				Context, Context->StateDefinitions, [&](PCGExDataFilter::TFilter* Handler)
 				{

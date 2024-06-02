@@ -80,7 +80,7 @@ bool FPCGExFindNodeStatesElement::ExecuteInternal(
 		}
 
 		Context->CurrentCluster->GetNodePointIndices(Context->NodeIndices);
-		Context->StatesManager = new PCGExDataState::TStatesManager(Context->CurrentIO);
+		Context->StatesManager = new PCGExDataState::TStatesManager(Context->CurrentIO, {PCGExDataFilter::EFactoryType::NodeState});
 		Context->StatesManager->Register<UPCGExNodeStateFactory>(
 			Context, Context->StateDefinitions, [&](PCGExDataFilter::TFilter* Handler)
 			{

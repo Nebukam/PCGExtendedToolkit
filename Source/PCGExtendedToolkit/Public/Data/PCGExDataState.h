@@ -83,8 +83,8 @@ namespace PCGExDataState
 		TArray<int32> HighestState;
 		bool bHasPartials = false;
 
-		explicit TStatesManager(PCGExData::FPointIO* InPointIO)
-			: TFilterManager(InPointIO)
+		explicit TStatesManager(PCGExData::FPointIO* InPointIO, const TSet<PCGExDataFilter::EFactoryType>& InSupportedTypes)
+			: TFilterManager(InPointIO, InSupportedTypes)
 		{
 		}
 

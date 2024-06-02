@@ -3,6 +3,11 @@
 
 #include "Data/PCGExDataFilter.h"
 
+PCGExDataFilter::EFactoryType UPCGExFilterFactoryBase::GetFactoryType() const
+{
+	return PCGExDataFilter::EFactoryType::Filter;
+}
+
 PCGExDataFilter::TFilter* UPCGExFilterFactoryBase::CreateFilter() const
 {
 	return nullptr;
@@ -32,8 +37,8 @@ namespace PCGExDataFilter
 		for (const int32 i : PointIndices) { Results[i] = false; }
 	}
 
-	TFilterManager::TFilterManager(PCGExData::FPointIO* InPointIO)
-		: PointIO(InPointIO)
+	TFilterManager::TFilterManager(PCGExData::FPointIO* InPointIO, const TSet<PCGExDataFilter::EFactoryType>& InSupportedTypes)
+		: SupportedFactoryTypes(InSupportedTypes), PointIO(InPointIO)
 	{
 	}
 
@@ -56,8 +61,8 @@ namespace PCGExDataFilter
 	{
 	}
 
-	TEarlyExitFilterManager::TEarlyExitFilterManager(PCGExData::FPointIO* InPointIO)
-		: TFilterManager(InPointIO)
+	TEarlyExitFilterManager::TEarlyExitFilterManager(PCGExData::FPointIO* InPointIO, const TSet<PCGExDataFilter::EFactoryType>& InSupportedTypes)
+		: TFilterManager(InPointIO, InSupportedTypes)
 	{
 	}
 
