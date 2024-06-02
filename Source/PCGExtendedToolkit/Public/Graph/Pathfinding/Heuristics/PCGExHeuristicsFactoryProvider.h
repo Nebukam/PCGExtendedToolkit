@@ -66,6 +66,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGHeuristicsFactoryBase : public UPCGExParamFacto
 	GENERATED_BODY()
 
 public:
+	virtual PCGExFactories::EType GetFactoryType() const;
 	virtual UPCGExHeuristicOperation* CreateOperation() const;
 	double WeightFactor = 1;
 };

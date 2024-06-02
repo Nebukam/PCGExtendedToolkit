@@ -8,14 +8,14 @@
 
 #pragma region UPCGExNodeStateDefinition
 
-PCGExDataFilter::EFactoryType UPCGExClusterFilterFactoryBase::GetFactoryType() const
+PCGExFactories::EType UPCGExClusterFilterFactoryBase::GetFactoryType() const
 {
-	return  PCGExDataFilter::EFactoryType::ClusterFilter;
+	return  PCGExFactories::EType::ClusterFilter;
 }
 
-PCGExDataFilter::EFactoryType UPCGExNodeStateFactory::GetFactoryType() const
+PCGExFactories::EType UPCGExNodeStateFactory::GetFactoryType() const
 {
-	return PCGExDataFilter::EFactoryType::NodeState;
+	return PCGExFactories::EType::NodeState;
 }
 
 PCGExDataFilter::TFilter* UPCGExNodeStateFactory::CreateFilter() const

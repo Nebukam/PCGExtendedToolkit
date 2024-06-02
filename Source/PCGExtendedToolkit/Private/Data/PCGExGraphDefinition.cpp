@@ -303,9 +303,9 @@ void UPCGExGraphDefinition::Cleanup() const
 
 #pragma endregion
 
-PCGExDataFilter::EFactoryType UPCGExSocketStateFactory::GetFactoryType() const
+PCGExFactories::EType UPCGExSocketStateFactory::GetFactoryType() const
 {
-	return PCGExDataFilter::EFactoryType::SocketState;
+	return PCGExFactories::EType::SocketState;
 }
 
 PCGExDataFilter::TFilter* UPCGExSocketStateFactory::CreateFilter() const

@@ -13,6 +13,22 @@
 
 ///
 
+namespace PCGExFactories
+{
+	enum class EType : uint8
+	{
+		Default = 0,
+		Filter,
+		ClusterFilter,
+		NodeState,
+		SocketState,
+		Sampler,
+		Heuristics
+	};
+
+	static inline TSet<EType> ClusterFilters = {EType::Filter, EType::ClusterFilter};
+}
+
 /**
  * 
  */
@@ -32,6 +48,10 @@ UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data"
 class PCGEXTENDEDTOOLKIT_API UPCGExParamFactoryBase : public UPCGExParamDataBase
 {
 	GENERATED_BODY()
+
+public:
+	FORCEINLINE virtual PCGExFactories::EType GetFactoryType() const;
+	
 };
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")

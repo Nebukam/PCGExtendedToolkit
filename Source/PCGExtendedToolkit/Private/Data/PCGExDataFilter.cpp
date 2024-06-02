@@ -3,9 +3,9 @@
 
 #include "Data/PCGExDataFilter.h"
 
-PCGExDataFilter::EFactoryType UPCGExFilterFactoryBase::GetFactoryType() const
+PCGExFactories::EType UPCGExFilterFactoryBase::GetFactoryType() const
 {
-	return PCGExDataFilter::EFactoryType::Filter;
+	return PCGExFactories::EType::Filter;
 }
 
 PCGExDataFilter::TFilter* UPCGExFilterFactoryBase::CreateFilter() const

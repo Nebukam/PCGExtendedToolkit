@@ -70,7 +70,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExClusterFilterFactoryBase : public UPCGExFilte
 	GENERATED_BODY()
 
 public:
-	virtual PCGExDataFilter::EFactoryType GetFactoryType() const override;
+	virtual PCGExFactories::EType GetFactoryType() const override;
 	
 };
 
@@ -84,7 +84,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExNodeStateFactory : public UPCGExDataStateFact
 
 public:
 	TArray<UPCGExFilterFactoryBase*> FilterFactories;
-	virtual PCGExDataFilter::EFactoryType GetFactoryType() const override;
+	virtual PCGExFactories::EType GetFactoryType() const override;
 	virtual PCGExDataFilter::TFilter* CreateFilter() const override;
 	virtual void BeginDestroy() override;
 };

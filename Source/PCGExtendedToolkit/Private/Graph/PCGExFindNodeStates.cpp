@@ -40,7 +40,7 @@ bool FPCGExFindNodeStatesElement::Boot(FPCGContext* InContext) const
 
 	return PCGExDataState::GetInputStateFactories(
 		Context, PCGExCluster::SourceNodeStateLabel,
-		Context->StateFactories, {PCGExDataFilter::EFactoryType::NodeState}, Settings->bAllowStateOverlap);
+		Context->StateFactories, {PCGExFactories::EType::NodeState}, Settings->bAllowStateOverlap);
 }
 
 bool FPCGExFindNodeStatesElement::ExecuteInternal(

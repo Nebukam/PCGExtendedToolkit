@@ -49,7 +49,7 @@ bool FPCGExUberFilterElement::Boot(FPCGContext* InContext) const
 	Context->Outside = new PCGExData::FPointIOCollection();
 	Context->Outside->DefaultOutputLabel = PCGExDataFilter::OutputOutsideFiltersLabel;
 
-	return PCGExDataFilter::GetInputFactories(Context, PCGExDataFilter::SourceFiltersLabel, Context->Factories, {PCGExDataFilter::EFactoryType::Filter});
+	return PCGExDataFilter::GetInputFactories(Context, PCGExDataFilter::SourceFiltersLabel, Context->Factories, {PCGExFactories::EType::Filter});
 }
 
 bool FPCGExUberFilterElement::ExecuteInternal(FPCGContext* InContext) const

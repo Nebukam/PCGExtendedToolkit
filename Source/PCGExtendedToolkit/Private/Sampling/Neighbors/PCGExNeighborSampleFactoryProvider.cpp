@@ -62,11 +62,10 @@ UPCGExParamFactoryBase* UPCGExNeighborSampleProviderSettings::CreateFactory(FPCG
 
 	UPCGNeighborSamplerFactoryBase* SamplerFactory = Cast<UPCGNeighborSamplerFactoryBase>(InFactory);
 	SamplerFactory->Descriptor = SamplerSettings;
-	
-	PCGExDataFilter::GetInputFactories(InContext, PCGExNeighborSample::SourcePointFilters, SamplerFactory->FilterFactories,  PCGExDataFilter::ClusterFilters, false);
+	PCGExDataFilter::GetInputFactories(InContext, PCGExNeighborSample::SourcePointFilters, SamplerFactory->FilterFactories,  PCGExFactories::ClusterFilters, false);
 
 	TArray<UPCGExFilterFactoryBase*> FilterFactories;
-	if (PCGExDataFilter::GetInputFactories(InContext, PCGExNeighborSample::SourceUseValueIfFilters, FilterFactories, PCGExDataFilter::ClusterFilters, false))
+	if (PCGExDataFilter::GetInputFactories(InContext, PCGExNeighborSample::SourceUseValueIfFilters, FilterFactories, PCGExFactories::ClusterFilters, false))
 	{
 		SamplerFactory->UsableValueFiltersOwner = NewObject<UPCGExNodeStateFactory>();
 		SamplerFactory->UsableValueFiltersOwner->FilterFactories.Append(FilterFactories);

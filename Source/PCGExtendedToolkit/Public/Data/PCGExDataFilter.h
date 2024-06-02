@@ -25,24 +25,12 @@ enum class EPCGExOperandType : uint8
 
 namespace PCGExDataFilter
 {
-	enum class EFactoryType : uint8
-	{
-		Default = 0,
-		Filter,
-		ClusterFilter,
-		NodeState,
-		SocketState,
-		Sampler,
-		Heuristics
-	};
-
 	enum class EType : uint8
 	{
 		Default = 0,
 		Cluster
 	};
 
-	static inline TSet<EFactoryType> ClusterFilters = {EFactoryType::Filter, EFactoryType::ClusterFilter};
 }
 
 /**
@@ -54,7 +42,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExFilterFactoryBase : public UPCGExParamFactory
 	GENERATED_BODY()
 
 public:
-	FORCEINLINE virtual PCGExDataFilter::EFactoryType GetFactoryType() const;
+	FORCEINLINE virtual PCGExFactories::EType GetFactoryType() const override;
 
 	int32 Priority = 0;
 	virtual PCGExDataFilter::TFilter* CreateFilter() const;
@@ -170,7 +158,7 @@ namespace PCGExDataFilter
 	};
 
 	template <typename T_DEF>
-	static bool GetInputFactories(FPCGContext* InContext, const FName InLabel, TArray<T_DEF*>& OutFactories, const TSet<PCGExDataFilter::EFactoryType>& Types, const bool bThrowError = true)
+	static bool GetInputFactories(FPCGContext* InContext, const FName InLabel, TArray<T_DEF*>& OutFactories, const TSet<PCGExFactories::EType>& Types, const bool bThrowError = true)
 	{
 		const TArray<FPCGTaggedData>& Inputs = InContext->InputData.GetInputsByPin(InLabel);
 
