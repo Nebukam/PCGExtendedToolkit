@@ -7,6 +7,7 @@
 #include "CoreMinimal.h"
 #include "PCGPin.h"
 #include "Elements/PCGPointProcessingElementBase.h"
+#include "PCGExEditorSettings.h"
 #include "PCGEx.h"
 #include "PCGExMT.h"
 #include "Data/PCGExAttributeHelpers.h"
@@ -15,6 +16,7 @@
 #include "Helpers/PCGGraphParametersHelpers.h"
 
 #include "PCGExPointsProcessor.generated.h"
+
 #define PCGEX_NODE_INFOS(_SHORTNAME, _NAME, _TOOLTIP)\
 virtual FName GetDefaultNodeName() const override { return FName(TEXT(#_SHORTNAME)); } \
 virtual FName AdditionalTaskName() const override{ return bCacheResult ? FName(FString("* ")+GetDefaultNodeTitle().ToString()) : FName(GetDefaultNodeTitle().ToString()); }\
