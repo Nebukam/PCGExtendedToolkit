@@ -101,6 +101,14 @@ case EPCGExDataBlendingType::Lerp:	Target##_NAME = PCGExMath::Lerp(A._ACCESSOR, 
 		else if (SeedBlending == EPCGExDataBlendingType::Weight) { Target.Seed = PCGExMath::Div(Target.Seed, TotalWeight); }
 	}
 
+	void FPropertiesBlender::CopyBlendedProperties(FPCGPoint& Target, const FPCGPoint& Source) const
+	{
+#define PCGEX_BLEND_COPYTO(_TYPE, _NAME, _FUNC, _ACCESSOR)\
+if (_NAME##Blending != EPCGExDataBlendingType::None){ Target._ACCESSOR = Source._ACCESSOR;}
+		PCGEX_FOREACH_BLENDINIT_POINTPROPERTY(PCGEX_BLEND_COPYTO)
+#undef PCGEX_BLEND_COPYTO
+	}
+
 	void FPropertiesBlender::BlendOnce(const FPCGPoint& A, const FPCGPoint& B, FPCGPoint& Target, const double Weight) const
 	{
 		if (bRequiresPrepare)

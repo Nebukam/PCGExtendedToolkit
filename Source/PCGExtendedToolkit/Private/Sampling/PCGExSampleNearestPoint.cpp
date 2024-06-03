@@ -373,7 +373,7 @@ bool FPCGExSamplePointTask::ExecuteTask()
 		for (const PCGExDataBlending::FDataBlendingOperationBase* Op : Context->BlendOps) { Op->DoOperation(TaskIndex, TargetInfos.Index, TaskIndex, Weight); }
 	};
 
-	if (Context->PropertiesBlender) { Context->PropertiesBlender->PrepareBlending(SourcePointBlendCopy, FPCGPoint{}); }
+	if (Context->PropertiesBlender) { Context->PropertiesBlender->PrepareBlending(SourcePointBlendCopy, SourcePointBlendCopy); }
 	for (PCGExDataBlending::FDataBlendingOperationBase* Op : Context->BlendOps) { if (Op->GetRequiresPreparation()) { Op->PrepareOperation(TaskIndex); } }
 
 	if (bSingleSample)
@@ -396,8 +396,8 @@ bool FPCGExSamplePointTask::ExecuteTask()
 
 	if (Context->PropertiesBlender)
 	{
-		Context->PropertiesBlender->CompleteBlending(SourcePointBlendCopy, Count, TotalWeight);
-		SourcePoint = SourcePointBlendCopy;
+		Context->PropertiesBlender->CompleteBlending(SourcePointBlendCopy, Count, TotalWeight); // +1 because our baseline is the original point
+		Context->PropertiesBlender->CopyBlendedProperties(SourcePoint, SourcePointBlendCopy);
 	}
 
 	for (PCGExDataBlending::FDataBlendingOperationBase* Op : Context->BlendOps)

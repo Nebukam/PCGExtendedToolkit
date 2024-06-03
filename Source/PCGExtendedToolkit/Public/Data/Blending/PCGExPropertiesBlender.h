@@ -36,7 +36,7 @@ namespace PCGExDataBlending
 		}
 
 		explicit FPropertiesBlender(const FPCGExPropertiesBlendingSettings& Other, const bool bDefaultReset = false):
-#define PCGEX_BLEND_COPY(_TYPE, _NAME, ...) bReset##_NAME(bDefaultReset), _NAME##Blending(Other.PropertiesOverrides._NAME##Blending),
+#define PCGEX_BLEND_COPY(_TYPE, _NAME, ...) bReset##_NAME(bDefaultReset), _NAME##Blending(Other._NAME##Blending),
 			PCGEX_FOREACH_BLEND_POINTPROPERTY(PCGEX_BLEND_COPY)
 #undef PCGEX_BLEND_COPY
 			DefaultBlending(Other.DefaultBlending),
@@ -58,5 +58,8 @@ namespace PCGExDataBlending
 		void CompleteRangeBlending(const TArrayView<FPCGPoint>& Targets, const TArrayView<int32>& Counts, const TArrayView<double>& TotalWeights) const;
 
 		void BlendRangeFromTo(const FPCGPoint& From, const FPCGPoint& To, const TArrayView<FPCGPoint>& Targets, const TArrayView<double>& Weights) const;
+
+		void CopyBlendedProperties(FPCGPoint& Target, const FPCGPoint& Source) const;
+		
 	};
 }
