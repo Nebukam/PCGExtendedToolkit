@@ -119,10 +119,12 @@ public:
 	FPCGExSamplingSettings BaseSettings;
 	TObjectPtr<UCurveFloat> WeightCurveObj = nullptr;
 
-	virtual void PrepareForCluster(PCGExCluster::FCluster* InCluster);
+	virtual void PrepareForCluster(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster);\
+	virtual bool IsOperationValid();
+
+	PCGExData::FPointIO& GetSourceIO() const;
 
 	FORCEINLINE virtual void ProcessNodeForPoints(const int32 InNodeIndex) const;
-
 	FORCEINLINE virtual void ProcessNodeForEdges(const int32 InNodeIndex) const;
 
 	FORCEINLINE virtual void PrepareNode(PCGExCluster::FNode& TargetNode) const;
@@ -130,9 +132,12 @@ public:
 	FORCEINLINE virtual void BlendNodeEdge(PCGExCluster::FNode& TargetNode, const int32 InEdgeIndex, const double Weight) const;
 	FORCEINLINE virtual void FinalizeNode(PCGExCluster::FNode& TargetNode, const int32 Count, const double TotalWeight) const;
 
+	virtual void FinalizeOperation();
+	
 	virtual void Cleanup() override;
 
 protected:
+	bool bIsValidOperation = true;
 	PCGExCluster::FCluster* Cluster = nullptr;
 
 	FORCEINLINE virtual double SampleCurve(const double InTime) const;

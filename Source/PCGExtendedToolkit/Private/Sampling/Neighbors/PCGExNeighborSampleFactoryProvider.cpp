@@ -7,11 +7,18 @@
 #define PCGEX_NAMESPACE PCGExCreateNeighborSample
 
 
-void UPCGExNeighborSampleOperation::PrepareForCluster(PCGExCluster::FCluster* InCluster)
+void UPCGExNeighborSampleOperation::PrepareForCluster(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster)
 {
 	Cluster = InCluster;
 	if (PointState) { PointState->CaptureCluster(Context, Cluster); }
 	if (ValueState) { ValueState->CaptureCluster(Context, Cluster); }
+}
+
+bool UPCGExNeighborSampleOperation::IsOperationValid() { return bIsValidOperation; }
+
+PCGExData::FPointIO& UPCGExNeighborSampleOperation::GetSourceIO() const
+{
+	return BaseSettings.NeighborSource == EPCGExGraphValueSource::Point ? *Cluster->PointsIO : *Cluster->EdgesIO;
 }
 
 void UPCGExNeighborSampleOperation::ProcessNodeForPoints(const int32 InNodeIndex) const
@@ -274,6 +281,10 @@ void UPCGExNeighborSampleOperation::BlendNodeEdge(PCGExCluster::FNode& TargetNod
 }
 
 void UPCGExNeighborSampleOperation::FinalizeNode(PCGExCluster::FNode& TargetNode, const int32 Count, const double TotalWeight) const
+{
+}
+
+void UPCGExNeighborSampleOperation::FinalizeOperation()
 {
 }
 

@@ -50,6 +50,11 @@ namespace PCGExDataBlending
 		PropertiesBlender->PrepareBlending(Target.MutablePoint(), Defaults ? *Defaults : *Target.Point);
 	}
 
+	void FMetadataBlender::PrepareForBlending(const int32 PrimaryIndex) const
+	{
+		for (const FDataBlendingOperationBase* Op : AttributesToBePrepared) { Op->PrepareOperation(PrimaryIndex); }
+	}
+
 	void FMetadataBlender::Blend(
 		const PCGEx::FPointRef& A,
 		const PCGEx::FPointRef& B,
@@ -61,6 +66,11 @@ namespace PCGExDataBlending
 		PropertiesBlender->Blend(*A.Point, *B.Point, Target.MutablePoint(), Weight);
 	}
 
+	void FMetadataBlender::Blend(const int32 PrimaryIndex, const int32 SecondaryIndex, const int32 TargetIndex, const double Weight) const
+	{
+		for (const FDataBlendingOperationBase* Op : Attributes) { Op->DoOperation(PrimaryIndex, SecondaryIndex, TargetIndex, Weight); }
+	}
+
 	void FMetadataBlender::CompleteBlending(
 		const PCGEx::FPointRef& Target,
 		const int32 Count,
@@ -69,6 +79,11 @@ namespace PCGExDataBlending
 		for (const FDataBlendingOperationBase* Op : AttributesToBeCompleted) { Op->FinalizeOperation(Target.Index, Count, TotalWeight); }
 		if (!bBlendProperties || !PropertiesBlender->bRequiresPrepare) { return; }
 		PropertiesBlender->CompleteBlending(Target.MutablePoint(), Count, TotalWeight);
+	}
+
+	void FMetadataBlender::CompleteBlending(const int32 PrimaryIndex, const int32 Count, double TotalWeight) const
+	{
+		for (const FDataBlendingOperationBase* Op : AttributesToBeCompleted) { Op->FinalizeOperation(PrimaryIndex, Count, TotalWeight); }
 	}
 
 	void FMetadataBlender::PrepareRangeForBlending(
@@ -149,9 +164,9 @@ namespace PCGExDataBlending
 	void FMetadataBlender::Flush()
 	{
 		OperationIdMap.Empty();
-		
+
 		PCGEX_DELETE(PropertiesBlender)
-		
+
 		PCGEX_DELETE_TARRAY(Attributes)
 
 		AttributesToBePrepared.Empty();

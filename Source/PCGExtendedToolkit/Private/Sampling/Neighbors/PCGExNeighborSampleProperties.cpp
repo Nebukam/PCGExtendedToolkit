@@ -6,9 +6,9 @@
 #define LOCTEXT_NAMESPACE "PCGExCreateNeighborSample"
 #define PCGEX_NAMESPACE PCGExCreateNeighborSample
 
-void UPCGExNeighborSampleProperties::PrepareForCluster(PCGExCluster::FCluster* InCluster)
+void UPCGExNeighborSampleProperties::PrepareForCluster(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster)
 {
-	Super::PrepareForCluster(InCluster);
+	Super::PrepareForCluster(InContext, InCluster);
 }
 
 void UPCGExNeighborSampleProperties::PrepareNode(PCGExCluster::FNode& TargetNode) const
@@ -48,7 +48,7 @@ UPCGExNeighborSampleOperation* UPCGNeighborSamplerFactoryProperties::CreateOpera
 	UPCGExNeighborSampleProperties* NewOperation = NewObject<UPCGExNeighborSampleProperties>();
 
 	PCGEX_SAMPLER_CREATE
-	
+
 	NewOperation->BlendingSettings = Descriptor.Blending;
 
 	return NewOperation;
@@ -56,13 +56,10 @@ UPCGExNeighborSampleOperation* UPCGNeighborSamplerFactoryProperties::CreateOpera
 
 UPCGExParamFactoryBase* UPCGExNeighborSamplePropertiesSettings::CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const
 {
-
-	UPCGNeighborSamplerFactoryProperties* SamplerFactory = Cast<UPCGNeighborSamplerFactoryProperties>(InFactory);
+	UPCGNeighborSamplerFactoryProperties* SamplerFactory = NewObject<UPCGNeighborSamplerFactoryProperties>();
 	SamplerFactory->Descriptor = Descriptor;
-	
-	Super::CreateFactory(InContext, SamplerFactory);
-	
-	return InFactory;
+
+	return Super::CreateFactory(InContext, SamplerFactory);
 }
 
 
