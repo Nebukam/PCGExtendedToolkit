@@ -134,7 +134,7 @@ public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		NeighborSampler, "Attribute Sampler", "Create a single neighbor attribute sampler, to be used by a Sample Neighbors node.",
+		NeighborSamplerAttribute, "Sampler : Attributes", "Create a single neighbor attribute sampler, to be used by a Sample Neighbors node.",
 		FName(GetDisplayName()))
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExEditorSettings>()->NodeColorSamplerNeighbor; }
 

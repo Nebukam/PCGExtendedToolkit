@@ -25,9 +25,9 @@ void UPCGExNeighborSampleOperation::PrepareForCluster(PCGExCluster::FCluster* In
 
 void UPCGExNeighborSampleOperation::ProcessNodeForPoints(const int32 InNodeIndex) const
 {
-	if (PointState && !PointState->Test(InNodeIndex)) { return; }
-
 	const PCGExCluster::FNode& Node = Cluster->Nodes[InNodeIndex];
+	
+	if (PointState && !PointState->Test(Node.PointIndex)) { return; }
 
 	int32 CurrentDepth = 0;
 	int32 Count = 0;
