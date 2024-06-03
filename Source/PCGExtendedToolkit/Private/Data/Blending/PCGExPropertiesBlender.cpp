@@ -23,7 +23,7 @@ namespace PCGExDataBlending
 #define PCGEX_BLEND_FUNCASSIGN(_TYPE, _NAME, _FUNC)\
 bReset##_NAME = false;\
 _NAME##Blending = BlendingOverrides.bOverride##_NAME ? BlendingOverrides._NAME##Blending : DefaultBlending;\
-if(_NAME##Blending == EPCGExDataBlendingType::Average || _NAME##Blending == EPCGExDataBlendingType::Sum || _NAME##Blending == EPCGExDataBlendingType::WeightedSum|| _NAME##Blending == EPCGExDataBlendingType::Weight){bReset##_NAME=true; bRequiresPrepare = true;}
+if(ResetBlend.Contains(_NAME##Blending)){bReset##_NAME=true; bRequiresPrepare = true;}
 
 		PCGEX_FOREACH_BLEND_POINTPROPERTY(PCGEX_BLEND_FUNCASSIGN)
 #undef PCGEX_BLEND_FUNCASSIGN
