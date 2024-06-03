@@ -66,6 +66,7 @@ UPCGExParamFactoryBase* UPCGExNeighborSampleProviderSettings::CreateFactory(FPCG
 	}
 
 	UPCGNeighborSamplerFactoryBase* SamplerFactory = Cast<UPCGNeighborSamplerFactoryBase>(InFactory);
+	SamplerFactory->Priority = Priority;
 	SamplerFactory->Descriptor = SamplerSettings;
 	PCGExFactories::GetInputFactories(InContext, PCGEx::SourcePointFilters, SamplerFactory->FilterFactories,  PCGExFactories::ClusterFilters, false);
 

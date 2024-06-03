@@ -152,6 +152,10 @@ public:
 	virtual FString GetDisplayName() const override;
 #endif
 
+	/** Priority for sampling order. Higher values are processed last. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	int32 Priority = 0;
+	
 	/** Sampler Settings. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
 	FPCGExSamplerDescriptorBase SamplerSettings;
