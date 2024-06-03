@@ -11,19 +11,10 @@
 
 class UPCGExNeighborSampleOperation;
 
-namespace PCGExContours
+namespace PCGExSampleNeighbors
 {
-	struct PCGEXTENDEDTOOLKIT_API FCandidate
-	{
-		explicit FCandidate(const int32 InNodeIndex)
-			: NodeIndex(InNodeIndex)
-		{
-		}
-
-		int32 NodeIndex;
-		double Distance = TNumericLimits<double>::Max();
-		double Dot = -1;
-	};
+	constexpr PCGExMT::AsyncState State_ReadyForNextOperation = __COUNTER__;
+	constexpr PCGExMT::AsyncState State_Sampling = __COUNTER__;
 }
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Edges")
@@ -66,6 +57,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNeighborsContext : public FPCGExEdgesP
 	FPCGExBlendingSettings PointPointBlendingSettings;
 	FPCGExBlendingSettings PointEdgeBlendingSettings;
 
+	UPCGExNeighborSampleOperation* CurrentOperation = nullptr;
+	
 	PCGExDataBlending::FMetadataBlender* BlenderFromPoints = nullptr;
 	PCGExDataBlending::FMetadataBlender* BlenderFromEdges = nullptr;
 

@@ -5,7 +5,6 @@
 
 #include "Graph/Pathfinding/PCGExPathfinding.h"
 #include "Sampling/Neighbors/PCGExNeighborSampleFactoryProvider.h"
-#include "Sampling/Neighbors/PCGExNeighborSampleOperation.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSampleNeighbors"
 #define PCGEX_NAMESPACE SampleNeighbors
@@ -44,7 +43,7 @@ bool FPCGExSampleNeighborsContext::PrepareSettings(
 
 	for (UPCGExNeighborSampleOperation* Operation : SamplingOperations)
 	{
-		if (Operation->NeighborSource != Source) { continue; }
+		if (Operation->BaseSettings.NeighborSource != Source) { continue; }
 
 		if (Operation->SourceAttributes.IsEmpty())
 		{
@@ -127,6 +126,12 @@ bool FPCGExSampleNeighborsElement::Boot(FPCGContext* InContext) const
 		Context->RegisterOperation<UPCGExNeighborSampleOperation>(Operation);
 	}
 
+	if(Context->SamplingOperations.IsEmpty())
+	{
+		PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not find any valid samplers."));
+		return false;
+	}
+
 	return true;
 }
 
@@ -201,43 +206,48 @@ bool FPCGExSampleNeighborsElement::ExecuteInternal(
 
 		if (!Context->BlenderFromPoints && !Context->BlenderFromEdges) { return false; } // Nothing to blend
 
-		Context->SetState(PCGExData::State_MergingData);
+		Context->SetState(PCGExSampleNeighbors::State_ReadyForNextOperation);
 	}
 
-	if (Context->IsState(PCGExData::State_MergingData))
+	if (Context->IsState(PCGExSampleNeighbors::State_ReadyForNextOperation))
+	{
+		const int32 NextIndex = Context->CurrentOperation ? Context->SamplingOperations.Find(Context->CurrentOperation) + 1 : 0;
+		
+		if (Context->SamplingOperations.IsValidIndex(NextIndex))
+		{
+			Context->CurrentOperation = Context->SamplingOperations[NextIndex];
+			Context->SetState(PCGExSampleNeighbors::State_Sampling);
+		}
+		else
+		{
+			if (Context->BlenderFromEdges) { Context->BlenderFromEdges->Write(); }
+			Context->SetState(PCGExGraph::State_ReadyForNextEdges);
+		}
+	}
+
+	if (Context->IsState(PCGExSampleNeighbors::State_Sampling))
 	{
 		auto Initialize = [&]()
 		{
-			for (UPCGExNeighborSampleOperation* Operation : Context->PointPointOperations)
-			{
-				Operation->Blender = Context->BlenderFromPoints;
-				Operation->PrepareForCluster(Context->CurrentCluster);
-			}
+			if (Context->CurrentOperation->BaseSettings.NeighborSource == EPCGExGraphValueSource::Point) { Context->CurrentOperation->Blender = Context->BlenderFromPoints; }
+			else { Context->CurrentOperation->Blender = Context->BlenderFromEdges; }
 
-			for (UPCGExNeighborSampleOperation* Operation : Context->PointEdgeOperations)
-			{
-				Operation->Blender = Context->BlenderFromEdges;
-				Operation->PrepareForCluster(Context->CurrentCluster);
-			}
+			Context->CurrentOperation->PrepareForCluster(Context->CurrentCluster);
 		};
 
-		auto ProcessNode = [&](const int32 NodeIndex)
+		auto ProcessNodePoints = [&](const int32 NodeIndex) { Context->CurrentOperation->ProcessNodeForPoints(NodeIndex); };
+		auto ProcessNodeEdges = [&](const int32 NodeIndex) { Context->CurrentOperation->ProcessNodeForEdges(NodeIndex); };
+
+		if (Context->CurrentOperation->BaseSettings.NeighborSource == EPCGExGraphValueSource::Point)
 		{
-			for (const UPCGExNeighborSampleOperation* Operation : Context->PointPointOperations) { Operation->ProcessNodeForPoints(NodeIndex); }
-			for (const UPCGExNeighborSampleOperation* Operation : Context->PointEdgeOperations) { Operation->ProcessNodeForEdges(NodeIndex); }
-		};
+			if (!Context->Process(Initialize, ProcessNodePoints, Context->CurrentCluster->Nodes.Num(), true)) { return false; }
+		}
+		else
+		{
+			if (!Context->Process(Initialize, ProcessNodeEdges, Context->CurrentCluster->Nodes.Num(), true)) { return false; }
+		}
 
-		if (!Context->Process(Initialize, ProcessNode, Context->CurrentCluster->Nodes.Num(), true)) { return false; }
-
-		if (Context->BlenderFromEdges) { Context->BlenderFromEdges->Write(); }
-
-		Context->SetState(PCGExGraph::State_ReadyForNextEdges);
-	}
-
-	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
-	{
-		if (Context->BlenderFromEdges) { Context->BlenderFromEdges->Write(); }
-		Context->SetState(PCGExGraph::State_ReadyForNextEdges);
+		Context->SetState(PCGExSampleNeighbors::State_ReadyForNextOperation);
 	}
 
 	if (Context->IsDone())
