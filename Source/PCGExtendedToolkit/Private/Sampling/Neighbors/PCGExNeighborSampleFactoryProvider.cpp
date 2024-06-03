@@ -21,6 +21,11 @@ FString UPCGExNeighborSampleProviderSettings::GetDisplayName() const
 }
 #endif
 
+PCGExFactories::EType UPCGNeighborSamplerFactoryBase::GetFactoryType() const
+{
+	return PCGExFactories::EType::Sampler;
+}
+
 UPCGExNeighborSampleOperation* UPCGNeighborSamplerFactoryBase::CreateOperation() const
 {
 	UPCGExNeighborSampleOperation* NewOperation = NewObject<UPCGExNeighborSampleOperation>();

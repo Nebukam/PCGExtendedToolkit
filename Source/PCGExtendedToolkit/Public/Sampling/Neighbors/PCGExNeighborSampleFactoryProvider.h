@@ -120,6 +120,8 @@ class PCGEXTENDEDTOOLKIT_API UPCGNeighborSamplerFactoryBase : public UPCGExNodeS
 	GENERATED_BODY()
 
 public:
+	virtual PCGExFactories::EType GetFactoryType() const override;
+	
 	FPCGExSamplerDescriptorBase Descriptor;
 	UPCGExNodeStateFactory* ValueStateFactory = nullptr;
 	virtual UPCGExNeighborSampleOperation* CreateOperation() const;
