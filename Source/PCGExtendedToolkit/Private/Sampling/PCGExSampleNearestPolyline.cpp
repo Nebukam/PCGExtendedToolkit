@@ -88,7 +88,7 @@ bool FPCGExSampleNearestPolylineElement::Boot(FPCGContext* InContext) const
 		Context->LookAtUpGetter->Capture(Settings->LookAtUpSource);
 	}
 
-	PCGExDataFilter::GetInputFactories(InContext, PCGEx::SourcePointFilters, Context->PointFilterFactories, {PCGExFactories::EType::Filter}, false);
+	PCGExFactories::GetInputFactories(InContext, PCGEx::SourcePointFilters, Context->PointFilterFactories, {PCGExFactories::EType::Filter}, false);
 
 	return true;
 }

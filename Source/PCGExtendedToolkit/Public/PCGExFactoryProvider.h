@@ -99,3 +99,41 @@ protected:
 public:
 	virtual FPCGContext* Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node) override;
 };
+
+namespace PCGExFactories
+{
+	template <typename T_DEF>
+	static bool GetInputFactories(FPCGContext* InContext, const FName InLabel, TArray<T_DEF*>& OutFactories, const TSet<PCGExFactories::EType>& Types, const bool bThrowError = true)
+	{
+		const TArray<FPCGTaggedData>& Inputs = InContext->InputData.GetInputsByPin(InLabel);
+
+		TSet<FName> UniqueStatesNames;
+		for (const FPCGTaggedData& TaggedData : Inputs)
+		{
+			if (const T_DEF* State = Cast<T_DEF>(TaggedData.Data))
+			{
+				if (!Types.Contains(State->GetFactoryType()))
+				{
+					PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("Input '{0}' is not supported."), FText::FromString(State->GetClass()->GetName())));
+					continue;
+				}
+
+				OutFactories.AddUnique(const_cast<T_DEF*>(State));
+			}
+			else
+			{
+				PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("Input '{0}' is not supported."), FText::FromString(TaggedData.Data->GetClass()->GetName())));
+			}
+		}
+
+		UniqueStatesNames.Empty();
+
+		if (OutFactories.IsEmpty())
+		{
+			if (bThrowError) { PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Missing valid filters.")); }
+			return false;
+		}
+
+		return true;
+	}
+}

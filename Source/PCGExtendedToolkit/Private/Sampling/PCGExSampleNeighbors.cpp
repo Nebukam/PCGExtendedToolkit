@@ -104,36 +104,27 @@ bool FPCGExSampleNeighborsElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(SampleNeighbors)
 
-	const TArray<FPCGTaggedData>& Inputs = InContext->InputData.GetInputsByPin(PCGExNeighborSample::SourceSamplersLabel);
+	TArray<UPCGNeighborSamplerFactoryBase*> SamplerFactories;
 
-	for (const FPCGTaggedData& InputState : Inputs)
-	{
-		if (const UPCGNeighborSamplerFactoryBase* OperationFactory = Cast<UPCGNeighborSamplerFactoryBase>(InputState.Data))
-		{
-			for (const FName& Id : OperationFactory->Descriptor.SourceAttributes)
-			{
-				if (!PCGEx::IsValidName(Id)) { PCGE_LOG(Warning, GraphAndLog, FTEXT("A source sampler contains invalid source attributes.")); }
-			}
-
-			/*
-			if (OperationFactory->Descriptor.bOutputToNewAttribute &&
-				!PCGEx::IsValidName(OperationFactory->Descriptor.TargetAttribute))
-			{
-				PCGE_LOG(Warning, GraphAndLog, FTEXT("A target sampler name is invalid and will be ignored."));
-				continue;
-			}
-			*/
-
-			UPCGExNeighborSampleOperation* Operation = OperationFactory->CreateOperation();
-			Context->SamplingOperations.Add(Operation);
-			Context->RegisterOperation<UPCGExNeighborSampleOperation>(Operation);
-		}
-	}
-
-	if (Context->SamplingOperations.IsEmpty())
+	if (!PCGExFactories::GetInputFactories(InContext, PCGExNeighborSample::SourceSamplersLabel, SamplerFactories, {PCGExFactories::EType::Sampler}, false))
 	{
 		PCGE_LOG(Warning, GraphAndLog, FTEXT("No valid sampler found."));
 		return false;
+	}
+
+	// Sort samplers so higher priorities come last, as they have to potential to override values.
+	SamplerFactories.Sort([&](const UPCGNeighborSamplerFactoryBase& A, const UPCGNeighborSamplerFactoryBase& B) { return A.Priority < B.Priority; });
+
+	for (const UPCGNeighborSamplerFactoryBase* OperationFactory : SamplerFactories)
+	{
+		for (const FName& Id : OperationFactory->Descriptor.SourceAttributes)
+		{
+			if (!PCGEx::IsValidName(Id)) { PCGE_LOG(Warning, GraphAndLog, FTEXT("A source sampler contains invalid source attributes.")); }
+		}
+
+		UPCGExNeighborSampleOperation* Operation = OperationFactory->CreateOperation();
+		Context->SamplingOperations.Add(Operation);
+		Context->RegisterOperation<UPCGExNeighborSampleOperation>(Operation);
 	}
 
 	return true;

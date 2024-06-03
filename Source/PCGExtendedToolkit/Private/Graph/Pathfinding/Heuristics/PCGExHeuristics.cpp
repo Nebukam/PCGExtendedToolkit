@@ -38,7 +38,7 @@ namespace PCGExHeuristics
 		const TArray<FPCGTaggedData>& Inputs = InContext->InputData.GetInputsByPin(PCGExPathfinding::SourceHeuristicsLabel);
 
 		TArray<UPCGHeuristicsFactoryBase*> InputFactories;
-		if (PCGExDataFilter::GetInputFactories(InContext, PCGExPathfinding::SourceHeuristicsLabel, InputFactories, {PCGExFactories::EType::Heuristics}, false))
+		if (PCGExFactories::GetInputFactories(InContext, PCGExPathfinding::SourceHeuristicsLabel, InputFactories, {PCGExFactories::EType::Heuristics}, false))
 		{
 			for (const UPCGHeuristicsFactoryBase* OperationFactory : InputFactories)
 			{
