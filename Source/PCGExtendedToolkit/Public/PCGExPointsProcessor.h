@@ -279,15 +279,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : public FPCGContext
 		return AsyncLoop.Advance(LoopBody);
 	}
 
-	template <class LoopBodyFunc>
-	void StartAsyncLoop(LoopBodyFunc&& LoopBody, const int32 NumIterations)
-	{
-		StartAsyncLoop(
-			[&]()
-			{
-			}, LoopBody, NumIterations);
-	}
-
 	template <typename ChunkTask>
 	void StartAsyncLoop(PCGExData::FPointIO* PointIO, const int32 NumIterations, const int32 ChunkSizeOverride = -1)
 	{
