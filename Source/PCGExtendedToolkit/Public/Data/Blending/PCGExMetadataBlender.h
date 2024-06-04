@@ -36,14 +36,14 @@ namespace PCGExDataBlending
 			const PCGExData::ESource SecondarySource = PCGExData::ESource::In,
 			const bool bInitFirstOperation = false);
 
-		void PrepareForBlending(const PCGEx::FPointRef& Target, const FPCGPoint* Defaults = nullptr) const;
-		void PrepareForBlending(const int32 PrimaryIndex, const FPCGPoint* Defaults = nullptr) const;
+		FORCEINLINE void PrepareForBlending(const PCGEx::FPointRef& Target, const FPCGPoint* Defaults = nullptr) const;
+		FORCEINLINE void PrepareForBlending(const int32 PrimaryIndex, const FPCGPoint* Defaults = nullptr) const;
 
-		void Blend(const PCGEx::FPointRef& A, const PCGEx::FPointRef& B, const PCGEx::FPointRef& Target, const double Weight);
-		void Blend(const int32 PrimaryIndex, const int32 SecondaryIndex, const int32 TargetIndex, const double Weight);
+		FORCEINLINE void Blend(const PCGEx::FPointRef& A, const PCGEx::FPointRef& B, const PCGEx::FPointRef& Target, const double Weight);
+		FORCEINLINE void Blend(const int32 PrimaryIndex, const int32 SecondaryIndex, const int32 TargetIndex, const double Weight);
 
-		void CompleteBlending(const PCGEx::FPointRef& Target, const int32 Count, double TotalWeight) const;
-		void CompleteBlending(const int32 PrimaryIndex, const int32 Count, double TotalWeight) const;
+		FORCEINLINE void CompleteBlending(const PCGEx::FPointRef& Target, const int32 Count, double TotalWeight) const;
+		FORCEINLINE void CompleteBlending(const int32 PrimaryIndex, const int32 Count, double TotalWeight) const;
 
 		void PrepareRangeForBlending(const int32 StartIndex, const int32 Range) const;
 		void BlendRange(const PCGEx::FPointRef& A, const PCGEx::FPointRef& B, const int32 StartIndex, const int32 Range, const TArrayView<double>& Weights);
