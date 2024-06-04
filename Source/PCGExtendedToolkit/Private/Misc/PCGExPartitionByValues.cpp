@@ -100,7 +100,7 @@ namespace PCGExPartition
 #if WITH_EDITOR
 void UPCGExPartitionByValuesSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
-	for (FPCGExFilterRuleDescriptor& Descriptor : PartitionRules) { Descriptor.UpdateUserFacingInfos(); }
+	for (FPCGExPartitonRuleDescriptor& Descriptor : PartitionRules) { Descriptor.UpdateUserFacingInfos(); }
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
 #endif
@@ -126,11 +126,11 @@ bool FPCGExPartitionByValuesElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_OUTPUT_VALIDATE_NAME_NOWRITER(KeySum)
 
-	for (const FPCGExFilterRuleDescriptor& Descriptor : Settings->PartitionRules)
+	for (const FPCGExPartitonRuleDescriptor& Descriptor : Settings->PartitionRules)
 	{
 		if (!Descriptor.bEnabled) { continue; }
 
-		FPCGExFilterRuleDescriptor& DescriptorCopy = Context->RulesDescriptors.Add_GetRef(Descriptor);
+		FPCGExPartitonRuleDescriptor& DescriptorCopy = Context->RulesDescriptors.Add_GetRef(Descriptor);
 
 		if (Descriptor.bWriteKey && !FPCGMetadataAttributeBase::IsValidName(Descriptor.KeyAttributeName))
 		{
@@ -187,7 +187,7 @@ bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* InContext) con
 
 			if (Settings->bWriteKeySum && !Context->bSplitOutput) { Context->KeySums.SetNumZeroed(NumPoints); }
 
-			for (FPCGExFilterRuleDescriptor& Descriptor : Context->RulesDescriptors)
+			for (FPCGExPartitonRuleDescriptor& Descriptor : Context->RulesDescriptors)
 			{
 				FPCGExFilter::FRule& NewRule = Context->Rules.Emplace_GetRef(Descriptor);
 				if (!NewRule.Grab(PointIO)) { Context->Rules.Pop(); }

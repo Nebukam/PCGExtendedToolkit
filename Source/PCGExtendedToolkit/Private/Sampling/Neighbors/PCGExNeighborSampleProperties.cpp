@@ -15,22 +15,28 @@ void UPCGExNeighborSampleProperties::PrepareForCluster(const FPCGContext* InCont
 
 void UPCGExNeighborSampleProperties::PrepareNode(PCGExCluster::FNode& TargetNode) const
 {
-	Super::PrepareNode(TargetNode);
+	FPCGPoint& A = Cluster->PointsIO->GetMutablePoint(TargetNode.PointIndex);
+	Blender->PrepareBlending(A, A);
 }
 
 void UPCGExNeighborSampleProperties::BlendNodePoint(PCGExCluster::FNode& TargetNode, const PCGExCluster::FNode& OtherNode, const double Weight) const
 {
-	Super::BlendNodePoint(TargetNode, OtherNode, Weight);
+	FPCGPoint& A = Cluster->PointsIO->GetMutablePoint(TargetNode.PointIndex);
+	const FPCGPoint& B = Cluster->PointsIO->GetInPoint(OtherNode.PointIndex);
+	Blender->Blend(A, B, A, Weight);
 }
 
 void UPCGExNeighborSampleProperties::BlendNodeEdge(PCGExCluster::FNode& TargetNode, const int32 InEdgeIndex, const double Weight) const
 {
-	Super::BlendNodeEdge(TargetNode, InEdgeIndex, Weight);
+	FPCGPoint& A = Cluster->PointsIO->GetMutablePoint(TargetNode.PointIndex);
+	const FPCGPoint& B = Cluster->EdgesIO->GetInPoint(InEdgeIndex);
+	Blender->Blend(A, B, A, Weight);
 }
 
 void UPCGExNeighborSampleProperties::FinalizeNode(PCGExCluster::FNode& TargetNode, const int32 Count, const double TotalWeight) const
 {
-	Super::FinalizeNode(TargetNode, Count, TotalWeight);
+	FPCGPoint& A = Cluster->PointsIO->GetMutablePoint(TargetNode.PointIndex);
+	Blender->CompleteBlending(A, Count, TotalWeight);
 }
 
 void UPCGExNeighborSampleProperties::Cleanup()

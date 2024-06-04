@@ -87,7 +87,7 @@ public:
 
 	/** Rules */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, TitleProperty="{TitlePropertyName}"))
-	TArray<FPCGExFilterRuleDescriptor> PartitionRules;
+	TArray<FPCGExPartitonRuleDescriptor> PartitionRules;
 
 	/** Write the sum of partition values to an attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
@@ -104,7 +104,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPartitionByValuesContext : public FPCGExPoin
 
 	virtual ~FPCGExPartitionByValuesContext() override;
 
-	TArray<FPCGExFilterRuleDescriptor> RulesDescriptors;
+	TArray<FPCGExPartitonRuleDescriptor> RulesDescriptors;
 	TArray<FPCGExFilter::FRule> Rules;
 	mutable FRWLock RulesLock;
 

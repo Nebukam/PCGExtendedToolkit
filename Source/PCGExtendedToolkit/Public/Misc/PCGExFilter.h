@@ -12,15 +12,15 @@
 struct FPCGPoint;
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExFilterRuleDescriptor : public FPCGExInputDescriptor
+struct PCGEXTENDEDTOOLKIT_API FPCGExPartitonRuleDescriptor : public FPCGExInputDescriptor
 {
 	GENERATED_BODY()
 
-	FPCGExFilterRuleDescriptor()
+	FPCGExPartitonRuleDescriptor()
 	{
 	}
 
-	FPCGExFilterRuleDescriptor(const FPCGExFilterRuleDescriptor& Other)
+	FPCGExPartitonRuleDescriptor(const FPCGExPartitonRuleDescriptor& Other)
 		: FPCGExInputDescriptor(Other),
 		  bEnabled(Other.bEnabled),
 		  FilterSize(Other.FilterSize),
@@ -90,7 +90,7 @@ namespace FPCGExFilter
 {
 	struct PCGEXTENDEDTOOLKIT_API FRule : public PCGEx::FLocalSingleFieldGetter
 	{
-		explicit FRule(FPCGExFilterRuleDescriptor& InRule)
+		explicit FRule(FPCGExPartitonRuleDescriptor& InRule)
 			: FLocalSingleFieldGetter(),
 			  RuleDescriptor(&InRule),
 			  FilterSize(InRule.FilterSize),
@@ -106,7 +106,7 @@ namespace FPCGExFilter
 			RuleDescriptor = nullptr;
 		}
 
-		FPCGExFilterRuleDescriptor* RuleDescriptor;
+		FPCGExPartitonRuleDescriptor* RuleDescriptor;
 		TArray<int64> FilteredValues;
 		double FilterSize = 1.0;
 		double Upscale = 1.0;
