@@ -246,6 +246,9 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 
 bool FPCGExSamplePointTask::ExecuteTask()
 {
+
+	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExSamplePointTask::Execute);
+	
 	const FPCGExSampleNearestPointContext* Context = Manager->GetContext<FPCGExSampleNearestPointContext>();
 	PCGEX_SETTINGS(SampleNearestPoint)
 

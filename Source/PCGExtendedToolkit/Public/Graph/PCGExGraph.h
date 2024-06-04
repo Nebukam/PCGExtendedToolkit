@@ -511,7 +511,9 @@ namespace PCGExGraph
 		OutEdgeNum = StartIndexReader->Values.Num();
 
 		OutVtxIndices.Empty();
-		OutVtxIndices.Reserve(OutEdgeNum * 2);
+
+		TSet<int32> UniqueVtx;
+		UniqueVtx.Reserve(OutEdgeNum * 2);
 
 		for (int i = 0; i < OutEdgeNum; i++)
 		{
@@ -520,10 +522,13 @@ namespace PCGExGraph
 
 			if (!NodeStartPtr || !NodeEndPtr || (*NodeStartPtr == *NodeEndPtr)) { continue; }
 
-			OutVtxIndices.AddUnique(*NodeStartPtr);
-			OutVtxIndices.AddUnique(*NodeEndPtr);
+			UniqueVtx.Add(*NodeStartPtr);
+			UniqueVtx.Add(*NodeEndPtr);
 		}
 
+		OutVtxIndices.Append(UniqueVtx.Array());
+		UniqueVtx.Empty();
+		
 		PCGEX_DELETE(StartIndexReader)
 		PCGEX_DELETE(EndIndexReader)
 		return true;
