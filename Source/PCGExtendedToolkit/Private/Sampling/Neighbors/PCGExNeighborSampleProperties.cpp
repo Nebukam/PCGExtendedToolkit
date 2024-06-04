@@ -8,6 +8,8 @@
 
 void UPCGExNeighborSampleProperties::PrepareForCluster(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster)
 {
+	PCGEX_DELETE(Blender)
+	Blender = new PCGExDataBlending::FPropertiesBlender(BlendingSettings);
 	Super::PrepareForCluster(InContext, InCluster);
 }
 
@@ -33,6 +35,7 @@ void UPCGExNeighborSampleProperties::FinalizeNode(PCGExCluster::FNode& TargetNod
 
 void UPCGExNeighborSampleProperties::Cleanup()
 {
+	PCGEX_DELETE(Blender)
 	Super::Cleanup();
 }
 

@@ -324,7 +324,7 @@ namespace PCGExGraph
 		}
 	}
 
-	void FPointEdgeIntersections::BlendIntersection(const int32 Index, const PCGExDataBlending::FMetadataBlender* Blender) const
+	void FPointEdgeIntersections::BlendIntersection(const int32 Index, PCGExDataBlending::FMetadataBlender* Blender) const
 	{
 		const FPointEdgeProxy& PointEdgeProxy = Edges[Index];
 
@@ -474,7 +474,7 @@ namespace PCGExGraph
 		}
 	}
 
-	void FEdgeEdgeIntersections::BlendIntersection(const int32 Index, const PCGExDataBlending::FMetadataBlender* Blender) const
+	void FEdgeEdgeIntersections::BlendIntersection(const int32 Index, PCGExDataBlending::FMetadataBlender* Blender) const
 	{
 		const FEECrossing* Crossing = Crossings[Index];
 

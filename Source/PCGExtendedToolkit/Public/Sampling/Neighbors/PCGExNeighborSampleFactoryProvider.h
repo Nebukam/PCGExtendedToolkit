@@ -186,6 +186,6 @@ public:
 	int32 Priority = 0;
 
 	/** Priority for sampling order. Higher values are processed last. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1, ShowOnlyInnerProperties))
 	FPCGExSamplingSettings SamplingSettings;
 };

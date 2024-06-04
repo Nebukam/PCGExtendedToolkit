@@ -19,42 +19,24 @@ void UPCGExNeighborSampleAttribute::PrepareForCluster(const FPCGContext* InConte
 		return;
 	}
 
-	// Prepare blender settings
-	PCGEx::FAttributesInfos* AttributesInfos = PCGEx::FAttributesInfos::Get(GetSourceIO().GetIn()->Metadata);
-	MetadataBlendingSettings = FPCGExBlendingSettings(EPCGExDataBlendingType::None);
-	MetadataBlendingSettings.BlendingFilter = EPCGExBlendingFilter::Include;
-
 	TSet<FName> MissingAttributes;
-	AttributesInfos->FindMissing(SourceAttributes, MissingAttributes);
+	PCGExDataBlending::AssembleBlendingSettings(Blending, SourceAttributes, GetSourceIO(), MetadataBlendingSettings, MissingAttributes);
 
-	if (MissingAttributes.Num() == SourceAttributes.Num())
+	for (const FName& Id : MissingAttributes)
 	{
-		PCGEX_DELETE(AttributesInfos)
-		PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Missing all source attribute(s) on Sampler {0}."), GetClass()->GetName()));
-		return;
+		if (BaseSettings.NeighborSource == EPCGExGraphValueSource::Point) { PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("Missing source attribute on vtx: {0}."), FText::FromName(Id))); }
+		else { PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("Missing source attribute on edges: {0}."), FText::FromName(Id))); }
 	}
-	
-	for (const FName& Id : SourceAttributes)
-	{
-		if (MissingAttributes.Contains(Id))
-		{
-			PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("Missing source attribute: {0}."), FText::FromName(Id)));
-			continue;
-		}
-
-		MetadataBlendingSettings.AttributesOverrides.Add(Id, Blending);
-		MetadataBlendingSettings.FilteredAttributes.Add(Id);
-	}
-
-	PCGEX_DELETE(AttributesInfos)
 
 	if (MetadataBlendingSettings.FilteredAttributes.IsEmpty())
 	{
-		PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Missing all source attribute(s) on Sampler {0}."), GetClass()->GetName()));
+		PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Missing all source attribute(s) on Sampler {0}."), FText::FromString(GetClass()->GetName())));
 		return;
 	}
 
 	Blender = new PCGExDataBlending::FMetadataBlender(&MetadataBlendingSettings);
+	Blender->PrepareForData(*Cluster->PointsIO, GetSourceIO(), PCGExData::ESource::In, true);
+
 	bIsValidOperation = true;
 }
 

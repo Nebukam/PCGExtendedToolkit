@@ -36,6 +36,9 @@ public:
 	virtual void FinalizeNode(PCGExCluster::FNode& TargetNode, const int32 Count, const double TotalWeight) const override;
 
 	virtual void Cleanup() override;
+
+protected:
+	PCGExDataBlending::FPropertiesBlender* Blender = nullptr;
 };
 
 
@@ -50,7 +53,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPropertiesSamplerDescriptorBase
 
 	/** Properties blending */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	FPCGExPropertiesBlendingSettings Blending;
+	FPCGExPropertiesBlendingSettings Blending = FPCGExPropertiesBlendingSettings(EPCGExDataBlendingType::None);
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
@@ -72,11 +75,6 @@ public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(NeighborSamplerProperties, "Sampler : Properties", "Create a single neighbor attribute sampler, to be used by a Sample Neighbors node.")
-	/*
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		NeighborSamplerProperties, "Sampler : Properties", "Create a single neighbor attribute sampler, to be used by a Sample Neighbors node.",
-		FName(GetDisplayName()))
-		*/
 
 #endif
 	//~End UPCGSettings

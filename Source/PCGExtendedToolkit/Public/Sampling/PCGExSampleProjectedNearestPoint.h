@@ -24,6 +24,7 @@ MACRO(NumSamples, int32)
 
 namespace PCGExDataBlending
 {
+	class FMetadataBlender;
 	struct FPropertiesBlender;
 }
 
@@ -219,9 +220,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleProjectedNearestPointContext : public 
 
 	TArray<UPCGExFilterFactoryBase*> ValueFilterFactories;
 	PCGExDataFilter::TEarlyExitFilterManager* ValueFilterManager = nullptr;
-
-	TArray<PCGExDataBlending::FDataBlendingOperationBase*> BlendOps;
-	PCGExDataBlending::FPropertiesBlender* PropertiesBlender = nullptr;
 	
 	TArray<FPCGPoint> ProjectedSourceIO;
 	TArray<FPCGPoint> ProjectedTargetIO;
@@ -233,6 +231,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleProjectedNearestPointContext : public 
 	FVector SafeUpVector = FVector::UpVector;
 
 	TObjectPtr<UCurveFloat> WeightCurve = nullptr;
+
+	FPCGExBlendingSettings BlendingSettings;
+	PCGExDataBlending::FMetadataBlender* Blender = nullptr;
 
 	PCGEX_FOREACH_FIELD_PROJECTNEARESTPOINT(PCGEX_OUTPUT_DECL)
 

@@ -212,7 +212,7 @@ namespace PCGExGraph
 		FORCEINLINE void Add(const int32 EdgeIndex, const FPESplit& Split);
 		void Insert();
 
-		void BlendIntersection(const int32 Index, const PCGExDataBlending::FMetadataBlender* Blender) const;
+		void BlendIntersection(const int32 Index, PCGExDataBlending::FMetadataBlender* Blender) const;
 
 		~FPointEdgeIntersections()
 		{
@@ -429,7 +429,7 @@ namespace PCGExGraph
 		FORCEINLINE void Add(const int32 EdgeIndex, const int32 OtherEdgeIndex, const FEESplit& Split);
 		void Insert();
 
-		void BlendIntersection(const int32 Index, const PCGExDataBlending::FMetadataBlender* Blender) const;
+		void BlendIntersection(const int32 Index, PCGExDataBlending::FMetadataBlender* Blender) const;
 
 		~FEdgeEdgeIntersections()
 		{

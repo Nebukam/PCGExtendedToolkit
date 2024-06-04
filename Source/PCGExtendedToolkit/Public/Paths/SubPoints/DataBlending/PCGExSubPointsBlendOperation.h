@@ -32,31 +32,31 @@ public:
 	virtual void ProcessSubPoints(
 		const PCGEx::FPointRef& Start,
 		const PCGEx::FPointRef& End,
-		TArrayView<FPCGPoint>& SubPoints,
+		const TArrayView<FPCGPoint>& SubPoints,
 		const PCGExMath::FPathMetricsSquared& Metrics) const override;
 
 	virtual void ProcessSubPoints(
-		TArrayView<FPCGPoint>& SubPoints,
+		const TArrayView<FPCGPoint>& SubPoints,
 		const PCGExMath::FPathMetricsSquared& Metrics,
 		const int32 Offset = 0) const override;
 
 	virtual void ProcessSubPoints(
-		TArrayView<FPCGPoint>& SubPoints,
+		const TArrayView<FPCGPoint>& SubPoints,
 		const PCGExMath::FPathMetricsSquared& PathInfos,
-		const PCGExDataBlending::FMetadataBlender* InBlender,
+		PCGExDataBlending::FMetadataBlender* InBlender,
 		const int32 Offset = 0) const;
 
 	virtual void BlendSubPoints(
 		const PCGEx::FPointRef& StartPoint,
 		const PCGEx::FPointRef& EndPoint,
-		TArrayView<FPCGPoint>& SubPoints,
+		const TArrayView<FPCGPoint>& SubPoints,
 		const PCGExMath::FPathMetricsSquared& Metrics,
-		const PCGExDataBlending::FMetadataBlender* InBlender) const;
+		PCGExDataBlending::FMetadataBlender* InBlender) const;
 
 	virtual void BlendSubPoints(
-		TArrayView<FPCGPoint>& SubPoints,
+		const TArrayView<FPCGPoint>& SubPoints,
 		const PCGExMath::FPathMetricsSquared& Metrics,
-		const PCGExDataBlending::FMetadataBlender* InBlender,
+		PCGExDataBlending::FMetadataBlender* InBlender,
 		const int32 Offset = 0) const;
 
 	virtual void Write() override;

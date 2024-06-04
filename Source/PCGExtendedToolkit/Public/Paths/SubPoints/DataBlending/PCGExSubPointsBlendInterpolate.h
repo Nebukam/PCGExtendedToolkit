@@ -27,9 +27,9 @@ public:
 	virtual void BlendSubPoints(
 		const PCGEx::FPointRef& StartPoint,
 		const PCGEx::FPointRef& EndPoint,
-		TArrayView<FPCGPoint>& SubPoints,
+		const TArrayView<FPCGPoint>& SubPoints,
 		const PCGExMath::FPathMetricsSquared& Metrics,
-		const PCGExDataBlending::FMetadataBlender* InBlender) const override;
+		PCGExDataBlending::FMetadataBlender* InBlender) const override;
 
 	virtual PCGExDataBlending::FMetadataBlender* CreateBlender(PCGExData::FPointIO& InPrimaryIO, const PCGExData::FPointIO& InSecondaryIO, const PCGExData::ESource SecondarySource) override;
 
