@@ -98,7 +98,7 @@ namespace PCGExDataBlending
 		CurrentTargetData = TargetData;
 
 		PCGEX_DELETE(PropertiesBlender)
-		PropertiesBlender = new FPropertiesBlender(*BlendingSettings);
+		PropertiesBlender = new FPropertiesBlender(BlendingSettings->GetPropertiesBlendingSettings());
 
 		CurrentTargetData->CreateOutKeys();
 
@@ -125,7 +125,6 @@ namespace PCGExDataBlending
 					}
 
 					SrcMap->TargetBlendOp->PrepareForData(Writer, *TargetData, PCGExData::ESource::Out);
-					SrcMap->TargetBlendOp->InitializeFromScratch(); // Hmmmm maybe not
 				});
 		}
 	}
@@ -200,7 +199,7 @@ namespace PCGExDataBlending
 
 				Operation->DoOperation(
 					CompoundIndex, Sources[*IOIdx]->GetInPoint(PtIndex),
-					CompoundIndex, Weight);
+					CompoundIndex, Weight, k == 0);
 
 				ValidCompounds++;
 				TotalWeight += Weight;

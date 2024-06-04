@@ -11,19 +11,10 @@
 
 class UPCGExNeighborSampleOperation;
 
-namespace PCGExContours
+namespace PCGExSampleNeighbors
 {
-	struct PCGEXTENDEDTOOLKIT_API FCandidate
-	{
-		explicit FCandidate(const int32 InNodeIndex)
-			: NodeIndex(InNodeIndex)
-		{
-		}
-
-		int32 NodeIndex;
-		double Distance = TNumericLimits<double>::Max();
-		double Dot = -1;
-	};
+	constexpr PCGExMT::AsyncState State_ReadyForNextOperation = __COUNTER__;
+	constexpr PCGExMT::AsyncState State_Sampling = __COUNTER__;
 }
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Edges")
@@ -60,20 +51,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNeighborsContext : public FPCGExEdgesP
 	virtual ~FPCGExSampleNeighborsContext() override;
 
 	TArray<UPCGExNeighborSampleOperation*> SamplingOperations;
-	TArray<UPCGExNeighborSampleOperation*> PointPointOperations;
-	TArray<UPCGExNeighborSampleOperation*> PointEdgeOperations;
-
-	FPCGExBlendingSettings PointPointBlendingSettings;
-	FPCGExBlendingSettings PointEdgeBlendingSettings;
-
-	PCGExDataBlending::FMetadataBlender* BlenderFromPoints = nullptr;
-	PCGExDataBlending::FMetadataBlender* BlenderFromEdges = nullptr;
-
-	bool PrepareSettings(
-		FPCGExBlendingSettings& OutSettings,
-		TArray<UPCGExNeighborSampleOperation*>& OutOperations,
-		const PCGExData::FPointIO& FromPointIO,
-		EPCGExGraphValueSource Source) const;
+	UPCGExNeighborSampleOperation* CurrentOperation = nullptr;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExSampleNeighborsElement : public FPCGExEdgesProcessorElement
@@ -88,15 +66,3 @@ protected:
 	virtual bool Boot(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
-
-class PCGEXTENDEDTOOLKIT_API FPCGExSampleNeighborTask : public FPCGExNonAbandonableTask
-{
-public:
-	FPCGExSampleNeighborTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO) :
-		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO)
-	{
-	}
-
-	virtual bool ExecuteTask() override;
-};
-

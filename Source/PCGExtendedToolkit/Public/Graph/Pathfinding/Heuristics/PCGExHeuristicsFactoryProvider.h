@@ -46,7 +46,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicDescriptorBase
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1))
 	TSoftObjectPtr<UCurveFloat> ScoreCurve;
 	TObjectPtr<UCurveFloat> ScoreCurveObj;
-	
+
 	/** Use a local attribute */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Local Weight", meta=(PCG_Overridable))
 	bool bUseLocalWeightMultiplier = false;
@@ -54,7 +54,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicDescriptorBase
 	/** Local multiplier attribute source */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Local Weight", meta=(PCG_Overridable, EditCondition="bUseLocalWeightMultiplier", EditConditionHides))
 	EPCGExGraphValueSource LocalWeightMultiplierSource = EPCGExGraphValueSource::Point;
-	
+
 	/** Attribute to read multiplier value from. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Local Weight", meta=(PCG_Overridable, EditCondition="bUseLocalWeightMultiplier", EditConditionHides))
 	FPCGAttributePropertyInputSelector WeightMultiplierAttribute;
@@ -66,7 +66,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGHeuristicsFactoryBase : public UPCGExParamFacto
 	GENERATED_BODY()
 
 public:
-	virtual PCGExFactories::EType GetFactoryType() const;
+	virtual PCGExFactories::EType GetFactoryType() const override;
 	virtual UPCGExHeuristicOperation* CreateOperation() const;
 	double WeightFactor = 1;
 };

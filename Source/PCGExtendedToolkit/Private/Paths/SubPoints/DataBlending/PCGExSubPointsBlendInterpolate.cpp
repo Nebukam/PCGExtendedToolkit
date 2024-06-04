@@ -18,9 +18,9 @@ void UPCGExSubPointsBlendInterpolate::ApplyOverrides()
 void UPCGExSubPointsBlendInterpolate::BlendSubPoints(
 	const PCGEx::FPointRef& StartPoint,
 	const PCGEx::FPointRef& EndPoint,
-	TArrayView<FPCGPoint>& SubPoints,
+	const TArrayView<FPCGPoint>& SubPoints,
 	const PCGExMath::FPathMetricsSquared& Metrics,
-	const PCGExDataBlending::FMetadataBlender* InBlender) const
+	PCGExDataBlending::FMetadataBlender* InBlender) const
 {
 	const int32 NumPoints = SubPoints.Num();
 
@@ -73,6 +73,5 @@ PCGExDataBlending::FMetadataBlender* UPCGExSubPointsBlendInterpolate::CreateBlen
 {
 	PCGExDataBlending::FMetadataBlender* NewBlender = new PCGExDataBlending::FMetadataBlender(&BlendingSettings);
 	NewBlender->PrepareForData(InPrimaryIO, InSecondaryIO, SecondarySource);
-
 	return NewBlender;
 }

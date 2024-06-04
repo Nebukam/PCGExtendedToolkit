@@ -4,7 +4,7 @@
 
 #include "Paths/SubPoints/Orient/PCGExSubPointsOrientWeighted.h"
 
-void UPCGExSubPointsOrientWeighted::ProcessSubPoints(const PCGEx::FPointRef& Start, const PCGEx::FPointRef& End, TArrayView<FPCGPoint>& SubPoints, const PCGExMath::FPathMetricsSquared& Metrics) const
+void UPCGExSubPointsOrientWeighted::ProcessSubPoints(const PCGEx::FPointRef& Start, const PCGEx::FPointRef& End, const TArrayView<FPCGPoint>& SubPoints, const PCGExMath::FPathMetricsSquared& Metrics) const
 {
 	const int32 NumPointsMinusOne = SubPoints.Num() - 1;
 	if (bInverseWeight)

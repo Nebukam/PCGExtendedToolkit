@@ -26,12 +26,13 @@ namespace PCGExDataBlending
 		EPCGExDataBlendingType DefaultBlending = EPCGExDataBlendingType::Average;
 
 		bool bRequiresPrepare = false;
+		bool bHasNoBlending = false;
 
 		FPropertiesBlender()
 		{
 		}
 
-		explicit FPropertiesBlender(const FPCGExBlendingSettings& Settings);
+		explicit FPropertiesBlender(const FPCGExPropertiesBlendingSettings& Settings);
 
 		FPropertiesBlender(const FPropertiesBlender& Other):
 #define PCGEX_BLEND_COPY(_TYPE, _NAME, ...) bReset##_NAME(Other.bReset##_NAME), _NAME##Blending(Other._NAME##Blending),
@@ -40,16 +41,9 @@ namespace PCGExDataBlending
 			DefaultBlending(Other.DefaultBlending),
 			bRequiresPrepare(Other.bRequiresPrepare)
 		{
-			
 		}
 
-		explicit FPropertiesBlender(const FPCGExPropertiesBlendingSettings& LeanSettings):
-			FPropertiesBlender(FPCGExBlendingSettings(LeanSettings))
-		{
-		}
-
-		void Init(const FPCGExBlendingSettings& BlendingSettings);
-		void Init(const FPCGExPointPropertyBlendingOverrides& BlendingOverrides, EPCGExDataBlendingType InDefaultBlending);
+		void Init(const FPCGExPropertiesBlendingSettings& Settings);
 
 		void PrepareBlending(FPCGPoint& Target, const FPCGPoint& Default) const;
 		void Blend(const FPCGPoint& A, const FPCGPoint& B, FPCGPoint& Target, double Weight) const;

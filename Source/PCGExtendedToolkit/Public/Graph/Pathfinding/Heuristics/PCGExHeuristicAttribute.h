@@ -32,7 +32,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExHeuristicAttributeDescriptor : public FPCGEx
 	/** Attribute to read modifier value from. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGAttributePropertyInputSelector Attribute;
-	
 };
 
 /**
@@ -62,7 +61,7 @@ public:
 
 	EPCGExGraphValueSource Source = EPCGExGraphValueSource::Point;
 	FPCGAttributePropertyInputSelector Attribute;
-	
+
 protected:
 	PCGExData::FPointIO* LastPoints = nullptr;
 	TArray<double> CachedScores;
@@ -76,7 +75,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGHeuristicsFactoryAttribute : public UPCGHeurist
 
 public:
 	FPCGExHeuristicAttributeDescriptor Descriptor;
-	
+
 	virtual UPCGExHeuristicOperation* CreateOperation() const override;
 };
 
@@ -92,7 +91,7 @@ public:
 		HeuristicsAttribute, "Heuristics : Attribute", "Read a vtx or edge attribute as an heuristic value.",
 		FName(GetDisplayName()))
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExEditorSettings>()->NodeColorHeuristicsAtt; }
-	
+
 #endif
 	//~End UPCGSettings
 

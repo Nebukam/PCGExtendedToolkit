@@ -71,7 +71,6 @@ public:
 	/** Fetch the Up vector from a local point attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="UpVectorType == EPCGExFetchType::Attribute"))
 	FPCGAttributePropertyInputSelector UpVectorAttribute;
-	
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExOffsetPathContext : public FPCGExPathProcessorContext

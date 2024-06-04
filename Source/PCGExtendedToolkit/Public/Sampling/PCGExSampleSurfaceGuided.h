@@ -41,7 +41,7 @@ public:
 #endif
 
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
-	
+
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings interface
@@ -138,7 +138,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleSurfaceGuidedContext : public FPCGExPo
 
 	TArray<UPCGExFilterFactoryBase*> PointFilterFactories;
 	PCGExDataFilter::TEarlyExitFilterManager* PointFilterManager = nullptr;
-	
+
 	TArray<AActor*> IgnoredActors;
 
 	PCGEx::FLocalSingleFieldGetter* MaxDistanceGetter = nullptr;

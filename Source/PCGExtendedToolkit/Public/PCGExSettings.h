@@ -102,7 +102,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExRemapSettings
 	/** Whether or not to preserve value sign when using absolute range.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bUseAbsoluteRange"))
 	bool bPreserveSign = true;
-	
+
 	/** Fixed In Min value. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bUseInMin = false;
@@ -139,14 +139,14 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExRemapSettings
 	/** Scale the value after it's been truncated. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="TruncateOutput != EPCGExTruncateMode::None", EditConditionHides))
 	double PostTruncateScale = 1;
-	
+
 	void LoadCurve()
 	{
 		PCGEX_LOAD_SOFTOBJECT(UCurveFloat, RemapCurve, RemapCurveObj, PCGEx::WeightDistributionLinear)
 	}
 
 	FORCEINLINE double GetRemappedValue(const double Value) const
-	{ 
+	{
 		double OutValue = RemapCurveObj->GetFloatValue(PCGExMath::Remap(Value, InMin, InMax, 0, 1)) * Scale;
 		switch (TruncateOutput)
 		{

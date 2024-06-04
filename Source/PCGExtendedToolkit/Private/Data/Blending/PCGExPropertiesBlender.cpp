@@ -5,28 +5,24 @@
 
 namespace PCGExDataBlending
 {
-	FPropertiesBlender::FPropertiesBlender(const FPCGExBlendingSettings& Settings)
+	FPropertiesBlender::FPropertiesBlender(const FPCGExPropertiesBlendingSettings& Settings)
 	{
 		Init(Settings);
 	}
 
-	void FPropertiesBlender::Init(const FPCGExBlendingSettings& BlendingSettings)
+	void FPropertiesBlender::Init(const FPCGExPropertiesBlendingSettings& Settings)
 	{
-		Init(BlendingSettings.PropertiesOverrides, BlendingSettings.DefaultBlending);
-	}
-
-	void FPropertiesBlender::Init(const FPCGExPointPropertyBlendingOverrides& BlendingOverrides, const EPCGExDataBlendingType InDefaultBlending)
-	{
-		DefaultBlending = InDefaultBlending;
 		bRequiresPrepare = false;
 
 #define PCGEX_BLEND_FUNCASSIGN(_TYPE, _NAME, _FUNC)\
 bReset##_NAME = false;\
-_NAME##Blending = BlendingOverrides.bOverride##_NAME ? BlendingOverrides._NAME##Blending : DefaultBlending;\
-if(ResetBlend.Contains(_NAME##Blending)){bReset##_NAME=true; bRequiresPrepare = true;}
+_NAME##Blending = Settings._NAME##Blending;\
+if(ResetBlend.Contains(_NAME##Blending)){ bReset##_NAME=true; bRequiresPrepare = true; }
 
 		PCGEX_FOREACH_BLEND_POINTPROPERTY(PCGEX_BLEND_FUNCASSIGN)
 #undef PCGEX_BLEND_FUNCASSIGN
+
+		bHasNoBlending = Settings.HasNoBlending();
 	}
 
 	void FPropertiesBlender::PrepareBlending(FPCGPoint& Target, const FPCGPoint& Default) const

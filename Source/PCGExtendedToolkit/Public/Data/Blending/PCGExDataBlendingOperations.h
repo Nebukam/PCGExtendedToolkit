@@ -44,7 +44,7 @@ namespace PCGExDataBlending
 	};
 
 	template <typename T>
-	class PCGEXTENDEDTOOLKIT_API FDataBlendingMax final : public FDataBlendingOperationWithScratchCheck<T>
+	class PCGEXTENDEDTOOLKIT_API FDataBlendingMax final : public FDataBlendingOperationWithFirstInit<T>
 	{
 	public:
 		virtual EPCGExDataBlendingType GetBlendingType() const override { return EPCGExDataBlendingType::Max; };
@@ -52,7 +52,7 @@ namespace PCGExDataBlending
 	};
 
 	template <typename T>
-	class PCGEXTENDEDTOOLKIT_API FDataBlendingMin final : public FDataBlendingOperationWithScratchCheck<T>
+	class PCGEXTENDEDTOOLKIT_API FDataBlendingMin final : public FDataBlendingOperationWithFirstInit<T>
 	{
 	public:
 		virtual EPCGExDataBlendingType GetBlendingType() const override { return EPCGExDataBlendingType::Min; };
@@ -95,7 +95,7 @@ namespace PCGExDataBlending
 	};
 
 	template <typename T>
-	class PCGEXTENDEDTOOLKIT_API FDataBlendingNone final : public FDataBlendingOperationWithScratchCheck<T>
+	class PCGEXTENDEDTOOLKIT_API FDataBlendingNone final : public FDataBlendingOperationWithFirstInit<T>
 	{
 	public:
 		FORCEINLINE virtual T SingleOperation(T A, T B, double Weight) const override { return A; }

@@ -210,6 +210,11 @@ public:
 	/** Cache the results of this node. Can yield unexpected result in certain cases.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Performance")
 	bool bCacheResult = false;
+	
+	/** Flatten the output of this node.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Performance")
+	bool bFlattenOutput = false;
+
 
 	template <typename T>
 	static T* EnsureOperation(UPCGExOperation* Operation) { return Operation ? static_cast<T*>(Operation) : NewObject<T>(); }

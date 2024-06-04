@@ -202,8 +202,7 @@ Context->SolidificationRad##_AXIS->Grab(*Context->CurrentEdges); }
 
 		if (Context->MetadataBlender)
 		{
-			Context->MetadataBlender->PrepareForData(*Context->CurrentEdges, *Context->CurrentIO);
-			Context->MetadataBlender->InitializeFromScratch();
+			Context->MetadataBlender->PrepareForData(*Context->CurrentEdges, *Context->CurrentIO, PCGExData::ESource::In, true);
 		}
 
 		///

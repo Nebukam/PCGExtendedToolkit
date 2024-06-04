@@ -311,15 +311,14 @@ bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* InContext) con
 
 			if (Settings->bWriteKeySum) { PCGExData::WriteMark<int64>(OutData->Metadata, Settings->KeySumAttributeName, Sum); }
 
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
-			OutData->Metadata->Flatten();	
-#endif
+			if (Settings->bFlattenOutput) { OutData->Metadata->Flatten(); }
+			
 			FPCGTaggedData* TaggedData = Context->Output(OutData, Context->MainPoints->DefaultOutputLabel);
 			Tags->Dump(TaggedData->Tags);
 			PCGEX_DELETE(Tags)
 		};
 
-		if (!Context->Process(CreatePartition, Context->NumPartitions, true)) { return false; }
+		if (!Context->Process(CreatePartition, Context->NumPartitions)) { return false; }
 		Context->Done();
 	}
 

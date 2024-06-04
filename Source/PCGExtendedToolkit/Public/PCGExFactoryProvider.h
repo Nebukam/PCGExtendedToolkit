@@ -51,7 +51,6 @@ class PCGEXTENDEDTOOLKIT_API UPCGExParamFactoryBase : public UPCGExParamDataBase
 
 public:
 	FORCEINLINE virtual PCGExFactories::EType GetFactoryType() const;
-	
 };
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Filter")
@@ -103,7 +102,7 @@ public:
 namespace PCGExFactories
 {
 	template <typename T_DEF>
-	static bool GetInputFactories(FPCGContext* InContext, const FName InLabel, TArray<T_DEF*>& OutFactories, const TSet<PCGExFactories::EType>& Types, const bool bThrowError = true)
+	static bool GetInputFactories(FPCGContext* InContext, const FName InLabel, TArray<T_DEF*>& OutFactories, const TSet<EType>& Types, const bool bThrowError = true)
 	{
 		const TArray<FPCGTaggedData>& Inputs = InContext->InputData.GetInputsByPin(InLabel);
 

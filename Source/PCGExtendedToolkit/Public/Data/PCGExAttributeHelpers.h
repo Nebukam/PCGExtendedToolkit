@@ -130,7 +130,8 @@ namespace PCGEx
 		FAttributeIdentity* Find(FName AttributeName);
 
 		bool FindMissing(const TSet<FName>& Checklist, TSet<FName>& OutMissing);
-		
+		bool FindMissing(const TArray<FName>& Checklist, TSet<FName>& OutMissing);
+
 		~FAttributesInfos()
 		{
 			Identities.Empty();

@@ -14,7 +14,6 @@
 namespace PCGExDataFilter
 {
 	class TFilter;
-	
 }
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Operand Type"))
@@ -31,7 +30,6 @@ namespace PCGExDataFilter
 		Default = 0,
 		Cluster
 	};
-
 }
 
 /**
@@ -157,5 +155,4 @@ namespace PCGExDataFilter
 		virtual void Test(const int32 PointIndex) override;
 		virtual void PrepareForTesting() override;
 	};
-
 }

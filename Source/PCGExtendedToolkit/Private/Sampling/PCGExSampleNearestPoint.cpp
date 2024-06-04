@@ -50,8 +50,7 @@ FPCGExSampleNearestPointContext::~FPCGExSampleNearestPointContext()
 
 	PCGEX_DELETE(Targets)
 
-	PCGEX_DELETE_TARRAY(BlendOps)
-	PCGEX_DELETE(PropertiesBlender)
+	PCGEX_DELETE(Blender)
 
 	PCGEX_FOREACH_FIELD_NEARESTPOINT(PCGEX_OUTPUT_DELETE)
 }
@@ -71,25 +70,27 @@ bool FPCGExSampleNearestPointElement::Boot(FPCGContext* InContext) const
 			if (SpatialData->ToPointData(Context))
 			{
 				Context->Targets = PCGExData::PCGExPointIO::GetPointIO(Context, Target);
-				// Prepare blend ops, if any
-
-				PCGEx::FAttributesInfos* AttInfos = PCGEx::FAttributesInfos::Get(Context->Targets->GetIn()->Metadata);
-
-				for (const TPair<FName, EPCGExDataBlendingType>& BlendPair : Settings->TargetAttributes)
-				{
-					const PCGEx::FAttributeIdentity* Identity = AttInfos->Find(BlendPair.Key);
-					if (!Identity)
-					{
-						PCGE_LOG(Warning, GraphAndLog, FText::Format(FTEXT("Attribute '{0}' does not exists on target."), FText::FromName(BlendPair.Key)));
-						continue;
-					}
-
-					Context->BlendOps.Add(PCGExDataBlending::CreateOperation(BlendPair.Value, *Identity));
-				}
-
-				delete AttInfos;
 			}
 		}
+	}
+
+	if (!Context->Targets || Context->Targets->GetNum() < 1)
+	{
+		PCGE_LOG(Error, GraphAndLog, FTEXT("No targets (either no input or empty dataset)"));
+		return false;
+	}
+
+	TSet<FName> MissingTargetAttributes;
+	PCGExDataBlending::AssembleBlendingSettings(
+		Settings->bBlendPointProperties ? Settings->PointPropertiesBlendingSettings : FPCGExPropertiesBlendingSettings(EPCGExDataBlendingType::None),
+		Settings->TargetAttributes, *Context->Targets, Context->BlendingSettings, MissingTargetAttributes);
+
+	for (const FName Id : MissingTargetAttributes) { PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("Missing source attribute on edges: {0}."), FText::FromName(Id))); }
+
+	if (!Context->BlendingSettings.FilteredAttributes.IsEmpty() ||
+		!Context->BlendingSettings.GetPropertiesBlendingSettings().HasNoBlending())
+	{
+		Context->Blender = new PCGExDataBlending::FMetadataBlender(&Context->BlendingSettings);
 	}
 
 	Context->WeightCurve = Settings->WeightOverDistance.LoadSynchronous();
@@ -101,12 +102,6 @@ bool FPCGExSampleNearestPointElement::Boot(FPCGContext* InContext) const
 	Context->RangeMaxGetter->Capture(Settings->LocalRangeMax);
 
 	PCGEX_FOREACH_FIELD_NEARESTPOINT(PCGEX_OUTPUT_FWD)
-
-	if (!Context->Targets || Context->Targets->GetNum() < 1)
-	{
-		PCGE_LOG(Error, GraphAndLog, FTEXT("No targets (either no input or empty dataset)"));
-		return false;
-	}
 
 	if (!Context->WeightCurve)
 	{
@@ -129,11 +124,6 @@ bool FPCGExSampleNearestPointElement::Boot(FPCGContext* InContext) const
 
 	PCGExFactories::GetInputFactories(InContext, PCGEx::SourcePointFilters, Context->PointFilterFactories, {PCGExFactories::EType::Filter}, false);
 	PCGExFactories::GetInputFactories(InContext, PCGEx::SourceUseValueIfFilters, Context->ValueFilterFactories, {PCGExFactories::EType::Filter}, false);
-
-	if (Settings->bBlendPointProperties)
-	{
-		Context->PropertiesBlender = new PCGExDataBlending::FPropertiesBlender(Settings->PointPropertiesBlendingSettings);
-	}
 
 	return true;
 }
@@ -158,10 +148,7 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 			Context->CurrentIO->CreateOutKeys();
 			Context->Targets->CreateInKeys();
 
-			for (PCGExDataBlending::FDataBlendingOperationBase* Op : Context->BlendOps)
-			{
-				Op->PrepareForData(*Context->CurrentIO, *Context->Targets);
-			}
+			if (Context->Blender) { Context->Blender->PrepareForData(*Context->CurrentIO, *Context->Targets); }
 
 			if (!Context->PointFilterFactories.IsEmpty() || !Context->ValueFilterFactories.IsEmpty())
 			{
@@ -243,7 +230,7 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 	{
 		PCGEX_WAIT_ASYNC
 
-		for (PCGExDataBlending::FDataBlendingOperationBase* Op : Context->BlendOps) { Op->Write(); }
+		if (Context->Blender) { Context->Blender->Write(); }
 
 		PCGEX_FOREACH_FIELD_NEARESTPOINT(PCGEX_OUTPUT_WRITE)
 		Context->CurrentIO->OutputTo(Context);
@@ -265,7 +252,6 @@ bool FPCGExSamplePointTask::ExecuteTask()
 	const TArray<FPCGPoint>& TargetPoints = Context->Targets->GetIn()->GetPoints();
 	const int32 NumTargets = TargetPoints.Num();
 	FPCGPoint& SourcePoint = PointIO->GetMutablePoint(TaskIndex);
-	FPCGPoint SourcePointBlendCopy = PointIO->GetOutPoint(TaskIndex);
 	const FVector SourceCenter = SourcePoint.Transform.GetLocation();
 
 	double RangeMin = FMath::Pow(Context->RangeMinGetter->SafeGet(TaskIndex, Settings->RangeMin), 2);
@@ -369,12 +355,10 @@ bool FPCGExSamplePointTask::ExecuteTask()
 
 		TotalWeight += Weight;
 
-		if (Context->PropertiesBlender) { Context->PropertiesBlender->Blend(SourcePointBlendCopy, Target, SourcePointBlendCopy, Weight); }
-		for (const PCGExDataBlending::FDataBlendingOperationBase* Op : Context->BlendOps) { Op->DoOperation(TaskIndex, TargetInfos.Index, TaskIndex, Weight); }
+		if (Context->Blender) { Context->Blender->Blend(TaskIndex, TargetInfos.Index, TaskIndex, Weight); }
 	};
 
-	if (Context->PropertiesBlender) { Context->PropertiesBlender->PrepareBlending(SourcePointBlendCopy, SourcePointBlendCopy); }
-	for (PCGExDataBlending::FDataBlendingOperationBase* Op : Context->BlendOps) { if (Op->GetRequiresPreparation()) { Op->PrepareOperation(TaskIndex); } }
+	if (Context->Blender) { Context->Blender->PrepareForBlending(TaskIndex, &SourcePoint); }
 
 	if (bSingleSample)
 	{
@@ -394,19 +378,7 @@ bool FPCGExSamplePointTask::ExecuteTask()
 
 	double Count = bSingleSample ? 1 : TargetsInfos.Num();
 
-	if (Context->PropertiesBlender)
-	{
-		Context->PropertiesBlender->CompleteBlending(SourcePointBlendCopy, Count, TotalWeight); // +1 because our baseline is the original point
-		Context->PropertiesBlender->CopyBlendedProperties(SourcePoint, SourcePointBlendCopy);
-	}
-
-	for (PCGExDataBlending::FDataBlendingOperationBase* Op : Context->BlendOps)
-	{
-		if (Op->GetRequiresFinalization())
-		{
-			Op->FinalizeOperation(TaskIndex, Count, TotalWeight);
-		}
-	}
+	if (Context->Blender) { Context->Blender->CompleteBlending(TaskIndex, Count, TotalWeight); }
 
 	if (TotalWeight != 0) // Dodge NaN
 	{

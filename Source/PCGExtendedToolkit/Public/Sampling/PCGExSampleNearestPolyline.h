@@ -271,7 +271,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestPolylineContext : public FPCGEx
 
 	TArray<UPCGExFilterFactoryBase*> PointFilterFactories;
 	PCGExDataFilter::TEarlyExitFilterManager* PointFilterManager = nullptr;
-	
+
 	int64 NumTargets = 0;
 
 	PCGEx::FLocalSingleFieldGetter* RangeMinGetter;
@@ -283,7 +283,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestPolylineContext : public FPCGEx
 	TObjectPtr<UCurveFloat> WeightCurve = nullptr;
 
 	PCGEX_FOREACH_FIELD_NEARESTPOLYLINE(PCGEX_OUTPUT_DECL)
-	
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestPolylineElement : public FPCGExPointsProcessorElementBase

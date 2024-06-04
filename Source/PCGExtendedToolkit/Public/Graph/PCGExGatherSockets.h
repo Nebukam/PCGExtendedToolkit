@@ -26,7 +26,7 @@ public:
 	PCGEX_NODE_INFOS(GraphParams, "Custom Graph : Assemble Sockets", "Assembles Sockets Params into a single, consolidated Custom Graph Sockets object.")
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Param; }
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExEditorSettings>()->NodeColorSocket; }
-	
+
 #endif
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;

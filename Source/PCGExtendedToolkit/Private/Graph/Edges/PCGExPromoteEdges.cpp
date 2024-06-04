@@ -53,7 +53,7 @@ bool FPCGExPromoteEdgesElement::ExecuteInternal(
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExPromoteEdgesElement::Execute);
 
-	PCGEX_CONTEXT(PromoteEdges)
+	PCGEX_CONTEXT_AND_SETTINGS(PromoteEdges)
 
 	if (Context->IsSetup())
 	{

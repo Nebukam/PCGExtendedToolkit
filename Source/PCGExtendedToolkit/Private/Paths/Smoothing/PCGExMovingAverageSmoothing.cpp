@@ -78,7 +78,7 @@ void UPCGExMovingAverageSmoothing::DoSmooth(PCGExData::FPointIO& InPointIO, cons
 			MetadataBlender->CompleteBlending(Target, Count, TotalWeight);
 		}
 	}
-	
+
 	MetadataBlender->Write();
 
 	PCGEX_DELETE(MetadataBlender)

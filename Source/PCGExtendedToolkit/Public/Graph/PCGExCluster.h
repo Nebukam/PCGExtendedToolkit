@@ -71,7 +71,6 @@ class PCGEXTENDEDTOOLKIT_API UPCGExClusterFilterFactoryBase : public UPCGExFilte
 
 public:
 	virtual PCGExFactories::EType GetFactoryType() const override;
-	
 };
 
 /**
@@ -214,7 +213,7 @@ namespace PCGExCluster
 
 		FORCEINLINE void GetConnectedEdges(const int32 FromNodeIndex, TArray<int32>& OutNodeIndices, TArray<int32>& OutEdgeIndices, const int32 SearchDepth) const;
 		FORCEINLINE void GetConnectedEdges(const int32 FromNodeIndex, TArray<int32>& OutNodeIndices, TArray<int32>& OutEdgeIndices, const int32 SearchDepth, const TSet<int32>& SkipNodes, const TSet<int32>& SkipEdges) const;
-		
+
 		FORCEINLINE FVector GetEdgeDirection(const int32 FromIndex, const int32 ToIndex) const;
 		FORCEINLINE FVector GetCentroid(const int32 NodeIndex) const;
 
@@ -315,8 +314,6 @@ namespace PCGExCluster
 		PCGExData::FPointIO* LastPoints = nullptr;
 		FCluster* Cluster = nullptr;
 	};
-
-
 }
 
 namespace PCGExClusterTask

@@ -324,7 +324,7 @@ namespace PCGExGraph
 		}
 	}
 
-	void FPointEdgeIntersections::BlendIntersection(const int32 Index, const PCGExDataBlending::FMetadataBlender* Blender) const
+	void FPointEdgeIntersections::BlendIntersection(const int32 Index, PCGExDataBlending::FMetadataBlender* Blender) const
 	{
 		const FPointEdgeProxy& PointEdgeProxy = Edges[Index];
 
@@ -474,7 +474,7 @@ namespace PCGExGraph
 		}
 	}
 
-	void FEdgeEdgeIntersections::BlendIntersection(const int32 Index, const PCGExDataBlending::FMetadataBlender* Blender) const
+	void FEdgeEdgeIntersections::BlendIntersection(const int32 Index, PCGExDataBlending::FMetadataBlender* Blender) const
 	{
 		const FEECrossing* Crossing = Crossings[Index];
 
@@ -532,7 +532,7 @@ namespace PCGExGraphTask
 		TArray<int32> InSorted;
 		InSorted.SetNum(InPoints.Num());
 		for (int i = 0; i < InSorted.Num(); i++) { InSorted[i] = i; }
-		
+
 		/*
 		InSorted.Sort(
 			[&](const int32 A, const int32 B)

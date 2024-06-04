@@ -15,7 +15,7 @@ PCGExData::EInit UPCGExFindSocketStatesSettings::GetMainOutputInitMode() const {
 TArray<FPCGPinProperties> UPCGExFindSocketStatesSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_PARAMS(PCGExGraph::SourceSocketStateLabel, "Socket states.", Required, {})	
+	PCGEX_PIN_PARAMS(PCGExGraph::SourceSocketStateLabel, "Socket states.", Required, {})
 	return PinProperties;
 }
 

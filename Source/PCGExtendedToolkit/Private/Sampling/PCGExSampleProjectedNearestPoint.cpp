@@ -6,6 +6,7 @@
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataFilter.h"
+#include "Data/Blending/PCGExMetadataBlender.h"
 #include "Data/Blending/PCGExPropertiesBlender.h"
 #include "Sampling/PCGExSampleNearestPoint.h"
 
@@ -41,7 +42,7 @@ FPCGExSampleProjectedNearestPointContext::~FPCGExSampleProjectedNearestPointCont
 	PointFilterFactories.Empty();
 	PCGEX_DELETE(ValueFilterManager)
 	ValueFilterFactories.Empty();
-	
+
 	PCGEX_DELETE(RangeMinGetter)
 	PCGEX_DELETE(RangeMaxGetter)
 	PCGEX_DELETE(LookAtUpGetter)
@@ -49,8 +50,7 @@ FPCGExSampleProjectedNearestPointContext::~FPCGExSampleProjectedNearestPointCont
 	PCGEX_DELETE(Targets)
 	PCGEX_DELETE(ProjectedTargetOctree)
 
-	PCGEX_DELETE_TARRAY(BlendOps)
-	PCGEX_DELETE(PropertiesBlender)
+	PCGEX_DELETE(Blender)
 
 	ProjectionSettings.Cleanup();
 
@@ -77,25 +77,27 @@ bool FPCGExSampleProjectedNearestPointElement::Boot(FPCGContext* InContext) cons
 			if (SpatialData->ToPointData(Context))
 			{
 				Context->Targets = PCGExData::PCGExPointIO::GetPointIO(Context, Target);
-				// Prepare blend ops, if any
-
-				PCGEx::FAttributesInfos* AttInfos = PCGEx::FAttributesInfos::Get(Context->Targets->GetIn()->Metadata);
-
-				for (const TPair<FName, EPCGExDataBlendingType>& BlendPair : Settings->TargetAttributes)
-				{
-					const PCGEx::FAttributeIdentity* Identity = AttInfos->Find(BlendPair.Key);
-					if (!Identity)
-					{
-						PCGE_LOG(Warning, GraphAndLog, FText::Format(FTEXT("Attribute '{0}' does not exists on target."), FText::FromName(BlendPair.Key)));
-						continue;
-					}
-
-					Context->BlendOps.Add(PCGExDataBlending::CreateOperation(BlendPair.Value, *Identity));
-				}
-
-				delete AttInfos;
 			}
 		}
+	}
+
+	if (!Context->Targets || Context->Targets->GetNum() < 1)
+	{
+		PCGE_LOG(Error, GraphAndLog, FTEXT("No targets (either no input or empty dataset)"));
+		return false;
+	}
+
+	TSet<FName> MissingTargetAttributes;
+	PCGExDataBlending::AssembleBlendingSettings(
+		Settings->bBlendPointProperties ? Settings->PointPropertiesBlendingSettings : FPCGExPropertiesBlendingSettings(EPCGExDataBlendingType::None),
+		Settings->TargetAttributes, *Context->Targets, Context->BlendingSettings, MissingTargetAttributes);
+
+	for (const FName Id : MissingTargetAttributes) { PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("Missing source attribute on edges: {0}."), FText::FromName(Id))); }
+
+	if (!Context->BlendingSettings.FilteredAttributes.IsEmpty() ||
+		!Context->BlendingSettings.GetPropertiesBlendingSettings().HasNoBlending())
+	{
+		Context->Blender = new PCGExDataBlending::FMetadataBlender(&Context->BlendingSettings);
 	}
 
 	Context->WeightCurve = Settings->WeightOverDistance.LoadSynchronous();
@@ -107,12 +109,6 @@ bool FPCGExSampleProjectedNearestPointElement::Boot(FPCGContext* InContext) cons
 	Context->RangeMaxGetter->Capture(Settings->LocalRangeMax);
 
 	PCGEX_FOREACH_FIELD_PROJECTNEARESTPOINT(PCGEX_OUTPUT_FWD)
-
-	if (!Context->Targets || Context->Targets->GetNum() < 1)
-	{
-		PCGE_LOG(Error, GraphAndLog, FTEXT("No targets (either no input or empty dataset)"));
-		return false;
-	}
 
 	if (!Context->WeightCurve)
 	{
@@ -138,18 +134,11 @@ bool FPCGExSampleProjectedNearestPointElement::Boot(FPCGContext* InContext) cons
 	PCGExFactories::GetInputFactories(InContext, PCGEx::SourcePointFilters, Context->PointFilterFactories, {PCGExFactories::EType::Filter}, false);
 	PCGExFactories::GetInputFactories(InContext, PCGEx::SourceUseValueIfFilters, Context->ValueFilterFactories, {PCGExFactories::EType::Filter}, false);
 
-	if (Settings->bBlendPointProperties)
-	{
-		Context->PropertiesBlender = new PCGExDataBlending::FPropertiesBlender(Settings->PointPropertiesBlendingSettings);
-	}
-
 	return true;
 }
 
 bool FPCGExSampleProjectedNearestPointElement::ExecuteInternal(FPCGContext* InContext) const
 {
-	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExSampleProjectedNearestPointElement::Execute);
-
 	PCGEX_CONTEXT_AND_SETTINGS(SampleProjectedNearestPoint)
 
 	if (Context->IsSetup())
@@ -194,10 +183,7 @@ bool FPCGExSampleProjectedNearestPointElement::ExecuteInternal(FPCGContext* InCo
 			Context->CurrentIO->CreateOutKeys();
 			Context->ProjectionSettings.Init(Context->CurrentIO);
 
-			for (PCGExDataBlending::FDataBlendingOperationBase* Op : Context->BlendOps)
-			{
-				Op->PrepareForData(*Context->CurrentIO, *Context->Targets);
-			}
+			if (Context->Blender) { Context->Blender->PrepareForData(*Context->CurrentIO, *Context->Targets); }
 
 			if (!Context->PointFilterFactories.IsEmpty() || !Context->ValueFilterFactories.IsEmpty())
 			{
@@ -216,7 +202,7 @@ bool FPCGExSampleProjectedNearestPointElement::ExecuteInternal(FPCGContext* InCo
 		{
 			PCGEX_DELETE(Context->PointFilterManager)
 			PCGEX_DELETE(Context->ValueFilterManager)
-			
+
 			if (!Context->PointFilterFactories.IsEmpty())
 			{
 				Context->PointFilterManager = new PCGExDataFilter::TEarlyExitFilterManager(&PointIO);
@@ -299,7 +285,7 @@ bool FPCGExSampleProjectedNearestPointElement::ExecuteInternal(FPCGContext* InCo
 	{
 		PCGEX_WAIT_ASYNC
 
-		for (PCGExDataBlending::FDataBlendingOperationBase* Op : Context->BlendOps) { Op->Write(); }
+		if (Context->Blender) { Context->Blender->Write(); }
 
 		PCGEX_FOREACH_FIELD_PROJECTNEARESTPOINT(PCGEX_OUTPUT_WRITE)
 		Context->CurrentIO->OutputTo(Context);
@@ -336,7 +322,7 @@ bool FPCGExSampleProjectedPointTask::ExecuteTask()
 	auto ProcessTarget = [&](const int32 PointIndex, const FPCGPoint& Target)
 	{
 		if (Context->ValueFilterManager && !Context->ValueFilterManager->Results[PointIndex]) { return; }
-		
+
 		FVector A;
 		FVector B;
 
@@ -428,10 +414,10 @@ bool FPCGExSampleProjectedPointTask::ExecuteTask()
 
 		TotalWeight += Weight;
 
-		for (const PCGExDataBlending::FDataBlendingOperationBase* Op : Context->BlendOps) { Op->DoOperation(TaskIndex, TargetInfos.Index, TaskIndex, Weight); }
+		if (Context->Blender) { Context->Blender->Blend(TaskIndex, TargetInfos.Index, TaskIndex, Weight); }
 	};
 
-	for (PCGExDataBlending::FDataBlendingOperationBase* Op : Context->BlendOps) { if (Op->GetRequiresPreparation()) { Op->PrepareOperation(TaskIndex); } }
+	if (Context->Blender) { Context->Blender->PrepareForBlending(TaskIndex, &SourcePoint); }
 
 	if (bSingleSample)
 	{
@@ -451,7 +437,7 @@ bool FPCGExSampleProjectedPointTask::ExecuteTask()
 
 	double Count = bSingleSample ? 1 : TargetsInfos.Num();
 
-	for (PCGExDataBlending::FDataBlendingOperationBase* Op : Context->BlendOps) { if (Op->GetRequiresFinalization()) { Op->FinalizeOperation(TaskIndex, Count, TotalWeight); } }
+	if (Context->Blender) { Context->Blender->CompleteBlending(TaskIndex, Count, TotalWeight); }
 
 	if (TotalWeight != 0) // Dodge NaN
 	{

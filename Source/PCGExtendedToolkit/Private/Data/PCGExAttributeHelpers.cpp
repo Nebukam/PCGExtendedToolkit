@@ -77,7 +77,21 @@ namespace PCGEx
 		bool bAnyMissing = false;
 		for (const FName& Id : Checklist)
 		{
-			if (!Contains(Id) || !PCGEx::IsValidName(Id))
+			if (!Contains(Id) || !IsValidName(Id))
+			{
+				OutMissing.Add(Id);
+				bAnyMissing = true;
+			}
+		}
+		return bAnyMissing;
+	}
+
+	bool FAttributesInfos::FindMissing(const TArray<FName>& Checklist, TSet<FName>& OutMissing)
+	{
+		bool bAnyMissing = false;
+		for (const FName& Id : Checklist)
+		{
+			if (!Contains(Id) || !IsValidName(Id))
 			{
 				OutMissing.Add(Id);
 				bAnyMissing = true;

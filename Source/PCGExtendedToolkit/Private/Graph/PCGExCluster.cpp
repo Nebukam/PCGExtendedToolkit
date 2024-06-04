@@ -10,7 +10,7 @@
 
 PCGExFactories::EType UPCGExClusterFilterFactoryBase::GetFactoryType() const
 {
-	return  PCGExFactories::EType::ClusterFilter;
+	return PCGExFactories::EType::ClusterFilter;
 }
 
 PCGExFactories::EType UPCGExNodeStateFactory::GetFactoryType() const

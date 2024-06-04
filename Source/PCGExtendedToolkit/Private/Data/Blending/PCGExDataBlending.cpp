@@ -67,10 +67,10 @@ namespace PCGExDataBlending
 		PrepareRangeOperation(WriteIndex, 1);
 	}
 
-	void FDataBlendingOperationBase::DoOperation(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, const int32 WriteIndex, const double Weight) const
+	void FDataBlendingOperationBase::DoOperation(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, const int32 WriteIndex, const double Weight, const bool bFirstOperation) const
 	{
 		TArray<double> Weights = {Weight};
-		DoRangeOperation(PrimaryReadIndex, SecondaryReadIndex, WriteIndex, Weights);
+		DoRangeOperation(PrimaryReadIndex, SecondaryReadIndex, WriteIndex, Weights, bFirstOperation);
 	}
 
 	void FDataBlendingOperationBase::FinalizeOperation(const int32 WriteIndex, const int32 Count, const double TotalWeight) const
@@ -78,11 +78,6 @@ namespace PCGExDataBlending
 		TArray<double> Weights = {TotalWeight};
 		TArray<int32> Counts = {Count};
 		FinalizeRangeOperation(WriteIndex, Counts, Weights);
-	}
-
-	void FDataBlendingOperationBase::BlendEachPrimaryToSecondary(const TArrayView<double>& Weights) const
-	{
-		// TODO : Implement
 	}
 
 	void FDataBlendingOperationBase::ResetToDefault(const int32 WriteIndex) const

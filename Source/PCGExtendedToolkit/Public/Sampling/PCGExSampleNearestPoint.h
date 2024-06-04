@@ -23,6 +23,11 @@ MACRO(NumSamples, int32)
 
 namespace PCGExDataBlending
 {
+	class FMetadataBlender;
+}
+
+namespace PCGExDataBlending
+{
 	struct FPropertiesBlender;
 }
 
@@ -169,11 +174,11 @@ public:
 	/** Write the sampled distance. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Blending", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bBlendPointProperties = false;
-	
+
 	/** The constant to use as Up vector for the look at transform.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Blending", meta=(PCG_Overridable, EditCondition="bBlendPointProperties"))
 	FPCGExPropertiesBlendingSettings PointPropertiesBlendingSettings = FPCGExPropertiesBlendingSettings(EPCGExDataBlendingType::None);
-	
+
 	/** Write whether the sampling was sucessful or not to a boolean attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteSuccess = false;
@@ -254,11 +259,10 @@ public:
 	/** Write the sampled distance. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteNumSamples = false;
-	
+
 	/** Name of the 'int32' attribute to write the number of sampled neighbors to.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteNumSamples"))
 	FName NumSamplesAttributeName = FName("NumSamples");
-
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestPointContext : public FPCGExPointsProcessorContext
@@ -274,10 +278,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestPointContext : public FPCGExPoi
 
 	TArray<UPCGExFilterFactoryBase*> ValueFilterFactories;
 	PCGExDataFilter::TEarlyExitFilterManager* ValueFilterManager = nullptr;
-	
-	TArray<PCGExDataBlending::FDataBlendingOperationBase*> BlendOps;
-	PCGExDataBlending::FPropertiesBlender* PropertiesBlender = nullptr;
-	
+
 	PCGEx::FLocalSingleFieldGetter* RangeMinGetter;
 	PCGEx::FLocalSingleFieldGetter* RangeMaxGetter;
 	PCGEx::FLocalVectorGetter* LookAtUpGetter;
@@ -286,8 +287,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestPointContext : public FPCGExPoi
 
 	TObjectPtr<UCurveFloat> WeightCurve = nullptr;
 
-	PCGEX_FOREACH_FIELD_NEARESTPOINT(PCGEX_OUTPUT_DECL)
+	FPCGExBlendingSettings BlendingSettings;
+	PCGExDataBlending::FMetadataBlender* Blender = nullptr;
 
+	PCGEX_FOREACH_FIELD_NEARESTPOINT(PCGEX_OUTPUT_DECL)
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestPointElement : public FPCGExPointsProcessorElementBase

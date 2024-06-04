@@ -203,9 +203,22 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPropertiesBlendingSettings
 #undef PCGEX_SET_DEFAULT_POINTPROPERTY
 	}
 
+	bool HasNoBlending() const
+	{
+		return DensityBlending == EPCGExDataBlendingType::None &&
+			BoundsMinBlending == EPCGExDataBlendingType::None &&
+			BoundsMaxBlending == EPCGExDataBlendingType::None &&
+			ColorBlending == EPCGExDataBlendingType::None &&
+			PositionBlending == EPCGExDataBlendingType::None &&
+			RotationBlending == EPCGExDataBlendingType::None &&
+			ScaleBlending == EPCGExDataBlendingType::None &&
+			SteepnessBlending == EPCGExDataBlendingType::None &&
+			SeedBlending == EPCGExDataBlendingType::None;
+	}
+
 	EPCGExDataBlendingType DefaultBlending = EPCGExDataBlendingType::Average;
 
-	#pragma region Property overrides
+#pragma region Property overrides
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (DisplayName="Density", EditCondition="bOverrideDensity"))
 	EPCGExDataBlendingType DensityBlending = EPCGExDataBlendingType::None;
@@ -235,9 +248,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPropertiesBlendingSettings
 	EPCGExDataBlendingType SeedBlending = EPCGExDataBlendingType::None;
 
 #pragma endregion
-
 };
-
 
 
 USTRUCT(BlueprintType)
@@ -279,6 +290,15 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBlendingSettings
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
 	TMap<FName, EPCGExDataBlendingType> AttributesOverrides;
+
+	FPCGExPropertiesBlendingSettings GetPropertiesBlendingSettings() const
+	{
+		FPCGExPropertiesBlendingSettings OutSettings;
+#define PCGEX_SET_POINTPROPERTY(_TYPE, _NAME, _TYPENAME) OutSettings._NAME##Blending = PropertiesOverrides.bOverride##_NAME ? PropertiesOverrides._NAME##Blending : DefaultBlending;
+		PCGEX_FOREACH_BLEND_POINTPROPERTY(PCGEX_SET_POINTPROPERTY)
+#undef PCGEX_SET_POINTPROPERTY
+		return OutSettings;
+	}
 
 	bool CanBlend(const FName AttributeName) const
 	{
@@ -339,22 +359,18 @@ namespace PCGExDataBlending
 		virtual void PrepareForData(PCGExData::FPointIO& InPrimaryData, const PCGExData::FPointIO& InSecondaryData, const PCGExData::ESource SecondarySource = PCGExData::ESource::In);
 		virtual void PrepareForData(PCGEx::FAAttributeIO* InWriter, const PCGExData::FPointIO& InSecondaryData, const PCGExData::ESource SecondarySource = PCGExData::ESource::In);
 
-		virtual void InitializeFromScratch() = 0;
-
 		FORCEINLINE virtual bool GetIsInterpolation() const;
 		FORCEINLINE virtual bool GetRequiresPreparation() const;
 		FORCEINLINE virtual bool GetRequiresFinalization() const;
 
 		FORCEINLINE virtual void PrepareOperation(const int32 WriteIndex) const;
-		FORCEINLINE virtual void DoOperation(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, const int32 WriteIndex, const double Weight = 1) const;
-		FORCEINLINE virtual void DoOperation(const int32 PrimaryReadIndex, const FPCGPoint& SrcPoint, const int32 WriteIndex, const double Weight = 1) const = 0;
+		FORCEINLINE virtual void DoOperation(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, const int32 WriteIndex, const double Weight, const bool bFirstOperation) const;
+		FORCEINLINE virtual void DoOperation(const int32 PrimaryReadIndex, const FPCGPoint& SrcPoint, const int32 WriteIndex, const double Weight, const bool bFirstOperation) const = 0;
 		FORCEINLINE virtual void FinalizeOperation(const int32 WriteIndex, const int32 Count, const double TotalWeight) const;
 
 		FORCEINLINE virtual void PrepareRangeOperation(const int32 StartIndex, const int32 Range) const = 0;
-		FORCEINLINE virtual void DoRangeOperation(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, const int32 StartIndex, const TArrayView<double>& Weights) const = 0;
+		FORCEINLINE virtual void DoRangeOperation(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, const int32 StartIndex, const TArrayView<double>& Weights, const bool bFirstOperation) const = 0;
 		FORCEINLINE virtual void FinalizeRangeOperation(const int32 StartIndex, const TArrayView<int32>& Counts, const TArrayView<double>& TotalWeights) const = 0;
-
-		FORCEINLINE virtual void BlendEachPrimaryToSecondary(const TArrayView<double>& Weights) const;
 
 		virtual void ResetToDefault(int32 WriteIndex) const;
 		virtual void ResetRangeToDefault(int32 StartIndex, int32 Count) const;
@@ -440,10 +456,10 @@ namespace PCGExDataBlending
 			PrepareValuesRangeOperation(View, StartIndex);
 		}
 
-		FORCEINLINE virtual void DoRangeOperation(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, const int32 StartIndex, const TArrayView<double>& Weights) const override
+		FORCEINLINE virtual void DoRangeOperation(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, const int32 StartIndex, const TArrayView<double>& Weights, const bool bFirstOperation) const override
 		{
 			TArrayView<T> View = MakeArrayView(Writer->Values.GetData() + StartIndex, Weights.Num());
-			DoValuesRangeOperation(PrimaryReadIndex, SecondaryReadIndex, View, Weights);
+			DoValuesRangeOperation(PrimaryReadIndex, SecondaryReadIndex, View, Weights, bFirstOperation);
 		}
 
 		FORCEINLINE virtual void FinalizeRangeOperation(const int32 StartIndex, const TArrayView<int32>& Counts, const TArrayView<double>& TotalWeights) const override
@@ -457,11 +473,10 @@ namespace PCGExDataBlending
 			for (int i = 0; i < Values.Num(); i++) { SinglePrepare(Values[i]); }
 		}
 
-		FORCEINLINE virtual void DoValuesRangeOperation(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, TArrayView<T>& Values, const TArrayView<double>& Weights) const
+		FORCEINLINE virtual void DoValuesRangeOperation(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, TArrayView<T>& Values, const TArrayView<double>& Weights, const bool bFirstOperation) const
 		{
 			if (!bInterpolationAllowed && GetIsInterpolation())
 			{
-				//const T A = (*Writer)[PrimaryReadIndex];
 				const T B = (*Reader)[SecondaryReadIndex];
 				for (int i = 0; i < Values.Num(); i++) { Values[i] = B; } // Raw copy value
 			}
@@ -473,8 +488,7 @@ namespace PCGExDataBlending
 			}
 		}
 
-
-		FORCEINLINE virtual void DoOperation(const int32 PrimaryReadIndex, const FPCGPoint& SrcPoint, const int32 WriteIndex, const double Weight = 0) const override
+		FORCEINLINE virtual void DoOperation(const int32 PrimaryReadIndex, const FPCGPoint& SrcPoint, const int32 WriteIndex, const double Weight, const bool bFirstOperation) const override
 		{
 			const T A = (*Writer)[PrimaryReadIndex];
 			const T B = TypedAttribute ? TypedAttribute->GetValueFromItemKey(SrcPoint.MetadataEntry) : A;
@@ -485,15 +499,6 @@ namespace PCGExDataBlending
 		{
 			if (!bInterpolationAllowed) { return; }
 			for (int i = 0; i < Values.Num(); i++) { SingleFinalize(Values[i], Counts[i], Weights[i]); }
-		}
-
-		FORCEINLINE virtual void BlendEachPrimaryToSecondary(const TArrayView<double>& Weights) const override
-		{
-			if (!bInterpolationAllowed) { return; }
-			for (int i = 0; i < Writer->Values.Num(); i++)
-			{
-				Writer->Values[i] = SingleOperation(Writer->Values[i], Reader->Values[i], Weights[i]);
-			}
 		}
 
 		FORCEINLINE virtual void SinglePrepare(T& A) const
@@ -519,11 +524,6 @@ namespace PCGExDataBlending
 
 		virtual void Write() override { Writer->Write(); }
 
-		virtual void InitializeFromScratch() override
-		{
-			this->InitializedIndices = new TSet<int32>();
-		}
-
 	protected:
 		FPCGMetadataAttribute<T>* TypedAttribute = nullptr;
 		PCGEx::TFAttributeWriter<T>* Writer = nullptr;
@@ -531,13 +531,12 @@ namespace PCGExDataBlending
 	};
 
 	template <typename T>
-	class PCGEXTENDEDTOOLKIT_API FDataBlendingOperationWithScratchCheck : public FDataBlendingOperation<T>
+	class PCGEXTENDEDTOOLKIT_API FDataBlendingOperationWithFirstInit : public FDataBlendingOperation<T>
 	{
-		virtual void DoValuesRangeOperation(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, TArrayView<T>& Values, const TArrayView<double>& Weights) const override
+		FORCEINLINE virtual void DoValuesRangeOperation(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, TArrayView<T>& Values, const TArrayView<double>& Weights, const bool bFirstOperation) const override
 		{
-			if (!this->bInterpolationAllowed && this->GetIsInterpolation())
+			if (bFirstOperation || !this->bInterpolationAllowed && this->GetIsInterpolation())
 			{
-				//const T A = (*Writer)[PrimaryReadIndex];
 				const T B = (*this->Reader)[SecondaryReadIndex];
 				for (int i = 0; i < Values.Num(); i++) { Values[i] = B; } // Raw copy value
 			}
@@ -545,48 +544,75 @@ namespace PCGExDataBlending
 			{
 				T A = (*this->Writer)[PrimaryReadIndex];
 				const T B = (*this->Reader)[SecondaryReadIndex];
-
-				if (this->InitializedIndices && !this->InitializedIndices->Contains(PrimaryReadIndex))
-				{
-					this->InitializedIndices->Add(PrimaryReadIndex);
-					A = B;
-				}
-
-				for (int i = 0; i < Values.Num(); i++)
-				{
-					Values[i] = this->SingleOperation(A, B, Weights[i]);
-				}
+				for (int i = 0; i < Values.Num(); i++) { Values[i] = this->SingleOperation(A, B, Weights[i]); }
 			}
 		}
 
-		FORCEINLINE virtual void DoOperation(const int32 PrimaryReadIndex, const FPCGPoint& SrcPoint, const int32 WriteIndex, const double Weight = 0) const override
+		FORCEINLINE virtual void DoOperation(const int32 PrimaryReadIndex, const FPCGPoint& SrcPoint, const int32 WriteIndex, const double Weight, const bool bFirstOperation) const override
 		{
 			const T A = (*this->Writer)[PrimaryReadIndex];
 			const T B = this->TypedAttribute ? this->TypedAttribute->GetValueFromItemKey(SrcPoint.MetadataEntry) : A;
-			if (this->InitializedIndices && !this->InitializedIndices->Contains(WriteIndex))
+
+			if (bFirstOperation)
 			{
-				this->InitializedIndices->Add(WriteIndex);
 				(*this->Writer)[WriteIndex] = B;
 				return;
 			}
+
 			(*this->Writer)[WriteIndex] = this->SingleOperation(A, B, Weight);
 		}
-
-		virtual void BlendEachPrimaryToSecondary(const TArrayView<double>& Weights) const override
-		{
-			if (!this->bInterpolationAllowed) { return; }
-			for (int i = 0; i < this->Writer->Values.Num(); i++)
-			{
-				if (this->InitializedIndices && !this->InitializedIndices->Contains(i))
-				{
-					this->InitializedIndices->Add(i);
-					(*this->Writer)[i] = this->Reader->Values[i];
-					continue;
-				}
-				this->Writer->Values[i] = this->SingleOperation(this->Writer->Values[i], this->Reader->Values[i], Weights[i]);
-			}
-		}
 	};
+
+	static void AssembleBlendingSettings(
+		const FPCGExPropertiesBlendingSettings& PropertiesBlending,
+		const TMap<FName, EPCGExDataBlendingType>& PerAttributeBlending,
+		const PCGExData::FPointIO& SourceIO,
+		FPCGExBlendingSettings& OutSettings,
+		TSet<FName>& OutMissingAttributes)
+	{
+		PCGEx::FAttributesInfos* AttributesInfos = PCGEx::FAttributesInfos::Get(SourceIO.GetIn()->Metadata);
+		OutSettings = FPCGExBlendingSettings(PropertiesBlending);
+		OutSettings.BlendingFilter = EPCGExBlendingFilter::Include;
+
+		TArray<FName> SourceAttributesList;
+		PerAttributeBlending.GetKeys(SourceAttributesList);
+
+		AttributesInfos->FindMissing(SourceAttributesList, OutMissingAttributes);
+
+		for (const FName& Id : SourceAttributesList)
+		{
+			if (OutMissingAttributes.Contains(Id)) { continue; }
+
+			OutSettings.AttributesOverrides.Add(Id, *PerAttributeBlending.Find(Id));
+			OutSettings.FilteredAttributes.Add(Id);
+		}
+
+		PCGEX_DELETE(AttributesInfos)
+	}
+
+	static void AssembleBlendingSettings(
+		const EPCGExDataBlendingType& DefaultBlending,
+		const TSet<FName>& Attributes,
+		const PCGExData::FPointIO& SourceIO,
+		FPCGExBlendingSettings& OutSettings,
+		TSet<FName>& OutMissingAttributes)
+	{
+		PCGEx::FAttributesInfos* AttributesInfos = PCGEx::FAttributesInfos::Get(SourceIO.GetIn()->Metadata);
+		OutSettings = FPCGExBlendingSettings(FPCGExPropertiesBlendingSettings(EPCGExDataBlendingType::None));
+		OutSettings.BlendingFilter = EPCGExBlendingFilter::Include;
+
+		AttributesInfos->FindMissing(Attributes, OutMissingAttributes);
+
+		for (const FName& Id : Attributes)
+		{
+			if (OutMissingAttributes.Contains(Id)) { continue; }
+
+			OutSettings.AttributesOverrides.Add(Id, DefaultBlending);
+			OutSettings.FilteredAttributes.Add(Id);
+		}
+
+		PCGEX_DELETE(AttributesInfos)
+	}
 }
 
 namespace PCGExDataBlendingTask
