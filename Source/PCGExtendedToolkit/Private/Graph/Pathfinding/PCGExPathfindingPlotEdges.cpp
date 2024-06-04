@@ -216,7 +216,11 @@ bool FPCGExPathfindingPlotEdgesElement::ExecuteInternal(FPCGContext* InContext) 
 		Context->SetState(PCGExGraph::State_ReadyForNextEdges);
 	}
 
-	if (Context->IsDone()) { Context->OutputPaths->OutputTo(Context); }
+	if (Context->IsDone())
+	{
+		Context->OutputPaths->OutputTo(Context);
+		Context->ExecutionComplete();
+	}
 
 	return Context->IsDone();
 }

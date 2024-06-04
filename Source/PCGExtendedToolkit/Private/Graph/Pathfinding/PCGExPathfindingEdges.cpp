@@ -193,6 +193,7 @@ bool FPCGExPathfindingEdgesElement::ExecuteInternal(FPCGContext* InContext) cons
 	if (Context->IsDone())
 	{
 		Context->OutputPaths->OutputTo(Context);
+		Context->ExecutionComplete();
 	}
 
 	return Context->IsDone();
@@ -238,8 +239,6 @@ bool FSampleClusterPathTask::ExecuteTask()
 
 	Context->SeedForwardHandler->Forward(Query->SeedIndex, &PathPoints);
 	Context->GoalForwardHandler->Forward(Query->GoalIndex, &PathPoints);
-
-	PathPoints.Flatten();
 
 	return true;
 }

@@ -140,7 +140,11 @@ bool FPCGExRelaxEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) con
 		Context->SetState(PCGExGraph::State_ReadyForNextEdges);
 	}
 
-	if (Context->IsDone()) { Context->OutputPointsAndEdges(); }
+	if (Context->IsDone())
+	{
+		Context->OutputPointsAndEdges();
+		Context->ExecutionComplete();
+	}
 
 	return Context->IsDone();
 }

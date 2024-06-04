@@ -198,7 +198,10 @@ bool FPCGExDrawCustomGraphElement::ExecuteInternal(FPCGContext* InContext) const
 		Context->SetState(PCGExGraph::State_ReadyForNextGraph);
 	}
 
-	if (Context->IsDone()) { DisabledPassThroughData(Context); }
+	if (Context->IsDone())
+	{
+		DisabledPassThroughData(Context);
+	}
 
 	return Context->IsDone();
 

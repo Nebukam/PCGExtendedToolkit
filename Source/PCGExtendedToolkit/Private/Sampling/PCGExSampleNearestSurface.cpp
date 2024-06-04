@@ -80,7 +80,11 @@ bool FPCGExSampleNearestSurfaceElement::ExecuteInternal(FPCGContext* InContext) 
 
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
-		if (!Context->AdvancePointsIO()) { Context->Done(); }
+		if (!Context->AdvancePointsIO())
+		{
+			Context->Done();
+			Context->ExecutionComplete();
+		}
 		else
 		{
 			if (!Context->PointFilterFactories.IsEmpty()) { Context->SetState(PCGExDataFilter::State_FilteringPoints); }

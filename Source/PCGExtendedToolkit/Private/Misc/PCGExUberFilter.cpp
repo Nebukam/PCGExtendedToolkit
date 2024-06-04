@@ -128,6 +128,7 @@ bool FPCGExUberFilterElement::ExecuteInternal(FPCGContext* InContext) const
 	{
 		Context->Inside->OutputTo(Context);
 		Context->Outside->OutputTo(Context);
+		Context->ExecutionComplete();
 	}
 
 	return Context->IsDone();

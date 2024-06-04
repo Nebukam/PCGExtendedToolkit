@@ -156,6 +156,7 @@ bool FPCGExSampleNeighborsElement::ExecuteInternal(
 	if (Context->IsDone())
 	{
 		Context->OutputPointsAndEdges();
+		Context->ExecutionComplete();
 	}
 
 	return Context->IsDone();

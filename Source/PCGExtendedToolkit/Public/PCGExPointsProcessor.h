@@ -246,6 +246,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : public FPCGContext
 	bool IsSetup() const { return IsState(PCGExMT::State_Setup); }
 	bool IsDone() const { return IsState(PCGExMT::State_Done); }
 	virtual void Done();
+	virtual void ExecutionComplete();
 
 	FPCGExAsyncManager* GetAsyncManager();
 	void SetAsyncState(const PCGExMT::AsyncState WaitState) { SetState(WaitState, false); }

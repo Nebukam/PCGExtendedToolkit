@@ -123,6 +123,7 @@ bool FPCGExConsolidateCustomGraphElement::ExecuteInternal(
 	{
 		Context->IndicesRemap.Empty();
 		Context->OutputPointsAndGraphParams();
+		Context->ExecutionComplete();
 	}
 
 	return Context->IsDone();

@@ -142,7 +142,11 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
-		if (!Context->AdvancePointsIO()) { Context->Done(); }
+		if (!Context->AdvancePointsIO())
+		{
+			Context->Done();
+			Context->ExecutionComplete();
+		}
 		else
 		{
 			Context->CurrentIO->CreateOutKeys();

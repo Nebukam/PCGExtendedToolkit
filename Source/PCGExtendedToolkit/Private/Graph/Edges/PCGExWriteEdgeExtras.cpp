@@ -359,7 +359,11 @@ Context->SolidificationRad##_AXIS->Grab(*Context->CurrentEdges); }
 		Context->SetState(PCGExGraph::State_ReadyForNextEdges);
 	}
 
-	if (Context->IsDone()) { Context->OutputPointsAndEdges(); }
+	if (Context->IsDone())
+	{
+		Context->OutputPointsAndEdges();
+		Context->ExecutionComplete();
+	}
 
 	return Context->IsDone();
 }

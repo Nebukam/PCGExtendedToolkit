@@ -54,7 +54,8 @@ bool FPCGExCopyClustersElement::ExecuteInternal(FPCGContext* InContext) const
 
 	Context->OutputPointsAndEdges();
 	Context->Done();
-
+	Context->ExecutionComplete();
+	
 	return Context->IsDone();
 }
 

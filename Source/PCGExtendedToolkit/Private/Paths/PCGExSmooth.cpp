@@ -75,6 +75,7 @@ bool FPCGExSmoothElement::ExecuteInternal(FPCGContext* InContext) const
 		PCGEX_WAIT_ASYNC
 		Context->OutputPoints();
 		Context->Done();
+		Context->ExecutionComplete();
 	}
 
 	return Context->IsDone();

@@ -128,6 +128,7 @@ bool FPCGExAttributeRemapElement::ExecuteInternal(FPCGContext* InContext) const
 
 		Context->OutputPoints();
 		Context->Done();
+		Context->ExecutionComplete();
 	}
 
 	return Context->IsDone();

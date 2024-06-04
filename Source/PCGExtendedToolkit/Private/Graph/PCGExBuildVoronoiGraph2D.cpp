@@ -110,6 +110,7 @@ bool FPCGExBuildVoronoiGraph2DElement::ExecuteInternal(
 	if (Context->IsDone())
 	{
 		Context->OutputPoints();
+		Context->ExecutionComplete();
 	}
 
 	return Context->IsDone();

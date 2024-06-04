@@ -231,6 +231,7 @@ bool FPCGExDiscardByOverlapElement::ExecuteInternal(FPCGContext* InContext) cons
 		}
 
 		Context->Done();
+		Context->ExecutionComplete();
 	}
 
 	return Context->IsDone();

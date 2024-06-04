@@ -280,31 +280,20 @@ bool FPCGExPointsProcessorContext::AdvancePointsIO()
 void FPCGExPointsProcessorContext::Done()
 {
 	SetState(PCGExMT::State_Done);
+}
 
+void FPCGExPointsProcessorContext::ExecutionComplete()
+{
 	PCGEX_SETTINGS_LOCAL(PointsProcessor)
-
 	if (Settings->bFlattenOutput)
 	{
-		// TODO : Refactor
+		TSet<uint64> InputUIDs;
+		InputUIDs.Reserve(OutputData.TaggedData.Num());
+		for (FPCGTaggedData& OutTaggedData : OutputData.TaggedData) { if (const UPCGSpatialData* SpatialData = Cast<UPCGSpatialData>(OutTaggedData.Data)) { InputUIDs.Add(SpatialData->UID); } }
+
 		for (FPCGTaggedData& OutTaggedData : OutputData.TaggedData)
 		{
-			const UPCGSpatialData* SpatialData = Cast<UPCGSpatialData>(OutTaggedData.Data);
-
-			if (!SpatialData) { continue; }
-
-			bool bIsNewOutput = true;
-			for (FPCGTaggedData& InTaggedData : InputData.TaggedData)
-			{
-				if (InTaggedData.Data == OutTaggedData.Data)
-				{
-					bIsNewOutput = false;
-					break;
-				}
-			}
-
-			if (!bIsNewOutput) { continue; }
-
-			SpatialData->Metadata->Flatten();
+			if (const UPCGSpatialData* SpatialData = Cast<UPCGSpatialData>(OutTaggedData.Data); SpatialData && !InputUIDs.Contains(SpatialData->UID)) { SpatialData->Metadata->Flatten(); }
 		}
 	}
 }

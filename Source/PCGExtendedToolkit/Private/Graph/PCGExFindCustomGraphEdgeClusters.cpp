@@ -166,7 +166,9 @@ bool FPCGExFindCustomGraphEdgeClustersElement::ExecuteInternal(
 					Context->Graphs.ForEach(Context, DeleteSockets);
 				});
 		}
+		
 		Context->OutputPoints();
+		Context->ExecutionComplete();
 	}
 
 	return Context->IsDone();

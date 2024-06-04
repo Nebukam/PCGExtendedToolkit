@@ -195,6 +195,8 @@ bool FPCGExPromoteEdgesElement::ExecuteInternal(
 		{
 			Context->OutputPoints();
 		}
+		
+		Context->ExecutionComplete();
 	}
 
 	return Context->IsDone();

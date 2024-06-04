@@ -155,7 +155,6 @@ void PCGExGrow::FGrowth::Write()
 		MutablePoints.Add(InPoints[Context->CurrentCluster->Nodes[VtxIndex].PointIndex]);
 	}
 
-	PathPoints.Flatten();
 	PathPoints.Tags->Append(VtxPoints.Tags);
 
 	if (Settings->bUseSeedAttributeToTagPath)
@@ -518,6 +517,7 @@ bool FPCGExPathfindingGrowPathsElement::ExecuteInternal(FPCGContext* InContext) 
 	if (Context->IsDone())
 	{
 		Context->OutputPaths->OutputTo(Context);
+		Context->ExecutionComplete();
 	}
 
 	return Context->IsDone();

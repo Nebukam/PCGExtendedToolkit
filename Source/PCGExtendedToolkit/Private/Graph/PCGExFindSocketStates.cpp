@@ -168,6 +168,8 @@ bool FPCGExFindSocketStatesElement::ExecuteInternal(
 		{
 			Context->OutputPointsAndGraphParams();
 		}
+		
+		Context->ExecutionComplete();
 	}
 
 	return Context->IsDone();

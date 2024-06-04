@@ -142,7 +142,11 @@ bool FPCGExSampleSurfaceGuidedElement::ExecuteInternal(FPCGContext* InContext) c
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
-	if (Context->IsDone()) { Context->OutputPoints(); }
+	if (Context->IsDone())
+	{
+		Context->OutputPoints();
+		Context->ExecutionComplete();
+	}
 
 	return Context->IsDone();
 }

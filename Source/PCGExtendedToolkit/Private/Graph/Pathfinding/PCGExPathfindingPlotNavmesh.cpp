@@ -104,6 +104,7 @@ bool FPCGExPathfindingPlotNavmeshElement::ExecuteInternal(FPCGContext* InContext
 	if (Context->IsDone())
 	{
 		Context->OutputPaths->OutputTo(Context);
+		Context->ExecutionComplete();
 	}
 
 	return Context->IsDone();
@@ -253,8 +254,6 @@ bool FPCGExPlotNavmeshTask::ExecuteTask()
 
 	if (!Context->bAddSeedToPath) { MutablePoints.RemoveAt(0); }
 	if (!Context->bAddGoalToPath) { MutablePoints.Pop(); }
-
-	PathPoints.Flatten();
 
 	return true;
 }

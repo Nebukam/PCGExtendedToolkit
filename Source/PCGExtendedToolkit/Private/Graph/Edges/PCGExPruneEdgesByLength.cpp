@@ -176,6 +176,7 @@ bool FPCGExPruneEdgesByLengthElement::ExecuteInternal(FPCGContext* InContext) co
 	if (Context->IsDone())
 	{
 		Context->OutputPointsAndEdges();
+		Context->ExecutionComplete();
 	}
 
 	return Context->IsDone();

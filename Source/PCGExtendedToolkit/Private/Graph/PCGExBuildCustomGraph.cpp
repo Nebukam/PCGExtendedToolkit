@@ -159,7 +159,11 @@ bool FPCGExBuildCustomGraphElement::ExecuteInternal(
 		Context->SetState(PCGExGraph::State_ReadyForNextGraph);
 	}
 
-	if (Context->IsDone()) { Context->OutputPointsAndGraphParams(); }
+	if (Context->IsDone())
+	{
+		Context->OutputPointsAndGraphParams();
+		Context->ExecutionComplete();
+	}
 
 	return Context->IsDone();
 }

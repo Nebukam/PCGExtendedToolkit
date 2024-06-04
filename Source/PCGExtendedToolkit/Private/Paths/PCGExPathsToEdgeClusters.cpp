@@ -332,6 +332,7 @@ bool FPCGExPathsToEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) c
 	if (Context->IsDone())
 	{
 		Context->OutputPoints();
+		Context->ExecutionComplete();
 	}
 
 	return Context->IsDone();

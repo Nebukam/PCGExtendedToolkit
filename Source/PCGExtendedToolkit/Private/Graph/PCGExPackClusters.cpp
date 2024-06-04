@@ -99,6 +99,7 @@ bool FPCGExPackClustersElement::ExecuteInternal(
 	if (Context->IsDone())
 	{
 		Context->PackedClusters->OutputTo(Context);
+		Context->ExecutionComplete();
 	}
 
 	return Context->IsDone();
@@ -133,7 +134,6 @@ bool FPCGExPackClusterTask::ExecuteTask()
 
 	FString OutPairId;
 	PointIO->Tags->Set(PCGExGraph::TagStr_ClusterPair, InEdges->GetIn()->UID, OutPairId);
-	if (Settings->bFlatten) { PointIO->Flatten(); }
 
 	InEdges->CleanupKeys();
 

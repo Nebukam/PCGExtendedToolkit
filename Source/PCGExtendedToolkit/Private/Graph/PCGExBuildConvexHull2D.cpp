@@ -133,6 +133,7 @@ bool FPCGExBuildConvexHull2DElement::ExecuteInternal(
 	{
 		Context->OutputPoints(Settings->bPrunePoints);
 		Context->PathsIO->OutputTo(Context);
+		Context->ExecutionComplete();
 	}
 
 	return Context->IsDone();

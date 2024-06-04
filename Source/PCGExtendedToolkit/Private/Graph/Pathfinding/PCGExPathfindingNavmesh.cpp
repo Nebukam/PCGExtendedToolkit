@@ -133,8 +133,10 @@ bool FPCGExPathfindingNavmeshElement::ExecuteInternal(FPCGContext* InContext) co
 	if (Context->IsState(PCGExPathfinding::State_Pathfinding))
 	{
 		PCGEX_WAIT_ASYNC
+		
 		Context->OutputPaths->OutputTo(Context);
 		Context->Done();
+		Context->ExecutionComplete();
 	}
 
 	return Context->IsDone();
@@ -229,8 +231,6 @@ bool FSampleNavmeshTask::ExecuteTask()
 
 	if (!Context->bAddSeedToPath) { MutablePoints.RemoveAt(0); }
 	if (!Context->bAddGoalToPath) { MutablePoints.Pop(); }
-
-	PathPoints.Flatten();
 
 	return true;
 }

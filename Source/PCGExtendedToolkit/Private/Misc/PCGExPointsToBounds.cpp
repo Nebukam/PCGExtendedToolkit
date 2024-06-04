@@ -74,7 +74,11 @@ bool FPCGExPointsToBoundsElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
-		if (!Context->AdvancePointsIO()) { Context->Done(); }
+		if (!Context->AdvancePointsIO())
+		{
+			Context->Done();
+			Context->ExecutionComplete();
+		}
 		else { Context->SetState(PCGExMT::State_ProcessingPoints); }
 	}
 
@@ -124,7 +128,6 @@ bool FPCGExPointsToBoundsElement::ExecuteInternal(FPCGContext* InContext) const
 
 		if (Settings->bWritePointsCount) { PCGExData::WriteMark(OutData->Metadata, Settings->PointsCountAttributeName, NumPoints); }
 
-		Context->CurrentIO->Flatten();
 		Context->CurrentIO->OutputTo(Context);
 
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);

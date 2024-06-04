@@ -194,6 +194,8 @@ bool FPCGExFilterClustersElement::ExecuteInternal(
 		}
 
 		Context->OutputPointsAndEdges();
+		Context->ExecutionComplete();
+		
 	}
 
 	return Context->IsDone();

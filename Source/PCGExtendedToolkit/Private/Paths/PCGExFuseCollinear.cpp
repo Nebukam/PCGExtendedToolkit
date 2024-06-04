@@ -82,6 +82,7 @@ bool FPCGExFuseCollinearElement::ExecuteInternal(FPCGContext* InContext) const
 	if (Context->IsDone())
 	{
 		Context->OutputPoints();
+		Context->ExecutionComplete();
 	}
 
 	return Context->IsDone();

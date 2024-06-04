@@ -295,6 +295,7 @@ bool FPCGExFuseClustersLocalElement::ExecuteInternal(FPCGContext* InContext) con
 	if (Context->IsDone())
 	{
 		Context->OutputPoints();
+		Context->ExecutionComplete();
 	}
 
 	return Context->IsDone();

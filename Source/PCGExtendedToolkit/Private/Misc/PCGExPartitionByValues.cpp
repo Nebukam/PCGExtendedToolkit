@@ -319,7 +319,9 @@ bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* InContext) con
 		};
 
 		if (!Context->Process(CreatePartition, Context->NumPartitions)) { return false; }
+		
 		Context->Done();
+		Context->ExecutionComplete();
 	}
 
 	return Context->IsDone();

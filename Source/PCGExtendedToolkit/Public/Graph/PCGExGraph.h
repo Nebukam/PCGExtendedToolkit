@@ -647,7 +647,6 @@ namespace PCGExGraphTask
 			}
 		}
 
-		EdgeIO.Flatten();
 	};
 
 	class PCGEXTENDEDTOOLKIT_API FWriteSubGraphEdges : public FPCGExNonAbandonableTask

@@ -122,8 +122,6 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 			Context->CompoundGraph->PointsCompounds, PCGExSettings::GetDistanceSettings(*ISettings), &Context->GraphMetadataSettings);
 */
 
-		Context->CurrentIO->Flatten();
-
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 		return false;
 	}
@@ -131,6 +129,7 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 	if (Context->IsDone())
 	{
 		Context->OutputPoints();
+		Context->ExecutionComplete();
 	}
 
 	return Context->IsDone();

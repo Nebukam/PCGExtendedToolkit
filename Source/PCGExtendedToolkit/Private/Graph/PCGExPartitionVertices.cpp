@@ -83,6 +83,7 @@ bool FPCGExPartitionVerticesElement::ExecuteInternal(FPCGContext* InContext) con
 	{
 		Context->VtxPartitions->OutputTo(Context);
 		Context->MainEdges->OutputTo(Context);
+		Context->ExecutionComplete();
 	}
 
 	return Context->IsDone();
@@ -99,8 +100,6 @@ bool FPCGExCreateVtxPartitionTask::ExecuteTask()
 
 	PointIO->GetOut()->GetMutablePoints().SetNum(View.Num());
 	PCGEx::CopyPoints(*PointIO, *PointIO, View, 0, true);
-
-	PointIO->Flatten();
 
 	return true;
 }

@@ -279,14 +279,12 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 
 		if (Context->GraphBuilder->bCompiledSuccessfully)
 		{
-			//TODO : Need to merge edge compounds once we have the final edge configuration.
-
-			Context->GraphBuilder->PointIO->Flatten();
 			Context->GraphBuilder->Write(Context);
 			Context->OutputPoints();
 		}
 
 		Context->Done();
+		Context->ExecutionComplete();
 	}
 
 	if (Context->IsState(PCGExGraph::State_MergingEdgeCompounds))
