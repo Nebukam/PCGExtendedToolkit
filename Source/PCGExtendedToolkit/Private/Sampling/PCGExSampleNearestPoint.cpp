@@ -252,7 +252,6 @@ bool FPCGExSamplePointTask::ExecuteTask()
 	const TArray<FPCGPoint>& TargetPoints = Context->Targets->GetIn()->GetPoints();
 	const int32 NumTargets = TargetPoints.Num();
 	FPCGPoint& SourcePoint = PointIO->GetMutablePoint(TaskIndex);
-	FPCGPoint SourcePointBlendCopy = PointIO->GetOutPoint(TaskIndex);
 	const FVector SourceCenter = SourcePoint.Transform.GetLocation();
 
 	double RangeMin = FMath::Pow(Context->RangeMinGetter->SafeGet(TaskIndex, Settings->RangeMin), 2);
@@ -359,7 +358,7 @@ bool FPCGExSamplePointTask::ExecuteTask()
 		if (Context->Blender) { Context->Blender->Blend(TaskIndex, TargetInfos.Index, TaskIndex, Weight); }
 	};
 
-	if (Context->Blender) { Context->Blender->PrepareForBlending(TaskIndex, &SourcePointBlendCopy); }
+	if (Context->Blender) { Context->Blender->PrepareForBlending(TaskIndex, &SourcePoint); }
 
 	if (bSingleSample)
 	{
