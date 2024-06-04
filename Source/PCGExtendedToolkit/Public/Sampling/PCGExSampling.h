@@ -25,6 +25,7 @@ PCGEX_DELETE(Context->_NAME##Writer)}
 #define PCGEX_OUTPUT_VALUE(_NAME, _INDEX, _VALUE) if(Context->_NAME##Writer){(*Context->_NAME##Writer)[_INDEX] = _VALUE; }
 #define PCGEX_OUTPUT_WRITE(_NAME, _TYPE) if(Context->_NAME##Writer){Context->_NAME##Writer->Write();}
 #define PCGEX_OUTPUT_ACCESSOR_INIT(_NAME, _TYPE) if(Context->_NAME##Writer){Context->_NAME##Writer->BindAndGet(PointIO);}
+#define PCGEX_OUTPUT_ACCESSOR_INIT_PTR(_NAME, _TYPE) if(Context->_NAME##Writer){Context->_NAME##Writer->BindAndGet(*PointIO);}
 #define PCGEX_OUTPUT_DELETE(_NAME, _TYPE) PCGEX_DELETE(_NAME##Writer)
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Sample Method"))

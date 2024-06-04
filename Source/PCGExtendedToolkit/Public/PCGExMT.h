@@ -369,6 +369,7 @@ public:
 
 	virtual bool ExecuteTask() override
 	{
+		if (!LoopInit()) { return false; }
 		const int32 LoopCount = FMath::Max(NumIterations / ChunkSize, 1);
 		int32 StartIndex = 0;
 
@@ -382,4 +383,6 @@ public:
 
 		return true;
 	}
+
+	virtual bool LoopInit() { return true; }
 };

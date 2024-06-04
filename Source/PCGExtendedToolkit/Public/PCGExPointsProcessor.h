@@ -280,18 +280,30 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : public FPCGContext
 	}
 
 	template <class LoopBodyFunc>
-	void ParallelAsyncProcess(LoopBodyFunc&& LoopBody, const int32 NumIterations)
+	void StartAsyncLoop(LoopBodyFunc&& LoopBody, const int32 NumIterations)
 	{
-		ParallelAsyncProcess(
+		StartAsyncLoop(
 			[&]()
 			{
 			}, LoopBody, NumIterations);
 	}
 
-	template <typename T>
-	void ParallelAsyncProcess(PCGExData::FPointIO* PointIO, const int32 NumIterations, const int32 ChunkSizeOverride = -1)
+	template <typename ChunkTask>
+	void StartAsyncLoop(PCGExData::FPointIO* PointIO, const int32 NumIterations, const int32 ChunkSizeOverride = -1)
 	{
-		GetAsyncManager()->Start<FPCGExParallelLoopTask<T>>(-1, PointIO, NumIterations, ChunkSizeOverride <= 0 ? ChunkSize : ChunkSizeOverride);
+		GetAsyncManager()->Start<FPCGExParallelLoopTask<ChunkTask>>(-1, PointIO, NumIterations, ChunkSizeOverride <= 0 ? ChunkSize : ChunkSizeOverride);
+	}
+
+	template <typename MainTask, typename ChunkTask>
+	void StartAsyncLoop(PCGExData::FPointIO* PointIO, const int32 NumIterations, const int32 ChunkSizeOverride = -1)
+	{
+		GetAsyncManager()->Start<MainTask<ChunkTask>>(-1, PointIO, NumIterations, ChunkSizeOverride <= 0 ? ChunkSize : ChunkSizeOverride);
+	}
+
+	template <typename FullTask>
+	void StartAsyncLoopEx(PCGExData::FPointIO* PointIO, const int32 NumIterations, const int32 ChunkSizeOverride = -1)
+	{
+		GetAsyncManager()->Start<FullTask>(-1, PointIO, NumIterations, ChunkSizeOverride <= 0 ? ChunkSize : ChunkSizeOverride);
 	}
 
 	FPCGTaggedData* Output(UPCGData* OutData, const FName OutputLabel);

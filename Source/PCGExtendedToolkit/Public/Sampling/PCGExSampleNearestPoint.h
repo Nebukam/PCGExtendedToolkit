@@ -306,13 +306,30 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExSamplePointTask : public FPCGExNonAbandonableTask
+namespace PCGExSampleNearestPointTasks
 {
-public:
-	FPCGExSamplePointTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO) :
-		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO)
+	class PCGEXTENDEDTOOLKIT_API FSamplePoint : public FPCGExLoopChunkTask
 	{
-	}
+	public:
+		FSamplePoint(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO, const int32 NumIterations) :
+			FPCGExLoopChunkTask(InManager, InTaskIndex, InPointIO, NumIterations)
+		{
+		}
 
-	virtual bool ExecuteTask() override;
-};
+		virtual void LoopBody(const int32 Iteration) override;
+	};
+
+	class PCGEXTENDEDTOOLKIT_API FPointLoop : public FPCGExParallelLoopTask<FSamplePoint>
+	{
+	public:
+		FPointLoop(
+			FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+			const int32 InNumIterations, const int32 InChunkSize) :
+			FPCGExParallelLoopTask(InManager, InTaskIndex, InPointIO, InNumIterations, InChunkSize)
+		{
+		}
+
+		virtual bool LoopInit() override;
+	};
+
+}
