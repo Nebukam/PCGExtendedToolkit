@@ -210,7 +210,7 @@ public:
 	/** Cache the results of this node. Can yield unexpected result in certain cases.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Performance")
 	bool bCacheResult = false;
-	
+
 	/** Flatten the output of this node.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Performance")
 	bool bFlattenOutput = false;
@@ -280,18 +280,18 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : public FPCGContext
 	}
 
 	template <class LoopBodyFunc>
-	void ParallelProcess(LoopBodyFunc&& LoopBody, const int32 NumIterations)
+	void ParallelAsyncProcess(LoopBodyFunc&& LoopBody, const int32 NumIterations)
 	{
-		ParallelProcess(
+		ParallelAsyncProcess(
 			[&]()
 			{
 			}, LoopBody, NumIterations);
 	}
 
-	template <class InitializeFunc, class LoopBodyFunc>
-	void ParallelProcess(InitializeFunc&& Initialize, LoopBodyFunc&& LoopBody, const int32 NumIterations)
+	template <typename T>
+	void ParallelAsyncProcess(PCGExData::FPointIO* PointIO, const int32 NumIterations, const int32 ChunkSizeOverride = -1)
 	{
-		GetAsyncManager()->Start<FPCGExParallelLoopTask>(-1, nullptr, Initialize, LoopBody, NumIterations, ChunkSize);
+		GetAsyncManager()->Start<FPCGExParallelLoopTask<T>>(-1, PointIO, NumIterations, ChunkSizeOverride <= 0 ? ChunkSize : ChunkSizeOverride);
 	}
 
 	FPCGTaggedData* Output(UPCGData* OutData, const FName OutputLabel);

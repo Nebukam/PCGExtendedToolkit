@@ -328,58 +328,47 @@ protected:
 	bool Checkpoint() const { return !(!Manager || Manager->bStopped || Manager->bFlushing); }
 };
 
-
-template <class TBodyFunc>
 class PCGEXTENDEDTOOLKIT_API FPCGExLoopChunkTask : public FPCGExNonAbandonableTask
 {
 public:
 	FPCGExLoopChunkTask(
 		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-		TBodyFunc&& InBodyFunc,
 		const int32 InNumIterations) :
 		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
-		BodyFunc(InBodyFunc),
 		NumIterations(InNumIterations)
 	{
 	}
 
-	TBodyFunc&& BodyFunc;
 	int32 NumIterations = 0;
 
 	virtual bool ExecuteTask() override
 	{
-		for (int i = 0; i < NumIterations; i++) { BodyFunc(TaskIndex + i); }
+		for (int i = 0; i < NumIterations; i++) { LoopBody(TaskIndex + i); }
 		return true;
 	}
+
+	virtual void LoopBody(const int32 Iteration) = 0;
 };
 
-template <class TInitFunc, class TBodyFunc>
+template <typename T>
 class PCGEXTENDEDTOOLKIT_API FPCGExParallelLoopTask : public FPCGExNonAbandonableTask
 {
 public:
 	FPCGExParallelLoopTask(
 		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-		TInitFunc&& InInitFunc,
-		TBodyFunc&& InBodyFunc,
 		const int32 InNumIterations,
 		const int32 InChunkSize) :
 		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
-		InitFunc(InInitFunc),
-		BodyFunc(InBodyFunc),
 		NumIterations(InNumIterations),
 		ChunkSize(InChunkSize)
 	{
 	}
 
-	TInitFunc&& InitFunc;
-	TBodyFunc&& BodyFunc;
 	int32 NumIterations = 0;
 	int32 ChunkSize = 0;
 
 	virtual bool ExecuteTask() override
 	{
-		InitFunc();
-
 		const int32 LoopCount = FMath::Max(NumIterations / ChunkSize, 1);
 		int32 StartIndex = 0;
 
@@ -387,7 +376,7 @@ public:
 		{
 			const int32 LoopNumIterations = FMath::Min(NumIterations, FMath::Min(ChunkSize, NumIterations - (ChunkSize * i)));
 			if (LoopNumIterations == 0) { break; }
-			Manager->Start<FPCGExLoopChunkTask<TBodyFunc>>(StartIndex, nullptr, BodyFunc, LoopNumIterations);
+			Manager->Start<T>(StartIndex, PointIO, LoopNumIterations);
 			StartIndex += ChunkSize;
 		}
 
