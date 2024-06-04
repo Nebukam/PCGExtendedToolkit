@@ -248,8 +248,6 @@ namespace PCGExSampleNearestPointTasks
 
 	void FSamplePoint::LoopBody(const int32 Iteration)
 	{
-		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExSamplePointTask::Execute);
-
 		const FPCGExSampleNearestPointContext* Context = Manager->GetContext<FPCGExSampleNearestPointContext>();
 		PCGEX_SETTINGS(SampleNearestPoint)
 
