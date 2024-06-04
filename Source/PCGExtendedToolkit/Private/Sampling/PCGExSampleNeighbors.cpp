@@ -142,11 +142,11 @@ bool FPCGExSampleNeighborsElement::ExecuteInternal(
 
 		if (Context->CurrentOperation->BaseSettings.NeighborSource == EPCGExGraphValueSource::Point)
 		{
-			if (!Context->Process(ProcessNodePoints, Context->CurrentCluster->Nodes.Num(), true)) { return false; }
+			if (!Context->Process(ProcessNodePoints, Context->CurrentCluster->Nodes.Num())) { return false; }
 		}
 		else
 		{
-			if (!Context->Process(ProcessNodeEdges, Context->CurrentCluster->Nodes.Num(), true)) { return false; }
+			if (!Context->Process(ProcessNodeEdges, Context->CurrentCluster->Nodes.Num())) { return false; }
 		}
 
 		Context->CurrentOperation->FinalizeOperation();

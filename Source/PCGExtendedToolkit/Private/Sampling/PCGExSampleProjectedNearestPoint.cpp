@@ -139,7 +139,6 @@ bool FPCGExSampleProjectedNearestPointElement::Boot(FPCGContext* InContext) cons
 
 bool FPCGExSampleProjectedNearestPointElement::ExecuteInternal(FPCGContext* InContext) const
 {
-	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExSampleProjectedNearestPointElement::Execute);
 
 	PCGEX_CONTEXT_AND_SETTINGS(SampleProjectedNearestPoint)
 
