@@ -34,7 +34,6 @@ FPCGExPackClustersContext::~FPCGExPackClustersContext()
 	PCGEX_TERMINATE_ASYNC
 
 	PCGEX_DELETE(PackedClusters)
-	PCGEX_DELETE(VtxAttributes)
 }
 
 
@@ -65,10 +64,7 @@ bool FPCGExPackClustersElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
-		PCGEX_DELETE(Context->VtxAttributes)
-
-		if (!Context->AdvancePointsIO()) { Context->Done(); }
-		else
+		while (Context->AdvancePointsIO())
 		{
 			if (!Context->TaggedEdges)
 			{
@@ -77,23 +73,20 @@ bool FPCGExPackClustersElement::ExecuteInternal(
 				return false;
 			}
 
-			Context->VtxAttributes = PCGEx::FAttributesInfos::Get(Context->CurrentIO->GetIn()->Metadata);
-
 			for (PCGExData::FPointIO* EdgeIO : Context->TaggedEdges->Entries)
 			{
-				EdgeIO->CreateInKeys();
-				PCGExData::FPointIO& PackedIO = Context->PackedClusters->Emplace_GetRef(*EdgeIO, PCGExData::EInit::DuplicateInput); // Pack from edges
-				Context->GetAsyncManager()->Start<FPCGExPackClusterTask>(PackedIO.IOIndex, &PackedIO, Context->CurrentIO, EdgeIO);
+				Context->GetAsyncManager()->Start<FPCGExPackClusterTask>(-1, Context->CurrentIO, EdgeIO, Context->NodeIndicesMap);
 			}
-
-			Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork);
 		}
+		
+		Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork);
+		
 	}
 
 	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
 	{
 		PCGEX_WAIT_ASYNC
-		Context->SetState(PCGExMT::State_ReadyForNextPoints);
+		Context->Done();
 	}
 
 	if (Context->IsDone())
@@ -108,35 +101,39 @@ bool FPCGExPackClustersElement::ExecuteInternal(
 bool FPCGExPackClusterTask::ExecuteTask()
 {
 	const FPCGExPackClustersContext* Context = Manager->GetContext<FPCGExPackClustersContext>();
-
 	PCGEX_SETTINGS(PackClusters)
+
+	PCGEx::FAttributesInfos* VtxAttributes = PCGEx::FAttributesInfos::Get(PointIO->GetIn()->Metadata);
+
+	InEdges->CreateInKeys();
+	PCGExData::FPointIO& PackedIO = Context->PackedClusters->Emplace_GetRef(*InEdges, PCGExData::EInit::DuplicateInput);
 
 	int32 NumEdges = 0;
 	TArray<int32> ReducedVtxIndices;
 
-	if (!PCGExGraph::GetReducedVtxIndices(*InEdges, &Context->NodeIndicesMap, ReducedVtxIndices, NumEdges)) { return false; }
+	if (!PCGExGraph::GetReducedVtxIndices(*InEdges, &NodeIndicesMap, ReducedVtxIndices, NumEdges)) { return false; }
 
-	TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
+	TArray<FPCGPoint>& MutablePoints = PackedIO.GetOut()->GetMutablePoints();
 	MutablePoints.SetNum(NumEdges + ReducedVtxIndices.Num());
 
-	PointIO->CleanupKeys();
-	PointIO->CreateOutKeys();
+	PackedIO.CleanupKeys();
+	PackedIO.CreateOutKeys();
 
 	const TArrayView<int32> View = MakeArrayView(ReducedVtxIndices);
-	PCGEx::CopyPoints(*InVtx, *PointIO, View, NumEdges);
+	PCGEx::CopyPoints(*PointIO, PackedIO, View, NumEdges);
 
-	for (const PCGEx::FAttributeIdentity& Identity : Context->VtxAttributes->Identities)
+	for (const PCGEx::FAttributeIdentity& Identity : VtxAttributes->Identities)
 	{
-		CopyValues(Identity, *InVtx, *PointIO, View, NumEdges);
+		CopyValues(Identity, *PointIO, PackedIO, View, NumEdges);
 	}
 
-	WriteMark(*PointIO, PCGExGraph::Tag_PackedClusterEdgeCount, NumEdges);
+	WriteMark(PackedIO, PCGExGraph::Tag_PackedClusterEdgeCount, NumEdges);
 
 	FString OutPairId;
-	PointIO->Tags->Set(PCGExGraph::TagStr_ClusterPair, InEdges->GetIn()->UID, OutPairId);
+	PackedIO.Tags->Set(PCGExGraph::TagStr_ClusterPair, InEdges->GetIn()->UID, OutPairId);
 
 	InEdges->CleanupKeys();
-
+	
 	return true;
 }
 

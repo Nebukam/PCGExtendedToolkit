@@ -45,7 +45,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPackClustersContext : public FPCGExEdgesProc
 
 	virtual ~FPCGExPackClustersContext() override;
 
-	PCGEx::FAttributesInfos* VtxAttributes;
 	PCGExData::FPointIOCollection* PackedClusters = nullptr;
 };
 
@@ -66,16 +65,21 @@ class PCGEXTENDEDTOOLKIT_API FPCGExPackClusterTask : public FPCGExNonAbandonable
 {
 public:
 	FPCGExPackClusterTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-	                      PCGExData::FPointIO* InInVtx,
-	                      PCGExData::FPointIO* InInEdges) :
+	                      PCGExData::FPointIO* InInEdges,
+	                      const TMap<int64, int32>& InNodeIndicesMap) :
 		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
-		InVtx(InInVtx),
-		InEdges(InInEdges)
+		InEdges(InInEdges),
+		NodeIndicesMap(InNodeIndicesMap)
 	{
 	}
 
-	PCGExData::FPointIO* InVtx = nullptr;
+	virtual ~FPCGExPackClusterTask()
+	{		
+		NodeIndicesMap.Empty();
+	}
+
 	PCGExData::FPointIO* InEdges = nullptr;
+	TMap<int64, int32> NodeIndicesMap;
 
 	virtual bool ExecuteTask() override;
 };

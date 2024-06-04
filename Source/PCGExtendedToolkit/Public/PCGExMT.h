@@ -294,6 +294,7 @@ protected:
 class PCGEXTENDEDTOOLKIT_API FPCGExNonAbandonableTask : public FNonAbandonableTask
 {
 public:
+	virtual ~FPCGExNonAbandonableTask() = default;
 	FPCGExAsyncManager* Manager = nullptr;
 	int32 TaskIndex = -1;
 	FAsyncTaskBase* TaskPtr = nullptr;
