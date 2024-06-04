@@ -220,8 +220,8 @@ TArray<FPCGPinProperties> UPCGExPointsProcessorSettings::InputPinProperties() co
 {
 	TArray<FPCGPinProperties> PinProperties;
 
-	if(GetMainAcceptMultipleData()){ PCGEX_PIN_POINTS(GetMainInputLabel(), "The point data to be processed.", Required, {}) }
-	else{PCGEX_PIN_POINT(GetMainInputLabel(), "The point data to be processed.", Required, {})}
+	if (GetMainAcceptMultipleData()) { PCGEX_PIN_POINTS(GetMainInputLabel(), "The point data to be processed.", Required, {}) }
+	else { PCGEX_PIN_POINT(GetMainInputLabel(), "The point data to be processed.", Required, {}) }
 
 	return PinProperties;
 }
@@ -280,6 +280,33 @@ bool FPCGExPointsProcessorContext::AdvancePointsIO()
 void FPCGExPointsProcessorContext::Done()
 {
 	SetState(PCGExMT::State_Done);
+
+	PCGEX_SETTINGS_LOCAL(PointsProcessor)
+
+	if (Settings->bFlattenOutput)
+	{
+		// TODO : Refactor
+		for (FPCGTaggedData& OutTaggedData : OutputData.TaggedData)
+		{
+			const UPCGSpatialData* SpatialData = Cast<UPCGSpatialData>(OutTaggedData.Data);
+
+			if (!SpatialData) { continue; }
+
+			bool bIsNewOutput = true;
+			for (FPCGTaggedData& InTaggedData : InputData.TaggedData)
+			{
+				if (InTaggedData.Data == OutTaggedData.Data)
+				{
+					bIsNewOutput = false;
+					break;
+				}
+			}
+
+			if (!bIsNewOutput) { continue; }
+
+			SpatialData->Metadata->Flatten();
+		}
+	}
 }
 
 void FPCGExPointsProcessorContext::SetState(const PCGExMT::AsyncState OperationId, const bool bResetAsyncWork)

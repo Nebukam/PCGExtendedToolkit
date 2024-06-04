@@ -23,7 +23,6 @@ if(ResetBlend.Contains(_NAME##Blending)){ bReset##_NAME=true; bRequiresPrepare =
 #undef PCGEX_BLEND_FUNCASSIGN
 
 		bHasNoBlending = Settings.HasNoBlending();
-		
 	}
 
 	void FPropertiesBlender::PrepareBlending(FPCGPoint& Target, const FPCGPoint& Default) const

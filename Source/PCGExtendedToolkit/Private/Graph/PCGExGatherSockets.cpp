@@ -40,7 +40,7 @@ TArray<FPCGPinProperties> UPCGExGatherSocketsSettings::InputPinProperties() cons
 TArray<FPCGPinProperties> UPCGExGatherSocketsSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_PARAM(PCGExGraph::SourceSingleGraphLabel, "Outputs a unified graph param object.", Required, {})	
+	PCGEX_PIN_PARAM(PCGExGraph::SourceSingleGraphLabel, "Outputs a unified graph param object.", Required, {})
 	return PinProperties;
 }
 

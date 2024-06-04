@@ -112,7 +112,7 @@ public:
 	/** Write the sampled distance. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Blending", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bBlendPointProperties = false;
-	
+
 	/** The constant to use as Up vector for the look at transform.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Blending", meta=(PCG_Overridable, EditCondition="bBlendPointProperties"))
 	FPCGExPropertiesBlendingSettings PointPropertiesBlendingSettings = FPCGExPropertiesBlendingSettings(EPCGExDataBlendingType::None);
@@ -202,7 +202,6 @@ public:
 	/** Name of the 'int32' attribute to write the number of sampled neighbors to.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteNumSamples"))
 	FName NumSamplesAttributeName = FName("NumSamples");
-	
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExSampleProjectedNearestPointContext : public FPCGExPointsProcessorContext
@@ -220,7 +219,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleProjectedNearestPointContext : public 
 
 	TArray<UPCGExFilterFactoryBase*> ValueFilterFactories;
 	PCGExDataFilter::TEarlyExitFilterManager* ValueFilterManager = nullptr;
-	
+
 	TArray<FPCGPoint> ProjectedSourceIO;
 	TArray<FPCGPoint> ProjectedTargetIO;
 
@@ -239,7 +238,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleProjectedNearestPointContext : public 
 
 	FPCGExGeo2DProjectionSettings ProjectionSettings;
 	PointOctree* ProjectedTargetOctree = nullptr;
-
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExSampleProjectedNearestPointElement : public FPCGExPointsProcessorElementBase

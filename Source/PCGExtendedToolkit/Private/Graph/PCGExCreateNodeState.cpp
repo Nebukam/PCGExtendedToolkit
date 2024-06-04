@@ -33,7 +33,7 @@ UPCGExParamFactoryBase* UPCGExCreateNodeStateSettings::CreateFactory(FPCGContext
 	if (!ValidateStateName(Context)) { return nullptr; }
 
 	TArray<UPCGExFilterFactoryBase*> FilterFactories;
-	if (!PCGExFactories::GetInputFactories(Context, PCGExDataState::SourceFiltersLabel, FilterFactories, PCGExFactories::ClusterFilters)) { return nullptr; }
+	if (!GetInputFactories(Context, PCGExDataState::SourceFiltersLabel, FilterFactories, PCGExFactories::ClusterFilters)) { return nullptr; }
 
 	UPCGExNodeStateFactory* OutState = CreateStateFactory<UPCGExNodeStateFactory>(Context);
 	OutState->FilterFactories.Append(FilterFactories);

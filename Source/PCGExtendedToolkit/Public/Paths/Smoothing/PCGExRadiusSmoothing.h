@@ -17,12 +17,10 @@ class PCGEXTENDEDTOOLKIT_API UPCGExRadiusSmoothing : public UPCGExSmoothingOpera
 	GENERATED_BODY()
 
 public:
-	
 	virtual void DoSmooth(
 		PCGExData::FPointIO& InPointIO,
 		const TArray<double>* Smoothing,
 		const TArray<double>* Influence,
 		const bool bClosedPath,
 		const FPCGExBlendingSettings* BlendingSettings) override;
-
 };

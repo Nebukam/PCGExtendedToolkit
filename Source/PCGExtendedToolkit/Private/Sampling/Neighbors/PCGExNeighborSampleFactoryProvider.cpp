@@ -331,10 +331,10 @@ UPCGExParamFactoryBase* UPCGExNeighborSampleProviderSettings::CreateFactory(FPCG
 	UPCGNeighborSamplerFactoryBase* SamplerFactory = Cast<UPCGNeighborSamplerFactoryBase>(InFactory);
 	SamplerFactory->Priority = Priority;
 	SamplerFactory->SamplingSettings = SamplingSettings;
-	PCGExFactories::GetInputFactories(InContext, PCGEx::SourcePointFilters, SamplerFactory->FilterFactories, PCGExFactories::ClusterFilters, false);
+	GetInputFactories(InContext, PCGEx::SourcePointFilters, SamplerFactory->FilterFactories, PCGExFactories::ClusterFilters, false);
 
 	TArray<UPCGExFilterFactoryBase*> FilterFactories;
-	if (PCGExFactories::GetInputFactories(InContext, PCGEx::SourceUseValueIfFilters, FilterFactories, PCGExFactories::ClusterFilters, false))
+	if (GetInputFactories(InContext, PCGEx::SourceUseValueIfFilters, FilterFactories, PCGExFactories::ClusterFilters, false))
 	{
 		SamplerFactory->ValueStateFactory = NewObject<UPCGExNodeStateFactory>();
 		SamplerFactory->ValueStateFactory->FilterFactories.Append(FilterFactories);

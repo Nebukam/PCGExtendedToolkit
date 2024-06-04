@@ -27,7 +27,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExNeighborSampleAttribute : public UPCGExNeighb
 
 public:
 	PCGExDataBlending::FMetadataBlender* Blender = nullptr;
-	
+
 	TSet<FName> SourceAttributes;
 	EPCGExDataBlendingType Blending = EPCGExDataBlendingType::Average;
 
@@ -39,7 +39,7 @@ public:
 	FORCEINLINE virtual void FinalizeNode(PCGExCluster::FNode& TargetNode, const int32 Count, const double TotalWeight) const override;
 
 	virtual void FinalizeOperation() override;
-	
+
 	virtual void Cleanup() override;
 
 protected:

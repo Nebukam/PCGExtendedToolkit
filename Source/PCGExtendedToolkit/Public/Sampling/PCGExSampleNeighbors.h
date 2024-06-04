@@ -52,7 +52,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNeighborsContext : public FPCGExEdgesP
 
 	TArray<UPCGExNeighborSampleOperation*> SamplingOperations;
 	UPCGExNeighborSampleOperation* CurrentOperation = nullptr;
-
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExSampleNeighborsElement : public FPCGExEdgesProcessorElement

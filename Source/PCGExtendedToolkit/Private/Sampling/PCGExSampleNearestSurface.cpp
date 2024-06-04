@@ -124,7 +124,7 @@ bool FPCGExSampleNearestSurfaceElement::ExecuteInternal(FPCGContext* InContext) 
 			if (Context->PointFilterManager && !Context->PointFilterManager->Results[i]) { continue; }
 			Context->GetAsyncManager()->Start<FSweepSphereTask>(i, Context->CurrentIO);
 		}
-		
+
 		Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork);
 	}
 

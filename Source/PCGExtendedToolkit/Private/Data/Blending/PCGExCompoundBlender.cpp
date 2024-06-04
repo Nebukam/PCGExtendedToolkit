@@ -125,7 +125,6 @@ namespace PCGExDataBlending
 					}
 
 					SrcMap->TargetBlendOp->PrepareForData(Writer, *TargetData, PCGExData::ESource::Out);
-					
 				});
 		}
 	}

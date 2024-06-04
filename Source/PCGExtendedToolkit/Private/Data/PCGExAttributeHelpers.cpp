@@ -77,7 +77,7 @@ namespace PCGEx
 		bool bAnyMissing = false;
 		for (const FName& Id : Checklist)
 		{
-			if (!Contains(Id) || !PCGEx::IsValidName(Id))
+			if (!Contains(Id) || !IsValidName(Id))
 			{
 				OutMissing.Add(Id);
 				bAnyMissing = true;
@@ -91,7 +91,7 @@ namespace PCGEx
 		bool bAnyMissing = false;
 		for (const FName& Id : Checklist)
 		{
-			if (!Contains(Id) || !PCGEx::IsValidName(Id))
+			if (!Contains(Id) || !IsValidName(Id))
 			{
 				OutMissing.Add(Id);
 				bAnyMissing = true;

@@ -532,7 +532,7 @@ namespace PCGExGraphTask
 		TArray<int32> InSorted;
 		InSorted.SetNum(InPoints.Num());
 		for (int i = 0; i < InSorted.Num(); i++) { InSorted[i] = i; }
-		
+
 		/*
 		InSorted.Sort(
 			[&](const int32 A, const int32 B)

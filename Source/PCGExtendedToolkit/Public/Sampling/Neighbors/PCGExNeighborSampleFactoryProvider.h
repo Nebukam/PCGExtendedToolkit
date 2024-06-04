@@ -133,7 +133,7 @@ public:
 	FORCEINLINE virtual void FinalizeNode(PCGExCluster::FNode& TargetNode, const int32 Count, const double TotalWeight) const;
 
 	virtual void FinalizeOperation();
-	
+
 	virtual void Cleanup() override;
 
 protected:

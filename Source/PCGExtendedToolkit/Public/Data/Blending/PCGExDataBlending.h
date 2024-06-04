@@ -421,6 +421,7 @@ namespace PCGExDataBlending
 
 			FDataBlendingOperationBase::PrepareForData(InWriter, InSecondaryData, SecondarySource);
 		}
+
 		virtual void PrepareForData(PCGExData::FPointIO& InPrimaryData, const PCGExData::FPointIO& InSecondaryData, const PCGExData::ESource SecondarySource) override
 		{
 			Cleanup();

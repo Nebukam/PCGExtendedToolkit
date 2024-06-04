@@ -41,7 +41,6 @@ namespace PCGExDataBlending
 			DefaultBlending(Other.DefaultBlending),
 			bRequiresPrepare(Other.bRequiresPrepare)
 		{
-			
 		}
 
 		void Init(const FPCGExPropertiesBlendingSettings& Settings);

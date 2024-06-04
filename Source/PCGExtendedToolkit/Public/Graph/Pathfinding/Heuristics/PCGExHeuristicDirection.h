@@ -30,7 +30,6 @@ class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicDirection : public UPCGExHeuristicOp
 	GENERATED_BODY()
 
 public:
-
 	virtual void PrepareForCluster(PCGExCluster::FCluster* InCluster) override;
 
 	FORCEINLINE virtual double GetGlobalScore(
@@ -78,7 +77,7 @@ public:
 	//~End UPCGSettings
 
 	virtual UPCGExParamFactoryBase* CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const override;
-	
+
 	/** Filter Descriptor.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
 	FPCGExHeuristicDescriptorDirection Descriptor;

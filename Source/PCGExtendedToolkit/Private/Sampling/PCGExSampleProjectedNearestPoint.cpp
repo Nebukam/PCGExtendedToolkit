@@ -42,7 +42,7 @@ FPCGExSampleProjectedNearestPointContext::~FPCGExSampleProjectedNearestPointCont
 	PointFilterFactories.Empty();
 	PCGEX_DELETE(ValueFilterManager)
 	ValueFilterFactories.Empty();
-	
+
 	PCGEX_DELETE(RangeMinGetter)
 	PCGEX_DELETE(RangeMaxGetter)
 	PCGEX_DELETE(LookAtUpGetter)
@@ -139,7 +139,6 @@ bool FPCGExSampleProjectedNearestPointElement::Boot(FPCGContext* InContext) cons
 
 bool FPCGExSampleProjectedNearestPointElement::ExecuteInternal(FPCGContext* InContext) const
 {
-
 	PCGEX_CONTEXT_AND_SETTINGS(SampleProjectedNearestPoint)
 
 	if (Context->IsSetup())
@@ -203,7 +202,7 @@ bool FPCGExSampleProjectedNearestPointElement::ExecuteInternal(FPCGContext* InCo
 		{
 			PCGEX_DELETE(Context->PointFilterManager)
 			PCGEX_DELETE(Context->ValueFilterManager)
-			
+
 			if (!Context->PointFilterFactories.IsEmpty())
 			{
 				Context->PointFilterManager = new PCGExDataFilter::TEarlyExitFilterManager(&PointIO);
@@ -323,7 +322,7 @@ bool FPCGExSampleProjectedPointTask::ExecuteTask()
 	auto ProcessTarget = [&](const int32 PointIndex, const FPCGPoint& Target)
 	{
 		if (Context->ValueFilterManager && !Context->ValueFilterManager->Results[PointIndex]) { return; }
-		
+
 		FVector A;
 		FVector B;
 

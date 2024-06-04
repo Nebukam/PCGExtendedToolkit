@@ -22,7 +22,6 @@ enum class EPCGExHeuristicScoreMode : uint8
 
 namespace PCGExHeuristics
 {
-
 	struct PCGEXTENDEDTOOLKIT_API FLocalFeedbackHandler
 	{
 		TArray<UPCGExHeuristicFeedback*> Feedbacks;
@@ -101,4 +100,3 @@ namespace PCGExHeuristics
 		FLocalFeedbackHandler* MakeLocalFeedbackHandler(PCGExCluster::FCluster* InCluster);
 	};
 }
-
