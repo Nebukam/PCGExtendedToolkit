@@ -56,7 +56,7 @@ public:
  * Calculates the distance between two points (inherently a n*n operation)
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class PCGEXTENDEDTOOLKIT_API UPCGExModularPartitionByValuesSettings : public UPCGExPartitionByValuesSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExModularPartitionByValuesSettings : public UPCGExPartitionByValuesBaseSettings
 {
 	GENERATED_BODY()
 
@@ -70,7 +70,4 @@ public:
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	virtual bool GetPartitionRules(const FPCGContext* InContext, TArray<FPCGExPartitonRuleDescriptor>& OutRules) const override;
 
-	// Hidden
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Settings, meta = (HideInInspector))
-	TArray<FPCGExPartitonRuleDescriptor> PartitionRules_Hidden;
 };
