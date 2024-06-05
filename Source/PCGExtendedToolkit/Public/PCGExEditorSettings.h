@@ -18,7 +18,7 @@ public:
 	FLinearColor NodeColorDebug = FLinearColor(1.0f, 0.0f, 0.0f, 1.0f);
 
 	UPROPERTY(EditAnywhere, config, Category = "Node Colors")
-	FLinearColor NodeColorMisc = FLinearColor(0.958333, 0.961800, 1.000000, 1.000000);
+	FLinearColor NodeColorMisc = FLinearColor(1.000000,0.591295,0.282534,1.000000);
 
 	UPROPERTY(EditAnywhere, config, Category = "Node Colors")
 	FLinearColor NodeColorMiscWrite = FLinearColor(1.000000, 0.316174, 0.000000, 1.000000);

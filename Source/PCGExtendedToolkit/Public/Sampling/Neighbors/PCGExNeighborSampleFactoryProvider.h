@@ -166,7 +166,7 @@ public:
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
 		NeighborSamplerAttribute, "Sampler : Abstract", "Abstract sampler settings.",
-		FName(GetDisplayName()))
+		PCGEX_FACTORY_NAME_PRIORITY)
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExEditorSettings>()->NodeColorSamplerNeighbor; }
 
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;

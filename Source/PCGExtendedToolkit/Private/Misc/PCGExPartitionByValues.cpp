@@ -105,28 +105,47 @@ void UPCGExPartitionByValuesSettings::PostEditChangeProperty(FPropertyChangedEve
 }
 #endif
 
-bool UPCGExPartitionByValuesSettings::GetMainAcceptMultipleData() const { return false; }
+bool UPCGExPartitionByValuesBaseSettings::GetMainAcceptMultipleData() const { return false; }
 
 
-PCGExData::EInit UPCGExPartitionByValuesSettings::GetMainOutputInitMode() const { return bSplitOutput ? PCGExData::EInit::NoOutput : PCGExData::EInit::DuplicateInput; }
+PCGExData::EInit UPCGExPartitionByValuesBaseSettings::GetMainOutputInitMode() const { return bSplitOutput ? PCGExData::EInit::NoOutput : PCGExData::EInit::DuplicateInput; }
 
-FPCGExPartitionByValuesContext::~FPCGExPartitionByValuesContext()
+bool UPCGExPartitionByValuesBaseSettings::GetPartitionRules(const FPCGContext* InContext, TArray<FPCGExPartitonRuleDescriptor>& OutRules) const
+{
+	return true;
+}
+
+bool UPCGExPartitionByValuesSettings::GetPartitionRules(const FPCGContext* InContext, TArray<FPCGExPartitonRuleDescriptor>& OutRules) const
+{
+	if (PartitionRules.IsEmpty()) { return false; }
+	for (const FPCGExPartitonRuleDescriptor& Descriptor : PartitionRules) { OutRules.Add(Descriptor); }
+	return true;
+}
+
+FPCGExPartitionByValuesBaseContext::~FPCGExPartitionByValuesBaseContext()
 {
 	PCGEX_DELETE(RootPartition)
 	KeySums.Empty();
 }
 
-PCGEX_INITIALIZE_ELEMENT(PartitionByValues)
+PCGEX_INITIALIZE_ELEMENT(PartitionByValuesBase)
 
-bool FPCGExPartitionByValuesElement::Boot(FPCGContext* InContext) const
+bool FPCGExPartitionByValuesBaseElement::Boot(FPCGContext* InContext) const
 {
 	if (!FPCGExPointsProcessorElementBase::Boot(InContext)) { return false; }
 
-	PCGEX_CONTEXT_AND_SETTINGS(PartitionByValues)
+	PCGEX_CONTEXT_AND_SETTINGS(PartitionByValuesBase)
+
+	TArray<FPCGExPartitonRuleDescriptor> Descriptors;
+	if (!Settings->GetPartitionRules(InContext, Descriptors))
+	{
+		PCGE_LOG(Error, GraphAndLog, FTEXT("No partitioning rules."));
+		return false;
+	}
 
 	PCGEX_OUTPUT_VALIDATE_NAME_NOWRITER(KeySum)
 
-	for (const FPCGExPartitonRuleDescriptor& Descriptor : Settings->PartitionRules)
+	for (const FPCGExPartitonRuleDescriptor& Descriptor : Descriptors)
 	{
 		if (!Descriptor.bEnabled) { continue; }
 
@@ -158,11 +177,11 @@ bool FPCGExPartitionByValuesElement::Boot(FPCGContext* InContext) const
 	return true;
 }
 
-bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExPartitionByValuesBaseElement::ExecuteInternal(FPCGContext* InContext) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExPartitionByValuesElement::Execute);
 
-	PCGEX_CONTEXT_AND_SETTINGS(PartitionByValues)
+	PCGEX_CONTEXT_AND_SETTINGS(PartitionByValuesBase)
 
 	if (Context->IsSetup())
 	{
@@ -312,14 +331,14 @@ bool FPCGExPartitionByValuesElement::ExecuteInternal(FPCGContext* InContext) con
 			if (Settings->bWriteKeySum) { PCGExData::WriteMark<int64>(OutData->Metadata, Settings->KeySumAttributeName, Sum); }
 
 			if (Settings->bFlattenOutput) { OutData->Metadata->Flatten(); }
-			
+
 			FPCGTaggedData* TaggedData = Context->Output(OutData, Context->MainPoints->DefaultOutputLabel);
 			Tags->Dump(TaggedData->Tags);
 			PCGEX_DELETE(Tags)
 		};
 
 		if (!Context->Process(CreatePartition, Context->NumPartitions)) { return false; }
-		
+
 		Context->Done();
 		Context->ExecutionComplete();
 	}

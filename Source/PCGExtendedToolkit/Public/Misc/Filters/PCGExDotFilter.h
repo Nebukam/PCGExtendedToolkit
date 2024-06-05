@@ -136,8 +136,8 @@ public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		DotFilterDefinition, "Filter : Dot", "Creates a filter definition that compares dot value of two vectors.",
-		FName(GetDisplayName()))
+		DotFilterFactory, "Filter : Dot", "Creates a filter definition that compares dot value of two vectors.",
+		PCGEX_FACTORY_NAME_PRIORITY)
 #endif
 	//~End UPCGSettings
 

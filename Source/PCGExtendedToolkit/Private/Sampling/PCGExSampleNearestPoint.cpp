@@ -217,7 +217,7 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 
 namespace PCGExSampleNearestPointTasks
 {
-	bool PCGExSampleNearestPointTasks::FPointLoop::LoopInit()
+	bool FPointLoop::LoopInit()
 	{
 		const FPCGExSampleNearestPointContext* Context = Manager->GetContext<FPCGExSampleNearestPointContext>();
 		PCGEX_SETTINGS(SampleNearestPoint)
@@ -242,7 +242,7 @@ namespace PCGExSampleNearestPointTasks
 		}
 
 		PCGEX_FOREACH_FIELD_NEARESTPOINT(PCGEX_OUTPUT_ACCESSOR_INIT_PTR)
-		
+
 		return true;
 	}
 
@@ -407,7 +407,6 @@ namespace PCGExSampleNearestPointTasks
 		PCGEX_OUTPUT_VALUE(SignedDistance, Iteration, FMath::Sign(WeightedSignAxis.Dot(LookAt)) * WeightedDistance)
 		PCGEX_OUTPUT_VALUE(Angle, Iteration, PCGExSampling::GetAngle(Settings->AngleRange, WeightedAngleAxis, LookAt))
 		PCGEX_OUTPUT_VALUE(NumSamples, Iteration, Count)
-		
 	}
 }
 

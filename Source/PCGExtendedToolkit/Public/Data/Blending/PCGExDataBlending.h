@@ -216,6 +216,13 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPropertiesBlendingSettings
 			SeedBlending == EPCGExDataBlendingType::None;
 	}
 
+	void GetNonNoneBlendings(TArray<FName>& OutNames) const
+	{
+#define PCGEX_SET_DEFAULT_POINTPROPERTY(_TYPE, _NAME, _TYPENAME) if(_NAME##Blending != EPCGExDataBlendingType::None){ OutNames.Add(#_NAME);}
+		PCGEX_FOREACH_BLEND_POINTPROPERTY(PCGEX_SET_DEFAULT_POINTPROPERTY)
+#undef PCGEX_SET_DEFAULT_POINTPROPERTY
+	}
+
 	EPCGExDataBlendingType DefaultBlending = EPCGExDataBlendingType::Average;
 
 #pragma region Property overrides

@@ -73,8 +73,8 @@ public:
 	{
 	}
 
-	virtual ~FPCGExPackClusterTask()
-	{		
+	virtual ~FPCGExPackClusterTask() override
+	{
 		NodeIndicesMap.Empty();
 	}
 

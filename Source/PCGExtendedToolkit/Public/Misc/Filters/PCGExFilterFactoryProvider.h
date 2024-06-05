@@ -27,8 +27,8 @@ public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		DotFilterDefinition, "Filter : Abstract", "Creates an abstract filter definition.",
-		FName(GetDisplayName()))
+		DotFilterFactory, "Filter : Abstract", "Creates an abstract filter definition.",
+		PCGEX_FACTORY_NAME_PRIORITY)
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExEditorSettings>()->NodeColorFilter; }
 #endif
 	//~End UPCGSettings

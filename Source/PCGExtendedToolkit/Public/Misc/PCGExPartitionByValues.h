@@ -50,29 +50,21 @@ namespace PCGExPartition
 /**
  * Calculates the distance between two points (inherently a n*n operation)
  */
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class PCGEXTENDEDTOOLKIT_API UPCGExPartitionByValuesSettings : public UPCGExPointsProcessorSettings
+UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
+class PCGEXTENDEDTOOLKIT_API UPCGExPartitionByValuesBaseSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(PartitionByValues, "Partition by Values", "Outputs separate buckets of points based on an attribute' value. Each bucket is named after a unique attribute value. Note that it is recommended to use a Merge before.");
+	PCGEX_NODE_INFOS(PartitionByValuesStatic, "Partition by Values (Static)", "Outputs separate buckets of points based on an attribute' value. Each bucket is named after a unique attribute value. Note that it is recommended to use a Merge before.");
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExEditorSettings>()->NodeColorMiscAdd; }
 #endif
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings interface
-
-	//~Begin UObject interface
-#if WITH_EDITOR
-
-public:
-	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
-#endif
-	//~End UObject interface
 
 	//~Begin UPCGExPointsProcessorSettings interface
 public:
@@ -82,12 +74,8 @@ public:
 
 public:
 	/** If false, will only write partition identifier values instead of splitting partitions into new point datasets. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-2))
 	bool bSplitOutput = true;
-
-	/** Rules */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, TitleProperty="{TitlePropertyName}"))
-	TArray<FPCGExPartitonRuleDescriptor> PartitionRules;
 
 	/** Write the sum of partition values to an attribute. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
@@ -96,13 +84,44 @@ public:
 	/** The Attribute name to write key sum to. Note that this value is not guaranteed to be unique. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bWriteKeySum"))
 	FName KeySumAttributeName = "KeySum";
+
+	virtual bool GetPartitionRules(const FPCGContext* InContext, TArray<FPCGExPartitonRuleDescriptor>& OutRules) const;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExPartitionByValuesContext : public FPCGExPointsProcessorContext
+/**
+ * Calculates the distance between two points (inherently a n*n operation)
+ */
+UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
+class PCGEXTENDEDTOOLKIT_API UPCGExPartitionByValuesSettings : public UPCGExPartitionByValuesBaseSettings
 {
-	friend class FPCGExPartitionByValuesElement;
+	GENERATED_BODY()
 
-	virtual ~FPCGExPartitionByValuesContext() override;
+public:
+	//~Begin UPCGSettings interface
+#if WITH_EDITOR
+	PCGEX_NODE_INFOS(PartitionByValuesStatic, "Partition by Values (Static)", "Outputs separate buckets of points based on an attribute' value. Each bucket is named after a unique attribute value. Note that it is recommended to use a Merge before.");
+#endif
+
+	//~Begin UObject interface
+#if WITH_EDITOR
+
+public:
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+#endif
+	//~End UObject interface
+
+	/** Rules */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, TitleProperty="{TitlePropertyName}"))
+	TArray<FPCGExPartitonRuleDescriptor> PartitionRules;
+
+	virtual bool GetPartitionRules(const FPCGContext* InContext, TArray<FPCGExPartitonRuleDescriptor>& OutRules) const override;
+};
+
+struct PCGEXTENDEDTOOLKIT_API FPCGExPartitionByValuesBaseContext : public FPCGExPointsProcessorContext
+{
+	friend class FPCGExPartitionByValuesBaseElement;
+
+	virtual ~FPCGExPartitionByValuesBaseContext() override;
 
 	TArray<FPCGExPartitonRuleDescriptor> RulesDescriptors;
 	TArray<FPCGExFilter::FRule> Rules;
@@ -117,7 +136,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPartitionByValuesContext : public FPCGExPoin
 	TArray<PCGExPartition::FKPartition*> Partitions;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExPartitionByValuesElement : public FPCGExPointsProcessorElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExPartitionByValuesBaseElement : public FPCGExPointsProcessorElementBase
 {
 public:
 	virtual FPCGContext* Initialize(

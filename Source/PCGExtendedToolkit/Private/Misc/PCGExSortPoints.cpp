@@ -15,21 +15,34 @@ void UPCGExSortPointsSettings::PostEditChangeProperty(FPropertyChangedEvent& Pro
 }
 #endif
 
-FPCGElementPtr UPCGExSortPointsSettings::CreateElement() const { return MakeShared<FPCGExSortPointsElement>(); }
+FPCGElementPtr UPCGExSortPointsBaseSettings::CreateElement() const { return MakeShared<FPCGExSortPointsBaseElement>(); }
 
-PCGExData::EInit UPCGExSortPointsSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
+PCGExData::EInit UPCGExSortPointsBaseSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
-bool FPCGExSortPointsElement::ExecuteInternal(FPCGContext* InContext) const
+bool UPCGExSortPointsBaseSettings::GetSortingRules(const FPCGContext* InContext, TArray<FPCGExSortRuleDescriptor>& OutRules) const
+{
+	return true;
+}
+
+bool UPCGExSortPointsSettings::GetSortingRules(const FPCGContext* InContext, TArray<FPCGExSortRuleDescriptor>& OutRules) const
+{
+	if (Rules.IsEmpty()) { return false; }
+	for (const FPCGExSortRuleDescriptor& Descriptor : Rules) { OutRules.Add(Descriptor); }
+	return true;
+}
+
+bool FPCGExSortPointsBaseElement::ExecuteInternal(FPCGContext* InContext) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExSortPointsElement::Execute);
 
 	PCGEX_CONTEXT(PointsProcessor)
-	PCGEX_SETTINGS(SortPoints)
+	PCGEX_SETTINGS(SortPointsBase)
 
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }
-		if (Settings->Rules.IsEmpty())
+		TArray<FPCGExSortRuleDescriptor> RuleDescriptors;
+		if (!Settings->GetSortingRules(Context, RuleDescriptors))
 		{
 			PCGE_LOG(Error, GraphAndLog, FTEXT("No attributes to sort over."));
 			return true;
@@ -61,15 +74,19 @@ bool FPCGExSortPointsElement::ExecuteInternal(FPCGContext* InContext) const
 bool FPCGExSortPointIO::ExecuteTask()
 {
 	const FPCGExPointsProcessorContext* Context = Manager->GetContext<FPCGExPointsProcessorContext>();
-	PCGEX_SETTINGS(SortPoints);
+	PCGEX_SETTINGS(SortPointsBase);
+
+	TArray<FPCGExSortRuleDescriptor> RuleDescriptors;
+	Settings->GetSortingRules(Context, RuleDescriptors);
+
 	TArray<FPCGExSortRule*> Rules;
-	Rules.Reserve(Settings->Rules.Num());
+	Rules.Reserve(RuleDescriptors.Num());
 
 	PointIO->CreateOutKeys(); //Initialize metadata keys
 	TMap<PCGMetadataEntryKey, int32> PointIndices;
 	PointIO->PrintOutKeysMap(PointIndices, true);
 
-	for (const FPCGExSortRuleDescriptor& RuleDescriptor : Settings->Rules)
+	for (const FPCGExSortRuleDescriptor& RuleDescriptor : RuleDescriptors)
 	{
 		FPCGExSortRule* NewRule = new FPCGExSortRule();
 		NewRule->Capture(RuleDescriptor);

@@ -74,7 +74,9 @@ class PCGEXTENDEDTOOLKIT_API UPCGExNeighborSamplePropertiesSettings : public UPC
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(NeighborSamplerProperties, "Sampler : Properties", "Create a single neighbor attribute sampler, to be used by a Sample Neighbors node.")
+	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
+		NeighborSamplerProperties, "Sampler : Properties", "Create a single neighbor attribute sampler, to be used by a Sample Neighbors node.",
+		PCGEX_FACTORY_NAME_PRIORITY)
 
 #endif
 	//~End UPCGSettings

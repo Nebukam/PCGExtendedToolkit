@@ -331,5 +331,4 @@ namespace PCGExSampleNearestPointTasks
 
 		virtual bool LoopInit() override;
 	};
-
 }

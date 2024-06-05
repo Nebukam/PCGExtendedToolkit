@@ -61,25 +61,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSortRule : public PCGEx::FLocalSingleFieldGe
 	bool bAbsolute = false;
 };
 
-UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
-class PCGEXTENDEDTOOLKIT_API UPCGExSortPointsSettings : public UPCGExPointsProcessorSettings
+UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
+class PCGEXTENDEDTOOLKIT_API UPCGExSortPointsBaseSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
-
-	//~Begin UObject interface
-#if WITH_EDITOR
-
-public:
-	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
-#endif
-	//~End UObject interface
-
-public:
-	//~Begin UPCGSettings interface
-#if WITH_EDITOR
-	PCGEX_NODE_INFOS(SortPoints, "Sort Points", "Sort the source points according to specific rules.");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExEditorSettings>()->NodeColorMiscWrite; }
-#endif
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
@@ -95,15 +80,43 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExSortDirection SortDirection = EPCGExSortDirection::Ascending;
 
+	virtual bool GetSortingRules(const FPCGContext* InContext, TArray<FPCGExSortRuleDescriptor>& OutRules) const;
+
+private:
+	friend class FPCGExSortPointsBaseElement;
+};
+
+UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Misc")
+class PCGEXTENDEDTOOLKIT_API UPCGExSortPointsSettings : public UPCGExSortPointsBaseSettings
+{
+	GENERATED_BODY()
+
+public:
+	//~Begin UPCGSettings interface
+#if WITH_EDITOR
+	PCGEX_NODE_INFOS(SortPointsStatic, "Sort Points (Static)", "Sort the source points according to specific rules.");
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExEditorSettings>()->NodeColorMiscWrite; }
+#endif
+
+	//~Begin UObject interface
+#if WITH_EDITOR
+
+public:
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+#endif
+	//~End UObject interface
+
 	/** Ordered list of attribute to check to sort over. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, TitleProperty="{TitlePropertyName}"))
 	TArray<FPCGExSortRuleDescriptor> Rules = {FPCGExSortRuleDescriptor{}};
 
+	virtual bool GetSortingRules(const FPCGContext* InContext, TArray<FPCGExSortRuleDescriptor>& OutRules) const override;
+
 private:
-	friend class FPCGExSortPointsElement;
+	friend class FPCGExSortPointsBaseElement;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExSortPointsElement : public FPCGExPointsProcessorElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExSortPointsBaseElement : public FPCGExPointsProcessorElementBase
 {
 protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;

@@ -136,8 +136,8 @@ public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		MeanFilterDefinition, "Filter : Mean", "Creates a filter definition that compares values against their mean.",
-		FName(GetDisplayName()))
+		MeanFilterFactory, "Filter : Mean", "Creates a filter definition that compares values against their mean.",
+		PCGEX_FACTORY_NAME_PRIORITY)
 #endif
 	//~End UPCGSettings
 

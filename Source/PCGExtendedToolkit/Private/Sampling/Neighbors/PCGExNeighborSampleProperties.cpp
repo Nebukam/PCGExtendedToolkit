@@ -48,7 +48,14 @@ void UPCGExNeighborSampleProperties::Cleanup()
 #if WITH_EDITOR
 FString UPCGExNeighborSamplePropertiesSettings::GetDisplayName() const
 {
-	return TEXT("");
+	if (Descriptor.Blending.HasNoBlending()) { return TEXT("(None)"); }
+	TArray<FName> Names;
+	Descriptor.Blending.GetNonNoneBlendings(Names);
+
+	if (Names.Num() == 1) { return Names[0].ToString(); }
+	if (Names.Num() == 2) { return Names[0].ToString() + TEXT(" (+1 other)"); }
+
+	return Names[0].ToString() + FString::Printf(TEXT(" (+%d others)"), (Names.Num() - 1));
 }
 #endif
 

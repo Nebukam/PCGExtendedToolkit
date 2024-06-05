@@ -78,9 +78,8 @@ bool FPCGExPackClustersElement::ExecuteInternal(
 				Context->GetAsyncManager()->Start<FPCGExPackClusterTask>(-1, Context->CurrentIO, EdgeIO, Context->NodeIndicesMap);
 			}
 		}
-		
+
 		Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork);
-		
 	}
 
 	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
@@ -133,7 +132,7 @@ bool FPCGExPackClusterTask::ExecuteTask()
 	PackedIO.Tags->Set(PCGExGraph::TagStr_ClusterPair, InEdges->GetIn()->UID, OutPairId);
 
 	InEdges->CleanupKeys();
-	
+
 	return true;
 }
 

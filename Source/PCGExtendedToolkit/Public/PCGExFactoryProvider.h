@@ -11,6 +11,9 @@
 
 #include "PCGExFactoryProvider.generated.h"
 
+#define PCGEX_FACTORY_NAME_PRIORITY FName(FString::Printf(TEXT("[%d] "), Priority) +  GetDisplayName())
+
+
 ///
 
 namespace PCGExFactories
@@ -18,6 +21,8 @@ namespace PCGExFactories
 	enum class EType : uint8
 	{
 		Default = 0,
+		SortRule,
+		PartitionRule,
 		Filter,
 		ClusterFilter,
 		NodeState,
@@ -102,7 +107,7 @@ public:
 namespace PCGExFactories
 {
 	template <typename T_DEF>
-	static bool GetInputFactories(FPCGContext* InContext, const FName InLabel, TArray<T_DEF*>& OutFactories, const TSet<EType>& Types, const bool bThrowError = true)
+	static bool GetInputFactories(const FPCGContext* InContext, const FName InLabel, TArray<T_DEF*>& OutFactories, const TSet<EType>& Types, const bool bThrowError = true)
 	{
 		const TArray<FPCGTaggedData>& Inputs = InContext->InputData.GetInputsByPin(InLabel);
 

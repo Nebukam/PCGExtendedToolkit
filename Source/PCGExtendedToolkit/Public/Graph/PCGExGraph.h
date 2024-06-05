@@ -528,7 +528,7 @@ namespace PCGExGraph
 
 		OutVtxIndices.Append(UniqueVtx.Array());
 		UniqueVtx.Empty();
-		
+
 		PCGEX_DELETE(StartIndexReader)
 		PCGEX_DELETE(EndIndexReader)
 		return true;
@@ -651,7 +651,6 @@ namespace PCGExGraphTask
 				}
 			}
 		}
-
 	};
 
 	class PCGEXTENDEDTOOLKIT_API FWriteSubGraphEdges : public FPCGExNonAbandonableTask
