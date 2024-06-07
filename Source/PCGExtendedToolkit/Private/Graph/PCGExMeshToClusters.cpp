@@ -26,6 +26,10 @@ FPCGExMeshToClustersContext::~FPCGExMeshToClustersContext()
 	PCGEX_DELETE(StaticMeshMap)
 	PCGEX_DELETE_TARRAY(GraphBuilders)
 
+	PCGEX_DELETE(RootVtx)
+	PCGEX_DELETE(VtxChildCollection)
+	PCGEX_DELETE(EdgeChildCollection)
+
 	MeshIdx.Empty();
 }
 
@@ -56,9 +60,11 @@ bool FPCGExMeshToClustersElement::Boot(FPCGContext* InContext) const
 		return false;
 	}
 
+	PCGEX_FWD(GraphBuilderSettings)
+	PCGEX_FWD(CopySettings)
+
 	PCGExData::FPointIO* Targets = Context->MainPoints->Pairs[0];
 	Context->MeshIdx.SetNum(Targets->GetNum());
-	Context->GraphBuilders.SetNum(Targets->GetNum());
 
 	Context->StaticMeshMap = new PCGExGeo::FGeoStaticMeshMap();
 
@@ -123,6 +129,15 @@ bool FPCGExMeshToClustersElement::Boot(FPCGContext* InContext) const
 		}
 	}
 
+	Context->RootVtx = new PCGExData::FPointIOCollection();
+	// TODO : Default output will be pinless data.
+
+	Context->VtxChildCollection = new PCGExData::FPointIOCollection();
+	Context->VtxChildCollection->DefaultOutputLabel = Settings->GetMainOutputLabel();
+
+	Context->EdgeChildCollection = new PCGExData::FPointIOCollection();
+	Context->EdgeChildCollection->DefaultOutputLabel = PCGExGraph::OutputEdgesLabel;
+
 	return true;
 }
 
@@ -144,7 +159,15 @@ bool FPCGExMeshToClustersElement::ExecuteInternal(
 		if (!Context->AdvancePointsIO()) { Context->Done(); }
 		else
 		{
-			for (PCGExGeo::FGeoStaticMesh* GSM : Context->StaticMeshMap->GSMs) { GSM->ExtractMeshAsync(Context->GetAsyncManager()); } // Preload all
+			Context->GraphBuilders.SetNum(Context->StaticMeshMap->GSMs.Num());
+
+			for (int i = 0; i < Context->StaticMeshMap->GSMs.Num(); i++)
+			{
+				PCGExGeo::FGeoStaticMesh* GSM = Context->StaticMeshMap->GSMs[i];
+				Context->GetAsyncManager()->Start<PCGExMeshToCluster::FExtractMeshAndBuildGraph>(i, nullptr, GSM);
+			}
+
+			// Preload all & build local graphs to copy to points later on			
 			Context->SetAsyncState(PCGExGeo::State_ExtractingMesh);
 		}
 	}
@@ -152,6 +175,7 @@ bool FPCGExMeshToClustersElement::ExecuteInternal(
 	if (Context->IsState(PCGExGeo::State_ExtractingMesh))
 	{
 		PCGEX_WAIT_ASYNC
+		
 		Context->SetAsyncState(PCGExMT::State_ProcessingPoints);
 	}
 
@@ -159,8 +183,13 @@ bool FPCGExMeshToClustersElement::ExecuteInternal(
 	{
 		auto ProcessTarget = [&](const int32 TargetIndex, const PCGExData::FPointIO& PointIO)
 		{
-			if (Context->MeshIdx[TargetIndex] == -1) { return; }
-			Context->GetAsyncManager()->Start<FPCGExMeshToClusterTask>(TargetIndex, Context->CurrentIO);
+			const int32 MeshIdx = Context->MeshIdx[TargetIndex];
+
+			if (MeshIdx == -1) { return; }
+
+			Context->GetAsyncManager()->Start<PCGExGraphTask::FCopyGraphToPoint>(
+				TargetIndex, Context->CurrentIO, Context->GraphBuilders[MeshIdx],
+				Context->VtxChildCollection, Context->EdgeChildCollection, &Context->CopySettings);
 		};
 
 		if (!Context->ProcessCurrentPoints(ProcessTarget)) { return false; }
@@ -172,15 +201,8 @@ bool FPCGExMeshToClustersElement::ExecuteInternal(
 	{
 		PCGEX_WAIT_ASYNC
 
-		Context->OutputPoints();
-
-		for (int i = 0; i < Context->GraphBuilders.Num(); i++)
-		{
-			const PCGExGraph::FGraphBuilder* Builder = Context->GraphBuilders[i];
-
-			if (!Builder || !Builder->bCompiledSuccessfully) { continue; }
-			Builder->Write(Context);
-		}
+		Context->VtxChildCollection->OutputTo(Context);
+		Context->EdgeChildCollection->OutputTo(Context);
 
 		Context->Done();
 		Context->ExecutionComplete();
@@ -189,33 +211,33 @@ bool FPCGExMeshToClustersElement::ExecuteInternal(
 	return Context->IsDone();
 }
 
-bool FPCGExMeshToClusterTask::ExecuteTask()
+namespace PCGExMeshToCluster
 {
-	FPCGExMeshToClustersContext* Context = static_cast<FPCGExMeshToClustersContext*>(Manager->Context);
-	PCGEX_SETTINGS(MeshToClusters)
-
-	const FPCGPoint& PointTarget = PointIO->GetInPoint(TaskIndex);
-	const PCGExGeo::FGeoStaticMesh* StaticMesh = Context->StaticMeshMap->GetMesh(Context->MeshIdx[TaskIndex]);
-
-	PCGExData::FPointIO& VtxIO = Context->MainPoints->Emplace_GetRef();
-
-	VtxIO.SetNumInitialized(StaticMesh->Vertices.Num());
-
-	TArray<FPCGPoint>& VtxPoints = VtxIO.GetOut()->GetMutablePoints();
-
-	for (int i = 0; i < VtxPoints.Num(); i++)
+	bool PCGExMeshToCluster::FExtractMeshAndBuildGraph::ExecuteTask()
 	{
-		FPCGPoint& NewVtx = VtxPoints[i];
-		NewVtx.Transform.SetLocation(PointTarget.Transform.TransformPosition(StaticMesh->Vertices[i]));
+		FPCGExMeshToClustersContext* Context = static_cast<FPCGExMeshToClustersContext*>(Manager->Context);
+		PCGEX_SETTINGS(MeshToClusters)
+
+		Mesh->ExtractMeshSynchronous();
+
+		PCGExData::FPointIO& RootVtx = Context->RootVtx->Emplace_GetRef();
+		RootVtx.SetNumInitialized(Mesh->Vertices.Num());
+		TArray<FPCGPoint>& VtxPoints = RootVtx.GetOut()->GetMutablePoints();
+
+		PCGExGraph::FGraphBuilder* GraphBuilder = new PCGExGraph::FGraphBuilder(RootVtx, &Context->GraphBuilderSettings);
+		Context->GraphBuilders[TaskIndex] = GraphBuilder;
+
+		for (int i = 0; i < VtxPoints.Num(); i++)
+		{
+			FPCGPoint& NewVtx = VtxPoints[i];
+			NewVtx.Transform.SetLocation(Mesh->Vertices[i]);
+		}
+
+		GraphBuilder->Graph->InsertEdges(Mesh->Edges, -1);
+		GraphBuilder->Compile(Context);
+
+		return true;
 	}
-
-	PCGExGraph::FGraphBuilder* GraphBuilder = new PCGExGraph::FGraphBuilder(VtxIO, &Context->BuilderSettings, 6);
-	GraphBuilder->Graph->InsertEdges(StaticMesh->Edges, -1);
-
-	Context->GraphBuilders[TaskIndex] = GraphBuilder;
-	GraphBuilder->Compile(Context);
-
-	return true;
 }
 
 #undef LOCTEXT_NAMESPACE

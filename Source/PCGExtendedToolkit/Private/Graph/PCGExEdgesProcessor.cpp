@@ -17,6 +17,8 @@ FName UPCGExEdgesProcessorSettings::GetMainOutputLabel() const { return PCGExGra
 
 PCGExData::EInit UPCGExEdgesProcessorSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::Forward; }
 
+bool UPCGExEdgesProcessorSettings::RequiresDeterministicClusters() const{return false;}
+
 bool UPCGExEdgesProcessorSettings::GetMainAcceptMultipleData() const { return true; }
 
 TArray<FPCGPinProperties> UPCGExEdgesProcessorSettings::InputPinProperties() const
@@ -109,7 +111,7 @@ bool FPCGExEdgesProcessorContext::AdvanceEdges(const bool bBuildCluster)
 			*CurrentEdges,
 			CurrentIO->GetIn()->GetPoints(),
 			NodeIndicesMap,
-			EdgeNumReader->Values))
+			EdgeNumReader->Values, bDeterministicClusters))
 		{
 			// Bad cluster/edges.
 			PCGEX_DELETE(CurrentCluster)

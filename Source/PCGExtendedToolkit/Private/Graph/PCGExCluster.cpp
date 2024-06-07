@@ -118,7 +118,8 @@ namespace PCGExCluster
 		const PCGExData::FPointIO& EdgeIO,
 		const TArray<FPCGPoint>& InNodePoints,
 		const TMap<int64, int32>& InNodeIndicesMap,
-		const TArray<int32>& PerNodeEdgeNums)
+		const TArray<int32>& PerNodeEdgeNums,
+		const bool bDeterministic)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExCluster::BuildCluster);
 
@@ -144,14 +145,14 @@ namespace PCGExCluster
 		Edges.SetNumUninitialized(NumEdges);
 		EdgeIndexMap.Reserve(NumEdges);
 
-		/*
-		//We use to need to sort cluster to get deterministic results but it seems not to be the case anymore
-		EdgeList.Sort(
-			[](const PCGExGraph::FIndexedEdge& A, const PCGExGraph::FIndexedEdge& B)
-			{
-				return A.Start == B.Start ? A.End < B.End : A.Start < B.Start;
-			});
-		*/
+		if (bDeterministic)
+		{
+			EdgeList.Sort(
+				[](const PCGExGraph::FIndexedEdge& A, const PCGExGraph::FIndexedEdge& B)
+				{
+					return A.Start == B.Start ? A.End < B.End : A.Start < B.Start;
+				});
+		}
 
 		for (int i = 0; i < NumEdges; i++)
 		{
@@ -875,7 +876,8 @@ namespace PCGExClusterTask
 			*EdgeIO,
 			PointIO->GetIn()->GetPoints(),
 			*NodeIndicesMap,
-			*PerNodeEdgeNums);
+			*PerNodeEdgeNums,
+			true);
 
 		return true;
 	}

@@ -32,6 +32,8 @@ public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	virtual PCGExData::EInit GetEdgeOutputInitMode() const;
 
+	virtual bool RequiresDeterministicClusters() const;
+
 	virtual FName GetMainInputLabel() const override;
 	virtual FName GetMainOutputLabel() const override;
 
@@ -45,6 +47,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgesProcessorContext : public FPCGExPointsP
 	friend class FPCGExEdgesProcessorElement;
 
 	virtual ~FPCGExEdgesProcessorContext() override;
+
+	bool bDeterministicClusters = false;
+
 
 	PCGExData::FPointIOCollection* MainEdges = nullptr;
 	PCGExData::FPointIO* CurrentEdges = nullptr;

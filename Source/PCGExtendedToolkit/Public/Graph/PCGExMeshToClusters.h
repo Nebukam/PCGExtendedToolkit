@@ -12,6 +12,11 @@
 
 namespace PCGExGeo
 {
+	class FGeoStaticMesh;
+}
+
+namespace PCGExGeo
+{
 	class FGeoStaticMeshMap;
 }
 
@@ -67,9 +72,17 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="StaticMeshSource==EPCGExFetchType::Attribute", EditConditionHides))
 	FName StaticMeshAttribute;
 
+	/** Target inherit behavior */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	FPCGExCopyToPointsSettings CopySettings;
+	
 	/** Skip invalid meshes & do not throw warning about them. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bIgnoreMeshWarnings = false;
+
+	/** Graph & Edges output properties. Only available if bPruneOutsideBounds as it otherwise generates a complete graph. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditConditionHides, DisplayName="Graph Output Settings"))
+	FPCGExGraphBuilderSettings GraphBuilderSettings;
 
 private:
 	friend class FPCGExMeshToClustersElement;
@@ -79,10 +92,19 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMeshToClustersContext : public FPCGExPointsP
 {
 	friend class FPCGExMeshToClustersElement;
 
+	FPCGExGraphBuilderSettings GraphBuilderSettings;
+	FPCGExCopyToPointsSettings CopySettings;
+
 	PCGExGeo::FGeoStaticMeshMap* StaticMeshMap = nullptr;
 	TArray<int32> MeshIdx;
+
+	PCGExData::FPointIOCollection* RootVtx = nullptr;
+	PCGExData::FPointIOCollection* VtxChildCollection = nullptr;
+	PCGExData::FPointIOCollection* EdgeChildCollection = nullptr;
 	
+
 	TArray<PCGExGraph::FGraphBuilder*> GraphBuilders;
+
 	FPCGExGraphBuilderSettings BuilderSettings;
 
 	virtual ~FPCGExMeshToClustersContext() override;
@@ -102,14 +124,21 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExMeshToClusterTask : public FPCGExNonAbandonableTask
+namespace PCGExMeshToCluster
 {
-public:
-	FPCGExMeshToClusterTask(
-		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO) :
-		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO)
+	class PCGEXTENDEDTOOLKIT_API FExtractMeshAndBuildGraph : public FPCGExNonAbandonableTask
 	{
-	}
+	public:
+		FExtractMeshAndBuildGraph(
+			FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+			PCGExGeo::FGeoStaticMesh* InMesh) :
+			FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+			Mesh(InMesh)
+		{
+		}
 
-	virtual bool ExecuteTask() override;
-};
+		PCGExGeo::FGeoStaticMesh* Mesh = nullptr;
+
+		virtual bool ExecuteTask() override;
+	};
+}

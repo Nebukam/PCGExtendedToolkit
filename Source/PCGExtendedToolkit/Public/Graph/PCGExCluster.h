@@ -13,6 +13,7 @@
 
 #include "PCGExCluster.generated.h"
 
+
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Cluster Closest Search Mode"))
 enum class EPCGExClusterClosestSearchMode : uint8
 {
@@ -188,7 +189,7 @@ namespace PCGExCluster
 			const PCGExData::FPointIO& EdgeIO,
 			const TArray<FPCGPoint>& InNodePoints,
 			const TMap<int64, int32>& InNodeIndicesMap,
-			const TArray<int32>& PerNodeEdgeNums);
+			const TArray<int32>& PerNodeEdgeNums, const bool bDeterministic);
 
 		void BuildPartialFrom(const TArray<FVector>& Positions, const TSet<uint64>& InEdges);
 
@@ -297,7 +298,7 @@ namespace PCGExCluster
 		explicit FNodeStateHandler(const UPCGExNodeStateFactory* InFactory);
 
 		const UPCGExNodeStateFactory* NodeStateDefinition = nullptr;
-		
+
 		TArray<TFilter*> FilterHandlers;
 		TArray<TFilter*> HeavyFilterHandlers;
 		TArray<TClusterFilter*> ClusterFilterHandlers;
@@ -305,18 +306,18 @@ namespace PCGExCluster
 
 		virtual void CaptureCluster(const FPCGContext* InContext, FCluster* InCluster);
 		FORCEINLINE virtual bool Test(const int32 PointIndex) const override;
-		
+
 		virtual bool PrepareForTesting(const PCGExData::FPointIO* PointIO) override;
 		virtual void PrepareSingle(const int32 PointIndex) override;
 		virtual void PreparationComplete() override;
-		
+
 		virtual bool RequiresPerPointPreparation() const;
 
 		virtual ~FNodeStateHandler() override
 		{
 			PCGEX_DELETE_TARRAY(FilterHandlers)
 			HeavyFilterHandlers.Empty();
-			
+
 			PCGEX_DELETE_TARRAY(ClusterFilterHandlers)
 			HeavyClusterFilterHandlers.Empty();
 		}
@@ -390,4 +391,6 @@ namespace PCGExClusterTask
 
 		virtual bool ExecuteTask() override;
 	};
+
+	
 }

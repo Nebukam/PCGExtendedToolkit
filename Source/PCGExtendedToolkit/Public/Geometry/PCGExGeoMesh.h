@@ -10,9 +10,8 @@
 
 namespace PCGExGeo
 {
-
 	constexpr PCGExMT::AsyncState State_ExtractingMesh = __COUNTER__;
-	
+
 	class FExtractStaticMeshTask;
 
 	class PCGEXTENDEDTOOLKIT_API FGeoMesh
@@ -71,27 +70,25 @@ namespace PCGExGeo
 
 			//for (int i = 0; i < GSM->Vertices.Num(); i++) { GSM->Vertices[i] = FVector(VertexBuffer.VertexPosition(i)); }
 
-
+			int32 Idx = 0;
 			const FIndexArrayView& Indices = LODResources.IndexBuffer.GetArrayView();
 			for (int32 i = 0; i < Indices.Num(); i += 3)
 			{
-				uint32 A = Indices[i];
-				uint32 B = Indices[i + 1];
-				uint32 C = Indices[i + 2];
+				const FVector VA = PCGExMath::Round10(FVector(VertexBuffer.VertexPosition(Indices[i])));
+				const FVector VB = PCGExMath::Round10(FVector(VertexBuffer.VertexPosition(Indices[i + 1])));
+				const FVector VC = PCGExMath::Round10(FVector(VertexBuffer.VertexPosition(Indices[i + 2])));
 
-				const FVector VA = PCGExMath::Round10(FVector(VertexBuffer.VertexPosition(A)));
-				const FVector VB = PCGExMath::Round10(FVector(VertexBuffer.VertexPosition(B)));
-				const FVector VC = PCGExMath::Round10(FVector(VertexBuffer.VertexPosition(C)));
-				
-				A = IndexedUniquePositions.FindOrAdd(VA, A);
-				B = IndexedUniquePositions.FindOrAdd(VB, B);
-				C = IndexedUniquePositions.FindOrAdd(VC, C);
-				// To fix: very high indices may be sampled early, exceeding the actual number of positions. Bummer.
-				// Need to update this to always keep the lowest index
+				const int32* APtr = IndexedUniquePositions.Find(VA);
+				const int32* BPtr = IndexedUniquePositions.Find(VB);
+				const int32* CPtr = IndexedUniquePositions.Find(VC);
 
-				UniqueEdges.Add(PCGEx::H64(A, B));
-				UniqueEdges.Add(PCGEx::H64(B, C));
-				UniqueEdges.Add(PCGEx::H64(C, A));
+				const uint32 A = APtr ? *APtr : IndexedUniquePositions.FindOrAdd(VA, Idx++);
+				const uint32 B = BPtr ? *BPtr : IndexedUniquePositions.FindOrAdd(VB, Idx++);
+				const uint32 C = CPtr ? *CPtr : IndexedUniquePositions.FindOrAdd(VC, Idx++);
+
+				UniqueEdges.Add(PCGEx::H64U(A, B));
+				UniqueEdges.Add(PCGEx::H64U(B, C));
+				UniqueEdges.Add(PCGEx::H64U(C, A));
 			}
 
 			Vertices.SetNum(IndexedUniquePositions.Num());
