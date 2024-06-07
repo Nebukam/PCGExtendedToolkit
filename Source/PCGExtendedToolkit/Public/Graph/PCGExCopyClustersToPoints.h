@@ -7,23 +7,23 @@
 #include "PCGExCluster.h"
 #include "PCGExEdgesProcessor.h"
 
-#include "PCGExSanitizeClusters.generated.h"
-
+#include "PCGExCopyClustersToPoints.generated.h"
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
-class PCGEXTENDEDTOOLKIT_API UPCGExSanitizeClustersSettings : public UPCGExEdgesProcessorSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExCopyClustersToPointsSettings : public UPCGExEdgesProcessorSettings
 {
 	GENERATED_BODY()
 
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(SanitizeClusters, "Graph : Sanitize Clusters", "Ensure the input set of vertex and edges outputs clean, interconnected clusters. May create new clusters, but does not creates nor deletes points/edges.");
+	PCGEX_NODE_INFOS(CopyClustersToPoints, "Copy Clusters To Points", "Create a copies of the input clusters onto the target points. \n NOTE: Does not sanitize input.");
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExEditorSettings>()->NodeColorGraph; }
 #endif
 
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
+	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	//~End UPCGSettings interface
 
 	//~Begin UPCGExEdgesProcessorSettings interface
@@ -32,25 +32,25 @@ public:
 	virtual PCGExData::EInit GetEdgeOutputInitMode() const override;
 	//~End UPCGExEdgesProcessorSettings interface
 
-	/** Graph & Edges output properties. Note that pruning isolated points is ignored. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ShowOnlyInnerProperties, DisplayName="Graph Output Settings"))
-	FPCGExGraphBuilderSettings GraphBuilderSettings;
+	/** Target inherit behavior */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	FPCGExTransformSettings TransformSettings;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExSanitizeClustersContext : public FPCGExEdgesProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExCopyClustersToPointsContext : public FPCGExEdgesProcessorContext
 {
-	friend class UPCGExSanitizeClustersSettings;
-	friend class FPCGExSanitizeClustersElement;
+	friend class UPCGExCopyClustersToPointsSettings;
+	friend class FPCGExCopyClustersToPointsElement;
 
-	virtual ~FPCGExSanitizeClustersContext() override;
+	virtual ~FPCGExCopyClustersToPointsContext() override;
 
-	TArray<PCGExGraph::FIndexedEdge> IndexedEdges;
+	FPCGExTransformSettings TransformSettings;
 
-	FPCGExGraphBuilderSettings GraphBuilderSettings;
-	PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
+	PCGExData::FPointIOCollection* TargetsCollection = nullptr;
+	
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExSanitizeClustersElement : public FPCGExEdgesProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExCopyClustersToPointsElement : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

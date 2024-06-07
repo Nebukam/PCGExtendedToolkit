@@ -118,7 +118,8 @@ namespace PCGExCluster
 		const PCGExData::FPointIO& EdgeIO,
 		const TArray<FPCGPoint>& InNodePoints,
 		const TMap<int64, int32>& InNodeIndicesMap,
-		const TArray<int32>& PerNodeEdgeNums)
+		const TArray<int32>& PerNodeEdgeNums,
+		const bool bDeterministic)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExCluster::BuildCluster);
 
@@ -144,14 +145,16 @@ namespace PCGExCluster
 		Edges.SetNumUninitialized(NumEdges);
 		EdgeIndexMap.Reserve(NumEdges);
 
-		/*
-		//We use to need to sort cluster to get deterministic results but it seems not to be the case anymore
-		EdgeList.Sort(
-			[](const PCGExGraph::FIndexedEdge& A, const PCGExGraph::FIndexedEdge& B)
-			{
-				return A.Start == B.Start ? A.End < B.End : A.Start < B.Start;
-			});
-		*/
+		if (bDeterministic)
+		{
+			/*
+			EdgeList.Sort(
+				[](const PCGExGraph::FIndexedEdge& A, const PCGExGraph::FIndexedEdge& B)
+				{
+					return A.Start == B.Start ? A.End < B.End : A.Start < B.Start;
+				});
+				*/
+		}
 
 		for (int i = 0; i < NumEdges; i++)
 		{
@@ -743,11 +746,16 @@ namespace PCGExCluster
 	{
 	}
 
-	void TClusterFilter::PrepareForTesting(const PCGExData::FPointIO* PointIO)
+	bool TClusterFilter::PrepareForTesting(const PCGExData::FPointIO* PointIO)
 	{
-		const int32 NumNodes = CapturedCluster->Nodes.Num();
-		Results.SetNumUninitialized(NumNodes);
-		for (int i = 0; i < NumNodes; i++) { Results[i] = false; }
+		if (bCacheResults)
+		{
+			const int32 NumNodes = CapturedCluster->Nodes.Num();
+			Results.SetNumUninitialized(NumNodes);
+			for (int i = 0; i < NumNodes; i++) { Results[i] = false; }
+		}
+
+		return false;
 	}
 
 	FNodeStateHandler::FNodeStateHandler(const UPCGExNodeStateFactory* InFactory)
@@ -824,11 +832,39 @@ namespace PCGExCluster
 		return true;
 	}
 
-	void FNodeStateHandler::PrepareForTesting(const PCGExData::FPointIO* PointIO)
+	bool FNodeStateHandler::PrepareForTesting(const PCGExData::FPointIO* PointIO)
 	{
 		TDataState::PrepareForTesting(PointIO);
-		for (TFilter* Test : FilterHandlers) { Test->PrepareForTesting(PointIO); }
-		for (TClusterFilter* Test : ClusterFilterHandlers) { Test->PrepareForTesting(PointIO); }
+
+		HeavyFilterHandlers.Empty();
+		HeavyClusterFilterHandlers.Empty();
+
+		for (TFilter* Test : FilterHandlers) { if (Test->PrepareForTesting(PointIO)) { HeavyFilterHandlers.Add(Test); } }
+		for (TClusterFilter* Test : ClusterFilterHandlers) { if (Test->PrepareForTesting(PointIO)) { HeavyClusterFilterHandlers.Add(Test); } }
+
+		return RequiresPerPointPreparation();
+	}
+
+	void FNodeStateHandler::PrepareSingle(const int32 PointIndex)
+	{
+		for (TFilter* Test : HeavyFilterHandlers) { Test->PrepareSingle(PointIndex); }
+
+		if (!HeavyClusterFilterHandlers.IsEmpty())
+		{
+			const int32 NodeIndex = Cluster->GetNodeFromPointIndex(PointIndex).NodeIndex; // We get a point index from the FindNode
+			for (TClusterFilter* Test : HeavyClusterFilterHandlers) { Test->PrepareSingle(NodeIndex); }
+		}
+	}
+
+	void FNodeStateHandler::PreparationComplete()
+	{
+		for (TFilter* Test : HeavyFilterHandlers) { Test->PreparationComplete(); }
+		for (TClusterFilter* Test : HeavyClusterFilterHandlers) { Test->PreparationComplete(); }
+	}
+
+	bool FNodeStateHandler::RequiresPerPointPreparation() const
+	{
+		return !HeavyFilterHandlers.IsEmpty() || !HeavyClusterFilterHandlers.IsEmpty();;
 	}
 
 #pragma endregion
@@ -842,7 +878,8 @@ namespace PCGExClusterTask
 			*EdgeIO,
 			PointIO->GetIn()->GetPoints(),
 			*NodeIndicesMap,
-			*PerNodeEdgeNums);
+			*PerNodeEdgeNums,
+			true);
 
 		return true;
 	}
@@ -854,6 +891,33 @@ namespace PCGExClusterTask
 
 	bool FProjectCluster::ExecuteTask()
 	{
+		return true;
+	}
+
+	FCopyClustersToPoint::~FCopyClustersToPoint()
+	{
+		Edges.Empty();
+	}
+
+	bool FCopyClustersToPoint::ExecuteTask()
+	{
+		PCGExData::FPointIO& VtxDupe = VtxCollection->Emplace_GetRef(Vtx->GetIn(), PCGExData::EInit::DuplicateInput);
+		VtxDupe.IOIndex = TaskIndex;
+
+		FString OutId;
+		VtxDupe.Tags->Set(PCGExGraph::TagStr_ClusterPair, VtxDupe.GetOut()->UID, OutId);
+
+		Manager->Start<PCGExGeoTasks::FTransformPointIO>(TaskIndex, PointIO, &VtxDupe, TransformSettings);
+
+		for (const PCGExData::FPointIO* EdgeIO : Edges)
+		{
+			PCGExData::FPointIO& EdgeDupe = EdgeCollection->Emplace_GetRef(EdgeIO->GetIn(), PCGExData::EInit::DuplicateInput);
+			EdgeDupe.IOIndex = TaskIndex;
+			EdgeDupe.Tags->Set(PCGExGraph::TagStr_ClusterPair, OutId);
+
+			Manager->Start<PCGExGeoTasks::FTransformPointIO>(TaskIndex, PointIO, &EdgeDupe, TransformSettings);
+		}
+
 		return true;
 	}
 }

@@ -13,9 +13,6 @@ class UPCGExGraphDefinition;
 
 #define PCGEX_GRAPH_MISSING_METADATA PCGE_LOG(Warning, GraphAndLog, FText::Format(FTEXT("Metadata missing on '{0}' graph."), FText::FromName(Context->CurrentGraph->GraphIdentifier)));
 
-/**
- * A Base node to process a set of point using GraphParams.
- */
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural))
 class PCGEXTENDEDTOOLKIT_API UPCGExCustomGraphProcessorSettings : public UPCGExPointsProcessorSettings
 {

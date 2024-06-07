@@ -13,6 +13,7 @@
 
 #include "PCGExCluster.generated.h"
 
+
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Cluster Closest Search Mode"))
 enum class EPCGExClusterClosestSearchMode : uint8
 {
@@ -188,7 +189,7 @@ namespace PCGExCluster
 			const PCGExData::FPointIO& EdgeIO,
 			const TArray<FPCGPoint>& InNodePoints,
 			const TMap<int64, int32>& InNodeIndicesMap,
-			const TArray<int32>& PerNodeEdgeNums);
+			const TArray<int32>& PerNodeEdgeNums, const bool bDeterministic);
 
 		void BuildPartialFrom(const TArray<FVector>& Positions, const TSet<uint64>& InEdges);
 
@@ -288,7 +289,7 @@ namespace PCGExCluster
 		virtual void CaptureCluster(const FPCGContext* InContext, const FCluster* InCluster);
 		virtual void Capture(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO) override;
 		virtual void CaptureEdges(const FPCGContext* InContext, const PCGExData::FPointIO* EdgeIO);
-		virtual void PrepareForTesting(const PCGExData::FPointIO* PointIO) override;
+		virtual bool PrepareForTesting(const PCGExData::FPointIO* PointIO) override;
 	};
 
 	class PCGEXTENDEDTOOLKIT_API FNodeStateHandler : public PCGExDataState::TDataState
@@ -297,17 +298,28 @@ namespace PCGExCluster
 		explicit FNodeStateHandler(const UPCGExNodeStateFactory* InFactory);
 
 		const UPCGExNodeStateFactory* NodeStateDefinition = nullptr;
+
 		TArray<TFilter*> FilterHandlers;
+		TArray<TFilter*> HeavyFilterHandlers;
 		TArray<TClusterFilter*> ClusterFilterHandlers;
+		TArray<TClusterFilter*> HeavyClusterFilterHandlers;
 
 		virtual void CaptureCluster(const FPCGContext* InContext, FCluster* InCluster);
 		FORCEINLINE virtual bool Test(const int32 PointIndex) const override;
-		virtual void PrepareForTesting(const PCGExData::FPointIO* PointIO) override;
+
+		virtual bool PrepareForTesting(const PCGExData::FPointIO* PointIO) override;
+		virtual void PrepareSingle(const int32 PointIndex) override;
+		virtual void PreparationComplete() override;
+
+		virtual bool RequiresPerPointPreparation() const;
 
 		virtual ~FNodeStateHandler() override
 		{
 			PCGEX_DELETE_TARRAY(FilterHandlers)
+			HeavyFilterHandlers.Empty();
+
 			PCGEX_DELETE_TARRAY(ClusterFilterHandlers)
+			HeavyClusterFilterHandlers.Empty();
 		}
 
 	protected:
@@ -378,5 +390,37 @@ namespace PCGExClusterTask
 		PCGExCluster::FClusterProjection* Projection = nullptr;
 
 		virtual bool ExecuteTask() override;
+	};
+
+	class PCGEXTENDEDTOOLKIT_API FCopyClustersToPoint : public FPCGExNonAbandonableTask
+	{
+	public:
+		FCopyClustersToPoint(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+		                     PCGExData::FPointIO* InVtx,
+		                     const TArray<PCGExData::FPointIO*>& InEdges,
+		                     PCGExData::FPointIOCollection* InVtxCollection,
+		                     PCGExData::FPointIOCollection* InEdgeCollection,
+		                     FPCGExTransformSettings* InTransformSettings) :
+			FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+			Vtx(InVtx),
+			Edges(InEdges),
+			VtxCollection(InVtxCollection),
+			EdgeCollection(InEdgeCollection),
+			TransformSettings(InTransformSettings)
+		{
+		}
+
+		virtual ~FCopyClustersToPoint() override;
+		
+		PCGExData::FPointIO* Vtx = nullptr;
+		TArray<PCGExData::FPointIO*> Edges;
+
+		PCGExData::FPointIOCollection* VtxCollection = nullptr;
+		PCGExData::FPointIOCollection* EdgeCollection = nullptr;
+
+		FPCGExTransformSettings* TransformSettings = nullptr;
+
+		virtual bool ExecuteTask() override;
+		
 	};
 }

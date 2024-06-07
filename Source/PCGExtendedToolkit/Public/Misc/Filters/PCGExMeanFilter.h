@@ -115,7 +115,7 @@ namespace PCGExPointsFilter
 		virtual void Capture(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO) override;
 		FORCEINLINE virtual bool Test(const int32 PointIndex) const override;
 
-		virtual void PrepareForTesting(const PCGExData::FPointIO* PointIO) override;
+		virtual bool PrepareForTesting(const PCGExData::FPointIO* PointIO) override;
 
 		virtual ~TMeanFilter() override
 		{

@@ -22,9 +22,6 @@ namespace PCGExDataBlending
 	class FCompoundBlender;
 }
 
-/**
- * A Base node to process a set of point using GraphParams.
- */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
 class PCGEXTENDEDTOOLKIT_API UPCGExFuseClustersLocalSettings : public UPCGExEdgesProcessorSettings
 {
@@ -47,6 +44,8 @@ public:
 	virtual PCGExData::EInit GetEdgeOutputInitMode() const override;
 	//~End UPCGExEdgesProcessorSettings interface
 
+	virtual bool RequiresDeterministicClusters() const override;
+	
 	/** Fuse Settings */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Point/Point Settings"))
 	FPCGExPointPointIntersectionSettings PointPointIntersectionSettings;

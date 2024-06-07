@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 #include "PCGEx.h"
 #include "PCGExMT.h"
+#include "PCGExSettings.h"
 #include "Data/PCGExAttributeHelpers.h"
 #include "PCGExGeo.generated.h"
 
@@ -43,7 +44,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGeo2DProjectionSettings
 	bool bLocalProjectionNormal = false;
 
 	/** Local attribute to fetch projection normal from */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bSupportLocalNormal&&bLocalProjectionNormal", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bSupportLocalNormal && bLocalProjectionNormal", EditConditionHides))
 	FPCGAttributePropertyInputSelector LocalNormal;
 
 	FMatrix DefaultMatrix = FMatrix::Identity;
@@ -336,4 +337,51 @@ namespace PCGExGeo
 		OutPositions.SetNum(NumPoints);
 		for (int i = 0; i < NumPoints; i++) { OutPositions[i] = Points[i].Transform.GetLocation(); }
 	}
+}
+
+namespace PCGExGeoTasks
+{
+	class PCGEXTENDEDTOOLKIT_API FTransformPointIO : public FPCGExNonAbandonableTask
+	{
+	public:
+		FTransformPointIO(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+		                  PCGExData::FPointIO* InTargetIO,
+		                  FPCGExTransformSettings* InTransformSettings) :
+			FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+			TargetIO(InTargetIO),
+			TransformSettings(InTransformSettings)
+		{
+		}
+
+		PCGExData::FPointIO* TargetIO = nullptr;
+		FPCGExTransformSettings* TransformSettings = nullptr;
+
+		virtual bool ExecuteTask() override
+		{
+			const FPCGPoint& TargetPoint = PointIO->GetInPoint(TaskIndex);
+			TArray<FPCGPoint>& MutableTargets = TargetIO->GetOut()->GetMutablePoints();
+
+			for (FPCGPoint& InPoint : MutableTargets)
+			{
+				if (TransformSettings->bInheritRotation && TransformSettings->bInheritScale)
+				{
+					InPoint.Transform *= TargetPoint.Transform;
+					continue;
+				}
+
+				InPoint.Transform.SetLocation(TargetPoint.Transform.TransformPosition(InPoint.Transform.GetLocation()));
+
+				if (TransformSettings->bInheritRotation)
+				{
+					InPoint.Transform.SetRotation(TargetPoint.Transform.TransformRotation(InPoint.Transform.GetRotation()));
+				}
+				else if (TransformSettings->bInheritScale)
+				{
+					InPoint.Transform.SetScale3D(TargetPoint.Transform.GetScale3D() * InPoint.Transform.GetScale3D());
+				}
+			}
+
+			return true;
+		}
+	};
 }

@@ -80,26 +80,42 @@ bool FPCGExSampleSurfaceGuidedElement::ExecuteInternal(FPCGContext* InContext) c
 
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
+		PCGEX_DELETE(Context->PointFilterManager)
+
 		if (!Context->AdvancePointsIO()) { Context->Done(); }
 		else
 		{
-			if (!Context->PointFilterFactories.IsEmpty()) { Context->SetState(PCGExDataFilter::State_FilteringPoints); }
-			else { Context->SetState(PCGExMT::State_ProcessingPoints); }
+			if (!Context->PointFilterFactories.IsEmpty())
+			{
+				Context->PointFilterManager = new PCGExDataFilter::TEarlyExitFilterManager(Context->CurrentIO);
+				Context->PointFilterManager->Register<UPCGExFilterFactoryBase>(Context, Context->PointFilterFactories, Context->CurrentIO);
+
+				if (Context->PointFilterManager->PrepareForTesting()) { Context->SetState(PCGExDataFilter::State_PreparingFilters); }
+				else { Context->SetState(PCGExDataFilter::State_FilteringPoints); }
+			}
+			else
+			{
+				Context->SetState(PCGExMT::State_ProcessingPoints);
+			}
 		}
+	}
+
+	if (Context->IsState(PCGExDataFilter::State_PreparingFilters))
+	{
+		auto PreparePoint = [&](const int32 Index, const PCGExData::FPointIO& PointIO) { Context->PointFilterManager->PrepareSingle(Index); };
+
+		if (!Context->ProcessCurrentPoints(PreparePoint)) { return false; }
+
+		Context->PointFilterManager->PreparationComplete();
+
+		Context->SetState(PCGExDataFilter::State_FilteringPoints);
 	}
 
 	if (Context->IsState(PCGExDataFilter::State_FilteringPoints))
 	{
-		auto Initialize = [&](const PCGExData::FPointIO& PointIO)
-		{
-			PCGEX_DELETE(Context->PointFilterManager)
-			Context->PointFilterManager = new PCGExDataFilter::TEarlyExitFilterManager(&PointIO);
-			Context->PointFilterManager->Register<UPCGExFilterFactoryBase>(Context, Context->PointFilterFactories, &PointIO);
-		};
-
 		auto ProcessPoint = [&](const int32 PointIndex, const PCGExData::FPointIO& PointIO) { Context->PointFilterManager->Test(PointIndex); };
 
-		if (!Context->ProcessCurrentPoints(Initialize, ProcessPoint)) { return false; }
+		if (!Context->ProcessCurrentPoints(ProcessPoint)) { return false; }
 
 		Context->SetState(PCGExMT::State_ProcessingPoints);
 	}

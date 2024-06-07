@@ -22,19 +22,35 @@ namespace PCGExDataFilter
 		bValid = true;
 	}
 
-	bool TFilter::Test(const int32 PointIndex) const { return true; }
-
-	void TFilter::PrepareForTesting(const PCGExData::FPointIO* PointIO)
+	bool TFilter::PrepareForTesting(const PCGExData::FPointIO* PointIO)
 	{
-		const int32 NumPoints = PointIO->GetNum();
-		Results.SetNumUninitialized(NumPoints);
-		for (int i = 0; i < NumPoints; i++) { Results[i] = false; }
+		if (bCacheResults)
+		{
+			const int32 NumPoints = PointIO->GetNum();
+			Results.SetNumUninitialized(NumPoints);
+			for (bool& Result : Results) { Result = false; }
+		}
+
+		return false;
 	}
 
-	void TFilter::PrepareForTesting(const PCGExData::FPointIO* PointIO, const TArrayView<int32>& PointIndices)
+	bool TFilter::PrepareForTesting(const PCGExData::FPointIO* PointIO, const TArrayView<int32>& PointIndices)
 	{
-		if (const int32 NumPoints = PointIO->GetNum(); Results.Num() != NumPoints) { Results.SetNumUninitialized(NumPoints); }
-		for (const int32 i : PointIndices) { Results[i] = false; }
+		if (bCacheResults)
+		{
+			if (const int32 NumPoints = PointIO->GetNum(); Results.Num() != NumPoints) { Results.SetNumUninitialized(NumPoints); }
+			for (const int32 i : PointIndices) { Results[i] = false; }
+		}
+
+		return false;
+	}
+
+	void TFilter::PrepareSingle(const int32 PointIndex)
+	{
+	}
+
+	void TFilter::PreparationComplete()
+	{
 	}
 
 	TFilterManager::TFilterManager(const PCGExData::FPointIO* InPointIO)
@@ -42,19 +58,38 @@ namespace PCGExDataFilter
 	{
 	}
 
-	void TFilterManager::PrepareForTesting()
+	bool TFilterManager::PrepareForTesting()
 	{
-		for (TFilter* Handler : Handlers) { Handler->PrepareForTesting(PointIO); }
+		HeavyHandlers.Reset();
+		for (TFilter* Handler : Handlers) { if (Handler->PrepareForTesting(PointIO)) { HeavyHandlers.Add(Handler); } }
+		return !HeavyHandlers.IsEmpty();
 	}
 
-	void TFilterManager::PrepareForTesting(const TArrayView<int32>& PointIndices)
+	bool TFilterManager::PrepareForTesting(const TArrayView<int32>& PointIndices)
 	{
-		for (TFilter* Handler : Handlers) { Handler->PrepareForTesting(PointIO, PointIndices); }
+		HeavyHandlers.Reset();
+		for (TFilter* Handler : Handlers) { if (Handler->PrepareForTesting(PointIO, PointIndices)) { HeavyHandlers.Add(Handler); } }
+		return !HeavyHandlers.IsEmpty();
+	}
+
+	void TFilterManager::PrepareSingle(const int32 PointIndex)
+	{
+		for (TFilter* Handler : HeavyHandlers) { Handler->PrepareSingle(PointIndex); }
+	}
+
+	void TFilterManager::PreparationComplete()
+	{
+		for (TFilter* Handler : HeavyHandlers) { Handler->PreparationComplete(); }
 	}
 
 	void TFilterManager::Test(const int32 PointIndex)
 	{
 		for (TFilter* Handler : Handlers) { Handler->Results[PointIndex] = Handler->Test(PointIndex); }
+	}
+
+	bool TFilterManager::RequiresPerPointPreparation() const
+	{
+		return !HeavyHandlers.IsEmpty();
 	}
 
 	void TFilterManager::PostProcessHandler(TFilter* Handler)
@@ -64,6 +99,7 @@ namespace PCGExDataFilter
 	TEarlyExitFilterManager::TEarlyExitFilterManager(const PCGExData::FPointIO* InPointIO)
 		: TFilterManager(InPointIO)
 	{
+		
 	}
 
 	void TEarlyExitFilterManager::Test(const int32 PointIndex)
@@ -81,12 +117,20 @@ namespace PCGExDataFilter
 		Results[PointIndex] = bPass;
 	}
 
-	void TEarlyExitFilterManager::PrepareForTesting()
+	bool TEarlyExitFilterManager::PrepareForTesting()
 	{
-		for (TFilter* Handler : Handlers) { Handler->PrepareForTesting(PointIO); }
+		HeavyHandlers.Reset();
+		for (TFilter* Handler : Handlers) { if (Handler->PrepareForTesting(PointIO)) { HeavyHandlers.Add(Handler); } }
 
-		const int32 NumPoints = PointIO->GetNum();
-		Results.SetNumUninitialized(NumPoints);
-		for (int i = 0; i < NumPoints; i++) { Results[i] = true; }
+		Results.SetNumUninitialized(PointIO->GetNum());
+		for (bool& Result : Results) { Result = true; }
+
+		return !HeavyHandlers.IsEmpty();
+	}
+
+	bool TEarlyExitFilterManager::PrepareForTesting(const TArrayView<int32>& PointIndices)
+	{
+		check(false) //this override Should not be used with early exit
+		return TFilterManager::PrepareForTesting(PointIndices);
 	}
 }

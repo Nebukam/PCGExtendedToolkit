@@ -7,11 +7,25 @@
 #define PCGEX_NAMESPACE PCGExCreateNeighborSample
 
 
-void UPCGExNeighborSampleOperation::PrepareForCluster(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster)
+bool UPCGExNeighborSampleOperation::PrepareForCluster(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster)
 {
 	Cluster = InCluster;
-	if (PointState) { PointState->CaptureCluster(Context, Cluster); }
-	if (ValueState) { ValueState->CaptureCluster(Context, Cluster); }
+
+	if (PointState)
+	{
+		PointState->CaptureCluster(Context, Cluster);
+		PointState->PrepareForTesting(Cluster->PointsIO);
+	}
+
+	if (ValueState)
+	{
+		ValueState->CaptureCluster(Context, Cluster);
+		ValueState->PrepareForTesting(Cluster->PointsIO);
+	}
+
+	return
+		(PointState && PointState->RequiresPerPointPreparation()) ||
+		(ValueState && ValueState->RequiresPerPointPreparation());
 }
 
 bool UPCGExNeighborSampleOperation::IsOperationValid() { return bIsValidOperation; }
@@ -174,12 +188,15 @@ void UPCGExNeighborSampleOperation::ProcessNodeForEdges(const int32 InNodeIndex)
 
 			if (ValueState)
 			{
+				TSet<int32> IgnoredEndPoints;
+
 				for (int i = 0; i < CurrentNeighbors->Num(); i++)
 				{
 					const int32 NIndex = (*CurrentNeighbors)[i];
 					const int32 PtIndex = Cluster->Nodes[NIndex].PointIndex;
 					if (ValueState->Test(PtIndex))
 					{
+						IgnoredEndPoints.Add(NIndex);
 						VisitedNodes.Add(NIndex);
 						CurrentNeighbors->RemoveAt(i);
 						i--;
@@ -190,13 +207,15 @@ void UPCGExNeighborSampleOperation::ProcessNodeForEdges(const int32 InNodeIndex)
 				{
 					const int32 EIndex = (*CurrentEdges)[i];
 					const PCGExGraph::FIndexedEdge& Edge = Cluster->Edges[EIndex];
-					if (!ValueState->Test(Edge.Start) || !ValueState->Test(Edge.End))
+					if (IgnoredEndPoints.Contains(Edge.Start) || IgnoredEndPoints.Contains(Edge.End))
 					{
 						VisitedEdges.Add(EIndex);
 						CurrentEdges->RemoveAt(i);
 						i--;
 					}
 				}
+
+				IgnoredEndPoints.Empty();
 			}
 
 			for (const int32 EdgeIndex : (*CurrentEdges))

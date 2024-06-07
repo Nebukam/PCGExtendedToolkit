@@ -49,6 +49,7 @@ public:
 
 namespace PCGExDataFilter
 {
+	constexpr PCGExMT::AsyncState State_PreparingFilters = __COUNTER__;
 	constexpr PCGExMT::AsyncState State_FilteringPoints = __COUNTER__;
 
 	const FName OutputFilterLabel = TEXT("Filter");
@@ -64,6 +65,7 @@ namespace PCGExDataFilter
 		{
 		}
 
+		bool bCacheResults = true;
 		const UPCGExFilterFactoryBase* Factory;
 		TArray<bool> Results;
 
@@ -73,10 +75,15 @@ namespace PCGExDataFilter
 		FORCEINLINE virtual EType GetFilterType() const;
 
 		virtual void Capture(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO);
-		FORCEINLINE virtual bool Test(const int32 PointIndex) const;
-		virtual void PrepareForTesting(const PCGExData::FPointIO* PointIO);
-		virtual void PrepareForTesting(const PCGExData::FPointIO* PointIO, const TArrayView<int32>& PointIndices);
 
+		virtual bool PrepareForTesting(const PCGExData::FPointIO* PointIO);
+		virtual bool PrepareForTesting(const PCGExData::FPointIO* PointIO, const TArrayView<int32>& PointIndices);
+
+		virtual void PrepareSingle(const int32 PointIndex);
+		virtual void PreparationComplete();
+		
+		FORCEINLINE virtual bool Test(const int32 PointIndex) const = 0;
+		
 		virtual ~TFilter()
 		{
 			Results.Empty();
@@ -89,6 +96,9 @@ namespace PCGExDataFilter
 		explicit TFilterManager(const PCGExData::FPointIO* InPointIO);
 
 		TArray<TFilter*> Handlers;
+		TArray<TFilter*> HeavyHandlers;
+
+		bool bCacheResults = true;
 		bool bValid = false;
 
 		const PCGExData::FPointIO* PointIO = nullptr;
@@ -105,6 +115,8 @@ namespace PCGExDataFilter
 			for (T_DEF* Factory : InFactories)
 			{
 				TFilter* Handler = Factory->CreateFilter();
+				Handler->bCacheResults = bCacheResults;
+				
 				InCaptureFn(Handler);
 
 				if (!Handler->bValid)
@@ -131,14 +143,20 @@ namespace PCGExDataFilter
 			}
 		}
 
-		virtual void PrepareForTesting();
-		virtual void PrepareForTesting(const TArrayView<int32>& PointIndices);
+		virtual bool PrepareForTesting();
+		virtual bool PrepareForTesting(const TArrayView<int32>& PointIndices);
 
+		virtual void PrepareSingle(const int32 PointIndex);
+		virtual void PreparationComplete();
+		
 		virtual void Test(const int32 PointIndex);
 
+		virtual bool RequiresPerPointPreparation() const;
+		
 		virtual ~TFilterManager()
 		{
 			PCGEX_DELETE_TARRAY(Handlers)
+			HeavyHandlers.Empty();
 		}
 
 	protected:
@@ -153,6 +171,8 @@ namespace PCGExDataFilter
 		TArray<bool> Results;
 
 		virtual void Test(const int32 PointIndex) override;
-		virtual void PrepareForTesting() override;
+		
+		virtual bool PrepareForTesting() override;
+		virtual bool PrepareForTesting(const TArrayView<int32>& PointIndices) override;
 	};
 }

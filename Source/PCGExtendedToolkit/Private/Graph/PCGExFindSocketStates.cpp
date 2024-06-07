@@ -90,10 +90,20 @@ bool FPCGExFindSocketStatesElement::ExecuteInternal(
 			}
 
 			Context->CurrentIO->CreateInKeys();
-			Context->StatesManager->PrepareForTesting();
 
-			Context->SetState(PCGExMT::State_ProcessingPoints);
+			if (Context->StatesManager->PrepareForTesting()) { Context->SetState(PCGExDataFilter::State_PreparingFilters); }
+			else { Context->SetState(PCGExMT::State_ProcessingPoints); }
 		}
+	}
+
+	if (Context->IsState(PCGExDataFilter::State_PreparingFilters))
+	{
+		auto PreparePoint = [&](const int32 Index, const PCGExData::FPointIO& PointIO) { Context->StatesManager->PrepareSingle(Index); };
+
+		if (!Context->ProcessCurrentPoints(PreparePoint)) { return false; }
+
+		Context->StatesManager->PreparationComplete();
+		Context->SetState(PCGExMT::State_ProcessingPoints);
 	}
 
 	if (Context->IsState(PCGExMT::State_ProcessingPoints))

@@ -159,9 +159,6 @@ namespace PCGEx
 }
 
 
-/**
- * A Base node to process a set of point using GraphParams.
- */
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural))
 class PCGEXTENDEDTOOLKIT_API UPCGExPointsProcessorSettings : public UPCGSettings
 {
@@ -350,7 +347,7 @@ public:
 	virtual bool IsAsyncWorkComplete();
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorElementBase : public FPCGPointProcessingElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorElementBase : public IPCGElement
 {
 public:
 	virtual FPCGContext* Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node) override;

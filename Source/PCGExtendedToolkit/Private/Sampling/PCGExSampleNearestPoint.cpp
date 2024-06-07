@@ -154,9 +154,30 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 
 			if (Context->Blender) { Context->Blender->PrepareForData(*Context->CurrentIO, *Context->Targets); }
 
-			if (!Context->PointFilterFactories.IsEmpty() || !Context->ValueFilterFactories.IsEmpty())
+			PCGEX_DELETE(Context->PointFilterManager)
+			PCGEX_DELETE(Context->ValueFilterManager)
+
+			bool bHasHeavyPointFilters = false;
+			bool bHasHeavyValueFilters = false;
+
+			if (!Context->PointFilterFactories.IsEmpty())
 			{
-				Context->SetState(PCGExDataFilter::State_FilteringPoints);
+				Context->PointFilterManager = new PCGExDataFilter::TEarlyExitFilterManager(Context->CurrentIO);
+				Context->PointFilterManager->Register<UPCGExFilterFactoryBase>(Context, Context->PointFilterFactories, Context->CurrentIO);
+				bHasHeavyPointFilters = Context->PointFilterManager->PrepareForTesting();
+			}
+
+			if (!Context->ValueFilterFactories.IsEmpty())
+			{
+				Context->ValueFilterManager = new PCGExDataFilter::TEarlyExitFilterManager(Context->CurrentIO);
+				Context->ValueFilterManager->Register<UPCGExFilterFactoryBase>(Context, Context->ValueFilterFactories, Context->CurrentIO);
+				bHasHeavyValueFilters = Context->ValueFilterManager->PrepareForTesting();
+			}
+
+			if (Context->PointFilterManager || Context->ValueFilterManager)
+			{
+				if (bHasHeavyPointFilters || bHasHeavyValueFilters) { Context->SetState(PCGExDataFilter::State_PreparingFilters); }
+				else { Context->SetState(PCGExDataFilter::State_FilteringPoints); }
 			}
 			else
 			{
@@ -165,32 +186,31 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 		}
 	}
 
-	if (Context->IsState(PCGExDataFilter::State_FilteringPoints))
+	if (Context->IsState(PCGExDataFilter::State_PreparingFilters))
 	{
-		auto Initialize = [&](const PCGExData::FPointIO& PointIO)
+		auto PreparePoint = [&](const int32 Index, const PCGExData::FPointIO& PointIO)
 		{
-			PCGEX_DELETE(Context->PointFilterManager)
-			PCGEX_DELETE(Context->ValueFilterManager)
-
-			if (!Context->PointFilterFactories.IsEmpty())
-			{
-				Context->PointFilterManager = new PCGExDataFilter::TEarlyExitFilterManager(&PointIO);
-				Context->PointFilterManager->Register<UPCGExFilterFactoryBase>(Context, Context->PointFilterFactories, &PointIO);
-			}
-			if (!Context->ValueFilterFactories.IsEmpty())
-			{
-				Context->ValueFilterManager = new PCGExDataFilter::TEarlyExitFilterManager(&PointIO);
-				Context->ValueFilterManager->Register<UPCGExFilterFactoryBase>(Context, Context->ValueFilterFactories, &PointIO);
-			}
+			if (Context->PointFilterManager) { Context->PointFilterManager->PrepareSingle(Index); }
+			if (Context->ValueFilterManager) { Context->ValueFilterManager->PrepareSingle(Index); }
 		};
 
+		if (!Context->ProcessCurrentPoints(PreparePoint)) { return false; }
+
+		if (Context->PointFilterManager) { Context->PointFilterManager->PreparationComplete(); }
+		if (Context->ValueFilterManager) { Context->ValueFilterManager->PreparationComplete(); }
+
+		Context->SetState(PCGExDataFilter::State_FilteringPoints);
+	}
+
+	if (Context->IsState(PCGExDataFilter::State_FilteringPoints))
+	{
 		auto ProcessPoint = [&](const int32 PointIndex, const PCGExData::FPointIO& PointIO)
 		{
 			if (Context->PointFilterManager) { Context->PointFilterManager->Test(PointIndex); }
 			if (Context->ValueFilterManager) { Context->ValueFilterManager->Test(PointIndex); }
 		};
 
-		if (!Context->ProcessCurrentPoints(Initialize, ProcessPoint)) { return false; }
+		if (!Context->ProcessCurrentPoints(ProcessPoint)) { return false; }
 
 		Context->SetState(PCGExMT::State_ProcessingPoints);
 	}

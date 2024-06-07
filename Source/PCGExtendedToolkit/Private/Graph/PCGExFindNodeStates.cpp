@@ -100,8 +100,18 @@ bool FPCGExFindNodeStatesElement::ExecuteInternal(
 		}
 
 		Context->CurrentIO->CreateInKeys();
-		Context->StatesManager->PrepareForTesting(Context->NodeIndices);
 
+		if (Context->StatesManager->PrepareForTesting(Context->NodeIndices)) { Context->SetState(PCGExDataFilter::State_PreparingFilters); }
+		else { Context->SetState(PCGExCluster::State_ProcessingCluster); }
+	}
+
+	if (Context->IsState(PCGExDataFilter::State_PreparingFilters))
+	{
+		auto PrepareNode = [&](const int32 Index) { Context->StatesManager->PrepareSingle(Index); };
+
+		if (!Context->Process(PrepareNode, Context->CurrentCluster->Nodes.Num())) { return false; }
+
+		Context->StatesManager->PreparationComplete();
 		Context->SetState(PCGExCluster::State_ProcessingCluster);
 	}
 

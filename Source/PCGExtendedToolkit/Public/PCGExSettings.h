@@ -506,6 +506,21 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgeEdgeIntersectionSettings
 	}
 };
 
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExTransformSettings
+{
+	GENERATED_BODY()
+
+	/** If enabled, copied point will be scaled by the target' scale. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bInheritScale = false;
+
+	/** If enabled, copied points will be rotated by the target' rotation. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bInheritRotation = false;
+	
+};
+
 namespace PCGExSettings
 {
 #pragma region Distance Settings

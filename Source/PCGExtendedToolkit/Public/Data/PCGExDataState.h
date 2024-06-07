@@ -88,8 +88,8 @@ namespace PCGExDataState
 		{
 		}
 
-		virtual void PrepareForTesting() override;
-		virtual void PrepareForTesting(const TArrayView<int32>& PointIndices) override;
+		virtual bool PrepareForTesting() override;
+		virtual bool PrepareForTesting(const TArrayView<int32>& PointIndices) override;
 
 		virtual void Test(const int32 PointIndex) override;
 

@@ -85,7 +85,7 @@ namespace PCGExNodeAdjacency
 		}
 	}
 
-	void TAdjacencyFilter::PrepareForTesting(const PCGExData::FPointIO* PointIO)
+	bool TAdjacencyFilter::PrepareForTesting(const PCGExData::FPointIO* PointIO)
 	{
 		TClusterFilter::PrepareForTesting(PointIO);
 
@@ -125,6 +125,8 @@ namespace PCGExNodeAdjacency
 				}
 			}
 		}
+
+		return false;
 	}
 
 	bool TAdjacencyFilter::Test(const int32 PointIndex) const

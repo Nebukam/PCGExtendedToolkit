@@ -15,6 +15,8 @@
 PCGExData::EInit UPCGExFuseClustersSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 PCGExData::EInit UPCGExFuseClustersSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 
+bool UPCGExFuseClustersSettings::RequiresDeterministicClusters() const { return true; }
+
 #pragma endregion
 
 FPCGExFuseClustersContext::~FPCGExFuseClustersContext()

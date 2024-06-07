@@ -123,16 +123,40 @@ bool FPCGExSampleNeighborsElement::ExecuteInternal(
 		if (Context->SamplingOperations.IsValidIndex(NextIndex))
 		{
 			Context->CurrentOperation = Context->SamplingOperations[NextIndex];
-			Context->CurrentOperation->PrepareForCluster(Context, Context->CurrentCluster);
+			const bool bRequiresPerPointPreparation = Context->CurrentOperation->PrepareForCluster(Context, Context->CurrentCluster);
 
 			if (!Context->CurrentOperation->IsOperationValid()) { return false; }
 
-			Context->SetState(PCGExSampleNeighbors::State_Sampling);
+			if (bRequiresPerPointPreparation) { Context->SetState(PCGExDataFilter::State_PreparingFilters); }
+			else { Context->SetState(PCGExSampleNeighbors::State_Sampling); }
 		}
 		else
 		{
 			Context->SetState(PCGExGraph::State_ReadyForNextEdges);
 		}
+	}
+
+	if (Context->IsState(PCGExDataFilter::State_PreparingFilters))
+	{
+		auto PreparePoint = [&](const int32 Index)
+		{
+			if (Context->CurrentOperation->PointState && Context->CurrentOperation->PointState->RequiresPerPointPreparation())
+			{
+				Context->CurrentOperation->PointState->PrepareSingle(Index);
+			}
+
+			if (Context->CurrentOperation->ValueState && Context->CurrentOperation->ValueState->RequiresPerPointPreparation())
+			{
+				Context->CurrentOperation->ValueState->PrepareSingle(Index);
+			}
+		};
+
+		if (!Context->Process(PreparePoint, Context->CurrentCluster->Nodes.Num())) { return false; }
+
+		if (Context->CurrentOperation->PointState && Context->CurrentOperation->PointState->RequiresPerPointPreparation()) { Context->CurrentOperation->PointState->PreparationComplete(); }
+		if (Context->CurrentOperation->ValueState && Context->CurrentOperation->ValueState->RequiresPerPointPreparation()) { Context->CurrentOperation->ValueState->PreparationComplete(); }
+
+		Context->SetState(PCGExSampleNeighbors::State_Sampling);
 	}
 
 	if (Context->IsState(PCGExSampleNeighbors::State_Sampling))

@@ -16,9 +16,6 @@ class UPCGExHeuristicOperation;
 class UPCGExSearchOperation;
 class UPCGExPathfindingParamsData;
 
-/**
- * A Base node to process a set of point using GraphParams.
- */
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural))
 class PCGEXTENDEDTOOLKIT_API UPCGExPathfindingProcessorSettings : public UPCGExEdgesProcessorSettings
 {

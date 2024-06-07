@@ -15,6 +15,11 @@
 
 #include "PCGExGraph.generated.h"
 
+namespace PCGExGeo
+{
+	class FGeoMesh;
+}
+
 struct FPCGExPointsProcessorContext;
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Graph Value Source"))
@@ -696,6 +701,32 @@ namespace PCGExGraphTask
 		int32 Max;
 
 		PCGExGraph::FGraphMetadataSettings* MetadataSettings = nullptr;
+
+		virtual bool ExecuteTask() override;
+	};
+
+	class PCGEXTENDEDTOOLKIT_API FCopyGraphToPoint : public FPCGExNonAbandonableTask
+	{
+	public:
+		FCopyGraphToPoint(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+		                  PCGExGraph::FGraphBuilder* InGraphBuilder,
+		                  PCGExData::FPointIOCollection* InVtxCollection,
+		                  PCGExData::FPointIOCollection* InEdgeCollection,
+		                  FPCGExTransformSettings* InTransformSettings) :
+			FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+			GraphBuilder(InGraphBuilder),
+			VtxCollection(InVtxCollection),
+			EdgeCollection(InEdgeCollection),
+			TransformSettings(InTransformSettings)
+		{
+		}
+
+		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
+
+		PCGExData::FPointIOCollection* VtxCollection = nullptr;
+		PCGExData::FPointIOCollection* EdgeCollection = nullptr;
+
+		FPCGExTransformSettings* TransformSettings = nullptr;
 
 		virtual bool ExecuteTask() override;
 	};

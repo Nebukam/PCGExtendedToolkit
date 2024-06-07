@@ -1,7 +1,7 @@
 ﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Graph/PCGExCopyClusters.h"
+#include "Graph/PCGExMakeClustersUnique.h"
 
 #include "Data/PCGExGraphDefinition.h"
 
@@ -9,32 +9,32 @@
 
 #pragma region UPCGSettings interface
 
-PCGExData::EInit UPCGExCopyClustersSettings::GetMainOutputInitMode() const { return PCGExData::EInit::Forward; }
-PCGExData::EInit UPCGExCopyClustersSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::Forward; }
+PCGExData::EInit UPCGExMakeClustersUniqueSettings::GetMainOutputInitMode() const { return PCGExData::EInit::Forward; }
+PCGExData::EInit UPCGExMakeClustersUniqueSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::Forward; }
 
 #pragma endregion
 
-FPCGExCopyClustersContext::~FPCGExCopyClustersContext()
+FPCGExMakeClustersUniqueContext::~FPCGExMakeClustersUniqueContext()
 {
 	PCGEX_TERMINATE_ASYNC
 }
 
-PCGEX_INITIALIZE_ELEMENT(CopyClusters)
+PCGEX_INITIALIZE_ELEMENT(MakeClustersUnique)
 
-bool FPCGExCopyClustersElement::Boot(FPCGContext* InContext) const
+bool FPCGExMakeClustersUniqueElement::Boot(FPCGContext* InContext) const
 {
 	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
 
-	PCGEX_CONTEXT_AND_SETTINGS(CopyClusters)
+	PCGEX_CONTEXT_AND_SETTINGS(MakeClustersUnique)
 
 	return true;
 }
 
-bool FPCGExCopyClustersElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExMakeClustersUniqueElement::ExecuteInternal(FPCGContext* InContext) const
 {
-	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExCopyClustersElement::Execute);
+	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExMakeClustersUniqueElement::Execute);
 
-	PCGEX_CONTEXT_AND_SETTINGS(CopyClusters)
+	PCGEX_CONTEXT_AND_SETTINGS(MakeClustersUnique)
 
 	if (Context->IsSetup())
 	{
