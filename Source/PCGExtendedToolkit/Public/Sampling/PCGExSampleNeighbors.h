@@ -51,6 +51,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNeighborsContext : public FPCGExEdgesP
 	virtual ~FPCGExSampleNeighborsContext() override;
 
 	TArray<UPCGExNeighborSampleOperation*> SamplingOperations;
+	TArray<UPCGExNeighborSampleOperation*> ToBePreparedOperations;
 	UPCGExNeighborSampleOperation* CurrentOperation = nullptr;
 };
 

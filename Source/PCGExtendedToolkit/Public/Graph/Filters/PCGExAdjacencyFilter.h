@@ -149,7 +149,7 @@ namespace PCGExNodeAdjacency
 		virtual void Capture(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO) override;
 		virtual void CaptureEdges(const FPCGContext* InContext, const PCGExData::FPointIO* EdgeIO) override;
 
-		virtual void PrepareForTesting(const PCGExData::FPointIO* PointIO) override;
+		virtual bool PrepareForTesting(const PCGExData::FPointIO* PointIO) override;
 		FORCEINLINE virtual bool Test(const int32 PointIndex) const override;
 
 		virtual ~TAdjacencyFilter() override

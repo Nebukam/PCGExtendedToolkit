@@ -1,0 +1,115 @@
+﻿// Copyright Timothé Lapetite 2024
+// Released under the MIT license https://opensource.org/license/MIT/
+
+#pragma once
+
+#include "CoreMinimal.h"
+
+#include "PCGExCustomGraphProcessor.h"
+#include "Geometry/PCGExGeo.h"
+
+#include "PCGExMeshToClusters.generated.h"
+
+namespace PCGExGeo
+{
+	class FGeoStaticMeshMap;
+}
+
+namespace PCGExGeo
+{
+	class TVoronoiMesh3;
+}
+
+namespace PCGExGeo
+{
+	class TConvexHull3;
+	class TDelaunayTriangulation3;
+}
+
+/**
+ * Calculates the distance between two points (inherently a n*n operation)
+ */
+UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
+class PCGEXTENDEDTOOLKIT_API UPCGExMeshToClustersSettings : public UPCGExPointsProcessorSettings
+{
+	GENERATED_BODY()
+
+public:
+	//~Begin UPCGSettings interface
+#if WITH_EDITOR
+	PCGEX_NODE_INFOS(MeshToClusters, "Graph : Mesh To Clusters", "Creates clusters from mesh topology.");
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExEditorSettings>()->NodeColorGraphGen; }
+#endif
+	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
+
+protected:
+	virtual FPCGElementPtr CreateElement() const override;
+	//~End UPCGSettings interface
+
+	//~Begin UPCGExPointsProcessorSettings interface
+public:
+	virtual FName GetMainInputLabel() const override;
+	virtual FName GetMainOutputLabel() const override;
+	virtual bool GetMainAcceptMultipleData() const override;
+	virtual PCGExData::EInit GetMainOutputInitMode() const override;
+	//~End UPCGExPointsProcessorSettings interface
+
+public:
+	/** Mesh source */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	EPCGExFetchType StaticMeshSource = EPCGExFetchType::Constant;
+
+	/** Static mesh constant */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="StaticMeshSource==EPCGExFetchType::Constant", EditConditionHides))
+	TSoftObjectPtr<UStaticMesh> StaticMeshConstant;
+
+	/** Static mesh path attribute -- Either FString, FName or FSoftObjectPath*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="StaticMeshSource==EPCGExFetchType::Attribute", EditConditionHides))
+	FName StaticMeshAttribute;
+
+	/** Skip invalid meshes & do not throw warning about them. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	bool bIgnoreMeshWarnings = false;
+
+private:
+	friend class FPCGExMeshToClustersElement;
+};
+
+struct PCGEXTENDEDTOOLKIT_API FPCGExMeshToClustersContext : public FPCGExPointsProcessorContext
+{
+	friend class FPCGExMeshToClustersElement;
+
+	PCGExGeo::FGeoStaticMeshMap* StaticMeshMap = nullptr;
+	TArray<int32> MeshIdx;
+	
+	TArray<PCGExGraph::FGraphBuilder*> GraphBuilders;
+	FPCGExGraphBuilderSettings BuilderSettings;
+
+	virtual ~FPCGExMeshToClustersContext() override;
+};
+
+
+class PCGEXTENDEDTOOLKIT_API FPCGExMeshToClustersElement : public FPCGExPointsProcessorElementBase
+{
+public:
+	virtual FPCGContext* Initialize(
+		const FPCGDataCollection& InputData,
+		TWeakObjectPtr<UPCGComponent> SourceComponent,
+		const UPCGNode* Node) override;
+
+protected:
+	virtual bool Boot(FPCGContext* InContext) const override;
+	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
+};
+
+class PCGEXTENDEDTOOLKIT_API FPCGExMeshToClusterTask : public FPCGExNonAbandonableTask
+{
+public:
+	FPCGExMeshToClusterTask(
+		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO) :
+		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO)
+	{
+	}
+
+	virtual bool ExecuteTask() override;
+};

@@ -6,9 +6,9 @@
 #define LOCTEXT_NAMESPACE "PCGExCreateNeighborSample"
 #define PCGEX_NAMESPACE PCGExCreateNeighborSample
 
-void UPCGExNeighborSampleAttribute::PrepareForCluster(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster)
+bool UPCGExNeighborSampleAttribute::PrepareForCluster(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster)
 {
-	Super::PrepareForCluster(InContext, InCluster);
+	const bool bRequirePerPointPrep = Super::PrepareForCluster(InContext, InCluster);
 
 	PCGEX_DELETE(Blender)
 	bIsValidOperation = false;
@@ -16,7 +16,7 @@ void UPCGExNeighborSampleAttribute::PrepareForCluster(const FPCGContext* InConte
 	if (SourceAttributes.IsEmpty())
 	{
 		PCGE_LOG_C(Warning, GraphAndLog, InContext, FTEXT("No source attribute set."));
-		return;
+		return false;
 	}
 
 	TSet<FName> MissingAttributes;
@@ -31,13 +31,15 @@ void UPCGExNeighborSampleAttribute::PrepareForCluster(const FPCGContext* InConte
 	if (MetadataBlendingSettings.FilteredAttributes.IsEmpty())
 	{
 		PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Missing all source attribute(s) on Sampler {0}."), FText::FromString(GetClass()->GetName())));
-		return;
+		return false;
 	}
 
 	Blender = new PCGExDataBlending::FMetadataBlender(&MetadataBlendingSettings);
 	Blender->PrepareForData(*Cluster->PointsIO, GetSourceIO(), PCGExData::ESource::In, true);
 
 	bIsValidOperation = true;
+	return bRequirePerPointPrep;
+	
 }
 
 void UPCGExNeighborSampleAttribute::PrepareNode(PCGExCluster::FNode& TargetNode) const

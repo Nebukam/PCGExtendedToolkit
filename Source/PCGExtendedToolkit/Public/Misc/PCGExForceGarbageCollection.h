@@ -11,9 +11,6 @@
 
 #include "PCGExForceGarbageCollection.generated.h"
 
-/**
- * A Base node to process a set of point using GraphParams.
- */
 UCLASS(BlueprintType, ClassGroup = (Procedural))
 class PCGEXTENDEDTOOLKIT_API UPCGExForceGarbageCollectionSettings : public UPCGSettings
 {

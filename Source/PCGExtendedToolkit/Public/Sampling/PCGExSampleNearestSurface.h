@@ -146,6 +146,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestSurfaceContext : public FPCGExP
 
 	TArray<UPCGExFilterFactoryBase*> PointFilterFactories;
 	PCGExDataFilter::TEarlyExitFilterManager* PointFilterManager = nullptr;
+	bool bHasHeavyPointFilters = false;
 
 	bool bUseLocalMaxDistance = false;
 	PCGEx::FLocalSingleFieldGetter* MaxDistanceGetter = nullptr;

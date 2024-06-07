@@ -159,9 +159,6 @@ namespace PCGEx
 }
 
 
-/**
- * A Base node to process a set of point using GraphParams.
- */
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural))
 class PCGEXTENDEDTOOLKIT_API UPCGExPointsProcessorSettings : public UPCGSettings
 {

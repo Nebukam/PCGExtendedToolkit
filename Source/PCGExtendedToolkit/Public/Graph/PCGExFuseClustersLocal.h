@@ -22,9 +22,6 @@ namespace PCGExDataBlending
 	class FCompoundBlender;
 }
 
-/**
- * A Base node to process a set of point using GraphParams.
- */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
 class PCGEXTENDEDTOOLKIT_API UPCGExFuseClustersLocalSettings : public UPCGExEdgesProcessorSettings
 {

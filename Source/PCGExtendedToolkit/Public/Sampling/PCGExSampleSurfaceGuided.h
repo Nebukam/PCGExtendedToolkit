@@ -138,6 +138,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleSurfaceGuidedContext : public FPCGExPo
 
 	TArray<UPCGExFilterFactoryBase*> PointFilterFactories;
 	PCGExDataFilter::TEarlyExitFilterManager* PointFilterManager = nullptr;
+	bool bHasHeavyPointFilters = false;
 
 	TArray<AActor*> IgnoredActors;
 

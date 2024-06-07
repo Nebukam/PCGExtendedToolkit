@@ -6,11 +6,11 @@
 #define LOCTEXT_NAMESPACE "PCGExCreateNeighborSample"
 #define PCGEX_NAMESPACE PCGExCreateNeighborSample
 
-void UPCGExNeighborSampleProperties::PrepareForCluster(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster)
+bool UPCGExNeighborSampleProperties::PrepareForCluster(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster)
 {
 	PCGEX_DELETE(Blender)
 	Blender = new PCGExDataBlending::FPropertiesBlender(BlendingSettings);
-	Super::PrepareForCluster(InContext, InCluster);
+	return Super::PrepareForCluster(InContext, InCluster);
 }
 
 void UPCGExNeighborSampleProperties::PrepareNode(PCGExCluster::FNode& TargetNode) const

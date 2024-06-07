@@ -288,7 +288,7 @@ namespace PCGExCluster
 		virtual void CaptureCluster(const FPCGContext* InContext, const FCluster* InCluster);
 		virtual void Capture(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO) override;
 		virtual void CaptureEdges(const FPCGContext* InContext, const PCGExData::FPointIO* EdgeIO);
-		virtual void PrepareForTesting(const PCGExData::FPointIO* PointIO) override;
+		virtual bool PrepareForTesting(const PCGExData::FPointIO* PointIO) override;
 	};
 
 	class PCGEXTENDEDTOOLKIT_API FNodeStateHandler : public PCGExDataState::TDataState
@@ -297,17 +297,28 @@ namespace PCGExCluster
 		explicit FNodeStateHandler(const UPCGExNodeStateFactory* InFactory);
 
 		const UPCGExNodeStateFactory* NodeStateDefinition = nullptr;
+		
 		TArray<TFilter*> FilterHandlers;
+		TArray<TFilter*> HeavyFilterHandlers;
 		TArray<TClusterFilter*> ClusterFilterHandlers;
+		TArray<TClusterFilter*> HeavyClusterFilterHandlers;
 
 		virtual void CaptureCluster(const FPCGContext* InContext, FCluster* InCluster);
 		FORCEINLINE virtual bool Test(const int32 PointIndex) const override;
-		virtual void PrepareForTesting(const PCGExData::FPointIO* PointIO) override;
+		
+		virtual bool PrepareForTesting(const PCGExData::FPointIO* PointIO) override;
+		virtual void PrepareSingle(const int32 PointIndex) override;
+		virtual void PreparationComplete() override;
+		
+		virtual bool RequiresPerPointPreparation() const;
 
 		virtual ~FNodeStateHandler() override
 		{
 			PCGEX_DELETE_TARRAY(FilterHandlers)
+			HeavyFilterHandlers.Empty();
+			
 			PCGEX_DELETE_TARRAY(ClusterFilterHandlers)
+			HeavyClusterFilterHandlers.Empty();
 		}
 
 	protected:

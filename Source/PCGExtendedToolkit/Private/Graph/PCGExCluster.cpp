@@ -743,11 +743,16 @@ namespace PCGExCluster
 	{
 	}
 
-	void TClusterFilter::PrepareForTesting(const PCGExData::FPointIO* PointIO)
+	bool TClusterFilter::PrepareForTesting(const PCGExData::FPointIO* PointIO)
 	{
-		const int32 NumNodes = CapturedCluster->Nodes.Num();
-		Results.SetNumUninitialized(NumNodes);
-		for (int i = 0; i < NumNodes; i++) { Results[i] = false; }
+		if (bCacheResults)
+		{
+			const int32 NumNodes = CapturedCluster->Nodes.Num();
+			Results.SetNumUninitialized(NumNodes);
+			for (int i = 0; i < NumNodes; i++) { Results[i] = false; }
+		}
+
+		return false;
 	}
 
 	FNodeStateHandler::FNodeStateHandler(const UPCGExNodeStateFactory* InFactory)
@@ -824,11 +829,39 @@ namespace PCGExCluster
 		return true;
 	}
 
-	void FNodeStateHandler::PrepareForTesting(const PCGExData::FPointIO* PointIO)
+	bool FNodeStateHandler::PrepareForTesting(const PCGExData::FPointIO* PointIO)
 	{
 		TDataState::PrepareForTesting(PointIO);
-		for (TFilter* Test : FilterHandlers) { Test->PrepareForTesting(PointIO); }
-		for (TClusterFilter* Test : ClusterFilterHandlers) { Test->PrepareForTesting(PointIO); }
+
+		HeavyFilterHandlers.Empty();
+		HeavyClusterFilterHandlers.Empty();
+
+		for (TFilter* Test : FilterHandlers) { if (Test->PrepareForTesting(PointIO)) { HeavyFilterHandlers.Add(Test); } }
+		for (TClusterFilter* Test : ClusterFilterHandlers) { if (Test->PrepareForTesting(PointIO)) { HeavyClusterFilterHandlers.Add(Test); } }
+
+		return RequiresPerPointPreparation();
+	}
+
+	void FNodeStateHandler::PrepareSingle(const int32 PointIndex)
+	{
+		for (TFilter* Test : HeavyFilterHandlers) { Test->PrepareSingle(PointIndex); }
+
+		if (!HeavyClusterFilterHandlers.IsEmpty())
+		{
+			const int32 NodeIndex = Cluster->GetNodeFromPointIndex(PointIndex).NodeIndex; // We get a point index from the FindNode
+			for (TClusterFilter* Test : HeavyClusterFilterHandlers) { Test->PrepareSingle(NodeIndex); }
+		}
+	}
+
+	void FNodeStateHandler::PreparationComplete()
+	{
+		for (TFilter* Test : HeavyFilterHandlers) { Test->PreparationComplete(); }
+		for (TClusterFilter* Test : HeavyClusterFilterHandlers) { Test->PreparationComplete(); }
+	}
+
+	bool FNodeStateHandler::RequiresPerPointPreparation() const
+	{
+		return !HeavyFilterHandlers.IsEmpty() || !HeavyClusterFilterHandlers.IsEmpty();;
 	}
 
 #pragma endregion

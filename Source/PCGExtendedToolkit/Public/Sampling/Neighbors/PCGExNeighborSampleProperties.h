@@ -28,7 +28,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExNeighborSampleProperties : public UPCGExNeigh
 public:
 	FPCGExPropertiesBlendingSettings BlendingSettings;
 
-	virtual void PrepareForCluster(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster) override;
+	virtual bool PrepareForCluster(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster) override;
 
 	virtual void PrepareNode(PCGExCluster::FNode& TargetNode) const override;
 	virtual void BlendNodePoint(PCGExCluster::FNode& TargetNode, const PCGExCluster::FNode& OtherNode, const double Weight) const override;

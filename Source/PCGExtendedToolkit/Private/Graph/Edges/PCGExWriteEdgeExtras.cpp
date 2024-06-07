@@ -209,6 +209,7 @@ Context->SolidificationRad##_AXIS->Grab(*Context->CurrentEdges); }
 
 		if (Context->VtxNormalWriter)
 		{
+			//TODO : Async this
 			PCGExCluster::FClusterProjection* ProjectedCluster = new PCGExCluster::FClusterProjection(Context->CurrentCluster, &Context->ProjectionSettings);
 			ProjectedCluster->Build();
 
