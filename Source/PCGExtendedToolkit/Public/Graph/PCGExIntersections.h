@@ -84,14 +84,16 @@ namespace PCGExGraph
 		TArray<FCompoundNode*> Nodes;
 		TMap<uint64, FIndexedEdge> Edges;
 		const FPCGExFuseSettings FuseSettings;
-
+		
 		FBox Bounds;
+		const bool bFusePoints = true;
+		
 		using NodeOctree = TOctree2<FCompoundNode*, FCompoundNodeSemantics>;
 		mutable NodeOctree Octree;
 		mutable FRWLock OctreeLock;
 
-		explicit FCompoundGraph(const FPCGExFuseSettings& InFuseSettings, const FBox& InBounds)
-			: FuseSettings(InFuseSettings), Bounds(InBounds)
+		explicit FCompoundGraph(const FPCGExFuseSettings& InFuseSettings, const FBox& InBounds, const bool FusePoints = true)
+			: FuseSettings(InFuseSettings), Bounds(InBounds), bFusePoints(FusePoints)
 		{
 			Nodes.Empty();
 			Edges.Empty();

@@ -41,6 +41,16 @@ namespace PCGExGraph
 	FCompoundNode* FCompoundGraph::GetOrCreateNode(const FPCGPoint& Point, const int32 IOIndex, const int32 PointIndex)
 	{
 		const FVector Origin = Point.Transform.GetLocation();
+
+		if (!bFusePoints)
+		{
+			FWriteScopeLock WriteLock(OctreeLock);
+			FCompoundNode* NewNode = new FCompoundNode(Point, Origin, Nodes.Num());
+			Nodes.Add(NewNode);
+			PointsCompounds->New()->Add(IOIndex, PointIndex);
+			return NewNode;
+		}
+
 		int32 Index = -1;
 		if (FuseSettings.bComponentWiseTolerance)
 		{
@@ -101,6 +111,15 @@ namespace PCGExGraph
 	FCompoundNode* FCompoundGraph::GetOrCreateNodeUnsafe(const FPCGPoint& Point, const int32 IOIndex, const int32 PointIndex)
 	{
 		const FVector Origin = Point.Transform.GetLocation();
+
+		if (!bFusePoints)
+		{
+			FCompoundNode* NewNode = new FCompoundNode(Point, Origin, Nodes.Num());
+			Nodes.Add(NewNode);
+			PointsCompounds->New()->Add(IOIndex, PointIndex);
+			return NewNode;
+		}
+
 		int32 Index = -1;
 		if (FuseSettings.bComponentWiseTolerance)
 		{

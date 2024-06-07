@@ -50,25 +50,29 @@ public:
 	//~End UPCGExEdgesProcessorSettings interface
 
 	virtual bool RequiresDeterministicClusters() const override;
+
+	/** Fuse points */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bFusePoints = true;
 	
 	/** Fuse Settings */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Point/Point Settings"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Point/Point Settings", EditCondition="bFusePoints"))
 	FPCGExPointPointIntersectionSettings PointPointIntersectionSettings;
 
 	/** Find Point-Edge intersection */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bFusePoints"))
 	bool bFindPointEdgeIntersections;
 
 	/** Point-Edge intersection settings */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Point/Edge Settings", EditCondition="bFindPointEdgeIntersections"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Point/Edge Settings", EditCondition="bFindPointEdgeIntersections && bFusePoints"))
 	FPCGExPointEdgeIntersectionSettings PointEdgeIntersectionSettings;
 
 	/** Find Edge-Edge intersection */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bFusePoints"))
 	bool bFindEdgeEdgeIntersections;
 
 	/** Edge-Edge intersection */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Edge/Edge Settings", EditCondition="bFindEdgeEdgeIntersections"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Edge/Edge Settings", EditCondition="bFindEdgeEdgeIntersections && bFusePoints"))
 	FPCGExEdgeEdgeIntersectionSettings EdgeEdgeIntersectionSettings;
 
 	/** Defines how fused point properties and attributes are merged together for fused points. */
