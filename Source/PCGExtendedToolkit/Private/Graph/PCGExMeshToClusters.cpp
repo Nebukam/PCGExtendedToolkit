@@ -144,11 +144,7 @@ bool FPCGExMeshToClustersElement::ExecuteInternal(
 		if (!Context->AdvancePointsIO()) { Context->Done(); }
 		else
 		{
-			for (PCGExGeo::FGeoStaticMesh* GSM : Context->StaticMeshMap->GSMs)
-			{
-				const FStaticMeshLODResources& LODResources = GSM->StaticMesh->GetRenderData()->LODResources[0];
-				GSM->ExtractMeshAsync(Context->GetAsyncManager());
-			} // Preload all
+			for (PCGExGeo::FGeoStaticMesh* GSM : Context->StaticMeshMap->GSMs) { GSM->ExtractMeshAsync(Context->GetAsyncManager()); } // Preload all
 			Context->SetAsyncState(PCGExGeo::State_ExtractingMesh);
 		}
 	}
@@ -181,7 +177,7 @@ bool FPCGExMeshToClustersElement::ExecuteInternal(
 		for (int i = 0; i < Context->GraphBuilders.Num(); i++)
 		{
 			const PCGExGraph::FGraphBuilder* Builder = Context->GraphBuilders[i];
-			
+
 			if (!Builder || !Builder->bCompiledSuccessfully) { continue; }
 			Builder->Write(Context);
 		}

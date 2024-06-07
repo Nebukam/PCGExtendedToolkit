@@ -43,7 +43,7 @@ namespace PCGExGeo
 		{
 			if (!InSoftStaticMesh.ToSoftObjectPath().IsValid()) { return; }
 			StaticMesh = InSoftStaticMesh.LoadSynchronous();
-			StaticMesh->ConditionalPostLoad();
+			StaticMesh->GetRenderData();
 			bIsValid = true;
 		}
 
@@ -67,10 +67,10 @@ namespace PCGExGeo
 			const FPositionVertexBuffer& VertexBuffer = LODResources.VertexBuffers.PositionVertexBuffer;
 
 			TMap<FVector, int32> IndexedUniquePositions;
+			TSet<uint64> UniqueEdges;
 
 			//for (int i = 0; i < GSM->Vertices.Num(); i++) { GSM->Vertices[i] = FVector(VertexBuffer.VertexPosition(i)); }
 
-			TSet<uint64> UniqueEdges;
 
 			const FIndexArrayView& Indices = LODResources.IndexBuffer.GetArrayView();
 			for (int32 i = 0; i < Indices.Num(); i += 3)
@@ -79,13 +79,15 @@ namespace PCGExGeo
 				uint32 B = Indices[i + 1];
 				uint32 C = Indices[i + 2];
 
-				const FVector VA = FVector(VertexBuffer.VertexPosition(A));
-				const FVector VB = FVector(VertexBuffer.VertexPosition(B));
-				const FVector VC = FVector(VertexBuffer.VertexPosition(C));
-
+				const FVector VA = PCGExMath::Round10(FVector(VertexBuffer.VertexPosition(A)));
+				const FVector VB = PCGExMath::Round10(FVector(VertexBuffer.VertexPosition(B)));
+				const FVector VC = PCGExMath::Round10(FVector(VertexBuffer.VertexPosition(C)));
+				
 				A = IndexedUniquePositions.FindOrAdd(VA, A);
 				B = IndexedUniquePositions.FindOrAdd(VB, B);
 				C = IndexedUniquePositions.FindOrAdd(VC, C);
+				// To fix: very high indices may be sampled early, exceeding the actual number of positions. Bummer.
+				// Need to update this to always keep the lowest index
 
 				UniqueEdges.Add(PCGEx::H64(A, B));
 				UniqueEdges.Add(PCGEx::H64(B, C));

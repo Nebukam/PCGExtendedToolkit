@@ -951,6 +951,15 @@ namespace PCGExMath
 
 #pragma endregion
 
+#pragma region Rounding
+
+	FORCEINLINE static double Round10(const float A) { return FMath::RoundToFloat(A * 10.0f) / 10.0f; }
+
+	FORCEINLINE static FVector Round10(const FVector& A) { return FVector(Round10(A.X), Round10(A.Y), Round10(A.Z)); }
+
+	
+#pragma endregion 
+	
 	template <typename T>
 	FORCEINLINE static T SanitizeIndex(const T& Index, const T& Limit, const EPCGExIndexSafety Method)
 	{
