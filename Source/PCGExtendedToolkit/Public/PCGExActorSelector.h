@@ -18,6 +18,7 @@ enum class EPCGExActorSelection : uint8
 	// Deprecated - actor labels are unavailable in shipping builds
 	ByName UMETA(Hidden),
 	ByClass,
+	ByPath UMETA(Hidden), // Hidden because actors are not tracked by paths.
 	Unknown UMETA(Hidden)
 };
 
@@ -31,70 +32,103 @@ enum class EPCGExActorFilter : uint8
 	/** The top most parent of this actor in the hierarchy. */
 	Root,
 	/** All actors in world. */
-	AllWorldActors
+	AllWorldActors,
+	/** The source PCG actor (rather than the generated partition actor). */
+	Original,
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExActorSelectionKey
+/**
+* Structure to specify a selection criteria for an object/actor
+* Object can be selected using the EPCGExActorSelection::ByClass or EPCGExActorSelection::ByPath
+* Actors have more options for selection with Self/Parent/Root/Original and also EPCGExActorSelection::ByTag
+*/
+USTRUCT()
+struct PCGEXTENDEDTOOLKIT_API FPCGExSelectionKey
 {
-	FPCGExActorSelectionKey() = default;
+	GENERATED_BODY()
+
+	FPCGExSelectionKey() = default;
 
 	// For all filters others than AllWorldActor. For AllWorldActors Filter, use the other constructors.
-	explicit FPCGExActorSelectionKey(EPCGExActorFilter InFilter);
+	explicit FPCGExSelectionKey(EPCGExActorFilter InFilter);
 
-	explicit FPCGExActorSelectionKey(FName InTag);
-	explicit FPCGExActorSelectionKey(TSubclassOf<AActor> InSelectionClass);
+	explicit FPCGExSelectionKey(FName InTag);
+	explicit FPCGExSelectionKey(TSubclassOf<UObject> InSelectionClass);
 
-	bool operator==(const FPCGExActorSelectionKey& InOther) const;
+	static FPCGExSelectionKey CreateFromPath(const FSoftObjectPath& InObjectPath);
+	static FPCGExSelectionKey CreateFromPath(FSoftObjectPath&& InObjectPath);
 
-	friend uint32 GetTypeHash(const FPCGExActorSelectionKey& In);
-	bool IsMatching(const AActor* InActor, const UPCGComponent* InComponent) const;
+	bool operator==(const FPCGExSelectionKey& InOther) const;
+
+	friend uint32 GetTypeHash(const FPCGExSelectionKey& In);
+	bool IsMatching(const UObject* InObject, const UPCGComponent* InComponent) const;
+	bool IsMatching(const UObject* InObject, const TSet<FName>& InRemovedTags, const TSet<UPCGComponent*>& InComponents, TSet<UPCGComponent*>* OptionalMatchedComponents = nullptr) const;
 
 	void SetExtraDependency(const UClass* InExtraDependency);
 
+	UPROPERTY()
 	EPCGExActorFilter ActorFilter = EPCGExActorFilter::AllWorldActors;
+
+	UPROPERTY()
 	EPCGExActorSelection Selection = EPCGExActorSelection::Unknown;
+
+	UPROPERTY()
 	FName Tag = NAME_None;
-	TSubclassOf<AActor> ActorSelectionClass = nullptr;
+
+	UPROPERTY()
+	TSubclassOf<UObject> SelectionClass = nullptr;
+
+	// If the Selection is ByPath, contain the path to select.
+	UPROPERTY()
+	FSoftObjectPath ObjectPath;
 
 	// If it should track a specific object dependency instead of an actor. For example, GetActorData with GetPCGComponent data.
-	const UClass* OptionalExtraDependency = nullptr;
+	UPROPERTY()
+	TObjectPtr<const UClass> OptionalExtraDependency = nullptr;
 };
 
+PCGEXTENDEDTOOLKIT_API FArchive& operator<<(FArchive& Ar, FPCGExSelectionKey& Key);
+
+/** Helper struct for organizing queries against the world to gather actors. */
 USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExActorSelectorSettings
 {
 	GENERATED_BODY()
 
 	/** Which actors to consider. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (EditCondition = "bShowActorFilter", EditConditionHides, HideEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Actor Selector Settings", meta = (EditCondition = "bShowActorFilter", EditConditionHides, HideEditConditionToggle))
 	EPCGExActorFilter ActorFilter = EPCGExActorFilter::Self;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (EditCondition = "ActorFilter==EPCGExActorFilter::AllWorldActors", EditConditionHides))
+	/** Filters out actors that do not overlap the source component bounds. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Actor Selector Settings", meta = (EditCondition = "ActorFilter==EPCGExActorFilter::AllWorldActors", EditConditionHides))
 	bool bMustOverlapSelf = false;
 
 	/** Whether to consider child actors. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (EditCondition = "bShowIncludeChildren && ActorFilter!=EPCGExActorFilter::AllWorldActors", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Actor Selector Settings", meta = (EditCondition = "bShowIncludeChildren && ActorFilter!=EPCGExActorFilter::AllWorldActors", EditConditionHides))
 	bool bIncludeChildren = false;
 
 	/** Enables/disables fine-grained actor filtering options. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (EditCondition = "ActorFilter!=EPCGExActorFilter::AllWorldActors && bIncludeChildren", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Actor Selector Settings", meta = (EditCondition = "ActorFilter!=EPCGExActorFilter::AllWorldActors && bIncludeChildren", EditConditionHides))
 	bool bDisableFilter = false;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (EditCondition = "bShowActorSelection && (ActorFilter==EPCGExActorFilter::AllWorldActors || (bIncludeChildren && !bDisableFilter))", EditConditionHides))
+	/** How to select when filtering actors. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Actor Selector Settings", meta = (EditCondition = "bShowActorSelection && (ActorFilter==EPCGExActorFilter::AllWorldActors || (bIncludeChildren && !bDisableFilter))", EditConditionHides))
 	EPCGExActorSelection ActorSelection = EPCGExActorSelection::ByTag;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (EditCondition = "bShowActorSelection && (ActorFilter==EPCGExActorFilter::AllWorldActors || (bIncludeChildren && !bDisableFilter)) && ActorSelection==EPCGExActorSelection::ByTag", EditConditionHides))
+	/** Tag to match against when filtering actors. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Actor Selector Settings", meta = (EditCondition = "bShowActorSelection && (ActorFilter==EPCGExActorFilter::AllWorldActors || (bIncludeChildren && !bDisableFilter)) && ActorSelection==EPCGExActorSelection::ByTag", EditConditionHides))
 	FName ActorSelectionTag;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (EditCondition = "bShowActorSelectionClass && bShowActorSelection && (ActorFilter==EPCGExActorFilter::AllWorldActors || (bIncludeChildren && !bDisableFilter)) && ActorSelection==EPCGExActorSelection::ByClass", EditConditionHides, AllowAbstract = "true"))
+	/** Actor class to match against when filtering actors. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Actor Selector Settings", meta = (EditCondition = "bShowActorSelectionClass && bShowActorSelection && (ActorFilter==EPCGExActorFilter::AllWorldActors || (bIncludeChildren && !bDisableFilter)) && ActorSelection==EPCGExActorSelection::ByClass", EditConditionHides, AllowAbstract = "true"))
 	TSubclassOf<AActor> ActorSelectionClass;
 
 	/** If true processes all matching actors, otherwise returns data from first match. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (EditCondition = "bShowSelectMultiple && ActorFilter==EPCGExActorFilter::AllWorldActors && ActorSelection!=EPCGExActorSelection::ByName", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Actor Selector Settings", meta = (EditCondition = "bShowSelectMultiple && ActorFilter==EPCGExActorFilter::AllWorldActors && ActorSelection!=EPCGExActorSelection::ByName", EditConditionHides))
 	bool bSelectMultiple = false;
 
-	/** If true, ignores results found from within this actor's hierarchy */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (EditCondition = "ActorFilter==EPCGExActorFilter::AllWorldActors", EditConditionHides))
+	/** If true, ignores results found from within this actor's hierarchy. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Actor Selector Settings", meta = (EditCondition = "bShowIgnoreSelfAndChildren && ActorFilter==EPCGExActorFilter::AllWorldActors", EditConditionHides))
 	bool bIgnoreSelfAndChildren = false;
 
 	// Properties used to hide some fields when used in different contexts
@@ -113,17 +147,20 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExActorSelectorSettings
 	UPROPERTY(Transient, meta = (EditCondition = false, EditConditionHides))
 	bool bShowSelectMultiple = true;
 
-#if WITH_EDITOR
+	UPROPERTY(Transient, meta = (EditCondition = false, EditConditionHides))
+	bool bShowIgnoreSelfAndChildren = true;
+
+#if WITH_EDITOR	
 	FText GetTaskNameSuffix() const;
 	FName GetTaskName(const FText& Prefix) const;
 #endif
 
-	FPCGExActorSelectionKey GetAssociatedKey() const;
-	static FPCGExActorSelectorSettings ReconstructFromKey(const FPCGExActorSelectionKey& InKey);
+	FPCGExSelectionKey GetAssociatedKey() const;
+	static FPCGExActorSelectorSettings ReconstructFromKey(const FPCGExSelectionKey& InKey);
 };
 
 namespace PCGExActorSelector
 {
-	TArray<AActor*> FindActors(const FPCGExActorSelectorSettings& Settings, const UPCGComponent* InComponent, const TFunction<bool(const AActor*)>& BoundsCheck, const TFunction<bool(const AActor*)>& SelfIgnoreCheck);
-	AActor* FindActor(const FPCGExActorSelectorSettings& InSettings, const UPCGComponent* InComponent, const TFunction<bool(const AActor*)>& BoundsCheck, const TFunction<bool(const AActor*)>& SelfIgnoreCheck);
+	PCGEXTENDEDTOOLKIT_API TArray<AActor*> FindActors(const FPCGExActorSelectorSettings& Settings, const UPCGComponent* InComponent, const TFunction<bool(const AActor*)>& BoundsCheck, const TFunction<bool(const AActor*)>& SelfIgnoreCheck);
+	PCGEXTENDEDTOOLKIT_API AActor* FindActor(const FPCGExActorSelectorSettings& InSettings, UPCGComponent* InComponent, const TFunction<bool(const AActor*)>& BoundsCheck, const TFunction<bool(const AActor*)>& SelfIgnoreCheck);	
 }

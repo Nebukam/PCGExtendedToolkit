@@ -1,7 +1,7 @@
 ﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "..\..\Public\Graph\PCGExCopyClustersToPoints.h"
+#include "Graph/PCGExCopyClustersToPoints.h"
 
 #include "Data/PCGExGraphDefinition.h"
 
@@ -9,8 +9,8 @@
 
 #pragma region UPCGSettings interface
 
-PCGExData::EInit UPCGExCopyClustersToPointsSettings::GetMainOutputInitMode() const { return PCGExData::EInit::Forward; }
-PCGExData::EInit UPCGExCopyClustersToPointsSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::Forward; }
+PCGExData::EInit UPCGExCopyClustersToPointsSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
+PCGExData::EInit UPCGExCopyClustersToPointsSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 
 #pragma endregion
 
@@ -21,11 +21,27 @@ FPCGExCopyClustersToPointsContext::~FPCGExCopyClustersToPointsContext()
 
 PCGEX_INITIALIZE_ELEMENT(CopyClustersToPoints)
 
+TArray<FPCGPinProperties> UPCGExCopyClustersToPointsSettings::InputPinProperties() const
+{
+	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
+	PCGEX_PIN_POINT(PCGEx::SourceTargetsLabel, "Target points to copy clusters to.", Required, {})
+	return PinProperties;
+}
+
 bool FPCGExCopyClustersToPointsElement::Boot(FPCGContext* InContext) const
 {
 	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(CopyClustersToPoints)
+
+	PCGEX_FWD(TransformSettings)
+
+	Context->TargetsCollection = new PCGExData::FPointIOCollection(Context, PCGEx::SourceTargetsLabel);
+	if (Context->TargetsCollection->Num() == 0)
+	{
+		PCGE_LOG(Error, GraphAndLog, FTEXT("Missing targets."));
+		return false;
+	}
 
 	return true;
 }
@@ -42,19 +58,37 @@ bool FPCGExCopyClustersToPointsElement::ExecuteInternal(FPCGContext* InContext) 
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
-	while (Context->AdvancePointsIO())
+	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
-		FString OutId;
-		Context->CurrentIO->Tags->Set(PCGExGraph::TagStr_ClusterPair, Context->CurrentIO->GetOut()->UID, OutId);
+		PCGExData::FPointIO* Targets = Context->TargetsCollection->Pairs[0];
+		const int32 NumTargets = Targets->GetNum();
 
-		if (!Context->TaggedEdges) { continue; }
+		while (Context->AdvancePointsIO())
+		{
+			if (!Context->TaggedEdges) { continue; }
 
-		for (const PCGExData::FPointIO* Entry : Context->TaggedEdges->Entries) { Entry->Tags->Set(PCGExGraph::TagStr_ClusterPair, OutId); }
+			for (int i = 0; i < NumTargets; i++)
+			{
+				Context->GetAsyncManager()->Start<PCGExClusterTask::FCopyClustersToPoint>(
+					i, Targets,
+					Context->CurrentIO, Context->TaggedEdges->Entries,
+					Context->MainPoints, Context->MainEdges,
+					&Context->TransformSettings);
+			}
+		}
+
+		Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork);
 	}
 
-	Context->OutputPointsAndEdges();
-	Context->Done();
-	Context->ExecutionComplete();
+	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
+	{
+		PCGEX_WAIT_ASYNC
+
+		Context->OutputPointsAndEdges();
+
+		Context->Done();
+		Context->ExecutionComplete();
+	}
 
 	return Context->IsDone();
 }

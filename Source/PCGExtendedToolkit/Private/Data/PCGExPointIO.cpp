@@ -375,6 +375,11 @@ namespace PCGExData
 		for (int i = 0; i < Pairs.Num(); i++) { BodyLoop(*Pairs[i], i); }
 	}
 
+	void FPointIOCollection::Sort()
+	{
+		Pairs.Sort([](const FPointIO& A, const FPointIO& B) { return A.IOIndex < B.IOIndex; });
+	}
+
 	FBox FPointIOCollection::GetInBounds()
 	{
 		FBox Bounds = FBox(ForceInit);

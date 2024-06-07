@@ -17,7 +17,7 @@ FName UPCGExEdgesProcessorSettings::GetMainOutputLabel() const { return PCGExGra
 
 PCGExData::EInit UPCGExEdgesProcessorSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::Forward; }
 
-bool UPCGExEdgesProcessorSettings::RequiresDeterministicClusters() const{return false;}
+bool UPCGExEdgesProcessorSettings::RequiresDeterministicClusters() const { return false; }
 
 bool UPCGExEdgesProcessorSettings::GetMainAcceptMultipleData() const { return true; }
 
@@ -172,6 +172,8 @@ bool FPCGExEdgesProcessorElement::Boot(FPCGContext* InContext) const
 	if (!FPCGExPointsProcessorElementBase::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(EdgesProcessor)
+
+	Context->bDeterministicClusters = Settings->RequiresDeterministicClusters();
 
 	if (Context->MainEdges->IsEmpty())
 	{

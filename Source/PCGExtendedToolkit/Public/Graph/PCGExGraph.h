@@ -712,12 +712,12 @@ namespace PCGExGraphTask
 		                  PCGExGraph::FGraphBuilder* InGraphBuilder,
 		                  PCGExData::FPointIOCollection* InVtxCollection,
 		                  PCGExData::FPointIOCollection* InEdgeCollection,
-		                  FPCGExCopyToPointsSettings* InCopySettings) :
+		                  FPCGExTransformSettings* InTransformSettings) :
 			FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
 			GraphBuilder(InGraphBuilder),
 			VtxCollection(InVtxCollection),
 			EdgeCollection(InEdgeCollection),
-			CopySettings(InCopySettings)
+			TransformSettings(InTransformSettings)
 		{
 		}
 
@@ -726,7 +726,7 @@ namespace PCGExGraphTask
 		PCGExData::FPointIOCollection* VtxCollection = nullptr;
 		PCGExData::FPointIOCollection* EdgeCollection = nullptr;
 
-		FPCGExCopyToPointsSettings* CopySettings = nullptr;
+		FPCGExTransformSettings* TransformSettings = nullptr;
 
 		virtual bool ExecuteTask() override;
 	};

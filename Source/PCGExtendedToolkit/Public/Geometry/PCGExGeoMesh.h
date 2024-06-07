@@ -41,7 +41,10 @@ namespace PCGExGeo
 		explicit FGeoStaticMesh(const TSoftObjectPtr<UStaticMesh>& InSoftStaticMesh)
 		{
 			if (!InSoftStaticMesh.ToSoftObjectPath().IsValid()) { return; }
+
 			StaticMesh = InSoftStaticMesh.LoadSynchronous();
+			if (!StaticMesh) { return; }
+
 			StaticMesh->GetRenderData();
 			bIsValid = true;
 		}
@@ -132,6 +135,12 @@ namespace PCGExGeo
 			if (const int32* GSMPtr = Map.Find(InPath)) { return *GSMPtr; }
 
 			FGeoStaticMesh* GSM = new FGeoStaticMesh(InPath);
+			if (!GSM->bIsValid)
+			{
+				PCGEX_DELETE(GSM);
+				return -1;
+			}
+
 			const int32 Index = GSMs.Add(GSM);
 			Map.Add(InPath, Index);
 			return Index;

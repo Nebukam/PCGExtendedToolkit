@@ -507,7 +507,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgeEdgeIntersectionSettings
 };
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExCopyToPointsSettings
+struct PCGEXTENDEDTOOLKIT_API FPCGExTransformSettings
 {
 	GENERATED_BODY()
 

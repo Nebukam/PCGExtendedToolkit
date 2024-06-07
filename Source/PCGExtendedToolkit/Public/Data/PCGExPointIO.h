@@ -198,6 +198,8 @@ namespace PCGExData
 
 		void ForEach(const TFunction<void(FPointIO&, const int32)>& BodyLoop);
 
+		void Sort();
+		
 		FBox GetInBounds();
 		FBox GetOutBounds();
 

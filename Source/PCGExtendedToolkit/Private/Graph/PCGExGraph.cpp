@@ -396,43 +396,21 @@ Writer->BindAndGet(*PointIO);\
 	{
 		if (!GraphBuilder->bCompiledSuccessfully) { return false; }
 
-		const PCGExData::FPointIO& VtxDupe = VtxCollection->Emplace_GetRef(GraphBuilder->PointIO->GetOut(), PCGExData::EInit::DuplicateInput);
-
-		const FPCGPoint& TargetPoint = PointIO->GetInPoint(TaskIndex);
-
-		auto TransformPoint = [&](FPCGPoint& InPoint)
-		{
-			if (CopySettings->bInheritRotation && CopySettings->bInheritScale)
-			{
-				InPoint.Transform *= TargetPoint.Transform;
-				return;
-			}
-
-			InPoint.Transform.SetLocation(TargetPoint.Transform.TransformPosition(InPoint.Transform.GetLocation()));
-
-			if (CopySettings->bInheritRotation)
-			{
-				InPoint.Transform.SetRotation(TargetPoint.Transform.TransformRotation(InPoint.Transform.GetRotation()));
-			}
-			else if (CopySettings->bInheritScale)
-			{
-				InPoint.Transform.SetScale3D(TargetPoint.Transform.GetScale3D() * InPoint.Transform.GetScale3D());
-			}
-		};
+		PCGExData::FPointIO& VtxDupe = VtxCollection->Emplace_GetRef(GraphBuilder->PointIO->GetOut(), PCGExData::EInit::DuplicateInput);
+		VtxDupe.IOIndex = TaskIndex;
 
 		FString OutId;
 		VtxDupe.Tags->Set(PCGExGraph::TagStr_ClusterPair, VtxDupe.GetOut()->UID, OutId);
 
-		TArray<FPCGPoint>& MutableVtx = VtxDupe.GetOut()->GetMutablePoints();
-		for (FPCGPoint& Vtx : MutableVtx) { TransformPoint(Vtx); }
+		Manager->Start<PCGExGeoTasks::FTransformPointIO>(TaskIndex, PointIO, &VtxDupe, TransformSettings);
 
 		for (const PCGExData::FPointIO* Edges : GraphBuilder->EdgesIO->Pairs)
 		{
-			const PCGExData::FPointIO& EdgeDupe = EdgeCollection->Emplace_GetRef(Edges->GetOut(), PCGExData::EInit::DuplicateInput);
+			PCGExData::FPointIO& EdgeDupe = EdgeCollection->Emplace_GetRef(Edges->GetOut(), PCGExData::EInit::DuplicateInput);
+			EdgeDupe.IOIndex = TaskIndex;
 			EdgeDupe.Tags->Set(PCGExGraph::TagStr_ClusterPair, OutId);
 
-			TArray<FPCGPoint>& MutableEdges = EdgeDupe.GetOut()->GetMutablePoints();
-			for (FPCGPoint& Edge : MutableEdges) { TransformPoint(Edge); }
+			Manager->Start<PCGExGeoTasks::FTransformPointIO>(TaskIndex, PointIO, &EdgeDupe, TransformSettings);
 		}
 
 		return true;

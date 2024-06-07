@@ -347,7 +347,7 @@ public:
 	virtual bool IsAsyncWorkComplete();
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorElementBase : public FPCGPointProcessingElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorElementBase : public IPCGElement
 {
 public:
 	virtual FPCGContext* Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node) override;

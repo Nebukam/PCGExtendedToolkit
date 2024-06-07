@@ -392,5 +392,35 @@ namespace PCGExClusterTask
 		virtual bool ExecuteTask() override;
 	};
 
-	
+	class PCGEXTENDEDTOOLKIT_API FCopyClustersToPoint : public FPCGExNonAbandonableTask
+	{
+	public:
+		FCopyClustersToPoint(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+		                     PCGExData::FPointIO* InVtx,
+		                     const TArray<PCGExData::FPointIO*>& InEdges,
+		                     PCGExData::FPointIOCollection* InVtxCollection,
+		                     PCGExData::FPointIOCollection* InEdgeCollection,
+		                     FPCGExTransformSettings* InTransformSettings) :
+			FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+			Vtx(InVtx),
+			Edges(InEdges),
+			VtxCollection(InVtxCollection),
+			EdgeCollection(InEdgeCollection),
+			TransformSettings(InTransformSettings)
+		{
+		}
+
+		virtual ~FCopyClustersToPoint() override;
+		
+		PCGExData::FPointIO* Vtx = nullptr;
+		TArray<PCGExData::FPointIO*> Edges;
+
+		PCGExData::FPointIOCollection* VtxCollection = nullptr;
+		PCGExData::FPointIOCollection* EdgeCollection = nullptr;
+
+		FPCGExTransformSettings* TransformSettings = nullptr;
+
+		virtual bool ExecuteTask() override;
+		
+	};
 }

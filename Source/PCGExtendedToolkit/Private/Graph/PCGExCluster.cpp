@@ -147,11 +147,13 @@ namespace PCGExCluster
 
 		if (bDeterministic)
 		{
+			/*
 			EdgeList.Sort(
 				[](const PCGExGraph::FIndexedEdge& A, const PCGExGraph::FIndexedEdge& B)
 				{
 					return A.Start == B.Start ? A.End < B.End : A.Start < B.Start;
 				});
+				*/
 		}
 
 		for (int i = 0; i < NumEdges; i++)
@@ -889,6 +891,33 @@ namespace PCGExClusterTask
 
 	bool FProjectCluster::ExecuteTask()
 	{
+		return true;
+	}
+
+	FCopyClustersToPoint::~FCopyClustersToPoint()
+	{
+		Edges.Empty();
+	}
+
+	bool FCopyClustersToPoint::ExecuteTask()
+	{
+		PCGExData::FPointIO& VtxDupe = VtxCollection->Emplace_GetRef(Vtx->GetIn(), PCGExData::EInit::DuplicateInput);
+		VtxDupe.IOIndex = TaskIndex;
+
+		FString OutId;
+		VtxDupe.Tags->Set(PCGExGraph::TagStr_ClusterPair, VtxDupe.GetOut()->UID, OutId);
+
+		Manager->Start<PCGExGeoTasks::FTransformPointIO>(TaskIndex, PointIO, &VtxDupe, TransformSettings);
+
+		for (const PCGExData::FPointIO* EdgeIO : Edges)
+		{
+			PCGExData::FPointIO& EdgeDupe = EdgeCollection->Emplace_GetRef(EdgeIO->GetIn(), PCGExData::EInit::DuplicateInput);
+			EdgeDupe.IOIndex = TaskIndex;
+			EdgeDupe.Tags->Set(PCGExGraph::TagStr_ClusterPair, OutId);
+
+			Manager->Start<PCGExGeoTasks::FTransformPointIO>(TaskIndex, PointIO, &EdgeDupe, TransformSettings);
+		}
+
 		return true;
 	}
 }

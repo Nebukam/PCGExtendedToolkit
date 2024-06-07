@@ -31,6 +31,13 @@ namespace PCGExGeo
 	class TDelaunayTriangulation3;
 }
 
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Mesh Source Type"))
+enum class EPCGExMeshAttributeHandling : uint8
+{
+	StaticMeshSoftPath UMETA(DisplayName = "StaticMesh Soft Path", ToolTip="Read the attribute as a StaticMesh soft path."),
+	ActorReference UMETA(DisplayName = "Actor Reference", ToolTip="Read the attribute as an actor reference to extract primitive from."),
+};
+
 /**
  * Calculates the distance between two points (inherently a n*n operation)
  */
@@ -71,10 +78,14 @@ public:
 	/** Static mesh path attribute -- Either FString, FName or FSoftObjectPath*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="StaticMeshSource==EPCGExFetchType::Attribute", EditConditionHides))
 	FName StaticMeshAttribute;
+	
+	/** Static mesh path attribute type*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="StaticMeshSource==EPCGExFetchType::Attribute", EditConditionHides))
+	EPCGExMeshAttributeHandling AttributeHandling;
 
 	/** Target inherit behavior */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FPCGExCopyToPointsSettings CopySettings;
+	FPCGExTransformSettings TransformSettings;
 	
 	/** Skip invalid meshes & do not throw warning about them. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
@@ -93,7 +104,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMeshToClustersContext : public FPCGExPointsP
 	friend class FPCGExMeshToClustersElement;
 
 	FPCGExGraphBuilderSettings GraphBuilderSettings;
-	FPCGExCopyToPointsSettings CopySettings;
+	FPCGExTransformSettings TransformSettings;
 
 	PCGExGeo::FGeoStaticMeshMap* StaticMeshMap = nullptr;
 	TArray<int32> MeshIdx;
