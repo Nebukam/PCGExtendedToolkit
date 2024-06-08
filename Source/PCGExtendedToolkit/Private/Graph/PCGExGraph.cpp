@@ -317,7 +317,8 @@ namespace PCGExGraphTask
 		IndexWriter->BindAndGet(*PointIO);
 		NumEdgesWriter->BindAndGet(*PointIO);
 
-		for (int i = 0; i < IndexWriter->Values.Num(); i++) { IndexWriter->Values[i] = PointIO->GetOutPoint(i).MetadataEntry; }
+		for (int i = 0; i < IndexWriter->Values.Num(); i++) { IndexWriter->Values[i] = PCGExGraph::HCID(PointIO->GetOutPoint(i).MetadataEntry); }
+		
 		for (const int32 NodeIndex : ValidNodes)
 		{
 			const PCGExGraph::FNode& Node = Nodes[NodeIndex];

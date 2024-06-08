@@ -155,7 +155,7 @@ namespace PCGExCluster
 		FNode(const int32 InNodeIndex, const int32 InPointIndex, const FVector& InPosition):
 			PCGExGraph::FNode(InNodeIndex, InPointIndex), Position(InPosition)
 		{
-			Position = FVector::ZeroVector;
+			
 		}
 
 		~FNode();

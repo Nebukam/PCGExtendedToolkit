@@ -100,8 +100,8 @@ bool FPCGExDrawEdgesElement::ExecuteInternal(
 			for (const PCGExGraph::FIndexedEdge& Edge : Context->CurrentCluster->Edges)
 			{
 				if (!Edge.bValid) { continue; }
-				FVector Start = Context->CurrentIO->GetInPoint(Edge.Start).Transform.GetLocation();
-				FVector End = Context->CurrentIO->GetInPoint(Edge.End).Transform.GetLocation();
+				FVector Start = Context->CurrentCluster->Nodes[*Context->CurrentCluster->NodeIndexLookup.Find(Edge.Start)].Position;
+				FVector End = Context->CurrentCluster->Nodes[*Context->CurrentCluster->NodeIndexLookup.Find(Edge.End)].Position;
 				DrawDebugLine(Context->World, Start, End, Col, true, -1, Settings->DepthPriority, Settings->Thickness);
 			}
 

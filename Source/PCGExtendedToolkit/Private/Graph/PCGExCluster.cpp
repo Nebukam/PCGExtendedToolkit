@@ -130,34 +130,25 @@ namespace PCGExCluster
 		NodeIndexLookup.Empty();
 		EdgeIndexLookup.Empty();
 
-		TArray<PCGExGraph::FIndexedEdge> EdgeList;
-		TSet<int32> NodePointsSet;
-		//TArray<TSet<uint64>> NodeConnections;
+		TArray<int32> NodePointsSet;
 
-		if (!BuildIndexedEdges(EdgeIO, InEndpointsLookup, EdgeList, NodePointsSet, true))
-		{
-			EdgeList.Empty();
-			return false;
-		}
+		if (!BuildIndexedEdges(EdgeIO, InEndpointsLookup, Edges, NodePointsSet, true)) { return false; }
 
 		bool bInvalidCluster = false;
 
 		const int32 NumNodes = NodePointsSet.Num();
 		Nodes.SetNum(NumNodes);
 		NodeIndexLookup.Reserve(NumNodes);
-		//NodeConnections.SetNum(NumNodes);
 
 		int32 NodeIndex = 0;
 		for (int32 PointIndex : NodePointsSet)
 		{
 			Nodes[NodeIndex] = PCGExCluster::FNode(NodeIndex, PointIndex, InNodePoints[PointIndex].Transform.GetLocation());
-			//NodeConnections[NodeIndex].Empty();
 			NodeIndexLookup.Add(PointIndex, NodeIndex);
 			NodeIndex++;
 		}
 
-		const int32 NumEdges = EdgeList.Num();
-		Edges.SetNumUninitialized(NumEdges);
+		const int32 NumEdges = Edges.Num();
 		EdgeIndexLookup.Reserve(NumEdges);
 
 		/*
@@ -170,7 +161,7 @@ namespace PCGExCluster
 
 		for (int i = 0; i < NumEdges; i++)
 		{
-			PCGExGraph::FIndexedEdge& SortedEdge = (Edges[i] = EdgeList[i]);
+			const PCGExGraph::FIndexedEdge& SortedEdge = Edges[i];
 			//SortedEdge.EdgeIndex = i; // Only required if we sort the array first
 
 			const int32 StartNodeIndex = *NodeIndexLookup.Find(SortedEdge.Start);
@@ -181,9 +172,6 @@ namespace PCGExCluster
 			Nodes[StartNodeIndex].Adjacency.AddUnique(PCGEx::H64(EndNodeIndex, i));
 			Nodes[EndNodeIndex].Adjacency.AddUnique(PCGEx::H64(StartNodeIndex, i));
 		}
-
-
-		EdgeList.Empty();
 
 		if (InEdgeNumValidation)
 		{
