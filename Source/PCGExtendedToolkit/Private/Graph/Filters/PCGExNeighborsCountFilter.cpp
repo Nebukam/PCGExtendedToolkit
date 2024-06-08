@@ -41,7 +41,7 @@ namespace PCGExNodeNeighborsCount
 	bool TNeighborsCountFilter::Test(const int32 PointIndex) const
 	{
 		const PCGExCluster::FNode& Node = CapturedCluster->Nodes[PointIndex];
-		const double A = Node.AdjacentNodes.Num();
+		const double A = Node.Adjacency.Num();
 		const double B = LocalCount ? LocalCount->Values[Node.PointIndex] : TypedFilterFactory->Count;
 		return PCGExCompare::Compare(TypedFilterFactory->Comparison, A, B, TypedFilterFactory->Tolerance);
 	}

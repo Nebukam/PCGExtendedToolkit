@@ -104,7 +104,7 @@ bool FPCGExFuseClustersLocalElement::ExecuteInternal(FPCGContext* InContext) con
 		// Insert current cluster into loose graph
 		Context->GetAsyncManager()->Start<PCGExGraphTask::FCompoundGraphInsertEdges>(
 			Context->CurrentIO->IOIndex, Context->CurrentIO,
-			Context->CompoundGraph, Context->CurrentEdges, &Context->NodeIndicesMap);
+			Context->CompoundGraph, Context->CurrentEdges, &Context->EndpointsLookup);
 
 		Context->SetAsyncState(PCGExGraph::State_ProcessingEdges);
 	}

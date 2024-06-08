@@ -283,20 +283,28 @@ namespace PCGExGraph
 		{
 		}
 
+		FNode(const int32 InNodeIndex, const int32 InPointIndex):
+			NodeIndex(InNodeIndex), PointIndex(InPointIndex)
+		{
+			Adjacency.Empty();
+		}
+
 		bool bValid = true;
 
 		int32 NodeIndex = -1;  // Index in the context of the list that helds the node
 		int32 PointIndex = -1; // Index in the context of the UPCGPointData that helds the vtx
 		int32 NumExportedEdges = 0;
 
-		TArray<int32> Edges;
+		TArray<uint64> Adjacency;
 
+		void SetAdjacency(const TSet<uint64>* InAdjacency);
+		
 		~FNode()
 		{
-			Edges.Empty();
+			Adjacency.Empty();
 		}
 
-		void Add(const int32 EdgeIndex);
+		FORCEINLINE void Add(const int32 EdgeIndex);
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FSubGraph
@@ -355,7 +363,7 @@ namespace PCGExGraph
 			{
 				FNode& Node = Nodes[i];
 				Node.NodeIndex = Node.PointIndex = i;
-				Node.Edges.Reserve(NumEdgesReserve);
+				Node.Adjacency.Reserve(NumEdgesReserve);
 			}
 		}
 
@@ -443,12 +451,12 @@ namespace PCGExGraph
 		}
 	};
 
-	static bool GetRemappedIndices(PCGExData::FPointIO& InPointIO, const FName AttributeName, TMap<int64, int32>& OutIndices)
+	static bool BuildLookupTable(const PCGExData::FPointIO& InPointIO, const FName AttributeName, TMap<int64, int32>& OutIndices)
 	{
 		OutIndices.Empty();
 
 		PCGEx::TFAttributeReader<int64>* IndexReader = new PCGEx::TFAttributeReader<int64>(AttributeName);
-		if (!IndexReader->Bind(InPointIO))
+		if (!IndexReader->Bind(const_cast<PCGExData::FPointIO&>(InPointIO)))
 		{
 			PCGEX_DELETE(IndexReader)
 			return false;
@@ -459,11 +467,6 @@ namespace PCGExGraph
 
 		PCGEX_DELETE(IndexReader)
 		return true;
-	}
-
-	static bool GetRemappedIndices(const PCGExData::FPointIO& InPointIO, const FName AttributeName, TMap<int64, int32>& OutIndices)
-	{
-		return GetRemappedIndices(const_cast<PCGExData::FPointIO&>(InPointIO), AttributeName, OutIndices);
 	}
 
 #pragma endregion

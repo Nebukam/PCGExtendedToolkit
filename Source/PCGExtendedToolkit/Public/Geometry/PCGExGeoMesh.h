@@ -221,15 +221,14 @@ namespace PCGExGeo
 
 				Triangles[TriangleIndex++] = FIntVector3(A, B, C);
 
-				//Offset adjacency by 1 since we can't have -1 values
-				if (AdjacencyABPtr) { EdgeAdjacency.Add(AB, PCGEx::H64(TriangleIndex, PCGEx::H64B(*AdjacencyABPtr))); }
-				else { EdgeAdjacency.Add(AB, PCGEx::H64(0, TriangleIndex)); }
+				if (AdjacencyABPtr) { EdgeAdjacency.Add(AB, PCGEx::NH64(TriangleIndex, PCGEx::H64B(*AdjacencyABPtr))); }
+				else { EdgeAdjacency.Add(AB, PCGEx::NH64(-1, TriangleIndex)); }
 
-				if (AdjacencyBCPtr) { EdgeAdjacency.Add(BC, PCGEx::H64(TriangleIndex, PCGEx::H64B(*AdjacencyBCPtr))); }
-				else { EdgeAdjacency.Add(BC, PCGEx::H64(0, TriangleIndex)); }
+				if (AdjacencyBCPtr) { EdgeAdjacency.Add(BC, PCGEx::NH64(TriangleIndex, PCGEx::H64B(*AdjacencyBCPtr))); }
+				else { EdgeAdjacency.Add(BC, PCGEx::NH64(-1, TriangleIndex)); }
 
-				if (AdjacencyACPtr) { EdgeAdjacency.Add(AC, PCGEx::H64(TriangleIndex, PCGEx::H64B(*AdjacencyACPtr))); }
-				else { EdgeAdjacency.Add(AC, PCGEx::H64(0, TriangleIndex)); }
+				if (AdjacencyACPtr) { EdgeAdjacency.Add(AC, PCGEx::NH64(TriangleIndex, PCGEx::H64B(*AdjacencyACPtr))); }
+				else { EdgeAdjacency.Add(AC, PCGEx::NH64(-1, TriangleIndex)); }
 			}
 
 			int32 ENum = EdgeAdjacency.Num();
@@ -244,9 +243,9 @@ namespace PCGExGeo
 				uint64* AdjacencyACPtr = EdgeAdjacency.Find(PCGEx::H64U(Triangle.X, Triangle.Z));
 
 				Adjacencies[j] = FIntVector3(
-					AdjacencyABPtr ? PCGEx::H64NOT(*AdjacencyABPtr, j + 1) - 1 : -1,
-					AdjacencyBCPtr ? PCGEx::H64NOT(*AdjacencyBCPtr, j + 1) - 1 : -1,
-					AdjacencyACPtr ? PCGEx::H64NOT(*AdjacencyACPtr, j + 1) - 1 : -1);
+					AdjacencyABPtr ? PCGEx::NH64NOT(*AdjacencyABPtr, j) : -1,
+					AdjacencyBCPtr ? PCGEx::NH64NOT(*AdjacencyBCPtr, j) : -1,
+					AdjacencyACPtr ? PCGEx::NH64NOT(*AdjacencyACPtr, j) : -1);
 			}
 
 			EdgeAdjacency.Empty();

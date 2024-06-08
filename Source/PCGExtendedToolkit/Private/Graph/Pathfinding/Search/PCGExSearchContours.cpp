@@ -68,14 +68,14 @@ bool UPCGExSearchContours::FindPath(
 
 		OutPath.Add(NextIndex);
 
-		if (CurrentNode.AdjacentNodes.Contains(EndNodeIndex))
+		if (CurrentNode.IsAdjacentTo(EndNodeIndex))
 		{
 			// End is in the immediate vicinity
 			EndIndex = EndNodeIndex;
 			break;
 		}
 
-		if (CurrentNode.AdjacentNodes.Contains(StartNodeIndex))
+		if (CurrentNode.IsAdjacentTo(StartNodeIndex))
 		{
 			// End is in the immediate vicinity
 			EndIndex = StartNodeIndex;
@@ -83,7 +83,7 @@ bool UPCGExSearchContours::FindPath(
 		}
 
 		Exclusion.Empty();
-		if (CurrentNode.AdjacentNodes.Num() > 1) { Exclusion.Add(PreviousIndex); }
+		if (CurrentNode.Adjacency.Num() > 1) { Exclusion.Add(PreviousIndex); }
 
 		const int32 FromIndex = PreviousIndex;
 		PreviousIndex = NextIndex;

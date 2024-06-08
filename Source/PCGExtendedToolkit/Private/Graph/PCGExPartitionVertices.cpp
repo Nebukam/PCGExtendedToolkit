@@ -66,7 +66,7 @@ bool FPCGExPartitionVerticesElement::ExecuteInternal(FPCGContext* InContext) con
 				EdgeIO->Tags->Set(PCGExGraph::TagStr_ClusterPair, OutId);
 
 				EdgeIO->CreateInKeys();
-				Context->GetAsyncManager()->Start<FPCGExCreateVtxPartitionTask>(i, &PointPartitionIO, EdgeIO, &Context->NodeIndicesMap);
+				Context->GetAsyncManager()->Start<FPCGExCreateVtxPartitionTask>(i, &PointPartitionIO, EdgeIO, &Context->EndpointsLookup);
 			}
 
 			Context->SetAsyncState(PCGExGraph::State_ProcessingEdges);

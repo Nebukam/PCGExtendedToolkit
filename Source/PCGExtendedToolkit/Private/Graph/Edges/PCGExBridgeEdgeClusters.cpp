@@ -113,7 +113,7 @@ bool FPCGExBridgeEdgeClustersElement::ExecuteInternal(
 					EdgeIO->CreateInKeys();
 					Context->GetAsyncManager()->Start<PCGExClusterTask::FBuildCluster>(
 						-1, Context->CurrentIO,
-						NewCluster, EdgeIO, &Context->NodeIndicesMap, &Context->EdgeNumReader->Values);
+						NewCluster, EdgeIO, &Context->EndpointsLookup, &Context->EdgeNumReader->Values);
 				}
 
 				Context->SetAsyncState(PCGExGraph::State_BuildingClusters);

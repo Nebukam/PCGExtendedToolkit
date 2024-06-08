@@ -219,10 +219,10 @@ bool FPCGExFindContourTask::ExecuteTask()
 
 		Path.Add(NextIndex);
 
-		if (CurrentNode.AdjacentNodes.Contains(StartNodeIndex)) { break; } // End is in the immediate vicinity
+		if (CurrentNode.IsAdjacentTo(StartNodeIndex)) { break; } // End is in the immediate vicinity
 
 		Exclusion.Empty();
-		if (CurrentNode.AdjacentNodes.Num() > 1) { Exclusion.Add(PreviousIndex); }
+		if (CurrentNode.Adjacency.Num() > 1) { Exclusion.Add(PreviousIndex); }
 
 		const int32 FromIndex = PreviousIndex;
 		PreviousIndex = NextIndex;

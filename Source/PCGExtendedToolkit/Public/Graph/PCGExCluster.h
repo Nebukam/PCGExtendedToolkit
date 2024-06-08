@@ -143,21 +143,26 @@ namespace PCGExCluster
 
 	struct PCGEXTENDEDTOOLKIT_API FNode : public PCGExGraph::FNode
 	{
+		
 		FVector Position;
 
-		TArray<int32> AdjacentNodes;
-
-		FNode()
+		FNode():
+			PCGExGraph::FNode()
 		{
-			PointIndex = -1;
 			Position = FVector::ZeroVector;
-			AdjacentNodes.Empty();
-			Edges.Empty();
+		}
+
+		FNode(const int32 InNodeIndex, const int32 InPointIndex, const FVector& InPosition):
+			PCGExGraph::FNode(InNodeIndex, InPointIndex), Position(InPosition)
+		{
+			Position = FVector::ZeroVector;
 		}
 
 		~FNode();
 
-		FORCEINLINE void AddConnection(const int32 InEdgeIndex, const int32 InNodeIndex);
+		FORCEINLINE bool IsAdjacentTo(const int32 OtherNodeIndex) const;
+		
+		FORCEINLINE void AddConnection(const int32 InNodeIndex, const int32 InEdgeIndex);
 		FORCEINLINE FVector GetCentroid(FCluster* InCluster) const;
 		FORCEINLINE int32 GetEdgeIndex(int32 AdjacentNodeIndex) const;
 	};
@@ -167,8 +172,8 @@ namespace PCGExCluster
 		bool bEdgeLengthsDirty = true;
 		bool bValid = false;
 		int32 ClusterID = -1;
-		TMap<int32, int32> PointIndexMap; // Node index -> Point Index
-		TMap<uint64, int32> EdgeIndexMap; // Edge Hash -> Edge Index
+		TMap<int32, int32> NodeIndexLookup; // Node index -> Point Index
+		TMap<uint64, int32> EdgeIndexLookup;   // Edge Hash -> Edge Index
 		TArray<FNode> Nodes;
 		TArray<PCGExGraph::FIndexedEdge> Edges;
 		TArray<double> EdgeLengths;
@@ -188,10 +193,8 @@ namespace PCGExCluster
 		bool BuildFrom(
 			const PCGExData::FPointIO& EdgeIO,
 			const TArray<FPCGPoint>& InNodePoints,
-			const TMap<int64, int32>& InNodeIndicesMap,
-			const TArray<int32>& PerNodeEdgeNums, const bool bDeterministic);
-
-		void BuildPartialFrom(const TArray<FVector>& Positions, const TSet<uint64>& InEdges);
+			const TMap<int64, int32>& InEndpointsLookup,
+			const TArray<int32>* InEdgeNumValidation = nullptr);
 
 		void RebuildNodeOctree();
 		void RebuildEdgeOctree();
@@ -228,7 +231,7 @@ namespace PCGExCluster
 	{
 		FNode* Node = nullptr;
 		FVector Normal = FVector::UpVector;
-		TArray<int32> SortedAdjacency;
+		TArray<uint64> SortedAdjacency;
 
 		explicit FNodeProjection(FNode* InNode);
 
@@ -335,21 +338,21 @@ namespace PCGExClusterTask
 	public:
 		FBuildCluster(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
 		              PCGExCluster::FCluster* InCluster,
-		              PCGExData::FPointIO* InEdgeIO,
-		              TMap<int64, int32>* InNodeIndicesMap,
-		              TArray<int32>* InPerNodeEdgeNums) :
+		              const PCGExData::FPointIO* InEdgeIO,
+		              const TMap<int64, int32>* InEndpointsLookup,
+		              const TArray<int32>* InEdgeNumValidation) :
 			FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
 			Cluster(InCluster),
 			EdgeIO(InEdgeIO),
-			NodeIndicesMap(InNodeIndicesMap),
-			PerNodeEdgeNums(InPerNodeEdgeNums)
+			EndpointsLookup(InEndpointsLookup),
+			EdgeNumValidation(InEdgeNumValidation)
 		{
 		}
 
 		PCGExCluster::FCluster* Cluster = nullptr;
-		PCGExData::FPointIO* EdgeIO = nullptr;
-		TMap<int64, int32>* NodeIndicesMap = nullptr;
-		TArray<int32>* PerNodeEdgeNums = nullptr;
+		const PCGExData::FPointIO* EdgeIO = nullptr;
+		const TMap<int64, int32>* EndpointsLookup = nullptr;
+		const TArray<int32>* EdgeNumValidation = nullptr;
 
 		virtual bool ExecuteTask() override;
 	};
@@ -411,7 +414,7 @@ namespace PCGExClusterTask
 		}
 
 		virtual ~FCopyClustersToPoint() override;
-		
+
 		PCGExData::FPointIO* Vtx = nullptr;
 		TArray<PCGExData::FPointIO*> Edges;
 
@@ -421,6 +424,5 @@ namespace PCGExClusterTask
 		FPCGExTransformSettings* TransformSettings = nullptr;
 
 		virtual bool ExecuteTask() override;
-		
 	};
 }

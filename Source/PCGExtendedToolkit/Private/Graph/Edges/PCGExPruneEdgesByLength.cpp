@@ -77,7 +77,7 @@ bool FPCGExPruneEdgesByLengthElement::ExecuteInternal(FPCGContext* InContext) co
 		double MaxEdgeLength = TNumericLimits<double>::Min();
 		double SumEdgeLength = 0;
 
-		BuildIndexedEdges(*Context->CurrentEdges, Context->NodeIndicesMap, Context->IndexedEdges);
+		BuildIndexedEdges(*Context->CurrentEdges, Context->EndpointsLookup, Context->IndexedEdges);
 
 		const TArray<FPCGPoint>& InNodePoints = Context->CurrentIO->GetIn()->GetPoints();
 

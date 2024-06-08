@@ -166,9 +166,9 @@ namespace PCGExGraph
 
 	static bool BuildIndexedEdges(
 		const PCGExData::FPointIO& EdgeIO,
-		const TMap<int64, int32>& NodeIndicesMap,
+		const TMap<int64, int32>& EndpointsLookup,
 		TArray<FIndexedEdge>& OutEdges,
-		const bool bInvalidateOnError = false)
+		const bool bStopOnError = false)
 	{
 		//EdgeIO.CreateInKeys();
 
@@ -195,12 +195,12 @@ namespace PCGExGraph
 
 		OutEdges.Reserve(NumEdges);
 
-		if (!bInvalidateOnError)
+		if (!bStopOnError)
 		{
 			for (int i = 0; i < NumEdges; i++)
 			{
-				const int32* NodeStartPtr = NodeIndicesMap.Find(StartIndexReader->Values[i]);
-				const int32* NodeEndPtr = NodeIndicesMap.Find(EndIndexReader->Values[i]);
+				const int32* NodeStartPtr = EndpointsLookup.Find(StartIndexReader->Values[i]);
+				const int32* NodeEndPtr = EndpointsLookup.Find(EndIndexReader->Values[i]);
 
 				if ((!NodeStartPtr || !NodeEndPtr) ||
 					(*NodeStartPtr == -1) || (*NodeEndPtr == -1))
@@ -215,8 +215,8 @@ namespace PCGExGraph
 		{
 			for (int i = 0; i < NumEdges; i++)
 			{
-				const int32* NodeStartPtr = NodeIndicesMap.Find(StartIndexReader->Values[i]);
-				const int32* NodeEndPtr = NodeIndicesMap.Find(EndIndexReader->Values[i]);
+				const int32* NodeStartPtr = EndpointsLookup.Find(StartIndexReader->Values[i]);
+				const int32* NodeEndPtr = EndpointsLookup.Find(EndIndexReader->Values[i]);
 
 				if ((!NodeStartPtr || !NodeEndPtr) ||
 					(*NodeStartPtr == -1) || (*NodeEndPtr == -1))
@@ -225,6 +225,83 @@ namespace PCGExGraph
 					break;
 				}
 
+				OutEdges.Emplace(EdgeIndex++, *NodeStartPtr, *NodeEndPtr, i, EdgeIO.IOIndex);
+			}
+		}
+
+
+		PCGEX_DELETE(StartIndexReader)
+		PCGEX_DELETE(EndIndexReader)
+
+		return bValid;
+	}
+
+	static bool BuildIndexedEdges(
+		const PCGExData::FPointIO& EdgeIO,
+		const TMap<int64, int32>& EndpointsLookup,
+		TArray<FIndexedEdge>& OutEdges,
+		TSet<int32>& OutNodePoints,
+		const bool bStopOnError = false)
+	{
+		//EdgeIO.CreateInKeys();
+
+		PCGEx::TFAttributeReader<int64>* StartIndexReader = new PCGEx::TFAttributeReader<int64>(Tag_EdgeStart);
+		PCGEx::TFAttributeReader<int64>* EndIndexReader = new PCGEx::TFAttributeReader<int64>(Tag_EdgeEnd);
+
+		if (!StartIndexReader->Bind(const_cast<PCGExData::FPointIO&>(EdgeIO)))
+		{
+			PCGEX_DELETE(StartIndexReader)
+			PCGEX_DELETE(EndIndexReader)
+			return false;
+		}
+
+		if (!EndIndexReader->Bind(const_cast<PCGExData::FPointIO&>(EdgeIO)))
+		{
+			PCGEX_DELETE(StartIndexReader)
+			PCGEX_DELETE(EndIndexReader)
+			return false;
+		}
+
+		bool bValid = true;
+		const int32 NumEdges = EdgeIO.GetNum();
+		int32 EdgeIndex = 0;
+
+		OutEdges.Reserve(NumEdges);
+
+		if (!bStopOnError)
+		{
+			for (int i = 0; i < NumEdges; i++)
+			{
+				const int32* NodeStartPtr = EndpointsLookup.Find(StartIndexReader->Values[i]);
+				const int32* NodeEndPtr = EndpointsLookup.Find(EndIndexReader->Values[i]);
+
+				if ((!NodeStartPtr || !NodeEndPtr) ||
+					(*NodeStartPtr == -1) || (*NodeEndPtr == -1))
+				{
+					continue;
+				}
+
+				OutNodePoints.Add(*NodeStartPtr);
+				OutNodePoints.Add(*NodeEndPtr);
+				OutEdges.Emplace(EdgeIndex++, *NodeStartPtr, *NodeEndPtr, i, EdgeIO.IOIndex);
+			}
+		}
+		else
+		{
+			for (int i = 0; i < NumEdges; i++)
+			{
+				const int32* NodeStartPtr = EndpointsLookup.Find(StartIndexReader->Values[i]);
+				const int32* NodeEndPtr = EndpointsLookup.Find(EndIndexReader->Values[i]);
+
+				if ((!NodeStartPtr || !NodeEndPtr) ||
+					(*NodeStartPtr == -1) || (*NodeEndPtr == -1))
+				{
+					bValid = false;
+					break;
+				}
+
+				OutNodePoints.Add(*NodeStartPtr);
+				OutNodePoints.Add(*NodeEndPtr);
 				OutEdges.Emplace(EdgeIndex++, *NodeStartPtr, *NodeEndPtr, i, EdgeIO.IOIndex);
 			}
 		}

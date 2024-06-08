@@ -32,16 +32,16 @@ bool UPCGExSearchDijkstra::FindPath(
 	// Basic Dijkstra implementation
 
 	TSet<int32> Visited;
-	TArray<int32> Previous;
+	TArray<uint64> Previous;
 
 	PCGExSearch::TScoredQueue* ScoredQueue = new PCGExSearch::TScoredQueue(
 		NumNodes, SeedNode.NodeIndex, 0);
 
-	Previous.SetNum(NumNodes);
+	Previous.SetNumUninitialized(NumNodes);
 	for (int i = 0; i < NumNodes; i++)
 	{
 		ScoredQueue->Scores[i] = -1;
-		Previous[i] = -1;
+		Previous[i] = PCGEx::NH64(-1,-1);
 	}
 
 	ScoredQueue->Scores[SeedNode.NodeIndex] = 0;
@@ -55,35 +55,45 @@ bool UPCGExSearchDijkstra::FindPath(
 		const PCGExCluster::FNode& Current = Cluster->Nodes[CurrentNodeIndex];
 		Visited.Add(CurrentNodeIndex);
 
-		for (const int32 AdjacentIndex : Current.AdjacentNodes)
+		for (const uint64 AdjacencyHash : Current.Adjacency)
 		{
-			if (Visited.Contains(AdjacentIndex)) { continue; }
+			uint32 NeighborIndex;
+			uint32 EdgeIndex;
+			PCGEx::H64(AdjacencyHash, NeighborIndex, EdgeIndex);
 
-			const PCGExCluster::FNode& AdjacentNode = Cluster->Nodes[AdjacentIndex];
-			const PCGExGraph::FIndexedEdge& Edge = Cluster->GetEdgeFromNodeIndices(CurrentNodeIndex, AdjacentIndex);
+			if (Visited.Contains(NeighborIndex)) { continue; }
+
+			const PCGExCluster::FNode& AdjacentNode = Cluster->Nodes[NeighborIndex];
+			const PCGExGraph::FIndexedEdge& Edge = Cluster->Edges[EdgeIndex];
 
 			const double AltScore = CurrentScore + Heuristics->GetEdgeScore(Current, AdjacentNode, Edge, SeedNode, GoalNode, LocalFeedback);
-			const double PreviousScore = ScoredQueue->Scores[AdjacentIndex];
+			const double PreviousScore = ScoredQueue->Scores[NeighborIndex];
 			if (PreviousScore != -1 && AltScore > PreviousScore) { continue; }
 
-			ScoredQueue->Enqueue(AdjacentIndex, AltScore);
-			Previous[AdjacentIndex] = CurrentNodeIndex;
+			ScoredQueue->Enqueue(NeighborIndex, AltScore);
+			Previous[NeighborIndex] = PCGEx::NH64(CurrentNodeIndex, EdgeIndex);
 		}
 	}
 
 	TArray<int32> Path;
-	int32 PathIndex = GoalNode.NodeIndex;
 
-	while (PathIndex != -1)
+	uint64 PathHash = Previous[GoalNode.NodeIndex];
+	int32 PathNodeIndex;
+	int32 PathEdgeIndex;
+	PCGEx::NH64(PathHash, PathNodeIndex, PathEdgeIndex);
+	
+	while (PathNodeIndex != -1)
 	{
-		const int32 CurrentIndex = PathIndex;
+		const int32 CurrentIndex = PathNodeIndex;
 		Path.Add(CurrentIndex);
-		PathIndex = Previous[PathIndex];
+		
+		PathHash = Previous[PathNodeIndex];
+		PCGEx::NH64(PathHash, PathNodeIndex, PathEdgeIndex);
 
 		const PCGExCluster::FNode& N = Cluster->Nodes[CurrentIndex];
-		if (PathIndex != -1)
+		if (PathNodeIndex != -1)
 		{
-			const PCGExGraph::FIndexedEdge& E = Cluster->GetEdgeFromNodeIndices(CurrentIndex, PathIndex);
+			const PCGExGraph::FIndexedEdge& E = Cluster->Edges[PathEdgeIndex];
 			Heuristics->FeedbackScore(N, E);
 			if (LocalFeedback) { Heuristics->FeedbackScore(N, E); }
 		}

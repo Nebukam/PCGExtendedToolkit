@@ -330,8 +330,16 @@ namespace PCGEx
 		return A == Not ? static_cast<uint32>(Hash) : A;
 	}
 
+	// Unsigned uint64 hash
+	FORCEINLINE static uint64 NH64NOT(const uint64 Hash, const int32 Not)
+	{
+		const int32 A = static_cast<int32>(static_cast<uint32>(Hash >> 32)) - 1;
+		return A == Not ? static_cast<int32>(static_cast<uint32>(Hash)) - 1 : A;
+	}
+
 	// Signed uint64 hash
 	FORCEINLINE static uint64 H64(const uint32 A, const uint32 B) { return static_cast<uint64>(A) << 32 | B; }
+	FORCEINLINE static uint64 NH64(const uint32 A, const uint32 B) { return static_cast<uint64>(A + 1) << 32 | (B + 1); }
 
 	// Expand uint64 hash
 	FORCEINLINE static uint32 H64A(const uint64 Hash) { return static_cast<uint32>(Hash >> 32); }
@@ -341,6 +349,12 @@ namespace PCGEx
 	{
 		A = H64A(Hash);
 		B = H64B(Hash);
+	}
+
+	FORCEINLINE static void NH64(const uint64 Hash, int32& A, int32& B)
+	{
+		A = H64A(Hash) - 1;
+		B = H64B(Hash) - 1;
 	}
 
 	FORCEINLINE static uint64 H6416(const uint16 A, const uint16 B, const uint16 C, const uint16 D)
