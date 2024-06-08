@@ -248,7 +248,7 @@ namespace PCGExGraph
 		const PCGExData::FPointIO& EdgeIO,
 		const TMap<int64, int32>& EndpointsLookup,
 		TArray<FIndexedEdge>& OutEdges,
-		TArray<int32>& OutNodePoints,
+		TSet<int32>& OutNodePoints,
 		const bool bStopOnError = false)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExEdge::BuildIndexedEdges-WithPoints);
@@ -261,8 +261,6 @@ namespace PCGExGraph
 			PCGEX_DELETE(EndpointsReader)
 			return false;
 		}
-
-		TSet<int32> UniquePoints;
 
 		bool bValid = true;
 		const int32 NumEdges = EdgeIO.GetNum();
@@ -284,8 +282,8 @@ namespace PCGExGraph
 
 				if ((!StartPointIndexPtr || !EndPointIndexPtr)) { continue; }
 
-				UniquePoints.Add(*StartPointIndexPtr);
-				UniquePoints.Add(*EndPointIndexPtr);
+				OutNodePoints.Add(*StartPointIndexPtr);
+				OutNodePoints.Add(*EndPointIndexPtr);
 
 				OutEdges[EdgeIndex] = FIndexedEdge(EdgeIndex, *StartPointIndexPtr, *EndPointIndexPtr, EdgeIndex, EdgeIO.IOIndex);
 				EdgeIndex++;
@@ -310,14 +308,14 @@ namespace PCGExGraph
 					break;
 				}
 
-				UniquePoints.Add(*StartPointIndexPtr);
-				UniquePoints.Add(*EndPointIndexPtr);
+				OutNodePoints.Add(*StartPointIndexPtr);
+				OutNodePoints.Add(*EndPointIndexPtr);
 
 				OutEdges[i] = FIndexedEdge(i, *StartPointIndexPtr, *EndPointIndexPtr, i, EdgeIO.IOIndex);
 			}
 		}
 
-		OutNodePoints = UniquePoints.Array();
+		//OutNodePoints = UniquePoints.Array();
 
 		PCGEX_DELETE(EndpointsReader)
 

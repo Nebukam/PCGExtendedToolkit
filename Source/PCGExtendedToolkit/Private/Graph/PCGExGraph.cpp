@@ -256,6 +256,8 @@ namespace PCGExGraphTask
 
 	bool FCompileGraph::ExecuteTask()
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(FCompileGraph::ExecuteTask);
+		
 		Builder->Graph->BuildSubGraphs(Min, Max);
 
 		if (Builder->Graph->SubGraphs.IsEmpty())
@@ -272,6 +274,9 @@ namespace PCGExGraphTask
 
 		if (Builder->bPrunePoints)
 		{
+
+			TRACE_CPUPROFILER_EVENT_SCOPE(FCompileGraph::PrunePoints);
+			
 			// Rebuild point list with only the one used
 			// to know which are used, we need to prune subgraphs first
 			TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
@@ -306,6 +311,7 @@ namespace PCGExGraphTask
 		}
 		else
 		{
+			TRACE_CPUPROFILER_EVENT_SCOPE(FCompileGraph::NotPrunePoints);
 			for (const PCGExGraph::FNode& Node : Nodes) { if (Node.bValid) { ValidNodes.Add(Node.NodeIndex); } }
 		}
 
@@ -383,8 +389,8 @@ Writer->BindAndGet(*PointIO);\
 				NumClusterIdWriter->Values[Builder->Graph->Nodes[Edge.End].PointIndex] = ClusterId;
 			}
 
-			//Manager->Start<FWriteSubGraphEdges>(SubGraphIndex++, PointIO, Builder->Graph, SubGraph, MetadataSettings);
-			WriteSubGraphEdges(PointIO->GetOut()->GetPoints(), Builder->Graph, SubGraph, MetadataSettings);
+			Manager->Start<FWriteSubGraphEdges>(SubGraphIndex++, PointIO, Builder->Graph, SubGraph, MetadataSettings);
+			//WriteSubGraphEdges(PointIO->GetOut()->GetPoints(), Builder->Graph, SubGraph, MetadataSettings);
 		}
 
 		NumClusterIdWriter->Write();

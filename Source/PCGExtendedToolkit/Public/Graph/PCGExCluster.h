@@ -143,7 +143,6 @@ namespace PCGExCluster
 
 	struct PCGEXTENDEDTOOLKIT_API FNode : public PCGExGraph::FNode
 	{
-		
 		FVector Position;
 
 		FNode():
@@ -155,13 +154,12 @@ namespace PCGExCluster
 		FNode(const int32 InNodeIndex, const int32 InPointIndex, const FVector& InPosition):
 			PCGExGraph::FNode(InNodeIndex, InPointIndex), Position(InPosition)
 		{
-			
 		}
 
 		~FNode();
 
 		FORCEINLINE bool IsAdjacentTo(const int32 OtherNodeIndex) const;
-		
+
 		FORCEINLINE void AddConnection(const int32 InNodeIndex, const int32 InEdgeIndex);
 		FORCEINLINE FVector GetCentroid(FCluster* InCluster) const;
 		FORCEINLINE int32 GetEdgeIndex(int32 AdjacentNodeIndex) const;
@@ -173,7 +171,7 @@ namespace PCGExCluster
 		bool bValid = false;
 		int32 ClusterID = -1;
 		TMap<int32, int32> NodeIndexLookup; // Node index -> Point Index
-		TMap<uint64, int32> EdgeIndexLookup;   // Edge Hash -> Edge Index
+		//TMap<uint64, int32> EdgeIndexLookup;   // Edge Hash -> Edge Index
 		TArray<FNode> Nodes;
 		TArray<PCGExGraph::FIndexedEdge> Edges;
 		TArray<double> EdgeLengths;
@@ -220,9 +218,6 @@ namespace PCGExCluster
 		FORCEINLINE FVector GetCentroid(const int32 NodeIndex) const;
 
 		int32 FindClosestNeighborInDirection(const int32 NodeIndex, const FVector& Direction, int32 MinNeighborCount = 1) const;
-
-	protected:
-		FORCEINLINE FNode& GetOrCreateNode(const int32 PointIndex, const TArray<FPCGPoint>& InPoints);
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FNodeProjection

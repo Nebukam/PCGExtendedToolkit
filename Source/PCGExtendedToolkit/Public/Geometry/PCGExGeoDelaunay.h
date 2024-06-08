@@ -69,22 +69,24 @@ namespace PCGExGeo
 			ProjectionSettings.Project(Positions, Positions2D);
 
 			Triangulation = new UE::Geometry::FDelaunay2();
-
-			if (!Triangulation->Triangulate(Positions2D))
-			{
-				Positions2D.Empty();
-				Clear();
-				return false;
-			}
-
-			Positions2D.Empty();
-
-			IsValid = true;
-
+			
 			TArray<UE::Geometry::FIndex3i> Triangles;
 			TArray<UE::Geometry::FIndex3i> Adjacencies;
+			
+			{
+				TRACE_CPUPROFILER_EVENT_SCOPE(Delaunay2D::Triangulate);
+				
+				if (!Triangulation->Triangulate(Positions2D))
+				{
+					Positions2D.Empty();
+					Clear();
+					return false;
+				}
 
-			Triangulation->GetTrianglesAndAdjacency(Triangles, Adjacencies);
+				Positions2D.Empty();
+				IsValid = true;
+				Triangulation->GetTrianglesAndAdjacency(Triangles, Adjacencies);
+			}
 
 			const int32 NumSites = Triangles.Num();
 			const int32 NumReserve = NumSites * 3;
