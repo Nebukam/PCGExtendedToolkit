@@ -27,8 +27,8 @@ namespace PCGExGeo
 		bool bIsLoaded = false;
 		TArray<FVector> Vertices;
 		TSet<uint64> Edges;
-		TArray<UE::Geometry::FIndex3i> Triangles;
-		TArray<UE::Geometry::FIndex3i> Adjacencies;
+		TArray<FIntVector3> Triangles;
+		TArray<FIntVector3> Adjacencies;
 
 		EPCGExTriangulationType DesiredTriangulationType = EPCGExTriangulationType::Raw;
 
@@ -38,7 +38,7 @@ namespace PCGExGeo
 
 		void MakeDual() // Need triangulate first
 		{
-			if (Triangles.Num()) { return; }
+			if (Triangles.IsEmpty()) { return; }
 
 			TArray<FVector> DualPositions;
 			DualPositions.SetNumUninitialized(Triangles.Num());
@@ -47,13 +47,13 @@ namespace PCGExGeo
 
 			for (int i = 0; i < Triangles.Num(); i++)
 			{
-				const UE::Geometry::FIndex3i& Triangle = Triangles[i];
-				DualPositions[i] = (Vertices[Triangle.A] + Vertices[Triangle.B] + Vertices[Triangle.C]) / 3;
+				const FIntVector3& Triangle = Triangles[i];
+				DualPositions[i] = (Vertices[Triangle.X] + Vertices[Triangle.Y] + Vertices[Triangle.Z]) / 3;
 
-				const UE::Geometry::FIndex3i& Adjacency = Adjacencies[i];
-				if (Adjacency.A != -1) { Edges.Add(PCGEx::H64U(i, Adjacency.A)); }
-				if (Adjacency.B != -1) { Edges.Add(PCGEx::H64U(i, Adjacency.B)); }
-				if (Adjacency.C != -1) { Edges.Add(PCGEx::H64U(i, Adjacency.C)); }
+				const FIntVector3& Adjacency = Adjacencies[i];
+				if (Adjacency.X != -1) { Edges.Add(PCGEx::H64U(i, Adjacency.X)); }
+				if (Adjacency.Y != -1) { Edges.Add(PCGEx::H64U(i, Adjacency.Y)); }
+				if (Adjacency.Z != -1) { Edges.Add(PCGEx::H64U(i, Adjacency.Z)); }
 			}
 
 			Vertices.Empty(DualPositions.Num());
@@ -66,7 +66,7 @@ namespace PCGExGeo
 
 		void MakeHollowDual() // Need triangulate first
 		{
-			if (Triangles.Num()) { return; }
+			if (Triangles.IsEmpty()) { return; }
 
 			const int32 StartIndex = Vertices.Num();
 			TArray<FVector> DualPositions;
@@ -77,13 +77,13 @@ namespace PCGExGeo
 
 			for (int i = 0; i < Triangles.Num(); i++)
 			{
-				const UE::Geometry::FIndex3i& Triangle = Triangles[i];
+				const FIntVector3& Triangle = Triangles[i];
 				const int32 E = StartIndex + i;
-				Vertices[E] = (Vertices[Triangle.A] + Vertices[Triangle.B] + Vertices[Triangle.C]) / 3;
+				Vertices[E] = (Vertices[Triangle.X] + Vertices[Triangle.Y] + Vertices[Triangle.Z]) / 3;
 
-				Edges.Add(PCGEx::H64U(E, Triangle.A));
-				Edges.Add(PCGEx::H64U(E, Triangle.B));
-				Edges.Add(PCGEx::H64U(E, Triangle.C));
+				Edges.Add(PCGEx::H64U(E, Triangle.X));
+				Edges.Add(PCGEx::H64U(E, Triangle.Y));
+				Edges.Add(PCGEx::H64U(E, Triangle.Z));
 			}
 
 			Triangles.Empty();
@@ -165,7 +165,7 @@ namespace PCGExGeo
 			for (FVector Key : Keys) { Vertices[*IndexedUniquePositions.Find(Key)] = Key; }
 
 			IndexedUniquePositions.Empty();
-			
+
 			bIsLoaded = true;
 		}
 
@@ -174,19 +174,20 @@ namespace PCGExGeo
 			if (bIsLoaded) { return; }
 			if (!bIsValid) { return; }
 
+			Edges.Empty();
+
 			const FStaticMeshLODResources& LODResources = StaticMesh->GetRenderData()->LODResources[0];
 
 			const FPositionVertexBuffer& VertexBuffer = LODResources.VertexBuffers.PositionVertexBuffer;
 
 			TMap<FVector, int32> IndexedUniquePositions;
-			Edges.Empty();
-			TMap<uint64, uint64> EdgeSides;
+			TMap<uint64, uint64> EdgeAdjacency;
 
 			int32 Idx = 0;
 			const FIndexArrayView& Indices = LODResources.IndexBuffer.GetArrayView();
 
-			Triangles.Reset(Indices.Num() / 3);
-			EdgeSides.Reserve(Triangles.Num());
+			Triangles.SetNumUninitialized(Indices.Num() / 3);
+			int32 TriangleIndex = 0;
 
 			for (int i = 0; i < Indices.Num(); i += 3)
 			{
@@ -202,9 +203,9 @@ namespace PCGExGeo
 				const uint32 B = BPtr ? *BPtr : IndexedUniquePositions.FindOrAdd(VB, Idx++);
 				const uint32 C = CPtr ? *CPtr : IndexedUniquePositions.FindOrAdd(VC, Idx++);
 
-				const uint32 AB = PCGEx::H64U(A, B);
-				const uint32 BC = PCGEx::H64U(B, C);
-				const uint32 AC = PCGEx::H64U(A, C);
+				const uint64 AB = PCGEx::H64U(A, B);
+				const uint64 BC = PCGEx::H64U(B, C);
+				const uint64 AC = PCGEx::H64U(A, C);
 
 				Edges.Add(AB);
 				Edges.Add(BC);
@@ -213,37 +214,42 @@ namespace PCGExGeo
 				// Triangles and adjacency
 
 				// Each edge can store its adjacency as a uint64 : left triangle index, right triangle index
-				int32 TriangleIndex = Triangles.Add(UE::Geometry::FIndex3i(A, B, C));
 
-				const uint64* AdjacencyABPtr = EdgeSides.Find(AB);
-				const uint64* AdjacencyBCPtr = EdgeSides.Find(BC);
-				const uint64* AdjacencyACPtr = EdgeSides.Find(AC);
+				const uint64* AdjacencyABPtr = EdgeAdjacency.Find(AB);
+				const uint64* AdjacencyBCPtr = EdgeAdjacency.Find(BC);
+				const uint64* AdjacencyACPtr = EdgeAdjacency.Find(AC);
+
+				Triangles[TriangleIndex++] = FIntVector3(A, B, C);
 
 				//Offset adjacency by 1 since we can't have -1 values
-				if (AdjacencyABPtr) { EdgeSides.Add(AB, PCGEx::H64(TriangleIndex + 1, PCGEx::H64B(*AdjacencyABPtr))); }
-				else { EdgeSides.FindOrAdd(AB, PCGEx::H64(0, TriangleIndex + 1)); }
+				if (AdjacencyABPtr) { EdgeAdjacency.Add(AB, PCGEx::H64(TriangleIndex, PCGEx::H64B(*AdjacencyABPtr))); }
+				else { EdgeAdjacency.Add(AB, PCGEx::H64(0, TriangleIndex)); }
 
-				if (AdjacencyBCPtr) { EdgeSides.Add(BC, PCGEx::H64(TriangleIndex + 1, PCGEx::H64B(*AdjacencyBCPtr))); }
-				else { EdgeSides.FindOrAdd(BC, PCGEx::H64(0, TriangleIndex + 1)); }
+				if (AdjacencyBCPtr) { EdgeAdjacency.Add(BC, PCGEx::H64(TriangleIndex, PCGEx::H64B(*AdjacencyBCPtr))); }
+				else { EdgeAdjacency.Add(BC, PCGEx::H64(0, TriangleIndex)); }
 
-				if (AdjacencyACPtr) { EdgeSides.Add(AC, PCGEx::H64(TriangleIndex + 1, PCGEx::H64B(*AdjacencyACPtr))); }
-				else { EdgeSides.FindOrAdd(AC, PCGEx::H64(0, TriangleIndex + 1)); }
+				if (AdjacencyACPtr) { EdgeAdjacency.Add(AC, PCGEx::H64(TriangleIndex, PCGEx::H64B(*AdjacencyACPtr))); }
+				else { EdgeAdjacency.Add(AC, PCGEx::H64(0, TriangleIndex)); }
 			}
 
+			int32 ENum = EdgeAdjacency.Num();
 			Adjacencies.SetNumUninitialized(Triangles.Num());
 
-			for (int j = 0; j < Adjacencies.Num(); j++)
+			for (int j = 0; j < Triangles.Num(); j++)
 			{
-				UE::Geometry::FIndex3i Triangle = Triangles[j];
+				FIntVector3 Triangle = Triangles[j];
 
-				const int32 A = PCGEx::H64NOT(*EdgeSides.Find(PCGEx::H64U(Triangle.A, Triangle.B)), j+1) - 1;
-				const int32 B = PCGEx::H64NOT(*EdgeSides.Find(PCGEx::H64U(Triangle.B, Triangle.C)), j+1) - 1;
-				const int32 C = PCGEx::H64NOT(*EdgeSides.Find(PCGEx::H64U(Triangle.A, Triangle.C)), j+1) - 1;
+				uint64* AdjacencyABPtr = EdgeAdjacency.Find(PCGEx::H64U(Triangle.X, Triangle.Y));
+				uint64* AdjacencyBCPtr = EdgeAdjacency.Find(PCGEx::H64U(Triangle.Y, Triangle.Z));
+				uint64* AdjacencyACPtr = EdgeAdjacency.Find(PCGEx::H64U(Triangle.X, Triangle.Z));
 
-				Adjacencies[j] = UE::Geometry::FIndex3i(A, B, C);
+				Adjacencies[j] = FIntVector3(
+					AdjacencyABPtr ? PCGEx::H64NOT(*AdjacencyABPtr, j + 1) - 1 : -1,
+					AdjacencyBCPtr ? PCGEx::H64NOT(*AdjacencyBCPtr, j + 1) - 1 : -1,
+					AdjacencyACPtr ? PCGEx::H64NOT(*AdjacencyACPtr, j + 1) - 1 : -1);
 			}
 
-			EdgeSides.Empty();
+			EdgeAdjacency.Empty();
 
 			Vertices.SetNum(IndexedUniquePositions.Num());
 
