@@ -199,33 +199,33 @@ namespace PCGExGraph
 		{
 			for (int i = 0; i < NumEdges; i++)
 			{
-				const int32* NodeStartPtr = EndpointsLookup.Find(StartIndexReader->Values[i]);
-				const int32* NodeEndPtr = EndpointsLookup.Find(EndIndexReader->Values[i]);
+				const int32* StartPointIndexPtr = EndpointsLookup.Find(StartIndexReader->Values[i]);
+				const int32* EndPointIndexPtr = EndpointsLookup.Find(EndIndexReader->Values[i]);
 
-				if ((!NodeStartPtr || !NodeEndPtr) ||
-					(*NodeStartPtr == -1) || (*NodeEndPtr == -1))
+				if ((!StartPointIndexPtr || !EndPointIndexPtr) ||
+					(*StartPointIndexPtr == -1) || (*EndPointIndexPtr == -1))
 				{
 					continue;
 				}
 
-				OutEdges.Emplace(EdgeIndex++, *NodeStartPtr, *NodeEndPtr, i, EdgeIO.IOIndex);
+				OutEdges.Emplace(EdgeIndex++, *StartPointIndexPtr, *EndPointIndexPtr, i, EdgeIO.IOIndex);
 			}
 		}
 		else
 		{
 			for (int i = 0; i < NumEdges; i++)
 			{
-				const int32* NodeStartPtr = EndpointsLookup.Find(StartIndexReader->Values[i]);
-				const int32* NodeEndPtr = EndpointsLookup.Find(EndIndexReader->Values[i]);
+				const int32* StartPointIndexPtr = EndpointsLookup.Find(StartIndexReader->Values[i]);
+				const int32* EndPointIndexPtr = EndpointsLookup.Find(EndIndexReader->Values[i]);
 
-				if ((!NodeStartPtr || !NodeEndPtr) ||
-					(*NodeStartPtr == -1) || (*NodeEndPtr == -1))
+				if ((!StartPointIndexPtr || !EndPointIndexPtr) ||
+					(*StartPointIndexPtr == -1) || (*EndPointIndexPtr == -1))
 				{
 					bValid = false;
 					break;
 				}
 
-				OutEdges.Emplace(EdgeIndex++, *NodeStartPtr, *NodeEndPtr, i, EdgeIO.IOIndex);
+				OutEdges.Emplace(EdgeIndex++, *StartPointIndexPtr, *EndPointIndexPtr, i, EdgeIO.IOIndex);
 			}
 		}
 
@@ -266,43 +266,43 @@ namespace PCGExGraph
 		const int32 NumEdges = EdgeIO.GetNum();
 		int32 EdgeIndex = 0;
 
-		OutEdges.Reserve(NumEdges);
+		OutEdges.SetNumUninitialized(NumEdges);
 
 		if (!bStopOnError)
 		{
 			for (int i = 0; i < NumEdges; i++)
 			{
-				const int32* NodeStartPtr = EndpointsLookup.Find(StartIndexReader->Values[i]);
-				const int32* NodeEndPtr = EndpointsLookup.Find(EndIndexReader->Values[i]);
+				const int32* StartPointIndexPtr = EndpointsLookup.Find(StartIndexReader->Values[i]);
+				const int32* EndPointIndexPtr = EndpointsLookup.Find(EndIndexReader->Values[i]);
 
-				if ((!NodeStartPtr || !NodeEndPtr) ||
-					(*NodeStartPtr == -1) || (*NodeEndPtr == -1))
+				if ((!StartPointIndexPtr || !EndPointIndexPtr) ||
+					(*StartPointIndexPtr == -1) || (*EndPointIndexPtr == -1))
 				{
 					continue;
 				}
 
-				OutNodePoints.Add(*NodeStartPtr);
-				OutNodePoints.Add(*NodeEndPtr);
-				OutEdges.Emplace(EdgeIndex++, *NodeStartPtr, *NodeEndPtr, i, EdgeIO.IOIndex);
+				OutNodePoints.Add(*StartPointIndexPtr);
+				OutNodePoints.Add(*EndPointIndexPtr);
+				OutEdges[i] = FIndexedEdge(EdgeIndex++, *StartPointIndexPtr, *EndPointIndexPtr, i, EdgeIO.IOIndex);
 			}
 		}
 		else
 		{
 			for (int i = 0; i < NumEdges; i++)
 			{
-				const int32* NodeStartPtr = EndpointsLookup.Find(StartIndexReader->Values[i]);
-				const int32* NodeEndPtr = EndpointsLookup.Find(EndIndexReader->Values[i]);
+				const int32* StartPointIndexPtr = EndpointsLookup.Find(StartIndexReader->Values[i]);
+				const int32* EndPointIndexPtr = EndpointsLookup.Find(EndIndexReader->Values[i]);
 
-				if ((!NodeStartPtr || !NodeEndPtr) ||
-					(*NodeStartPtr == -1) || (*NodeEndPtr == -1))
+				if ((!StartPointIndexPtr || !EndPointIndexPtr) ||
+					(*StartPointIndexPtr == -1) || (*EndPointIndexPtr == -1))
 				{
 					bValid = false;
 					break;
 				}
 
-				OutNodePoints.Add(*NodeStartPtr);
-				OutNodePoints.Add(*NodeEndPtr);
-				OutEdges.Emplace(EdgeIndex++, *NodeStartPtr, *NodeEndPtr, i, EdgeIO.IOIndex);
+				OutNodePoints.Add(*StartPointIndexPtr);
+				OutNodePoints.Add(*EndPointIndexPtr);
+				OutEdges[i] = FIndexedEdge(EdgeIndex++, *StartPointIndexPtr, *EndPointIndexPtr, i, EdgeIO.IOIndex);
 			}
 		}
 

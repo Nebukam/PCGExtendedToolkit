@@ -177,8 +177,8 @@ bool FPCGExFindClusterChainsTask::ExecuteTask()
 
 			const PCGExGraph::FIndexedEdge& E = Cluster.Edges[i];
 
-			NodeFixtures.Add(Cluster.GetNodeFromPointIndex(E.Start).NodeIndex);
-			NodeFixtures.Add(Cluster.GetNodeFromPointIndex(E.End).NodeIndex);
+			NodeFixtures.Add(*Cluster.NodeIndexLookup.Find(E.Start));
+			NodeFixtures.Add(*Cluster.NodeIndexLookup.Find(E.End));
 		}
 	}
 

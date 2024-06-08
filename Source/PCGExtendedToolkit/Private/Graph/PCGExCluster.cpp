@@ -132,7 +132,7 @@ namespace PCGExCluster
 
 		TArray<PCGExGraph::FIndexedEdge> EdgeList;
 		TSet<int32> NodePointsSet;
-		TArray<TSet<uint64>*> NodeConnections;
+		TArray<TSet<uint64>> NodeConnections;
 
 		if (!BuildIndexedEdges(EdgeIO, InEndpointsLookup, EdgeList, NodePointsSet, true))
 		{
@@ -143,16 +143,16 @@ namespace PCGExCluster
 		bool bInvalidCluster = false;
 
 		const int32 NumNodes = NodePointsSet.Num();
-		Nodes.SetNumUninitialized(NumNodes);
+		Nodes.SetNum(NumNodes);
 		NodeIndexLookup.Reserve(NumNodes);
-		NodeConnections.SetNumUninitialized(NumNodes);
+		NodeConnections.SetNum(NumNodes);
 
 		int32 NodeIndex = 0;
 		for (int32 PointIndex : NodePointsSet)
 		{
 			Nodes[NodeIndex] = PCGExCluster::FNode(NodeIndex, PointIndex, InNodePoints[PointIndex].Transform.GetLocation());
-			NodeConnections[NodeIndex] = new TSet<uint64>();
-			NodeIndexLookup.Add(NodeIndex, PointIndex);
+			NodeConnections[NodeIndex].Empty();
+			NodeIndexLookup.Add(PointIndex, NodeIndex);
 			NodeIndex++;
 		}
 
@@ -173,12 +173,13 @@ namespace PCGExCluster
 			PCGExGraph::FIndexedEdge& SortedEdge = (Edges[i] = EdgeList[i]);
 			//SortedEdge.EdgeIndex = i; // Only required if we sort the array first
 
-			const FNode& Start = Nodes[SortedEdge.Start];
-			const FNode& End = Nodes[SortedEdge.End];
-			EdgeIndexLookup.Add(PCGEx::H64U(Start.NodeIndex, End.NodeIndex), i);
+			const int32 StartNodeIndex = *NodeIndexLookup.Find(SortedEdge.Start);
+			const int32 EndNodeIndex = *NodeIndexLookup.Find(SortedEdge.End);
 
-			NodeConnections[Start.NodeIndex]->Add(PCGEx::H64(End.NodeIndex, i));
-			NodeConnections[End.NodeIndex]->Add(PCGEx::H64(Start.NodeIndex, i));
+			EdgeIndexLookup.Add(PCGEx::H64U(StartNodeIndex, EndNodeIndex), i);
+
+			NodeConnections[StartNodeIndex].Add(PCGEx::H64(EndNodeIndex, i));
+			NodeConnections[EndNodeIndex].Add(PCGEx::H64(StartNodeIndex, i));
 		}
 
 
@@ -188,7 +189,7 @@ namespace PCGExCluster
 		{
 			for (const FNode& Node : Nodes)
 			{
-				if ((*InEdgeNumValidation)[Node.PointIndex] > NodeConnections[Node.NodeIndex]->Num()) // We care about removed connections, not new ones 
+				if ((*InEdgeNumValidation)[Node.PointIndex] > NodeConnections[Node.NodeIndex].Num()) // We care about removed connections, not new ones 
 				{
 					bInvalidCluster = true;
 					break;
@@ -200,8 +201,8 @@ namespace PCGExCluster
 		for (int i = 0; i < NumNodes; i++)
 		{
 			Nodes[i].SetAdjacency(NodeConnections[i]);
-			delete NodeConnections[i];
-		};
+			NodeConnections[i].Empty();
+		}
 
 		NodeConnections.Empty();
 
@@ -427,10 +428,6 @@ namespace PCGExCluster
 		return Result;
 	}
 
-	const FNode& FCluster::GetNodeFromPointIndex(const int32 Index) const { return Nodes[*NodeIndexLookup.Find(Index)]; }
-
-	const PCGExGraph::FIndexedEdge& FCluster::GetEdgeFromNodeIndices(const int32 A, const int32 B) const { return Edges[*EdgeIndexLookup.Find(PCGEx::H64U(A, B))]; }
-
 	void FCluster::ComputeEdgeLengths(const bool bNormalize)
 	{
 		if (!bEdgeLengthsDirty) { return; }
@@ -443,9 +440,7 @@ namespace PCGExCluster
 		for (int i = 0; i < NumEdges; i++)
 		{
 			const PCGExGraph::FIndexedEdge& Edge = Edges[i];
-			const FNode& A = GetNodeFromPointIndex(Edge.Start);
-			const FNode& B = GetNodeFromPointIndex(Edge.End);
-			const double Dist = FVector::DistSquared(A.Position, B.Position);
+			const double Dist = FVector::DistSquared(PointsIO->GetInPoint(Edge.Start).Transform.GetLocation(), PointsIO->GetInPoint(Edge.End).Transform.GetLocation());
 			EdgeLengths[i] = Dist;
 			Min = FMath::Min(Dist, Min);
 			Max = FMath::Max(Dist, Max);
@@ -818,7 +813,7 @@ namespace PCGExCluster
 
 		if (!ClusterFilterHandlers.IsEmpty())
 		{
-			const int32 NodeIndex = Cluster->GetNodeFromPointIndex(PointIndex).NodeIndex; // We get a point index from the FindNode
+			const int32 NodeIndex = *Cluster->NodeIndexLookup.Find(PointIndex); // We get a point index from the FindNode
 			for (const TClusterFilter* Test : ClusterFilterHandlers) { if (!Test->Test(NodeIndex)) { return false; } }
 		}
 
@@ -844,7 +839,7 @@ namespace PCGExCluster
 
 		if (!HeavyClusterFilterHandlers.IsEmpty())
 		{
-			const int32 NodeIndex = Cluster->GetNodeFromPointIndex(PointIndex).NodeIndex; // We get a point index from the FindNode
+			const int32 NodeIndex = *Cluster->NodeIndexLookup.Find(PointIndex); // We get a point index from the FindNode
 			for (TClusterFilter* Test : HeavyClusterFilterHandlers) { Test->PrepareSingle(NodeIndex); }
 		}
 	}

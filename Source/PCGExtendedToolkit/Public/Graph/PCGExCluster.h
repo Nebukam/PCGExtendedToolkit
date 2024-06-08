@@ -207,8 +207,6 @@ namespace PCGExCluster
 		int32 FindClosestNeighbor(const int32 NodeIndex, const FVector& Position, int32 MinNeighborCount = 1) const;
 		int32 FindClosestNeighbor(const int32 NodeIndex, const FVector& Position, const TSet<int32>& Exclusion, int32 MinNeighborCount = 1) const;
 
-		FORCEINLINE const FNode& GetNodeFromPointIndex(const int32 Index) const;
-		FORCEINLINE const PCGExGraph::FIndexedEdge& GetEdgeFromNodeIndices(const int32 A, const int32 B) const;
 		void ComputeEdgeLengths(bool bNormalize = false);
 
 		void GetNodePointIndices(TArray<int32>& OutIndices);

@@ -9,7 +9,7 @@
 
 namespace PCGExGraph
 {
-	void FNode::SetAdjacency(const TSet<uint64>* InAdjacency) { Adjacency = InAdjacency->Array(); }
+	void FNode::SetAdjacency(const TSet<uint64>& InAdjacency) { Adjacency = InAdjacency.Array(); }
 
 	void FNode::Add(const int32 EdgeIndex) { Adjacency.AddUnique(EdgeIndex); }
 

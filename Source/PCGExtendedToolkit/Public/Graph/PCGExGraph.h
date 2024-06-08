@@ -297,7 +297,7 @@ namespace PCGExGraph
 
 		TArray<uint64> Adjacency;
 
-		void SetAdjacency(const TSet<uint64>* InAdjacency);
+		void SetAdjacency(const TSet<uint64>& InAdjacency);
 		
 		~FNode()
 		{
