@@ -107,12 +107,14 @@ bool FPCGExSimplifyClustersElement::ExecuteInternal(FPCGContext* InContext) cons
 			Context->GraphBuilder->Graph->InsertEdge(Edge);
 		}
 
+		const int32 IOIndex = Context->CurrentCluster->EdgesIO->IOIndex;
+
 		PCGExGraph::FIndexedEdge NewEdge = PCGExGraph::FIndexedEdge{};
 		for (const PCGExCluster::FNodeChain* Chain : Context->Chains)
 		{
 			Context->GraphBuilder->Graph->InsertEdge(
 				Context->CurrentCluster->Nodes[Chain->First].PointIndex,
-				Context->CurrentCluster->Nodes[Chain->Last].PointIndex, NewEdge);
+				Context->CurrentCluster->Nodes[Chain->Last].PointIndex, NewEdge, IOIndex);
 		}
 
 		Context->SetState(PCGExGraph::State_ReadyForNextEdges);

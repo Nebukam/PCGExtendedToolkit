@@ -61,7 +61,8 @@ void UPCGExEdgeRefinePrimMST::Process(
 	PCGExGraph::FIndexedEdge InsertedEdge;
 	for (int32 i = 0; i < NumNodes; i++)
 	{
-		InGraph->InsertEdge(InCluster->Nodes[Parent[i]].PointIndex, InCluster->Nodes[i].PointIndex, InsertedEdge);
+		if (Parent[i] == i) { continue; }
+		InGraph->InsertEdge(InCluster->GetEdgeFromNodeIndices(Parent[i], i));
 	}
 
 	Visited.Empty();

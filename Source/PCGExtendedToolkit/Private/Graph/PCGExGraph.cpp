@@ -32,7 +32,7 @@ namespace PCGExGraph
 		return -1;
 	}
 
-	bool FGraph::InsertEdge(const int32 A, const int32 B, FIndexedEdge& OutEdge)
+	bool FGraph::InsertEdge(const int32 A, const int32 B, FIndexedEdge& OutEdge, const int32 IOIndex)
 	{
 		const uint64 Hash = PCGEx::H64U(A, B);
 
@@ -45,7 +45,7 @@ namespace PCGExGraph
 
 		UniqueEdges.Add(Hash);
 
-		OutEdge = Edges.Emplace_GetRef(Edges.Num(), A, B);
+		OutEdge = Edges.Emplace_GetRef(Edges.Num(), A, B, -1, IOIndex);
 
 		Nodes[A].Add(OutEdge.EdgeIndex);
 		Nodes[B].Add(OutEdge.EdgeIndex);
