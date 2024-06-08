@@ -132,7 +132,7 @@ namespace PCGExCluster
 
 		TArray<PCGExGraph::FIndexedEdge> EdgeList;
 		TSet<int32> NodePointsSet;
-		TArray<TSet<uint64>> NodeConnections;
+		//TArray<TSet<uint64>> NodeConnections;
 
 		if (!BuildIndexedEdges(EdgeIO, InEndpointsLookup, EdgeList, NodePointsSet, true))
 		{
@@ -145,13 +145,13 @@ namespace PCGExCluster
 		const int32 NumNodes = NodePointsSet.Num();
 		Nodes.SetNum(NumNodes);
 		NodeIndexLookup.Reserve(NumNodes);
-		NodeConnections.SetNum(NumNodes);
+		//NodeConnections.SetNum(NumNodes);
 
 		int32 NodeIndex = 0;
 		for (int32 PointIndex : NodePointsSet)
 		{
 			Nodes[NodeIndex] = PCGExCluster::FNode(NodeIndex, PointIndex, InNodePoints[PointIndex].Transform.GetLocation());
-			NodeConnections[NodeIndex].Empty();
+			//NodeConnections[NodeIndex].Empty();
 			NodeIndexLookup.Add(PointIndex, NodeIndex);
 			NodeIndex++;
 		}
@@ -178,8 +178,8 @@ namespace PCGExCluster
 
 			EdgeIndexLookup.Add(PCGEx::H64U(StartNodeIndex, EndNodeIndex), i);
 
-			NodeConnections[StartNodeIndex].Add(PCGEx::H64(EndNodeIndex, i));
-			NodeConnections[EndNodeIndex].Add(PCGEx::H64(StartNodeIndex, i));
+			Nodes[StartNodeIndex].Adjacency.AddUnique(PCGEx::H64(EndNodeIndex, i));
+			Nodes[EndNodeIndex].Adjacency.AddUnique(PCGEx::H64(StartNodeIndex, i));
 		}
 
 
@@ -189,22 +189,13 @@ namespace PCGExCluster
 		{
 			for (const FNode& Node : Nodes)
 			{
-				if ((*InEdgeNumValidation)[Node.PointIndex] > NodeConnections[Node.NodeIndex].Num()) // We care about removed connections, not new ones 
+				if ((*InEdgeNumValidation)[Node.PointIndex] > Node.Adjacency.Num()) // We care about removed connections, not new ones 
 				{
 					bInvalidCluster = true;
 					break;
 				}
 			}
 		}
-
-		// Dump adjacency
-		for (int i = 0; i < NumNodes; i++)
-		{
-			Nodes[i].SetAdjacency(NodeConnections[i]);
-			NodeConnections[i].Empty();
-		}
-
-		NodeConnections.Empty();
 
 		bValid = !bInvalidCluster;
 		return bValid;
