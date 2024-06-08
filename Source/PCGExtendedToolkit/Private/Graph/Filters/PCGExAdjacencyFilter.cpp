@@ -105,7 +105,7 @@ namespace PCGExNodeAdjacency
 					for (int i = 0; i < NumNodes; i++)
 					{
 						const PCGExCluster::FNode& Node = CapturedCluster->Nodes[i];
-						CachedMeasure[i] = LocalMeasure->Values[Node.PointIndex] * Node.AdjacentNodes.Num();
+						CachedMeasure[i] = LocalMeasure->Values[Node.PointIndex] * Node.Adjacency.Num();
 					}
 				}
 			}
@@ -120,7 +120,7 @@ namespace PCGExNodeAdjacency
 					for (int i = 0; i < NumNodes; i++)
 					{
 						const PCGExCluster::FNode& Node = CapturedCluster->Nodes[i];
-						CachedMeasure[i] = TypedFilterFactory->ConstantMeasure * Node.AdjacentNodes.Num();
+						CachedMeasure[i] = TypedFilterFactory->ConstantMeasure * Node.Adjacency.Num();
 					}
 				}
 			}
@@ -137,8 +137,9 @@ namespace PCGExNodeAdjacency
 
 		if (TypedFilterFactory->Mode == EPCGExAdjacencyTestMode::All)
 		{
-			for (const int32 OtherNodeIndex : Node.AdjacentNodes)
+			for (const uint64 AdjacencyHash : Node.Adjacency)
 			{
+				const uint32 OtherNodeIndex = PCGEx::H64A(AdjacencyHash);
 				B = OperandA->Values[CapturedCluster->Nodes[OtherNodeIndex].PointIndex];
 				if (!PCGExCompare::Compare(TypedFilterFactory->Comparison, A, B, TypedFilterFactory->Tolerance)) { return false; }
 			}
@@ -150,19 +151,20 @@ namespace PCGExNodeAdjacency
 
 		if (TypedFilterFactory->SubsetMode == EPCGExAdjacencySubsetMode::AtLeast && bUseAbsoluteMeasure)
 		{
-			if (Node.AdjacentNodes.Num() < MeasureReference) { return false; } // Early exit, not enough neighbors.
+			if (Node.Adjacency.Num() < MeasureReference) { return false; } // Early exit, not enough neighbors.
 		}
 
 		if (TypedFilterFactory->Consolidation == EPCGExAdjacencyGatherMode::Individual)
 		{
 			double LocalSuccessCount = 0;
-			for (const int32 OtherNodeIndex : Node.AdjacentNodes)
+			for (const uint64 AdjacencyHash : Node.Adjacency)
 			{
+				const uint32 OtherNodeIndex = PCGEx::H64A(AdjacencyHash);
 				B = OperandA->Values[CapturedCluster->Nodes[OtherNodeIndex].PointIndex];
 				if (PCGExCompare::Compare(TypedFilterFactory->Comparison, A, B, TypedFilterFactory->Tolerance)) { LocalSuccessCount++; }
 			}
 
-			if (!bUseAbsoluteMeasure) { LocalSuccessCount /= static_cast<double>(Node.AdjacentNodes.Num()); }
+			if (!bUseAbsoluteMeasure) { LocalSuccessCount /= static_cast<double>(Node.Adjacency.Num()); }
 
 			switch (TypedFilterFactory->SubsetMode)
 			{
@@ -179,19 +181,19 @@ namespace PCGExNodeAdjacency
 		switch (TypedFilterFactory->Consolidation)
 		{
 		case EPCGExAdjacencyGatherMode::Average:
-			for (const int32 OtherNodeIndex : Node.AdjacentNodes) { B += OperandB->Values[CapturedCluster->Nodes[OtherNodeIndex].PointIndex]; }
-			B /= static_cast<double>(Node.AdjacentNodes.Num());
+			for (const uint64 AdjacencyHash : Node.Adjacency) { B += OperandB->Values[CapturedCluster->Nodes[PCGEx::H64A(AdjacencyHash)].PointIndex]; }
+			B /= static_cast<double>(Node.Adjacency.Num());
 			break;
 		case EPCGExAdjacencyGatherMode::Min:
 			B = TNumericLimits<double>::Max();
-			for (const int32 OtherNodeIndex : Node.AdjacentNodes) { B = FMath::Min(B, OperandB->Values[CapturedCluster->Nodes[OtherNodeIndex].PointIndex]); }
+			for (const uint64 AdjacencyHash : Node.Adjacency) { B = FMath::Min(B, OperandB->Values[CapturedCluster->Nodes[PCGEx::H64A(AdjacencyHash)].PointIndex]); }
 			break;
 		case EPCGExAdjacencyGatherMode::Max:
 			B = TNumericLimits<double>::Min();
-			for (const int32 OtherNodeIndex : Node.AdjacentNodes) { B = FMath::Max(B, OperandB->Values[CapturedCluster->Nodes[OtherNodeIndex].PointIndex]); }
+			for (const uint64 AdjacencyHash : Node.Adjacency) { B = FMath::Max(B, OperandB->Values[CapturedCluster->Nodes[PCGEx::H64A(AdjacencyHash)].PointIndex]); }
 			break;
 		case EPCGExAdjacencyGatherMode::Sum:
-			for (const int32 OtherNodeIndex : Node.AdjacentNodes) { B += OperandB->Values[CapturedCluster->Nodes[OtherNodeIndex].PointIndex]; }
+			for (const uint64 AdjacencyHash : Node.Adjacency) { B += OperandB->Values[CapturedCluster->Nodes[PCGEx::H64A(AdjacencyHash)].PointIndex]; }
 			break;
 		default: ;
 		}

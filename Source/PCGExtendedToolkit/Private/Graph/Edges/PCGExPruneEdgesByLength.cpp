@@ -77,7 +77,7 @@ bool FPCGExPruneEdgesByLengthElement::ExecuteInternal(FPCGContext* InContext) co
 		double MaxEdgeLength = TNumericLimits<double>::Min();
 		double SumEdgeLength = 0;
 
-		BuildIndexedEdges(*Context->CurrentEdges, Context->NodeIndicesMap, Context->IndexedEdges);
+		BuildIndexedEdges(*Context->CurrentEdges, Context->EndpointsLookup, Context->IndexedEdges);
 
 		const TArray<FPCGPoint>& InNodePoints = Context->CurrentIO->GetIn()->GetPoints();
 
@@ -138,17 +138,19 @@ bool FPCGExPruneEdgesByLengthElement::ExecuteInternal(FPCGContext* InContext) co
 		Context->ReferenceMin = FMath::Min(RMin, RMax);
 		Context->ReferenceMax = FMath::Max(RMin, RMax);
 
+		Context->GraphBuilder = new PCGExGraph::FGraphBuilder(*Context->CurrentIO, &Context->GraphBuilderSettings, 6, Context->MainEdges);
 		Context->SetState(PCGExGraph::State_ProcessingEdges);
 	}
 
 	if (Context->IsState(PCGExGraph::State_ProcessingEdges))
 	{
-		Context->GraphBuilder = new PCGExGraph::FGraphBuilder(*Context->CurrentIO, &Context->GraphBuilderSettings, 6, Context->MainEdges);
-
-		for (PCGExGraph::FIndexedEdge& Edge : Context->IndexedEdges)
+		auto ProcessEdge = [&](const int32 EdgeIndex)
 		{
+			PCGExGraph::FIndexedEdge& Edge = Context->IndexedEdges[EdgeIndex];
 			Edge.bValid = FMath::IsWithin(Context->EdgeLength[Edge.EdgeIndex], Context->ReferenceMin, Context->ReferenceMax);
-		}
+		};
+
+		if (!Context->Process(ProcessEdge, Context->IndexedEdges.Num())) { return false; }
 
 		Context->GraphBuilder->Graph->InsertEdges(Context->IndexedEdges);
 		Context->GraphBuilder->Compile(Context);

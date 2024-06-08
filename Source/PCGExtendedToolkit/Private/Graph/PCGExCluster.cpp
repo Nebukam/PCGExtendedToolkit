@@ -37,26 +37,30 @@ namespace PCGExCluster
 
 	FNode::~FNode()
 	{
-		AdjacentNodes.Empty();
-		Edges.Empty();
+		Adjacency.Empty();
 	}
 
-	void FNode::AddConnection(const int32 InEdgeIndex, const int32 InNodeIndex)
+	bool FNode::IsAdjacentTo(const int32 OtherNodeIndex) const
 	{
-		Edges.AddUnique(InEdgeIndex);
-		AdjacentNodes.AddUnique(InNodeIndex);
+		for (const uint64 AdjacencyHash : Adjacency) { if (OtherNodeIndex == PCGEx::H64A(AdjacencyHash)) { return true; } }
+		return false;
+	}
+
+	void FNode::AddConnection(const int32 InNodeIndex, const int32 InEdgeIndex)
+	{
+		Adjacency.AddUnique(PCGEx::H64(InNodeIndex, InEdgeIndex));
 	}
 
 	FVector FNode::GetCentroid(FCluster* InCluster) const
 	{
-		if (AdjacentNodes.IsEmpty()) { return Position; }
+		if (Adjacency.IsEmpty()) { return Position; }
 
 		FVector Centroid = FVector::ZeroVector;
-		const int32 NumPoints = AdjacentNodes.Num();
+		const int32 NumPoints = Adjacency.Num();
 
-		for (int i = 0; i < NumPoints; i++) { Centroid += InCluster->Nodes[AdjacentNodes[i]].Position; }
+		for (int i = 0; i < NumPoints; i++) { Centroid += InCluster->Nodes[PCGEx::H64A(Adjacency[i])].Position; }
 
-		if (AdjacentNodes.Num() < 2)
+		if (Adjacency.Num() < 2)
 		{
 			Centroid += Position;
 			return Centroid / 2;
@@ -69,7 +73,13 @@ namespace PCGExCluster
 
 	int32 FNode::GetEdgeIndex(const int32 AdjacentNodeIndex) const
 	{
-		for (int i = 0; i < AdjacentNodes.Num(); i++) { if (AdjacentNodes[i] == AdjacentNodeIndex) { return Edges[i]; } }
+		for (const uint64 AdjacencyHash : Adjacency)
+		{
+			uint32 NIndex;
+			uint32 EIndex;
+			PCGEx::H64(AdjacencyHash, NIndex, EIndex);
+			if (NIndex == AdjacentNodeIndex) { return Adjacency[EIndex]; }
+		}
 		return -1;
 	}
 
@@ -79,7 +89,7 @@ namespace PCGExCluster
 
 	FCluster::FCluster()
 	{
-		PointIndexMap.Empty();
+		NodeIndexLookup.Empty();
 		Nodes.Empty();
 		Edges.Empty();
 		Bounds = FBox(ForceInit);
@@ -88,7 +98,7 @@ namespace PCGExCluster
 	FCluster::~FCluster()
 	{
 		Nodes.Empty();
-		PointIndexMap.Empty();
+		NodeIndexLookup.Empty();
 		Edges.Empty();
 		EdgeLengths.Empty();
 
@@ -96,87 +106,71 @@ namespace PCGExCluster
 		PCGEX_DELETE(EdgeOctree)
 	}
 
-	FNode& FCluster::GetOrCreateNode(const int32 PointIndex, const TArray<FPCGPoint>& InPoints)
-	{
-		if (const int32* NodeIndex = PointIndexMap.Find(PointIndex)) { return Nodes[*NodeIndex]; }
-
-		FNode& Node = Nodes.Emplace_GetRef();
-		const int32 NodeIndex = Nodes.Num() - 1;
-
-		PointIndexMap.Add(PointIndex, NodeIndex);
-
-		Node.PointIndex = PointIndex;
-		Node.NodeIndex = NodeIndex;
-		Node.Position = InPoints[PointIndex].Transform.GetLocation();
-
-		Bounds += Node.Position;
-
-		return Node;
-	}
-
 	bool FCluster::BuildFrom(
 		const PCGExData::FPointIO& EdgeIO,
 		const TArray<FPCGPoint>& InNodePoints,
-		const TMap<int64, int32>& InNodeIndicesMap,
-		const TArray<int32>& PerNodeEdgeNums,
-		const bool bDeterministic)
+		const TMap<int64, int32>& InEndpointsLookup,
+		const TArray<int32>* InEdgeNumValidation)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExCluster::BuildCluster);
 
 		Nodes.Empty();
 		Edges.Empty();
-		PointIndexMap.Empty();
-		EdgeIndexMap.Empty();
+		NodeIndexLookup.Empty();
+		//EdgeIndexLookup.Empty();
 
-		TArray<PCGExGraph::FIndexedEdge> EdgeList;
-		if (!BuildIndexedEdges(EdgeIO, InNodeIndicesMap, EdgeList, true))
-		{
-			EdgeList.Empty();
-			return false;
-		}
+		TSet<int32> NodePointsSet;
+
+		if (!BuildIndexedEdges(EdgeIO, InEndpointsLookup, Edges, NodePointsSet, true)) { return false; }
 
 		bool bInvalidCluster = false;
 
-		const int32 NumNodes = InNodePoints.Num();
-		Nodes.Reserve(NumNodes);
-		PointIndexMap.Reserve(NumNodes);
+		const int32 NumNodes = NodePointsSet.Num();
+		Nodes.SetNum(NumNodes);
+		NodeIndexLookup.Reserve(NumNodes);
 
-		const int32 NumEdges = EdgeList.Num();
-		Edges.SetNumUninitialized(NumEdges);
-		EdgeIndexMap.Reserve(NumEdges);
-
-		if (bDeterministic)
+		int32 NodeIndex = 0;
+		for (int32 PointIndex : NodePointsSet)
 		{
-			/*
-			EdgeList.Sort(
-				[](const PCGExGraph::FIndexedEdge& A, const PCGExGraph::FIndexedEdge& B)
-				{
-					return A.Start == B.Start ? A.End < B.End : A.Start < B.Start;
-				});
-				*/
+			Nodes[NodeIndex] = PCGExCluster::FNode(NodeIndex, PointIndex, InNodePoints[PointIndex].Transform.GetLocation());
+			NodeIndexLookup.Add(PointIndex, NodeIndex);
+			NodeIndex++;
 		}
+
+		const int32 NumEdges = Edges.Num();
+		//EdgeIndexLookup.Reserve(NumEdges);
+
+		/*
+		EdgeList.Sort(
+			[](const PCGExGraph::FIndexedEdge& A, const PCGExGraph::FIndexedEdge& B)
+			{
+				return A.Start == B.Start ? A.End < B.End : A.Start < B.Start;
+			});
+			*/
 
 		for (int i = 0; i < NumEdges; i++)
 		{
-			PCGExGraph::FIndexedEdge& SortedEdge = (Edges[i] = EdgeList[i]);
-			SortedEdge.EdgeIndex = i;
+			const PCGExGraph::FIndexedEdge& SortedEdge = Edges[i];
+			//SortedEdge.EdgeIndex = i; // Only required if we sort the array first
 
-			FNode& Start = GetOrCreateNode(SortedEdge.Start, InNodePoints);
-			FNode& End = GetOrCreateNode(SortedEdge.End, InNodePoints);
-			EdgeIndexMap.Add(PCGEx::H64U(Start.NodeIndex, End.NodeIndex), i);
+			const int32 StartNodeIndex = *NodeIndexLookup.Find(SortedEdge.Start);
+			const int32 EndNodeIndex = *NodeIndexLookup.Find(SortedEdge.End);
 
-			Start.AddConnection(i, End.NodeIndex);
-			End.AddConnection(i, Start.NodeIndex);
+			//EdgeIndexLookup.Add(PCGEx::H64U(StartNodeIndex, EndNodeIndex), i);
+
+			Nodes[StartNodeIndex].Adjacency.AddUnique(PCGEx::H64(EndNodeIndex, i));
+			Nodes[EndNodeIndex].Adjacency.AddUnique(PCGEx::H64(StartNodeIndex, i));
 		}
 
-		EdgeList.Empty();
-
-		for (FNode& Node : Nodes)
+		if (InEdgeNumValidation)
 		{
-			if (PerNodeEdgeNums[Node.PointIndex] > Node.AdjacentNodes.Num()) // We care about removed connections, not new ones 
+			for (const FNode& Node : Nodes)
 			{
-				bInvalidCluster = true;
-				break;
+				if ((*InEdgeNumValidation)[Node.PointIndex] > Node.Adjacency.Num()) // We care about removed connections, not new ones 
+				{
+					bInvalidCluster = true;
+					break;
+				}
 			}
 		}
 
@@ -184,48 +178,11 @@ namespace PCGExCluster
 		return bValid;
 	}
 
-	void FCluster::BuildPartialFrom(const TArray<FVector>& Positions, const TSet<uint64>& InEdges)
-	{
-		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExCluster::BuildCluster);
-
-		const int32 NumNodes = Positions.Num();
-		Nodes.SetNum(NumNodes);
-
-		const int32 NumEdges = InEdges.Num();
-		Edges.SetNumUninitialized(NumEdges);
-
-		for (int i = 0; i < NumNodes; i++)
-		{
-			FNode& Node = Nodes[i];
-
-			Node.PointIndex = i;
-			Node.NodeIndex = i;
-			Node.Position = Positions[i];
-		}
-
-		int32 EdgeIndex = 0;
-		for (const uint64 Edge : InEdges)
-		{
-			uint32 A;
-			uint32 B;
-			PCGEx::H64(Edge, A, B);
-			FNode& Start = Nodes[A];
-			FNode& End = Nodes[B];
-
-			Start.AddConnection(-1, End.NodeIndex);
-			End.AddConnection(-1, Start.NodeIndex);
-			EdgeIndex++;
-		}
-	}
-
 	void FCluster::RebuildNodeOctree()
 	{
 		PCGEX_DELETE(NodeOctree)
 		NodeOctree = new ClusterItemOctree(Bounds.GetCenter(), Bounds.GetExtent().Length());
-		for (const FNode& Node : Nodes)
-		{
-			NodeOctree->AddElement(FClusterItemRef(Node.NodeIndex, FBoxSphereBounds(FSphere(Node.Position, 0))));
-		}
+		for (const FNode& Node : Nodes) { NodeOctree->AddElement(FClusterItemRef(Node.NodeIndex, FBoxSphereBounds(FSphere(Node.Position, 0)))); }
 	}
 
 	void FCluster::RebuildEdgeOctree()
@@ -234,8 +191,8 @@ namespace PCGExCluster
 		EdgeOctree = new ClusterItemOctree(Bounds.GetCenter(), Bounds.GetExtent().Length());
 		for (const PCGExGraph::FIndexedEdge& Edge : Edges)
 		{
-			const FNode& Start = Nodes[*PointIndexMap.Find(Edge.Start)];
-			const FNode& End = Nodes[*PointIndexMap.Find(Edge.End)];
+			const FNode& Start = Nodes[*NodeIndexLookup.Find(Edge.Start)];
+			const FNode& End = Nodes[*NodeIndexLookup.Find(Edge.End)];
 			EdgeOctree->AddElement(
 					FClusterItemRef(
 							Edge.EdgeIndex,
@@ -285,7 +242,7 @@ namespace PCGExCluster
 			auto ProcessCandidate = [&](const FClusterItemRef& Item)
 			{
 				const FNode& Node = Nodes[Item.ItemIndex];
-				if (Node.AdjacentNodes.Num() < MinNeighbors) { return; }
+				if (Node.Adjacency.Num() < MinNeighbors) { return; }
 				const double Dist = FVector::DistSquared(Position, Node.Position);
 				if (Dist < MaxDistance)
 				{
@@ -300,7 +257,7 @@ namespace PCGExCluster
 		{
 			for (const FNode& Node : Nodes)
 			{
-				if (Node.AdjacentNodes.Num() < MinNeighbors) { continue; }
+				if (Node.Adjacency.Num() < MinNeighbors) { continue; }
 				const double Dist = FVector::DistSquared(Position, Node.Position);
 				if (Dist < MaxDistance)
 				{
@@ -323,8 +280,8 @@ namespace PCGExCluster
 			auto ProcessCandidate = [&](const FClusterItemRef& Item)
 			{
 				const PCGExGraph::FIndexedEdge& Edge = Edges[Item.ItemIndex];
-				const FNode& Start = Nodes[*PointIndexMap.Find(Edge.Start)];
-				const FNode& End = Nodes[*PointIndexMap.Find(Edge.End)];
+				const FNode& Start = Nodes[*NodeIndexLookup.Find(Edge.Start)];
+				const FNode& End = Nodes[*NodeIndexLookup.Find(Edge.End)];
 				const double Dist = FMath::PointDistToSegmentSquared(Position, Start.Position, End.Position);
 				if (Dist < MaxDistance)
 				{
@@ -339,8 +296,8 @@ namespace PCGExCluster
 		{
 			for (const PCGExGraph::FIndexedEdge& Edge : Edges)
 			{
-				const FNode& Start = Nodes[*PointIndexMap.Find(Edge.Start)];
-				const FNode& End = Nodes[*PointIndexMap.Find(Edge.End)];
+				const FNode& Start = Nodes[*NodeIndexLookup.Find(Edge.Start)];
+				const FNode& End = Nodes[*NodeIndexLookup.Find(Edge.End)];
 				const double Dist = FMath::PointDistToSegmentSquared(Position, Start.Position, End.Position);
 				if (Dist < MaxDistance)
 				{
@@ -353,8 +310,8 @@ namespace PCGExCluster
 		if (ClosestIndex == -1) { return -1; }
 
 		const PCGExGraph::FIndexedEdge& Edge = Edges[ClosestIndex];
-		const FNode& Start = Nodes[*PointIndexMap.Find(Edge.Start)];
-		const FNode& End = Nodes[*PointIndexMap.Find(Edge.End)];
+		const FNode& Start = Nodes[*NodeIndexLookup.Find(Edge.Start)];
+		const FNode& End = Nodes[*NodeIndexLookup.Find(Edge.End)];
 
 		ClosestIndex = FVector::DistSquared(Position, Start.Position) < FVector::DistSquared(Position, End.Position) ? Start.NodeIndex : End.NodeIndex;
 
@@ -371,7 +328,7 @@ namespace PCGExCluster
 		{
 			auto ProcessCandidate = [&](const FClusterItemRef& Item)
 			{
-				if (Nodes[Item.ItemIndex].AdjacentNodes.Num() < MinNeighborCount) { return; }
+				if (Nodes[Item.ItemIndex].Adjacency.Num() < MinNeighborCount) { return; }
 				if (const double Dist = FMath::PointDistToSegmentSquared(Position, Node.Position, Nodes[Item.ItemIndex].Position);
 					Dist < LastDist)
 				{
@@ -384,9 +341,9 @@ namespace PCGExCluster
 		}
 		else
 		{
-			for (const int32 OtherIndex : Node.AdjacentNodes)
+			for (const int32 OtherIndex : Node.Adjacency)
 			{
-				if (Nodes[OtherIndex].AdjacentNodes.Num() < MinNeighborCount) { continue; }
+				if (Nodes[OtherIndex].Adjacency.Num() < MinNeighborCount) { continue; }
 				if (const double Dist = FMath::PointDistToSegmentSquared(Position, Node.Position, Nodes[OtherIndex].Position);
 					Dist < LastDist)
 				{
@@ -409,7 +366,7 @@ namespace PCGExCluster
 		{
 			auto ProcessCandidate = [&](const FClusterItemRef& Item)
 			{
-				if (Nodes[Item.ItemIndex].AdjacentNodes.Num() < MinNeighborCount) { return; }
+				if (Nodes[Item.ItemIndex].Adjacency.Num() < MinNeighborCount) { return; }
 				if (Exclusion.Contains(Item.ItemIndex)) { return; }
 				if (const double Dist = FMath::PointDistToSegmentSquared(Position, Node.Position, Nodes[Item.ItemIndex].Position);
 					Dist < LastDist)
@@ -423,9 +380,9 @@ namespace PCGExCluster
 		}
 		else
 		{
-			for (const int32 OtherIndex : Node.AdjacentNodes)
+			for (const int32 OtherIndex : Node.Adjacency)
 			{
-				if (Nodes[OtherIndex].AdjacentNodes.Num() < MinNeighborCount) { continue; }
+				if (Nodes[OtherIndex].Adjacency.Num() < MinNeighborCount) { continue; }
 				if (Exclusion.Contains(OtherIndex)) { continue; }
 				if (const double Dist = FMath::PointDistToSegmentSquared(Position, Node.Position, Nodes[OtherIndex].Position);
 					Dist < LastDist)
@@ -439,10 +396,6 @@ namespace PCGExCluster
 		return Result;
 	}
 
-	const FNode& FCluster::GetNodeFromPointIndex(const int32 Index) const { return Nodes[*PointIndexMap.Find(Index)]; }
-
-	const PCGExGraph::FIndexedEdge& FCluster::GetEdgeFromNodeIndices(const int32 A, const int32 B) const { return Edges[*EdgeIndexMap.Find(PCGEx::H64U(A, B))]; }
-
 	void FCluster::ComputeEdgeLengths(const bool bNormalize)
 	{
 		if (!bEdgeLengthsDirty) { return; }
@@ -455,9 +408,7 @@ namespace PCGExCluster
 		for (int i = 0; i < NumEdges; i++)
 		{
 			const PCGExGraph::FIndexedEdge& Edge = Edges[i];
-			const FNode& A = GetNodeFromPointIndex(Edge.Start);
-			const FNode& B = GetNodeFromPointIndex(Edge.End);
-			const double Dist = FVector::DistSquared(A.Position, B.Position);
+			const double Dist = FVector::DistSquared(PointsIO->GetInPoint(Edge.Start).Transform.GetLocation(), PointsIO->GetInPoint(Edge.End).Transform.GetLocation());
 			EdgeLengths[i] = Dist;
 			Min = FMath::Min(Dist, Min);
 			Max = FMath::Max(Dist, Max);
@@ -481,12 +432,13 @@ namespace PCGExCluster
 		const int32 NextDepth = SearchDepth - 1;
 		const FNode& RootNode = Nodes[FromIndex];
 
-		for (const int32 OtherNode : RootNode.AdjacentNodes)
+		for (const uint64 AdjacencyHash : RootNode.Adjacency)
 		{
-			if (OutIndices.Contains(OtherNode)) { continue; }
+			const int32 AdjacentIndex = PCGEx::H64A(AdjacencyHash);
+			if (OutIndices.Contains(AdjacentIndex)) { continue; }
 
-			OutIndices.Add(OtherNode);
-			if (NextDepth > 0) { GetConnectedNodes(OtherNode, OutIndices, NextDepth); }
+			OutIndices.Add(AdjacentIndex);
+			if (NextDepth > 0) { GetConnectedNodes(AdjacentIndex, OutIndices, NextDepth); }
 		}
 	}
 
@@ -495,12 +447,13 @@ namespace PCGExCluster
 		const int32 NextDepth = SearchDepth - 1;
 		const FNode& RootNode = Nodes[FromIndex];
 
-		for (const int32 OtherNode : RootNode.AdjacentNodes)
+		for (const uint64 AdjacencyHash : RootNode.Adjacency)
 		{
-			if (Skip.Contains(OtherNode) || OutIndices.Contains(OtherNode)) { continue; }
+			const int32 AdjacentIndex = PCGEx::H64A(AdjacencyHash);
+			if (Skip.Contains(AdjacentIndex) || OutIndices.Contains(AdjacentIndex)) { continue; }
 
-			OutIndices.Add(OtherNode);
-			if (NextDepth > 0) { GetConnectedNodes(OtherNode, OutIndices, NextDepth, Skip); }
+			OutIndices.Add(AdjacentIndex);
+			if (NextDepth > 0) { GetConnectedNodes(AdjacentIndex, OutIndices, NextDepth, Skip); }
 		}
 	}
 
@@ -509,18 +462,19 @@ namespace PCGExCluster
 		const int32 NextDepth = SearchDepth - 1;
 		const FNode& RootNode = Nodes[FromNodeIndex];
 
-		for (const int32 OtherNode : RootNode.AdjacentNodes)
+		for (const uint64 AdjacencyHash : RootNode.Adjacency)
 		{
-			if (OutNodeIndices.Contains(OtherNode)) { continue; }
+			uint32 AdjacentIndex;
+			uint32 EdgeIndex;
+			PCGEx::H64(AdjacencyHash, AdjacentIndex, EdgeIndex);
 
-			const int32* EdgeIndex = EdgeIndexMap.Find(PCGEx::H64U(FromNodeIndex, OtherNode));
+			if (OutNodeIndices.Contains(AdjacentIndex)) { continue; }
+			if (OutEdgeIndices.Contains(EdgeIndex)) { continue; }
 
-			if (!EdgeIndex || OutEdgeIndices.Contains(*EdgeIndex)) { continue; }
+			OutNodeIndices.Add(AdjacentIndex);
+			OutEdgeIndices.Add(EdgeIndex);
 
-			OutNodeIndices.Add(OtherNode);
-			OutEdgeIndices.Add(*EdgeIndex);
-
-			if (NextDepth > 0) { GetConnectedEdges(OtherNode, OutNodeIndices, OutEdgeIndices, NextDepth); }
+			if (NextDepth > 0) { GetConnectedEdges(AdjacentIndex, OutNodeIndices, OutEdgeIndices, NextDepth); }
 		}
 	}
 
@@ -529,18 +483,19 @@ namespace PCGExCluster
 		const int32 NextDepth = SearchDepth - 1;
 		const FNode& RootNode = Nodes[FromNodeIndex];
 
-		for (const int32 OtherNode : RootNode.AdjacentNodes)
+		for (const uint64 AdjacencyHash : RootNode.Adjacency)
 		{
-			if (SkipNodes.Contains(OtherNode) || OutNodeIndices.Contains(OtherNode)) { continue; }
+			uint32 AdjacentIndex;
+			uint32 EdgeIndex;
+			PCGEx::H64(AdjacencyHash, AdjacentIndex, EdgeIndex);
 
-			const int32* EdgeIndex = EdgeIndexMap.Find(PCGEx::H64U(FromNodeIndex, OtherNode));
+			if (SkipNodes.Contains(AdjacentIndex) || OutNodeIndices.Contains(AdjacentIndex)) { continue; }
+			if (SkipEdges.Contains(EdgeIndex) || OutEdgeIndices.Contains(EdgeIndex)) { continue; }
 
-			if (!EdgeIndex || SkipEdges.Contains(*EdgeIndex) || OutEdgeIndices.Contains(*EdgeIndex)) { continue; }
+			OutNodeIndices.Add(AdjacentIndex);
+			OutEdgeIndices.Add(EdgeIndex);
 
-			OutNodeIndices.Add(OtherNode);
-			OutEdgeIndices.Add(*EdgeIndex);
-
-			if (NextDepth > 0) { GetConnectedEdges(OtherNode, OutNodeIndices, OutEdgeIndices, NextDepth, SkipNodes, SkipEdges); }
+			if (NextDepth > 0) { GetConnectedEdges(AdjacentIndex, OutNodeIndices, OutEdgeIndices, NextDepth, SkipNodes, SkipEdges); }
 		}
 	}
 
@@ -553,8 +508,8 @@ namespace PCGExCluster
 	{
 		const FNode& Node = Nodes[NodeIndex];
 		FVector Centroid = FVector::ZeroVector;
-		for (const int32 OtherIndex : Node.AdjacentNodes) { Centroid += Nodes[OtherIndex].Position; }
-		return Centroid / static_cast<double>(Node.AdjacentNodes.Num());
+		for (const uint64 AdjacencyHash : Node.Adjacency) { Centroid += Nodes[PCGEx::H64A(AdjacencyHash)].Position; }
+		return Centroid / static_cast<double>(Node.Adjacency.Num());
 	}
 
 	int32 FCluster::FindClosestNeighborInDirection(const int32 NodeIndex, const FVector& Direction, const int32 MinNeighborCount) const
@@ -563,14 +518,15 @@ namespace PCGExCluster
 		int32 Result = -1;
 		double LastDot = -1;
 
-		for (const int32 OtherIndex : Node.AdjacentNodes)
+		for (const uint64 AdjacencyHash : Node.Adjacency)
 		{
-			if (Nodes[OtherIndex].AdjacentNodes.Num() < MinNeighborCount) { continue; }
-			if (const double Dot = FVector::DotProduct(Direction, (Node.Position - Nodes[OtherIndex].Position).GetSafeNormal());
+			const int32 AdjacentIndex = PCGEx::H64A(AdjacencyHash);
+			if (Nodes[AdjacentIndex].Adjacency.Num() < MinNeighborCount) { continue; }
+			if (const double Dot = FVector::DotProduct(Direction, (Node.Position - Nodes[AdjacentIndex].Position).GetSafeNormal());
 				Dot > LastDot)
 			{
 				LastDot = Dot;
-				Result = OtherIndex;
+				Result = AdjacentIndex;
 			}
 		}
 
@@ -590,7 +546,7 @@ namespace PCGExCluster
 	{
 		Normal = FVector::UpVector;
 
-		const int32 NumNodes = Node->AdjacentNodes.Num();
+		const int32 NumNodes = Node->Adjacency.Num();
 		SortedAdjacency.SetNum(NumNodes);
 
 		TArray<int32> Sort;
@@ -602,13 +558,13 @@ namespace PCGExCluster
 		for (int i = 0; i < NumNodes; i++)
 		{
 			Sort[i] = i;
-			FVector Direction = ProjectionSettings->Project((Node->Position - InCluster->Nodes[Node->AdjacentNodes[i]].Position), Node->PointIndex);
+			FVector Direction = ProjectionSettings->Project((Node->Position - InCluster->Nodes[PCGEx::H64A(Node->Adjacency[i])].Position), Node->PointIndex);
 			Direction.Z = 0;
 			Angles[i] = PCGExMath::GetAngle(FVector::ForwardVector, Direction.GetSafeNormal());
 		}
 
 		Sort.Sort([&](const int32& A, const int32& B) { return Angles[A] > Angles[B]; });
-		for (int i = 0; i < NumNodes; i++) { SortedAdjacency[i] = Node->AdjacentNodes[Sort[i]]; }
+		for (int i = 0; i < NumNodes; i++) { SortedAdjacency[i] = Node->Adjacency[Sort[i]]; }
 
 		Sort.Empty();
 		Angles.Empty();
@@ -624,13 +580,13 @@ namespace PCGExCluster
 			return;
 		}
 
-		Normal = PCGExMath::GetNormal(InCluster->Nodes[SortedAdjacency.Last()].Position, Node->Position, InCluster->Nodes[SortedAdjacency[0]].Position);
+		Normal = PCGExMath::GetNormal(InCluster->Nodes[PCGEx::H64A(SortedAdjacency.Last())].Position, Node->Position, InCluster->Nodes[PCGEx::H64A(SortedAdjacency[0])].Position);
 
 		if (SortedAdjacency.Num() < 2) { return; }
 
 		for (int i = 0; i < SortedAdjacency.Num() - 1; i++)
 		{
-			Normal += PCGExMath::GetNormal(InCluster->Nodes[SortedAdjacency[i]].Position, Node->Position, InCluster->Nodes[SortedAdjacency[i + 1]].Position);
+			Normal += PCGExMath::GetNormal(InCluster->Nodes[PCGEx::H64A(SortedAdjacency[i])].Position, Node->Position, InCluster->Nodes[PCGEx::H64A(SortedAdjacency[i + 1])].Position);
 		}
 
 		Normal /= SortedAdjacency.Num();
@@ -638,7 +594,7 @@ namespace PCGExCluster
 
 	int32 FNodeProjection::GetAdjacencyIndex(const int32 NodeIndex) const
 	{
-		for (int i = 0; i < SortedAdjacency.Num(); i++) { if (SortedAdjacency[i] == NodeIndex) { return i; } }
+		for (int i = 0; i < SortedAdjacency.Num(); i++) { if (PCGEx::H64A(SortedAdjacency[i]) == NodeIndex) { return i; } }
 		return -1;
 	}
 
@@ -692,7 +648,7 @@ namespace PCGExCluster
 			const int32 NextIndex = Project.SortedAdjacency[PCGExMath::Tile(StartIndex + i + 1, 0, NumNodes - 1)];
 			if ((NextIndex == From && NumNodes > 1) ||
 				Exclusion.Contains(NextIndex) ||
-				Cluster->Nodes[NextIndex].AdjacentNodes.Num() < MinNeighbors) { continue; }
+				Cluster->Nodes[NextIndex].Adjacency.Num() < MinNeighbors) { continue; }
 
 			return NextIndex;
 		}
@@ -712,7 +668,7 @@ namespace PCGExCluster
 			const int32 NextIndex = Project.SortedAdjacency[PCGExMath::Tile(StartIndex - i - 1, 0, NumNodes - 1)];
 			if ((NextIndex == From && NumNodes > 1) ||
 				Exclusion.Contains(NextIndex) ||
-				Cluster->Nodes[NextIndex].AdjacentNodes.Num() < MinNeighbors) { continue; }
+				Cluster->Nodes[NextIndex].Adjacency.Num() < MinNeighbors) { continue; }
 
 			return NextIndex;
 		}
@@ -825,7 +781,7 @@ namespace PCGExCluster
 
 		if (!ClusterFilterHandlers.IsEmpty())
 		{
-			const int32 NodeIndex = Cluster->GetNodeFromPointIndex(PointIndex).NodeIndex; // We get a point index from the FindNode
+			const int32 NodeIndex = *Cluster->NodeIndexLookup.Find(PointIndex); // We get a point index from the FindNode
 			for (const TClusterFilter* Test : ClusterFilterHandlers) { if (!Test->Test(NodeIndex)) { return false; } }
 		}
 
@@ -851,7 +807,7 @@ namespace PCGExCluster
 
 		if (!HeavyClusterFilterHandlers.IsEmpty())
 		{
-			const int32 NodeIndex = Cluster->GetNodeFromPointIndex(PointIndex).NodeIndex; // We get a point index from the FindNode
+			const int32 NodeIndex = *Cluster->NodeIndexLookup.Find(PointIndex); // We get a point index from the FindNode
 			for (TClusterFilter* Test : HeavyClusterFilterHandlers) { Test->PrepareSingle(NodeIndex); }
 		}
 	}
@@ -877,9 +833,8 @@ namespace PCGExClusterTask
 		Cluster->BuildFrom(
 			*EdgeIO,
 			PointIO->GetIn()->GetPoints(),
-			*NodeIndicesMap,
-			*PerNodeEdgeNums,
-			true);
+			*EndpointsLookup,
+			EdgeNumValidation);
 
 		return true;
 	}

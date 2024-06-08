@@ -9,7 +9,9 @@
 
 namespace PCGExGraph
 {
-	void FNode::Add(const int32 EdgeIndex) { Edges.AddUnique(EdgeIndex); }
+	void FNode::SetAdjacency(const TSet<uint64>& InAdjacency) { Adjacency = InAdjacency.Array(); }
+
+	void FNode::Add(const int32 EdgeIndex) { Adjacency.AddUnique(EdgeIndex); }
 
 	void FSubGraph::Add(const FIndexedEdge& Edge, FGraph* InGraph)
 	{
@@ -148,7 +150,7 @@ namespace PCGExGraph
 		{
 			FNode& Node = Nodes[StartIndex + i];
 			Node.NodeIndex = Node.PointIndex = StartIndex + i;
-			Node.Edges.Reserve(NumEdgesReserve);
+			Node.Adjacency.Reserve(NumEdgesReserve);
 		}
 
 		return MakeArrayView(Nodes.GetData() + StartIndex, NumNewNodes);
@@ -166,7 +168,7 @@ namespace PCGExGraph
 
 			const FNode& CurrentNode = Nodes[i];
 			if (!CurrentNode.bValid || // Points are valid by default, but may be invalidated prior to building the subgraph
-				CurrentNode.Edges.IsEmpty())
+				CurrentNode.Adjacency.IsEmpty())
 			{
 				VisitedNodes.Add(i);
 				continue;
@@ -186,7 +188,7 @@ namespace PCGExGraph
 				FNode& Node = Nodes[NextIndex];
 				Node.NumExportedEdges = 0;
 
-				for (const int32 E : Node.Edges)
+				for (const int32 E : Node.Adjacency)
 				{
 					const FIndexedEdge& Edge = Edges[E];
 					if (!Edge.bValid) { continue; }
@@ -217,7 +219,7 @@ namespace PCGExGraph
 		const int32 NextDepth = SearchDepth - 1;
 		const FNode& RootNode = Nodes[FromIndex];
 
-		for (const int32 EdgeIndex : RootNode.Edges)
+		for (const int32 EdgeIndex : RootNode.Adjacency)
 		{
 			const FIndexedEdge& Edge = Edges[EdgeIndex];
 			if (!Edge.bValid) { continue; }
@@ -254,6 +256,8 @@ namespace PCGExGraphTask
 
 	bool FCompileGraph::ExecuteTask()
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(FCompileGraph::ExecuteTask);
+		
 		Builder->Graph->BuildSubGraphs(Min, Max);
 
 		if (Builder->Graph->SubGraphs.IsEmpty())
@@ -270,6 +274,9 @@ namespace PCGExGraphTask
 
 		if (Builder->bPrunePoints)
 		{
+
+			TRACE_CPUPROFILER_EVENT_SCOPE(FCompileGraph::PrunePoints);
+			
 			// Rebuild point list with only the one used
 			// to know which are used, we need to prune subgraphs first
 			TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
@@ -282,7 +289,7 @@ namespace PCGExGraphTask
 
 				for (PCGExGraph::FNode& Node : Nodes)
 				{
-					if (!Node.bValid || Node.Edges.IsEmpty()) { continue; }
+					if (!Node.bValid || Node.Adjacency.IsEmpty()) { continue; }
 					Node.PointIndex = PrunedPoints.Add(MutablePoints[Node.PointIndex]);
 					ValidNodes.Add(Node.NodeIndex);
 				}
@@ -296,7 +303,7 @@ namespace PCGExGraphTask
 
 				for (PCGExGraph::FNode& Node : Nodes)
 				{
-					if (!Node.bValid || Node.Edges.IsEmpty()) { continue; }
+					if (!Node.bValid || Node.Adjacency.IsEmpty()) { continue; }
 					Node.PointIndex = MutablePoints.Add(PointIO->GetInPoint(Node.PointIndex));
 					ValidNodes.Add(Node.NodeIndex);
 				}
@@ -304,6 +311,7 @@ namespace PCGExGraphTask
 		}
 		else
 		{
+			TRACE_CPUPROFILER_EVENT_SCOPE(FCompileGraph::NotPrunePoints);
 			for (const PCGExGraph::FNode& Node : Nodes) { if (Node.bValid) { ValidNodes.Add(Node.NodeIndex); } }
 		}
 
@@ -315,7 +323,8 @@ namespace PCGExGraphTask
 		IndexWriter->BindAndGet(*PointIO);
 		NumEdgesWriter->BindAndGet(*PointIO);
 
-		for (int i = 0; i < IndexWriter->Values.Num(); i++) { IndexWriter->Values[i] = PointIO->GetOutPoint(i).MetadataEntry; }
+		for (int i = 0; i < IndexWriter->Values.Num(); i++) { IndexWriter->Values[i] = PCGExGraph::HCID(PointIO->GetOutPoint(i).MetadataEntry); }
+		
 		for (const int32 NodeIndex : ValidNodes)
 		{
 			const PCGExGraph::FNode& Node = Nodes[NodeIndex];
@@ -380,8 +389,8 @@ Writer->BindAndGet(*PointIO);\
 				NumClusterIdWriter->Values[Builder->Graph->Nodes[Edge.End].PointIndex] = ClusterId;
 			}
 
-			//Manager->Start<FWriteSubGraphEdges>(SubGraphIndex++, PointIO, Builder->Graph, SubGraph, MetadataSettings);
-			WriteSubGraphEdges(PointIO->GetOut()->GetPoints(), Builder->Graph, SubGraph, MetadataSettings);
+			Manager->Start<FWriteSubGraphEdges>(SubGraphIndex++, PointIO, Builder->Graph, SubGraph, MetadataSettings);
+			//WriteSubGraphEdges(PointIO->GetOut()->GetPoints(), Builder->Graph, SubGraph, MetadataSettings);
 		}
 
 		NumClusterIdWriter->Write();

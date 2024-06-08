@@ -128,11 +128,8 @@ bool FPCGExPathfindingEdgesElement::ExecuteInternal(FPCGContext* InContext) cons
 	}
 
 	if (Context->IsState(PCGExCluster::State_ProjectingCluster))
-	{
-		if (Context->SearchAlgorithm->GetRequiresProjection())
-		{
-			if (!Context->ProjectCluster()) { return false; }
-		}
+	{		
+		if (Context->SearchAlgorithm->GetRequiresProjection()) { if (!Context->ProjectCluster()) { return false; } }
 
 		Context->SearchAlgorithm->PrepareForCluster(Context->CurrentCluster, Context->ClusterProjection);
 		Context->HeuristicsHandler->PrepareForCluster(Context->GetAsyncManager(), Context->CurrentCluster);

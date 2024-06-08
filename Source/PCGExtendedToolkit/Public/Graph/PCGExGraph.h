@@ -283,20 +283,28 @@ namespace PCGExGraph
 		{
 		}
 
+		FNode(const int32 InNodeIndex, const int32 InPointIndex):
+			NodeIndex(InNodeIndex), PointIndex(InPointIndex)
+		{
+			Adjacency.Empty();
+		}
+
 		bool bValid = true;
 
 		int32 NodeIndex = -1;  // Index in the context of the list that helds the node
 		int32 PointIndex = -1; // Index in the context of the UPCGPointData that helds the vtx
 		int32 NumExportedEdges = 0;
 
-		TArray<int32> Edges;
+		TArray<uint64> Adjacency;
+
+		void SetAdjacency(const TSet<uint64>& InAdjacency);
 
 		~FNode()
 		{
-			Edges.Empty();
+			Adjacency.Empty();
 		}
 
-		void Add(const int32 EdgeIndex);
+		FORCEINLINE void Add(const int32 EdgeIndex);
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FSubGraph
@@ -355,7 +363,7 @@ namespace PCGExGraph
 			{
 				FNode& Node = Nodes[i];
 				Node.NodeIndex = Node.PointIndex = i;
-				Node.Edges.Reserve(NumEdgesReserve);
+				Node.Adjacency.Reserve(NumEdgesReserve);
 			}
 		}
 
@@ -443,12 +451,14 @@ namespace PCGExGraph
 		}
 	};
 
-	static bool GetRemappedIndices(PCGExData::FPointIO& InPointIO, const FName AttributeName, TMap<int64, int32>& OutIndices)
+	static bool BuildLookupTable(const PCGExData::FPointIO& InPointIO, const FName AttributeName, TMap<int64, int32>& OutIndices)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExGraph::BuildLookupTable);
+
 		OutIndices.Empty();
 
 		PCGEx::TFAttributeReader<int64>* IndexReader = new PCGEx::TFAttributeReader<int64>(AttributeName);
-		if (!IndexReader->Bind(InPointIO))
+		if (!IndexReader->Bind(const_cast<PCGExData::FPointIO&>(InPointIO)))
 		{
 			PCGEX_DELETE(IndexReader)
 			return false;
@@ -459,11 +469,6 @@ namespace PCGExGraph
 
 		PCGEX_DELETE(IndexReader)
 		return true;
-	}
-
-	static bool GetRemappedIndices(const PCGExData::FPointIO& InPointIO, const FName AttributeName, TMap<int64, int32>& OutIndices)
-	{
-		return GetRemappedIndices(const_cast<PCGExData::FPointIO&>(InPointIO), AttributeName, OutIndices);
 	}
 
 #pragma endregion
@@ -485,14 +490,13 @@ namespace PCGExGraph
 
 	static bool IsPointDataEdgeReady(const UPCGPointData* PointData)
 	{
-		const FName Tags[] = {Tag_EdgeStart, Tag_EdgeEnd};
+		const FName Tags[] = {Tag_EdgeEndpoints}; //{Tag_EdgeStart, Tag_EdgeEnd};
 		constexpr int16 I64 = static_cast<uint16>(EPCGMetadataTypes::Integer64);
-		constexpr int16 I32 = static_cast<uint16>(EPCGMetadataTypes::Integer32);
 
 		for (const FName Name : Tags)
 		{
 			if (const FPCGMetadataAttributeBase* AttributeCheck = PointData->Metadata->GetMutableAttribute(Name);
-				!AttributeCheck || (AttributeCheck->GetTypeId() != I64 && AttributeCheck->GetTypeId() != I32)) { return false; }
+				!AttributeCheck || AttributeCheck->GetTypeId() != I64) { return false; }
 		}
 
 		return true;
@@ -500,20 +504,15 @@ namespace PCGExGraph
 
 	static bool GetReducedVtxIndices(PCGExData::FPointIO& InEdges, const TMap<int64, int32>* NodeIndicesMap, TArray<int32>& OutVtxIndices, int32& OutEdgeNum)
 	{
-		PCGEx::TFAttributeReader<int64>* StartIndexReader = new PCGEx::TFAttributeReader<int64>(Tag_EdgeStart);
-		PCGEx::TFAttributeReader<int64>* EndIndexReader = new PCGEx::TFAttributeReader<int64>(Tag_EdgeEnd);
-		const bool bStart = StartIndexReader->Bind(InEdges);
-		const bool bEnd = EndIndexReader->Bind(InEdges);
+		PCGEx::TFAttributeReader<int64>* EndpointsReader = new PCGEx::TFAttributeReader<int64>(Tag_EdgeEndpoints);
 
-		if (!bStart || !bEnd ||
-			StartIndexReader->Values.Num() != EndIndexReader->Values.Num())
+		if (!EndpointsReader->Bind(InEdges))
 		{
-			PCGEX_DELETE(StartIndexReader)
-			PCGEX_DELETE(EndIndexReader)
+			PCGEX_DELETE(EndpointsReader)
 			return false;
 		}
 
-		OutEdgeNum = StartIndexReader->Values.Num();
+		OutEdgeNum = EndpointsReader->Values.Num();
 
 		OutVtxIndices.Empty();
 
@@ -522,8 +521,12 @@ namespace PCGExGraph
 
 		for (int i = 0; i < OutEdgeNum; i++)
 		{
-			const int32* NodeStartPtr = NodeIndicesMap->Find(StartIndexReader->Values[i]);
-			const int32* NodeEndPtr = NodeIndicesMap->Find(EndIndexReader->Values[i]);
+			uint32 A;
+			uint32 B;
+			PCGEx::H64(EndpointsReader->Values[i], A, B);
+
+			const int32* NodeStartPtr = NodeIndicesMap->Find(A);
+			const int32* NodeEndPtr = NodeIndicesMap->Find(B);
 
 			if (!NodeStartPtr || !NodeEndPtr || (*NodeStartPtr == *NodeEndPtr)) { continue; }
 
@@ -534,8 +537,7 @@ namespace PCGExGraph
 		OutVtxIndices.Append(UniqueVtx.Array());
 		UniqueVtx.Empty();
 
-		PCGEX_DELETE(StartIndexReader)
-		PCGEX_DELETE(EndIndexReader)
+		PCGEX_DELETE(EndpointsReader)
 		return true;
 	}
 
@@ -545,8 +547,7 @@ namespace PCGExGraph
 		PointIO->Tags->Remove(TagStr_ClusterPair);
 		Metadata->DeleteAttribute(Tag_EdgesNum);
 		Metadata->DeleteAttribute(Tag_EdgeIndex);
-		Metadata->DeleteAttribute(Tag_EdgeStart);
-		Metadata->DeleteAttribute(Tag_EdgeEnd);
+		Metadata->DeleteAttribute(Tag_EdgeEndpoints);
 	}
 }
 
@@ -583,11 +584,9 @@ namespace PCGExGraphTask
 		EdgeIO.SetNumInitialized(SubGraph->Edges.Num());
 		EdgeIO.CreateOutKeys();
 
-		PCGEx::TFAttributeWriter<int64>* EdgeStart = new PCGEx::TFAttributeWriter<int64>(PCGExGraph::Tag_EdgeStart, -1, false);
-		PCGEx::TFAttributeWriter<int64>* EdgeEnd = new PCGEx::TFAttributeWriter<int64>(PCGExGraph::Tag_EdgeEnd, -1, false);
+		PCGEx::TFAttributeWriter<int64>* EdgeEndpoints = new PCGEx::TFAttributeWriter<int64>(PCGExGraph::Tag_EdgeEndpoints, -1, false);
 
-		EdgeStart->BindAndGet(EdgeIO);
-		EdgeEnd->BindAndGet(EdgeIO);
+		EdgeEndpoints->BindAndGet(EdgeIO);
 
 		PointIndex = 0;
 		for (const int32 EdgeIndex : SubGraph->Edges)
@@ -595,8 +594,7 @@ namespace PCGExGraphTask
 			const PCGExGraph::FIndexedEdge& Edge = Graph->Edges[EdgeIndex];
 			FPCGPoint& Point = MutablePoints[PointIndex];
 
-			EdgeStart->Values[PointIndex] = Vertices[Graph->Nodes[Edge.Start].PointIndex].MetadataEntry;
-			EdgeEnd->Values[PointIndex] = Vertices[Graph->Nodes[Edge.End].PointIndex].MetadataEntry;
+			EdgeEndpoints->Values[PointIndex] = PCGExGraph::HCID(Vertices[Graph->Nodes[Edge.Start].PointIndex].MetadataEntry, Vertices[Graph->Nodes[Edge.End].PointIndex].MetadataEntry);
 
 			if (Point.Seed == 0) { PCGExMath::RandomizeSeed(Point); }
 
@@ -632,11 +630,9 @@ namespace PCGExGraphTask
 			for (FPCGPoint& Point : MutablePoints) { PCGExMath::RandomizeSeed(Point, SeedOffset); }
 		}
 
-		EdgeStart->Write();
-		EdgeEnd->Write();
+		EdgeEndpoints->Write();
 
-		PCGEX_DELETE(EdgeStart)
-		PCGEX_DELETE(EdgeEnd)
+		PCGEX_DELETE(EdgeEndpoints)
 
 		if (MetadataSettings &&
 			!Graph->EdgeMetadata.IsEmpty() &&

@@ -356,6 +356,7 @@ namespace PCGExData
 	 */
 	void FPointIOCollection::OutputTo(FPCGContext* Context)
 	{
+		Sort();
 		for (FPointIO* Pair : Pairs) { Pair->OutputTo(Context); }
 	}
 
@@ -367,6 +368,7 @@ namespace PCGExData
 	 */
 	void FPointIOCollection::OutputTo(FPCGContext* Context, const int32 MinPointCount, const int32 MaxPointCount)
 	{
+		Sort();
 		for (FPointIO* Pair : Pairs) { Pair->OutputTo(Context, MinPointCount, MaxPointCount); }
 	}
 

@@ -22,7 +22,7 @@ void UPCGExEdgeRefinePrimMST::Process(
 
 	PCGExSearch::TScoredQueue* ScoredQueue = new PCGExSearch::TScoredQueue(NumNodes, 0, 0);
 
-	TArray<int32> Parent;
+	TArray<uint64> Parent;
 	Parent.SetNum(NumNodes);
 
 	for (int i = 0; i < NumNodes; i++)
@@ -40,29 +40,36 @@ void UPCGExEdgeRefinePrimMST::Process(
 		const PCGExCluster::FNode& Current = InCluster->Nodes[CurrentNodeIndex];
 		Visited.Add(CurrentNodeIndex);
 
-		for (const int32 AdjacentIndex : Current.AdjacentNodes)
+		for (const uint64 AdjacencyHash : Current.Adjacency)
 		{
-			if (Visited.Contains(AdjacentIndex)) { continue; } // Exit early
+			uint32 NeighborIndex;
+			uint32 EdgeIndex;
+			PCGEx::H64(AdjacencyHash, NeighborIndex, EdgeIndex);
 
-			const PCGExCluster::FNode& AdjacentNode = InCluster->Nodes[AdjacentIndex];
-			const PCGExGraph::FIndexedEdge& Edge = InCluster->GetEdgeFromNodeIndices(CurrentNodeIndex, AdjacentIndex);
+			if (Visited.Contains(NeighborIndex)) { continue; } // Exit early
+
+			const PCGExCluster::FNode& AdjacentNode = InCluster->Nodes[NeighborIndex];
+			const PCGExGraph::FIndexedEdge& Edge = InCluster->Edges[EdgeIndex];
 
 			const double Score = InHeuristics->GetEdgeScore(Current, AdjacentNode, Edge, *NoNode, *NoNode);
 
-			if (Score >= ScoredQueue->Scores[AdjacentIndex]) { continue; }
+			if (Score >= ScoredQueue->Scores[NeighborIndex]) { continue; }
 
-			ScoredQueue->Scores[AdjacentIndex] = Score;
-			Parent[AdjacentIndex] = CurrentNodeIndex;
+			ScoredQueue->Scores[NeighborIndex] = Score;
+			Parent[NeighborIndex] = AdjacencyHash;
 
-			ScoredQueue->Enqueue(AdjacentIndex, Score);
+			ScoredQueue->Enqueue(NeighborIndex, Score);
 		}
 	}
 
-	PCGExGraph::FIndexedEdge InsertedEdge;
 	for (int32 i = 0; i < NumNodes; i++)
 	{
-		if (Parent[i] == i) { continue; }
-		InGraph->InsertEdge(InCluster->GetEdgeFromNodeIndices(Parent[i], i));
+		uint32 NeighborIndex;
+		uint32 EdgeIndex;
+		PCGEx::H64(Parent[i], NeighborIndex, EdgeIndex);
+
+		if (NeighborIndex == i) { continue; }
+		InGraph->InsertEdge(InCluster->Edges[EdgeIndex]);
 	}
 
 	Visited.Empty();

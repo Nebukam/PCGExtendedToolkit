@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 
 #include "PCGExMT.h"
+#include "Algo/Unique.h"
 #include "Data/PCGExAttributeHelpers.h"
 
 #include "PCGExEdge.generated.h"
@@ -48,8 +49,7 @@ namespace PCGExGraph
 	const FName SourcePackedClustersLabel = TEXT("Packed Clusters");
 	const FName OutputPackedClustersLabel = TEXT("Packed Clusters");
 
-	const FName Tag_EdgeStart = TEXT("PCGEx/EdgeStart");
-	const FName Tag_EdgeEnd = TEXT("PCGEx/EdgeEnd");
+	const FName Tag_EdgeEndpoints = TEXT("PCGEx/EdgeEndpoints");
 	const FName Tag_EdgeIndex = TEXT("PCGEx/CachedIndex");
 	const FName Tag_EdgesNum = TEXT("PCGEx/CachedEdgeNum");
 	const FName Tag_ClusterIndex = TEXT("PCGEx/ClusterIndex");
@@ -61,6 +61,18 @@ namespace PCGExGraph
 	constexpr PCGExMT::AsyncState State_ReadyForNextEdges = __COUNTER__;
 	constexpr PCGExMT::AsyncState State_ProcessingEdges = __COUNTER__;
 	constexpr PCGExMT::AsyncState State_BuildingClusters = __COUNTER__;
+
+	FORCEINLINE static uint32 HCID(const PCGMetadataEntryKey Key)
+	{
+		uint32 A;
+		uint32 B;
+		PCGEx::H64(Key, A, B);
+		// Only use the right part if it exist
+		// It's probably safe to assume that metadataEntry busted the left bits, there's no trace of the first ones anymore.
+		return A == 0 ? B : A;
+	}
+
+	FORCEINLINE static uint64 HCID(const PCGMetadataEntryKey A, const PCGMetadataEntryKey B) { return PCGEx::H64(HCID(A), HCID(B)); }
 
 	struct PCGEXTENDEDTOOLKIT_API FEdge
 	{
@@ -166,72 +178,146 @@ namespace PCGExGraph
 
 	static bool BuildIndexedEdges(
 		const PCGExData::FPointIO& EdgeIO,
-		const TMap<int64, int32>& NodeIndicesMap,
+		const TMap<int64, int32>& EndpointsLookup,
 		TArray<FIndexedEdge>& OutEdges,
-		const bool bInvalidateOnError = false)
+		const bool bStopOnError = false)
 	{
-		//EdgeIO.CreateInKeys();
 
-		PCGEx::TFAttributeReader<int64>* StartIndexReader = new PCGEx::TFAttributeReader<int64>(Tag_EdgeStart);
-		PCGEx::TFAttributeReader<int64>* EndIndexReader = new PCGEx::TFAttributeReader<int64>(Tag_EdgeEnd);
-
-		if (!StartIndexReader->Bind(const_cast<PCGExData::FPointIO&>(EdgeIO)))
+		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExEdge::BuildIndexedEdges-Vanilla);
+		
+		PCGEx::TFAttributeReader<int64>* EndpointsReader = new PCGEx::TFAttributeReader<int64>(Tag_EdgeEndpoints);
+		if (!EndpointsReader->Bind(const_cast<PCGExData::FPointIO&>(EdgeIO)))
 		{
-			PCGEX_DELETE(StartIndexReader)
-			PCGEX_DELETE(EndIndexReader)
-			return false;
-		}
-
-		if (!EndIndexReader->Bind(const_cast<PCGExData::FPointIO&>(EdgeIO)))
-		{
-			PCGEX_DELETE(StartIndexReader)
-			PCGEX_DELETE(EndIndexReader)
+			PCGEX_DELETE(EndpointsReader)
 			return false;
 		}
 
 		bool bValid = true;
 		const int32 NumEdges = EdgeIO.GetNum();
-		int32 EdgeIndex = 0;
 
-		OutEdges.Reserve(NumEdges);
+		OutEdges.SetNum(NumEdges);
 
-		if (!bInvalidateOnError)
+		if (!bStopOnError)
 		{
+			int32 EdgeIndex = 0;
+
 			for (int i = 0; i < NumEdges; i++)
 			{
-				const int32* NodeStartPtr = NodeIndicesMap.Find(StartIndexReader->Values[i]);
-				const int32* NodeEndPtr = NodeIndicesMap.Find(EndIndexReader->Values[i]);
+				uint32 A;
+				uint32 B;
+				PCGEx::H64(EndpointsReader->Values[i], A, B);
 
-				if ((!NodeStartPtr || !NodeEndPtr) ||
-					(*NodeStartPtr == -1) || (*NodeEndPtr == -1))
-				{
-					continue;
-				}
+				const int32* StartPointIndexPtr = EndpointsLookup.Find(A);
+				const int32* EndPointIndexPtr = EndpointsLookup.Find(B);
 
-				OutEdges.Emplace(EdgeIndex++, *NodeStartPtr, *NodeEndPtr, i, EdgeIO.IOIndex);
+				if ((!StartPointIndexPtr || !EndPointIndexPtr)) { continue; }
+
+				OutEdges[EdgeIndex] = FIndexedEdge(EdgeIndex, *StartPointIndexPtr, *EndPointIndexPtr, EdgeIndex, EdgeIO.IOIndex);
+				EdgeIndex++;
 			}
+
+			OutEdges.SetNum(EdgeIndex);
 		}
 		else
 		{
 			for (int i = 0; i < NumEdges; i++)
 			{
-				const int32* NodeStartPtr = NodeIndicesMap.Find(StartIndexReader->Values[i]);
-				const int32* NodeEndPtr = NodeIndicesMap.Find(EndIndexReader->Values[i]);
+				uint32 A;
+				uint32 B;
+				PCGEx::H64(EndpointsReader->Values[i], A, B);
 
-				if ((!NodeStartPtr || !NodeEndPtr) ||
-					(*NodeStartPtr == -1) || (*NodeEndPtr == -1))
+				const int32* StartPointIndexPtr = EndpointsLookup.Find(A);
+				const int32* EndPointIndexPtr = EndpointsLookup.Find(B);
+
+				if ((!StartPointIndexPtr || !EndPointIndexPtr))
 				{
 					bValid = false;
 					break;
 				}
 
-				OutEdges.Emplace(EdgeIndex++, *NodeStartPtr, *NodeEndPtr, i, EdgeIO.IOIndex);
+				OutEdges[i] = FIndexedEdge(i, *StartPointIndexPtr, *EndPointIndexPtr, i, EdgeIO.IOIndex);
 			}
 		}
 
+		PCGEX_DELETE(EndpointsReader)
 
-		PCGEX_DELETE(StartIndexReader)
-		PCGEX_DELETE(EndIndexReader)
+		return bValid;
+	}
+
+	static bool BuildIndexedEdges(
+		const PCGExData::FPointIO& EdgeIO,
+		const TMap<int64, int32>& EndpointsLookup,
+		TArray<FIndexedEdge>& OutEdges,
+		TSet<int32>& OutNodePoints,
+		const bool bStopOnError = false)
+	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExEdge::BuildIndexedEdges-WithPoints);
+		//EdgeIO.CreateInKeys();
+
+		PCGEx::TFAttributeReader<int64>* EndpointsReader = new PCGEx::TFAttributeReader<int64>(Tag_EdgeEndpoints);
+
+		if (!EndpointsReader->Bind(const_cast<PCGExData::FPointIO&>(EdgeIO)))
+		{
+			PCGEX_DELETE(EndpointsReader)
+			return false;
+		}
+
+		bool bValid = true;
+		const int32 NumEdges = EdgeIO.GetNum();
+
+		OutEdges.SetNumUninitialized(NumEdges);
+
+		if (!bStopOnError)
+		{
+			int32 EdgeIndex = 0;
+
+			for (int i = 0; i < NumEdges; i++)
+			{
+				uint32 A;
+				uint32 B;
+				PCGEx::H64(EndpointsReader->Values[i], A, B);
+
+				const int32* StartPointIndexPtr = EndpointsLookup.Find(A);
+				const int32* EndPointIndexPtr = EndpointsLookup.Find(B);
+
+				if ((!StartPointIndexPtr || !EndPointIndexPtr)) { continue; }
+
+				OutNodePoints.Add(*StartPointIndexPtr);
+				OutNodePoints.Add(*EndPointIndexPtr);
+
+				OutEdges[EdgeIndex] = FIndexedEdge(EdgeIndex, *StartPointIndexPtr, *EndPointIndexPtr, EdgeIndex, EdgeIO.IOIndex);
+				EdgeIndex++;
+			}
+
+			OutEdges.SetNum(EdgeIndex);
+		}
+		else
+		{
+			for (int i = 0; i < NumEdges; i++)
+			{
+				uint32 A;
+				uint32 B;
+				PCGEx::H64(EndpointsReader->Values[i], A, B);
+
+				const int32* StartPointIndexPtr = EndpointsLookup.Find(A);
+				const int32* EndPointIndexPtr = EndpointsLookup.Find(B);
+
+				if ((!StartPointIndexPtr || !EndPointIndexPtr))
+				{
+					bValid = false;
+					break;
+				}
+
+				OutNodePoints.Add(*StartPointIndexPtr);
+				OutNodePoints.Add(*EndPointIndexPtr);
+
+				OutEdges[i] = FIndexedEdge(i, *StartPointIndexPtr, *EndPointIndexPtr, i, EdgeIO.IOIndex);
+			}
+		}
+
+		//OutNodePoints = UniquePoints.Array();
+
+		PCGEX_DELETE(EndpointsReader)
 
 		return bValid;
 	}

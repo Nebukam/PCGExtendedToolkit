@@ -75,7 +75,7 @@ bool FPCGExPackClustersElement::ExecuteInternal(
 
 			for (PCGExData::FPointIO* EdgeIO : Context->TaggedEdges->Entries)
 			{
-				Context->GetAsyncManager()->Start<FPCGExPackClusterTask>(-1, Context->CurrentIO, EdgeIO, Context->NodeIndicesMap);
+				Context->GetAsyncManager()->Start<FPCGExPackClusterTask>(-1, Context->CurrentIO, EdgeIO, Context->EndpointsLookup);
 			}
 		}
 

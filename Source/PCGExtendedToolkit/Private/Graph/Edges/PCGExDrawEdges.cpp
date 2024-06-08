@@ -86,7 +86,11 @@ bool FPCGExDrawEdgesElement::ExecuteInternal(
 	{
 		while (Context->AdvanceEdges(true))
 		{
-			if (!Context->CurrentCluster) { continue; }
+			if (!Context->CurrentCluster)
+			{
+				PCGE_LOG(Warning, GraphAndLog, FTEXT("A cluster is corrupted."));
+				continue;
+			}
 
 			double L = Context->CurrentLerp / Context->MaxLerp;
 			FColor Col = Settings->bLerpColor ?
@@ -96,8 +100,8 @@ bool FPCGExDrawEdgesElement::ExecuteInternal(
 			for (const PCGExGraph::FIndexedEdge& Edge : Context->CurrentCluster->Edges)
 			{
 				if (!Edge.bValid) { continue; }
-				FVector Start = Context->CurrentCluster->GetNodeFromPointIndex(Edge.Start).Position;
-				FVector End = Context->CurrentCluster->GetNodeFromPointIndex(Edge.End).Position;
+				FVector Start = Context->CurrentCluster->Nodes[*Context->CurrentCluster->NodeIndexLookup.Find(Edge.Start)].Position;
+				FVector End = Context->CurrentCluster->Nodes[*Context->CurrentCluster->NodeIndexLookup.Find(Edge.End)].Position;
 				DrawDebugLine(Context->World, Start, End, Col, true, -1, Settings->DepthPriority, Settings->Thickness);
 			}
 

@@ -177,8 +177,8 @@ bool FPCGExFindClusterChainsTask::ExecuteTask()
 
 			const PCGExGraph::FIndexedEdge& E = Cluster.Edges[i];
 
-			NodeFixtures.Add(Cluster.GetNodeFromPointIndex(E.Start).NodeIndex);
-			NodeFixtures.Add(Cluster.GetNodeFromPointIndex(E.End).NodeIndex);
+			NodeFixtures.Add(*Cluster.NodeIndexLookup.Find(E.Start));
+			NodeFixtures.Add(*Cluster.NodeIndexLookup.Find(E.End));
 		}
 	}
 
@@ -194,7 +194,7 @@ bool FPCGExFindClusterChainsTask::ExecuteTask()
 			}
 		}
 
-		if (const int32 NumNeighbors = Node.AdjacentNodes.Num();
+		if (const int32 NumNeighbors = Node.Adjacency.Num();
 			NumNeighbors <= 1 || NumNeighbors > 2)
 		{
 			if (NumNeighbors == 1 && bPruneDeadEnds)
@@ -212,8 +212,8 @@ bool FPCGExFindClusterChainsTask::ExecuteTask()
 
 		if (Settings->bFixBelowThreshold)
 		{
-			const FVector A = (Cluster.Nodes[Node.AdjacentNodes[0]].Position - Node.Position).GetSafeNormal();
-			const FVector B = (Node.Position - Cluster.Nodes[Node.AdjacentNodes[1]].Position).GetSafeNormal();
+			const FVector A = (Cluster.Nodes[PCGEx::H64A(Node.Adjacency[0])].Position - Node.Position).GetSafeNormal();
+			const FVector B = (Node.Position - Cluster.Nodes[PCGEx::H64A(Node.Adjacency[1])].Position).GetSafeNormal();
 			if (FVector::DotProduct(A, B) < Context->FixedDotThreshold)
 			{
 				NodeFixtures.Add(Node.NodeIndex);
@@ -226,8 +226,9 @@ bool FPCGExFindClusterChainsTask::ExecuteTask()
 	{
 		if (!NodeFixtures.Contains(Node.NodeIndex)) { continue; }
 
-		for (const int32 AdjacentNode : Node.AdjacentNodes)
+		for (const uint64 AdjacencyHash : Node.Adjacency)
 		{
+			const int32 AdjacentNode = PCGEx::H64A(AdjacencyHash);
 			if (NodeFixtures.Contains(AdjacentNode)) { continue; }
 			Candidates.AddUnique(AdjacentNode);
 		}
@@ -245,7 +246,7 @@ bool FPCGExFindClusterChainsTask::ExecuteTask()
 		PCGExCluster::FNodeChain* NewChain = new PCGExCluster::FNodeChain();
 
 		int32 NextNodeIndex = Node.NodeIndex;
-		int32 PrevNodeIndex = NodeFixtures.Contains(Node.AdjacentNodes[0]) ? Node.AdjacentNodes[0] : Node.AdjacentNodes[1];
+		int32 PrevNodeIndex = NodeFixtures.Contains(PCGEx::H64A(Node.Adjacency[0])) ? PCGEx::H64A(Node.Adjacency[0]) : PCGEx::H64A(Node.Adjacency[1]);
 
 		NewChain->First = PrevNodeIndex;
 		while (NextNodeIndex != -1)
@@ -265,7 +266,7 @@ bool FPCGExFindClusterChainsTask::ExecuteTask()
 
 			NewChain->Nodes.Add(CurrentNodeIndex);
 
-			NextNodeIndex = NextNode.AdjacentNodes[0] == PrevNodeIndex ? NextNode.AdjacentNodes.Num() == 1 ? -1 : NextNode.AdjacentNodes[1] : NextNode.AdjacentNodes[0];
+			NextNodeIndex = PCGEx::H64A(NextNode.Adjacency[0]) == PrevNodeIndex ? NextNode.Adjacency.Num() == 1 ? -1 : PCGEx::H64A(NextNode.Adjacency[1]) : PCGEx::H64A(NextNode.Adjacency[0]);
 			PrevNodeIndex = CurrentNodeIndex;
 
 			if (NextNodeIndex == -1) { NewChain->Last = PrevNodeIndex; }

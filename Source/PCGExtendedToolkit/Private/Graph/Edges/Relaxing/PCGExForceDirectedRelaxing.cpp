@@ -11,8 +11,9 @@ void UPCGExForceDirectedRelaxing::ProcessVertex(const PCGExCluster::FNode& Verte
 	const FVector Position = (*ReadBuffer)[Vertex.PointIndex];
 	FVector Force = FVector::Zero();
 
-	for (const int32 VtxIndex : Vertex.AdjacentNodes)
+	for (const uint64 AdjacencyHash : Vertex.Adjacency)
 	{
+		const uint32 VtxIndex = PCGEx::H64A(AdjacencyHash);
 		const PCGExCluster::FNode& OtherVtx = CurrentCluster->Nodes[VtxIndex];
 		const FVector OtherPosition = (*ReadBuffer)[OtherVtx.PointIndex];
 		CalculateAttractiveForce(Force, Position, OtherPosition);

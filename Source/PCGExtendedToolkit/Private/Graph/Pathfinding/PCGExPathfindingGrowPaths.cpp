@@ -48,10 +48,13 @@ int32 PCGExGrow::FGrowth::FindNextGrowthNodeIndex()
 	double BestScore = TNumericLimits<double>::Max();
 	NextGrowthIndex = -1;
 
-	for (const int32& AdjacentNodeIndex : CurrentNode.AdjacentNodes)
+	for (const uint64 AdjacencyHash : CurrentNode.Adjacency)
 	{
-		const PCGExCluster::FNode& OtherNode = Context->CurrentCluster->Nodes[AdjacentNodeIndex];
-		const int32 EdgeIndex = CurrentNode.GetEdgeIndex(OtherNode.NodeIndex);
+		uint32 NeighborIndex;
+		uint32 EdgeIndex;
+		PCGEx::H64(AdjacencyHash, NeighborIndex, EdgeIndex);
+		
+		const PCGExCluster::FNode& OtherNode = Context->CurrentCluster->Nodes[NeighborIndex];
 
 		if (Settings->bUseNoGrowth)
 		{
@@ -61,7 +64,7 @@ int32 PCGExGrow::FGrowth::FindNextGrowthNodeIndex()
 			if (bNoGrowth) { continue; }
 		}
 
-		if (Path.Contains(AdjacentNodeIndex)) { continue; }
+		if (Path.Contains(NeighborIndex)) { continue; }
 
 		/*
 		// TODO : Implement
@@ -383,7 +386,7 @@ bool FPCGExPathfindingGrowPathsElement::ExecuteInternal(FPCGContext* InContext) 
 
 			const PCGExCluster::FNode& Node = Context->CurrentCluster->Nodes[NodeIndex];
 			if (!Settings->SeedPicking.WithinDistance(Node.Position, SeedPosition) ||
-				Node.AdjacentNodes.IsEmpty()) { continue; }
+				Node.Adjacency.IsEmpty()) { continue; }
 
 			double NumIterations = 0;
 			double GrowthNumBranches = 0;
@@ -450,7 +453,7 @@ bool FPCGExPathfindingGrowPathsElement::ExecuteInternal(FPCGContext* InContext) 
 
 			if (Settings->SeedNumBranchesMean == EPCGExMeanMeasure::Relative)
 			{
-				GrowthNumBranches = FMath::Max(1, static_cast<double>(Node.AdjacentNodes.Num()) * GrowthNumBranches);
+				GrowthNumBranches = FMath::Max(1, static_cast<double>(Node.Adjacency.Num()) * GrowthNumBranches);
 			}
 
 			for (int j = 0; j < GrowthNumBranches; j++)

@@ -113,7 +113,7 @@ bool FPCGExBridgeEdgeClustersElement::ExecuteInternal(
 					EdgeIO->CreateInKeys();
 					Context->GetAsyncManager()->Start<PCGExClusterTask::FBuildCluster>(
 						-1, Context->CurrentIO,
-						NewCluster, EdgeIO, &Context->NodeIndicesMap, &Context->EdgeNumReader->Values);
+						NewCluster, EdgeIO, &Context->EndpointsLookup, &Context->EdgeNumReader->Values);
 				}
 
 				Context->SetAsyncState(PCGExGraph::State_BuildingClusters);
@@ -330,8 +330,7 @@ bool FPCGExCreateBridgeTask::ExecuteTask()
 	UPCGMetadata* EdgeMetadata = Context->ConsolidatedEdges->GetOut()->Metadata;
 	UPCGMetadata* PointMetadata = Context->CurrentIO->GetOut()->Metadata;
 
-	FPCGMetadataAttribute<int64>* StartIndexAtt = static_cast<FPCGMetadataAttribute<int64>*>(EdgeMetadata->GetMutableAttribute(PCGExGraph::Tag_EdgeStart));
-	FPCGMetadataAttribute<int64>* EndIndexAtt = static_cast<FPCGMetadataAttribute<int64>*>(EdgeMetadata->GetMutableAttribute(PCGExGraph::Tag_EdgeEnd));
+	FPCGMetadataAttribute<int64>* EndpointAtt = static_cast<FPCGMetadataAttribute<int64>*>(EdgeMetadata->GetMutableAttribute(PCGExGraph::Tag_EdgeEndpoints));
 	const FPCGMetadataAttribute<int64>* EdgeIndexAtt = static_cast<FPCGMetadataAttribute<int64>*>(PointMetadata->GetMutableAttribute(PCGExGraph::Tag_EdgeIndex));
 
 	FPCGPoint& EdgePoint = PointIO->GetOut()->GetMutablePoints()[TaskIndex];
@@ -343,8 +342,7 @@ bool FPCGExCreateBridgeTask::ExecuteTask()
 
 	Context->BumpEdgeNum(StartPoint, EndPoint);
 
-	StartIndexAtt->SetValue(EdgePoint.MetadataEntry, EdgeIndexAtt->GetValueFromItemKey(StartPoint.MetadataEntry));
-	EndIndexAtt->SetValue(EdgePoint.MetadataEntry, EdgeIndexAtt->GetValueFromItemKey(EndPoint.MetadataEntry));
+	EndpointAtt->SetValue(EdgePoint.MetadataEntry, EdgeIndexAtt->GetValueFromItemKey(EndPoint.MetadataEntry));
 
 	return true;
 }

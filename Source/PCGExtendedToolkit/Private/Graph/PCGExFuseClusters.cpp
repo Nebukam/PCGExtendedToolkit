@@ -102,7 +102,7 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 
 		Context->GetAsyncManager()->Start<PCGExGraphTask::FCompoundGraphInsertEdges>(
 			Context->CurrentIO->IOIndex, Context->CurrentIO,
-			Context->CompoundGraph, Context->CurrentEdges, &Context->NodeIndicesMap);
+			Context->CompoundGraph, Context->CurrentEdges, &Context->EndpointsLookup);
 
 		Context->SetAsyncState(PCGExGraph::State_ProcessingEdges);
 	}

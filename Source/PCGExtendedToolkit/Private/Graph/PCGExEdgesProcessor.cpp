@@ -46,7 +46,7 @@ FPCGExEdgesProcessorContext::~FPCGExEdgesProcessorContext()
 	PCGEX_DELETE(CurrentCluster)
 	PCGEX_DELETE(ClusterProjection)
 
-	NodeIndicesMap.Empty();
+	EndpointsLookup.Empty();
 	ProjectionSettings.Cleanup();
 }
 
@@ -58,7 +58,7 @@ bool FPCGExEdgesProcessorContext::AdvancePointsIO()
 	PCGEX_DELETE(ClusterProjection)
 
 	CurrentEdgesIndex = -1;
-	NodeIndicesMap.Empty();
+	EndpointsLookup.Empty();
 
 	if (!FPCGExPointsProcessorContext::AdvancePointsIO()) { return false; }
 
@@ -83,7 +83,7 @@ bool FPCGExEdgesProcessorContext::AdvancePointsIO()
 
 		ProjectionSettings.Init(CurrentIO);
 
-		PCGExGraph::GetRemappedIndices(*CurrentIO, PCGExGraph::Tag_EdgeIndex, NodeIndicesMap);
+		PCGExGraph::BuildLookupTable(*CurrentIO, PCGExGraph::Tag_EdgeIndex, EndpointsLookup);
 		EdgeNumReader = new PCGEx::TFAttributeReader<int32>(PCGExGraph::Tag_EdgesNum);
 		EdgeNumReader->Bind(*CurrentIO);
 	}
@@ -108,10 +108,8 @@ bool FPCGExEdgesProcessorContext::AdvanceEdges(const bool bBuildCluster)
 		CurrentCluster = new PCGExCluster::FCluster();
 
 		if (!CurrentCluster->BuildFrom(
-			*CurrentEdges,
-			CurrentIO->GetIn()->GetPoints(),
-			NodeIndicesMap,
-			EdgeNumReader->Values, bDeterministicClusters))
+			*CurrentEdges, CurrentIO->GetIn()->GetPoints(),
+			EndpointsLookup, &EdgeNumReader->Values))
 		{
 			// Bad cluster/edges.
 			PCGEX_DELETE(CurrentCluster)
