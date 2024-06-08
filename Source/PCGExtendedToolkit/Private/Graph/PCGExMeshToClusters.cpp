@@ -72,6 +72,7 @@ bool FPCGExMeshToClustersElement::Boot(FPCGContext* InContext) const
 	Context->MeshIdx.SetNum(Targets->GetNum());
 
 	Context->StaticMeshMap = new PCGExGeo::FGeoStaticMeshMap();
+	Context->StaticMeshMap->DesiredTriangulationType = Settings->GraphOutputType;
 
 	Context->RootVtx = new PCGExData::FPointIOCollection(); // Make this pinless
 
@@ -264,7 +265,21 @@ namespace PCGExMeshToCluster
 		FPCGExMeshToClustersContext* Context = static_cast<FPCGExMeshToClustersContext*>(Manager->Context);
 		PCGEX_SETTINGS(MeshToClusters)
 
-		Mesh->ExtractMeshSynchronous();
+		switch (Mesh->DesiredTriangulationType) {
+		default: ;
+		case EPCGExTriangulationType::Raw:
+			Mesh->ExtractMeshSynchronous();
+			break;
+		case EPCGExTriangulationType::Dual:
+			Mesh->TriangulateMeshSynchronous();
+			Mesh->MakeDual();
+			break;
+		case EPCGExTriangulationType::Hollow:
+			Mesh->TriangulateMeshSynchronous();
+			Mesh->MakeHollowDual();
+			break;
+		}
+		
 
 		PCGExData::FPointIO& RootVtx = Context->RootVtx->Emplace_GetRef();
 		RootVtx.IOIndex = TaskIndex;

@@ -323,6 +323,13 @@ namespace PCGEx
 			       static_cast<uint64>(B) << 32 | A;
 	}
 
+	// Unsigned uint64 hash
+	FORCEINLINE static uint64 H64NOT(const uint64 Hash, const uint32 Not)
+	{
+		const uint32 A = static_cast<uint32>(Hash >> 32);
+		return A == Not ? static_cast<uint32>(Hash) : A;
+	}
+
 	// Signed uint64 hash
 	FORCEINLINE static uint64 H64(const uint32 A, const uint32 B) { return static_cast<uint64>(A) << 32 | B; }
 

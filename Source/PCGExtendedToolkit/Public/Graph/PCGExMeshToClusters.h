@@ -7,6 +7,7 @@
 
 #include "PCGExCustomGraphProcessor.h"
 #include "Geometry/PCGExGeo.h"
+#include "Geometry/PCGExGeoMesh.h"
 
 #include "PCGExMeshToClusters.generated.h"
 
@@ -67,6 +68,11 @@ public:
 	//~End UPCGExPointsProcessorSettings interface
 
 public:
+	
+	/** Triangulation type */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	EPCGExTriangulationType GraphOutputType = EPCGExTriangulationType::Raw;
+	
 	/** Mesh source */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExFetchType StaticMeshSource = EPCGExFetchType::Constant;
