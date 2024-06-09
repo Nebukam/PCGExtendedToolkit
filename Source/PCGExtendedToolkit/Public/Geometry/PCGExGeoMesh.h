@@ -4,6 +4,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGEx.h"
+#include "PCGExMT.h"
 //#include "PCGExGeoMesh.generated.h"
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Graph Triangulation Type"))
