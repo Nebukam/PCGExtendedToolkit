@@ -115,7 +115,7 @@ bool FPCGExBuildConvexHull2DElement::ExecuteInternal(
 			if (Settings->bMarkHull && !Settings->bPrunePoints)
 			{
 				PCGEx::TFAttributeWriter<bool>* HullMarkPointWriter = new PCGEx::TFAttributeWriter<bool>(Settings->HullAttributeName, false, false);
-				HullMarkPointWriter->BindAndGet(*Context->CurrentIO);
+				HullMarkPointWriter->BindAndSetNumUninitialized(*Context->CurrentIO);
 
 				for (int i = 0; i < Context->CurrentIO->GetNum(); i++) { HullMarkPointWriter->Values[i] = Context->HullIndices.Contains(i); }
 
@@ -131,7 +131,7 @@ bool FPCGExBuildConvexHull2DElement::ExecuteInternal(
 
 	if (Context->IsDone())
 	{
-		Context->OutputPoints(Settings->bPrunePoints);
+		Context->OutputMainPoints(Settings->bPrunePoints);
 		Context->PathsIO->OutputTo(Context);
 		Context->ExecutionComplete();
 	}
@@ -196,7 +196,7 @@ bool FPCGExConvexHull2Task::ExecuteTask()
 	PCGExGeo::TDelaunay2* Delaunay = new PCGExGeo::TDelaunay2();
 
 	TArray<FVector> Positions;
-	PCGExGeo::PointsToPositions(Context->CurrentIO->GetIn()->GetPoints(), Positions);
+	PCGExGeo::PointsToPositions(Context->GetCurrentIn()->GetPoints(), Positions);
 
 	const TArrayView<FVector> View = MakeArrayView(Positions);
 	if (!Delaunay->Process(View, Context->ProjectionSettings))

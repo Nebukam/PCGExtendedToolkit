@@ -65,12 +65,6 @@ bool FPCGExCustomGraphProcessorContext::AdvancePointsIOAndResetGraph()
 	return AdvancePointsIO();
 }
 
-void FPCGExCustomGraphProcessorContext::Reset()
-{
-	FPCGExPointsProcessorContext::Reset();
-	CurrentParamsIndex = -1;
-}
-
 void FPCGExCustomGraphProcessorContext::SetCachedIndex(const int32 PointIndex, const int32 Index) const
 {
 	check(!bReadOnly)

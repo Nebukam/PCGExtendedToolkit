@@ -172,7 +172,7 @@ bool FPCGExFindSocketStatesElement::ExecuteInternal(
 					Context->Graphs.ForEach(Context, DeleteSockets);
 				});
 
-			Context->OutputPoints();
+			Context->OutputMainPoints();
 		}
 		else
 		{

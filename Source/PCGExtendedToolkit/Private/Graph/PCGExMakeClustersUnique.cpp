@@ -45,7 +45,7 @@ bool FPCGExMakeClustersUniqueElement::ExecuteInternal(FPCGContext* InContext) co
 	while (Context->AdvancePointsIO())
 	{
 		FString OutId;
-		Context->CurrentIO->Tags->Set(PCGExGraph::TagStr_ClusterPair, Context->CurrentIO->GetOut()->UID, OutId);
+		Context->CurrentIO->Tags->Set(PCGExGraph::TagStr_ClusterPair, Context->GetCurrentOut()->UID, OutId);
 
 		if (!Context->TaggedEdges) { continue; }
 

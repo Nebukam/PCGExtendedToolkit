@@ -46,7 +46,7 @@ bool FPCGExRefreshSeedElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsDone())
 	{
-		Context->OutputPoints(false);
+		Context->OutputMainPoints(false);
 		Context->ExecutionComplete();
 	}
 

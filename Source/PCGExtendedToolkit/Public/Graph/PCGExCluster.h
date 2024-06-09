@@ -192,7 +192,7 @@ namespace PCGExCluster
 			const PCGExData::FPointIO& EdgeIO,
 			const TArray<FPCGPoint>& InNodePoints,
 			const TMap<int64, int32>& InEndpointsLookup,
-			const TArray<int32>* InEdgeNumValidation = nullptr);
+			const TArray<int32>* InExpectedAdjacency = nullptr);
 
 		void RebuildNodeOctree();
 		void RebuildEdgeOctree();
@@ -333,19 +333,19 @@ namespace PCGExClusterTask
 		              PCGExCluster::FCluster* InCluster,
 		              const PCGExData::FPointIO* InEdgeIO,
 		              const TMap<int64, int32>* InEndpointsLookup,
-		              const TArray<int32>* InEdgeNumValidation) :
+		              const TArray<int32>* InExpectedAdjacency) :
 			FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
 			Cluster(InCluster),
 			EdgeIO(InEdgeIO),
 			EndpointsLookup(InEndpointsLookup),
-			EdgeNumValidation(InEdgeNumValidation)
+			ExpectedAdjacency(InExpectedAdjacency)
 		{
 		}
 
 		PCGExCluster::FCluster* Cluster = nullptr;
 		const PCGExData::FPointIO* EdgeIO = nullptr;
 		const TMap<int64, int32>* EndpointsLookup = nullptr;
-		const TArray<int32>* EdgeNumValidation = nullptr;
+		const TArray<int32>* ExpectedAdjacency = nullptr;
 
 		virtual bool ExecuteTask() override;
 	};

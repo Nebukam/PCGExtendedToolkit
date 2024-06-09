@@ -85,7 +85,7 @@ bool FPCGExFuseClustersLocalElement::ExecuteInternal(FPCGContext* InContext) con
 		{
 			if (!Context->TaggedEdges) { return false; }
 
-			Context->CompoundGraph = new PCGExGraph::FCompoundGraph(Settings->PointPointIntersectionSettings.FuseSettings, Context->CurrentIO->GetIn()->GetBounds().ExpandBy(10));
+			Context->CompoundGraph = new PCGExGraph::FCompoundGraph(Settings->PointPointIntersectionSettings.FuseSettings, Context->GetCurrentIn()->GetBounds().ExpandBy(10));
 			Context->SetState(PCGExGraph::State_ReadyForNextEdges);
 		}
 	}
@@ -126,7 +126,7 @@ bool FPCGExFuseClustersLocalElement::ExecuteInternal(FPCGContext* InContext) con
 			return false;
 		}
 
-		TArray<FPCGPoint>& MutablePoints = Context->CurrentIO->GetOut()->GetMutablePoints();
+		TArray<FPCGPoint>& MutablePoints = Context->GetCurrentOut()->GetMutablePoints();
 
 		auto Initialize = [&]() { Context->CurrentIO->SetNumInitialized(NumCompoundNodes, true); };
 
@@ -185,7 +185,7 @@ bool FPCGExFuseClustersLocalElement::ExecuteInternal(FPCGContext* InContext) con
 		{
 			const PCGExGraph::FIndexedEdge& Edge = Context->GraphBuilder->Graph->Edges[EdgeIndex];
 			if (!Edge.bValid) { return; }
-			FindCollinearNodes(Context->PointEdgeIntersections, EdgeIndex, Context->CurrentIO->GetOut());
+			FindCollinearNodes(Context->PointEdgeIntersections, EdgeIndex, Context->GetCurrentOut());
 		};
 
 		if (!Context->Process(PointEdge, Context->GraphBuilder->Graph->Edges.Num())) { return false; }
@@ -296,7 +296,7 @@ bool FPCGExFuseClustersLocalElement::ExecuteInternal(FPCGContext* InContext) con
 
 	if (Context->IsDone())
 	{
-		Context->OutputPoints();
+		Context->OutputMainPoints();
 		Context->ExecutionComplete();
 	}
 

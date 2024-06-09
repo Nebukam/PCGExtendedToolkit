@@ -56,7 +56,7 @@ bool FPCGExOrientElement::ExecuteInternal(FPCGContext* InContext) const
 			Context->Orientation->ProcessPoints(PointIO.GetOut());
 		});
 
-	Context->OutputPoints();
+	Context->OutputMainPoints();
 
 	return true;
 }

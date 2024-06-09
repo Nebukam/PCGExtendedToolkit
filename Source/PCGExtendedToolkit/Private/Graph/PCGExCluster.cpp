@@ -110,7 +110,7 @@ namespace PCGExCluster
 		const PCGExData::FPointIO& EdgeIO,
 		const TArray<FPCGPoint>& InNodePoints,
 		const TMap<int64, int32>& InEndpointsLookup,
-		const TArray<int32>* InEdgeNumValidation)
+		const TArray<int32>* InExpectedAdjacency)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExCluster::BuildCluster);
 
@@ -162,11 +162,11 @@ namespace PCGExCluster
 			Nodes[EndNodeIndex].Adjacency.AddUnique(PCGEx::H64(StartNodeIndex, i));
 		}
 
-		if (InEdgeNumValidation)
+		if (InExpectedAdjacency)
 		{
 			for (const FNode& Node : Nodes)
 			{
-				if ((*InEdgeNumValidation)[Node.PointIndex] > Node.Adjacency.Num()) // We care about removed connections, not new ones 
+				if ((*InExpectedAdjacency)[Node.PointIndex] > Node.Adjacency.Num()) // We care about removed connections, not new ones 
 				{
 					bInvalidCluster = true;
 					break;
@@ -831,10 +831,8 @@ namespace PCGExClusterTask
 	bool FBuildCluster::ExecuteTask()
 	{
 		Cluster->BuildFrom(
-			*EdgeIO,
-			PointIO->GetIn()->GetPoints(),
-			*EndpointsLookup,
-			EdgeNumValidation);
+			*EdgeIO, PointIO->GetIn()->GetPoints(),
+			*EndpointsLookup, ExpectedAdjacency);
 
 		return true;
 	}

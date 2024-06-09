@@ -160,7 +160,7 @@ bool FPCGExPromoteEdgesElement::ExecuteInternal(
 
 
 			UPCGPointData* OutData = NewObject<UPCGPointData>();
-			OutData->InitializeFromData(Context->CurrentIO->GetIn());
+			OutData->InitializeFromData(Context->GetCurrentIn());
 
 			if (bool bSuccess = Context->Promotion->PromoteEdgeGen(
 				OutData,
@@ -193,7 +193,7 @@ bool FPCGExPromoteEdgesElement::ExecuteInternal(
 
 		if (!Context->Promotion->GeneratesNewPointData())
 		{
-			Context->OutputPoints();
+			Context->OutputMainPoints();
 		}
 
 		Context->ExecutionComplete();

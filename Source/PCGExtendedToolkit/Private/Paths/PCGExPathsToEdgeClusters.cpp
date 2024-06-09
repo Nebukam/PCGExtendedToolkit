@@ -114,7 +114,7 @@ bool FPCGExPathsToEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) c
 				PCGEX_DELETE(Context->GraphBuilder)
 
 				//TODO: Create one graph per path
-				const TArray<FPCGPoint>& InPoints = Context->CurrentIO->GetIn()->GetPoints();
+				const TArray<FPCGPoint>& InPoints = Context->GetCurrentIn()->GetPoints();
 				const int32 NumPoints = InPoints.Num();
 
 				if (NumPoints < 2) { return false; }
@@ -331,7 +331,7 @@ bool FPCGExPathsToEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) c
 
 	if (Context->IsDone())
 	{
-		Context->OutputPoints();
+		Context->OutputMainPoints();
 		Context->ExecutionComplete();
 	}
 

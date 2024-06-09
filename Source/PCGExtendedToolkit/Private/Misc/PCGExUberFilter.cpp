@@ -104,7 +104,7 @@ bool FPCGExUberFilterElement::ExecuteInternal(FPCGContext* InContext) const
 
 		if (!Context->ProcessCurrentPoints(ProcessPoint)) { return false; }
 
-		const TArray<FPCGPoint>& InPoints = Context->CurrentIO->GetIn()->GetPoints();
+		const TArray<FPCGPoint>& InPoints = Context->GetCurrentIn()->GetPoints();
 
 		TArray<FPCGPoint>& InsidePoints = Context->Inside->Emplace_GetRef(*Context->CurrentIO, PCGExData::EInit::NewOutput).GetOut()->GetMutablePoints();
 		TArray<FPCGPoint>& OutsidePoints = Context->Outside->Emplace_GetRef(*Context->CurrentIO, PCGExData::EInit::NewOutput).GetOut()->GetMutablePoints();

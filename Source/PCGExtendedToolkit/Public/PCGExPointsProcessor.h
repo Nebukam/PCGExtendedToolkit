@@ -78,6 +78,7 @@ FPCGElementPtr UPCGEx##_NAME##Settings::CreateElement() const{	return MakeShared
 #define PCGEX_PIN_PARAM(_LABEL, _TOOLTIP, _STATUS, _EXTRA) { FPCGPinProperties& Pin = PinProperties.Emplace_GetRef(_LABEL, EPCGDataType::Param, false, false); PCGEX_PIN_TOOLTIP(_TOOLTIP) PCGEX_PIN_STATUS(_STATUS) _EXTRA }
 
 struct FPCGExPointsProcessorContext;
+struct FPCGExSubProcessor;
 
 namespace PCGEx
 {
@@ -158,7 +159,6 @@ namespace PCGEx
 	};
 }
 
-
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural))
 class PCGEXTENDEDTOOLKIT_API UPCGExPointsProcessorSettings : public UPCGSettings
 {
@@ -224,6 +224,7 @@ protected:
 struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : public FPCGContext
 {
 	friend class FPCGExPointsProcessorElementBase;
+	friend struct FPCGExSubProcessor;
 
 	virtual ~FPCGExPointsProcessorContext() override;
 
@@ -238,6 +239,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : public FPCGContext
 	UPCGPointData* GetCurrentOut() const { return CurrentIO->GetOut(); }
 
 	virtual bool AdvancePointsIO();
+
 	PCGExMT::AsyncState GetState() const { return CurrentState; }
 	bool IsState(const PCGExMT::AsyncState OperationId) const { return CurrentState == OperationId; }
 	bool IsSetup() const { return IsState(PCGExMT::State_Setup); }
@@ -246,15 +248,14 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : public FPCGContext
 	virtual void ExecutionComplete();
 
 	FPCGExAsyncManager* GetAsyncManager();
-	void SetAsyncState(const PCGExMT::AsyncState WaitState) { SetState(WaitState, false); }
 
-	virtual void SetState(PCGExMT::AsyncState OperationId, bool bResetAsyncWork = true);
-	virtual void Reset();
+	void SetAsyncState(const PCGExMT::AsyncState WaitState) { SetState(WaitState, false); }
+	void SetState(PCGExMT::AsyncState OperationId, bool bResetAsyncWork = true);
 
 	int32 ChunkSize = 0;
 	bool bDoAsyncProcessing = true;
 
-	void OutputPoints(const bool bFlatten = false) { MainPoints->OutputTo(this); }
+	void OutputMainPoints(const bool bFlatten = false) { MainPoints->OutputTo(this); }
 
 	bool BulkProcessMainPoints(TFunction<void(PCGExData::FPointIO&)>&& Initialize, TFunction<void(const int32, const PCGExData::FPointIO&)>&& LoopBody);
 	bool ProcessCurrentPoints(TFunction<void(PCGExData::FPointIO&)>&& Initialize, TFunction<void(const int32, const PCGExData::FPointIO&)>&& LoopBody, bool bForceSync = false);
@@ -326,7 +327,19 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : public FPCGContext
 		return RetValue;
 	}
 
+	template <typename T>
+	T* NewSubProcessor(PCGExMT::AsyncState NextState)
+	{
+		T* NewSubProcessor = new T(this, NextState);
+		return NewSubProcessor;
+	}
+
+	bool ExecuteSubProcessor() const;
+	void StartSubProcessor(FPCGExSubProcessor* InProcessor);
+
 protected:
+	FPCGExSubProcessor* CurrentSubProcessor = nullptr;
+
 	PCGExMT::FAsyncParallelLoop AsyncLoop;
 	FPCGExAsyncManager* AsyncManager = nullptr;
 
@@ -365,6 +378,46 @@ public:
 	virtual void DisabledPassThroughData(FPCGContext* Context) const override;
 
 protected:
+	bool ExecuteSubProcessor() const;
+
 	virtual FPCGContext* InitializeContext(FPCGExPointsProcessorContext* InContext, const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node) const;
 	virtual bool Boot(FPCGContext* InContext) const;
+};
+
+
+struct PCGEXTENDEDTOOLKIT_API FPCGExSubProcessor
+{
+public:
+	mutable FRWLock SubLock;
+
+	FPCGExSubProcessor(FPCGExPointsProcessorContext* InParentContext, const PCGExMT::AsyncState InNextState);
+	FPCGExSubProcessor(FPCGExSubProcessor* InParentSubProcessor);
+
+	virtual ~FPCGExSubProcessor();
+
+	FPCGExPointsProcessorContext* ParentContext = nullptr;
+	FPCGExSubProcessor* ParentSubProcessor = nullptr;
+
+	PCGExMT::AsyncState NextState = PCGExMT::State_WaitingOnAsyncWork;
+	PCGExMT::AsyncState SubtaskNextState = PCGExMT::State_WaitingOnAsyncWork;
+
+	bool IsState(const PCGExMT::AsyncState OperationId) const { return CurrentState == OperationId; }
+
+	FPCGExPointsProcessorContext* GetContext() const;
+	FPCGExAsyncManager* GetAsyncManager() const;
+
+	virtual bool Execute();
+
+protected:
+	bool bWaitingOnSubtasks = false;
+	PCGExMT::AsyncState CurrentState = PCGExMT::State_Setup;
+
+	void SetAsyncState(const PCGExMT::AsyncState WaitState) { SetState(WaitState, false); }
+	void SetState(PCGExMT::AsyncState OperationId, bool bResetAsyncWork = true);
+
+	bool IsDone() const { return IsState(PCGExMT::State_Done); }
+	void Done() { SetState(PCGExMT::State_Done); }
+
+	TArray<FPCGExSubProcessor*> CurrentSubtasks;
+	TArray<FPCGExSubProcessor*> SunsetSubtasks;
 };

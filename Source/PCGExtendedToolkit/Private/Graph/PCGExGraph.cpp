@@ -257,7 +257,7 @@ namespace PCGExGraphTask
 	bool FCompileGraph::ExecuteTask()
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FCompileGraph::ExecuteTask);
-		
+
 		Builder->Graph->BuildSubGraphs(Min, Max);
 
 		if (Builder->Graph->SubGraphs.IsEmpty())
@@ -274,9 +274,8 @@ namespace PCGExGraphTask
 
 		if (Builder->bPrunePoints)
 		{
-
 			TRACE_CPUPROFILER_EVENT_SCOPE(FCompileGraph::PrunePoints);
-			
+
 			// Rebuild point list with only the one used
 			// to know which are used, we need to prune subgraphs first
 			TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
@@ -317,32 +316,26 @@ namespace PCGExGraphTask
 
 		PointIO->SetNumInitialized(PointIO->GetOutNum(), true);
 
-		PCGEx::TFAttributeWriter<int64>* IndexWriter = new PCGEx::TFAttributeWriter<int64>(PCGExGraph::Tag_EdgeIndex, -1, false);
-		PCGEx::TFAttributeWriter<int32>* NumEdgesWriter = new PCGEx::TFAttributeWriter<int32>(PCGExGraph::Tag_EdgesNum, 0, false);
+		PCGEx::TFAttributeWriter<int64>* VtxEndpointWriter = new PCGEx::TFAttributeWriter<int64>(PCGExGraph::Tag_VtxEndpoint, 0, false);
 
-		IndexWriter->BindAndGet(*PointIO);
-		NumEdgesWriter->BindAndGet(*PointIO);
+		VtxEndpointWriter->BindAndSetNumUninitialized(*PointIO);
 
-		for (int i = 0; i < IndexWriter->Values.Num(); i++) { IndexWriter->Values[i] = PCGExGraph::HCID(PointIO->GetOutPoint(i).MetadataEntry); }
-		
+		const TArray<FPCGPoint>& OutPoints = PointIO->GetOut()->GetPoints();
 		for (const int32 NodeIndex : ValidNodes)
 		{
 			const PCGExGraph::FNode& Node = Nodes[NodeIndex];
-			NumEdgesWriter->Values[Node.PointIndex] = Node.NumExportedEdges;
+			VtxEndpointWriter->Values[Node.PointIndex] = PCGEx::H64(PCGExGraph::HCID(OutPoints[Node.PointIndex].MetadataEntry), Node.NumExportedEdges);
 		}
 
-		IndexWriter->Write();
-		NumEdgesWriter->Write();
-
-		PCGEX_DELETE(IndexWriter)
-		PCGEX_DELETE(NumEdgesWriter)
+		VtxEndpointWriter->Write();
+		PCGEX_DELETE(VtxEndpointWriter)
 
 		if (MetadataSettings && !Builder->Graph->NodeMetadata.IsEmpty())
 		{
 #define PCGEX_METADATA(_NAME, _TYPE, _DEFAULT, _ACCESSOR)\
 {if(MetadataSettings->bWrite##_NAME){\
 PCGEx::TFAttributeWriter<_TYPE>* Writer = MetadataSettings->bWrite##_NAME ? new PCGEx::TFAttributeWriter<_TYPE>(MetadataSettings->_NAME##AttributeName, _DEFAULT, false) : nullptr;\
-Writer->BindAndGet(*PointIO);\
+Writer->BindAndSetNumUninitialized(*PointIO);\
 		for(const int32 NodeIndex : ValidNodes){\
 		PCGExGraph::FGraphNodeMetadata** NodeMeta = Builder->Graph->NodeMetadata.Find(NodeIndex);\
 		if(NodeMeta){Writer->Values[Nodes[NodeIndex].PointIndex] = (*NodeMeta)->_ACCESSOR; }}\
@@ -359,7 +352,7 @@ Writer->BindAndGet(*PointIO);\
 		Builder->bCompiledSuccessfully = true;
 
 		PCGEx::TFAttributeWriter<int64>* NumClusterIdWriter = new PCGEx::TFAttributeWriter<int64>(PCGExGraph::Tag_ClusterId, -1, false);
-		NumClusterIdWriter->BindAndGet(*PointIO);
+		NumClusterIdWriter->BindAndSetNumUninitialized(*PointIO);
 
 		int32 SubGraphIndex = 0;
 		for (PCGExGraph::FSubGraph* SubGraph : Builder->Graph->SubGraphs)

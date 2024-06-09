@@ -94,7 +94,7 @@ bool FPCGExCreateVtxPartitionTask::ExecuteTask()
 	TArray<int32> ReducedVtxIndices;
 
 	int32 NumEdges = 0;
-	if (!PCGExGraph::GetReducedVtxIndices(*EdgeIO, NodeIndicesMap, ReducedVtxIndices, NumEdges)) { return false; }
+	if (!PCGExGraph::GetReducedVtxIndices(*EdgeIO, EndpointsLookup, ReducedVtxIndices, NumEdges)) { return false; }
 
 	const TArrayView<int32> View = MakeArrayView(ReducedVtxIndices);
 

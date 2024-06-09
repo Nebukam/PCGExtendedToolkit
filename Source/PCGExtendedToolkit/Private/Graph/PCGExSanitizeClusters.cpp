@@ -87,7 +87,7 @@ bool FPCGExSanitizeClustersElement::ExecuteInternal(FPCGContext* InContext) cons
 
 	if (Context->IsDone())
 	{
-		Context->OutputPoints();
+		Context->OutputMainPoints();
 		Context->ExecutionComplete();
 	}
 

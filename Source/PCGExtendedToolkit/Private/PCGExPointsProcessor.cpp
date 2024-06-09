@@ -259,6 +259,7 @@ FPCGExPointsProcessorContext::~FPCGExPointsProcessorContext()
 	OwnedProcessorOperations.Empty();
 
 	PCGEX_DELETE(MainPoints)
+	PCGEX_DELETE(CurrentSubProcessor)
 
 	CurrentIO = nullptr;
 	World = nullptr;
@@ -304,8 +305,6 @@ void FPCGExPointsProcessorContext::SetState(const PCGExMT::AsyncState OperationI
 	CurrentState = OperationId;
 }
 
-void FPCGExPointsProcessorContext::Reset() { CurrentState = PCGExMT::State_Setup; }
-
 #pragma endregion
 
 bool FPCGExPointsProcessorContext::BulkProcessMainPoints(TFunction<void(PCGExData::FPointIO&)>&& Initialize, TFunction<void(const int32, const PCGExData::FPointIO&)>&& LoopBody)
@@ -330,6 +329,17 @@ FPCGTaggedData* FPCGExPointsProcessorContext::Output(UPCGData* OutData, const FN
 	OutputRef.Data = OutData;
 	OutputRef.Pin = OutputLabel;
 	return &OutputRef;
+}
+
+bool FPCGExPointsProcessorContext::ExecuteSubProcessor() const
+{
+	return true;
+}
+
+void FPCGExPointsProcessorContext::StartSubProcessor(FPCGExSubProcessor* InProcessor)
+{
+	if (CurrentSubProcessor) { PCGEX_DELETE(CurrentSubProcessor) }
+	if (InProcessor) { CurrentSubProcessor = InProcessor; }
 }
 
 FPCGExAsyncManager* FPCGExPointsProcessorContext::GetAsyncManager()
@@ -449,6 +459,54 @@ bool FPCGExPointsProcessorElementBase::Boot(FPCGContext* InContext) const
 	}
 
 	return true;
+}
+
+FPCGExSubProcessor::FPCGExSubProcessor(FPCGExPointsProcessorContext* InParentContext, const PCGExMT::AsyncState InNextState):
+	ParentContext(InParentContext), NextState(InNextState)
+{
+}
+
+FPCGExSubProcessor::FPCGExSubProcessor(FPCGExSubProcessor* InParentSubProcessor):
+	ParentSubProcessor(InParentSubProcessor)
+{
+}
+
+FPCGExSubProcessor::~FPCGExSubProcessor()
+{
+	ParentContext = nullptr;
+
+	PCGEX_DELETE_TARRAY(CurrentSubtasks)
+	PCGEX_DELETE_TARRAY(SunsetSubtasks)
+}
+
+FPCGExPointsProcessorContext* FPCGExSubProcessor::GetContext() const
+{
+	if (ParentSubProcessor) { return ParentSubProcessor->GetContext(); }
+	return ParentContext;
+}
+
+FPCGExAsyncManager* FPCGExSubProcessor::GetAsyncManager() const { return GetContext()->GetAsyncManager(); }
+
+bool FPCGExSubProcessor::Execute()
+{
+	if (bWaitingOnSubtasks)
+	{
+		if (!SunsetSubtasks.IsEmpty()) { PCGEX_DELETE_TARRAY(SunsetSubtasks) }
+		if (CurrentSubtasks.IsEmpty()) { bWaitingOnSubtasks = false; }
+		else
+		{
+			for (FPCGExSubProcessor* SubProcessor : CurrentSubtasks) { if (SubProcessor->Execute()) { SunsetSubtasks.Add(SubProcessor); } }
+			for (FPCGExSubProcessor* SubProcessor : SunsetSubtasks) { CurrentSubtasks.Remove(SubProcessor); }
+			return false;
+		}
+	}
+	return true;
+}
+
+void FPCGExSubProcessor::SetState(PCGExMT::AsyncState OperationId, bool bResetAsyncWork)
+{
+	if (bResetAsyncWork) { if (GetContext()->AsyncManager) { GetContext()->AsyncManager->Reset(); } }
+	CurrentState = OperationId;
 }
 
 #undef LOCTEXT_NAMESPACE

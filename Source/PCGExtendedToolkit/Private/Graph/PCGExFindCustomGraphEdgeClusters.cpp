@@ -167,7 +167,7 @@ bool FPCGExFindCustomGraphEdgeClustersElement::ExecuteInternal(
 				});
 		}
 
-		Context->OutputPoints();
+		Context->OutputMainPoints();
 		Context->ExecutionComplete();
 	}
 

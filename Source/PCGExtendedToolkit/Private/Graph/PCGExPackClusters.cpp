@@ -110,7 +110,7 @@ bool FPCGExPackClusterTask::ExecuteTask()
 	int32 NumEdges = 0;
 	TArray<int32> ReducedVtxIndices;
 
-	if (!PCGExGraph::GetReducedVtxIndices(*InEdges, &NodeIndicesMap, ReducedVtxIndices, NumEdges)) { return false; }
+	if (!PCGExGraph::GetReducedVtxIndices(*InEdges, &EndpointsLookup, ReducedVtxIndices, NumEdges)) { return false; }
 
 	TArray<FPCGPoint>& MutablePoints = PackedIO.GetOut()->GetMutablePoints();
 	MutablePoints.SetNum(NumEdges + ReducedVtxIndices.Num());

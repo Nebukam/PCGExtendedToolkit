@@ -114,7 +114,7 @@ bool FPCGExBuildDelaunayGraph2DElement::ExecuteInternal(
 			if (Settings->bMarkHull)
 			{
 				PCGEx::TFAttributeWriter<bool>* HullMarkPointWriter = new PCGEx::TFAttributeWriter<bool>(Settings->HullAttributeName, false, false);
-				HullMarkPointWriter->BindAndGet(*Context->CurrentIO);
+				HullMarkPointWriter->BindAndSetNumUninitialized(*Context->CurrentIO);
 
 				for (int i = 0; i < Context->CurrentIO->GetNum(); i++) { HullMarkPointWriter->Values[i] = Context->HullIndices.Contains(i); }
 
@@ -129,7 +129,7 @@ bool FPCGExBuildDelaunayGraph2DElement::ExecuteInternal(
 
 	if (Context->IsDone())
 	{
-		Context->OutputPoints();
+		Context->OutputMainPoints();
 		Context->ExecutionComplete();
 	}
 
@@ -144,7 +144,7 @@ bool FPCGExDelaunay2Task::ExecuteTask()
 	PCGExGeo::TDelaunay2* Delaunay = new PCGExGeo::TDelaunay2();
 
 	TArray<FVector> ActivePositions;
-	PCGExGeo::PointsToPositions(Context->CurrentIO->GetIn()->GetPoints(), ActivePositions);
+	PCGExGeo::PointsToPositions(Context->GetCurrentIn()->GetPoints(), ActivePositions);
 
 	const TArrayView<FVector> View = MakeArrayView(ActivePositions);
 	if (!Delaunay->Process(View, Context->ProjectionSettings))

@@ -282,7 +282,7 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 		if (Context->GraphBuilder->bCompiledSuccessfully)
 		{
 			Context->GraphBuilder->Write(Context);
-			Context->OutputPoints();
+			Context->OutputMainPoints();
 		}
 
 		Context->Done();

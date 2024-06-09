@@ -41,7 +41,7 @@ bool FPCGExDeleteCustomGraphElement::ExecuteInternal(
 			Context->Graphs.ForEach(Context, DeleteSockets);
 		});
 
-	Context->OutputPoints();
+	Context->OutputMainPoints();
 
 	return true;
 }

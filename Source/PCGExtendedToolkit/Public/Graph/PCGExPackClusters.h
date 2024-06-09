@@ -66,20 +66,20 @@ class PCGEXTENDEDTOOLKIT_API FPCGExPackClusterTask : public FPCGExNonAbandonable
 public:
 	FPCGExPackClusterTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
 	                      PCGExData::FPointIO* InInEdges,
-	                      const TMap<int64, int32>& InNodeIndicesMap) :
+	                      const TMap<int64, int32>& InEndpointsLookup) :
 		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
 		InEdges(InInEdges),
-		NodeIndicesMap(InNodeIndicesMap)
+		EndpointsLookup(InEndpointsLookup)
 	{
 	}
 
 	virtual ~FPCGExPackClusterTask() override
 	{
-		NodeIndicesMap.Empty();
+		EndpointsLookup.Empty();
 	}
 
 	PCGExData::FPointIO* InEdges = nullptr;
-	TMap<int64, int32> NodeIndicesMap;
+	TMap<int64, int32> EndpointsLookup;
 
 	virtual bool ExecuteTask() override;
 };

@@ -109,7 +109,7 @@ bool FPCGExBuildVoronoiGraph2DElement::ExecuteInternal(
 
 	if (Context->IsDone())
 	{
-		Context->OutputPoints();
+		Context->OutputMainPoints();
 		Context->ExecutionComplete();
 	}
 
@@ -124,7 +124,7 @@ bool FPCGExVoronoi2Task::ExecuteTask()
 	PCGExGeo::TVoronoi2* Voronoi = new PCGExGeo::TVoronoi2();
 
 	TArray<FVector> ActivePositions;
-	PCGExGeo::PointsToPositions(Context->CurrentIO->GetIn()->GetPoints(), ActivePositions);
+	PCGExGeo::PointsToPositions(Context->GetCurrentIn()->GetPoints(), ActivePositions);
 
 	if (const TArrayView<FVector> View = MakeArrayView(ActivePositions);
 		!Voronoi->Process(View, Context->ProjectionSettings))

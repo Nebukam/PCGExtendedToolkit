@@ -63,7 +63,7 @@ bool FPCGExSortPointsBaseElement::ExecuteInternal(FPCGContext* InContext) const
 	{
 		PCGEX_WAIT_ASYNC
 
-		Context->OutputPoints();
+		Context->OutputMainPoints();
 		Context->Done();
 		Context->ExecutionComplete();
 	}

@@ -50,8 +50,7 @@ namespace PCGExGraph
 	const FName OutputPackedClustersLabel = TEXT("Packed Clusters");
 
 	const FName Tag_EdgeEndpoints = TEXT("PCGEx/EdgeEndpoints");
-	const FName Tag_EdgeIndex = TEXT("PCGEx/CachedIndex");
-	const FName Tag_EdgesNum = TEXT("PCGEx/CachedEdgeNum");
+	const FName Tag_VtxEndpoint = TEXT("PCGEx/VtxEndpoint");
 	const FName Tag_ClusterIndex = TEXT("PCGEx/ClusterIndex");
 
 	const FName Tag_ClusterPair = TEXT("PCGEx/ClusterPair");
@@ -314,8 +313,6 @@ namespace PCGExGraph
 				OutEdges[i] = FIndexedEdge(i, *StartPointIndexPtr, *EndPointIndexPtr, i, EdgeIO.IOIndex);
 			}
 		}
-
-		//OutNodePoints = UniquePoints.Array();
 
 		PCGEX_DELETE(EndpointsReader)
 

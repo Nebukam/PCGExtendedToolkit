@@ -79,7 +79,7 @@ bool FPCGExPruneEdgesByLengthElement::ExecuteInternal(FPCGContext* InContext) co
 
 		BuildIndexedEdges(*Context->CurrentEdges, Context->EndpointsLookup, Context->IndexedEdges);
 
-		const TArray<FPCGPoint>& InNodePoints = Context->CurrentIO->GetIn()->GetPoints();
+		const TArray<FPCGPoint>& InNodePoints = Context->GetCurrentIn()->GetPoints();
 
 		Context->EdgeLength.SetNum(Context->IndexedEdges.Num());
 

@@ -60,7 +60,7 @@ bool FPCGExLloydRelaxElement::ExecuteInternal(FPCGContext* InContext) const
 
 			if (Settings->InfluenceSettings.bUseLocalInfluence) { Context->InfluenceGetter->Grab(*Context->CurrentIO); }
 
-			PCGExGeo::PointsToPositions(Context->CurrentIO->GetIn()->GetPoints(), Context->ActivePositions);
+			PCGExGeo::PointsToPositions(Context->GetCurrentIn()->GetPoints(), Context->ActivePositions);
 
 			Context->GetAsyncManager()->Start<FPCGExLloydRelax3Task>(
 				0, nullptr, &Context->ActivePositions,
@@ -75,7 +75,7 @@ bool FPCGExLloydRelaxElement::ExecuteInternal(FPCGContext* InContext) const
 	{
 		PCGEX_WAIT_ASYNC
 
-		TArray<FPCGPoint>& MutablePoints = Context->CurrentIO->GetOut()->GetMutablePoints();
+		TArray<FPCGPoint>& MutablePoints = Context->GetCurrentOut()->GetMutablePoints();
 
 		if (Settings->InfluenceSettings.bProgressiveInfluence)
 		{
@@ -99,7 +99,7 @@ bool FPCGExLloydRelaxElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsDone())
 	{
-		Context->OutputPoints();
+		Context->OutputMainPoints();
 		Context->ExecutionComplete();
 	}
 

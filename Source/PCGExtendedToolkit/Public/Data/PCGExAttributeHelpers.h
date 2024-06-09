@@ -418,6 +418,16 @@ namespace PCGEx
 			return false;
 		}
 
+		bool BindAndSetNumUninitialized(PCGExData::FPointIO& PointIO)
+		{
+			if (Bind(PointIO))
+			{
+				this->Values.SetNumUninitialized(PointIO.GetOutNum());
+				return true;
+			}
+			return false;
+		}
+
 		T& operator[](int32 Index) { return this->Values[Index]; }
 
 		void Write()

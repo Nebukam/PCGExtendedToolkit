@@ -104,7 +104,7 @@ bool FPCGExBuildConvexHullElement::ExecuteInternal(
 			if (Settings->bMarkHull && !Settings->bPrunePoints)
 			{
 				PCGEx::TFAttributeWriter<bool>* HullMarkPointWriter = new PCGEx::TFAttributeWriter<bool>(Settings->HullAttributeName, false, false);
-				HullMarkPointWriter->BindAndGet(*Context->CurrentIO);
+				HullMarkPointWriter->BindAndSetNumUninitialized(*Context->CurrentIO);
 
 				for (int i = 0; i < Context->CurrentIO->GetNum(); i++) { HullMarkPointWriter->Values[i] = Context->HullIndices.Contains(i); }
 
@@ -119,7 +119,7 @@ bool FPCGExBuildConvexHullElement::ExecuteInternal(
 
 	if (Context->IsDone())
 	{
-		Context->OutputPoints();
+		Context->OutputMainPoints();
 		Context->ExecutionComplete();
 	}
 

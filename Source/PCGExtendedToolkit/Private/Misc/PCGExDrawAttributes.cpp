@@ -288,7 +288,7 @@ bool FPCGExDrawAttributesElement::ExecuteInternal(FPCGContext* InContext) const
 			for (FPCGExAttributeDebugDraw& Drawer : Context->DebugList)
 			{
 				if (!Drawer.bValid) { continue; }
-				Drawer.Draw(Context->World, Start, Point, Context->CurrentIO->GetIn());
+				Drawer.Draw(Context->World, Start, Point, Context->GetCurrentIn());
 			}
 		}
 

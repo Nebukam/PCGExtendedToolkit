@@ -451,13 +451,17 @@ namespace PCGExGraph
 		}
 	};
 
-	static bool BuildLookupTable(const PCGExData::FPointIO& InPointIO, const FName AttributeName, TMap<int64, int32>& OutIndices)
+	static bool BuildEndpointsLookup(
+		const PCGExData::FPointIO& InPointIO,
+		TMap<int64, int32>& OutIndices,
+		TArray<int32>& OutAdjacency)
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExGraph::BuildLookupTable);
 
+		OutAdjacency.SetNumUninitialized(InPointIO.GetNum());
 		OutIndices.Empty();
 
-		PCGEx::TFAttributeReader<int64>* IndexReader = new PCGEx::TFAttributeReader<int64>(AttributeName);
+		PCGEx::TFAttributeReader<int64>* IndexReader = new PCGEx::TFAttributeReader<int64>(PCGExGraph::Tag_VtxEndpoint);
 		if (!IndexReader->Bind(const_cast<PCGExData::FPointIO&>(InPointIO)))
 		{
 			PCGEX_DELETE(IndexReader)
@@ -465,7 +469,15 @@ namespace PCGExGraph
 		}
 
 		OutIndices.Reserve(IndexReader->Values.Num());
-		for (int i = 0; i < IndexReader->Values.Num(); i++) { OutIndices.Add(IndexReader->Values[i], i); }
+		for (int i = 0; i < IndexReader->Values.Num(); i++)
+		{
+			uint32 A;
+			uint32 B;
+			PCGEx::H64(IndexReader->Values[i], A, B);
+
+			OutIndices.Add(A, i);
+			OutAdjacency[i] = B;
+		}
 
 		PCGEX_DELETE(IndexReader)
 		return true;
@@ -475,14 +487,13 @@ namespace PCGExGraph
 
 	static bool IsPointDataVtxReady(const UPCGPointData* PointData)
 	{
-		const FName Tags[] = {Tag_EdgeIndex, Tag_EdgesNum};
+		const FName Tags[] = {Tag_VtxEndpoint};
 		constexpr int16 I64 = static_cast<uint16>(EPCGMetadataTypes::Integer64);
-		constexpr int16 I32 = static_cast<uint16>(EPCGMetadataTypes::Integer32);
 
 		for (const FName Name : Tags)
 		{
 			if (const FPCGMetadataAttributeBase* AttributeCheck = PointData->Metadata->GetMutableAttribute(Name);
-				!AttributeCheck || (AttributeCheck->GetTypeId() != I64 && AttributeCheck->GetTypeId() != I32)) { return false; }
+				!AttributeCheck || (AttributeCheck->GetTypeId() != I64)) { return false; }
 		}
 
 		return true;
@@ -545,8 +556,7 @@ namespace PCGExGraph
 	{
 		UPCGMetadata* Metadata = PointIO->GetOut()->Metadata;
 		PointIO->Tags->Remove(TagStr_ClusterPair);
-		Metadata->DeleteAttribute(Tag_EdgesNum);
-		Metadata->DeleteAttribute(Tag_EdgeIndex);
+		Metadata->DeleteAttribute(Tag_VtxEndpoint);
 		Metadata->DeleteAttribute(Tag_EdgeEndpoints);
 	}
 }
@@ -566,11 +576,13 @@ namespace PCGExGraphTask
 		PCGExData::FPointIO& EdgeIO = *SubGraph->PointIO;
 
 		TArray<FPCGPoint>& MutablePoints = EdgeIO.GetOut()->GetMutablePoints();
-		MutablePoints.SetNum(SubGraph->Edges.Num());
 
 		int32 PointIndex = 0;
 		if (EdgeIO.GetIn())
 		{
+			TRACE_CPUPROFILER_EVENT_SCOPE(FWriteSubGraphEdges::GatherPreExistingPoints);
+			MutablePoints.SetNumUninitialized(SubGraph->Edges.Num());
+
 			// Copy any existing point properties first
 			const TArray<FPCGPoint>& InPoints = EdgeIO.GetIn()->GetPoints();
 			for (const int32 EdgeIndex : SubGraph->Edges)
@@ -579,14 +591,25 @@ namespace PCGExGraphTask
 				if (InPoints.IsValidIndex(EdgePtIndex)) { MutablePoints[PointIndex] = InPoints[EdgePtIndex]; }
 				PointIndex++;
 			}
+
+			UPCGMetadata* Metadata = EdgeIO.GetOut()->Metadata;
+			for (int i = PointIndex; i < SubGraph->Edges.Num(); i++)
+			{
+				FPCGPoint& NewPoint = MutablePoints[i] = FPCGPoint();
+				Metadata->InitializeOnSet(NewPoint.MetadataEntry);
+			}
+		}
+		else
+		{
+			EdgeIO.SetNumInitialized(SubGraph->Edges.Num(), true);
 		}
 
-		EdgeIO.SetNumInitialized(SubGraph->Edges.Num());
+
 		EdgeIO.CreateOutKeys();
 
 		PCGEx::TFAttributeWriter<int64>* EdgeEndpoints = new PCGEx::TFAttributeWriter<int64>(PCGExGraph::Tag_EdgeEndpoints, -1, false);
 
-		EdgeEndpoints->BindAndGet(EdgeIO);
+		EdgeEndpoints->BindAndSetNumUninitialized(EdgeIO);
 
 		PointIndex = 0;
 		for (const int32 EdgeIndex : SubGraph->Edges)
@@ -611,6 +634,8 @@ namespace PCGExGraphTask
 
 		if (Graph->bWriteEdgePosition)
 		{
+			TRACE_CPUPROFILER_EVENT_SCOPE(FWriteSubGraphEdges::WriteEdgePosition);
+
 			PointIndex = 0;
 			for (const int32 EdgeIndex : SubGraph->Edges)
 			{
@@ -640,6 +665,8 @@ namespace PCGExGraphTask
 		{
 			if (MetadataSettings->bFlagCrossing)
 			{
+				TRACE_CPUPROFILER_EVENT_SCOPE(FWriteSubGraphEdges::FlagCrossing);
+
 				// Need to go through each point and add flags matching edges
 				for (const int32 NodeIndex : SubGraph->Nodes)
 				{

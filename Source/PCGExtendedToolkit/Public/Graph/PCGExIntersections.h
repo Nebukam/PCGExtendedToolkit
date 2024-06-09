@@ -595,17 +595,17 @@ namespace PCGExGraphTask
 		FCompoundGraphInsertEdges(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
 		                          PCGExGraph::FCompoundGraph* InGraph,
 		                          PCGExData::FPointIO* InEdgeIO,
-		                          TMap<int64, int32>* InNodeIndicesMap)
+		                          TMap<int64, int32>* InEndpointsLookup)
 			: FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
 			  Graph(InGraph),
 			  EdgeIO(InEdgeIO),
-			  NodeIndicesMap(InNodeIndicesMap)
+			  EndpointsLookup(InEndpointsLookup)
 		{
 		}
 
 		PCGExGraph::FCompoundGraph* Graph = nullptr;
 		PCGExData::FPointIO* EdgeIO = nullptr;
-		TMap<int64, int32>* NodeIndicesMap = nullptr;
+		TMap<int64, int32>* EndpointsLookup = nullptr;
 
 		virtual bool ExecuteTask() override;
 	};

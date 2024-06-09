@@ -129,7 +129,7 @@ bool FPCGExBuildCustomGraphElement::ExecuteInternal(
 				for (PCGExGraph::FSocketProbe& Probe : Probes) { Context->GraphSolver->ProcessPoint(Probe, OtherPoint); }
 			};
 
-			const UPCGPointData::PointOctree& Octree = Context->CurrentIO->GetIn()->GetOctree();
+			const UPCGPointData::PointOctree& Octree = Context->GetCurrentIn()->GetOctree();
 			Octree.FindElementsWithBoundsTest(BoxCAE, ProcessPoint);
 
 			for (PCGExGraph::FSocketProbe& Probe : Probes)
@@ -186,7 +186,7 @@ bool FPCGExProbeTask::ExecuteTask()
 	const FBox Box = BoxCAE.GetBox();
 
 	const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
-	//const UPCGPointData::PointOctree& Octree = Context->CurrentIO->GetIn()->GetOctree();
+	//const UPCGPointData::PointOctree& Octree = Context->GetCurrentIn()->GetOctree();
 
 	/*
 	auto ProcessPoint = [&](const FPCGPointRef& InPointRef)
@@ -219,7 +219,7 @@ bool FPCGExProbeTask::ExecuteTask()
 		}
 	};
 
-	const UPCGPointData::PointOctree& Octree = Context->CurrentIO->GetIn()->GetOctree();
+	const UPCGPointData::PointOctree& Octree = Context->GetCurrentIn()->GetOctree();
 	Octree.FindElementsWithBoundsTest(BoxCAE, ProcessPoint);
 
 

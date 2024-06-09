@@ -51,8 +51,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExCustomGraphProcessorContext : public FPCGExP
 	bool AdvanceGraph(bool bResetPointsIndex = false);
 	bool AdvancePointsIOAndResetGraph();
 
-	virtual void Reset() override;
-
 	void SetCachedIndex(const int32 PointIndex, const int32 Index) const;
 	int32 GetCachedIndex(const int32 PointIndex) const;
 	void WriteSocketInfos() const;
@@ -64,7 +62,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExCustomGraphProcessorContext : public FPCGExP
 
 	void OutputPointsAndGraphParams()
 	{
-		OutputPoints();
+		OutputMainPoints();
 		OutputGraphParams();
 	}
 

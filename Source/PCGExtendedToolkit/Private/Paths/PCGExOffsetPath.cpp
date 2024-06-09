@@ -67,7 +67,7 @@ bool FPCGExOffsetPathElement::ExecuteInternal(FPCGContext* InContext) const
 	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
 	{
 		PCGEX_WAIT_ASYNC
-		Context->OutputPoints();
+		Context->OutputMainPoints();
 		Context->Done();
 		Context->ExecutionComplete();
 	}

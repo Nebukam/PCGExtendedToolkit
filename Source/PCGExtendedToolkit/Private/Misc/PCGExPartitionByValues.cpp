@@ -280,7 +280,7 @@ bool FPCGExPartitionByValuesBaseElement::ExecuteInternal(FPCGContext* InContext)
 				}
 			}
 
-			Context->OutputPoints();
+			Context->OutputMainPoints();
 			Context->Done();
 		}
 	}

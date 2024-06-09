@@ -148,7 +148,7 @@ namespace PCGExDataState
 	void TStatesManager::WriteStateNames(const FName AttributeName, const FName DefaultValue, const TArray<int32>& InIndices)
 	{
 		PCGEx::TFAttributeWriter<FName>* StateNameWriter = new PCGEx::TFAttributeWriter<FName>(AttributeName, DefaultValue, false);
-		StateNameWriter->BindAndGet(const_cast<PCGExData::FPointIO&>(*PointIO));
+		StateNameWriter->BindAndSetNumUninitialized(const_cast<PCGExData::FPointIO&>(*PointIO));
 
 		for (const int32 i : InIndices)
 		{
@@ -167,7 +167,7 @@ namespace PCGExDataState
 	void TStatesManager::WriteStateValues(const FName AttributeName, const int32 DefaultValue, const TArray<int32>& InIndices)
 	{
 		PCGEx::TFAttributeWriter<int32>* StateValueWriter = new PCGEx::TFAttributeWriter<int32>(AttributeName, DefaultValue, false);
-		StateValueWriter->BindAndGet(const_cast<PCGExData::FPointIO&>(*PointIO));
+		StateValueWriter->BindAndSetNumUninitialized(const_cast<PCGExData::FPointIO&>(*PointIO));
 
 		for (const int32 i : InIndices)
 		{
@@ -257,7 +257,7 @@ namespace PCGExDataStateTask
 		TRACE_CPUPROFILER_EVENT_SCOPE(FWriteIndividualState::ExecuteTask);
 
 		PCGEx::TFAttributeWriter<bool>* StateWriter = new PCGEx::TFAttributeWriter<bool>(static_cast<const UPCGExDataStateFactoryBase*>(Handler->Factory)->StateName);
-		StateWriter->BindAndGet(*PointIO);
+		StateWriter->BindAndSetNumUninitialized(*PointIO);
 
 		for (const int32 i : (*InIndices)) { StateWriter->Values[i] = Handler->Results[i]; }
 		StateWriter->Write();

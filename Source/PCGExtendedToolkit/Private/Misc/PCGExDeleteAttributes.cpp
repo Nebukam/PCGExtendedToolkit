@@ -44,7 +44,7 @@ bool FPCGExDeleteAttributesElement::ExecuteInternal(FPCGContext* InContext) cons
 			for (const FName& Name : Names) { PointIO.GetOut()->Metadata->DeleteAttribute(Name); }
 		});
 
-	Context->OutputPoints();
+	Context->OutputMainPoints();
 	return true;
 }
 

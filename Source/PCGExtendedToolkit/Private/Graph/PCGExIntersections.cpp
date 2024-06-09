@@ -575,7 +575,7 @@ namespace PCGExGraphTask
 	bool FCompoundGraphInsertEdges::ExecuteTask()
 	{
 		TArray<PCGExGraph::FIndexedEdge> IndexedEdges;
-		if (!BuildIndexedEdges(*EdgeIO, *NodeIndicesMap, IndexedEdges, true) ||
+		if (!BuildIndexedEdges(*EdgeIO, *EndpointsLookup, IndexedEdges, true) ||
 			IndexedEdges.IsEmpty()) { return false; }
 
 		IndexedEdges.Sort(
