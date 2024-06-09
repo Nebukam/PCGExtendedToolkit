@@ -85,7 +85,7 @@ bool UPCGExSearchAStar::FindPath(
 			const double PreviousGScore = GScore[NeighborIndex];
 			if (PreviousGScore != -1 && TentativeGScore >= PreviousGScore) { continue; }
 
-			Previous[NeighborIndex] = PCGEx::NH64(NeighborIndex, EdgeIndex);
+			Previous[NeighborIndex] = PCGEx::NH64(CurrentNodeIndex, EdgeIndex);
 			GScore[NeighborIndex] = TentativeGScore;
 
 			const double GS = PCGExMath::Remap(Heuristics->GetGlobalScore(AdjacentNode, SeedNode, GoalNode), MinGScore, MaxGScore, 0, 1);
@@ -102,9 +102,6 @@ bool UPCGExSearchAStar::FindPath(
 
 	if (PathNodeIndex != -1)
 	{
-		PathHash = Previous[GoalNode.NodeIndex];
-		PCGEx::NH64(PathHash, PathNodeIndex, PathEdgeIndex);
-
 		bSuccess = true;
 		TArray<int32> Path;
 
