@@ -1,7 +1,7 @@
 ---
 layout: page
-parent: Edges
 #grand_parent: All Nodes
+parent: Edges
 title: Draw Edges
 subtitle: Draw debug edge lines of a given vtx/edge pair.
 color: red

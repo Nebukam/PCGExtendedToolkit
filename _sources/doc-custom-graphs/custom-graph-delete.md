@@ -1,11 +1,11 @@
 ---
 layout: page
-parent: Custom Graphs
 grand_parent: All Nodes
+parent: Custom Graphs
 title: Delete
 subtitle: Delete custom graph attributes.
 color: blue
-#summary: summary_goes_here
+summary: The **Delete Custom Graph** node helps with custom graph attributes that have become garbage. It's important to delete them to speed up data processing once you don't need them.
 splash: icons/icon_custom-graphs-delete.svg
 preview_img: docs/splash-customgraph-delete.png
 toc_img: placeholder.jpg

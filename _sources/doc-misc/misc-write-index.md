@@ -1,7 +1,7 @@
 ---
 layout: page
-parent: Misc
 #grand_parent: All Nodes
+parent: Misc
 title: Write Index
 subtitle: Write current point index to an attribute
 color: white

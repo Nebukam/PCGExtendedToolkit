@@ -1,8 +1,8 @@
 ---
 layout: page
-parent: Heuristics
 grand_parent: Pathfinding
-title: Steepness
+parent: 🝰 Heuristics
+title: 🝰 Steepness
 subtitle: Favor flat paths
 color: white
 #summary: summary_goes_here

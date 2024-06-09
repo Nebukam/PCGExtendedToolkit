@@ -1,11 +1,11 @@
 ---
 layout: page
-parent: Custom Graphs
-grand_parent: Find Sockets State
+grand_parent: Custom Graphs
+parent: Find Sockets State
 title: Sockets State
-subtitle: Data definition identifying a unique socket configuation.
+subtitle: A list of socket conditions identifying a unique state.
 color: blue
-#summary: summary_goes_here
+summary: The **Socket State** node represents a set of either strict or loose conditions that can be used to mark points.
 splash: icons/icon_custom-graphs-build.svg
 preview_img: placeholder.jpg
 toc_img: placeholder.jpg

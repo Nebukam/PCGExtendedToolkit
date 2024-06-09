@@ -1,8 +1,8 @@
 ---
 layout: page
-parent: Heuristics
 grand_parent: Pathfinding
-title: Least Nodes
+parent: 🝰 Heuristics
+title: 🝰 Least Nodes
 subtitle: Subtitle
 color: white
 #summary: summary_goes_here

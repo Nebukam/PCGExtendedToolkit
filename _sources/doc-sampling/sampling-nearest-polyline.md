@@ -1,7 +1,7 @@
 ---
 layout: page
-parent: Sampling
 #grand_parent: All Nodes
+parent: Sampling
 title: Sample Nearest Polyline
 subtitle: Sample informations from the nearest polyline
 color: white

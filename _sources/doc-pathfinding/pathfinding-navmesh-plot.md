@@ -1,7 +1,7 @@
 ---
 layout: page
-parent: Pathfinding
 #grand_parent: All Nodes
+parent: Pathfinding
 title: Plot Navmesh Pathfinding
 subtitle: Sample the navmesh to find a path that goes through multiple chained points.
 color: white

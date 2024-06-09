@@ -1,7 +1,7 @@
 ---
 layout: page
-parent: Paths
 #grand_parent: All Nodes
+parent: Paths
 title: Smooth
 subtitle: Smooth points properties and attributes
 color: white

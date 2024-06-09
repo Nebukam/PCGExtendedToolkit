@@ -1,11 +1,11 @@
 ---
 layout: page
-parent: Edges
 #grand_parent: All Nodes
+parent: Edges
 title: Relax
 subtitle: Relax points positions of a graph.
 color: blue
-summary: The **Relax Edges** nodes shifts points gradually in order to smooth position in relation to their neighbors.
+summary: The **Relax Edges** node shifts points gradually in order to smooth position in relation to their neighbors.
 splash: icons/icon_edges-relax.svg
 preview_img: docs/splash-relaxing.png
 toc_img: placeholder.jpg

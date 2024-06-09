@@ -1,7 +1,7 @@
 ---
 layout: page
-parent: Edges
 #grand_parent: All Nodes
+parent: Edges
 title: Prune by Length
 subtitle: Remove edges from a graph using length data.
 color: blue

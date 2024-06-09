@@ -1,7 +1,7 @@
 ---
 layout: page
-parent: Misc
 #grand_parent: All Nodes
+parent: Misc
 title: 2D Lloyd Relaxation
 subtitle: Applies the Lloyd Relaxation algorithm.
 color: white

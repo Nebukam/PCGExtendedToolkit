@@ -1,7 +1,7 @@
 ---
 layout: page
-parent: Orient
 grand_parent: Paths
+parent: Orient
 title: Average
 subtitle: Average between previous and next
 color: white

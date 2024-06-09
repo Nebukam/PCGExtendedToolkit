@@ -1,7 +1,7 @@
 ---
 layout: page
-parent: Relax
 grand_parent: Edges
+parent: Relax
 title: Laplacian
 subtitle: Laplacian / Poisson relaxation
 color: white

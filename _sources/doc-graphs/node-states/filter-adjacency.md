@@ -1,7 +1,7 @@
 ---
 layout: page
-parent: Find Node States
 grand_parent: Graphs
+parent: Find Node States
 title: 🝖 Adjacency
 subtitle: Check if adjacent node meet specific conditions
 color: white

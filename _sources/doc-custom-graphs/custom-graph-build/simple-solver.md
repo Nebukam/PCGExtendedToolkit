@@ -1,11 +1,11 @@
 ---
 layout: page
-parent: Build Custom Graph
 grand_parent: Custom Graphs
-title: Simple Solver
-subtitle: Subtitle
+parent: Build Custom Graph
+title: 🝱 Simple Solver
+subtitle: A simple custom graph solver, searching connections using sockets.
 color: white
-#summary: summary_goes_here
+summary: The **simple solver** search for a connection in each socket direction, and favors the closest match.
 splash: icons/icon_cat-custom-graphs.svg
 preview_img: placeholder.jpg
 toc_img: placeholder.jpg

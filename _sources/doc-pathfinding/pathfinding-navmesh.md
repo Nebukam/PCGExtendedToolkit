@@ -1,7 +1,7 @@
 ---
 layout: page
-parent: Pathfinding
 #grand_parent: All Nodes
+parent: Pathfinding
 title: Navmesh Pathfinding
 subtitle: Sample the navmesh to find paths
 color: white

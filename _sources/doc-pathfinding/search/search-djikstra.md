@@ -1,7 +1,7 @@
 ---
 layout: page
-parent: Search
 grand_parent: Pathfinding
+parent: Search
 title: Dijkstra
 subtitle: Dijkstra's Algorithm
 color: white

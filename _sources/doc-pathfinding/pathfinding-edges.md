@@ -1,7 +1,7 @@
 ---
 layout: page
-parent: Pathfinding
 #grand_parent: All Nodes
+parent: Pathfinding
 title: Edges Pathfinding
 subtitle: Find paths connecting seeds to goals.
 color: white
@@ -35,7 +35,7 @@ nav_order: 1
 |**Modules**||
 |**Search Algorithm**| The search algorithm that will be used to solve pathfinding.<br>*Each module has individual settings and documentation -- See [Available Search Algorithms](#available-search-modules).* |
 |**Heuristics**| The base heuristics module that will be used during pathfinding.<br>*Each module has individual settings and documentation -- See [Available Heuristics](#available-heuristics-modules).* |
-|**Heuristics Modifiers**| This property group is available no matter what **Heuristics** have been picked.<br>*See {% include lk id='Heuristic Attribute' %}.*|
+|**Heuristics Modifiers**| This property group is available no matter what **Heuristics** have been picked.<br>*See {% include lk id='🝰 Heuristic Attribute' %}.*|
 
 {% include embed id='settings-statistics' %}
 
@@ -62,7 +62,7 @@ nav_order: 1
 {% include card_any tagged="search" %}
 
 ---
-## Available {% include lk id='Heuristics' %} modules
+## Available {% include lk id='🝰 Heuristics' %} modules
 <br>
 {% include card_any tagged="heuristics" %}
 

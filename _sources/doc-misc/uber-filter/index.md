@@ -1,7 +1,7 @@
 ---
 layout: page
-parent: Misc
 #grand_parent: All Nodes
+parent: Misc
 title: Uber Filter
 subtitle: Combine multiple filters
 color: white

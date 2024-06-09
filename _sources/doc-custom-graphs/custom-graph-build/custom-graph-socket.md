@@ -1,11 +1,11 @@
 ---
 layout: page
-parent: Build Custom Graph
 grand_parent: Custom Graphs
+parent: Build Custom Graph
 title: Socket
-subtitle: Data definition for a single custom graph socket.
+subtitle: Definition of a single custom graph socket.
 color: blue
-#summary: summary_goes_here
+summary: The **Socket** node is a "probe", akin to a cone in 3D space inside which connections can be found using a custom graph builder.
 splash: icons/icon_custom-graphs-build.svg
 preview_img: placeholder.jpg
 toc_img: placeholder.jpg

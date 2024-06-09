@@ -1,7 +1,7 @@
 ---
 layout: page
-parent: Paths
 #grand_parent: All Nodes
+parent: Paths
 title: Fuse Collinear
 subtitle: Fuse collinear points on a path
 color: white

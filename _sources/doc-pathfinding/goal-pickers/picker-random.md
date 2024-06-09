@@ -1,7 +1,7 @@
 ---
 layout: page
-parent: Goal Pickers
 grand_parent: Pathfinding
+parent: Goal Pickers
 title: Random
 subtitle: Match seeds to goals at a random index.
 color: white

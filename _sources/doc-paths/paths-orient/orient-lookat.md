@@ -1,7 +1,7 @@
 ---
 layout: page
-parent: Orient
 grand_parent: Paths
+parent: Orient
 title: LookAt
 subtitle: Look at next
 color: white

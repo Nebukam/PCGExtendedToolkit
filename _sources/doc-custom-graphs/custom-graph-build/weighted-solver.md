@@ -1,11 +1,11 @@
 ---
 layout: page
-parent: Build Custom Graph
 grand_parent: Custom Graphs
-title: Weighted Solver
-subtitle: Subtitle
+parent: Build Custom Graph
+title: 🝱 Weighted Solver
+subtitle: A curve-based custom graph solver, searching connections using sockets.
 color: white
-#summary: summary_goes_here
+summary: The **weighted solver** search for a connection in each socket direction, and favors either better alignment or shorter distance based on a weight curve.
 splash: icons/icon_cat-custom-graphs.svg
 preview_img: placeholder.jpg
 toc_img: placeholder.jpg

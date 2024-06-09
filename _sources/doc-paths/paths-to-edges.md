@@ -1,7 +1,7 @@
 ---
 layout: page
-parent: Paths
 #grand_parent: All Nodes
+parent: Paths
 title: Paths to Edge Clusters
 subtitle: Convert paths to edges clusters.
 color: white

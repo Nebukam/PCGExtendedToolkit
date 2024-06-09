@@ -1,8 +1,8 @@
 ---
 layout: page
-parent: Heuristics
 grand_parent: Pathfinding
-title: Shortest Distance
+parent: 🝰 Heuristics
+title: 🝰 Shortest Distance
 subtitle: Subtitle
 color: white
 #summary: summary_goes_here

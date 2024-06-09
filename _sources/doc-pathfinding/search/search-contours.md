@@ -1,7 +1,7 @@
 ---
 layout: page
-parent: Search
 grand_parent: Pathfinding
+parent: Search
 title: Contours
 subtitle: Contours
 color: white

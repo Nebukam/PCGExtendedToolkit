@@ -1,7 +1,7 @@
 ---
 layout: page
-parent: Misc
 #grand_parent: All Nodes
+parent: Misc
 title: Points to Bounds
 subtitle: Convert point clouds to a single bounding point
 color: white

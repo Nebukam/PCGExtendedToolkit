@@ -1,7 +1,7 @@
 ---
 layout: page
-parent: Uber Filter
 grand_parent: Misc
+parent: Uber Filter
 title: 🝖 Compare (Dot)
 subtitle: Compare the dot product of two vectors
 color: white

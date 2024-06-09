@@ -1,7 +1,7 @@
 ---
 layout: page
-parent: Write Tangents
 grand_parent: Paths
+parent: Write Tangents
 title: Auto Tangents
 subtitle: Neighbor-based tangents
 color: white

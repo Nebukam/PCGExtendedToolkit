@@ -1,7 +1,7 @@
 ---
 layout: page
-parent: Graphs
 #grand_parent: All Nodes
+parent: Graphs
 title: Find Node States
 subtitle: Find conditional-based states to nodes within a graph
 color: white

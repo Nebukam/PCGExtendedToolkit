@@ -1,7 +1,7 @@
 ---
 layout: page
-parent: Graphs
 #grand_parent: All Nodes
+parent: Graphs
 title: Partition Vertices
 subtitle: Create per-cluster Vtx datasets
 color: white

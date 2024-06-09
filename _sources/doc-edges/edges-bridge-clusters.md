@@ -1,7 +1,7 @@
 ---
 layout: page
-parent: Edges
 #grand_parent: All Nodes
+parent: Edges
 title: Bridge Clusters
 subtitle: Connects clusters together.
 color: blue

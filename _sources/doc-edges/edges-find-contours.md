@@ -1,7 +1,7 @@
 ---
 layout: page
-parent: Edges
 #grand_parent: All Nodes
+parent: Edges
 title: Find Contours
 subtitle: Find edge contours & outlines
 color: white

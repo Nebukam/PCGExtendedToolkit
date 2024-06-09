@@ -1,7 +1,7 @@
 ---
 layout: page
-parent: Edges
 #grand_parent: All Nodes
+parent: Edges
 title: Write Paths Extras
 subtitle: Compute path extra data
 color: white

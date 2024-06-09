@@ -1,7 +1,7 @@
 ---
 layout: page
-parent: Graphs
 #grand_parent: All Nodes
+parent: Graphs
 title: Unpack Clusters
 subtitle: Unpack Clusters
 color: blue
@@ -12,7 +12,7 @@ toc_img: placeholder.jpg
 tagged: 
     - node
     - graphs
-nav_order: 20
+nav_order: 21
 see_also:
     - Working with Graphs
 ---

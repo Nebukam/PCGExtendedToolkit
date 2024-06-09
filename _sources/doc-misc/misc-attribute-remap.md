@@ -1,7 +1,7 @@
 ---
 layout: page
-parent: Misc
 #grand_parent: All Nodes
+parent: Misc
 title: Attribute Remap
 subtitle: Highly customizable attribute remapping.
 color: white
@@ -12,7 +12,7 @@ toc_img: placeholder.jpg
 tagged: 
     - node
     - misc
-nav_order: 7
+nav_order: 3
 ---
 
 {% include header_card_node %}

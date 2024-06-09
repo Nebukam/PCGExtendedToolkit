@@ -1,7 +1,7 @@
 ---
 layout: page
-parent: Sampling
 #grand_parent: All Nodes
+parent: Sampling
 title: Sample Nearest Points
 subtitle: Sample points within a spherical range
 color: white

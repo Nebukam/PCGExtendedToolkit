@@ -1,7 +1,7 @@
 ---
 layout: page
-parent: Relax
 grand_parent: Edges
+parent: Relax
 title: Force Directed
 subtitle: Force-directed relaxation
 color: white

@@ -1,7 +1,7 @@
 ---
 layout: page
-parent: Paths
 #grand_parent: All Nodes
+parent: Paths
 title: Write Tangents
 subtitle: Subtitle
 color: white

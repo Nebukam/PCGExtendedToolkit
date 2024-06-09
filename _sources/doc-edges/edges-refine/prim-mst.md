@@ -1,7 +1,7 @@
 ---
 layout: page
-parent: Refine
 grand_parent: Edges
+parent: Refine
 title: Minimum Spanning Tree
 subtitle: Implementation of Prim's Minimum Spanning Tree algorithm.
 color: white
@@ -28,4 +28,4 @@ This module offers an implementation of [Prim's algorithm](https://en.wikipedia.
 
 | Property       | Description          |
 |:-------------|:------------------|
-| Heuristics Modifiers           | See {% include lk id='Heuristic Attribute' %}.|
+| Heuristics Modifiers           | See {% include lk id='🝰 Heuristic Attribute' %}.|

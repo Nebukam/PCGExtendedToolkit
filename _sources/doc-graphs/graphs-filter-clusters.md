@@ -1,7 +1,7 @@
 ---
 layout: page
-parent: Graphs
 #grand_parent: All Nodes
+parent: Graphs
 title: Filter Clusters
 subtitle: Filter out cluster based on proximity to target points
 color: white

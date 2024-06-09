@@ -1,7 +1,7 @@
 ---
 layout: page
-parent: Goal Pickers
 grand_parent: Pathfinding
+parent: Goal Pickers
 title: Goal from Attribute
 subtitle: Match seed with goals picked at an attribute-specified index.
 color: white

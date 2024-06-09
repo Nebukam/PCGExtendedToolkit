@@ -1,8 +1,8 @@
 ---
 layout: page
-parent: Heuristics
 grand_parent: Pathfinding
-title: Direction
+parent: 🝰 Heuristics
+title: 🝰 Direction
 subtitle: Subtitle
 color: white
 #summary: summary_goes_here

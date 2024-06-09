@@ -1,7 +1,7 @@
 ---
 layout: page
-parent: Paths
 #grand_parent: All Nodes
+parent: Paths
 title: Blend
 subtitle: Blend individual points between from paths' start and end points.
 color: white

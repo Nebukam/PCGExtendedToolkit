@@ -1,7 +1,7 @@
 ---
 layout: page
-parent: Misc
 #grand_parent: All Nodes
+parent: Misc
 title: Refresh Seed
 subtitle: Refreshes point seeds based on their position.
 color: white

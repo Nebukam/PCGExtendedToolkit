@@ -1,7 +1,7 @@
 ---
 layout: page
-parent: Find Node States
 grand_parent: Graphs
+parent: Find Node States
 title: 🝖 Neighbors Count
 subtitle: Check a node' neighbors count
 color: white

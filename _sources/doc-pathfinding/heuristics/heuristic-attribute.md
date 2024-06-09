@@ -1,8 +1,8 @@
 ---
 layout: page
-parent: Heuristics
 grand_parent: Pathfinding
-title: Heuristic Attribute
+parent: 🝰 Heuristics
+title: 🝰 Heuristic Attribute
 subtitle: Attribute-driven heuristics
 #summary: A summary of the informations & parameters available on every PCGEx node.
 splash: icons/icon_component.svg

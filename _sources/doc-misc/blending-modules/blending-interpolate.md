@@ -1,7 +1,7 @@
 ---
 layout: page
-parent: Blending Modules
 grand_parent: Misc
+parent: Blending Modules
 title: Interpolate
 subtitle: Interpolate values between first and last point.
 color: white

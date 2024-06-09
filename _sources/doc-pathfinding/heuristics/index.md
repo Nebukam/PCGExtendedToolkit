@@ -1,7 +1,7 @@
 ---
 layout: page
 parent: Pathfinding
-title: Heuristics
+title: 🝰 Heuristics
 subtitle: An inventory of the available heuristics modules.
 color: white
 #summary: summary_goes_here

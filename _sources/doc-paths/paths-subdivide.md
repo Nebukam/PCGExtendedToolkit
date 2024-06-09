@@ -1,7 +1,7 @@
 ---
 layout: page
-parent: Paths
 #grand_parent: All Nodes
+parent: Paths
 title: Subdivide
 subtitle: Create sub-points between existing points
 color: white

@@ -1,11 +1,11 @@
 ---
 layout: page
-parent: Custom Graphs
 grand_parent: All Nodes
+parent: Custom Graphs
 title: Build Custom Graph
-subtitle: Build a custom graph from a one or multiple params.
+subtitle: Find & build relationships between points.
 color: blue
-#summary: summary_goes_here
+summary: The **Build Custom Graph** node generates connections between points according to a set of rules (Sockets).
 splash: icons/icon_custom-graphs-build.svg
 preview_img: docs/splash-customgraph-build.png
 toc_img: placeholder.jpg

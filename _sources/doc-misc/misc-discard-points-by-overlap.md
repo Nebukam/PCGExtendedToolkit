@@ -1,7 +1,7 @@
 ---
 layout: page
-parent: Misc
 #grand_parent: All Nodes
+parent: Misc
 title: Discard Points by Overlap
 subtitle: Self-pruning but for collections.
 color: white
@@ -12,7 +12,7 @@ toc_img: placeholder.jpg
 tagged: 
     - node
     - misc
-nav_order: 6
+nav_order: 21
 ---
 
 {% include header_card_node %}

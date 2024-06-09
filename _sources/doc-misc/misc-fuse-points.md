@@ -1,7 +1,7 @@
 ---
 layout: page
-parent: Misc
 #grand_parent: All Nodes
+parent: Misc
 title: Fuse Points
 subtitle: Proximity-based point pruning and blending.
 color: white

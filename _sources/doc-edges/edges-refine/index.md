@@ -1,11 +1,11 @@
 ---
 layout: page
-parent: Edges
 #grand_parent: All Nodes
+parent: Edges
 title: Refine
 subtitle: Algorithmic edge refinement
 color: blue
-summary: The **Refine Edges** node allows for algorithmic pruning of edges, in order to enforce specific properties in.
+summary: The **Refine Edges** node allows for algorithmic pruning of edges, in order to enforce specific properties into your graph.
 splash: icons/icon_edges-refine.svg
 preview_img: docs/splash-refining.png
 toc_img: placeholder.jpg

@@ -1,7 +1,7 @@
 ---
 layout: page
-parent: Smooth
 grand_parent: Paths
+parent: Smooth
 title: Radius
 subtitle: Radius & position-based sampling
 color: white

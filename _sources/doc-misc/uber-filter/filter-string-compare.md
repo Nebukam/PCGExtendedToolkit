@@ -1,7 +1,7 @@
 ---
 layout: page
-parent: Uber Filter
 grand_parent: Misc
+parent: Uber Filter
 title: 🝖 Compare (String)
 subtitle: String comparison of two attributes
 color: white

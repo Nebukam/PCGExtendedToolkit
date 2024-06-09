@@ -1,7 +1,7 @@
 ---
 layout: page
-parent: Paths
 #grand_parent: All Nodes
+parent: Paths
 title: Orient
 subtitle: Orient points in relation to their neighbors
 color: white

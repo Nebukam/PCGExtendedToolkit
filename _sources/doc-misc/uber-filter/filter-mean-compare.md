@@ -1,7 +1,7 @@
 ---
 layout: page
-parent: Uber Filter
 grand_parent: Misc
+parent: Uber Filter
 title: 🝖 Compare (Mean)
 subtitle: Compare the mean statistical value of two attributes
 color: white

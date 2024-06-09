@@ -1,7 +1,7 @@
 ---
 layout: page
-parent: Uber Filter
 grand_parent: Misc
+parent: Uber Filter
 title: 🝖 Compare (Numeric)
 subtitle: Numerical comparison of two attributes
 color: white

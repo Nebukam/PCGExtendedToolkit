@@ -1,7 +1,7 @@
 ---
 layout: page
-parent: Smooth
 grand_parent: Paths
+parent: Smooth
 title: Moving Average
 subtitle: Index-based moving-average sampling
 color: white
