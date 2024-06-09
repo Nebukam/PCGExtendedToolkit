@@ -78,7 +78,7 @@ namespace PCGExCluster
 			uint32 NIndex;
 			uint32 EIndex;
 			PCGEx::H64(AdjacencyHash, NIndex, EIndex);
-			if (NIndex == AdjacentNodeIndex) { return Adjacency[EIndex]; }
+			if (NIndex == AdjacentNodeIndex) { return EIndex; }
 		}
 		return -1;
 	}
