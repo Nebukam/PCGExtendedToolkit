@@ -1,4 +1,27 @@
-<div class="card large gradient"><div class="preview" style="--img:url('{{ site.baseurl }}/assets/images/{{ include.page.preview_img }}'); --ico:url('{{ site.baseurl }}/assets/{{ include.page.splash }}');"></div><div class="infos {{ include.page.color | default:'blue' }}" markdown="1">
+{% assign summary_exists = include.page.summary | empty | not %}
+{% assign tagged_node = false %}
+{% assign not_tagged_node = true %}
+{% for tag in include.page.tagged %}
+  {% if tag == 'node' %}
+    {% assign tagged_node = true %}
+    {% assign not_tagged_node = false %}
+  {% endif %}
+{% endfor %}
+
+{% assign no_children = include.page.has_children | not %}
+
+<div class="card large gradient">
+    {% if include.page.use_child_thumbnails %}
+    <div class="previews" style="--ico:url('{{ site.baseurl }}/assets/{{ child.splash }}');">
+        {% assign child_pages = site.pages | where: 'parent', include.page.title %}
+        {% for child in child_pages %}
+            <div class="preview" style="--img:url('{{ site.baseurl }}/assets/images/{{ child.preview_img }}');"></div>
+        {% endfor %}
+    </div>    
+    {% else %}
+    <div class="previews preview" style="--img:url('{{ site.baseurl }}/assets/images/{{ include.page.preview_img }}'); --ico:url('{{ site.baseurl }}/assets/{{ include.page.splash }}');"></div>
+    {% endif %}
+    <div class="infos {{ include.page.color | default:'blue' }}" markdown="1">
 
 {% if include.page.card_url == 'none' %}
 ## {{ include.page.title }}
@@ -8,12 +31,11 @@
 {% endif %}
 {{ include.page.subtitle }}
 {: .fs-5 .fw-300 }
-{% if include.page.summary %}
-<div class="summary-excerpt" markdown="1">
+{% if summary_exists and not_tagged_node %} 
+<div class="summary-excerpt" markdown="1"> 
 {{ include.page.summary }}
 </div>
 {% endif %}
-
 {% if childPage.card_url == 'none' %}
 <a class="link-more {{ include.page.color | default:'blue' }}"><img class="icon" src="{{ site.baseurl }}/assets/{{ include.page.splash | default:'icons/icon_plus.svg'}}"></a>
 {% else %}

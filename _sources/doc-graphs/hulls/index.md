@@ -3,7 +3,7 @@ layout: page
 #grand_parent: All Nodes
 parent: Graphs
 title: Hulls
-subtitle: Classic hull algorithms
+subtitle: Convex hull algorithms
 color: white
 summary: TBD
 splash: icons/icon_misc-write-index.svg
@@ -12,7 +12,9 @@ toc_img: placeholder.jpg
 has_children: true
 tagged: 
     - graphs
+    - node
 nav_order: 10
+use_child_thumbnails: true
 ---
 
 {% include header_card_node %}

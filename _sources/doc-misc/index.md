@@ -8,6 +8,7 @@ splash: icons/icon_cat-custom-graphs.svg
 preview_img: placeholder.jpg
 nav_order: 40
 has_children: true
+use_child_thumbnails: true
 ---
 
 {% include header_card %}

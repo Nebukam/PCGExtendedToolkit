@@ -9,6 +9,7 @@ nav_order: 20
 has_children: true
 tagged:
     - category
+use_child_thumbnails: true
 ---
 
 {% include header_card %}

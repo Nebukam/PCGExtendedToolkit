@@ -7,7 +7,7 @@ subtitle: Self-pruning but for collections.
 color: white
 #summary: summary_goes_here
 splash: icons/icon_misc-discard-by-overlap.svg
-preview_img: docs/splash-discard-by-overlap.png
+preview_img: placeholder.jpg
 toc_img: placeholder.jpg
 tagged: 
     - node

@@ -806,9 +806,13 @@ figure.highlight pre, figure.highlight code { padding: 0; margin: 0; border: 0; 
 
 .card:not(.gradient):before { content: ""; width: 100%; height: 250px; background: var(--img); transition: none; background-size: cover; background-position-x: 50%; background-position-y: 50%; border-radius: 5px 5px 0 0; }
 
-.card .preview { position: relative; display: flex; overflow: clip; width: 100%; height: 250px; background: var(--img); transition: none; background-size: cover; background-position-x: 50%; background-position-y: 50%; border-radius: 5px 5px 0 0; background-image: linear-gradient(to bottom, rgba(48, 45, 54, 0), rgba(48, 45, 54, 0.5)), var(--img); align-items: center; justify-content: center; }
+.card .preview { align-items: center; justify-content: center; background: var(--img); background-size: cover; background-position-x: 50%; background-position-y: 50%; }
 
-.card .preview:before { content: ""; width: 50px; height: 50px; background-size: cover; filter: grayscale(100%); }
+.card .previews { position: relative; display: flex; overflow: clip; width: 100%; height: 250px; transition: none; border-radius: 5px 5px 0 0; background-image: linear-gradient(to bottom, rgba(48, 45, 54, 0), rgba(48, 45, 54, 0.5)), var(--img); }
+
+.card .previews:before { content: ""; width: 50px; height: 50px; background-size: cover; filter: grayscale(100%); position: absolute; }
+
+.card .previews > .preview { flex: auto; }
 
 .card p { color: #959396; }
 

@@ -99,6 +99,18 @@ $cornerr: 5px;
 
     & .preview {
 
+        align-items: center;
+        justify-content: center;
+        
+        background: var(--img);
+
+        background-size: cover;
+        background-position-x: 50%;
+        background-position-y: 50%;
+    }
+        
+    & .previews {
+
         position: relative;
         display: flex;
 
@@ -106,17 +118,11 @@ $cornerr: 5px;
 
         width: 100%;
         height: 250px;
-        background: var(--img);
         transition: none;
-        background-size: cover;
-        background-position-x: 50%;
-        background-position-y: 50%;
+        
         border-radius: $cornerr $cornerr 0 0;
 
         background-image: linear-gradient(to bottom, rgba(48, 45, 54, 0), rgba(48, 45, 54, 0.5)), var(--img);
-
-        align-items: center;
-        justify-content: center;
 
         &:before {
             content: "";
@@ -125,9 +131,15 @@ $cornerr: 5px;
             //background-image: var(--ico);
             background-size: cover;
             filter: grayscale(100%);
+            position:absolute;
+        }
+
+        & >.preview {
+            flex:auto;
         }
 
     }
+
 
     & p {
         color: $grey-dk-000;
