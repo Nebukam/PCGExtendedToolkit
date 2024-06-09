@@ -645,7 +645,7 @@ namespace PCGExCluster
 		const int32 NumNodes = Project.SortedAdjacency.Num();
 		for (int i = 0; i < NumNodes; i++)
 		{
-			const int32 NextIndex = Project.SortedAdjacency[PCGExMath::Tile(StartIndex + i + 1, 0, NumNodes - 1)];
+			const int32 NextIndex = PCGEx::H64A(Project.SortedAdjacency[PCGExMath::Tile(StartIndex + i + 1, 0, NumNodes - 1)]);
 			if ((NextIndex == From && NumNodes > 1) ||
 				Exclusion.Contains(NextIndex) ||
 				Cluster->Nodes[NextIndex].Adjacency.Num() < MinNeighbors) { continue; }
@@ -665,7 +665,7 @@ namespace PCGExCluster
 		const int32 NumNodes = Project.SortedAdjacency.Num();
 		for (int i = 0; i < NumNodes; i++)
 		{
-			const int32 NextIndex = Project.SortedAdjacency[PCGExMath::Tile(StartIndex - i - 1, 0, NumNodes - 1)];
+			const int32 NextIndex = PCGEx::H64A(Project.SortedAdjacency[PCGExMath::Tile(StartIndex - i - 1, 0, NumNodes - 1)]);
 			if ((NextIndex == From && NumNodes > 1) ||
 				Exclusion.Contains(NextIndex) ||
 				Cluster->Nodes[NextIndex].Adjacency.Num() < MinNeighbors) { continue; }
