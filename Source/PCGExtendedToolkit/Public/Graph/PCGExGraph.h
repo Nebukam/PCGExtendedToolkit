@@ -327,7 +327,7 @@ namespace PCGExGraph
 			PointIO = nullptr;
 		}
 
-		void Add(const FIndexedEdge& Edge, FGraph* InGraph);
+		FORCEINLINE void Add(const FIndexedEdge& Edge, FGraph* InGraph);
 		void Invalidate(FGraph* InGraph);
 		int32 GetFirstInIOIndex();
 	};

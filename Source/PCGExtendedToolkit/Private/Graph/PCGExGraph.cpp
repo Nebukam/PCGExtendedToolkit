@@ -159,16 +159,19 @@ namespace PCGExGraph
 
 	void FGraph::BuildSubGraphs(const int32 Min, const int32 Max)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(FGraph::BuildSubGraphs);
+
 		TSet<int32> VisitedNodes;
 		VisitedNodes.Reserve(Nodes.Num());
 
-		for (int i = 0; i < Nodes.Num(); i++)
+		bool bIsAlreadyInSet = false;
+
+		for (int i = 0; i < Nodes.Num(); ++i)
 		{
 			if (VisitedNodes.Contains(i)) { continue; }
 
 			const FNode& CurrentNode = Nodes[i];
-			if (!CurrentNode.bValid || // Points are valid by default, but may be invalidated prior to building the subgraph
-				CurrentNode.Adjacency.IsEmpty())
+			if (!CurrentNode.bValid || CurrentNode.Adjacency.IsEmpty())
 			{
 				VisitedNodes.Add(i);
 				continue;
@@ -176,15 +179,15 @@ namespace PCGExGraph
 
 			FSubGraph* SubGraph = new FSubGraph();
 
-			TQueue<int32> Queue;
-			Queue.Enqueue(i);
+			TArray<int32> Stack;
+			Stack.Reserve(Nodes.Num() - VisitedNodes.Num());
+			Stack.Add(i);
 
-			int32 NextIndex = -1;
-			while (Queue.Dequeue(NextIndex))
+			VisitedNodes.Add(i); // Mark node as visited as soon as it's enqueued
+
+			while (Stack.Num() > 0)
 			{
-				if (VisitedNodes.Contains(NextIndex)) { continue; }
-				VisitedNodes.Add(NextIndex);
-
+				const int32 NextIndex = Stack.Pop(false);
 				FNode& Node = Nodes[NextIndex];
 				Node.NumExportedEdges = 0;
 
@@ -198,7 +201,9 @@ namespace PCGExGraph
 
 					Node.NumExportedEdges++;
 					SubGraph->Add(Edge, this);
-					if (!VisitedNodes.Contains(OtherIndex)) { Queue.Enqueue(OtherIndex); }
+
+					VisitedNodes.Add(OtherIndex, &bIsAlreadyInSet);
+					if (!bIsAlreadyInSet) { Stack.Add(OtherIndex); } // Only enqueue if not already visited
 				}
 			}
 
@@ -270,7 +275,7 @@ namespace PCGExGraphTask
 
 		TArray<PCGExGraph::FNode>& Nodes = Builder->Graph->Nodes;
 		TArray<int32> ValidNodes;
-		ValidNodes.Reserve(Builder->Graph->Nodes.Num());
+		ValidNodes.Reserve(Nodes.Num());
 
 		if (Builder->bPrunePoints)
 		{
@@ -371,6 +376,7 @@ Writer->BindAndSetNumUninitialized(*PointIO);\
 
 			const int64 ClusterId = EdgeIO->GetOut()->UID;
 			SubGraph->PointIO = EdgeIO;
+			Manager->Start<FWriteSubGraphEdges>(SubGraphIndex++, PointIO, Builder->Graph, SubGraph, MetadataSettings);
 
 			EdgeIO->Tags->Set(PCGExGraph::TagStr_ClusterPair, Builder->PairIdStr);
 			PCGExData::WriteMark(EdgeIO->GetOut()->Metadata, PCGExGraph::Tag_ClusterId, ClusterId);
@@ -382,7 +388,6 @@ Writer->BindAndSetNumUninitialized(*PointIO);\
 				NumClusterIdWriter->Values[Builder->Graph->Nodes[Edge.End].PointIndex] = ClusterId;
 			}
 
-			Manager->Start<FWriteSubGraphEdges>(SubGraphIndex++, PointIO, Builder->Graph, SubGraph, MetadataSettings);
 			//WriteSubGraphEdges(PointIO->GetOut()->GetPoints(), Builder->Graph, SubGraph, MetadataSettings);
 		}
 

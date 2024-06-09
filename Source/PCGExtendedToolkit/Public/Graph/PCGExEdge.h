@@ -98,7 +98,7 @@ namespace PCGExGraph
 
 		bool Contains(const int32 InIndex) const { return Start == InIndex || End == InIndex; }
 
-		uint32 Other(const int32 InIndex) const
+		FORCEINLINE uint32 Other(const int32 InIndex) const
 		{
 			check(InIndex == Start || InIndex == End)
 			return InIndex == Start ? End : Start;
