@@ -149,9 +149,9 @@ namespace PCGExGeo
 				const int32* BPtr = IndexedUniquePositions.Find(VB);
 				const int32* CPtr = IndexedUniquePositions.Find(VC);
 
-				const uint32 A = APtr ? *APtr : IndexedUniquePositions.FindOrAdd(VA, Idx++);
-				const uint32 B = BPtr ? *BPtr : IndexedUniquePositions.FindOrAdd(VB, Idx++);
-				const uint32 C = CPtr ? *CPtr : IndexedUniquePositions.FindOrAdd(VC, Idx++);
+				const uint32 A = APtr ? *APtr : IndexedUniquePositions.Add(VA, Idx++);
+				const uint32 B = BPtr ? *BPtr : IndexedUniquePositions.Add(VB, Idx++);
+				const uint32 C = CPtr ? *CPtr : IndexedUniquePositions.Add(VC, Idx++);
 
 				Edges.Add(PCGEx::H64U(A, B));
 				Edges.Add(PCGEx::H64U(B, C));
@@ -199,9 +199,9 @@ namespace PCGExGeo
 				const int32* BPtr = IndexedUniquePositions.Find(VB);
 				const int32* CPtr = IndexedUniquePositions.Find(VC);
 
-				const uint32 A = APtr ? *APtr : IndexedUniquePositions.FindOrAdd(VA, Idx++);
-				const uint32 B = BPtr ? *BPtr : IndexedUniquePositions.FindOrAdd(VB, Idx++);
-				const uint32 C = CPtr ? *CPtr : IndexedUniquePositions.FindOrAdd(VC, Idx++);
+				const uint32 A = APtr ? *APtr : IndexedUniquePositions.Add(VA, Idx++);
+				const uint32 B = BPtr ? *BPtr : IndexedUniquePositions.Add(VB, Idx++);
+				const uint32 C = CPtr ? *CPtr : IndexedUniquePositions.Add(VC, Idx++);
 
 				const uint64 AB = PCGEx::H64U(A, B);
 				const uint64 BC = PCGEx::H64U(B, C);
@@ -221,13 +221,13 @@ namespace PCGExGeo
 
 				Triangles[TriangleIndex++] = FIntVector3(A, B, C);
 
-				if (AdjacencyABPtr) { EdgeAdjacency.Add(AB, PCGEx::NH64(TriangleIndex, PCGEx::H64B(*AdjacencyABPtr))); }
+				if (AdjacencyABPtr) { EdgeAdjacency.Add(AB, PCGEx::NH64(TriangleIndex, PCGEx::NH64B(*AdjacencyABPtr))); }
 				else { EdgeAdjacency.Add(AB, PCGEx::NH64(-1, TriangleIndex)); }
 
-				if (AdjacencyBCPtr) { EdgeAdjacency.Add(BC, PCGEx::NH64(TriangleIndex, PCGEx::H64B(*AdjacencyBCPtr))); }
+				if (AdjacencyBCPtr) { EdgeAdjacency.Add(BC, PCGEx::NH64(TriangleIndex, PCGEx::NH64B(*AdjacencyBCPtr))); }
 				else { EdgeAdjacency.Add(BC, PCGEx::NH64(-1, TriangleIndex)); }
 
-				if (AdjacencyACPtr) { EdgeAdjacency.Add(AC, PCGEx::NH64(TriangleIndex, PCGEx::H64B(*AdjacencyACPtr))); }
+				if (AdjacencyACPtr) { EdgeAdjacency.Add(AC, PCGEx::NH64(TriangleIndex, PCGEx::NH64B(*AdjacencyACPtr))); }
 				else { EdgeAdjacency.Add(AC, PCGEx::NH64(-1, TriangleIndex)); }
 			}
 

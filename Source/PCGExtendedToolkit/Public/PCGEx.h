@@ -331,7 +331,7 @@ namespace PCGEx
 	}
 
 	// Unsigned uint64 hash
-	FORCEINLINE static uint64 NH64NOT(const uint64 Hash, const int32 Not)
+	FORCEINLINE static int32 NH64NOT(const uint64 Hash, const int32 Not)
 	{
 		const int32 A = static_cast<int32>(static_cast<uint32>(Hash >> 32)) - 1;
 		return A == Not ? static_cast<int32>(static_cast<uint32>(Hash)) - 1 : A;
@@ -339,11 +339,14 @@ namespace PCGEx
 
 	// Signed uint64 hash
 	FORCEINLINE static uint64 H64(const uint32 A, const uint32 B) { return static_cast<uint64>(A) << 32 | B; }
-	FORCEINLINE static uint64 NH64(const uint32 A, const uint32 B) { return static_cast<uint64>(A + 1) << 32 | (B + 1); }
+	FORCEINLINE static uint64 NH64(const int32 A, const int32 B) { return static_cast<uint64>(A + 1) << 32 | (B + 1); }
 
 	// Expand uint64 hash
 	FORCEINLINE static uint32 H64A(const uint64 Hash) { return static_cast<uint32>(Hash >> 32); }
 	FORCEINLINE static uint32 H64B(const uint64 Hash) { return static_cast<uint32>(Hash); }
+
+	FORCEINLINE static uint32 NH64A(const uint64 Hash) { return static_cast<int32>(static_cast<uint32>(Hash >> 32)) - 1; }
+	FORCEINLINE static uint32 NH64B(const uint64 Hash) { return static_cast<int32>(static_cast<uint32>(Hash)) - 1; }
 
 	FORCEINLINE static void H64(const uint64 Hash, uint32& A, uint32& B)
 	{
