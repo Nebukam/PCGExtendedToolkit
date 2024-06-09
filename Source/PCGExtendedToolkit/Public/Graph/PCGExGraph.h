@@ -578,6 +578,7 @@ namespace PCGExGraphTask
 		TArray<FPCGPoint>& MutablePoints = EdgeIO.GetOut()->GetMutablePoints();
 
 		int32 PointIndex = 0;
+
 		if (EdgeIO.GetIn())
 		{
 			TRACE_CPUPROFILER_EVENT_SCOPE(FWriteSubGraphEdges::GatherPreExistingPoints);
@@ -588,22 +589,13 @@ namespace PCGExGraphTask
 			for (const int32 EdgeIndex : SubGraph->Edges)
 			{
 				const int32 EdgePtIndex = Graph->Edges[EdgeIndex].PointIndex;
-				if (InPoints.IsValidIndex(EdgePtIndex)) { MutablePoints[PointIndex] = InPoints[EdgePtIndex]; }
-				PointIndex++;
+				if (InPoints.IsValidIndex(EdgePtIndex)) { MutablePoints[PointIndex++] = InPoints[EdgePtIndex]; }
 			}
 
-			UPCGMetadata* Metadata = EdgeIO.GetOut()->Metadata;
-			for (int i = PointIndex; i < SubGraph->Edges.Num(); i++)
-			{
-				FPCGPoint& NewPoint = MutablePoints[i] = FPCGPoint();
-				Metadata->InitializeOnSet(NewPoint.MetadataEntry);
-			}
-		}
-		else
-		{
-			EdgeIO.SetNumInitialized(SubGraph->Edges.Num(), true);
+			for (int i = PointIndex; i < SubGraph->Edges.Num(); i++) { MutablePoints[i] = FPCGPoint(); }
 		}
 
+		EdgeIO.SetNumInitialized(SubGraph->Edges.Num(), true);
 
 		EdgeIO.CreateOutKeys();
 
