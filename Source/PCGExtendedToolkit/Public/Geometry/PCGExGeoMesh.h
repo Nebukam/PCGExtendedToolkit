@@ -219,7 +219,7 @@ namespace PCGExGeo
 				const uint64* AdjacencyBCPtr = EdgeAdjacency.Find(BC);
 				const uint64* AdjacencyACPtr = EdgeAdjacency.Find(AC);
 
-				Triangles[TriangleIndex++] = FIntVector3(A, B, C);
+				Triangles[TriangleIndex] = FIntVector3(A, B, C);
 
 				if (AdjacencyABPtr) { EdgeAdjacency.Add(AB, PCGEx::NH64(TriangleIndex, PCGEx::NH64B(*AdjacencyABPtr))); }
 				else { EdgeAdjacency.Add(AB, PCGEx::NH64(-1, TriangleIndex)); }
@@ -229,6 +229,8 @@ namespace PCGExGeo
 
 				if (AdjacencyACPtr) { EdgeAdjacency.Add(AC, PCGEx::NH64(TriangleIndex, PCGEx::NH64B(*AdjacencyACPtr))); }
 				else { EdgeAdjacency.Add(AC, PCGEx::NH64(-1, TriangleIndex)); }
+
+				TriangleIndex++;
 			}
 
 			int32 ENum = EdgeAdjacency.Num();
