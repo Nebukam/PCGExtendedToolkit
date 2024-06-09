@@ -56,7 +56,7 @@ void UPCGExEdgeRefinePrimMST::Process(
 			if (Score >= ScoredQueue->Scores[NeighborIndex]) { continue; }
 
 			ScoredQueue->Scores[NeighborIndex] = Score;
-			Parent[NeighborIndex] = AdjacencyHash;
+			Parent[NeighborIndex] = PCGEx::H64(CurrentNodeIndex, EdgeIndex);
 
 			ScoredQueue->Enqueue(NeighborIndex, Score);
 		}
@@ -66,6 +66,7 @@ void UPCGExEdgeRefinePrimMST::Process(
 	{
 		uint32 NeighborIndex;
 		uint32 EdgeIndex;
+		
 		PCGEx::H64(Parent[i], NeighborIndex, EdgeIndex);
 
 		if (NeighborIndex == i) { continue; }
