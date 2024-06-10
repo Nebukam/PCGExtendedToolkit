@@ -13,6 +13,14 @@ tagged:
     - node
     - misc
 nav_order: 10
+inputs:
+    -   name : In
+        desc : Points to break into partition
+        pin : point
+outputs:
+    -   name : Out
+        desc : Partitioned points. If split output is enabled, outputs one point data per partition.
+        pin : points
 ---
 
 {% include header_card_node %}

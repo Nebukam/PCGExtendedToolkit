@@ -14,6 +14,17 @@ tagged:
     - node
     - misc
 nav_order: 1
+inputs:
+    -   name : In
+        desc : Points to sort
+        pin : points
+    -   name : Sorting Rules
+        desc : Sorting rules to be processed. They will be sorted by their individual priorities.
+        pin : params
+outputs:
+    -   name : Out
+        desc : Sorted points
+        pin : points
 ---
 
 {% include header_card_node %}

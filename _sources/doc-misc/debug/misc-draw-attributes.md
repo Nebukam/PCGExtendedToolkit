@@ -13,6 +13,14 @@ tagged:
     - node
     - misc
 nav_order: 4
+inputs:
+    -   name : In
+        desc : Points to read & draw attributes from
+        pin : points
+outputs:
+    -   name : Out
+        desc : Unaltered inputs
+        pin : points
 ---
 
 {% include header_card_node %}

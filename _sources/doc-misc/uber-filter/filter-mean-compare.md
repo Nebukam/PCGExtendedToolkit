@@ -14,6 +14,14 @@ tagged:
     - filter
     - misc
 nav_order: 7
+inputs:
+    -   name : None
+        desc : 
+        pin : 
+outputs:
+    -   name : Filter
+        desc : A single filter
+        pin : params
 ---
 
 {% include header_card_node %}

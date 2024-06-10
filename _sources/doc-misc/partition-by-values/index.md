@@ -14,6 +14,17 @@ tagged:
     - node
     - misc
 nav_order: 2
+inputs:
+    -   name : In
+        desc : Points to break into partition
+        pin : point
+    -   name : Partition Rules
+        desc : Partition rules to be processed
+        pin : params
+outputs:
+    -   name : Out
+        desc : Partitioned points. If split output is enabled, outputs one point data per partition.
+        pin : points
 ---
 
 {% include header_card_node %}

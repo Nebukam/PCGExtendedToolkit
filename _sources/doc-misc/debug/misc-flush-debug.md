@@ -13,6 +13,14 @@ tagged:
     - node
     - misc
 nav_order: 1
+inputs:
+    -   name : In
+        desc : Anything
+        pin : points
+outputs:
+    -   name : Out
+        desc : Unaltered (gathered) inputs
+        pin : points
 ---
 
 {% include header_card %}

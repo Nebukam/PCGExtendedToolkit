@@ -9,6 +9,7 @@ splash: icons/icon_sampling-point.svg
 preview_img: docs/splash-fuse-points.png
 nav_order: 10
 has_children: true
+nav_exclude: true
 tagged: 
     - module
 ---
