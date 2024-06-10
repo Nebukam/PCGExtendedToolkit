@@ -1,9 +1,31 @@
 {% include header_card %}
-
+{% if page.inputs or page.outputs %}
+<div class="node-io">
+    {% if page.inputs %}
+    <div class="col inputs">
+    {% for io in page.inputs %}
+        <div class="pin"><div class="title"><img class="icon" src="{{ site.baseurl }}/assets/icons/icon_{{ io.pin }}.svg">{{io.name}}</div><div class="desc">{{io.desc}}</div></div>
+    {% endfor %}
+    </div>
+    {% endif %}
+    {% if page.outputs %}
+    <div class="col outputs">
+    {% for io in page.outputs %}
+        <div class="pin"><div class="title"><img class="icon" src="{{ site.baseurl }}/assets/icons/icon_{{ io.pin }}.svg">{{io.name}}</div><div class="desc">{{io.desc}}</div></div>
+    {% endfor %}
+    </div>
+    {% endif %}
+</div>
 {% if page.example %}
 <span class="example">★</span> See Example Project @ **{{ page.example }}**
 {% endif %}
-
+---
+{% else %}
+{% if page.example %}
+<span class="example">★</span> See Example Project @ **{{ page.example }}**
+---
+{% endif %}
+{% endif %}
 {% if page.see_also %}
 #### Related
 {: .no_toc }

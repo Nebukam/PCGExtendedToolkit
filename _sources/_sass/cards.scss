@@ -154,7 +154,20 @@ $cornerr: 5px;
         display: none !important;
     }
 
+    & .childCounter{
+        position: absolute;
+        color: #ffffff;
+        background-color: #ec1e79;
+        margin: 10px;
+        padding: 1px 10px;
+        border-radius: 3px;
+        font-weight: bold;
+        bottom: 22px;
+        right: 0px;
+    }
 }
+
+
 
 .product-header {
 
@@ -247,6 +260,94 @@ $cornerr: 5px;
         //flex:1 1 25%;
     }
 
+}
+
+.node-io{
+    display: flex;
+    flex-direction: row;
+    align-content: flex-start;
+    justify-content: flex-start;
+    flex-wrap: nowrap;
+    align-items: flex-start;
+    gap:10px;
+    margin-bottom: 40px;
+
+    & .col{
+
+        &::before {
+            content:"→ Inputs";
+            font-size: 1em;
+            transform: translateY(-128%);
+            position: absolute;
+            opacity: 0.2;
+        }
+
+        display: flex;
+        flex: 1 1 auto;
+        padding: 16px;
+        padding-top: calc(1em + 20px);
+        background-color: #212025;
+        border-radius: 5px;
+        font-size: 80%;
+        gap: 10px;
+        flex-direction: column;
+
+
+        & .pin{
+
+            display: flex;
+            flex-direction: column;
+            flex-wrap: nowrap;
+
+            & .title{
+                
+                display:flex;
+
+                & .icon{
+                    margin-right: 10px;
+                }
+            }
+
+            & .desc{
+                padding-top: 5px;
+                font-size: 90%;
+                opacity: 0.5;
+            }
+
+            & .icon{
+                width: 20px;
+                height: 20px;
+            }
+
+        }      
+    }
+
+    & .outputs{
+
+        &::before {
+            content:"Outputs →";
+        }
+
+        text-align: right;
+        align-items: flex-end;
+
+        & .pin{
+
+            & .title{
+                flex-direction: row-reverse;
+
+                & .icon{
+                    margin-right: 0;
+                    margin-left: 10px;
+                }
+            }
+
+            & .desc{
+                text-align: right;
+            }
+        }
+            
+    }
 }
 
 blockquote {

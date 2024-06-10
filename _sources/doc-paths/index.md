@@ -13,8 +13,11 @@ tagged:
 
 {% include header_card %}
 
-> This section contains path-like data utilities.  
-> **Paths are assumed to be a linearily-ordered list of points; most likely used to generate a spline.** 
+This section contains path-like data utilities.  
+
+> **Paths are assumed to be a linearily-ordered list of points; most likely used to generate a spline.**
+> However, they work on very much any point cloud -- so don't be afraid to try the unexpected!
+{: .infos-hl }
 
 ---
 ## Paths Nodes

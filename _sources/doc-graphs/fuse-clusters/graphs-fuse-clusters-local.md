@@ -15,6 +15,20 @@ tagged:
 see_also:
     - Working with Graphs
 nav_order: 10
+inputs:
+    -   name : Vtx
+        desc : Endpoints of the input Edges
+        pin : points
+    -   name : Edges
+        desc : Edges associated with the input Vtxs
+        pin : points
+outputs:
+    -   name : Vtx
+        desc : Endpoints of the output Edges
+        pin : points
+    -   name : Edges
+        desc : Edges associated with the output Vtxs
+        pin : points
 ---
 
 {% include header_card_node %}

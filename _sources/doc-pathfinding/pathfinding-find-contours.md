@@ -1,7 +1,7 @@
 ---
 layout: page
 #grand_parent: All Nodes
-parent: Edges
+parent: Pathfinding
 title: Find Contours
 subtitle: Find edge contours & outlines
 color: white
@@ -19,3 +19,6 @@ nav_order: 4
 
 > DOC TDB
 {: .warning }
+
+{% include embed id='settings-projection' %}
+{% include embed id='settings-performance' %}

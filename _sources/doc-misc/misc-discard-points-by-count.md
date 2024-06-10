@@ -7,7 +7,7 @@ subtitle: Filter point dataset by their point count.
 color: white
 #summary: summary_goes_here
 splash: icons/icon_misc-discard-by-count.svg
-preview_img: docs/splash-discard-by-count.png
+preview_img: placeholder.jpg
 toc_img: placeholder.jpg
 tagged: 
     - node

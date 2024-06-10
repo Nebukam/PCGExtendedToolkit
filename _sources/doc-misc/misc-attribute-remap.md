@@ -12,6 +12,17 @@ toc_img: placeholder.jpg
 tagged: 
     - node
     - misc
+inputs:
+    -   name : In
+        desc : That's an input
+        pin : points
+    -   name : In
+        desc : That's an input
+        pin : point
+outputs:
+    -   name : In
+        desc : That's an input
+        pin : params
 nav_order: 3
 ---
 

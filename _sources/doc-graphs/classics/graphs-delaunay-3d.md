@@ -16,11 +16,24 @@ nav_order: 2
 see_also:
     - Working with Graphs
 example: EdgesAndGraphs/PCGEx_Graph_Delaunay-3D
+inputs:
+    -   name : In
+        desc : Points clouds that will be triangulated
+        pin : points
+outputs:
+    -   name : Vtx
+        desc : Endpoints of the output Edges
+        pin : points
+    -   name : Edges
+        desc : Edges associated with the output Vtxs
+        pin : points
 ---
 
 {% include header_card_node %}
 
 {% include img a='details/details-delaunay-3d.png' %} 
+
+> If you'd like to know more about Delaunay intrinsic properties, check out the [Wikipedia article](https://en.wikipedia.org/wiki/Delaunay_triangulation)!
 
 | Property       | Description          |
 |:-------------|:------------------|

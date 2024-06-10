@@ -15,6 +15,17 @@ tagged:
 nav_order: 1
 see_also:
     - Working with Graphs
+inputs:
+    -   name : In
+        desc : Points clouds that will be triangulated
+        pin : points
+outputs:
+    -   name : Vtx
+        desc : Endpoints of the output Edges
+        pin : points
+    -   name : Edges
+        desc : Edges associated with the output Vtxs
+        pin : points
 ---
 
 {% include header_card_node %}

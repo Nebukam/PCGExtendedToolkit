@@ -15,6 +15,17 @@ tagged:
 see_also:
     - Working with Graphs
 nav_order: 3
+inputs:
+    -   name : In Targets
+        desc : Target points to copy mesh cluster to.
+        pin : point
+outputs:
+    -   name : Vtx
+        desc : Endpoints of the output Edges
+        pin : points
+    -   name : Edges
+        desc : Edges associated with the output Vtxs
+        pin : points
 ---
 
 > DOC TDB

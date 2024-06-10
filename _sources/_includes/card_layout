@@ -9,12 +9,14 @@
 {% endfor %}
 
 {% assign no_children = include.page.has_children | not %}
+{% assign count = 0 %}
 
 <div class="card large gradient">
     {% if include.page.use_child_thumbnails %}
     <div class="previews" style="--ico:url('{{ site.baseurl }}/assets/{{ child.splash }}');">
         {% assign child_pages = site.pages | where: 'parent', include.page.title %}
         {% for child in child_pages %}
+            {% assign count = count | plus: 1 %}
             <div class="preview" style="--img:url('{{ site.baseurl }}/assets/images/{{ child.preview_img }}');"></div>
         {% endfor %}
     </div>    
@@ -24,9 +26,9 @@
     <div class="infos {{ include.page.color | default:'blue' }}" markdown="1">
 
 {% if include.page.card_url == 'none' %}
-## {{ include.page.title }}
+## {{ include.page.title }} {% if count > 0 %}· {{ count }}{% endif %}
 {% else %}
-## [{{ include.page.title }}]({{ include.lk }})
+## [{{ include.page.title }}]({{ include.lk }}) {% if count > 0 %}· {{ count }}{% endif %}
 {: .no_toc }
 {% endif %}
 {{ include.page.subtitle }}
