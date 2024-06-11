@@ -67,18 +67,13 @@ bool FPCGExPathfindingEdgesElement::ExecuteInternal(FPCGContext* InContext) cons
 		if (!Context->AdvancePointsIO()) { Context->Done(); }
 		else
 		{
-			if (!Context->TaggedEdges)
-			{
-				PCGE_LOG(Warning, GraphAndLog, FTEXT("Some input points have no associated edges."));
-				Context->SetState(PCGExMT::State_ReadyForNextPoints);
-			}
-			else
-			{
-				PCGEX_DELETE_TARRAY(Context->PathBuffer)
+			if (!Context->TaggedEdges){ return false; }
+			
+			PCGEX_DELETE_TARRAY(Context->PathBuffer)
 
-				Context->GoalPicker->PrepareForData(*Context->SeedsPoints, *Context->GoalsPoints);
-				Context->SetState(PCGExMT::State_ProcessingPoints);
-			}
+			Context->GoalPicker->PrepareForData(*Context->SeedsPoints, *Context->GoalsPoints);
+			Context->SetState(PCGExMT::State_ProcessingPoints);
+			
 		}
 	}
 

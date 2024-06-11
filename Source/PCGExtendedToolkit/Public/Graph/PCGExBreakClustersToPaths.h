@@ -26,8 +26,8 @@ public:
 
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(BreakClustersToPaths, "Pathfinding : Find Contours", "Attempts to find a closed contour of connected edges around seed points.");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExEditorSettings>()->NodeColorPathfinding; }
+	PCGEX_NODE_INFOS(BreakClustersToPaths, "Graph : Break Clusters to Paths", "Create individual paths from continuous edge chains.");
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExEditorSettings>()->NodeColorGraph; }
 #endif
 
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
@@ -40,13 +40,26 @@ protected:
 	//~Begin UPCGExPointsProcessorSettings interface
 public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
+	virtual PCGExData::EInit GetEdgeOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings interface
 
-	virtual PCGExData::EInit GetEdgeOutputInitMode() const override;
+	virtual FName GetVtxFilterLabel() const override;
 
 	/** Operation target mode */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExBreakClusterOperationTarget OperateOn;
+
+	/** Do not output paths that have less points that this value */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=1))
+	int32 MinPointCount = 1;
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bOmitAbovePointCount = false;
+
+	/** Do not output paths that have more points that this value */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bOmitAbovePointCount", ClampMin=1))
+	int32 MaxPointCount = 500;
 
 private:
 	friend class FPCGExBreakClustersToPathsElement;
@@ -58,13 +71,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBreakClustersToPathsContext : public FPCGExE
 
 	virtual ~FPCGExBreakClustersToPathsContext() override;
 
-	TArray<UPCGExFilterFactoryBase*> PointFilterFactories;
-	PCGExDataFilter::TEarlyExitFilterManager* PointFilterManager = nullptr;
-
 	PCGExData::FPointIOCollection* Paths = nullptr;
-	
+
 	TArray<PCGExCluster::FNodeChain*> Chains;
-	
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExBreakClustersToPathsElement : public FPCGExEdgesProcessorElement
@@ -84,7 +93,7 @@ class PCGEXTENDEDTOOLKIT_API FPCGExBreakClusterTask : public FPCGExNonAbandonabl
 {
 public:
 	FPCGExBreakClusterTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-	                      PCGExCluster::FCluster* InCluster) :
+	                       PCGExCluster::FCluster* InCluster) :
 		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
 		Cluster(InCluster)
 	{

@@ -83,12 +83,7 @@ bool FPCGExFilterClustersElement::ExecuteInternal(
 	{
 		while (Context->AdvancePointsIO())
 		{
-			if (!Context->TaggedEdges)
-			{
-				PCGE_LOG(Warning, GraphAndLog, FTEXT("Some input points have no associated edges."));
-				Context->SetState(PCGExMT::State_ReadyForNextPoints);
-				continue;
-			}
+			if (!Context->TaggedEdges) { continue; }
 
 			Context->CurrentEdgeMap = new TSet<int32>();
 			Context->VtxEdgeMap.Add(Context->CurrentIO->IOIndex, Context->CurrentEdgeMap);

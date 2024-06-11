@@ -36,7 +36,6 @@ bool FPCGExSimplifyClustersElement::Boot(FPCGContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(SimplifyClusters)
 
 	Context->GraphBuilderSettings.bPruneIsolatedPoints = true;
-
 	Context->FixedDotThreshold = PCGExMath::DegreesToDot(Settings->AngularThreshold);
 
 	return true;
@@ -90,6 +89,7 @@ bool FPCGExSimplifyClustersElement::ExecuteInternal(FPCGContext* InContext) cons
 		Context->GetAsyncManager()->Start<PCGExClusterTask::FFindNodeChains>(
 			Context->CurrentEdges->IOIndex, nullptr, Context->CurrentCluster,
 			&Context->VtxFilterResults, &Context->Chains, true, Settings->bOperateOnDeadEndsOnly);
+		
 		Context->SetAsyncState(PCGExCluster::State_BuildingChains);
 	}
 

@@ -105,15 +105,8 @@ bool FPCGExPathfindingPlotEdgesElement::ExecuteInternal(FPCGContext* InContext) 
 		if (!Context->AdvancePointsIO()) { Context->Done(); }
 		else
 		{
-			if (!Context->TaggedEdges)
-			{
-				PCGE_LOG(Warning, GraphAndLog, FTEXT("Some input points have no associated edges."));
-				Context->SetState(PCGExMT::State_ReadyForNextPoints);
-			}
-			else
-			{
-				Context->SetState(PCGExGraph::State_ReadyForNextEdges);
-			}
+			if (!Context->TaggedEdges) { return false; }
+			Context->SetState(PCGExGraph::State_ReadyForNextEdges);			
 		}
 	}
 

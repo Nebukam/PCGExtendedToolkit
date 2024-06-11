@@ -108,6 +108,9 @@ bool FPCGExEdgesProcessorContext::AdvancePointsIO()
 		CurrentIO->CreateInKeys();
 		ProjectionSettings.Init(CurrentIO);
 		PCGExGraph::BuildEndpointsLookup(*CurrentIO, EndpointsLookup, EndpointsAdjacency);
+	}else
+	{
+		PCGE_LOG_C(Warning, GraphAndLog, this, FTEXT("Some input vtx have no associated edges."));
 	}
 
 	return true;

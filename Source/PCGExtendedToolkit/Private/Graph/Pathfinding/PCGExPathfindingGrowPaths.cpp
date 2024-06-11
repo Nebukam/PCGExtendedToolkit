@@ -309,11 +309,7 @@ bool FPCGExPathfindingGrowPathsElement::ExecuteInternal(FPCGContext* InContext) 
 		if (!Context->AdvancePointsIO()) { Context->Done(); }
 		else
 		{
-			if (!Context->TaggedEdges)
-			{
-				PCGE_LOG(Warning, GraphAndLog, FTEXT("Some input points have no associated edges."));
-				return false;
-			}
+			if (!Context->TaggedEdges){ return false; }
 
 			if (Settings->NumIterations == EPCGExGrowthValueSource::VtxAttribute)
 			{

@@ -66,12 +66,7 @@ bool FPCGExPackClustersElement::ExecuteInternal(
 	{
 		while (Context->AdvancePointsIO())
 		{
-			if (!Context->TaggedEdges)
-			{
-				PCGE_LOG(Warning, GraphAndLog, FTEXT("Some input points have no associated edges."));
-				Context->SetState(PCGExMT::State_ReadyForNextPoints);
-				return false;
-			}
+			if (!Context->TaggedEdges) { return false; }
 
 			for (PCGExData::FPointIO* EdgeIO : Context->TaggedEdges->Entries)
 			{
