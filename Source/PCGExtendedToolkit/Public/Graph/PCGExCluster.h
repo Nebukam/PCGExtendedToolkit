@@ -421,33 +421,32 @@ namespace PCGExClusterTask
 		const TArray<bool>* Breakpoints,
 		const PCGExCluster::FCluster* Cluster)
 	{
-		int32 NextNodeIndex = Chain->Last;
 		int32 LastIndex = Chain->First;
+		int32 NextIndex = Chain->Last;
+		Chain->Edges.Add(Cluster->Nodes[LastIndex].GetEdgeIndex(NextIndex));
 
-		while (NextNodeIndex != -1)
+		while (NextIndex != -1)
 		{
-			const PCGExCluster::FNode& NextNode = Cluster->Nodes[NextNodeIndex];
-			if ((*Breakpoints)[NextNodeIndex] || NextNode.Adjacency.Num() > 2 || NextNode.Adjacency.Num() == 1)
+			const PCGExCluster::FNode& NextNode = Cluster->Nodes[NextIndex];
+			if ((*Breakpoints)[NextIndex] || NextNode.IsComplex() || NextNode.IsDeadEnd())
 			{
-				LastIndex = NextNodeIndex;
+				LastIndex = NextIndex;
 				break;
 			}
-			
+
 			uint32 OtherIndex;
 			uint32 EdgeIndex;
-			PCGEx::H64(NextNode.Adjacency[0], OtherIndex, EdgeIndex); // Get next node
+			PCGEx::H64(NextNode.Adjacency[0], OtherIndex, EdgeIndex);                                  // Get next node
 			if (OtherIndex == LastIndex) { PCGEx::H64(NextNode.Adjacency[1], OtherIndex, EdgeIndex); } // Get other next
 
-			LastIndex = NextNodeIndex;
-			NextNodeIndex = OtherIndex;
-			
+			LastIndex = NextIndex;
+			NextIndex = OtherIndex;
+
 			Chain->Nodes.Add(LastIndex);
 			Chain->Edges.Add(EdgeIndex);
-
 		}
 
 		Chain->Last = LastIndex;
-		
 	}
 
 	static void DedupeChains(TArray<PCGExCluster::FNodeChain*>& InChains)

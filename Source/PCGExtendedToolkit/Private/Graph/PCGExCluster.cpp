@@ -875,13 +875,10 @@ namespace PCGExClusterTask
 		{
 			if (Node.IsSimple()) { continue; }
 
-			const bool bIsDeadEnd = Node.IsDeadEnd();
-			const bool bIsBreakpoint = (*Breakpoints)[Node.NodeIndex];
-
 			const bool bIsValidStartNode =
 				bDeadEndsOnly ?
-					bIsDeadEnd && !bIsBreakpoint :
-					(bIsDeadEnd || bIsBreakpoint || Node.IsComplex());
+					Node.IsDeadEnd() && !(*Breakpoints)[Node.NodeIndex] :
+					(Node.IsDeadEnd() || (*Breakpoints)[Node.NodeIndex] || Node.IsComplex());
 
 			if (!bIsValidStartNode) { continue; }
 
@@ -895,13 +892,10 @@ namespace PCGExClusterTask
 				if (bIsAlreadyIgnored) { continue; }
 
 				const PCGExCluster::FNode& OtherNode = Cluster->Nodes[OtherNodeIndex];
-				const bool bIsOtherDeadEnd = OtherNode.IsDeadEnd();
-				const bool bIsOtherBreakpoint = (*Breakpoints)[OtherNode.NodeIndex];
 
-				if (bIsOtherBreakpoint || bIsOtherDeadEnd || OtherNode.IsComplex())
+				if ((*Breakpoints)[OtherNode.NodeIndex] || OtherNode.IsDeadEnd() || OtherNode.IsComplex())
 				{
-					// That's a single edge
-					
+					// Single edge chain					
 					if (bSkipSingleEdgeChains) { continue; }
 
 					PCGExCluster::FNodeChain* NewChain = new PCGExCluster::FNodeChain();

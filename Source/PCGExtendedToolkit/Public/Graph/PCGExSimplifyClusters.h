@@ -39,15 +39,15 @@ public:
 	bool bOperateOnDeadEndsOnly = false;
 
 	/**  */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bMergeAboveAngularThreshold = false;
 
 	/** If enabled, uses an angular threshold below which nodes are merged. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bMergeAboveAngularThreshold", Units="Degrees", ClampMin=0, ClampMax=180))
 	double AngularThreshold = 10;
-	
+
 	/** If enabled, prune dead ends. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="!bOperateOnDeadEndsOnly"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bPruneDeadEnds = false;
 };
 
@@ -59,9 +59,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSimplifyClustersContext : public FPCGExEdges
 	virtual ~FPCGExSimplifyClustersContext() override;
 
 	virtual bool DefaultVtxFilterResult() const override;
-	
+
 	double FixedDotThreshold = 0;
-	
+
 	FPCGExGraphBuilderSettings GraphBuilderSettings;
 	PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
 
