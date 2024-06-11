@@ -68,12 +68,14 @@ bool FPCGExBreakClustersToPathsElement::ExecuteInternal(
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
+	if (!Context->ProcessorAutomation()) { return false; }
+
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
 		if (!Context->AdvancePointsIO()) { Context->Done(); }
 		else
 		{
-			if (!Context->CurrentCluster) { return false; }
+			if (!Context->TaggedEdges) { return false; }
 			Context->SetState(PCGExGraph::State_ReadyForNextEdges);
 		}
 	}
@@ -105,6 +107,7 @@ bool FPCGExBreakClustersToPathsElement::ExecuteInternal(
 		}
 		else
 		{
+			Context->SetState(PCGExGraph::State_ProcessingEdges);
 		}
 	}
 
@@ -122,16 +125,12 @@ bool FPCGExBreakClustersToPathsElement::ExecuteInternal(
 			if (ChainSize < Settings->MinPointCount) { return; }
 			if (Settings->bOmitAbovePointCount && ChainSize > Settings->MaxPointCount) { return; }
 
-			const PCGExData::FPointIO& PathIO = Context->Paths->Emplace_GetRef(Context->CurrentIO->GetIn());
+			const PCGExData::FPointIO& PathIO = Context->Paths->Emplace_GetRef(Context->CurrentIO->GetIn(), PCGExData::EInit::NewOutput);
 			TArray<FPCGPoint>& MutablePoints = PathIO.GetOut()->GetMutablePoints();
-			MutablePoints.SetNumUninitialized(Chain->Nodes.Num() + 2);
+			MutablePoints.SetNumUninitialized(ChainSize);
 			int32 PointCount = 0;
 
-			auto AddPoint = [&](int32 PointIndex)
-			{
-				MutablePoints[PointCount] = Context->CurrentIO->GetInPoint(PointIndex);
-				PointCount++;
-			};
+			auto AddPoint = [&](const int32 PointIndex) { MutablePoints[PointCount++] = PathIO.GetInPoint(PointIndex); };
 
 			AddPoint(Context->CurrentCluster->Nodes[Chain->First].PointIndex);
 			for (const int32 NodeIndex : Chain->Nodes) { AddPoint(Context->CurrentCluster->Nodes[NodeIndex].PointIndex); }
@@ -140,7 +139,7 @@ bool FPCGExBreakClustersToPathsElement::ExecuteInternal(
 			PathIO.SetNumInitialized(ChainSize, true);
 		};
 
-		if (!Context->Process(Initialize, ProcessChain, Context->Chains.Num())) { return false; }
+		if (!Context->Process(ProcessChain, Context->Chains.Num())) { return false; }
 		Context->SetState(PCGExGraph::State_ReadyForNextEdges);
 	}
 
@@ -148,7 +147,7 @@ bool FPCGExBreakClustersToPathsElement::ExecuteInternal(
 	{
 		auto ProcessEdge = [&](const int32 EdgeIndex)
 		{
-			const PCGExData::FPointIO& PathIO = Context->Paths->Emplace_GetRef(Context->CurrentIO->GetIn());
+			const PCGExData::FPointIO& PathIO = Context->Paths->Emplace_GetRef(Context->CurrentIO->GetIn(), PCGExData::EInit::NewOutput);
 			TArray<FPCGPoint>& MutablePoints = PathIO.GetOut()->GetMutablePoints();
 			MutablePoints.SetNumUninitialized(2);
 
@@ -159,7 +158,8 @@ bool FPCGExBreakClustersToPathsElement::ExecuteInternal(
 			PathIO.SetNumInitialized(2, true);
 		};
 
-		if (!Context->Process(Initialize, ProcessEdge, Context->CurrentCluster->Edges.Num())) { return false; }
+		if (!Context->Process(ProcessEdge, Context->CurrentCluster->Edges.Num())) { return false; }
+		Context->SetState(PCGExGraph::State_ReadyForNextEdges);
 	}
 
 	if (Context->IsDone())

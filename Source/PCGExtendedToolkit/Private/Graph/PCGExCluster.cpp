@@ -899,8 +899,8 @@ namespace PCGExClusterTask
 					if (bSkipSingleEdgeChains) { continue; }
 
 					PCGExCluster::FNodeChain* NewChain = new PCGExCluster::FNodeChain();
-					NewChain->First = OtherNodeIndex;
-					NewChain->Last = OtherNode.NodeIndex;
+					NewChain->First = Node.NodeIndex;
+					NewChain->Last = OtherNodeIndex;
 					NewChain->SingleEdge = EdgeIndex;
 
 					Chains->Add(NewChain);
