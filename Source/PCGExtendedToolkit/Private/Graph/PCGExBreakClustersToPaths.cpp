@@ -110,6 +110,8 @@ bool FPCGExBreakClustersToPathsElement::ExecuteInternal(
 	{
 		PCGEX_WAIT_ASYNC
 
+		auto Initialize = [&]() { PCGExClusterTask::DedupeChains(Context->Chains); };
+
 		auto ProcessChain = [&](const int32 ChainIndex)
 		{
 			PCGExCluster::FNodeChain* Chain = Context->Chains[ChainIndex];
@@ -131,10 +133,17 @@ bool FPCGExBreakClustersToPathsElement::ExecuteInternal(
 			for (const int32 NodeIndex : Chain->Nodes) { AddPoint(NodeIndex); }
 			AddPoint(Chain->Last);
 
+
 			PathIO.SetNumInitialized(ChainSize, true);
+
+			if(Settings->bAddInverseDuplicate)
+			{
+				// TODO Implement
+			}
+			
 		};
 
-		if (!Context->Process(ProcessChain, Context->Chains.Num())) { return false; }
+		if (!Context->Process(Initialize, ProcessChain, Context->Chains.Num())) { return false; }
 		Context->SetState(PCGExGraph::State_ReadyForNextEdges);
 	}
 
@@ -151,6 +160,18 @@ bool FPCGExBreakClustersToPathsElement::ExecuteInternal(
 			MutablePoints[1] = PathIO.GetInPoint(Edge.End);
 
 			PathIO.SetNumInitialized(2, true);
+
+			if(Settings->bAddInverseDuplicate)
+			{
+				const PCGExData::FPointIO& DupePathIO = Context->Paths->Emplace_GetRef(Context->CurrentIO->GetIn(), PCGExData::EInit::NewOutput);
+				TArray<FPCGPoint>& DupeMutablePoints = DupePathIO.GetOut()->GetMutablePoints();
+				DupeMutablePoints.SetNumUninitialized(2);
+
+				DupeMutablePoints[1] = PathIO.GetInPoint(Edge.Start);
+				DupeMutablePoints[0] = PathIO.GetInPoint(Edge.End);
+
+				DupePathIO.SetNumInitialized(2, true);
+			}
 		};
 
 		if (!Context->Process(ProcessEdge, Context->CurrentCluster->Edges.Num())) { return false; }

@@ -60,6 +60,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bOmitAbovePointCount", ClampMin=2))
 	int32 MaxPointCount = 500;
 
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bAddInverseDuplicate = false;
+	
 private:
 	friend class FPCGExBreakClustersToPathsElement;
 };
