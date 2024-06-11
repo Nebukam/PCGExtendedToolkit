@@ -92,13 +92,16 @@ bool FPCGExBreakClustersToPathsElement::ExecuteInternal(
 	{
 		for (int i = 0; i < Context->CurrentCluster->Nodes.Num(); i++) { if (Context->CurrentCluster->Nodes[i].IsComplex()) { Context->VtxFilterResults[i] = true; } }
 
+		Context->bInvertOrder = Settings->bInvertPathOrder;
+		Context->bExecCount = 0;
+
 		if (Settings->OperateOn == EPCGExBreakClusterOperationTarget::Paths)
 		{
 			Context->GetAsyncManager()->Start<PCGExClusterTask::FFindNodeChains>(
 				Context->CurrentEdges->IOIndex, nullptr, Context->CurrentCluster,
 				&Context->VtxFilterResults, &Context->Chains, Settings->MinPointCount > 2, false);
 
-			Context->SetAsyncState(PCGExCluster::State_BuildingChains);
+			Context->SetAsyncState(PCGExCluster::State_ProcessingChains);
 		}
 		else
 		{
@@ -106,12 +109,33 @@ bool FPCGExBreakClustersToPathsElement::ExecuteInternal(
 		}
 	}
 
-	if (Context->IsState(PCGExCluster::State_BuildingChains))
+	auto AdvanceProcessor = [&]()
+	{
+		if (Context->bExecCount == 1) { Context->bInvertOrder = !Context->bInvertOrder; }
+
+		if (!Settings->bAddInverseDuplicate || Context->bExecCount > 1)
+		{
+			Context->SetState(PCGExGraph::State_ReadyForNextEdges);
+		}
+		else
+		{
+			if (Settings->OperateOn == EPCGExBreakClusterOperationTarget::Paths) { Context->SetState(PCGExCluster::State_BuildingChains); }
+			else { Context->SetState(PCGExGraph::State_ProcessingEdges); }
+		}
+		
+		Context->bExecCount++;
+	};
+
+	if (Context->IsState(PCGExCluster::State_ProcessingChains))
 	{
 		PCGEX_WAIT_ASYNC
+		PCGExClusterTask::DedupeChains(Context->Chains);
 
-		auto Initialize = [&]() { PCGExClusterTask::DedupeChains(Context->Chains); };
+		AdvanceProcessor();
+	}
 
+	if (Context->IsState(PCGExCluster::State_BuildingChains))
+	{
 		auto ProcessChain = [&](const int32 ChainIndex)
 		{
 			PCGExCluster::FNodeChain* Chain = Context->Chains[ChainIndex];
@@ -129,22 +153,25 @@ bool FPCGExBreakClustersToPathsElement::ExecuteInternal(
 
 			auto AddPoint = [&](const int32 NodeIndex) { MutablePoints[PointCount++] = PathIO.GetInPoint(Context->CurrentCluster->Nodes[NodeIndex].PointIndex); };
 
-			AddPoint(Chain->First);
-			for (const int32 NodeIndex : Chain->Nodes) { AddPoint(NodeIndex); }
-			AddPoint(Chain->Last);
-
+			if (Context->bInvertOrder)
+			{
+				AddPoint(Chain->Last);
+				for (int i = 0; i < Chain->Nodes.Num(); i++) { AddPoint(Chain->Nodes.Last(i)); }
+				AddPoint(Chain->First);
+			}
+			else
+			{
+				AddPoint(Chain->First);
+				for (const int32 NodeIndex : Chain->Nodes) { AddPoint(NodeIndex); }
+				AddPoint(Chain->Last);
+			}
 
 			PathIO.SetNumInitialized(ChainSize, true);
-
-			if(Settings->bAddInverseDuplicate)
-			{
-				// TODO Implement
-			}
-			
 		};
 
-		if (!Context->Process(Initialize, ProcessChain, Context->Chains.Num())) { return false; }
-		Context->SetState(PCGExGraph::State_ReadyForNextEdges);
+		if (!Context->Process( ProcessChain, Context->Chains.Num())) { return false; }
+
+		AdvanceProcessor();
 	}
 
 	if (Context->IsState(PCGExGraph::State_ProcessingEdges))
@@ -156,26 +183,24 @@ bool FPCGExBreakClustersToPathsElement::ExecuteInternal(
 			MutablePoints.SetNumUninitialized(2);
 
 			const PCGExGraph::FIndexedEdge& Edge = Context->CurrentCluster->Edges[EdgeIndex];
-			MutablePoints[0] = PathIO.GetInPoint(Edge.Start);
-			MutablePoints[1] = PathIO.GetInPoint(Edge.End);
+
+			if (Context->bInvertOrder)
+			{
+				MutablePoints[0] = PathIO.GetInPoint(Edge.Start);
+				MutablePoints[1] = PathIO.GetInPoint(Edge.End);
+			}
+			else
+			{
+				MutablePoints[1] = PathIO.GetInPoint(Edge.Start);
+				MutablePoints[0] = PathIO.GetInPoint(Edge.End);
+			}
 
 			PathIO.SetNumInitialized(2, true);
-
-			if(Settings->bAddInverseDuplicate)
-			{
-				const PCGExData::FPointIO& DupePathIO = Context->Paths->Emplace_GetRef(Context->CurrentIO->GetIn(), PCGExData::EInit::NewOutput);
-				TArray<FPCGPoint>& DupeMutablePoints = DupePathIO.GetOut()->GetMutablePoints();
-				DupeMutablePoints.SetNumUninitialized(2);
-
-				DupeMutablePoints[1] = PathIO.GetInPoint(Edge.Start);
-				DupeMutablePoints[0] = PathIO.GetInPoint(Edge.End);
-
-				DupePathIO.SetNumInitialized(2, true);
-			}
 		};
 
 		if (!Context->Process(ProcessEdge, Context->CurrentCluster->Edges.Num())) { return false; }
-		Context->SetState(PCGExGraph::State_ReadyForNextEdges);
+
+		AdvanceProcessor();
 	}
 
 	if (Context->IsDone())
@@ -191,7 +216,6 @@ bool FPCGExBreakClusterTask::ExecuteTask()
 {
 	FPCGExBreakClustersToPathsContext* Context = static_cast<FPCGExBreakClustersToPathsContext*>(Manager->Context);
 	PCGEX_SETTINGS(BreakClustersToPaths)
-
 
 	// TODO find chains
 

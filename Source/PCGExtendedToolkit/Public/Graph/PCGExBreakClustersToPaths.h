@@ -62,6 +62,10 @@ public:
 
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bInvertPathOrder = false;
+	
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bAddInverseDuplicate = false;
 	
 private:
@@ -77,6 +81,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBreakClustersToPathsContext : public FPCGExE
 	virtual bool DefaultVtxFilterResult() const override;
 	
 	PCGExData::FPointIOCollection* Paths = nullptr;
+
+	bool bInvertOrder = false; 
+	int32 bExecCount = 0; 
 
 	TArray<PCGExCluster::FNodeChain*> Chains;
 };
