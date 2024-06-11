@@ -41,11 +41,18 @@ public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings interface
 
+
+	virtual  FName GetPointFilterLabel() const override;
+	
 public:
 	/** Angular threshold for collinearity. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, Units="Degrees", ClampMin=0, ClampMax=180))
 	double Threshold = 10;
 
+	/** Fuse points that are not collinear (Smooth-like). */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bInvertThreshold = false;
+	
 	/** Distance used to consider point to be overlapping. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(ClampMin=0.001))
 	double FuseDistance = 0.01;

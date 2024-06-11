@@ -3,6 +3,8 @@
 
 #include "Paths/PCGExFuseCollinear.h"
 
+#include "Data/PCGExDataFilter.h"
+
 #define LOCTEXT_NAMESPACE "PCGExFuseCollinearElement"
 #define PCGEX_NAMESPACE FuseCollinear
 
@@ -21,6 +23,8 @@ void UPCGExFuseCollinearSettings::PostEditChangeProperty(FPropertyChangedEvent& 
 #endif
 
 PCGExData::EInit UPCGExFuseCollinearSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NewOutput; }
+
+FName UPCGExFuseCollinearSettings::GetPointFilterLabel() const { return PCGExDataFilter::SourceFiltersLabel; }
 
 PCGEX_INITIALIZE_ELEMENT(FuseCollinear)
 
@@ -59,24 +63,36 @@ bool FPCGExFuseCollinearElement::ExecuteInternal(FPCGContext* InContext) const
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
+	if (!Context->ProcessorAutomation()) { return false; }
+
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
-		int32 Index = 0;
-		while (Context->AdvancePointsIO())
+		if (!Context->AdvancePointsIO())
 		{
-			if (Context->CurrentIO->GetNum() > 2)
-			{
-				//Context->CurrentIO->CreateInKeys();
-				Context->GetAsyncManager()->Start<FPCGExFuseCollinearTask>(Index++, Context->CurrentIO);
-			}
+			Context->Done();
+			return false;
 		}
+
+		Context->SetState(PCGExMT::State_ProcessingPoints);
+	}
+
+	if (Context->IsState(PCGExMT::State_ProcessingPoints))
+	{
+		if (Context->CurrentIO->GetNum() <= 2)
+		{
+			Context->CurrentIO->InitializeOutput(PCGExData::EInit::DuplicateInput);
+			Context->SetState(PCGExMT::State_ReadyForNextPoints);
+			return false;
+		}
+
+		Context->GetAsyncManager()->Start<FPCGExFuseCollinearTask>(Context->CurrentIO->IOIndex, Context->CurrentIO);
 		Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork);
 	}
 
 	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
 	{
 		PCGEX_WAIT_ASYNC
-		Context->Done();
+		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
 	if (Context->IsDone())
@@ -91,6 +107,7 @@ bool FPCGExFuseCollinearElement::ExecuteInternal(FPCGContext* InContext) const
 bool FPCGExFuseCollinearTask::ExecuteTask()
 {
 	const FPCGExFuseCollinearContext* Context = Manager->GetContext<FPCGExFuseCollinearContext>();
+	PCGEX_SETTINGS(FuseCollinear)
 
 	const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
 	TArray<FPCGPoint>& OutPoints = PointIO->GetOut()->GetMutablePoints();
@@ -106,8 +123,9 @@ bool FPCGExFuseCollinearTask::ExecuteTask()
 		FVector NextPosition = InPoints[i + 1].Transform.GetLocation();
 		FVector DirToNext = (CurrentPosition - NextPosition).GetSafeNormal();
 
-		if (FVector::DistSquared(CurrentPosition, LastPosition) <= Context->FuseDistance ||
-			FVector::DotProduct(CurrentDirection, DirToNext) > Context->Threshold)
+		const double Dot = FVector::DotProduct(CurrentDirection, DirToNext);
+		const bool bWithinThreshold = Settings->bInvertThreshold ? Dot < Context->Threshold : Dot > Context->Threshold;
+		if (FVector::DistSquared(CurrentPosition, LastPosition) <= Context->FuseDistance || bWithinThreshold)
 		{
 			// Collinear with previous, keep moving
 			continue;

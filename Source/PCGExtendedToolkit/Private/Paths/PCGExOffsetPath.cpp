@@ -55,7 +55,7 @@ bool FPCGExOffsetPathElement::ExecuteInternal(FPCGContext* InContext) const
 		Context->MainPoints->ForEach(
 			[&](PCGExData::FPointIO& PointIO, const int32)
 			{
-				if (PointIO.GetNum() > 2)
+				if (PointIO.GetNum() >= 2)
 				{
 					PointIO.CreateInKeys();
 					Context->GetAsyncManager()->Start<FPCGExOffsetPathTask>(Index++, &PointIO);

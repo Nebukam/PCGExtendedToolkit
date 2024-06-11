@@ -89,7 +89,7 @@ bool FPCGExSimplifyClustersElement::ExecuteInternal(FPCGContext* InContext) cons
 		Context->GetAsyncManager()->Start<PCGExClusterTask::FFindNodeChains>(
 			Context->CurrentEdges->IOIndex, nullptr, Context->CurrentCluster,
 			&Context->VtxFilterResults, &Context->Chains, true, Settings->bOperateOnDeadEndsOnly);
-		
+
 		Context->SetAsyncState(PCGExCluster::State_BuildingChains);
 	}
 
@@ -146,14 +146,29 @@ bool FPCGExSimplifyClustersElement::ExecuteInternal(FPCGContext* InContext) cons
 				const FVector A = (PrevNode.Position - CurrentNode.Position).GetSafeNormal();
 				const FVector B = (CurrentNode.Position - NextNode.Position).GetSafeNormal();
 
-				if (FVector::DotProduct(A, B) < Context->FixedDotThreshold)
+				if (!Settings->bInvertAngularThreshold)
 				{
-					Context->GraphBuilder->Graph->InsertEdge(
-						Context->CurrentCluster->Nodes[StartIndex].PointIndex,
-						Context->CurrentCluster->Nodes[CurrentIndex].PointIndex,
-						NewEdge, Context->CurrentEdges->IOIndex);
+					if (FVector::DotProduct(A, B) < Context->FixedDotThreshold)
+					{
+						Context->GraphBuilder->Graph->InsertEdge(
+							Context->CurrentCluster->Nodes[StartIndex].PointIndex,
+							Context->CurrentCluster->Nodes[CurrentIndex].PointIndex,
+							NewEdge, Context->CurrentEdges->IOIndex);
 
-					StartIndex = CurrentIndex;
+						StartIndex = CurrentIndex;
+					}
+				}
+				else
+				{
+					if (FVector::DotProduct(A, B) > Context->FixedDotThreshold)
+					{
+						Context->GraphBuilder->Graph->InsertEdge(
+							Context->CurrentCluster->Nodes[StartIndex].PointIndex,
+							Context->CurrentCluster->Nodes[CurrentIndex].PointIndex,
+							NewEdge, Context->CurrentEdges->IOIndex);
+
+						StartIndex = CurrentIndex;
+					}
 				}
 			}
 

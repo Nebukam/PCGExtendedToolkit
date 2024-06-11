@@ -66,7 +66,11 @@ public:
 	
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	bool bAddInverseDuplicate = false;
+	bool bDuplicatePaths = false;
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bDuplicatePaths"))
+	bool bInvertDuplicateOrder = true;
 	
 private:
 	friend class FPCGExBreakClustersToPathsElement;

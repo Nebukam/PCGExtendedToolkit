@@ -12,6 +12,9 @@ namespace PCGExData
 
 	void FPointIO::InitializeOutput(const EInit InitOut)
 	{
+
+		PCGEX_DELETE_UOBJECT(Out)
+		
 		switch (InitOut)
 		{
 		case EInit::NoOutput:

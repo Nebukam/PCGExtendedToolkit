@@ -56,11 +56,11 @@ FPCGExEdgesProcessorContext::~FPCGExEdgesProcessorContext()
 
 	VtxIndices.Empty();
 
-	PCGEX_DELETE(VtxFiltersData)
+	PCGEX_DELETE_UOBJECT(VtxFiltersData)
 	PCGEX_DELETE(VtxFiltersHandler)
 	VtxFilterResults.Empty();
 
-	PCGEX_DELETE(EdgesFiltersData)
+	PCGEX_DELETE_UOBJECT(EdgesFiltersData)
 	PCGEX_DELETE(EdgesFiltersHandler)
 	EdgeFilterResults.Empty();
 
@@ -217,7 +217,7 @@ bool FPCGExEdgesProcessorContext::ProcessFilters()
 
 	if (VtxFiltersHandler)
 	{
-		auto FilterVtx = [&](const int32 Index) { VtxFilterResults[Index] = VtxFiltersHandler->Test(Index); };
+		auto FilterVtx = [&](const int32 Index) { VtxFilterResults[Index] = VtxFiltersHandler->Test(CurrentCluster->Nodes[Index].PointIndex); };
 		if (!Process(FilterVtx, CurrentCluster->Nodes.Num())) { return false; }
 		PCGEX_DELETE(VtxFiltersHandler)
 	}

@@ -10,6 +10,11 @@
 #include "Graph/PCGExGraph.h"
 #include "PCGExPathProcessor.generated.h"
 
+namespace PCGExCluster
+{
+	class FNodeStateHandler;
+}
+
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Subdivide Mode"))
 enum class EPCGExSubdivideMode : uint8
 {
@@ -32,19 +37,42 @@ public:
 #if WITH_EDITOR
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExEditorSettings>()->NodeColorPath; }
 #endif
+	
+	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	//~End UPCGSettings interface
 
+	
 	//~Begin UPCGExPointsProcessorSettings interface
 public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	virtual FName GetMainInputLabel() const override;
 	virtual FName GetMainOutputLabel() const override;
 	//~End UPCGExPointsProcessorSettings interface
+
+	virtual FName GetPointFilterLabel() const;
+	bool SupportsPointFilters() const;
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExPathProcessorContext : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExPathProcessorElement;
+
+	~FPCGExPathProcessorContext();
+
+	virtual bool ProcessorAutomation() override;
+
+	virtual bool AdvancePointsIO() override;
+
+	bool ProcessFilters();
+
+	virtual bool DefaultPointFilterResult() const;
+
+	UPCGExNodeStateFactory* PointFiltersData = nullptr;
+	PCGExCluster::FNodeStateHandler* PointFiltersHandler = nullptr;
+	TArray<bool> PointFilterResults;
+	bool bRequirePointFilterPreparation = false;
+
+	bool bWaitingOnFilterWork = false;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExPathProcessorElement : public FPCGExPointsProcessorElementBase

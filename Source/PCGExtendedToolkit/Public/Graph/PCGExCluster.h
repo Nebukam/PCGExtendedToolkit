@@ -276,6 +276,7 @@ namespace PCGExCluster
 		}
 
 		uint64 GetNHash() const { return PCGEx::NH64(First, Last); }
+		uint64 GetNHashU() const { return PCGEx::NH64U(First, Last); }
 	};
 
 	class PCGEXTENDEDTOOLKIT_API TClusterFilter : public PCGExDataFilter::TFilter
@@ -456,13 +457,15 @@ namespace PCGExClusterTask
 
 		bool bAlreadyExists;
 
-		for (int i = 0; i < Chains.Num(); i++)
+		for (int i = 0; i < InChains.Num(); i++)
 		{
-			const PCGExCluster::FNodeChain* CurrentChain = InChains[i];
-			Chains.Add(CurrentChain->GetNHash(), &bAlreadyExists);
+			const PCGExCluster::FNodeChain* Chain = InChains[i];
+			if (!Chain) { continue; }
+			
+			Chains.Add(PCGEx::H64U(Chain->First, Chain->Last), &bAlreadyExists);
 			if (bAlreadyExists)
 			{
-				PCGEX_DELETE(CurrentChain)
+				PCGEX_DELETE(Chain)
 				InChains[i] = nullptr;
 			}
 		}

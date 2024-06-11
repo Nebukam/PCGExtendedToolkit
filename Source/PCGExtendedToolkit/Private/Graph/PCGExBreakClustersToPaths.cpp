@@ -90,7 +90,7 @@ bool FPCGExBreakClustersToPathsElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExDataFilter::State_FilteringPoints))
 	{
-		for (int i = 0; i < Context->CurrentCluster->Nodes.Num(); i++) { if (Context->CurrentCluster->Nodes[i].IsComplex()) { Context->VtxFilterResults[i] = true; } }
+		//for (const PCGExCluster::FNode& Node : Context->CurrentCluster->Nodes) { if (Node.IsComplex()) { Context->VtxFilterResults[Node.NodeIndex] = true; } }
 
 		Context->bInvertOrder = Settings->bInvertPathOrder;
 		Context->bExecCount = 0;
@@ -111,9 +111,9 @@ bool FPCGExBreakClustersToPathsElement::ExecuteInternal(
 
 	auto AdvanceProcessor = [&]()
 	{
-		if (Context->bExecCount == 1) { Context->bInvertOrder = !Context->bInvertOrder; }
+		if (Context->bExecCount > 0 && Settings->bInvertDuplicateOrder) { Context->bInvertOrder = !Context->bInvertOrder; }
 
-		if (!Settings->bAddInverseDuplicate || Context->bExecCount > 1)
+		if ((!Settings->bDuplicatePaths && Context->bExecCount == 1) || Context->bExecCount > 1)
 		{
 			Context->SetState(PCGExGraph::State_ReadyForNextEdges);
 		}
@@ -122,13 +122,14 @@ bool FPCGExBreakClustersToPathsElement::ExecuteInternal(
 			if (Settings->OperateOn == EPCGExBreakClusterOperationTarget::Paths) { Context->SetState(PCGExCluster::State_BuildingChains); }
 			else { Context->SetState(PCGExGraph::State_ProcessingEdges); }
 		}
-		
+
 		Context->bExecCount++;
 	};
 
 	if (Context->IsState(PCGExCluster::State_ProcessingChains))
 	{
 		PCGEX_WAIT_ASYNC
+
 		PCGExClusterTask::DedupeChains(Context->Chains);
 
 		AdvanceProcessor();
@@ -169,7 +170,7 @@ bool FPCGExBreakClustersToPathsElement::ExecuteInternal(
 			PathIO.SetNumInitialized(ChainSize, true);
 		};
 
-		if (!Context->Process( ProcessChain, Context->Chains.Num())) { return false; }
+		if (!Context->Process(ProcessChain, Context->Chains.Num())) { return false; }
 
 		AdvanceProcessor();
 	}
@@ -186,13 +187,13 @@ bool FPCGExBreakClustersToPathsElement::ExecuteInternal(
 
 			if (Context->bInvertOrder)
 			{
-				MutablePoints[0] = PathIO.GetInPoint(Edge.Start);
-				MutablePoints[1] = PathIO.GetInPoint(Edge.End);
+				MutablePoints[0] = PathIO.GetInPoint(Edge.End);
+				MutablePoints[1] = PathIO.GetInPoint(Edge.Start);
 			}
 			else
 			{
-				MutablePoints[1] = PathIO.GetInPoint(Edge.Start);
-				MutablePoints[0] = PathIO.GetInPoint(Edge.End);
+				MutablePoints[0] = PathIO.GetInPoint(Edge.Start);
+				MutablePoints[1] = PathIO.GetInPoint(Edge.End);
 			}
 
 			PathIO.SetNumInitialized(2, true);
