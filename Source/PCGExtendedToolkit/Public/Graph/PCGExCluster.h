@@ -455,13 +455,13 @@ namespace PCGExClusterTask
 		TSet<uint64> Chains;
 		Chains.Reserve(InChains.Num() / 2);
 
-		bool bAlreadyExists;
 
 		for (int i = 0; i < InChains.Num(); i++)
 		{
 			const PCGExCluster::FNodeChain* Chain = InChains[i];
 			if (!Chain) { continue; }
-			
+
+			bool bAlreadyExists = false;
 			Chains.Add(PCGEx::H64U(Chain->First, Chain->Last), &bAlreadyExists);
 			if (bAlreadyExists)
 			{

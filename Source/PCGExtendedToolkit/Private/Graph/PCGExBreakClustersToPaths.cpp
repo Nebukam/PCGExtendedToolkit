@@ -90,7 +90,7 @@ bool FPCGExBreakClustersToPathsElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExDataFilter::State_FilteringPoints))
 	{
-		//for (const PCGExCluster::FNode& Node : Context->CurrentCluster->Nodes) { if (Node.IsComplex()) { Context->VtxFilterResults[Node.NodeIndex] = true; } }
+		for (const PCGExCluster::FNode& Node : Context->CurrentCluster->Nodes) { if (Node.IsComplex()) { Context->VtxFilterResults[Node.NodeIndex] = true; } }
 
 		Context->bInvertOrder = Settings->bInvertPathOrder;
 		Context->bExecCount = 0;

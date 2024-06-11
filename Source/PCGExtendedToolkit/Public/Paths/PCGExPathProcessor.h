@@ -10,6 +10,8 @@
 #include "Graph/PCGExGraph.h"
 #include "PCGExPathProcessor.generated.h"
 
+class UPCGExNodeStateFactory;
+
 namespace PCGExCluster
 {
 	class FNodeStateHandler;

@@ -873,7 +873,7 @@ namespace PCGExClusterTask
 
 		for (const PCGExCluster::FNode& Node : Cluster->Nodes)
 		{
-			if (Node.IsSimple()) { continue; }
+			if (Node.IsSimple() && !(*Breakpoints)[Node.NodeIndex]) { continue; }
 
 			const bool bIsValidStartNode =
 				bDeadEndsOnly ?
