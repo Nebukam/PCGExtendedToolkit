@@ -98,6 +98,8 @@ bool FPCGExPathfindingPlotEdgesElement::ExecuteInternal(FPCGContext* InContext) 
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
+	if (!Context->ProcessorAutomation()) { return false; }
+
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
 		if (!Context->AdvancePointsIO()) { Context->Done(); }
@@ -115,6 +117,13 @@ bool FPCGExPathfindingPlotEdgesElement::ExecuteInternal(FPCGContext* InContext) 
 		}
 	}
 
+	auto StartEdgeProcessing = [&]()
+	{
+		Context->SearchAlgorithm->PrepareForCluster(Context->CurrentCluster, Context->ClusterProjection);
+		Context->HeuristicsHandler->PrepareForCluster(Context->GetAsyncManager(), Context->CurrentCluster);
+		Context->SetAsyncState(PCGExGraph::State_ProcessingEdges);
+	};
+
 	if (Context->IsState(PCGExGraph::State_ReadyForNextEdges))
 	{
 		if (!Context->AdvanceEdges(true))
@@ -123,11 +132,7 @@ bool FPCGExPathfindingPlotEdgesElement::ExecuteInternal(FPCGContext* InContext) 
 			return false;
 		}
 
-		if (!Context->CurrentCluster)
-		{
-			PCGEX_INVALID_CLUSTER_LOG
-			return false;
-		}
+		if (!Context->CurrentCluster) { return false; }
 
 		if (Settings->bUseOctreeSearch)
 		{
@@ -144,20 +149,16 @@ bool FPCGExPathfindingPlotEdgesElement::ExecuteInternal(FPCGContext* InContext) 
 			}
 		}
 
-		Context->SetState(PCGExCluster::State_ProjectingCluster);
-	}
-
-	if (Context->IsState(PCGExCluster::State_ProjectingCluster))
-	{
-		if (Context->SearchAlgorithm->GetRequiresProjection())
+		if ((Context->bWaitingOnClusterProjection = Context->SearchAlgorithm->GetRequiresProjection()))
 		{
-			if (!Context->ProjectCluster()) { return false; }
+			Context->SetState(PCGExCluster::State_ProjectingCluster);
+			return false;
 		}
 
-		Context->SearchAlgorithm->PrepareForCluster(Context->CurrentCluster, Context->ClusterProjection);
-		Context->HeuristicsHandler->PrepareForCluster(Context->GetAsyncManager(), Context->CurrentCluster);
-		Context->SetAsyncState(PCGExGraph::State_ProcessingEdges);
+		StartEdgeProcessing();
 	}
+
+	if (Context->IsState(PCGExCluster::State_ProjectingCluster)) { StartEdgeProcessing(); }
 
 	if (Context->IsState(PCGExGraph::State_ProcessingEdges))
 	{

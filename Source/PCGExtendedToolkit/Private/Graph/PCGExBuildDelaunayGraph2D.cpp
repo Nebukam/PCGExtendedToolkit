@@ -147,14 +147,14 @@ bool FPCGExDelaunay2Task::ExecuteTask()
 	PCGExGeo::PointsToPositions(Context->GetCurrentIn()->GetPoints(), ActivePositions);
 
 	const TArrayView<FVector> View = MakeArrayView(ActivePositions);
-	if (!Delaunay->Process(View, Context->ProjectionSettings))
+	if (!Delaunay->Process(View, Context->ProjectionSettings, Context))
 	{
 		ActivePositions.Empty();
 		PCGEX_DELETE(Delaunay)
 		return false;
 	}
 
-	if (Settings->bUrquhart) { Delaunay->RemoveLongestEdges(View); }
+	if (Settings->bUrquhart) { Delaunay->RemoveLongestEdges(View, Context); }
 	if (Settings->bMarkHull) { Context->HullIndices.Append(Delaunay->DelaunayHull); }
 
 	Graph->InsertEdges(Delaunay->DelaunayEdges, -1);

@@ -211,7 +211,8 @@ bool FPCGExBridgeEdgeClustersElement::ExecuteInternal(
 
 			for (int i = 0; i < NumBounds; i++) { Positions[i] = Bounds[i].GetCenter(); }
 
-			if (Delaunay->Process(Positions)) { Bridges.Append(Delaunay->DelaunayEdges); }
+			//TODO : Move this to a task
+			if (Delaunay->Process(Positions, false, nullptr)) { Bridges.Append(Delaunay->DelaunayEdges); }
 			else { PCGE_LOG(Warning, GraphAndLog, FTEXT("(1) Delaunay 3D failed. Are points coplanar? If so, use Delaunay 2D instead.")); }
 
 			Positions.Empty();
@@ -226,7 +227,8 @@ bool FPCGExBridgeEdgeClustersElement::ExecuteInternal(
 
 			for (int i = 0; i < NumBounds; i++) { Positions[i] = Bounds[i].GetCenter(); }
 
-			if (Delaunay->Process(Positions, Context->ProjectionSettings)) { Bridges.Append(Delaunay->DelaunayEdges); }
+			//TODO : Move this to a task
+			if (Delaunay->Process(Positions, Context->ProjectionSettings, nullptr)) { Bridges.Append(Delaunay->DelaunayEdges); }
 			else { PCGE_LOG(Warning, GraphAndLog, FTEXT("(1) Delaunay 2D failed.")); }
 
 			Positions.Empty();

@@ -95,11 +95,7 @@ bool FPCGExFilterClustersElement::ExecuteInternal(
 
 			while (Context->AdvanceEdges(true))
 			{
-				if (!Context->CurrentCluster)
-				{
-					PCGEX_INVALID_CLUSTER_LOG
-					continue;
-				}
+				if (!Context->CurrentCluster) { continue; }
 
 				Context->CurrentCluster->RebuildOctree(Settings->SearchMode);
 				Context->CurrentEdgeMap->Add(Context->CurrentEdges->IOIndex);

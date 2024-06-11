@@ -9,7 +9,7 @@
 
 #include "PCGExEdgesProcessor.generated.h"
 
-#define PCGEX_INVALID_CLUSTER_LOG PCGE_LOG(Warning, GraphAndLog, FTEXT("Some clusters are corrupted and will be ignored. If you modified vtx/edges manually, make sure to use Sanitize Cluster first."));
+class UPCGExNodeStateFactory;
 
 UCLASS(Abstract, BlueprintType, ClassGroup = (Procedural))
 class PCGEXTENDEDTOOLKIT_API UPCGExEdgesProcessorSettings : public UPCGExPointsProcessorSettings
@@ -37,6 +37,12 @@ public:
 	virtual FName GetMainInputLabel() const override;
 	virtual FName GetMainOutputLabel() const override;
 
+	virtual FName GetVtxFilterLabel() const;
+	virtual FName GetEdgesFilterLabel() const;
+
+	bool SupportsVtxFilters() const;
+	bool SupportsEdgesFilters() const;
+
 	virtual bool GetMainAcceptMultipleData() const override;
 	//~End UPCGExPointsProcessorSettings interface
 };
@@ -59,8 +65,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgesProcessorContext : public FPCGExPointsP
 	TMap<int64, int32> EndpointsLookup;
 	TArray<int32> EndpointsAdjacency;
 
+	virtual bool ProcessorAutomation() override;
 	virtual bool AdvancePointsIO() override;
-	bool AdvanceEdges(bool bBuildCluster); // Advance edges within current points
+	virtual bool AdvanceEdges(const bool bBuildCluster); // Advance edges within current points
 
 	PCGExCluster::FCluster* CurrentCluster = nullptr;
 	PCGExCluster::FClusterProjection* ClusterProjection = nullptr;
@@ -83,8 +90,28 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgesProcessorContext : public FPCGExPointsP
 
 	FPCGExGeo2DProjectionSettings ProjectionSettings;
 
+	bool bWaitingOnClusterProjection = false;
+	
 protected:
+	bool ProcessFilters();
+	
 	int32 CurrentEdgesIndex = -1;
+
+	TArray<int32> VtxIndices;
+
+	virtual bool DefaultVtxFilterResult() const;
+	
+	UPCGExNodeStateFactory* VtxFiltersData = nullptr;
+	PCGExCluster::FNodeStateHandler* VtxFiltersHandler = nullptr;
+	TArray<bool> VtxFilterResults;
+	bool bRequireVtxFilterPreparation = false;
+
+	UPCGExNodeStateFactory* EdgesFiltersData = nullptr;
+	PCGExCluster::FNodeStateHandler* EdgesFiltersHandler = nullptr;
+	TArray<bool> EdgeFilterResults;
+	bool bRequireEdgesFilterPreparation = false;
+
+	bool bWaitingOnFilterWork = false;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExEdgesProcessorElement : public FPCGExPointsProcessorElementBase

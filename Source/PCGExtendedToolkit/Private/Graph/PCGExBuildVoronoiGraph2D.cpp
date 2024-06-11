@@ -127,7 +127,7 @@ bool FPCGExVoronoi2Task::ExecuteTask()
 	PCGExGeo::PointsToPositions(Context->GetCurrentIn()->GetPoints(), ActivePositions);
 
 	if (const TArrayView<FVector> View = MakeArrayView(ActivePositions);
-		!Voronoi->Process(View, Context->ProjectionSettings))
+		!Voronoi->Process(View, Context->ProjectionSettings, Context))
 	{
 		ActivePositions.Empty();
 		PCGEX_DELETE(Voronoi)

@@ -87,11 +87,7 @@ bool FPCGExRefineEdgesElement::ExecuteInternal(
 		}
 		else
 		{
-			if (!Context->CurrentCluster)
-			{
-				PCGEX_INVALID_CLUSTER_LOG
-				return false;
-			}
+			if (!Context->CurrentCluster) { return false; }
 
 			Context->Refinement->PreProcess(Context->CurrentCluster, Context->GraphBuilder->Graph, Context->CurrentEdges);
 

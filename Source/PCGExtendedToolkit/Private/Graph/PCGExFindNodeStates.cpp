@@ -73,11 +73,7 @@ bool FPCGExFindNodeStatesElement::ExecuteInternal(
 			return false;
 		}
 
-		if (!Context->CurrentCluster)
-		{
-			PCGEX_INVALID_CLUSTER_LOG
-			return false;
-		}
+		if (!Context->CurrentCluster) { return false; }
 
 		Context->CurrentCluster->GetNodePointIndices(Context->NodeIndices);
 		Context->StatesManager = new PCGExDataState::TStatesManager(Context->CurrentIO);

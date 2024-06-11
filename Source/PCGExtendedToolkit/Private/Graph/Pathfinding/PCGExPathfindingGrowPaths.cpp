@@ -53,7 +53,7 @@ int32 PCGExGrow::FGrowth::FindNextGrowthNodeIndex()
 		uint32 NeighborIndex;
 		uint32 EdgeIndex;
 		PCGEx::H64(AdjacencyHash, NeighborIndex, EdgeIndex);
-		
+
 		const PCGExCluster::FNode& OtherNode = Context->CurrentCluster->Nodes[NeighborIndex];
 
 		if (Settings->bUseNoGrowth)
@@ -357,11 +357,7 @@ bool FPCGExPathfindingGrowPathsElement::ExecuteInternal(FPCGContext* InContext) 
 			return false;
 		}
 
-		if (!Context->CurrentCluster)
-		{
-			PCGEX_INVALID_CLUSTER_LOG
-			return false;
-		}
+		if (!Context->CurrentCluster) { return false; }
 
 		if (Settings->bUseOctreeSearch) { Context->CurrentCluster->RebuildOctree(Settings->SeedPicking.PickingMethod); }
 

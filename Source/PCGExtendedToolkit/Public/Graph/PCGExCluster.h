@@ -97,6 +97,8 @@ namespace PCGExCluster
 
 	constexpr PCGExMT::AsyncState State_ProcessingCluster = __COUNTER__;
 	constexpr PCGExMT::AsyncState State_ProjectingCluster = __COUNTER__;
+	constexpr PCGExMT::AsyncState State_BuildingChains = __COUNTER__;
+	constexpr PCGExMT::AsyncState State_ProcessingChains = __COUNTER__;
 
 	struct PCGEXTENDEDTOOLKIT_API FClusterItemRef
 	{
@@ -157,6 +159,10 @@ namespace PCGExCluster
 		}
 
 		~FNode();
+
+		FORCEINLINE bool IsDeadEnd() const;
+		FORCEINLINE bool IsSimple() const;
+		FORCEINLINE bool IsComplex() const;
 
 		FORCEINLINE bool IsAdjacentTo(const int32 OtherNodeIndex) const;
 
@@ -255,6 +261,7 @@ namespace PCGExCluster
 	{
 		int32 First = -1;
 		int32 Last = -1;
+		int32 SingleEdge = -1;
 		TArray<int32> Nodes;
 		TArray<int32> Edges;
 
@@ -267,6 +274,8 @@ namespace PCGExCluster
 			Nodes.Empty();
 			Edges.Empty();
 		}
+
+		uint64 GetNHash() const { return PCGEx::NH64(First, Last); }
 	};
 
 	class PCGEXTENDEDTOOLKIT_API TClusterFilter : public PCGExDataFilter::TFilter
@@ -286,6 +295,7 @@ namespace PCGExCluster
 		virtual void Capture(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO) override;
 		virtual void CaptureEdges(const FPCGContext* InContext, const PCGExData::FPointIO* EdgeIO);
 		virtual bool PrepareForTesting(const PCGExData::FPointIO* PointIO) override;
+		virtual bool PrepareForTesting(const PCGExData::FPointIO* PointIO, const TArrayView<int32>& PointIndices) override;
 	};
 
 	class PCGEXTENDEDTOOLKIT_API FNodeStateHandler : public PCGExDataState::TDataState
@@ -304,6 +314,7 @@ namespace PCGExCluster
 		FORCEINLINE virtual bool Test(const int32 PointIndex) const override;
 
 		virtual bool PrepareForTesting(const PCGExData::FPointIO* PointIO) override;
+		virtual bool PrepareForTesting(const PCGExData::FPointIO* PointIO, const TArrayView<int32>& PointIndices) override;
 		virtual void PrepareSingle(const int32 PointIndex) override;
 		virtual void PreparationComplete() override;
 
@@ -354,22 +365,109 @@ namespace PCGExClusterTask
 	{
 	public:
 		FFindNodeChains(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-		                PCGExCluster::FCluster* InCluster,
-		                TSet<int32>* InFixtures,
-		                TArray<PCGExCluster::FNodeChain*>* InChains) :
+		                const PCGExCluster::FCluster* InCluster,
+		                const TArray<bool>* InBreakpoints,
+		                TArray<PCGExCluster::FNodeChain*>* InChains,
+		                const bool InSkipSingleEdgeChains = false,
+		                const bool InDeadEndsOnly = false) :
 			FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
 			Cluster(InCluster),
-			Fixtures(InFixtures),
-			Chains(InChains)
+			Breakpoints(InBreakpoints),
+			Chains(InChains),
+			bSkipSingleEdgeChains(InSkipSingleEdgeChains),
+			bDeadEndsOnly(InDeadEndsOnly)
 		{
 		}
 
-		PCGExCluster::FCluster* Cluster = nullptr;
-		TSet<int32>* Fixtures = nullptr;
+		const PCGExCluster::FCluster* Cluster = nullptr;
+		const TArray<bool>* Breakpoints = nullptr;
 		TArray<PCGExCluster::FNodeChain*>* Chains = nullptr;
+
+		const bool bSkipSingleEdgeChains = false;
+		const bool bDeadEndsOnly = false;
 
 		virtual bool ExecuteTask() override;
 	};
+
+	class PCGEXTENDEDTOOLKIT_API FBuildChain : public FPCGExNonAbandonableTask
+	{
+	public:
+		FBuildChain(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+		            const PCGExCluster::FCluster* InCluster,
+		            const TArray<bool>* InBreakpoints,
+		            TArray<PCGExCluster::FNodeChain*>* InChains,
+		            const int32 InStartIndex,
+		            const uint64 InAdjacencyHash) :
+			FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+			Cluster(InCluster),
+			Breakpoints(InBreakpoints),
+			Chains(InChains),
+			StartIndex(InStartIndex),
+			AdjacencyHash(InAdjacencyHash)
+		{
+		}
+
+		const PCGExCluster::FCluster* Cluster = nullptr;
+		const TArray<bool>* Breakpoints = nullptr;
+		TArray<PCGExCluster::FNodeChain*>* Chains = nullptr;
+		int32 StartIndex = 0;
+		uint64 AdjacencyHash = 0;
+
+		virtual bool ExecuteTask() override;
+	};
+
+	static void BuildChain(
+		PCGExCluster::FNodeChain* Chain,
+		const TArray<bool>* Breakpoints,
+		const PCGExCluster::FCluster* Cluster)
+	{
+		int32 NextNodeIndex = Chain->Last;
+		int32 LastIndex = Chain->First;
+
+		while (NextNodeIndex != -1)
+		{
+			const PCGExCluster::FNode& NextNode = Cluster->Nodes[NextNodeIndex];
+			if ((*Breakpoints)[NextNodeIndex] || NextNode.Adjacency.Num() > 2 || NextNode.Adjacency.Num() == 1)
+			{
+				LastIndex = NextNodeIndex;
+				break;
+			}
+			
+			uint32 OtherIndex;
+			uint32 EdgeIndex;
+			PCGEx::H64(NextNode.Adjacency[0], OtherIndex, EdgeIndex); // Get next node
+			if (OtherIndex == LastIndex) { PCGEx::H64(NextNode.Adjacency[1], OtherIndex, EdgeIndex); } // Get other next
+
+			LastIndex = NextNodeIndex;
+			NextNodeIndex = OtherIndex;
+			
+			Chain->Nodes.Add(LastIndex);
+			Chain->Edges.Add(EdgeIndex);
+
+		}
+
+		Chain->Last = LastIndex;
+		
+	}
+
+	static void DedupeChains(TArray<PCGExCluster::FNodeChain*>& InChains)
+	{
+		TSet<uint64> Chains;
+		Chains.Reserve(InChains.Num() / 2);
+
+		bool bAlreadyExists;
+
+		for (int i = 0; i < Chains.Num(); i++)
+		{
+			const PCGExCluster::FNodeChain* CurrentChain = InChains[i];
+			Chains.Add(CurrentChain->GetNHash(), &bAlreadyExists);
+			if (bAlreadyExists)
+			{
+				PCGEX_DELETE(CurrentChain)
+				InChains[i] = nullptr;
+			}
+		}
+	}
 
 	class PCGEXTENDEDTOOLKIT_API FProjectCluster : public FPCGExNonAbandonableTask
 	{

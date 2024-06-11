@@ -278,6 +278,8 @@ bool FPCGExPointsProcessorContext::AdvancePointsIO()
 	return false;
 }
 
+bool FPCGExPointsProcessorContext::ProcessorAutomation() { return true; }
+
 void FPCGExPointsProcessorContext::Done()
 {
 	SetState(PCGExMT::State_Done);

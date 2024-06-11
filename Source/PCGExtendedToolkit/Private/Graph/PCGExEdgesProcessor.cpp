@@ -15,6 +15,12 @@ PCGExData::EInit UPCGExEdgesProcessorSettings::GetMainOutputInitMode() const { r
 FName UPCGExEdgesProcessorSettings::GetMainInputLabel() const { return PCGExGraph::SourceVerticesLabel; }
 FName UPCGExEdgesProcessorSettings::GetMainOutputLabel() const { return PCGExGraph::OutputVerticesLabel; }
 
+FName UPCGExEdgesProcessorSettings::GetVtxFilterLabel() const { return NAME_None; }
+FName UPCGExEdgesProcessorSettings::GetEdgesFilterLabel() const { return NAME_None; }
+
+bool UPCGExEdgesProcessorSettings::SupportsVtxFilters() const { return !GetVtxFilterLabel().IsNone(); }
+bool UPCGExEdgesProcessorSettings::SupportsEdgesFilters() const { return !GetVtxFilterLabel().IsNone(); }
+
 PCGExData::EInit UPCGExEdgesProcessorSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::Forward; }
 
 bool UPCGExEdgesProcessorSettings::RequiresDeterministicClusters() const { return false; }
@@ -25,6 +31,8 @@ TArray<FPCGPinProperties> UPCGExEdgesProcessorSettings::InputPinProperties() con
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 	PCGEX_PIN_POINTS(PCGExGraph::SourceEdgesLabel, "Edges associated with the main input points", Required, {})
+	if (SupportsVtxFilters()) { PCGEX_PIN_POINTS(GetVtxFilterLabel(), "Vtx filters", Advanced, {}) }
+	if (SupportsEdgesFilters()) { PCGEX_PIN_POINTS(GetEdgesFilterLabel(), "Edges filters", Advanced, {}) }
 	return PinProperties;
 }
 
@@ -46,10 +54,28 @@ FPCGExEdgesProcessorContext::~FPCGExEdgesProcessorContext()
 	PCGEX_DELETE(CurrentCluster)
 	PCGEX_DELETE(ClusterProjection)
 
+	VtxIndices.Empty();
+
+	PCGEX_DELETE(VtxFiltersData)
+	PCGEX_DELETE(VtxFiltersHandler)
+	VtxFilterResults.Empty();
+
+	PCGEX_DELETE(EdgesFiltersData)
+	PCGEX_DELETE(EdgesFiltersHandler)
+	EdgeFilterResults.Empty();
+
 	EndpointsLookup.Empty();
 	ProjectionSettings.Cleanup();
 }
 
+
+bool FPCGExEdgesProcessorContext::ProcessorAutomation()
+{
+	if (!FPCGExPointsProcessorContext::ProcessorAutomation()) { return false; }
+	if (!ProcessFilters()) { return false; }
+	if (!ProjectCluster()) { return false; }
+	return true;
+}
 
 bool FPCGExEdgesProcessorContext::AdvancePointsIO()
 {
@@ -92,6 +118,9 @@ bool FPCGExEdgesProcessorContext::AdvanceEdges(const bool bBuildCluster)
 	PCGEX_DELETE(CurrentCluster)
 	PCGEX_DELETE(ClusterProjection)
 
+	PCGEX_DELETE(VtxFiltersHandler)
+	PCGEX_DELETE(EdgesFiltersHandler)
+
 	if (bBuildCluster && CurrentEdges) { CurrentEdges->CleanupKeys(); }
 
 	if (TaggedEdges && TaggedEdges->Entries.IsValidIndex(++CurrentEdgesIndex))
@@ -107,13 +136,54 @@ bool FPCGExEdgesProcessorContext::AdvanceEdges(const bool bBuildCluster)
 			*CurrentEdges, GetCurrentIn()->GetPoints(),
 			EndpointsLookup, &EndpointsAdjacency))
 		{
-			// Bad cluster/edges.
+			PCGE_LOG_C(Warning, GraphAndLog, this, FTEXT("Some clusters are corrupted and will not be processed. \n If you modified vtx/edges manually, make sure to use Sanitize Clusters first."));
 			PCGEX_DELETE(CurrentCluster)
 		}
 		else
 		{
 			CurrentCluster->PointsIO = CurrentIO;
 			CurrentCluster->EdgesIO = CurrentEdges;
+
+			bWaitingOnFilterWork = false;
+			bRequireVtxFilterPreparation = false;
+
+			PCGEX_SETTINGS_LOCAL(EdgesProcessor)
+
+			const bool DefaultResult = DefaultVtxFilterResult();
+
+			if (VtxFiltersData)
+			{
+				VtxFilterResults.SetNumUninitialized(CurrentCluster->Nodes.Num());
+				VtxIndices.SetNumUninitialized(CurrentCluster->Nodes.Num());
+
+				for (int i = 0; i < VtxIndices.Num(); i++)
+				{
+					VtxIndices[i] = CurrentCluster->Nodes[i].PointIndex;
+					VtxFilterResults[i] = DefaultResult;
+				}
+
+				VtxFiltersHandler = static_cast<PCGExCluster::FNodeStateHandler*>(VtxFiltersData->CreateFilter());
+				VtxFiltersHandler->bCacheResults = false;
+				VtxFiltersHandler->CaptureCluster(this, CurrentCluster);
+
+				bRequireVtxFilterPreparation = VtxFiltersHandler->PrepareForTesting(CurrentIO, VtxIndices);
+				bWaitingOnFilterWork = true;
+			}
+			else if (Settings->SupportsVtxFilters())
+			{
+				VtxFilterResults.SetNumUninitialized(CurrentCluster->Nodes.Num());
+				for (int i = 0; i < VtxFilterResults.Num(); i++) { VtxFilterResults[i] = DefaultResult; }
+			}
+
+			bRequireEdgesFilterPreparation = false;
+			if (EdgesFiltersData)
+			{
+				EdgeFilterResults.SetNumUninitialized(CurrentEdges->GetNum());
+
+				// TODO: Implement 
+				//VtxFiltersHandler = static_cast<PCGExCluster::FNodeStateHandler*>(VtxFiltersData->CreateFilter());
+				//EdgesFiltersHandler->CaptureCluster(this, CurrentCluster);
+			}
 		}
 
 		return true;
@@ -123,9 +193,48 @@ bool FPCGExEdgesProcessorContext::AdvanceEdges(const bool bBuildCluster)
 	return false;
 }
 
+bool FPCGExEdgesProcessorContext::ProcessFilters()
+{
+	if (!bWaitingOnFilterWork) { return true; }
+
+	if (bRequireVtxFilterPreparation)
+	{
+		auto PrepareVtx = [&](const int32 Index) { VtxFiltersHandler->PrepareSingle(CurrentCluster->Nodes[Index].PointIndex); };
+		if (!Process(PrepareVtx, CurrentCluster->Nodes.Num())) { return false; }
+		bRequireVtxFilterPreparation = false;
+	}
+
+	if (bRequireEdgesFilterPreparation)
+	{
+		auto PrepareEdge = [&](const int32 Index) { EdgesFiltersHandler->PrepareSingle(Index); };
+		if (!Process(PrepareEdge, CurrentCluster->Edges.Num())) { return false; }
+		bRequireVtxFilterPreparation = false;
+	}
+
+	if (VtxFiltersHandler)
+	{
+		auto FilterVtx = [&](const int32 Index) { VtxFilterResults[Index] = VtxFiltersHandler->Test(Index); };
+		if (!Process(FilterVtx, CurrentCluster->Nodes.Num())) { return false; }
+		PCGEX_DELETE(VtxFiltersHandler)
+	}
+
+	if (EdgesFiltersHandler)
+	{
+		auto FilterEdge = [&](const int32 Index) { EdgeFilterResults[Index] = EdgesFiltersHandler->Test(Index); };
+		if (!Process(FilterEdge, CurrentCluster->Edges.Num())) { return false; }
+		PCGEX_DELETE(EdgesFiltersHandler)
+	}
+
+	bWaitingOnFilterWork = false;
+
+	return true;
+}
+
+bool FPCGExEdgesProcessorContext::DefaultVtxFilterResult() const { return true; }
+
 bool FPCGExEdgesProcessorContext::ProjectCluster()
 {
-	const int32 NumNodes = CurrentCluster->Nodes.Num();
+	if (!bWaitingOnClusterProjection) { return true; }
 
 	auto Initialize = [&]()
 	{
@@ -135,7 +244,11 @@ bool FPCGExEdgesProcessorContext::ProjectCluster()
 
 	auto ProjectSinglePoint = [&](const int32 Index) { ClusterProjection->Nodes[Index].Project(CurrentCluster, &ProjectionSettings); };
 
-	return Process(Initialize, ProjectSinglePoint, NumNodes);
+	if (!Process(Initialize, ProjectSinglePoint, CurrentCluster->Nodes.Num())) { return false; }
+
+	bWaitingOnClusterProjection = false;
+
+	return true;
 }
 
 void FPCGExEdgesProcessorContext::OutputPointsAndEdges()
@@ -173,6 +286,26 @@ bool FPCGExEdgesProcessorElement::Boot(FPCGContext* InContext) const
 	{
 		PCGE_LOG(Error, GraphAndLog, FTEXT("Missing Edges."));
 		return false;
+	}
+
+	if (Settings->SupportsVtxFilters())
+	{
+		TArray<UPCGExFilterFactoryBase*> FilterFactories;
+		if (GetInputFactories(InContext, Settings->GetVtxFilterLabel(), FilterFactories, PCGExFactories::ClusterFilters, false))
+		{
+			Context->VtxFiltersData = NewObject<UPCGExNodeStateFactory>();
+			Context->VtxFiltersData->FilterFactories.Append(FilterFactories);
+		}
+	}
+
+	if (Settings->SupportsEdgesFilters())
+	{
+		TArray<UPCGExFilterFactoryBase*> FilterFactories;
+		if (GetInputFactories(InContext, Settings->GetEdgesFilterLabel(), FilterFactories, PCGExFactories::ClusterFilters, false))
+		{
+			Context->EdgesFiltersData = NewObject<UPCGExNodeStateFactory>();
+			Context->EdgesFiltersData->FilterFactories.Append(FilterFactories);
+		}
 	}
 
 	return true;

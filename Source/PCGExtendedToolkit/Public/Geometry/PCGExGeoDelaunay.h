@@ -39,6 +39,8 @@ namespace PCGExGeo
 		TSet<int32> DelaunayHull;
 		bool IsValid = false;
 
+		mutable FRWLock ProcessLock;
+
 		TDelaunay2()
 		{
 		}
@@ -59,7 +61,7 @@ namespace PCGExGeo
 			IsValid = false;
 		}
 
-		bool Process(const TArrayView<FVector>& Positions, const FPCGExGeo2DProjectionSettings& ProjectionSettings)
+		bool Process(const TArrayView<FVector>& Positions, const FPCGExGeo2DProjectionSettings& ProjectionSettings, FPCGExPointsProcessorContext* Context = nullptr)
 		{
 			Clear();
 
@@ -69,13 +71,13 @@ namespace PCGExGeo
 			ProjectionSettings.Project(Positions, Positions2D);
 
 			Triangulation = new UE::Geometry::FDelaunay2();
-			
+
 			TArray<UE::Geometry::FIndex3i> Triangles;
 			TArray<UE::Geometry::FIndex3i> Adjacencies;
-			
+
 			{
 				TRACE_CPUPROFILER_EVENT_SCOPE(Delaunay2D::Triangulate);
-				
+
 				if (!Triangulation->Triangulate(Positions2D))
 				{
 					Positions2D.Empty();
@@ -127,7 +129,7 @@ namespace PCGExGeo
 			return IsValid;
 		}
 
-		void RemoveLongestEdges(const TArrayView<FVector>& Positions)
+		void RemoveLongestEdges(const TArrayView<FVector>& Positions, FPCGExPointsProcessorContext* Context)
 		{
 			uint64 Edge;
 			for (const FDelaunaySite2& Site : Sites)
@@ -196,6 +198,8 @@ namespace PCGExGeo
 
 		bool IsValid = false;
 
+		mutable FRWLock ProcessLock;
+
 		TDelaunay3()
 		{
 		}
@@ -216,7 +220,7 @@ namespace PCGExGeo
 			IsValid = false;
 		}
 
-		bool Process(const TArrayView<FVector>& Positions, const bool bComputeFaces = false)
+		bool Process(const TArrayView<FVector>& Positions, const bool bComputeFaces = false, FPCGExPointsProcessorContext* Context = nullptr)
 		{
 			Clear();
 			if (Positions.IsEmpty() || Positions.Num() <= 3) { return false; }
@@ -295,7 +299,7 @@ namespace PCGExGeo
 			return IsValid;
 		}
 
-		void RemoveLongestEdges(const TArrayView<FVector>& Positions)
+		void RemoveLongestEdges(const TArrayView<FVector>& Positions, FPCGExPointsProcessorContext* Context)
 		{
 			uint64 Edge;
 			for (const FDelaunaySite3& Site : Sites)

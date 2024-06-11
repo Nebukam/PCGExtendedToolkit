@@ -121,13 +121,13 @@ bool FPCGExDelaunay3Task::ExecuteTask()
 	PCGExGeo::TDelaunay3* Delaunay = new PCGExGeo::TDelaunay3();
 
 	const TArrayView<FVector> View = MakeArrayView(Context->ActivePositions);
-	if (!Delaunay->Process(View))
+	if (!Delaunay->Process(View, false, Context))
 	{
 		PCGEX_DELETE(Delaunay)
 		return false;
 	}
 
-	if (Settings->bUrquhart) { Delaunay->RemoveLongestEdges(View); }
+	if (Settings->bUrquhart) { Delaunay->RemoveLongestEdges(View, Context); }
 	if (Settings->bMarkHull) { Context->HullIndices.Append(Delaunay->DelaunayHull); }
 
 	Graph->InsertEdges(Delaunay->DelaunayEdges, -1);

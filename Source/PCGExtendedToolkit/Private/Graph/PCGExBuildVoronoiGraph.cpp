@@ -126,7 +126,7 @@ bool FPCGExVoronoi3Task::ExecuteTask()
 	PCGExGeo::TVoronoi3* Voronoi = new PCGExGeo::TVoronoi3();
 
 	if (const TArrayView<FVector> View = MakeArrayView(Context->ActivePositions);
-		!Voronoi->Process(View))
+		!Voronoi->Process(View, Context))
 	{
 		PCGEX_DELETE(Voronoi)
 		return false;

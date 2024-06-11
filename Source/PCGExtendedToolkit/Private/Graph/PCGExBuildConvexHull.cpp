@@ -141,7 +141,7 @@ bool FPCGExConvexHull3Task::ExecuteTask()
 	for (int i = 0; i < NumPoints; i++) { Positions[i] = Points[i].Transform.GetLocation(); }
 
 	const TArrayView<FVector> View = MakeArrayView(Positions);
-	if (!Delaunay->Process(View, true))
+	if (!Delaunay->Process(View, true, Context))
 	{
 		PCGEX_DELETE(Delaunay)
 		return false;

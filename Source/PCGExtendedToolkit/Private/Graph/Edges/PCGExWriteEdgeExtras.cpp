@@ -158,11 +158,7 @@ bool FPCGExWriteEdgeExtrasElement::ExecuteInternal(
 			return false;
 		}
 
-		if (!Context->CurrentCluster)
-		{
-			PCGEX_INVALID_CLUSTER_LOG
-			return false;
-		}
+		if (!Context->CurrentCluster) { return false; }
 
 		if (Context->bSolidify)
 		{

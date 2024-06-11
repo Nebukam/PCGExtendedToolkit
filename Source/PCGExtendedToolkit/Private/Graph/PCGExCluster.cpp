@@ -40,6 +40,10 @@ namespace PCGExCluster
 		Adjacency.Empty();
 	}
 
+	bool FNode::IsDeadEnd() const { return Adjacency.Num() == 1; }
+	bool FNode::IsSimple() const { return Adjacency.Num() == 2; }
+	bool FNode::IsComplex() const { return Adjacency.Num() > 2; }
+
 	bool FNode::IsAdjacentTo(const int32 OtherNodeIndex) const
 	{
 		for (const uint64 AdjacencyHash : Adjacency) { if (OtherNodeIndex == PCGEx::H64A(AdjacencyHash)) { return true; } }
@@ -622,6 +626,7 @@ namespace PCGExCluster
 	void FClusterProjection::Build()
 	{
 		for (FNodeProjection& PNode
+
 		     :
 		     Nodes
 		)
@@ -714,6 +719,11 @@ namespace PCGExCluster
 		return false;
 	}
 
+	bool TClusterFilter::PrepareForTesting(const PCGExData::FPointIO* PointIO, const TArrayView<int32>& PointIndices)
+	{
+		return TFilter::PrepareForTesting(PointIO, PointIndices);
+	}
+
 	FNodeStateHandler::FNodeStateHandler(const UPCGExNodeStateFactory* InFactory)
 		: TDataState(InFactory), NodeStateDefinition(InFactory)
 	{
@@ -726,6 +736,7 @@ namespace PCGExCluster
 		{
 			if (TFilter* Handler = InFactory->FilterFactories[i]->CreateFilter())
 			{
+				Handler->bCacheResults = false; // So we don't create individual filter caches
 				if (Handler->GetFilterType() == PCGExDataFilter::EType::Cluster) { ClusterFilterHandlers.Add(static_cast<TClusterFilter*>(Handler)); }
 				else { FilterHandlers.Add(Handler); }
 			}
@@ -801,6 +812,19 @@ namespace PCGExCluster
 		return RequiresPerPointPreparation();
 	}
 
+	bool FNodeStateHandler::PrepareForTesting(const PCGExData::FPointIO* PointIO, const TArrayView<int32>& PointIndices)
+	{
+		TDataState::PrepareForTesting(PointIO, PointIndices);
+
+		HeavyFilterHandlers.Empty();
+		HeavyClusterFilterHandlers.Empty();
+
+		for (TFilter* Test : FilterHandlers) { if (Test->PrepareForTesting(PointIO, PointIndices)) { HeavyFilterHandlers.Add(Test); } }
+		for (TClusterFilter* Test : ClusterFilterHandlers) { if (Test->PrepareForTesting(PointIO, PointIndices)) { HeavyClusterFilterHandlers.Add(Test); } }
+
+		return RequiresPerPointPreparation();
+	}
+
 	void FNodeStateHandler::PrepareSingle(const int32 PointIndex)
 	{
 		for (TFilter* Test : HeavyFilterHandlers) { Test->PrepareSingle(PointIndex); }
@@ -839,6 +863,81 @@ namespace PCGExClusterTask
 
 	bool FFindNodeChains::ExecuteTask()
 	{
+		//TArray<uint64> AdjacencyHashes;
+		//AdjacencyHashes.Reserve(Cluster->Nodes.Num());
+
+		TSet<int32> IgnoredEdges;
+		IgnoredEdges.Reserve(Cluster->Nodes.Num());
+
+		bool bIsAlreadyIgnored;
+
+		for (const PCGExCluster::FNode& Node : Cluster->Nodes)
+		{
+			if (Node.IsSimple()) { continue; }
+
+			const bool bIsDeadEnd = Node.IsDeadEnd();
+			const bool bIsBreakpoint = (*Breakpoints)[Node.NodeIndex];
+
+			const bool bIsValidStartNode =
+				bDeadEndsOnly ?
+					bIsDeadEnd && !bIsBreakpoint :
+					(bIsDeadEnd || bIsBreakpoint || Node.IsComplex());
+
+			if (!bIsValidStartNode) { continue; }
+
+			for (const uint64 AdjacencyHash : Node.Adjacency)
+			{
+				uint32 OtherNodeIndex;
+				uint32 EdgeIndex;
+				PCGEx::H64(AdjacencyHash, OtherNodeIndex, EdgeIndex);
+
+				IgnoredEdges.Add(EdgeIndex, &bIsAlreadyIgnored);
+				if (bIsAlreadyIgnored) { continue; }
+
+				const PCGExCluster::FNode& OtherNode = Cluster->Nodes[OtherNodeIndex];
+				const bool bIsOtherDeadEnd = OtherNode.IsDeadEnd();
+				const bool bIsOtherBreakpoint = (*Breakpoints)[OtherNode.NodeIndex];
+
+				if (bIsOtherBreakpoint || bIsOtherDeadEnd || OtherNode.IsComplex())
+				{
+					// That's a single edge
+					
+					if (bSkipSingleEdgeChains) { continue; }
+
+					PCGExCluster::FNodeChain* NewChain = new PCGExCluster::FNodeChain();
+					NewChain->First = OtherNodeIndex;
+					NewChain->Last = OtherNode.NodeIndex;
+					NewChain->SingleEdge = EdgeIndex;
+
+					Chains->Add(NewChain);
+				}
+				else
+				{
+					// Requires extended Search
+					Manager->Start<FBuildChain>(
+						Chains->Add(nullptr), nullptr,
+						Cluster, Breakpoints, Chains, Node.NodeIndex, AdjacencyHash);
+				}
+			}
+		}
+
+		return true;
+	}
+
+	bool FBuildChain::ExecuteTask()
+	{
+		PCGExCluster::FNodeChain* NewChain = new PCGExCluster::FNodeChain();
+
+		uint32 NodeIndex;
+		uint32 EdgeIndex;
+		PCGEx::H64(AdjacencyHash, NodeIndex, EdgeIndex);
+
+		NewChain->First = StartIndex;
+		NewChain->Last = NodeIndex;
+
+		BuildChain(NewChain, Breakpoints, Cluster);
+		(*Chains)[TaskIndex] = NewChain;
+
 		return true;
 	}
 

@@ -101,6 +101,8 @@ bool FPCGExFindContoursElement::ExecuteInternal(
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
+	if (!Context->ProcessorAutomation()) { return false; }
+
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
 		if (!Context->AdvancePointsIO()) { Context->Done(); }
@@ -128,12 +130,12 @@ bool FPCGExFindContoursElement::ExecuteInternal(
 		if (!Context->CurrentCluster) { return false; } // Corrupted or invalid cluster
 
 		Context->SetState(PCGExCluster::State_ProjectingCluster);
+		Context->bWaitingOnClusterProjection = true;
+		return false;
 	}
 
 	if (Context->IsState(PCGExCluster::State_ProjectingCluster))
 	{
-		if (!Context->ProjectCluster()) { return false; }
-
 		for (int i = 0; i < Context->Seeds->Pairs.Num(); i++)
 		{
 			Context->GetAsyncManager()->Start<FPCGExFindContourTask>(i, &Context->Paths->Emplace_GetRef(*Context->CurrentIO, PCGExData::EInit::NewOutput), Context->CurrentCluster);
