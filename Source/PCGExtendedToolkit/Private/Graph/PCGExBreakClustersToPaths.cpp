@@ -12,13 +12,6 @@ UPCGExBreakClustersToPathsSettings::UPCGExBreakClustersToPathsSettings(
 {
 }
 
-TArray<FPCGPinProperties> UPCGExBreakClustersToPathsSettings::InputPinProperties() const
-{
-	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_POINTS(PCGExDataFilter::SourceFiltersLabel, "When using edge chain operation, these filter are used to find additional split points", Advanced, {})
-	return PinProperties;
-}
-
 TArray<FPCGPinProperties> UPCGExBreakClustersToPathsSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
@@ -154,8 +147,8 @@ bool FPCGExBreakClustersToPathsElement::ExecuteInternal(
 			MutablePoints.SetNumUninitialized(2);
 
 			const PCGExGraph::FIndexedEdge& Edge = Context->CurrentCluster->Edges[EdgeIndex];
-			MutablePoints[0] = Context->CurrentIO->GetInPoint(Edge.Start);
-			MutablePoints[1] = Context->CurrentIO->GetInPoint(Edge.End);
+			MutablePoints[0] = PathIO.GetInPoint(Edge.Start);
+			MutablePoints[1] = PathIO.GetInPoint(Edge.End);
 
 			PathIO.SetNumInitialized(2, true);
 		};

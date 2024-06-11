@@ -19,7 +19,7 @@ FName UPCGExEdgesProcessorSettings::GetVtxFilterLabel() const { return NAME_None
 FName UPCGExEdgesProcessorSettings::GetEdgesFilterLabel() const { return NAME_None; }
 
 bool UPCGExEdgesProcessorSettings::SupportsVtxFilters() const { return !GetVtxFilterLabel().IsNone(); }
-bool UPCGExEdgesProcessorSettings::SupportsEdgesFilters() const { return !GetVtxFilterLabel().IsNone(); }
+bool UPCGExEdgesProcessorSettings::SupportsEdgesFilters() const { return !GetEdgesFilterLabel().IsNone(); }
 
 PCGExData::EInit UPCGExEdgesProcessorSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::Forward; }
 
@@ -31,8 +31,8 @@ TArray<FPCGPinProperties> UPCGExEdgesProcessorSettings::InputPinProperties() con
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
 	PCGEX_PIN_POINTS(PCGExGraph::SourceEdgesLabel, "Edges associated with the main input points", Required, {})
-	if (SupportsVtxFilters()) { PCGEX_PIN_POINTS(GetVtxFilterLabel(), "Vtx filters", Advanced, {}) }
-	if (SupportsEdgesFilters()) { PCGEX_PIN_POINTS(GetEdgesFilterLabel(), "Edges filters", Advanced, {}) }
+	if (SupportsVtxFilters()) { PCGEX_PIN_PARAMS(GetVtxFilterLabel(), "Vtx filters", Advanced, {}) }
+	if (SupportsEdgesFilters()) { PCGEX_PIN_PARAMS(GetEdgesFilterLabel(), "Edges filters", Advanced, {}) }
 	return PinProperties;
 }
 
@@ -108,7 +108,8 @@ bool FPCGExEdgesProcessorContext::AdvancePointsIO()
 		CurrentIO->CreateInKeys();
 		ProjectionSettings.Init(CurrentIO);
 		PCGExGraph::BuildEndpointsLookup(*CurrentIO, EndpointsLookup, EndpointsAdjacency);
-	}else
+	}
+	else
 	{
 		PCGE_LOG_C(Warning, GraphAndLog, this, FTEXT("Some input vtx have no associated edges."));
 	}
