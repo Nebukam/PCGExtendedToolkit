@@ -42,6 +42,8 @@ FPCGExBreakClustersToPathsContext::~FPCGExBreakClustersToPathsContext()
 	PCGEX_DELETE_TARRAY(Chains)
 }
 
+bool FPCGExBreakClustersToPathsContext::DefaultVtxFilterResult() const { return false; }
+
 
 bool FPCGExBreakClustersToPathsElement::Boot(FPCGContext* InContext) const
 {
@@ -101,7 +103,7 @@ bool FPCGExBreakClustersToPathsElement::ExecuteInternal(
 		{
 			Context->GetAsyncManager()->Start<PCGExClusterTask::FFindNodeChains>(
 				Context->CurrentEdges->IOIndex, nullptr, Context->CurrentCluster,
-				&Context->VtxFilterResults, &Context->Chains, Settings->MinPointCount > 1, false);
+				&Context->VtxFilterResults, &Context->Chains, Settings->MinPointCount > 2, false);
 
 			Context->SetAsyncState(PCGExCluster::State_BuildingChains);
 		}
@@ -130,11 +132,11 @@ bool FPCGExBreakClustersToPathsElement::ExecuteInternal(
 			MutablePoints.SetNumUninitialized(ChainSize);
 			int32 PointCount = 0;
 
-			auto AddPoint = [&](const int32 PointIndex) { MutablePoints[PointCount++] = PathIO.GetInPoint(PointIndex); };
+			auto AddPoint = [&](const int32 NodeIndex) { MutablePoints[PointCount++] = PathIO.GetInPoint(Context->CurrentCluster->Nodes[NodeIndex].PointIndex); };
 
-			AddPoint(Context->CurrentCluster->Nodes[Chain->First].PointIndex);
-			for (const int32 NodeIndex : Chain->Nodes) { AddPoint(Context->CurrentCluster->Nodes[NodeIndex].PointIndex); }
-			AddPoint(Context->CurrentCluster->Nodes[Chain->Last].PointIndex);
+			AddPoint(Chain->First);
+			for (const int32 NodeIndex : Chain->Nodes) { AddPoint(NodeIndex); }
+			AddPoint(Chain->Last);
 
 			PathIO.SetNumInitialized(ChainSize, true);
 		};
