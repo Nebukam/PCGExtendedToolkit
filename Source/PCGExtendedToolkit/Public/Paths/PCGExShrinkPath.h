@@ -141,7 +141,7 @@ public:
 	FPCGExShrinkPathEndpointDistanceSettings PrimaryDistanceSettings;
 
 	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="ShrinkMode==EPCGExPathShrinkMode::Distance && ShrinkEndpoint==EPCGExShrinkEndpoint::Both && ConstantMode==EPCGExShrinkConstantMode::Separate", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="ShrinkMode==EPCGExPathShrinkMode::Distance && ShrinkEndpoint==EPCGExShrinkEndpoint::Both && SettingsMode==EPCGExShrinkConstantMode::Separate", EditConditionHides))
 	FPCGExShrinkPathEndpointDistanceSettings SecondaryDistanceSettings;
 
 
@@ -150,7 +150,7 @@ public:
 	FPCGExShrinkPathEndpointCountSettings PrimaryCountSettings;
 
 	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="ShrinkMode==EPCGExPathShrinkMode::Count && ShrinkEndpoint==EPCGExShrinkEndpoint::Both && ConstantMode==EPCGExShrinkConstantMode::Separate", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="ShrinkMode==EPCGExPathShrinkMode::Count && ShrinkEndpoint==EPCGExShrinkEndpoint::Both && SettingsMode==EPCGExShrinkConstantMode::Separate", EditConditionHides))
 	FPCGExShrinkPathEndpointCountSettings SecondaryCountSettings;
 
 	/** TBD */
