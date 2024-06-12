@@ -86,10 +86,10 @@ bool FPCGExSplitPathTask::ExecuteTask()
 	PCGEX_SETTINGS(SplitPath)
 
 	const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
-	
-	PCGExDataFilter::TEarlyExitFilterManager* Splits = Context->CreatePointFilterManagerInstance(PointIO);
+
+	PCGExDataFilter::TEarlyExitFilterManager* Splits = Context->CreatePointFilterManagerInstance(PointIO, false);
 	bool bAnySplit = false;
-	
+
 	if (Splits->bValid)
 	{
 		Splits->PrepareForTesting();
@@ -109,13 +109,13 @@ bool FPCGExSplitPathTask::ExecuteTask()
 		}
 	}
 
-	if(!bAnySplit)
+	if (!bAnySplit)
 	{
 		Context->MainPaths->Emplace_GetRef(PointIO->GetIn(), PCGExData::EInit::Forward);
 		PCGEX_DELETE(Splits)
 		return false;
 	}
-	
+
 	// TODO : Go through each point and split/create new partition at each split
 
 	for (int i = 0; i < InPoints.Num(); i++)

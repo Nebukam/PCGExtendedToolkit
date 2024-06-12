@@ -76,7 +76,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathProcessorContext : public FPCGExPointsPr
 
 	PCGExData::FPointIOCollection* MainPaths = nullptr;
 
-	PCGExDataFilter::TEarlyExitFilterManager* CreatePointFilterManagerInstance(PCGExData::FPointIO* PointIO) const;
+	PCGExDataFilter::TEarlyExitFilterManager* CreatePointFilterManagerInstance(const PCGExData::FPointIO* PointIO, const bool bForcePrepare) const;
 
 	PCGExDataFilter::TEarlyExitFilterManager* PointFiltersManager = nullptr;	
 	bool bRequirePointFilterPreparation = false;

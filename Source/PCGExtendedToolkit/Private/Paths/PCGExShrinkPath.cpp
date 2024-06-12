@@ -12,6 +12,7 @@ FName UPCGExShrinkPathSettings::GetPointFilterLabel() const { return FName("Stop
 
 PCGEX_INITIALIZE_ELEMENT(ShrinkPath)
 
+bool FPCGExShrinkPathContext::DefaultPointFilterResult() const { return false; }
 bool FPCGExShrinkPathContext::PrepareFiltersWithAdvance() const { return false; }
 
 FPCGExShrinkPathContext::~FPCGExShrinkPathContext()
@@ -80,30 +81,32 @@ bool FPCGExShrinkPathTask::ExecuteTask()
 	int32 StartOffset = 0;
 	int32 EndOffset = 0;
 
-	PCGExDataFilter::TEarlyExitFilterManager* Stops = Context->CreatePointFilterManagerInstance(PointIO);
+	EPCGExShrinkEndpoint SafeShrinkFirst = Settings->ShrinkFirst;
+
+	if (Settings->ShrinkEndpoint == EPCGExShrinkEndpoint::Start) { SafeShrinkFirst = EPCGExShrinkEndpoint::Start; }
+	else if (Settings->ShrinkEndpoint == EPCGExShrinkEndpoint::End) { SafeShrinkFirst = EPCGExShrinkEndpoint::End; }
+
+	PCGExDataFilter::TEarlyExitFilterManager* Stops = Context->CreatePointFilterManagerInstance(PointIO, true);
 
 	auto WrapUp = [&]()
 	{
+		TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
+		if (PointIO->GetIn() != PointIO->GetOut() && MutablePoints.Num() <= 1) { MutablePoints.Empty(); }
 		PCGEX_DELETE(Stops)
 	};
 
 	if (Stops->bValid)
 	{
-		Stops->PrepareForTesting();
 		if (Stops->RequiresPerPointPreparation())
 		{
 			for (int i = 0; i < NumPoints; i++) { Stops->PrepareSingle(i); }
 			Stops->PreparationComplete();
 		}
 	}
-	else
-	{
-		for (bool& Result : Stops->Results) { Result = false; }
-	}
 
 	if (Settings->bEndpointsIgnoreStopConditions)
 	{
-		switch (Settings->ShrinkEndpoint)
+		switch (SafeShrinkFirst)
 		{
 		default: ;
 		case EPCGExShrinkEndpoint::Both:
@@ -140,6 +143,10 @@ bool FPCGExShrinkPathTask::ExecuteTask()
 		if (Settings->ShrinkEndpoint == EPCGExShrinkEndpoint::Start || Stops->Results[LastPointIndex]) { EndAmount = 0; }
 		if (Settings->ShrinkEndpoint == EPCGExShrinkEndpoint::End || Stops->Results[0]) { StartAmount = 0; }
 
+		// Just so we avoid wasting cycles... Not that this whole code is that efficient anyway
+		StartAmount = FMath::Min(StartAmount, static_cast<uint32>(NumPoints));
+		EndAmount = FMath::Min(EndAmount, static_cast<uint32>(NumPoints));
+
 		if (StartAmount == 0 && EndAmount == 0)
 		{
 			PointIO->InitializeOutput(PCGExData::EInit::Forward);
@@ -150,54 +157,50 @@ bool FPCGExShrinkPathTask::ExecuteTask()
 		PointIO->InitializeOutput(PCGExData::EInit::DuplicateInput);
 		TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
 
-		auto ShrinkBy = [&](int32 Amount)
+		auto ShrinkOnce = [&](int32 Direction)
 		{
-			if (Amount == 0 || MutablePoints.IsEmpty() || Stops->Results[StartOffset]) { return; }
+			if (Direction == 0 || MutablePoints.IsEmpty()) { return; }
 
-			if (FMath::Abs(Amount) > MutablePoints.Num())
-			{
-				MutablePoints.Empty();
-				return;
-			}
+			int32 RemoveIndex = -1;
 
-			if (Amount > 0)
+			if (Direction > 0)
 			{
-				for (int i = 0; i < Amount; i++)
-				{
-					if (Stops->Results[StartOffset]) { break; }
-					MutablePoints.RemoveAt(0);
-					StartOffset++;
-				}
+				if (Stops->Results[StartOffset]) { return; }
+
+				RemoveIndex = 0;
+				StartOffset++;
 			}
 			else
 			{
-				for (int i = 0; i < FMath::Abs(Amount); i++)
-				{
-					if (Stops->Results.Last(EndOffset)) { break; }
-					MutablePoints.RemoveAt(MutablePoints.Num() - (EndOffset++));
-				}
+				if (Stops->Results.Last(EndOffset)) { return; }
+
+				const int32 LastIndex = MutablePoints.Num() - 1;
+				if (MutablePoints.IsValidIndex(LastIndex)) { RemoveIndex = LastIndex; }
+				EndOffset++;
 			}
+
+			if (RemoveIndex != -1) { MutablePoints.RemoveAt(RemoveIndex); }
 		};
 
-		switch (Settings->ShrinkFirst)
+		switch (SafeShrinkFirst)
 		{
 		default: ;
 		case EPCGExShrinkEndpoint::Both:
-			while ((StartAmount + EndAmount) != 0)
+			while (StartAmount > 0 || EndAmount > 0)
 			{
-				if (StartAmount > 0) { ShrinkBy(1); }
-				if (EndAmount > 0) { ShrinkBy(-1); }
+				if (StartAmount > 0) { ShrinkOnce(1); }
+				if (EndAmount > 0) { ShrinkOnce(-1); }
 				StartAmount--;
 				EndAmount--;
 			}
 			break;
 		case EPCGExShrinkEndpoint::Start:
-			for (int i = 0; i < StartAmount; i++) { ShrinkBy(1); }
-			for (int i = 0; i < EndAmount; i++) { ShrinkBy(-1); }
+			for (uint32 i = 0; i < StartAmount; i++) { ShrinkOnce(1); }
+			if (!MutablePoints.IsEmpty() && EndAmount > 0) { for (uint32 i = 0; i < EndAmount; i++) { ShrinkOnce(-1); } }
 			break;
 		case EPCGExShrinkEndpoint::End:
-			for (int i = 0; i < EndAmount; i++) { ShrinkBy(-1); }
-			for (int i = 0; i < StartAmount; i++) { ShrinkBy(1); }
+			for (uint32 i = 0; i < EndAmount; i++) { ShrinkOnce(-1); }
+			if (!MutablePoints.IsEmpty() && StartAmount > 0) { for (uint32 i = 0; i < StartAmount; i++) { ShrinkOnce(1); } }
 			break;
 		}
 	}
@@ -249,66 +252,84 @@ bool FPCGExShrinkPathTask::ExecuteTask()
 				MutablePoints[0].Transform.SetLocation(Pos + Direction);
 				EndAmount = 0;
 			}
+		}
 
-			auto ShrinkBy = [&](double Distance)
+		auto ShrinkBy = [&](double Distance)-> double
+		{
+			if (Distance == 0 || MutablePoints.IsEmpty() || Stops->Results[StartOffset]) { return 0; }
+
+			if (MutablePoints.Num() <= 1)
 			{
-				if (Distance == 0 || MutablePoints.IsEmpty() || Stops->Results[StartOffset]) { return 0; }
-
-				if (MutablePoints.Num() <= 1)
-				{
-					MutablePoints.Empty();
-					return 0;
-				}
-
-				FVector From;
-				FVector To;
-				int32 Index;
-
-				if (Distance > 0)
-				{
-					Index = 0;
-					From = MutablePoints[Index].Transform.GetLocation();
-					To = MutablePoints[Index + 1].Transform.GetLocation();
-				}
-				else
-				{
-					Index = MutablePoints.Num() - 1;
-					From = MutablePoints[Index].Transform.GetLocation();
-					To = MutablePoints[Index - 1].Transform.GetLocation();
-				}
-
-				const double AvailableDistance = FVector::Dist(From, To);
-				if(Distance > AvailableDistance)
-				{
-					MutablePoints.RemoveAt(Index);
-					return Distance - AvailableDistance;
-				}
-
-				
-				double Remainder = 0;
-
-				return Distance;
-			};
-
-			switch (Settings->ShrinkFirst)
-			{
-			default: ;
-			case EPCGExShrinkEndpoint::Both:
-				while ((StartAmount + EndAmount) != 0)
-				{
-					StartAmount = ShrinkBy(StartAmount);
-					EndAmount = ShrinkBy(-EndAmount);
-				}
-				break;
-			case EPCGExShrinkEndpoint::Start:
-				while (StartAmount > 0) { StartAmount = ShrinkBy(StartAmount); }
-				while (EndAmount > 0) { EndAmount = ShrinkBy(-EndAmount); }
-				break;
-			case EPCGExShrinkEndpoint::End:
-				while (EndAmount > 0) { EndAmount = ShrinkBy(-EndAmount); }
-				while (StartAmount > 0) { StartAmount = ShrinkBy(StartAmount); }
-				break;
+				MutablePoints.Empty();
+				return 0;
 			}
+
+			FVector From;
+			FVector To;
+			int32 Index;
+
+			if (Distance > 0)
+			{
+				Index = 0;
+				From = MutablePoints[Index].Transform.GetLocation();
+				To = MutablePoints[Index + 1].Transform.GetLocation();
+			}
+			else
+			{
+				Index = MutablePoints.Num() - 1;
+				From = MutablePoints[Index].Transform.GetLocation();
+				To = MutablePoints[Index-1].Transform.GetLocation();
+				Distance = FMath::Abs(Distance);
+			}
+
+			const double AvailableDistance = FVector::Dist(From, To);
+			if (Distance >= AvailableDistance)
+			{
+				MutablePoints.RemoveAt(Index);
+				return Distance - AvailableDistance;
+			}
+
+			if (Distance < AvailableDistance)
+			{
+				switch (Settings->CutType)
+				{
+				default: ;
+				case EPCGExPathShrinkDistanceCutType::NewPoint:
+					MutablePoints[Index].Transform.SetLocation(FMath::Lerp(From, To, AvailableDistance / Distance));
+					break;
+				case EPCGExPathShrinkDistanceCutType::Previous:
+					// Do nothing
+					break;
+				case EPCGExPathShrinkDistanceCutType::Next:
+					MutablePoints.RemoveAt(Index);
+					break;
+				case EPCGExPathShrinkDistanceCutType::Closest:
+					if (AvailableDistance / Distance > 0.5) { MutablePoints.RemoveAt(Index); }
+					break;
+				}
+			}
+
+			return 0;
+		};
+
+		switch (SafeShrinkFirst)
+		{
+		default: ;
+		case EPCGExShrinkEndpoint::Both:
+			while ((StartAmount + EndAmount) != 0)
+			{
+				if (StartAmount > 0) { StartAmount = ShrinkBy(StartAmount); }
+				if (EndAmount > 0) { EndAmount = ShrinkBy(-EndAmount); }
+			}
+			break;
+		case EPCGExShrinkEndpoint::Start:
+			while (StartAmount > 0) { StartAmount = ShrinkBy(StartAmount); }
+			if (!MutablePoints.IsEmpty()) { while (EndAmount > 0) { EndAmount = ShrinkBy(-EndAmount); } }
+			break;
+		case EPCGExShrinkEndpoint::End:
+			while (EndAmount > 0) { EndAmount = ShrinkBy(-EndAmount); }
+			if (!MutablePoints.IsEmpty()) { while (StartAmount > 0) { StartAmount = ShrinkBy(StartAmount); } }
+			break;
 		}
 	}
 

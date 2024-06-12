@@ -76,6 +76,8 @@ bool FPCGExSubdivideElement::ExecuteInternal(FPCGContext* InContext) const
 		else { Context->SetState(PCGExMT::State_ProcessingPoints); }
 	}
 
+	// TODO : Move subdivision in an async task so we can bulk process all paths at the same time
+
 	if (Context->IsState(PCGExMT::State_ProcessingPoints))
 	{
 		auto Initialize = [&](const PCGExData::FPointIO& PointIO)

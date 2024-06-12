@@ -59,7 +59,7 @@ bool FPCGExPathProcessorContext::AdvancePointsIO()
 		if (Settings->SupportsPointFilters())
 		{
 			PCGEX_DELETE(PointFiltersManager)
-			PointFiltersManager = CreatePointFilterManagerInstance(CurrentIO);
+			PointFiltersManager = CreatePointFilterManagerInstance(CurrentIO, false);
 
 			if (!PointFiltersManager->bValid)
 			{
@@ -99,10 +99,15 @@ bool FPCGExPathProcessorContext::ProcessFilters()
 bool FPCGExPathProcessorContext::DefaultPointFilterResult() const { return true; }
 bool FPCGExPathProcessorContext::PrepareFiltersWithAdvance() const { return true; }
 
-PCGExDataFilter::TEarlyExitFilterManager* FPCGExPathProcessorContext::CreatePointFilterManagerInstance(PCGExData::FPointIO* PointIO) const
+PCGExDataFilter::TEarlyExitFilterManager* FPCGExPathProcessorContext::CreatePointFilterManagerInstance(const PCGExData::FPointIO* PointIO, const bool bForcePrepare) const
 {
 	PCGExDataFilter::TEarlyExitFilterManager* NewInstance = new PCGExDataFilter::TEarlyExitFilterManager(PointIO);
 	NewInstance->Register<UPCGExFilterFactoryBase>(this, FilterFactories, PointIO);
+	if (bForcePrepare)
+	{
+		NewInstance->PrepareForTesting();
+		if (!DefaultPointFilterResult()) { for (bool& Result : NewInstance->Results) { Result = false; } }
+	}
 	return NewInstance;
 }
 
