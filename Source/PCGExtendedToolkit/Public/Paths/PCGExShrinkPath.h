@@ -8,20 +8,20 @@
 
 #include "PCGExPointsProcessor.h"
 #include "Geometry/PCGExGeo.h"
-#include "PCGExMirrorPath.generated.h"
+#include "PCGExShrinkPath.generated.h"
 
 /**
  * Calculates the distance between two points (inherently a n*n operation)
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
-class PCGEXTENDEDTOOLKIT_API UPCGExMirrorPathSettings : public UPCGExPathProcessorSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExShrinkPathSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()
 
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(MirrorPath, "Path : Mirror", "Mirrors path, either as copy or simple reversal of points.");
+	PCGEX_NODE_INFOS(ShrinkPath, "Path : Shrink", "Shrink path from its beginning and end.");
 #endif
 
 protected:
@@ -38,23 +38,16 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bClosedPath = false;
 
-	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ShowOnlyInnerProperties))
-	bool bKeepOriginalPaths = true;
-
-	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ShowOnlyInnerProperties))
-	bool bReverseMirrorPointOrder = true;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExMirrorPathContext : public FPCGExPathProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExShrinkPathContext : public FPCGExPathProcessorContext
 {
-	friend class FPCGExMirrorPathElement;
+	friend class FPCGExShrinkPathElement;
 	
-	virtual ~FPCGExMirrorPathContext() override;
+	virtual ~FPCGExShrinkPathContext() override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExMirrorPathElement : public FPCGExPathProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExShrinkPathElement : public FPCGExPathProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -67,10 +60,10 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExMirrorPathTask : public FPCGExNonAbandonableTask
+class PCGEXTENDEDTOOLKIT_API FPCGExShrinkPathTask : public FPCGExNonAbandonableTask
 {
 public:
-	FPCGExMirrorPathTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO) :
+	FPCGExShrinkPathTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO) :
 		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO)
 	{
 	}

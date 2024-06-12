@@ -69,7 +69,7 @@ namespace PCGExGeo
 			// Complex intersection check
 
 			// Rule out if the closest point on the edge is further than the sphere bound radius
-			if (FVector::Dist(FMath::ClosestPointOnSegment(LocalCenter, LocalStart, LocalEnd), LocalCenter) > Sphere.W)
+			if (FVector::Dist(FMath::ClosestPointOnSegment(LocalCenter, LocalStart, LocalEnd), LocalCenter) > Sphere.SphereRadius)
 			{
 				bIsIntersectionAValid = false;
 				bIsIntersectionBValid = false;

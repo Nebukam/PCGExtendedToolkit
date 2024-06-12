@@ -298,6 +298,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : public FPCGContext
 		GetAsyncManager()->Start<FullTask>(-1, PointIO, NumIterations, ChunkSizeOverride <= 0 ? ChunkSize : ChunkSizeOverride);
 	}
 
+	PCGExData::FPointIO* TryGetSingleInput(FName InputName) const;
+	
 	FPCGTaggedData* Output(UPCGData* OutData, const FName OutputLabel);
 
 	template <typename T>

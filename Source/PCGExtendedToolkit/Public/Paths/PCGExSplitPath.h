@@ -10,6 +10,13 @@
 #include "Geometry/PCGExGeo.h"
 #include "PCGExSplitPath.generated.h"
 
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Transform Component Selector"))
+enum class EPCGExSplitAction : uint8
+{
+	Split UMETA(DisplayName = "Split", ToolTip="Duplicate the split point so the original becomes a new end, and the copy a new start."),
+	Remove UMETA(DisplayName = "Remove", ToolTip="Remove the split point, shrinking both the previous and next paths."),
+};
+
 /**
  * Calculates the distance between two points (inherently a n*n operation)
  */
@@ -25,7 +32,7 @@ public:
 #endif
 
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
-	
+
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings interface
@@ -35,6 +42,9 @@ public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings interface
 
+	virtual FName GetPointFilterLabel() const override;
+	virtual bool RequiresPointFilters() const override;
+
 public:
 	/** Consider paths to be closed -- processing will wrap between first and last points. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
@@ -42,14 +52,16 @@ public:
 
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ShowOnlyInnerProperties))
-	FPCGExBoxIntersectionSettings IntersectionSettings;
+	EPCGExSplitAction SplitAction = EPCGExSplitAction::Split;
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExSplitPathContext : public FPCGExPathProcessorContext
 {
 	friend class FPCGExSplitPathElement;
-	
+
 	virtual ~FPCGExSplitPathContext() override;
+
+	virtual bool PrepareFiltersWithAdvance() const override;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExSplitPathElement : public FPCGExPathProcessorElement

@@ -39,11 +39,11 @@ public:
 #if WITH_EDITOR
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExEditorSettings>()->NodeColorPath; }
 #endif
-	
+
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 	//~End UPCGSettings interface
 
-	
+
 	//~Begin UPCGExPointsProcessorSettings interface
 public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
@@ -53,6 +53,8 @@ public:
 
 	virtual FName GetPointFilterLabel() const;
 	bool SupportsPointFilters() const;
+	virtual bool RequiresPointFilters() const;
+		
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExPathProcessorContext : public FPCGExPointsProcessorContext
@@ -68,12 +70,16 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathProcessorContext : public FPCGExPointsPr
 	bool ProcessFilters();
 
 	virtual bool DefaultPointFilterResult() const;
+	virtual bool PrepareFiltersWithAdvance() const;
 
-	UPCGExNodeStateFactory* PointFiltersData = nullptr;
-	PCGExCluster::FNodeStateHandler* PointFiltersHandler = nullptr;
-	TArray<bool> PointFilterResults;
+	TArray<UPCGExFilterFactoryBase*> FilterFactories;
+
+	PCGExData::FPointIOCollection* MainPaths = nullptr;
+
+	PCGExDataFilter::TEarlyExitFilterManager* CreatePointFilterManagerInstance(PCGExData::FPointIO* PointIO) const;
+
+	PCGExDataFilter::TEarlyExitFilterManager* PointFiltersManager = nullptr;	
 	bool bRequirePointFilterPreparation = false;
-
 	bool bWaitingOnFilterWork = false;
 };
 

@@ -4,8 +4,7 @@
 #include "Graph/PCGExPruneClusters.h"
 
 #include "Data/PCGExGraphDefinition.h"
-
-#define LOCTEXT_NAMESPACE "PCGExGraphSettings"
+#include "Geometry/PCGExGeoPointBox.h"
 
 #pragma region UPCGSettings interface
 
@@ -19,6 +18,9 @@ FPCGExPruneClustersContext::~FPCGExPruneClustersContext()
 	PCGEX_TERMINATE_ASYNC
 
 	IndexedEdges.Empty();
+	ClusterState.Empty();
+
+	PCGEX_DELETE(BoxCloud)
 }
 
 PCGEX_INITIALIZE_ELEMENT(PruneClusters)
@@ -28,6 +30,22 @@ bool FPCGExPruneClustersElement::Boot(FPCGContext* InContext) const
 	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(PruneClusters)
+
+	const PCGExData::FPointIO* Targets = Context->TryGetSingleInput(PCGEx::SourceTargetsLabel);
+
+	if (!Targets)
+	{
+		PCGE_LOG(Error, GraphAndLog, FTEXT("Missing Targets Points."));
+		PCGEX_DELETE(Targets)
+		return false;
+	}
+
+	Context->BoxCloud = new PCGExGeo::FPointBoxCloud(Targets->GetIn());
+
+	PCGEX_DELETE(Targets)
+
+	Context->ClusterState.SetNumUninitialized(Context->MainEdges->Num());
+	for (bool& State : Context->ClusterState) { State = false; }
 
 	return true;
 }
@@ -46,30 +64,28 @@ bool FPCGExPruneClustersElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
-		if (!Context->AdvancePointsIO()) { Context->Done(); }
-		else
+		while (Context->AdvancePointsIO())
 		{
-			if (!Context->TaggedEdges) { return false; }
-
-			Context->SetState(PCGExGraph::State_ReadyForNextEdges);
-		}
-	}
-
-	if (Context->IsState(PCGExGraph::State_ReadyForNextEdges))
-	{
-		while (Context->AdvanceEdges(false))
-		{
-			
+			if (!Context->TaggedEdges) { continue; }
+			for (PCGExData::FPointIO* EdgeIO : Context->TaggedEdges->Entries)
+			{
+				Context->GetAsyncManager()->Start<FPCGExPruneClusterTask>(EdgeIO->IOIndex, Context->CurrentIO, EdgeIO);
+			}
 		}
 
-		Context->SetAsyncState(PCGExGraph::State_WritingClusters);
+		Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork);
 	}
 
 	if (Context->IsState(PCGExGraph::State_WritingClusters))
 	{
 		PCGEX_WAIT_ASYNC
+
+		TSet<PCGExData::FPointIO*> KeepList;
+		TSet<PCGExData::FPointIO*> OmitList;
 		
-		Context->SetState(PCGExMT::State_ReadyForNextPoints);
+		// TODO : Omit/Keep/Tag
+		
+		Context->Done();
 	}
 
 	if (Context->IsDone())
@@ -81,4 +97,12 @@ bool FPCGExPruneClustersElement::ExecuteInternal(FPCGContext* InContext) const
 	return Context->IsDone();
 }
 
-#undef LOCTEXT_NAMESPACE
+bool FPCGExPruneClusterTask::ExecuteTask()
+{
+	const FPCGExPruneClustersContext* Context = Manager->GetContext<FPCGExPruneClustersContext>();
+	PCGEX_SETTINGS(PruneClusters)
+
+	// TODO : Check against BoxCloud
+	
+	return true;
+}

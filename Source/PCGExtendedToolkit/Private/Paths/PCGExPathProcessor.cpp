@@ -15,7 +15,11 @@ UPCGExPathProcessorSettings::UPCGExPathProcessorSettings(const FObjectInitialize
 TArray<FPCGPinProperties> UPCGExPathProcessorSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	if (SupportsPointFilters()) { PCGEX_PIN_PARAMS(GetPointFilterLabel(), "Path points filters", Advanced, {}) }
+	if (SupportsPointFilters())
+	{
+		if (RequiresPointFilters()) { PCGEX_PIN_PARAMS(GetPointFilterLabel(), "Path points processing filters", Required, {}) }
+		else { PCGEX_PIN_PARAMS(GetPointFilterLabel(), "Path points processing filters", Advanced, {}) }
+	}
 	return PinProperties;
 }
 
@@ -26,14 +30,12 @@ FName UPCGExPathProcessorSettings::GetMainOutputLabel() const { return PCGExGrap
 
 FName UPCGExPathProcessorSettings::GetPointFilterLabel() const { return NAME_None; }
 bool UPCGExPathProcessorSettings::SupportsPointFilters() const { return !GetPointFilterLabel().IsNone(); }
+bool UPCGExPathProcessorSettings::RequiresPointFilters() const { return false; }
 
 FPCGExPathProcessorContext::~FPCGExPathProcessorContext()
 {
 	PCGEX_TERMINATE_ASYNC
-
-	PCGEX_DELETE_UOBJECT(PointFiltersData)
-	PCGEX_DELETE(PointFiltersHandler)
-	PointFilterResults.Empty();
+	PCGEX_DELETE(PointFiltersManager)
 }
 
 bool FPCGExPathProcessorContext::ProcessorAutomation()
@@ -46,28 +48,30 @@ bool FPCGExPathProcessorContext::AdvancePointsIO()
 {
 	PCGEX_SETTINGS_LOCAL(PathProcessor)
 
-	PCGEX_DELETE(PointFiltersHandler)
+	PCGEX_DELETE(PointFiltersManager)
 
 	if (!FPCGExPointsProcessorContext::AdvancePointsIO()) { return false; }
 
 	const bool DefaultResult = DefaultPointFilterResult();
 
-	if (PointFiltersData)
+	if (PrepareFiltersWithAdvance())
 	{
-		PointFilterResults.SetNumUninitialized(CurrentIO->GetNum());
-		for (int i = 0; i < PointFilterResults.Num(); i++) { PointFilterResults[i] = DefaultResult; }
+		if (Settings->SupportsPointFilters())
+		{
+			PCGEX_DELETE(PointFiltersManager)
+			PointFiltersManager = CreatePointFilterManagerInstance(CurrentIO);
 
-		PointFiltersHandler = static_cast<PCGExCluster::FNodeStateHandler*>(PointFiltersData->CreateFilter());
-		PointFiltersHandler->bCacheResults = false;
-		PointFiltersHandler->Capture(this, CurrentIO);
-
-		bRequirePointFilterPreparation = PointFiltersHandler->PrepareForTesting(CurrentIO);
-		bWaitingOnFilterWork = true;
-	}
-	else if (Settings->SupportsPointFilters())
-	{
-		PointFilterResults.SetNumUninitialized(CurrentIO->GetNum());
-		for (int i = 0; i < PointFilterResults.Num(); i++) { PointFilterResults[i] = DefaultResult; }
+			if (!PointFiltersManager->bValid)
+			{
+				for (bool& Result : PointFiltersManager->Results) { Result = DefaultResult; }
+			}
+			else
+			{
+				PointFiltersManager->PrepareForTesting();
+				bRequirePointFilterPreparation = PointFiltersManager->RequiresPerPointPreparation();
+				bWaitingOnFilterWork = true;
+			}
+		}
 	}
 
 	return true;
@@ -79,17 +83,13 @@ bool FPCGExPathProcessorContext::ProcessFilters()
 
 	if (bRequirePointFilterPreparation)
 	{
-		auto PrepareVtx = [&](const int32 Index) { PointFiltersHandler->PrepareSingle(Index); };
+		auto PrepareVtx = [&](const int32 Index) { PointFiltersManager->PrepareSingle(Index); };
 		if (!Process(PrepareVtx, CurrentIO->GetNum())) { return false; }
 		bRequirePointFilterPreparation = false;
 	}
 
-	if (PointFiltersHandler)
-	{
-		auto FilterVtx = [&](const int32 Index) { PointFilterResults[Index] = PointFiltersHandler->Test(Index); };
-		if (!Process(FilterVtx, CurrentIO->GetNum())) { return false; }
-		PCGEX_DELETE(PointFiltersHandler)
-	}
+	auto FilterVtx = [&](const int32 Index) { PointFiltersManager->Test(Index); };
+	if (!Process(FilterVtx, CurrentIO->GetNum())) { return false; }
 
 	bWaitingOnFilterWork = false;
 
@@ -97,6 +97,14 @@ bool FPCGExPathProcessorContext::ProcessFilters()
 }
 
 bool FPCGExPathProcessorContext::DefaultPointFilterResult() const { return true; }
+bool FPCGExPathProcessorContext::PrepareFiltersWithAdvance() const { return true; }
+
+PCGExDataFilter::TEarlyExitFilterManager* FPCGExPathProcessorContext::CreatePointFilterManagerInstance(PCGExData::FPointIO* PointIO) const
+{
+	PCGExDataFilter::TEarlyExitFilterManager* NewInstance = new PCGExDataFilter::TEarlyExitFilterManager(PointIO);
+	NewInstance->Register<UPCGExFilterFactoryBase>(this, FilterFactories, PointIO);
+	return NewInstance;
+}
 
 PCGEX_INITIALIZE_CONTEXT(PathProcessor)
 
@@ -108,11 +116,11 @@ bool FPCGExPathProcessorElement::Boot(FPCGContext* InContext) const
 
 	if (Settings->SupportsPointFilters())
 	{
-		TArray<UPCGExFilterFactoryBase*> FilterFactories;
-		if (PCGExFactories::GetInputFactories(InContext, Settings->GetPointFilterLabel(), FilterFactories, {PCGExFactories::EType::Filter}, false))
+		PCGExFactories::GetInputFactories(InContext, Settings->GetPointFilterLabel(), Context->FilterFactories, {PCGExFactories::EType::Filter}, false);
+		if (Settings->RequiresPointFilters() && Context->FilterFactories.IsEmpty())
 		{
-			Context->PointFiltersData = NewObject<UPCGExNodeStateFactory>();
-			Context->PointFiltersData->FilterFactories.Append(FilterFactories);
+			PCGE_LOG(Error, GraphAndLog, FText::Format(FTEXT("Missing {0}."), FText::FromName(Settings->GetPointFilterLabel())));
+			return false;
 		}
 	}
 

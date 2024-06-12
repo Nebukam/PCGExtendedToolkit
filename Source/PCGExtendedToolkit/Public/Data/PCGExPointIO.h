@@ -49,7 +49,6 @@ namespace PCGExData
 		bool bEnabled = true;
 
 	public:
-		FPCGTaggedData Source; // Source struct
 		FTags* Tags = nullptr;
 		int32 IOIndex = 0;
 
@@ -66,16 +65,15 @@ namespace PCGExData
 		}
 
 		FPointIO(
-			const FPCGTaggedData& InSource,
 			const UPCGPointData* InData,
 			const FName InDefaultOutputLabel,
 			const EInit InInit = EInit::NoOutput,
-			const int32 InIndex = -1)
+			const int32 InIndex = -1,
+			const TSet<FString>* InTags = nullptr)
 			: In(InData), IOIndex(InIndex)
 		{
 			DefaultOutputLabel = InDefaultOutputLabel;
-			Source = InSource;
-			Tags = new FTags(InSource.Tags);
+			Tags = InTags ? new FTags(*InTags) : new FTags();
 			NumInPoints = InData->GetPoints().Num();
 			InitializeOutput(InInit);
 		}
@@ -156,8 +154,8 @@ namespace PCGExData
 
 	public:
 		FPointIOCollection();
-		FPointIOCollection(FPCGContext* Context, FName InputLabel, EInit InitOut = EInit::NoOutput);
-		FPointIOCollection(FPCGContext* Context, TArray<FPCGTaggedData>& Sources, EInit InitOut = EInit::NoOutput);
+		FPointIOCollection(const FPCGContext* Context, FName InputLabel, EInit InitOut = EInit::NoOutput);
+		FPointIOCollection(const FPCGContext* Context, TArray<FPCGTaggedData>& Sources, EInit InitOut = EInit::NoOutput);
 
 		~FPointIOCollection();
 
@@ -171,7 +169,7 @@ namespace PCGExData
 		 * @param InitOut 
 		 */
 		void Initialize(
-			FPCGContext* Context, TArray<FPCGTaggedData>& Sources,
+			const FPCGContext* Context, TArray<FPCGTaggedData>& Sources,
 			EInit InitOut = EInit::NoOutput);
 
 		FPointIO& Emplace_GetRef(
@@ -251,26 +249,26 @@ namespace PCGExData
 
 	namespace PCGExPointIO
 	{
-		static UPCGPointData* GetMutablePointData(FPCGContext* Context, const FPCGTaggedData& Source)
+		static UPCGPointData* GetMutablePointData(const FPCGContext* Context, const FPCGTaggedData& Source)
 		{
 			const UPCGSpatialData* SpatialData = Cast<UPCGSpatialData>(Source.Data);
 			if (!SpatialData) { return nullptr; }
 
-			const UPCGPointData* PointData = SpatialData->ToPointData(Context);
+			const UPCGPointData* PointData = SpatialData->ToPointData(const_cast<FPCGContext*>(Context));
 			if (!PointData) { return nullptr; }
 
 			return const_cast<UPCGPointData*>(PointData);
 		}
 
 		static FPointIO* GetPointIO(
-			FPCGContext* Context,
+			const FPCGContext* Context,
 			const FPCGTaggedData& Source,
 			const FName OutputLabel = NAME_None,
 			const EInit InitOut = EInit::NoOutput)
 		{
 			if (const UPCGPointData* InData = GetMutablePointData(Context, Source))
 			{
-				FPointIO* PointIO = new FPointIO(Source, InData, OutputLabel, InitOut);
+				FPointIO* PointIO = new FPointIO(InData, OutputLabel, InitOut, -1, &Source.Tags);
 				PointIO->InitializeOutput(InitOut);
 				return PointIO;
 			}

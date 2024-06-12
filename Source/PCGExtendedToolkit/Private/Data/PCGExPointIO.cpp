@@ -12,9 +12,8 @@ namespace PCGExData
 
 	void FPointIO::InitializeOutput(const EInit InitOut)
 	{
-
 		PCGEX_DELETE_UOBJECT(Out)
-		
+
 		switch (InitOut)
 		{
 		case EInit::NoOutput:
@@ -221,7 +220,9 @@ namespace PCGExData
 
 	FPointIO& FPointIO::Branch()
 	{
-		FPointIO& Branch = *(new FPointIO(Source, GetIn(), DefaultOutputLabel, EInit::NewOutput));
+		TSet<FString> TagsCopy;
+		Tags->Dump(TagsCopy);
+		FPointIO& Branch = *(new FPointIO(GetIn(), DefaultOutputLabel, EInit::NewOutput, -1, &TagsCopy));
 		Branch.RootIO = this;
 		return Branch;
 	}
@@ -285,14 +286,14 @@ namespace PCGExData
 	{
 	}
 
-	FPointIOCollection::FPointIOCollection(FPCGContext* Context, const FName InputLabel, const EInit InitOut)
+	FPointIOCollection::FPointIOCollection(const FPCGContext* Context, const FName InputLabel, const EInit InitOut)
 		: FPointIOCollection()
 	{
 		TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(InputLabel);
 		Initialize(Context, Sources, InitOut);
 	}
 
-	FPointIOCollection::FPointIOCollection(FPCGContext* Context, TArray<FPCGTaggedData>& Sources, const EInit InitOut)
+	FPointIOCollection::FPointIOCollection(const FPCGContext* Context, TArray<FPCGTaggedData>& Sources, const EInit InitOut)
 		: FPointIOCollection()
 	{
 		Initialize(Context, Sources, InitOut);
@@ -301,7 +302,7 @@ namespace PCGExData
 	FPointIOCollection::~FPointIOCollection() { Flush(); }
 
 	void FPointIOCollection::Initialize(
-		FPCGContext* Context, TArray<FPCGTaggedData>& Sources,
+		const FPCGContext* Context, TArray<FPCGTaggedData>& Sources,
 		const EInit InitOut)
 	{
 		Pairs.Empty(Sources.Num());
@@ -323,7 +324,7 @@ namespace PCGExData
 		const FPointIO& PointIO,
 		const EInit InitOut)
 	{
-		FPointIO& Branch = Emplace_GetRef(PointIO.Source, PointIO.GetIn(), InitOut);
+		FPointIO& Branch = Emplace_GetRef(PointIO.GetIn(), InitOut);
 		Branch.Tags->Reset(*PointIO.Tags);
 		Branch.RootIO = const_cast<FPointIO*>(&PointIO);
 		return Branch;
@@ -335,7 +336,7 @@ namespace PCGExData
 		const EInit InitOut)
 	{
 		FWriteScopeLock WriteLock(PairsLock);
-		return *Pairs.Add_GetRef(new FPointIO(Source, In, DefaultOutputLabel, InitOut, Pairs.Num()));
+		return *Pairs.Add_GetRef(new FPointIO(In, DefaultOutputLabel, InitOut, Pairs.Num(), &Source.Tags));
 	}
 
 	FPointIO& FPointIOCollection::Emplace_GetRef(
@@ -344,7 +345,7 @@ namespace PCGExData
 	{
 		const FPCGTaggedData Source;
 		FWriteScopeLock WriteLock(PairsLock);
-		return *Pairs.Add_GetRef(new FPointIO(Source, In, DefaultOutputLabel, InitOut, Pairs.Num()));
+		return *Pairs.Add_GetRef(new FPointIO(In, DefaultOutputLabel, InitOut, Pairs.Num(), &Source.Tags));
 	}
 
 	FPointIO& FPointIOCollection::Emplace_GetRef(const EInit InitOut)

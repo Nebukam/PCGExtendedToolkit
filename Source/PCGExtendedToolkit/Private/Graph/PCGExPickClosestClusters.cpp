@@ -30,7 +30,6 @@ PCGEX_INITIALIZE_ELEMENT(PickClosestClusters)
 FPCGExPickClosestClustersContext::~FPCGExPickClosestClustersContext()
 {
 	PCGEX_TERMINATE_ASYNC
-	PCGEX_DELETE(TargetsCollection)
 
 	for (const TPair<int32, TSet<int32>*> Pair : VtxEdgeMap)
 	{
@@ -40,6 +39,8 @@ FPCGExPickClosestClustersContext::~FPCGExPickClosestClustersContext()
 
 	VtxEdgeMap.Empty();
 	Selectors.Empty();
+
+	PCGEX_DELETE(Targets)
 }
 
 
@@ -49,10 +50,13 @@ bool FPCGExPickClosestClustersElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(PickClosestClusters)
 
-	Context->TargetsCollection = new PCGExData::FPointIOCollection(Context, PCGExGraph::SourcePickersLabel);
-	if (Context->TargetsCollection->Pairs.IsEmpty()) { return false; }
+	Context->Targets = Context->TryGetSingleInput(PCGExGraph::SourcePickersLabel);
+	if (!Context->Targets)
+	{
+		PCGE_LOG(Error, GraphAndLog, FTEXT("Missing Pickers Points."));
+		return false;
+	}
 
-	Context->Targets = Context->TargetsCollection->Pairs[0];
 	const TArray<FPCGPoint>& InTargetPoints = Context->Targets->GetIn()->GetPoints();
 	Context->Selectors.SetNumUninitialized(InTargetPoints.Num());
 

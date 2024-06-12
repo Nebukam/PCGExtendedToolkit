@@ -76,7 +76,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPickClosestClustersContext : public FPCGExEd
 
 	virtual ~FPCGExPickClosestClustersContext() override;
 
-	PCGExData::FPointIOCollection* TargetsCollection = nullptr;
 	PCGExData::FPointIO* Targets = nullptr;
 	TArray<PCGExFilterCluster::FPicker> Selectors;
 

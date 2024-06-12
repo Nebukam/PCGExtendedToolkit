@@ -10,6 +10,11 @@
 #include "Geometry/PCGExGeo.h"
 #include "PCGExPrunePath.generated.h"
 
+namespace PCGExGeo
+{
+	class FPointBoxCloud;
+}
+
 /**
  * Calculates the distance between two points (inherently a n*n operation)
  */
@@ -50,6 +55,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPrunePathContext : public FPCGExPathProcesso
 	friend class FPCGExPrunePathElement;
 	
 	virtual ~FPCGExPrunePathContext() override;
+
+	PCGExGeo::FPointBoxCloud* BoxCloud = nullptr;
+	
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExPrunePathElement : public FPCGExPathProcessorElement

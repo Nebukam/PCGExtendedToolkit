@@ -3,6 +3,8 @@
 
 #include "Paths/PCGExPrunePath.h"
 
+#include "Geometry/PCGExGeoPointBox.h"
+
 #define LOCTEXT_NAMESPACE "PCGExPrunePathElement"
 #define PCGEX_NAMESPACE PrunePath
 
@@ -20,6 +22,8 @@ PCGEX_INITIALIZE_ELEMENT(PrunePath)
 FPCGExPrunePathContext::~FPCGExPrunePathContext()
 {
 	PCGEX_TERMINATE_ASYNC
+
+	PCGEX_DELETE(BoxCloud)
 }
 
 bool FPCGExPrunePathElement::Boot(FPCGContext* InContext) const
@@ -27,6 +31,19 @@ bool FPCGExPrunePathElement::Boot(FPCGContext* InContext) const
 	if (!FPCGExPathProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(PrunePath)
+
+	const PCGExData::FPointIO* Targets = Context->TryGetSingleInput(PCGEx::SourceTargetsLabel);
+
+	if (!Targets)
+	{
+		PCGE_LOG(Error, GraphAndLog, FTEXT("Missing Targets Points."));
+		PCGEX_DELETE(Targets)
+		return false;
+	}
+
+	Context->BoxCloud = new PCGExGeo::FPointBoxCloud(Targets->GetIn());
+
+	PCGEX_DELETE(Targets)
 
 	return true;
 }
@@ -45,11 +62,19 @@ bool FPCGExPrunePathElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
-		if (!Context->AdvancePointsIO())
+		while (Context->AdvancePointsIO())
 		{
-			Context->Done();
-			return false;
+			Context->GetAsyncManager()->Start<FPCGExPrunePathTask>(Context->CurrentIO->IOIndex, Context->CurrentIO);
 		}
+
+		Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork);
+	}
+
+	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
+	{
+		PCGEX_WAIT_ASYNC
+
+		Context->Done();
 	}
 
 	if (Context->IsDone())
@@ -65,6 +90,11 @@ bool FPCGExPrunePathTask::ExecuteTask()
 {
 	const FPCGExPrunePathContext* Context = Manager->GetContext<FPCGExPrunePathContext>();
 	PCGEX_SETTINGS(PrunePath)
+
+	// TODO : Check against BoxCloud
+
+	// TODO : Keep/Omit/Tag
+	// We can do this here as instead of inside the main thread.
 
 	return true;
 }

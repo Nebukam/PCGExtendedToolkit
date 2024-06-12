@@ -17,6 +17,8 @@ PCGExData::EInit UPCGExCopyClustersToPointsSettings::GetEdgeOutputInitMode() con
 FPCGExCopyClustersToPointsContext::~FPCGExCopyClustersToPointsContext()
 {
 	PCGEX_TERMINATE_ASYNC
+
+	PCGEX_DELETE(Targets)
 }
 
 PCGEX_INITIALIZE_ELEMENT(CopyClustersToPoints)
@@ -36,10 +38,10 @@ bool FPCGExCopyClustersToPointsElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_FWD(TransformSettings)
 
-	Context->TargetsCollection = new PCGExData::FPointIOCollection(Context, PCGEx::SourceTargetsLabel);
-	if (Context->TargetsCollection->Num() == 0)
+	Context->Targets = Context->TryGetSingleInput(PCGEx::SourceTargetsLabel);
+	if (!Context->Targets)
 	{
-		PCGE_LOG(Error, GraphAndLog, FTEXT("Missing targets."));
+		PCGE_LOG(Error, GraphAndLog, FTEXT("Missing Targets."));
 		return false;
 	}
 
@@ -60,8 +62,7 @@ bool FPCGExCopyClustersToPointsElement::ExecuteInternal(FPCGContext* InContext) 
 
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
-		PCGExData::FPointIO* Targets = Context->TargetsCollection->Pairs[0];
-		const int32 NumTargets = Targets->GetNum();
+		const int32 NumTargets = Context->Targets->GetNum();
 
 		while (Context->AdvancePointsIO())
 		{
@@ -70,7 +71,7 @@ bool FPCGExCopyClustersToPointsElement::ExecuteInternal(FPCGContext* InContext) 
 			for (int i = 0; i < NumTargets; i++)
 			{
 				Context->GetAsyncManager()->Start<PCGExClusterTask::FCopyClustersToPoint>(
-					i, Targets,
+					i, Context->Targets,
 					Context->CurrentIO, Context->TaggedEdges->Entries,
 					Context->MainPoints, Context->MainEdges,
 					&Context->TransformSettings);

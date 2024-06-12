@@ -324,6 +324,15 @@ bool FPCGExPointsProcessorContext::ProcessCurrentPoints(TFunction<void(const int
 	return bForceSync ? ChunkedPointLoop.Advance(std::move(LoopBody)) : AsyncPointLoop.Advance(std::move(LoopBody));
 }
 
+PCGExData::FPointIO* FPCGExPointsProcessorContext::TryGetSingleInput(const FName InputName) const
+{
+	PCGExData::FPointIO* SingleIO = nullptr;
+	const PCGExData::FPointIOCollection* Collection = new PCGExData::FPointIOCollection(this, InputName);
+	if (!Collection->Pairs.IsEmpty()) { SingleIO = new PCGExData::FPointIO(Collection->Pairs[0]->GetIn(), InputName); }
+	PCGEX_DELETE(Collection)
+	return SingleIO;
+}
+
 FPCGTaggedData* FPCGExPointsProcessorContext::Output(UPCGData* OutData, const FName OutputLabel)
 {
 	FWriteScopeLock WriteLock(ContextLock);
