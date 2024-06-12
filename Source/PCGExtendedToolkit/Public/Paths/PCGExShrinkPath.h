@@ -57,6 +57,8 @@ public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings interface
 
+	virtual FName GetPointFilterLabel() const override;
+	
 public:
 	/** Consider paths to be closed -- processing will wrap between first and last points. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
@@ -75,9 +77,13 @@ public:
 	double CountConstant = 1;
 
 	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="ShrinkMode==EPCGExPathShrinkMode::Distance && ValueSource==EPCGExFetchType::Attribute", EditConditionHides, ClampMin=0.001))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="ShrinkMode==EPCGExPathShrinkMode::Distance && ValueSource==EPCGExFetchType::Constant", EditConditionHides))
 	double DistanceConstant = 10;
 
+	/** Distance or count */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="ValueSource==EPCGExFetchType::Attribute", EditConditionHides))
+	FPCGAttributePropertyInputSelector ShrinkAmount;
+	
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="ValueSource==EPCGExFetchType::Constant", EditConditionHides))
 	EPCGExShrinkEndpoint ShrinkEndpoint = EPCGExShrinkEndpoint::Both;
@@ -85,14 +91,22 @@ public:
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExPathShrinkDistanceCutType CutType = EPCGExPathShrinkDistanceCutType::NewPoint;
+
+	/** TBD */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	bool bEndpointsIgnoreStopConditions = false;
+
+	/** TBD */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="ValueSource==EPCGExFetchType::Constant", EditConditionHides))
+	EPCGExShrinkEndpoint ShrinkFirst = EPCGExShrinkEndpoint::Both;
+	
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExShrinkPathContext : public FPCGExPathProcessorContext
 {
 	friend class FPCGExShrinkPathElement;
 
-
-	//TODO: !!! Use filters as breakpoints !!!
+	virtual bool PrepareFiltersWithAdvance() const override;
 
 	virtual ~FPCGExShrinkPathContext() override;
 };

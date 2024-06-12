@@ -85,40 +85,37 @@ bool FPCGExSplitPathTask::ExecuteTask()
 	const FPCGExSplitPathContext* Context = Manager->GetContext<FPCGExSplitPathContext>();
 	PCGEX_SETTINGS(SplitPath)
 
-	PCGExDataFilter::TEarlyExitFilterManager* Splits = Context->CreatePointFilterManagerInstance(PointIO);
-
-	if (!Splits->bValid)
-	{
-		Context->MainPaths->Emplace_GetRef(PointIO->GetIn(), PCGExData::EInit::Forward);
-		return false;
-	}
-
 	const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
-
-	Splits->PrepareForTesting();
-	if (Splits->RequiresPerPointPreparation())
-	{
-		for (int i = 0; i < InPoints.Num(); i++) { Splits->PrepareSingle(i); }
-		Splits->PreparationComplete();
-	}
-
+	
+	PCGExDataFilter::TEarlyExitFilterManager* Splits = Context->CreatePointFilterManagerInstance(PointIO);
 	bool bAnySplit = false;
-	for (const bool Result : Splits->Results)
+	
+	if (Splits->bValid)
 	{
-		if (Result)
+		Splits->PrepareForTesting();
+		if (Splits->RequiresPerPointPreparation())
 		{
-			bAnySplit = true;
-			break;
+			for (int i = 0; i < InPoints.Num(); i++) { Splits->PrepareSingle(i); }
+			Splits->PreparationComplete();
+		}
+
+		for (const bool Result : Splits->Results)
+		{
+			if (Result)
+			{
+				bAnySplit = true;
+				break;
+			}
 		}
 	}
 
-	if (!bAnySplit)
+	if(!bAnySplit)
 	{
-		// Forward input as-is, no alterations
 		Context->MainPaths->Emplace_GetRef(PointIO->GetIn(), PCGExData::EInit::Forward);
-		return true;
+		PCGEX_DELETE(Splits)
+		return false;
 	}
-
+	
 	// TODO : Go through each point and split/create new partition at each split
 
 	for (int i = 0; i < InPoints.Num(); i++)
@@ -130,6 +127,7 @@ bool FPCGExSplitPathTask::ExecuteTask()
 
 	// Context->MainPaths->Emplace_GetRef(PointIO->GetIn(), PCGExData::EInit::DuplicateInput);
 
+	PCGEX_DELETE(Splits)
 	return true;
 }
 
