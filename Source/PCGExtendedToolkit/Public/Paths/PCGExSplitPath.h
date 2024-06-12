@@ -10,8 +10,8 @@
 #include "Geometry/PCGExGeo.h"
 #include "PCGExSplitPath.generated.h"
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Transform Component Selector"))
-enum class EPCGExSplitAction : uint8
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Path Split Action"))
+enum class EPCGExPathSplitAction : uint8
 {
 	Split UMETA(DisplayName = "Split", ToolTip="Duplicate the split point so the original becomes a new end, and the copy a new start."),
 	Remove UMETA(DisplayName = "Remove", ToolTip="Remove the split point, shrinking both the previous and next paths."),
@@ -52,7 +52,7 @@ public:
 
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ShowOnlyInnerProperties))
-	EPCGExSplitAction SplitAction = EPCGExSplitAction::Split;
+	EPCGExPathSplitAction SplitAction = EPCGExPathSplitAction::Split;
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExSplitPathContext : public FPCGExPathProcessorContext

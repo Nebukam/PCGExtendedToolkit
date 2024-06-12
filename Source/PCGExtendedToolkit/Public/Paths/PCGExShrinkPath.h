@@ -10,6 +10,22 @@
 #include "Geometry/PCGExGeo.h"
 #include "PCGExShrinkPath.generated.h"
 
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Path Shrink Mode"))
+enum class EPCGExPathShrinkMode : uint8
+{
+	Count UMETA(DisplayName = "Count", ToolTip="TBD"),
+	Distance UMETA(DisplayName = "Distance", ToolTip="TBD."),
+};
+
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Path Shrink Distance Cut Type"))
+enum class EPCGExPathShrinkDistanceCutType : uint8
+{
+	NewPoint UMETA(DisplayName = "New Point", ToolTip="TBD"),
+	Previous UMETA(DisplayName = "Previous (Floor)", ToolTip="TBD."),
+	Next UMETA(DisplayName = "Next (Ceil)", ToolTip="TBD."),
+	Closest UMETA(DisplayName = "Closest (Round)", ToolTip="TBD."),
+};
+
 /**
  * Calculates the distance between two points (inherently a n*n operation)
  */
@@ -38,12 +54,31 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bClosedPath = false;
 
+	/** TBD */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	EPCGExPathShrinkMode ShrinkMode = EPCGExPathShrinkMode::Distance;
+
+	/** TBD */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	EPCGExFetchType ValueSource = EPCGExFetchType::Constant;
+
+	/** TBD */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="ShrinkMode==EPCGExPathShrinkMode::Count && ValueSource==EPCGExFetchType::Constant", ClampMin=1))
+	double CountConstant = 1;
+
+	/** TBD */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="ShrinkMode==EPCGExPathShrinkMode::Distance && ValueSource==EPCGExFetchType::Attribute", ClampMin=0.001))
+	double DistanceConstant = 10;
+
+	/** TBD */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	EPCGExPathShrinkDistanceCutType CutType = EPCGExPathShrinkDistanceCutType::NewPoint;
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExShrinkPathContext : public FPCGExPathProcessorContext
 {
 	friend class FPCGExShrinkPathElement;
-	
+
 	virtual ~FPCGExShrinkPathContext() override;
 };
 
