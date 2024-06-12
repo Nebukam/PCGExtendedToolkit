@@ -26,6 +26,14 @@ enum class EPCGExPathShrinkDistanceCutType : uint8
 	Closest UMETA(DisplayName = "Closest (Round)", ToolTip="TBD."),
 };
 
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Path Shrink Endpoint"))
+enum class EPCGExShrinkEndpoint : uint8
+{
+	Both UMETA(DisplayName = "Start and End", ToolTip="TBD"),
+	Start UMETA(DisplayName = "Start", ToolTip="TBD."),
+	End UMETA(DisplayName = "End", ToolTip="TBD."),
+};
+
 /**
  * Calculates the distance between two points (inherently a n*n operation)
  */
@@ -63,12 +71,16 @@ public:
 	EPCGExFetchType ValueSource = EPCGExFetchType::Constant;
 
 	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="ShrinkMode==EPCGExPathShrinkMode::Count && ValueSource==EPCGExFetchType::Constant", ClampMin=1))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="ShrinkMode==EPCGExPathShrinkMode::Count && ValueSource==EPCGExFetchType::Constant", EditConditionHides, ClampMin=1))
 	double CountConstant = 1;
 
 	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="ShrinkMode==EPCGExPathShrinkMode::Distance && ValueSource==EPCGExFetchType::Attribute", ClampMin=0.001))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="ShrinkMode==EPCGExPathShrinkMode::Distance && ValueSource==EPCGExFetchType::Attribute", EditConditionHides, ClampMin=0.001))
 	double DistanceConstant = 10;
+
+	/** TBD */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="ValueSource==EPCGExFetchType::Constant", EditConditionHides))
+	EPCGExShrinkEndpoint ShrinkEndpoint = EPCGExShrinkEndpoint::Both;
 
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
@@ -78,6 +90,9 @@ public:
 struct PCGEXTENDEDTOOLKIT_API FPCGExShrinkPathContext : public FPCGExPathProcessorContext
 {
 	friend class FPCGExShrinkPathElement;
+
+
+	//TODO: !!! Use filters as breakpoints !!!
 
 	virtual ~FPCGExShrinkPathContext() override;
 };
