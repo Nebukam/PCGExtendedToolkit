@@ -34,6 +34,65 @@ enum class EPCGExShrinkEndpoint : uint8
 	End UMETA(DisplayName = "End", ToolTip="TBD."),
 };
 
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Path Shrink Constant Mode"))
+enum class EPCGExShrinkConstantMode : uint8
+{
+	Shared UMETA(DisplayName = "Shared", ToolTip="Both start & end distance use the primary value."),
+	Separate UMETA(DisplayName = "Start", ToolTip="Start will use the primary value, end will use the secondary value..")
+};
+
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExShrinkPathEndpointDistanceSettings
+{
+	GENERATED_BODY()
+
+	/** TBD */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	EPCGExFetchType ValueSource = EPCGExFetchType::Constant;
+
+	/** TBD */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="ValueSource==EPCGExFetchType::Constant", EditConditionHides))
+	double Distance = 10;
+
+	/** Distance or count */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="ValueSource==EPCGExFetchType::Attribute", EditConditionHides))
+	FPCGAttributePropertyInputSelector DistanceAttribute;
+
+	/** TBD */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="ShrinkMode==EPCGExPathShrinkMode::Distance", EditConditionHides))
+	EPCGExPathShrinkDistanceCutType CutType = EPCGExPathShrinkDistanceCutType::NewPoint;
+	
+	bool SanityCheck(const FPCGContext* Context) const
+	{
+		if (ValueSource == EPCGExFetchType::Attribute) { PCGEX_VALIDATE_NAME_C(Context, DistanceAttribute.GetName()) }
+		return true;
+	}
+};
+
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExShrinkPathEndpointCountSettings
+{
+	GENERATED_BODY()
+
+	/** TBD */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	EPCGExFetchType ValueSource = EPCGExFetchType::Constant;
+
+	/** TBD */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="ValueSource==EPCGExFetchType::Constant", EditConditionHides, ClampMin=1))
+	int32 Count = 10;
+
+	/** Distance or count */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="ValueSource==EPCGExFetchType::Attribute", EditConditionHides))
+	FPCGAttributePropertyInputSelector CountAttribute;
+
+	bool SanityCheck(const FPCGContext* Context) const
+	{
+		if (ValueSource == EPCGExFetchType::Attribute) { PCGEX_VALIDATE_NAME_C(Context, CountAttribute.GetName()) }
+		return true;
+	}
+};
+
 /**
  * Calculates the distance between two points (inherently a n*n operation)
  */
@@ -58,39 +117,41 @@ public:
 	//~End UPCGExPointsProcessorSettings interface
 
 	virtual FName GetPointFilterLabel() const override;
-	
+
 public:
 	/** Consider paths to be closed -- processing will wrap between first and last points. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bClosedPath = false;
 
 	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	EPCGExPathShrinkMode ShrinkMode = EPCGExPathShrinkMode::Distance;
-
-	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	EPCGExFetchType ValueSource = EPCGExFetchType::Constant;
-
-	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="ShrinkMode==EPCGExPathShrinkMode::Count && ValueSource==EPCGExFetchType::Constant", EditConditionHides, ClampMin=1))
-	int32 CountConstant = 1;
-
-	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="ShrinkMode==EPCGExPathShrinkMode::Distance && ValueSource==EPCGExFetchType::Constant", EditConditionHides))
-	double DistanceConstant = 10;
-
-	/** Distance or count */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="ValueSource==EPCGExFetchType::Attribute", EditConditionHides))
-	FPCGAttributePropertyInputSelector ShrinkAmount;
-	
-	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="ValueSource==EPCGExFetchType::Constant", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditConditionHides))
 	EPCGExShrinkEndpoint ShrinkEndpoint = EPCGExShrinkEndpoint::Both;
 
 	/** TBD */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditConditionHides))
+	EPCGExShrinkConstantMode SettingsMode = EPCGExShrinkConstantMode::Shared;
+
+	/** TBD */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	EPCGExPathShrinkMode ShrinkMode = EPCGExPathShrinkMode::Distance;
+
+
+	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="ShrinkMode==EPCGExPathShrinkMode::Distance", EditConditionHides))
-	EPCGExPathShrinkDistanceCutType CutType = EPCGExPathShrinkDistanceCutType::NewPoint;
+	FPCGExShrinkPathEndpointDistanceSettings PrimaryDistanceSettings;
+
+	/** TBD */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="ShrinkMode==EPCGExPathShrinkMode::Distance && ShrinkEndpoint==EPCGExShrinkEndpoint::Both && ConstantMode==EPCGExShrinkConstantMode::Separate", EditConditionHides))
+	FPCGExShrinkPathEndpointDistanceSettings SecondaryDistanceSettings;
+
+
+	/** TBD */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="ShrinkMode==EPCGExPathShrinkMode::Count", EditConditionHides))
+	FPCGExShrinkPathEndpointCountSettings PrimaryCountSettings;
+
+	/** TBD */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="ShrinkMode==EPCGExPathShrinkMode::Count && ShrinkEndpoint==EPCGExShrinkEndpoint::Both && ConstantMode==EPCGExShrinkConstantMode::Separate", EditConditionHides))
+	FPCGExShrinkPathEndpointCountSettings SecondaryCountSettings;
 
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
@@ -99,7 +160,6 @@ public:
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="ShrinkEndpoint==EPCGExShrinkEndpoint::Both", EditConditionHides))
 	EPCGExShrinkEndpoint ShrinkFirst = EPCGExShrinkEndpoint::Both;
-	
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExShrinkPathContext : public FPCGExPathProcessorContext
@@ -109,6 +169,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExShrinkPathContext : public FPCGExPathProcess
 	virtual bool DefaultPointFilterResult() const override;
 	virtual bool PrepareFiltersWithAdvance() const override;
 
+	void GetShrinkAmounts(const PCGExData::FPointIO* PointIO, double& Start, double& End, EPCGExPathShrinkDistanceCutType& StartCut, EPCGExPathShrinkDistanceCutType& EndCut) const;
+	void GetShrinkAmounts(const PCGExData::FPointIO* PointIO, uint32& Start, uint32& End) const;
+	
 	virtual ~FPCGExShrinkPathContext() override;
 };
 

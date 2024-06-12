@@ -15,6 +15,82 @@ PCGEX_INITIALIZE_ELEMENT(ShrinkPath)
 bool FPCGExShrinkPathContext::DefaultPointFilterResult() const { return false; }
 bool FPCGExShrinkPathContext::PrepareFiltersWithAdvance() const { return false; }
 
+void FPCGExShrinkPathContext::GetShrinkAmounts(const PCGExData::FPointIO* PointIO, double& Start, double& End, EPCGExPathShrinkDistanceCutType& StartCut, EPCGExPathShrinkDistanceCutType& EndCut) const
+{
+	PCGEX_SETTINGS_LOCAL(ShrinkPath)
+
+
+	StartCut = Settings->PrimaryDistanceSettings.CutType;
+	EndCut = Settings->PrimaryDistanceSettings.CutType;
+
+	if (Settings->PrimaryDistanceSettings.ValueSource == EPCGExFetchType::Attribute)
+	{
+		PCGEx::FLocalSingleFieldGetter* Getter = new PCGEx::FLocalSingleFieldGetter();
+		Getter->Capture(Settings->PrimaryDistanceSettings.DistanceAttribute);
+		if (!Getter->SoftGrab(*PointIO)) { PCGE_LOG_C(Warning, GraphAndLog, this, FTEXT("Could not read primary Distance value attribute on some inputs.")); }
+		Start = Getter->SoftGet(PointIO->GetInPoint(0), 0);
+		End = Getter->SoftGet(PointIO->GetInPoint(PointIO->GetNum() - 1), 0);
+		PCGEX_DELETE(Getter);
+	}
+	else
+	{
+		Start = End = Settings->PrimaryDistanceSettings.Distance;
+	}
+
+	if (Settings->SettingsMode == EPCGExShrinkConstantMode::Separate)
+	{
+		EndCut = Settings->SecondaryDistanceSettings.CutType;
+
+		if (Settings->SecondaryDistanceSettings.ValueSource == EPCGExFetchType::Attribute)
+		{
+			PCGEx::FLocalSingleFieldGetter* Getter = new PCGEx::FLocalSingleFieldGetter();
+			Getter->Capture(Settings->SecondaryDistanceSettings.DistanceAttribute);
+			if (!Getter->SoftGrab(*PointIO)) { PCGE_LOG_C(Warning, GraphAndLog, this, FTEXT("Could not read secondary Distance attribute on some inputs.")); }
+			End = Getter->SoftGet(PointIO->GetInPoint(PointIO->GetNum() - 1), 0);
+			PCGEX_DELETE(Getter);
+		}
+		else
+		{
+			End = Settings->SecondaryDistanceSettings.Distance;
+		}
+	}
+}
+
+void FPCGExShrinkPathContext::GetShrinkAmounts(const PCGExData::FPointIO* PointIO, uint32& Start, uint32& End) const
+{
+	PCGEX_SETTINGS_LOCAL(ShrinkPath)
+
+	if (Settings->PrimaryCountSettings.ValueSource == EPCGExFetchType::Attribute)
+	{
+		PCGEx::FLocalIntegerGetter* Getter = new PCGEx::FLocalIntegerGetter();
+		Getter->Capture(Settings->PrimaryCountSettings.CountAttribute);
+		if (!Getter->SoftGrab(*PointIO)) { PCGE_LOG_C(Warning, GraphAndLog, this, FTEXT("Could not read primary Distance value attribute on some inputs.")); }
+		Start = Getter->SoftGet(PointIO->GetInPoint(0), 0);
+		End = Getter->SoftGet(PointIO->GetInPoint(PointIO->GetNum() - 1), 0);
+		PCGEX_DELETE(Getter);
+	}
+	else
+	{
+		Start = End = Settings->PrimaryCountSettings.Count;
+	}
+
+	if (Settings->SettingsMode == EPCGExShrinkConstantMode::Separate)
+	{
+		if (Settings->SecondaryCountSettings.ValueSource == EPCGExFetchType::Attribute)
+		{
+			PCGEx::FLocalIntegerGetter* Getter = new PCGEx::FLocalIntegerGetter();
+			Getter->Capture(Settings->PrimaryCountSettings.CountAttribute);
+			if (!Getter->SoftGrab(*PointIO)) { PCGE_LOG_C(Warning, GraphAndLog, this, FTEXT("Could not read secondary Distance attribute on some inputs.")); }
+			End = Getter->SoftGet(PointIO->GetInPoint(PointIO->GetNum() - 1), 0);
+			PCGEX_DELETE(Getter);
+		}
+		else
+		{
+			End = Settings->SecondaryCountSettings.Count;
+		}
+	}
+}
+
 FPCGExShrinkPathContext::~FPCGExShrinkPathContext()
 {
 	PCGEX_TERMINATE_ASYNC
@@ -26,7 +102,22 @@ bool FPCGExShrinkPathElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(ShrinkPath)
 
-	if (Settings->ValueSource == EPCGExFetchType::Attribute) { PCGEX_VALIDATE_NAME(Settings->ShrinkAmount.GetName()) }
+	if (Settings->ShrinkMode == EPCGExPathShrinkMode::Count)
+	{
+		if (!Settings->PrimaryCountSettings.SanityCheck(Context)) { return false; }
+		if (Settings->ShrinkEndpoint == EPCGExShrinkEndpoint::Both && Settings->SettingsMode == EPCGExShrinkConstantMode::Separate)
+		{
+			if (!Settings->SecondaryCountSettings.SanityCheck(Context)) { return false; }
+		}
+	}
+	else
+	{
+		if (!Settings->PrimaryDistanceSettings.SanityCheck(Context)) { return false; }
+		if (Settings->ShrinkEndpoint == EPCGExShrinkEndpoint::Both && Settings->SettingsMode == EPCGExShrinkConstantMode::Separate)
+		{
+			if (!Settings->SecondaryDistanceSettings.SanityCheck(Context)) { return false; }
+		}
+	}
 
 	return true;
 }
@@ -127,18 +218,7 @@ bool FPCGExShrinkPathTask::ExecuteTask()
 		uint32 StartAmount = 0;
 		uint32 EndAmount = 0;
 
-		if (Settings->ValueSource == EPCGExFetchType::Attribute)
-		{
-			PCGEx::FLocalIntegerGetter* Getter = new PCGEx::FLocalIntegerGetter();
-			if (!Getter->SoftGrab(*PointIO)) { PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Could not read Shrink value attribute on some inputs.")); }
-			StartAmount = Getter->SoftGet(InPoints[0], 0);
-			EndAmount = Getter->SoftGet(InPoints.Last(), 0);
-			PCGEX_DELETE(Getter);
-		}
-		else
-		{
-			StartAmount = EndAmount = Settings->CountConstant;
-		}
+		Context->GetShrinkAmounts(PointIO, StartAmount, EndAmount);
 
 		if (Settings->ShrinkEndpoint == EPCGExShrinkEndpoint::Start || Stops->Results[LastPointIndex]) { EndAmount = 0; }
 		if (Settings->ShrinkEndpoint == EPCGExShrinkEndpoint::End || Stops->Results[0]) { StartAmount = 0; }
@@ -209,18 +289,10 @@ bool FPCGExShrinkPathTask::ExecuteTask()
 		double StartAmount = 0;
 		double EndAmount = 0;
 
-		if (Settings->ValueSource == EPCGExFetchType::Attribute)
-		{
-			PCGEx::FLocalSingleFieldGetter* Getter = new PCGEx::FLocalSingleFieldGetter();
-			if (!Getter->SoftGrab(*PointIO)) { PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Could not read Shrink value attribute on some inputs.")); }
-			StartAmount = Getter->SoftGet(InPoints[0], 0);
-			EndAmount = Getter->SoftGet(InPoints.Last(), 0);
-			PCGEX_DELETE(Getter);
-		}
-		else
-		{
-			StartAmount = EndAmount = Settings->DistanceConstant;
-		}
+		EPCGExPathShrinkDistanceCutType StartCut;
+		EPCGExPathShrinkDistanceCutType EndCut;
+
+		Context->GetShrinkAmounts(PointIO, StartAmount, EndAmount, StartCut, EndCut);
 
 		if (Settings->ShrinkEndpoint == EPCGExShrinkEndpoint::Start || Stops->Results[LastPointIndex]) { EndAmount = 0; }
 		if (Settings->ShrinkEndpoint == EPCGExShrinkEndpoint::End || Stops->Results[0]) { StartAmount = 0; }
@@ -254,9 +326,9 @@ bool FPCGExShrinkPathTask::ExecuteTask()
 			}
 		}
 
-		auto ShrinkBy = [&](double Distance)-> double
+		auto ShrinkBy = [&](double Distance, EPCGExPathShrinkDistanceCutType CutType)-> double
 		{
-			if (Distance == 0 || MutablePoints.IsEmpty() || Stops->Results[StartOffset]) { return 0; }
+			if (Distance == 0 || MutablePoints.IsEmpty()) { return 0; }
 
 			if (MutablePoints.Num() <= 1)
 			{
@@ -271,14 +343,18 @@ bool FPCGExShrinkPathTask::ExecuteTask()
 			if (Distance > 0)
 			{
 				Index = 0;
+				if (Stops->Results[Index]) { return 0; }
+
 				From = MutablePoints[Index].Transform.GetLocation();
 				To = MutablePoints[Index + 1].Transform.GetLocation();
 			}
 			else
 			{
 				Index = MutablePoints.Num() - 1;
+				if (Stops->Results[Index]) { return 0; }
+
 				From = MutablePoints[Index].Transform.GetLocation();
-				To = MutablePoints[Index-1].Transform.GetLocation();
+				To = MutablePoints[Index - 1].Transform.GetLocation();
 				Distance = FMath::Abs(Distance);
 			}
 
@@ -291,11 +367,11 @@ bool FPCGExShrinkPathTask::ExecuteTask()
 
 			if (Distance < AvailableDistance)
 			{
-				switch (Settings->CutType)
+				switch (CutType)
 				{
 				default: ;
 				case EPCGExPathShrinkDistanceCutType::NewPoint:
-					MutablePoints[Index].Transform.SetLocation(FMath::Lerp(From, To, AvailableDistance / Distance));
+					MutablePoints[Index].Transform.SetLocation(FMath::Lerp(From, To, Distance / AvailableDistance));
 					break;
 				case EPCGExPathShrinkDistanceCutType::Previous:
 					// Do nothing
@@ -318,17 +394,17 @@ bool FPCGExShrinkPathTask::ExecuteTask()
 		case EPCGExShrinkEndpoint::Both:
 			while ((StartAmount + EndAmount) != 0)
 			{
-				if (StartAmount > 0) { StartAmount = ShrinkBy(StartAmount); }
-				if (EndAmount > 0) { EndAmount = ShrinkBy(-EndAmount); }
+				if (StartAmount > 0) { StartAmount = ShrinkBy(StartAmount, StartCut); }
+				if (EndAmount > 0) { EndAmount = ShrinkBy(-EndAmount, EndCut); }
 			}
 			break;
 		case EPCGExShrinkEndpoint::Start:
-			while (StartAmount > 0) { StartAmount = ShrinkBy(StartAmount); }
-			if (!MutablePoints.IsEmpty()) { while (EndAmount > 0) { EndAmount = ShrinkBy(-EndAmount); } }
+			while (StartAmount > 0) { StartAmount = ShrinkBy(StartAmount, StartCut); }
+			if (!MutablePoints.IsEmpty()) { while (EndAmount > 0) { EndAmount = ShrinkBy(-EndAmount, EndCut); } }
 			break;
 		case EPCGExShrinkEndpoint::End:
-			while (EndAmount > 0) { EndAmount = ShrinkBy(-EndAmount); }
-			if (!MutablePoints.IsEmpty()) { while (StartAmount > 0) { StartAmount = ShrinkBy(StartAmount); } }
+			while (EndAmount > 0) { EndAmount = ShrinkBy(-EndAmount, StartCut); }
+			if (!MutablePoints.IsEmpty()) { while (StartAmount > 0) { StartAmount = ShrinkBy(StartAmount, EndCut); } }
 			break;
 		}
 	}
