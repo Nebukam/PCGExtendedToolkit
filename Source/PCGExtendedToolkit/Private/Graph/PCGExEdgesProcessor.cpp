@@ -92,13 +92,10 @@ bool FPCGExEdgesProcessorContext::AdvancePointsIO()
 		CurrentIO->Tags->GetValue(PCGExGraph::TagStr_ClusterPair, CurrentPairId))
 	{
 		FString OutId;
-		CurrentIO->Tags->Set(PCGExGraph::TagStr_ClusterPair, CurrentIO->GetOutIn()->UID, OutId);
+		PCGExGraph::SetClusterVtx(CurrentIO, OutId);
 
 		TaggedEdges = InputDictionary->GetEntries(CurrentPairId);
-		if (TaggedEdges && !TaggedEdges->Entries.IsEmpty())
-		{
-			for (const PCGExData::FPointIO* EdgeIO : TaggedEdges->Entries) { EdgeIO->Tags->Set(PCGExGraph::TagStr_ClusterPair, OutId); }
-		}
+		if (TaggedEdges && !TaggedEdges->Entries.IsEmpty()) { PCGExGraph::MarkClusterEdges(TaggedEdges->Entries, OutId); }
 		else { TaggedEdges = nullptr; }
 	}
 	else { TaggedEdges = nullptr; }
@@ -328,38 +325,106 @@ FPCGContext* FPCGExEdgesProcessorElement::InitializeContext(
 	if (!Settings->bEnabled) { return Context; }
 
 	Context->InputDictionary = new PCGExData::FPointIOTaggedDictionary(PCGExGraph::TagStr_ClusterPair);
-	Context->MainPoints->ForEach(
-		[&](PCGExData::FPointIO& PointIO, int32)
-		{
-			if (!PCGExGraph::IsPointDataVtxReady(PointIO.GetIn()))
-			{
-				PCGE_LOG(Warning, GraphAndLog, FTEXT("A Vtx input has no metadata and will be discarded."));
-				PointIO.Disable();
-				return;
-			}
-			if (!Context->InputDictionary->CreateKey(PointIO))
-			{
-				PCGE_LOG(Warning, GraphAndLog, FTEXT("At least two Vtx inputs share the same PCGEx/Cluster tag. Only one will be processed."));
-				PointIO.Disable();
-			}
-		});
+
+	TArray<PCGExData::FPointIO*> TaggedVtx;
+	TArray<PCGExData::FPointIO*> TaggedEdges;
 
 	Context->MainEdges = new PCGExData::FPointIOCollection();
 	Context->MainEdges->DefaultOutputLabel = PCGExGraph::OutputEdgesLabel;
 	TArray<FPCGTaggedData> Sources = Context->InputData.GetInputsByPin(PCGExGraph::SourceEdgesLabel);
 	Context->MainEdges->Initialize(Context, Sources, Settings->GetEdgeOutputInitMode());
 
-	Context->MainEdges->ForEach(
-		[&](PCGExData::FPointIO& PointIO, int32)
+	// Gather Vtx inputs
+	for (PCGExData::FPointIO* MainIO : Context->MainPoints->Pairs)
+	{
+		if (MainIO->Tags->RawTags.Contains(PCGExGraph::TagStr_PCGExVtx))
 		{
-			if (!PCGExGraph::IsPointDataEdgeReady(PointIO.GetIn()))
+			if (MainIO->Tags->RawTags.Contains(PCGExGraph::TagStr_PCGExEdges))
 			{
-				PCGE_LOG(Warning, GraphAndLog, FTEXT("An Edges input has no edge metadata and will be discarded."));
-				PointIO.Disable();
-				return;
+				PCGE_LOG(Warning, GraphAndLog, FTEXT("Uh oh, a data is marked as both Vtx and Edges -- it will be ignored for safety."));
+				continue;
 			}
-			Context->InputDictionary->TryAddEntry(PointIO);
-		});
+
+			TaggedVtx.Add(MainIO);
+			continue;
+		}
+
+		if (MainIO->Tags->RawTags.Contains(PCGExGraph::TagStr_PCGExEdges))
+		{
+			if (MainIO->Tags->RawTags.Contains(PCGExGraph::TagStr_PCGExVtx))
+			{
+				PCGE_LOG(Warning, GraphAndLog, FTEXT("Uh oh, a data is marked as both Vtx and Edges. It will be ignored."));
+				continue;
+			}
+
+			PCGE_LOG(Warning, GraphAndLog, FTEXT("Uh oh, some Edge data made its way to the vtx input. It will be ignored."));
+			continue;
+		}
+
+		PCGE_LOG(Warning, GraphAndLog, FTEXT("A data pluggued into Vtx is neither tagged Vtx or Edges and will be ignored."));
+	}
+
+	// Gather Edge inputs
+	for (PCGExData::FPointIO* MainIO : Context->MainEdges->Pairs)
+	{
+		if (MainIO->Tags->RawTags.Contains(PCGExGraph::TagStr_PCGExEdges))
+		{
+			if (MainIO->Tags->RawTags.Contains(PCGExGraph::TagStr_PCGExVtx))
+			{
+				PCGE_LOG(Warning, GraphAndLog, FTEXT("Uh oh, a data is marked as both Vtx and Edges. It will be ignored."));
+				continue;
+			}
+
+			TaggedEdges.Add(MainIO);
+			continue;
+		}
+
+		if (MainIO->Tags->RawTags.Contains(PCGExGraph::TagStr_PCGExVtx))
+		{
+			if (MainIO->Tags->RawTags.Contains(PCGExGraph::TagStr_PCGExEdges))
+			{
+				PCGE_LOG(Warning, GraphAndLog, FTEXT("Uh oh, a data is marked as both Vtx and Edges. It will be ignored."));
+				continue;
+			}
+
+			PCGE_LOG(Warning, GraphAndLog, FTEXT("Uh oh, some Edge data made its way to the vtx input. It will be ignored."));
+			continue;
+		}
+
+		PCGE_LOG(Warning, GraphAndLog, FTEXT("A data pluggued into Edges is neither tagged Edges or Vtx and will be ignored."));
+	}
+
+
+	for (PCGExData::FPointIO* Vtx : TaggedVtx)
+	{
+		if (!PCGExGraph::IsPointDataVtxReady(Vtx->GetIn()->Metadata))
+		{
+			PCGE_LOG(Warning, GraphAndLog, FTEXT("A Vtx input has no metadata and will be discarded."));
+			Vtx->Disable();
+			continue;
+		}
+
+		if (!Context->InputDictionary->CreateKey(*Vtx))
+		{
+			PCGE_LOG(Warning, GraphAndLog, FTEXT("At least two Vtx inputs share the same PCGEx/Cluster tag. Only one will be processed."));
+			Vtx->Disable();
+		}
+	}
+
+	for (PCGExData::FPointIO* Edges : TaggedEdges)
+	{
+		if (!PCGExGraph::IsPointDataEdgeReady(Edges->GetIn()->Metadata))
+		{
+			PCGE_LOG(Warning, GraphAndLog, FTEXT("An Edges input has no edge metadata and will be discarded."));
+			Edges->Disable();
+			continue;
+		}
+
+		if (!Context->InputDictionary->TryAddEntry(*Edges))
+		{
+			PCGE_LOG(Warning, GraphAndLog, FTEXT("Some input edges have no associated vtx."));
+		}
+	}
 
 	return Context;
 }

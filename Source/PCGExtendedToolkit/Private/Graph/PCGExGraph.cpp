@@ -378,7 +378,7 @@ Writer->BindAndSetNumUninitialized(*PointIO);\
 			SubGraph->PointIO = EdgeIO;
 			Manager->Start<FWriteSubGraphEdges>(SubGraphIndex++, PointIO, Builder->Graph, SubGraph, MetadataSettings);
 
-			EdgeIO->Tags->Set(PCGExGraph::TagStr_ClusterPair, Builder->PairIdStr);
+			PCGExGraph::MarkClusterEdges(EdgeIO, Builder->PairIdStr);
 			PCGExData::WriteMark(EdgeIO->GetOut()->Metadata, PCGExGraph::Tag_ClusterId, ClusterId);
 
 			for (const int32 EdgeIndex : SubGraph->Edges)
@@ -393,7 +393,7 @@ Writer->BindAndSetNumUninitialized(*PointIO);\
 
 		NumClusterIdWriter->Write();
 
-		PointIO->Tags->Set(PCGExGraph::TagStr_ClusterPair, Builder->PairIdStr);
+		PCGExGraph::MarkClusterVtx(PointIO, Builder->PairIdStr);
 		PCGEX_DELETE(NumClusterIdWriter)
 
 		return true;
@@ -407,7 +407,7 @@ Writer->BindAndSetNumUninitialized(*PointIO);\
 		VtxDupe.IOIndex = TaskIndex;
 
 		FString OutId;
-		VtxDupe.Tags->Set(PCGExGraph::TagStr_ClusterPair, VtxDupe.GetOut()->UID, OutId);
+		PCGExGraph::SetClusterVtx(&VtxDupe, OutId);
 
 		Manager->Start<PCGExGeoTasks::FTransformPointIO>(TaskIndex, PointIO, &VtxDupe, TransformSettings);
 
@@ -415,7 +415,7 @@ Writer->BindAndSetNumUninitialized(*PointIO);\
 		{
 			PCGExData::FPointIO& EdgeDupe = EdgeCollection->Emplace_GetRef(Edges->GetOut(), PCGExData::EInit::DuplicateInput);
 			EdgeDupe.IOIndex = TaskIndex;
-			EdgeDupe.Tags->Set(PCGExGraph::TagStr_ClusterPair, OutId);
+			PCGExGraph::MarkClusterEdges(&EdgeDupe, OutId);
 
 			Manager->Start<PCGExGeoTasks::FTransformPointIO>(TaskIndex, PointIO, &EdgeDupe, TransformSettings);
 		}

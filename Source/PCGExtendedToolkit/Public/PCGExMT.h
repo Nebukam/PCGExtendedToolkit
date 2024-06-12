@@ -21,6 +21,7 @@ namespace PCGExMT
 	constexpr AsyncState State_Setup = __COUNTER__;
 	constexpr AsyncState State_ReadyForNextPoints = __COUNTER__;
 	constexpr AsyncState State_ProcessingPoints = __COUNTER__;
+	constexpr AsyncState State_ProcessingTargets = __COUNTER__;
 	constexpr AsyncState State_WaitingOnAsyncWork = __COUNTER__;
 	constexpr AsyncState State_Done = __COUNTER__;
 

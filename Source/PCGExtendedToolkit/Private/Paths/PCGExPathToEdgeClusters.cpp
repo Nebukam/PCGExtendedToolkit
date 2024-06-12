@@ -1,20 +1,20 @@
 ﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Paths/PCGExPathsToEdgeClusters.h"
+#include "Paths/PCGExPathToEdgeClusters.h"
 #include "Graph/PCGExGraph.h"
 #include "Data/Blending/PCGExCompoundBlender.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
 
-#define LOCTEXT_NAMESPACE "PCGExPathsToEdgeClustersElement"
+#define LOCTEXT_NAMESPACE "PCGExPathToEdgeClustersElement"
 #define PCGEX_NAMESPACE BuildCustomGraph
 
-UPCGExPathsToEdgeClustersSettings::UPCGExPathsToEdgeClustersSettings(const FObjectInitializer& ObjectInitializer)
+UPCGExPathToEdgeClustersSettings::UPCGExPathToEdgeClustersSettings(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 }
 
-TArray<FPCGPinProperties> UPCGExPathsToEdgeClustersSettings::OutputPinProperties() const
+TArray<FPCGPinProperties> UPCGExPathToEdgeClustersSettings::OutputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::OutputPinProperties();
 	PCGEX_PIN_POINTS(PCGExGraph::OutputEdgesLabel, "Point data representing edges.", Required, {})
@@ -22,21 +22,21 @@ TArray<FPCGPinProperties> UPCGExPathsToEdgeClustersSettings::OutputPinProperties
 }
 
 #if WITH_EDITOR
-void UPCGExPathsToEdgeClustersSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+void UPCGExPathToEdgeClustersSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
 #endif
 
-PCGExData::EInit UPCGExPathsToEdgeClustersSettings::GetMainOutputInitMode() const { return bFusePaths ? PCGExData::EInit::NoOutput : PCGExData::EInit::DuplicateInput; }
+PCGExData::EInit UPCGExPathToEdgeClustersSettings::GetMainOutputInitMode() const { return bFusePaths ? PCGExData::EInit::NoOutput : PCGExData::EInit::DuplicateInput; }
 
-FName UPCGExPathsToEdgeClustersSettings::GetMainInputLabel() const { return PCGExGraph::SourcePathsLabel; }
+FName UPCGExPathToEdgeClustersSettings::GetMainInputLabel() const { return PCGExGraph::SourcePathsLabel; }
 
-FName UPCGExPathsToEdgeClustersSettings::GetMainOutputLabel() const { return PCGExGraph::OutputVerticesLabel; }
+FName UPCGExPathToEdgeClustersSettings::GetMainOutputLabel() const { return PCGExGraph::OutputVerticesLabel; }
 
-PCGEX_INITIALIZE_ELEMENT(PathsToEdgeClusters)
+PCGEX_INITIALIZE_ELEMENT(PathToEdgeClusters)
 
-FPCGExPathsToEdgeClustersContext::~FPCGExPathsToEdgeClustersContext()
+FPCGExPathToEdgeClustersContext::~FPCGExPathToEdgeClustersContext()
 {
 	PCGEX_TERMINATE_ASYNC
 
@@ -49,13 +49,13 @@ FPCGExPathsToEdgeClustersContext::~FPCGExPathsToEdgeClustersContext()
 	PCGEX_DELETE(MetadataBlender)
 }
 
-bool FPCGExPathsToEdgeClustersElement::Boot(FPCGContext* InContext) const
+bool FPCGExPathToEdgeClustersElement::Boot(FPCGContext* InContext) const
 {
 	if (!FPCGExPathProcessorElement::Boot(InContext)) { return false; }
 
-	PCGEX_CONTEXT_AND_SETTINGS(PathsToEdgeClusters)
+	PCGEX_CONTEXT_AND_SETTINGS(PathToEdgeClusters)
 
-	const_cast<UPCGExPathsToEdgeClustersSettings*>(Settings)->EdgeEdgeIntersectionSettings.ComputeDot();
+	const_cast<UPCGExPathToEdgeClustersSettings*>(Settings)->EdgeEdgeIntersectionSettings.ComputeDot();
 
 	Context->GraphMetadataSettings.Grab(Context, Settings->PointPointIntersectionSettings);
 	Context->GraphMetadataSettings.Grab(Context, Settings->PointEdgeIntersectionSettings);
@@ -72,11 +72,11 @@ bool FPCGExPathsToEdgeClustersElement::Boot(FPCGContext* InContext) const
 }
 
 
-bool FPCGExPathsToEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) const
+bool FPCGExPathToEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) const
 {
-	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExPathsToEdgeClustersElement::Execute);
+	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExPathToEdgeClustersElement::Execute);
 
-	PCGEX_CONTEXT_AND_SETTINGS(PathsToEdgeClusters)
+	PCGEX_CONTEXT_AND_SETTINGS(PathToEdgeClusters)
 
 	if (Context->IsSetup())
 	{

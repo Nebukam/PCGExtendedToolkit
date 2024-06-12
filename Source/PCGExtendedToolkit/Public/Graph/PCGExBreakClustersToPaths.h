@@ -59,18 +59,6 @@ public:
 	/** Do not output paths that have more points that this value */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bOmitAbovePointCount", ClampMin=2))
 	int32 MaxPointCount = 500;
-
-	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	bool bInvertPathOrder = false;
-	
-	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	bool bDuplicatePaths = false;
-
-	/** */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bDuplicatePaths"))
-	bool bInvertDuplicateOrder = true;
 	
 private:
 	friend class FPCGExBreakClustersToPathsElement;
@@ -85,10 +73,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBreakClustersToPathsContext : public FPCGExE
 	virtual bool DefaultVtxFilterResult() const override;
 	
 	PCGExData::FPointIOCollection* Paths = nullptr;
-
-	bool bInvertOrder = false; 
-	int32 bExecCount = 0; 
-
 	TArray<PCGExCluster::FNodeChain*> Chains;
 };
 

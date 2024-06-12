@@ -9,6 +9,7 @@
 #include "CoreMinimal.h"
 #include "PCGEx.h"
 #include "PCGExMath.h"
+#include "PCGExPointsProcessor.h"
 #include "Data/PCGExAttributeHelpers.h"
 #include "Kismet/KismetMathLibrary.h"
 
@@ -19,6 +20,55 @@ enum class EPCGExFetchType : uint8
 {
 	Constant UMETA(DisplayName = "Constant", Tooltip="Constant."),
 	Attribute UMETA(DisplayName = "Attribute", Tooltip="Attribute."),
+};
+
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Fetch Type"))
+enum class EPCGExPrune : uint8
+{
+	Overlap UMETA(DisplayName = "Overlap", Tooltip="Prune if there is the slightest overlap."),
+	Contains UMETA(DisplayName = "Contains", Tooltip="Prune if is fully contained by the target."),
+};
+
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Data Filter Action"))
+enum class EPCGExFilterDataAction : uint8
+{
+	Keep UMETA(DisplayName = "Keep", ToolTip="Keeps only selected data"),
+	Omit UMETA(DisplayName = "Omit", ToolTip="Omit selected data from output"),
+	Tag UMETA(DisplayName = "Tag", ToolTip="Keep all and Tag"),
+};
+
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExDataFilterActionSettings
+{
+	GENERATED_BODY()
+
+	FPCGExDataFilterActionSettings()
+	{
+	}
+
+	/** Action type. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	EPCGExFilterDataAction Action = EPCGExFilterDataAction::Keep;
+
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="Action == EPCGExFilterDataAction::Tag"))
+	FName KeepTag = NAME_None;
+
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="Action == EPCGExFilterDataAction::Tag"))
+	FName OmitTag = NAME_None;
+
+	bool Validate(const FPCGContext* Context) const
+	{
+		if (Action == EPCGExFilterDataAction::Tag)
+		{
+			PCGEX_VALIDATE_NAME_C(Context, KeepTag)
+			PCGEX_VALIDATE_NAME_C(Context, OmitTag)
+			return true;
+		}
+		
+		return true;
+	}
 };
 
 USTRUCT(BlueprintType)
@@ -518,7 +568,28 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExTransformSettings
 	/** If enabled, copied points will be rotated by the target' rotation. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bInheritRotation = false;
-	
+};
+
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExBoxIntersectionSettings
+{
+	GENERATED_BODY()
+
+	/** If enabled, mark non-intersecting points inside the volume with a boolean value. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bMarkPointsIntersections = true;
+
+	/** Name of the attribute to write point intersection boolean to. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bMarkPointsIntersections" ))
+	FName IsIntersectionAttributeName = NAME_None;
+
+	/** If enabled, mark points inside the volume with a boolean value. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bMarkPointsInside = true;
+
+	/** Name of the attribute to write inside boolean to. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bMarkPointsInside" ))
+	FName IsInsideAttributeName = NAME_None;
 };
 
 namespace PCGExSettings

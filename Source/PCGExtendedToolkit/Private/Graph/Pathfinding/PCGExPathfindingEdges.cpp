@@ -27,6 +27,47 @@ void UPCGExPathfindingEdgesSettings::PostEditChangeProperty(FPropertyChangedEven
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
 #endif
+void FPCGExPathfindingEdgesContext::TryFindPath(const PCGExPathfinding::FPathQuery* Query) const
+{
+	PCGEX_SETTINGS_LOCAL(PathfindingEdges)
+
+	const FPCGPoint& Seed = SeedsPoints->GetInPoint(Query->SeedIndex);
+	const FPCGPoint& Goal = GoalsPoints->GetInPoint(Query->GoalIndex);
+
+	const PCGExCluster::FCluster* Cluster = CurrentCluster;
+
+	TArray<int32> Path;
+
+	//Note: Can silently fail
+	if (!SearchAlgorithm->FindPath(
+		Query->SeedPosition, &Settings->SeedPicking,
+		Query->GoalPosition, &Settings->GoalPicking, HeuristicsHandler, Path))
+	{
+		// Failed
+		return;
+	}
+
+	PCGExData::FPointIO& PathPoints = OutputPaths->Emplace_GetRef(GetCurrentIn(), PCGExData::EInit::NewOutput);
+	UPCGPointData* OutData = PathPoints.GetOut();
+
+	PCGExGraph::CleanupClusterTags(&PathPoints, true);
+	PCGExGraph::CleanupVtxData(&PathPoints);
+
+	TArray<FPCGPoint>& MutablePoints = OutData->GetMutablePoints();
+	const TArray<FPCGPoint>& InPoints = GetCurrentIn()->GetPoints();
+
+	MutablePoints.Reserve(Path.Num() + 2);
+
+	if (bAddSeedToPath) { MutablePoints.Add_GetRef(Seed).MetadataEntry = PCGInvalidEntryKey; }
+	for (const int32 VtxIndex : Path) { MutablePoints.Add(InPoints[Cluster->Nodes[VtxIndex].PointIndex]); }
+	if (bAddGoalToPath) { MutablePoints.Add_GetRef(Goal).MetadataEntry = PCGInvalidEntryKey; }
+
+	if (Settings->bUseSeedAttributeToTagPath) { PathPoints.Tags->RawTags.Add(SeedTagValueGetter->SoftGet(Seed, TEXT(""))); }
+	if (Settings->bUseGoalAttributeToTagPath) { PathPoints.Tags->RawTags.Add(GoalTagValueGetter->SoftGet(Goal, TEXT(""))); }
+
+	SeedForwardHandler->Forward(Query->SeedIndex, &PathPoints);
+	GoalForwardHandler->Forward(Query->GoalIndex, &PathPoints);
+}
 
 PCGEX_INITIALIZE_ELEMENT(PathfindingEdges)
 
@@ -59,7 +100,7 @@ bool FPCGExPathfindingEdgesElement::ExecuteInternal(FPCGContext* InContext) cons
 		if (!Boot(Context)) { return true; }
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
-	
+
 	if (!Context->ProcessorAutomation()) { return false; }
 
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
@@ -67,13 +108,12 @@ bool FPCGExPathfindingEdgesElement::ExecuteInternal(FPCGContext* InContext) cons
 		if (!Context->AdvancePointsIO()) { Context->Done(); }
 		else
 		{
-			if (!Context->TaggedEdges){ return false; }
-			
+			if (!Context->TaggedEdges) { return false; }
+
 			PCGEX_DELETE_TARRAY(Context->PathBuffer)
 
 			Context->GoalPicker->PrepareForData(*Context->SeedsPoints, *Context->GoalsPoints);
 			Context->SetState(PCGExMT::State_ProcessingPoints);
-			
 		}
 	}
 
@@ -200,41 +240,7 @@ bool FSampleClusterPathTask::ExecuteTask()
 	const FPCGExPathfindingEdgesContext* Context = Manager->GetContext<FPCGExPathfindingEdgesContext>();
 	PCGEX_SETTINGS(PathfindingEdges)
 
-	const FPCGPoint& Seed = Context->SeedsPoints->GetInPoint(Query->SeedIndex);
-	const FPCGPoint& Goal = Context->GoalsPoints->GetInPoint(Query->GoalIndex);
-
-	const PCGExCluster::FCluster* Cluster = Context->CurrentCluster;
-
-	TArray<int32> Path;
-
-	//Note: Can silently fail
-	if (!Context->SearchAlgorithm->FindPath(
-		Query->SeedPosition, &Settings->SeedPicking,
-		Query->GoalPosition, &Settings->GoalPicking, Context->HeuristicsHandler, Path))
-	{
-		// Failed
-		return false;
-	}
-
-	PCGExData::FPointIO& PathPoints = Context->OutputPaths->Emplace_GetRef(Context->GetCurrentIn(), PCGExData::EInit::NewOutput);
-	UPCGPointData* OutData = PathPoints.GetOut();
-
-	PCGExGraph::CleanupVtxData(&PathPoints);
-
-	TArray<FPCGPoint>& MutablePoints = OutData->GetMutablePoints();
-	const TArray<FPCGPoint>& InPoints = Context->GetCurrentIn()->GetPoints();
-
-	MutablePoints.Reserve(Path.Num() + 2);
-
-	if (Context->bAddSeedToPath) { MutablePoints.Add_GetRef(Seed).MetadataEntry = PCGInvalidEntryKey; }
-	for (const int32 VtxIndex : Path) { MutablePoints.Add(InPoints[Cluster->Nodes[VtxIndex].PointIndex]); }
-	if (Context->bAddGoalToPath) { MutablePoints.Add_GetRef(Goal).MetadataEntry = PCGInvalidEntryKey; }
-
-	if (Settings->bUseSeedAttributeToTagPath) { PathPoints.Tags->RawTags.Add(Context->SeedTagValueGetter->SoftGet(Seed, TEXT(""))); }
-	if (Settings->bUseGoalAttributeToTagPath) { PathPoints.Tags->RawTags.Add(Context->GoalTagValueGetter->SoftGet(Goal, TEXT(""))); }
-
-	Context->SeedForwardHandler->Forward(Query->SeedIndex, &PathPoints);
-	Context->GoalForwardHandler->Forward(Query->GoalIndex, &PathPoints);
+	Context->TryFindPath(Query);
 
 	return true;
 }

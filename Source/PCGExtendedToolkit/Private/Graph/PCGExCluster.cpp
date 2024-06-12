@@ -951,7 +951,7 @@ namespace PCGExClusterTask
 		VtxDupe.IOIndex = TaskIndex;
 
 		FString OutId;
-		VtxDupe.Tags->Set(PCGExGraph::TagStr_ClusterPair, VtxDupe.GetOut()->UID, OutId);
+		PCGExGraph::SetClusterVtx(&VtxDupe, OutId);
 
 		Manager->Start<PCGExGeoTasks::FTransformPointIO>(TaskIndex, PointIO, &VtxDupe, TransformSettings);
 
@@ -959,8 +959,8 @@ namespace PCGExClusterTask
 		{
 			PCGExData::FPointIO& EdgeDupe = EdgeCollection->Emplace_GetRef(EdgeIO->GetIn(), PCGExData::EInit::DuplicateInput);
 			EdgeDupe.IOIndex = TaskIndex;
-			EdgeDupe.Tags->Set(PCGExGraph::TagStr_ClusterPair, OutId);
-
+			PCGExGraph::MarkClusterEdges(&EdgeDupe, OutId);
+			
 			Manager->Start<PCGExGeoTasks::FTransformPointIO>(TaskIndex, PointIO, &EdgeDupe, TransformSettings);
 		}
 

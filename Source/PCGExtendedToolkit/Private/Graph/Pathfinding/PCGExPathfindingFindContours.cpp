@@ -226,6 +226,7 @@ bool FPCGExFindContourTask::ExecuteTask()
 		NextIndex = Context->ClusterProjection->FindNextAdjacentNode(Settings->OrientationMode, NextIndex, FromIndex, Exclusion, 1);
 	}
 
+	PCGExGraph::CleanupClusterTags(PointIO, true);
 	PCGExGraph::CleanupVtxData(PointIO);
 
 	TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();

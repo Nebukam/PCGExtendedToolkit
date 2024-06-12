@@ -51,22 +51,22 @@ bool FPCGExOffsetPathElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
-		int32 Index = 0;
-		Context->MainPoints->ForEach(
-			[&](PCGExData::FPointIO& PointIO, const int32)
+		while (Context->AdvancePointsIO())
+		{
+			if (Context->CurrentIO->GetNum() >= 2)
 			{
-				if (PointIO.GetNum() >= 2)
-				{
-					PointIO.CreateInKeys();
-					Context->GetAsyncManager()->Start<FPCGExOffsetPathTask>(Index++, &PointIO);
-				}
-			});
+				Context->CurrentIO->CreateInKeys();
+				Context->GetAsyncManager()->Start<FPCGExOffsetPathTask>(Context->CurrentIO->IOIndex, Context->CurrentIO);
+			}
+		}
+
 		Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork);
 	}
 
 	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
 	{
 		PCGEX_WAIT_ASYNC
+
 		Context->OutputMainPoints();
 		Context->Done();
 		Context->ExecutionComplete();

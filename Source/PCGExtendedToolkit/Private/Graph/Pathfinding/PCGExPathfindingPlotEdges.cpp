@@ -36,6 +36,68 @@ TArray<FPCGPinProperties> UPCGExPathfindingPlotEdgesSettings::OutputPinPropertie
 	return PinProperties;
 }
 
+void FPCGExPathfindingPlotEdgesContext::TryFindPath(const PCGExData::FPointIO* InPlotPoints) const
+{
+	PCGEX_SETTINGS_LOCAL(PathfindingPlotEdges)
+
+	// TODO : Implement path-scoped extra weight management
+	PCGExHeuristics::FLocalFeedbackHandler* LocalFeedbackHandler = HeuristicsHandler->MakeLocalFeedbackHandler(CurrentCluster);
+
+	const PCGExCluster::FCluster* Cluster = CurrentCluster;
+	TArray<int32> Path;
+
+	const int32 NumPlots = InPlotPoints->GetNum();
+
+	for (int i = 1; i < NumPlots; i++)
+	{
+		FVector SeedPosition = InPlotPoints->GetInPoint(i - 1).Transform.GetLocation();
+		FVector GoalPosition = InPlotPoints->GetInPoint(i).Transform.GetLocation();
+
+		if (!SearchAlgorithm->FindPath(
+			SeedPosition, &Settings->SeedPicking,
+			GoalPosition, &Settings->GoalPicking, HeuristicsHandler, Path, LocalFeedbackHandler))
+		{
+			// Failed
+		}
+
+		if (bAddPlotPointsToPath && i < NumPlots - 1) { Path.Add((i + 1) * -1); }
+
+		SeedPosition = GoalPosition;
+	}
+
+	PCGExData::FPointIO& PathPoints = OutputPaths->Emplace_GetRef(GetCurrentIn(), PCGExData::EInit::NewOutput);
+	PCGExGraph::CleanupClusterTags(&PathPoints, true);
+
+	UPCGPointData* OutData = PathPoints.GetOut();
+
+	PCGExGraph::CleanupVtxData(&PathPoints);
+
+	TArray<FPCGPoint>& MutablePoints = OutData->GetMutablePoints();
+	const TArray<FPCGPoint>& InPoints = GetCurrentIn()->GetPoints();
+
+	MutablePoints.Reserve(Path.Num() + 2);
+
+	if (bAddSeedToPath) { MutablePoints.Add_GetRef(InPlotPoints->GetInPoint(0)).MetadataEntry = PCGInvalidEntryKey; }
+	int32 LastIndex = -1;
+	for (const int32 VtxIndex : Path)
+	{
+		if (VtxIndex < 0) // Plot point
+		{
+			MutablePoints.Add_GetRef(InPlotPoints->GetInPoint((VtxIndex * -1) - 1)).MetadataEntry = PCGInvalidEntryKey;
+			continue;
+		}
+
+		if (LastIndex == VtxIndex) { continue; } //Skip duplicates
+		MutablePoints.Add(InPoints[Cluster->Nodes[VtxIndex].PointIndex]);
+		LastIndex = VtxIndex;
+	}
+	if (bAddGoalToPath) { MutablePoints.Add_GetRef(InPlotPoints->GetInPoint(InPlotPoints->GetNum() - 1)).MetadataEntry = PCGInvalidEntryKey; }
+
+	PathPoints.Tags->Append(InPlotPoints->Tags);
+
+	PCGEX_DELETE(LocalFeedbackHandler)
+}
+
 PCGEX_INITIALIZE_ELEMENT(PathfindingPlotEdges)
 
 void UPCGExPathfindingPlotEdgesSettings::PostInitProperties()
@@ -106,7 +168,7 @@ bool FPCGExPathfindingPlotEdgesElement::ExecuteInternal(FPCGContext* InContext) 
 		else
 		{
 			if (!Context->TaggedEdges) { return false; }
-			Context->SetState(PCGExGraph::State_ReadyForNextEdges);			
+			Context->SetState(PCGExGraph::State_ReadyForNextEdges);
 		}
 	}
 
@@ -224,61 +286,8 @@ bool FPCGExPlotClusterPathTask::ExecuteTask()
 	const FPCGExPathfindingPlotEdgesContext* Context = Manager->GetContext<FPCGExPathfindingPlotEdgesContext>();
 	PCGEX_SETTINGS(PathfindingPlotEdges)
 
-	// TODO : Implement path-scoped extra weight management
-	PCGExHeuristics::FLocalFeedbackHandler* LocalFeedbackHandler = Context->HeuristicsHandler->MakeLocalFeedbackHandler(Context->CurrentCluster);
-
-	const PCGExCluster::FCluster* Cluster = Context->CurrentCluster;
-	TArray<int32> Path;
-
-	const int32 NumPlots = PointIO->GetNum();
-
-	for (int i = 1; i < NumPlots; i++)
-	{
-		FVector SeedPosition = PointIO->GetInPoint(i - 1).Transform.GetLocation();
-		FVector GoalPosition = PointIO->GetInPoint(i).Transform.GetLocation();
-
-		if (!Context->SearchAlgorithm->FindPath(
-			SeedPosition, &Settings->SeedPicking,
-			GoalPosition, &Settings->GoalPicking, Context->HeuristicsHandler, Path, LocalFeedbackHandler))
-		{
-			// Failed
-		}
-
-		if (Context->bAddPlotPointsToPath && i < NumPlots - 1) { Path.Add((i + 1) * -1); }
-
-		SeedPosition = GoalPosition;
-	}
-
-	PCGExData::FPointIO& PathPoints = Context->OutputPaths->Emplace_GetRef(Context->GetCurrentIn(), PCGExData::EInit::NewOutput);
-	UPCGPointData* OutData = PathPoints.GetOut();
-
-	PCGExGraph::CleanupVtxData(&PathPoints);
-
-	TArray<FPCGPoint>& MutablePoints = OutData->GetMutablePoints();
-	const TArray<FPCGPoint>& InPoints = Context->GetCurrentIn()->GetPoints();
-
-	MutablePoints.Reserve(Path.Num() + 2);
-
-	if (Context->bAddSeedToPath) { MutablePoints.Add_GetRef(PointIO->GetInPoint(0)).MetadataEntry = PCGInvalidEntryKey; }
-	int32 LastIndex = -1;
-	for (const int32 VtxIndex : Path)
-	{
-		if (VtxIndex < 0) // Plot point
-		{
-			MutablePoints.Add_GetRef(PointIO->GetInPoint((VtxIndex * -1) - 1)).MetadataEntry = PCGInvalidEntryKey;
-			continue;
-		}
-
-		if (LastIndex == VtxIndex) { continue; } //Skip duplicates
-		MutablePoints.Add(InPoints[Cluster->Nodes[VtxIndex].PointIndex]);
-		LastIndex = VtxIndex;
-	}
-	if (Context->bAddGoalToPath) { MutablePoints.Add_GetRef(PointIO->GetInPoint(PointIO->GetNum() - 1)).MetadataEntry = PCGInvalidEntryKey; }
-
-	PathPoints.Tags->Append(PointIO->Tags);
-
-	PCGEX_DELETE(LocalFeedbackHandler)
-
+	Context->TryFindPath(PointIO);
+	
 	return true;
 }
 

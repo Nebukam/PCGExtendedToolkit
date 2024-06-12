@@ -485,30 +485,30 @@ namespace PCGExGraph
 
 #pragma endregion
 
-	static bool IsPointDataVtxReady(const UPCGPointData* PointData)
+	static bool IsPointDataVtxReady(const UPCGMetadata* Metadata)
 	{
-		const FName Tags[] = {Tag_VtxEndpoint};
 		constexpr int16 I64 = static_cast<uint16>(EPCGMetadataTypes::Integer64);
+		constexpr int16 I32 = static_cast<uint16>(EPCGMetadataTypes::Integer32);
 
-		for (const FName Name : Tags)
-		{
-			if (const FPCGMetadataAttributeBase* AttributeCheck = PointData->Metadata->GetMutableAttribute(Name);
-				!AttributeCheck || (AttributeCheck->GetTypeId() != I64)) { return false; }
-		}
+		const FPCGMetadataAttributeBase* EndpointAttribute = Metadata->GetConstAttribute(Tag_VtxEndpoint);
+		if (!EndpointAttribute || EndpointAttribute->GetTypeId() != I64) { return false; }
 
+		const FPCGMetadataAttributeBase* ClusterIdAttribute = Metadata->GetConstAttribute(Tag_ClusterId);
+		if (!ClusterIdAttribute || ClusterIdAttribute->GetTypeId() != I64) { return false; }
+		
 		return true;
 	}
 
-	static bool IsPointDataEdgeReady(const UPCGPointData* PointData)
+	static bool IsPointDataEdgeReady(const UPCGMetadata* Metadata)
 	{
-		const FName Tags[] = {Tag_EdgeEndpoints}; //{Tag_EdgeStart, Tag_EdgeEnd};
 		constexpr int16 I64 = static_cast<uint16>(EPCGMetadataTypes::Integer64);
+		constexpr int16 I32 = static_cast<uint16>(EPCGMetadataTypes::Integer32);
 
-		for (const FName Name : Tags)
-		{
-			if (const FPCGMetadataAttributeBase* AttributeCheck = PointData->Metadata->GetMutableAttribute(Name);
-				!AttributeCheck || AttributeCheck->GetTypeId() != I64) { return false; }
-		}
+		const FPCGMetadataAttributeBase* EndpointAttribute = Metadata->GetConstAttribute(Tag_EdgeEndpoints);
+		if (!EndpointAttribute || EndpointAttribute->GetTypeId() != I64) { return false; }
+
+		const FPCGMetadataAttributeBase* ClusterIdAttribute = Metadata->GetConstAttribute(Tag_ClusterId);
+		if (!ClusterIdAttribute || ClusterIdAttribute->GetTypeId() != I64) { return false; }
 
 		return true;
 	}

@@ -129,7 +129,7 @@ namespace PCGExGeo
 			return IsValid;
 		}
 
-		void RemoveLongestEdges(const TArrayView<FVector>& Positions, FPCGExPointsProcessorContext* Context)
+		void RemoveLongestEdges(const TArrayView<FVector>& Positions, FPCGExPointsProcessorContext* Context = nullptr)
 		{
 			uint64 Edge;
 			for (const FDelaunaySite2& Site : Sites)
@@ -299,7 +299,7 @@ namespace PCGExGeo
 			return IsValid;
 		}
 
-		void RemoveLongestEdges(const TArrayView<FVector>& Positions, FPCGExPointsProcessorContext* Context)
+		void RemoveLongestEdges(const TArrayView<FVector>& Positions, FPCGExPointsProcessorContext* Context = nullptr)
 		{
 			uint64 Edge;
 			for (const FDelaunaySite3& Site : Sites)

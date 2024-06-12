@@ -45,11 +45,11 @@ bool FPCGExMakeClustersUniqueElement::ExecuteInternal(FPCGContext* InContext) co
 	while (Context->AdvancePointsIO())
 	{
 		FString OutId;
-		Context->CurrentIO->Tags->Set(PCGExGraph::TagStr_ClusterPair, Context->GetCurrentOut()->UID, OutId);
+		PCGExGraph::SetClusterVtx(Context->CurrentIO, OutId);
 
 		if (!Context->TaggedEdges) { continue; }
 
-		for (const PCGExData::FPointIO* Entry : Context->TaggedEdges->Entries) { Entry->Tags->Set(PCGExGraph::TagStr_ClusterPair, OutId); }
+		PCGExGraph::MarkClusterEdges(Context->TaggedEdges->Entries, OutId);
 	}
 
 	Context->OutputPointsAndEdges();

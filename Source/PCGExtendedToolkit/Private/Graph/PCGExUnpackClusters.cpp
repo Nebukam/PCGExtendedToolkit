@@ -134,8 +134,9 @@ bool FPCGExUnpackClusterTask::ExecuteTask()
 
 	FString OutPairId;
 	PackedIO.Tags->GetValue(PCGExGraph::TagStr_ClusterPair, OutPairId);
-	NewEdges.Tags->Set(PCGExGraph::TagStr_ClusterPair, OutPairId);
-	NewVtx.Tags->Set(PCGExGraph::TagStr_ClusterPair, OutPairId);
+
+	PCGExGraph::MarkClusterVtx(&NewVtx, OutPairId);
+	PCGExGraph::MarkClusterEdges(&NewEdges, OutPairId);
 
 	return true;
 }
