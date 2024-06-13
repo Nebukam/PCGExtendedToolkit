@@ -18,7 +18,7 @@ public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(CopyClustersToPoints, "Copy Clusters To Points", "Create a copies of the input clusters onto the target points. \n NOTE: Does not sanitize input.");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExEditorSettings>()->NodeColorGraph; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorGraph; }
 #endif
 
 protected:

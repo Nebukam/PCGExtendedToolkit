@@ -106,7 +106,7 @@ public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(SampleNearestPolyline, "Sample : Nearest Polyline", "Find the closest transform on nearest polylines.");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExEditorSettings>()->NodeColorSampler; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorSampler; }
 #endif
 
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;

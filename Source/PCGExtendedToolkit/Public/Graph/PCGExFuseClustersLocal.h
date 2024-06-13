@@ -31,7 +31,7 @@ public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(FuseClustersLocal, "Graph : Fuse Clusters Local", "Finds per-cluster Point/Edge and Edge/Edge intersections");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExEditorSettings>()->NodeColorGraph; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorGraph; }
 #endif
 
 protected:

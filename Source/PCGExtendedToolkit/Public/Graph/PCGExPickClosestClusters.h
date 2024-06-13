@@ -38,7 +38,7 @@ public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(PickClosestClusters, "Graph : Pick Closest Clusters", "Pick the clusters closest to input targets.");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExEditorSettings>()->NodeColorGraph; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorGraph; }
 #endif
 
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;

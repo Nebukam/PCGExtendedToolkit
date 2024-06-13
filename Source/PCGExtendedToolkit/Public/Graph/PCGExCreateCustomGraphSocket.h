@@ -22,7 +22,7 @@ public:
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
 		GraphSocket, "Socket Definition", "Creates a single socket data object.",
 		Socket.SocketName)
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExEditorSettings>()->NodeColorGraph; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorGraph; }
 #endif
 	//~End UPCGSettings
 

@@ -27,7 +27,7 @@ public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(BreakClustersToPaths, "Graph : Break Clusters to Paths", "Create individual paths from continuous edge chains.");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExEditorSettings>()->NodeColorGraph; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorGraph; }
 #endif
 
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;

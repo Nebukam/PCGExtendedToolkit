@@ -18,7 +18,7 @@ public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(PackClusters, "Graph : Pack Clusters", "Pack each cluster into an single point data object containing both vtx and edges.");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExEditorSettings>()->NodeColorGraph; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorGraph; }
 #endif
 
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;

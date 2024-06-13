@@ -23,7 +23,7 @@ public:
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
 		GraphSocketState, "Socket State Definition", "Creates a socket state configuration from any number of sockets and attributes.",
 		StateName)
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExEditorSettings>()->NodeColorSocketState; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorSocketState; }
 
 #endif
 	virtual FName GetMainOutputLabel() const override;

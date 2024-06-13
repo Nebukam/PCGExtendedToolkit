@@ -19,7 +19,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExStateFactoryProviderSettings : public UPCGExF
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExEditorSettings>()->NodeColorFilterHub; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorFilterHub; }
 
 #endif
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;

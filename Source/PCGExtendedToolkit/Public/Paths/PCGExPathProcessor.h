@@ -4,7 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExEditorSettings.h"
+#include "PCGExGlobalSettings.h"
 
 #include "PCGExPointsProcessor.h"
 #include "Graph/PCGExGraph.h"
@@ -37,7 +37,7 @@ public:
 
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExEditorSettings>()->NodeColorPath; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorPath; }
 #endif
 
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;

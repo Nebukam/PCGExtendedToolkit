@@ -174,7 +174,7 @@ public:
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
 		NodeAdjacencyFilterFactory, "Cluster Filter : Adjacency", "Numeric comparison of adjacent values, testing either adjacent nodes or connected edges.",
 		PCGEX_FACTORY_NAME_PRIORITY)
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExEditorSettings>()->NodeColorClusterFilter; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorClusterFilter; }
 #endif
 
 public:

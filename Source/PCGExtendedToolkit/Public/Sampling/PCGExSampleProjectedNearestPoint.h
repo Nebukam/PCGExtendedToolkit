@@ -46,7 +46,7 @@ public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(SampleProjectedNearestPoint, "Sample : Projected Nearest Point", "Sample nearest target points on a projection plane");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExEditorSettings>()->NodeColorSampler; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorSampler; }
 #endif
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
 

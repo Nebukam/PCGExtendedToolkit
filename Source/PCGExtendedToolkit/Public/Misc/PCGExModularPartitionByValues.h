@@ -35,7 +35,7 @@ public:
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
 		PartitionFactory, "Rule : Partition", "Creates an single partition rule to be used with the Partition by Values node.",
 		FName(GetDisplayName()))
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExEditorSettings>()->NodeColorMisc; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorMisc; }
 #endif
 	//~End UPCGSettings
 
@@ -64,7 +64,7 @@ public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(ModularPartitionByValues, "Partition by Values", "Outputs separate buckets of points based on an attribute' value. Each bucket is named after a unique attribute value. Note that it is recommended to use a Merge before.");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExEditorSettings>()->NodeColorMiscAdd; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorMiscAdd; }
 #endif
 
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;

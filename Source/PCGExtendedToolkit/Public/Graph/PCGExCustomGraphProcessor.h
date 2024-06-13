@@ -22,7 +22,7 @@ public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(CustomGraphProcessorSettings, "Graph Processor Settings", "TOOLTIP_TEXT");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExEditorSettings>()->NodeColorGraph; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorGraph; }
 #endif
 
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;

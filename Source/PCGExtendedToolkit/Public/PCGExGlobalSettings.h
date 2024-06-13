@@ -6,19 +6,26 @@
 
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
-#include "PCGExEditorSettings.generated.h"
+#include "PCGExGlobalSettings.generated.h"
 
-UCLASS(config = Editor, defaultconfig)
-class PCGEXTENDEDTOOLKIT_API UPCGExEditorSettings : public UObject
+UCLASS(DefaultConfig, config = Editor, defaultconfig)
+class PCGEXTENDEDTOOLKIT_API UPCGExGlobalSettings : public UObject
 {
 	GENERATED_BODY()
 
 public:
+	UPROPERTY(EditAnywhere, config, Category = "Performance|Cluster", meta=(ClampMin=1))
+	int32 SmallClusterSize = 256;
+	
+	UPROPERTY(EditAnywhere, config, Category = "Performance|Cluster", meta=(ClampMin=1))
+	int32 DefaultBatchIterations = 256;
+
+
 	UPROPERTY(EditAnywhere, config, Category = "Node Colors")
 	FLinearColor NodeColorDebug = FLinearColor(1.0f, 0.0f, 0.0f, 1.0f);
 
 	UPROPERTY(EditAnywhere, config, Category = "Node Colors")
-	FLinearColor NodeColorMisc = FLinearColor(1.000000,0.591295,0.282534,1.000000);
+	FLinearColor NodeColorMisc = FLinearColor(1.000000, 0.591295, 0.282534, 1.000000);
 
 	UPROPERTY(EditAnywhere, config, Category = "Node Colors")
 	FLinearColor NodeColorMiscWrite = FLinearColor(1.000000, 0.316174, 0.000000, 1.000000);

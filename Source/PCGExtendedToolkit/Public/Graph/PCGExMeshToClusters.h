@@ -51,7 +51,7 @@ public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(MeshToClusters, "Graph : Mesh To Clusters", "Creates clusters from mesh topology.");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExEditorSettings>()->NodeColorGraphGen; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorGraphGen; }
 #endif
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
 

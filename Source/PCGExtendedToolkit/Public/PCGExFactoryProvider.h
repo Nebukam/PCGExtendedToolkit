@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGEx.h"
-#include "PCGExEditorSettings.h"
+#include "PCGExGlobalSettings.h"
 #include "PCGExPointsProcessor.h"
 #include "UObject/Object.h"
 
@@ -71,7 +71,7 @@ public:
 		FactoryProvider, "Factory : Proviader", "Creates an abstract factory provider.",
 		FName(GetDisplayName()))
 	virtual EPCGSettingsType GetType() const override { return EPCGSettingsType::Param; }
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExEditorSettings>()->NodeColorFilter; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorFilter; }
 #endif
 
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;

@@ -7,7 +7,7 @@
 #include "CoreMinimal.h"
 #include "PCGPin.h"
 #include "Elements/PCGPointProcessingElementBase.h"
-#include "PCGExEditorSettings.h"
+#include "PCGExGlobalSettings.h"
 #include "PCGEx.h"
 #include "PCGExMT.h"
 #include "Data/PCGExAttributeHelpers.h"

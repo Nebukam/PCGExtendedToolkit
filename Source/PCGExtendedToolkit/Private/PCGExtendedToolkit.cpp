@@ -4,7 +4,7 @@
 #include "PCGExtendedToolkit.h"
 
 #include "ISettingsModule.h"
-#include "PCGExEditorSettings.h"
+#include "PCGExGlobalSettings.h"
 
 #define LOCTEXT_NAMESPACE "FPCGExtendedToolkitModule"
 
@@ -17,7 +17,7 @@ void FPCGExtendedToolkitModule::StartupModule()
 				"Project", "Plugins", "PCGEx",
 				LOCTEXT("PCGExSettingsName", "PCGEx"),
 				LOCTEXT("PCGExSettingsDescription", "Configure PCG Extended Toolkit settings"),
-				GetMutableDefault<UPCGExEditorSettings>()
+				GetMutableDefault<UPCGExGlobalSettings>()
 			);
 	}
 }

@@ -450,7 +450,7 @@ namespace PCGExClusterBatch
 				if (VtxFiltersData) { NewProcessor->SetVtxFilterData(VtxFiltersData, bDefaultVtxFilterValue); }
 
 				NewProcessor->BatchIndex = Processors.Add(NewProcessor);
-				NewProcessor->bIsSmallCluster = IO->GetNum() < 100;
+				NewProcessor->bIsSmallCluster = IO->GetNum() < GetDefault<UPCGExGlobalSettings>()->SmallClusterSize;
 
 				if (NewProcessor->IsTrivial()) { ClosedBatchProcessors.Add(NewProcessor); }
 				else { AsyncManager->Start<FAsyncProcess<T>>(IO->IOIndex, IO, NewProcessor); }
@@ -494,7 +494,7 @@ namespace PCGExClusterBatch
 				int32 CurrentCount = 0;
 				while (CurrentCount < ClosedBatchProcessors.Num())
 				{
-					constexpr int32 PerIterationsNum = 256;
+					const int32 PerIterationsNum = GetDefault<UPCGExGlobalSettings>()->DefaultBatchIterations;
 					AsyncManagerPtr->Start<FAsyncBatchProcessRange<FClusterBatchProcessingData<T>>>(
 						CurrentCount, nullptr, this, FMath::Min(NumTrivial - CurrentCount, PerIterationsNum));
 					CurrentCount += PerIterationsNum;

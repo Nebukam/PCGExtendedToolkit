@@ -37,7 +37,7 @@ public:
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
 		DotFilterFactory, "Rule : Sorting", "Creates an single sorting rule to be used with the Sort Points node.",
 		PCGEX_FACTORY_NAME_PRIORITY)
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExEditorSettings>()->NodeColorMisc; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorMisc; }
 #endif
 	//~End UPCGSettings
 
@@ -66,7 +66,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExModularSortPointsSettings : public UPCGExSort
 public:
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(ModularSortPoints, "Sort Points", "Sort the source points according to specific rules.");
-	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExEditorSettings>()->NodeColorMiscWrite; }
+	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorMiscWrite; }
 #endif
 
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
