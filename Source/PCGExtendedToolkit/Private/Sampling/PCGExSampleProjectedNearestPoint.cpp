@@ -108,7 +108,7 @@ bool FPCGExSampleProjectedNearestPointElement::Boot(FPCGContext* InContext) cons
 	Context->RangeMaxGetter = new PCGEx::FLocalSingleFieldGetter();
 	Context->RangeMaxGetter->Capture(Settings->LocalRangeMax);
 
-	PCGEX_FOREACH_FIELD_PROJECTNEARESTPOINT(PCGEX_OUTPUT_FWD)
+	PCGEX_FOREACH_FIELD_PROJECTNEARESTPOINT(PCGEX_OUTPUT_FWD_C)
 
 	if (!Context->WeightCurve)
 	{
@@ -116,7 +116,7 @@ bool FPCGExSampleProjectedNearestPointElement::Boot(FPCGContext* InContext) cons
 		return false;
 	}
 
-	PCGEX_FOREACH_FIELD_PROJECTNEARESTPOINT(PCGEX_OUTPUT_VALIDATE_NAME)
+	PCGEX_FOREACH_FIELD_PROJECTNEARESTPOINT(PCGEX_OUTPUT_VALIDATE_NAME_C)
 
 	Context->LookAtUpGetter = new PCGEx::FLocalVectorGetter();
 	Context->LookAtUpGetter->Capture(Settings->LookAtUpSource);
@@ -291,7 +291,7 @@ bool FPCGExSampleProjectedNearestPointElement::ExecuteInternal(FPCGContext* InCo
 
 		if (Context->Blender) { Context->Blender->Write(); }
 
-		PCGEX_FOREACH_FIELD_PROJECTNEARESTPOINT(PCGEX_OUTPUT_WRITE)
+		PCGEX_FOREACH_FIELD_PROJECTNEARESTPOINT(PCGEX_OUTPUT_WRITE_C)
 		Context->CurrentIO->OutputTo(Context);
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
@@ -316,7 +316,7 @@ namespace PCGExSampleNearestProjectedPointTasks
 			if (Context->RangeMaxGetter->Grab(*PointIO)) { PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("RangeMax metadata missing")); }
 		}
 
-		PCGEX_FOREACH_FIELD_PROJECTNEARESTPOINT(PCGEX_OUTPUT_ACCESSOR_INIT_PTR)
+		PCGEX_FOREACH_FIELD_PROJECTNEARESTPOINT(PCGEX_OUTPUT_ACCESSOR_INIT_PTR_C)
 
 		return true;
 	}
@@ -392,12 +392,12 @@ namespace PCGExSampleNearestProjectedPointTasks
 		if (TargetsCompoundInfos.UpdateCount <= 0)
 		{
 			double FailSafeDist = FMath::Sqrt(RangeMax);
-			PCGEX_OUTPUT_VALUE(Success, Iteration, false)
-			PCGEX_OUTPUT_VALUE(Transform, Iteration, ProjectedSourcePoint.Transform)
-			PCGEX_OUTPUT_VALUE(LookAtTransform, Iteration, SourcePoint.Transform)
-			PCGEX_OUTPUT_VALUE(Distance, Iteration, FailSafeDist)
-			PCGEX_OUTPUT_VALUE(SignedDistance, Iteration, FailSafeDist)
-			PCGEX_OUTPUT_VALUE(NumSamples, Iteration, 0)
+			PCGEX_OUTPUT_VALUE_C(Success, Iteration, false)
+			PCGEX_OUTPUT_VALUE_C(Transform, Iteration, ProjectedSourcePoint.Transform)
+			PCGEX_OUTPUT_VALUE_C(LookAtTransform, Iteration, SourcePoint.Transform)
+			PCGEX_OUTPUT_VALUE_C(Distance, Iteration, FailSafeDist)
+			PCGEX_OUTPUT_VALUE_C(SignedDistance, Iteration, FailSafeDist)
+			PCGEX_OUTPUT_VALUE_C(NumSamples, Iteration, 0)
 			return;
 		}
 
@@ -480,13 +480,13 @@ namespace PCGExSampleNearestProjectedPointTasks
 		FVector LookAt = (ProjectedSourcePoint.Transform.GetLocation() - WeightedProjectedPosition).GetSafeNormal();
 		const double WeightedDistance = FVector::Dist(ProjectedSourcePoint.Transform.GetLocation(), WeightedProjectedPosition);
 
-		PCGEX_OUTPUT_VALUE(Success, Iteration, TargetsCompoundInfos.IsValid())
-		PCGEX_OUTPUT_VALUE(Transform, Iteration, WeightedTransform)
-		PCGEX_OUTPUT_VALUE(LookAtTransform, Iteration, PCGExMath::MakeLookAtTransform(LookAt, WeightedUp, Settings->LookAtAxisAlign))
-		PCGEX_OUTPUT_VALUE(Distance, Iteration, WeightedDistance)
-		PCGEX_OUTPUT_VALUE(SignedDistance, Iteration, FMath::Sign(WeightedSignAxis.Dot(LookAt)) * WeightedDistance)
-		PCGEX_OUTPUT_VALUE(Angle, Iteration, PCGExSampling::GetAngle(Settings->AngleRange, WeightedAngleAxis, LookAt))
-		PCGEX_OUTPUT_VALUE(NumSamples, Iteration, Count)
+		PCGEX_OUTPUT_VALUE_C(Success, Iteration, TargetsCompoundInfos.IsValid())
+		PCGEX_OUTPUT_VALUE_C(Transform, Iteration, WeightedTransform)
+		PCGEX_OUTPUT_VALUE_C(LookAtTransform, Iteration, PCGExMath::MakeLookAtTransform(LookAt, WeightedUp, Settings->LookAtAxisAlign))
+		PCGEX_OUTPUT_VALUE_C(Distance, Iteration, WeightedDistance)
+		PCGEX_OUTPUT_VALUE_C(SignedDistance, Iteration, FMath::Sign(WeightedSignAxis.Dot(LookAt)) * WeightedDistance)
+		PCGEX_OUTPUT_VALUE_C(Angle, Iteration, PCGExSampling::GetAngle(Settings->AngleRange, WeightedAngleAxis, LookAt))
+		PCGEX_OUTPUT_VALUE_C(NumSamples, Iteration, Count)
 	}
 }
 

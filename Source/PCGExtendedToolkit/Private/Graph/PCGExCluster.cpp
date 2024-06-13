@@ -855,8 +855,8 @@ namespace PCGExClusterTask
 	bool FBuildCluster::ExecuteTask()
 	{
 		Cluster->BuildFrom(
-			*EdgeIO, PointIO->GetIn()->GetPoints(),
-			*EndpointsLookup, ExpectedAdjacency);
+				*EdgeIO, PointIO->GetIn()->GetPoints(),
+				*EndpointsLookup, ExpectedAdjacency);
 
 		return true;
 	}
@@ -960,7 +960,7 @@ namespace PCGExClusterTask
 			PCGExData::FPointIO& EdgeDupe = EdgeCollection->Emplace_GetRef(EdgeIO->GetIn(), PCGExData::EInit::DuplicateInput);
 			EdgeDupe.IOIndex = TaskIndex;
 			PCGExGraph::MarkClusterEdges(&EdgeDupe, OutId);
-			
+
 			Manager->Start<PCGExGeoTasks::FTransformPointIO>(TaskIndex, PointIO, &EdgeDupe, TransformSettings);
 		}
 

@@ -35,8 +35,8 @@ bool FPCGExWritePathExtrasElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(WritePathExtras)
 
-	PCGEX_FOREACH_FIELD_PATHEXTRAS(PCGEX_OUTPUT_VALIDATE_NAME)
-	PCGEX_FOREACH_FIELD_PATHEXTRAS(PCGEX_OUTPUT_FWD)
+	PCGEX_FOREACH_FIELD_PATHEXTRAS(PCGEX_OUTPUT_VALIDATE_NAME_C)
+	PCGEX_FOREACH_FIELD_PATHEXTRAS(PCGEX_OUTPUT_FWD_C)
 
 	PCGEX_FWD(bWritePathLength)
 	PCGEX_FWD(bWritePathDirection)
@@ -75,7 +75,7 @@ bool FPCGExWritePathExtrasElement::ExecuteInternal(FPCGContext* InContext) const
 			PCGExData::FPointIO& PointIO = *Context->CurrentIO;
 			PointIO.InitializeOutput(PCGExData::EInit::DuplicateInput);
 
-			PCGEX_FOREACH_FIELD_PATHEXTRAS(PCGEX_OUTPUT_ACCESSOR_INIT)
+			PCGEX_FOREACH_FIELD_PATHEXTRAS(PCGEX_OUTPUT_ACCESSOR_INIT_C)
 
 			Context->CurrentIO->CreateInKeys();
 			Context->GetAsyncManager()->Start<FPCGExWritePathExtrasTask>(Context->CurrentPointIOIndex, Context->CurrentIO);
@@ -87,7 +87,7 @@ bool FPCGExWritePathExtrasElement::ExecuteInternal(FPCGContext* InContext) const
 	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
 	{
 		PCGEX_WAIT_ASYNC
-		PCGEX_FOREACH_FIELD_PATHEXTRAS(PCGEX_OUTPUT_WRITE)
+		PCGEX_FOREACH_FIELD_PATHEXTRAS(PCGEX_OUTPUT_WRITE_C)
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
@@ -138,53 +138,53 @@ bool FPCGExWritePathExtrasTask::ExecuteTask()
 	const int32 LastIndex = NumPoints - 1;
 	FVector PathCentroid = FVector::ZeroVector;
 
-	PCGEX_OUTPUT_VALUE(DirectionToNext, 0, (Positions[0] - Positions[1]).GetSafeNormal());
-	PCGEX_OUTPUT_VALUE(DirectionToPrev, 0, (Positions[1] - Positions[0]).GetSafeNormal());
-	PCGEX_OUTPUT_VALUE(DistanceToStart, 0, 0);
+	PCGEX_OUTPUT_VALUE_C(DirectionToNext, 0, (Positions[0] - Positions[1]).GetSafeNormal());
+	PCGEX_OUTPUT_VALUE_C(DirectionToPrev, 0, (Positions[1] - Positions[0]).GetSafeNormal());
+	PCGEX_OUTPUT_VALUE_C(DistanceToStart, 0, 0);
 
-	PCGEX_OUTPUT_VALUE(DistanceToNext, 0, FVector::Dist(Positions[0], Positions[1]));
-	PCGEX_OUTPUT_VALUE(DistanceToPrev, 0, 0);
+	PCGEX_OUTPUT_VALUE_C(DistanceToNext, 0, FVector::Dist(Positions[0], Positions[1]));
+	PCGEX_OUTPUT_VALUE_C(DistanceToPrev, 0, 0);
 
 	FVector PathDir = (Positions[0] - Positions[1]);
 
 	for (int i = 1; i < LastIndex; i++)
 	{
 		const double TraversedDistance = Metrics.Add(Positions[i]);
-		PCGEX_OUTPUT_VALUE(PointNormal, i, NRM(i - 1, i, i + 1));
-		PCGEX_OUTPUT_VALUE(DirectionToNext, i, (Positions[i] - Positions[i+1]).GetSafeNormal());
-		PCGEX_OUTPUT_VALUE(DirectionToPrev, i, (Positions[i-1] - Positions[i]).GetSafeNormal());
-		PCGEX_OUTPUT_VALUE(DistanceToStart, i, TraversedDistance);
+		PCGEX_OUTPUT_VALUE_C(PointNormal, i, NRM(i - 1, i, i + 1));
+		PCGEX_OUTPUT_VALUE_C(DirectionToNext, i, (Positions[i] - Positions[i+1]).GetSafeNormal());
+		PCGEX_OUTPUT_VALUE_C(DirectionToPrev, i, (Positions[i-1] - Positions[i]).GetSafeNormal());
+		PCGEX_OUTPUT_VALUE_C(DistanceToStart, i, TraversedDistance);
 
-		PCGEX_OUTPUT_VALUE(DistanceToNext, i, FVector::Dist(Positions[i],Positions[i+1]));
-		PCGEX_OUTPUT_VALUE(DistanceToPrev, i, FVector::Dist(Positions[i-1],Positions[i]));
+		PCGEX_OUTPUT_VALUE_C(DistanceToNext, i, FVector::Dist(Positions[i],Positions[i+1]));
+		PCGEX_OUTPUT_VALUE_C(DistanceToPrev, i, FVector::Dist(Positions[i-1],Positions[i]));
 
 		PathDir += (Positions[i] - Positions[i + 1]);
 	}
 
 	Metrics.Add(Positions[LastIndex]);
 
-	PCGEX_OUTPUT_VALUE(DirectionToNext, LastIndex, (Positions[LastIndex-1] - Positions[LastIndex]).GetSafeNormal());
-	PCGEX_OUTPUT_VALUE(DirectionToPrev, LastIndex, (Positions[LastIndex] - Positions[LastIndex-1]).GetSafeNormal());
-	PCGEX_OUTPUT_VALUE(DistanceToStart, LastIndex, Metrics.Length);
+	PCGEX_OUTPUT_VALUE_C(DirectionToNext, LastIndex, (Positions[LastIndex-1] - Positions[LastIndex]).GetSafeNormal());
+	PCGEX_OUTPUT_VALUE_C(DirectionToPrev, LastIndex, (Positions[LastIndex] - Positions[LastIndex-1]).GetSafeNormal());
+	PCGEX_OUTPUT_VALUE_C(DistanceToStart, LastIndex, Metrics.Length);
 
-	PCGEX_OUTPUT_VALUE(DistanceToNext, LastIndex, 0);
-	PCGEX_OUTPUT_VALUE(DistanceToPrev, LastIndex, FVector::Dist(Positions[LastIndex-1],Positions[LastIndex]));
+	PCGEX_OUTPUT_VALUE_C(DistanceToNext, LastIndex, 0);
+	PCGEX_OUTPUT_VALUE_C(DistanceToPrev, LastIndex, FVector::Dist(Positions[LastIndex-1],Positions[LastIndex]));
 
 	if (Settings->bClosedPath)
 	{
-		PCGEX_OUTPUT_VALUE(DirectionToPrev, 0, (Positions[0] - Positions[LastIndex]).GetSafeNormal());
-		PCGEX_OUTPUT_VALUE(DirectionToNext, LastIndex, (Positions[LastIndex] - Positions[0]).GetSafeNormal());
+		PCGEX_OUTPUT_VALUE_C(DirectionToPrev, 0, (Positions[0] - Positions[LastIndex]).GetSafeNormal());
+		PCGEX_OUTPUT_VALUE_C(DirectionToNext, LastIndex, (Positions[LastIndex] - Positions[0]).GetSafeNormal());
 
-		PCGEX_OUTPUT_VALUE(DistanceToNext, LastIndex, FVector::Dist(Positions[LastIndex], Positions[0]));
-		PCGEX_OUTPUT_VALUE(DistanceToPrev, 0, FVector::Dist(Positions[0], Positions[LastIndex]));
+		PCGEX_OUTPUT_VALUE_C(DistanceToNext, LastIndex, FVector::Dist(Positions[LastIndex], Positions[0]));
+		PCGEX_OUTPUT_VALUE_C(DistanceToPrev, 0, FVector::Dist(Positions[0], Positions[LastIndex]));
 
-		PCGEX_OUTPUT_VALUE(PointNormal, 0, NRM(LastIndex, 0, 1));
-		PCGEX_OUTPUT_VALUE(PointNormal, LastIndex, NRM(NumPoints - 2, LastIndex, 0));
+		PCGEX_OUTPUT_VALUE_C(PointNormal, 0, NRM(LastIndex, 0, 1));
+		PCGEX_OUTPUT_VALUE_C(PointNormal, LastIndex, NRM(NumPoints - 2, LastIndex, 0));
 	}
 	else
 	{
-		PCGEX_OUTPUT_VALUE(PointNormal, 0, NRM(0, 0, 1));
-		PCGEX_OUTPUT_VALUE(PointNormal, LastIndex, NRM(NumPoints - 2, LastIndex, LastIndex));
+		PCGEX_OUTPUT_VALUE_C(PointNormal, 0, NRM(0, 0, 1));
+		PCGEX_OUTPUT_VALUE_C(PointNormal, LastIndex, NRM(NumPoints - 2, LastIndex, LastIndex));
 	}
 
 	PCGExMath::FPathMetrics SecondMetrics = PCGExMath::FPathMetrics(Positions[0]);
@@ -192,8 +192,8 @@ bool FPCGExWritePathExtrasTask::ExecuteTask()
 	for (int i = 0; i < NumPoints; i++)
 	{
 		const double TraversedDistance = SecondMetrics.Add(Positions[i]);
-		PCGEX_OUTPUT_VALUE(PointTime, i, TraversedDistance / Metrics.Length);
-		PCGEX_OUTPUT_VALUE(DistanceToEnd, i, Metrics.Length - TraversedDistance);
+		PCGEX_OUTPUT_VALUE_C(PointTime, i, TraversedDistance / Metrics.Length);
+		PCGEX_OUTPUT_VALUE_C(DistanceToEnd, i, Metrics.Length - TraversedDistance);
 		PathCentroid += Positions[i];
 	}
 

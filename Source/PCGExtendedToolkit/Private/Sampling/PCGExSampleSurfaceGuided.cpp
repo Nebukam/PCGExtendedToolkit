@@ -46,9 +46,9 @@ bool FPCGExSampleSurfaceGuidedElement::Boot(FPCGContext* InContext) const
 	Context->DirectionGetter = new PCGEx::FLocalVectorGetter();
 	Context->DirectionGetter->Capture(Settings->Direction);
 
-	PCGEX_FOREACH_FIELD_SURFACEGUIDED(PCGEX_OUTPUT_FWD)
+	PCGEX_FOREACH_FIELD_SURFACEGUIDED(PCGEX_OUTPUT_FWD_C)
 
-	PCGEX_FOREACH_FIELD_SURFACEGUIDED(PCGEX_OUTPUT_VALIDATE_NAME)
+	PCGEX_FOREACH_FIELD_SURFACEGUIDED(PCGEX_OUTPUT_VALIDATE_NAME_C)
 
 	PCGExFactories::GetInputFactories(InContext, PCGEx::SourcePointFilters, Context->PointFilterFactories, {PCGExFactories::EType::Filter}, false);
 
@@ -139,7 +139,7 @@ bool FPCGExSampleSurfaceGuidedElement::ExecuteInternal(FPCGContext* InContext) c
 			}
 		}
 
-		PCGEX_FOREACH_FIELD_SURFACEGUIDED(PCGEX_OUTPUT_ACCESSOR_INIT)
+		PCGEX_FOREACH_FIELD_SURFACEGUIDED(PCGEX_OUTPUT_ACCESSOR_INIT_C)
 
 		for (int i = 0; i < PointIO.GetNum(); i++)
 		{
@@ -154,7 +154,7 @@ bool FPCGExSampleSurfaceGuidedElement::ExecuteInternal(FPCGContext* InContext) c
 	{
 		PCGEX_WAIT_ASYNC
 
-		PCGEX_FOREACH_FIELD_SURFACEGUIDED(PCGEX_OUTPUT_WRITE)
+		PCGEX_FOREACH_FIELD_SURFACEGUIDED(PCGEX_OUTPUT_WRITE_C)
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
@@ -187,9 +187,9 @@ bool FTraceTask::ExecuteTask()
 
 	auto ProcessTraceResult = [&]()
 	{
-		PCGEX_OUTPUT_VALUE(Location, TaskIndex, HitResult.ImpactPoint)
-		PCGEX_OUTPUT_VALUE(Normal, TaskIndex, HitResult.Normal)
-		PCGEX_OUTPUT_VALUE(Distance, TaskIndex, FVector::Distance(HitResult.ImpactPoint, Origin))
+		PCGEX_OUTPUT_VALUE_C(Location, TaskIndex, HitResult.ImpactPoint)
+		PCGEX_OUTPUT_VALUE_C(Normal, TaskIndex, HitResult.Normal)
+		PCGEX_OUTPUT_VALUE_C(Distance, TaskIndex, FVector::Distance(HitResult.ImpactPoint, Origin))
 		bSuccess = true;
 	};
 
@@ -220,12 +220,12 @@ bool FTraceTask::ExecuteTask()
 
 	if (!bSuccess)
 	{
-		PCGEX_OUTPUT_VALUE(Location, TaskIndex, End)
-		PCGEX_OUTPUT_VALUE(Normal, TaskIndex, Trace.GetSafeNormal()*-1)
-		PCGEX_OUTPUT_VALUE(Distance, TaskIndex, MaxDistance)
+		PCGEX_OUTPUT_VALUE_C(Location, TaskIndex, End)
+		PCGEX_OUTPUT_VALUE_C(Normal, TaskIndex, Trace.GetSafeNormal()*-1)
+		PCGEX_OUTPUT_VALUE_C(Distance, TaskIndex, MaxDistance)
 	}
 
-	PCGEX_OUTPUT_VALUE(Success, TaskIndex, bSuccess)
+	PCGEX_OUTPUT_VALUE_C(Success, TaskIndex, bSuccess)
 	return bSuccess;
 }
 

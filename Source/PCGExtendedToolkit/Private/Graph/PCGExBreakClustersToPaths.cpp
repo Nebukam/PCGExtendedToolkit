@@ -86,6 +86,7 @@ bool FPCGExBreakClustersToPathsElement::ExecuteInternal(
 		if (!Context->CurrentCluster) { return false; }
 
 		Context->SetState(PCGExDataFilter::State_FilteringPoints);
+		return false; // Need to exit so we give room for point filtering
 	}
 
 	if (Context->IsState(PCGExDataFilter::State_FilteringPoints))
@@ -100,10 +101,8 @@ bool FPCGExBreakClustersToPathsElement::ExecuteInternal(
 
 			Context->SetAsyncState(PCGExCluster::State_ProcessingChains);
 		}
-		else
-		{
-			Context->SetState(PCGExGraph::State_ProcessingEdges);
-		}
+
+		Context->SetState(PCGExGraph::State_ProcessingEdges);
 	}
 
 	if (Context->IsState(PCGExCluster::State_ProcessingChains))
@@ -176,16 +175,6 @@ bool FPCGExBreakClustersToPathsElement::ExecuteInternal(
 	}
 
 	return Context->IsDone();
-}
-
-bool FPCGExBreakClusterTask::ExecuteTask()
-{
-	FPCGExBreakClustersToPathsContext* Context = static_cast<FPCGExBreakClustersToPathsContext*>(Manager->Context);
-	PCGEX_SETTINGS(BreakClustersToPaths)
-
-	// TODO find chains
-
-	return true;
 }
 
 #undef LOCTEXT_NAMESPACE

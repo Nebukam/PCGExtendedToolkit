@@ -88,18 +88,3 @@ protected:
 	virtual bool Boot(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
-
-class PCGEXTENDEDTOOLKIT_API FPCGExBreakClusterTask : public FPCGExNonAbandonableTask
-{
-public:
-	FPCGExBreakClusterTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-	                       PCGExCluster::FCluster* InCluster) :
-		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
-		Cluster(InCluster)
-	{
-	}
-
-	PCGExCluster::FCluster* Cluster = nullptr;
-
-	virtual bool ExecuteTask() override;
-};

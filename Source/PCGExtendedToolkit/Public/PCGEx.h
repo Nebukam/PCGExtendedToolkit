@@ -23,6 +23,11 @@
 #define PCGEX_CLEANUP(_VALUE) _VALUE.Cleanup();
 #define PCGEX_TRIM(_VALUE) _VALUE.SetNum(_VALUE.Num());
 
+#define PCGEX_FOREACH_XYZ(MACRO)\
+MACRO(X)\
+MACRO(Y)\
+MACRO(Z)
+
 #if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION == 3
 enum class EPCGPinStatus : uint8
 {

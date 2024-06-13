@@ -7,7 +7,8 @@
 #include "PCGExSampling.generated.h"
 
 #define PCGEX_OUTPUT_DECL(_NAME, _TYPE) PCGEx::TFAttributeWriter<_TYPE>* _NAME##Writer = nullptr;
-#define PCGEX_OUTPUT_FWD(_NAME, _TYPE) Context->_NAME##Writer = Settings->bWrite##_NAME ? new PCGEx::TFAttributeWriter<_TYPE>(Settings->_NAME##AttributeName) : nullptr;
+#define PCGEX_OUTPUT_FWD_C(_NAME, _TYPE) Context->_NAME##Writer = Settings->bWrite##_NAME ? new PCGEx::TFAttributeWriter<_TYPE>(Settings->_NAME##AttributeName) : nullptr;
+#define PCGEX_OUTPUT_FWD(_NAME, _TYPE) _NAME##Writer = Settings->bWrite##_NAME ? new PCGEx::TFAttributeWriter<_TYPE>(Settings->_NAME##AttributeName) : nullptr;
 
 #define PCGEX_OUTPUT_VALIDATE_NAME_NOWRITER_SOFT(_NAME)\
 if(Context->bWrite##_NAME && !FPCGMetadataAttributeBase::IsValidName(Settings->_NAME##AttributeName))\
@@ -17,15 +18,24 @@ if(Context->bWrite##_NAME && !FPCGMetadataAttributeBase::IsValidName(Settings->_
 if(Settings->bWrite##_NAME && !FPCGMetadataAttributeBase::IsValidName(Settings->_NAME##AttributeName))\
 { PCGE_LOG(Warning, GraphAndLog, FTEXT("Invalid output attribute name for " #_NAME ));}
 
-#define PCGEX_OUTPUT_VALIDATE_NAME(_NAME, _TYPE)\
+#define PCGEX_OUTPUT_VALIDATE_NAME_C(_NAME, _TYPE)\
 if(Settings->bWrite##_NAME && !FPCGMetadataAttributeBase::IsValidName(Settings->_NAME##AttributeName))\
 { PCGE_LOG(Warning, GraphAndLog, FTEXT("Invalid output attribute name for " #_NAME ));\
 PCGEX_DELETE(Context->_NAME##Writer)}
 
-#define PCGEX_OUTPUT_VALUE(_NAME, _INDEX, _VALUE) if(Context->_NAME##Writer){(*Context->_NAME##Writer)[_INDEX] = _VALUE; }
-#define PCGEX_OUTPUT_WRITE(_NAME, _TYPE) if(Context->_NAME##Writer){Context->_NAME##Writer->Write();}
-#define PCGEX_OUTPUT_ACCESSOR_INIT(_NAME, _TYPE) if(Context->_NAME##Writer){Context->_NAME##Writer->BindAndSetNumUninitialized(PointIO);}
-#define PCGEX_OUTPUT_ACCESSOR_INIT_PTR(_NAME, _TYPE) if(Context->_NAME##Writer){Context->_NAME##Writer->BindAndSetNumUninitialized(*PointIO);}
+#define PCGEX_OUTPUT_VALIDATE_NAME(_NAME, _TYPE)\
+if(Settings->bWrite##_NAME && !FPCGMetadataAttributeBase::IsValidName(Settings->_NAME##AttributeName))\
+{ PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Invalid output attribute name for " #_NAME ));\
+PCGEX_DELETE(_NAME##Writer)}
+
+#define PCGEX_OUTPUT_VALUE_C(_NAME, _INDEX, _VALUE) if(Context->_NAME##Writer){(*Context->_NAME##Writer)[_INDEX] = _VALUE; }
+#define PCGEX_OUTPUT_VALUE(_NAME, _INDEX, _VALUE) if(_NAME##Writer){(*_NAME##Writer)[_INDEX] = _VALUE; }
+#define PCGEX_OUTPUT_WRITE_C(_NAME, _TYPE) if(Context->_NAME##Writer){Context->_NAME##Writer->Write();}
+#define PCGEX_OUTPUT_WRITE(_NAME, _TYPE) if(_NAME##Writer){_NAME##Writer->Write();}
+#define PCGEX_OUTPUT_ACCESSOR_INIT_C(_NAME, _TYPE) if(Context->_NAME##Writer){Context->_NAME##Writer->BindAndSetNumUninitialized(PointIO);}
+#define PCGEX_OUTPUT_ACCESSOR_INIT(_NAME, _TYPE) if(_NAME##Writer){_NAME##Writer->BindAndSetNumUninitialized(PointIO);}
+#define PCGEX_OUTPUT_ACCESSOR_INIT_PTR_C(_NAME, _TYPE) if(Context->_NAME##Writer){Context->_NAME##Writer->BindAndSetNumUninitialized(*PointIO);}
+#define PCGEX_OUTPUT_ACCESSOR_INIT_PTR(_NAME, _TYPE) if(_NAME##Writer){_NAME##Writer->BindAndSetNumUninitialized(*PointIO);}
 #define PCGEX_OUTPUT_DELETE(_NAME, _TYPE) PCGEX_DELETE(_NAME##Writer)
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Sample Method"))

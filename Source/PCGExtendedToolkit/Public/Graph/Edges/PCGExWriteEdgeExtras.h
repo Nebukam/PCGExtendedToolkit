@@ -19,6 +19,11 @@ namespace PCGExDataBlending
 	struct FPropertiesBlender;
 }
 
+namespace PCGExWriteEdgeExtras
+{
+	class FWriteEdgeExtrasBatch;
+}
+
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Edge Direction Mode"))
 enum class EPCGExEdgeDirectionMethod : uint8
 {
@@ -57,17 +62,25 @@ protected:
 
 public:
 	/** Write normal from edges on vertices. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|VtxOutput", meta=(PCG_Overridable, InlineEditConditionToggle))
+	bool bWriteVtxEdgeCount = false;
+
+	/** Name of the 'normal' vertex attribute to write normal to.*/
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|VtxOutput", meta=(PCG_Overridable, EditCondition="bWriteVtxEdgeCount"))
+	FName VtxEdgeCountAttributeName = FName("EdgeCount");
+
+	/** Write normal from edges on vertices. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|VtxOutput", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteVtxNormal = false;
 
 	/** Name of the 'normal' vertex attribute to write normal to.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteVtxNormal"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|VtxOutput", meta=(PCG_Overridable, EditCondition="bWriteVtxNormal"))
 	FName VtxNormalAttributeName = FName("Normal");
 
 	/** Projection settings used for normal calculations. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta = (PCG_Overridable, DisplayName="Normal Projection", EditCondition="bWriteVtxNormal"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|VtxOutput", meta = (PCG_Overridable, DisplayName="Normal Projection", EditCondition="bWriteVtxNormal"))
 	FPCGExGeo2DProjectionSettings ProjectionSettings;
-	
+
 	/** Method to pick the edge direction amongst various possibilities.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExEdgeDirectionMethod DirectionMethod = EPCGExEdgeDirectionMethod::EndpointsOrder;
@@ -85,33 +98,33 @@ public:
 	FPCGAttributePropertyInputSelector EdgeSourceAttribute;
 
 	/** Output Edge Length. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|EdgeOutput", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteEdgeLength = false;
 
 	/** Name of the 'boolean' attribute to write sampling success to.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteEdgeLength"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|EdgeOutput", meta=(PCG_Overridable, EditCondition="bWriteEdgeLength"))
 	FName EdgeLengthAttributeName = FName("EdgeLength");
 
 	/** Output Edge Direction */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, InlineEditConditionToggle))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|EdgeOutput", meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteEdgeDirection = false;
 
 	/** Name of the 'boolean' attribute to write sampling success to.*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteEdgeDirection"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|EdgeOutput", meta=(PCG_Overridable, EditCondition="bWriteEdgeDirection"))
 	FName EdgeDirectionAttributeName = FName("EdgeDirection");
 
 	/** Edges will inherit point attributes*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta = (PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|EdgeOutput", meta = (PCG_Overridable))
 	bool bEndpointsBlending = false;
 
 	/** Balance between start/end point ( When enabled, this value will be overriden by EdgePositionLerp, and Solidification, in that order. )*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bEndpointsBlending && !bWriteEdgePosition && SolidificationAxis == EPCGExMinimalAxis::None  )", ClampMin=0, ClampMax=1))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|EdgeOutput", meta=(PCG_Overridable, EditCondition="bEndpointsBlending && !bWriteEdgePosition && SolidificationAxis == EPCGExMinimalAxis::None  )", ClampMin=0, ClampMax=1))
 	double EndpointsWeights = 0.5;
 
 	/** Defines how fused point properties and attributes are merged together. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(EditCondition="bEndpointsBlending"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|EdgeOutput", meta=(EditCondition="bEndpointsBlending"))
 	FPCGExBlendingSettings BlendingSettings = FPCGExBlendingSettings(EPCGExDataBlendingType::Average);
-	
+
 
 	/** Update Edge position as a lerp between endpoints (according to the direction method selected above) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Solidification", meta=(PCG_Overridable))
@@ -178,40 +191,15 @@ private:
 	friend class FPCGExWriteEdgeExtrasElement;
 };
 
+
 struct PCGEXTENDEDTOOLKIT_API FPCGExWriteEdgeExtrasContext : public FPCGExEdgesProcessorContext
 {
 	friend class FPCGExWriteEdgeExtrasElement;
 
 	virtual ~FPCGExWriteEdgeExtrasContext() override;
 
-	FPCGExGeo2DProjectionSettings ProjectionSettings;
-
-	PCGExDataBlending::FMetadataBlender* MetadataBlender;
-
-	PCGEX_FOREACH_FIELD_EDGEEXTRAS(PCGEX_OUTPUT_DECL)
-	bool bWriteEdgePosition;
-	double EdgePositionLerp;
-
-	EPCGExEdgeDirectionMethod DirectionMethod;
-	EPCGExEdgeDirectionChoice DirectionChoice;
-
-	bool bSolidify;
-	bool bEndpointsBlending;
-	double EndpointsWeights;
-
-	PCGEx::FLocalSingleFieldGetter* VtxDirCompGetter = nullptr;
-	PCGEx::FLocalVectorGetter* EdgeDirCompGetter = nullptr;
-
-	PCGEx::FLocalSingleFieldGetter* SolidificationLerpGetter = nullptr;
-	PCGEx::FLocalSingleFieldGetter* SolidificationRadX = nullptr;
-	PCGEx::FLocalSingleFieldGetter* SolidificationRadY = nullptr;
-	PCGEx::FLocalSingleFieldGetter* SolidificationRadZ = nullptr;
-
-	PCGEx::TFAttributeWriter<FVector>* VtxNormalWriter = nullptr;
-
-	bool bAscendingDesired = true;
-	double StartWeight = 0;
-	double EndWeight = 1;
+	TArray<PCGExWriteEdgeExtras::FWriteEdgeExtrasBatch*> Batches;
+	
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExWriteEdgeExtrasElement : public FPCGExEdgesProcessorElement
@@ -226,3 +214,65 @@ protected:
 	virtual bool Boot(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
+
+namespace PCGExWriteEdgeExtras
+{
+	class FClusterEdgeProcess final : public PCGExClusterTask::FClusterProcessingData
+	{
+		bool bAscendingDesired = true;
+		double StartWeight = 0;
+		double EndWeight = 1;
+
+		PCGExDataBlending::FMetadataBlender* MetadataBlender = nullptr;
+
+		PCGEx::FLocalSingleFieldGetter* SolidificationLerpGetter = nullptr;
+
+		PCGEX_FOREACH_FIELD_EDGEEXTRAS(PCGEX_OUTPUT_DECL)
+		
+	public:
+		PCGEx::TFAttributeWriter<FVector>* VtxNormalWriter = nullptr;
+		PCGEx::TFAttributeWriter<int32>* VtxEdgeCountWriter = nullptr;
+
+		bool bSolidify = false;
+
+		PCGEx::FLocalSingleFieldGetter* VtxDirCompGetter = nullptr;
+		PCGEx::FLocalVectorGetter* EdgeDirCompGetter = nullptr;
+
+		FPCGExGeo2DProjectionSettings* ProjectionSettings = nullptr;
+
+#define PCGEX_LOCAL_EDGE_GETTER_DECL(_AXIS) PCGEx::FLocalSingleFieldGetter* SolidificationRad##_AXIS = nullptr; bool bOwnSolidificationRad##_AXIS = true;
+		PCGEX_FOREACH_XYZ(PCGEX_LOCAL_EDGE_GETTER_DECL)
+#undef PCGEX_LOCAL_EDGE_GETTER_DECL
+
+		FClusterEdgeProcess(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges);
+		virtual ~FClusterEdgeProcess() override;
+
+		virtual bool Process(FPCGExAsyncManager* AsyncManager) override;
+		virtual void ProcessSingleEdge(PCGExGraph::FIndexedEdge& Edge) override;
+		virtual void CompleteWork() override;
+	};
+
+	class FWriteEdgeExtrasBatch : public PCGExClusterTask::FClusterBatchProcessingData<FClusterEdgeProcess>
+	{
+
+		FPCGExGeo2DProjectionSettings ProjectionSettings;
+		
+		PCGEx::TFAttributeWriter<FVector>* VtxNormalWriter = nullptr;
+		PCGEx::TFAttributeWriter<int32>* VtxEdgeCountWriter = nullptr;
+		
+		PCGEx::FLocalSingleFieldGetter* VtxDirCompGetter = nullptr;
+
+#define PCGEX_LOCAL_EDGE_GETTER_DECL(_AXIS) PCGEx::FLocalSingleFieldGetter* SolidificationRad##_AXIS = nullptr;
+		PCGEX_FOREACH_XYZ(PCGEX_LOCAL_EDGE_GETTER_DECL)
+#undef PCGEX_LOCAL_EDGE_GETTER_DECL
+
+	public:
+		FWriteEdgeExtrasBatch(FPCGContext* InContext, PCGExData::FPointIO* InVtx, TArrayView<PCGExData::FPointIO*> InEdges);
+		virtual ~FWriteEdgeExtrasBatch() override;
+
+		virtual bool PrepareProcessing() override;
+		virtual bool PrepareSingle(FClusterEdgeProcess* ClusterProcessor) override;
+		virtual void CompleteWork() override;
+	};
+
+}

@@ -46,9 +46,9 @@ bool FPCGExSampleNearestSurfaceElement::Boot(FPCGContext* InContext) const
 	Context->MaxDistanceGetter = new PCGEx::FLocalSingleFieldGetter();
 	Context->MaxDistanceGetter->Capture(Settings->LocalMaxDistance);
 
-	PCGEX_FOREACH_FIELD_NEARESTSURFACE(PCGEX_OUTPUT_FWD)
+	PCGEX_FOREACH_FIELD_NEARESTSURFACE(PCGEX_OUTPUT_FWD_C)
 
-	PCGEX_FOREACH_FIELD_NEARESTSURFACE(PCGEX_OUTPUT_VALIDATE_NAME)
+	PCGEX_FOREACH_FIELD_NEARESTSURFACE(PCGEX_OUTPUT_VALIDATE_NAME_C)
 
 	PCGExFactories::GetInputFactories(InContext, PCGEx::SourcePointFilters, Context->PointFilterFactories, {PCGExFactories::EType::Filter}, false);
 
@@ -134,7 +134,7 @@ bool FPCGExSampleNearestSurfaceElement::ExecuteInternal(FPCGContext* InContext) 
 			}
 		}
 
-		PCGEX_FOREACH_FIELD_NEARESTSURFACE(PCGEX_OUTPUT_ACCESSOR_INIT)
+		PCGEX_FOREACH_FIELD_NEARESTSURFACE(PCGEX_OUTPUT_ACCESSOR_INIT_C)
 
 		for (int i = 0; i < PointIO.GetNum(); i++)
 		{
@@ -149,7 +149,7 @@ bool FPCGExSampleNearestSurfaceElement::ExecuteInternal(FPCGContext* InContext) 
 	{
 		PCGEX_WAIT_ASYNC
 
-		PCGEX_FOREACH_FIELD_NEARESTSURFACE(PCGEX_OUTPUT_WRITE)
+		PCGEX_FOREACH_FIELD_NEARESTSURFACE(PCGEX_OUTPUT_WRITE_C)
 		Context->CurrentIO->OutputTo(Context);
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
@@ -201,10 +201,10 @@ bool FSweepSphereTask::ExecuteTask()
 		{
 			PCGEX_ASYNC_CHECKPOINT_VOID
 			const FVector Direction = (HitLocation - Origin).GetSafeNormal();
-			PCGEX_OUTPUT_VALUE(Location, TaskIndex, HitLocation)
-			PCGEX_OUTPUT_VALUE(Normal, TaskIndex, Direction*-1) // TODO: expose "precise normal" in which case we line trace to location
-			PCGEX_OUTPUT_VALUE(LookAt, TaskIndex, Direction)
-			PCGEX_OUTPUT_VALUE(Distance, TaskIndex, MinDist)
+			PCGEX_OUTPUT_VALUE_C(Location, TaskIndex, HitLocation)
+			PCGEX_OUTPUT_VALUE_C(Normal, TaskIndex, Direction*-1) // TODO: expose "precise normal" in which case we line trace to location
+			PCGEX_OUTPUT_VALUE_C(LookAt, TaskIndex, Direction)
+			PCGEX_OUTPUT_VALUE_C(Distance, TaskIndex, MinDist)
 		}
 	};
 
@@ -233,7 +233,7 @@ bool FSweepSphereTask::ExecuteTask()
 	}
 
 
-	PCGEX_OUTPUT_VALUE(Success, TaskIndex, bSuccess)
+	PCGEX_OUTPUT_VALUE_C(Success, TaskIndex, bSuccess)
 	return bSuccess;
 }
 

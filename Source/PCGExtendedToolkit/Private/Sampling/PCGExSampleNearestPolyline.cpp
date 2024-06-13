@@ -64,7 +64,7 @@ bool FPCGExSampleNearestPolylineElement::Boot(FPCGContext* InContext) const
 	Context->RangeMaxGetter = new PCGEx::FLocalSingleFieldGetter();
 	Context->RangeMaxGetter->Capture(Settings->LocalRangeMax);
 
-	PCGEX_FOREACH_FIELD_NEARESTPOLYLINE(PCGEX_OUTPUT_FWD)
+	PCGEX_FOREACH_FIELD_NEARESTPOLYLINE(PCGEX_OUTPUT_FWD_C)
 
 	if (!Context->Targets || Context->Targets->IsEmpty())
 	{
@@ -80,7 +80,7 @@ bool FPCGExSampleNearestPolylineElement::Boot(FPCGContext* InContext) const
 
 	Context->NumTargets = Context->Targets->Lines.Num();
 
-	PCGEX_FOREACH_FIELD_NEARESTPOLYLINE(PCGEX_OUTPUT_VALIDATE_NAME)
+	PCGEX_FOREACH_FIELD_NEARESTPOLYLINE(PCGEX_OUTPUT_VALIDATE_NAME_C)
 
 	Context->LookAtUpGetter = new PCGEx::FLocalVectorGetter();
 	if (Settings->bWriteLookAtTransform && Settings->LookAtUpSelection != EPCGExSampleSource::Constant)
@@ -176,7 +176,7 @@ bool FPCGExSampleNearestPolylineElement::ExecuteInternal(FPCGContext* InContext)
 
 			PointIO.CreateOutKeys();
 
-			PCGEX_FOREACH_FIELD_NEARESTPOLYLINE(PCGEX_OUTPUT_ACCESSOR_INIT)
+			PCGEX_FOREACH_FIELD_NEARESTPOLYLINE(PCGEX_OUTPUT_ACCESSOR_INIT_C)
 		};
 
 		auto ProcessPoint = [&](const int32 TaskIndex, const PCGExData::FPointIO& PointIO)
@@ -238,11 +238,11 @@ bool FPCGExSampleNearestPolylineElement::ExecuteInternal(FPCGContext* InContext)
 			if (TargetsCompoundInfos.UpdateCount <= 0)
 			{
 				double FailSafeDist = FMath::Sqrt(RangeMax);
-				PCGEX_OUTPUT_VALUE(Success, TaskIndex, false)
-				PCGEX_OUTPUT_VALUE(Transform, TaskIndex, SourcePoint.Transform)
-				PCGEX_OUTPUT_VALUE(LookAtTransform, TaskIndex, SourcePoint.Transform)
-				PCGEX_OUTPUT_VALUE(Distance, TaskIndex, FailSafeDist)
-				PCGEX_OUTPUT_VALUE(SignedDistance, TaskIndex, FailSafeDist)
+				PCGEX_OUTPUT_VALUE_C(Success, TaskIndex, false)
+				PCGEX_OUTPUT_VALUE_C(Transform, TaskIndex, SourcePoint.Transform)
+				PCGEX_OUTPUT_VALUE_C(LookAtTransform, TaskIndex, SourcePoint.Transform)
+				PCGEX_OUTPUT_VALUE_C(Distance, TaskIndex, FailSafeDist)
+				PCGEX_OUTPUT_VALUE_C(SignedDistance, TaskIndex, FailSafeDist)
 				return;
 			}
 
@@ -315,18 +315,18 @@ bool FPCGExSampleNearestPolylineElement::ExecuteInternal(FPCGContext* InContext)
 			FVector LookAt = (SourcePoint.Transform.GetLocation() - WeightedTransform.GetLocation()).GetSafeNormal();
 			const double WeightedDistance = FVector::Dist(Origin, WeightedTransform.GetLocation());
 
-			PCGEX_OUTPUT_VALUE(Success, TaskIndex, TargetsCompoundInfos.IsValid())
-			PCGEX_OUTPUT_VALUE(Transform, TaskIndex, WeightedTransform)
-			PCGEX_OUTPUT_VALUE(LookAtTransform, TaskIndex, PCGExMath::MakeLookAtTransform(LookAt, WeightedUp, Settings->LookAtAxisAlign))
-			PCGEX_OUTPUT_VALUE(Distance, TaskIndex, WeightedDistance)
-			PCGEX_OUTPUT_VALUE(SignedDistance, TaskIndex, FMath::Sign(WeightedSignAxis.Dot(LookAt)) * WeightedDistance)
-			PCGEX_OUTPUT_VALUE(Angle, TaskIndex, PCGExSampling::GetAngle(Settings->AngleRange, WeightedAngleAxis, LookAt))
-			PCGEX_OUTPUT_VALUE(Time, TaskIndex, WeightedTime)
+			PCGEX_OUTPUT_VALUE_C(Success, TaskIndex, TargetsCompoundInfos.IsValid())
+			PCGEX_OUTPUT_VALUE_C(Transform, TaskIndex, WeightedTransform)
+			PCGEX_OUTPUT_VALUE_C(LookAtTransform, TaskIndex, PCGExMath::MakeLookAtTransform(LookAt, WeightedUp, Settings->LookAtAxisAlign))
+			PCGEX_OUTPUT_VALUE_C(Distance, TaskIndex, WeightedDistance)
+			PCGEX_OUTPUT_VALUE_C(SignedDistance, TaskIndex, FMath::Sign(WeightedSignAxis.Dot(LookAt)) * WeightedDistance)
+			PCGEX_OUTPUT_VALUE_C(Angle, TaskIndex, PCGExSampling::GetAngle(Settings->AngleRange, WeightedAngleAxis, LookAt))
+			PCGEX_OUTPUT_VALUE_C(Time, TaskIndex, WeightedTime)
 		};
 
 		if (!Context->ProcessCurrentPoints(Initialize, ProcessPoint)) { return false; }
 
-		PCGEX_FOREACH_FIELD_NEARESTPOLYLINE(PCGEX_OUTPUT_WRITE)
+		PCGEX_FOREACH_FIELD_NEARESTPOLYLINE(PCGEX_OUTPUT_WRITE_C)
 		Context->CurrentIO->OutputTo(Context);
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}

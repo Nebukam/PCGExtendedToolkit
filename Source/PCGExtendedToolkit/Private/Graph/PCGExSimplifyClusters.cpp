@@ -79,7 +79,7 @@ bool FPCGExSimplifyClustersElement::ExecuteInternal(FPCGContext* InContext) cons
 		if (!Context->CurrentCluster) { return false; }
 
 		Context->SetState(PCGExDataFilter::State_FilteringPoints);
-		return false;
+		return false; // Need to exit so we give room for point filtering
 	}
 
 	if (Context->IsState(PCGExDataFilter::State_FilteringPoints))
