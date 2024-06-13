@@ -64,7 +64,7 @@ bool FPCGExPruneClustersElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
-		while (Context->AdvancePointsIO())
+		while (Context->AdvancePointsIO(false))
 		{
 			if (!Context->TaggedEdges) { continue; }
 			for (PCGExData::FPointIO* EdgeIO : Context->TaggedEdges->Entries)

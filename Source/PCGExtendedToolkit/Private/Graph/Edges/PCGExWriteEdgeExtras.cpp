@@ -55,7 +55,7 @@ bool FPCGExWriteEdgeExtrasElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
-		while (Context->AdvancePointsIO())
+		while (Context->AdvancePointsIO(false))
 		{
 			if (!Context->TaggedEdges)
 			{
@@ -65,7 +65,7 @@ bool FPCGExWriteEdgeExtrasElement::ExecuteInternal(
 
 			PCGExWriteEdgeExtras::FWriteEdgeExtrasBatch* NewBatch = new PCGExWriteEdgeExtras::FWriteEdgeExtrasBatch(Context, Context->CurrentIO, Context->TaggedEdges->Entries);
 			Context->Batches.Add(NewBatch);
-			PCGExClusterTask::ScheduleBatch(Context->GetAsyncManager(), NewBatch);
+			PCGExClusterBatch::ScheduleBatch(Context->GetAsyncManager(), NewBatch);
 		}
 
 		Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork);
@@ -74,10 +74,13 @@ bool FPCGExWriteEdgeExtrasElement::ExecuteInternal(
 	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
 	{
 		PCGEX_WAIT_ASYNC
+		PCGExClusterBatch::CompleteBatches<PCGExWriteEdgeExtras::FWriteEdgeExtrasBatch>(Context->GetAsyncManager(), Context->Batches);
+		Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncCompletion);
+	}
 
-		//PCGExClusterTask::CompleteBatches(Context->GetAsyncManager(), Context->Batches);
-
-		for (PCGExWriteEdgeExtras::FWriteEdgeExtrasBatch* Batch : Context->Batches) { Batch->CompleteWork(); }
+	if (Context->IsState(PCGExMT::State_WaitingOnAsyncCompletion))
+	{
+		PCGEX_WAIT_ASYNC
 		Context->Done();
 	}
 
@@ -306,9 +309,9 @@ namespace PCGExWriteEdgeExtras
 		}
 	}
 
-	void FClusterEdgeProcess::CompleteWork()
+	void FClusterEdgeProcess::CompleteWork(FPCGExAsyncManager* AsyncManager)
 	{
-		FClusterProcessingData::CompleteWork();
+		FClusterProcessingData::CompleteWork(AsyncManager);
 
 		if (VtxEdgeCountWriter)
 		{
@@ -410,15 +413,12 @@ namespace PCGExWriteEdgeExtras
 		return true;
 	}
 
-	void FWriteEdgeExtrasBatch::CompleteWork()
+	void FWriteEdgeExtrasBatch::CompleteWork(FPCGExAsyncManager* AsyncManager)
 	{
-		FClusterBatchProcessingData<FClusterEdgeProcess>::CompleteWork();
+		FClusterBatchProcessingData<FClusterEdgeProcess>::CompleteWork(AsyncManager);
 
 		PCGEX_OUTPUT_WRITE(VtxNormal, FVector)
 		PCGEX_OUTPUT_WRITE(VtxEdgeCount, FVector)
-
-		if (VtxNormalWriter) { VtxNormalWriter->Write(); }
-		if (VtxEdgeCountWriter) { VtxEdgeCountWriter->Write(); }
 	}
 }
 

@@ -5,10 +5,16 @@
 
 #include "CoreMinimal.h"
 #include "PCGExCluster.h"
+#include "PCGExClusterBatch.h"
 #include "PCGExEdgesProcessor.h"
 
 #include "PCGExSimplifyClusters.generated.h"
 
+
+namespace PCGExSimplifyClusters
+{
+	class FSimplifyClusterBatch;
+}
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
 class PCGEXTENDEDTOOLKIT_API UPCGExSimplifyClustersSettings : public UPCGExEdgesProcessorSettings
@@ -49,7 +55,7 @@ public:
 	/** Removes hard angles instead of colinear ones. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bInvertAngularThreshold = false;
-	
+
 	/** If enabled, prune dead ends. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bPruneDeadEnds = false;
@@ -60,18 +66,16 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSimplifyClustersContext : public FPCGExEdges
 	friend class UPCGExSimplifyClustersSettings;
 	friend class FPCGExSimplifyClustersElement;
 
-	virtual ~FPCGExSimplifyClustersContext() override;
-
-	virtual bool DefaultVtxFilterResult() const override;
-
-	double FixedDotThreshold = 0;
-
 	FPCGExGraphBuilderSettings GraphBuilderSettings;
 	PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
 
 	TArray<PCGExCluster::FNodeChain*> Chains;
 
-	//PCGExGraph::FGraphMetadataSettings GraphMetadataSettings;
+	virtual ~FPCGExSimplifyClustersContext() override;
+
+	TArray<PCGExSimplifyClusters::FSimplifyClusterBatch*> Batches;
+
+	double FixedDotThreshold = 0;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExSimplifyClustersElement : public FPCGExEdgesProcessorElement
@@ -86,3 +90,34 @@ protected:
 	virtual bool Boot(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
+
+namespace PCGExSimplifyClusters
+{
+	class FClusterSimplifyProcess final : public PCGExClusterBatch::FClusterProcessingData
+	{
+		TArray<PCGExCluster::FNodeChain*> Chains;
+
+	public:
+		FClusterSimplifyProcess(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges);
+		virtual ~FClusterSimplifyProcess() override;
+
+		virtual bool Process(FPCGExAsyncManager* AsyncManager) override;
+		virtual void CompleteWork(FPCGExAsyncManager* AsyncManager) override;
+	};
+
+	class FSimplifyClusterBatch : public PCGExClusterBatch::FClusterBatchProcessingData<FClusterSimplifyProcess>
+	{
+		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
+
+	public:
+		FPCGExGraphBuilderSettings GraphBuilderSettings;
+		PCGExData::FPointIOCollection* MainEdges = nullptr;
+
+		FSimplifyClusterBatch(FPCGContext* InContext, PCGExData::FPointIO* InVtx, TArrayView<PCGExData::FPointIO*> InEdges);
+		virtual ~FSimplifyClusterBatch() override;
+
+		virtual bool PrepareProcessing() override;
+		virtual bool PrepareSingle(FClusterSimplifyProcess* ClusterProcessor) override;
+		virtual void CompleteWork(FPCGExAsyncManager* AsyncManager) override;
+	};
+}

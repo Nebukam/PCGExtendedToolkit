@@ -49,7 +49,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExCustomGraphProcessorContext : public FPCGExP
 	UPCGExGraphDefinition* CurrentGraph = nullptr;
 
 	bool AdvanceGraph(bool bResetPointsIndex = false);
-	bool AdvancePointsIOAndResetGraph();
+	bool AdvancePointsIOAndResetGraph(const bool bCleanupKeys = true);
 
 	void SetCachedIndex(const int32 PointIndex, const int32 Index) const;
 	int32 GetCachedIndex(const int32 PointIndex) const;

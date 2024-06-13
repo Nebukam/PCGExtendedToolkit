@@ -240,7 +240,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : public FPCGContext
 	const UPCGPointData* GetCurrentIn() const { return CurrentIO->GetIn(); }
 	UPCGPointData* GetCurrentOut() const { return CurrentIO->GetOut(); }
 
-	virtual bool AdvancePointsIO();
+	virtual bool AdvancePointsIO(const bool bCleanupKeys = true);
 	virtual bool ProcessorAutomation();
 
 	PCGExMT::AsyncState GetState() const { return CurrentState; }

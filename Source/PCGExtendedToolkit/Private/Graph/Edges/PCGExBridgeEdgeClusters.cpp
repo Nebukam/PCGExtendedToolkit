@@ -89,7 +89,7 @@ bool FPCGExBridgeEdgeClustersElement::ExecuteInternal(
 		if (!Context->AdvancePointsIO()) { Context->Done(); }
 		else
 		{
-			if (!Context->TaggedEdges){ return false; }
+			if (!Context->TaggedEdges) { return false; }
 
 			if (Context->TaggedEdges->Entries.Num() == 1)
 			{

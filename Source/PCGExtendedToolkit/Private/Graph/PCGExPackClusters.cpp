@@ -64,7 +64,7 @@ bool FPCGExPackClustersElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
-		while (Context->AdvancePointsIO())
+		while (Context->AdvancePointsIO(false))
 		{
 			if (!Context->TaggedEdges) { return false; }
 

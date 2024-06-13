@@ -25,8 +25,6 @@ FPCGExSimplifyClustersContext::~FPCGExSimplifyClustersContext()
 	PCGEX_DELETE_TARRAY(Chains)
 }
 
-bool FPCGExSimplifyClustersContext::DefaultVtxFilterResult() const { return false; }
-
 PCGEX_INITIALIZE_ELEMENT(SimplifyClusters)
 
 bool FPCGExSimplifyClustersElement::Boot(FPCGContext* InContext) const
@@ -54,6 +52,36 @@ bool FPCGExSimplifyClustersElement::ExecuteInternal(FPCGContext* InContext) cons
 	}
 
 	if (!Context->ProcessorAutomation()) { return false; }
+
+
+	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
+	{
+		while (Context->AdvancePointsIO(false))
+		{
+			if (!Context->TaggedEdges)
+			{
+				PCGE_LOG(Warning, GraphAndLog, FTEXT("Some input points have no bound edges."));
+				return false;
+			}
+
+			PCGExSimplifyClusters::FSimplifyClusterBatch* NewBatch = new PCGExSimplifyClusters::FSimplifyClusterBatch(Context, Context->CurrentIO, Context->TaggedEdges->Entries);
+			NewBatch->SetVtxFilterData(Context->VtxFiltersData, false);
+			Context->Batches.Add(NewBatch);
+			PCGExClusterBatch::ScheduleBatch(Context->GetAsyncManager(), NewBatch);
+		}
+
+		Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork);
+	}
+
+	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
+	{
+		PCGEX_WAIT_ASYNC
+
+		for (PCGExSimplifyClusters::FSimplifyClusterBatch* Batch : Context->Batches) { Batch->CompleteWork(Context->GetAsyncManager()); }
+		Context->Done();
+	}
+
+	///////
 
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
@@ -214,5 +242,69 @@ bool FPCGExSimplifyClustersElement::ExecuteInternal(FPCGContext* InContext) cons
 
 	return Context->IsDone();
 }
+
+namespace PCGExSimplifyClusters
+{
+	FClusterSimplifyProcess::FClusterSimplifyProcess(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges):
+		FClusterProcessingData(InVtx, InEdges)
+	{
+	}
+
+	FClusterSimplifyProcess::~FClusterSimplifyProcess()
+	{
+	}
+
+	bool FClusterSimplifyProcess::Process(FPCGExAsyncManager* AsyncManager)
+	{
+		if (!FClusterProcessingData::Process(AsyncManager)) { return false; }
+
+		PCGEX_SETTINGS(SimplifyClusters)
+
+		for (int i = 0; i < Cluster->Nodes.Num(); i++) { if (Cluster->Nodes[i].IsComplex()) { VtxFilterCache[i] = true; } }
+
+		AsyncManager->Start<PCGExClusterTask::FFindNodeChains>(
+			Edges->IOIndex, nullptr, Cluster,
+			&VtxFilterCache, &Chains, true, Settings->bOperateOnDeadEndsOnly);
+
+		return true;
+	}
+
+	void FClusterSimplifyProcess::CompleteWork(FPCGExAsyncManager* AsyncManager)
+	{
+		FClusterProcessingData::CompleteWork(AsyncManager);
+	}
+
+	//////// BATCH
+
+	FSimplifyClusterBatch::FSimplifyClusterBatch(FPCGContext* InContext, PCGExData::FPointIO* InVtx, TArrayView<PCGExData::FPointIO*> InEdges):
+		FClusterBatchProcessingData(InContext, InVtx, InEdges)
+	{
+	}
+
+	FSimplifyClusterBatch::~FSimplifyClusterBatch()
+	{
+	}
+
+	bool FSimplifyClusterBatch::PrepareProcessing()
+	{
+		PCGEX_SETTINGS(SimplifyClusters)
+
+		if (!FClusterBatchProcessingData::PrepareProcessing()) { return false; }
+
+		GraphBuilder = new PCGExGraph::FGraphBuilder(*Vtx, &GraphBuilderSettings, 6, MainEdges);
+
+		return true;
+	}
+
+	bool FSimplifyClusterBatch::PrepareSingle(FClusterSimplifyProcess* ClusterProcessor)
+	{
+	}
+
+	void FSimplifyClusterBatch::CompleteWork(FPCGExAsyncManager* AsyncManager)
+	{
+		FClusterBatchProcessingData<FClusterSimplifyProcess>::CompleteWork(AsyncManager);
+	}
+}
+
 
 #undef LOCTEXT_NAMESPACE

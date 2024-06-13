@@ -136,7 +136,7 @@ bool FPCGExShrinkPathElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
-		while (Context->AdvancePointsIO())
+		while (Context->AdvancePointsIO(false))
 		{
 			Context->GetAsyncManager()->Start<FPCGExShrinkPathTask>(Context->CurrentIO->IOIndex, Context->CurrentIO);
 		}

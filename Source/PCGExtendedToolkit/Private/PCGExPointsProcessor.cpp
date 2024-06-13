@@ -265,15 +265,16 @@ FPCGExPointsProcessorContext::~FPCGExPointsProcessorContext()
 	World = nullptr;
 }
 
-bool FPCGExPointsProcessorContext::AdvancePointsIO()
+bool FPCGExPointsProcessorContext::AdvancePointsIO(const bool bCleanupKeys)
 {
-	if (CurrentIO) { CurrentIO->CleanupKeys(); }
+	if (bCleanupKeys && CurrentIO) { CurrentIO->CleanupKeys(); }
 
 	if (MainPoints->Pairs.IsValidIndex(++CurrentPointIOIndex))
 	{
 		CurrentIO = MainPoints->Pairs[CurrentPointIOIndex];
 		return true;
 	}
+	
 	CurrentIO = nullptr;
 	return false;
 }

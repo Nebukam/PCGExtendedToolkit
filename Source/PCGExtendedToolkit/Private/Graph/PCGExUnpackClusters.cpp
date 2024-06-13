@@ -73,7 +73,7 @@ bool FPCGExUnpackClustersElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
-		while (Context->AdvancePointsIO()) { Context->GetAsyncManager()->Start<FPCGExUnpackClusterTask>(-1, Context->CurrentIO); }
+		while (Context->AdvancePointsIO(false)) { Context->GetAsyncManager()->Start<FPCGExUnpackClusterTask>(-1, Context->CurrentIO); }
 		Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork);
 	}
 

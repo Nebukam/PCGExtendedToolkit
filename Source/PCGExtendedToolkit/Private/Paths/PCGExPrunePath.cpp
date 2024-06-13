@@ -62,7 +62,7 @@ bool FPCGExPrunePathElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
-		while (Context->AdvancePointsIO())
+		while (Context->AdvancePointsIO(false))
 		{
 			Context->GetAsyncManager()->Start<FPCGExPrunePathTask>(Context->CurrentIO->IOIndex, Context->CurrentIO);
 		}

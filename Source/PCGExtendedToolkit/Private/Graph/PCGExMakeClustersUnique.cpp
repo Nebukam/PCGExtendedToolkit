@@ -42,7 +42,7 @@ bool FPCGExMakeClustersUniqueElement::ExecuteInternal(FPCGContext* InContext) co
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
-	while (Context->AdvancePointsIO())
+	while (Context->AdvancePointsIO(false))
 	{
 		FString OutId;
 		PCGExGraph::SetClusterVtx(Context->CurrentIO, OutId);

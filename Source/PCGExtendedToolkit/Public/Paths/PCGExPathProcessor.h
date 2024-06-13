@@ -65,7 +65,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathProcessorContext : public FPCGExPointsPr
 
 	virtual bool ProcessorAutomation() override;
 
-	virtual bool AdvancePointsIO() override;
+	virtual bool AdvancePointsIO(const bool bCleanupKeys = true) override;
 
 	bool ProcessFilters();
 

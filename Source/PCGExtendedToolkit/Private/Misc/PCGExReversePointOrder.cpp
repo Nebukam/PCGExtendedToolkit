@@ -38,7 +38,7 @@ bool FPCGExReversePointOrderElement::ExecuteInternal(FPCGContext* InContext) con
 
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
-		while (Context->AdvancePointsIO())
+		while (Context->AdvancePointsIO(false))
 		{
 			Context->GetAsyncManager()->Start<FPCGExReversePointOrderTask>(Context->CurrentIO->IOIndex, Context->CurrentIO);
 		}

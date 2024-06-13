@@ -54,7 +54,7 @@ bool FPCGExSortPointsBaseElement::ExecuteInternal(FPCGContext* InContext) const
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
 		int32 IOIndex = 0;
-		while (Context->AdvancePointsIO()) { Context->GetAsyncManager()->Start<FPCGExSortPointIO>(IOIndex++, Context->CurrentIO); }
+		while (Context->AdvancePointsIO(false)) { Context->GetAsyncManager()->Start<FPCGExSortPointIO>(IOIndex++, Context->CurrentIO); }
 
 		Context->SetAsyncState(PCGExMT::State_ProcessingPoints);
 	}

@@ -77,7 +77,7 @@ bool FPCGExEdgesProcessorContext::ProcessorAutomation()
 	return true;
 }
 
-bool FPCGExEdgesProcessorContext::AdvancePointsIO()
+bool FPCGExEdgesProcessorContext::AdvancePointsIO(const bool bCleanupKeys)
 {
 	PCGEX_DELETE(CurrentCluster)
 	PCGEX_DELETE(ClusterProjection)
@@ -86,7 +86,7 @@ bool FPCGExEdgesProcessorContext::AdvancePointsIO()
 	EndpointsLookup.Empty();
 	EndpointsAdjacency.Empty();
 
-	if (!FPCGExPointsProcessorContext::AdvancePointsIO()) { return false; }
+	if (!FPCGExPointsProcessorContext::AdvancePointsIO(bCleanupKeys)) { return false; }
 
 	if (FString CurrentPairId;
 		CurrentIO->Tags->GetValue(PCGExGraph::TagStr_ClusterPair, CurrentPairId))
@@ -114,7 +114,7 @@ bool FPCGExEdgesProcessorContext::AdvancePointsIO()
 	return true;
 }
 
-bool FPCGExEdgesProcessorContext::AdvanceEdges(const bool bBuildCluster)
+bool FPCGExEdgesProcessorContext::AdvanceEdges(const bool bBuildCluster, const bool bCleanupKeys)
 {
 	PCGEX_DELETE(CurrentCluster)
 	PCGEX_DELETE(ClusterProjection)
@@ -122,7 +122,7 @@ bool FPCGExEdgesProcessorContext::AdvanceEdges(const bool bBuildCluster)
 	PCGEX_DELETE(VtxFiltersHandler)
 	PCGEX_DELETE(EdgesFiltersHandler)
 
-	if (bBuildCluster && CurrentEdges) { CurrentEdges->CleanupKeys(); }
+	if (bCleanupKeys && CurrentEdges) { CurrentEdges->CleanupKeys(); }
 
 	if (TaggedEdges && TaggedEdges->Entries.IsValidIndex(++CurrentEdgesIndex))
 	{

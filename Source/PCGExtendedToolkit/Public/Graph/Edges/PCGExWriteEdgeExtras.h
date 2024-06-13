@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "Data/Blending/PCGExDataBlending.h"
+#include "Graph/PCGExClusterBatch.h"
 #include "Graph/PCGExEdgesProcessor.h"
 #include "Sampling/PCGExSampling.h"
 #include "PCGExWriteEdgeExtras.generated.h"
@@ -217,7 +218,7 @@ protected:
 
 namespace PCGExWriteEdgeExtras
 {
-	class FClusterEdgeProcess final : public PCGExClusterTask::FClusterProcessingData
+	class FClusterEdgeProcess final : public PCGExClusterBatch::FClusterProcessingData
 	{
 		bool bAscendingDesired = true;
 		double StartWeight = 0;
@@ -249,10 +250,10 @@ namespace PCGExWriteEdgeExtras
 
 		virtual bool Process(FPCGExAsyncManager* AsyncManager) override;
 		virtual void ProcessSingleEdge(PCGExGraph::FIndexedEdge& Edge) override;
-		virtual void CompleteWork() override;
+		virtual void CompleteWork(FPCGExAsyncManager* AsyncManager) override;
 	};
 
-	class FWriteEdgeExtrasBatch : public PCGExClusterTask::FClusterBatchProcessingData<FClusterEdgeProcess>
+	class FWriteEdgeExtrasBatch : public PCGExClusterBatch::FClusterBatchProcessingData<FClusterEdgeProcess>
 	{
 
 		FPCGExGeo2DProjectionSettings ProjectionSettings;
@@ -272,7 +273,7 @@ namespace PCGExWriteEdgeExtras
 
 		virtual bool PrepareProcessing() override;
 		virtual bool PrepareSingle(FClusterEdgeProcess* ClusterProcessor) override;
-		virtual void CompleteWork() override;
+		virtual void CompleteWork(FPCGExAsyncManager* AsyncManager) override;
 	};
 
 }

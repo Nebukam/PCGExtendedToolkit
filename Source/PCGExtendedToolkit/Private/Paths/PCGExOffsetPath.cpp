@@ -51,7 +51,7 @@ bool FPCGExOffsetPathElement::ExecuteInternal(FPCGContext* InContext) const
 
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
-		while (Context->AdvancePointsIO())
+		while (Context->AdvancePointsIO(false))
 		{
 			if (Context->CurrentIO->GetNum() >= 2)
 			{

@@ -87,7 +87,7 @@ bool FPCGExPathfindingPlotNavmeshElement::ExecuteInternal(FPCGContext* InContext
 
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
-		while (Context->AdvancePointsIO())
+		while (Context->AdvancePointsIO(false))
 		{
 			if (Context->CurrentIO->GetNum() < 2) { continue; }
 			Context->GetAsyncManager()->Start<FPCGExPlotNavmeshTask>(-1, Context->CurrentIO);

@@ -59,10 +59,10 @@ bool FPCGExCustomGraphProcessorContext::AdvanceGraph(const bool bResetPointsInde
 	return false;
 }
 
-bool FPCGExCustomGraphProcessorContext::AdvancePointsIOAndResetGraph()
+bool FPCGExCustomGraphProcessorContext::AdvancePointsIOAndResetGraph(const bool bCleanupKeys)
 {
 	CurrentParamsIndex = -1;
-	return AdvancePointsIO();
+	return AdvancePointsIO(bCleanupKeys);
 }
 
 void FPCGExCustomGraphProcessorContext::SetCachedIndex(const int32 PointIndex, const int32 Index) const

@@ -64,7 +64,7 @@ bool FPCGExCopyClustersToPointsElement::ExecuteInternal(FPCGContext* InContext) 
 	{
 		const int32 NumTargets = Context->Targets->GetNum();
 
-		while (Context->AdvancePointsIO())
+		while (Context->AdvancePointsIO(false))
 		{
 			if (!Context->TaggedEdges) { continue; }
 

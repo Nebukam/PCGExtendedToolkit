@@ -44,13 +44,13 @@ bool FPCGExPathProcessorContext::ProcessorAutomation()
 	return ProcessFilters();
 }
 
-bool FPCGExPathProcessorContext::AdvancePointsIO()
+bool FPCGExPathProcessorContext::AdvancePointsIO(const bool bCleanupKeys)
 {
 	PCGEX_SETTINGS_LOCAL(PathProcessor)
 
 	PCGEX_DELETE(PointFiltersManager)
 
-	if (!FPCGExPointsProcessorContext::AdvancePointsIO()) { return false; }
+	if (!FPCGExPointsProcessorContext::AdvancePointsIO(bCleanupKeys)) { return false; }
 
 	const bool DefaultResult = DefaultPointFilterResult();
 
