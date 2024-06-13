@@ -104,7 +104,7 @@ bool FPCGExEdgesProcessorContext::AdvancePointsIO(const bool bCleanupKeys)
 	{
 		CurrentIO->CreateInKeys();
 		ProjectionSettings.Init(CurrentIO);
-		PCGExGraph::BuildEndpointsLookup(*CurrentIO, EndpointsLookup, EndpointsAdjacency);
+		if(bBuildEndpointsLookup){ PCGExGraph::BuildEndpointsLookup(*CurrentIO, EndpointsLookup, EndpointsAdjacency); }
 	}
 	else
 	{

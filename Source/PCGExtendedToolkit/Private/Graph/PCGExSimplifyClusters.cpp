@@ -56,6 +56,7 @@ bool FPCGExSimplifyClustersElement::ExecuteInternal(FPCGContext* InContext) cons
 
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
+		Context->bBuildEndpointsLookup = false;
 		while (Context->AdvancePointsIO(false))
 		{
 			if (!Context->TaggedEdges)
@@ -130,7 +131,7 @@ namespace PCGExSimplifyClusters
 
 		for (int i = 0; i < Cluster->Nodes.Num(); i++) { if (Cluster->Nodes[i].IsComplex()) { VtxFilterCache[i] = true; } }
 
-		AsyncManager->Start<PCGExClusterTask::FFindNodeChains>(
+		AsyncManagerPtr->Start<PCGExClusterTask::FFindNodeChains>(
 			EdgesIO->IOIndex, nullptr, Cluster,
 			&VtxFilterCache, &Chains, false, Settings->bOperateOnDeadEndsOnly);
 
@@ -138,14 +139,14 @@ namespace PCGExSimplifyClusters
 	}
 
 
-	void FClusterSimplifyProcess::CompleteWork(FPCGExAsyncManager* AsyncManager)
+	void FClusterSimplifyProcess::CompleteWork()
 	{
 		PCGEX_SETTINGS(SimplifyClusters)
 
 		PCGExClusterTask::DedupeChains(Chains);
-		StartParallelLoopForRange(AsyncManager, Chains.Num());
+		StartParallelLoopForRange(Chains.Num());
 
-		FClusterProcessingData::CompleteWork(AsyncManager);
+		FClusterProcessingData::CompleteWork();
 	}
 
 	void FClusterSimplifyProcess::ProcessSingleRangeIteration(const int32 Iteration)
@@ -241,10 +242,6 @@ namespace PCGExSimplifyClusters
 		return true;
 	}
 
-	void FSimplifyClusterBatch::CompleteWork(FPCGExAsyncManager* AsyncManager)
-	{
-		FClusterBatchProcessingData<FClusterSimplifyProcess>::CompleteWork(AsyncManager);
-	}
 }
 
 

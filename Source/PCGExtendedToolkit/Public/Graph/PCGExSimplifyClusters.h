@@ -102,7 +102,7 @@ namespace PCGExSimplifyClusters
 		virtual ~FClusterSimplifyProcess() override;
 
 		virtual bool Process(FPCGExAsyncManager* AsyncManager) override;
-		virtual void CompleteWork(FPCGExAsyncManager* AsyncManager) override;
+		virtual void CompleteWork() override;
 
 		virtual void ProcessSingleRangeIteration(const int32 Iteration) override;
 
@@ -121,6 +121,5 @@ namespace PCGExSimplifyClusters
 
 		virtual bool PrepareProcessing() override;
 		virtual bool PrepareSingle(FClusterSimplifyProcess* ClusterProcessor) override;
-		virtual void CompleteWork(FPCGExAsyncManager* AsyncManager) override;
 	};
 }

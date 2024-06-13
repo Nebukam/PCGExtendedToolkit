@@ -166,7 +166,7 @@ bool FPCGExLloydRelax2Task::ExecuteTask()
 
 	if (NumIterations > 0)
 	{
-		Manager->Start<FPCGExLloydRelax2Task>(TaskIndex + 1, PointIO, ActivePositions, InfluenceSettings, NumIterations, InfluenceGetter, ProjectionSettings);
+		InternalStart<FPCGExLloydRelax2Task>(TaskIndex + 1, PointIO, ActivePositions, InfluenceSettings, NumIterations, InfluenceGetter, ProjectionSettings);
 	}
 
 	return true;

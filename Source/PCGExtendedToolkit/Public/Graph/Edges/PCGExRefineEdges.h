@@ -118,7 +118,7 @@ namespace PCGExRefineEdges
 		virtual ~FClusterRefineProcess() override;
 
 		virtual bool Process(FPCGExAsyncManager* AsyncManager) override;
-		virtual void CompleteWork(FPCGExAsyncManager* AsyncManager) override;
+		virtual void CompleteWork() override;
 
 		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
 		UPCGExEdgeRefineOperation* Refinement = nullptr;
@@ -139,6 +139,5 @@ namespace PCGExRefineEdges
 
 		virtual bool PrepareProcessing() override;
 		virtual bool PrepareSingle(FClusterRefineProcess* ClusterProcessor) override;
-		virtual void CompleteWork(FPCGExAsyncManager* AsyncManager) override;
 	};
 }

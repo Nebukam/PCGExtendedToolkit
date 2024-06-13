@@ -55,6 +55,7 @@ bool FPCGExWriteEdgeExtrasElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
+		Context->bBuildEndpointsLookup = false;
 		while (Context->AdvancePointsIO(false))
 		{
 			if (!Context->TaggedEdges)
@@ -188,7 +189,7 @@ namespace PCGExWriteEdgeExtras
 			PCGEX_DELETE(ProjectedCluster)
 		}
 
-		StartParallelLoopForEdges(AsyncManager);
+		StartParallelLoopForEdges();
 
 		return true;
 	}
@@ -309,9 +310,9 @@ namespace PCGExWriteEdgeExtras
 		}
 	}
 
-	void FClusterEdgeProcess::CompleteWork(FPCGExAsyncManager* AsyncManager)
+	void FClusterEdgeProcess::CompleteWork()
 	{
-		FClusterProcessingData::CompleteWork(AsyncManager);
+		FClusterProcessingData::CompleteWork();
 
 		if (VtxEdgeCountWriter)
 		{
@@ -413,9 +414,9 @@ namespace PCGExWriteEdgeExtras
 		return true;
 	}
 
-	void FWriteEdgeExtrasBatch::CompleteWork(FPCGExAsyncManager* AsyncManager)
+	void FWriteEdgeExtrasBatch::CompleteWork()
 	{
-		FClusterBatchProcessingData<FClusterEdgeProcess>::CompleteWork(AsyncManager);
+		FClusterBatchProcessingData<FClusterEdgeProcess>::CompleteWork();
 
 		PCGEX_OUTPUT_WRITE(VtxNormal, FVector)
 		PCGEX_OUTPUT_WRITE(VtxEdgeCount, FVector)

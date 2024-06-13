@@ -44,10 +44,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSanitizeClustersContext : public FPCGExEdges
 
 	virtual ~FPCGExSanitizeClustersContext() override;
 
-	TArray<PCGExGraph::FIndexedEdge> IndexedEdges;
+	TArray<PCGExGraph::FGraphBuilder*> Builders;
+	TArray<TMap<int64, int32>> EndpointsLookups;
 
 	FPCGExGraphBuilderSettings GraphBuilderSettings;
-	PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExSanitizeClustersElement : public FPCGExEdgesProcessorElement
@@ -61,4 +61,34 @@ public:
 protected:
 	virtual bool Boot(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
+};
+
+class PCGEXTENDEDTOOLKIT_API FPCGExSanitizeClusterTask : public FPCGExNonAbandonableTask
+{
+public:
+	FPCGExSanitizeClusterTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+	                          PCGExData::FPointIOTaggedEntries* InTaggedEdges) :
+		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+		TaggedEdges(InTaggedEdges)
+	{
+	}
+
+	PCGExData::FPointIOTaggedEntries* TaggedEdges = nullptr;
+
+	virtual bool ExecuteTask() override;
+};
+
+class PCGEXTENDEDTOOLKIT_API FPCGExSanitizeInsertTask : public FPCGExNonAbandonableTask
+{
+public:
+	FPCGExSanitizeInsertTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+							  PCGExData::FPointIO* InEdgeIO) :
+		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+		EdgeIO(InEdgeIO)
+	{
+	}
+
+	PCGExData::FPointIO* EdgeIO = nullptr;
+
+	virtual bool ExecuteTask() override;
 };

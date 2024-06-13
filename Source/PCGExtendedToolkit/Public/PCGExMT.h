@@ -21,12 +21,16 @@ namespace PCGExMT
 	constexpr AsyncState State_Setup = __COUNTER__;
 	constexpr AsyncState State_ReadyForNextPoints = __COUNTER__;
 	constexpr AsyncState State_ProcessingPoints = __COUNTER__;
+	
 	constexpr AsyncState State_ProcessingTargets = __COUNTER__;
 	constexpr AsyncState State_WaitingOnAsyncWork = __COUNTER__;
 	constexpr AsyncState State_WaitingOnAsyncProcessing = __COUNTER__;
 	constexpr AsyncState State_WaitingOnAsyncCompletion = __COUNTER__;
 	constexpr AsyncState State_Done = __COUNTER__;
 
+	constexpr AsyncState State_Processing = __COUNTER__;
+	constexpr AsyncState State_Completing = __COUNTER__;
+	
 	struct PCGEXTENDEDTOOLKIT_API FChunkedLoop
 	{
 		FChunkedLoop()
@@ -261,13 +265,14 @@ public:
 		{
 			FWriteScopeLock WriteLock(ManagerLock);
 			if (bStopped) { return; }
-			NumStarted++;
 		}
 
 		T& Task = AsyncTask->GetTask();
 		Task.TaskPtr = AsyncTask;
+		Task.bIsAsync = false;
 
-		AsyncTask->StartSynchronousTask();
+		Task.ExecuteTask();
+		delete AsyncTask;
 	}
 
 	template <typename T, typename... Args>
@@ -296,6 +301,11 @@ protected:
 
 class PCGEXTENDEDTOOLKIT_API FPCGExNonAbandonableTask : public FNonAbandonableTask
 {
+	friend class FPCGExAsyncManager;
+
+protected:
+	bool bIsAsync = true;
+
 public:
 	virtual ~FPCGExNonAbandonableTask() = default;
 	FPCGExAsyncManager* Manager = nullptr;
@@ -330,6 +340,14 @@ public:
 protected:
 	bool bWorkDone = false;
 	bool Checkpoint() const { return !(!Manager || Manager->bStopped || Manager->bFlushing); }
+
+	template <typename T, typename... Args>
+	void InternalStart(int32 TaskIndex, PCGExData::FPointIO* InPointsIO, Args... args)
+	{
+		PCGEX_ASYNC_CHECKPOINT_VOID
+		if (!bIsAsync) { Manager->StartSync<T>(TaskIndex, InPointsIO, args...); }
+		else { Manager->Start<T>(TaskIndex, InPointsIO, args...); }
+	}
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExLoopChunkTask : public FPCGExNonAbandonableTask
@@ -381,7 +399,7 @@ public:
 		{
 			const int32 LoopNumIterations = FMath::Min(NumIterations, FMath::Min(ChunkSize, NumIterations - (ChunkSize * i)));
 			if (LoopNumIterations == 0) { break; }
-			Manager->Start<T>(StartIndex, PointIO, LoopNumIterations);
+			InternalStart<T>(StartIndex, PointIO, LoopNumIterations);
 			StartIndex += ChunkSize;
 		}
 

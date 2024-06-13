@@ -55,7 +55,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgesProcessorContext : public FPCGExPointsP
 	virtual ~FPCGExEdgesProcessorContext() override;
 
 	bool bDeterministicClusters = false;
-
+	bool bBuildEndpointsLookup = true;
 
 	PCGExData::FPointIOCollection* MainEdges = nullptr;
 	PCGExData::FPointIO* CurrentEdges = nullptr;

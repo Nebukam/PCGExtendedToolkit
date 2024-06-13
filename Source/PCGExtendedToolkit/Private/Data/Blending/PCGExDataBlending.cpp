@@ -131,7 +131,7 @@ namespace PCGExDataBlendingTask
 		if (MetadataSettings)
 		{
 			// Write fuse meta after, so we don't blend it
-			Manager->Start<FWriteFuseMetadata>(TaskIndex, TargetIO, MetadataSettings, CompoundList);
+			InternalStart<FWriteFuseMetadata>(TaskIndex, TargetIO, MetadataSettings, CompoundList);
 		}
 
 		return true;

@@ -150,7 +150,7 @@ bool FPCGExLloydRelax3Task::ExecuteTask()
 
 	if (NumIterations > 0)
 	{
-		Manager->Start<FPCGExLloydRelax3Task>(TaskIndex + 1, PointIO, ActivePositions, InfluenceSettings, NumIterations);
+		InternalStart<FPCGExLloydRelax3Task>(TaskIndex + 1, PointIO, ActivePositions, InfluenceSettings, NumIterations);
 	}
 
 	return true;

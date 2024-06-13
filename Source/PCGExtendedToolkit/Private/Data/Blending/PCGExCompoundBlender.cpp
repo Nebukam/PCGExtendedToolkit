@@ -229,7 +229,7 @@ namespace PCGExDataBlending
 	{
 		for (int i = 0; i < Merger->CurrentCompoundList->Compounds.Num(); i++)
 		{
-			Manager->Start<FPCGExCompoundedPointBlendTask>(i, PointIO, Merger, DistSettings);
+			InternalStart<FPCGExCompoundedPointBlendTask>(i, PointIO, Merger, DistSettings);
 		}
 		return true;
 	}

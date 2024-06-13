@@ -496,7 +496,7 @@ namespace PCGExGraph
 
 		const FPCGMetadataAttributeBase* ClusterIdAttribute = Metadata->GetConstAttribute(Tag_ClusterId);
 		if (!ClusterIdAttribute || ClusterIdAttribute->GetTypeId() != I64) { return false; }
-		
+
 		return true;
 	}
 
@@ -696,6 +696,33 @@ namespace PCGExGraphTask
 		virtual bool ExecuteTask() override;
 	};
 
+	class PCGEXTENDEDTOOLKIT_API FWriteSmallSubGraphEdges : public FPCGExNonAbandonableTask
+	{
+	public:
+		FWriteSmallSubGraphEdges(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+		                         PCGExGraph::FGraph* InGraph,
+		                         const TArray<PCGExGraph::FSubGraph*>& InSubGraphs,
+		                         PCGExGraph::FGraphMetadataSettings* InMetadataSettings = nullptr)
+			: FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+			  Graph(InGraph),
+			  SubGraphs(InSubGraphs),
+			  MetadataSettings(InMetadataSettings)
+		{
+		}
+
+		virtual ~FWriteSmallSubGraphEdges() override
+		{
+			SubGraphs.Empty();
+		}
+
+		PCGExGraph::FGraph* Graph = nullptr;
+		TArray<PCGExGraph::FSubGraph*> SubGraphs;
+
+		PCGExGraph::FGraphMetadataSettings* MetadataSettings = nullptr;
+
+		virtual bool ExecuteTask() override;
+	};
+
 	class PCGEXTENDEDTOOLKIT_API FCompileGraph : public FPCGExNonAbandonableTask
 	{
 	public:
@@ -719,6 +746,8 @@ namespace PCGExGraphTask
 		PCGExGraph::FGraphMetadataSettings* MetadataSettings = nullptr;
 
 		virtual bool ExecuteTask() override;
+
+		void ProcessSmallGraphs(TArray<PCGExGraph::FSubGraph*>& SubGraphs);
 	};
 
 	class PCGEXTENDEDTOOLKIT_API FCopyGraphToPoint : public FPCGExNonAbandonableTask

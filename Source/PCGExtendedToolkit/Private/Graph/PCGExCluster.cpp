@@ -918,7 +918,7 @@ namespace PCGExClusterTask
 				else
 				{
 					// Requires extended Search
-					Manager->Start<FBuildChain>(
+					InternalStart<FBuildChain>(
 						Chains->Add(nullptr), nullptr,
 						Cluster, Breakpoints, Chains, Node.NodeIndex, AdjacencyHash);
 				}
@@ -963,7 +963,7 @@ namespace PCGExClusterTask
 		FString OutId;
 		PCGExGraph::SetClusterVtx(&VtxDupe, OutId);
 
-		Manager->Start<PCGExGeoTasks::FTransformPointIO>(TaskIndex, PointIO, &VtxDupe, TransformSettings);
+		InternalStart<PCGExGeoTasks::FTransformPointIO>(TaskIndex, PointIO, &VtxDupe, TransformSettings);
 
 		for (const PCGExData::FPointIO* EdgeIO : Edges)
 		{
@@ -971,7 +971,7 @@ namespace PCGExClusterTask
 			EdgeDupe.IOIndex = TaskIndex;
 			PCGExGraph::MarkClusterEdges(&EdgeDupe, OutId);
 
-			Manager->Start<PCGExGeoTasks::FTransformPointIO>(TaskIndex, PointIO, &EdgeDupe, TransformSettings);
+			InternalStart<PCGExGeoTasks::FTransformPointIO>(TaskIndex, PointIO, &EdgeDupe, TransformSettings);
 		}
 
 		return true;

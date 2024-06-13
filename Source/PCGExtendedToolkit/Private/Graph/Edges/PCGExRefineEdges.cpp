@@ -31,7 +31,6 @@ PCGEX_INITIALIZE_ELEMENT(RefineEdges)
 FPCGExRefineEdgesContext::~FPCGExRefineEdgesContext()
 {
 	PCGEX_TERMINATE_ASYNC
-
 }
 
 bool FPCGExRefineEdgesElement::Boot(FPCGContext* InContext) const
@@ -61,6 +60,7 @@ bool FPCGExRefineEdgesElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
+		Context->bBuildEndpointsLookup = false;
 		while (Context->AdvancePointsIO(false))
 		{
 			if (!Context->TaggedEdges)
@@ -138,19 +138,27 @@ namespace PCGExRefineEdges
 	bool PCGExRefineEdges::FClusterRefineProcess::Process(FPCGExAsyncManager* AsyncManager)
 	{
 		if (!FClusterProcessingData::Process(AsyncManager)) { return false; }
-		AsyncManager->Start<FPCGExRefineEdgesTask>(-1, nullptr, Cluster, Refinement, HeuristicsHandler);
+
+		if (IsTrivial())
+		{
+			Refinement->Process(Cluster, HeuristicsHandler);
+			return true;
+		}
+
+		AsyncManagerPtr->Start<FPCGExRefineEdgesTask>(-1, nullptr, Cluster, Refinement, HeuristicsHandler);
 		return true;
 	}
 
-	void FClusterRefineProcess::CompleteWork(FPCGExAsyncManager* AsyncManager)
+	void FClusterRefineProcess::CompleteWork()
 	{
 		PCGEX_SETTINGS(RefineEdges)
 
+		// this takes ages when aligned :(
 		TArray<PCGExGraph::FIndexedEdge> ValidEdges;
 		Cluster->GetValidEdges(ValidEdges);
 		GraphBuilder->Graph->InsertEdges(ValidEdges);
 
-		FClusterProcessingData::CompleteWork(AsyncManager);
+		FClusterProcessingData::CompleteWork();
 	}
 
 	FRefineClusterBatch::FRefineClusterBatch(FPCGContext* InContext, PCGExData::FPointIO* InVtx, TArrayView<PCGExData::FPointIO*> InEdges)
@@ -181,10 +189,6 @@ namespace PCGExRefineEdges
 		return true;
 	}
 
-	void FRefineClusterBatch::CompleteWork(FPCGExAsyncManager* AsyncManager)
-	{
-		FClusterBatchProcessingData<FClusterRefineProcess>::CompleteWork(AsyncManager);
-	}
 }
 
 #undef LOCTEXT_NAMESPACE
