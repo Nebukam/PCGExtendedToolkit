@@ -271,6 +271,8 @@ namespace PCGExSimplifyClusters
 
 	void FClusterSimplifyProcess::CompleteWork(FPCGExAsyncManager* AsyncManager)
 	{
+		// TODO : Insert edges to graph
+		// Then compile all graphs in the context in parallel.
 		FClusterProcessingData::CompleteWork(AsyncManager);
 	}
 
