@@ -149,6 +149,7 @@ namespace PCGExGraph
 	constexpr PCGExMT::AsyncState State_FindingCrossings = __COUNTER__;
 	constexpr PCGExMT::AsyncState State_WritingClusters = __COUNTER__;
 	constexpr PCGExMT::AsyncState State_WaitingOnWritingClusters = __COUNTER__;
+	constexpr PCGExMT::AsyncState State_Compiling = __COUNTER__;
 
 	constexpr PCGExMT::AsyncState State_FindingPointEdgeIntersections = __COUNTER__;
 	constexpr PCGExMT::AsyncState State_InsertingPointEdgeIntersections = __COUNTER__;

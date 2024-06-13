@@ -182,6 +182,11 @@ namespace PCGExCluster
 		return bValid;
 	}
 
+	void FCluster::RebuildBounds()
+	{
+		for (const FNode& Node : Nodes) { Bounds += Node.Position; }
+	}
+
 	void FCluster::RebuildNodeOctree()
 	{
 		PCGEX_DELETE(NodeOctree)
@@ -514,6 +519,11 @@ namespace PCGExCluster
 		FVector Centroid = FVector::ZeroVector;
 		for (const uint64 AdjacencyHash : Node.Adjacency) { Centroid += Nodes[PCGEx::H64A(AdjacencyHash)].Position; }
 		return Centroid / static_cast<double>(Node.Adjacency.Num());
+	}
+
+	void FCluster::GetValidEdges(TArray<PCGExGraph::FIndexedEdge>& OutValidEdges) const
+	{
+		for (const PCGExGraph::FIndexedEdge& Edge : Edges) { if (Edge.bValid) { OutValidEdges.Add(Edge); } }
 	}
 
 	int32 FCluster::FindClosestNeighborInDirection(const int32 NodeIndex, const FVector& Direction, const int32 MinNeighborCount) const
@@ -855,8 +865,8 @@ namespace PCGExClusterTask
 	bool FBuildCluster::ExecuteTask()
 	{
 		Cluster->BuildFrom(
-				*EdgeIO, PointIO->GetIn()->GetPoints(),
-				*EndpointsLookup, ExpectedAdjacency);
+			*EdgeIO, PointIO->GetIn()->GetPoints(),
+			*EndpointsLookup, ExpectedAdjacency);
 
 		return true;
 	}

@@ -12,12 +12,13 @@
 
 #define PCGEX_FORWARD_HEURISTIC_FACTORY \
 	NewFactory->WeightFactor = Descriptor.WeightFactor; \
-	NewFactory->Descriptor = Descriptor;
+	NewFactory->Descriptor = Descriptor; \
+	PCGEX_LOAD_SOFTOBJECT(UCurveFloat, NewFactory->Descriptor.ScoreCurve, NewFactory->Descriptor.ScoreCurveObj, PCGEx::WeightDistributionLinear)
 
 #define PCGEX_FORWARD_HEURISTIC_DESCRIPTOR \
 	NewOperation->WeightFactor = Descriptor.WeightFactor; \
 	NewOperation->bInvert = Descriptor.bInvert; \
-	NewOperation->ScoreCurve = Descriptor.ScoreCurve; \
+	NewOperation->ScoreCurveObj = Descriptor.ScoreCurveObj; \
 	NewOperation->bUseLocalWeightMultiplier = Descriptor.bUseLocalWeightMultiplier; \
 	NewOperation->LocalWeightMultiplierSource = Descriptor.LocalWeightMultiplierSource; \
 	NewOperation->WeightMultiplierAttribute = Descriptor.WeightMultiplierAttribute;

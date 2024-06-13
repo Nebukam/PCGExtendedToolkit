@@ -32,12 +32,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExEdgeRefineOperation : public UPCGExOperation
 	GENERATED_BODY()
 
 public:
-	virtual void PrepareForPointIO(PCGExData::FPointIO* InPointIO);
-	virtual void PreProcess(PCGExCluster::FCluster* InCluster, PCGExGraph::FGraph* InGraph, PCGExData::FPointIO* InEdgesIO);
-	virtual void Process(PCGExCluster::FCluster* InCluster, PCGExGraph::FGraph* InGraph, PCGExData::FPointIO* InEdgesIO, PCGExHeuristics::THeuristicsHandler* InHeuristics);
-
+	virtual void Process(PCGExCluster::FCluster* InCluster, PCGExHeuristics::THeuristicsHandler* InHeuristics);
 	virtual void Cleanup() override;
 
-protected:
-	PCGExData::FPointIO* PointIO;
 };

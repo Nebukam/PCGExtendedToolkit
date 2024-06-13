@@ -77,7 +77,7 @@ namespace PCGExHeuristics
 		explicit THeuristicsHandler(UPCGExHeuristicOperation* InSingleOperation);
 		~THeuristicsHandler();
 
-		bool PrepareForCluster(FPCGExAsyncManager* AsyncManager, PCGExCluster::FCluster* InCluster);
+		void PrepareForCluster(PCGExCluster::FCluster* InCluster);
 		void CompleteClusterPreparation();
 
 		FORCEINLINE double GetGlobalScore(

@@ -200,6 +200,7 @@ namespace PCGExCluster
 			const TMap<int64, int32>& InEndpointsLookup,
 			const TArray<int32>* InExpectedAdjacency = nullptr);
 
+		void RebuildBounds();
 		void RebuildNodeOctree();
 		void RebuildEdgeOctree();
 		void RebuildOctree(EPCGExClusterClosestSearchMode Mode);
@@ -223,6 +224,8 @@ namespace PCGExCluster
 		FORCEINLINE FVector GetEdgeDirection(const int32 FromIndex, const int32 ToIndex) const;
 		FORCEINLINE FVector GetCentroid(const int32 NodeIndex) const;
 
+		void GetValidEdges(TArray<PCGExGraph::FIndexedEdge>& OutValidEdges) const;
+		
 		int32 FindClosestNeighborInDirection(const int32 NodeIndex, const FVector& Direction, int32 MinNeighborCount = 1) const;
 	};
 

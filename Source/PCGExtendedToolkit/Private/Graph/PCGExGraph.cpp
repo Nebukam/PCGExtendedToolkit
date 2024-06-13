@@ -36,16 +36,14 @@ namespace PCGExGraph
 
 	bool FGraph::InsertEdge(const int32 A, const int32 B, FIndexedEdge& OutEdge, const int32 IOIndex)
 	{
-		const uint64 Hash = PCGEx::H64U(A, B);
-
-		{
-			FReadScopeLock ReadLock(GraphLock);
-			if (UniqueEdges.Contains(Hash)) { return false; }
-		}
-
 		FWriteScopeLock WriteLock(GraphLock);
 
-		UniqueEdges.Add(Hash);
+		bool bAlreadyExists;
+		const uint64 Hash = PCGEx::H64U(A, B);
+
+		UniqueEdges.Add(Hash, &bAlreadyExists);
+
+		if (bAlreadyExists) { return false; }
 
 		OutEdge = Edges.Emplace_GetRef(Edges.Num(), A, B, -1, IOIndex);
 
@@ -57,14 +55,14 @@ namespace PCGExGraph
 
 	bool FGraph::InsertEdge(const FIndexedEdge& Edge)
 	{
+		FWriteScopeLock WriteLock(GraphLock);
+
+		bool bAlreadyExists;
 		const uint64 Hash = Edge.H64U();
 
-		{
-			FReadScopeLock ReadLock(GraphLock);
-			if (UniqueEdges.Contains(Hash)) { return false; }
-		}
+		UniqueEdges.Add(Hash, &bAlreadyExists);
 
-		FWriteScopeLock WriteLock(GraphLock);
+		if (bAlreadyExists) { return false; }
 
 		UniqueEdges.Add(Hash);
 
@@ -82,11 +80,13 @@ namespace PCGExGraph
 		FWriteScopeLock WriteLock(GraphLock);
 		uint32 A;
 		uint32 B;
+		bool bAlreadyExists;
+
 		for (const uint64& E : InEdges)
 		{
-			if (UniqueEdges.Contains(E)) { continue; }
+			UniqueEdges.Add(E, &bAlreadyExists);
+			if (bAlreadyExists) { continue; }
 
-			UniqueEdges.Add(E);
 			PCGEx::H64(E, A, B);
 			const int32 EdgeIndex = Edges.Emplace(Edges.Num(), A, B);
 			Nodes[A].Add(EdgeIndex);
@@ -100,11 +100,12 @@ namespace PCGExGraph
 		FWriteScopeLock WriteLock(GraphLock);
 		uint32 A;
 		uint32 B;
+		bool bAlreadyExists;
 		for (const uint64& E : InEdges)
 		{
-			if (UniqueEdges.Contains(E)) { continue; }
+			UniqueEdges.Add(E, &bAlreadyExists);
+			if (bAlreadyExists) { continue; }
 
-			UniqueEdges.Add(E);
 			PCGEx::H64(E, A, B);
 			const int32 EdgeIndex = Edges.Emplace(Edges.Num(), A, B);
 			Nodes[A].Add(EdgeIndex);

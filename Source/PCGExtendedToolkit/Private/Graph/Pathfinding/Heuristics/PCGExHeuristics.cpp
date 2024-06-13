@@ -93,7 +93,7 @@ namespace PCGExHeuristics
 		Feedbacks.Empty();
 	}
 
-	bool THeuristicsHandler::PrepareForCluster(FPCGExAsyncManager* AsyncManager, PCGExCluster::FCluster* InCluster)
+	void THeuristicsHandler::PrepareForCluster(PCGExCluster::FCluster* InCluster)
 	{
 		InCluster->ComputeEdgeLengths(true);
 
@@ -104,8 +104,6 @@ namespace PCGExHeuristics
 			Operation->PrepareForCluster(InCluster);
 			if (Operation->bHasCustomLocalWeightMultiplier) { bUseDynamicWeight = true; }
 		}
-
-		return true;
 	}
 
 	void THeuristicsHandler::CompleteClusterPreparation()

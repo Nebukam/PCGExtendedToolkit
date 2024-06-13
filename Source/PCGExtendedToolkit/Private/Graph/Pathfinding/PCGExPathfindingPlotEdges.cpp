@@ -175,7 +175,7 @@ bool FPCGExPathfindingPlotEdgesElement::ExecuteInternal(FPCGContext* InContext) 
 	auto StartEdgeProcessing = [&]()
 	{
 		Context->SearchAlgorithm->PrepareForCluster(Context->CurrentCluster, Context->ClusterProjection);
-		Context->HeuristicsHandler->PrepareForCluster(Context->GetAsyncManager(), Context->CurrentCluster);
+		Context->HeuristicsHandler->PrepareForCluster(Context->CurrentCluster);
 		Context->SetAsyncState(PCGExGraph::State_ProcessingEdges);
 	};
 

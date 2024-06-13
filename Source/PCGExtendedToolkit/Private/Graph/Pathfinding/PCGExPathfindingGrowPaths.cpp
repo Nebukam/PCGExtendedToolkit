@@ -357,7 +357,7 @@ bool FPCGExPathfindingGrowPathsElement::ExecuteInternal(FPCGContext* InContext) 
 
 		if (Settings->bUseOctreeSearch) { Context->CurrentCluster->RebuildOctree(Settings->SeedPicking.PickingMethod); }
 
-		Context->HeuristicsHandler->PrepareForCluster(Context->GetAsyncManager(), Context->CurrentCluster);
+		Context->HeuristicsHandler->PrepareForCluster(Context->CurrentCluster);
 		Context->SetAsyncState(PCGExGraph::State_ProcessingEdges);
 	}
 

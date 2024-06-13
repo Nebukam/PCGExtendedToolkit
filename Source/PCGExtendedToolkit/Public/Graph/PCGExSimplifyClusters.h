@@ -45,15 +45,15 @@ public:
 	bool bOperateOnDeadEndsOnly = false;
 
 	/**  */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bMergeAboveAngularThreshold = false;
 
 	/** If enabled, uses an angular threshold below which nodes are merged. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bMergeAboveAngularThreshold", Units="Degrees", ClampMin=0, ClampMax=180))
 	double AngularThreshold = 10;
 
-	/** Removes hard angles instead of colinear ones. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	/** Removes hard angles instead of collinear ones. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bMergeAboveAngularThreshold"))
 	bool bInvertAngularThreshold = false;
 
 	/** If enabled, prune dead ends. */
@@ -103,13 +103,16 @@ namespace PCGExSimplifyClusters
 
 		virtual bool Process(FPCGExAsyncManager* AsyncManager) override;
 		virtual void CompleteWork(FPCGExAsyncManager* AsyncManager) override;
+
+		virtual void ProcessSingleRangeIteration(const int32 Iteration) override;
+
+		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
 	};
 
 	class FSimplifyClusterBatch : public PCGExClusterBatch::FClusterBatchProcessingData<FClusterSimplifyProcess>
 	{
-		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
-
 	public:
+		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
 		FPCGExGraphBuilderSettings GraphBuilderSettings;
 		PCGExData::FPointIOCollection* MainEdges = nullptr;
 

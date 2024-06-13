@@ -4,9 +4,16 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Graph/PCGExClusterBatch.h"
 #include "Graph/PCGExEdgesProcessor.h"
 #include "Refining/PCGExEdgeRefineOperation.h"
+
 #include "PCGExRefineEdges.generated.h"
+
+namespace PCGExRefineEdges
+{
+	class FRefineClusterBatch;
+}
 
 namespace PCGExHeuristics
 {
@@ -61,12 +68,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExRefineEdgesContext : public FPCGExEdgesProce
 
 	virtual ~FPCGExRefineEdgesContext() override;
 
-	PCGExHeuristics::THeuristicsHandler* HeuristicsHandler = nullptr;
-
-	UPCGExEdgeRefineOperation* Refinement;
-
+	UPCGExEdgeRefineOperation* Refinement = nullptr;
+	TArray<PCGExRefineEdges::FRefineClusterBatch*> Batches;
+	
 	FPCGExGraphBuilderSettings GraphBuilderSettings;
-	PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExRefineEdgesElement : public FPCGExEdgesProcessorElement
@@ -82,22 +87,58 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
 
-
-class PCGEXTENDEDTOOLKIT_API FPCGExRefineEdgesTask : public FPCGExNonAbandonableTask
+namespace PCGExRefineEdges
 {
-public:
-	FPCGExRefineEdgesTask(
-		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-		PCGExCluster::FCluster* InCluster,
-		PCGExData::FPointIO* InEdgeIO) :
-		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
-		Cluster(InCluster),
-		EdgeIO(InEdgeIO)
+	class PCGEXTENDEDTOOLKIT_API FPCGExRefineEdgesTask : public FPCGExNonAbandonableTask
 	{
-	}
+	public:
+		FPCGExRefineEdgesTask(
+			FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+			PCGExCluster::FCluster* InCluster,
+			UPCGExEdgeRefineOperation* InRefinement,
+			PCGExHeuristics::THeuristicsHandler* InHeuristicsHandler) :
+			FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+			Cluster(InCluster),
+			Refinement(InRefinement),
+			HeuristicsHandler(InHeuristicsHandler)
+		{
+		}
 
-	PCGExCluster::FCluster* Cluster = nullptr;
-	PCGExData::FPointIO* EdgeIO = nullptr;
+		PCGExCluster::FCluster* Cluster = nullptr;
+		UPCGExEdgeRefineOperation* Refinement = nullptr;
+		PCGExHeuristics::THeuristicsHandler* HeuristicsHandler = nullptr;
 
-	virtual bool ExecuteTask() override;
-};
+		virtual bool ExecuteTask() override;
+	};
+
+	class FClusterRefineProcess final : public PCGExClusterBatch::FClusterProcessingData
+	{
+	public:
+		FClusterRefineProcess(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges);
+		virtual ~FClusterRefineProcess() override;
+
+		virtual bool Process(FPCGExAsyncManager* AsyncManager) override;
+		virtual void CompleteWork(FPCGExAsyncManager* AsyncManager) override;
+
+		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
+		UPCGExEdgeRefineOperation* Refinement = nullptr;
+	};
+
+	class FRefineClusterBatch : public PCGExClusterBatch::FClusterBatchProcessingData<FClusterRefineProcess>
+	{
+	public:
+		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
+		FPCGExGraphBuilderSettings GraphBuilderSettings;
+
+		PCGExData::FPointIOCollection* MainEdges = nullptr;
+
+		UPCGExEdgeRefineOperation* Refinement = nullptr;
+
+		FRefineClusterBatch(FPCGContext* InContext, PCGExData::FPointIO* InVtx, TArrayView<PCGExData::FPointIO*> InEdges);
+		virtual ~FRefineClusterBatch() override;
+
+		virtual bool PrepareProcessing() override;
+		virtual bool PrepareSingle(FClusterRefineProcess* ClusterProcessor) override;
+		virtual void CompleteWork(FPCGExAsyncManager* AsyncManager) override;
+	};
+}

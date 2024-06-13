@@ -8,6 +8,7 @@
 #include "PCGExEdge.h"
 #include "PCGExGraph.h"
 #include "PCGExCluster.h"
+#include "Pathfinding/Heuristics/PCGExHeuristics.h"
 
 
 namespace PCGExClusterBatch
@@ -113,6 +114,7 @@ namespace PCGExClusterBatch
 		}
 	};
 
+
 	template <typename TSingle>
 	class PCGEXTENDEDTOOLKIT_API FStartEdgeViewProcessing : public FPCGExNonAbandonableTask
 	{
@@ -134,10 +136,32 @@ namespace PCGExClusterBatch
 		}
 	};
 
+	template <typename TSingle>
+	class PCGEXTENDEDTOOLKIT_API FStartRangeProcessing : public FPCGExNonAbandonableTask
+	{
+	public:
+		FStartRangeProcessing(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+		                      TSingle* InSingleData, int32 InIterations) :
+			FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+			SingleData(InSingleData), Iterations(InIterations)
+		{
+		}
+
+		TSingle* SingleData = nullptr;
+		int32 Iterations = 0;
+
+		virtual bool ExecuteTask() override
+		{
+			SingleData->ProcessRange(TaskIndex, Iterations);
+			return true;
+		}
+	};
+
 	class FClusterProcessingData
 	{
 	protected:
-		virtual bool DefaultVtxFilterResult() const;
+		bool bRequiresHeuristics = false;
+		PCGExHeuristics::THeuristicsHandler* HeuristicsHandler = nullptr;
 
 		UPCGExNodeStateFactory* VtxFiltersData = nullptr;
 		bool DefaultVtxFilterValue = false;
@@ -148,8 +172,8 @@ namespace PCGExClusterBatch
 	public:
 		FPCGContext* Context = nullptr;
 
-		PCGExData::FPointIO* Vtx = nullptr;
-		PCGExData::FPointIO* Edges = nullptr;
+		PCGExData::FPointIO* VtxIO = nullptr;
+		PCGExData::FPointIO* EdgesIO = nullptr;
 		int32 BatchIndex = -1;
 
 		TMap<int64, int32>* EndpointsLookup = nullptr;
@@ -158,14 +182,16 @@ namespace PCGExClusterBatch
 		PCGExCluster::FCluster* Cluster = nullptr;
 
 		FClusterProcessingData(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges):
-			Vtx(InVtx), Edges(InEdges)
+			VtxIO(InVtx), EdgesIO(InEdges)
 		{
 		}
 
 		virtual ~FClusterProcessingData()
 		{
-			Vtx = nullptr;
-			Edges = nullptr;
+			PCGEX_DELETE(HeuristicsHandler);
+
+			VtxIO = nullptr;
+			EdgesIO = nullptr;
 		}
 
 		void SetVtxFilterData(UPCGExNodeStateFactory* InVtxFiltersData, const bool DefaultValue)
@@ -177,7 +203,12 @@ namespace PCGExClusterBatch
 		virtual bool Process(FPCGExAsyncManager* AsyncManager)
 		{
 			Cluster = new PCGExCluster::FCluster();
-			if (!Cluster->BuildFrom(*Edges, Vtx->GetIn()->GetPoints(), *EndpointsLookup, ExpectedAdjacency)) { return false; }
+			Cluster->PointsIO = VtxIO;
+			Cluster->EdgesIO = EdgesIO;
+
+			if (!Cluster->BuildFrom(*EdgesIO, VtxIO->GetIn()->GetPoints(), *EndpointsLookup, ExpectedAdjacency)) { return false; }
+
+			Cluster->RebuildBounds();
 
 #pragma region Vtx filter data
 
@@ -198,7 +229,7 @@ namespace PCGExClusterBatch
 				VtxFiltersHandler->bCacheResults = false;
 				VtxFiltersHandler->CaptureCluster(Context, Cluster);
 
-				if (VtxFiltersHandler->PrepareForTesting(Vtx, VtxIndices)) { for (int32 i : VtxIndices) { VtxFiltersHandler->PrepareSingle((i)); } }
+				if (VtxFiltersHandler->PrepareForTesting(VtxIO, VtxIndices)) { for (int32 i : VtxIndices) { VtxFiltersHandler->PrepareSingle((i)); } }
 				for (int i = 0; i < VtxIndices.Num(); i++) { VtxFilterCache[i] = VtxFiltersHandler->Test(VtxIndices[i]); }
 
 				PCGEX_DELETE(VtxFiltersHandler)
@@ -211,6 +242,13 @@ namespace PCGExClusterBatch
 			}
 
 #pragma endregion
+
+			if (bRequiresHeuristics)
+			{
+				HeuristicsHandler = new PCGExHeuristics::THeuristicsHandler(static_cast<FPCGExPointsProcessorContext*>(AsyncManager->Context));
+				HeuristicsHandler->PrepareForCluster(Cluster);
+				HeuristicsHandler->CompleteClusterPreparation();
+			}
 
 			return true;
 		}
@@ -237,6 +275,17 @@ namespace PCGExClusterBatch
 			}
 		}
 
+		void StartParallelLoopForRange(FPCGExAsyncManager* AsyncManager, const int32 NumIterations, const int32 PerLoopIterations = 256)
+		{
+			int32 CurrentCount = 0;
+			while (CurrentCount < NumIterations)
+			{
+				AsyncManager->Start<FStartRangeProcessing<FClusterProcessingData>>(
+					CurrentCount, nullptr, this, FMath::Min(NumIterations - CurrentCount, PerLoopIterations));
+				CurrentCount += PerLoopIterations;
+			}
+		}
+
 		virtual void ProcessView(int32 StartIndex, TArrayView<PCGExCluster::FNode> NodeView)
 		{
 			for (PCGExCluster::FNode& Node : NodeView) { ProcessSingleNode(Node); }
@@ -246,12 +295,21 @@ namespace PCGExClusterBatch
 		{
 		}
 
-		virtual void ProcessView(int32 StartIndex, TArrayView<PCGExGraph::FIndexedEdge> EdgeView)
+		virtual void ProcessView(const int32 StartIndex, TArrayView<PCGExGraph::FIndexedEdge> EdgeView)
 		{
 			for (PCGExGraph::FIndexedEdge& Edge : EdgeView) { ProcessSingleEdge(Edge); }
 		}
 
 		virtual void ProcessSingleEdge(PCGExGraph::FIndexedEdge& Edge)
+		{
+		}
+
+		virtual void ProcessRange(const int32 StartIndex, const int32 Iterations)
+		{
+			for (int i = 0; i < Iterations; i++) { ProcessSingleRangeIteration(StartIndex + i); }
+		}
+
+		virtual void ProcessSingleRangeIteration(const int32 Iteration)
 		{
 		}
 
@@ -273,7 +331,7 @@ namespace PCGExClusterBatch
 	public:
 		FPCGContext* Context = nullptr;
 
-		PCGExData::FPointIO* Vtx = nullptr;
+		PCGExData::FPointIO* VtxIO = nullptr;
 		TArray<PCGExData::FPointIO*> Edges;
 
 		TMap<int64, int32> EndpointsLookup;
@@ -282,7 +340,7 @@ namespace PCGExClusterBatch
 		TArray<FClusterProcessingData*> Processors;
 
 		FClusterBatchProcessingData(FPCGContext* InContext, PCGExData::FPointIO* InVtx, TArrayView<PCGExData::FPointIO*> InEdges):
-			Context(InContext), Vtx(InVtx)
+			Context(InContext), VtxIO(InVtx)
 		{
 			Edges.Append(InEdges);
 		}
@@ -290,7 +348,7 @@ namespace PCGExClusterBatch
 		virtual ~FClusterBatchProcessingData()
 		{
 			Context = nullptr;
-			Vtx = nullptr;
+			VtxIO = nullptr;
 			Edges.Empty();
 			EndpointsLookup.Empty();
 			ExpectedAdjacency.Empty();
@@ -305,8 +363,8 @@ namespace PCGExClusterBatch
 
 		virtual bool PrepareProcessing()
 		{
-			Vtx->CreateInKeys();
-			PCGExGraph::BuildEndpointsLookup(*Vtx, EndpointsLookup, ExpectedAdjacency);
+			VtxIO->CreateInKeys();
+			PCGExGraph::BuildEndpointsLookup(*VtxIO, EndpointsLookup, ExpectedAdjacency);
 			return true;
 		}
 
@@ -316,7 +374,7 @@ namespace PCGExClusterBatch
 			{
 				IO->CreateInKeys();
 
-				T* NewProcessor = new T(Vtx, IO);
+				T* NewProcessor = new T(VtxIO, IO);
 				NewProcessor->Context = Context;
 				NewProcessor->EndpointsLookup = &EndpointsLookup;
 				NewProcessor->ExpectedAdjacency = &ExpectedAdjacency;
@@ -327,7 +385,7 @@ namespace PCGExClusterBatch
 					continue;
 				}
 
-				if (VtxFiltersData) { NewProcessor->SetFilter(VtxFiltersData, bDefaultVtxFilterValue); }
+				if (VtxFiltersData) { NewProcessor->SetVtxFilterData(VtxFiltersData, bDefaultVtxFilterValue); }
 
 				NewProcessor->BatchIndex = Processors.Add(NewProcessor);
 				AsyncManager->Start<FStartClusterSingleProcessing<T>>(IO->IOIndex, IO, NewProcessor);

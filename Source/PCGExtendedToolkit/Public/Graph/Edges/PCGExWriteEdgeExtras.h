@@ -231,6 +231,13 @@ namespace PCGExWriteEdgeExtras
 		PCGEX_FOREACH_FIELD_EDGEEXTRAS(PCGEX_OUTPUT_DECL)
 		
 	public:
+		FClusterEdgeProcess(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges);
+		virtual ~FClusterEdgeProcess() override;
+
+		virtual bool Process(FPCGExAsyncManager* AsyncManager) override;
+		virtual void ProcessSingleEdge(PCGExGraph::FIndexedEdge& Edge) override;
+		virtual void CompleteWork(FPCGExAsyncManager* AsyncManager) override;
+
 		PCGEx::TFAttributeWriter<FVector>* VtxNormalWriter = nullptr;
 		PCGEx::TFAttributeWriter<int32>* VtxEdgeCountWriter = nullptr;
 
@@ -244,13 +251,7 @@ namespace PCGExWriteEdgeExtras
 #define PCGEX_LOCAL_EDGE_GETTER_DECL(_AXIS) PCGEx::FLocalSingleFieldGetter* SolidificationRad##_AXIS = nullptr; bool bOwnSolidificationRad##_AXIS = true;
 		PCGEX_FOREACH_XYZ(PCGEX_LOCAL_EDGE_GETTER_DECL)
 #undef PCGEX_LOCAL_EDGE_GETTER_DECL
-
-		FClusterEdgeProcess(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges);
-		virtual ~FClusterEdgeProcess() override;
-
-		virtual bool Process(FPCGExAsyncManager* AsyncManager) override;
-		virtual void ProcessSingleEdge(PCGExGraph::FIndexedEdge& Edge) override;
-		virtual void CompleteWork(FPCGExAsyncManager* AsyncManager) override;
+		
 	};
 
 	class FWriteEdgeExtrasBatch : public PCGExClusterBatch::FClusterBatchProcessingData<FClusterEdgeProcess>

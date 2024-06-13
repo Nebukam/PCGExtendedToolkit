@@ -32,8 +32,6 @@ FPCGExRefineEdgesContext::~FPCGExRefineEdgesContext()
 {
 	PCGEX_TERMINATE_ASYNC
 
-	PCGEX_DELETE(HeuristicsHandler)
-	PCGEX_DELETE(GraphBuilder)
 }
 
 bool FPCGExRefineEdgesElement::Boot(FPCGContext* InContext) const
@@ -44,8 +42,6 @@ bool FPCGExRefineEdgesElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_OPERATION_BIND(Refinement, UPCGExEdgeRefinePrimMST)
 	PCGEX_FWD(GraphBuilderSettings)
-
-	Context->HeuristicsHandler = new PCGExHeuristics::THeuristicsHandler(Context);
 
 	return true;
 }
@@ -65,70 +61,50 @@ bool FPCGExRefineEdgesElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
-		PCGEX_DELETE(Context->GraphBuilder)
-
-		if (!Context->AdvancePointsIO()) { Context->Done(); }
-		else
+		while (Context->AdvancePointsIO(false))
 		{
-			if (!Context->TaggedEdges) { return false; }
-
-			Context->Refinement->PrepareForPointIO(Context->CurrentIO);
-			Context->GraphBuilder = new PCGExGraph::FGraphBuilder(*Context->CurrentIO, &Context->GraphBuilderSettings, 8, Context->MainEdges);
-			Context->SetState(PCGExGraph::State_ReadyForNextEdges);
-		}
-	}
-
-	if (Context->IsState(PCGExGraph::State_ReadyForNextEdges))
-	{
-		if (!Context->AdvanceEdges(true))
-		{
-			Context->GraphBuilder->Compile(Context);
-			Context->SetAsyncState(PCGExGraph::State_WaitingOnWritingClusters);
-		}
-		else
-		{
-			if (!Context->CurrentCluster) { return false; }
-
-			Context->Refinement->PreProcess(Context->CurrentCluster, Context->GraphBuilder->Graph, Context->CurrentEdges);
-
-			if (!Context->HeuristicsHandler->PrepareForCluster(Context->GetAsyncManager(), Context->CurrentCluster))
+			if (!Context->TaggedEdges)
 			{
-				Context->GetAsyncManager()->Start<FPCGExRefineEdgesTask>(-1, Context->CurrentIO, Context->CurrentCluster, Context->CurrentEdges);
-				Context->SetAsyncState(PCGExGraph::State_ProcessingEdges);
+				PCGE_LOG(Warning, GraphAndLog, FTEXT("Some input points have no bound edges."));
+				return false;
 			}
-			else
-			{
-				Context->SetAsyncState(PCGExPathfinding::State_ProcessingHeuristics);
-			}
+
+			PCGExRefineEdges::FRefineClusterBatch* NewBatch = new PCGExRefineEdges::FRefineClusterBatch(Context, Context->CurrentIO, Context->TaggedEdges->Entries);
+			NewBatch->Refinement = Context->Refinement;
+			NewBatch->MainEdges = Context->MainEdges;
+			NewBatch->SetVtxFilterData(Context->VtxFiltersData, false);
+			Context->Batches.Add(NewBatch);
+			PCGExClusterBatch::ScheduleBatch(Context->GetAsyncManager(), NewBatch);
 		}
+
+		Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork);
 	}
 
-	if (Context->IsState(PCGExPathfinding::State_ProcessingHeuristics))
+	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
 	{
 		PCGEX_WAIT_ASYNC
 
-		Context->HeuristicsHandler->CompleteClusterPreparation();
-
-		Context->GetAsyncManager()->Start<FPCGExRefineEdgesTask>(-1, Context->CurrentIO, Context->CurrentCluster, Context->CurrentEdges);
-		Context->SetAsyncState(PCGExGraph::State_ProcessingEdges);
-
-		return false;
+		PCGExClusterBatch::CompleteBatches<PCGExRefineEdges::FRefineClusterBatch>(Context->GetAsyncManager(), Context->Batches);
+		Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncCompletion);
 	}
 
-	if (Context->IsState(PCGExGraph::State_ProcessingEdges))
+	if (Context->IsState(PCGExMT::State_WaitingOnAsyncCompletion))
 	{
 		PCGEX_WAIT_ASYNC
 
-		Context->SetState(PCGExGraph::State_ReadyForNextEdges);
-		return false;
+		for (const PCGExRefineEdges::FRefineClusterBatch* Batch : Context->Batches) { Batch->GraphBuilder->Compile(Context); }
+		Context->SetAsyncState(PCGExGraph::State_Compiling);
 	}
 
-	if (Context->IsState(PCGExGraph::State_WaitingOnWritingClusters))
+	if (Context->IsState(PCGExGraph::State_Compiling))
 	{
 		PCGEX_WAIT_ASYNC
+		for (const PCGExRefineEdges::FRefineClusterBatch* Batch : Context->Batches)
+		{
+			if (Batch->GraphBuilder->bCompiledSuccessfully) { Batch->GraphBuilder->Write(Context); }
+		}
 
-		if (Context->GraphBuilder->bCompiledSuccessfully) { Context->GraphBuilder->Write(Context); }
-		Context->SetState(PCGExMT::State_ReadyForNextPoints);
+		Context->Done();
 	}
 
 	if (Context->IsDone())
@@ -140,11 +116,75 @@ bool FPCGExRefineEdgesElement::ExecuteInternal(
 	return Context->IsDone();
 }
 
-bool FPCGExRefineEdgesTask::ExecuteTask()
+namespace PCGExRefineEdges
 {
-	const FPCGExRefineEdgesContext* Context = Manager->GetContext<FPCGExRefineEdgesContext>();
-	Context->Refinement->Process(Cluster, Context->GraphBuilder->Graph, EdgeIO, Context->HeuristicsHandler);
-	return false;
+	bool FPCGExRefineEdgesTask::ExecuteTask()
+	{
+		const FPCGExRefineEdgesContext* Context = Manager->GetContext<FPCGExRefineEdgesContext>();
+		Refinement->Process(Cluster, HeuristicsHandler);
+		return false;
+	}
+
+	PCGExRefineEdges::FClusterRefineProcess::FClusterRefineProcess(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges)
+		: FClusterProcessingData(InVtx, InEdges)
+	{
+		bRequiresHeuristics = true;
+	}
+
+	FClusterRefineProcess::~FClusterRefineProcess()
+	{
+	}
+
+	bool PCGExRefineEdges::FClusterRefineProcess::Process(FPCGExAsyncManager* AsyncManager)
+	{
+		if (!FClusterProcessingData::Process(AsyncManager)) { return false; }
+		AsyncManager->Start<FPCGExRefineEdgesTask>(-1, nullptr, Cluster, Refinement, HeuristicsHandler);
+		return true;
+	}
+
+	void FClusterRefineProcess::CompleteWork(FPCGExAsyncManager* AsyncManager)
+	{
+		PCGEX_SETTINGS(RefineEdges)
+
+		TArray<PCGExGraph::FIndexedEdge> ValidEdges;
+		Cluster->GetValidEdges(ValidEdges);
+		GraphBuilder->Graph->InsertEdges(ValidEdges);
+
+		FClusterProcessingData::CompleteWork(AsyncManager);
+	}
+
+	FRefineClusterBatch::FRefineClusterBatch(FPCGContext* InContext, PCGExData::FPointIO* InVtx, TArrayView<PCGExData::FPointIO*> InEdges)
+		: FClusterBatchProcessingData(InContext, InVtx, InEdges)
+	{
+	}
+
+	FRefineClusterBatch::~FRefineClusterBatch()
+	{
+		PCGEX_DELETE(GraphBuilder)
+	}
+
+	bool PCGExRefineEdges::FRefineClusterBatch::PrepareProcessing()
+	{
+		PCGEX_SETTINGS(RefineEdges)
+
+		if (!FClusterBatchProcessingData::PrepareProcessing()) { return false; }
+
+		GraphBuilder = new PCGExGraph::FGraphBuilder(*VtxIO, &GraphBuilderSettings, 6, MainEdges);
+
+		return true;
+	}
+
+	bool FRefineClusterBatch::PrepareSingle(FClusterRefineProcess* ClusterProcessor)
+	{
+		ClusterProcessor->GraphBuilder = GraphBuilder;
+		ClusterProcessor->Refinement = Refinement;
+		return true;
+	}
+
+	void FRefineClusterBatch::CompleteWork(FPCGExAsyncManager* AsyncManager)
+	{
+		FClusterBatchProcessingData<FClusterRefineProcess>::CompleteWork(AsyncManager);
+	}
 }
 
 #undef LOCTEXT_NAMESPACE

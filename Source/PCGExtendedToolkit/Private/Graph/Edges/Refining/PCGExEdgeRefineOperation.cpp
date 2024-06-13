@@ -6,21 +6,11 @@
 
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristics.h"
 
-void UPCGExEdgeRefineOperation::PrepareForPointIO(PCGExData::FPointIO* InPointIO)
-{
-	PointIO = InPointIO;
-}
-
-void UPCGExEdgeRefineOperation::PreProcess(PCGExCluster::FCluster* InCluster, PCGExGraph::FGraph* InGraph, PCGExData::FPointIO* InEdgesIO)
-{
-}
-
-void UPCGExEdgeRefineOperation::Process(PCGExCluster::FCluster* InCluster, PCGExGraph::FGraph* InGraph, PCGExData::FPointIO* InEdgesIO, PCGExHeuristics::THeuristicsHandler* InHeuristics)
+void UPCGExEdgeRefineOperation::Process(PCGExCluster::FCluster* InCluster, PCGExHeuristics::THeuristicsHandler* InHeuristics)
 {
 }
 
 void UPCGExEdgeRefineOperation::Cleanup()
 {
-	PointIO = nullptr;
 	Super::Cleanup();
 }

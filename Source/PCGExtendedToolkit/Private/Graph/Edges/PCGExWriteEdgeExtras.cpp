@@ -133,7 +133,7 @@ namespace PCGExWriteEdgeExtras
 				bOwnSolidificationRad##_AXIS = true;\
 				SolidificationRad##_AXIS = new PCGEx::FLocalSingleFieldGetter();\
 				SolidificationRad##_AXIS->Capture(Settings->Radius##_AXIS##SourceAttribute);\
-				SolidificationRad##_AXIS->Grab(*Edges); }
+				SolidificationRad##_AXIS->Grab(*EdgesIO); }
 			PCGEX_FOREACH_XYZ(PCGEX_CREATE_LOCAL_AXIS_GETTER)
 #undef PCGEX_CREATE_LOCAL_AXIS_GETTER
 
@@ -142,7 +142,7 @@ namespace PCGExWriteEdgeExtras
 			if (Settings->SolidificationLerpOperand == EPCGExOperandType::Attribute)
 			{
 				SolidificationLerpGetter->Capture(Settings->SolidificationLerpAttribute);
-				if (!SolidificationLerpGetter->Grab(*Edges))
+				if (!SolidificationLerpGetter->Grab(*EdgesIO))
 				{
 					PCGE_LOG_C(Warning, GraphAndLog, Context, FText::Format(FTEXT("Some edges don't have the specified SolidificationEdgeLerp Attribute {0}."), FText::FromName(Settings->SolidificationLerpAttribute.GetName())));
 				}
@@ -157,16 +157,16 @@ namespace PCGExWriteEdgeExtras
 		{
 			EdgeDirCompGetter = new PCGEx::FLocalVectorGetter();
 			EdgeDirCompGetter->Capture(Settings->EdgeSourceAttribute);
-			EdgeDirCompGetter->Grab(*Edges);
+			EdgeDirCompGetter->Grab(*EdgesIO);
 		}
 
 		if (Settings->bEndpointsBlending)
 		{
 			MetadataBlender = new PCGExDataBlending::FMetadataBlender(const_cast<FPCGExBlendingSettings*>(&Settings->BlendingSettings));
-			MetadataBlender->PrepareForData(*Edges, *Vtx, PCGExData::ESource::In, true);
+			MetadataBlender->PrepareForData(*EdgesIO, *VtxIO, PCGExData::ESource::In, true);
 		}
 
-		PCGExData::FPointIO& PointIO = *Edges;
+		PCGExData::FPointIO& PointIO = *EdgesIO;
 		PCGEX_FOREACH_FIELD_EDGEEXTRAS(PCGEX_OUTPUT_ACCESSOR_INIT)
 
 		bAscendingDesired = Settings->DirectionChoice == EPCGExEdgeDirectionChoice::SmallestToGreatest;
@@ -200,8 +200,8 @@ namespace PCGExWriteEdgeExtras
 		uint32 EdgeStartPtIndex = Edge.Start;
 		uint32 EdgeEndPtIndex = Edge.End;
 
-		const FPCGPoint& StartPoint = Vtx->GetInPoint(EdgeStartPtIndex);
-		const FPCGPoint& EndPoint = Vtx->GetInPoint(EdgeEndPtIndex);
+		const FPCGPoint& StartPoint = VtxIO->GetInPoint(EdgeStartPtIndex);
+		const FPCGPoint& EndPoint = VtxIO->GetInPoint(EdgeEndPtIndex);
 
 		double BlendWeightStart = StartWeight;
 		double BlendWeightEnd = EndWeight;
@@ -240,7 +240,7 @@ namespace PCGExWriteEdgeExtras
 		PCGEX_OUTPUT_VALUE(EdgeDirection, Edge.PointIndex, EdgeDirection);
 		PCGEX_OUTPUT_VALUE(EdgeLength, Edge.PointIndex, EdgeLength);
 
-		FPCGPoint& MutableTarget = Edges->GetMutablePoint(Edge.PointIndex);
+		FPCGPoint& MutableTarget = EdgesIO->GetMutablePoint(Edge.PointIndex);
 
 		if (bSolidify)
 		{
@@ -301,10 +301,10 @@ namespace PCGExWriteEdgeExtras
 
 		if (MetadataBlender)
 		{
-			const PCGEx::FPointRef Target = Edges->GetOutPointRef(Edge.PointIndex);
+			const PCGEx::FPointRef Target = EdgesIO->GetOutPointRef(Edge.PointIndex);
 			MetadataBlender->PrepareForBlending(Target);
-			MetadataBlender->Blend(Target, Vtx->GetInPointRef(EdgeStartPtIndex), Target, BlendWeightStart);
-			MetadataBlender->Blend(Target, Vtx->GetInPointRef(EdgeEndPtIndex), Target, BlendWeightEnd);
+			MetadataBlender->Blend(Target, VtxIO->GetInPointRef(EdgeStartPtIndex), Target, BlendWeightStart);
+			MetadataBlender->Blend(Target, VtxIO->GetInPointRef(EdgeEndPtIndex), Target, BlendWeightEnd);
 			MetadataBlender->CompleteBlending(Target, 2, BlendWeightStart + BlendWeightEnd);
 		}
 	}
@@ -355,17 +355,17 @@ namespace PCGExWriteEdgeExtras
 		PCGEX_OUTPUT_FWD(VtxNormal, FVector)
 		PCGEX_OUTPUT_FWD(VtxEdgeCount, int32)
 
-		PCGExData::FPointIO& PointIO = *Vtx;
+		PCGExData::FPointIO& PointIO = *VtxIO;
 		PCGEX_OUTPUT_ACCESSOR_INIT(VtxNormal, FVector)
 		PCGEX_OUTPUT_ACCESSOR_INIT(VtxEdgeCount, int32)
 
-		ProjectionSettings.Init(Vtx);
+		ProjectionSettings.Init(VtxIO);
 
 		if (Settings->DirectionMethod == EPCGExEdgeDirectionMethod::EndpointsAttribute)
 		{
 			VtxDirCompGetter = new PCGEx::FLocalSingleFieldGetter();
 			VtxDirCompGetter->Capture(Settings->VtxSourceAttribute);
-			VtxDirCompGetter->Grab(*Vtx);
+			VtxDirCompGetter->Grab(*VtxIO);
 		}
 
 		const bool bSolidify = Settings->SolidificationAxis != EPCGExMinimalAxis::None;
@@ -377,7 +377,7 @@ namespace PCGExWriteEdgeExtras
 						if (Settings->bWriteRadius##_AXIS && Settings->Radius##_AXIS##Source == EPCGExGraphValueSource::Point) {\
 						SolidificationRad##_AXIS = new PCGEx::FLocalSingleFieldGetter();\
 						SolidificationRad##_AXIS->Capture(Settings->Radius##_AXIS##SourceAttribute);\
-						SolidificationRad##_AXIS->Grab(*Vtx); }
+						SolidificationRad##_AXIS->Grab(*VtxIO); }
 			PCGEX_FOREACH_XYZ(PCGEX_CREATE_LOCAL_AXIS_GETTER)
 #undef PCGEX_CREATE_LOCAL_AXIS_GETTER
 		}

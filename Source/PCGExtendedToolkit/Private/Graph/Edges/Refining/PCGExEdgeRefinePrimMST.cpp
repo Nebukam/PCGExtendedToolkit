@@ -10,8 +10,6 @@
 
 void UPCGExEdgeRefinePrimMST::Process(
 	PCGExCluster::FCluster* InCluster,
-	PCGExGraph::FGraph* InGraph,
-	PCGExData::FPointIO* InEdgesIO,
 	PCGExHeuristics::THeuristicsHandler* InHeuristics)
 {
 	const PCGExCluster::FNode* NoNode = new PCGExCluster::FNode();
@@ -49,8 +47,9 @@ void UPCGExEdgeRefinePrimMST::Process(
 			if (Visited.Contains(NeighborIndex)) { continue; } // Exit early
 
 			const PCGExCluster::FNode& AdjacentNode = InCluster->Nodes[NeighborIndex];
-			const PCGExGraph::FIndexedEdge& Edge = InCluster->Edges[EdgeIndex];
-
+			PCGExGraph::FIndexedEdge& Edge = InCluster->Edges[EdgeIndex];
+			Edge.bValid = false; // Invalidate edge 
+			
 			const double Score = InHeuristics->GetEdgeScore(Current, AdjacentNode, Edge, *NoNode, *NoNode);
 
 			if (Score >= ScoredQueue->Scores[NeighborIndex]) { continue; }
@@ -66,11 +65,12 @@ void UPCGExEdgeRefinePrimMST::Process(
 	{
 		uint32 NeighborIndex;
 		uint32 EdgeIndex;
-		
+
 		PCGEx::H64(Parent[i], NeighborIndex, EdgeIndex);
 
 		if (NeighborIndex == i) { continue; }
-		InGraph->InsertEdge(InCluster->Edges[EdgeIndex]);
+
+		InCluster->Edges[EdgeIndex].bValid = true;
 	}
 
 	Visited.Empty();
