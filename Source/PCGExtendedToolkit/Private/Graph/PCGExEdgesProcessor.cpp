@@ -126,10 +126,7 @@ bool FPCGExEdgesProcessorContext::AdvanceEdges(const bool bBuildCluster, const b
 
 	if (bCleanupKeys && CurrentEdges) { CurrentEdges->CleanupKeys(); }
 
-	if (TaggedEdges && TaggedEdges
-	                   ->
-	                   Entries.IsValidIndex(++CurrentEdgesIndex)
-	)
+	if (TaggedEdges && TaggedEdges->Entries.IsValidIndex(++CurrentEdgesIndex))
 	{
 		CurrentEdges = TaggedEdges->Entries[CurrentEdgesIndex];
 

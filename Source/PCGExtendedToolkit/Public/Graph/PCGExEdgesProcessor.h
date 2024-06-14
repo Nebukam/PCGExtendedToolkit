@@ -141,8 +141,9 @@ protected:
 
 			PCGExClusterMT::ScheduleBatch(GetAsyncManager(), NewBatch);
 			bCProcessing = true;
-			
 		}
+
+		if (bCProcessing) { SetAsyncState(PCGExClusterMT::State_WaitingOnClusterProcessing); }
 
 		return bCProcessing;
 	}
