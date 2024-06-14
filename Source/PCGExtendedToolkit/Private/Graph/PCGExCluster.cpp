@@ -125,7 +125,11 @@ namespace PCGExCluster
 
 		TSet<int32> NodePointsSet;
 
-		if (!BuildIndexedEdges(EdgeIO, InEndpointsLookup, Edges, NodePointsSet, true)) { return false; }
+		if (!BuildIndexedEdges(EdgeIO, InEndpointsLookup, Edges, NodePointsSet, true))
+		{
+			bValid = false;
+			return false;
+		}
 
 		bool bInvalidCluster = false;
 

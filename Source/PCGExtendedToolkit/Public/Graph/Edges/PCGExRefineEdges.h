@@ -12,7 +12,7 @@
 
 namespace PCGExRefineEdges
 {
-	class FRefineClusterBatch;
+	class FProcessorBatch;
 }
 
 namespace PCGExHeuristics
@@ -90,10 +90,10 @@ protected:
 
 namespace PCGExRefineEdges
 {
-	class PCGEXTENDEDTOOLKIT_API FPCGExRefineEdgesTask final : public FPCGExNonAbandonableTask
+	class PCGEXTENDEDTOOLKIT_API FRefineTask final : public FPCGExNonAbandonableTask
 	{
 	public:
-		FPCGExRefineEdgesTask(
+		FRefineTask(
 			FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
 			PCGExCluster::FCluster* InCluster,
 			UPCGExEdgeRefineOperation* InRefinement,
@@ -112,11 +112,11 @@ namespace PCGExRefineEdges
 		virtual bool ExecuteTask() override;
 	};
 
-	class FClusterRefineProcess final : public PCGExClusterMT::FClusterProcessingData
+	class FProcessor final : public PCGExClusterMT::FClusterProcessor
 	{
 	public:
-		FClusterRefineProcess(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges);
-		virtual ~FClusterRefineProcess() override;
+		FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges);
+		virtual ~FProcessor() override;
 
 		virtual bool Process(FPCGExAsyncManager* AsyncManager) override;
 		virtual void CompleteWork() override;
@@ -124,13 +124,13 @@ namespace PCGExRefineEdges
 		UPCGExEdgeRefineOperation* Refinement = nullptr;
 	};
 
-	class FRefineClusterBatch final : public PCGExClusterMT::TClusterBatchBuilderProcessor<FClusterRefineProcess>
+	class FProcessorBatch final : public PCGExClusterMT::TBatchWithGraphBuilder<FProcessor>
 	{
 	public:
 		UPCGExEdgeRefineOperation* Refinement = nullptr;
 
-		FRefineClusterBatch(FPCGContext* InContext, PCGExData::FPointIO* InVtx, TArrayView<PCGExData::FPointIO*> InEdges);
+		FProcessorBatch(FPCGContext* InContext, PCGExData::FPointIO* InVtx, TArrayView<PCGExData::FPointIO*> InEdges);
 
-		virtual bool PrepareSingle(FClusterRefineProcess* ClusterProcessor) override;
+		virtual bool PrepareSingle(FProcessor* ClusterProcessor) override;
 	};
 }

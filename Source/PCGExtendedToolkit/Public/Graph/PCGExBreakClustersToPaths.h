@@ -87,3 +87,24 @@ protected:
 	virtual bool Boot(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
+
+namespace PCGExBreakClustersToPaths
+{
+	class FProcessor final : public PCGExClusterMT::FClusterProcessor
+	{
+		TArray<PCGExCluster::FNodeChain*> Chains;
+		
+	public:
+		FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges);
+		virtual ~FProcessor() override;
+
+		virtual bool Process(FPCGExAsyncManager* AsyncManager) override;
+		virtual void CompleteWork() override;
+
+		virtual void ProcessSingleRangeIteration(const int32 Iteration) override;
+		virtual void ProcessSingleEdge(PCGExGraph::FIndexedEdge& Edge) override;
+
+		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
+	};
+	
+}

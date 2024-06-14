@@ -22,7 +22,7 @@ namespace PCGExDataBlending
 
 namespace PCGExWriteEdgeExtras
 {
-	class FWriteEdgeExtrasBatch;
+	class FProcessorBatch;
 }
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Edge Direction Mode"))
@@ -215,7 +215,7 @@ protected:
 
 namespace PCGExWriteEdgeExtras
 {
-	class FClusterEdgeProcess final : public PCGExClusterMT::FClusterProcessingData
+	class FProcessor final : public PCGExClusterMT::FClusterProcessor
 	{
 		bool bAscendingDesired = true;
 		double StartWeight = 0;
@@ -228,8 +228,8 @@ namespace PCGExWriteEdgeExtras
 		PCGEX_FOREACH_FIELD_EDGEEXTRAS(PCGEX_OUTPUT_DECL)
 
 	public:
-		FClusterEdgeProcess(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges);
-		virtual ~FClusterEdgeProcess() override;
+		FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges);
+		virtual ~FProcessor() override;
 
 		virtual bool Process(FPCGExAsyncManager* AsyncManager) override;
 		virtual void ProcessSingleEdge(PCGExGraph::FIndexedEdge& Edge) override;
@@ -250,7 +250,7 @@ namespace PCGExWriteEdgeExtras
 #undef PCGEX_LOCAL_EDGE_GETTER_DECL
 	};
 
-	class FWriteEdgeExtrasBatch final : public PCGExClusterMT::TClusterBatchProcessor<FClusterEdgeProcess>
+	class FProcessorBatch final : public PCGExClusterMT::TBatch<FProcessor>
 	{
 		FPCGExGeo2DProjectionSettings ProjectionSettings;
 
@@ -264,11 +264,11 @@ namespace PCGExWriteEdgeExtras
 #undef PCGEX_LOCAL_EDGE_GETTER_DECL
 
 	public:
-		FWriteEdgeExtrasBatch(FPCGContext* InContext, PCGExData::FPointIO* InVtx, TArrayView<PCGExData::FPointIO*> InEdges);
-		virtual ~FWriteEdgeExtrasBatch() override;
+		FProcessorBatch(FPCGContext* InContext, PCGExData::FPointIO* InVtx, TArrayView<PCGExData::FPointIO*> InEdges);
+		virtual ~FProcessorBatch() override;
 
 		virtual bool PrepareProcessing() override;
-		virtual bool PrepareSingle(FClusterEdgeProcess* ClusterProcessor) override;
+		virtual bool PrepareSingle(FProcessor* ClusterProcessor) override;
 		virtual void CompleteWork() override;
 	};
 }

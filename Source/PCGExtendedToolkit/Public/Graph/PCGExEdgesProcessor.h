@@ -97,13 +97,13 @@ protected:
 	bool ProcessFilters();
 	bool ProcessClusters();
 
-	TArray<PCGExClusterMT::FClusterBatchProcessorBase*> Batches;
+	TArray<PCGExClusterMT::FClusterProcessorBatchBase*> Batches;
 
 	PCGExMT::AsyncState State_ClusterProcessingDone;
 	bool bClusterUseGraphBuilder = false;
 
-	template <typename T, class InitBatchFunc>
-	void StartProcessingClusters(InitBatchFunc&& InitBatch, const PCGExMT::AsyncState InState)
+	template <typename T, class ValidateEntriesFunc, class InitBatchFunc>
+	bool StartProcessingClusters(ValidateEntriesFunc&& ValidateEntries, InitBatchFunc&& InitBatch, const PCGExMT::AsyncState InState)
 	{
 		State_ClusterProcessingDone = InState;
 
@@ -118,6 +118,8 @@ protected:
 				continue;
 			}
 
+			if (!ValidateEntries(TaggedEdges)) { continue; }
+
 			T* NewBatch = new T(this, CurrentIO, TaggedEdges->Entries);
 			Batches.Add(NewBatch);
 
@@ -131,7 +133,10 @@ protected:
 			PCGExClusterMT::ScheduleBatch(GetAsyncManager(), NewBatch);
 		}
 
+		if (Batches.IsEmpty()) { return false; }
+
 		SetAsyncState(PCGExClusterMT::State_WaitingOnClusterProcessing);
+		return true;
 	}
 
 	int32 CurrentEdgesIndex = -1;

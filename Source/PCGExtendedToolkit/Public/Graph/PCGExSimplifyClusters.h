@@ -85,13 +85,13 @@ protected:
 
 namespace PCGExSimplifyClusters
 {
-	class FClusterSimplifyProcess final : public PCGExClusterMT::FClusterProcessingData
+	class FProcessor final : public PCGExClusterMT::FClusterProcessor
 	{
 		TArray<PCGExCluster::FNodeChain*> Chains;
 
 	public:
-		FClusterSimplifyProcess(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges);
-		virtual ~FClusterSimplifyProcess() override;
+		FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges);
+		virtual ~FProcessor() override;
 
 		virtual bool Process(FPCGExAsyncManager* AsyncManager) override;
 		virtual void CompleteWork() override;

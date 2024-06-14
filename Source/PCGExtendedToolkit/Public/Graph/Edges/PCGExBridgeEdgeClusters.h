@@ -62,23 +62,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBridgeEdgeClustersContext final : public FPC
 
 	virtual ~FPCGExBridgeEdgeClustersContext() override;
 
-	EPCGExBridgeClusterMethod BridgeMethod;
 	FPCGExGeo2DProjectionSettings ProjectionSettings;
-
-	int32 TotalPoints = -1;
-	PCGExData::FPointIO* ConsolidatedEdges = nullptr;
-
-	TArray<PCGExCluster::FCluster*> Clusters;
-	TArray<PCGExData::FPointIO*> BridgedEdges;
-	TArray<PCGExCluster::FCluster*> BridgedClusters;
-
-	FPCGExPointIOMerger* Merger = nullptr;
-	FPCGExGraphBuilderSettings GraphBuilderSettings;
-	PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
-
-protected:
-	mutable FRWLock NumEdgeLock;
-	void BumpEdgeNum(const FPCGPoint& A, const FPCGPoint& B) const;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExBridgeEdgeClustersElement final : public FPCGExEdgesProcessorElement
@@ -94,20 +78,60 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExCreateBridgeTask final : public FPCGExNonAbandonableTask
+namespace PCGExBridgeClusters
 {
-public:
-	FPCGExCreateBridgeTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-	                       PCGExCluster::FCluster* A,
-	                       PCGExCluster::FCluster* B) :
-		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
-		ClusterA(A),
-		ClusterB(B)
+	class FProcessor final : public PCGExClusterMT::FClusterProcessor
 	{
-	}
+	public:
+		FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges);
+		virtual ~FProcessor() override;
 
-	PCGExCluster::FCluster* ClusterA = nullptr;
-	PCGExCluster::FCluster* ClusterB = nullptr;
+		virtual bool Process(FPCGExAsyncManager* AsyncManager) override;
+		virtual void ProcessSingleEdge(PCGExGraph::FIndexedEdge& Edge) override;
+		virtual void CompleteWork() override;
+	};
 
-	virtual bool ExecuteTask() override;
-};
+	class FProcessorBatch final : public PCGExClusterMT::TBatch<FProcessor>
+	{
+	public:
+		PCGExData::FPointIO* ConsolidatedEdges = nullptr;
+		FPCGExPointIOMerger* Merger = nullptr;
+		TSet<uint64> Bridges;
+
+		TArray<PCGExCluster::FCluster*> ValidClusters;
+
+		FProcessorBatch(FPCGContext* InContext, PCGExData::FPointIO* InVtx, TArrayView<PCGExData::FPointIO*> InEdges);
+		virtual ~FProcessorBatch() override;
+
+		virtual bool PrepareProcessing() override;
+		virtual bool PrepareSingle(FProcessor* ClusterProcessor) override;
+		virtual void CompleteWork() override;
+
+		void ConnectClusters();
+		void Write() const;
+	};
+
+	class PCGEXTENDEDTOOLKIT_API FPCGExCreateBridgeTask final : public FPCGExNonAbandonableTask
+	{
+	public:
+		FPCGExCreateBridgeTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+		                       FProcessorBatch* InBatch,
+		                       PCGExCluster::FCluster* A,
+		                       PCGExCluster::FCluster* B) :
+			FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+			Batch(InBatch),
+			ClusterA(A),
+			ClusterB(B)
+		{
+		}
+
+		FProcessorBatch* Batch = nullptr;
+
+		PCGExCluster::FCluster* ClusterA = nullptr;
+		PCGExCluster::FCluster* ClusterB = nullptr;
+
+		virtual bool ExecuteTask() override;
+
+		void BumpEdgeNum(const FPCGPoint& A, const FPCGPoint& B) const;
+	};
+}

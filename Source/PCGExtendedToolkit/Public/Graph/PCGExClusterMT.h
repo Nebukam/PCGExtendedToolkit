@@ -186,7 +186,7 @@ namespace PCGExClusterMT
 
 #pragma endregion
 
-	class FClusterProcessingData
+	class FClusterProcessor
 	{
 	protected:
 		FPCGExAsyncManager* AsyncManagerPtr = nullptr;
@@ -215,12 +215,12 @@ namespace PCGExClusterMT
 
 		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
 
-		FClusterProcessingData(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges):
+		FClusterProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges):
 			VtxIO(InVtx), EdgesIO(InEdges)
 		{
 		}
 
-		virtual ~FClusterProcessingData()
+		virtual ~FClusterProcessor()
 		{
 			PCGEX_DELETE(HeuristicsHandler);
 
@@ -302,7 +302,7 @@ namespace PCGExClusterMT
 			int32 CurrentCount = 0;
 			while (CurrentCount < Cluster->Nodes.Num())
 			{
-				AsyncManagerPtr->Start<FAsyncProcessNodeRange<FClusterProcessingData>>(
+				AsyncManagerPtr->Start<FAsyncProcessNodeRange<FClusterProcessor>>(
 					CurrentCount, nullptr, this, FMath::Min(Cluster->Nodes.Num() - CurrentCount, PerLoopIterations));
 				CurrentCount += PerLoopIterations;
 			}
@@ -319,7 +319,7 @@ namespace PCGExClusterMT
 			int32 CurrentCount = 0;
 			while (CurrentCount < Cluster->Edges.Num())
 			{
-				AsyncManagerPtr->Start<FAsyncProcessEdgeRange<FClusterProcessingData>>(
+				AsyncManagerPtr->Start<FAsyncProcessEdgeRange<FClusterProcessor>>(
 					CurrentCount, nullptr, this, FMath::Min(Cluster->Edges.Num() - CurrentCount, PerLoopIterations));
 				CurrentCount += PerLoopIterations;
 			}
@@ -336,7 +336,7 @@ namespace PCGExClusterMT
 			int32 CurrentCount = 0;
 			while (CurrentCount < NumIterations)
 			{
-				AsyncManagerPtr->Start<FAsyncProcessRange<FClusterProcessingData>>(
+				AsyncManagerPtr->Start<FAsyncProcessRange<FClusterProcessor>>(
 					CurrentCount, nullptr, this, FMath::Min(NumIterations - CurrentCount, PerLoopIterations));
 				CurrentCount += PerLoopIterations;
 			}
@@ -374,7 +374,7 @@ namespace PCGExClusterMT
 		}
 	};
 
-	class FClusterBatchProcessorBase
+	class FClusterProcessorBatchBase
 	{
 	protected:
 		FPCGExAsyncManager* AsyncManagerPtr = nullptr;
@@ -389,6 +389,8 @@ namespace PCGExClusterMT
 		TArray<int32> ExpectedAdjacency;
 
 	public:
+		mutable FRWLock BatchLock;
+		
 		FPCGContext* Context = nullptr;
 
 		PCGExData::FPointIO* VtxIO = nullptr;
@@ -400,13 +402,13 @@ namespace PCGExClusterMT
 
 		virtual bool UseGraphBuilder() const { return false; }
 
-		FClusterBatchProcessorBase(FPCGContext* InContext, PCGExData::FPointIO* InVtx, TArrayView<PCGExData::FPointIO*> InEdges):
+		FClusterProcessorBatchBase(FPCGContext* InContext, PCGExData::FPointIO* InVtx, TArrayView<PCGExData::FPointIO*> InEdges):
 			Context(InContext), VtxIO(InVtx)
 		{
 			Edges.Append(InEdges);
 		}
 
-		virtual ~FClusterBatchProcessorBase()
+		virtual ~FClusterProcessorBatchBase()
 		{
 			Context = nullptr;
 			VtxIO = nullptr;
@@ -438,7 +440,7 @@ namespace PCGExClusterMT
 	};
 
 	template <typename T>
-	class TClusterBatchProcessor : public FClusterBatchProcessorBase
+	class TBatch : public FClusterProcessorBatchBase
 	{
 	public:
 		TArray<T*> Processors;
@@ -446,12 +448,12 @@ namespace PCGExClusterMT
 
 		PCGExMT::AsyncState CurrentState = PCGExMT::State_Setup;
 
-		TClusterBatchProcessor(FPCGContext* InContext, PCGExData::FPointIO* InVtx, const TArrayView<PCGExData::FPointIO*> InEdges):
-			FClusterBatchProcessorBase(InContext, InVtx, InEdges)
+		TBatch(FPCGContext* InContext, PCGExData::FPointIO* InVtx, const TArrayView<PCGExData::FPointIO*> InEdges):
+			FClusterProcessorBatchBase(InContext, InVtx, InEdges)
 		{
 		}
 
-		virtual ~TClusterBatchProcessor() override
+		virtual ~TBatch() override
 		{
 			ClosedBatchProcessors.Empty();
 			PCGEX_DELETE_TARRAY(Processors)
@@ -468,7 +470,7 @@ namespace PCGExClusterMT
 
 		virtual bool PrepareProcessing() override
 		{
-			return FClusterBatchProcessorBase::PrepareProcessing();
+			return FClusterProcessorBatchBase::PrepareProcessing();
 		}
 
 		virtual void Process(FPCGExAsyncManager* AsyncManager) override
@@ -544,7 +546,7 @@ namespace PCGExClusterMT
 				while (CurrentCount < ClosedBatchProcessors.Num())
 				{
 					const int32 PerIterationsNum = GetDefault<UPCGExGlobalSettings>()->DefaultBatchIterations;
-					AsyncManagerPtr->Start<FAsyncBatchProcessRange<TClusterBatchProcessor<T>>>(
+					AsyncManagerPtr->Start<FAsyncBatchProcessRange<TBatch<T>>>(
 						CurrentCount, nullptr, this, FMath::Min(NumTrivial - CurrentCount, PerIterationsNum));
 					CurrentCount += PerIterationsNum;
 				}
@@ -553,27 +555,27 @@ namespace PCGExClusterMT
 	};
 
 	template <typename T>
-	class TClusterBatchBuilderProcessor : public TClusterBatchProcessor<T>
+	class TBatchWithGraphBuilder : public TBatch<T>
 	{
 	public:
-		TClusterBatchBuilderProcessor(FPCGContext* InContext, PCGExData::FPointIO* InVtx, TArrayView<PCGExData::FPointIO*> InEdges):
-			TClusterBatchProcessor<T>(InContext, InVtx, InEdges)
+		TBatchWithGraphBuilder(FPCGContext* InContext, PCGExData::FPointIO* InVtx, TArrayView<PCGExData::FPointIO*> InEdges):
+			TBatch<T>(InContext, InVtx, InEdges)
 		{
 		}
 
 		virtual bool UseGraphBuilder() const override { return true; }
 	};
 
-	static void ScheduleBatch(FPCGExAsyncManager* Manager, FClusterBatchProcessorBase* Batch)
+	static void ScheduleBatch(FPCGExAsyncManager* Manager, FClusterProcessorBatchBase* Batch)
 	{
-		Manager->Start<FStartClusterBatchProcessing<FClusterBatchProcessorBase>>(-1, nullptr, Batch);
+		Manager->Start<FStartClusterBatchProcessing<FClusterProcessorBatchBase>>(-1, nullptr, Batch);
 	}
 
-	static void CompleteBatches(FPCGExAsyncManager* Manager, const TArrayView<FClusterBatchProcessorBase*> Batches)
+	static void CompleteBatches(FPCGExAsyncManager* Manager, const TArrayView<FClusterProcessorBatchBase*> Batches)
 	{
-		for (FClusterBatchProcessorBase* Batch : Batches)
+		for (FClusterProcessorBatchBase* Batch : Batches)
 		{
-			Manager->Start<FStartClusterBatchCompleteWork<FClusterBatchProcessorBase>>(-1, nullptr, Batch);
+			Manager->Start<FStartClusterBatchCompleteWork<FClusterProcessorBatchBase>>(-1, nullptr, Batch);
 		}
 	}
 }

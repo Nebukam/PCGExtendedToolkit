@@ -49,10 +49,14 @@ bool FPCGExSimplifyClustersElement::ExecuteInternal(FPCGContext* InContext) cons
 	{
 		if (!Boot(Context)) { return true; }
 
-		Context->StartProcessingClusters<PCGExClusterMT::TClusterBatchBuilderProcessor<PCGExSimplifyClusters::FClusterSimplifyProcess>>(
-			[&](PCGExClusterMT::TClusterBatchBuilderProcessor<PCGExSimplifyClusters::FClusterSimplifyProcess>* NewBatch)
-			{
-			}, PCGExMT::State_Done);
+		if (!Context->StartProcessingClusters<PCGExClusterMT::TBatchWithGraphBuilder<PCGExSimplifyClusters::FProcessor>>(
+			[](PCGExData::FPointIOTaggedEntries* Entries) { return true; },
+			[&](PCGExClusterMT::TBatchWithGraphBuilder<PCGExSimplifyClusters::FProcessor>* NewBatch) { return; },
+			PCGExMT::State_Done))
+		{
+			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not build any clusters."));
+			return true;
+		}
 	}
 
 	if (!Context->ProcessClusters()) { return false; }
@@ -68,19 +72,19 @@ bool FPCGExSimplifyClustersElement::ExecuteInternal(FPCGContext* InContext) cons
 
 namespace PCGExSimplifyClusters
 {
-	FClusterSimplifyProcess::FClusterSimplifyProcess(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges):
-		FClusterProcessingData(InVtx, InEdges)
+	FProcessor::FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges):
+		FClusterProcessor(InVtx, InEdges)
 	{
 	}
 
-	FClusterSimplifyProcess::~FClusterSimplifyProcess()
+	FProcessor::~FProcessor()
 	{
 		PCGEX_DELETE_TARRAY(Chains)
 	}
 
-	bool FClusterSimplifyProcess::Process(FPCGExAsyncManager* AsyncManager)
+	bool FProcessor::Process(FPCGExAsyncManager* AsyncManager)
 	{
-		if (!FClusterProcessingData::Process(AsyncManager)) { return false; }
+		if (!FClusterProcessor::Process(AsyncManager)) { return false; }
 
 		PCGEX_SETTINGS(SimplifyClusters)
 
@@ -94,17 +98,17 @@ namespace PCGExSimplifyClusters
 	}
 
 
-	void FClusterSimplifyProcess::CompleteWork()
+	void FProcessor::CompleteWork()
 	{
 		PCGEX_SETTINGS(SimplifyClusters)
 
 		PCGExClusterTask::DedupeChains(Chains);
 		StartParallelLoopForRange(Chains.Num());
 
-		FClusterProcessingData::CompleteWork();
+		FClusterProcessor::CompleteWork();
 	}
 
-	void FClusterSimplifyProcess::ProcessSingleRangeIteration(const int32 Iteration)
+	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration)
 	{
 		PCGEX_SETTINGS(SimplifyClusters)
 

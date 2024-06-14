@@ -58,11 +58,17 @@ bool FPCGExRefineEdgesElement::ExecuteInternal(
 	{
 		if (!Boot(Context)) { return true; }
 
-		Context->StartProcessingClusters<PCGExRefineEdges::FRefineClusterBatch>(
-			[&](PCGExRefineEdges::FRefineClusterBatch* NewBatch)
+		if(!Context->StartProcessingClusters<PCGExRefineEdges::FProcessorBatch>(
+			[](PCGExData::FPointIOTaggedEntries* Entries) { return true; },
+			[&](PCGExRefineEdges::FProcessorBatch* NewBatch)
 			{
 				NewBatch->Refinement = Context->Refinement;
-			}, PCGExMT::State_Done);
+			},
+			PCGExMT::State_Done))
+		{
+			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not build any clusters."));
+			return true;
+		}
 	}
 
 	if (!Context->ProcessClusters()) { return false; }
@@ -78,26 +84,26 @@ bool FPCGExRefineEdgesElement::ExecuteInternal(
 
 namespace PCGExRefineEdges
 {
-	bool FPCGExRefineEdgesTask::ExecuteTask()
+	bool FRefineTask::ExecuteTask()
 	{
 		const FPCGExRefineEdgesContext* Context = Manager->GetContext<FPCGExRefineEdgesContext>();
 		Refinement->Process(Cluster, HeuristicsHandler);
 		return false;
 	}
 
-	FClusterRefineProcess::FClusterRefineProcess(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges)
-		: FClusterProcessingData(InVtx, InEdges)
+	FProcessor::FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges)
+		: FClusterProcessor(InVtx, InEdges)
 	{
 		bRequiresHeuristics = true;
 	}
 
-	FClusterRefineProcess::~FClusterRefineProcess()
+	FProcessor::~FProcessor()
 	{
 	}
 
-	bool FClusterRefineProcess::Process(FPCGExAsyncManager* AsyncManager)
+	bool FProcessor::Process(FPCGExAsyncManager* AsyncManager)
 	{
-		if (!FClusterProcessingData::Process(AsyncManager)) { return false; }
+		if (!FClusterProcessor::Process(AsyncManager)) { return false; }
 
 		if (IsTrivial())
 		{
@@ -105,11 +111,11 @@ namespace PCGExRefineEdges
 			return true;
 		}
 
-		AsyncManagerPtr->Start<FPCGExRefineEdgesTask>(-1, nullptr, Cluster, Refinement, HeuristicsHandler);
+		AsyncManagerPtr->Start<FRefineTask>(-1, nullptr, Cluster, Refinement, HeuristicsHandler);
 		return true;
 	}
 
-	void FClusterRefineProcess::CompleteWork()
+	void FProcessor::CompleteWork()
 	{
 		PCGEX_SETTINGS(RefineEdges)
 
@@ -117,15 +123,15 @@ namespace PCGExRefineEdges
 		Cluster->GetValidEdges(ValidEdges);
 		GraphBuilder->Graph->InsertEdges(ValidEdges);
 
-		FClusterProcessingData::CompleteWork();
+		FClusterProcessor::CompleteWork();
 	}
 
-	FRefineClusterBatch::FRefineClusterBatch(FPCGContext* InContext, PCGExData::FPointIO* InVtx, const TArrayView<PCGExData::FPointIO*> InEdges)
-		: TClusterBatchBuilderProcessor(InContext, InVtx, InEdges)
+	FProcessorBatch::FProcessorBatch(FPCGContext* InContext, PCGExData::FPointIO* InVtx, const TArrayView<PCGExData::FPointIO*> InEdges)
+		: TBatchWithGraphBuilder(InContext, InVtx, InEdges)
 	{
 	}
 
-	bool FRefineClusterBatch::PrepareSingle(FClusterRefineProcess* ClusterProcessor)
+	bool FProcessorBatch::PrepareSingle(FProcessor* ClusterProcessor)
 	{
 		ClusterProcessor->Refinement = Refinement;
 		return true;

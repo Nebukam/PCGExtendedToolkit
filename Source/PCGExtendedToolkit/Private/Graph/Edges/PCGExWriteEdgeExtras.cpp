@@ -49,10 +49,14 @@ bool FPCGExWriteEdgeExtrasElement::ExecuteInternal(
 	{
 		if (!Boot(Context)) { return true; }
 
-		Context->StartProcessingClusters<PCGExWriteEdgeExtras::FWriteEdgeExtrasBatch>(
-			[&](PCGExWriteEdgeExtras::FWriteEdgeExtrasBatch* NewBatch)
-			{
-			}, PCGExMT::State_Done);
+		if (!Context->StartProcessingClusters<PCGExWriteEdgeExtras::FProcessorBatch>(
+			[](PCGExData::FPointIOTaggedEntries* Entries) { return true; },
+			[&](PCGExWriteEdgeExtras::FProcessorBatch* NewBatch) { return; },
+			PCGExMT::State_Done))
+		{
+			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not build any clusters."));
+			return true;
+		}
 	}
 
 	if (!Context->ProcessClusters()) { return false; }
@@ -69,12 +73,12 @@ bool FPCGExWriteEdgeExtrasElement::ExecuteInternal(
 
 namespace PCGExWriteEdgeExtras
 {
-	FClusterEdgeProcess::FClusterEdgeProcess(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges):
-		FClusterProcessingData(InVtx, InEdges)
+	FProcessor::FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges):
+		FClusterProcessor(InVtx, InEdges)
 	{
 	}
 
-	FClusterEdgeProcess::~FClusterEdgeProcess()
+	FProcessor::~FProcessor()
 	{
 		PCGEX_DELETE(MetadataBlender)
 
@@ -89,9 +93,9 @@ namespace PCGExWriteEdgeExtras
 #undef PCGEX_CLEAN_LOCAL_AXIS_GETTER
 	}
 
-	bool FClusterEdgeProcess::Process(FPCGExAsyncManager* AsyncManager)
+	bool FProcessor::Process(FPCGExAsyncManager* AsyncManager)
 	{
-		if (!FClusterProcessingData::Process(AsyncManager)) { return false; }
+		if (!FClusterProcessor::Process(AsyncManager)) { return false; }
 
 		PCGEX_SETTINGS(WriteEdgeExtras)
 
@@ -166,7 +170,7 @@ namespace PCGExWriteEdgeExtras
 		return true;
 	}
 
-	void FClusterEdgeProcess::ProcessSingleEdge(PCGExGraph::FIndexedEdge& Edge)
+	void FProcessor::ProcessSingleEdge(PCGExGraph::FIndexedEdge& Edge)
 	{
 		PCGEX_SETTINGS(WriteEdgeExtras)
 
@@ -280,9 +284,9 @@ namespace PCGExWriteEdgeExtras
 		}
 	}
 
-	void FClusterEdgeProcess::CompleteWork()
+	void FProcessor::CompleteWork()
 	{
-		FClusterProcessingData::CompleteWork();
+		FClusterProcessor::CompleteWork();
 
 		if (VtxEdgeCountWriter)
 		{
@@ -295,12 +299,12 @@ namespace PCGExWriteEdgeExtras
 
 	//////// BATCH
 
-	FWriteEdgeExtrasBatch::FWriteEdgeExtrasBatch(FPCGContext* InContext, PCGExData::FPointIO* InVtx, const TArrayView<PCGExData::FPointIO*> InEdges):
-		TClusterBatchProcessor(InContext, InVtx, InEdges)
+	FProcessorBatch::FProcessorBatch(FPCGContext* InContext, PCGExData::FPointIO* InVtx, const TArrayView<PCGExData::FPointIO*> InEdges):
+		TBatch(InContext, InVtx, InEdges)
 	{
 	}
 
-	FWriteEdgeExtrasBatch::~FWriteEdgeExtrasBatch()
+	FProcessorBatch::~FProcessorBatch()
 	{
 		PCGEX_SETTINGS(WriteEdgeExtras)
 
@@ -314,11 +318,11 @@ namespace PCGExWriteEdgeExtras
 		PCGEX_DELETE(SolidificationRadZ);
 	}
 
-	bool FWriteEdgeExtrasBatch::PrepareProcessing()
+	bool FProcessorBatch::PrepareProcessing()
 	{
 		PCGEX_SETTINGS(WriteEdgeExtras)
 
-		if (!TClusterBatchProcessor::PrepareProcessing()) { return false; }
+		if (!TBatch::PrepareProcessing()) { return false; }
 
 		PCGEX_OUTPUT_VALIDATE_NAME(VtxNormal, FVector)
 		PCGEX_OUTPUT_VALIDATE_NAME(VtxEdgeCount, int32)
@@ -354,7 +358,7 @@ namespace PCGExWriteEdgeExtras
 		return true;
 	}
 
-	bool FWriteEdgeExtrasBatch::PrepareSingle(FClusterEdgeProcess* ClusterProcessor)
+	bool FProcessorBatch::PrepareSingle(FProcessor* ClusterProcessor)
 	{
 		PCGEX_SETTINGS(WriteEdgeExtras)
 
@@ -382,9 +386,9 @@ namespace PCGExWriteEdgeExtras
 		return true;
 	}
 
-	void FWriteEdgeExtrasBatch::CompleteWork()
+	void FProcessorBatch::CompleteWork()
 	{
-		TClusterBatchProcessor<FClusterEdgeProcess>::CompleteWork();
+		TBatch<FProcessor>::CompleteWork();
 
 		PCGEX_OUTPUT_WRITE(VtxNormal, FVector)
 		PCGEX_OUTPUT_WRITE(VtxEdgeCount, FVector)
