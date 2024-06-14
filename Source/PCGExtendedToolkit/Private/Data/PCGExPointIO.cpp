@@ -39,6 +39,7 @@ namespace PCGExData
 	}
 
 	const UPCGPointData* FPointIO::GetData(const ESource InSource) const { return InSource == ESource::In ? In : Out; }
+	UPCGPointData* FPointIO::GetMutableData(const ESource InSource) const { return const_cast<UPCGPointData*>(InSource == ESource::In ? In : Out); }
 	const UPCGPointData* FPointIO::GetIn() const { return In; }
 	UPCGPointData* FPointIO::GetOut() const { return Out; }
 	const UPCGPointData* FPointIO::GetOutIn() const { return Out ? Out : In; }

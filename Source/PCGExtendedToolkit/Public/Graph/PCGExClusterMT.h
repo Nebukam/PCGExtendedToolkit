@@ -21,178 +21,31 @@ namespace PCGExClusterMT
 
 #define PCGEX_CLUSTER_MT_TASK(_NAME, _BODY)\
 	template <typename T>\
-	class PCGEXTENDEDTOOLKIT_API F##_NAME final : public FPCGExNonAbandonableTask	{\
-	public: F##_NAME(PCGExData::FPointIO* InPointIO, T* InTarget) : FPCGExNonAbandonableTask(InPointIO),Target(InTarget){} \
-		T* Target = nullptr;\
-		virtual bool ExecuteTask() override{{ _BODY } return true; }};
+	class PCGEXTENDEDTOOLKIT_API _NAME final : public FPCGExNonAbandonableTask	{\
+	public: _NAME(PCGExData::FPointIO* InPointIO, T* InTarget) : FPCGExNonAbandonableTask(InPointIO),Target(InTarget){} \
+		T* Target = nullptr; virtual bool ExecuteTask() override{_BODY return true; }};
 
-	template <typename TBatch>
-	class PCGEXTENDEDTOOLKIT_API FStartClusterBatchProcessing final : public FPCGExNonAbandonableTask
-	{
-	public:
-		FStartClusterBatchProcessing(
-			PCGExData::FPointIO* InPointIO,
-			TBatch* InBatchProcessor) :
-			FPCGExNonAbandonableTask(InPointIO),
-			BatchProcessor(InBatchProcessor)
-		{
-		}
+#define PCGEX_CLUSTER_MT_TASK_RANGE(_NAME, _BODY)\
+	template <typename T>\
+	class PCGEXTENDEDTOOLKIT_API _NAME final : public FPCGExNonAbandonableTask	{\
+	public: _NAME(PCGExData::FPointIO* InPointIO, T* InTarget, const int32 InIterations) : FPCGExNonAbandonableTask(InPointIO),Target(InTarget), Iterations(InIterations){} \
+		T* Target = nullptr; int32 Iterations = 0; virtual bool ExecuteTask() override{_BODY return true; }};
 
-		TBatch* BatchProcessor = nullptr;
+	PCGEX_CLUSTER_MT_TASK(FStartClusterBatchProcessing, { if (Target->PrepareProcessing()) { Target->Process(Manager); } })
 
-		virtual bool ExecuteTask() override
-		{
-			if (BatchProcessor->PrepareProcessing()) { BatchProcessor->Process(Manager); }
-			return true;
-		}
-	};
+	PCGEX_CLUSTER_MT_TASK(FStartClusterBatchCompleteWork, { Target->CompleteWork(); })
 
-	template <typename TBatch>
-	class PCGEXTENDEDTOOLKIT_API FStartClusterBatchCompleteWork final : public FPCGExNonAbandonableTask
-	{
-	public:
-		FStartClusterBatchCompleteWork(
-			PCGExData::FPointIO* InPointIO,
-			TBatch* InBatchProcessor) :
-			FPCGExNonAbandonableTask(InPointIO),
-			BatchProcessor(InBatchProcessor)
-		{
-		}
+	PCGEX_CLUSTER_MT_TASK(FAsyncProcess, { Target->Process(Manager); })
 
-		TBatch* BatchProcessor = nullptr;
+	PCGEX_CLUSTER_MT_TASK(FAsyncCompleteWork, { Target->CompleteWork(); })
 
-		virtual bool ExecuteTask() override
-		{
-			BatchProcessor->CompleteWork();
-			return true;
-		}
-	};
+	PCGEX_CLUSTER_MT_TASK_RANGE(FAsyncProcessNodeRange, {Target->ProcessView(TaskIndex, MakeArrayView(Target->Cluster->Nodes.GetData() + TaskIndex, Iterations));})
 
+	PCGEX_CLUSTER_MT_TASK_RANGE(FAsyncProcessEdgeRange, {Target->ProcessView(TaskIndex, MakeArrayView(Target->Cluster->Edges.GetData() + TaskIndex, Iterations));})
 
-	template <typename TSingle>
-	class PCGEXTENDEDTOOLKIT_API FAsyncProcess final : public FPCGExNonAbandonableTask
-	{
-	public:
-		FAsyncProcess(
-			PCGExData::FPointIO* InPointIO,
-			TSingle* InProcessor) :
-			FPCGExNonAbandonableTask(InPointIO),
-			Processor(InProcessor)
-		{
-		}
+	PCGEX_CLUSTER_MT_TASK_RANGE(FAsyncProcessRange, {Target->ProcessRange(TaskIndex, Iterations);})
 
-		TSingle* Processor = nullptr;
-
-		virtual bool ExecuteTask() override
-		{
-			Processor->Process(Manager);
-			return true;
-		}
-	};
-
-	template <typename TSingle>
-	class PCGEXTENDEDTOOLKIT_API FAsyncCompleteWork final : public FPCGExNonAbandonableTask
-	{
-	public:
-		FAsyncCompleteWork(PCGExData::FPointIO* InPointIO,
-		                   TSingle* InProcessor) :
-			FPCGExNonAbandonableTask(InPointIO),
-			Processor(InProcessor)
-		{
-		}
-
-		TSingle* Processor = nullptr;
-
-		virtual bool ExecuteTask() override
-		{
-			Processor->CompleteWork();
-			return true;
-		}
-	};
-
-	template <typename TSingle>
-	class PCGEXTENDEDTOOLKIT_API FAsyncProcessNodeRange final : public FPCGExNonAbandonableTask
-	{
-	public:
-		FAsyncProcessNodeRange(PCGExData::FPointIO* InPointIO,
-		                       TSingle* InProcessor, const int32 InIterations) :
-			FPCGExNonAbandonableTask(InPointIO),
-			Processor(InProcessor), Iterations(InIterations)
-		{
-		}
-
-		TSingle* Processor = nullptr;
-		int32 Iterations = 0;
-
-		virtual bool ExecuteTask() override
-		{
-			Processor->ProcessView(TaskIndex, MakeArrayView(Processor->Cluster->Nodes.GetData() + TaskIndex, Iterations));
-			return true;
-		}
-	};
-
-	template <typename TSingle>
-	class PCGEXTENDEDTOOLKIT_API FAsyncProcessEdgeRange final : public FPCGExNonAbandonableTask
-	{
-	public:
-		FAsyncProcessEdgeRange(PCGExData::FPointIO* InPointIO,
-		                       TSingle* InProcessor, const int32 InIterations) :
-			FPCGExNonAbandonableTask(InPointIO),
-			Processor(InProcessor), Iterations(InIterations)
-		{
-		}
-
-		TSingle* Processor = nullptr;
-		int32 Iterations = 0;
-
-		virtual bool ExecuteTask() override
-		{
-			Processor->ProcessView(TaskIndex, MakeArrayView(Processor->Cluster->Edges.GetData() + TaskIndex, Iterations));
-			return true;
-		}
-	};
-
-	template <typename TSingle>
-	class PCGEXTENDEDTOOLKIT_API FAsyncProcessRange final : public FPCGExNonAbandonableTask
-	{
-	public:
-		FAsyncProcessRange(PCGExData::FPointIO* InPointIO,
-		                   TSingle* InProcessor, const int32 InIterations) :
-			FPCGExNonAbandonableTask(InPointIO),
-			Processor(InProcessor), Iterations(InIterations)
-		{
-		}
-
-		TSingle* Processor = nullptr;
-		int32 Iterations = 0;
-
-		virtual bool ExecuteTask() override
-		{
-			Processor->ProcessRange(TaskIndex, Iterations);
-			return true;
-		}
-	};
-
-	template <typename TBatch>
-	class PCGEXTENDEDTOOLKIT_API FAsyncBatchProcessRange final : public FPCGExNonAbandonableTask
-	{
-	public:
-		FAsyncBatchProcessRange(PCGExData::FPointIO* InPointIO,
-		                        TBatch* InBatchProcessor, const int32 InIterations) :
-			FPCGExNonAbandonableTask(InPointIO),
-			BatchProcessor(InBatchProcessor), Iterations(InIterations)
-		{
-		}
-
-		TBatch* BatchProcessor = nullptr;
-		int32 Iterations = 0;
-
-		virtual bool ExecuteTask() override
-		{
-			BatchProcessor->ProcessBatchRange(TaskIndex, Iterations);
-			return true;
-		}
-	};
+	PCGEX_CLUSTER_MT_TASK_RANGE(FAsyncBatchProcessClosedRange, {Target->ProcessClosestBatchRange(TaskIndex, Iterations);})
 
 #pragma endregion
 
@@ -537,7 +390,7 @@ namespace PCGExClusterMT
 			StartClosedBatchProcessing();
 		}
 
-		void ProcessBatchRange(const int32 StartIndex, const int32 Iterations)
+		void ProcessClosestBatchRange(const int32 StartIndex, const int32 Iterations)
 		{
 			if (CurrentState == PCGExMT::State_Processing)
 			{
@@ -559,7 +412,7 @@ namespace PCGExClusterMT
 				while (CurrentCount < ClosedBatchProcessors.Num())
 				{
 					const int32 PerIterationsNum = GetDefault<UPCGExGlobalSettings>()->ClusterDefaultBatchIterations;
-					AsyncManagerPtr->Start<FAsyncBatchProcessRange<TBatch<T>>>(
+					AsyncManagerPtr->Start<FAsyncBatchProcessClosedRange<TBatch<T>>>(
 						CurrentCount, nullptr, this, FMath::Min(NumTrivial - CurrentCount, PerIterationsNum));
 					CurrentCount += PerIterationsNum;
 				}
@@ -595,3 +448,4 @@ namespace PCGExClusterMT
 
 
 #undef PCGEX_CLUSTER_MT_TASK
+#undef PCGEX_CLUSTER_MT_TASK_RANGE

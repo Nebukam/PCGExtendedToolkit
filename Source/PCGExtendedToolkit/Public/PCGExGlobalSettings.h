@@ -20,6 +20,13 @@ public:
 	int32 ClusterDefaultBatchIterations = 256;
 	int32 GetClusterBatchIteration(const int32 In = -1) const { return In <= -1 ? ClusterDefaultBatchIterations : In; }
 
+	UPROPERTY(EditAnywhere, config, Category = "Performance|Points", meta=(ClampMin=1))
+	int32 SmallPointsSize = 256;
+
+	UPROPERTY(EditAnywhere, config, Category = "Performance|Points", meta=(ClampMin=1))
+	int32 PointsDefaultBatchIterations = 256;
+	int32 GetPointsBatchIteration(const int32 In = -1) const { return In <= -1 ? PointsDefaultBatchIterations : In; }
+	
 	UPROPERTY(EditAnywhere, config, Category = "Node Colors")
 	FLinearColor NodeColorDebug = FLinearColor(1.0f, 0.0f, 0.0f, 1.0f);
 

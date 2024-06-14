@@ -83,6 +83,7 @@ namespace PCGExData
 		~FPointIO();
 
 		const UPCGPointData* GetData(const ESource InSource) const;
+		UPCGPointData* GetMutableData(ESource InSource) const;
 		const UPCGPointData* GetIn() const;
 		UPCGPointData* GetOut() const;
 		const UPCGPointData* GetOutIn() const;
