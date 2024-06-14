@@ -42,6 +42,7 @@ FPCGExSampleNearestPointContext::~FPCGExSampleNearestPointContext()
 
 	PCGEX_DELETE(PointFilterManager)
 	PointFilterFactories.Empty();
+	
 	PCGEX_DELETE(ValueFilterManager)
 	ValueFilterFactories.Empty();
 
