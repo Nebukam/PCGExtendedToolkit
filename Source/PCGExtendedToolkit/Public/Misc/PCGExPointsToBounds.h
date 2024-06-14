@@ -224,9 +224,9 @@ protected:
 class PCGEXTENDEDTOOLKIT_API FPCGExComputeIOBounds final : public FPCGExNonAbandonableTask
 {
 public:
-	FPCGExComputeIOBounds(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+	FPCGExComputeIOBounds(PCGExData::FPointIO* InPointIO,
 	                      const EPCGExPointBoundsSource InBoundsSource, PCGExPointsToBounds::FBounds* InBounds) :
-		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+		FPCGExNonAbandonableTask(InPointIO),
 		BoundsSource(InBoundsSource), Bounds(InBounds)
 	{
 	}

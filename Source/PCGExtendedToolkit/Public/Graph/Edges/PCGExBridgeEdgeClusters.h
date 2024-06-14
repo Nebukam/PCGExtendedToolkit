@@ -51,6 +51,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="BridgeMethod==EPCGExBridgeClusterMethod::Delaunay2D", EditConditionHides))
 	FPCGExGeo2DProjectionSettings ProjectionSettings = FPCGExGeo2DProjectionSettings(false);
 
+	/** Graph & Edges output properties */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Graph Output Settings"))
+	FPCGExGraphBuilderSettings GraphBuilderSettings;
+
 private:
 	friend class FPCGExBridgeEdgeClustersElement;
 };
@@ -114,11 +118,12 @@ namespace PCGExBridgeClusters
 	class PCGEXTENDEDTOOLKIT_API FPCGExCreateBridgeTask final : public FPCGExNonAbandonableTask
 	{
 	public:
-		FPCGExCreateBridgeTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-		                       FProcessorBatch* InBatch,
-		                       PCGExCluster::FCluster* A,
-		                       PCGExCluster::FCluster* B) :
-			FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+		FPCGExCreateBridgeTask(
+			PCGExData::FPointIO* InPointIO,
+			FProcessorBatch* InBatch,
+			PCGExCluster::FCluster* A,
+			PCGExCluster::FCluster* B) :
+			FPCGExNonAbandonableTask(InPointIO),
 			Batch(InBatch),
 			ClusterA(A),
 			ClusterB(B)

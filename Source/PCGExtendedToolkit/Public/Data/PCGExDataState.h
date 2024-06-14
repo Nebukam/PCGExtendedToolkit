@@ -164,9 +164,9 @@ namespace PCGExDataStateTask
 	{
 	public:
 		FWriteIndividualState(
-			FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+			PCGExData::FPointIO* InPointIO,
 			PCGExDataState::TDataState* InHandler, const TArray<int32>* InInIndices) :
-			FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+			FPCGExNonAbandonableTask(InPointIO),
 			Handler(InHandler), InIndices(InInIndices)
 		{
 		}

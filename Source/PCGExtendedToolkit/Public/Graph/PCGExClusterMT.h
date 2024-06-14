@@ -19,13 +19,21 @@ namespace PCGExClusterMT
 
 #pragma region Tasks
 
+#define PCGEX_CLUSTER_MT_TASK(_NAME, _BODY)\
+	template <typename T>\
+	class PCGEXTENDEDTOOLKIT_API F##_NAME final : public FPCGExNonAbandonableTask	{\
+	public: F##_NAME(PCGExData::FPointIO* InPointIO, T* InTarget) : FPCGExNonAbandonableTask(InPointIO),Target(InTarget){} \
+		T* Target = nullptr;\
+		virtual bool ExecuteTask() override{{ _BODY } return true; }};
+
 	template <typename TBatch>
 	class PCGEXTENDEDTOOLKIT_API FStartClusterBatchProcessing final : public FPCGExNonAbandonableTask
 	{
 	public:
-		FStartClusterBatchProcessing(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-		                             TBatch* InBatchProcessor) :
-			FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+		FStartClusterBatchProcessing(
+			PCGExData::FPointIO* InPointIO,
+			TBatch* InBatchProcessor) :
+			FPCGExNonAbandonableTask(InPointIO),
 			BatchProcessor(InBatchProcessor)
 		{
 		}
@@ -43,9 +51,10 @@ namespace PCGExClusterMT
 	class PCGEXTENDEDTOOLKIT_API FStartClusterBatchCompleteWork final : public FPCGExNonAbandonableTask
 	{
 	public:
-		FStartClusterBatchCompleteWork(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-		                               TBatch* InBatchProcessor) :
-			FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+		FStartClusterBatchCompleteWork(
+			PCGExData::FPointIO* InPointIO,
+			TBatch* InBatchProcessor) :
+			FPCGExNonAbandonableTask(InPointIO),
 			BatchProcessor(InBatchProcessor)
 		{
 		}
@@ -64,9 +73,10 @@ namespace PCGExClusterMT
 	class PCGEXTENDEDTOOLKIT_API FAsyncProcess final : public FPCGExNonAbandonableTask
 	{
 	public:
-		FAsyncProcess(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-		              TSingle* InProcessor) :
-			FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+		FAsyncProcess(
+			PCGExData::FPointIO* InPointIO,
+			TSingle* InProcessor) :
+			FPCGExNonAbandonableTask(InPointIO),
 			Processor(InProcessor)
 		{
 		}
@@ -84,9 +94,9 @@ namespace PCGExClusterMT
 	class PCGEXTENDEDTOOLKIT_API FAsyncCompleteWork final : public FPCGExNonAbandonableTask
 	{
 	public:
-		FAsyncCompleteWork(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+		FAsyncCompleteWork(PCGExData::FPointIO* InPointIO,
 		                   TSingle* InProcessor) :
-			FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+			FPCGExNonAbandonableTask(InPointIO),
 			Processor(InProcessor)
 		{
 		}
@@ -104,9 +114,9 @@ namespace PCGExClusterMT
 	class PCGEXTENDEDTOOLKIT_API FAsyncProcessNodeRange final : public FPCGExNonAbandonableTask
 	{
 	public:
-		FAsyncProcessNodeRange(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+		FAsyncProcessNodeRange(PCGExData::FPointIO* InPointIO,
 		                       TSingle* InProcessor, const int32 InIterations) :
-			FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+			FPCGExNonAbandonableTask(InPointIO),
 			Processor(InProcessor), Iterations(InIterations)
 		{
 		}
@@ -125,9 +135,9 @@ namespace PCGExClusterMT
 	class PCGEXTENDEDTOOLKIT_API FAsyncProcessEdgeRange final : public FPCGExNonAbandonableTask
 	{
 	public:
-		FAsyncProcessEdgeRange(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+		FAsyncProcessEdgeRange(PCGExData::FPointIO* InPointIO,
 		                       TSingle* InProcessor, const int32 InIterations) :
-			FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+			FPCGExNonAbandonableTask(InPointIO),
 			Processor(InProcessor), Iterations(InIterations)
 		{
 		}
@@ -146,9 +156,9 @@ namespace PCGExClusterMT
 	class PCGEXTENDEDTOOLKIT_API FAsyncProcessRange final : public FPCGExNonAbandonableTask
 	{
 	public:
-		FAsyncProcessRange(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+		FAsyncProcessRange(PCGExData::FPointIO* InPointIO,
 		                   TSingle* InProcessor, const int32 InIterations) :
-			FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+			FPCGExNonAbandonableTask(InPointIO),
 			Processor(InProcessor), Iterations(InIterations)
 		{
 		}
@@ -167,9 +177,9 @@ namespace PCGExClusterMT
 	class PCGEXTENDEDTOOLKIT_API FAsyncBatchProcessRange final : public FPCGExNonAbandonableTask
 	{
 	public:
-		FAsyncBatchProcessRange(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+		FAsyncBatchProcessRange(PCGExData::FPointIO* InPointIO,
 		                        TBatch* InBatchProcessor, const int32 InIterations) :
-			FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+			FPCGExNonAbandonableTask(InPointIO),
 			BatchProcessor(InBatchProcessor), Iterations(InIterations)
 		{
 		}
@@ -291,7 +301,7 @@ namespace PCGExClusterMT
 			return true;
 		}
 
-		void StartParallelLoopForNodes(const int32 PerLoopIterations = 256)
+		void StartParallelLoopForNodes(const int32 PerLoopIterations = -1)
 		{
 			if (IsTrivial())
 			{
@@ -299,16 +309,17 @@ namespace PCGExClusterMT
 				return;
 			}
 
+			int32 PLI = GetDefault<UPCGExGlobalSettings>()->GetClusterBatchIteration(PerLoopIterations);
 			int32 CurrentCount = 0;
 			while (CurrentCount < Cluster->Nodes.Num())
 			{
 				AsyncManagerPtr->Start<FAsyncProcessNodeRange<FClusterProcessor>>(
-					CurrentCount, nullptr, this, FMath::Min(Cluster->Nodes.Num() - CurrentCount, PerLoopIterations));
-				CurrentCount += PerLoopIterations;
+					CurrentCount, nullptr, this, FMath::Min(Cluster->Nodes.Num() - CurrentCount, PLI));
+				CurrentCount += PLI;
 			}
 		}
 
-		void StartParallelLoopForEdges(const int32 PerLoopIterations = 256)
+		void StartParallelLoopForEdges(const int32 PerLoopIterations = -1)
 		{
 			if (IsTrivial())
 			{
@@ -316,16 +327,17 @@ namespace PCGExClusterMT
 				return;
 			}
 
+			int32 PLI = GetDefault<UPCGExGlobalSettings>()->GetClusterBatchIteration(PerLoopIterations);
 			int32 CurrentCount = 0;
 			while (CurrentCount < Cluster->Edges.Num())
 			{
 				AsyncManagerPtr->Start<FAsyncProcessEdgeRange<FClusterProcessor>>(
-					CurrentCount, nullptr, this, FMath::Min(Cluster->Edges.Num() - CurrentCount, PerLoopIterations));
-				CurrentCount += PerLoopIterations;
+					CurrentCount, nullptr, this, FMath::Min(Cluster->Edges.Num() - CurrentCount, PLI));
+				CurrentCount += PLI;
 			}
 		}
 
-		void StartParallelLoopForRange(const int32 NumIterations, const int32 PerLoopIterations = 256)
+		void StartParallelLoopForRange(const int32 NumIterations, const int32 PerLoopIterations = -1)
 		{
 			if (IsTrivial())
 			{
@@ -333,12 +345,13 @@ namespace PCGExClusterMT
 				return;
 			}
 
+			int32 PLI = GetDefault<UPCGExGlobalSettings>()->GetClusterBatchIteration(PerLoopIterations);
 			int32 CurrentCount = 0;
 			while (CurrentCount < NumIterations)
 			{
 				AsyncManagerPtr->Start<FAsyncProcessRange<FClusterProcessor>>(
-					CurrentCount, nullptr, this, FMath::Min(NumIterations - CurrentCount, PerLoopIterations));
-				CurrentCount += PerLoopIterations;
+					CurrentCount, nullptr, this, FMath::Min(NumIterations - CurrentCount, PLI));
+				CurrentCount += PLI;
 			}
 		}
 
@@ -390,7 +403,7 @@ namespace PCGExClusterMT
 
 	public:
 		mutable FRWLock BatchLock;
-		
+
 		FPCGContext* Context = nullptr;
 
 		PCGExData::FPointIO* VtxIO = nullptr;
@@ -545,7 +558,7 @@ namespace PCGExClusterMT
 				int32 CurrentCount = 0;
 				while (CurrentCount < ClosedBatchProcessors.Num())
 				{
-					const int32 PerIterationsNum = GetDefault<UPCGExGlobalSettings>()->DefaultBatchIterations;
+					const int32 PerIterationsNum = GetDefault<UPCGExGlobalSettings>()->ClusterDefaultBatchIterations;
 					AsyncManagerPtr->Start<FAsyncBatchProcessRange<TBatch<T>>>(
 						CurrentCount, nullptr, this, FMath::Min(NumTrivial - CurrentCount, PerIterationsNum));
 					CurrentCount += PerIterationsNum;
@@ -579,3 +592,6 @@ namespace PCGExClusterMT
 		}
 	}
 }
+
+
+#undef PCGEX_CLUSTER_MT_TASK

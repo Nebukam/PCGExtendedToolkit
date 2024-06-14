@@ -164,8 +164,8 @@ protected:
 class PCGEXTENDEDTOOLKIT_API FTraceTask final : public FPCGExPCGExCollisionTask
 {
 public:
-	FTraceTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO) :
-		FPCGExPCGExCollisionTask(InManager, InTaskIndex, InPointIO)
+	FTraceTask(PCGExData::FPointIO* InPointIO) :
+		FPCGExPCGExCollisionTask(InPointIO)
 	{
 	}
 

@@ -33,6 +33,8 @@ bool FPCGExSimplifyClustersElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(SimplifyClusters)
 
+	PCGEX_FWD(GraphBuilderSettings)
+	
 	Context->GraphBuilderSettings.bPruneIsolatedPoints = true;
 	Context->FixedDotThreshold = PCGExMath::DegreesToDot(Settings->AngularThreshold);
 

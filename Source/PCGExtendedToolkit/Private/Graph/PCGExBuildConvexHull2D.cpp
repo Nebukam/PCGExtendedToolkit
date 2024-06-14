@@ -44,7 +44,8 @@ bool FPCGExBuildConvexHull2DElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_VALIDATE_NAME(Settings->HullAttributeName)
 
-	Context->GraphBuilderSettings.bPruneIsolatedPoints = Settings->bPrunePoints;
+	PCGEX_FWD(GraphBuilderSettings)
+	Context->GraphBuilderSettings.bPruneIsolatedPoints = Settings->bPrunePoints; //TODO CHeck if we can remove that
 
 	Context->PathsIO = new PCGExData::FPointIOCollection();
 	Context->PathsIO->DefaultOutputLabel = PCGExGraph::OutputPathsLabel;

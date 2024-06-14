@@ -125,8 +125,8 @@ protected:
 class PCGEXTENDEDTOOLKIT_API FPCGExSortPointIO final : public FPCGExNonAbandonableTask
 {
 public:
-	FPCGExSortPointIO(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO) :
-		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO)
+	FPCGExSortPointIO(PCGExData::FPointIO* InPointIO) :
+		FPCGExNonAbandonableTask(InPointIO)
 	{
 	}
 

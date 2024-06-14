@@ -71,9 +71,9 @@ protected:
 class PCGEXTENDEDTOOLKIT_API FPCGExPruneClusterTask final : public FPCGExNonAbandonableTask
 {
 public:
-	FPCGExPruneClusterTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+	FPCGExPruneClusterTask(PCGExData::FPointIO* InPointIO,
 	                       PCGExData::FPointIO* InEdgesIO) :
-		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+		FPCGExNonAbandonableTask(InPointIO),
 		EdgesIO(InEdgesIO)
 	{
 	}

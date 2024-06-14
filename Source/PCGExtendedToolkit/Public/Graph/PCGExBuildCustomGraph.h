@@ -96,8 +96,9 @@ protected:
 class PCGEXTENDEDTOOLKIT_API FPCGExProbeTask final : public FPCGExNonAbandonableTask
 {
 public:
-	FPCGExProbeTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO) :
-		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO)
+	FPCGExProbeTask(
+		PCGExData::FPointIO* InPointIO) :
+		FPCGExNonAbandonableTask(InPointIO)
 	{
 	}
 

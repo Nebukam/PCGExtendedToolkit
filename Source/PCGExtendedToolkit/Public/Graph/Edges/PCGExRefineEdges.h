@@ -72,7 +72,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExRefineEdgesContext final : public FPCGExEdge
 
 	UPCGExEdgeRefineOperation* Refinement = nullptr;
 
-	FPCGExGraphBuilderSettings GraphBuilderSettings;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExRefineEdgesElement final : public FPCGExEdgesProcessorElement
@@ -93,12 +92,11 @@ namespace PCGExRefineEdges
 	class PCGEXTENDEDTOOLKIT_API FRefineTask final : public FPCGExNonAbandonableTask
 	{
 	public:
-		FRefineTask(
-			FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-			PCGExCluster::FCluster* InCluster,
-			UPCGExEdgeRefineOperation* InRefinement,
-			PCGExHeuristics::THeuristicsHandler* InHeuristicsHandler) :
-			FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+		FRefineTask(PCGExData::FPointIO* InPointIO,
+		            PCGExCluster::FCluster* InCluster,
+		            UPCGExEdgeRefineOperation* InRefinement,
+		            PCGExHeuristics::THeuristicsHandler* InHeuristicsHandler) :
+			FPCGExNonAbandonableTask(InPointIO),
 			Cluster(InCluster),
 			Refinement(InRefinement),
 			HeuristicsHandler(InHeuristicsHandler)

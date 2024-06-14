@@ -235,8 +235,23 @@ public:
 	bool bStopped = false;
 	bool bForceSync = false;
 
+	template <typename T, typename... Args>
+	void Start(int32 TaskIndex, PCGExData::FPointIO* InPointsIO, Args... args)
+	{
+		if (bStopped) { return; }
+		if (bForceSync) { StartSynchronousTask<T>(new FAsyncTask<T>(InPointsIO, args...), TaskIndex); }
+		else { StartBackgroundTask<T>(new FAsyncTask<T>(InPointsIO, args...), TaskIndex); }
+	}
+
+	template <typename T, typename... Args>
+	void StartSynchronous(int32 TaskIndex, PCGExData::FPointIO* InPointsIO, Args... args)
+	{
+		if (bStopped) { return; }
+		StartSynchronousTask(new FAsyncTask<T>(InPointsIO, args...), TaskIndex);
+	}
+
 	template <typename T>
-	void Start(FAsyncTask<T>* AsyncTask)
+	void StartBackgroundTask(FAsyncTask<T>* AsyncTask, int32 TaskIndex = -1)
 	{
 		{
 			FWriteScopeLock WriteLock(ManagerLock);
@@ -247,20 +262,14 @@ public:
 
 		T& Task = AsyncTask->GetTask();
 		Task.TaskPtr = AsyncTask;
+		Task.Manager = this;
+		Task.TaskIndex = TaskIndex;
 
 		AsyncTask->StartBackgroundTask();
 	}
 
-	template <typename T, typename... Args>
-	void Start(int32 TaskIndex, PCGExData::FPointIO* InPointsIO, Args... args)
-	{
-		if (bStopped) { return; }
-		if (bForceSync) { StartSync<T>(new FAsyncTask<T>(this, TaskIndex, InPointsIO, args...)); }
-		else { Start<T>(new FAsyncTask<T>(this, TaskIndex, InPointsIO, args...)); }
-	}
-
 	template <typename T>
-	void StartSync(FAsyncTask<T>* AsyncTask)
+	void StartSynchronousTask(FAsyncTask<T>* AsyncTask, int32 TaskIndex = -1)
 	{
 		{
 			FWriteScopeLock WriteLock(ManagerLock);
@@ -269,18 +278,14 @@ public:
 
 		T& Task = AsyncTask->GetTask();
 		Task.TaskPtr = AsyncTask;
+		Task.Manager = this;
+		Task.TaskIndex = TaskIndex;
 		Task.bIsAsync = false;
 
 		Task.ExecuteTask();
 		delete AsyncTask;
 	}
 
-	template <typename T, typename... Args>
-	void StartSync(int32 Index, PCGExData::FPointIO* InPointsIO, Args... args)
-	{
-		if (bStopped) { return; }
-		StartSync(new FAsyncTask<T>(this, Index, InPointsIO, args...));
-	}
 
 	void Reserve(const int32 NumTasks) { QueuedTasks.Reserve(NumTasks); }
 
@@ -316,9 +321,7 @@ public:
 #define PCGEX_ASYNC_CHECKPOINT_VOID  if (!Checkpoint()) { return; }
 #define PCGEX_ASYNC_CHECKPOINT  if (!Checkpoint()) { return false; }
 
-	FPCGExNonAbandonableTask(
-		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO) :
-		Manager(InManager), TaskIndex(InTaskIndex), PointIO(InPointIO)
+	FPCGExNonAbandonableTask(PCGExData::FPointIO* InPointIO) : PointIO(InPointIO)
 	{
 	}
 
@@ -345,7 +348,7 @@ protected:
 	void InternalStart(int32 TaskIndex, PCGExData::FPointIO* InPointsIO, Args... args)
 	{
 		PCGEX_ASYNC_CHECKPOINT_VOID
-		if (!bIsAsync) { Manager->StartSync<T>(TaskIndex, InPointsIO, args...); }
+		if (!bIsAsync) { Manager->StartSynchronous<T>(TaskIndex, InPointsIO, args...); }
 		else { Manager->Start<T>(TaskIndex, InPointsIO, args...); }
 	}
 };
@@ -353,10 +356,9 @@ protected:
 class PCGEXTENDEDTOOLKIT_API FPCGExLoopChunkTask : public FPCGExNonAbandonableTask
 {
 public:
-	FPCGExLoopChunkTask(
-		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-		const int32 InNumIterations) :
-		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+	FPCGExLoopChunkTask(PCGExData::FPointIO* InPointIO,
+	                    const int32 InNumIterations) :
+		FPCGExNonAbandonableTask(InPointIO),
 		NumIterations(InNumIterations)
 	{
 	}
@@ -376,11 +378,10 @@ template <typename T>
 class PCGEXTENDEDTOOLKIT_API FPCGExParallelLoopTask : public FPCGExNonAbandonableTask
 {
 public:
-	FPCGExParallelLoopTask(
-		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-		const int32 InNumIterations,
-		const int32 InChunkSize) :
-		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+	FPCGExParallelLoopTask(PCGExData::FPointIO* InPointIO,
+	                       const int32 InNumIterations,
+	                       const int32 InChunkSize) :
+		FPCGExNonAbandonableTask(InPointIO),
 		NumIterations(InNumIterations),
 		ChunkSize(InChunkSize)
 	{

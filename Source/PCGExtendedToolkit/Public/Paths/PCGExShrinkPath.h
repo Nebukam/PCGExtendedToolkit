@@ -191,8 +191,8 @@ protected:
 class PCGEXTENDEDTOOLKIT_API FPCGExShrinkPathTask final : public FPCGExNonAbandonableTask
 {
 public:
-	FPCGExShrinkPathTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO) :
-		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO)
+	FPCGExShrinkPathTask(PCGExData::FPointIO* InPointIO) :
+		FPCGExNonAbandonableTask(InPointIO)
 	{
 	}
 

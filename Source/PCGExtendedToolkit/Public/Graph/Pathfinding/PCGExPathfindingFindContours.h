@@ -112,9 +112,9 @@ protected:
 class PCGEXTENDEDTOOLKIT_API FPCGExFindContourTask final : public FPCGExNonAbandonableTask
 {
 public:
-	FPCGExFindContourTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+	FPCGExFindContourTask(PCGExData::FPointIO* InPointIO,
 	                      PCGExCluster::FCluster* InCluster) :
-		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+		FPCGExNonAbandonableTask(InPointIO),
 		Cluster(InCluster)
 	{
 	}

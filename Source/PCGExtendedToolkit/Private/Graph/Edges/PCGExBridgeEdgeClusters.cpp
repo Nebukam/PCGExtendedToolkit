@@ -26,7 +26,6 @@ FPCGExBridgeEdgeClustersContext::~FPCGExBridgeEdgeClustersContext()
 	PCGEX_TERMINATE_ASYNC
 
 	ProjectionSettings.Cleanup();
-
 }
 
 
@@ -37,6 +36,7 @@ bool FPCGExBridgeEdgeClustersElement::Boot(FPCGContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(BridgeEdgeClusters)
 
 	PCGEX_FWD(ProjectionSettings)
+	PCGEX_FWD(GraphBuilderSettings)
 
 	return true;
 }
@@ -52,7 +52,7 @@ bool FPCGExBridgeEdgeClustersElement::ExecuteInternal(
 	{
 		if (!Boot(Context)) { return true; }
 
-		if(!Context->StartProcessingClusters<PCGExBridgeClusters::FProcessorBatch>(
+		if (!Context->StartProcessingClusters<PCGExBridgeClusters::FProcessorBatch>(
 			[](PCGExData::FPointIOTaggedEntries* Entries)
 			{
 				if (Entries->Entries.Num() == 1)
@@ -317,7 +317,6 @@ namespace PCGExBridgeClusters
 
 	bool FPCGExCreateBridgeTask::ExecuteTask()
 	{
-
 		int32 IndexA = -1;
 		int32 IndexB = -1;
 
@@ -347,9 +346,6 @@ namespace PCGExBridgeClusters
 
 		EdgePoint.Transform.SetLocation(FMath::Lerp(StartPoint.Transform.GetLocation(), EndPoint.Transform.GetLocation(), 0.5));
 
-		//TODO : Fix. Grab existing index cached value instead of the metadata entry which may not be "right" based
-		// on when was the last graph rebuild
-		
 		BumpEdgeNum(StartPoint, EndPoint);
 		EdgeEndpointsAtt->SetValue(EdgePoint.MetadataEntry, PCGExGraph::HCID(StartPoint.MetadataEntry, EndPoint.MetadataEntry));
 
@@ -362,11 +358,13 @@ namespace PCGExBridgeClusters
 
 		FPCGMetadataAttribute<int64>* VtxEndpointAtt = static_cast<FPCGMetadataAttribute<int64>*>(Batch->VtxIO->GetOut()->Metadata->GetMutableAttribute(PCGExGraph::Tag_VtxEndpoint));
 
-		const uint32 NumA = PCGEx::H64B(VtxEndpointAtt->GetValueFromItemKey(A.MetadataEntry)) + 1;
-		const uint32 NumB = PCGEx::H64B(VtxEndpointAtt->GetValueFromItemKey(B.MetadataEntry)) + 1;
+		uint32 Idx;
+		uint32 Num;
+		PCGEx::H64(VtxEndpointAtt->GetValueFromItemKey(A.MetadataEntry), Idx, Num);
+		VtxEndpointAtt->SetValue(A.MetadataEntry, PCGEx::H64(Idx, Num + 1));
 
-		VtxEndpointAtt->SetValue(A.MetadataEntry, PCGEx::H64(PCGExGraph::HCID(A.MetadataEntry), NumA));
-		VtxEndpointAtt->SetValue(B.MetadataEntry, PCGEx::H64(PCGExGraph::HCID(B.MetadataEntry), NumB));
+		PCGEx::H64(VtxEndpointAtt->GetValueFromItemKey(B.MetadataEntry), Idx, Num);
+		VtxEndpointAtt->SetValue(B.MetadataEntry, PCGEx::H64(Idx, Num + 1));
 	}
 }
 

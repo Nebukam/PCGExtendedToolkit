@@ -96,8 +96,8 @@ protected:
 class PCGEXTENDEDTOOLKIT_API FPCGExOffsetPathTask final : public FPCGExNonAbandonableTask
 {
 public:
-	FPCGExOffsetPathTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO) :
-		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO)
+	FPCGExOffsetPathTask(PCGExData::FPointIO* InPointIO) :
+		FPCGExNonAbandonableTask(InPointIO)
 	{
 	}
 

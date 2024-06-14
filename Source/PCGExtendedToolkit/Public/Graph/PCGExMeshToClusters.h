@@ -146,9 +146,9 @@ namespace PCGExMeshToCluster
 	{
 	public:
 		FExtractMeshAndBuildGraph(
-			FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+			PCGExData::FPointIO* InPointIO,
 			PCGExGeo::FGeoStaticMesh* InMesh) :
-			FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+			FPCGExNonAbandonableTask(InPointIO),
 			Mesh(InMesh)
 		{
 		}

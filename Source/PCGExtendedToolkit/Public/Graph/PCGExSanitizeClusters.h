@@ -46,8 +46,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSanitizeClustersContext final : public FPCGE
 
 	TArray<PCGExGraph::FGraphBuilder*> Builders;
 	TArray<TMap<int64, int32>> EndpointsLookups;
-
-	FPCGExGraphBuilderSettings GraphBuilderSettings;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExSanitizeClustersElement final : public FPCGExEdgesProcessorElement
@@ -66,9 +64,9 @@ protected:
 class PCGEXTENDEDTOOLKIT_API FPCGExSanitizeClusterTask final : public FPCGExNonAbandonableTask
 {
 public:
-	FPCGExSanitizeClusterTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+	FPCGExSanitizeClusterTask(PCGExData::FPointIO* InPointIO,
 	                          PCGExData::FPointIOTaggedEntries* InTaggedEdges) :
-		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+		FPCGExNonAbandonableTask(InPointIO),
 		TaggedEdges(InTaggedEdges)
 	{
 	}
@@ -81,9 +79,9 @@ public:
 class PCGEXTENDEDTOOLKIT_API FPCGExSanitizeInsertTask final : public FPCGExNonAbandonableTask
 {
 public:
-	FPCGExSanitizeInsertTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+	FPCGExSanitizeInsertTask(PCGExData::FPointIO* InPointIO,
 	                         PCGExData::FPointIO* InEdgeIO) :
-		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+		FPCGExNonAbandonableTask(InPointIO),
 		EdgeIO(InEdgeIO)
 	{
 	}

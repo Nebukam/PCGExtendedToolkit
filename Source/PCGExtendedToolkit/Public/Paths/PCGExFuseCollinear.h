@@ -92,8 +92,8 @@ protected:
 class PCGEXTENDEDTOOLKIT_API FPCGExFuseCollinearTask final : public FPCGExNonAbandonableTask
 {
 public:
-	FPCGExFuseCollinearTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO) :
-		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO)
+	FPCGExFuseCollinearTask(PCGExData::FPointIO* InPointIO) :
+		FPCGExNonAbandonableTask(InPointIO)
 	{
 	}
 

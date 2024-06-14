@@ -78,8 +78,8 @@ protected:
 class PCGEXTENDEDTOOLKIT_API FPCGExBlendPathTask final : public FPCGExNonAbandonableTask
 {
 public:
-	FPCGExBlendPathTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO) :
-		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO)
+	FPCGExBlendPathTask(PCGExData::FPointIO* InPointIO) :
+		FPCGExNonAbandonableTask(InPointIO)
 	{
 	}
 

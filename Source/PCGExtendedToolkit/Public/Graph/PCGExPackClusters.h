@@ -64,10 +64,10 @@ protected:
 class PCGEXTENDEDTOOLKIT_API FPCGExPackClusterTask final : public FPCGExNonAbandonableTask
 {
 public:
-	FPCGExPackClusterTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+	FPCGExPackClusterTask(PCGExData::FPointIO* InPointIO,
 	                      PCGExData::FPointIO* InInEdges,
 	                      const TMap<int64, int32>& InEndpointsLookup) :
-		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+		FPCGExNonAbandonableTask(InPointIO),
 		InEdges(InInEdges),
 		EndpointsLookup(InEndpointsLookup)
 	{

@@ -123,10 +123,10 @@ protected:
 class PCGEXTENDEDTOOLKIT_API FPCGExRemapPointIO final : public FPCGExNonAbandonableTask
 {
 public:
-	FPCGExRemapPointIO(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+	FPCGExRemapPointIO(PCGExData::FPointIO* InPointIO,
 	                   const EPCGMetadataTypes InDataType,
 	                   const int32 InDimensions) :
-		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+		FPCGExNonAbandonableTask(InPointIO),
 		DataType(InDataType),
 		Dimensions(InDimensions)
 	{

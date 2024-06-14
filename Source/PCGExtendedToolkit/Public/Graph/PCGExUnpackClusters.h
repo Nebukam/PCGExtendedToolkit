@@ -68,8 +68,8 @@ protected:
 class PCGEXTENDEDTOOLKIT_API FPCGExUnpackClusterTask final : public FPCGExNonAbandonableTask
 {
 public:
-	FPCGExUnpackClusterTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO) :
-		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO)
+	FPCGExUnpackClusterTask(PCGExData::FPointIO* InPointIO) :
+		FPCGExNonAbandonableTask(InPointIO)
 	{
 	}
 

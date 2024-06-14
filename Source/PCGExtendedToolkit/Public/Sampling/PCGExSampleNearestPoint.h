@@ -311,8 +311,8 @@ namespace PCGExSampleNearestPointTasks
 	class PCGEXTENDEDTOOLKIT_API FSamplePoint final : public FPCGExLoopChunkTask
 	{
 	public:
-		FSamplePoint(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO, const int32 NumIterations) :
-			FPCGExLoopChunkTask(InManager, InTaskIndex, InPointIO, NumIterations)
+		FSamplePoint(PCGExData::FPointIO* InPointIO, const int32 NumIterations) :
+			FPCGExLoopChunkTask(InPointIO, NumIterations)
 		{
 		}
 
@@ -322,10 +322,9 @@ namespace PCGExSampleNearestPointTasks
 	class PCGEXTENDEDTOOLKIT_API FPointLoop final : public FPCGExParallelLoopTask<FSamplePoint>
 	{
 	public:
-		FPointLoop(
-			FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-			const int32 InNumIterations, const int32 InChunkSize) :
-			FPCGExParallelLoopTask(InManager, InTaskIndex, InPointIO, InNumIterations, InChunkSize)
+		FPointLoop(PCGExData::FPointIO* InPointIO,
+		           const int32 InNumIterations, const int32 InChunkSize) :
+			FPCGExParallelLoopTask(InPointIO, InNumIterations, InChunkSize)
 		{
 		}
 

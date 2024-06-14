@@ -157,10 +157,10 @@ protected:
 class PCGEXTENDEDTOOLKIT_API FPCGExInsertPathToCompoundGraphTask final : public FPCGExNonAbandonableTask
 {
 public:
-	FPCGExInsertPathToCompoundGraphTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+	FPCGExInsertPathToCompoundGraphTask(PCGExData::FPointIO* InPointIO,
 	                                    PCGExGraph::FCompoundGraph* InGraph,
 	                                    const bool bInJoinFirstAndLast)
-		: FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+		: FPCGExNonAbandonableTask(InPointIO),
 		  Graph(InGraph),
 		  bJoinFirstAndLast(bInJoinFirstAndLast)
 	{

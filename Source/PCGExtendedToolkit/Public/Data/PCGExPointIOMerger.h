@@ -36,10 +36,11 @@ protected:
 class PCGEXTENDEDTOOLKIT_API FPCGExAttributeMergeTask final : public FPCGExNonAbandonableTask
 {
 public:
-	FPCGExAttributeMergeTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-	                         FPCGExPointIOMerger* InMerger,
-	                         const FName InAttributeName)
-		: FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+	FPCGExAttributeMergeTask(
+		PCGExData::FPointIO* InPointIO,
+		FPCGExPointIOMerger* InMerger,
+		const FName InAttributeName)
+		: FPCGExNonAbandonableTask(InPointIO),
 		  Merger(InMerger),
 		  AttributeName(InAttributeName)
 	{

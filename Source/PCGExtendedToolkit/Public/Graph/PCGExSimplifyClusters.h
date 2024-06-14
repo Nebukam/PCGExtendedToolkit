@@ -53,6 +53,10 @@ public:
 	/** If enabled, prune dead ends. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	bool bPruneDeadEnds = false;
+
+	/** Graph & Edges output properties */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Graph Output Settings"))
+	FPCGExGraphBuilderSettings GraphBuilderSettings;
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExSimplifyClustersContext final : public FPCGExEdgesProcessorContext
@@ -60,7 +64,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSimplifyClustersContext final : public FPCGE
 	friend class UPCGExSimplifyClustersSettings;
 	friend class FPCGExSimplifyClustersElement;
 
-	FPCGExGraphBuilderSettings GraphBuilderSettings;
 	PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
 
 	TArray<PCGExCluster::FNodeChain*> Chains;

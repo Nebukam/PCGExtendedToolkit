@@ -514,9 +514,9 @@ namespace PCGExGraphTask
 	class PCGEXTENDEDTOOLKIT_API FFindPointEdgeIntersections final : public FPCGExNonAbandonableTask
 	{
 	public:
-		FFindPointEdgeIntersections(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+		FFindPointEdgeIntersections(PCGExData::FPointIO* InPointIO,
 		                            PCGExGraph::FPointEdgeIntersections* InIntersectionList)
-			: FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+			: FPCGExNonAbandonableTask(InPointIO),
 			  IntersectionList(InIntersectionList)
 		{
 		}
@@ -528,9 +528,9 @@ namespace PCGExGraphTask
 	class PCGEXTENDEDTOOLKIT_API FInsertPointEdgeIntersections final : public FPCGExNonAbandonableTask
 	{
 	public:
-		FInsertPointEdgeIntersections(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+		FInsertPointEdgeIntersections(PCGExData::FPointIO* InPointIO,
 		                              PCGExGraph::FPointEdgeIntersections* InIntersectionList)
-			: FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+			: FPCGExNonAbandonableTask(InPointIO),
 			  IntersectionList(InIntersectionList)
 		{
 		}
@@ -543,9 +543,9 @@ namespace PCGExGraphTask
 	class PCGEXTENDEDTOOLKIT_API FFindEdgeEdgeIntersections final : public FPCGExNonAbandonableTask
 	{
 	public:
-		FFindEdgeEdgeIntersections(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+		FFindEdgeEdgeIntersections(PCGExData::FPointIO* InPointIO,
 		                           PCGExGraph::FEdgeEdgeIntersections* InIntersectionList)
-			: FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+			: FPCGExNonAbandonableTask(InPointIO),
 			  IntersectionList(InIntersectionList)
 		{
 		}
@@ -557,9 +557,9 @@ namespace PCGExGraphTask
 	class PCGEXTENDEDTOOLKIT_API FInsertEdgeEdgeIntersections final : public FPCGExNonAbandonableTask
 	{
 	public:
-		FInsertEdgeEdgeIntersections(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+		FInsertEdgeEdgeIntersections(PCGExData::FPointIO* InPointIO,
 		                             PCGExGraph::FEdgeEdgeIntersections* InIntersectionList, TMap<int32, PCGExGraph::FGraphNodeMetadata*>* InOutMetadata)
-			: FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+			: FPCGExNonAbandonableTask(InPointIO),
 			  IntersectionList(InIntersectionList)
 		{
 		}
@@ -577,9 +577,9 @@ namespace PCGExGraphTask
 	class PCGEXTENDEDTOOLKIT_API FCompoundGraphInsertPoints final : public FPCGExNonAbandonableTask
 	{
 	public:
-		FCompoundGraphInsertPoints(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+		FCompoundGraphInsertPoints(PCGExData::FPointIO* InPointIO,
 		                           PCGExGraph::FCompoundGraph* InGraph)
-			: FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+			: FPCGExNonAbandonableTask(InPointIO),
 			  Graph(InGraph)
 		{
 		}
@@ -592,11 +592,11 @@ namespace PCGExGraphTask
 	class PCGEXTENDEDTOOLKIT_API FCompoundGraphInsertEdges final : public FPCGExNonAbandonableTask
 	{
 	public:
-		FCompoundGraphInsertEdges(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+		FCompoundGraphInsertEdges(PCGExData::FPointIO* InPointIO,
 		                          PCGExGraph::FCompoundGraph* InGraph,
 		                          PCGExData::FPointIO* InEdgeIO,
 		                          TMap<int64, int32>* InEndpointsLookup)
-			: FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+			: FPCGExNonAbandonableTask(InPointIO),
 			  Graph(InGraph),
 			  EdgeIO(InEdgeIO),
 			  EndpointsLookup(InEndpointsLookup)

@@ -104,10 +104,10 @@ namespace PCGExDataBlending
 	class PCGEXTENDEDTOOLKIT_API FPCGExCompoundBlendTask final : public FPCGExNonAbandonableTask
 	{
 	public:
-		FPCGExCompoundBlendTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+		FPCGExCompoundBlendTask(PCGExData::FPointIO* InPointIO,
 		                        FCompoundBlender* InMerger,
 		                        const FPCGExDistanceSettings& InDistSettings)
-			: FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+			: FPCGExNonAbandonableTask(InPointIO),
 			  Merger(InMerger),
 			  DistSettings(InDistSettings)
 
@@ -124,10 +124,10 @@ namespace PCGExDataBlending
 	class PCGEXTENDEDTOOLKIT_API FPCGExCompoundedPointBlendTask final : public FPCGExNonAbandonableTask
 	{
 	public:
-		FPCGExCompoundedPointBlendTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+		FPCGExCompoundedPointBlendTask(PCGExData::FPointIO* InPointIO,
 		                               FCompoundBlender* InMerger,
 		                               const FPCGExDistanceSettings& InDistSettings)
-			: FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+			: FPCGExNonAbandonableTask(InPointIO),
 			  Merger(InMerger),
 			  DistSettings(InDistSettings)
 		{

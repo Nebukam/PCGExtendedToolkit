@@ -38,7 +38,9 @@ bool FPCGExBuildDelaunayGraphElement::Boot(FPCGContext* InContext) const
 	if (!FPCGExPointsProcessorElementBase::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(BuildDelaunayGraph)
-	Context->GraphBuilderSettings.bPruneIsolatedPoints = false;
+
+	PCGEX_FWD(GraphBuilderSettings)
+	Context->GraphBuilderSettings.bPruneIsolatedPoints = false; // TODO check if this is required
 
 	PCGEX_VALIDATE_NAME(Settings->HullAttributeName)
 

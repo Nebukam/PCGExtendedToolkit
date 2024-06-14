@@ -68,8 +68,8 @@ protected:
 class PCGEXTENDEDTOOLKIT_API FPCGExPointsPathIntersectionTask final : public FPCGExNonAbandonableTask
 {
 public:
-	FPCGExPointsPathIntersectionTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO) :
-		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO)
+	FPCGExPointsPathIntersectionTask(PCGExData::FPointIO* InPointIO) :
+		FPCGExNonAbandonableTask(InPointIO)
 	{
 	}
 

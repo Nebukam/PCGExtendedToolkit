@@ -104,7 +104,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFuseClustersLocalContext final : public FPCG
 
 	PCGExGraph::FCompoundGraph* CompoundGraph = nullptr;
 
-	FPCGExGraphBuilderSettings GraphBuilderSettings;
 	PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
 
 	PCGExGraph::FPointEdgeIntersections* PointEdgeIntersections = nullptr;

@@ -52,8 +52,8 @@ protected:
 class PCGEXTENDEDTOOLKIT_API FPCGExReversePointOrderTask final : public FPCGExNonAbandonableTask
 {
 public:
-	FPCGExReversePointOrderTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO) :
-		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO)
+	FPCGExReversePointOrderTask(PCGExData::FPointIO* InPointIO) :
+		FPCGExNonAbandonableTask(InPointIO)
 	{
 	}
 

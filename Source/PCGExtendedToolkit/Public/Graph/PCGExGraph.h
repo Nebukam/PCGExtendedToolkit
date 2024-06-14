@@ -41,6 +41,15 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExGraphBuilderSettings
 {
 	GENERATED_BODY()
 
+	FPCGExGraphBuilderSettings()
+	{
+	}
+
+	explicit FPCGExGraphBuilderSettings(const bool PrunePoints)
+		: bPruneIsolatedPoints(PrunePoints)
+	{
+	}
+
 	/** Removes roaming points from the output, and keeps only points that are part of an cluster. */
 	UPROPERTY(BlueprintReadWrite, Category = Settings, EditAnywhere, meta = (PCG_Overridable))
 	bool bPruneIsolatedPoints = true;
@@ -676,11 +685,11 @@ namespace PCGExGraphTask
 	class PCGEXTENDEDTOOLKIT_API FWriteSubGraphEdges final : public FPCGExNonAbandonableTask
 	{
 	public:
-		FWriteSubGraphEdges(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+		FWriteSubGraphEdges(PCGExData::FPointIO* InPointIO,
 		                    PCGExGraph::FGraph* InGraph,
 		                    PCGExGraph::FSubGraph* InSubGraph,
 		                    PCGExGraph::FGraphMetadataSettings* InMetadataSettings = nullptr)
-			: FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+			: FPCGExNonAbandonableTask(InPointIO),
 			  Graph(InGraph),
 			  SubGraph(InSubGraph),
 			  MetadataSettings(InMetadataSettings)
@@ -698,11 +707,12 @@ namespace PCGExGraphTask
 	class PCGEXTENDEDTOOLKIT_API FWriteSmallSubGraphEdges final : public FPCGExNonAbandonableTask
 	{
 	public:
-		FWriteSmallSubGraphEdges(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-		                         PCGExGraph::FGraph* InGraph,
-		                         const TArray<PCGExGraph::FSubGraph*>& InSubGraphs,
-		                         PCGExGraph::FGraphMetadataSettings* InMetadataSettings = nullptr)
-			: FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+		FWriteSmallSubGraphEdges(
+			PCGExData::FPointIO* InPointIO,
+			PCGExGraph::FGraph* InGraph,
+			const TArray<PCGExGraph::FSubGraph*>& InSubGraphs,
+			PCGExGraph::FGraphMetadataSettings* InMetadataSettings = nullptr)
+			: FPCGExNonAbandonableTask(InPointIO),
 			  Graph(InGraph),
 			  SubGraphs(InSubGraphs),
 			  MetadataSettings(InMetadataSettings)
@@ -725,12 +735,13 @@ namespace PCGExGraphTask
 	class PCGEXTENDEDTOOLKIT_API FCompileGraph final : public FPCGExNonAbandonableTask
 	{
 	public:
-		FCompileGraph(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-		              PCGExGraph::FGraphBuilder* InGraphBuilder,
-		              const int32 InMin = 1,
-		              const int32 InMax = TNumericLimits<int32>::Max(),
-		              PCGExGraph::FGraphMetadataSettings* InMetadataSettings = nullptr)
-			: FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+		FCompileGraph(
+			PCGExData::FPointIO* InPointIO,
+			PCGExGraph::FGraphBuilder* InGraphBuilder,
+			const int32 InMin = 1,
+			const int32 InMax = TNumericLimits<int32>::Max(),
+			PCGExGraph::FGraphMetadataSettings* InMetadataSettings = nullptr)
+			: FPCGExNonAbandonableTask(InPointIO),
 			  Builder(InGraphBuilder),
 			  Min(InMin),
 			  Max(InMax),
@@ -752,12 +763,12 @@ namespace PCGExGraphTask
 	class PCGEXTENDEDTOOLKIT_API FCopyGraphToPoint final : public FPCGExNonAbandonableTask
 	{
 	public:
-		FCopyGraphToPoint(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+		FCopyGraphToPoint(PCGExData::FPointIO* InPointIO,
 		                  PCGExGraph::FGraphBuilder* InGraphBuilder,
 		                  PCGExData::FPointIOCollection* InVtxCollection,
 		                  PCGExData::FPointIOCollection* InEdgeCollection,
 		                  FPCGExTransformSettings* InTransformSettings) :
-			FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+			FPCGExNonAbandonableTask(InPointIO),
 			GraphBuilder(InGraphBuilder),
 			VtxCollection(InVtxCollection),
 			EdgeCollection(InEdgeCollection),

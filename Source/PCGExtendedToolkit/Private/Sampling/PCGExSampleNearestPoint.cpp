@@ -6,6 +6,7 @@
 #include "PCGExFactoryProvider.h"
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGExData.h"
+#include "Data/Blending/PCGExMetadataBlender.h"
 #include "Graph/PCGExCluster.h"
 #include "Sampling/Neighbors/PCGExNeighborSampleFactoryProvider.h"
 

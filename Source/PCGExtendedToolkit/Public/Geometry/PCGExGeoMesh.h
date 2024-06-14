@@ -319,9 +319,8 @@ namespace PCGExGeo
 	class PCGEXTENDEDTOOLKIT_API FExtractStaticMeshTask final : public FPCGExNonAbandonableTask
 	{
 	public:
-		FExtractStaticMeshTask(
-			FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO, FGeoStaticMesh* InGSM) :
-			FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO), GSM(InGSM)
+		FExtractStaticMeshTask(PCGExData::FPointIO* InPointIO, FGeoStaticMesh* InGSM) :
+			FPCGExNonAbandonableTask(InPointIO), GSM(InGSM)
 		{
 		}
 

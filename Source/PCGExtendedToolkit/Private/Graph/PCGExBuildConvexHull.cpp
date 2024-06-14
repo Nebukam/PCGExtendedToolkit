@@ -39,7 +39,8 @@ bool FPCGExBuildConvexHullElement::Boot(FPCGContext* InContext) const
 
 	if (!Settings->bPrunePoints) { PCGEX_VALIDATE_NAME(Settings->HullAttributeName) }
 
-	Context->GraphBuilderSettings.bPruneIsolatedPoints = Settings->bPrunePoints;
+	PCGEX_FWD(GraphBuilderSettings)
+	Context->GraphBuilderSettings.bPruneIsolatedPoints = Settings->bPrunePoints; //TODO : Check if we need this
 
 	return true;
 }

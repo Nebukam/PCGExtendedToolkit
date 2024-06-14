@@ -192,9 +192,9 @@ protected:
 class PCGEXTENDEDTOOLKIT_API FPCGExComputePreciseOverlap final : public FPCGExNonAbandonableTask
 {
 public:
-	FPCGExComputePreciseOverlap(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+	FPCGExComputePreciseOverlap(PCGExData::FPointIO* InPointIO,
 	                            const EPCGExPointBoundsSource InBoundsSource, PCGExPointsToBounds::FBounds* InBounds) :
-		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+		FPCGExNonAbandonableTask(InPointIO),
 		BoundsSource(InBoundsSource), Bounds(InBounds)
 	{
 	}

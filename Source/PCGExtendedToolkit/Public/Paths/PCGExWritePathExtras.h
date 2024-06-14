@@ -197,8 +197,8 @@ protected:
 class PCGEXTENDEDTOOLKIT_API FPCGExWritePathExtrasTask final : public FPCGExNonAbandonableTask
 {
 public:
-	FPCGExWritePathExtrasTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO) :
-		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO)
+	FPCGExWritePathExtrasTask(PCGExData::FPointIO* InPointIO) :
+		FPCGExNonAbandonableTask(InPointIO)
 	{
 	}
 

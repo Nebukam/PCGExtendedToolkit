@@ -123,8 +123,8 @@ class PCGEXTENDEDTOOLKIT_API FPCGExPlotNavmeshTask final : public FPCGExNonAband
 {
 public:
 	FPCGExPlotNavmeshTask(
-		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO) :
-		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO)
+		PCGExData::FPointIO* InPointIO) :
+		FPCGExNonAbandonableTask(InPointIO)
 	{
 	}
 

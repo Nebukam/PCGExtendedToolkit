@@ -110,7 +110,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFuseClustersContext final : public FPCGExEdg
 	PCGExGraph::FCompoundGraph* CompoundGraph = nullptr;
 	PCGExData::FPointIO* ConsolidatedPoints = nullptr;
 
-	FPCGExGraphBuilderSettings GraphBuilderSettings;
 	PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
 
 	PCGExGraph::FPointEdgeIntersections* PointEdgeIntersections = nullptr;

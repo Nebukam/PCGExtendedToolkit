@@ -9,6 +9,11 @@
 
 #include "PCGExPruneEdgesByLength.generated.h"
 
+namespace PCGExCluster
+{
+	struct FCluster;
+}
+
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
 class PCGEXTENDEDTOOLKIT_API UPCGExPruneEdgesByLengthSettings : public UPCGExEdgesProcessorSettings
 {
@@ -82,16 +87,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPruneEdgesByLengthContext final : public FPC
 	friend class FPCGExPruneEdgesByLengthElement;
 
 	virtual ~FPCGExPruneEdgesByLengthContext() override;
-
-	double ReferenceValue;
-	double ReferenceMin;
-	double ReferenceMax;
-
-	TArray<PCGExGraph::FIndexedEdge> IndexedEdges;
-	TArray<double> EdgeLength;
-
-	FPCGExGraphBuilderSettings GraphBuilderSettings;
-	PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExPruneEdgesByLengthElement final : public FPCGExEdgesProcessorElement
@@ -106,3 +101,26 @@ protected:
 	virtual bool Boot(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
+
+namespace PCGExPruneEdges
+{
+	class FProcessor final : public PCGExClusterMT::FClusterProcessor
+	{
+		double ReferenceValue = 0;
+		double ReferenceMin = 0;
+		double ReferenceMax = 0;
+
+		TArray<PCGExGraph::FIndexedEdge> IndexedEdges;
+		TArray<double> EdgeLengths;
+		
+	public:
+		FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges);
+		virtual ~FProcessor() override;
+		
+		virtual bool Process(FPCGExAsyncManager* AsyncManager) override;
+		virtual void ProcessSingleEdge(PCGExGraph::FIndexedEdge& Edge) override;
+		virtual void ProcessSingleRangeIteration(const int32 Iteration) override;
+		virtual void CompleteWork() override;
+	};
+
+}

@@ -63,6 +63,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExGeo2DProjectionSettings ProjectionSettings;
 
+	/** Graph & Edges output properties */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Graph Output Settings"))
+	FPCGExGraphBuilderSettings GraphBuilderSettings = FPCGExGraphBuilderSettings(false);
+
 private:
 	friend class FPCGExBuildDelaunayGraph2DElement;
 };
@@ -99,9 +103,9 @@ class PCGEXTENDEDTOOLKIT_API FPCGExDelaunay2Task final : public FPCGExNonAbandon
 {
 public:
 	FPCGExDelaunay2Task(
-		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+		PCGExData::FPointIO* InPointIO,
 		PCGExGraph::FGraph* InGraph) :
-		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+		FPCGExNonAbandonableTask(InPointIO),
 		Graph(InGraph)
 	{
 	}

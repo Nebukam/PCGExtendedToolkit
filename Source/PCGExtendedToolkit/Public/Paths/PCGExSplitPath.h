@@ -80,8 +80,8 @@ protected:
 class PCGEXTENDEDTOOLKIT_API FPCGExSplitPathTask final : public FPCGExNonAbandonableTask
 {
 public:
-	FPCGExSplitPathTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO) :
-		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO)
+	FPCGExSplitPathTask(PCGExData::FPointIO* InPointIO) :
+		FPCGExNonAbandonableTask(InPointIO)
 	{
 	}
 

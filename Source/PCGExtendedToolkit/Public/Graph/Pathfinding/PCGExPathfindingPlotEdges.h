@@ -126,9 +126,9 @@ class PCGEXTENDEDTOOLKIT_API FPCGExPlotClusterPathTask final : public FPCGExNonA
 {
 public:
 	FPCGExPlotClusterPathTask(
-		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+		PCGExData::FPointIO* InPointIO,
 		PCGExPathfinding::FExtraWeights* InGlobalExtraWeights = nullptr) :
-		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+		FPCGExNonAbandonableTask(InPointIO),
 		GlobalExtraWeights(InGlobalExtraWeights)
 
 	{

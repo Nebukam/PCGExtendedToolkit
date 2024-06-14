@@ -53,6 +53,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="!bPrunePoints && bMarkHull"))
 	FName HullAttributeName = "bIsOnHull";
 
+	/** Graph & Edges output properties */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Graph Output Settings"))
+	FPCGExGraphBuilderSettings GraphBuilderSettings = FPCGExGraphBuilderSettings(true);
+	
 private:
 	friend class FPCGExBuildConvexHullElement;
 };
@@ -87,9 +91,9 @@ class PCGEXTENDEDTOOLKIT_API FPCGExConvexHull3Task final : public FPCGExNonAband
 {
 public:
 	FPCGExConvexHull3Task(
-		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+		PCGExData::FPointIO* InPointIO,
 		PCGExGraph::FGraph* InGraph) :
-		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+		FPCGExNonAbandonableTask(InPointIO),
 		Graph(InGraph)
 	{
 	}

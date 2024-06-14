@@ -45,6 +45,7 @@ bool FPCGExBuildDelaunayGraph2DElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(BuildDelaunayGraph2D)
 
+	PCGEX_FWD(GraphBuilderSettings)
 	Context->GraphBuilderSettings.bPruneIsolatedPoints = false;
 
 	PCGEX_VALIDATE_NAME(Settings->HullAttributeName)

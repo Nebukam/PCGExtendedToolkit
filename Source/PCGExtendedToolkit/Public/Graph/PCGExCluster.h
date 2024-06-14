@@ -344,12 +344,13 @@ namespace PCGExClusterTask
 	class PCGEXTENDEDTOOLKIT_API FBuildCluster final : public FPCGExNonAbandonableTask
 	{
 	public:
-		FBuildCluster(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-		              PCGExCluster::FCluster* InCluster,
-		              const PCGExData::FPointIO* InEdgeIO,
-		              const TMap<int64, int32>* InEndpointsLookup,
-		              const TArray<int32>* InExpectedAdjacency) :
-			FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+		FBuildCluster(
+			PCGExData::FPointIO* InPointIO,
+			PCGExCluster::FCluster* InCluster,
+			const PCGExData::FPointIO* InEdgeIO,
+			const TMap<int64, int32>* InEndpointsLookup,
+			const TArray<int32>* InExpectedAdjacency) :
+			FPCGExNonAbandonableTask(InPointIO),
 			Cluster(InCluster),
 			EdgeIO(InEdgeIO),
 			EndpointsLookup(InEndpointsLookup),
@@ -369,13 +370,14 @@ namespace PCGExClusterTask
 	class PCGEXTENDEDTOOLKIT_API FFindNodeChains final : public FPCGExNonAbandonableTask
 	{
 	public:
-		FFindNodeChains(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-		                const PCGExCluster::FCluster* InCluster,
-		                const TArray<bool>* InBreakpoints,
-		                TArray<PCGExCluster::FNodeChain*>* InChains,
-		                const bool InSkipSingleEdgeChains = false,
-		                const bool InDeadEndsOnly = false) :
-			FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+		FFindNodeChains(
+			PCGExData::FPointIO* InPointIO,
+			const PCGExCluster::FCluster* InCluster,
+			const TArray<bool>* InBreakpoints,
+			TArray<PCGExCluster::FNodeChain*>* InChains,
+			const bool InSkipSingleEdgeChains = false,
+			const bool InDeadEndsOnly = false) :
+			FPCGExNonAbandonableTask(InPointIO),
 			Cluster(InCluster),
 			Breakpoints(InBreakpoints),
 			Chains(InChains),
@@ -397,13 +399,13 @@ namespace PCGExClusterTask
 	class PCGEXTENDEDTOOLKIT_API FBuildChain final : public FPCGExNonAbandonableTask
 	{
 	public:
-		FBuildChain(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+		FBuildChain(PCGExData::FPointIO* InPointIO,
 		            const PCGExCluster::FCluster* InCluster,
 		            const TArray<bool>* InBreakpoints,
 		            TArray<PCGExCluster::FNodeChain*>* InChains,
 		            const int32 InStartIndex,
 		            const uint64 InAdjacencyHash) :
-			FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+			FPCGExNonAbandonableTask(InPointIO),
 			Cluster(InCluster),
 			Breakpoints(InBreakpoints),
 			Chains(InChains),
@@ -478,9 +480,9 @@ namespace PCGExClusterTask
 	class PCGEXTENDEDTOOLKIT_API FProjectCluster final : public FPCGExNonAbandonableTask
 	{
 	public:
-		FProjectCluster(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+		FProjectCluster(PCGExData::FPointIO* InPointIO,
 		                PCGExCluster::FCluster* InCluster, PCGExCluster::FClusterProjection* InProjection) :
-			FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+			FPCGExNonAbandonableTask(InPointIO),
 			Cluster(InCluster),
 			Projection(InProjection)
 		{
@@ -495,13 +497,13 @@ namespace PCGExClusterTask
 	class PCGEXTENDEDTOOLKIT_API FCopyClustersToPoint final : public FPCGExNonAbandonableTask
 	{
 	public:
-		FCopyClustersToPoint(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+		FCopyClustersToPoint(PCGExData::FPointIO* InPointIO,
 		                     PCGExData::FPointIO* InVtx,
 		                     const TArray<PCGExData::FPointIO*>& InEdges,
 		                     PCGExData::FPointIOCollection* InVtxCollection,
 		                     PCGExData::FPointIOCollection* InEdgeCollection,
 		                     FPCGExTransformSettings* InTransformSettings) :
-			FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+			FPCGExNonAbandonableTask(InPointIO),
 			Vtx(InVtx),
 			Edges(InEdges),
 			VtxCollection(InVtxCollection),

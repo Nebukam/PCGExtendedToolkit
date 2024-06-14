@@ -75,8 +75,8 @@ protected:
 class PCGEXTENDEDTOOLKIT_API FPCGExPrunePathTask final : public FPCGExNonAbandonableTask
 {
 public:
-	FPCGExPrunePathTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO) :
-		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO)
+	FPCGExPrunePathTask(PCGExData::FPointIO* InPointIO) :
+		FPCGExNonAbandonableTask(InPointIO)
 	{
 	}
 

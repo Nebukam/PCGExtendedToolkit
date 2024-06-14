@@ -173,8 +173,8 @@ protected:
 class PCGEXTENDEDTOOLKIT_API FSweepSphereTask final : public FPCGExPCGExCollisionTask
 {
 public:
-	FSweepSphereTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO) :
-		FPCGExPCGExCollisionTask(InManager, InTaskIndex, InPointIO)
+	FSweepSphereTask(PCGExData::FPointIO* InPointIO) :
+		FPCGExPCGExCollisionTask(InPointIO)
 	{
 	}
 

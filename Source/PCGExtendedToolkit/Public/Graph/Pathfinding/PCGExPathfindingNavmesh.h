@@ -132,8 +132,8 @@ class PCGEXTENDEDTOOLKIT_API FSampleNavmeshTask final : public FPCGExPathfinding
 {
 public:
 	FSampleNavmeshTask(
-		FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO, PCGExPathfinding::FPathQuery* InQuery) :
-		FPCGExPathfindingTask(InManager, InTaskIndex, InPointIO, InQuery)
+		PCGExData::FPointIO* InPointIO, PCGExPathfinding::FPathQuery* InQuery) :
+		FPCGExPathfindingTask(InPointIO, InQuery)
 	{
 	}
 

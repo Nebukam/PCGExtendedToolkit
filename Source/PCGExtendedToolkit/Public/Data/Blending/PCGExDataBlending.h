@@ -627,13 +627,13 @@ namespace PCGExDataBlendingTask
 	class PCGEXTENDEDTOOLKIT_API FBlendCompoundedIO final : public FPCGExNonAbandonableTask
 	{
 	public:
-		FBlendCompoundedIO(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+		FBlendCompoundedIO(PCGExData::FPointIO* InPointIO,
 		                   PCGExData::FPointIO* InTargetIO,
 		                   FPCGExBlendingSettings* InBlendingSettings,
 		                   PCGExData::FIdxCompoundList* InCompoundList,
 		                   const FPCGExDistanceSettings& InDistSettings,
 		                   PCGExGraph::FGraphMetadataSettings* InMetadataSettings = nullptr) :
-			FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+			FPCGExNonAbandonableTask(InPointIO),
 			TargetIO(InTargetIO),
 			BlendingSettings(InBlendingSettings),
 			CompoundList(InCompoundList),
@@ -654,10 +654,10 @@ namespace PCGExDataBlendingTask
 	class PCGEXTENDEDTOOLKIT_API FWriteFuseMetadata final : public FPCGExNonAbandonableTask
 	{
 	public:
-		FWriteFuseMetadata(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
+		FWriteFuseMetadata(PCGExData::FPointIO* InPointIO,
 		                   PCGExGraph::FGraphMetadataSettings* InMetadataSettings,
 		                   PCGExData::FIdxCompoundList* InCompoundList) :
-			FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
+			FPCGExNonAbandonableTask(InPointIO),
 			MetadataSettings(InMetadataSettings),
 			CompoundList(InCompoundList)
 		{

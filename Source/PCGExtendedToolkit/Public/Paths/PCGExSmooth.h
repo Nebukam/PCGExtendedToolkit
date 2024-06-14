@@ -115,8 +115,8 @@ protected:
 class PCGEXTENDEDTOOLKIT_API FPCGExSmoothTask final : public FPCGExNonAbandonableTask
 {
 public:
-	FPCGExSmoothTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO) :
-		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO)
+	FPCGExSmoothTask(PCGExData::FPointIO* InPointIO) :
+		FPCGExNonAbandonableTask(InPointIO)
 	{
 	}
 
