@@ -347,6 +347,9 @@ namespace PCGExBridgeClusters
 
 		EdgePoint.Transform.SetLocation(FMath::Lerp(StartPoint.Transform.GetLocation(), EndPoint.Transform.GetLocation(), 0.5));
 
+		//TODO : Fix. Grab existing index cached value instead of the metadata entry which may not be "right" based
+		// on when was the last graph rebuild
+		
 		BumpEdgeNum(StartPoint, EndPoint);
 		EdgeEndpointsAtt->SetValue(EdgePoint.MetadataEntry, PCGExGraph::HCID(StartPoint.MetadataEntry, EndPoint.MetadataEntry));
 
