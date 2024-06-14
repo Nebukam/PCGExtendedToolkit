@@ -26,8 +26,6 @@ FPCGExWriteEdgeExtrasContext::~FPCGExWriteEdgeExtrasContext()
 {
 	PCGEX_TERMINATE_ASYNC
 
-	PCGEX_DELETE_TARRAY(Batches)
-
 	ProjectionSettings.Cleanup();
 }
 

@@ -571,6 +571,9 @@ namespace PCGExClusterMT
 
 	static void CompleteBatches(FPCGExAsyncManager* Manager, TArrayView<FClusterBatchProcessorBase*> Batches)
 	{
-		for (FClusterBatchProcessorBase* Batch : Batches) { ScheduleBatch(Manager, Batch); }
+		for (FClusterBatchProcessorBase* Batch : Batches)
+		{
+			Manager->Start<FStartClusterBatchCompleteWork<FClusterBatchProcessorBase>>(-1, nullptr, Batch);
+		}
 	}
 }

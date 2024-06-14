@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "Data/Blending/PCGExDataBlending.h"
-#include "..\PCGExClusterMT.h"
+#include "Graph/PCGExClusterMT.h"
 #include "Graph/PCGExEdgesProcessor.h"
 #include "Sampling/PCGExSampling.h"
 #include "PCGExWriteEdgeExtras.generated.h"
@@ -199,7 +199,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExWriteEdgeExtrasContext : public FPCGExEdgesP
 
 	virtual ~FPCGExWriteEdgeExtrasContext() override;
 
-	TArray<PCGExWriteEdgeExtras::FWriteEdgeExtrasBatch*> Batches;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExWriteEdgeExtrasElement : public FPCGExEdgesProcessorElement

@@ -47,7 +47,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMeanFilterDescriptor
 	bool bDoExcludeBelowMean = false;
 
 	/** Minimum value threshold. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bExcludeBelowMean"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bDoExcludeBelowMean"))
 	double ExcludeBelow = 0.2;
 
 	/** Exclude if value is above a specific threshold. */
@@ -55,7 +55,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMeanFilterDescriptor
 	bool bDoExcludeAboveMean = false;
 
 	/** Maximum threshold. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bExcludeAboveMean"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bDoExcludeAboveMean"))
 	double ExcludeAbove = 0.2;
 };
 

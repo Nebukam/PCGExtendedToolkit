@@ -41,7 +41,7 @@ bool UPCGExSearchDijkstra::FindPath(
 	for (int i = 0; i < NumNodes; i++)
 	{
 		ScoredQueue->Scores[i] = -1;
-		Previous[i] = PCGEx::NH64(-1,-1);
+		Previous[i] = PCGEx::NH64(-1, -1);
 	}
 
 	ScoredQueue->Scores[SeedNode.NodeIndex] = 0;
@@ -81,12 +81,12 @@ bool UPCGExSearchDijkstra::FindPath(
 	int32 PathNodeIndex;
 	int32 PathEdgeIndex;
 	PCGEx::NH64(PathHash, PathNodeIndex, PathEdgeIndex);
-	
+
 	while (PathNodeIndex != -1)
 	{
 		const int32 CurrentIndex = PathNodeIndex;
 		Path.Add(CurrentIndex);
-		
+
 		PathHash = Previous[PathNodeIndex];
 		PCGEx::NH64(PathHash, PathNodeIndex, PathEdgeIndex);
 

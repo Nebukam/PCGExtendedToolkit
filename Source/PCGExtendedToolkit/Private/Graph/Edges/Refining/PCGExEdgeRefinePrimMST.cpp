@@ -49,7 +49,7 @@ void UPCGExEdgeRefinePrimMST::Process(
 			const PCGExCluster::FNode& AdjacentNode = InCluster->Nodes[NeighborIndex];
 			PCGExGraph::FIndexedEdge& Edge = InCluster->Edges[EdgeIndex];
 			Edge.bValid = false; // Invalidate edge 
-			
+
 			const double Score = InHeuristics->GetEdgeScore(Current, AdjacentNode, Edge, *NoNode, *NoNode);
 
 			if (Score >= ScoredQueue->Scores[NeighborIndex]) { continue; }
