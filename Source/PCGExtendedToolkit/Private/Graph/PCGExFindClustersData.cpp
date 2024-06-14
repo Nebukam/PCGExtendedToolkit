@@ -131,7 +131,7 @@ bool FPCGExFindClustersDataElement::ExecuteInternal(FPCGContext* InContext) cons
 
 	for (PCGExData::FPointIO* Edges : TaggedEdges)
 	{
-		if(!InputDictionary->TryAddEntry(*Edges))
+		if (!InputDictionary->TryAddEntry(*Edges))
 		{
 			if (!Settings->bSkipImportantWarnings) { PCGE_LOG(Warning, GraphAndLog, FTEXT("Some input edges have no associated vtx.")); }
 		}
@@ -154,13 +154,13 @@ bool FPCGExFindClustersDataElement::ExecuteInternal(FPCGContext* InContext) cons
 		if (EdgesEntries)
 		{
 			Vtx->InitializeOutput(PCGExData::EInit::Forward);
-			Vtx->DefaultOutputLabel =  PCGExGraph::OutputVerticesLabel;
+			Vtx->DefaultOutputLabel = PCGExGraph::OutputVerticesLabel;
 
 			for (PCGExData::FPointIO* ValidEdges : EdgesEntries->Entries)
 			{
 				Context->MainPoints->Pairs.Remove(ValidEdges);
 				Context->MainEdges->Pairs.Add(ValidEdges);
-				ValidEdges->DefaultOutputLabel =  PCGExGraph::OutputEdgesLabel;
+				ValidEdges->DefaultOutputLabel = PCGExGraph::OutputEdgesLabel;
 
 				ValidEdges->InitializeOutput(PCGExData::EInit::Forward);
 			}
@@ -174,7 +174,7 @@ bool FPCGExFindClustersDataElement::ExecuteInternal(FPCGContext* InContext) cons
 	PCGEX_DELETE(InputDictionary)
 
 	Context->Done();
-	
+
 	Context->MainPoints->OutputTo(Context);
 	Context->MainEdges->OutputTo(Context);
 

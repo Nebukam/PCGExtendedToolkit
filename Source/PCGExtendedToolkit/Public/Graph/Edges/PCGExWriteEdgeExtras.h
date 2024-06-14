@@ -198,7 +198,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExWriteEdgeExtrasContext : public FPCGExEdgesP
 	friend class FPCGExWriteEdgeExtrasElement;
 
 	virtual ~FPCGExWriteEdgeExtrasContext() override;
-
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExWriteEdgeExtrasElement : public FPCGExEdgesProcessorElement

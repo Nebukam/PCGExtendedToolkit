@@ -61,7 +61,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExShrinkPathEndpointDistanceSettings
 	/** TBD */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="ShrinkMode==EPCGExPathShrinkMode::Distance", EditConditionHides))
 	EPCGExPathShrinkDistanceCutType CutType = EPCGExPathShrinkDistanceCutType::NewPoint;
-	
+
 	bool SanityCheck(const FPCGContext* Context) const
 	{
 		if (ValueSource == EPCGExFetchType::Attribute) { PCGEX_VALIDATE_NAME_C(Context, DistanceAttribute.GetName()) }
@@ -171,7 +171,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExShrinkPathContext : public FPCGExPathProcess
 
 	void GetShrinkAmounts(const PCGExData::FPointIO* PointIO, double& Start, double& End, EPCGExPathShrinkDistanceCutType& StartCut, EPCGExPathShrinkDistanceCutType& EndCut) const;
 	void GetShrinkAmounts(const PCGExData::FPointIO* PointIO, uint32& Start, uint32& End) const;
-	
+
 	virtual ~FPCGExShrinkPathContext() override;
 };
 

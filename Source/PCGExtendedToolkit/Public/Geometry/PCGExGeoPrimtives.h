@@ -120,5 +120,4 @@ namespace PCGExGeo
 		FORCEINLINE void ComputeBounds(const TArrayView<FVector>& Positions) { GetBounds(Positions, Bounds); }
 		FORCEINLINE void ComputeBounds(const TArrayView<FVector2D>& Positions) { GetBounds(Positions, Bounds); }
 	};
-
 }

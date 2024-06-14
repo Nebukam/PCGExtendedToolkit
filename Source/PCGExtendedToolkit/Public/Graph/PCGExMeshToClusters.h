@@ -68,11 +68,10 @@ public:
 	//~End UPCGExPointsProcessorSettings interface
 
 public:
-	
 	/** Triangulation type */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExTriangulationType GraphOutputType = EPCGExTriangulationType::Raw;
-	
+
 	/** Mesh source */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	EPCGExFetchType StaticMeshSource = EPCGExFetchType::Constant;
@@ -84,7 +83,7 @@ public:
 	/** Static mesh path attribute -- Either FString, FName or FSoftObjectPath*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="StaticMeshSource==EPCGExFetchType::Attribute", EditConditionHides))
 	FName StaticMeshAttribute;
-	
+
 	/** Static mesh path attribute type*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="StaticMeshSource==EPCGExFetchType::Attribute", EditConditionHides))
 	EPCGExMeshAttributeHandling AttributeHandling;
@@ -92,7 +91,7 @@ public:
 	/** Target inherit behavior */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExTransformSettings TransformSettings;
-	
+
 	/** Skip invalid meshes & do not throw warning about them. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bIgnoreMeshWarnings = false;
@@ -118,7 +117,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMeshToClustersContext : public FPCGExPointsP
 	PCGExData::FPointIOCollection* RootVtx = nullptr;
 	PCGExData::FPointIOCollection* VtxChildCollection = nullptr;
 	PCGExData::FPointIOCollection* EdgeChildCollection = nullptr;
-	
+
 
 	TArray<PCGExGraph::FGraphBuilder*> GraphBuilders;
 

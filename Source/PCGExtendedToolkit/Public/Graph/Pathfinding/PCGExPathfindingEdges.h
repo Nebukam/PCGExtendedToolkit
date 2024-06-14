@@ -55,7 +55,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingEdgesContext : public FPCGExPathf
 	TArray<PCGExPathfinding::FPathQuery*> PathBuffer;
 
 	void TryFindPath(const PCGExPathfinding::FPathQuery* Query) const;
-	
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExPathfindingEdgesElement : public FPCGExPathfindingProcessorElement

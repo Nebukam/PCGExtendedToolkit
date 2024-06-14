@@ -50,7 +50,7 @@ public:
 	//~End UPCGExEdgesProcessorSettings interface
 
 	virtual bool RequiresDeterministicClusters() const override;
-	
+
 	/** Fuse Settings */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayName="Point/Point Settings"))
 	FPCGExPointPointIntersectionSettings PointPointIntersectionSettings;

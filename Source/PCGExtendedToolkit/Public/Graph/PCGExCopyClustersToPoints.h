@@ -47,7 +47,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExCopyClustersToPointsContext : public FPCGExE
 	FPCGExTransformSettings TransformSettings;
 
 	PCGExData::FPointIO* Targets = nullptr;
-	
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExCopyClustersToPointsElement : public FPCGExEdgesProcessorElement

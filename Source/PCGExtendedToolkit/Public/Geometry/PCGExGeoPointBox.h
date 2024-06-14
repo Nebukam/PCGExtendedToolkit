@@ -146,7 +146,7 @@ namespace PCGExGeo
 			if (CloudBounds.Intersect(PointBounds)) { return true; }
 			return CloudBounds.IsInside(PointBounds);
 		}
-		
+
 		bool Overlaps(const UPCGPointData* InPointData) const
 		{
 			const FBox PointBounds = InPointData->GetBounds();

@@ -16,7 +16,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExGlobalSettings : public UObject
 public:
 	UPROPERTY(EditAnywhere, config, Category = "Performance|Cluster", meta=(ClampMin=1))
 	int32 SmallClusterSize = 256;
-	
+
 	UPROPERTY(EditAnywhere, config, Category = "Performance|Cluster", meta=(ClampMin=1))
 	int32 DefaultBatchIterations = 256;
 

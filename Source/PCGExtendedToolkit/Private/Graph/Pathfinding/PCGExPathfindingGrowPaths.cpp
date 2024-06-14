@@ -309,7 +309,7 @@ bool FPCGExPathfindingGrowPathsElement::ExecuteInternal(FPCGContext* InContext) 
 		if (!Context->AdvancePointsIO()) { Context->Done(); }
 		else
 		{
-			if (!Context->TaggedEdges){ return false; }
+			if (!Context->TaggedEdges) { return false; }
 
 			if (Settings->NumIterations == EPCGExGrowthValueSource::VtxAttribute)
 			{

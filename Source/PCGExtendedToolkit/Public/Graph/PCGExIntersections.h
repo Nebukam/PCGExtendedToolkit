@@ -84,10 +84,10 @@ namespace PCGExGraph
 		TArray<FCompoundNode*> Nodes;
 		TMap<uint64, FIndexedEdge> Edges;
 		const FPCGExFuseSettings FuseSettings;
-		
+
 		FBox Bounds;
 		const bool bFusePoints = true;
-		
+
 		using NodeOctree = TOctree2<FCompoundNode*, FCompoundNodeSemantics>;
 		mutable NodeOctree Octree;
 		mutable FRWLock OctreeLock;

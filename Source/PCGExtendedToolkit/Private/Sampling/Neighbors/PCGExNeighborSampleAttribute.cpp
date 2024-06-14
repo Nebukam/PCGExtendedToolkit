@@ -39,7 +39,6 @@ bool UPCGExNeighborSampleAttribute::PrepareForCluster(const FPCGContext* InConte
 
 	bIsValidOperation = true;
 	return bRequirePerPointPrep;
-	
 }
 
 void UPCGExNeighborSampleAttribute::PrepareNode(PCGExCluster::FNode& TargetNode) const

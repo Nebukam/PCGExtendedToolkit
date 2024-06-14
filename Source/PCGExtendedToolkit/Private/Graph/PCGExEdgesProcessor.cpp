@@ -116,9 +116,8 @@ bool FPCGExEdgesProcessorContext::AdvancePointsIO(const bool bCleanupKeys)
 
 bool FPCGExEdgesProcessorContext::AdvanceEdges(const bool bBuildCluster, const bool bCleanupKeys)
 {
-
 	PCGEX_DELETE_TARRAY(Batches)
-	
+
 	PCGEX_DELETE(CurrentCluster)
 	PCGEX_DELETE(ClusterProjection)
 
@@ -242,7 +241,7 @@ bool FPCGExEdgesProcessorContext::ProcessClusters()
 	{
 		if (!IsAsyncWorkComplete()) { return false; }
 
-		PCGExClusterMT::CompleteBatches(GetAsyncManager(), Batches);
+		CompleteBatches(GetAsyncManager(), Batches);
 		SetAsyncState(PCGExClusterMT::State_WaitingOnClusterCompletedWork);
 	}
 

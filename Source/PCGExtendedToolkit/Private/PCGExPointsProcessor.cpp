@@ -274,7 +274,7 @@ bool FPCGExPointsProcessorContext::AdvancePointsIO(const bool bCleanupKeys)
 		CurrentIO = MainPoints->Pairs[CurrentPointIOIndex];
 		return true;
 	}
-	
+
 	CurrentIO = nullptr;
 	return false;
 }

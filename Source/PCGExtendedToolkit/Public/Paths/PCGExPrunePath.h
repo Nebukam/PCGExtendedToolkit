@@ -30,7 +30,7 @@ public:
 #endif
 
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
-	
+
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings interface
@@ -53,11 +53,10 @@ public:
 struct PCGEXTENDEDTOOLKIT_API FPCGExPrunePathContext : public FPCGExPathProcessorContext
 {
 	friend class FPCGExPrunePathElement;
-	
+
 	virtual ~FPCGExPrunePathContext() override;
 
 	PCGExGeo::FPointBoxCloud* BoxCloud = nullptr;
-	
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExPrunePathElement : public FPCGExPathProcessorElement

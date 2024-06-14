@@ -54,14 +54,13 @@ public:
 	virtual FName GetPointFilterLabel() const;
 	bool SupportsPointFilters() const;
 	virtual bool RequiresPointFilters() const;
-		
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExPathProcessorContext : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExPathProcessorElement;
 
-	~FPCGExPathProcessorContext();
+	virtual ~FPCGExPathProcessorContext() override;
 
 	virtual bool ProcessorAutomation() override;
 
@@ -78,7 +77,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathProcessorContext : public FPCGExPointsPr
 
 	PCGExDataFilter::TEarlyExitFilterManager* CreatePointFilterManagerInstance(const PCGExData::FPointIO* PointIO, const bool bForcePrepare) const;
 
-	PCGExDataFilter::TEarlyExitFilterManager* PointFiltersManager = nullptr;	
+	PCGExDataFilter::TEarlyExitFilterManager* PointFiltersManager = nullptr;
 	bool bRequirePointFilterPreparation = false;
 	bool bWaitingOnFilterWork = false;
 };

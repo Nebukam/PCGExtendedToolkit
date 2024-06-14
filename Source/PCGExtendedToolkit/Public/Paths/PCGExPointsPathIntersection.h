@@ -25,7 +25,7 @@ public:
 #endif
 
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
-	
+
 protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings interface
@@ -48,7 +48,7 @@ public:
 struct PCGEXTENDEDTOOLKIT_API FPCGExPointsPathIntersectionContext : public FPCGExPathProcessorContext
 {
 	friend class FPCGExPointsPathIntersectionElement;
-	
+
 	virtual ~FPCGExPointsPathIntersectionContext() override;
 };
 

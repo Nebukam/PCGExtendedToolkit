@@ -113,8 +113,8 @@ bool FPCGExLloydRelax3Task::ExecuteTask()
 	PCGExGeo::TDelaunay3* Delaunay = new PCGExGeo::TDelaunay3();
 	TArray<FVector>& Positions = *ActivePositions;
 
-	FPCGExPointsProcessorContext* Context = static_cast<FPCGExPointsProcessorContext*>(Manager->Context);	
-	
+	FPCGExPointsProcessorContext* Context = static_cast<FPCGExPointsProcessorContext*>(Manager->Context);
+
 	const TArrayView<FVector> View = MakeArrayView(Positions);
 	if (!Delaunay->Process(View, false, Context)) { return false; }
 

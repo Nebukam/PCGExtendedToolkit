@@ -127,7 +127,7 @@ bool FPCGExLloydRelax2Task::ExecuteTask()
 	NumIterations--;
 
 	FPCGExPointsProcessorContext* Context = static_cast<FPCGExPointsProcessorContext*>(Manager->Context);
-	
+
 	PCGExGeo::TDelaunay2* Delaunay = new PCGExGeo::TDelaunay2();
 	TArray<FVector>& Positions = *ActivePositions;
 

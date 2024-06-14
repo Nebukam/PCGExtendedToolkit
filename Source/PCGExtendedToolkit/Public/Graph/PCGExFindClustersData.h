@@ -46,7 +46,7 @@ public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	virtual FName GetMainOutputLabel() const override;
 	//~End UPCGExPointsProcessorSettings interface
-	
+
 	/** Warning about inputs mismatch and triage */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ShowOnlyInnerProperties))
 	bool bSkipTrivialWarnings = false;
@@ -63,7 +63,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFindClustersDataContext : public FPCGExPoint
 	virtual ~FPCGExFindClustersDataContext() override;
 
 	PCGExData::FPointIOCollection* MainEdges = nullptr;
-	
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExFindClustersDataElement : public FPCGExPointsProcessorElementBase

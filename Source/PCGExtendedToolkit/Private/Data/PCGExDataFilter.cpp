@@ -99,7 +99,6 @@ namespace PCGExDataFilter
 	TEarlyExitFilterManager::TEarlyExitFilterManager(const PCGExData::FPointIO* InPointIO)
 		: TFilterManager(InPointIO)
 	{
-		
 	}
 
 	void TEarlyExitFilterManager::Test(const int32 PointIndex)

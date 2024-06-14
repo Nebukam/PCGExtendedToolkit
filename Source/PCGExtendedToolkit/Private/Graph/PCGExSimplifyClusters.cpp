@@ -48,7 +48,7 @@ bool FPCGExSimplifyClustersElement::ExecuteInternal(FPCGContext* InContext) cons
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }
-		
+
 		Context->StartProcessingClusters<PCGExClusterMT::TClusterBatchBuilderProcessor<PCGExSimplifyClusters::FClusterSimplifyProcess>>(
 			[&](PCGExClusterMT::TClusterBatchBuilderProcessor<PCGExSimplifyClusters::FClusterSimplifyProcess>* NewBatch)
 			{
@@ -133,7 +133,7 @@ namespace PCGExSimplifyClusters
 			return;
 		}
 
-		if(Chain->SingleEdge != -1)
+		if (Chain->SingleEdge != -1)
 		{
 			GraphBuilder->Graph->InsertEdge(Edges[Chain->SingleEdge]);
 			return;
@@ -167,7 +167,6 @@ namespace PCGExSimplifyClusters
 
 		GraphBuilder->Graph->InsertEdges(NewEdges, IOIndex);
 	}
-
 }
 
 

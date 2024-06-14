@@ -299,7 +299,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : public FPCGContext
 	}
 
 	PCGExData::FPointIO* TryGetSingleInput(FName InputName) const;
-	
+
 	FPCGTaggedData* Output(UPCGData* OutData, const FName OutputLabel);
 
 	template <typename T>

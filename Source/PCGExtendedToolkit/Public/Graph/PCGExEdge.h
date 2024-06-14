@@ -328,21 +328,21 @@ namespace PCGExGraph
 
 	static void SetClusterVtx(const PCGExData::FPointIO* IO, FString& OutId)
 	{
-		IO->Tags->Set(PCGExGraph::TagStr_ClusterPair, IO->GetOutIn()->UID, OutId);
+		IO->Tags->Set(TagStr_ClusterPair, IO->GetOutIn()->UID, OutId);
 		IO->Tags->RawTags.Add(TagStr_PCGExVtx);
 		IO->Tags->RawTags.Remove(TagStr_PCGExEdges);
 	}
 
 	static void MarkClusterVtx(const PCGExData::FPointIO* IO, const FString& Id)
 	{
-		IO->Tags->Set(PCGExGraph::TagStr_ClusterPair, Id);
+		IO->Tags->Set(TagStr_ClusterPair, Id);
 		IO->Tags->RawTags.Add(TagStr_PCGExVtx);
 		IO->Tags->RawTags.Remove(TagStr_PCGExEdges);
 	}
 
 	static void MarkClusterEdges(const PCGExData::FPointIO* IO, const FString& Id)
 	{
-		IO->Tags->Set(PCGExGraph::TagStr_ClusterPair, Id);
+		IO->Tags->Set(TagStr_ClusterPair, Id);
 		IO->Tags->RawTags.Add(TagStr_PCGExEdges);
 		IO->Tags->RawTags.Remove(TagStr_PCGExVtx);
 	}

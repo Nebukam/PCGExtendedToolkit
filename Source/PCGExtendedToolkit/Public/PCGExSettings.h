@@ -66,7 +66,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExDataFilterActionSettings
 			PCGEX_VALIDATE_NAME_C(Context, OmitTag)
 			return true;
 		}
-		
+
 		return true;
 	}
 };

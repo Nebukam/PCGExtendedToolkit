@@ -136,7 +136,7 @@ namespace PCGExCluster
 		int32 NodeIndex = 0;
 		for (int32 PointIndex : NodePointsSet)
 		{
-			Nodes[NodeIndex] = PCGExCluster::FNode(NodeIndex, PointIndex, InNodePoints[PointIndex].Transform.GetLocation());
+			Nodes[NodeIndex] = FNode(NodeIndex, PointIndex, InNodePoints[PointIndex].Transform.GetLocation());
 			NodeIndexLookup.Add(PointIndex, NodeIndex);
 			NodeIndex++;
 		}
@@ -854,7 +854,7 @@ namespace PCGExCluster
 
 	bool FNodeStateHandler::RequiresPerPointPreparation() const
 	{
-		return !HeavyFilterHandlers.IsEmpty() || !HeavyClusterFilterHandlers.IsEmpty();;
+		return !HeavyFilterHandlers.IsEmpty() || !HeavyClusterFilterHandlers.IsEmpty();
 	}
 
 #pragma endregion

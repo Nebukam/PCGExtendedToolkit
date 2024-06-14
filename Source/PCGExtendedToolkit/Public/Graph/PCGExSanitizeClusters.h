@@ -82,7 +82,7 @@ class PCGEXTENDEDTOOLKIT_API FPCGExSanitizeInsertTask : public FPCGExNonAbandona
 {
 public:
 	FPCGExSanitizeInsertTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-							  PCGExData::FPointIO* InEdgeIO) :
+	                         PCGExData::FPointIO* InEdgeIO) :
 		FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
 		EdgeIO(InEdgeIO)
 	{

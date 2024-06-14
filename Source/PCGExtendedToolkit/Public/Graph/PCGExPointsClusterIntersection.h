@@ -35,7 +35,6 @@ public:
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ShowOnlyInnerProperties))
 	FPCGExBoxIntersectionSettings IntersectionSettings;
-	
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExPointsClusterIntersectionContext : public FPCGExEdgesProcessorContext
@@ -46,7 +45,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsClusterIntersectionContext : public FP
 	virtual ~FPCGExPointsClusterIntersectionContext() override;
 
 	TArray<PCGExGraph::FIndexedEdge> IndexedEdges;
-
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExPointsClusterIntersectionElement : public FPCGExEdgesProcessorElement

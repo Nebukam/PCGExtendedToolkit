@@ -957,9 +957,9 @@ namespace PCGExMath
 
 	FORCEINLINE static FVector Round10(const FVector& A) { return FVector(Round10(A.X), Round10(A.Y), Round10(A.Z)); }
 
-	
-#pragma endregion 
-	
+
+#pragma endregion
+
 	template <typename T>
 	FORCEINLINE static T SanitizeIndex(const T& Index, const T& Limit, const EPCGExIndexSafety Method)
 	{

@@ -287,7 +287,7 @@ bool FPCGExPlotClusterPathTask::ExecuteTask()
 	PCGEX_SETTINGS(PathfindingPlotEdges)
 
 	Context->TryFindPath(PointIO);
-	
+
 	return true;
 }
 

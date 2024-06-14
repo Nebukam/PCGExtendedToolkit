@@ -257,12 +257,13 @@ bool FPCGExMeshToClustersElement::ExecuteInternal(
 
 namespace PCGExMeshToCluster
 {
-	bool PCGExMeshToCluster::FExtractMeshAndBuildGraph::ExecuteTask()
+	bool FExtractMeshAndBuildGraph::ExecuteTask()
 	{
 		FPCGExMeshToClustersContext* Context = static_cast<FPCGExMeshToClustersContext*>(Manager->Context);
 		PCGEX_SETTINGS(MeshToClusters)
 
-		switch (Mesh->DesiredTriangulationType) {
+		switch (Mesh->DesiredTriangulationType)
+		{
 		default: ;
 		case EPCGExTriangulationType::Raw:
 			Mesh->ExtractMeshSynchronous();
@@ -276,7 +277,7 @@ namespace PCGExMeshToCluster
 			Mesh->MakeHollowDual();
 			break;
 		}
-		
+
 
 		PCGExData::FPointIO& RootVtx = Context->RootVtx->Emplace_GetRef();
 		RootVtx.IOIndex = TaskIndex;

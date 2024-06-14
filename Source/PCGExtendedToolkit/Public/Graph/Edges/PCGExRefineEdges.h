@@ -69,9 +69,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExRefineEdgesContext : public FPCGExEdgesProce
 	virtual ~FPCGExRefineEdgesContext() override;
 
 	virtual bool DefaultVtxFilterResult() const override;
-	
+
 	UPCGExEdgeRefineOperation* Refinement = nullptr;
-	
+
 	FPCGExGraphBuilderSettings GraphBuilderSettings;
 };
 
@@ -130,7 +130,7 @@ namespace PCGExRefineEdges
 		UPCGExEdgeRefineOperation* Refinement = nullptr;
 
 		FRefineClusterBatch(FPCGContext* InContext, PCGExData::FPointIO* InVtx, TArrayView<PCGExData::FPointIO*> InEdges);
-		
+
 		virtual bool PrepareSingle(FClusterRefineProcess* ClusterProcessor) override;
 	};
 }

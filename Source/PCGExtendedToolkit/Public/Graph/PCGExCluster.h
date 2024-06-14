@@ -225,7 +225,7 @@ namespace PCGExCluster
 		FORCEINLINE FVector GetCentroid(const int32 NodeIndex) const;
 
 		void GetValidEdges(TArray<PCGExGraph::FIndexedEdge>& OutValidEdges) const;
-		
+
 		int32 FindClosestNeighborInDirection(const int32 NodeIndex, const FVector& Direction, int32 MinNeighborCount = 1) const;
 	};
 
@@ -341,7 +341,6 @@ namespace PCGExCluster
 
 namespace PCGExClusterTask
 {
-
 	class PCGEXTENDEDTOOLKIT_API FBuildCluster : public FPCGExNonAbandonableTask
 	{
 	public:

@@ -462,7 +462,7 @@ namespace PCGExGraph
 		OutAdjacency.SetNumUninitialized(InPointIO.GetNum());
 		OutIndices.Empty();
 
-		PCGEx::TFAttributeReader<int64>* IndexReader = new PCGEx::TFAttributeReader<int64>(PCGExGraph::Tag_VtxEndpoint);
+		PCGEx::TFAttributeReader<int64>* IndexReader = new PCGEx::TFAttributeReader<int64>(Tag_VtxEndpoint);
 		if (!IndexReader->Bind(const_cast<PCGExData::FPointIO&>(InPointIO)))
 		{
 			PCGEX_DELETE(IndexReader)

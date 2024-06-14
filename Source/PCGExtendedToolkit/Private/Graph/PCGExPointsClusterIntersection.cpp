@@ -59,16 +59,15 @@ bool FPCGExPointsClusterIntersectionElement::ExecuteInternal(FPCGContext* InCont
 	{
 		while (Context->AdvanceEdges(false))
 		{
-			
 		}
-		
+
 		Context->SetAsyncState(PCGExGraph::State_WritingClusters);
 	}
 
 	if (Context->IsState(PCGExGraph::State_WritingClusters))
 	{
 		PCGEX_WAIT_ASYNC
-		
+
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 

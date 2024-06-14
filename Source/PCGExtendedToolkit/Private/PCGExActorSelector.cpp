@@ -97,7 +97,7 @@ namespace PCGExActorSelector
 
 		// We pass FoundActor ref, that will be captured by the FilteringFunction
 		// It will modify the FoundActor pointer to the found actor, if found.
-		TFunction<bool(AActor*)> FilteringFunction = PCGExActorSelector::GetFilteringFunction(Settings, BoundsCheck, SelfIgnoreCheck, FoundActors);
+		TFunction<bool(AActor*)> FilteringFunction = GetFilteringFunction(Settings, BoundsCheck, SelfIgnoreCheck, FoundActors);
 
 		if (!FilteringFunction)
 		{
@@ -200,7 +200,6 @@ namespace PCGExActorSelector
 		TArray<AActor*> Actors = FindActors(Settings, InComponent, BoundsCheck, SelfIgnoreCheck);
 		return Actors.IsEmpty() ? nullptr : Actors[0];
 	}
-
 }
 
 FPCGExSelectionKey::FPCGExSelectionKey(EPCGExActorFilter InFilter)
@@ -441,7 +440,7 @@ FText FPCGExActorSelectorSettings::GetTaskNameSuffix() const
 		{
 			return FText::Format(FText::FromString(TEXT("Class: {0}")), (ActorSelectionClass.Get() ? ActorSelectionClass->GetDisplayNameText() : FText::FromName(NAME_None)));
 		}
-		else if (ActorSelection == EPCGExActorSelection::ByTag)
+		if (ActorSelection == EPCGExActorSelection::ByTag)
 		{
 			return FText::Format(FText::FromString(TEXT("Tag: {0}")), FText::FromName(ActorSelectionTag));
 		}

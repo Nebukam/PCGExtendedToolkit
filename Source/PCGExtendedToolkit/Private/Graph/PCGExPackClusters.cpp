@@ -124,7 +124,7 @@ bool FPCGExPackClusterTask::ExecuteTask()
 	WriteMark(PackedIO, PCGExGraph::Tag_PackedClusterEdgeCount, NumEdges);
 
 	PCGExGraph::CleanupClusterTags(&PackedIO);
-	
+
 	FString OutPairId;
 	PackedIO.Tags->Set(PCGExGraph::TagStr_ClusterPair, InEdges->GetIn()->UID, OutPairId);
 

@@ -82,9 +82,9 @@ bool FPCGExPruneClustersElement::ExecuteInternal(FPCGContext* InContext) const
 
 		TSet<PCGExData::FPointIO*> KeepList;
 		TSet<PCGExData::FPointIO*> OmitList;
-		
+
 		// TODO : Omit/Keep/Tag
-		
+
 		Context->Done();
 	}
 
@@ -103,6 +103,6 @@ bool FPCGExPruneClusterTask::ExecuteTask()
 	PCGEX_SETTINGS(PruneClusters)
 
 	// TODO : Check against BoxCloud
-	
+
 	return true;
 }

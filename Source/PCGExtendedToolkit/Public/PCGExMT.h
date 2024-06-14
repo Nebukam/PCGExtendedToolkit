@@ -21,7 +21,7 @@ namespace PCGExMT
 	constexpr AsyncState State_Setup = __COUNTER__;
 	constexpr AsyncState State_ReadyForNextPoints = __COUNTER__;
 	constexpr AsyncState State_ProcessingPoints = __COUNTER__;
-	
+
 	constexpr AsyncState State_ProcessingTargets = __COUNTER__;
 	constexpr AsyncState State_WaitingOnAsyncWork = __COUNTER__;
 	constexpr AsyncState State_WaitingOnAsyncProcessing = __COUNTER__;
@@ -30,7 +30,7 @@ namespace PCGExMT
 
 	constexpr AsyncState State_Processing = __COUNTER__;
 	constexpr AsyncState State_Completing = __COUNTER__;
-	
+
 	struct PCGEXTENDEDTOOLKIT_API FChunkedLoop
 	{
 		FChunkedLoop()

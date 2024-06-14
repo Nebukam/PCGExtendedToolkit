@@ -51,7 +51,7 @@ public:
 	/** Do not output paths that have less points that this value */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ClampMin=2))
 	int32 MinPointCount = 2;
-	
+
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, InlineEditConditionToggle))
 	bool bOmitAbovePointCount = false;
@@ -59,7 +59,7 @@ public:
 	/** Do not output paths that have more points that this value */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="bOmitAbovePointCount", ClampMin=2))
 	int32 MaxPointCount = 500;
-	
+
 private:
 	friend class FPCGExBreakClustersToPathsElement;
 };
@@ -71,7 +71,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBreakClustersToPathsContext : public FPCGExE
 	virtual ~FPCGExBreakClustersToPathsContext() override;
 
 	virtual bool DefaultVtxFilterResult() const override;
-	
+
 	PCGExData::FPointIOCollection* Paths = nullptr;
 	TArray<PCGExCluster::FNodeChain*> Chains;
 };
