@@ -8,6 +8,11 @@
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristics.h"
 #include "Graph/Pathfinding/Search/PCGExScoredQueue.h"
 
+void UPCGExSearchDijkstra::CopySettingsFrom(UPCGExOperation* Other)
+{
+	Super::CopySettingsFrom(Other);
+}
+
 bool UPCGExSearchDijkstra::FindPath(
 	const FVector& SeedPosition,
 	const FPCGExNodeSelectionSettings* SeedSelection,

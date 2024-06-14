@@ -4,6 +4,11 @@
 
 #include "Graph/Pathfinding/Search/PCGExSearchOperation.h"
 
+void UPCGExSearchOperation::CopySettingsFrom(UPCGExOperation* Other)
+{
+	Super::CopySettingsFrom(Other);
+}
+
 bool UPCGExSearchOperation::GetRequiresProjection() { return false; }
 
 void UPCGExSearchOperation::PrepareForCluster(PCGExCluster::FCluster* InCluster, PCGExCluster::FClusterProjection* InProjection)

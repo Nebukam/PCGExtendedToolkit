@@ -43,6 +43,8 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="GoalCount!=EPCGExGoalPickRandomAmount::Single && bUseLocalNumGoals"))
 	FPCGAttributePropertyInputSelector LocalNumGoalAttribute;
 
+	virtual void CopySettingsFrom(UPCGExOperation* Other) override;
+	
 	virtual void PrepareForData(const PCGExData::FPointIO& InSeeds, const PCGExData::FPointIO& InGoals) override;
 
 	virtual int32 GetGoalIndex(const PCGEx::FPointRef& Seed) const override;

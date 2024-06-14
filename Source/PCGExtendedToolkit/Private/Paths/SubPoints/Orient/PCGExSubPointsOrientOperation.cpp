@@ -6,6 +6,17 @@
 
 #include "Data/PCGExPointIO.h"
 
+void UPCGExSubPointsOrientOperation::CopySettingsFrom(UPCGExOperation* Other)
+{
+	Super::CopySettingsFrom(Other);
+	const UPCGExSubPointsOrientOperation* TypedOther = Cast<UPCGExSubPointsOrientOperation>(Other);
+	if (Other)
+	{
+		OrientAxis = TypedOther->OrientAxis;
+		UpAxis = TypedOther->UpAxis;
+	}
+}
+
 void UPCGExSubPointsOrientOperation::PrepareForData(PCGExData::FPointIO& InPointIO)
 {
 	Super::PrepareForData(InPointIO);

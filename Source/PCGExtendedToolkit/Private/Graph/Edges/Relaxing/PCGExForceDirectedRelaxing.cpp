@@ -6,6 +6,17 @@
 
 #include "Graph/PCGExCluster.h"
 
+void UPCGExForceDirectedRelaxing::CopySettingsFrom(UPCGExOperation* Other)
+{
+	Super::CopySettingsFrom(Other);
+	const UPCGExForceDirectedRelaxing* TypedOther = Cast<UPCGExForceDirectedRelaxing>(Other);
+	if (Other)
+	{
+		SpringConstant = TypedOther->SpringConstant;
+		ElectrostaticConstant = TypedOther->ElectrostaticConstant;
+	}
+}
+
 void UPCGExForceDirectedRelaxing::ProcessVertex(const PCGExCluster::FNode& Vertex)
 {
 	const FVector Position = (*ReadBuffer)[Vertex.PointIndex];

@@ -9,9 +9,6 @@
 #include "Data/PCGExDataFilter.h"
 #include "Graph/PCGExGraph.h"
 
-
-class UPCGExFilterFactoryBase;
-
 namespace PCGExPointsMT
 {
 	constexpr PCGExMT::AsyncState State_WaitingOnPointsProcessing = __COUNTER__;
@@ -20,35 +17,35 @@ namespace PCGExPointsMT
 
 #pragma region Tasks
 
-#define PCGEX_CLUSTER_MT_TASK(_NAME, _BODY)\
+#define PCGEX_POINTS_MT_TASK(_NAME, _BODY)\
 template <typename T>\
 class PCGEXTENDEDTOOLKIT_API _NAME final : public FPCGExNonAbandonableTask	{\
 public: _NAME(PCGExData::FPointIO* InPointIO, T* InTarget) : FPCGExNonAbandonableTask(InPointIO),Target(InTarget){} \
 T* Target = nullptr; virtual bool ExecuteTask() override{_BODY return true; }};
 
-#define PCGEX_CLUSTER_MT_TASK_RANGE(_NAME, _BODY)\
+#define PCGEX_POINTS_MT_TASK_RANGE(_NAME, _BODY)\
 template <typename T>\
 class PCGEXTENDEDTOOLKIT_API _NAME final : public FPCGExNonAbandonableTask	{\
 public: _NAME(PCGExData::FPointIO* InPointIO, T* InTarget, const int32 InIterations, const PCGExData::ESource InSource = PCGExData::ESource::In) : FPCGExNonAbandonableTask(InPointIO),Target(InTarget), Iterations(InIterations), Source(InSource){} \
 T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source; virtual bool ExecuteTask() override{_BODY return true; }};
 
-	PCGEX_CLUSTER_MT_TASK(FStartPointsBatchProcessing, { if (Target->PrepareProcessing()) { Target->Process(Manager); } })
+	PCGEX_POINTS_MT_TASK(FStartPointsBatchProcessing, { if (Target->PrepareProcessing()) { Target->Process(Manager); } })
 
-	PCGEX_CLUSTER_MT_TASK(FStartPointsBatchCompleteWork, { Target->CompleteWork(); })
+	PCGEX_POINTS_MT_TASK(FStartPointsBatchCompleteWork, { Target->CompleteWork(); })
 
-	PCGEX_CLUSTER_MT_TASK(FAsyncProcess, { Target->Process(Manager); })
+	PCGEX_POINTS_MT_TASK(FAsyncProcess, { Target->Process(Manager); })
 
-	PCGEX_CLUSTER_MT_TASK(FAsyncCompleteWork, { Target->CompleteWork(); })
+	PCGEX_POINTS_MT_TASK(FAsyncCompleteWork, { Target->CompleteWork(); })
 
-	PCGEX_CLUSTER_MT_TASK_RANGE(FAsyncProcessPointRange, {Target->ProcessPoints(Source, TaskIndex, MakeArrayView(Target->Cluster->Nodes.GetData() + TaskIndex, Iterations));})
+	PCGEX_POINTS_MT_TASK_RANGE(FAsyncProcessPointRange, {Target->ProcessPoints(Source, TaskIndex, Iterations);})
 
-	PCGEX_CLUSTER_MT_TASK_RANGE(FAsyncProcessRange, {Target->ProcessRange(TaskIndex, Iterations);})
+	PCGEX_POINTS_MT_TASK_RANGE(FAsyncProcessRange, {Target->ProcessRange(TaskIndex, Iterations);})
 
-	PCGEX_CLUSTER_MT_TASK_RANGE(FAsyncBatchProcessRange, {Target->ProcessBatchRange(TaskIndex, Iterations);})
+	PCGEX_POINTS_MT_TASK_RANGE(FAsyncBatchProcessRange, {Target->ProcessBatchRange(TaskIndex, Iterations);})
 
 #pragma endregion
 
-	class FPathProcessor
+	class FPointsProcessor
 	{
 	protected:
 		FPCGExAsyncManager* AsyncManagerPtr = nullptr;
@@ -67,12 +64,12 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 
 		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
 
-		explicit FPathProcessor(PCGExData::FPointIO* InPoints):
+		explicit FPointsProcessor(PCGExData::FPointIO* InPoints):
 			PointsIO(InPoints)
 		{
 		}
 
-		virtual ~FPathProcessor()
+		virtual ~FPointsProcessor()
 		{
 			PointsIO = nullptr;
 		}
@@ -128,7 +125,7 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 			int32 CurrentCount = 0;
 			while (CurrentCount < NumPoints)
 			{
-				AsyncManagerPtr->Start<FAsyncProcessPointRange<FPathProcessor>>(
+				AsyncManagerPtr->Start<FAsyncProcessPointRange<FPointsProcessor>>(
 					CurrentCount, nullptr, this, FMath::Min(NumPoints - CurrentCount, PLI));
 				CurrentCount += PLI;
 			}
@@ -146,7 +143,7 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 			int32 CurrentCount = 0;
 			while (CurrentCount < NumIterations)
 			{
-				AsyncManagerPtr->Start<FAsyncProcessRange<FPathProcessor>>(
+				AsyncManagerPtr->Start<FAsyncProcessRange<FPointsProcessor>>(
 					CurrentCount, nullptr, this, FMath::Min(NumIterations - CurrentCount, PLI));
 				CurrentCount += PLI;
 			}
@@ -180,14 +177,14 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 		}
 	};
 
-	class FClusterProcessorBatchBase
+	class FPointsProcessorBatchBase
 	{
 	protected:
 		FPCGExAsyncManager* AsyncManagerPtr = nullptr;
 		TArray<UPCGExFilterFactoryBase*>* FilterFactories = nullptr;
 
 		bool DefaultPointFilterValue = true;
-		
+
 	public:
 		mutable FRWLock BatchLock;
 
@@ -200,13 +197,12 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 
 		virtual bool UseGraphBuilder() const { return false; }
 
-		FClusterProcessorBatchBase(FPCGContext* InContext, TArray<PCGExData::FPointIO*>* InPointsCollection):
+		FPointsProcessorBatchBase(FPCGContext* InContext, TArray<PCGExData::FPointIO*>* InPointsCollection):
 			Context(InContext), PointsCollection(InPointsCollection)
 		{
-			
 		}
 
-		virtual ~FClusterProcessorBatchBase()
+		virtual ~FPointsProcessorBatchBase()
 		{
 			Context = nullptr;
 		}
@@ -231,7 +227,7 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 	};
 
 	template <typename T>
-	class TBatch : public FClusterProcessorBatchBase
+	class TBatch : public FPointsProcessorBatchBase
 	{
 	public:
 		TArray<T*> Processors;
@@ -240,7 +236,7 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 		PCGExMT::AsyncState CurrentState = PCGExMT::State_Setup;
 
 		TBatch(FPCGContext* InContext, TArray<PCGExData::FPointIO*>* InPointsCollection):
-			FClusterProcessorBatchBase(InContext, InPointsCollection)
+			FPointsProcessorBatchBase(InContext, InPointsCollection)
 		{
 		}
 
@@ -261,7 +257,7 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 
 		virtual bool PrepareProcessing() override
 		{
-			return FClusterProcessorBatchBase::PrepareProcessing();
+			return FPointsProcessorBatchBase::PrepareProcessing();
 		}
 
 		virtual void Process(FPCGExAsyncManager* AsyncManager) override
@@ -355,20 +351,17 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 		virtual bool UseGraphBuilder() const override { return true; }
 	};
 
-	static void ScheduleBatch(FPCGExAsyncManager* Manager, FClusterProcessorBatchBase* Batch)
+	static void ScheduleBatch(FPCGExAsyncManager* Manager, FPointsProcessorBatchBase* Batch)
 	{
-		Manager->Start<FStartPointsBatchProcessing<FClusterProcessorBatchBase>>(-1, nullptr, Batch);
+		Manager->Start<FStartPointsBatchProcessing<FPointsProcessorBatchBase>>(-1, nullptr, Batch);
 	}
 
-	static void CompleteBatches(FPCGExAsyncManager* Manager, const TArrayView<FClusterProcessorBatchBase*> Batches)
+	static void CompleteBatch(FPCGExAsyncManager* Manager, FPointsProcessorBatchBase* Batch)
 	{
-		for (FClusterProcessorBatchBase* Batch : Batches)
-		{
-			Manager->Start<FStartPointsBatchCompleteWork<FClusterProcessorBatchBase>>(-1, nullptr, Batch);
-		}
+		Manager->Start<FStartPointsBatchCompleteWork<FPointsProcessorBatchBase>>(-1, nullptr, Batch);
 	}
 }
 
 
-#undef PCGEX_CLUSTER_MT_TASK
-#undef PCGEX_CLUSTER_MT_TASK_RANGE
+#undef PCGEX_POINTS_MT_TASK
+#undef PCGEX_POINTS_MT_TASK_RANGE

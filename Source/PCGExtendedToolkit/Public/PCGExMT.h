@@ -272,7 +272,7 @@ public:
 	void StartSynchronousTask(FAsyncTask<T>* AsyncTask, int32 TaskIndex = -1)
 	{
 		{
-			FWriteScopeLock WriteLock(ManagerLock);
+			FReadScopeLock ReadScopeLock(ManagerLock);
 			if (bStopped) { return; }
 		}
 

@@ -877,6 +877,8 @@ namespace PCGExClusterTask
 
 	bool FFindNodeChains::ExecuteTask()
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(FFindNodeChains::ExecuteTask);
+		
 		//TArray<uint64> AdjacencyHashes;
 		//AdjacencyHashes.Reserve(Cluster->Nodes.Num());
 
@@ -934,6 +936,8 @@ namespace PCGExClusterTask
 
 	bool FBuildChain::ExecuteTask()
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(FBuildChain::ExecuteTask);
+		
 		PCGExCluster::FNodeChain* NewChain = new PCGExCluster::FNodeChain();
 
 		uint32 NodeIndex;

@@ -4,6 +4,16 @@
 
 #include "Graph/Edges/Relaxing/PCGExEdgeRelaxingOperation.h"
 
+void UPCGExEdgeRelaxingOperation::CopySettingsFrom(UPCGExOperation* Other)
+{
+	Super::CopySettingsFrom(Other);
+	const UPCGExEdgeRelaxingOperation* TypedOther = Cast<UPCGExEdgeRelaxingOperation>(Other);
+	if (Other)
+	{
+		DefaultInfluence = TypedOther->DefaultInfluence;
+	}
+}
+
 void UPCGExEdgeRelaxingOperation::PrepareForPointIO(PCGExData::FPointIO& PointIO)
 {
 	CurrentPoints = &PointIO;

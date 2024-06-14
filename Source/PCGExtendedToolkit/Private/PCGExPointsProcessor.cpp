@@ -305,6 +305,7 @@ void FPCGExPointsProcessorContext::ExecutionComplete()
 void FPCGExPointsProcessorContext::SetState(const PCGExMT::AsyncState OperationId, const bool bResetAsyncWork)
 {
 	if (bResetAsyncWork) { ResetAsyncWork(); }
+	if (CurrentState == OperationId) { return; }
 	CurrentState = OperationId;
 }
 
@@ -372,7 +373,17 @@ void FPCGExPointsProcessorContext::CleanupOperations()
 }
 
 void FPCGExPointsProcessorContext::ResetAsyncWork() { if (AsyncManager) { AsyncManager->Reset(); } }
-bool FPCGExPointsProcessorContext::IsAsyncWorkComplete() { return bDoAsyncProcessing ? AsyncManager ? AsyncManager->IsAsyncWorkComplete() : true : true; }
+
+bool FPCGExPointsProcessorContext::IsAsyncWorkComplete()
+{
+	if (!bDoAsyncProcessing || !AsyncManager) { return true; }
+	if (AsyncManager->IsAsyncWorkComplete())
+	{
+		ResetAsyncWork();
+		return true;
+	}
+	return false;
+}
 
 FPCGContext* FPCGExPointsProcessorElementBase::Initialize(
 	const FPCGDataCollection& InputData,

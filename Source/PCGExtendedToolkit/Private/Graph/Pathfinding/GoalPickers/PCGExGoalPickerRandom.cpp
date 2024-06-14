@@ -6,6 +6,19 @@
 
 #include "PCGExMath.h"
 
+void UPCGExGoalPickerRandom::CopySettingsFrom(UPCGExOperation* Other)
+{
+	Super::CopySettingsFrom(Other);
+	const UPCGExGoalPickerRandom* TypedOther = Cast<UPCGExGoalPickerRandom>(Other);
+	if (Other)
+	{
+		GoalCount = TypedOther->GoalCount;
+		NumGoals = TypedOther->NumGoals;
+		bUseLocalNumGoals = TypedOther->bUseLocalNumGoals;
+		LocalNumGoalAttribute = TypedOther->LocalNumGoalAttribute;
+	}
+}
+
 void UPCGExGoalPickerRandom::PrepareForData(const PCGExData::FPointIO& InSeeds, const PCGExData::FPointIO& InGoals)
 {
 	if (bUseLocalNumGoals && !NumGoalsGetter)

@@ -59,18 +59,12 @@ public:
 	FPCGExGraphBuilderSettings GraphBuilderSettings;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExSimplifyClustersContext final : public FPCGExEdgesProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExSimplifyClustersContext : public FPCGExEdgesProcessorContext
 {
 	friend class UPCGExSimplifyClustersSettings;
 	friend class FPCGExSimplifyClustersElement;
 
-	PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
-
-	TArray<PCGExCluster::FNodeChain*> Chains;
-
 	virtual ~FPCGExSimplifyClustersContext() override;
-
-	double FixedDotThreshold = 0;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExSimplifyClustersElement final : public FPCGExEdgesProcessorElement

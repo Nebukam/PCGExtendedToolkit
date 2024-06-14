@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExGlobalSettings.h"
+#include "PCGExPointsMT.h"
 
 #include "PCGExPointsProcessor.h"
 #include "Graph/PCGExGraph.h"
@@ -74,7 +75,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathProcessorContext : public FPCGExPointsPr
 	virtual bool AdvancePointsIO(const bool bCleanupKeys = true) override;
 
 	bool ProcessFilters();
-
+	
 	virtual bool DefaultPointFilterResult() const;
 	virtual bool PrepareFiltersWithAdvance() const;
 
@@ -87,6 +88,34 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathProcessorContext : public FPCGExPointsPr
 	PCGExDataFilter::TEarlyExitFilterManager* PointFiltersManager = nullptr;
 	bool bRequirePointFilterPreparation = false;
 	bool bWaitingOnFilterWork = false;
+
+
+	bool ProcessPointsBatch();
+
+	PCGExMT::AsyncState State_PointsProcessingDone;
+	PCGExPointsMT::FPointsProcessorBatchBase* Batch = nullptr;
+	TArray<PCGExData::FPointIO*> BatchablePoints;
+	
+	template <typename T, class ValidateEntriesFunc, class InitBatchFunc>
+	bool StartProcessingClusters(ValidateEntriesFunc&& ValidateEntries, InitBatchFunc&& InitBatch, const PCGExMT::AsyncState InState)
+	{
+		State_PointsProcessingDone = InState;
+
+		while (AdvancePointsIO(false))
+		{
+			if (!ValidateEntries(CurrentIO)) { continue; }
+			BatchablePoints.Add(CurrentIO);			
+		}
+		
+		if (BatchablePoints.IsEmpty()) { return false; }
+
+		Batch = new T(this, BatchablePoints);
+		InitBatch(Batch);
+
+		PCGExPointsMT::ScheduleBatch(GetAsyncManager(), Batch);
+		SetAsyncState(PCGExPointsMT::State_WaitingOnPointsProcessing);
+		return true;
+	}
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExPathProcessorElement : public FPCGExPointsProcessorElementBase

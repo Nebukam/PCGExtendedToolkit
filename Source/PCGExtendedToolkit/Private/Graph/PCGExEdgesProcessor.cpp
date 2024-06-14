@@ -126,7 +126,10 @@ bool FPCGExEdgesProcessorContext::AdvanceEdges(const bool bBuildCluster, const b
 
 	if (bCleanupKeys && CurrentEdges) { CurrentEdges->CleanupKeys(); }
 
-	if (TaggedEdges && TaggedEdges->Entries.IsValidIndex(++CurrentEdgesIndex))
+	if (TaggedEdges && TaggedEdges
+	                   ->
+	                   Entries.IsValidIndex(++CurrentEdgesIndex)
+	)
 	{
 		CurrentEdges = TaggedEdges->Entries[CurrentEdgesIndex];
 
@@ -237,28 +240,33 @@ bool FPCGExEdgesProcessorContext::ProcessClusters()
 {
 	if (Batches.IsEmpty()) { return true; }
 
-	if (IsState(PCGExClusterMT::State_WaitingOnClusterProcessing))
+	if (bCProcessing)
 	{
 		if (!IsAsyncWorkComplete()) { return false; }
+		bCProcessing = false;
 
+		bCCompleting = true;
 		CompleteBatches(GetAsyncManager(), Batches);
-		SetAsyncState(PCGExClusterMT::State_WaitingOnClusterCompletedWork);
 	}
 
-	if (IsState(PCGExClusterMT::State_WaitingOnClusterCompletedWork))
+	if (bCCompleting)
 	{
 		if (!IsAsyncWorkComplete()) { return false; }
+		bCCompleting = false;
+
 		if (!bClusterUseGraphBuilder) { SetState(State_ClusterProcessingDone); }
 		else
 		{
+			bCCompiling = true;
 			for (const PCGExClusterMT::FClusterProcessorBatchBase* Batch : Batches) { Batch->GraphBuilder->Compile(this); }
-			SetAsyncState(PCGExGraph::State_Compiling);
 		}
 	}
 
-	if (IsState(PCGExGraph::State_Compiling))
+	if (bCCompiling)
 	{
 		if (!IsAsyncWorkComplete()) { return false; }
+		bCCompiling = false;
+
 		for (const PCGExClusterMT::FClusterProcessorBatchBase* Batch : Batches)
 		{
 			if (Batch->GraphBuilder->bCompiledSuccessfully) { Batch->GraphBuilder->Write(this); }

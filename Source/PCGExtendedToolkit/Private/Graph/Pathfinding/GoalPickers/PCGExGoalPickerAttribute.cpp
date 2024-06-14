@@ -6,6 +6,18 @@
 
 #include "PCGEx.h"
 
+void UPCGExGoalPickerAttribute::CopySettingsFrom(UPCGExOperation* Other)
+{
+	Super::CopySettingsFrom(Other);
+	const UPCGExGoalPickerAttribute* TypedOther = Cast<UPCGExGoalPickerAttribute>(Other);
+	if (Other)
+	{
+		GoalCount = TypedOther->GoalCount;
+		Attribute = TypedOther->Attribute;
+		Attributes = TypedOther->Attributes;
+	}
+}
+
 void UPCGExGoalPickerAttribute::PrepareForData(const PCGExData::FPointIO& InSeeds, const PCGExData::FPointIO& InGoals)
 {
 	Super::PrepareForData(InSeeds, InGoals);

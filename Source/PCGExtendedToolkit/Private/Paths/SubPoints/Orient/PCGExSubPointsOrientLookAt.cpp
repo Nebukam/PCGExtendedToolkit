@@ -6,6 +6,18 @@
 
 #include "PCGExPointsProcessor.h"
 
+void UPCGExSubPointsOrientLookAt::CopySettingsFrom(UPCGExOperation* Other)
+{
+	Super::CopySettingsFrom(Other);
+	const UPCGExSubPointsOrientLookAt* TypedOther = Cast<UPCGExSubPointsOrientLookAt>(Other);
+	if (Other)
+	{
+		LookAt = TypedOther->LookAt;
+		LookAtSelector = TypedOther->LookAtSelector;
+		bAttributeAsOffset = TypedOther->bAttributeAsOffset;
+	}
+}
+
 void UPCGExSubPointsOrientLookAt::PrepareForData(PCGExData::FPointIO& InPointIO)
 {
 	PCGEX_DELETE(LookAtGetter)

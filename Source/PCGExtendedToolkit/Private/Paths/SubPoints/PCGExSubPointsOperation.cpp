@@ -7,6 +7,16 @@
 #include "Data/PCGExPointIO.h"
 
 
+void UPCGExSubPointsOperation::CopySettingsFrom(UPCGExOperation* Other)
+{
+	Super::CopySettingsFrom(Other);
+	const UPCGExSubPointsOperation* TypedOther = Cast<UPCGExSubPointsOperation>(Other);
+	if (Other)
+	{
+		bClosedPath = TypedOther->bClosedPath;
+	}
+}
+
 void UPCGExSubPointsOperation::PrepareForData(PCGExData::FPointIO& InPointIO)
 {
 }

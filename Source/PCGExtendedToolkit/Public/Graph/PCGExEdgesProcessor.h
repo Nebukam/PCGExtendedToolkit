@@ -89,20 +89,23 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgesProcessorContext : public FPCGExPointsP
 	template <class LoopBodyFunc>
 	bool ProcessCurrentCluster(LoopBodyFunc&& LoopBody, bool bForceSync = false) { return Process(LoopBody, CurrentCluster->Nodes.Num(), bForceSync); }
 
-	FPCGExGeo2DProjectionSettings ProjectionSettings;	
+	FPCGExGeo2DProjectionSettings ProjectionSettings;
 	FPCGExGraphBuilderSettings GraphBuilderSettings;
 
 	bool bWaitingOnClusterProjection = false;
 
-protected:
 	bool ProcessFilters();
 	bool ProcessClusters();
 
+protected:
 	TArray<PCGExClusterMT::FClusterProcessorBatchBase*> Batches;
 
 	PCGExMT::AsyncState State_ClusterProcessingDone;
 	bool bClusterUseGraphBuilder = false;
-	
+
+	bool bCProcessing = false;
+	bool bCCompleting = false;
+	bool bCCompiling = false;
 
 	template <typename T, class ValidateEntriesFunc, class InitBatchFunc>
 	bool StartProcessingClusters(ValidateEntriesFunc&& ValidateEntries, InitBatchFunc&& InitBatch, const PCGExMT::AsyncState InState)
@@ -137,12 +140,11 @@ protected:
 			}
 
 			PCGExClusterMT::ScheduleBatch(GetAsyncManager(), NewBatch);
+			bCProcessing = true;
+			
 		}
 
-		if (Batches.IsEmpty()) { return false; }
-
-		SetAsyncState(PCGExClusterMT::State_WaitingOnClusterProcessing);
-		return true;
+		return bCProcessing;
 	}
 
 	int32 CurrentEdgesIndex = -1;

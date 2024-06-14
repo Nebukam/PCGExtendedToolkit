@@ -7,6 +7,16 @@
 #include "Graph/PCGExCluster.h"
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristics.h"
 
+void UPCGExSearchContours::CopySettingsFrom(UPCGExOperation* Other)
+{
+	Super::CopySettingsFrom(Other);
+	const UPCGExSearchContours* TypedOther = Cast<UPCGExSearchContours>(Other);
+	if (Other)
+	{
+		OrientationMode = TypedOther->OrientationMode;
+	}
+}
+
 bool UPCGExSearchContours::GetRequiresProjection() { return true; }
 
 bool UPCGExSearchContours::FindPath(

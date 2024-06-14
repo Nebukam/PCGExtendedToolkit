@@ -6,6 +6,16 @@
 
 #include "Data/PCGExPointIO.h"
 
+void UPCGExGoalPicker::CopySettingsFrom(UPCGExOperation* Other)
+{
+	Super::CopySettingsFrom(Other);
+	const UPCGExGoalPicker* TypedOther = Cast<UPCGExGoalPicker>(Other);
+	if (Other)
+	{
+		IndexSafety = TypedOther->IndexSafety;
+	}
+}
+
 void UPCGExGoalPicker::PrepareForData(const PCGExData::FPointIO& InSeeds, const PCGExData::FPointIO& InGoals)
 {
 	MaxGoalIndex = InGoals.GetNum() - 1;

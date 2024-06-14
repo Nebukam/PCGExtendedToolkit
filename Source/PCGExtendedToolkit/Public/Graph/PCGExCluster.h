@@ -370,13 +370,12 @@ namespace PCGExClusterTask
 	class PCGEXTENDEDTOOLKIT_API FFindNodeChains final : public FPCGExNonAbandonableTask
 	{
 	public:
-		FFindNodeChains(
-			PCGExData::FPointIO* InPointIO,
-			const PCGExCluster::FCluster* InCluster,
-			const TArray<bool>* InBreakpoints,
-			TArray<PCGExCluster::FNodeChain*>* InChains,
-			const bool InSkipSingleEdgeChains = false,
-			const bool InDeadEndsOnly = false) :
+		FFindNodeChains(PCGExData::FPointIO* InPointIO,
+		                const PCGExCluster::FCluster* InCluster,
+		                const TArray<bool>* InBreakpoints,
+		                TArray<PCGExCluster::FNodeChain*>* InChains,
+		                const bool InSkipSingleEdgeChains = false,
+		                const bool InDeadEndsOnly = false) :
 			FPCGExNonAbandonableTask(InPointIO),
 			Cluster(InCluster),
 			Breakpoints(InBreakpoints),

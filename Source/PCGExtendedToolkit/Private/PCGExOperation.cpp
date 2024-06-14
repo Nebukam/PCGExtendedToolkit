@@ -57,3 +57,7 @@ void UPCGExOperation::BeginDestroy()
 void UPCGExOperation::ApplyOverrides()
 {
 }
+
+void UPCGExOperation::CopySettingsFrom(UPCGExOperation* Other)
+{
+}

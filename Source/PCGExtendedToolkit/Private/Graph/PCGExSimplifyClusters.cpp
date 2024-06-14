@@ -19,10 +19,6 @@ FName UPCGExSimplifyClustersSettings::GetVtxFilterLabel() const { return PCGExDa
 FPCGExSimplifyClustersContext::~FPCGExSimplifyClustersContext()
 {
 	PCGEX_TERMINATE_ASYNC
-
-	PCGEX_DELETE(GraphBuilder)
-
-	PCGEX_DELETE_TARRAY(Chains)
 }
 
 PCGEX_INITIALIZE_ELEMENT(SimplifyClusters)
@@ -34,9 +30,7 @@ bool FPCGExSimplifyClustersElement::Boot(FPCGContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(SimplifyClusters)
 
 	PCGEX_FWD(GraphBuilderSettings)
-	
 	Context->GraphBuilderSettings.bPruneIsolatedPoints = true;
-	Context->FixedDotThreshold = PCGExMath::DegreesToDot(Settings->AngularThreshold);
 
 	return true;
 }
@@ -86,15 +80,26 @@ namespace PCGExSimplifyClusters
 
 	bool FProcessor::Process(FPCGExAsyncManager* AsyncManager)
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSimplifyClusters::FProcessor::Process);
+
 		if (!FClusterProcessor::Process(AsyncManager)) { return false; }
 
 		PCGEX_SETTINGS(SimplifyClusters)
 
 		for (int i = 0; i < Cluster->Nodes.Num(); i++) { if (Cluster->Nodes[i].IsComplex()) { VtxFilterCache[i] = true; } }
 
-		AsyncManagerPtr->Start<PCGExClusterTask::FFindNodeChains>(
-			EdgesIO->IOIndex, nullptr, Cluster,
-			&VtxFilterCache, &Chains, false, Settings->bOperateOnDeadEndsOnly);
+		if (IsTrivial())
+		{
+			AsyncManagerPtr->StartSynchronous<PCGExClusterTask::FFindNodeChains>(
+				EdgesIO->IOIndex, nullptr, Cluster,
+				&VtxFilterCache, &Chains, false, Settings->bOperateOnDeadEndsOnly);
+		}
+		else
+		{
+			AsyncManagerPtr->Start<PCGExClusterTask::FFindNodeChains>(
+				EdgesIO->IOIndex, nullptr, Cluster,
+				&VtxFilterCache, &Chains, false, Settings->bOperateOnDeadEndsOnly);
+		}
 
 		return true;
 	}
@@ -102,6 +107,8 @@ namespace PCGExSimplifyClusters
 
 	void FProcessor::CompleteWork()
 	{
+		TRACE_CPUPROFILER_EVENT_SCOPE(PCGExSimplifyClusters::FProcessor::CompleteWork);
+
 		PCGEX_SETTINGS(SimplifyClusters)
 
 		PCGExClusterTask::DedupeChains(Chains);

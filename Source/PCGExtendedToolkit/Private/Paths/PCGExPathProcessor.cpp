@@ -3,6 +3,7 @@
 
 #include "Paths/PCGExPathProcessor.h"
 
+#include "PCGExPointsMT.h"
 #include "Graph/PCGExCluster.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPathProcessorElement"
@@ -36,6 +37,8 @@ FPCGExPathProcessorContext::~FPCGExPathProcessorContext()
 {
 	PCGEX_TERMINATE_ASYNC
 	PCGEX_DELETE(PointFiltersManager)
+	PCGEX_DELETE(Batch)
+	BatchablePoints.Empty();
 }
 
 bool FPCGExPathProcessorContext::ProcessorAutomation()
@@ -109,6 +112,27 @@ PCGExDataFilter::TEarlyExitFilterManager* FPCGExPathProcessorContext::CreatePoin
 		if (!DefaultPointFilterResult()) { for (bool& Result : NewInstance->Results) { Result = false; } }
 	}
 	return NewInstance;
+}
+
+bool FPCGExPathProcessorContext::ProcessPointsBatch()
+{
+	if (BatchablePoints.IsEmpty()) { return true; }
+
+	if (IsState(PCGExPointsMT::State_WaitingOnPointsProcessing))
+	{
+		if (!IsAsyncWorkComplete()) { return false; }
+
+		CompleteBatch(GetAsyncManager(), Batch);
+		SetAsyncState(PCGExPointsMT::State_WaitingOnPointsCompletedWork);
+	}
+
+	if (IsState(PCGExPointsMT::State_WaitingOnPointsCompletedWork))
+	{
+		if (!IsAsyncWorkComplete()) { return false; }
+		SetState(State_PointsProcessingDone);
+	}
+
+	return true;
 }
 
 PCGEX_INITIALIZE_CONTEXT(PathProcessor)

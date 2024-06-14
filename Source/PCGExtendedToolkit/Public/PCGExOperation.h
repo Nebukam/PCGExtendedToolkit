@@ -30,6 +30,25 @@ public:
 	virtual void Cleanup();
 	virtual void Write();
 
+	virtual void CopySettingsFrom(UPCGExOperation* Other);
+
+	template <typename T>
+	T CopyOperation()
+	{
+		UObject* GenericInstance = NewObject<UObject>(this->GetOuter(), this->GetClass());
+		T* TypedInstance = Cast<T>(GenericInstance);
+
+		if (!TypedInstance)
+		{
+			PCGEX_DELETE_UOBJECT(GenericInstance)
+			return nullptr;
+		}
+
+		TypedInstance->CopySettingsFrom(this);
+		return TypedInstance;
+	}
+
+
 	virtual void BeginDestroy() override;
 
 protected:
@@ -37,6 +56,7 @@ protected:
 	TMap<FName, FPCGMetadataAttributeBase*> PossibleOverrides;
 
 	virtual void ApplyOverrides();
+
 
 	template <typename T>
 	T GetOverrideValue(const FName Name, const T Fallback, const EPCGMetadataTypes InType)

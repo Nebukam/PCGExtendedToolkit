@@ -36,6 +36,8 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="LookAt==EPCGExOrientLookAt::Attribute", EditConditionHides))
 	bool bAttributeAsOffset = false;
 
+	virtual void CopySettingsFrom(UPCGExOperation* Other) override;
+	
 	virtual void PrepareForData(PCGExData::FPointIO& InPointIO) override;
 
 	virtual void ProcessSubPoints(const PCGEx::FPointRef& Start, const PCGEx::FPointRef& End, const TArrayView<FPCGPoint>& SubPoints, const PCGExMath::FPathMetricsSquared& Metrics) const override;

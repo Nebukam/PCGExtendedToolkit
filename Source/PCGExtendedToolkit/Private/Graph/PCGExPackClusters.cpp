@@ -66,7 +66,7 @@ bool FPCGExPackClustersElement::ExecuteInternal(
 	{
 		while (Context->AdvancePointsIO(false))
 		{
-			if (!Context->TaggedEdges) { return false; }
+			if (!Context->TaggedEdges) { continue; }
 
 			for (PCGExData::FPointIO* EdgeIO : Context->TaggedEdges->Entries)
 			{

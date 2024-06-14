@@ -45,7 +45,7 @@ namespace PCGExClusterMT
 
 	PCGEX_CLUSTER_MT_TASK_RANGE(FAsyncProcessRange, {Target->ProcessRange(TaskIndex, Iterations);})
 
-	PCGEX_CLUSTER_MT_TASK_RANGE(FAsyncBatchProcessClosedRange, {Target->ProcessClosestBatchRange(TaskIndex, Iterations);})
+	PCGEX_CLUSTER_MT_TASK_RANGE(FAsyncBatchProcessClosedRange, {Target->ProcessClosedBatchRange(TaskIndex, Iterations);})
 
 #pragma endregion
 
@@ -300,6 +300,10 @@ namespace PCGExClusterMT
 		{
 		}
 
+		virtual void ProcessClosedBatchRange(const int32 StartIndex, const int32 Iterations)
+		{
+		}
+
 		virtual void CompleteWork()
 		{
 		}
@@ -380,7 +384,7 @@ namespace PCGExClusterMT
 
 		virtual void CompleteWork() override
 		{
-			CurrentState = PCGExMT::State_Processing;
+			CurrentState = PCGExMT::State_Completing;
 			for (T* Processor : Processors)
 			{
 				if (Processor->IsTrivial()) { continue; }
@@ -390,7 +394,7 @@ namespace PCGExClusterMT
 			StartClosedBatchProcessing();
 		}
 
-		void ProcessClosestBatchRange(const int32 StartIndex, const int32 Iterations)
+		virtual void ProcessClosedBatchRange(const int32 StartIndex, const int32 Iterations) override
 		{
 			if (CurrentState == PCGExMT::State_Processing)
 			{
@@ -409,10 +413,10 @@ namespace PCGExClusterMT
 			if (NumTrivial > 0)
 			{
 				int32 CurrentCount = 0;
-				while (CurrentCount < ClosedBatchProcessors.Num())
+				const int32 PerIterationsNum = GetDefault<UPCGExGlobalSettings>()->GetClusterBatchIteration();
+				while (CurrentCount < NumTrivial)
 				{
-					const int32 PerIterationsNum = GetDefault<UPCGExGlobalSettings>()->ClusterDefaultBatchIterations;
-					AsyncManagerPtr->Start<FAsyncBatchProcessClosedRange<TBatch<T>>>(
+					AsyncManagerPtr->Start<FAsyncBatchProcessClosedRange<FClusterProcessorBatchBase>>(
 						CurrentCount, nullptr, this, FMath::Min(NumTrivial - CurrentCount, PerIterationsNum));
 					CurrentCount += PerIterationsNum;
 				}
