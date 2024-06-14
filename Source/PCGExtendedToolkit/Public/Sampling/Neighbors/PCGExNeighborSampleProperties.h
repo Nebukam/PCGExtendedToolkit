@@ -17,6 +17,11 @@
 
 ///
 
+namespace PCGExDataBlending
+{
+	struct FPropertiesBlender;
+}
+
 /**
  * 
  */

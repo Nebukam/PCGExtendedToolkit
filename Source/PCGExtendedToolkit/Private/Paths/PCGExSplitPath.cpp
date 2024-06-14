@@ -3,6 +3,8 @@
 
 #include "Paths/PCGExSplitPath.h"
 
+#include "Data/PCGExDataFilter.h"
+
 #define LOCTEXT_NAMESPACE "PCGExSplitPathElement"
 #define PCGEX_NAMESPACE SplitPath
 

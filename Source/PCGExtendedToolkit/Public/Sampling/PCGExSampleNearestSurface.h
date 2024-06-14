@@ -6,6 +6,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExActorSelector.h"
+#include "PCGExGlobalSettings.h"
 
 #include "PCGExPointsProcessor.h"
 #include "PCGExSampling.h"

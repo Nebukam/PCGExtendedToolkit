@@ -5,6 +5,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Metadata/PCGAttributePropertySelector.h"
 
 #include "PCGExCompare.generated.h"
 
@@ -344,9 +345,11 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExComparisonSettings
 	{
 	}
 
+	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGAttributePropertyInputSelector OperandA;
 
+	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGAttributePropertyInputSelector OperandB;
 

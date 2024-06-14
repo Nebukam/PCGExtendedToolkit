@@ -3,6 +3,8 @@
 
 #include "Sampling/Neighbors/PCGExNeighborSampleAttribute.h"
 
+#include "Data/Blending/PCGExMetadataBlender.h"
+
 #define LOCTEXT_NAMESPACE "PCGExCreateNeighborSample"
 #define PCGEX_NAMESPACE PCGExCreateNeighborSample
 

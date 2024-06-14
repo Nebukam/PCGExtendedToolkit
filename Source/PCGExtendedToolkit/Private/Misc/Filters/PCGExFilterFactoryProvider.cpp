@@ -3,6 +3,8 @@
 
 #include "Misc/Filters/PCGExFilterFactoryProvider.h"
 
+#include "Data/PCGExDataFilter.h"
+
 #define LOCTEXT_NAMESPACE "PCGExCreateFilter"
 #define PCGEX_NAMESPACE PCGExCreateFilter
 
