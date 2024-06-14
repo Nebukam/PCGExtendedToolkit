@@ -5,7 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "Data/Blending/PCGExDataBlending.h"
-#include "Graph/PCGExClusterBatch.h"
+#include "..\PCGExClusterMT.h"
 #include "Graph/PCGExEdgesProcessor.h"
 #include "Sampling/PCGExSampling.h"
 #include "PCGExWriteEdgeExtras.generated.h"
@@ -217,7 +217,7 @@ protected:
 
 namespace PCGExWriteEdgeExtras
 {
-	class FClusterEdgeProcess final : public PCGExClusterBatch::FClusterProcessingData
+	class FClusterEdgeProcess final : public PCGExClusterMT::FClusterProcessingData
 	{
 		bool bAscendingDesired = true;
 		double StartWeight = 0;
@@ -252,7 +252,7 @@ namespace PCGExWriteEdgeExtras
 #undef PCGEX_LOCAL_EDGE_GETTER_DECL
 	};
 
-	class FWriteEdgeExtrasBatch : public PCGExClusterBatch::FClusterBatchProcessingData<FClusterEdgeProcess>
+	class FWriteEdgeExtrasBatch : public PCGExClusterMT::TClusterBatchProcessor<FClusterEdgeProcess>
 	{
 		FPCGExGeo2DProjectionSettings ProjectionSettings;
 

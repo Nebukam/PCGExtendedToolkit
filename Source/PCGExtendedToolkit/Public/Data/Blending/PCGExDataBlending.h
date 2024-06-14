@@ -392,7 +392,7 @@ namespace PCGExDataBlending
 	};
 
 	template <typename T>
-	class PCGEXTENDEDTOOLKIT_API FDataBlendingOperation : public FDataBlendingOperationBase
+	class PCGEXTENDEDTOOLKIT_API TDataBlendingOperation : public FDataBlendingOperationBase
 	{
 	protected:
 		void Cleanup()
@@ -407,7 +407,7 @@ namespace PCGExDataBlending
 		}
 
 	public:
-		virtual ~FDataBlendingOperation() override
+		virtual ~TDataBlendingOperation() override
 		{
 			Cleanup();
 		}
@@ -538,7 +538,7 @@ namespace PCGExDataBlending
 	};
 
 	template <typename T>
-	class PCGEXTENDEDTOOLKIT_API FDataBlendingOperationWithFirstInit : public FDataBlendingOperation<T>
+	class PCGEXTENDEDTOOLKIT_API FDataBlendingOperationWithFirstInit : public TDataBlendingOperation<T>
 	{
 		FORCEINLINE virtual void DoValuesRangeOperation(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, TArrayView<T>& Values, const TArrayView<double>& Weights, const bool bFirstOperation) const override
 		{

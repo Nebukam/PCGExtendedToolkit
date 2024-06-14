@@ -5,6 +5,7 @@
 
 #include "CoreMinimal.h"
 #include "PCGExCluster.h"
+#include "PCGExClusterMT.h"
 #include "PCGExPointsProcessor.h"
 
 #include "PCGExEdgesProcessor.generated.h"
@@ -91,16 +92,54 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgesProcessorContext : public FPCGExPointsP
 	FPCGExGeo2DProjectionSettings ProjectionSettings;
 
 	bool bWaitingOnClusterProjection = false;
-	
+
 protected:
 	bool ProcessFilters();
-	
+	bool ProcessClusters();
+
+	TArray<PCGExClusterMT::FClusterBatchProcessorBase*> Batches;
+
+	PCGExMT::AsyncState State_ClusterProcessingDone;
+	bool bClusterUseGraphBuilder = false;
+
+	template <typename T, class InitBatchFunc>
+	void StartProcessingClusters(InitBatchFunc&& InitBatch, const PCGExMT::AsyncState InState)
+	{
+		State_ClusterProcessingDone = InState;
+
+		bClusterUseGraphBuilder = false;
+		bBuildEndpointsLookup = false;
+
+		while (AdvancePointsIO(false))
+		{
+			if (!TaggedEdges)
+			{
+				PCGE_LOG_C(Warning, GraphAndLog, this, FTEXT("Some input points have no bound edges."));
+				continue;
+			}
+
+			T* NewBatch = new T(this, CurrentIO, TaggedEdges->Entries);
+			Batches.Add(NewBatch);
+
+			NewBatch->EdgeCollection = MainEdges;
+			if (VtxFiltersData) { NewBatch->SetVtxFilterData(VtxFiltersData, DefaultVtxFilterResult()); }
+
+			InitBatch(NewBatch);
+
+			if (NewBatch->UseGraphBuilder()) { bClusterUseGraphBuilder = true; }
+
+			PCGExClusterMT::ScheduleBatch(GetAsyncManager(), NewBatch);
+		}
+
+		SetAsyncState(PCGExClusterMT::State_WaitingOnClusterProcessing);
+	}
+
 	int32 CurrentEdgesIndex = -1;
 
 	TArray<int32> VtxIndices;
 
 	virtual bool DefaultVtxFilterResult() const;
-	
+
 	UPCGExNodeStateFactory* VtxFiltersData = nullptr;
 	PCGExCluster::FNodeStateHandler* VtxFiltersHandler = nullptr;
 	TArray<bool> VtxFilterResults;

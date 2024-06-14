@@ -50,40 +50,14 @@ bool FPCGExWriteEdgeExtrasElement::ExecuteInternal(
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }
-		Context->SetState(PCGExMT::State_ReadyForNextPoints);
-	}
 
-	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
-	{
-		Context->bBuildEndpointsLookup = false;
-		while (Context->AdvancePointsIO(false))
-		{
-			if (!Context->TaggedEdges)
+		Context->StartProcessingClusters<PCGExWriteEdgeExtras::FWriteEdgeExtrasBatch>(
+			[&](PCGExWriteEdgeExtras::FWriteEdgeExtrasBatch* NewBatch)
 			{
-				PCGE_LOG(Warning, GraphAndLog, FTEXT("Some input points have no bound edges."));
-				return false;
-			}
-
-			PCGExWriteEdgeExtras::FWriteEdgeExtrasBatch* NewBatch = new PCGExWriteEdgeExtras::FWriteEdgeExtrasBatch(Context, Context->CurrentIO, Context->TaggedEdges->Entries);
-			Context->Batches.Add(NewBatch);
-			PCGExClusterBatch::ScheduleBatch(Context->GetAsyncManager(), NewBatch);
-		}
-
-		Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork);
+			}, PCGExMT::State_Done);
 	}
 
-	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
-	{
-		PCGEX_WAIT_ASYNC
-		PCGExClusterBatch::CompleteBatches<PCGExWriteEdgeExtras::FWriteEdgeExtrasBatch>(Context->GetAsyncManager(), Context->Batches);
-		Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncCompletion);
-	}
-
-	if (Context->IsState(PCGExMT::State_WaitingOnAsyncCompletion))
-	{
-		PCGEX_WAIT_ASYNC
-		Context->Done();
-	}
+	if (!Context->ProcessClusters()) { return false; }
 
 	if (Context->IsDone())
 	{
@@ -326,7 +300,7 @@ namespace PCGExWriteEdgeExtras
 	//////// BATCH
 
 	FWriteEdgeExtrasBatch::FWriteEdgeExtrasBatch(FPCGContext* InContext, PCGExData::FPointIO* InVtx, TArrayView<PCGExData::FPointIO*> InEdges):
-		FClusterBatchProcessingData(InContext, InVtx, InEdges)
+		TClusterBatchProcessor(InContext, InVtx, InEdges)
 	{
 	}
 
@@ -348,7 +322,7 @@ namespace PCGExWriteEdgeExtras
 	{
 		PCGEX_SETTINGS(WriteEdgeExtras)
 
-		if (!FClusterBatchProcessingData::PrepareProcessing()) { return false; }
+		if (!TClusterBatchProcessor::PrepareProcessing()) { return false; }
 
 		PCGEX_OUTPUT_VALIDATE_NAME(VtxNormal, FVector)
 		PCGEX_OUTPUT_VALIDATE_NAME(VtxEdgeCount, int32)
@@ -416,7 +390,7 @@ namespace PCGExWriteEdgeExtras
 
 	void FWriteEdgeExtrasBatch::CompleteWork()
 	{
-		FClusterBatchProcessingData<FClusterEdgeProcess>::CompleteWork();
+		TClusterBatchProcessor<FClusterEdgeProcess>::CompleteWork();
 
 		PCGEX_OUTPUT_WRITE(VtxNormal, FVector)
 		PCGEX_OUTPUT_WRITE(VtxEdgeCount, FVector)

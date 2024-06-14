@@ -186,7 +186,6 @@ namespace PCGExClusterMT
 
 #pragma endregion
 
-
 	class FClusterProcessingData
 	{
 	protected:
@@ -401,7 +400,8 @@ namespace PCGExClusterMT
 
 		virtual bool UseGraphBuilder() const { return false; }
 
-		FClusterBatchProcessorBase(FPCGContext* InContext, PCGExData::FPointIO* InVtx, TArrayView<PCGExData::FPointIO*> InEdges)
+		FClusterBatchProcessorBase(FPCGContext* InContext, PCGExData::FPointIO* InVtx, TArrayView<PCGExData::FPointIO*> InEdges):
+			Context(InContext), VtxIO(InVtx)
 		{
 			Edges.Append(InEdges);
 		}
@@ -555,6 +555,7 @@ namespace PCGExClusterMT
 	template <typename T>
 	class TClusterBatchBuilderProcessor : public TClusterBatchProcessor<T>
 	{
+	public:
 		TClusterBatchBuilderProcessor(FPCGContext* InContext, PCGExData::FPointIO* InVtx, TArrayView<PCGExData::FPointIO*> InEdges):
 			TClusterBatchProcessor<T>(InContext, InVtx, InEdges)
 		{
@@ -565,11 +566,11 @@ namespace PCGExClusterMT
 
 	static void ScheduleBatch(FPCGExAsyncManager* Manager, FClusterBatchProcessorBase* Batch)
 	{
-		Manager->Start<FClusterBatchProcessorBase>(-1, nullptr, Batch);
+		Manager->Start<FStartClusterBatchProcessing<FClusterBatchProcessorBase>>(-1, nullptr, Batch);
 	}
 
 	static void CompleteBatches(FPCGExAsyncManager* Manager, TArrayView<FClusterBatchProcessorBase*> Batches)
 	{
-		for (FClusterBatchProcessorBase* Batch : Batches) { Manager->Start<FClusterBatchProcessorBase>(-1, nullptr, Batch); }
+		for (FClusterBatchProcessorBase* Batch : Batches) { ScheduleBatch(Manager, Batch); }
 	}
 }

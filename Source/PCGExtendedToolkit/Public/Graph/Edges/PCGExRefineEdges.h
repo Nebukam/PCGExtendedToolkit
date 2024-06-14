@@ -4,7 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Graph/PCGExClusterBatch.h"
+#include "Graph/PCGExClusterMT.h"
 #include "Graph/PCGExEdgesProcessor.h"
 #include "Refining/PCGExEdgeRefineOperation.h"
 
@@ -68,6 +68,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExRefineEdgesContext : public FPCGExEdgesProce
 
 	virtual ~FPCGExRefineEdgesContext() override;
 
+	virtual bool DefaultVtxFilterResult() const override;
+	
 	UPCGExEdgeRefineOperation* Refinement = nullptr;
 	TArray<PCGExRefineEdges::FRefineClusterBatch*> Batches;
 	
@@ -111,7 +113,7 @@ namespace PCGExRefineEdges
 		virtual bool ExecuteTask() override;
 	};
 
-	class FClusterRefineProcess final : public PCGExClusterBatch::FClusterProcessingData
+	class FClusterRefineProcess final : public PCGExClusterMT::FClusterProcessingData
 	{
 	public:
 		FClusterRefineProcess(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges);
@@ -120,24 +122,16 @@ namespace PCGExRefineEdges
 		virtual bool Process(FPCGExAsyncManager* AsyncManager) override;
 		virtual void CompleteWork() override;
 
-		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
 		UPCGExEdgeRefineOperation* Refinement = nullptr;
 	};
 
-	class FRefineClusterBatch : public PCGExClusterBatch::FClusterBatchProcessingData<FClusterRefineProcess>
+	class FRefineClusterBatch : public PCGExClusterMT::TClusterBatchBuilderProcessor<FClusterRefineProcess>
 	{
 	public:
-		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
-		FPCGExGraphBuilderSettings GraphBuilderSettings;
-
-		PCGExData::FPointIOCollection* MainEdges = nullptr;
-
 		UPCGExEdgeRefineOperation* Refinement = nullptr;
 
 		FRefineClusterBatch(FPCGContext* InContext, PCGExData::FPointIO* InVtx, TArrayView<PCGExData::FPointIO*> InEdges);
-		virtual ~FRefineClusterBatch() override;
-
-		virtual bool PrepareProcessing() override;
+		
 		virtual bool PrepareSingle(FClusterRefineProcess* ClusterProcessor) override;
 	};
 }

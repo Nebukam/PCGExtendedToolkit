@@ -48,59 +48,14 @@ bool FPCGExSimplifyClustersElement::ExecuteInternal(FPCGContext* InContext) cons
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }
-		Context->SetState(PCGExMT::State_ReadyForNextPoints);
-	}
-
-	if (!Context->ProcessorAutomation()) { return false; }
-
-
-	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
-	{
-		Context->bBuildEndpointsLookup = false;
-		while (Context->AdvancePointsIO(false))
-		{
-			if (!Context->TaggedEdges)
+		
+		Context->StartProcessingClusters<PCGExClusterMT::TClusterBatchBuilderProcessor<PCGExSimplifyClusters::FClusterSimplifyProcess>>(
+			[&](PCGExClusterMT::TClusterBatchBuilderProcessor<PCGExSimplifyClusters::FClusterSimplifyProcess>* NewBatch)
 			{
-				PCGE_LOG(Warning, GraphAndLog, FTEXT("Some input points have no bound edges."));
-				return false;
-			}
-
-			PCGExSimplifyClusters::FSimplifyClusterBatch* NewBatch = new PCGExSimplifyClusters::FSimplifyClusterBatch(Context, Context->CurrentIO, Context->TaggedEdges->Entries);
-			NewBatch->SetVtxFilterData(Context->VtxFiltersData, false);
-			NewBatch->MainEdges = Context->MainEdges;
-			Context->Batches.Add(NewBatch);
-			PCGExClusterBatch::ScheduleBatch(Context->GetAsyncManager(), NewBatch);
-		}
-
-		Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork);
+			}, PCGExMT::State_Done);
 	}
 
-	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
-	{
-		PCGEX_WAIT_ASYNC
-
-		PCGExClusterBatch::CompleteBatches<PCGExSimplifyClusters::FSimplifyClusterBatch>(Context->GetAsyncManager(), Context->Batches);
-		Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncCompletion);
-	}
-
-	if (Context->IsState(PCGExMT::State_WaitingOnAsyncCompletion))
-	{
-		PCGEX_WAIT_ASYNC
-
-		for (const PCGExSimplifyClusters::FSimplifyClusterBatch* Batch : Context->Batches) { Batch->GraphBuilder->Compile(Context); }
-		Context->SetAsyncState(PCGExGraph::State_Compiling);
-	}
-
-	if (Context->IsState(PCGExGraph::State_Compiling))
-	{
-		PCGEX_WAIT_ASYNC
-		for (const PCGExSimplifyClusters::FSimplifyClusterBatch* Batch : Context->Batches)
-		{
-			if (Batch->GraphBuilder->bCompiledSuccessfully) { Batch->GraphBuilder->Write(Context); }
-		}
-
-		Context->Done();
-	}
+	if (!Context->ProcessClusters()) { return false; }
 
 	if (Context->IsDone())
 	{
@@ -211,35 +166,6 @@ namespace PCGExSimplifyClusters
 		NewEdges.Add(PCGEx::H64U(Nodes[StartIndex].PointIndex, Nodes[Chain->Last].PointIndex)); // Wrap
 
 		GraphBuilder->Graph->InsertEdges(NewEdges, IOIndex);
-	}
-
-	//////// BATCH
-
-	FSimplifyClusterBatch::FSimplifyClusterBatch(FPCGContext* InContext, PCGExData::FPointIO* InVtx, TArrayView<PCGExData::FPointIO*> InEdges):
-		FClusterBatchProcessingData(InContext, InVtx, InEdges)
-	{
-	}
-
-	FSimplifyClusterBatch::~FSimplifyClusterBatch()
-	{
-		PCGEX_DELETE(GraphBuilder)
-	}
-
-	bool FSimplifyClusterBatch::PrepareProcessing()
-	{
-		PCGEX_SETTINGS(SimplifyClusters)
-
-		if (!FClusterBatchProcessingData::PrepareProcessing()) { return false; }
-
-		GraphBuilder = new PCGExGraph::FGraphBuilder(*VtxIO, &GraphBuilderSettings, 6, MainEdges);
-
-		return true;
-	}
-
-	bool FSimplifyClusterBatch::PrepareSingle(FClusterSimplifyProcess* ClusterProcessor)
-	{
-		ClusterProcessor->GraphBuilder = GraphBuilder;
-		return true;
 	}
 
 }

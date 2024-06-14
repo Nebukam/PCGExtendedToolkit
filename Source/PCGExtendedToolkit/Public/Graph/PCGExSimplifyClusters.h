@@ -5,16 +5,10 @@
 
 #include "CoreMinimal.h"
 #include "PCGExCluster.h"
-#include "PCGExClusterBatch.h"
+#include "PCGExClusterMT.h"
 #include "PCGExEdgesProcessor.h"
 
 #include "PCGExSimplifyClusters.generated.h"
-
-
-namespace PCGExSimplifyClusters
-{
-	class FSimplifyClusterBatch;
-}
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
 class PCGEXTENDEDTOOLKIT_API UPCGExSimplifyClustersSettings : public UPCGExEdgesProcessorSettings
@@ -73,8 +67,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSimplifyClustersContext : public FPCGExEdges
 
 	virtual ~FPCGExSimplifyClustersContext() override;
 
-	TArray<PCGExSimplifyClusters::FSimplifyClusterBatch*> Batches;
-
 	double FixedDotThreshold = 0;
 };
 
@@ -93,7 +85,7 @@ protected:
 
 namespace PCGExSimplifyClusters
 {
-	class FClusterSimplifyProcess final : public PCGExClusterBatch::FClusterProcessingData
+	class FClusterSimplifyProcess final : public PCGExClusterMT::FClusterProcessingData
 	{
 		TArray<PCGExCluster::FNodeChain*> Chains;
 
@@ -107,19 +99,5 @@ namespace PCGExSimplifyClusters
 		virtual void ProcessSingleRangeIteration(const int32 Iteration) override;
 
 		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
-	};
-
-	class FSimplifyClusterBatch : public PCGExClusterBatch::FClusterBatchProcessingData<FClusterSimplifyProcess>
-	{
-	public:
-		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
-		FPCGExGraphBuilderSettings GraphBuilderSettings;
-		PCGExData::FPointIOCollection* MainEdges = nullptr;
-
-		FSimplifyClusterBatch(FPCGContext* InContext, PCGExData::FPointIO* InVtx, TArrayView<PCGExData::FPointIO*> InEdges);
-		virtual ~FSimplifyClusterBatch() override;
-
-		virtual bool PrepareProcessing() override;
-		virtual bool PrepareSingle(FClusterSimplifyProcess* ClusterProcessor) override;
 	};
 }

@@ -104,7 +104,7 @@ bool FPCGExEdgesProcessorContext::AdvancePointsIO(const bool bCleanupKeys)
 	{
 		CurrentIO->CreateInKeys();
 		ProjectionSettings.Init(CurrentIO);
-		if(bBuildEndpointsLookup){ PCGExGraph::BuildEndpointsLookup(*CurrentIO, EndpointsLookup, EndpointsAdjacency); }
+		if (bBuildEndpointsLookup) { PCGExGraph::BuildEndpointsLookup(*CurrentIO, EndpointsLookup, EndpointsAdjacency); }
 	}
 	else
 	{
@@ -227,6 +227,43 @@ bool FPCGExEdgesProcessorContext::ProcessFilters()
 	}
 
 	bWaitingOnFilterWork = false;
+
+	return true;
+}
+
+bool FPCGExEdgesProcessorContext::ProcessClusters()
+{
+	if (Batches.IsEmpty()) { return true; }
+
+	if (IsState(PCGExClusterMT::State_WaitingOnClusterProcessing))
+	{
+		if (!IsAsyncWorkComplete()) { return false; }
+
+		PCGExClusterMT::CompleteBatches(GetAsyncManager(), Batches);
+		SetAsyncState(PCGExClusterMT::State_WaitingOnClusterCompletedWork);
+	}
+
+	if (IsState(PCGExClusterMT::State_WaitingOnClusterCompletedWork))
+	{
+		if (!IsAsyncWorkComplete()) { return false; }
+		if (!bClusterUseGraphBuilder) { SetState(State_ClusterProcessingDone); }
+		else
+		{
+			for (const PCGExClusterMT::FClusterBatchProcessorBase* Batch : Batches) { Batch->GraphBuilder->Compile(this); }
+			SetAsyncState(PCGExGraph::State_Compiling);
+		}
+	}
+
+	if (IsState(PCGExGraph::State_Compiling))
+	{
+		if (!IsAsyncWorkComplete()) { return false; }
+		for (const PCGExClusterMT::FClusterBatchProcessorBase* Batch : Batches)
+		{
+			if (Batch->GraphBuilder->bCompiledSuccessfully) { Batch->GraphBuilder->Write(this); }
+		}
+
+		SetState(State_ClusterProcessingDone);
+	}
 
 	return true;
 }

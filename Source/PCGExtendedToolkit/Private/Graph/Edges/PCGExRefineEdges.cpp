@@ -33,6 +33,8 @@ FPCGExRefineEdgesContext::~FPCGExRefineEdgesContext()
 	PCGEX_TERMINATE_ASYNC
 }
 
+bool FPCGExRefineEdgesContext::DefaultVtxFilterResult() const { return false; }
+
 bool FPCGExRefineEdgesElement::Boot(FPCGContext* InContext) const
 {
 	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
@@ -55,57 +57,15 @@ bool FPCGExRefineEdgesElement::ExecuteInternal(
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }
-		Context->SetState(PCGExMT::State_ReadyForNextPoints);
-	}
 
-	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
-	{
-		Context->bBuildEndpointsLookup = false;
-		while (Context->AdvancePointsIO(false))
-		{
-			if (!Context->TaggedEdges)
+		Context->StartProcessingClusters<PCGExRefineEdges::FRefineClusterBatch>(
+			[&](PCGExRefineEdges::FRefineClusterBatch* NewBatch)
 			{
-				PCGE_LOG(Warning, GraphAndLog, FTEXT("Some input points have no bound edges."));
-				return false;
-			}
-
-			PCGExRefineEdges::FRefineClusterBatch* NewBatch = new PCGExRefineEdges::FRefineClusterBatch(Context, Context->CurrentIO, Context->TaggedEdges->Entries);
-			NewBatch->Refinement = Context->Refinement;
-			NewBatch->MainEdges = Context->MainEdges;
-			NewBatch->SetVtxFilterData(Context->VtxFiltersData, false);
-			Context->Batches.Add(NewBatch);
-			PCGExClusterBatch::ScheduleBatch(Context->GetAsyncManager(), NewBatch);
-		}
-
-		Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork);
+				NewBatch->Refinement = Context->Refinement;
+			}, PCGExMT::State_Done);
 	}
 
-	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
-	{
-		PCGEX_WAIT_ASYNC
-
-		PCGExClusterBatch::CompleteBatches<PCGExRefineEdges::FRefineClusterBatch>(Context->GetAsyncManager(), Context->Batches);
-		Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncCompletion);
-	}
-
-	if (Context->IsState(PCGExMT::State_WaitingOnAsyncCompletion))
-	{
-		PCGEX_WAIT_ASYNC
-
-		for (const PCGExRefineEdges::FRefineClusterBatch* Batch : Context->Batches) { Batch->GraphBuilder->Compile(Context); }
-		Context->SetAsyncState(PCGExGraph::State_Compiling);
-	}
-
-	if (Context->IsState(PCGExGraph::State_Compiling))
-	{
-		PCGEX_WAIT_ASYNC
-		for (const PCGExRefineEdges::FRefineClusterBatch* Batch : Context->Batches)
-		{
-			if (Batch->GraphBuilder->bCompiledSuccessfully) { Batch->GraphBuilder->Write(Context); }
-		}
-
-		Context->Done();
-	}
+	if (!Context->ProcessClusters()) { return false; }
 
 	if (Context->IsDone())
 	{
@@ -153,7 +113,6 @@ namespace PCGExRefineEdges
 	{
 		PCGEX_SETTINGS(RefineEdges)
 
-		// this takes ages when aligned :(
 		TArray<PCGExGraph::FIndexedEdge> ValidEdges;
 		Cluster->GetValidEdges(ValidEdges);
 		GraphBuilder->Graph->InsertEdges(ValidEdges);
@@ -162,33 +121,15 @@ namespace PCGExRefineEdges
 	}
 
 	FRefineClusterBatch::FRefineClusterBatch(FPCGContext* InContext, PCGExData::FPointIO* InVtx, TArrayView<PCGExData::FPointIO*> InEdges)
-		: FClusterBatchProcessingData(InContext, InVtx, InEdges)
+		: TClusterBatchBuilderProcessor(InContext, InVtx, InEdges)
 	{
-	}
-
-	FRefineClusterBatch::~FRefineClusterBatch()
-	{
-		PCGEX_DELETE(GraphBuilder)
-	}
-
-	bool PCGExRefineEdges::FRefineClusterBatch::PrepareProcessing()
-	{
-		PCGEX_SETTINGS(RefineEdges)
-
-		if (!FClusterBatchProcessingData::PrepareProcessing()) { return false; }
-
-		GraphBuilder = new PCGExGraph::FGraphBuilder(*VtxIO, &GraphBuilderSettings, 6, MainEdges);
-
-		return true;
 	}
 
 	bool FRefineClusterBatch::PrepareSingle(FClusterRefineProcess* ClusterProcessor)
 	{
-		ClusterProcessor->GraphBuilder = GraphBuilder;
 		ClusterProcessor->Refinement = Refinement;
 		return true;
 	}
-
 }
 
 #undef LOCTEXT_NAMESPACE
