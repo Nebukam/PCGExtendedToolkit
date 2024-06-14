@@ -5,8 +5,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGEx.h"
-#include "Data/PCGExAttributeHelpers.h"
 
 #include "PCGExCompare.generated.h"
 

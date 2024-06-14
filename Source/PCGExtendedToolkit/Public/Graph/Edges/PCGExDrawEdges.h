@@ -69,7 +69,7 @@ private:
 	friend class FPCGExDrawEdgesElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExDrawEdgesContext : public FPCGExEdgesProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExDrawEdgesContext final : public FPCGExEdgesProcessorContext
 {
 	friend class FPCGExDrawEdgesElement;
 
@@ -79,7 +79,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExDrawEdgesContext : public FPCGExEdgesProcess
 	virtual ~FPCGExDrawEdgesContext() override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExDrawEdgesElement : public FPCGExEdgesProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExDrawEdgesElement final : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

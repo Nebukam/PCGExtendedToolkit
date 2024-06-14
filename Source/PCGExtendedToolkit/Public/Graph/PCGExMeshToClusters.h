@@ -104,7 +104,7 @@ private:
 	friend class FPCGExMeshToClustersElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExMeshToClustersContext : public FPCGExPointsProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExMeshToClustersContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExMeshToClustersElement;
 
@@ -127,7 +127,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMeshToClustersContext : public FPCGExPointsP
 };
 
 
-class PCGEXTENDEDTOOLKIT_API FPCGExMeshToClustersElement : public FPCGExPointsProcessorElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExMeshToClustersElement final : public FPCGExPointsProcessorElementBase
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -142,7 +142,7 @@ protected:
 
 namespace PCGExMeshToCluster
 {
-	class PCGEXTENDEDTOOLKIT_API FExtractMeshAndBuildGraph : public FPCGExNonAbandonableTask
+	class PCGEXTENDEDTOOLKIT_API FExtractMeshAndBuildGraph final : public FPCGExNonAbandonableTask
 	{
 	public:
 		FExtractMeshAndBuildGraph(

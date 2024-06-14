@@ -71,14 +71,14 @@ namespace PCGExDataBlending
 		}
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FCompoundBlender
+	class PCGEXTENDEDTOOLKIT_API FCompoundBlender final
 	{
 		friend class FPCGExCompoundBlendTask;
 		friend class FPCGExCompoundedPointBlendTask;
 
 	public:
 		explicit FCompoundBlender(FPCGExBlendingSettings* InBlendingSettings);
-		virtual ~FCompoundBlender();
+		~FCompoundBlender();
 
 		void AddSource(PCGExData::FPointIO& InData);
 		void AddSources(const PCGExData::FPointIOCollection& InDataGroup);
@@ -101,7 +101,7 @@ namespace PCGExDataBlending
 		FPropertiesBlender* PropertiesBlender = nullptr;
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FPCGExCompoundBlendTask : public FPCGExNonAbandonableTask
+	class PCGEXTENDEDTOOLKIT_API FPCGExCompoundBlendTask final : public FPCGExNonAbandonableTask
 	{
 	public:
 		FPCGExCompoundBlendTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
@@ -121,7 +121,7 @@ namespace PCGExDataBlending
 		virtual bool ExecuteTask() override;
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FPCGExCompoundedPointBlendTask : public FPCGExNonAbandonableTask
+	class PCGEXTENDEDTOOLKIT_API FPCGExCompoundedPointBlendTask final : public FPCGExNonAbandonableTask
 	{
 	public:
 		FPCGExCompoundedPointBlendTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,

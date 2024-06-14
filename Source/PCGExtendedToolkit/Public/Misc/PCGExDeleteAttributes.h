@@ -35,14 +35,14 @@ public:
 	TSet<FName> AttributeNames;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExDeleteAttributesContext : public FPCGExPointsProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExDeleteAttributesContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExDeleteAttributesElement;
 
 	virtual ~FPCGExDeleteAttributesContext() override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExDeleteAttributesElement : public FPCGExPointsProcessorElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExDeleteAttributesElement final : public FPCGExPointsProcessorElementBase
 {
 public:
 	virtual FPCGContext* Initialize(

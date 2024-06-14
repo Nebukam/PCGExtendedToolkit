@@ -90,7 +90,7 @@ public:
 };
 
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingNavmeshContext : public FPCGExPointsProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingNavmeshContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExPathfindingNavmeshElement;
 
@@ -114,7 +114,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingNavmeshContext : public FPCGExPoi
 	double FuseDistance = 10;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExPathfindingNavmeshElement : public FPCGExPointsProcessorElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExPathfindingNavmeshElement final : public FPCGExPointsProcessorElementBase
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -128,7 +128,7 @@ protected:
 };
 
 
-class PCGEXTENDEDTOOLKIT_API FSampleNavmeshTask : public FPCGExPathfindingTask
+class PCGEXTENDEDTOOLKIT_API FSampleNavmeshTask final : public FPCGExPathfindingTask
 {
 public:
 	FSampleNavmeshTask(

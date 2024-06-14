@@ -70,7 +70,7 @@ private:
 	friend class FPCGExDrawCustomGraphElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExDrawCustomGraphContext : public FPCGExCustomGraphProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExDrawCustomGraphContext final : public FPCGExCustomGraphProcessorContext
 {
 	friend class FPCGExBuildCustomGraphElement;
 	friend class FPCGExProbeTask;
@@ -82,7 +82,7 @@ public:
 	UPCGPointData::PointOctree* Octree = nullptr;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExDrawCustomGraphElement : public FPCGExCustomGraphProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExDrawCustomGraphElement final : public FPCGExCustomGraphProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

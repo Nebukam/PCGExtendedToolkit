@@ -77,13 +77,13 @@ namespace PCGExDataState
 		}
 	};
 
-	class PCGEXTENDEDTOOLKIT_API TStatesManager : public PCGExDataFilter::TFilterManager
+	class PCGEXTENDEDTOOLKIT_API TStatesManager final : public PCGExDataFilter::TFilterManager
 	{
 	public:
 		TArray<int32> HighestState;
 		bool bHasPartials = false;
 
-		explicit TStatesManager(PCGExData::FPointIO* InPointIO)
+		explicit TStatesManager(const PCGExData::FPointIO* InPointIO)
 			: TFilterManager(InPointIO)
 		{
 		}
@@ -160,7 +160,7 @@ namespace PCGExDataState
 
 namespace PCGExDataStateTask
 {
-	class PCGEXTENDEDTOOLKIT_API FWriteIndividualState : public FPCGExNonAbandonableTask
+	class PCGEXTENDEDTOOLKIT_API FWriteIndividualState final : public FPCGExNonAbandonableTask
 	{
 	public:
 		FWriteIndividualState(

@@ -45,7 +45,7 @@ public:
 };
 
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingEdgesContext : public FPCGExPathfindingProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingEdgesContext final : public FPCGExPathfindingProcessorContext
 {
 	friend class FPCGExPathfindingEdgesElement;
 
@@ -57,7 +57,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingEdgesContext : public FPCGExPathf
 	void TryFindPath(const PCGExPathfinding::FPathQuery* Query) const;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExPathfindingEdgesElement : public FPCGExPathfindingProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExPathfindingEdgesElement final : public FPCGExPathfindingProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -71,7 +71,7 @@ protected:
 };
 
 
-class PCGEXTENDEDTOOLKIT_API FSampleClusterPathTask : public FPCGExPathfindingTask
+class PCGEXTENDEDTOOLKIT_API FSampleClusterPathTask final : public FPCGExPathfindingTask
 {
 public:
 	FSampleClusterPathTask(

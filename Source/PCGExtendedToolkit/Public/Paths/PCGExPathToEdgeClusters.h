@@ -120,7 +120,7 @@ public:
 	FPCGExGraphBuilderSettings GraphBuilderSettings;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExPathToEdgeClustersContext : public FPCGExPathProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExPathToEdgeClustersContext final : public FPCGExPathProcessorContext
 {
 	friend class FPCGExPathToEdgeClustersElement;
 
@@ -140,7 +140,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathToEdgeClustersContext : public FPCGExPat
 	PCGExDataBlending::FMetadataBlender* MetadataBlender = nullptr;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExPathToEdgeClustersElement : public FPCGExPathProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExPathToEdgeClustersElement final : public FPCGExPathProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -154,7 +154,7 @@ protected:
 };
 
 
-class PCGEXTENDEDTOOLKIT_API FPCGExInsertPathToCompoundGraphTask : public FPCGExNonAbandonableTask
+class PCGEXTENDEDTOOLKIT_API FPCGExInsertPathToCompoundGraphTask final : public FPCGExNonAbandonableTask
 {
 public:
 	FPCGExInsertPathToCompoundGraphTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,

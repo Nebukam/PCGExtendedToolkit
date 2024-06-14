@@ -37,7 +37,7 @@ private:
 	friend class FPCGExConsolidateCustomGraphElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExConsolidateCustomGraphContext : public FPCGExCustomGraphProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExConsolidateCustomGraphContext final : public FPCGExCustomGraphProcessorContext
 {
 	friend class FPCGExConsolidateCustomGraphElement;
 
@@ -47,7 +47,7 @@ public:
 };
 
 
-class PCGEXTENDEDTOOLKIT_API FPCGExConsolidateCustomGraphElement : public FPCGExCustomGraphProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExConsolidateCustomGraphElement final : public FPCGExCustomGraphProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

@@ -42,7 +42,7 @@ public:
 	FPCGExDataFilterActionSettings FilterActions;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExPruneClustersContext : public FPCGExEdgesProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExPruneClustersContext final : public FPCGExEdgesProcessorContext
 {
 	friend class UPCGExPruneClustersSettings;
 	friend class FPCGExPruneClustersElement;
@@ -55,7 +55,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPruneClustersContext : public FPCGExEdgesPro
 	TArray<PCGExGraph::FIndexedEdge> IndexedEdges;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExPruneClustersElement : public FPCGExEdgesProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExPruneClustersElement final : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -68,7 +68,7 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExPruneClusterTask : public FPCGExNonAbandonableTask
+class PCGEXTENDEDTOOLKIT_API FPCGExPruneClusterTask final : public FPCGExNonAbandonableTask
 {
 public:
 	FPCGExPruneClusterTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,

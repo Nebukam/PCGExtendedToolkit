@@ -50,7 +50,7 @@ private:
 	friend class FPCGExPromoteEdgesElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExPromoteEdgesContext : public FPCGExCustomGraphProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExPromoteEdgesContext final : public FPCGExCustomGraphProcessorContext
 {
 	friend class FPCGExPromoteEdgesElement;
 
@@ -64,7 +64,7 @@ public:
 	UPCGExEdgePromotingOperation* Promotion;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExPromoteEdgesElement : public FPCGExCustomGraphProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExPromoteEdgesElement final : public FPCGExCustomGraphProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

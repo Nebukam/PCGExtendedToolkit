@@ -204,7 +204,7 @@ public:
 	FName NumSamplesAttributeName = FName("NumSamples");
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExSampleProjectedNearestPointContext : public FPCGExPointsProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExSampleProjectedNearestPointContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExSampleProjectedNearestPointElement;
 
@@ -240,7 +240,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleProjectedNearestPointContext : public 
 	PointOctree* ProjectedTargetOctree = nullptr;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExSampleProjectedNearestPointElement : public FPCGExPointsProcessorElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExSampleProjectedNearestPointElement final : public FPCGExPointsProcessorElementBase
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -255,7 +255,7 @@ protected:
 
 namespace PCGExSampleNearestProjectedPointTasks
 {
-	class PCGEXTENDEDTOOLKIT_API FSamplePoint : public FPCGExLoopChunkTask
+	class PCGEXTENDEDTOOLKIT_API FSamplePoint final : public FPCGExLoopChunkTask
 	{
 	public:
 		FSamplePoint(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO, const int32 NumIterations) :
@@ -266,7 +266,7 @@ namespace PCGExSampleNearestProjectedPointTasks
 		virtual void LoopBody(const int32 Iteration) override;
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FPointLoop : public FPCGExParallelLoopTask<FSamplePoint>
+	class PCGEXTENDEDTOOLKIT_API FPointLoop final : public FPCGExParallelLoopTask<FSamplePoint>
 	{
 	public:
 		FPointLoop(

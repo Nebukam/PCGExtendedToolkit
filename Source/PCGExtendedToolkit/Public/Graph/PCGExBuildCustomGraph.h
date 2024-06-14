@@ -69,7 +69,7 @@ private:
 	friend class FPCGExBuildCustomGraphElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExBuildCustomGraphContext : public FPCGExCustomGraphProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExBuildCustomGraphContext final : public FPCGExCustomGraphProcessorContext
 {
 	friend class FPCGExBuildCustomGraphElement;
 	friend class FPCGExProbeTask;
@@ -80,7 +80,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBuildCustomGraphContext : public FPCGExCusto
 };
 
 
-class PCGEXTENDEDTOOLKIT_API FPCGExBuildCustomGraphElement : public FPCGExCustomGraphProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExBuildCustomGraphElement final : public FPCGExCustomGraphProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -93,7 +93,7 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExProbeTask : public FPCGExNonAbandonableTask
+class PCGEXTENDEDTOOLKIT_API FPCGExProbeTask final : public FPCGExNonAbandonableTask
 {
 public:
 	FPCGExProbeTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO) :

@@ -237,7 +237,7 @@ bool FPCGExShrinkPathTask::ExecuteTask()
 		PointIO->InitializeOutput(PCGExData::EInit::DuplicateInput);
 		TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
 
-		auto ShrinkOnce = [&](int32 Direction)
+		auto ShrinkOnce = [&](const int32 Direction)
 		{
 			if (Direction == 0 || MutablePoints.IsEmpty()) { return; }
 
@@ -326,7 +326,7 @@ bool FPCGExShrinkPathTask::ExecuteTask()
 			}
 		}
 
-		auto ShrinkBy = [&](double Distance, EPCGExPathShrinkDistanceCutType CutType)-> double
+		auto ShrinkBy = [&](double Distance, const EPCGExPathShrinkDistanceCutType CutType)-> double
 		{
 			if (Distance == 0 || MutablePoints.IsEmpty()) { return 0; }
 

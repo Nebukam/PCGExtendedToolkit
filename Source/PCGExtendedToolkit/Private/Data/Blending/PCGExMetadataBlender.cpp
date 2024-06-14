@@ -101,7 +101,7 @@ namespace PCGExDataBlending
 		PropertiesBlender->CompleteBlending(Target.MutablePoint(), Count, TotalWeight);
 	}
 
-	void FMetadataBlender::CompleteBlending(const int32 PrimaryIndex, const int32 Count, double TotalWeight) const
+	void FMetadataBlender::CompleteBlending(const int32 PrimaryIndex, const int32 Count, const double TotalWeight) const
 	{
 		for (const FDataBlendingOperationBase* Op : AttributesToBeCompleted) { Op->FinalizeOperation(PrimaryIndex, Count, TotalWeight); }
 

@@ -5,7 +5,6 @@
 
 #include "CoreMinimal.h"
 
-#include "PCGExCustomGraphProcessor.h"
 #include "PCGExEdgesProcessor.h"
 
 #include "PCGExFindNodeStates.generated.h"
@@ -74,7 +73,7 @@ private:
 	friend class FPCGExFindNodeStatesElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExFindNodeStatesContext : public FPCGExEdgesProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExFindNodeStatesContext final : public FPCGExEdgesProcessorContext
 {
 	friend class FPCGExFindNodeStatesElement;
 
@@ -86,7 +85,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFindNodeStatesContext : public FPCGExEdgesPr
 };
 
 
-class PCGEXTENDEDTOOLKIT_API FPCGExFindNodeStatesElement : public FPCGExEdgesProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExFindNodeStatesElement final : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

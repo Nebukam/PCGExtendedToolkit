@@ -54,7 +54,7 @@ public:
 	TObjectPtr<UPCGExTangentsOperation> Tangents;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExWriteTangentsContext : public FPCGExPathProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExWriteTangentsContext final : public FPCGExPathProcessorContext
 {
 	friend class FPCGExWriteTangentsElement;
 
@@ -71,7 +71,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExWriteTangentsContext : public FPCGExPathProc
 	void WriteTangents();
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExWriteTangentsElement : public FPCGExPathProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExWriteTangentsElement final : public FPCGExPathProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

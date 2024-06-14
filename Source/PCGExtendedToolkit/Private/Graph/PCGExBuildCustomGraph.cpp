@@ -4,7 +4,6 @@
 #include "Graph/PCGExBuildCustomGraph.h"
 
 #include "Geometry/PCGExGeo.h"
-#include "Geometry/PCGExGeoDelaunay.h"
 #include "Graph/PCGExCluster.h"
 
 #define LOCTEXT_NAMESPACE "PCGExBuildCustomGraph"

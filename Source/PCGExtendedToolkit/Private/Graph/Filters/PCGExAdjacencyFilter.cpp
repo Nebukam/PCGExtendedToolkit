@@ -3,7 +3,6 @@
 
 #include "Graph/Filters/PCGExAdjacencyFilter.h"
 
-#include "PCGPin.h"
 #include "Graph/PCGExGraph.h"
 
 #define LOCTEXT_NAMESPACE "PCGExNodeAdjacencyFilter"

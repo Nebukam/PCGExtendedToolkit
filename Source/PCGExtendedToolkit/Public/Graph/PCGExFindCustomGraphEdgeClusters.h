@@ -67,7 +67,7 @@ private:
 	friend class FPCGExFindCustomGraphEdgeClustersElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExFindCustomGraphEdgeClustersContext : public FPCGExCustomGraphProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExFindCustomGraphEdgeClustersContext final : public FPCGExCustomGraphProcessorContext
 {
 	friend class FPCGExFindCustomGraphEdgeClustersElement;
 
@@ -84,7 +84,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFindCustomGraphEdgeClustersContext : public 
 };
 
 
-class PCGEXTENDEDTOOLKIT_API FPCGExFindCustomGraphEdgeClustersElement : public FPCGExCustomGraphProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExFindCustomGraphEdgeClustersElement final : public FPCGExCustomGraphProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

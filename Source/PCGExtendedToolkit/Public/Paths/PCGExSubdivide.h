@@ -76,7 +76,7 @@ public:
 	FName FlagName = "IsSubPoint";
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExSubdivideContext : public FPCGExPathProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExSubdivideContext final : public FPCGExPathProcessorContext
 {
 	friend class FPCGExSubdivideElement;
 
@@ -96,7 +96,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSubdivideContext : public FPCGExPathProcesso
 	TArray<PCGExMath::FPathMetricsSquared> MilestonesMetrics;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExSubdivideElement : public FPCGExPathProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExSubdivideElement final : public FPCGExPathProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

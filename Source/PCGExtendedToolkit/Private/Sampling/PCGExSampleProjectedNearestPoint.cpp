@@ -7,7 +7,6 @@
 #include "Data/PCGExData.h"
 #include "Data/PCGExDataFilter.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
-#include "Data/Blending/PCGExPropertiesBlender.h"
 #include "Sampling/PCGExSampleNearestPoint.h"
 
 #define LOCTEXT_NAMESPACE "PCGExSampleProjectedNearestPointElement"

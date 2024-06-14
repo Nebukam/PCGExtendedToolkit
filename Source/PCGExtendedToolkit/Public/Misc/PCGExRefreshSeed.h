@@ -38,12 +38,12 @@ public:
 	int32 Base = 0;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExRefreshSeedContext : public FPCGExPointsProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExRefreshSeedContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExRefreshSeedElement;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExRefreshSeedElement : public FPCGExPointsProcessorElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExRefreshSeedElement final : public FPCGExPointsProcessorElementBase
 {
 public:
 	virtual FPCGContext* Initialize(

@@ -62,7 +62,7 @@ private:
 	friend class FPCGExBuildConvexHull2DElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExBuildConvexHull2DContext : public FPCGExPointsProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExBuildConvexHull2DContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExBuildConvexHull2DElement;
 
@@ -82,7 +82,7 @@ protected:
 };
 
 
-class PCGEXTENDEDTOOLKIT_API FPCGExBuildConvexHull2DElement : public FPCGExPointsProcessorElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExBuildConvexHull2DElement final : public FPCGExPointsProcessorElementBase
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -95,7 +95,7 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExConvexHull2Task : public FPCGExNonAbandonableTask
+class PCGEXTENDEDTOOLKIT_API FPCGExConvexHull2Task final : public FPCGExNonAbandonableTask
 {
 public:
 	FPCGExConvexHull2Task(

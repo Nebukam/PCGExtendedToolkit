@@ -5,7 +5,6 @@
 
 #include "PCGPin.h"
 #include "Graph/PCGExCluster.h"
-#include "Graph/PCGExGraph.h"
 
 #define LOCTEXT_NAMESPACE "PCGExCreateNodeState"
 #define PCGEX_NAMESPACE CreateNodeState

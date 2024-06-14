@@ -78,7 +78,7 @@ private:
 	friend class FPCGExFindSocketStatesElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExFindSocketStatesContext : public FPCGExCustomGraphProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExFindSocketStatesContext final : public FPCGExCustomGraphProcessorContext
 {
 	friend class FPCGExFindSocketStatesElement;
 
@@ -90,7 +90,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFindSocketStatesContext : public FPCGExCusto
 };
 
 
-class PCGEXTENDEDTOOLKIT_API FPCGExFindSocketStatesElement : public FPCGExCustomGraphProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExFindSocketStatesElement final : public FPCGExCustomGraphProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

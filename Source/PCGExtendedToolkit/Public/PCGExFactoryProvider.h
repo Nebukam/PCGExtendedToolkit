@@ -90,7 +90,7 @@ public:
 #endif
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExFactoryProviderElement : public IPCGElement
+class PCGEXTENDEDTOOLKIT_API FPCGExFactoryProviderElement final : public IPCGElement
 {
 public:
 #if WITH_EDITOR

@@ -5,7 +5,6 @@
 
 #include "CoreMinimal.h"
 #include "PCGExSearchOperation.h"
-#include "Geometry/PCGExGeo.h"
 #include "UObject/Object.h"
 #include "PCGExSearchContours.generated.h"
 

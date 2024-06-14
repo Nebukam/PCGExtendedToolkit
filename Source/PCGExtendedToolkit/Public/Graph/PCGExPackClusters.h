@@ -38,7 +38,7 @@ private:
 	friend class FPCGExPackClustersElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExPackClustersContext : public FPCGExEdgesProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExPackClustersContext final : public FPCGExEdgesProcessorContext
 {
 	friend class FPCGExPackClustersElement;
 	friend class FPCGExCreateBridgeTask;
@@ -48,7 +48,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPackClustersContext : public FPCGExEdgesProc
 	PCGExData::FPointIOCollection* PackedClusters = nullptr;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExPackClustersElement : public FPCGExEdgesProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExPackClustersElement final : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -61,7 +61,7 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExPackClusterTask : public FPCGExNonAbandonableTask
+class PCGEXTENDEDTOOLKIT_API FPCGExPackClusterTask final : public FPCGExNonAbandonableTask
 {
 public:
 	FPCGExPackClusterTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,

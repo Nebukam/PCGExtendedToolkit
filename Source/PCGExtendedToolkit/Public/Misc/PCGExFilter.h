@@ -4,7 +4,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGEx.h"
 #include "Data/PCGExAttributeHelpers.h"
 
 #include "PCGExFilter.generated.h"
@@ -88,7 +87,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPartitonRuleDescriptor : public FPCGExInputD
 
 namespace FPCGExFilter
 {
-	struct PCGEXTENDEDTOOLKIT_API FRule : public PCGEx::FLocalSingleFieldGetter
+	struct PCGEXTENDEDTOOLKIT_API FRule final : public PCGEx::FLocalSingleFieldGetter
 	{
 		explicit FRule(FPCGExPartitonRuleDescriptor& InRule)
 			: FLocalSingleFieldGetter(),

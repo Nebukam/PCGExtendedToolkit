@@ -76,7 +76,7 @@ private:
 	friend class FPCGExBuildVoronoiGraphElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExBuildVoronoiGraphContext : public FPCGExPointsProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExBuildVoronoiGraphContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExBuildVoronoiGraphElement;
 
@@ -91,7 +91,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBuildVoronoiGraphContext : public FPCGExPoin
 };
 
 
-class PCGEXTENDEDTOOLKIT_API FPCGExBuildVoronoiGraphElement : public FPCGExPointsProcessorElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExBuildVoronoiGraphElement final : public FPCGExPointsProcessorElementBase
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -104,7 +104,7 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExVoronoi3Task : public FPCGExNonAbandonableTask
+class PCGEXTENDEDTOOLKIT_API FPCGExVoronoi3Task final : public FPCGExNonAbandonableTask
 {
 public:
 	FPCGExVoronoi3Task(

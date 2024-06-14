@@ -20,6 +20,11 @@
 	if (!FilterFactories.IsEmpty()) { NewOperation->PointState = new PCGExCluster::FNodeStateHandler(this); }\
 	if (ValueStateFactory) { NewOperation->ValueState = new PCGExCluster::FNodeStateHandler(ValueStateFactory); }
 
+namespace PCGExDataBlending
+{
+	class FMetadataBlender;
+}
+
 namespace PCGExNeighborSample
 {
 	const FName SourceSamplersLabel = TEXT("Samplers");

@@ -95,7 +95,7 @@ public:
 	FPCGExGraphBuilderSettings GraphBuilderSettings;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExFuseClustersLocalContext : public FPCGExEdgesProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExFuseClustersLocalContext final : public FPCGExEdgesProcessorContext
 {
 	friend class UPCGExFuseClustersLocalSettings;
 	friend class FPCGExFuseClustersLocalElement;
@@ -116,7 +116,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFuseClustersLocalContext : public FPCGExEdge
 	PCGExDataBlending::FMetadataBlender* MetadataBlender = nullptr;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExFuseClustersLocalElement : public FPCGExEdgesProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExFuseClustersLocalElement final : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

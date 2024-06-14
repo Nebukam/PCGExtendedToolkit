@@ -70,7 +70,7 @@ private:
 	friend class FPCGExPickClosestClustersElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExPickClosestClustersContext : public FPCGExEdgesProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExPickClosestClustersContext final : public FPCGExEdgesProcessorContext
 {
 	friend class FPCGExPickClosestClustersElement;
 
@@ -83,7 +83,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPickClosestClustersContext : public FPCGExEd
 	TSet<int32>* CurrentEdgeMap = nullptr;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExPickClosestClustersElement : public FPCGExEdgesProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExPickClosestClustersElement final : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

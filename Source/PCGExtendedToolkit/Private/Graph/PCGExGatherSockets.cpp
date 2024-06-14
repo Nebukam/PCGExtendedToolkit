@@ -116,7 +116,7 @@ bool FPCGExGatherSocketsElement::ExecuteInternal(
 	return true;
 }
 
-FPCGContext* FPCGExGatherSocketsElement::Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node)
+FPCGContext* FPCGExGatherSocketsElement::Initialize(const FPCGDataCollection& InputData, const TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node)
 {
 	FPCGContext* Context = new FPCGContext();
 	Context->InputData = InputData;

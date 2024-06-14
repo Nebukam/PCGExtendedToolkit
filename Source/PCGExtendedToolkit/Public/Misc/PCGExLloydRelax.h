@@ -44,7 +44,7 @@ public:
 	FPCGExInfluenceSettings InfluenceSettings;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExLloydRelaxContext : public FPCGExPointsProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExLloydRelaxContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExLloydRelaxElement;
 
@@ -54,7 +54,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExLloydRelaxContext : public FPCGExPointsProce
 	TArray<FVector> ActivePositions;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExLloydRelaxElement : public FPCGExPointsProcessorElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExLloydRelaxElement final : public FPCGExPointsProcessorElementBase
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -67,7 +67,7 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExLloydRelax3Task : public FPCGExNonAbandonableTask
+class PCGEXTENDEDTOOLKIT_API FPCGExLloydRelax3Task final : public FPCGExNonAbandonableTask
 {
 public:
 	FPCGExLloydRelax3Task(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,

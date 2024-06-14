@@ -346,7 +346,7 @@ namespace PCGExDataBlending
 	public:
 		~FDataForwardHandler();
 		explicit FDataForwardHandler(const FPCGExForwardSettings* InSettings, const PCGExData::FPointIO* InSourceIO);
-		void Forward(int32 SourceIndex, PCGExData::FPointIO* Target);
+		void Forward(int32 SourceIndex, const PCGExData::FPointIO* Target);
 	};
 
 
@@ -624,7 +624,7 @@ namespace PCGExDataBlending
 
 namespace PCGExDataBlendingTask
 {
-	class PCGEXTENDEDTOOLKIT_API FBlendCompoundedIO : public FPCGExNonAbandonableTask
+	class PCGEXTENDEDTOOLKIT_API FBlendCompoundedIO final : public FPCGExNonAbandonableTask
 	{
 	public:
 		FBlendCompoundedIO(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
@@ -651,7 +651,7 @@ namespace PCGExDataBlendingTask
 		virtual bool ExecuteTask() override;
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FWriteFuseMetadata : public FPCGExNonAbandonableTask
+	class PCGEXTENDEDTOOLKIT_API FWriteFuseMetadata final : public FPCGExNonAbandonableTask
 	{
 	public:
 		FWriteFuseMetadata(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,

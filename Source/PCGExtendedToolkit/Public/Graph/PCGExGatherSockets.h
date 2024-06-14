@@ -70,10 +70,9 @@ public:
 
 	void RefreshSocketNames();
 
-protected:
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExGatherSocketsElement : public IPCGElement
+class PCGEXTENDEDTOOLKIT_API FPCGExGatherSocketsElement final : public IPCGElement
 {
 #if WITH_EDITOR
 	virtual bool ShouldLog() const override { return false; }

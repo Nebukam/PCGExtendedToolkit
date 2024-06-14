@@ -4,7 +4,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Blending/PCGExDataBlending.h"
 #include "UObject/Object.h"
 #include "PCGExData.h"
 #include "PCGExFactoryProvider.h"
@@ -163,7 +162,7 @@ namespace PCGExDataFilter
 		virtual void PostProcessHandler(TFilter* Handler);
 	};
 
-	class PCGEXTENDEDTOOLKIT_API TEarlyExitFilterManager : public TFilterManager
+	class PCGEXTENDEDTOOLKIT_API TEarlyExitFilterManager final : public TFilterManager
 	{
 	public:
 		explicit TEarlyExitFilterManager(const PCGExData::FPointIO* InPointIO);

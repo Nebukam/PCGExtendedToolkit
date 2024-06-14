@@ -62,7 +62,7 @@ private:
 	friend class FPCGExRefineEdgesElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExRefineEdgesContext : public FPCGExEdgesProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExRefineEdgesContext final : public FPCGExEdgesProcessorContext
 {
 	friend class FPCGExRefineEdgesElement;
 
@@ -75,7 +75,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExRefineEdgesContext : public FPCGExEdgesProce
 	FPCGExGraphBuilderSettings GraphBuilderSettings;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExRefineEdgesElement : public FPCGExEdgesProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExRefineEdgesElement final : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -90,7 +90,7 @@ protected:
 
 namespace PCGExRefineEdges
 {
-	class PCGEXTENDEDTOOLKIT_API FPCGExRefineEdgesTask : public FPCGExNonAbandonableTask
+	class PCGEXTENDEDTOOLKIT_API FPCGExRefineEdgesTask final : public FPCGExNonAbandonableTask
 	{
 	public:
 		FPCGExRefineEdgesTask(
@@ -124,7 +124,7 @@ namespace PCGExRefineEdges
 		UPCGExEdgeRefineOperation* Refinement = nullptr;
 	};
 
-	class FRefineClusterBatch : public PCGExClusterMT::TClusterBatchBuilderProcessor<FClusterRefineProcess>
+	class FRefineClusterBatch final : public PCGExClusterMT::TClusterBatchBuilderProcessor<FClusterRefineProcess>
 	{
 	public:
 		UPCGExEdgeRefineOperation* Refinement = nullptr;

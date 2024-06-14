@@ -11,7 +11,6 @@
 #include "PCGExMath.h"
 #include "PCGExPointsProcessor.h"
 #include "Data/PCGExAttributeHelpers.h"
-#include "Kismet/KismetMathLibrary.h"
 
 #include "PCGExSettings.generated.h"
 

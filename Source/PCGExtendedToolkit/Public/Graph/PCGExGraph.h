@@ -11,7 +11,6 @@
 #include "PCGExPointsProcessor.h"
 #include "PCGExSettings.h"
 #include "Data/PCGExData.h"
-#include "Data/Blending/PCGExMetadataBlender.h"
 
 #include "PCGExGraph.generated.h"
 
@@ -674,7 +673,7 @@ namespace PCGExGraphTask
 		}
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FWriteSubGraphEdges : public FPCGExNonAbandonableTask
+	class PCGEXTENDEDTOOLKIT_API FWriteSubGraphEdges final : public FPCGExNonAbandonableTask
 	{
 	public:
 		FWriteSubGraphEdges(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
@@ -696,7 +695,7 @@ namespace PCGExGraphTask
 		virtual bool ExecuteTask() override;
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FWriteSmallSubGraphEdges : public FPCGExNonAbandonableTask
+	class PCGEXTENDEDTOOLKIT_API FWriteSmallSubGraphEdges final : public FPCGExNonAbandonableTask
 	{
 	public:
 		FWriteSmallSubGraphEdges(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
@@ -723,7 +722,7 @@ namespace PCGExGraphTask
 		virtual bool ExecuteTask() override;
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FCompileGraph : public FPCGExNonAbandonableTask
+	class PCGEXTENDEDTOOLKIT_API FCompileGraph final : public FPCGExNonAbandonableTask
 	{
 	public:
 		FCompileGraph(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
@@ -750,7 +749,7 @@ namespace PCGExGraphTask
 		void ProcessSmallGraphs(TArray<PCGExGraph::FSubGraph*>& SubGraphs);
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FCopyGraphToPoint : public FPCGExNonAbandonableTask
+	class PCGEXTENDEDTOOLKIT_API FCopyGraphToPoint final : public FPCGExNonAbandonableTask
 	{
 	public:
 		FCopyGraphToPoint(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,

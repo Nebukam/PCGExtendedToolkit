@@ -21,7 +21,7 @@ namespace PCGExGeo
 		}
 
 		explicit FTriangle(const int (&ABC)[3])
-			: FTriangle(ABC[0], ABC[1], ABC[2], bSort)
+			: FTriangle(ABC[0], ABC[1], ABC[2])
 		{
 		}
 

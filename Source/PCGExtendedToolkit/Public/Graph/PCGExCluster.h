@@ -302,7 +302,7 @@ namespace PCGExCluster
 		virtual bool PrepareForTesting(const PCGExData::FPointIO* PointIO, const TArrayView<int32>& PointIndices) override;
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FNodeStateHandler : public PCGExDataState::TDataState
+	class PCGEXTENDEDTOOLKIT_API FNodeStateHandler final : public PCGExDataState::TDataState
 	{
 	public:
 		explicit FNodeStateHandler(const UPCGExNodeStateFactory* InFactory);
@@ -314,7 +314,7 @@ namespace PCGExCluster
 		TArray<TClusterFilter*> ClusterFilterHandlers;
 		TArray<TClusterFilter*> HeavyClusterFilterHandlers;
 
-		virtual void CaptureCluster(const FPCGContext* InContext, FCluster* InCluster);
+		void CaptureCluster(const FPCGContext* InContext, FCluster* InCluster);
 		FORCEINLINE virtual bool Test(const int32 PointIndex) const override;
 
 		virtual bool PrepareForTesting(const PCGExData::FPointIO* PointIO) override;
@@ -322,7 +322,7 @@ namespace PCGExCluster
 		virtual void PrepareSingle(const int32 PointIndex) override;
 		virtual void PreparationComplete() override;
 
-		virtual bool RequiresPerPointPreparation() const;
+		bool RequiresPerPointPreparation() const;
 
 		virtual ~FNodeStateHandler() override
 		{
@@ -341,7 +341,7 @@ namespace PCGExCluster
 
 namespace PCGExClusterTask
 {
-	class PCGEXTENDEDTOOLKIT_API FBuildCluster : public FPCGExNonAbandonableTask
+	class PCGEXTENDEDTOOLKIT_API FBuildCluster final : public FPCGExNonAbandonableTask
 	{
 	public:
 		FBuildCluster(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
@@ -366,7 +366,7 @@ namespace PCGExClusterTask
 	};
 
 
-	class PCGEXTENDEDTOOLKIT_API FFindNodeChains : public FPCGExNonAbandonableTask
+	class PCGEXTENDEDTOOLKIT_API FFindNodeChains final : public FPCGExNonAbandonableTask
 	{
 	public:
 		FFindNodeChains(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
@@ -394,7 +394,7 @@ namespace PCGExClusterTask
 		virtual bool ExecuteTask() override;
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FBuildChain : public FPCGExNonAbandonableTask
+	class PCGEXTENDEDTOOLKIT_API FBuildChain final : public FPCGExNonAbandonableTask
 	{
 	public:
 		FBuildChain(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
@@ -475,7 +475,7 @@ namespace PCGExClusterTask
 		}
 	}
 
-	class PCGEXTENDEDTOOLKIT_API FProjectCluster : public FPCGExNonAbandonableTask
+	class PCGEXTENDEDTOOLKIT_API FProjectCluster final : public FPCGExNonAbandonableTask
 	{
 	public:
 		FProjectCluster(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
@@ -492,7 +492,7 @@ namespace PCGExClusterTask
 		virtual bool ExecuteTask() override;
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FCopyClustersToPoint : public FPCGExNonAbandonableTask
+	class PCGEXTENDEDTOOLKIT_API FCopyClustersToPoint final : public FPCGExNonAbandonableTask
 	{
 	public:
 		FCopyClustersToPoint(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,

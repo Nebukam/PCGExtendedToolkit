@@ -4,7 +4,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExCompare.h"
 #include "PCGExFilterFactoryProvider.h"
 #include "UObject/Object.h"
 
@@ -96,7 +95,7 @@ public:
 
 namespace PCGExPointsFilter
 {
-	class PCGEXTENDEDTOOLKIT_API TMeanFilter : public PCGExDataFilter::TFilter
+	class PCGEXTENDEDTOOLKIT_API TMeanFilter final : public PCGExDataFilter::TFilter
 	{
 	public:
 		explicit TMeanFilter(const UPCGExMeanFilterFactory* InFactory)

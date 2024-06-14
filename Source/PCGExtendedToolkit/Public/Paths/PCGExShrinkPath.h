@@ -162,7 +162,7 @@ public:
 	EPCGExShrinkEndpoint ShrinkFirst = EPCGExShrinkEndpoint::Both;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExShrinkPathContext : public FPCGExPathProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExShrinkPathContext final : public FPCGExPathProcessorContext
 {
 	friend class FPCGExShrinkPathElement;
 
@@ -175,7 +175,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExShrinkPathContext : public FPCGExPathProcess
 	virtual ~FPCGExShrinkPathContext() override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExShrinkPathElement : public FPCGExPathProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExShrinkPathElement final : public FPCGExPathProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -188,7 +188,7 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExShrinkPathTask : public FPCGExNonAbandonableTask
+class PCGEXTENDEDTOOLKIT_API FPCGExShrinkPathTask final : public FPCGExNonAbandonableTask
 {
 public:
 	FPCGExShrinkPathTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO) :

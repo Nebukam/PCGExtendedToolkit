@@ -5,7 +5,6 @@
 
 #include "CoreMinimal.h"
 #include "PCGExEdgeRefineOperation.h"
-#include "Graph/Pathfinding/PCGExPathfinding.h"
 #include "PCGExEdgeRefinePrimMST.generated.h"
 
 class UPCGExHeuristicLocalDistance;

@@ -4,7 +4,6 @@
 #include "Graph/PCGExPickClosestClusters.h"
 
 #include "Data/PCGExPointIOMerger.h"
-#include "Geometry/PCGExGeoDelaunay.h"
 
 #define LOCTEXT_NAMESPACE "PCGExPickClosestClusters"
 #define PCGEX_NAMESPACE PickClosestClusters

@@ -7,20 +7,18 @@
 #include "UObject/Object.h"
 
 #include "PCGExDataBlending.h"
-#include "PCGExDataBlendingOperations.h"
 #include "PCGExPropertiesBlender.h"
-#include "Data/PCGExAttributeHelpers.h"
 
 namespace PCGExDataBlending
 {
-	class PCGEXTENDEDTOOLKIT_API FMetadataBlender
+	class PCGEXTENDEDTOOLKIT_API FMetadataBlender final
 	{
 	public:
 		bool bBlendProperties = true;
 
 		TMap<FName, FDataBlendingOperationBase*> OperationIdMap;
 
-		virtual ~FMetadataBlender();
+		~FMetadataBlender();
 
 		explicit FMetadataBlender(FPCGExBlendingSettings* InBlendingSettings);
 		explicit FMetadataBlender(const FMetadataBlender* ReferenceBlender);

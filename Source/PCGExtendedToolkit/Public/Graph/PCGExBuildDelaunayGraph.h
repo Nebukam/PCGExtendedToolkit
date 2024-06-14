@@ -6,7 +6,6 @@
 #include "CoreMinimal.h"
 
 #include "PCGExCustomGraphProcessor.h"
-#include "CompGeom/Delaunay3.h"
 #include "Geometry/PCGExGeo.h"
 
 #include "PCGExBuildDelaunayGraph.generated.h"
@@ -64,7 +63,7 @@ private:
 	friend class FPCGExBuildDelaunayGraphElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExBuildDelaunayGraphContext : public FPCGExPointsProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExBuildDelaunayGraphContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExBuildDelaunayGraphElement;
 
@@ -79,7 +78,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBuildDelaunayGraphContext : public FPCGExPoi
 };
 
 
-class PCGEXTENDEDTOOLKIT_API FPCGExBuildDelaunayGraphElement : public FPCGExPointsProcessorElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExBuildDelaunayGraphElement final : public FPCGExPointsProcessorElementBase
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -92,7 +91,7 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExDelaunay3Task : public FPCGExNonAbandonableTask
+class PCGEXTENDEDTOOLKIT_API FPCGExDelaunay3Task final : public FPCGExNonAbandonableTask
 {
 public:
 	FPCGExDelaunay3Task(

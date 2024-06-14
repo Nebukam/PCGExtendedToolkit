@@ -7,7 +7,6 @@
 #include "Data/PCGExData.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
 #include "Graph/PCGExGraph.h"
-#include "Misc/PCGExFusePoints.h"
 
 namespace PCGExDataBlending
 {
@@ -24,7 +23,7 @@ namespace PCGExDataBlending
 		Settings->Filter(Identities);
 	}
 
-	void FDataForwardHandler::Forward(int32 SourceIndex, PCGExData::FPointIO* Target)
+	void FDataForwardHandler::Forward(const int32 SourceIndex, const PCGExData::FPointIO* Target)
 	{
 		if (Identities.IsEmpty()) { return; }
 		for (const PCGEx::FAttributeIdentity& Identity : Identities)

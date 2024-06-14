@@ -67,7 +67,7 @@ private:
 	friend class FPCGExBuildDelaunayGraph2DElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExBuildDelaunayGraph2DContext : public FPCGExPointsProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExBuildDelaunayGraph2DContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExBuildDelaunayGraph2DElement;
 
@@ -82,7 +82,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBuildDelaunayGraph2DContext : public FPCGExP
 };
 
 
-class PCGEXTENDEDTOOLKIT_API FPCGExBuildDelaunayGraph2DElement : public FPCGExPointsProcessorElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExBuildDelaunayGraph2DElement final : public FPCGExPointsProcessorElementBase
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -95,7 +95,7 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExDelaunay2Task : public FPCGExNonAbandonableTask
+class PCGEXTENDEDTOOLKIT_API FPCGExDelaunay2Task final : public FPCGExNonAbandonableTask
 {
 public:
 	FPCGExDelaunay2Task(

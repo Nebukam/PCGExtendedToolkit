@@ -20,7 +20,7 @@ namespace PCGExClusterMT
 #pragma region Tasks
 
 	template <typename TBatch>
-	class PCGEXTENDEDTOOLKIT_API FStartClusterBatchProcessing : public FPCGExNonAbandonableTask
+	class PCGEXTENDEDTOOLKIT_API FStartClusterBatchProcessing final : public FPCGExNonAbandonableTask
 	{
 	public:
 		FStartClusterBatchProcessing(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
@@ -40,7 +40,7 @@ namespace PCGExClusterMT
 	};
 
 	template <typename TBatch>
-	class PCGEXTENDEDTOOLKIT_API FStartClusterBatchCompleteWork : public FPCGExNonAbandonableTask
+	class PCGEXTENDEDTOOLKIT_API FStartClusterBatchCompleteWork final : public FPCGExNonAbandonableTask
 	{
 	public:
 		FStartClusterBatchCompleteWork(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
@@ -61,7 +61,7 @@ namespace PCGExClusterMT
 
 
 	template <typename TSingle>
-	class PCGEXTENDEDTOOLKIT_API FAsyncProcess : public FPCGExNonAbandonableTask
+	class PCGEXTENDEDTOOLKIT_API FAsyncProcess final : public FPCGExNonAbandonableTask
 	{
 	public:
 		FAsyncProcess(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
@@ -81,7 +81,7 @@ namespace PCGExClusterMT
 	};
 
 	template <typename TSingle>
-	class PCGEXTENDEDTOOLKIT_API FAsyncCompleteWork : public FPCGExNonAbandonableTask
+	class PCGEXTENDEDTOOLKIT_API FAsyncCompleteWork final : public FPCGExNonAbandonableTask
 	{
 	public:
 		FAsyncCompleteWork(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
@@ -101,11 +101,11 @@ namespace PCGExClusterMT
 	};
 
 	template <typename TSingle>
-	class PCGEXTENDEDTOOLKIT_API FAsyncProcessNodeRange : public FPCGExNonAbandonableTask
+	class PCGEXTENDEDTOOLKIT_API FAsyncProcessNodeRange final : public FPCGExNonAbandonableTask
 	{
 	public:
 		FAsyncProcessNodeRange(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-		                       TSingle* InProcessor, int32 InIterations) :
+		                       TSingle* InProcessor, const int32 InIterations) :
 			FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
 			Processor(InProcessor), Iterations(InIterations)
 		{
@@ -122,11 +122,11 @@ namespace PCGExClusterMT
 	};
 
 	template <typename TSingle>
-	class PCGEXTENDEDTOOLKIT_API FAsyncProcessEdgeRange : public FPCGExNonAbandonableTask
+	class PCGEXTENDEDTOOLKIT_API FAsyncProcessEdgeRange final : public FPCGExNonAbandonableTask
 	{
 	public:
 		FAsyncProcessEdgeRange(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-		                       TSingle* InProcessor, int32 InIterations) :
+		                       TSingle* InProcessor, const int32 InIterations) :
 			FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
 			Processor(InProcessor), Iterations(InIterations)
 		{
@@ -143,11 +143,11 @@ namespace PCGExClusterMT
 	};
 
 	template <typename TSingle>
-	class PCGEXTENDEDTOOLKIT_API FAsyncProcessRange : public FPCGExNonAbandonableTask
+	class PCGEXTENDEDTOOLKIT_API FAsyncProcessRange final : public FPCGExNonAbandonableTask
 	{
 	public:
 		FAsyncProcessRange(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-		                   TSingle* InProcessor, int32 InIterations) :
+		                   TSingle* InProcessor, const int32 InIterations) :
 			FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
 			Processor(InProcessor), Iterations(InIterations)
 		{
@@ -164,11 +164,11 @@ namespace PCGExClusterMT
 	};
 
 	template <typename TBatch>
-	class PCGEXTENDEDTOOLKIT_API FAsyncBatchProcessRange : public FPCGExNonAbandonableTask
+	class PCGEXTENDEDTOOLKIT_API FAsyncBatchProcessRange final : public FPCGExNonAbandonableTask
 	{
 	public:
 		FAsyncBatchProcessRange(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
-		                        TBatch* InBatchProcessor, int32 InIterations) :
+		                        TBatch* InBatchProcessor, const int32 InIterations) :
 			FPCGExNonAbandonableTask(InManager, InTaskIndex, InPointIO),
 			BatchProcessor(InBatchProcessor), Iterations(InIterations)
 		{
@@ -291,7 +291,7 @@ namespace PCGExClusterMT
 			return true;
 		}
 
-		void StartParallelLoopForNodes(int32 PerLoopIterations = 256)
+		void StartParallelLoopForNodes(const int32 PerLoopIterations = 256)
 		{
 			if (IsTrivial())
 			{
@@ -308,7 +308,7 @@ namespace PCGExClusterMT
 			}
 		}
 
-		void StartParallelLoopForEdges(int32 PerLoopIterations = 256)
+		void StartParallelLoopForEdges(const int32 PerLoopIterations = 256)
 		{
 			if (IsTrivial())
 			{
@@ -342,7 +342,7 @@ namespace PCGExClusterMT
 			}
 		}
 
-		void ProcessView(int32 StartIndex, TArrayView<PCGExCluster::FNode> NodeView)
+		void ProcessView(int32 StartIndex, const TArrayView<PCGExCluster::FNode> NodeView)
 		{
 			for (PCGExCluster::FNode& Node : NodeView) { ProcessSingleNode(Node); }
 		}
@@ -351,7 +351,7 @@ namespace PCGExClusterMT
 		{
 		}
 
-		void ProcessView(const int32 StartIndex, TArrayView<PCGExGraph::FIndexedEdge> EdgeView)
+		void ProcessView(const int32 StartIndex, const TArrayView<PCGExGraph::FIndexedEdge> EdgeView)
 		{
 			for (PCGExGraph::FIndexedEdge& Edge : EdgeView) { ProcessSingleEdge(Edge); }
 		}
@@ -446,7 +446,7 @@ namespace PCGExClusterMT
 
 		PCGExMT::AsyncState CurrentState = PCGExMT::State_Setup;
 
-		TClusterBatchProcessor(FPCGContext* InContext, PCGExData::FPointIO* InVtx, TArrayView<PCGExData::FPointIO*> InEdges):
+		TClusterBatchProcessor(FPCGContext* InContext, PCGExData::FPointIO* InVtx, const TArrayView<PCGExData::FPointIO*> InEdges):
 			FClusterBatchProcessorBase(InContext, InVtx, InEdges)
 		{
 		}
@@ -522,7 +522,7 @@ namespace PCGExClusterMT
 			StartClosedBatchProcessing();
 		}
 
-		void ProcessBatchRange(const int32 StartIndex, int32 Iterations)
+		void ProcessBatchRange(const int32 StartIndex, const int32 Iterations)
 		{
 			if (CurrentState == PCGExMT::State_Processing)
 			{
@@ -569,7 +569,7 @@ namespace PCGExClusterMT
 		Manager->Start<FStartClusterBatchProcessing<FClusterBatchProcessorBase>>(-1, nullptr, Batch);
 	}
 
-	static void CompleteBatches(FPCGExAsyncManager* Manager, TArrayView<FClusterBatchProcessorBase*> Batches)
+	static void CompleteBatches(FPCGExAsyncManager* Manager, const TArrayView<FClusterBatchProcessorBase*> Batches)
 	{
 		for (FClusterBatchProcessorBase* Batch : Batches)
 		{

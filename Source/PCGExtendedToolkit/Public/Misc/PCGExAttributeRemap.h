@@ -6,7 +6,6 @@
 #include "CoreMinimal.h"
 
 #include "PCGEx.h"
-#include "PCGExMath.h"
 #include "PCGExPointsProcessor.h"
 #include "PCGExSettings.h"
 #include "Data/PCGExAttributeHelpers.h"
@@ -98,7 +97,7 @@ private:
 	friend class FPCGExAttributeRemapElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeRemapContext : public FPCGExPointsProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeRemapContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExAttributeRemapElement;
 
@@ -108,7 +107,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeRemapContext : public FPCGExPointsP
 	int32 RemapIndices[4];
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExAttributeRemapElement : public FPCGExPointsProcessorElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExAttributeRemapElement final : public FPCGExPointsProcessorElementBase
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -121,7 +120,7 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExRemapPointIO : public FPCGExNonAbandonableTask
+class PCGEXTENDEDTOOLKIT_API FPCGExRemapPointIO final : public FPCGExNonAbandonableTask
 {
 public:
 	FPCGExRemapPointIO(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,

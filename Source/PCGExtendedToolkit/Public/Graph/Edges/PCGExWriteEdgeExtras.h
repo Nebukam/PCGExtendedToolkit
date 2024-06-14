@@ -193,14 +193,14 @@ private:
 };
 
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExWriteEdgeExtrasContext : public FPCGExEdgesProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExWriteEdgeExtrasContext final : public FPCGExEdgesProcessorContext
 {
 	friend class FPCGExWriteEdgeExtrasElement;
 
 	virtual ~FPCGExWriteEdgeExtrasContext() override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExWriteEdgeExtrasElement : public FPCGExEdgesProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExWriteEdgeExtrasElement final : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -250,7 +250,7 @@ namespace PCGExWriteEdgeExtras
 #undef PCGEX_LOCAL_EDGE_GETTER_DECL
 	};
 
-	class FWriteEdgeExtrasBatch : public PCGExClusterMT::TClusterBatchProcessor<FClusterEdgeProcess>
+	class FWriteEdgeExtrasBatch final : public PCGExClusterMT::TClusterBatchProcessor<FClusterEdgeProcess>
 	{
 		FPCGExGeo2DProjectionSettings ProjectionSettings;
 

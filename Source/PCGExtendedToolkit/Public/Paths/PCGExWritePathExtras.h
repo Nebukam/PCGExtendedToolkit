@@ -168,7 +168,7 @@ public:
 	FName DirectionToPrevAttributeName = FName("DirectionToPrev");
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExWritePathExtrasContext : public FPCGExPathProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExWritePathExtrasContext final : public FPCGExPathProcessorContext
 {
 	friend class FPCGExWritePathExtrasElement;
 
@@ -181,7 +181,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExWritePathExtrasContext : public FPCGExPathPr
 	bool bWritePathCentroid = false;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExWritePathExtrasElement : public FPCGExPathProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExWritePathExtrasElement final : public FPCGExPathProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -194,7 +194,7 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExWritePathExtrasTask : public FPCGExNonAbandonableTask
+class PCGEXTENDEDTOOLKIT_API FPCGExWritePathExtrasTask final : public FPCGExNonAbandonableTask
 {
 public:
 	FPCGExWritePathExtrasTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO) :

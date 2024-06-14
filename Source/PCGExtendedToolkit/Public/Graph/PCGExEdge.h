@@ -6,9 +6,7 @@
 #include "CoreMinimal.h"
 
 #include "PCGExMT.h"
-#include "Algo/Unique.h"
 #include "Data/PCGExAttributeHelpers.h"
-#include "Data/PCGExDataFilter.h"
 
 #include "PCGExEdge.generated.h"
 

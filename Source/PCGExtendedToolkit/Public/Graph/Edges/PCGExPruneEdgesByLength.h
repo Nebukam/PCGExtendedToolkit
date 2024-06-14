@@ -76,7 +76,7 @@ public:
 	FPCGExGraphBuilderSettings GraphBuilderSettings;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExPruneEdgesByLengthContext : public FPCGExEdgesProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExPruneEdgesByLengthContext final : public FPCGExEdgesProcessorContext
 {
 	friend class UPCGExPruneEdgesByLengthSettings;
 	friend class FPCGExPruneEdgesByLengthElement;
@@ -94,7 +94,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPruneEdgesByLengthContext : public FPCGExEdg
 	PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExPruneEdgesByLengthElement : public FPCGExEdgesProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExPruneEdgesByLengthElement final : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

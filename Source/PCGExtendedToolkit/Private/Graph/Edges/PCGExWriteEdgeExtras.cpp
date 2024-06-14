@@ -199,9 +199,7 @@ namespace PCGExWriteEdgeExtras
 			bAscending = (EdgeStartPtIndex < EdgeEndPtIndex);
 		}
 
-		const bool bInvert = bAscending != bAscendingDesired;
-
-		if (bInvert)
+		if (bAscending != bAscendingDesired)
 		{
 			std::swap(DirTo, DirFrom);
 			std::swap(EdgeStartPtIndex, EdgeEndPtIndex);
@@ -297,7 +295,7 @@ namespace PCGExWriteEdgeExtras
 
 	//////// BATCH
 
-	FWriteEdgeExtrasBatch::FWriteEdgeExtrasBatch(FPCGContext* InContext, PCGExData::FPointIO* InVtx, TArrayView<PCGExData::FPointIO*> InEdges):
+	FWriteEdgeExtrasBatch::FWriteEdgeExtrasBatch(FPCGContext* InContext, PCGExData::FPointIO* InVtx, const TArrayView<PCGExData::FPointIO*> InEdges):
 		TClusterBatchProcessor(InContext, InVtx, InEdges)
 	{
 	}
@@ -341,9 +339,7 @@ namespace PCGExWriteEdgeExtras
 			VtxDirCompGetter->Grab(*VtxIO);
 		}
 
-		const bool bSolidify = Settings->SolidificationAxis != EPCGExMinimalAxis::None;
-
-		if (bSolidify)
+		if (Settings->SolidificationAxis != EPCGExMinimalAxis::None)
 		{
 			// Prepare vtx-scoped getters
 #define PCGEX_CREATE_LOCAL_AXIS_GETTER(_AXIS)\

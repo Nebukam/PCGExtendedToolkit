@@ -80,7 +80,7 @@ public:
 
 namespace PCGExPointsFilter
 {
-	class PCGEXTENDEDTOOLKIT_API TNumericComparisonFilter : public PCGExDataFilter::TFilter
+	class PCGEXTENDEDTOOLKIT_API TNumericComparisonFilter final : public PCGExDataFilter::TFilter
 	{
 	public:
 		explicit TNumericComparisonFilter(const UPCGExNumericCompareFilterFactory* InDefinition)

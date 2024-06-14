@@ -4,7 +4,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Data/PCGExAttributeHelpers.h"
 #include "PCGExOperation.h"
 #include "Data/Blending/PCGExDataBlending.h"
 #include "PCGExSmoothingOperation.generated.h"

@@ -50,7 +50,7 @@ public:
 	FPCGExDataFilterActionSettings FilterActions;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExPrunePathContext : public FPCGExPathProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExPrunePathContext final : public FPCGExPathProcessorContext
 {
 	friend class FPCGExPrunePathElement;
 
@@ -59,7 +59,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPrunePathContext : public FPCGExPathProcesso
 	PCGExGeo::FPointBoxCloud* BoxCloud = nullptr;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExPrunePathElement : public FPCGExPathProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExPrunePathElement final : public FPCGExPathProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -72,7 +72,7 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExPrunePathTask : public FPCGExNonAbandonableTask
+class PCGEXTENDEDTOOLKIT_API FPCGExPrunePathTask final : public FPCGExNonAbandonableTask
 {
 public:
 	FPCGExPrunePathTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO) :

@@ -71,7 +71,7 @@ public:
 
 namespace PCGExNodeNeighborsCount
 {
-	class PCGEXTENDEDTOOLKIT_API TNeighborsCountFilter : public PCGExCluster::TClusterFilter
+	class PCGEXTENDEDTOOLKIT_API TNeighborsCountFilter final : public PCGExCluster::TClusterFilter
 	{
 	public:
 		explicit TNeighborsCountFilter(const UPCGExNeighborsCountFilterFactory* InFactory)

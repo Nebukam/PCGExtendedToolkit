@@ -4,7 +4,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Geometry/PCGExGeo.h"
 #include "Graph/PCGExEdgesProcessor.h"
 
 #include "PCGExBreakClustersToPaths.generated.h"
@@ -64,7 +63,7 @@ private:
 	friend class FPCGExBreakClustersToPathsElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExBreakClustersToPathsContext : public FPCGExEdgesProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExBreakClustersToPathsContext final : public FPCGExEdgesProcessorContext
 {
 	friend class FPCGExBreakClustersToPathsElement;
 
@@ -76,7 +75,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBreakClustersToPathsContext : public FPCGExE
 	TArray<PCGExCluster::FNodeChain*> Chains;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExBreakClustersToPathsElement : public FPCGExEdgesProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExBreakClustersToPathsElement final : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

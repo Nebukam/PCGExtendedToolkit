@@ -6,7 +6,7 @@
 #include "CoreMinimal.h"
 #include "Modules/ModuleManager.h"
 
-class FPCGExtendedToolkitModule : public IModuleInterface
+class FPCGExtendedToolkitModule final : public IModuleInterface
 {
 public:
 	/** IModuleInterface implementation */

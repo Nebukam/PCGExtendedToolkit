@@ -46,7 +46,7 @@ private:
 	friend class FPCGExRelaxEdgeClustersElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExRelaxEdgeClustersContext : public FPCGExEdgesProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExRelaxEdgeClustersContext final : public FPCGExEdgesProcessorContext
 {
 	friend class FPCGExRelaxEdgeClustersElement;
 
@@ -64,7 +64,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExRelaxEdgeClustersContext : public FPCGExEdge
 	UPCGExEdgeRelaxingOperation* Relaxing = nullptr;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExRelaxEdgeClustersElement : public FPCGExEdgesProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExRelaxEdgeClustersElement final : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

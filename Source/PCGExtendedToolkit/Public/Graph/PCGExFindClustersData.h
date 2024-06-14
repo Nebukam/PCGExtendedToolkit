@@ -56,7 +56,7 @@ public:
 	bool bSkipImportantWarnings = false;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExFindClustersDataContext : public FPCGExPointsProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExFindClustersDataContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExFindClustersDataElement;
 
@@ -65,7 +65,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFindClustersDataContext : public FPCGExPoint
 	PCGExData::FPointIOCollection* MainEdges = nullptr;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExFindClustersDataElement : public FPCGExPointsProcessorElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExFindClustersDataElement final : public FPCGExPointsProcessorElementBase
 {
 public:
 	virtual FPCGContext* Initialize(

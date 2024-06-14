@@ -515,7 +515,7 @@ bool FPCGExSubProcessor::Execute()
 	return true;
 }
 
-void FPCGExSubProcessor::SetState(PCGExMT::AsyncState OperationId, bool bResetAsyncWork)
+void FPCGExSubProcessor::SetState(const PCGExMT::AsyncState OperationId, const bool bResetAsyncWork)
 {
 	if (bResetAsyncWork) { if (GetContext()->AsyncManager) { GetContext()->AsyncManager->Reset(); } }
 	CurrentState = OperationId;

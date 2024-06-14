@@ -7,7 +7,6 @@
 
 #include "PCGExPointsProcessor.h"
 #include "PCGExSettings.h"
-#include "Data/Blending/PCGExMetadataBlender.h"
 #include "Graph/PCGExGraph.h"
 
 #include "PCGExFusePoints.generated.h"
@@ -108,7 +107,7 @@ private:
 	friend class FPCGExFusePointsElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExFusePointsContext : public FPCGExPointsProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExFusePointsContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExFusePointsElement;
 
@@ -123,7 +122,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFusePointsContext : public FPCGExPointsProce
 	mutable FRWLock PointsLock;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExFusePointsElement : public FPCGExPointsProcessorElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExFusePointsElement final : public FPCGExPointsProcessorElementBase
 {
 	virtual FPCGContext* Initialize(
 		const FPCGDataCollection& InputData,

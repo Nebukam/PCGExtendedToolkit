@@ -511,7 +511,7 @@ namespace PCGExGraphTask
 {
 #pragma region Intersections tasks
 
-	class PCGEXTENDEDTOOLKIT_API FFindPointEdgeIntersections : public FPCGExNonAbandonableTask
+	class PCGEXTENDEDTOOLKIT_API FFindPointEdgeIntersections final : public FPCGExNonAbandonableTask
 	{
 	public:
 		FFindPointEdgeIntersections(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
@@ -525,7 +525,7 @@ namespace PCGExGraphTask
 		virtual bool ExecuteTask() override;
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FInsertPointEdgeIntersections : public FPCGExNonAbandonableTask
+	class PCGEXTENDEDTOOLKIT_API FInsertPointEdgeIntersections final : public FPCGExNonAbandonableTask
 	{
 	public:
 		FInsertPointEdgeIntersections(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
@@ -540,7 +540,7 @@ namespace PCGExGraphTask
 		virtual bool ExecuteTask() override;
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FFindEdgeEdgeIntersections : public FPCGExNonAbandonableTask
+	class PCGEXTENDEDTOOLKIT_API FFindEdgeEdgeIntersections final : public FPCGExNonAbandonableTask
 	{
 	public:
 		FFindEdgeEdgeIntersections(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
@@ -554,7 +554,7 @@ namespace PCGExGraphTask
 		virtual bool ExecuteTask() override;
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FInsertEdgeEdgeIntersections : public FPCGExNonAbandonableTask
+	class PCGEXTENDEDTOOLKIT_API FInsertEdgeEdgeIntersections final : public FPCGExNonAbandonableTask
 	{
 	public:
 		FInsertEdgeEdgeIntersections(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
@@ -574,7 +574,7 @@ namespace PCGExGraphTask
 
 #pragma region Compound Graph tasks
 
-	class PCGEXTENDEDTOOLKIT_API FCompoundGraphInsertPoints : public FPCGExNonAbandonableTask
+	class PCGEXTENDEDTOOLKIT_API FCompoundGraphInsertPoints final : public FPCGExNonAbandonableTask
 	{
 	public:
 		FCompoundGraphInsertPoints(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
@@ -589,7 +589,7 @@ namespace PCGExGraphTask
 		virtual bool ExecuteTask() override;
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FCompoundGraphInsertEdges : public FPCGExNonAbandonableTask
+	class PCGEXTENDEDTOOLKIT_API FCompoundGraphInsertEdges final : public FPCGExNonAbandonableTask
 	{
 	public:
 		FCompoundGraphInsertEdges(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,

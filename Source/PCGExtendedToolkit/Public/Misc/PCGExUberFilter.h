@@ -51,7 +51,7 @@ private:
 	friend class FPCGExUberFilterElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExUberFilterContext : public FPCGExPointsProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExUberFilterContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExUberFilterElement;
 	virtual ~FPCGExUberFilterContext() override;
@@ -63,7 +63,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExUberFilterContext : public FPCGExPointsProce
 	PCGExData::FPointIOCollection* Outside = nullptr;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExUberFilterElement : public FPCGExPointsProcessorElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExUberFilterElement final : public FPCGExPointsProcessorElementBase
 {
 	virtual FPCGContext* Initialize(
 		const FPCGDataCollection& InputData,

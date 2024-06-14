@@ -45,14 +45,14 @@ public:
 	FPCGExBoxIntersectionSettings IntersectionSettings;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExPointsPathIntersectionContext : public FPCGExPathProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExPointsPathIntersectionContext final : public FPCGExPathProcessorContext
 {
 	friend class FPCGExPointsPathIntersectionElement;
 
 	virtual ~FPCGExPointsPathIntersectionContext() override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExPointsPathIntersectionElement : public FPCGExPathProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExPointsPathIntersectionElement final : public FPCGExPathProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -65,7 +65,7 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExPointsPathIntersectionTask : public FPCGExNonAbandonableTask
+class PCGEXTENDEDTOOLKIT_API FPCGExPointsPathIntersectionTask final : public FPCGExNonAbandonableTask
 {
 public:
 	FPCGExPointsPathIntersectionTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO) :

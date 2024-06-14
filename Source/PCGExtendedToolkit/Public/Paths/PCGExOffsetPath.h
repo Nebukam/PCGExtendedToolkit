@@ -73,14 +73,14 @@ public:
 	FPCGAttributePropertyInputSelector UpVectorAttribute;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExOffsetPathContext : public FPCGExPathProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExOffsetPathContext final : public FPCGExPathProcessorContext
 {
 	friend class FPCGExOffsetPathElement;
 
 	virtual ~FPCGExOffsetPathContext() override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExOffsetPathElement : public FPCGExPathProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExOffsetPathElement final : public FPCGExPathProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -93,7 +93,7 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExOffsetPathTask : public FPCGExNonAbandonableTask
+class PCGEXTENDEDTOOLKIT_API FPCGExOffsetPathTask final : public FPCGExNonAbandonableTask
 {
 public:
 	FPCGExOffsetPathTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO) :

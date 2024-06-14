@@ -5,7 +5,6 @@
 #include "Graph/Pathfinding/GoalPickers/PCGExGoalPickerRandom.h"
 
 #include "PCGExMath.h"
-#include "Data/PCGPointData.h"
 
 void UPCGExGoalPickerRandom::PrepareForData(const PCGExData::FPointIO& InSeeds, const PCGExData::FPointIO& InGoals)
 {

@@ -166,7 +166,7 @@ private:
 	friend class FPCGExDiscardByOverlapElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExDiscardByOverlapContext : public FPCGExPointsProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExDiscardByOverlapContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExDiscardByOverlapElement;
 	virtual ~FPCGExDiscardByOverlapContext() override;
@@ -177,7 +177,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExDiscardByOverlapContext : public FPCGExPoint
 	static void RemoveFBounds(const PCGExPointsToBounds::FBounds* Bounds, TArray<PCGExPointsToBounds::FBounds*>& OutAffectedBounds);
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExDiscardByOverlapElement : public FPCGExPointsProcessorElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExDiscardByOverlapElement final : public FPCGExPointsProcessorElementBase
 {
 	virtual FPCGContext* Initialize(
 		const FPCGDataCollection& InputData,
@@ -189,7 +189,7 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExComputePreciseOverlap : public FPCGExNonAbandonableTask
+class PCGEXTENDEDTOOLKIT_API FPCGExComputePreciseOverlap final : public FPCGExNonAbandonableTask
 {
 public:
 	FPCGExComputePreciseOverlap(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,

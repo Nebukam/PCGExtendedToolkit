@@ -37,13 +37,13 @@ private:
 	friend class FPCGExDeleteCustomGraphElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExDeleteCustomGraphContext : public FPCGExCustomGraphProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExDeleteCustomGraphContext final : public FPCGExCustomGraphProcessorContext
 {
 	friend class FPCGExDeleteCustomGraphElement;
 };
 
 
-class PCGEXTENDEDTOOLKIT_API FPCGExDeleteCustomGraphElement : public FPCGExCustomGraphProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExDeleteCustomGraphElement final : public FPCGExCustomGraphProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

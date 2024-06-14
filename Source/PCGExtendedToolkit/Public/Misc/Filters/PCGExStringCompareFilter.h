@@ -4,7 +4,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExCompare.h"
 #include "PCGExFilterFactoryProvider.h"
 #include "UObject/Object.h"
 
@@ -88,7 +87,7 @@ public:
 
 namespace PCGExPointsFilter
 {
-	class PCGEXTENDEDTOOLKIT_API TStringCompareFilter : public PCGExDataFilter::TFilter
+	class PCGEXTENDEDTOOLKIT_API TStringCompareFilter final : public PCGExDataFilter::TFilter
 	{
 	public:
 		explicit TStringCompareFilter(const UPCGExStringCompareFilterFactory* InFactory)

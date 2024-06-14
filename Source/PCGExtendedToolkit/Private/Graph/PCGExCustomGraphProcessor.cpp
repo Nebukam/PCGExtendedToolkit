@@ -143,7 +143,7 @@ bool FPCGExCustomGraphProcessorElement::Boot(FPCGContext* InContext) const
 FPCGContext* FPCGExCustomGraphProcessorElement::InitializeContext(
 	FPCGExPointsProcessorContext* InContext,
 	const FPCGDataCollection& InputData,
-	TWeakObjectPtr<UPCGComponent> SourceComponent,
+	const TWeakObjectPtr<UPCGComponent> SourceComponent,
 	const UPCGNode* Node) const
 {
 	FPCGExPointsProcessorElementBase::InitializeContext(InContext, InputData, SourceComponent, Node);

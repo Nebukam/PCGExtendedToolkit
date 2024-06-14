@@ -85,7 +85,7 @@ namespace PCGExRefineEdges
 		return false;
 	}
 
-	PCGExRefineEdges::FClusterRefineProcess::FClusterRefineProcess(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges)
+	FClusterRefineProcess::FClusterRefineProcess(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges)
 		: FClusterProcessingData(InVtx, InEdges)
 	{
 		bRequiresHeuristics = true;
@@ -95,7 +95,7 @@ namespace PCGExRefineEdges
 	{
 	}
 
-	bool PCGExRefineEdges::FClusterRefineProcess::Process(FPCGExAsyncManager* AsyncManager)
+	bool FClusterRefineProcess::Process(FPCGExAsyncManager* AsyncManager)
 	{
 		if (!FClusterProcessingData::Process(AsyncManager)) { return false; }
 
@@ -120,7 +120,7 @@ namespace PCGExRefineEdges
 		FClusterProcessingData::CompleteWork();
 	}
 
-	FRefineClusterBatch::FRefineClusterBatch(FPCGContext* InContext, PCGExData::FPointIO* InVtx, TArrayView<PCGExData::FPointIO*> InEdges)
+	FRefineClusterBatch::FRefineClusterBatch(FPCGContext* InContext, PCGExData::FPointIO* InVtx, const TArrayView<PCGExData::FPointIO*> InEdges)
 		: TClusterBatchBuilderProcessor(InContext, InVtx, InEdges)
 	{
 	}

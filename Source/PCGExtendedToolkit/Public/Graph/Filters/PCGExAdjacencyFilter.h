@@ -126,7 +126,7 @@ public:
 
 namespace PCGExNodeAdjacency
 {
-	class PCGEXTENDEDTOOLKIT_API TAdjacencyFilter : public PCGExCluster::TClusterFilter
+	class PCGEXTENDEDTOOLKIT_API TAdjacencyFilter final : public PCGExCluster::TClusterFilter
 	{
 	public:
 		explicit TAdjacencyFilter(const UPCGExAdjacencyFilterFactory* InFactory)

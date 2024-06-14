@@ -37,7 +37,7 @@ public:
 	FPCGExBoxIntersectionSettings IntersectionSettings;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExPointsClusterIntersectionContext : public FPCGExEdgesProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExPointsClusterIntersectionContext final : public FPCGExEdgesProcessorContext
 {
 	friend class UPCGExPointsClusterIntersectionSettings;
 	friend class FPCGExPointsClusterIntersectionElement;
@@ -47,7 +47,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsClusterIntersectionContext : public FP
 	TArray<PCGExGraph::FIndexedEdge> IndexedEdges;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExPointsClusterIntersectionElement : public FPCGExEdgesProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExPointsClusterIntersectionElement final : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

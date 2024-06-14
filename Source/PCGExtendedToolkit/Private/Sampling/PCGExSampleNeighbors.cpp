@@ -3,7 +3,6 @@
 
 #include "Sampling/PCGExSampleNeighbors.h"
 
-#include "Graph/Pathfinding/PCGExPathfinding.h"
 #include "Sampling/Neighbors/PCGExNeighborSampleAttribute.h"
 #include "Sampling/Neighbors/PCGExNeighborSampleFactoryProvider.h"
 

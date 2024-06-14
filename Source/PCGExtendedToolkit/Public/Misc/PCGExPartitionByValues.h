@@ -117,7 +117,7 @@ public:
 	virtual bool GetPartitionRules(const FPCGContext* InContext, TArray<FPCGExPartitonRuleDescriptor>& OutRules) const override;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExPartitionByValuesBaseContext : public FPCGExPointsProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExPartitionByValuesBaseContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExPartitionByValuesBaseElement;
 
@@ -136,7 +136,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPartitionByValuesBaseContext : public FPCGEx
 	TArray<PCGExPartition::FKPartition*> Partitions;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExPartitionByValuesBaseElement : public FPCGExPointsProcessorElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExPartitionByValuesBaseElement final : public FPCGExPointsProcessorElementBase
 {
 public:
 	virtual FPCGContext* Initialize(

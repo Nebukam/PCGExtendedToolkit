@@ -228,7 +228,7 @@ namespace PCGEx
 	};
 
 	template <typename T>
-	class PCGEXTENDEDTOOLKIT_API FAttributeAccessor : public FAttributeAccessorBase<T>
+	class PCGEXTENDEDTOOLKIT_API FAttributeAccessor final : public FAttributeAccessorBase<T>
 	{
 	public:
 		FAttributeAccessor(const UPCGPointData* InData, FPCGMetadataAttributeBase* InAttribute, FPCGAttributeAccessorKeysPoints* InKeys)
@@ -287,7 +287,7 @@ namespace PCGEx
 	};
 
 	template <typename T>
-	class PCGEXTENDEDTOOLKIT_API FConstAttributeAccessor : public FAttributeAccessorBase<T>
+	class PCGEXTENDEDTOOLKIT_API FConstAttributeAccessor final : public FAttributeAccessorBase<T>
 	{
 	public:
 		FConstAttributeAccessor(const UPCGPointData* InData, FPCGMetadataAttributeBase* InAttribute, FPCGAttributeAccessorKeysPoints* InKeys)
@@ -898,7 +898,7 @@ namespace PCGEx
 		FORCEINLINE virtual double Convert(const FName Value) const override { return PCGExMath::ConvertStringToDouble(Value.ToString()); }
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FLocalIntegerGetter : public FAttributeGetter<int32>
+	struct PCGEXTENDEDTOOLKIT_API FLocalIntegerGetter final : public FAttributeGetter<int32>
 	{
 	protected:
 		virtual void ResetMinMax() override
@@ -1003,7 +1003,7 @@ namespace PCGEx
 		FORCEINLINE virtual int32 Convert(const FName Value) const override { return PCGExMath::ConvertStringToDouble(Value.ToString()); }
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FLocalBoolGetter : public FAttributeGetter<bool>
+	struct PCGEXTENDEDTOOLKIT_API FLocalBoolGetter final : public FAttributeGetter<bool>
 	{
 	protected:
 		virtual void ResetMinMax() override
@@ -1108,7 +1108,7 @@ namespace PCGEx
 		FORCEINLINE virtual bool Convert(const FName Value) const override { return Value.ToString().Len() == 4; }
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FLocalVectorGetter : public FAttributeGetter<FVector>
+	struct PCGEXTENDEDTOOLKIT_API FLocalVectorGetter final : public FAttributeGetter<FVector>
 	{
 	protected:
 		virtual void ResetMinMax() override
@@ -1146,7 +1146,7 @@ namespace PCGEx
 		FORCEINLINE virtual FVector Convert(const FRotator Value) const override { return Value.Vector(); }
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FLocalToStringGetter : public FAttributeGetter<FString>
+	struct PCGEXTENDEDTOOLKIT_API FLocalToStringGetter final : public FAttributeGetter<FString>
 	{
 	protected:
 		virtual void ResetMinMax() override

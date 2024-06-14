@@ -32,7 +32,7 @@ public:
 	//~End UPCGExEdgesProcessorSettings interface
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExMakeClustersUniqueContext : public FPCGExEdgesProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExMakeClustersUniqueContext final : public FPCGExEdgesProcessorContext
 {
 	friend class UPCGExMakeClustersUniqueSettings;
 	friend class FPCGExMakeClustersUniqueElement;
@@ -40,7 +40,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMakeClustersUniqueContext : public FPCGExEdg
 	virtual ~FPCGExMakeClustersUniqueContext() override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExMakeClustersUniqueElement : public FPCGExEdgesProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExMakeClustersUniqueElement final : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

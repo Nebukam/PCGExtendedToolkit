@@ -4,7 +4,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Geometry/PCGExGeo.h"
 #include "Graph/PCGExEdgesProcessor.h"
 
 #include "PCGExSampleNeighbors.generated.h"
@@ -45,7 +44,7 @@ private:
 	friend class FPCGExSampleNeighborsElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNeighborsContext : public FPCGExEdgesProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNeighborsContext final : public FPCGExEdgesProcessorContext
 {
 	friend class FPCGExSampleNeighborsElement;
 	virtual ~FPCGExSampleNeighborsContext() override;
@@ -55,7 +54,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNeighborsContext : public FPCGExEdgesP
 	UPCGExNeighborSampleOperation* CurrentOperation = nullptr;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExSampleNeighborsElement : public FPCGExEdgesProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExSampleNeighborsElement final : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

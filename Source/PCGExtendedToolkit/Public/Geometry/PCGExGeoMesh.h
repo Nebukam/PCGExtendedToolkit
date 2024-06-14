@@ -316,7 +316,7 @@ namespace PCGExGeo
 		}
 	};
 
-	class PCGEXTENDEDTOOLKIT_API FExtractStaticMeshTask : public FPCGExNonAbandonableTask
+	class PCGEXTENDEDTOOLKIT_API FExtractStaticMeshTask final : public FPCGExNonAbandonableTask
 	{
 	public:
 		FExtractStaticMeshTask(

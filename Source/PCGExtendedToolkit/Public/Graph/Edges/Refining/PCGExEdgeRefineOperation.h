@@ -5,7 +5,6 @@
 
 #include "CoreMinimal.h"
 #include "PCGExOperation.h"
-#include "Data/PCGExPointIO.h"
 #include "PCGExEdgeRefineOperation.generated.h"
 
 namespace PCGExHeuristics

@@ -30,13 +30,13 @@ public:
 	//~End UPCGExPointsProcessorSettings interface
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExReversePointOrderContext : public FPCGExPointsProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExReversePointOrderContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExReversePointOrderElement;
 	virtual ~FPCGExReversePointOrderContext() override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExReversePointOrderElement : public FPCGExPointsProcessorElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExReversePointOrderElement final : public FPCGExPointsProcessorElementBase
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -49,7 +49,7 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExReversePointOrderTask : public FPCGExNonAbandonableTask
+class PCGEXTENDEDTOOLKIT_API FPCGExReversePointOrderTask final : public FPCGExNonAbandonableTask
 {
 public:
 	FPCGExReversePointOrderTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO) :

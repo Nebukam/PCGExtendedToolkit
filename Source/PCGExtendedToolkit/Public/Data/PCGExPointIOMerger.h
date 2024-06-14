@@ -8,13 +8,13 @@
 
 #include "Data/PCGExAttributeHelpers.h"
 
-class PCGEXTENDEDTOOLKIT_API FPCGExPointIOMerger
+class PCGEXTENDEDTOOLKIT_API FPCGExPointIOMerger final
 {
 	friend class FPCGExAttributeMergeTask;
 
 public:
 	FPCGExPointIOMerger(PCGExData::FPointIO& OutData);
-	virtual ~FPCGExPointIOMerger();
+	~FPCGExPointIOMerger();
 
 	void Append(PCGExData::FPointIO& InData);
 	void Append(const TArray<PCGExData::FPointIO*>& InData);
@@ -33,7 +33,7 @@ protected:
 	bool bCleanupInputs = true;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExAttributeMergeTask : public FPCGExNonAbandonableTask
+class PCGEXTENDEDTOOLKIT_API FPCGExAttributeMergeTask final : public FPCGExNonAbandonableTask
 {
 public:
 	FPCGExAttributeMergeTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,

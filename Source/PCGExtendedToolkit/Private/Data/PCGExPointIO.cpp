@@ -107,12 +107,12 @@ namespace PCGExData
 		}
 	}
 
-	FPCGAttributeAccessorKeysPoints* FPointIO::CreateKeys(ESource InSource)
+	FPCGAttributeAccessorKeysPoints* FPointIO::CreateKeys(const ESource InSource)
 	{
 		return InSource == ESource::In ? CreateInKeys() : CreateOutKeys();
 	}
 
-	FPCGAttributeAccessorKeysPoints* FPointIO::GetKeys(ESource InSource) const
+	FPCGAttributeAccessorKeysPoints* FPointIO::GetKeys(const ESource InSource) const
 	{
 		return InSource == ESource::In ? GetInKeys() : GetOutKeys();
 	}

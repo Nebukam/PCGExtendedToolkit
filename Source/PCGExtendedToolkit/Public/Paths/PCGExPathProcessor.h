@@ -10,6 +10,13 @@
 #include "Graph/PCGExGraph.h"
 #include "PCGExPathProcessor.generated.h"
 
+class UPCGExFilterFactoryBase;
+
+namespace PCGExDataFilter
+{
+	class TEarlyExitFilterManager;
+}
+
 class UPCGExNodeStateFactory;
 
 namespace PCGExCluster

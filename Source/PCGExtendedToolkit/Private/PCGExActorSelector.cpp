@@ -191,7 +191,7 @@ namespace PCGExActorSelector
 		return FoundActors;
 	}
 
-	AActor* FindActor(const FPCGExActorSelectorSettings& InSettings, UPCGComponent* InComponent, const TFunction<bool(const AActor*)>& BoundsCheck, const TFunction<bool(const AActor*)>& SelfIgnoreCheck)
+	AActor* FindActor(const FPCGExActorSelectorSettings& InSettings, const UPCGComponent* InComponent, const TFunction<bool(const AActor*)>& BoundsCheck, const TFunction<bool(const AActor*)>& SelfIgnoreCheck)
 	{
 		// In order to make sure we don't try to select multiple, we'll do a copy of the settings here.
 		FPCGExActorSelectorSettings Settings = InSettings;
@@ -202,20 +202,20 @@ namespace PCGExActorSelector
 	}
 }
 
-FPCGExSelectionKey::FPCGExSelectionKey(EPCGExActorFilter InFilter)
+FPCGExSelectionKey::FPCGExSelectionKey(const EPCGExActorFilter InFilter)
 {
 	check(InFilter != EPCGExActorFilter::AllWorldActors);
 	ActorFilter = InFilter;
 }
 
-FPCGExSelectionKey::FPCGExSelectionKey(FName InTag)
+FPCGExSelectionKey::FPCGExSelectionKey(const FName InTag)
 {
 	Selection = EPCGExActorSelection::ByTag;
 	Tag = InTag;
 	ActorFilter = EPCGExActorFilter::AllWorldActors;
 }
 
-FPCGExSelectionKey::FPCGExSelectionKey(TSubclassOf<UObject> InSelectionClass)
+FPCGExSelectionKey::FPCGExSelectionKey(const TSubclassOf<UObject> InSelectionClass)
 {
 	Selection = EPCGExActorSelection::ByClass;
 	SelectionClass = InSelectionClass;

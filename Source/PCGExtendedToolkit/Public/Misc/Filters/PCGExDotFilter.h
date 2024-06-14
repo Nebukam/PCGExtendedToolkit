@@ -100,7 +100,7 @@ public:
 
 namespace PCGExPointsFilter
 {
-	class PCGEXTENDEDTOOLKIT_API TDotFilter : public PCGExDataFilter::TFilter
+	class PCGEXTENDEDTOOLKIT_API TDotFilter final : public PCGExDataFilter::TFilter
 	{
 	public:
 		explicit TDotFilter(const UPCGExDotFilterFactory* InFactory)

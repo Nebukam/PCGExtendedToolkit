@@ -47,7 +47,7 @@ public:
 	TObjectPtr<UPCGExSubPointsOrientOperation> Orientation;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExOrientContext : public FPCGExPathProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExOrientContext final : public FPCGExPathProcessorContext
 {
 	friend class FPCGExOrientElement;
 
@@ -55,7 +55,7 @@ public:
 	UPCGExSubPointsOrientOperation* Orientation;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExOrientElement : public FPCGExPathProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExOrientElement final : public FPCGExPathProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

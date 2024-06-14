@@ -857,7 +857,7 @@ namespace PCGExGraph
 		}
 	}
 
-	class PCGEXTENDEDTOOLKIT_API FSocketStateHandler : public PCGExDataState::TDataState
+	class PCGEXTENDEDTOOLKIT_API FSocketStateHandler final : public PCGExDataState::TDataState
 	{
 	public:
 		explicit FSocketStateHandler(const UPCGExSocketStateFactory* InDefinition);

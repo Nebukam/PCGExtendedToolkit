@@ -64,7 +64,7 @@ public:
 	//TObjectPtr<UPCGExSubPointsBlendOperation> Blending;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExFuseCollinearContext : public FPCGExPathProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExFuseCollinearContext final : public FPCGExPathProcessorContext
 {
 	friend class FPCGExFuseCollinearElement;
 
@@ -76,7 +76,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFuseCollinearContext : public FPCGExPathProc
 	//UPCGExSubPointsBlendOperation* Blending = nullptr;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExFuseCollinearElement : public FPCGExPathProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExFuseCollinearElement final : public FPCGExPathProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -89,7 +89,7 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExFuseCollinearTask : public FPCGExNonAbandonableTask
+class PCGEXTENDEDTOOLKIT_API FPCGExFuseCollinearTask final : public FPCGExNonAbandonableTask
 {
 public:
 	FPCGExFuseCollinearTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO) :

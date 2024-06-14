@@ -55,7 +55,7 @@ public:
 	EPCGExPathSplitAction SplitAction = EPCGExPathSplitAction::Split;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExSplitPathContext : public FPCGExPathProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExSplitPathContext final : public FPCGExPathProcessorContext
 {
 	friend class FPCGExSplitPathElement;
 
@@ -64,7 +64,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSplitPathContext : public FPCGExPathProcesso
 	virtual bool PrepareFiltersWithAdvance() const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExSplitPathElement : public FPCGExPathProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExSplitPathElement final : public FPCGExPathProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -77,7 +77,7 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExSplitPathTask : public FPCGExNonAbandonableTask
+class PCGEXTENDEDTOOLKIT_API FPCGExSplitPathTask final : public FPCGExNonAbandonableTask
 {
 public:
 	FPCGExSplitPathTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO) :

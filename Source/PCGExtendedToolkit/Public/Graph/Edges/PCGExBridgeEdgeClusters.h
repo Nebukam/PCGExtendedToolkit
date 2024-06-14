@@ -55,7 +55,7 @@ private:
 	friend class FPCGExBridgeEdgeClustersElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExBridgeEdgeClustersContext : public FPCGExEdgesProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExBridgeEdgeClustersContext final : public FPCGExEdgesProcessorContext
 {
 	friend class FPCGExBridgeEdgeClustersElement;
 	friend class FPCGExCreateBridgeTask;
@@ -81,7 +81,7 @@ protected:
 	void BumpEdgeNum(const FPCGPoint& A, const FPCGPoint& B) const;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExBridgeEdgeClustersElement : public FPCGExEdgesProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExBridgeEdgeClustersElement final : public FPCGExEdgesProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -94,7 +94,7 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExCreateBridgeTask : public FPCGExNonAbandonableTask
+class PCGEXTENDEDTOOLKIT_API FPCGExCreateBridgeTask final : public FPCGExNonAbandonableTask
 {
 public:
 	FPCGExCreateBridgeTask(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,

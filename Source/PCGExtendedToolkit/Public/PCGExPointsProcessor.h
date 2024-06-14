@@ -7,13 +7,11 @@
 #include "CoreMinimal.h"
 #include "PCGPin.h"
 #include "Elements/PCGPointProcessingElementBase.h"
-#include "PCGExGlobalSettings.h"
 #include "PCGEx.h"
 #include "PCGExMT.h"
 #include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExPointIO.h"
 #include "PCGExOperation.h"
-#include "Helpers/PCGGraphParametersHelpers.h"
 
 #include "PCGExPointsProcessor.generated.h"
 
@@ -124,7 +122,7 @@ namespace PCGEx
 		virtual bool Advance(const TFunction<void(const int32, const PCGExData::FPointIO&)>&& LoopBody) override;
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FBulkPointLoop : public FPointLoop
+	struct PCGEXTENDEDTOOLKIT_API FBulkPointLoop final : public FPointLoop
 	{
 		FBulkPointLoop()
 		{
@@ -132,7 +130,7 @@ namespace PCGEx
 
 		TArray<FPointLoop> SubLoops;
 
-		virtual void Init();
+		void Init();
 		virtual bool Advance(const TFunction<void(PCGExData::FPointIO&)>&& Initialize, const TFunction<void(const int32, const PCGExData::FPointIO&)>&& LoopBody) override;
 		virtual bool Advance(const TFunction<void(const int32, const PCGExData::FPointIO&)>&& LoopBody) override;
 	};
@@ -147,7 +145,7 @@ namespace PCGEx
 		virtual bool Advance(const TFunction<void(const int32, const PCGExData::FPointIO&)>&& LoopBody) override;
 	};
 
-	struct PCGEXTENDEDTOOLKIT_API FBulkAsyncPointLoop : public FAsyncPointLoop
+	struct PCGEXTENDEDTOOLKIT_API FBulkAsyncPointLoop final : public FAsyncPointLoop
 	{
 		FBulkAsyncPointLoop()
 		{
@@ -155,7 +153,7 @@ namespace PCGEx
 
 		TArray<FAsyncPointLoop> SubLoops;
 
-		virtual void Init();
+		void Init();
 		virtual bool Advance(const TFunction<void(PCGExData::FPointIO&)>&& Initialize, const TFunction<void(const int32, const PCGExData::FPointIO&)>&& LoopBody) override;
 		virtual bool Advance(const TFunction<void(const int32, const PCGExData::FPointIO&)>&& LoopBody) override;
 	};
@@ -383,14 +381,12 @@ public:
 	virtual void DisabledPassThroughData(FPCGContext* Context) const override;
 
 protected:
-	bool ExecuteSubProcessor() const;
-
 	virtual FPCGContext* InitializeContext(FPCGExPointsProcessorContext* InContext, const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node) const;
 	virtual bool Boot(FPCGContext* InContext) const;
 };
 
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExSubProcessor
+struct PCGEXTENDEDTOOLKIT_API FPCGExSubProcessor final
 {
 public:
 	mutable FRWLock SubLock;
@@ -411,7 +407,7 @@ public:
 	FPCGExPointsProcessorContext* GetContext() const;
 	FPCGExAsyncManager* GetAsyncManager() const;
 
-	virtual bool Execute();
+	bool Execute();
 
 protected:
 	bool bWaitingOnSubtasks = false;

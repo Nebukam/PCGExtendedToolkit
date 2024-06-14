@@ -45,7 +45,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSortRuleDescriptor : public FPCGExInputDescr
 	//bool bAbsolute = false;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExSortRule : public PCGEx::FLocalSingleFieldGetter
+struct PCGEXTENDEDTOOLKIT_API FPCGExSortRule final : public PCGEx::FLocalSingleFieldGetter
 {
 	FPCGExSortRule()
 	{
@@ -116,13 +116,13 @@ private:
 	friend class FPCGExSortPointsBaseElement;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExSortPointsBaseElement : public FPCGExPointsProcessorElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExSortPointsBaseElement final : public FPCGExPointsProcessorElementBase
 {
 protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExSortPointIO : public FPCGExNonAbandonableTask
+class PCGEXTENDEDTOOLKIT_API FPCGExSortPointIO final : public FPCGExNonAbandonableTask
 {
 public:
 	FPCGExSortPointIO(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO) :

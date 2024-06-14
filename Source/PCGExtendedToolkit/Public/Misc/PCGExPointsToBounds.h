@@ -194,7 +194,7 @@ private:
 	friend class FPCGExPointsToBoundsElement;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExPointsToBoundsContext : public FPCGExPointsProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExPointsToBoundsContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExPointsToBoundsElement;
 
@@ -209,7 +209,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsToBoundsContext : public FPCGExPointsP
 	TArray<FPCGPoint>* OutPoints;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExPointsToBoundsElement : public FPCGExPointsProcessorElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExPointsToBoundsElement final : public FPCGExPointsProcessorElementBase
 {
 	virtual FPCGContext* Initialize(
 		const FPCGDataCollection& InputData,
@@ -221,7 +221,7 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExComputeIOBounds : public FPCGExNonAbandonableTask
+class PCGEXTENDEDTOOLKIT_API FPCGExComputeIOBounds final : public FPCGExNonAbandonableTask
 {
 public:
 	FPCGExComputeIOBounds(FPCGExAsyncManager* InManager, const int32 InTaskIndex, PCGExData::FPointIO* InPointIO,
