@@ -542,7 +542,7 @@ namespace PCGExDataBlending
 	{
 		FORCEINLINE virtual void DoValuesRangeOperation(const int32 PrimaryReadIndex, const int32 SecondaryReadIndex, TArrayView<T>& Values, const TArrayView<double>& Weights, const bool bFirstOperation) const override
 		{
-			if (bFirstOperation || !this->bInterpolationAllowed && this->GetIsInterpolation())
+			if (bFirstOperation || (!this->bInterpolationAllowed && this->GetIsInterpolation()))
 			{
 				const T B = (*this->Reader)[SecondaryReadIndex];
 				for (int i = 0; i < Values.Num(); i++) { Values[i] = B; } // Raw copy value

@@ -304,8 +304,13 @@ void FPCGExPointsProcessorContext::ExecutionComplete()
 
 void FPCGExPointsProcessorContext::SetState(const PCGExMT::AsyncState OperationId, const bool bResetAsyncWork)
 {
+	FReadScopeLock ReadScopeLock(StateLock);
+
 	if (bResetAsyncWork) { ResetAsyncWork(); }
 	if (CurrentState == OperationId) { return; }
+
+	UE_LOG(LogTemp, Log, TEXT("State move from %s to %s"), *FString::Printf(TEXT("%llu"), CurrentState), *FString::Printf(TEXT("%llu"), OperationId));
+	
 	CurrentState = OperationId;
 }
 

@@ -33,8 +33,6 @@ public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	virtual PCGExData::EInit GetEdgeOutputInitMode() const;
 
-	virtual bool RequiresDeterministicClusters() const;
-
 	virtual FName GetMainInputLabel() const override;
 	virtual FName GetMainOutputLabel() const override;
 
@@ -89,27 +87,27 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgesProcessorContext : public FPCGExPointsP
 	template <class LoopBodyFunc>
 	bool ProcessCurrentCluster(LoopBodyFunc&& LoopBody, bool bForceSync = false) { return Process(LoopBody, CurrentCluster->Nodes.Num(), bForceSync); }
 
-	FPCGExGeo2DProjectionSettings ProjectionSettings;
+	FPCGExGeo2DProjectionSettings ProjectionSettings;	
 	FPCGExGraphBuilderSettings GraphBuilderSettings;
 
 	bool bWaitingOnClusterProjection = false;
 
-	bool ProcessFilters();
-	bool ProcessClusters();
-
 protected:
+	bool ProcessFilters();
+	virtual bool ProcessClusters();
+
 	TArray<PCGExClusterMT::FClusterProcessorBatchBase*> Batches;
 
 	PCGExMT::AsyncState State_ClusterProcessingDone;
 	bool bClusterUseGraphBuilder = false;
-
-	bool bCProcessing = false;
-	bool bCCompleting = false;
-	bool bCCompiling = false;
+	
 
 	template <typename T, class ValidateEntriesFunc, class InitBatchFunc>
 	bool StartProcessingClusters(ValidateEntriesFunc&& ValidateEntries, InitBatchFunc&& InitBatch, const PCGExMT::AsyncState InState)
 	{
+
+		ResetAsyncWork();
+		
 		State_ClusterProcessingDone = InState;
 
 		bClusterUseGraphBuilder = false;
@@ -140,12 +138,12 @@ protected:
 			}
 
 			PCGExClusterMT::ScheduleBatch(GetAsyncManager(), NewBatch);
-			bCProcessing = true;
 		}
 
-		if (bCProcessing) { SetAsyncState(PCGExClusterMT::State_WaitingOnClusterProcessing); }
+		if (Batches.IsEmpty()) { return false; }
 
-		return bCProcessing;
+		SetAsyncState(PCGExClusterMT::State_WaitingOnClusterProcessing);
+		return true;
 	}
 
 	int32 CurrentEdgesIndex = -1;

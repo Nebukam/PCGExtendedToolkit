@@ -231,6 +231,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : public FPCGContext
 	UWorld* World = nullptr;
 
 	mutable FRWLock ContextLock;
+	mutable FRWLock StateLock;
 	PCGExData::FPointIOCollection* MainPoints = nullptr;
 
 	PCGExData::FPointIO* CurrentIO = nullptr;
@@ -241,8 +242,11 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : public FPCGContext
 	virtual bool AdvancePointsIO(const bool bCleanupKeys = true);
 	virtual bool ProcessorAutomation();
 
-	PCGExMT::AsyncState GetState() const { return CurrentState; }
-	bool IsState(const PCGExMT::AsyncState OperationId) const { return CurrentState == OperationId; }
+	bool IsState(const PCGExMT::AsyncState OperationId) const
+	{
+		FReadScopeLock ReadScopeLock(StateLock);
+		return CurrentState == OperationId;
+	}
 	bool IsSetup() const { return IsState(PCGExMT::State_Setup); }
 	bool IsDone() const { return IsState(PCGExMT::State_Done); }
 	virtual void Done();

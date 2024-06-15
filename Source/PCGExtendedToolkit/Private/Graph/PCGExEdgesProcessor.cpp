@@ -23,8 +23,6 @@ bool UPCGExEdgesProcessorSettings::SupportsEdgesFilters() const { return !GetEdg
 
 PCGExData::EInit UPCGExEdgesProcessorSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::Forward; }
 
-bool UPCGExEdgesProcessorSettings::RequiresDeterministicClusters() const { return false; }
-
 bool UPCGExEdgesProcessorSettings::GetMainAcceptMultipleData() const { return true; }
 
 TArray<FPCGPinProperties> UPCGExEdgesProcessorSettings::InputPinProperties() const
@@ -235,34 +233,39 @@ bool FPCGExEdgesProcessorContext::ProcessFilters()
 
 bool FPCGExEdgesProcessorContext::ProcessClusters()
 {
+
+	UE_LOG(LogTemp, Log, TEXT("A: Current %s / VS : %s -> %hhd"), *FString::Printf(TEXT("%llu"), CurrentState), *FString::Printf(TEXT("%llu"), PCGExClusterMT::State_WaitingOnClusterProcessing), IsState(PCGExClusterMT::State_WaitingOnClusterProcessing));
+	UE_LOG(LogTemp, Log, TEXT("B: Current %s / VS : %s -> %hhd"), *FString::Printf(TEXT("%llu"), CurrentState), *FString::Printf(TEXT("%llu"), PCGExClusterMT::State_WaitingOnClusterCompletedWork), IsState(PCGExClusterMT::State_WaitingOnClusterCompletedWork));
+	UE_LOG(LogTemp, Log, TEXT("C: Current %s / VS : %s ->  %hhd"), *FString::Printf(TEXT("%llu"), CurrentState), *FString::Printf(TEXT("%llu"), PCGExGraph::State_Compiling), IsState(PCGExGraph::State_Compiling));
+		
 	if (Batches.IsEmpty()) { return true; }
 
-	if (bCProcessing)
+	if (IsState(PCGExClusterMT::State_WaitingOnClusterProcessing))
 	{
-		if (!IsAsyncWorkComplete()) { return false; }
-		bCProcessing = false;
 
-		bCCompleting = true;
+		UE_LOG(LogTemp, Log, TEXT("Async ->  %ls"), *FString::Printf(TEXT("%hhd"), IsAsyncWorkComplete()));
+		
+		if (!IsAsyncWorkComplete()) { return false; }
+
 		CompleteBatches(GetAsyncManager(), Batches);
+		SetAsyncState(PCGExClusterMT::State_WaitingOnClusterCompletedWork);
 	}
 
-	if (bCCompleting)
+	if (IsState(PCGExClusterMT::State_WaitingOnClusterCompletedWork))
 	{
 		if (!IsAsyncWorkComplete()) { return false; }
-		bCCompleting = false;
 
 		if (!bClusterUseGraphBuilder) { SetState(State_ClusterProcessingDone); }
 		else
 		{
-			bCCompiling = true;
 			for (const PCGExClusterMT::FClusterProcessorBatchBase* Batch : Batches) { Batch->GraphBuilder->Compile(this); }
+			SetAsyncState(PCGExGraph::State_Compiling);
 		}
 	}
 
-	if (bCCompiling)
+	if (IsState(PCGExGraph::State_Compiling))
 	{
 		if (!IsAsyncWorkComplete()) { return false; }
-		bCCompiling = false;
 
 		for (const PCGExClusterMT::FClusterProcessorBatchBase* Batch : Batches)
 		{
@@ -324,8 +327,6 @@ bool FPCGExEdgesProcessorElement::Boot(FPCGContext* InContext) const
 	if (!FPCGExPointsProcessorElementBase::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(EdgesProcessor)
-
-	Context->bDeterministicClusters = Settings->RequiresDeterministicClusters();
 
 	if (Context->MainEdges->IsEmpty())
 	{

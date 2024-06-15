@@ -28,7 +28,7 @@ void UPCGExPathToEdgeClustersSettings::PostEditChangeProperty(FPropertyChangedEv
 }
 #endif
 
-PCGExData::EInit UPCGExPathToEdgeClustersSettings::GetMainOutputInitMode() const { return bFusePaths ? PCGExData::EInit::NoOutput : PCGExData::EInit::DuplicateInput; }
+PCGExData::EInit UPCGExPathToEdgeClustersSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 
 FName UPCGExPathToEdgeClustersSettings::GetMainInputLabel() const { return PCGExGraph::SourcePathsLabel; }
 
@@ -99,48 +99,54 @@ bool FPCGExPathToEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) co
 				PCGEX_DELETE(Context->GraphBuilder)
 				Context->Done();
 			}
+
+			return false;
+		}
+
+		if (Settings->bFusePaths)
+		{
+			Context->GetAsyncManager()->Start<FPCGExInsertPathToCompoundGraphTask>(
+				Context->CurrentIO->IOIndex, Context->CurrentIO, Context->CompoundGraph, Settings->bClosedPath);
+
+			Context->SetAsyncState(PCGExMT::State_ProcessingPoints);
 		}
 		else
 		{
-			if (Settings->bFusePaths)
+			PCGEX_DELETE(Context->GraphBuilder)
+
+			//TODO: Create one graph per path
+			const TArray<FPCGPoint>& InPoints = Context->GetCurrentIn()->GetPoints();
+			const int32 NumPoints = InPoints.Num();
+
+			if (NumPoints < 2)
 			{
-				Context->GetAsyncManager()->Start<FPCGExInsertPathToCompoundGraphTask>(
-					Context->CurrentIO->IOIndex, Context->CurrentIO, Context->CompoundGraph, Settings->bClosedPath);
-
-				Context->SetAsyncState(PCGExMT::State_ProcessingPoints);
+				PCGE_LOG(Warning, GraphAndLog, FTEXT("Some input path data has less than 2 and will be ignored."));
+				return false;
 			}
-			else
+
+			Context->CurrentIO->InitializeOutput(PCGExData::EInit::DuplicateInput);
+
+			Context->GraphBuilder = new PCGExGraph::FGraphBuilder(*Context->CurrentIO, &Context->GraphBuilderSettings, 2);
+			TArray<PCGExGraph::FUnsignedEdge> Edges;
+
+			Edges.SetNum(Settings->bClosedPath ? NumPoints : NumPoints - 1);
+
+			for (int i = 0; i < Edges.Num(); i++)
 			{
-				PCGEX_DELETE(Context->GraphBuilder)
-
-				//TODO: Create one graph per path
-				const TArray<FPCGPoint>& InPoints = Context->GetCurrentIn()->GetPoints();
-				const int32 NumPoints = InPoints.Num();
-
-				if (NumPoints < 2) { return false; }
-
-				Context->GraphBuilder = new PCGExGraph::FGraphBuilder(*Context->CurrentIO, &Context->GraphBuilderSettings, 2);
-				TArray<PCGExGraph::FUnsignedEdge> Edges;
-
-				Edges.SetNum(Settings->bClosedPath ? NumPoints : NumPoints - 1);
-
-				for (int i = 0; i < Edges.Num(); i++)
-				{
-					Edges[i].Start = i;
-					Edges[i].End = i + 1;
-				}
-
-				if (Settings->bClosedPath)
-				{
-					Edges.Last().Start = NumPoints - 1;
-					Edges.Last().End = 0;
-				}
-
-				Context->GraphBuilder->Graph->InsertEdges(Edges, -1);
-				Edges.Empty();
-
-				Context->SetState(PCGExGraph::State_WritingClusters);
+				Edges[i].Start = i;
+				Edges[i].End = i + 1;
 			}
+
+			if (Settings->bClosedPath)
+			{
+				Edges.Last().Start = NumPoints - 1;
+				Edges.Last().End = 0;
+			}
+
+			Context->GraphBuilder->Graph->InsertEdges(Edges, -1);
+			Edges.Empty();
+
+			Context->SetState(PCGExGraph::State_WritingClusters);
 		}
 	}
 

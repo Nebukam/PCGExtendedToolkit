@@ -298,6 +298,7 @@ namespace PCGExClusterMT
 
 		virtual void Process(FPCGExAsyncManager* AsyncManager)
 		{
+			AsyncManagerPtr = AsyncManager;
 		}
 
 		virtual void ProcessClosedBatchRange(const int32 StartIndex, const int32 Iterations)
@@ -345,11 +346,11 @@ namespace PCGExClusterMT
 
 		virtual void Process(FPCGExAsyncManager* AsyncManager) override
 		{
+			FClusterProcessorBatchBase::Process(AsyncManager);
+
 			if (VtxIO->GetNum() <= 1) { return; }
 
 			CurrentState = PCGExMT::State_Processing;
-
-			AsyncManagerPtr = AsyncManager;
 
 			for (PCGExData::FPointIO* IO : Edges)
 			{

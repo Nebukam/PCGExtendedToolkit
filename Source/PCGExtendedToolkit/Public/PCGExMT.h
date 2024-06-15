@@ -238,15 +238,26 @@ public:
 	template <typename T, typename... Args>
 	void Start(int32 TaskIndex, PCGExData::FPointIO* InPointsIO, Args... args)
 	{
-		if (bStopped) { return; }
-		if (bForceSync) { StartSynchronousTask<T>(new FAsyncTask<T>(InPointsIO, args...), TaskIndex); }
+		bool bDoSync = false;
+
+		{
+			FReadScopeLock ReadLock(ManagerLock);
+			if (bStopped || bFlushing) { return; }
+			bDoSync = bForceSync;
+		}
+
+		if (bDoSync) { StartSynchronousTask<T>(new FAsyncTask<T>(InPointsIO, args...), TaskIndex); }
 		else { StartBackgroundTask<T>(new FAsyncTask<T>(InPointsIO, args...), TaskIndex); }
 	}
 
 	template <typename T, typename... Args>
 	void StartSynchronous(int32 TaskIndex, PCGExData::FPointIO* InPointsIO, Args... args)
 	{
-		if (bStopped) { return; }
+		{
+			FReadScopeLock ReadLock(ManagerLock);
+			if (bStopped || bFlushing) { return; }
+		}
+
 		StartSynchronousTask(new FAsyncTask<T>(InPointsIO, args...), TaskIndex);
 	}
 
@@ -255,7 +266,7 @@ public:
 	{
 		{
 			FWriteScopeLock WriteLock(ManagerLock);
-			if (bStopped) { return; }
+			if (bStopped || bFlushing) { return; }
 			NumStarted++;
 			QueuedTasks.Add(AsyncTask);
 		}
@@ -273,7 +284,7 @@ public:
 	{
 		{
 			FReadScopeLock ReadScopeLock(ManagerLock);
-			if (bStopped) { return; }
+			if (bStopped || bFlushing) { return; }
 		}
 
 		T& Task = AsyncTask->GetTask();
