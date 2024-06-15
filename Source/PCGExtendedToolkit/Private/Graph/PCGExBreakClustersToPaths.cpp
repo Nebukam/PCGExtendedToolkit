@@ -109,7 +109,7 @@ namespace PCGExBreakClustersToPaths
 		}
 		else
 		{
-			// Break individual edges
+			// TODO : Break individual edges
 		}
 
 		return true;

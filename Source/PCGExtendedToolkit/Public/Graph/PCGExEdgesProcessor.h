@@ -70,8 +70,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgesProcessorContext : public FPCGExPointsP
 	PCGExCluster::FCluster* CurrentCluster = nullptr;
 	PCGExCluster::FClusterProjection* ClusterProjection = nullptr;
 
-	bool ProjectCluster();
-
 	void OutputPointsAndEdges();
 
 	template <class InitializeFunc, class LoopBodyFunc>
@@ -86,7 +84,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgesProcessorContext : public FPCGExPointsP
 	template <class LoopBodyFunc>
 	bool ProcessCurrentCluster(LoopBodyFunc&& LoopBody, bool bForceSync = false) { return Process(LoopBody, CurrentCluster->Nodes.Num(), bForceSync); }
 
-	FPCGExGeo2DProjectionSettings ProjectionSettings;	
 	FPCGExGraphBuilderSettings GraphBuilderSettings;
 
 	bool bWaitingOnClusterProjection = false;
@@ -98,14 +95,13 @@ protected:
 
 	PCGExMT::AsyncState State_ClusterProcessingDone;
 	bool bClusterUseGraphBuilder = false;
-	
+
 
 	template <typename T, class ValidateEntriesFunc, class InitBatchFunc>
 	bool StartProcessingClusters(ValidateEntriesFunc&& ValidateEntries, InitBatchFunc&& InitBatch, const PCGExMT::AsyncState InState)
 	{
-
 		ResetAsyncWork();
-		
+
 		State_ClusterProcessingDone = InState;
 
 		bClusterUseGraphBuilder = false;
@@ -148,7 +144,6 @@ protected:
 
 	UPCGExNodeStateFactory* VtxFiltersData = nullptr;
 	UPCGExNodeStateFactory* EdgesFiltersData = nullptr;
-
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExEdgesProcessorElement : public FPCGExPointsProcessorElementBase

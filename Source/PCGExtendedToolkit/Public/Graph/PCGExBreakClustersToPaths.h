@@ -91,7 +91,7 @@ namespace PCGExBreakClustersToPaths
 	class FProcessor final : public PCGExClusterMT::FClusterProcessor
 	{
 		TArray<PCGExCluster::FNodeChain*> Chains;
-		
+
 	public:
 		FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges);
 		virtual ~FProcessor() override;
@@ -104,5 +104,4 @@ namespace PCGExBreakClustersToPaths
 
 		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
 	};
-	
 }

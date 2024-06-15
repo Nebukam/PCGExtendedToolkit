@@ -87,13 +87,14 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFindContoursContext final : public FPCGExEdg
 
 	virtual ~FPCGExFindContoursContext() override;
 
-	PCGExData::FPointIOCollection* Seeds;
+	PCGExData::FPointIO* Seeds;
+	TArray<FVector> ProjectedSeeds;
+	
 	PCGExData::FPointIOCollection* Paths;
 
 	TArray<PCGEx::FLocalToStringGetter*> SeedTagGetters;
 	TArray<PCGExDataBlending::FDataForwardHandler*> SeedForwardHandlers;
 
-	TArray<TArray<FVector>*> ProjectedSeeds;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExFindContoursElement final : public FPCGExEdgesProcessorElement
@@ -109,17 +110,39 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExFindContourTask final : public FPCGExNonAbandonableTask
+namespace PCGExFindContours
 {
-public:
-	FPCGExFindContourTask(PCGExData::FPointIO* InPointIO,
-	                      PCGExCluster::FCluster* InCluster) :
-		FPCGExNonAbandonableTask(InPointIO),
-		Cluster(InCluster)
+	class PCGEXTENDEDTOOLKIT_API FPCGExFindContourTask final : public FPCGExNonAbandonableTask
 	{
-	}
+	public:
+		FPCGExFindContourTask(PCGExData::FPointIO* InPointIO,
+		                      PCGExCluster::FCluster* InCluster) :
+			FPCGExNonAbandonableTask(InPointIO),
+			Cluster(InCluster)
+		{
+		}
 
-	PCGExCluster::FCluster* Cluster = nullptr;
+		PCGExCluster::FCluster* Cluster = nullptr;
 
-	virtual bool ExecuteTask() override;
-};
+		virtual bool ExecuteTask() override;
+	};
+
+	class FProcessor final : public PCGExClusterMT::FClusterProcessor
+	{
+		TArray<PCGExCluster::FNodeChain*> Chains;
+		
+		FPCGExGeo2DProjectionSettings ProjectionSettings;
+		PCGExCluster::FClusterProjection* ClusterProjection = nullptr;
+		
+	public:
+		FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges);
+		virtual ~FProcessor() override;
+
+		virtual bool Process(FPCGExAsyncManager* AsyncManager) override;
+		virtual void CompleteWork() override;
+
+		virtual void ProcessSingleNode(PCGExCluster::FNode& Node) override;
+		
+		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
+	};
+}

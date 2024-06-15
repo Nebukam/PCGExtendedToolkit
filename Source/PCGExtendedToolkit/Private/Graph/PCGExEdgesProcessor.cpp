@@ -173,25 +173,6 @@ bool FPCGExEdgesProcessorContext::ProcessClusters()
 	return true;
 }
 
-bool FPCGExEdgesProcessorContext::ProjectCluster()
-{
-	if (!bWaitingOnClusterProjection) { return true; }
-
-	auto Initialize = [&]()
-	{
-		PCGEX_DELETE(ClusterProjection)
-		ClusterProjection = new PCGExCluster::FClusterProjection(CurrentCluster, &ProjectionSettings);
-	};
-
-	auto ProjectSinglePoint = [&](const int32 Index) { ClusterProjection->Nodes[Index].Project(CurrentCluster, &ProjectionSettings); };
-
-	if (!Process(Initialize, ProjectSinglePoint, CurrentCluster->Nodes.Num())) { return false; }
-
-	bWaitingOnClusterProjection = false;
-
-	return true;
-}
-
 void FPCGExEdgesProcessorContext::OutputPointsAndEdges()
 {
 	MainPoints->OutputTo(this);
