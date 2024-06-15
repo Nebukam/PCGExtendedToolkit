@@ -7,6 +7,7 @@
 #include "PCGExPathProcessor.h"
 
 #include "PCGExPointsProcessor.h"
+#include "PCGExSettings.h"
 #include "Graph/PCGExGraph.h"
 #include "Paths/SubPoints/PCGExSubPointsOperation.h"
 #include "SubPoints/DataBlending/PCGExSubPointsBlendOperation.h"
@@ -14,9 +15,7 @@
 
 namespace PCGExSubdivide
 {
-	
 	PCGEX_ASYNC_STATE(State_BlendingPoints)
-	
 }
 
 /**

@@ -68,7 +68,7 @@ bool FPCGExSanitizeClustersElement::ExecuteInternal(FPCGContext* InContext) cons
 	{
 		PCGEX_WAIT_ASYNC
 
-		for (const PCGExGraph::FGraphBuilder* Builder : Context->Builders) { Builder->Compile(Context); }
+		for (const PCGExGraph::FGraphBuilder* Builder : Context->Builders) { Builder->Compile(Context->GetAsyncManager()); }
 
 		Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork);
 	}
@@ -85,7 +85,7 @@ bool FPCGExSanitizeClustersElement::ExecuteInternal(FPCGContext* InContext) cons
 
 		Context->Done();
 		Context->OutputMainPoints();
-		Context->ExecutionComplete();
+		Context->PostProcessOutputs();
 	}
 
 	return Context->IsDone();

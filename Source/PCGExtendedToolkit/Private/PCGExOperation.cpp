@@ -7,7 +7,7 @@
 #include "PCGExPointsProcessor.h"
 #include "PCGParamData.h"
 
-void UPCGExOperation::BindContext(FPCGExPointsProcessorContext* InContext)
+void UPCGExOperation::BindContext(FPCGContext* InContext)
 {
 	Context = InContext;
 
@@ -60,4 +60,5 @@ void UPCGExOperation::ApplyOverrides()
 
 void UPCGExOperation::CopySettingsFrom(UPCGExOperation* Other)
 {
+	BindContext(Other->Context);
 }

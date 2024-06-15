@@ -49,18 +49,18 @@ namespace PCGExMT
 		int32 CurrentIndex = -1;
 
 		template <class InitializeFunc, class LoopBodyFunc>
-		bool Advance(InitializeFunc&& Initialize, LoopBodyFunc&& LoopBody)
+		bool Execute(InitializeFunc&& Initialize, LoopBodyFunc&& LoopBody)
 		{
 			if (CurrentIndex == -1)
 			{
 				Initialize();
 				CurrentIndex = 0;
 			}
-			return Advance(LoopBody);
+			return Execute(LoopBody);
 		}
 
 		template <class LoopBodyFunc>
-		bool Advance(LoopBodyFunc&& LoopBody)
+		bool Execute(LoopBodyFunc&& LoopBody)
 		{
 			if (CurrentIndex == -1) { CurrentIndex = 0; }
 			const int32 ChunkNumIterations = FMath::Min(NumIterations - CurrentIndex, GetCurrentChunkSize());
@@ -103,7 +103,7 @@ namespace PCGExMT
 		int32 CurrentIndex = -1;
 
 		template <class InitializeFunc, class LoopBodyFunc>
-		bool Advance(InitializeFunc&& Initialize, LoopBodyFunc&& LoopBody)
+		bool Execute(InitializeFunc&& Initialize, LoopBodyFunc&& LoopBody)
 		{
 			if (bAsyncEnabled)
 			{
@@ -133,7 +133,7 @@ namespace PCGExMT
 		}
 
 		template <class LoopBodyFunc>
-		bool Advance(LoopBodyFunc&& LoopBody)
+		bool Execute(LoopBodyFunc&& LoopBody)
 		{
 			if (bAsyncEnabled)
 			{

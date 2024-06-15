@@ -11,7 +11,6 @@
 #define PCGEX_OVERRIDE_OP_PROPERTY(_ACCESSOR, _NAME, _TYPE) _ACCESSOR = this->GetOverrideValue(_NAME, _ACCESSOR, _TYPE);
 
 class FPCGMetadataAttributeBase;
-struct FPCGExPointsProcessorContext;
 /**
  * 
  */
@@ -21,7 +20,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExOperation : public UObject
 	GENERATED_BODY()
 	//~Begin UPCGExOperation interface
 public:
-	void BindContext(FPCGExPointsProcessorContext* InContext);
+	void BindContext(FPCGContext* InContext);
 
 #if WITH_EDITOR
 	virtual void UpdateUserFacingInfos();
@@ -52,7 +51,7 @@ public:
 	virtual void BeginDestroy() override;
 
 protected:
-	FPCGExPointsProcessorContext* Context = nullptr;
+	FPCGContext* Context = nullptr;
 	TMap<FName, FPCGMetadataAttributeBase*> PossibleOverrides;
 
 	virtual void ApplyOverrides();

@@ -148,7 +148,7 @@ void PCGExGrow::FGrowth::Write()
 	PCGExGraph::CleanupVtxData(&PathPoints);
 
 	TArray<FPCGPoint>& MutablePoints = OutData->GetMutablePoints();
-	const TArray<FPCGPoint>& InPoints = Context->GetCurrentIn()->GetPoints();
+	const TArray<FPCGPoint>& InPoints = Context->CurrentIO->GetIn()->GetPoints();
 
 	MutablePoints.Reserve(Path.Num());
 
@@ -511,7 +511,7 @@ bool FPCGExPathfindingGrowPathsElement::ExecuteInternal(FPCGContext* InContext) 
 	if (Context->IsDone())
 	{
 		Context->OutputPaths->OutputTo(Context);
-		Context->ExecutionComplete();
+		Context->PostProcessOutputs();
 	}
 
 	return Context->IsDone();

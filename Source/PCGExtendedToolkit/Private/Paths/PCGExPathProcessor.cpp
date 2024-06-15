@@ -29,110 +29,11 @@ PCGExData::EInit UPCGExPathProcessorSettings::GetMainOutputInitMode() const { re
 FName UPCGExPathProcessorSettings::GetMainInputLabel() const { return PCGExGraph::SourcePathsLabel; }
 FName UPCGExPathProcessorSettings::GetMainOutputLabel() const { return PCGExGraph::OutputPathsLabel; }
 
-FName UPCGExPathProcessorSettings::GetPointFilterLabel() const { return NAME_None; }
-bool UPCGExPathProcessorSettings::SupportsPointFilters() const { return !GetPointFilterLabel().IsNone(); }
-bool UPCGExPathProcessorSettings::RequiresPointFilters() const { return false; }
-
 FPCGExPathProcessorContext::~FPCGExPathProcessorContext()
 {
 	PCGEX_TERMINATE_ASYNC
-	PCGEX_DELETE(PointFiltersManager)
 	PCGEX_DELETE(Batch)
 	BatchablePoints.Empty();
-}
-
-bool FPCGExPathProcessorContext::ProcessorAutomation()
-{
-	if (!FPCGExPointsProcessorContext::ProcessorAutomation()) { return false; }
-	return ProcessFilters();
-}
-
-bool FPCGExPathProcessorContext::AdvancePointsIO(const bool bCleanupKeys)
-{
-	PCGEX_SETTINGS_LOCAL(PathProcessor)
-
-	PCGEX_DELETE(PointFiltersManager)
-
-	if (!FPCGExPointsProcessorContext::AdvancePointsIO(bCleanupKeys)) { return false; }
-
-	const bool DefaultResult = DefaultPointFilterResult();
-
-	if (PrepareFiltersWithAdvance())
-	{
-		if (Settings->SupportsPointFilters())
-		{
-			PCGEX_DELETE(PointFiltersManager)
-			PointFiltersManager = CreatePointFilterManagerInstance(CurrentIO, false);
-
-			if (!PointFiltersManager->bValid)
-			{
-				for (bool& Result : PointFiltersManager->Results) { Result = DefaultResult; }
-			}
-			else
-			{
-				PointFiltersManager->PrepareForTesting();
-				bRequirePointFilterPreparation = PointFiltersManager->RequiresPerPointPreparation();
-				bWaitingOnFilterWork = true;
-			}
-		}
-	}
-
-	return true;
-}
-
-bool FPCGExPathProcessorContext::ProcessFilters()
-{
-	if (!bWaitingOnFilterWork) { return true; }
-
-	if (bRequirePointFilterPreparation)
-	{
-		auto PrepareVtx = [&](const int32 Index) { PointFiltersManager->PrepareSingle(Index); };
-		if (!Process(PrepareVtx, CurrentIO->GetNum())) { return false; }
-		bRequirePointFilterPreparation = false;
-	}
-
-	auto FilterVtx = [&](const int32 Index) { PointFiltersManager->Test(Index); };
-	if (!Process(FilterVtx, CurrentIO->GetNum())) { return false; }
-
-	bWaitingOnFilterWork = false;
-
-	return true;
-}
-
-bool FPCGExPathProcessorContext::DefaultPointFilterResult() const { return true; }
-bool FPCGExPathProcessorContext::PrepareFiltersWithAdvance() const { return true; }
-
-PCGExDataFilter::TEarlyExitFilterManager* FPCGExPathProcessorContext::CreatePointFilterManagerInstance(const PCGExData::FPointIO* PointIO, const bool bForcePrepare) const
-{
-	PCGExDataFilter::TEarlyExitFilterManager* NewInstance = new PCGExDataFilter::TEarlyExitFilterManager(PointIO);
-	NewInstance->Register<UPCGExFilterFactoryBase>(this, FilterFactories, PointIO);
-	if (bForcePrepare)
-	{
-		NewInstance->PrepareForTesting();
-		if (!DefaultPointFilterResult()) { for (bool& Result : NewInstance->Results) { Result = false; } }
-	}
-	return NewInstance;
-}
-
-bool FPCGExPathProcessorContext::ProcessPointsBatch()
-{
-	if (BatchablePoints.IsEmpty()) { return true; }
-
-	if (IsState(PCGExPointsMT::State_WaitingOnPointsProcessing))
-	{
-		if (!IsAsyncWorkComplete()) { return false; }
-
-		CompleteBatch(GetAsyncManager(), Batch);
-		SetAsyncState(PCGExPointsMT::State_WaitingOnPointsCompletedWork);
-	}
-
-	if (IsState(PCGExPointsMT::State_WaitingOnPointsCompletedWork))
-	{
-		if (!IsAsyncWorkComplete()) { return false; }
-		SetState(State_PointsProcessingDone);
-	}
-
-	return true;
 }
 
 PCGEX_INITIALIZE_CONTEXT(PathProcessor)
@@ -142,16 +43,6 @@ bool FPCGExPathProcessorElement::Boot(FPCGContext* InContext) const
 	if (!FPCGExPointsProcessorElementBase::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(PathProcessor)
-
-	if (Settings->SupportsPointFilters())
-	{
-		PCGExFactories::GetInputFactories(InContext, Settings->GetPointFilterLabel(), Context->FilterFactories, {PCGExFactories::EType::Filter}, false);
-		if (Settings->RequiresPointFilters() && Context->FilterFactories.IsEmpty())
-		{
-			PCGE_LOG(Error, GraphAndLog, FText::Format(FTEXT("Missing {0}."), FText::FromName(Settings->GetPointFilterLabel())));
-			return false;
-		}
-	}
 
 	return true;
 }

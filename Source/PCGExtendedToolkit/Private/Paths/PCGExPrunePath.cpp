@@ -32,11 +32,10 @@ bool FPCGExPrunePathElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(PrunePath)
 
-	const PCGExData::FPointIO* Targets = Context->TryGetSingleInput(PCGEx::SourceTargetsLabel);
+	const PCGExData::FPointIO* Targets = Context->TryGetSingleInput(PCGEx::SourceTargetsLabel, true);
 
 	if (!Targets)
 	{
-		PCGE_LOG(Error, GraphAndLog, FTEXT("Missing Targets Points."));
 		PCGEX_DELETE(Targets)
 		return false;
 	}
@@ -80,7 +79,7 @@ bool FPCGExPrunePathElement::ExecuteInternal(FPCGContext* InContext) const
 	if (Context->IsDone())
 	{
 		Context->OutputMainPoints();
-		Context->ExecutionComplete();
+		Context->PostProcessOutputs();
 	}
 
 	return Context->IsDone();

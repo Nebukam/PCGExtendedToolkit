@@ -133,7 +133,7 @@ bool FPCGExMeshToClustersElement::ExecuteInternal(
 					return false;
 				}
 
-				const TArray<FPCGPoint>& TargetPoints = Context->GetCurrentIn()->GetPoints();
+				const TArray<FPCGPoint>& TargetPoints = Context->CurrentIO->GetIn()->GetPoints();
 				for (int i = 0; i < TargetPoints.Num(); i++)
 				{
 					FSoftObjectPath Path = PathGetter->SoftGet(TargetPoints[i], TEXT(""));
@@ -248,7 +248,7 @@ bool FPCGExMeshToClustersElement::ExecuteInternal(
 		Context->EdgeChildCollection->OutputTo(Context);
 
 		Context->Done();
-		Context->ExecutionComplete();
+		Context->PostProcessOutputs();
 	}
 
 	return Context->IsDone();
@@ -293,7 +293,7 @@ namespace PCGExMeshToCluster
 		}
 
 		GraphBuilder->Graph->InsertEdges(Mesh->Edges, -1);
-		GraphBuilder->Compile(Context);
+		GraphBuilder->Compile(Context->GetAsyncManager());
 
 		return true;
 	}

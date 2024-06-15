@@ -5,8 +5,9 @@
 
 #include "CoreMinimal.h"
 #include "PCGEx.h"
+#include "PCGExMacros.h"
 #include "PCGExGlobalSettings.h"
-#include "PCGExPointsProcessor.h"
+#include "Data/PCGPointData.h"
 #include "UObject/Object.h"
 
 #include "PCGExFactoryProvider.generated.h"

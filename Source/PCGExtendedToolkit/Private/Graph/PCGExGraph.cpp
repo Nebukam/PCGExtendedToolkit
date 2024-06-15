@@ -238,15 +238,14 @@ namespace PCGExGraph
 		}
 	}
 
-	void FGraphBuilder::Compile(FPCGExPointsProcessorContext* InContext,
-	                            FGraphMetadataSettings* MetadataSettings) const
+	void FGraphBuilder::Compile(FPCGExAsyncManager* Manager, FGraphMetadataSettings* MetadataSettings) const
 	{
-		InContext->GetAsyncManager()->Start<PCGExGraphTask::FCompileGraph>(
+		Manager->Start<PCGExGraphTask::FCompileGraph>(
 			-1, PointIO, const_cast<FGraphBuilder*>(this),
 			OutputSettings->GetMinClusterSize(), OutputSettings->GetMaxClusterSize(), MetadataSettings);
 	}
 
-	void FGraphBuilder::Write(FPCGExPointsProcessorContext* InContext) const
+	void FGraphBuilder::Write(FPCGContext* InContext) const
 	{
 		EdgesIO->OutputTo(InContext);
 	}

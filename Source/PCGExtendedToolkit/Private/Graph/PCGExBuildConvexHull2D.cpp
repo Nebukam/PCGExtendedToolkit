@@ -104,7 +104,7 @@ bool FPCGExBuildConvexHull2DElement::ExecuteInternal(
 			return false;
 		}
 
-		Context->GraphBuilder->Compile(Context);
+		Context->GraphBuilder->Compile(Context->GetAsyncManager());
 		Context->SetAsyncState(PCGExGraph::State_WritingClusters);
 	}
 
@@ -132,9 +132,9 @@ bool FPCGExBuildConvexHull2DElement::ExecuteInternal(
 
 	if (Context->IsDone())
 	{
-		Context->OutputMainPoints(Settings->bPrunePoints);
+		Context->OutputMainPoints();
 		Context->PathsIO->OutputTo(Context);
-		Context->ExecutionComplete();
+		Context->PostProcessOutputs();
 	}
 
 	return Context->IsDone();
@@ -197,7 +197,7 @@ bool FPCGExConvexHull2Task::ExecuteTask()
 	PCGExGeo::TDelaunay2* Delaunay = new PCGExGeo::TDelaunay2();
 
 	TArray<FVector> Positions;
-	PCGExGeo::PointsToPositions(Context->GetCurrentIn()->GetPoints(), Positions);
+	PCGExGeo::PointsToPositions(Context->CurrentIO->GetIn()->GetPoints(), Positions);
 
 	const TArrayView<FVector> View = MakeArrayView(Positions);
 	if (!Delaunay->Process(View, Context->ProjectionSettings, Context))

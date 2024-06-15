@@ -86,7 +86,7 @@ bool FPCGExPackClustersElement::ExecuteInternal(
 	if (Context->IsDone())
 	{
 		Context->PackedClusters->OutputTo(Context);
-		Context->ExecutionComplete();
+		Context->PostProcessOutputs();
 	}
 
 	return Context->IsDone();

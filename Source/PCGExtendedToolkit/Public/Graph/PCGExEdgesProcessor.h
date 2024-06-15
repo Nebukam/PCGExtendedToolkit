@@ -64,7 +64,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgesProcessorContext : public FPCGExPointsP
 	TMap<int64, int32> EndpointsLookup;
 	TArray<int32> EndpointsAdjacency;
 
-	virtual bool ProcessorAutomation() override;
+	virtual bool ExecuteAutomation() override;
 	virtual bool AdvancePointsIO(const bool bCleanupKeys = true) override;
 	virtual bool AdvanceEdges(const bool bBuildCluster, const bool bCleanupKeys = true); // Advance edges within current points
 

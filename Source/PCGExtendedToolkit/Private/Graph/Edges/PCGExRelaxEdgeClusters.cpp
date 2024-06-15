@@ -86,7 +86,7 @@ bool FPCGExRelaxEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) con
 				}
 				else { Context->InfluenceGetter->bEnabled = false; }
 
-				const TArray<FPCGPoint>& InPoints = Context->GetCurrentIn()->GetPoints();
+				const TArray<FPCGPoint>& InPoints = Context->CurrentIO->GetIn()->GetPoints();
 				const int32 NumPoints = InPoints.Num();
 				Context->OriginalBuffer.SetNumUninitialized(NumPoints);
 				Context->PrimaryBuffer.SetNumUninitialized(NumPoints);
@@ -143,7 +143,7 @@ bool FPCGExRelaxEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) con
 	if (Context->IsDone())
 	{
 		Context->OutputPointsAndEdges();
-		Context->ExecutionComplete();
+		Context->PostProcessOutputs();
 	}
 
 	return Context->IsDone();

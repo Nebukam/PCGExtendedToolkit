@@ -47,14 +47,14 @@ void FPCGExPathfindingEdgesContext::TryFindPath(const PCGExPathfinding::FPathQue
 		return;
 	}
 
-	PCGExData::FPointIO& PathPoints = OutputPaths->Emplace_GetRef(GetCurrentIn(), PCGExData::EInit::NewOutput);
+	PCGExData::FPointIO& PathPoints = OutputPaths->Emplace_GetRef(CurrentIO->GetIn(), PCGExData::EInit::NewOutput);
 	UPCGPointData* OutData = PathPoints.GetOut();
 
 	PCGExGraph::CleanupClusterTags(&PathPoints, true);
 	PCGExGraph::CleanupVtxData(&PathPoints);
 
 	TArray<FPCGPoint>& MutablePoints = OutData->GetMutablePoints();
-	const TArray<FPCGPoint>& InPoints = GetCurrentIn()->GetPoints();
+	const TArray<FPCGPoint>& InPoints = CurrentIO->GetIn()->GetPoints();
 
 	MutablePoints.Reserve(Path.Num() + 2);
 
@@ -101,7 +101,7 @@ bool FPCGExPathfindingEdgesElement::ExecuteInternal(FPCGContext* InContext) cons
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
-	if (!Context->ProcessorAutomation()) { return false; }
+	if (!Context->ExecuteAutomation()) { return false; }
 
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
@@ -229,7 +229,7 @@ bool FPCGExPathfindingEdgesElement::ExecuteInternal(FPCGContext* InContext) cons
 	if (Context->IsDone())
 	{
 		Context->OutputPaths->OutputTo(Context);
-		Context->ExecutionComplete();
+		Context->PostProcessOutputs();
 	}
 
 	return Context->IsDone();

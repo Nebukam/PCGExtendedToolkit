@@ -76,7 +76,7 @@ bool FPCGExBreakClustersToPathsElement::ExecuteInternal(
 	if (Context->IsDone())
 	{
 		Context->Paths->OutputTo(Context);
-		Context->ExecutionComplete();
+		Context->PostProcessOutputs();
 	}
 
 	return Context->IsDone();

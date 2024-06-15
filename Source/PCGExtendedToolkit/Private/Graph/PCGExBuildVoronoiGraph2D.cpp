@@ -95,7 +95,7 @@ bool FPCGExBuildVoronoiGraph2DElement::ExecuteInternal(
 			return false;
 		}
 
-		Context->GraphBuilder->Compile(Context);
+		Context->GraphBuilder->Compile(Context->GetAsyncManager());
 		Context->SetAsyncState(PCGExGraph::State_WritingClusters);
 	}
 
@@ -110,7 +110,7 @@ bool FPCGExBuildVoronoiGraph2DElement::ExecuteInternal(
 	if (Context->IsDone())
 	{
 		Context->OutputMainPoints();
-		Context->ExecutionComplete();
+		Context->PostProcessOutputs();
 	}
 
 	return Context->IsDone();
@@ -124,7 +124,7 @@ bool FPCGExVoronoi2Task::ExecuteTask()
 	PCGExGeo::TVoronoi2* Voronoi = new PCGExGeo::TVoronoi2();
 
 	TArray<FVector> ActivePositions;
-	PCGExGeo::PointsToPositions(Context->GetCurrentIn()->GetPoints(), ActivePositions);
+	PCGExGeo::PointsToPositions(Context->CurrentIO->GetIn()->GetPoints(), ActivePositions);
 
 	if (const TArrayView<FVector> View = MakeArrayView(ActivePositions);
 		!Voronoi->Process(View, Context->ProjectionSettings, Context))

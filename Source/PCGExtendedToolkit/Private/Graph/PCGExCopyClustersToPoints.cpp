@@ -38,7 +38,7 @@ bool FPCGExCopyClustersToPointsElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_FWD(TransformSettings)
 
-	Context->Targets = Context->TryGetSingleInput(PCGEx::SourceTargetsLabel);
+	Context->Targets = Context->TryGetSingleInput(PCGEx::SourceTargetsLabel, TODO);
 	if (!Context->Targets)
 	{
 		PCGE_LOG(Error, GraphAndLog, FTEXT("Missing Targets."));
@@ -88,7 +88,7 @@ bool FPCGExCopyClustersToPointsElement::ExecuteInternal(FPCGContext* InContext) 
 		Context->OutputPointsAndEdges();
 
 		Context->Done();
-		Context->ExecutionComplete();
+		Context->PostProcessOutputs();
 	}
 
 	return Context->IsDone();

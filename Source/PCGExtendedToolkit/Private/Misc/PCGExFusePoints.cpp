@@ -71,7 +71,7 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 
 			// Fuse points into compound graph
 
-			Context->CompoundGraph = new PCGExGraph::FCompoundGraph(Settings->PointPointIntersectionSettings.FuseSettings, Context->GetCurrentIn()->GetBounds().ExpandBy(10));
+			Context->CompoundGraph = new PCGExGraph::FCompoundGraph(Settings->PointPointIntersectionSettings.FuseSettings, Context->CurrentIO->GetIn()->GetBounds().ExpandBy(10));
 			Context->GetAsyncManager()->Start<PCGExGraphTask::FCompoundGraphInsertPoints>(
 				Context->CurrentIO->IOIndex, Context->CurrentIO, Context->CompoundGraph);
 
@@ -86,7 +86,7 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 		// Build output points from compound graph
 		const int32 NumCompoundNodes = Context->CompoundGraph->Nodes.Num();
 
-		TArray<FPCGPoint>& MutablePoints = Context->GetCurrentOut()->GetMutablePoints();
+		TArray<FPCGPoint>& MutablePoints = Context->CurrentIO->GetOut()->GetMutablePoints();
 
 		auto Initialize = [&]() { MutablePoints.SetNumUninitialized(NumCompoundNodes); };
 
@@ -129,7 +129,7 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 	if (Context->IsDone())
 	{
 		Context->OutputMainPoints();
-		Context->ExecutionComplete();
+		Context->PostProcessOutputs();
 	}
 
 	return Context->IsDone();

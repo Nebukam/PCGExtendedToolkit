@@ -76,15 +76,15 @@ bool FPCGExPointsToBoundsElement::ExecuteInternal(FPCGContext* InContext) const
 		if (!Context->AdvancePointsIO())
 		{
 			Context->Done();
-			Context->ExecutionComplete();
+			Context->PostProcessOutputs();
 		}
 		else { Context->SetState(PCGExMT::State_ProcessingPoints); }
 	}
 
 	if (Context->IsState(PCGExMT::State_ProcessingPoints))
 	{
-		const TArray<FPCGPoint>& InPoints = Context->GetCurrentIn()->GetPoints();
-		UPCGPointData* OutData = Context->GetCurrentOut();
+		const TArray<FPCGPoint>& InPoints = Context->CurrentIO->GetIn()->GetPoints();
+		UPCGPointData* OutData = Context->CurrentIO->GetOut();
 		TArray<FPCGPoint>& MutablePoints = OutData->GetMutablePoints();
 		MutablePoints.Emplace();
 

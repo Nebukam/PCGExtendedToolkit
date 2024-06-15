@@ -58,7 +58,7 @@ bool FPCGExAttributeRemapElement::ExecuteInternal(FPCGContext* InContext) const
 		int32 IOIndex = 0;
 		while (Context->AdvancePointsIO(false))
 		{
-			PCGEx::FAttributesInfos* Infos = PCGEx::FAttributesInfos::Get(Context->GetCurrentIn()->Metadata);
+			PCGEx::FAttributesInfos* Infos = PCGEx::FAttributesInfos::Get(Context->CurrentIO->GetIn()->Metadata);
 			const PCGEx::FAttributeIdentity* AttIdentity = Infos->Find(Settings->SourceAttributeName);
 
 			if (!AttIdentity)
@@ -128,7 +128,7 @@ bool FPCGExAttributeRemapElement::ExecuteInternal(FPCGContext* InContext) const
 
 		Context->OutputMainPoints();
 		Context->Done();
-		Context->ExecutionComplete();
+		Context->PostProcessOutputs();
 	}
 
 	return Context->IsDone();

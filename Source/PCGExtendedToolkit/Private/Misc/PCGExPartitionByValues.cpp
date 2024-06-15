@@ -292,7 +292,7 @@ bool FPCGExPartitionByValuesBaseElement::ExecuteInternal(FPCGContext* InContext)
 			PCGExData::FTags* Tags = new PCGExData::FTags();
 			Tags->Append(Context->CurrentIO->Tags);
 			PCGExPartition::FKPartition* Partition = Context->Partitions[Index];
-			const UPCGPointData* InData = Context->GetCurrentIn();
+			const UPCGPointData* InData = Context->CurrentIO->GetIn();
 			UPCGPointData* OutData = NewObject<UPCGPointData>();
 			OutData->InitializeFromData(InData);
 
@@ -340,7 +340,7 @@ bool FPCGExPartitionByValuesBaseElement::ExecuteInternal(FPCGContext* InContext)
 		if (!Context->Process(CreatePartition, Context->NumPartitions)) { return false; }
 
 		Context->Done();
-		Context->ExecutionComplete();
+		Context->PostProcessOutputs();
 	}
 
 	return Context->IsDone();

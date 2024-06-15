@@ -7,6 +7,7 @@
 #include "PCGExPathProcessor.h"
 
 #include "PCGExPointsProcessor.h"
+#include "PCGExSettings.h"
 #include "PCGExBlendPath.generated.h"
 
 class UPCGExSubPointsBlendOperation;

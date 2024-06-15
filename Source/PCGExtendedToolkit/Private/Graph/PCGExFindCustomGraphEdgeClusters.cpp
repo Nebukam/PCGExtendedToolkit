@@ -136,7 +136,7 @@ bool FPCGExFindCustomGraphEdgeClustersElement::ExecuteInternal(
 
 	if (Context->IsState(PCGExGraph::State_WritingClusters))
 	{
-		Context->GraphBuilder->Compile(Context);
+		Context->GraphBuilder->Compile(Context->GetAsyncManager());
 		Context->SetAsyncState(PCGExGraph::State_WaitingOnWritingClusters);
 	}
 
@@ -168,7 +168,7 @@ bool FPCGExFindCustomGraphEdgeClustersElement::ExecuteInternal(
 		}
 
 		Context->OutputMainPoints();
-		Context->ExecutionComplete();
+		Context->PostProcessOutputs();
 	}
 
 	return Context->IsDone();

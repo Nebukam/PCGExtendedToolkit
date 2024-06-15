@@ -262,7 +262,7 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 	{
 		PCGEX_WAIT_ASYNC
 
-		Context->GraphBuilder->Compile(Context, &Context->GraphMetadataSettings);
+		Context->GraphBuilder->Compile(Context->GetAsyncManager(), &Context->GraphMetadataSettings);
 		Context->SetAsyncState(PCGExGraph::State_WaitingOnWritingClusters);
 		return false;
 	}
@@ -278,7 +278,7 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 		}
 
 		Context->Done();
-		Context->ExecutionComplete();
+		Context->PostProcessOutputs();
 	}
 
 	if (Context->IsState(PCGExGraph::State_MergingEdgeCompounds))

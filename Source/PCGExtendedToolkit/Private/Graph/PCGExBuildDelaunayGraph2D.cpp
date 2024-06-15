@@ -102,7 +102,7 @@ bool FPCGExBuildDelaunayGraph2DElement::ExecuteInternal(
 			return false;
 		}
 
-		Context->GraphBuilder->Compile(Context);
+		Context->GraphBuilder->Compile(Context->GetAsyncManager());
 		Context->SetAsyncState(PCGExGraph::State_WritingClusters);
 	}
 
@@ -131,7 +131,7 @@ bool FPCGExBuildDelaunayGraph2DElement::ExecuteInternal(
 	if (Context->IsDone())
 	{
 		Context->OutputMainPoints();
-		Context->ExecutionComplete();
+		Context->PostProcessOutputs();
 	}
 
 	return Context->IsDone();
@@ -145,7 +145,7 @@ bool FPCGExDelaunay2Task::ExecuteTask()
 	PCGExGeo::TDelaunay2* Delaunay = new PCGExGeo::TDelaunay2();
 
 	TArray<FVector> ActivePositions;
-	PCGExGeo::PointsToPositions(Context->GetCurrentIn()->GetPoints(), ActivePositions);
+	PCGExGeo::PointsToPositions(Context->CurrentIO->GetIn()->GetPoints(), ActivePositions);
 
 	const TArrayView<FVector> View = MakeArrayView(ActivePositions);
 	if (!Delaunay->Process(View, Context->ProjectionSettings, Context))

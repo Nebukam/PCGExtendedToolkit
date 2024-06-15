@@ -8,7 +8,6 @@
 #include "Data/PCGExAttributeHelpers.h"
 #include "PCGExMT.h"
 #include "PCGExEdge.h"
-#include "PCGExPointsProcessor.h"
 #include "PCGExSettings.h"
 #include "Data/PCGExData.h"
 
@@ -18,8 +17,6 @@ namespace PCGExGeo
 {
 	class FGeoMesh;
 }
-
-struct FPCGExPointsProcessorContext;
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Graph Value Source"))
 enum class EPCGExGraphValueSource : uint8
@@ -450,8 +447,8 @@ namespace PCGExGraph
 			bPrunePoints = OutputSettings->bPruneIsolatedPoints;
 		}
 
-		void Compile(FPCGExPointsProcessorContext* InContext, FGraphMetadataSettings* MetadataSettings = nullptr) const;
-		void Write(FPCGExPointsProcessorContext* InContext) const;
+		void Compile(FPCGExAsyncManager* Manager, FGraphMetadataSettings* MetadataSettings = nullptr) const;
+		void Write(FPCGContext* InContext) const;
 
 		~FGraphBuilder()
 		{

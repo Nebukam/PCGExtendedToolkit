@@ -75,7 +75,7 @@ bool FPCGExBuildDelaunayGraphElement::ExecuteInternal(
 				return false;
 			}
 
-			PCGExGeo::PointsToPositions(Context->GetCurrentIn()->GetPoints(), Context->ActivePositions);
+			PCGExGeo::PointsToPositions(Context->CurrentIO->GetIn()->GetPoints(), Context->ActivePositions);
 
 			Context->GraphBuilder = new PCGExGraph::FGraphBuilder(*Context->CurrentIO, &Context->GraphBuilderSettings, 6);
 			Context->GetAsyncManager()->Start<FPCGExDelaunay3Task>(Context->CurrentIO->IOIndex, Context->CurrentIO, Context->GraphBuilder->Graph);
@@ -95,7 +95,7 @@ bool FPCGExBuildDelaunayGraphElement::ExecuteInternal(
 			return false;
 		}
 
-		Context->GraphBuilder->Compile(Context);
+		Context->GraphBuilder->Compile(Context->GetAsyncManager());
 		Context->SetAsyncState(PCGExGraph::State_WritingClusters);
 	}
 
@@ -109,7 +109,7 @@ bool FPCGExBuildDelaunayGraphElement::ExecuteInternal(
 	if (Context->IsDone())
 	{
 		Context->OutputMainPoints();
-		Context->ExecutionComplete();
+		Context->PostProcessOutputs();
 	}
 
 	return Context->IsDone();

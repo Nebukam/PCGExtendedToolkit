@@ -115,7 +115,7 @@ bool FPCGExPathToEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) co
 			PCGEX_DELETE(Context->GraphBuilder)
 
 			//TODO: Create one graph per path
-			const TArray<FPCGPoint>& InPoints = Context->GetCurrentIn()->GetPoints();
+			const TArray<FPCGPoint>& InPoints = Context->CurrentIO->GetIn()->GetPoints();
 			const int32 NumPoints = InPoints.Num();
 
 			if (NumPoints < 2)
@@ -301,7 +301,7 @@ bool FPCGExPathToEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) co
 	{
 		PCGEX_WAIT_ASYNC
 
-		Context->GraphBuilder->Compile(Context, &Context->GraphMetadataSettings);
+		Context->GraphBuilder->Compile(Context->GetAsyncManager(), &Context->GraphMetadataSettings);
 		Context->SetAsyncState(PCGExGraph::State_WaitingOnWritingClusters);
 		return false;
 	}
@@ -332,7 +332,7 @@ bool FPCGExPathToEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) co
 	if (Context->IsDone())
 	{
 		Context->OutputMainPoints();
-		Context->ExecutionComplete();
+		Context->PostProcessOutputs();
 	}
 
 	return Context->IsDone();

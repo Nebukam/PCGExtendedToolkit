@@ -114,7 +114,7 @@ bool FPCGExDrawEdgesElement::ExecuteInternal(
 	if (Context->IsDone())
 	{
 		DisabledPassThroughData(Context);
-		Context->ExecutionComplete();
+		Context->PostProcessOutputs();
 	}
 
 	return Context->IsDone();

@@ -67,9 +67,9 @@ FPCGExEdgesProcessorContext::~FPCGExEdgesProcessorContext()
 }
 
 
-bool FPCGExEdgesProcessorContext::ProcessorAutomation()
+bool FPCGExEdgesProcessorContext::ExecuteAutomation()
 {
-	if (!FPCGExPointsProcessorContext::ProcessorAutomation()) { return false; }
+	if (!FPCGExPointsProcessorContext::ExecuteAutomation()) { return false; }
 	if (!ProcessFilters()) { return false; }
 	if (!ProjectCluster()) { return false; }
 	return true;
@@ -134,7 +134,7 @@ bool FPCGExEdgesProcessorContext::AdvanceEdges(const bool bBuildCluster, const b
 		CurrentCluster = new PCGExCluster::FCluster();
 
 		if (!CurrentCluster->BuildFrom(
-			*CurrentEdges, GetCurrentIn()->GetPoints(),
+			*CurrentEdges, CurrentIO->GetIn()->GetPoints(),
 			EndpointsLookup, &EndpointsAdjacency))
 		{
 			PCGE_LOG_C(Warning, GraphAndLog, this, FTEXT("Some clusters are corrupted and will not be processed. \n If you modified vtx/edges manually, make sure to use Sanitize Clusters first."));
@@ -251,7 +251,7 @@ bool FPCGExEdgesProcessorContext::ProcessClusters()
 		if (!bClusterUseGraphBuilder) { SetState(State_ClusterProcessingDone); }
 		else
 		{
-			for (const PCGExClusterMT::FClusterProcessorBatchBase* Batch : Batches) { Batch->GraphBuilder->Compile(this); }
+			for (const PCGExClusterMT::FClusterProcessorBatchBase* Batch : Batches) { Batch->GraphBuilder->Compile(GetAsyncManager()); }
 			SetAsyncState(PCGExGraph::State_Compiling);
 		}
 	}

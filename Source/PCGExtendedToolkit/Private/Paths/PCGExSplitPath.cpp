@@ -76,7 +76,7 @@ bool FPCGExSplitPathElement::ExecuteInternal(FPCGContext* InContext) const
 	if (Context->IsDone())
 	{
 		Context->MainPaths->OutputTo(Context);
-		Context->ExecutionComplete();
+		Context->PostProcessOutputs();
 	}
 
 	return Context->IsDone();

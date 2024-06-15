@@ -83,7 +83,7 @@ bool FPCGExFuseClustersLocalElement::ExecuteInternal(FPCGContext* InContext) con
 		{
 			if (!Context->TaggedEdges) { return false; }
 
-			Context->CompoundGraph = new PCGExGraph::FCompoundGraph(Settings->PointPointIntersectionSettings.FuseSettings, Context->GetCurrentIn()->GetBounds().ExpandBy(10));
+			Context->CompoundGraph = new PCGExGraph::FCompoundGraph(Settings->PointPointIntersectionSettings.FuseSettings, Context->CurrentIO->GetIn()->GetBounds().ExpandBy(10));
 			Context->SetState(PCGExGraph::State_ReadyForNextEdges);
 		}
 	}
@@ -124,7 +124,7 @@ bool FPCGExFuseClustersLocalElement::ExecuteInternal(FPCGContext* InContext) con
 			return false;
 		}
 
-		TArray<FPCGPoint>& MutablePoints = Context->GetCurrentOut()->GetMutablePoints();
+		TArray<FPCGPoint>& MutablePoints = Context->CurrentIO->GetOut()->GetMutablePoints();
 
 		auto Initialize = [&]() { Context->CurrentIO->SetNumInitialized(NumCompoundNodes, true); };
 
@@ -184,7 +184,7 @@ bool FPCGExFuseClustersLocalElement::ExecuteInternal(FPCGContext* InContext) con
 		{
 			const PCGExGraph::FIndexedEdge& Edge = Context->GraphBuilder->Graph->Edges[EdgeIndex];
 			if (!Edge.bValid) { return; }
-			FindCollinearNodes(Context->PointEdgeIntersections, EdgeIndex, Context->GetCurrentOut());
+			FindCollinearNodes(Context->PointEdgeIntersections, EdgeIndex, Context->CurrentIO->GetOut());
 		};
 
 		if (!Context->Process(PointEdge, Context->GraphBuilder->Graph->Edges.Num())) { return false; }
@@ -263,7 +263,7 @@ bool FPCGExFuseClustersLocalElement::ExecuteInternal(FPCGContext* InContext) con
 	{
 		PCGEX_WAIT_ASYNC
 
-		Context->GraphBuilder->Compile(Context, &Context->GraphMetadataSettings);
+		Context->GraphBuilder->Compile(Context->GetAsyncManager(), &Context->GraphMetadataSettings);
 		Context->SetAsyncState(PCGExGraph::State_WaitingOnWritingClusters);
 		return false;
 	}
@@ -289,7 +289,7 @@ bool FPCGExFuseClustersLocalElement::ExecuteInternal(FPCGContext* InContext) con
 	if (Context->IsDone())
 	{
 		Context->OutputMainPoints();
-		Context->ExecutionComplete();
+		Context->PostProcessOutputs();
 	}
 
 	return Context->IsDone();

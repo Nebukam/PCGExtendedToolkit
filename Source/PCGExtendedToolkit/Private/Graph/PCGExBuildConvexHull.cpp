@@ -92,7 +92,7 @@ bool FPCGExBuildConvexHullElement::ExecuteInternal(
 			return false;
 		}
 
-		Context->GraphBuilder->Compile(Context);
+		Context->GraphBuilder->Compile(Context->GetAsyncManager());
 		Context->SetAsyncState(PCGExGraph::State_WritingClusters);
 	}
 
@@ -121,7 +121,7 @@ bool FPCGExBuildConvexHullElement::ExecuteInternal(
 	if (Context->IsDone())
 	{
 		Context->OutputMainPoints();
-		Context->ExecutionComplete();
+		Context->PostProcessOutputs();
 	}
 
 	return Context->IsDone();

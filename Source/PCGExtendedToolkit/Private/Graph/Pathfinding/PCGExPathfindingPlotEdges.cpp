@@ -65,7 +65,7 @@ void FPCGExPathfindingPlotEdgesContext::TryFindPath(const PCGExData::FPointIO* I
 		SeedPosition = GoalPosition;
 	}
 
-	PCGExData::FPointIO& PathPoints = OutputPaths->Emplace_GetRef(GetCurrentIn(), PCGExData::EInit::NewOutput);
+	PCGExData::FPointIO& PathPoints = OutputPaths->Emplace_GetRef(CurrentIO->GetIn(), PCGExData::EInit::NewOutput);
 	PCGExGraph::CleanupClusterTags(&PathPoints, true);
 
 	UPCGPointData* OutData = PathPoints.GetOut();
@@ -73,7 +73,7 @@ void FPCGExPathfindingPlotEdgesContext::TryFindPath(const PCGExData::FPointIO* I
 	PCGExGraph::CleanupVtxData(&PathPoints);
 
 	TArray<FPCGPoint>& MutablePoints = OutData->GetMutablePoints();
-	const TArray<FPCGPoint>& InPoints = GetCurrentIn()->GetPoints();
+	const TArray<FPCGPoint>& InPoints = CurrentIO->GetIn()->GetPoints();
 
 	MutablePoints.Reserve(Path.Num() + 2);
 
@@ -160,7 +160,7 @@ bool FPCGExPathfindingPlotEdgesElement::ExecuteInternal(FPCGContext* InContext) 
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
-	if (!Context->ProcessorAutomation()) { return false; }
+	if (!Context->ExecuteAutomation()) { return false; }
 
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
@@ -275,7 +275,7 @@ bool FPCGExPathfindingPlotEdgesElement::ExecuteInternal(FPCGContext* InContext) 
 	if (Context->IsDone())
 	{
 		Context->OutputPaths->OutputTo(Context);
-		Context->ExecutionComplete();
+		Context->PostProcessOutputs();
 	}
 
 	return Context->IsDone();

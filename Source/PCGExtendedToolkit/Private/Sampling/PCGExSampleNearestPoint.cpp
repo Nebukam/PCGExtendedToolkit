@@ -147,7 +147,7 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 		if (!Context->AdvancePointsIO())
 		{
 			Context->Done();
-			Context->ExecutionComplete();
+			Context->PostProcessOutputs();
 		}
 		else
 		{
@@ -219,7 +219,7 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 
 	if (Context->IsState(PCGExMT::State_ProcessingPoints))
 	{
-		Context->StartAsyncLoopEx<PCGExSampleNearestPointTasks::FPointLoop>(Context->CurrentIO, Context->CurrentIO->GetNum());
+		Context->StartAsyncLoop<PCGExSampleNearestPointTasks::FPointLoop>(Context->CurrentIO, Context->CurrentIO->GetNum());
 		Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork);
 	}
 

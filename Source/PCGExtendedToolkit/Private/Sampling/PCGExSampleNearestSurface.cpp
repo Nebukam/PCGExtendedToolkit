@@ -85,7 +85,7 @@ bool FPCGExSampleNearestSurfaceElement::ExecuteInternal(FPCGContext* InContext) 
 		if (!Context->AdvancePointsIO())
 		{
 			Context->Done();
-			Context->ExecutionComplete();
+			Context->PostProcessOutputs();
 		}
 		else
 		{

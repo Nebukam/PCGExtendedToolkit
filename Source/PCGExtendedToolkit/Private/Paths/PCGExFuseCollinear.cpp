@@ -63,7 +63,7 @@ bool FPCGExFuseCollinearElement::ExecuteInternal(FPCGContext* InContext) const
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
-	if (!Context->ProcessorAutomation()) { return false; }
+	if (!Context->ExecuteAutomation()) { return false; }
 
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
@@ -98,7 +98,7 @@ bool FPCGExFuseCollinearElement::ExecuteInternal(FPCGContext* InContext) const
 	if (Context->IsDone())
 	{
 		Context->OutputMainPoints();
-		Context->ExecutionComplete();
+		Context->PostProcessOutputs();
 	}
 
 	return Context->IsDone();

@@ -63,7 +63,7 @@ bool FPCGExLloydRelax2DElement::ExecuteInternal(FPCGContext* InContext) const
 
 			if (Settings->InfluenceSettings.bUseLocalInfluence) { Context->InfluenceGetter->Grab(*Context->CurrentIO); }
 
-			PCGExGeo::PointsToPositions(Context->GetCurrentIn()->GetPoints(), Context->ActivePositions);
+			PCGExGeo::PointsToPositions(Context->CurrentIO->GetIn()->GetPoints(), Context->ActivePositions);
 
 			Context->ProjectionSettings.Init(Context->CurrentIO);
 
@@ -80,7 +80,7 @@ bool FPCGExLloydRelax2DElement::ExecuteInternal(FPCGContext* InContext) const
 	{
 		PCGEX_WAIT_ASYNC
 
-		TArray<FPCGPoint>& MutablePoints = Context->GetCurrentOut()->GetMutablePoints();
+		TArray<FPCGPoint>& MutablePoints = Context->CurrentIO->GetOut()->GetMutablePoints();
 
 		TArray<FVector> TargetPositions;
 		TargetPositions.SetNum(MutablePoints.Num());
@@ -116,7 +116,7 @@ bool FPCGExLloydRelax2DElement::ExecuteInternal(FPCGContext* InContext) const
 	if (Context->IsDone())
 	{
 		Context->OutputMainPoints();
-		Context->ExecutionComplete();
+		Context->PostProcessOutputs();
 	}
 
 	return Context->IsDone();

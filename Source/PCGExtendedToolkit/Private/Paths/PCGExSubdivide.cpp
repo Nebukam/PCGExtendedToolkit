@@ -71,7 +71,7 @@ bool FPCGExSubdivideElement::ExecuteInternal(FPCGContext* InContext) const
 		if (!Context->AdvancePointsIO())
 		{
 			Context->Done();
-			Context->ExecutionComplete();
+			Context->PostProcessOutputs();
 		}
 		else { Context->SetState(PCGExMT::State_ProcessingPoints); }
 	}

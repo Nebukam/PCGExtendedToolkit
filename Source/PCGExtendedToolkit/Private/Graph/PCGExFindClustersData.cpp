@@ -178,7 +178,7 @@ bool FPCGExFindClustersDataElement::ExecuteInternal(FPCGContext* InContext) cons
 	Context->MainPoints->OutputTo(Context);
 	Context->MainEdges->OutputTo(Context);
 
-	Context->ExecutionComplete();
+	Context->PostProcessOutputs();
 
 	return Context->IsDone();
 }

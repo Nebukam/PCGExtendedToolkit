@@ -31,7 +31,7 @@ bool FPCGExPruneClustersElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(PruneClusters)
 
-	const PCGExData::FPointIO* Targets = Context->TryGetSingleInput(PCGEx::SourceTargetsLabel);
+	const PCGExData::FPointIO* Targets = Context->TryGetSingleInput(PCGEx::SourceTargetsLabel, TODO);
 
 	if (!Targets)
 	{
@@ -91,7 +91,7 @@ bool FPCGExPruneClustersElement::ExecuteInternal(FPCGContext* InContext) const
 	if (Context->IsDone())
 	{
 		Context->OutputPointsAndEdges();
-		Context->ExecutionComplete();
+		Context->PostProcessOutputs();
 	}
 
 	return Context->IsDone();

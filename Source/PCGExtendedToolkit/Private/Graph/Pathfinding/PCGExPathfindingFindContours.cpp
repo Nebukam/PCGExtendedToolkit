@@ -101,7 +101,7 @@ bool FPCGExFindContoursElement::ExecuteInternal(
 		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
-	if (!Context->ProcessorAutomation()) { return false; }
+	if (!Context->ExecuteAutomation()) { return false; }
 
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
@@ -148,7 +148,7 @@ bool FPCGExFindContoursElement::ExecuteInternal(
 	if (Context->IsDone())
 	{
 		Context->Paths->OutputTo(Context);
-		Context->ExecutionComplete();
+		Context->PostProcessOutputs();
 	}
 
 	return Context->IsDone();

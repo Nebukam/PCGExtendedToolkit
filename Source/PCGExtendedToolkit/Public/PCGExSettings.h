@@ -1,15 +1,14 @@
 ﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
-
 #pragma once
 
 #define PCGEX_SOFT_VALIDATE_NAME_SETTINGS(_BOOL, _NAME, _CTX) if(_BOOL){if (!FPCGMetadataAttributeBase::IsValidName(_NAME) || _NAME.IsNone()){ PCGE_LOG_C(Warning, GraphAndLog, _CTX, FTEXT("Invalid user-defined attribute name for " #_NAME)); _BOOL = false; } }
 
 #include "CoreMinimal.h"
+#include "PCGExMacros.h"
 #include "PCGEx.h"
 #include "PCGExMath.h"
-#include "PCGExPointsProcessor.h"
 #include "Data/PCGExAttributeHelpers.h"
 
 #include "PCGExSettings.generated.h"
@@ -34,6 +33,13 @@ enum class EPCGExFilterDataAction : uint8
 	Keep UMETA(DisplayName = "Keep", ToolTip="Keeps only selected data"),
 	Omit UMETA(DisplayName = "Omit", ToolTip="Omit selected data from output"),
 	Tag UMETA(DisplayName = "Tag", ToolTip="Keep all and Tag"),
+};
+
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Subdivide Mode"))
+enum class EPCGExSubdivideMode : uint8
+{
+	Distance UMETA(DisplayName = "Distance", ToolTip="Number of subdivisions depends on segment' length"),
+	Count UMETA(DisplayName = "Count", ToolTip="Number of subdivisions is constant"),
 };
 
 USTRUCT(BlueprintType)

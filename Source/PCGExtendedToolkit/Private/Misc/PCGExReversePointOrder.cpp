@@ -55,7 +55,7 @@ bool FPCGExReversePointOrderElement::ExecuteInternal(FPCGContext* InContext) con
 	if (Context->IsDone())
 	{
 		Context->OutputMainPoints();
-		Context->ExecutionComplete();
+		Context->PostProcessOutputs();
 	}
 
 	return Context->IsDone();

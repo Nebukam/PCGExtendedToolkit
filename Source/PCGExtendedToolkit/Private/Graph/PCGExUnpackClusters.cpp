@@ -85,7 +85,7 @@ bool FPCGExUnpackClustersElement::ExecuteInternal(
 		Context->OutEdges->OutputTo(Context);
 
 		Context->Done();
-		Context->ExecutionComplete();
+		Context->PostProcessOutputs();
 	}
 
 	return Context->IsDone();
