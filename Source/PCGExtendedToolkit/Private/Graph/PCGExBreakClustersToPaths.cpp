@@ -35,9 +35,6 @@ FPCGExBreakClustersToPathsContext::~FPCGExBreakClustersToPathsContext()
 	PCGEX_DELETE_TARRAY(Chains)
 }
 
-bool FPCGExBreakClustersToPathsContext::DefaultVtxFilterResult() const { return false; }
-
-
 bool FPCGExBreakClustersToPathsElement::Boot(FPCGContext* InContext) const
 {
 	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
@@ -87,6 +84,7 @@ namespace PCGExBreakClustersToPaths
 	FProcessor::FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges):
 		FClusterProcessor(InVtx, InEdges)
 	{
+		DefaultVtxFilterValue = false;
 	}
 
 	FProcessor::~FProcessor()

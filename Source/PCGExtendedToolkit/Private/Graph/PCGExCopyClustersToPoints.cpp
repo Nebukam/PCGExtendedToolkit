@@ -38,12 +38,8 @@ bool FPCGExCopyClustersToPointsElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_FWD(TransformSettings)
 
-	Context->Targets = Context->TryGetSingleInput(PCGEx::SourceTargetsLabel, TODO);
-	if (!Context->Targets)
-	{
-		PCGE_LOG(Error, GraphAndLog, FTEXT("Missing Targets."));
-		return false;
-	}
+	Context->Targets = Context->TryGetSingleInput(PCGEx::SourceTargetsLabel, true);
+	if (!Context->Targets) { return false; }
 
 	return true;
 }

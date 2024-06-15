@@ -274,24 +274,12 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestPointContext final : public FPC
 
 	PCGExData::FPointIO* Targets = nullptr;
 
-	TArray<UPCGExFilterFactoryBase*> PointFilterFactories;
-	PCGExDataFilter::TEarlyExitFilterManager* PointFilterManager = nullptr;
+	FPCGExBlendingSettings BlendingSettings;
 
 	TArray<UPCGExFilterFactoryBase*> ValueFilterFactories;
 	PCGExDataFilter::TEarlyExitFilterManager* ValueFilterManager = nullptr;
 
-	PCGEx::FLocalSingleFieldGetter* RangeMinGetter;
-	PCGEx::FLocalSingleFieldGetter* RangeMaxGetter;
-	PCGEx::FLocalVectorGetter* LookAtUpGetter;
-
-	FVector SafeUpVector = FVector::UpVector;
-
 	TObjectPtr<UCurveFloat> WeightCurve = nullptr;
-
-	FPCGExBlendingSettings BlendingSettings;
-	PCGExDataBlending::FMetadataBlender* Blender = nullptr;
-
-	PCGEX_FOREACH_FIELD_NEARESTPOINT(PCGEX_OUTPUT_DECL)
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestPointElement final : public FPCGExPointsProcessorElementBase
@@ -307,28 +295,26 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-namespace PCGExSampleNearestPointTasks
+namespace PCGExSampleNearestPoints
 {
-	class PCGEXTENDEDTOOLKIT_API FSamplePoint final : public FPCGExLoopChunkTask
+	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
+		PCGEx::FLocalSingleFieldGetter* RangeMinGetter = nullptr;
+		PCGEx::FLocalSingleFieldGetter* RangeMaxGetter = nullptr;
+		PCGEx::FLocalVectorGetter* LookAtUpGetter = nullptr;
+
+		FVector SafeUpVector = FVector::UpVector;
+
+		PCGExDataBlending::FMetadataBlender* Blender = nullptr;
+
+		PCGEX_FOREACH_FIELD_NEARESTPOINT(PCGEX_OUTPUT_DECL)
+
 	public:
-		FSamplePoint(PCGExData::FPointIO* InPointIO, const int32 NumIterations) :
-			FPCGExLoopChunkTask(InPointIO, NumIterations)
-		{
-		}
+		explicit FProcessor(PCGExData::FPointIO* InPoints);
+		virtual ~FProcessor() override;
 
-		virtual void LoopBody(const int32 Iteration) override;
-	};
-
-	class PCGEXTENDEDTOOLKIT_API FPointLoop final : public FPCGExParallelLoopTask<FSamplePoint>
-	{
-	public:
-		FPointLoop(PCGExData::FPointIO* InPointIO,
-		           const int32 InNumIterations, const int32 InChunkSize) :
-			FPCGExParallelLoopTask(InPointIO, InNumIterations, InChunkSize)
-		{
-		}
-
-		virtual bool LoopInit() override;
+		virtual bool Process(FPCGExAsyncManager* AsyncManager) override;
+		virtual void ProcessSinglePoint(int32 Index, FPCGPoint& Point) override;
+		virtual void CompleteWork() override;
 	};
 }

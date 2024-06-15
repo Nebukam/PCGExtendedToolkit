@@ -124,7 +124,7 @@ public:
 	virtual FName GetPointFilterLabel() const;
 	bool SupportsPointFilters() const;
 	virtual bool RequiresPointFilters() const;
-	
+
 	/** Forces execution on main thread. Work is still chunked. Turning this off ensure linear order of operations, and, in most case, determinism.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Performance")
 	bool bDoAsyncProcessing = true;
@@ -190,7 +190,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : public FPCGContext
 	void OutputMainPoints() { MainPoints->OutputTo(this); }
 
 #pragma region Async loops
-	
+
 	bool ProcessCurrentPoints(TFunction<void(PCGExData::FPointIO&)>&& Initialize, TFunction<void(const int32, const PCGExData::FPointIO&)>&& LoopBody, bool bForceSync = false);
 	bool ProcessCurrentPoints(TFunction<void(const int32, const PCGExData::FPointIO&)>&& LoopBody, bool bForceSync = false);
 
@@ -230,8 +230,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : public FPCGContext
 		return Loop;
 	}
 
-#pragma endregion 
-	
+#pragma endregion
+
 	template <typename T>
 	T* RegisterOperation(UPCGExOperation* Operation = nullptr)
 	{
@@ -251,42 +251,42 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : public FPCGContext
 	}
 
 #pragma region Filtering
-	
+
 	TArray<UPCGExFilterFactoryBase*> FilterFactories;
 
-#pragma endregion 
+#pragma endregion
 
 #pragma region Batching
 
 	bool ProcessPointsBatch();
 
 	PCGExMT::AsyncState State_PointsProcessingDone;
-	PCGExPointsMT::FPointsProcessorBatchBase* Batch = nullptr;
+	PCGExPointsMT::FPointsProcessorBatchBase* MainBatch = nullptr;
 	TArray<PCGExData::FPointIO*> BatchablePoints;
-	
-	template <typename T, class ValidateEntriesFunc, class InitBatchFunc>
-	bool StartProcessingClusters(ValidateEntriesFunc&& ValidateEntries, InitBatchFunc&& InitBatch, const PCGExMT::AsyncState InState)
+
+	template <typename T, class ValidateEntryFunc, class InitBatchFunc>
+	bool StartBatchProcessingPoints(ValidateEntryFunc&& ValidateEntry, InitBatchFunc&& InitBatch, const PCGExMT::AsyncState InState)
 	{
 		State_PointsProcessingDone = InState;
 
 		while (AdvancePointsIO(false))
 		{
-			if (!ValidateEntries(CurrentIO)) { continue; }
-			BatchablePoints.Add(CurrentIO);			
+			if (!ValidateEntry(CurrentIO)) { continue; }
+			BatchablePoints.Add(CurrentIO);
 		}
-		
+
 		if (BatchablePoints.IsEmpty()) { return false; }
 
-		Batch = new T(this, BatchablePoints);
-		InitBatch(Batch);
+		MainBatch = new T(this, BatchablePoints);
+		InitBatch(static_cast<T*>(MainBatch));
 
-		PCGExPointsMT::ScheduleBatch(GetAsyncManager(), Batch);
+		PCGExPointsMT::ScheduleBatch(GetAsyncManager(), MainBatch);
 		SetAsyncState(PCGExPointsMT::State_WaitingOnPointsProcessing);
 		return true;
 	}
-	
-#pragma endregion 
-	
+
+#pragma endregion
+
 protected:
 	FPCGExSubProcessor* CurrentSubProcessor = nullptr;
 

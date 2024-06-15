@@ -33,7 +33,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExClusterSearchOrientationMode OrientationMode = EPCGExClusterSearchOrientationMode::CW;
 
-	virtual void CopySettingsFrom(UPCGExOperation* Other) override;
+	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
 	
 	virtual bool GetRequiresProjection() override;
 	virtual bool FindPath(

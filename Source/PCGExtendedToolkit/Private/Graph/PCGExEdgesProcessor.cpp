@@ -52,27 +52,11 @@ FPCGExEdgesProcessorContext::~FPCGExEdgesProcessorContext()
 	PCGEX_DELETE(CurrentCluster)
 	PCGEX_DELETE(ClusterProjection)
 
-	VtxIndices.Empty();
-
 	PCGEX_DELETE_UOBJECT(VtxFiltersData)
-	PCGEX_DELETE(VtxFiltersHandler)
-	VtxFilterResults.Empty();
-
 	PCGEX_DELETE_UOBJECT(EdgesFiltersData)
-	PCGEX_DELETE(EdgesFiltersHandler)
-	EdgeFilterResults.Empty();
 
 	EndpointsLookup.Empty();
 	ProjectionSettings.Cleanup();
-}
-
-
-bool FPCGExEdgesProcessorContext::ExecuteAutomation()
-{
-	if (!FPCGExPointsProcessorContext::ExecuteAutomation()) { return false; }
-	if (!ProcessFilters()) { return false; }
-	if (!ProjectCluster()) { return false; }
-	return true;
 }
 
 bool FPCGExEdgesProcessorContext::AdvancePointsIO(const bool bCleanupKeys)
@@ -119,9 +103,6 @@ bool FPCGExEdgesProcessorContext::AdvanceEdges(const bool bBuildCluster, const b
 	PCGEX_DELETE(CurrentCluster)
 	PCGEX_DELETE(ClusterProjection)
 
-	PCGEX_DELETE(VtxFiltersHandler)
-	PCGEX_DELETE(EdgesFiltersHandler)
-
 	if (bCleanupKeys && CurrentEdges) { CurrentEdges->CleanupKeys(); }
 
 	if (TaggedEdges && TaggedEdges->Entries.IsValidIndex(++CurrentEdgesIndex))
@@ -144,47 +125,6 @@ bool FPCGExEdgesProcessorContext::AdvanceEdges(const bool bBuildCluster, const b
 		{
 			CurrentCluster->PointsIO = CurrentIO;
 			CurrentCluster->EdgesIO = CurrentEdges;
-
-			bWaitingOnFilterWork = false;
-			bRequireVtxFilterPreparation = false;
-
-			PCGEX_SETTINGS_LOCAL(EdgesProcessor)
-
-			const bool DefaultResult = DefaultVtxFilterResult();
-
-			if (VtxFiltersData)
-			{
-				VtxFilterResults.SetNumUninitialized(CurrentCluster->Nodes.Num());
-				VtxIndices.SetNumUninitialized(CurrentCluster->Nodes.Num());
-
-				for (int i = 0; i < VtxIndices.Num(); i++)
-				{
-					VtxIndices[i] = CurrentCluster->Nodes[i].PointIndex;
-					VtxFilterResults[i] = DefaultResult;
-				}
-
-				VtxFiltersHandler = static_cast<PCGExCluster::FNodeStateHandler*>(VtxFiltersData->CreateFilter());
-				VtxFiltersHandler->bCacheResults = false;
-				VtxFiltersHandler->CaptureCluster(this, CurrentCluster);
-
-				bRequireVtxFilterPreparation = VtxFiltersHandler->PrepareForTesting(CurrentIO, VtxIndices);
-				bWaitingOnFilterWork = true;
-			}
-			else if (Settings->SupportsVtxFilters())
-			{
-				VtxFilterResults.SetNumUninitialized(CurrentCluster->Nodes.Num());
-				for (int i = 0; i < VtxFilterResults.Num(); i++) { VtxFilterResults[i] = DefaultResult; }
-			}
-
-			bRequireEdgesFilterPreparation = false;
-			if (EdgesFiltersData)
-			{
-				EdgeFilterResults.SetNumUninitialized(CurrentEdges->GetNum());
-
-				// TODO: Implement 
-				//VtxFiltersHandler = static_cast<PCGExCluster::FNodeStateHandler*>(VtxFiltersData->CreateFilter());
-				//EdgesFiltersHandler->CaptureCluster(this, CurrentCluster);
-			}
 		}
 
 		return true;
@@ -194,46 +134,8 @@ bool FPCGExEdgesProcessorContext::AdvanceEdges(const bool bBuildCluster, const b
 	return false;
 }
 
-bool FPCGExEdgesProcessorContext::ProcessFilters()
-{
-	if (!bWaitingOnFilterWork) { return true; }
-
-	if (bRequireVtxFilterPreparation)
-	{
-		auto PrepareVtx = [&](const int32 Index) { VtxFiltersHandler->PrepareSingle(CurrentCluster->Nodes[Index].PointIndex); };
-		if (!Process(PrepareVtx, CurrentCluster->Nodes.Num())) { return false; }
-		bRequireVtxFilterPreparation = false;
-	}
-
-	if (bRequireEdgesFilterPreparation)
-	{
-		auto PrepareEdge = [&](const int32 Index) { EdgesFiltersHandler->PrepareSingle(Index); };
-		if (!Process(PrepareEdge, CurrentCluster->Edges.Num())) { return false; }
-		bRequireVtxFilterPreparation = false;
-	}
-
-	if (VtxFiltersHandler)
-	{
-		auto FilterVtx = [&](const int32 Index) { VtxFilterResults[Index] = VtxFiltersHandler->Test(CurrentCluster->Nodes[Index].PointIndex); };
-		if (!Process(FilterVtx, CurrentCluster->Nodes.Num())) { return false; }
-		PCGEX_DELETE(VtxFiltersHandler)
-	}
-
-	if (EdgesFiltersHandler)
-	{
-		auto FilterEdge = [&](const int32 Index) { EdgeFilterResults[Index] = EdgesFiltersHandler->Test(Index); };
-		if (!Process(FilterEdge, CurrentCluster->Edges.Num())) { return false; }
-		PCGEX_DELETE(EdgesFiltersHandler)
-	}
-
-	bWaitingOnFilterWork = false;
-
-	return true;
-}
-
 bool FPCGExEdgesProcessorContext::ProcessClusters()
 {
-
 	if (Batches.IsEmpty()) { return true; }
 
 	if (IsState(PCGExClusterMT::State_WaitingOnClusterProcessing))
@@ -270,8 +172,6 @@ bool FPCGExEdgesProcessorContext::ProcessClusters()
 
 	return true;
 }
-
-bool FPCGExEdgesProcessorContext::DefaultVtxFilterResult() const { return true; }
 
 bool FPCGExEdgesProcessorContext::ProjectCluster()
 {

@@ -69,8 +69,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBreakClustersToPathsContext final : public F
 
 	virtual ~FPCGExBreakClustersToPathsContext() override;
 
-	virtual bool DefaultVtxFilterResult() const override;
-
 	PCGExData::FPointIOCollection* Paths = nullptr;
 	TArray<PCGExCluster::FNodeChain*> Chains;
 };

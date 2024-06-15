@@ -30,8 +30,6 @@ FPCGExSplitPathContext::~FPCGExSplitPathContext()
 	PCGEX_DELETE(MainPaths)
 }
 
-bool FPCGExSplitPathContext::PrepareFiltersWithAdvance() const { return false; }
-
 bool FPCGExSplitPathElement::Boot(FPCGContext* InContext) const
 {
 	if (!FPCGExPathProcessorElement::Boot(InContext)) { return false; }
@@ -53,25 +51,30 @@ bool FPCGExSplitPathElement::ExecuteInternal(FPCGContext* InContext) const
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }
-		Context->SetState(PCGExMT::State_ReadyForNextPoints);
-	}
 
-	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
-	{
-		while (Context->AdvancePointsIO(false))
+		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExSplitPath::FProcessor>>(
+			[&](PCGExData::FPointIO* Entry)
+			{
+				if (Settings->SplitAction == EPCGExPathSplitAction::Split && Entry->GetNum() < 3)
+				{
+					Entry->InitializeOutput(PCGExData::EInit::Forward);
+					PCGE_LOG(Warning, GraphAndLog, FTEXT("Some inputs have less than 3 points and won't be processed."));
+					return false;
+				}
+				return true;
+			},
+			[&](PCGExPointsMT::TBatch<PCGExSplitPath::FProcessor>* NewBatch)
+			{
+				NewBatch->SetPointsFilterData(&Context->FilterFactories);
+			},
+			PCGExMT::State_Done))
 		{
-			Context->GetAsyncManager()->Start<FPCGExSplitPathTask>(Context->CurrentIO->IOIndex, Context->CurrentIO);
+			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not find any paths to split."));
+			return true;
 		}
-
-		Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork);
 	}
 
-	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
-	{
-		PCGEX_WAIT_ASYNC
-
-		Context->Done();
-	}
+	if (!Context->ProcessPointsBatch()) { return false; }
 
 	if (Context->IsDone())
 	{
@@ -82,26 +85,32 @@ bool FPCGExSplitPathElement::ExecuteInternal(FPCGContext* InContext) const
 	return Context->IsDone();
 }
 
-bool FPCGExSplitPathTask::ExecuteTask()
+namespace PCGExSplitPath
 {
-	const FPCGExSplitPathContext* Context = Manager->GetContext<FPCGExSplitPathContext>();
-	PCGEX_SETTINGS(SplitPath)
-
-	const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
-
-	PCGExDataFilter::TEarlyExitFilterManager* Splits = Context->CreatePointFilterManagerInstance(PointIO, false);
-	bool bAnySplit = false;
-
-	if (Splits->bValid)
+	FProcessor::FProcessor(PCGExData::FPointIO* InPoints)
+		: FPointsProcessor(InPoints)
 	{
-		Splits->PrepareForTesting();
-		if (Splits->RequiresPerPointPreparation())
-		{
-			for (int i = 0; i < InPoints.Num(); i++) { Splits->PrepareSingle(i); }
-			Splits->PreparationComplete();
-		}
+		DefaultPointFilterValue = false;
+	}
 
-		for (const bool Result : Splits->Results)
+	FProcessor::~FProcessor()
+	{
+	}
+
+	bool FProcessor::Process(FPCGExAsyncManager* AsyncManager)
+	{
+		const FPCGExSplitPathContext* TypedContext = GetContext<FPCGExSplitPathContext>();
+		PCGEX_SETTINGS(SplitPath)
+
+
+		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
+
+		const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
+
+		bool bAnySplit = false;
+
+
+		for (const bool Result : PointFilterCache)
 		{
 			if (Result)
 			{
@@ -109,28 +118,31 @@ bool FPCGExSplitPathTask::ExecuteTask()
 				break;
 			}
 		}
+
+		if (!bAnySplit)
+		{
+			TypedContext->MainPaths->Emplace_GetRef(PointIO->GetIn(), PCGExData::EInit::Forward);
+			return false;
+		}
+
+		// TODO : Go through each point and split/create new partition at each split
+
+		for (int i = 0; i < InPoints.Num(); i++)
+		{
+			const FPCGPoint& CurrentPoint = InPoints[i];
+
+			// Note: Start and End can never split, but can be removed.
+		}
+
+		// Context->MainPaths->Emplace_GetRef(PointIO->GetIn(), PCGExData::EInit::DuplicateInput);
+
+		return true;
 	}
 
-	if (!bAnySplit)
+	void FProcessor::CompleteWork()
 	{
-		Context->MainPaths->Emplace_GetRef(PointIO->GetIn(), PCGExData::EInit::Forward);
-		PCGEX_DELETE(Splits)
-		return false;
+		FPointsProcessor::CompleteWork();
 	}
-
-	// TODO : Go through each point and split/create new partition at each split
-
-	for (int i = 0; i < InPoints.Num(); i++)
-	{
-		const FPCGPoint& CurrentPoint = InPoints[i];
-
-		// Note: Start and End can never split, but can be removed.
-	}
-
-	// Context->MainPaths->Emplace_GetRef(PointIO->GetIn(), PCGExData::EInit::DuplicateInput);
-
-	PCGEX_DELETE(Splits)
-	return true;
 }
 
 #undef LOCTEXT_NAMESPACE

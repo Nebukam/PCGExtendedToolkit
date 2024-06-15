@@ -27,7 +27,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExEdgeRelaxingOperation : public UPCGExOperatio
 	GENERATED_BODY()
 
 public:
-	virtual void CopySettingsFrom(UPCGExOperation* Other) override;
+	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
 	
 	virtual void PrepareForPointIO(PCGExData::FPointIO& PointIO);
 	virtual void PrepareForCluster(PCGExData::FPointIO& EdgesIO, PCGExCluster::FCluster* InCluster);

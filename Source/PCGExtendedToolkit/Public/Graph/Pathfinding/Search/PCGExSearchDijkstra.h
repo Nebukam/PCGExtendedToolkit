@@ -29,7 +29,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSearchDijkstra : public UPCGExSearchOperation
 	GENERATED_BODY()
 
 public:
-	virtual void CopySettingsFrom(UPCGExOperation* Other) override;
+	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
 	
 	virtual bool FindPath(
 		const FVector& SeedPosition,

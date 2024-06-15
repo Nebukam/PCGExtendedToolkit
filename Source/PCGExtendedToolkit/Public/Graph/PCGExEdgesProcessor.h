@@ -64,7 +64,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgesProcessorContext : public FPCGExPointsP
 	TMap<int64, int32> EndpointsLookup;
 	TArray<int32> EndpointsAdjacency;
 
-	virtual bool ExecuteAutomation() override;
 	virtual bool AdvancePointsIO(const bool bCleanupKeys = true) override;
 	virtual bool AdvanceEdges(const bool bBuildCluster, const bool bCleanupKeys = true); // Advance edges within current points
 
@@ -93,7 +92,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgesProcessorContext : public FPCGExPointsP
 	bool bWaitingOnClusterProjection = false;
 
 protected:
-	bool ProcessFilters();
 	virtual bool ProcessClusters();
 
 	TArray<PCGExClusterMT::FClusterProcessorBatchBase*> Batches;
@@ -127,7 +125,7 @@ protected:
 			Batches.Add(NewBatch);
 
 			NewBatch->EdgeCollection = MainEdges;
-			if (VtxFiltersData) { NewBatch->SetVtxFilterData(VtxFiltersData, DefaultVtxFilterResult()); }
+			if (VtxFiltersData) { NewBatch->SetVtxFilterData(VtxFiltersData); }
 
 			InitBatch(NewBatch);
 
@@ -148,21 +146,9 @@ protected:
 
 	int32 CurrentEdgesIndex = -1;
 
-	TArray<int32> VtxIndices;
-
-	virtual bool DefaultVtxFilterResult() const;
-
 	UPCGExNodeStateFactory* VtxFiltersData = nullptr;
-	PCGExCluster::FNodeStateHandler* VtxFiltersHandler = nullptr;
-	TArray<bool> VtxFilterResults;
-	bool bRequireVtxFilterPreparation = false;
-
 	UPCGExNodeStateFactory* EdgesFiltersData = nullptr;
-	PCGExCluster::FNodeStateHandler* EdgesFiltersHandler = nullptr;
-	TArray<bool> EdgeFilterResults;
-	bool bRequireEdgesFilterPreparation = false;
 
-	bool bWaitingOnFilterWork = false;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExEdgesProcessorElement : public FPCGExPointsProcessorElementBase

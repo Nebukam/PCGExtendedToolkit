@@ -12,7 +12,7 @@ EPCGExDataBlendingType UPCGExSubPointsBlendOperation::GetDefaultBlending()
 	return EPCGExDataBlendingType::Lerp;
 }
 
-void UPCGExSubPointsBlendOperation::CopySettingsFrom(UPCGExOperation* Other)
+void UPCGExSubPointsBlendOperation::CopySettingsFrom(const UPCGExOperation* Other)
 {
 	Super::CopySettingsFrom(Other);
 	const UPCGExSubPointsBlendOperation* TypedOther = Cast<UPCGExSubPointsBlendOperation>(Other);

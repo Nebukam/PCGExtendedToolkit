@@ -15,7 +15,7 @@ void UPCGExSubPointsBlendInterpolate::ApplyOverrides()
 	PCGEX_OVERRIDE_OP_PROPERTY(Weight, FName(TEXT("Blending/Weight")), EPCGMetadataTypes::Double);
 }
 
-void UPCGExSubPointsBlendInterpolate::CopySettingsFrom(UPCGExOperation* Other)
+void UPCGExSubPointsBlendInterpolate::CopySettingsFrom(const UPCGExOperation* Other)
 {
 	Super::CopySettingsFrom(Other);
 	const UPCGExSubPointsBlendInterpolate* TypedOther = Cast<UPCGExSubPointsBlendInterpolate>(Other);

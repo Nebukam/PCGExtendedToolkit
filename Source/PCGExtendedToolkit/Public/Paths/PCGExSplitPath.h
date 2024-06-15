@@ -10,6 +10,8 @@
 #include "Geometry/PCGExGeo.h"
 #include "PCGExSplitPath.generated.h"
 
+class UPCGExEdgeRefineOperation;
+
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Path Split Action"))
 enum class EPCGExPathSplitAction : uint8
 {
@@ -60,8 +62,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSplitPathContext final : public FPCGExPathPr
 	friend class FPCGExSplitPathElement;
 
 	virtual ~FPCGExSplitPathContext() override;
-
-	virtual bool PrepareFiltersWithAdvance() const override;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExSplitPathElement final : public FPCGExPathProcessorElement
@@ -77,13 +77,17 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExSplitPathTask final : public FPCGExNonAbandonableTask
+namespace PCGExSplitPath
 {
-public:
-	FPCGExSplitPathTask(PCGExData::FPointIO* InPointIO) :
-		FPCGExNonAbandonableTask(InPointIO)
+	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
-	}
+	public:
+		explicit FProcessor(PCGExData::FPointIO* InPoints);
+		virtual ~FProcessor() override;
 
-	virtual bool ExecuteTask() override;
-};
+		virtual bool Process(FPCGExAsyncManager* AsyncManager) override;
+		virtual void CompleteWork() override;
+
+		UPCGExEdgeRefineOperation* Refinement = nullptr;
+	};
+}

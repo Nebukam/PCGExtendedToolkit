@@ -24,7 +24,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="BlendOver==EPCGExPathBlendOver::Fixed", EditConditionHides))
 	double Weight = 0.5;
 
-	virtual void CopySettingsFrom(UPCGExOperation* Other) override;
+	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
 	
 	virtual void BlendSubPoints(
 		const PCGEx::FPointRef& StartPoint,

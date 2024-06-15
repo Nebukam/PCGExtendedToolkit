@@ -7,7 +7,7 @@
 #include "Graph/PCGExCluster.h"
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristics.h"
 
-void UPCGExSearchContours::CopySettingsFrom(UPCGExOperation* Other)
+void UPCGExSearchContours::CopySettingsFrom(const UPCGExOperation* Other)
 {
 	Super::CopySettingsFrom(Other);
 	const UPCGExSearchContours* TypedOther = Cast<UPCGExSearchContours>(Other);

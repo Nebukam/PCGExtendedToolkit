@@ -6,7 +6,7 @@
 
 #include "PCGExPointsProcessor.h"
 
-void UPCGExSubPointsOrientLookAt::CopySettingsFrom(UPCGExOperation* Other)
+void UPCGExSubPointsOrientLookAt::CopySettingsFrom(const UPCGExOperation* Other)
 {
 	Super::CopySettingsFrom(Other);
 	const UPCGExSubPointsOrientLookAt* TypedOther = Cast<UPCGExSubPointsOrientLookAt>(Other);

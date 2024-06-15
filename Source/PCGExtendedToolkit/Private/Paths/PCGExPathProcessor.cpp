@@ -32,7 +32,7 @@ FName UPCGExPathProcessorSettings::GetMainOutputLabel() const { return PCGExGrap
 FPCGExPathProcessorContext::~FPCGExPathProcessorContext()
 {
 	PCGEX_TERMINATE_ASYNC
-	PCGEX_DELETE(Batch)
+	PCGEX_DELETE(MainBatch)
 	BatchablePoints.Empty();
 }
 

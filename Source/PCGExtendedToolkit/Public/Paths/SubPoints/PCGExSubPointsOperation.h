@@ -20,7 +20,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSubPointsOperation : public UPCGExOperation
 public:
 	bool bClosedPath = false;
 	
-	virtual void CopySettingsFrom(UPCGExOperation* Other) override;
+	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
 	
 	virtual void PrepareForData(PCGExData::FPointIO& InPointIO);
 	virtual void ProcessPoints(UPCGPointData* InData) const;

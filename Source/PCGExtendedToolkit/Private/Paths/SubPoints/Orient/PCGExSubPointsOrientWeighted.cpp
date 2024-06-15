@@ -4,7 +4,7 @@
 
 #include "Paths/SubPoints/Orient/PCGExSubPointsOrientWeighted.h"
 
-void UPCGExSubPointsOrientWeighted::CopySettingsFrom(UPCGExOperation* Other)
+void UPCGExSubPointsOrientWeighted::CopySettingsFrom(const UPCGExOperation* Other)
 {
 	Super::CopySettingsFrom(Other);
 	const UPCGExSubPointsOrientWeighted* TypedOther = Cast<UPCGExSubPointsOrientWeighted>(Other);

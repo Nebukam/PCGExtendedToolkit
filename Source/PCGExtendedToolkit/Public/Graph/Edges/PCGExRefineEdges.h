@@ -68,8 +68,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExRefineEdgesContext final : public FPCGExEdge
 
 	virtual ~FPCGExRefineEdgesContext() override;
 
-	virtual bool DefaultVtxFilterResult() const override;
-
 	UPCGExEdgeRefineOperation* Refinement = nullptr;
 
 };

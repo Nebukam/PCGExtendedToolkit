@@ -35,7 +35,7 @@ public:
 	PCGExCluster::FCluster* Cluster = nullptr;
 	PCGExCluster::FClusterProjection* Projection = nullptr;
 
-	virtual void CopySettingsFrom(UPCGExOperation* Other) override;
+	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
 	
 	virtual bool GetRequiresProjection();
 	virtual void PrepareForCluster(PCGExCluster::FCluster* InCluster, PCGExCluster::FClusterProjection* InProjection = nullptr);

@@ -6,7 +6,7 @@
 
 #include "PCGEx.h"
 
-void UPCGExGoalPickerAttribute::CopySettingsFrom(UPCGExOperation* Other)
+void UPCGExGoalPickerAttribute::CopySettingsFrom(const UPCGExOperation* Other)
 {
 	Super::CopySettingsFrom(Other);
 	const UPCGExGoalPickerAttribute* TypedOther = Cast<UPCGExGoalPickerAttribute>(Other);

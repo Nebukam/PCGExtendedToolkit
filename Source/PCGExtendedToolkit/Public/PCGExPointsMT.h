@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 
 #include "PCGExMT.h"
+#include "PCGExOperation.h"
 #include "Data/PCGExDataFilter.h"
 #include "Graph/PCGExGraph.h"
 
@@ -59,27 +60,33 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 
 		FPCGContext* Context = nullptr;
 
-		PCGExData::FPointIO* PointsIO = nullptr;
+		PCGExData::FPointIO* PointIO = nullptr;
 		int32 BatchIndex = -1;
+
+		UPCGExOperation* PrimaryOperation = nullptr;
 
 		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
 
+
 		explicit FPointsProcessor(PCGExData::FPointIO* InPoints):
-			PointsIO(InPoints)
+			PointIO(InPoints)
 		{
 		}
 
 		virtual ~FPointsProcessor()
 		{
-			PointsIO = nullptr;
+			PointIO = nullptr;
+			PCGEX_DELETE_UOBJECT(PrimaryOperation)
 		}
+
+		template <typename T>
+		T* GetContext() { return static_cast<T*>(Context); }
 
 		bool IsTrivial() const { return bIsSmallPoints; }
 
-		void SetPointFilterData(TArray<UPCGExFilterFactoryBase*>* InFactories, const bool DefaultValue)
+		void SetPointsFilterData(TArray<UPCGExFilterFactoryBase*>* InFactories)
 		{
 			FilterFactories = InFactories;
-			DefaultPointFilterValue = DefaultValue;
 		}
 
 		virtual bool Process(FPCGExAsyncManager* AsyncManager)
@@ -90,19 +97,22 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 
 			if (FilterFactories)
 			{
-				PointFilterCache.Empty();
+				if (FilterFactories->IsEmpty())
+				{
+					PointFilterCache.SetNumUninitialized(PointIO->GetNum());
+					for (int i = 0; i < PointIO->GetNum(); i++) { PointFilterCache[i] = DefaultPointFilterValue; }
+				}
+				else
+				{
+					PointFilterCache.Empty();
 
-				PCGExDataFilter::TEarlyExitFilterManager* FilterManager = new PCGExDataFilter::TEarlyExitFilterManager(PointsIO);
-				FilterManager->Register<UPCGExFilterFactoryBase>(Context, *FilterFactories, PointsIO);
-				for (int i = 0; i < PointsIO->GetNum(); i++) { FilterManager->Test(i); }
+					PCGExDataFilter::TEarlyExitFilterManager* FilterManager = new PCGExDataFilter::TEarlyExitFilterManager(PointIO);
+					FilterManager->Register<UPCGExFilterFactoryBase>(Context, *FilterFactories, PointIO);
+					for (int i = 0; i < PointIO->GetNum(); i++) { FilterManager->Test(i); }
 
-				PointFilterCache.Append(FilterManager->Results);
-				PCGEX_DELETE(FilterManager)
-			}
-			else
-			{
-				PointFilterCache.SetNumUninitialized(PointsIO->GetNum());
-				for (int i = 0; i < PointsIO->GetNum(); i++) { PointFilterCache[i] = DefaultPointFilterValue; }
+					PointFilterCache.Append(FilterManager->Results);
+					PCGEX_DELETE(FilterManager)
+				}
 			}
 
 #pragma endregion
@@ -112,7 +122,7 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 
 		void StartParallelLoopForPoints(const PCGExData::ESource Source = PCGExData::ESource::In, const int32 PerLoopIterations = -1)
 		{
-			TArray<FPCGPoint>& Points = PointsIO->GetMutableData(Source)->GetMutablePoints();
+			TArray<FPCGPoint>& Points = PointIO->GetMutableData(Source)->GetMutablePoints();
 			const int32 NumPoints = Points.Num();
 
 			if (IsTrivial())
@@ -151,7 +161,7 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 
 		void ProcessPoints(const PCGExData::ESource Source, const int32 StartIndex, const int32 Count)
 		{
-			TArray<FPCGPoint>& Points = PointsIO->GetMutableData(Source)->GetMutablePoints();
+			TArray<FPCGPoint>& Points = PointIO->GetMutableData(Source)->GetMutablePoints();
 			for (int i = 0; i < Count; i++)
 			{
 				const int32 PtIndex = StartIndex + i;
@@ -183,21 +193,21 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 		FPCGExAsyncManager* AsyncManagerPtr = nullptr;
 		TArray<UPCGExFilterFactoryBase*>* FilterFactories = nullptr;
 
-		bool DefaultPointFilterValue = true;
-
 	public:
 		mutable FRWLock BatchLock;
 
 		FPCGContext* Context = nullptr;
 
-		TArray<PCGExData::FPointIO*>* PointsCollection = nullptr;
+		TArray<PCGExData::FPointIO*> PointsCollection;
 
 		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
 		FPCGExGraphBuilderSettings GraphBuilderSettings;
 
+		UPCGExOperation* PrimaryOperation = nullptr;
+
 		virtual bool UseGraphBuilder() const { return false; }
 
-		FPointsProcessorBatchBase(FPCGContext* InContext, TArray<PCGExData::FPointIO*>* InPointsCollection):
+		FPointsProcessorBatchBase(FPCGContext* InContext, const TArray<PCGExData::FPointIO*>& InPointsCollection):
 			Context(InContext), PointsCollection(InPointsCollection)
 		{
 		}
@@ -205,7 +215,11 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 		virtual ~FPointsProcessorBatchBase()
 		{
 			Context = nullptr;
+			PointsCollection.Empty();
 		}
+
+		template <typename T>
+		T* GetContext() { return static_cast<T*>(Context); }
 
 		virtual bool PrepareProcessing()
 		{
@@ -235,7 +249,7 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 
 		PCGExMT::AsyncState CurrentState = PCGExMT::State_Setup;
 
-		TBatch(FPCGContext* InContext, TArray<PCGExData::FPointIO*>* InPointsCollection):
+		TBatch(FPCGContext* InContext, const TArray<PCGExData::FPointIO*>& InPointsCollection):
 			FPointsProcessorBatchBase(InContext, InPointsCollection)
 		{
 		}
@@ -249,10 +263,9 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 
 		virtual bool UseGraphBuilder() const override { return false; }
 
-		void SetVtxFilterData(TArray<UPCGExFilterFactoryBase*>* InFilterFactories, const bool DefaultFilterValue)
+		void SetPointsFilterData(TArray<UPCGExFilterFactoryBase*>* InFilterFactories)
 		{
 			FilterFactories = InFilterFactories;
-			DefaultPointFilterValue = DefaultFilterValue;
 		}
 
 		virtual bool PrepareProcessing() override
@@ -262,7 +275,7 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 
 		virtual void Process(FPCGExAsyncManager* AsyncManager) override
 		{
-			if (PointsCollection->IsEmpty()) { return; }
+			if (PointsCollection.IsEmpty()) { return; }
 
 			CurrentState = PCGExMT::State_Processing;
 
@@ -283,7 +296,8 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 					continue;
 				}
 
-				if (FilterFactories) { NewProcessor->SetPointFilterData(FilterFactories, DefaultPointFilterValue); }
+				if (FilterFactories) { NewProcessor->SetPointsFilterData(FilterFactories); }
+				if (PrimaryOperation) { NewProcessor->PrimaryOperation = PrimaryOperation->CopyOperation(); }
 
 				NewProcessor->BatchIndex = Processors.Add(NewProcessor);
 				NewProcessor->bIsSmallPoints = IO->GetNum() < GetDefault<UPCGExGlobalSettings>()->SmallPointsSize;
@@ -295,7 +309,10 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 			StartClosedBatchProcessing();
 		}
 
-		virtual bool PrepareSingle(T* ClusterProcessor) { return true; };
+		virtual bool PrepareSingle(T* ClusterProcessor)
+		{
+			return true;
+		};
 
 		virtual void CompleteWork() override
 		{

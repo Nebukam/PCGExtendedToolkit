@@ -241,7 +241,7 @@ bool FPCGExPointsProcessorContext::ProcessPointsBatch()
 	{
 		if (!IsAsyncWorkComplete()) { return false; }
 
-		CompleteBatch(GetAsyncManager(), Batch);
+		CompleteBatch(GetAsyncManager(), MainBatch);
 		SetAsyncState(PCGExPointsMT::State_WaitingOnPointsCompletedWork);
 	}
 

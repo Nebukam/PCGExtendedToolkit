@@ -4,7 +4,7 @@
 
 #include "Graph/Edges/Relaxing/PCGExEdgeRelaxingOperation.h"
 
-void UPCGExEdgeRelaxingOperation::CopySettingsFrom(UPCGExOperation* Other)
+void UPCGExEdgeRelaxingOperation::CopySettingsFrom(const UPCGExOperation* Other)
 {
 	Super::CopySettingsFrom(Other);
 	const UPCGExEdgeRelaxingOperation* TypedOther = Cast<UPCGExEdgeRelaxingOperation>(Other);

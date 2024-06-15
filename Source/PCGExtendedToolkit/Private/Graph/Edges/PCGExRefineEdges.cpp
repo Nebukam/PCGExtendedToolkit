@@ -33,8 +33,6 @@ FPCGExRefineEdgesContext::~FPCGExRefineEdgesContext()
 	PCGEX_TERMINATE_ASYNC
 }
 
-bool FPCGExRefineEdgesContext::DefaultVtxFilterResult() const { return false; }
-
 bool FPCGExRefineEdgesElement::Boot(FPCGContext* InContext) const
 {
 	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
@@ -58,7 +56,7 @@ bool FPCGExRefineEdgesElement::ExecuteInternal(
 	{
 		if (!Boot(Context)) { return true; }
 
-		if(!Context->StartProcessingClusters<PCGExRefineEdges::FProcessorBatch>(
+		if (!Context->StartProcessingClusters<PCGExRefineEdges::FProcessorBatch>(
 			[](PCGExData::FPointIOTaggedEntries* Entries) { return true; },
 			[&](PCGExRefineEdges::FProcessorBatch* NewBatch)
 			{
@@ -95,6 +93,7 @@ namespace PCGExRefineEdges
 		: FClusterProcessor(InVtx, InEdges)
 	{
 		bRequiresHeuristics = true;
+		DefaultVtxFilterValue = false;
 	}
 
 	FProcessor::~FProcessor()

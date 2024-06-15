@@ -6,7 +6,7 @@
 
 #include "PCGExMath.h"
 
-void UPCGExGoalPickerRandom::CopySettingsFrom(UPCGExOperation* Other)
+void UPCGExGoalPickerRandom::CopySettingsFrom(const UPCGExOperation* Other)
 {
 	Super::CopySettingsFrom(Other);
 	const UPCGExGoalPickerRandom* TypedOther = Cast<UPCGExGoalPickerRandom>(Other);

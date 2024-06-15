@@ -14,7 +14,7 @@ namespace PCGExDataBlending
 		Flush();
 	}
 
-	FMetadataBlender::FMetadataBlender(FPCGExBlendingSettings* InBlendingSettings)
+	FMetadataBlender::FMetadataBlender(const FPCGExBlendingSettings* InBlendingSettings)
 	{
 		BlendingSettings = InBlendingSettings;
 	}

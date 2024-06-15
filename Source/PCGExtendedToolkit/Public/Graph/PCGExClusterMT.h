@@ -13,11 +13,10 @@
 
 namespace PCGExClusterMT
 {
-
 	PCGEX_ASYNC_STATE(State_WaitingOnClusterProcessing)
 	PCGEX_ASYNC_STATE(State_WaitingOnClusterCompletedWork)
 	PCGEX_ASYNC_STATE(State_ClusterAsyncWorkComplete)
-	
+
 #pragma region Tasks
 
 #define PCGEX_CLUSTER_MT_TASK(_NAME, _BODY)\
@@ -92,12 +91,14 @@ namespace PCGExClusterMT
 			EdgesIO = nullptr;
 		}
 
+		template <typename T>
+		T* GetContext() { return static_cast<T*>(Context); }
+
 		bool IsTrivial() const { return bIsSmallCluster; }
 
-		void SetVtxFilterData(UPCGExNodeStateFactory* InVtxFiltersData, const bool DefaultValue)
+		void SetVtxFilterData(UPCGExNodeStateFactory* InVtxFiltersData)
 		{
 			VtxFiltersData = InVtxFiltersData;
-			DefaultVtxFilterValue = DefaultValue;
 		}
 
 		virtual bool Process(FPCGExAsyncManager* AsyncManager)
@@ -247,10 +248,7 @@ namespace PCGExClusterMT
 		FPCGExAsyncManager* AsyncManagerPtr = nullptr;
 
 		UPCGExNodeStateFactory* VtxFiltersData = nullptr;
-		bool bDefaultVtxFilterValue = true;
-
 		UPCGExNodeStateFactory* EdgesFiltersData = nullptr; //TODO
-		bool bDefaultEdgeFilterValue = true;                //TODO
 
 		TMap<int64, int32> EndpointsLookup;
 		TArray<int32> ExpectedAdjacency;
@@ -283,6 +281,9 @@ namespace PCGExClusterMT
 			EndpointsLookup.Empty();
 			ExpectedAdjacency.Empty();
 		}
+
+		template <typename T>
+		T* GetContext() { return static_cast<T*>(Context); }
 
 		virtual bool PrepareProcessing()
 		{
@@ -334,10 +335,9 @@ namespace PCGExClusterMT
 
 		virtual bool UseGraphBuilder() const override { return false; }
 
-		void SetVtxFilterData(UPCGExNodeStateFactory* InVtxFiltersData, const bool DefaultFilterValue)
+		void SetVtxFilterData(UPCGExNodeStateFactory* InVtxFiltersData)
 		{
 			VtxFiltersData = InVtxFiltersData;
-			bDefaultVtxFilterValue = DefaultFilterValue;
 		}
 
 		virtual bool PrepareProcessing() override
@@ -370,7 +370,7 @@ namespace PCGExClusterMT
 					continue;
 				}
 
-				if (VtxFiltersData) { NewProcessor->SetVtxFilterData(VtxFiltersData, bDefaultVtxFilterValue); }
+				if (VtxFiltersData) { NewProcessor->SetVtxFilterData(VtxFiltersData); }
 
 				NewProcessor->BatchIndex = Processors.Add(NewProcessor);
 				NewProcessor->bIsSmallCluster = IO->GetNum() < GetDefault<UPCGExGlobalSettings>()->SmallClusterSize;

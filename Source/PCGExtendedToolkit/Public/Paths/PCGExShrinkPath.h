@@ -10,6 +10,8 @@
 #include "Geometry/PCGExGeo.h"
 #include "PCGExShrinkPath.generated.h"
 
+class UPCGExEdgeRefineOperation;
+
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Path Shrink Mode"))
 enum class EPCGExPathShrinkMode : uint8
 {
@@ -166,9 +168,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExShrinkPathContext final : public FPCGExPathP
 {
 	friend class FPCGExShrinkPathElement;
 
-	virtual bool DefaultPointFilterResult() const override;
-	virtual bool PrepareFiltersWithAdvance() const override;
-
 	void GetShrinkAmounts(const PCGExData::FPointIO* PointIO, double& Start, double& End, EPCGExPathShrinkDistanceCutType& StartCut, EPCGExPathShrinkDistanceCutType& EndCut) const;
 	void GetShrinkAmounts(const PCGExData::FPointIO* PointIO, uint32& Start, uint32& End) const;
 
@@ -188,13 +187,17 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExShrinkPathTask final : public FPCGExNonAbandonableTask
+namespace PCGExShrinkPath
 {
-public:
-	FPCGExShrinkPathTask(PCGExData::FPointIO* InPointIO) :
-		FPCGExNonAbandonableTask(InPointIO)
+	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
-	}
+	public:
+		explicit FProcessor(PCGExData::FPointIO* InPoints);
+		virtual ~FProcessor() override;
 
-	virtual bool ExecuteTask() override;
-};
+		virtual bool Process(FPCGExAsyncManager* AsyncManager) override;
+		virtual void CompleteWork() override;
+
+		UPCGExEdgeRefineOperation* Refinement = nullptr;
+	};
+}

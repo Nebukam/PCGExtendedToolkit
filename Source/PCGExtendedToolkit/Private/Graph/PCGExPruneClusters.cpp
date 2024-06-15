@@ -31,14 +31,8 @@ bool FPCGExPruneClustersElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(PruneClusters)
 
-	const PCGExData::FPointIO* Targets = Context->TryGetSingleInput(PCGEx::SourceTargetsLabel, TODO);
-
-	if (!Targets)
-	{
-		PCGE_LOG(Error, GraphAndLog, FTEXT("Missing Targets Points."));
-		PCGEX_DELETE(Targets)
-		return false;
-	}
+	const PCGExData::FPointIO* Targets = Context->TryGetSingleInput(PCGEx::SourceTargetsLabel, true);
+	if (!Targets) { return false; }
 
 	Context->BoxCloud = new PCGExGeo::FPointBoxCloud(Targets->GetIn());
 

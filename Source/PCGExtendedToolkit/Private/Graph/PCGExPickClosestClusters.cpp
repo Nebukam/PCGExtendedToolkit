@@ -49,12 +49,8 @@ bool FPCGExPickClosestClustersElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(PickClosestClusters)
 
-	Context->Targets = Context->TryGetSingleInput(PCGExGraph::SourcePickersLabel, TODO);
-	if (!Context->Targets)
-	{
-		PCGE_LOG(Error, GraphAndLog, FTEXT("Missing Pickers Points."));
-		return false;
-	}
+	Context->Targets = Context->TryGetSingleInput(PCGExGraph::SourcePickersLabel, true);
+	if (!Context->Targets) { return false; }
 
 	const TArray<FPCGPoint>& InTargetPoints = Context->Targets->GetIn()->GetPoints();
 	Context->Selectors.SetNumUninitialized(InTargetPoints.Num());
