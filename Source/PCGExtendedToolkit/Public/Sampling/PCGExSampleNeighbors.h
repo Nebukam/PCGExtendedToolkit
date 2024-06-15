@@ -12,8 +12,10 @@ class UPCGExNeighborSampleOperation;
 
 namespace PCGExSampleNeighbors
 {
-	constexpr PCGExMT::AsyncState State_ReadyForNextOperation = __COUNTER__;
-	constexpr PCGExMT::AsyncState State_Sampling = __COUNTER__;
+
+	PCGEX_ASYNC_STATE(State_ReadyForNextOperation)
+	PCGEX_ASYNC_STATE(State_Sampling)
+
 }
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Edges")

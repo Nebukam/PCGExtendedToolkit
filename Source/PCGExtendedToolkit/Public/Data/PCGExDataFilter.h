@@ -48,8 +48,9 @@ public:
 
 namespace PCGExDataFilter
 {
-	constexpr PCGExMT::AsyncState State_PreparingFilters = __COUNTER__;
-	constexpr PCGExMT::AsyncState State_FilteringPoints = __COUNTER__;
+	
+	PCGEX_ASYNC_STATE(State_PreparingFilters)
+	PCGEX_ASYNC_STATE(State_FilteringPoints)
 
 	const FName OutputFilterLabel = TEXT("Filter");
 	const FName SourceFiltersLabel = TEXT("Filters");

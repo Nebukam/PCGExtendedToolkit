@@ -14,7 +14,9 @@
 
 namespace PCGExSubdivide
 {
-	constexpr PCGExMT::AsyncState State_BlendingPoints = __COUNTER__;
+	
+	PCGEX_ASYNC_STATE(State_BlendingPoints)
+	
 }
 
 /**

@@ -234,17 +234,10 @@ bool FPCGExEdgesProcessorContext::ProcessFilters()
 bool FPCGExEdgesProcessorContext::ProcessClusters()
 {
 
-	UE_LOG(LogTemp, Log, TEXT("A: Current %s / VS : %s -> %hhd"), *FString::Printf(TEXT("%llu"), CurrentState), *FString::Printf(TEXT("%llu"), PCGExClusterMT::State_WaitingOnClusterProcessing), IsState(PCGExClusterMT::State_WaitingOnClusterProcessing));
-	UE_LOG(LogTemp, Log, TEXT("B: Current %s / VS : %s -> %hhd"), *FString::Printf(TEXT("%llu"), CurrentState), *FString::Printf(TEXT("%llu"), PCGExClusterMT::State_WaitingOnClusterCompletedWork), IsState(PCGExClusterMT::State_WaitingOnClusterCompletedWork));
-	UE_LOG(LogTemp, Log, TEXT("C: Current %s / VS : %s ->  %hhd"), *FString::Printf(TEXT("%llu"), CurrentState), *FString::Printf(TEXT("%llu"), PCGExGraph::State_Compiling), IsState(PCGExGraph::State_Compiling));
-		
 	if (Batches.IsEmpty()) { return true; }
 
 	if (IsState(PCGExClusterMT::State_WaitingOnClusterProcessing))
 	{
-
-		UE_LOG(LogTemp, Log, TEXT("Async ->  %ls"), *FString::Printf(TEXT("%hhd"), IsAsyncWorkComplete()));
-		
 		if (!IsAsyncWorkComplete()) { return false; }
 
 		CompleteBatches(GetAsyncManager(), Batches);

@@ -63,9 +63,9 @@ namespace PCGExGraph
 	const FName Tag_PCGExEdges = TEXT("PCGEx/ClusterEdges");
 	const FString TagStr_PCGExEdges = Tag_PCGExEdges.ToString();
 
-	constexpr PCGExMT::AsyncState State_ReadyForNextEdges = __COUNTER__;
-	constexpr PCGExMT::AsyncState State_ProcessingEdges = __COUNTER__;
-	constexpr PCGExMT::AsyncState State_BuildingClusters = __COUNTER__;
+	PCGEX_ASYNC_STATE(State_ReadyForNextEdges)
+	PCGEX_ASYNC_STATE(State_ProcessingEdges)
+	PCGEX_ASYNC_STATE(State_BuildingClusters)
 
 	FORCEINLINE static uint32 HCID(const PCGMetadataEntryKey Key)
 	{

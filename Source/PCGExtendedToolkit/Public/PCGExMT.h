@@ -9,6 +9,12 @@
 
 namespace PCGExMT
 {
+	// Because I can't for the love of whomever add extern EVERYWHERE, it's admin hell
+	// and apparently using __COUNTER__ was a very very very very bad idea
+	// Testing FName at runtime is basically sabotage
+	// So yeah, here you go, have a FName hash instead.
+#define PCGEX_ASYNC_STATE(_NAME) const PCGExMT::AsyncState _NAME = GetTypeHash(FName(#_NAME));
+
 	constexpr int32 GAsyncLoop_XS = 32;
 	constexpr int32 GAsyncLoop_S = 64;
 	constexpr int32 GAsyncLoop_M = 256;
@@ -16,20 +22,20 @@ namespace PCGExMT
 	constexpr int32 GAsyncLoop_XL = 1024;
 
 
-	using AsyncState = int64;
+	using AsyncState = uint64;
 
-	constexpr AsyncState State_Setup = __COUNTER__;
-	constexpr AsyncState State_ReadyForNextPoints = __COUNTER__;
-	constexpr AsyncState State_ProcessingPoints = __COUNTER__;
+	PCGEX_ASYNC_STATE(State_Setup)
+	PCGEX_ASYNC_STATE(State_ReadyForNextPoints)
+	PCGEX_ASYNC_STATE(State_ProcessingPoints)
 
-	constexpr AsyncState State_ProcessingTargets = __COUNTER__;
-	constexpr AsyncState State_WaitingOnAsyncWork = __COUNTER__;
-	constexpr AsyncState State_WaitingOnAsyncProcessing = __COUNTER__;
-	constexpr AsyncState State_WaitingOnAsyncCompletion = __COUNTER__;
-	constexpr AsyncState State_Done = __COUNTER__;
+	PCGEX_ASYNC_STATE(State_ProcessingTargets)
+	PCGEX_ASYNC_STATE(State_WaitingOnAsyncWork)
+	PCGEX_ASYNC_STATE(State_WaitingOnAsyncProcessing)
+	PCGEX_ASYNC_STATE(State_WaitingOnAsyncCompletion)
+	PCGEX_ASYNC_STATE(State_Done)
 
-	constexpr AsyncState State_Processing = __COUNTER__;
-	constexpr AsyncState State_Completing = __COUNTER__;
+	PCGEX_ASYNC_STATE(State_Processing)
+	PCGEX_ASYNC_STATE(State_Completing)
 
 	struct PCGEXTENDEDTOOLKIT_API FChunkedLoop
 	{

@@ -145,38 +145,38 @@ namespace PCGExGraph
 	const FName Tag_PackedClusterPointCount = TEXT("PCGEx/PackedClusterPointCount");
 	const FName Tag_PackedClusterEdgeCount = TEXT("PCGEx/PackedClusterEdgeCount");
 
-	constexpr PCGExMT::AsyncState State_ReadyForNextGraph = __COUNTER__;
-	constexpr PCGExMT::AsyncState State_ProcessingGraph = __COUNTER__;
+	PCGEX_ASYNC_STATE(State_ReadyForNextGraph)
+	PCGEX_ASYNC_STATE(State_ProcessingGraph)
 
-	constexpr PCGExMT::AsyncState State_CachingGraphIndices = __COUNTER__;
-	constexpr PCGExMT::AsyncState State_SwappingGraphIndices = __COUNTER__;
+	PCGEX_ASYNC_STATE(State_CachingGraphIndices)
+	PCGEX_ASYNC_STATE(State_SwappingGraphIndices)
 
-	constexpr PCGExMT::AsyncState State_FindingEdgeTypes = __COUNTER__;
+	PCGEX_ASYNC_STATE(State_FindingEdgeTypes)
 
-	constexpr PCGExMT::AsyncState State_BuildCustomGraph = __COUNTER__;
-	constexpr PCGExMT::AsyncState State_FindingCrossings = __COUNTER__;
-	constexpr PCGExMT::AsyncState State_WritingClusters = __COUNTER__;
-	constexpr PCGExMT::AsyncState State_WaitingOnWritingClusters = __COUNTER__;
-	constexpr PCGExMT::AsyncState State_Compiling = __COUNTER__;
+	PCGEX_ASYNC_STATE(State_BuildCustomGraph)
+	PCGEX_ASYNC_STATE(State_FindingCrossings)
+	PCGEX_ASYNC_STATE(State_WritingClusters)
+	PCGEX_ASYNC_STATE(State_WaitingOnWritingClusters)
+	PCGEX_ASYNC_STATE(State_Compiling)
 
-	constexpr PCGExMT::AsyncState State_FindingPointEdgeIntersections = __COUNTER__;
-	constexpr PCGExMT::AsyncState State_InsertingPointEdgeIntersections = __COUNTER__;
+	PCGEX_ASYNC_STATE(State_FindingPointEdgeIntersections)
+	PCGEX_ASYNC_STATE(State_InsertingPointEdgeIntersections)
 
-	constexpr PCGExMT::AsyncState State_FindingEdgeEdgeIntersections = __COUNTER__;
-	constexpr PCGExMT::AsyncState State_InsertingEdgeEdgeIntersections = __COUNTER__;
+	PCGEX_ASYNC_STATE(State_FindingEdgeEdgeIntersections)
+	PCGEX_ASYNC_STATE(State_InsertingEdgeEdgeIntersections)
 
-	constexpr PCGExMT::AsyncState State_PromotingEdges = __COUNTER__;
-	constexpr PCGExMT::AsyncState State_UpdatingCompoundCenters = __COUNTER__;
+	PCGEX_ASYNC_STATE(State_PromotingEdges)
+	PCGEX_ASYNC_STATE(State_UpdatingCompoundCenters)
 
-	constexpr PCGExMT::AsyncState State_MergingPointCompounds = __COUNTER__;
-	constexpr PCGExMT::AsyncState State_MergingEdgeCompounds = __COUNTER__;
-	constexpr PCGExMT::AsyncState State_BlendingPointEdgeCrossings = __COUNTER__;
-	constexpr PCGExMT::AsyncState State_BlendingEdgeEdgeCrossings = __COUNTER__;
+	PCGEX_ASYNC_STATE(State_MergingPointCompounds)
+	PCGEX_ASYNC_STATE(State_MergingEdgeCompounds)
+	PCGEX_ASYNC_STATE(State_BlendingPointEdgeCrossings)
+	PCGEX_ASYNC_STATE(State_BlendingEdgeEdgeCrossings)
 
-	constexpr PCGExMT::AsyncState State_WritingMainState = __COUNTER__;
-	constexpr PCGExMT::AsyncState State_WritingStatesAttributes = __COUNTER__;
-	constexpr PCGExMT::AsyncState State_WritingIndividualStates = __COUNTER__;
-
+	PCGEX_ASYNC_STATE(State_WritingMainState)
+	PCGEX_ASYNC_STATE(State_WritingStatesAttributes)
+	PCGEX_ASYNC_STATE(State_WritingIndividualStates)
+	
 	class FGraph;
 
 #pragma region Graph

@@ -12,7 +12,8 @@
 
 namespace PCGExData
 {
-	constexpr PCGExMT::AsyncState State_MergingData = __COUNTER__;
+
+	PCGEX_ASYNC_STATE(State_MergingData);	
 
 #pragma region Compound
 

@@ -11,10 +11,11 @@
 
 namespace PCGExPointsMT
 {
-	constexpr PCGExMT::AsyncState State_WaitingOnPointsProcessing = __COUNTER__;
-	constexpr PCGExMT::AsyncState State_WaitingOnPointsCompletedWork = __COUNTER__;
-	constexpr PCGExMT::AsyncState State_PointsAsyncWorkComplete = __COUNTER__;
 
+	PCGEX_ASYNC_STATE(State_WaitingOnPointsProcessing)
+	PCGEX_ASYNC_STATE(State_WaitingOnPointsCompletedWork)
+	PCGEX_ASYNC_STATE(State_PointsAsyncWorkComplete)
+	
 #pragma region Tasks
 
 #define PCGEX_POINTS_MT_TASK(_NAME, _BODY)\

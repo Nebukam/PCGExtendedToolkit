@@ -69,7 +69,15 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathStatistics
 
 namespace PCGExPathfinding
 {
-	constexpr PCGExMT::AsyncState State_ProcessingHeuristics = __COUNTER__;
+	
+	PCGEX_ASYNC_STATE(State_ProcessingHeuristics)
+	PCGEX_ASYNC_STATE(State_ProcessingHeuristicModifiers)
+	PCGEX_ASYNC_STATE(State_Pathfinding)
+	PCGEX_ASYNC_STATE(State_WaitingPathfinding)
+
+	const FName SourceSeedsLabel = TEXT("Seeds");
+	const FName SourceGoalsLabel = TEXT("Goals");
+	const FName SourcePlotsLabel = TEXT("Plots");
 
 	const FName SourceHeuristicsLabel = TEXT("Heuristics");
 	const FName OutputHeuristicsLabel = TEXT("Heuristics");
@@ -123,14 +131,6 @@ namespace PCGExPathfinding
 		{
 		}
 	};
-
-	const FName SourceSeedsLabel = TEXT("Seeds");
-	const FName SourceGoalsLabel = TEXT("Goals");
-	const FName SourcePlotsLabel = TEXT("Plots");
-
-	constexpr PCGExMT::AsyncState State_ProcessingHeuristicModifiers = __COUNTER__;
-	constexpr PCGExMT::AsyncState State_Pathfinding = __COUNTER__;
-	constexpr PCGExMT::AsyncState State_WaitingPathfinding = __COUNTER__;
 
 	struct PCGEXTENDEDTOOLKIT_API FPathQuery
 	{

@@ -24,7 +24,8 @@ enum class EPCGExPointBoundsSource : uint8
 
 namespace PCGExPointsToBounds
 {
-	constexpr PCGExMT::AsyncState State_ComputeBounds = __COUNTER__;
+
+	PCGEX_ASYNC_STATE(State_ComputeBounds)
 
 	struct PCGEXTENDEDTOOLKIT_API FBounds
 	{

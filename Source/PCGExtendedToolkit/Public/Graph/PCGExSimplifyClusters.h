@@ -65,8 +65,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSimplifyClustersContext : public FPCGExEdges
 	friend class FPCGExSimplifyClustersElement;
 
 	virtual ~FPCGExSimplifyClustersContext() override;
-protected:
-	virtual bool ProcessClusters() override;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExSimplifyClustersElement final : public FPCGExEdgesProcessorElement

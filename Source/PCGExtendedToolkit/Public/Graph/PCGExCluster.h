@@ -95,10 +95,8 @@ namespace PCGExCluster
 	const FName OutputNodeStateLabel = TEXT("NodeState");
 	const FName SourceNodeStateLabel = TEXT("NodeStates");
 
-	constexpr PCGExMT::AsyncState State_ProcessingCluster = __COUNTER__;
-	constexpr PCGExMT::AsyncState State_ProjectingCluster = __COUNTER__;
-	constexpr PCGExMT::AsyncState State_BuildingChains = __COUNTER__;
-	constexpr PCGExMT::AsyncState State_ProcessingChains = __COUNTER__;
+	PCGEX_ASYNC_STATE(State_ProcessingCluster)
+	PCGEX_ASYNC_STATE(State_ProjectingCluster)
 
 	struct PCGEXTENDEDTOOLKIT_API FClusterItemRef
 	{

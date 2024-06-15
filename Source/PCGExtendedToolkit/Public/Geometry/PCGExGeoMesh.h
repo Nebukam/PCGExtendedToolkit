@@ -19,8 +19,7 @@ enum class EPCGExTriangulationType : uint8
 
 namespace PCGExGeo
 {
-	constexpr PCGExMT::AsyncState State_ExtractingMesh = __COUNTER__;
-
+	
 	class FExtractStaticMeshTask;
 
 	class PCGEXTENDEDTOOLKIT_API FGeoMesh

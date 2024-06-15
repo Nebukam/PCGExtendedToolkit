@@ -13,10 +13,11 @@
 
 namespace PCGExClusterMT
 {
-	constexpr PCGExMT::AsyncState State_WaitingOnClusterProcessing = __COUNTER__;
-	constexpr PCGExMT::AsyncState State_WaitingOnClusterCompletedWork = __COUNTER__;
-	constexpr PCGExMT::AsyncState State_ClusterAsyncWorkComplete = __COUNTER__;
 
+	PCGEX_ASYNC_STATE(State_WaitingOnClusterProcessing)
+	PCGEX_ASYNC_STATE(State_WaitingOnClusterCompletedWork)
+	PCGEX_ASYNC_STATE(State_ClusterAsyncWorkComplete)
+	
 #pragma region Tasks
 
 #define PCGEX_CLUSTER_MT_TASK(_NAME, _BODY)\

@@ -37,10 +37,11 @@ enum class EPCGExExpandPointsBoundsMode : uint8
 
 namespace PCGExDiscardByOverlap
 {
-	constexpr PCGExMT::AsyncState State_InitialOverlap = __COUNTER__;
-	constexpr PCGExMT::AsyncState State_PreciseOverlap = __COUNTER__;
-	constexpr PCGExMT::AsyncState State_ProcessFastOverlap = __COUNTER__;
-	constexpr PCGExMT::AsyncState State_ProcessPreciseOverlap = __COUNTER__;
+
+	PCGEX_ASYNC_STATE(State_InitialOverlap)
+	PCGEX_ASYNC_STATE(State_PreciseOverlap)
+	PCGEX_ASYNC_STATE(State_ProcessFastOverlap)
+	PCGEX_ASYNC_STATE(State_ProcessPreciseOverlap)
 
 	static void SortOverlapCount(TArray<PCGExPointsToBounds::FBounds*>& IOBounds,
 	                             const EPCGExSortDirection Order)

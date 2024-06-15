@@ -25,8 +25,9 @@ namespace PCGExGraph
 
 namespace PCGExFuse
 {
-	constexpr PCGExMT::AsyncState State_FindingFusePoints = __COUNTER__;
-	constexpr PCGExMT::AsyncState State_MergingPoints = __COUNTER__;
+
+	PCGEX_ASYNC_STATE(State_FindingFusePoints)
+	PCGEX_ASYNC_STATE(State_MergingPoints)
 
 	struct PCGEXTENDEDTOOLKIT_API FFusedPoint
 	{
