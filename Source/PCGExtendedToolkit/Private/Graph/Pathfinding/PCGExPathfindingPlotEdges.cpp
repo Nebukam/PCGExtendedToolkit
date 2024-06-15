@@ -143,7 +143,7 @@ bool FPCGExPathfindingPlotEdgesElement::Boot(FPCGContext* InContext) const
 
 	Context->HeuristicsHandler = new PCGExHeuristics::THeuristicsHandler(Context);
 
-	PCGEX_FWD(ProjectionSettings)
+	//PCGEX_FWD(ProjectionSettings)
 
 	return true;
 }

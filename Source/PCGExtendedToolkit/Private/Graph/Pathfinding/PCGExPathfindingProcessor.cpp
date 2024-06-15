@@ -73,7 +73,6 @@ FPCGExPathfindingProcessorContext::~FPCGExPathfindingProcessorContext()
 	PCGEX_DELETE(SeedForwardHandler)
 	PCGEX_DELETE(GoalForwardHandler)
 
-	ProjectionSettings.Cleanup();
 }
 
 bool FPCGExPathfindingProcessorElement::Boot(FPCGContext* InContext) const
@@ -127,7 +126,7 @@ bool FPCGExPathfindingProcessorElement::Boot(FPCGContext* InContext) const
 		}
 	}
 
-	PCGEX_FWD(ProjectionSettings)
+	//PCGEX_FWD(ProjectionSettings) //TODO
 
 	Context->SeedForwardHandler = new PCGExDataBlending::FDataForwardHandler(&Settings->SeedForwardAttributes, Context->SeedsPoints);
 	Context->GoalForwardHandler = new PCGExDataBlending::FDataForwardHandler(&Settings->GoalForwardAttributes, Context->GoalsPoints);

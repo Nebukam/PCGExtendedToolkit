@@ -56,7 +56,6 @@ FPCGExEdgesProcessorContext::~FPCGExEdgesProcessorContext()
 	PCGEX_DELETE_UOBJECT(EdgesFiltersData)
 
 	EndpointsLookup.Empty();
-	ProjectionSettings.Cleanup();
 }
 
 bool FPCGExEdgesProcessorContext::AdvancePointsIO(const bool bCleanupKeys)
@@ -85,7 +84,7 @@ bool FPCGExEdgesProcessorContext::AdvancePointsIO(const bool bCleanupKeys)
 	if (TaggedEdges)
 	{
 		CurrentIO->CreateInKeys();
-		ProjectionSettings.Init(CurrentIO);
+		//ProjectionSettings.Init(CurrentIO); // TODO : Move to FClusterProcessor?
 		if (bBuildEndpointsLookup) { PCGExGraph::BuildEndpointsLookup(*CurrentIO, EndpointsLookup, EndpointsAdjacency); }
 	}
 	else

@@ -25,8 +25,6 @@ PCGEX_INITIALIZE_ELEMENT(WriteEdgeExtras)
 FPCGExWriteEdgeExtrasContext::~FPCGExWriteEdgeExtrasContext()
 {
 	PCGEX_TERMINATE_ASYNC
-
-	ProjectionSettings.Cleanup();
 }
 
 bool FPCGExWriteEdgeExtrasElement::Boot(FPCGContext* InContext) const
