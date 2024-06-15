@@ -10,6 +10,7 @@
 #include "Data/Blending/PCGExDataBlending.h"
 #include "Graph/PCGExCluster.h"
 #include "Graph/PCGExGraph.h"
+#include "PCGExOperation.h"
 
 #include "PCGExNeighborSampleFactoryProvider.generated.h"
 
