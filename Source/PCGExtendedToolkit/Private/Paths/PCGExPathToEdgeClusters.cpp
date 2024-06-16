@@ -71,6 +71,10 @@ bool FPCGExPathToEdgeClustersElement::Boot(FPCGContext* InContext) const
 	return true;
 }
 
+// TODO : Use FPointProcessor + batch to either batch points into a massive compound graph
+// or to generate individual graphs using a graph builder
+// in one case, the graph builder will be owned by the processor
+// in the other, the graph builder will be owned by the batch
 
 bool FPCGExPathToEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) const
 {
@@ -374,6 +378,67 @@ bool FPCGExInsertPathToCompoundGraphTask::ExecuteTask()
 	return true;
 }
 
+namespace PCGExPathToClusters
+{
+	FProcessor::FProcessor(PCGExData::FPointIO* InPoints)
+		: FPointsProcessor(InPoints)
+	{
+	}
+
+	FProcessor::~FProcessor()
+	{
+	}
+
+	bool FProcessor::Process(FPCGExAsyncManager* AsyncManager)
+	{
+		const FPCGExPathToEdgeClustersContext* TypedContext = GetContext<FPCGExPathToEdgeClustersContext>();
+		PCGEX_SETTINGS(PathToEdgeClusters)
+
+		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
+
+		if (!Settings->bFusePaths)
+		{
+			GraphBuilder = new PCGExGraph::FGraphBuilder(*PointIO, &GraphBuilderSettings, 2);
+		}
+	}
+
+	FProcessorBatch::FProcessorBatch(FPCGContext* InContext, const TArray<PCGExData::FPointIO*>& InPointsCollection):
+		TBatch(InContext, InPointsCollection)
+	{
+	}
+
+	bool FProcessorBatch::PrepareSingle(FProcessor* ClusterProcessor)
+	{
+		const FPCGExPathToEdgeClustersContext* TypedContext = GetContext<FPCGExPathToEdgeClustersContext>();
+		PCGEX_SETTINGS(PathToEdgeClusters)
+
+		if (!TBatch<FProcessor>::PrepareSingle(ClusterProcessor)) { return false; }
+
+		if (!Settings->bFusePaths)
+		{
+			ClusterProcessor->GraphBuilderSettings = GraphBuilderSettings;
+		}
+		else
+		{
+
+			// TODO:
+			// Flow is
+			// - Merge all input points to a compound graph
+			// - Translate the compound graph node to a "consolidated point" data point
+			// - Merge data into those points a first time
+			// - Use these points to build a regular graph
+			// - Use the regular graph to find & build intersection data
+			// - Process and add these intersections
+			// - finally compile the graph
+			
+			CompoundPoints = &TypedContext->MainPoints->Emplace_GetRef(PCGExData::EInit::NewOutput);
+			GraphBuilder = new PCGExGraph::FGraphBuilder(, &GraphBuilderSettings, 2);
+			ClusterProcessor->GraphBuilder = GraphBuilder;
+		}
+
+		return true;
+	}
+}
 
 #undef LOCTEXT_NAMESPACE
 #undef PCGEX_NAMESPACE

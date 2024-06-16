@@ -53,6 +53,7 @@ namespace PCGExClusterMT
 	{
 	protected:
 		FPCGExAsyncManager* AsyncManagerPtr = nullptr;
+		bool bBuildCluster = true;
 
 	public:
 		bool bRequiresHeuristics = false;
@@ -104,6 +105,8 @@ namespace PCGExClusterMT
 		virtual bool Process(FPCGExAsyncManager* AsyncManager)
 		{
 			AsyncManagerPtr = AsyncManager;
+
+			if (!bBuildCluster) { return true; }
 
 			Cluster = new PCGExCluster::FCluster();
 			Cluster->PointsIO = VtxIO;

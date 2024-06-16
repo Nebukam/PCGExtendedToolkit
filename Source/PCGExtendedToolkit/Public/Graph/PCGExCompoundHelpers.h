@@ -36,7 +36,6 @@ namespace PCGExGraph
 			FBox Bounds,
 			const FPCGExPointPointIntersectionSettings& InPointPointIntersectionSettings,
 			FPCGExBlendingSettings InDefaultPointsBlendingSettings);
-	
 		
 	};
 

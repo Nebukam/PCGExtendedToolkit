@@ -38,7 +38,7 @@ public:
 
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(PathsToEdgeClusters, "Path : To Edge Clusters", "Merge paths to edge clusters for glorious pathfinding inception");
+	PCGEX_NODE_INFOS(PathsToEdgeClusters, "Path : To Clusters", "Merge paths to edge clusters for glorious pathfinding inception");
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorGraphGen; }
 #endif
 	virtual TArray<FPCGPinProperties> OutputPinProperties() const override;
@@ -171,3 +171,37 @@ public:
 
 	virtual bool ExecuteTask() override;
 };
+
+
+namespace PCGExPathToClusters
+{
+	class FProcessor final : public PCGExPointsMT::FPointsProcessor
+	{
+	public:
+		PCGExGraph::FCompoundGraph* CompoundGraph = nullptr;
+
+		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
+		FPCGExGraphBuilderSettings GraphBuilderSettings;
+
+		explicit FProcessor(PCGExData::FPointIO* InPoints);
+		virtual ~FProcessor() override;
+
+		virtual bool Process(FPCGExAsyncManager* AsyncManager) override;
+		virtual void ProcessSinglePoint(int32 Index, FPCGPoint& Point) override;
+		virtual void CompleteWork() override;
+	};
+
+	class FProcessorBatch final : public PCGExPointsMT::TBatch<FProcessor>
+	{
+	public:
+		PCGExGraph::FCompoundGraph* CompoundGraph = nullptr;
+		PCGExData::FPointIO* CompoundPoints = nullptr;
+
+		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
+		FPCGExGraphBuilderSettings GraphBuilderSettings;
+
+		FProcessorBatch(FPCGContext* InContext, const TArray<PCGExData::FPointIO*>& InPointsCollection);
+
+		virtual bool PrepareSingle(FProcessor* ClusterProcessor) override;
+	};
+}
