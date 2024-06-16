@@ -117,6 +117,8 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 
 #pragma endregion
 
+			if (PrimaryOperation) { PrimaryOperation = PrimaryOperation->CopyOperation<UPCGExOperation>(); }
+
 			return true;
 		}
 
@@ -297,7 +299,7 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 				}
 
 				if (FilterFactories) { NewProcessor->SetPointsFilterData(FilterFactories); }
-				if (PrimaryOperation) { NewProcessor->PrimaryOperation = PrimaryOperation->CopyOperation(); }
+				if (PrimaryOperation) { NewProcessor->PrimaryOperation = PrimaryOperation; }
 
 				NewProcessor->BatchIndex = Processors.Add(NewProcessor);
 				NewProcessor->bIsSmallPoints = IO->GetNum() < GetDefault<UPCGExGlobalSettings>()->SmallPointsSize;

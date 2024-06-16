@@ -8,7 +8,7 @@
 #define LOCTEXT_NAMESPACE "PCGExCreateHeuristicAttribute"
 #define PCGEX_NAMESPACE CreateHeuristicAttribute
 
-void UPCGExHeuristicAttribute::PrepareForCluster(PCGExCluster::FCluster* InCluster)
+void UPCGExHeuristicAttribute::PrepareForCluster(const PCGExCluster::FCluster* InCluster)
 {
 	Super::PrepareForCluster(InCluster);
 

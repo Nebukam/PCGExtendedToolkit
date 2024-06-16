@@ -4,7 +4,7 @@
 
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicOperation.h"
 
-void UPCGExHeuristicOperation::PrepareForCluster(PCGExCluster::FCluster* InCluster)
+void UPCGExHeuristicOperation::PrepareForCluster(const PCGExCluster::FCluster* InCluster)
 {
 	Cluster = InCluster;
 	//PCGEX_LOAD_SOFTOBJECT(UCurveFloat, ScoreCurve, ScoreCurveObj, PCGEx::WeightDistributionLinear)

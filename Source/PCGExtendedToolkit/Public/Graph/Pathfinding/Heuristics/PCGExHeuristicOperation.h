@@ -32,7 +32,7 @@ public:
 
 	bool bHasCustomLocalWeightMultiplier = false;
 
-	virtual void PrepareForCluster(PCGExCluster::FCluster* InCluster);
+	virtual void PrepareForCluster(const PCGExCluster::FCluster* InCluster);
 
 	FORCEINLINE virtual double GetGlobalScore(
 		const PCGExCluster::FNode& From,
@@ -51,7 +51,7 @@ public:
 	FORCEINLINE double GetCustomWeightMultiplier(const int32 PointIndex, const int32 EdgeIndex) const;
 
 protected:
-	PCGExCluster::FCluster* Cluster = nullptr;
+	const PCGExCluster::FCluster* Cluster = nullptr;
 	TArray<double> LocalWeightMultiplier;
 
 	FORCEINLINE virtual double SampleCurve(const double InTime) const;

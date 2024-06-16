@@ -56,10 +56,16 @@ FPCGExPathfindingNavmeshContext::~FPCGExPathfindingNavmeshContext()
 {
 	PCGEX_TERMINATE_ASYNC
 
+	PCGEX_DELETE_TARRAY(PathQueries)
+
 	PCGEX_DELETE(GoalsPoints)
 	PCGEX_DELETE(OutputPaths)
 
-	PCGEX_DELETE_TARRAY(PathBuffer)
+	PCGEX_DELETE(SeedTagValueGetter)
+	PCGEX_DELETE(GoalTagValueGetter)
+
+	PCGEX_DELETE(SeedForwardHandler)
+	PCGEX_DELETE(GoalForwardHandler)
 }
 
 bool FPCGExPathfindingNavmeshElement::Boot(FPCGContext* InContext) const
@@ -68,34 +74,61 @@ bool FPCGExPathfindingNavmeshElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(PathfindingNavmesh)
 
+	Context->SeedsPoints = Context->MainPoints->Pairs[0];
+
 	PCGEX_OPERATION_BIND(GoalPicker, UPCGExGoalPickerRandom)
 	PCGEX_OPERATION_BIND(Blending, UPCGExSubPointsBlendInterpolate)
 
-	if (TArray<FPCGTaggedData> Goals = Context->InputData.GetInputsByPin(PCGExPathfinding::SourceGoalsLabel);
-		Goals.Num() > 0)
+
+	Context->SeedsPoints = Context->TryGetSingleInput(PCGExPathfinding::SourceSeedsLabel, true);
+	if (!Context->SeedsPoints) { return false; }
+
+	Context->GoalsPoints = Context->TryGetSingleInput(PCGExPathfinding::SourceGoalsLabel, true);
+	if (!Context->GoalsPoints) { return false; }
+
+
+	if (Settings->bUseSeedAttributeToTagPath)
 	{
-		const FPCGTaggedData& GoalsSource = Goals[0];
-		Context->GoalsPoints = PCGExData::PCGExPointIO::GetPointIO(Context, GoalsSource);
+		Context->SeedTagValueGetter = new PCGEx::FLocalToStringGetter();
+		Context->SeedTagValueGetter->Capture(Settings->SeedTagAttribute);
+		if (!Context->SeedTagValueGetter->SoftGrab(*Context->SeedsPoints))
+		{
+			PCGE_LOG(Error, GraphAndLog, FTEXT("Missing specified Attribute to Tag on Seed points."));
+			return false;
+		}
 	}
 
-	if (!Context->GoalsPoints || Context->GoalsPoints->GetNum() == 0)
+	if (Settings->bUseGoalAttributeToTagPath)
 	{
-		PCGE_LOG(Error, GraphAndLog, FTEXT("Missing Input Goals."));
-		return false;
+		Context->GoalTagValueGetter = new PCGEx::FLocalToStringGetter();
+		Context->GoalTagValueGetter->Capture(Settings->GoalTagAttribute);
+		if (!Context->GoalTagValueGetter->SoftGrab(*Context->GoalsPoints))
+		{
+			PCGE_LOG(Error, GraphAndLog, FTEXT("Missing specified Attribute to Tag on Goal points."));
+			return false;
+		}
 	}
 
-	Context->OutputPaths = new PCGExData::FPointIOCollection();
-
-	PCGEX_FWD(bAddSeedToPath)
-	PCGEX_FWD(bAddGoalToPath)
-
-	PCGEX_FWD(NavAgentProperties)
-	PCGEX_FWD(bRequireNavigableEndLocation)
-	PCGEX_FWD(PathfindingMode)
+	Context->SeedForwardHandler = new PCGExDataBlending::FDataForwardHandler(&Settings->SeedForwardAttributes, Context->SeedsPoints);
+	Context->GoalForwardHandler = new PCGExDataBlending::FDataForwardHandler(&Settings->GoalForwardAttributes, Context->GoalsPoints);
 
 	Context->FuseDistance = Settings->FuseDistance * Settings->FuseDistance;
 
-	Context->GoalsPoints->CreateInKeys();
+	Context->OutputPaths = new PCGExData::FPointIOCollection();
+	Context->OutputPaths->DefaultOutputLabel = PCGExGraph::OutputPathsLabel;
+
+	// Prepare path queries
+
+	Context->GoalPicker->PrepareForData(*Context->SeedsPoints, *Context->GoalsPoints);
+	PCGExPathfinding::ProcessGoals(
+		Context->SeedsPoints, Context->GoalPicker,
+		[&](const int32 SeedIndex, const int32 GoalIndex)
+		{
+			Context->PathQueries.Add(
+				new PCGExPathfinding::FPathQuery(
+					SeedIndex, Context->SeedsPoints->GetInPoint(SeedIndex).Transform.GetLocation(),
+					GoalIndex, Context->GoalsPoints->GetInPoint(GoalIndex).Transform.GetLocation()));
+		});
 
 	return true;
 }
@@ -118,12 +151,12 @@ bool FPCGExPathfindingNavmeshElement::ExecuteInternal(FPCGContext* InContext) co
 	{
 		auto NavClusterTask = [&](const int32 SeedIndex, const int32 GoalIndex)
 		{
-			const int32 PathIndex = Context->PathBuffer.Add(
+			const int32 PathIndex = Context->PathQueries.Add(
 				new PCGExPathfinding::FPathQuery(
 					SeedIndex, Context->CurrentIO->GetInPoint(SeedIndex).Transform.GetLocation(),
 					GoalIndex, Context->GoalsPoints->GetInPoint(GoalIndex).Transform.GetLocation()));
 
-			Context->GetAsyncManager()->Start<FSampleNavmeshTask>(PathIndex, Context->CurrentIO, Context->PathBuffer[PathIndex]);
+			Context->GetAsyncManager()->Start<FSampleNavmeshTask>(PathIndex, Context->CurrentIO, &Context->PathQueries);
 		};
 
 		PCGExPathfinding::ProcessGoals(Context->CurrentIO, Context->GoalPicker, NavClusterTask);
@@ -145,11 +178,13 @@ bool FPCGExPathfindingNavmeshElement::ExecuteInternal(FPCGContext* InContext) co
 bool FSampleNavmeshTask::ExecuteTask()
 {
 	FPCGExPathfindingNavmeshContext* Context = static_cast<FPCGExPathfindingNavmeshContext*>(Manager->Context);
-
+	PCGEX_SETTINGS(PathfindingNavmesh)
 
 	UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(Context->World);
 
 	if (!NavSys || !NavSys->GetDefaultNavDataInstance()) { return false; }
+
+	PCGExPathfinding::FPathQuery* Query = (*Queries)[TaskIndex];
 
 	const FPCGPoint* Seed = Context->CurrentIO->TryGetInPoint(Query->SeedIndex);
 	const FPCGPoint* Goal = Context->GoalsPoints->TryGetInPoint(Query->GoalIndex);
@@ -181,8 +216,8 @@ bool FSampleNavmeshTask::ExecuteTask()
 	PathLocations.Add(Query->GoalPosition);
 
 	PCGExMath::FPathMetricsSquared Metrics = PCGExMath::FPathMetricsSquared(PathLocations[0]);
-	int32 FuseCountReduce = Context->bAddGoalToPath ? 2 : 1;
-	for (int i = Context->bAddSeedToPath; i < PathLocations.Num(); i++)
+	int32 FuseCountReduce = Settings->bAddGoalToPath ? 2 : 1;
+	for (int i = Settings->bAddSeedToPath; i < PathLocations.Num(); i++)
 	{
 		FVector CurrentLocation = PathLocations[i];
 		if (i > 0 && i < (PathLocations.Num() - FuseCountReduce))
@@ -229,8 +264,14 @@ bool FSampleNavmeshTask::ExecuteTask()
 
 	PCGEX_DELETE(TempBlender)
 
-	if (!Context->bAddSeedToPath) { MutablePoints.RemoveAt(0); }
-	if (!Context->bAddGoalToPath) { MutablePoints.Pop(); }
+	if (!Settings->bAddSeedToPath) { MutablePoints.RemoveAt(0); }
+	if (!Settings->bAddGoalToPath) { MutablePoints.Pop(); }
+
+	if (Settings->bUseSeedAttributeToTagPath) { PathPoints.Tags->RawTags.Add(Context->SeedTagValueGetter->SoftGet(*Seed, TEXT(""))); }
+	if (Settings->bUseGoalAttributeToTagPath) { PathPoints.Tags->RawTags.Add(Context->GoalTagValueGetter->SoftGet(*Goal, TEXT(""))); }
+
+	Context->SeedForwardHandler->Forward(Query->SeedIndex, &PathPoints);
+	Context->GoalForwardHandler->Forward(Query->GoalIndex, &PathPoints);
 
 	return true;
 }

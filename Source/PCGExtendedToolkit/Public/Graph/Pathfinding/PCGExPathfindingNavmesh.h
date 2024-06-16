@@ -77,15 +77,41 @@ public:
 	double FuseDistance = 10;
 
 	/** Controls how path points blend from seed to goal. */
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = Settings, Instanced, meta = (PCG_Overridable, NoResetToDefault, ShowOnlyInnerProperties))
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Settings|Blending", Instanced, meta = (PCG_Overridable, NoResetToDefault, ShowOnlyInnerProperties))
 	TObjectPtr<UPCGExSubPointsBlendOperation> Blending;
 
+
+	/** Use a Seed attribute value to tag output paths. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding")
+	bool bUseSeedAttributeToTagPath;
+
+	/** Which Seed attribute to use as tag. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(EditCondition="bUseSeedAttributeToTagPath"))
+	FPCGAttributePropertyInputSelector SeedTagAttribute;
+
+	/** Which Seed attributes to forward on paths. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding")
+	FPCGExForwardSettings SeedForwardAttributes;
+
+	/** Use a Goal attribute value to tag output paths. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding")
+	bool bUseGoalAttributeToTagPath;
+
+	/** Which Goal attribute to use as tag. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding", meta=(EditCondition="bUseGoalAttributeToTagPath"))
+	FPCGAttributePropertyInputSelector GoalTagAttribute;
+
+	/** Which Goal attributes to forward on paths. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Tagging & Forwarding")
+	FPCGExForwardSettings GoalForwardAttributes;
+
+
 	/** Pathfinding mode */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Advanced")
 	EPCGExPathfindingNavmeshMode PathfindingMode = EPCGExPathfindingNavmeshMode::Regular;
 
 	/** Nav agent to be used by the nav system. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Advanced")
 	FNavAgentProperties NavAgentProperties;
 };
 
@@ -96,22 +122,27 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingNavmeshContext final : public FPC
 
 	virtual ~FPCGExPathfindingNavmeshContext() override;
 
+	PCGExData::FPointIO* SeedsPoints = nullptr;
 	PCGExData::FPointIO* GoalsPoints = nullptr;
 	PCGExData::FPointIOCollection* OutputPaths = nullptr;
 
 	UPCGExGoalPicker* GoalPicker = nullptr;
 	UPCGExSubPointsBlendOperation* Blending = nullptr;
 
-	bool bAddSeedToPath = true;
-	bool bAddGoalToPath = true;
-
-	TArray<PCGExPathfinding::FPathQuery*> PathBuffer;
+	TArray<PCGExPathfinding::FPathQuery*> PathQueries;
 
 	FNavAgentProperties NavAgentProperties;
 
 	bool bRequireNavigableEndLocation = true;
 	EPCGExPathfindingNavmeshMode PathfindingMode;
 	double FuseDistance = 10;
+
+	PCGEx::FLocalToStringGetter* SeedTagValueGetter = nullptr;
+	PCGEx::FLocalToStringGetter* GoalTagValueGetter = nullptr;
+
+	PCGExDataBlending::FDataForwardHandler* SeedForwardHandler = nullptr;
+	PCGExDataBlending::FDataForwardHandler* GoalForwardHandler = nullptr;
+	
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExPathfindingNavmeshElement final : public FPCGExPointsProcessorElementBase
@@ -132,8 +163,8 @@ class PCGEXTENDEDTOOLKIT_API FSampleNavmeshTask final : public FPCGExPathfinding
 {
 public:
 	FSampleNavmeshTask(
-		PCGExData::FPointIO* InPointIO, PCGExPathfinding::FPathQuery* InQuery) :
-		FPCGExPathfindingTask(InPointIO, InQuery)
+		PCGExData::FPointIO* InPointIO, const TArray<PCGExPathfinding::FPathQuery*>* InQueries) :
+		FPCGExPathfindingTask(InPointIO, InQueries)
 	{
 	}
 

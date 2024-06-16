@@ -440,7 +440,7 @@ namespace PCGExGraph
 			PCGEX_DELETE_TARRAY(Crossings)
 		}
 	};
-
+	
 	static void FindOverlappingEdges(
 		FEdgeEdgeIntersections* InIntersections,
 		const int32 EdgeIndex)

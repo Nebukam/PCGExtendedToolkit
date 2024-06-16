@@ -19,7 +19,7 @@ bool UPCGExSearchDijkstra::FindPath(
 	const FVector& GoalPosition,
 	const FPCGExNodeSelectionSettings* GoalSelection,
 	PCGExHeuristics::THeuristicsHandler* Heuristics,
-	TArray<int32>& OutPath, PCGExHeuristics::FLocalFeedbackHandler* LocalFeedback)
+	TArray<int32>& OutPath, PCGExHeuristics::FLocalFeedbackHandler* LocalFeedback) const
 {
 	const PCGExCluster::FNode& SeedNode = Cluster->Nodes[Cluster->FindClosestNode(SeedPosition, SeedSelection->PickingMethod, 1)];
 	if (!SeedSelection->WithinDistance(SeedNode.Position, SeedPosition)) { return false; }

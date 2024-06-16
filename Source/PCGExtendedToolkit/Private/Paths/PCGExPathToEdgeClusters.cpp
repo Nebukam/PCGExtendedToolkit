@@ -213,7 +213,7 @@ bool FPCGExPathToEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) co
 
 		if (Settings->bFindPointEdgeIntersections) { FindPointEdgeIntersections(); }
 		else if (Settings->bFindEdgeEdgeIntersections) { FindEdgeEdgeIntersections(); }
-		else { Context->SetAsyncState(PCGExGraph::State_WritingClusters); }
+		else { Context->SetState(PCGExGraph::State_WritingClusters); }
 	}
 
 	if (Context->IsState(PCGExGraph::State_FindingPointEdgeIntersections))
@@ -255,7 +255,7 @@ bool FPCGExPathToEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) co
 		PCGEX_DELETE(Context->MetadataBlender)
 
 		if (Settings->bFindEdgeEdgeIntersections) { FindEdgeEdgeIntersections(); }
-		else { Context->SetAsyncState(PCGExGraph::State_WritingClusters); }
+		else { Context->SetState(PCGExGraph::State_WritingClusters); }
 	}
 
 	if (Context->IsState(PCGExGraph::State_FindingEdgeEdgeIntersections))
@@ -294,13 +294,11 @@ bool FPCGExPathToEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) co
 		PCGEX_DELETE(Context->EdgeEdgeIntersections)
 		PCGEX_DELETE(Context->MetadataBlender)
 
-		Context->SetAsyncState(PCGExGraph::State_WritingClusters);
+		Context->SetState(PCGExGraph::State_WritingClusters);
 	}
 
 	if (Context->IsState(PCGExGraph::State_WritingClusters))
 	{
-		PCGEX_WAIT_ASYNC
-
 		Context->GraphBuilder->Compile(Context->GetAsyncManager(), &Context->GraphMetadataSettings);
 		Context->SetAsyncState(PCGExGraph::State_WaitingOnWritingClusters);
 		return false;

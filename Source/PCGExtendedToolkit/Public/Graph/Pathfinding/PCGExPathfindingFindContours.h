@@ -128,9 +128,7 @@ namespace PCGExFindContours
 	};
 
 	class FProcessor final : public PCGExClusterMT::FClusterProcessor
-	{
-		TArray<PCGExCluster::FNodeChain*> Chains;
-		
+	{		
 		FPCGExGeo2DProjectionSettings ProjectionSettings;
 		PCGExCluster::FClusterProjection* ClusterProjection = nullptr;
 		

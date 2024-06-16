@@ -9,12 +9,9 @@ void UPCGExSearchOperation::CopySettingsFrom(const UPCGExOperation* Other)
 	Super::CopySettingsFrom(Other);
 }
 
-bool UPCGExSearchOperation::GetRequiresProjection() { return false; }
-
-void UPCGExSearchOperation::PrepareForCluster(PCGExCluster::FCluster* InCluster, PCGExCluster::FClusterProjection* InProjection)
+void UPCGExSearchOperation::PrepareForCluster(PCGExCluster::FCluster* InCluster)
 {
 	Cluster = InCluster;
-	Projection = InProjection;
 }
 
 bool UPCGExSearchOperation::FindPath(
@@ -23,7 +20,7 @@ bool UPCGExSearchOperation::FindPath(
 	const FVector& GoalPosition,
 	const FPCGExNodeSelectionSettings* GoalSelection,
 	PCGExHeuristics::THeuristicsHandler* Heuristics,
-	TArray<int32>& OutPath, PCGExHeuristics::FLocalFeedbackHandler* LocalFeedback)
+	TArray<int32>& OutPath, PCGExHeuristics::FLocalFeedbackHandler* LocalFeedback) const
 {
 	return false;
 }

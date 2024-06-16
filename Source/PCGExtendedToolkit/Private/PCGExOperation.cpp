@@ -63,17 +63,3 @@ void UPCGExOperation::CopySettingsFrom(const UPCGExOperation* Other)
 	BindContext(Other->Context);
 }
 
-UPCGExOperation* UPCGExOperation::CopyOperation() const
-{
-	UObject* GenericInstance = NewObject<UObject>(this->GetOuter(), this->GetClass());
-	UPCGExOperation* TypedInstance = Cast<UPCGExOperation>(GenericInstance);
-
-	if (!TypedInstance)
-	{
-		PCGEX_DELETE_UOBJECT(GenericInstance)
-		return nullptr;
-	}
-
-	TypedInstance->CopySettingsFrom(this);
-	return TypedInstance;
-}

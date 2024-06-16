@@ -97,6 +97,6 @@ namespace PCGExHeuristics
 		FORCEINLINE void FeedbackPointScore(const PCGExCluster::FNode& Node);
 		FORCEINLINE void FeedbackScore(const PCGExCluster::FNode& Node, const PCGExGraph::FIndexedEdge& Edge);
 
-		FLocalFeedbackHandler* MakeLocalFeedbackHandler(PCGExCluster::FCluster* InCluster);
+		FLocalFeedbackHandler* MakeLocalFeedbackHandler(const PCGExCluster::FCluster* InCluster);
 	};
 }

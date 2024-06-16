@@ -51,11 +51,11 @@ public:
 public:
 	/** Add seed point at the beginning of the path */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
-	bool bAddSeedToPath = true;
+	bool bAddSeedToPath = false;
 
 	/** Add goal point at the beginning of the path */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
-	bool bAddGoalToPath = true;
+	bool bAddGoalToPath = false;
 
 	/** Insert plot points inside the path */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings)
@@ -97,15 +97,14 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingPlotEdgesContext final : public F
 	PCGExData::FPointIOCollection* OutputPaths = nullptr;
 
 	UPCGExSearchOperation* SearchAlgorithm = nullptr;
-	PCGExHeuristics::THeuristicsHandler* HeuristicsHandler = nullptr;
-
-	int32 CurrentPlotIndex = -1;
 
 	bool bAddSeedToPath = true;
 	bool bAddGoalToPath = true;
 	bool bAddPlotPointsToPath = true;
 
-	void TryFindPath(const PCGExData::FPointIO* InPlotPoints) const;
+	void TryFindPath(
+		const UPCGExSearchOperation* SearchOperation,
+		const PCGExData::FPointIO* InPlotPoints, PCGExHeuristics::THeuristicsHandler* HeuristicsHandler) const;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExPathfindingPlotEdgesElement final : public FPCGExEdgesProcessorElement
@@ -121,20 +120,40 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-
-class PCGEXTENDEDTOOLKIT_API FPCGExPlotClusterPathTask final : public FPCGExNonAbandonableTask
+namespace PCGExPathfindingPlotEdge
 {
-public:
-	FPCGExPlotClusterPathTask(
-		PCGExData::FPointIO* InPointIO,
-		PCGExPathfinding::FExtraWeights* InGlobalExtraWeights = nullptr) :
-		FPCGExNonAbandonableTask(InPointIO),
-		GlobalExtraWeights(InGlobalExtraWeights)
-
+	class PCGEXTENDEDTOOLKIT_API FPCGExPlotClusterPathTask final : public FPCGExPathfindingTask
 	{
-	}
+	public:
+		FPCGExPlotClusterPathTask(PCGExData::FPointIO* InPointIO,
+		                          const UPCGExSearchOperation* InSearchOperation,
+		                          const PCGExData::FPointIOCollection* InPlots,
+		                          PCGExHeuristics::THeuristicsHandler* InHeuristics,
+		                          const bool Inlined = false) :
+			FPCGExPathfindingTask(InPointIO, nullptr),
+			SearchOperation(InSearchOperation),
+			Plots(InPlots),
+			Heuristics(InHeuristics),
+			bInlined(Inlined)
+		{
+		}
 
-	PCGExPathfinding::FExtraWeights* GlobalExtraWeights = nullptr;
+		const UPCGExSearchOperation* SearchOperation = nullptr;
+		const PCGExData::FPointIOCollection* Plots = nullptr;
+		PCGExHeuristics::THeuristicsHandler* Heuristics = nullptr;
+		bool bInlined = false;
 
-	virtual bool ExecuteTask() override;
-};
+		virtual bool ExecuteTask() override;
+	};
+
+	class FProcessor final : public PCGExClusterMT::FClusterProcessor
+	{
+	public:
+		FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges);
+		virtual ~FProcessor() override;
+
+		UPCGExSearchOperation* SearchOperation = nullptr;
+
+		virtual bool Process(FPCGExAsyncManager* AsyncManager) override;
+	};
+}

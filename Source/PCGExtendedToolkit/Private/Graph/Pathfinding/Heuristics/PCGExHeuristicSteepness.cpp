@@ -4,7 +4,7 @@
 
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicSteepness.h"
 
-void UPCGExHeuristicSteepness::PrepareForCluster(PCGExCluster::FCluster* InCluster)
+void UPCGExHeuristicSteepness::PrepareForCluster(const PCGExCluster::FCluster* InCluster)
 {
 	UpwardVector = UpVector.GetSafeNormal();
 	Super::PrepareForCluster(InCluster);

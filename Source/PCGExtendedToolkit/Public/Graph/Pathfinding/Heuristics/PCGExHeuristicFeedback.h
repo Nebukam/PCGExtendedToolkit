@@ -52,7 +52,7 @@ public:
 	double NodeScale = 1;
 	double EdgeScale = 1;
 
-	virtual void PrepareForCluster(PCGExCluster::FCluster* InCluster) override;
+	virtual void PrepareForCluster(const PCGExCluster::FCluster* InCluster) override;
 
 	FORCEINLINE virtual double GetGlobalScore(
 		const PCGExCluster::FNode& From,

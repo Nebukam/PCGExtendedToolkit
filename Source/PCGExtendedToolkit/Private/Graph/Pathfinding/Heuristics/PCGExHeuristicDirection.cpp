@@ -3,7 +3,7 @@
 
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristicDirection.h"
 
-void UPCGExHeuristicDirection::PrepareForCluster(PCGExCluster::FCluster* InCluster)
+void UPCGExHeuristicDirection::PrepareForCluster(const PCGExCluster::FCluster* InCluster)
 {
 	if (bInvert)
 	{

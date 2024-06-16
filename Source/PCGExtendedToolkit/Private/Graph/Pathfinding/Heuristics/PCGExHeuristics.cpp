@@ -162,7 +162,7 @@ namespace PCGExHeuristics
 		for (UPCGExHeuristicFeedback* Op : Feedbacks) { Op->FeedbackScore(Node, Edge); }
 	}
 
-	FLocalFeedbackHandler* THeuristicsHandler::MakeLocalFeedbackHandler(PCGExCluster::FCluster* InCluster)
+	FLocalFeedbackHandler* THeuristicsHandler::MakeLocalFeedbackHandler(const PCGExCluster::FCluster* InCluster)
 	{
 		if (!LocalFeedbackFactories.IsEmpty()) { return nullptr; }
 		FLocalFeedbackHandler* NewLocalFeedbackHandler = new FLocalFeedbackHandler();

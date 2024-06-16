@@ -31,7 +31,21 @@ public:
 
 	virtual void CopySettingsFrom(const UPCGExOperation* Other);
 
-	UPCGExOperation* CopyOperation() const;
+	template <typename T>
+	T* CopyOperation() const
+	{
+		UObject* GenericInstance = NewObject<UObject>(this->GetOuter(), this->GetClass());
+		T* TypedInstance = Cast<T>(GenericInstance);
+
+		if (!TypedInstance)
+		{
+			PCGEX_DELETE_UOBJECT(GenericInstance)
+			return nullptr;
+		}
+
+		TypedInstance->CopySettingsFrom(this);
+		return TypedInstance;
+	}
 
 	virtual void BeginDestroy() override;
 

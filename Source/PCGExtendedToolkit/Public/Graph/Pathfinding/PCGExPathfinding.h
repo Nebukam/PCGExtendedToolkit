@@ -10,6 +10,11 @@
 
 #include "PCGExPathfinding.generated.h"
 
+namespace PCGExHeuristics
+{
+	class THeuristicsHandler;
+}
+
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Pathfinding Navmesh Mode"))
 enum class EPCGExPathfindingNavmeshMode : uint8
 {
@@ -69,7 +74,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathStatistics
 
 namespace PCGExPathfinding
 {
-	
 	PCGEX_ASYNC_STATE(State_ProcessingHeuristics)
 	PCGEX_ASYNC_STATE(State_ProcessingHeuristicModifiers)
 	PCGEX_ASYNC_STATE(State_Pathfinding)
@@ -180,11 +184,11 @@ class PCGEXTENDEDTOOLKIT_API FPCGExPathfindingTask : public FPCGExNonAbandonable
 {
 public:
 	FPCGExPathfindingTask(PCGExData::FPointIO* InPointIO,
-	                      PCGExPathfinding::FPathQuery* InQuery) :
+	                      const TArray<PCGExPathfinding::FPathQuery*>* InQueries) :
 		FPCGExNonAbandonableTask(InPointIO),
-		Query(InQuery)
+		Queries(InQueries)
 	{
 	}
 
-	PCGExPathfinding::FPathQuery* Query = nullptr;
+	const TArray<PCGExPathfinding::FPathQuery*>* Queries = nullptr;
 };

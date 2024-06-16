@@ -33,12 +33,10 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSearchOperation : public UPCGExOperation
 
 public:
 	PCGExCluster::FCluster* Cluster = nullptr;
-	PCGExCluster::FClusterProjection* Projection = nullptr;
 
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
 	
-	virtual bool GetRequiresProjection();
-	virtual void PrepareForCluster(PCGExCluster::FCluster* InCluster, PCGExCluster::FClusterProjection* InProjection = nullptr);
+	virtual void PrepareForCluster(PCGExCluster::FCluster* InCluster);
 	virtual bool FindPath(
 		const FVector& SeedPosition,
 		const FPCGExNodeSelectionSettings* SeedSelection,
@@ -46,5 +44,5 @@ public:
 		const FPCGExNodeSelectionSettings* GoalSelection,
 		PCGExHeuristics::THeuristicsHandler* Heuristics,
 		TArray<int32>& OutPath,
-		PCGExHeuristics::FLocalFeedbackHandler* LocalFeedback = nullptr);
+		PCGExHeuristics::FLocalFeedbackHandler* LocalFeedback = nullptr) const;
 };

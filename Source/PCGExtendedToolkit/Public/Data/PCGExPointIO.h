@@ -199,8 +199,8 @@ namespace PCGExData
 
 		void Sort();
 
-		FBox GetInBounds();
-		FBox GetOutBounds();
+		FBox GetInBounds() const;
+		FBox GetOutBounds() const;
 
 		void Flush();
 	};

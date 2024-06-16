@@ -12,9 +12,8 @@ namespace PCGExData
 
 	void FPointIO::InitializeOutput(const EInit InitOut)
 	{
-
 		if (Out != In) { PCGEX_DELETE_UOBJECT(Out) }
-		
+
 		switch (InitOut)
 		{
 		case EInit::NoOutput:
@@ -231,6 +230,8 @@ namespace PCGExData
 
 	bool FPointIO::OutputTo(FPCGContext* Context)
 	{
+		CleanupKeys();
+
 		if (bEnabled && Out && Out->GetPoints().Num() > 0)
 		{
 			FPCGTaggedData* TaggedOutput = &Context->OutputData.TaggedData.Emplace_GetRef();
@@ -238,7 +239,6 @@ namespace PCGExData
 			TaggedOutput->Pin = DefaultOutputLabel;
 			Tags->Dump(TaggedOutput->Tags);
 
-			CleanupKeys();
 			return true;
 		}
 
@@ -248,7 +248,6 @@ namespace PCGExData
 			Out = nullptr;
 		}
 
-		CleanupKeys();
 		return false;
 	}
 
@@ -388,14 +387,14 @@ namespace PCGExData
 		Pairs.Sort([](const FPointIO& A, const FPointIO& B) { return A.IOIndex < B.IOIndex; });
 	}
 
-	FBox FPointIOCollection::GetInBounds()
+	FBox FPointIOCollection::GetInBounds() const
 	{
 		FBox Bounds = FBox(ForceInit);
 		for (const FPointIO* IO : Pairs) { Bounds += IO->GetIn()->GetBounds(); }
 		return Bounds;
 	}
 
-	FBox FPointIOCollection::GetOutBounds()
+	FBox FPointIOCollection::GetOutBounds() const
 	{
 		FBox Bounds = FBox(ForceInit);
 		for (const FPointIO* IO : Pairs) { Bounds += IO->GetOut()->GetBounds(); }
