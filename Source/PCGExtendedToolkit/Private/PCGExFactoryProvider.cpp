@@ -48,9 +48,10 @@ bool FPCGExFactoryProviderElement::ExecuteInternal(FPCGContext* Context) const
 
 	UPCGExParamFactoryBase* OutFactory = Settings->CreateFactory(Context, nullptr);
 
-	FPCGTaggedData& Output = Context->OutputData.TaggedData.Emplace_GetRef();
-	Output.Data = OutFactory;
-	Output.Pin = Settings->GetMainOutputLabel();
+	FPCGExContext* PCGExContext = static_cast<FPCGExContext*>(Context);
+	check(PCGExContext);
+
+	FPCGTaggedData& Output = PCGExContext->NewOutput(Settings->GetMainOutputLabel(), OutFactory);
 
 	return true;
 }

@@ -36,7 +36,6 @@ namespace PCGExGraph
 			FBox Bounds,
 			const FPCGExPointPointIntersectionSettings& InPointPointIntersectionSettings,
 			FPCGExBlendingSettings InDefaultPointsBlendingSettings);
-		
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FIntersectionsHandler
@@ -73,8 +72,7 @@ namespace PCGExGraph
 		PCGExGraph::FPointEdgeIntersections* PointEdgeIntersections = nullptr;
 		PCGExGraph::FEdgeEdgeIntersections* EdgeEdgeIntersections = nullptr;
 
-		explicit FIntersectionsHandler(FPCGExPointsProcessorContext* InContext):
-			Context(InContext)
+		explicit FIntersectionsHandler()
 		{
 		}
 

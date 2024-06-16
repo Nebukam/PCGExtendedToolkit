@@ -23,10 +23,10 @@ namespace PCGExGraph
 	void FIntersectionsHandler::Init()
 	{
 		EdgeEdgeIntersectionSettings.ComputeDot();
-
-		GraphMetadataSettings.Grab(Context, PointPointIntersectionSettings);
-		GraphMetadataSettings.Grab(Context, PointEdgeIntersectionSettings);
-		GraphMetadataSettings.Grab(Context, EdgeEdgeIntersectionSettings);
-		
+		/*
+				GraphMetadataSettings.Grab(Context, PointPointIntersectionSettings);
+				GraphMetadataSettings.Grab(Context, PointEdgeIntersectionSettings);
+				GraphMetadataSettings.Grab(Context, EdgeEdgeIntersectionSettings);
+		*/
 	}
 }

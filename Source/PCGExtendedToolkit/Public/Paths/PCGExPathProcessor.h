@@ -5,10 +5,8 @@
 
 #include "CoreMinimal.h"
 #include "PCGExGlobalSettings.h"
-#include "PCGExPointsMT.h"
-
 #include "PCGExPointsProcessor.h"
-#include "Graph/PCGExGraph.h"
+
 #include "PCGExPathProcessor.generated.h"
 
 class UPCGExFilterFactoryBase;
@@ -51,7 +49,6 @@ public:
 	virtual FName GetMainInputLabel() const override;
 	virtual FName GetMainOutputLabel() const override;
 	//~End UPCGExPointsProcessorSettings interface
-
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExPathProcessorContext : public FPCGExPointsProcessorContext
@@ -61,7 +58,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathProcessorContext : public FPCGExPointsPr
 	virtual ~FPCGExPathProcessorContext() override;
 
 	PCGExData::FPointIOCollection* MainPaths = nullptr;
-
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExPathProcessorElement : public FPCGExPointsProcessorElementBase

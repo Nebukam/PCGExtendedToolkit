@@ -77,7 +77,7 @@ namespace PCGExDataBlending
 		friend class FPCGExCompoundedPointBlendTask;
 
 	public:
-		explicit FCompoundBlender(FPCGExBlendingSettings* InBlendingSettings);
+		explicit FCompoundBlender(const FPCGExBlendingSettings* InBlendingSettings);
 		~FCompoundBlender();
 
 		void AddSource(PCGExData::FPointIO& InData);
@@ -90,7 +90,7 @@ namespace PCGExDataBlending
 		void Write();
 
 	protected:
-		FPCGExBlendingSettings* BlendingSettings = nullptr;
+		const FPCGExBlendingSettings* BlendingSettings = nullptr;
 
 		TArray<FAttributeSourceMap*> AttributeSourceMaps;
 		TMap<int32, int32> IOIndices;

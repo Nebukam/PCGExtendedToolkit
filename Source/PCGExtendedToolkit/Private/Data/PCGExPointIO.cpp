@@ -3,6 +3,7 @@
 
 #include "Data/PCGExPointIO.h"
 
+#include "PCGExContext.h"
 #include "PCGExMT.h"
 #include "Metadata/Accessors/PCGAttributeAccessorKeys.h"
 
@@ -232,12 +233,13 @@ namespace PCGExData
 	{
 		CleanupKeys();
 
+		FPCGExContext* PCGExContext = static_cast<FPCGExContext*>(Context);
+		check(PCGExContext);
+
 		if (bEnabled && Out && Out->GetPoints().Num() > 0)
 		{
-			FPCGTaggedData* TaggedOutput = &Context->OutputData.TaggedData.Emplace_GetRef();
-			TaggedOutput->Data = Out;
-			TaggedOutput->Pin = DefaultOutputLabel;
-			Tags->Dump(TaggedOutput->Tags);
+			FPCGTaggedData& TaggedOutput = PCGExContext->NewOutput(DefaultOutputLabel, Out);
+			Tags->Dump(TaggedOutput.Tags);
 
 			return true;
 		}

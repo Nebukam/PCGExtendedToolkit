@@ -332,8 +332,8 @@ bool FPCGExPartitionByValuesBaseElement::ExecuteInternal(FPCGContext* InContext)
 
 			if (Settings->bFlattenOutput) { OutData->Metadata->Flatten(); }
 
-			FPCGTaggedData* TaggedData = Context->Output(OutData, Context->MainPoints->DefaultOutputLabel);
-			Tags->Dump(TaggedData->Tags);
+			FPCGTaggedData& TaggedData = Context->NewOutput(Context->MainPoints->DefaultOutputLabel, OutData);
+			Tags->Dump(TaggedData.Tags);
 			PCGEX_DELETE(Tags)
 		};
 

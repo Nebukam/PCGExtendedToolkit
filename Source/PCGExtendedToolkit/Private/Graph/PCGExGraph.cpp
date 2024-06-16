@@ -240,9 +240,18 @@ namespace PCGExGraph
 
 	void FGraphBuilder::Compile(FPCGExAsyncManager* Manager, FGraphMetadataSettings* MetadataSettings) const
 	{
-		Manager->Start<PCGExGraphTask::FCompileGraph>(
-			-1, PointIO, const_cast<FGraphBuilder*>(this),
-			OutputSettings->GetMinClusterSize(), OutputSettings->GetMaxClusterSize(), MetadataSettings);
+		if (Graph->Nodes.Num() < GetDefault<UPCGExGlobalSettings>()->SmallClusterSize) // TODO : Expose this as trivial
+		{
+			Manager->StartSynchronous<PCGExGraphTask::FCompileGraph>(
+				-1, PointIO, const_cast<FGraphBuilder*>(this),
+				OutputSettings->GetMinClusterSize(), OutputSettings->GetMaxClusterSize(), MetadataSettings);
+		}
+		else
+		{
+			Manager->Start<PCGExGraphTask::FCompileGraph>(
+				-1, PointIO, const_cast<FGraphBuilder*>(this),
+				OutputSettings->GetMinClusterSize(), OutputSettings->GetMaxClusterSize(), MetadataSettings);
+		}
 	}
 
 	void FGraphBuilder::Write(FPCGContext* InContext) const

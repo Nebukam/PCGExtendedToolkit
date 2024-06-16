@@ -126,10 +126,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathToEdgeClustersContext final : public FPC
 
 	virtual ~FPCGExPathToEdgeClustersContext() override;
 
-	PCGExGraph::FCompoundGraph* CompoundGraph;
+	PCGExGraph::FCompoundGraph* CompoundGraph = nullptr;
+	PCGExData::FPointIO* CompoundPoints = nullptr;
 	PCGExDataBlending::FCompoundBlender* CompoundPointsBlender = nullptr;
-
-	PCGExData::FPointIO* ConsolidatedPoints = nullptr;
 
 	FPCGExGraphBuilderSettings GraphBuilderSettings;
 	PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
@@ -153,29 +152,11 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-
-class PCGEXTENDEDTOOLKIT_API FPCGExInsertPathToCompoundGraphTask final : public FPCGExNonAbandonableTask
-{
-public:
-	FPCGExInsertPathToCompoundGraphTask(PCGExData::FPointIO* InPointIO,
-	                                    PCGExGraph::FCompoundGraph* InGraph,
-	                                    const bool bInJoinFirstAndLast)
-		: FPCGExNonAbandonableTask(InPointIO),
-		  Graph(InGraph),
-		  bJoinFirstAndLast(bInJoinFirstAndLast)
-	{
-	}
-
-	PCGExGraph::FCompoundGraph* Graph = nullptr;
-	bool bJoinFirstAndLast = false;
-
-	virtual bool ExecuteTask() override;
-};
-
-
 namespace PCGExPathToClusters
 {
-	class FProcessor final : public PCGExPointsMT::FPointsProcessor
+#pragma region NonFusing
+
+	class FNonFusingProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
 	public:
 		PCGExGraph::FCompoundGraph* CompoundGraph = nullptr;
@@ -183,25 +164,58 @@ namespace PCGExPathToClusters
 		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
 		FPCGExGraphBuilderSettings GraphBuilderSettings;
 
-		explicit FProcessor(PCGExData::FPointIO* InPoints);
-		virtual ~FProcessor() override;
+		explicit FNonFusingProcessor(PCGExData::FPointIO* InPoints);
+		virtual ~FNonFusingProcessor() override;
 
 		virtual bool Process(FPCGExAsyncManager* AsyncManager) override;
-		virtual void ProcessSinglePoint(int32 Index, FPCGPoint& Point) override;
 		virtual void CompleteWork() override;
 	};
 
-	class FProcessorBatch final : public PCGExPointsMT::TBatch<FProcessor>
+	class FNonFusingProcessorBatch final : public PCGExPointsMT::TBatch<FNonFusingProcessor>
+	{
+	public:
+		FPCGExGraphBuilderSettings GraphBuilderSettings;
+
+		FNonFusingProcessorBatch(FPCGContext* InContext, const TArray<PCGExData::FPointIO*>& InPointsCollection);
+
+		virtual bool PrepareSingle(FNonFusingProcessor* PointsProcessor) override;
+	};
+
+#pragma endregion
+
+#pragma region Fusing
+	// Fusing processors
+
+	class FFusingProcessor final : public PCGExPointsMT::FPointsProcessor
+	{
+	public:
+		PCGExGraph::FCompoundGraph* CompoundGraph = nullptr;
+
+		explicit FFusingProcessor(PCGExData::FPointIO* InPoints);
+		virtual ~FFusingProcessor() override;
+
+		virtual bool Process(FPCGExAsyncManager* AsyncManager) override;
+	};
+
+	class FFusingProcessorBatch final : public PCGExPointsMT::TBatch<FFusingProcessor>
 	{
 	public:
 		PCGExGraph::FCompoundGraph* CompoundGraph = nullptr;
 		PCGExData::FPointIO* CompoundPoints = nullptr;
+		PCGExDataBlending::FCompoundBlender* CompoundPointsBlender = nullptr;
 
-		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
-		FPCGExGraphBuilderSettings GraphBuilderSettings;
+		PCGExData::FPointIOCollection* MainPoints = nullptr;
 
-		FProcessorBatch(FPCGContext* InContext, const TArray<PCGExData::FPointIO*>& InPointsCollection);
+		FPCGExPointPointIntersectionSettings PointPointIntersectionSettings;
 
-		virtual bool PrepareSingle(FProcessor* ClusterProcessor) override;
+		FFusingProcessorBatch(FPCGContext* InContext, const TArray<PCGExData::FPointIO*>& InPointsCollection);
+
+		virtual void Process(FPCGExAsyncManager* AsyncManager) override;
+		virtual bool PrepareSingle(FFusingProcessor* PointsProcessor) override;
+		virtual void CompleteWork() override;
+
+		virtual void ProcessSingleRangeIteration(const int32 Iteration) override;
 	};
+
+#pragma endregion
 }

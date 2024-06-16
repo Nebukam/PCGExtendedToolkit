@@ -310,6 +310,27 @@ namespace PCGExClusterMT
 		{
 		}
 
+		void StartParallelLoopForRange(const int32 NumIterations, const int32 PerLoopIterations = -1)
+		{
+			int32 PLI = GetDefault<UPCGExGlobalSettings>()->GetPointsBatchIteration(PerLoopIterations);
+			int32 CurrentCount = 0;
+			while (CurrentCount < NumIterations)
+			{
+				AsyncManagerPtr->Start<FAsyncProcessRange<FClusterProcessorBatchBase>>(
+					CurrentCount, nullptr, this, FMath::Min(NumIterations - CurrentCount, PLI));
+				CurrentCount += PLI;
+			}
+		}
+
+		void ProcessRange(const int32 StartIndex, const int32 Iterations)
+		{
+			for (int i = 0; i < Iterations; i++) { ProcessSingleRangeIteration(StartIndex + i); }
+		}
+
+		virtual void ProcessSingleRangeIteration(const int32 Iteration)
+		{
+		}
+
 		virtual void CompleteWork()
 		{
 		}
@@ -318,6 +339,10 @@ namespace PCGExClusterMT
 	template <typename T>
 	class TBatch : public FClusterProcessorBatchBase
 	{
+	protected:
+		bool bInlineProcessing = false;
+		bool bInlineCompletion = false;
+
 	public:
 		TArray<T*> Processors;
 		TArray<T*> ClosedBatchProcessors;
@@ -378,8 +403,15 @@ namespace PCGExClusterMT
 				NewProcessor->BatchIndex = Processors.Add(NewProcessor);
 				NewProcessor->bIsSmallCluster = IO->GetNum() < GetDefault<UPCGExGlobalSettings>()->SmallClusterSize;
 
-				if (NewProcessor->IsTrivial()) { ClosedBatchProcessors.Add(NewProcessor); }
-				else { AsyncManager->Start<FAsyncProcess<T>>(IO->IOIndex, IO, NewProcessor); }
+				if (bInlineProcessing)
+				{
+					NewProcessor->Process(AsyncManagerPtr);
+				}
+				else
+				{
+					if (NewProcessor->IsTrivial()) { ClosedBatchProcessors.Add(NewProcessor); }
+					else { AsyncManager->Start<FAsyncProcess<T>>(IO->IOIndex, IO, NewProcessor); }
+				}
 			}
 
 			StartClosedBatchProcessing();
@@ -390,13 +422,21 @@ namespace PCGExClusterMT
 		virtual void CompleteWork() override
 		{
 			CurrentState = PCGExMT::State_Completing;
-			for (T* Processor : Processors)
-			{
-				if (Processor->IsTrivial()) { continue; }
-				AsyncManagerPtr->Start<FAsyncCompleteWork<T>>(-1, nullptr, Processor);
-			}
 
-			StartClosedBatchProcessing();
+			if (bInlineCompletion)
+			{
+				for (T* Processor : Processors) { Processor->CompleteWork(); }
+			}
+			else
+			{
+				for (T* Processor : Processors)
+				{
+					if (Processor->IsTrivial()) { continue; }
+					AsyncManagerPtr->Start<FAsyncCompleteWork<T>>(-1, nullptr, Processor);
+				}
+
+				StartClosedBatchProcessing();
+			}
 		}
 
 		virtual void ProcessClosedBatchRange(const int32 StartIndex, const int32 Iterations) override

@@ -4,12 +4,15 @@
 #pragma once
 
 #include "Runtime/Launch/Resources/Version.h"
+
 #include "CoreMinimal.h"
 #include "PCGPin.h"
 #include "Elements/PCGPointProcessingElementBase.h"
+
 #include "PCGEx.h"
-#include "PCGExMacros.h"
+#include "PCGExContext.h"
 #include "PCGExMT.h"
+#include "PCGExMacros.h"
 #include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExPointIO.h"
 #include "PCGExOperation.h"
@@ -150,7 +153,7 @@ protected:
 	//~End UPCGExPointsProcessorSettings interface
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : public FPCGContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : public FPCGExContext
 {
 	friend class FPCGExPointsProcessorElementBase;
 	friend struct FPCGExSubProcessor;
@@ -217,8 +220,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : public FPCGContext
 	}
 
 	PCGExData::FPointIO* TryGetSingleInput(FName InputName, const bool bThrowError) const;
-
-	FPCGTaggedData* Output(UPCGData* OutData, const FName OutputLabel);
 
 	template <typename T>
 	T MakeLoop()

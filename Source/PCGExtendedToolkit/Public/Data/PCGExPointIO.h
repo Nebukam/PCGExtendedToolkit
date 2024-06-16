@@ -287,9 +287,11 @@ namespace PCGExData
 		{
 			UPCGPointData* OutData = NewObject<UPCGPointData>();
 			if (InData) { OutData->InitializeFromData(InData); }
-			FPCGTaggedData& OutputRef = Context->OutputData.TaggedData.Emplace_GetRef();
-			OutputRef.Data = OutData;
-			OutputRef.Pin = PinLabel;
+
+			FPCGExContext* PCGExContext = static_cast<FPCGExContext*>(Context);
+			check(PCGExContext);
+
+			PCGExContext.NewOutput(PinLabel, OutData);
 
 			return OutData;
 		}

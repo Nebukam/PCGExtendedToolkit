@@ -11,9 +11,9 @@
 
 namespace PCGExDataBlending
 {
-	FCompoundBlender::FCompoundBlender(FPCGExBlendingSettings* InBlendingSettings)
+	FCompoundBlender::FCompoundBlender(const FPCGExBlendingSettings* InBlendingSettings):
+		BlendingSettings(InBlendingSettings)
 	{
-		BlendingSettings = InBlendingSettings;
 		Sources.Empty();
 		IOIndices.Empty();
 		AttributeSourceMaps.Empty();

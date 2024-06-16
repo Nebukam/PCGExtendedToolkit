@@ -240,11 +240,38 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 		virtual void CompleteWork()
 		{
 		}
+
+		void StartParallelLoopForRange(const int32 NumIterations, const int32 PerLoopIterations = -1)
+		{
+			int32 PLI = GetDefault<UPCGExGlobalSettings>()->GetPointsBatchIteration(PerLoopIterations);
+			int32 CurrentCount = 0;
+			while (CurrentCount < NumIterations)
+			{
+				AsyncManagerPtr->Start<FAsyncProcessRange<FPointsProcessorBatchBase>>(
+					CurrentCount, nullptr, this, FMath::Min(NumIterations - CurrentCount, PLI));
+				CurrentCount += PLI;
+			}
+		}
+		
+		void ProcessRange(const int32 StartIndex, const int32 Iterations)
+		{
+			for (int i = 0; i < Iterations; i++) { ProcessSingleRangeIteration(StartIndex + i); }
+		}
+
+		virtual void ProcessSingleRangeIteration(const int32 Iteration)
+		{
+			
+		}
 	};
 
 	template <typename T>
 	class TBatch : public FPointsProcessorBatchBase
 	{
+	protected:
+
+		bool bInlineProcessing = false;
+		bool bInlineCompletion = false;
+		
 	public:
 		TArray<T*> Processors;
 		TArray<T*> ClosedBatchProcessors;
@@ -304,14 +331,21 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 				NewProcessor->BatchIndex = Processors.Add(NewProcessor);
 				NewProcessor->bIsSmallPoints = IO->GetNum() < GetDefault<UPCGExGlobalSettings>()->SmallPointsSize;
 
-				if (NewProcessor->IsTrivial()) { ClosedBatchProcessors.Add(NewProcessor); }
-				else { AsyncManager->Start<FAsyncProcess<T>>(IO->IOIndex, IO, NewProcessor); }
+				if (bInlineProcessing)
+				{
+					NewProcessor->Process(AsyncManagerPtr);
+				}
+				else
+				{
+					if (NewProcessor->IsTrivial()) { ClosedBatchProcessors.Add(NewProcessor); }
+					else { AsyncManager->Start<FAsyncProcess<T>>(IO->IOIndex, IO, NewProcessor); }
+				}
 			}
 
 			StartClosedBatchProcessing();
 		}
 
-		virtual bool PrepareSingle(T* ClusterProcessor)
+		virtual bool PrepareSingle(T* PointsProcessor)
 		{
 			return true;
 		};
@@ -319,13 +353,20 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 		virtual void CompleteWork() override
 		{
 			CurrentState = PCGExMT::State_Processing;
-			for (T* Processor : Processors)
+			if (bInlineCompletion)
 			{
-				if (Processor->IsTrivial()) { continue; }
-				AsyncManagerPtr->Start<FAsyncCompleteWork<T>>(-1, nullptr, Processor);
+				for (T* Processor : Processors) { Processor->CompleteWork(); }
 			}
+			else
+			{
+				for (T* Processor : Processors)
+				{
+					if (Processor->IsTrivial()) { continue; }
+					AsyncManagerPtr->Start<FAsyncCompleteWork<T>>(-1, nullptr, Processor);
+				}
 
-			StartClosedBatchProcessing();
+				StartClosedBatchProcessing();
+			}
 		}
 
 		void ProcessBatchRange(const int32 StartIndex, const int32 Iterations)

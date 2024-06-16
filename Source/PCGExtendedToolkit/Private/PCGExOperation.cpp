@@ -3,8 +3,6 @@
 
 
 #include "PCGExOperation.h"
-
-#include "PCGExPointsProcessor.h"
 #include "PCGParamData.h"
 
 void UPCGExOperation::BindContext(FPCGContext* InContext)

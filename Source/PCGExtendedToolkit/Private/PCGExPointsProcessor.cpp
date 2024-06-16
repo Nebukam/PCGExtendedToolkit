@@ -224,15 +224,6 @@ PCGExData::FPointIO* FPCGExPointsProcessorContext::TryGetSingleInput(const FName
 	return SingleIO;
 }
 
-FPCGTaggedData* FPCGExPointsProcessorContext::Output(UPCGData* OutData, const FName OutputLabel)
-{
-	FWriteScopeLock WriteLock(ContextLock);
-	FPCGTaggedData& OutputRef = OutputData.TaggedData.Emplace_GetRef();
-	OutputRef.Data = OutData;
-	OutputRef.Pin = OutputLabel;
-	return &OutputRef;
-}
-
 bool FPCGExPointsProcessorContext::ProcessPointsBatch()
 {
 	if (BatchablePoints.IsEmpty()) { return true; }
