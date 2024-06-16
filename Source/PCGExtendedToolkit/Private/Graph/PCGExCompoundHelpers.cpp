@@ -27,5 +27,6 @@ namespace PCGExGraph
 		GraphMetadataSettings.Grab(Context, PointPointIntersectionSettings);
 		GraphMetadataSettings.Grab(Context, PointEdgeIntersectionSettings);
 		GraphMetadataSettings.Grab(Context, EdgeEdgeIntersectionSettings);
+		
 	}
 }
