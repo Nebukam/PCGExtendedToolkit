@@ -805,11 +805,13 @@ namespace PCGExGraph
 
 		void OutputTo(FPCGContext* Context) const
 		{
+			FPCGExContext* PCGExContext = static_cast<FPCGExContext*>(Context);
+			check(PCGExContext);
+
 			for (int i = 0; i < ParamsSources.Num(); i++)
 			{
-				FPCGTaggedData& OutputRef = Context->OutputData.TaggedData.Add_GetRef(ParamsSources[i]);
-				OutputRef.Pin = OutputForwardGraphsLabel;
-				OutputRef.Data = Params[i];
+				FPCGTaggedData& OutputRef = PCGExContext->NewOutput(OutputForwardGraphsLabel, Params[i]);
+				OutputRef.Tags.Append(ParamsSources[i].Tags);
 			}
 		}
 

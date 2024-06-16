@@ -9,6 +9,7 @@
 #include "Data/PCGPointData.h"
 
 #include "PCGEx.h"
+#include "PCGExContext.h"
 #include "PCGExDataTag.h"
 #include "Metadata/Accessors/PCGAttributeAccessorKeys.h"
 
@@ -291,7 +292,7 @@ namespace PCGExData
 			FPCGExContext* PCGExContext = static_cast<FPCGExContext*>(Context);
 			check(PCGExContext);
 
-			PCGExContext.NewOutput(PinLabel, OutData);
+			PCGExContext->NewOutput(PinLabel, OutData);
 
 			return OutData;
 		}
