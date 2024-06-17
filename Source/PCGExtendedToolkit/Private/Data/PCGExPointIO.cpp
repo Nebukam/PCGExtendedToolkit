@@ -208,6 +208,12 @@ namespace PCGExData
 
 		PCGEX_DELETE(Tags)
 
+		if (!bWritten)
+		{
+			// Delete unused outputs
+			if (Out && Out != In) { PCGEX_DELETE_UOBJECT(Out) }
+		}
+
 		RootIO = nullptr;
 		In = nullptr;
 		Out = nullptr;
@@ -224,21 +230,14 @@ namespace PCGExData
 
 	bool FPointIO::OutputTo(FPCGContext* Context)
 	{
-		CleanupKeys();
-
 		FPCGExContext* PCGExContext = static_cast<FPCGExContext*>(Context);
 		check(PCGExContext);
 
 		if (bEnabled && Out && Out->GetPoints().Num() > 0)
 		{
 			PCGExContext->FutureOutput(DefaultOutputLabel, Out, Tags->ToSet());
+			bWritten = true;
 			return true;
-		}
-
-		if (Out && Out != In)
-		{
-			PCGEX_DELETE_UOBJECT(Out)
-			Out = nullptr;
 		}
 
 		return false;
@@ -253,9 +252,7 @@ namespace PCGExData
 			if ((MinPointCount >= 0 && OutNumPoints < MinPointCount) ||
 				(MaxPointCount >= 0 && OutNumPoints > MaxPointCount))
 			{
-				CleanupKeys();
-				if (Out != In) { PCGEX_DELETE_UOBJECT(Out) }
-				Out = nullptr;
+				// Nah
 			}
 			else
 			{
@@ -263,13 +260,6 @@ namespace PCGExData
 			}
 		}
 		return false;
-	}
-
-	void FPointIO::Flatten() const
-	{
-#if ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 3
-		if (Out && In != Out) { Out->Metadata->Flatten(); }
-#endif
 	}
 
 #pragma endregion
