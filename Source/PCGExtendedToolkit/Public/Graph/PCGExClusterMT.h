@@ -87,9 +87,13 @@ namespace PCGExClusterMT
 		virtual ~FClusterProcessor()
 		{
 			PCGEX_DELETE(HeuristicsHandler);
+			PCGEX_DELETE(Cluster);
 
 			VtxIO = nullptr;
 			EdgesIO = nullptr;
+
+			VtxFilterCache.Empty();
+			EdgeFilterCache.Empty();
 		}
 
 		template <typename T>
@@ -280,9 +284,12 @@ namespace PCGExClusterMT
 		{
 			Context = nullptr;
 			VtxIO = nullptr;
+
 			Edges.Empty();
 			EndpointsLookup.Empty();
 			ExpectedAdjacency.Empty();
+
+			PCGEX_DELETE(GraphBuilder)
 		}
 
 		template <typename T>
@@ -356,9 +363,10 @@ namespace PCGExClusterMT
 
 		virtual ~TBatch() override
 		{
-			ClosedBatchProcessors.Empty();
 			PCGEX_DELETE_TARRAY(Processors)
 			PCGEX_DELETE(GraphBuilder)
+
+			ClosedBatchProcessors.Empty();
 		}
 
 		virtual bool UseGraphBuilder() const override { return false; }

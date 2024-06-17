@@ -83,6 +83,11 @@ namespace PCGExWriteEdgeExtras
 		PCGEX_DELETE(EdgeDirCompGetter)
 		PCGEX_DELETE(SolidificationLerpGetter)
 
+		PCGEX_DELETE(SolidificationLerpGetter)
+
+		PCGEX_OUTPUT_DELETE(VtxNormal, FVector)
+		PCGEX_OUTPUT_DELETE(VtxEdgeCount, int32)
+
 		PCGEX_FOREACH_FIELD_EDGEEXTRAS(PCGEX_OUTPUT_DELETE)
 
 		// Delete owned getters
@@ -389,7 +394,7 @@ namespace PCGExWriteEdgeExtras
 		TBatch<FProcessor>::CompleteWork();
 
 		PCGEX_OUTPUT_WRITE(VtxNormal, FVector)
-		PCGEX_OUTPUT_WRITE(VtxEdgeCount, FVector)
+		PCGEX_OUTPUT_WRITE(VtxEdgeCount, int32)
 	}
 }
 

@@ -323,7 +323,7 @@ namespace PCGExPathToClusters
 		GraphBuilder->Graph->InsertEdges(Edges, -1);
 		Edges.Empty();
 
-		GraphBuilder->Compile(AsyncManager);
+		GraphBuilder->Compile(AsyncManagerPtr);
 
 		return true;
 	}
