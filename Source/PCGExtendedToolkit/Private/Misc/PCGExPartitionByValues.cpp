@@ -332,15 +332,14 @@ bool FPCGExPartitionByValuesBaseElement::ExecuteInternal(FPCGContext* InContext)
 
 			if (Settings->bFlattenOutput) { OutData->Metadata->Flatten(); }
 
-			FPCGTaggedData& TaggedData = Context->NewOutput(Context->MainPoints->DefaultOutputLabel, OutData);
-			Tags->Dump(TaggedData.Tags);
+			Context->FutureOutput(Context->MainPoints->DefaultOutputLabel, OutData, Tags->ToSet());
 			PCGEX_DELETE(Tags)
 		};
 
 		if (!Context->Process(CreatePartition, Context->NumPartitions)) { return false; }
 
 		Context->Done();
-		Context->PostProcessOutputs();
+		Context->ExecuteEnd();
 	}
 
 	return Context->IsDone();

@@ -5,18 +5,32 @@
 
 #define LOCTEXT_NAMESPACE "PCGExContext"
 
-FPCGTaggedData& FPCGExContext::NewOutput()
+void FPCGExContext::FutureOutput(const FName Pin, UPCGData* InData, const TSet<FString>& InTags)
 {
 	FWriteScopeLock WriteScopeLock(ContextOutputLock);
-	return OutputData.TaggedData.Emplace_GetRef();
-}
-
-FPCGTaggedData& FPCGExContext::NewOutput(const FName Pin, UPCGData* InData)
-{
-	FPCGTaggedData& Output = NewOutput();
+	FPCGTaggedData& Output = FutureOutputs.Emplace_GetRef();
 	Output.Pin = Pin;
 	Output.Data = InData;
-	return Output;
+	Output.Tags.Append(InTags);
+}
+
+void FPCGExContext::FutureOutput(const FName Pin, UPCGData* InData)
+{
+	FWriteScopeLock WriteScopeLock(ContextOutputLock);
+	FPCGTaggedData& Output = FutureOutputs.Emplace_GetRef();
+	Output.Pin = Pin;
+	Output.Data = InData;
+}
+
+void FPCGExContext::WriteFutureOutputs()
+{
+	for (FPCGTaggedData FutureData : FutureOutputs) { OutputData.TaggedData.Add(FutureData); }
+	FutureOutputs.Empty();
+}
+
+void FPCGExContext::ExecuteEnd()
+{
+	WriteFutureOutputs();
 }
 
 

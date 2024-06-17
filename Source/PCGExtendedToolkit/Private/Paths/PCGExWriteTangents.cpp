@@ -82,7 +82,7 @@ bool FPCGExWriteTangentsElement::ExecuteInternal(FPCGContext* InContext) const
 		if (!Context->AdvancePointsIO())
 		{
 			Context->Done();
-			Context->PostProcessOutputs();
+			Context->ExecuteEnd();
 		}
 		else { Context->SetState(PCGExMT::State_ProcessingPoints); }
 	}

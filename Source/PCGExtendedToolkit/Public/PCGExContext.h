@@ -12,9 +12,14 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExContext : public FPCGContext
 {
 protected:
 	mutable FRWLock ContextOutputLock;
+	TArray<FPCGTaggedData> FutureOutputs;
+	
+	void WriteFutureOutputs();
 	
 public:
-	FPCGTaggedData& NewOutput();
-	FPCGTaggedData& NewOutput(const FName Pin, UPCGData* InData);
+	void FutureOutput(const FName Pin, UPCGData* InData, const TSet<FString>& InTags);
+	void FutureOutput(const FName Pin, UPCGData* InData);
+
+	virtual void ExecuteEnd();
 	
 };

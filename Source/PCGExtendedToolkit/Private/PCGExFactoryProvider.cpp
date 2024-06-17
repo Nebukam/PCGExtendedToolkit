@@ -53,7 +53,7 @@ bool FPCGExFactoryProviderElement::ExecuteInternal(FPCGContext* Context) const
 	FPCGExContext* PCGExContext = static_cast<FPCGExContext*>(Context);
 	check(PCGExContext);
 
-	FPCGTaggedData& Output = PCGExContext->NewOutput(Settings->GetMainOutputLabel(), OutFactory);
+	PCGExContext->FutureOutput(Settings->GetMainOutputLabel(), OutFactory);
 
 	return true;
 }

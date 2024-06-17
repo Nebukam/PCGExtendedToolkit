@@ -74,6 +74,14 @@ namespace PCGExData
 			for (const TPair<FString, FString>& Tag : Tags) { InTags.Add((Tag.Key + TagSeparator + Tag.Value)); }
 		}
 
+		TSet<FString> ToSet()
+		{
+			TSet<FString> Flattags;
+			Flattags.Append(RawTags);
+			for (const TPair<FString, FString>& Tag : Tags) { Flattags.Add((Tag.Key + TagSeparator + Tag.Value)); }
+			return Flattags;
+		}
+
 		~FTags()
 		{
 			RawTags.Empty();

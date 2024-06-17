@@ -374,6 +374,9 @@ Writer->BindAndSetNumUninitialized(*PointIO);\
 			const int64 ClusterId = EdgeIO->GetOut()->UID;
 			SubGraph->EdgeIO = EdgeIO;
 
+			PCGExGraph::MarkClusterEdges(EdgeIO, PairIdStr);
+			PCGExData::WriteMark(EdgeIO->GetOut()->Metadata, PCGExGraph::Tag_ClusterId, ClusterId);
+
 			if (SubGraph->Edges.Num() < 100)
 			{
 				SubGraphIndex++;
@@ -386,13 +389,11 @@ Writer->BindAndSetNumUninitialized(*PointIO);\
 			}
 			else
 			{
+				
 				AsyncManager->Start<PCGExGraphTask::FWriteSubGraphEdges>(SubGraphIndex++, PointIO, Graph, SubGraph, MetadataSettings);
-				//InternalStart<FWriteSubGraphEdges>(SubGraphIndex++, PointIO, Graph, SubGraph, MetadataSettings);
 			}
 
-
-			PCGExGraph::MarkClusterEdges(EdgeIO, PairIdStr);
-			PCGExData::WriteMark(EdgeIO->GetOut()->Metadata, PCGExGraph::Tag_ClusterId, ClusterId);
+			//PCGExGraphTask::WriteSubGraphEdges(PointIO->GetOut()->GetPoints(), Graph, SubGraph, MetadataSettings);
 
 			for (const int32 EdgeIndex : SubGraph->Edges)
 			{

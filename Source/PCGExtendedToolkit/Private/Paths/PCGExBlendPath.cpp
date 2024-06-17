@@ -76,7 +76,7 @@ bool FPCGExBlendPathElement::ExecuteInternal(FPCGContext* InContext) const
 		PCGEX_WAIT_ASYNC
 		Context->OutputMainPoints();
 		Context->Done();
-		Context->PostProcessOutputs();
+		Context->ExecuteEnd();
 	}
 
 	return Context->IsDone();

@@ -248,7 +248,7 @@ bool FPCGExMeshToClustersElement::ExecuteInternal(
 		Context->EdgeChildCollection->OutputTo(Context);
 
 		Context->Done();
-		Context->PostProcessOutputs();
+		Context->ExecuteEnd();
 	}
 
 	return Context->IsDone();

@@ -203,7 +203,7 @@ bool FPCGExPickClosestClustersElement::ExecuteInternal(
 		}
 
 		Context->OutputPointsAndEdges();
-		Context->PostProcessOutputs();
+		Context->ExecuteEnd();
 	}
 
 	return Context->IsDone();

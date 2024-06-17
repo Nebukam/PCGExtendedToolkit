@@ -179,7 +179,7 @@ bool FPCGExFindSocketStatesElement::ExecuteInternal(
 			Context->OutputPointsAndGraphParams();
 		}
 
-		Context->PostProcessOutputs();
+		Context->ExecuteEnd();
 	}
 
 	return Context->IsDone();

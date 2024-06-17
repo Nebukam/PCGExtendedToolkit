@@ -182,7 +182,7 @@ bool FPCGExSampleProjectedNearestPointElement::ExecuteInternal(FPCGContext* InCo
 		if (!Context->AdvancePointsIO())
 		{
 			Context->Done();
-			Context->PostProcessOutputs();
+			Context->ExecuteEnd();
 		}
 		else
 		{

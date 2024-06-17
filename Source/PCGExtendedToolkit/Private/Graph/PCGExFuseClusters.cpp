@@ -278,7 +278,7 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 		}
 
 		Context->Done();
-		Context->PostProcessOutputs();
+		Context->ExecuteEnd();
 	}
 
 	if (Context->IsState(PCGExGraph::State_MergingEdgeCompounds))

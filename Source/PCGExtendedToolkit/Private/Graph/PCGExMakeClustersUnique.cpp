@@ -54,7 +54,7 @@ bool FPCGExMakeClustersUniqueElement::ExecuteInternal(FPCGContext* InContext) co
 
 	Context->OutputPointsAndEdges();
 	Context->Done();
-	Context->PostProcessOutputs();
+	Context->ExecuteEnd();
 
 	return Context->IsDone();
 }

@@ -32,8 +32,6 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 
 	PCGEX_POINTS_MT_TASK(FStartPointsBatchProcessing, { if (Target->PrepareProcessing()) { Target->Process(Manager); } })
 
-	PCGEX_POINTS_MT_TASK(FStartPointsBatchCompleteWork, { Target->CompleteWork(); })
-
 	PCGEX_POINTS_MT_TASK(FAsyncProcess, { Target->Process(Manager); })
 
 	PCGEX_POINTS_MT_TASK(FAsyncCompleteWork, { Target->CompleteWork(); })
@@ -324,7 +322,7 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 					NewProcessor->bIsSmallPoints = true;
 					ClosedBatchProcessors.Add(NewProcessor);
 				}
-
+				
 				if (bInlineProcessing) { NewProcessor->Process(AsyncManagerPtr); }
 				else if (!NewProcessor->IsTrivial()) { AsyncManager->Start<FAsyncProcess<T>>(IO->IOIndex, IO, NewProcessor); }
 			}
@@ -381,7 +379,7 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 				int32 CurrentCount = 0;
 				while (CurrentCount < ClosedBatchProcessors.Num())
 				{
-					const int32 PerIterationsNum = GetDefault<UPCGExGlobalSettings>()->ClusterDefaultBatchIterations;
+					const int32 PerIterationsNum = GetDefault<UPCGExGlobalSettings>()->PointsDefaultBatchIterations;
 					AsyncManagerPtr->Start<FAsyncClosedBatchProcessRange<TBatch<T>>>(
 						CurrentCount, nullptr, this, FMath::Min(NumTrivial - CurrentCount, PerIterationsNum));
 					CurrentCount += PerIterationsNum;
@@ -397,7 +395,7 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 
 	static void CompleteBatch(FPCGExAsyncManager* Manager, FPointsProcessorBatchBase* Batch)
 	{
-		Manager->Start<FStartPointsBatchCompleteWork<FPointsProcessorBatchBase>>(-1, nullptr, Batch);
+		Manager->Start<FAsyncCompleteWork<FPointsProcessorBatchBase>>(-1, nullptr, Batch);
 	}
 }
 

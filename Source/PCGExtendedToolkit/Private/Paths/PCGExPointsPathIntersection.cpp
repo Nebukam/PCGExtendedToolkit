@@ -55,7 +55,7 @@ bool FPCGExPointsPathIntersectionElement::ExecuteInternal(FPCGContext* InContext
 	if (Context->IsDone())
 	{
 		Context->OutputMainPoints();
-		Context->PostProcessOutputs();
+		Context->ExecuteEnd();
 	}
 
 	return Context->IsDone();

@@ -161,7 +161,7 @@ bool FPCGExBuildCustomGraphElement::ExecuteInternal(
 	if (Context->IsDone())
 	{
 		Context->OutputPointsAndGraphParams();
-		Context->PostProcessOutputs();
+		Context->ExecuteEnd();
 	}
 
 	return Context->IsDone();

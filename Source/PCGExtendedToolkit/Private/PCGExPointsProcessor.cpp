@@ -175,8 +175,10 @@ bool FPCGExPointsProcessorContext::ExecuteAutomation() { return true; }
 
 void FPCGExPointsProcessorContext::Done() { SetState(PCGExMT::State_Done); }
 
-void FPCGExPointsProcessorContext::PostProcessOutputs()
+void FPCGExPointsProcessorContext::ExecuteEnd()
 {
+	FPCGExContext::ExecuteEnd();
+
 	PCGEX_SETTINGS_LOCAL(PointsProcessor)
 	if (Settings->bFlattenOutput)
 	{

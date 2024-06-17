@@ -126,9 +126,6 @@ namespace PCGExData
 
 		void SetNumInitialized(const int32 NumPoints, const bool bForceInit = false) const;
 
-		UPCGPointData* NewEmptyOutput() const;
-		UPCGPointData* NewEmptyOutput(FPCGContext* Context, FName PinLabel = NAME_None) const;
-
 		void CleanupKeys();
 
 		FPointIO& Branch();
@@ -277,24 +274,5 @@ namespace PCGExData
 			return nullptr;
 		}
 
-		static UPCGPointData* NewEmptyPointData(const UPCGPointData* InData = nullptr)
-		{
-			UPCGPointData* OutData = NewObject<UPCGPointData>();
-			if (InData) { OutData->InitializeFromData(InData); }
-			return OutData;
-		}
-
-		static UPCGPointData* NewEmptyPointData(FPCGContext* Context, const FName PinLabel, const UPCGPointData* InData = nullptr)
-		{
-			UPCGPointData* OutData = NewObject<UPCGPointData>();
-			if (InData) { OutData->InitializeFromData(InData); }
-
-			FPCGExContext* PCGExContext = static_cast<FPCGExContext*>(Context);
-			check(PCGExContext);
-
-			PCGExContext->NewOutput(PinLabel, OutData);
-
-			return OutData;
-		}
 	}
 }

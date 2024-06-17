@@ -194,14 +194,6 @@ namespace PCGExData
 		}
 	}
 
-	UPCGPointData* FPointIO::NewEmptyOutput() const { return PCGExPointIO::NewEmptyPointData(In); }
-
-	UPCGPointData* FPointIO::NewEmptyOutput(FPCGContext* Context, const FName PinLabel) const
-	{
-		UPCGPointData* OutData = PCGExPointIO::NewEmptyPointData(Context, PinLabel.IsNone() ? DefaultOutputLabel : PinLabel, In);
-		return OutData;
-	}
-
 	void FPointIO::CleanupKeys()
 	{
 		if (!RootIO) { PCGEX_DELETE(InKeys) }
@@ -239,9 +231,7 @@ namespace PCGExData
 
 		if (bEnabled && Out && Out->GetPoints().Num() > 0)
 		{
-			FPCGTaggedData& TaggedOutput = PCGExContext->NewOutput(DefaultOutputLabel, Out);
-			Tags->Dump(TaggedOutput.Tags);
-
+			PCGExContext->FutureOutput(DefaultOutputLabel, Out, Tags->ToSet());
 			return true;
 		}
 

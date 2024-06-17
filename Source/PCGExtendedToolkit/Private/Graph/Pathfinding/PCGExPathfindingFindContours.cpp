@@ -118,7 +118,7 @@ bool FPCGExFindContoursElement::ExecuteInternal(
 	if (Context->IsDone())
 	{
 		Context->Paths->OutputTo(Context);
-		Context->PostProcessOutputs();
+		Context->ExecuteEnd();
 	}
 
 	return Context->IsDone();

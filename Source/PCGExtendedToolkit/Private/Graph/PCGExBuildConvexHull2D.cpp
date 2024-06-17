@@ -134,7 +134,7 @@ bool FPCGExBuildConvexHull2DElement::ExecuteInternal(
 	{
 		Context->OutputMainPoints();
 		Context->PathsIO->OutputTo(Context);
-		Context->PostProcessOutputs();
+		Context->ExecuteEnd();
 	}
 
 	return Context->IsDone();
