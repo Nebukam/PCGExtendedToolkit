@@ -12,8 +12,8 @@
 
 namespace PCGExPointsMT
 {
-	PCGEX_ASYNC_STATE(State_WaitingOnPointsProcessing)
-	PCGEX_ASYNC_STATE(State_WaitingOnPointsCompletedWork)
+	PCGEX_ASYNC_STATE(MTState_PointsProcessing)
+	PCGEX_ASYNC_STATE(MTState_PointsCompletingWork)
 	PCGEX_ASYNC_STATE(State_PointsAsyncWorkComplete)
 
 #pragma region Tasks
@@ -42,7 +42,7 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 
 	PCGEX_POINTS_MT_TASK_RANGE(FAsyncProcessRange, {Target->ProcessRange(TaskIndex, Iterations);})
 
-	PCGEX_POINTS_MT_TASK_RANGE(FAsyncBatchProcessRange, {Target->ProcessBatchRange(TaskIndex, Iterations);})
+	PCGEX_POINTS_MT_TASK_RANGE(FAsyncClosedBatchProcessRange, {Target->ProcessClosedBatchRange(TaskIndex, Iterations);})
 
 #pragma endregion
 
@@ -65,9 +65,6 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 
 		UPCGExOperation* PrimaryOperation = nullptr;
 
-		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
-
-
 		explicit FPointsProcessor(PCGExData::FPointIO* InPoints):
 			PointIO(InPoints)
 		{
@@ -77,6 +74,8 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 		{
 			PointIO = nullptr;
 			PCGEX_DELETE_UOBJECT(PrimaryOperation)
+			
+			PointFilterCache.Empty();
 		}
 
 		template <typename T>
@@ -91,6 +90,8 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 
 		virtual bool Process(FPCGExAsyncManager* AsyncManager)
 		{
+			//UE_LOG(LogTemp, Warning, TEXT("FPointsProcessor::Process"))
+
 			AsyncManagerPtr = AsyncManager;
 
 #pragma region Path filter data
@@ -186,6 +187,7 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 
 		virtual void CompleteWork()
 		{
+			//UE_LOG(LogTemp, Warning, TEXT("FPointsProcessor::CompleteWork"))
 		}
 	};
 
@@ -199,13 +201,10 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 		mutable FRWLock BatchLock;
 
 		PCGExMT::AsyncState CurrentState = PCGExMT::State_Setup;
-		
+
 		FPCGContext* Context = nullptr;
 
 		TArray<PCGExData::FPointIO*> PointsCollection;
-
-		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
-		FPCGExGraphBuilderSettings GraphBuilderSettings;
 
 		UPCGExOperation* PrimaryOperation = nullptr;
 
@@ -234,7 +233,6 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 
 		virtual void CompleteWork()
 		{
-			
 		}
 
 		void StartParallelLoopForRange(const int32 NumIterations, const int32 PerLoopIterations = -1)
@@ -248,7 +246,7 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 				CurrentCount += PLI;
 			}
 		}
-		
+
 		void ProcessRange(const int32 StartIndex, const int32 Iterations)
 		{
 			for (int i = 0; i < Iterations; i++) { ProcessSingleRangeIteration(StartIndex + i); }
@@ -256,7 +254,6 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 
 		virtual void ProcessSingleRangeIteration(const int32 Iteration)
 		{
-			
 		}
 	};
 
@@ -264,10 +261,9 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 	class TBatch : public FPointsProcessorBatchBase
 	{
 	protected:
-
 		bool bInlineProcessing = false;
 		bool bInlineCompletion = false;
-		
+
 	public:
 		TArray<T*> Processors;
 		TArray<T*> ClosedBatchProcessors;
@@ -283,7 +279,6 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 		{
 			ClosedBatchProcessors.Empty();
 			PCGEX_DELETE_TARRAY(Processors)
-			PCGEX_DELETE(GraphBuilder)
 		}
 
 		void SetPointsFilterData(TArray<UPCGExFilterFactoryBase*>* InFilterFactories)
@@ -298,6 +293,8 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 
 		virtual void Process(FPCGExAsyncManager* AsyncManager) override
 		{
+			//UE_LOG(LogTemp, Warning, TEXT("Batch::Process"))
+
 			if (PointsCollection.IsEmpty()) { return; }
 
 			CurrentState = PCGExMT::State_Processing;
@@ -321,17 +318,15 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 				if (PrimaryOperation) { NewProcessor->PrimaryOperation = PrimaryOperation; }
 
 				NewProcessor->BatchIndex = Processors.Add(NewProcessor);
-				NewProcessor->bIsSmallPoints = IO->GetNum() < GetDefault<UPCGExGlobalSettings>()->SmallPointsSize;
 
-				if (bInlineProcessing)
+				if (IO->GetNum() < GetDefault<UPCGExGlobalSettings>()->SmallPointsSize)
 				{
-					NewProcessor->Process(AsyncManagerPtr);
+					NewProcessor->bIsSmallPoints = true;
+					ClosedBatchProcessors.Add(NewProcessor);
 				}
-				else
-				{
-					if (NewProcessor->IsTrivial()) { ClosedBatchProcessors.Add(NewProcessor); }
-					else { AsyncManager->Start<FAsyncProcess<T>>(IO->IOIndex, IO, NewProcessor); }
-				}
+
+				if (bInlineProcessing) { NewProcessor->Process(AsyncManagerPtr); }
+				else if (!NewProcessor->IsTrivial()) { AsyncManager->Start<FAsyncProcess<T>>(IO->IOIndex, IO, NewProcessor); }
 			}
 
 			StartClosedBatchProcessing();
@@ -344,6 +339,8 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 
 		virtual void CompleteWork() override
 		{
+			//UE_LOG(LogTemp, Warning, TEXT("Batch::CompleteWork"))
+
 			CurrentState = PCGExMT::State_Completing;
 			if (bInlineCompletion)
 			{
@@ -361,7 +358,7 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 			}
 		}
 
-		void ProcessBatchRange(const int32 StartIndex, const int32 Iterations)
+		void ProcessClosedBatchRange(const int32 StartIndex, const int32 Iterations)
 		{
 			if (CurrentState == PCGExMT::State_Processing)
 			{
@@ -379,25 +376,17 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 			const int32 NumTrivial = ClosedBatchProcessors.Num();
 			if (NumTrivial > 0)
 			{
+				//UE_LOG(LogTemp, Warning, TEXT("Batch::StartClosedBatchProcessing"))
+
 				int32 CurrentCount = 0;
 				while (CurrentCount < ClosedBatchProcessors.Num())
 				{
 					const int32 PerIterationsNum = GetDefault<UPCGExGlobalSettings>()->ClusterDefaultBatchIterations;
-					AsyncManagerPtr->Start<FAsyncBatchProcessRange<TBatch<T>>>(
+					AsyncManagerPtr->Start<FAsyncClosedBatchProcessRange<TBatch<T>>>(
 						CurrentCount, nullptr, this, FMath::Min(NumTrivial - CurrentCount, PerIterationsNum));
 					CurrentCount += PerIterationsNum;
 				}
 			}
-		}
-	};
-
-	template <typename T>
-	class TBatchWithGraphBuilder : public TBatch<T>
-	{
-	public:
-		TBatchWithGraphBuilder(FPCGContext* InContext, PCGExData::FPointIO* InVtx, TArrayView<PCGExData::FPointIO*> InEdges):
-			TBatch<T>(InContext, InVtx, InEdges)
-		{
 		}
 	};
 

@@ -18,6 +18,7 @@ namespace PCGExData
 		switch (InitOut)
 		{
 		case EInit::NoOutput:
+			Out = nullptr;
 			break;
 		case EInit::NewOutput:
 			Out = NewObject<UPCGPointData>();

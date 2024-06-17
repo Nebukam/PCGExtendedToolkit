@@ -4,9 +4,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExPathProcessor.h"
-
 #include "PCGExPointsProcessor.h"
+
 #include "Graph/PCGExGraph.h"
 #include "Graph/PCGExIntersections.h"
 #include "PCGExPathToEdgeClusters.generated.h"
@@ -17,19 +16,11 @@ namespace PCGExDataBlending
 	class FCompoundBlender;
 }
 
-namespace PCGExGraph
-{
-	struct FEdgeEdgeIntersections;
-	struct FPointEdgeIntersections;
-	struct FCompoundGraph;
-	class FGraph;
-}
-
 /**
  * Calculates the distance between two points (inherently a n*n operation)
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
-class PCGEXTENDEDTOOLKIT_API UPCGExPathToEdgeClustersSettings : public UPCGExPathProcessorSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExPathToEdgeClustersSettings : public UPCGExPointsProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -120,7 +111,7 @@ public:
 	FPCGExGraphBuilderSettings GraphBuilderSettings;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExPathToEdgeClustersContext final : public FPCGExPathProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExPathToEdgeClustersContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExPathToEdgeClustersElement;
 
@@ -139,7 +130,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathToEdgeClustersContext final : public FPC
 	PCGExDataBlending::FMetadataBlender* MetadataBlender = nullptr;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExPathToEdgeClustersElement final : public FPCGExPathProcessorElement
+class PCGEXTENDEDTOOLKIT_API FPCGExPathToEdgeClustersElement final : public FPCGExPointsProcessorElementBase
 {
 public:
 	virtual FPCGContext* Initialize(
@@ -159,6 +150,8 @@ namespace PCGExPathToClusters
 	class FNonFusingProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
 	public:
+		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
+		
 		explicit FNonFusingProcessor(PCGExData::FPointIO* InPoints);
 		virtual ~FNonFusingProcessor() override;
 
@@ -194,7 +187,7 @@ namespace PCGExPathToClusters
 		FPCGExPointPointIntersectionSettings PointPointIntersectionSettings;
 
 		FFusingProcessorBatch(FPCGContext* InContext, const TArray<PCGExData::FPointIO*>& InPointsCollection);
-		~FFusingProcessorBatch();
+		virtual ~FFusingProcessorBatch() override;
 
 		virtual void Process(FPCGExAsyncManager* AsyncManager) override;
 		virtual bool PrepareSingle(FFusingProcessor* PointsProcessor) override;

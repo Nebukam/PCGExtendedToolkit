@@ -48,7 +48,7 @@ FPCGExPathToEdgeClustersContext::~FPCGExPathToEdgeClustersContext()
 
 bool FPCGExPathToEdgeClustersElement::Boot(FPCGContext* InContext) const
 {
-	if (!FPCGExPathProcessorElement::Boot(InContext)) { return false; }
+	if (!FPCGExPointsProcessorElementBase::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(PathToEdgeClusters)
 
@@ -80,12 +80,10 @@ bool FPCGExPathToEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) co
 
 		if (Settings->bFusePaths)
 		{
-			Context->SetState(PCGExMT::State_ReadyForNextPoints);
 			if (!Context->StartBatchProcessingPoints<PCGExPathToClusters::FFusingProcessorBatch>(
 				[](const PCGExData::FPointIO* Entry) { return Entry->GetNum() >= 2; },
 				[&](PCGExPathToClusters::FFusingProcessorBatch* NewBatch)
 				{
-					NewBatch->GraphBuilderSettings = Settings->GraphBuilderSettings;
 					NewBatch->PointPointIntersectionSettings = Settings->PointPointIntersectionSettings;
 				},
 				PCGExGraph::State_ProcessingGraph))
@@ -110,7 +108,7 @@ bool FPCGExPathToEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) co
 	if (!Context->ProcessPointsBatch()) { return false; }
 
 #pragma region Intersection management
-	
+
 	auto FindPointEdgeIntersections = [&]()
 	{
 		Context->PointEdgeIntersections = new PCGExGraph::FPointEdgeIntersections(
@@ -133,7 +131,6 @@ bool FPCGExPathToEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) co
 
 		Context->CompoundGraph = FusingBatch->CompoundGraph;
 		Context->CompoundPoints = FusingBatch->CompoundPoints;
-		Context->GraphBuilder = FusingBatch->GraphBuilder;
 
 		Context->GraphBuilder = new PCGExGraph::FGraphBuilder(*Context->CompoundPoints, &Context->GraphBuilderSettings, 4);
 
@@ -234,28 +231,17 @@ bool FPCGExPathToEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) co
 
 	if (Context->IsState(PCGExGraph::State_WritingClusters))
 	{
-		Context->GraphBuilder->Compile(Context->GetAsyncManager(), &Context->GraphMetadataSettings);
-		Context->SetAsyncState(PCGExGraph::State_WaitingOnWritingClusters);
+		Context->GraphBuilder->CompileAsync(Context->GetAsyncManager(), &Context->GraphMetadataSettings);
+		Context->SetAsyncState(PCGExGraph::State_Compiling);
 		return false;
 	}
 
-	if (Context->IsState(PCGExGraph::State_WaitingOnWritingClusters))
+	if (Context->IsState(PCGExGraph::State_Compiling))
 	{
 		PCGEX_WAIT_ASYNC
 
-		if (Context->GraphBuilder->bCompiledSuccessfully)
-		{
-			if (Settings->bFusePaths)
-			{
-				//TODO : Need to merge edge compounds once we have the final edge configuration.	
-			}
-
-			Context->GraphBuilder->Write(Context);
-		}
-		else
-		{
-			Context->CompoundPoints->InitializeOutput(PCGExData::EInit::NoOutput); // Cleanup points
-		}
+		if (Context->GraphBuilder->bCompiledSuccessfully) { Context->GraphBuilder->Write(Context); }
+		else { Context->CompoundPoints->InitializeOutput(PCGExData::EInit::NoOutput); }
 
 		Context->Done();
 	}
@@ -265,8 +251,8 @@ bool FPCGExPathToEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) co
 		//TODO	
 	}
 
-#pragma endregion 
-	
+#pragma endregion
+
 	if (Context->IsDone())
 	{
 		Context->OutputMainPoints();
@@ -280,7 +266,7 @@ namespace PCGExPathToClusters
 {
 #pragma region NonFusing
 
-	PCGExPathToClusters::FNonFusingProcessor::FNonFusingProcessor(PCGExData::FPointIO* InPoints)
+	FNonFusingProcessor::FNonFusingProcessor(PCGExData::FPointIO* InPoints)
 		: FPointsProcessor(InPoints)
 	{
 	}
@@ -323,13 +309,22 @@ namespace PCGExPathToClusters
 		GraphBuilder->Graph->InsertEdges(Edges, -1);
 		Edges.Empty();
 
-		GraphBuilder->Compile(AsyncManagerPtr);
+		if (IsTrivial())
+		{
+			GraphBuilder->Compile(AsyncManagerPtr);
+		}
+		else
+		{
+			GraphBuilder->CompileAsync(AsyncManagerPtr);
+		}
 
 		return true;
 	}
 
 	void FNonFusingProcessor::CompleteWork()
 	{
+		FPointsProcessor::CompleteWork();
+
 		GraphBuilder->Write(Context);
 	}
 
@@ -434,8 +429,6 @@ namespace PCGExPathToClusters
 		// - Process and add these intersections
 		// - finally compile the graph
 
-
-		PointsProcessor->GraphBuilder = GraphBuilder;
 		PointsProcessor->CompoundGraph = CompoundGraph;
 
 		return true;

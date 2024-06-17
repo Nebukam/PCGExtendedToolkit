@@ -248,7 +248,7 @@ public:
 			FReadScopeLock ReadScopeLock(ManagerLock);
 			if (bStopped || bFlushing) { return; }
 		}
-		
+
 		if (bForceSync) { StartSynchronousTask<T>(new FAsyncTask<T>(InPointsIO, args...), TaskIndex); }
 		else { StartBackgroundTask<T>(new FAsyncTask<T>(InPointsIO, args...), TaskIndex); }
 	}
@@ -260,7 +260,7 @@ public:
 			FReadScopeLock ReadScopeLock(ManagerLock);
 			if (bStopped || bFlushing) { return; }
 		}
-		
+
 		StartSynchronousTask(new FAsyncTask<T>(InPointsIO, args...), TaskIndex);
 	}
 

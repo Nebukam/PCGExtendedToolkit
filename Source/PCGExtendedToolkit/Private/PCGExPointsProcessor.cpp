@@ -144,9 +144,13 @@ FPCGExPointsProcessorContext::~FPCGExPointsProcessorContext()
 		if (OwnedProcessorOperations.Contains(Operation)) { PCGEX_DELETE_UOBJECT(Operation) }
 	}
 
+	PCGEX_DELETE(MainBatch)
+	BatchablePoints.Empty();
+
 	ProcessorOperations.Empty();
 	OwnedProcessorOperations.Empty();
 
+	PCGEX_DELETE_TARRAY(FilterFactories)
 	PCGEX_DELETE(MainPoints)
 
 	CurrentIO = nullptr;
@@ -178,7 +182,7 @@ void FPCGExPointsProcessorContext::PostProcessOutputs()
 	{
 		TSet<uint64> InputUIDs;
 		InputUIDs.Reserve(OutputData.TaggedData.Num());
-		for (FPCGTaggedData& OutTaggedData : OutputData.TaggedData) { if (const UPCGSpatialData* SpatialData = Cast<UPCGSpatialData>(OutTaggedData.Data)) { InputUIDs.Add(SpatialData->UID); } }
+		for (FPCGTaggedData& InTaggedData : InputData.TaggedData) { if (const UPCGSpatialData* SpatialData = Cast<UPCGSpatialData>(InTaggedData.Data)) { InputUIDs.Add(SpatialData->UID); } }
 
 		for (FPCGTaggedData& OutTaggedData : OutputData.TaggedData)
 		{
@@ -228,18 +232,18 @@ bool FPCGExPointsProcessorContext::ProcessPointsBatch()
 {
 	if (BatchablePoints.IsEmpty()) { return true; }
 
-	if (IsState(PCGExPointsMT::State_WaitingOnPointsProcessing))
+	if (IsState(PCGExPointsMT::MTState_PointsProcessing))
 	{
 		if (!IsAsyncWorkComplete()) { return false; }
 
 		CompleteBatch(GetAsyncManager(), MainBatch);
-		SetAsyncState(PCGExPointsMT::State_WaitingOnPointsCompletedWork);
+		SetAsyncState(PCGExPointsMT::MTState_PointsCompletingWork);
 	}
 
-	if (IsState(PCGExPointsMT::State_WaitingOnPointsCompletedWork))
+	if (IsState(PCGExPointsMT::MTState_PointsCompletingWork))
 	{
 		if (!IsAsyncWorkComplete()) { return false; }
-		SetState(State_PointsProcessingDone);
+		SetState(TargetState_PointsProcessingDone);
 	}
 
 	return true;

@@ -262,7 +262,7 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 	{
 		PCGEX_WAIT_ASYNC
 
-		Context->GraphBuilder->Compile(Context->GetAsyncManager(), &Context->GraphMetadataSettings);
+		Context->GraphBuilder->CompileAsync(Context->GetAsyncManager(), &Context->GraphMetadataSettings);
 		Context->SetAsyncState(PCGExGraph::State_WaitingOnWritingClusters);
 		return false;
 	}

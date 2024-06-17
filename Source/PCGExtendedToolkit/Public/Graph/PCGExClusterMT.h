@@ -13,9 +13,8 @@
 
 namespace PCGExClusterMT
 {
-	PCGEX_ASYNC_STATE(State_WaitingOnClusterProcessing)
-	PCGEX_ASYNC_STATE(State_WaitingOnClusterCompletedWork)
-	PCGEX_ASYNC_STATE(State_ClusterAsyncWorkComplete)
+	PCGEX_ASYNC_STATE(MTState_ClusterProcessing)
+	PCGEX_ASYNC_STATE(MTState_ClusterCompletingWork)
 
 #pragma region Tasks
 
@@ -409,17 +408,15 @@ namespace PCGExClusterMT
 				if (VtxFiltersData) { NewProcessor->SetVtxFilterData(VtxFiltersData); }
 
 				NewProcessor->BatchIndex = Processors.Add(NewProcessor);
-				NewProcessor->bIsSmallCluster = IO->GetNum() < GetDefault<UPCGExGlobalSettings>()->SmallClusterSize;
 
-				if (bInlineProcessing)
+				if (IO->GetNum() < GetDefault<UPCGExGlobalSettings>()->SmallClusterSize)
 				{
-					NewProcessor->Process(AsyncManagerPtr);
+					NewProcessor->bIsSmallCluster = true;
+					ClosedBatchProcessors.Add(NewProcessor);
 				}
-				else
-				{
-					if (NewProcessor->IsTrivial()) { ClosedBatchProcessors.Add(NewProcessor); }
-					else { AsyncManager->Start<FAsyncProcess<T>>(IO->IOIndex, IO, NewProcessor); }
-				}
+
+				if (bInlineProcessing) { NewProcessor->Process(AsyncManagerPtr); }
+				else if (!NewProcessor->IsTrivial()) { AsyncManager->Start<FAsyncProcess<T>>(IO->IOIndex, IO, NewProcessor); }
 			}
 
 			StartClosedBatchProcessing();

@@ -136,7 +136,7 @@ protected:
 
 		if (Batches.IsEmpty()) { return false; }
 
-		SetAsyncState(PCGExClusterMT::State_WaitingOnClusterProcessing);
+		SetAsyncState(PCGExClusterMT::MTState_ClusterProcessing);
 		return true;
 	}
 

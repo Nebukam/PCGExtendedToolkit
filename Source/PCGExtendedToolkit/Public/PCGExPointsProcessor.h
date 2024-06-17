@@ -261,14 +261,14 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : public FPCGExContex
 
 	bool ProcessPointsBatch();
 
-	PCGExMT::AsyncState State_PointsProcessingDone;
+	PCGExMT::AsyncState TargetState_PointsProcessingDone;
 	PCGExPointsMT::FPointsProcessorBatchBase* MainBatch = nullptr;
 	TArray<PCGExData::FPointIO*> BatchablePoints;
 
 	template <typename T, class ValidateEntryFunc, class InitBatchFunc>
 	bool StartBatchProcessingPoints(ValidateEntryFunc&& ValidateEntry, InitBatchFunc&& InitBatch, const PCGExMT::AsyncState InState)
 	{
-		State_PointsProcessingDone = InState;
+		TargetState_PointsProcessingDone = InState;
 		BatchablePoints.Empty();
 
 		while (AdvancePointsIO(false))
@@ -283,7 +283,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : public FPCGExContex
 		InitBatch(static_cast<T*>(MainBatch));
 
 		PCGExPointsMT::ScheduleBatch(GetAsyncManager(), MainBatch);
-		SetAsyncState(PCGExPointsMT::State_WaitingOnPointsProcessing);
+		SetAsyncState(PCGExPointsMT::MTState_PointsProcessing);
+		
 		return true;
 	}
 

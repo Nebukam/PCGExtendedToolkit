@@ -238,65 +238,38 @@ namespace PCGExGraph
 		}
 	}
 
-	void FGraphBuilder::Compile(FPCGExAsyncManager* Manager, FGraphMetadataSettings* MetadataSettings) const
+	void FGraphBuilder::CompileAsync(FPCGExAsyncManager* AsyncManager, FGraphMetadataSettings* MetadataSettings)
 	{
-		if (Graph->Nodes.Num() < GetDefault<UPCGExGlobalSettings>()->SmallClusterSize) // TODO : Expose this as trivial
+		if (Graph->Nodes.Num() < GetDefault<UPCGExGlobalSettings>()->SmallClusterSize)
 		{
-			Manager->StartSynchronous<PCGExGraphTask::FCompileGraph>(
-				-1, PointIO, const_cast<FGraphBuilder*>(this),
-				OutputSettings->GetMinClusterSize(), OutputSettings->GetMaxClusterSize(), MetadataSettings);
+			Compile(AsyncManager, MetadataSettings);
 		}
 		else
 		{
-			Manager->Start<PCGExGraphTask::FCompileGraph>(
-				-1, PointIO, const_cast<FGraphBuilder*>(this),
-				OutputSettings->GetMinClusterSize(), OutputSettings->GetMaxClusterSize(), MetadataSettings);
+			AsyncManager->Start<PCGExGraphTask::FCompileGraph>(
+				-1, PointIO, const_cast<FGraphBuilder*>(this), MetadataSettings);
 		}
 	}
 
-	void FGraphBuilder::Write(FPCGContext* InContext) const
+	void FGraphBuilder::Compile(FPCGExAsyncManager* AsyncManager, FGraphMetadataSettings* MetadataSettings)
 	{
-		EdgesIO->OutputTo(InContext);
-	}
-}
+		TRACE_CPUPROFILER_EVENT_SCOPE(FGraphBuilder::Compile);
 
-namespace PCGExGraphTask
-{
-	bool FWriteSubGraphEdges::ExecuteTask()
-	{
-		WriteSubGraphEdges(PointIO->GetOut()->GetPoints(), Graph, SubGraph, MetadataSettings);
-		return true;
-	}
+		Graph->BuildSubGraphs(OutputSettings->GetMinClusterSize(), OutputSettings->GetMaxClusterSize());
 
-	bool FWriteSmallSubGraphEdges::ExecuteTask()
-	{
-		for (PCGExGraph::FSubGraph* SubGraph : SubGraphs)
+		if (Graph->SubGraphs.IsEmpty())
 		{
-			WriteSubGraphEdges(PointIO->GetOut()->GetPoints(), Graph, SubGraph, MetadataSettings);
-		}
-
-		return true;
-	}
-
-	bool FCompileGraph::ExecuteTask()
-	{
-		TRACE_CPUPROFILER_EVENT_SCOPE(FCompileGraph::ExecuteTask);
-
-		Builder->Graph->BuildSubGraphs(Min, Max);
-
-		if (Builder->Graph->SubGraphs.IsEmpty())
-		{
-			Builder->bCompiledSuccessfully = false;
-			return false;
+			bCompiledSuccessfully = false;
+			return;
 		}
 
 		PointIO->CleanupKeys(); //Ensure fresh keys later on
 
-		TArray<PCGExGraph::FNode>& Nodes = Builder->Graph->Nodes;
+		TArray<PCGExGraph::FNode>& Nodes = Graph->Nodes;
 		TArray<int32> ValidNodes;
 		ValidNodes.Reserve(Nodes.Num());
 
-		if (Builder->bPrunePoints)
+		if (bPrunePoints)
 		{
 			TRACE_CPUPROFILER_EVENT_SCOPE(FCompileGraph::PrunePoints);
 
@@ -354,14 +327,14 @@ namespace PCGExGraphTask
 		VtxEndpointWriter->Write();
 		PCGEX_DELETE(VtxEndpointWriter)
 
-		if (MetadataSettings && !Builder->Graph->NodeMetadata.IsEmpty())
+		if (MetadataSettings && !Graph->NodeMetadata.IsEmpty())
 		{
 #define PCGEX_METADATA(_NAME, _TYPE, _DEFAULT, _ACCESSOR)\
 {if(MetadataSettings->bWrite##_NAME){\
 PCGEx::TFAttributeWriter<_TYPE>* Writer = MetadataSettings->bWrite##_NAME ? new PCGEx::TFAttributeWriter<_TYPE>(MetadataSettings->_NAME##AttributeName, _DEFAULT, false) : nullptr;\
 Writer->BindAndSetNumUninitialized(*PointIO);\
 		for(const int32 NodeIndex : ValidNodes){\
-		PCGExGraph::FGraphNodeMetadata** NodeMeta = Builder->Graph->NodeMetadata.Find(NodeIndex);\
+		PCGExGraph::FGraphNodeMetadata** NodeMeta = Graph->NodeMetadata.Find(NodeIndex);\
 		if(NodeMeta){Writer->Values[Nodes[NodeIndex].PointIndex] = (*NodeMeta)->_ACCESSOR; }}\
 		Writer->Write(); delete Writer; }}
 
@@ -373,7 +346,7 @@ Writer->BindAndSetNumUninitialized(*PointIO);\
 #undef PCGEX_METADATA
 		}
 
-		Builder->bCompiledSuccessfully = true;
+		bCompiledSuccessfully = true;
 
 		PCGEx::TFAttributeWriter<int64>* NumClusterIdWriter = new PCGEx::TFAttributeWriter<int64>(PCGExGraph::Tag_ClusterId, -1, false);
 		NumClusterIdWriter->BindAndSetNumUninitialized(*PointIO);
@@ -384,67 +357,93 @@ Writer->BindAndSetNumUninitialized(*PointIO);\
 		TArray<PCGExGraph::FSubGraph*> SmallSubGraphs;
 
 		int32 SubGraphIndex = 0;
-		for (PCGExGraph::FSubGraph* SubGraph : Builder->Graph->SubGraphs)
+		for (PCGExGraph::FSubGraph* SubGraph : Graph->SubGraphs)
 		{
 			PCGExData::FPointIO* EdgeIO;
 
 			if (const int32 IOIndex = SubGraph->GetFirstInIOIndex();
-				Builder->SourceEdgesIO && Builder->SourceEdgesIO->Pairs.IsValidIndex(IOIndex))
+				SourceEdgesIO && SourceEdgesIO->Pairs.IsValidIndex(IOIndex))
 			{
-				EdgeIO = &Builder->EdgesIO->Emplace_GetRef(*Builder->SourceEdgesIO->Pairs[IOIndex], PCGExData::EInit::NewOutput);
+				EdgeIO = &EdgesIO->Emplace_GetRef(*SourceEdgesIO->Pairs[IOIndex], PCGExData::EInit::NewOutput);
 			}
 			else
 			{
-				EdgeIO = &Builder->EdgesIO->Emplace_GetRef(PCGExData::EInit::NewOutput);
+				EdgeIO = &EdgesIO->Emplace_GetRef(PCGExData::EInit::NewOutput);
 			}
 
 			const int64 ClusterId = EdgeIO->GetOut()->UID;
-			SubGraph->PointIO = EdgeIO;
+			SubGraph->EdgeIO = EdgeIO;
 
 			if (SubGraph->Edges.Num() < 100)
 			{
 				SubGraphIndex++;
 				SmallSubGraphs.Add(SubGraph);
-				if (SmallSubGraphs.Num() >= 256) { ProcessSmallGraphs(SmallSubGraphs); }
+				if (SmallSubGraphs.Num() >= 256)
+				{
+					AsyncManager->Start<PCGExGraphTask::FWriteSmallSubGraphEdges>(-1, PointIO, Graph, SmallSubGraphs, MetadataSettings);
+					SmallSubGraphs.Reset();
+				}
 			}
 			else
 			{
-				InternalStart<FWriteSubGraphEdges>(SubGraphIndex++, PointIO, Builder->Graph, SubGraph, MetadataSettings);
+				AsyncManager->Start<PCGExGraphTask::FWriteSubGraphEdges>(SubGraphIndex++, PointIO, Graph, SubGraph, MetadataSettings);
+				//InternalStart<FWriteSubGraphEdges>(SubGraphIndex++, PointIO, Graph, SubGraph, MetadataSettings);
 			}
 
 
-			PCGExGraph::MarkClusterEdges(EdgeIO, Builder->PairIdStr);
+			PCGExGraph::MarkClusterEdges(EdgeIO, PairIdStr);
 			PCGExData::WriteMark(EdgeIO->GetOut()->Metadata, PCGExGraph::Tag_ClusterId, ClusterId);
 
 			for (const int32 EdgeIndex : SubGraph->Edges)
 			{
-				const PCGExGraph::FIndexedEdge& Edge = Builder->Graph->Edges[EdgeIndex];
-				NumClusterIdWriter->Values[Builder->Graph->Nodes[Edge.Start].PointIndex] = ClusterId;
-				NumClusterIdWriter->Values[Builder->Graph->Nodes[Edge.End].PointIndex] = ClusterId;
+				const PCGExGraph::FIndexedEdge& Edge = Graph->Edges[EdgeIndex];
+				NumClusterIdWriter->Values[Graph->Nodes[Edge.Start].PointIndex] = ClusterId;
+				NumClusterIdWriter->Values[Graph->Nodes[Edge.End].PointIndex] = ClusterId;
 			}
-
-			//WriteSubGraphEdges(PointIO->GetOut()->GetPoints(), Builder->Graph, SubGraph, MetadataSettings);
 		}
 
-		ProcessSmallGraphs(SmallSubGraphs);
+		if (!SmallSubGraphs.IsEmpty())
+		{
+			AsyncManager->Start<PCGExGraphTask::FWriteSmallSubGraphEdges>(-1, PointIO, Graph, SmallSubGraphs, MetadataSettings);
+			SmallSubGraphs.Reset();
+		}
 
 		NumClusterIdWriter->Write();
 
-		PCGExGraph::MarkClusterVtx(PointIO, Builder->PairIdStr);
+		PCGExGraph::MarkClusterVtx(PointIO, PairIdStr);
 		PCGEX_DELETE(NumClusterIdWriter)
+	}
+
+	void FGraphBuilder::Write(FPCGContext* InContext) const
+	{
+		EdgesIO->OutputTo(InContext);
+	}
+}
+
+namespace PCGExGraphTask
+{
+	bool FWriteSubGraphEdges::ExecuteTask()
+	{
+		WriteSubGraphEdges(PointIO->GetOut()->GetPoints(), Graph, SubGraph, MetadataSettings);
+		return true;
+	}
+
+	bool FWriteSmallSubGraphEdges::ExecuteTask()
+	{
+		for (PCGExGraph::FSubGraph* SubGraph : SubGraphs)
+		{
+			WriteSubGraphEdges(PointIO->GetOut()->GetPoints(), Graph, SubGraph, MetadataSettings);
+		}
 
 		return true;
 	}
 
-	void FCompileGraph::ProcessSmallGraphs(TArray<PCGExGraph::FSubGraph*>& SubGraphs) const
+	bool FCompileGraph::ExecuteTask()
 	{
-		if (SubGraphs.IsEmpty()) { return; }
-		for (PCGExGraph::FSubGraph* SubGraph : SubGraphs)
-		{
-			WriteSubGraphEdges(PointIO->GetOut()->GetPoints(), Builder->Graph, SubGraph, MetadataSettings);
-		}
-		//InternalStartSync<FWriteSmallSubGraphEdges>(-1, PointIO, Builder->Graph, SubGraphs, MetadataSettings);
-		SubGraphs.Empty();
+		TRACE_CPUPROFILER_EVENT_SCOPE(FCompileGraph::ExecuteTask);
+
+		Builder->Compile(Manager, MetadataSettings);
+		return true;
 	}
 
 	bool FCopyGraphToPoint::ExecuteTask()

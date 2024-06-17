@@ -173,7 +173,7 @@ namespace PCGExGraph
 	PCGEX_ASYNC_STATE(State_WritingMainState)
 	PCGEX_ASYNC_STATE(State_WritingStatesAttributes)
 	PCGEX_ASYNC_STATE(State_WritingIndividualStates)
-	
+
 	class FGraph;
 
 #pragma region Graph
@@ -319,7 +319,7 @@ namespace PCGExGraph
 		TSet<int32> Nodes;
 		TSet<int32> Edges; //TODO : Test for TArray
 		TSet<int32> EdgesInIOIndices;
-		PCGExData::FPointIO* PointIO = nullptr;
+		PCGExData::FPointIO* EdgeIO = nullptr;
 
 		FSubGraph()
 		{
@@ -330,7 +330,7 @@ namespace PCGExGraph
 			Nodes.Empty();
 			Edges.Empty();
 			EdgesInIOIndices.Empty();
-			PointIO = nullptr;
+			EdgeIO = nullptr;
 		}
 
 		FORCEINLINE void Add(const FIndexedEdge& Edge, FGraph* InGraph);
@@ -447,7 +447,9 @@ namespace PCGExGraph
 			bPrunePoints = OutputSettings->bPruneIsolatedPoints;
 		}
 
-		void Compile(FPCGExAsyncManager* Manager, FGraphMetadataSettings* MetadataSettings = nullptr) const;
+		void CompileAsync(FPCGExAsyncManager* AsyncManager, FGraphMetadataSettings* MetadataSettings = nullptr);
+		void Compile(FPCGExAsyncManager* AsyncManager, FGraphMetadataSettings* MetadataSettings = nullptr);
+
 		void Write(FPCGContext* InContext) const;
 
 		~FGraphBuilder()
@@ -455,6 +457,7 @@ namespace PCGExGraph
 			PCGEX_DELETE(Graph)
 			PCGEX_DELETE(EdgesIO)
 		}
+
 	};
 
 	static bool BuildEndpointsLookup(
@@ -579,7 +582,7 @@ namespace PCGExGraphTask
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FWriteSubGraphEdges::ExecuteTask);
 
-		PCGExData::FPointIO& EdgeIO = *SubGraph->PointIO;
+		PCGExData::FPointIO& EdgeIO = *SubGraph->EdgeIO;
 
 		TArray<FPCGPoint>& MutablePoints = EdgeIO.GetOut()->GetMutablePoints();
 
@@ -735,26 +738,18 @@ namespace PCGExGraphTask
 		FCompileGraph(
 			PCGExData::FPointIO* InPointIO,
 			PCGExGraph::FGraphBuilder* InGraphBuilder,
-			const int32 InMin = 1,
-			const int32 InMax = TNumericLimits<int32>::Max(),
 			PCGExGraph::FGraphMetadataSettings* InMetadataSettings = nullptr)
 			: FPCGExNonAbandonableTask(InPointIO),
 			  Builder(InGraphBuilder),
-			  Min(InMin),
-			  Max(InMax),
 			  MetadataSettings(InMetadataSettings)
 		{
 		}
 
 		PCGExGraph::FGraphBuilder* Builder = nullptr;
-		int32 Min;
-		int32 Max;
-
 		PCGExGraph::FGraphMetadataSettings* MetadataSettings = nullptr;
 
 		virtual bool ExecuteTask() override;
 
-		void ProcessSmallGraphs(TArray<PCGExGraph::FSubGraph*>& SubGraphs) const;
 	};
 
 	class PCGEXTENDEDTOOLKIT_API FCopyGraphToPoint final : public FPCGExNonAbandonableTask

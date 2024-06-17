@@ -137,22 +137,22 @@ bool FPCGExEdgesProcessorContext::ProcessClusters()
 {
 	if (Batches.IsEmpty()) { return true; }
 
-	if (IsState(PCGExClusterMT::State_WaitingOnClusterProcessing))
+	if (IsState(PCGExClusterMT::MTState_ClusterProcessing))
 	{
 		if (!IsAsyncWorkComplete()) { return false; }
 
 		CompleteBatches(GetAsyncManager(), Batches);
-		SetAsyncState(PCGExClusterMT::State_WaitingOnClusterCompletedWork);
+		SetAsyncState(PCGExClusterMT::MTState_ClusterCompletingWork);
 	}
 
-	if (IsState(PCGExClusterMT::State_WaitingOnClusterCompletedWork))
+	if (IsState(PCGExClusterMT::MTState_ClusterCompletingWork))
 	{
 		if (!IsAsyncWorkComplete()) { return false; }
 
 		if (!bClusterUseGraphBuilder) { SetState(State_ClusterProcessingDone); }
 		else
 		{
-			for (const PCGExClusterMT::FClusterProcessorBatchBase* Batch : Batches) { Batch->GraphBuilder->Compile(GetAsyncManager()); }
+			for (const PCGExClusterMT::FClusterProcessorBatchBase* Batch : Batches) { Batch->GraphBuilder->CompileAsync(GetAsyncManager()); }
 			SetAsyncState(PCGExGraph::State_Compiling);
 		}
 	}

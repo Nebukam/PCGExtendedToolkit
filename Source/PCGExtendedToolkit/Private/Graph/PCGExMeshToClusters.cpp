@@ -293,7 +293,7 @@ namespace PCGExMeshToCluster
 		}
 
 		GraphBuilder->Graph->InsertEdges(Mesh->Edges, -1);
-		GraphBuilder->Compile(Context->GetAsyncManager());
+		GraphBuilder->CompileAsync(Context->GetAsyncManager());
 
 		return true;
 	}
