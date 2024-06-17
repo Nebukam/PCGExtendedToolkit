@@ -3,6 +3,8 @@
 
 #include "PCGExFactoryProvider.h"
 
+#include "PCGExContext.h"
+
 #define LOCTEXT_NAMESPACE "PCGExFactoryProvider"
 #define PCGEX_NAMESPACE PCGExFactoryProvider
 
