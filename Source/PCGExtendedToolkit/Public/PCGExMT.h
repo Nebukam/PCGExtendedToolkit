@@ -244,15 +244,12 @@ public:
 	template <typename T, typename... Args>
 	void Start(int32 TaskIndex, PCGExData::FPointIO* InPointsIO, Args... args)
 	{
-		bool bDoSync = false;
-
 		{
-			FReadScopeLock ReadLock(ManagerLock);
+			FReadScopeLock ReadScopeLock(ManagerLock);
 			if (bStopped || bFlushing) { return; }
-			bDoSync = bForceSync;
 		}
-
-		if (bDoSync) { StartSynchronousTask<T>(new FAsyncTask<T>(InPointsIO, args...), TaskIndex); }
+		
+		if (bForceSync) { StartSynchronousTask<T>(new FAsyncTask<T>(InPointsIO, args...), TaskIndex); }
 		else { StartBackgroundTask<T>(new FAsyncTask<T>(InPointsIO, args...), TaskIndex); }
 	}
 
@@ -260,10 +257,10 @@ public:
 	void StartSynchronous(int32 TaskIndex, PCGExData::FPointIO* InPointsIO, Args... args)
 	{
 		{
-			FReadScopeLock ReadLock(ManagerLock);
+			FReadScopeLock ReadScopeLock(ManagerLock);
 			if (bStopped || bFlushing) { return; }
 		}
-
+		
 		StartSynchronousTask(new FAsyncTask<T>(InPointsIO, args...), TaskIndex);
 	}
 
@@ -289,7 +286,7 @@ public:
 	void StartSynchronousTask(FAsyncTask<T>* AsyncTask, int32 TaskIndex = -1)
 	{
 		{
-			FReadScopeLock ReadScopeLock(ManagerLock);
+			FReadScopeLock ReadLock(ManagerLock);
 			if (bStopped || bFlushing) { return; }
 		}
 

@@ -159,8 +159,6 @@ namespace PCGExPathToClusters
 	class FNonFusingProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
 	public:
-		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
-
 		explicit FNonFusingProcessor(PCGExData::FPointIO* InPoints);
 		virtual ~FNonFusingProcessor() override;
 

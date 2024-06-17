@@ -209,8 +209,6 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 
 		UPCGExOperation* PrimaryOperation = nullptr;
 
-		virtual bool UseGraphBuilder() const { return false; }
-
 		FPointsProcessorBatchBase(FPCGContext* InContext, const TArray<PCGExData::FPointIO*>& InPointsCollection):
 			Context(InContext), PointsCollection(InPointsCollection)
 		{
@@ -227,11 +225,6 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 
 		virtual bool PrepareProcessing()
 		{
-			if (UseGraphBuilder())
-			{
-				//GraphBuilder = new PCGExGraph::FGraphBuilder(*VtxIO, &GraphBuilderSettings, 6, PointsCollection);
-			}
-
 			return true;
 		}
 
@@ -293,8 +286,6 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 			PCGEX_DELETE(GraphBuilder)
 		}
 
-		virtual bool UseGraphBuilder() const override { return false; }
-
 		void SetPointsFilterData(TArray<UPCGExFilterFactoryBase*>* InFilterFactories)
 		{
 			FilterFactories = InFilterFactories;
@@ -319,8 +310,6 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 
 				T* NewProcessor = new T(IO);
 				NewProcessor->Context = Context;
-
-				if (UseGraphBuilder()) { NewProcessor->GraphBuilder = GraphBuilder; }
 
 				if (!PrepareSingle(NewProcessor))
 				{
@@ -410,8 +399,6 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 			TBatch<T>(InContext, InVtx, InEdges)
 		{
 		}
-
-		virtual bool UseGraphBuilder() const override { return true; }
 	};
 
 	static void ScheduleBatch(FPCGExAsyncManager* Manager, FPointsProcessorBatchBase* Batch)
