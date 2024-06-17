@@ -355,6 +355,7 @@ namespace PCGExSampleNearestPoints
 	void FProcessor::CompleteWork()
 	{
 		FPointsProcessor::CompleteWork();
+		PCGEX_FOREACH_FIELD_NEARESTPOINT(PCGEX_OUTPUT_WRITE)
 		if (Blender) { Blender->Write(); }
 	}
 }
