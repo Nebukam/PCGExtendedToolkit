@@ -368,6 +368,13 @@ protected:
 		if (!bIsAsync) { Manager->StartSynchronous<T>(TaskIndex, InPointsIO, args...); }
 		else { Manager->Start<T>(TaskIndex, InPointsIO, args...); }
 	}
+
+	template <typename T, typename... Args>
+	void InternalStartSync(int32 TaskIndex, PCGExData::FPointIO* InPointsIO, Args... args)
+	{
+		PCGEX_ASYNC_CHECKPOINT_VOID
+		Manager->StartSynchronous<T>(TaskIndex, InPointsIO, args...);
+	}
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExLoopChunkTask : public FPCGExNonAbandonableTask

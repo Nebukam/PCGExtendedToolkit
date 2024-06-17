@@ -269,6 +269,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : public FPCGExContex
 	bool StartBatchProcessingPoints(ValidateEntryFunc&& ValidateEntry, InitBatchFunc&& InitBatch, const PCGExMT::AsyncState InState)
 	{
 		State_PointsProcessingDone = InState;
+		BatchablePoints.Empty();
 
 		while (AdvancePointsIO(false))
 		{

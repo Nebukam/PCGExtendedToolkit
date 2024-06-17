@@ -436,11 +436,14 @@ Writer->BindAndSetNumUninitialized(*PointIO);\
 		return true;
 	}
 
-	void FCompileGraph::ProcessSmallGraphs(TArray<PCGExGraph::FSubGraph*>& SubGraphs)
+	void FCompileGraph::ProcessSmallGraphs(TArray<PCGExGraph::FSubGraph*>& SubGraphs) const
 	{
 		if (SubGraphs.IsEmpty()) { return; }
-
-		InternalStart<FWriteSmallSubGraphEdges>(-1, PointIO, Builder->Graph, SubGraphs, MetadataSettings);
+		for (PCGExGraph::FSubGraph* SubGraph : SubGraphs)
+		{
+			WriteSubGraphEdges(PointIO->GetOut()->GetPoints(), Builder->Graph, SubGraph, MetadataSettings);
+		}
+		//InternalStartSync<FWriteSmallSubGraphEdges>(-1, PointIO, Builder->Graph, SubGraphs, MetadataSettings);
 		SubGraphs.Empty();
 	}
 

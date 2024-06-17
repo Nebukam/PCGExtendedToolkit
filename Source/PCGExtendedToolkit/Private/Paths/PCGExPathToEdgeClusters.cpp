@@ -43,7 +43,6 @@ FPCGExPathToEdgeClustersContext::~FPCGExPathToEdgeClustersContext()
 	PCGEX_DELETE(PointEdgeIntersections)
 	PCGEX_DELETE(EdgeEdgeIntersections)
 
-	PCGEX_DELETE(CompoundPointsBlender)
 	PCGEX_DELETE(MetadataBlender)
 }
 
@@ -58,12 +57,6 @@ bool FPCGExPathToEdgeClustersElement::Boot(FPCGContext* InContext) const
 	Context->GraphMetadataSettings.Grab(Context, Settings->PointPointIntersectionSettings);
 	Context->GraphMetadataSettings.Grab(Context, Settings->PointEdgeIntersectionSettings);
 	Context->GraphMetadataSettings.Grab(Context, Settings->EdgeEdgeIntersectionSettings);
-
-	if (Settings->bFusePaths)
-	{
-		Context->CompoundPointsBlender = new PCGExDataBlending::FCompoundBlender(const_cast<FPCGExBlendingSettings*>(&Settings->DefaultPointsBlendingSettings));
-		Context->CompoundPointsBlender->AddSources(*Context->MainPoints);
-	}
 
 	PCGEX_FWD(GraphBuilderSettings)
 
@@ -103,9 +96,9 @@ bool FPCGExPathToEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) co
 		}
 		else
 		{
-			if (!Context->StartBatchProcessingPoints<PCGExPathToClusters::FNonFusingProcessorBatch>(
+			if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExPathToClusters::FNonFusingProcessor>>(
 				[](const PCGExData::FPointIO* Entry) { return Entry->GetNum() >= 2; },
-				[&](PCGExPathToClusters::FNonFusingProcessorBatch* NewBatch) { return; },
+				[&](PCGExPointsMT::TBatch<PCGExPathToClusters::FNonFusingProcessor>* NewBatch) { return; },
 				PCGExMT::State_Done))
 			{
 				PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not build any clusters."));
@@ -116,15 +109,19 @@ bool FPCGExPathToEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) co
 
 	if (!Context->ProcessPointsBatch()) { return false; }
 
+#pragma region Intersection management
+	
 	auto FindPointEdgeIntersections = [&]()
 	{
-		Context->PointEdgeIntersections = new PCGExGraph::FPointEdgeIntersections(Context->GraphBuilder->Graph, Context->CompoundGraph, Context->CompoundPoints, Settings->PointEdgeIntersectionSettings);
+		Context->PointEdgeIntersections = new PCGExGraph::FPointEdgeIntersections(
+			Context->GraphBuilder->Graph, Context->CompoundGraph, Context->CompoundPoints, Settings->PointEdgeIntersectionSettings);
 		Context->SetState(PCGExGraph::State_FindingPointEdgeIntersections);
 	};
 
 	auto FindEdgeEdgeIntersections = [&]()
 	{
-		Context->EdgeEdgeIntersections = new PCGExGraph::FEdgeEdgeIntersections(Context->GraphBuilder->Graph, Context->CompoundGraph, Context->CompoundPoints, Settings->EdgeEdgeIntersectionSettings);
+		Context->EdgeEdgeIntersections = new PCGExGraph::FEdgeEdgeIntersections(
+			Context->GraphBuilder->Graph, Context->CompoundGraph, Context->CompoundPoints, Settings->EdgeEdgeIntersectionSettings);
 		Context->SetState(PCGExGraph::State_FindingEdgeEdgeIntersections);
 	};
 
@@ -268,6 +265,8 @@ bool FPCGExPathToEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) co
 		//TODO	
 	}
 
+#pragma endregion 
+	
 	if (Context->IsDone())
 	{
 		Context->OutputMainPoints();
@@ -288,6 +287,7 @@ namespace PCGExPathToClusters
 
 	FNonFusingProcessor::~FNonFusingProcessor()
 	{
+		PCGEX_DELETE(GraphBuilder)
 	}
 
 	bool FNonFusingProcessor::Process(FPCGExAsyncManager* AsyncManager)
@@ -297,7 +297,7 @@ namespace PCGExPathToClusters
 
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
-		GraphBuilder = new PCGExGraph::FGraphBuilder(*PointIO, &GraphBuilderSettings, 2);
+		GraphBuilder = new PCGExGraph::FGraphBuilder(*PointIO, &TypedContext->GraphBuilderSettings, 2);
 
 		const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
 		const int32 NumPoints = InPoints.Num();
@@ -330,22 +330,7 @@ namespace PCGExPathToClusters
 
 	void FNonFusingProcessor::CompleteWork()
 	{
-		if (GraphBuilder->bCompiledSuccessfully) { GraphBuilder->Write(Context); } // Yey
-		else { PointIO->InitializeOutput(PCGExData::EInit::NoOutput); }            // Remove vtx from output
-	}
-
-	FNonFusingProcessorBatch::FNonFusingProcessorBatch(FPCGContext* InContext, const TArray<PCGExData::FPointIO*>& InPointsCollection):
-		TBatch<FNonFusingProcessor>(InContext, InPointsCollection)
-	{
-	}
-
-	bool FNonFusingProcessorBatch::PrepareSingle(FNonFusingProcessor* PointsProcessor)
-	{
-		if (!TBatch<FNonFusingProcessor>::PrepareSingle(PointsProcessor)) { return false; }
-
-		PointsProcessor->GraphBuilderSettings = GraphBuilderSettings;
-
-		return true;
+		GraphBuilder->Write(Context);
 	}
 
 #pragma endregion
@@ -411,6 +396,13 @@ namespace PCGExPathToClusters
 		bInlineProcessing = true; // Points need to be added in the same order to yield deterministic results
 	}
 
+	FFusingProcessorBatch::~FFusingProcessorBatch()
+	{
+		PCGEX_DELETE(CompoundGraph)
+		PCGEX_DELETE(CompoundPoints)
+		PCGEX_DELETE(CompoundPointsBlender)
+	}
+
 	void FFusingProcessorBatch::Process(FPCGExAsyncManager* AsyncManager)
 	{
 		const FPCGExPathToEdgeClustersContext* TypedContext = GetContext<FPCGExPathToEdgeClustersContext>();
@@ -444,6 +436,7 @@ namespace PCGExPathToClusters
 
 
 		PointsProcessor->GraphBuilder = GraphBuilder;
+		PointsProcessor->CompoundGraph = CompoundGraph;
 
 		return true;
 	}
@@ -455,13 +448,14 @@ namespace PCGExPathToClusters
 
 		MainPoints = TypedContext->MainPoints;
 
-		CompoundPoints = &MainPoints->Emplace_GetRef(PCGExData::EInit::NewOutput);
-		const int32 NumCompoundedNodes = CompoundGraph->NumNodes();
-
-		CompoundPoints->SetNumInitialized(NumCompoundedNodes, true);
-
 		CompoundPointsBlender = new PCGExDataBlending::FCompoundBlender(&Settings->DefaultPointsBlendingSettings);
 		CompoundPointsBlender->AddSources(*MainPoints);
+
+		CompoundPoints = &MainPoints->Emplace_GetRef(PCGExData::EInit::NewOutput);
+		const int32 NumCompoundedNodes = CompoundGraph->NumNodes();
+		CompoundPoints->SetNumInitialized(NumCompoundedNodes, true);
+
+		CompoundPointsBlender->PrepareMerge(CompoundPoints, CompoundGraph->PointsCompounds);
 
 		StartParallelLoopForRange(NumCompoundedNodes); // Update point center & blend
 

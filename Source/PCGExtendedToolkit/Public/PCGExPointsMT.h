@@ -198,6 +198,8 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 	public:
 		mutable FRWLock BatchLock;
 
+		PCGExMT::AsyncState CurrentState = PCGExMT::State_Setup;
+		
 		FPCGContext* Context = nullptr;
 
 		TArray<PCGExData::FPointIO*> PointsCollection;
@@ -239,6 +241,7 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 
 		virtual void CompleteWork()
 		{
+			
 		}
 
 		void StartParallelLoopForRange(const int32 NumIterations, const int32 PerLoopIterations = -1)
@@ -352,7 +355,7 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 
 		virtual void CompleteWork() override
 		{
-			CurrentState = PCGExMT::State_Processing;
+			CurrentState = PCGExMT::State_Completing;
 			if (bInlineCompletion)
 			{
 				for (T* Processor : Processors) { Processor->CompleteWork(); }

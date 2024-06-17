@@ -159,26 +159,13 @@ namespace PCGExPathToClusters
 	class FNonFusingProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
 	public:
-		PCGExGraph::FCompoundGraph* CompoundGraph = nullptr;
-
 		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
-		FPCGExGraphBuilderSettings GraphBuilderSettings;
 
 		explicit FNonFusingProcessor(PCGExData::FPointIO* InPoints);
 		virtual ~FNonFusingProcessor() override;
 
 		virtual bool Process(FPCGExAsyncManager* AsyncManager) override;
 		virtual void CompleteWork() override;
-	};
-
-	class FNonFusingProcessorBatch final : public PCGExPointsMT::TBatch<FNonFusingProcessor>
-	{
-	public:
-		FPCGExGraphBuilderSettings GraphBuilderSettings;
-
-		FNonFusingProcessorBatch(FPCGContext* InContext, const TArray<PCGExData::FPointIO*>& InPointsCollection);
-
-		virtual bool PrepareSingle(FNonFusingProcessor* PointsProcessor) override;
 	};
 
 #pragma endregion
@@ -209,6 +196,7 @@ namespace PCGExPathToClusters
 		FPCGExPointPointIntersectionSettings PointPointIntersectionSettings;
 
 		FFusingProcessorBatch(FPCGContext* InContext, const TArray<PCGExData::FPointIO*>& InPointsCollection);
+		~FFusingProcessorBatch();
 
 		virtual void Process(FPCGExAsyncManager* AsyncManager) override;
 		virtual bool PrepareSingle(FFusingProcessor* PointsProcessor) override;

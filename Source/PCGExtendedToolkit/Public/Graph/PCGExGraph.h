@@ -412,7 +412,7 @@ namespace PCGExGraph
 	class PCGEXTENDEDTOOLKIT_API FGraphBuilder
 	{
 	public:
-		FPCGExGraphBuilderSettings* OutputSettings = nullptr;
+		const FPCGExGraphBuilderSettings* OutputSettings = nullptr;
 
 		bool bPrunePoints = false;
 		int64 PairId;
@@ -427,7 +427,7 @@ namespace PCGExGraph
 
 		bool bCompiledSuccessfully = false;
 
-		FGraphBuilder(PCGExData::FPointIO& InPointIO, FPCGExGraphBuilderSettings* InSettings, const int32 NumEdgeReserve = 6, PCGExData::FPointIOCollection* InSourceEdges = nullptr)
+		FGraphBuilder(PCGExData::FPointIO& InPointIO, const FPCGExGraphBuilderSettings* InSettings, const int32 NumEdgeReserve = 6, PCGExData::FPointIOCollection* InSourceEdges = nullptr)
 			: OutputSettings(InSettings), SourceEdgesIO(InSourceEdges)
 		{
 			PointIO = &InPointIO;
@@ -754,7 +754,7 @@ namespace PCGExGraphTask
 
 		virtual bool ExecuteTask() override;
 
-		void ProcessSmallGraphs(TArray<PCGExGraph::FSubGraph*>& SubGraphs);
+		void ProcessSmallGraphs(TArray<PCGExGraph::FSubGraph*>& SubGraphs) const;
 	};
 
 	class PCGEXTENDEDTOOLKIT_API FCopyGraphToPoint final : public FPCGExNonAbandonableTask
