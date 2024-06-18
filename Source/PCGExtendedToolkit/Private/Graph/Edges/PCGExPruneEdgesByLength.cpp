@@ -27,7 +27,7 @@ bool FPCGExPruneEdgesByLengthElement::Boot(FPCGContext* InContext) const
 	if (!FPCGExEdgesProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(PruneEdgesByLength)
-	PCGEX_OUTPUT_VALIDATE_NAME_NOWRITER(Mean)
+	PCGEX_OUTPUT_VALIDATE_NAME_NOWRITER_C(Mean, double)
 
 	PCGEX_FWD(GraphBuilderSettings)
 

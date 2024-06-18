@@ -32,15 +32,13 @@ PCGExData::EInit UPCGExSampleNearestPointSettings::GetMainOutputInitMode() const
 
 int32 UPCGExSampleNearestPointSettings::GetPreferredChunkSize() const { return PCGExMT::GAsyncLoop_L; }
 
+FName UPCGExSampleNearestPointSettings::GetPointFilterLabel() const { return PCGExDataFilter::SourceFiltersLabel; }
+
 PCGEX_INITIALIZE_ELEMENT(SampleNearestPoint)
 
 FPCGExSampleNearestPointContext::~FPCGExSampleNearestPointContext()
 {
 	PCGEX_TERMINATE_ASYNC
-
-	PCGEX_DELETE(ValueFilterManager)
-	ValueFilterFactories.Empty();
-
 	PCGEX_DELETE(Targets)
 }
 
@@ -60,15 +58,15 @@ bool FPCGExSampleNearestPointElement::Boot(FPCGContext* InContext) const
 
 	for (const FName Id : MissingTargetAttributes) { PCGE_LOG_C(Warning, GraphAndLog, InContext, FText::Format(FTEXT("Missing source attribute on edges: {0}."), FText::FromName(Id))); }
 
-	Context->WeightCurve = Settings->WeightOverDistance.LoadSynchronous();
 
+	PCGEX_FOREACH_FIELD_NEARESTPOINT(PCGEX_OUTPUT_VALIDATE_NAME)
+
+	Context->WeightCurve = Settings->WeightOverDistance.LoadSynchronous();
 	if (!Context->WeightCurve)
 	{
 		PCGE_LOG(Error, GraphAndLog, FTEXT("Weight Curve asset could not be loaded."));
 		return false;
 	}
-
-	PCGExFactories::GetInputFactories(InContext, PCGEx::SourceUseValueIfFilters, Context->ValueFilterFactories, {PCGExFactories::EType::Filter}, false);
 
 	return true;
 }
@@ -93,7 +91,7 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 			},
 			PCGExMT::State_Done))
 		{
-			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not find any paths to split."));
+			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not find any points to sample."));
 			return true;
 		}
 	}
@@ -130,10 +128,14 @@ namespace PCGExSampleNearestPoints
 
 	bool FProcessor::Process(FPCGExAsyncManager* AsyncManager)
 	{
-		const FPCGExSampleNearestPointContext* TypedContext = GetContext<FPCGExSampleNearestPointContext>();
-		PCGEX_SETTINGS(SampleNearestPoint)
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(SampleNearestPoint)
 
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
+
+		{
+			PCGExData::FPointIO& OutputIO = *PointIO;
+			PCGEX_FOREACH_FIELD_NEARESTPOINT(PCGEX_OUTPUT_FWD_INIT)
+		}
 
 		if (!TypedContext->BlendingSettings.FilteredAttributes.IsEmpty() ||
 			!TypedContext->BlendingSettings.GetPropertiesBlendingSettings().HasNoBlending())
@@ -147,9 +149,6 @@ namespace PCGExSampleNearestPoints
 
 		RangeMaxGetter = new PCGEx::FLocalSingleFieldGetter();
 		RangeMaxGetter->Capture(Settings->LocalRangeMax);
-
-		PCGEX_FOREACH_FIELD_NEARESTPOINT(PCGEX_OUTPUT_FWD)
-		PCGEX_FOREACH_FIELD_NEARESTPOINT(PCGEX_OUTPUT_VALIDATE_NAME)
 
 		LookAtUpGetter = new PCGEx::FLocalVectorGetter();
 		LookAtUpGetter->Capture(Settings->LookAtUpSource);
@@ -181,19 +180,16 @@ namespace PCGExSampleNearestPoints
 			}
 		}
 
-		PCGEX_FOREACH_FIELD_NEARESTPOINT(PCGEX_OUTPUT_ACCESSOR_INIT_PTR)
-
 		StartParallelLoopForPoints();
 
 		return true;
 	}
 
-	void FProcessor::ProcessSinglePoint(int32 Index, FPCGPoint& Point)
+	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point)
 	{
 		if (!PointFilterCache[Index]) { return; }
 
-		const FPCGExSampleNearestPointContext* TypedContext = GetContext<FPCGExSampleNearestPointContext>();
-		PCGEX_SETTINGS(SampleNearestPoint)
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(SampleNearestPoint)
 
 		const bool bSingleSample = (Settings->SampleMethod == EPCGExSampleMethod::ClosestTarget || Settings->SampleMethod == EPCGExSampleMethod::FarthestTarget);
 

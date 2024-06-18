@@ -125,6 +125,8 @@ protected:
 public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	virtual int32 GetPreferredChunkSize() const override;
+
+	virtual FName GetPointFilterLabel() const override;
 	//~End UPCGExPointsProcessorSettings interface
 
 public:
@@ -276,10 +278,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestPointContext final : public FPC
 
 	FPCGExBlendingSettings BlendingSettings;
 
-	TArray<UPCGExFilterFactoryBase*> ValueFilterFactories;
-	PCGExDataFilter::TEarlyExitFilterManager* ValueFilterManager = nullptr;
-
 	TObjectPtr<UCurveFloat> WeightCurve = nullptr;
+
+	PCGEX_FOREACH_FIELD_NEARESTPOINT(PCGEX_OUTPUT_DECL_TOGGLE)
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestPointElement final : public FPCGExPointsProcessorElementBase
@@ -314,7 +315,7 @@ namespace PCGExSampleNearestPoints
 		virtual ~FProcessor() override;
 
 		virtual bool Process(FPCGExAsyncManager* AsyncManager) override;
-		virtual void ProcessSinglePoint(int32 Index, FPCGPoint& Point) override;
+		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point) override;
 		virtual void CompleteWork() override;
 	};
 }

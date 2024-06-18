@@ -18,6 +18,11 @@ MACRO(PointNormal, FVector)\
 MACRO(DirectionToNext, FVector)\
 MACRO(DirectionToPrev, FVector)
 
+#define PCGEX_FOREACH_FIELD_PATHEXTRAS_MARKS(MACRO)\
+MACRO(PathLength, double)\
+MACRO(PathDirection, FVector)\
+MACRO(PathCentroid, FVector)
+
 /**
  * Calculates the distance between two points (inherently a n*n operation)
  */
@@ -174,11 +179,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExWritePathExtrasContext final : public FPCGEx
 
 	virtual ~FPCGExWritePathExtrasContext() override;
 
-	PCGEX_FOREACH_FIELD_PATHEXTRAS(PCGEX_OUTPUT_DECL)
-
-	bool bWritePathLength = false;
-	bool bWritePathDirection = false;
-	bool bWritePathCentroid = false;
+	PCGEX_FOREACH_FIELD_PATHEXTRAS(PCGEX_OUTPUT_DECL_TOGGLE)
+	PCGEX_FOREACH_FIELD_PATHEXTRAS_MARKS(PCGEX_OUTPUT_DECL_TOGGLE)
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExWritePathExtrasElement final : public FPCGExPathProcessorElement
@@ -194,13 +196,17 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExWritePathExtrasTask final : public FPCGExNonAbandonableTask
+namespace PCGExWritePathExtras
 {
-public:
-	FPCGExWritePathExtrasTask(PCGExData::FPointIO* InPointIO) :
-		FPCGExNonAbandonableTask(InPointIO)
+	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
-	}
+		PCGEX_FOREACH_FIELD_PATHEXTRAS(PCGEX_OUTPUT_DECL)
 
-	virtual bool ExecuteTask() override;
-};
+	public:
+		FProcessor(PCGExData::FPointIO* InPoints);
+		virtual ~FProcessor() override;
+
+		virtual bool Process(FPCGExAsyncManager* AsyncManager) override;
+		virtual void CompleteWork() override;
+	};
+}

@@ -99,9 +99,7 @@ namespace PCGExSplitPath
 
 	bool FProcessor::Process(FPCGExAsyncManager* AsyncManager)
 	{
-		const FPCGExSplitPathContext* TypedContext = GetContext<FPCGExSplitPathContext>();
-		PCGEX_SETTINGS(SplitPath)
-
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(SplitPath)
 
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 

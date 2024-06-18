@@ -51,6 +51,8 @@ protected:
 public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	virtual int32 GetPreferredChunkSize() const override;
+
+	virtual FName GetPointFilterLabel() const override;
 	//~End UPCGExPointsProcessorSettings interface
 
 public:
@@ -137,16 +139,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleSurfaceGuidedContext final : public FP
 
 	virtual ~FPCGExSampleSurfaceGuidedContext() override;
 
-	TArray<UPCGExFilterFactoryBase*> PointFilterFactories;
-	PCGExDataFilter::TEarlyExitFilterManager* PointFilterManager = nullptr;
-	bool bHasHeavyPointFilters = false;
-
 	TArray<AActor*> IgnoredActors;
+	
+	PCGEX_FOREACH_FIELD_SURFACEGUIDED(PCGEX_OUTPUT_DECL_TOGGLE)
 
-	PCGEx::FLocalSingleFieldGetter* MaxDistanceGetter = nullptr;
-	PCGEx::FLocalVectorGetter* DirectionGetter = nullptr;
-
-	PCGEX_FOREACH_FIELD_SURFACEGUIDED(PCGEX_OUTPUT_DECL)
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExSampleSurfaceGuidedElement final : public FPCGExPointsProcessorElementBase
@@ -162,13 +158,23 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FTraceTask final : public FPCGExPCGExCollisionTask
+namespace PCGExSampleSurfaceGuided
 {
-public:
-	FTraceTask(PCGExData::FPointIO* InPointIO) :
-		FPCGExPCGExCollisionTask(InPointIO)
+	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
-	}
 
-	virtual bool ExecuteTask() override;
-};
+		PCGEx::FLocalSingleFieldGetter* MaxDistanceGetter = nullptr;
+		PCGEx::FLocalVectorGetter* DirectionGetter = nullptr;
+		
+		PCGEX_FOREACH_FIELD_SURFACEGUIDED(PCGEX_OUTPUT_DECL)
+
+	public:
+		explicit FProcessor(PCGExData::FPointIO* InPoints);
+		virtual ~FProcessor() override;
+
+		virtual bool Process(FPCGExAsyncManager* AsyncManager) override;
+		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point) override;
+		virtual void CompleteWork() override;
+	};
+}
+

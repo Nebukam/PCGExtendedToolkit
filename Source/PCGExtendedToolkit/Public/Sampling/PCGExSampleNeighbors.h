@@ -12,10 +12,8 @@ class UPCGExNeighborSampleOperation;
 
 namespace PCGExSampleNeighbors
 {
-
 	PCGEX_ASYNC_STATE(State_ReadyForNextOperation)
 	PCGEX_ASYNC_STATE(State_Sampling)
-
 }
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Edges")
@@ -52,8 +50,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNeighborsContext final : public FPCGEx
 	virtual ~FPCGExSampleNeighborsContext() override;
 
 	TArray<UPCGExNeighborSampleOperation*> SamplingOperations;
-	TArray<UPCGExNeighborSampleOperation*> ToBePreparedOperations;
-	UPCGExNeighborSampleOperation* CurrentOperation = nullptr;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExSampleNeighborsElement final : public FPCGExEdgesProcessorElement
@@ -68,3 +64,23 @@ protected:
 	virtual bool Boot(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
+
+namespace PCGExSampleNeighbors
+{
+	class FProcessor final : public PCGExClusterMT::FClusterProcessor
+	{
+
+		TArray<UPCGExNeighborSampleOperation*> SamplingOperations;
+
+		TArray<UPCGExNeighborSampleOperation*> VtxOps;
+		TArray<UPCGExNeighborSampleOperation*> EdgeOps;
+		
+	public:
+		FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges);
+		virtual ~FProcessor() override;
+
+		virtual bool Process(FPCGExAsyncManager* AsyncManager) override;
+		virtual void ProcessSingleNode(PCGExCluster::FNode& Node) override;
+		virtual void CompleteWork() override;
+	};
+}

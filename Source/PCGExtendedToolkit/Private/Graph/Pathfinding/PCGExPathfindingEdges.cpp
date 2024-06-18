@@ -236,8 +236,7 @@ namespace PCGExPathfindingEdge
 
 	bool FProcessor::Process(FPCGExAsyncManager* AsyncManager)
 	{
-		PCGEX_SETTINGS(PathfindingEdges)
-		const FPCGExPathfindingEdgesContext* TypedContext = static_cast<FPCGExPathfindingEdgesContext*>(Context);
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(PathfindingEdges)
 
 		if (!FClusterProcessor::Process(AsyncManager)) { return false; }
 

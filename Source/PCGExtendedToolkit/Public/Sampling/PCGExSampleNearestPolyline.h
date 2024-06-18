@@ -120,6 +120,8 @@ protected:
 public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	virtual int32 GetPreferredChunkSize() const override;
+
+	virtual FName GetPointFilterLabel() const override;
 	//~End UPCGExPointsProcessorSettings interface
 
 public:
@@ -270,20 +272,11 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestPolylineContext final : public 
 
 	PCGExData::FPolyLineIOGroup* Targets = nullptr;
 
-	TArray<UPCGExFilterFactoryBase*> PointFilterFactories;
-	PCGExDataFilter::TEarlyExitFilterManager* PointFilterManager = nullptr;
-
 	int64 NumTargets = 0;
-
-	PCGEx::FLocalSingleFieldGetter* RangeMinGetter;
-	PCGEx::FLocalSingleFieldGetter* RangeMaxGetter;
-	PCGEx::FLocalVectorGetter* LookAtUpGetter;
-
-	FVector SafeUpVector = FVector::UpVector;
 
 	TObjectPtr<UCurveFloat> WeightCurve = nullptr;
 
-	PCGEX_FOREACH_FIELD_NEARESTPOLYLINE(PCGEX_OUTPUT_DECL)
+	PCGEX_FOREACH_FIELD_NEARESTPOLYLINE(PCGEX_OUTPUT_DECL_TOGGLE)
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExSampleNearestPolylineElement final : public FPCGExPointsProcessorElementBase
@@ -298,3 +291,25 @@ protected:
 	virtual bool Boot(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
+
+namespace PCGExSampleNearestPolyline
+{
+	class FProcessor final : public PCGExPointsMT::FPointsProcessor
+	{
+		PCGEx::FLocalSingleFieldGetter* RangeMinGetter = nullptr;
+		PCGEx::FLocalSingleFieldGetter* RangeMaxGetter = nullptr;
+		PCGEx::FLocalVectorGetter* LookAtUpGetter = nullptr;
+
+		FVector SafeUpVector = FVector::UpVector;
+
+		PCGEX_FOREACH_FIELD_NEARESTPOLYLINE(PCGEX_OUTPUT_DECL)
+
+	public:
+		explicit FProcessor(PCGExData::FPointIO* InPoints);
+		virtual ~FProcessor() override;
+
+		virtual bool Process(FPCGExAsyncManager* AsyncManager) override;
+		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point) override;
+		virtual void CompleteWork() override;
+	};
+}

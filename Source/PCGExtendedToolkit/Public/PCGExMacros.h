@@ -47,6 +47,8 @@ FPCGElementPtr UPCGEx##_NAME##Settings::CreateElement() const{	return MakeShared
 #define PCGEX_FWD(_NAME) Context->_NAME = Settings->_NAME;
 #define PCGEX_TERMINATE_ASYNC PCGEX_DELETE(AsyncManager)
 
+#define PCGEX_TYPED_CONTEXT_AND_SETTINGS(_NAME) FPCGEx##_NAME##Context* TypedContext = GetContext<FPCGEx##_NAME##Context>(); const UPCGEx##_NAME##Settings* Settings = Context->GetInputSettings<UPCGEx##_NAME##Settings>();	check(Settings);
+
 #define PCGEX_WAIT_ASYNC if (!Context->IsAsyncWorkComplete()) {return false;}
 
 #if WITH_EDITOR

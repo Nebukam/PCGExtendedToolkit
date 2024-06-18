@@ -54,13 +54,14 @@ bool FPCGExFactoryProviderElement::ExecuteInternal(FPCGContext* Context) const
 	check(PCGExContext);
 
 	PCGExContext->FutureOutput(Settings->GetMainOutputLabel(), OutFactory);
-
+	PCGExContext->ExecuteEnd();
+	
 	return true;
 }
 
 FPCGContext* FPCGExFactoryProviderElement::Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node)
 {
-	FPCGContext* Context = new FPCGContext();
+	FPCGExContext* Context = new FPCGExContext();
 	Context->InputData = InputData;
 	Context->SourceComponent = SourceComponent;
 	Context->Node = Node;

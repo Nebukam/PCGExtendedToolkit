@@ -33,6 +33,9 @@ bool FPCGExWriteEdgeExtrasElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(WriteEdgeExtras)
 
+	PCGEX_FOREACH_FIELD_EDGEEXTRAS(PCGEX_OUTPUT_VALIDATE_NAME)
+	PCGEX_FOREACH_FIELD_VTXEXTRAS(PCGEX_OUTPUT_VALIDATE_NAME)
+
 	return true;
 }
 
@@ -85,9 +88,6 @@ namespace PCGExWriteEdgeExtras
 
 		PCGEX_DELETE(SolidificationLerpGetter)
 
-		PCGEX_OUTPUT_DELETE(VtxNormal, FVector)
-		PCGEX_OUTPUT_DELETE(VtxEdgeCount, int32)
-
 		PCGEX_FOREACH_FIELD_EDGEEXTRAS(PCGEX_OUTPUT_DELETE)
 
 		// Delete owned getters
@@ -98,12 +98,14 @@ namespace PCGExWriteEdgeExtras
 
 	bool FProcessor::Process(FPCGExAsyncManager* AsyncManager)
 	{
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(WriteEdgeExtras)
+
 		if (!FClusterProcessor::Process(AsyncManager)) { return false; }
 
-		PCGEX_SETTINGS(WriteEdgeExtras)
-
-		PCGEX_FOREACH_FIELD_EDGEEXTRAS(PCGEX_OUTPUT_VALIDATE_NAME)
-		PCGEX_FOREACH_FIELD_EDGEEXTRAS(PCGEX_OUTPUT_FWD)
+		{
+			PCGExData::FPointIO& OutputIO = *EdgesIO;
+			PCGEX_FOREACH_FIELD_EDGEEXTRAS(PCGEX_OUTPUT_FWD_INIT)
+		}
 
 		if (bSolidify)
 		{
@@ -145,9 +147,6 @@ namespace PCGExWriteEdgeExtras
 			MetadataBlender = new PCGExDataBlending::FMetadataBlender(const_cast<FPCGExBlendingSettings*>(&Settings->BlendingSettings));
 			MetadataBlender->PrepareForData(*EdgesIO, *VtxIO, PCGExData::ESource::In, true);
 		}
-
-		PCGExData::FPointIO& PointIO = *EdgesIO;
-		PCGEX_FOREACH_FIELD_EDGEEXTRAS(PCGEX_OUTPUT_ACCESSOR_INIT)
 
 		bAscendingDesired = Settings->DirectionChoice == EPCGExEdgeDirectionChoice::SmallestToGreatest;
 		StartWeight = FMath::Clamp(Settings->EndpointsWeights, 0, 1);
@@ -311,8 +310,7 @@ namespace PCGExWriteEdgeExtras
 	{
 		PCGEX_SETTINGS(WriteEdgeExtras)
 
-		PCGEX_OUTPUT_DELETE(VtxNormal, FVector)
-		PCGEX_OUTPUT_DELETE(VtxEdgeCount, int32)
+		PCGEX_FOREACH_FIELD_VTXEXTRAS(PCGEX_OUTPUT_DELETE)
 
 		PCGEX_DELETE(VtxDirCompGetter)
 
@@ -323,19 +321,14 @@ namespace PCGExWriteEdgeExtras
 
 	bool FProcessorBatch::PrepareProcessing()
 	{
-		PCGEX_SETTINGS(WriteEdgeExtras)
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(WriteEdgeExtras)
 
 		if (!TBatch::PrepareProcessing()) { return false; }
 
-		PCGEX_OUTPUT_VALIDATE_NAME(VtxNormal, FVector)
-		PCGEX_OUTPUT_VALIDATE_NAME(VtxEdgeCount, int32)
-
-		PCGEX_OUTPUT_FWD(VtxNormal, FVector)
-		PCGEX_OUTPUT_FWD(VtxEdgeCount, int32)
-
-		PCGExData::FPointIO& PointIO = *VtxIO;
-		PCGEX_OUTPUT_ACCESSOR_INIT(VtxNormal, FVector)
-		PCGEX_OUTPUT_ACCESSOR_INIT(VtxEdgeCount, int32)
+		{
+			PCGExData::FPointIO& OutputIO = *VtxIO;
+			PCGEX_FOREACH_FIELD_VTXEXTRAS(PCGEX_OUTPUT_FWD_INIT)
+		}
 
 		ProjectionSettings.Init(VtxIO);
 
@@ -382,8 +375,10 @@ namespace PCGExWriteEdgeExtras
 
 		ClusterProcessor->bSolidify = bSolidify;
 
-		ClusterProcessor->VtxNormalWriter = VtxNormalWriter;
-		ClusterProcessor->VtxEdgeCountWriter = VtxEdgeCountWriter;
+#define PCGEX_FWD_VTX(_NAME, _TYPE) ClusterProcessor->_NAME##Writer = _NAME##Writer;
+		PCGEX_FOREACH_FIELD_VTXEXTRAS(PCGEX_FWD_VTX)
+#undef PCGEX_ASSIGN_AXIS_GETTER
+
 		ClusterProcessor->VtxDirCompGetter = VtxDirCompGetter;
 
 		return true;
@@ -392,9 +387,7 @@ namespace PCGExWriteEdgeExtras
 	void FProcessorBatch::CompleteWork()
 	{
 		TBatch<FProcessor>::CompleteWork();
-
-		PCGEX_OUTPUT_WRITE(VtxNormal, FVector)
-		PCGEX_OUTPUT_WRITE(VtxEdgeCount, int32)
+		PCGEX_FOREACH_FIELD_VTXEXTRAS(PCGEX_OUTPUT_WRITE)
 	}
 }
 

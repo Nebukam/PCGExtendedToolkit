@@ -4,8 +4,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PCGExPointsProcessor.h"
-
+#include "PCGExPathProcessor.h"
 #include "Graph/PCGExGraph.h"
 #include "Graph/PCGExIntersections.h"
 #include "PCGExPathToEdgeClusters.generated.h"
@@ -20,7 +19,7 @@ namespace PCGExDataBlending
  * Calculates the distance between two points (inherently a n*n operation)
  */
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Path")
-class PCGEXTENDEDTOOLKIT_API UPCGExPathToEdgeClustersSettings : public UPCGExPointsProcessorSettings
+class PCGEXTENDEDTOOLKIT_API UPCGExPathToEdgeClustersSettings : public UPCGExPathProcessorSettings
 {
 	GENERATED_BODY()
 
@@ -49,7 +48,6 @@ public:
 	//~Begin UPCGExPointsProcessorSettings interface
 public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
-	virtual FName GetMainInputLabel() const override;
 	virtual FName GetMainOutputLabel() const override;
 	//~End UPCGExPointsProcessorSettings interface
 
@@ -111,7 +109,7 @@ public:
 	FPCGExGraphBuilderSettings GraphBuilderSettings;
 };
 
-struct PCGEXTENDEDTOOLKIT_API FPCGExPathToEdgeClustersContext final : public FPCGExPointsProcessorContext
+struct PCGEXTENDEDTOOLKIT_API FPCGExPathToEdgeClustersContext final : public FPCGExPathProcessorContext
 {
 	friend class FPCGExPathToEdgeClustersElement;
 
@@ -130,7 +128,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathToEdgeClustersContext final : public FPC
 	PCGExDataBlending::FMetadataBlender* MetadataBlender = nullptr;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExPathToEdgeClustersElement final : public FPCGExPointsProcessorElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExPathToEdgeClustersElement final : public FPCGExPathProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

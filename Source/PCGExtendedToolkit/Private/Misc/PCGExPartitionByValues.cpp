@@ -143,7 +143,7 @@ bool FPCGExPartitionByValuesBaseElement::Boot(FPCGContext* InContext) const
 		return false;
 	}
 
-	PCGEX_OUTPUT_VALIDATE_NAME_NOWRITER(KeySum)
+	PCGEX_OUTPUT_VALIDATE_NAME_NOWRITER_C(KeySum, int64)
 
 	for (const FPCGExPartitonRuleDescriptor& Descriptor : Descriptors)
 	{

@@ -170,7 +170,7 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 			}
 		}
 
-		virtual void ProcessSinglePoint(int32 Index, FPCGPoint& Point)
+		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point)
 		{
 		}
 

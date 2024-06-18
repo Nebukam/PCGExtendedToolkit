@@ -30,8 +30,6 @@ void UPCGExPathToEdgeClustersSettings::PostEditChangeProperty(FPropertyChangedEv
 
 PCGExData::EInit UPCGExPathToEdgeClustersSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 
-FName UPCGExPathToEdgeClustersSettings::GetMainInputLabel() const { return PCGExGraph::SourcePathsLabel; }
-
 FName UPCGExPathToEdgeClustersSettings::GetMainOutputLabel() const { return PCGExGraph::OutputVerticesLabel; }
 
 PCGEX_INITIALIZE_ELEMENT(PathToEdgeClusters)
@@ -50,7 +48,7 @@ FPCGExPathToEdgeClustersContext::~FPCGExPathToEdgeClustersContext()
 
 bool FPCGExPathToEdgeClustersElement::Boot(FPCGContext* InContext) const
 {
-	if (!FPCGExPointsProcessorElementBase::Boot(InContext)) { return false; }
+	if (!FPCGExPathProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(PathToEdgeClusters)
 
@@ -293,8 +291,7 @@ namespace PCGExPathToClusters
 
 	bool FNonFusingProcessor::Process(FPCGExAsyncManager* AsyncManager)
 	{
-		const FPCGExPathToEdgeClustersContext* TypedContext = GetContext<FPCGExPathToEdgeClustersContext>();
-		PCGEX_SETTINGS(PathToEdgeClusters)
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(PathToEdgeClusters)
 
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
@@ -346,8 +343,7 @@ namespace PCGExPathToClusters
 
 	bool FFusingProcessor::Process(FPCGExAsyncManager* AsyncManager)
 	{
-		const FPCGExPathToEdgeClustersContext* TypedContext = GetContext<FPCGExPathToEdgeClustersContext>();
-		PCGEX_SETTINGS(PathToEdgeClusters)
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(PathToEdgeClusters)
 
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
@@ -403,8 +399,7 @@ namespace PCGExPathToClusters
 
 	void FFusingProcessorBatch::Process(FPCGExAsyncManager* AsyncManager)
 	{
-		const FPCGExPathToEdgeClustersContext* TypedContext = GetContext<FPCGExPathToEdgeClustersContext>();
-		PCGEX_SETTINGS(PathToEdgeClusters)
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(PathToEdgeClusters)
 
 		FBox Bounds = FBox(ForceInit);
 		for (const PCGExData::FPointIO* IO : PointsCollection) { Bounds += IO->GetIn()->GetBounds(); }
@@ -417,8 +412,7 @@ namespace PCGExPathToClusters
 
 	bool FFusingProcessorBatch::PrepareSingle(FFusingProcessor* PointsProcessor)
 	{
-		const FPCGExPathToEdgeClustersContext* TypedContext = GetContext<FPCGExPathToEdgeClustersContext>();
-		PCGEX_SETTINGS(PathToEdgeClusters)
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(PathToEdgeClusters)
 
 		if (!TBatch<FFusingProcessor>::PrepareSingle(PointsProcessor)) { return false; }
 
@@ -439,8 +433,7 @@ namespace PCGExPathToClusters
 
 	void FFusingProcessorBatch::CompleteWork()
 	{
-		const FPCGExPathToEdgeClustersContext* TypedContext = GetContext<FPCGExPathToEdgeClustersContext>();
-		PCGEX_SETTINGS(PathToEdgeClusters)
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(PathToEdgeClusters)
 
 		MainPoints = TypedContext->MainPoints;
 

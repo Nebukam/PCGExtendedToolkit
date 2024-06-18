@@ -131,13 +131,14 @@ bool FPCGExShrinkPathElement::ExecuteInternal(FPCGContext* InContext) const
 	{
 		if (!Boot(Context)) { return true; }
 
+		bool bInvalidInputs = false;
+
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExShrinkPath::FProcessor>>(
 			[&](PCGExData::FPointIO* Entry)
 			{
 				if (Entry->GetNum() < 2)
 				{
-					Entry->InitializeOutput(PCGExData::EInit::Forward);
-					PCGE_LOG(Warning, GraphAndLog, FTEXT("Some inputs have less than 2 points and won't be processed."));
+					bInvalidInputs = true;
 					return false;
 				}
 				return true;
@@ -151,6 +152,12 @@ bool FPCGExShrinkPathElement::ExecuteInternal(FPCGContext* InContext) const
 			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not find any paths to shrink."));
 			return true;
 		}
+
+		if(bInvalidInputs)
+		{
+			PCGE_LOG(Warning, GraphAndLog, FTEXT("Some inputs have less than 2 points and won't be processed."));
+		}
+		
 	}
 
 	if (!Context->ProcessPointsBatch()) { return false; }
@@ -180,8 +187,7 @@ namespace PCGExShrinkPath
 	{
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
-		const FPCGExShrinkPathContext* TypedContext = GetContext<FPCGExShrinkPathContext>();
-		PCGEX_SETTINGS(ShrinkPath)
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(ShrinkPath)
 
 		const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
 		const int32 LastPointIndex = InPoints.Num() - 1;

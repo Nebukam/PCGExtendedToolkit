@@ -83,92 +83,19 @@ bool FPCGExSampleNeighborsElement::ExecuteInternal(
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }
-		Context->SetState(PCGExMT::State_ReadyForNextPoints);
-	}
 
-	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
-	{
-		if (!Context->AdvancePointsIO()) { Context->Done(); }
-		else
+		if (!Context->StartProcessingClusters<PCGExClusterMT::TBatch<PCGExSampleNeighbors::FProcessor>>(
+			[](PCGExData::FPointIOTaggedEntries* Entries) { return true; },
+			[&](PCGExClusterMT::TBatch<PCGExSampleNeighbors::FProcessor>* NewBatch) { return; },
+			PCGExMT::State_Done))
 		{
-			if (!Context->TaggedEdges) { return false; }
-			Context->SetState(PCGExGraph::State_ReadyForNextEdges);
+			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not build any clusters."));
+			return true;
 		}
 	}
 
-	if (Context->IsState(PCGExGraph::State_ReadyForNextEdges))
-	{
-		if (!Context->AdvanceEdges(true))
-		{
-			Context->SetState(PCGExMT::State_ReadyForNextPoints);
-			return false;
-		}
+	if (!Context->ProcessClusters()) { return false; }
 
-		if (!Context->CurrentCluster) { return false; } // Corrupted or invalid cluster
-
-		Context->SetState(PCGExSampleNeighbors::State_ReadyForNextOperation);
-	}
-
-	if (Context->IsState(PCGExSampleNeighbors::State_ReadyForNextOperation))
-	{
-		const int32 NextIndex = Context->CurrentOperation ? Context->SamplingOperations.Find(Context->CurrentOperation) + 1 : 0;
-
-		if (Context->SamplingOperations.IsValidIndex(NextIndex))
-		{
-			Context->CurrentOperation = Context->SamplingOperations[NextIndex];
-			const bool bRequiresPerPointPreparation = Context->CurrentOperation->PrepareForCluster(Context, Context->CurrentCluster);
-
-			if (!Context->CurrentOperation->IsOperationValid()) { return false; }
-
-			if (bRequiresPerPointPreparation) { Context->SetState(PCGExDataFilter::State_PreparingFilters); }
-			else { Context->SetState(PCGExSampleNeighbors::State_Sampling); }
-		}
-		else
-		{
-			Context->SetState(PCGExGraph::State_ReadyForNextEdges);
-		}
-	}
-
-	if (Context->IsState(PCGExDataFilter::State_PreparingFilters))
-	{
-		auto PreparePoint = [&](const int32 Index)
-		{
-			if (Context->CurrentOperation->PointState && Context->CurrentOperation->PointState->RequiresPerPointPreparation())
-			{
-				Context->CurrentOperation->PointState->PrepareSingle(Index);
-			}
-
-			if (Context->CurrentOperation->ValueState && Context->CurrentOperation->ValueState->RequiresPerPointPreparation())
-			{
-				Context->CurrentOperation->ValueState->PrepareSingle(Index);
-			}
-		};
-
-		if (!Context->Process(PreparePoint, Context->CurrentCluster->Nodes.Num())) { return false; }
-
-		if (Context->CurrentOperation->PointState && Context->CurrentOperation->PointState->RequiresPerPointPreparation()) { Context->CurrentOperation->PointState->PreparationComplete(); }
-		if (Context->CurrentOperation->ValueState && Context->CurrentOperation->ValueState->RequiresPerPointPreparation()) { Context->CurrentOperation->ValueState->PreparationComplete(); }
-
-		Context->SetState(PCGExSampleNeighbors::State_Sampling);
-	}
-
-	if (Context->IsState(PCGExSampleNeighbors::State_Sampling))
-	{
-		auto ProcessNodePoints = [&](const int32 NodeIndex) { Context->CurrentOperation->ProcessNodeForPoints(NodeIndex); };
-		auto ProcessNodeEdges = [&](const int32 NodeIndex) { Context->CurrentOperation->ProcessNodeForEdges(NodeIndex); };
-
-		if (Context->CurrentOperation->BaseSettings.NeighborSource == EPCGExGraphValueSource::Point)
-		{
-			if (!Context->Process(ProcessNodePoints, Context->CurrentCluster->Nodes.Num())) { return false; }
-		}
-		else
-		{
-			if (!Context->Process(ProcessNodeEdges, Context->CurrentCluster->Nodes.Num())) { return false; }
-		}
-
-		Context->CurrentOperation->FinalizeOperation();
-		Context->SetState(PCGExSampleNeighbors::State_ReadyForNextOperation);
-	}
 
 	if (Context->IsDone())
 	{
@@ -177,6 +104,76 @@ bool FPCGExSampleNeighborsElement::ExecuteInternal(
 	}
 
 	return Context->IsDone();
+}
+
+
+namespace PCGExSampleNeighbors
+{
+	FProcessor::FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges):
+		FClusterProcessor(InVtx, InEdges)
+	{
+	}
+
+	FProcessor::~FProcessor()
+	{
+		for (UPCGExNeighborSampleOperation* Op : SamplingOperations) { PCGEX_DELETE_UOBJECT(Op) }
+		SamplingOperations.Empty();
+		VtxOps.Empty();
+		EdgeOps.Empty();
+	}
+
+	bool FProcessor::Process(FPCGExAsyncManager* AsyncManager)
+	{
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(SampleNeighbors)
+
+		if (FClusterProcessor::Process(AsyncManager)) { return false; }
+
+		TArray<UPCGExNeighborSampleOperation*> PointStatePreparation;
+		TArray<UPCGExNeighborSampleOperation*> ValueStatePreparation;
+
+		for (const UPCGExNeighborSampleOperation* SamplingOperation : TypedContext->SamplingOperations)
+		{
+			UPCGExNeighborSampleOperation* OperationCopy = SamplingOperation->CopyOperation<UPCGExNeighborSampleOperation>();
+
+			OperationCopy->PrepareForCluster(Context, Cluster);
+
+			if (!OperationCopy->IsOperationValid())
+			{
+				PCGEX_DELETE_UOBJECT(OperationCopy)
+				continue;
+			}
+
+			SamplingOperations.Add(OperationCopy);
+
+			if (OperationCopy->PointState && OperationCopy->PointState->RequiresPerPointPreparation()) { PointStatePreparation.Add(OperationCopy); }
+			if (OperationCopy->ValueState && OperationCopy->ValueState->RequiresPerPointPreparation()) { ValueStatePreparation.Add(OperationCopy); }
+
+			if (OperationCopy->BaseSettings.NeighborSource == EPCGExGraphValueSource::Point) { VtxOps.Add(OperationCopy); }
+			else { EdgeOps.Add(OperationCopy); }
+		}
+
+		for (const PCGExCluster::FNode& Node : Cluster->Nodes)
+		{
+			for (const UPCGExNeighborSampleOperation* Op : PointStatePreparation) { Op->PointState->PrepareSingle(Node.NodeIndex); }
+			for (const UPCGExNeighborSampleOperation* Op : ValueStatePreparation) { Op->ValueState->PrepareSingle(Node.NodeIndex); }
+		}
+
+		StartParallelLoopForNodes();
+
+		return true;
+	}
+
+	void FProcessor::ProcessSingleNode(PCGExCluster::FNode& Node)
+	{
+		for (const UPCGExNeighborSampleOperation* Op : VtxOps) { Op->ProcessNodeForPoints(Node.NodeIndex); }
+		for (const UPCGExNeighborSampleOperation* Op : EdgeOps) { Op->ProcessNodeForEdges(Node.NodeIndex); }
+	}
+
+	void FProcessor::CompleteWork()
+	{
+		FClusterProcessor::CompleteWork();
+		for (UPCGExNeighborSampleOperation* Op : SamplingOperations) { Op->FinalizeOperation(); }
+	}
 }
 
 #undef LOCTEXT_NAMESPACE

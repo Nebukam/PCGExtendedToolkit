@@ -109,16 +109,18 @@ bool FPCGExGatherSocketsElement::ExecuteInternal(
 		Overrides,
 		InputSockets.IsEmpty() ? FPCGExSocketDescriptor(NAME_None) : InputSockets[0]);
 
-	FPCGTaggedData& Output = Outputs.Emplace_GetRef();
-	Output.Data = OutParams;
-	Output.Pin = PCGExGraph::OutputForwardGraphsLabel;
+	FPCGExContext* PCGExContext = static_cast<FPCGExContext*>(Context);
+	check(PCGExContext);
+
+	PCGExContext->FutureOutput(PCGExGraph::OutputForwardGraphsLabel, OutParams);
+	PCGExContext->ExecuteEnd();
 
 	return true;
 }
 
 FPCGContext* FPCGExGatherSocketsElement::Initialize(const FPCGDataCollection& InputData, const TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node)
 {
-	FPCGContext* Context = new FPCGContext();
+	FPCGExContext* Context = new FPCGExContext();
 	Context->InputData = InputData;
 	Context->SourceComponent = SourceComponent;
 	Context->Node = Node;

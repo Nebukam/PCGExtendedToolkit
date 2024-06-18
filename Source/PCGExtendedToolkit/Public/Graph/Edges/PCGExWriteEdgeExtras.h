@@ -14,6 +14,10 @@
 MACRO(EdgeLength, double)\
 MACRO(EdgeDirection, FVector)
 
+#define PCGEX_FOREACH_FIELD_VTXEXTRAS(MACRO)\
+MACRO(VtxNormal, FVector)\
+MACRO(VtxEdgeCount, int32)
+
 namespace PCGExDataBlending
 {
 	class FMetadataBlender;
@@ -192,12 +196,14 @@ private:
 	friend class FPCGExWriteEdgeExtrasElement;
 };
 
-
 struct PCGEXTENDEDTOOLKIT_API FPCGExWriteEdgeExtrasContext final : public FPCGExEdgesProcessorContext
 {
 	friend class FPCGExWriteEdgeExtrasElement;
 
 	virtual ~FPCGExWriteEdgeExtrasContext() override;
+
+	PCGEX_FOREACH_FIELD_EDGEEXTRAS(PCGEX_OUTPUT_DECL_TOGGLE)
+	PCGEX_FOREACH_FIELD_VTXEXTRAS(PCGEX_OUTPUT_DECL_TOGGLE)
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExWriteEdgeExtrasElement final : public FPCGExEdgesProcessorElement
@@ -235,10 +241,9 @@ namespace PCGExWriteEdgeExtras
 		virtual void ProcessSingleEdge(PCGExGraph::FIndexedEdge& Edge) override;
 		virtual void CompleteWork() override;
 
-		PCGEx::TFAttributeWriter<FVector>* VtxNormalWriter = nullptr;
-		PCGEx::TFAttributeWriter<int32>* VtxEdgeCountWriter = nullptr;
-
 		bool bSolidify = false;
+		
+		PCGEX_FOREACH_FIELD_VTXEXTRAS(PCGEX_OUTPUT_DECL)
 
 		PCGEx::FLocalSingleFieldGetter* VtxDirCompGetter = nullptr;
 		PCGEx::FLocalVectorGetter* EdgeDirCompGetter = nullptr;
@@ -254,8 +259,7 @@ namespace PCGExWriteEdgeExtras
 	{
 		FPCGExGeo2DProjectionSettings ProjectionSettings;
 
-		PCGEx::TFAttributeWriter<FVector>* VtxNormalWriter = nullptr;
-		PCGEx::TFAttributeWriter<int32>* VtxEdgeCountWriter = nullptr;
+		PCGEX_FOREACH_FIELD_VTXEXTRAS(PCGEX_OUTPUT_DECL)
 
 		PCGEx::FLocalSingleFieldGetter* VtxDirCompGetter = nullptr;
 

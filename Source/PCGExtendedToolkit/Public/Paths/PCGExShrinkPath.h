@@ -40,7 +40,7 @@ UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Path Shrink Constant Mode"))
 enum class EPCGExShrinkConstantMode : uint8
 {
 	Shared UMETA(DisplayName = "Shared", ToolTip="Both start & end distance use the primary value."),
-	Separate UMETA(DisplayName = "Start", ToolTip="Start will use the primary value, end will use the secondary value..")
+	Separate UMETA(DisplayName = "Separate", ToolTip="Start will use the primary value, end will use the secondary value..")
 };
 
 USTRUCT(BlueprintType)
@@ -130,7 +130,7 @@ public:
 	EPCGExShrinkEndpoint ShrinkEndpoint = EPCGExShrinkEndpoint::Both;
 
 	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="ShrinkEndpoint==EPCGExShrinkEndpoint::Both", EditConditionHides))
 	EPCGExShrinkConstantMode SettingsMode = EPCGExShrinkConstantMode::Shared;
 
 	/** TBD */

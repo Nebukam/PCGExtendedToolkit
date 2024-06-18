@@ -234,8 +234,7 @@ namespace PCGExFindContours
 
 	void FProcessor::CompleteWork()
 	{
-		PCGEX_SETTINGS(FindContours)
-		const FPCGExFindContoursContext* TypedContext = static_cast<FPCGExFindContoursContext*>(Context);
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(FindContours)
 
 		FClusterProcessor::CompleteWork();
 
