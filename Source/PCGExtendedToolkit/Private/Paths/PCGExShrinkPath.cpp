@@ -185,9 +185,9 @@ namespace PCGExShrinkPath
 
 	bool FProcessor::Process(FPCGExAsyncManager* AsyncManager)
 	{
-		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
-
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(ShrinkPath)
+		
+		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
 		const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
 		const int32 LastPointIndex = InPoints.Num() - 1;

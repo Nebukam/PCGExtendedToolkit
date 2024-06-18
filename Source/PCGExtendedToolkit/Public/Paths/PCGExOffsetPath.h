@@ -93,13 +93,32 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExOffsetPathTask final : public FPCGExNonAbandonableTask
+namespace PCGExOffsetPath
 {
-public:
-	FPCGExOffsetPathTask(PCGExData::FPointIO* InPointIO) :
-		FPCGExNonAbandonableTask(InPointIO)
+	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
-	}
+		int32 NumPoints = 0;
 
-	virtual bool ExecuteTask() override;
-};
+		double OffsetConstant = 0;
+		FVector UpVector = FVector::UpVector;
+		
+		TArray<FVector> Positions;
+		TArray<FVector> Normals;
+		
+		PCGEx::FLocalSingleFieldGetter* OffsetGetter = nullptr;
+		PCGEx::FLocalVectorGetter* UpGetter = nullptr;
+
+	public:
+		explicit FProcessor(PCGExData::FPointIO* InPoints);
+		virtual ~FProcessor() override;
+
+		virtual bool Process(FPCGExAsyncManager* AsyncManager) override;
+		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point) override;
+		virtual void ProcessSingleRangeIteration(const int32 Iteration) override;
+		virtual void CompleteWork() override;
+
+	protected:
+		FVector NRM(const int32 A, const int32 B, const int32 C) const;
+		
+	};
+}
