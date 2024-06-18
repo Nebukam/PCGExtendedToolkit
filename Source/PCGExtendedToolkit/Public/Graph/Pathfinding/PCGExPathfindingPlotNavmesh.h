@@ -105,7 +105,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingPlotNavmeshContext final : public
 	double FuseDistance = 10;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExPathfindingPlotNavmeshElement final : public FPCGExPointsProcessorElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExPathfindingPlotNavmeshElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

@@ -37,7 +37,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExReversePointOrderContext final : public FPCG
 	virtual ~FPCGExReversePointOrderContext() override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExReversePointOrderElement final : public FPCGExPointsProcessorElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExReversePointOrderElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

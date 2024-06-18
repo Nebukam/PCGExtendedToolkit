@@ -60,7 +60,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExLloydRelax2DContext final : public FPCGExPoi
 	TArray<FVector> ActivePositions;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExLloydRelax2DElement final : public FPCGExPointsProcessorElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExLloydRelax2DElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

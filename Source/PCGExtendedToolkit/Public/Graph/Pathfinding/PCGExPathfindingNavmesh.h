@@ -145,7 +145,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingNavmeshContext final : public FPC
 	
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExPathfindingNavmeshElement final : public FPCGExPointsProcessorElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExPathfindingNavmeshElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

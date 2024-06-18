@@ -63,7 +63,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExUberFilterContext final : public FPCGExPoint
 	PCGExData::FPointIOCollection* Outside = nullptr;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExUberFilterElement final : public FPCGExPointsProcessorElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExUberFilterElement final : public FPCGExPointsProcessorElement
 {
 	virtual FPCGContext* Initialize(
 		const FPCGDataCollection& InputData,

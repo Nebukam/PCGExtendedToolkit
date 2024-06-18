@@ -55,7 +55,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExLloydRelaxContext final : public FPCGExPoint
 	TArray<FVector> ActivePositions;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExLloydRelaxElement final : public FPCGExPointsProcessorElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExLloydRelaxElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

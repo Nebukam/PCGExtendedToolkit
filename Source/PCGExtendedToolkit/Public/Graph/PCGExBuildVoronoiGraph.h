@@ -91,7 +91,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBuildVoronoiGraphContext final : public FPCG
 };
 
 
-class PCGEXTENDEDTOOLKIT_API FPCGExBuildVoronoiGraphElement final : public FPCGExPointsProcessorElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExBuildVoronoiGraphElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

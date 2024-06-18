@@ -37,7 +37,7 @@ PCGEX_INITIALIZE_ELEMENT(BuildVoronoiGraph2D)
 
 bool FPCGExBuildVoronoiGraph2DElement::Boot(FPCGContext* InContext) const
 {
-	if (!FPCGExPointsProcessorElementBase::Boot(InContext)) { return false; }
+	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(BuildVoronoiGraph2D)
 

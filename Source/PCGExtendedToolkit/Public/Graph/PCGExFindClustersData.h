@@ -66,7 +66,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFindClustersDataContext final : public FPCGE
 	PCGExData::FPointIOCollection* MainEdges = nullptr;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExFindClustersDataElement final : public FPCGExPointsProcessorElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExFindClustersDataElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

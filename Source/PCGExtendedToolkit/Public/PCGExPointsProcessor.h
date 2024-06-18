@@ -7,28 +7,18 @@
 
 #include "CoreMinimal.h"
 #include "PCGPin.h"
-#include "Elements/PCGPointProcessingElementBase.h"
 
 #include "PCGEx.h"
 #include "PCGExContext.h"
 #include "PCGExMT.h"
 #include "PCGExMacros.h"
-#include "Data/PCGExAttributeHelpers.h"
 #include "Data/PCGExPointIO.h"
 #include "PCGExOperation.h"
 #include "PCGExPointsMT.h"
 
 #include "PCGExPointsProcessor.generated.h"
 
-class UPCGExFilterFactoryBase;
-
-namespace PCGExDataFilter
-{
-	class TEarlyExitFilterManager;
-}
-
 struct FPCGExPointsProcessorContext;
-struct FPCGExSubProcessor;
 
 #pragma region Loops
 
@@ -93,7 +83,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExPointsProcessorSettings : public UPCGSettings
 	GENERATED_BODY()
 
 	friend struct FPCGExPointsProcessorContext;
-	friend class FPCGExPointsProcessorElementBase;
+	friend class FPCGExPointsProcessorElement;
 
 public:
 	UPCGExPointsProcessorSettings(const FObjectInitializer& ObjectInitializer);
@@ -155,15 +145,13 @@ protected:
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : public FPCGExContext
 {
-	friend class FPCGExPointsProcessorElementBase;
-	friend struct FPCGExSubProcessor;
+	friend class FPCGExPointsProcessorElement;
 
 	virtual ~FPCGExPointsProcessorContext() override;
 
 	UWorld* World = nullptr;
 
 	mutable FRWLock ContextLock;
-	mutable FRWLock StateLock;
 
 	PCGExData::FPointIOCollection* MainPoints = nullptr;
 	PCGExData::FPointIO* CurrentIO = nullptr;
@@ -171,11 +159,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : public FPCGExContex
 	virtual bool AdvancePointsIO(const bool bCleanupKeys = true);
 	virtual bool ExecuteAutomation();
 
-	bool IsState(const PCGExMT::AsyncState OperationId) const
-	{
-		FReadScopeLock ReadScopeLock(StateLock);
-		return CurrentState == OperationId;
-	}
+	bool IsState(const PCGExMT::AsyncState OperationId) const { return CurrentState == OperationId; }
 
 	bool IsSetup() const { return IsState(PCGExMT::State_Setup); }
 	bool IsDone() const { return IsState(PCGExMT::State_Done); }
@@ -284,15 +268,13 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : public FPCGExContex
 
 		PCGExPointsMT::ScheduleBatch(GetAsyncManager(), MainBatch);
 		SetAsyncState(PCGExPointsMT::MTState_PointsProcessing);
-		
+
 		return true;
 	}
 
 #pragma endregion
 
 protected:
-	FPCGExSubProcessor* CurrentSubProcessor = nullptr;
-
 	PCGExMT::FAsyncParallelLoop AsyncLoop;
 	FPCGExAsyncManager* AsyncManager = nullptr;
 
@@ -311,7 +293,7 @@ public:
 	virtual bool IsAsyncWorkComplete();
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorElementBase : public IPCGElement
+class PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorElement : public IPCGElement
 {
 public:
 	virtual FPCGContext* Initialize(const FPCGDataCollection& InputData, TWeakObjectPtr<UPCGComponent> SourceComponent, const UPCGNode* Node) override;

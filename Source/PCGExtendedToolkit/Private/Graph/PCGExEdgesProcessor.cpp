@@ -182,7 +182,7 @@ PCGEX_INITIALIZE_CONTEXT(EdgesProcessor)
 
 void FPCGExEdgesProcessorElement::DisabledPassThroughData(FPCGContext* Context) const
 {
-	FPCGExPointsProcessorElementBase::DisabledPassThroughData(Context);
+	FPCGExPointsProcessorElement::DisabledPassThroughData(Context);
 
 	//Forward main edges
 	TArray<FPCGTaggedData> EdgesSources = Context->InputData.GetInputsByPin(PCGExGraph::SourceEdgesLabel);
@@ -197,7 +197,7 @@ void FPCGExEdgesProcessorElement::DisabledPassThroughData(FPCGContext* Context) 
 
 bool FPCGExEdgesProcessorElement::Boot(FPCGContext* InContext) const
 {
-	if (!FPCGExPointsProcessorElementBase::Boot(InContext)) { return false; }
+	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(EdgesProcessor)
 
@@ -236,7 +236,7 @@ FPCGContext* FPCGExEdgesProcessorElement::InitializeContext(
 	TWeakObjectPtr<UPCGComponent> SourceComponent,
 	const UPCGNode* Node) const
 {
-	FPCGExPointsProcessorElementBase::InitializeContext(InContext, InputData, SourceComponent, Node);
+	FPCGExPointsProcessorElement::InitializeContext(InContext, InputData, SourceComponent, Node);
 
 	PCGEX_CONTEXT_AND_SETTINGS(EdgesProcessor)
 

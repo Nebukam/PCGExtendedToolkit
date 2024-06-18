@@ -221,7 +221,7 @@ PCGEX_INITIALIZE_ELEMENT(DrawAttributes)
 
 bool FPCGExDrawAttributesElement::Boot(FPCGContext* InContext) const
 {
-	if (!FPCGExPointsProcessorElementBase::Boot(InContext)) { return false; }
+	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
 
 #if WITH_EDITOR
 	PCGEX_CONTEXT_AND_SETTINGS(DrawAttributes)

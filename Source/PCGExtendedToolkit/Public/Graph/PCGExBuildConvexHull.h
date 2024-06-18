@@ -74,7 +74,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBuildConvexHullContext final : public FPCGEx
 };
 
 
-class PCGEXTENDEDTOOLKIT_API FPCGExBuildConvexHullElement final : public FPCGExPointsProcessorElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExBuildConvexHullElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

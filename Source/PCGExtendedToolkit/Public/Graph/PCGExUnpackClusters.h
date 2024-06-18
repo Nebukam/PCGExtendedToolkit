@@ -52,7 +52,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExUnpackClustersContext final : public FPCGExP
 	PCGExData::FPointIOCollection* OutEdges = nullptr;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExUnpackClustersElement final : public FPCGExPointsProcessorElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExUnpackClustersElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

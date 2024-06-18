@@ -24,7 +24,7 @@ FPCGExLloydRelax2DContext::~FPCGExLloydRelax2DContext()
 
 bool FPCGExLloydRelax2DElement::Boot(FPCGContext* InContext) const
 {
-	if (!FPCGExPointsProcessorElementBase::Boot(InContext)) { return false; }
+	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(LloydRelax2D)
 

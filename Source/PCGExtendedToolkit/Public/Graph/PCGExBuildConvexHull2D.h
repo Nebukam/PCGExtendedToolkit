@@ -86,7 +86,7 @@ protected:
 };
 
 
-class PCGEXTENDEDTOOLKIT_API FPCGExBuildConvexHull2DElement final : public FPCGExPointsProcessorElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExBuildConvexHull2DElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

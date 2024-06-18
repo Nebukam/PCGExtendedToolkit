@@ -57,7 +57,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExWriteIndexContext final : public FPCGExPoint
 	PCGEx::FAttributeAccessor<double>* NormalizedIndexAccessor = nullptr;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExWriteIndexElement final : public FPCGExPointsProcessorElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExWriteIndexElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

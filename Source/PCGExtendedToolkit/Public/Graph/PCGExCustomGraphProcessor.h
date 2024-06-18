@@ -76,7 +76,7 @@ protected:
 	int32 CurrentParamsIndex = -1;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExCustomGraphProcessorElement : public FPCGExPointsProcessorElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExCustomGraphProcessorElement : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

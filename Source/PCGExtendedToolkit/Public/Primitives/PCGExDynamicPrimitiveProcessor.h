@@ -37,7 +37,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExDynamicPrimitiveProcessorContext final : pub
 	friend class FPCGExDynamicPrimitiveProcessorElement;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExDynamicPrimitiveProcessorElement : public FPCGExPointsProcessorElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExDynamicPrimitiveProcessorElement : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

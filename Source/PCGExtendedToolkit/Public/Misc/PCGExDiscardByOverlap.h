@@ -178,7 +178,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExDiscardByOverlapContext final : public FPCGE
 	static void RemoveFBounds(const PCGExPointsToBounds::FBounds* Bounds, TArray<PCGExPointsToBounds::FBounds*>& OutAffectedBounds);
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExDiscardByOverlapElement final : public FPCGExPointsProcessorElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExDiscardByOverlapElement final : public FPCGExPointsProcessorElement
 {
 	virtual FPCGContext* Initialize(
 		const FPCGDataCollection& InputData,

@@ -127,7 +127,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMeshToClustersContext final : public FPCGExP
 };
 
 
-class PCGEXTENDEDTOOLKIT_API FPCGExMeshToClustersElement final : public FPCGExPointsProcessorElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExMeshToClustersElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

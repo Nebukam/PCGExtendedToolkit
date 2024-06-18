@@ -145,7 +145,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleSurfaceGuidedContext final : public FP
 
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExSampleSurfaceGuidedElement final : public FPCGExPointsProcessorElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExSampleSurfaceGuidedElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

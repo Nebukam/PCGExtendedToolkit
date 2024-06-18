@@ -195,7 +195,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExDrawAttributesContext final : public FPCGExP
 };
 
 
-class PCGEXTENDEDTOOLKIT_API FPCGExDrawAttributesElement final : public FPCGExPointsProcessorElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExDrawAttributesElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

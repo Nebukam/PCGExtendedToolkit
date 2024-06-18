@@ -82,7 +82,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBuildDelaunayGraphContext final : public FPC
 };
 
 
-class PCGEXTENDEDTOOLKIT_API FPCGExBuildDelaunayGraphElement final : public FPCGExPointsProcessorElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExBuildDelaunayGraphElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

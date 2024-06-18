@@ -37,7 +37,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPrimitiveProcessorContext : public FPCGExPoi
 	friend class FPCGExPrimitiveProcessorElement;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExPrimitiveProcessorElement : public FPCGExPointsProcessorElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExPrimitiveProcessorElement : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

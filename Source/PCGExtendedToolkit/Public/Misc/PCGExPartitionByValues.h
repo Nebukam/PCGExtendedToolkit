@@ -137,7 +137,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPartitionByValuesBaseContext final : public 
 	TArray<PCGExPartition::FKPartition*> Partitions;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExPartitionByValuesBaseElement final : public FPCGExPointsProcessorElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExPartitionByValuesBaseElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

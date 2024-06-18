@@ -108,7 +108,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAttributeRemapContext final : public FPCGExP
 	int32 RemapIndices[4];
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExAttributeRemapElement final : public FPCGExPointsProcessorElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExAttributeRemapElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

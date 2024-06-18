@@ -117,7 +117,7 @@ private:
 	friend class FPCGExSortPointsBaseElement;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExSortPointsBaseElement final : public FPCGExPointsProcessorElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExSortPointsBaseElement final : public FPCGExPointsProcessorElement
 {
 protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;

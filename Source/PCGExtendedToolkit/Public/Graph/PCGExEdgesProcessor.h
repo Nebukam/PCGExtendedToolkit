@@ -146,7 +146,7 @@ protected:
 	UPCGExNodeStateFactory* EdgesFiltersData = nullptr;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExEdgesProcessorElement : public FPCGExPointsProcessorElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExEdgesProcessorElement : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

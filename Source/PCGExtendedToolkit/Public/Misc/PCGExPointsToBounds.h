@@ -211,7 +211,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsToBoundsContext final : public FPCGExP
 	TArray<FPCGPoint>* OutPoints;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExPointsToBoundsElement final : public FPCGExPointsProcessorElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExPointsToBoundsElement final : public FPCGExPointsProcessorElement
 {
 	virtual FPCGContext* Initialize(
 		const FPCGDataCollection& InputData,

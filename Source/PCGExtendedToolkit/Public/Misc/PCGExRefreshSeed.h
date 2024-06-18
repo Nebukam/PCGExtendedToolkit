@@ -44,7 +44,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExRefreshSeedContext final : public FPCGExPoin
 	friend class FPCGExRefreshSeedElement;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExRefreshSeedElement final : public FPCGExPointsProcessorElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExRefreshSeedElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

@@ -124,7 +124,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFusePointsContext final : public FPCGExPoint
 	mutable FRWLock PointsLock;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExFusePointsElement final : public FPCGExPointsProcessorElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExFusePointsElement final : public FPCGExPointsProcessorElement
 {
 	virtual FPCGContext* Initialize(
 		const FPCGDataCollection& InputData,

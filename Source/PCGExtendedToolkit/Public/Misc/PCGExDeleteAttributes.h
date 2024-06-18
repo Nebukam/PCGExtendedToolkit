@@ -43,7 +43,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExDeleteAttributesContext final : public FPCGE
 	virtual ~FPCGExDeleteAttributesContext() override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExDeleteAttributesElement final : public FPCGExPointsProcessorElementBase
+class PCGEXTENDEDTOOLKIT_API FPCGExDeleteAttributesElement final : public FPCGExPointsProcessorElement
 {
 public:
 	virtual FPCGContext* Initialize(

@@ -195,7 +195,6 @@ void FPCGExPointsProcessorContext::ExecuteEnd()
 
 void FPCGExPointsProcessorContext::SetState(const PCGExMT::AsyncState OperationId, const bool bResetAsyncWork)
 {
-	FReadScopeLock ReadScopeLock(StateLock);
 	if (bResetAsyncWork) { ResetAsyncWork(); }
 	if (CurrentState == OperationId) { return; }
 	CurrentState = OperationId;
@@ -276,7 +275,7 @@ bool FPCGExPointsProcessorContext::IsAsyncWorkComplete()
 	return false;
 }
 
-FPCGContext* FPCGExPointsProcessorElementBase::Initialize(
+FPCGContext* FPCGExPointsProcessorElement::Initialize(
 	const FPCGDataCollection& InputData,
 	TWeakObjectPtr<UPCGComponent> SourceComponent,
 	const UPCGNode* Node)
@@ -286,7 +285,7 @@ FPCGContext* FPCGExPointsProcessorElementBase::Initialize(
 	return Context;
 }
 
-void FPCGExPointsProcessorElementBase::DisabledPassThroughData(FPCGContext* Context) const
+void FPCGExPointsProcessorElement::DisabledPassThroughData(FPCGContext* Context) const
 {
 	//FPCGPointProcessingElementBase::DisabledPassThroughData(Context);
 
@@ -304,7 +303,7 @@ void FPCGExPointsProcessorElementBase::DisabledPassThroughData(FPCGContext* Cont
 	}
 }
 
-FPCGContext* FPCGExPointsProcessorElementBase::InitializeContext(
+FPCGContext* FPCGExPointsProcessorElement::InitializeContext(
 	FPCGExPointsProcessorContext* InContext,
 	const FPCGDataCollection& InputData,
 	TWeakObjectPtr<UPCGComponent> SourceComponent,
@@ -359,7 +358,7 @@ FPCGContext* FPCGExPointsProcessorElementBase::InitializeContext(
 	return InContext;
 }
 
-bool FPCGExPointsProcessorElementBase::Boot(FPCGContext* InContext) const
+bool FPCGExPointsProcessorElement::Boot(FPCGContext* InContext) const
 {
 	FPCGExPointsProcessorContext* Context = static_cast<FPCGExPointsProcessorContext*>(InContext);
 	PCGEX_SETTINGS(PointsProcessor)

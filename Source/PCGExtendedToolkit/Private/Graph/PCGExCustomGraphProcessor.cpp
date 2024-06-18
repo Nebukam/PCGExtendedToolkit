@@ -109,7 +109,7 @@ PCGEX_INITIALIZE_CONTEXT(CustomGraphProcessor)
 
 void FPCGExCustomGraphProcessorElement::DisabledPassThroughData(FPCGContext* Context) const
 {
-	FPCGExPointsProcessorElementBase::DisabledPassThroughData(Context);
+	FPCGExPointsProcessorElement::DisabledPassThroughData(Context);
 
 	//Forward edges
 	TArray<FPCGTaggedData> GraphsSources = Context->InputData.GetInputsByPin(PCGExGraph::SourceSingleGraphLabel);
@@ -124,7 +124,7 @@ void FPCGExCustomGraphProcessorElement::DisabledPassThroughData(FPCGContext* Con
 
 bool FPCGExCustomGraphProcessorElement::Boot(FPCGContext* InContext) const
 {
-	if (!FPCGExPointsProcessorElementBase::Boot(InContext)) { return false; }
+	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT(CustomGraphProcessor)
 
@@ -146,7 +146,7 @@ FPCGContext* FPCGExCustomGraphProcessorElement::InitializeContext(
 	const TWeakObjectPtr<UPCGComponent> SourceComponent,
 	const UPCGNode* Node) const
 {
-	FPCGExPointsProcessorElementBase::InitializeContext(InContext, InputData, SourceComponent, Node);
+	FPCGExPointsProcessorElement::InitializeContext(InContext, InputData, SourceComponent, Node);
 
 	PCGEX_CONTEXT_AND_SETTINGS(CustomGraphProcessor)
 
