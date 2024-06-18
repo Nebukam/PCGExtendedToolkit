@@ -59,7 +59,7 @@ namespace PCGExClusterMT
 		PCGExHeuristics::THeuristicsHandler* HeuristicsHandler = nullptr;
 
 		UPCGExNodeStateFactory* VtxFiltersData = nullptr;
-		bool DefaultVtxFilterValue = true;
+		bool DefaultVtxFilterValue = false;
 		bool bIsSmallCluster = false;
 
 		TArray<bool> VtxFilterCache;

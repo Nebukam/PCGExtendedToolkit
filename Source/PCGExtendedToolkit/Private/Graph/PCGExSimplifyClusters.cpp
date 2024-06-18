@@ -71,6 +71,7 @@ namespace PCGExSimplifyClusters
 	FProcessor::FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges):
 		FClusterProcessor(InVtx, InEdges)
 	{
+		
 	}
 
 	FProcessor::~FProcessor()
