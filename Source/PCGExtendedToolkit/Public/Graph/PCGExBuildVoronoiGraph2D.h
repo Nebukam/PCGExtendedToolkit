@@ -12,8 +12,7 @@
 
 namespace PCGExGeo
 {
-	class TVoronoiMesh2;
-	class TConvexHull2;
+	class TVoronoi2;
 }
 
 /**
@@ -80,13 +79,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBuildVoronoiGraph2DContext final : public FP
 	friend class FPCGExBuildVoronoiGraph2DElement;
 
 	virtual ~FPCGExBuildVoronoiGraph2DContext() override;
-
-	TSet<int32> HullIndices;
-
-	FPCGExGeo2DProjectionSettings ProjectionSettings;
-
-	FPCGExGraphBuilderSettings GraphBuilderSettings;
-	PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
 };
 
 
@@ -103,14 +95,27 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExVoronoi2Task final : public FPCGExNonAbandonableTask
+namespace PCGExBuildVoronoi2D
 {
-public:
-	FPCGExVoronoi2Task(
-		PCGExData::FPointIO* InPointIO):
-		FPCGExNonAbandonableTask(InPointIO)
+	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
-	}
 
-	virtual bool ExecuteTask() override;
-};
+	protected:
+		FPCGExGeo2DProjectionSettings ProjectionSettings;
+		
+		PCGExGeo::TVoronoi2* Voronoi = nullptr;
+		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
+
+		PCGEx::TFAttributeWriter<bool>* HullMarkPointWriter = nullptr;
+		
+	public:
+		explicit FProcessor(PCGExData::FPointIO* InPoints);
+		virtual ~FProcessor() override;
+
+		virtual bool Process(FPCGExAsyncManager* AsyncManager) override;
+		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point) override;
+		virtual void CompleteWork() override;
+		virtual void Write() override;
+		
+	};
+}

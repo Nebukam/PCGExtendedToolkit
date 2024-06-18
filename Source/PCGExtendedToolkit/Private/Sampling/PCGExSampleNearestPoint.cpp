@@ -187,9 +187,24 @@ namespace PCGExSampleNearestPoints
 
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point)
 	{
-		if (!PointFilterCache[Index]) { return; }
-
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(SampleNearestPoint)
+
+		auto SamplingFailed = [&]()
+		{
+			const double FailSafeDist = FMath::Sqrt(RangeMaxGetter->SafeGet(Index, Settings->RangeMax));
+			PCGEX_OUTPUT_VALUE(Success, Index, false)
+			PCGEX_OUTPUT_VALUE(Transform, Index, Point.Transform)
+			PCGEX_OUTPUT_VALUE(LookAtTransform, Index, Point.Transform)
+			PCGEX_OUTPUT_VALUE(Distance, Index, FailSafeDist)
+			PCGEX_OUTPUT_VALUE(SignedDistance, Index, FailSafeDist)
+			PCGEX_OUTPUT_VALUE(NumSamples, Index, 0)
+		};
+
+		if (!PointFilterCache[Index])
+		{
+			SamplingFailed();
+			return;
+		}
 
 		const bool bSingleSample = (Settings->SampleMethod == EPCGExSampleMethod::ClosestTarget || Settings->SampleMethod == EPCGExSampleMethod::FarthestTarget);
 
@@ -204,6 +219,7 @@ namespace PCGExSampleNearestPoints
 
 		TArray<PCGExNearestPoint::FTargetInfos> TargetsInfos;
 		TargetsInfos.Reserve(TypedContext->Targets->GetNum());
+
 
 		PCGExNearestPoint::FTargetsCompoundInfos TargetsCompoundInfos;
 		auto ProcessTarget = [&](const int32 PointIndex, const FPCGPoint& Target)
@@ -253,13 +269,7 @@ namespace PCGExSampleNearestPoints
 		// Compound never got updated, meaning we couldn't find target in range
 		if (TargetsCompoundInfos.UpdateCount <= 0)
 		{
-			double FailSafeDist = FMath::Sqrt(RangeMax);
-			PCGEX_OUTPUT_VALUE(Success, Index, false)
-			PCGEX_OUTPUT_VALUE(Transform, Index, Point.Transform)
-			PCGEX_OUTPUT_VALUE(LookAtTransform, Index, Point.Transform)
-			PCGEX_OUTPUT_VALUE(Distance, Index, FailSafeDist)
-			PCGEX_OUTPUT_VALUE(SignedDistance, Index, FailSafeDist)
-			PCGEX_OUTPUT_VALUE(NumSamples, Index, 0)
+			SamplingFailed();
 			return;
 		}
 
@@ -350,7 +360,7 @@ namespace PCGExSampleNearestPoints
 
 	void FProcessor::CompleteWork()
 	{
-		FPointsProcessor::CompleteWork();
+		
 		PCGEX_FOREACH_FIELD_NEARESTPOINT(PCGEX_OUTPUT_WRITE)
 		if (Blender) { Blender->Write(); }
 	}

@@ -116,7 +116,7 @@ bool FPCGExLloydRelax3Task::ExecuteTask()
 	FPCGExPointsProcessorContext* Context = static_cast<FPCGExPointsProcessorContext*>(Manager->Context);
 
 	const TArrayView<FVector> View = MakeArrayView(Positions);
-	if (!Delaunay->Process(View, false, Context)) { return false; }
+	if (!Delaunay->Process(View, false)) { return false; }
 
 	const int32 NumPoints = Positions.Num();
 

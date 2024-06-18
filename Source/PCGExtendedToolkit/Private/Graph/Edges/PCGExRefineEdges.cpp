@@ -122,7 +122,7 @@ namespace PCGExRefineEdges
 		Cluster->GetValidEdges(ValidEdges);
 		GraphBuilder->Graph->InsertEdges(ValidEdges);
 
-		FClusterProcessor::CompleteWork();
+		
 	}
 
 	FProcessorBatch::FProcessorBatch(FPCGContext* InContext, PCGExData::FPointIO* InVtx, const TArrayView<PCGExData::FPointIO*> InEdges)

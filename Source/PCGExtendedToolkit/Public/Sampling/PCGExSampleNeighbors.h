@@ -69,12 +69,11 @@ namespace PCGExSampleNeighbors
 {
 	class FProcessor final : public PCGExClusterMT::FClusterProcessor
 	{
-
 		TArray<UPCGExNeighborSampleOperation*> SamplingOperations;
 
 		TArray<UPCGExNeighborSampleOperation*> VtxOps;
 		TArray<UPCGExNeighborSampleOperation*> EdgeOps;
-		
+
 	public:
 		FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges);
 		virtual ~FProcessor() override;

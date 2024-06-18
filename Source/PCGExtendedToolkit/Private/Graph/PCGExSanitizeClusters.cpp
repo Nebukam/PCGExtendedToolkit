@@ -79,7 +79,12 @@ bool FPCGExSanitizeClustersElement::ExecuteInternal(FPCGContext* InContext) cons
 
 		for (const PCGExGraph::FGraphBuilder* Builder : Context->Builders)
 		{
-			if (!Builder || !Builder->bCompiledSuccessfully) { continue; }
+			if (!Builder) { continue; }
+			if (!Builder->bCompiledSuccessfully)
+			{
+				Builder->PointIO->InitializeOutput(PCGExData::EInit::NoOutput);
+				continue;
+			}
 			Builder->Write(Context);
 		}
 

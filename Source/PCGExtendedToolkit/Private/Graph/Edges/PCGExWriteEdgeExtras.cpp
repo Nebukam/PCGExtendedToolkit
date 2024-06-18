@@ -81,6 +81,8 @@ namespace PCGExWriteEdgeExtras
 
 	FProcessor::~FProcessor()
 	{
+		PCGEX_DELETE(ProjectedCluster)
+
 		PCGEX_DELETE(MetadataBlender)
 
 		PCGEX_DELETE(EdgeDirCompGetter)
@@ -154,19 +156,11 @@ namespace PCGExWriteEdgeExtras
 
 		if (VtxNormalWriter)
 		{
-			//TODO : For the love of whomever async this monstrosity
-			PCGExCluster::FClusterProjection* ProjectedCluster = new PCGExCluster::FClusterProjection(Cluster, ProjectionSettings);
+			ProjectedCluster = new PCGExCluster::FClusterProjection(Cluster, ProjectionSettings);
 			ProjectedCluster->Build();
-
-			for (PCGExCluster::FNodeProjection& VtxPt : ProjectedCluster->Nodes)
-			{
-				VtxPt.ComputeNormal(Cluster);
-				VtxNormalWriter->Values[VtxPt.Node->NodeIndex] = VtxPt.Normal;
-			}
-
-			PCGEX_DELETE(ProjectedCluster)
 		}
 
+		if (VtxNormalWriter || VtxEdgeCountWriter) { StartParallelLoopForNodes(); }
 		StartParallelLoopForEdges();
 
 		return true;
@@ -286,14 +280,24 @@ namespace PCGExWriteEdgeExtras
 		}
 	}
 
-	void FProcessor::CompleteWork()
+	void FProcessor::ProcessSingleNode(PCGExCluster::FNode& Node)
 	{
-		FClusterProcessor::CompleteWork();
-
+		if (VtxNormalWriter)
+		{
+			PCGExCluster::FNodeProjection& VtxPt = ProjectedCluster->Nodes[Node.NodeIndex];
+			VtxPt.ComputeNormal(Cluster);
+			VtxNormalWriter->Values[VtxPt.Node->NodeIndex] = VtxPt.Normal;
+		}
+		
 		if (VtxEdgeCountWriter)
 		{
-			for (PCGExCluster::FNode& Node : Cluster->Nodes) { VtxEdgeCountWriter->Values[Node.PointIndex] = Node.Adjacency.Num(); }
+			VtxEdgeCountWriter->Values[Node.PointIndex] = Node.Adjacency.Num();
 		}
+	}
+
+	void FProcessor::CompleteWork()
+	{
+		
 
 		PCGEX_FOREACH_FIELD_EDGEEXTRAS(PCGEX_OUTPUT_WRITE)
 		if (MetadataBlender) { MetadataBlender->Write(); }

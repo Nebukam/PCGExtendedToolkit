@@ -10,16 +10,11 @@
 #define LOCTEXT_NAMESPACE "PCGExGraph"
 #define PCGEX_NAMESPACE BuildDelaunayGraph
 
-PCGExData::EInit UPCGExBuildDelaunayGraphSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
+PCGExData::EInit UPCGExBuildDelaunayGraphSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 
 FPCGExBuildDelaunayGraphContext::~FPCGExBuildDelaunayGraphContext()
 {
 	PCGEX_TERMINATE_ASYNC
-
-	PCGEX_DELETE(GraphBuilder)
-
-	ActivePositions.Empty();
-	HullIndices.Empty();
 }
 
 TArray<FPCGPinProperties> UPCGExBuildDelaunayGraphSettings::OutputPinProperties() const
@@ -38,12 +33,7 @@ bool FPCGExBuildDelaunayGraphElement::Boot(FPCGContext* InContext) const
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(BuildDelaunayGraph)
-
-	PCGEX_FWD(GraphBuilderSettings)
-	Context->GraphBuilderSettings.bPruneIsolatedPoints = false; // TODO check if this is required
-
 	PCGEX_VALIDATE_NAME(Settings->HullAttributeName)
-
 
 	return true;
 }
@@ -58,53 +48,36 @@ bool FPCGExBuildDelaunayGraphElement::ExecuteInternal(
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }
-		Context->SetState(PCGExMT::State_ReadyForNextPoints);
-	}
 
-	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
-	{
-		PCGEX_DELETE(Context->GraphBuilder)
-		Context->HullIndices.Empty();
+		bool bInvalidInputs = false;
 
-		if (!Context->AdvancePointsIO()) { Context->Done(); }
-		else
-		{
-			if (Context->CurrentIO->GetNum() <= 4)
+		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExBuildDelaunay::FProcessor>>(
+			[&](PCGExData::FPointIO* Entry)
 			{
-				PCGE_LOG(Warning, GraphAndLog, FTEXT(" (0) Some inputs have too few points to be processed (<= 4)."));
-				return false;
-			}
-
-			PCGExGeo::PointsToPositions(Context->CurrentIO->GetIn()->GetPoints(), Context->ActivePositions);
-
-			Context->GraphBuilder = new PCGExGraph::FGraphBuilder(*Context->CurrentIO, &Context->GraphBuilderSettings, 6);
-			Context->GetAsyncManager()->Start<FPCGExDelaunay3Task>(Context->CurrentIO->IOIndex, Context->CurrentIO, Context->GraphBuilder->Graph);
-
-			Context->SetAsyncState(PCGExGeo::State_ProcessingDelaunay);
-		}
-	}
-
-	if (Context->IsState(PCGExGeo::State_ProcessingDelaunay))
-	{
-		PCGEX_WAIT_ASYNC
-
-		if (Context->GraphBuilder->Graph->Edges.IsEmpty())
+				if (Entry->GetNum() < 4)
+				{
+					bInvalidInputs = true;
+					return false;
+				}
+				return true;
+			},
+			[&](PCGExPointsMT::TBatch<PCGExBuildDelaunay::FProcessor>* NewBatch)
+			{
+				NewBatch->bRequiresWriteStep = true;
+			},
+			PCGExMT::State_Done))
 		{
-			PCGE_LOG(Warning, GraphAndLog, FTEXT("(1) Some inputs generates no results. Are points coplanar? If so, use Delaunay 2D instead."));
-			Context->SetState(PCGExMT::State_ReadyForNextPoints);
-			return false;
+			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not find any points to build from."));
+			return true;
 		}
 
-		Context->GraphBuilder->CompileAsync(Context->GetAsyncManager());
-		Context->SetAsyncState(PCGExGraph::State_WritingClusters);
+		if (bInvalidInputs)
+		{
+			PCGE_LOG(Warning, GraphAndLog, FTEXT("Some inputs have less than 4 points and won't be processed."));
+		}
 	}
 
-	if (Context->IsState(PCGExGraph::State_WritingClusters))
-	{
-		PCGEX_WAIT_ASYNC
-		if (Context->GraphBuilder->bCompiledSuccessfully) { Context->GraphBuilder->Write(Context); }
-		Context->SetState(PCGExMT::State_ReadyForNextPoints);
-	}
+	if (!Context->ProcessPointsBatch()) { return false; }
 
 	if (Context->IsDone())
 	{
@@ -115,27 +88,89 @@ bool FPCGExBuildDelaunayGraphElement::ExecuteInternal(
 	return Context->IsDone();
 }
 
-bool FPCGExDelaunay3Task::ExecuteTask()
+namespace PCGExBuildDelaunay
 {
-	FPCGExBuildDelaunayGraphContext* Context = static_cast<FPCGExBuildDelaunayGraphContext*>(Manager->Context);
-	PCGEX_SETTINGS(BuildDelaunayGraph)
-
-	PCGExGeo::TDelaunay3* Delaunay = new PCGExGeo::TDelaunay3();
-
-	const TArrayView<FVector> View = MakeArrayView(Context->ActivePositions);
-	if (!Delaunay->Process(View, false, Context))
+	FProcessor::FProcessor(PCGExData::FPointIO* InPoints):
+		FPointsProcessor(InPoints)
 	{
-		PCGEX_DELETE(Delaunay)
-		return false;
 	}
 
-	if (Settings->bUrquhart) { Delaunay->RemoveLongestEdges(View, Context); }
-	if (Settings->bMarkHull) { Context->HullIndices.Append(Delaunay->DelaunayHull); }
+	FProcessor::~FProcessor()
+	{
+		PCGEX_DELETE(Delaunay)
 
-	Graph->InsertEdges(Delaunay->DelaunayEdges, -1);
+		PCGEX_DELETE(GraphBuilder)
+		PCGEX_DELETE(HullMarkPointWriter)
+	}
 
-	PCGEX_DELETE(Delaunay)
-	return true;
+	bool FProcessor::Process(FPCGExAsyncManager* AsyncManager)
+	{
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(BuildDelaunayGraph)
+
+		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
+
+		// Build delaunay
+
+		TArray<FVector> ActivePositions;
+		PCGExGeo::PointsToPositions(PointIO->GetIn()->GetPoints(), ActivePositions);
+
+		Delaunay = new PCGExGeo::TDelaunay3();
+
+		if (!Delaunay->Process(ActivePositions, false))
+		{
+			PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Some inputs generated invalid results. Are points coplanar? If so, use Delaunay 2D instead."));
+			PCGEX_DELETE(Delaunay)
+			return false;
+		}
+
+		PointIO->InitializeOutput(PCGExData::EInit::DuplicateInput);
+
+		if (Settings->bUrquhart) { Delaunay->RemoveLongestEdges(ActivePositions); }
+		if (Settings->bMarkHull) { HullMarkPointWriter = new PCGEx::TFAttributeWriter<bool>(Settings->HullAttributeName, false, false); }
+
+		ActivePositions.Empty();
+
+		GraphBuilder = new PCGExGraph::FGraphBuilder(*PointIO, &Settings->GraphBuilderSettings);
+		GraphBuilder->Graph->InsertEdges(Delaunay->DelaunayEdges, -1);
+
+		GraphBuilder->CompileAsync(AsyncManagerPtr);
+
+		if (!Settings->bMarkHull) { PCGEX_DELETE(Delaunay) }
+
+		return true;
+	}
+
+	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point)
+	{
+		HullMarkPointWriter->Values[Index] = Delaunay->DelaunayHull.Contains(Index);
+	}
+
+	void FProcessor::CompleteWork()
+	{
+		if (!GraphBuilder) { return; }
+
+		if (!GraphBuilder->bCompiledSuccessfully)
+		{
+			PointIO->InitializeOutput(PCGExData::EInit::NoOutput);
+			PCGEX_DELETE(GraphBuilder)
+			PCGEX_DELETE(HullMarkPointWriter)
+			return;
+		}
+
+		GraphBuilder->Write(Context);
+
+		if (HullMarkPointWriter)
+		{
+			HullMarkPointWriter->BindAndSetNumUninitialized(*PointIO);
+			StartParallelLoopForPoints();
+		}
+	}
+
+	void FProcessor::Write()
+	{
+		if (!GraphBuilder) { return; }
+		if (HullMarkPointWriter) { HullMarkPointWriter->Write(); }
+	}
 }
 
 #undef LOCTEXT_NAMESPACE

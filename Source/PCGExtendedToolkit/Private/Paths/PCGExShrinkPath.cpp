@@ -430,7 +430,7 @@ namespace PCGExShrinkPath
 
 	void FProcessor::CompleteWork()
 	{
-		FPointsProcessor::CompleteWork();
+		
 	}
 }
 

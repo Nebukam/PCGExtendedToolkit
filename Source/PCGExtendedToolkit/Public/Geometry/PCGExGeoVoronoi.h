@@ -35,12 +35,12 @@ namespace PCGExGeo
 			IsValid = false;
 		}
 
-		bool Process(const TArrayView<FVector>& Positions, const FPCGExGeo2DProjectionSettings& ProjectionSettings, FPCGExPointsProcessorContext* Context = nullptr)
+		bool Process(const TArrayView<FVector>& Positions, const FPCGExGeo2DProjectionSettings& ProjectionSettings)
 		{
 			Clear();
 
 			Delaunay = new TDelaunay2();
-			if (!Delaunay->Process(Positions, ProjectionSettings, Context))
+			if (!Delaunay->Process(Positions, ProjectionSettings))
 			{
 				Clear();
 				return IsValid;
@@ -97,13 +97,13 @@ namespace PCGExGeo
 			IsValid = false;
 		}
 
-		bool Process(const TArrayView<FVector>& Positions, FPCGExPointsProcessorContext* Context = nullptr)
+		bool Process(const TArrayView<FVector>& Positions)
 		{
 			PCGEX_DELETE(Delaunay)
 			IsValid = false;
 
 			Delaunay = new TDelaunay3();
-			if (!Delaunay->Process(Positions, true, Context))
+			if (!Delaunay->Process(Positions, true))
 			{
 				Clear();
 				return IsValid;

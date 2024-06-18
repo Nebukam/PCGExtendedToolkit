@@ -115,7 +115,7 @@ namespace PCGExSimplifyClusters
 		PCGExClusterTask::DedupeChains(Chains);
 		StartParallelLoopForRange(Chains.Num());
 
-		FClusterProcessor::CompleteWork();
+		
 	}
 
 	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration)

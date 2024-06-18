@@ -15,17 +15,11 @@ namespace PCGExGeoTask
 	class FLloydRelax2;
 }
 
-PCGExData::EInit UPCGExBuildDelaunayGraph2DSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
+PCGExData::EInit UPCGExBuildDelaunayGraph2DSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 
 FPCGExBuildDelaunayGraph2DContext::~FPCGExBuildDelaunayGraph2DContext()
 {
 	PCGEX_TERMINATE_ASYNC
-
-	PCGEX_DELETE(GraphBuilder)
-
-	HullIndices.Empty();
-
-	ProjectionSettings.Cleanup();
 }
 
 TArray<FPCGPinProperties> UPCGExBuildDelaunayGraph2DSettings::OutputPinProperties() const
@@ -45,12 +39,7 @@ bool FPCGExBuildDelaunayGraph2DElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(BuildDelaunayGraph2D)
 
-	PCGEX_FWD(GraphBuilderSettings)
-	Context->GraphBuilderSettings.bPruneIsolatedPoints = false;
-
 	PCGEX_VALIDATE_NAME(Settings->HullAttributeName)
-
-	PCGEX_FWD(ProjectionSettings)
 
 	return true;
 }
@@ -65,68 +54,36 @@ bool FPCGExBuildDelaunayGraph2DElement::ExecuteInternal(
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }
-		Context->SetState(PCGExMT::State_ReadyForNextPoints);
-	}
 
-	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
-	{
-		PCGEX_DELETE(Context->GraphBuilder)
-		Context->HullIndices.Empty();
+		bool bInvalidInputs = false;
 
-		if (!Context->AdvancePointsIO()) { Context->Done(); }
-		else
-		{
-			if (Context->CurrentIO->GetNum() <= 3)
+		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExBuildDelaunay2D::FProcessor>>(
+			[&](PCGExData::FPointIO* Entry)
 			{
-				PCGE_LOG(Warning, GraphAndLog, FTEXT("(0) Some inputs have too few points to be processed (<= 3)."));
-				return false;
-			}
-
-			Context->ProjectionSettings.Init(Context->CurrentIO);
-
-			Context->GraphBuilder = new PCGExGraph::FGraphBuilder(*Context->CurrentIO, &Context->GraphBuilderSettings, 6);
-			Context->GetAsyncManager()->Start<FPCGExDelaunay2Task>(Context->CurrentIO->IOIndex, Context->CurrentIO, Context->GraphBuilder->Graph);
-
-			Context->SetAsyncState(PCGExGeo::State_ProcessingDelaunay);
-		}
-	}
-
-	if (Context->IsState(PCGExGeo::State_ProcessingDelaunay))
-	{
-		PCGEX_WAIT_ASYNC
-
-		if (Context->GraphBuilder->Graph->Edges.IsEmpty())
-		{
-			PCGE_LOG(Warning, GraphAndLog, FTEXT("(1) Some inputs generates no results."));
-			Context->SetState(PCGExMT::State_ReadyForNextPoints);
-			return false;
-		}
-
-		Context->GraphBuilder->CompileAsync(Context->GetAsyncManager());
-		Context->SetAsyncState(PCGExGraph::State_WritingClusters);
-	}
-
-	if (Context->IsState(PCGExGraph::State_WritingClusters))
-	{
-		PCGEX_WAIT_ASYNC
-
-		if (Context->GraphBuilder->bCompiledSuccessfully)
-		{
-			if (Settings->bMarkHull)
+				if (Entry->GetNum() < 3)
+				{
+					bInvalidInputs = true;
+					return false;
+				}
+				return true;
+			},
+			[&](PCGExPointsMT::TBatch<PCGExBuildDelaunay2D::FProcessor>* NewBatch)
 			{
-				PCGEx::TFAttributeWriter<bool>* HullMarkPointWriter = new PCGEx::TFAttributeWriter<bool>(Settings->HullAttributeName, false, false);
-				HullMarkPointWriter->BindAndSetNumUninitialized(*Context->CurrentIO);
-
-				for (int i = 0; i < Context->CurrentIO->GetNum(); i++) { HullMarkPointWriter->Values[i] = Context->HullIndices.Contains(i); }
-
-				HullMarkPointWriter->Write();
-				PCGEX_DELETE(HullMarkPointWriter)
-			}
-
-			Context->GraphBuilder->Write(Context);
+				NewBatch->bRequiresWriteStep = true;
+			},
+			PCGExMT::State_Done))
+		{
+			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not find any points to build from."));
+			return true;
 		}
-		Context->SetState(PCGExMT::State_ReadyForNextPoints);
+
+		if (bInvalidInputs)
+		{
+			PCGE_LOG(Warning, GraphAndLog, FTEXT("Some inputs have less than 3 points and won't be processed."));
+		}
 	}
+
+	if (!Context->ProcessPointsBatch()) { return false; }
 
 	if (Context->IsDone())
 	{
@@ -137,32 +94,96 @@ bool FPCGExBuildDelaunayGraph2DElement::ExecuteInternal(
 	return Context->IsDone();
 }
 
-bool FPCGExDelaunay2Task::ExecuteTask()
+namespace PCGExBuildDelaunay2D
 {
-	FPCGExBuildDelaunayGraph2DContext* Context = static_cast<FPCGExBuildDelaunayGraph2DContext*>(Manager->Context);
-	PCGEX_SETTINGS(BuildDelaunayGraph2D)
-
-	PCGExGeo::TDelaunay2* Delaunay = new PCGExGeo::TDelaunay2();
-
-	TArray<FVector> ActivePositions;
-	PCGExGeo::PointsToPositions(Context->CurrentIO->GetIn()->GetPoints(), ActivePositions);
-
-	const TArrayView<FVector> View = MakeArrayView(ActivePositions);
-	if (!Delaunay->Process(View, Context->ProjectionSettings, Context))
+	FProcessor::FProcessor(PCGExData::FPointIO* InPoints):
+		FPointsProcessor(InPoints)
 	{
-		ActivePositions.Empty();
-		PCGEX_DELETE(Delaunay)
-		return false;
 	}
 
-	if (Settings->bUrquhart) { Delaunay->RemoveLongestEdges(View, Context); }
-	if (Settings->bMarkHull) { Context->HullIndices.Append(Delaunay->DelaunayHull); }
+	FProcessor::~FProcessor()
+	{
+		PCGEX_DELETE(Delaunay)
 
-	Graph->InsertEdges(Delaunay->DelaunayEdges, -1);
+		ProjectionSettings.Cleanup();
+		PCGEX_DELETE(GraphBuilder)
 
-	ActivePositions.Empty();
-	PCGEX_DELETE(Delaunay)
-	return true;
+		PCGEX_DELETE(HullMarkPointWriter)
+	}
+
+	bool FProcessor::Process(FPCGExAsyncManager* AsyncManager)
+	{
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(BuildDelaunayGraph2D)
+
+		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
+
+		ProjectionSettings = Settings->ProjectionSettings;
+		ProjectionSettings.Init(PointIO);
+
+		// Build delaunay
+
+		TArray<FVector> ActivePositions;
+		PCGExGeo::PointsToPositions(PointIO->GetIn()->GetPoints(), ActivePositions);
+
+		Delaunay = new PCGExGeo::TDelaunay2();
+
+		if (!Delaunay->Process(ActivePositions, ProjectionSettings))
+		{
+			PCGE_LOG_C(Warning, GraphAndLog, Context, FTEXT("Some inputs generated invalid results."));
+			PCGEX_DELETE(Delaunay)
+			return false;
+		}
+
+		PointIO->InitializeOutput(PCGExData::EInit::DuplicateInput);
+
+		if (Settings->bUrquhart) { Delaunay->RemoveLongestEdges(ActivePositions); }
+		if (Settings->bMarkHull) { HullMarkPointWriter = new PCGEx::TFAttributeWriter<bool>(Settings->HullAttributeName, false, false); }
+
+		ActivePositions.Empty();
+
+		GraphBuilder = new PCGExGraph::FGraphBuilder(*PointIO, &Settings->GraphBuilderSettings);
+		GraphBuilder->Graph->InsertEdges(Delaunay->DelaunayEdges, -1);
+
+		GraphBuilder->CompileAsync(AsyncManagerPtr);
+
+		if (!Settings->bMarkHull) { PCGEX_DELETE(Delaunay) }
+
+		return true;
+	}
+
+	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point)
+	{
+		HullMarkPointWriter->Values[Index] = Delaunay->DelaunayHull.Contains(Index);
+	}
+
+	void FProcessor::CompleteWork()
+	{
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(BuildDelaunayGraph2D)
+
+		if (!GraphBuilder) { return; }
+
+		if (!GraphBuilder->bCompiledSuccessfully)
+		{
+			PointIO->InitializeOutput(PCGExData::EInit::NoOutput);
+			PCGEX_DELETE(GraphBuilder)
+			PCGEX_DELETE(HullMarkPointWriter)
+			return;
+		}
+
+		GraphBuilder->Write(Context);
+
+		if (HullMarkPointWriter)
+		{
+			HullMarkPointWriter->BindAndSetNumUninitialized(*PointIO);
+			StartParallelLoopForPoints();
+		}
+	}
+
+	void FProcessor::Write()
+	{
+		if (!GraphBuilder) { return; }
+		if (HullMarkPointWriter) { HullMarkPointWriter->Write(); }
+	}
 }
 
 #undef LOCTEXT_NAMESPACE

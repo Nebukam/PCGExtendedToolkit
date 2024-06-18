@@ -178,7 +178,7 @@ namespace PCGExOffsetPath
 
 		StartParallelLoopForPoints();
 
-		FPointsProcessor::CompleteWork();
+		
 	}
 
 	FVector FProcessor::NRM(const int32 A, const int32 B, const int32 C) const

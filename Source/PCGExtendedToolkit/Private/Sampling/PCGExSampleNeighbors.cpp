@@ -171,7 +171,7 @@ namespace PCGExSampleNeighbors
 
 	void FProcessor::CompleteWork()
 	{
-		FClusterProcessor::CompleteWork();
+		
 		for (UPCGExNeighborSampleOperation* Op : SamplingOperations) { Op->FinalizeOperation(); }
 	}
 }

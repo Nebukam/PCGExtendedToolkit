@@ -129,7 +129,7 @@ namespace PCGExBreakClustersToPaths
 			StartParallelLoopForEdges();
 		}
 
-		FClusterProcessor::CompleteWork();
+		
 	}
 
 	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration)

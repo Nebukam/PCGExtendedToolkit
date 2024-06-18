@@ -236,7 +236,7 @@ namespace PCGExFindContours
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(FindContours)
 
-		FClusterProcessor::CompleteWork();
+		
 
 		for (int i = 0; i < TypedContext->ProjectedSeeds.Num(); i++)
 		{

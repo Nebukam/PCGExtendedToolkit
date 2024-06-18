@@ -36,6 +36,7 @@ namespace PCGExMT
 
 	PCGEX_ASYNC_STATE(State_Processing)
 	PCGEX_ASYNC_STATE(State_Completing)
+	PCGEX_ASYNC_STATE(State_Writing)
 
 	struct PCGEXTENDEDTOOLKIT_API FChunkedLoop
 	{

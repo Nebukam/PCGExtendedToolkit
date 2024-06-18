@@ -336,7 +336,7 @@ namespace PCGExGeo
 	FORCEINLINE static void PointsToPositions(const TArray<FPCGPoint>& Points, TArray<FVector>& OutPositions)
 	{
 		const int32 NumPoints = Points.Num();
-		OutPositions.SetNum(NumPoints);
+		OutPositions.SetNumUninitialized(NumPoints);
 		for (int i = 0; i < NumPoints; i++) { OutPositions[i] = Points[i].Transform.GetLocation(); }
 	}
 }

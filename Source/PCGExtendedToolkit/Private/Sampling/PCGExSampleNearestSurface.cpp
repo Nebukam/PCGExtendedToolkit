@@ -127,13 +127,25 @@ namespace PCGExSampleNearestSurface
 
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point)
 	{
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(SampleNearestSurface)
+
+		const double MaxDistance = MaxDistanceGetter->SafeGet(Index, Settings->MaxDistance);
+
+		auto SamplingFailed = [&]()
+		{
+			const FVector Direction = FVector::UpVector;
+			PCGEX_OUTPUT_VALUE(Location, Index, Point.Transform.GetLocation())
+			PCGEX_OUTPUT_VALUE(Normal, Index, Direction*-1) // TODO: expose "precise normal" in which case we line trace to location
+			PCGEX_OUTPUT_VALUE(LookAt, Index, Direction)
+			PCGEX_OUTPUT_VALUE(Distance, Index, MaxDistance)
+			PCGEX_OUTPUT_VALUE(Success, Index, false)
+		};
+
 		if (!PointFilterCache[Index])
 		{
-			PCGEX_OUTPUT_VALUE(Success, Index, false)
+			SamplingFailed();
 			return;
 		}
-
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(SampleNearestSurface)
 
 		const FVector Origin = PointIO->GetInPoint(Index).Transform.GetLocation();
 
@@ -141,7 +153,6 @@ namespace PCGExSampleNearestSurface
 		CollisionParams.bTraceComplex = false;
 		CollisionParams.AddIgnoredActors(TypedContext->IgnoredActors);
 
-		const double MaxDistance = MaxDistanceGetter->SafeGet(Index, Settings->MaxDistance);
 		const FCollisionShape CollisionShape = FCollisionShape::MakeSphere(MaxDistance);
 
 		FVector HitLocation;
@@ -178,6 +189,10 @@ namespace PCGExSampleNearestSurface
 				PCGEX_OUTPUT_VALUE(LookAt, Index, Direction)
 				PCGEX_OUTPUT_VALUE(Distance, Index, MinDist)
 			}
+			else
+			{
+				SamplingFailed();
+			}
 		};
 
 
@@ -201,15 +216,15 @@ namespace PCGExSampleNearestSurface
 				ProcessOverlapResults();
 			}
 			break;
-		default: ;
+		default:
+			SamplingFailed();
+			break;
 		}
-
-		PCGEX_OUTPUT_VALUE(Success, Index, bSuccess)
 	}
 
 	void FProcessor::CompleteWork()
 	{
-		FPointsProcessor::CompleteWork();
+		
 		PCGEX_FOREACH_FIELD_NEARESTSURFACE(PCGEX_OUTPUT_WRITE)
 	}
 }

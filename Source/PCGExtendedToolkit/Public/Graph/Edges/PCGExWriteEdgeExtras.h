@@ -227,6 +227,7 @@ namespace PCGExWriteEdgeExtras
 		double StartWeight = 0;
 		double EndWeight = 1;
 
+		PCGExCluster::FClusterProjection* ProjectedCluster = nullptr;
 		PCGExDataBlending::FMetadataBlender* MetadataBlender = nullptr;
 
 		PCGEx::FLocalSingleFieldGetter* SolidificationLerpGetter = nullptr;
@@ -239,6 +240,7 @@ namespace PCGExWriteEdgeExtras
 
 		virtual bool Process(FPCGExAsyncManager* AsyncManager) override;
 		virtual void ProcessSingleEdge(PCGExGraph::FIndexedEdge& Edge) override;
+		virtual void ProcessSingleNode(PCGExCluster::FNode& Node) override;
 		virtual void CompleteWork() override;
 
 		bool bSolidify = false;

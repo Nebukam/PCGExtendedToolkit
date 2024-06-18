@@ -71,6 +71,25 @@ enum class EPCGExAngleRange : uint8
 	TAUDegrees UMETA(DisplayName = "Degrees (0..+360)", ToolTip="0..+360"),
 };
 
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExActorDataSampling
+{
+	GENERATED_BODY()
+
+	FPCGExActorDataSampling()
+	{
+	}
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	bool bWriteActorReference = false;
+
+	/** */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bWriteActorReference"))
+	FName ActorReferenceAttribute = FName("ActorReference");
+
+};
+
 namespace PCGExSampling
 {
 	const FName SourceIgnoreActorsLabel = TEXT("InIgnoreActors");
@@ -125,12 +144,3 @@ namespace PCGExSampling
 		return OutAngle;
 	}
 }
-
-class PCGEXTENDEDTOOLKIT_API FPCGExPCGExCollisionTask : public FPCGExNonAbandonableTask
-{
-public:
-	FPCGExPCGExCollisionTask(PCGExData::FPointIO* InPointIO) :
-		FPCGExNonAbandonableTask(InPointIO)
-	{
-	}
-};

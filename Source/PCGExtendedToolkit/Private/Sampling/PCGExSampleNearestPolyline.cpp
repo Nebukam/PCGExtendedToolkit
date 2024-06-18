@@ -175,7 +175,21 @@ namespace PCGExSampleNearestPolyline
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(SampleNearestPolyline)
 
-		if (!PointFilterCache[Index]) { return; }
+		auto SamplingFailed = [&]()
+		{
+			const double FailSafeDist = FMath::Sqrt(RangeMaxGetter->SafeGet(Index, Settings->RangeMax));
+			PCGEX_OUTPUT_VALUE(Success, Index, false)
+			PCGEX_OUTPUT_VALUE(Transform, Index, Point.Transform)
+			PCGEX_OUTPUT_VALUE(LookAtTransform, Index, Point.Transform)
+			PCGEX_OUTPUT_VALUE(Distance, Index, FailSafeDist)
+			PCGEX_OUTPUT_VALUE(SignedDistance, Index, FailSafeDist)
+		};
+
+		if (!PointFilterCache[Index])
+		{
+			SamplingFailed();
+			return;
+		}
 
 		double RangeMin = FMath::Pow(RangeMinGetter->SafeGet(Index, Settings->RangeMin), 2);
 		double RangeMax = FMath::Pow(RangeMaxGetter->SafeGet(Index, Settings->RangeMax), 2);
@@ -229,12 +243,7 @@ namespace PCGExSampleNearestPolyline
 		// Compound never got updated, meaning we couldn't find target in range
 		if (TargetsCompoundInfos.UpdateCount <= 0)
 		{
-			double FailSafeDist = FMath::Sqrt(RangeMax);
-			PCGEX_OUTPUT_VALUE(Success, Index, false)
-			PCGEX_OUTPUT_VALUE(Transform, Index, Point.Transform)
-			PCGEX_OUTPUT_VALUE(LookAtTransform, Index, Point.Transform)
-			PCGEX_OUTPUT_VALUE(Distance, Index, FailSafeDist)
-			PCGEX_OUTPUT_VALUE(SignedDistance, Index, FailSafeDist)
+			SamplingFailed();
 			return;
 		}
 
@@ -318,7 +327,7 @@ namespace PCGExSampleNearestPolyline
 
 	void FProcessor::CompleteWork()
 	{
-		FPointsProcessor::CompleteWork();
+		
 		PCGEX_FOREACH_FIELD_NEARESTPOLYLINE(PCGEX_OUTPUT_WRITE)
 	}
 }

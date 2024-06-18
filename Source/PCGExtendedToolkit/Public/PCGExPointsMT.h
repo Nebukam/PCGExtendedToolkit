@@ -14,6 +14,8 @@ namespace PCGExPointsMT
 {
 	PCGEX_ASYNC_STATE(MTState_PointsProcessing)
 	PCGEX_ASYNC_STATE(MTState_PointsCompletingWork)
+	PCGEX_ASYNC_STATE(MTState_PointsWriting)
+
 	PCGEX_ASYNC_STATE(State_PointsAsyncWorkComplete)
 
 #pragma region Tasks
@@ -35,6 +37,8 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 	PCGEX_POINTS_MT_TASK(FAsyncProcess, { Target->Process(Manager); })
 
 	PCGEX_POINTS_MT_TASK(FAsyncCompleteWork, { Target->CompleteWork(); })
+
+	PCGEX_POINTS_MT_TASK(FAsyncWrite, { Target->Write(); })
 
 	PCGEX_POINTS_MT_TASK_RANGE(FAsyncProcessPointRange, {Target->ProcessPoints(Source, TaskIndex, Iterations);})
 
@@ -72,7 +76,7 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 		{
 			PointIO = nullptr;
 			PCGEX_DELETE_UOBJECT(PrimaryOperation)
-			
+
 			PointFilterCache.Empty();
 		}
 
@@ -88,8 +92,6 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 
 		virtual bool Process(FPCGExAsyncManager* AsyncManager)
 		{
-			//UE_LOG(LogTemp, Warning, TEXT("FPointsProcessor::Process"))
-
 			AsyncManagerPtr = AsyncManager;
 
 #pragma region Path filter data
@@ -185,7 +187,10 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 
 		virtual void CompleteWork()
 		{
-			//UE_LOG(LogTemp, Warning, TEXT("FPointsProcessor::CompleteWork"))
+		}
+
+		virtual void Write()
+		{
 		}
 	};
 
@@ -196,6 +201,8 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 		TArray<UPCGExFilterFactoryBase*>* FilterFactories = nullptr;
 
 	public:
+		bool bRequiresWriteStep = false;
+
 		mutable FRWLock BatchLock;
 
 		PCGExMT::AsyncState CurrentState = PCGExMT::State_Setup;
@@ -230,6 +237,10 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 		}
 
 		virtual void CompleteWork()
+		{
+		}
+
+		virtual void Write()
 		{
 		}
 
@@ -291,8 +302,6 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 
 		virtual void Process(FPCGExAsyncManager* AsyncManager) override
 		{
-			//UE_LOG(LogTemp, Warning, TEXT("Batch::Process"))
-
 			if (PointsCollection.IsEmpty()) { return; }
 
 			CurrentState = PCGExMT::State_Processing;
@@ -322,7 +331,7 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 					NewProcessor->bIsSmallPoints = true;
 					ClosedBatchProcessors.Add(NewProcessor);
 				}
-				
+
 				if (bInlineProcessing) { NewProcessor->Process(AsyncManagerPtr); }
 				else if (!NewProcessor->IsTrivial()) { AsyncManager->Start<FAsyncProcess<T>>(IO->IOIndex, IO, NewProcessor); }
 			}
@@ -337,8 +346,6 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 
 		virtual void CompleteWork() override
 		{
-			//UE_LOG(LogTemp, Warning, TEXT("Batch::CompleteWork"))
-
 			CurrentState = PCGExMT::State_Completing;
 			if (bInlineCompletion)
 			{
@@ -356,6 +363,25 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 			}
 		}
 
+		virtual void Write() override
+		{
+			CurrentState = PCGExMT::State_Writing;
+			if (bInlineCompletion)
+			{
+				for (T* Processor : Processors) { Processor->Write(); }
+			}
+			else
+			{
+				for (T* Processor : Processors)
+				{
+					if (Processor->IsTrivial()) { continue; }
+					AsyncManagerPtr->Start<FAsyncWrite<T>>(-1, nullptr, Processor);
+				}
+
+				StartClosedBatchProcessing();
+			}
+		}
+
 		void ProcessClosedBatchRange(const int32 StartIndex, const int32 Iterations)
 		{
 			if (CurrentState == PCGExMT::State_Processing)
@@ -366,6 +392,10 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 			{
 				for (int i = 0; i < Iterations; i++) { ClosedBatchProcessors[StartIndex + i]->CompleteWork(); }
 			}
+			else if (CurrentState == PCGExMT::State_Writing)
+			{
+				for (int i = 0; i < Iterations; i++) { ClosedBatchProcessors[StartIndex + i]->Write(); }
+			}
 		}
 
 	protected:
@@ -374,8 +404,6 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 			const int32 NumTrivial = ClosedBatchProcessors.Num();
 			if (NumTrivial > 0)
 			{
-				//UE_LOG(LogTemp, Warning, TEXT("Batch::StartClosedBatchProcessing"))
-
 				int32 CurrentCount = 0;
 				while (CurrentCount < ClosedBatchProcessors.Num())
 				{
@@ -396,6 +424,11 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 	static void CompleteBatch(FPCGExAsyncManager* Manager, FPointsProcessorBatchBase* Batch)
 	{
 		Manager->Start<FAsyncCompleteWork<FPointsProcessorBatchBase>>(-1, nullptr, Batch);
+	}
+
+	static void WriteBatch(FPCGExAsyncManager* Manager, FPointsProcessorBatchBase* Batch)
+	{
+		Manager->Start<FAsyncWrite<FPointsProcessorBatchBase>>(-1, nullptr, Batch);
 	}
 }
 

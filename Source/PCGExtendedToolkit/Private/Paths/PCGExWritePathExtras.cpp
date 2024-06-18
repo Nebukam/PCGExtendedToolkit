@@ -201,7 +201,7 @@ namespace PCGExWritePathExtras
 
 	void FProcessor::CompleteWork()
 	{
-		FPointsProcessor::CompleteWork();
+		
 		PCGEX_FOREACH_FIELD_PATHEXTRAS(PCGEX_OUTPUT_WRITE)
 	}
 }

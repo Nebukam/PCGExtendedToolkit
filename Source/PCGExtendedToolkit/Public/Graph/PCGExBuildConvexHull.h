@@ -41,16 +41,12 @@ public:
 	//~End UPCGExPointsProcessorSettings interface
 
 public:
-	/** Removes points that are not on the hull from the Vtx output. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	bool bPrunePoints = true;
-
 	/** Mark points & edges that lie on the hull */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle, EditCondition="!bPrunePoints"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bMarkHull = true;
 
 	/** Name of the attribute to output the Hull boolean to. True if point is on the hull, otherwise false. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="!bPrunePoints && bMarkHull"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bMarkHull"))
 	FName HullAttributeName = "bIsOnHull";
 
 	/** Graph & Edges output properties */
@@ -66,11 +62,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBuildConvexHullContext final : public FPCGEx
 	friend class FPCGExBuildConvexHullElement;
 
 	virtual ~FPCGExBuildConvexHullContext() override;
-
-	TSet<int32> HullIndices;
-
-	FPCGExGraphBuilderSettings GraphBuilderSettings;
-	PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
 };
 
 
@@ -87,18 +78,28 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExConvexHull3Task final : public FPCGExNonAbandonableTask
+namespace PCGExConvexHull
 {
-public:
-	FPCGExConvexHull3Task(
-		PCGExData::FPointIO* InPointIO,
-		PCGExGraph::FGraph* InGraph) :
-		FPCGExNonAbandonableTask(InPointIO),
-		Graph(InGraph)
+	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
-	}
 
-	PCGExGraph::FGraph* Graph = nullptr;
+	protected:
+		PCGExGeo::TDelaunay3* Delaunay = nullptr;
+		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
 
-	virtual bool ExecuteTask() override;
-};
+		TArray<uint64> Edges;
+
+		PCGEx::TFAttributeWriter<bool>* HullMarkPointWriter = nullptr;
+		
+	public:
+		explicit FProcessor(PCGExData::FPointIO* InPoints);
+		virtual ~FProcessor() override;
+
+		virtual bool Process(FPCGExAsyncManager* AsyncManager) override;
+		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point) override;
+		virtual void ProcessSingleRangeIteration(const int32 Iteration) override;
+		virtual void CompleteWork() override;
+		virtual void Write() override;
+		
+	};
+}

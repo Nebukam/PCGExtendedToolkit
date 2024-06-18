@@ -58,26 +58,6 @@ bool FPCGExPruneEdgesByLengthElement::ExecuteInternal(FPCGContext* InContext) co
 
 	if (!Context->ProcessClusters()) { return false; }
 
-	/*
-		if (Context->IsState(PCGExGraph::State_WritingClusters))
-		{
-			PCGEX_WAIT_ASYNC
-			if (Context->GraphBuilder->bCompiledSuccessfully)
-			{
-				if (Settings->bWriteMean)
-				{
-					Context->GraphBuilder->EdgesIO->ForEach(
-						[&](const PCGExData::FPointIO& PointIO, int32 Index)
-						{
-							PCGExData::WriteMark(PointIO.GetOut()->Metadata, Settings->MeanAttributeName, Context->ReferenceValue);
-						});
-				}
-				Context->GraphBuilder->Write(Context);
-			}
-			Context->SetState(PCGExMT::State_ReadyForNextPoints);
-		}
-	*/
-
 	if (Context->IsDone())
 	{
 		Context->OutputPointsAndEdges();
@@ -192,7 +172,7 @@ namespace PCGExPruneEdges
 
 		GraphBuilder->Graph->InsertEdges(ValidEdges);
 
-		FClusterProcessor::CompleteWork();
+		
 	}
 }
 #undef LOCTEXT_NAMESPACE

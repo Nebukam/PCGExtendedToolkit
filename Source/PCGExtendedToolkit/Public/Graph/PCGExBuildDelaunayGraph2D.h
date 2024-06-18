@@ -12,8 +12,7 @@
 
 namespace PCGExGeo
 {
-	class TConvexHull2;
-	class TDelaunayTriangulation2;
+	class TDelaunay2;
 }
 
 /**
@@ -76,13 +75,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExBuildDelaunayGraph2DContext final : public F
 	friend class FPCGExBuildDelaunayGraph2DElement;
 
 	virtual ~FPCGExBuildDelaunayGraph2DContext() override;
-
-	TSet<int32> HullIndices;
-
-	FPCGExGeo2DProjectionSettings ProjectionSettings;
-
-	FPCGExGraphBuilderSettings GraphBuilderSettings;
-	PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
 };
 
 
@@ -99,18 +91,27 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExDelaunay2Task final : public FPCGExNonAbandonableTask
+namespace PCGExBuildDelaunay2D
 {
-public:
-	FPCGExDelaunay2Task(
-		PCGExData::FPointIO* InPointIO,
-		PCGExGraph::FGraph* InGraph) :
-		FPCGExNonAbandonableTask(InPointIO),
-		Graph(InGraph)
+	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
-	}
 
-	PCGExGraph::FGraph* Graph = nullptr;
+	protected:
+		PCGExGeo::TDelaunay2* Delaunay = nullptr;
+			
+		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
+		FPCGExGeo2DProjectionSettings ProjectionSettings;
 
-	virtual bool ExecuteTask() override;
-};
+		PCGEx::TFAttributeWriter<bool>* HullMarkPointWriter = nullptr;
+		
+	public:
+		explicit FProcessor(PCGExData::FPointIO* InPoints);
+		virtual ~FProcessor() override;
+
+		virtual bool Process(FPCGExAsyncManager* AsyncManager) override;
+		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point) override;
+		virtual void CompleteWork() override;
+		virtual void Write() override;
+		
+	};
+}

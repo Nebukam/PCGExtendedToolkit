@@ -61,7 +61,7 @@ namespace PCGExGeo
 			IsValid = false;
 		}
 
-		bool Process(const TArrayView<FVector>& Positions, const FPCGExGeo2DProjectionSettings& ProjectionSettings, FPCGExPointsProcessorContext* Context = nullptr)
+		bool Process(const TArrayView<FVector>& Positions, const FPCGExGeo2DProjectionSettings& ProjectionSettings)
 		{
 			Clear();
 
@@ -129,7 +129,7 @@ namespace PCGExGeo
 			return IsValid;
 		}
 
-		void RemoveLongestEdges(const TArrayView<FVector>& Positions, FPCGExPointsProcessorContext* Context = nullptr)
+		void RemoveLongestEdges(const TArrayView<FVector>& Positions)
 		{
 			uint64 Edge;
 			for (const FDelaunaySite2& Site : Sites)
@@ -220,7 +220,7 @@ namespace PCGExGeo
 			IsValid = false;
 		}
 
-		bool Process(const TArrayView<FVector>& Positions, const bool bComputeFaces = false, FPCGExPointsProcessorContext* Context = nullptr)
+		bool Process(const TArrayView<FVector>& Positions, const bool bComputeFaces = false)
 		{
 			Clear();
 			if (Positions.IsEmpty() || Positions.Num() <= 3) { return false; }
@@ -299,7 +299,7 @@ namespace PCGExGeo
 			return IsValid;
 		}
 
-		void RemoveLongestEdges(const TArrayView<FVector>& Positions, FPCGExPointsProcessorContext* Context = nullptr)
+		void RemoveLongestEdges(const TArrayView<FVector>& Positions)
 		{
 			uint64 Edge;
 			for (const FDelaunaySite3& Site : Sites)

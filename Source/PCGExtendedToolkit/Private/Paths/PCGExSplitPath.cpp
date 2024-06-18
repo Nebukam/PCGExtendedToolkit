@@ -139,7 +139,7 @@ namespace PCGExSplitPath
 
 	void FProcessor::CompleteWork()
 	{
-		FPointsProcessor::CompleteWork();
+		
 	}
 }
 

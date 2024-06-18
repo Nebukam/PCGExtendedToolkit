@@ -132,7 +132,7 @@ bool FPCGExLloydRelax2Task::ExecuteTask()
 	TArray<FVector>& Positions = *ActivePositions;
 
 	const TArrayView<FVector> View = MakeArrayView(Positions);
-	if (!Delaunay->Process(View, *ProjectionSettings, Context)) { return false; }
+	if (!Delaunay->Process(View, *ProjectionSettings)) { return false; }
 
 	const int32 NumPoints = Positions.Num();
 

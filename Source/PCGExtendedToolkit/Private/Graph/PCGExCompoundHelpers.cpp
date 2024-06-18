@@ -151,9 +151,13 @@ namespace PCGExGraph
 		{
 			PCGEX_WAIT_ASYNC
 
-			if (GraphBuilder->bCompiledSuccessfully) { GraphBuilder->Write(Context); }
-			else { CompoundPoints->InitializeOutput(PCGExData::EInit::NoOutput); }
+			if (!GraphBuilder->bCompiledSuccessfully)
+			{
+				CompoundPoints->InitializeOutput(PCGExData::EInit::NoOutput);
+				return true;
+			}
 
+			GraphBuilder->Write(Context);
 			return true;
 		}
 

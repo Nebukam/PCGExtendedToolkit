@@ -244,6 +244,19 @@ bool FPCGExPointsProcessorContext::ProcessPointsBatch()
 	if (IsState(PCGExPointsMT::MTState_PointsCompletingWork))
 	{
 		if (!IsAsyncWorkComplete()) { return false; }
+
+		if (MainBatch->bRequiresWriteStep)
+		{
+			WriteBatch(GetAsyncManager(), MainBatch);
+			SetAsyncState(PCGExPointsMT::MTState_PointsWriting);
+		}
+		else { SetState(TargetState_PointsProcessingDone); }
+	}
+
+	if (IsState(PCGExPointsMT::MTState_PointsWriting))
+	{
+		if (!IsAsyncWorkComplete()) { return false; }
+		
 		SetState(TargetState_PointsProcessingDone);
 	}
 

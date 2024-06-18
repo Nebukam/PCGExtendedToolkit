@@ -214,7 +214,13 @@ namespace PCGExPathToClusters
 
 	void FNonFusingProcessor::CompleteWork()
 	{
-		FPointsProcessor::CompleteWork();
+		
+		if (!GraphBuilder->bCompiledSuccessfully)
+		{
+			PointIO->InitializeOutput(PCGExData::EInit::NoOutput);
+			return;
+		}
+		
 		GraphBuilder->Write(Context);
 	}
 

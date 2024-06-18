@@ -113,6 +113,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable, EditCondition="bWriteDistance"))
 	FName DistanceAttributeName = FName("NearestDistance");
 
+	/** Actor data to sample */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable))
+	FPCGExActorDataSampling ActorDataSampling;
+	
 	/** Maximum distance to check for closest surface.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision", meta=(PCG_Overridable))
 	EPCGExCollisionFilterType CollisionType = EPCGExCollisionFilterType::Channel;

@@ -134,13 +134,24 @@ namespace PCGExSampleSurfaceGuided
 
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point)
 	{
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(SampleSurfaceGuided)
+
+		const double MaxDistance = MaxDistanceGetter->SafeGet(Index, Settings->MaxDistance);
+		const FVector Direction = (*DirectionGetter)[Index].GetSafeNormal();
+
+		auto SamplingFailed = [&]()
+		{
+			PCGEX_OUTPUT_VALUE(Location, Index, Point.Transform.GetLocation())
+			PCGEX_OUTPUT_VALUE(Normal, Index, Direction)
+			PCGEX_OUTPUT_VALUE(Distance, Index, MaxDistance)
+			PCGEX_OUTPUT_VALUE(Success, Index, false)
+		};
+
 		if (!PointFilterCache[Index])
 		{
-			PCGEX_OUTPUT_VALUE(Success, Index, false)
+			SamplingFailed();
 			return;
 		}
-
-		PCGEX_TYPED_CONTEXT_AND_SETTINGS(SampleSurfaceGuided)
 
 		const FVector Origin = Point.Transform.GetLocation();
 
@@ -148,8 +159,7 @@ namespace PCGExSampleSurfaceGuided
 		CollisionParams.bTraceComplex = true;
 		CollisionParams.AddIgnoredActors(TypedContext->IgnoredActors);
 
-		const double MaxDistance = MaxDistanceGetter->SafeGet(Index, Settings->MaxDistance);
-		const FVector Trace = (*DirectionGetter)[Index] * MaxDistance;
+		const FVector Trace = Direction * MaxDistance;
 		const FVector End = Origin + Trace;
 
 		bool bSuccess = false;
@@ -160,9 +170,9 @@ namespace PCGExSampleSurfaceGuided
 			PCGEX_OUTPUT_VALUE(Location, Index, HitResult.ImpactPoint)
 			PCGEX_OUTPUT_VALUE(Normal, Index, HitResult.Normal)
 			PCGEX_OUTPUT_VALUE(Distance, Index, FVector::Distance(HitResult.ImpactPoint, Origin))
+			PCGEX_OUTPUT_VALUE(Success, Index, bSuccess)
 			bSuccess = true;
 		};
-
 
 		switch (Settings->CollisionType)
 		{
@@ -184,23 +194,17 @@ namespace PCGExSampleSurfaceGuided
 				ProcessTraceResult();
 			}
 			break;
-		default: ;
+		default:
+			SamplingFailed();
+			break;
 		}
 
-
-		if (!bSuccess)
-		{
-			PCGEX_OUTPUT_VALUE(Location, Index, End)
-			PCGEX_OUTPUT_VALUE(Normal, Index, Trace.GetSafeNormal()*-1)
-			PCGEX_OUTPUT_VALUE(Distance, Index, MaxDistance)
-		}
-
-		PCGEX_OUTPUT_VALUE(Success, Index, bSuccess)
+		if (!bSuccess) { SamplingFailed(); }
 	}
 
 	void FProcessor::CompleteWork()
 	{
-		FPointsProcessor::CompleteWork();
+		
 		PCGEX_FOREACH_FIELD_SURFACEGUIDED(PCGEX_OUTPUT_WRITE)
 	}
 }
