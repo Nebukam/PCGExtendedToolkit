@@ -61,7 +61,7 @@ bool FPCGExOffsetPathElement::ExecuteInternal(FPCGContext* InContext) const
 			},
 			[&](PCGExPointsMT::TBatch<PCGExOffsetPath::FProcessor>* NewBatch)
 			{
-				NewBatch->SetPointsFilterData(&Context->FilterFactories);
+				//NewBatch->SetPointsFilterData(&Context->FilterFactories);
 			},
 			PCGExMT::State_Done))
 		{
@@ -144,7 +144,7 @@ namespace PCGExOffsetPath
 
 		for (int i = 0; i < NumPoints; i++) { Positions[i] = Points[i].Transform.GetLocation(); }
 
-		StartParallelLoopForRange(NumPoints - 1); // Compute all normals
+		StartParallelLoopForRange(NumPoints - 2); // Compute all normals
 
 		return true;
 	}
@@ -156,7 +156,7 @@ namespace PCGExOffsetPath
 
 	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration)
 	{
-		Normals[Iteration] = NRM(Iteration - 1, Iteration, Iteration + 1);
+		Normals[Iteration+1] = NRM(Iteration, Iteration + 1, Iteration + 2); // Offset by 1 because loop should be -1 / 0 / +1
 	}
 
 	void FProcessor::CompleteWork()

@@ -121,7 +121,7 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 			return true;
 		}
 
-		void StartParallelLoopForPoints(const PCGExData::ESource Source = PCGExData::ESource::In, const int32 PerLoopIterations = -1)
+		void StartParallelLoopForPoints(const PCGExData::ESource Source = PCGExData::ESource::Out, const int32 PerLoopIterations = -1)
 		{
 			TArray<FPCGPoint>& Points = PointIO->GetMutableData(Source)->GetMutablePoints();
 			const int32 NumPoints = Points.Num();
