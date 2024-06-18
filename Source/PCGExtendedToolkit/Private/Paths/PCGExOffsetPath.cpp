@@ -111,7 +111,7 @@ namespace PCGExOffsetPath
 		UpVector = Settings->UpVectorConstant;
 		OffsetConstant = Settings->OffsetConstant;
 
-		PCGEx::FLocalSingleFieldGetter* OffsetGetter = new PCGEx::FLocalSingleFieldGetter();
+		OffsetGetter = new PCGEx::FLocalSingleFieldGetter();
 
 		if (Settings->OffsetType == EPCGExFetchType::Attribute)
 		{
@@ -123,7 +123,7 @@ namespace PCGExOffsetPath
 			}
 		}
 
-		PCGEx::FLocalVectorGetter* UpGetter = new PCGEx::FLocalVectorGetter();
+		UpGetter = new PCGEx::FLocalVectorGetter();
 
 		if (Settings->UpVectorType == EPCGExFetchType::Attribute)
 		{
