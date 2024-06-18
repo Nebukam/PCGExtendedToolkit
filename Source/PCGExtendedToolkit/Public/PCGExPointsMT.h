@@ -51,7 +51,7 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 
 	public:
 		TArray<UPCGExFilterFactoryBase*>* FilterFactories = nullptr;
-		bool DefaultPointFilterValue = false;
+		bool DefaultPointFilterValue = true;
 		bool bIsSmallPoints = false;
 
 		TArray<bool> PointFilterCache;

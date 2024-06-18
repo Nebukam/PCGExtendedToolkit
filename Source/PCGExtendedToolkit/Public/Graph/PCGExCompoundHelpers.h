@@ -20,66 +20,94 @@ namespace PCGExGraph
 	struct PCGEXTENDEDTOOLKIT_API FCompoundProcessor
 	{
 		FPCGExPointsProcessorContext* Context = nullptr;
-
-		PCGExData::FPointIO* CompoundedPoints = nullptr;
-		FCompoundGraph* CompoundGraph = nullptr;
-		PCGExDataBlending::FCompoundBlender* CompoundPointsBlender = nullptr;
-
-		// Intersection settings
+		
 		FPCGExPointPointIntersectionSettings PointPointIntersectionSettings;
 
-		// Blending settings
-		FPCGExBlendingSettings DefaultPointsBlendingSettings;
-
-		explicit FCompoundProcessor(
-			FPCGExPointsProcessorContext* InContext,
-			FBox Bounds,
-			const FPCGExPointPointIntersectionSettings& InPointPointIntersectionSettings,
-			FPCGExBlendingSettings InDefaultPointsBlendingSettings);
-	};
-
-	struct PCGEXTENDEDTOOLKIT_API FIntersectionsHandler
-	{
-		PCGExMT::AsyncState CurrentState = PCGExMT::State_Setup;
-
-		// Intersection settings
-		bool bFindPointEdgeIntersections = false;
+		bool bDoPointEdge = false;
 		FPCGExPointEdgeIntersectionSettings PointEdgeIntersectionSettings;
-
-		bool bFindEdgeEdgeIntersections = false;
-		FPCGExEdgeEdgeIntersectionSettings EdgeEdgeIntersectionSettings;
-
-		PCGExGraph::FGraphMetadataSettings GraphMetadataSettings;
-
-		// Blending
-		FPCGExBlendingSettings DefaultEdgesBlendingSettings;
-
 		bool bUseCustomPointEdgeBlending = false;
 		FPCGExBlendingSettings CustomPointEdgeBlendingSettings;
 
+		bool bDoEdgeEdge = false;
+		FPCGExEdgeEdgeIntersectionSettings EdgeEdgeIntersectionSettings;
 		bool bUseCustomEdgeEdgeBlending = false;
 		FPCGExBlendingSettings CustomEdgeEdgeBlendingSettings;
 
-		PCGExDataBlending::FMetadataBlender* MetadataBlender = nullptr;
-
-		PCGExData::FPointIO* ConsolidatedPoints = nullptr;
+		FPCGExGraphBuilderSettings GraphBuilderSettings;
 
 		PCGExGraph::FCompoundGraph* CompoundGraph = nullptr;
+		PCGExData::FPointIO* CompoundPoints = nullptr;
+		PCGExDataBlending::FCompoundBlender* CompoundPointsBlender = nullptr;
+		
+		explicit FCompoundProcessor(
+			FPCGExPointsProcessorContext* InContext,
+			FPCGExPointPointIntersectionSettings PointPointIntersectionSettings,
+			FPCGExBlendingSettings InDefaultPointsBlending,
+			FPCGExBlendingSettings InDefaultEdgesBlending);
 
-		FPCGExGraphBuilderSettings GraphBuilderSettings;
+		~FCompoundProcessor();
+
+		void InitPointEdge(
+			const FPCGExPointEdgeIntersectionSettings& InSettings,
+			const bool bUseCustom = false,
+			const FPCGExBlendingSettings* InOverride = nullptr);
+
+		void InitEdgeEdge(
+			const FPCGExEdgeEdgeIntersectionSettings& InSettings,
+			const bool bUseCustom = false,
+			const FPCGExBlendingSettings* InOverride = nullptr);
+
+		template <class BuildGraphFunc>
+		void StartProcessing(
+			PCGExGraph::FCompoundGraph* InCompoundGraph,
+			PCGExData::FPointIO* InCompoundPoints,
+			const FPCGExGraphBuilderSettings& InBuilderSettings,
+			BuildGraphFunc&& BuildGraph)
+		{
+			bRunning = true;
+
+			GraphMetadataSettings.Grab(Context, PointPointIntersectionSettings);
+			GraphMetadataSettings.Grab(Context, PointEdgeIntersectionSettings);
+			GraphMetadataSettings.Grab(Context, EdgeEdgeIntersectionSettings);
+
+			CompoundGraph = InCompoundGraph;
+			CompoundPoints = InCompoundPoints;
+
+			GraphBuilder = new PCGExGraph::FGraphBuilder(*CompoundPoints, &InBuilderSettings, 4);
+
+			BuildGraph(GraphBuilder);
+
+			/*
+			TArray<PCGExGraph::FUnsignedEdge> UniqueEdges;
+			CompoundGraph->GetUniqueEdges(UniqueEdges);
+			CompoundGraph->WriteMetadata(GraphBuilder->Graph->NodeMetadata);
+
+			GraphBuilder->Graph->InsertEdges(UniqueEdges, -1); //TODO : valid IOIndex from CompoundGraph
+			UniqueEdges.Empty();
+			*/
+			
+			if (bDoPointEdge) { FindPointEdgeIntersections(); }
+			else if (bDoEdgeEdge) { FindEdgeEdgeIntersections(); }
+			else { Context->SetState(PCGExGraph::State_WritingClusters); }
+		}
+		
+		bool Execute();
+		bool IsRunning() const;
+
+	protected:
+		bool bRunning = false;
+		
+		FPCGExBlendingSettings DefaultPointsBlendingSettings;
+		FPCGExBlendingSettings DefaultEdgesBlendingSettings;
+		
 		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
 
+		PCGExGraph::FGraphMetadataSettings GraphMetadataSettings;
 		PCGExGraph::FPointEdgeIntersections* PointEdgeIntersections = nullptr;
 		PCGExGraph::FEdgeEdgeIntersections* EdgeEdgeIntersections = nullptr;
-
-		explicit FIntersectionsHandler()
-		{
-		}
-
-		~FIntersectionsHandler()
-		{
-		}
-
-		void Init();
+		PCGExDataBlending::FMetadataBlender* MetadataBlender = nullptr;
+		
+		void FindPointEdgeIntersections();
+		void FindEdgeEdgeIntersections();
 	};
 }

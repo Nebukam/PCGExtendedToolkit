@@ -72,6 +72,8 @@ bool FPCGExSampleSurfaceGuidedElement::ExecuteInternal(FPCGContext* InContext) c
 		}
 	}
 
+	if (!Context->ProcessPointsBatch()) { return false; }
+
 	if (Context->IsDone())
 	{
 		Context->OutputMainPoints();
@@ -132,6 +134,12 @@ namespace PCGExSampleSurfaceGuided
 
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point)
 	{
+		if (!PointFilterCache[Index])
+		{
+			PCGEX_OUTPUT_VALUE(Success, Index, false)
+			return;
+		}
+
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(SampleSurfaceGuided)
 
 		const FVector Origin = Point.Transform.GetLocation();

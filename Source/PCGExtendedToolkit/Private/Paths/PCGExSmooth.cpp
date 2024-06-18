@@ -50,23 +50,14 @@ bool FPCGExSmoothElement::ExecuteInternal(FPCGContext* InContext) const
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }
-		Context->SetState(PCGExMT::State_ReadyForNextPoints);
-	}
 
-	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
-	{
-		int32 Index = 0;
+		while (Context->AdvancePointsIO(false))
+		{
+			if (Context->CurrentIO->GetNum() <= 2) { continue; }
+			Context->CurrentIO->CreateOutKeys();
+			Context->GetAsyncManager()->Start<FPCGExSmoothTask>(Context->CurrentIO->IOIndex, Context->CurrentIO);
+		}
 
-		Context->MainPoints->ForEach(
-			[&](PCGExData::FPointIO& PointIO, const int32)
-			{
-				if (PointIO.GetNum() > 2)
-				{
-					PointIO.CreateInKeys();
-					PointIO.CreateOutKeys();
-					Context->GetAsyncManager()->Start<FPCGExSmoothTask>(Index++, &PointIO);
-				}
-			});
 		Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork);
 	}
 

@@ -30,7 +30,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSplitPathSettings : public UPCGExPathProcesso
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS(SplitPath, "Path : Points Intersection", "Find intersection with target input points.");
+	PCGEX_NODE_INFOS(SplitPath, "Path : Split", "Split existing paths into multiple new paths.");
 #endif
 
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
@@ -55,6 +55,7 @@ public:
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ShowOnlyInnerProperties))
 	EPCGExPathSplitAction SplitAction = EPCGExPathSplitAction::Split;
+
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExSplitPathContext final : public FPCGExPathProcessorContext

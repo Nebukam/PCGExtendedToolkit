@@ -9,6 +9,11 @@
 #include "Graph/PCGExIntersections.h"
 #include "PCGExPathToEdgeClusters.generated.h"
 
+namespace PCGExGraph
+{
+	struct FCompoundProcessor;
+}
+
 namespace PCGExDataBlending
 {
 	class FMetadataBlender;
@@ -117,15 +122,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathToEdgeClustersContext final : public FPC
 
 	PCGExGraph::FCompoundGraph* CompoundGraph = nullptr;
 	PCGExData::FPointIO* CompoundPoints = nullptr;
-	PCGExDataBlending::FCompoundBlender* CompoundPointsBlender = nullptr;
 
-	FPCGExGraphBuilderSettings GraphBuilderSettings;
-	PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
-
-	PCGExGraph::FGraphMetadataSettings GraphMetadataSettings;
-	PCGExGraph::FPointEdgeIntersections* PointEdgeIntersections = nullptr;
-	PCGExGraph::FEdgeEdgeIntersections* EdgeEdgeIntersections = nullptr;
-	PCGExDataBlending::FMetadataBlender* MetadataBlender = nullptr;
+	PCGExGraph::FCompoundProcessor* CompoundProcessor = nullptr;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExPathToEdgeClustersElement final : public FPCGExPathProcessorElement
@@ -149,7 +147,7 @@ namespace PCGExPathToClusters
 	{
 	public:
 		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
-		
+
 		explicit FNonFusingProcessor(PCGExData::FPointIO* InPoints);
 		virtual ~FNonFusingProcessor() override;
 

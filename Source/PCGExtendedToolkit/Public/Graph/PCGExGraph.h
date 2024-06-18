@@ -144,6 +144,7 @@ namespace PCGExGraph
 
 	PCGEX_ASYNC_STATE(State_ReadyForNextGraph)
 	PCGEX_ASYNC_STATE(State_ProcessingGraph)
+	PCGEX_ASYNC_STATE(State_ProcessingCompound)
 
 	PCGEX_ASYNC_STATE(State_CachingGraphIndices)
 	PCGEX_ASYNC_STATE(State_SwappingGraphIndices)

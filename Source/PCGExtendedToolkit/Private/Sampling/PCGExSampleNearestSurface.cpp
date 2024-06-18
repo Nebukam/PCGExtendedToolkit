@@ -127,7 +127,11 @@ namespace PCGExSampleNearestSurface
 
 	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point)
 	{
-		if (!PointFilterCache[Index]) { return; }
+		if (!PointFilterCache[Index])
+		{
+			PCGEX_OUTPUT_VALUE(Success, Index, false)
+			return;
+		}
 
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(SampleNearestSurface)
 
