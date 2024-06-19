@@ -187,10 +187,8 @@ namespace PCGExBuildVoronoi
 
 	void FProcessor::CompleteWork()
 	{
-		
-
 		if (!GraphBuilder) { return; }
-		
+
 		if (!GraphBuilder->bCompiledSuccessfully)
 		{
 			PointIO->InitializeOutput(PCGExData::EInit::NoOutput);
@@ -203,7 +201,6 @@ namespace PCGExBuildVoronoi
 
 	void FProcessor::Write()
 	{
-		
 	}
 }
 

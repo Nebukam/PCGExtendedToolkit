@@ -38,6 +38,9 @@ bool FPCGExPointsClusterIntersectionElement::ExecuteInternal(FPCGContext* InCont
 
 	PCGEX_CONTEXT_AND_SETTINGS(PointsClusterIntersection)
 
+	PCGE_LOG(Error, GraphAndLog, FTEXT("NOT IMPLEMENTED YET"));
+	return true;
+	
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }

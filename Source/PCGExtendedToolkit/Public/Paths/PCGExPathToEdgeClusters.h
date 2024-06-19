@@ -110,7 +110,7 @@ public:
 	FPCGExBlendingSettings CustomEdgeEdgeBlendingSettings;
 
 	/** Graph & Edges output properties */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Graph Output Settings"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Graph Output Settings", meta = (PCG_Overridable, DisplayName="Graph Output Settings", ShowOnlyInnerProperties))
 	FPCGExGraphBuilderSettings GraphBuilderSettings;
 };
 

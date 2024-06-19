@@ -96,12 +96,18 @@ protected:
 	PCGExMT::AsyncState State_ClusterProcessingDone;
 	bool bClusterUseGraphBuilder = false;
 
+	bool bClusterBatchInlined = false;
+	int32 CurrentBatchIndex = -1;
+	PCGExClusterMT::FClusterProcessorBatchBase* CurrentBatch = nullptr;
+
 
 	template <typename T, class ValidateEntriesFunc, class InitBatchFunc>
-	bool StartProcessingClusters(ValidateEntriesFunc&& ValidateEntries, InitBatchFunc&& InitBatch, const PCGExMT::AsyncState InState)
+	bool StartProcessingClusters(ValidateEntriesFunc&& ValidateEntries, InitBatchFunc&& InitBatch, const PCGExMT::AsyncState InState, bool bInlined = false)
 	{
 		ResetAsyncWork();
 
+		bClusterBatchInlined = bInlined;
+		CurrentBatchIndex = -1;
 		State_ClusterProcessingDone = InState;
 
 		bClusterUseGraphBuilder = false;
@@ -136,9 +142,12 @@ protected:
 
 		if (Batches.IsEmpty()) { return false; }
 
-		SetAsyncState(PCGExClusterMT::MTState_ClusterProcessing);
+		if (bClusterBatchInlined) { AdvanceBatch(); }
+		else { SetAsyncState(PCGExClusterMT::MTState_ClusterProcessing); }
 		return true;
 	}
+
+	void AdvanceBatch();
 
 	int32 CurrentEdgesIndex = -1;
 

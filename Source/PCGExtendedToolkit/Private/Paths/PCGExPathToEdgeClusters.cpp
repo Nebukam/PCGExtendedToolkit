@@ -151,6 +151,8 @@ bool FPCGExPathToEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) co
 		}
 
 		if (!Context->CompoundProcessor->Execute()) { return false; }
+
+		Context->Done();
 	}
 
 #pragma endregion
@@ -214,13 +216,12 @@ namespace PCGExPathToClusters
 
 	void FNonFusingProcessor::CompleteWork()
 	{
-		
 		if (!GraphBuilder->bCompiledSuccessfully)
 		{
 			PointIO->InitializeOutput(PCGExData::EInit::NoOutput);
 			return;
 		}
-		
+
 		GraphBuilder->Write(Context);
 	}
 
@@ -297,10 +298,11 @@ namespace PCGExPathToClusters
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(PathToEdgeClusters)
 
-		FBox Bounds = FBox(ForceInit);
-		for (const PCGExData::FPointIO* IO : PointsCollection) { Bounds += IO->GetIn()->GetBounds(); }
-
 		MainPoints = TypedContext->MainPoints;
+
+		FBox Bounds = FBox(ForceInit);
+		for (const PCGExData::FPointIO* IO : PointsCollection) { Bounds += IO->GetIn()->GetBounds().ExpandBy(10); }
+
 		CompoundGraph = new PCGExGraph::FCompoundGraph(Settings->PointPointIntersectionSettings.FuseSettings, Bounds);
 
 		TBatch<FFusingProcessor>::Process(AsyncManager);
@@ -330,8 +332,6 @@ namespace PCGExPathToClusters
 	void FFusingProcessorBatch::CompleteWork()
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(PathToEdgeClusters)
-
-		MainPoints = TypedContext->MainPoints;
 
 		CompoundPointsBlender = new PCGExDataBlending::FCompoundBlender(&Settings->DefaultPointsBlendingSettings);
 		CompoundPointsBlender->AddSources(*MainPoints);

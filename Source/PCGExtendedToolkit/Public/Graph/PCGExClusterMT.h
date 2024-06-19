@@ -491,11 +491,16 @@ namespace PCGExClusterMT
 		Manager->Start<FStartClusterBatchProcessing<FClusterProcessorBatchBase>>(-1, nullptr, Batch);
 	}
 
+	static void CompleteBatch(FPCGExAsyncManager* Manager, FClusterProcessorBatchBase* Batch)
+	{
+		Manager->Start<FStartClusterBatchCompleteWork<FClusterProcessorBatchBase>>(-1, nullptr, Batch);
+	}
+
 	static void CompleteBatches(FPCGExAsyncManager* Manager, const TArrayView<FClusterProcessorBatchBase*> Batches)
 	{
 		for (FClusterProcessorBatchBase* Batch : Batches)
 		{
-			Manager->Start<FStartClusterBatchCompleteWork<FClusterProcessorBatchBase>>(-1, nullptr, Batch);
+			CompleteBatch(Manager, Batch);
 		}
 	}
 }

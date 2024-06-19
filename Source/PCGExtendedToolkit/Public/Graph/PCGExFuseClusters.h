@@ -9,22 +9,15 @@
 
 #include "PCGExFuseClusters.generated.h"
 
-namespace PCGExGraph
-{
-	struct FEdgeEdgeIntersections;
-	struct FPointEdgeIntersections;
-	struct FCompoundGraph;
-}
-
-namespace PCGExSpacePartition
-{
-	struct TRoot;
-}
-
 namespace PCGExDataBlending
 {
-	class FMetadataBlender;
 	class FCompoundBlender;
+}
+
+namespace PCGExGraph
+{
+	struct FCompoundProcessor;
+	struct FCompoundGraph;
 }
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Graph")
@@ -106,19 +99,12 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFuseClustersContext final : public FPCGExEdg
 	virtual ~FPCGExFuseClustersContext() override;
 
 	PCGExGraph::FCompoundGraph* CompoundGraph = nullptr;
-	PCGExData::FPointIO* ConsolidatedPoints = nullptr;
+	PCGExData::FPointIO* CompoundPoints = nullptr;
 
-	PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
-
-	PCGExGraph::FPointEdgeIntersections* PointEdgeIntersections = nullptr;
-	PCGExGraph::FEdgeEdgeIntersections* EdgeEdgeIntersections = nullptr;
-
-	PCGExData::FIdxCompoundList* EdgesCompoundList = nullptr;
-
-	PCGExGraph::FGraphMetadataSettings GraphMetadataSettings;
 	PCGExDataBlending::FCompoundBlender* CompoundPointsBlender = nullptr;
 	PCGExDataBlending::FCompoundBlender* CompoundEdgesBlender = nullptr;
-	PCGExDataBlending::FMetadataBlender* MetadataBlender = nullptr;
+
+	PCGExGraph::FCompoundProcessor* CompoundProcessor = nullptr;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExFuseClustersElement final : public FPCGExEdgesProcessorElement
@@ -133,3 +119,27 @@ protected:
 	virtual bool Boot(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* InContext) const override;
 };
+
+namespace PCGExFuseClusters
+{
+	class FProcessor final : public PCGExClusterMT::FClusterProcessor
+	{
+		TArray<PCGExGraph::FIndexedEdge> IndexedEdges;
+
+	public:
+		bool bInvalidEdges = true;
+
+		explicit FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges);
+		virtual ~FProcessor() override;
+
+		virtual bool Process(FPCGExAsyncManager* AsyncManager) override;
+		virtual void CompleteWork() override;
+	};
+
+	class FFuseBatch final : public PCGExClusterMT::TBatch<FProcessor>
+	{
+	public:
+		FFuseBatch(FPCGContext* InContext, PCGExData::FPointIO* InVtx, const TArrayView<PCGExData::FPointIO*> InEdges);
+		virtual ~FFuseBatch() override;
+	};
+}
