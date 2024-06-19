@@ -93,7 +93,7 @@ namespace PCGExDataBlending
 		const FPCGExBlendingSettings* BlendingSettings = nullptr;
 
 		TArray<FAttributeSourceMap*> AttributeSourceMaps;
-		TMap<int32, int32> IOIndices;
+		TMap<uint32, int32> IOIndices;
 		TArray<PCGExData::FPointIO*> Sources;
 
 		PCGExData::FIdxCompoundList* CurrentCompoundList = nullptr;

@@ -383,6 +383,7 @@ namespace PCGExDataBlending
 		virtual void ResetRangeToDefault(int32 StartIndex, int32 Count) const;
 
 		virtual void Write() = 0;
+		virtual void Write(const TArrayView<int32> InIndices) = 0;
 
 	protected:
 		bool bOwnsWriter = true;
@@ -530,6 +531,7 @@ namespace PCGExDataBlending
 		FORCEINLINE virtual T GetSecondaryValue(const int32 Index) const { return (*Reader)[Index]; }
 
 		virtual void Write() override { Writer->Write(); }
+		virtual void Write(const TArrayView<int32> InIndices) override{ Writer->Write(InIndices); }
 
 	protected:
 		FPCGMetadataAttribute<T>* TypedAttribute = nullptr;

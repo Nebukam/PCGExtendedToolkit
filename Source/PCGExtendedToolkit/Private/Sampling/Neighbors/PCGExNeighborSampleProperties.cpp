@@ -8,6 +8,16 @@
 #define LOCTEXT_NAMESPACE "PCGExCreateNeighborSample"
 #define PCGEX_NAMESPACE PCGExCreateNeighborSample
 
+void UPCGExNeighborSampleProperties::CopySettingsFrom(const UPCGExOperation* Other)
+{
+	Super::CopySettingsFrom(Other);
+	const UPCGExNeighborSampleProperties* TypedOther = Cast<UPCGExNeighborSampleProperties>(Other);
+	if (Other)
+	{
+		BlendingSettings = TypedOther->BlendingSettings;
+	}
+}
+
 bool UPCGExNeighborSampleProperties::PrepareForCluster(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster)
 {
 	PCGEX_DELETE(Blender)

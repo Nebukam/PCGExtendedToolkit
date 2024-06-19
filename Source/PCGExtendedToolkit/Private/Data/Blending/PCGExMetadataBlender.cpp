@@ -193,6 +193,12 @@ namespace PCGExDataBlending
 		if (bFlush) { Flush(); }
 	}
 
+	void FMetadataBlender::Write(const TArrayView<int32> InIndices, const bool bFlush)
+	{
+		for (FDataBlendingOperationBase* Op : Attributes) { Op->Write(InIndices); }
+		if (bFlush) { Flush(); }
+	}
+	
 	void FMetadataBlender::Flush()
 	{
 		FirstPointOperation.Empty();

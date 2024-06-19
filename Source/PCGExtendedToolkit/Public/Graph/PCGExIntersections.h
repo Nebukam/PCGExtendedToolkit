@@ -12,8 +12,10 @@
 #include "PCGExSettings.h"
 #include "Data/PCGExData.h"
 #include "Data/Blending/PCGExMetadataBlender.h"
+#include "Geometry/PCGExGeoPrimtives.h"
 
 //#include "PCGExIntersections.generated.h"
+
 
 namespace PCGExGraph
 {
@@ -79,11 +81,15 @@ namespace PCGExGraph
 
 	struct PCGEXTENDEDTOOLKIT_API FCompoundGraph
 	{
+		FVector CWTolerance;
+		TMap<int64, FCompoundNode*> GridTree;
+
 		PCGExData::FIdxCompoundList* PointsCompounds = nullptr;
 		PCGExData::FIdxCompoundList* EdgesCompounds = nullptr;
 		TArray<FCompoundNode*> Nodes;
 		TMap<uint64, FIndexedEdge> Edges;
 		const FPCGExFuseSettings FuseSettings;
+
 
 		FBox Bounds;
 		const bool bFusePoints = true;
@@ -91,15 +97,20 @@ namespace PCGExGraph
 		using NodeOctree = TOctree2<FCompoundNode*, FCompoundNodeSemantics>;
 		mutable NodeOctree Octree;
 		mutable FRWLock OctreeLock;
+		mutable FRWLock EdgesLock;
 
 		explicit FCompoundGraph(const FPCGExFuseSettings& InFuseSettings, const FBox& InBounds, const bool FusePoints = true)
 			: FuseSettings(InFuseSettings), Bounds(InBounds), bFusePoints(FusePoints)
 		{
 			Nodes.Empty();
 			Edges.Empty();
+
+			if (InFuseSettings.bComponentWiseTolerance) { FVector(1 / InFuseSettings.Tolerances.X, 1 / InFuseSettings.Tolerances.Y, 1 / InFuseSettings.Tolerances.Z); }
+			else { CWTolerance = FVector(1 / InFuseSettings.Tolerance); }
+
 			PointsCompounds = new PCGExData::FIdxCompoundList();
 			EdgesCompounds = new PCGExData::FIdxCompoundList();
-			Octree = NodeOctree(Bounds.GetCenter(), Bounds.GetExtent().Length());
+			//Octree = NodeOctree(Bounds.GetCenter(), Bounds.GetExtent().Length());
 		}
 
 		~FCompoundGraph()
@@ -113,12 +124,12 @@ namespace PCGExGraph
 		int32 NumNodes() const { return PointsCompounds->Num(); }
 		int32 NumEdges() const { return EdgesCompounds->Num(); }
 
-		FORCEINLINE FCompoundNode* GetOrCreateNode(const FPCGPoint& Point, const int32 IOIndex, const int32 PointIndex);
-		FORCEINLINE FCompoundNode* GetOrCreateNodeUnsafe(const FPCGPoint& Point, const int32 IOIndex, const int32 PointIndex);
-		FORCEINLINE PCGExData::FIdxCompound* CreateBridge(const FPCGPoint& From, const int32 FromIOIndex, const int32 FromPointIndex,
-		                                                  const FPCGPoint& To, const int32 ToIOIndex, const int32 ToPointIndex,
-		                                                  const int32 EdgeIOIndex = -1, const int32 EdgePointIndex = -1);
-		FORCEINLINE PCGExData::FIdxCompound* CreateBridgeUnsafe(const FPCGPoint& From, const int32 FromIOIndex, const int32 FromPointIndex,
+		 FCompoundNode* GetOrCreateNode(const FPCGPoint& Point, const int32 IOIndex, const int32 PointIndex);
+		 FCompoundNode* GetOrCreateNodeUnsafe(const FPCGPoint& Point, const int32 IOIndex, const int32 PointIndex);
+		 PCGExData::FIdxCompound* CreateBridge(const FPCGPoint& From, const int32 FromIOIndex, const int32 FromPointIndex,
+		                                       const FPCGPoint& To, const int32 ToIOIndex, const int32 ToPointIndex,
+		                                       const int32 EdgeIOIndex = -1, const int32 EdgePointIndex = -1);
+		 PCGExData::FIdxCompound* CreateBridgeUnsafe(const FPCGPoint& From, const int32 FromIOIndex, const int32 FromPointIndex,
 		                                                        const FPCGPoint& To, const int32 ToIOIndex, const int32 ToPointIndex,
 		                                                        const int32 EdgeIOIndex = -1, const int32 EdgePointIndex = -1);
 		void GetUniqueEdges(TArray<FUnsignedEdge>& OutEdges);
@@ -440,7 +451,7 @@ namespace PCGExGraph
 			PCGEX_DELETE_TARRAY(Crossings)
 		}
 	};
-	
+
 	static void FindOverlappingEdges(
 		FEdgeEdgeIntersections* InIntersections,
 		const int32 EdgeIndex)

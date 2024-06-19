@@ -133,13 +133,7 @@ namespace PCGExFuseClusters
 		virtual ~FProcessor() override;
 
 		virtual bool Process(FPCGExAsyncManager* AsyncManager) override;
+		virtual void ProcessSingleRangeIteration(const int32 Iteration) override;
 		virtual void CompleteWork() override;
-	};
-
-	class FFuseBatch final : public PCGExClusterMT::TBatch<FProcessor>
-	{
-	public:
-		FFuseBatch(FPCGContext* InContext, PCGExData::FPointIO* InVtx, const TArrayView<PCGExData::FPointIO*> InEdges);
-		virtual ~FFuseBatch() override;
 	};
 }

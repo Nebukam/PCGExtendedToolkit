@@ -8,6 +8,7 @@
 
 #include "PCGExPointsProcessor.h"
 #include "PCGExSettings.h"
+#include "Graph/PCGExClusterMT.h"
 #include "Graph/PCGExGraph.h"
 
 #include "PCGExFusePoints.generated.h"
@@ -79,14 +80,6 @@ protected:
 	virtual FPCGElementPtr CreateElement() const override;
 	//~End UPCGSettings interface
 
-	//~Begin UObject interface
-#if WITH_EDITOR
-
-public:
-	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
-#endif
-	//~End UObject interface
-
 	//~Begin UPCGExPointsProcessorSettings interface
 public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
@@ -112,16 +105,7 @@ private:
 struct PCGEXTENDEDTOOLKIT_API FPCGExFusePointsContext final : public FPCGExPointsProcessorContext
 {
 	friend class FPCGExFusePointsElement;
-
 	virtual ~FPCGExFusePointsContext() override;
-
-	PCGExGraph::FGraphMetadataSettings GraphMetadataSettings;
-	PCGExGraph::FCompoundGraph* CompoundGraph = nullptr;
-	PCGExDataBlending::FCompoundBlender* CompoundPointsBlender = nullptr;
-
-	bool bPreserveOrder;
-
-	mutable FRWLock PointsLock;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExFusePointsElement final : public FPCGExPointsProcessorElement
@@ -135,3 +119,24 @@ protected:
 	virtual bool Boot(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
+
+namespace PCGExFusePoints
+{
+	class FProcessor final : public PCGExPointsMT::FPointsProcessor
+	{
+		
+		PCGExGraph::FGraphMetadataSettings GraphMetadataSettings;
+		PCGExGraph::FCompoundGraph* CompoundGraph = nullptr;
+		PCGExDataBlending::FCompoundBlender* CompoundPointsBlender = nullptr;
+
+	public:
+		explicit FProcessor(PCGExData::FPointIO* InPoints);
+		virtual ~FProcessor() override;
+
+		virtual bool Process(FPCGExAsyncManager* AsyncManager) override;
+		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point) override;
+		virtual void ProcessSingleRangeIteration(const int32 Iteration) override;
+		virtual void CompleteWork() override;
+		virtual void Write() override;
+	};
+}

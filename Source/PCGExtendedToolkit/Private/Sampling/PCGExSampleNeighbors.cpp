@@ -31,13 +31,8 @@ FPCGExSampleNeighborsContext::~FPCGExSampleNeighborsContext()
 {
 	PCGEX_TERMINATE_ASYNC
 
-	for (UPCGExNeighborSampleOperation* Operation : SamplingOperations)
-	{
-		Operation->Cleanup();
-		PCGEX_DELETE_UOBJECT(Operation)
-	}
-
-	SamplingOperations.Empty();
+	//for (UPCGExNeighborSamplerFactoryBase* Factory : SamplerFactories) { PCGEX_DELETE_UOBJECT(Factory) }
+	SamplerFactories.Empty();
 }
 
 bool FPCGExSampleNeighborsElement::Boot(FPCGContext* InContext) const
@@ -46,29 +41,14 @@ bool FPCGExSampleNeighborsElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(SampleNeighbors)
 
-	TArray<UPCGNeighborSamplerFactoryBase*> SamplerFactories;
-
-	if (!PCGExFactories::GetInputFactories(InContext, PCGExNeighborSample::SourceSamplersLabel, SamplerFactories, {PCGExFactories::EType::Sampler}, false))
+	if (!PCGExFactories::GetInputFactories(InContext, PCGExNeighborSample::SourceSamplersLabel, Context->SamplerFactories, {PCGExFactories::EType::Sampler}, false))
 	{
 		PCGE_LOG(Warning, GraphAndLog, FTEXT("No valid sampler found."));
 		return false;
 	}
 
 	// Sort samplers so higher priorities come last, as they have to potential to override values.
-	SamplerFactories.Sort([&](const UPCGNeighborSamplerFactoryBase& A, const UPCGNeighborSamplerFactoryBase& B) { return A.Priority < B.Priority; });
-
-	for (const UPCGNeighborSamplerFactoryBase* OperationFactory : SamplerFactories)
-	{
-		UPCGExNeighborSampleOperation* Operation = OperationFactory->CreateOperation();
-		Context->SamplingOperations.Add(Operation);
-		Context->RegisterOperation<UPCGExNeighborSampleOperation>(Operation);
-	}
-
-	if (Context->SamplingOperations.IsEmpty())
-	{
-		PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not find any valid samplers."));
-		return false;
-	}
+	Context->SamplerFactories.Sort([&](const UPCGExNeighborSamplerFactoryBase& A, const UPCGExNeighborSamplerFactoryBase& B) { return A.Priority < B.Priority; });
 
 	return true;
 }
@@ -116,8 +96,14 @@ namespace PCGExSampleNeighbors
 
 	FProcessor::~FProcessor()
 	{
-		for (UPCGExNeighborSampleOperation* Op : SamplingOperations) { PCGEX_DELETE_UOBJECT(Op) }
+		for (UPCGExNeighborSampleOperation* Op : SamplingOperations)
+		{
+			if (Op->PointState) { PCGEX_DELETE(Op->PointState) }
+			if (Op->ValueState) { PCGEX_DELETE(Op->ValueState) }
+			PCGEX_DELETE_UOBJECT(Op)
+		}
 		SamplingOperations.Empty();
+
 		VtxOps.Empty();
 		EdgeOps.Empty();
 	}
@@ -126,30 +112,30 @@ namespace PCGExSampleNeighbors
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(SampleNeighbors)
 
-		if (FClusterProcessor::Process(AsyncManager)) { return false; }
+		if (!FClusterProcessor::Process(AsyncManager)) { return false; }
 
 		TArray<UPCGExNeighborSampleOperation*> PointStatePreparation;
 		TArray<UPCGExNeighborSampleOperation*> ValueStatePreparation;
 
-		for (const UPCGExNeighborSampleOperation* SamplingOperation : TypedContext->SamplingOperations)
+		for (const UPCGExNeighborSamplerFactoryBase* OperationFactory : TypedContext->SamplerFactories)
 		{
-			UPCGExNeighborSampleOperation* OperationCopy = SamplingOperation->CopyOperation<UPCGExNeighborSampleOperation>();
+			UPCGExNeighborSampleOperation* SamplingOperation = OperationFactory->CreateOperation();
+			SamplingOperation->BindContext(TypedContext);
+			SamplingOperation->PrepareForCluster(Context, Cluster);
 
-			OperationCopy->PrepareForCluster(Context, Cluster);
-
-			if (!OperationCopy->IsOperationValid())
+			if (!SamplingOperation->IsOperationValid())
 			{
-				PCGEX_DELETE_UOBJECT(OperationCopy)
+				PCGEX_DELETE_UOBJECT(SamplingOperation)
 				continue;
 			}
 
-			SamplingOperations.Add(OperationCopy);
+			SamplingOperations.Add(SamplingOperation);
 
-			if (OperationCopy->PointState && OperationCopy->PointState->RequiresPerPointPreparation()) { PointStatePreparation.Add(OperationCopy); }
-			if (OperationCopy->ValueState && OperationCopy->ValueState->RequiresPerPointPreparation()) { ValueStatePreparation.Add(OperationCopy); }
+			if (SamplingOperation->PointState && SamplingOperation->PointState->RequiresPerPointPreparation()) { PointStatePreparation.Add(SamplingOperation); }
+			if (SamplingOperation->ValueState && SamplingOperation->ValueState->RequiresPerPointPreparation()) { ValueStatePreparation.Add(SamplingOperation); }
 
-			if (OperationCopy->BaseSettings.NeighborSource == EPCGExGraphValueSource::Point) { VtxOps.Add(OperationCopy); }
-			else { EdgeOps.Add(OperationCopy); }
+			if (SamplingOperation->BaseSettings.NeighborSource == EPCGExGraphValueSource::Point) { VtxOps.Add(SamplingOperation); }
+			else { EdgeOps.Add(SamplingOperation); }
 		}
 
 		for (const PCGExCluster::FNode& Node : Cluster->Nodes)
@@ -171,7 +157,6 @@ namespace PCGExSampleNeighbors
 
 	void FProcessor::CompleteWork()
 	{
-		
 		for (UPCGExNeighborSampleOperation* Op : SamplingOperations) { Op->FinalizeOperation(); }
 	}
 }

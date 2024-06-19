@@ -253,6 +253,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : public FPCGExContex
 	template <typename T, class ValidateEntryFunc, class InitBatchFunc>
 	bool StartBatchProcessingPoints(ValidateEntryFunc&& ValidateEntry, InitBatchFunc&& InitBatch, const PCGExMT::AsyncState InState)
 	{
+		PCGEX_DELETE(MainBatch)
+		
 		TargetState_PointsProcessingDone = InState;
 		BatchablePoints.Empty();
 

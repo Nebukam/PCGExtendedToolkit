@@ -8,6 +8,7 @@
 
 namespace PCGExGeo
 {
+
 	struct PCGEXTENDEDTOOLKIT_API FTriangle
 	{
 		int32 Vtx[3];

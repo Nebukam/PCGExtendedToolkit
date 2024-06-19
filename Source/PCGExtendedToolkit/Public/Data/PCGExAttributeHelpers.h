@@ -435,6 +435,12 @@ namespace PCGEx
 			if (this->Values.IsEmpty()) { return; }
 			this->Accessor->SetRange(this->Values);
 		}
+
+		void Write(const TArrayView<int32> InIndices)
+		{
+			if (this->Values.IsEmpty()) { return; }
+			for (int32 Index : InIndices) { this->Accessor->Set(this->Values[Index], Index); }
+		}
 	};
 
 	template <typename T>

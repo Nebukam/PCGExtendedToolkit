@@ -55,6 +55,8 @@ FPCGExEdgesProcessorContext::~FPCGExEdgesProcessorContext()
 	PCGEX_DELETE_UOBJECT(VtxFiltersData)
 	PCGEX_DELETE_UOBJECT(EdgesFiltersData)
 
+	PCGEX_DELETE_TARRAY(Batches)
+
 	EndpointsLookup.Empty();
 }
 
@@ -97,8 +99,6 @@ bool FPCGExEdgesProcessorContext::AdvancePointsIO(const bool bCleanupKeys)
 
 bool FPCGExEdgesProcessorContext::AdvanceEdges(const bool bBuildCluster, const bool bCleanupKeys)
 {
-	PCGEX_DELETE_TARRAY(Batches)
-
 	PCGEX_DELETE(CurrentCluster)
 	PCGEX_DELETE(ClusterProjection)
 

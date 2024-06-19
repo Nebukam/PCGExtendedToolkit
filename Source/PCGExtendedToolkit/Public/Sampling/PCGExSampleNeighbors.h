@@ -8,6 +8,7 @@
 
 #include "PCGExSampleNeighbors.generated.h"
 
+class UPCGExNeighborSamplerFactoryBase;
 class UPCGExNeighborSampleOperation;
 
 namespace PCGExSampleNeighbors
@@ -49,7 +50,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleNeighborsContext final : public FPCGEx
 	friend class FPCGExSampleNeighborsElement;
 	virtual ~FPCGExSampleNeighborsContext() override;
 
-	TArray<UPCGExNeighborSampleOperation*> SamplingOperations;
+	TArray<UPCGExNeighborSamplerFactoryBase*> SamplerFactories;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExSampleNeighborsElement final : public FPCGExEdgesProcessorElement

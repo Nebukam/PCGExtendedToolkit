@@ -106,6 +106,8 @@ protected:
 	{
 		ResetAsyncWork();
 
+		PCGEX_DELETE_TARRAY(Batches)
+
 		bClusterBatchInlined = bInlined;
 		CurrentBatchIndex = -1;
 		State_ClusterProcessingDone = InState;

@@ -7,6 +7,17 @@
 #define PCGEX_NAMESPACE PCGExCreateNeighborSample
 
 
+void UPCGExNeighborSampleOperation::CopySettingsFrom(const UPCGExOperation* Other)
+{
+	Super::CopySettingsFrom(Other);
+	const UPCGExNeighborSampleOperation* TypedOther = Cast<UPCGExNeighborSampleOperation>(Other);
+	if (Other)
+	{
+		BaseSettings = TypedOther->BaseSettings;
+		WeightCurveObj = TypedOther->WeightCurveObj;
+	}
+}
+
 bool UPCGExNeighborSampleOperation::PrepareForCluster(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster)
 {
 	Cluster = InCluster;
@@ -321,12 +332,12 @@ FString UPCGExNeighborSampleProviderSettings::GetDisplayName() const
 }
 #endif
 
-PCGExFactories::EType UPCGNeighborSamplerFactoryBase::GetFactoryType() const
+PCGExFactories::EType UPCGExNeighborSamplerFactoryBase::GetFactoryType() const
 {
 	return PCGExFactories::EType::Sampler;
 }
 
-UPCGExNeighborSampleOperation* UPCGNeighborSamplerFactoryBase::CreateOperation() const
+UPCGExNeighborSampleOperation* UPCGExNeighborSamplerFactoryBase::CreateOperation() const
 {
 	UPCGExNeighborSampleOperation* NewOperation = NewObject<UPCGExNeighborSampleOperation>();
 
@@ -347,7 +358,7 @@ FName UPCGExNeighborSampleProviderSettings::GetMainOutputLabel() const { return 
 
 UPCGExParamFactoryBase* UPCGExNeighborSampleProviderSettings::CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const
 {
-	UPCGNeighborSamplerFactoryBase* SamplerFactory = Cast<UPCGNeighborSamplerFactoryBase>(InFactory);
+	UPCGExNeighborSamplerFactoryBase* SamplerFactory = Cast<UPCGExNeighborSamplerFactoryBase>(InFactory);
 	SamplerFactory->Priority = Priority;
 	SamplerFactory->SamplingSettings = SamplingSettings;
 	GetInputFactories(InContext, PCGEx::SourcePointFilters, SamplerFactory->FilterFactories, PCGExFactories::ClusterFilters, false);

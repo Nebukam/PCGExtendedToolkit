@@ -125,6 +125,8 @@ public:
 	FPCGExSamplingSettings BaseSettings;
 	TObjectPtr<UCurveFloat> WeightCurveObj = nullptr;
 
+	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
+	
 	virtual bool PrepareForCluster(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster);
 	virtual bool IsOperationValid();
 
@@ -150,7 +152,7 @@ protected:
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGNeighborSamplerFactoryBase : public UPCGExNodeStateFactory
+class PCGEXTENDEDTOOLKIT_API UPCGExNeighborSamplerFactoryBase : public UPCGExNodeStateFactory
 {
 	GENERATED_BODY()
 

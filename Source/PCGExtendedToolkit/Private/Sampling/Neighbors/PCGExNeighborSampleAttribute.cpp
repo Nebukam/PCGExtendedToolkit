@@ -8,6 +8,17 @@
 #define LOCTEXT_NAMESPACE "PCGExCreateNeighborSample"
 #define PCGEX_NAMESPACE PCGExCreateNeighborSample
 
+void UPCGExNeighborSampleAttribute::CopySettingsFrom(const UPCGExOperation* Other)
+{
+	Super::CopySettingsFrom(Other);
+	const UPCGExNeighborSampleAttribute* TypedOther = Cast<UPCGExNeighborSampleAttribute>(Other);
+	if (Other)
+	{
+		SourceAttributes = TypedOther->SourceAttributes;
+		Blending = TypedOther->Blending;
+	}
+}
+
 bool UPCGExNeighborSampleAttribute::PrepareForCluster(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster)
 {
 	const bool bRequirePerPointPrep = Super::PrepareForCluster(InContext, InCluster);
@@ -69,7 +80,14 @@ void UPCGExNeighborSampleAttribute::FinalizeNode(PCGExCluster::FNode& TargetNode
 void UPCGExNeighborSampleAttribute::FinalizeOperation()
 {
 	Super::FinalizeOperation();
-	Blender->Write();
+
+	TArray<int32> Indices;
+	Cluster->GetNodePointIndices(Indices);
+
+	Blender->Write(Indices);
+
+	Indices.Empty();
+
 	PCGEX_DELETE(Blender)
 }
 
