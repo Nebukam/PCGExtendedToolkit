@@ -48,6 +48,9 @@ bool FPCGExSplitPathElement::ExecuteInternal(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(SplitPath)
 
+	PCGE_LOG(Error, GraphAndLog, FTEXT("NOT IMPLEMENTED YET"));
+	return true;
+	/*
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }
@@ -83,6 +86,7 @@ bool FPCGExSplitPathElement::ExecuteInternal(FPCGContext* InContext) const
 	}
 
 	return Context->IsDone();
+	*/
 }
 
 namespace PCGExSplitPath

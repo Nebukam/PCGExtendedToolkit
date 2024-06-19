@@ -39,7 +39,8 @@ bool FPCGExPointsPathIntersectionElement::ExecuteInternal(FPCGContext* InContext
 
 	PCGE_LOG(Error, GraphAndLog, FTEXT("NOT IMPLEMENTED YET"));
 	return true;
-	
+
+	/*
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }
@@ -62,6 +63,7 @@ bool FPCGExPointsPathIntersectionElement::ExecuteInternal(FPCGContext* InContext
 	}
 
 	return Context->IsDone();
+	*/
 }
 
 bool FPCGExPointsPathIntersectionTask::ExecuteTask()

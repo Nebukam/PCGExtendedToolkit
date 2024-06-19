@@ -40,7 +40,8 @@ bool FPCGExPointsClusterIntersectionElement::ExecuteInternal(FPCGContext* InCont
 
 	PCGE_LOG(Error, GraphAndLog, FTEXT("NOT IMPLEMENTED YET"));
 	return true;
-	
+
+	/*
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }
@@ -81,6 +82,7 @@ bool FPCGExPointsClusterIntersectionElement::ExecuteInternal(FPCGContext* InCont
 	}
 
 	return Context->IsDone();
+	*/
 }
 
 #undef LOCTEXT_NAMESPACE

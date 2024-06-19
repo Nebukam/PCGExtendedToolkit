@@ -19,6 +19,7 @@
 #include "PCGExPointsProcessor.generated.h"
 
 struct FPCGExPointsProcessorContext;
+class FPCGExPointsProcessorElement;
 
 #pragma region Loops
 
