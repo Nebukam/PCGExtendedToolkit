@@ -104,7 +104,7 @@ namespace PCGExGeo
 	public:
 		TObjectPtr<UStaticMesh> StaticMesh;
 
-		explicit FGeoStaticMesh(const TSharedPtr<UStaticMesh>& InSoftStaticMesh)
+		explicit FGeoStaticMesh(const TSoftObjectPtr<UStaticMesh>& InSoftStaticMesh)
 		{
 			if (!InSoftStaticMesh.ToSoftObjectPath().IsValid()) { return; }
 
@@ -116,12 +116,12 @@ namespace PCGExGeo
 		}
 
 		explicit FGeoStaticMesh(const FSoftObjectPath& InSoftStaticMesh):
-			FGeoStaticMesh(TSharedPtr<UStaticMesh>(InSoftStaticMesh))
+			FGeoStaticMesh(TSoftObjectPtr<UStaticMesh>(InSoftStaticMesh))
 		{
 		}
 
 		explicit FGeoStaticMesh(const FString& InSoftStaticMesh):
-			FGeoStaticMesh(TSharedPtr<UStaticMesh>(FSoftObjectPath(InSoftStaticMesh)))
+			FGeoStaticMesh(TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(InSoftStaticMesh)))
 		{
 		}
 

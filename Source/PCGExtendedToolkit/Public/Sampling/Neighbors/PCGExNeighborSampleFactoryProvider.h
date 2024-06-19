@@ -100,7 +100,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSamplingSettings
 
 	/** Curve over which the blending weight will be remapped  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	TSharedPtr<UCurveFloat> WeightCurve = TSharedPtr<UCurveFloat>(PCGEx::WeightDistributionLinear);
+	TSoftObjectPtr<UCurveFloat> WeightCurve = TSoftObjectPtr<UCurveFloat>(PCGEx::WeightDistributionLinear);
 
 	/** Which type of neighbor to sample */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))

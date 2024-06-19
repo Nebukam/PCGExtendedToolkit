@@ -168,7 +168,7 @@ public:
 
 	/** Curve that balances weight over distance */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Sampling", meta=(PCG_Overridable))
-	TSharedPtr<UCurveFloat> WeightOverDistance;
+	TSoftObjectPtr<UCurveFloat> WeightOverDistance;
 
 	/** Attributes to sample from the targets */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Blending", meta=(PCG_Overridable))

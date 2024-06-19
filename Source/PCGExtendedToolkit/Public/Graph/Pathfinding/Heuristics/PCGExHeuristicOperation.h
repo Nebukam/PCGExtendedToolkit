@@ -20,7 +20,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicOperation : public UPCGExOperation
 public:
 	/** Curve the value will be remapped over. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	TSharedPtr<UCurveFloat> ScoreCurve = TSharedPtr<UCurveFloat>(PCGEx::WeightDistributionLinear);
+	TSoftObjectPtr<UCurveFloat> ScoreCurve = TSoftObjectPtr<UCurveFloat>(PCGEx::WeightDistributionLinear);
 
 	bool bInvert = false;
 	double ReferenceWeight = 1;

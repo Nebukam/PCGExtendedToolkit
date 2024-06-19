@@ -195,7 +195,7 @@ public:
 
 	/** The balance over distance to prioritize closer distance or better alignment. Curve X is normalized distance; Y = 0 means narrower dot wins, Y = 1 means closer distance wins */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Settings|Probing")
-	TSharedPtr<UCurveFloat> DotOverDistance = TSharedPtr<UCurveFloat>(PCGEx::DefaultDotOverDistanceCurve);
+	TSoftObjectPtr<UCurveFloat> DotOverDistance = TSoftObjectPtr<UCurveFloat>(PCGEx::DefaultDotOverDistanceCurve);
 
 	TObjectPtr<UCurveFloat> DotOverDistanceCurve = nullptr;
 

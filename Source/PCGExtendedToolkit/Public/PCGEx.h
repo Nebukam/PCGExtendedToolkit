@@ -117,9 +117,9 @@ MACRO(Seed)
 MACRO(EPCGExtraProperties::Index, MetadataEntry)
 
 #define PCGEX_LOAD_SOFTOBJECT(_TYPE, _SOURCE, _TARGET, _DEFAULT)\
-if (!_SOURCE.ToSoftObjectPath().IsValid()) { _TARGET = TSharedPtr<_TYPE>(_DEFAULT).LoadSynchronous(); }\
+if (!_SOURCE.ToSoftObjectPath().IsValid()) { _TARGET = TSoftObjectPtr<_TYPE>(_DEFAULT).LoadSynchronous(); }\
 else { _TARGET = _SOURCE.LoadSynchronous(); }\
-if (!_TARGET) { _TARGET = TSharedPtr<_TYPE>(_DEFAULT).LoadSynchronous(); }
+if (!_TARGET) { _TARGET = TSoftObjectPtr<_TYPE>(_DEFAULT).LoadSynchronous(); }
 
 #pragma endregion
 
