@@ -61,7 +61,7 @@ bool FPCGExSubdivideElement::ExecuteInternal(FPCGContext* InContext) const
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExSubdivide::FProcessor>>(
 			[&](PCGExData::FPointIO* Entry)
 			{
-				if (Entry->GetNum() == 1)
+				if (Entry->GetNum() < 2)
 				{
 					bInvalidInputs = true;
 					Entry->InitializeOutput(PCGExData::EInit::Forward);
@@ -126,10 +126,12 @@ namespace PCGExSubdivide
 
 		Blending = Cast<UPCGExSubPointsBlendOperation>(PrimaryOperation);
 
+		for (int i = 0; i < PointIO->GetNum(); i++) { ProcessPathPoint(i); }
+
 		return true;
 	}
 
-	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point)
+	void FProcessor::ProcessPathPoint(const int32 Index)
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(Subdivide)
 

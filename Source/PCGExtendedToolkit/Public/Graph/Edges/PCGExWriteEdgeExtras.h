@@ -123,7 +123,7 @@ public:
 	bool bEndpointsBlending = false;
 
 	/** Balance between start/end point ( When enabled, this value will be overriden by EdgePositionLerp, and Solidification, in that order. )*/
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|EdgeOutput", meta=(PCG_Overridable, EditCondition="bEndpointsBlending && !bWriteEdgePosition && SolidificationAxis == EPCGExMinimalAxis::None  )", ClampMin=0, ClampMax=1))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|EdgeOutput", meta=(PCG_Overridable, EditCondition="bEndpointsBlending && !bWriteEdgePosition && SolidificationAxis == EPCGExMinimalAxis::None", ClampMin=0, ClampMax=1))
 	double EndpointsWeights = 0.5;
 
 	/** Defines how fused point properties and attributes are merged together. */
