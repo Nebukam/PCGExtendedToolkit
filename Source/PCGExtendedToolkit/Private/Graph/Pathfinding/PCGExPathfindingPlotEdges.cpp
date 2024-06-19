@@ -55,7 +55,7 @@ void FPCGExPathfindingPlotEdgesContext::TryFindPath(
 		FVector SeedPosition = InPlotPoints->GetInPoint(i - 1).Transform.GetLocation();
 		FVector GoalPosition = InPlotPoints->GetInPoint(i).Transform.GetLocation();
 
-		if (!SearchAlgorithm->FindPath(
+		if (!SearchOperation->FindPath(
 			SeedPosition, &Settings->SeedPicking,
 			GoalPosition, &Settings->GoalPicking, HeuristicsHandler, Path, LocalFeedbackHandler))
 		{
