@@ -88,6 +88,7 @@ namespace PCGExGraph
 
 			auto BlendPointEdgeMetadata = [&](const int32 Index)
 			{
+				// TODO
 			};
 
 			if (!Context->Process(Initialize, BlendPointEdgeMetadata, PointEdgeIntersections->Edges.Num())) { return false; }

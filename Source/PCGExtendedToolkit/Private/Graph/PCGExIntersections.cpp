@@ -461,8 +461,8 @@ namespace PCGExGraph
 		{
 			if (EdgeProxy.Intersections.IsEmpty()) { continue; }
 
-			FIndexedEdge& SplitEdge = Graph->Edges[EdgeProxy.EdgeIndex];
-			SplitEdge.bValid = false; // Invalidate existing edge
+			Graph->Edges[EdgeProxy.EdgeIndex].bValid = false; // Invalidate existing edge
+			const FIndexedEdge SplitEdge = Graph->Edges[EdgeProxy.EdgeIndex];
 
 			EdgeProxy.Intersections.Sort(
 				[&](const FEECrossing& A, const FEECrossing& B)

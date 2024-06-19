@@ -38,6 +38,8 @@ public:
 #endif
 	//~End UObject interface
 
+	virtual FName GetPointFilterLabel() const override;
+	
 	//~Begin UPCGExPointsProcessorSettings interface
 public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
@@ -112,13 +114,25 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExSmoothTask final : public FPCGExNonAbandonableTask
+namespace PCGExSmooth
 {
-public:
-	FPCGExSmoothTask(PCGExData::FPointIO* InPointIO) :
-		FPCGExNonAbandonableTask(InPointIO)
+	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
-	}
+		int32 NumPoints = 0;
 
-	virtual bool ExecuteTask() override;
-};
+		TArray<double> Smoothing;
+		TArray<double> Influence;
+
+		PCGExDataBlending::FMetadataBlender* MetadataBlender = nullptr;
+		UPCGExSmoothingOperation* TypedOperation = nullptr;
+		bool bClosedPath = false;
+
+	public:
+		explicit FProcessor(PCGExData::FPointIO* InPoints);
+		virtual ~FProcessor() override;
+
+		virtual bool Process(FPCGExAsyncManager* AsyncManager) override;
+		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point) override;
+		virtual void CompleteWork() override;
+	};
+}
