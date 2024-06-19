@@ -51,8 +51,7 @@ bool FPCGExPartitionVerticesElement::ExecuteInternal(FPCGContext* InContext) con
 
 	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
 	{
-		if (!Context->AdvancePointsIO()) { Context->Done(); }
-		else
+		while (Context->AdvancePointsIO(false))
 		{
 			if (!Context->TaggedEdges) { return false; }
 
@@ -68,21 +67,19 @@ bool FPCGExPartitionVerticesElement::ExecuteInternal(FPCGContext* InContext) con
 				EdgeIO->CreateInKeys();
 				Context->GetAsyncManager()->Start<FPCGExCreateVtxPartitionTask>(i, &PointPartitionIO, EdgeIO, &Context->EndpointsLookup);
 			}
-
-			Context->SetAsyncState(PCGExGraph::State_ProcessingEdges);
 		}
+		
+		Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork);
 	}
 
-	if (Context->IsState(PCGExGraph::State_ProcessingEdges))
+	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
 	{
 		PCGEX_WAIT_ASYNC
-		Context->SetState(PCGExMT::State_ReadyForNextPoints);
-	}
 
-	if (Context->IsDone())
-	{
 		Context->VtxPartitions->OutputTo(Context);
 		Context->MainEdges->OutputTo(Context);
+
+		Context->Done();
 		Context->ExecuteEnd();
 	}
 
