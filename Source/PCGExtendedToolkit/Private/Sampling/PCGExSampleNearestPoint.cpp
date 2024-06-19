@@ -290,7 +290,7 @@ namespace PCGExSampleNearestPoints
 		FVector WeightedSignAxis = FVector::Zero();
 		FVector WeightedAngleAxis = FVector::Zero();
 		double TotalWeight = 0;
-
+		double TotalSamples = 0;	
 
 		auto ProcessTargetInfos = [&]
 			(const PCGExNearestPoint::FTargetInfos& TargetInfos, const double Weight)
@@ -310,6 +310,7 @@ namespace PCGExSampleNearestPoints
 			WeightedAngleAxis += PCGExMath::GetDirection(TargetRotation, Settings->AngleAxis) * Weight;
 
 			TotalWeight += Weight;
+			TotalSamples ++;
 
 			if (Blender) { Blender->Blend(Index, TargetInfos.Index, Index, Weight); }
 		};
@@ -332,9 +333,7 @@ namespace PCGExSampleNearestPoints
 			}
 		}
 
-		double Count = bSingleSample ? 1 : TargetsInfos.Num();
-
-		if (Blender) { Blender->CompleteBlending(Index, Count, TotalWeight); }
+		if (Blender) { Blender->CompleteBlending(Index, TotalSamples, TotalWeight); }
 
 		if (TotalWeight != 0) // Dodge NaN
 		{
@@ -356,7 +355,7 @@ namespace PCGExSampleNearestPoints
 		PCGEX_OUTPUT_VALUE(Distance, Index, WeightedDistance)
 		PCGEX_OUTPUT_VALUE(SignedDistance, Index, FMath::Sign(WeightedSignAxis.Dot(LookAt)) * WeightedDistance)
 		PCGEX_OUTPUT_VALUE(Angle, Index, PCGExSampling::GetAngle(Settings->AngleRange, WeightedAngleAxis, LookAt))
-		PCGEX_OUTPUT_VALUE(NumSamples, Index, Count)
+		PCGEX_OUTPUT_VALUE(NumSamples, Index, TotalSamples)
 	}
 
 	void FProcessor::CompleteWork()
