@@ -22,7 +22,7 @@ void UPCGExFuseCollinearSettings::PostEditChangeProperty(FPropertyChangedEvent& 
 }
 #endif
 
-PCGExData::EInit UPCGExFuseCollinearSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NewOutput; }
+PCGExData::EInit UPCGExFuseCollinearSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 
 FName UPCGExFuseCollinearSettings::GetPointFilterLabel() const { return PCGExDataFilter::SourceFiltersLabel; }
 
@@ -40,10 +40,6 @@ bool FPCGExFuseCollinearElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(FuseCollinear)
 
-	Context->Threshold = PCGExMath::DegreesToDot(Settings->Threshold);
-
-	Context->FuseDistance = Settings->FuseDistance * Settings->FuseDistance;
-
 	//PCGEX_FWD(bDoBlend)
 	//PCGEX_OPERATION_BIND(Blending, UPCGExSubPointsBlendInterpolate)
 
@@ -60,40 +56,38 @@ bool FPCGExFuseCollinearElement::ExecuteInternal(FPCGContext* InContext) const
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }
-		Context->SetState(PCGExMT::State_ReadyForNextPoints);
-	}
 
-	if (!Context->ExecuteAutomation()) { return false; }
+		bool bInvalidInputs = false;
 
-	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
-	{
-		if (!Context->AdvancePointsIO())
+		// TODO : Skip completion
+
+		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExFuseCollinear::FProcessor>>(
+			[&](PCGExData::FPointIO* Entry)
+			{
+				if (Entry->GetNum() < 2)
+				{
+					bInvalidInputs = true;
+					Entry->InitializeOutput(PCGExData::EInit::Forward);
+					return false;
+				}
+				return true;
+			},
+			[&](PCGExPointsMT::TBatch<PCGExFuseCollinear::FProcessor>* NewBatch)
+			{
+			},
+			PCGExMT::State_Done))
 		{
-			Context->Done();
-			return false;
+			PCGE_LOG(Error, GraphAndLog, FTEXT("Could not find any paths to fuse."));
+			return true;
 		}
 
-		Context->SetState(PCGExMT::State_ProcessingPoints);
-	}
-
-	if (Context->IsState(PCGExMT::State_ProcessingPoints))
-	{
-		if (Context->CurrentIO->GetNum() <= 2)
+		if (bInvalidInputs)
 		{
-			Context->CurrentIO->InitializeOutput(PCGExData::EInit::DuplicateInput);
-			Context->SetState(PCGExMT::State_ReadyForNextPoints);
-			return false;
+			PCGE_LOG(Warning, GraphAndLog, FTEXT("Some inputs have less than 2 points and won't be processed."));
 		}
-
-		Context->GetAsyncManager()->Start<FPCGExFuseCollinearTask>(Context->CurrentIO->IOIndex, Context->CurrentIO);
-		Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork);
 	}
 
-	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
-	{
-		PCGEX_WAIT_ASYNC
-		Context->SetState(PCGExMT::State_ReadyForNextPoints);
-	}
+	if (!Context->ProcessPointsBatch()) { return false; }
 
 	if (Context->IsDone())
 	{
@@ -104,42 +98,58 @@ bool FPCGExFuseCollinearElement::ExecuteInternal(FPCGContext* InContext) const
 	return Context->IsDone();
 }
 
-bool FPCGExFuseCollinearTask::ExecuteTask()
+namespace PCGExFuseCollinear
 {
-	const FPCGExFuseCollinearContext* Context = Manager->GetContext<FPCGExFuseCollinearContext>();
-	PCGEX_SETTINGS(FuseCollinear)
-
-	const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
-	TArray<FPCGPoint>& OutPoints = PointIO->GetOut()->GetMutablePoints();
-	OutPoints.Add_GetRef(InPoints[0]);
-
-	FVector LastPosition = InPoints[0].Transform.GetLocation();
-	FVector CurrentDirection = (LastPosition - InPoints[1].Transform.GetLocation()).GetSafeNormal();
-	const int32 MaxIndex = InPoints.Num() - 1;
-
-	for (int i = 1; i < MaxIndex; i++)
+	FProcessor::FProcessor(PCGExData::FPointIO* InPoints):
+		FPointsProcessor(InPoints)
 	{
-		FVector CurrentPosition = InPoints[i].Transform.GetLocation();
-		FVector NextPosition = InPoints[i + 1].Transform.GetLocation();
-		FVector DirToNext = (CurrentPosition - NextPosition).GetSafeNormal();
-
-		const double Dot = FVector::DotProduct(CurrentDirection, DirToNext);
-		const bool bWithinThreshold = Settings->bInvertThreshold ? Dot < Context->Threshold : Dot > Context->Threshold;
-		if (FVector::DistSquared(CurrentPosition, LastPosition) <= Context->FuseDistance || bWithinThreshold)
-		{
-			// Collinear with previous, keep moving
-			continue;
-		}
-
-		OutPoints.Add_GetRef(InPoints[i]);
-		CurrentDirection = DirToNext;
-		LastPosition = CurrentPosition;
 	}
 
-	OutPoints.Add_GetRef(InPoints[MaxIndex]);
+	FProcessor::~FProcessor()
+	{
+	}
 
-	return true;
+	bool FProcessor::Process(FPCGExAsyncManager* AsyncManager)
+	{
+		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
+
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(FuseCollinear)
+
+		PointIO->InitializeOutput(PCGExData::EInit::NewOutput);
+
+		const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
+		TArray<FPCGPoint>& OutPoints = PointIO->GetOut()->GetMutablePoints();
+		OutPoints.Add_GetRef(InPoints[0]);
+
+		FVector LastPosition = InPoints[0].Transform.GetLocation();
+		FVector CurrentDirection = (LastPosition - InPoints[1].Transform.GetLocation()).GetSafeNormal();
+		const int32 MaxIndex = InPoints.Num() - 1;
+
+		for (int i = 1; i < MaxIndex; i++)
+		{
+			FVector CurrentPosition = InPoints[i].Transform.GetLocation();
+			FVector NextPosition = InPoints[i + 1].Transform.GetLocation();
+			FVector DirToNext = (CurrentPosition - NextPosition).GetSafeNormal();
+
+			const double Dot = FVector::DotProduct(CurrentDirection, DirToNext);
+			const bool bWithinThreshold = Settings->bInvertThreshold ? Dot < Settings->Threshold : Dot > Settings->Threshold;
+			if (FVector::DistSquared(CurrentPosition, LastPosition) <= Settings->FuseDistance || bWithinThreshold)
+			{
+				// Collinear with previous, keep moving
+				continue;
+			}
+
+			OutPoints.Add_GetRef(InPoints[i]);
+			CurrentDirection = DirToNext;
+			LastPosition = CurrentPosition;
+		}
+
+		OutPoints.Add_GetRef(InPoints[MaxIndex]);
+
+		return true;
+	}
 }
+
 
 #undef LOCTEXT_NAMESPACE
 #undef PCGEX_NAMESPACE

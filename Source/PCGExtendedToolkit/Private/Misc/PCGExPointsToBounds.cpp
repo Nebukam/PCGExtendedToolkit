@@ -13,10 +13,6 @@ PCGExData::EInit UPCGExPointsToBoundsSettings::GetMainOutputInitMode() const { r
 FPCGExPointsToBoundsContext::~FPCGExPointsToBoundsContext()
 {
 	PCGEX_TERMINATE_ASYNC
-
-	OutPoints = nullptr;
-	PCGEX_DELETE(MetadataBlender)
-	PCGEX_DELETE_TARRAY(IOBounds)
 }
 
 UPCGExPointsToBoundsSettings::UPCGExPointsToBoundsSettings(const FObjectInitializer& ObjectInitializer)
@@ -38,11 +34,8 @@ bool FPCGExPointsToBoundsElement::Boot(FPCGContext* InContext) const
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(PointsToBounds)
-	PCGEX_FWD(bWritePointsCount)
 
-	PCGEX_SOFT_VALIDATE_NAME(Context->bWritePointsCount, Settings->PointsCountAttributeName, Context)
-
-	Context->MetadataBlender = new PCGExDataBlending::FMetadataBlender(const_cast<FPCGExBlendingSettings*>(&Settings->BlendingSettings));
+	if (Settings->bWritePointsCount) { PCGEX_VALIDATE_NAME(Settings->PointsCountAttributeName) }
 
 	return true;
 }
@@ -56,42 +49,103 @@ bool FPCGExPointsToBoundsElement::ExecuteInternal(FPCGContext* InContext) const
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }
-		Context->SetState(PCGExPointsToBounds::State_ComputeBounds);
-	}
 
-	if (Context->IsState(PCGExPointsToBounds::State_ComputeBounds))
-	{
-		ComputeBounds(Context->GetAsyncManager(), Context->MainPoints, Context->IOBounds, Settings->BoundsSource);
-		Context->SetAsyncState(PCGExMT::State_WaitingOnAsyncWork);
-	}
+		bool bInvalidInputs = false;
 
-	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
-	{
-		PCGEX_WAIT_ASYNC
-		Context->SetState(PCGExMT::State_ReadyForNextPoints);
-	}
-
-	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
-	{
-		if (!Context->AdvancePointsIO())
+		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExPointsToBounds::FProcessor>>(
+			[&](PCGExData::FPointIO* Entry) { return true; },
+			[&](PCGExPointsMT::TBatch<PCGExPointsToBounds::FProcessor>* NewBatch)
+			{
+				//NewBatch->bRequiresWriteStep = true;
+			},
+			PCGExMT::State_Done))
 		{
-			Context->Done();
-			Context->ExecuteEnd();
+			PCGE_LOG(Error, GraphAndLog, FTEXT("Could not find any paths to subdivide."));
+			return true;
 		}
-		else { Context->SetState(PCGExMT::State_ProcessingPoints); }
+
+		if (bInvalidInputs)
+		{
+			PCGE_LOG(Warning, GraphAndLog, FTEXT("Some inputs have less than 2 points and won't be processed."));
+		}
 	}
 
-	if (Context->IsState(PCGExMT::State_ProcessingPoints))
+	if (!Context->ProcessPointsBatch()) { return false; }
+
+	if (Context->IsDone())
 	{
-		const TArray<FPCGPoint>& InPoints = Context->CurrentIO->GetIn()->GetPoints();
-		UPCGPointData* OutData = Context->CurrentIO->GetOut();
+		Context->OutputMainPoints();
+		Context->ExecuteEnd();
+	}
+
+	return Context->IsDone();
+}
+
+namespace PCGExPointsToBounds
+{
+	FProcessor::FProcessor(PCGExData::FPointIO* InPoints):
+		FPointsProcessor(InPoints)
+	{
+	}
+
+	FProcessor::~FProcessor()
+	{
+		PCGEX_DELETE(MetadataBlender)
+		PCGEX_DELETE(Bounds)
+	}
+
+	bool FProcessor::Process(FPCGExAsyncManager* AsyncManager)
+	{
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(PointsToBounds)
+
+		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
+
+		Bounds = new PCGExPointsToBounds::FBounds(PointIO);
+		const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
+
+		switch (Settings->BoundsSource)
+		{
+		default: ;
+		case EPCGExPointBoundsSource::DensityBounds:
+			for (const FPCGPoint& Pt : InPoints)
+			{
+				const FBox Box = Pt.GetDensityBounds().GetBox();
+				Bounds->Bounds += Box;
+				Bounds->FastVolume += Box.GetExtent().Length();
+			}
+			break;
+		case EPCGExPointBoundsSource::ScaledExtents:
+			for (const FPCGPoint& Pt : InPoints)
+			{
+				const FBox Box = FBoxCenterAndExtent(Pt.Transform.GetLocation(), Pt.GetScaledExtents()).GetBox();
+				Bounds->Bounds += Box;
+				Bounds->FastVolume += Box.GetExtent().Length();
+			}
+			break;
+		case EPCGExPointBoundsSource::Extents:
+			for (const FPCGPoint& Pt : InPoints)
+			{
+				const FBox Box = FBoxCenterAndExtent(Pt.Transform.GetLocation(), Pt.GetExtents()).GetBox();
+				Bounds->Bounds += Box;
+				Bounds->FastVolume += Box.GetExtent().Length();
+			}
+			break;
+		}
+
+		return true;
+	}
+
+	void FProcessor::CompleteWork()
+	{
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(PointsToBounds)
+
+		const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
+		UPCGPointData* OutData = PointIO->GetOut();
+
 		TArray<FPCGPoint>& MutablePoints = OutData->GetMutablePoints();
 		MutablePoints.Emplace();
 
-		if (Settings->bBlendProperties) { Context->MetadataBlender->PrepareForData(*Context->CurrentIO); }
 		const double NumPoints = InPoints.Num();
-
-		const PCGExPointsToBounds::FBounds* Bounds = Context->IOBounds[Context->CurrentPointIOIndex];
 
 		const FBox& Box = Bounds->Bounds;
 		const FVector Center = Box.GetCenter();
@@ -103,8 +157,11 @@ bool FPCGExPointsToBoundsElement::ExecuteInternal(FPCGContext* InContext) const
 
 		if (Settings->bBlendProperties)
 		{
-			const PCGEx::FPointRef Target = Context->CurrentIO->GetOutPointRef(0);
-			Context->MetadataBlender->PrepareForBlending(Target);
+			MetadataBlender = new PCGExDataBlending::FMetadataBlender(&Settings->BlendingSettings);
+			MetadataBlender->PrepareForData(*PointIO);
+
+			const PCGEx::FPointRef Target = PointIO->GetOutPointRef(0);
+			MetadataBlender->PrepareForBlending(Target);
 
 			double TotalWeight = 0;
 
@@ -112,63 +169,57 @@ bool FPCGExPointsToBoundsElement::ExecuteInternal(FPCGContext* InContext) const
 			{
 				FVector Location = InPoints[i].Transform.GetLocation();
 				const double Weight = FVector::DistSquared(Center, Location) / SqrDist;
-				Context->MetadataBlender->Blend(Target, Context->CurrentIO->GetInPointRef(i), Target, Weight);
+				MetadataBlender->Blend(Target, PointIO->GetInPointRef(i), Target, Weight);
 				TotalWeight += Weight;
 			}
 
-			Context->MetadataBlender->CompleteBlending(Target, NumPoints, TotalWeight);
+			MetadataBlender->CompleteBlending(Target, NumPoints, TotalWeight);
 
 			MutablePoints[0].Transform.SetLocation(Center);
 			MutablePoints[0].BoundsMin = Box.Min - Center;
 			MutablePoints[0].BoundsMax = Box.Max - Center;
 
-			Context->MetadataBlender->Write();
+			MetadataBlender->Write();
 		}
 
 		if (Settings->bWritePointsCount) { PCGExData::WriteMark(OutData->Metadata, Settings->PointsCountAttributeName, NumPoints); }
-
-		Context->CurrentIO->OutputTo(Context);
-
-		Context->SetState(PCGExMT::State_ReadyForNextPoints);
 	}
 
-	return Context->IsDone();
-}
-
-bool FPCGExComputeIOBounds::ExecuteTask()
-{
-	const TArray<FPCGPoint>& InPoints = Bounds->PointIO->GetIn()->GetPoints();
-
-	switch (BoundsSource)
+	bool FComputeIOBoundsTask::ExecuteTask()
 	{
-	default: ;
-	case EPCGExPointBoundsSource::DensityBounds:
-		for (const FPCGPoint& Pt : InPoints)
-		{
-			const FBox Box = Pt.GetDensityBounds().GetBox();
-			Bounds->Bounds += Box;
-			Bounds->FastVolume += Box.GetExtent().Length();
-		}
-		break;
-	case EPCGExPointBoundsSource::ScaledExtents:
-		for (const FPCGPoint& Pt : InPoints)
-		{
-			const FBox Box = FBoxCenterAndExtent(Pt.Transform.GetLocation(), Pt.GetScaledExtents()).GetBox();
-			Bounds->Bounds += Box;
-			Bounds->FastVolume += Box.GetExtent().Length();
-		}
-		break;
-	case EPCGExPointBoundsSource::Extents:
-		for (const FPCGPoint& Pt : InPoints)
-		{
-			const FBox Box = FBoxCenterAndExtent(Pt.Transform.GetLocation(), Pt.GetExtents()).GetBox();
-			Bounds->Bounds += Box;
-			Bounds->FastVolume += Box.GetExtent().Length();
-		}
-		break;
-	}
+		const TArray<FPCGPoint>& InPoints = Bounds->PointIO->GetIn()->GetPoints();
 
-	return true;
+		switch (BoundsSource)
+		{
+		default: ;
+		case EPCGExPointBoundsSource::DensityBounds:
+			for (const FPCGPoint& Pt : InPoints)
+			{
+				const FBox Box = Pt.GetDensityBounds().GetBox();
+				Bounds->Bounds += Box;
+				Bounds->FastVolume += Box.GetExtent().Length();
+			}
+			break;
+		case EPCGExPointBoundsSource::ScaledExtents:
+			for (const FPCGPoint& Pt : InPoints)
+			{
+				const FBox Box = FBoxCenterAndExtent(Pt.Transform.GetLocation(), Pt.GetScaledExtents()).GetBox();
+				Bounds->Bounds += Box;
+				Bounds->FastVolume += Box.GetExtent().Length();
+			}
+			break;
+		case EPCGExPointBoundsSource::Extents:
+			for (const FPCGPoint& Pt : InPoints)
+			{
+				const FBox Box = FBoxCenterAndExtent(Pt.Transform.GetLocation(), Pt.GetExtents()).GetBox();
+				Bounds->Bounds += Box;
+				Bounds->FastVolume += Box.GetExtent().Length();
+			}
+			break;
+		}
+
+		return true;
+	}
 }
 
 

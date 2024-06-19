@@ -56,3 +56,14 @@ protected:
 	virtual bool Boot(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
+
+class PCGEXTENDEDTOOLKIT_API FPCGExRefreshSeedTask final : public FPCGExNonAbandonableTask
+{
+public:
+	FPCGExRefreshSeedTask(PCGExData::FPointIO* InPointIO) :
+		FPCGExNonAbandonableTask(InPointIO)
+	{
+	}
+	
+	virtual bool ExecuteTask() override;
+};

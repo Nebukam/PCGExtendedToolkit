@@ -28,8 +28,7 @@ void UPCGExSubdivideSettings::PostInitProperties()
 
 FPCGExSubdivideContext::~FPCGExSubdivideContext()
 {
-	Milestones.Empty();
-	MilestonesMetrics.Empty();
+	PCGEX_TERMINATE_ASYNC
 }
 
 bool FPCGExSubdivideElement::Boot(FPCGContext* InContext) const
@@ -38,17 +37,10 @@ bool FPCGExSubdivideElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(Subdivide)
 
-	PCGEX_FWD(SubdivideMethod)
-	PCGEX_FWD(Distance)
-	PCGEX_FWD(Count)
-	PCGEX_FWD(bFlagSubPoints)
-	PCGEX_FWD(FlagName)
+	if (Settings->bFlagSubPoints) { PCGEX_VALIDATE_NAME(Settings->FlagName) }
 
 	PCGEX_OPERATION_BIND(Blending, UPCGExSubPointsBlendInterpolate)
-
 	Context->Blending->bClosedPath = Settings->bClosedPath;
-
-	if (Context->bFlagSubPoints) { PCGEX_VALIDATE_NAME(Context->FlagName) }
 
 	return true;
 }
@@ -63,115 +55,152 @@ bool FPCGExSubdivideElement::ExecuteInternal(FPCGContext* InContext) const
 	if (Context->IsSetup())
 	{
 		if (!Boot(Context)) { return true; }
-		Context->SetState(PCGExMT::State_ReadyForNextPoints);
-	}
 
-	if (Context->IsState(PCGExMT::State_ReadyForNextPoints))
-	{
-		if (!Context->AdvancePointsIO())
+		bool bInvalidInputs = false;
+
+		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExSubdivide::FProcessor>>(
+			[&](PCGExData::FPointIO* Entry)
+			{
+				if (Entry->GetNum() == 1)
+				{
+					bInvalidInputs = true;
+					Entry->InitializeOutput(PCGExData::EInit::Forward);
+					return false;
+				}
+				return true;
+			},
+			[&](PCGExPointsMT::TBatch<PCGExSubdivide::FProcessor>* NewBatch)
+			{
+				NewBatch->PrimaryOperation = Context->Blending;
+				NewBatch->bRequiresWriteStep = true;
+			},
+			PCGExMT::State_Done))
 		{
-			Context->Done();
-			Context->ExecuteEnd();
+			PCGE_LOG(Error, GraphAndLog, FTEXT("Could not find any paths to subdivide."));
+			return true;
 		}
-		else { Context->SetState(PCGExMT::State_ProcessingPoints); }
+
+		if (bInvalidInputs)
+		{
+			PCGE_LOG(Warning, GraphAndLog, FTEXT("Some inputs have less than 2 points and won't be processed."));
+		}
 	}
 
-	// TODO : Move subdivision in an async task so we can bulk process all paths at the same time
+	if (!Context->ProcessPointsBatch()) { return false; }
 
-	if (Context->IsState(PCGExMT::State_ProcessingPoints))
+	if (Context->IsDone())
 	{
-		auto Initialize = [&](const PCGExData::FPointIO& PointIO)
-		{
-			Context->Milestones.Empty();
-			Context->MilestonesMetrics.Empty();
-
-			if (Context->bFlagSubPoints)
-			{
-				Context->FlagAttribute = PointIO.GetOut()->Metadata->FindOrCreateAttribute(Context->FlagName, false, false);
-			}
-		};
-
-		auto ProcessPoint = [&](const int32 Index, const PCGExData::FPointIO& PointIO)
-		{
-			int32 LastIndex;
-
-			const FPCGPoint& StartPoint = PointIO.GetInPoint(Index);
-			const FPCGPoint* EndPtr = PointIO.TryGetInPoint(Index + 1);
-			PointIO.CopyPoint(StartPoint, LastIndex);
-
-			Context->Milestones.Add(LastIndex);
-			PCGExMath::FPathMetricsSquared& Metrics = Context->MilestonesMetrics.Emplace_GetRef();
-
-			if (!EndPtr) { return; }
-
-			const FVector StartPos = StartPoint.Transform.GetLocation();
-			const FVector EndPos = EndPtr->Transform.GetLocation();
-			const FVector Dir = (EndPos - StartPos).GetSafeNormal();
-
-			const double Distance = FVector::Distance(StartPos, EndPos);
-			const int32 NumSubdivisions = Context->SubdivideMethod == EPCGExSubdivideMode::Count ?
-				                              Context->Count :
-				                              FMath::Floor(FVector::Distance(StartPos, EndPos) / Context->Distance);
-
-			const double StepSize = Distance / static_cast<double>(NumSubdivisions);
-			const double StartOffset = (Distance - StepSize * NumSubdivisions) * 0.5;
-
-			Metrics.Reset(StartPos);
-
-			for (int i = 0; i < NumSubdivisions; i++)
-			{
-				FPCGPoint& NewPoint = PointIO.CopyPoint(StartPoint, LastIndex);
-				FVector SubLocation = StartPos + Dir * (StartOffset + i * StepSize);
-				NewPoint.Transform.SetLocation(SubLocation);
-				Metrics.Add(SubLocation);
-
-				if (Context->FlagAttribute) { Context->FlagAttribute->SetValue(NewPoint.MetadataEntry, true); }
-			}
-
-			Metrics.Add(EndPos);
-		};
-
-		if (!Context->ProcessCurrentPoints(Initialize, ProcessPoint, true)) { return false; }
-		Context->SetState(PCGExSubdivide::State_BlendingPoints);
-	}
-
-	if (Context->IsState(PCGExSubdivide::State_BlendingPoints))
-	{
-		auto Initialize = [&]()
-		{
-			Context->Blending->PrepareForData(*Context->CurrentIO, *Context->CurrentIO, PCGExData::ESource::Out);
-		};
-
-		auto ProcessMilestone = [&](const int32 Index)
-		{
-			if (!Context->Milestones.IsValidIndex(Index + 1)) { return; } // Ignore last point
-
-			const PCGExData::FPointIO& PointIO = *Context->CurrentIO;
-
-			const int32 StartIndex = Context->Milestones[Index];
-			const int32 EndIndex = Context->Milestones[Index + 1];
-			const int32 Range = EndIndex - StartIndex;
-
-			if (Range <= 0) { return; } // No sub points
-
-			TArray<FPCGPoint>& MutablePoints = PointIO.GetOut()->GetMutablePoints();
-			TArrayView<FPCGPoint> View = MakeArrayView(MutablePoints.GetData() + StartIndex, Range);
-
-			Context->Blending->ProcessSubPoints(
-				PointIO.GetOutPointRef(StartIndex), PointIO.GetOutPointRef(EndIndex),
-				View, Context->MilestonesMetrics[Index]);
-
-			for (FPCGPoint& Pt : View) { PCGExMath::RandomizeSeed(Pt); }
-		};
-
-		if (!Context->Process(Initialize, ProcessMilestone, Context->Milestones.Num())) { return false; }
-
-		Context->Blending->Write();
-		Context->CurrentIO->OutputTo(Context);
-		Context->SetState(PCGExMT::State_ReadyForNextPoints);
+		Context->OutputMainPoints();
+		Context->ExecuteEnd();
 	}
 
 	return Context->IsDone();
+}
+
+namespace PCGExSubdivide
+{
+	FProcessor::FProcessor(PCGExData::FPointIO* InPoints):
+		FPointsProcessor(InPoints)
+	{
+	}
+
+	FProcessor::~FProcessor()
+	{
+		Milestones.Empty();
+		MilestonesMetrics.Empty();
+		FlagAttribute = nullptr;
+	}
+
+	bool FProcessor::Process(FPCGExAsyncManager* AsyncManager)
+	{
+		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
+
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(Subdivide)
+
+		PointIO->InitializeOutput(PCGExData::EInit::NewOutput);
+
+		if (Settings->bFlagSubPoints)
+		{
+			FlagAttribute = PointIO->GetOut()->Metadata->FindOrCreateAttribute(Settings->FlagName, false, false);
+		}
+
+		Blending = Cast<UPCGExSubPointsBlendOperation>(PrimaryOperation);
+
+		return true;
+	}
+
+	void FProcessor::ProcessSinglePoint(const int32 Index, FPCGPoint& Point)
+	{
+		PCGEX_TYPED_CONTEXT_AND_SETTINGS(Subdivide)
+
+		int32 LastIndex;
+
+		const FPCGPoint& StartPoint = PointIO->GetInPoint(Index);
+		const FPCGPoint* EndPtr = PointIO->TryGetInPoint(Index + 1);
+		PointIO->CopyPoint(StartPoint, LastIndex);
+
+		Milestones.Add(LastIndex);
+		PCGExMath::FPathMetricsSquared& Metrics = MilestonesMetrics.Emplace_GetRef();
+
+		if (!EndPtr) { return; }
+
+		const FVector StartPos = StartPoint.Transform.GetLocation();
+		const FVector EndPos = EndPtr->Transform.GetLocation();
+		const FVector Dir = (EndPos - StartPos).GetSafeNormal();
+
+		const double Distance = FVector::Distance(StartPos, EndPos);
+		const int32 NumSubdivisions = Settings->SubdivideMethod == EPCGExSubdivideMode::Count ?
+			                              Settings->Count :
+			                              FMath::Floor(FVector::Distance(StartPos, EndPos) / Settings->Distance);
+
+		const double StepSize = Distance / static_cast<double>(NumSubdivisions);
+		const double StartOffset = (Distance - StepSize * NumSubdivisions) * 0.5;
+
+		Metrics.Reset(StartPos);
+
+		for (int i = 0; i < NumSubdivisions; i++)
+		{
+			FPCGPoint& NewPoint = PointIO->CopyPoint(StartPoint, LastIndex);
+			FVector SubLocation = StartPos + Dir * (StartOffset + i * StepSize);
+			NewPoint.Transform.SetLocation(SubLocation);
+			Metrics.Add(SubLocation);
+
+			if (FlagAttribute) { FlagAttribute->SetValue(NewPoint.MetadataEntry, true); }
+		}
+
+		Metrics.Add(EndPos);
+	}
+
+	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration)
+	{
+		if (!Milestones.IsValidIndex(Iteration + 1)) { return; } // Ignore last point
+
+		const int32 StartIndex = Milestones[Iteration];
+		const int32 EndIndex = Milestones[Iteration + 1];
+		const int32 Range = EndIndex - StartIndex;
+
+		if (Range <= 0) { return; } // No sub points
+
+		TArray<FPCGPoint>& MutablePoints = PointIO->GetOut()->GetMutablePoints();
+		TArrayView<FPCGPoint> View = MakeArrayView(MutablePoints.GetData() + StartIndex, Range);
+
+		Blending->ProcessSubPoints(
+			PointIO->GetOutPointRef(StartIndex), PointIO->GetOutPointRef(EndIndex),
+			View, MilestonesMetrics[Iteration]);
+
+		for (FPCGPoint& Pt : View) { PCGExMath::RandomizeSeed(Pt); }
+	}
+
+	void FProcessor::CompleteWork()
+	{
+		Blending->PrepareForData(*PointIO, *PointIO, PCGExData::ESource::Out);
+		StartParallelLoopForRange(Milestones.Num());
+	}
+
+	void FProcessor::Write()
+	{
+		Blending->Write();
+	}
 }
 
 #undef LOCTEXT_NAMESPACE

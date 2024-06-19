@@ -83,18 +83,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSubdivideContext final : public FPCGExPathPr
 
 	virtual ~FPCGExSubdivideContext() override;
 
-	EPCGExSubdivideMode SubdivideMethod;
 	UPCGExSubPointsBlendOperation* Blending = nullptr;
-
-	double Distance;
-	int32 Count;
-	bool bFlagSubPoints;
-
-	FName FlagName;
-	FPCGMetadataAttribute<bool>* FlagAttribute = nullptr;
-
-	TArray<int32> Milestones;
-	TArray<PCGExMath::FPathMetricsSquared> MilestonesMetrics;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExSubdivideElement final : public FPCGExPathProcessorElement
@@ -109,3 +98,26 @@ protected:
 	virtual bool Boot(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
+
+namespace PCGExSubdivide
+{
+	class FProcessor final : public PCGExPointsMT::FPointsProcessor
+	{
+		FPCGMetadataAttribute<bool>* FlagAttribute = nullptr;
+
+		TArray<int32> Milestones;
+		TArray<PCGExMath::FPathMetricsSquared> MilestonesMetrics;
+
+		UPCGExSubPointsBlendOperation* Blending = nullptr;
+
+	public:
+		explicit FProcessor(PCGExData::FPointIO* InPoints);
+		virtual ~FProcessor() override;
+
+		virtual bool Process(FPCGExAsyncManager* AsyncManager) override;
+		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point) override;
+		virtual void ProcessSingleRangeIteration(const int32 Iteration) override;
+		virtual void CompleteWork() override;
+		virtual void Write() override;
+	};
+}

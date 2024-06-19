@@ -70,8 +70,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFuseCollinearContext final : public FPCGExPa
 
 	virtual ~FPCGExFuseCollinearContext() override;
 
-	double Threshold;
-	double FuseDistance;
 	//bool bDoBlend;
 	//UPCGExSubPointsBlendOperation* Blending = nullptr;
 };
@@ -89,13 +87,16 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExFuseCollinearTask final : public FPCGExNonAbandonableTask
+namespace PCGExFuseCollinear
 {
-public:
-	FPCGExFuseCollinearTask(PCGExData::FPointIO* InPointIO) :
-		FPCGExNonAbandonableTask(InPointIO)
+	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
-	}
+		bool bClosedPath = false;
 
-	virtual bool ExecuteTask() override;
-};
+	public:
+		explicit FProcessor(PCGExData::FPointIO* InPoints);
+		virtual ~FProcessor() override;
+
+		virtual bool Process(FPCGExAsyncManager* AsyncManager) override;
+	};
+}

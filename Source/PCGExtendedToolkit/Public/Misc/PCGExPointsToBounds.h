@@ -24,6 +24,7 @@ enum class EPCGExPointBoundsSource : uint8
 
 namespace PCGExPointsToBounds
 {
+	class FComputeIOBoundsTask;
 
 	PCGEX_ASYNC_STATE(State_ComputeBounds)
 
@@ -117,7 +118,7 @@ namespace PCGExPointsToBounds
 		{
 			FBounds* Bounds = new FBounds(PointIO);
 			OutBounds.Add(Bounds);
-			Manager->Start<FPCGExComputeIOBounds>(PointIO->IOIndex, PointIO, BoundsSource, Bounds);
+			Manager->Start<FComputeIOBoundsTask>(PointIO->IOIndex, PointIO, BoundsSource, Bounds);
 		}
 	}
 
@@ -201,14 +202,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsToBoundsContext final : public FPCGExP
 	friend class FPCGExPointsToBoundsElement;
 
 	virtual ~FPCGExPointsToBoundsContext() override;
-
-	TArray<PCGExPointsToBounds::FBounds*> IOBounds;
-
-	bool bWritePointsCount;
-
-	PCGExDataBlending::FMetadataBlender* MetadataBlender;
-
-	TArray<FPCGPoint>* OutPoints;
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExPointsToBoundsElement final : public FPCGExPointsProcessorElement
@@ -223,18 +216,34 @@ protected:
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
 
-class PCGEXTENDEDTOOLKIT_API FPCGExComputeIOBounds final : public FPCGExNonAbandonableTask
+namespace PCGExPointsToBounds
 {
-public:
-	FPCGExComputeIOBounds(PCGExData::FPointIO* InPointIO,
-	                      const EPCGExPointBoundsSource InBoundsSource, PCGExPointsToBounds::FBounds* InBounds) :
-		FPCGExNonAbandonableTask(InPointIO),
-		BoundsSource(InBoundsSource), Bounds(InBounds)
+	class PCGEXTENDEDTOOLKIT_API FComputeIOBoundsTask final : public FPCGExNonAbandonableTask
 	{
-	}
+	public:
+		FComputeIOBoundsTask(PCGExData::FPointIO* InPointIO,
+		                     const EPCGExPointBoundsSource InBoundsSource, PCGExPointsToBounds::FBounds* InBounds) :
+			FPCGExNonAbandonableTask(InPointIO),
+			BoundsSource(InBoundsSource), Bounds(InBounds)
+		{
+		}
 
-	EPCGExPointBoundsSource BoundsSource = EPCGExPointBoundsSource::ScaledExtents;
-	PCGExPointsToBounds::FBounds* Bounds = nullptr;
+		EPCGExPointBoundsSource BoundsSource = EPCGExPointBoundsSource::ScaledExtents;
+		PCGExPointsToBounds::FBounds* Bounds = nullptr;
 
-	virtual bool ExecuteTask() override;
-};
+		virtual bool ExecuteTask() override;
+	};
+
+	class FProcessor final : public PCGExPointsMT::FPointsProcessor
+	{
+		PCGExDataBlending::FMetadataBlender* MetadataBlender = nullptr;
+		PCGExPointsToBounds::FBounds* Bounds = nullptr;
+
+	public:
+		explicit FProcessor(PCGExData::FPointIO* InPoints);
+		virtual ~FProcessor() override;
+
+		virtual bool Process(FPCGExAsyncManager* AsyncManager) override;
+		virtual void CompleteWork() override;
+	};
+}

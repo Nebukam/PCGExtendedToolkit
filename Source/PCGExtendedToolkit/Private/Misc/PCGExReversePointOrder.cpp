@@ -49,11 +49,8 @@ bool FPCGExReversePointOrderElement::ExecuteInternal(FPCGContext* InContext) con
 	if (Context->IsState(PCGExMT::State_WaitingOnAsyncWork))
 	{
 		PCGEX_WAIT_ASYNC
+		
 		Context->Done();
-	}
-
-	if (Context->IsDone())
-	{
 		Context->OutputMainPoints();
 		Context->ExecuteEnd();
 	}
