@@ -43,11 +43,11 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExAdjacencyFilterDescriptor
 	EPCGExFetchType SubsetSource = EPCGExFetchType::Constant;
 
 	/** Local measure attribute */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="Mode==EPCGExAdjacencyTestMode::Some && (SubsetMeasure==EPCGExAdjacencySubsetMeasureMode::AbsoluteLocal||SubsetMeasure==EPCGExAdjacencySubsetMeasureMode::RelativeLocal)", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="Mode==EPCGExAdjacencyTestMode::Some && SubsetSource==EPCGExFetchType::Attribute", EditConditionHides))
 	FPCGAttributePropertyInputSelector LocalMeasure;
 
 	/** Constant Local measure value */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="Mode==EPCGExAdjacencyTestMode::Some && (SubsetMeasure==EPCGExAdjacencySubsetMeasureMode::AbsoluteStatic||SubsetMeasure==EPCGExAdjacencySubsetMeasureMode::RelativeStatic)", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(EditCondition="Mode==EPCGExAdjacencyTestMode::Some && SubsetSource==EPCGExFetchType::Constant", EditConditionHides))
 	double ConstantMeasure = 0;
 
 	/** Type of OperandA */
