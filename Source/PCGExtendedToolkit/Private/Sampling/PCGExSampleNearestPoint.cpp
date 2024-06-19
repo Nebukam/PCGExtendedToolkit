@@ -218,7 +218,7 @@ namespace PCGExSampleNearestPoints
 		if (RangeMin > RangeMax) { std::swap(RangeMin, RangeMax); }
 
 		TArray<PCGExNearestPoint::FTargetInfos> TargetsInfos;
-		TargetsInfos.Reserve(TypedContext->Targets->GetNum());
+		//TargetsInfos.Reserve(TypedContext->Targets->GetNum());
 
 
 		PCGExNearestPoint::FTargetsCompoundInfos TargetsCompoundInfos;
@@ -263,6 +263,7 @@ namespace PCGExSampleNearestPoints
 		}
 		else
 		{
+			TargetsInfos.Reserve(NumTargets);
 			for (int i = 0; i < NumTargets; i++) { ProcessTarget(i, TargetPoints[i]); }
 		}
 

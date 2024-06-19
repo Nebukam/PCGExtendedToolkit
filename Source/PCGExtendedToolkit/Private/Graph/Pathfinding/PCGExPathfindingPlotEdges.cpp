@@ -210,6 +210,7 @@ namespace PCGExPathfindingPlotEdge
 
 	FProcessor::~FProcessor()
 	{
+		PCGEX_DELETE_UOBJECT(SearchOperation)
 	}
 
 	bool FProcessor::Process(FPCGExAsyncManager* AsyncManager)
