@@ -78,7 +78,7 @@ public:
 
 	/** Static mesh constant */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="StaticMeshSource==EPCGExFetchType::Constant", EditConditionHides))
-	TSoftObjectPtr<UStaticMesh> StaticMeshConstant;
+	TSharedPtr<UStaticMesh> StaticMeshConstant;
 
 	/** Static mesh path attribute -- Either FString, FName or FSoftObjectPath*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="StaticMeshSource==EPCGExFetchType::Attribute", EditConditionHides))

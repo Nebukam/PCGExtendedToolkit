@@ -185,7 +185,7 @@ bool FPCGExMeshToClustersElement::ExecuteInternal(
 						}
 						else
 						{
-							const int32 Idx = Context->StaticMeshMap->Find(TSoftObjectPtr<UStaticMesh>(SMComponents[0]->GetStaticMesh()).ToSoftObjectPath());
+							const int32 Idx = Context->StaticMeshMap->Find(TSharedPtr<UStaticMesh>(SMComponents[0]->GetStaticMesh()).ToSoftObjectPath());
 							if (Idx == -1)
 							{
 								if (!Settings->bIgnoreMeshWarnings) { PCGE_LOG(Warning, GraphAndLog, FTEXT("Some actors have invalid SMCs.")); }
