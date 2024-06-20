@@ -13,6 +13,12 @@ PCGExDataFilter::TFilter* UPCGExFilterFactoryBase::CreateFilter() const
 	return nullptr;
 }
 
+
+void UPCGExFilterFactoryBase::Init()
+{
+}
+
+
 namespace PCGExDataFilter
 {
 	EType TFilter::GetFilterType() const { return EType::Default; }

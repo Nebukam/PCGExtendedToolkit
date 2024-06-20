@@ -170,7 +170,7 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 			}
 		}
 
-		void ProcessPoints(const PCGExData::ESource Source, const int32 StartIndex, const int32 Count)
+		virtual void ProcessPoints(const PCGExData::ESource Source, const int32 StartIndex, const int32 Count)
 		{
 			TArray<FPCGPoint>& Points = PointIO->GetMutableData(Source)->GetMutablePoints();
 			for (int i = 0; i < Count; i++)
@@ -184,7 +184,7 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 		{
 		}
 
-		void ProcessRange(const int32 StartIndex, const int32 Iterations)
+		virtual void ProcessRange(const int32 StartIndex, const int32 Iterations)
 		{
 			for (int i = 0; i < Iterations; i++) { ProcessSingleRangeIteration(StartIndex + i); }
 		}

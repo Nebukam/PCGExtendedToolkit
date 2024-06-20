@@ -14,13 +14,13 @@ void PCGExPointsFilter::TMeanFilter::Capture(const FPCGContext* InContext, const
 
 	Target = new PCGEx::FLocalSingleFieldGetter();
 
-	Target->Capture(TypedFilterFactory->Target);
+	Target->Capture(TypedFilterFactory->Descriptor.Target);
 	Target->Grab(*PointIO, true);
 	bValid = Target->IsUsable(PointIO->GetNum());
 
 	if (!bValid)
 	{
-		PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Target attribute: {0}."), FText::FromName(TypedFilterFactory->Target.GetName())));
+		PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Target attribute: {0}."), FText::FromName(TypedFilterFactory->Descriptor.Target.GetName())));
 		PCGEX_DELETE(Target)
 	}
 }
@@ -43,7 +43,7 @@ bool PCGExPointsFilter::TMeanFilter::PrepareForTesting(const PCGExData::FPointIO
 		SumValue += Target->Values[i];
 	}
 
-	if (TypedFilterFactory->Measure == EPCGExMeanMeasure::Relative)
+	if (TypedFilterFactory->Descriptor.Measure == EPCGExMeanMeasure::Relative)
 	{
 		double RelativeMinEdgeLength = TNumericLimits<double>::Max();
 		double RelativeMaxEdgeLength = TNumericLimits<double>::Min();
@@ -59,7 +59,7 @@ bool PCGExPointsFilter::TMeanFilter::PrepareForTesting(const PCGExData::FPointIO
 		Target->Max = 1;
 	}
 
-	switch (TypedFilterFactory->MeanMethod)
+	switch (TypedFilterFactory->Descriptor.MeanMethod)
 	{
 	default:
 	case EPCGExMeanMethod::Average:
@@ -69,21 +69,21 @@ bool PCGExPointsFilter::TMeanFilter::PrepareForTesting(const PCGExData::FPointIO
 		ReferenceValue = PCGExMath::GetMedian(Target->Values);
 		break;
 	case EPCGExMeanMethod::Fixed:
-		ReferenceValue = TypedFilterFactory->MeanValue;
+		ReferenceValue = TypedFilterFactory->Descriptor.MeanValue;
 		break;
 	case EPCGExMeanMethod::ModeMin:
-		ReferenceValue = PCGExMath::GetMode(Target->Values, false, TypedFilterFactory->ModeTolerance);
+		ReferenceValue = PCGExMath::GetMode(Target->Values, false, TypedFilterFactory->Descriptor.ModeTolerance);
 		break;
 	case EPCGExMeanMethod::ModeMax:
-		ReferenceValue = PCGExMath::GetMode(Target->Values, true, TypedFilterFactory->ModeTolerance);
+		ReferenceValue = PCGExMath::GetMode(Target->Values, true, TypedFilterFactory->Descriptor.ModeTolerance);
 		break;
 	case EPCGExMeanMethod::Central:
 		ReferenceValue = Target->Min + (Target->Max - Target->Min) * 0.5;
 		break;
 	}
 
-	const double RMin = TypedFilterFactory->bPruneBelowMean ? ReferenceValue - TypedFilterFactory->PruneBelow : 0;
-	const double RMax = TypedFilterFactory->bPruneAboveMean ? ReferenceValue + TypedFilterFactory->PruneAbove : TNumericLimits<double>::Max();
+	const double RMin = TypedFilterFactory->Descriptor.bDoExcludeBelowMean ? ReferenceValue - TypedFilterFactory->Descriptor.ExcludeBelow : 0;
+	const double RMax = TypedFilterFactory->Descriptor.bDoExcludeAboveMean ? ReferenceValue + TypedFilterFactory->Descriptor.ExcludeAbove : TNumericLimits<double>::Max();
 
 	ReferenceMin = FMath::Min(RMin, RMax);
 	ReferenceMax = FMath::Max(RMin, RMax);

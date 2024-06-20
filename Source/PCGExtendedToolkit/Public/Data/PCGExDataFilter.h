@@ -42,6 +42,8 @@ class PCGEXTENDEDTOOLKIT_API UPCGExFilterFactoryBase : public UPCGExParamFactory
 public:
 	FORCEINLINE virtual PCGExFactories::EType GetFactoryType() const override;
 
+	virtual void Init();
+	
 	int32 Priority = 0;
 	virtual PCGExDataFilter::TFilter* CreateFilter() const;
 };
@@ -72,7 +74,7 @@ namespace PCGExDataFilter
 
 		int32 Index = 0;
 		bool bValid = true;
-
+		
 		FORCEINLINE virtual EType GetFilterType() const;
 
 		virtual void Capture(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO);

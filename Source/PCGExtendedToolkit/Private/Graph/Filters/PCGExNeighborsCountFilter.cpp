@@ -20,17 +20,17 @@ namespace PCGExNodeNeighborsCount
 	{
 		TFilter::Capture(InContext, PointIO);
 
-		if (TypedFilterFactory->CompareAgainst == EPCGExOperandType::Attribute)
+		if (TypedFilterFactory->Descriptor.CompareAgainst == EPCGExOperandType::Attribute)
 		{
 			LocalCount = new PCGEx::FLocalSingleFieldGetter();
-			LocalCount->Capture(TypedFilterFactory->LocalCount);
+			LocalCount->Capture(TypedFilterFactory->Descriptor.LocalCount);
 			LocalCount->Grab(*PointIO, false);
 
 			bValid = LocalCount->IsUsable(PointIO->GetNum());
 
 			if (!bValid)
 			{
-				PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid LocalCount attribute: {0}."), FText::FromName(TypedFilterFactory->LocalCount.GetName())));
+				PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid LocalCount attribute: {0}."), FText::FromName(TypedFilterFactory->Descriptor.LocalCount.GetName())));
 				PCGEX_DELETE(LocalCount)
 			}
 		}
@@ -44,8 +44,8 @@ namespace PCGExNodeNeighborsCount
 	{
 		const PCGExCluster::FNode& Node = CapturedCluster->Nodes[PointIndex];
 		const double A = Node.Adjacency.Num();
-		const double B = LocalCount ? LocalCount->Values[Node.PointIndex] : TypedFilterFactory->Count;
-		return PCGExCompare::Compare(TypedFilterFactory->Comparison, A, B, TypedFilterFactory->Tolerance);
+		const double B = LocalCount ? LocalCount->Values[Node.PointIndex] : TypedFilterFactory->Descriptor.Count;
+		return PCGExCompare::Compare(TypedFilterFactory->Descriptor.Comparison, A, B, TypedFilterFactory->Descriptor.Tolerance);
 	}
 }
 

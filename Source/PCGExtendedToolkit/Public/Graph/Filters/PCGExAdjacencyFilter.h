@@ -88,38 +88,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExAdjacencyFilterFactory : public UPCGExCluster
 	GENERATED_BODY()
 
 public:
-	EPCGExAdjacencyTestMode Mode = EPCGExAdjacencyTestMode::All;
-	EPCGExAdjacencyGatherMode Consolidation = EPCGExAdjacencyGatherMode::Average;
-	EPCGExAdjacencySubsetMode SubsetMode = EPCGExAdjacencySubsetMode::AtLeast;
-	EPCGExMeanMeasure MeasureType = EPCGExMeanMeasure::Absolute;
-	EPCGExFetchType MeasureSource = EPCGExFetchType::Constant;
-	FPCGAttributePropertyInputSelector LocalMeasure;
-	double ConstantMeasure;
-	EPCGExOperandType CompareAgainst = EPCGExOperandType::Attribute;
-	FPCGAttributePropertyInputSelector OperandA;
-	double OperandAConstant = 0;
-	EPCGExComparison Comparison = EPCGExComparison::NearlyEqual;
-	EPCGExGraphValueSource OperandBSource = EPCGExGraphValueSource::Point;
-	FPCGAttributePropertyInputSelector OperandB;
-	double Tolerance = 0.001;
-
-	void ApplyDescriptor(const FPCGExAdjacencyFilterDescriptor& Descriptor)
-	{
-		Mode = Descriptor.Mode;
-		Consolidation = Descriptor.Consolidation;
-		SubsetMode = Descriptor.SubsetMode;
-		MeasureType = Descriptor.SubsetMeasure;
-		MeasureSource = Descriptor.SubsetSource;
-		LocalMeasure = Descriptor.LocalMeasure;
-		ConstantMeasure = Descriptor.ConstantMeasure;
-		CompareAgainst = Descriptor.CompareAgainst;
-		OperandA = Descriptor.OperandA;
-		OperandAConstant = Descriptor.OperandAConstant;
-		Comparison = Descriptor.Comparison;
-		OperandBSource = Descriptor.OperandBSource;
-		OperandB = Descriptor.OperandB;
-		Tolerance = Descriptor.Tolerance;
-	}
+	FPCGExAdjacencyFilterDescriptor Descriptor;
 
 	virtual PCGExDataFilter::TFilter* CreateFilter() const override;
 };

@@ -112,6 +112,7 @@ bool FPCGExEdgesProcessorContext::AdvanceEdges(const bool bBuildCluster, const b
 
 		CurrentEdges->CreateInKeys();
 		CurrentCluster = new PCGExCluster::FCluster();
+		CurrentCluster->bIsOneToOne = (TaggedEdges->Entries.Num() == 1);
 
 		if (!CurrentCluster->BuildFrom(
 			*CurrentEdges, CurrentIO->GetIn()->GetPoints(),

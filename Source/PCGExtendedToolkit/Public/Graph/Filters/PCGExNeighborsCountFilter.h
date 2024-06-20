@@ -51,20 +51,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExNeighborsCountFilterFactory : public UPCGExCl
 	GENERATED_BODY()
 
 public:
-	EPCGExComparison Comparison = EPCGExComparison::NearlyEqual;
-	EPCGExOperandType CompareAgainst = EPCGExOperandType::Attribute;
-	FPCGAttributePropertyInputSelector LocalCount;
-	double Count = 0;
-	double Tolerance = 0.001;
-
-	void ApplyDescriptor(const FPCGExNeighborsCountFilterDescriptor& Descriptor)
-	{
-		CompareAgainst = Descriptor.CompareAgainst;
-		LocalCount = Descriptor.LocalCount;
-		Count = Descriptor.Count;
-		Comparison = Descriptor.Comparison;
-		Tolerance = Descriptor.Tolerance;
-	}
+	FPCGExNeighborsCountFilterDescriptor Descriptor;
 
 	virtual PCGExDataFilter::TFilter* CreateFilter() const override;
 };

@@ -12,24 +12,24 @@ void PCGExPointsFilter::TStringCompareFilter::Capture(const FPCGContext* InConte
 {
 	TFilter::Capture(InContext, PointIO);
 
-	OperandA = new PCGEx::TFAttributeReader<FString>(TypedFilterFactory->OperandA.GetName());
+	OperandA = new PCGEx::TFAttributeReader<FString>(TypedFilterFactory->Descriptor.OperandA.GetName());
 	bValid = OperandA->Bind(*const_cast<PCGExData::FPointIO*>(PointIO));
 
 	if (!bValid)
 	{
-		PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand A attribute: {0}."), FText::FromName(TypedFilterFactory->OperandA.GetName())));
+		PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand A attribute: {0}."), FText::FromName(TypedFilterFactory->Descriptor.OperandA.GetName())));
 		PCGEX_DELETE(OperandA)
 		return;
 	}
 
-	if (TypedFilterFactory->CompareAgainst == EPCGExOperandType::Attribute)
+	if (TypedFilterFactory->Descriptor.CompareAgainst == EPCGExOperandType::Attribute)
 	{
-		OperandB = new PCGEx::TFAttributeReader<FString>(TypedFilterFactory->OperandB.GetName());
+		OperandB = new PCGEx::TFAttributeReader<FString>(TypedFilterFactory->Descriptor.OperandB.GetName());
 		bValid = OperandB->Bind(*const_cast<PCGExData::FPointIO*>(PointIO));
 
 		if (!bValid)
 		{
-			PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand B attribute: {0}."), FText::FromName(TypedFilterFactory->OperandB.GetName())));
+			PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand B attribute: {0}."), FText::FromName(TypedFilterFactory->Descriptor.OperandB.GetName())));
 			PCGEX_DELETE(OperandB)
 		}
 	}
@@ -38,9 +38,9 @@ void PCGExPointsFilter::TStringCompareFilter::Capture(const FPCGContext* InConte
 bool PCGExPointsFilter::TStringCompareFilter::Test(const int32 PointIndex) const
 {
 	const FString A = OperandA->Values[PointIndex];
-	const FString B = TypedFilterFactory->CompareAgainst == EPCGExOperandType::Attribute ? OperandB->Values[PointIndex] : TypedFilterFactory->OperandBConstant;
+	const FString B = TypedFilterFactory->Descriptor.CompareAgainst == EPCGExOperandType::Attribute ? OperandB->Values[PointIndex] : TypedFilterFactory->Descriptor.OperandBConstant;
 
-	switch (TypedFilterFactory->Comparison)
+	switch (TypedFilterFactory->Descriptor.Comparison)
 	{
 	case EPCGExStringComparison::StrictlyEqual:
 		return A == B;

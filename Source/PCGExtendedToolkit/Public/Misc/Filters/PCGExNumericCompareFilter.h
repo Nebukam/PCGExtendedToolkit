@@ -58,23 +58,8 @@ class PCGEXTENDEDTOOLKIT_API UPCGExNumericCompareFilterFactory : public UPCGExFi
 	GENERATED_BODY()
 
 public:
-	FPCGExInputDescriptor OperandA;
-	EPCGExComparison Comparison = EPCGExComparison::NearlyEqual;
-	EPCGExOperandType CompareAgainst = EPCGExOperandType::Attribute;
-	FPCGExInputDescriptor OperandB;
-	double OperandBConstant;
-	double Tolerance = 0.001;
-
-	void ApplyDescriptor(const FPCGExNumericCompareFilterDescriptor& Descriptor)
-	{
-		OperandA = FPCGExInputDescriptor(Descriptor.OperandA);
-		Comparison = Descriptor.Comparison;
-		CompareAgainst = Descriptor.CompareAgainst;
-		OperandB = FPCGExInputDescriptor(Descriptor.OperandB);
-		OperandBConstant = Descriptor.OperandBConstant;
-		Tolerance = Descriptor.Tolerance;
-	}
-
+	FPCGExNumericCompareFilterDescriptor Descriptor;
+	
 	virtual PCGExDataFilter::TFilter* CreateFilter() const override;
 };
 

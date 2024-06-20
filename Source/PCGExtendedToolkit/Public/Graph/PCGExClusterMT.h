@@ -63,6 +63,7 @@ namespace PCGExClusterMT
 		UPCGExNodeStateFactory* VtxFiltersData = nullptr;
 		bool DefaultVtxFilterValue = false;
 		bool bIsSmallCluster = false;
+		bool bIsOneToOne = false;
 
 		TArray<bool> VtxFilterCache;
 		TArray<bool> EdgeFilterCache;
@@ -116,6 +117,7 @@ namespace PCGExClusterMT
 			if (!bBuildCluster) { return true; }
 
 			Cluster = new PCGExCluster::FCluster();
+			Cluster->bIsOneToOne = bIsOneToOne;
 			Cluster->PointsIO = VtxIO;
 			Cluster->EdgesIO = EdgesIO;
 
@@ -222,7 +224,7 @@ namespace PCGExClusterMT
 			}
 		}
 
-		void ProcessView(int32 StartIndex, const TArrayView<PCGExCluster::FNode> NodeView)
+		virtual void ProcessView(int32 StartIndex, const TArrayView<PCGExCluster::FNode> NodeView)
 		{
 			for (PCGExCluster::FNode& Node : NodeView) { ProcessSingleNode(Node); }
 		}
@@ -231,7 +233,7 @@ namespace PCGExClusterMT
 		{
 		}
 
-		void ProcessView(const int32 StartIndex, const TArrayView<PCGExGraph::FIndexedEdge> EdgeView)
+		virtual void ProcessView(const int32 StartIndex, const TArrayView<PCGExGraph::FIndexedEdge> EdgeView)
 		{
 			for (PCGExGraph::FIndexedEdge& Edge : EdgeView) { ProcessSingleEdge(Edge); }
 		}
@@ -240,7 +242,7 @@ namespace PCGExClusterMT
 		{
 		}
 
-		void ProcessRange(const int32 StartIndex, const int32 Iterations)
+		virtual void ProcessRange(const int32 StartIndex, const int32 Iterations)
 		{
 			for (int i = 0; i < Iterations; i++) { ProcessSingleRangeIteration(StartIndex + i); }
 		}

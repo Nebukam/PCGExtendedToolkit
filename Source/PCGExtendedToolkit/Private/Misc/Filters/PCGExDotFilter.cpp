@@ -13,27 +13,27 @@ void PCGExPointsFilter::TDotFilter::Capture(const FPCGContext* InContext, const 
 	TFilter::Capture(InContext, PointIO);
 
 	OperandA = new PCGEx::FLocalVectorGetter();
-	OperandA->Capture(TypedFilterFactory->OperandA);
+	OperandA->Capture(TypedFilterFactory->Descriptor.OperandA);
 	OperandA->Grab(*PointIO, false);
 	bValid = OperandA->IsUsable(PointIO->GetNum());
 
 	if (!bValid)
 	{
-		PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand A attribute: {0}."), FText::FromName(TypedFilterFactory->OperandA.GetName())));
+		PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand A attribute: {0}."), FText::FromName(TypedFilterFactory->Descriptor.OperandA.GetName())));
 		PCGEX_DELETE(OperandA)
 		return;
 	}
 
-	if (TypedFilterFactory->CompareAgainst == EPCGExOperandType::Attribute)
+	if (TypedFilterFactory->Descriptor.CompareAgainst == EPCGExOperandType::Attribute)
 	{
 		OperandB = new PCGEx::FLocalVectorGetter();
-		OperandB->Capture(TypedFilterFactory->OperandB);
+		OperandB->Capture(TypedFilterFactory->Descriptor.OperandB);
 		OperandB->Grab(*PointIO, false);
 		bValid = OperandB->IsUsable(PointIO->GetNum());
 
 		if (!bValid)
 		{
-			PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand B attribute: {0}."), FText::FromName(TypedFilterFactory->OperandB.GetName())));
+			PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand B attribute: {0}."), FText::FromName(TypedFilterFactory->Descriptor.OperandB.GetName())));
 			PCGEX_DELETE(OperandB)
 		}
 	}
@@ -42,19 +42,19 @@ void PCGExPointsFilter::TDotFilter::Capture(const FPCGContext* InContext, const 
 bool PCGExPointsFilter::TDotFilter::Test(const int32 PointIndex) const
 {
 	FVector A = OperandA->Values[PointIndex];
-	FVector B = TypedFilterFactory->CompareAgainst == EPCGExOperandType::Attribute ? OperandB->Values[PointIndex] : TypedFilterFactory->OperandBConstant;
+	FVector B = TypedFilterFactory->Descriptor.CompareAgainst == EPCGExOperandType::Attribute ? OperandB->Values[PointIndex] : TypedFilterFactory->Descriptor.OperandBConstant;
 
-	if (TypedFilterFactory->bTransformOperandA || TypedFilterFactory->bTransformOperandB)
+	if (TypedFilterFactory->Descriptor.bTransformOperandA || TypedFilterFactory->Descriptor.bTransformOperandB)
 	{
 		const FTransform PtTransform = FilteredIO->GetInPoint(PointIndex).Transform;
-		if (TypedFilterFactory->bTransformOperandA) { A = PtTransform.TransformVector(A); }
-		if (TypedFilterFactory->bTransformOperandB) { B = PtTransform.TransformVector(B); }
+		if (TypedFilterFactory->Descriptor.bTransformOperandA) { A = PtTransform.TransformVector(A); }
+		if (TypedFilterFactory->Descriptor.bTransformOperandB) { B = PtTransform.TransformVector(B); }
 	}
 
-	const double Dot = TypedFilterFactory->bUnsignedDot ? FMath::Abs(FVector::DotProduct(A, B)) : FVector::DotProduct(A, B);
+	const double Dot = TypedFilterFactory->Descriptor.bUnsignedDot ? FMath::Abs(FVector::DotProduct(A, B)) : FVector::DotProduct(A, B);
 
-	if (TypedFilterFactory->bExcludeAboveDot && Dot > TypedFilterFactory->ExcludeAbove) { return false; }
-	if (TypedFilterFactory->bExcludeBelowDot && Dot < TypedFilterFactory->ExcludeBelow) { return false; }
+	if (TypedFilterFactory->Descriptor.bDoExcludeAboveDot && Dot > TypedFilterFactory->Descriptor.ExcludeAbove) { return false; }
+	if (TypedFilterFactory->Descriptor.bDoExcludeBelowDot && Dot < TypedFilterFactory->Descriptor.ExcludeBelow) { return false; }
 
 	return true;
 }

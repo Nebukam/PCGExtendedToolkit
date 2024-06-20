@@ -79,32 +79,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExDotFilterFactory : public UPCGExFilterFactory
 	GENERATED_BODY()
 
 public:
-	FPCGAttributePropertyInputSelector OperandA;
-	EPCGExOperandType CompareAgainst = EPCGExOperandType::Constant;
-	FPCGAttributePropertyInputSelector OperandB;
-	FVector OperandBConstant = FVector::UpVector;
-	bool bUnsignedDot = false;
-	bool bExcludeBelowDot = false;
-	double ExcludeBelow = 0;
-	bool bExcludeAboveDot = false;
-	double ExcludeAbove = 0.5;
-	bool bTransformOperandA = false;
-	bool bTransformOperandB = false;
-
-	void ApplyDescriptor(const FPCGExDotFilterDescriptor& Descriptor)
-	{
-		OperandA = Descriptor.OperandA;
-		CompareAgainst = Descriptor.CompareAgainst;
-		OperandB = Descriptor.OperandB;
-		OperandBConstant = Descriptor.OperandBConstant;
-		bUnsignedDot = Descriptor.bUnsignedDot;
-		bExcludeBelowDot = Descriptor.bDoExcludeBelowDot;
-		ExcludeBelow = Descriptor.ExcludeBelow;
-		bExcludeAboveDot = Descriptor.bDoExcludeAboveDot;
-		ExcludeAbove = Descriptor.ExcludeAbove;
-		bTransformOperandA = Descriptor.bTransformOperandA;
-		bTransformOperandB = Descriptor.bTransformOperandB;
-	}
+	FPCGExDotFilterDescriptor Descriptor;
 
 	virtual PCGExDataFilter::TFilter* CreateFilter() const override;
 };

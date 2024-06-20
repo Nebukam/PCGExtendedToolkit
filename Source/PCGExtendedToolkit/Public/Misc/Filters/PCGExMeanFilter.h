@@ -67,29 +67,8 @@ class PCGEXTENDEDTOOLKIT_API UPCGExMeanFilterFactory : public UPCGExFilterFactor
 	GENERATED_BODY()
 
 public:
-	FPCGAttributePropertyInputSelector Target;
-	EPCGExMeanMeasure Measure = EPCGExMeanMeasure::Relative;
-	EPCGExMeanMethod MeanMethod = EPCGExMeanMethod::Average;
-	double MeanValue = 0;
-	double ModeTolerance = 5;
-	bool bPruneBelowMean = false;
-	double PruneBelow = 0.2;
-	bool bPruneAboveMean = false;
-	double PruneAbove = 0.2;
-
-	void ApplyDescriptor(const FPCGExMeanFilterDescriptor& Descriptor)
-	{
-		Target = Descriptor.Target;
-		Measure = Descriptor.Measure;
-		MeanMethod = Descriptor.MeanMethod;
-		MeanValue = Descriptor.MeanValue;
-		ModeTolerance = Descriptor.ModeTolerance;
-		bPruneBelowMean = Descriptor.bDoExcludeBelowMean;
-		PruneBelow = Descriptor.ExcludeBelow;
-		bPruneAboveMean = Descriptor.bDoExcludeAboveMean;
-		PruneAbove = Descriptor.ExcludeAbove;
-	}
-
+	FPCGExMeanFilterDescriptor Descriptor;
+	
 	virtual PCGExDataFilter::TFilter* CreateFilter() const override;
 };
 

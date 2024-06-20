@@ -655,10 +655,11 @@ namespace PCGExCluster
 
 	void FClusterProjection::Build()
 	{
-		for (FNodeProjection& PNode
+		for (FNodeProjection & PNode
 
-		     :
-		     Nodes
+		     
+		:
+		Nodes
 		)
 		{
 			PNode.Project(Cluster, ProjectionSettings);

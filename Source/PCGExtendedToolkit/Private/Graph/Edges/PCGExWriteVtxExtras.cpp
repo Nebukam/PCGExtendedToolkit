@@ -111,7 +111,8 @@ namespace PCGExWriteVtxExtras
 
 		if (VtxNormalWriter || VtxEdgeCountWriter) { StartParallelLoopForNodes(); }
 
-		Cluster->GetNodePointIndices(NodePointIndices);
+		if (!Cluster->bIsOneToOne) { Cluster->GetNodePointIndices(NodePointIndices); }
+
 		StartParallelLoopForNodes();
 
 		return true;
@@ -137,9 +138,16 @@ namespace PCGExWriteVtxExtras
 		for (UPCGExVtxExtraOperation* Op : ExtraOperations) { Op->ProcessNode(Node, Adjacency); }
 	}
 
+	void FProcessor::ProcessRange(const int32 StartIndex, const int32 Iterations)
+	{
+		//FClusterProcessor::ProcessRange(StartIndex, Iterations);
+		for (UPCGExVtxExtraOperation* Op : ExtraOperations) { Op->Write(MakeArrayView(NodePointIndices.GetData() + StartIndex, Iterations)); }
+	}
+
 	void FProcessor::CompleteWork()
 	{
-		for (UPCGExVtxExtraOperation* Op : ExtraOperations) { Op->Write(NodePointIndices); }
+		if (Cluster->bIsOneToOne) { for (UPCGExVtxExtraOperation* Op : ExtraOperations) { Op->Write(); } }
+		else { StartParallelLoopForRange(NodePointIndices.Num()); }
 	}
 
 	//////// BATCH

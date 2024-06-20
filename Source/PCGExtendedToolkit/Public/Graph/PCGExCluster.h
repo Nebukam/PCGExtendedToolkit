@@ -175,6 +175,7 @@ namespace PCGExCluster
 	{
 		bool bEdgeLengthsDirty = true;
 		bool bValid = false;
+		bool bIsOneToOne = false; // Whether the input data has a single set of edges for a single set of vtx 
 		int32 ClusterID = -1;
 		TMap<int32, int32> NodeIndexLookup; // Node index -> Point Index
 		//TMap<uint64, int32> EdgeIndexLookup;   // Edge Hash -> Edge Index
@@ -350,7 +351,7 @@ namespace PCGExCluster
 	static void GetAdjacencyData(FCluster* InCluster, FNode& InNode, TArray<FAdjacencyData>& OutData)
 	{
 		const int32 NumAdjacency = InNode.Adjacency.Num();
-		FVector NodePosition = InNode.Position;
+		const FVector NodePosition = InNode.Position;
 		OutData.Reserve(NumAdjacency);
 		for (int i = 0; i < NumAdjacency; i++)
 		{

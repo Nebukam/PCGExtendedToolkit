@@ -67,20 +67,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExStringCompareFilterFactory : public UPCGExFil
 	GENERATED_BODY()
 
 public:
-	FPCGExInputDescriptor OperandA;
-	EPCGExStringComparison Comparison = EPCGExStringComparison::StrictlyEqual;
-	EPCGExOperandType CompareAgainst = EPCGExOperandType::Attribute;
-	FPCGExInputDescriptor OperandB;
-	FString OperandBConstant;
-
-	void ApplyDescriptor(const FPCGExStringCompareFilterDescriptor& Descriptor)
-	{
-		OperandA = FPCGExInputDescriptor(Descriptor.OperandA);
-		Comparison = Descriptor.Comparison;
-		CompareAgainst = Descriptor.CompareAgainst;
-		OperandB = FPCGExInputDescriptor(Descriptor.OperandB);
-		OperandBConstant = Descriptor.OperandBConstant;
-	}
+	FPCGExStringCompareFilterDescriptor Descriptor;
 
 	virtual PCGExDataFilter::TFilter* CreateFilter() const override;
 };
