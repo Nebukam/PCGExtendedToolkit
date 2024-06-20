@@ -26,7 +26,6 @@ namespace PCGExGraph
 
 namespace PCGExFuse
 {
-
 	PCGEX_ASYNC_STATE(State_FindingFusePoints)
 	PCGEX_ASYNC_STATE(State_MergingPoints)
 
@@ -124,13 +123,16 @@ namespace PCGExFusePoints
 {
 	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
-		
 		PCGExGraph::FGraphMetadataSettings GraphMetadataSettings;
 		PCGExGraph::FCompoundGraph* CompoundGraph = nullptr;
 		PCGExDataBlending::FCompoundBlender* CompoundPointsBlender = nullptr;
 
 	public:
-		explicit FProcessor(PCGExData::FPointIO* InPoints);
+		explicit FProcessor(PCGExData::FPointIO* InPoints)
+			: FPointsProcessor(InPoints)
+		{
+		}
+
 		virtual ~FProcessor() override;
 
 		virtual bool Process(FPCGExAsyncManager* AsyncManager) override;

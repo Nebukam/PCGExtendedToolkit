@@ -25,5 +25,6 @@ class PCGEXTENDEDTOOLKIT_API UPCGExEdgeRefinePrimMST : public UPCGExEdgeRefineOp
 	GENERATED_BODY()
 
 public:
+	virtual bool RequiresHeuristics() override;
 	virtual void Process(PCGExCluster::FCluster* InCluster, PCGExHeuristics::THeuristicsHandler* InHeuristics) override;
 };

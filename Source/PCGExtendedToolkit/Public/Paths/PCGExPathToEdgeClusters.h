@@ -148,7 +148,11 @@ namespace PCGExPathToClusters
 	public:
 		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
 
-		explicit FNonFusingProcessor(PCGExData::FPointIO* InPoints);
+		explicit FNonFusingProcessor(PCGExData::FPointIO* InPoints)
+			: FPointsProcessor(InPoints)
+		{
+		}
+
 		virtual ~FNonFusingProcessor() override;
 
 		virtual bool Process(FPCGExAsyncManager* AsyncManager) override;
@@ -165,7 +169,11 @@ namespace PCGExPathToClusters
 	public:
 		PCGExGraph::FCompoundGraph* CompoundGraph = nullptr;
 
-		explicit FFusingProcessor(PCGExData::FPointIO* InPoints);
+		explicit FFusingProcessor(PCGExData::FPointIO* InPoints)
+			: FPointsProcessor(InPoints)
+		{
+		}
+
 		virtual ~FFusingProcessor() override;
 
 		virtual bool Process(FPCGExAsyncManager* AsyncManager) override;

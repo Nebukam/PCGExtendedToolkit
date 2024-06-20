@@ -31,6 +31,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExEdgeRefineOperation : public UPCGExOperation
 	GENERATED_BODY()
 
 public:
-	virtual void Process(PCGExCluster::FCluster* InCluster, PCGExHeuristics::THeuristicsHandler* InHeuristics);
+	virtual bool RequiresHeuristics();
+	virtual void Process(PCGExCluster::FCluster* InCluster, PCGExHeuristics::THeuristicsHandler* InHeuristics = nullptr);
 	virtual void Cleanup() override;
 };

@@ -30,7 +30,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExSearchDijkstra : public UPCGExSearchOperation
 
 public:
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
-	
+
 	virtual bool FindPath(
 		const FVector& SeedPosition,
 		const FPCGExNodeSelectionSettings* SeedSelection,

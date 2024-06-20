@@ -35,7 +35,6 @@ enum class EPCGExMeanMethod : uint8
 
 namespace PCGExMath
 {
-		
 #pragma region basics
 
 	/**
@@ -961,7 +960,7 @@ namespace PCGExMath
 
 #pragma endregion
 
-	
+
 	template <typename T>
 	FORCEINLINE static T SanitizeIndex(const T& Index, const T& Limit, const EPCGExIndexSafety Method)
 	{

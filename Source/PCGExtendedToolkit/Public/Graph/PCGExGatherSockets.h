@@ -69,7 +69,6 @@ public:
 	const TArray<FPCGExSocketDescriptor>& GetSockets() const;
 
 	void RefreshSocketNames();
-
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExGatherSocketsElement final : public IPCGElement

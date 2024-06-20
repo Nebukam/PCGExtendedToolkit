@@ -18,10 +18,6 @@ class PCGEXTENDEDTOOLKIT_API UPCGExHeuristicOperation : public UPCGExOperation
 	GENERATED_BODY()
 
 public:
-	/** Curve the value will be remapped over. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	TSoftObjectPtr<UCurveFloat> ScoreCurve = TSoftObjectPtr<UCurveFloat>(PCGEx::WeightDistributionLinear);
-
 	bool bInvert = false;
 	double ReferenceWeight = 1;
 	double WeightFactor = 1;
@@ -31,7 +27,7 @@ public:
 	TObjectPtr<UCurveFloat> ScoreCurveObj;
 
 	bool bHasCustomLocalWeightMultiplier = false;
-
+	
 	virtual void PrepareForCluster(const PCGExCluster::FCluster* InCluster);
 
 	FORCEINLINE virtual double GetGlobalScore(

@@ -99,23 +99,25 @@ namespace PCGExBuildVoronoi2D
 {
 	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
-
 	protected:
 		FPCGExGeo2DProjectionSettings ProjectionSettings;
-		
+
 		PCGExGeo::TVoronoi2* Voronoi = nullptr;
 		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
 
 		PCGEx::TFAttributeWriter<bool>* HullMarkPointWriter = nullptr;
-		
+
 	public:
-		explicit FProcessor(PCGExData::FPointIO* InPoints);
+		explicit FProcessor(PCGExData::FPointIO* InPoints):
+			FPointsProcessor(InPoints)
+		{
+		}
+
 		virtual ~FProcessor() override;
 
 		virtual bool Process(FPCGExAsyncManager* AsyncManager) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point) override;
 		virtual void CompleteWork() override;
 		virtual void Write() override;
-		
 	};
 }

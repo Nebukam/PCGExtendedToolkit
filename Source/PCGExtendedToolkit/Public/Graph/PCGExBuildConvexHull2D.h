@@ -91,19 +91,22 @@ namespace PCGExConvexHull2D
 {
 	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
-
 	protected:
 		FPCGExGeo2DProjectionSettings ProjectionSettings;
-		
+
 		PCGExGeo::TDelaunay2* Delaunay = nullptr;
 		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
 
 		TArray<uint64> Edges;
 
 		PCGEx::TFAttributeWriter<bool>* HullMarkPointWriter = nullptr;
-		
+
 	public:
-		explicit FProcessor(PCGExData::FPointIO* InPoints);
+		explicit FProcessor(PCGExData::FPointIO* InPoints):
+			FPointsProcessor(InPoints)
+		{
+		}
+
 		virtual ~FProcessor() override;
 
 		virtual bool Process(FPCGExAsyncManager* AsyncManager) override;
@@ -111,6 +114,5 @@ namespace PCGExConvexHull2D
 		virtual void ProcessSingleRangeIteration(const int32 Iteration) override;
 		virtual void CompleteWork() override;
 		virtual void Write() override;
-		
 	};
 }

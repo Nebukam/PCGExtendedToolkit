@@ -39,7 +39,7 @@ public:
 	//~End UObject interface
 
 	virtual FName GetPointFilterLabel() const override;
-	
+
 	//~Begin UPCGExPointsProcessorSettings interface
 public:
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
@@ -128,7 +128,11 @@ namespace PCGExSmooth
 		bool bClosedPath = false;
 
 	public:
-		explicit FProcessor(PCGExData::FPointIO* InPoints);
+		explicit FProcessor(PCGExData::FPointIO* InPoints): FPointsProcessor(InPoints)
+		{
+			DefaultPointFilterValue = true;
+		}
+
 		virtual ~FProcessor() override;
 
 		virtual bool Process(FPCGExAsyncManager* AsyncManager) override;

@@ -106,9 +106,9 @@ public:
 	FName DistanceAttributeName = FName("TracedDistance");
 
 	/** Actor data to sample */
-    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable))
-    FPCGExActorDataSampling ActorDataSampling;
-	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Output", meta=(PCG_Overridable))
+	FPCGExActorDataSampling ActorDataSampling;
+
 	/** Maximum distance to check for closest surface.*/
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Collision", meta=(PCG_Overridable))
 	EPCGExCollisionFilterType CollisionType = EPCGExCollisionFilterType::Channel;
@@ -144,9 +144,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSampleSurfaceGuidedContext final : public FP
 	virtual ~FPCGExSampleSurfaceGuidedContext() override;
 
 	TArray<AActor*> IgnoredActors;
-	
-	PCGEX_FOREACH_FIELD_SURFACEGUIDED(PCGEX_OUTPUT_DECL_TOGGLE)
 
+	PCGEX_FOREACH_FIELD_SURFACEGUIDED(PCGEX_OUTPUT_DECL_TOGGLE)
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExSampleSurfaceGuidedElement final : public FPCGExPointsProcessorElement
@@ -166,14 +165,17 @@ namespace PCGExSampleSurfaceGuided
 {
 	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
-
 		PCGEx::FLocalSingleFieldGetter* MaxDistanceGetter = nullptr;
 		PCGEx::FLocalVectorGetter* DirectionGetter = nullptr;
-		
+
 		PCGEX_FOREACH_FIELD_SURFACEGUIDED(PCGEX_OUTPUT_DECL)
 
 	public:
-		explicit FProcessor(PCGExData::FPointIO* InPoints);
+		explicit FProcessor(PCGExData::FPointIO* InPoints):
+			FPointsProcessor(InPoints)
+		{
+		}
+
 		virtual ~FProcessor() override;
 
 		virtual bool Process(FPCGExAsyncManager* AsyncManager) override;
@@ -181,4 +183,3 @@ namespace PCGExSampleSurfaceGuided
 		virtual void CompleteWork() override;
 	};
 }
-

@@ -16,8 +16,7 @@ UPCGExWriteEdgeExtrasSettings::UPCGExWriteEdgeExtrasSettings(
 {
 }
 
-PCGExData::EInit UPCGExWriteEdgeExtrasSettings::GetMainOutputInitMode() const { return bWriteVtxNormal ? PCGExData::EInit::DuplicateInput : PCGExData::EInit::Forward; }
-
+PCGExData::EInit UPCGExWriteEdgeExtrasSettings::GetMainOutputInitMode() const { return PCGExData::EInit::Forward; }
 PCGExData::EInit UPCGExWriteEdgeExtrasSettings::GetEdgeOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
 PCGEX_INITIALIZE_ELEMENT(WriteEdgeExtras)
@@ -34,7 +33,6 @@ bool FPCGExWriteEdgeExtrasElement::Boot(FPCGContext* InContext) const
 	PCGEX_CONTEXT_AND_SETTINGS(WriteEdgeExtras)
 
 	PCGEX_FOREACH_FIELD_EDGEEXTRAS(PCGEX_OUTPUT_VALIDATE_NAME)
-	PCGEX_FOREACH_FIELD_VTXEXTRAS(PCGEX_OUTPUT_VALIDATE_NAME)
 
 	return true;
 }
@@ -52,7 +50,9 @@ bool FPCGExWriteEdgeExtrasElement::ExecuteInternal(
 
 		if (!Context->StartProcessingClusters<PCGExWriteEdgeExtras::FProcessorBatch>(
 			[](PCGExData::FPointIOTaggedEntries* Entries) { return true; },
-			[&](PCGExWriteEdgeExtras::FProcessorBatch* NewBatch) { return; },
+			[&](PCGExWriteEdgeExtras::FProcessorBatch* NewBatch)
+			{
+			},
 			PCGExMT::State_Done))
 		{
 			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not build any clusters."));
@@ -74,15 +74,8 @@ bool FPCGExWriteEdgeExtrasElement::ExecuteInternal(
 
 namespace PCGExWriteEdgeExtras
 {
-	FProcessor::FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges):
-		FClusterProcessor(InVtx, InEdges)
-	{
-	}
-
 	FProcessor::~FProcessor()
 	{
-		PCGEX_DELETE(ProjectedCluster)
-
 		PCGEX_DELETE(MetadataBlender)
 
 		PCGEX_DELETE(EdgeDirCompGetter)
@@ -153,15 +146,6 @@ namespace PCGExWriteEdgeExtras
 		bAscendingDesired = Settings->DirectionChoice == EPCGExEdgeDirectionChoice::SmallestToGreatest;
 		StartWeight = FMath::Clamp(Settings->EndpointsWeights, 0, 1);
 		EndWeight = 1 - StartWeight;
-
-		if (VtxNormalWriter)
-		{
-			ProjectedCluster = new PCGExCluster::FClusterProjection(Cluster, ProjectionSettings);
-			ProjectedCluster->Build();
-		}
-
-		if (VtxNormalWriter || VtxEdgeCountWriter) { StartParallelLoopForNodes(); }
-		StartParallelLoopForEdges();
 
 		return true;
 	}
@@ -280,25 +264,8 @@ namespace PCGExWriteEdgeExtras
 		}
 	}
 
-	void FProcessor::ProcessSingleNode(PCGExCluster::FNode& Node)
-	{
-		if (VtxNormalWriter)
-		{
-			PCGExCluster::FNodeProjection& VtxPt = ProjectedCluster->Nodes[Node.NodeIndex];
-			VtxPt.ComputeNormal(Cluster);
-			VtxNormalWriter->Values[VtxPt.Node->NodeIndex] = VtxPt.Normal;
-		}
-		
-		if (VtxEdgeCountWriter)
-		{
-			VtxEdgeCountWriter->Values[Node.PointIndex] = Node.Adjacency.Num();
-		}
-	}
-
 	void FProcessor::CompleteWork()
 	{
-		
-
 		PCGEX_FOREACH_FIELD_EDGEEXTRAS(PCGEX_OUTPUT_WRITE)
 		if (MetadataBlender) { MetadataBlender->Write(); }
 	}
@@ -314,13 +281,12 @@ namespace PCGExWriteEdgeExtras
 	{
 		PCGEX_SETTINGS(WriteEdgeExtras)
 
-		PCGEX_FOREACH_FIELD_VTXEXTRAS(PCGEX_OUTPUT_DELETE)
-
 		PCGEX_DELETE(VtxDirCompGetter)
 
 		PCGEX_DELETE(SolidificationRadX);
 		PCGEX_DELETE(SolidificationRadY);
 		PCGEX_DELETE(SolidificationRadZ);
+
 	}
 
 	bool FProcessorBatch::PrepareProcessing()
@@ -328,13 +294,6 @@ namespace PCGExWriteEdgeExtras
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(WriteEdgeExtras)
 
 		if (!TBatch::PrepareProcessing()) { return false; }
-
-		{
-			PCGExData::FPointIO& OutputIO = *VtxIO;
-			PCGEX_FOREACH_FIELD_VTXEXTRAS(PCGEX_OUTPUT_FWD_INIT)
-		}
-
-		ProjectionSettings.Init(VtxIO);
 
 		if (Settings->DirectionMethod == EPCGExEdgeDirectionMethod::EndpointsAttribute)
 		{
@@ -364,8 +323,6 @@ namespace PCGExWriteEdgeExtras
 
 		const bool bSolidify = Settings->SolidificationAxis != EPCGExMinimalAxis::None;
 
-		ClusterProcessor->ProjectionSettings = &ProjectionSettings;
-
 		if (bSolidify)
 		{
 			// Fwd vtx-scoped getters
@@ -378,21 +335,11 @@ namespace PCGExWriteEdgeExtras
 		}
 
 		ClusterProcessor->bSolidify = bSolidify;
-
-#define PCGEX_FWD_VTX(_NAME, _TYPE) ClusterProcessor->_NAME##Writer = _NAME##Writer;
-		PCGEX_FOREACH_FIELD_VTXEXTRAS(PCGEX_FWD_VTX)
-#undef PCGEX_ASSIGN_AXIS_GETTER
-
 		ClusterProcessor->VtxDirCompGetter = VtxDirCompGetter;
 
 		return true;
 	}
 
-	void FProcessorBatch::CompleteWork()
-	{
-		TBatch<FProcessor>::CompleteWork();
-		PCGEX_FOREACH_FIELD_VTXEXTRAS(PCGEX_OUTPUT_WRITE)
-	}
 }
 
 #undef LOCTEXT_NAMESPACE

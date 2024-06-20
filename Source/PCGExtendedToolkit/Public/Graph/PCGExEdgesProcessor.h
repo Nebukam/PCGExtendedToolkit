@@ -93,9 +93,12 @@ protected:
 
 	TArray<PCGExClusterMT::FClusterProcessorBatchBase*> Batches;
 
+	bool bHasValidHeuristics = false;
+
 	PCGExMT::AsyncState State_ClusterProcessingDone;
 	bool bClusterUseGraphBuilder = false;
 
+	bool bClusterRequiresHeuristics = false;
 	bool bClusterBatchInlined = false;
 	int32 CurrentBatchIndex = -1;
 	PCGExClusterMT::FClusterProcessorBatchBase* CurrentBatch = nullptr;
@@ -112,6 +115,7 @@ protected:
 		CurrentBatchIndex = -1;
 		State_ClusterProcessingDone = InState;
 
+		bClusterRequiresHeuristics = true;
 		bClusterUseGraphBuilder = false;
 		bBuildEndpointsLookup = false;
 
@@ -126,18 +130,29 @@ protected:
 			if (!ValidateEntries(TaggedEdges)) { continue; }
 
 			T* NewBatch = new T(this, CurrentIO, TaggedEdges->Entries);
-			Batches.Add(NewBatch);
+			InitBatch(NewBatch);
+
+			if (NewBatch->RequiresHeuristics())
+			{
+				bClusterRequiresHeuristics = true;
+
+				if (!bHasValidHeuristics)
+				{
+					PCGEX_DELETE(NewBatch)
+					continue;
+				}
+			}
 
 			NewBatch->EdgeCollection = MainEdges;
 			if (VtxFiltersData) { NewBatch->SetVtxFilterData(VtxFiltersData); }
 
-			InitBatch(NewBatch);
-
-			if (NewBatch->UseGraphBuilder())
+			if (NewBatch->RequiresGraphBuilder())
 			{
 				bClusterUseGraphBuilder = true;
 				NewBatch->GraphBuilderSettings = GraphBuilderSettings;
 			}
+
+			Batches.Add(NewBatch);
 
 			PCGExClusterMT::ScheduleBatch(GetAsyncManager(), NewBatch);
 		}
@@ -148,6 +163,8 @@ protected:
 		else { SetAsyncState(PCGExClusterMT::MTState_ClusterProcessing); }
 		return true;
 	}
+
+	bool HasValidHeuristics() const;
 
 	void AdvanceBatch();
 

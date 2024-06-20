@@ -7,8 +7,6 @@
 void UPCGExHeuristicOperation::PrepareForCluster(const PCGExCluster::FCluster* InCluster)
 {
 	Cluster = InCluster;
-	//PCGEX_LOAD_SOFTOBJECT(UCurveFloat, ScoreCurve, ScoreCurveObj, PCGEx::WeightDistributionLinear)
-
 	LocalWeightMultiplier.Empty();
 
 	bHasCustomLocalWeightMultiplier = false;

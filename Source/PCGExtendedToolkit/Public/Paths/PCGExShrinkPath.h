@@ -192,7 +192,12 @@ namespace PCGExShrinkPath
 	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
 	public:
-		explicit FProcessor(PCGExData::FPointIO* InPoints);
+		explicit FProcessor(PCGExData::FPointIO* InPoints)
+			: FPointsProcessor(InPoints)
+		{
+			DefaultPointFilterValue = false;
+		}
+
 		virtual ~FProcessor() override;
 
 		virtual bool Process(FPCGExAsyncManager* AsyncManager) override;

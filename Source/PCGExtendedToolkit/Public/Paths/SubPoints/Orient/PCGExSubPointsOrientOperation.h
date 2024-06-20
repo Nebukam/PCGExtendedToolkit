@@ -25,7 +25,7 @@ public:
 	EPCGExAxis UpAxis = EPCGExAxis::Up;
 
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
-	
+
 	virtual void PrepareForData(PCGExData::FPointIO& InPointIO) override;
 	virtual void ProcessSubPoints(const PCGEx::FPointRef& Start, const PCGEx::FPointRef& End, const TArrayView<FPCGPoint>& SubPoints, const PCGExMath::FPathMetricsSquared& Metrics) const override;
 	virtual void Orient(FPCGPoint& Point, const FPCGPoint& PreviousPoint, const FPCGPoint& NextPoint) const;

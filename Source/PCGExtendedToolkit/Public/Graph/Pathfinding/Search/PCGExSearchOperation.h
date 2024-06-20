@@ -35,7 +35,7 @@ public:
 	PCGExCluster::FCluster* Cluster = nullptr;
 
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
-	
+
 	virtual void PrepareForCluster(PCGExCluster::FCluster* InCluster);
 	virtual bool FindPath(
 		const FVector& SeedPosition,

@@ -531,7 +531,7 @@ namespace PCGExDataBlending
 		FORCEINLINE virtual T GetSecondaryValue(const int32 Index) const { return (*Reader)[Index]; }
 
 		virtual void Write() override { Writer->Write(); }
-		virtual void Write(const TArrayView<int32> InIndices) override{ Writer->Write(InIndices); }
+		virtual void Write(const TArrayView<int32> InIndices) override { Writer->Write(InIndices); }
 
 	protected:
 		FPCGMetadataAttribute<T>* TypedAttribute = nullptr;

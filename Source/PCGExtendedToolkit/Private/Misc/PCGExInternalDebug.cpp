@@ -1,7 +1,7 @@
 ﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Misc\PCGExInternalDebug.h"
+#include "Misc/PCGExInternalDebug.h"
 
 #define LOCTEXT_NAMESPACE "PCGExInternalDebugElement"
 #define PCGEX_NAMESPACE InternalDebug

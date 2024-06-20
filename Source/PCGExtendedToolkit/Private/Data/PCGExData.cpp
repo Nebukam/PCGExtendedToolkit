@@ -65,7 +65,6 @@ namespace PCGExData
 		return H;
 	}
 
-	
 
 #pragma endregion
 

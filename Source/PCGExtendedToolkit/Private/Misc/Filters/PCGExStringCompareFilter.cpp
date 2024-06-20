@@ -10,7 +10,7 @@ PCGExDataFilter::TFilter* UPCGExStringCompareFilterFactory::CreateFilter() const
 
 void PCGExPointsFilter::TStringCompareFilter::Capture(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO)
 {
-	bValid = true;
+	PCGExDataFilter::TFilter::Capture(InContext, PointIO);
 
 	OperandA = new PCGEx::TFAttributeReader<FString>(TypedFilterFactory->OperandA.GetName());
 	bValid = OperandA->Bind(*const_cast<PCGExData::FPointIO*>(PointIO));

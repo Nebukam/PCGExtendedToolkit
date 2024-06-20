@@ -17,7 +17,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExForceDirectedRelaxing : public UPCGExEdgeRela
 
 public:
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
-	
+
 	virtual void ProcessVertex(const PCGExCluster::FNode& Vertex) override;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))

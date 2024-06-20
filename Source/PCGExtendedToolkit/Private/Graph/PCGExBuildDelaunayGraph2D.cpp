@@ -96,11 +96,6 @@ bool FPCGExBuildDelaunayGraph2DElement::ExecuteInternal(
 
 namespace PCGExBuildDelaunay2D
 {
-	FProcessor::FProcessor(PCGExData::FPointIO* InPoints):
-		FPointsProcessor(InPoints)
-	{
-	}
-
 	FProcessor::~FProcessor()
 	{
 		PCGEX_DELETE(Delaunay)

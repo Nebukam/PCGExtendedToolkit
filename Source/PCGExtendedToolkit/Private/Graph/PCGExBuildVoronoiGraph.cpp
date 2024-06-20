@@ -97,11 +97,6 @@ bool FPCGExBuildVoronoiGraphElement::ExecuteInternal(
 
 namespace PCGExBuildVoronoi
 {
-	FProcessor::FProcessor(PCGExData::FPointIO* InPoints):
-		FPointsProcessor(InPoints)
-	{
-	}
-
 	FProcessor::~FProcessor()
 	{
 		PCGEX_DELETE(Voronoi)

@@ -27,7 +27,7 @@ public:
 	FPCGExBlendingSettings BlendingSettings = FPCGExBlendingSettings(EPCGExDataBlendingType::Lerp);
 
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
-	
+
 	virtual void PrepareForData(PCGExData::FPointIO& InPointIO) override;
 	virtual void PrepareForData(PCGExData::FPointIO& InPrimaryData, const PCGExData::FPointIO& InSecondaryData, const PCGExData::ESource SecondarySource);
 

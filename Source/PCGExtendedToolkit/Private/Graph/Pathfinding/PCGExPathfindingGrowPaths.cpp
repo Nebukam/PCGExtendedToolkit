@@ -183,8 +183,8 @@ double PCGExGrow::FGrowth::GetGrowthScore(const PCGExCluster::FNode& From, const
 TArray<FPCGPinProperties> UPCGExPathfindingGrowPathsSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_POINT(PCGExPathfinding::SourceSeedsLabel, "Seed points to start growth from.", Required, {})
-	PCGEX_PIN_PARAMS(PCGExPathfinding::SourceHeuristicsLabel, "Heuristics.", Normal, {})
+	PCGEX_PIN_POINT(PCGExGraph::SourceSeedsLabel, "Seed points to start growth from.", Required, {})
+	PCGEX_PIN_PARAMS(PCGExGraph::SourceHeuristicsLabel, "Heuristics.", Normal, {})
 	return PinProperties;
 }
 
@@ -232,7 +232,7 @@ bool FPCGExPathfindingGrowPathsElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(PathfindingGrowPaths)
 
-	if (TArray<FPCGTaggedData> Seeds = InContext->InputData.GetInputsByPin(PCGExPathfinding::SourceSeedsLabel);
+	if (TArray<FPCGTaggedData> Seeds = InContext->InputData.GetInputsByPin(PCGExGraph::SourceSeedsLabel);
 		Seeds.Num() > 0)
 	{
 		const FPCGTaggedData& SeedsSource = Seeds[0];
@@ -464,10 +464,10 @@ bool FPCGExPathfindingGrowPathsElement::ExecuteInternal(FPCGContext* InContext) 
 			}
 		}
 
-		Context->SetAsyncState(PCGExPathfinding::State_Pathfinding);
+		Context->SetAsyncState(PCGExGraph::State_Pathfinding);
 	}
 
-	if (Context->IsState(PCGExPathfinding::State_Pathfinding))
+	if (Context->IsState(PCGExGraph::State_Pathfinding))
 	{
 		if (Settings->GrowthMode == EPCGExGrowthIterationMode::Parallel)
 		{

@@ -88,11 +88,6 @@ bool FPCGExOffsetPathElement::ExecuteInternal(FPCGContext* InContext) const
 
 namespace PCGExOffsetPath
 {
-	FProcessor::FProcessor(PCGExData::FPointIO* InPoints):
-		FPointsProcessor(InPoints)
-	{
-	}
-
 	FProcessor::~FProcessor()
 	{
 		PCGEX_DELETE(OffsetGetter)
@@ -156,7 +151,7 @@ namespace PCGExOffsetPath
 
 	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration)
 	{
-		Normals[Iteration+1] = NRM(Iteration, Iteration + 1, Iteration + 2); // Offset by 1 because loop should be -1 / 0 / +1
+		Normals[Iteration + 1] = NRM(Iteration, Iteration + 1, Iteration + 2); // Offset by 1 because loop should be -1 / 0 / +1
 	}
 
 	void FProcessor::CompleteWork()
@@ -177,8 +172,6 @@ namespace PCGExOffsetPath
 		}
 
 		StartParallelLoopForPoints();
-
-		
 	}
 
 	FVector FProcessor::NRM(const int32 A, const int32 B, const int32 C) const

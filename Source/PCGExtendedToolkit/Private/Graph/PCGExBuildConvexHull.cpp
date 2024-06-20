@@ -91,11 +91,6 @@ bool FPCGExBuildConvexHullElement::ExecuteInternal(
 
 namespace PCGExConvexHull
 {
-	FProcessor::FProcessor(PCGExData::FPointIO* InPoints):
-		FPointsProcessor(InPoints)
-	{
-	}
-
 	FProcessor::~FProcessor()
 	{
 		PCGEX_DELETE(Delaunay)
@@ -173,9 +168,8 @@ namespace PCGExConvexHull
 	void FProcessor::CompleteWork()
 	{
 		if (!GraphBuilder) { return; }
-		
+
 		GraphBuilder->CompileAsync(AsyncManagerPtr);
-		
 	}
 
 	void FProcessor::Write()

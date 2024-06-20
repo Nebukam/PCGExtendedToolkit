@@ -69,11 +69,6 @@ bool FPCGExFusePointsElement::ExecuteInternal(FPCGContext* InContext) const
 
 namespace PCGExFusePoints
 {
-	FProcessor::FProcessor(PCGExData::FPointIO* InPoints)
-		: FPointsProcessor(InPoints)
-	{
-	}
-
 	FProcessor::~FProcessor()
 	{
 		PCGEX_DELETE(CompoundGraph)

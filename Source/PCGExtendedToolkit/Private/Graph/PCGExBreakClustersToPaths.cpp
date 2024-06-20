@@ -60,7 +60,9 @@ bool FPCGExBreakClustersToPathsElement::ExecuteInternal(
 
 		if (!Context->StartProcessingClusters<PCGExClusterMT::TBatch<PCGExBreakClustersToPaths::FProcessor>>(
 			[](PCGExData::FPointIOTaggedEntries* Entries) { return true; },
-			[&](PCGExClusterMT::TBatch<PCGExBreakClustersToPaths::FProcessor>* NewBatch) { return; },
+			[&](PCGExClusterMT::TBatch<PCGExBreakClustersToPaths::FProcessor>* NewBatch)
+			{
+			},
 			PCGExMT::State_Done))
 		{
 			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not build any clusters."));
@@ -81,12 +83,6 @@ bool FPCGExBreakClustersToPathsElement::ExecuteInternal(
 
 namespace PCGExBreakClustersToPaths
 {
-	FProcessor::FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges):
-		FClusterProcessor(InVtx, InEdges)
-	{
-		DefaultVtxFilterValue = false;
-	}
-
 	FProcessor::~FProcessor()
 	{
 		PCGEX_DELETE_TARRAY(Chains)
@@ -128,8 +124,6 @@ namespace PCGExBreakClustersToPaths
 		{
 			StartParallelLoopForEdges();
 		}
-
-		
 	}
 
 	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration)

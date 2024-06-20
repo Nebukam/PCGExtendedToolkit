@@ -112,15 +112,18 @@ namespace PCGExPruneEdges
 
 		TArray<PCGExGraph::FIndexedEdge> IndexedEdges;
 		TArray<double> EdgeLengths;
-		
+
 	public:
-		FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges);
+		FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges):
+			FClusterProcessor(InVtx, InEdges)
+		{
+		}
+
 		virtual ~FProcessor() override;
-		
+
 		virtual bool Process(FPCGExAsyncManager* AsyncManager) override;
 		virtual void ProcessSingleEdge(PCGExGraph::FIndexedEdge& Edge) override;
 		virtual void ProcessSingleRangeIteration(const int32 Iteration) override;
 		virtual void CompleteWork() override;
 	};
-
 }

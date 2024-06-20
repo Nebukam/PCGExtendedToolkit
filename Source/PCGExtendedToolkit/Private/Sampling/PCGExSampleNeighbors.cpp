@@ -66,7 +66,9 @@ bool FPCGExSampleNeighborsElement::ExecuteInternal(
 
 		if (!Context->StartProcessingClusters<PCGExClusterMT::TBatch<PCGExSampleNeighbors::FProcessor>>(
 			[](PCGExData::FPointIOTaggedEntries* Entries) { return true; },
-			[&](PCGExClusterMT::TBatch<PCGExSampleNeighbors::FProcessor>* NewBatch) { return; },
+			[&](PCGExClusterMT::TBatch<PCGExSampleNeighbors::FProcessor>* NewBatch)
+			{
+			},
 			PCGExMT::State_Done))
 		{
 			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not build any clusters."));
@@ -89,18 +91,13 @@ bool FPCGExSampleNeighborsElement::ExecuteInternal(
 
 namespace PCGExSampleNeighbors
 {
-	FProcessor::FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges):
-		FClusterProcessor(InVtx, InEdges)
-	{
-	}
-
 	FProcessor::~FProcessor()
 	{
 		for (UPCGExNeighborSampleOperation* Op : SamplingOperations)
 		{
 			if (Op->PointState) { PCGEX_DELETE(Op->PointState) }
 			if (Op->ValueState) { PCGEX_DELETE(Op->ValueState) }
-			PCGEX_DELETE_UOBJECT(Op)
+			PCGEX_DELETE_OPERATION(Op)
 		}
 		SamplingOperations.Empty();
 
@@ -125,7 +122,7 @@ namespace PCGExSampleNeighbors
 
 			if (!SamplingOperation->IsOperationValid())
 			{
-				PCGEX_DELETE_UOBJECT(SamplingOperation)
+				PCGEX_DELETE_OPERATION(SamplingOperation)
 				continue;
 			}
 

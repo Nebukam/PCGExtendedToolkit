@@ -140,7 +140,6 @@ namespace PCGExData
 		 */
 		bool OutputTo(FPCGContext* Context);
 		bool OutputTo(FPCGContext* Context, const int32 MinPointCount, const int32 MaxPointCount);
-
 	};
 
 	/**
@@ -273,6 +272,5 @@ namespace PCGExData
 			}
 			return nullptr;
 		}
-
 	}
 }

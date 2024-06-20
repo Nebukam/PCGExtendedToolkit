@@ -48,7 +48,6 @@ public:
 
 namespace PCGExDataFilter
 {
-	
 	PCGEX_ASYNC_STATE(State_PreparingFilters)
 	PCGEX_ASYNC_STATE(State_FilteringPoints)
 
@@ -65,6 +64,8 @@ namespace PCGExDataFilter
 		{
 		}
 
+		const PCGExData::FPointIO* FilteredIO = nullptr;
+		
 		bool bCacheResults = true;
 		const UPCGExFilterFactoryBase* Factory;
 		TArray<bool> Results;

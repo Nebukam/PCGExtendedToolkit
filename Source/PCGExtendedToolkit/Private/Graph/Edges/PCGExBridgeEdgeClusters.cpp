@@ -64,7 +64,9 @@ bool FPCGExBridgeEdgeClustersElement::ExecuteInternal(
 
 				return true;
 			},
-			[&](PCGExBridgeClusters::FProcessorBatch* NewBatch) { return; },
+			[&](PCGExBridgeClusters::FProcessorBatch* NewBatch)
+			{
+			},
 			PCGExGraph::State_ProcessingEdges))
 		{
 			PCGE_LOG(Warning, GraphAndLog, FTEXT("No bridge was created."));
@@ -109,15 +111,6 @@ bool FPCGExBridgeEdgeClustersElement::ExecuteInternal(
 
 namespace PCGExBridgeClusters
 {
-	FProcessor::FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges):
-		FClusterProcessor(InVtx, InEdges)
-	{
-	}
-
-	FProcessor::~FProcessor()
-	{
-	}
-
 	bool FProcessor::Process(FPCGExAsyncManager* AsyncManager)
 	{
 		if (!FClusterProcessor::Process(AsyncManager)) { return false; }
@@ -134,7 +127,6 @@ namespace PCGExBridgeClusters
 
 	void FProcessor::CompleteWork()
 	{
-		
 	}
 
 	//////// BATCH

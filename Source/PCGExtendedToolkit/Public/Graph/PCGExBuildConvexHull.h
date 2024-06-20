@@ -52,7 +52,7 @@ public:
 	/** Graph & Edges output properties */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Graph Output Settings"))
 	FPCGExGraphBuilderSettings GraphBuilderSettings = FPCGExGraphBuilderSettings(true);
-	
+
 private:
 	friend class FPCGExBuildConvexHullElement;
 };
@@ -82,7 +82,6 @@ namespace PCGExConvexHull
 {
 	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
-
 	protected:
 		PCGExGeo::TDelaunay3* Delaunay = nullptr;
 		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
@@ -90,9 +89,13 @@ namespace PCGExConvexHull
 		TArray<uint64> Edges;
 
 		PCGEx::TFAttributeWriter<bool>* HullMarkPointWriter = nullptr;
-		
+
 	public:
-		explicit FProcessor(PCGExData::FPointIO* InPoints);
+		explicit FProcessor(PCGExData::FPointIO* InPoints):
+			FPointsProcessor(InPoints)
+		{
+		}
+
 		virtual ~FProcessor() override;
 
 		virtual bool Process(FPCGExAsyncManager* AsyncManager) override;
@@ -100,6 +103,5 @@ namespace PCGExConvexHull
 		virtual void ProcessSingleRangeIteration(const int32 Iteration) override;
 		virtual void CompleteWork() override;
 		virtual void Write() override;
-		
 	};
 }

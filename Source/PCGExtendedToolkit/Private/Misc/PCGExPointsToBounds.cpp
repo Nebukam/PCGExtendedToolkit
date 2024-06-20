@@ -83,11 +83,6 @@ bool FPCGExPointsToBoundsElement::ExecuteInternal(FPCGContext* InContext) const
 
 namespace PCGExPointsToBounds
 {
-	FProcessor::FProcessor(PCGExData::FPointIO* InPoints):
-		FPointsProcessor(InPoints)
-	{
-	}
-
 	FProcessor::~FProcessor()
 	{
 		PCGEX_DELETE(MetadataBlender)
@@ -100,7 +95,7 @@ namespace PCGExPointsToBounds
 
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
-		Bounds = new PCGExPointsToBounds::FBounds(PointIO);
+		Bounds = new FBounds(PointIO);
 		const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
 
 		switch (Settings->BoundsSource)

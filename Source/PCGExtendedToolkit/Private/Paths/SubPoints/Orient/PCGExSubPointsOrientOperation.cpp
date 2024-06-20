@@ -10,7 +10,7 @@ void UPCGExSubPointsOrientOperation::CopySettingsFrom(const UPCGExOperation* Oth
 {
 	Super::CopySettingsFrom(Other);
 	const UPCGExSubPointsOrientOperation* TypedOther = Cast<UPCGExSubPointsOrientOperation>(Other);
-	if (Other)
+	if (TypedOther)
 	{
 		OrientAxis = TypedOther->OrientAxis;
 		UpAxis = TypedOther->UpAxis;

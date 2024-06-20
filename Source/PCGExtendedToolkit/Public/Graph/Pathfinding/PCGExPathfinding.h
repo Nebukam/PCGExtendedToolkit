@@ -74,19 +74,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathStatistics
 
 namespace PCGExPathfinding
 {
-	PCGEX_ASYNC_STATE(State_ProcessingHeuristics)
-	PCGEX_ASYNC_STATE(State_ProcessingHeuristicModifiers)
-	PCGEX_ASYNC_STATE(State_Pathfinding)
-	PCGEX_ASYNC_STATE(State_WaitingPathfinding)
-
-	const FName SourceSeedsLabel = TEXT("Seeds");
-	const FName SourceGoalsLabel = TEXT("Goals");
-	const FName SourcePlotsLabel = TEXT("Plots");
-
-	const FName SourceHeuristicsLabel = TEXT("Heuristics");
-	const FName OutputHeuristicsLabel = TEXT("Heuristics");
-	const FName OutputModifiersLabel = TEXT("Modifiers");
-
 	struct PCGEXTENDEDTOOLKIT_API FExtraWeights //TODO: Deprecate
 	{
 		TArray<double> NodeExtraWeight;

@@ -47,7 +47,9 @@ bool FPCGExSimplifyClustersElement::ExecuteInternal(FPCGContext* InContext) cons
 
 		if (!Context->StartProcessingClusters<PCGExClusterMT::TBatchWithGraphBuilder<PCGExSimplifyClusters::FProcessor>>(
 			[](PCGExData::FPointIOTaggedEntries* Entries) { return true; },
-			[&](PCGExClusterMT::TBatchWithGraphBuilder<PCGExSimplifyClusters::FProcessor>* NewBatch) { return; },
+			[&](PCGExClusterMT::TBatchWithGraphBuilder<PCGExSimplifyClusters::FProcessor>* NewBatch)
+			{
+			},
 			PCGExMT::State_Done))
 		{
 			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not build any clusters."));
@@ -68,12 +70,6 @@ bool FPCGExSimplifyClustersElement::ExecuteInternal(FPCGContext* InContext) cons
 
 namespace PCGExSimplifyClusters
 {
-	FProcessor::FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges):
-		FClusterProcessor(InVtx, InEdges)
-	{
-		
-	}
-
 	FProcessor::~FProcessor()
 	{
 		PCGEX_DELETE_TARRAY(Chains)
@@ -114,8 +110,6 @@ namespace PCGExSimplifyClusters
 
 		PCGExClusterTask::DedupeChains(Chains);
 		StartParallelLoopForRange(Chains.Num());
-
-		
 	}
 
 	void FProcessor::ProcessSingleRangeIteration(const int32 Iteration)

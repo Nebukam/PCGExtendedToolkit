@@ -10,7 +10,7 @@ PCGExDataFilter::TFilter* UPCGExDotFilterFactory::CreateFilter() const
 
 void PCGExPointsFilter::TDotFilter::Capture(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO)
 {
-	bValid = true;
+	PCGExDataFilter::TFilter::Capture(InContext, PointIO);
 
 	OperandA = new PCGEx::FLocalVectorGetter();
 	OperandA->Capture(TypedFilterFactory->OperandA);
@@ -41,8 +41,15 @@ void PCGExPointsFilter::TDotFilter::Capture(const FPCGContext* InContext, const 
 
 bool PCGExPointsFilter::TDotFilter::Test(const int32 PointIndex) const
 {
-	const FVector A = OperandA->Values[PointIndex];
-	const FVector B = TypedFilterFactory->CompareAgainst == EPCGExOperandType::Attribute ? OperandB->Values[PointIndex] : TypedFilterFactory->OperandBConstant;
+	FVector A = OperandA->Values[PointIndex];
+	FVector B = TypedFilterFactory->CompareAgainst == EPCGExOperandType::Attribute ? OperandB->Values[PointIndex] : TypedFilterFactory->OperandBConstant;
+
+	if (TypedFilterFactory->bTransformOperandA || TypedFilterFactory->bTransformOperandB)
+	{
+		const FTransform PtTransform = FilteredIO->GetInPoint(PointIndex).Transform;
+		if (TypedFilterFactory->bTransformOperandA) { A = PtTransform.TransformVector(A); }
+		if (TypedFilterFactory->bTransformOperandB) { B = PtTransform.TransformVector(B); }
+	}
 
 	const double Dot = TypedFilterFactory->bUnsignedDot ? FMath::Abs(FVector::DotProduct(A, B)) : FVector::DotProduct(A, B);
 

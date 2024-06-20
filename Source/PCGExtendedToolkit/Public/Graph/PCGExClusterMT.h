@@ -50,12 +50,14 @@ namespace PCGExClusterMT
 
 	class FClusterProcessor
 	{
+		friend class FClusterProcessorBatchBase;
+
 	protected:
 		FPCGExAsyncManager* AsyncManagerPtr = nullptr;
 		bool bBuildCluster = true;
+		bool bRequiresHeuristics = false;
 
 	public:
-		bool bRequiresHeuristics = false;
 		PCGExHeuristics::THeuristicsHandler* HeuristicsHandler = nullptr;
 
 		UPCGExNodeStateFactory* VtxFiltersData = nullptr;
@@ -104,6 +106,8 @@ namespace PCGExClusterMT
 		{
 			VtxFiltersData = InVtxFiltersData;
 		}
+
+		void SetRequiresHeuristics(const bool bRequired = false) { bRequiresHeuristics = bRequired; }
 
 		virtual bool Process(FPCGExAsyncManager* AsyncManager)
 		{
@@ -161,6 +165,8 @@ namespace PCGExClusterMT
 
 			return true;
 		}
+
+#pragma region Parallel loops
 
 		void StartParallelLoopForNodes(const int32 PerLoopIterations = -1)
 		{
@@ -243,6 +249,8 @@ namespace PCGExClusterMT
 		{
 		}
 
+#pragma endregion
+
 		virtual void CompleteWork()
 		{
 		}
@@ -259,6 +267,9 @@ namespace PCGExClusterMT
 		TMap<int64, int32> EndpointsLookup;
 		TArray<int32> ExpectedAdjacency;
 
+		bool bRequiresHeuristics = false;
+		bool bRequiresGraphBuilder = false;
+
 	public:
 		mutable FRWLock BatchLock;
 
@@ -271,7 +282,9 @@ namespace PCGExClusterMT
 		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
 		FPCGExGraphBuilderSettings GraphBuilderSettings;
 
-		virtual bool UseGraphBuilder() const { return false; }
+		bool RequiresGraphBuilder() const { return bRequiresGraphBuilder; }
+		bool RequiresHeuristics() const { return bRequiresHeuristics; }
+		virtual void SetRequiresHeuristics(const bool bRequired = false) { bRequiresHeuristics = bRequired; }
 
 		FClusterProcessorBatchBase(FPCGContext* InContext, PCGExData::FPointIO* InVtx, TArrayView<PCGExData::FPointIO*> InEdges):
 			Context(InContext), VtxIO(InVtx)
@@ -299,7 +312,7 @@ namespace PCGExClusterMT
 			VtxIO->CreateInKeys();
 			PCGExGraph::BuildEndpointsLookup(*VtxIO, EndpointsLookup, ExpectedAdjacency);
 
-			if (UseGraphBuilder())
+			if (RequiresGraphBuilder())
 			{
 				GraphBuilder = new PCGExGraph::FGraphBuilder(*VtxIO, &GraphBuilderSettings, 6, EdgeCollection);
 			}
@@ -368,8 +381,6 @@ namespace PCGExClusterMT
 			ClosedBatchProcessors.Empty();
 		}
 
-		virtual bool UseGraphBuilder() const override { return false; }
-
 		void SetVtxFilterData(UPCGExNodeStateFactory* InVtxFiltersData)
 		{
 			VtxFiltersData = InVtxFiltersData;
@@ -396,8 +407,10 @@ namespace PCGExClusterMT
 				NewProcessor->Context = Context;
 				NewProcessor->EndpointsLookup = &EndpointsLookup;
 				NewProcessor->ExpectedAdjacency = &ExpectedAdjacency;
+				NewProcessor->BatchIndex = Processors.Add(NewProcessor);
 
-				if (UseGraphBuilder()) { NewProcessor->GraphBuilder = GraphBuilder; }
+				if (RequiresGraphBuilder()) { NewProcessor->GraphBuilder = GraphBuilder; }
+				NewProcessor->SetRequiresHeuristics(RequiresHeuristics());
 
 				if (!PrepareSingle(NewProcessor))
 				{
@@ -406,8 +419,6 @@ namespace PCGExClusterMT
 				}
 
 				if (VtxFiltersData) { NewProcessor->SetVtxFilterData(VtxFiltersData); }
-
-				NewProcessor->BatchIndex = Processors.Add(NewProcessor);
 
 				if (IO->GetNum() < GetDefault<UPCGExGlobalSettings>()->SmallClusterSize)
 				{
@@ -481,9 +492,31 @@ namespace PCGExClusterMT
 		TBatchWithGraphBuilder(FPCGContext* InContext, PCGExData::FPointIO* InVtx, TArrayView<PCGExData::FPointIO*> InEdges):
 			TBatch<T>(InContext, InVtx, InEdges)
 		{
+			this->bRequiresGraphBuilder = true;
 		}
+	};
 
-		virtual bool UseGraphBuilder() const override { return true; }
+	template <typename T>
+	class TBatchWithHeuristics : public TBatch<T>
+	{
+	public:
+		TBatchWithHeuristics(FPCGContext* InContext, PCGExData::FPointIO* InVtx, TArrayView<PCGExData::FPointIO*> InEdges):
+			TBatch<T>(InContext, InVtx, InEdges)
+		{
+			this->SetRequiresHeuristics(true);
+		}
+	};
+
+	template <typename T>
+	class TBatchWithHeuristicsAndBuilder : public TBatch<T>
+	{
+	public:
+		TBatchWithHeuristicsAndBuilder(FPCGContext* InContext, PCGExData::FPointIO* InVtx, TArrayView<PCGExData::FPointIO*> InEdges):
+			TBatch<T>(InContext, InVtx, InEdges)
+		{
+			this->SetRequiresHeuristics(true);
+			this->bRequiresGraphBuilder = true;
+		}
 	};
 
 	static void ScheduleBatch(FPCGExAsyncManager* Manager, FClusterProcessorBatchBase* Batch)

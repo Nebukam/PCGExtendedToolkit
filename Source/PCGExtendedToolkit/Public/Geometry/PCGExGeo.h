@@ -158,7 +158,6 @@ enum class EPCGExCellCenter : uint8
 
 namespace PCGExGeo
 {
-
 	PCGEX_ASYNC_STATE(State_ProcessingHull)
 	PCGEX_ASYNC_STATE(State_ProcessingDelaunayHull)
 	PCGEX_ASYNC_STATE(State_ProcessingDelaunayPreprocess)

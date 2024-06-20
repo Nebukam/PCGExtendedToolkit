@@ -141,7 +141,7 @@ FPCGExPointsProcessorContext::~FPCGExPointsProcessorContext()
 	for (UPCGExOperation* Operation : ProcessorOperations)
 	{
 		Operation->Cleanup();
-		if (OwnedProcessorOperations.Contains(Operation)) { PCGEX_DELETE_UOBJECT(Operation) }
+		if (OwnedProcessorOperations.Contains(Operation)) { PCGEX_DELETE_OPERATION(Operation) }
 	}
 
 	PCGEX_DELETE(MainBatch)
@@ -256,7 +256,7 @@ bool FPCGExPointsProcessorContext::ProcessPointsBatch()
 	if (IsState(PCGExPointsMT::MTState_PointsWriting))
 	{
 		if (!IsAsyncWorkComplete()) { return false; }
-		
+
 		SetState(TargetState_PointsProcessingDone);
 	}
 

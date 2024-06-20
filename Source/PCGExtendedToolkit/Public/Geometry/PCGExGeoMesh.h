@@ -19,7 +19,6 @@ enum class EPCGExTriangulationType : uint8
 
 namespace PCGExGeo
 {
-	
 	class FExtractStaticMeshTask;
 
 	class PCGEXTENDEDTOOLKIT_API FGeoMesh

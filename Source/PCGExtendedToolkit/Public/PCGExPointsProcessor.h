@@ -254,7 +254,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : public FPCGExContex
 	bool StartBatchProcessingPoints(ValidateEntryFunc&& ValidateEntry, InitBatchFunc&& InitBatch, const PCGExMT::AsyncState InState)
 	{
 		PCGEX_DELETE(MainBatch)
-		
+
 		TargetState_PointsProcessingDone = InState;
 		BatchablePoints.Empty();
 
@@ -269,7 +269,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointsProcessorContext : public FPCGExContex
 		MainBatch = new T(this, BatchablePoints);
 		InitBatch(static_cast<T*>(MainBatch));
 
-		PCGExPointsMT::ScheduleBatch(GetAsyncManager(), MainBatch);
+		ScheduleBatch(GetAsyncManager(), MainBatch);
 		SetAsyncState(PCGExPointsMT::MTState_PointsProcessing);
 
 		return true;

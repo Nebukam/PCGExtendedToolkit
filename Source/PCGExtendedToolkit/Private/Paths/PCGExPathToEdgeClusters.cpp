@@ -113,7 +113,9 @@ bool FPCGExPathToEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) co
 		{
 			if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExPathToClusters::FNonFusingProcessor>>(
 				[](const PCGExData::FPointIO* Entry) { return Entry->GetNum() >= 2; },
-				[&](PCGExPointsMT::TBatch<PCGExPathToClusters::FNonFusingProcessor>* NewBatch) { return; },
+				[&](PCGExPointsMT::TBatch<PCGExPathToClusters::FNonFusingProcessor>* NewBatch)
+				{
+				},
 				PCGExMT::State_Done))
 			{
 				PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not build any clusters."));
@@ -171,11 +173,6 @@ namespace PCGExPathToClusters
 {
 #pragma region NonFusing
 
-	FNonFusingProcessor::FNonFusingProcessor(PCGExData::FPointIO* InPoints)
-		: FPointsProcessor(InPoints)
-	{
-	}
-
 	FNonFusingProcessor::~FNonFusingProcessor()
 	{
 		PCGEX_DELETE(GraphBuilder)
@@ -228,11 +225,6 @@ namespace PCGExPathToClusters
 #pragma endregion
 
 #pragma region Fusing
-
-	FFusingProcessor::FFusingProcessor(PCGExData::FPointIO* InPoints)
-		: FPointsProcessor(InPoints)
-	{
-	}
 
 	FFusingProcessor::~FFusingProcessor()
 	{

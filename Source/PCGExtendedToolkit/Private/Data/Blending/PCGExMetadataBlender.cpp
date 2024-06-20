@@ -198,7 +198,7 @@ namespace PCGExDataBlending
 		for (FDataBlendingOperationBase* Op : Attributes) { Op->Write(InIndices); }
 		if (bFlush) { Flush(); }
 	}
-	
+
 	void FMetadataBlender::Flush()
 	{
 		FirstPointOperation.Empty();

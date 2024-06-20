@@ -108,11 +108,6 @@ bool FPCGExSampleNearestPolylineElement::ExecuteInternal(FPCGContext* InContext)
 
 namespace PCGExSampleNearestPolyline
 {
-	FProcessor::FProcessor(PCGExData::FPointIO* InPoints):
-		FPointsProcessor(InPoints)
-	{
-	}
-
 	FProcessor::~FProcessor()
 	{
 		PCGEX_DELETE(RangeMinGetter)
@@ -327,7 +322,6 @@ namespace PCGExSampleNearestPolyline
 
 	void FProcessor::CompleteWork()
 	{
-		
 		PCGEX_FOREACH_FIELD_NEARESTPOLYLINE(PCGEX_OUTPUT_WRITE)
 	}
 }

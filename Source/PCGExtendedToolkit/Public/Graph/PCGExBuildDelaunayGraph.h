@@ -61,7 +61,7 @@ public:
 	/** Graph & Edges output properties */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, DisplayName="Graph Output Settings"))
 	FPCGExGraphBuilderSettings GraphBuilderSettings = FPCGExGraphBuilderSettings(false);
-	
+
 private:
 	friend class FPCGExBuildDelaunayGraphElement;
 };
@@ -91,21 +91,23 @@ namespace PCGExBuildDelaunay
 {
 	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
-
 	protected:
 		PCGExGeo::TDelaunay3* Delaunay = nullptr;
 		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
 
 		PCGEx::TFAttributeWriter<bool>* HullMarkPointWriter = nullptr;
-		
+
 	public:
-		explicit FProcessor(PCGExData::FPointIO* InPoints);
+		explicit FProcessor(PCGExData::FPointIO* InPoints):
+			FPointsProcessor(InPoints)
+		{
+		}
+
 		virtual ~FProcessor() override;
 
 		virtual bool Process(FPCGExAsyncManager* AsyncManager) override;
 		virtual void ProcessSinglePoint(const int32 Index, FPCGPoint& Point) override;
 		virtual void CompleteWork() override;
 		virtual void Write() override;
-		
 	};
 }

@@ -34,7 +34,7 @@ public:
 	FPCGExPropertiesBlendingSettings BlendingSettings;
 
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
-	
+
 	virtual bool PrepareForCluster(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster) override;
 
 	virtual void PrepareNode(PCGExCluster::FNode& TargetNode) const override;
@@ -64,7 +64,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPropertiesSamplerDescriptorBase
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGNeighborSamplerFactoryProperties : public UPCGExNeighborSamplerFactoryBase
+class PCGEXTENDEDTOOLKIT_API UPCGExNeighborSamplerFactoryProperties : public UPCGExNeighborSamplerFactoryBase
 {
 	GENERATED_BODY()
 

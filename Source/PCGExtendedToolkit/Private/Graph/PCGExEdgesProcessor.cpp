@@ -210,6 +210,14 @@ bool FPCGExEdgesProcessorContext::ProcessClusters()
 	return true;
 }
 
+bool FPCGExEdgesProcessorContext::HasValidHeuristics() const
+{
+	TArray<UPCGExParamFactoryBase*> InputFactories;
+	const bool bFoundAny = PCGExFactories::GetInputFactories(this, PCGExGraph::SourceHeuristicsLabel, InputFactories, {PCGExFactories::EType::Heuristics}, false);
+	InputFactories.Empty();
+	return bFoundAny;
+}
+
 void FPCGExEdgesProcessorContext::AdvanceBatch()
 {
 	CurrentBatchIndex++;
@@ -253,6 +261,8 @@ bool FPCGExEdgesProcessorElement::Boot(FPCGContext* InContext) const
 	if (!FPCGExPointsProcessorElement::Boot(InContext)) { return false; }
 
 	PCGEX_CONTEXT_AND_SETTINGS(EdgesProcessor)
+
+	Context->bHasValidHeuristics = Context->HasValidHeuristics();
 
 	if (Context->MainEdges->IsEmpty())
 	{

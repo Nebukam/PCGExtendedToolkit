@@ -155,12 +155,6 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 
 namespace PCGExFuseClusters
 {
-	FProcessor::FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges)
-		: FClusterProcessor(InVtx, InEdges)
-	{
-		bBuildCluster = false;
-	}
-
 	FProcessor::~FProcessor()
 	{
 	}

@@ -17,8 +17,8 @@
 TArray<FPCGPinProperties> UPCGExPathfindingNavmeshSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties;
-	PCGEX_PIN_POINT(PCGExPathfinding::SourceSeedsLabel, "Seeds points for pathfinding.", Required, {})
-	PCGEX_PIN_POINT(PCGExPathfinding::SourceGoalsLabel, "Goals points for pathfinding.", Required, {})
+	PCGEX_PIN_POINT(PCGExGraph::SourceSeedsLabel, "Seeds points for pathfinding.", Required, {})
+	PCGEX_PIN_POINT(PCGExGraph::SourceGoalsLabel, "Goals points for pathfinding.", Required, {})
 	return PinProperties;
 }
 
@@ -40,7 +40,7 @@ void UPCGExPathfindingNavmeshSettings::PostEditChangeProperty(FPropertyChangedEv
 
 PCGExData::EInit UPCGExPathfindingNavmeshSettings::GetMainOutputInitMode() const { return PCGExData::EInit::NoOutput; }
 
-FName UPCGExPathfindingNavmeshSettings::GetMainInputLabel() const { return PCGExPathfinding::SourceSeedsLabel; }
+FName UPCGExPathfindingNavmeshSettings::GetMainInputLabel() const { return PCGExGraph::SourceSeedsLabel; }
 FName UPCGExPathfindingNavmeshSettings::GetMainOutputLabel() const { return PCGExGraph::OutputPathsLabel; }
 
 PCGEX_INITIALIZE_ELEMENT(PathfindingNavmesh)
@@ -80,10 +80,10 @@ bool FPCGExPathfindingNavmeshElement::Boot(FPCGContext* InContext) const
 	PCGEX_OPERATION_BIND(Blending, UPCGExSubPointsBlendInterpolate)
 
 
-	Context->SeedsPoints = Context->TryGetSingleInput(PCGExPathfinding::SourceSeedsLabel, true);
+	Context->SeedsPoints = Context->TryGetSingleInput(PCGExGraph::SourceSeedsLabel, true);
 	if (!Context->SeedsPoints) { return false; }
 
-	Context->GoalsPoints = Context->TryGetSingleInput(PCGExPathfinding::SourceGoalsLabel, true);
+	Context->GoalsPoints = Context->TryGetSingleInput(PCGExGraph::SourceGoalsLabel, true);
 	if (!Context->GoalsPoints) { return false; }
 
 
@@ -160,10 +160,10 @@ bool FPCGExPathfindingNavmeshElement::ExecuteInternal(FPCGContext* InContext) co
 		};
 
 		PCGExPathfinding::ProcessGoals(Context->CurrentIO, Context->GoalPicker, NavClusterTask);
-		Context->SetAsyncState(PCGExPathfinding::State_Pathfinding);
+		Context->SetAsyncState(PCGExGraph::State_Pathfinding);
 	}
 
-	if (Context->IsState(PCGExPathfinding::State_Pathfinding))
+	if (Context->IsState(PCGExGraph::State_Pathfinding))
 	{
 		PCGEX_WAIT_ASYNC
 

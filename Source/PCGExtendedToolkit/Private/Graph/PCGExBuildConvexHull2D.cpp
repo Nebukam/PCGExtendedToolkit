@@ -149,11 +149,6 @@ void FPCGExBuildConvexHull2DContext::BuildPath(const PCGExGraph::FGraphBuilder* 
 
 namespace PCGExConvexHull2D
 {
-	FProcessor::FProcessor(PCGExData::FPointIO* InPoints):
-		FPointsProcessor(InPoints)
-	{
-	}
-
 	FProcessor::~FProcessor()
 	{
 		PCGEX_DELETE(Delaunay)
@@ -234,12 +229,11 @@ namespace PCGExConvexHull2D
 	void FProcessor::CompleteWork()
 	{
 		if (!GraphBuilder) { return; }
-		
+
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(BuildConvexHull2D)
 
 		GraphBuilder->CompileAsync(AsyncManagerPtr);
 		TypedContext->BuildPath(GraphBuilder);
-		
 	}
 
 	void FProcessor::Write()

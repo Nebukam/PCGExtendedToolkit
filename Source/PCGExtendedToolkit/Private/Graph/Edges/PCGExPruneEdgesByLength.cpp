@@ -69,11 +69,6 @@ bool FPCGExPruneEdgesByLengthElement::ExecuteInternal(FPCGContext* InContext) co
 
 namespace PCGExPruneEdges
 {
-	FProcessor::FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges):
-		FClusterProcessor(InVtx, InEdges)
-	{
-	}
-
 	FProcessor::~FProcessor()
 	{
 		IndexedEdges.Empty();
@@ -171,8 +166,6 @@ namespace PCGExPruneEdges
 		for (PCGExGraph::FIndexedEdge& Edge : IndexedEdges) { if (Edge.bValid) { ValidEdges.Add(Edge); } }
 
 		GraphBuilder->Graph->InsertEdges(ValidEdges);
-
-		
 	}
 }
 #undef LOCTEXT_NAMESPACE

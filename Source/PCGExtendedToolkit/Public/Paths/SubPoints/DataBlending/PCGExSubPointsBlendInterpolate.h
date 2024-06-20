@@ -25,7 +25,7 @@ public:
 	double Weight = 0.5;
 
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
-	
+
 	virtual void BlendSubPoints(
 		const PCGEx::FPointRef& StartPoint,
 		const PCGEx::FPointRef& EndPoint,

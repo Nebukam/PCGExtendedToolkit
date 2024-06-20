@@ -36,7 +36,7 @@ namespace PCGExHeuristics
 			for (UPCGExHeuristicFeedback* Feedback : Feedbacks)
 			{
 				Feedback->Cleanup();
-				PCGEX_DELETE_UOBJECT(Feedback)
+				PCGEX_DELETE_OPERATION(Feedback)
 			}
 
 			Feedbacks.Empty();

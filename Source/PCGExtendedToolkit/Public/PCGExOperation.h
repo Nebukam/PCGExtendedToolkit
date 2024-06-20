@@ -28,6 +28,7 @@ public:
 
 	virtual void Cleanup();
 	virtual void Write();
+	virtual void Write(const TArrayView<int32> Indices);
 
 	virtual void CopySettingsFrom(const UPCGExOperation* Other);
 
@@ -39,7 +40,9 @@ public:
 
 		if (!TypedInstance)
 		{
-			PCGEX_DELETE_UOBJECT(GenericInstance)
+			UPCGExOperation* Operation = Cast<UPCGExOperation>(GenericInstance);
+			if (Operation) { PCGEX_DELETE_OPERATION(Operation) }
+			else { PCGEX_DELETE_UOBJECT(GenericInstance) }
 			return nullptr;
 		}
 
@@ -54,7 +57,6 @@ protected:
 	TMap<FName, FPCGMetadataAttributeBase*> PossibleOverrides;
 
 	virtual void ApplyOverrides();
-
 
 	template <typename T>
 	T GetOverrideValue(const FName Name, const T Fallback, const EPCGMetadataTypes InType)

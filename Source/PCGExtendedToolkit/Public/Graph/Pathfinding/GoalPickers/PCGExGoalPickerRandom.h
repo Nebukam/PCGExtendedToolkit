@@ -44,7 +44,7 @@ public:
 	FPCGAttributePropertyInputSelector LocalNumGoalAttribute;
 
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
-	
+
 	virtual void PrepareForData(const PCGExData::FPointIO& InSeeds, const PCGExData::FPointIO& InGoals) override;
 
 	virtual int32 GetGoalIndex(const PCGEx::FPointRef& Seed) const override;

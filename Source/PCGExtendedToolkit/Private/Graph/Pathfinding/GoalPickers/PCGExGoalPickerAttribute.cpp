@@ -10,7 +10,7 @@ void UPCGExGoalPickerAttribute::CopySettingsFrom(const UPCGExOperation* Other)
 {
 	Super::CopySettingsFrom(Other);
 	const UPCGExGoalPickerAttribute* TypedOther = Cast<UPCGExGoalPickerAttribute>(Other);
-	if (Other)
+	if (TypedOther)
 	{
 		GoalCount = TypedOther->GoalCount;
 		Attribute = TypedOther->Attribute;

@@ -10,7 +10,7 @@ void UPCGExGoalPicker::CopySettingsFrom(const UPCGExOperation* Other)
 {
 	Super::CopySettingsFrom(Other);
 	const UPCGExGoalPicker* TypedOther = Cast<UPCGExGoalPicker>(Other);
-	if (Other)
+	if (TypedOther)
 	{
 		IndexSafety = TypedOther->IndexSafety;
 	}

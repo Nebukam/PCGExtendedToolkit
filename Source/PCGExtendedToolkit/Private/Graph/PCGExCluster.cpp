@@ -87,6 +87,22 @@ namespace PCGExCluster
 		return -1;
 	}
 
+	void FNode::ExtractAdjacencies(TArray<int32>& OutNodes, TArray<int32>& OutEdges) const
+	{
+		const int32 NumAdjacency = Adjacency.Num();
+		OutNodes.SetNumUninitialized(NumAdjacency);
+		OutEdges.SetNumUninitialized(NumAdjacency);
+		
+		for (int i = 0; i < NumAdjacency; i++)
+		{
+			uint32 AdjacentNode;
+			uint32 AdjacentEdge;
+			PCGEx::H64(Adjacency[i], AdjacentNode, AdjacentEdge);
+			OutNodes[i] = AdjacentNode;
+			OutEdges[i] = AdjacentEdge;
+		}
+	}
+
 #pragma endregion
 
 #pragma region FCluster
@@ -878,7 +894,7 @@ namespace PCGExClusterTask
 	bool FFindNodeChains::ExecuteTask()
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FFindNodeChains::ExecuteTask);
-		
+
 		//TArray<uint64> AdjacencyHashes;
 		//AdjacencyHashes.Reserve(Cluster->Nodes.Num());
 
@@ -937,7 +953,7 @@ namespace PCGExClusterTask
 	bool FBuildChain::ExecuteTask()
 	{
 		TRACE_CPUPROFILER_EVENT_SCOPE(FBuildChain::ExecuteTask);
-		
+
 		PCGExCluster::FNodeChain* NewChain = new PCGExCluster::FNodeChain();
 
 		uint32 NodeIndex;

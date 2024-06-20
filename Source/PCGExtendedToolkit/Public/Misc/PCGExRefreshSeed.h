@@ -64,6 +64,6 @@ public:
 		FPCGExNonAbandonableTask(InPointIO)
 	{
 	}
-	
+
 	virtual bool ExecuteTask() override;
 };

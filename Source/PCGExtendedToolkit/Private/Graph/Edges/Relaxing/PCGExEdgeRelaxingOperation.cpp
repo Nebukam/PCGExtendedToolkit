@@ -8,7 +8,7 @@ void UPCGExEdgeRelaxingOperation::CopySettingsFrom(const UPCGExOperation* Other)
 {
 	Super::CopySettingsFrom(Other);
 	const UPCGExEdgeRelaxingOperation* TypedOther = Cast<UPCGExEdgeRelaxingOperation>(Other);
-	if (Other)
+	if (TypedOther)
 	{
 		DefaultInfluence = TypedOther->DefaultInfluence;
 	}

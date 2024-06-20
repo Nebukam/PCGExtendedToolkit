@@ -8,6 +8,11 @@
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristics.h"
 #include "Graph/Pathfinding/Search/PCGExScoredQueue.h"
 
+bool UPCGExEdgeRefinePrimMST::RequiresHeuristics()
+{
+	return true;
+}
+
 void UPCGExEdgeRefinePrimMST::Process(
 	PCGExCluster::FCluster* InCluster,
 	PCGExHeuristics::THeuristicsHandler* InHeuristics)

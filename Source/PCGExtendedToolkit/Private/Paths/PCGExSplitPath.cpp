@@ -91,12 +91,6 @@ bool FPCGExSplitPathElement::ExecuteInternal(FPCGContext* InContext) const
 
 namespace PCGExSplitPath
 {
-	FProcessor::FProcessor(PCGExData::FPointIO* InPoints)
-		: FPointsProcessor(InPoints)
-	{
-		DefaultPointFilterValue = false;
-	}
-
 	FProcessor::~FProcessor()
 	{
 	}
@@ -143,7 +137,6 @@ namespace PCGExSplitPath
 
 	void FProcessor::CompleteWork()
 	{
-		
 	}
 }
 

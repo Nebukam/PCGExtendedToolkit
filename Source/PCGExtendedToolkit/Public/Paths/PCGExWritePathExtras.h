@@ -203,7 +203,11 @@ namespace PCGExWritePathExtras
 		PCGEX_FOREACH_FIELD_PATHEXTRAS(PCGEX_OUTPUT_DECL)
 
 	public:
-		FProcessor(PCGExData::FPointIO* InPoints);
+		FProcessor(PCGExData::FPointIO* InPoints):
+			FPointsProcessor(InPoints)
+		{
+		}
+
 		virtual ~FProcessor() override;
 
 		virtual bool Process(FPCGExAsyncManager* AsyncManager) override;

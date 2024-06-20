@@ -20,6 +20,5 @@ UPCGExParamFactoryBase* UPCGExFilterProviderSettings::CreateFactory(FPCGContext*
 	return InFactory;
 }
 
-
 #undef LOCTEXT_NAMESPACE
 #undef PCGEX_NAMESPACE

@@ -69,7 +69,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExRefineEdgesContext final : public FPCGExEdge
 	virtual ~FPCGExRefineEdgesContext() override;
 
 	UPCGExEdgeRefineOperation* Refinement = nullptr;
-
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExRefineEdgesElement final : public FPCGExEdgesProcessorElement
@@ -111,7 +110,12 @@ namespace PCGExRefineEdges
 	class FProcessor final : public PCGExClusterMT::FClusterProcessor
 	{
 	public:
-		FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges);
+		FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges)
+			: FClusterProcessor(InVtx, InEdges)
+		{
+			DefaultVtxFilterValue = false;
+		}
+
 		virtual ~FProcessor() override;
 
 		virtual bool Process(FPCGExAsyncManager* AsyncManager) override;

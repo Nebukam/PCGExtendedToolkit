@@ -32,7 +32,7 @@ public:
 	EPCGExDataBlendingType Blending = EPCGExDataBlendingType::Average;
 
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
-	
+
 	virtual bool PrepareForCluster(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster) override;
 
 	FORCEINLINE virtual void PrepareNode(PCGExCluster::FNode& TargetNode) const override;
@@ -68,7 +68,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSamplerDescriptorBase
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")
-class PCGEXTENDEDTOOLKIT_API UPCGNeighborSamplerFactoryAttribute : public UPCGExNeighborSamplerFactoryBase
+class PCGEXTENDEDTOOLKIT_API UPCGExNeighborSamplerFactoryAttribute : public UPCGExNeighborSamplerFactoryBase
 {
 	GENERATED_BODY()
 

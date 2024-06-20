@@ -52,7 +52,9 @@ bool FPCGExWritePathExtrasElement::ExecuteInternal(FPCGContext* InContext) const
 
 		if (!Context->StartBatchProcessingPoints<PCGExPointsMT::TBatch<PCGExWritePathExtras::FProcessor>>(
 			[](PCGExData::FPointIO* Entry) { return Entry->GetNum() >= 2; },
-			[&](PCGExPointsMT::TBatch<PCGExWritePathExtras::FProcessor>* NewBatch) { return; },
+			[&](PCGExPointsMT::TBatch<PCGExWritePathExtras::FProcessor>* NewBatch)
+			{
+			},
 			PCGExMT::State_Done))
 		{
 			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not find any valid path."));
@@ -73,11 +75,6 @@ bool FPCGExWritePathExtrasElement::ExecuteInternal(FPCGContext* InContext) const
 
 namespace PCGExWritePathExtras
 {
-	FProcessor::FProcessor(PCGExData::FPointIO* InPoints):
-		FPointsProcessor(InPoints)
-	{
-	}
-
 	FProcessor::~FProcessor()
 	{
 		PCGEX_FOREACH_FIELD_PATHEXTRAS(PCGEX_OUTPUT_DELETE)
@@ -93,7 +90,7 @@ namespace PCGExWritePathExtras
 			PCGExData::FPointIO& OutputIO = *PointIO;
 			PCGEX_FOREACH_FIELD_PATHEXTRAS(PCGEX_OUTPUT_FWD_INIT)
 		}
-		
+
 		///
 
 		const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
@@ -201,7 +198,6 @@ namespace PCGExWritePathExtras
 
 	void FProcessor::CompleteWork()
 	{
-		
 		PCGEX_FOREACH_FIELD_PATHEXTRAS(PCGEX_OUTPUT_WRITE)
 	}
 }

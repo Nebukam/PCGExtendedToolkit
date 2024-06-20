@@ -80,9 +80,9 @@ PCGEX_INITIALIZE_ELEMENT(PathfindingEdges)
 TArray<FPCGPinProperties> UPCGExPathfindingEdgesSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_POINT(PCGExPathfinding::SourceSeedsLabel, "Seeds points for pathfinding.", Required, {})
-	PCGEX_PIN_POINT(PCGExPathfinding::SourceGoalsLabel, "Goals points for pathfinding.", Required, {})
-	PCGEX_PIN_PARAMS(PCGExPathfinding::SourceHeuristicsLabel, "Heuristics.", Normal, {})
+	PCGEX_PIN_POINT(PCGExGraph::SourceSeedsLabel, "Seeds points for pathfinding.", Required, {})
+	PCGEX_PIN_POINT(PCGExGraph::SourceGoalsLabel, "Goals points for pathfinding.", Required, {})
+	PCGEX_PIN_PARAMS(PCGExGraph::SourceHeuristicsLabel, "Heuristics.", Normal, {})
 	return PinProperties;
 }
 
@@ -124,10 +124,10 @@ bool FPCGExPathfindingEdgesElement::Boot(FPCGContext* InContext) const
 	PCGEX_OPERATION_BIND(SearchAlgorithm, UPCGExSearchAStar)
 
 
-	Context->SeedsPoints = Context->TryGetSingleInput(PCGExPathfinding::SourceSeedsLabel, true);
+	Context->SeedsPoints = Context->TryGetSingleInput(PCGExGraph::SourceSeedsLabel, true);
 	if (!Context->SeedsPoints) { return false; }
 
-	Context->GoalsPoints = Context->TryGetSingleInput(PCGExPathfinding::SourceGoalsLabel, true);
+	Context->GoalsPoints = Context->TryGetSingleInput(PCGExGraph::SourceGoalsLabel, true);
 	if (!Context->GoalsPoints) { return false; }
 
 	if (Settings->bUseSeedAttributeToTagPath)
@@ -184,9 +184,11 @@ bool FPCGExPathfindingEdgesElement::ExecuteInternal(FPCGContext* InContext) cons
 	{
 		if (!Boot(Context)) { return true; }
 
-		if (!Context->StartProcessingClusters<PCGExClusterMT::TBatch<PCGExPathfindingEdge::FProcessor>>(
+		if (!Context->StartProcessingClusters<PCGExClusterMT::TBatchWithHeuristics<PCGExPathfindingEdge::FProcessor>>(
 			[](PCGExData::FPointIOTaggedEntries* Entries) { return true; },
-			[&](PCGExClusterMT::TBatch<PCGExPathfindingEdge::FProcessor>* NewBatch) { return; },
+			[&](PCGExClusterMT::TBatchWithHeuristics<PCGExPathfindingEdge::FProcessor>* NewBatch)
+			{
+			},
 			PCGExMT::State_Done))
 		{
 			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not build any clusters."));
@@ -224,15 +226,9 @@ namespace PCGExPathfindingEdge
 		return true;
 	}
 
-	FProcessor::FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges):
-		FClusterProcessor(InVtx, InEdges)
-	{
-		bRequiresHeuristics = true;
-	}
-
 	FProcessor::~FProcessor()
 	{
-		PCGEX_DELETE_UOBJECT(SearchOperation)
+		PCGEX_DELETE_OPERATION(SearchOperation)
 	}
 
 	bool FProcessor::Process(FPCGExAsyncManager* AsyncManager)

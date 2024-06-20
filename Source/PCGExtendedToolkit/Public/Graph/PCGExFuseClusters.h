@@ -129,7 +129,12 @@ namespace PCGExFuseClusters
 	public:
 		bool bInvalidEdges = true;
 
-		explicit FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges);
+		explicit FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges)
+			: FClusterProcessor(InVtx, InEdges)
+		{
+			bBuildCluster = false;
+		}
+
 		virtual ~FProcessor() override;
 
 		virtual bool Process(FPCGExAsyncManager* AsyncManager) override;

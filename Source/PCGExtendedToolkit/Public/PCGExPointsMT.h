@@ -14,12 +14,12 @@ namespace PCGExPointsMT
 {
 	enum class EMode : uint8
 	{
-		None  = 0,
+		None     = 0,
 		Process  = 1 << 0,
-		Complete   = 1 << 1,
+		Complete = 1 << 1,
 		Write    = 1 << 2,
 	};
-	
+
 	PCGEX_ASYNC_STATE(MTState_PointsProcessing)
 	PCGEX_ASYNC_STATE(MTState_PointsCompletingWork)
 	PCGEX_ASYNC_STATE(MTState_PointsWriting)
@@ -83,7 +83,7 @@ T* Target = nullptr; const int32 Iterations = 0; const PCGExData::ESource Source
 		virtual ~FPointsProcessor()
 		{
 			PointIO = nullptr;
-			PCGEX_DELETE_UOBJECT(PrimaryOperation)
+			PCGEX_DELETE_OPERATION(PrimaryOperation)
 
 			PointFilterCache.Empty();
 		}

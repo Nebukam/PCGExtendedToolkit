@@ -16,7 +16,7 @@ void UPCGExSubPointsBlendOperation::CopySettingsFrom(const UPCGExOperation* Othe
 {
 	Super::CopySettingsFrom(Other);
 	const UPCGExSubPointsBlendOperation* TypedOther = Cast<UPCGExSubPointsBlendOperation>(Other);
-	if (Other)
+	if (TypedOther)
 	{
 		BlendingSettings = TypedOther->BlendingSettings;
 	}

@@ -46,6 +46,10 @@ void UPCGExOperation::Write()
 {
 }
 
+void UPCGExOperation::Write(const TArrayView<int32> Indices)
+{
+}
+
 void UPCGExOperation::BeginDestroy()
 {
 	Cleanup();
@@ -60,4 +64,3 @@ void UPCGExOperation::CopySettingsFrom(const UPCGExOperation* Other)
 {
 	BindContext(Other->Context);
 }
-

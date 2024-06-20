@@ -12,7 +12,6 @@
 
 namespace PCGExPartition
 {
-
 	PCGEX_ASYNC_STATE(State_DistributeToPartition)
 
 	class FKPartition;

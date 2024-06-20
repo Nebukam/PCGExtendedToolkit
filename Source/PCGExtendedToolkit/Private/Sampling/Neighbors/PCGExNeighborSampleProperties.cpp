@@ -12,7 +12,7 @@ void UPCGExNeighborSampleProperties::CopySettingsFrom(const UPCGExOperation* Oth
 {
 	Super::CopySettingsFrom(Other);
 	const UPCGExNeighborSampleProperties* TypedOther = Cast<UPCGExNeighborSampleProperties>(Other);
-	if (Other)
+	if (TypedOther)
 	{
 		BlendingSettings = TypedOther->BlendingSettings;
 	}
@@ -71,7 +71,7 @@ FString UPCGExNeighborSamplePropertiesSettings::GetDisplayName() const
 }
 #endif
 
-UPCGExNeighborSampleOperation* UPCGNeighborSamplerFactoryProperties::CreateOperation() const
+UPCGExNeighborSampleOperation* UPCGExNeighborSamplerFactoryProperties::CreateOperation() const
 {
 	UPCGExNeighborSampleProperties* NewOperation = NewObject<UPCGExNeighborSampleProperties>();
 
@@ -84,7 +84,7 @@ UPCGExNeighborSampleOperation* UPCGNeighborSamplerFactoryProperties::CreateOpera
 
 UPCGExParamFactoryBase* UPCGExNeighborSamplePropertiesSettings::CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const
 {
-	UPCGNeighborSamplerFactoryProperties* SamplerFactory = NewObject<UPCGNeighborSamplerFactoryProperties>();
+	UPCGExNeighborSamplerFactoryProperties* SamplerFactory = NewObject<UPCGExNeighborSamplerFactoryProperties>();
 	SamplerFactory->Descriptor = Descriptor;
 
 	return Super::CreateFactory(InContext, SamplerFactory);

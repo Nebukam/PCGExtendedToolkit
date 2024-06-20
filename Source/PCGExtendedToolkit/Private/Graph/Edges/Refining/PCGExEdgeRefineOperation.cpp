@@ -6,6 +6,11 @@
 
 #include "Graph/Pathfinding/Heuristics/PCGExHeuristics.h"
 
+bool UPCGExEdgeRefineOperation::RequiresHeuristics()
+{
+	return false;
+}
+
 void UPCGExEdgeRefineOperation::Process(PCGExCluster::FCluster* InCluster, PCGExHeuristics::THeuristicsHandler* InHeuristics)
 {
 }

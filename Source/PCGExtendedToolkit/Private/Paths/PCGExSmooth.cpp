@@ -17,7 +17,7 @@ void UPCGExSmoothSettings::PostEditChangeProperty(FPropertyChangedEvent& Propert
 }
 #endif
 
-FName UPCGExSmoothSettings::GetPointFilterLabel() const{ return FName("SmoothConditions");}
+FName UPCGExSmoothSettings::GetPointFilterLabel() const { return FName("SmoothConditions"); }
 
 PCGExData::EInit UPCGExSmoothSettings::GetMainOutputInitMode() const { return PCGExData::EInit::DuplicateInput; }
 
@@ -96,12 +96,6 @@ bool FPCGExSmoothElement::ExecuteInternal(FPCGContext* InContext) const
 
 namespace PCGExSmooth
 {
-	FProcessor::FProcessor(PCGExData::FPointIO* InPoints)
-		: FPointsProcessor(InPoints)
-	{
-		DefaultPointFilterValue = true;
-	}
-
 	FProcessor::~FProcessor()
 	{
 		PCGEX_DELETE(MetadataBlender)

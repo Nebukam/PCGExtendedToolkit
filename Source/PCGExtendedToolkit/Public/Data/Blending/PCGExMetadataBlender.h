@@ -51,7 +51,7 @@ namespace PCGExDataBlending
 
 		void Write(bool bFlush = true);
 		void Write(TArrayView<int32> InIndices, bool bFlush = true);
-		
+
 		void Flush();
 
 	protected:

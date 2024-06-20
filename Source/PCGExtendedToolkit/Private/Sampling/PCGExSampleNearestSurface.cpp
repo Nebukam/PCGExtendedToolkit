@@ -89,11 +89,6 @@ bool FPCGExSampleNearestSurfaceElement::ExecuteInternal(FPCGContext* InContext) 
 
 namespace PCGExSampleNearestSurface
 {
-	FProcessor::FProcessor(PCGExData::FPointIO* InPoints):
-		FPointsProcessor(InPoints)
-	{
-	}
-
 	FProcessor::~FProcessor()
 	{
 		PCGEX_DELETE(MaxDistanceGetter)
@@ -224,7 +219,6 @@ namespace PCGExSampleNearestSurface
 
 	void FProcessor::CompleteWork()
 	{
-		
 		PCGEX_FOREACH_FIELD_NEARESTSURFACE(PCGEX_OUTPUT_WRITE)
 	}
 }

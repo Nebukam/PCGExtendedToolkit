@@ -247,7 +247,7 @@ namespace PCGExGraph
 		else
 		{
 			AsyncManager->Start<PCGExGraphTask::FCompileGraph>(
-				-1, PointIO, const_cast<FGraphBuilder*>(this), MetadataSettings);
+				-1, PointIO, this, MetadataSettings);
 		}
 	}
 
@@ -265,7 +265,7 @@ namespace PCGExGraph
 
 		PointIO->CleanupKeys(); //Ensure fresh keys later on
 
-		TArray<PCGExGraph::FNode>& Nodes = Graph->Nodes;
+		TArray<FNode>& Nodes = Graph->Nodes;
 		TArray<int32> ValidNodes;
 		ValidNodes.Reserve(Nodes.Num());
 
@@ -283,7 +283,7 @@ namespace PCGExGraph
 				TArray<FPCGPoint> PrunedPoints;
 				PrunedPoints.Reserve(MutablePoints.Num());
 
-				for (PCGExGraph::FNode& Node : Nodes)
+				for (FNode& Node : Nodes)
 				{
 					if (!Node.bValid || Node.Adjacency.IsEmpty()) { continue; }
 					Node.PointIndex = PrunedPoints.Add(MutablePoints[Node.PointIndex]);
@@ -297,7 +297,7 @@ namespace PCGExGraph
 				const int32 NumMaxNodes = Nodes.Num();
 				MutablePoints.Reserve(NumMaxNodes);
 
-				for (PCGExGraph::FNode& Node : Nodes)
+				for (FNode& Node : Nodes)
 				{
 					if (!Node.bValid || Node.Adjacency.IsEmpty()) { continue; }
 					Node.PointIndex = MutablePoints.Add(PointIO->GetInPoint(Node.PointIndex));
@@ -308,20 +308,20 @@ namespace PCGExGraph
 		else
 		{
 			TRACE_CPUPROFILER_EVENT_SCOPE(FCompileGraph::NotPrunePoints);
-			for (const PCGExGraph::FNode& Node : Nodes) { if (Node.bValid) { ValidNodes.Add(Node.NodeIndex); } }
+			for (const FNode& Node : Nodes) { if (Node.bValid) { ValidNodes.Add(Node.NodeIndex); } }
 		}
 
 		PointIO->SetNumInitialized(PointIO->GetOutNum(), true);
 
-		PCGEx::TFAttributeWriter<int64>* VtxEndpointWriter = new PCGEx::TFAttributeWriter<int64>(PCGExGraph::Tag_VtxEndpoint, 0, false);
+		PCGEx::TFAttributeWriter<int64>* VtxEndpointWriter = new PCGEx::TFAttributeWriter<int64>(Tag_VtxEndpoint, 0, false);
 
 		VtxEndpointWriter->BindAndSetNumUninitialized(*PointIO);
 
 		const TArray<FPCGPoint>& OutPoints = PointIO->GetOut()->GetPoints();
 		for (const int32 NodeIndex : ValidNodes)
 		{
-			const PCGExGraph::FNode& Node = Nodes[NodeIndex];
-			VtxEndpointWriter->Values[Node.PointIndex] = PCGEx::H64(PCGExGraph::HCID(OutPoints[Node.PointIndex].MetadataEntry), Node.NumExportedEdges);
+			const FNode& Node = Nodes[NodeIndex];
+			VtxEndpointWriter->Values[Node.PointIndex] = PCGEx::H64(HCID(OutPoints[Node.PointIndex].MetadataEntry), Node.NumExportedEdges);
 		}
 
 		VtxEndpointWriter->Write();
@@ -348,16 +348,16 @@ Writer->BindAndSetNumUninitialized(*PointIO);\
 
 		bCompiledSuccessfully = true;
 
-		PCGEx::TFAttributeWriter<int64>* NumClusterIdWriter = new PCGEx::TFAttributeWriter<int64>(PCGExGraph::Tag_ClusterId, -1, false);
+		PCGEx::TFAttributeWriter<int64>* NumClusterIdWriter = new PCGEx::TFAttributeWriter<int64>(Tag_ClusterId, -1, false);
 		NumClusterIdWriter->BindAndSetNumUninitialized(*PointIO);
 
 
 		// Subgraphs
 
-		TArray<PCGExGraph::FSubGraph*> SmallSubGraphs;
+		TArray<FSubGraph*> SmallSubGraphs;
 
 		int32 SubGraphIndex = 0;
-		for (PCGExGraph::FSubGraph* SubGraph : Graph->SubGraphs)
+		for (FSubGraph* SubGraph : Graph->SubGraphs)
 		{
 			PCGExData::FPointIO* EdgeIO;
 
@@ -374,8 +374,8 @@ Writer->BindAndSetNumUninitialized(*PointIO);\
 			const int64 ClusterId = EdgeIO->GetOut()->UID;
 			SubGraph->EdgeIO = EdgeIO;
 
-			PCGExGraph::MarkClusterEdges(EdgeIO, PairIdStr);
-			PCGExData::WriteMark(EdgeIO->GetOut()->Metadata, PCGExGraph::Tag_ClusterId, ClusterId);
+			MarkClusterEdges(EdgeIO, PairIdStr);
+			PCGExData::WriteMark(EdgeIO->GetOut()->Metadata, Tag_ClusterId, ClusterId);
 
 			if (SubGraph->Edges.Num() < 100)
 			{
@@ -389,7 +389,6 @@ Writer->BindAndSetNumUninitialized(*PointIO);\
 			}
 			else
 			{
-				
 				AsyncManager->Start<PCGExGraphTask::FWriteSubGraphEdges>(SubGraphIndex++, PointIO, Graph, SubGraph, MetadataSettings);
 			}
 
@@ -397,7 +396,7 @@ Writer->BindAndSetNumUninitialized(*PointIO);\
 
 			for (const int32 EdgeIndex : SubGraph->Edges)
 			{
-				const PCGExGraph::FIndexedEdge& Edge = Graph->Edges[EdgeIndex];
+				const FIndexedEdge& Edge = Graph->Edges[EdgeIndex];
 				NumClusterIdWriter->Values[Graph->Nodes[Edge.Start].PointIndex] = ClusterId;
 				NumClusterIdWriter->Values[Graph->Nodes[Edge.End].PointIndex] = ClusterId;
 			}
@@ -411,7 +410,7 @@ Writer->BindAndSetNumUninitialized(*PointIO);\
 
 		NumClusterIdWriter->Write();
 
-		PCGExGraph::MarkClusterVtx(PointIO, PairIdStr);
+		MarkClusterVtx(PointIO, PairIdStr);
 		PCGEX_DELETE(NumClusterIdWriter)
 	}
 

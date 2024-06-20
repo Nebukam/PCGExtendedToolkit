@@ -10,7 +10,7 @@ void UPCGExForceDirectedRelaxing::CopySettingsFrom(const UPCGExOperation* Other)
 {
 	Super::CopySettingsFrom(Other);
 	const UPCGExForceDirectedRelaxing* TypedOther = Cast<UPCGExForceDirectedRelaxing>(Other);
-	if (Other)
+	if (TypedOther)
 	{
 		SpringConstant = TypedOther->SpringConstant;
 		ElectrostaticConstant = TypedOther->ElectrostaticConstant;

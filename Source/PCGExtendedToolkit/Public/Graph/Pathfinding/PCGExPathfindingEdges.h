@@ -177,7 +177,12 @@ namespace PCGExPathfindingEdge
 	class FProcessor final : public PCGExClusterMT::FClusterProcessor
 	{
 	public:
-		FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges);
+		FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges):
+			FClusterProcessor(InVtx, InEdges)
+		{
+			
+		}
+
 		virtual ~FProcessor() override;
 
 		UPCGExSearchOperation* SearchOperation = nullptr;

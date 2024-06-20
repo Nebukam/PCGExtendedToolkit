@@ -101,15 +101,19 @@ namespace PCGExOffsetPath
 
 		double OffsetConstant = 0;
 		FVector UpVector = FVector::UpVector;
-		
+
 		TArray<FVector> Positions;
 		TArray<FVector> Normals;
-		
+
 		PCGEx::FLocalSingleFieldGetter* OffsetGetter = nullptr;
 		PCGEx::FLocalVectorGetter* UpGetter = nullptr;
 
 	public:
-		explicit FProcessor(PCGExData::FPointIO* InPoints);
+		explicit FProcessor(PCGExData::FPointIO* InPoints):
+			FPointsProcessor(InPoints)
+		{
+		}
+
 		virtual ~FProcessor() override;
 
 		virtual bool Process(FPCGExAsyncManager* AsyncManager) override;
@@ -119,6 +123,5 @@ namespace PCGExOffsetPath
 
 	protected:
 		FVector NRM(const int32 A, const int32 B, const int32 C) const;
-		
 	};
 }

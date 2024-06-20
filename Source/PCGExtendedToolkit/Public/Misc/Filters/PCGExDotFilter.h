@@ -57,6 +57,13 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExDotFilterDescriptor
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bExcludeAboveDot"))
 	double ExcludeAbove = 0.5;
 
+	/** Transform OperandA with the local point' transform */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	bool bTransformOperandA = false;
+
+	/** Transform OperandB with the local point' transform */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	bool bTransformOperandB = false;
 
 #if WITH_EDITOR
 	FString GetDisplayName() const;
@@ -81,6 +88,8 @@ public:
 	double ExcludeBelow = 0;
 	bool bExcludeAboveDot = false;
 	double ExcludeAbove = 0.5;
+	bool bTransformOperandA = false;
+	bool bTransformOperandB = false;
 
 	void ApplyDescriptor(const FPCGExDotFilterDescriptor& Descriptor)
 	{
@@ -93,6 +102,8 @@ public:
 		ExcludeBelow = Descriptor.ExcludeBelow;
 		bExcludeAboveDot = Descriptor.bDoExcludeAboveDot;
 		ExcludeAbove = Descriptor.ExcludeAbove;
+		bTransformOperandA = Descriptor.bTransformOperandA;
+		bTransformOperandB = Descriptor.bTransformOperandB;
 	}
 
 	virtual PCGExDataFilter::TFilter* CreateFilter() const override;

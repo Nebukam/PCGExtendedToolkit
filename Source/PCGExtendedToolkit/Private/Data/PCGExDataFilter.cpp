@@ -19,6 +19,7 @@ namespace PCGExDataFilter
 
 	void TFilter::Capture(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO)
 	{
+		FilteredIO = PointIO;
 		bValid = true;
 	}
 

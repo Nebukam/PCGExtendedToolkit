@@ -9,19 +9,9 @@
 
 #include "PCGExPathfindingFindContours.generated.h"
 
-namespace PCGExContours
+namespace PCGExFindContours
 {
-	struct PCGEXTENDEDTOOLKIT_API FCandidate
-	{
-		explicit FCandidate(const int32 InNodeIndex)
-			: NodeIndex(InNodeIndex)
-		{
-		}
-
-		int32 NodeIndex;
-		double Distance = TNumericLimits<double>::Max();
-		double Dot = -1;
-	};
+	class FProcessor;
 }
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Edges")
@@ -89,12 +79,14 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFindContoursContext final : public FPCGExEdg
 
 	PCGExData::FPointIO* Seeds;
 	TArray<FVector> ProjectedSeeds;
-	
+
 	PCGExData::FPointIOCollection* Paths;
 
 	TArray<PCGEx::FLocalToStringGetter*> SeedTagGetters;
 	TArray<PCGExDataBlending::FDataForwardHandler*> SeedForwardHandlers;
 
+	bool TryFindContours(PCGExData::FPointIO* PointIO, const int32 SeedIndex, const PCGExFindContours::FProcessor* ClusterProcessor);
+	
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExFindContoursElement final : public FPCGExEdgesProcessorElement
@@ -112,35 +104,42 @@ protected:
 
 namespace PCGExFindContours
 {
-	class PCGEXTENDEDTOOLKIT_API FPCGExFindContourTask final : public FPCGExNonAbandonableTask
+	class FProcessor final : public PCGExClusterMT::FClusterProcessor
 	{
+		friend struct FPCGExFindContoursContext;
+
+	protected:
+		FPCGExGeo2DProjectionSettings ProjectionSettings;
+		PCGExCluster::FClusterProjection* ClusterProjection = nullptr;
+
 	public:
-		FPCGExFindContourTask(PCGExData::FPointIO* InPointIO,
-		                      PCGExCluster::FCluster* InCluster) :
-			FPCGExNonAbandonableTask(InPointIO),
-			Cluster(InCluster)
+		FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges):
+			FClusterProcessor(InVtx, InEdges)
 		{
 		}
 
-		PCGExCluster::FCluster* Cluster = nullptr;
-
-		virtual bool ExecuteTask() override;
-	};
-
-	class FProcessor final : public PCGExClusterMT::FClusterProcessor
-	{		
-		FPCGExGeo2DProjectionSettings ProjectionSettings;
-		PCGExCluster::FClusterProjection* ClusterProjection = nullptr;
-		
-	public:
-		FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges);
 		virtual ~FProcessor() override;
 
 		virtual bool Process(FPCGExAsyncManager* AsyncManager) override;
 		virtual void CompleteWork() override;
 
 		virtual void ProcessSingleNode(PCGExCluster::FNode& Node) override;
-		
+
 		PCGExGraph::FGraphBuilder* GraphBuilder = nullptr;
+	};
+
+	class PCGEXTENDEDTOOLKIT_API FPCGExFindContourTask final : public FPCGExNonAbandonableTask
+	{
+	public:
+		FPCGExFindContourTask(PCGExData::FPointIO* InPointIO,
+		                      FProcessor* InClusterProcessor) :
+			FPCGExNonAbandonableTask(InPointIO),
+			ClusterProcessor(InClusterProcessor)
+		{
+		}
+
+		FProcessor* ClusterProcessor = nullptr;
+
+		virtual bool ExecuteTask() override;
 	};
 }

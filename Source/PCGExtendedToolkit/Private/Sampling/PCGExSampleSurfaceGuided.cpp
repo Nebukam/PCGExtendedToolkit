@@ -85,11 +85,6 @@ bool FPCGExSampleSurfaceGuidedElement::ExecuteInternal(FPCGContext* InContext) c
 
 namespace PCGExSampleSurfaceGuided
 {
-	FProcessor::FProcessor(PCGExData::FPointIO* InPoints):
-		FPointsProcessor(InPoints)
-	{
-	}
-
 	FProcessor::~FProcessor()
 	{
 		PCGEX_DELETE(MaxDistanceGetter)
@@ -204,7 +199,6 @@ namespace PCGExSampleSurfaceGuided
 
 	void FProcessor::CompleteWork()
 	{
-		
 		PCGEX_FOREACH_FIELD_SURFACEGUIDED(PCGEX_OUTPUT_WRITE)
 	}
 }

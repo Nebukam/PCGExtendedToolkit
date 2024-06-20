@@ -31,9 +31,8 @@ public:
 	//~End UPCGExPointsProcessorSettings interface
 
 public:
-
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	FVector GHTolerance = FVector(0.001,0.001,0.001);
+	FVector GHTolerance = FVector(0.001, 0.001, 0.001);
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExInternalDebugContext final : public FPCGExPointsProcessorContext

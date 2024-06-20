@@ -11,7 +11,7 @@ void UPCGExEdgePromoteToPoint::PromoteEdge(const PCGExGraph::FUnsignedEdge& Edge
 	int32 Index;
 
 	FPCGExPointsProcessorContext* PtContext = static_cast<FPCGExPointsProcessorContext*>(Context);
-	
+
 	FPCGPoint& NewPoint = PtContext->CurrentIO->NewPoint(Index);
 	NewPoint.Transform.SetLocation(FMath::Lerp(StartPoint.Transform.GetLocation(), EndPoint.Transform.GetLocation(), 0.5));
 }

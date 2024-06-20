@@ -10,7 +10,7 @@ void UPCGExSubPointsOrientLookAt::CopySettingsFrom(const UPCGExOperation* Other)
 {
 	Super::CopySettingsFrom(Other);
 	const UPCGExSubPointsOrientLookAt* TypedOther = Cast<UPCGExSubPointsOrientLookAt>(Other);
-	if (Other)
+	if (TypedOther)
 	{
 		LookAt = TypedOther->LookAt;
 		LookAtSelector = TypedOther->LookAtSelector;

@@ -142,7 +142,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPathfindingNavmeshContext final : public FPC
 
 	PCGExDataBlending::FDataForwardHandler* SeedForwardHandler = nullptr;
 	PCGExDataBlending::FDataForwardHandler* GoalForwardHandler = nullptr;
-	
 };
 
 class PCGEXTENDEDTOOLKIT_API FPCGExPathfindingNavmeshElement final : public FPCGExPointsProcessorElement

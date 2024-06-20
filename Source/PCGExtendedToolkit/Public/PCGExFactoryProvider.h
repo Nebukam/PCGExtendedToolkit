@@ -29,7 +29,8 @@ namespace PCGExFactories
 		NodeState,
 		SocketState,
 		Sampler,
-		Heuristics
+		Heuristics,
+		VtxExtra
 	};
 
 	static inline TSet<EType> ClusterFilters = {EType::Filter, EType::ClusterFilter};

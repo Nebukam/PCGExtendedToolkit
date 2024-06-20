@@ -37,7 +37,6 @@ enum class EPCGExExpandPointsBoundsMode : uint8
 
 namespace PCGExDiscardByOverlap
 {
-
 	PCGEX_ASYNC_STATE(State_InitialOverlap)
 	PCGEX_ASYNC_STATE(State_PreciseOverlap)
 	PCGEX_ASYNC_STATE(State_ProcessFastOverlap)

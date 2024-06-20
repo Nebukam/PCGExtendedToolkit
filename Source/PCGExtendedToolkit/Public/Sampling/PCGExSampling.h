@@ -87,7 +87,6 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExActorDataSampling
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bWriteActorReference"))
 	FName ActorReferenceAttribute = FName("ActorReference");
-
 };
 
 namespace PCGExSampling

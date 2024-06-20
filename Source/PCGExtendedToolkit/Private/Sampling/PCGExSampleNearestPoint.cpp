@@ -109,12 +109,6 @@ bool FPCGExSampleNearestPointElement::ExecuteInternal(FPCGContext* InContext) co
 
 namespace PCGExSampleNearestPoints
 {
-	FProcessor::FProcessor(PCGExData::FPointIO* InPoints)
-		: FPointsProcessor(InPoints)
-	{
-		DefaultPointFilterValue = true;
-	}
-
 	FProcessor::~FProcessor()
 	{
 		PCGEX_DELETE(Blender)
@@ -290,7 +284,7 @@ namespace PCGExSampleNearestPoints
 		FVector WeightedSignAxis = FVector::Zero();
 		FVector WeightedAngleAxis = FVector::Zero();
 		double TotalWeight = 0;
-		double TotalSamples = 0;	
+		double TotalSamples = 0;
 
 		auto ProcessTargetInfos = [&]
 			(const PCGExNearestPoint::FTargetInfos& TargetInfos, const double Weight)
@@ -310,7 +304,7 @@ namespace PCGExSampleNearestPoints
 			WeightedAngleAxis += PCGExMath::GetDirection(TargetRotation, Settings->AngleAxis) * Weight;
 
 			TotalWeight += Weight;
-			TotalSamples ++;
+			TotalSamples++;
 
 			if (Blender) { Blender->Blend(Index, TargetInfos.Index, Index, Weight); }
 		};
@@ -360,7 +354,6 @@ namespace PCGExSampleNearestPoints
 
 	void FProcessor::CompleteWork()
 	{
-		
 		PCGEX_FOREACH_FIELD_NEARESTPOINT(PCGEX_OUTPUT_WRITE)
 		if (Blender) { Blender->Write(); }
 	}

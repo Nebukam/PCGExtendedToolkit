@@ -55,7 +55,6 @@ public:
 	/** */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ShowOnlyInnerProperties))
 	EPCGExPathSplitAction SplitAction = EPCGExPathSplitAction::Split;
-
 };
 
 struct PCGEXTENDEDTOOLKIT_API FPCGExSplitPathContext final : public FPCGExPathProcessorContext
@@ -83,7 +82,12 @@ namespace PCGExSplitPath
 	class FProcessor final : public PCGExPointsMT::FPointsProcessor
 	{
 	public:
-		explicit FProcessor(PCGExData::FPointIO* InPoints);
+		explicit FProcessor(PCGExData::FPointIO* InPoints)
+			: FPointsProcessor(InPoints)
+		{
+			DefaultPointFilterValue = false;
+		}
+
 		virtual ~FProcessor() override;
 
 		virtual bool Process(FPCGExAsyncManager* AsyncManager) override;

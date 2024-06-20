@@ -124,14 +124,14 @@ namespace PCGExGraph
 		int32 NumNodes() const { return PointsCompounds->Num(); }
 		int32 NumEdges() const { return EdgesCompounds->Num(); }
 
-		 FCompoundNode* GetOrCreateNode(const FPCGPoint& Point, const int32 IOIndex, const int32 PointIndex);
-		 FCompoundNode* GetOrCreateNodeUnsafe(const FPCGPoint& Point, const int32 IOIndex, const int32 PointIndex);
-		 PCGExData::FIdxCompound* CreateBridge(const FPCGPoint& From, const int32 FromIOIndex, const int32 FromPointIndex,
-		                                       const FPCGPoint& To, const int32 ToIOIndex, const int32 ToPointIndex,
-		                                       const int32 EdgeIOIndex = -1, const int32 EdgePointIndex = -1);
-		 PCGExData::FIdxCompound* CreateBridgeUnsafe(const FPCGPoint& From, const int32 FromIOIndex, const int32 FromPointIndex,
-		                                                        const FPCGPoint& To, const int32 ToIOIndex, const int32 ToPointIndex,
-		                                                        const int32 EdgeIOIndex = -1, const int32 EdgePointIndex = -1);
+		FCompoundNode* GetOrCreateNode(const FPCGPoint& Point, const int32 IOIndex, const int32 PointIndex);
+		FCompoundNode* GetOrCreateNodeUnsafe(const FPCGPoint& Point, const int32 IOIndex, const int32 PointIndex);
+		PCGExData::FIdxCompound* CreateBridge(const FPCGPoint& From, const int32 FromIOIndex, const int32 FromPointIndex,
+		                                      const FPCGPoint& To, const int32 ToIOIndex, const int32 ToPointIndex,
+		                                      const int32 EdgeIOIndex = -1, const int32 EdgePointIndex = -1);
+		PCGExData::FIdxCompound* CreateBridgeUnsafe(const FPCGPoint& From, const int32 FromIOIndex, const int32 FromPointIndex,
+		                                            const FPCGPoint& To, const int32 ToIOIndex, const int32 ToPointIndex,
+		                                            const int32 EdgeIOIndex = -1, const int32 EdgePointIndex = -1);
 		void GetUniqueEdges(TArray<FUnsignedEdge>& OutEdges);
 		void WriteMetadata(TMap<int32, FGraphNodeMetadata*>& OutMetadata);
 	};

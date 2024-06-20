@@ -18,6 +18,7 @@
 
 #define PCGEX_DELETE(_VALUE) if(_VALUE){ delete _VALUE; _VALUE = nullptr; }
 #define PCGEX_DELETE_UOBJECT(_VALUE) if(_VALUE){ if (_VALUE->IsRooted()){_VALUE->RemoveFromRoot();} _VALUE->MarkAsGarbage(); _VALUE = nullptr; } // ConditionalBeginDestroy
+#define PCGEX_DELETE_OPERATION(_VALUE) if(_VALUE){ _VALUE->Cleanup(); PCGEX_DELETE_UOBJECT(_VALUE) _VALUE = nullptr; } // ConditionalBeginDestroy
 #define PCGEX_DELETE_TARRAY(_VALUE) for(const auto* Item : _VALUE){ delete Item; } _VALUE.Empty();
 #define PCGEX_DELETE_TMAP(_VALUE, _TYPE){TArray<_TYPE> Keys; _VALUE.GetKeys(Keys); for (const _TYPE Key : Keys) { delete *_VALUE.Find(Key); } _VALUE.Empty(); Keys.Empty(); }
 #define PCGEX_CLEANUP(_VALUE) _VALUE.Cleanup();
@@ -399,9 +400,9 @@ namespace PCGEx
 	FORCEINLINE static uint64 GH(const FInt64Vector3& Seed)
 	{
 		uint64 Seed64 = 0;
-		PCGEx::HC64(Seed64, std::hash<int64>()(Seed.X));
-		PCGEx::HC64(Seed64, std::hash<int64>()(Seed.Y));
-		PCGEx::HC64(Seed64, std::hash<int64>()(Seed.Z));
+		HC64(Seed64, std::hash<int64>()(Seed.X));
+		HC64(Seed64, std::hash<int64>()(Seed.Y));
+		HC64(Seed64, std::hash<int64>()(Seed.Z));
 		return Seed64;
 	}
 

@@ -19,7 +19,7 @@ void UPCGExRefineEdgesSettings::PostInitProperties()
 TArray<FPCGPinProperties> UPCGExRefineEdgesSettings::InputPinProperties() const
 {
 	TArray<FPCGPinProperties> PinProperties = Super::InputPinProperties();
-	PCGEX_PIN_PARAMS(PCGExPathfinding::SourceHeuristicsLabel, "Heuristics may be used by some refinements, such as MST.", Normal, {})
+	if (Refinement && Refinement->RequiresHeuristics()) { PCGEX_PIN_PARAMS(PCGExGraph::SourceHeuristicsLabel, "Heuristics may be required by some refinements.", Required, {}) }
 	return PinProperties;
 }
 
@@ -39,8 +39,20 @@ bool FPCGExRefineEdgesElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_CONTEXT_AND_SETTINGS(RefineEdges)
 
+	if (!Settings->Refinement)
+	{
+		PCGE_LOG(Error, GraphAndLog, FTEXT("No refinement selected."));
+		return false;
+	}
+
 	PCGEX_OPERATION_BIND(Refinement, UPCGExEdgeRefinePrimMST)
 	PCGEX_FWD(GraphBuilderSettings)
+
+	if (Context->Refinement->RequiresHeuristics() && !Context->bHasValidHeuristics)
+	{
+		PCGE_LOG(Error, GraphAndLog, FTEXT("The selected refinement requires heuristics to be connected, but none can be found."));
+		return false;
+	}
 
 	return true;
 }
@@ -61,6 +73,7 @@ bool FPCGExRefineEdgesElement::ExecuteInternal(
 			[&](PCGExRefineEdges::FProcessorBatch* NewBatch)
 			{
 				NewBatch->Refinement = Context->Refinement;
+				if (NewBatch->Refinement->RequiresHeuristics()) { NewBatch->SetRequiresHeuristics(true); }
 			},
 			PCGExMT::State_Done))
 		{
@@ -89,13 +102,6 @@ namespace PCGExRefineEdges
 		return false;
 	}
 
-	FProcessor::FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges)
-		: FClusterProcessor(InVtx, InEdges)
-	{
-		bRequiresHeuristics = true;
-		DefaultVtxFilterValue = false;
-	}
-
 	FProcessor::~FProcessor()
 	{
 	}
@@ -121,12 +127,10 @@ namespace PCGExRefineEdges
 		TArray<PCGExGraph::FIndexedEdge> ValidEdges;
 		Cluster->GetValidEdges(ValidEdges);
 		GraphBuilder->Graph->InsertEdges(ValidEdges);
-
-		
 	}
 
 	FProcessorBatch::FProcessorBatch(FPCGContext* InContext, PCGExData::FPointIO* InVtx, const TArrayView<PCGExData::FPointIO*> InEdges)
-		: TBatchWithGraphBuilder(InContext, InVtx, InEdges)
+		: TBatchWithGraphBuilder<PCGExRefineEdges::FProcessor>(InContext, InVtx, InEdges)
 	{
 	}
 

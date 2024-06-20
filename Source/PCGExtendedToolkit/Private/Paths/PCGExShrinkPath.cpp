@@ -153,11 +153,10 @@ bool FPCGExShrinkPathElement::ExecuteInternal(FPCGContext* InContext) const
 			return true;
 		}
 
-		if(bInvalidInputs)
+		if (bInvalidInputs)
 		{
 			PCGE_LOG(Warning, GraphAndLog, FTEXT("Some inputs have less than 2 points and won't be processed."));
 		}
-		
 	}
 
 	if (!Context->ProcessPointsBatch()) { return false; }
@@ -173,12 +172,6 @@ bool FPCGExShrinkPathElement::ExecuteInternal(FPCGContext* InContext) const
 
 namespace PCGExShrinkPath
 {
-	FProcessor::FProcessor(PCGExData::FPointIO* InPoints)
-		: FPointsProcessor(InPoints)
-	{
-		DefaultPointFilterValue = false;
-	}
-
 	FProcessor::~FProcessor()
 	{
 	}
@@ -186,7 +179,7 @@ namespace PCGExShrinkPath
 	bool FProcessor::Process(FPCGExAsyncManager* AsyncManager)
 	{
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(ShrinkPath)
-		
+
 		if (!FPointsProcessor::Process(AsyncManager)) { return false; }
 
 		const TArray<FPCGPoint>& InPoints = PointIO->GetIn()->GetPoints();
@@ -430,10 +423,8 @@ namespace PCGExShrinkPath
 
 	void FProcessor::CompleteWork()
 	{
-		
 	}
 }
-
 
 
 #undef LOCTEXT_NAMESPACE

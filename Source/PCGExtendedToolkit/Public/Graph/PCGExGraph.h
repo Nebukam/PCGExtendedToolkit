@@ -142,6 +142,14 @@ namespace PCGExGraph
 	const FName Tag_PackedClusterPointCount = TEXT("PCGEx/PackedClusterPointCount");
 	const FName Tag_PackedClusterEdgeCount = TEXT("PCGEx/PackedClusterEdgeCount");
 
+	const FName SourceSeedsLabel = TEXT("Seeds");
+	const FName SourceGoalsLabel = TEXT("Goals");
+	const FName SourcePlotsLabel = TEXT("Plots");
+
+	const FName SourceHeuristicsLabel = TEXT("Heuristics");
+	const FName OutputHeuristicsLabel = TEXT("Heuristics");
+	const FName OutputModifiersLabel = TEXT("Modifiers");
+
 	PCGEX_ASYNC_STATE(State_ReadyForNextGraph)
 	PCGEX_ASYNC_STATE(State_ProcessingGraph)
 	PCGEX_ASYNC_STATE(State_ProcessingCompound)
@@ -174,6 +182,11 @@ namespace PCGExGraph
 	PCGEX_ASYNC_STATE(State_WritingMainState)
 	PCGEX_ASYNC_STATE(State_WritingStatesAttributes)
 	PCGEX_ASYNC_STATE(State_WritingIndividualStates)
+
+	PCGEX_ASYNC_STATE(State_ProcessingHeuristics)
+	PCGEX_ASYNC_STATE(State_ProcessingHeuristicModifiers)
+	PCGEX_ASYNC_STATE(State_Pathfinding)
+	PCGEX_ASYNC_STATE(State_WaitingPathfinding)
 
 	class FGraph;
 
@@ -458,7 +471,6 @@ namespace PCGExGraph
 			PCGEX_DELETE(Graph)
 			PCGEX_DELETE(EdgesIO)
 		}
-
 	};
 
 	static bool BuildEndpointsLookup(
@@ -750,7 +762,6 @@ namespace PCGExGraphTask
 		PCGExGraph::FGraphMetadataSettings* MetadataSettings = nullptr;
 
 		virtual bool ExecuteTask() override;
-
 	};
 
 	class PCGEXTENDEDTOOLKIT_API FCopyGraphToPoint final : public FPCGExNonAbandonableTask

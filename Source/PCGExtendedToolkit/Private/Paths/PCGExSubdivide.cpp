@@ -99,11 +99,6 @@ bool FPCGExSubdivideElement::ExecuteInternal(FPCGContext* InContext) const
 
 namespace PCGExSubdivide
 {
-	FProcessor::FProcessor(PCGExData::FPointIO* InPoints):
-		FPointsProcessor(InPoints)
-	{
-	}
-
 	FProcessor::~FProcessor()
 	{
 		Milestones.Empty();

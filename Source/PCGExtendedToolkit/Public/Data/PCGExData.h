@@ -12,8 +12,7 @@
 
 namespace PCGExData
 {
-
-	PCGEX_ASYNC_STATE(State_MergingData);	
+	PCGEX_ASYNC_STATE(State_MergingData);
 
 #pragma region Compound
 

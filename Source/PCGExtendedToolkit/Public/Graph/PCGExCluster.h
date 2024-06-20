@@ -42,7 +42,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExNodeSelectionSettings
 
 	/** Drives how the seed & goal points are selected within each cluster. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExClusterClosestSearchMode PickingMethod = EPCGExClusterClosestSearchMode::Node;
+	EPCGExClusterClosestSearchMode PickingMethod = EPCGExClusterClosestSearchMode::Edge;
 
 	/** Max distance at which a node can be selected. Use <= 0 to ignore distance check. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
@@ -167,6 +167,8 @@ namespace PCGExCluster
 		FORCEINLINE void AddConnection(const int32 InNodeIndex, const int32 InEdgeIndex);
 		FORCEINLINE FVector GetCentroid(FCluster* InCluster) const;
 		FORCEINLINE int32 GetEdgeIndex(int32 AdjacentNodeIndex) const;
+
+		void ExtractAdjacencies(TArray<int32>& OutNodes, TArray<int32>& OutEdges) const;
 	};
 
 	struct PCGEXTENDEDTOOLKIT_API FCluster
@@ -335,6 +337,36 @@ namespace PCGExCluster
 		PCGExData::FPointIO* LastPoints = nullptr;
 		FCluster* Cluster = nullptr;
 	};
+
+	struct PCGEXTENDEDTOOLKIT_API FAdjacencyData
+	{
+		int32 NodeIndex = -1;
+		int32 EdgeIndex = -1;
+		FVector Direction = FVector::OneVector;
+		double Length = 0;
+	};
+
+	static void GetAdjacencyData(FCluster* InCluster, FNode& InNode, TArray<FAdjacencyData>& OutData)
+	{
+		const int32 NumAdjacency = InNode.Adjacency.Num();
+		FVector NodePosition = InNode.Position;
+		OutData.Reserve(NumAdjacency);
+		for (int i = 0; i < NumAdjacency; i++)
+		{
+			uint32 NIndex;
+			uint32 EIndex;
+
+			PCGEx::H64(InNode.Adjacency[i], NIndex, EIndex);
+
+			FVector OtherPosition = InCluster->Nodes[NIndex].Position;
+
+			FAdjacencyData& Data = OutData.Emplace_GetRef();
+			Data.NodeIndex = NIndex;
+			Data.EdgeIndex = EIndex;
+			Data.Direction = (NodePosition - OtherPosition).GetSafeNormal();
+			Data.Length = FVector::Dist(NodePosition, OtherPosition);
+		}
+	}
 }
 
 namespace PCGExClusterTask
