@@ -22,7 +22,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgeMatchSettings
 
 	/** Matching edge. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FPCGExSingleEdgeOutputSettings MatchingEdge = FPCGExSingleEdgeOutputSettings(TEXT("Matching"));
+	FPCGExEdgeOutputWithIndexSettings MatchingEdge = FPCGExEdgeOutputWithIndexSettings(TEXT("Matching"));
 };
 
 /**

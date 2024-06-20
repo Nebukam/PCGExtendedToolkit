@@ -23,18 +23,18 @@ namespace PCGExVtxExtra
 }
 
 USTRUCT(BlueprintType)
-struct PCGEXTENDEDTOOLKIT_API FPCGExSingleEdgeOutputSettings
+struct PCGEXTENDEDTOOLKIT_API FPCGExSimpleEdgeOutputSettings
 {
 	GENERATED_BODY()
+	virtual ~FPCGExSimpleEdgeOutputSettings() = default;
 
-	FPCGExSingleEdgeOutputSettings()
+	FPCGExSimpleEdgeOutputSettings()
 	{
 	}
 
-	explicit FPCGExSingleEdgeOutputSettings(const FString& Name, bool InSupportIdx = true)
+	explicit FPCGExSimpleEdgeOutputSettings(const FString& Name)
 		: DirectionAttribute(FName(FText::Format(FText::FromString(TEXT("{0}Dir")), FText::FromString(Name)).ToString())),
-		  LengthAttribute(FName(FText::Format(FText::FromString(TEXT("{0}Len")), FText::FromString(Name)).ToString())),
-		  bSupportIdx(InSupportIdx)
+		  LengthAttribute(FName(FText::Format(FText::FromString(TEXT("{0}Len")), FText::FromString(Name)).ToString()))
 	{
 	}
 
@@ -56,42 +56,14 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSingleEdgeOutputSettings
 	FName LengthAttribute = "Length";
 	PCGEx::TFAttributeWriter<double>* LengthWriter = nullptr;
 
-	/**  */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bSupportIdx", InlineEditConditionToggle))
-	bool bWriteEdgeIndex = false;
-
-	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bWriteEdgeIndex && bSupportIdx"))
-	FName EdgeIndexAttribute = "EdgeIndex";
-	PCGEx::TFAttributeWriter<int32>* EIdxWriter = nullptr;
-
-	/**  */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bSupportIdx", InlineEditConditionToggle))
-	bool bWriteVtxIndex = false;
-
-	/** TBD */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bWriteVtxIndex && bSupportIdx"))
-	FName VtxIndexAttribute = "VtxIndex";
-	PCGEx::TFAttributeWriter<int32>* VIdxWriter = nullptr;
-
-	/**  */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (EditCondition="false", EditConditionHides, HideInDetailPanel))
-	bool bSupportIdx = true;
-	
-	bool Validate(const FPCGContext* InContext) const
+	virtual bool Validate(const FPCGContext* InContext) const
 	{
 		if (bWriteDirection) { PCGEX_VALIDATE_NAME_C(InContext, DirectionAttribute); }
 		if (bWriteLength) { PCGEX_VALIDATE_NAME_C(InContext, LengthAttribute); }
-
-		if (bSupportIdx)
-		{
-			if (bWriteEdgeIndex) { PCGEX_VALIDATE_NAME_C(InContext, EdgeIndexAttribute); }
-			if (bWriteVtxIndex) { PCGEX_VALIDATE_NAME_C(InContext, VtxIndexAttribute); }
-		}
 		return true;
 	}
 
-	void Init(const PCGExCluster::FCluster* InCluster)
+	virtual void Init(const PCGExCluster::FCluster* InCluster)
 	{
 		if (bWriteDirection)
 		{
@@ -104,6 +76,77 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSingleEdgeOutputSettings
 			LengthWriter = new PCGEx::TFAttributeWriter<double>(LengthAttribute);
 			LengthWriter->BindAndSetNumUninitialized(*InCluster->PointsIO);
 		}
+	}
+
+	virtual void Write(const int32 EntryIndex, const double InLength, const FVector& InDir, const int32 EIndex, const int32 VIndex)
+	{
+		if (DirWriter) { DirWriter->Values[EntryIndex] = InDir; }
+		if (LengthWriter) { LengthWriter->Values[EntryIndex] = InLength; }
+	}
+
+	virtual void Write() const
+	{
+		if (DirWriter) { DirWriter->Write(); }
+		if (LengthWriter) { LengthWriter->Write(); }
+	}
+
+	virtual void Write(const TArrayView<int32> Indices) const
+	{
+		if (DirWriter) { DirWriter->Write(Indices); }
+		if (LengthWriter) { LengthWriter->Write(Indices); }
+	}
+
+	virtual void Cleanup()
+	{
+		PCGEX_DELETE(DirWriter)
+		PCGEX_DELETE(LengthWriter)
+	}
+};
+
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExEdgeOutputWithIndexSettings : public FPCGExSimpleEdgeOutputSettings
+{
+	GENERATED_BODY()
+
+	FPCGExEdgeOutputWithIndexSettings()
+		: FPCGExSimpleEdgeOutputSettings()
+	{
+	}
+
+	explicit FPCGExEdgeOutputWithIndexSettings(const FString& Name)
+		: FPCGExSimpleEdgeOutputSettings(Name)
+	{
+	}
+
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle, DisplayAfter="LengthAttribute"))
+	bool bWriteEdgeIndex = false;
+
+	/** TBD */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bWriteEdgeIndex", DisplayAfter="bWriteEdgeIndex"))
+	FName EdgeIndexAttribute = "EdgeIndex";
+	PCGEx::TFAttributeWriter<int32>* EIdxWriter = nullptr;
+
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle, DisplayAfter="EdgeIndexAttribute"))
+	bool bWriteVtxIndex = false;
+
+	/** TBD */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bWriteVtxIndex", DisplayAfter="bWriteVtxIndex"))
+	FName VtxIndexAttribute = "VtxIndex";
+	PCGEx::TFAttributeWriter<int32>* VIdxWriter = nullptr;
+
+	virtual bool Validate(const FPCGContext* InContext) const override
+	{
+		if (!FPCGExSimpleEdgeOutputSettings::Validate(InContext)) { return false; }
+		if (bWriteEdgeIndex) { PCGEX_VALIDATE_NAME_C(InContext, EdgeIndexAttribute); }
+		if (bWriteVtxIndex) { PCGEX_VALIDATE_NAME_C(InContext, VtxIndexAttribute); }
+		return true;
+	}
+
+	virtual void Init(const PCGExCluster::FCluster* InCluster) override
+	{
+		FPCGExSimpleEdgeOutputSettings::Init(InCluster);
 
 		if (bWriteEdgeIndex)
 		{
@@ -118,34 +161,23 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSingleEdgeOutputSettings
 		}
 	}
 
-	void Write(const int32 EntryIndex, const double InLength, const FVector& InDir, const int32 EIndex, const int32 VIndex)
+	virtual void Write(const int32 EntryIndex, const double InLength, const FVector& InDir, const int32 EIndex, const int32 VIndex) override
 	{
-		if (DirWriter) { DirWriter->Values[EntryIndex] = InDir; }
-		if (LengthWriter) { LengthWriter->Values[EntryIndex] = InLength; }
+		FPCGExSimpleEdgeOutputSettings::Write(EntryIndex, InLength, InDir, EIndex, VIndex);
 		if (EIdxWriter) { EIdxWriter->Values[EntryIndex] = EIndex; }
 		if (VIdxWriter) { VIdxWriter->Values[EntryIndex] = VIndex; }
 	}
 
-	void Write() const
+	virtual void Write(const TArrayView<int32> Indices) const override
 	{
-		if (DirWriter) { DirWriter->Write(); }
-		if (LengthWriter) { LengthWriter->Write(); }
-		if (EIdxWriter) { EIdxWriter->Write(); }
-		if (VIdxWriter) { VIdxWriter->Write(); }
-	}
-
-	void Write(const TArrayView<int32> Indices) const
-	{
-		if (DirWriter) { DirWriter->Write(Indices); }
-		if (LengthWriter) { LengthWriter->Write(Indices); }
+		FPCGExSimpleEdgeOutputSettings::Write(Indices);
 		if (EIdxWriter) { EIdxWriter->Write(Indices); }
 		if (VIdxWriter) { VIdxWriter->Write(Indices); }
 	}
 
-	void Cleanup()
+	virtual void Cleanup() override
 	{
-		PCGEX_DELETE(DirWriter)
-		PCGEX_DELETE(LengthWriter)
+		FPCGExSimpleEdgeOutputSettings::Cleanup();
 		PCGEX_DELETE(EIdxWriter)
 		PCGEX_DELETE(VIdxWriter)
 	}

@@ -20,15 +20,15 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSpecialEdgesSettings
 
 	/** Shortest edge. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FPCGExSingleEdgeOutputSettings ShortestEdge = FPCGExSingleEdgeOutputSettings(TEXT("Shortest"));
+	FPCGExEdgeOutputWithIndexSettings ShortestEdge = FPCGExEdgeOutputWithIndexSettings(TEXT("Shortest"));
 
 	/** Longest edge. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FPCGExSingleEdgeOutputSettings LongestEdge = FPCGExSingleEdgeOutputSettings(TEXT("Longest"));
+	FPCGExEdgeOutputWithIndexSettings LongestEdge = FPCGExEdgeOutputWithIndexSettings(TEXT("Longest"));
 
 	/** Average edge. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	FPCGExSingleEdgeOutputSettings AverageEdge = FPCGExSingleEdgeOutputSettings(TEXT("Average"), false);
+	FPCGExSimpleEdgeOutputSettings AverageEdge = FPCGExSimpleEdgeOutputSettings(TEXT("Average"));
 };
 
 /**
