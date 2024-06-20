@@ -20,6 +20,8 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgeMatchSettings
 {
 	GENERATED_BODY()
 
+	
+	
 	/** Matching edge. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExEdgeOutputWithIndexSettings MatchingEdge = FPCGExEdgeOutputWithIndexSettings(TEXT("Matching"));
@@ -68,7 +70,7 @@ public:
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
 		NeighborSamplerAttribute, "Vtx Extra : Edge Match", "Find the edge that matches the closest provided direction.",
-		PCGEX_FACTORY_NAME_PRIORITY)
+		FName(GetDisplayName()))
 
 #endif
 	//~End UPCGSettings

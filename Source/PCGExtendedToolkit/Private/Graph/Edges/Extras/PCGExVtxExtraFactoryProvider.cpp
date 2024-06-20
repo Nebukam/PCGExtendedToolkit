@@ -62,8 +62,8 @@ FName UPCGExVtxExtraProviderSettings::GetMainOutputLabel() const { return PCGExV
 
 UPCGExParamFactoryBase* UPCGExVtxExtraProviderSettings::CreateFactory(FPCGContext* InContext, UPCGExParamFactoryBase* InFactory) const
 {
-	UPCGExVtxExtraFactoryBase* SamplerFactory = Cast<UPCGExVtxExtraFactoryBase>(InFactory);
-	SamplerFactory->Priority = Priority;
+	//UPCGExVtxExtraFactoryBase* NewFactory = Cast<UPCGExVtxExtraFactoryBase>(InFactory);
+	//SamplerFactory->Priority = Priority;
 	return InFactory;
 }
 

@@ -47,6 +47,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSimpleEdgeOutputSettings
 	FName DirectionAttribute = "Direction";
 	PCGEx::TFAttributeWriter<FVector>* DirWriter = nullptr;
 
+	/** Invert the direction */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bWriteDirection"))
+	bool bInvertDirection = false;
+
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
 	bool bWriteLength = false;
@@ -80,13 +84,13 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSimpleEdgeOutputSettings
 
 	virtual void Set(const int32 EntryIndex, const double InLength, const FVector& InDir, const int32 EIndex, const int32 VIndex)
 	{
-		if (DirWriter) { DirWriter->Values[EntryIndex] = InDir; }
+		if (DirWriter) { DirWriter->Values[EntryIndex] = bInvertDirection ? InDir * -1 : InDir; }
 		if (LengthWriter) { LengthWriter->Values[EntryIndex] = InLength; }
 	}
 
 	virtual void Set(const int32 EntryIndex, const PCGExCluster::FAdjacencyData& Data)
 	{
-		if (DirWriter) { DirWriter->Values[EntryIndex] = Data.Direction; }
+		if (DirWriter) { DirWriter->Values[EntryIndex] = bInvertDirection ? Data.Direction * -1 : Data.Direction; }
 		if (LengthWriter) { LengthWriter->Values[EntryIndex] = Data.Length; }
 	}
 
@@ -247,9 +251,7 @@ class PCGEXTENDEDTOOLKIT_API UPCGExVtxExtraProviderSettings : public UPCGExFacto
 public:
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
-	PCGEX_NODE_INFOS_CUSTOM_SUBTITLE(
-		VtxExtraAttribute, "Vtx Extra : Abstract", "Abstract vtx extra settings.",
-		PCGEX_FACTORY_NAME_PRIORITY)
+	PCGEX_NODE_INFOS(VtxExtraAttribute, "Vtx Extra : Abstract", "Abstract vtx extra settings.")
 	virtual FLinearColor GetNodeTitleColor() const override { return GetDefault<UPCGExGlobalSettings>()->NodeColorSamplerNeighbor; }
 
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
@@ -265,6 +267,6 @@ public:
 #endif
 
 	/** Priority for sampling order. Higher values are processed last. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1))
-	int32 Priority = 0;
+	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, DisplayPriority=-1))
+	//int32 Priority = 0;
 };
