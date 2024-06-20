@@ -168,6 +168,13 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgeOutputWithIndexSettings : public FPCGExS
 		if (VIdxWriter) { VIdxWriter->Values[EntryIndex] = VIndex; }
 	}
 
+	virtual void Write() const override
+	{
+		FPCGExSimpleEdgeOutputSettings::Write();
+		if (EIdxWriter) { EIdxWriter->Write(); }
+		if (VIdxWriter) { VIdxWriter->Write(); }
+	}
+
 	virtual void Write(const TArrayView<int32> Indices) const override
 	{
 		FPCGExSimpleEdgeOutputSettings::Write(Indices);
