@@ -19,6 +19,20 @@ MACRO(FSoftClassPath)
 MACRO(FSoftObjectPath)\
 MACRO(FSoftClassPath)
 
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Operand Type"))
+enum class EPCGExOperandType : uint8
+{
+	Attribute UMETA(DisplayName = "Attribute", ToolTip="Use a local attribute value."),
+	Constant UMETA(DisplayName = "Constant", ToolTip="Use a constant, static value."),
+};
+
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Dot Units"))
+enum class EPCGExDotUnits : uint8
+{
+	Raw UMETA(DisplayName = "Normal (-1::1)", Tooltip="Read the value as a raw dot product result"),
+	Degrees UMETA(DisplayName = "Degrees", Tooltip="Read the value as degrees"),
+};
+
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Comparison"))
 enum class EPCGExComparison : uint8
 {
@@ -360,6 +374,52 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExComparisonSettings
 	/** Comparison Tolerance. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="Comparison==EPCGExComparison::NearlyEqual||Comparison==EPCGExComparison::NearlyNotEqual", EditConditionHides, ClampMin=0.001))
 	double Tolerance = 0.001;
+};
+
+USTRUCT(BlueprintType)
+struct PCGEXTENDEDTOOLKIT_API FPCGExDotComparisonSettings
+{
+	GENERATED_BODY()
+
+	FPCGExDotComparisonSettings()
+	{
+	}
+
+	/** Comparison of the Dot value */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExComparison Comparison = EPCGExComparison::EqualOrGreater;
+
+	/** If enabled, the dot product will be made absolute before testing. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExDotUnits DotUnits = EPCGExDotUnits::Raw;
+
+	/** If enabled, the dot product will be made absolute before testing. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	bool bUnsignedDot = false;
+
+	/** Type of Dot value source */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExOperandType DotValue = EPCGExOperandType::Constant;
+
+	/** Dot value use for comparison */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="DotValue==EPCGExOperandType::Attribute", EditConditionHides))
+	FPCGAttributePropertyInputSelector DotAttribute;
+
+	/** Dot value use for comparison (In raw -1/1 range) */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="DotValue==EPCGExOperandType::Constant && DotUnits==EPCGExDotUnits::Raw", EditConditionHides, ClampMin=-1, ClampMax=1))
+	double DotConstantRaw = 1;
+
+	/** Dot value use for comparison (In degrees) */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="DotValue==EPCGExOperandType::Constant && DotUnits==EPCGExDotUnits::Degrees", EditConditionHides, ClampMin=0, ClampMax=180, Units="Degrees"))
+	double DotConstantDegrees = 0;
+
+	/** Tolerance for dot comparison. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="(Comparison==EPCGExComparison::NearlyEqual || Comparison==EPCGExComparison::NearlyNotEqual) && DotUnits==EPCGExDotUnits::Raw", EditConditionHides, ClampMin=0, ClampMax=1))
+	double DotToleranceRaw = 0.1;
+
+	/** Tolerance for dot comparison. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="(Comparison==EPCGExComparison::NearlyEqual || Comparison==EPCGExComparison::NearlyNotEqual) && DotUnits==EPCGExDotUnits::Degrees", EditConditionHides, ClampMin=0, ClampMax=180, Units="Degrees"))
+	double DotToleranceDegrees = 0.1;
 };
 
 

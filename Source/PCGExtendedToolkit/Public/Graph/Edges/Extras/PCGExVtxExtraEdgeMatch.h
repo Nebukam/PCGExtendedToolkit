@@ -20,11 +20,21 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgeMatchSettings
 {
 	GENERATED_BODY()
 
-	
-	
+	/**  */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	EPCGExFetchType DirectionSource = EPCGExFetchType::Constant;
+
+	/** Whether to transform the direction source by the vtx' transform */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	bool bTransformSource = false;
+
 	/** Matching edge. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	FPCGExEdgeOutputWithIndexSettings MatchingEdge = FPCGExEdgeOutputWithIndexSettings(TEXT("Matching"));
+
+	/** Dot comparison settings */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ShowOnlyInnerProperties))
+	FPCGExDotComparisonSettings DotComparisonSettings;
 };
 
 /**

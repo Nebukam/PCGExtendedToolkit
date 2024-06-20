@@ -4,6 +4,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PCGExCompare.h"
+#include "PCGExCompare.h"
 #include "PCGExFilterFactoryProvider.h"
 #include "UObject/Object.h"
 
@@ -25,6 +27,10 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExDotFilterDescriptor
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(ShowOnlyInnerProperties))
 	FPCGAttributePropertyInputSelector OperandA;
 
+	/** Transform OperandA with the local point' transform */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
+	bool bTransformOperandA = false;
+
 	/** Type of OperandB */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	EPCGExOperandType CompareAgainst = EPCGExOperandType::Constant;
@@ -37,33 +43,13 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExDotFilterDescriptor
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="CompareAgainst==EPCGExOperandType::Constant", EditConditionHides))
 	FVector OperandBConstant = FVector::UpVector;
 
-	/** If enabled, the dot product will be made absolute before testing. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	bool bUnsignedDot = false;
-
-	/** Exclude if value is below a specific threshold. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
-	bool bDoExcludeBelowDot = false;
-
-	/** Minimum value threshold. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bExcludeBelowDot"))
-	double ExcludeBelow = 0;
-
-	/** Exclude if value is above a specific threshold. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, InlineEditConditionToggle))
-	bool bDoExcludeAboveDot = false;
-
-	/** Maximum threshold. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, EditCondition="bExcludeAboveDot"))
-	double ExcludeAbove = 0.5;
-
-	/** Transform OperandA with the local point' transform */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
-	bool bTransformOperandA = false;
-
 	/** Transform OperandB with the local point' transform */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable))
 	bool bTransformOperandB = false;
+
+	/** Dot comparison settings */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta = (PCG_Overridable, ShowOnlyInnerProperties))
+	FPCGExDotComparisonSettings DotComparisonSettings;
 
 #if WITH_EDITOR
 	FString GetDisplayName() const;
@@ -96,8 +82,11 @@ namespace PCGExPointsFilter
 
 		const UPCGExDotFilterFactory* TypedFilterFactory;
 
+		double DotTolerance = 0;
+
 		PCGEx::FLocalVectorGetter* OperandA = nullptr;
 		PCGEx::FLocalVectorGetter* OperandB = nullptr;
+		PCGEx::FLocalSingleFieldGetter* DotValue = nullptr;
 
 		virtual void Capture(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO) override;
 		FORCEINLINE virtual bool Test(const int32 PointIndex) const override;

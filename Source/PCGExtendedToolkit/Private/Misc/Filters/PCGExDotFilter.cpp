@@ -24,9 +24,9 @@ void PCGExPointsFilter::TDotFilter::Capture(const FPCGContext* InContext, const 
 		return;
 	}
 
+	OperandB = new PCGEx::FLocalVectorGetter();
 	if (TypedFilterFactory->Descriptor.CompareAgainst == EPCGExOperandType::Attribute)
 	{
-		OperandB = new PCGEx::FLocalVectorGetter();
 		OperandB->Capture(TypedFilterFactory->Descriptor.OperandB);
 		OperandB->Grab(*PointIO, false);
 		bValid = OperandB->IsUsable(PointIO->GetNum());
@@ -34,15 +34,41 @@ void PCGExPointsFilter::TDotFilter::Capture(const FPCGContext* InContext, const 
 		if (!bValid)
 		{
 			PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Operand B attribute: {0}."), FText::FromName(TypedFilterFactory->Descriptor.OperandB.GetName())));
+			PCGEX_DELETE(OperandA)
 			PCGEX_DELETE(OperandB)
 		}
+	}
+
+	DotValue = new PCGEx::FLocalSingleFieldGetter();
+	if (TypedFilterFactory->Descriptor.DotComparisonSettings.DotValue == EPCGExOperandType::Attribute)
+	{
+		DotValue->Capture(TypedFilterFactory->Descriptor.DotComparisonSettings.DotAttribute);
+		DotValue->Grab(*PointIO, false);
+		bValid = DotValue->IsUsable(PointIO->GetNum());
+
+		if (!bValid)
+		{
+			PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Dot Value attribute: {0}."), FText::FromName(TypedFilterFactory->Descriptor.DotComparisonSettings.DotAttribute.GetName())));
+			PCGEX_DELETE(OperandA)
+			PCGEX_DELETE(OperandB)
+			PCGEX_DELETE(DotValue)
+		}
+	}
+
+	if (TypedFilterFactory->Descriptor.DotComparisonSettings.DotUnits == EPCGExDotUnits::Raw)
+	{
+		DotTolerance = TypedFilterFactory->Descriptor.DotComparisonSettings.DotToleranceRaw;
+	}
+	else
+	{
+		DotTolerance = PCGExMath::DegreesToDot(TypedFilterFactory->Descriptor.DotComparisonSettings.DotToleranceRaw);
 	}
 }
 
 bool PCGExPointsFilter::TDotFilter::Test(const int32 PointIndex) const
 {
 	FVector A = OperandA->Values[PointIndex];
-	FVector B = TypedFilterFactory->Descriptor.CompareAgainst == EPCGExOperandType::Attribute ? OperandB->Values[PointIndex] : TypedFilterFactory->Descriptor.OperandBConstant;
+	FVector B = OperandB->SafeGet(PointIndex, TypedFilterFactory->Descriptor.OperandBConstant);
 
 	if (TypedFilterFactory->Descriptor.bTransformOperandA || TypedFilterFactory->Descriptor.bTransformOperandB)
 	{
@@ -51,12 +77,21 @@ bool PCGExPointsFilter::TDotFilter::Test(const int32 PointIndex) const
 		if (TypedFilterFactory->Descriptor.bTransformOperandB) { B = PtTransform.TransformVector(B); }
 	}
 
-	const double Dot = TypedFilterFactory->Descriptor.bUnsignedDot ? FMath::Abs(FVector::DotProduct(A, B)) : FVector::DotProduct(A, B);
+	const double Dot = TypedFilterFactory->Descriptor.DotComparisonSettings.bUnsignedDot ? FMath::Abs(FVector::DotProduct(A, B)) : FVector::DotProduct(A, B);
 
-	if (TypedFilterFactory->Descriptor.bDoExcludeAboveDot && Dot > TypedFilterFactory->Descriptor.ExcludeAbove) { return false; }
-	if (TypedFilterFactory->Descriptor.bDoExcludeBelowDot && Dot < TypedFilterFactory->Descriptor.ExcludeBelow) { return false; }
+	double DotCompareValue;
 
-	return true;
+	if (TypedFilterFactory->Descriptor.DotComparisonSettings.DotUnits == EPCGExDotUnits::Raw)
+	{
+		DotCompareValue = DotValue->SafeGet(PointIndex, TypedFilterFactory->Descriptor.DotComparisonSettings.DotConstantRaw);
+	}
+	else
+	{
+		DotCompareValue = DotValue->SafeGet(PointIndex, TypedFilterFactory->Descriptor.DotComparisonSettings.DotConstantDegrees);
+		DotCompareValue = PCGExMath::DegreesToDot(DotCompareValue);
+	}
+
+	return PCGExCompare::Compare(TypedFilterFactory->Descriptor.DotComparisonSettings.Comparison, Dot, DotCompareValue, DotTolerance);
 }
 
 #define LOCTEXT_NAMESPACE "PCGExDotFilterDefinition"

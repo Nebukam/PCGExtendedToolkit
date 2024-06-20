@@ -15,13 +15,6 @@ namespace PCGExDataFilter
 	class TFilter;
 }
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Operand Type"))
-enum class EPCGExOperandType : uint8
-{
-	Attribute UMETA(DisplayName = "Attribute", ToolTip="Use a local attribute value."),
-	Constant UMETA(DisplayName = "Constant", ToolTip="Use a constant, static value."),
-};
-
 namespace PCGExDataFilter
 {
 	enum class EType : uint8
