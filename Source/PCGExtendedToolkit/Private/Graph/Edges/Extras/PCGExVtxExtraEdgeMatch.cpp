@@ -16,9 +16,9 @@ void UPCGExVtxExtraEdgeMatch::CopySettingsFrom(const UPCGExOperation* Other)
 	}
 }
 
-bool UPCGExVtxExtraEdgeMatch::PrepareForCluster(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster)
+bool UPCGExVtxExtraEdgeMatch::PrepareForVtx(const FPCGContext* InContext, PCGExData::FPointIO* InVtx)
 {
-	if (!Super::PrepareForCluster(InContext, InCluster)) { return false; }
+	if (!Super::PrepareForVtx(InContext, InVtx)) { return false; }
 
 	if (!Descriptor.MatchingEdge.Validate(InContext))
 	{
@@ -29,19 +29,19 @@ bool UPCGExVtxExtraEdgeMatch::PrepareForCluster(const FPCGContext* InContext, PC
 	if (Descriptor.MatchingEdge.bWriteDirection)
 	{
 		MatchingDirWriter = new PCGEx::TFAttributeWriter<FVector>(Descriptor.MatchingEdge.DirectionAttribute);
-		MatchingDirWriter->BindAndSetNumUninitialized(*InCluster->PointsIO);
+		MatchingDirWriter->BindAndSetNumUninitialized(*InVtx);
 	}
 
 	if (Descriptor.MatchingEdge.bWriteLength)
 	{
 		MatchingLenWriter = new PCGEx::TFAttributeWriter<double>(Descriptor.MatchingEdge.LengthAttribute);
-		MatchingLenWriter->BindAndSetNumUninitialized(*InCluster->PointsIO);
+		MatchingLenWriter->BindAndSetNumUninitialized(*InVtx);
 	}
 
 	return bIsValidOperation;
 }
 
-void UPCGExVtxExtraEdgeMatch::ProcessNode(PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency)
+void UPCGExVtxExtraEdgeMatch::ProcessNode(const PCGExCluster::FCluster* Cluster, PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency)
 {
 	// TODO : Implement
 }
@@ -52,10 +52,10 @@ void UPCGExVtxExtraEdgeMatch::Write()
 	Descriptor.MatchingEdge.Write();
 }
 
-void UPCGExVtxExtraEdgeMatch::Write(const TArrayView<int32> Indices)
+void UPCGExVtxExtraEdgeMatch::Write(FPCGExAsyncManager* AsyncManager)
 {
-	Super::Write(Indices);
-	Descriptor.MatchingEdge.Write(Indices);
+	Super::Write(AsyncManager);
+	Descriptor.MatchingEdge.Write(AsyncManager);
 }
 
 void UPCGExVtxExtraEdgeMatch::Cleanup()

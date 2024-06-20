@@ -149,7 +149,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Growth")
 	EPCGExGrowthValueSource NumIterations = EPCGExGrowthValueSource::Constant;
 
-	/** Num iteration attribute name. (will be broadcasted to int32) */
+	/** Num iteration attribute name. (will be translated to int32) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Growth", meta = (PCG_Overridable, EditCondition="NumIterations != EPCGExGrowthValueSource::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector NumIterationsAttribute;
 
@@ -174,7 +174,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Growth", meta = (PCG_Overridable, EditCondition="SeedNumBranches == EPCGExGrowthValueSource::Constant", EditConditionHides))
 	int32 NumBranchesConstant = 1;
 
-	/** Num branches attribute name. (will be broadcasted to int32) */
+	/** Num branches attribute name. (will be translated to int32) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Growth", meta = (PCG_Overridable, EditCondition="SeedNumBranches != EPCGExGrowthValueSource::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector NumBranchesAttribute;
 
@@ -183,7 +183,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Growth")
 	EPCGExGrowthValueSource GrowthDirection = EPCGExGrowthValueSource::Constant;
 
-	/** Growth direction attribute name. (will be broadcasted to a FVector) */
+	/** Growth direction attribute name. (will be translated to a FVector) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Growth", meta = (PCG_Overridable, EditCondition="GrowthDirection != EPCGExGrowthValueSource::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector GrowthDirectionAttribute;
 
@@ -200,7 +200,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Growth")
 	EPCGExGrowthValueSource GrowthMaxDistance = EPCGExGrowthValueSource::Constant;
 
-	/** Max growth distance attribute name. (will be broadcasted to a FVector) */
+	/** Max growth distance attribute name. (will be translated to a FVector) */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Growth", meta = (PCG_Overridable, EditCondition="GrowthMaxDistance != EPCGExGrowthValueSource::Constant", EditConditionHides))
 	FPCGAttributePropertyInputSelector GrowthMaxDistanceAttribute;
 

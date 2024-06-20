@@ -27,8 +27,14 @@ namespace PCGExClusterMT
 #define PCGEX_CLUSTER_MT_TASK_RANGE(_NAME, _BODY)\
 	template <typename T>\
 	class PCGEXTENDEDTOOLKIT_API _NAME final : public FPCGExNonAbandonableTask	{\
-	public: _NAME(PCGExData::FPointIO* InPointIO, T* InTarget, const int32 InIterations) : FPCGExNonAbandonableTask(InPointIO),Target(InTarget), Iterations(InIterations){} \
-		T* Target = nullptr; int32 Iterations = 0; virtual bool ExecuteTask() override{_BODY return true; }};
+	public: _NAME(PCGExData::FPointIO* InPointIO, T* InTarget, const uint64 InIterations) : FPCGExNonAbandonableTask(InPointIO),Target(InTarget), Iterations(InIterations){} \
+		T* Target = nullptr; uint64 Iterations = 0; virtual bool ExecuteTask() override{_BODY return true; }};
+
+#define PCGEX_CLUSTER_MT_TASK_Scope(_NAME, _BODY)\
+	template <typename T>\
+	class PCGEXTENDEDTOOLKIT_API _NAME final : public FPCGExNonAbandonableTask	{\
+	public: _NAME(PCGExData::FPointIO* InPointIO, T* InTarget, const TArray<uint64>& InScopes) : FPCGExNonAbandonableTask(InPointIO),Target(InTarget), Scopes(InScopes){} \
+	T* Target = nullptr; TArray<uint64> Scopes; virtual bool ExecuteTask() override{_BODY return true; }};
 
 	PCGEX_CLUSTER_MT_TASK(FStartClusterBatchProcessing, { if (Target->PrepareProcessing()) { Target->Process(Manager); } })
 
@@ -43,6 +49,10 @@ namespace PCGExClusterMT
 	PCGEX_CLUSTER_MT_TASK_RANGE(FAsyncProcessEdgeRange, {Target->ProcessView(TaskIndex, MakeArrayView(Target->Cluster->Edges.GetData() + TaskIndex, Iterations));})
 
 	PCGEX_CLUSTER_MT_TASK_RANGE(FAsyncProcessRange, {Target->ProcessRange(TaskIndex, Iterations);})
+
+	PCGEX_CLUSTER_MT_TASK_RANGE(FAsyncProcessScope, {Target->ProcessScope(Iterations);})
+
+	PCGEX_CLUSTER_MT_TASK_Scope(FAsyncProcessScopeList, {for(const uint64 Scope: Scopes ){ Target->ProcessScope(Scope);}})
 
 	PCGEX_CLUSTER_MT_TASK_RANGE(FAsyncBatchProcessClosedRange, {Target->ProcessClosedBatchRange(TaskIndex, Iterations);})
 
@@ -251,6 +261,60 @@ namespace PCGExClusterMT
 		{
 		}
 
+		void StartParallelLoopForScopes(const TArrayView<uint64>& InScopes)
+		{
+			if (IsTrivial())
+			{
+				for (const uint64 Scope : InScopes) { ProcessScope(Scope); }
+				return;
+			}
+
+			int32 PLI = GetDefault<UPCGExGlobalSettings>()->GetClusterBatchIteration(-1);
+			int32 CurrentCount = 0;
+
+			TArray<uint64> Scopes;
+			Scopes.Reserve(PLI);
+
+			int32 CurrentSum = 0;
+
+			for (uint64 Scope : InScopes)
+			{
+				uint32 Count = PCGEx::H64B(Scope);
+				CurrentSum += Count;
+				if (CurrentSum > PLI)
+				{
+					if (Scopes.IsEmpty())
+					{
+						AsyncManagerPtr->Start<FAsyncProcessScope<FClusterProcessor>>(-1, nullptr, this, Scope);
+					}
+					else
+					{
+						AsyncManagerPtr->Start<FAsyncProcessScopeList<FClusterProcessor>>(-1, nullptr, this, Scopes);
+					}
+					Scopes.Reset();
+					CurrentSum = 0;
+					continue;
+				}
+
+				Scopes.Add(Scope);
+			}
+			if (!Scopes.IsEmpty())
+			{
+				if (Scopes.Num() == 1)
+				{
+					AsyncManagerPtr->Start<FAsyncProcessScope<FClusterProcessor>>(-1, nullptr, this, Scopes[0]);
+				}
+				else
+				{
+					AsyncManagerPtr->Start<FAsyncProcessScopeList<FClusterProcessor>>(-1, nullptr, this, Scopes);
+				}
+			}
+		}
+
+		virtual void ProcessScope(const uint64 Scope)
+		{
+		}
+
 #pragma endregion
 
 		virtual void CompleteWork()
@@ -288,6 +352,9 @@ namespace PCGExClusterMT
 		bool RequiresHeuristics() const { return bRequiresHeuristics; }
 		virtual void SetRequiresHeuristics(const bool bRequired = false) { bRequiresHeuristics = bRequired; }
 
+		bool bInlineProcessing = false;
+		bool bInlineCompletion = false;
+		
 		FClusterProcessorBatchBase(FPCGContext* InContext, PCGExData::FPointIO* InVtx, TArrayView<PCGExData::FPointIO*> InEdges):
 			Context(InContext), VtxIO(InVtx)
 		{
@@ -360,10 +427,6 @@ namespace PCGExClusterMT
 	template <typename T>
 	class TBatch : public FClusterProcessorBatchBase
 	{
-	protected:
-		bool bInlineProcessing = false;
-		bool bInlineCompletion = false;
-
 	public:
 		TArray<T*> Processors;
 		TArray<T*> ClosedBatchProcessors;

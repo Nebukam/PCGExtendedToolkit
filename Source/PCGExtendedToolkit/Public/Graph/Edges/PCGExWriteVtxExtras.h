@@ -95,9 +95,10 @@ namespace PCGExWriteVtxExtras
 {
 	class FProcessor final : public PCGExClusterMT::FClusterProcessor
 	{
+		friend class FProcessorBatch;
+
 		PCGExCluster::FClusterProjection* ProjectedCluster = nullptr;
-		TArray<int32> NodePointIndices;
-		TArray<UPCGExVtxExtraOperation*> ExtraOperations;
+		TArray<UPCGExVtxExtraOperation*>* ExtraOperations = nullptr;
 
 	public:
 		FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges):
@@ -109,8 +110,6 @@ namespace PCGExWriteVtxExtras
 
 		virtual bool Process(FPCGExAsyncManager* AsyncManager) override;
 		virtual void ProcessSingleNode(PCGExCluster::FNode& Node) override;
-		virtual void ProcessRange(const int32 StartIndex, const int32 Iterations) override;
-		virtual void CompleteWork() override;
 
 		PCGEX_FOREACH_FIELD_VTXEXTRAS(PCGEX_OUTPUT_DECL)
 
@@ -120,6 +119,8 @@ namespace PCGExWriteVtxExtras
 	class FProcessorBatch final : public PCGExClusterMT::TBatch<FProcessor>
 	{
 		FPCGExGeo2DProjectionSettings ProjectionSettings;
+
+		TArray<UPCGExVtxExtraOperation*> ExtraOperations;
 
 		PCGEX_FOREACH_FIELD_VTXEXTRAS(PCGEX_OUTPUT_DECL)
 

@@ -436,10 +436,19 @@ namespace PCGEx
 			this->Accessor->SetRange(this->Values);
 		}
 
-		void Write(const TArrayView<int32> InIndices)
+		void Write(const TArrayView<int32>& InIndices)
 		{
 			if (this->Values.IsEmpty()) { return; }
 			for (int32 Index : InIndices) { this->Accessor->Set(this->Values[Index], Index); }
+		}
+
+		void Write(const uint64 Scope)
+		{
+			if (this->Values.IsEmpty()) { return; }
+			uint32 Start;
+			uint32 Count;
+			PCGEx::H64(Scope, Start, Count);
+			this->Accessor->SetRange(MakeArrayView(this->Values.GetData() + Start, Count), Start);
 		}
 	};
 

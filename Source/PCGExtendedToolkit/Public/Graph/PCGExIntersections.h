@@ -88,8 +88,9 @@ namespace PCGExGraph
 		PCGExData::FIdxCompoundList* EdgesCompounds = nullptr;
 		TArray<FCompoundNode*> Nodes;
 		TMap<uint64, FIndexedEdge> Edges;
-		const FPCGExFuseSettings FuseSettings;
 
+		const FPCGExFuseSettings FuseSettings;
+		const bool bFastMode = true;
 
 		FBox Bounds;
 		const bool bFusePoints = true;
@@ -99,8 +100,11 @@ namespace PCGExGraph
 		mutable FRWLock OctreeLock;
 		mutable FRWLock EdgesLock;
 
-		explicit FCompoundGraph(const FPCGExFuseSettings& InFuseSettings, const FBox& InBounds, const bool FusePoints = true)
-			: FuseSettings(InFuseSettings), Bounds(InBounds), bFusePoints(FusePoints)
+		explicit FCompoundGraph(const FPCGExFuseSettings& InFuseSettings, const FBox& InBounds, const bool FusePoints = true, const bool FastMode = true)
+			: FuseSettings(InFuseSettings),
+			  bFastMode(FastMode),
+			  Bounds(InBounds),
+			  bFusePoints(FusePoints)
 		{
 			Nodes.Empty();
 			Edges.Empty();
@@ -110,7 +114,8 @@ namespace PCGExGraph
 
 			PointsCompounds = new PCGExData::FIdxCompoundList();
 			EdgesCompounds = new PCGExData::FIdxCompoundList();
-			//Octree = NodeOctree(Bounds.GetCenter(), Bounds.GetExtent().Length());
+
+			if (!bFastMode) { Octree = NodeOctree(Bounds.GetCenter(), Bounds.GetExtent().Length()); }
 		}
 
 		~FCompoundGraph()

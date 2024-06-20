@@ -436,6 +436,13 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExFuseSettings : public FPCGExSourceFuseSettin
 	}
 };
 
+UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Fuse Precision"))
+enum class EPCGExFusePrecision : uint8
+{
+	Fast UMETA(DisplayName = "Fast", Tooltip="Use some mathematical approximation to speed up the process, but loose in precision."),
+	Precise UMETA(DisplayName = "Precise (VERY SLOW)", Tooltip="Precise mathematical computations, but is immensely slower as computations cannot be multithreaded in order to be deterministic."),
+};
+
 USTRUCT(BlueprintType)
 struct PCGEXTENDEDTOOLKIT_API FPCGExPointPointIntersectionSettings
 {
@@ -444,6 +451,9 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExPointPointIntersectionSettings
 	/** Fuse Settings */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, ShowOnlyInnerProperties))
 	FPCGExFuseSettings FuseSettings;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
+	EPCGExFusePrecision Precision = EPCGExFusePrecision::Fast;
 
 	/**  */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings|Metadata", meta=(PCG_Overridable, InlineEditConditionToggle))

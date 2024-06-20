@@ -77,11 +77,6 @@ bool FPCGExPathToEdgeClustersElement::Boot(FPCGContext* InContext) const
 	return true;
 }
 
-// TODO : Use FPointProcessor + batch to either batch points into a massive compound graph
-// or to generate individual graphs using a graph builder
-// in one case, the graph builder will be owned by the processor
-// in the other, the graph builder will be owned by the batch
-
 bool FPCGExPathToEdgeClustersElement::ExecuteInternal(FPCGContext* InContext) const
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FPCGExPathToEdgeClustersElement::Execute);
@@ -295,7 +290,9 @@ namespace PCGExPathToClusters
 		FBox Bounds = FBox(ForceInit);
 		for (const PCGExData::FPointIO* IO : PointsCollection) { Bounds += IO->GetIn()->GetBounds().ExpandBy(10); }
 
-		CompoundGraph = new PCGExGraph::FCompoundGraph(Settings->PointPointIntersectionSettings.FuseSettings, Bounds);
+		CompoundGraph = new PCGExGraph::FCompoundGraph(
+			Settings->PointPointIntersectionSettings.FuseSettings, Bounds, true,
+			Settings->PointPointIntersectionSettings.Precision == EPCGExFusePrecision::Fast);
 
 		TBatch<FFusingProcessor>::Process(AsyncManager);
 	}
@@ -305,16 +302,6 @@ namespace PCGExPathToClusters
 		PCGEX_TYPED_CONTEXT_AND_SETTINGS(PathToEdgeClusters)
 
 		if (!TBatch<FFusingProcessor>::PrepareSingle(PointsProcessor)) { return false; }
-
-		// TODO:
-		// Flow is
-		// - Merge all input points to a compound graph
-		// - Translate the compound graph node to a "consolidated point" data point
-		// - Merge data into those points a first time
-		// - Use these points to build a regular graph
-		// - Use the regular graph to find & build intersection data
-		// - Process and add these intersections
-		// - finally compile the graph
 
 		PointsProcessor->CompoundGraph = CompoundGraph;
 

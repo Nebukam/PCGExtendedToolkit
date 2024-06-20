@@ -5,7 +5,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Metadata/PCGAttributePropertySelector.h"
+#include "PCGExSettings.h"
 
 #include "PCGExCompare.generated.h"
 
@@ -18,13 +18,6 @@ MACRO(FSoftClassPath)
 #define PCGEX_UNSUPPORTED_PATH_TYPES(MACRO)\
 MACRO(FSoftObjectPath)\
 MACRO(FSoftClassPath)
-
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Operand Type"))
-enum class EPCGExOperandType : uint8
-{
-	Attribute UMETA(DisplayName = "Attribute", ToolTip="Use a local attribute value."),
-	Constant UMETA(DisplayName = "Constant", ToolTip="Use a constant, static value."),
-};
 
 UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Dot Units"))
 enum class EPCGExDotUnits : uint8
@@ -399,18 +392,18 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExDotComparisonSettings
 
 	/** Type of Dot value source */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExOperandType DotValue = EPCGExOperandType::Constant;
+	EPCGExFetchType DotValue = EPCGExFetchType::Constant;
 
 	/** Dot value use for comparison */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="DotValue==EPCGExOperandType::Attribute", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="DotValue==EPCGExFetchType::Attribute", EditConditionHides))
 	FPCGAttributePropertyInputSelector DotAttribute;
 
 	/** Dot value use for comparison (In raw -1/1 range) */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="DotValue==EPCGExOperandType::Constant && DotUnits==EPCGExDotUnits::Raw", EditConditionHides, ClampMin=-1, ClampMax=1))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="DotValue==EPCGExFetchType::Constant && DotUnits==EPCGExDotUnits::Raw", EditConditionHides, ClampMin=-1, ClampMax=1))
 	double DotConstantRaw = 1;
 
 	/** Dot value use for comparison (In degrees) */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="DotValue==EPCGExOperandType::Constant && DotUnits==EPCGExDotUnits::Degrees", EditConditionHides, ClampMin=0, ClampMax=180, Units="Degrees"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="DotValue==EPCGExFetchType::Constant && DotUnits==EPCGExDotUnits::Degrees", EditConditionHides, ClampMin=0, ClampMax=180, Units="Degrees"))
 	double DotConstantDegrees = 0;
 
 	/** Tolerance for dot comparison. */

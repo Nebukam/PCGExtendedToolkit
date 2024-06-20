@@ -47,39 +47,6 @@ enum class EPCGExSocketType : uint8
 
 ENUM_CLASS_FLAGS(EPCGExSocketType)
 
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Adjacency Test Mode"))
-enum class EPCGExAdjacencyTestMode : uint8
-{
-	All UMETA(DisplayName = "All", Tooltip="Test a condition using all adjacent nodes."),
-	Some UMETA(DisplayName = "Some", Tooltip="Test a condition using some adjacent nodes only.")
-};
-
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Adjacency Gather Mode"))
-enum class EPCGExAdjacencyGatherMode : uint8
-{
-	Individual UMETA(DisplayName = "Individual", Tooltip="Test individual nodes"),
-	Average UMETA(DisplayName = "Average", Tooltip="Average value"),
-	Min UMETA(DisplayName = "Min", Tooltip="Min value"),
-	Max UMETA(DisplayName = "Max", Tooltip="Max value"),
-	Sum UMETA(DisplayName = "Sum", Tooltip="Sum value"),
-};
-
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Adjacency Subset Mode"))
-enum class EPCGExAdjacencySubsetMode : uint8
-{
-	AtLeast UMETA(DisplayName = "At Least", Tooltip="Requirements must be met by at least X adjacent nodes."),
-	AtMost UMETA(DisplayName = "At Most", Tooltip="Requirements must be met by at most X adjacent nodes."),
-	Exactly UMETA(DisplayName = "Exactly", Tooltip="Requirements must be met by exactly X adjacent nodes, no more, no less.")
-};
-
-UENUM(BlueprintType, meta=(DisplayName="[PCGEx] Relative Rounding Mode"))
-enum class EPCGExRelativeRoundingMode : uint8
-{
-	Round UMETA(DisplayName = "Round", Tooltip="Rounds value to closest integer (0.1 = 0, 0.9 = 1)"),
-	Floor UMETA(DisplayName = "Floor", Tooltip="Rounds value to closest smaller integer (0.1 = 0, 0.9 = 0)"),
-	Ceil UMETA(DisplayName = "Ceil", Tooltip="Rounds value to closest highest integer (0.1 = 1, 0.9 = 1)"),
-};
-
 #pragma region Descriptors
 
 USTRUCT(BlueprintType)

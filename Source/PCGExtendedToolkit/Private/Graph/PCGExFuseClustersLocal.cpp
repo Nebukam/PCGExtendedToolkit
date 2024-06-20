@@ -83,7 +83,10 @@ bool FPCGExFuseClustersLocalElement::ExecuteInternal(FPCGContext* InContext) con
 		{
 			if (!Context->TaggedEdges) { return false; }
 
-			Context->CompoundGraph = new PCGExGraph::FCompoundGraph(Settings->PointPointIntersectionSettings.FuseSettings, Context->CurrentIO->GetIn()->GetBounds().ExpandBy(10));
+			Context->CompoundGraph = new PCGExGraph::FCompoundGraph(
+				Settings->PointPointIntersectionSettings.FuseSettings,
+				Context->CurrentIO->GetIn()->GetBounds().ExpandBy(10), true,
+				Settings->PointPointIntersectionSettings.Precision == EPCGExFusePrecision::Fast);
 			Context->SetState(PCGExGraph::State_ReadyForNextEdges);
 		}
 	}

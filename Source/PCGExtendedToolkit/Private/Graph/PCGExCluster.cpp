@@ -456,6 +456,13 @@ namespace PCGExCluster
 		for (const FNode& Node : Nodes) { OutIndices[Offset++] = Node.PointIndex; }
 	}
 
+	void FCluster::GetNodePointScopes(TArray<uint64>& OutScopes)
+	{
+		TArray<int32> OutIndices;
+		GetNodePointIndices(OutIndices);
+		PCGEx::ScopeIndices(OutIndices, OutScopes);
+	}
+
 	void FCluster::GetConnectedNodes(const int32 FromIndex, TArray<int32>& OutIndices, const int32 SearchDepth) const
 	{
 		const int32 NextDepth = SearchDepth - 1;
@@ -655,11 +662,11 @@ namespace PCGExCluster
 
 	void FClusterProjection::Build()
 	{
-		for (FNodeProjection & PNode
+		for (FNodeProjection& PNode
 
-		     
-		:
-		Nodes
+
+		     :
+		     Nodes
 		)
 		{
 			PNode.Project(Cluster, ProjectionSettings);

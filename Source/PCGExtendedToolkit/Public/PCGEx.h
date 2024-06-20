@@ -593,4 +593,30 @@ namespace PCGEx
 		T* Ptr2 = &Array[SecondIndex];
 		std::swap(*Ptr1, *Ptr2);
 	}
+
+	static void ScopeIndices(TArray<int32>& InIndices, TArray<uint64>& OutScopes)
+	{
+		InIndices.Sort();
+
+		int32 StartIndex = InIndices[0];
+		int32 LastIndex = StartIndex;
+		int32 Count = 1;
+
+		for (int i = 1; i < InIndices.Num(); i++)
+		{
+			const int32 NextIndex = InIndices[i];
+			if (NextIndex == (LastIndex + 1))
+			{
+				Count++;
+				LastIndex = NextIndex;
+				continue;
+			}
+
+			OutScopes.Emplace(PCGEx::H64(StartIndex, Count));
+			LastIndex = StartIndex = NextIndex;
+			Count = 0;
+		}
+
+		OutScopes.Emplace(PCGEx::H64(StartIndex, Count));
+	}
 }

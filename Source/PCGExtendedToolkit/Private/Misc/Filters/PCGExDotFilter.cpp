@@ -25,7 +25,7 @@ void PCGExPointsFilter::TDotFilter::Capture(const FPCGContext* InContext, const 
 	}
 
 	OperandB = new PCGEx::FLocalVectorGetter();
-	if (TypedFilterFactory->Descriptor.CompareAgainst == EPCGExOperandType::Attribute)
+	if (TypedFilterFactory->Descriptor.CompareAgainst == EPCGExFetchType::Attribute)
 	{
 		OperandB->Capture(TypedFilterFactory->Descriptor.OperandB);
 		OperandB->Grab(*PointIO, false);
@@ -40,7 +40,7 @@ void PCGExPointsFilter::TDotFilter::Capture(const FPCGContext* InContext, const 
 	}
 
 	DotValue = new PCGEx::FLocalSingleFieldGetter();
-	if (TypedFilterFactory->Descriptor.DotComparisonSettings.DotValue == EPCGExOperandType::Attribute)
+	if (TypedFilterFactory->Descriptor.DotComparisonSettings.DotValue == EPCGExFetchType::Attribute)
 	{
 		DotValue->Capture(TypedFilterFactory->Descriptor.DotComparisonSettings.DotAttribute);
 		DotValue->Grab(*PointIO, false);
@@ -103,7 +103,7 @@ FString UPCGExDotFilterProviderSettings::GetDisplayName() const
 {
 	FString DisplayName = Descriptor.OperandA.GetName().ToString() + " . ";
 
-	if (Descriptor.CompareAgainst == EPCGExOperandType::Attribute) { DisplayName += Descriptor.OperandB.GetName().ToString(); }
+	if (Descriptor.CompareAgainst == EPCGExFetchType::Attribute) { DisplayName += Descriptor.OperandB.GetName().ToString(); }
 	else { DisplayName += " (Constant)"; }
 
 	return DisplayName;

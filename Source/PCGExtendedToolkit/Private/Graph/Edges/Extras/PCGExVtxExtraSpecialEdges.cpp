@@ -21,9 +21,9 @@ void UPCGExVtxExtraSpecialEdges::CopySettingsFrom(const UPCGExOperation* Other)
 	}
 }
 
-bool UPCGExVtxExtraSpecialEdges::PrepareForCluster(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster)
+bool UPCGExVtxExtraSpecialEdges::PrepareForVtx(const FPCGContext* InContext, PCGExData::FPointIO* InVtx)
 {
-	if (!Super::PrepareForCluster(InContext, InCluster)) { return false; }
+	if (!Super::PrepareForVtx(InContext, InVtx)) { return false; }
 
 	if (!Descriptor.ShortestEdge.Validate(InContext) ||
 		!Descriptor.LongestEdge.Validate(InContext) ||
@@ -33,14 +33,14 @@ bool UPCGExVtxExtraSpecialEdges::PrepareForCluster(const FPCGContext* InContext,
 		return false;
 	}
 
-	Descriptor.ShortestEdge.Init(Cluster);
-	Descriptor.LongestEdge.Init(Cluster);
-	Descriptor.LongestEdge.Init(Cluster);
+	Descriptor.ShortestEdge.Init(InVtx);
+	Descriptor.LongestEdge.Init(InVtx);
+	Descriptor.AverageEdge.Init(InVtx);
 
 	return bIsValidOperation;
 }
 
-void UPCGExVtxExtraSpecialEdges::ProcessNode(PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency)
+void UPCGExVtxExtraSpecialEdges::ProcessNode(const PCGExCluster::FCluster* Cluster, PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency)
 {
 	double LLongest = TNumericLimits<double>::Min();
 	int32 ILongest = -1;
@@ -74,9 +74,13 @@ void UPCGExVtxExtraSpecialEdges::ProcessNode(PCGExCluster::FNode& Node, const TA
 	LAverage /= Adjacency.Num();
 	VAverage /= Adjacency.Num();
 
-	Descriptor.AverageEdge.Set(Node.PointIndex, LAverage, VAverage, -1, -1);
-	if (ILongest != -1) { Descriptor.LongestEdge.Set(Node.PointIndex, Adjacency[IShortest]); }
-	if (IShortest != -1) { Descriptor.ShortestEdge.Set(Node.PointIndex, Adjacency[ILongest]); }
+	Descriptor.AverageEdge.Set(Node.PointIndex, LAverage, VAverage);
+
+	if (ILongest != -1) { Descriptor.LongestEdge.Set(Node.PointIndex, Adjacency[IShortest], Cluster->Nodes[Adjacency[IShortest].NodeIndex].Adjacency.Num()); }
+	else { Descriptor.LongestEdge.Set(Node.PointIndex, 0, FVector::ZeroVector, -1, -1, 0); }
+
+	if (IShortest != -1) { Descriptor.ShortestEdge.Set(Node.PointIndex, Adjacency[ILongest], Cluster->Nodes[Adjacency[ILongest].NodeIndex].Adjacency.Num()); }
+	else { Descriptor.ShortestEdge.Set(Node.PointIndex, 0, FVector::ZeroVector, -1, -1, 0); }
 }
 
 void UPCGExVtxExtraSpecialEdges::Write()
@@ -87,12 +91,12 @@ void UPCGExVtxExtraSpecialEdges::Write()
 	Descriptor.AverageEdge.Write();
 }
 
-void UPCGExVtxExtraSpecialEdges::Write(const TArrayView<int32> Indices)
+void UPCGExVtxExtraSpecialEdges::Write(FPCGExAsyncManager* AsyncManager)
 {
-	Super::Write(Indices);
-	Descriptor.ShortestEdge.Write(Indices);
-	Descriptor.LongestEdge.Write(Indices);
-	Descriptor.AverageEdge.Write(Indices);
+	Super::Write(AsyncManager);
+	Descriptor.ShortestEdge.Write(AsyncManager);
+	Descriptor.LongestEdge.Write(AsyncManager);
+	Descriptor.AverageEdge.Write(AsyncManager);
 }
 
 void UPCGExVtxExtraSpecialEdges::Cleanup()

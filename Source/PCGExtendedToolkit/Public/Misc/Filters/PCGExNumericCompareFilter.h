@@ -23,7 +23,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExNumericCompareFilterDescriptor
 	{
 	}
 
-	/** Operand A for testing -- Will be broadcasted to `double` under the hood. */
+	/** Operand A for testing -- Will be translated to `double` under the hood. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
 	FPCGAttributePropertyInputSelector OperandA;
 
@@ -33,14 +33,14 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExNumericCompareFilterDescriptor
 
 	/** Type of OperandB */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable))
-	EPCGExOperandType CompareAgainst = EPCGExOperandType::Attribute;
+	EPCGExFetchType CompareAgainst = EPCGExFetchType::Attribute;
 
-	/** Operand B for testing -- Will be broadcasted to `double` under the hood. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="CompareAgainst==EPCGExOperandType::Attribute", EditConditionHides))
+	/** Operand B for testing -- Will be translated to `double` under the hood. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="CompareAgainst==EPCGExFetchType::Attribute", EditConditionHides))
 	FPCGAttributePropertyInputSelector OperandB;
 
-	/** Operand B for testing -- Will be broadcasted to `double` under the hood. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="CompareAgainst==EPCGExOperandType::Constant", EditConditionHides))
+	/** Operand B for testing -- Will be translated to `double` under the hood. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(PCG_Overridable, EditCondition="CompareAgainst==EPCGExFetchType::Constant", EditConditionHides))
 	double OperandBConstant = 0;
 
 	/** Rounding mode for relative measures */

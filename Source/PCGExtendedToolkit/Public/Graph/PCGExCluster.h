@@ -216,6 +216,8 @@ namespace PCGExCluster
 		void ComputeEdgeLengths(bool bNormalize = false);
 
 		void GetNodePointIndices(TArray<int32>& OutIndices);
+		void GetNodePointScopes(TArray<uint64>& OutScopes);
+		
 		FORCEINLINE void GetConnectedNodes(const int32 FromIndex, TArray<int32>& OutIndices, const int32 SearchDepth) const;
 		FORCEINLINE void GetConnectedNodes(const int32 FromIndex, TArray<int32>& OutIndices, const int32 SearchDepth, const TSet<int32>& Skip) const;
 

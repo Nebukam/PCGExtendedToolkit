@@ -50,6 +50,14 @@ void UPCGExOperation::Write(const TArrayView<int32> Indices)
 {
 }
 
+void UPCGExOperation::Write(const uint64 Scope)
+{
+}
+
+void UPCGExOperation::Write(FPCGExAsyncManager* AsyncManager)
+{
+}
+
 void UPCGExOperation::BeginDestroy()
 {
 	Cleanup();

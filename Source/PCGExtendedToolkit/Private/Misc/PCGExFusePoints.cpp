@@ -3,6 +3,7 @@
 
 #include "Misc/PCGExFusePoints.h"
 
+#include "MeshUtilitiesCommon.h"
 #include "Data/Blending/PCGExCompoundBlender.h"
 #include "Graph/PCGExGraph.h"
 #include "Graph/PCGExIntersections.h"
@@ -83,10 +84,18 @@ namespace PCGExFusePoints
 
 		PointIO->CreateInKeys();
 
-		CompoundGraph = new PCGExGraph::FCompoundGraph(Settings->PointPointIntersectionSettings.FuseSettings, PointIO->GetIn()->GetBounds().ExpandBy(10));
+		CompoundGraph = new PCGExGraph::FCompoundGraph(
+			Settings->PointPointIntersectionSettings.FuseSettings,
+			PointIO->GetIn()->GetBounds().ExpandBy(10), true,
+			Settings->PointPointIntersectionSettings.Precision == EPCGExFusePrecision::Fast);
 		AsyncManagerPtr->Start<PCGExGraphTask::FCompoundGraphInsertPoints>(PointIO->IOIndex, PointIO, CompoundGraph);
 
-		StartParallelLoopForPoints(PCGExData::ESource::In);
+		if (CompoundGraph->bFastMode) { StartParallelLoopForPoints(PCGExData::ESource::In); }
+		else
+		{
+			const TArray<FPCGPoint>& Points = PointIO->GetIn()->GetPoints();
+			for (int i = 0; i < Points.Num(); i++) { CompoundGraph->GetOrCreateNode(Points[i], PointIO->IOIndex, i); }
+		}
 
 		return true;
 	}

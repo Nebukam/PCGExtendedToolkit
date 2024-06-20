@@ -21,7 +21,7 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExMeanFilterDescriptor
 	{
 	}
 
-	/** Target value to compile -- Will be broadcasted to `double` under the hood. */
+	/** Target value to compile -- Will be translated to `double` under the hood. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = Settings, meta=(ShowOnlyInnerProperties))
 	FPCGAttributePropertyInputSelector Target;
 

@@ -24,7 +24,7 @@ void PCGExPointsFilter::TNumericComparisonFilter::Capture(const FPCGContext* InC
 		return;
 	}
 
-	if (TypedFilterFactory->Descriptor.CompareAgainst == EPCGExOperandType::Attribute)
+	if (TypedFilterFactory->Descriptor.CompareAgainst == EPCGExFetchType::Attribute)
 	{
 		OperandB = new PCGEx::FLocalSingleFieldGetter();
 		OperandB->Capture(TypedFilterFactory->Descriptor.OperandB);
@@ -42,7 +42,7 @@ void PCGExPointsFilter::TNumericComparisonFilter::Capture(const FPCGContext* InC
 bool PCGExPointsFilter::TNumericComparisonFilter::Test(const int32 PointIndex) const
 {
 	const double A = OperandA->Values[PointIndex];
-	const double B = TypedFilterFactory->Descriptor.CompareAgainst == EPCGExOperandType::Attribute ? OperandB->Values[PointIndex] : TypedFilterFactory->Descriptor.OperandBConstant;
+	const double B = TypedFilterFactory->Descriptor.CompareAgainst == EPCGExFetchType::Attribute ? OperandB->Values[PointIndex] : TypedFilterFactory->Descriptor.OperandBConstant;
 	return PCGExCompare::Compare(TypedFilterFactory->Descriptor.Comparison, A, B, TypedFilterFactory->Descriptor.Tolerance);
 }
 
@@ -60,7 +60,7 @@ FString UPCGExNumericCompareFilterProviderSettings::GetDisplayName() const
 {
 	FString DisplayName = Descriptor.OperandA.GetName().ToString() + PCGExCompare::ToString(Descriptor.Comparison);
 
-	if (Descriptor.CompareAgainst == EPCGExOperandType::Attribute) { DisplayName += Descriptor.OperandB.GetName().ToString(); }
+	if (Descriptor.CompareAgainst == EPCGExFetchType::Attribute) { DisplayName += Descriptor.OperandB.GetName().ToString(); }
 	else { DisplayName += FString::Printf(TEXT("%.3f"), (static_cast<int32>(1000 * Descriptor.OperandBConstant) / 1000.0)); }
 
 	return DisplayName;

@@ -71,3 +71,20 @@ protected:
 	virtual bool Boot(FPCGContext* InContext) const override;
 	virtual bool ExecuteInternal(FPCGContext* Context) const override;
 };
+
+namespace PCGExCherryPickPoints
+{
+	class FProcessor final : public PCGExPointsMT::FPointsProcessor
+	{
+		TArray<int32> PickedIndices;
+	public:
+		explicit FProcessor(PCGExData::FPointIO* InPoints)
+			: FPointsProcessor(InPoints)
+		{
+		}
+
+		virtual bool Process(FPCGExAsyncManager* AsyncManager) override;
+		virtual void CompleteWork() override;
+	};
+}
+

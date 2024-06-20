@@ -116,7 +116,7 @@ namespace PCGExWriteEdgeExtras
 
 			SolidificationLerpGetter = new PCGEx::FLocalSingleFieldGetter();
 
-			if (Settings->SolidificationLerpOperand == EPCGExOperandType::Attribute)
+			if (Settings->SolidificationLerpOperand == EPCGExFetchType::Attribute)
 			{
 				SolidificationLerpGetter->Capture(Settings->SolidificationLerpAttribute);
 				if (!SolidificationLerpGetter->Grab(*EdgesIO))

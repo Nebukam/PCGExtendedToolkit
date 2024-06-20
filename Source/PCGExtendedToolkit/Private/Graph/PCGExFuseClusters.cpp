@@ -60,7 +60,11 @@ bool FPCGExFuseClustersElement::Boot(FPCGContext* InContext) const
 	}
 
 	Context->CompoundPoints = new PCGExData::FPointIO(PCGExGraph::OutputVerticesLabel, PCGExData::EInit::NewOutput);
-	Context->CompoundGraph = new PCGExGraph::FCompoundGraph(Settings->PointPointIntersectionSettings.FuseSettings, Context->MainPoints->GetInBounds().ExpandBy(10));
+	Context->CompoundGraph = new PCGExGraph::FCompoundGraph(
+			Settings->PointPointIntersectionSettings.FuseSettings,
+			Context->MainPoints->GetInBounds().ExpandBy(10), true,
+			Settings->PointPointIntersectionSettings.Precision == EPCGExFusePrecision::Fast
+		);
 
 	Context->CompoundPointsBlender = new PCGExDataBlending::FCompoundBlender(&Settings->DefaultPointsBlendingSettings);
 	Context->CompoundPointsBlender->AddSources(*Context->MainPoints);
@@ -84,8 +88,9 @@ bool FPCGExFuseClustersElement::ExecuteInternal(FPCGContext* InContext) const
 			[](PCGExData::FPointIOTaggedEntries* Entries) { return true; },
 			[&](PCGExClusterMT::TBatch<PCGExFuseClusters::FProcessor>* NewBatch)
 			{
+				NewBatch->bInlineProcessing = !Context->CompoundGraph->bFastMode;
 			},
-			PCGExMT::State_ProcessingPoints))
+			PCGExMT::State_ProcessingPoints, !Context->CompoundGraph->bFastMode))
 		{
 			PCGE_LOG(Warning, GraphAndLog, FTEXT("Could not build any clusters."));
 			return true;

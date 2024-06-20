@@ -22,7 +22,7 @@ void PCGExPointsFilter::TStringCompareFilter::Capture(const FPCGContext* InConte
 		return;
 	}
 
-	if (TypedFilterFactory->Descriptor.CompareAgainst == EPCGExOperandType::Attribute)
+	if (TypedFilterFactory->Descriptor.CompareAgainst == EPCGExFetchType::Attribute)
 	{
 		OperandB = new PCGEx::TFAttributeReader<FString>(TypedFilterFactory->Descriptor.OperandB.GetName());
 		bValid = OperandB->Bind(*const_cast<PCGExData::FPointIO*>(PointIO));
@@ -38,7 +38,7 @@ void PCGExPointsFilter::TStringCompareFilter::Capture(const FPCGContext* InConte
 bool PCGExPointsFilter::TStringCompareFilter::Test(const int32 PointIndex) const
 {
 	const FString A = OperandA->Values[PointIndex];
-	const FString B = TypedFilterFactory->Descriptor.CompareAgainst == EPCGExOperandType::Attribute ? OperandB->Values[PointIndex] : TypedFilterFactory->Descriptor.OperandBConstant;
+	const FString B = TypedFilterFactory->Descriptor.CompareAgainst == EPCGExFetchType::Attribute ? OperandB->Values[PointIndex] : TypedFilterFactory->Descriptor.OperandBConstant;
 
 	switch (TypedFilterFactory->Descriptor.Comparison)
 	{

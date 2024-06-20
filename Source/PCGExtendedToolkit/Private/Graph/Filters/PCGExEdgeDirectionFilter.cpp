@@ -1,28 +1,28 @@
 ﻿// Copyright Timothé Lapetite 2024
 // Released under the MIT license https://opensource.org/license/MIT/
 
-#include "Graph/Filters/PCGExAdjacencyFilter.h"
+#include "Graph/Filters/PCGExEdgeDirectionFilter.h"
 
 #include "Graph/PCGExGraph.h"
 
-#define LOCTEXT_NAMESPACE "PCGExNodeAdjacencyFilter"
-#define PCGEX_NAMESPACE NodeAdjacencyFilter
+#define LOCTEXT_NAMESPACE "PCGExNodeEdgeDirectionFilter"
+#define PCGEX_NAMESPACE NodeEdgeDirectionFilter
 
-PCGExDataFilter::TFilter* UPCGExAdjacencyFilterFactory::CreateFilter() const
+PCGExDataFilter::TFilter* UPCGExEdgeDirectionFilterFactory::CreateFilter() const
 {
-	return new PCGExNodeAdjacency::TAdjacencyFilter(this);
+	return new PCGExNodeAdjacency::TEdgeDirectionFilter(this);
 }
 
 namespace PCGExNodeAdjacency
 {
-	PCGExDataFilter::EType TAdjacencyFilter::GetFilterType() const { return PCGExDataFilter::EType::Cluster; }
+	PCGExDataFilter::EType TEdgeDirectionFilter::GetFilterType() const { return PCGExDataFilter::EType::Cluster; }
 
-	void TAdjacencyFilter::Capture(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO)
+	void TEdgeDirectionFilter::Capture(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO)
 	{
 		TFilter::Capture(InContext, PointIO);
 
-		bUseAbsoluteMeasure = !TypedFilterFactory->Descriptor.Adjacency.IsRelativeMeasure();
-		bUseLocalMeasure = TypedFilterFactory->Descriptor.Adjacency.IsLocalMeasure();
+		bUseAbsoluteMeasure = TypedFilterFactory->Descriptor.SubsetMeasure == EPCGExMeanMeasure::Absolute;
+		bUseLocalMeasure = TypedFilterFactory->Descriptor.SubsetSource == EPCGExFetchType::Attribute;
 
 		if (TypedFilterFactory->Descriptor.CompareAgainst == EPCGExFetchType::Attribute)
 		{
@@ -43,14 +43,14 @@ namespace PCGExNodeAdjacency
 		if (bUseLocalMeasure)
 		{
 			LocalMeasure = new PCGEx::FLocalSingleFieldGetter();
-			LocalMeasure->Capture(TypedFilterFactory->Descriptor.Adjacency.LocalMeasure);
+			LocalMeasure->Capture(TypedFilterFactory->Descriptor.LocalMeasure);
 			LocalMeasure->Grab(*PointIO, false);
 
 			bValid = LocalMeasure->IsUsable(PointIO->GetNum());
 
 			if (!bValid)
 			{
-				PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Local Measure attribute: {0}."), FText::FromName(TypedFilterFactory->Descriptor.Adjacency.LocalMeasure.GetName())));
+				PCGE_LOG_C(Error, GraphAndLog, InContext, FText::Format(FTEXT("Invalid Local Measure attribute: {0}."), FText::FromName(TypedFilterFactory->Descriptor.LocalMeasure.GetName())));
 				PCGEX_DELETE(OperandA)
 				return;
 			}
@@ -70,7 +70,7 @@ namespace PCGExNodeAdjacency
 		}
 	}
 
-	void TAdjacencyFilter::CaptureEdges(const FPCGContext* InContext, const PCGExData::FPointIO* EdgeIO)
+	void TEdgeDirectionFilter::CaptureEdges(const FPCGContext* InContext, const PCGExData::FPointIO* EdgeIO)
 	{
 		if (TypedFilterFactory->Descriptor.OperandBSource != EPCGExGraphValueSource::Edge) { return; }
 
@@ -86,11 +86,11 @@ namespace PCGExNodeAdjacency
 		}
 	}
 
-	bool TAdjacencyFilter::PrepareForTesting(const PCGExData::FPointIO* PointIO)
+	bool TEdgeDirectionFilter::PrepareForTesting(const PCGExData::FPointIO* PointIO)
 	{
 		TClusterFilter::PrepareForTesting(PointIO);
 
-		if (TypedFilterFactory->Descriptor.Adjacency.Mode == EPCGExAdjacencyTestMode::Some)
+		if (TypedFilterFactory->Descriptor.Mode == EPCGExAdjacencyTestMode::Some)
 		{
 			const int32 NumNodes = CapturedCluster->Nodes.Num();
 			CachedMeasure.SetNumUninitialized(NumNodes);
@@ -114,14 +114,14 @@ namespace PCGExNodeAdjacency
 			{
 				if (bUseAbsoluteMeasure)
 				{
-					for (int i = 0; i < NumNodes; i++) { CachedMeasure[i] = TypedFilterFactory->Descriptor.Adjacency.ConstantMeasure; }
+					for (int i = 0; i < NumNodes; i++) { CachedMeasure[i] = TypedFilterFactory->Descriptor.ConstantMeasure; }
 				}
 				else
 				{
 					for (int i = 0; i < NumNodes; i++)
 					{
 						const PCGExCluster::FNode& Node = CapturedCluster->Nodes[i];
-						CachedMeasure[i] = TypedFilterFactory->Descriptor.Adjacency.ConstantMeasure * Node.Adjacency.Num();
+						CachedMeasure[i] = TypedFilterFactory->Descriptor.ConstantMeasure * Node.Adjacency.Num();
 					}
 				}
 			}
@@ -130,13 +130,13 @@ namespace PCGExNodeAdjacency
 		return false;
 	}
 
-	bool TAdjacencyFilter::Test(const int32 PointIndex) const
+	bool TEdgeDirectionFilter::Test(const int32 PointIndex) const
 	{
 		const PCGExCluster::FNode& Node = CapturedCluster->Nodes[PointIndex];
 		const double A = OperandA->Values[Node.PointIndex];
 		double B = 0;
 
-		if (TypedFilterFactory->Descriptor.Adjacency.Mode == EPCGExAdjacencyTestMode::All)
+		if (TypedFilterFactory->Descriptor.Mode == EPCGExAdjacencyTestMode::All)
 		{
 			for (const uint64 AdjacencyHash : Node.Adjacency)
 			{
@@ -150,12 +150,12 @@ namespace PCGExNodeAdjacency
 
 		const double MeasureReference = CachedMeasure[PointIndex];
 
-		if (TypedFilterFactory->Descriptor.Adjacency.SubsetMode == EPCGExAdjacencySubsetMode::AtLeast && bUseAbsoluteMeasure)
+		if (TypedFilterFactory->Descriptor.SubsetMode == EPCGExAdjacencySubsetMode::AtLeast && bUseAbsoluteMeasure)
 		{
 			if (Node.Adjacency.Num() < MeasureReference) { return false; } // Early exit, not enough neighbors.
 		}
 
-		if (TypedFilterFactory->Descriptor.Adjacency.Consolidation == EPCGExAdjacencyGatherMode::Individual)
+		if (TypedFilterFactory->Descriptor.Consolidation == EPCGExAdjacencyGatherMode::Individual)
 		{
 			double LocalSuccessCount = 0;
 			for (const uint64 AdjacencyHash : Node.Adjacency)
@@ -167,7 +167,7 @@ namespace PCGExNodeAdjacency
 
 			if (!bUseAbsoluteMeasure) { LocalSuccessCount /= static_cast<double>(Node.Adjacency.Num()); }
 
-			switch (TypedFilterFactory->Descriptor.Adjacency.SubsetMode)
+			switch (TypedFilterFactory->Descriptor.SubsetMode)
 			{
 			case EPCGExAdjacencySubsetMode::AtLeast:
 				return LocalSuccessCount >= MeasureReference;
@@ -179,7 +179,7 @@ namespace PCGExNodeAdjacency
 			}
 		}
 
-		switch (TypedFilterFactory->Descriptor.Adjacency.Consolidation)
+		switch (TypedFilterFactory->Descriptor.Consolidation)
 		{
 		case EPCGExAdjacencyGatherMode::Average:
 			for (const uint64 AdjacencyHash : Node.Adjacency) { B += OperandB->Values[CapturedCluster->Nodes[PCGEx::H64A(AdjacencyHash)].PointIndex]; }
@@ -203,17 +203,17 @@ namespace PCGExNodeAdjacency
 	}
 }
 
-PCGEX_CREATE_FILTER_FACTORY(Adjacency)
+PCGEX_CREATE_FILTER_FACTORY(EdgeDirection)
 
 #if WITH_EDITOR
-FString UPCGExAdjacencyFilterProviderSettings::GetDisplayName() const
+FString UPCGExEdgeDirectionFilterProviderSettings::GetDisplayName() const
 {
 	FString DisplayName = Descriptor.OperandA.GetName().ToString() + PCGExCompare::ToString(Descriptor.Comparison);
 
 	DisplayName += Descriptor.OperandB.GetName().ToString();
 	DisplayName += TEXT(" (");
 
-	switch (Descriptor.Adjacency.Mode)
+	switch (Descriptor.Mode)
 	{
 	case EPCGExAdjacencyTestMode::All:
 		DisplayName += TEXT("All");

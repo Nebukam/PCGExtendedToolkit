@@ -20,7 +20,7 @@ namespace PCGExNodeNeighborsCount
 	{
 		TFilter::Capture(InContext, PointIO);
 
-		if (TypedFilterFactory->Descriptor.CompareAgainst == EPCGExOperandType::Attribute)
+		if (TypedFilterFactory->Descriptor.CompareAgainst == EPCGExFetchType::Attribute)
 		{
 			LocalCount = new PCGEx::FLocalSingleFieldGetter();
 			LocalCount->Capture(TypedFilterFactory->Descriptor.LocalCount);
@@ -56,7 +56,7 @@ FString UPCGExNeighborsCountFilterProviderSettings::GetDisplayName() const
 {
 	FString DisplayName = "Neighbors Count" + PCGExCompare::ToString(Descriptor.Comparison);
 
-	if (Descriptor.CompareAgainst == EPCGExOperandType::Constant) { DisplayName += FString::Printf(TEXT("%d"), Descriptor.Count); }
+	if (Descriptor.CompareAgainst == EPCGExFetchType::Constant) { DisplayName += FString::Printf(TEXT("%d"), Descriptor.Count); }
 	else { DisplayName += Descriptor.LocalCount.GetName().ToString(); }
 
 	return DisplayName;

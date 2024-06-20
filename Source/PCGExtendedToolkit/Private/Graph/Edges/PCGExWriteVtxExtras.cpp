@@ -80,9 +80,7 @@ namespace PCGExWriteVtxExtras
 	FProcessor::~FProcessor()
 	{
 		PCGEX_DELETE(ProjectedCluster)
-
-		for (UPCGExVtxExtraOperation* Op : ExtraOperations) { PCGEX_DELETE_OPERATION(Op) }
-		ExtraOperations.Empty();
+		ExtraOperations->Empty();
 	}
 
 	bool FProcessor::Process(FPCGExAsyncManager* AsyncManager)
@@ -91,18 +89,6 @@ namespace PCGExWriteVtxExtras
 
 		if (!FClusterProcessor::Process(AsyncManager)) { return false; }
 
-		for (const UPCGExVtxExtraFactoryBase* Factory : TypedContext->ExtraFactories)
-		{
-			UPCGExVtxExtraOperation* NewOperation = Factory->CreateOperation();
-			if (!NewOperation->PrepareForCluster(Context, Cluster))
-			{
-				PCGEX_DELETE_OPERATION(NewOperation)
-				continue;
-			}
-
-			ExtraOperations.Add(NewOperation);
-		}
-
 		if (VtxNormalWriter)
 		{
 			ProjectedCluster = new PCGExCluster::FClusterProjection(Cluster, ProjectionSettings);
@@ -110,8 +96,6 @@ namespace PCGExWriteVtxExtras
 		}
 
 		if (VtxNormalWriter || VtxEdgeCountWriter) { StartParallelLoopForNodes(); }
-
-		if (!Cluster->bIsOneToOne) { Cluster->GetNodePointIndices(NodePointIndices); }
 
 		StartParallelLoopForNodes();
 
@@ -129,25 +113,12 @@ namespace PCGExWriteVtxExtras
 
 		if (VtxEdgeCountWriter) { VtxEdgeCountWriter->Values[Node.PointIndex] = Node.Adjacency.Num(); }
 
-		if (ExtraOperations.IsEmpty()) { return; }
-
+		if (ExtraOperations->IsEmpty()) { return; }
 
 		TArray<PCGExCluster::FAdjacencyData> Adjacency;
 		GetAdjacencyData(Cluster, Node, Adjacency);
 
-		for (UPCGExVtxExtraOperation* Op : ExtraOperations) { Op->ProcessNode(Node, Adjacency); }
-	}
-
-	void FProcessor::ProcessRange(const int32 StartIndex, const int32 Iterations)
-	{
-		//FClusterProcessor::ProcessRange(StartIndex, Iterations);
-		for (UPCGExVtxExtraOperation* Op : ExtraOperations) { Op->Write(MakeArrayView(NodePointIndices.GetData() + StartIndex, Iterations)); }
-	}
-
-	void FProcessor::CompleteWork()
-	{
-		if (Cluster->bIsOneToOne) { for (UPCGExVtxExtraOperation* Op : ExtraOperations) { Op->Write(); } }
-		else { StartParallelLoopForRange(NodePointIndices.Num()); }
+		for (UPCGExVtxExtraOperation* Op : (*ExtraOperations)) { Op->ProcessNode(Cluster, Node, Adjacency); }
 	}
 
 	//////// BATCH
@@ -161,6 +132,8 @@ namespace PCGExWriteVtxExtras
 	{
 		PCGEX_SETTINGS(WriteVtxExtras)
 		PCGEX_FOREACH_FIELD_VTXEXTRAS(PCGEX_OUTPUT_DELETE)
+		for (UPCGExVtxExtraOperation* Op : ExtraOperations) { PCGEX_DELETE_OPERATION(Op) }
+
 		ProjectionSettings.Cleanup();
 	}
 
@@ -177,6 +150,19 @@ namespace PCGExWriteVtxExtras
 
 		ProjectionSettings = Settings->ProjectionSettings;
 		ProjectionSettings.Init(VtxIO);
+
+		for (const UPCGExVtxExtraFactoryBase* Factory : TypedContext->ExtraFactories)
+		{
+			UPCGExVtxExtraOperation* NewOperation = Factory->CreateOperation();
+			if (!NewOperation->PrepareForVtx(Context, VtxIO))
+			{
+				PCGEX_DELETE_OPERATION(NewOperation)
+				continue;
+			}
+
+			ExtraOperations.Add(NewOperation);
+		}
+
 		return true;
 	}
 
@@ -185,6 +171,7 @@ namespace PCGExWriteVtxExtras
 		PCGEX_SETTINGS(WriteVtxExtras)
 
 		ClusterProcessor->ProjectionSettings = &ProjectionSettings;
+		ClusterProcessor->ExtraOperations = &ExtraOperations;
 
 #define PCGEX_FWD_VTX(_NAME, _TYPE) ClusterProcessor->_NAME##Writer = _NAME##Writer;
 		PCGEX_FOREACH_FIELD_VTXEXTRAS(PCGEX_FWD_VTX)
@@ -197,6 +184,8 @@ namespace PCGExWriteVtxExtras
 	{
 		TBatch<FProcessor>::CompleteWork();
 		PCGEX_FOREACH_FIELD_VTXEXTRAS(PCGEX_OUTPUT_WRITE)
+
+		for (UPCGExVtxExtraOperation* Op : ExtraOperations) { Op->Write(AsyncManagerPtr); }
 	}
 }
 

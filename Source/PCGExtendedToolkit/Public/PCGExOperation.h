@@ -10,6 +10,7 @@
 
 #define PCGEX_OVERRIDE_OP_PROPERTY(_ACCESSOR, _NAME, _TYPE) _ACCESSOR = this->GetOverrideValue(_NAME, _ACCESSOR, _TYPE);
 
+class FPCGExAsyncManager;
 class FPCGMetadataAttributeBase;
 /**
  * 
@@ -29,6 +30,8 @@ public:
 	virtual void Cleanup();
 	virtual void Write();
 	virtual void Write(const TArrayView<int32> Indices);
+	virtual void Write(const uint64 Scope);
+	virtual void Write(FPCGExAsyncManager* AsyncManager);
 
 	virtual void CopySettingsFrom(const UPCGExOperation* Other);
 
