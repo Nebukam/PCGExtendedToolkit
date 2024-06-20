@@ -65,7 +65,7 @@ namespace PCGExDataFilter
 		}
 
 		const PCGExData::FPointIO* FilteredIO = nullptr;
-		
+
 		bool bCacheResults = true;
 		const UPCGExFilterFactoryBase* Factory;
 		TArray<bool> Results;

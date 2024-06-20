@@ -10,8 +10,8 @@ PCGExDataFilter::TFilter* UPCGExMeanFilterFactory::CreateFilter() const
 
 void PCGExPointsFilter::TMeanFilter::Capture(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO)
 {
-	PCGExDataFilter::TFilter::Capture(InContext, PointIO);
-	
+	TFilter::Capture(InContext, PointIO);
+
 	Target = new PCGEx::FLocalSingleFieldGetter();
 
 	Target->Capture(TypedFilterFactory->Target);

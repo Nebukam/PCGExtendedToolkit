@@ -78,10 +78,16 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExSimpleEdgeOutputSettings
 		}
 	}
 
-	virtual void Write(const int32 EntryIndex, const double InLength, const FVector& InDir, const int32 EIndex, const int32 VIndex)
+	virtual void Set(const int32 EntryIndex, const double InLength, const FVector& InDir, const int32 EIndex, const int32 VIndex)
 	{
 		if (DirWriter) { DirWriter->Values[EntryIndex] = InDir; }
 		if (LengthWriter) { LengthWriter->Values[EntryIndex] = InLength; }
+	}
+
+	virtual void Set(const int32 EntryIndex, const PCGExCluster::FAdjacencyData& Data)
+	{
+		if (DirWriter) { DirWriter->Values[EntryIndex] = Data.Direction; }
+		if (LengthWriter) { LengthWriter->Values[EntryIndex] = Data.Length; }
 	}
 
 	virtual void Write() const
@@ -161,11 +167,18 @@ struct PCGEXTENDEDTOOLKIT_API FPCGExEdgeOutputWithIndexSettings : public FPCGExS
 		}
 	}
 
-	virtual void Write(const int32 EntryIndex, const double InLength, const FVector& InDir, const int32 EIndex, const int32 VIndex) override
+	virtual void Set(const int32 EntryIndex, const double InLength, const FVector& InDir, const int32 EIndex, const int32 VIndex) override
 	{
-		FPCGExSimpleEdgeOutputSettings::Write(EntryIndex, InLength, InDir, EIndex, VIndex);
+		FPCGExSimpleEdgeOutputSettings::Set(EntryIndex, InLength, InDir, EIndex, VIndex);
 		if (EIdxWriter) { EIdxWriter->Values[EntryIndex] = EIndex; }
 		if (VIdxWriter) { VIdxWriter->Values[EntryIndex] = VIndex; }
+	}
+
+	virtual void Set(const int32 EntryIndex, const PCGExCluster::FAdjacencyData& Data) override
+	{
+		FPCGExSimpleEdgeOutputSettings::Set(EntryIndex, Data);
+		if (EIdxWriter) { EIdxWriter->Values[EntryIndex] = Data.EdgeIndex; }
+		if (VIdxWriter) { VIdxWriter->Values[EntryIndex] = Data.NodePointIndex; }
 	}
 
 	virtual void Write() const override
@@ -199,8 +212,6 @@ class PCGEXTENDEDTOOLKIT_API UPCGExVtxExtraOperation : public UPCGExOperation
 	GENERATED_BODY()
 
 public:
-	FName OutputAttribute;
-
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
 
 	virtual bool PrepareForCluster(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster);

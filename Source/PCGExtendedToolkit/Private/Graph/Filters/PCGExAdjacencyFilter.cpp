@@ -19,9 +19,8 @@ namespace PCGExNodeAdjacency
 
 	void TAdjacencyFilter::Capture(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO)
 	{
+		TFilter::Capture(InContext, PointIO);
 
-		PCGExDataFilter::TFilter::Capture(InContext, PointIO);
-		
 		bUseAbsoluteMeasure = TypedFilterFactory->MeasureType == EPCGExMeanMeasure::Absolute;
 		bUseLocalMeasure = TypedFilterFactory->MeasureSource == EPCGExFetchType::Attribute;
 

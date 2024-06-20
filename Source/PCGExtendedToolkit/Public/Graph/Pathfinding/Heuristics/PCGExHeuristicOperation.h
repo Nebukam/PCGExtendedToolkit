@@ -27,7 +27,7 @@ public:
 	TObjectPtr<UCurveFloat> ScoreCurveObj;
 
 	bool bHasCustomLocalWeightMultiplier = false;
-	
+
 	virtual void PrepareForCluster(const PCGExCluster::FCluster* InCluster);
 
 	FORCEINLINE virtual double GetGlobalScore(

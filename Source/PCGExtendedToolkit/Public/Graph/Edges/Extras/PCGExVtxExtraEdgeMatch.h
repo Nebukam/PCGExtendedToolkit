@@ -46,7 +46,6 @@ public:
 protected:
 	PCGEx::TFAttributeWriter<FVector>* MatchingDirWriter = nullptr;
 	PCGEx::TFAttributeWriter<double>* MatchingLenWriter = nullptr;
-	
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")

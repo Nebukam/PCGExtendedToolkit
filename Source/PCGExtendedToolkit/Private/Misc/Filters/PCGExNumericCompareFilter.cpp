@@ -10,8 +10,8 @@ PCGExDataFilter::TFilter* UPCGExNumericCompareFilterFactory::CreateFilter() cons
 
 void PCGExPointsFilter::TNumericComparisonFilter::Capture(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO)
 {
-	PCGExDataFilter::TFilter::Capture(InContext, PointIO);
-	
+	TFilter::Capture(InContext, PointIO);
+
 	OperandA = new PCGEx::FLocalSingleFieldGetter();
 	OperandA->Capture(TypedFilterFactory->OperandA);
 	OperandA->Grab(*PointIO, false);

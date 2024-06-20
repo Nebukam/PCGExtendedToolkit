@@ -18,7 +18,7 @@ namespace PCGExNodeNeighborsCount
 
 	void TNeighborsCountFilter::Capture(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO)
 	{
-		PCGExDataFilter::TFilter::Capture(InContext, PointIO);
+		TFilter::Capture(InContext, PointIO);
 
 		if (TypedFilterFactory->CompareAgainst == EPCGExOperandType::Attribute)
 		{

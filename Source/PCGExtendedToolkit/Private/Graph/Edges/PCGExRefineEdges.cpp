@@ -130,7 +130,7 @@ namespace PCGExRefineEdges
 	}
 
 	FProcessorBatch::FProcessorBatch(FPCGContext* InContext, PCGExData::FPointIO* InVtx, const TArrayView<PCGExData::FPointIO*> InEdges)
-		: TBatchWithGraphBuilder<PCGExRefineEdges::FProcessor>(InContext, InVtx, InEdges)
+		: TBatchWithGraphBuilder<FProcessor>(InContext, InVtx, InEdges)
 	{
 	}
 

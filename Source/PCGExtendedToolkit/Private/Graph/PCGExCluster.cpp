@@ -92,7 +92,7 @@ namespace PCGExCluster
 		const int32 NumAdjacency = Adjacency.Num();
 		OutNodes.SetNumUninitialized(NumAdjacency);
 		OutEdges.SetNumUninitialized(NumAdjacency);
-		
+
 		for (int i = 0; i < NumAdjacency; i++)
 		{
 			uint32 AdjacentNode;

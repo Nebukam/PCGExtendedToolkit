@@ -19,14 +19,6 @@ void UPCGExVtxExtraOperation::CopySettingsFrom(const UPCGExOperation* Other)
 bool UPCGExVtxExtraOperation::PrepareForCluster(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster)
 {
 	Cluster = InCluster;
-
-	if (!PCGEx::IsValidName(OutputAttribute))
-	{
-		bIsValidOperation = false;
-		PCGE_LOG_C(Error, GraphAndLog, InContext, FTEXT("Invalid user-defined attribute name for " "OutputAttribute"));
-		return false;
-	};
-
 	return true;
 }
 

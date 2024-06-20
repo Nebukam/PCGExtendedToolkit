@@ -147,6 +147,8 @@ namespace PCGExWriteEdgeExtras
 		StartWeight = FMath::Clamp(Settings->EndpointsWeights, 0, 1);
 		EndWeight = 1 - StartWeight;
 
+		StartParallelLoopForEdges();
+
 		return true;
 	}
 
@@ -286,7 +288,6 @@ namespace PCGExWriteEdgeExtras
 		PCGEX_DELETE(SolidificationRadX);
 		PCGEX_DELETE(SolidificationRadY);
 		PCGEX_DELETE(SolidificationRadZ);
-
 	}
 
 	bool FProcessorBatch::PrepareProcessing()
@@ -339,7 +340,6 @@ namespace PCGExWriteEdgeExtras
 
 		return true;
 	}
-
 }
 
 #undef LOCTEXT_NAMESPACE

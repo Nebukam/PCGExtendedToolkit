@@ -44,11 +44,10 @@ public:
 
 	virtual void CopySettingsFrom(const UPCGExOperation* Other) override;
 	virtual bool PrepareForCluster(const FPCGContext* InContext, PCGExCluster::FCluster* InCluster) override;
-	virtual void ProcessNode(PCGExCluster::FNode& Node, const ::TArray<PCGExCluster::FAdjacencyData>& Adjacency) override;
+	virtual void ProcessNode(PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency) override;
 	virtual void Write() override;
 	virtual void Write(const TArrayView<int32> Indices) override;
 	virtual void Cleanup() override;
-
 };
 
 UCLASS(BlueprintType, ClassGroup = (Procedural), Category="PCGEx|Data")

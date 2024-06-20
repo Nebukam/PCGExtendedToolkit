@@ -10,7 +10,7 @@ PCGExDataFilter::TFilter* UPCGExDotFilterFactory::CreateFilter() const
 
 void PCGExPointsFilter::TDotFilter::Capture(const FPCGContext* InContext, const PCGExData::FPointIO* PointIO)
 {
-	PCGExDataFilter::TFilter::Capture(InContext, PointIO);
+	TFilter::Capture(InContext, PointIO);
 
 	OperandA = new PCGEx::FLocalVectorGetter();
 	OperandA->Capture(TypedFilterFactory->OperandA);

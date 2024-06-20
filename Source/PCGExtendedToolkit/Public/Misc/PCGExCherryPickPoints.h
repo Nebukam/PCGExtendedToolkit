@@ -34,9 +34,8 @@ protected:
 
 	//~Begin UPCGExPointsProcessorSettings interface
 public:
-
 	virtual TArray<FPCGPinProperties> InputPinProperties() const override;
-	
+
 	virtual PCGExData::EInit GetMainOutputInitMode() const override;
 	//~End UPCGExPointsProcessorSettings interface
 

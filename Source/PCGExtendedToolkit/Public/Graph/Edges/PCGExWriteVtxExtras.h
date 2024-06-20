@@ -12,8 +12,7 @@
 
 #define PCGEX_FOREACH_FIELD_VTXEXTRAS(MACRO) \
 MACRO(VtxNormal, FVector) \
-MACRO(VtxEdgeCount, int32) \
-
+MACRO(VtxEdgeCount, int32)
 class UPCGExVtxExtraOperation;
 class UPCGExVtxExtraFactoryBase;
 
@@ -28,7 +27,6 @@ class PCGEXTENDEDTOOLKIT_API UPCGExWriteVtxExtrasSettings : public UPCGExEdgesPr
 	GENERATED_BODY()
 
 public:
-	
 	//~Begin UPCGSettings interface
 #if WITH_EDITOR
 	PCGEX_NODE_INFOS(WriteVtxExtras, "Vtx : Write Extras", "Extract & write extra informations from the edges connected to the vtx.");
@@ -100,13 +98,13 @@ namespace PCGExWriteVtxExtras
 		PCGExCluster::FClusterProjection* ProjectedCluster = nullptr;
 		TArray<int32> NodePointIndices;
 		TArray<UPCGExVtxExtraOperation*> ExtraOperations;
-		
+
 	public:
 		FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges):
 			FClusterProcessor(InVtx, InEdges)
 		{
 		}
-		
+
 		virtual ~FProcessor() override;
 
 		virtual bool Process(FPCGExAsyncManager* AsyncManager) override;

@@ -36,7 +36,7 @@ bool FPCGExWriteVtxExtrasElement::Boot(FPCGContext* InContext) const
 
 	PCGEX_FOREACH_FIELD_VTXEXTRAS(PCGEX_OUTPUT_VALIDATE_NAME)
 
-	PCGExFactories::GetInputFactories(InContext, Settings->GetVtxFilterLabel(), Context->ExtraFactories, {PCGExFactories::EType::VtxExtra}, false);
+	PCGExFactories::GetInputFactories(InContext, PCGExVtxExtra::SourceExtrasLabel, Context->ExtraFactories, {PCGExFactories::EType::VtxExtra}, false);
 
 	return true;
 }
@@ -74,7 +74,6 @@ bool FPCGExWriteVtxExtrasElement::ExecuteInternal(
 
 	return Context->IsDone();
 }
-
 
 namespace PCGExWriteVtxExtras
 {
@@ -133,7 +132,7 @@ namespace PCGExWriteVtxExtras
 
 
 		TArray<PCGExCluster::FAdjacencyData> Adjacency;
-		PCGExCluster::GetAdjacencyData(Cluster, Node, Adjacency);
+		GetAdjacencyData(Cluster, Node, Adjacency);
 
 		for (UPCGExVtxExtraOperation* Op : ExtraOperations) { Op->ProcessNode(Node, Adjacency); }
 	}

@@ -42,10 +42,10 @@ bool UPCGExVtxExtraSpecialEdges::PrepareForCluster(const FPCGContext* InContext,
 
 void UPCGExVtxExtraSpecialEdges::ProcessNode(PCGExCluster::FNode& Node, const TArray<PCGExCluster::FAdjacencyData>& Adjacency)
 {
-	double LLongest = 0;
+	double LLongest = TNumericLimits<double>::Min();
 	int32 ILongest = -1;
 
-	double LShortest = 0;
+	double LShortest = TNumericLimits<double>::Max();
 	int32 IShortest = -1;
 
 	double LAverage = 0;
@@ -74,13 +74,9 @@ void UPCGExVtxExtraSpecialEdges::ProcessNode(PCGExCluster::FNode& Node, const TA
 	LAverage /= Adjacency.Num();
 	VAverage /= Adjacency.Num();
 
-	Descriptor.AverageEdge.Write(Node.PointIndex, LAverage, VAverage, -1, -1);
-
-	const PCGExCluster::FAdjacencyData& SA = Adjacency[IShortest];
-	Descriptor.ShortestEdge.Write(Node.PointIndex, SA.Length, SA.Direction, SA.EdgeIndex, Cluster->Nodes[SA.NodeIndex].PointIndex);
-
-	const PCGExCluster::FAdjacencyData& LA = Adjacency[ILongest];
-	Descriptor.ShortestEdge.Write(Node.PointIndex, LA.Length, LA.Direction, LA.EdgeIndex, Cluster->Nodes[LA.NodeIndex].PointIndex);
+	Descriptor.AverageEdge.Set(Node.PointIndex, LAverage, VAverage, -1, -1);
+	if (ILongest != -1) { Descriptor.LongestEdge.Set(Node.PointIndex, Adjacency[IShortest]); }
+	if (IShortest != -1) { Descriptor.ShortestEdge.Set(Node.PointIndex, Adjacency[ILongest]); }
 }
 
 void UPCGExVtxExtraSpecialEdges::Write()

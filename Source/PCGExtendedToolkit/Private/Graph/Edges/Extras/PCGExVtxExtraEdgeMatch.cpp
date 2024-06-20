@@ -49,15 +49,13 @@ void UPCGExVtxExtraEdgeMatch::ProcessNode(PCGExCluster::FNode& Node, const TArra
 void UPCGExVtxExtraEdgeMatch::Write()
 {
 	Super::Write();
-	if (MatchingDirWriter) { MatchingDirWriter->Write(); }
-	if (MatchingLenWriter) { MatchingLenWriter->Write(); }
+	Descriptor.MatchingEdge.Write();
 }
 
 void UPCGExVtxExtraEdgeMatch::Write(const TArrayView<int32> Indices)
 {
 	Super::Write(Indices);
-	if (MatchingDirWriter) { MatchingDirWriter->Write(Indices); }
-	if (MatchingLenWriter) { MatchingLenWriter->Write(Indices); }
+	Descriptor.MatchingEdge.Write(Indices);
 }
 
 void UPCGExVtxExtraEdgeMatch::Cleanup()

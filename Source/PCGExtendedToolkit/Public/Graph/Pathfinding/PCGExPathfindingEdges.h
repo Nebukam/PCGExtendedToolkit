@@ -180,7 +180,6 @@ namespace PCGExPathfindingEdge
 		FProcessor(PCGExData::FPointIO* InVtx, PCGExData::FPointIO* InEdges):
 			FClusterProcessor(InVtx, InEdges)
 		{
-			
 		}
 
 		virtual ~FProcessor() override;
