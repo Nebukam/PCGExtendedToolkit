@@ -35,6 +35,9 @@ bool FPCGExDiscardByPointCountElement::ExecuteInternal(FPCGContext* InContext) c
 
 	Context->MainPoints->ForEach(ProcessInput);
 	Context->OutputMainPoints();
+	Context->Done();
+	Context->ExecuteEnd();
+	
 	return true;
 }
 

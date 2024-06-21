@@ -37,14 +37,15 @@ bool FPCGExDeleteAttributesElement::ExecuteInternal(FPCGContext* InContext) cons
 
 	if (!Boot(Context)) { return true; }
 
-	TArray<FName> Names = Settings->AttributeNames.Array();
-	Context->MainPoints->ForEach(
-		[&](const PCGExData::FPointIO& PointIO, const int32 Index)
-		{
-			for (const FName& Name : Names) { PointIO.GetOut()->Metadata->DeleteAttribute(Name); }
-		});
+	while(Context->AdvancePointsIO())
+	{
+		for (const FName& Name : Settings->AttributeNames) { Context->CurrentIO->GetOut()->Metadata->DeleteAttribute(Name); }
+	}
 
 	Context->OutputMainPoints();
+	Context->Done();
+	Context->ExecuteEnd();
+	
 	return true;
 }
 

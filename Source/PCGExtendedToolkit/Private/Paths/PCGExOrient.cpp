@@ -57,6 +57,8 @@ bool FPCGExOrientElement::ExecuteInternal(FPCGContext* InContext) const
 		});
 
 	Context->OutputMainPoints();
+	Context->Done();
+	Context->ExecuteEnd();
 
 	return true;
 }
